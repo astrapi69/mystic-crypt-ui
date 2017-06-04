@@ -29,6 +29,7 @@ import java.io.IOException;
 import javax.swing.JFrame;
 
 import de.alpharogroup.layout.CloseWindow;
+import de.alpharogroup.mystic.crypt.panels.keygen.CryptographyPanel;
 
 public class CryptographyPanelTest
 {

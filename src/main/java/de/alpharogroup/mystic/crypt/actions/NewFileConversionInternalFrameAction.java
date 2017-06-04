@@ -30,25 +30,25 @@ import javax.swing.AbstractAction;
 import javax.swing.JInternalFrame;
 
 import de.alpharogroup.mystic.crypt.MainFrame;
-import de.alpharogroup.mystic.crypt.panels.keygen.GenerateKeysPanel;
+import de.alpharogroup.mystic.crypt.panels.conversion.FileConversionPanel;
 import de.alpharogroup.swing.components.factories.JComponentFactory;
 import de.alpharogroup.swing.utils.JInternalFrameExtensions;
 
 /**
- * The class {@link NewKeyGenerationInternalFrameAction}.
+ * The class {@link NewFileConversionInternalFrameAction}.
  */
-public class NewKeyGenerationInternalFrameAction extends AbstractAction {
+public class NewFileConversionInternalFrameAction extends AbstractAction {
 
 	/** The Constant serialVersionUID. */
 	private static final long serialVersionUID = 1L;
 
 	/**
-	 * Instantiates a new new action.
+	 * Instantiates a new new {@link NewFileConversionInternalFrameAction}.
 	 *
 	 * @param name
 	 *            the name
 	 */
-	public NewKeyGenerationInternalFrameAction(final String name) {
+	public NewFileConversionInternalFrameAction(final String name) {
 		super(name);
 	}
 
@@ -58,10 +58,10 @@ public class NewKeyGenerationInternalFrameAction extends AbstractAction {
 	@Override
 	public void actionPerformed(final ActionEvent e) {
 		// create internal frame
-		final JInternalFrame internalFrame = JComponentFactory.newInternalFrame("Key generation demo", true, true,
+		final JInternalFrame internalFrame = JComponentFactory.newInternalFrame("Convert *.der-file to *.pem-file", true, true,
 				true, true);
 
-		final GenerateKeysPanel component = new GenerateKeysPanel();
+		final FileConversionPanel component = new FileConversionPanel();
 		JInternalFrameExtensions.addComponentToFrame(internalFrame, component);
 		JInternalFrameExtensions.addJInternalFrame(MainFrame.getInstance().getDesktopPane(), internalFrame);
 	}

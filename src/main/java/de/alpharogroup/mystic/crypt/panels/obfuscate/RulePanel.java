@@ -33,7 +33,7 @@ import de.alpharogroup.collections.pairs.KeyValuePair;
 import de.alpharogroup.crypto.keyrules.Obfuscatable;
 import de.alpharogroup.crypto.keyrules.Obfuscator;
 import de.alpharogroup.crypto.keyrules.SimpleKeyRule;
-import de.alpharogroup.mystic.crypt.panels.EnDecryptPanel;
+import de.alpharogroup.mystic.crypt.panels.keygen.EnDecryptPanel;
 import lombok.Getter;
 import net.miginfocom.swing.MigLayout;
 

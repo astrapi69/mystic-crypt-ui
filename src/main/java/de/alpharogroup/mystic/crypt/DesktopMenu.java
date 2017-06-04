@@ -25,7 +25,6 @@
 package de.alpharogroup.mystic.crypt;
 
 import java.awt.Window;
-import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.net.URL;
 
@@ -43,6 +42,7 @@ import javax.swing.UIManager;
 import org.apache.log4j.Logger;
 
 import de.alpharogroup.lang.ClassExtensions;
+import de.alpharogroup.mystic.crypt.actions.NewFileConversionInternalFrameAction;
 import de.alpharogroup.mystic.crypt.actions.NewKeyGenerationInternalFrameAction;
 import de.alpharogroup.mystic.crypt.actions.NewObfuscationInternalFrameAction;
 import de.alpharogroup.mystic.crypt.actions.OpenBrowserToDonateAction;
@@ -102,26 +102,11 @@ public class DesktopMenu {
 	 */
 	private DesktopMenu() {
 		menubar = new JMenuBar();
-		fileMenu = newFileMenu(new ActionListener() {
-			@Override
-			public void actionPerformed(final ActionEvent e) {
-				logger.debug("filemenu");
-			}
-		});
+		fileMenu = newFileMenu(e -> logger.debug("filemenu"));
 
-		lookAndFeelMenu = createLookAndFeelMenu(new ActionListener() {
-			@Override
-			public void actionPerformed(final ActionEvent e) {
-				logger.debug("Look and Feel menu");
-			}
-		});
+		lookAndFeelMenu = createLookAndFeelMenu(e -> logger.debug("Look and Feel menu"));
 
-		helpMenu = createHelpMenu(new ActionListener() {
-			@Override
-			public void actionPerformed(final ActionEvent e) {
-				logger.debug("Help menu");
-			}
-		});
+		helpMenu = createHelpMenu(e -> logger.debug("Help menu"));
 
 		menubar.add(fileMenu);
 		menubar.add(lookAndFeelMenu);
@@ -159,6 +144,13 @@ public class DesktopMenu {
 		// Separator
 		fileMenu.addSeparator();
 
+		// Convert der to pem file
+		JMenuItem jmiConvert;
+		jmiConvert = new JMenuItem("Convert...", 'C');
+		jmiConvert.addActionListener(new NewFileConversionInternalFrameAction("Convert *.der-file to *.pem-file"));
+		MenuExtensions.setCtrlAccelerator(jmiConvert, 'C');
+		jmiConvert.setEnabled(true);
+		fileMenu.add(jmiConvert);
 		// Save
 //		JMenuItem jmiSave;
 //		jmiSave = new JMenuItem("Save", 'S');

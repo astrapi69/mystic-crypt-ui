@@ -22,7 +22,7 @@
  * OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
  * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-package de.alpharogroup.mystic.crypt.panels;
+package de.alpharogroup.mystic.crypt.panels.keygen;
 
 import java.awt.event.ActionEvent;
 
@@ -34,6 +34,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.LayoutStyle;
 
+import de.alpharogroup.mystic.crypt.behaviors.EnableButtonBehavior;
 import lombok.Getter;
 
 /**
