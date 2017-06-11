@@ -30,10 +30,15 @@ import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
 import java.security.PrivateKey;
+import java.security.PublicKey;
+import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
 import java.security.spec.InvalidKeySpecException;
 
+import javax.swing.DefaultComboBoxModel;
 import javax.swing.GroupLayout;
 import javax.swing.JButton;
+import javax.swing.JComboBox;
 import javax.swing.JFileChooser;
 import javax.swing.JLabel;
 import javax.swing.JScrollPane;
@@ -43,8 +48,13 @@ import javax.swing.LayoutStyle;
 import org.apache.log4j.Logger;
 import org.jdesktop.swingx.JXPanel;
 
+import de.alpharogroup.crypto.key.KeyType;
+import de.alpharogroup.crypto.key.reader.CertificateReader;
 import de.alpharogroup.crypto.key.reader.PrivateKeyReader;
+import de.alpharogroup.crypto.key.reader.PublicKeyReader;
+import de.alpharogroup.crypto.key.writer.CertificateWriter;
 import de.alpharogroup.crypto.key.writer.PrivateKeyWriter;
+import de.alpharogroup.crypto.key.writer.PublicKeyWriter;
 import de.alpharogroup.exception.ExceptionExtensions;
 import lombok.Getter;
 
@@ -56,17 +66,19 @@ public class FileConversionPanel extends JXPanel
 
 	private static final long serialVersionUID = 1L;
 
-	private final FileConversionModelBean model = FileConversionModelBean.builder().build();
+	private final FileConversionModelBean model = FileConversionModelBean.builder().keyType(KeyType.PRIVATE_KEY).build();
 
     private JButton btnChoose;
     private JButton btnConvert;
     private JButton btnSaveTo;
-    private JScrollPane jScrollPane1;
+    private JComboBox<String> cmbChooseType;
     private JLabel lblChoose;
+    private JLabel lblChooseType;
     private JLabel lblConsole;
     private JLabel lblSaveTo;
+    private JScrollPane srcConsole;
     private JTextArea txtConsole;
-    JFileChooser fileChooser;
+    private JFileChooser fileChooser;
 
 	public FileConversionPanel()
 	{
@@ -86,51 +98,101 @@ public class FileConversionPanel extends JXPanel
 	/**
 	 * Initialize components.
 	 */
+	@SuppressWarnings({ "rawtypes", "unchecked" })
 	protected void initializeComponents()
 	{
 		fileChooser = new JFileChooser();
+		// -----------------------------
 
-        btnChoose = new JButton();
+        lblChooseType = new JLabel();
+        cmbChooseType = new JComboBox<>();
         lblChoose = new JLabel();
+        btnChoose = new JButton();
         lblSaveTo = new JLabel();
         btnSaveTo = new JButton();
-        jScrollPane1 = new JScrollPane();
-        txtConsole = new JTextArea();
         lblConsole = new JLabel();
+        srcConsole = new JScrollPane();
+        txtConsole = new JTextArea();
         btnConvert = new JButton();
 
-        btnChoose.setText("Choose");
-        btnChoose.addActionListener(actionEvent -> onChooseFile(actionEvent));
+        lblChooseType.setText("Choose type to convert");
+
+        cmbChooseType.setModel(new DefaultComboBoxModel(KeyType.values()));
+        cmbChooseType.setSelectedItem(model.getKeyType());
+        cmbChooseType.addActionListener(actionEvent -> onChangeKeyType(actionEvent));
 
         lblChoose.setText("Choose private key in *.der format to convert");
+
+        btnChoose.setText("Choose");
 
         lblSaveTo.setText("Save to *.pem private key");
 
         btnSaveTo.setText("Save");
-        btnSaveTo.addActionListener(actionEvent -> onSaveFile(actionEvent));
-
-        txtConsole.setColumns(20);
-        txtConsole.setRows(5);
-        jScrollPane1.setViewportView(txtConsole);
 
         lblConsole.setText("Output");
 
+        txtConsole.setColumns(20);
+        txtConsole.setRows(5);
+        srcConsole.setViewportView(txtConsole);
+
         btnConvert.setText("Convert");
+
+		// -----------------------------
+
+        btnChoose.addActionListener(actionEvent -> onChooseFile(actionEvent));
+
+        btnSaveTo.addActionListener(actionEvent -> onSaveFile(actionEvent));
+
         btnConvert.addActionListener(actionEvent -> onConvert(actionEvent));
 
 	}
 
-	protected void onConvert(ActionEvent actionEvent)
+	/**
+	 * Callback method that can be overwritten to provide specific action for the on change key
+	 * size.
+	 *
+	 * @param actionEvent
+	 *            the action event
+	 */
+	@SuppressWarnings("unchecked")
+	protected void onChangeKeyType(final ActionEvent actionEvent)
+	{
+		final JComboBox<String> cb = (JComboBox<String>)actionEvent.getSource();
+		final KeyType selected = (KeyType)cb.getSelectedItem();
+		model.setKeyType(selected);
+	}
+
+	protected void onConvert(final ActionEvent actionEvent)
 	{
 		txtConsole.append("Coversion started...");
 
 		try
 		{
-			final PrivateKey privateKey = PrivateKeyReader.readPrivateKey(model.getDerFile());
-			PrivateKeyWriter.writeInPemFormat(privateKey, model.getPemFile());
-			txtConsole.append("");
+			final KeyType keyType = model.getKeyType();
+			switch (keyType)
+			{
+				case PRIVATE_KEY :
+					final PrivateKey privateKey = PrivateKeyReader.readPrivateKey(model.getDerFile());
+					PrivateKeyWriter.writeInPemFormat(privateKey, model.getPemFile());
+					txtConsole.append("private key written to file...");
+					break;
+				case CERTIFICATE :
+					final X509Certificate certificate = CertificateReader.readCertificate(model.getDerFile());
+					CertificateWriter.write(certificate, model.getPemFile());
+					txtConsole.append("X.509 certificate written to file...");
+					break;
+				case PUBLIC_KEY :
+					final PublicKey publicKey = PublicKeyReader.readPublicKey(model.getDerFile());
+					PublicKeyWriter.write(publicKey, model.getPemFile());
+					txtConsole.append("public key written to file...");
+					break;
+				default :
+					txtConsole.append("unknown key type...");
+					break;
+			}
+
 		}
-		catch (NoSuchAlgorithmException | InvalidKeySpecException | NoSuchProviderException
+		catch (NoSuchAlgorithmException | InvalidKeySpecException | NoSuchProviderException | CertificateException
 			| IOException e)
 		{
 			txtConsole.append(ExceptionExtensions.getStackTrace(e));
@@ -138,11 +200,11 @@ public class FileConversionPanel extends JXPanel
 		}
 	}
 
-	protected void onSaveFile(ActionEvent actionEvent)
+	protected void onSaveFile(final ActionEvent actionEvent)
 	{
-		int returnVal = fileChooser.showSaveDialog(FileConversionPanel.this);
+		final int returnVal = fileChooser.showSaveDialog(FileConversionPanel.this);
         if (returnVal == JFileChooser.APPROVE_OPTION) {
-            File pemFile = fileChooser.getSelectedFile();
+            final File pemFile = fileChooser.getSelectedFile();
             model.setPemFile(pemFile);
             txtConsole.append("Set pem file '" + pemFile.getName() + "' to insert output." + System.lineSeparator());
         } else {
@@ -151,13 +213,13 @@ public class FileConversionPanel extends JXPanel
         txtConsole.setCaretPosition(txtConsole.getDocument().getLength());
 	}
 
-	protected void onChooseFile(ActionEvent actionEvent)
+	protected void onChooseFile(final ActionEvent actionEvent)
 	{
-		int returnVal = fileChooser.showOpenDialog(FileConversionPanel.this);
+		final int returnVal = fileChooser.showOpenDialog(FileConversionPanel.this);
 
 		if (returnVal == JFileChooser.APPROVE_OPTION)
 		{
-			File derFile = fileChooser.getSelectedFile();
+			final File derFile = fileChooser.getSelectedFile();
             model.setDerFile(derFile);
             txtConsole.append("Set der file '" + derFile.getName() + "' to convert." + System.lineSeparator());
 		}
@@ -174,50 +236,50 @@ public class FileConversionPanel extends JXPanel
 	protected void initializeLayout()
 	{
 
-        GroupLayout layout = new GroupLayout(this);
+        final GroupLayout layout = new GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addGap(37, 37, 37)
-                .addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                .addGap(45, 45, 45)
+                .addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING, false)
+                    .addComponent(srcConsole)
                     .addGroup(layout.createSequentialGroup()
-                        .addComponent(lblConsole, GroupLayout.PREFERRED_SIZE, 149, GroupLayout.PREFERRED_SIZE)
-                        .addContainerGap(GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                    .addGroup(GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                        .addGroup(layout.createParallelGroup(GroupLayout.Alignment.TRAILING)
-                            .addGroup(layout.createSequentialGroup()
-                                .addGap(0, 0, Short.MAX_VALUE)
-                                .addComponent(btnConvert))
-                            .addComponent(jScrollPane1)
-                            .addGroup(layout.createSequentialGroup()
-                                .addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING, false)
-                                    .addComponent(lblChoose, GroupLayout.DEFAULT_SIZE, 280, Short.MAX_VALUE)
-                                    .addComponent(lblSaveTo, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED, 80, Short.MAX_VALUE)
-                                .addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING, false)
-                                    .addComponent(btnChoose, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                    .addComponent(btnSaveTo, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))
-                        .addGap(55, 55, 55))))
+                        .addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING, false)
+                            .addComponent(lblConsole, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(lblSaveTo, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(lblChoose, GroupLayout.DEFAULT_SIZE, 469, Short.MAX_VALUE)
+                            .addComponent(lblChooseType, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                        .addGap(104, 104, 104)
+                        .addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING, false)
+                            .addComponent(cmbChooseType, 0, 190, Short.MAX_VALUE)
+                            .addComponent(btnChoose, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(btnSaveTo, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(btnConvert, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))
+                .addContainerGap(59, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addGap(43, 43, 43)
+                .addGap(59, 59, 59)
+                .addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING, false)
+                    .addComponent(cmbChooseType)
+                    .addComponent(lblChooseType, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addGap(25, 25, 25)
                 .addGroup(layout.createParallelGroup(GroupLayout.Alignment.BASELINE)
-                    .addComponent(btnChoose)
-                    .addComponent(lblChoose))
-                .addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED)
+                    .addComponent(lblChoose, GroupLayout.PREFERRED_SIZE, 25, GroupLayout.PREFERRED_SIZE)
+                    .addComponent(btnChoose))
+                .addGap(30, 30, 30)
                 .addGroup(layout.createParallelGroup(GroupLayout.Alignment.BASELINE)
-                    .addComponent(lblSaveTo)
-                    .addComponent(btnSaveTo))
-                .addGap(18, 18, 18)
-                .addComponent(lblConsole)
+                    .addComponent(btnSaveTo)
+                    .addComponent(lblSaveTo, GroupLayout.PREFERRED_SIZE, 26, GroupLayout.PREFERRED_SIZE))
+                .addGap(34, 34, 34)
+                .addComponent(lblConsole, GroupLayout.PREFERRED_SIZE, 27, GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jScrollPane1, GroupLayout.PREFERRED_SIZE, 107, GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(srcConsole, GroupLayout.PREFERRED_SIZE, 244, GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED, 32, Short.MAX_VALUE)
                 .addComponent(btnConvert)
-                .addContainerGap(GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addGap(20, 20, 20))
         );
 	}
 }
