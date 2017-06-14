@@ -94,6 +94,18 @@ public class MainFrame extends JXFrame {
 
 		getContentPane().add(desktopPane);
 
+		try 
+		{
+			BufferedImage appIcon = ImageIO
+					.read(ClassExtensions.getResourceAsStream("img/mcuicon.png"));
+			setIconImage(appIcon);
+		} 
+		catch (IOException e) 
+		{
+			// TODO log error...
+			e.printStackTrace();
+		}
+
 	}
 
 }
