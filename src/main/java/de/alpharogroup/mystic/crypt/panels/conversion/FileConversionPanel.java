@@ -178,7 +178,7 @@ public class FileConversionPanel extends JXPanel
 					break;
 				case CERTIFICATE :
 					final X509Certificate certificate = CertificateReader.readCertificate(model.getDerFile());
-					CertificateWriter.write(certificate, model.getPemFile());
+					CertificateWriter.writeInPemFormat(certificate, model.getPemFile());
 					txtConsole.append("X.509 certificate written to file...");
 					break;
 				case PUBLIC_KEY :
