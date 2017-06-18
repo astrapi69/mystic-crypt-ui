@@ -305,14 +305,14 @@
 				<artifactId>maven-assembly-plugin</artifactId>
 			</plugin>
 
-			<plugin>
-				<artifactId>maven-dependency-plugin</artifactId>
-			</plugin>
+<!-- 			<plugin> -->
+<!-- 				<artifactId>maven-dependency-plugin</artifactId> -->
+<!-- 			</plugin> -->
 
-			<plugin>
-				<groupId>org.codehaus.izpack</groupId>
-				<artifactId>izpack-maven-plugin</artifactId>
-			</plugin>
+<!-- 			<plugin> -->
+<!-- 				<groupId>org.codehaus.izpack</groupId> -->
+<!-- 				<artifactId>izpack-maven-plugin</artifactId> -->
+<!-- 			</plugin> -->
 
 		</plugins>
 

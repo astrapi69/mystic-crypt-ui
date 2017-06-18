@@ -46,6 +46,7 @@ import de.alpharogroup.mystic.crypt.actions.NewFileConversionInternalFrameAction
 import de.alpharogroup.mystic.crypt.actions.NewKeyGenerationInternalFrameAction;
 import de.alpharogroup.mystic.crypt.actions.NewObfuscationInternalFrameAction;
 import de.alpharogroup.mystic.crypt.actions.OpenBrowserToDonateAction;
+import de.alpharogroup.mystic.crypt.actions.OpenPrivateKeyAction;
 import de.alpharogroup.mystic.crypt.actions.ShowHelpDialogAction;
 import de.alpharogroup.mystic.crypt.actions.ShowLicenseFrameAction;
 import de.alpharogroup.swing.actions.ExitApplicationAction;
@@ -59,7 +60,7 @@ import lombok.Setter;
 /**
  * The Class DesktopMenu.
  */
-public class DesktopMenu {
+public class DesktopMenu extends JMenu {
 
 	/** The Constant logger. */
 	private static final Logger logger = Logger.getLogger(DesktopMenu.class.getName());
@@ -126,11 +127,21 @@ public class DesktopMenu {
 		fileMenu.setMnemonic('F');
 		JMenuItem jmi;
 
+		final JMenu keyMenu = new JMenu("Key");
+		keyMenu.setMnemonic('K');
+		fileMenu.add(keyMenu);
+
 		// New key generation
 		jmi = new JMenuItem("New key generation", 'K');
 		 jmi.addActionListener(new NewKeyGenerationInternalFrameAction("New key generation"));
 		MenuExtensions.setCtrlAccelerator(jmi, 'K');
-		fileMenu.add(jmi);
+		keyMenu.add(jmi);
+
+		// Open private key
+		jmi = new JMenuItem("Open private key", 'e');
+		jmi.addActionListener(new OpenPrivateKeyAction("Open private key", MainFrame.getInstance()));
+		MenuExtensions.setCtrlAccelerator(jmi, 'e');
+		keyMenu.add(jmi);
 
 		// Separator
 		fileMenu.addSeparator();
