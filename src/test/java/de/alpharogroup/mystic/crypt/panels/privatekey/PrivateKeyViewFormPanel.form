@@ -24,15 +24,15 @@
               </Group>
               <EmptySpace min="-2" pref="33" max="-2" attributes="0"/>
               <Group type="103" groupAlignment="0" attributes="0">
-                  <Component id="lblPrivateKey" alignment="0" min="-2" pref="179" max="-2" attributes="0"/>
-                  <Component id="scpPrivateKey" alignment="0" min="-2" pref="432" max="-2" attributes="0"/>
+                  <Component id="lblPrivateKey" min="-2" pref="179" max="-2" attributes="0"/>
+                  <Component id="scpPrivateKey" min="-2" pref="480" max="-2" attributes="0"/>
               </Group>
-              <EmptySpace min="-2" pref="56" max="-2" attributes="0"/>
+              <EmptySpace pref="55" max="32767" attributes="0"/>
               <Group type="103" groupAlignment="0" attributes="0">
+                  <Component id="scpPublicKey" min="-2" pref="480" max="-2" attributes="0"/>
                   <Component id="lblPublicKey" min="-2" pref="165" max="-2" attributes="0"/>
-                  <Component id="scpPublicKey" min="-2" pref="486" max="-2" attributes="0"/>
               </Group>
-              <EmptySpace pref="60" max="32767" attributes="0"/>
+              <EmptySpace min="-2" pref="48" max="-2" attributes="0"/>
           </Group>
       </Group>
     </DimensionLayout>
@@ -48,10 +48,10 @@
               <EmptySpace type="unrelated" max="-2" attributes="0"/>
               <Group type="103" groupAlignment="0" max="-2" attributes="0">
                   <Component id="lblKeySizeDisplay" min="-2" max="-2" attributes="0"/>
-                  <Component id="scpPrivateKey" pref="306" max="32767" attributes="0"/>
-                  <Component id="scpPublicKey" max="32767" attributes="0"/>
+                  <Component id="scpPrivateKey" alignment="0" pref="520" max="32767" attributes="0"/>
+                  <Component id="scpPublicKey" alignment="0" max="32767" attributes="0"/>
               </Group>
-              <EmptySpace pref="59" max="32767" attributes="0"/>
+              <EmptySpace pref="40" max="32767" attributes="0"/>
           </Group>
       </Group>
     </DimensionLayout>
