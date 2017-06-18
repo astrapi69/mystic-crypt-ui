@@ -29,13 +29,13 @@ public class FileConversionModelBean implements Serializable
 	private static final long serialVersionUID = 1L;
 
 	/** The der file. */
-	File derFile;
+	private File derFile;
 
 	/** The pem file. */
-	File pemFile;
+	private File pemFile;
 
 	/** The key type. */
 	@Builder.Default
-	KeyType keyType = KeyType.PRIVATE_KEY;
+	private KeyType keyType = KeyType.PRIVATE_KEY;
 
 }

@@ -41,8 +41,9 @@ import javax.swing.JComboBox;
 import javax.swing.JFileChooser;
 
 import org.apache.commons.codec.DecoderException;
-import org.apache.log4j.Logger;
 import org.jdesktop.swingx.JXPanel;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import de.alpharogroup.crypto.algorithm.KeyPairGeneratorAlgorithm;
 import de.alpharogroup.crypto.factories.KeyPairFactory;
@@ -57,8 +58,8 @@ import net.miginfocom.swing.MigLayout;
 @Getter
 public class GenerateKeysPanel extends JXPanel
 {
-	/** The Constant logger. */
-	protected static final Logger logger = Logger.getLogger(GenerateKeysPanel.class.getName());
+	/** The logger. */
+	protected static final Logger logger = LoggerFactory.getLogger(GenerateKeysPanel.class.getName());
 
 	private static final long serialVersionUID = 1L;
 
