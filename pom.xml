@@ -17,6 +17,8 @@
 		<mystic-crypt.version>4.22.0-SNAPSHOT</mystic-crypt.version>
 		<full-app-name>mystic-crypt-ui</full-app-name>
 		<info.appName>mystic-crypt-ui</info.appName>
+		<main-app-package-name>de.alpharogroup.mystic.crypt</main-app-package-name>
+		<main-full-app-name>${main-app-package-name}.MainApplication</main-full-app-name>
 		<file-name-with-dependencies>${full-app-name}-jar-with-dependencies.jar</file-name-with-dependencies>
 		<file-name-with-dependencies-path>${project.build.directory}/${file-name-with-dependencies}</file-name-with-dependencies-path>
 		<dist-path>${basedir}/dist/bin</dist-path>
@@ -251,8 +253,8 @@
 					<configuration>
 						<archive>
 							<manifest>
-								<mainClass>de.alpharogroup.duplicate.files.desktoppane.MainApplication</mainClass>
-								<packageName>de.alpharogroup.duplicate.files.desktoppane</packageName>
+								<mainClass>${main-full-app-name}</mainClass>
+								<packageName>${main-app-package-name}</packageName>
 							</manifest>
 							<manifestEntries>
 								<mode>development</mode>
@@ -273,7 +275,7 @@
 						</descriptorRefs>
 						<archive>
 							<manifest>
-								<mainClass>de.alpharogroup.duplicate.files.desktoppane.MainApplication</mainClass>
+								<mainClass>${main-full-app-name}</mainClass>
 							</manifest>
 						</archive>
 					</configuration>
@@ -305,14 +307,14 @@
 				<artifactId>maven-assembly-plugin</artifactId>
 			</plugin>
 
-<!-- 			<plugin> -->
-<!-- 				<artifactId>maven-dependency-plugin</artifactId> -->
-<!-- 			</plugin> -->
+			<!-- <plugin> -->
+			<!-- <artifactId>maven-dependency-plugin</artifactId> -->
+			<!-- </plugin> -->
 
-<!-- 			<plugin> -->
-<!-- 				<groupId>org.codehaus.izpack</groupId> -->
-<!-- 				<artifactId>izpack-maven-plugin</artifactId> -->
-<!-- 			</plugin> -->
+			<!-- <plugin> -->
+			<!-- <groupId>org.codehaus.izpack</groupId> -->
+			<!-- <artifactId>izpack-maven-plugin</artifactId> -->
+			<!-- </plugin> -->
 
 		</plugins>
 
@@ -340,8 +342,8 @@
 							<configuration>
 								<archive>
 									<manifest>
-										<mainClass>de.alpharogroup.mystic.crypt.MainApplication</mainClass>
-										<packageName>de.alpharogroup.mystic.crypt</packageName>
+										<mainClass>${main-full-app-name}</mainClass>
+										<packageName>${main-app-package-name}</packageName>
 									</manifest>
 									<manifestEntries>
 										<mode>development</mode>
@@ -362,7 +364,7 @@
 								</descriptorRefs>
 								<archive>
 									<manifest>
-										<mainClass>de.alpharogroup.mystic.crypt.MainApplication</mainClass>
+										<mainClass>${main-full-app-name}</mainClass>
 									</manifest>
 								</archive>
 							</configuration>
@@ -385,7 +387,7 @@
 				</pluginManagement>
 
 				<plugins>
-				
+
 					<plugin>
 						<artifactId>maven-jar-plugin</artifactId>
 					</plugin>
@@ -540,8 +542,8 @@
 			</build>
 
 		</profile>
-		
-		
+
+
 
 		<profile>
 			<id>prepare-and-release-and-izpack</id>
@@ -563,8 +565,8 @@
 							<configuration>
 								<archive>
 									<manifest>
-										<mainClass>de.alpharogroup.mystic.crypt.MainApplication</mainClass>
-										<packageName>de.alpharogroup.mystic.crypt</packageName>
+										<mainClass>${main-full-app-name}</mainClass>
+										<packageName>${main-app-package-name}</packageName>
 									</manifest>
 									<manifestEntries>
 										<mode>development</mode>
@@ -585,7 +587,7 @@
 								</descriptorRefs>
 								<archive>
 									<manifest>
-										<mainClass>de.alpharogroup.mystic.crypt.MainApplication</mainClass>
+										<mainClass>${main-full-app-name}</mainClass>
 									</manifest>
 								</archive>
 							</configuration>
@@ -710,7 +712,7 @@
 				</pluginManagement>
 
 				<plugins>
-				
+
 					<plugin>
 						<artifactId>maven-jar-plugin</artifactId>
 					</plugin>
