@@ -19,6 +19,7 @@
 		<info.appName>mystic-crypt-ui</info.appName>
 		<main-app-package-name>de.alpharogroup.mystic.crypt</main-app-package-name>
 		<main-full-app-name>${main-app-package-name}.MainApplication</main-full-app-name>
+		<manifestFile-path>src/main/resources/META-INF/MANIFEST.MF</manifestFile-path>
 		<file-name-with-dependencies>${full-app-name}-jar-with-dependencies.jar</file-name-with-dependencies>
 		<file-name-with-dependencies-path>${project.build.directory}/${file-name-with-dependencies}</file-name-with-dependencies-path>
 		<dist-path>${basedir}/dist/bin</dist-path>
@@ -260,7 +261,7 @@
 								<mode>development</mode>
 								<url>${project.url}</url>
 							</manifestEntries>
-							<manifestFile>src/main/resources/META-INF/MANIFEST.MF</manifestFile>
+							<manifestFile>${manifestFile-path}</manifestFile>
 						</archive>
 					</configuration>
 				</plugin>
@@ -307,15 +308,6 @@
 				<artifactId>maven-assembly-plugin</artifactId>
 			</plugin>
 
-			<!-- <plugin> -->
-			<!-- <artifactId>maven-dependency-plugin</artifactId> -->
-			<!-- </plugin> -->
-
-			<!-- <plugin> -->
-			<!-- <groupId>org.codehaus.izpack</groupId> -->
-			<!-- <artifactId>izpack-maven-plugin</artifactId> -->
-			<!-- </plugin> -->
-
 		</plugins>
 
 	</build>
@@ -349,7 +341,7 @@
 										<mode>development</mode>
 										<url>${project.url}</url>
 									</manifestEntries>
-									<manifestFile>src/main/resources/META-INF/MANIFEST.MF</manifestFile>
+									<manifestFile>${manifestFile-path}</manifestFile>
 								</archive>
 							</configuration>
 						</plugin>
@@ -572,7 +564,7 @@
 										<mode>development</mode>
 										<url>${project.url}</url>
 									</manifestEntries>
-									<manifestFile>src/main/resources/META-INF/MANIFEST.MF</manifestFile>
+									<manifestFile>${manifestFile-path}</manifestFile>
 								</archive>
 							</configuration>
 						</plugin>
