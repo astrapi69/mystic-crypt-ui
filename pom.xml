@@ -535,8 +535,6 @@
 
 		</profile>
 
-
-
 		<profile>
 			<id>prepare-and-release-and-izpack</id>
 			<activation>
