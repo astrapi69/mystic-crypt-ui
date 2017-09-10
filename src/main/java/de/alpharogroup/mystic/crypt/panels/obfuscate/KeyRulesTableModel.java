@@ -29,7 +29,7 @@ import java.util.List;
 import java.util.Map;
 
 import de.alpharogroup.collections.pairs.KeyValuePair;
-import de.alpharogroup.swing.tablemodel.GenericTableModel;
+import de.alpharogroup.swing.table.model.GenericTableModel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.ToString;
@@ -38,7 +38,7 @@ import lombok.ToString;
  * The class {@link KeyRulesTableModel}.
  */
 @Getter
-@ToString
+@ToString(callSuper=true)
 @Builder
 public class KeyRulesTableModel extends GenericTableModel<KeyValuePair<String, String>>
 {
