@@ -5,7 +5,7 @@
 	<parent>
 		<groupId>de.alpharogroup</groupId>
 		<artifactId>mvn-ui-parent</artifactId>
-		<version>1.12.0</version>
+		<version>1.14.0</version>
 		<relativePath></relativePath>
 	</parent>
 
@@ -22,7 +22,7 @@
 		<main-app-package-name>de.alpharogroup.mystic.crypt</main-app-package-name>
 		<main-full-app-name>${main-app-package-name}.MainApplication</main-full-app-name>
 		<file-name-with-dependencies>${full-app-name}-jar-with-dependencies.jar</file-name-with-dependencies>
-		<file-name-with-dependencies-path>${project.build.directory}/${file-name-with-dependencies}</file-name-with-dependencies-path>
+		<file-name-with-dependencies-path>target/${file-name-with-dependencies}</file-name-with-dependencies-path>
 	</properties>
 
 	<dependencyManagement>
