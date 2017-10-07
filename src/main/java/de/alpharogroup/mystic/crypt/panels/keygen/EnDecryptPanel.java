@@ -34,7 +34,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.LayoutStyle;
 
-import de.alpharogroup.mystic.crypt.behaviors.EnableButtonBehavior;
+import de.alpharogroup.behaviors.EnableButtonBehavior;
 import lombok.Getter;
 
 /**
