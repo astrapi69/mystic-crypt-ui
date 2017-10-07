@@ -15,8 +15,12 @@
 	<properties>
 		<!-- MIGLAYOUT-SWING version -->
 		<miglayout-swing.version>5.0</miglayout-swing.version>
-		<!-- MYSTIC-CRYPT version -->
-		<mystic-crypt.version>4.23.0-SNAPSHOT</mystic-crypt.version>
+		<!-- MYSTIC-CRYPT versions -->
+		<mystic-crypt.version>4.23.1</mystic-crypt.version>
+		<crypt-core.version>${mystic-crypt.version}</crypt-core.version>
+		<randomizer.version>${mystic-crypt.version}</randomizer.version>
+		<auth-security.version>${mystic-crypt.version}</auth-security.version>
+		<crypt-data.version>${mystic-crypt.version}</crypt-data.version>
 		<full-app-name>mystic-crypt-ui</full-app-name>
 		<info.appName>mystic-crypt-ui</info.appName>
 		<main-app-package-name>de.alpharogroup.mystic.crypt</main-app-package-name>
@@ -32,13 +36,13 @@
 			<dependency>
 				<groupId>de.alpharogroup</groupId>
 				<artifactId>crypt-data</artifactId>
-				<version>${mystic-crypt.version}</version>
+				<version>${crypt-data.version}</version>
 			</dependency>
 
 			<dependency>
 				<groupId>de.alpharogroup</groupId>
 				<artifactId>crypt-core</artifactId>
-				<version>${mystic-crypt.version}</version>
+				<version>${crypt-core.version}</version>
 			</dependency>
 			<!-- MIGLAYOUT-SWING DEPENDENCIES -->
 			<dependency>
