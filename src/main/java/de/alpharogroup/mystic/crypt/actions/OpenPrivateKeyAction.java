@@ -66,22 +66,24 @@ public class OpenPrivateKeyAction extends OpenFileAction
 	 *
 	 * @param name
 	 *            the name
+	 * @param parent
+	 *            the parent
 	 */
-	public OpenPrivateKeyAction(final String name, Component parent)
+	public OpenPrivateKeyAction(final String name, final Component parent)
 	{
 		super(name, parent);
 	}
 
 	@Override
-	protected void onApproveOption(File file, ActionEvent actionEvent)
+	protected void onApproveOption(final File file, final ActionEvent actionEvent)
 	{
 		// create internal frame
 		final JInternalFrame internalFrame = JComponentFactory.newInternalFrame("Private key view",
 			true, true, true, true);
-		PrivateKeyPanel component = new PrivateKeyPanel();
-		PrivateKeyViewBean model = component.getModel();
+		final PrivateKeyPanel component = new PrivateKeyPanel();
+		final PrivateKeyViewBean model = component.getModel();
 		model.setPrivateKeyFile(file);
-		PrivateKey privateKey = getPrivateKey(file);
+		final PrivateKey privateKey = getPrivateKey(file);
 		model.setPrivateKey(privateKey);
 		try
 		{
@@ -95,7 +97,8 @@ public class OpenPrivateKeyAction extends OpenFileAction
 
 		model.setKeySize(getKeySize(privateKey));
 		model.setKeyLength(PrivateKeyExtensions.getKeyLength(privateKey));
-		component.getPrivateKeyViewPanel().getLblKeySizeDisplay().setText(""+model.getKeyLength());
+		component.getPrivateKeyViewPanel().getLblKeySizeDisplay()
+			.setText("" + model.getKeyLength());
 
 		model.setDecryptor(new PrivateKeyHexDecryptor(model.getPrivateKey()));
 		model.setEncryptor(new PublicKeyHexEncryptor(model.getPublicKey()));
@@ -105,7 +108,7 @@ public class OpenPrivateKeyAction extends OpenFileAction
 		{
 			privateKeyFormat = PrivateKeyExtensions.toPemFormat(model.getPrivateKey());
 		}
-		catch (IOException e)
+		catch (final IOException e)
 		{
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -123,7 +126,7 @@ public class OpenPrivateKeyAction extends OpenFileAction
 			internalFrame);
 	}
 
-	private PrivateKey getPrivateKey(File file)
+	private PrivateKey getPrivateKey(final File file)
 	{
 		PrivateKey privateKey = null;
 		try
@@ -137,13 +140,14 @@ public class OpenPrivateKeyAction extends OpenFileAction
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		if( privateKey == null) {
+		if (privateKey == null)
+		{
 			try
 			{
 				Security.addProvider(new BouncyCastleProvider());
 				privateKey = PrivateKeyReader.readPemPrivateKey(file, SecurityProvider.BC);
 			}
-			catch (Exception e)
+			catch (final Exception e)
 			{
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -153,7 +157,7 @@ public class OpenPrivateKeyAction extends OpenFileAction
 	}
 
 	@Override
-	protected void onCancel(ActionEvent actionEvent)
+	protected void onCancel(final ActionEvent actionEvent)
 	{
 	}
 
@@ -169,7 +173,7 @@ public class OpenPrivateKeyAction extends OpenFileAction
 	@Deprecated
 	public static KeySize getKeySize(final PrivateKey privateKey)
 	{
-		int length = PrivateKeyExtensions.getKeyLength(privateKey);
+		final int length = PrivateKeyExtensions.getKeyLength(privateKey);
 		if (length == 1024)
 		{
 			return KeySize.KEYSIZE_1024;
