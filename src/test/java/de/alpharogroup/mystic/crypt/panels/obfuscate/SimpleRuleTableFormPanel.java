@@ -40,6 +40,8 @@ public class SimpleRuleTableFormPanel extends javax.swing.JPanel {
         lblKeyRules = new javax.swing.JLabel();
         scpKeyRules = new javax.swing.JScrollPane();
         tblKeyRules = new javax.swing.JTable();
+        btnImport = new javax.swing.JButton();
+        btnExport = new javax.swing.JButton();
 
         lblKeyRules.setText("Table of key rules for obfuscate");
 
@@ -56,6 +58,10 @@ public class SimpleRuleTableFormPanel extends javax.swing.JPanel {
         ));
         scpKeyRules.setViewportView(tblKeyRules);
 
+        btnImport.setText("Import");
+
+        btnExport.setText("Export");
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
@@ -64,8 +70,13 @@ public class SimpleRuleTableFormPanel extends javax.swing.JPanel {
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(lblKeyRules, javax.swing.GroupLayout.PREFERRED_SIZE, 280, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(scpKeyRules, javax.swing.GroupLayout.PREFERRED_SIZE, 880, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addContainerGap(73, Short.MAX_VALUE))
+                    .addComponent(scpKeyRules, javax.swing.GroupLayout.PREFERRED_SIZE, 1188, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                        .addComponent(btnImport, javax.swing.GroupLayout.PREFERRED_SIZE, 128, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(btnExport, javax.swing.GroupLayout.PREFERRED_SIZE, 128, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(3, 3, 3)))
+                .addContainerGap(31, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -74,12 +85,18 @@ public class SimpleRuleTableFormPanel extends javax.swing.JPanel {
                 .addComponent(lblKeyRules)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(scpKeyRules, javax.swing.GroupLayout.PREFERRED_SIZE, 217, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(49, Short.MAX_VALUE))
+                .addGap(18, 18, 18)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(btnImport)
+                    .addComponent(btnExport))
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
     }// </editor-fold>//GEN-END:initComponents
 
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton btnExport;
+    private javax.swing.JButton btnImport;
     private javax.swing.JLabel lblKeyRules;
     private javax.swing.JScrollPane scpKeyRules;
     private javax.swing.JTable tblKeyRules;

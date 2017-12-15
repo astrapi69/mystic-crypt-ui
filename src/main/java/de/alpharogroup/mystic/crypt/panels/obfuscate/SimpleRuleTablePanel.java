@@ -37,18 +37,23 @@ import lombok.NonNull;
 
 
 @Getter
-public class SimpleRuleTablePanel extends JPanel {
+public class SimpleRuleTablePanel extends JPanel
+{
 
 	private static final long serialVersionUID = 1L;
 	private JLabel lblKeyRules;
-    private JScrollPane scpKeyRules;
-    private GenericJTable<KeyValuePair<String, String>> tblKeyRules;
-    private final ObfuscationModel model;
+	private JScrollPane scpKeyRules;
+	private GenericJTable<KeyValuePair<String, String>> tblKeyRules;
+    private javax.swing.JButton btnExport;
+    private javax.swing.JButton btnImport;
 
-    public SimpleRuleTablePanel(@NonNull final ObfuscationModel model) {
-    	this.model = model;
-    	initialize();
-    }
+	private final ObfuscationModel model;
+
+	public SimpleRuleTablePanel(@NonNull final ObfuscationModel model)
+	{
+		this.model = model;
+		initialize();
+	}
 
 	/**
 	 * Initialize Panel.
@@ -67,40 +72,54 @@ public class SimpleRuleTablePanel extends JPanel {
 		initializeGroupLayout();
 	}
 
-	protected void initializeComponents() {
-
-        scpKeyRules = new JScrollPane();
-        tblKeyRules = new GenericJTable<>(this.model.getKeyRulesTableModel());
-        lblKeyRules = new JLabel();
-
-        scpKeyRules.setViewportView(tblKeyRules);
-
-        lblKeyRules.setText("Table of key rules for obfuscate");
-    }
-
-    protected void initializeGroupLayout()
+	protected void initializeComponents()
 	{
-        final GroupLayout layout = new GroupLayout(this);
-        this.setLayout(layout);
+
+		scpKeyRules = new JScrollPane();
+		tblKeyRules = new GenericJTable<>(this.model.getKeyRulesTableModel());
+		lblKeyRules = new JLabel();
+
+        btnImport = new javax.swing.JButton();
+        btnExport = new javax.swing.JButton();
+
+		scpKeyRules.setViewportView(tblKeyRules);
+
+		lblKeyRules.setText("Table of key rules for obfuscate");
+
+        btnImport.setText("Import");
+        btnExport.setText("Export");
+	}
+
+	protected void initializeGroupLayout()
+	{
+		final GroupLayout layout = new GroupLayout(this);
+		this.setLayout(layout);
         layout.setHorizontalGroup(
-            layout.createParallelGroup(GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
-                .addGap(28, 28, 28)
-                .addComponent(lblKeyRules)
-                .addContainerGap(GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(scpKeyRules, GroupLayout.DEFAULT_SIZE, 1231, Short.MAX_VALUE)
-                .addContainerGap())
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(lblKeyRules, javax.swing.GroupLayout.PREFERRED_SIZE, 280, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(scpKeyRules, javax.swing.GroupLayout.PREFERRED_SIZE, 1188, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                        .addComponent(btnImport, javax.swing.GroupLayout.PREFERRED_SIZE, 128, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(btnExport, javax.swing.GroupLayout.PREFERRED_SIZE, 128, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(3, 3, 3)))
+                .addContainerGap(31, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
-            layout.createParallelGroup(GroupLayout.Alignment.LEADING)
-            .addGroup(GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                .addContainerGap(31, Short.MAX_VALUE)
+            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(layout.createSequentialGroup()
+                .addGap(29, 29, 29)
                 .addComponent(lblKeyRules)
-                .addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(scpKeyRules, GroupLayout.PREFERRED_SIZE, 189, GroupLayout.PREFERRED_SIZE)
-                .addGap(32, 32, 32))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(scpKeyRules, javax.swing.GroupLayout.PREFERRED_SIZE, 217, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(18, 18, 18)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(btnImport)
+                    .addComponent(btnExport))
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 	}
 
