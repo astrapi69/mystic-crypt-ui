@@ -33,7 +33,6 @@ import javax.swing.DefaultComboBoxModel;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
-import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 
@@ -43,13 +42,16 @@ import de.alpharogroup.crypto.key.KeySize;
 import de.alpharogroup.layout.GridBagLayoutModel;
 import de.alpharogroup.layout.InsetsModel;
 import de.alpharogroup.layout.LayoutExtensions;
+import de.alpharogroup.model.BaseModel;
+import de.alpharogroup.model.api.Model;
+import de.alpharogroup.swing.base.BasePanel;
 import lombok.Getter;
 
 /**
  * The class {@link CryptographyPanel} can generate private and public keys and save them to files.
  */
 @Getter
-public class CryptographyPanel extends JPanel
+public class CryptographyPanel extends BasePanel<GenerateKeysModelBean>
 {
 
 	/** The Constant logger. */
@@ -99,24 +101,19 @@ public class CryptographyPanel extends JPanel
 	 */
 	public CryptographyPanel()
 	{
-		initialize();
+		this(BaseModel.<GenerateKeysModelBean>of(GenerateKeysModelBean.builder().build()));
 	}
 
-	/**
-	 * Initialize Panel.
-	 */
-	protected void initialize()
+	public CryptographyPanel(final Model<GenerateKeysModelBean> model)
 	{
-		initializeComponents();
-		initializeLayout();
+		super(model);
 	}
 
-	/**
-	 * Initialize components.
-	 */
-	@SuppressWarnings({ "unchecked", "rawtypes" })
-	protected void initializeComponents()
+	@Override
+	protected void onInitializeComponents()
 	{
+		super.onInitializeComponents();
+
 		scpPrivateKey = new JScrollPane();
 		txtPrivateKey = new JTextArea();
 		cmbKeySize = new JComboBox<>();
@@ -167,20 +164,17 @@ public class CryptographyPanel extends JPanel
 		btnSavePrivateKey.setText("Save private key");
 
 		btnSavePublicKey.setText("Save public key");
-
 	}
 
-	/**
-	 * Initialize layout.
-	 */
-	protected void initializeLayout()
+	@Override
+	protected void onInitializeLayout()
 	{
-		initializeGroupLayout();
-		// initializeGridBagLayout();
+		super.onInitializeLayout();
+		onInitializeGroupLayout();
+		// onInitializeGridBagLayout();
 	}
 
-
-	protected void initializeGridBagLayout()
+	protected void onInitializeGridBagLayout()
 	{
 
 		final GridBagLayout gbl = new GridBagLayout();
@@ -250,7 +244,7 @@ public class CryptographyPanel extends JPanel
 
 	}
 
-	protected void initializeGroupLayout()
+	protected void onInitializeGroupLayout()
 	{
 		final javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
 		this.setLayout(layout);
