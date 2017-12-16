@@ -72,7 +72,7 @@ public class RulePanel extends BasePanel<ObfuscationModelBean>
 				RulePanel.this.onAdd(actionEvent);
 			}
 		};
-		simpleRuleTablePanel = new SimpleRuleTablePanel(getModelObject());
+		simpleRuleTablePanel = new SimpleRuleTablePanel(getModel());
 
 		enDecryptPanel = new EnDecryptPanel()
 		{
