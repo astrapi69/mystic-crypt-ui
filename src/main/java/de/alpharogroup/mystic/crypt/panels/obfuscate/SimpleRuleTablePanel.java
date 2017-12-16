@@ -26,17 +26,19 @@ package de.alpharogroup.mystic.crypt.panels.obfuscate;
 
 import javax.swing.GroupLayout;
 import javax.swing.JLabel;
-import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 
 import de.alpharogroup.collections.pairs.KeyValuePair;
+import de.alpharogroup.model.BaseModel;
+import de.alpharogroup.model.api.Model;
 import de.alpharogroup.swing.GenericJTable;
+import de.alpharogroup.swing.base.BasePanel;
 import lombok.Getter;
 import lombok.NonNull;
 
 
 @Getter
-public class SimpleRuleTablePanel extends JPanel
+public class SimpleRuleTablePanel extends BasePanel<ObfuscationModelBean>
 {
 
 	private static final long serialVersionUID = 1L;
@@ -46,50 +48,43 @@ public class SimpleRuleTablePanel extends JPanel
     private javax.swing.JButton btnExport;
     private javax.swing.JButton btnImport;
 
-	private final ObfuscationModelBean model;
-
-	public SimpleRuleTablePanel(@NonNull final ObfuscationModelBean model)
+	public SimpleRuleTablePanel()
 	{
-		this.model = model;
-		initialize();
+		this(BaseModel.<ObfuscationModelBean>of(ObfuscationModelBean.builder().build()));
+
+	}
+	public SimpleRuleTablePanel(@NonNull final Model<ObfuscationModelBean> model)
+	{
+		super(model);
 	}
 
-	/**
-	 * Initialize Panel.
-	 */
-	protected void initialize()
+	@Override
+	protected void onInitializeComponents()
 	{
-		initializeComponents();
-		initializeLayout();
-	}
-
-	/**
-	 * Initialize layout.
-	 */
-	protected void initializeLayout()
-	{
-		initializeGroupLayout();
-	}
-
-	protected void initializeComponents()
-	{
-
+		super.onInitializeComponents();
 		scpKeyRules = new JScrollPane();
-		tblKeyRules = new GenericJTable<>(this.model.getKeyRulesTableModel());
+		tblKeyRules = new GenericJTable<>(getModelObject().getKeyRulesTableModel());
 		lblKeyRules = new JLabel();
 
-        btnImport = new javax.swing.JButton();
-        btnExport = new javax.swing.JButton();
+		btnImport = new javax.swing.JButton();
+		btnExport = new javax.swing.JButton();
 
 		scpKeyRules.setViewportView(tblKeyRules);
 
 		lblKeyRules.setText("Table of key rules for obfuscate");
 
-        btnImport.setText("Import");
-        btnExport.setText("Export");
+		btnImport.setText("Import");
+		btnExport.setText("Export");
 	}
 
-	protected void initializeGroupLayout()
+	@Override
+	protected void onInitializeLayout()
+	{
+		super.onInitializeLayout();
+		onInitializeGroupLayout();
+	}
+
+	protected void onInitializeGroupLayout()
 	{
 		final GroupLayout layout = new GroupLayout(this);
 		this.setLayout(layout);
