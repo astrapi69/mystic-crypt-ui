@@ -29,14 +29,15 @@ import java.awt.event.ActionEvent;
 import javax.swing.GroupLayout;
 import javax.swing.JButton;
 import javax.swing.JLabel;
-import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.LayoutStyle;
 
+import de.alpharogroup.model.api.Model;
+import de.alpharogroup.swing.base.BasePanel;
 import lombok.Getter;
 
 @Getter
-public class SimpleRulePanel extends JPanel {
+public class SimpleRulePanel extends BasePanel<ObfuscationModel> {
 
 	private static final long serialVersionUID = 1L;
 	private JButton btnAdd;
@@ -45,30 +46,15 @@ public class SimpleRulePanel extends JPanel {
     private JLabel lblReplaceWith;
     private JTextField txtOriginalChar;
     private JTextField txtRelpaceWith;
-    /**
-     * Creates new form SimpleRulePanel
-     */
-    public SimpleRulePanel() {
-    	initialize();
+
+    public SimpleRulePanel(final Model<ObfuscationModel> model) {
+		super(model);
     }
-	/**
-	 * Initialize Panel.
-	 */
-	protected void initialize()
-	{
-		initializeComponents();
-		initializeLayout();
-	}
 
-	/**
-	 * Initialize layout.
-	 */
-	protected void initializeLayout()
+	@Override
+	protected void onInitializeComponents()
 	{
-		initializeGroupLayout();
-	}
-
-	private void initializeComponents() {
+		super.onInitializeComponents();
 
         txtOriginalChar = new JTextField();
         lblOriginalChar = new JLabel();
@@ -84,17 +70,18 @@ public class SimpleRulePanel extends JPanel {
 
         lblReplaceWith.setText("Replace with");
 
-        lblKeyRule.setText("KeyRule");
-    }
-
-    protected void onAdd(final ActionEvent actionEvent)
-	{
+        lblKeyRule.setText("Key Rule");
 	}
 
-	protected void initializeGroupLayout()
+	@Override
+	protected void onInitializeLayout()
 	{
+		super.onInitializeLayout();
+		onInitializeGroupLayout();
+	}
 
-
+	protected void onInitializeGroupLayout()
+	{
 
         final GroupLayout layout = new GroupLayout(this);
         this.setLayout(layout);
@@ -135,6 +122,11 @@ public class SimpleRulePanel extends JPanel {
                     .addComponent(btnAdd))
                 .addContainerGap(29, Short.MAX_VALUE))
         );
+
+	}
+
+    protected void onAdd(final ActionEvent actionEvent)
+	{
 	}
 
 }

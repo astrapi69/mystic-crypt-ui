@@ -27,48 +27,42 @@ package de.alpharogroup.mystic.crypt.panels.obfuscate;
 import java.awt.event.ActionEvent;
 import java.util.Map;
 
-import javax.swing.JPanel;
-
 import de.alpharogroup.collections.pairs.KeyValuePair;
 import de.alpharogroup.crypto.keyrules.Obfuscatable;
 import de.alpharogroup.crypto.keyrules.Obfuscator;
 import de.alpharogroup.crypto.keyrules.SimpleKeyRule;
+import de.alpharogroup.model.BaseModel;
+import de.alpharogroup.model.api.Model;
 import de.alpharogroup.mystic.crypt.panels.keygen.EnDecryptPanel;
+import de.alpharogroup.swing.base.BasePanel;
 import lombok.Getter;
 import net.miginfocom.swing.MigLayout;
 
 @Getter
-public class RulePanel extends JPanel
+public class RulePanel extends BasePanel<ObfuscationModel>
 {
 
 	private static final long serialVersionUID = 1L;
 	private SimpleRulePanel simpleRulePanel;
 	private SimpleRuleTablePanel simpleRuleTablePanel;
 	private EnDecryptPanel enDecryptPanel;
-	private ObfuscationModel model;
 
-	/**
-	 * Creates new form RulePanel
-	 */
 	public RulePanel()
 	{
-		initialize();
+		this(BaseModel.<ObfuscationModel>of(ObfuscationModel.builder().keyRulesTableModel(KeyRulesTableModel.builder().build())
+			.build()));
 	}
 
-	/**
-	 * Initialize Panel.
-	 */
-	protected void initialize()
+	public RulePanel(final Model<ObfuscationModel> model)
 	{
-		initializeComponents();
-		initializeLayout();
+		super(model);
 	}
 
-	protected void initializeComponents()
+	@Override
+	protected void onInitializeComponents()
 	{
-		model = ObfuscationModel.builder().keyRulesTableModel(KeyRulesTableModel.builder().build())
-			.build();
-		simpleRulePanel = new SimpleRulePanel()
+		super.onInitializeComponents();
+		simpleRulePanel = new SimpleRulePanel(getModel())
 		{
 			private static final long serialVersionUID = 1L;
 
@@ -78,7 +72,7 @@ public class RulePanel extends JPanel
 				RulePanel.this.onAdd(actionEvent);
 			}
 		};
-		simpleRuleTablePanel = new SimpleRuleTablePanel(model);
+		simpleRuleTablePanel = new SimpleRuleTablePanel(getModelObject());
 
 		enDecryptPanel = new EnDecryptPanel()
 		{
@@ -100,12 +94,26 @@ public class RulePanel extends JPanel
 		enDecryptPanel.getBtnDecrypt().setText("< Disentangle");
 	}
 
+	@Override
+	protected void onInitializeLayout()
+	{
+		super.onInitializeLayout();
+		onInitializeMigLayout();
+	}
+
+	protected void onInitializeMigLayout()
+	{
+		setLayout(new MigLayout());
+		add(simpleRulePanel, "wrap");
+		add(simpleRuleTablePanel, "wrap");
+		add(enDecryptPanel);
+	}
 
 	protected void onAdd(final ActionEvent actionEvent)
 	{
 		final String origChar = simpleRulePanel.getTxtOriginalChar().getText();
 		final String replaceWith = simpleRulePanel.getTxtRelpaceWith().getText();
-		model.getKeyRulesTableModel()
+		getModelObject().getKeyRulesTableModel()
 			.add(KeyValuePair.<String, String> builder()
 				.key(origChar)
 				.value(replaceWith)
@@ -118,38 +126,22 @@ public class RulePanel extends JPanel
 	protected void onEncrypt(final ActionEvent actionEvent)
 	{
 		final String toObfuscatedString = getEnDecryptPanel().getTxtToEncrypt().getText();
-		final Map<String, String> keymap = model.getKeyRulesTableModel().toMap();
+		final Map<String, String> keymap = getModelObject().getKeyRulesTableModel().toMap();
 		// create the rule
 		final SimpleKeyRule replaceKeyRule = new SimpleKeyRule(keymap);
 		// obfuscate the key
 		final Obfuscatable obfuscator = new Obfuscator(replaceKeyRule, toObfuscatedString);
-		model.setObfuscator(obfuscator);
-		final String result = model.getObfuscator().obfuscate();
+		getModelObject().setObfuscator(obfuscator);
+		final String result = getModelObject().getObfuscator().obfuscate();
 		getEnDecryptPanel().getTxtEncrypted().setText(result);
 		getEnDecryptPanel().getTxtToEncrypt().setText("");
 	}
 
 	protected void onDecrypt(final ActionEvent actionEvent)
 	{
-		final String disentangledKey = model.getObfuscator().disentangle();
+		final String disentangledKey = getModelObject().getObfuscator().disentangle();
 		getEnDecryptPanel().getTxtToEncrypt().setText(disentangledKey);
 		getEnDecryptPanel().getTxtEncrypted().setText("");
-	}
-
-	/**
-	 * Initialize layout.
-	 */
-	protected void initializeLayout()
-	{
-		initializeMigLayout();
-	}
-
-	protected void initializeMigLayout()
-	{
-		setLayout(new MigLayout());
-		add(simpleRulePanel, "wrap");
-		add(simpleRuleTablePanel, "wrap");
-		add(enDecryptPanel);
 	}
 
 }
