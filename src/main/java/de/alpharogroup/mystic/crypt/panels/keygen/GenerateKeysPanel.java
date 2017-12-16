@@ -52,11 +52,14 @@ import de.alpharogroup.crypto.key.PrivateKeyExtensions;
 import de.alpharogroup.crypto.key.PrivateKeyHexDecryptor;
 import de.alpharogroup.crypto.key.PublicKeyExtensions;
 import de.alpharogroup.crypto.key.PublicKeyHexEncryptor;
+import de.alpharogroup.model.BaseModel;
+import de.alpharogroup.model.api.Model;
+import de.alpharogroup.swing.base.BasePanel;
 import lombok.Getter;
 import net.miginfocom.swing.MigLayout;
 
 @Getter
-public class GenerateKeysPanel extends JXPanel
+public class GenerateKeysPanel extends BasePanel<GenerateKeysModelBean>
 {
 	/** The logger. */
 	protected static final Logger logger = LoggerFactory.getLogger(GenerateKeysPanel.class.getName());
@@ -67,28 +70,21 @@ public class GenerateKeysPanel extends JXPanel
 
 	private EnDecryptPanel enDecryptPanel;
 
-	private final GenerateKeysModelBean model = GenerateKeysModelBean.builder().build();
-
 	public GenerateKeysPanel()
 	{
-		initialize();
+		this(BaseModel.<GenerateKeysModelBean>of(GenerateKeysModelBean.builder().build()));
 	}
 
-	/**
-	 * Initialize Panel.
-	 */
-	protected void initialize()
+	public GenerateKeysPanel(final Model<GenerateKeysModelBean> model)
 	{
-		initializeComponents();
-		initializeLayout();
+		super(model);
 	}
 
-
-	/**
-	 * Initialize components.
-	 */
-	protected void initializeComponents()
+	@Override
+	protected void onInitializeComponents()
 	{
+		super.onInitializeComponents();
+
 		cryptographyPanel = new CryptographyPanel()
 		{
 
@@ -142,10 +138,17 @@ public class GenerateKeysPanel extends JXPanel
 		};
 	}
 
+	@Override
+	protected void onInitializeLayout()
+	{
+		super.onInitializeLayout();
+		onInitializeMigLayout();
+	}
+
 	/**
 	 * Initialize layout.
 	 */
-	protected void initializeLayout()
+	protected void onInitializeMigLayout()
 	{
 		setLayout(new MigLayout());
 		add(cryptographyPanel, "wrap");
@@ -166,7 +169,7 @@ public class GenerateKeysPanel extends JXPanel
 	{
 		final JComboBox<String> cb = (JComboBox<String>)actionEvent.getSource();
 		final KeySize selected = (KeySize)cb.getSelectedItem();
-		model.setKeySize(selected);
+		getModelObject().setKeySize(selected);
 	}
 
 	/**
@@ -240,11 +243,11 @@ public class GenerateKeysPanel extends JXPanel
 		getCryptographyPanel().getTxtPublicKey().setText("");
 		getEnDecryptPanel().getTxtEncrypted().setText("");
 		getEnDecryptPanel().getTxtToEncrypt().setText("");
-		model.setDecryptor(null);
-		model.setEncryptor(null);
-		model.setKeySize(KeySize.KEYSIZE_1024);
-		model.setPrivateKey(null);
-		model.setPublicKey(null);
+		getModelObject().setDecryptor(null);
+		getModelObject().setEncryptor(null);
+		getModelObject().setKeySize(KeySize.KEYSIZE_1024);
+		getModelObject().setPrivateKey(null);
+		getModelObject().setPublicKey(null);
 	}
 
 	/**
@@ -263,15 +266,15 @@ public class GenerateKeysPanel extends JXPanel
 			final KeyPair keyPair = KeyPairFactory.newKeyPair(KeyPairGeneratorAlgorithm.RSA,
 				selected.getKeySize());
 
-			model.setPrivateKey(keyPair.getPrivate());
-			model.setPublicKey(keyPair.getPublic());
+			getModelObject().setPrivateKey(keyPair.getPrivate());
+			getModelObject().setPublicKey(keyPair.getPublic());
 
-			model.setDecryptor(new PrivateKeyHexDecryptor(model.getPrivateKey()));
-			model.setEncryptor(new PublicKeyHexEncryptor(model.getPublicKey()));
+			getModelObject().setDecryptor(new PrivateKeyHexDecryptor(getModelObject().getPrivateKey()));
+			getModelObject().setEncryptor(new PublicKeyHexEncryptor(getModelObject().getPublicKey()));
 
-			final String privateKeyFormat = PrivateKeyExtensions.toPemFormat(model.getPrivateKey());
+			final String privateKeyFormat = PrivateKeyExtensions.toPemFormat(getModelObject().getPrivateKey());
 
-			final String publicKeyFormat = PublicKeyExtensions.toPemFormat(model.getPublicKey());
+			final String publicKeyFormat = PublicKeyExtensions.toPemFormat(getModelObject().getPublicKey());
 
 			getCryptographyPanel().getTxtPrivateKey().setText("");
 			getCryptographyPanel().getTxtPublicKey().setText("");
@@ -301,7 +304,7 @@ public class GenerateKeysPanel extends JXPanel
 		System.out.println("onDecrypt");
 		try
 		{
-			final String decryted = model.getDecryptor()
+			final String decryted = getModelObject().getDecryptor()
 				.decrypt(getEnDecryptPanel().getTxtEncrypted().getText());
 			getEnDecryptPanel().getTxtToEncrypt().setText(decryted);
 			getEnDecryptPanel().getTxtEncrypted().setText("");
@@ -328,7 +331,7 @@ public class GenerateKeysPanel extends JXPanel
 		try
 		{
 			getEnDecryptPanel().getTxtEncrypted().setText(
-				model.getEncryptor().encrypt(getEnDecryptPanel().getTxtToEncrypt().getText()));
+				getModelObject().getEncryptor().encrypt(getEnDecryptPanel().getTxtToEncrypt().getText()));
 			getEnDecryptPanel().getTxtToEncrypt().setText("");
 		}
 		catch (InvalidKeyException | NoSuchAlgorithmException | InvalidKeySpecException
