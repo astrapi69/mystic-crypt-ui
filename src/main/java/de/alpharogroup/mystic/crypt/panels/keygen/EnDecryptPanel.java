@@ -24,24 +24,27 @@
  */
 package de.alpharogroup.mystic.crypt.panels.keygen;
 
+import de.alpharogroup.model.BaseModel;
 import java.awt.event.ActionEvent;
 
 import javax.swing.GroupLayout;
 import javax.swing.JButton;
 import javax.swing.JLabel;
-import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.LayoutStyle;
 
 import de.alpharogroup.behaviors.EnableButtonBehavior;
+import de.alpharogroup.collections.pairs.Pair;
+import de.alpharogroup.model.api.Model;
+import de.alpharogroup.swing.base.BasePanel;
 import lombok.Getter;
 
 /**
  * The class {@link EnDecryptPanel} holds components for encrypt and decrypt text.
  */
 @Getter
-public class EnDecryptPanel extends JPanel
+public class EnDecryptPanel extends BasePanel<Pair<String, String>>
 {
 
 	/** The Constant serialVersionUID. */
@@ -76,19 +79,32 @@ public class EnDecryptPanel extends JPanel
 	 */
 	public EnDecryptPanel()
 	{
-		initialize();
+		this(BaseModel.<Pair<String, String>>of(Pair.<String, String>builder().build()));
 	}
-
 
 	/**
-	 * Initialize Panel.
+	 * Instantiates a new {@link EnDecryptPanel}.
+	 *
+	 * @param model the model
 	 */
-	protected void initialize()
+	public EnDecryptPanel(final Model<Pair<String, String>> model)
 	{
-		initializeComponents();
-		initializeLayout();
+		super(model);
 	}
 
+	@Override
+	protected void onInitializeComponents()
+	{
+		super.onInitializeComponents();
+		initializeComponents();
+	}
+
+	@Override
+	protected void onInitializeLayout()
+	{
+		super.onInitializeLayout();
+		onInitializeGroupLayout();
+	}
 
 	/**
 	 * Initialize components.
@@ -128,14 +144,14 @@ public class EnDecryptPanel extends JPanel
 		txtEncrypted.setRows(5);
 		scpEncrypted.setViewportView(txtEncrypted);
 
-		lblEncrypted.setText("Text is encrypted");
+		lblEncrypted.setText("Encrypted text");
 
 	}
 
 	/**
 	 * Initialize layout.
 	 */
-	protected void initializeLayout()
+	protected void onInitializeGroupLayout()
 	{
 		final GroupLayout layout = new GroupLayout(this);
 		this.setLayout(layout);
