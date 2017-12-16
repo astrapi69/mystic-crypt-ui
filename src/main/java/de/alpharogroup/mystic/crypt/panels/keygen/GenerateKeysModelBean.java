@@ -30,20 +30,34 @@ import java.security.PublicKey;
 import de.alpharogroup.crypto.key.KeySize;
 import de.alpharogroup.crypto.key.PrivateKeyHexDecryptor;
 import de.alpharogroup.crypto.key.PublicKeyHexEncryptor;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
+import lombok.experimental.FieldDefaults;
 
-@Data
-@Builder
+@Getter
+@Setter
+@EqualsAndHashCode
+@ToString
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder(toBuilder = true)
+@FieldDefaults(level=AccessLevel.PRIVATE)
 public class GenerateKeysModelBean
 {
-	private KeySize keySize;
 
-	private PrivateKey privateKey;
+	KeySize keySize;
 
-	private PublicKey publicKey;
+	PrivateKey privateKey;
 
-	private PublicKeyHexEncryptor encryptor;
+	PublicKey publicKey;
 
-	private PrivateKeyHexDecryptor decryptor;
+	PublicKeyHexEncryptor encryptor;
+
+	PrivateKeyHexDecryptor decryptor;
 }
