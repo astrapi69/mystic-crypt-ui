@@ -13,18 +13,23 @@ import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 
 import org.apache.commons.codec.DecoderException;
-import org.jdesktop.swingx.JXPanel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import de.alpharogroup.model.BaseModel;
+import de.alpharogroup.model.api.Model;
 import de.alpharogroup.mystic.crypt.panels.keygen.EnDecryptPanel;
+import de.alpharogroup.swing.base.BasePanel;
 import lombok.Getter;
 import net.miginfocom.swing.MigLayout;
 
 
 @Getter
-public class PrivateKeyPanel extends JXPanel
+public class PrivateKeyPanel extends BasePanel<PrivateKeyModelBean>
 {
+
+	private static final long serialVersionUID = 1L;
+
 	/** The logger. */
 	protected static final Logger logger = LoggerFactory.getLogger(PrivateKeyPanel.class.getName());
 
@@ -32,27 +37,18 @@ public class PrivateKeyPanel extends JXPanel
 
 	private EnDecryptPanel enDecryptPanel;
 
-	private PrivateKeyViewBean model = PrivateKeyViewBean.builder().build();
-
 	public PrivateKeyPanel()
 	{
-		initialize();
+		this(BaseModel.<PrivateKeyModelBean>of(PrivateKeyModelBean.builder().build()));
 	}
-
-	/**
-	 * Initialize Panel.
-	 */
-	protected void initialize()
+	public PrivateKeyPanel(final Model<PrivateKeyModelBean> model)
 	{
-		initializeComponents();
-		initializeLayout();
+		super(model);
 	}
-
-	/**
-	 * Initialize components.
-	 */
-	protected void initializeComponents()
+	@Override
+	protected void onInitializeComponents()
 	{
+		super.onInitializeComponents();
 		privateKeyViewPanel = new PrivateKeyViewPanel();
 
 		enDecryptPanel = new EnDecryptPanel()
@@ -73,18 +69,22 @@ public class PrivateKeyPanel extends JXPanel
 		};
 	}
 
+	@Override
+	protected void onInitializeLayout()
+	{
+		super.onInitializeLayout();
+		onInitializeMigLayout();
+	}
 
 	/**
 	 * Initialize layout.
 	 */
-	protected void initializeLayout()
+	protected void onInitializeMigLayout()
 	{
 		setLayout(new MigLayout());
 		add(privateKeyViewPanel, "wrap");
 		add(enDecryptPanel);
 	}
-
-
 
 	/**
 	 * Callback method that can be overwritten to provide specific action for the on decrypt.
@@ -97,7 +97,7 @@ public class PrivateKeyPanel extends JXPanel
 		System.out.println("onDecrypt");
 		try
 		{
-			final String decryted = model.getDecryptor()
+			final String decryted = getModelObject().getDecryptor()
 				.decrypt(getEnDecryptPanel().getTxtEncrypted().getText());
 			getEnDecryptPanel().getTxtToEncrypt().setText(decryted);
 			getEnDecryptPanel().getTxtEncrypted().setText("");
@@ -124,7 +124,7 @@ public class PrivateKeyPanel extends JXPanel
 		try
 		{
 			getEnDecryptPanel().getTxtEncrypted().setText(
-				model.getEncryptor().encrypt(getEnDecryptPanel().getTxtToEncrypt().getText()));
+				getModelObject().getEncryptor().encrypt(getEnDecryptPanel().getTxtToEncrypt().getText()));
 			getEnDecryptPanel().getTxtToEncrypt().setText("");
 		}
 		catch (InvalidKeyException | NoSuchAlgorithmException | InvalidKeySpecException

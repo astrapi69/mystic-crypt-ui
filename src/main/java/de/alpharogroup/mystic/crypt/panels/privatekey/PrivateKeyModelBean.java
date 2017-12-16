@@ -1,12 +1,14 @@
 package de.alpharogroup.mystic.crypt.panels.privatekey;
 
 import java.io.File;
+import java.io.Serializable;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 
 import de.alpharogroup.crypto.key.KeySize;
 import de.alpharogroup.crypto.key.PrivateKeyHexDecryptor;
 import de.alpharogroup.crypto.key.PublicKeyHexEncryptor;
+import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
@@ -14,9 +16,10 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
+import lombok.experimental.FieldDefaults;
 
 /**
- * The class {@link PrivateKeyViewBean}.
+ * The class {@link PrivateKeyModelBean}.
  */
 @Getter
 @Setter
@@ -25,21 +28,24 @@ import lombok.ToString;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder(toBuilder = true)
-public class PrivateKeyViewBean
+@FieldDefaults(level=AccessLevel.PRIVATE)
+public class PrivateKeyModelBean implements Serializable
 {
+	/** The Constant serialVersionUID. */
+	private static final long serialVersionUID = 1L;
 
-	private KeySize keySize;
+	KeySize keySize;
 
-	private int keyLength;
+	int keyLength;
 
-	private PrivateKey privateKey;
+	PrivateKey privateKey;
 
-	private PublicKey publicKey;
+	PublicKey publicKey;
 
-	private PublicKeyHexEncryptor encryptor;
+	PublicKeyHexEncryptor encryptor;
 
-	private PrivateKeyHexDecryptor decryptor;
+	PrivateKeyHexDecryptor decryptor;
 
-	/** The private key file. */
-	private File privateKeyFile;
+	/** The key file. */
+	File privateKeyFile;
 }

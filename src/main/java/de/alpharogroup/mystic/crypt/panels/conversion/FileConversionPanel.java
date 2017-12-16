@@ -46,7 +46,6 @@ import javax.swing.JTextArea;
 import javax.swing.LayoutStyle;
 
 import org.apache.log4j.Logger;
-import org.jdesktop.swingx.JXPanel;
 
 import de.alpharogroup.crypto.key.KeyType;
 import de.alpharogroup.crypto.key.reader.CertificateReader;
@@ -56,17 +55,18 @@ import de.alpharogroup.crypto.key.writer.CertificateWriter;
 import de.alpharogroup.crypto.key.writer.PrivateKeyWriter;
 import de.alpharogroup.crypto.key.writer.PublicKeyWriter;
 import de.alpharogroup.exception.ExceptionExtensions;
+import de.alpharogroup.model.BaseModel;
+import de.alpharogroup.model.api.Model;
+import de.alpharogroup.swing.base.BasePanel;
 import lombok.Getter;
 
 @Getter
-public class FileConversionPanel extends JXPanel
+public class FileConversionPanel extends BasePanel<FileConversionModelBean>
 {
 	/** The Constant logger. */
 	protected static final Logger logger = Logger.getLogger(FileConversionPanel.class.getName());
 
 	private static final long serialVersionUID = 1L;
-
-	private final FileConversionModelBean model = FileConversionModelBean.builder().keyType(KeyType.PRIVATE_KEY).build();
 
     private JButton btnChoose;
     private JButton btnConvert;
@@ -82,25 +82,18 @@ public class FileConversionPanel extends JXPanel
 
 	public FileConversionPanel()
 	{
-		initialize();
+		this(BaseModel.<FileConversionModelBean>of(FileConversionModelBean.builder().keyType(KeyType.PRIVATE_KEY).build()));
+	}
+	public FileConversionPanel(final Model<FileConversionModelBean> model)
+	{
+		super(model);
 	}
 
-	/**
-	 * Initialize Panel.
-	 */
-	protected void initialize()
+	@Override
+	protected void onInitializeComponents()
 	{
-		initializeComponents();
-		initializeLayout();
-	}
+		super.onInitializeComponents();
 
-
-	/**
-	 * Initialize components.
-	 */
-	@SuppressWarnings({ "rawtypes", "unchecked" })
-	protected void initializeComponents()
-	{
 		fileChooser = new JFileChooser();
 		// -----------------------------
 
@@ -118,7 +111,7 @@ public class FileConversionPanel extends JXPanel
         lblChooseType.setText("Choose type to convert");
 
         cmbChooseType.setModel(new DefaultComboBoxModel(KeyType.values()));
-        cmbChooseType.setSelectedItem(model.getKeyType());
+        cmbChooseType.setSelectedItem(getModelObject().getKeyType());
         cmbChooseType.addActionListener(actionEvent -> onChangeKeyType(actionEvent));
 
         lblChoose.setText("Choose private key in *.der format to convert");
@@ -144,7 +137,13 @@ public class FileConversionPanel extends JXPanel
         btnSaveTo.addActionListener(actionEvent -> onSaveFile(actionEvent));
 
         btnConvert.addActionListener(actionEvent -> onConvert(actionEvent));
+	}
 
+	@Override
+	protected void onInitializeLayout()
+	{
+		super.onInitializeLayout();
+		onInitializeGroupLayout();
 	}
 
 	/**
@@ -159,7 +158,7 @@ public class FileConversionPanel extends JXPanel
 	{
 		final JComboBox<String> cb = (JComboBox<String>)actionEvent.getSource();
 		final KeyType selected = (KeyType)cb.getSelectedItem();
-		model.setKeyType(selected);
+		getModelObject().setKeyType(selected);
 	}
 
 	protected void onConvert(final ActionEvent actionEvent)
@@ -168,22 +167,22 @@ public class FileConversionPanel extends JXPanel
 
 		try
 		{
-			final KeyType keyType = model.getKeyType();
+			final KeyType keyType = getModelObject().getKeyType();
 			switch (keyType)
 			{
 				case PRIVATE_KEY :
-					final PrivateKey privateKey = PrivateKeyReader.readPrivateKey(model.getDerFile());
-					PrivateKeyWriter.writeInPemFormat(privateKey, model.getPemFile());
+					final PrivateKey privateKey = PrivateKeyReader.readPrivateKey(getModelObject().getDerFile());
+					PrivateKeyWriter.writeInPemFormat(privateKey, getModelObject().getPemFile());
 					txtConsole.append("private key written to file...");
 					break;
 				case CERTIFICATE :
-					final X509Certificate certificate = CertificateReader.readCertificate(model.getDerFile());
-					CertificateWriter.writeInPemFormat(certificate, model.getPemFile());
+					final X509Certificate certificate = CertificateReader.readCertificate(getModelObject().getDerFile());
+					CertificateWriter.writeInPemFormat(certificate, getModelObject().getPemFile());
 					txtConsole.append("X.509 certificate written to file...");
 					break;
 				case PUBLIC_KEY :
-					final PublicKey publicKey = PublicKeyReader.readPublicKey(model.getDerFile());
-					PublicKeyWriter.write(publicKey, model.getPemFile());
+					final PublicKey publicKey = PublicKeyReader.readPublicKey(getModelObject().getDerFile());
+					PublicKeyWriter.write(publicKey, getModelObject().getPemFile());
 					txtConsole.append("public key written to file...");
 					break;
 				default :
@@ -205,7 +204,7 @@ public class FileConversionPanel extends JXPanel
 		final int returnVal = fileChooser.showSaveDialog(FileConversionPanel.this);
         if (returnVal == JFileChooser.APPROVE_OPTION) {
             final File pemFile = fileChooser.getSelectedFile();
-            model.setPemFile(pemFile);
+            getModelObject().setPemFile(pemFile);
             txtConsole.append("Set pem file '" + pemFile.getName() + "' to insert output." + System.lineSeparator());
         } else {
         	txtConsole.append("Set pem file command cancelled by user." + System.lineSeparator());
@@ -220,7 +219,7 @@ public class FileConversionPanel extends JXPanel
 		if (returnVal == JFileChooser.APPROVE_OPTION)
 		{
 			final File derFile = fileChooser.getSelectedFile();
-            model.setDerFile(derFile);
+            getModelObject().setDerFile(derFile);
             txtConsole.append("Set der file '" + derFile.getName() + "' to convert." + System.lineSeparator());
 		}
 		else
@@ -233,7 +232,7 @@ public class FileConversionPanel extends JXPanel
 	/**
 	 * Initialize layout.
 	 */
-	protected void initializeLayout()
+	protected void onInitializeGroupLayout()
 	{
 
         final GroupLayout layout = new GroupLayout(this);

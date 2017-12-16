@@ -47,7 +47,7 @@ import de.alpharogroup.crypto.key.reader.PrivateKeyReader;
 import de.alpharogroup.crypto.provider.SecurityProvider;
 import de.alpharogroup.mystic.crypt.MainFrame;
 import de.alpharogroup.mystic.crypt.panels.privatekey.PrivateKeyPanel;
-import de.alpharogroup.mystic.crypt.panels.privatekey.PrivateKeyViewBean;
+import de.alpharogroup.mystic.crypt.panels.privatekey.PrivateKeyModelBean;
 import de.alpharogroup.swing.actions.OpenFileAction;
 import de.alpharogroup.swing.components.factories.JComponentFactory;
 import de.alpharogroup.swing.utils.JInternalFrameExtensions;
@@ -81,7 +81,7 @@ public class OpenPrivateKeyAction extends OpenFileAction
 		final JInternalFrame internalFrame = JComponentFactory.newInternalFrame("Private key view",
 			true, true, true, true);
 		final PrivateKeyPanel component = new PrivateKeyPanel();
-		final PrivateKeyViewBean model = component.getModel();
+		final PrivateKeyModelBean model = component.getModelObject();
 		model.setPrivateKeyFile(file);
 		final PrivateKey privateKey = getPrivateKey(file);
 		model.setPrivateKey(privateKey);

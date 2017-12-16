@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.Serializable;
 
 import de.alpharogroup.crypto.key.KeyType;
+import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
@@ -11,6 +12,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
+import lombok.experimental.FieldDefaults;
 
 /**
  * The class {@link FileConversionModelBean}.
@@ -22,6 +24,7 @@ import lombok.ToString;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder(toBuilder = true)
+@FieldDefaults(level=AccessLevel.PRIVATE)
 public class FileConversionModelBean implements Serializable
 {
 
@@ -29,13 +32,13 @@ public class FileConversionModelBean implements Serializable
 	private static final long serialVersionUID = 1L;
 
 	/** The der file. */
-	private File derFile;
+	File derFile;
 
 	/** The pem file. */
-	private File pemFile;
+	File pemFile;
 
 	/** The key type. */
 	@Builder.Default
-	private KeyType keyType = KeyType.PRIVATE_KEY;
+	KeyType keyType = KeyType.PRIVATE_KEY;
 
 }

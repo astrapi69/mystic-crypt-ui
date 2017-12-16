@@ -8,8 +8,9 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.LayoutStyle;
 
-import org.jdesktop.swingx.JXPanel;
-
+import de.alpharogroup.model.BaseModel;
+import de.alpharogroup.model.api.Model;
+import de.alpharogroup.swing.base.BasePanel;
 import lombok.Getter;
 
 
@@ -17,8 +18,10 @@ import lombok.Getter;
  * The class {@link PrivateKeyViewPanel}.
  */
 @Getter
-public class PrivateKeyViewPanel extends JXPanel
+public class PrivateKeyViewPanel extends BasePanel<PrivateKeyModelBean>
 {
+	/** The Constant serialVersionUID. */
+	private static final long serialVersionUID = 1L;
 
 	private JLabel lblKeySize;
 	private JLabel lblKeySizeDisplay;
@@ -28,27 +31,21 @@ public class PrivateKeyViewPanel extends JXPanel
 	private JScrollPane scpPublicKey;
 	private JTextArea txtPrivateKey;
 	private JTextArea txtPublicKey;
-	private PrivateKeyViewBean model = PrivateKeyViewBean.builder().build();
 
 	public PrivateKeyViewPanel()
 	{
-		initialize();
+		this(BaseModel.<PrivateKeyModelBean> of(PrivateKeyModelBean.builder().build()));
 	}
 
-	/**
-	 * Initialize Panel.
-	 */
-	protected void initialize()
+	public PrivateKeyViewPanel(final Model<PrivateKeyModelBean> model)
 	{
-		initializeComponents();
-		initializeLayout();
+		super(model);
 	}
 
-	/**
-	 * Initialize components.
-	 */
-	protected void initializeComponents()
+	@Override
+	protected void onInitializeComponents()
 	{
+		super.onInitializeComponents();
 		lblKeySize = new JLabel();
 		lblKeySizeDisplay = new JLabel();
 		lblPrivateKey = new JLabel();
@@ -81,49 +78,50 @@ public class PrivateKeyViewPanel extends JXPanel
 		txtPublicKey.setFont(new Font("monospaced", Font.PLAIN, 12));
 	}
 
-	/**
-	 * Initialize layout.
-	 */
-	protected void initializeLayout()
+	@Override
+	protected void onInitializeLayout()
 	{
-		initializeGroupLayout();
+		super.onInitializeLayout();
+		onInitializeGroupLayout();
 	}
 
-	protected void initializeGroupLayout()
+	protected void onInitializeGroupLayout()
 	{
-        GroupLayout layout = new GroupLayout(this);
-        this.setLayout(layout);
-        layout.setHorizontalGroup(
-            layout.createParallelGroup(GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
-                .addGap(46, 46, 46)
-                .addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING, false)
-                    .addComponent(lblKeySize, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(lblKeySizeDisplay, GroupLayout.DEFAULT_SIZE, 128, Short.MAX_VALUE))
-                .addGap(33, 33, 33)
-                .addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)
-                    .addComponent(lblPrivateKey, GroupLayout.PREFERRED_SIZE, 179, GroupLayout.PREFERRED_SIZE)
-                    .addComponent(scpPrivateKey, GroupLayout.PREFERRED_SIZE, 480, GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED, 55, Short.MAX_VALUE)
-                .addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)
-                    .addComponent(scpPublicKey, GroupLayout.PREFERRED_SIZE, 480, GroupLayout.PREFERRED_SIZE)
-                    .addComponent(lblPublicKey, GroupLayout.PREFERRED_SIZE, 165, GroupLayout.PREFERRED_SIZE))
-                .addGap(48, 48, 48))
-        );
-        layout.setVerticalGroup(
-            layout.createParallelGroup(GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
-                .addGap(43, 43, 43)
-                .addGroup(layout.createParallelGroup(GroupLayout.Alignment.BASELINE)
-                    .addComponent(lblKeySize)
-                    .addComponent(lblPrivateKey)
-                    .addComponent(lblPublicKey))
-                .addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED)
-                .addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING, false)
-                    .addComponent(lblKeySizeDisplay)
-                    .addComponent(scpPrivateKey, GroupLayout.DEFAULT_SIZE, 520, Short.MAX_VALUE)
-                    .addComponent(scpPublicKey))
-                .addContainerGap(40, Short.MAX_VALUE))
-        );
+		final GroupLayout layout = new GroupLayout(this);
+		this.setLayout(layout);
+		layout.setHorizontalGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)
+			.addGroup(layout.createSequentialGroup().addGap(46, 46, 46)
+				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING, false)
+					.addComponent(lblKeySize, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE,
+						Short.MAX_VALUE)
+					.addComponent(lblKeySizeDisplay, GroupLayout.DEFAULT_SIZE, 128,
+						Short.MAX_VALUE))
+				.addGap(33, 33, 33)
+				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)
+					.addComponent(lblPrivateKey, GroupLayout.PREFERRED_SIZE, 179,
+						GroupLayout.PREFERRED_SIZE)
+					.addComponent(scpPrivateKey, GroupLayout.PREFERRED_SIZE, 480,
+						GroupLayout.PREFERRED_SIZE))
+				.addPreferredGap(LayoutStyle.ComponentPlacement.RELATED, 55, Short.MAX_VALUE)
+				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)
+					.addComponent(scpPublicKey, GroupLayout.PREFERRED_SIZE, 480,
+						GroupLayout.PREFERRED_SIZE)
+					.addComponent(lblPublicKey, GroupLayout.PREFERRED_SIZE, 165,
+						GroupLayout.PREFERRED_SIZE))
+				.addGap(48, 48, 48)));
+		layout
+			.setVerticalGroup(
+				layout.createParallelGroup(GroupLayout.Alignment.LEADING)
+					.addGroup(layout.createSequentialGroup().addGap(43, 43, 43)
+						.addGroup(layout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+							.addComponent(lblKeySize).addComponent(lblPrivateKey)
+							.addComponent(lblPublicKey))
+						.addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED)
+						.addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING, false)
+							.addComponent(lblKeySizeDisplay)
+							.addComponent(scpPrivateKey, GroupLayout.DEFAULT_SIZE, 520,
+								Short.MAX_VALUE)
+							.addComponent(scpPublicKey))
+						.addContainerGap(40, Short.MAX_VALUE)));
 	}
 }

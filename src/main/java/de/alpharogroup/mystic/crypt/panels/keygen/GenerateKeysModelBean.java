@@ -24,6 +24,7 @@
  */
 package de.alpharogroup.mystic.crypt.panels.keygen;
 
+import java.io.Serializable;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 
@@ -48,8 +49,10 @@ import lombok.experimental.FieldDefaults;
 @AllArgsConstructor
 @Builder(toBuilder = true)
 @FieldDefaults(level=AccessLevel.PRIVATE)
-public class GenerateKeysModelBean
+public class GenerateKeysModelBean implements Serializable
 {
+	/** The Constant serialVersionUID. */
+	private static final long serialVersionUID = 1L;
 
 	KeySize keySize;
 

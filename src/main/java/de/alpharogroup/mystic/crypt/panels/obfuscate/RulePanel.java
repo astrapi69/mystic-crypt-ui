@@ -39,7 +39,7 @@ import lombok.Getter;
 import net.miginfocom.swing.MigLayout;
 
 @Getter
-public class RulePanel extends BasePanel<ObfuscationModel>
+public class RulePanel extends BasePanel<ObfuscationModelBean>
 {
 
 	private static final long serialVersionUID = 1L;
@@ -49,11 +49,11 @@ public class RulePanel extends BasePanel<ObfuscationModel>
 
 	public RulePanel()
 	{
-		this(BaseModel.<ObfuscationModel>of(ObfuscationModel.builder().keyRulesTableModel(KeyRulesTableModel.builder().build())
+		this(BaseModel.<ObfuscationModelBean>of(ObfuscationModelBean.builder().keyRulesTableModel(KeyRulesTableModel.builder().build())
 			.build()));
 	}
 
-	public RulePanel(final Model<ObfuscationModel> model)
+	public RulePanel(final Model<ObfuscationModelBean> model)
 	{
 		super(model);
 	}

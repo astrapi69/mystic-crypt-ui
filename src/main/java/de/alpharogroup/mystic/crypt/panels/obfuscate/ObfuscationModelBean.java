@@ -27,14 +27,28 @@ package de.alpharogroup.mystic.crypt.panels.obfuscate;
 import java.io.Serializable;
 
 import de.alpharogroup.crypto.keyrules.Obfuscatable;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
+import lombok.experimental.FieldDefaults;
 
-@Data
-@Builder
-public class ObfuscationModel implements Serializable
+
+@Getter
+@Setter
+@EqualsAndHashCode
+@ToString
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder(toBuilder = true)
+@FieldDefaults(level=AccessLevel.PRIVATE)
+public class ObfuscationModelBean implements Serializable
 {
 	private static final long serialVersionUID = 1L;
-	private KeyRulesTableModel keyRulesTableModel;
-	private Obfuscatable obfuscator;
+	KeyRulesTableModel keyRulesTableModel;
+	Obfuscatable obfuscator;
 }

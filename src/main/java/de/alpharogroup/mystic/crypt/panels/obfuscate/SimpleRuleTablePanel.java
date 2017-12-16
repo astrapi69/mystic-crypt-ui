@@ -28,7 +28,6 @@ import javax.swing.GroupLayout;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
-import javax.swing.LayoutStyle;
 
 import de.alpharogroup.collections.pairs.KeyValuePair;
 import de.alpharogroup.swing.GenericJTable;
@@ -47,9 +46,9 @@ public class SimpleRuleTablePanel extends JPanel
     private javax.swing.JButton btnExport;
     private javax.swing.JButton btnImport;
 
-	private final ObfuscationModel model;
+	private final ObfuscationModelBean model;
 
-	public SimpleRuleTablePanel(@NonNull final ObfuscationModel model)
+	public SimpleRuleTablePanel(@NonNull final ObfuscationModelBean model)
 	{
 		this.model = model;
 		initialize();

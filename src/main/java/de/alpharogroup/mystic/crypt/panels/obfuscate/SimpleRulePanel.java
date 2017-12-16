@@ -37,7 +37,7 @@ import de.alpharogroup.swing.base.BasePanel;
 import lombok.Getter;
 
 @Getter
-public class SimpleRulePanel extends BasePanel<ObfuscationModel> {
+public class SimpleRulePanel extends BasePanel<ObfuscationModelBean> {
 
 	private static final long serialVersionUID = 1L;
 	private JButton btnAdd;
@@ -47,7 +47,7 @@ public class SimpleRulePanel extends BasePanel<ObfuscationModel> {
     private JTextField txtOriginalChar;
     private JTextField txtRelpaceWith;
 
-    public SimpleRulePanel(final Model<ObfuscationModel> model) {
+    public SimpleRulePanel(final Model<ObfuscationModelBean> model) {
 		super(model);
     }
 
