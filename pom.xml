@@ -16,6 +16,8 @@
 	<properties>
 		<!-- MIGLAYOUT-SWING version -->
 		<miglayout-swing.version>5.0</miglayout-swing.version>
+		<!-- XML-EXTENSIONS version -->
+		<xml-extensions.version>4.18.0</xml-extensions.version>
 		<!-- MYSTIC-CRYPT versions -->
 		<mystic-crypt.version>4.24.0</mystic-crypt.version>
 		<crypt-core.version>${mystic-crypt.version}</crypt-core.version>
@@ -51,6 +53,12 @@
 				<artifactId>miglayout-swing</artifactId>
 				<version>${miglayout-swing.version}</version>
 			</dependency>
+			<!-- XML-EXTENSIONS DEPENDENCY -->
+			<dependency>
+				<groupId>de.alpharogroup</groupId>
+				<artifactId>xml-extensions</artifactId>
+				<version>${xml-extensions.version}</version>
+			</dependency>
 
 		</dependencies>
 
@@ -71,6 +79,11 @@
 		<dependency>
 			<groupId>de.alpharogroup</groupId>
 			<artifactId>crypt-core</artifactId>
+		</dependency>
+		<!-- XML-EXTENSIONS DEPENDENCY -->
+		<dependency>
+			<groupId>de.alpharogroup</groupId>
+			<artifactId>xml-extensions</artifactId>
 		</dependency>
 
 	</dependencies>
