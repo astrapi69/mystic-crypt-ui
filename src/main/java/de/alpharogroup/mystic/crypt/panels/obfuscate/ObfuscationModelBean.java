@@ -26,7 +26,7 @@ package de.alpharogroup.mystic.crypt.panels.obfuscate;
 
 import java.io.Serializable;
 
-import de.alpharogroup.crypto.keyrules.Obfuscatable;
+import de.alpharogroup.crypto.obfuscation.api.Obfuscatable;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -49,6 +49,6 @@ import lombok.experimental.FieldDefaults;
 public class ObfuscationModelBean implements Serializable
 {
 	private static final long serialVersionUID = 1L;
-	KeyRulesTableModel keyRulesTableModel;
+	CharacterRulesTableModel keyRulesTableModel;
 	Obfuscatable obfuscator;
 }

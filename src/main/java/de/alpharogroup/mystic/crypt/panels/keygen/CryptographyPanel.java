@@ -48,333 +48,334 @@ import de.alpharogroup.swing.base.BasePanel;
 import lombok.Getter;
 
 /**
- * The class {@link CryptographyPanel} can generate private and public keys and save them to files.
+ * The class {@link CryptographyPanel} can generate private and public keys and
+ * save them to files.
  */
 @Getter
-public class CryptographyPanel extends BasePanel<GenerateKeysModelBean>
-{
+public class CryptographyPanel extends BasePanel<GenerateKeysModelBean> {
 
-	/** The Constant logger. */
-	protected static final Logger logger = Logger.getLogger(CryptographyPanel.class.getName());
+    /**
+     * The Constant logger.
+     */
+    protected static final Logger logger = Logger.getLogger(CryptographyPanel.class.getName());
 
-	/** The Constant serialVersionUID. */
-	private static final long serialVersionUID = 1L;
+    /**
+     * The Constant serialVersionUID.
+     */
+    private static final long serialVersionUID = 1L;
 
-	/** The btn clear. */
-	private JButton btnClear;
+    /**
+     * The btn clear.
+     */
+    private JButton btnClear;
 
-	/** The btn generate. */
-	private JButton btnGenerate;
+    /**
+     * The btn generate.
+     */
+    private JButton btnGenerate;
 
-	/** The btn save private key. */
-	private JButton btnSavePrivateKey;
+    /**
+     * The btn save private key.
+     */
+    private JButton btnSavePrivateKey;
 
-	/** The btn save public key. */
-	private JButton btnSavePublicKey;
+    private JButton btnSavePrivKeyWithPw;
 
-	/** The cmb key size. */
-	private JComboBox<String> cmbKeySize;
+    /**
+     * The btn save public key.
+     */
+    private JButton btnSavePublicKey;
 
-	/** The lbl key size. */
-	private JLabel lblKeySize;
+    /**
+     * The cmb key size.
+     */
+    private JComboBox<String> cmbKeySize;
 
-	/** The lbl private key. */
-	private JLabel lblPrivateKey;
+    /**
+     * The lbl key size.
+     */
+    private JLabel lblKeySize;
 
-	/** The lbl public key. */
-	private JLabel lblPublicKey;
+    /**
+     * The lbl private key.
+     */
+    private JLabel lblPrivateKey;
 
-	/** The scp private key. */
-	private JScrollPane scpPrivateKey;
+    /**
+     * The lbl public key.
+     */
+    private JLabel lblPublicKey;
 
-	/** The scp public key. */
-	private JScrollPane scpPublicKey;
+    /**
+     * The scp private key.
+     */
+    private JScrollPane scpPrivateKey;
 
-	/** The txt private key. */
-	private JTextArea txtPrivateKey;
+    /**
+     * The scp public key.
+     */
+    private JScrollPane scpPublicKey;
 
-	/** The txt public key. */
-	private JTextArea txtPublicKey;
+    /**
+     * The txt private key.
+     */
+    private JTextArea txtPrivateKey;
 
-	/**
-	 * Instantiates a new {@link CryptographyPanel}.
-	 */
-	public CryptographyPanel()
-	{
-		this(BaseModel.<GenerateKeysModelBean>of(GenerateKeysModelBean.builder().build()));
-	}
+    /**
+     * The txt public key.
+     */
+    private JTextArea txtPublicKey;
 
-	public CryptographyPanel(final Model<GenerateKeysModelBean> model)
-	{
-		super(model);
-	}
+    /**
+     * Instantiates a new {@link CryptographyPanel}.
+     */
+    public CryptographyPanel() {
+        this(BaseModel.<GenerateKeysModelBean>of(GenerateKeysModelBean.builder().build()));
+    }
 
-	@Override
-	protected void onInitializeComponents()
-	{
-		super.onInitializeComponents();
+    public CryptographyPanel(final Model<GenerateKeysModelBean> model) {
+        super(model);
+    }
 
-		scpPrivateKey = new JScrollPane();
-		txtPrivateKey = new JTextArea();
-		cmbKeySize = new JComboBox<>();
-		lblPrivateKey = new JLabel();
-		lblKeySize = new JLabel();
-		scpPublicKey = new JScrollPane();
-		txtPublicKey = new JTextArea();
-		lblPublicKey = new JLabel();
-		btnGenerate = new JButton();
-		btnClear = new JButton();
-		btnSavePrivateKey = new JButton();
-		btnSavePublicKey = new JButton();
+    @Override
+    protected void onInitializeComponents() {
+        super.onInitializeComponents();
 
-		txtPrivateKey.setEditable(false);
-		txtPublicKey.setEditable(false);
+        scpPrivateKey = new JScrollPane();
+        txtPrivateKey = new JTextArea();
+        cmbKeySize = new JComboBox<>();
+        lblPrivateKey = new JLabel();
+        lblKeySize = new JLabel();
+        scpPublicKey = new JScrollPane();
+        txtPublicKey = new JTextArea();
+        lblPublicKey = new JLabel();
+        btnGenerate = new JButton();
+        btnClear = new JButton();
+        btnSavePrivateKey = new JButton();
+        btnSavePublicKey = new JButton();
+        btnSavePrivKeyWithPw = new JButton();
 
-		txtPrivateKey.setFont(new Font("monospaced", Font.PLAIN, 12));
-		txtPublicKey.setFont(new Font("monospaced", Font.PLAIN, 12));
+        txtPrivateKey.setEditable(false);
+        txtPublicKey.setEditable(false);
 
-		cmbKeySize.addActionListener(actionEvent -> onChangeKeySize(actionEvent));
-		btnGenerate.addActionListener(actionEvent -> onGenerate(actionEvent));
-		btnClear.addActionListener(actionEvent -> onClear(actionEvent));
-		btnSavePrivateKey.addActionListener(actionEvent -> onSavePrivateKey(actionEvent));
-		btnSavePublicKey.addActionListener(actionEvent -> onSavePublicKey(actionEvent));
+        txtPrivateKey.setFont(new Font("monospaced", Font.PLAIN, 12));
+        txtPublicKey.setFont(new Font("monospaced", Font.PLAIN, 12));
 
-		txtPrivateKey.setColumns(20);
-		txtPrivateKey.setRows(5);
-		scpPrivateKey.setViewportView(txtPrivateKey);
-		txtPrivateKey.getAccessibleContext().setAccessibleDescription("");
+        cmbKeySize.addActionListener(actionEvent -> onChangeKeySize(actionEvent));
+        btnGenerate.addActionListener(actionEvent -> onGenerate(actionEvent));
+        btnClear.addActionListener(actionEvent -> onClear(actionEvent));
+        btnSavePrivateKey.addActionListener(actionEvent -> onSavePrivateKey(actionEvent));
+        btnSavePublicKey.addActionListener(actionEvent -> onSavePublicKey(actionEvent));
 
-		cmbKeySize.setModel(new DefaultComboBoxModel(KeySize.values()));
-		cmbKeySize.setSelectedItem(KeySize.KEYSIZE_1024);
+        txtPrivateKey.setColumns(20);
+        txtPrivateKey.setRows(5);
+        scpPrivateKey.setViewportView(txtPrivateKey);
+        txtPrivateKey.getAccessibleContext().setAccessibleDescription("");
 
-		btnGenerate.setText("Generate keys");
+        cmbKeySize.setModel(new DefaultComboBoxModel(KeySize.values()));
+        cmbKeySize.setSelectedItem(KeySize.KEYSIZE_1024);
 
-		lblPrivateKey.setText("Private key");
+        btnGenerate.setText("Generate keys");
 
-		lblKeySize.setText("Keysize");
+        lblPrivateKey.setText("Private key");
 
-		txtPublicKey.setColumns(20);
-		txtPublicKey.setRows(5);
-		scpPublicKey.setViewportView(txtPublicKey);
+        lblKeySize.setText("Keysize");
 
-		lblPublicKey.setText("Public key");
+        txtPublicKey.setColumns(20);
+        txtPublicKey.setRows(5);
+        scpPublicKey.setViewportView(txtPublicKey);
 
-		btnClear.setText("Clear keys");
+        lblPublicKey.setText("Public key");
 
-		btnSavePrivateKey.setText("Save private key");
+        btnClear.setText("Clear keys");
 
-		btnSavePublicKey.setText("Save public key");
-	}
+        btnSavePrivateKey.setText("Save private key");
+        btnSavePrivKeyWithPw.setText("Save private key with password");
 
-	@Override
-	protected void onInitializeLayout()
-	{
-		super.onInitializeLayout();
-		onInitializeGroupLayout();
-		// onInitializeGridBagLayout();
-	}
+        btnSavePublicKey.setText("Save public key");
+    }
 
-	protected void onInitializeGridBagLayout()
-	{
+    @Override
+    protected void onInitializeLayout() {
+        super.onInitializeLayout();
+        onInitializeGroupLayout();
+        // onInitializeGridBagLayout();
+    }
 
-		final GridBagLayout gbl = new GridBagLayout();
-		final GridBagConstraints gbc = new GridBagConstraints();
-		this.setLayout(gbl);
+    protected void onInitializeGridBagLayout() {
 
-		LayoutExtensions.add(GridBagLayoutModel.builder().layoutComponent(lblKeySize).parent(this)
-			.gridBagLayout(gbl).gridBagConstraints(gbc).anchor(GridBagConstraints.NORTHWEST)
-			.fill(GridBagConstraints.BOTH)
-			.insets(InsetsModel.builder().top(2).left(2).bottom(2).right(2).build()).gridx(0)
-			.gridy(1).gridwidth(1).gridheight(1).weightx(100).weighty(100).build());
+        final GridBagLayout gbl = new GridBagLayout();
+        final GridBagConstraints gbc = new GridBagConstraints();
+        this.setLayout(gbl);
 
-		LayoutExtensions.add(GridBagLayoutModel.builder().layoutComponent(lblPrivateKey)
-			.parent(this).gridBagLayout(gbl).gridBagConstraints(gbc)
-			.anchor(GridBagConstraints.NORTHWEST).fill(GridBagConstraints.BOTH)
-			.insets(InsetsModel.builder().top(2).left(2).bottom(2).right(2).build()).gridx(1)
-			.gridy(1).gridwidth(1).gridheight(1).weightx(100).weighty(100).build());
+        LayoutExtensions.add(GridBagLayoutModel.builder().layoutComponent(lblKeySize).parent(this)
+                .gridBagLayout(gbl).gridBagConstraints(gbc).anchor(GridBagConstraints.NORTHWEST)
+                .fill(GridBagConstraints.BOTH)
+                .insets(InsetsModel.builder().top(2).left(2).bottom(2).right(2).build()).gridx(0)
+                .gridy(1).gridwidth(1).gridheight(1).weightx(100).weighty(100).build());
 
-		LayoutExtensions.add(GridBagLayoutModel.builder().layoutComponent(lblPublicKey).parent(this)
-			.gridBagLayout(gbl).gridBagConstraints(gbc).anchor(GridBagConstraints.NORTHWEST)
-			.fill(GridBagConstraints.BOTH)
-			.insets(InsetsModel.builder().top(2).left(2).bottom(2).right(2).build()).gridx(2)
-			.gridy(1).gridwidth(1).gridheight(1).weightx(100).weighty(100).build());
+        LayoutExtensions.add(GridBagLayoutModel.builder().layoutComponent(lblPrivateKey)
+                .parent(this).gridBagLayout(gbl).gridBagConstraints(gbc)
+                .anchor(GridBagConstraints.NORTHWEST).fill(GridBagConstraints.BOTH)
+                .insets(InsetsModel.builder().top(2).left(2).bottom(2).right(2).build()).gridx(1)
+                .gridy(1).gridwidth(1).gridheight(1).weightx(100).weighty(100).build());
 
-		LayoutExtensions.add(GridBagLayoutModel.builder().layoutComponent(cmbKeySize).parent(this)
-			.gridBagLayout(gbl).gridBagConstraints(gbc).anchor(GridBagConstraints.NORTHWEST)
-			.fill(GridBagConstraints.HORIZONTAL)
-			.insets(InsetsModel.builder().top(2).left(2).bottom(2).right(2).build()).gridx(0)
-			.gridy(2).gridwidth(1).gridheight(1).weightx(100).weighty(100).build());
+        LayoutExtensions.add(GridBagLayoutModel.builder().layoutComponent(lblPublicKey).parent(this)
+                .gridBagLayout(gbl).gridBagConstraints(gbc).anchor(GridBagConstraints.NORTHWEST)
+                .fill(GridBagConstraints.BOTH)
+                .insets(InsetsModel.builder().top(2).left(2).bottom(2).right(2).build()).gridx(2)
+                .gridy(1).gridwidth(1).gridheight(1).weightx(100).weighty(100).build());
 
-		LayoutExtensions.add(GridBagLayoutModel.builder().layoutComponent(txtPrivateKey)
-			.parent(this).gridBagLayout(gbl).gridBagConstraints(gbc)
-			.anchor(GridBagConstraints.NORTHWEST).fill(GridBagConstraints.BOTH)
-			.insets(InsetsModel.builder().top(2).left(2).bottom(2).right(2).build()).gridx(1)
-			.gridy(2).gridwidth(1).gridheight(1).weightx(100).weighty(100).build());
+        LayoutExtensions.add(GridBagLayoutModel.builder().layoutComponent(cmbKeySize).parent(this)
+                .gridBagLayout(gbl).gridBagConstraints(gbc).anchor(GridBagConstraints.NORTHWEST)
+                .fill(GridBagConstraints.HORIZONTAL)
+                .insets(InsetsModel.builder().top(2).left(2).bottom(2).right(2).build()).gridx(0)
+                .gridy(2).gridwidth(1).gridheight(1).weightx(100).weighty(100).build());
 
-		LayoutExtensions.add(GridBagLayoutModel.builder().layoutComponent(txtPublicKey).parent(this)
-			.gridBagLayout(gbl).gridBagConstraints(gbc).anchor(GridBagConstraints.NORTHWEST)
-			.fill(GridBagConstraints.BOTH)
-			.insets(InsetsModel.builder().top(2).left(2).bottom(2).right(2).build()).gridx(2)
-			.gridy(2).ipady(140)// make this component tall
-			.gridwidth(1).gridheight(1).weightx(100).weighty(100).build());
+        LayoutExtensions.add(GridBagLayoutModel.builder().layoutComponent(txtPrivateKey)
+                .parent(this).gridBagLayout(gbl).gridBagConstraints(gbc)
+                .anchor(GridBagConstraints.NORTHWEST).fill(GridBagConstraints.BOTH)
+                .insets(InsetsModel.builder().top(2).left(2).bottom(2).right(2).build()).gridx(1)
+                .gridy(2).gridwidth(1).gridheight(1).weightx(100).weighty(100).build());
 
-		LayoutExtensions.add(GridBagLayoutModel.builder().layoutComponent(btnGenerate).parent(this)
-			.gridBagLayout(gbl).gridBagConstraints(gbc).anchor(GridBagConstraints.NORTHWEST)
-			.fill(GridBagConstraints.HORIZONTAL)
-			.insets(InsetsModel.builder().top(2).left(2).bottom(2).right(2).build()).gridx(0)
-			.gridy(3).gridwidth(1).gridheight(1).weightx(100).weighty(100).build());
+        LayoutExtensions.add(GridBagLayoutModel.builder().layoutComponent(txtPublicKey).parent(this)
+                .gridBagLayout(gbl).gridBagConstraints(gbc).anchor(GridBagConstraints.NORTHWEST)
+                .fill(GridBagConstraints.BOTH)
+                .insets(InsetsModel.builder().top(2).left(2).bottom(2).right(2).build()).gridx(2)
+                .gridy(2).ipady(140)// make this component tall
+                .gridwidth(1).gridheight(1).weightx(100).weighty(100).build());
 
-		LayoutExtensions.add(GridBagLayoutModel.builder().layoutComponent(btnClear).parent(this)
-			.gridBagLayout(gbl).gridBagConstraints(gbc).anchor(GridBagConstraints.NORTHWEST)
-			.fill(GridBagConstraints.HORIZONTAL)
-			.insets(InsetsModel.builder().top(2).left(2).bottom(2).right(2).build()).gridx(0)
-			.gridy(4).gridwidth(1).gridheight(1).weightx(100).weighty(100).build());
+        LayoutExtensions.add(GridBagLayoutModel.builder().layoutComponent(btnGenerate).parent(this)
+                .gridBagLayout(gbl).gridBagConstraints(gbc).anchor(GridBagConstraints.NORTHWEST)
+                .fill(GridBagConstraints.HORIZONTAL)
+                .insets(InsetsModel.builder().top(2).left(2).bottom(2).right(2).build()).gridx(0)
+                .gridy(3).gridwidth(1).gridheight(1).weightx(100).weighty(100).build());
 
-		LayoutExtensions.add(GridBagLayoutModel.builder().layoutComponent(btnSavePrivateKey)
-			.parent(this).gridBagLayout(gbl).gridBagConstraints(gbc)
-			.anchor(GridBagConstraints.NORTHWEST).fill(GridBagConstraints.BOTH)
-			.insets(InsetsModel.builder().top(2).left(2).bottom(2).right(2).build()).gridx(1)
-			.gridy(5).gridwidth(1).gridheight(1).weightx(100).weighty(100).build());
+        LayoutExtensions.add(GridBagLayoutModel.builder().layoutComponent(btnClear).parent(this)
+                .gridBagLayout(gbl).gridBagConstraints(gbc).anchor(GridBagConstraints.NORTHWEST)
+                .fill(GridBagConstraints.HORIZONTAL)
+                .insets(InsetsModel.builder().top(2).left(2).bottom(2).right(2).build()).gridx(0)
+                .gridy(4).gridwidth(1).gridheight(1).weightx(100).weighty(100).build());
 
-		LayoutExtensions.add(GridBagLayoutModel.builder().layoutComponent(btnSavePublicKey)
-			.parent(this).gridBagLayout(gbl).gridBagConstraints(gbc)
-			.anchor(GridBagConstraints.NORTHWEST).fill(GridBagConstraints.BOTH)
-			.insets(InsetsModel.builder().top(2).left(2).bottom(2).right(2).build()).gridx(2)
-			.gridy(5).gridwidth(1).gridheight(1).weightx(100).weighty(100).build());
+        LayoutExtensions.add(GridBagLayoutModel.builder().layoutComponent(btnSavePrivateKey)
+                .parent(this).gridBagLayout(gbl).gridBagConstraints(gbc)
+                .anchor(GridBagConstraints.NORTHWEST).fill(GridBagConstraints.BOTH)
+                .insets(InsetsModel.builder().top(2).left(2).bottom(2).right(2).build()).gridx(1)
+                .gridy(5).gridwidth(1).gridheight(1).weightx(100).weighty(100).build());
 
-	}
+        LayoutExtensions.add(GridBagLayoutModel.builder().layoutComponent(btnSavePublicKey)
+                .parent(this).gridBagLayout(gbl).gridBagConstraints(gbc)
+                .anchor(GridBagConstraints.NORTHWEST).fill(GridBagConstraints.BOTH)
+                .insets(InsetsModel.builder().top(2).left(2).bottom(2).right(2).build()).gridx(2)
+                .gridy(5).gridwidth(1).gridheight(1).weightx(100).weighty(100).build());
 
-	protected void onInitializeGroupLayout()
-	{
-		final javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
-		this.setLayout(layout);
-		layout.setHorizontalGroup(layout.createParallelGroup(
-			javax.swing.GroupLayout.Alignment.LEADING)
-			.addGroup(layout
-				.createSequentialGroup()
-				.addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-					.addGroup(layout.createSequentialGroup().addGroup(layout
-						.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-						.addGroup(layout.createSequentialGroup().addContainerGap().addGroup(layout
-							.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-							.addComponent(cmbKeySize, 0, javax.swing.GroupLayout.DEFAULT_SIZE,
-								Short.MAX_VALUE)
-							.addComponent(btnGenerate, javax.swing.GroupLayout.DEFAULT_SIZE, 206,
-								Short.MAX_VALUE)))
-						.addGroup(layout.createSequentialGroup().addGap(21, 21, 21).addComponent(
-							lblKeySize, javax.swing.GroupLayout.PREFERRED_SIZE, 147,
-							javax.swing.GroupLayout.PREFERRED_SIZE))
-						.addGroup(layout.createSequentialGroup().addContainerGap().addComponent(
-							btnClear, javax.swing.GroupLayout.DEFAULT_SIZE,
-							javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
-						.addGap(18, 18, 18).addGroup(
-							layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-								.addComponent(scpPrivateKey, javax.swing.GroupLayout.PREFERRED_SIZE,
-									480, javax.swing.GroupLayout.PREFERRED_SIZE)
-								.addComponent(lblPrivateKey, javax.swing.GroupLayout.PREFERRED_SIZE,
-									147, javax.swing.GroupLayout.PREFERRED_SIZE)))
-					.addGroup(layout.createSequentialGroup().addGap(542, 542, 542).addComponent(
-						btnSavePrivateKey, javax.swing.GroupLayout.PREFERRED_SIZE, 174,
-						javax.swing.GroupLayout.PREFERRED_SIZE)))
-				.addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 60,
-					Short.MAX_VALUE)
-				.addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-					.addGroup(javax.swing.GroupLayout.Alignment.TRAILING,
-						layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-							.addComponent(lblPublicKey, javax.swing.GroupLayout.PREFERRED_SIZE, 147,
-								javax.swing.GroupLayout.PREFERRED_SIZE)
-							.addComponent(scpPublicKey, javax.swing.GroupLayout.PREFERRED_SIZE, 480,
-								javax.swing.GroupLayout.PREFERRED_SIZE))
-					.addComponent(btnSavePublicKey, javax.swing.GroupLayout.Alignment.TRAILING,
-						javax.swing.GroupLayout.PREFERRED_SIZE, 174,
-						javax.swing.GroupLayout.PREFERRED_SIZE))
-				.addContainerGap(31, Short.MAX_VALUE)));
-		layout
-			.setVerticalGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-				.addGroup(layout.createSequentialGroup().addGap(26, 26, 26)
-					.addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-						.addComponent(lblPrivateKey, javax.swing.GroupLayout.PREFERRED_SIZE, 29,
-							javax.swing.GroupLayout.PREFERRED_SIZE)
-						.addComponent(lblKeySize, javax.swing.GroupLayout.PREFERRED_SIZE, 29,
-							javax.swing.GroupLayout.PREFERRED_SIZE)
-						.addComponent(lblPublicKey, javax.swing.GroupLayout.PREFERRED_SIZE, 29,
-							javax.swing.GroupLayout.PREFERRED_SIZE))
-					.addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-					.addGroup(layout
-						.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-						.addGroup(layout.createSequentialGroup()
-							.addComponent(cmbKeySize, javax.swing.GroupLayout.PREFERRED_SIZE, 43,
-								javax.swing.GroupLayout.PREFERRED_SIZE)
-							.addGap(18, 18, 18)
-							.addComponent(btnGenerate, javax.swing.GroupLayout.PREFERRED_SIZE, 41,
-								javax.swing.GroupLayout.PREFERRED_SIZE)
-							.addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-							.addComponent(btnClear, javax.swing.GroupLayout.PREFERRED_SIZE, 41,
-								javax.swing.GroupLayout.PREFERRED_SIZE))
-						.addComponent(scpPrivateKey, javax.swing.GroupLayout.DEFAULT_SIZE, 265,
-							Short.MAX_VALUE)
-						.addComponent(scpPublicKey))
-					.addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 24,
-						Short.MAX_VALUE)
-					.addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-						.addComponent(btnSavePublicKey, javax.swing.GroupLayout.PREFERRED_SIZE, 41,
-							javax.swing.GroupLayout.PREFERRED_SIZE)
-						.addComponent(btnSavePrivateKey, javax.swing.GroupLayout.PREFERRED_SIZE, 41,
-							javax.swing.GroupLayout.PREFERRED_SIZE))
-					.addContainerGap()));
-	}
+    }
 
-	/**
-	 * Callback method that can be overwritten to provide specific action for the on change key
-	 * size.
-	 *
-	 * @param actionEvent
-	 *            the action event
-	 */
-	protected void onChangeKeySize(final ActionEvent actionEvent)
-	{
-	}
+    protected void onInitializeGroupLayout() {
+        final javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
+        this.setLayout(layout);
+        layout.setHorizontalGroup(
+                layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addGroup(layout.createSequentialGroup()
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                                .addGroup(layout.createSequentialGroup()
+                                        .addContainerGap()
+                                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                                                .addComponent(cmbKeySize, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                                .addComponent(btnGenerate, javax.swing.GroupLayout.DEFAULT_SIZE, 206, Short.MAX_VALUE)))
+                                .addGroup(layout.createSequentialGroup()
+                                        .addGap(21, 21, 21)
+                                        .addComponent(lblKeySize, javax.swing.GroupLayout.PREFERRED_SIZE, 147, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                .addGroup(layout.createSequentialGroup()
+                                        .addContainerGap()
+                                        .addComponent(btnClear, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
+                        .addGap(18, 18, 18)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
+                                .addGroup(layout.createSequentialGroup()
+                                        .addComponent(btnSavePrivKeyWithPw, javax.swing.GroupLayout.PREFERRED_SIZE, 267, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                        .addComponent(btnSavePrivateKey, javax.swing.GroupLayout.PREFERRED_SIZE, 174, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                        .addComponent(scpPrivateKey, javax.swing.GroupLayout.PREFERRED_SIZE, 480, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                        .addComponent(lblPrivateKey, javax.swing.GroupLayout.PREFERRED_SIZE, 147, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 56, Short.MAX_VALUE)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                        .addComponent(lblPublicKey, javax.swing.GroupLayout.PREFERRED_SIZE, 147, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                        .addComponent(scpPublicKey, javax.swing.GroupLayout.PREFERRED_SIZE, 480, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                .addComponent(btnSavePublicKey, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 174, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addContainerGap(28, Short.MAX_VALUE))
+        );
+        layout.setVerticalGroup(
+                layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addGroup(layout.createSequentialGroup()
+                        .addGap(26, 26, 26)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                                .addComponent(lblPrivateKey, javax.swing.GroupLayout.PREFERRED_SIZE, 29, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addComponent(lblKeySize, javax.swing.GroupLayout.PREFERRED_SIZE, 29, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addComponent(lblPublicKey, javax.swing.GroupLayout.PREFERRED_SIZE, 29, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                                .addGroup(layout.createSequentialGroup()
+                                        .addComponent(cmbKeySize, javax.swing.GroupLayout.PREFERRED_SIZE, 43, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                        .addGap(18, 18, 18)
+                                        .addComponent(btnGenerate, javax.swing.GroupLayout.PREFERRED_SIZE, 41, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                                        .addComponent(btnClear, javax.swing.GroupLayout.PREFERRED_SIZE, 41, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                .addComponent(scpPrivateKey, javax.swing.GroupLayout.DEFAULT_SIZE, 265, Short.MAX_VALUE)
+                                .addComponent(scpPublicKey))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 24, Short.MAX_VALUE)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                                .addComponent(btnSavePublicKey, javax.swing.GroupLayout.PREFERRED_SIZE, 41, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addComponent(btnSavePrivateKey, javax.swing.GroupLayout.PREFERRED_SIZE, 41, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addComponent(btnSavePrivKeyWithPw, javax.swing.GroupLayout.PREFERRED_SIZE, 41, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addContainerGap())
+        );
+    }
 
-	/**
-	 * Callback method that can be overwritten to provide specific action for the on save public
-	 * key.
-	 *
-	 * @param actionEvent
-	 *            the action event
-	 */
-	protected void onSavePublicKey(final ActionEvent actionEvent)
-	{
-	}
+    /**
+     * Callback method that can be overwritten to provide specific action for
+     * the on change key size.
+     *
+     * @param actionEvent the action event
+     */
+    protected void onChangeKeySize(final ActionEvent actionEvent) {
+    }
 
-	/**
-	 * Callback method that can be overwritten to provide specific action for the on save private
-	 * key.
-	 *
-	 * @param actionEvent
-	 *            the action event
-	 */
-	protected void onSavePrivateKey(final ActionEvent actionEvent)
-	{
-	}
+    /**
+     * Callback method that can be overwritten to provide specific action for
+     * the on save public key.
+     *
+     * @param actionEvent the action event
+     */
+    protected void onSavePublicKey(final ActionEvent actionEvent) {
+    }
 
-	/**
-	 * Callback method that can be overwritten to provide specific action for the on clear.
-	 *
-	 * @param actionEvent
-	 *            the action event
-	 */
-	protected void onClear(final ActionEvent actionEvent)
-	{
-	}
+    /**
+     * Callback method that can be overwritten to provide specific action for
+     * the on save private key.
+     *
+     * @param actionEvent the action event
+     */
+    protected void onSavePrivateKey(final ActionEvent actionEvent) {
+    }
 
-	/**
-	 * Callback method that can be overwritten to provide specific action for the on generate.
-	 *
-	 * @param actionEvent
-	 *            the action event
-	 */
-	protected void onGenerate(final ActionEvent actionEvent)
-	{
-	}
+    /**
+     * Callback method that can be overwritten to provide specific action for
+     * the on clear.
+     *
+     * @param actionEvent the action event
+     */
+    protected void onClear(final ActionEvent actionEvent) {
+    }
+
+    /**
+     * Callback method that can be overwritten to provide specific action for
+     * the on generate.
+     *
+     * @param actionEvent the action event
+     */
+    protected void onGenerate(final ActionEvent actionEvent) {
+    }
 
 }

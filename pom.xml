@@ -6,7 +6,7 @@
 	<parent>
 		<groupId>de.alpharogroup</groupId>
 		<artifactId>mvn-ui-parent</artifactId>
-		<version>1.16.0</version>
+		<version>1.17.0</version>
 		<relativePath></relativePath>
 	</parent>
 
@@ -18,8 +18,11 @@
 		<miglayout-swing.version>5.0</miglayout-swing.version>
 		<!-- XML-EXTENSIONS version -->
 		<xml-extensions.version>4.18.0</xml-extensions.version>
+		<!-- GUAVA version -->
+		<guava.version>23.0</guava.version>
 		<!-- MYSTIC-CRYPT versions -->
-		<mystic-crypt.version>4.24.0</mystic-crypt.version>
+		<mystic-crypt.version>5.0.0</mystic-crypt.version>
+		<crypt-api.version>${mystic-crypt.version}</crypt-api.version>
 		<crypt-core.version>${mystic-crypt.version}</crypt-core.version>
 		<randomizer.version>${mystic-crypt.version}</randomizer.version>
 		<auth-security.version>${mystic-crypt.version}</auth-security.version>
@@ -35,6 +38,12 @@
 	<dependencyManagement>
 
 		<dependencies>
+			<!-- CRYPT-API DEPENDENCY -->
+			<dependency>
+				<groupId>de.alpharogroup</groupId>
+				<artifactId>crypt-api</artifactId>
+				<version>${crypt-api.version}</version>
+			</dependency>
 
 			<dependency>
 				<groupId>de.alpharogroup</groupId>
@@ -59,6 +68,12 @@
 				<artifactId>xml-extensions</artifactId>
 				<version>${xml-extensions.version}</version>
 			</dependency>
+			<!-- GUAVA DEPENDENCY -->
+			<dependency>
+				<groupId>com.google.guava</groupId>
+				<artifactId>guava</artifactId>
+				<version>${guava.version}</version>
+			</dependency>
 
 		</dependencies>
 
@@ -69,6 +84,11 @@
 		<dependency>
 			<groupId>com.miglayout</groupId>
 			<artifactId>miglayout-swing</artifactId>
+		</dependency>
+		<!-- CRYPT-API DEPENDENCY -->
+		<dependency>
+			<groupId>de.alpharogroup</groupId>
+			<artifactId>crypt-api</artifactId>
 		</dependency>
 
 		<dependency>
@@ -85,6 +105,11 @@
 			<groupId>de.alpharogroup</groupId>
 			<artifactId>xml-extensions</artifactId>
 		</dependency>
+		<!-- GUAVA DEPENDENCY -->
+		<dependency>
+			<groupId>com.google.guava</groupId>
+			<artifactId>guava</artifactId>
+		</dependency>
 
 	</dependencies>
 
@@ -98,9 +123,9 @@
 				<artifactId>maven-jar-plugin</artifactId>
 			</plugin>
 
-			<plugin>
-				<artifactId>maven-assembly-plugin</artifactId>
-			</plugin>
+<!-- 			<plugin> -->
+<!-- 				<artifactId>maven-assembly-plugin</artifactId> -->
+<!-- 			</plugin> -->
 
 		</plugins>
 

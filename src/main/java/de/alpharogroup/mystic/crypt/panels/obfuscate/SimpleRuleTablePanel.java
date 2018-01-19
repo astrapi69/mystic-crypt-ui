@@ -37,6 +37,7 @@ import javax.swing.JScrollPane;
 import com.fasterxml.jackson.core.JsonProcessingException;
 
 import de.alpharogroup.collections.pairs.KeyValuePair;
+import de.alpharogroup.crypto.obfuscation.rule.ObfuscationOperationRule;
 import de.alpharogroup.file.read.ReadFileExtensions;
 import de.alpharogroup.file.write.WriteFileExtensions;
 import de.alpharogroup.model.BaseModel;
@@ -57,7 +58,7 @@ public class SimpleRuleTablePanel extends BasePanel<ObfuscationModelBean>
 	private static final long serialVersionUID = 1L;
 	private JLabel lblKeyRules;
 	private JScrollPane scpKeyRules;
-	private GenericJTable<KeyValuePair<String, String>> tblKeyRules;
+	private GenericJTable<KeyValuePair<Character, ObfuscationOperationRule<Character, Character>>> tblKeyRules;
 	private javax.swing.JButton btnExport;
 	private javax.swing.JButton btnImport;
 	private JFileChooser fileChooser;
@@ -107,7 +108,7 @@ public class SimpleRuleTablePanel extends BasePanel<ObfuscationModelBean>
 			final File obfuscationRules = fileChooser.getSelectedFile();
 			try {
 				final String fromFile = ReadFileExtensions.readFromFile(obfuscationRules);
-				final Map<String, String> map = JsonTransformer.toObject(fromFile, Map.class);
+				final Map<Character, ObfuscationOperationRule<Character, Character>> map = JsonTransformer.toObject(fromFile, Map.class);
 				getModelObject().getKeyRulesTableModel().setData(KeyValuePair.toKeyValuePairs(map));
 				getModelObject().getKeyRulesTableModel().fireTableDataChanged();
 			} catch (final IOException e) {
@@ -118,7 +119,7 @@ public class SimpleRuleTablePanel extends BasePanel<ObfuscationModelBean>
 
 	protected void onExport(final ActionEvent actionEvent)
 	{
-		final Map<String, String> map = getModelObject().getKeyRulesTableModel().toMap();
+		final Map<Character, ObfuscationOperationRule<Character, Character>> map = getModelObject().getKeyRulesTableModel().toMap();
 		final int returnVal = fileChooser.showSaveDialog(SimpleRuleTablePanel.this);
 		if (returnVal == JFileChooser.APPROVE_OPTION)
 		{

@@ -17,34 +17,33 @@
     <DimensionLayout dim="0">
       <Group type="103" groupAlignment="0" attributes="0">
           <Group type="102" attributes="0">
-              <Group type="103" groupAlignment="1" attributes="0">
+              <Group type="103" groupAlignment="0" max="-2" attributes="0">
                   <Group type="102" attributes="0">
+                      <EmptySpace max="-2" attributes="0"/>
                       <Group type="103" groupAlignment="0" max="-2" attributes="0">
-                          <Group type="102" attributes="0">
-                              <EmptySpace max="-2" attributes="0"/>
-                              <Group type="103" groupAlignment="0" max="-2" attributes="0">
-                                  <Component id="cmbKeySize" max="32767" attributes="0"/>
-                                  <Component id="btnGenerate" pref="206" max="32767" attributes="0"/>
-                              </Group>
-                          </Group>
-                          <Group type="102" alignment="0" attributes="0">
-                              <EmptySpace min="-2" pref="21" max="-2" attributes="0"/>
-                              <Component id="lblKeySize" min="-2" pref="147" max="-2" attributes="0"/>
-                          </Group>
-                          <Group type="102" alignment="0" attributes="0">
-                              <EmptySpace max="-2" attributes="0"/>
-                              <Component id="btnClear" max="32767" attributes="0"/>
-                          </Group>
-                      </Group>
-                      <EmptySpace type="separate" max="-2" attributes="0"/>
-                      <Group type="103" groupAlignment="0" attributes="0">
-                          <Component id="scpPrivateKey" min="-2" pref="480" max="-2" attributes="0"/>
-                          <Component id="lblPrivateKey" min="-2" pref="147" max="-2" attributes="0"/>
+                          <Component id="cmbKeySize" max="32767" attributes="0"/>
+                          <Component id="btnGenerate" pref="206" max="32767" attributes="0"/>
                       </Group>
                   </Group>
+                  <Group type="102" alignment="0" attributes="0">
+                      <EmptySpace min="-2" pref="21" max="-2" attributes="0"/>
+                      <Component id="lblKeySize" min="-2" pref="147" max="-2" attributes="0"/>
+                  </Group>
+                  <Group type="102" alignment="0" attributes="0">
+                      <EmptySpace max="-2" attributes="0"/>
+                      <Component id="btnClear" max="32767" attributes="0"/>
+                  </Group>
+              </Group>
+              <EmptySpace type="separate" max="-2" attributes="0"/>
+              <Group type="103" groupAlignment="1" max="-2" attributes="0">
                   <Group type="102" attributes="0">
-                      <EmptySpace min="-2" pref="542" max="-2" attributes="0"/>
+                      <Component id="btnSavePrivKeyWithPw" min="-2" pref="267" max="-2" attributes="0"/>
+                      <EmptySpace max="32767" attributes="0"/>
                       <Component id="btnSavePrivateKey" min="-2" pref="174" max="-2" attributes="0"/>
+                  </Group>
+                  <Group type="103" groupAlignment="0" attributes="0">
+                      <Component id="scpPrivateKey" min="-2" pref="480" max="-2" attributes="0"/>
+                      <Component id="lblPrivateKey" min="-2" pref="147" max="-2" attributes="0"/>
                   </Group>
               </Group>
               <EmptySpace pref="56" max="32767" attributes="0"/>
@@ -84,6 +83,7 @@
               <Group type="103" groupAlignment="3" attributes="0">
                   <Component id="btnSavePublicKey" alignment="3" min="-2" pref="41" max="-2" attributes="0"/>
                   <Component id="btnSavePrivateKey" alignment="3" min="-2" pref="41" max="-2" attributes="0"/>
+                  <Component id="btnSavePrivKeyWithPw" alignment="3" min="-2" pref="41" max="-2" attributes="0"/>
               </Group>
               <EmptySpace max="-2" attributes="0"/>
           </Group>
@@ -170,6 +170,11 @@
     <Component class="javax.swing.JButton" name="btnSavePrivateKey">
       <Properties>
         <Property name="text" type="java.lang.String" value="Save private key"/>
+      </Properties>
+    </Component>
+    <Component class="javax.swing.JButton" name="btnSavePrivKeyWithPw">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="Save private key with password"/>
       </Properties>
     </Component>
   </SubComponents>

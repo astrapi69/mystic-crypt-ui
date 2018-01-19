@@ -27,10 +27,13 @@ package de.alpharogroup.mystic.crypt.panels.obfuscate;
 import java.awt.event.ActionEvent;
 import java.util.Map;
 
+import com.google.common.collect.BiMap;
+import com.google.common.collect.HashBiMap;
 import de.alpharogroup.collections.pairs.KeyValuePair;
-import de.alpharogroup.crypto.keyrules.Obfuscatable;
-import de.alpharogroup.crypto.keyrules.Obfuscator;
-import de.alpharogroup.crypto.keyrules.SimpleKeyRule;
+import de.alpharogroup.crypto.obfuscation.CharacterObfuscator;
+import de.alpharogroup.crypto.obfuscation.api.Obfuscatable;
+import de.alpharogroup.crypto.obfuscation.experimental.Obfuscator;
+import de.alpharogroup.crypto.obfuscation.rule.ObfuscationOperationRule;
 import de.alpharogroup.model.BaseModel;
 import de.alpharogroup.model.api.Model;
 import de.alpharogroup.mystic.crypt.panels.keygen.EnDecryptPanel;
@@ -49,7 +52,7 @@ public class RulePanel extends BasePanel<ObfuscationModelBean>
 
 	public RulePanel()
 	{
-		this(BaseModel.<ObfuscationModelBean>of(ObfuscationModelBean.builder().keyRulesTableModel(KeyRulesTableModel.builder().build())
+		this(BaseModel.<ObfuscationModelBean>of(ObfuscationModelBean.builder().keyRulesTableModel(CharacterRulesTableModel.builder().build())
 			.build()));
 	}
 
@@ -111,26 +114,31 @@ public class RulePanel extends BasePanel<ObfuscationModelBean>
 
 	protected void onAdd(final ActionEvent actionEvent)
 	{
-		final String origChar = simpleRulePanel.getTxtOriginalChar().getText();
-		final String replaceWith = simpleRulePanel.getTxtRelpaceWith().getText();
+		final Character origChar = simpleRulePanel.getTxtOriginalChar().getText().charAt(0);
+		final Character replaceWith = simpleRulePanel.getTxtRelpaceWith().getText().charAt(0);
+		// TODO to be checked if characters are already in map
 		getModelObject().getKeyRulesTableModel()
-			.add(KeyValuePair.<String, String> builder()
+			.add(KeyValuePair.<Character, ObfuscationOperationRule<Character, Character>> builder()
 				.key(origChar)
-				.value(replaceWith)
+				.value(ObfuscationOperationRule
+					.<Character, Character>newRule()
+					.character(origChar)
+					.replaceWith(replaceWith)
+					.build())
 				.build());
 		simpleRulePanel.getTxtOriginalChar().setText("");
 		simpleRulePanel.getTxtRelpaceWith().setText("");
 	}
 
-
 	protected void onEncrypt(final ActionEvent actionEvent)
 	{
+		// TODO FIXME
 		final String toObfuscatedString = getEnDecryptPanel().getTxtToEncrypt().getText();
-		final Map<String, String> keymap = getModelObject().getKeyRulesTableModel().toMap();
+		final Map<Character, ObfuscationOperationRule<Character, Character>> keymap = getModelObject().getKeyRulesTableModel().toMap();
 		// create the rule
-		final SimpleKeyRule replaceKeyRule = new SimpleKeyRule(keymap);
+		BiMap<Character, ObfuscationOperationRule<Character, Character>> biMap = HashBiMap.create(keymap);
 		// obfuscate the key
-		final Obfuscatable obfuscator = new Obfuscator(replaceKeyRule, toObfuscatedString);
+		final Obfuscatable obfuscator = new CharacterObfuscator(biMap, toObfuscatedString);
 		getModelObject().setObfuscator(obfuscator);
 		final String result = getModelObject().getObfuscator().obfuscate();
 		getEnDecryptPanel().getTxtEncrypted().setText(result);

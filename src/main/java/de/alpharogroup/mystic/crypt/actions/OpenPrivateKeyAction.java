@@ -44,10 +44,9 @@ import de.alpharogroup.crypto.key.PrivateKeyHexDecryptor;
 import de.alpharogroup.crypto.key.PublicKeyExtensions;
 import de.alpharogroup.crypto.key.PublicKeyHexEncryptor;
 import de.alpharogroup.crypto.key.reader.PrivateKeyReader;
-import de.alpharogroup.crypto.provider.SecurityProvider;
 import de.alpharogroup.mystic.crypt.MainFrame;
-import de.alpharogroup.mystic.crypt.panels.privatekey.PrivateKeyPanel;
 import de.alpharogroup.mystic.crypt.panels.privatekey.PrivateKeyModelBean;
+import de.alpharogroup.mystic.crypt.panels.privatekey.PrivateKeyPanel;
 import de.alpharogroup.swing.actions.OpenFileAction;
 import de.alpharogroup.swing.components.factories.JComponentFactory;
 import de.alpharogroup.swing.utils.JInternalFrameExtensions;
@@ -145,7 +144,7 @@ public class OpenPrivateKeyAction extends OpenFileAction
 			try
 			{
 				Security.addProvider(new BouncyCastleProvider());
-				privateKey = PrivateKeyReader.readPemPrivateKey(file, SecurityProvider.BC);
+				privateKey = PrivateKeyReader.readPemPrivateKey(file);
 			}
 			catch (final Exception e)
 			{
