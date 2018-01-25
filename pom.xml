@@ -14,6 +14,11 @@
 	<version>4.21.0-SNAPSHOT</version>
 
 	<properties>
+		<!-- EXTENSIONS LIB versions -->
+		<file-worker.version>4.19.0</file-worker.version>
+		<jcommons-lang.version>4.29.0</jcommons-lang.version>
+		<!-- SWING-COMPONENTS version -->
+		<swing-components.version>4.25.0</swing-components.version>
 		<!-- MIGLAYOUT-SWING version -->
 		<miglayout-swing.version>5.0</miglayout-swing.version>
 		<!-- XML-EXTENSIONS version -->
