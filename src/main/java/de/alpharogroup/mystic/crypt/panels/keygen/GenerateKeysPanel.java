@@ -39,6 +39,7 @@ import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 import javax.swing.JComboBox;
 import javax.swing.JFileChooser;
+import javax.swing.JOptionPane;
 
 import org.apache.commons.codec.DecoderException;
 import org.jdesktop.swingx.JXPanel;
@@ -112,6 +113,13 @@ public class GenerateKeysPanel extends BasePanel<GenerateKeysModelBean>
 			protected void onSavePrivateKey(final ActionEvent actionEvent)
 			{
 				GenerateKeysPanel.this.onSavePrivateKey(actionEvent);
+			}
+
+			@Override
+			protected void onSavePrivateKeyWithPassword(final ActionEvent actionEvent)
+			{
+				// TODO Auto-generated method stub
+				GenerateKeysPanel.this.onSavePrivateKeyWithPassword(actionEvent);
 			}
 
 			@Override
@@ -229,6 +237,17 @@ public class GenerateKeysPanel extends BasePanel<GenerateKeysModelBean>
 		{
 		}
 	}
+
+
+    protected void onSavePrivateKeyWithPassword(final ActionEvent actionEvent)
+    {
+    	// TODO here comes the dialog for enter the pw...
+    	final String password = JOptionPane.showInputDialog("Enter password");
+
+    	if(password != null && password.length()>5) {
+    		JOptionPane.showMessageDialog(null, password);
+    	}
+    }
 
 	/**
 	 * Callback method that can be overwritten to provide specific action for the on clear.

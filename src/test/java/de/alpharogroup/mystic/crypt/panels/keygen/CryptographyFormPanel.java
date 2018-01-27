@@ -50,7 +50,7 @@ public class CryptographyFormPanel extends javax.swing.JPanel {
         scpPrivateKey.setViewportView(txtPrivateKey);
         txtPrivateKey.getAccessibleContext().setAccessibleDescription("");
 
-        cmbKeySize.setModel(KeySize.values());
+        cmbKeySize.setModel(new DefaultComboBoxModel(KeySize.values()));
         cmbKeySize.setSelectedItem(KeySize.KEYSIZE_1024);
 
         btnGenerate.setText("Generate keys");
@@ -73,7 +73,7 @@ public class CryptographyFormPanel extends javax.swing.JPanel {
 
         btnSavePrivKeyWithPw.setText("Save private key with password");
 
-        javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
+        final javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)

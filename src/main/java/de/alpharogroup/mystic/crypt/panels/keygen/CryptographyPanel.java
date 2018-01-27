@@ -165,6 +165,7 @@ public class CryptographyPanel extends BasePanel<GenerateKeysModelBean> {
         btnGenerate.addActionListener(actionEvent -> onGenerate(actionEvent));
         btnClear.addActionListener(actionEvent -> onClear(actionEvent));
         btnSavePrivateKey.addActionListener(actionEvent -> onSavePrivateKey(actionEvent));
+        btnSavePrivKeyWithPw.addActionListener(actionEvent -> onSavePrivateKeyWithPassword(actionEvent));
         btnSavePublicKey.addActionListener(actionEvent -> onSavePublicKey(actionEvent));
 
         txtPrivateKey.setColumns(20);
@@ -358,6 +359,15 @@ public class CryptographyPanel extends BasePanel<GenerateKeysModelBean> {
      * @param actionEvent the action event
      */
     protected void onSavePrivateKey(final ActionEvent actionEvent) {
+    }
+
+    /**
+     * Callback method that can be overwritten to provide specific action for
+     * the on save private key with password.
+     *
+     * @param actionEvent the action event
+     */
+    protected void onSavePrivateKeyWithPassword(final ActionEvent actionEvent) {
     }
 
     /**
