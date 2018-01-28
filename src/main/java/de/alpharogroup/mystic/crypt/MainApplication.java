@@ -44,7 +44,8 @@ public class MainApplication
 	 * @param args
 	 *            the arguments
 	 */
-	public static void main(final String[] args) {
+	public static void main(final String[] args)
+	{
 
 		final MainFrame mainFrame = MainFrame.getInstance();
 		final DesktopMenu menu = DesktopMenu.getInstance();
@@ -53,24 +54,34 @@ public class MainApplication
 		mainFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		final GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
 		final GraphicsDevice[] gs = ge.getScreenDevices();
-		mainFrame.setSize(ScreenSizeExtensions.getScreenWidth(gs[0]), ScreenSizeExtensions.getScreenHeight(gs[0]));
+		mainFrame.setSize(ScreenSizeExtensions.getScreenWidth(gs[0]),
+			ScreenSizeExtensions.getScreenHeight(gs[0]));
 		mainFrame.setVisible(true);
 
 		// Set default look and feel...
-		try {
+		try
+		{
 			UIManager.setLookAndFeel(LookAndFeels.SYSTEM.getLookAndFeelName());
 			SwingUtilities.updateComponentTreeUI(mainFrame);
 			mainFrame.setCurrentLookAndFeels(LookAndFeels.SYSTEM);
-		} catch (final ClassNotFoundException e1) {
+		}
+		catch (final ClassNotFoundException e1)
+		{
 			// TODO Auto-generated catch block
 			e1.printStackTrace();
-		} catch (final InstantiationException e1) {
+		}
+		catch (final InstantiationException e1)
+		{
 			// TODO Auto-generated catch block
 			e1.printStackTrace();
-		} catch (final IllegalAccessException e1) {
+		}
+		catch (final IllegalAccessException e1)
+		{
 			// TODO Auto-generated catch block
 			e1.printStackTrace();
-		} catch (final UnsupportedLookAndFeelException e1) {
+		}
+		catch (final UnsupportedLookAndFeelException e1)
+		{
 			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		}

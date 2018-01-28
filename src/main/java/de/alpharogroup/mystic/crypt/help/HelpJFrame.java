@@ -42,10 +42,12 @@ import de.alpharogroup.mystic.crypt.Messages;
 /**
  * The Class HelpJFrame.
  */
-public class HelpJFrame extends JFrame {
+public class HelpJFrame extends JFrame
+{
 
 	/** The Constant BUTTONLABEL_CLOSE. */
-	private static final String BUTTONLABEL_CLOSE = Messages.getString("helpframe.button.label.close"); //$NON-NLS-1$
+	private static final String BUTTONLABEL_CLOSE = Messages
+		.getString("helpframe.button.label.close"); //$NON-NLS-1$
 
 	/** The Constant LABEL_HELP. */
 	private static final String LABEL_HELP = Messages.getString("helpframe.label.help"); //$NON-NLS-1$
@@ -81,7 +83,8 @@ public class HelpJFrame extends JFrame {
 	 * @param helptext
 	 *            the helptext
 	 */
-	public HelpJFrame(final String title, final String helptext) {
+	public HelpJFrame(final String title, final String helptext)
+	{
 		super(title);
 		this.helptext = helptext;
 		disposeWindow = new DisposeWindow();
@@ -97,7 +100,8 @@ public class HelpJFrame extends JFrame {
 	/**
 	 * Creates the layout.
 	 */
-	private void createLayout() {
+	private void createLayout()
+	{
 		jlabelTitle = new JLabel(LABEL_HELP);
 		getContentPane().add(jlabelTitle, BorderLayout.NORTH);
 		// JTextArea Help:

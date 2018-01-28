@@ -45,7 +45,7 @@ import lombok.experimental.FieldDefaults;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder(toBuilder = true)
-@FieldDefaults(level=AccessLevel.PRIVATE)
+@FieldDefaults(level = AccessLevel.PRIVATE)
 public class ObfuscationModelBean implements Serializable
 {
 	private static final long serialVersionUID = 1L;

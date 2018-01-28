@@ -37,7 +37,8 @@ import de.alpharogroup.swing.utils.JInternalFrameExtensions;
 /**
  * The class {@link NewObfuscationInternalFrameAction}.
  */
-public class NewObfuscationInternalFrameAction extends AbstractAction {
+public class NewObfuscationInternalFrameAction extends AbstractAction
+{
 
 	/** The Constant serialVersionUID. */
 	private static final long serialVersionUID = 1L;
@@ -48,7 +49,8 @@ public class NewObfuscationInternalFrameAction extends AbstractAction {
 	 * @param name
 	 *            the name
 	 */
-	public NewObfuscationInternalFrameAction(final String name) {
+	public NewObfuscationInternalFrameAction(final String name)
+	{
 		super(name);
 	}
 
@@ -56,14 +58,16 @@ public class NewObfuscationInternalFrameAction extends AbstractAction {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public void actionPerformed(final ActionEvent e) {
+	public void actionPerformed(final ActionEvent e)
+	{
 		// create internal frame
-		final JInternalFrame internalFrame = JComponentFactory.newInternalFrame("Obfuscation demo", true, true,
-				true, true);
+		final JInternalFrame internalFrame = JComponentFactory.newInternalFrame("Obfuscation demo",
+			true, true, true, true);
 		final RulePanel component = new RulePanel();
 		JInternalFrameExtensions.addComponentToFrame(internalFrame, component);
 
-		JInternalFrameExtensions.addJInternalFrame(MainFrame.getInstance().getDesktopPane(), internalFrame);
+		JInternalFrameExtensions.addJInternalFrame(MainFrame.getInstance().getDesktopPane(),
+			internalFrame);
 	}
 
 }

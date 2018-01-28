@@ -60,10 +60,24 @@ import lombok.Setter;
 /**
  * The Class DesktopMenu.
  */
-public class DesktopMenu extends JMenu {
+public class DesktopMenu extends JMenu
+{
 
 	/** The Constant logger. */
 	private static final Logger logger = Logger.getLogger(DesktopMenu.class.getName());
+
+	/** The instance. */
+	private static DesktopMenu instance = new DesktopMenu();
+
+	/**
+	 * Gets the single instance of DesktopMenu.
+	 *
+	 * @return single instance of DesktopMenu
+	 */
+	public static DesktopMenu getInstance()
+	{
+		return instance;
+	}
 
 	/** The JMenuBar from the DesktopMenu. */
 	@Getter
@@ -86,22 +100,11 @@ public class DesktopMenu extends JMenu {
 	@Setter
 	private Window helpWindow;
 
-	/** The instance. */
-	private static DesktopMenu instance = new DesktopMenu();
-
-	/**
-	 * Gets the single instance of DesktopMenu.
-	 *
-	 * @return single instance of DesktopMenu
-	 */
-	public static DesktopMenu getInstance() {
-		return instance;
-	}
-
 	/**
 	 * Instantiates a new desktop menu.
 	 */
-	private DesktopMenu() {
+	private DesktopMenu()
+	{
 		menubar = new JMenuBar();
 		fileMenu = newFileMenu(e -> logger.debug("filemenu"));
 
@@ -115,101 +118,76 @@ public class DesktopMenu extends JMenu {
 	}
 
 	/**
-	 * Creates the file menu.
+	 * Creates the help menu.
 	 *
 	 * @param listener
 	 *            the listener
-	 *
 	 * @return the j menu
 	 */
-	private JMenu newFileMenu(final ActionListener listener) {
-		final JMenu fileMenu = new JMenu("File");
-		fileMenu.setMnemonic('F');
-		JMenuItem jmi;
+	private JMenu createHelpMenu(final ActionListener listener)
+	{
+		// Help menu
+		final JMenu menuHelp = new JMenu("Help"); //$NON-NLS-1$
+		menuHelp.setMnemonic('H');
 
-		final JMenu keyMenu = new JMenu("Key");
-		keyMenu.setMnemonic('K');
-		fileMenu.add(keyMenu);
+		// Help JMenuItems
+		// Help content
+		final JMenuItem mihHelpContent = new JMenuItem("Content", 'c'); //$NON-NLS-1$
+		MenuExtensions.setCtrlAccelerator(mihHelpContent, 'H');
 
-		// New key generation
-		jmi = new JMenuItem("New key generation", 'K');
-		 jmi.addActionListener(new NewKeyGenerationInternalFrameAction("New key generation"));
-		MenuExtensions.setCtrlAccelerator(jmi, 'K');
-		keyMenu.add(jmi);
+		menuHelp.add(mihHelpContent);
+		// found bug with the javax.help
+		// Exception in thread "main" java.lang.SecurityException: no manifiest
+		// section for signature file entry
+		// com/sun/java/help/impl/TagProperties.class
+		// Solution is to remove the rsa files from the jar
 
-		// Open private key
-		jmi = new JMenuItem("Open private key", 'e');
-		jmi.addActionListener(new OpenPrivateKeyAction("Open private key", MainFrame.getInstance()));
-		MenuExtensions.setCtrlAccelerator(jmi, 'e');
-		keyMenu.add(jmi);
+		final HelpSet hs = getHelpSet();
+		final DefaultHelpBroker helpBroker = (DefaultHelpBroker)hs.createHelpBroker();
+		final WindowPresentation pres = helpBroker.getWindowPresentation();
+		pres.createHelpWindow();
+		helpWindow = pres.getHelpWindow();
 
-		// Separator
-		fileMenu.addSeparator();
+		helpWindow.setLocationRelativeTo(null);
 
-		// New obfuscation
-		jmi = new JMenuItem("New obfuscation", 'O');
-		 jmi.addActionListener(new NewObfuscationInternalFrameAction("New Obfuscation"));
-		MenuExtensions.setCtrlAccelerator(jmi, 'O');
-		fileMenu.add(jmi);
+		try
+		{
+			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+		}
+		catch (final Exception e1)
+		{
+			e1.printStackTrace();
+		}
+		SwingUtilities.updateComponentTreeUI(helpWindow);
 
-		// Separator
-		fileMenu.addSeparator();
+		// 2. assign help to components
+		CSH.setHelpIDString(mihHelpContent, "Overview");
+		// 3. handle events
+		final CSH.DisplayHelpFromSource displayHelpFromSource = new CSH.DisplayHelpFromSource(
+			helpBroker);
+		mihHelpContent.addActionListener(displayHelpFromSource);
 
-		// Convert der to pem file
-		JMenuItem jmiConvert;
-		jmiConvert = new JMenuItem("Convert...", 'C');
-		jmiConvert.addActionListener(new NewFileConversionInternalFrameAction("Convert *.der-file to *.pem-file"));
-		MenuExtensions.setCtrlAccelerator(jmiConvert, 'C');
-		jmiConvert.setEnabled(true);
-		fileMenu.add(jmiConvert);
-		// Save
-//		JMenuItem jmiSave;
-//		jmiSave = new JMenuItem("Save", 'S');
-//		jmiSave.addActionListener(listener);
-//		MenuExtensions.setCtrlAccelerator(jmiSave, 'S');
-//		jmiSave.setEnabled(false);
-//		fileMenu.add(jmiSave);
+		mihHelpContent.addActionListener(new ShowHelpDialogAction("Content"));
 
-		// Separator
-//		fileMenu.addSeparator();
+		// Donate
+		final JMenuItem mihDonate = new JMenuItem(
+			Messages.getString("com.find.duplicate.files.menu.item.donate")); //$NON-NLS-1$
 
-		// Save as
-//		JMenuItem jmiSaveAs;
-//		jmiSaveAs = new JMenuItem("Save as", 'a');
-//		jmiSaveAs.addActionListener(listener);
-//		jmiSaveAs.setEnabled(false);
-//		fileMenu.add(jmiSaveAs);
+		mihDonate.addActionListener(new OpenBrowserToDonateAction("Donate"));
+		menuHelp.add(mihDonate);
 
-		// Separator
-//		fileMenu.addSeparator();
+		// Licence
+		final JMenuItem mihLicence = new JMenuItem("Licence"); //$NON-NLS-1$
+		mihLicence.addActionListener(new ShowLicenseFrameAction("Licence"));
+		menuHelp.add(mihLicence);
+		// Info
+		final JMenuItem mihInfo = new JMenuItem("Info", 'i'); //$NON-NLS-1$
+		MenuExtensions.setCtrlAccelerator(mihInfo, 'I');
+		// TODO add action
+		// mihInfo.addActionListener(new ShowInfoDialogAction("Info"));
+		menuHelp.add(mihInfo);
 
-		// Configuration
-//		JMenuItem jmiPrint;
-//		jmiPrint = new JMenuItem("Print", 'r');
-//		jmiPrint.addActionListener(listener);
-//		jmiPrint.setEnabled(false);
-//		fileMenu.add(jmiPrint);
-
-		// Separator
-//		fileMenu.addSeparator();
-
-		// Configuration
-//		JMenuItem jmiConfiguration;
-//		jmiConfiguration = new JMenuItem("Configuration", 'C');
-//		jmiConfiguration.addActionListener(listener);
-//		jmiConfiguration.setEnabled(false);
-//		fileMenu.add(jmiConfiguration);
-
-		// Separator
-//		fileMenu.addSeparator();
-
-		// Configuration
-		JMenuItem jmiExit;
-		jmiExit = new JMenuItem("Exit", 'E');
-		jmiExit.addActionListener(new ExitApplicationAction("Exit"));
-		fileMenu.add(jmiExit);
-
-		return fileMenu;
+		return menuHelp;
 	}
 
 	/**
@@ -219,7 +197,8 @@ public class DesktopMenu extends JMenu {
 	 *            the listener
 	 * @return the j menu
 	 */
-	private JMenu createLookAndFeelMenu(final ActionListener listener) {
+	private JMenu createLookAndFeelMenu(final ActionListener listener)
+	{
 
 		final JMenu menuLookAndFeel = new JMenu("Look and Feel");
 		menuLookAndFeel.setMnemonic('L');
@@ -247,7 +226,8 @@ public class DesktopMenu extends JMenu {
 		JMenuItem jmiLafSystem;
 		jmiLafSystem = new JMenuItem("System", 'd'); //$NON-NLS-1$
 		MenuExtensions.setCtrlAccelerator(jmiLafSystem, 'W');
-		jmiLafSystem.addActionListener(new LookAndFeelSystemAction("System", MainFrame.getInstance()));
+		jmiLafSystem
+			.addActionListener(new LookAndFeelSystemAction("System", MainFrame.getInstance()));
 		menuLookAndFeel.add(jmiLafSystem);
 
 		return menuLookAndFeel;
@@ -255,91 +235,130 @@ public class DesktopMenu extends JMenu {
 	}
 
 	/**
-	 * Creates the help menu.
-	 *
-	 * @param listener
-	 *            the listener
-	 * @return the j menu
-	 */
-	private JMenu createHelpMenu(final ActionListener listener) {
-		// Help menu
-		final JMenu menuHelp = new JMenu("Help"); //$NON-NLS-1$
-		menuHelp.setMnemonic('H');
-
-		// Help JMenuItems
-		// Help content
-		final JMenuItem mihHelpContent = new JMenuItem("Content", 'c'); //$NON-NLS-1$
-		MenuExtensions.setCtrlAccelerator(mihHelpContent, 'H');
-
-		menuHelp.add(mihHelpContent);
-		// found bug with the javax.help
-		// Exception in thread "main" java.lang.SecurityException: no manifiest
-		// section for signature file entry
-		// com/sun/java/help/impl/TagProperties.class
-		// Solution is to remove the rsa files from the jar
-
-		final HelpSet hs = getHelpSet();
-		final DefaultHelpBroker helpBroker = (DefaultHelpBroker) hs.createHelpBroker();
-		final WindowPresentation pres = helpBroker.getWindowPresentation();
-		pres.createHelpWindow();
-		helpWindow = pres.getHelpWindow();
-
-		helpWindow.setLocationRelativeTo(null);
-
-		try {
-			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-		} catch (final Exception e1) {
-			e1.printStackTrace();
-		}
-		SwingUtilities.updateComponentTreeUI(helpWindow);
-
-		// 2. assign help to components
-		CSH.setHelpIDString(mihHelpContent, "Overview");
-		// 3. handle events
-		final CSH.DisplayHelpFromSource displayHelpFromSource = new CSH.DisplayHelpFromSource(helpBroker);
-		mihHelpContent.addActionListener(displayHelpFromSource);
-
-		mihHelpContent.addActionListener(new ShowHelpDialogAction("Content"));
-
-		// Donate
-		final JMenuItem mihDonate = new JMenuItem(Messages.getString("com.find.duplicate.files.menu.item.donate")); //$NON-NLS-1$
-
-		mihDonate.addActionListener(new OpenBrowserToDonateAction("Donate"));
-		menuHelp.add(mihDonate);
-
-		// Licence
-		final JMenuItem mihLicence = new JMenuItem("Licence"); //$NON-NLS-1$
-		mihLicence.addActionListener(new ShowLicenseFrameAction("Licence"));
-		menuHelp.add(mihLicence);
-		// Info
-		final JMenuItem mihInfo = new JMenuItem("Info", 'i'); //$NON-NLS-1$
-		MenuExtensions.setCtrlAccelerator(mihInfo, 'I');
-		// TODO add action
-				// mihInfo.addActionListener(new ShowInfoDialogAction("Info"));
-		menuHelp.add(mihInfo);
-
-		return menuHelp;
-	}
-
-	/**
 	 * Gets the help set.
 	 *
 	 * @return the help set
 	 */
-	public HelpSet getHelpSet() {
+	public HelpSet getHelpSet()
+	{
 		HelpSet hs = null;
 		final String filename = "simple-hs.xml";
 		final String path = "help/" + filename;
 		URL hsURL;
-		if (hs == null) {
+		if (hs == null)
+		{
 			hsURL = ClassExtensions.getResource(path);
-			try {
+			try
+			{
 				hs = new HelpSet(ClassExtensions.getClassLoader(), hsURL);
-			} catch (final HelpSetException e) {
+			}
+			catch (final HelpSetException e)
+			{
 				e.printStackTrace();
 			}
 		}
 		return hs;
+	}
+
+	/**
+	 * Creates the file menu.
+	 *
+	 * @param listener
+	 *            the listener
+	 *
+	 * @return the j menu
+	 */
+	private JMenu newFileMenu(final ActionListener listener)
+	{
+		final JMenu fileMenu = new JMenu("File");
+		fileMenu.setMnemonic('F');
+		JMenuItem jmi;
+
+		final JMenu keyMenu = new JMenu("Key");
+		keyMenu.setMnemonic('K');
+		fileMenu.add(keyMenu);
+
+		// New key generation
+		jmi = new JMenuItem("New key generation", 'K');
+		jmi.addActionListener(new NewKeyGenerationInternalFrameAction("New key generation"));
+		MenuExtensions.setCtrlAccelerator(jmi, 'K');
+		keyMenu.add(jmi);
+
+		// Open private key
+		jmi = new JMenuItem("Open private key", 'e');
+		jmi.addActionListener(
+			new OpenPrivateKeyAction("Open private key", MainFrame.getInstance()));
+		MenuExtensions.setCtrlAccelerator(jmi, 'e');
+		keyMenu.add(jmi);
+
+		// Separator
+		fileMenu.addSeparator();
+
+		// New obfuscation
+		jmi = new JMenuItem("New obfuscation", 'O');
+		jmi.addActionListener(new NewObfuscationInternalFrameAction("New Obfuscation"));
+		MenuExtensions.setCtrlAccelerator(jmi, 'O');
+		fileMenu.add(jmi);
+
+		// Separator
+		fileMenu.addSeparator();
+
+		// Convert der to pem file
+		JMenuItem jmiConvert;
+		jmiConvert = new JMenuItem("Convert...", 'C');
+		jmiConvert.addActionListener(
+			new NewFileConversionInternalFrameAction("Convert *.der-file to *.pem-file"));
+		MenuExtensions.setCtrlAccelerator(jmiConvert, 'C');
+		jmiConvert.setEnabled(true);
+		fileMenu.add(jmiConvert);
+		// Save
+		// JMenuItem jmiSave;
+		// jmiSave = new JMenuItem("Save", 'S');
+		// jmiSave.addActionListener(listener);
+		// MenuExtensions.setCtrlAccelerator(jmiSave, 'S');
+		// jmiSave.setEnabled(false);
+		// fileMenu.add(jmiSave);
+
+		// Separator
+		// fileMenu.addSeparator();
+
+		// Save as
+		// JMenuItem jmiSaveAs;
+		// jmiSaveAs = new JMenuItem("Save as", 'a');
+		// jmiSaveAs.addActionListener(listener);
+		// jmiSaveAs.setEnabled(false);
+		// fileMenu.add(jmiSaveAs);
+
+		// Separator
+		// fileMenu.addSeparator();
+
+		// Configuration
+		// JMenuItem jmiPrint;
+		// jmiPrint = new JMenuItem("Print", 'r');
+		// jmiPrint.addActionListener(listener);
+		// jmiPrint.setEnabled(false);
+		// fileMenu.add(jmiPrint);
+
+		// Separator
+		// fileMenu.addSeparator();
+
+		// Configuration
+		// JMenuItem jmiConfiguration;
+		// jmiConfiguration = new JMenuItem("Configuration", 'C');
+		// jmiConfiguration.addActionListener(listener);
+		// jmiConfiguration.setEnabled(false);
+		// fileMenu.add(jmiConfiguration);
+
+		// Separator
+		// fileMenu.addSeparator();
+
+		// Configuration
+		JMenuItem jmiExit;
+		jmiExit = new JMenuItem("Exit", 'E');
+		jmiExit.addActionListener(new ExitApplicationAction("Exit"));
+		fileMenu.add(jmiExit);
+
+		return fileMenu;
 	}
 
 }

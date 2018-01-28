@@ -38,7 +38,8 @@ import de.alpharogroup.swing.laf.LookAndFeels;
 /**
  * The Class ShowHelpDialogAction.
  */
-public class ShowHelpDialogAction extends AbstractAction {
+public class ShowHelpDialogAction extends AbstractAction
+{
 
 	/** The Constant serialVersionUID. */
 	private static final long serialVersionUID = 1L;
@@ -49,7 +50,8 @@ public class ShowHelpDialogAction extends AbstractAction {
 	 * @param name
 	 *            the name
 	 */
-	public ShowHelpDialogAction(final String name) {
+	public ShowHelpDialogAction(final String name)
+	{
 		super(name);
 	}
 
@@ -57,13 +59,17 @@ public class ShowHelpDialogAction extends AbstractAction {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public void actionPerformed(final ActionEvent e) {
+	public void actionPerformed(final ActionEvent e)
+	{
 		final LookAndFeels currentLaf = MainFrame.getInstance().getCurrentLookAndFeels();
 		final Window helpWindow = DesktopMenu.getInstance().getHelpWindow();
 		helpWindow.setLocationRelativeTo(null);
-		try {
+		try
+		{
 			UIManager.setLookAndFeel(currentLaf.getLookAndFeelName());
-		} catch (final Exception e1) {
+		}
+		catch (final Exception e1)
+		{
 			e1.printStackTrace();
 		}
 		SwingUtilities.updateComponentTreeUI(helpWindow);

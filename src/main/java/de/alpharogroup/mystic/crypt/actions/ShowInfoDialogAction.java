@@ -34,7 +34,8 @@ import de.alpharogroup.mystic.crypt.help.InfoJDialog;
 /**
  * The class {@link ShowInfoDialogAction}.
  */
-public class ShowInfoDialogAction extends AbstractAction {
+public class ShowInfoDialogAction extends AbstractAction
+{
 
 	/** The Constant serialVersionUID. */
 	private static final long serialVersionUID = 1L;
@@ -47,7 +48,8 @@ public class ShowInfoDialogAction extends AbstractAction {
 	 * @param name
 	 *            the name
 	 */
-	public ShowInfoDialogAction(final String name) {
+	public ShowInfoDialogAction(final String name)
+	{
 		super(name);
 	}
 
@@ -55,7 +57,8 @@ public class ShowInfoDialogAction extends AbstractAction {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public void actionPerformed(final ActionEvent e) {
+	public void actionPerformed(final ActionEvent e)
+	{
 		final InfoJDialog info = new InfoJDialog(MainFrame.getInstance(), INFO_TITLE);
 		info.setVisible(true);
 	}

@@ -37,40 +37,87 @@ import de.alpharogroup.swing.base.BasePanel;
 import lombok.Getter;
 
 @Getter
-public class SimpleRulePanel extends BasePanel<ObfuscationModelBean> {
+public class SimpleRulePanel extends BasePanel<ObfuscationModelBean>
+{
 
 	private static final long serialVersionUID = 1L;
 	private JButton btnAdd;
-    private JLabel lblKeyRule;
-    private JLabel lblOriginalChar;
-    private JLabel lblReplaceWith;
-    private JTextField txtOriginalChar;
-    private JTextField txtRelpaceWith;
+	private JLabel lblKeyRule;
+	private JLabel lblOriginalChar;
+	private JLabel lblReplaceWith;
+	private JTextField txtOriginalChar;
+	private JTextField txtRelpaceWith;
 
-    public SimpleRulePanel(final Model<ObfuscationModelBean> model) {
+	public SimpleRulePanel(final Model<ObfuscationModelBean> model)
+	{
 		super(model);
-    }
+	}
+
+	protected void onAdd(final ActionEvent actionEvent)
+	{
+	}
 
 	@Override
 	protected void onInitializeComponents()
 	{
 		super.onInitializeComponents();
 
-        txtOriginalChar = new JTextField();
-        lblOriginalChar = new JLabel();
-        txtRelpaceWith = new JTextField();
-        btnAdd = new JButton();
-        lblReplaceWith = new JLabel();
-        lblKeyRule = new JLabel();
+		txtOriginalChar = new JTextField();
+		lblOriginalChar = new JLabel();
+		txtRelpaceWith = new JTextField();
+		btnAdd = new JButton();
+		lblReplaceWith = new JLabel();
+		lblKeyRule = new JLabel();
 
-        lblOriginalChar.setText("Original Character");
+		lblOriginalChar.setText("Original Character");
 
-        btnAdd.addActionListener(actionEvent -> onAdd(actionEvent));
-        btnAdd.setText("Add");
+		btnAdd.addActionListener(actionEvent -> onAdd(actionEvent));
+		btnAdd.setText("Add");
 
-        lblReplaceWith.setText("Replace with");
+		lblReplaceWith.setText("Replace with");
 
-        lblKeyRule.setText("Key Rule");
+		lblKeyRule.setText("Key Rule");
+	}
+
+	protected void onInitializeGroupLayout()
+	{
+
+		final GroupLayout layout = new GroupLayout(this);
+		this.setLayout(layout);
+		layout.setHorizontalGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)
+			.addGroup(layout.createSequentialGroup().addContainerGap().addGroup(layout
+				.createParallelGroup(GroupLayout.Alignment.LEADING)
+				.addGroup(layout.createSequentialGroup().addComponent(lblKeyRule).addGap(0, 0,
+					Short.MAX_VALUE))
+				.addGroup(layout.createSequentialGroup()
+					.addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)
+						.addComponent(lblOriginalChar).addComponent(txtOriginalChar,
+							GroupLayout.PREFERRED_SIZE, 480, GroupLayout.PREFERRED_SIZE))
+					.addGap(53, 53, 53)
+					.addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)
+						.addGroup(layout.createSequentialGroup()
+							.addComponent(txtRelpaceWith, GroupLayout.PREFERRED_SIZE, 480,
+								GroupLayout.PREFERRED_SIZE)
+							.addPreferredGap(LayoutStyle.ComponentPlacement.RELATED, 48,
+								Short.MAX_VALUE)
+							.addComponent(btnAdd, GroupLayout.PREFERRED_SIZE, 170,
+								GroupLayout.PREFERRED_SIZE))
+						.addComponent(lblReplaceWith))
+					.addContainerGap()))));
+		layout.setVerticalGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)
+			.addGroup(layout.createSequentialGroup().addGap(10, 10, 10).addComponent(lblKeyRule)
+				.addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+					.addComponent(lblOriginalChar).addComponent(lblReplaceWith))
+				.addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED)
+				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+					.addComponent(txtOriginalChar, GroupLayout.PREFERRED_SIZE,
+						GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+					.addComponent(txtRelpaceWith, GroupLayout.PREFERRED_SIZE,
+						GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+					.addComponent(btnAdd))
+				.addContainerGap(29, Short.MAX_VALUE)));
+
 	}
 
 	@Override
@@ -78,55 +125,6 @@ public class SimpleRulePanel extends BasePanel<ObfuscationModelBean> {
 	{
 		super.onInitializeLayout();
 		onInitializeGroupLayout();
-	}
-
-	protected void onInitializeGroupLayout()
-	{
-
-        final GroupLayout layout = new GroupLayout(this);
-        this.setLayout(layout);
-        layout.setHorizontalGroup(
-            layout.createParallelGroup(GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
-                .addContainerGap()
-                .addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)
-                    .addGroup(layout.createSequentialGroup()
-                        .addComponent(lblKeyRule)
-                        .addGap(0, 0, Short.MAX_VALUE))
-                    .addGroup(layout.createSequentialGroup()
-                        .addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)
-                            .addComponent(lblOriginalChar)
-                            .addComponent(txtOriginalChar, GroupLayout.PREFERRED_SIZE, 480, GroupLayout.PREFERRED_SIZE))
-                        .addGap(53, 53, 53)
-                        .addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)
-                            .addGroup(layout.createSequentialGroup()
-                                .addComponent(txtRelpaceWith, GroupLayout.PREFERRED_SIZE, 480, GroupLayout.PREFERRED_SIZE)
-                                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED, 48, Short.MAX_VALUE)
-                                .addComponent(btnAdd, GroupLayout.PREFERRED_SIZE, 170, GroupLayout.PREFERRED_SIZE))
-                            .addComponent(lblReplaceWith))
-                        .addContainerGap())))
-        );
-        layout.setVerticalGroup(
-            layout.createParallelGroup(GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
-                .addGap(10, 10, 10)
-                .addComponent(lblKeyRule)
-                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(layout.createParallelGroup(GroupLayout.Alignment.BASELINE)
-                    .addComponent(lblOriginalChar)
-                    .addComponent(lblReplaceWith))
-                .addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED)
-                .addGroup(layout.createParallelGroup(GroupLayout.Alignment.BASELINE)
-                    .addComponent(txtOriginalChar, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-                    .addComponent(txtRelpaceWith, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-                    .addComponent(btnAdd))
-                .addContainerGap(29, Short.MAX_VALUE))
-        );
-
-	}
-
-    protected void onAdd(final ActionEvent actionEvent)
-	{
 	}
 
 }

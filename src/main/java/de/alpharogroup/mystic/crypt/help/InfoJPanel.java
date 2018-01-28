@@ -37,25 +37,30 @@ import de.alpharogroup.mystic.crypt.Messages;
 /**
  * The Class InfoJPanel.
  */
-public class InfoJPanel extends JPanel {
+public class InfoJPanel extends JPanel
+{
 
 	/** The Constant LABEL_COPYRIGHTHOLDER. */
-	private static final String LABEL_COPYRIGHTHOLDER = Messages.getString("InfoJPanel.copyright.value"); //$NON-NLS-1$
+	private static final String LABEL_COPYRIGHTHOLDER = Messages
+		.getString("InfoJPanel.copyright.value"); //$NON-NLS-1$
 
 	/** The Constant LABEL_COPYRIGHT. */
 	private static final String LABEL_COPYRIGHT = Messages.getString("InfoJPanel.copyright.key"); //$NON-NLS-1$
 
 	/** The Constant LABEL_VERSION_NUMBER. */
-	private static final String LABEL_VERSION_NUMBER = Messages.getString("InfoJPanel.version.value"); //$NON-NLS-1$
+	private static final String LABEL_VERSION_NUMBER = Messages
+		.getString("InfoJPanel.version.value"); //$NON-NLS-1$
 
 	/** The Constant LABEL_VERSION. */
 	private static final String LABEL_VERSION = Messages.getString("InfoJPanel.version.key"); //$NON-NLS-1$
 
 	/** The Constant LABEL_APPLICATION_NAME_VALUE. */
-	private static final String LABEL_APPLICATION_NAME_VALUE = Messages.getString("InfoJPanel.application.name.value"); //$NON-NLS-1$
+	private static final String LABEL_APPLICATION_NAME_VALUE = Messages
+		.getString("InfoJPanel.application.name.value"); //$NON-NLS-1$
 
 	/** The Constant LABEL_APPLICATION_NAME. */
-	private static final String LABEL_APPLICATION_NAME = Messages.getString("InfoJPanel.application.name.key"); //$NON-NLS-1$
+	private static final String LABEL_APPLICATION_NAME = Messages
+		.getString("InfoJPanel.application.name.key"); //$NON-NLS-1$
 
 	/** The Constant WARNING_TEXT. */
 	private static final String WARNING_TEXT = Messages.getString("InfoJPanel.warning"); //$NON-NLS-1$
@@ -90,14 +95,16 @@ public class InfoJPanel extends JPanel {
 	/**
 	 * Instantiates a new {@link InfoJPanel}.
 	 */
-	public InfoJPanel() {
+	public InfoJPanel()
+	{
 		newLayout();
 	}
 
 	/**
 	 * Creates the layout.
 	 */
-	private void newLayout() {
+	private void newLayout()
+	{
 		final Insets oneInsent = new Insets(1, 1, 1, 1);
 		final GridBagLayout gbl = new GridBagLayout();
 		final GridBagConstraints gbc = new GridBagConstraints();

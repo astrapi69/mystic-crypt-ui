@@ -41,11 +41,13 @@ import de.alpharogroup.mystic.crypt.Messages;
 /**
  * The Class InfoJDialog.
  */
-public class InfoJDialog extends JDialog {
+public class InfoJDialog extends JDialog
+{
 
 	/** The Constant PLACEHOLDER_LABEL. */
-	private static final String PLACEHOLDER_LABEL = Messages.getString("info.dialg.label.placeholder"); //$NON-NLS-1$ "
-																										// ";
+	private static final String PLACEHOLDER_LABEL = Messages
+		.getString("info.dialg.label.placeholder"); //$NON-NLS-1$ "
+													// ";
 
 	/** The Constant BUTTONLABEL_CLOSE. */
 	private static final String BUTTONLABEL_CLOSE = Messages.getString("info.dialg.label.close"); //$NON-NLS-1$ "Close";
@@ -71,7 +73,8 @@ public class InfoJDialog extends JDialog {
 	 * @throws HeadlessException
 	 *             the headless exception
 	 */
-	public InfoJDialog(final Frame owner, final String title) throws HeadlessException {
+	public InfoJDialog(final Frame owner, final String title) throws HeadlessException
+	{
 		setTitle(title);
 		setModal(true);
 		buttonClose = new JButton(BUTTONLABEL_CLOSE);
@@ -84,8 +87,8 @@ public class InfoJDialog extends JDialog {
 		final Container container = getContentPane();
 		container.add(panel, BorderLayout.CENTER);
 		container.add(buttons, BorderLayout.SOUTH);
-		final int x = (int) Toolkit.getDefaultToolkit().getScreenSize().getWidth();
-		final int y = (int) Toolkit.getDefaultToolkit().getScreenSize().getHeight();
+		final int x = (int)Toolkit.getDefaultToolkit().getScreenSize().getWidth();
+		final int y = (int)Toolkit.getDefaultToolkit().getScreenSize().getHeight();
 		setLocation((x / 3), (y / 3));
 		setSize((x / 3), (y / 3));
 	}

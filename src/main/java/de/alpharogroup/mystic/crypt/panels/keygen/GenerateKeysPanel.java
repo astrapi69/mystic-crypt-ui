@@ -25,28 +25,21 @@
 package de.alpharogroup.mystic.crypt.panels.keygen;
 
 import java.awt.event.ActionEvent;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
-import java.security.*;
+import java.security.InvalidAlgorithmParameterException;
+import java.security.InvalidKeyException;
+import java.security.KeyPair;
+import java.security.NoSuchAlgorithmException;
+import java.security.PrivateKey;
 import java.security.spec.InvalidKeySpecException;
-import java.security.spec.InvalidParameterSpecException;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 import javax.swing.JComboBox;
 import javax.swing.JFileChooser;
-import javax.swing.JLabel;
 import javax.swing.JOptionPane;
-import javax.swing.JPanel;
-import javax.swing.JTextField;
-
-import de.alpharogroup.crypto.key.reader.PrivateKeyReader;
-import de.alpharogroup.crypto.key.writer.EncryptedPrivateKeyWriter;
-import de.alpharogroup.crypto.key.writer.PrivateKeyWriter;
-import de.alpharogroup.crypto.key.writer.PublicKeyWriter;
-import de.alpharogroup.exception.ExceptionExtensions;
 
 import org.apache.commons.codec.DecoderException;
 import org.slf4j.Logger;
@@ -59,6 +52,10 @@ import de.alpharogroup.crypto.key.PrivateKeyExtensions;
 import de.alpharogroup.crypto.key.PrivateKeyHexDecryptor;
 import de.alpharogroup.crypto.key.PublicKeyExtensions;
 import de.alpharogroup.crypto.key.PublicKeyHexEncryptor;
+import de.alpharogroup.crypto.key.writer.EncryptedPrivateKeyWriter;
+import de.alpharogroup.crypto.key.writer.PrivateKeyWriter;
+import de.alpharogroup.crypto.key.writer.PublicKeyWriter;
+import de.alpharogroup.exception.ExceptionExtensions;
 import de.alpharogroup.model.BaseModel;
 import de.alpharogroup.model.api.Model;
 import de.alpharogroup.swing.base.BasePanel;
@@ -86,6 +83,149 @@ public class GenerateKeysPanel extends BasePanel<GenerateKeysModelBean>
 	public GenerateKeysPanel(final Model<GenerateKeysModelBean> model)
 	{
 		super(model);
+	}
+
+	/**
+	 * Callback method that can be overwritten to provide specific action for the on change key
+	 * size.
+	 *
+	 * @param actionEvent
+	 *            the action event
+	 */
+	@SuppressWarnings("unchecked")
+	protected void onChangeKeySize(final ActionEvent actionEvent)
+	{
+		final JComboBox<String> cb = (JComboBox<String>)actionEvent.getSource();
+		final KeySize selected = (KeySize)cb.getSelectedItem();
+		getModelObject().setKeySize(selected);
+	}
+
+	/**
+	 * Callback method that can be overwritten to provide specific action for the on clear.
+	 *
+	 * @param actionEvent
+	 *            the action event
+	 */
+	protected void onClear(final ActionEvent actionEvent)
+	{
+		getCryptographyPanel().getCmbKeySize().setSelectedItem(KeySize.KEYSIZE_1024);
+		getCryptographyPanel().getTxtPrivateKey().setText("");
+		getCryptographyPanel().getTxtPublicKey().setText("");
+		getEnDecryptPanel().getTxtEncrypted().setText("");
+		getEnDecryptPanel().getTxtToEncrypt().setText("");
+		getModelObject().setDecryptor(null);
+		getModelObject().setEncryptor(null);
+		getModelObject().setKeySize(KeySize.KEYSIZE_1024);
+		getModelObject().setPrivateKey(null);
+		getModelObject().setPublicKey(null);
+	}
+
+	/**
+	 * Callback method that can be overwritten to provide specific action for the on decrypt.
+	 *
+	 * @param actionEvent
+	 *            the action event
+	 */
+	protected void onDecrypt(final ActionEvent actionEvent)
+	{
+		System.out.println("onDecrypt");
+		try
+		{
+			final String decryted = getModelObject().getDecryptor()
+				.decrypt(getEnDecryptPanel().getTxtEncrypted().getText());
+			getEnDecryptPanel().getTxtToEncrypt().setText(decryted);
+			getEnDecryptPanel().getTxtEncrypted().setText("");
+		}
+		catch (InvalidKeyException | NoSuchAlgorithmException | NoSuchPaddingException
+			| IllegalBlockSizeException | BadPaddingException | InvalidKeySpecException
+			| InvalidAlgorithmParameterException | DecoderException | IOException e)
+		{
+			logger.error("", e);
+		}
+
+	}
+
+	// callbacks
+
+	/**
+	 * Callback method that can be overwritten to provide specific action for the on encrypt.
+	 *
+	 * @param actionEvent
+	 *            the action event
+	 */
+	protected void onEncrypt(final ActionEvent actionEvent)
+	{
+		System.out.println("onEncrypt");
+		try
+		{
+			getEnDecryptPanel().getTxtEncrypted().setText(getModelObject().getEncryptor()
+				.encrypt(getEnDecryptPanel().getTxtToEncrypt().getText()));
+			getEnDecryptPanel().getTxtToEncrypt().setText("");
+		}
+		catch (InvalidKeyException | NoSuchAlgorithmException | InvalidKeySpecException
+			| NoSuchPaddingException | UnsupportedEncodingException e)
+		{
+			logger.error("", e);
+		}
+		catch (final IllegalBlockSizeException e)
+		{
+			logger.error("", e);
+		}
+		catch (final BadPaddingException e)
+		{
+			logger.error("", e);
+		}
+		catch (final IOException e)
+		{
+			logger.error("", e);
+		}
+
+	}
+
+	/**
+	 * Callback method that can be overwritten to provide specific action for the on generate.
+	 *
+	 * @param actionEvent
+	 *            the action event
+	 */
+	protected void onGenerate(final ActionEvent actionEvent)
+	{
+		final KeySize selected = (KeySize)getCryptographyPanel().getCmbKeySize().getSelectedItem();
+		getCryptographyPanel().getTxtPrivateKey().setText("Generating private key...");
+		getCryptographyPanel().getTxtPublicKey().setText("Generating public key...");
+		try
+		{
+			final KeyPair keyPair = KeyPairFactory.newKeyPair(KeyPairGeneratorAlgorithm.RSA,
+				selected.getKeySize());
+
+			getModelObject().setPrivateKey(keyPair.getPrivate());
+			getModelObject().setPublicKey(keyPair.getPublic());
+
+			getModelObject()
+				.setDecryptor(new PrivateKeyHexDecryptor(getModelObject().getPrivateKey()));
+			getModelObject()
+				.setEncryptor(new PublicKeyHexEncryptor(getModelObject().getPublicKey()));
+
+			final String privateKeyFormat = PrivateKeyExtensions
+				.toPemFormat(getModelObject().getPrivateKey());
+
+			final String publicKeyFormat = PublicKeyExtensions
+				.toPemFormat(getModelObject().getPublicKey());
+
+			getCryptographyPanel().getTxtPrivateKey().setText("");
+			getCryptographyPanel().getTxtPublicKey().setText("");
+			getCryptographyPanel().getTxtPrivateKey().setText(privateKeyFormat);
+			getCryptographyPanel().getTxtPublicKey().setText(publicKeyFormat);
+		}
+		catch (final NoSuchAlgorithmException e)
+		{
+			logger.error("", e);
+		}
+		catch (final IOException e)
+		{
+			logger.error("", e);
+		}
+
 	}
 
 	@Override
@@ -153,6 +293,7 @@ public class GenerateKeysPanel extends BasePanel<GenerateKeysModelBean>
 		};
 	}
 
+
 	@Override
 	protected void onInitializeLayout()
 	{
@@ -170,50 +311,6 @@ public class GenerateKeysPanel extends BasePanel<GenerateKeysModelBean>
 		add(enDecryptPanel);
 	}
 
-	// callbacks
-
-	/**
-	 * Callback method that can be overwritten to provide specific action for the on change key
-	 * size.
-	 *
-	 * @param actionEvent
-	 *            the action event
-	 */
-	@SuppressWarnings("unchecked")
-	protected void onChangeKeySize(final ActionEvent actionEvent)
-	{
-		final JComboBox<String> cb = (JComboBox<String>)actionEvent.getSource();
-		final KeySize selected = (KeySize)cb.getSelectedItem();
-		getModelObject().setKeySize(selected);
-	}
-
-	/**
-	 * Callback method that can be overwritten to provide specific action for the on save public
-	 * key.
-	 *
-	 * @param actionEvent
-	 *            the action event
-	 */
-	protected void onSavePublicKey(final ActionEvent actionEvent)
-	{
-		final JFileChooser fileChooser = new JFileChooser();
-		final int state = fileChooser.showSaveDialog(this);
-		if (state == JFileChooser.APPROVE_OPTION)
-		{
-			try
-			{
-				PublicKeyWriter.write(getModelObject().getPublicKey(), fileChooser.getSelectedFile());
-			}
-			catch (final Exception ex)
-			{
-				ex.printStackTrace();
-			}
-		}
-		if (state == JFileChooser.CANCEL_OPTION)
-		{
-		}
-	}
-
 	/**
 	 * Callback method that can be overwritten to provide specific action for the on save private
 	 * key.
@@ -229,7 +326,8 @@ public class GenerateKeysPanel extends BasePanel<GenerateKeysModelBean>
 		{
 			try
 			{
-				PrivateKeyWriter.writeInPemFormat(getModelObject().getPrivateKey(), fileChooser.getSelectedFile());
+				PrivateKeyWriter.writeInPemFormat(getModelObject().getPrivateKey(),
+					fileChooser.getSelectedFile());
 			}
 			catch (final Exception e)
 			{
@@ -288,131 +386,32 @@ public class GenerateKeysPanel extends BasePanel<GenerateKeysModelBean>
 		}
 	}
 
+
 	/**
-	 * Callback method that can be overwritten to provide specific action for the on clear.
+	 * Callback method that can be overwritten to provide specific action for the on save public
+	 * key.
 	 *
 	 * @param actionEvent
 	 *            the action event
 	 */
-	protected void onClear(final ActionEvent actionEvent)
+	protected void onSavePublicKey(final ActionEvent actionEvent)
 	{
-		getCryptographyPanel().getCmbKeySize().setSelectedItem(KeySize.KEYSIZE_1024);
-		getCryptographyPanel().getTxtPrivateKey().setText("");
-		getCryptographyPanel().getTxtPublicKey().setText("");
-		getEnDecryptPanel().getTxtEncrypted().setText("");
-		getEnDecryptPanel().getTxtToEncrypt().setText("");
-		getModelObject().setDecryptor(null);
-		getModelObject().setEncryptor(null);
-		getModelObject().setKeySize(KeySize.KEYSIZE_1024);
-		getModelObject().setPrivateKey(null);
-		getModelObject().setPublicKey(null);
-	}
-
-	/**
-	 * Callback method that can be overwritten to provide specific action for the on generate.
-	 *
-	 * @param actionEvent
-	 *            the action event
-	 */
-	protected void onGenerate(final ActionEvent actionEvent)
-	{
-		final KeySize selected = (KeySize)getCryptographyPanel().getCmbKeySize().getSelectedItem();
-		getCryptographyPanel().getTxtPrivateKey().setText("Generating private key...");
-		getCryptographyPanel().getTxtPublicKey().setText("Generating public key...");
-		try
+		final JFileChooser fileChooser = new JFileChooser();
+		final int state = fileChooser.showSaveDialog(this);
+		if (state == JFileChooser.APPROVE_OPTION)
 		{
-			final KeyPair keyPair = KeyPairFactory.newKeyPair(KeyPairGeneratorAlgorithm.RSA,
-				selected.getKeySize());
-
-			getModelObject().setPrivateKey(keyPair.getPrivate());
-			getModelObject().setPublicKey(keyPair.getPublic());
-
-			getModelObject()
-				.setDecryptor(new PrivateKeyHexDecryptor(getModelObject().getPrivateKey()));
-			getModelObject()
-				.setEncryptor(new PublicKeyHexEncryptor(getModelObject().getPublicKey()));
-
-			final String privateKeyFormat = PrivateKeyExtensions
-				.toPemFormat(getModelObject().getPrivateKey());
-
-			final String publicKeyFormat = PublicKeyExtensions
-				.toPemFormat(getModelObject().getPublicKey());
-
-			getCryptographyPanel().getTxtPrivateKey().setText("");
-			getCryptographyPanel().getTxtPublicKey().setText("");
-			getCryptographyPanel().getTxtPrivateKey().setText(privateKeyFormat);
-			getCryptographyPanel().getTxtPublicKey().setText(publicKeyFormat);
+			try
+			{
+				PublicKeyWriter.write(getModelObject().getPublicKey(),
+					fileChooser.getSelectedFile());
+			}
+			catch (final Exception ex)
+			{
+				ex.printStackTrace();
+			}
 		}
-		catch (final NoSuchAlgorithmException e)
+		if (state == JFileChooser.CANCEL_OPTION)
 		{
-			logger.error("", e);
 		}
-		catch (final IOException e)
-		{
-			logger.error("", e);
-		}
-
-	}
-
-
-	/**
-	 * Callback method that can be overwritten to provide specific action for the on decrypt.
-	 *
-	 * @param actionEvent
-	 *            the action event
-	 */
-	protected void onDecrypt(final ActionEvent actionEvent)
-	{
-		System.out.println("onDecrypt");
-		try
-		{
-			final String decryted = getModelObject().getDecryptor()
-				.decrypt(getEnDecryptPanel().getTxtEncrypted().getText());
-			getEnDecryptPanel().getTxtToEncrypt().setText(decryted);
-			getEnDecryptPanel().getTxtEncrypted().setText("");
-		}
-		catch (InvalidKeyException | NoSuchAlgorithmException | NoSuchPaddingException
-			| IllegalBlockSizeException | BadPaddingException | InvalidKeySpecException
-			| InvalidAlgorithmParameterException | DecoderException | IOException e)
-		{
-			logger.error("", e);
-		}
-
-	}
-
-
-	/**
-	 * Callback method that can be overwritten to provide specific action for the on encrypt.
-	 *
-	 * @param actionEvent
-	 *            the action event
-	 */
-	protected void onEncrypt(final ActionEvent actionEvent)
-	{
-		System.out.println("onEncrypt");
-		try
-		{
-			getEnDecryptPanel().getTxtEncrypted().setText(getModelObject().getEncryptor()
-				.encrypt(getEnDecryptPanel().getTxtToEncrypt().getText()));
-			getEnDecryptPanel().getTxtToEncrypt().setText("");
-		}
-		catch (InvalidKeyException | NoSuchAlgorithmException | InvalidKeySpecException
-			| NoSuchPaddingException | UnsupportedEncodingException e)
-		{
-			logger.error("", e);
-		}
-		catch (final IllegalBlockSizeException e)
-		{
-			logger.error("", e);
-		}
-		catch (final BadPaddingException e)
-		{
-			logger.error("", e);
-		}
-		catch (final IOException e)
-		{
-			logger.error("", e);
-		}
-
 	}
 }

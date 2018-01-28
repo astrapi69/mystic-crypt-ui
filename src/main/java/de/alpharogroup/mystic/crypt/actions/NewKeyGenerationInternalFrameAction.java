@@ -37,7 +37,8 @@ import de.alpharogroup.swing.utils.JInternalFrameExtensions;
 /**
  * The class {@link NewKeyGenerationInternalFrameAction}.
  */
-public class NewKeyGenerationInternalFrameAction extends AbstractAction {
+public class NewKeyGenerationInternalFrameAction extends AbstractAction
+{
 
 	/** The Constant serialVersionUID. */
 	private static final long serialVersionUID = 1L;
@@ -48,7 +49,8 @@ public class NewKeyGenerationInternalFrameAction extends AbstractAction {
 	 * @param name
 	 *            the name
 	 */
-	public NewKeyGenerationInternalFrameAction(final String name) {
+	public NewKeyGenerationInternalFrameAction(final String name)
+	{
 		super(name);
 	}
 
@@ -56,14 +58,16 @@ public class NewKeyGenerationInternalFrameAction extends AbstractAction {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public void actionPerformed(final ActionEvent e) {
+	public void actionPerformed(final ActionEvent e)
+	{
 		// create internal frame
-		final JInternalFrame internalFrame = JComponentFactory.newInternalFrame("Key generation demo", true, true,
-				true, true);
+		final JInternalFrame internalFrame = JComponentFactory
+			.newInternalFrame("Key generation demo", true, true, true, true);
 
 		final GenerateKeysPanel component = new GenerateKeysPanel();
 		JInternalFrameExtensions.addComponentToFrame(internalFrame, component);
-		JInternalFrameExtensions.addJInternalFrame(MainFrame.getInstance().getDesktopPane(), internalFrame);
+		JInternalFrameExtensions.addJInternalFrame(MainFrame.getInstance().getDesktopPane(),
+			internalFrame);
 	}
 
 }

@@ -78,13 +78,6 @@ public class PrivateKeyViewPanel extends BasePanel<PrivateKeyModelBean>
 		txtPublicKey.setFont(new Font("monospaced", Font.PLAIN, 12));
 	}
 
-	@Override
-	protected void onInitializeLayout()
-	{
-		super.onInitializeLayout();
-		onInitializeGroupLayout();
-	}
-
 	protected void onInitializeGroupLayout()
 	{
 		final GroupLayout layout = new GroupLayout(this);
@@ -123,5 +116,12 @@ public class PrivateKeyViewPanel extends BasePanel<PrivateKeyModelBean>
 								Short.MAX_VALUE)
 							.addComponent(scpPublicKey))
 						.addContainerGap(40, Short.MAX_VALUE)));
+	}
+
+	@Override
+	protected void onInitializeLayout()
+	{
+		super.onInitializeLayout();
+		onInitializeGroupLayout();
 	}
 }

@@ -61,6 +61,33 @@ public class OpenPrivateKeyAction extends OpenFileAction
 	private static final long serialVersionUID = 1L;
 
 	/**
+	 * Gets the {@link KeySize} of the given {@link PrivateKey} or null if not found.
+	 *
+	 * @param privateKey
+	 *            the private key
+	 * @return the {@link KeySize} of the given {@link PrivateKey} or null if not found.
+	 * @deprecated use same name method from PrivateKeyExtensions.
+	 */
+	@Deprecated
+	public static KeySize getKeySize(final PrivateKey privateKey)
+	{
+		final int length = PrivateKeyExtensions.getKeyLength(privateKey);
+		if (length == 1024)
+		{
+			return KeySize.KEYSIZE_1024;
+		}
+		if (length == 2048)
+		{
+			return KeySize.KEYSIZE_2048;
+		}
+		if (length == 4096)
+		{
+			return KeySize.KEYSIZE_4096;
+		}
+		return null;
+	}
+
+	/**
 	 * Instantiates a new {@link OpenPrivateKeyAction} object.
 	 *
 	 * @param name
@@ -71,6 +98,36 @@ public class OpenPrivateKeyAction extends OpenFileAction
 	public OpenPrivateKeyAction(final String name, final Component parent)
 	{
 		super(name, parent);
+	}
+
+	private PrivateKey getPrivateKey(final File file)
+	{
+		PrivateKey privateKey = null;
+		try
+		{
+			privateKey = PrivateKeyReader.readPrivateKey(file);
+
+		}
+		catch (NoSuchAlgorithmException | InvalidKeySpecException | NoSuchProviderException
+			| IOException e)
+		{
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		if (privateKey == null)
+		{
+			try
+			{
+				Security.addProvider(new BouncyCastleProvider());
+				privateKey = PrivateKeyReader.readPemPrivateKey(file);
+			}
+			catch (final Exception e)
+			{
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		return privateKey;
 	}
 
 	@Override
@@ -125,67 +182,10 @@ public class OpenPrivateKeyAction extends OpenFileAction
 			internalFrame);
 	}
 
-	private PrivateKey getPrivateKey(final File file)
-	{
-		PrivateKey privateKey = null;
-		try
-		{
-			privateKey = PrivateKeyReader.readPrivateKey(file);
-
-		}
-		catch (NoSuchAlgorithmException | InvalidKeySpecException | NoSuchProviderException
-			| IOException e)
-		{
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		if (privateKey == null)
-		{
-			try
-			{
-				Security.addProvider(new BouncyCastleProvider());
-				privateKey = PrivateKeyReader.readPemPrivateKey(file);
-			}
-			catch (final Exception e)
-			{
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		}
-		return privateKey;
-	}
 
 	@Override
 	protected void onCancel(final ActionEvent actionEvent)
 	{
-	}
-
-
-	/**
-	 * Gets the {@link KeySize} of the given {@link PrivateKey} or null if not found.
-	 *
-	 * @param privateKey
-	 *            the private key
-	 * @return the {@link KeySize} of the given {@link PrivateKey} or null if not found.
-	 * @deprecated use same name method from PrivateKeyExtensions.
-	 */
-	@Deprecated
-	public static KeySize getKeySize(final PrivateKey privateKey)
-	{
-		final int length = PrivateKeyExtensions.getKeyLength(privateKey);
-		if (length == 1024)
-		{
-			return KeySize.KEYSIZE_1024;
-		}
-		if (length == 2048)
-		{
-			return KeySize.KEYSIZE_2048;
-		}
-		if (length == 4096)
-		{
-			return KeySize.KEYSIZE_4096;
-		}
-		return null;
 	}
 
 }

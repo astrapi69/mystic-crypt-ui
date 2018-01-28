@@ -39,9 +39,11 @@ import lombok.ToString;
  * The class {@link CharacterRulesTableModel}.
  */
 @Getter
-@ToString(callSuper=true)
+@ToString(callSuper = true)
 @Builder
-public class CharacterRulesTableModel extends GenericTableModel<KeyValuePair<Character, ObfuscationOperationRule<Character, Character>>>
+public class CharacterRulesTableModel
+	extends
+		GenericTableModel<KeyValuePair<Character, ObfuscationOperationRule<Character, Character>>>
 {
 
 	/**
@@ -102,7 +104,8 @@ public class CharacterRulesTableModel extends GenericTableModel<KeyValuePair<Cha
 	@Override
 	public Object getValueAt(final int row, final int col)
 	{
-		final KeyValuePair<Character, ObfuscationOperationRule<Character, Character>> permission = getData().get(row);
+		final KeyValuePair<Character, ObfuscationOperationRule<Character, Character>> permission = getData()
+			.get(row);
 		switch (col)
 		{
 			case 0 :
@@ -128,10 +131,12 @@ public class CharacterRulesTableModel extends GenericTableModel<KeyValuePair<Cha
 	 *
 	 * @return the map
 	 */
-	public Map<Character, ObfuscationOperationRule<Character, Character>> toMap() {
+	public Map<Character, ObfuscationOperationRule<Character, Character>> toMap()
+	{
 		final List<KeyValuePair<Character, ObfuscationOperationRule<Character, Character>>> data = getData();
 		final Map<Character, ObfuscationOperationRule<Character, Character>> map = new HashMap<>();
-		for(final KeyValuePair<Character, ObfuscationOperationRule<Character, Character>> row : data) {
+		for (final KeyValuePair<Character, ObfuscationOperationRule<Character, Character>> row : data)
+		{
 			map.put(row.getKey(), row.getValue());
 		}
 		return map;

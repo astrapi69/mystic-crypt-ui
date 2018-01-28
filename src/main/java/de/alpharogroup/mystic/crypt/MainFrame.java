@@ -45,10 +45,21 @@ import lombok.Setter;
  * The Class MainFrame.
  */
 @SuppressWarnings("serial")
-public class MainFrame extends JXFrame {
+public class MainFrame extends JXFrame
+{
 
 	/** The instance. */
 	private static MainFrame instance = new MainFrame();
+
+	/**
+	 * Gets the single instance of MainFrame.
+	 *
+	 * @return single instance of MainFrame
+	 */
+	public static MainFrame getInstance()
+	{
+		return instance;
+	}
 
 	/** The desktop pane. */
 	@Getter
@@ -72,18 +83,10 @@ public class MainFrame extends JXFrame {
 	private LookAndFeels currentLookAndFeels = LookAndFeels.SYSTEM;
 
 	/**
-	 * Gets the single instance of MainFrame.
-	 *
-	 * @return single instance of MainFrame
-	 */
-	public static MainFrame getInstance() {
-		return instance;
-	}
-
-	/**
 	 * Instantiates a new main frame.
 	 */
-	private MainFrame() {
+	private MainFrame()
+	{
 		super(Messages.getString("mainframe.title"));
 		initComponents();
 	}
@@ -91,7 +94,8 @@ public class MainFrame extends JXFrame {
 	/**
 	 * Inits the components.
 	 */
-	private void initComponents() {
+	private void initComponents()
+	{
 
 		toolbar = new JToolBar(); // create the tool bar
 		setJMenuBar(menubar);
@@ -102,8 +106,7 @@ public class MainFrame extends JXFrame {
 		try
 		{
 			String iconPath = Messages.getString("global.icon.app.path");
-			BufferedImage appIcon = ImageIO
-					.read(ClassExtensions.getResourceAsStream(iconPath));
+			BufferedImage appIcon = ImageIO.read(ClassExtensions.getResourceAsStream(iconPath));
 			setIconImage(appIcon);
 		}
 		catch (IOException e)

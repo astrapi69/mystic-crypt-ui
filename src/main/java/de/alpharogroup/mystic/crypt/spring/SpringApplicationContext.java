@@ -38,7 +38,8 @@ import lombok.Getter;
 /**
  * The Class SpringApplicationContext.
  */
-public class SpringApplicationContext {
+public class SpringApplicationContext
+{
 
 	/** The instance. */
 	private static SpringApplicationContext instance = new SpringApplicationContext();
@@ -48,7 +49,8 @@ public class SpringApplicationContext {
 	 *
 	 * @return single instance of SpringApplicationContext
 	 */
-	public static SpringApplicationContext getInstance() {
+	public static SpringApplicationContext getInstance()
+	{
 		return instance;
 	}
 
@@ -59,21 +61,28 @@ public class SpringApplicationContext {
 	/**
 	 * Instantiates a new spring application context.
 	 */
-	private SpringApplicationContext() {
+	private SpringApplicationContext()
+	{
 		final String rootContextDirectoryClassPath = "/ctx";
 
-		final String applicationContextPath = rootContextDirectoryClassPath + "/application-context.xml";
+		final String applicationContextPath = rootContextDirectoryClassPath
+			+ "/application-context.xml";
 
 		final ApplicationContext ac = new ClassPathXmlApplicationContext(applicationContextPath);
 
 		final Resource resource = ac.getResource("classpath:conf/log4j/log4jconfig.xml");
 
-		try {
+		try
+		{
 			DOMConfigurator.configure(resource.getURL());
-		} catch (final FactoryConfigurationError e) {
+		}
+		catch (final FactoryConfigurationError e)
+		{
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-		} catch (final IOException e) {
+		}
+		catch (final IOException e)
+		{
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}

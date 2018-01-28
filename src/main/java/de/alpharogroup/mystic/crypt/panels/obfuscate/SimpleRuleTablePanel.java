@@ -74,6 +74,49 @@ public class SimpleRuleTablePanel extends BasePanel<ObfuscationModelBean>
 		super(model);
 	}
 
+	protected void onExport(final ActionEvent actionEvent)
+	{
+		final Map<Character, ObfuscationOperationRule<Character, Character>> map = getModelObject()
+			.getKeyRulesTableModel().toMap();
+		final int returnVal = fileChooser.showSaveDialog(SimpleRuleTablePanel.this);
+		if (returnVal == JFileChooser.APPROVE_OPTION)
+		{
+			final File obfuscationRules = fileChooser.getSelectedFile();
+			String json;
+			try
+			{
+				json = JsonTransformer.toJson(map);
+				WriteFileExtensions.writeStringToFile(obfuscationRules, json, "UTF-8");
+			}
+			catch (final JsonProcessingException e)
+			{
+				log.error("JsonProcessingException", e);
+			}
+		}
+	}
+
+	@SuppressWarnings("unchecked")
+	protected void onImport(final ActionEvent actionEvent)
+	{
+		final int returnVal = fileChooser.showOpenDialog(SimpleRuleTablePanel.this);
+		if (returnVal == JFileChooser.APPROVE_OPTION)
+		{
+			final File obfuscationRules = fileChooser.getSelectedFile();
+			try
+			{
+				final String fromFile = ReadFileExtensions.readFromFile(obfuscationRules);
+				final Map<Character, ObfuscationOperationRule<Character, Character>> map = JsonTransformer
+					.toObject(fromFile, Map.class);
+				getModelObject().getKeyRulesTableModel().setData(KeyValuePair.toKeyValuePairs(map));
+				getModelObject().getKeyRulesTableModel().fireTableDataChanged();
+			}
+			catch (final IOException e)
+			{
+				log.error("IOException ", e);
+			}
+		}
+	}
+
 	@Override
 	protected void onInitializeComponents()
 	{
@@ -97,51 +140,6 @@ public class SimpleRuleTablePanel extends BasePanel<ObfuscationModelBean>
 
 		btnImport.addActionListener(actionEvent -> onImport(actionEvent));
 		btnExport.addActionListener(actionEvent -> onExport(actionEvent));
-	}
-
-	@SuppressWarnings("unchecked")
-	protected void onImport(final ActionEvent actionEvent)
-	{
-		final int returnVal = fileChooser.showOpenDialog(SimpleRuleTablePanel.this);
-		if (returnVal == JFileChooser.APPROVE_OPTION)
-		{
-			final File obfuscationRules = fileChooser.getSelectedFile();
-			try {
-				final String fromFile = ReadFileExtensions.readFromFile(obfuscationRules);
-				final Map<Character, ObfuscationOperationRule<Character, Character>> map = JsonTransformer.toObject(fromFile, Map.class);
-				getModelObject().getKeyRulesTableModel().setData(KeyValuePair.toKeyValuePairs(map));
-				getModelObject().getKeyRulesTableModel().fireTableDataChanged();
-			} catch (final IOException e) {
-				log.error("IOException ", e);
-			}
-		}
-	}
-
-	protected void onExport(final ActionEvent actionEvent)
-	{
-		final Map<Character, ObfuscationOperationRule<Character, Character>> map = getModelObject().getKeyRulesTableModel().toMap();
-		final int returnVal = fileChooser.showSaveDialog(SimpleRuleTablePanel.this);
-		if (returnVal == JFileChooser.APPROVE_OPTION)
-		{
-			final File obfuscationRules = fileChooser.getSelectedFile();
-			String json;
-			try
-			{
-				json = JsonTransformer.toJson(map);
-				WriteFileExtensions.writeStringToFile(obfuscationRules, json, "UTF-8");
-			}
-			catch (final JsonProcessingException e)
-			{
-				log.error("JsonProcessingException", e);
-			}
-		}
-	}
-
-	@Override
-	protected void onInitializeLayout()
-	{
-		super.onInitializeLayout();
-		onInitializeGroupLayout();
 	}
 
 	protected void onInitializeGroupLayout()
@@ -175,6 +173,13 @@ public class SimpleRuleTablePanel extends BasePanel<ObfuscationModelBean>
 				.addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
 					.addComponent(btnImport).addComponent(btnExport))
 				.addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)));
+	}
+
+	@Override
+	protected void onInitializeLayout()
+	{
+		super.onInitializeLayout();
+		onInitializeGroupLayout();
 	}
 
 }

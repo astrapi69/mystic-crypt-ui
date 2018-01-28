@@ -37,7 +37,8 @@ import de.alpharogroup.swing.utils.JInternalFrameExtensions;
 /**
  * The class {@link NewFileConversionInternalFrameAction}.
  */
-public class NewFileConversionInternalFrameAction extends AbstractAction {
+public class NewFileConversionInternalFrameAction extends AbstractAction
+{
 
 	/** The Constant serialVersionUID. */
 	private static final long serialVersionUID = 1L;
@@ -48,7 +49,8 @@ public class NewFileConversionInternalFrameAction extends AbstractAction {
 	 * @param name
 	 *            the name
 	 */
-	public NewFileConversionInternalFrameAction(final String name) {
+	public NewFileConversionInternalFrameAction(final String name)
+	{
 		super(name);
 	}
 
@@ -56,14 +58,16 @@ public class NewFileConversionInternalFrameAction extends AbstractAction {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public void actionPerformed(final ActionEvent e) {
+	public void actionPerformed(final ActionEvent e)
+	{
 		// create internal frame
-		final JInternalFrame internalFrame = JComponentFactory.newInternalFrame("Convert *.der-file to *.pem-file", true, true,
-				true, true);
+		final JInternalFrame internalFrame = JComponentFactory
+			.newInternalFrame("Convert *.der-file to *.pem-file", true, true, true, true);
 
 		final FileConversionPanel component = new FileConversionPanel();
 		JInternalFrameExtensions.addComponentToFrame(internalFrame, component);
-		JInternalFrameExtensions.addJInternalFrame(MainFrame.getInstance().getDesktopPane(), internalFrame);
+		JInternalFrameExtensions.addJInternalFrame(MainFrame.getInstance().getDesktopPane(),
+			internalFrame);
 	}
 
 }

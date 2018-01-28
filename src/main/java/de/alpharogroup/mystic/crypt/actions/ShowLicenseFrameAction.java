@@ -42,7 +42,8 @@ import de.alpharogroup.mystic.crypt.spring.SpringApplicationContext;
 /**
  * The Class ShowLicenseFrameAction.
  */
-public class ShowLicenseFrameAction extends AbstractAction {
+public class ShowLicenseFrameAction extends AbstractAction
+{
 
 	/** The Constant serialVersionUID. */
 	private static final long serialVersionUID = 1L;
@@ -56,7 +57,8 @@ public class ShowLicenseFrameAction extends AbstractAction {
 	 * @param name
 	 *            the name
 	 */
-	public ShowLicenseFrameAction(final String name) {
+	public ShowLicenseFrameAction(final String name)
+	{
 		super(name);
 	}
 
@@ -64,7 +66,8 @@ public class ShowLicenseFrameAction extends AbstractAction {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public void actionPerformed(final ActionEvent e) {
+	public void actionPerformed(final ActionEvent e)
+	{
 		final String licence = loadLicense();
 		final HelpJFrame frame = new HelpJFrame(LICENCE_TITLE, licence);
 		frame.setVisible(true);
@@ -75,25 +78,36 @@ public class ShowLicenseFrameAction extends AbstractAction {
 	 *
 	 * @return the string
 	 */
-	private String loadLicense() {
+	private String loadLicense()
+	{
 
-		final ApplicationContext ctx = SpringApplicationContext.getInstance().getApplicationContext();
+		final ApplicationContext ctx = SpringApplicationContext.getInstance()
+			.getApplicationContext();
 		final Resource resource = ctx.getResource("classpath:LICENSE.txt");
 		InputStream is = null;
 		final StringBuffer license = new StringBuffer();
-		try {
+		try
+		{
 			String thisLine;
 			is = resource.getInputStream();
 			final BufferedReader br = new BufferedReader(new InputStreamReader(is));
-			while ((thisLine = br.readLine()) != null) {
+			while ((thisLine = br.readLine()) != null)
+			{
 				license.append(thisLine + "\n");
 			}
-		} catch (final IOException ex) {
+		}
+		catch (final IOException ex)
+		{
 			ex.printStackTrace();
-		} finally {
-			try {
+		}
+		finally
+		{
+			try
+			{
 				StreamExtensions.close(is);
-			} catch (final IOException e) {
+			}
+			catch (final IOException e)
+			{
 				e.printStackTrace();
 			}
 		}

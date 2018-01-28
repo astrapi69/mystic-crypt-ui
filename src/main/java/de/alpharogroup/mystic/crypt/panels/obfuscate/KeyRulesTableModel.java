@@ -38,7 +38,7 @@ import lombok.ToString;
  * The class {@link KeyRulesTableModel}.
  */
 @Getter
-@ToString(callSuper=true)
+@ToString(callSuper = true)
 @Builder
 public class KeyRulesTableModel extends GenericTableModel<KeyValuePair<String, String>>
 {
@@ -127,10 +127,12 @@ public class KeyRulesTableModel extends GenericTableModel<KeyValuePair<String, S
 	 *
 	 * @return the map
 	 */
-	public Map<String, String> toMap() {
+	public Map<String, String> toMap()
+	{
 		final List<KeyValuePair<String, String>> data = getData();
 		final Map<String, String> map = new HashMap<>();
-		for(final KeyValuePair<String, String> row : data) {
+		for (final KeyValuePair<String, String> row : data)
+		{
 			map.put(row.getKey(), row.getValue());
 		}
 		return map;

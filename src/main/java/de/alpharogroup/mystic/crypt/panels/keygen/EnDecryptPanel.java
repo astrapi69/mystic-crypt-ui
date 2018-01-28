@@ -24,7 +24,6 @@
  */
 package de.alpharogroup.mystic.crypt.panels.keygen;
 
-import de.alpharogroup.model.BaseModel;
 import java.awt.event.ActionEvent;
 
 import javax.swing.GroupLayout;
@@ -36,6 +35,7 @@ import javax.swing.LayoutStyle;
 
 import de.alpharogroup.behaviors.EnableButtonBehavior;
 import de.alpharogroup.collections.pairs.Pair;
+import de.alpharogroup.model.BaseModel;
 import de.alpharogroup.model.api.Model;
 import de.alpharogroup.swing.base.BasePanel;
 import lombok.Getter;
@@ -79,31 +79,18 @@ public class EnDecryptPanel extends BasePanel<Pair<String, String>>
 	 */
 	public EnDecryptPanel()
 	{
-		this(BaseModel.<Pair<String, String>>of(Pair.<String, String>builder().build()));
+		this(BaseModel.<Pair<String, String>> of(Pair.<String, String> builder().build()));
 	}
 
 	/**
 	 * Instantiates a new {@link EnDecryptPanel}.
 	 *
-	 * @param model the model
+	 * @param model
+	 *            the model
 	 */
 	public EnDecryptPanel(final Model<Pair<String, String>> model)
 	{
 		super(model);
-	}
-
-	@Override
-	protected void onInitializeComponents()
-	{
-		super.onInitializeComponents();
-		initializeComponents();
-	}
-
-	@Override
-	protected void onInitializeLayout()
-	{
-		super.onInitializeLayout();
-		onInitializeGroupLayout();
 	}
 
 	/**
@@ -128,17 +115,13 @@ public class EnDecryptPanel extends BasePanel<Pair<String, String>>
 
 		btnEncrypt.setText("Encrypt >");
 		btnEncrypt.addActionListener(actionEvent -> onEncrypt(actionEvent));
-		EnableButtonBehavior.builder()
-		.buttonModel(btnEncrypt.getModel())
-		.document(txtToEncrypt.getDocument())
-		.build();
+		EnableButtonBehavior.builder().buttonModel(btnEncrypt.getModel())
+			.document(txtToEncrypt.getDocument()).build();
 
 		btnDecrypt.setText("< Decrypt");
 		btnDecrypt.addActionListener(actionEvent -> onDecrypt(actionEvent));
-		EnableButtonBehavior.builder()
-		.buttonModel(btnDecrypt.getModel())
-		.document(txtEncrypted.getDocument())
-		.build();
+		EnableButtonBehavior.builder().buttonModel(btnDecrypt.getModel())
+			.document(txtEncrypted.getDocument()).build();
 
 		txtEncrypted.setColumns(20);
 		txtEncrypted.setRows(5);
@@ -149,6 +132,36 @@ public class EnDecryptPanel extends BasePanel<Pair<String, String>>
 	}
 
 	/**
+	 * Callback method that can be overwritten to provide specific action for the on decrypt.
+	 *
+	 * @param actionEvent
+	 *            the action event
+	 */
+	protected void onDecrypt(final ActionEvent actionEvent)
+	{
+		System.out.println("onDecrypt");
+	}
+
+	/**
+	 * Callback method that can be overwritten to provide specific action for the on encrypt.
+	 *
+	 * @param actionEvent
+	 *            the action event
+	 */
+	protected void onEncrypt(final ActionEvent actionEvent)
+	{
+		System.out.println("onEncrypt");
+
+	}
+
+	@Override
+	protected void onInitializeComponents()
+	{
+		super.onInitializeComponents();
+		initializeComponents();
+	}
+
+	/**
 	 * Initialize layout.
 	 */
 	protected void onInitializeGroupLayout()
@@ -156,62 +169,46 @@ public class EnDecryptPanel extends BasePanel<Pair<String, String>>
 		final GroupLayout layout = new GroupLayout(this);
 		this.setLayout(layout);
 
-        layout.setHorizontalGroup(
-            layout.createParallelGroup(GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
-                .addContainerGap()
-                .addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)
-                    .addComponent(lblToEncrypt, GroupLayout.PREFERRED_SIZE, 381, GroupLayout.PREFERRED_SIZE)
-                    .addComponent(scpToEncrypt, GroupLayout.PREFERRED_SIZE, 500, GroupLayout.PREFERRED_SIZE))
-                .addGap(39, 39, 39)
-                .addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING, false)
-                    .addComponent(btnDecrypt, GroupLayout.DEFAULT_SIZE, 167, Short.MAX_VALUE)
-                    .addComponent(btnEncrypt, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED, 36, Short.MAX_VALUE)
-                .addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)
-                    .addComponent(scpEncrypted, GroupLayout.PREFERRED_SIZE, 500, GroupLayout.PREFERRED_SIZE)
-                    .addComponent(lblEncrypted, GroupLayout.PREFERRED_SIZE, 381, GroupLayout.PREFERRED_SIZE))
-                .addGap(26, 26, 26))
-        );
-        layout.setVerticalGroup(
-            layout.createParallelGroup(GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
-                .addGap(31, 31, 31)
-                .addGroup(layout.createParallelGroup(GroupLayout.Alignment.BASELINE)
-                    .addComponent(lblToEncrypt, GroupLayout.PREFERRED_SIZE, 31, GroupLayout.PREFERRED_SIZE)
-                    .addComponent(lblEncrypted, GroupLayout.PREFERRED_SIZE, 31, GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING, false)
-                    .addGroup(layout.createSequentialGroup()
-                        .addComponent(btnEncrypt)
-                        .addGap(90, 90, 90)
-                        .addComponent(btnDecrypt))
-                    .addComponent(scpEncrypted)
-                    .addComponent(scpToEncrypt))
-                .addContainerGap(40, Short.MAX_VALUE))
-        );
-	}
-
-	/**
-	 * Callback method that can be overwritten to provide specific action for the on decrypt.
-	 *
-	 * @param actionEvent the action event
-	 */
-	protected void onDecrypt(final ActionEvent actionEvent)
-	{
-		System.out.println("onDecrypt");
+		layout.setHorizontalGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)
+			.addGroup(layout.createSequentialGroup().addContainerGap()
+				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)
+					.addComponent(lblToEncrypt, GroupLayout.PREFERRED_SIZE, 381,
+						GroupLayout.PREFERRED_SIZE)
+					.addComponent(scpToEncrypt, GroupLayout.PREFERRED_SIZE, 500,
+						GroupLayout.PREFERRED_SIZE))
+				.addGap(39, 39, 39)
+				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING, false)
+					.addComponent(btnDecrypt, GroupLayout.DEFAULT_SIZE, 167, Short.MAX_VALUE)
+					.addComponent(btnEncrypt, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE,
+						Short.MAX_VALUE))
+				.addPreferredGap(LayoutStyle.ComponentPlacement.RELATED, 36, Short.MAX_VALUE)
+				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)
+					.addComponent(scpEncrypted, GroupLayout.PREFERRED_SIZE, 500,
+						GroupLayout.PREFERRED_SIZE)
+					.addComponent(lblEncrypted, GroupLayout.PREFERRED_SIZE, 381,
+						GroupLayout.PREFERRED_SIZE))
+				.addGap(26, 26, 26)));
+		layout.setVerticalGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)
+			.addGroup(layout.createSequentialGroup().addGap(31, 31, 31)
+				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+					.addComponent(lblToEncrypt, GroupLayout.PREFERRED_SIZE, 31,
+						GroupLayout.PREFERRED_SIZE)
+					.addComponent(lblEncrypted, GroupLayout.PREFERRED_SIZE, 31,
+						GroupLayout.PREFERRED_SIZE))
+				.addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING, false)
+					.addGroup(layout.createSequentialGroup().addComponent(btnEncrypt)
+						.addGap(90, 90, 90).addComponent(btnDecrypt))
+					.addComponent(scpEncrypted).addComponent(scpToEncrypt))
+				.addContainerGap(40, Short.MAX_VALUE)));
 	}
 
 
-	/**
-	 * Callback method that can be overwritten to provide specific action for the on encrypt.
-	 *
-	 * @param actionEvent the action event
-	 */
-	protected void onEncrypt(final ActionEvent actionEvent)
+	@Override
+	protected void onInitializeLayout()
 	{
-		System.out.println("onEncrypt");
-
+		super.onInitializeLayout();
+		onInitializeGroupLayout();
 	}
 
 }
