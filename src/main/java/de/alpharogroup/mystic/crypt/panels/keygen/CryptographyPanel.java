@@ -36,7 +36,6 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 
 import org.apache.log4j.Logger;
-import org.jdesktop.swingx.combobox.EnumComboBoxModel;
 
 import de.alpharogroup.crypto.key.KeySize;
 import de.alpharogroup.layout.GridBagLayoutModel;
@@ -45,6 +44,7 @@ import de.alpharogroup.layout.LayoutExtensions;
 import de.alpharogroup.model.BaseModel;
 import de.alpharogroup.model.api.Model;
 import de.alpharogroup.swing.base.BasePanel;
+import de.alpharogroup.swing.combobox.model.EnumComboBoxModel;
 import lombok.Getter;
 
 /**
@@ -89,7 +89,7 @@ public class CryptographyPanel extends BasePanel<GenerateKeysModelBean>
 	/**
 	 * The cmb key size.
 	 */
-	private JComboBox<String> cmbKeySize;
+	private JComboBox<KeySize> cmbKeySize;
 
 	/**
 	 * The lbl key size.

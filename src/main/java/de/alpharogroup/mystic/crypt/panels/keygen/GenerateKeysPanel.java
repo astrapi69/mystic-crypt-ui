@@ -352,7 +352,7 @@ public class GenerateKeysPanel extends BasePanel<GenerateKeysModelBean>
 		final String password = String.copyValueOf(panel.getTxtPassword().getPassword());
 		final String repeatPassword = String
 			.copyValueOf(panel.getTxtRepeatPassword().getPassword());
-		if (result == 0)
+		if (result == 0 && 0<password.length())
 		{
 			if (password.equals(repeatPassword))
 			{
