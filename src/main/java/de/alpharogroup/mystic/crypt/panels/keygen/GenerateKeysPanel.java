@@ -44,6 +44,8 @@ import javax.swing.JTextField;
 
 import de.alpharogroup.crypto.key.reader.PrivateKeyReader;
 import de.alpharogroup.crypto.key.writer.EncryptedPrivateKeyWriter;
+import de.alpharogroup.crypto.key.writer.PrivateKeyWriter;
+import de.alpharogroup.crypto.key.writer.PublicKeyWriter;
 import de.alpharogroup.exception.ExceptionExtensions;
 
 import org.apache.commons.codec.DecoderException;
@@ -200,9 +202,7 @@ public class GenerateKeysPanel extends BasePanel<GenerateKeysModelBean>
 		{
 			try
 			{
-				final FileWriter fw = new FileWriter(fileChooser.getSelectedFile() + ".pem");
-				fw.write(getCryptographyPanel().getTxtPublicKey().getText());
-				fw.close();
+				PublicKeyWriter.write(getModelObject().getPublicKey(), fileChooser.getSelectedFile());
 			}
 			catch (final Exception ex)
 			{
@@ -229,13 +229,12 @@ public class GenerateKeysPanel extends BasePanel<GenerateKeysModelBean>
 		{
 			try
 			{
-				final FileWriter fw = new FileWriter(fileChooser.getSelectedFile() + ".pem");
-				fw.write(getCryptographyPanel().getTxtPrivateKey().getText());
-				fw.close();
+				PrivateKeyWriter.writeInPemFormat(getModelObject().getPrivateKey(), fileChooser.getSelectedFile());
 			}
-			catch (final Exception ex)
+			catch (final Exception e)
 			{
-				ex.printStackTrace();
+				JOptionPane.showMessageDialog(null, ExceptionExtensions.getStackTrace(e));
+				e.printStackTrace();
 			}
 		}
 		if (state == JFileChooser.CANCEL_OPTION)
