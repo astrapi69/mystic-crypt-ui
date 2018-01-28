@@ -28,21 +28,25 @@ import java.awt.event.ActionEvent;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
-import java.security.InvalidAlgorithmParameterException;
-import java.security.InvalidKeyException;
-import java.security.KeyPair;
-import java.security.NoSuchAlgorithmException;
+import java.security.*;
 import java.security.spec.InvalidKeySpecException;
+import java.security.spec.InvalidParameterSpecException;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 import javax.swing.JComboBox;
 import javax.swing.JFileChooser;
+import javax.swing.JLabel;
 import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JTextField;
+
+import de.alpharogroup.crypto.key.reader.PrivateKeyReader;
+import de.alpharogroup.crypto.key.writer.EncryptedPrivateKeyWriter;
+import de.alpharogroup.exception.ExceptionExtensions;
 
 import org.apache.commons.codec.DecoderException;
-import org.jdesktop.swingx.JXPanel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -63,7 +67,8 @@ import net.miginfocom.swing.MigLayout;
 public class GenerateKeysPanel extends BasePanel<GenerateKeysModelBean>
 {
 	/** The logger. */
-	protected static final Logger logger = LoggerFactory.getLogger(GenerateKeysPanel.class.getName());
+	protected static final Logger logger = LoggerFactory
+		.getLogger(GenerateKeysPanel.class.getName());
 
 	private static final long serialVersionUID = 1L;
 
@@ -73,7 +78,7 @@ public class GenerateKeysPanel extends BasePanel<GenerateKeysModelBean>
 
 	public GenerateKeysPanel()
 	{
-		this(BaseModel.<GenerateKeysModelBean>of(GenerateKeysModelBean.builder().build()));
+		this(BaseModel.<GenerateKeysModelBean> of(GenerateKeysModelBean.builder().build()));
 	}
 
 	public GenerateKeysPanel(final Model<GenerateKeysModelBean> model)
@@ -239,15 +244,50 @@ public class GenerateKeysPanel extends BasePanel<GenerateKeysModelBean>
 	}
 
 
-    protected void onSavePrivateKeyWithPassword(final ActionEvent actionEvent)
-    {
-    	// TODO here comes the dialog for enter the pw...
-    	final String password = JOptionPane.showInputDialog("Enter password");
+	protected void onSavePrivateKeyWithPassword(final ActionEvent actionEvent)
+	{
+		// TODO here comes the dialog for enter the pw...
+		final Object[] options = { "Set password", "Cancel" };
+		final PasswordPanel panel = new PasswordPanel();
 
-    	if(password != null && password.length()>5) {
-    		JOptionPane.showMessageDialog(null, password);
-    	}
-    }
+		final int result = JOptionPane.showOptionDialog(null, panel, "Enter a password",
+			JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE, null, options, null);
+		final String password = String.copyValueOf(panel.getTxtPassword().getPassword());
+		final String repeatPassword = String
+			.copyValueOf(panel.getTxtRepeatPassword().getPassword());
+		if (result == 0)
+		{
+			if (password.equals(repeatPassword))
+			{
+
+				final JFileChooser fileChooser = new JFileChooser();
+				final int state = fileChooser.showSaveDialog(this);
+				if (state == JFileChooser.APPROVE_OPTION)
+				{
+					// TODO save private key with password...
+					PrivateKey privateKey = null;
+					try
+					{
+						privateKey = getModelObject().getPrivateKey();
+						EncryptedPrivateKeyWriter.encryptPrivateKeyWithPassword(privateKey,
+							fileChooser.getSelectedFile(), password);
+					}
+					catch (final Exception e)
+					{
+						JOptionPane.showMessageDialog(null, ExceptionExtensions.getStackTrace(e));
+						e.printStackTrace();
+					}
+				}
+				if (state == JFileChooser.CANCEL_OPTION)
+				{
+				}
+			}
+			else
+			{
+				JOptionPane.showMessageDialog(null, "Entered passwords are not the same.");
+			}
+		}
+	}
 
 	/**
 	 * Callback method that can be overwritten to provide specific action for the on clear.
@@ -288,12 +328,16 @@ public class GenerateKeysPanel extends BasePanel<GenerateKeysModelBean>
 			getModelObject().setPrivateKey(keyPair.getPrivate());
 			getModelObject().setPublicKey(keyPair.getPublic());
 
-			getModelObject().setDecryptor(new PrivateKeyHexDecryptor(getModelObject().getPrivateKey()));
-			getModelObject().setEncryptor(new PublicKeyHexEncryptor(getModelObject().getPublicKey()));
+			getModelObject()
+				.setDecryptor(new PrivateKeyHexDecryptor(getModelObject().getPrivateKey()));
+			getModelObject()
+				.setEncryptor(new PublicKeyHexEncryptor(getModelObject().getPublicKey()));
 
-			final String privateKeyFormat = PrivateKeyExtensions.toPemFormat(getModelObject().getPrivateKey());
+			final String privateKeyFormat = PrivateKeyExtensions
+				.toPemFormat(getModelObject().getPrivateKey());
 
-			final String publicKeyFormat = PublicKeyExtensions.toPemFormat(getModelObject().getPublicKey());
+			final String publicKeyFormat = PublicKeyExtensions
+				.toPemFormat(getModelObject().getPublicKey());
 
 			getCryptographyPanel().getTxtPrivateKey().setText("");
 			getCryptographyPanel().getTxtPublicKey().setText("");
@@ -349,8 +393,8 @@ public class GenerateKeysPanel extends BasePanel<GenerateKeysModelBean>
 		System.out.println("onEncrypt");
 		try
 		{
-			getEnDecryptPanel().getTxtEncrypted().setText(
-				getModelObject().getEncryptor().encrypt(getEnDecryptPanel().getTxtToEncrypt().getText()));
+			getEnDecryptPanel().getTxtEncrypted().setText(getModelObject().getEncryptor()
+				.encrypt(getEnDecryptPanel().getTxtToEncrypt().getText()));
 			getEnDecryptPanel().getTxtToEncrypt().setText("");
 		}
 		catch (InvalidKeyException | NoSuchAlgorithmException | InvalidKeySpecException

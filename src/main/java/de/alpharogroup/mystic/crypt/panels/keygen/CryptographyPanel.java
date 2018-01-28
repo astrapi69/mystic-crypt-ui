@@ -36,6 +36,8 @@ import javax.swing.JLabel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 
+import de.alpharogroup.collections.array.ArrayExtensions;
+import de.alpharogroup.swing.combobox.model.StringComboBoxModel;
 import org.apache.log4j.Logger;
 
 import de.alpharogroup.crypto.key.KeySize;
@@ -46,6 +48,7 @@ import de.alpharogroup.model.BaseModel;
 import de.alpharogroup.model.api.Model;
 import de.alpharogroup.swing.base.BasePanel;
 import lombok.Getter;
+import org.jdesktop.swingx.combobox.EnumComboBoxModel;
 
 /**
  * The class {@link CryptographyPanel} can generate private and public keys and
@@ -173,7 +176,7 @@ public class CryptographyPanel extends BasePanel<GenerateKeysModelBean> {
         scpPrivateKey.setViewportView(txtPrivateKey);
         txtPrivateKey.getAccessibleContext().setAccessibleDescription("");
 
-        cmbKeySize.setModel(new DefaultComboBoxModel(KeySize.values()));
+        cmbKeySize.setModel(new EnumComboBoxModel<KeySize>(KeySize.class));
         cmbKeySize.setSelectedItem(KeySize.KEYSIZE_1024);
 
         btnGenerate.setText("Generate keys");

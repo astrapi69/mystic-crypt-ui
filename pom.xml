@@ -26,7 +26,7 @@
 		<!-- GUAVA version -->
 		<guava.version>23.0</guava.version>
 		<!-- MYSTIC-CRYPT versions -->
-		<mystic-crypt.version>5.0.0</mystic-crypt.version>
+		<mystic-crypt.version>5.1.0-SNAPSHOT</mystic-crypt.version>
 		<crypt-api.version>${mystic-crypt.version}</crypt-api.version>
 		<crypt-core.version>${mystic-crypt.version}</crypt-core.version>
 		<randomizer.version>${mystic-crypt.version}</randomizer.version>
