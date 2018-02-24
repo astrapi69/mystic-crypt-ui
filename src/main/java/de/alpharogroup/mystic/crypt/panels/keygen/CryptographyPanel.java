@@ -208,8 +208,7 @@ public class CryptographyPanel extends BasePanel<GenerateKeysModelBean>
 		scpPrivateKey.setViewportView(txtPrivateKey);
 		txtPrivateKey.getAccessibleContext().setAccessibleDescription("");
 
-		cmbKeySize.setModel(new EnumComboBoxModel<KeySize>(KeySize.class));
-		cmbKeySize.setSelectedItem(KeySize.KEYSIZE_1024);
+		cmbKeySize.setModel(new EnumComboBoxModel<>(KeySize.class));
 
 		btnGenerate.setText("Generate keys");
 

@@ -35,7 +35,6 @@ import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.security.spec.InvalidKeySpecException;
 
-import javax.swing.DefaultComboBoxModel;
 import javax.swing.GroupLayout;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
@@ -58,6 +57,7 @@ import de.alpharogroup.exception.ExceptionExtensions;
 import de.alpharogroup.model.BaseModel;
 import de.alpharogroup.model.api.Model;
 import de.alpharogroup.swing.base.BasePanel;
+import de.alpharogroup.swing.combobox.model.EnumComboBoxModel;
 import lombok.Getter;
 
 @Getter
@@ -71,7 +71,7 @@ public class FileConversionPanel extends BasePanel<FileConversionModelBean>
 	private JButton btnChoose;
 	private JButton btnConvert;
 	private JButton btnSaveTo;
-	private JComboBox<String> cmbChooseType;
+	private JComboBox<KeyType> cmbChooseType;
 	private JLabel lblChoose;
 	private JLabel lblChooseType;
 	private JLabel lblConsole;
@@ -126,7 +126,7 @@ public class FileConversionPanel extends BasePanel<FileConversionModelBean>
 
 	protected void onConvert(final ActionEvent actionEvent)
 	{
-		txtConsole.append("Coversion started...");
+		txtConsole.append("Coversion started...\n");
 
 		try
 		{
@@ -136,18 +136,21 @@ public class FileConversionPanel extends BasePanel<FileConversionModelBean>
 				case PRIVATE_KEY :
 					final PrivateKey privateKey = PrivateKeyReader
 						.readPrivateKey(getModelObject().getDerFile());
+					txtConsole.append("read private key...\n");
 					PrivateKeyWriter.writeInPemFormat(privateKey, getModelObject().getPemFile());
-					txtConsole.append("private key written to file...");
+					txtConsole.append("private key written to file...\n");
 					break;
 				case CERTIFICATE :
 					final X509Certificate certificate = CertificateReader
 						.readCertificate(getModelObject().getDerFile());
+					txtConsole.append("read X.509 certificate...\n");
 					CertificateWriter.writeInPemFormat(certificate, getModelObject().getPemFile());
 					txtConsole.append("X.509 certificate written to file...");
 					break;
 				case PUBLIC_KEY :
 					final PublicKey publicKey = PublicKeyReader
 						.readPublicKey(getModelObject().getDerFile());
+					txtConsole.append("read public key...\n");
 					PublicKeyWriter.write(publicKey, getModelObject().getPemFile());
 					txtConsole.append("public key written to file...");
 					break;
@@ -155,7 +158,6 @@ public class FileConversionPanel extends BasePanel<FileConversionModelBean>
 					txtConsole.append("unknown key type...");
 					break;
 			}
-
 		}
 		catch (NoSuchAlgorithmException | InvalidKeySpecException | NoSuchProviderException
 			| CertificateException | IOException e)
@@ -163,6 +165,7 @@ public class FileConversionPanel extends BasePanel<FileConversionModelBean>
 			txtConsole.append(ExceptionExtensions.getStackTrace(e));
 			e.printStackTrace();
 		}
+		txtConsole.append("Coversion finished...\n");
 	}
 
 	@Override
@@ -186,7 +189,7 @@ public class FileConversionPanel extends BasePanel<FileConversionModelBean>
 
 		lblChooseType.setText("Choose type to convert");
 
-		cmbChooseType.setModel(new DefaultComboBoxModel(KeyType.values()));
+		cmbChooseType.setModel(new EnumComboBoxModel<>(KeyType.class));
 		cmbChooseType.setSelectedItem(getModelObject().getKeyType());
 		cmbChooseType.addActionListener(actionEvent -> onChangeKeyType(actionEvent));
 
