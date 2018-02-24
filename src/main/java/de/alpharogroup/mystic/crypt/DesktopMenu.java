@@ -26,6 +26,8 @@ package de.alpharogroup.mystic.crypt;
 
 import java.awt.Window;
 import java.awt.event.ActionListener;
+import java.awt.event.InputEvent;
+import java.awt.event.KeyEvent;
 import java.net.URL;
 
 import javax.help.CSH;
@@ -36,6 +38,7 @@ import javax.help.WindowPresentation;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
+import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 
@@ -311,51 +314,12 @@ public class DesktopMenu extends JMenu
 		MenuExtensions.setCtrlAccelerator(jmiConvert, 'C');
 		jmiConvert.setEnabled(true);
 		fileMenu.add(jmiConvert);
-		// Save
-		// JMenuItem jmiSave;
-		// jmiSave = new JMenuItem("Save", 'S');
-		// jmiSave.addActionListener(listener);
-		// MenuExtensions.setCtrlAccelerator(jmiSave, 'S');
-		// jmiSave.setEnabled(false);
-		// fileMenu.add(jmiSave);
 
-		// Separator
-		// fileMenu.addSeparator();
-
-		// Save as
-		// JMenuItem jmiSaveAs;
-		// jmiSaveAs = new JMenuItem("Save as", 'a');
-		// jmiSaveAs.addActionListener(listener);
-		// jmiSaveAs.setEnabled(false);
-		// fileMenu.add(jmiSaveAs);
-
-		// Separator
-		// fileMenu.addSeparator();
-
-		// Configuration
-		// JMenuItem jmiPrint;
-		// jmiPrint = new JMenuItem("Print", 'r');
-		// jmiPrint.addActionListener(listener);
-		// jmiPrint.setEnabled(false);
-		// fileMenu.add(jmiPrint);
-
-		// Separator
-		// fileMenu.addSeparator();
-
-		// Configuration
-		// JMenuItem jmiConfiguration;
-		// jmiConfiguration = new JMenuItem("Configuration", 'C');
-		// jmiConfiguration.addActionListener(listener);
-		// jmiConfiguration.setEnabled(false);
-		// fileMenu.add(jmiConfiguration);
-
-		// Separator
-		// fileMenu.addSeparator();
-
-		// Configuration
+		// Exit
 		JMenuItem jmiExit;
 		jmiExit = new JMenuItem("Exit", 'E');
 		jmiExit.addActionListener(new ExitApplicationAction("Exit"));
+		jmiExit.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F4, InputEvent.ALT_MASK));
 		fileMenu.add(jmiExit);
 
 		return fileMenu;
