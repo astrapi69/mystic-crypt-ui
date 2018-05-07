@@ -19,7 +19,9 @@ Than compile the project:
 mvn clean install
 ```
 
-# List of installer tools 
+# List of installer tools
+
+Here is a list of installer tools that are used for deploy the final application.
 
 * [izpack](http://izpack.org/) IzPack is a widely used tool for packaging applications on the Java™ platform.
 * [DCP](http://devcompack.sourceforge.net/index.html) Powerful simple-to-use application to generate stable and multi-platform installers.
