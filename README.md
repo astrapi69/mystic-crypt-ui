@@ -19,6 +19,11 @@ Than compile the project:
 mvn clean install
 ```
 
+# List of installer tools 
+
+* [izpack](http://izpack.org/) IzPack is a widely used tool for packaging applications on the Java™ platform.
+* [DCP](http://devcompack.sourceforge.net/index.html) Powerful simple-to-use application to generate stable and multi-platform installers.
+
 ## License
 
 The source code comes under the liberal MIT License.
