@@ -11,20 +11,20 @@
 	</parent>
 
 	<artifactId>mystic-crypt-ui</artifactId>
-	<version>5.1.0-SNAPSHOT</version>
+	<version>5.1-SNAPSHOT</version>
 
 	<properties>
 		<!-- EXTENSIONS LIB versions -->
-		<file-worker.version>4.19.0</file-worker.version>
-		<jcommons-lang.version>4.29.0</jcommons-lang.version>
+		<file-worker.version>4.20</file-worker.version>
+		<jcommons-lang.version>4.32</jcommons-lang.version>
 		<!-- SWING-COMPONENTS version -->
-		<swing-components.version>4.26.0-SNAPSHOT</swing-components.version>
+		<swing-components.version>4.27</swing-components.version>
 		<!-- MIGLAYOUT-SWING version -->
 		<miglayout-swing.version>5.0</miglayout-swing.version>
 		<!-- XML-EXTENSIONS version -->
 		<xml-extensions.version>4.18.0</xml-extensions.version>
 		<!-- GUAVA version -->
-		<guava.version>24.0-jre</guava.version>
+		<guava.version>25.0-jre</guava.version>
 		<!-- MYSTIC-CRYPT versions -->
 		<mystic-crypt.version>5.1.0</mystic-crypt.version>
 		<crypt-api.version>${mystic-crypt.version}</crypt-api.version>

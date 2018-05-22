@@ -1,7 +1,7 @@
 ## Change log
 ----------------------
 
-Version 4.21.0-SNAPSHOT
+Version 5.1-SNAPSHOT
 -------------
 
 ADDED:
@@ -10,7 +10,7 @@ ADDED:
 
 CHANGED:
 
-- 
+- removed unneeded .0 at the end of version
 
 
 Notable links:
