@@ -9,7 +9,7 @@ This swing application provides public and private key creation and obfuscate st
 
 # Install
 
-Windows, Linux and Mac users can download and install it with [izpack installer](https://sourceforge.net/projects/mysticcrypt/files/4.20.0/mystic-crypt-ui-jar-with-dependencies.jar/download).
+Windows, Linux and Mac users can download and install it with [izpack installer created with DCP](https://sourceforge.net/projects/mysticcrypt/files/4.21.0/installer.jar/download).
 
 For users that want to build it from the source files can clone this git repository. It is a maven project so you will need maven and a JDK.
 
@@ -18,6 +18,13 @@ Than compile the project:
 ```
 mvn clean install
 ```
+
+# List of installer tools
+
+Here is a list of installer tools that are used for deploy the final application.
+
+* [izpack](http://izpack.org/) IzPack is a widely used tool for packaging applications on the Java™ platform.
+* [DCP](http://devcompack.sourceforge.net/index.html) Powerful simple-to-use application to generate stable and multi-platform installers.
 
 ## License
 
