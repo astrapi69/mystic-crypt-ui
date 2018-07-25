@@ -35,12 +35,13 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import de.alpharogroup.collections.pairs.KeyValuePair;
 import de.alpharogroup.crypto.obfuscation.rule.ObfuscationOperationRule;
 import de.alpharogroup.file.read.ReadFileExtensions;
-import de.alpharogroup.file.write.WriteFileExtensions;
+import de.alpharogroup.file.write.WriteFileQuietlyExtensions;
 import de.alpharogroup.model.BaseModel;
 import de.alpharogroup.model.api.Model;
 import de.alpharogroup.swing.GenericJTable;
 import de.alpharogroup.swing.base.BasePanel;
-import de.alpharogroup.xml.json.JsonTransformer;
+import de.alpharogroup.xml.json.JsonToObjectExtensions;
+import de.alpharogroup.xml.json.ObjectToJsonExtensions;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
@@ -81,8 +82,8 @@ public class SimpleRuleTablePanel extends BasePanel<ObfuscationModelBean>
 			String json;
 			try
 			{
-				json = JsonTransformer.toJson(map);
-				WriteFileExtensions.writeStringToFile(obfuscationRules, json, "UTF-8");
+				json = ObjectToJsonExtensions.toJson(map);
+				WriteFileQuietlyExtensions.writeStringToFile(obfuscationRules, json, "UTF-8");
 			}
 			catch (final JsonProcessingException e)
 			{
@@ -101,7 +102,7 @@ public class SimpleRuleTablePanel extends BasePanel<ObfuscationModelBean>
 			try
 			{
 				final String fromFile = ReadFileExtensions.readFromFile(obfuscationRules);
-				final Map<Character, ObfuscationOperationRule<Character, Character>> map = JsonTransformer
+				final Map<Character, ObfuscationOperationRule<Character, Character>> map = JsonToObjectExtensions
 					.toObject(fromFile, Map.class);
 				getModelObject().getKeyRulesTableModel().setData(KeyValuePair.toKeyValuePairs(map));
 				getModelObject().getKeyRulesTableModel().fireTableDataChanged();

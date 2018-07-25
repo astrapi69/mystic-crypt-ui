@@ -158,7 +158,14 @@ public class FileConversionPanel extends BasePanel<FileConversionModelBean>
 		catch (NoSuchAlgorithmException | InvalidKeySpecException | NoSuchProviderException
 			| CertificateException | IOException e)
 		{
-			txtConsole.append(ExceptionExtensions.getStackTrace(e));
+			try
+			{
+				txtConsole.append(ExceptionExtensions.getStackTrace(e));
+			}
+			catch (IOException e1)
+			{
+				e1.printStackTrace();
+			}
 			e.printStackTrace();
 		}
 		txtConsole.append("Coversion finished...\n");

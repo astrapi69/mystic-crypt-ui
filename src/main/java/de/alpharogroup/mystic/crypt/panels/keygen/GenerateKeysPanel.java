@@ -27,6 +27,7 @@ import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.KeyPair;
 import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
 import java.security.PrivateKey;
 import java.security.spec.InvalidKeySpecException;
 
@@ -221,6 +222,10 @@ public class GenerateKeysPanel extends BasePanel<GenerateKeysModelBean>
 		{
 			logger.error("", e);
 		}
+		catch (NoSuchProviderException e)
+		{
+			logger.error("", e);
+		}
 
 	}
 
@@ -327,7 +332,15 @@ public class GenerateKeysPanel extends BasePanel<GenerateKeysModelBean>
 			}
 			catch (final Exception e)
 			{
-				JOptionPane.showMessageDialog(null, ExceptionExtensions.getStackTrace(e));
+				try
+				{
+					JOptionPane.showMessageDialog(null, ExceptionExtensions.getStackTrace(e) );
+				}
+				catch (IOException e1)
+				{
+					e1.printStackTrace();
+				}
+				
 				e.printStackTrace();
 			}
 		}
@@ -367,7 +380,15 @@ public class GenerateKeysPanel extends BasePanel<GenerateKeysModelBean>
 					}
 					catch (final Exception e)
 					{
-						JOptionPane.showMessageDialog(null, ExceptionExtensions.getStackTrace(e));
+
+						try
+						{
+							JOptionPane.showMessageDialog(null, ExceptionExtensions.getStackTrace(e) );
+						}
+						catch (IOException e1)
+						{
+							e1.printStackTrace();
+						}
 						e.printStackTrace();
 					}
 				}
