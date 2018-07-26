@@ -6,11 +6,12 @@ Version 5.1-SNAPSHOT
 
 ADDED:
  
-- 
+- new obfuscation internal frame created to obfuscate with upper- lowercase operation with indexes 
 
 CHANGED:
 
 - removed unneeded .0 at the end of version
+- removed old obfuscation internal frame
 
 
 Notable links:
