@@ -18,34 +18,33 @@
  * DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-package de.alpharogroup.mystic.crypt.panels.obfuscate;
+package de.alpharogroup.mystic.crypt.panels.obfuscate.character;
 
-import java.io.IOException;
+import java.io.Serializable;
 
-import javax.swing.JFrame;
+import de.alpharogroup.crypto.obfuscation.api.Obfuscatable;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
+import lombok.experimental.FieldDefaults;
 
-import de.alpharogroup.layout.CloseWindow;
 
-public class RulePanelTest
+@Getter
+@Setter
+@EqualsAndHashCode
+@ToString
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder(toBuilder = true)
+@FieldDefaults(level = AccessLevel.PRIVATE)
+public class ObfuscationOperationModelBean implements Serializable
 {
-
-	/**
-	 * The main method.
-	 *
-	 * @param args
-	 *            the arguments
-	 * @throws IOException
-	 */
-	public static void main(final String[] args) throws IOException
-	{
-		final JFrame frame = new JFrame();
-		frame.addWindowListener(new CloseWindow());
-		frame.setTitle("RulePanel");
-
-		final RulePanel panel = new RulePanel();
-		frame.add(panel);
-		frame.setBounds(0, 0, 1280, 650);
-		frame.setVisible(true);
-	}
-
+	private static final long serialVersionUID = 1L;
+	CharacterObfuscationOperationRulesTableModel keyRulesTableModel;
+	Obfuscatable obfuscator;
 }

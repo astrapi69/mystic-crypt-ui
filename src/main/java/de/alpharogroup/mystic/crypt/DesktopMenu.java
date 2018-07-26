@@ -44,6 +44,7 @@ import de.alpharogroup.lang.ClassExtensions;
 import de.alpharogroup.mystic.crypt.actions.NewFileConversionInternalFrameAction;
 import de.alpharogroup.mystic.crypt.actions.NewKeyGenerationInternalFrameAction;
 import de.alpharogroup.mystic.crypt.actions.NewObfuscationInternalFrameAction;
+import de.alpharogroup.mystic.crypt.actions.NewObfuscationOperationInternalFrameAction;
 import de.alpharogroup.mystic.crypt.actions.OpenBrowserToDonateAction;
 import de.alpharogroup.mystic.crypt.actions.OpenPrivateKeyAction;
 import de.alpharogroup.mystic.crypt.actions.ShowHelpDialogAction;
@@ -61,6 +62,8 @@ import lombok.Setter;
  */
 public class DesktopMenu extends JMenu
 {
+
+	private static final long serialVersionUID = 1L;
 
 	/** The Constant logger. */
 	private static final Logger logger = Logger.getLogger(DesktopMenu.class.getName());
@@ -297,6 +300,12 @@ public class DesktopMenu extends JMenu
 		jmi = new JMenuItem("New obfuscation", 'O');
 		jmi.addActionListener(new NewObfuscationInternalFrameAction("New Obfuscation"));
 		MenuExtensions.setCtrlAccelerator(jmi, 'O');
+		fileMenu.add(jmi);
+
+		// New operation obfuscation
+		jmi = new JMenuItem("New operation obfuscation", 'P');
+		jmi.addActionListener(new NewObfuscationOperationInternalFrameAction("New operation Obfuscation"));
+		MenuExtensions.setCtrlAccelerator(jmi, 'P');
 		fileMenu.add(jmi);
 
 		// Separator
