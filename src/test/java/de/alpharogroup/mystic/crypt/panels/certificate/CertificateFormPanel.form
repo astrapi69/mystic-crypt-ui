@@ -1,0 +1,208 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<Form version="1.3" maxVersion="1.9" type="org.netbeans.modules.form.forminfo.JPanelFormInfo">
+  <AuxValues>
+    <AuxValue name="FormSettings_autoResourcing" type="java.lang.Integer" value="0"/>
+    <AuxValue name="FormSettings_autoSetComponentName" type="java.lang.Boolean" value="false"/>
+    <AuxValue name="FormSettings_generateFQN" type="java.lang.Boolean" value="true"/>
+    <AuxValue name="FormSettings_generateMnemonicsCode" type="java.lang.Boolean" value="false"/>
+    <AuxValue name="FormSettings_i18nAutoMode" type="java.lang.Boolean" value="false"/>
+    <AuxValue name="FormSettings_layoutCodeTarget" type="java.lang.Integer" value="1"/>
+    <AuxValue name="FormSettings_listenerGenerationStyle" type="java.lang.Integer" value="0"/>
+    <AuxValue name="FormSettings_variablesLocal" type="java.lang.Boolean" value="false"/>
+    <AuxValue name="FormSettings_variablesModifier" type="java.lang.Integer" value="2"/>
+  </AuxValues>
+
+  <Layout>
+    <DimensionLayout dim="0">
+      <Group type="103" groupAlignment="0" attributes="0">
+          <Group type="102" alignment="0" attributes="0">
+              <EmptySpace min="-2" pref="63" max="-2" attributes="0"/>
+              <Group type="103" groupAlignment="0" max="-2" attributes="0">
+                  <Component id="lblPublicKey" max="32767" attributes="0"/>
+                  <Component id="lblFingerprint" max="32767" attributes="0"/>
+                  <Component id="lblSignatureAlgorithm" max="32767" attributes="0"/>
+                  <Component id="lblValidFrom" pref="140" max="32767" attributes="0"/>
+                  <Component id="lblSerialNumber" max="32767" attributes="0"/>
+                  <Component id="lblVersion" max="32767" attributes="0"/>
+                  <Component id="lblIssuedBy" max="32767" attributes="0"/>
+                  <Component id="lblIssuedTo" max="32767" attributes="0"/>
+                  <Component id="lblValidUntil" max="32767" attributes="0"/>
+              </Group>
+              <EmptySpace min="-2" pref="47" max="-2" attributes="0"/>
+              <Group type="103" groupAlignment="0" max="-2" attributes="0">
+                  <Component id="txtIssuedTo" max="32767" attributes="0"/>
+                  <Component id="txtIssuedBy" pref="480" max="32767" attributes="0"/>
+                  <Component id="txtVersion" pref="480" max="32767" attributes="0"/>
+                  <Component id="txtSerialNumber" alignment="0" max="32767" attributes="0"/>
+                  <Component id="txtValidUntil" alignment="0" max="32767" attributes="0"/>
+                  <Component id="txtValidFrom" alignment="0" max="32767" attributes="0"/>
+                  <Component id="txtSignatureAlgorithm" alignment="0" max="32767" attributes="0"/>
+                  <Group type="102" alignment="0" attributes="0">
+                      <Component id="txtFingerprint" min="-2" pref="309" max="-2" attributes="0"/>
+                      <EmptySpace type="separate" max="-2" attributes="0"/>
+                      <Component id="cmbFingerprintAlgorithm" max="32767" attributes="0"/>
+                  </Group>
+                  <Component id="scrPublicKey" max="32767" attributes="0"/>
+              </Group>
+              <EmptySpace pref="82" max="32767" attributes="0"/>
+          </Group>
+      </Group>
+    </DimensionLayout>
+    <DimensionLayout dim="1">
+      <Group type="103" groupAlignment="0" attributes="0">
+          <Group type="102" alignment="0" attributes="0">
+              <EmptySpace min="-2" pref="38" max="-2" attributes="0"/>
+              <Group type="103" groupAlignment="3" attributes="0">
+                  <Component id="lblIssuedTo" alignment="3" min="-2" max="-2" attributes="0"/>
+                  <Component id="txtIssuedTo" alignment="3" min="-2" max="-2" attributes="0"/>
+              </Group>
+              <EmptySpace type="separate" max="-2" attributes="0"/>
+              <Group type="103" groupAlignment="3" attributes="0">
+                  <Component id="lblIssuedBy" alignment="3" min="-2" max="-2" attributes="0"/>
+                  <Component id="txtIssuedBy" alignment="3" min="-2" max="-2" attributes="0"/>
+              </Group>
+              <EmptySpace type="separate" max="-2" attributes="0"/>
+              <Group type="103" groupAlignment="3" attributes="0">
+                  <Component id="lblVersion" alignment="3" min="-2" max="-2" attributes="0"/>
+                  <Component id="txtVersion" alignment="3" min="-2" max="-2" attributes="0"/>
+              </Group>
+              <EmptySpace type="separate" max="-2" attributes="0"/>
+              <Group type="103" groupAlignment="3" attributes="0">
+                  <Component id="lblSerialNumber" alignment="3" min="-2" max="-2" attributes="0"/>
+                  <Component id="txtSerialNumber" alignment="3" min="-2" max="-2" attributes="0"/>
+              </Group>
+              <EmptySpace min="-2" pref="17" max="-2" attributes="0"/>
+              <Group type="103" groupAlignment="1" attributes="0">
+                  <Component id="lblValidFrom" min="-2" max="-2" attributes="0"/>
+                  <Component id="txtValidFrom" min="-2" max="-2" attributes="0"/>
+              </Group>
+              <EmptySpace type="separate" max="-2" attributes="0"/>
+              <Group type="103" groupAlignment="3" attributes="0">
+                  <Component id="txtValidUntil" alignment="3" min="-2" max="-2" attributes="0"/>
+                  <Component id="lblValidUntil" alignment="3" min="-2" max="-2" attributes="0"/>
+              </Group>
+              <EmptySpace type="separate" max="-2" attributes="0"/>
+              <Group type="103" groupAlignment="3" attributes="0">
+                  <Component id="lblSignatureAlgorithm" alignment="3" min="-2" max="-2" attributes="0"/>
+                  <Component id="txtSignatureAlgorithm" alignment="3" min="-2" max="-2" attributes="0"/>
+              </Group>
+              <EmptySpace type="separate" max="-2" attributes="0"/>
+              <Group type="103" groupAlignment="3" attributes="0">
+                  <Component id="lblFingerprint" alignment="3" min="-2" max="-2" attributes="0"/>
+                  <Component id="txtFingerprint" alignment="3" min="-2" max="-2" attributes="0"/>
+                  <Component id="cmbFingerprintAlgorithm" alignment="3" min="-2" max="-2" attributes="0"/>
+              </Group>
+              <EmptySpace type="separate" max="-2" attributes="0"/>
+              <Group type="103" groupAlignment="0" attributes="0">
+                  <Component id="lblPublicKey" min="-2" max="-2" attributes="0"/>
+                  <Component id="scrPublicKey" min="-2" pref="280" max="-2" attributes="0"/>
+              </Group>
+              <EmptySpace pref="56" max="32767" attributes="0"/>
+          </Group>
+      </Group>
+    </DimensionLayout>
+  </Layout>
+  <SubComponents>
+    <Component class="javax.swing.JLabel" name="lblIssuedTo">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="Issued to"/>
+      </Properties>
+    </Component>
+    <Component class="javax.swing.JTextField" name="txtIssuedTo">
+      <Properties>
+        <Property name="toolTipText" type="java.lang.String" value=""/>
+      </Properties>
+      <Events>
+        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="txtIssuedToActionPerformed"/>
+      </Events>
+    </Component>
+    <Component class="javax.swing.JLabel" name="lblIssuedBy">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="Issued by"/>
+      </Properties>
+    </Component>
+    <Component class="javax.swing.JTextField" name="txtIssuedBy">
+      <Properties>
+        <Property name="toolTipText" type="java.lang.String" value=""/>
+      </Properties>
+    </Component>
+    <Component class="javax.swing.JLabel" name="lblVersion">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="Version"/>
+      </Properties>
+    </Component>
+    <Component class="javax.swing.JTextField" name="txtVersion">
+    </Component>
+    <Component class="javax.swing.JLabel" name="lblSerialNumber">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="Serial number"/>
+      </Properties>
+    </Component>
+    <Component class="javax.swing.JTextField" name="txtSerialNumber">
+    </Component>
+    <Component class="javax.swing.JLabel" name="lblValidFrom">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="Valid from"/>
+      </Properties>
+    </Component>
+    <Component class="javax.swing.JTextField" name="txtValidUntil">
+    </Component>
+    <Component class="javax.swing.JTextField" name="txtValidFrom">
+    </Component>
+    <Component class="javax.swing.JLabel" name="lblValidUntil">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="Valid until"/>
+      </Properties>
+    </Component>
+    <Component class="javax.swing.JLabel" name="lblSignatureAlgorithm">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="Signature algorithm"/>
+      </Properties>
+    </Component>
+    <Component class="javax.swing.JTextField" name="txtFingerprint">
+    </Component>
+    <Component class="javax.swing.JLabel" name="lblFingerprint">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="Fingerprint"/>
+      </Properties>
+    </Component>
+    <Component class="javax.swing.JTextField" name="txtSignatureAlgorithm">
+    </Component>
+    <Component class="javax.swing.JComboBox" name="cmbFingerprintAlgorithm">
+      <Properties>
+        <Property name="model" type="javax.swing.ComboBoxModel" editor="org.netbeans.modules.form.editors2.ComboBoxModelEditor">
+          <StringArray count="4">
+            <StringItem index="0" value="Item 1"/>
+            <StringItem index="1" value="Item 2"/>
+            <StringItem index="2" value="Item 3"/>
+            <StringItem index="3" value="Item 4"/>
+          </StringArray>
+        </Property>
+      </Properties>
+      <AuxValues>
+        <AuxValue name="JavaCodeGenerator_TypeParameters" type="java.lang.String" value="&lt;String&gt;"/>
+      </AuxValues>
+    </Component>
+    <Component class="javax.swing.JLabel" name="lblPublicKey">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="Public key"/>
+      </Properties>
+    </Component>
+    <Container class="javax.swing.JScrollPane" name="scrPublicKey">
+      <AuxValues>
+        <AuxValue name="autoScrollPane" type="java.lang.Boolean" value="true"/>
+      </AuxValues>
+
+      <Layout class="org.netbeans.modules.form.compat2.layouts.support.JScrollPaneSupportLayout"/>
+      <SubComponents>
+        <Component class="javax.swing.JTextArea" name="txtPublicKey">
+          <Properties>
+            <Property name="columns" type="int" value="20"/>
+            <Property name="rows" type="int" value="5"/>
+          </Properties>
+        </Component>
+      </SubComponents>
+    </Container>
+  </SubComponents>
+</Form>
