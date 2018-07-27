@@ -4,12 +4,15 @@ This swing application provides public and private key creation and obfuscate st
 
 # Features
 
-- Creation of private and public keys with 1024, 2048 and 4096 bit length
-- Save the created private and public keys
+ * Creation of private and public keys with 1024, 2048 and 4096 bit length
+ * Save the created private and public keys
+ * Obfuscate text with specified map that can be exported and imported
 
 # Install
 
-Windows, Linux and Mac users can download and install it with [izpack installer created with DCP](https://sourceforge.net/projects/mysticcrypt/files/4.21.0/installer.jar/download).
+Windows, Linux and Mac users can download and install it with [izpack installer created with DCP](https://sourceforge.net/projects/mysticcrypt/files/5.1/installer.jar/download). Note: for unix users dont forget to set the execute bit for start the jar file.
+[![Download mystic-crypt](https://a.fsdn.com/con/app/sf-download-button)](https://sourceforge.net/projects/mysticcrypt/files/latest/download)
+[![Download mystic-crypt](https://img.shields.io/sourceforge/dm/mysticcrypt.svg)](https://sourceforge.net/projects/mysticcrypt/files/latest/download)
 
 For users that want to build it from the source files can clone this git repository. It is a maven project so you will need maven and a JDK.
 

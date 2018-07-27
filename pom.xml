@@ -11,7 +11,7 @@
 	</parent>
 
 	<artifactId>mystic-crypt-ui</artifactId>
-	<version>5.1-SNAPSHOT</version>
+	<version>5.1</version>
 
 	<properties>
 		<!-- EXTENSIONS LIB versions -->
@@ -26,7 +26,7 @@
 		<!-- GUAVA version -->
 		<guava.version>25.1-jre</guava.version>
 		<!-- MYSTIC-CRYPT versions -->
-		<mystic-crypt.version>5.3</mystic-crypt.version>
+		<mystic-crypt.version>5.4</mystic-crypt.version>
 		<crypt-api.version>${mystic-crypt.version}</crypt-api.version>
 		<crypt-core.version>${mystic-crypt.version}</crypt-core.version>
 		<crypt-data.version>${mystic-crypt.version}</crypt-data.version>
