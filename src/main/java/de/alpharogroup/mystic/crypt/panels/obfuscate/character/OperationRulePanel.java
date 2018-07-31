@@ -70,24 +70,27 @@ public class OperationRulePanel extends BasePanel<ObfuscationOperationModelBean>
 	{
 		final Character origChar = simpleRulePanel.getTxtOriginalChar().getText().charAt(0);
 		final Character replaceWith = simpleRulePanel.getTxtRelpaceWith().getText().charAt(0);
-		Map<Character, ObfuscationOperationRule<Character, Character>> map = getModelObject().getKeyRulesTableModel().toMap();
-		if(map.containsKey(origChar)) {
+		Map<Character, ObfuscationOperationRule<Character, Character>> map = getModelObject()
+			.getKeyRulesTableModel().toMap();
+		if (map.containsKey(origChar))
+		{
 			String title = "Original character already exists";
-			String htmlMessage = "<html><body width='350'>"
-				+ "<h2>"	+ title		+ "</h2>"
+			String htmlMessage = "<html><body width='350'>" + "<h2>" + title + "</h2>"
 				+ "<p> Please choose a character that is not in use. <br><br> "
 				+ "<p>Disentangle process can not be executed if same characters exists";
 			JOptionPane.showMessageDialog(this, htmlMessage, title, JOptionPane.WARNING_MESSAGE);
 			return;
 		}
-		final List<Character> replaceWithChars = ListFactory.newArrayList();		
-		for(Entry<Character, ObfuscationOperationRule<Character, Character>> entry : map.entrySet()) {
+		final List<Character> replaceWithChars = ListFactory.newArrayList();
+		for (Entry<Character, ObfuscationOperationRule<Character, Character>> entry : map
+			.entrySet())
+		{
 			replaceWithChars.add(entry.getValue().getReplaceWith());
 		}
-		if(replaceWithChars.contains(replaceWith)) {
+		if (replaceWithChars.contains(replaceWith))
+		{
 			String title = "Replace with character already exists";
-			String htmlMessage = "<html><body width='350'>"
-				+ "<h2>"	+ title		+  "</h2>"
+			String htmlMessage = "<html><body width='350'>" + "<h2>" + title + "</h2>"
 				+ "<p> Please choose a character that is not in use. <br><br> "
 				+ "<p>Disentangle process can not be executed if same characters exists";
 			JOptionPane.showMessageDialog(this, htmlMessage, title, JOptionPane.WARNING_MESSAGE);
@@ -100,7 +103,11 @@ public class OperationRulePanel extends BasePanel<ObfuscationOperationModelBean>
 		String[] strings = indexesAsString.split(",");
 		for (int i = 0; i < strings.length; i++)
 		{
-			indexes.add(Integer.valueOf(strings[i]));
+			String index = strings[i];
+			if (!index.isEmpty())
+			{
+				indexes.add(Integer.valueOf(strings[i]));
+			}
 		}
 		getModelObject().getKeyRulesTableModel()
 			.add(KeyValuePair.<Character, ObfuscationOperationRule<Character, Character>> builder()

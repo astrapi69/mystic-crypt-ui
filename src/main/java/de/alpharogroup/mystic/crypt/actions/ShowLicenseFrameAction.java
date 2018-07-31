@@ -31,7 +31,6 @@ import javax.swing.AbstractAction;
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.io.Resource;
 
-import de.alpharogroup.io.StreamExtensions;
 import de.alpharogroup.mystic.crypt.help.HelpJFrame;
 import de.alpharogroup.mystic.crypt.spring.SpringApplicationContext;
 
@@ -91,21 +90,11 @@ public class ShowLicenseFrameAction extends AbstractAction
 			{
 				license.append(thisLine + "\n");
 			}
+			is.close();
 		}
 		catch (final IOException ex)
 		{
 			ex.printStackTrace();
-		}
-		finally
-		{
-			try
-			{
-				StreamExtensions.close(is);
-			}
-			catch (final IOException e)
-			{
-				e.printStackTrace();
-			}
 		}
 		return license.toString();
 	}
