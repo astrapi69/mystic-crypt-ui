@@ -20,27 +20,34 @@
  */
 package de.alpharogroup.mystic.crypt;
 
+import java.awt.event.WindowEvent;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 
 import javax.imageio.ImageIO;
 import javax.swing.JDesktopPane;
+import javax.swing.JDialog;
 import javax.swing.JInternalFrame;
 import javax.swing.JMenuBar;
 import javax.swing.JToolBar;
 
 import org.jdesktop.swingx.JXFrame;
+import org.jdesktop.swingx.JXLoginPane;
+import org.jdesktop.swingx.JXLoginPane.Status;
+import org.jdesktop.swingx.auth.LoginService;
 
 import de.alpharogroup.lang.ClassExtensions;
 import de.alpharogroup.swing.desktoppane.SingletonDesktopPane;
 import de.alpharogroup.swing.laf.LookAndFeels;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * The Class MainFrame.
  */
 @SuppressWarnings("serial")
+@Slf4j
 public class MainFrame extends JXFrame
 {
 
@@ -98,7 +105,36 @@ public class MainFrame extends JXFrame
 		setToolBar(toolbar);
 
 		getContentPane().add(desktopPane);
-
+		// https://stackoverflow.com/questions/26145425/login-dialog-window-wont-dispose-completely
+//		LoginService loginService = new LoginService()
+//		{
+//
+//			@Override
+//			public boolean authenticate(String name, char[] password, String server)
+//				throws Exception
+//			{
+//				System.out.println(name+":"+new String(password));
+//				if(name.equals("foo")) {
+//					return true;
+//				}
+//				return false;
+//			}
+//		};
+//		JXLoginPane loginPane = new JXLoginPane(loginService);
+//		this.setDefaultCloseOperation(JXFrame.DISPOSE_ON_CLOSE);
+//		JXLoginPane.JXLoginDialog dialog = new JXLoginPane.JXLoginDialog(this, loginPane);
+//		dialog.setDefaultCloseOperation(JXFrame.DISPOSE_ON_CLOSE);
+//		dialog.setVisible(true);
+//		Status status = dialog.getStatus();
+//		if (!JXLoginPane.Status.SUCCEEDED.equals(status))
+//		{
+//			MainFrame.this.dispatchEvent(new WindowEvent(MainFrame.this, WindowEvent.WINDOW_CLOSING));
+//		}
+//		else
+//		{
+//			setVisible(true);
+//		}
+		
 		try
 		{
 			String iconPath = Messages.getString("global.icon.app.path");
@@ -107,8 +143,7 @@ public class MainFrame extends JXFrame
 		}
 		catch (IOException e)
 		{
-			// TODO log error...
-			e.printStackTrace();
+			log.error(e.getMessage(), e);
 		}
 
 	}

@@ -13,25 +13,22 @@ import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 
 import org.apache.commons.codec.DecoderException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import de.alpharogroup.model.BaseModel;
 import de.alpharogroup.model.api.Model;
 import de.alpharogroup.mystic.crypt.panels.keygen.EnDecryptPanel;
 import de.alpharogroup.swing.base.BasePanel;
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 import net.miginfocom.swing.MigLayout;
 
 
 @Getter
+@Slf4j
 public class PrivateKeyPanel extends BasePanel<PrivateKeyModelBean>
 {
 
 	private static final long serialVersionUID = 1L;
-
-	/** The logger. */
-	protected static final Logger logger = LoggerFactory.getLogger(PrivateKeyPanel.class.getName());
 
 	private PrivateKeyViewPanel privateKeyViewPanel;
 
@@ -67,7 +64,7 @@ public class PrivateKeyPanel extends BasePanel<PrivateKeyModelBean>
 			| IllegalBlockSizeException | BadPaddingException | InvalidKeySpecException
 			| InvalidAlgorithmParameterException | DecoderException | IOException e)
 		{
-			logger.error("", e);
+			log.error("", e);
 		}
 
 	}
@@ -90,19 +87,19 @@ public class PrivateKeyPanel extends BasePanel<PrivateKeyModelBean>
 		catch (InvalidKeyException | NoSuchAlgorithmException | InvalidKeySpecException
 			| NoSuchPaddingException | UnsupportedEncodingException e)
 		{
-			logger.error("", e);
+			log.error("", e);
 		}
 		catch (final IllegalBlockSizeException e)
 		{
-			logger.error("", e);
+			log.error("", e);
 		}
 		catch (final BadPaddingException e)
 		{
-			logger.error("", e);
+			log.error("", e);
 		}
 		catch (final IOException e)
 		{
-			logger.error("", e);
+			log.error("", e);
 		}
 
 	}
