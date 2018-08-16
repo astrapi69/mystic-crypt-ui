@@ -1,6 +1,5 @@
 package de.alpharogroup.mystic.crypt.panels.dbtree;
 
-import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 
 import javax.swing.JCheckBox;
@@ -8,6 +7,7 @@ import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPopupMenu;
 import javax.swing.JTextField;
+import javax.swing.JTree;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.TreeModelEvent;
@@ -17,19 +17,15 @@ import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreeModel;
 import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
-import javax.swing.tree.TreeSelectionModel;
 
 import de.alpharogroup.model.BaseModel;
 import de.alpharogroup.model.api.Model;
-import de.alpharogroup.swing.base.BasePanel;
 
-public class DatabaseTreePanel extends BasePanel<DatabaseTreeModelBean>
+@SuppressWarnings("deprecation")
+public class DatabaseTreePanel extends JTreePanel<DatabaseTreeModelBean>
 {
 
 	private static final long serialVersionUID = 1L;
-
-	private javax.swing.JTree tree;
-	private javax.swing.JScrollPane scrDbTree;
 
 	public DatabaseTreePanel()
 	{
@@ -42,18 +38,14 @@ public class DatabaseTreePanel extends BasePanel<DatabaseTreeModelBean>
 		super(model);
 	}
 
-	@Override
-	protected void onInitializeComponents()
+	protected JTree newTree()
 	{
-		super.onInitializeComponents();
+		JTree tree = super.newTree();
+		return tree;
+	}
 
-		scrDbTree = new javax.swing.JScrollPane();
-		tree = new javax.swing.JTree();
-
-		setPreferredSize(new java.awt.Dimension(420, 560));
-
-		scrDbTree.setViewportView(tree);
-		// ===== custom ====
+	protected TreeModel newTreeModel(final Model<DatabaseTreeModelBean> model)
+	{
 		DefaultMutableTreeNode rootNode = new DefaultMutableTreeNode("database", true),
 			node1 = new DefaultMutableTreeNode("node 1", true),
 			node2 = new DefaultMutableTreeNode("node 2", true),
@@ -63,9 +55,6 @@ public class DatabaseTreePanel extends BasePanel<DatabaseTreeModelBean>
 		rootNode.add(node3);
 
 		TreeModel treeModel = new DefaultTreeModel(rootNode, true);
-		tree.setModel(treeModel);
-		tree.setEditable(true);
-		tree.getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
 
 		treeModel.addTreeModelListener(new TreeModelListener()
 		{
@@ -73,23 +62,8 @@ public class DatabaseTreePanel extends BasePanel<DatabaseTreeModelBean>
 			{
 				DefaultMutableTreeNode node;
 				node = (DefaultMutableTreeNode)(e.getTreePath().getLastPathComponent());
-
-				/*
-				 * If the event lists children, then the changed node is the child of the node we
-				 * have already gotten. Otherwise, the changed node and the specified node are the
-				 * same.
-				 */
-				try
-				{
-					int index = e.getChildIndices()[0];
-					node = (DefaultMutableTreeNode)(node.getChildAt(index));
-				}
-				catch (NullPointerException exc)
-				{
-				}
-
-				System.out.println("The user has finished editing the node.");
-				System.out.println("New value: " + node.getUserObject());
+				int index = e.getChildIndices()[0];
+				node = (DefaultMutableTreeNode)(node.getChildAt(index));
 			}
 
 			public void treeNodesInserted(TreeModelEvent e)
@@ -104,27 +78,31 @@ public class DatabaseTreePanel extends BasePanel<DatabaseTreeModelBean>
 			{
 			}
 		});
+		return treeModel;
+	}
 
-		tree.addMouseListener(new MouseAdapter()
-		{
-			public void mousePressed(MouseEvent e)
-			{
-				int selRow = tree.getRowForLocation(e.getX(), e.getY());
-				TreePath selPath = tree.getPathForLocation(e.getX(), e.getY());
-				if (selRow != -1)
-				{
-					if (e.getClickCount() == 1)
-					{
-						onSingleClick(e);
-					}
-					else if (e.getClickCount() == 2)
-					{
-						onDoubleClick(selRow, selPath);
-					}
-				}
-			}
-		});
+	protected void onInitializeGroupLayout()
+	{
+		javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
+		this.setLayout(layout);
+		layout.setHorizontalGroup(
+			layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+				.addGroup(layout.createSequentialGroup().addContainerGap()
+					.addComponent(scrTree, javax.swing.GroupLayout.PREFERRED_SIZE, 384,
+						javax.swing.GroupLayout.PREFERRED_SIZE)
+					.addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)));
+		layout.setVerticalGroup(layout
+			.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+			.addGroup(layout.createSequentialGroup().addContainerGap()
+				.addComponent(scrTree, javax.swing.GroupLayout.DEFAULT_SIZE, 536, Short.MAX_VALUE)
+				.addContainerGap()));
+	}
 
+	@Override
+	protected void onInitializeLayout()
+	{
+		super.onInitializeLayout();
+		onInitializeGroupLayout();
 	}
 
 	protected void onSingleClick(MouseEvent e)
@@ -197,34 +175,5 @@ public class DatabaseTreePanel extends BasePanel<DatabaseTreeModelBean>
 		});
 		popup.add(deleteNode);
 		popup.show(tree, x, y);
-	}
-
-	protected void onDoubleClick(int selRow, TreePath selPath)
-	{
-
-	}
-
-	@Override
-	protected void onInitializeLayout()
-	{
-		super.onInitializeLayout();
-		onInitializeGroupLayout();
-	}
-
-	protected void onInitializeGroupLayout()
-	{
-		javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
-		this.setLayout(layout);
-		layout.setHorizontalGroup(
-			layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-				.addGroup(layout.createSequentialGroup().addContainerGap()
-					.addComponent(scrDbTree, javax.swing.GroupLayout.PREFERRED_SIZE, 384,
-						javax.swing.GroupLayout.PREFERRED_SIZE)
-					.addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)));
-		layout.setVerticalGroup(layout
-			.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-			.addGroup(layout.createSequentialGroup().addContainerGap()
-				.addComponent(scrDbTree, javax.swing.GroupLayout.DEFAULT_SIZE, 536, Short.MAX_VALUE)
-				.addContainerGap()));
 	}
 }
