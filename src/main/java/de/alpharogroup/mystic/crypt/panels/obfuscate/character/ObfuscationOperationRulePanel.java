@@ -5,6 +5,7 @@ import java.awt.event.ActionEvent;
 import javax.swing.text.Document;
 import javax.swing.text.PlainDocument;
 
+import de.alpharogroup.crypto.obfuscation.rule.ObfuscationOperationRule;
 import de.alpharogroup.crypto.obfuscation.rule.Operation;
 import de.alpharogroup.model.api.Model;
 import de.alpharogroup.swing.base.BasePanel;
@@ -85,7 +86,17 @@ public class ObfuscationOperationRulePanel extends BasePanel<ObfuscationOperatio
         	}
         });
         
-	}	
+	}
+	
+	
+	public void onEditObfuscationOperationRule(
+		ObfuscationOperationRule<Character, Character> selected)
+	{
+		txtOriginalChar.setText(selected.getCharacter().toString());
+		txtRelpaceWith.setText(selected.getReplaceWith().toString());
+		txtIndexes.setText(selected.getIndexes().toString());
+		cmbOperation.setSelectedItem(selected.getOperation());		
+	}
 
 	@Override
 	protected void onInitializeLayout()

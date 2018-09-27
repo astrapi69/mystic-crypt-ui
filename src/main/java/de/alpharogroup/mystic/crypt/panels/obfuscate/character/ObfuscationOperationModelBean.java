@@ -23,6 +23,7 @@ package de.alpharogroup.mystic.crypt.panels.obfuscate.character;
 import java.io.Serializable;
 
 import de.alpharogroup.crypto.obfuscation.api.Obfuscatable;
+import de.alpharogroup.crypto.obfuscation.rule.ObfuscationOperationRule;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -45,6 +46,8 @@ import lombok.experimental.FieldDefaults;
 public class ObfuscationOperationModelBean implements Serializable
 {
 	private static final long serialVersionUID = 1L;
-	CharacterObfuscationOperationRulesTableModel keyRulesTableModel;
+//	CharacterObfuscationOperationRulesTableModel keyRulesTableModel;
+	EditableCharacterObfuscationOperationRulesTableModel tableModel;
 	Obfuscatable obfuscator;
+	ObfuscationOperationRule<Character, Character> selected;
 }

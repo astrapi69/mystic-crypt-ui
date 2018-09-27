@@ -20,6 +20,7 @@
  */
 package de.alpharogroup.mystic.crypt.panels.obfuscate.character;
 
+import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.io.File;
 import java.io.IOException;
@@ -28,9 +29,12 @@ import java.util.List;
 import java.util.Map;
 
 import javax.swing.GroupLayout;
+import javax.swing.JCheckBox;
 import javax.swing.JFileChooser;
 import javax.swing.JLabel;
 import javax.swing.JScrollPane;
+import javax.swing.JTable;
+import javax.swing.table.TableColumn;
 
 import org.apache.commons.codec.DecoderException;
 
@@ -46,6 +50,8 @@ import de.alpharogroup.model.BaseModel;
 import de.alpharogroup.model.api.Model;
 import de.alpharogroup.swing.GenericJTable;
 import de.alpharogroup.swing.base.BasePanel;
+import de.alpharogroup.swing.renderer.TableCellButtonRenderer;
+import de.alpharogroup.swing.table.editor.TableCellButtonEditor;
 import de.alpharogroup.xml.ObjectToXmlExtensions;
 import de.alpharogroup.xml.XmlToObjectExtensions;
 import lombok.Getter;
@@ -93,7 +99,7 @@ public class ObfuscationOperationRuleTablePanel extends BasePanel<ObfuscationOpe
 	protected void onExport(final ActionEvent actionEvent)
 	{
 		List<KeyValuePair<Character, ObfuscationOperationRule<Character, Character>>> data = getModelObject()
-			.getKeyRulesTableModel().getData();
+			.getTableModel().getData();
 		
 		final int returnVal = fileChooser.showSaveDialog(ObfuscationOperationRuleTablePanel.this);
 		if (returnVal == JFileChooser.APPROVE_OPTION)
@@ -118,8 +124,8 @@ public class ObfuscationOperationRuleTablePanel extends BasePanel<ObfuscationOpe
 				
 				List<KeyValuePair<Character, ObfuscationOperationRule<Character, Character>>> data = XmlToObjectExtensions.toObjectWithXStream(xStream, xmlString, aliases);
 				
-				getModelObject().getKeyRulesTableModel().setData(data);
-				getModelObject().getKeyRulesTableModel().fireTableDataChanged();
+				getModelObject().getTableModel().setData(data);
+				getModelObject().getTableModel().fireTableDataChanged();
 			}
 			catch (final IOException e)
 			{
@@ -140,7 +146,86 @@ public class ObfuscationOperationRuleTablePanel extends BasePanel<ObfuscationOpe
 		fileChooser = new JFileChooser();
 
 		scpKeyRules = new JScrollPane();
-		tblKeyRules = new GenericJTable<>(getModelObject().getKeyRulesTableModel());
+		tblKeyRules = new GenericJTable<>(getModelObject().getTableModel());
+		
+
+		final TableColumn editValueColumn = tblKeyRules.getColumn("Edit");
+
+		editValueColumn.setCellRenderer(new TableCellButtonRenderer(null, null)
+		{
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public Component getTableCellRendererComponent(final JTable table, final Object value,
+				final boolean isSelected, final boolean hasFocus, final int row, final int column)
+			{
+				if (isSelected)
+				{
+					setForeground(newSelectionForeground(table));
+					setBackground(newSelectionBackround(table));
+				}
+				else
+				{
+					setForeground(newForeground(table));
+					setBackground(newBackround(table));
+				}
+				final String text = "Edit";
+				setText(text);
+				return this;
+			}
+		});
+		editValueColumn.setCellEditor(new TableCellButtonEditor(new JCheckBox())
+		{
+			private static final long serialVersionUID = 1L;
+
+			@SuppressWarnings("unchecked")
+			@Override
+			public Object getCellEditorValue()
+			{
+				// TODO open dialog...
+				ObfuscationOperationRule<Character, Character> sel = (ObfuscationOperationRule<Character, Character>)this.getValue();
+				KeyValuePair<Character, ObfuscationOperationRule<Character, Character>> selected = KeyValuePair.<Character, ObfuscationOperationRule<Character, Character>>builder()
+					.key(sel.getCharacter())
+					.value(sel)
+					.build();
+				getModelObject().setSelected(sel);
+				getModelObject().getTableModel().getData().remove(selected);
+				onEditObfuscationOperationRule(sel);
+				tblKeyRules.setModel(getModelObject().getTableModel());
+				revalidate();
+
+				final String text = "Edit";
+				return text;
+
+			}
+
+			@Override
+			public Component getTableCellEditorComponent(final JTable table, final Object value,
+				final boolean isSelected, final int row, final int column)
+			{
+				setRow(row);
+				setColumn(column);
+				setValue(value);
+				if (isSelected)
+				{
+					getButton().setForeground(table.getSelectionForeground());
+					getButton().setBackground(table.getSelectionBackground());
+				}
+				else
+				{
+					getButton().setForeground(table.getForeground());
+					getButton().setBackground(table.getBackground());
+				}
+				final String text = "Edit";
+				getButton().setText(text);
+				setClicked(true);
+				return getButton();
+			}
+		});
+		
+		
+		
+		
 		lblKeyRules = new JLabel();
 
 		btnImport = new javax.swing.JButton();
@@ -155,6 +240,13 @@ public class ObfuscationOperationRuleTablePanel extends BasePanel<ObfuscationOpe
 
 		btnImport.addActionListener(actionEvent -> onImport(actionEvent));
 		btnExport.addActionListener(actionEvent -> onExport(actionEvent));
+	}
+	
+	protected void onEditObfuscationOperationRule(
+		ObfuscationOperationRule<Character, Character> selected)
+	{
+		// TODO Auto-generated method stub
+		
 	}
 
 	protected void onInitializeGroupLayout()
