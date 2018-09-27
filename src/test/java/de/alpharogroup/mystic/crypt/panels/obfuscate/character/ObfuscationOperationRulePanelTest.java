@@ -26,7 +26,7 @@ public class ObfuscationOperationRulePanelTest
 
 		final JPanel panel = new ObfuscationOperationRuleFormPanel();
 			new ObfuscationOperationRulePanel(BaseModel.<ObfuscationOperationModelBean> of(ObfuscationOperationModelBean.builder()
-			.keyRulesTableModel(CharacterObfuscationOperationRulesTableModel.builder().build()).build()));
+			.tableModel(EditableCharacterObfuscationOperationRulesTableModel.builder().build()).build()));
 		frame.add(panel);
 		frame.setBounds(0, 0, 1280, 650);
 		frame.setVisible(true);
