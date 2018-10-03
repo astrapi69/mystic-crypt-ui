@@ -20,6 +20,7 @@
  */
 package de.alpharogroup.mystic.crypt;
 
+import java.awt.Component;
 import java.awt.event.WindowEvent;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
@@ -37,8 +38,10 @@ import org.jdesktop.swingx.JXLoginPane.Status;
 import org.jdesktop.swingx.auth.LoginService;
 
 import de.alpharogroup.lang.ClassExtensions;
+import de.alpharogroup.swing.components.factories.JComponentFactory;
 import de.alpharogroup.swing.desktoppane.SingletonDesktopPane;
 import de.alpharogroup.swing.laf.LookAndFeels;
+import de.alpharogroup.swing.utils.JInternalFrameExtensions;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
@@ -84,6 +87,11 @@ public class MainFrame extends JXFrame
 	@Getter
 	@Setter
 	private LookAndFeels currentLookAndFeels = LookAndFeels.SYSTEM;
+	
+	/** The current visible internal frame. */
+	@Getter
+	@Setter
+	private JInternalFrame currentVisibleInternalFrame;
 
 	/**
 	 * Instantiates a new main frame.
@@ -146,6 +154,30 @@ public class MainFrame extends JXFrame
 			log.error(e.getMessage(), e);
 		}
 
+	}
+	
+
+	/**
+	 * Replace the current internal frame with a new internal frame with the given {@link Component}
+	 * as content.
+	 *
+	 * @param title
+	 *            the title
+	 * @param component
+	 *            the component
+	 */
+	public void replaceInternalFrame(final String title, final Component component)
+	{
+		if (getCurrentVisibleInternalFrame() != null)
+		{
+			getCurrentVisibleInternalFrame().dispose();
+		}
+		// create internal frame
+		final JInternalFrame internalFrame = JComponentFactory.newInternalFrame(title, true, true,
+			true, true);
+		JInternalFrameExtensions.addComponentToFrame(internalFrame, component);
+		JInternalFrameExtensions.addJInternalFrame(desktopPane, internalFrame);
+		setCurrentVisibleInternalFrame(internalFrame);
 	}
 
 }

@@ -2,15 +2,11 @@ package de.alpharogroup.mystic.crypt.panels.obfuscate.character;
 
 import java.awt.event.ActionEvent;
 
-import javax.swing.text.Document;
-import javax.swing.text.PlainDocument;
-
 import de.alpharogroup.crypto.obfuscation.rule.ObfuscationOperationRule;
 import de.alpharogroup.crypto.obfuscation.rule.Operation;
 import de.alpharogroup.model.api.Model;
 import de.alpharogroup.swing.base.BasePanel;
 import de.alpharogroup.swing.combobox.model.EnumComboBoxModel;
-import de.alpharogroup.swing.docfilter.IntegerArrayFilter;
 import lombok.Getter;
 
 @Getter
@@ -39,9 +35,6 @@ public class ObfuscationOperationRulePanel extends BasePanel<ObfuscationOperatio
 	{
 	}
 
-	public void onIndexesValidationError(String text) {
-		
-	}
 
 	@Override
 	protected void onInitializeComponents()
@@ -80,14 +73,15 @@ public class ObfuscationOperationRulePanel extends BasePanel<ObfuscationOperatio
         btnAdd.addActionListener(actionEvent -> onAdd(actionEvent));
         cmbOperation.setModel(new EnumComboBoxModel<>(Operation.class));
         
+        txtIndexes.setDocument(new NumberValuesDocument());
         
-        Document document = txtIndexes.getDocument();
-        PlainDocument doc = (PlainDocument) document;
-        doc.setDocumentFilter(new IntegerArrayFilter() {        	
-        	public void onValidationError(String text) {
-        		ObfuscationOperationRulePanel.this.onIndexesValidationError(text);
-        	}
-        });
+//        Document document = txtIndexes.getDocument();
+//        PlainDocument doc = (PlainDocument) document;
+//        doc.setDocumentFilter(new IntegerArrayFilter() {        	
+//        	public void onValidationError(String text) {
+//        		ObfuscationOperationRulePanel.this.onIndexesValidationError(text);
+//        	}
+//        });
         
 	}
 	
@@ -95,9 +89,13 @@ public class ObfuscationOperationRulePanel extends BasePanel<ObfuscationOperatio
 	public void onEditObfuscationOperationRule(
 		ObfuscationOperationRule<Character, Character> selected)
 	{
+		String indexes = selected.getIndexes().toString();
+		if(indexes != null && 2<indexes.length()) {
+			indexes = indexes.substring(1, indexes.length()-1);
+		}
 		txtOriginalChar.setText(selected.getCharacter().toString());
 		txtRelpaceWith.setText(selected.getReplaceWith().toString());
-		txtIndexes.setText(selected.getIndexes().toString());
+		txtIndexes.setText(indexes);		
 		cmbOperation.setSelectedItem(selected.getOperation());		
 	}
 

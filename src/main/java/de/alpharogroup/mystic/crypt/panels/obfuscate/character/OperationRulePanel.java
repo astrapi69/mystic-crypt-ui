@@ -70,6 +70,24 @@ public class OperationRulePanel extends BasePanel<ObfuscationOperationModelBean>
 
 	protected void onAdd(final ActionEvent actionEvent)
 	{
+		if (simpleRulePanel.getTxtOriginalChar().getText().isEmpty())
+		{
+
+			String title = "Original character is empty";
+			String htmlMessage = "<html><body width='350'>" + "<h2>" + title + "</h2>"
+				+ "<p> Please choose a value for the original character";
+			JOptionPane.showMessageDialog(this, htmlMessage, title, JOptionPane.WARNING_MESSAGE);
+			return;
+		}
+		if (simpleRulePanel.getTxtRelpaceWith().getText().isEmpty())
+		{
+
+			String title = "Replace with character is empty";
+			String htmlMessage = "<html><body width='350'>" + "<h2>" + title + "</h2>"
+				+ "<p> Please choose a value for the replace with character";
+			JOptionPane.showMessageDialog(this, htmlMessage, title, JOptionPane.WARNING_MESSAGE);
+			return;
+		}
 		final Character origChar = simpleRulePanel.getTxtOriginalChar().getText().charAt(0);
 		final Character replaceWith = simpleRulePanel.getTxtRelpaceWith().getText().charAt(0);
 		Map<Character, ObfuscationOperationRule<Character, Character>> map = getModelObject()
@@ -111,26 +129,23 @@ public class OperationRulePanel extends BasePanel<ObfuscationOperationModelBean>
 				indexes.add(Integer.valueOf(strings[i]));
 			}
 		}
-		getModelObject().getTableModel()
-			.add(KeyValuePair.<Character, ObfuscationOperationRule<Character, Character>> builder()
-				.key(origChar)
-				.value(ObfuscationOperationRule.<Character, Character> newRule().character(origChar)
-					.replaceWith(replaceWith).indexes(indexes).operation(selectedOperation).build())
-				.build());
+		KeyValuePair<Character, ObfuscationOperationRule<Character, Character>> keyValuePair = KeyValuePair
+			.<Character, ObfuscationOperationRule<Character, Character>> builder().key(origChar)
+			.value(ObfuscationOperationRule.<Character, Character> newRule().character(origChar)
+				.replaceWith(replaceWith).indexes(indexes).operation(selectedOperation).build())
+			.build();
+		
 		simpleRulePanel.getTxtOriginalChar().setText("");
 		simpleRulePanel.getTxtRelpaceWith().setText("");
-		
-		Document document = simpleRulePanel.getTxtIndexes().getDocument();
-		try
-		{
-			document.remove(0, document.getLength());
-		}
-		catch (BadLocationException e)
-		{
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+
+		simpleRulePanel.getTxtIndexes().setText("");
+
 		simpleRulePanel.getCmbOperation().setSelectedIndex(0);
+		simpleRulePanel.revalidate();
+
+		getModelObject().getTableModel().add(keyValuePair);
+		simpleRuleTablePanel.getTblKeyRules().setModel(getModelObject().getTableModel());
+		simpleRuleTablePanel.revalidate();
 	}
 
 	protected void onDecrypt(final ActionEvent actionEvent)
@@ -171,9 +186,10 @@ public class OperationRulePanel extends BasePanel<ObfuscationOperationModelBean>
 			{
 				OperationRulePanel.this.onAdd(actionEvent);
 			}
-			
+
 		};
-		simpleRuleTablePanel = new ObfuscationOperationRuleTablePanel(getModel()) {
+		simpleRuleTablePanel = new ObfuscationOperationRuleTablePanel(getModel())
+		{
 			@Override
 			protected void onEditObfuscationOperationRule(
 				ObfuscationOperationRule<Character, Character> selected)
@@ -201,12 +217,13 @@ public class OperationRulePanel extends BasePanel<ObfuscationOperationModelBean>
 		enDecryptPanel.getBtnEncrypt().setText("Obfuscate >");
 		enDecryptPanel.getBtnDecrypt().setText("< Disentangle");
 	}
-	
+
 	protected void onEditObfuscationOperationRule(
 		ObfuscationOperationRule<Character, Character> selected)
 	{
 		simpleRulePanel.onEditObfuscationOperationRule(selected);
 	}
+
 	@Override
 	protected void onInitializeLayout()
 	{
