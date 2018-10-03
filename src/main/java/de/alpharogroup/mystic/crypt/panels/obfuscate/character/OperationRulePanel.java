@@ -27,6 +27,8 @@ import java.util.Map.Entry;
 import java.util.Set;
 
 import javax.swing.JOptionPane;
+import javax.swing.text.BadLocationException;
+import javax.swing.text.Document;
 
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
@@ -117,7 +119,17 @@ public class OperationRulePanel extends BasePanel<ObfuscationOperationModelBean>
 				.build());
 		simpleRulePanel.getTxtOriginalChar().setText("");
 		simpleRulePanel.getTxtRelpaceWith().setText("");
-		simpleRulePanel.getTxtIndexes().setText("");
+		
+		Document document = simpleRulePanel.getTxtIndexes().getDocument();
+		try
+		{
+			document.remove(0, document.getLength());
+		}
+		catch (BadLocationException e)
+		{
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		simpleRulePanel.getCmbOperation().setSelectedIndex(0);
 	}
 

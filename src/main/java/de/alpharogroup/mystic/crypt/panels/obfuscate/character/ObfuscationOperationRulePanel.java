@@ -56,6 +56,7 @@ public class ObfuscationOperationRulePanel extends BasePanel<ObfuscationOperatio
         lblObfuscationOperationRule = new javax.swing.JLabel();
         lblIndexes = new javax.swing.JLabel();
         txtIndexes = new javax.swing.JTextField();
+        
         lblOperation = new javax.swing.JLabel();
         cmbOperation = new javax.swing.JComboBox<>();
 
@@ -73,6 +74,8 @@ public class ObfuscationOperationRulePanel extends BasePanel<ObfuscationOperatio
         lblOperation.setText("Operation");
         
         // == custom edit ==
+		txtOriginalChar.setDocument(new RangeDocument(0, 1));
+		txtRelpaceWith.setDocument(new RangeDocument(0, 1));
         
         btnAdd.addActionListener(actionEvent -> onAdd(actionEvent));
         cmbOperation.setModel(new EnumComboBoxModel<>(Operation.class));
