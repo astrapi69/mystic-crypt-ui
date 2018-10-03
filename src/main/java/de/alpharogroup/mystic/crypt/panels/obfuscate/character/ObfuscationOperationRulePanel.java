@@ -1,7 +1,11 @@
 package de.alpharogroup.mystic.crypt.panels.obfuscate.character;
 
 import java.awt.event.ActionEvent;
+import java.util.List;
+import java.util.stream.Collectors;
 
+import de.alpharogroup.collections.array.ArrayExtensions;
+import de.alpharogroup.collections.list.ListFactory;
 import de.alpharogroup.crypto.obfuscation.rule.ObfuscationOperationRule;
 import de.alpharogroup.crypto.obfuscation.rule.Operation;
 import de.alpharogroup.model.api.Model;
@@ -92,6 +96,12 @@ public class ObfuscationOperationRulePanel extends BasePanel<ObfuscationOperatio
 		String indexes = selected.getIndexes().toString();
 		if(indexes != null && 2<indexes.length()) {
 			indexes = indexes.substring(1, indexes.length()-1);
+			List<String> result = ListFactory.newArrayList();
+			
+			List<String> splitted = ArrayExtensions.toList(indexes.split(","));
+			splitted.stream().forEach(s -> result.add(s.trim()));
+			indexes = result.stream().collect(Collectors.joining(","));
+			
 		}
 		txtOriginalChar.setText(selected.getCharacter().toString());
 		txtRelpaceWith.setText(selected.getReplaceWith().toString());
