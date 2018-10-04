@@ -27,8 +27,6 @@ import java.util.Map.Entry;
 import java.util.Set;
 
 import javax.swing.JOptionPane;
-import javax.swing.text.BadLocationException;
-import javax.swing.text.Document;
 
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
