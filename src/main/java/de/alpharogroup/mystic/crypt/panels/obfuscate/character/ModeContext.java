@@ -20,39 +20,20 @@
  */
 package de.alpharogroup.mystic.crypt.panels.obfuscate.character;
 
-import java.io.Serializable;
-
-import de.alpharogroup.crypto.obfuscation.api.Obfuscatable;
-import de.alpharogroup.crypto.obfuscation.rule.ObfuscationOperationRule;
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.ToString;
-import lombok.experimental.FieldDefaults;
-
-
-@Getter
-@Setter
-@EqualsAndHashCode
-@ToString
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder(toBuilder = true)
-@FieldDefaults(level = AccessLevel.PRIVATE)
-public class ObfuscationOperationModelBean implements Serializable
-{
-	private static final long serialVersionUID = 1L;
-
-	EditableCharacterObfuscationOperationRulesTableModel tableModel;
-	
-	Obfuscatable obfuscator;
-	
-	ObfuscationOperationRule<Character, Character> selected;
-	
-	@Builder.Default
-	ModeContext proccessMode = ModeContext.NONE;
+/**
+ * The enum {@link ModeContext} that define the data manipulation process
+ */
+public enum ModeContext {
+    
+    /** The create mode. */
+    CREATE,
+    
+    /** The delete mode. */
+    DELETE,
+    
+    /** The none mode. */
+    NONE,
+    
+    /** The update mode. */
+    UPDATE
 }

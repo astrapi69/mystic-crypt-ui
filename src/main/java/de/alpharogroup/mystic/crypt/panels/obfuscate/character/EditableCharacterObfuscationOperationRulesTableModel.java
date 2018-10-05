@@ -23,6 +23,7 @@ package de.alpharogroup.mystic.crypt.panels.obfuscate.character;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 import de.alpharogroup.collections.pairs.KeyValuePair;
@@ -134,6 +135,18 @@ public class EditableCharacterObfuscationOperationRulesTableModel
 			default :
 				return null;
 		}
+	}
+	
+	public Optional<KeyValuePair<Character, ObfuscationOperationRule<Character, Character>>> indexOf(Character character) {
+		final List<KeyValuePair<Character, ObfuscationOperationRule<Character, Character>>> data = getData();
+		for (final KeyValuePair<Character, ObfuscationOperationRule<Character, Character>> row : data)
+		{
+			if(row.getKey().equals(character))
+			{
+				return Optional.of(row);
+			}
+		}
+		return Optional.empty();
 	}
 
 	/**

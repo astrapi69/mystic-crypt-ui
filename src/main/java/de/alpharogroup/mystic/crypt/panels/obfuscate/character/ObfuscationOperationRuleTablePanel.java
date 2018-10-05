@@ -40,7 +40,6 @@ import org.apache.commons.codec.DecoderException;
 
 import com.thoughtworks.xstream.XStream;
 
-import de.alpharogroup.collections.list.ListFactory;
 import de.alpharogroup.collections.map.MapFactory;
 import de.alpharogroup.collections.pairs.KeyValuePair;
 import de.alpharogroup.crypto.hex.HexExtensions;
@@ -183,21 +182,10 @@ public class ObfuscationOperationRuleTablePanel extends BasePanel<ObfuscationOpe
 			@Override
 			public Object getCellEditorValue()
 			{
-				ObfuscationOperationRule<Character, Character> sel = (ObfuscationOperationRule<Character, Character>)this.getValue();
-				KeyValuePair<Character, ObfuscationOperationRule<Character, Character>> selected = KeyValuePair.<Character, ObfuscationOperationRule<Character, Character>>builder()
-					.key(sel.getCharacter())
-					.value(sel)
-					.build();
-				int indexOfRow = getModelObject().getTableModel().getData().indexOf(selected);
-				List<KeyValuePair<Character, ObfuscationOperationRule<Character, Character>>> data = getModelObject().getTableModel().getData();
-				List<KeyValuePair<Character, ObfuscationOperationRule<Character, Character>>> newDataList = ListFactory.newArrayList(data);
-				newDataList.remove(indexOfRow);
-				getModelObject().getTableModel().clear();
-				getModelObject().getTableModel().setData(newDataList);
-				onEditObfuscationOperationRule(sel);
-				tblKeyRules.setModel(getModelObject().getTableModel());
-				revalidate();
-				
+				ObfuscationOperationRule<Character, Character> selected = (ObfuscationOperationRule<Character, Character>)this.getValue();
+				getModelObject().setSelected(selected);
+				getModelObject().setProccessMode(ModeContext.UPDATE);
+					onEditObfuscationOperationRule(selected);				
 				final String text = "Edit";
 				return text;
 

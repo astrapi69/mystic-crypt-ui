@@ -24,6 +24,7 @@ import java.awt.event.ActionEvent;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Optional;
 import java.util.Set;
 
 import javax.swing.JOptionPane;
@@ -90,49 +91,95 @@ public class OperationRulePanel extends BasePanel<ObfuscationOperationModelBean>
 		final Character replaceWith = simpleRulePanel.getTxtRelpaceWith().getText().charAt(0);
 		Map<Character, ObfuscationOperationRule<Character, Character>> map = getModelObject()
 			.getTableModel().toMap();
-		if (map.containsKey(origChar))
-		{
-			String title = "Original character already exists";
-			String htmlMessage = "<html><body width='350'>" + "<h2>" + title + "</h2>"
-				+ "<p> Please choose a character that is not in use. <br><br> "
-				+ "<p>Disentangle process can not be executed if same characters exists";
-			JOptionPane.showMessageDialog(this, htmlMessage, title, JOptionPane.WARNING_MESSAGE);
-			return;
-		}
-		final List<Character> replaceWithChars = ListFactory.newArrayList();
-		for (Entry<Character, ObfuscationOperationRule<Character, Character>> entry : map
-			.entrySet())
-		{
-			replaceWithChars.add(entry.getValue().getReplaceWith());
-		}
-		if (replaceWithChars.contains(replaceWith))
-		{
-			String title = "Replace with character already exists";
-			String htmlMessage = "<html><body width='350'>" + "<h2>" + title + "</h2>"
-				+ "<p> Please choose a character that is not in use. <br><br> "
-				+ "<p>Disentangle process can not be executed if same characters exists";
-			JOptionPane.showMessageDialog(this, htmlMessage, title, JOptionPane.WARNING_MESSAGE);
-			return;
-		}
-		String indexesAsString = simpleRulePanel.getTxtIndexes().getText();
-		Set<Integer> indexes = SetFactory.newTreeSet();
-		Object selectedItem = simpleRulePanel.getCmbOperation().getSelectedItem();
-		Operation selectedOperation = (Operation)selectedItem;
-		String[] strings = indexesAsString.split(",");
-		for (int i = 0; i < strings.length; i++)
-		{
-			String index = strings[i];
-			if (!index.isEmpty())
+		KeyValuePair<Character, ObfuscationOperationRule<Character, Character>> keyValuePair = null;
+		if( getModelObject().getSelected() != null && 
+			getModelObject().getSelected().getCharacter().equals(origChar) &&
+			ModeContext.UPDATE.equals(getModelObject().getProccessMode())) {
+			// get entry from table model
+			Optional<KeyValuePair<Character, ObfuscationOperationRule<Character, Character>>> optional = getModelObject().getTableModel().indexOf(origChar);
+			if(optional.isPresent()) {
+				keyValuePair = optional.get();
+				final List<Character> replaceWithChars = ListFactory.newArrayList();
+				for (Entry<Character, ObfuscationOperationRule<Character, Character>> entry : map
+					.entrySet())
+				{
+					replaceWithChars.add(entry.getValue().getReplaceWith());
+				}
+				if (replaceWithChars.contains(replaceWith) && !keyValuePair.getValue().getReplaceWith().equals(replaceWith))
+				{
+					String title = "Replace with character already exists";
+					String htmlMessage = "<html><body width='350'>" + "<h2>" + title + "</h2>"
+						+ "<p> Please choose a character that is not in use. <br><br> "
+						+ "<p>Disentangle process can not be executed if same characters exists";
+					JOptionPane.showMessageDialog(this, htmlMessage, title, JOptionPane.WARNING_MESSAGE);
+					return;
+				}			
+				
+				String indexesAsString = simpleRulePanel.getTxtIndexes().getText();
+				Set<Integer> indexes = SetFactory.newTreeSet();
+				Object selectedItem = simpleRulePanel.getCmbOperation().getSelectedItem();
+				Operation selectedOperation = (Operation)selectedItem;
+				String[] strings = indexesAsString.split(",");
+				for (int i = 0; i < strings.length; i++)
+				{
+					String index = strings[i];
+					if (!index.isEmpty())
+					{
+						indexes.add(Integer.valueOf(strings[i]));
+					}
+				}
+				
+				keyValuePair.getValue().setReplaceWith(replaceWith);
+				keyValuePair.getValue().setIndexes(indexes);
+				keyValuePair.getValue().setOperation(selectedOperation);
+				getModelObject().getTableModel().fireTableDataChanged();
+			}			
+			getModelObject().setProccessMode(ModeContext.CREATE);
+		} else {
+			if (map.containsKey(origChar))
 			{
-				indexes.add(Integer.valueOf(strings[i]));
+				String title = "Original character already exists";
+				String htmlMessage = "<html><body width='350'>" + "<h2>" + title + "</h2>"
+					+ "<p> Please choose a character that is not in use. <br><br> "
+					+ "<p>Disentangle process can not be executed if same characters exists";
+				JOptionPane.showMessageDialog(this, htmlMessage, title, JOptionPane.WARNING_MESSAGE);
+				return;
 			}
-		}
-		KeyValuePair<Character, ObfuscationOperationRule<Character, Character>> keyValuePair = KeyValuePair
-			.<Character, ObfuscationOperationRule<Character, Character>> builder().key(origChar)
-			.value(ObfuscationOperationRule.<Character, Character> newRule().character(origChar)
-				.replaceWith(replaceWith).indexes(indexes).operation(selectedOperation).build())
-			.build();
-		
+			final List<Character> replaceWithChars = ListFactory.newArrayList();
+			for (Entry<Character, ObfuscationOperationRule<Character, Character>> entry : map
+				.entrySet())
+			{
+				replaceWithChars.add(entry.getValue().getReplaceWith());
+			}
+			if (replaceWithChars.contains(replaceWith))
+			{
+				String title = "Replace with character already exists";
+				String htmlMessage = "<html><body width='350'>" + "<h2>" + title + "</h2>"
+					+ "<p> Please choose a character that is not in use. <br><br> "
+					+ "<p>Disentangle process can not be executed if same characters exists";
+				JOptionPane.showMessageDialog(this, htmlMessage, title, JOptionPane.WARNING_MESSAGE);
+				return;
+			}
+			String indexesAsString = simpleRulePanel.getTxtIndexes().getText();
+			Set<Integer> indexes = SetFactory.newTreeSet();
+			Object selectedItem = simpleRulePanel.getCmbOperation().getSelectedItem();
+			Operation selectedOperation = (Operation)selectedItem;
+			String[] strings = indexesAsString.split(",");
+			for (int i = 0; i < strings.length; i++)
+			{
+				String index = strings[i];
+				if (!index.isEmpty())
+				{
+					indexes.add(Integer.valueOf(strings[i]));
+				}
+			}
+			keyValuePair = KeyValuePair
+				.<Character, ObfuscationOperationRule<Character, Character>> builder().key(origChar)
+				.value(ObfuscationOperationRule.<Character, Character> newRule().character(origChar)
+					.replaceWith(replaceWith).indexes(indexes).operation(selectedOperation).build())
+				.build();
+			getModelObject().getTableModel().add(keyValuePair);	
+		}		
 		simpleRulePanel.getTxtOriginalChar().setText("");
 		simpleRulePanel.getTxtRelpaceWith().setText("");
 
@@ -141,9 +188,9 @@ public class OperationRulePanel extends BasePanel<ObfuscationOperationModelBean>
 		simpleRulePanel.getCmbOperation().setSelectedIndex(0);
 		simpleRulePanel.revalidate();
 
-		getModelObject().getTableModel().add(keyValuePair);
 		simpleRuleTablePanel.getTblKeyRules().setModel(getModelObject().getTableModel());
 		simpleRuleTablePanel.revalidate();
+		
 	}
 
 	protected void onDecrypt(final ActionEvent actionEvent)
