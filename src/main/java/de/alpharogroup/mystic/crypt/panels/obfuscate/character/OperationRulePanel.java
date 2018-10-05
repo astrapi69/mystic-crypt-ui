@@ -143,7 +143,6 @@ public class OperationRulePanel extends BasePanel<ObfuscationOperationModelBean>
 				keyValuePair.getValue().setOperation(selectedOperation);
 				getModelObject().getTableModel().fireTableDataChanged();
 			}
-			getModelObject().setProccessMode(ModeContext.CREATE);
 		}
 		else
 		{
@@ -193,6 +192,7 @@ public class OperationRulePanel extends BasePanel<ObfuscationOperationModelBean>
 				.build();
 			getModelObject().getTableModel().add(keyValuePair);
 		}
+		getModelObject().setProccessMode(ModeContext.CREATE);
 		simpleRulePanel.getTxtOriginalChar().setText("");
 		simpleRulePanel.getTxtRelpaceWith().setText("");
 
