@@ -11,7 +11,7 @@
 	</parent>
 
 	<artifactId>mystic-crypt-ui</artifactId>
-	<version>5.2-SNAPSHOT</version>
+	<version>5.2</version>
 
 	<properties>
 		<!-- EXTENSIONS LIB versions -->
