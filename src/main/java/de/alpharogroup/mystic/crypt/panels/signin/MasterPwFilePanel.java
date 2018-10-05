@@ -1,3 +1,27 @@
+/**
+ * The MIT License
+ *
+ * Copyright (C) 2015 Asterios Raptis
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining
+ * a copy of this software and associated documentation files (the
+ * "Software"), to deal in the Software without restriction, including
+ * without limitation the rights to use, copy, modify, merge, publish,
+ * distribute, sublicense, and/or sell copies of the Software, and to
+ * permit persons to whom the Software is furnished to do so, subject to
+ * the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
+ * LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+ * OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+ * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
 package de.alpharogroup.mystic.crypt.panels.signin;
 
 import java.awt.event.ActionEvent;
@@ -38,11 +62,22 @@ public class MasterPwFilePanel extends BasePanel<MasterPwFileModelBean>
 	/**
 	 * Instantiates a new {@link MasterPwFilePanel}
 	 *
-	 * @param model the model
+	 * @param model
+	 *            the model
 	 */
 	public MasterPwFilePanel(final Model<MasterPwFileModelBean> model)
 	{
 		super(model);
+	}
+
+	protected void onCheckKeyFile(final ActionEvent actionEvent)
+	{
+		getModelObject().setWithKeyFile(!getModelObject().isWithKeyFile());
+	}
+
+	protected void onCheckMasterPw(final ActionEvent actionEvent)
+	{
+		getModelObject().setWithMasterPw(!getModelObject().isWithMasterPw());
 	}
 
 	@Override
@@ -86,40 +121,9 @@ public class MasterPwFilePanel extends BasePanel<MasterPwFileModelBean>
 		btnCancel.setText("Cancel");
 	}
 
-	protected void onShowMasterPw(final ActionEvent actionEvent)
-	{
-		if (getModelObject().isShowMasterPw())
-		{
-			getTxtMasterPw().setEchoChar('*');
-		}
-		else
-		{
-			char zero = 0;
-			getTxtMasterPw().setEchoChar(zero);
-		}
-		getModelObject().setShowMasterPw(!getModelObject().isShowMasterPw());
-	}
-
-	protected void onCheckKeyFile(final ActionEvent actionEvent)
-	{
-		getModelObject().setWithKeyFile(!getModelObject().isWithKeyFile());
-	}
-
-	protected void onCheckMasterPw(final ActionEvent actionEvent)
-	{
-		getModelObject().setWithMasterPw(!getModelObject().isWithMasterPw());
-	}
-
-	@Override
-	protected void onInitializeLayout()
-	{
-		super.onInitializeLayout();
-		onInitializeGroupLayout();
-	}
-
 	protected void onInitializeGroupLayout()
 	{
-		
+
 		javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
 		this.setLayout(layout);
 		layout.setHorizontalGroup(layout
@@ -191,6 +195,27 @@ public class MasterPwFilePanel extends BasePanel<MasterPwFileModelBean>
 				.addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
 					.addComponent(btnHelp).addComponent(btnOk).addComponent(btnCancel))
 				.addGap(42, 42, 42)));
+	}
+
+	@Override
+	protected void onInitializeLayout()
+	{
+		super.onInitializeLayout();
+		onInitializeGroupLayout();
+	}
+
+	protected void onShowMasterPw(final ActionEvent actionEvent)
+	{
+		if (getModelObject().isShowMasterPw())
+		{
+			getTxtMasterPw().setEchoChar('*');
+		}
+		else
+		{
+			char zero = 0;
+			getTxtMasterPw().setEchoChar(zero);
+		}
+		getModelObject().setShowMasterPw(!getModelObject().isShowMasterPw());
 	}
 
 }

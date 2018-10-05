@@ -1,3 +1,27 @@
+/**
+ * The MIT License
+ *
+ * Copyright (C) 2015 Asterios Raptis
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining
+ * a copy of this software and associated documentation files (the
+ * "Software"), to deal in the Software without restriction, including
+ * without limitation the rights to use, copy, modify, merge, publish,
+ * distribute, sublicense, and/or sell copies of the Software, and to
+ * permit persons to whom the Software is furnished to do so, subject to
+ * the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
+ * LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+ * OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+ * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
 package de.alpharogroup.mystic.crypt.panels.dbtree;
 
 import java.awt.Dimension;
@@ -53,6 +77,24 @@ public abstract class JTreePanel<T> extends BasePanel<T>
 	public JTreePanel(final Model<T> model)
 	{
 		super(model);
+	}
+
+	/**
+	 * 
+	 * Factory method for creating the new {@link Dimension}. This method is invoked in the
+	 * constructor from the derived classes and can be overridden so users can provide their own
+	 * version of a {@link Dimension}
+	 *
+	 * @param width
+	 *            the width
+	 * @param height
+	 *            the height
+	 * 
+	 * @return the new {@link Dimension}
+	 */
+	protected Dimension newPreferredSize(int width, int height)
+	{
+		return new Dimension(width, height);
 	}
 
 	/**
@@ -137,24 +179,6 @@ public abstract class JTreePanel<T> extends BasePanel<T>
 
 		setPreferredSize(newPreferredSize(420, 560));
 		scrTree.setViewportView(tree);
-	}
-
-	/**
-	 * 
-	 * Factory method for creating the new {@link Dimension}. This method is invoked in the
-	 * constructor from the derived classes and can be overridden so users can provide their own
-	 * version of a {@link Dimension}
-	 *
-	 * @param width
-	 *            the width
-	 * @param height
-	 *            the height
-	 * 
-	 * @return the new {@link Dimension}
-	 */
-	protected Dimension newPreferredSize(int width, int height)
-	{
-		return new Dimension(width, height);
 	}
 
 	/**
