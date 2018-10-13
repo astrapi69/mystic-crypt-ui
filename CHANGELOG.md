@@ -1,6 +1,13 @@
 ## Change log
 ----------------------
 
+Version 5.2.1
+-------------
+
+ADDED:
+
+- obfuscation entry can be delete now
+
 Version 5.2
 -------------
 
