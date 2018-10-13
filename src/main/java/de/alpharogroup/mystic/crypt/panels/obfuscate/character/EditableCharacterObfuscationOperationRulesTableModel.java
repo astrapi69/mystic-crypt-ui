@@ -49,7 +49,10 @@ public class EditableCharacterObfuscationOperationRulesTableModel
 		GenericTableModel<KeyValuePair<Character, ObfuscationOperationRule<Character, Character>>>
 {
 
-	/** The Constant REPLACE_WITH. */
+	/** The Constant DELETE. */
+	public static final String DELETE = "Delete";
+	
+	/** The Constant EDIT. */
 	public static final String EDIT = "Edit";
 
 	/** The Constant INDEXES. */
@@ -70,10 +73,10 @@ public class EditableCharacterObfuscationOperationRulesTableModel
 	private static final long serialVersionUID = 1L;
 
 	/** The can edit. */
-	private final boolean[] canEdit = new boolean[] { false, false, false, false, true };
+	private final boolean[] canEdit = new boolean[] { false, false, false, false, true, true };
 
 	/** The column names. */
-	private final String[] columnNames = { ORIGINAL_CHAR, REPLACE_WITH, INDEXES, OPERATION, EDIT };
+	private final String[] columnNames = { ORIGINAL_CHAR, REPLACE_WITH, INDEXES, OPERATION, EDIT, DELETE };
 
 	/**
 	 * {@inheritDoc}
@@ -92,6 +95,8 @@ public class EditableCharacterObfuscationOperationRulesTableModel
 			case 3 :
 				return Operation.class;
 			case 4 :
+				return ObfuscationOperationRule.class;
+			case 5 :
 				return ObfuscationOperationRule.class;
 			default :
 				return Character.class;
@@ -122,23 +127,28 @@ public class EditableCharacterObfuscationOperationRulesTableModel
 	@Override
 	public Object getValueAt(final int row, final int col)
 	{
-		final KeyValuePair<Character, ObfuscationOperationRule<Character, Character>> permission = getData()
-			.get(row);
-		switch (col)
-		{
-			case 0 :
-				return permission.getValue().getCharacter();
-			case 1 :
-				return permission.getValue().getReplaceWith();
-			case 2 :
-				return permission.getValue().getIndexes();
-			case 3 :
-				return permission.getValue().getOperation();
-			case 4 :
-				return permission.getValue();
-			default :
-				return null;
+		if(getData().size() > row ) {
+			final KeyValuePair<Character, ObfuscationOperationRule<Character, Character>> permission = getData()
+				.get(row);
+			switch (col)
+			{
+				case 0 :
+					return permission.getValue().getCharacter();
+				case 1 :
+					return permission.getValue().getReplaceWith();
+				case 2 :
+					return permission.getValue().getIndexes();
+				case 3 :
+					return permission.getValue().getOperation();
+				case 4 :
+					return permission.getValue();
+				case 5 :
+					return permission.getValue();
+				default :
+					return null;
+			}			
 		}
+		return null;
 	}
 
 	public Optional<KeyValuePair<Character, ObfuscationOperationRule<Character, Character>>> indexOf(

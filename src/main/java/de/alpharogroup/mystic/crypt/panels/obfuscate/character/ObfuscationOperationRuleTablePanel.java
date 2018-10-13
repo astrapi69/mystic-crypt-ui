@@ -29,6 +29,7 @@ import java.awt.event.ActionEvent;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -103,8 +104,11 @@ public class ObfuscationOperationRuleTablePanel extends BasePanel<ObfuscationOpe
 	protected void onEditObfuscationOperationRule(
 		ObfuscationOperationRule<Character, Character> selected)
 	{
-		// TODO Auto-generated method stub
+	}
 
+	protected void onDeleteObfuscationOperationRule(
+		ObfuscationOperationRule<Character, Character> selected)
+	{
 	}
 
 	protected void onExport(final ActionEvent actionEvent)
@@ -151,6 +155,7 @@ public class ObfuscationOperationRuleTablePanel extends BasePanel<ObfuscationOpe
 		}
 	}
 
+	@SuppressWarnings("deprecation")
 	@Override
 	protected void onInitializeComponents()
 	{
@@ -160,9 +165,11 @@ public class ObfuscationOperationRuleTablePanel extends BasePanel<ObfuscationOpe
 
 		scpKeyRules = new JScrollPane();
 		tblKeyRules = new GenericJTable<>(getModelObject().getTableModel());
+		String editText = EditableCharacterObfuscationOperationRulesTableModel.EDIT;
+		String deleteText = EditableCharacterObfuscationOperationRulesTableModel.DELETE;
 
 
-		final TableColumn editValueColumn = tblKeyRules.getColumn("Edit");
+		final TableColumn editValueColumn = tblKeyRules.getColumn(editText);
 
 		editValueColumn.setCellRenderer(new TableCellButtonRenderer(null, null)
 		{
@@ -182,7 +189,7 @@ public class ObfuscationOperationRuleTablePanel extends BasePanel<ObfuscationOpe
 					setForeground(newForeground(table));
 					setBackground(newBackround(table));
 				}
-				final String text = "Edit";
+				final String text = editText;
 				setText(text);
 				return this;
 			}
@@ -200,7 +207,7 @@ public class ObfuscationOperationRuleTablePanel extends BasePanel<ObfuscationOpe
 				getModelObject().setSelected(selected);
 				getModelObject().setProccessMode(ModeContext.UPDATE);
 				onEditObfuscationOperationRule(selected);
-				final String text = "Edit";
+				final String text = editText;
 				return text;
 
 			}
@@ -222,13 +229,41 @@ public class ObfuscationOperationRuleTablePanel extends BasePanel<ObfuscationOpe
 					getButton().setForeground(table.getForeground());
 					getButton().setBackground(table.getBackground());
 				}
-				final String text = "Edit";
+				final String text = editText;
 				getButton().setText(text);
 				setClicked(true);
 				return getButton();
 			}
 		});
+		
 
+
+		final TableColumn deleteValueColumn = tblKeyRules.getColumn(deleteText);
+		deleteValueColumn.setCellEditor(new DeleteRowButtonEditor(new JCheckBox()));
+
+		deleteValueColumn.setCellRenderer(new TableCellButtonRenderer(null, null)
+		{
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public Component getTableCellRendererComponent(final JTable table, final Object value,
+				final boolean isSelected, final boolean hasFocus, final int row, final int column)
+			{
+				if (isSelected)
+				{
+					setForeground(newSelectionForeground(table));
+					setBackground(newSelectionBackround(table));
+				}
+				else
+				{
+					setForeground(newForeground(table));
+					setBackground(newBackround(table));
+				}
+				final String text = deleteText;
+				setText(text);
+				return this;
+			}
+		});
 
 		lblKeyRules = new JLabel();
 
@@ -244,6 +279,35 @@ public class ObfuscationOperationRuleTablePanel extends BasePanel<ObfuscationOpe
 
 		btnImport.addActionListener(actionEvent -> onImport(actionEvent));
 		btnExport.addActionListener(actionEvent -> onExport(actionEvent));
+	}
+	
+
+	/**
+	 * Rearrange the order from the given {@link List} to the given rearranged index
+	 *
+	 * @param <T>
+	 *            the generic type of the elements
+	 * @param listToResort
+	 *            the list to resort
+	 * @param element
+	 *            the element to rearrange
+	 * @param rearrangeToIndex
+	 *            the rearrange to index
+	 * @return the rearranged {@link List}
+	 */
+	public static <T> List<T> rearrange(@NonNull T element, @NonNull List<T> listToResort,
+		int rearrangeToIndex)
+	{
+		int index = listToResort.indexOf(element);
+		if (index < 0 || index == rearrangeToIndex || listToResort.size() == rearrangeToIndex)
+		{
+			return listToResort;
+		}
+		List<T> resortedList;
+		resortedList = new ArrayList<>(listToResort);
+		resortedList.remove(index);
+		resortedList.add(rearrangeToIndex, element);
+		return resortedList;
 	}
 
 	protected void onInitializeGroupLayout()
