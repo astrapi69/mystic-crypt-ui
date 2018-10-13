@@ -7,6 +7,7 @@ This swing application provides public and private key creation and obfuscate st
  * Creation of private and public keys with 1024, 2048 and 4096 bit length
  * Save the created private and public keys
  * Obfuscate text with specified map that can be exported and imported
+ * Entries in the specified obfuscation map can be edited 
 
 # Install
 

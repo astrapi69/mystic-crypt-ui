@@ -1,7 +1,18 @@
 ## Change log
 ----------------------
 
-Version 5.1-SNAPSHOT
+Version 5.2
+-------------
+
+ADDED:
+ 
+- obfuscation entry can be edited now
+
+CHANGED:
+
+- update of mystic-crypt version to 5.5
+
+Version 5.1
 -------------
 
 ADDED:

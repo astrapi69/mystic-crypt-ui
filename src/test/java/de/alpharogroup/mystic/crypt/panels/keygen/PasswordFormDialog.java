@@ -1,15 +1,26 @@
-/*
- * Copyright 2018 Alpha Ro Group UG (haftungsbeschrängt).
+/**
+ * The MIT License
  *
- * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
- * in compliance with the License. You may obtain a copy of the License at
+ * Copyright (C) 2015 Asterios Raptis
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ * Permission is hereby granted, free of charge, to any person obtaining
+ * a copy of this software and associated documentation files (the
+ * "Software"), to deal in the Software without restriction, including
+ * without limitation the rights to use, copy, modify, merge, publish,
+ * distribute, sublicense, and/or sell copies of the Software, and to
+ * permit persons to whom the Software is furnished to do so, subject to
+ * the following conditions:
  *
- * Unless required by applicable law or agreed to in writing, software distributed under the License
- * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
- * or implied. See the License for the specific language governing permissions and limitations under
- * the License.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
+ * LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+ * OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+ * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 package de.alpharogroup.mystic.crypt.panels.keygen;
 
@@ -139,26 +150,21 @@ public class PasswordFormDialog extends javax.swing.JDialog
 			.addGroup(layout.createSequentialGroup().addContainerGap().addGroup(layout
 				.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
 				.addComponent(lblSetPwHeader, javax.swing.GroupLayout.DEFAULT_SIZE,
-					javax.swing.GroupLayout.DEFAULT_SIZE,
-					Short.MAX_VALUE)
+					javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
 				.addGroup(layout.createSequentialGroup()
-					.addGroup(
-						layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-							.addGroup(layout.createSequentialGroup()
-								.addComponent(lblPassword, javax.swing.GroupLayout.PREFERRED_SIZE,
-									200, javax.swing.GroupLayout.PREFERRED_SIZE)
-								.addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-								.addComponent(txtPassword,
-									javax.swing.GroupLayout.PREFERRED_SIZE, 260,
-									javax.swing.GroupLayout.PREFERRED_SIZE))
-							.addGroup(layout.createSequentialGroup()
-								.addComponent(lblRepeatPassword,
-									javax.swing.GroupLayout.PREFERRED_SIZE, 200,
-									javax.swing.GroupLayout.PREFERRED_SIZE)
-								.addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-								.addComponent(txtRepeatPassword,
-									javax.swing.GroupLayout.PREFERRED_SIZE, 260,
-									javax.swing.GroupLayout.PREFERRED_SIZE)))
+					.addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+						.addGroup(layout.createSequentialGroup()
+							.addComponent(lblPassword, javax.swing.GroupLayout.PREFERRED_SIZE, 200,
+								javax.swing.GroupLayout.PREFERRED_SIZE)
+							.addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+							.addComponent(txtPassword, javax.swing.GroupLayout.PREFERRED_SIZE, 260,
+								javax.swing.GroupLayout.PREFERRED_SIZE))
+						.addGroup(layout.createSequentialGroup()
+							.addComponent(lblRepeatPassword, javax.swing.GroupLayout.PREFERRED_SIZE,
+								200, javax.swing.GroupLayout.PREFERRED_SIZE)
+							.addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+							.addComponent(txtRepeatPassword, javax.swing.GroupLayout.PREFERRED_SIZE,
+								260, javax.swing.GroupLayout.PREFERRED_SIZE)))
 					.addGap(0, 24, Short.MAX_VALUE)))
 				.addContainerGap()));
 		layout

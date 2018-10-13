@@ -3,23 +3,28 @@
  *
  * Copyright (C) 2015 Asterios Raptis
  *
- * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
- * associated documentation files (the "Software"), to deal in the Software without restriction,
- * including without limitation the rights to use, copy, modify, merge, publish, distribute,
- * sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
+ * Permission is hereby granted, free of charge, to any person obtaining
+ * a copy of this software and associated documentation files (the
+ * "Software"), to deal in the Software without restriction, including
+ * without limitation the rights to use, copy, modify, merge, publish,
+ * distribute, sublicense, and/or sell copies of the Software, and to
+ * permit persons to whom the Software is furnished to do so, subject to
+ * the following conditions:
  *
- * The above copyright notice and this permission notice shall be included in all copies or
- * substantial portions of the Software.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT
- * NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
- * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
- * DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
+ * LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+ * OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+ * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 package de.alpharogroup.mystic.crypt;
 
+import java.awt.Component;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 
@@ -32,15 +37,19 @@ import javax.swing.JToolBar;
 import org.jdesktop.swingx.JXFrame;
 
 import de.alpharogroup.lang.ClassExtensions;
+import de.alpharogroup.swing.components.factories.JComponentFactory;
 import de.alpharogroup.swing.desktoppane.SingletonDesktopPane;
 import de.alpharogroup.swing.laf.LookAndFeels;
+import de.alpharogroup.swing.utils.JInternalFrameExtensions;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * The Class MainFrame.
  */
 @SuppressWarnings("serial")
+@Slf4j
 public class MainFrame extends JXFrame
 {
 
@@ -57,9 +66,23 @@ public class MainFrame extends JXFrame
 		return instance;
 	}
 
+	/** The current look and feels. */
+	@Getter
+	@Setter
+	private LookAndFeels currentLookAndFeels = LookAndFeels.SYSTEM;
+
+	/** The current visible internal frame. */
+	@Getter
+	@Setter
+	private JInternalFrame currentVisibleInternalFrame;
+
 	/** The desktop pane. */
 	@Getter
 	private final JDesktopPane desktopPane = SingletonDesktopPane.getInstance();
+
+	/** The internal frame. */
+	@Getter
+	private JInternalFrame internalFrame;
 
 	/** The menubar. */
 	@Getter
@@ -68,15 +91,6 @@ public class MainFrame extends JXFrame
 	/** The toolbar. */
 	@Getter
 	private JToolBar toolbar;
-
-	/** The internal frame. */
-	@Getter
-	private JInternalFrame internalFrame;
-
-	/** The current look and feels. */
-	@Getter
-	@Setter
-	private LookAndFeels currentLookAndFeels = LookAndFeels.SYSTEM;
 
 	/**
 	 * Instantiates a new main frame.
@@ -98,6 +112,36 @@ public class MainFrame extends JXFrame
 		setToolBar(toolbar);
 
 		getContentPane().add(desktopPane);
+		// https://stackoverflow.com/questions/26145425/login-dialog-window-wont-dispose-completely
+		// LoginService loginService = new LoginService()
+		// {
+		//
+		// @Override
+		// public boolean authenticate(String name, char[] password, String server)
+		// throws Exception
+		// {
+		// System.out.println(name+":"+new String(password));
+		// if(name.equals("foo")) {
+		// return true;
+		// }
+		// return false;
+		// }
+		// };
+		// JXLoginPane loginPane = new JXLoginPane(loginService);
+		// this.setDefaultCloseOperation(JXFrame.DISPOSE_ON_CLOSE);
+		// JXLoginPane.JXLoginDialog dialog = new JXLoginPane.JXLoginDialog(this, loginPane);
+		// dialog.setDefaultCloseOperation(JXFrame.DISPOSE_ON_CLOSE);
+		// dialog.setVisible(true);
+		// Status status = dialog.getStatus();
+		// if (!JXLoginPane.Status.SUCCEEDED.equals(status))
+		// {
+		// MainFrame.this.dispatchEvent(new WindowEvent(MainFrame.this,
+		// WindowEvent.WINDOW_CLOSING));
+		// }
+		// else
+		// {
+		// setVisible(true);
+		// }
 
 		try
 		{
@@ -107,10 +151,33 @@ public class MainFrame extends JXFrame
 		}
 		catch (IOException e)
 		{
-			// TODO log error...
-			e.printStackTrace();
+			log.error(e.getMessage(), e);
 		}
 
+	}
+
+
+	/**
+	 * Replace the current internal frame with a new internal frame with the given {@link Component}
+	 * as content.
+	 *
+	 * @param title
+	 *            the title
+	 * @param component
+	 *            the component
+	 */
+	public void replaceInternalFrame(final String title, final Component component)
+	{
+		if (getCurrentVisibleInternalFrame() != null)
+		{
+			getCurrentVisibleInternalFrame().dispose();
+		}
+		// create internal frame
+		final JInternalFrame internalFrame = JComponentFactory.newInternalFrame(title, true, true,
+			true, true);
+		JInternalFrameExtensions.addComponentToFrame(internalFrame, component);
+		JInternalFrameExtensions.addJInternalFrame(desktopPane, internalFrame);
+		setCurrentVisibleInternalFrame(internalFrame);
 	}
 
 }

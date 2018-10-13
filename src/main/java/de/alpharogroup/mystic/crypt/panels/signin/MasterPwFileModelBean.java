@@ -22,16 +22,11 @@
  * OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
  * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-package de.alpharogroup.mystic.crypt.panels.privatekey;
+package de.alpharogroup.mystic.crypt.panels.signin;
 
 import java.io.File;
 import java.io.Serializable;
-import java.security.PrivateKey;
-import java.security.PublicKey;
 
-import de.alpharogroup.crypto.key.KeySize;
-import de.alpharogroup.crypto.key.PrivateKeyHexDecryptor;
-import de.alpharogroup.crypto.key.PublicKeyHexEncryptor;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -43,7 +38,7 @@ import lombok.ToString;
 import lombok.experimental.FieldDefaults;
 
 /**
- * The class {@link PrivateKeyModelBean}.
+ * The bean class {@link MasterPwFileModelBean} is for holding the sign in data
  */
 @Getter
 @Setter
@@ -53,23 +48,23 @@ import lombok.experimental.FieldDefaults;
 @AllArgsConstructor
 @Builder(toBuilder = true)
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class PrivateKeyModelBean implements Serializable
+public class MasterPwFileModelBean implements Serializable
 {
 	/** The Constant serialVersionUID. */
 	private static final long serialVersionUID = 1L;
 
-	PrivateKeyHexDecryptor decryptor;
-
-	PublicKeyHexEncryptor encryptor;
-
-	int keyLength;
-
-	KeySize keySize;
-
-	PrivateKey privateKey;
-
 	/** The key file. */
-	File privateKeyFile;
+	File keyFile;
 
-	PublicKey publicKey;
+	/** The master password char array. */
+	char[] masterPw;
+
+	/** The flag if the master password is displayed in plain text. */
+	boolean showMasterPw;
+
+	/** The flag if the key file will be used in the authentication. */
+	boolean withKeyFile;
+
+	/** The flag if the master password will be used in the authentication. */
+	boolean withMasterPw;
 }

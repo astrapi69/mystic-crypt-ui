@@ -22,54 +22,23 @@
  * OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
  * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-package de.alpharogroup.mystic.crypt.panels.privatekey;
-
-import java.io.File;
-import java.io.Serializable;
-import java.security.PrivateKey;
-import java.security.PublicKey;
-
-import de.alpharogroup.crypto.key.KeySize;
-import de.alpharogroup.crypto.key.PrivateKeyHexDecryptor;
-import de.alpharogroup.crypto.key.PublicKeyHexEncryptor;
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.ToString;
-import lombok.experimental.FieldDefaults;
+package de.alpharogroup.mystic.crypt.panels.obfuscate.character;
 
 /**
- * The class {@link PrivateKeyModelBean}.
+ * The enum {@link ModeContext} that define the data manipulation process
  */
-@Getter
-@Setter
-@EqualsAndHashCode
-@ToString
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder(toBuilder = true)
-@FieldDefaults(level = AccessLevel.PRIVATE)
-public class PrivateKeyModelBean implements Serializable
+public enum ModeContext
 {
-	/** The Constant serialVersionUID. */
-	private static final long serialVersionUID = 1L;
 
-	PrivateKeyHexDecryptor decryptor;
+	/** The create mode. */
+	CREATE,
 
-	PublicKeyHexEncryptor encryptor;
+	/** The delete mode. */
+	DELETE,
 
-	int keyLength;
+	/** The none mode. */
+	NONE,
 
-	KeySize keySize;
-
-	PrivateKey privateKey;
-
-	/** The key file. */
-	File privateKeyFile;
-
-	PublicKey publicKey;
+	/** The update mode. */
+	UPDATE
 }

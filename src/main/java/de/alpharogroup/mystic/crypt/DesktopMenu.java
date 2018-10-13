@@ -3,20 +3,24 @@
  *
  * Copyright (C) 2015 Asterios Raptis
  *
- * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
- * associated documentation files (the "Software"), to deal in the Software without restriction,
- * including without limitation the rights to use, copy, modify, merge, publish, distribute,
- * sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
+ * Permission is hereby granted, free of charge, to any person obtaining
+ * a copy of this software and associated documentation files (the
+ * "Software"), to deal in the Software without restriction, including
+ * without limitation the rights to use, copy, modify, merge, publish,
+ * distribute, sublicense, and/or sell copies of the Software, and to
+ * permit persons to whom the Software is furnished to do so, subject to
+ * the following conditions:
  *
- * The above copyright notice and this permission notice shall be included in all copies or
- * substantial portions of the Software.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT
- * NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
- * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
- * DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
+ * LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+ * OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+ * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 package de.alpharogroup.mystic.crypt;
 
@@ -63,13 +67,13 @@ import lombok.Setter;
 public class DesktopMenu extends JMenu
 {
 
-	private static final long serialVersionUID = 1L;
+	/** The instance. */
+	private static DesktopMenu instance = new DesktopMenu();
 
 	/** The Constant logger. */
 	private static final Logger logger = Logger.getLogger(DesktopMenu.class.getName());
 
-	/** The instance. */
-	private static DesktopMenu instance = new DesktopMenu();
+	private static final long serialVersionUID = 1L;
 
 	/**
 	 * Gets the single instance of DesktopMenu.
@@ -81,17 +85,9 @@ public class DesktopMenu extends JMenu
 		return instance;
 	}
 
-	/** The JMenuBar from the DesktopMenu. */
-	@Getter
-	private final JMenuBar menubar;
-
 	/** The file menu. */
 	@Getter
 	private final JMenu fileMenu;
-
-	/** The look and feel menu. */
-	@Getter
-	private final JMenu lookAndFeelMenu;
 
 	/** The help menu. */
 	@Getter
@@ -101,6 +97,14 @@ public class DesktopMenu extends JMenu
 	@Getter
 	@Setter
 	private Window helpWindow;
+
+	/** The look and feel menu. */
+	@Getter
+	private final JMenu lookAndFeelMenu;
+
+	/** The JMenuBar from the DesktopMenu. */
+	@Getter
+	private final JMenuBar menubar;
 
 	/**
 	 * Instantiates a new desktop menu.
@@ -298,8 +302,7 @@ public class DesktopMenu extends JMenu
 
 		// New obfuscation
 		jmi = new JMenuItem("New obfuscation", 'O');
-		jmi.addActionListener(
-			new NewObfuscationOperationInternalFrameAction("New Obfuscation"));
+		jmi.addActionListener(new NewObfuscationOperationInternalFrameAction("New Obfuscation"));
 		MenuExtensions.setCtrlAccelerator(jmi, 'O');
 		fileMenu.add(jmi);
 

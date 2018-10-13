@@ -22,16 +22,10 @@
  * OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
  * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-package de.alpharogroup.mystic.crypt.panels.privatekey;
+package de.alpharogroup.mystic.crypt.panels.dbtree;
 
-import java.io.File;
 import java.io.Serializable;
-import java.security.PrivateKey;
-import java.security.PublicKey;
 
-import de.alpharogroup.crypto.key.KeySize;
-import de.alpharogroup.crypto.key.PrivateKeyHexDecryptor;
-import de.alpharogroup.crypto.key.PublicKeyHexEncryptor;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -42,9 +36,6 @@ import lombok.Setter;
 import lombok.ToString;
 import lombok.experimental.FieldDefaults;
 
-/**
- * The class {@link PrivateKeyModelBean}.
- */
 @Getter
 @Setter
 @EqualsAndHashCode
@@ -53,23 +44,10 @@ import lombok.experimental.FieldDefaults;
 @AllArgsConstructor
 @Builder(toBuilder = true)
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class PrivateKeyModelBean implements Serializable
+public class DatabaseTreeModelBean implements Serializable
 {
-	/** The Constant serialVersionUID. */
+
 	private static final long serialVersionUID = 1L;
 
-	PrivateKeyHexDecryptor decryptor;
-
-	PublicKeyHexEncryptor encryptor;
-
-	int keyLength;
-
-	KeySize keySize;
-
-	PrivateKey privateKey;
-
-	/** The key file. */
-	File privateKeyFile;
-
-	PublicKey publicKey;
+	String name;
 }

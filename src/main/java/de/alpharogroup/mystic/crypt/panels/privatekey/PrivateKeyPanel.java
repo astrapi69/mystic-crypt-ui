@@ -1,3 +1,27 @@
+/**
+ * The MIT License
+ *
+ * Copyright (C) 2015 Asterios Raptis
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining
+ * a copy of this software and associated documentation files (the
+ * "Software"), to deal in the Software without restriction, including
+ * without limitation the rights to use, copy, modify, merge, publish,
+ * distribute, sublicense, and/or sell copies of the Software, and to
+ * permit persons to whom the Software is furnished to do so, subject to
+ * the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
+ * LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+ * OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+ * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
 package de.alpharogroup.mystic.crypt.panels.privatekey;
 
 import java.awt.event.ActionEvent;
@@ -13,29 +37,26 @@ import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 
 import org.apache.commons.codec.DecoderException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import de.alpharogroup.model.BaseModel;
 import de.alpharogroup.model.api.Model;
 import de.alpharogroup.mystic.crypt.panels.keygen.EnDecryptPanel;
 import de.alpharogroup.swing.base.BasePanel;
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 import net.miginfocom.swing.MigLayout;
 
 
 @Getter
+@Slf4j
 public class PrivateKeyPanel extends BasePanel<PrivateKeyModelBean>
 {
 
 	private static final long serialVersionUID = 1L;
 
-	/** The logger. */
-	protected static final Logger logger = LoggerFactory.getLogger(PrivateKeyPanel.class.getName());
+	private EnDecryptPanel enDecryptPanel;
 
 	private PrivateKeyViewPanel privateKeyViewPanel;
-
-	private EnDecryptPanel enDecryptPanel;
 
 	public PrivateKeyPanel()
 	{
@@ -67,7 +88,7 @@ public class PrivateKeyPanel extends BasePanel<PrivateKeyModelBean>
 			| IllegalBlockSizeException | BadPaddingException | InvalidKeySpecException
 			| InvalidAlgorithmParameterException | DecoderException | IOException e)
 		{
-			logger.error("", e);
+			log.error("", e);
 		}
 
 	}
@@ -90,19 +111,19 @@ public class PrivateKeyPanel extends BasePanel<PrivateKeyModelBean>
 		catch (InvalidKeyException | NoSuchAlgorithmException | InvalidKeySpecException
 			| NoSuchPaddingException | UnsupportedEncodingException e)
 		{
-			logger.error("", e);
+			log.error("", e);
 		}
 		catch (final IllegalBlockSizeException e)
 		{
-			logger.error("", e);
+			log.error("", e);
 		}
 		catch (final BadPaddingException e)
 		{
-			logger.error("", e);
+			log.error("", e);
 		}
 		catch (final IOException e)
 		{
-			logger.error("", e);
+			log.error("", e);
 		}
 
 	}

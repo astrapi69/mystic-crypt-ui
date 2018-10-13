@@ -1,3 +1,27 @@
+/**
+ * The MIT License
+ *
+ * Copyright (C) 2015 Asterios Raptis
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining
+ * a copy of this software and associated documentation files (the
+ * "Software"), to deal in the Software without restriction, including
+ * without limitation the rights to use, copy, modify, merge, publish,
+ * distribute, sublicense, and/or sell copies of the Software, and to
+ * permit persons to whom the Software is furnished to do so, subject to
+ * the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
+ * LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+ * OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+ * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
 /*
  * To change this license header, choose License Headers in Project Properties. To change this
  * template file, choose Tools | Templates and open the template in the editor.
@@ -92,7 +116,8 @@ public class ConversionFormPanel extends javax.swing.JPanel
 								javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
 							.addComponent(lblChoose, javax.swing.GroupLayout.DEFAULT_SIZE, 469,
 								Short.MAX_VALUE)
-							.addComponent(lblChooseType, javax.swing.GroupLayout.DEFAULT_SIZE,
+							.addComponent(
+								lblChooseType, javax.swing.GroupLayout.DEFAULT_SIZE,
 								javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
 							.addGap(104, 104, 104)
 							.addGroup(layout
@@ -109,32 +134,36 @@ public class ConversionFormPanel extends javax.swing.JPanel
 		layout
 			.setVerticalGroup(
 				layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-					.addGroup(layout.createSequentialGroup().addGap(59, 59, 59)
-						.addGroup(layout
-							.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-							.addComponent(cmbChooseType).addComponent(lblChooseType,
-								javax.swing.GroupLayout.DEFAULT_SIZE,
-								javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-						.addGap(25, 25, 25)
-						.addGroup(
-							layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+					.addGroup(
+						layout
+							.createSequentialGroup().addGap(59, 59,
+								59)
+							.addGroup(layout
+								.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING,
+									false)
+								.addComponent(cmbChooseType).addComponent(lblChooseType,
+									javax.swing.GroupLayout.DEFAULT_SIZE,
+									javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+							.addGap(25, 25, 25)
+							.addGroup(layout
+								.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
 								.addComponent(lblChoose, javax.swing.GroupLayout.PREFERRED_SIZE, 25,
 									javax.swing.GroupLayout.PREFERRED_SIZE)
 								.addComponent(btnChoose))
-						.addGap(30, 30, 30)
-						.addGroup(
-							layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+							.addGap(30, 30, 30)
+							.addGroup(layout
+								.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
 								.addComponent(btnSaveTo).addComponent(lblSaveTo,
 									javax.swing.GroupLayout.PREFERRED_SIZE, 26,
 									javax.swing.GroupLayout.PREFERRED_SIZE))
-						.addGap(34, 34, 34)
-						.addComponent(lblConsole, javax.swing.GroupLayout.PREFERRED_SIZE, 27,
-							javax.swing.GroupLayout.PREFERRED_SIZE)
-						.addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-						.addComponent(srcConsole, javax.swing.GroupLayout.PREFERRED_SIZE, 244,
-							javax.swing.GroupLayout.PREFERRED_SIZE)
-						.addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 32,
-							Short.MAX_VALUE)
-						.addComponent(btnConvert).addGap(20, 20, 20)));
+							.addGap(34, 34, 34)
+							.addComponent(lblConsole, javax.swing.GroupLayout.PREFERRED_SIZE, 27,
+								javax.swing.GroupLayout.PREFERRED_SIZE)
+							.addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+							.addComponent(srcConsole, javax.swing.GroupLayout.PREFERRED_SIZE, 244,
+								javax.swing.GroupLayout.PREFERRED_SIZE)
+							.addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 32,
+								Short.MAX_VALUE)
+							.addComponent(btnConvert).addGap(20, 20, 20)));
 	}// </editor-fold>//GEN-END:initComponents
 }

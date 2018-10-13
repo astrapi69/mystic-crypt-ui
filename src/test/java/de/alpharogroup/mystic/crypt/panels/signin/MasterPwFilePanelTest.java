@@ -22,54 +22,33 @@
  * OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
  * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-package de.alpharogroup.mystic.crypt.panels.privatekey;
+package de.alpharogroup.mystic.crypt.panels.signin;
 
-import java.io.File;
-import java.io.Serializable;
-import java.security.PrivateKey;
-import java.security.PublicKey;
+import java.io.IOException;
 
-import de.alpharogroup.crypto.key.KeySize;
-import de.alpharogroup.crypto.key.PrivateKeyHexDecryptor;
-import de.alpharogroup.crypto.key.PublicKeyHexEncryptor;
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.ToString;
-import lombok.experimental.FieldDefaults;
+import javax.swing.JFrame;
 
-/**
- * The class {@link PrivateKeyModelBean}.
- */
-@Getter
-@Setter
-@EqualsAndHashCode
-@ToString
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder(toBuilder = true)
-@FieldDefaults(level = AccessLevel.PRIVATE)
-public class PrivateKeyModelBean implements Serializable
+import de.alpharogroup.layout.CloseWindow;
+
+public class MasterPwFilePanelTest
 {
-	/** The Constant serialVersionUID. */
-	private static final long serialVersionUID = 1L;
+	/**
+	 * The main method.
+	 *
+	 * @param args
+	 *            the arguments
+	 * @throws IOException
+	 */
+	public static void main(final String[] args) throws IOException
+	{
+		final JFrame frame = new JFrame();
+		frame.addWindowListener(new CloseWindow());
+		frame.setTitle("MasterPwFilePanel");
 
-	PrivateKeyHexDecryptor decryptor;
+		final MasterPwFilePanel panel = new MasterPwFilePanel();
+		frame.add(panel);
+		frame.setBounds(0, 0, 1280, 650);
+		frame.setVisible(true);
+	}
 
-	PublicKeyHexEncryptor encryptor;
-
-	int keyLength;
-
-	KeySize keySize;
-
-	PrivateKey privateKey;
-
-	/** The key file. */
-	File privateKeyFile;
-
-	PublicKey publicKey;
 }
