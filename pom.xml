@@ -159,7 +159,7 @@
 							<configuration>
 								<headerType>console</headerType>
 								<outfile>target/${full-app-name}.exe</outfile>
-								<jar>target/${artifactId}-jar-with-dependencies.jar</jar>
+								<jar>target/${project.artifactId}-jar-with-dependencies.jar</jar>
 								<errTitle>${full-app-name}</errTitle>
 								<classPath>
 									<mainClass>de.alpharogroup.mystic.crypt.MainApplication</mainClass>
