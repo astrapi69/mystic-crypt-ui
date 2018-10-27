@@ -18,7 +18,7 @@
 		<file-worker.version>4.23</file-worker.version>
 		<jcommons-lang.version>4.35</jcommons-lang.version>
 		<!-- SWING-COMPONENTS version -->
-		<swing-components.version>4.28</swing-components.version>
+		<swing-components.version>4.29</swing-components.version>
 		<!-- MIGLAYOUT-SWING version -->
 		<miglayout-swing.version>5.0</miglayout-swing.version>
 		<!-- XML-EXTENSIONS version -->

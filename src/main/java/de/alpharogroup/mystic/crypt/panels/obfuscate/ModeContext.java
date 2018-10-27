@@ -22,7 +22,7 @@
  * OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
  * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-package de.alpharogroup.mystic.crypt.panels.obfuscate.character;
+package de.alpharogroup.mystic.crypt.panels.obfuscate;
 
 /**
  * The enum {@link ModeContext} that define the data manipulation process

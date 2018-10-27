@@ -35,6 +35,8 @@ import de.alpharogroup.crypto.obfuscation.rule.Operation;
 import de.alpharogroup.model.api.Model;
 import de.alpharogroup.swing.base.BasePanel;
 import de.alpharogroup.swing.combobox.model.EnumComboBoxModel;
+import de.alpharogroup.swing.document.NumberValuesDocument;
+import de.alpharogroup.swing.document.RangeDocument;
 import lombok.Getter;
 
 @Getter
@@ -123,14 +125,6 @@ public class ObfuscationOperationRulePanel extends BasePanel<ObfuscationOperatio
 		cmbOperation.setModel(new EnumComboBoxModel<>(Operation.class));
 
 		txtIndexes.setDocument(new NumberValuesDocument());
-
-		// Document document = txtIndexes.getDocument();
-		// PlainDocument doc = (PlainDocument) document;
-		// doc.setDocumentFilter(new IntegerArrayFilter() {
-		// public void onValidationError(String text) {
-		// ObfuscationOperationRulePanel.this.onIndexesValidationError(text);
-		// }
-		// });
 
 	}
 

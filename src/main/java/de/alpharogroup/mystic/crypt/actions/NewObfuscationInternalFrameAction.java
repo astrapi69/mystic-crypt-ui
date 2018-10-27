@@ -22,53 +22,52 @@
  * OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
  * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-package de.alpharogroup.mystic.crypt.panels.obfuscate.character;
+package de.alpharogroup.mystic.crypt.actions;
 
-import lombok.NonNull;
+import java.awt.event.ActionEvent;
+
+import javax.swing.AbstractAction;
+import javax.swing.JInternalFrame;
+
+import de.alpharogroup.mystic.crypt.MainFrame;
+import de.alpharogroup.mystic.crypt.panels.obfuscate.simple.RulePanel;
+import de.alpharogroup.swing.components.factories.JComponentFactory;
+import de.alpharogroup.swing.utils.JInternalFrameExtensions;
 
 /**
- * The class {@link NumberValuesDocument} can take any character that is specified in the given
- * regular expression
+ * The class {@link NewObfuscationInternalFrameAction}.
  */
-public class NumberValuesDocument extends RegularExpressionDocument
+public class NewObfuscationInternalFrameAction extends AbstractAction
 {
-
-	/** The Constant for the default regular expression. */
-	public static final String DEFAULT_REGEX = "^[0-9,;]+$";
 
 	/** The Constant serialVersionUID. */
 	private static final long serialVersionUID = 1L;
 
 	/**
-	 * Instantiates a new {@link NumberValuesDocument} object with the default regular expression
-	 */
-	public NumberValuesDocument()
-	{
-		this(NumberValuesDocument.DEFAULT_REGEX);
-	}
-
-	/**
-	 * Instantiates a new {@link NumberValuesDocument} object
+	 * Instantiates a new new action.
 	 *
-	 * @param regex
-	 *            the regular expression
+	 * @param name
+	 *            the name
 	 */
-	public NumberValuesDocument(@NonNull String regex)
+	public NewObfuscationInternalFrameAction(final String name)
 	{
-		super(regex);
+		super(name);
 	}
 
 	/**
 	 * {@inheritDoc}
 	 */
 	@Override
-	public String validate(String proposedValue) throws IllegalArgumentException
+	public void actionPerformed(final ActionEvent e)
 	{
-		if (proposedValue.isEmpty())
-		{
-			return proposedValue;
-		}
-		return super.validate(proposedValue);
+		// create internal frame
+		final JInternalFrame internalFrame = JComponentFactory
+			.newInternalFrame("Obfuscation Operation demo", true, true, true, true);
+		final RulePanel component = new RulePanel();
+		JInternalFrameExtensions.addComponentToFrame(internalFrame, component);
+
+		JInternalFrameExtensions.addJInternalFrame(MainFrame.getInstance().getDesktopPane(),
+			internalFrame);
 	}
 
 }

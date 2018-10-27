@@ -47,6 +47,7 @@ import org.apache.log4j.Logger;
 import de.alpharogroup.lang.ClassExtensions;
 import de.alpharogroup.mystic.crypt.actions.NewFileConversionInternalFrameAction;
 import de.alpharogroup.mystic.crypt.actions.NewKeyGenerationInternalFrameAction;
+import de.alpharogroup.mystic.crypt.actions.NewObfuscationInternalFrameAction;
 import de.alpharogroup.mystic.crypt.actions.NewObfuscationOperationInternalFrameAction;
 import de.alpharogroup.mystic.crypt.actions.OpenBrowserToDonateAction;
 import de.alpharogroup.mystic.crypt.actions.OpenPrivateKeyAction;
@@ -298,13 +299,23 @@ public class DesktopMenu extends JMenu
 		keyMenu.add(jmi);
 
 		// Separator
-		fileMenu.addSeparator();
+		fileMenu.addSeparator();		
 
-		// New obfuscation
-		jmi = new JMenuItem("New obfuscation", 'O');
-		jmi.addActionListener(new NewObfuscationOperationInternalFrameAction("New Obfuscation"));
-		MenuExtensions.setCtrlAccelerator(jmi, 'O');
-		fileMenu.add(jmi);
+		final JMenu obfuscationMenu = new JMenu("Obfuscation");
+		obfuscationMenu.setMnemonic('O');
+		fileMenu.add(obfuscationMenu);
+
+		// New operated obfuscation
+		jmi = new JMenuItem("Operated obfuscation", 'N');
+		jmi.addActionListener(new NewObfuscationOperationInternalFrameAction("Operated Obfuscation"));
+		MenuExtensions.setCtrlAccelerator(jmi, 'N');
+		obfuscationMenu.add(jmi);
+
+		// New simple obfuscation
+		jmi = new JMenuItem("Simple obfuscation", 'S');
+		jmi.addActionListener(new NewObfuscationInternalFrameAction("Simple Obfuscation"));
+		MenuExtensions.setCtrlAccelerator(jmi, 'S');
+		obfuscationMenu.add(jmi);
 
 		// Separator
 		fileMenu.addSeparator();

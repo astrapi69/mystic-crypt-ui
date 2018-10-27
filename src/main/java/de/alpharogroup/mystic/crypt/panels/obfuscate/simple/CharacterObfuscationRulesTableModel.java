@@ -18,21 +18,18 @@
  * DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-package de.alpharogroup.mystic.crypt.panels.obfuscate.character;
-
-import de.alpharogroup.collections.pairs.KeyValuePair;
-import de.alpharogroup.crypto.obfuscation.rule.ObfuscationOperationRule;
-import de.alpharogroup.crypto.obfuscation.rule.ObfuscationRule;
-import de.alpharogroup.crypto.obfuscation.rule.Operation;
-import de.alpharogroup.swing.table.model.GenericTableModel;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.ToString;
+package de.alpharogroup.mystic.crypt.panels.obfuscate.simple;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
+
+import de.alpharogroup.collections.pairs.KeyValuePair;
+import de.alpharogroup.crypto.obfuscation.rule.ObfuscationRule;
+import de.alpharogroup.swing.table.model.GenericTableModel;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.ToString;
 
 /**
  * The class {@link CharacterObfuscationRulesTableModel}.

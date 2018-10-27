@@ -53,9 +53,11 @@ import de.alpharogroup.file.read.ReadFileExtensions;
 import de.alpharogroup.file.write.WriteFileQuietlyExtensions;
 import de.alpharogroup.model.BaseModel;
 import de.alpharogroup.model.api.Model;
+import de.alpharogroup.mystic.crypt.panels.obfuscate.ModeContext;
 import de.alpharogroup.swing.GenericJTable;
 import de.alpharogroup.swing.base.BasePanel;
 import de.alpharogroup.swing.renderer.TableCellButtonRenderer;
+import de.alpharogroup.swing.table.editor.DeleteRowButtonEditor;
 import de.alpharogroup.swing.table.editor.TableCellButtonEditor;
 import de.alpharogroup.xml.ObjectToXmlExtensions;
 import de.alpharogroup.xml.XmlToObjectExtensions;
@@ -155,7 +157,6 @@ public class ObfuscationOperationRuleTablePanel extends BasePanel<ObfuscationOpe
 		}
 	}
 
-	@SuppressWarnings("deprecation")
 	@Override
 	protected void onInitializeComponents()
 	{

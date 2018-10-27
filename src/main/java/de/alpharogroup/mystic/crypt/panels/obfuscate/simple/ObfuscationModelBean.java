@@ -22,12 +22,12 @@
  * OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
  * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-package de.alpharogroup.mystic.crypt.panels.obfuscate.character;
+package de.alpharogroup.mystic.crypt.panels.obfuscate.simple;
 
 import java.io.Serializable;
 
 import de.alpharogroup.crypto.obfuscation.api.Obfuscatable;
-import de.alpharogroup.crypto.obfuscation.rule.ObfuscationOperationRule;
+import de.alpharogroup.crypto.obfuscation.rule.ObfuscationRule;
 import de.alpharogroup.mystic.crypt.panels.obfuscate.ModeContext;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -48,7 +48,7 @@ import lombok.experimental.FieldDefaults;
 @AllArgsConstructor
 @Builder(toBuilder = true)
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class ObfuscationOperationModelBean implements Serializable
+public class ObfuscationModelBean implements Serializable
 {
 	private static final long serialVersionUID = 1L;
 
@@ -57,7 +57,7 @@ public class ObfuscationOperationModelBean implements Serializable
 	@Builder.Default
 	ModeContext proccessMode = ModeContext.NONE;
 
-	ObfuscationOperationRule<Character, Character> selected;
+	ObfuscationRule<Character, Character> selected;
 
-	EditableCharacterObfuscationOperationRulesTableModel tableModel;
+	CharacterObfuscationRulesTableModel tableModel;
 }
