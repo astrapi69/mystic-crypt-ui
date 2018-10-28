@@ -27,8 +27,10 @@ package de.alpharogroup.mystic.crypt.panels.obfuscate.simple;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import de.alpharogroup.collections.pairs.KeyValuePair;
+import de.alpharogroup.crypto.obfuscation.rule.ObfuscationOperationRule;
 import de.alpharogroup.crypto.obfuscation.rule.ObfuscationRule;
 import de.alpharogroup.swing.table.model.GenericTableModel;
 import lombok.Builder;
@@ -155,6 +157,20 @@ public class CharacterObfuscationRulesTableModel
 		}
 		return map;
 
+	}
+
+	public Optional<KeyValuePair<Character, ObfuscationRule<Character, Character>>> indexOf(
+		Character character)
+	{
+		final List<KeyValuePair<Character, ObfuscationRule<Character, Character>>> data = getData();
+		for (final KeyValuePair<Character, ObfuscationRule<Character, Character>> row : data)
+		{
+			if (row.getKey().equals(character))
+			{
+				return Optional.of(row);
+			}
+		}
+		return Optional.empty();
 	}
 
 }

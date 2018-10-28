@@ -61,7 +61,9 @@ public class ObfuscationRulePanel extends BasePanel<ObfuscationModelBean>
 	}
 
 	protected void onEditObfuscationRule(ObfuscationRule<Character, Character> selected)
-	{
+	{		
+		txtOriginalChar.setText(selected.getCharacter().toString());
+		txtRelpaceWith.setText(selected.getReplaceWith().toString());
 	}
 
 	@Override

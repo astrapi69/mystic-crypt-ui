@@ -161,15 +161,11 @@ public class ObfuscationRuleTablePanel extends BasePanel<ObfuscationModelBean>
 
 		lblKeyRules.setText("Table of key rules for obfuscate");
 
-		tblKeyRules.setModel(new javax.swing.table.DefaultTableModel(
-			new Object[][] { { null, null }, { null, null }, { null, null }, { null, null } },
-			new String[] { "Title 1", "Title 2" }));
 		scpKeyRules.setViewportView(tblKeyRules);
 
 		btnImport.setText("Import");
 
 		btnExport.setText("Export");
-
 
 		final TableColumn editValueColumn = tblKeyRules.getColumn(editText);
 

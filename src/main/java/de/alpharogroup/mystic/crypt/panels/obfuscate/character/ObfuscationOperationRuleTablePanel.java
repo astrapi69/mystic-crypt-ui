@@ -203,6 +203,7 @@ public class ObfuscationOperationRuleTablePanel extends BasePanel<ObfuscationOpe
 				return this;
 			}
 		});
+		
 		editValueColumn.setCellEditor(new TableCellButtonEditor(new JCheckBox())
 		{
 			private static final long serialVersionUID = 1L;
@@ -244,7 +245,6 @@ public class ObfuscationOperationRuleTablePanel extends BasePanel<ObfuscationOpe
 				return getButton();
 			}
 		});
-
 
 		final TableColumn deleteValueColumn = tblKeyRules.getColumn(deleteText);
 		deleteValueColumn.setCellEditor(new DeleteRowButtonEditor(new JCheckBox()));
