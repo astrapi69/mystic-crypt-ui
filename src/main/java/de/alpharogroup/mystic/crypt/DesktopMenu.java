@@ -299,7 +299,7 @@ public class DesktopMenu extends JMenu
 		keyMenu.add(jmi);
 
 		// Separator
-		fileMenu.addSeparator();		
+		fileMenu.addSeparator();
 
 		final JMenu obfuscationMenu = new JMenu("Obfuscation");
 		obfuscationMenu.setMnemonic('O');
@@ -307,7 +307,8 @@ public class DesktopMenu extends JMenu
 
 		// New operated obfuscation
 		jmi = new JMenuItem("Operated obfuscation", 'N');
-		jmi.addActionListener(new NewObfuscationOperationInternalFrameAction("Operated Obfuscation"));
+		jmi.addActionListener(
+			new NewObfuscationOperationInternalFrameAction("Operated Obfuscation"));
 		MenuExtensions.setCtrlAccelerator(jmi, 'N');
 		obfuscationMenu.add(jmi);
 

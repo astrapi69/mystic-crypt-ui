@@ -3,20 +3,24 @@
  *
  * Copyright (C) 2015 Asterios Raptis
  *
- * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
- * associated documentation files (the "Software"), to deal in the Software without restriction,
- * including without limitation the rights to use, copy, modify, merge, publish, distribute,
- * sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
+ * Permission is hereby granted, free of charge, to any person obtaining
+ * a copy of this software and associated documentation files (the
+ * "Software"), to deal in the Software without restriction, including
+ * without limitation the rights to use, copy, modify, merge, publish,
+ * distribute, sublicense, and/or sell copies of the Software, and to
+ * permit persons to whom the Software is furnished to do so, subject to
+ * the following conditions:
  *
- * The above copyright notice and this permission notice shall be included in all copies or
- * substantial portions of the Software.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT
- * NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
- * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
- * DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
+ * LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+ * OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+ * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 package de.alpharogroup.mystic.crypt.panels.obfuscate.simple;
 
@@ -42,10 +46,11 @@ public class CharacterObfuscationRulesTableModel
 		GenericTableModel<KeyValuePair<Character, ObfuscationRule<Character, Character>>>
 {
 
-	/**
-	 * The constant serialVersionUID.
-	 */
-	private static final long serialVersionUID = 1L;
+	/** The Constant DELETE. */
+	public static final String DELETE = "Delete";
+
+	/** The Constant REPLACE_WITH. */
+	public static final String EDIT = "Edit";
 
 	/** The Constant ORIGINAL_CHAR. */
 	public static final String ORIGINAL_CHAR = "Original character";
@@ -53,17 +58,16 @@ public class CharacterObfuscationRulesTableModel
 	/** The Constant REPLACE_WITH. */
 	public static final String REPLACE_WITH = "Replace with";
 
-	/** The Constant REPLACE_WITH. */
-	public static final String EDIT = "Edit";
-
-    /** The Constant DELETE. */
-    public static final String DELETE = "Delete";
-
-	/** The column names. */
-	private final String[] columnNames = { ORIGINAL_CHAR, REPLACE_WITH, EDIT, DELETE };
+	/**
+	 * The constant serialVersionUID.
+	 */
+	private static final long serialVersionUID = 1L;
 
 	/** The can edit. */
 	private final boolean[] canEdit = new boolean[] { false, false, true, true };
+
+	/** The column names. */
+	private final String[] columnNames = { ORIGINAL_CHAR, REPLACE_WITH, EDIT, DELETE };
 
 	/**
 	 * {@inheritDoc}

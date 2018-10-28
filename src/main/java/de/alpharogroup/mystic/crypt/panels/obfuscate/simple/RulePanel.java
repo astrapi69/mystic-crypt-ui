@@ -58,8 +58,7 @@ public class RulePanel extends BasePanel<ObfuscationModelBean>
 	public RulePanel()
 	{
 		this(BaseModel.<ObfuscationModelBean> of(ObfuscationModelBean.builder()
-			.tableModel(CharacterObfuscationRulesTableModel.builder().build())
-			.build()));
+			.tableModel(CharacterObfuscationRulesTableModel.builder().build()).build()));
 	}
 
 	public RulePanel(final Model<ObfuscationModelBean> model)
@@ -89,8 +88,8 @@ public class RulePanel extends BasePanel<ObfuscationModelBean>
 		}
 		final Character origChar = simpleRulePanel.getTxtOriginalChar().getText().charAt(0);
 		final Character replaceWith = simpleRulePanel.getTxtRelpaceWith().getText().charAt(0);
-		Map<Character, ObfuscationRule<Character, Character>> map = getModelObject()
-			.getTableModel().toMap();
+		Map<Character, ObfuscationRule<Character, Character>> map = getModelObject().getTableModel()
+			.toMap();
 		KeyValuePair<Character, ObfuscationOperationRule<Character, Character>> keyValuePair = null;
 		if (getModelObject().getSelected() != null
 			&& getModelObject().getSelected().getCharacter().equals(origChar)
@@ -98,32 +97,33 @@ public class RulePanel extends BasePanel<ObfuscationModelBean>
 		{
 			// TODO FIXME
 			// get entry from table model
-//			Optional<KeyValuePair<Character, ObfuscationRule<Character, Character>>> optional = getModelObject()
-//				.getTableModel().indexOf(origChar);
-//			if (optional.isPresent())
-//			{
-//				keyValuePair = optional.get();
-//				final List<Character> replaceWithChars = ListFactory.newArrayList();
-//				for (Entry<Character, ObfuscationRule<Character, Character>> entry : map
-//					.entrySet())
-//				{
-//					replaceWithChars.add(entry.getValue().getReplaceWith());
-//				}
-//				if (replaceWithChars.contains(replaceWith)
-//					&& !keyValuePair.getValue().getReplaceWith().equals(replaceWith))
-//				{
-//					String title = "Replace with character already exists";
-//					String htmlMessage = "<html><body width='350'>" + "<h2>" + title + "</h2>"
-//						+ "<p> Please choose a character that is not in use. <br><br> "
-//						+ "<p>Disentangle process can not be executed if same characters exists";
-//					JOptionPane.showMessageDialog(this, htmlMessage, title,
-//						JOptionPane.WARNING_MESSAGE);
-//					return;
-//				}
-//
-//				keyValuePair.getValue().setReplaceWith(replaceWith);
-//				getModelObject().getTableModel().fireTableDataChanged();
-//			}
+			// Optional<KeyValuePair<Character, ObfuscationRule<Character, Character>>> optional =
+			// getModelObject()
+			// .getTableModel().indexOf(origChar);
+			// if (optional.isPresent())
+			// {
+			// keyValuePair = optional.get();
+			// final List<Character> replaceWithChars = ListFactory.newArrayList();
+			// for (Entry<Character, ObfuscationRule<Character, Character>> entry : map
+			// .entrySet())
+			// {
+			// replaceWithChars.add(entry.getValue().getReplaceWith());
+			// }
+			// if (replaceWithChars.contains(replaceWith)
+			// && !keyValuePair.getValue().getReplaceWith().equals(replaceWith))
+			// {
+			// String title = "Replace with character already exists";
+			// String htmlMessage = "<html><body width='350'>" + "<h2>" + title + "</h2>"
+			// + "<p> Please choose a character that is not in use. <br><br> "
+			// + "<p>Disentangle process can not be executed if same characters exists";
+			// JOptionPane.showMessageDialog(this, htmlMessage, title,
+			// JOptionPane.WARNING_MESSAGE);
+			// return;
+			// }
+			//
+			// keyValuePair.getValue().setReplaceWith(replaceWith);
+			// getModelObject().getTableModel().fireTableDataChanged();
+			// }
 		}
 		else
 		{
@@ -138,8 +138,7 @@ public class RulePanel extends BasePanel<ObfuscationModelBean>
 				return;
 			}
 			final List<Character> replaceWithChars = ListFactory.newArrayList();
-			for (Entry<Character, ObfuscationRule<Character, Character>> entry : map
-				.entrySet())
+			for (Entry<Character, ObfuscationRule<Character, Character>> entry : map.entrySet())
 			{
 				replaceWithChars.add(entry.getValue().getReplaceWith());
 			}
@@ -155,12 +154,12 @@ public class RulePanel extends BasePanel<ObfuscationModelBean>
 			}
 
 			// TODO FIXME
-//			keyValuePair = KeyValuePair
-//				.<Character, ObfuscationRule<Character, Character>> builder().key(origChar)
-//				.value(ObfuscationRule.<Character, Character> builder().character(origChar)
-//					.replaceWith(replaceWith).build())
-//				.build();
-//			getModelObject().getTableModel().add(keyValuePair);
+			// keyValuePair = KeyValuePair
+			// .<Character, ObfuscationRule<Character, Character>> builder().key(origChar)
+			// .value(ObfuscationRule.<Character, Character> builder().character(origChar)
+			// .replaceWith(replaceWith).build())
+			// .build();
+			// getModelObject().getTableModel().add(keyValuePair);
 		}
 		getModelObject().setProccessMode(ModeContext.CREATE);
 		simpleRulePanel.getTxtOriginalChar().setText("");
@@ -169,7 +168,7 @@ public class RulePanel extends BasePanel<ObfuscationModelBean>
 		simpleRulePanel.revalidate();
 
 		// TODO FIXME
-//		simpleRuleTablePanel.getTblKeyRules().setModel(getModelObject().getTableModel());
+		// simpleRuleTablePanel.getTblKeyRules().setModel(getModelObject().getTableModel());
 		simpleRuleTablePanel.revalidate();
 
 	}
@@ -181,8 +180,7 @@ public class RulePanel extends BasePanel<ObfuscationModelBean>
 		getEnDecryptPanel().getTxtEncrypted().setText("");
 	}
 
-	protected void onEditObfuscationRule(
-		ObfuscationRule<Character, Character> selected)
+	protected void onEditObfuscationRule(ObfuscationRule<Character, Character> selected)
 	{
 		simpleRulePanel.onEditObfuscationRule(selected);
 	}
@@ -194,12 +192,11 @@ public class RulePanel extends BasePanel<ObfuscationModelBean>
 		final Map<Character, ObfuscationRule<Character, Character>> keymap = getModelObject()
 			.getTableModel().toMap();
 		// create the rule
-		BiMap<Character, ObfuscationRule<Character, Character>> biMap = HashBiMap
-			.create(keymap);
+		BiMap<Character, ObfuscationRule<Character, Character>> biMap = HashBiMap.create(keymap);
 		// TODO FIXME
 		// obfuscate the key
-//		final Obfuscatable obfuscator = new CharacterObfuscator(biMap, toObfuscatedString);
-//		getModelObject().setObfuscator(obfuscator);
+		// final Obfuscatable obfuscator = new CharacterObfuscator(biMap, toObfuscatedString);
+		// getModelObject().setObfuscator(obfuscator);
 		final String result = getModelObject().getObfuscator().obfuscate();
 		getEnDecryptPanel().getTxtEncrypted().setText(result);
 		getEnDecryptPanel().getTxtToEncrypt().setText("");
@@ -224,8 +221,7 @@ public class RulePanel extends BasePanel<ObfuscationModelBean>
 		simpleRuleTablePanel = new ObfuscationRuleTablePanel(getModel())
 		{
 			@Override
-			protected void onEditObfuscationRule(
-				ObfuscationRule<Character, Character> selected)
+			protected void onEditObfuscationRule(ObfuscationRule<Character, Character> selected)
 			{
 				RulePanel.this.onEditObfuscationRule(selected);
 			}

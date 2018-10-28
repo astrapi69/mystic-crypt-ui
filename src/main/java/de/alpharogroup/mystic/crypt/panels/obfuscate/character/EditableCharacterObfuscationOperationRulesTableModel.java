@@ -51,7 +51,7 @@ public class EditableCharacterObfuscationOperationRulesTableModel
 
 	/** The Constant DELETE. */
 	public static final String DELETE = "Delete";
-	
+
 	/** The Constant EDIT. */
 	public static final String EDIT = "Edit";
 
@@ -76,7 +76,8 @@ public class EditableCharacterObfuscationOperationRulesTableModel
 	private final boolean[] canEdit = new boolean[] { false, false, false, false, true, true };
 
 	/** The column names. */
-	private final String[] columnNames = { ORIGINAL_CHAR, REPLACE_WITH, INDEXES, OPERATION, EDIT, DELETE };
+	private final String[] columnNames = { ORIGINAL_CHAR, REPLACE_WITH, INDEXES, OPERATION, EDIT,
+			DELETE };
 
 	/**
 	 * {@inheritDoc}
@@ -127,7 +128,8 @@ public class EditableCharacterObfuscationOperationRulesTableModel
 	@Override
 	public Object getValueAt(final int row, final int col)
 	{
-		if(getData().size() > row ) {
+		if (getData().size() > row)
+		{
 			final KeyValuePair<Character, ObfuscationOperationRule<Character, Character>> permission = getData()
 				.get(row);
 			switch (col)
@@ -146,7 +148,7 @@ public class EditableCharacterObfuscationOperationRulesTableModel
 					return permission.getValue();
 				default :
 					return null;
-			}			
+			}
 		}
 		return null;
 	}

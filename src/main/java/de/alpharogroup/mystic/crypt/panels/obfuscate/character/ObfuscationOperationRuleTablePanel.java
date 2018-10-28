@@ -29,7 +29,6 @@ import java.awt.event.ActionEvent;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -103,12 +102,12 @@ public class ObfuscationOperationRuleTablePanel extends BasePanel<ObfuscationOpe
 		super(model);
 	}
 
-	protected void onEditObfuscationOperationRule(
+	protected void onDeleteObfuscationOperationRule(
 		ObfuscationOperationRule<Character, Character> selected)
 	{
 	}
 
-	protected void onDeleteObfuscationOperationRule(
+	protected void onEditObfuscationOperationRule(
 		ObfuscationOperationRule<Character, Character> selected)
 	{
 	}
@@ -162,12 +161,21 @@ public class ObfuscationOperationRuleTablePanel extends BasePanel<ObfuscationOpe
 	{
 		super.onInitializeComponents();
 
-		fileChooser = new JFileChooser();
-
-		scpKeyRules = new JScrollPane();
-		tblKeyRules = new GenericJTable<>(getModelObject().getTableModel());
 		String editText = EditableCharacterObfuscationOperationRulesTableModel.EDIT;
 		String deleteText = EditableCharacterObfuscationOperationRulesTableModel.DELETE;
+
+		lblKeyRules = new JLabel();
+		scpKeyRules = new JScrollPane();
+		tblKeyRules = new GenericJTable<>(getModelObject().getTableModel());
+		btnImport = new javax.swing.JButton();
+		btnExport = new javax.swing.JButton();
+
+		scpKeyRules.setViewportView(tblKeyRules);
+
+		lblKeyRules.setText("Table of key rules for obfuscate");
+
+		btnImport.setText("Import");
+		btnExport.setText("Export");
 
 
 		final TableColumn editValueColumn = tblKeyRules.getColumn(editText);
@@ -236,7 +244,6 @@ public class ObfuscationOperationRuleTablePanel extends BasePanel<ObfuscationOpe
 				return getButton();
 			}
 		});
-		
 
 
 		final TableColumn deleteValueColumn = tblKeyRules.getColumn(deleteText);
@@ -266,49 +273,11 @@ public class ObfuscationOperationRuleTablePanel extends BasePanel<ObfuscationOpe
 			}
 		});
 
-		lblKeyRules = new JLabel();
-
-		btnImport = new javax.swing.JButton();
-		btnExport = new javax.swing.JButton();
-
-		scpKeyRules.setViewportView(tblKeyRules);
-
-		lblKeyRules.setText("Table of key rules for obfuscate");
-
-		btnImport.setText("Import");
-		btnExport.setText("Export");
 
 		btnImport.addActionListener(actionEvent -> onImport(actionEvent));
 		btnExport.addActionListener(actionEvent -> onExport(actionEvent));
-	}
-	
 
-	/**
-	 * Rearrange the order from the given {@link List} to the given rearranged index
-	 *
-	 * @param <T>
-	 *            the generic type of the elements
-	 * @param listToResort
-	 *            the list to resort
-	 * @param element
-	 *            the element to rearrange
-	 * @param rearrangeToIndex
-	 *            the rearrange to index
-	 * @return the rearranged {@link List}
-	 */
-	public static <T> List<T> rearrange(@NonNull T element, @NonNull List<T> listToResort,
-		int rearrangeToIndex)
-	{
-		int index = listToResort.indexOf(element);
-		if (index < 0 || index == rearrangeToIndex || listToResort.size() == rearrangeToIndex)
-		{
-			return listToResort;
-		}
-		List<T> resortedList;
-		resortedList = new ArrayList<>(listToResort);
-		resortedList.remove(index);
-		resortedList.add(rearrangeToIndex, element);
-		return resortedList;
+		fileChooser = new JFileChooser();
 	}
 
 	protected void onInitializeGroupLayout()
