@@ -33,7 +33,9 @@ import com.google.common.collect.HashBiMap;
 
 import de.alpharogroup.collections.list.ListFactory;
 import de.alpharogroup.collections.pairs.KeyValuePair;
+import de.alpharogroup.crypto.obfuscation.api.Obfuscatable;
 import de.alpharogroup.crypto.obfuscation.rule.ObfuscationRule;
+import de.alpharogroup.crypto.obfuscation.simple.SimpleCharacterObfuscator;
 import de.alpharogroup.model.BaseModel;
 import de.alpharogroup.model.api.Model;
 import de.alpharogroup.mystic.crypt.panels.keygen.EnDecryptPanel;
@@ -185,8 +187,8 @@ public class RulePanel extends BasePanel<ObfuscationModelBean>
 		BiMap<Character, ObfuscationRule<Character, Character>> biMap = HashBiMap.create(keymap);
 		// TODO FIXME
 		// obfuscate the key
-		// final Obfuscatable obfuscator = new CharacterObfuscator(biMap, toObfuscatedString);
-		// getModelObject().setObfuscator(obfuscator);
+		 final Obfuscatable obfuscator = new SimpleCharacterObfuscator(biMap, toObfuscatedString);
+		 getModelObject().setObfuscator(obfuscator);
 		final String result = getModelObject().getObfuscator().obfuscate();
 		getEnDecryptPanel().getTxtEncrypted().setText(result);
 		getEnDecryptPanel().getTxtToEncrypt().setText("");
