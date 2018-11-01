@@ -46,7 +46,6 @@ import com.thoughtworks.xstream.XStream;
 import de.alpharogroup.collections.map.MapFactory;
 import de.alpharogroup.collections.pairs.KeyValuePair;
 import de.alpharogroup.crypto.hex.HexExtensions;
-import de.alpharogroup.crypto.obfuscation.rule.ObfuscationOperationRule;
 import de.alpharogroup.crypto.obfuscation.rule.ObfuscationRule;
 import de.alpharogroup.file.read.ReadFileExtensions;
 import de.alpharogroup.file.write.WriteFileQuietlyExtensions;
@@ -201,7 +200,7 @@ public class ObfuscationRuleTablePanel extends BasePanel<ObfuscationModelBean>
 			@Override
 			public Object getCellEditorValue()
 			{
-				ObfuscationOperationRule<Character, Character> selected = (ObfuscationOperationRule<Character, Character>)this
+				ObfuscationRule<Character, Character> selected = (ObfuscationRule<Character, Character>)this
 					.getValue();
 				getModelObject().setSelected(selected);
 				getModelObject().setProccessMode(ModeContext.UPDATE);

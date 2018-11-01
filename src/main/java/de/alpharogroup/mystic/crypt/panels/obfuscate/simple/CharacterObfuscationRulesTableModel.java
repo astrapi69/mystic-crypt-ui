@@ -30,7 +30,6 @@ import java.util.Map;
 import java.util.Optional;
 
 import de.alpharogroup.collections.pairs.KeyValuePair;
-import de.alpharogroup.crypto.obfuscation.rule.ObfuscationOperationRule;
 import de.alpharogroup.crypto.obfuscation.rule.ObfuscationRule;
 import de.alpharogroup.swing.table.model.GenericTableModel;
 import lombok.Builder;

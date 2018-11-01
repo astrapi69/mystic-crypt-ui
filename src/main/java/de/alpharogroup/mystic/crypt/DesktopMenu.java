@@ -115,9 +115,9 @@ public class DesktopMenu extends JMenu
 		menubar = new JMenuBar();
 		fileMenu = newFileMenu(e -> logger.debug("filemenu"));
 
-		lookAndFeelMenu = createLookAndFeelMenu(e -> logger.debug("Look and Feel menu"));
+		lookAndFeelMenu = newLookAndFeelMenu(e -> logger.debug("Look and Feel menu"));
 
-		helpMenu = createHelpMenu(e -> logger.debug("Help menu"));
+		helpMenu = newHelpMenu(e -> logger.debug("Help menu"));
 
 		menubar.add(fileMenu);
 		menubar.add(lookAndFeelMenu);
@@ -131,7 +131,7 @@ public class DesktopMenu extends JMenu
 	 *            the listener
 	 * @return the j menu
 	 */
-	private JMenu createHelpMenu(final ActionListener listener)
+	private JMenu newHelpMenu(final ActionListener listener)
 	{
 		// Help menu
 		final JMenu menuHelp = new JMenu("Help"); //$NON-NLS-1$
@@ -204,7 +204,7 @@ public class DesktopMenu extends JMenu
 	 *            the listener
 	 * @return the j menu
 	 */
-	private JMenu createLookAndFeelMenu(final ActionListener listener)
+	private JMenu newLookAndFeelMenu(final ActionListener listener)
 	{
 
 		final JMenu menuLookAndFeel = new JMenu("Look and Feel");
@@ -305,17 +305,17 @@ public class DesktopMenu extends JMenu
 		obfuscationMenu.setMnemonic('O');
 		fileMenu.add(obfuscationMenu);
 
+		// New simple obfuscation
+		jmi = new JMenuItem("Simple obfuscation", 'S');
+		jmi.addActionListener(new NewObfuscationInternalFrameAction("Simple Obfuscation"));
+		MenuExtensions.setCtrlAccelerator(jmi, 'S');
+		obfuscationMenu.add(jmi);
+
 		// New operated obfuscation
 		jmi = new JMenuItem("Operated obfuscation", 'N');
 		jmi.addActionListener(
 			new NewObfuscationOperationInternalFrameAction("Operated Obfuscation"));
 		MenuExtensions.setCtrlAccelerator(jmi, 'N');
-		obfuscationMenu.add(jmi);
-
-		// New simple obfuscation
-		jmi = new JMenuItem("Simple obfuscation", 'S');
-		jmi.addActionListener(new NewObfuscationInternalFrameAction("Simple Obfuscation"));
-		MenuExtensions.setCtrlAccelerator(jmi, 'S');
 		obfuscationMenu.add(jmi);
 
 		// Separator
