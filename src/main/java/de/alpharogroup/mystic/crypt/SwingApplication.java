@@ -25,43 +25,72 @@
 package de.alpharogroup.mystic.crypt;
 
 import java.awt.Component;
+import java.awt.EventQueue;
+import java.awt.GraphicsDevice;
+import java.awt.GraphicsEnvironment;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 
 import javax.imageio.ImageIO;
 import javax.swing.JDesktopPane;
+import javax.swing.JFrame;
 import javax.swing.JInternalFrame;
 import javax.swing.JMenuBar;
 import javax.swing.JToolBar;
+import javax.swing.SwingUtilities;
+import javax.swing.UIManager;
+import javax.swing.UnsupportedLookAndFeelException;
 
 import org.jdesktop.swingx.JXFrame;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.builder.SpringApplicationBuilder;
+import org.springframework.context.ConfigurableApplicationContext;
 
 import de.alpharogroup.lang.ClassExtensions;
+import de.alpharogroup.layout.ScreenSizeExtensions;
 import de.alpharogroup.swing.components.factories.JComponentFactory;
 import de.alpharogroup.swing.desktoppane.SingletonDesktopPane;
 import de.alpharogroup.swing.laf.LookAndFeels;
 import de.alpharogroup.swing.utils.JInternalFrameExtensions;
+import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 
+
 /**
- * The Class MainFrame.
+ * The Class SwingApplication.
  */
 @SuppressWarnings("serial")
+@SpringBootApplication
 @Slf4j
-public class MainFrame extends JXFrame
+@FieldDefaults(level = AccessLevel.PRIVATE)
+public class SwingApplication extends JXFrame
 {
 
+	public static void main(String[] args) {
+
+		ConfigurableApplicationContext ctx = new SpringApplicationBuilder(SwingApplication.class)
+			.headless(false).run(args);
+		SwingApplication.ctx = ctx;
+
+		EventQueue.invokeLater(() -> {
+			SwingApplication ex = ctx.getBean(SwingApplication.class);
+			ex.setVisible(true);
+		});
+	}
+
 	/** The instance. */
-	private static MainFrame instance = new MainFrame();
+	private static SwingApplication instance;
+	public static ConfigurableApplicationContext ctx;
 
 	/**
-	 * Gets the single instance of MainFrame.
+	 * Gets the single instance of SwingApplication.
 	 *
-	 * @return single instance of MainFrame
+	 * @return single instance of SwingApplication
 	 */
-	public static MainFrame getInstance()
+	public static SwingApplication getInstance()
 	{
 		return instance;
 	}
@@ -69,80 +98,55 @@ public class MainFrame extends JXFrame
 	/** The current look and feels. */
 	@Getter
 	@Setter
-	private LookAndFeels currentLookAndFeels = LookAndFeels.SYSTEM;
+	LookAndFeels currentLookAndFeels = LookAndFeels.SYSTEM;
 
 	/** The current visible internal frame. */
 	@Getter
 	@Setter
-	private JInternalFrame currentVisibleInternalFrame;
+	JInternalFrame currentVisibleInternalFrame;
 
 	/** The desktop pane. */
 	@Getter
-	private final JDesktopPane desktopPane = SingletonDesktopPane.getInstance();
+	final JDesktopPane desktopPane = SingletonDesktopPane.getInstance();
 
 	/** The internal frame. */
 	@Getter
-	private JInternalFrame internalFrame;
+	JInternalFrame internalFrame;
 
 	/** The menubar. */
 	@Getter
-	private JMenuBar menubar;
+	JMenuBar menubar;
 
 	/** The toolbar. */
 	@Getter
-	private JToolBar toolbar;
+	JToolBar toolbar;
+
+	@Getter
+	DesktopMenu menu;
 
 	/**
 	 * Instantiates a new main frame.
 	 */
-	private MainFrame()
+	public SwingApplication()
 	{
 		super(Messages.getString("mainframe.title"));
+		if(instance== null) {
+			instance = this;
+		}
 		initComponents();
 	}
 
 	/**
 	 * Inits the components.
 	 */
-	private void initComponents()
+	protected void initComponents()
 	{
-
+		menu = new DesktopMenu();
+		setJMenuBar(menu.getMenubar());
 		toolbar = new JToolBar(); // create the tool bar
-		setJMenuBar(menubar);
 		setToolBar(toolbar);
 
 		getContentPane().add(desktopPane);
-		// https://stackoverflow.com/questions/26145425/login-dialog-window-wont-dispose-completely
-		// LoginService loginService = new LoginService()
-		// {
-		//
-		// @Override
-		// public boolean authenticate(String name, char[] password, String server)
-		// throws Exception
-		// {
-		// System.out.println(name+":"+new String(password));
-		// if(name.equals("foo")) {
-		// return true;
-		// }
-		// return false;
-		// }
-		// };
-		// JXLoginPane loginPane = new JXLoginPane(loginService);
-		// this.setDefaultCloseOperation(JXFrame.DISPOSE_ON_CLOSE);
-		// JXLoginPane.JXLoginDialog dialog = new JXLoginPane.JXLoginDialog(this, loginPane);
-		// dialog.setDefaultCloseOperation(JXFrame.DISPOSE_ON_CLOSE);
-		// dialog.setVisible(true);
-		// Status status = dialog.getStatus();
-		// if (!JXLoginPane.Status.SUCCEEDED.equals(status))
-		// {
-		// MainFrame.this.dispatchEvent(new WindowEvent(MainFrame.this,
-		// WindowEvent.WINDOW_CLOSING));
-		// }
-		// else
-		// {
-		// setVisible(true);
-		// }
-
 		try
 		{
 			String iconPath = Messages.getString("global.icon.app.path");
@@ -154,8 +158,44 @@ public class MainFrame extends JXFrame
 			log.error(e.getMessage(), e);
 		}
 
+		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		final GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
+		final GraphicsDevice[] gs = ge.getScreenDevices();
+		setSize(ScreenSizeExtensions.getScreenWidth(gs[0]),
+			ScreenSizeExtensions.getScreenHeight(gs[0]));
+		setVisible(true);
+
+		// Set default look and feel...
+		LookAndFeels defaultLookAndFeel = setDefaultLookAndFeel(this, LookAndFeels.SYSTEM);
+		setCurrentLookAndFeels(defaultLookAndFeel);
+
 	}
 
+	protected LookAndFeels setDefaultLookAndFeel(Component component, LookAndFeels lookAndFeels)
+	{
+		try
+		{
+			UIManager.setLookAndFeel(lookAndFeels.getLookAndFeelName());
+			SwingUtilities.updateComponentTreeUI(component);
+		}
+		catch (final ClassNotFoundException e)
+		{
+			log.error(e.getMessage(), e);
+		}
+		catch (final InstantiationException e)
+		{
+			log.error(e.getMessage(), e);
+		}
+		catch (final IllegalAccessException e)
+		{
+			log.error(e.getMessage(), e);
+		}
+		catch (final UnsupportedLookAndFeelException e)
+		{
+			log.error(e.getMessage(), e);
+		}
+		return lookAndFeels;
+	}
 
 	/**
 	 * Replace the current internal frame with a new internal frame with the given {@link Component}

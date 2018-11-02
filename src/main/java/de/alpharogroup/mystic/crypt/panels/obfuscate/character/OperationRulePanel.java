@@ -30,6 +30,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.IntStream;
 
 import javax.swing.JOptionPane;
 
@@ -39,8 +40,8 @@ import com.google.common.collect.HashBiMap;
 import de.alpharogroup.collections.list.ListFactory;
 import de.alpharogroup.collections.pairs.KeyValuePair;
 import de.alpharogroup.collections.set.SetFactory;
-import de.alpharogroup.crypto.obfuscation.CharacterObfuscator;
 import de.alpharogroup.crypto.obfuscation.api.Obfuscatable;
+import de.alpharogroup.crypto.obfuscation.character.CharacterObfuscator;
 import de.alpharogroup.crypto.obfuscation.rule.ObfuscationOperationRule;
 import de.alpharogroup.crypto.obfuscation.rule.Operation;
 import de.alpharogroup.model.BaseModel;
@@ -62,7 +63,7 @@ public class OperationRulePanel extends BasePanel<ObfuscationOperationModelBean>
 
 	public OperationRulePanel()
 	{
-		this(BaseModel.<ObfuscationOperationModelBean> of(ObfuscationOperationModelBean.builder()
+		this(BaseModel.of(ObfuscationOperationModelBean.builder()
 			.tableModel(EditableCharacterObfuscationOperationRulesTableModel.builder().build())
 			.build()));
 	}
@@ -96,7 +97,7 @@ public class OperationRulePanel extends BasePanel<ObfuscationOperationModelBean>
 		final Character replaceWith = simpleRulePanel.getTxtRelpaceWith().getText().charAt(0);
 		Map<Character, ObfuscationOperationRule<Character, Character>> map = getModelObject()
 			.getTableModel().toMap();
-		KeyValuePair<Character, ObfuscationOperationRule<Character, Character>> keyValuePair = null;
+		KeyValuePair<Character, ObfuscationOperationRule<Character, Character>> keyValuePair;
 		if (getModelObject().getSelected() != null
 			&& getModelObject().getSelected().getCharacter().equals(origChar)
 			&& ModeContext.UPDATE.equals(getModelObject().getProccessMode()))
@@ -130,14 +131,13 @@ public class OperationRulePanel extends BasePanel<ObfuscationOperationModelBean>
 				Object selectedItem = simpleRulePanel.getCmbOperation().getSelectedItem();
 				Operation selectedOperation = (Operation)selectedItem;
 				String[] strings = indexesAsString.split(",");
-				for (int i = 0; i < strings.length; i++)
-				{
+				IntStream.range(0, strings.length).forEach(i -> {
 					String index = strings[i];
 					if (!index.isEmpty())
 					{
 						indexes.add(Integer.valueOf(strings[i]));
 					}
-				}
+				});
 
 				keyValuePair.getValue().setReplaceWith(replaceWith);
 				keyValuePair.getValue().setIndexes(indexes);
@@ -178,12 +178,11 @@ public class OperationRulePanel extends BasePanel<ObfuscationOperationModelBean>
 			Object selectedItem = simpleRulePanel.getCmbOperation().getSelectedItem();
 			Operation selectedOperation = (Operation)selectedItem;
 			String[] strings = indexesAsString.split(",");
-			for (int i = 0; i < strings.length; i++)
+			for (String index : strings)
 			{
-				String index = strings[i];
 				if (!index.isEmpty())
 				{
-					indexes.add(Integer.valueOf(strings[i]));
+					indexes.add(Integer.valueOf(index));
 				}
 			}
 			keyValuePair = KeyValuePair

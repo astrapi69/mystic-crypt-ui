@@ -36,6 +36,7 @@ import java.security.spec.InvalidKeySpecException;
 
 import javax.swing.JInternalFrame;
 
+import lombok.NonNull;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 
 import de.alpharogroup.crypto.key.KeySize;
@@ -44,7 +45,7 @@ import de.alpharogroup.crypto.key.PrivateKeyHexDecryptor;
 import de.alpharogroup.crypto.key.PublicKeyExtensions;
 import de.alpharogroup.crypto.key.PublicKeyHexEncryptor;
 import de.alpharogroup.crypto.key.reader.PrivateKeyReader;
-import de.alpharogroup.mystic.crypt.MainFrame;
+import de.alpharogroup.mystic.crypt.SwingApplication;
 import de.alpharogroup.mystic.crypt.panels.privatekey.PrivateKeyModelBean;
 import de.alpharogroup.mystic.crypt.panels.privatekey.PrivateKeyPanel;
 import de.alpharogroup.swing.actions.OpenFileAction;
@@ -95,7 +96,7 @@ public class OpenPrivateKeyAction extends OpenFileAction
 	 * @param parent
 	 *            the parent
 	 */
-	public OpenPrivateKeyAction(final String name, final Component parent)
+	public OpenPrivateKeyAction(final String name, final @NonNull Component parent)
 	{
 		super(name, parent);
 	}
@@ -178,7 +179,7 @@ public class OpenPrivateKeyAction extends OpenFileAction
 		component.getPrivateKeyViewPanel().getTxtPublicKey().setText(publicKeyFormat);
 
 		JInternalFrameExtensions.addComponentToFrame(internalFrame, component);
-		JInternalFrameExtensions.addJInternalFrame(MainFrame.getInstance().getDesktopPane(),
+		JInternalFrameExtensions.addJInternalFrame(SwingApplication.getInstance().getDesktopPane(),
 			internalFrame);
 	}
 

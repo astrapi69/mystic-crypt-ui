@@ -29,7 +29,7 @@ import java.awt.event.ActionEvent;
 import javax.swing.AbstractAction;
 import javax.swing.JInternalFrame;
 
-import de.alpharogroup.mystic.crypt.MainFrame;
+import de.alpharogroup.mystic.crypt.SwingApplication;
 import de.alpharogroup.mystic.crypt.panels.keygen.GenerateKeysPanel;
 import de.alpharogroup.swing.components.factories.JComponentFactory;
 import de.alpharogroup.swing.utils.JInternalFrameExtensions;
@@ -66,7 +66,7 @@ public class NewKeyGenerationInternalFrameAction extends AbstractAction
 
 		final GenerateKeysPanel component = new GenerateKeysPanel();
 		JInternalFrameExtensions.addComponentToFrame(internalFrame, component);
-		JInternalFrameExtensions.addJInternalFrame(MainFrame.getInstance().getDesktopPane(),
+		JInternalFrameExtensions.addJInternalFrame(SwingApplication.getInstance().getDesktopPane(),
 			internalFrame);
 	}
 

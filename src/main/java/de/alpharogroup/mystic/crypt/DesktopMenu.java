@@ -68,23 +68,10 @@ import lombok.Setter;
 public class DesktopMenu extends JMenu
 {
 
-	/** The instance. */
-	private static DesktopMenu instance = new DesktopMenu();
-
 	/** The Constant logger. */
 	private static final Logger logger = Logger.getLogger(DesktopMenu.class.getName());
 
 	private static final long serialVersionUID = 1L;
-
-	/**
-	 * Gets the single instance of DesktopMenu.
-	 *
-	 * @return single instance of DesktopMenu
-	 */
-	public static DesktopMenu getInstance()
-	{
-		return instance;
-	}
 
 	/** The file menu. */
 	@Getter
@@ -107,21 +94,26 @@ public class DesktopMenu extends JMenu
 	@Getter
 	private final JMenuBar menubar;
 
+	SwingApplication swingApplication;
+
 	/**
 	 * Instantiates a new desktop menu.
 	 */
-	private DesktopMenu()
+	public DesktopMenu()
 	{
-		menubar = new JMenuBar();
-		fileMenu = newFileMenu(e -> logger.debug("filemenu"));
+		menubar = newJMenuBar();
+		menubar.add(fileMenu = newFileMenu(e -> logger.debug("filemenu")));
+		menubar.add(lookAndFeelMenu = newLookAndFeelMenu(e -> logger.debug("Look and Feel menu")));
+		menubar.add(helpMenu = newHelpMenu(e -> logger.debug("Help menu")));
+	}
 
-		lookAndFeelMenu = newLookAndFeelMenu(e -> logger.debug("Look and Feel menu"));
-
-		helpMenu = newHelpMenu(e -> logger.debug("Help menu"));
-
-		menubar.add(fileMenu);
-		menubar.add(lookAndFeelMenu);
-		menubar.add(helpMenu);
+	/**
+	 * Creates a new {@link JMenuBar}
+	 *
+	 * @return the new {@link JMenuBar}
+	 */
+	protected JMenuBar newJMenuBar() {
+		return  new JMenuBar();
 	}
 
 	/**
@@ -215,26 +207,26 @@ public class DesktopMenu extends JMenu
 		JMenuItem jmiLafMetal;
 		jmiLafMetal = new JMenuItem("Metal", 'm'); //$NON-NLS-1$
 		MenuExtensions.setCtrlAccelerator(jmiLafMetal, 'M');
-		jmiLafMetal.addActionListener(new LookAndFeelMetalAction("Metal", MainFrame.getInstance()));
+		jmiLafMetal.addActionListener(new LookAndFeelMetalAction("Metal", SwingApplication.getInstance()));
 		menuLookAndFeel.add(jmiLafMetal);
 		// Metal Ocean theme
 		JMenuItem jmiLafOcean;
 		jmiLafOcean = new JMenuItem("Ocean", 'o'); //$NON-NLS-1$
 		MenuExtensions.setCtrlAccelerator(jmiLafOcean, 'O');
-		jmiLafOcean.addActionListener(new LookAndFeelMetalAction("Ocean", MainFrame.getInstance()));
+		jmiLafOcean.addActionListener(new LookAndFeelMetalAction("Ocean", SwingApplication.getInstance()));
 		menuLookAndFeel.add(jmiLafOcean);
 		// Motif
 		JMenuItem jmiLafMotiv;
 		jmiLafMotiv = new JMenuItem("Motif", 't'); //$NON-NLS-1$
 		MenuExtensions.setCtrlAccelerator(jmiLafMotiv, 'T');
-		jmiLafMotiv.addActionListener(new LookAndFeelMotifAction("Motif", MainFrame.getInstance()));
+		jmiLafMotiv.addActionListener(new LookAndFeelMotifAction("Motif", SwingApplication.getInstance()));
 		menuLookAndFeel.add(jmiLafMotiv);
 		// Windows
 		JMenuItem jmiLafSystem;
 		jmiLafSystem = new JMenuItem("System", 'd'); //$NON-NLS-1$
 		MenuExtensions.setCtrlAccelerator(jmiLafSystem, 'W');
 		jmiLafSystem
-			.addActionListener(new LookAndFeelSystemAction("System", MainFrame.getInstance()));
+			.addActionListener(new LookAndFeelSystemAction("System", SwingApplication.getInstance()));
 		menuLookAndFeel.add(jmiLafSystem);
 
 		return menuLookAndFeel;
@@ -252,8 +244,6 @@ public class DesktopMenu extends JMenu
 		final String filename = "simple-hs.xml";
 		final String path = "help/" + filename;
 		URL hsURL;
-		if (hs == null)
-		{
 			hsURL = ClassExtensions.getResource(path);
 			try
 			{
@@ -263,7 +253,6 @@ public class DesktopMenu extends JMenu
 			{
 				e.printStackTrace();
 			}
-		}
 		return hs;
 	}
 
@@ -294,7 +283,7 @@ public class DesktopMenu extends JMenu
 		// Open private key
 		jmi = new JMenuItem("Open private key", 'e');
 		jmi.addActionListener(
-			new OpenPrivateKeyAction("Open private key", MainFrame.getInstance()));
+			new OpenPrivateKeyAction("Open private key", SwingApplication.getInstance()));
 		MenuExtensions.setCtrlAccelerator(jmi, 'e');
 		keyMenu.add(jmi);
 

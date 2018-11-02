@@ -1,19 +1,37 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+		 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
-	<parent>
-		<groupId>de.alpharogroup</groupId>
-		<artifactId>mvn-ui-parent</artifactId>
-		<version>1.19</version>
-		<relativePath></relativePath>
-	</parent>
-
+	<groupId>de.alpharogroup</groupId>
 	<artifactId>mystic-crypt-ui</artifactId>
 	<version>5.3-SNAPSHOT</version>
+	<packaging>jar</packaging>
+
+	<name>mystic-crypt-boot</name>
+	<description>Demo project for Spring Boot</description>
+
+	<parent>
+		<groupId>org.springframework.boot</groupId>
+		<artifactId>spring-boot-starter-parent</artifactId>
+		<version>2.1.0.RELEASE</version>
+		<relativePath/> <!-- lookup parent from repository -->
+	</parent>
 
 	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+		<java.version>1.8</java.version>
+		<!-- JAVAHELP version -->
+		<javahelp.version>2.0.05</javahelp.version>
+		<!-- SWINGLABS versions -->
+		<swing-layout.version>1.0.3</swing-layout.version>
+		<jxlayer.version>3.0.4</jxlayer.version>
+		<swing-worker.version>1.1</swing-worker.version>
+		<swingx.version>1.6.1</swingx.version>
+		<!-- XML-APIS version -->
+		<xml-apis.version>1.4.01</xml-apis.version>
 		<!-- EXTENSIONS LIB versions -->
 		<file-worker.version>4.23</file-worker.version>
 		<jcommons-lang.version>4.35</jcommons-lang.version>
@@ -36,7 +54,9 @@
 		<main-full-app-name>${main-app-package-name}.MainApplication</main-full-app-name>
 		<file-name-with-dependencies>${full-app-name}-jar-with-dependencies.jar</file-name-with-dependencies>
 		<file-name-with-dependencies-path>target/${file-name-with-dependencies}</file-name-with-dependencies-path>
+
 	</properties>
+
 
 	<dependencyManagement>
 
@@ -77,12 +97,96 @@
 				<artifactId>guava</artifactId>
 				<version>${guava.version}</version>
 			</dependency>
+			<!-- XML-APIS DEPENDENCIES -->
+			<dependency>
+				<groupId>xml-apis</groupId>
+				<artifactId>xml-apis</artifactId>
+				<version>${xml-apis.version}</version>
+			</dependency>
+			<!-- JAVAHELP DEPENDENCIES -->
+			<dependency>
+				<groupId>javax.help</groupId>
+				<artifactId>javahelp</artifactId>
+				<version>${javahelp.version}</version>
+			</dependency>
+			<!-- SWINGLABS DEPENDENCIES -->
+			<dependency>
+				<groupId>org.swinglabs</groupId>
+				<artifactId>swing-layout</artifactId>
+				<version>${swing-layout.version}</version>
+			</dependency>
+
+			<dependency>
+				<groupId>org.swinglabs</groupId>
+				<artifactId>jxlayer</artifactId>
+				<version>${jxlayer.version}</version>
+			</dependency>
+
+			<dependency>
+				<groupId>org.swinglabs</groupId>
+				<artifactId>swing-worker</artifactId>
+				<version>${swing-worker.version}</version>
+			</dependency>
+
+			<dependency>
+				<groupId>org.swinglabs</groupId>
+				<artifactId>swingx</artifactId>
+				<version>${swingx.version}</version>
+			</dependency>
+			<!-- EXT-LIBS DEPENDENCIES -->
+			<dependency>
+				<groupId>de.alpharogroup</groupId>
+				<artifactId>swing-components</artifactId>
+				<version>${swing-components.version}</version>
+			</dependency>
+
+			<dependency>
+				<groupId>de.alpharogroup</groupId>
+				<artifactId>file-worker</artifactId>
+				<version>${file-worker.version}</version>
+			</dependency>
+
+			<dependency>
+				<groupId>de.alpharogroup</groupId>
+				<artifactId>jcommons-lang</artifactId>
+				<version>${jcommons-lang.version}</version>
+			</dependency>
 
 		</dependencies>
 
 	</dependencyManagement>
 
 	<dependencies>
+
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-integration</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-validation</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-devtools</artifactId>
+			<scope>runtime</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.projectlombok</groupId>
+			<artifactId>lombok</artifactId>
+			<optional>true</optional>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-test</artifactId>
+			<scope>test</scope>
+		</dependency>
+
 
 		<dependency>
 			<groupId>com.miglayout</groupId>
@@ -113,72 +217,57 @@
 			<groupId>com.google.guava</groupId>
 			<artifactId>guava</artifactId>
 		</dependency>
+		<!-- JAVAHELP DEPENDENCIES -->
+		<dependency>
+			<groupId>javax.help</groupId>
+			<artifactId>javahelp</artifactId>
+		</dependency>
+		<!-- SWINGLABS DEPENDENCIES -->
+		<dependency>
+			<groupId>org.swinglabs</groupId>
+			<artifactId>swing-layout</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.swinglabs</groupId>
+			<artifactId>jxlayer</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.swinglabs</groupId>
+			<artifactId>swing-worker</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.swinglabs</groupId>
+			<artifactId>swingx</artifactId>
+		</dependency>
+		<!-- EXT-LIBS DEPENDENCIES -->
+		<dependency>
+			<groupId>de.alpharogroup</groupId>
+			<artifactId>file-worker</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>de.alpharogroup</groupId>
+			<artifactId>jcommons-lang</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>de.alpharogroup</groupId>
+			<artifactId>swing-components</artifactId>
+		</dependency>
 
 	</dependencies>
 
 	<build>
-
-		<finalName>${full-app-name}</finalName>
-
 		<plugins>
-
 			<plugin>
-				<artifactId>maven-jar-plugin</artifactId>
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-maven-plugin</artifactId>
 			</plugin>
-
-<!-- 			<plugin> -->
-<!-- 				<artifactId>maven-assembly-plugin</artifactId> -->
-<!-- 			</plugin> -->
-
 		</plugins>
-
 	</build>
 
 
-	<profiles>
-		<profile>
-			<id>launch4j-executable-creation</id>
-			<!-- This is the profile to use for create the executable for the os windows -->
-			<activation>
-				<property>
-					<name>performRelease</name>
-					<value>true</value>
-				</property>
-			</activation>
-			<build>
-			<plugins>
-
-				<plugin>
-					<groupId>com.akathist.maven.plugins.launch4j</groupId>
-					<artifactId>launch4j-maven-plugin</artifactId>
-					<executions>
-						<execution>
-							<id>l4j-clui</id>
-							<phase>package</phase>
-							<goals><goal>launch4j</goal></goals>
-							<configuration>
-								<headerType>console</headerType>
-								<outfile>target/${full-app-name}.exe</outfile>
-								<jar>target/${project.artifactId}-jar-with-dependencies.jar</jar>
-								<errTitle>${full-app-name}</errTitle>
-								<classPath>
-									<mainClass>de.alpharogroup.mystic.crypt.MainApplication</mainClass>
-									<addDependencies>false</addDependencies>
-									<preCp>anything</preCp>
-								</classPath>
-								<jre>
-									<minVersion>1.8.0_40</minVersion>
-									<opts>
-										<opt>-Djava.endorsed.dirs=./endorsed</opt>
-									</opts>
-								</jre>
-							</configuration>
-						</execution>
-					</executions>
-				</plugin>
-			</plugins>
-			</build>
-		</profile>
-	</profiles>
-	
 </project>

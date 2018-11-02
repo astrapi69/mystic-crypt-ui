@@ -31,8 +31,7 @@ import javax.swing.AbstractAction;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 
-import de.alpharogroup.mystic.crypt.DesktopMenu;
-import de.alpharogroup.mystic.crypt.MainFrame;
+import de.alpharogroup.mystic.crypt.SwingApplication;
 import de.alpharogroup.swing.laf.LookAndFeels;
 
 /**
@@ -61,8 +60,8 @@ public class ShowHelpDialogAction extends AbstractAction
 	@Override
 	public void actionPerformed(final ActionEvent e)
 	{
-		final LookAndFeels currentLaf = MainFrame.getInstance().getCurrentLookAndFeels();
-		final Window helpWindow = DesktopMenu.getInstance().getHelpWindow();
+		final LookAndFeels currentLaf = SwingApplication.getInstance().getCurrentLookAndFeels();
+		final Window helpWindow = SwingApplication.getInstance().getMenu().getHelpWindow();
 		helpWindow.setLocationRelativeTo(null);
 		try
 		{

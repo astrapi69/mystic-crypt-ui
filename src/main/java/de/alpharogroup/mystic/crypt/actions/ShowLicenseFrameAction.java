@@ -32,11 +32,9 @@ import java.io.InputStreamReader;
 
 import javax.swing.AbstractAction;
 
-import org.springframework.context.ApplicationContext;
 import org.springframework.core.io.Resource;
 
 import de.alpharogroup.mystic.crypt.help.HelpJFrame;
-import de.alpharogroup.mystic.crypt.spring.SpringApplicationContext;
 
 /**
  * The Class ShowLicenseFrameAction.
@@ -79,22 +77,17 @@ public class ShowLicenseFrameAction extends AbstractAction
 	 */
 	private String loadLicense()
 	{
-
-		final ApplicationContext ctx = SpringApplicationContext.getInstance()
-			.getApplicationContext();
-		final Resource resource = ctx.getResource("classpath:LICENSE.txt");
-		InputStream is = null;
-		final StringBuffer license = new StringBuffer();
-		try
+		final Resource resource = de.alpharogroup.mystic.crypt.SwingApplication.ctx.getResource("classpath:LICENSE.txt");
+		final StringBuilder license = new StringBuilder();
+		try(InputStream is = resource.getInputStream())
 		{
 			String thisLine;
-			is = resource.getInputStream();
 			final BufferedReader br = new BufferedReader(new InputStreamReader(is));
 			while ((thisLine = br.readLine()) != null)
 			{
-				license.append(thisLine + "\n");
+				license.append(thisLine);
+				license.append("\n");
 			}
-			is.close();
 		}
 		catch (final IOException ex)
 		{

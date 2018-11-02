@@ -29,7 +29,7 @@ import java.awt.event.ActionEvent;
 import javax.swing.AbstractAction;
 import javax.swing.JInternalFrame;
 
-import de.alpharogroup.mystic.crypt.MainFrame;
+import de.alpharogroup.mystic.crypt.SwingApplication;
 import de.alpharogroup.mystic.crypt.panels.obfuscate.character.OperationRulePanel;
 import de.alpharogroup.swing.components.factories.JComponentFactory;
 import de.alpharogroup.swing.utils.JInternalFrameExtensions;
@@ -66,7 +66,7 @@ public class NewObfuscationOperationInternalFrameAction extends AbstractAction
 		final OperationRulePanel component = new OperationRulePanel();
 		JInternalFrameExtensions.addComponentToFrame(internalFrame, component);
 
-		JInternalFrameExtensions.addJInternalFrame(MainFrame.getInstance().getDesktopPane(),
+		JInternalFrameExtensions.addJInternalFrame(SwingApplication.getInstance().getDesktopPane(),
 			internalFrame);
 	}
 

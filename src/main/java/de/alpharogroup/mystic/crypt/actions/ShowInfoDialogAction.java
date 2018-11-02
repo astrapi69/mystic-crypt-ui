@@ -28,7 +28,7 @@ import java.awt.event.ActionEvent;
 
 import javax.swing.AbstractAction;
 
-import de.alpharogroup.mystic.crypt.MainFrame;
+import de.alpharogroup.mystic.crypt.SwingApplication;
 import de.alpharogroup.mystic.crypt.help.InfoJDialog;
 
 /**
@@ -59,7 +59,7 @@ public class ShowInfoDialogAction extends AbstractAction
 	@Override
 	public void actionPerformed(final ActionEvent e)
 	{
-		final InfoJDialog info = new InfoJDialog(MainFrame.getInstance(), INFO_TITLE);
+		final InfoJDialog info = new InfoJDialog(SwingApplication.getInstance(), INFO_TITLE);
 		info.setVisible(true);
 	}
 
