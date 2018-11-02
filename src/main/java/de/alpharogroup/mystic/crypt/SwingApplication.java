@@ -3,24 +3,20 @@
  *
  * Copyright (C) 2015 Asterios Raptis
  *
- * Permission is hereby granted, free of charge, to any person obtaining
- * a copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, sublicense, and/or sell copies of the Software, and to
- * permit persons to whom the Software is furnished to do so, subject to
- * the following conditions:
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
+ * associated documentation files (the "Software"), to deal in the Software without restriction,
+ * including without limitation the rights to use, copy, modify, merge, publish, distribute,
+ * sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
  *
- * The above copyright notice and this permission notice shall be
- * included in all copies or substantial portions of the Software.
+ * The above copyright notice and this permission notice shall be included in all copies or
+ * substantial portions of the Software.
  *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
- * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
- * LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
- * OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
- * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT
+ * NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+ * DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 package de.alpharogroup.mystic.crypt;
 
@@ -37,8 +33,6 @@ import javax.swing.JFrame;
 import javax.swing.JInternalFrame;
 import javax.swing.JMenuBar;
 import javax.swing.JToolBar;
-import javax.swing.SwingUtilities;
-import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
 
 import org.jdesktop.swingx.JXFrame;
@@ -50,7 +44,7 @@ import de.alpharogroup.lang.ClassExtensions;
 import de.alpharogroup.layout.ScreenSizeExtensions;
 import de.alpharogroup.swing.components.factories.JComponentFactory;
 import de.alpharogroup.swing.desktoppane.SingletonDesktopPane;
-import de.alpharogroup.swing.laf.LookAndFeels;
+import de.alpharogroup.swing.plaf.LookAndFeels;
 import de.alpharogroup.swing.utils.JInternalFrameExtensions;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -69,7 +63,8 @@ import lombok.extern.slf4j.Slf4j;
 public class SwingApplication extends JXFrame
 {
 
-	public static void main(String[] args) {
+	public static void main(String[] args)
+	{
 
 		ConfigurableApplicationContext ctx = new SpringApplicationBuilder(SwingApplication.class)
 			.headless(false).run(args);
@@ -130,7 +125,8 @@ public class SwingApplication extends JXFrame
 	public SwingApplication()
 	{
 		super(Messages.getString("mainframe.title"));
-		if(instance== null) {
+		if (instance == null)
+		{
 			instance = this;
 		}
 		initComponents();
@@ -166,17 +162,16 @@ public class SwingApplication extends JXFrame
 		setVisible(true);
 
 		// Set default look and feel...
-		LookAndFeels defaultLookAndFeel = setDefaultLookAndFeel(this, LookAndFeels.SYSTEM);
-		setCurrentLookAndFeels(defaultLookAndFeel);
+		setDefaultLookAndFeel(LookAndFeels.SYSTEM, this);
 
 	}
 
-	protected LookAndFeels setDefaultLookAndFeel(Component component, LookAndFeels lookAndFeels)
+	protected LookAndFeels setDefaultLookAndFeel(LookAndFeels lookAndFeels, Component component)
 	{
 		try
 		{
-			UIManager.setLookAndFeel(lookAndFeels.getLookAndFeelName());
-			SwingUtilities.updateComponentTreeUI(component);
+			LookAndFeels.setLookAndFeel(lookAndFeels, this);
+			setCurrentLookAndFeels(lookAndFeels);
 		}
 		catch (final ClassNotFoundException e)
 		{

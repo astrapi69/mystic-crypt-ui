@@ -32,7 +32,7 @@ import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 
 import de.alpharogroup.mystic.crypt.SwingApplication;
-import de.alpharogroup.swing.laf.LookAndFeels;
+import de.alpharogroup.swing.plaf.LookAndFeels;
 
 /**
  * The Class ShowHelpDialogAction.

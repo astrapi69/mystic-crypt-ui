@@ -55,10 +55,12 @@ import de.alpharogroup.mystic.crypt.actions.ShowHelpDialogAction;
 import de.alpharogroup.mystic.crypt.actions.ShowInfoDialogAction;
 import de.alpharogroup.mystic.crypt.actions.ShowLicenseFrameAction;
 import de.alpharogroup.swing.actions.ExitApplicationAction;
-import de.alpharogroup.swing.laf.actions.LookAndFeelMetalAction;
-import de.alpharogroup.swing.laf.actions.LookAndFeelMotifAction;
-import de.alpharogroup.swing.laf.actions.LookAndFeelSystemAction;
 import de.alpharogroup.swing.menu.MenuExtensions;
+import de.alpharogroup.swing.plaf.actions.LookAndFeelGTKAction;
+import de.alpharogroup.swing.plaf.actions.LookAndFeelMetalAction;
+import de.alpharogroup.swing.plaf.actions.LookAndFeelMotifAction;
+import de.alpharogroup.swing.plaf.actions.LookAndFeelNimbusAction;
+import de.alpharogroup.swing.plaf.actions.LookAndFeelSystemAction;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -203,31 +205,45 @@ public class DesktopMenu extends JMenu
 		menuLookAndFeel.setMnemonic('L');
 
 		// Look and Feel JMenuItems
+		// GTK
+		JMenuItem jmiPlafGTK;
+		jmiPlafGTK = new JMenuItem("GTK", 'g'); //$NON-NLS-1$
+		MenuExtensions.setCtrlAccelerator(jmiPlafGTK, 'G');
+		jmiPlafGTK
+			.addActionListener(new LookAndFeelGTKAction("GTK", SwingApplication.getInstance()));
+		menuLookAndFeel.add(jmiPlafGTK);
 		// Metal default Metal theme
-		JMenuItem jmiLafMetal;
-		jmiLafMetal = new JMenuItem("Metal", 'm'); //$NON-NLS-1$
-		MenuExtensions.setCtrlAccelerator(jmiLafMetal, 'M');
-		jmiLafMetal.addActionListener(new LookAndFeelMetalAction("Metal", SwingApplication.getInstance()));
-		menuLookAndFeel.add(jmiLafMetal);
+		JMenuItem jmiPlafMetal;
+		jmiPlafMetal = new JMenuItem("Metal", 'm'); //$NON-NLS-1$
+		MenuExtensions.setCtrlAccelerator(jmiPlafMetal, 'M');
+		jmiPlafMetal.addActionListener(new LookAndFeelMetalAction("Metal", SwingApplication.getInstance()));
+		menuLookAndFeel.add(jmiPlafMetal);
 		// Metal Ocean theme
-		JMenuItem jmiLafOcean;
-		jmiLafOcean = new JMenuItem("Ocean", 'o'); //$NON-NLS-1$
-		MenuExtensions.setCtrlAccelerator(jmiLafOcean, 'O');
-		jmiLafOcean.addActionListener(new LookAndFeelMetalAction("Ocean", SwingApplication.getInstance()));
-		menuLookAndFeel.add(jmiLafOcean);
+		JMenuItem jmiPlafOcean;
+		jmiPlafOcean = new JMenuItem("Ocean", 'o'); //$NON-NLS-1$
+		MenuExtensions.setCtrlAccelerator(jmiPlafOcean, 'O');
+		jmiPlafOcean.addActionListener(new LookAndFeelMetalAction("Ocean", SwingApplication.getInstance()));
+		menuLookAndFeel.add(jmiPlafOcean);
 		// Motif
-		JMenuItem jmiLafMotiv;
-		jmiLafMotiv = new JMenuItem("Motif", 't'); //$NON-NLS-1$
-		MenuExtensions.setCtrlAccelerator(jmiLafMotiv, 'T');
-		jmiLafMotiv.addActionListener(new LookAndFeelMotifAction("Motif", SwingApplication.getInstance()));
-		menuLookAndFeel.add(jmiLafMotiv);
+		JMenuItem jmiPlafMotiv;
+		jmiPlafMotiv = new JMenuItem("Motif", 't'); //$NON-NLS-1$
+		MenuExtensions.setCtrlAccelerator(jmiPlafMotiv, 'T');
+		jmiPlafMotiv.addActionListener(new LookAndFeelMotifAction("Motif", SwingApplication.getInstance()));
+		menuLookAndFeel.add(jmiPlafMotiv);	
+		// Nimbus
+		JMenuItem jmiPlafNimbus;
+		jmiPlafNimbus = new JMenuItem("Nimbus", 'n'); //$NON-NLS-1$
+		MenuExtensions.setCtrlAccelerator(jmiPlafNimbus, 'N');
+		jmiPlafNimbus
+			.addActionListener(new LookAndFeelNimbusAction("Nimbus", SwingApplication.getInstance()));
+		menuLookAndFeel.add(jmiPlafNimbus);				
 		// Windows
-		JMenuItem jmiLafSystem;
-		jmiLafSystem = new JMenuItem("System", 'd'); //$NON-NLS-1$
-		MenuExtensions.setCtrlAccelerator(jmiLafSystem, 'W');
-		jmiLafSystem
+		JMenuItem jmiPlafSystem;
+		jmiPlafSystem = new JMenuItem("System", 'd'); //$NON-NLS-1$
+		MenuExtensions.setCtrlAccelerator(jmiPlafSystem, 'W');
+		jmiPlafSystem
 			.addActionListener(new LookAndFeelSystemAction("System", SwingApplication.getInstance()));
-		menuLookAndFeel.add(jmiLafSystem);
+		menuLookAndFeel.add(jmiPlafSystem);
 
 		return menuLookAndFeel;
 
