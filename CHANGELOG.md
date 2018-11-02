@@ -4,6 +4,15 @@
 Version 5.3-SNAPSHOT
 -------------
 
+ADDED:
+
+- simple obfuscation feature added
+
+CHANGED:
+
+- update of mystic-crypt version to 5.6
+- update of guava version to 26.0-jre
+
 Version 5.2.1
 -------------
 

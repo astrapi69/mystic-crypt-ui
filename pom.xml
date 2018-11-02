@@ -24,9 +24,9 @@
 		<!-- XML-EXTENSIONS version -->
 		<xml-extensions.version>4.20</xml-extensions.version>
 		<!-- GUAVA version -->
-		<guava.version>25.1-jre</guava.version>
+		<guava.version>26.0-jre</guava.version>
 		<!-- MYSTIC-CRYPT versions -->
-		<mystic-crypt.version>5.6-SNAPSHOT</mystic-crypt.version>
+		<mystic-crypt.version>5.6</mystic-crypt.version>
 		<crypt-api.version>${mystic-crypt.version}</crypt-api.version>
 		<crypt-core.version>${mystic-crypt.version}</crypt-core.version>
 		<crypt-data.version>${mystic-crypt.version}</crypt-data.version>
