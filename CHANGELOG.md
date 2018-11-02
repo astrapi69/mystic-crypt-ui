@@ -1,12 +1,15 @@
 ## Change log
 ----------------------
 
-Version 5.3-SNAPSHOT
+Version 5.3
 -------------
 
 ADDED:
 
 - simple obfuscation feature added
+- integration of spring-boot
+- new look and feel menu items
+
 
 CHANGED:
 

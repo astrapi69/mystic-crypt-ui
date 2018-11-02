@@ -2,8 +2,8 @@
 <launch4jConfig>
   <dontWrapJar>false</dontWrapJar>
   <headerType>gui</headerType>
-  <jar>/home/astrapi69/git/mystic-crypt-ui/target/mystic-crypt-ui-jar-with-dependencies.jar</jar>
-  <outfile>/home/astrapi69/git/mystic-crypt-ui/dist/launch4j/mystic-crypt-ui.exe</outfile>
+  <jar>/home/astrapi69/git/mystic-crypt-ui/target/mystic-crypt-ui.jar</jar>
+  <outfile>/home/astrapi69/git/mystic-crypt-ui/dist/mystic-crypt-ui.exe</outfile>
   <errTitle>JDK not installed. Please download and install.</errTitle>
   <cmdLine></cmdLine>
   <chdir></chdir>

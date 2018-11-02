@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0"
-		 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-		 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
 	<groupId>de.alpharogroup</groupId>
 	<artifactId>mystic-crypt-ui</artifactId>
-	<version>5.3-SNAPSHOT</version>
+	<version>5.3</version>
 	<packaging>jar</packaging>
 
 	<name>mystic-crypt-boot</name>
@@ -16,7 +16,7 @@
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
 		<version>2.1.0.RELEASE</version>
-		<relativePath/> <!-- lookup parent from repository -->
+		<relativePath /> <!-- lookup parent from repository -->
 	</parent>
 
 	<properties>
@@ -51,9 +51,7 @@
 		<full-app-name>mystic-crypt-ui</full-app-name>
 		<info.appName>mystic-crypt-ui</info.appName>
 		<main-app-package-name>de.alpharogroup.mystic.crypt</main-app-package-name>
-		<main-full-app-name>${main-app-package-name}.MainApplication</main-full-app-name>
-		<file-name-with-dependencies>${full-app-name}-jar-with-dependencies.jar</file-name-with-dependencies>
-		<file-name-with-dependencies-path>target/${file-name-with-dependencies}</file-name-with-dependencies-path>
+		<main-full-app-name>${main-app-package-name}.SwingApplication</main-full-app-name>
 
 	</properties>
 
@@ -162,10 +160,12 @@
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter</artifactId>
 		</dependency>
+
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-integration</artifactId>
 		</dependency>
+
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-validation</artifactId>
@@ -176,17 +176,18 @@
 			<artifactId>spring-boot-devtools</artifactId>
 			<scope>runtime</scope>
 		</dependency>
+
 		<dependency>
 			<groupId>org.projectlombok</groupId>
 			<artifactId>lombok</artifactId>
 			<optional>true</optional>
 		</dependency>
+
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-test</artifactId>
 			<scope>test</scope>
 		</dependency>
-
 
 		<dependency>
 			<groupId>com.miglayout</groupId>
@@ -246,6 +247,16 @@
 		<dependency>
 			<groupId>de.alpharogroup</groupId>
 			<artifactId>file-worker</artifactId>
+			<exclusions>
+				<exclusion>
+					<groupId>org.apache.poi</groupId>
+					<artifactId>poi</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.apache.poi</groupId>
+					<artifactId>poi-ooxml</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 
 		<dependency>
@@ -256,11 +267,26 @@
 		<dependency>
 			<groupId>de.alpharogroup</groupId>
 			<artifactId>swing-components</artifactId>
+			<exclusions>
+				<exclusion>
+					<groupId>com.itextpdf</groupId>
+					<artifactId>itextpdf</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>de.alpharogroup</groupId>
+					<artifactId>test-objects</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.testng</groupId>
+					<artifactId>testng</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 
 	</dependencies>
 
 	<build>
+		<finalName>${full-app-name}</finalName>
 		<plugins>
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
