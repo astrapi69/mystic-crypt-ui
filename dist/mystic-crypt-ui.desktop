@@ -1,0 +1,7 @@
+[Desktop Entry]
+Type=Application
+Name=mystic-crypt-ui
+GenericName=Crypto-Tool
+Comment=application that provides public and private key creation and other cool crypto-tools
+Exec=sh -c 'java -jar ~/mystic-crypt-ui/mystic-crypt-ui.jar'
+Icon=~/mystic-crypt-ui/icons/icon.png

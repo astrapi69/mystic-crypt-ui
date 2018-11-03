@@ -28,15 +28,18 @@ import java.awt.Window;
 import java.awt.event.ActionEvent;
 
 import javax.swing.AbstractAction;
+import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 
 import de.alpharogroup.mystic.crypt.SwingApplication;
 import de.alpharogroup.swing.plaf.LookAndFeels;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * The Class ShowHelpDialogAction.
  */
+@Slf4j
 public class ShowHelpDialogAction extends AbstractAction
 {
 
@@ -58,7 +61,7 @@ public class ShowHelpDialogAction extends AbstractAction
 	 * {@inheritDoc}
 	 */
 	@Override
-	public void actionPerformed(final ActionEvent e)
+	public void actionPerformed(final ActionEvent event)
 	{
 		final LookAndFeels currentLaf = SwingApplication.getInstance().getCurrentLookAndFeels();
 		final Window helpWindow = SwingApplication.getInstance().getMenu().getHelpWindow();
@@ -67,9 +70,13 @@ public class ShowHelpDialogAction extends AbstractAction
 		{
 			UIManager.setLookAndFeel(currentLaf.getLookAndFeelName());
 		}
-		catch (final Exception e1)
+		catch (final Exception e)
 		{
-			e1.printStackTrace();
+			String title = e.getLocalizedMessage();
+			String htmlMessage = "<html><body width='650'>" + "<h2>" + title + "</h2>"
+				+ "<p>" + e.getMessage();
+			JOptionPane.showMessageDialog(SwingApplication.getInstance(), htmlMessage, title, JOptionPane.ERROR_MESSAGE);
+			log.error(e.getMessage(), e);
 		}
 		SwingUtilities.updateComponentTreeUI(helpWindow);
 	}

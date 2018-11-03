@@ -38,6 +38,7 @@ import javax.help.WindowPresentation;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
 import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
@@ -63,10 +64,12 @@ import de.alpharogroup.swing.plaf.actions.LookAndFeelNimbusAction;
 import de.alpharogroup.swing.plaf.actions.LookAndFeelSystemAction;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * The Class DesktopMenu.
  */
+@Slf4j
 public class DesktopMenu extends JMenu
 {
 
@@ -155,9 +158,13 @@ public class DesktopMenu extends JMenu
 		{
 			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
 		}
-		catch (final Exception e1)
+		catch (final Exception e)
 		{
-			e1.printStackTrace();
+			String title = e.getLocalizedMessage();
+			String htmlMessage = "<html><body width='650'>" + "<h2>" + title + "</h2>"
+				+ "<p>" + e.getMessage();
+			JOptionPane.showMessageDialog(this.getParent(), htmlMessage, title, JOptionPane.ERROR_MESSAGE);
+			log.error(e.getMessage(), e);
 		}
 		SwingUtilities.updateComponentTreeUI(helpWindow);
 
@@ -267,7 +274,11 @@ public class DesktopMenu extends JMenu
 			}
 			catch (final HelpSetException e)
 			{
-				e.printStackTrace();
+				String title = e.getLocalizedMessage();
+				String htmlMessage = "<html><body width='650'>" + "<h2>" + title + "</h2>"
+					+ "<p>" + e.getMessage();
+				JOptionPane.showMessageDialog(this.getParent(), htmlMessage, title, JOptionPane.ERROR_MESSAGE);
+				log.error(e.getMessage(), e);
 			}
 		return hs;
 	}

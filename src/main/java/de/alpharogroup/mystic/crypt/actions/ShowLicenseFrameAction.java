@@ -31,14 +31,18 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 
 import javax.swing.AbstractAction;
+import javax.swing.JOptionPane;
 
 import org.springframework.core.io.Resource;
 
+import de.alpharogroup.mystic.crypt.SwingApplication;
 import de.alpharogroup.mystic.crypt.help.HelpJFrame;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * The Class ShowLicenseFrameAction.
  */
+@Slf4j
 public class ShowLicenseFrameAction extends AbstractAction
 {
 
@@ -89,9 +93,13 @@ public class ShowLicenseFrameAction extends AbstractAction
 				license.append("\n");
 			}
 		}
-		catch (final IOException ex)
+		catch (final IOException e)
 		{
-			ex.printStackTrace();
+			String title = e.getLocalizedMessage();
+			String htmlMessage = "<html><body width='650'>" + "<h2>" + title + "</h2>"
+				+ "<p>" + e.getMessage();
+			JOptionPane.showMessageDialog(SwingApplication.getInstance(), htmlMessage, title, JOptionPane.ERROR_MESSAGE);
+			log.error(e.getMessage(), e);
 		}
 		return license.toString();
 	}

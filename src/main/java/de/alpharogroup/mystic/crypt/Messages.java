@@ -54,7 +54,7 @@ public class Messages
 		}
 		catch (final MissingResourceException e)
 		{
-			return '!' + key + '!';
+			return "!!!" + key + "!!! not found";
 		}
 	}
 

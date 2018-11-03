@@ -35,8 +35,11 @@ import java.security.Security;
 import java.security.spec.InvalidKeySpecException;
 
 import javax.swing.JInternalFrame;
+import javax.swing.JOptionPane;
 
 import lombok.NonNull;
+import lombok.extern.slf4j.Slf4j;
+
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 
 import de.alpharogroup.crypto.key.KeySize;
@@ -55,6 +58,7 @@ import de.alpharogroup.swing.utils.JInternalFrameExtensions;
 /**
  * The class {@link OpenPrivateKeyAction}.
  */
+@Slf4j
 public class OpenPrivateKeyAction extends OpenFileAction
 {
 
@@ -106,14 +110,19 @@ public class OpenPrivateKeyAction extends OpenFileAction
 		PrivateKey privateKey = null;
 		try
 		{
-			privateKey = PrivateKeyReader.readPrivateKey(file);
+			if(!PrivateKeyReader.isPrivateKeyPasswordProtected(file)) {
+				privateKey = PrivateKeyReader.readPrivateKey(file);
+			}
 
 		}
 		catch (NoSuchAlgorithmException | InvalidKeySpecException | NoSuchProviderException
 			| IOException e)
 		{
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			String title = e.getLocalizedMessage();
+			String htmlMessage = "<html><body width='650'>" + "<h2>" + title + "</h2>"
+				+ "<p>" + e.getMessage();
+			JOptionPane.showMessageDialog(this.getParent(), htmlMessage, title, JOptionPane.ERROR_MESSAGE);
+			log.error(e.getMessage(), e);
 		}
 		if (privateKey == null)
 		{
@@ -124,8 +133,11 @@ public class OpenPrivateKeyAction extends OpenFileAction
 			}
 			catch (final Exception e)
 			{
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				String title = e.getLocalizedMessage();
+				String htmlMessage = "<html><body width='650'>" + "<h2>" + title + "</h2>"
+					+ "<p>" + e.getMessage();
+				JOptionPane.showMessageDialog(this.getParent(), htmlMessage, title, JOptionPane.ERROR_MESSAGE);
+				log.error(e.getMessage(), e);
 			}
 		}
 		return privateKey;
@@ -148,8 +160,11 @@ public class OpenPrivateKeyAction extends OpenFileAction
 		}
 		catch (NoSuchAlgorithmException | InvalidKeySpecException e)
 		{
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			String title = e.getLocalizedMessage();
+			String htmlMessage = "<html><body width='650'>" + "<h2>" + title + "</h2>"
+				+ "<p>" + e.getMessage();
+			JOptionPane.showMessageDialog(this.getParent(), htmlMessage, title, JOptionPane.ERROR_MESSAGE);
+			log.error(e.getMessage(), e);
 		}
 
 		model.setKeySize(getKeySize(privateKey));
@@ -167,8 +182,11 @@ public class OpenPrivateKeyAction extends OpenFileAction
 		}
 		catch (final IOException e)
 		{
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			String title = e.getLocalizedMessage();
+			String htmlMessage = "<html><body width='650'>" + "<h2>" + title + "</h2>"
+				+ "<p>" + e.getMessage();
+			JOptionPane.showMessageDialog(this.getParent(), htmlMessage, title, JOptionPane.ERROR_MESSAGE);
+			log.error(e.getMessage(), e);
 		}
 
 		final String publicKeyFormat = PublicKeyExtensions.toPemFormat(model.getPublicKey());

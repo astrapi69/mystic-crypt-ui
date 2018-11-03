@@ -32,6 +32,7 @@ import javax.swing.JDesktopPane;
 import javax.swing.JFrame;
 import javax.swing.JInternalFrame;
 import javax.swing.JMenuBar;
+import javax.swing.JOptionPane;
 import javax.swing.JToolBar;
 import javax.swing.UnsupportedLookAndFeelException;
 
@@ -151,6 +152,10 @@ public class SwingApplication extends JXFrame
 		}
 		catch (IOException e)
 		{
+			String title = e.getLocalizedMessage();
+			String htmlMessage = "<html><body width='650'>" + "<h2>" + title + "</h2>"
+				+ "<p>" + e.getMessage();
+			JOptionPane.showMessageDialog(this, htmlMessage, title, JOptionPane.ERROR_MESSAGE);
 			log.error(e.getMessage(), e);
 		}
 
@@ -175,18 +180,34 @@ public class SwingApplication extends JXFrame
 		}
 		catch (final ClassNotFoundException e)
 		{
+			String title = e.getLocalizedMessage();
+			String htmlMessage = "<html><body width='650'>" + "<h2>" + title + "</h2>"
+				+ "<p>" + e.getMessage();
+			JOptionPane.showMessageDialog(this, htmlMessage, title, JOptionPane.ERROR_MESSAGE);
 			log.error(e.getMessage(), e);
 		}
 		catch (final InstantiationException e)
 		{
+			String title = e.getLocalizedMessage();
+			String htmlMessage = "<html><body width='650'>" + "<h2>" + title + "</h2>"
+				+ "<p>" + e.getMessage();
+			JOptionPane.showMessageDialog(this, htmlMessage, title, JOptionPane.ERROR_MESSAGE);
 			log.error(e.getMessage(), e);
 		}
 		catch (final IllegalAccessException e)
 		{
+			String title = e.getLocalizedMessage();
+			String htmlMessage = "<html><body width='650'>" + "<h2>" + title + "</h2>"
+				+ "<p>" + e.getMessage();
+			JOptionPane.showMessageDialog(this, htmlMessage, title, JOptionPane.ERROR_MESSAGE);
 			log.error(e.getMessage(), e);
 		}
 		catch (final UnsupportedLookAndFeelException e)
 		{
+			String title = e.getLocalizedMessage();
+			String htmlMessage = "<html><body width='650'>" + "<h2>" + title + "</h2>"
+				+ "<p>" + e.getMessage();
+			JOptionPane.showMessageDialog(this, htmlMessage, title, JOptionPane.ERROR_MESSAGE);
 			log.error(e.getMessage(), e);
 		}
 		return lookAndFeels;
