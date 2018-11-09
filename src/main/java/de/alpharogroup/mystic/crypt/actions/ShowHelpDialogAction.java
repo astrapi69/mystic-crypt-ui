@@ -32,7 +32,7 @@ import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 
-import de.alpharogroup.mystic.crypt.SwingApplication;
+import de.alpharogroup.mystic.crypt.SpringBootSwingApplication;
 import de.alpharogroup.swing.plaf.LookAndFeels;
 import lombok.extern.slf4j.Slf4j;
 
@@ -63,8 +63,8 @@ public class ShowHelpDialogAction extends AbstractAction
 	@Override
 	public void actionPerformed(final ActionEvent event)
 	{
-		final LookAndFeels currentLaf = SwingApplication.getInstance().getCurrentLookAndFeels();
-		final Window helpWindow = SwingApplication.getInstance().getMenu().getHelpWindow();
+		final LookAndFeels currentLaf = SpringBootSwingApplication.getInstance().getCurrentLookAndFeels();
+		final Window helpWindow = SpringBootSwingApplication.getInstance().getMenu().getHelpWindow();
 		helpWindow.setLocationRelativeTo(null);
 		try
 		{
@@ -75,7 +75,7 @@ public class ShowHelpDialogAction extends AbstractAction
 			String title = e.getLocalizedMessage();
 			String htmlMessage = "<html><body width='650'>" + "<h2>" + title + "</h2>"
 				+ "<p>" + e.getMessage();
-			JOptionPane.showMessageDialog(SwingApplication.getInstance(), htmlMessage, title, JOptionPane.ERROR_MESSAGE);
+			JOptionPane.showMessageDialog(SpringBootSwingApplication.getInstance(), htmlMessage, title, JOptionPane.ERROR_MESSAGE);
 			log.error(e.getMessage(), e);
 		}
 		SwingUtilities.updateComponentTreeUI(helpWindow);

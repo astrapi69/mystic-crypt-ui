@@ -28,17 +28,18 @@ import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.io.File;
 import java.io.IOException;
+import java.security.InvalidAlgorithmParameterException;
+import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
 import java.security.PrivateKey;
 import java.security.Security;
 import java.security.spec.InvalidKeySpecException;
 
+import javax.crypto.NoSuchPaddingException;
 import javax.swing.JInternalFrame;
 import javax.swing.JOptionPane;
-
-import lombok.NonNull;
-import lombok.extern.slf4j.Slf4j;
+import javax.swing.JPasswordField;
 
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 
@@ -47,13 +48,16 @@ import de.alpharogroup.crypto.key.PrivateKeyExtensions;
 import de.alpharogroup.crypto.key.PrivateKeyHexDecryptor;
 import de.alpharogroup.crypto.key.PublicKeyExtensions;
 import de.alpharogroup.crypto.key.PublicKeyHexEncryptor;
+import de.alpharogroup.crypto.key.reader.EncryptedPrivateKeyReader;
 import de.alpharogroup.crypto.key.reader.PrivateKeyReader;
-import de.alpharogroup.mystic.crypt.SwingApplication;
+import de.alpharogroup.mystic.crypt.SpringBootSwingApplication;
 import de.alpharogroup.mystic.crypt.panels.privatekey.PrivateKeyModelBean;
 import de.alpharogroup.mystic.crypt.panels.privatekey.PrivateKeyPanel;
 import de.alpharogroup.swing.actions.OpenFileAction;
 import de.alpharogroup.swing.components.factories.JComponentFactory;
 import de.alpharogroup.swing.utils.JInternalFrameExtensions;
+import lombok.NonNull;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * The class {@link OpenPrivateKeyAction}.
@@ -110,18 +114,55 @@ public class OpenPrivateKeyAction extends OpenFileAction
 		PrivateKey privateKey = null;
 		try
 		{
-			if(!PrivateKeyReader.isPrivateKeyPasswordProtected(file)) {
+			if (!PrivateKeyReader.isPrivateKeyPasswordProtected(file))
+			{
 				privateKey = PrivateKeyReader.readPrivateKey(file);
+			}
+			else
+			{
+				String password = null;
+				JPasswordField pf = new JPasswordField();
+				int okCxl = JOptionPane.showConfirmDialog(null, pf, "Enter Password",
+					JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
+
+				if (okCxl == JOptionPane.OK_OPTION)
+				{
+					password = new String(pf.getPassword());
+				}
+				if (password != null)
+				{
+					privateKey = EncryptedPrivateKeyReader.readPasswordProtectedPrivateKey(file,
+						password);
+				}
+				password = null;
 			}
 
 		}
 		catch (NoSuchAlgorithmException | InvalidKeySpecException | NoSuchProviderException
 			| IOException e)
 		{
+			log.error(e.getMessage(), e);
+		}
+		catch (InvalidKeyException e)
+		{
+			log.error(e.getMessage(), e);
+		}
+		catch (NoSuchPaddingException e)
+		{
 			String title = e.getLocalizedMessage();
-			String htmlMessage = "<html><body width='650'>" + "<h2>" + title + "</h2>"
-				+ "<p>" + e.getMessage();
-			JOptionPane.showMessageDialog(this.getParent(), htmlMessage, title, JOptionPane.ERROR_MESSAGE);
+			String htmlMessage = "<html><body width='650'>" + "<h2>" + title + "</h2>" + "<p>"
+				+ e.getMessage();
+			JOptionPane.showMessageDialog(this.getParent(), htmlMessage, title,
+				JOptionPane.ERROR_MESSAGE);
+			log.error(e.getMessage(), e);
+		}
+		catch (InvalidAlgorithmParameterException e)
+		{
+			String title = e.getLocalizedMessage();
+			String htmlMessage = "<html><body width='650'>" + "<h2>" + title + "</h2>" + "<p>"
+				+ e.getMessage();
+			JOptionPane.showMessageDialog(this.getParent(), htmlMessage, title,
+				JOptionPane.ERROR_MESSAGE);
 			log.error(e.getMessage(), e);
 		}
 		if (privateKey == null)
@@ -134,9 +175,10 @@ public class OpenPrivateKeyAction extends OpenFileAction
 			catch (final Exception e)
 			{
 				String title = e.getLocalizedMessage();
-				String htmlMessage = "<html><body width='650'>" + "<h2>" + title + "</h2>"
-					+ "<p>" + e.getMessage();
-				JOptionPane.showMessageDialog(this.getParent(), htmlMessage, title, JOptionPane.ERROR_MESSAGE);
+				String htmlMessage = "<html><body width='650'>" + "<h2>" + title + "</h2>" + "<p>"
+					+ e.getMessage();
+				JOptionPane.showMessageDialog(this.getParent(), htmlMessage, title,
+					JOptionPane.ERROR_MESSAGE);
 				log.error(e.getMessage(), e);
 			}
 		}
@@ -161,9 +203,10 @@ public class OpenPrivateKeyAction extends OpenFileAction
 		catch (NoSuchAlgorithmException | InvalidKeySpecException e)
 		{
 			String title = e.getLocalizedMessage();
-			String htmlMessage = "<html><body width='650'>" + "<h2>" + title + "</h2>"
-				+ "<p>" + e.getMessage();
-			JOptionPane.showMessageDialog(this.getParent(), htmlMessage, title, JOptionPane.ERROR_MESSAGE);
+			String htmlMessage = "<html><body width='650'>" + "<h2>" + title + "</h2>" + "<p>"
+				+ e.getMessage();
+			JOptionPane.showMessageDialog(this.getParent(), htmlMessage, title,
+				JOptionPane.ERROR_MESSAGE);
 			log.error(e.getMessage(), e);
 		}
 
@@ -183,9 +226,10 @@ public class OpenPrivateKeyAction extends OpenFileAction
 		catch (final IOException e)
 		{
 			String title = e.getLocalizedMessage();
-			String htmlMessage = "<html><body width='650'>" + "<h2>" + title + "</h2>"
-				+ "<p>" + e.getMessage();
-			JOptionPane.showMessageDialog(this.getParent(), htmlMessage, title, JOptionPane.ERROR_MESSAGE);
+			String htmlMessage = "<html><body width='650'>" + "<h2>" + title + "</h2>" + "<p>"
+				+ e.getMessage();
+			JOptionPane.showMessageDialog(this.getParent(), htmlMessage, title,
+				JOptionPane.ERROR_MESSAGE);
 			log.error(e.getMessage(), e);
 		}
 
@@ -197,7 +241,7 @@ public class OpenPrivateKeyAction extends OpenFileAction
 		component.getPrivateKeyViewPanel().getTxtPublicKey().setText(publicKeyFormat);
 
 		JInternalFrameExtensions.addComponentToFrame(internalFrame, component);
-		JInternalFrameExtensions.addJInternalFrame(SwingApplication.getInstance().getDesktopPane(),
+		JInternalFrameExtensions.addJInternalFrame(SpringBootSwingApplication.getInstance().getDesktopPane(),
 			internalFrame);
 	}
 

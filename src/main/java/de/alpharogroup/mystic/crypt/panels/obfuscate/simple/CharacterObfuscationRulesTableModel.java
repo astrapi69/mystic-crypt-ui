@@ -117,16 +117,17 @@ public class CharacterObfuscationRulesTableModel
 	{
 		final KeyValuePair<Character, ObfuscationRule<Character, Character>> permission = getData()
 			.get(row);
+		ObfuscationRule<Character,Character> obfuscationRule = permission.getValue();
 		switch (col)
 		{
 			case 0 :
-				return permission.getValue().getCharacter();
+				return obfuscationRule.getCharacter();
 			case 1 :
-				return permission.getValue().getReplaceWith();
+				return obfuscationRule.getReplaceWith();
 			case 2 :
-				return permission.getValue();
+				return obfuscationRule;
 			case 3 :
-				return permission.getValue();
+				return obfuscationRule;
 			default :
 				return null;
 		}

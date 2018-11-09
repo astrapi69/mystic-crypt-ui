@@ -24,101 +24,41 @@
  */
 package de.alpharogroup.mystic.crypt;
 
-import java.awt.Window;
+import java.awt.Component;
 import java.awt.event.ActionListener;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
-import java.net.URL;
 
-import javax.help.CSH;
-import javax.help.DefaultHelpBroker;
-import javax.help.HelpSet;
-import javax.help.HelpSetException;
-import javax.help.WindowPresentation;
 import javax.swing.JMenu;
-import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
-import javax.swing.JOptionPane;
 import javax.swing.KeyStroke;
-import javax.swing.SwingUtilities;
-import javax.swing.UIManager;
 
-import org.apache.log4j.Logger;
-
-import de.alpharogroup.lang.ClassExtensions;
 import de.alpharogroup.mystic.crypt.actions.NewFileConversionInternalFrameAction;
 import de.alpharogroup.mystic.crypt.actions.NewKeyGenerationInternalFrameAction;
 import de.alpharogroup.mystic.crypt.actions.NewObfuscationInternalFrameAction;
 import de.alpharogroup.mystic.crypt.actions.NewObfuscationOperationInternalFrameAction;
 import de.alpharogroup.mystic.crypt.actions.OpenBrowserToDonateAction;
 import de.alpharogroup.mystic.crypt.actions.OpenPrivateKeyAction;
-import de.alpharogroup.mystic.crypt.actions.ShowHelpDialogAction;
 import de.alpharogroup.mystic.crypt.actions.ShowInfoDialogAction;
 import de.alpharogroup.mystic.crypt.actions.ShowLicenseFrameAction;
 import de.alpharogroup.swing.actions.ExitApplicationAction;
+import de.alpharogroup.swing.base.BaseDesktopMenu;
 import de.alpharogroup.swing.menu.MenuExtensions;
-import de.alpharogroup.swing.plaf.actions.LookAndFeelGTKAction;
-import de.alpharogroup.swing.plaf.actions.LookAndFeelMetalAction;
-import de.alpharogroup.swing.plaf.actions.LookAndFeelMotifAction;
-import de.alpharogroup.swing.plaf.actions.LookAndFeelNimbusAction;
-import de.alpharogroup.swing.plaf.actions.LookAndFeelSystemAction;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.extern.slf4j.Slf4j;
+import lombok.NonNull;
 
 /**
- * The Class DesktopMenu.
+ * The class {@link DesktopMenu}
  */
-@Slf4j
-public class DesktopMenu extends JMenu
+@SuppressWarnings("serial")
+public class DesktopMenu extends BaseDesktopMenu
 {
-
-	/** The Constant logger. */
-	private static final Logger logger = Logger.getLogger(DesktopMenu.class.getName());
-
-	private static final long serialVersionUID = 1L;
-
-	/** The file menu. */
-	@Getter
-	private final JMenu fileMenu;
-
-	/** The help menu. */
-	@Getter
-	private final JMenu helpMenu;
-
-	/** The help window. */
-	@Getter
-	@Setter
-	private Window helpWindow;
-
-	/** The look and feel menu. */
-	@Getter
-	private final JMenu lookAndFeelMenu;
-
-	/** The JMenuBar from the DesktopMenu. */
-	@Getter
-	private final JMenuBar menubar;
-
-	SwingApplication swingApplication;
 
 	/**
 	 * Instantiates a new desktop menu.
 	 */
-	public DesktopMenu()
+	public DesktopMenu(@NonNull Component applicationFrame)
 	{
-		menubar = newJMenuBar();
-		menubar.add(fileMenu = newFileMenu(e -> logger.debug("filemenu")));
-		menubar.add(lookAndFeelMenu = newLookAndFeelMenu(e -> logger.debug("Look and Feel menu")));
-		menubar.add(helpMenu = newHelpMenu(e -> logger.debug("Help menu")));
-	}
-
-	/**
-	 * Creates a new {@link JMenuBar}
-	 *
-	 * @return the new {@link JMenuBar}
-	 */
-	protected JMenuBar newJMenuBar() {
-		return  new JMenuBar();
+		super(applicationFrame);
 	}
 
 	/**
@@ -128,54 +68,11 @@ public class DesktopMenu extends JMenu
 	 *            the listener
 	 * @return the j menu
 	 */
-	private JMenu newHelpMenu(final ActionListener listener)
+	protected JMenu newHelpMenu(final ActionListener listener)
 	{
 		// Help menu
-		final JMenu menuHelp = new JMenu("Help"); //$NON-NLS-1$
+		final JMenu menuHelp = super.newHelpMenu(listener);
 		menuHelp.setMnemonic('H');
-
-		// Help JMenuItems
-		// Help content
-		final JMenuItem mihHelpContent = new JMenuItem("Content", 'c'); //$NON-NLS-1$
-		MenuExtensions.setCtrlAccelerator(mihHelpContent, 'H');
-
-		menuHelp.add(mihHelpContent);
-		// found bug with the javax.help
-		// Exception in thread "main" java.lang.SecurityException: no manifiest
-		// section for signature file entry
-		// com/sun/java/help/impl/TagProperties.class
-		// Solution is to remove the rsa files from the jar
-
-		final HelpSet hs = getHelpSet();
-		final DefaultHelpBroker helpBroker = (DefaultHelpBroker)hs.createHelpBroker();
-		final WindowPresentation pres = helpBroker.getWindowPresentation();
-		pres.createHelpWindow();
-		helpWindow = pres.getHelpWindow();
-
-		helpWindow.setLocationRelativeTo(null);
-
-		try
-		{
-			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-		}
-		catch (final Exception e)
-		{
-			String title = e.getLocalizedMessage();
-			String htmlMessage = "<html><body width='650'>" + "<h2>" + title + "</h2>"
-				+ "<p>" + e.getMessage();
-			JOptionPane.showMessageDialog(this.getParent(), htmlMessage, title, JOptionPane.ERROR_MESSAGE);
-			log.error(e.getMessage(), e);
-		}
-		SwingUtilities.updateComponentTreeUI(helpWindow);
-
-		// 2. assign help to components
-		CSH.setHelpIDString(mihHelpContent, "Overview");
-		// 3. handle events
-		final CSH.DisplayHelpFromSource displayHelpFromSource = new CSH.DisplayHelpFromSource(
-			helpBroker);
-		mihHelpContent.addActionListener(displayHelpFromSource);
-
-		mihHelpContent.addActionListener(new ShowHelpDialogAction("Content"));
 
 		// Donate
 		final JMenuItem mihDonate = new JMenuItem(
@@ -199,91 +96,6 @@ public class DesktopMenu extends JMenu
 	}
 
 	/**
-	 * Creates the look and feel menu.
-	 *
-	 * @param listener
-	 *            the listener
-	 * @return the j menu
-	 */
-	private JMenu newLookAndFeelMenu(final ActionListener listener)
-	{
-
-		final JMenu menuLookAndFeel = new JMenu("Look and Feel");
-		menuLookAndFeel.setMnemonic('L');
-
-		// Look and Feel JMenuItems
-		// GTK
-		JMenuItem jmiPlafGTK;
-		jmiPlafGTK = new JMenuItem("GTK", 'g'); //$NON-NLS-1$
-		MenuExtensions.setCtrlAccelerator(jmiPlafGTK, 'G');
-		jmiPlafGTK
-			.addActionListener(new LookAndFeelGTKAction("GTK", SwingApplication.getInstance()));
-		menuLookAndFeel.add(jmiPlafGTK);
-		// Metal default Metal theme
-		JMenuItem jmiPlafMetal;
-		jmiPlafMetal = new JMenuItem("Metal", 'm'); //$NON-NLS-1$
-		MenuExtensions.setCtrlAccelerator(jmiPlafMetal, 'M');
-		jmiPlafMetal.addActionListener(new LookAndFeelMetalAction("Metal", SwingApplication.getInstance()));
-		menuLookAndFeel.add(jmiPlafMetal);
-		// Metal Ocean theme
-		JMenuItem jmiPlafOcean;
-		jmiPlafOcean = new JMenuItem("Ocean", 'o'); //$NON-NLS-1$
-		MenuExtensions.setCtrlAccelerator(jmiPlafOcean, 'O');
-		jmiPlafOcean.addActionListener(new LookAndFeelMetalAction("Ocean", SwingApplication.getInstance()));
-		menuLookAndFeel.add(jmiPlafOcean);
-		// Motif
-		JMenuItem jmiPlafMotiv;
-		jmiPlafMotiv = new JMenuItem("Motif", 't'); //$NON-NLS-1$
-		MenuExtensions.setCtrlAccelerator(jmiPlafMotiv, 'T');
-		jmiPlafMotiv.addActionListener(new LookAndFeelMotifAction("Motif", SwingApplication.getInstance()));
-		menuLookAndFeel.add(jmiPlafMotiv);	
-		// Nimbus
-		JMenuItem jmiPlafNimbus;
-		jmiPlafNimbus = new JMenuItem("Nimbus", 'n'); //$NON-NLS-1$
-		MenuExtensions.setCtrlAccelerator(jmiPlafNimbus, 'N');
-		jmiPlafNimbus
-			.addActionListener(new LookAndFeelNimbusAction("Nimbus", SwingApplication.getInstance()));
-		menuLookAndFeel.add(jmiPlafNimbus);				
-		// Windows
-		JMenuItem jmiPlafSystem;
-		jmiPlafSystem = new JMenuItem("System", 'd'); //$NON-NLS-1$
-		MenuExtensions.setCtrlAccelerator(jmiPlafSystem, 'W');
-		jmiPlafSystem
-			.addActionListener(new LookAndFeelSystemAction("System", SwingApplication.getInstance()));
-		menuLookAndFeel.add(jmiPlafSystem);
-
-		return menuLookAndFeel;
-
-	}
-
-	/**
-	 * Gets the help set.
-	 *
-	 * @return the help set
-	 */
-	public HelpSet getHelpSet()
-	{
-		HelpSet hs = null;
-		final String filename = "simple-hs.xml";
-		final String path = "help/" + filename;
-		URL hsURL;
-			hsURL = ClassExtensions.getResource(path);
-			try
-			{
-				hs = new HelpSet(ClassExtensions.getClassLoader(), hsURL);
-			}
-			catch (final HelpSetException e)
-			{
-				String title = e.getLocalizedMessage();
-				String htmlMessage = "<html><body width='650'>" + "<h2>" + title + "</h2>"
-					+ "<p>" + e.getMessage();
-				JOptionPane.showMessageDialog(this.getParent(), htmlMessage, title, JOptionPane.ERROR_MESSAGE);
-				log.error(e.getMessage(), e);
-			}
-		return hs;
-	}
-
-	/**
 	 * Creates the file menu.
 	 *
 	 * @param listener
@@ -291,10 +103,10 @@ public class DesktopMenu extends JMenu
 	 *
 	 * @return the j menu
 	 */
-	private JMenu newFileMenu(final ActionListener listener)
+	protected JMenu newFileMenu(final ActionListener listener)
 	{
-		final JMenu fileMenu = new JMenu("File");
-		fileMenu.setMnemonic('F');
+		final JMenu fileMenu = super.newFileMenu(listener);
+		
 		JMenuItem jmi;
 
 		final JMenu keyMenu = new JMenu("Key");
@@ -310,7 +122,7 @@ public class DesktopMenu extends JMenu
 		// Open private key
 		jmi = new JMenuItem("Open private key", 'e');
 		jmi.addActionListener(
-			new OpenPrivateKeyAction("Open private key", SwingApplication.getInstance()));
+			new OpenPrivateKeyAction("Open private key", SpringBootSwingApplication.getInstance()));
 		MenuExtensions.setCtrlAccelerator(jmi, 'e');
 		keyMenu.add(jmi);
 

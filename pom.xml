@@ -33,10 +33,10 @@
 		<!-- XML-APIS version -->
 		<xml-apis.version>1.4.01</xml-apis.version>
 		<!-- EXTENSIONS LIB versions -->
-		<file-worker.version>4.23</file-worker.version>
+		<file-worker.version>5</file-worker.version>
 		<jcommons-lang.version>4.35</jcommons-lang.version>
 		<!-- SWING-COMPONENTS version -->
-		<swing-components.version>4.30</swing-components.version>
+		<swing-components.version>4.31-SNAPSHOT</swing-components.version>
 		<!-- MIGLAYOUT-SWING version -->
 		<miglayout-swing.version>5.0</miglayout-swing.version>
 		<!-- XML-EXTENSIONS version -->
@@ -48,6 +48,9 @@
 		<crypt-api.version>${mystic-crypt.version}</crypt-api.version>
 		<crypt-core.version>${mystic-crypt.version}</crypt-core.version>
 		<crypt-data.version>${mystic-crypt.version}</crypt-data.version>
+		<!-- MODEL-DATA version -->
+		<model-data.version>1.6</model-data.version>
+		<model-core.version>${model-data.version}</model-core.version>
 		<full-app-name>mystic-crypt-ui</full-app-name>
 		<info.appName>mystic-crypt-ui</info.appName>
 		<main-app-package-name>de.alpharogroup.mystic.crypt</main-app-package-name>
@@ -76,6 +79,12 @@
 				<groupId>de.alpharogroup</groupId>
 				<artifactId>crypt-core</artifactId>
 				<version>${crypt-core.version}</version>
+			</dependency>
+			<!-- MODEL-CORE DEPENDENCY -->
+			<dependency>
+				<groupId>de.alpharogroup</groupId>
+				<artifactId>model-core</artifactId>
+				<version>${model-core.version}</version>
 			</dependency>
 			<!-- MIGLAYOUT-SWING DEPENDENCIES -->
 			<dependency>
@@ -207,6 +216,11 @@
 		<dependency>
 			<groupId>de.alpharogroup</groupId>
 			<artifactId>crypt-core</artifactId>
+		</dependency>
+		<!-- MODEL-CORE DEPENDENCY -->
+		<dependency>
+			<groupId>de.alpharogroup</groupId>
+			<artifactId>model-core</artifactId>
 		</dependency>
 		<!-- XML-EXTENSIONS DEPENDENCY -->
 		<dependency>

@@ -34,7 +34,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.core.io.Resource;
 
-import de.alpharogroup.mystic.crypt.SwingApplication;
+import de.alpharogroup.mystic.crypt.SpringBootSwingApplication;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
@@ -85,7 +85,7 @@ public class SpringApplicationContext
 			String title = e.getLocalizedMessage();
 			String htmlMessage = "<html><body width='650'>" + "<h2>" + title + "</h2>"
 				+ "<p>" + e.getMessage();
-			JOptionPane.showMessageDialog(SwingApplication.getInstance(), htmlMessage, title, JOptionPane.ERROR_MESSAGE);
+			JOptionPane.showMessageDialog(SpringBootSwingApplication.getInstance(), htmlMessage, title, JOptionPane.ERROR_MESSAGE);
 			log.error(e.getMessage(), e);
 		}
 		catch (final IOException e)
@@ -93,7 +93,7 @@ public class SpringApplicationContext
 			String title = e.getLocalizedMessage();
 			String htmlMessage = "<html><body width='650'>" + "<h2>" + title + "</h2>"
 				+ "<p>" + e.getMessage();
-			JOptionPane.showMessageDialog(SwingApplication.getInstance(), htmlMessage, title, JOptionPane.ERROR_MESSAGE);
+			JOptionPane.showMessageDialog(SpringBootSwingApplication.getInstance(), htmlMessage, title, JOptionPane.ERROR_MESSAGE);
 			log.error(e.getMessage(), e);
 		}
 

@@ -9,6 +9,6 @@
 <listAttribute key="org.eclipse.debug.ui.favoriteGroups">
 <listEntry value="org.eclipse.debug.ui.launchGroup.debug"/>
 </listAttribute>
-<stringAttribute key="org.eclipse.jdt.launching.MAIN_TYPE" value="de.alpharogroup.mystic.crypt.SwingApplication"/>
+<stringAttribute key="org.eclipse.jdt.launching.MAIN_TYPE" value="de.alpharogroup.mystic.crypt.SpringBootSwingApplication"/>
 <stringAttribute key="org.eclipse.jdt.launching.PROJECT_ATTR" value="mystic-crypt-ui"/>
 </launchConfiguration>

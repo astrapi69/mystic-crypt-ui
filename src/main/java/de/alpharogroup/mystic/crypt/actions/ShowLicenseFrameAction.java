@@ -35,7 +35,7 @@ import javax.swing.JOptionPane;
 
 import org.springframework.core.io.Resource;
 
-import de.alpharogroup.mystic.crypt.SwingApplication;
+import de.alpharogroup.mystic.crypt.SpringBootSwingApplication;
 import de.alpharogroup.mystic.crypt.help.HelpJFrame;
 import lombok.extern.slf4j.Slf4j;
 
@@ -81,7 +81,7 @@ public class ShowLicenseFrameAction extends AbstractAction
 	 */
 	private String loadLicense()
 	{
-		final Resource resource = de.alpharogroup.mystic.crypt.SwingApplication.ctx.getResource("classpath:LICENSE.txt");
+		final Resource resource = de.alpharogroup.mystic.crypt.SpringBootSwingApplication.ctx.getResource("classpath:LICENSE.txt");
 		final StringBuilder license = new StringBuilder();
 		try(InputStream is = resource.getInputStream())
 		{
@@ -98,7 +98,7 @@ public class ShowLicenseFrameAction extends AbstractAction
 			String title = e.getLocalizedMessage();
 			String htmlMessage = "<html><body width='650'>" + "<h2>" + title + "</h2>"
 				+ "<p>" + e.getMessage();
-			JOptionPane.showMessageDialog(SwingApplication.getInstance(), htmlMessage, title, JOptionPane.ERROR_MESSAGE);
+			JOptionPane.showMessageDialog(SpringBootSwingApplication.getInstance(), htmlMessage, title, JOptionPane.ERROR_MESSAGE);
 			log.error(e.getMessage(), e);
 		}
 		return license.toString();

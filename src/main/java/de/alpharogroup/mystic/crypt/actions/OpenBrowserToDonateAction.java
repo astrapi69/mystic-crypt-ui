@@ -24,7 +24,7 @@
  */
 package de.alpharogroup.mystic.crypt.actions;
 
-import de.alpharogroup.mystic.crypt.SwingApplication;
+import de.alpharogroup.mystic.crypt.SpringBootSwingApplication;
 import de.alpharogroup.swing.actions.OpenBrowserAction;
 
 /**
@@ -46,7 +46,7 @@ public class OpenBrowserToDonateAction extends OpenBrowserAction
 	 */
 	public OpenBrowserToDonateAction(final String name)
 	{
-		super(name, SwingApplication.getInstance(), URL_TO_DONATE);
+		super(name, SpringBootSwingApplication.getInstance(), URL_TO_DONATE);
 	}
 
 }
