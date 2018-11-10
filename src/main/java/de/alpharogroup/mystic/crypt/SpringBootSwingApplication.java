@@ -92,7 +92,6 @@ public class SpringBootSwingApplication extends ApplicationFrame<ApplicationMode
 		{
 			instance = this;
 		}
-		initComponents();
 	}
 
 	@Override
