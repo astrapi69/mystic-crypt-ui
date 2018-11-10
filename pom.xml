@@ -4,43 +4,25 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
-	<groupId>de.alpharogroup</groupId>
+	<parent>
+		<groupId>de.alpharogroup</groupId>
+		<artifactId>mvn-spring-boot-swing-parent</artifactId>
+		<version>2.1</version>
+		<relativePath /> <!-- lookup parent from repository -->
+	</parent>
+
 	<artifactId>mystic-crypt-ui</artifactId>
 	<version>5.4-SNAPSHOT</version>
 	<packaging>jar</packaging>
 
-	<name>mystic-crypt-boot</name>
-	<description>Demo project for Spring Boot</description>
+	<name>${project.artifactId}</name>
+	<description>Demo project for mystic-crypt lib</description>
 
-	<parent>
-		<groupId>org.springframework.boot</groupId>
-		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>2.1.0.RELEASE</version>
-		<relativePath /> <!-- lookup parent from repository -->
-	</parent>
-
-	<properties>
-		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-		<java.version>1.8</java.version>
-		<!-- JAVAHELP version -->
-		<javahelp.version>2.0.05</javahelp.version>
-		<!-- SWINGLABS versions -->
-		<swing-layout.version>1.0.3</swing-layout.version>
-		<jxlayer.version>3.0.4</jxlayer.version>
-		<swing-worker.version>1.1</swing-worker.version>
-		<swingx.version>1.6.1</swingx.version>
-		<!-- XML-APIS version -->
-		<xml-apis.version>1.4.01</xml-apis.version>
-		<!-- EXTENSIONS LIB versions -->
-		<file-worker.version>5</file-worker.version>
-		<jcommons-lang.version>4.35</jcommons-lang.version>
+	<properties>	
 		<!-- SWING-COMPONENTS version -->
-		<swing-components.version>4.31-SNAPSHOT</swing-components.version>
+		<swing-components.version>4.31</swing-components.version>
 		<!-- MIGLAYOUT-SWING version -->
 		<miglayout-swing.version>5.0</miglayout-swing.version>
-		<!-- XML-EXTENSIONS version -->
-		<xml-extensions.version>4.20</xml-extensions.version>
 		<!-- GUAVA version -->
 		<guava.version>26.0-jre</guava.version>
 		<!-- MYSTIC-CRYPT versions -->
@@ -48,16 +30,11 @@
 		<crypt-api.version>${mystic-crypt.version}</crypt-api.version>
 		<crypt-core.version>${mystic-crypt.version}</crypt-core.version>
 		<crypt-data.version>${mystic-crypt.version}</crypt-data.version>
-		<!-- MODEL-DATA version -->
-		<model-data.version>1.6</model-data.version>
-		<model-core.version>${model-data.version}</model-core.version>
 		<full-app-name>mystic-crypt-ui</full-app-name>
 		<info.appName>mystic-crypt-ui</info.appName>
 		<main-app-package-name>de.alpharogroup.mystic.crypt</main-app-package-name>
-		<main-full-app-name>${main-app-package-name}.SwingApplication</main-full-app-name>
-
+		<main-full-app-name>${main-app-package-name}.SpringBootSwingApplication</main-full-app-name>
 	</properties>
-
 
 	<dependencyManagement>
 
@@ -79,140 +56,39 @@
 				<groupId>de.alpharogroup</groupId>
 				<artifactId>crypt-core</artifactId>
 				<version>${crypt-core.version}</version>
-			</dependency>
-			<!-- MODEL-CORE DEPENDENCY -->
-			<dependency>
-				<groupId>de.alpharogroup</groupId>
-				<artifactId>model-core</artifactId>
-				<version>${model-core.version}</version>
-			</dependency>
-			<!-- MIGLAYOUT-SWING DEPENDENCIES -->
-			<dependency>
-				<groupId>com.miglayout</groupId>
-				<artifactId>miglayout-swing</artifactId>
-				<version>${miglayout-swing.version}</version>
-			</dependency>
-			<!-- XML-EXTENSIONS DEPENDENCY -->
-			<dependency>
-				<groupId>de.alpharogroup</groupId>
-				<artifactId>xml-extensions</artifactId>
-				<version>${xml-extensions.version}</version>
-			</dependency>
+			</dependency>	
 			<!-- GUAVA DEPENDENCY -->
 			<dependency>
 				<groupId>com.google.guava</groupId>
 				<artifactId>guava</artifactId>
 				<version>${guava.version}</version>
 			</dependency>
-			<!-- XML-APIS DEPENDENCIES -->
-			<dependency>
-				<groupId>xml-apis</groupId>
-				<artifactId>xml-apis</artifactId>
-				<version>${xml-apis.version}</version>
-			</dependency>
-			<!-- JAVAHELP DEPENDENCIES -->
-			<dependency>
-				<groupId>javax.help</groupId>
-				<artifactId>javahelp</artifactId>
-				<version>${javahelp.version}</version>
-			</dependency>
-			<!-- SWINGLABS DEPENDENCIES -->
-			<dependency>
-				<groupId>org.swinglabs</groupId>
-				<artifactId>swing-layout</artifactId>
-				<version>${swing-layout.version}</version>
-			</dependency>
-
-			<dependency>
-				<groupId>org.swinglabs</groupId>
-				<artifactId>jxlayer</artifactId>
-				<version>${jxlayer.version}</version>
-			</dependency>
-
-			<dependency>
-				<groupId>org.swinglabs</groupId>
-				<artifactId>swing-worker</artifactId>
-				<version>${swing-worker.version}</version>
-			</dependency>
-
-			<dependency>
-				<groupId>org.swinglabs</groupId>
-				<artifactId>swingx</artifactId>
-				<version>${swingx.version}</version>
-			</dependency>
-			<!-- EXT-LIBS DEPENDENCIES -->
-			<dependency>
-				<groupId>de.alpharogroup</groupId>
-				<artifactId>swing-components</artifactId>
-				<version>${swing-components.version}</version>
-			</dependency>
-
-			<dependency>
-				<groupId>de.alpharogroup</groupId>
-				<artifactId>file-worker</artifactId>
-				<version>${file-worker.version}</version>
-			</dependency>
-
-			<dependency>
-				<groupId>de.alpharogroup</groupId>
-				<artifactId>jcommons-lang</artifactId>
-				<version>${jcommons-lang.version}</version>
-			</dependency>
-
+			
 		</dependencies>
 
 	</dependencyManagement>
 
 	<dependencies>
-
+		<!-- SPRING-BOOT DEPENDENCIES -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter</artifactId>
-		</dependency>
-
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-integration</artifactId>
-		</dependency>
-
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-validation</artifactId>
-		</dependency>
-
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-devtools</artifactId>
-			<scope>runtime</scope>
-		</dependency>
-
-		<dependency>
-			<groupId>org.projectlombok</groupId>
-			<artifactId>lombok</artifactId>
-			<optional>true</optional>
-		</dependency>
-
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-test</artifactId>
-			<scope>test</scope>
-		</dependency>
-
-		<dependency>
-			<groupId>com.miglayout</groupId>
-			<artifactId>miglayout-swing</artifactId>
+			<exclusions>
+				<exclusion>
+					<groupId>org.springframework.boot</groupId>
+					<artifactId>spring-boot-starter-logging</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>ch.qos.logback</groupId>
+					<artifactId>logback-core</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		<!-- CRYPT-API DEPENDENCY -->
 		<dependency>
 			<groupId>de.alpharogroup</groupId>
 			<artifactId>crypt-api</artifactId>
 		</dependency>
-
-		<dependency>
-			<groupId>de.alpharogroup</groupId>
-			<artifactId>crypt-data</artifactId>
-		</dependency>
-
 		<dependency>
 			<groupId>de.alpharogroup</groupId>
 			<artifactId>crypt-core</artifactId>
@@ -231,32 +107,7 @@
 		<dependency>
 			<groupId>com.google.guava</groupId>
 			<artifactId>guava</artifactId>
-		</dependency>
-		<!-- JAVAHELP DEPENDENCIES -->
-		<dependency>
-			<groupId>javax.help</groupId>
-			<artifactId>javahelp</artifactId>
-		</dependency>
-		<!-- SWINGLABS DEPENDENCIES -->
-		<dependency>
-			<groupId>org.swinglabs</groupId>
-			<artifactId>swing-layout</artifactId>
-		</dependency>
-
-		<dependency>
-			<groupId>org.swinglabs</groupId>
-			<artifactId>jxlayer</artifactId>
-		</dependency>
-
-		<dependency>
-			<groupId>org.swinglabs</groupId>
-			<artifactId>swing-worker</artifactId>
-		</dependency>
-
-		<dependency>
-			<groupId>org.swinglabs</groupId>
-			<artifactId>swingx</artifactId>
-		</dependency>
+		</dependency>		
 		<!-- EXT-LIBS DEPENDENCIES -->
 		<dependency>
 			<groupId>de.alpharogroup</groupId>
@@ -298,16 +149,5 @@
 		</dependency>
 
 	</dependencies>
-
-	<build>
-		<finalName>${full-app-name}</finalName>
-		<plugins>
-			<plugin>
-				<groupId>org.springframework.boot</groupId>
-				<artifactId>spring-boot-maven-plugin</artifactId>
-			</plugin>
-		</plugins>
-	</build>
-
 
 </project>

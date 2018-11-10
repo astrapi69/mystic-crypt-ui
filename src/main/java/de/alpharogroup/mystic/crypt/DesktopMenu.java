@@ -28,28 +28,30 @@ import java.awt.Component;
 import java.awt.event.ActionListener;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 
-import javax.swing.JMenu;
-import javax.swing.JMenuItem;
-import javax.swing.KeyStroke;
+import javax.swing.*;
 
 import de.alpharogroup.mystic.crypt.actions.NewFileConversionInternalFrameAction;
 import de.alpharogroup.mystic.crypt.actions.NewKeyGenerationInternalFrameAction;
 import de.alpharogroup.mystic.crypt.actions.NewObfuscationInternalFrameAction;
 import de.alpharogroup.mystic.crypt.actions.NewObfuscationOperationInternalFrameAction;
-import de.alpharogroup.mystic.crypt.actions.OpenBrowserToDonateAction;
 import de.alpharogroup.mystic.crypt.actions.OpenPrivateKeyAction;
-import de.alpharogroup.mystic.crypt.actions.ShowInfoDialogAction;
-import de.alpharogroup.mystic.crypt.actions.ShowLicenseFrameAction;
 import de.alpharogroup.swing.actions.ExitApplicationAction;
 import de.alpharogroup.swing.base.BaseDesktopMenu;
 import de.alpharogroup.swing.menu.MenuExtensions;
 import lombok.NonNull;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.core.io.Resource;
 
 /**
  * The class {@link DesktopMenu}
  */
 @SuppressWarnings("serial")
+@Slf4j
 public class DesktopMenu extends BaseDesktopMenu
 {
 
@@ -59,40 +61,6 @@ public class DesktopMenu extends BaseDesktopMenu
 	public DesktopMenu(@NonNull Component applicationFrame)
 	{
 		super(applicationFrame);
-	}
-
-	/**
-	 * Creates the help menu.
-	 *
-	 * @param listener
-	 *            the listener
-	 * @return the j menu
-	 */
-	protected JMenu newHelpMenu(final ActionListener listener)
-	{
-		// Help menu
-		final JMenu menuHelp = super.newHelpMenu(listener);
-		menuHelp.setMnemonic('H');
-
-		// Donate
-		final JMenuItem mihDonate = new JMenuItem(
-			Messages.getString("com.find.duplicate.files.menu.item.donate")); //$NON-NLS-1$
-
-		mihDonate.addActionListener(new OpenBrowserToDonateAction("Donate"));
-		menuHelp.add(mihDonate);
-
-		// Licence
-		final JMenuItem mihLicence = new JMenuItem("Licence"); //$NON-NLS-1$
-		mihLicence.addActionListener(new ShowLicenseFrameAction("Licence"));
-		menuHelp.add(mihLicence);
-		// Info
-		final JMenuItem mihInfo = new JMenuItem("Info", 'i'); //$NON-NLS-1$
-		MenuExtensions.setCtrlAccelerator(mihInfo, 'I');
-
-		mihInfo.addActionListener(new ShowInfoDialogAction("Info"));
-		menuHelp.add(mihInfo);
-
-		return menuHelp;
 	}
 
 	/**
@@ -122,7 +90,7 @@ public class DesktopMenu extends BaseDesktopMenu
 		// Open private key
 		jmi = new JMenuItem("Open private key", 'e');
 		jmi.addActionListener(
-			new OpenPrivateKeyAction("Open private key", SpringBootSwingApplication.getInstance()));
+			new OpenPrivateKeyAction("Open private key",getApplicationFrame()));
 		MenuExtensions.setCtrlAccelerator(jmi, 'e');
 		keyMenu.add(jmi);
 
@@ -166,6 +134,71 @@ public class DesktopMenu extends BaseDesktopMenu
 		fileMenu.add(jmiExit);
 
 		return fileMenu;
+	}
+
+	protected String onNewLicenseText()
+	{
+		final Resource resource = de.alpharogroup.mystic.crypt.SpringBootSwingApplication.ctx.getResource("classpath:LICENSE.txt");
+		final StringBuilder license = new StringBuilder();
+		try(InputStream is = resource.getInputStream())
+		{
+			String thisLine;
+			final BufferedReader br = new BufferedReader(new InputStreamReader(is));
+			while ((thisLine = br.readLine()) != null)
+			{
+				license.append(thisLine);
+				license.append("\n");
+			}
+		}
+		catch (final IOException e)
+		{
+			String title = e.getLocalizedMessage();
+			String htmlMessage = "<html><body width='650'>" + "<h2>" + title + "</h2>"
+				+ "<p>" + e.getMessage();
+			JOptionPane
+				.showMessageDialog(SpringBootSwingApplication.getInstance(), htmlMessage, title, JOptionPane.ERROR_MESSAGE);
+			log.error(e.getMessage(), e);
+		}
+		return license.toString();
+	}
+
+	protected String newLabelTextLabelApplicationName()
+	{
+		return Messages
+			.getString("InfoJPanel.application.name.key");
+	}
+
+	protected String newLabelTextApplicationName()
+	{
+		return Messages
+			.getString("InfoJPanel.application.name.value");
+	}
+
+	protected String newLabelTextLabelCopyright()
+	{
+		return  Messages.getString("InfoJPanel.copyright.key");
+	}
+
+	protected String newLabelTextCopyright()
+	{
+		return Messages
+			.getString("InfoJPanel.copyright.value");
+	}
+
+	protected String newLabelTextLabelVersion()
+	{
+		return Messages.getString("InfoJPanel.version.key");
+	}
+
+	protected String newLabelTextVersion()
+	{
+		return  Messages
+			.getString("InfoJPanel.version.value");
+	}
+
+	protected String newTextWarning()
+	{
+		return  Messages.getString("InfoJPanel.warning");
 	}
 
 }
