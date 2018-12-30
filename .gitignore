@@ -1,4 +1,4 @@
-##################
+    ##################
 # Compiled files #
 ##################
 *.class
@@ -7,8 +7,11 @@
 # intellij files #
 ##################
 *.iml
-.idea
-*/.idea
+!.idea/runConfigurations
+.idea/inspectionProfiles
+.idea/copyright
+.idea/libraries
+.idea/*.*
 
 #################
 # eclipse files #
