@@ -6,7 +6,7 @@ Version 5.4-SNAPSHOT
 
 CHANGED:
 
-- update of parent version to 2.1.2
+- update of parent version to 2.1.3
 
 Version 5.3
 -------------
