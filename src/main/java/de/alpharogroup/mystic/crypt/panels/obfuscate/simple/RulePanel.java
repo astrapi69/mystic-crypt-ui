@@ -187,8 +187,8 @@ public class RulePanel extends BasePanel<ObfuscationModelBean>
 		BiMap<Character, ObfuscationRule<Character, Character>> biMap = HashBiMap.create(keymap);
 		// TODO FIXME
 		// obfuscate the key
-		 final Obfuscatable obfuscator = new SimpleCharacterObfuscator(biMap, toObfuscatedString);
-		 getModelObject().setObfuscator(obfuscator);
+		final Obfuscatable obfuscator = new SimpleCharacterObfuscator(biMap, toObfuscatedString);
+		getModelObject().setObfuscator(obfuscator);
 		final String result = getModelObject().getObfuscator().obfuscate();
 		getEnDecryptPanel().getTxtEncrypted().setText(result);
 		getEnDecryptPanel().getTxtToEncrypt().setText("");

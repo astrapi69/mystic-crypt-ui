@@ -31,6 +31,7 @@ import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
 
 import javax.swing.JCheckBox;
 import javax.swing.JFileChooser;
@@ -48,7 +49,7 @@ import de.alpharogroup.collections.pairs.KeyValuePair;
 import de.alpharogroup.crypto.hex.HexExtensions;
 import de.alpharogroup.crypto.obfuscation.rule.ObfuscationRule;
 import de.alpharogroup.file.read.ReadFileExtensions;
-import de.alpharogroup.file.write.WriteFileQuietlyExtensions;
+import de.alpharogroup.file.write.WriteFileExtensions;
 import de.alpharogroup.model.BaseModel;
 import de.alpharogroup.model.api.Model;
 import de.alpharogroup.mystic.crypt.panels.obfuscate.ModeContext;
@@ -60,10 +61,11 @@ import de.alpharogroup.swing.table.editor.TableCellButtonEditor;
 import de.alpharogroup.xml.ObjectToXmlExtensions;
 import de.alpharogroup.xml.XmlToObjectExtensions;
 import lombok.Getter;
-import lombok.extern.slf4j.Slf4j;
+import lombok.SneakyThrows;
+import lombok.extern.java.Log;
 
 @Getter
-@Slf4j
+@Log
 public class ObfuscationRuleTablePanel extends BasePanel<ObfuscationModelBean>
 {
 
@@ -100,6 +102,7 @@ public class ObfuscationRuleTablePanel extends BasePanel<ObfuscationModelBean>
 	{
 	}
 
+	@SneakyThrows
 	protected void onExport(final ActionEvent actionEvent)
 	{
 		List<KeyValuePair<Character, ObfuscationRule<Character, Character>>> data = getModelObject()
@@ -112,7 +115,7 @@ public class ObfuscationRuleTablePanel extends BasePanel<ObfuscationModelBean>
 			String xmlString = ObjectToXmlExtensions.toXmlWithXStream(xStream, data, aliases);
 			final String hexXmlString = HexExtensions.encodeHex(xmlString, Charset.forName("UTF-8"),
 				true);
-			WriteFileQuietlyExtensions.writeStringToFile(obfuscationRules, hexXmlString, "UTF-8");
+			WriteFileExtensions.writeStringToFile(obfuscationRules, hexXmlString, "UTF-8");
 		}
 	}
 
@@ -135,11 +138,11 @@ public class ObfuscationRuleTablePanel extends BasePanel<ObfuscationModelBean>
 			}
 			catch (final IOException e)
 			{
-				log.error("IOException ", e);
+				log.log(Level.SEVERE, e.getLocalizedMessage(), e);
 			}
 			catch (DecoderException e)
 			{
-				log.error("DecoderException ", e);
+				log.log(Level.SEVERE, e.getLocalizedMessage(), e);
 			}
 		}
 	}

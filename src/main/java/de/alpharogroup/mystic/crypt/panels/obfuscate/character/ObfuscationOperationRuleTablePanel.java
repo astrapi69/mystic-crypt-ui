@@ -31,6 +31,7 @@ import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
 
 import javax.swing.GroupLayout;
 import javax.swing.JCheckBox;
@@ -49,7 +50,7 @@ import de.alpharogroup.collections.pairs.KeyValuePair;
 import de.alpharogroup.crypto.hex.HexExtensions;
 import de.alpharogroup.crypto.obfuscation.rule.ObfuscationOperationRule;
 import de.alpharogroup.file.read.ReadFileExtensions;
-import de.alpharogroup.file.write.WriteFileQuietlyExtensions;
+import de.alpharogroup.file.write.WriteFileExtensions;
 import de.alpharogroup.model.BaseModel;
 import de.alpharogroup.model.api.Model;
 import de.alpharogroup.mystic.crypt.panels.obfuscate.ModeContext;
@@ -62,11 +63,12 @@ import de.alpharogroup.xml.ObjectToXmlExtensions;
 import de.alpharogroup.xml.XmlToObjectExtensions;
 import lombok.Getter;
 import lombok.NonNull;
-import lombok.extern.slf4j.Slf4j;
+import lombok.SneakyThrows;
+import lombok.extern.java.Log;
 
 
 @Getter
-@Slf4j
+@Log
 public class ObfuscationOperationRuleTablePanel extends BasePanel<ObfuscationOperationModelBean>
 {
 
@@ -112,6 +114,7 @@ public class ObfuscationOperationRuleTablePanel extends BasePanel<ObfuscationOpe
 	{
 	}
 
+	@SneakyThrows
 	protected void onExport(final ActionEvent actionEvent)
 	{
 		List<KeyValuePair<Character, ObfuscationOperationRule<Character, Character>>> data = getModelObject()
@@ -124,7 +127,7 @@ public class ObfuscationOperationRuleTablePanel extends BasePanel<ObfuscationOpe
 			String xmlString = ObjectToXmlExtensions.toXmlWithXStream(xStream, data, aliases);
 			final String hexXmlString = HexExtensions.encodeHex(xmlString, Charset.forName("UTF-8"),
 				true);
-			WriteFileQuietlyExtensions.writeStringToFile(obfuscationRules, hexXmlString, "UTF-8");
+			WriteFileExtensions.writeStringToFile(obfuscationRules, hexXmlString, "UTF-8");
 		}
 	}
 
@@ -145,13 +148,9 @@ public class ObfuscationOperationRuleTablePanel extends BasePanel<ObfuscationOpe
 				getModelObject().getTableModel().setData(data);
 				getModelObject().getTableModel().fireTableDataChanged();
 			}
-			catch (final IOException e)
+			catch (final IOException | DecoderException e)
 			{
-				log.error("IOException ", e);
-			}
-			catch (DecoderException e)
-			{
-				log.error("DecoderException ", e);
+				log.log(Level.SEVERE, e.getLocalizedMessage(), e);
 			}
 		}
 	}
@@ -203,7 +202,7 @@ public class ObfuscationOperationRuleTablePanel extends BasePanel<ObfuscationOpe
 				return this;
 			}
 		});
-		
+
 		editValueColumn.setCellEditor(new TableCellButtonEditor(new JCheckBox())
 		{
 			private static final long serialVersionUID = 1L;

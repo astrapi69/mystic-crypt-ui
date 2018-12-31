@@ -35,8 +35,6 @@ import javax.swing.JLabel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 
-import org.apache.log4j.Logger;
-
 import de.alpharogroup.crypto.key.KeySize;
 import de.alpharogroup.layout.GridBagLayoutModel;
 import de.alpharogroup.layout.InsetsModel;
@@ -53,11 +51,6 @@ import lombok.Getter;
 @Getter
 public class CryptographyPanel extends BasePanel<GenerateKeysModelBean>
 {
-
-	/**
-	 * The Constant logger.
-	 */
-	protected static final Logger logger = Logger.getLogger(CryptographyPanel.class.getName());
 
 	/**
 	 * The Constant serialVersionUID.

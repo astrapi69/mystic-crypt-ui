@@ -47,6 +47,7 @@ import lombok.Getter;
  *            the generic type of the model object
  * @deprecated use instead the same name class from new release swing-components project
  */
+@Deprecated
 @Getter
 public abstract class JTreePanel<T> extends BasePanel<T>
 {
@@ -113,6 +114,7 @@ public abstract class JTreePanel<T> extends BasePanel<T>
 
 		tree.addMouseListener(new MouseAdapter()
 		{
+			@Override
 			public void mousePressed(MouseEvent e)
 			{
 				int selRow = tree.getRowForLocation(e.getX(), e.getY());

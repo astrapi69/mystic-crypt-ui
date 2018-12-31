@@ -39,7 +39,6 @@ import javax.swing.event.TreeModelListener;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreeModel;
-import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
 
 import de.alpharogroup.model.BaseModel;
@@ -62,12 +61,14 @@ public class DatabaseTreePanel extends JTreePanel<DatabaseTreeModelBean>
 		super(model);
 	}
 
+	@Override
 	protected JTree newTree()
 	{
 		JTree tree = super.newTree();
 		return tree;
 	}
 
+	@Override
 	protected TreeModel newTreeModel(final Model<DatabaseTreeModelBean> model)
 	{
 		DefaultMutableTreeNode rootNode = new DefaultMutableTreeNode("database", true),
@@ -82,6 +83,7 @@ public class DatabaseTreePanel extends JTreePanel<DatabaseTreeModelBean>
 
 		treeModel.addTreeModelListener(new TreeModelListener()
 		{
+			@Override
 			public void treeNodesChanged(TreeModelEvent e)
 			{
 				DefaultMutableTreeNode node;
@@ -90,14 +92,17 @@ public class DatabaseTreePanel extends JTreePanel<DatabaseTreeModelBean>
 				node = (DefaultMutableTreeNode)(node.getChildAt(index));
 			}
 
+			@Override
 			public void treeNodesInserted(TreeModelEvent e)
 			{
 			}
 
+			@Override
 			public void treeNodesRemoved(TreeModelEvent e)
 			{
 			}
 
+			@Override
 			public void treeStructureChanged(TreeModelEvent e)
 			{
 			}
@@ -129,6 +134,7 @@ public class DatabaseTreePanel extends JTreePanel<DatabaseTreeModelBean>
 		onInitializeGroupLayout();
 	}
 
+	@Override
 	protected void onSingleClick(MouseEvent e)
 	{
 		int x = e.getX();
@@ -173,7 +179,7 @@ public class DatabaseTreePanel extends JTreePanel<DatabaseTreeModelBean>
 				DefaultMutableTreeNode selectedPathComponent = (DefaultMutableTreeNode)selectionPath
 					.getLastPathComponent();
 				selectedPathComponent.add(newChild);
-				((DefaultTreeModel)tree.getModel()).reload((TreeNode)selectedPathComponent);
+				((DefaultTreeModel)tree.getModel()).reload(selectedPathComponent);
 				tree.treeDidChange();
 			}
 
@@ -192,7 +198,7 @@ public class DatabaseTreePanel extends JTreePanel<DatabaseTreeModelBean>
 				selectedPathComponent.removeAllChildren();
 				((DefaultMutableTreeNode)selectedPathComponent.getParent())
 					.remove(selectedNodeIndex);
-				((DefaultTreeModel)tree.getModel()).reload((TreeNode)selectedPathComponent);
+				((DefaultTreeModel)tree.getModel()).reload(selectedPathComponent);
 				tree.treeDidChange();
 			}
 

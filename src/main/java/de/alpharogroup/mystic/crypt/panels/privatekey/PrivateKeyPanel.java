@@ -26,11 +26,11 @@ package de.alpharogroup.mystic.crypt.panels.privatekey;
 
 import java.awt.event.ActionEvent;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
+import java.util.logging.Level;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
@@ -43,12 +43,11 @@ import de.alpharogroup.model.api.Model;
 import de.alpharogroup.mystic.crypt.panels.keygen.EnDecryptPanel;
 import de.alpharogroup.swing.base.BasePanel;
 import lombok.Getter;
-import lombok.extern.slf4j.Slf4j;
+import lombok.extern.java.Log;
 import net.miginfocom.swing.MigLayout;
 
-
 @Getter
-@Slf4j
+@Log
 public class PrivateKeyPanel extends BasePanel<PrivateKeyModelBean>
 {
 
@@ -88,7 +87,7 @@ public class PrivateKeyPanel extends BasePanel<PrivateKeyModelBean>
 			| IllegalBlockSizeException | BadPaddingException | InvalidKeySpecException
 			| InvalidAlgorithmParameterException | DecoderException | IOException e)
 		{
-			log.error("", e);
+			log.log(Level.SEVERE, e.getLocalizedMessage(), e);
 		}
 
 	}
@@ -109,23 +108,11 @@ public class PrivateKeyPanel extends BasePanel<PrivateKeyModelBean>
 			getEnDecryptPanel().getTxtToEncrypt().setText("");
 		}
 		catch (InvalidKeyException | NoSuchAlgorithmException | InvalidKeySpecException
-			| NoSuchPaddingException | UnsupportedEncodingException e)
+			| NoSuchPaddingException | IllegalBlockSizeException | BadPaddingException
+			| IOException e)
 		{
-			log.error("", e);
+			log.log(Level.SEVERE, e.getLocalizedMessage(), e);
 		}
-		catch (final IllegalBlockSizeException e)
-		{
-			log.error("", e);
-		}
-		catch (final BadPaddingException e)
-		{
-			log.error("", e);
-		}
-		catch (final IOException e)
-		{
-			log.error("", e);
-		}
-
 	}
 
 	@Override

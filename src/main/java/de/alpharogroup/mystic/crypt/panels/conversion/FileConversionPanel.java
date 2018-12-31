@@ -44,8 +44,6 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.LayoutStyle;
 
-import org.apache.log4j.Logger;
-
 import de.alpharogroup.crypto.key.KeyType;
 import de.alpharogroup.crypto.key.reader.CertificateReader;
 import de.alpharogroup.crypto.key.reader.PrivateKeyReader;
@@ -63,9 +61,6 @@ import lombok.Getter;
 @Getter
 public class FileConversionPanel extends BasePanel<FileConversionModelBean>
 {
-	/** The Constant logger. */
-	protected static final Logger logger = Logger.getLogger(FileConversionPanel.class.getName());
-
 	private static final long serialVersionUID = 1L;
 
 	private JButton btnChoose;

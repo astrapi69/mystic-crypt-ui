@@ -66,8 +66,8 @@ public class NewFileConversionInternalFrameAction extends AbstractAction
 
 		final FileConversionPanel component = new FileConversionPanel();
 		JInternalFrameExtensions.addComponentToFrame(internalFrame, component);
-		JInternalFrameExtensions.addJInternalFrame(SpringBootSwingApplication.getInstance().getDesktopPane(),
-			internalFrame);
+		JInternalFrameExtensions.addJInternalFrame(
+			SpringBootSwingApplication.getInstance().getDesktopPane(), internalFrame);
 	}
 
 }

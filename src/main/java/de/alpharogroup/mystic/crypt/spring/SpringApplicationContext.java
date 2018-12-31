@@ -24,24 +24,14 @@
  */
 package de.alpharogroup.mystic.crypt.spring;
 
-import java.io.IOException;
-
-import javax.swing.JOptionPane;
-import javax.xml.parsers.FactoryConfigurationError;
-
-import org.apache.log4j.xml.DOMConfigurator;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
-import org.springframework.core.io.Resource;
 
-import de.alpharogroup.mystic.crypt.SpringBootSwingApplication;
 import lombok.Getter;
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * The Class SpringApplicationContext.
  */
-@Slf4j
 public class SpringApplicationContext
 {
 
@@ -73,29 +63,6 @@ public class SpringApplicationContext
 			+ "/application-context.xml";
 
 		final ApplicationContext ac = new ClassPathXmlApplicationContext(applicationContextPath);
-
-		final Resource resource = ac.getResource("classpath:conf/log4j/log4jconfig.xml");
-
-		try
-		{
-			DOMConfigurator.configure(resource.getURL());
-		}
-		catch (final FactoryConfigurationError e)
-		{
-			String title = e.getLocalizedMessage();
-			String htmlMessage = "<html><body width='650'>" + "<h2>" + title + "</h2>"
-				+ "<p>" + e.getMessage();
-			JOptionPane.showMessageDialog(SpringBootSwingApplication.getInstance(), htmlMessage, title, JOptionPane.ERROR_MESSAGE);
-			log.error(e.getMessage(), e);
-		}
-		catch (final IOException e)
-		{
-			String title = e.getLocalizedMessage();
-			String htmlMessage = "<html><body width='650'>" + "<h2>" + title + "</h2>"
-				+ "<p>" + e.getMessage();
-			JOptionPane.showMessageDialog(SpringBootSwingApplication.getInstance(), htmlMessage, title, JOptionPane.ERROR_MESSAGE);
-			log.error(e.getMessage(), e);
-		}
 
 		applicationContext = ac;
 	}

@@ -81,6 +81,7 @@ public class PasswordFormDialog extends javax.swing.JDialog
 		/* Create and display the dialog */
 		java.awt.EventQueue.invokeLater(new Runnable()
 		{
+			@Override
 			public void run()
 			{
 				PasswordDialog dialog = new PasswordDialog(new javax.swing.JFrame(), true);

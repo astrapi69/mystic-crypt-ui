@@ -35,6 +35,7 @@ import java.security.NoSuchProviderException;
 import java.security.PrivateKey;
 import java.security.Security;
 import java.security.spec.InvalidKeySpecException;
+import java.util.logging.Level;
 
 import javax.crypto.NoSuchPaddingException;
 import javax.swing.JInternalFrame;
@@ -57,12 +58,12 @@ import de.alpharogroup.swing.actions.OpenFileAction;
 import de.alpharogroup.swing.components.factories.JComponentFactory;
 import de.alpharogroup.swing.utils.JInternalFrameExtensions;
 import lombok.NonNull;
-import lombok.extern.slf4j.Slf4j;
+import lombok.extern.java.Log;
 
 /**
  * The class {@link OpenPrivateKeyAction}.
  */
-@Slf4j
+@Log
 public class OpenPrivateKeyAction extends OpenFileAction
 {
 
@@ -138,32 +139,16 @@ public class OpenPrivateKeyAction extends OpenFileAction
 			}
 
 		}
-		catch (NoSuchAlgorithmException | InvalidKeySpecException | NoSuchProviderException
+		catch (NoSuchAlgorithmException | InvalidKeySpecException | InvalidKeyException
+			| NoSuchPaddingException | InvalidAlgorithmParameterException | NoSuchProviderException
 			| IOException e)
 		{
-			log.error(e.getMessage(), e);
-		}
-		catch (InvalidKeyException e)
-		{
-			log.error(e.getMessage(), e);
-		}
-		catch (NoSuchPaddingException e)
-		{
 			String title = e.getLocalizedMessage();
 			String htmlMessage = "<html><body width='650'>" + "<h2>" + title + "</h2>" + "<p>"
 				+ e.getMessage();
 			JOptionPane.showMessageDialog(this.getParent(), htmlMessage, title,
 				JOptionPane.ERROR_MESSAGE);
-			log.error(e.getMessage(), e);
-		}
-		catch (InvalidAlgorithmParameterException e)
-		{
-			String title = e.getLocalizedMessage();
-			String htmlMessage = "<html><body width='650'>" + "<h2>" + title + "</h2>" + "<p>"
-				+ e.getMessage();
-			JOptionPane.showMessageDialog(this.getParent(), htmlMessage, title,
-				JOptionPane.ERROR_MESSAGE);
-			log.error(e.getMessage(), e);
+			log.log(Level.SEVERE, e.getLocalizedMessage(), e);
 		}
 		if (privateKey == null)
 		{
@@ -179,7 +164,7 @@ public class OpenPrivateKeyAction extends OpenFileAction
 					+ e.getMessage();
 				JOptionPane.showMessageDialog(this.getParent(), htmlMessage, title,
 					JOptionPane.ERROR_MESSAGE);
-				log.error(e.getMessage(), e);
+				log.log(Level.SEVERE, e.getLocalizedMessage(), e);
 			}
 		}
 		return privateKey;
@@ -207,7 +192,7 @@ public class OpenPrivateKeyAction extends OpenFileAction
 				+ e.getMessage();
 			JOptionPane.showMessageDialog(this.getParent(), htmlMessage, title,
 				JOptionPane.ERROR_MESSAGE);
-			log.error(e.getMessage(), e);
+			log.log(Level.SEVERE, e.getLocalizedMessage(), e);
 		}
 
 		model.setKeySize(getKeySize(privateKey));
@@ -230,7 +215,7 @@ public class OpenPrivateKeyAction extends OpenFileAction
 				+ e.getMessage();
 			JOptionPane.showMessageDialog(this.getParent(), htmlMessage, title,
 				JOptionPane.ERROR_MESSAGE);
-			log.error(e.getMessage(), e);
+			log.log(Level.SEVERE, e.getLocalizedMessage(), e);
 		}
 
 		final String publicKeyFormat = PublicKeyExtensions.toPemFormat(model.getPublicKey());
@@ -241,8 +226,8 @@ public class OpenPrivateKeyAction extends OpenFileAction
 		component.getPrivateKeyViewPanel().getTxtPublicKey().setText(publicKeyFormat);
 
 		JInternalFrameExtensions.addComponentToFrame(internalFrame, component);
-		JInternalFrameExtensions.addJInternalFrame(SpringBootSwingApplication.getInstance().getDesktopPane(),
-			internalFrame);
+		JInternalFrameExtensions.addJInternalFrame(
+			SpringBootSwingApplication.getInstance().getDesktopPane(), internalFrame);
 	}
 
 

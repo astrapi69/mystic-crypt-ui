@@ -45,28 +45,10 @@ import lombok.experimental.FieldDefaults;
 public class SpringBootSwingApplication extends ApplicationFrame<ApplicationModelBean>
 {
 
-	/**
-	 * The main method that start this {@link SpringBootSwingApplication}
-	 *
-	 * @param args the arguments
-	 */
-	public static void main(String[] args)
-	{
-
-		ConfigurableApplicationContext ctx = new SpringApplicationBuilder(
-			SpringBootSwingApplication.class)
-			.headless(false).run(args);
-		SpringBootSwingApplication.ctx = ctx;
-
-		EventQueue.invokeLater(() -> {
-			SpringBootSwingApplication ex = ctx.getBean(SpringBootSwingApplication.class);
-			ex.setVisible(true);
-		});
-	}
+	public static ConfigurableApplicationContext ctx;
 
 	/** The instance. */
 	private static SpringBootSwingApplication instance;
-	public static ConfigurableApplicationContext ctx;
 
 	/**
 	 * Gets the single instance of SpringBootSwingApplication.
@@ -76,6 +58,25 @@ public class SpringBootSwingApplication extends ApplicationFrame<ApplicationMode
 	public static SpringBootSwingApplication getInstance()
 	{
 		return instance;
+	}
+
+	/**
+	 * The main method that start this {@link SpringBootSwingApplication}
+	 *
+	 * @param args
+	 *            the arguments
+	 */
+	public static void main(String[] args)
+	{
+
+		ConfigurableApplicationContext ctx = new SpringApplicationBuilder(
+			SpringBootSwingApplication.class).headless(false).run(args);
+		SpringBootSwingApplication.ctx = ctx;
+
+		EventQueue.invokeLater(() -> {
+			SpringBootSwingApplication ex = ctx.getBean(SpringBootSwingApplication.class);
+			ex.setVisible(true);
+		});
 	}
 
 	/** The internal frame. */
@@ -95,15 +96,15 @@ public class SpringBootSwingApplication extends ApplicationFrame<ApplicationMode
 	}
 
 	@Override
-	protected String newIconPath()
-	{
-		return Messages.getString("global.icon.app.path");
-	}
-	
-	@Override
 	protected BaseDesktopMenu newDesktopMenu(@NonNull Component applicationFrame)
 	{
 		return new DesktopMenu(applicationFrame);
+	}
+
+	@Override
+	protected String newIconPath()
+	{
+		return Messages.getString("global.icon.app.path");
 	}
 
 }

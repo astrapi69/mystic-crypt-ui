@@ -26,7 +26,6 @@ package de.alpharogroup.mystic.crypt.panels.keygen;
 
 import java.awt.event.ActionEvent;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.KeyPair;
@@ -34,6 +33,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
 import java.security.PrivateKey;
 import java.security.spec.InvalidKeySpecException;
+import java.util.logging.Level;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
@@ -43,8 +43,6 @@ import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 
 import org.apache.commons.codec.DecoderException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import de.alpharogroup.crypto.algorithm.KeyPairGeneratorAlgorithm;
 import de.alpharogroup.crypto.factories.KeyPairFactory;
@@ -61,14 +59,13 @@ import de.alpharogroup.model.BaseModel;
 import de.alpharogroup.model.api.Model;
 import de.alpharogroup.swing.base.BasePanel;
 import lombok.Getter;
+import lombok.extern.java.Log;
 import net.miginfocom.swing.MigLayout;
 
 @Getter
+@Log
 public class GenerateKeysPanel extends BasePanel<GenerateKeysModelBean>
 {
-	/** The logger. */
-	protected static final Logger logger = LoggerFactory
-		.getLogger(GenerateKeysPanel.class.getName());
 
 	private static final long serialVersionUID = 1L;
 
@@ -141,7 +138,7 @@ public class GenerateKeysPanel extends BasePanel<GenerateKeysModelBean>
 			| IllegalBlockSizeException | BadPaddingException | InvalidKeySpecException
 			| InvalidAlgorithmParameterException | DecoderException | IOException e)
 		{
-			logger.error("", e);
+			log.log(Level.SEVERE, e.getLocalizedMessage(), e);
 		}
 
 	}
@@ -164,21 +161,10 @@ public class GenerateKeysPanel extends BasePanel<GenerateKeysModelBean>
 			getEnDecryptPanel().getTxtToEncrypt().setText("");
 		}
 		catch (InvalidKeyException | NoSuchAlgorithmException | InvalidKeySpecException
-			| NoSuchPaddingException | UnsupportedEncodingException e)
+			| NoSuchPaddingException | IllegalBlockSizeException | BadPaddingException
+			| IOException e)
 		{
-			logger.error("", e);
-		}
-		catch (final IllegalBlockSizeException e)
-		{
-			logger.error("", e);
-		}
-		catch (final BadPaddingException e)
-		{
-			logger.error("", e);
-		}
-		catch (final IOException e)
-		{
-			logger.error("", e);
+			log.log(Level.SEVERE, e.getLocalizedMessage(), e);
 		}
 
 	}
@@ -218,17 +204,9 @@ public class GenerateKeysPanel extends BasePanel<GenerateKeysModelBean>
 			getCryptographyPanel().getTxtPrivateKey().setText(privateKeyFormat);
 			getCryptographyPanel().getTxtPublicKey().setText(publicKeyFormat);
 		}
-		catch (final NoSuchAlgorithmException e)
+		catch (final NoSuchAlgorithmException | NoSuchProviderException | IOException e)
 		{
-			logger.error("", e);
-		}
-		catch (final IOException e)
-		{
-			logger.error("", e);
-		}
-		catch (NoSuchProviderException e)
-		{
-			logger.error("", e);
+			log.log(Level.SEVERE, e.getLocalizedMessage(), e);
 		}
 
 	}

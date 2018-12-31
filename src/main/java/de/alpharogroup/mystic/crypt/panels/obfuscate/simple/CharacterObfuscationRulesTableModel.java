@@ -117,7 +117,7 @@ public class CharacterObfuscationRulesTableModel
 	{
 		final KeyValuePair<Character, ObfuscationRule<Character, Character>> permission = getData()
 			.get(row);
-		ObfuscationRule<Character,Character> obfuscationRule = permission.getValue();
+		ObfuscationRule<Character, Character> obfuscationRule = permission.getValue();
 		switch (col)
 		{
 			case 0 :
@@ -131,6 +131,20 @@ public class CharacterObfuscationRulesTableModel
 			default :
 				return null;
 		}
+	}
+
+	public Optional<KeyValuePair<Character, ObfuscationRule<Character, Character>>> indexOf(
+		Character character)
+	{
+		final List<KeyValuePair<Character, ObfuscationRule<Character, Character>>> data = getData();
+		for (final KeyValuePair<Character, ObfuscationRule<Character, Character>> row : data)
+		{
+			if (row.getKey().equals(character))
+			{
+				return Optional.of(row);
+			}
+		}
+		return Optional.empty();
 	}
 
 	/**
@@ -157,20 +171,6 @@ public class CharacterObfuscationRulesTableModel
 		}
 		return map;
 
-	}
-
-	public Optional<KeyValuePair<Character, ObfuscationRule<Character, Character>>> indexOf(
-		Character character)
-	{
-		final List<KeyValuePair<Character, ObfuscationRule<Character, Character>>> data = getData();
-		for (final KeyValuePair<Character, ObfuscationRule<Character, Character>> row : data)
-		{
-			if (row.getKey().equals(character))
-			{
-				return Optional.of(row);
-			}
-		}
-		return Optional.empty();
 	}
 
 }

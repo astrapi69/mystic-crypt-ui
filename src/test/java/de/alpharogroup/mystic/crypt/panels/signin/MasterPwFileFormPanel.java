@@ -88,6 +88,7 @@ public class MasterPwFileFormPanel extends javax.swing.JPanel
 		cbxMasterPw.setText("Master Password:");
 		cbxMasterPw.addActionListener(new java.awt.event.ActionListener()
 		{
+			@Override
 			public void actionPerformed(java.awt.event.ActionEvent evt)
 			{
 				cbxMasterPwActionPerformed(evt);
