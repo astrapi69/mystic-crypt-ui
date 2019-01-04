@@ -40,6 +40,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.table.TableColumn;
 
+import de.alpharogroup.mystic.crypt.panels.obfuscate.XmlEnDecryptionExtensions;
 import org.apache.commons.codec.DecoderException;
 
 import com.thoughtworks.xstream.XStream;
@@ -111,11 +112,9 @@ public class ObfuscationRuleTablePanel extends BasePanel<ObfuscationModelBean>
 		final int returnVal = fileChooser.showSaveDialog(ObfuscationRuleTablePanel.this);
 		if (returnVal == JFileChooser.APPROVE_OPTION)
 		{
-			final File obfuscationRules = fileChooser.getSelectedFile();
-			String xmlString = ObjectToXmlExtensions.toXmlWithXStream(xStream, data, aliases);
-			final String hexXmlString = HexExtensions.encodeHex(xmlString, Charset.forName("UTF-8"),
-				true);
-			WriteFileExtensions.writeStringToFile(obfuscationRules, hexXmlString, "UTF-8");
+			final File selectedFile = fileChooser.getSelectedFile();
+			XmlEnDecryptionExtensions.write(xStream, aliases,  data, selectedFile);
+			return;
 		}
 	}
 
@@ -124,14 +123,11 @@ public class ObfuscationRuleTablePanel extends BasePanel<ObfuscationModelBean>
 		final int returnVal = fileChooser.showOpenDialog(ObfuscationRuleTablePanel.this);
 		if (returnVal == JFileChooser.APPROVE_OPTION)
 		{
-			final File obfuscationRules = fileChooser.getSelectedFile();
+			final File selectedFile = fileChooser.getSelectedFile();
 			try
 			{
-				final String hexXmlString = ReadFileExtensions.readFromFile(obfuscationRules);
-				String xmlString = HexExtensions.decodeHex(hexXmlString);
-
-				List<KeyValuePair<Character, ObfuscationRule<Character, Character>>> data = XmlToObjectExtensions
-					.toObjectWithXStream(xStream, xmlString, aliases);
+				List<KeyValuePair<Character, ObfuscationRule<Character, Character>>> data =
+					XmlEnDecryptionExtensions.read(xStream, aliases, selectedFile);
 
 				getModelObject().getTableModel().setData(data);
 				getModelObject().getTableModel().fireTableDataChanged();
@@ -145,6 +141,16 @@ public class ObfuscationRuleTablePanel extends BasePanel<ObfuscationModelBean>
 				log.log(Level.SEVERE, e.getLocalizedMessage(), e);
 			}
 		}
+	}
+
+	private List<KeyValuePair<Character, ObfuscationRule<Character, Character>>> read(
+		File selectedFile) throws IOException, DecoderException
+	{
+		final String hexXmlString = ReadFileExtensions.readFromFile(selectedFile);
+		String xmlString = HexExtensions.decodeHex(hexXmlString);
+
+		return XmlToObjectExtensions
+			.toObjectWithXStream(xStream, xmlString, aliases);
 	}
 
 	@Override

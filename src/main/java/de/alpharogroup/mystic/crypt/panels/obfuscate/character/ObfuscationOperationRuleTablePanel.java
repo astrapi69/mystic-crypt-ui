@@ -41,6 +41,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.table.TableColumn;
 
+import de.alpharogroup.mystic.crypt.panels.obfuscate.XmlEnDecryptionExtensions;
 import org.apache.commons.codec.DecoderException;
 
 import com.thoughtworks.xstream.XStream;
@@ -123,11 +124,8 @@ public class ObfuscationOperationRuleTablePanel extends BasePanel<ObfuscationOpe
 		final int returnVal = fileChooser.showSaveDialog(ObfuscationOperationRuleTablePanel.this);
 		if (returnVal == JFileChooser.APPROVE_OPTION)
 		{
-			final File obfuscationRules = fileChooser.getSelectedFile();
-			String xmlString = ObjectToXmlExtensions.toXmlWithXStream(xStream, data, aliases);
-			final String hexXmlString = HexExtensions.encodeHex(xmlString, Charset.forName("UTF-8"),
-				true);
-			WriteFileExtensions.writeStringToFile(obfuscationRules, hexXmlString, "UTF-8");
+			final File selectedFile = fileChooser.getSelectedFile();
+			XmlEnDecryptionExtensions.write(xStream, aliases,  data, selectedFile);
 		}
 	}
 

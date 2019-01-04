@@ -18,7 +18,9 @@
 	<name>${project.artifactId}</name>
 	<description>Demo project for mystic-crypt lib</description>
 
-	<properties>		
+	<properties>
+		<!-- SWING-COMPONENTS version -->
+		<swing-components.version>5.1-SNAPSHOT</swing-components.version>
 		<!-- GUAVA version -->
 		<guava.version>27.0-jre</guava.version>
 		<!-- MYSTIC-CRYPT versions -->

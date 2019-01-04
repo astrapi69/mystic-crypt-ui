@@ -49,6 +49,4 @@ import lombok.experimental.FieldDefaults;
 public class ApplicationModelBean
 {
 	MasterPwFileModelBean masterPwFileModelBean;
-
-
 }

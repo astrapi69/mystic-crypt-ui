@@ -22,9 +22,13 @@ package de.alpharogroup.mystic.crypt;
 
 import java.awt.Component;
 import java.awt.EventQueue;
+import java.io.File;
 
 import javax.swing.JInternalFrame;
 
+import de.alpharogroup.file.create.CreateFileExtensions;
+import de.alpharogroup.file.exceptions.DirectoryAllreadyExistsException;
+import lombok.SneakyThrows;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.context.ConfigurableApplicationContext;
@@ -50,6 +54,8 @@ public class SpringBootSwingApplication extends ApplicationFrame<ApplicationMode
 	/** The instance. */
 	private static SpringBootSwingApplication instance;
 
+	File configurationDir;
+
 	/**
 	 * Gets the single instance of SpringBootSwingApplication.
 	 *
@@ -68,7 +74,6 @@ public class SpringBootSwingApplication extends ApplicationFrame<ApplicationMode
 	 */
 	public static void main(String[] args)
 	{
-
 		ConfigurableApplicationContext ctx = new SpringApplicationBuilder(
 			SpringBootSwingApplication.class).headless(false).run(args);
 		SpringBootSwingApplication.ctx = ctx;
@@ -82,6 +87,13 @@ public class SpringBootSwingApplication extends ApplicationFrame<ApplicationMode
 	/** The internal frame. */
 	@Getter
 	JInternalFrame internalFrame;
+	/** init block **/
+	{
+		configurationDir = new File(System.getProperty("user.home"), ".mystic-crypt");
+		if(!configurationDir.exists()) {
+			configurationDir.mkdir();
+		}
+	}
 
 	/**
 	 * Instantiates a new main frame.
@@ -89,10 +101,18 @@ public class SpringBootSwingApplication extends ApplicationFrame<ApplicationMode
 	public SpringBootSwingApplication()
 	{
 		super(Messages.getString("mainframe.title"));
-		if (instance == null)
+	}
+
+	@Override
+	protected File newConfigurationDirectory(final @NonNull String parent, final @NonNull String child)
+	{
+		File applicationConfigurationDirectory =
+			new File(super.newConfigurationDirectory(parent, child), "mystic-crypt");
+		if (!applicationConfigurationDirectory.exists())
 		{
-			instance = this;
+			applicationConfigurationDirectory.mkdir();
 		}
+		return applicationConfigurationDirectory;
 	}
 
 	@Override
@@ -105,6 +125,18 @@ public class SpringBootSwingApplication extends ApplicationFrame<ApplicationMode
 	protected String newIconPath()
 	{
 		return Messages.getString("global.icon.app.path");
+	}
+
+
+	@Override
+	protected void onAfterInitialize()
+	{
+		super.onAfterInitialize();
+
+		if (instance == null)
+		{
+			instance = this;
+		}
 	}
 
 }
