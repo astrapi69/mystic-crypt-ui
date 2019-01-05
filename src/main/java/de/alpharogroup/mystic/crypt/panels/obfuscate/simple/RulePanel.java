@@ -68,7 +68,6 @@ public class RulePanel extends BasePanel<ObfuscationModelBean>
 	{
 		if (simpleRulePanel.getTxtOriginalChar().getText().isEmpty())
 		{
-
 			String title = "Original character is empty";
 			String htmlMessage = "<html><body width='350'>" + "<h2>" + title + "</h2>"
 				+ "<p> Please choose a value for the original character";
@@ -77,7 +76,6 @@ public class RulePanel extends BasePanel<ObfuscationModelBean>
 		}
 		if (simpleRulePanel.getTxtRelpaceWith().getText().isEmpty())
 		{
-
 			String title = "Replace with character is empty";
 			String htmlMessage = "<html><body width='350'>" + "<h2>" + title + "</h2>"
 				+ "<p> Please choose a value for the replace with character";
@@ -194,6 +192,7 @@ public class RulePanel extends BasePanel<ObfuscationModelBean>
 		getEnDecryptPanel().getTxtToEncrypt().setText("");
 	}
 
+	@SuppressWarnings("serial")
 	@Override
 	protected void onInitializeComponents()
 	{

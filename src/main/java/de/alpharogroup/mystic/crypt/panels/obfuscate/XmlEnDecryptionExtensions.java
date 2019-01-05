@@ -90,7 +90,8 @@ public class XmlEnDecryptionExtensions
 	 *             the decoder exception
 	 */
 	public static <T> T readFromFileAsXmlAndHex(XStream xstream,
-		final Map<String, Class<?>> aliases, @NonNull File selectedFile) throws IOException, DecoderException
+		final Map<String, Class<?>> aliases, @NonNull File selectedFile)
+		throws IOException, DecoderException
 	{
 		final String hexXmlString = ReadFileExtensions.readFromFile(selectedFile);
 		String xmlString = HexExtensions.decodeHex(hexXmlString);

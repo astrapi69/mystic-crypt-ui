@@ -40,6 +40,7 @@ import lombok.experimental.FieldDefaults;
 /**
  * The class {@link SpringBootSwingApplication}
  */
+@SuppressWarnings("serial")
 @SpringBootApplication
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class SpringBootSwingApplication extends ApplicationFrame<ApplicationModelBean>

@@ -3,28 +3,23 @@
  *
  * Copyright (C) 2015 Asterios Raptis
  *
- * Permission is hereby granted, free of charge, to any person obtaining
- * a copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish,
- * distribute, sublicense, and/or sell copies of the Software, and to
- * permit persons to whom the Software is furnished to do so, subject to
- * the following conditions:
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
+ * associated documentation files (the "Software"), to deal in the Software without restriction,
+ * including without limitation the rights to use, copy, modify, merge, publish, distribute,
+ * sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
  *
- * The above copyright notice and this permission notice shall be
- * included in all copies or substantial portions of the Software.
+ * The above copyright notice and this permission notice shall be included in all copies or
+ * substantial portions of the Software.
  *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
- * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
- * LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
- * OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
- * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT
+ * NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+ * DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 package de.alpharogroup.mystic.crypt.panels.obfuscate.simple;
 
-import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.io.File;
 import java.io.IOException;
@@ -36,7 +31,6 @@ import javax.swing.JCheckBox;
 import javax.swing.JFileChooser;
 import javax.swing.JLabel;
 import javax.swing.JScrollPane;
-import javax.swing.JTable;
 import javax.swing.table.TableColumn;
 
 import org.apache.commons.codec.DecoderException;
@@ -48,14 +42,15 @@ import de.alpharogroup.collections.pairs.KeyValuePair;
 import de.alpharogroup.crypto.obfuscation.rule.ObfuscationRule;
 import de.alpharogroup.model.BaseModel;
 import de.alpharogroup.model.api.Model;
-import de.alpharogroup.mystic.crypt.panels.obfuscate.ModeContext;
+import de.alpharogroup.mystic.crypt.SpringBootSwingApplication;
 import de.alpharogroup.mystic.crypt.panels.obfuscate.XmlEnDecryptionExtensions;
 import de.alpharogroup.swing.GenericJTable;
 import de.alpharogroup.swing.base.BasePanel;
-import de.alpharogroup.swing.renderer.TableCellButtonRenderer;
+import de.alpharogroup.swing.renderer.TableCellButtonRendererFactory;
 import de.alpharogroup.swing.table.editor.DeleteRowButtonEditor;
 import de.alpharogroup.swing.table.editor.TableCellButtonEditor;
 import lombok.Getter;
+import lombok.NonNull;
 import lombok.SneakyThrows;
 import lombok.extern.java.Log;
 
@@ -93,6 +88,30 @@ public class ObfuscationRuleTablePanel extends BasePanel<ObfuscationModelBean>
 		super(model);
 	}
 
+	protected TableCellButtonEditor newUpdateTableCellButtonEditor(final @NonNull String editorText)
+	{
+		return new TableCellButtonEditor(new JCheckBox())
+		{
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			protected void onGetCellEditorValue()
+			{
+				@SuppressWarnings("unchecked")
+				ObfuscationRule<Character, Character> selected = (ObfuscationRule<Character, Character>)this
+					.getValue();
+				ObfuscationRuleTablePanel.this.onEditObfuscationRule(selected);
+			}
+
+			@Override
+			protected String onSetText()
+			{
+				String text = editorText;
+				return text;
+			}
+		};
+	}
+
 	protected void onEditObfuscationRule(ObfuscationRule<Character, Character> selected)
 	{
 	}
@@ -108,7 +127,6 @@ public class ObfuscationRuleTablePanel extends BasePanel<ObfuscationModelBean>
 		{
 			final File selectedFile = fileChooser.getSelectedFile();
 			XmlEnDecryptionExtensions.writeToFileAsXmlAndHex(xStream, aliases, data, selectedFile);
-			return;
 		}
 	}
 
@@ -120,10 +138,8 @@ public class ObfuscationRuleTablePanel extends BasePanel<ObfuscationModelBean>
 			final File selectedFile = fileChooser.getSelectedFile();
 			try
 			{
-				List<KeyValuePair<Character, ObfuscationRule<Character, Character>>> data = XmlEnDecryptionExtensions
-					.readFromFileAsXmlAndHex(xStream, aliases, selectedFile);
-
-				getModelObject().getTableModel().setData(data);
+				getModelObject().getTableModel().setData(XmlEnDecryptionExtensions
+					.readFromFileAsXmlAndHex(xStream, aliases, selectedFile));
 				getModelObject().getTableModel().fireTableDataChanged();
 			}
 			catch (final IOException e)
@@ -161,103 +177,21 @@ public class ObfuscationRuleTablePanel extends BasePanel<ObfuscationModelBean>
 
 		final TableColumn editValueColumn = tblKeyRules.getColumn(editText);
 
-		editValueColumn.setCellRenderer(new TableCellButtonRenderer(null, null)
-		{
-			private static final long serialVersionUID = 1L;
+		editValueColumn
+			.setCellRenderer(TableCellButtonRendererFactory.newTableCellButtonRenderer(editText));
 
-			@Override
-			public Component getTableCellRendererComponent(final JTable table, final Object value,
-				final boolean isSelected, final boolean hasFocus, final int row, final int column)
-			{
-				if (isSelected)
-				{
-					setForeground(newSelectionForeground(table));
-					setBackground(newSelectionBackround(table));
-				}
-				else
-				{
-					setForeground(newForeground(table));
-					setBackground(newBackround(table));
-				}
-				final String text = editText;
-				setText(text);
-				return this;
-			}
-		});
+		editValueColumn.setCellEditor(newUpdateTableCellButtonEditor(editText));
 
-		editValueColumn.setCellEditor(new TableCellButtonEditor(new JCheckBox())
-		{
-			private static final long serialVersionUID = 1L;
+		tblKeyRules.getColumn(deleteText).setCellEditor(new DeleteRowButtonEditor());
 
-			@SuppressWarnings("unchecked")
-			@Override
-			public Object getCellEditorValue()
-			{
-				ObfuscationRule<Character, Character> selected = (ObfuscationRule<Character, Character>)this
-					.getValue();
-				getModelObject().setSelected(selected);
-				getModelObject().setProccessMode(ModeContext.UPDATE);
-				onEditObfuscationRule(selected);
-				final String text = editText;
-				return text;
-
-			}
-
-			@Override
-			public Component getTableCellEditorComponent(final JTable table, final Object value,
-				final boolean isSelected, final int row, final int column)
-			{
-				setRow(row);
-				setColumn(column);
-				setValue(value);
-				if (isSelected)
-				{
-					getButton().setForeground(table.getSelectionForeground());
-					getButton().setBackground(table.getSelectionBackground());
-				}
-				else
-				{
-					getButton().setForeground(table.getForeground());
-					getButton().setBackground(table.getBackground());
-				}
-				final String text = editText;
-				getButton().setText(text);
-				setClicked(true);
-				return getButton();
-			}
-		});
-
-		final TableColumn deleteValueColumn = tblKeyRules.getColumn(deleteText);
-		deleteValueColumn.setCellEditor(new DeleteRowButtonEditor(new JCheckBox()));
-
-		deleteValueColumn.setCellRenderer(new TableCellButtonRenderer(null, null)
-		{
-			private static final long serialVersionUID = 1L;
-
-			@Override
-			public Component getTableCellRendererComponent(final JTable table, final Object value,
-				final boolean isSelected, final boolean hasFocus, final int row, final int column)
-			{
-				if (isSelected)
-				{
-					setForeground(newSelectionForeground(table));
-					setBackground(newSelectionBackround(table));
-				}
-				else
-				{
-					setForeground(newForeground(table));
-					setBackground(newBackround(table));
-				}
-				final String text = deleteText;
-				setText(text);
-				return this;
-			}
-		});
+		tblKeyRules.getColumn(deleteText)
+			.setCellRenderer(TableCellButtonRendererFactory.newTableCellButtonRenderer(deleteText));
 
 		btnImport.addActionListener(actionEvent -> onImport(actionEvent));
 		btnExport.addActionListener(actionEvent -> onExport(actionEvent));
 
-		fileChooser = new JFileChooser();
+		fileChooser = new JFileChooser(
+			SpringBootSwingApplication.getInstance().getConfigurationDirectory());
 	}
 
 	protected void onInitializeGroupLayout()
