@@ -236,7 +236,6 @@ public class OperationRulePanel extends BasePanel<ObfuscationOperationModelBean>
 		getEnDecryptPanel().getTxtToEncrypt().setText("");
 	}
 
-	@SuppressWarnings("serial")
 	@Override
 	protected void onInitializeComponents()
 	{

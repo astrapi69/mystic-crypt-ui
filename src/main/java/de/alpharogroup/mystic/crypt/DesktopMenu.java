@@ -55,7 +55,6 @@ import lombok.extern.java.Log;
 /**
  * The class {@link DesktopMenu}
  */
-@SuppressWarnings("serial")
 @Log
 public class DesktopMenu extends BaseDesktopMenu
 {

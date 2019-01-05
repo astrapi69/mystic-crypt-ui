@@ -26,9 +26,6 @@ import java.io.File;
 
 import javax.swing.JInternalFrame;
 
-import de.alpharogroup.file.create.CreateFileExtensions;
-import de.alpharogroup.file.exceptions.DirectoryAllreadyExistsException;
-import lombok.SneakyThrows;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.context.ConfigurableApplicationContext;
@@ -43,7 +40,6 @@ import lombok.experimental.FieldDefaults;
 /**
  * The class {@link SpringBootSwingApplication}
  */
-@SuppressWarnings("serial")
 @SpringBootApplication
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class SpringBootSwingApplication extends ApplicationFrame<ApplicationModelBean>
@@ -53,8 +49,6 @@ public class SpringBootSwingApplication extends ApplicationFrame<ApplicationMode
 
 	/** The instance. */
 	private static SpringBootSwingApplication instance;
-
-	File configurationDir;
 
 	/**
 	 * Gets the single instance of SpringBootSwingApplication.
@@ -87,13 +81,6 @@ public class SpringBootSwingApplication extends ApplicationFrame<ApplicationMode
 	/** The internal frame. */
 	@Getter
 	JInternalFrame internalFrame;
-	/** init block **/
-	{
-		configurationDir = new File(System.getProperty("user.home"), ".mystic-crypt");
-		if(!configurationDir.exists()) {
-			configurationDir.mkdir();
-		}
-	}
 
 	/**
 	 * Instantiates a new main frame.
@@ -104,10 +91,11 @@ public class SpringBootSwingApplication extends ApplicationFrame<ApplicationMode
 	}
 
 	@Override
-	protected File newConfigurationDirectory(final @NonNull String parent, final @NonNull String child)
+	protected File newConfigurationDirectory(final @NonNull String parent,
+		final @NonNull String child)
 	{
-		File applicationConfigurationDirectory =
-			new File(super.newConfigurationDirectory(parent, child), "mystic-crypt");
+		File applicationConfigurationDirectory = new File(
+			super.newConfigurationDirectory(parent, child), "mystic-crypt");
 		if (!applicationConfigurationDirectory.exists())
 		{
 			applicationConfigurationDirectory.mkdir();

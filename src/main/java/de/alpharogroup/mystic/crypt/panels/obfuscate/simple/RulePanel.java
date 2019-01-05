@@ -194,7 +194,6 @@ public class RulePanel extends BasePanel<ObfuscationModelBean>
 		getEnDecryptPanel().getTxtToEncrypt().setText("");
 	}
 
-	@SuppressWarnings("serial")
 	@Override
 	protected void onInitializeComponents()
 	{

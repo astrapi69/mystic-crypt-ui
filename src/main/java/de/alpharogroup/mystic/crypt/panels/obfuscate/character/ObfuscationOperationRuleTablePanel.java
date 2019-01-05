@@ -28,7 +28,6 @@ import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.io.File;
 import java.io.IOException;
-import java.nio.charset.Charset;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
@@ -41,7 +40,6 @@ import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.table.TableColumn;
 
-import de.alpharogroup.mystic.crypt.panels.obfuscate.XmlEnDecryptionExtensions;
 import org.apache.commons.codec.DecoderException;
 
 import com.thoughtworks.xstream.XStream;
@@ -51,16 +49,15 @@ import de.alpharogroup.collections.pairs.KeyValuePair;
 import de.alpharogroup.crypto.hex.HexExtensions;
 import de.alpharogroup.crypto.obfuscation.rule.ObfuscationOperationRule;
 import de.alpharogroup.file.read.ReadFileExtensions;
-import de.alpharogroup.file.write.WriteFileExtensions;
 import de.alpharogroup.model.BaseModel;
 import de.alpharogroup.model.api.Model;
 import de.alpharogroup.mystic.crypt.panels.obfuscate.ModeContext;
+import de.alpharogroup.mystic.crypt.panels.obfuscate.XmlEnDecryptionExtensions;
 import de.alpharogroup.swing.GenericJTable;
 import de.alpharogroup.swing.base.BasePanel;
 import de.alpharogroup.swing.renderer.TableCellButtonRenderer;
 import de.alpharogroup.swing.table.editor.DeleteRowButtonEditor;
 import de.alpharogroup.swing.table.editor.TableCellButtonEditor;
-import de.alpharogroup.xml.ObjectToXmlExtensions;
 import de.alpharogroup.xml.XmlToObjectExtensions;
 import lombok.Getter;
 import lombok.NonNull;
@@ -125,7 +122,7 @@ public class ObfuscationOperationRuleTablePanel extends BasePanel<ObfuscationOpe
 		if (returnVal == JFileChooser.APPROVE_OPTION)
 		{
 			final File selectedFile = fileChooser.getSelectedFile();
-			XmlEnDecryptionExtensions.write(xStream, aliases,  data, selectedFile);
+			XmlEnDecryptionExtensions.writeToFileAsXmlAndHex(xStream, aliases, data, selectedFile);
 		}
 	}
 
