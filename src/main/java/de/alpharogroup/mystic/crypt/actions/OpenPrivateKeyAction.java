@@ -34,27 +34,32 @@ import java.security.spec.InvalidKeySpecException;
 import java.util.logging.Level;
 
 import javax.crypto.NoSuchPaddingException;
+import javax.swing.JDialog;
 import javax.swing.JInternalFrame;
+import javax.swing.JLabel;
 import javax.swing.JOptionPane;
+import javax.swing.JPanel;
 import javax.swing.JPasswordField;
 
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 
-import de.alpharogroup.crypto.key.KeySize;
 import de.alpharogroup.crypto.key.PrivateKeyExtensions;
 import de.alpharogroup.crypto.key.PrivateKeyHexDecryptor;
 import de.alpharogroup.crypto.key.PublicKeyExtensions;
 import de.alpharogroup.crypto.key.PublicKeyHexEncryptor;
 import de.alpharogroup.crypto.key.reader.EncryptedPrivateKeyReader;
 import de.alpharogroup.crypto.key.reader.PrivateKeyReader;
+import de.alpharogroup.file.read.ReadFileExtensions;
 import de.alpharogroup.mystic.crypt.SpringBootSwingApplication;
 import de.alpharogroup.mystic.crypt.panels.privatekey.PrivateKeyModelBean;
 import de.alpharogroup.mystic.crypt.panels.privatekey.PrivateKeyPanel;
 import de.alpharogroup.swing.actions.OpenFileAction;
 import de.alpharogroup.swing.components.factories.JComponentFactory;
+import de.alpharogroup.swing.listener.RequestFocusListener;
 import de.alpharogroup.swing.utils.JInternalFrameExtensions;
 import lombok.NonNull;
 import lombok.extern.java.Log;
+import net.miginfocom.swing.MigLayout;
 
 /**
  * The class {@link OpenPrivateKeyAction}.
@@ -65,33 +70,6 @@ public class OpenPrivateKeyAction extends OpenFileAction
 
 	/** The Constant serialVersionUID. */
 	private static final long serialVersionUID = 1L;
-
-	/**
-	 * Gets the {@link KeySize} of the given {@link PrivateKey} or null if not found.
-	 *
-	 * @param privateKey
-	 *            the private key
-	 * @return the {@link KeySize} of the given {@link PrivateKey} or null if not found.
-	 * @deprecated use same name method from PrivateKeyExtensions.
-	 */
-	@Deprecated
-	public static KeySize getKeySize(final PrivateKey privateKey)
-	{
-		final int length = PrivateKeyExtensions.getKeyLength(privateKey);
-		if (length == 1024)
-		{
-			return KeySize.KEYSIZE_1024;
-		}
-		if (length == 2048)
-		{
-			return KeySize.KEYSIZE_2048;
-		}
-		if (length == 4096)
-		{
-			return KeySize.KEYSIZE_4096;
-		}
-		return null;
-	}
 
 	/**
 	 * Instantiates a new {@link OpenPrivateKeyAction} object.
@@ -109,6 +87,7 @@ public class OpenPrivateKeyAction extends OpenFileAction
 	private PrivateKey getPrivateKey(final File file)
 	{
 		PrivateKey privateKey = null;
+		Security.addProvider(new BouncyCastleProvider());
 		try
 		{
 			if (!PrivateKeyReader.isPrivateKeyPasswordProtected(file))
@@ -118,14 +97,32 @@ public class OpenPrivateKeyAction extends OpenFileAction
 			else
 			{
 				String password = null;
-				JPasswordField pf = new JPasswordField();
-				int okCxl = JOptionPane.showConfirmDialog(null, pf, "Enter Password",
-					JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
 
-				if (okCxl == JOptionPane.OK_OPTION)
+				JPasswordField pf = new JPasswordField("", 10);
+				pf.setFocusable(true);
+				pf.setRequestFocusEnabled(true);
+				JPanel panel = new JPanel(new MigLayout(""));
+				panel.add(new JLabel("Password:"));
+				panel.add(pf, "growy");
+
+				JOptionPane op = new JOptionPane(panel, JOptionPane.PLAIN_MESSAGE,
+					JOptionPane.OK_CANCEL_OPTION);
+				JDialog d = op.createDialog(SpringBootSwingApplication.getInstance(),
+					"Enter Password");
+				d.addWindowFocusListener(new RequestFocusListener(pf));
+				d.pack();
+				d.setLocationRelativeTo(null);
+				d.setVisible(true);
+
+				if (op.getValue().equals(JOptionPane.OK_OPTION))
 				{
 					password = new String(pf.getPassword());
 				}
+				else
+				{
+					return null;
+				}
+
 				if (password != null)
 				{
 					privateKey = EncryptedPrivateKeyReader.readPasswordProtectedPrivateKey(file,
@@ -176,6 +173,10 @@ public class OpenPrivateKeyAction extends OpenFileAction
 		final PrivateKeyModelBean model = component.getModelObject();
 		model.setPrivateKeyFile(file);
 		final PrivateKey privateKey = getPrivateKey(file);
+		if (privateKey == null)
+		{
+			return;
+		}
 		model.setPrivateKey(privateKey);
 		try
 		{
@@ -189,9 +190,10 @@ public class OpenPrivateKeyAction extends OpenFileAction
 			JOptionPane.showMessageDialog(this.getParent(), htmlMessage, title,
 				JOptionPane.ERROR_MESSAGE);
 			log.log(Level.SEVERE, e.getLocalizedMessage(), e);
+			return;
 		}
 
-		model.setKeySize(getKeySize(privateKey));
+		model.setKeySize(PrivateKeyExtensions.getKeySize(privateKey));
 		model.setKeyLength(PrivateKeyExtensions.getKeyLength(privateKey));
 		component.getPrivateKeyViewPanel().getLblKeySizeDisplay()
 			.setText("" + model.getKeyLength());
@@ -202,7 +204,14 @@ public class OpenPrivateKeyAction extends OpenFileAction
 		String privateKeyFormat = "";
 		try
 		{
-			privateKeyFormat = PrivateKeyExtensions.toPemFormat(model.getPrivateKey());
+			if (PrivateKeyReader.isPemFormat(file))
+			{
+				privateKeyFormat = ReadFileExtensions.readFromFile(file);
+			}
+			else
+			{
+				privateKeyFormat = PrivateKeyExtensions.toPemFormat(model.getPrivateKey());
+			}
 		}
 		catch (final IOException e)
 		{
@@ -212,6 +221,7 @@ public class OpenPrivateKeyAction extends OpenFileAction
 			JOptionPane.showMessageDialog(this.getParent(), htmlMessage, title,
 				JOptionPane.ERROR_MESSAGE);
 			log.log(Level.SEVERE, e.getLocalizedMessage(), e);
+			return;
 		}
 
 		final String publicKeyFormat = PublicKeyExtensions.toPemFormat(model.getPublicKey());
