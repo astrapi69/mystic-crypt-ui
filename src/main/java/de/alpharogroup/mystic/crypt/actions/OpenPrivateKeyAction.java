@@ -27,7 +27,6 @@ import java.io.IOException;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
-import java.security.NoSuchProviderException;
 import java.security.PrivateKey;
 import java.security.Security;
 import java.security.spec.InvalidKeySpecException;
@@ -55,6 +54,7 @@ import de.alpharogroup.mystic.crypt.panels.privatekey.PrivateKeyModelBean;
 import de.alpharogroup.mystic.crypt.panels.privatekey.PrivateKeyPanel;
 import de.alpharogroup.swing.actions.OpenFileAction;
 import de.alpharogroup.swing.components.factories.JComponentFactory;
+import de.alpharogroup.swing.dialog.factories.JDialogFactory;
 import de.alpharogroup.swing.listener.RequestFocusListener;
 import de.alpharogroup.swing.utils.JInternalFrameExtensions;
 import lombok.NonNull;
@@ -92,12 +92,11 @@ public class OpenPrivateKeyAction extends OpenFileAction
 		{
 			if (!PrivateKeyReader.isPrivateKeyPasswordProtected(file))
 			{
-				privateKey = PrivateKeyReader.readPrivateKey(file);
+				privateKey = EncryptedPrivateKeyReader.readPasswordProtectedPrivateKey(file, null);
 			}
 			else
 			{
 				String password = null;
-
 				JPasswordField pf = new JPasswordField("", 10);
 				pf.setFocusable(true);
 				pf.setRequestFocusEnabled(true);
@@ -105,16 +104,17 @@ public class OpenPrivateKeyAction extends OpenFileAction
 				panel.add(new JLabel("Password:"));
 				panel.add(pf, "growy");
 
-				JOptionPane op = new JOptionPane(panel, JOptionPane.PLAIN_MESSAGE,
+				JOptionPane optionPane = new JOptionPane(panel, JOptionPane.PLAIN_MESSAGE,
 					JOptionPane.OK_CANCEL_OPTION);
-				JDialog d = op.createDialog(SpringBootSwingApplication.getInstance(),
-					"Enter Password");
-				d.addWindowFocusListener(new RequestFocusListener(pf));
-				d.pack();
-				d.setLocationRelativeTo(null);
-				d.setVisible(true);
 
-				if (op.getValue().equals(JOptionPane.OK_OPTION))
+				JDialog dialog = JDialogFactory.newJDialog(SpringBootSwingApplication.getInstance(),
+					optionPane, "Enter Password");
+				dialog.addWindowFocusListener(new RequestFocusListener(pf));
+				dialog.pack();
+				dialog.setLocationRelativeTo(null);
+				dialog.setVisible(true);
+
+				if (optionPane.getValue().equals(JOptionPane.OK_OPTION))
 				{
 					password = new String(pf.getPassword());
 				}
@@ -133,14 +133,8 @@ public class OpenPrivateKeyAction extends OpenFileAction
 
 		}
 		catch (NoSuchAlgorithmException | InvalidKeySpecException | InvalidKeyException
-			| NoSuchPaddingException | InvalidAlgorithmParameterException | NoSuchProviderException
-			| IOException e)
+			| NoSuchPaddingException | InvalidAlgorithmParameterException | IOException e)
 		{
-			String title = e.getLocalizedMessage();
-			String htmlMessage = "<html><body width='650'>" + "<h2>" + title + "</h2>" + "<p>"
-				+ e.getMessage();
-			JOptionPane.showMessageDialog(this.getParent(), htmlMessage, title,
-				JOptionPane.ERROR_MESSAGE);
 			log.log(Level.SEVERE, e.getLocalizedMessage(), e);
 		}
 		if (privateKey == null)
@@ -152,11 +146,6 @@ public class OpenPrivateKeyAction extends OpenFileAction
 			}
 			catch (final Exception e)
 			{
-				String title = e.getLocalizedMessage();
-				String htmlMessage = "<html><body width='650'>" + "<h2>" + title + "</h2>" + "<p>"
-					+ e.getMessage();
-				JOptionPane.showMessageDialog(this.getParent(), htmlMessage, title,
-					JOptionPane.ERROR_MESSAGE);
 				log.log(Level.SEVERE, e.getLocalizedMessage(), e);
 			}
 		}
@@ -184,11 +173,6 @@ public class OpenPrivateKeyAction extends OpenFileAction
 		}
 		catch (NoSuchAlgorithmException | InvalidKeySpecException e)
 		{
-			String title = e.getLocalizedMessage();
-			String htmlMessage = "<html><body width='650'>" + "<h2>" + title + "</h2>" + "<p>"
-				+ e.getMessage();
-			JOptionPane.showMessageDialog(this.getParent(), htmlMessage, title,
-				JOptionPane.ERROR_MESSAGE);
 			log.log(Level.SEVERE, e.getLocalizedMessage(), e);
 			return;
 		}
@@ -215,11 +199,6 @@ public class OpenPrivateKeyAction extends OpenFileAction
 		}
 		catch (final IOException e)
 		{
-			String title = e.getLocalizedMessage();
-			String htmlMessage = "<html><body width='650'>" + "<h2>" + title + "</h2>" + "<p>"
-				+ e.getMessage();
-			JOptionPane.showMessageDialog(this.getParent(), htmlMessage, title,
-				JOptionPane.ERROR_MESSAGE);
 			log.log(Level.SEVERE, e.getLocalizedMessage(), e);
 			return;
 		}

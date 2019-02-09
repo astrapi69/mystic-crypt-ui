@@ -50,7 +50,6 @@ import de.alpharogroup.crypto.key.PublicKeyHexEncryptor;
 import de.alpharogroup.crypto.key.writer.EncryptedPrivateKeyWriter;
 import de.alpharogroup.crypto.key.writer.PrivateKeyWriter;
 import de.alpharogroup.crypto.key.writer.PublicKeyWriter;
-import de.alpharogroup.exception.ExceptionExtensions;
 import de.alpharogroup.model.BaseModel;
 import de.alpharogroup.model.api.Model;
 import de.alpharogroup.swing.base.BasePanel;
@@ -310,16 +309,7 @@ public class GenerateKeysPanel extends BasePanel<GenerateKeysModelBean>
 			}
 			catch (final Exception e)
 			{
-				try
-				{
-					JOptionPane.showMessageDialog(null, ExceptionExtensions.getStackTrace(e));
-				}
-				catch (IOException e1)
-				{
-					e1.printStackTrace();
-				}
-
-				e.printStackTrace();
+				log.log(Level.SEVERE, e.getLocalizedMessage(), e);
 			}
 		}
 		if (state == JFileChooser.CANCEL_OPTION)
@@ -358,17 +348,7 @@ public class GenerateKeysPanel extends BasePanel<GenerateKeysModelBean>
 					}
 					catch (final Exception e)
 					{
-
-						try
-						{
-							JOptionPane.showMessageDialog(null,
-								ExceptionExtensions.getStackTrace(e));
-						}
-						catch (IOException e1)
-						{
-							e1.printStackTrace();
-						}
-						e.printStackTrace();
+						log.log(Level.SEVERE, e.getLocalizedMessage(), e);
 					}
 				}
 				if (state == JFileChooser.CANCEL_OPTION)
@@ -403,7 +383,7 @@ public class GenerateKeysPanel extends BasePanel<GenerateKeysModelBean>
 			}
 			catch (final Exception ex)
 			{
-				ex.printStackTrace();
+				log.log(Level.SEVERE, ex.getLocalizedMessage(), ex);
 			}
 		}
 		if (state == JFileChooser.CANCEL_OPTION)

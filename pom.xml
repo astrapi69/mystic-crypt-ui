@@ -20,7 +20,7 @@
 
 	<properties>
 		<!-- SWING-COMPONENTS version -->
-		<swing-components.version>5.1-SNAPSHOT</swing-components.version>
+		<swing-components.version>5.1</swing-components.version>
 		<!-- GUAVA version -->
 		<guava.version>27.0-jre</guava.version>
 		<!-- MYSTIC-CRYPT versions -->

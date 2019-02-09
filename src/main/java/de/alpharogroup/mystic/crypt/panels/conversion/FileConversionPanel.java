@@ -30,6 +30,7 @@ import java.security.PublicKey;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.security.spec.InvalidKeySpecException;
+import java.util.logging.Level;
 
 import javax.swing.GroupLayout;
 import javax.swing.JButton;
@@ -53,8 +54,10 @@ import de.alpharogroup.model.api.Model;
 import de.alpharogroup.swing.base.BasePanel;
 import de.alpharogroup.swing.combobox.model.EnumComboBoxModel;
 import lombok.Getter;
+import lombok.extern.java.Log;
 
 @Getter
+@Log
 public class FileConversionPanel extends BasePanel<FileConversionModelBean>
 {
 	private static final long serialVersionUID = 1L;
@@ -159,9 +162,9 @@ public class FileConversionPanel extends BasePanel<FileConversionModelBean>
 			}
 			catch (IOException e1)
 			{
-				e1.printStackTrace();
+				log.log(Level.SEVERE, e.getLocalizedMessage(), e);
 			}
-			e.printStackTrace();
+			log.log(Level.SEVERE, e.getLocalizedMessage(), e);
 		}
 		txtConsole.append("Coversion finished...\n");
 	}

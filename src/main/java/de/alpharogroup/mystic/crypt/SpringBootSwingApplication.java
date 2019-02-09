@@ -30,8 +30,12 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.context.ConfigurableApplicationContext;
 
+import de.alpharogroup.layout.ScreenSizeExtensions;
 import de.alpharogroup.swing.base.ApplicationFrame;
 import de.alpharogroup.swing.base.BaseDesktopMenu;
+import de.alpharogroup.swing.components.factories.JComponentFactory;
+import de.alpharogroup.swing.panels.output.ConsolePanel;
+import de.alpharogroup.swing.utils.JInternalFrameExtensions;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NonNull;
@@ -79,6 +83,10 @@ public class SpringBootSwingApplication extends ApplicationFrame<ApplicationMode
 		});
 	}
 
+	/** The console internal frame. */
+	@Getter
+	JInternalFrame consoleInternalFrame;
+
 	/** The internal frame. */
 	@Getter
 	JInternalFrame internalFrame;
@@ -89,6 +97,23 @@ public class SpringBootSwingApplication extends ApplicationFrame<ApplicationMode
 	public SpringBootSwingApplication()
 	{
 		super(Messages.getString("mainframe.title"));
+	}
+
+	public void getConsoleOutput()
+	{
+		if (consoleInternalFrame == null)
+		{
+			consoleInternalFrame = JComponentFactory.newInternalFrame("Console", true, true, true,
+				true);
+			ConsolePanel consolePanel = new ConsolePanel();
+			int screenHeight = ScreenSizeExtensions.getScreenHeight(this);
+			int screenWidth = ScreenSizeExtensions.getScreenWidth(this);
+			JInternalFrameExtensions.addComponentToFrame(consoleInternalFrame, consolePanel);
+			JInternalFrameExtensions.addJInternalFrame(
+				SpringBootSwingApplication.getInstance().getDesktopPane(), consoleInternalFrame);
+			consoleInternalFrame.setSize(screenWidth, (screenHeight / 4));
+			consoleInternalFrame.setLocation(0, (screenHeight / 4) * 3);
+		}
 	}
 
 	@Override
@@ -125,6 +150,7 @@ public class SpringBootSwingApplication extends ApplicationFrame<ApplicationMode
 		if (instance == null)
 		{
 			instance = this;
+			getConsoleOutput();
 		}
 	}
 

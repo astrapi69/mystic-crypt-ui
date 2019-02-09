@@ -32,7 +32,6 @@ import java.util.logging.Level;
 
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
-import javax.swing.JOptionPane;
 import javax.swing.KeyStroke;
 
 import org.springframework.core.io.Resource;
@@ -197,11 +196,6 @@ public class DesktopMenu extends BaseDesktopMenu
 		}
 		catch (final IOException e)
 		{
-			String title = e.getLocalizedMessage();
-			String htmlMessage = "<html><body width='650'>" + "<h2>" + title + "</h2>" + "<p>"
-				+ e.getMessage();
-			JOptionPane.showMessageDialog(SpringBootSwingApplication.getInstance(), htmlMessage,
-				title, JOptionPane.ERROR_MESSAGE);
 			log.log(Level.SEVERE, e.getLocalizedMessage(), e);
 		}
 		return license.toString();

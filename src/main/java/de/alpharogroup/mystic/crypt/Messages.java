@@ -22,10 +22,16 @@ package de.alpharogroup.mystic.crypt;
 
 import java.util.MissingResourceException;
 import java.util.ResourceBundle;
+import java.util.logging.Level;
+
+import lombok.experimental.UtilityClass;
+import lombok.extern.java.Log;
 
 /**
  * The Class Messages.
  */
+@Log
+@UtilityClass
 public class Messages
 {
 
@@ -50,14 +56,9 @@ public class Messages
 		}
 		catch (final MissingResourceException e)
 		{
+			log.log(Level.SEVERE, e.getLocalizedMessage(), e);
 			return "!!!" + key + "!!! not found";
 		}
 	}
 
-	/**
-	 * Instantiates a new messages.
-	 */
-	private Messages()
-	{
-	}
 }
