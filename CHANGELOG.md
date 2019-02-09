@@ -1,13 +1,6 @@
 ## Change log
 ----------------------
 
-Version 5.4-SNAPSHOT
--------------
-
-CHANGED:
-
-- update of parent version to 2.1.3
-
 Version 5.3
 -------------
 
@@ -20,8 +13,9 @@ ADDED:
 
 CHANGED:
 
-- update of mystic-crypt version to 5.6
-- update of guava version to 26.0-jre
+- update of parent version to 2.1.4
+- update of mystic-crypt version to 5.8
+- update of guava version to 27.0-jre
 
 Version 5.2.1
 -------------
