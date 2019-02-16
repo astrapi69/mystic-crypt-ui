@@ -56,14 +56,8 @@ public class NewObfuscationInternalFrameAction extends AbstractAction
 	@Override
 	public void actionPerformed(final ActionEvent e)
 	{
-		// create internal frame
-		final JInternalFrame internalFrame = JComponentFactory
-			.newInternalFrame("Obfuscation Operation demo", true, true, true, true);
 		final RulePanel component = new RulePanel();
-		JInternalFrameExtensions.addComponentToFrame(internalFrame, component);
-
-		JInternalFrameExtensions.addJInternalFrame(
-			SpringBootSwingApplication.getInstance().getDesktopPane(), internalFrame);
+		SpringBootSwingApplication.getInstance().getMainSplitPane().setLeftComponent(component);
 	}
 
 }

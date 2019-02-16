@@ -23,12 +23,9 @@ package de.alpharogroup.mystic.crypt.actions;
 import java.awt.event.ActionEvent;
 
 import javax.swing.AbstractAction;
-import javax.swing.JInternalFrame;
 
 import de.alpharogroup.mystic.crypt.SpringBootSwingApplication;
 import de.alpharogroup.mystic.crypt.panels.conversion.FileConversionPanel;
-import de.alpharogroup.swing.components.factories.JComponentFactory;
-import de.alpharogroup.swing.utils.JInternalFrameExtensions;
 
 /**
  * The class {@link NewFileConversionInternalFrameAction}.
@@ -56,14 +53,8 @@ public class NewFileConversionInternalFrameAction extends AbstractAction
 	@Override
 	public void actionPerformed(final ActionEvent e)
 	{
-		// create internal frame
-		final JInternalFrame internalFrame = JComponentFactory
-			.newInternalFrame("Convert *.der-file to *.pem-file", true, true, true, true);
-
 		final FileConversionPanel component = new FileConversionPanel();
-		JInternalFrameExtensions.addComponentToFrame(internalFrame, component);
-		JInternalFrameExtensions.addJInternalFrame(
-			SpringBootSwingApplication.getInstance().getDesktopPane(), internalFrame);
+		SpringBootSwingApplication.getInstance().getMainSplitPane().setLeftComponent(component);
 	}
 
 }

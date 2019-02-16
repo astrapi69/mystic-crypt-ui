@@ -21,6 +21,7 @@
 package de.alpharogroup.mystic.crypt;
 
 import java.awt.Component;
+import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
@@ -36,12 +37,14 @@ import javax.swing.KeyStroke;
 
 import org.springframework.core.io.Resource;
 
+import de.alpharogroup.layout.ScreenSizeExtensions;
 import de.alpharogroup.mystic.crypt.actions.NewFileConversionInternalFrameAction;
 import de.alpharogroup.mystic.crypt.actions.NewKeyGenerationInternalFrameAction;
 import de.alpharogroup.mystic.crypt.actions.NewObfuscationInternalFrameAction;
 import de.alpharogroup.mystic.crypt.actions.NewObfuscationOperationInternalFrameAction;
 import de.alpharogroup.mystic.crypt.actions.OpenPrivateKeyAction;
 import de.alpharogroup.swing.actions.ExitApplicationAction;
+import de.alpharogroup.swing.actions.ToggleFullScreenAction;
 import de.alpharogroup.swing.base.BaseDesktopMenu;
 import de.alpharogroup.swing.menu.MenuExtensions;
 import lombok.NonNull;
@@ -125,6 +128,23 @@ public class DesktopMenu extends BaseDesktopMenu
 		MenuExtensions.setCtrlAccelerator(jmiConvert, 'C');
 		jmiConvert.setEnabled(true);
 		fileMenu.add(jmiConvert);
+
+		// Fullscreen
+		JMenuItem jmiToFullScreen;
+		jmiToFullScreen = new JMenuItem("To Fullscreen", 'F');
+		jmiToFullScreen.addActionListener(new ToggleFullScreenAction("Fullscreen", SpringBootSwingApplication.getInstance()) {
+
+			/**
+			 * {@inheritDoc}
+			 */
+			@Override
+			public void actionPerformed(final ActionEvent e)
+			{
+				ScreenSizeExtensions.toggleFullScreen(SpringBootSwingApplication.getInstance());
+			}
+		});
+		jmiToFullScreen.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F11, InputEvent.ALT_MASK));
+		fileMenu.add(jmiToFullScreen);
 
 		// Exit
 		JMenuItem jmiExit;

@@ -21,21 +21,23 @@
 package de.alpharogroup.mystic.crypt;
 
 import java.awt.Component;
+import java.awt.Dimension;
 import java.awt.EventQueue;
 import java.io.File;
 
-import javax.swing.JInternalFrame;
+import javax.swing.JComponent;
+import javax.swing.JLabel;
+import javax.swing.JScrollPane;
+import javax.swing.JSplitPane;
 
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.context.ConfigurableApplicationContext;
 
-import de.alpharogroup.layout.ScreenSizeExtensions;
-import de.alpharogroup.swing.base.ApplicationFrame;
+import de.alpharogroup.swing.base.ApplicationSplitPaneFrame;
 import de.alpharogroup.swing.base.BaseDesktopMenu;
 import de.alpharogroup.swing.components.factories.JComponentFactory;
 import de.alpharogroup.swing.panels.output.ConsolePanel;
-import de.alpharogroup.swing.utils.JInternalFrameExtensions;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NonNull;
@@ -47,13 +49,25 @@ import lombok.experimental.FieldDefaults;
 @SuppressWarnings("serial")
 @SpringBootApplication
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class SpringBootSwingApplication extends ApplicationFrame<ApplicationModelBean>
+public class SpringBootSwingApplication extends ApplicationSplitPaneFrame<ApplicationModelBean>
 {
 
 	public static ConfigurableApplicationContext ctx;
 
 	/** The instance. */
 	private static SpringBootSwingApplication instance;
+
+	@Getter
+	JComponent leftComponent;
+
+	@Getter
+	JComponent rightComponent;
+
+	@Getter
+	JComponent topComponent;
+
+	@Getter
+	JComponent bottomComponent;
 
 	/**
 	 * Gets the single instance of SpringBootSwingApplication.
@@ -83,37 +97,37 @@ public class SpringBootSwingApplication extends ApplicationFrame<ApplicationMode
 		});
 	}
 
-	/** The console internal frame. */
-	@Getter
-	JInternalFrame consoleInternalFrame;
-
-	/** The internal frame. */
-	@Getter
-	JInternalFrame internalFrame;
-
 	/**
-	 * Instantiates a new main frame.
+	 * Instantiates a new {@link SpringBootSwingApplication} frame
 	 */
 	public SpringBootSwingApplication()
 	{
 		super(Messages.getString("mainframe.title"));
 	}
 
-	public void getConsoleOutput()
-	{
-		if (consoleInternalFrame == null)
-		{
-			consoleInternalFrame = JComponentFactory.newInternalFrame("Console", true, true, true,
-				true);
-			ConsolePanel consolePanel = new ConsolePanel();
-			int screenHeight = ScreenSizeExtensions.getScreenHeight(this);
-			int screenWidth = ScreenSizeExtensions.getScreenWidth(this);
-			JInternalFrameExtensions.addComponentToFrame(consoleInternalFrame, consolePanel);
-			JInternalFrameExtensions.addJInternalFrame(
-				SpringBootSwingApplication.getInstance().getDesktopPane(), consoleInternalFrame);
-			consoleInternalFrame.setSize(screenWidth, (screenHeight / 4));
-			consoleInternalFrame.setLocation(0, (screenHeight / 4) * 3);
-		}
+	protected JComponent newLeftComponent() {
+		JScrollPane jp = new JScrollPane(new JLabel("Left Component"));
+		return jp;
+	}
+	
+	protected JComponent newTopComponent() {
+		JSplitPane topJSplitPane = JComponentFactory.newJSplitPane(JSplitPane.HORIZONTAL_SPLIT, newLeftComponent(), newRightComponent());
+		topJSplitPane.setDividerLocation(0.2);
+		topJSplitPane.setDividerSize(2);
+		return topJSplitPane;
+	}
+	
+	protected JComponent newRightComponent() {
+		JScrollPane jp = new JScrollPane(new JLabel("Right Component"));
+		return jp;
+	}
+	
+	protected JComponent newBottomComponent() {
+		ConsolePanel consolePanel = new ConsolePanel();
+		JScrollPane jScrollPane = new JScrollPane(consolePanel);
+		jScrollPane.setMinimumSize(new Dimension(800, 200));
+		jScrollPane.setMaximumSize(new Dimension(800, 200));
+		return jScrollPane;
 	}
 
 	@Override
@@ -134,6 +148,22 @@ public class SpringBootSwingApplication extends ApplicationFrame<ApplicationMode
 	{
 		return new DesktopMenu(applicationFrame);
 	}
+	
+
+	/**
+	 * Factory method for create a new {@link JSplitPane} object
+	 *
+	 * @return the new {@link JSplitPane} object
+	 */
+	protected JSplitPane newJSplitPane()
+	{
+		JSplitPane mainSplitPane = JComponentFactory.newJSplitPane(JSplitPane.VERTICAL_SPLIT, newTopComponent(), newBottomComponent());
+		mainSplitPane.setOneTouchExpandable(true);
+		mainSplitPane.setDividerLocation(0.5);
+		mainSplitPane.setDividerSize(2);
+		mainSplitPane.setResizeWeight(1.0);
+		return mainSplitPane;
+	}
 
 	@Override
 	protected String newIconPath()
@@ -150,7 +180,6 @@ public class SpringBootSwingApplication extends ApplicationFrame<ApplicationMode
 		if (instance == null)
 		{
 			instance = this;
-			getConsoleOutput();
 		}
 	}
 

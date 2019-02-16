@@ -210,9 +210,7 @@ public class OpenPrivateKeyAction extends OpenFileAction
 		component.getPrivateKeyViewPanel().getTxtPrivateKey().setText(privateKeyFormat);
 		component.getPrivateKeyViewPanel().getTxtPublicKey().setText(publicKeyFormat);
 
-		JInternalFrameExtensions.addComponentToFrame(internalFrame, component);
-		JInternalFrameExtensions.addJInternalFrame(
-			SpringBootSwingApplication.getInstance().getDesktopPane(), internalFrame);
+		SpringBootSwingApplication.getInstance().getMainSplitPane().setLeftComponent(component);
 	}
 
 

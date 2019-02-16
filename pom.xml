@@ -12,17 +12,19 @@
 	</parent>
 
 	<artifactId>mystic-crypt-ui</artifactId>
-	<version>5.3</version>
+	<version>5.4-SNAPSHOT</version>
 	<packaging>jar</packaging>
 
 	<name>${project.artifactId}</name>
 	<description>Demo project for mystic-crypt lib</description>
 
 	<properties>
+		<!-- SWING-COMPONENTS version -->
+		<swing-components.version>5.2-SNAPSHOT</swing-components.version>
 		<!-- GUAVA version -->
 		<guava.version>27.0-jre</guava.version>
 		<!-- MYSTIC-CRYPT versions -->
-		<mystic-crypt.version>5.8</mystic-crypt.version>
+		<mystic-crypt.version>5.9-SNAPSHOT</mystic-crypt.version>
 		<crypt-api.version>${mystic-crypt.version}</crypt-api.version>
 		<crypt-core.version>${mystic-crypt.version}</crypt-core.version>
 		<crypt-data.version>${mystic-crypt.version}</crypt-data.version>
