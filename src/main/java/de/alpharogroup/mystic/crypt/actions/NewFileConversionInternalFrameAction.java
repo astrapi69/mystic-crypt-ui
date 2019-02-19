@@ -54,7 +54,10 @@ public class NewFileConversionInternalFrameAction extends AbstractAction
 	public void actionPerformed(final ActionEvent e)
 	{
 		final FileConversionPanel component = new FileConversionPanel();
-		SpringBootSwingApplication.getInstance().getMainSplitPane().setLeftComponent(component);
+
+
+		// TODO fix it
+		// SpringBootSwingApplication.getInstance().getMainSplitPane().setLeftComponent(component);
 	}
 
 }

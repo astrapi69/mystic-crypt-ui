@@ -54,7 +54,10 @@ public class NewKeyGenerationInternalFrameAction extends AbstractAction
 	public void actionPerformed(final ActionEvent e)
 	{
 		final GenerateKeysPanel component = new GenerateKeysPanel();
-		SpringBootSwingApplication.getInstance().getMainSplitPane().setLeftComponent(component);
+
+
+		// TODO fix it
+		// SpringBootSwingApplication.getInstance().getMainSplitPane().setLeftComponent(component);
 	}
 
 }

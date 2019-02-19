@@ -57,7 +57,8 @@ public class NewObfuscationOperationInternalFrameAction extends AbstractAction
 	public void actionPerformed(final ActionEvent e)
 	{
 		final OperationRulePanel component = new OperationRulePanel();
-		SpringBootSwingApplication.getInstance().getMainSplitPane().setLeftComponent(component);
+		// TODO fix it
+		//SpringBootSwingApplication.getInstance().getMainSplitPane().setLeftComponent(component);
 	}
 
 }

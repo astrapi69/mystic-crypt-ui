@@ -30,6 +30,7 @@ import javax.swing.JLabel;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 
+import de.alpharogroup.swing.panels.splitpane.JXMultiSplitPanePanel;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.context.ConfigurableApplicationContext;
@@ -183,4 +184,8 @@ public class SpringBootSwingApplication extends ApplicationSplitPaneFrame<Applic
 		}
 	}
 
+	@Override
+	protected JXMultiSplitPanePanel<ApplicationModelBean> newJXMultiSplitPanePanel() {
+		return null;
+	}
 }
