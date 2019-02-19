@@ -23,12 +23,9 @@ package de.alpharogroup.mystic.crypt.actions;
 import java.awt.event.ActionEvent;
 
 import javax.swing.AbstractAction;
-import javax.swing.JInternalFrame;
 
 import de.alpharogroup.mystic.crypt.SpringBootSwingApplication;
 import de.alpharogroup.mystic.crypt.panels.obfuscate.simple.RulePanel;
-import de.alpharogroup.swing.components.factories.JComponentFactory;
-import de.alpharogroup.swing.utils.JInternalFrameExtensions;
 
 /**
  * The class {@link NewObfuscationInternalFrameAction}.
@@ -58,8 +55,7 @@ public class NewObfuscationInternalFrameAction extends AbstractAction
 	{
 		final RulePanel component = new RulePanel();
 
-		// TODO fix it
-		//SpringBootSwingApplication.getInstance().getMainSplitPane().setLeftComponent(component);
+		 SpringBootSwingApplication.getInstance().getMultiSplitPanePanel().add(component, "content");
 	}
 
 }

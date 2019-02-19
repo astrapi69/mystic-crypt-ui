@@ -56,7 +56,6 @@ import de.alpharogroup.swing.actions.OpenFileAction;
 import de.alpharogroup.swing.components.factories.JComponentFactory;
 import de.alpharogroup.swing.dialog.factories.JDialogFactory;
 import de.alpharogroup.swing.listener.RequestFocusListener;
-import de.alpharogroup.swing.utils.JInternalFrameExtensions;
 import lombok.NonNull;
 import lombok.extern.java.Log;
 import net.miginfocom.swing.MigLayout;
@@ -209,8 +208,7 @@ public class OpenPrivateKeyAction extends OpenFileAction
 		component.getPrivateKeyViewPanel().getTxtPublicKey().setText("");
 		component.getPrivateKeyViewPanel().getTxtPrivateKey().setText(privateKeyFormat);
 		component.getPrivateKeyViewPanel().getTxtPublicKey().setText(publicKeyFormat);
-		// TODO fix it
-		//SpringBootSwingApplication.getInstance().getMainSplitPane().setLeftComponent(component);
+		 SpringBootSwingApplication.getInstance().getMultiSplitPanePanel().add(component, "content");
 	}
 
 

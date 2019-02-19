@@ -21,24 +21,21 @@
 package de.alpharogroup.mystic.crypt;
 
 import java.awt.Component;
-import java.awt.Dimension;
 import java.awt.EventQueue;
 import java.io.File;
 
 import javax.swing.JComponent;
 import javax.swing.JLabel;
-import javax.swing.JScrollPane;
-import javax.swing.JSplitPane;
 
-import de.alpharogroup.swing.panels.splitpane.JXMultiSplitPanePanel;
+import org.jdesktop.swingx.MultiSplitLayout;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.context.ConfigurableApplicationContext;
 
 import de.alpharogroup.swing.base.ApplicationSplitPaneFrame;
 import de.alpharogroup.swing.base.BaseDesktopMenu;
-import de.alpharogroup.swing.components.factories.JComponentFactory;
-import de.alpharogroup.swing.panels.output.ConsolePanel;
+import de.alpharogroup.swing.panels.splitpane.JXMultiSplitPanePanel;
+import de.alpharogroup.swing.panels.splitpane.SplitFactory;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NonNull;
@@ -60,9 +57,6 @@ public class SpringBootSwingApplication extends ApplicationSplitPaneFrame<Applic
 
 	@Getter
 	JComponent leftComponent;
-
-	@Getter
-	JComponent rightComponent;
 
 	@Getter
 	JComponent topComponent;
@@ -107,28 +101,21 @@ public class SpringBootSwingApplication extends ApplicationSplitPaneFrame<Applic
 	}
 
 	protected JComponent newLeftComponent() {
-		JScrollPane jp = new JScrollPane(new JLabel("Left Component"));
-		return jp;
+		return new JLabel("Left Component");
 	}
 	
 	protected JComponent newTopComponent() {
-		JSplitPane topJSplitPane = JComponentFactory.newJSplitPane(JSplitPane.HORIZONTAL_SPLIT, newLeftComponent(), newRightComponent());
-		topJSplitPane.setDividerLocation(0.2);
-		topJSplitPane.setDividerSize(2);
-		return topJSplitPane;
+		return new JLabel("Top Component");
 	}
 	
 	protected JComponent newRightComponent() {
-		JScrollPane jp = new JScrollPane(new JLabel("Right Component"));
-		return jp;
+		return new JLabel("Right Component");
 	}
 	
 	protected JComponent newBottomComponent() {
-		ConsolePanel consolePanel = new ConsolePanel();
-		JScrollPane jScrollPane = new JScrollPane(consolePanel);
-		jScrollPane.setMinimumSize(new Dimension(800, 200));
-		jScrollPane.setMaximumSize(new Dimension(800, 200));
-		return jScrollPane;
+//		ConsolePanel consolePanel = new ConsolePanel();
+//		JScrollPane jScrollPane = new JScrollPane(consolePanel);
+		return new JLabel("Right Component");
 	}
 
 	@Override
@@ -150,22 +137,6 @@ public class SpringBootSwingApplication extends ApplicationSplitPaneFrame<Applic
 		return new DesktopMenu(applicationFrame);
 	}
 	
-
-	/**
-	 * Factory method for create a new {@link JSplitPane} object
-	 *
-	 * @return the new {@link JSplitPane} object
-	 */
-	protected JSplitPane newJSplitPane()
-	{
-		JSplitPane mainSplitPane = JComponentFactory.newJSplitPane(JSplitPane.VERTICAL_SPLIT, newTopComponent(), newBottomComponent());
-		mainSplitPane.setOneTouchExpandable(true);
-		mainSplitPane.setDividerLocation(0.5);
-		mainSplitPane.setDividerSize(2);
-		mainSplitPane.setResizeWeight(1.0);
-		return mainSplitPane;
-	}
-
 	@Override
 	protected String newIconPath()
 	{
@@ -186,6 +157,30 @@ public class SpringBootSwingApplication extends ApplicationSplitPaneFrame<Applic
 
 	@Override
 	protected JXMultiSplitPanePanel<ApplicationModelBean> newJXMultiSplitPanePanel() {
-		return null;
+
+       final JXMultiSplitPanePanel<ApplicationModelBean> multiSplitPanePanel = new JXMultiSplitPanePanel<ApplicationModelBean>()
+        {
+            @Override
+            protected MultiSplitLayout.Node newRootNode(String layoutDefinition) {
+                return SpringBootSwingApplication.this.newRootNode();
+            }
+        };
+        multiSplitPanePanel.getMultiSplitPane().add(newTopComponent(), "content");
+        multiSplitPanePanel.getMultiSplitPane().add(newBottomComponent(), "bottom");
+        multiSplitPanePanel.getMultiSplitPane().add(newLeftComponent(), "left");
+        return multiSplitPanePanel;
+	}
+	
+	protected MultiSplitLayout.Split newRootNode() {
+
+        MultiSplitLayout.Split col1 = SplitFactory.newSplit(false, 0.75);
+        MultiSplitLayout.Leaf content = SplitFactory.newLeaf("content", 0.75);
+        MultiSplitLayout.Leaf bottom =  SplitFactory.newLeaf("bottom", 0.25);
+        col1.setChildren(content, new MultiSplitLayout.Divider(), bottom);
+        MultiSplitLayout.Split root = new MultiSplitLayout.Split();
+        root.setRowLayout(true);
+        MultiSplitLayout.Leaf left = SplitFactory.newLeaf("left", 0.25);
+        SplitFactory.setChildren(root, left, new MultiSplitLayout.Divider(), col1);
+        return root;
 	}
 }

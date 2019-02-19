@@ -23,12 +23,9 @@ package de.alpharogroup.mystic.crypt.actions;
 import java.awt.event.ActionEvent;
 
 import javax.swing.AbstractAction;
-import javax.swing.JInternalFrame;
 
 import de.alpharogroup.mystic.crypt.SpringBootSwingApplication;
 import de.alpharogroup.mystic.crypt.panels.obfuscate.character.OperationRulePanel;
-import de.alpharogroup.swing.components.factories.JComponentFactory;
-import de.alpharogroup.swing.utils.JInternalFrameExtensions;
 
 /**
  * The class {@link NewObfuscationOperationInternalFrameAction}.
@@ -57,8 +54,7 @@ public class NewObfuscationOperationInternalFrameAction extends AbstractAction
 	public void actionPerformed(final ActionEvent e)
 	{
 		final OperationRulePanel component = new OperationRulePanel();
-		// TODO fix it
-		//SpringBootSwingApplication.getInstance().getMainSplitPane().setLeftComponent(component);
+		 SpringBootSwingApplication.getInstance().getMultiSplitPanePanel().add(component, "content");
 	}
 
 }
