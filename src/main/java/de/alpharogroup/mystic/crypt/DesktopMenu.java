@@ -143,14 +143,14 @@ public class DesktopMenu extends BaseDesktopMenu
 				ScreenSizeExtensions.toggleFullScreen(SpringBootSwingApplication.getInstance());
 			}
 		});
-		jmiToFullScreen.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F11, InputEvent.ALT_MASK));
+		jmiToFullScreen.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F11, InputEvent.ALT_DOWN_MASK));
 		fileMenu.add(jmiToFullScreen);
 
 		// Exit
 		JMenuItem jmiExit;
 		jmiExit = new JMenuItem("Exit", 'E');
 		jmiExit.addActionListener(new ExitApplicationAction("Exit"));
-		jmiExit.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F4, InputEvent.ALT_MASK));
+		jmiExit.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F4, InputEvent.ALT_DOWN_MASK));
 		fileMenu.add(jmiExit);
 
 		return fileMenu;

@@ -24,7 +24,6 @@ import java.awt.Component;
 import java.awt.EventQueue;
 import java.io.File;
 
-import javax.swing.JDesktopPane;
 import javax.swing.JInternalFrame;
 
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -111,7 +110,7 @@ public class SpringBootSwingApplication extends ApplicationFrame<ApplicationMode
 			int screenWidth = ScreenSizeExtensions.getScreenWidth(this);
 			JInternalFrameExtensions.addComponentToFrame(consoleInternalFrame, consolePanel);
 			JInternalFrameExtensions.addJInternalFrame(
-				SpringBootSwingApplication.getInstance().getDesktopPane(), consoleInternalFrame);
+				SpringBootSwingApplication.getInstance().getMainComponent(), consoleInternalFrame);
 			consoleInternalFrame.setSize(screenWidth, (screenHeight / 4));
 			consoleInternalFrame.setLocation(0, (screenHeight / 4) * 3);
 			consoleInternalFrame.setResizable(false);
@@ -143,17 +142,6 @@ public class SpringBootSwingApplication extends ApplicationFrame<ApplicationMode
 	{
 		return Messages.getString("global.icon.app.path");
 	}
-	/**
-	 * Factory method for create a new {@link JDesktopPane} object
-	 *
-	 * @return the new {@link JDesktopPane} object
-	 */
-	protected JDesktopPane newJDesktopPane()
-	{
-		JDesktopPane jDesktopPane = super.newJDesktopPane();
-		return jDesktopPane;
-	}
-
 
 	@Override
 	protected void onAfterInitialize()

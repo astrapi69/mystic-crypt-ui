@@ -63,7 +63,7 @@ public class NewObfuscationInternalFrameAction extends AbstractAction
 		JInternalFrameExtensions.addComponentToFrame(internalFrame, component);
 
 		JInternalFrameExtensions.addJInternalFrame(
-			SpringBootSwingApplication.getInstance().getDesktopPane(), internalFrame);
+			SpringBootSwingApplication.getInstance().getMainComponent(), internalFrame);
 	}
 
 }

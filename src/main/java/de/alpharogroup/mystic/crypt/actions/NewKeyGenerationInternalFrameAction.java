@@ -63,7 +63,7 @@ public class NewKeyGenerationInternalFrameAction extends AbstractAction
 		final GenerateKeysPanel component = new GenerateKeysPanel();
 		JInternalFrameExtensions.addComponentToFrame(internalFrame, component);
 		JInternalFrameExtensions.addJInternalFrame(
-			SpringBootSwingApplication.getInstance().getDesktopPane(), internalFrame);
+			SpringBootSwingApplication.getInstance().getMainComponent(), internalFrame);
 	}
 
 }

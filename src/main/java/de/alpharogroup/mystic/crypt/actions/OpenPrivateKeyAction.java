@@ -212,7 +212,7 @@ public class OpenPrivateKeyAction extends OpenFileAction
 
 		JInternalFrameExtensions.addComponentToFrame(internalFrame, component);
 		JInternalFrameExtensions.addJInternalFrame(
-			SpringBootSwingApplication.getInstance().getDesktopPane(), internalFrame);
+			SpringBootSwingApplication.getInstance().getMainComponent(), internalFrame);
 	}
 
 
