@@ -156,7 +156,7 @@ public class SpringBootSwingApplication extends ApplicationSplitPaneFrame<Applic
 	}
 
 	@Override
-	protected JXMultiSplitPanePanel<ApplicationModelBean> newJXMultiSplitPanePanel() {
+	protected JXMultiSplitPanePanel<ApplicationModelBean> newMainComponent() {
 
        final JXMultiSplitPanePanel<ApplicationModelBean> multiSplitPanePanel = new JXMultiSplitPanePanel<ApplicationModelBean>()
         {

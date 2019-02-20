@@ -55,7 +55,7 @@ public class NewKeyGenerationInternalFrameAction extends AbstractAction
 	{
 		final GenerateKeysPanel component = new GenerateKeysPanel();
 
-		 SpringBootSwingApplication.getInstance().getMultiSplitPanePanel().add(component, "content");
+		 SpringBootSwingApplication.getInstance().getMainComponent().add(component, "content");
 	}
 
 }
