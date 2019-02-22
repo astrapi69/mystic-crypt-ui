@@ -20,12 +20,15 @@
  */
 package de.alpharogroup.mystic.crypt;
 
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.EventQueue;
 import java.io.File;
 
+import javax.swing.BorderFactory;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
+import javax.swing.border.Border;
 
 import org.jdesktop.swingx.MultiSplitLayout;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -34,6 +37,7 @@ import org.springframework.context.ConfigurableApplicationContext;
 
 import de.alpharogroup.swing.base.ApplicationSplitPaneFrame;
 import de.alpharogroup.swing.base.BaseDesktopMenu;
+import de.alpharogroup.swing.panels.output.ConsolePanel;
 import de.alpharogroup.swing.panels.splitpane.JXMultiSplitPanePanel;
 import de.alpharogroup.swing.panels.splitpane.SplitFactory;
 import lombok.AccessLevel;
@@ -101,21 +105,22 @@ public class SpringBootSwingApplication extends ApplicationSplitPaneFrame<Applic
 	}
 
 	protected JComponent newLeftComponent() {
-		return new JLabel("Left Component");
+    	JLabel label = new JLabel("Left Component");
+        Border border = BorderFactory.createLineBorder(Color.lightGray, 1);
+        label.setBorder(border);
+        return label;
 	}
 	
 	protected JComponent newTopComponent() {
-		return new JLabel("Top Component");
+    	JLabel label = new JLabel("Top Component");
+        Border border = BorderFactory.createLineBorder(Color.lightGray, 1);
+        label.setBorder(border);
+        return label;
 	}
-	
-	protected JComponent newRightComponent() {
-		return new JLabel("Right Component");
-	}
-	
+		
 	protected JComponent newBottomComponent() {
-//		ConsolePanel consolePanel = new ConsolePanel();
-//		JScrollPane jScrollPane = new JScrollPane(consolePanel);
-		return new JLabel("Right Component");
+		ConsolePanel consolePanel = new ConsolePanel();
+        return consolePanel;
 	}
 
 	@Override

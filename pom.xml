@@ -23,6 +23,8 @@
 		<swing-components.version>5.2-SNAPSHOT</swing-components.version>
 		<!-- GUAVA version -->
 		<guava.version>27.0-jre</guava.version>
+		<!-- GEN-TREE version -->
+		<gen-tree.version>4.12</gen-tree.version>
 		<!-- MYSTIC-CRYPT versions -->
 		<mystic-crypt.version>5.9-SNAPSHOT</mystic-crypt.version>
 		<crypt-api.version>${mystic-crypt.version}</crypt-api.version>
@@ -37,6 +39,12 @@
 	<dependencyManagement>
 
 		<dependencies>
+			<!-- GEN-TREE DEPENDENCY -->
+			<dependency>
+				<groupId>de.alpharogroup</groupId>
+				<artifactId>gen-tree</artifactId>
+				<version>${gen-tree.version}</version>
+			</dependency>
 			<!-- CRYPT-API DEPENDENCY -->
 			<dependency>
 				<groupId>de.alpharogroup</groupId>
