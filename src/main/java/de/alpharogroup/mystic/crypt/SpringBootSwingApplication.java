@@ -20,23 +20,33 @@
  */
 package de.alpharogroup.mystic.crypt;
 
-import java.awt.Color;
+import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.EventQueue;
+import java.awt.image.BufferedImage;
 import java.io.File;
+import java.io.IOException;
 
+import javax.imageio.ImageIO;
 import javax.swing.BorderFactory;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
+import javax.swing.JTabbedPane;
 import javax.swing.border.Border;
 
+import org.jdesktop.swingx.JXPanel;
 import org.jdesktop.swingx.MultiSplitLayout;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.context.ConfigurableApplicationContext;
 
+import de.alpharogroup.lang.ClassExtensions;
+import de.alpharogroup.layout.ReplaceContentExtensions;
+import de.alpharogroup.model.BaseModel;
+import de.alpharogroup.mystic.crypt.panels.keygen.GenerateKeysPanel;
 import de.alpharogroup.swing.base.ApplicationSplitPaneFrame;
 import de.alpharogroup.swing.base.BaseDesktopMenu;
+import de.alpharogroup.swing.panels.img.ImagePanel;
 import de.alpharogroup.swing.panels.output.ConsolePanel;
 import de.alpharogroup.swing.panels.splitpane.JXMultiSplitPanePanel;
 import de.alpharogroup.swing.panels.splitpane.SplitFactory;
@@ -104,23 +114,39 @@ public class SpringBootSwingApplication extends ApplicationSplitPaneFrame<Applic
 		super(Messages.getString("mainframe.title"));
 	}
 
-	protected JComponent newLeftComponent() {
-    	JLabel label = new JLabel("Left Component");
-        Border border = BorderFactory.createLineBorder(Color.lightGray, 1);
-        label.setBorder(border);
-        return label;
+	protected JComponent newLeftComponent()
+	{
+		leftComponent = new JXPanel();
+		leftComponent.setLayout(new BorderLayout());
+		JLabel label = new JLabel("Left Component");
+		leftComponent.add(label);
+		Border border = BorderFactory.createLoweredSoftBevelBorder();
+		leftComponent.setBorder(border);
+		return leftComponent;
 	}
-	
-	protected JComponent newTopComponent() {
-    	JLabel label = new JLabel("Top Component");
-        Border border = BorderFactory.createLineBorder(Color.lightGray, 1);
-        label.setBorder(border);
-        return label;
+
+	protected JComponent newTopComponent()
+	{
+		topComponent = new JXPanel();
+		topComponent.setLayout(new BorderLayout());
+		Border border = BorderFactory.createLoweredSoftBevelBorder();
+		topComponent.setBorder(border);
+		replaceTopComponent(new GenerateKeysPanel());
+		return topComponent;
 	}
-		
-	protected JComponent newBottomComponent() {
-		ConsolePanel consolePanel = new ConsolePanel();
-        return consolePanel;
+
+	protected JComponent newBottomComponent()
+	{
+		bottomComponent = new JXPanel();
+		bottomComponent.setLayout(new BorderLayout());
+
+		JComponent tab1 = new JXPanel();	
+		JTabbedPane tabbedPane = new JTabbedPane();
+		tabbedPane.add("Info", tab1);
+		Border border = BorderFactory.createLoweredSoftBevelBorder();
+		bottomComponent.add(tabbedPane);
+		bottomComponent.setBorder(border);
+		return bottomComponent;
 	}
 
 	@Override
@@ -141,7 +167,7 @@ public class SpringBootSwingApplication extends ApplicationSplitPaneFrame<Applic
 	{
 		return new DesktopMenu(applicationFrame);
 	}
-	
+
 	@Override
 	protected String newIconPath()
 	{
@@ -161,31 +187,38 @@ public class SpringBootSwingApplication extends ApplicationSplitPaneFrame<Applic
 	}
 
 	@Override
-	protected JXMultiSplitPanePanel<ApplicationModelBean> newMainComponent() {
+	protected JXMultiSplitPanePanel<ApplicationModelBean> newMainComponent()
+	{
 
-       final JXMultiSplitPanePanel<ApplicationModelBean> multiSplitPanePanel = new JXMultiSplitPanePanel<ApplicationModelBean>()
-        {
-            @Override
-            protected MultiSplitLayout.Node newRootNode(String layoutDefinition) {
-                return SpringBootSwingApplication.this.newRootNode();
-            }
-        };
-        multiSplitPanePanel.getMultiSplitPane().add(newTopComponent(), "content");
-        multiSplitPanePanel.getMultiSplitPane().add(newBottomComponent(), "bottom");
-        multiSplitPanePanel.getMultiSplitPane().add(newLeftComponent(), "left");
-        return multiSplitPanePanel;
+		final JXMultiSplitPanePanel<ApplicationModelBean> multiSplitPanePanel = new JXMultiSplitPanePanel<ApplicationModelBean>()
+		{
+			@Override
+			protected MultiSplitLayout.Node newRootNode(String layoutDefinition)
+			{
+				return SpringBootSwingApplication.this.newRootNode();
+			}
+		};
+		multiSplitPanePanel.getMultiSplitPane().add(newTopComponent(), "content");
+		multiSplitPanePanel.getMultiSplitPane().add(newBottomComponent(), "bottom");
+		multiSplitPanePanel.getMultiSplitPane().add(newLeftComponent(), "left");
+		return multiSplitPanePanel;
 	}
-	
-	protected MultiSplitLayout.Split newRootNode() {
 
-        MultiSplitLayout.Split col1 = SplitFactory.newSplit(false, 0.75);
-        MultiSplitLayout.Leaf content = SplitFactory.newLeaf("content", 0.75);
-        MultiSplitLayout.Leaf bottom =  SplitFactory.newLeaf("bottom", 0.25);
-        col1.setChildren(content, new MultiSplitLayout.Divider(), bottom);
-        MultiSplitLayout.Split root = new MultiSplitLayout.Split();
-        root.setRowLayout(true);
-        MultiSplitLayout.Leaf left = SplitFactory.newLeaf("left", 0.25);
-        SplitFactory.setChildren(root, left, new MultiSplitLayout.Divider(), col1);
-        return root;
+	protected MultiSplitLayout.Split newRootNode()
+	{
+		MultiSplitLayout.Split col1 = SplitFactory.newSplit(false, 0.75);
+		MultiSplitLayout.Leaf content = SplitFactory.newLeaf("content", 0.8);
+		MultiSplitLayout.Leaf bottom = SplitFactory.newLeaf("bottom", 0.2);
+		col1.setChildren(content, new MultiSplitLayout.Divider(), bottom);
+		MultiSplitLayout.Split root = new MultiSplitLayout.Split();
+		root.setRowLayout(true);
+		MultiSplitLayout.Leaf left = SplitFactory.newLeaf("left", 0.25);
+		SplitFactory.setChildren(root, left, new MultiSplitLayout.Divider(), col1);
+		return root;
+	}
+
+	public void replaceTopComponent(final JComponent newContent)
+	{
+		ReplaceContentExtensions.replaceContent(topComponent, newContent, false);
 	}
 }

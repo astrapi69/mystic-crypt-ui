@@ -54,7 +54,8 @@ public class NewObfuscationOperationInternalFrameAction extends AbstractAction
 	public void actionPerformed(final ActionEvent e)
 	{
 		final OperationRulePanel component = new OperationRulePanel();
-		 SpringBootSwingApplication.getInstance().getMainComponent().add(component, "content");
+
+		 SpringBootSwingApplication.getInstance().replaceTopComponent(component);
 	}
 
 }

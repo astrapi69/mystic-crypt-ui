@@ -34,7 +34,6 @@ import java.util.logging.Level;
 
 import javax.crypto.NoSuchPaddingException;
 import javax.swing.JDialog;
-import javax.swing.JInternalFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
@@ -53,7 +52,6 @@ import de.alpharogroup.mystic.crypt.SpringBootSwingApplication;
 import de.alpharogroup.mystic.crypt.panels.privatekey.PrivateKeyModelBean;
 import de.alpharogroup.mystic.crypt.panels.privatekey.PrivateKeyPanel;
 import de.alpharogroup.swing.actions.OpenFileAction;
-import de.alpharogroup.swing.components.factories.JComponentFactory;
 import de.alpharogroup.swing.dialog.factories.JDialogFactory;
 import de.alpharogroup.swing.listener.RequestFocusListener;
 import lombok.NonNull;
@@ -155,8 +153,9 @@ public class OpenPrivateKeyAction extends OpenFileAction
 	protected void onApproveOption(final File file, final ActionEvent actionEvent)
 	{
 		// create internal frame
-		final JInternalFrame internalFrame = JComponentFactory.newInternalFrame("Private key view",
-			true, true, true, true);
+		// final JInternalFrame internalFrame = JComponentFactory.newInternalFrame("Private key
+		// view",
+		// true, true, true, true);
 		final PrivateKeyPanel component = new PrivateKeyPanel();
 		final PrivateKeyModelBean model = component.getModelObject();
 		model.setPrivateKeyFile(file);
@@ -208,7 +207,8 @@ public class OpenPrivateKeyAction extends OpenFileAction
 		component.getPrivateKeyViewPanel().getTxtPublicKey().setText("");
 		component.getPrivateKeyViewPanel().getTxtPrivateKey().setText(privateKeyFormat);
 		component.getPrivateKeyViewPanel().getTxtPublicKey().setText(publicKeyFormat);
-		 SpringBootSwingApplication.getInstance().getMainComponent().add(component, "content");
+
+		SpringBootSwingApplication.getInstance().replaceTopComponent(component);
 	}
 
 
