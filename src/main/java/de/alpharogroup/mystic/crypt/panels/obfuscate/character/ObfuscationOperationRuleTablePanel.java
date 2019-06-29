@@ -33,25 +33,24 @@ import javax.swing.JLabel;
 import javax.swing.JScrollPane;
 import javax.swing.table.TableColumn;
 
+import com.google.common.collect.BiMap;
+import de.alpharogroup.crypto.file.xml.XmlDecryptionExtensions;
+import de.alpharogroup.crypto.file.xml.XmlEncryptionExtensions;
 import org.apache.commons.codec.DecoderException;
 
 import com.thoughtworks.xstream.XStream;
 
 import de.alpharogroup.collections.map.MapFactory;
 import de.alpharogroup.collections.pairs.KeyValuePair;
-import de.alpharogroup.crypto.hex.HexExtensions;
 import de.alpharogroup.crypto.obfuscation.rule.ObfuscationOperationRule;
-import de.alpharogroup.file.read.ReadFileExtensions;
 import de.alpharogroup.model.BaseModel;
 import de.alpharogroup.model.api.Model;
 import de.alpharogroup.mystic.crypt.SpringBootSwingApplication;
-import de.alpharogroup.mystic.crypt.panels.obfuscate.XmlEnDecryptionExtensions;
 import de.alpharogroup.swing.GenericJTable;
 import de.alpharogroup.swing.base.BasePanel;
 import de.alpharogroup.swing.renderer.TableCellButtonRendererFactory;
 import de.alpharogroup.swing.table.editor.DeleteRowButtonEditor;
 import de.alpharogroup.swing.table.editor.TableCellButtonEditor;
-import de.alpharogroup.xml.XmlToObjectExtensions;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.SneakyThrows;
@@ -108,14 +107,15 @@ public class ObfuscationOperationRuleTablePanel extends BasePanel<ObfuscationOpe
 	@SneakyThrows
 	protected void onExport(final ActionEvent actionEvent)
 	{
-		List<KeyValuePair<Character, ObfuscationOperationRule<Character, Character>>> data = getModelObject()
-			.getTableModel().getData();
-
 		final int returnVal = fileChooser.showSaveDialog(ObfuscationOperationRuleTablePanel.this);
 		if (returnVal == JFileChooser.APPROVE_OPTION)
 		{
+			List<KeyValuePair<Character, ObfuscationOperationRule<Character, Character>>> data = getModelObject()
+				.getTableModel().getData();
+			BiMap<Character, ObfuscationOperationRule<Character, Character>> biMap = getModelObject()
+				.getTableModel().toBiMap();
 			final File selectedFile = fileChooser.getSelectedFile();
-			XmlEnDecryptionExtensions.writeToFileAsXmlAndHex(xStream, aliases, data, selectedFile);
+			XmlEncryptionExtensions.writeToFileAsXmlAndHex(xStream, aliases, data, selectedFile);
 		}
 	}
 
@@ -124,16 +124,11 @@ public class ObfuscationOperationRuleTablePanel extends BasePanel<ObfuscationOpe
 		final int returnVal = fileChooser.showOpenDialog(ObfuscationOperationRuleTablePanel.this);
 		if (returnVal == JFileChooser.APPROVE_OPTION)
 		{
-			final File obfuscationRules = fileChooser.getSelectedFile();
+			final File selectedFile = fileChooser.getSelectedFile();
 			try
 			{
-				final String hexXmlString = ReadFileExtensions.readFromFile(obfuscationRules);
-				String xmlString = HexExtensions.decodeHex(hexXmlString);
-
-				List<KeyValuePair<Character, ObfuscationOperationRule<Character, Character>>> data = XmlToObjectExtensions
-					.toObjectWithXStream(xStream, xmlString, aliases);
-
-				getModelObject().getTableModel().setData(data);
+				getModelObject().getTableModel().setData(XmlDecryptionExtensions
+					.readFromFileAsXmlAndHex(xStream, aliases, selectedFile));
 				getModelObject().getTableModel().fireTableDataChanged();
 			}
 			catch (final IOException | DecoderException e)

@@ -38,6 +38,7 @@ import de.alpharogroup.collections.pairs.KeyValuePair;
 import de.alpharogroup.collections.set.SetFactory;
 import de.alpharogroup.crypto.obfuscation.api.Obfuscatable;
 import de.alpharogroup.crypto.obfuscation.character.CharacterObfuscator;
+import de.alpharogroup.crypto.obfuscation.character.ObfuscatorExtensions;
 import de.alpharogroup.crypto.obfuscation.rule.ObfuscationOperationRule;
 import de.alpharogroup.crypto.obfuscation.rule.Operation;
 import de.alpharogroup.model.BaseModel;
@@ -183,7 +184,7 @@ public class OperationRulePanel extends BasePanel<ObfuscationOperationModelBean>
 			}
 			keyValuePair = KeyValuePair
 				.<Character, ObfuscationOperationRule<Character, Character>> builder().key(origChar)
-				.value(ObfuscationOperationRule.<Character, Character> newRule().character(origChar)
+				.value(ObfuscationOperationRule.<Character, Character> builder().character(origChar)
 					.replaceWith(replaceWith).indexes(indexes).operation(selectedOperation).build())
 				.build();
 			getModelObject().getTableModel().add(keyValuePair);
@@ -204,8 +205,11 @@ public class OperationRulePanel extends BasePanel<ObfuscationOperationModelBean>
 
 	protected void onDecrypt(final ActionEvent actionEvent)
 	{
-		final String disentangledKey = getModelObject().getObfuscator().disentangle();
-		getEnDecryptPanel().getTxtToEncrypt().setText(disentangledKey);
+		BiMap<Character, ObfuscationOperationRule<Character, Character>> biMap = getModelObject()
+			.getTableModel().toBiMap();
+		String text = getEnDecryptPanel().getTxtEncrypted().getText();
+		String disentangled = ObfuscatorExtensions.disentangle(biMap, text);
+		getEnDecryptPanel().getTxtToEncrypt().setText(disentangled);
 		getEnDecryptPanel().getTxtEncrypted().setText("");
 	}
 
@@ -219,11 +223,9 @@ public class OperationRulePanel extends BasePanel<ObfuscationOperationModelBean>
 	{
 		// TODO FIXME
 		final String toObfuscatedString = getEnDecryptPanel().getTxtToEncrypt().getText();
-		final Map<Character, ObfuscationOperationRule<Character, Character>> keymap = getModelObject()
-			.getTableModel().toMap();
 		// create the rule
-		BiMap<Character, ObfuscationOperationRule<Character, Character>> biMap = HashBiMap
-			.create(keymap);
+		BiMap<Character, ObfuscationOperationRule<Character, Character>> biMap = getModelObject()
+			.getTableModel().toBiMap();
 		// obfuscate the key
 		final Obfuscatable obfuscator = new CharacterObfuscator(biMap, toObfuscatedString);
 		getModelObject().setObfuscator(obfuscator);

@@ -59,4 +59,6 @@ public class GenerateKeysModelBean implements Serializable
 	PrivateKey privateKey;
 
 	PublicKey publicKey;
+	
+	String password;
 }

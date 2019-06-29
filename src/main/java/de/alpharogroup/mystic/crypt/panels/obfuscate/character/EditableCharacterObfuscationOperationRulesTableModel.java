@@ -26,6 +26,9 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
+import com.google.common.collect.BiMap;
+import com.google.common.collect.HashBiMap;
+import de.alpharogroup.collections.list.ListFactory;
 import de.alpharogroup.collections.pairs.KeyValuePair;
 import de.alpharogroup.crypto.obfuscation.rule.ObfuscationOperationRule;
 import de.alpharogroup.crypto.obfuscation.rule.Operation;
@@ -83,18 +86,15 @@ public class EditableCharacterObfuscationOperationRulesTableModel
 	{
 		switch (c)
 		{
-			case 0 :
-				return Character.class;
-			case 1 :
-				return Character.class;
 			case 2 :
 				return Set.class;
 			case 3 :
 				return Operation.class;
 			case 4 :
-				return ObfuscationOperationRule.class;
 			case 5 :
 				return ObfuscationOperationRule.class;
+			case 0 :
+			case 1 :
 			default :
 				return Character.class;
 		}
@@ -128,20 +128,20 @@ public class EditableCharacterObfuscationOperationRulesTableModel
 		{
 			final KeyValuePair<Character, ObfuscationOperationRule<Character, Character>> permission = getData()
 				.get(row);
+			ObfuscationOperationRule<Character,Character> value = permission.getValue();
 			switch (col)
 			{
 				case 0 :
-					return permission.getValue().getCharacter();
+					return value.getCharacter();
 				case 1 :
-					return permission.getValue().getReplaceWith();
+					return value.getReplaceWith();
 				case 2 :
-					return permission.getValue().getIndexes();
+					return value.getIndexes();
 				case 3 :
-					return permission.getValue().getOperation();
+					return value.getOperation();
 				case 4 :
-					return permission.getValue();
 				case 5 :
-					return permission.getValue();
+					return value;
 				default :
 					return null;
 			}
@@ -180,13 +180,32 @@ public class EditableCharacterObfuscationOperationRulesTableModel
 	public Map<Character, ObfuscationOperationRule<Character, Character>> toMap()
 	{
 		final List<KeyValuePair<Character, ObfuscationOperationRule<Character, Character>>> data = getData();
+		return toMap(data);
+
+	}
+
+	public Map<Character, ObfuscationOperationRule<Character, Character>> toMap(
+		List<KeyValuePair<Character, ObfuscationOperationRule<Character, Character>>> data)
+	{
 		final Map<Character, ObfuscationOperationRule<Character, Character>> map = new HashMap<>();
 		for (final KeyValuePair<Character, ObfuscationOperationRule<Character, Character>> row : data)
 		{
 			map.put(row.getKey(), row.getValue());
 		}
 		return map;
+	}
 
+	public List<KeyValuePair<Character, ObfuscationOperationRule<Character, Character>>> toList(BiMap<Character, ObfuscationOperationRule<Character, Character>> biMap){
+		List<KeyValuePair<Character, ObfuscationOperationRule<Character, Character>>> data = ListFactory.newArrayList();
+		for(Map.Entry<Character, ObfuscationOperationRule<Character, Character>> entry :biMap.entrySet()){
+			data.add(KeyValuePair.<Character, ObfuscationOperationRule<Character, Character>>builder().key(entry.getKey()).value(entry.getValue()).build());
+		}
+		return data;
+	}
+
+	public BiMap<Character, ObfuscationOperationRule<Character, Character>> toBiMap(){
+		return HashBiMap
+			.create(toMap());
 	}
 
 }
