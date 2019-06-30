@@ -33,15 +33,14 @@ import javax.swing.JLabel;
 import javax.swing.JScrollPane;
 import javax.swing.table.TableColumn;
 
-import com.google.common.collect.BiMap;
-import de.alpharogroup.crypto.file.xml.XmlDecryptionExtensions;
-import de.alpharogroup.crypto.file.xml.XmlEncryptionExtensions;
 import org.apache.commons.codec.DecoderException;
 
 import com.thoughtworks.xstream.XStream;
 
 import de.alpharogroup.collections.map.MapFactory;
 import de.alpharogroup.collections.pairs.KeyValuePair;
+import de.alpharogroup.crypto.file.xml.XmlDecryptionExtensions;
+import de.alpharogroup.crypto.file.xml.XmlEncryptionExtensions;
 import de.alpharogroup.crypto.obfuscation.rule.ObfuscationOperationRule;
 import de.alpharogroup.model.BaseModel;
 import de.alpharogroup.model.api.Model;
@@ -112,8 +111,6 @@ public class ObfuscationOperationRuleTablePanel extends BasePanel<ObfuscationOpe
 		{
 			List<KeyValuePair<Character, ObfuscationOperationRule<Character, Character>>> data = getModelObject()
 				.getTableModel().getData();
-			BiMap<Character, ObfuscationOperationRule<Character, Character>> biMap = getModelObject()
-				.getTableModel().toBiMap();
 			final File selectedFile = fileChooser.getSelectedFile();
 			XmlEncryptionExtensions.writeToFileAsXmlAndHex(xStream, aliases, data, selectedFile);
 		}
@@ -127,8 +124,9 @@ public class ObfuscationOperationRuleTablePanel extends BasePanel<ObfuscationOpe
 			final File selectedFile = fileChooser.getSelectedFile();
 			try
 			{
-				getModelObject().getTableModel().setData(XmlDecryptionExtensions
-					.readFromFileAsXmlAndHex(xStream, aliases, selectedFile));
+				List<KeyValuePair<Character, ObfuscationOperationRule<Character, Character>>> data = XmlDecryptionExtensions
+					.readFromFileAsXmlAndHex(xStream, aliases, selectedFile);
+				getModelObject().getTableModel().setData(data);
 				getModelObject().getTableModel().fireTableDataChanged();
 			}
 			catch (final IOException | DecoderException e)

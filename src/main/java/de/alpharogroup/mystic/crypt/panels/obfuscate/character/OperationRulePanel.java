@@ -31,7 +31,6 @@ import java.util.stream.IntStream;
 import javax.swing.JOptionPane;
 
 import com.google.common.collect.BiMap;
-import com.google.common.collect.HashBiMap;
 
 import de.alpharogroup.collections.list.ListFactory;
 import de.alpharogroup.collections.pairs.KeyValuePair;
@@ -234,7 +233,6 @@ public class OperationRulePanel extends BasePanel<ObfuscationOperationModelBean>
 		getEnDecryptPanel().getTxtToEncrypt().setText("");
 	}
 
-	@SuppressWarnings("serial")
 	@Override
 	protected void onInitializeComponents()
 	{

@@ -20,7 +20,6 @@
  */
 package de.alpharogroup.mystic.crypt.panels.obfuscate.character;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -28,7 +27,7 @@ import java.util.Set;
 
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
-import de.alpharogroup.collections.list.ListFactory;
+
 import de.alpharogroup.collections.pairs.KeyValuePair;
 import de.alpharogroup.crypto.obfuscation.rule.ObfuscationOperationRule;
 import de.alpharogroup.crypto.obfuscation.rule.Operation;
@@ -179,28 +178,11 @@ public class EditableCharacterObfuscationOperationRulesTableModel
 	 */
 	public Map<Character, ObfuscationOperationRule<Character, Character>> toMap()
 	{
-		final List<KeyValuePair<Character, ObfuscationOperationRule<Character, Character>>> data = getData();
-		return toMap(data);
-
-	}
-
-	public Map<Character, ObfuscationOperationRule<Character, Character>> toMap(
-		List<KeyValuePair<Character, ObfuscationOperationRule<Character, Character>>> data)
-	{
-		final Map<Character, ObfuscationOperationRule<Character, Character>> map = new HashMap<>();
-		for (final KeyValuePair<Character, ObfuscationOperationRule<Character, Character>> row : data)
-		{
-			map.put(row.getKey(), row.getValue());
-		}
-		return map;
+		return KeyValuePair.toMap(getData());
 	}
 
 	public List<KeyValuePair<Character, ObfuscationOperationRule<Character, Character>>> toList(BiMap<Character, ObfuscationOperationRule<Character, Character>> biMap){
-		List<KeyValuePair<Character, ObfuscationOperationRule<Character, Character>>> data = ListFactory.newArrayList();
-		for(Map.Entry<Character, ObfuscationOperationRule<Character, Character>> entry :biMap.entrySet()){
-			data.add(KeyValuePair.<Character, ObfuscationOperationRule<Character, Character>>builder().key(entry.getKey()).value(entry.getValue()).build());
-		}
-		return data;
+		return KeyValuePair.toKeyValuePairs(biMap);
 	}
 
 	public BiMap<Character, ObfuscationOperationRule<Character, Character>> toBiMap(){
