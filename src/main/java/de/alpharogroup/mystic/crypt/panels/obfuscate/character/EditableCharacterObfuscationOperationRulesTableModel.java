@@ -28,6 +28,7 @@ import java.util.Set;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 
+import de.alpharogroup.collections.list.ListFactory;
 import de.alpharogroup.collections.pairs.KeyValuePair;
 import de.alpharogroup.crypto.obfuscation.rule.ObfuscationOperationRule;
 import de.alpharogroup.crypto.obfuscation.rule.Operation;
@@ -178,7 +179,7 @@ public class EditableCharacterObfuscationOperationRulesTableModel
 	 */
 	public Map<Character, ObfuscationOperationRule<Character, Character>> toMap()
 	{
-		return KeyValuePair.toMap(getData());
+		return KeyValuePair.toMap(ListFactory.newArrayList(getData()));
 	}
 
 	public List<KeyValuePair<Character, ObfuscationOperationRule<Character, Character>>> toList(BiMap<Character, ObfuscationOperationRule<Character, Character>> biMap){
