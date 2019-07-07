@@ -207,7 +207,7 @@ public class OperationRulePanel extends BasePanel<ObfuscationOperationModelBean>
 		BiMap<Character, ObfuscationOperationRule<Character, Character>> biMap = getModelObject()
 			.getTableModel().toBiMap();
 		String text = getEnDecryptPanel().getTxtEncrypted().getText();
-		String disentangled = ObfuscatorExtensions.disentangle(biMap, text);
+		String disentangled = ObfuscatorExtensions.disentangleImproved(biMap, text);
 		getEnDecryptPanel().getTxtToEncrypt().setText(disentangled);
 		getEnDecryptPanel().getTxtEncrypted().setText("");
 	}
@@ -225,10 +225,7 @@ public class OperationRulePanel extends BasePanel<ObfuscationOperationModelBean>
 		// create the rule
 		BiMap<Character, ObfuscationOperationRule<Character, Character>> biMap = getModelObject()
 			.getTableModel().toBiMap();
-		// obfuscate the key
-		final Obfuscatable obfuscator = new CharacterObfuscator(biMap, toObfuscatedString);
-		getModelObject().setObfuscator(obfuscator);
-		final String result = getModelObject().getObfuscator().obfuscate();
+		final String result = ObfuscatorExtensions.obfuscateWith(biMap, toObfuscatedString);
 		getEnDecryptPanel().getTxtEncrypted().setText(result);
 		getEnDecryptPanel().getTxtToEncrypt().setText("");
 	}

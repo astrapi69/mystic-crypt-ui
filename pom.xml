@@ -25,8 +25,8 @@
 		<guava.version>27.0-jre</guava.version>
 		<!-- MYSTIC-CRYPT versions -->
 		<mystic-crypt.version>7.1-SNAPSHOT</mystic-crypt.version>
-		<crypt-api.version>7</crypt-api.version>
-		<crypt-data.version>7</crypt-data.version>
+		<crypt-api.version>7.2-SNAPSHOT</crypt-api.version>
+		<crypt-data.version>7.1-SNAPSHOT</crypt-data.version>
 		<full-app-name>mystic-crypt-ui</full-app-name>
 		<info.appName>mystic-crypt-ui</info.appName>
 		<main-app-package-name>de.alpharogroup.mystic.crypt</main-app-package-name>
