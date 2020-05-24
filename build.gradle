@@ -1,0 +1,70 @@
+
+plugins {
+    id "io.franzbecker.gradle-lombok" version "4.0.0"
+    id "org.springframework.boot" version "2.3.0.RELEASE"
+    id "io.spring.dependency-management" version "1.0.9.RELEASE"
+    id "java"
+    id "idea"
+    id "net.ltgt.apt" version "0.21"
+    id "net.ltgt.apt-idea" version "0.21"
+    id "com.github.ben-manes.versions" version "0.28.0"
+}
+
+apply plugin: "java"
+apply plugin: "eclipse"
+apply plugin: "idea"
+apply plugin: "net.ltgt.apt-idea"
+apply plugin: "org.springframework.boot"
+apply plugin: "io.spring.dependency-management"
+
+group = "de.alpharogroup"
+version = "$projectVersion"
+description = "$rootProject.name"
+sourceCompatibility = "1.8"
+
+repositories {
+    jcenter()
+    mavenLocal()
+    mavenCentral()
+}
+
+dependencies {
+    compileOnly("org.projectlombok:lombok:$lombokVersion")
+    annotationProcessor("org.projectlombok:lombok:$lombokVersion")
+    compile("org.mapstruct:mapstruct-processor:$mapstructVersion")
+    compileOnly("org.mapstruct:mapstruct-processor:$mapstructVersion")
+    annotationProcessor("org.mapstruct:mapstruct-processor:$mapstructVersion")
+
+    compile("de.alpharogroup:crypt-api:$cryptApiVersion")
+    compile("de.alpharogroup:crypt-data:$cryptDataVersion")
+    compile("de.alpharogroup:mystic-crypt:$mysticCryptVersion")
+    compile("de.alpharogroup:model-core:$modelCoreVersion")
+    compile("de.alpharogroup:xml-extensions:$xmlExtensionsVersion")
+    compile("com.google.guava:guava:$guavaVersion")
+    compile("de.alpharogroup:file-worker:$fileWorkerVersion")
+    compile("de.alpharogroup:jcommons-lang:$jcommonsLangVersion")
+    compile("de.alpharogroup:swing-components:$swingComponentsVersion")
+    compile("org.springframework.boot:spring-boot-starter-integration:$springBootVersion")
+    compile("org.springframework.boot:spring-boot-starter-validation:$springBootVersion")
+
+    compile("javax.help:javahelp:$javahelpVersion")
+    compile("org.swinglabs:swing-layout:$swingLayoutVersion")
+    compile("org.swinglabs:jxlayer:$jxlayerVersion")
+    compile("org.swinglabs:swing-worker:$swingWorkerVersion")
+    compile("org.swinglabs:swingx:$swingxVersion")
+    compile("com.miglayout:miglayout-swing:$miglayoutSwingVersion")
+    compile("xml-apis:xml-apis:$xmlApisVersion")
+
+    runtime("org.springframework.boot:spring-boot-devtools:$springBootVersion")
+    testCompile("org.springframework.boot:spring-boot-starter-test:$springBootVersion")
+
+    developmentOnly("org.springframework.boot:spring-boot-devtools")
+    annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
+    testImplementation("org.springframework.boot:spring-boot-starter-test")
+    // If you are using mapstruct in test code
+    testAnnotationProcessor("org.mapstruct:mapstruct-processor:$mapstructVersion")
+}
+
+tasks.withType(JavaCompile) {
+    options.encoding = "UTF-8"
+}
