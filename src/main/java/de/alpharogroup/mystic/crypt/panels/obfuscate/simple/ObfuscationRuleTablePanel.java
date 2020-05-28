@@ -35,12 +35,10 @@ import javax.swing.table.TableColumn;
 
 import org.apache.commons.codec.DecoderException;
 
-import com.thoughtworks.xstream.XStream;
-
 import de.alpharogroup.collections.map.MapFactory;
 import de.alpharogroup.collections.pairs.KeyValuePair;
-import de.alpharogroup.crypto.file.xml.XmlDecryptionExtensions;
-import de.alpharogroup.crypto.file.xml.XmlEncryptionExtensions;
+import de.alpharogroup.xml.crypto.file.XmlDecryptionExtensions;
+import de.alpharogroup.xml.crypto.file.XmlEncryptionExtensions;
 import de.alpharogroup.crypto.obfuscation.rule.ObfuscationRule;
 import de.alpharogroup.model.BaseModel;
 import de.alpharogroup.model.api.Model;
@@ -68,12 +66,8 @@ public class ObfuscationRuleTablePanel extends BasePanel<ObfuscationModelBean>
 	private JLabel lblKeyRules;
 	private JScrollPane scpKeyRules;
 	private GenericJTable<KeyValuePair<Character, ObfuscationRule<Character, Character>>> tblKeyRules;
-	private XStream xStream;
 
 	{
-		xStream = new XStream();
-		XStream.setupDefaultSecurity(xStream);
-		xStream.allowTypesByWildcard(new String[] { "de.alpharogroup.**" });
 		aliases = MapFactory.newLinkedHashMap();
 		aliases.put("KeyValuePair", KeyValuePair.class);
 		aliases.put("ObfuscationRule", ObfuscationRule.class);
@@ -107,8 +101,7 @@ public class ObfuscationRuleTablePanel extends BasePanel<ObfuscationModelBean>
 			@Override
 			protected String onSetText()
 			{
-				String text = editorText;
-				return text;
+				return editorText;
 			}
 		};
 	}
@@ -127,7 +120,7 @@ public class ObfuscationRuleTablePanel extends BasePanel<ObfuscationModelBean>
 			List<KeyValuePair<Character, ObfuscationRule<Character, Character>>> data = getModelObject()
 				.getTableModel().getData();
 			final File selectedFile = fileChooser.getSelectedFile();
-			XmlEncryptionExtensions.writeToFileAsXmlAndHex(xStream, aliases, data, selectedFile);
+			XmlEncryptionExtensions.writeToFileAsXmlAndHex(aliases, data, selectedFile);
 		}
 	}
 
@@ -140,14 +133,10 @@ public class ObfuscationRuleTablePanel extends BasePanel<ObfuscationModelBean>
 			try
 			{
 				getModelObject().getTableModel().setData(XmlDecryptionExtensions
-					.readFromFileAsXmlAndHex(xStream, aliases, selectedFile));
+					.readFromFileAsXmlAndHex(aliases, selectedFile, "de.alpharogroup.**"));
 				getModelObject().getTableModel().fireTableDataChanged();
 			}
-			catch (final IOException e)
-			{
-				log.log(Level.SEVERE, e.getLocalizedMessage(), e);
-			}
-			catch (DecoderException e)
+			catch (final IOException | DecoderException e)
 			{
 				log.log(Level.SEVERE, e.getLocalizedMessage(), e);
 			}
@@ -188,8 +177,8 @@ public class ObfuscationRuleTablePanel extends BasePanel<ObfuscationModelBean>
 		tblKeyRules.getColumn(deleteText)
 			.setCellRenderer(TableCellButtonRendererFactory.newTableCellButtonRenderer(deleteText));
 
-		btnImport.addActionListener(actionEvent -> onImport(actionEvent));
-		btnExport.addActionListener(actionEvent -> onExport(actionEvent));
+		btnImport.addActionListener(this::onImport);
+		btnExport.addActionListener(this::onExport);
 
 		fileChooser = new JFileChooser(
 			SpringBootSwingApplication.getInstance().getConfigurationDirectory());

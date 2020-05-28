@@ -48,7 +48,7 @@ import de.alpharogroup.crypto.key.reader.PublicKeyReader;
 import de.alpharogroup.crypto.key.writer.CertificateWriter;
 import de.alpharogroup.crypto.key.writer.PrivateKeyWriter;
 import de.alpharogroup.crypto.key.writer.PublicKeyWriter;
-import de.alpharogroup.exception.ExceptionExtensions;
+import de.alpharogroup.throwable.ThrowableExtensions;
 import de.alpharogroup.model.BaseModel;
 import de.alpharogroup.model.api.Model;
 import de.alpharogroup.swing.base.BasePanel;
@@ -76,7 +76,7 @@ public class FileConversionPanel extends BasePanel<FileConversionModelBean>
 
 	public FileConversionPanel()
 	{
-		this(BaseModel.<FileConversionModelBean> of(
+		this(BaseModel.of(
 			FileConversionModelBean.builder().keyType(KeyType.PRIVATE_KEY).build()));
 	}
 
@@ -158,7 +158,7 @@ public class FileConversionPanel extends BasePanel<FileConversionModelBean>
 		{
 			try
 			{
-				txtConsole.append(ExceptionExtensions.getStackTrace(e));
+				txtConsole.append(ThrowableExtensions.getStackTrace(e));
 			}
 			catch (IOException e1)
 			{
@@ -192,7 +192,7 @@ public class FileConversionPanel extends BasePanel<FileConversionModelBean>
 
 		cmbChooseType.setModel(new EnumComboBoxModel<>(KeyType.class));
 		cmbChooseType.setSelectedItem(getModelObject().getKeyType());
-		cmbChooseType.addActionListener(actionEvent -> onChangeKeyType(actionEvent));
+		cmbChooseType.addActionListener(this::onChangeKeyType);
 
 		lblChoose.setText("Choose private key in *.der format to convert");
 
@@ -212,11 +212,11 @@ public class FileConversionPanel extends BasePanel<FileConversionModelBean>
 
 		// -----------------------------
 
-		btnChoose.addActionListener(actionEvent -> onChooseFile(actionEvent));
+		btnChoose.addActionListener(this::onChooseFile);
 
-		btnSaveTo.addActionListener(actionEvent -> onSaveFile(actionEvent));
+		btnSaveTo.addActionListener(this::onSaveFile);
 
-		btnConvert.addActionListener(actionEvent -> onConvert(actionEvent));
+		btnConvert.addActionListener(this::onConvert);
 	}
 
 	/**

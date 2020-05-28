@@ -35,12 +35,10 @@ import javax.swing.table.TableColumn;
 
 import org.apache.commons.codec.DecoderException;
 
-import com.thoughtworks.xstream.XStream;
-
 import de.alpharogroup.collections.map.MapFactory;
 import de.alpharogroup.collections.pairs.KeyValuePair;
-import de.alpharogroup.crypto.file.xml.XmlDecryptionExtensions;
-import de.alpharogroup.crypto.file.xml.XmlEncryptionExtensions;
+import de.alpharogroup.xml.crypto.file.XmlDecryptionExtensions;
+import de.alpharogroup.xml.crypto.file.XmlEncryptionExtensions;
 import de.alpharogroup.crypto.obfuscation.rule.ObfuscationOperationRule;
 import de.alpharogroup.model.BaseModel;
 import de.alpharogroup.model.api.Model;
@@ -69,12 +67,8 @@ public class ObfuscationOperationRuleTablePanel extends BasePanel<ObfuscationOpe
 	private JLabel lblKeyRules;
 	private JScrollPane scpKeyRules;
 	private GenericJTable<KeyValuePair<Character, ObfuscationOperationRule<Character, Character>>> tblKeyRules;
-	private XStream xStream;
 
 	{
-		xStream = new XStream();
-		XStream.setupDefaultSecurity(xStream);
-		xStream.allowTypesByWildcard(new String[] { "de.alpharogroup.**" });
 		aliases = MapFactory.newLinkedHashMap();
 		aliases.put("KeyValuePair", KeyValuePair.class);
 		aliases.put("ObfuscationOperationRule", ObfuscationOperationRule.class);
@@ -83,7 +77,7 @@ public class ObfuscationOperationRuleTablePanel extends BasePanel<ObfuscationOpe
 	public ObfuscationOperationRuleTablePanel()
 	{
 		this(BaseModel
-			.<ObfuscationOperationModelBean> of(ObfuscationOperationModelBean.builder().build()));
+			.of(ObfuscationOperationModelBean.builder().build()));
 
 	}
 
@@ -112,7 +106,7 @@ public class ObfuscationOperationRuleTablePanel extends BasePanel<ObfuscationOpe
 			List<KeyValuePair<Character, ObfuscationOperationRule<Character, Character>>> data = getModelObject()
 				.getTableModel().getData();
 			final File selectedFile = fileChooser.getSelectedFile();
-			XmlEncryptionExtensions.writeToFileAsXmlAndHex(xStream, aliases, data, selectedFile);
+			XmlEncryptionExtensions.writeToFileAsXmlAndHex(aliases, data, selectedFile);
 		}
 	}
 
@@ -125,7 +119,7 @@ public class ObfuscationOperationRuleTablePanel extends BasePanel<ObfuscationOpe
 			try
 			{
 				List<KeyValuePair<Character, ObfuscationOperationRule<Character, Character>>> data = XmlDecryptionExtensions
-					.readFromFileAsXmlAndHex(xStream, aliases, selectedFile);
+					.readFromFileAsXmlAndHex(aliases, selectedFile, "de.alpharogroup.**");
 				getModelObject().getTableModel().setData(data);
 				getModelObject().getTableModel().fireTableDataChanged();
 			}
@@ -178,8 +172,7 @@ public class ObfuscationOperationRuleTablePanel extends BasePanel<ObfuscationOpe
 			@Override
 			protected String onSetText()
 			{
-				String text = editText;
-				return text;
+				return editText;
 			}
 		});
 
@@ -190,8 +183,8 @@ public class ObfuscationOperationRuleTablePanel extends BasePanel<ObfuscationOpe
 		deleteValueColumn
 			.setCellRenderer(TableCellButtonRendererFactory.newTableCellButtonRenderer(deleteText));
 
-		btnImport.addActionListener(actionEvent -> onImport(actionEvent));
-		btnExport.addActionListener(actionEvent -> onExport(actionEvent));
+		btnImport.addActionListener(this::onImport);
+		btnExport.addActionListener(this::onExport);
 
 		fileChooser = new JFileChooser(
 			SpringBootSwingApplication.getInstance().getConfigurationDirectory());
