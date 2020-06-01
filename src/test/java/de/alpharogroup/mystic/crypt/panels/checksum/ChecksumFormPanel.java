@@ -27,18 +27,26 @@ public class ChecksumFormPanel extends javax.swing.JPanel {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
+        jLabel3 = new javax.swing.JLabel();
         txtOpenFile = new javax.swing.JTextField();
         btnOpenFile = new javax.swing.JButton();
+        btnClearOpenFile = new javax.swing.JButton();
         lblGeneratedChecksum = new javax.swing.JLabel();
         srcGeneratedChecksum = new javax.swing.JScrollPane();
         txtGeneratedChecksum = new javax.swing.JTextArea();
         lblOwnersChecksum = new javax.swing.JLabel();
+        txtChecksumFile = new javax.swing.JTextField();
+        btnOpenChecksumFile = new javax.swing.JButton();
+        btnClearChecksumFile = new javax.swing.JButton();
         srcOwnersChecksum = new javax.swing.JScrollPane();
         txtOwnersChecksum = new javax.swing.JTextArea();
         lblChecksumAlgorithm = new javax.swing.JLabel();
         cbxChecksumAlgorithm = new javax.swing.JComboBox<>();
+        cbxChecksumAlgorithm
         btnCompare = new javax.swing.JButton();
         txtChecksumMatchResult = new javax.swing.JTextField();
+
+        jLabel3.setText("jLabel3");
 
         txtOpenFile.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -46,7 +54,9 @@ public class ChecksumFormPanel extends javax.swing.JPanel {
             }
         });
 
-        btnOpenFile.setText("Open File");
+        btnOpenFile.setText("Open File to check");
+
+        btnClearOpenFile.setText("Clear");
 
         lblGeneratedChecksum.setText("Generated checksum");
 
@@ -55,6 +65,16 @@ public class ChecksumFormPanel extends javax.swing.JPanel {
         srcGeneratedChecksum.setViewportView(txtGeneratedChecksum);
 
         lblOwnersChecksum.setText("Checksum from owner");
+
+        txtChecksumFile.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                txtChecksumFileActionPerformed(evt);
+            }
+        });
+
+        btnOpenChecksumFile.setText("Open Checksum File");
+
+        btnClearChecksumFile.setText("Clear");
 
         txtOwnersChecksum.setColumns(20);
         txtOwnersChecksum.setRows(5);
@@ -75,23 +95,37 @@ public class ChecksumFormPanel extends javax.swing.JPanel {
             .addGroup(layout.createSequentialGroup()
                 .addGap(30, 30, 30)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(lblGeneratedChecksum, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(srcGeneratedChecksum, javax.swing.GroupLayout.DEFAULT_SIZE, 1142, Short.MAX_VALUE)
-                    .addComponent(srcOwnersChecksum)
                     .addGroup(layout.createSequentialGroup()
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(lblChecksumAlgorithm, javax.swing.GroupLayout.PREFERRED_SIZE, 199, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(cbxChecksumAlgorithm, javax.swing.GroupLayout.PREFERRED_SIZE, 240, javax.swing.GroupLayout.PREFERRED_SIZE))
-                        .addGap(39, 39, 39)
-                        .addComponent(btnCompare, javax.swing.GroupLayout.PREFERRED_SIZE, 180, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(45, 45, 45)
-                        .addComponent(txtChecksumMatchResult))
-                    .addComponent(lblOwnersChecksum, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(lblGeneratedChecksum, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(srcGeneratedChecksum, javax.swing.GroupLayout.DEFAULT_SIZE, 1142, Short.MAX_VALUE)
+                            .addComponent(lblOwnersChecksum, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addGroup(layout.createSequentialGroup()
+                                .addComponent(txtOpenFile, javax.swing.GroupLayout.PREFERRED_SIZE, 780, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                .addComponent(btnOpenFile, javax.swing.GroupLayout.PREFERRED_SIZE, 240, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addGap(18, 18, 18)
+                                .addComponent(btnClearOpenFile)))
+                        .addGap(30, 30, 30))
                     .addGroup(layout.createSequentialGroup()
-                        .addComponent(txtOpenFile, javax.swing.GroupLayout.PREFERRED_SIZE, 850, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addComponent(btnOpenFile, javax.swing.GroupLayout.PREFERRED_SIZE, 240, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                .addGap(30, 30, 30))
+                        .addComponent(lblChecksumAlgorithm, javax.swing.GroupLayout.PREFERRED_SIZE, 199, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(0, 0, Short.MAX_VALUE))
+                    .addGroup(layout.createSequentialGroup()
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                            .addGroup(layout.createSequentialGroup()
+                                .addComponent(cbxChecksumAlgorithm, javax.swing.GroupLayout.PREFERRED_SIZE, 240, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addGap(31, 31, 31)
+                                .addComponent(btnCompare, javax.swing.GroupLayout.PREFERRED_SIZE, 180, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addGap(57, 57, 57)
+                                .addComponent(txtChecksumMatchResult))
+                            .addComponent(srcOwnersChecksum)
+                            .addGroup(layout.createSequentialGroup()
+                                .addComponent(txtChecksumFile, javax.swing.GroupLayout.PREFERRED_SIZE, 780, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addGap(57, 57, 57)
+                                .addComponent(btnOpenChecksumFile, javax.swing.GroupLayout.PREFERRED_SIZE, 240, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addGap(18, 18, 18)
+                                .addComponent(btnClearChecksumFile)))
+                        .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -99,15 +133,22 @@ public class ChecksumFormPanel extends javax.swing.JPanel {
                 .addGap(30, 30, 30)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(btnOpenFile)
-                    .addComponent(txtOpenFile, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGap(33, 33, 33)
-                .addComponent(lblGeneratedChecksum)
+                    .addComponent(txtOpenFile, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(btnClearOpenFile))
                 .addGap(18, 18, 18)
-                .addComponent(srcGeneratedChecksum, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(lblGeneratedChecksum)
+                .addGap(26, 26, 26)
+                .addComponent(srcGeneratedChecksum, javax.swing.GroupLayout.PREFERRED_SIZE, 58, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(18, 18, 18)
                 .addComponent(lblOwnersChecksum)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(srcOwnersChecksum, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(18, 18, 18)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                        .addComponent(btnOpenChecksumFile)
+                        .addComponent(btnClearChecksumFile))
+                    .addComponent(txtChecksumFile, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(18, 18, 18)
+                .addComponent(srcOwnersChecksum, javax.swing.GroupLayout.PREFERRED_SIZE, 60, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(18, 18, 18)
                 .addComponent(lblChecksumAlgorithm)
                 .addGap(18, 18, 18)
@@ -115,7 +156,7 @@ public class ChecksumFormPanel extends javax.swing.JPanel {
                     .addComponent(cbxChecksumAlgorithm, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(btnCompare)
                     .addComponent(txtChecksumMatchResult, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addContainerGap(26, Short.MAX_VALUE))
+                .addContainerGap(40, Short.MAX_VALUE))
         );
     }// </editor-fold>//GEN-END:initComponents
 
@@ -123,16 +164,25 @@ public class ChecksumFormPanel extends javax.swing.JPanel {
         // TODO add your handling code here:
     }//GEN-LAST:event_txtOpenFileActionPerformed
 
+    private void txtChecksumFileActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txtChecksumFileActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_txtChecksumFileActionPerformed
+
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton btnClearChecksumFile;
+    private javax.swing.JButton btnClearOpenFile;
     private javax.swing.JButton btnCompare;
+    private javax.swing.JButton btnOpenChecksumFile;
     private javax.swing.JButton btnOpenFile;
     private javax.swing.JComboBox<String> cbxChecksumAlgorithm;
+    private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel lblChecksumAlgorithm;
     private javax.swing.JLabel lblGeneratedChecksum;
     private javax.swing.JLabel lblOwnersChecksum;
     private javax.swing.JScrollPane srcGeneratedChecksum;
     private javax.swing.JScrollPane srcOwnersChecksum;
+    private javax.swing.JTextField txtChecksumFile;
     private javax.swing.JTextField txtChecksumMatchResult;
     private javax.swing.JTextArea txtGeneratedChecksum;
     private javax.swing.JTextField txtOpenFile;

@@ -26,27 +26,46 @@
           <Group type="102" alignment="0" attributes="0">
               <EmptySpace min="-2" pref="30" max="-2" attributes="0"/>
               <Group type="103" groupAlignment="0" attributes="0">
-                  <Component id="lblGeneratedChecksum" max="32767" attributes="0"/>
-                  <Component id="srcGeneratedChecksum" pref="1142" max="32767" attributes="0"/>
-                  <Component id="srcOwnersChecksum" alignment="0" max="32767" attributes="0"/>
                   <Group type="102" attributes="0">
                       <Group type="103" groupAlignment="0" attributes="0">
-                          <Component id="lblChecksumAlgorithm" min="-2" pref="199" max="-2" attributes="0"/>
-                          <Component id="cbxChecksumAlgorithm" min="-2" pref="240" max="-2" attributes="0"/>
+                          <Component id="lblGeneratedChecksum" max="32767" attributes="0"/>
+                          <Component id="srcGeneratedChecksum" pref="1142" max="32767" attributes="0"/>
+                          <Component id="lblOwnersChecksum" alignment="0" max="32767" attributes="0"/>
+                          <Group type="102" alignment="0" attributes="0">
+                              <Component id="txtOpenFile" min="-2" pref="780" max="-2" attributes="0"/>
+                              <EmptySpace max="32767" attributes="0"/>
+                              <Component id="btnOpenFile" min="-2" pref="240" max="-2" attributes="0"/>
+                              <EmptySpace type="separate" max="-2" attributes="0"/>
+                              <Component id="btnClearOpenFile" min="-2" max="-2" attributes="0"/>
+                          </Group>
                       </Group>
-                      <EmptySpace min="-2" pref="39" max="-2" attributes="0"/>
-                      <Component id="btnCompare" min="-2" pref="180" max="-2" attributes="0"/>
-                      <EmptySpace min="-2" pref="45" max="-2" attributes="0"/>
-                      <Component id="txtChecksumMatchResult" max="32767" attributes="0"/>
+                      <EmptySpace min="-2" pref="30" max="-2" attributes="0"/>
                   </Group>
-                  <Component id="lblOwnersChecksum" alignment="0" max="32767" attributes="0"/>
-                  <Group type="102" alignment="0" attributes="0">
-                      <Component id="txtOpenFile" min="-2" pref="850" max="-2" attributes="0"/>
+                  <Group type="102" attributes="0">
+                      <Component id="lblChecksumAlgorithm" min="-2" pref="199" max="-2" attributes="0"/>
+                      <EmptySpace min="0" pref="0" max="32767" attributes="0"/>
+                  </Group>
+                  <Group type="102" attributes="0">
+                      <Group type="103" groupAlignment="1" attributes="0">
+                          <Group type="102" attributes="0">
+                              <Component id="cbxChecksumAlgorithm" min="-2" pref="240" max="-2" attributes="0"/>
+                              <EmptySpace min="-2" pref="31" max="-2" attributes="0"/>
+                              <Component id="btnCompare" min="-2" pref="180" max="-2" attributes="0"/>
+                              <EmptySpace min="-2" pref="57" max="-2" attributes="0"/>
+                              <Component id="txtChecksumMatchResult" max="32767" attributes="0"/>
+                          </Group>
+                          <Component id="srcOwnersChecksum" max="32767" attributes="0"/>
+                          <Group type="102" attributes="0">
+                              <Component id="txtChecksumFile" min="-2" pref="780" max="-2" attributes="0"/>
+                              <EmptySpace min="-2" pref="57" max="-2" attributes="0"/>
+                              <Component id="btnOpenChecksumFile" min="-2" pref="240" max="-2" attributes="0"/>
+                              <EmptySpace type="separate" max="-2" attributes="0"/>
+                              <Component id="btnClearChecksumFile" min="-2" max="-2" attributes="0"/>
+                          </Group>
+                      </Group>
                       <EmptySpace max="32767" attributes="0"/>
-                      <Component id="btnOpenFile" min="-2" pref="240" max="-2" attributes="0"/>
                   </Group>
               </Group>
-              <EmptySpace min="-2" pref="30" max="-2" attributes="0"/>
           </Group>
       </Group>
     </DimensionLayout>
@@ -57,15 +76,24 @@
               <Group type="103" groupAlignment="3" attributes="0">
                   <Component id="btnOpenFile" alignment="3" min="-2" max="-2" attributes="0"/>
                   <Component id="txtOpenFile" alignment="3" min="-2" max="-2" attributes="0"/>
+                  <Component id="btnClearOpenFile" alignment="3" min="-2" max="-2" attributes="0"/>
               </Group>
-              <EmptySpace min="-2" pref="33" max="-2" attributes="0"/>
-              <Component id="lblGeneratedChecksum" min="-2" max="-2" attributes="0"/>
               <EmptySpace type="separate" max="-2" attributes="0"/>
-              <Component id="srcGeneratedChecksum" min="-2" max="-2" attributes="0"/>
-              <EmptySpace min="-2" pref="18" max="-2" attributes="0"/>
+              <Component id="lblGeneratedChecksum" min="-2" max="-2" attributes="0"/>
+              <EmptySpace min="-2" pref="26" max="-2" attributes="0"/>
+              <Component id="srcGeneratedChecksum" min="-2" pref="58" max="-2" attributes="0"/>
+              <EmptySpace type="separate" max="-2" attributes="0"/>
               <Component id="lblOwnersChecksum" min="-2" max="-2" attributes="0"/>
-              <EmptySpace max="-2" attributes="0"/>
-              <Component id="srcOwnersChecksum" min="-2" max="-2" attributes="0"/>
+              <EmptySpace type="separate" max="-2" attributes="0"/>
+              <Group type="103" groupAlignment="0" attributes="0">
+                  <Group type="103" groupAlignment="3" attributes="0">
+                      <Component id="btnOpenChecksumFile" alignment="3" min="-2" max="-2" attributes="0"/>
+                      <Component id="btnClearChecksumFile" alignment="3" min="-2" max="-2" attributes="0"/>
+                  </Group>
+                  <Component id="txtChecksumFile" alignment="0" min="-2" max="-2" attributes="0"/>
+              </Group>
+              <EmptySpace type="separate" max="-2" attributes="0"/>
+              <Component id="srcOwnersChecksum" min="-2" pref="60" max="-2" attributes="0"/>
               <EmptySpace type="separate" max="-2" attributes="0"/>
               <Component id="lblChecksumAlgorithm" min="-2" max="-2" attributes="0"/>
               <EmptySpace type="separate" max="-2" attributes="0"/>
@@ -74,7 +102,7 @@
                   <Component id="btnCompare" alignment="3" min="-2" max="-2" attributes="0"/>
                   <Component id="txtChecksumMatchResult" alignment="3" min="-2" max="-2" attributes="0"/>
               </Group>
-              <EmptySpace pref="26" max="32767" attributes="0"/>
+              <EmptySpace pref="40" max="32767" attributes="0"/>
           </Group>
       </Group>
     </DimensionLayout>
@@ -87,7 +115,12 @@
     </Component>
     <Component class="javax.swing.JButton" name="btnOpenFile">
       <Properties>
-        <Property name="text" type="java.lang.String" value="Open File"/>
+        <Property name="text" type="java.lang.String" value="Open File to check"/>
+      </Properties>
+    </Component>
+    <Component class="javax.swing.JButton" name="btnClearOpenFile">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="Clear"/>
       </Properties>
     </Component>
     <Component class="javax.swing.JLabel" name="lblGeneratedChecksum">
@@ -113,6 +146,21 @@
     <Component class="javax.swing.JLabel" name="lblOwnersChecksum">
       <Properties>
         <Property name="text" type="java.lang.String" value="Checksum from owner"/>
+      </Properties>
+    </Component>
+    <Component class="javax.swing.JTextField" name="txtChecksumFile">
+      <Events>
+        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="txtChecksumFileActionPerformed"/>
+      </Events>
+    </Component>
+    <Component class="javax.swing.JButton" name="btnOpenChecksumFile">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="Open Checksum File"/>
+      </Properties>
+    </Component>
+    <Component class="javax.swing.JButton" name="btnClearChecksumFile">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="Clear"/>
       </Properties>
     </Component>
     <Container class="javax.swing.JScrollPane" name="srcOwnersChecksum">
