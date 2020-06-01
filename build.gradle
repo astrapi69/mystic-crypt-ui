@@ -17,7 +17,6 @@ plugins {
     id "io.spring.dependency-management" version "1.0.9.RELEASE"
     id "java"
     id "idea"
-    id "com.bmuschko.izpack"
     id "net.ltgt.apt" version "0.21"
     id "net.ltgt.apt-idea" version "0.21"
     id "com.github.ben-manes.versions" version "0.28.0"
