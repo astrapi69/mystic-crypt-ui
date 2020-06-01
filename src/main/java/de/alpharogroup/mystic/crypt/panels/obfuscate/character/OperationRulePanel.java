@@ -35,8 +35,6 @@ import com.google.common.collect.BiMap;
 import de.alpharogroup.collections.list.ListFactory;
 import de.alpharogroup.collections.pairs.KeyValuePair;
 import de.alpharogroup.collections.set.SetFactory;
-import de.alpharogroup.crypto.obfuscation.api.Obfuscatable;
-import de.alpharogroup.crypto.obfuscation.character.CharacterObfuscator;
 import de.alpharogroup.crypto.obfuscation.character.ObfuscatorExtensions;
 import de.alpharogroup.crypto.obfuscation.rule.ObfuscationOperationRule;
 import de.alpharogroup.crypto.obfuscation.rule.Operation;

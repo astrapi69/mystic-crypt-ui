@@ -38,6 +38,7 @@ import javax.swing.KeyStroke;
 import org.springframework.core.io.Resource;
 
 import de.alpharogroup.layout.ScreenSizeExtensions;
+import de.alpharogroup.mystic.crypt.actions.NewChecksumFrameAction;
 import de.alpharogroup.mystic.crypt.actions.NewFileConversionInternalFrameAction;
 import de.alpharogroup.mystic.crypt.actions.NewKeyGenerationInternalFrameAction;
 import de.alpharogroup.mystic.crypt.actions.NewObfuscationInternalFrameAction;
@@ -66,6 +67,20 @@ public class DesktopMenu extends BaseDesktopMenu
 		super(applicationFrame);
 	}
 
+	@Override
+	protected JMenu newEditMenu(final ActionListener listener)
+	{
+		final JMenu editMenu = super.newEditMenu(listener);
+		JMenuItem verifyChecksumMenu;
+		//
+		verifyChecksumMenu = new JMenuItem("Verify checksum", 'V');
+		verifyChecksumMenu.addActionListener(new NewChecksumFrameAction("ChecksumVerifier"));
+		verifyChecksumMenu.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F1, InputEvent.ALT_DOWN_MASK));
+		editMenu.add(verifyChecksumMenu);
+
+
+		return editMenu;
+	}
 	/**
 	 * Creates the file menu.
 	 *
@@ -155,6 +170,7 @@ public class DesktopMenu extends BaseDesktopMenu
 
 		return fileMenu;
 	}
+
 
 	@Override
 	protected String newLabelTextApplicationName()

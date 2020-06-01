@@ -50,6 +50,7 @@ dependencies {
     compile("de.alpharogroup:crypt-api:$cryptApiVersion")
     compile("de.alpharogroup:crypt-data:$cryptDataVersion")
     compile("de.alpharogroup:mystic-crypt:$mysticCryptVersion")
+    compile("de.alpharogroup:checksum-up:$checksumUpVersion")
     implementation("de.alpharogroup:model-object:$modelObjectVersion")
     implementation("de.alpharogroup:model-type-safe:$modelTypeSafeVersion")
     implementation("com.thoughtworks.xstream:xstream:$xstreamVersion")

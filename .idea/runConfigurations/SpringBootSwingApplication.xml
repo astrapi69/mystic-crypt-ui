@@ -1,0 +1,10 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="SpringBootSwingApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot">
+    <module name="mystic-crypt-ui.main" />
+    <option name="SPRING_BOOT_MAIN_CLASS" value="de.alpharogroup.mystic.crypt.SpringBootSwingApplication" />
+    <option name="ALTERNATIVE_JRE_PATH" />
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>
