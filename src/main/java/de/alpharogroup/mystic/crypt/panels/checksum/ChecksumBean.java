@@ -28,5 +28,6 @@ public class ChecksumBean implements Serializable
 	File selectedFile;
 	String selectedFilename;
 	ChecksumAlgorithm selectedAlgorithm;
-
+	File selectedChecksumFile;
+	String selectedChecksumFilename;
 }

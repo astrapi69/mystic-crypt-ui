@@ -26,6 +26,7 @@ import java.io.File;
 
 import javax.swing.JInternalFrame;
 
+import de.alpharogroup.swing.plaf.LookAndFeels;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.context.ConfigurableApplicationContext;
@@ -153,6 +154,12 @@ public class SpringBootSwingApplication extends ApplicationFrame<ApplicationMode
 			instance = this;
 			getConsoleOutput();
 		}
+	}
+
+	@Override
+	protected LookAndFeels newLookAndFeels()
+	{
+		return LookAndFeels.METAL;
 	}
 
 

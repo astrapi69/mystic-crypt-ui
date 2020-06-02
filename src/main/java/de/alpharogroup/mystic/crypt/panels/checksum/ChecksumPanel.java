@@ -10,11 +10,14 @@ import java.awt.event.ActionEvent;
 import java.io.File;
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
+import java.util.Properties;
 
-import javax.swing.JComboBox;
-import javax.swing.JFileChooser;
+import javax.swing.*;
+import javax.swing.plaf.ColorUIResource;
 
+import de.alpharogroup.behaviors.EnableButtonBehavior;
 import de.alpharogroup.checksum.FileChecksumExtensions;
+import de.alpharogroup.file.read.ReadFileExtensions;
 import de.alpharogroup.file.system.SystemFileExtensions;
 import de.alpharogroup.model.BaseModel;
 import de.alpharogroup.model.api.Model;
@@ -90,23 +93,30 @@ public class ChecksumPanel extends BasePanel<ChecksumBean>
 
 		btnOpenFile.addActionListener(this::onOpenFile);
 		btnClearOpenFile.addActionListener(this::onClearOpenFile);
+		EnableButtonBehavior.builder().buttonModel(btnClearOpenFile.getModel())
+			.document(txtGeneratedChecksum.getDocument()).build();
 
 		btnOpenFile.setText("Open File to check");
 		btnClearOpenFile.setText("Clear");
 
+
 		lblGeneratedChecksum.setText("Generated checksum");
 
 		txtGeneratedChecksum.setColumns(20);
-		txtGeneratedChecksum.setRows(5);
+		txtGeneratedChecksum.setRows(3);
 		srcGeneratedChecksum.setViewportView(txtGeneratedChecksum);
 
 		lblOwnersChecksum.setText("Checksum from owner");
 
 		txtOwnersChecksum.setColumns(20);
-		txtOwnersChecksum.setRows(5);
+		txtOwnersChecksum.setRows(3);
+
+		btnOpenChecksumFile.addActionListener(this::onOpenChecksumFile);
+		btnClearChecksumFile.addActionListener(this::onClearChecksumFile);
+		EnableButtonBehavior.builder().buttonModel(btnClearChecksumFile.getModel())
+			.document(txtOwnersChecksum.getDocument()).build();
 
 		btnOpenChecksumFile.setText("Open Checksum File");
-
 		btnClearChecksumFile.setText("Clear");
 
 		srcOwnersChecksum.setViewportView(txtOwnersChecksum);
@@ -126,18 +136,59 @@ public class ChecksumPanel extends BasePanel<ChecksumBean>
 		fileChooser = new JFileChooser(SystemFileExtensions.getUserHomeDir() + "/Downloads");
 	}
 
+	private void onOpenChecksumFile(ActionEvent actionEvent)
+	{
+		final int returnVal = fileChooser.showSaveDialog(ChecksumPanel.this);
+		if (returnVal == JFileChooser.APPROVE_OPTION)
+		{
+			final File selectedChecksumFile = fileChooser.getSelectedFile();
+			long length = selectedChecksumFile.length();
+			if(length <= 128) {
+				getModelObject().setSelectedChecksumFile(selectedChecksumFile);
+				getModelObject().setSelectedChecksumFilename(selectedChecksumFile.getName());
+				txtChecksumFile.setText(getModelObject().getSelectedChecksumFilename());
+				try
+				{
+					String checksum = ReadFileExtensions.readFromFile(selectedChecksumFile).trim();
+					System.out.println(checksum);
+					txtOwnersChecksum.setText(checksum);
+					txtOwnersChecksum.setEnabled(false);
+					// TODO set checksum algorithm
+				}
+				catch (IOException e)
+				{
+					e.printStackTrace();
+				}
+			} else {
+				txtChecksumMatchResult.setText("Given checksum file is invalid");
+				txtChecksumMatchResult.setBackground(new ColorUIResource(new Color(255, 0, 0)));
+				txtChecksumMatchResult.revalidate();
+			}
+
+		}
+	}
+
+	private void onClearChecksumFile(ActionEvent actionEvent)
+	{
+		getModelObject().setSelectedChecksumFile(null);
+		getModelObject().setSelectedChecksumFilename("");
+		txtChecksumFile.setText(getModelObject().getSelectedChecksumFilename());
+		txtOwnersChecksum.setText("");
+		txtOwnersChecksum.setEnabled(true);
+	}
+
 	protected void onCompare(final ActionEvent actionEvent)
 	{
 		String ownersChecksumText = txtOwnersChecksum.getText();
 		String generatedChecksumText = txtGeneratedChecksum.getText();
 		if(ownersChecksumText.equals(generatedChecksumText)){
-			txtChecksumMatchResult.setBackground(Color.GREEN);
-			txtChecksumMatchResult.revalidate();
 			txtChecksumMatchResult.setText("Match");
-		} else {
-			txtChecksumMatchResult.setBackground(Color.RED);
+			txtChecksumMatchResult.setBackground(new ColorUIResource(new Color(0, 255, 0)));
 			txtChecksumMatchResult.revalidate();
+		} else {
 			txtChecksumMatchResult.setText("No Match");
+			txtChecksumMatchResult.setBackground(new ColorUIResource(new Color(255, 0, 0)));
+			txtChecksumMatchResult.revalidate();
 
 		}
 	}
