@@ -50,7 +50,7 @@ public class ChecksumPanel extends BasePanel<ChecksumBean>
 	 */
 	public ChecksumPanel()
 	{
-		this(BaseModel.<ChecksumBean> of(ChecksumBean.builder().build()));
+		this(BaseModel.of(ChecksumBean.builder().build()));
 	}
 
 	/**
@@ -89,6 +89,7 @@ public class ChecksumPanel extends BasePanel<ChecksumBean>
 		txtChecksumFile.setEnabled(false);
 
 		btnOpenFile.addActionListener(this::onOpenFile);
+		btnClearOpenFile.addActionListener(this::onClearOpenFile);
 
 		btnOpenFile.setText("Open File to check");
 		btnClearOpenFile.setText("Clear");
@@ -148,6 +149,13 @@ public class ChecksumPanel extends BasePanel<ChecksumBean>
 		final ChecksumAlgorithm selectedAlgorithm = (ChecksumAlgorithm)cb.getSelectedItem();
 		getModelObject().setSelectedAlgorithm(selectedAlgorithm);
 		calculateChecksum();
+	}
+
+	protected void onClearOpenFile(ActionEvent actionEvent) {
+		getModelObject().setSelectedFile(null);
+		getModelObject().setSelectedFilename("");
+		txtOpenFile.setText(getModelObject().getSelectedFilename());
+		txtGeneratedChecksum.setText("");
 	}
 
 	protected void onOpenFile(final ActionEvent actionEvent)

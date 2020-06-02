@@ -42,7 +42,6 @@ public class ChecksumFormPanel extends javax.swing.JPanel {
         txtOwnersChecksum = new javax.swing.JTextArea();
         lblChecksumAlgorithm = new javax.swing.JLabel();
         cbxChecksumAlgorithm = new javax.swing.JComboBox<>();
-        cbxChecksumAlgorithm
         btnCompare = new javax.swing.JButton();
         txtChecksumMatchResult = new javax.swing.JTextField();
 
