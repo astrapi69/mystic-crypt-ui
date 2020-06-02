@@ -75,7 +75,7 @@ public class DesktopMenu extends BaseDesktopMenu
 		//
 		verifyChecksumMenu = new JMenuItem("Verify checksum", 'V');
 		verifyChecksumMenu.addActionListener(new NewChecksumFrameAction("ChecksumVerifier"));
-		verifyChecksumMenu.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F1, InputEvent.ALT_DOWN_MASK));
+		verifyChecksumMenu.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F3, InputEvent.ALT_DOWN_MASK));
 		editMenu.add(verifyChecksumMenu);
 
 
