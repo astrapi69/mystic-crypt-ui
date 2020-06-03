@@ -4,6 +4,17 @@
 Version 5.4-SNAPSHOT
 -------------
 
+ADDED:
+
+- gradle as build system
+- simple checksum feature added
+
+CHANGED:
+
+- update of model-object version to 1.8
+- update of model-type-safe version to 1.8
+- extracted project properties to gradle.properties
+
 Version 5.3
 -------------
 

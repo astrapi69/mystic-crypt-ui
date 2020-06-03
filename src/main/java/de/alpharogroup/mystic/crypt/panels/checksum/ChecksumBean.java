@@ -3,6 +3,7 @@ package de.alpharogroup.mystic.crypt.panels.checksum;
 import java.io.File;
 import java.io.Serializable;
 
+import de.alpharogroup.checksum.api.ChecksumAlgorithm;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;

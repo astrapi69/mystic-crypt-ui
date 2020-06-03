@@ -7,7 +7,6 @@ buildscript {
         }
     }
     dependencies {
-        classpath "com.bmuschko:gradle-izpack-plugin:3.1"
     }
 }
 
@@ -16,10 +15,13 @@ plugins {
     id "org.springframework.boot" version "2.3.0.RELEASE"
     id "io.spring.dependency-management" version "1.0.9.RELEASE"
     id "java"
+    id "maven-publish"
+    id "signing"
     id "idea"
     id "net.ltgt.apt" version "0.21"
     id "net.ltgt.apt-idea" version "0.21"
     id "com.github.ben-manes.versions" version "0.28.0"
+    id "com.github.hierynomus.license" version "0.15.0"
 }
 
 apply plugin: "java"
@@ -28,11 +30,12 @@ apply plugin: "idea"
 apply plugin: "net.ltgt.apt-idea"
 apply plugin: "org.springframework.boot"
 apply plugin: "io.spring.dependency-management"
+apply plugin: "jacoco"
 
-group = "de.alpharogroup"
+group = "$groupPackage"
 version = "$projectVersion"
 description = "$rootProject.name"
-sourceCompatibility = "1.8"
+sourceCompatibility = "$projectSourceCompatibility"
 
 repositories {
     jcenter()
@@ -43,44 +46,166 @@ repositories {
 dependencies {
     compileOnly("org.projectlombok:lombok:$lombokVersion")
     annotationProcessor("org.projectlombok:lombok:$lombokVersion")
-    compile("org.mapstruct:mapstruct-processor:$mapstructVersion")
-    compileOnly("org.mapstruct:mapstruct-processor:$mapstructVersion")
-    annotationProcessor("org.mapstruct:mapstruct-processor:$mapstructVersion")
 
-    compile("de.alpharogroup:crypt-api:$cryptApiVersion")
-    compile("de.alpharogroup:crypt-data:$cryptDataVersion")
-    compile("de.alpharogroup:mystic-crypt:$mysticCryptVersion")
-    compile("de.alpharogroup:checksum-up:$checksumUpVersion")
+    implementation("de.alpharogroup:crypt-api:$cryptApiVersion")
+    implementation("de.alpharogroup:crypt-data:$cryptDataVersion")
+    implementation("de.alpharogroup:mystic-crypt:$mysticCryptVersion")
+    implementation("de.alpharogroup:checksum-up:$checksumUpVersion")
     implementation("de.alpharogroup:model-object:$modelObjectVersion")
     implementation("de.alpharogroup:model-type-safe:$modelTypeSafeVersion")
     implementation("com.thoughtworks.xstream:xstream:$xstreamVersion")
-    compile("de.alpharogroup:throw-able:$throwAbleVersion")
-    compile("de.alpharogroup:xml-extensions:$xmlExtensionsVersion")
-    compile("com.google.guava:guava:$guavaVersion")
-    compile("de.alpharogroup:file-worker:$fileWorkerVersion")
-    compile("de.alpharogroup:jcommons-lang:$jcommonsLangVersion")
-    compile("de.alpharogroup:swing-components:$swingComponentsVersion")
-    compile("org.springframework.boot:spring-boot-starter-integration:$springBootVersion")
-    compile("org.springframework.boot:spring-boot-starter-validation:$springBootVersion")
-
-    compile("javax.help:javahelp:$javahelpVersion")
-    compile("org.swinglabs:swing-layout:$swingLayoutVersion")
-    compile("org.swinglabs:jxlayer:$jxlayerVersion")
-    compile("org.swinglabs:swing-worker:$swingWorkerVersion")
-    compile("org.swinglabs:swingx:$swingxVersion")
-    compile("com.miglayout:miglayout-swing:$miglayoutSwingVersion")
-    compile("xml-apis:xml-apis:$xmlApisVersion")
-
-    runtime("org.springframework.boot:spring-boot-devtools:$springBootVersion")
-    testCompile("org.springframework.boot:spring-boot-starter-test:$springBootVersion")
-
-    developmentOnly("org.springframework.boot:spring-boot-devtools")
+    implementation("de.alpharogroup:throw-able:$throwAbleVersion")
+    implementation("de.alpharogroup:xml-extensions:$xmlExtensionsVersion")
+    implementation("de.alpharogroup:file-worker:$fileWorkerVersion")
+    implementation("de.alpharogroup:jcommons-lang:$jcommonsLangVersion")
+    implementation("de.alpharogroup:swing-components:$swingComponentsVersion")
+    implementation("com.google.guava:guava:$guavaVersion")
+    implementation("javax.help:javahelp:$javahelpVersion")
+    implementation("org.swinglabs:swing-layout:$swingLayoutVersion")
+    implementation("org.swinglabs:jxlayer:$jxlayerVersion")
+    implementation("org.swinglabs:swing-worker:$swingWorkerVersion")
+    implementation("org.swinglabs.swingx:swingx-all:$swingxAllVersion")
+    implementation("com.miglayout:miglayout-swing:$miglayoutSwingVersion")
+    implementation("xml-apis:xml-apis:$xmlApisVersion")
+    implementation("org.springframework.boot:spring-boot-starter-integration:$springBootVersion")
+    implementation("org.springframework.boot:spring-boot-starter-validation:$springBootVersion")
     annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
+    developmentOnly("org.springframework.boot:spring-boot-devtools")
     testImplementation("org.springframework.boot:spring-boot-starter-test")
-    // If you are using mapstruct in test code
-    testAnnotationProcessor("org.mapstruct:mapstruct-processor:$mapstructVersion")
+}
+
+license {
+    ext.year="2015"
+    ext.owner="Asterios Raptis"
+    header rootProject.file("src/main/resources/LICENSE.txt")
+    excludes(["**/README",
+              "**/README.md",
+              "**/LICENSE",
+              "**/NOTICE",
+              "**/*.xml",
+              "**/*.xsl",
+              "**/*.xsd",
+              "**/*.dtd",
+              "**/*.html",
+              "**/*.jsp",
+              "**/*.jpa",
+              "**/*.sql",
+              "**/*.properties",
+              "**/*.bat",
+              "**/*.gradle",
+              "**/*.MF",
+              "**/*.txt",
+              "**/*.vm",
+              "**/*.log",
+              "**/*.map",
+              "**/*.js.map",
+              "**/*.tmpl",
+              "**/*.js.tmpl",
+              "**/*.editorconfig",
+              "**/*.lombok.config",
+              "src/test/resources/**",
+              "src/main/resources/**",
+              "out/**",
+              "build/**"])
+}
+
+// workhack for license issue #76
+gradle.startParameter.excludedTaskNames += "licenseMain"
+gradle.startParameter.excludedTaskNames += "licenseTest"
+
+task sourcesJar(type: Jar) {
+    archiveClassifier.set("sources")
+    from(sourceSets.main.allJava)
+}
+
+task javadocJar(type: Jar) {
+    from javadoc
+    archiveClassifier.set("javadoc")
+    javadoc.properties.failOnError = true
+}
+
+def releaseVersion = !version.endsWith("SNAPSHOT")
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            artifactId = "$rootProject.name"
+            from components.java
+            artifact sourcesJar
+            artifact javadocJar
+            pom {
+                name = "$rootProject.name"
+                description = "$projectDescription"
+                url = "$projectScmProviderUrl"+"$projectHolderUsername"+"/"+"$rootProject.name"
+                organization {
+                    name = "$projectOrganizationName"
+                    url = "$projectOrganizationUrl"
+                }
+                issueManagement {
+                    system = "$projectIssueManagementSystem"
+                    url = "$projectScmProviderUrl"+"$projectHolderUsername"+"/"+"$rootProject.name"+"/issues"
+                }
+                licenses {
+                    license {
+                        name = "$projectLicenseName"
+                        url = "$projectLicenseUrl"
+                        distribution = "$projectLicenseDistribution"
+                    }
+                }
+                developers {
+                    developer {
+                        id = "$projectHolderUsername"
+                        name = "Asterios Raptis"
+                    }
+                }
+                scm {
+                    connection = "scm:git:git:@" + "$projectScmProviderDomain" + ":" + "$projectHolderUsername" + "/" + "$rootProject.name" + ".git"
+                    developerConnection = "scm:git:git:@" + "$projectScmProviderDomain" + ":" + "$projectHolderUsername" + "/" + "$rootProject.name" + ".git"
+                    url = "scm:git:git:@" + "$projectScmProviderDomain" + ":" + "$projectHolderUsername" + "/" + "$rootProject.name" + ".git"
+                }
+            }
+        }
+    }
+    repositories {
+        maven {
+            credentials {
+                username System.getenv("ossrhUsername") ?: project.property("ossrhUsername")
+                password System.getenv("ossrhPassword") ?: project.property("ossrhPassword")
+            }
+            def releasesRepoUrl = "$projectRepositoriesReleasesRepoUrl"
+            def snapshotsRepoUrl = "$projectRepositoriesSnapshotsRepoUrl"
+            url = releaseVersion ? releasesRepoUrl : snapshotsRepoUrl
+        }
+    }
+}
+
+signing {
+    if (releaseVersion) {
+        sign publishing.publications.mavenJava
+    }
+}
+
+javadoc {
+    if(JavaVersion.current().isJava9Compatible()) {
+        options.addBooleanOption("html5", true)
+    }
 }
 
 tasks.withType(JavaCompile) {
     options.encoding = "UTF-8"
 }
+
+test {
+    useTestNG()
+}
+
+jacocoTestReport {
+    reports {
+        xml.enabled true
+        html.enabled false
+    }
+}
+
+check.dependsOn jacocoTestReport
+
+

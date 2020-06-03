@@ -5,18 +5,10 @@
  */
 package de.alpharogroup.mystic.crypt.panels.checksum;
 
-import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.io.File;
-import java.io.IOException;
-import java.security.NoSuchAlgorithmException;
-import java.util.Properties;
-
-import javax.swing.*;
-import javax.swing.plaf.ColorUIResource;
-
 import de.alpharogroup.behaviors.EnableButtonBehavior;
+import de.alpharogroup.checksum.ChecksumExtensions;
 import de.alpharogroup.checksum.FileChecksumExtensions;
+import de.alpharogroup.checksum.api.ChecksumAlgorithm;
 import de.alpharogroup.file.read.ReadFileExtensions;
 import de.alpharogroup.file.system.SystemFileExtensions;
 import de.alpharogroup.model.BaseModel;
@@ -24,6 +16,14 @@ import de.alpharogroup.model.api.Model;
 import de.alpharogroup.swing.base.BasePanel;
 import de.alpharogroup.swing.combobox.model.EnumComboBoxModel;
 import lombok.Getter;
+
+import javax.swing.*;
+import javax.swing.plaf.ColorUIResource;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.io.File;
+import java.io.IOException;
+import java.security.NoSuchAlgorithmException;
 
 @Getter
 public class ChecksumPanel extends BasePanel<ChecksumBean>
@@ -123,7 +123,16 @@ public class ChecksumPanel extends BasePanel<ChecksumBean>
 
 		lblChecksumAlgorithm.setText("Checksum algorithm");
 
-		cbxChecksumAlgorithm.setModel(new EnumComboBoxModel<>(ChecksumAlgorithm.class));
+		cbxChecksumAlgorithm.setModel(new EnumComboBoxModel<ChecksumAlgorithm>(ChecksumAlgorithm.class){
+			@Override protected void initValueMap()
+			{
+				super.initValueMap();
+//				for (final ChecksumAlgorithm enumValue : comboList)
+//				{
+//					valueMap.put(enumValue.getAlgorithm(), enumValue);
+//				}
+			}
+		});
 		cbxChecksumAlgorithm.setSelectedItem(ChecksumAlgorithm.MD5);
 		cbxChecksumAlgorithm.addActionListener(this::onChangeChecksumAlgorithm);
 		getModelObject().setSelectedAlgorithm(ChecksumAlgorithm.MD5);
@@ -153,7 +162,10 @@ public class ChecksumPanel extends BasePanel<ChecksumBean>
 					System.out.println(checksum);
 					txtOwnersChecksum.setText(checksum);
 					txtOwnersChecksum.setEnabled(false);
-					// TODO set checksum algorithm
+					ChecksumAlgorithm checksumAlgorithmOfFile = ChecksumExtensions
+						.resolveChecksumAlgorithm(checksum);
+					cbxChecksumAlgorithm.setSelectedItem(checksumAlgorithmOfFile);
+					this.revalidate();
 				}
 				catch (IOException e)
 				{

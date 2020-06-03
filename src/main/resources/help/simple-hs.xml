@@ -5,7 +5,7 @@
 <helpset version="2.0">
 
 	<!-- title -->
-	<title>Duplicate Files Finder Help</title>
+	<title>mystic-crypt-ui Help</title>
 
 	<!-- maps -->
 	<maps>
@@ -19,7 +19,8 @@
 		<label>Table of Contents</label>
 		<type>javax.help.TOCView</type>
 		<data>simple-toc.xml</data>
-	</view><!--
+	</view>
+	<!--
 
 	<view>
 		<name>Index</name>
@@ -42,7 +43,8 @@
 		<type>javax.help.FavoritesView</type>
 	</view>
 
-	--><presentation default="true" displayviewimages="false">
+	-->
+	<presentation default="true" displayviewimages="false">
 		<name>main window</name>
 		<size width="700" height="400" />
 		<location x="200" y="200" />
@@ -63,7 +65,7 @@
 		<name>main</name>
 		<size width="400" height="400" />
 		<location x="200" y="200" />
-		<title>My Sample Help - Online</title>
+		<title>mystic-crypt-ui - Online</title>
 	</presentation>
 
 </helpset>

@@ -4,6 +4,6 @@
           "http://java.sun.com/products/javahelp/ index_1_0.dtd">
 
 <index version="1.0">
-    <indexitem text="This is an example topic."target="Overview">
+    <indexitem text="This is the Overview of mystic-crypt-ui" target="Overview">
     </indexitem>
 </index>
