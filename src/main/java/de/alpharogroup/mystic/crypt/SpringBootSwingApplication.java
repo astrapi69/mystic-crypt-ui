@@ -97,7 +97,7 @@ public class SpringBootSwingApplication extends ApplicationFrame<ApplicationMode
 	 */
 	public SpringBootSwingApplication()
 	{
-		super(Messages.getString("mainframe.title"));
+		super("Untitled");
 	}
 
 	public void getConsoleOutput()
@@ -154,6 +154,7 @@ public class SpringBootSwingApplication extends ApplicationFrame<ApplicationMode
 			instance = this;
 			getConsoleOutput();
 		}
+		setTitle(Messages.getString("mainframe.title"));
 	}
 
 	@Override
