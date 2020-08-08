@@ -6,11 +6,11 @@
 ##################
 # intellij files #
 ##################
+*.iws
 *.iml
+*.ipr
 !.idea/runConfigurations
-.idea/inspectionProfiles
-.idea/copyright
-.idea/libraries
+.idea/**
 .idea/*.*
 
 #################

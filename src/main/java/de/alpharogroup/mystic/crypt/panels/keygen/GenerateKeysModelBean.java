@@ -36,6 +36,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 import lombok.experimental.FieldDefaults;
+import lombok.experimental.SuperBuilder;
 
 @Getter
 @Setter
@@ -43,7 +44,7 @@ import lombok.experimental.FieldDefaults;
 @ToString
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder(toBuilder = true)
+@SuperBuilder(toBuilder = true)
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class GenerateKeysModelBean implements Serializable
 {

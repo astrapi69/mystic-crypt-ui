@@ -25,11 +25,7 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.event.ActionEvent;
 
-import javax.swing.JButton;
-import javax.swing.JComboBox;
-import javax.swing.JLabel;
-import javax.swing.JScrollPane;
-import javax.swing.JTextArea;
+import javax.swing.*;
 
 import de.alpharogroup.crypto.key.KeySize;
 import de.alpharogroup.layout.GridBagLayoutModel;
@@ -37,8 +33,12 @@ import de.alpharogroup.layout.InsetsModel;
 import de.alpharogroup.layout.LayoutExtensions;
 import de.alpharogroup.model.BaseModel;
 import de.alpharogroup.model.api.Model;
+import de.alpharogroup.mystic.crypt.SpringBootSwingApplication;
+import de.alpharogroup.mystic.crypt.panels.certificate.CertificatePanel;
 import de.alpharogroup.swing.base.BasePanel;
 import de.alpharogroup.swing.combobox.model.EnumComboBoxModel;
+import de.alpharogroup.swing.dialog.factories.JDialogFactory;
+import de.alpharogroup.swing.listener.RequestFocusListener;
 import lombok.Getter;
 
 /**
@@ -70,6 +70,7 @@ public class CryptographyPanel extends BasePanel<GenerateKeysModelBean>
 
 	private JButton btnSavePrivKeyWithPw;
 
+	private JButton btnSaveCertificate;
 	/**
 	 * The btn save public key.
 	 */
@@ -177,6 +178,7 @@ public class CryptographyPanel extends BasePanel<GenerateKeysModelBean>
 		btnSavePrivateKey = new JButton();
 		btnSavePublicKey = new JButton();
 		btnSavePrivKeyWithPw = new JButton();
+		btnSaveCertificate = new JButton();
 
 		txtPrivateKey.setEditable(false);
 		txtPublicKey.setEditable(false);
@@ -191,6 +193,7 @@ public class CryptographyPanel extends BasePanel<GenerateKeysModelBean>
 		btnSavePrivKeyWithPw
 			.addActionListener(actionEvent -> onSavePrivateKeyWithPassword(actionEvent));
 		btnSavePublicKey.addActionListener(actionEvent -> onSavePublicKey(actionEvent));
+		btnSaveCertificate.addActionListener(actionEvent -> onSaveCertificate(actionEvent));
 
 		txtPrivateKey.setColumns(20);
 		txtPrivateKey.setRows(5);
@@ -217,6 +220,33 @@ public class CryptographyPanel extends BasePanel<GenerateKeysModelBean>
 		btnSavePrivKeyWithPw.setText("Save private key with password");
 
 		btnSavePublicKey.setText("Save public key");
+		btnSaveCertificate.setText("Save certificate...");
+	}
+
+	protected void onSaveCertificate(ActionEvent actionEvent)
+	{
+		CertificatePanel certificatePanel = new CertificatePanel();
+
+		JOptionPane optionPane = new JOptionPane(certificatePanel, JOptionPane.PLAIN_MESSAGE,
+			JOptionPane.OK_CANCEL_OPTION);
+
+		JDialog dialog = JDialogFactory.newJDialog(SpringBootSwingApplication.getInstance(),
+			optionPane, "Create certificate");
+		dialog.addWindowFocusListener(new RequestFocusListener(certificatePanel.getTxtIssuedTo()));
+		dialog.pack();
+		dialog.setLocationRelativeTo(null);
+		dialog.setVisible(true);
+
+		if (optionPane.getValue().equals(JOptionPane.OK_OPTION))
+		{
+			// TODO implement ok feature
+			System.err.println("ok foo");
+		}
+		if (optionPane.getValue().equals(JOptionPane.CANCEL_OPTION))
+		{
+			System.err.println("cancel foo");
+		}
+
 	}
 
 	protected void onInitializeGridBagLayout()
@@ -293,85 +323,67 @@ public class CryptographyPanel extends BasePanel<GenerateKeysModelBean>
 	{
 		final javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
 		this.setLayout(layout);
-		layout.setHorizontalGroup(layout
-			.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-			.addGroup(layout.createSequentialGroup().addGroup(layout
-				.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-				.addGroup(layout.createSequentialGroup().addContainerGap().addGroup(
-					layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-						.addComponent(cmbKeySize, 0, javax.swing.GroupLayout.DEFAULT_SIZE,
-							Short.MAX_VALUE)
-						.addComponent(btnGenerate, javax.swing.GroupLayout.DEFAULT_SIZE, 206,
-							Short.MAX_VALUE)))
-				.addGroup(layout.createSequentialGroup().addGap(21, 21, 21).addComponent(lblKeySize,
-					javax.swing.GroupLayout.PREFERRED_SIZE, 147,
-					javax.swing.GroupLayout.PREFERRED_SIZE))
-				.addGroup(layout.createSequentialGroup().addContainerGap().addComponent(btnClear,
-					javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE,
-					Short.MAX_VALUE)))
-				.addGap(18, 18, 18)
-				.addGroup(layout
-					.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
-					.addGroup(layout.createSequentialGroup()
-						.addComponent(btnSavePrivKeyWithPw, javax.swing.GroupLayout.PREFERRED_SIZE,
-							267, javax.swing.GroupLayout.PREFERRED_SIZE)
-						.addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED,
-							javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-						.addComponent(btnSavePrivateKey, javax.swing.GroupLayout.PREFERRED_SIZE,
-							174, javax.swing.GroupLayout.PREFERRED_SIZE))
-					.addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-						.addComponent(scpPrivateKey, javax.swing.GroupLayout.PREFERRED_SIZE, 480,
-							javax.swing.GroupLayout.PREFERRED_SIZE)
-						.addComponent(lblPrivateKey, javax.swing.GroupLayout.PREFERRED_SIZE, 147,
-							javax.swing.GroupLayout.PREFERRED_SIZE)))
-				.addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 56,
-					Short.MAX_VALUE)
-				.addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-					.addGroup(javax.swing.GroupLayout.Alignment.TRAILING,
-						layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-							.addComponent(lblPublicKey, javax.swing.GroupLayout.PREFERRED_SIZE, 147,
-								javax.swing.GroupLayout.PREFERRED_SIZE)
-							.addComponent(scpPublicKey, javax.swing.GroupLayout.PREFERRED_SIZE, 480,
-								javax.swing.GroupLayout.PREFERRED_SIZE))
-					.addComponent(btnSavePublicKey, javax.swing.GroupLayout.Alignment.TRAILING,
-						javax.swing.GroupLayout.PREFERRED_SIZE, 174,
-						javax.swing.GroupLayout.PREFERRED_SIZE))
-				.addContainerGap(28, Short.MAX_VALUE)));
-		layout
-			.setVerticalGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-				.addGroup(layout.createSequentialGroup().addGap(26, 26, 26)
-					.addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-						.addComponent(lblPrivateKey, javax.swing.GroupLayout.PREFERRED_SIZE, 29,
-							javax.swing.GroupLayout.PREFERRED_SIZE)
-						.addComponent(lblKeySize, javax.swing.GroupLayout.PREFERRED_SIZE, 29,
-							javax.swing.GroupLayout.PREFERRED_SIZE)
-						.addComponent(lblPublicKey, javax.swing.GroupLayout.PREFERRED_SIZE, 29,
-							javax.swing.GroupLayout.PREFERRED_SIZE))
-					.addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-					.addGroup(layout
-						.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+		layout.setHorizontalGroup(
+			layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+				.addGroup(layout.createSequentialGroup()
+					.addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
 						.addGroup(layout.createSequentialGroup()
-							.addComponent(cmbKeySize, javax.swing.GroupLayout.PREFERRED_SIZE, 43,
-								javax.swing.GroupLayout.PREFERRED_SIZE)
-							.addGap(18, 18, 18)
-							.addComponent(btnGenerate, javax.swing.GroupLayout.PREFERRED_SIZE, 41,
-								javax.swing.GroupLayout.PREFERRED_SIZE)
-							.addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-							.addComponent(btnClear, javax.swing.GroupLayout.PREFERRED_SIZE, 41,
-								javax.swing.GroupLayout.PREFERRED_SIZE))
-						.addComponent(scpPrivateKey, javax.swing.GroupLayout.DEFAULT_SIZE, 265,
-							Short.MAX_VALUE)
-						.addComponent(scpPublicKey))
-					.addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 24,
-						Short.MAX_VALUE)
+							.addContainerGap()
+							.addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+								.addComponent(cmbKeySize, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+								.addComponent(btnGenerate, javax.swing.GroupLayout.DEFAULT_SIZE, 206, Short.MAX_VALUE)))
+						.addGroup(layout.createSequentialGroup()
+							.addGap(21, 21, 21)
+							.addComponent(lblKeySize, javax.swing.GroupLayout.PREFERRED_SIZE, 147, javax.swing.GroupLayout.PREFERRED_SIZE))
+						.addGroup(layout.createSequentialGroup()
+							.addContainerGap()
+							.addComponent(btnClear, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
+					.addGap(18, 18, 18)
+					.addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
+						.addGroup(layout.createSequentialGroup()
+							.addComponent(btnSavePrivKeyWithPw, javax.swing.GroupLayout.PREFERRED_SIZE, 267, javax.swing.GroupLayout.PREFERRED_SIZE)
+							.addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+							.addComponent(btnSavePrivateKey, javax.swing.GroupLayout.PREFERRED_SIZE, 174, javax.swing.GroupLayout.PREFERRED_SIZE))
+						.addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+							.addComponent(scpPrivateKey, javax.swing.GroupLayout.PREFERRED_SIZE, 480, javax.swing.GroupLayout.PREFERRED_SIZE)
+							.addComponent(lblPrivateKey, javax.swing.GroupLayout.PREFERRED_SIZE, 147, javax.swing.GroupLayout.PREFERRED_SIZE)))
+					.addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 56, Short.MAX_VALUE)
+					.addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+						.addComponent(lblPublicKey, javax.swing.GroupLayout.PREFERRED_SIZE, 147, javax.swing.GroupLayout.PREFERRED_SIZE)
+						.addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
+							.addGroup(layout.createSequentialGroup()
+								.addComponent(btnSaveCertificate, javax.swing.GroupLayout.PREFERRED_SIZE, 174, javax.swing.GroupLayout.PREFERRED_SIZE)
+								.addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+								.addComponent(btnSavePublicKey, javax.swing.GroupLayout.PREFERRED_SIZE, 174, javax.swing.GroupLayout.PREFERRED_SIZE))
+							.addComponent(scpPublicKey, javax.swing.GroupLayout.PREFERRED_SIZE, 480, javax.swing.GroupLayout.PREFERRED_SIZE)))
+					.addContainerGap(28, Short.MAX_VALUE))
+		);
+		layout.setVerticalGroup(
+			layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+				.addGroup(layout.createSequentialGroup()
+					.addGap(26, 26, 26)
 					.addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-						.addComponent(btnSavePublicKey, javax.swing.GroupLayout.PREFERRED_SIZE, 41,
-							javax.swing.GroupLayout.PREFERRED_SIZE)
-						.addComponent(btnSavePrivateKey, javax.swing.GroupLayout.PREFERRED_SIZE, 41,
-							javax.swing.GroupLayout.PREFERRED_SIZE)
-						.addComponent(btnSavePrivKeyWithPw, javax.swing.GroupLayout.PREFERRED_SIZE,
-							41, javax.swing.GroupLayout.PREFERRED_SIZE))
-					.addContainerGap()));
+						.addComponent(lblPrivateKey, javax.swing.GroupLayout.PREFERRED_SIZE, 29, javax.swing.GroupLayout.PREFERRED_SIZE)
+						.addComponent(lblKeySize, javax.swing.GroupLayout.PREFERRED_SIZE, 29, javax.swing.GroupLayout.PREFERRED_SIZE)
+						.addComponent(lblPublicKey, javax.swing.GroupLayout.PREFERRED_SIZE, 29, javax.swing.GroupLayout.PREFERRED_SIZE))
+					.addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+					.addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+						.addGroup(layout.createSequentialGroup()
+							.addComponent(cmbKeySize, javax.swing.GroupLayout.PREFERRED_SIZE, 43, javax.swing.GroupLayout.PREFERRED_SIZE)
+							.addGap(18, 18, 18)
+							.addComponent(btnGenerate, javax.swing.GroupLayout.PREFERRED_SIZE, 41, javax.swing.GroupLayout.PREFERRED_SIZE)
+							.addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+							.addComponent(btnClear, javax.swing.GroupLayout.PREFERRED_SIZE, 41, javax.swing.GroupLayout.PREFERRED_SIZE))
+						.addComponent(scpPrivateKey, javax.swing.GroupLayout.DEFAULT_SIZE, 265, Short.MAX_VALUE)
+						.addComponent(scpPublicKey))
+					.addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 24, Short.MAX_VALUE)
+					.addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+						.addComponent(btnSaveCertificate, javax.swing.GroupLayout.PREFERRED_SIZE, 41, javax.swing.GroupLayout.PREFERRED_SIZE)
+						.addComponent(btnSavePrivateKey, javax.swing.GroupLayout.PREFERRED_SIZE, 41, javax.swing.GroupLayout.PREFERRED_SIZE)
+						.addComponent(btnSavePrivKeyWithPw, javax.swing.GroupLayout.PREFERRED_SIZE, 41, javax.swing.GroupLayout.PREFERRED_SIZE)
+						.addComponent(btnSavePublicKey, javax.swing.GroupLayout.PREFERRED_SIZE, 41, javax.swing.GroupLayout.PREFERRED_SIZE))
+					.addContainerGap())
+		);
 	}
 
 	@Override
