@@ -24,15 +24,16 @@ import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.event.ActionEvent;
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
-import java.security.SignatureException;
+import java.io.File;
+import java.math.BigInteger;
+import java.security.*;
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;
 import java.time.LocalDate;
 import java.time.Month;
 import java.time.ZoneId;
 import java.util.Date;
+import java.util.logging.Level;
 
 import javax.swing.*;
 
@@ -40,7 +41,10 @@ import de.alpharogroup.crypto.algorithm.HashAlgorithm;
 import de.alpharogroup.crypto.algorithm.KeyPairGeneratorAlgorithm;
 import de.alpharogroup.crypto.algorithm.UnionWord;
 import de.alpharogroup.crypto.factories.CertFactory;
+import de.alpharogroup.crypto.key.KeyFileFormat;
 import de.alpharogroup.crypto.key.KeySize;
+import de.alpharogroup.crypto.key.writer.CertificateWriter;
+import de.alpharogroup.crypto.key.writer.PublicKeyWriter;
 import de.alpharogroup.layout.GridBagLayoutModel;
 import de.alpharogroup.layout.InsetsModel;
 import de.alpharogroup.layout.LayoutExtensions;
@@ -48,17 +52,20 @@ import de.alpharogroup.model.BaseModel;
 import de.alpharogroup.model.api.Model;
 import de.alpharogroup.mystic.crypt.SpringBootSwingApplication;
 import de.alpharogroup.mystic.crypt.panels.certificate.CertificatePanel;
+import de.alpharogroup.random.RandomExtensions;
 import de.alpharogroup.random.number.RandomNumberExtensions;
 import de.alpharogroup.swing.base.BasePanel;
 import de.alpharogroup.swing.combobox.model.EnumComboBoxModel;
 import de.alpharogroup.swing.dialog.factories.JDialogFactory;
 import de.alpharogroup.swing.listener.RequestFocusListener;
 import lombok.Getter;
+import lombok.extern.java.Log;
 
 /**
  * The class {@link CryptographyPanel} can generate private and public keys and save them to files.
  */
 @Getter
+@Log
 public class CryptographyPanel extends BasePanel<GenerateKeysModelBean>
 {
 
@@ -253,34 +260,45 @@ public class CryptographyPanel extends BasePanel<GenerateKeysModelBean>
 
 		if (optionPane.getValue().equals(JOptionPane.OK_OPTION))
 		{
-			// TODO implement ok feature
-			System.err.println("ok foo");
+			final JFileChooser fileChooser = new JFileChooser();
+			final int state = fileChooser.showSaveDialog(this);
+			if (state == JFileChooser.APPROVE_OPTION)
+			{
+				try
+				{
+					File selectedFile = fileChooser.getSelectedFile();
+					// TODO get values from model bean
+					String signatureAlgorithm;
+					Date start;
+					Date end;
+					BigInteger serialNumber;
+					String subject;
+					String issuer;
+					subject = "CN=Test subject";
+					issuer = "CN=Test issue";
+					signatureAlgorithm = HashAlgorithm.SHA256.getAlgorithm() + UnionWord.With.name()
+							+ KeyPairGeneratorAlgorithm.RSA.getAlgorithm();
 
-			Date start;
-			Date end;
-			String signatureAlgorithm = HashAlgorithm.SHA256.getAlgorithm() + UnionWord.With.name()
-					+ KeyPairGeneratorAlgorithm.RSA.getAlgorithm();
-
-			start = Date.from(
-					LocalDate.of(2017, Month.JANUARY, 1).atStartOfDay(ZoneId.systemDefault()).toInstant());
-			end = Date.from(
-					LocalDate.of(2027, Month.JANUARY, 1).atStartOfDay(ZoneId.systemDefault()).toInstant());
-			try {
-				X509Certificate x509Certificate = CertFactory.newX509Certificate(getModelObject().getPublicKey(), getModelObject().getPrivateKey(),
-						RandomNumberExtensions.randomBigInteger(), "TODO ser s", "", signatureAlgorithm, start, end);
-			} catch (CertificateEncodingException e) {
-				e.printStackTrace();
-			} catch (InvalidKeyException e) {
-				e.printStackTrace();
-			} catch (NoSuchAlgorithmException e) {
-				e.printStackTrace();
-			} catch (SignatureException e) {
-				e.printStackTrace();
+					start = Date.from(
+							LocalDate.of(2017, Month.JANUARY, 1).atStartOfDay(ZoneId.systemDefault()).toInstant());
+					end = Date.from(
+							LocalDate.of(2027, Month.JANUARY, 1).atStartOfDay(ZoneId.systemDefault()).toInstant());
+					serialNumber = RandomExtensions.randomSerialNumber();
+					PublicKey publicKey = getModelObject().getPublicKey();
+					PrivateKey privateKey = getModelObject().getPrivateKey();
+					X509Certificate x509Certificate = CertFactory.newX509Certificate(publicKey, privateKey,
+							serialNumber, subject, issuer,
+							signatureAlgorithm, start, end);
+					CertificateWriter.write(x509Certificate, selectedFile, KeyFileFormat.PEM);
+				}
+				catch (final Exception ex)
+				{
+					log.log(Level.SEVERE, ex.getLocalizedMessage(), ex);
+				}
 			}
 		}
 		if (optionPane.getValue().equals(JOptionPane.CANCEL_OPTION))
 		{
-			System.err.println("cancel foo");
 		}
 
 	}

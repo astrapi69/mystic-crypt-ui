@@ -5,7 +5,9 @@ import lombok.*;
 import lombok.experimental.FieldDefaults;
 import lombok.experimental.SuperBuilder;
 
-import java.util.Date;
+import java.math.BigInteger;
+import java.security.PublicKey;
+import java.util.Map;
 
 @Getter
 @Setter
@@ -15,15 +17,14 @@ import java.util.Date;
 @AllArgsConstructor
 @SuperBuilder(toBuilder = true)
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class CertificateModelBean
+public class CertificateInfo
 {
-	String issuedTo;
-	String issuedBy;
-	String version;
-	String serialNumber;
-	Date validFrom;
-	Date validUntil;
+	int version;
+	BigInteger serialNumber;
+	String issuer;
+	String subject;
+	Valitidy valitidy;
+	PublicKey publicKey;
 	String signatureAlgorithm;
-	String fingerprint;
-	String publicKey;
+	Map<String, String> x509v3Extensions;
 }

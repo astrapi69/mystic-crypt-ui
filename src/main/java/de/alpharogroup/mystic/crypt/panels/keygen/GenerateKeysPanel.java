@@ -211,7 +211,7 @@ public class GenerateKeysPanel extends BasePanel<GenerateKeysModelBean>
 	{
 		super.onInitializeComponents();
 
-		cryptographyPanel = new CryptographyPanel()
+		cryptographyPanel = new CryptographyPanel(getModel())
 		{
 
 			private static final long serialVersionUID = 1L;

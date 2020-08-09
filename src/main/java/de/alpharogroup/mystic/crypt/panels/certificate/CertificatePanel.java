@@ -32,7 +32,7 @@ import javax.swing.*;
  * @author astrapi69
  */
 @Getter
-public class CertificatePanel extends BasePanel<CertificateModelBean>
+public class CertificatePanel extends BasePanel<CertificateInfo>
 {
 
 	/**
@@ -69,10 +69,10 @@ public class CertificatePanel extends BasePanel<CertificateModelBean>
 
 	public CertificatePanel()
 	{
-		this(BaseModel.of(CertificateModelBean.builder().build()));
+		this(BaseModel.of(CertificateInfo.builder().build()));
 	}
 
-	public CertificatePanel(final Model<CertificateModelBean> model)
+	public CertificatePanel(final Model<CertificateInfo> model)
 	{
 		super(model);
 	}
