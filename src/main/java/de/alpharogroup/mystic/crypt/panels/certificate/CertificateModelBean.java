@@ -5,6 +5,8 @@ import lombok.*;
 import lombok.experimental.FieldDefaults;
 import lombok.experimental.SuperBuilder;
 
+import java.util.Date;
+
 @Getter
 @Setter
 @EqualsAndHashCode
@@ -19,8 +21,8 @@ public class CertificateModelBean
 	String issuedBy;
 	String version;
 	String serialNumber;
-	String validFrom;
-	String validUntil;
+	Date validFrom;
+	Date validUntil;
 	String signatureAlgorithm;
 	String fingerprint;
 	String publicKey;

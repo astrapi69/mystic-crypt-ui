@@ -24,9 +24,22 @@ import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.event.ActionEvent;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
+import java.security.SignatureException;
+import java.security.cert.CertificateEncodingException;
+import java.security.cert.X509Certificate;
+import java.time.LocalDate;
+import java.time.Month;
+import java.time.ZoneId;
+import java.util.Date;
 
 import javax.swing.*;
 
+import de.alpharogroup.crypto.algorithm.HashAlgorithm;
+import de.alpharogroup.crypto.algorithm.KeyPairGeneratorAlgorithm;
+import de.alpharogroup.crypto.algorithm.UnionWord;
+import de.alpharogroup.crypto.factories.CertFactory;
 import de.alpharogroup.crypto.key.KeySize;
 import de.alpharogroup.layout.GridBagLayoutModel;
 import de.alpharogroup.layout.InsetsModel;
@@ -35,6 +48,7 @@ import de.alpharogroup.model.BaseModel;
 import de.alpharogroup.model.api.Model;
 import de.alpharogroup.mystic.crypt.SpringBootSwingApplication;
 import de.alpharogroup.mystic.crypt.panels.certificate.CertificatePanel;
+import de.alpharogroup.random.number.RandomNumberExtensions;
 import de.alpharogroup.swing.base.BasePanel;
 import de.alpharogroup.swing.combobox.model.EnumComboBoxModel;
 import de.alpharogroup.swing.dialog.factories.JDialogFactory;
@@ -241,6 +255,28 @@ public class CryptographyPanel extends BasePanel<GenerateKeysModelBean>
 		{
 			// TODO implement ok feature
 			System.err.println("ok foo");
+
+			Date start;
+			Date end;
+			String signatureAlgorithm = HashAlgorithm.SHA256.getAlgorithm() + UnionWord.With.name()
+					+ KeyPairGeneratorAlgorithm.RSA.getAlgorithm();
+
+			start = Date.from(
+					LocalDate.of(2017, Month.JANUARY, 1).atStartOfDay(ZoneId.systemDefault()).toInstant());
+			end = Date.from(
+					LocalDate.of(2027, Month.JANUARY, 1).atStartOfDay(ZoneId.systemDefault()).toInstant());
+			try {
+				X509Certificate x509Certificate = CertFactory.newX509Certificate(getModelObject().getPublicKey(), getModelObject().getPrivateKey(),
+						RandomNumberExtensions.randomBigInteger(), "TODO ser s", "", signatureAlgorithm, start, end);
+			} catch (CertificateEncodingException e) {
+				e.printStackTrace();
+			} catch (InvalidKeyException e) {
+				e.printStackTrace();
+			} catch (NoSuchAlgorithmException e) {
+				e.printStackTrace();
+			} catch (SignatureException e) {
+				e.printStackTrace();
+			}
 		}
 		if (optionPane.getValue().equals(JOptionPane.CANCEL_OPTION))
 		{
