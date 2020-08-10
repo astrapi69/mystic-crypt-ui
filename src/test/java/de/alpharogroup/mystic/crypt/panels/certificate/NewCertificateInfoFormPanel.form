@@ -16,13 +16,281 @@
   <Layout>
     <DimensionLayout dim="0">
       <Group type="103" groupAlignment="0" attributes="0">
-          <EmptySpace min="0" pref="400" max="32767" attributes="0"/>
+          <Group type="102" alignment="0" attributes="0">
+              <EmptySpace max="-2" attributes="0"/>
+              <Group type="103" groupAlignment="0" attributes="0">
+                  <Component id="jScrollPane2" alignment="0" min="-2" pref="459" max="-2" attributes="0"/>
+                  <Group type="103" groupAlignment="0" attributes="0">
+                      <Group type="102" alignment="0" attributes="0">
+                          <Group type="103" groupAlignment="0" max="-2" attributes="0">
+                              <Component id="lblNotAfter" alignment="1" max="32767" attributes="0"/>
+                              <Component id="lblExtensions" alignment="0" max="32767" attributes="0"/>
+                              <Component id="lblSignatureAlgorithm" alignment="0" pref="200" max="32767" attributes="0"/>
+                              <Component id="lblPublicKey" alignment="0" max="32767" attributes="0"/>
+                              <Component id="lblVersion" alignment="0" max="32767" attributes="0"/>
+                              <Component id="lblSerialNumber" alignment="1" max="32767" attributes="0"/>
+                          </Group>
+                          <EmptySpace min="59" pref="59" max="-2" attributes="0"/>
+                          <Group type="103" groupAlignment="1" max="-2" attributes="0">
+                              <Component id="txtNotAfter" alignment="0" max="32767" attributes="0"/>
+                              <Component id="txtNotBefore" alignment="0" max="32767" attributes="0"/>
+                              <Component id="txtSubject" alignment="0" max="32767" attributes="0"/>
+                              <Component id="txtIssuer" alignment="0" max="32767" attributes="0"/>
+                              <Component id="cmbVersion" alignment="0" max="32767" attributes="0"/>
+                              <Component id="txtSerialNumber" alignment="0" max="32767" attributes="0"/>
+                              <Component id="jScrollPane1" pref="0" max="32767" attributes="0"/>
+                              <Component id="txtSignatureAlgorithm" alignment="0" pref="200" max="32767" attributes="0"/>
+                          </Group>
+                          <EmptySpace min="0" pref="0" max="32767" attributes="0"/>
+                      </Group>
+                      <Group type="102" attributes="0">
+                          <Group type="103" groupAlignment="0" attributes="0">
+                              <Component id="lblNotBefore" alignment="0" min="-2" pref="200" max="-2" attributes="0"/>
+                              <Component id="lblSubject" alignment="0" min="-2" pref="200" max="-2" attributes="0"/>
+                              <Component id="lblIssuer" alignment="0" min="-2" pref="200" max="-2" attributes="0"/>
+                          </Group>
+                          <EmptySpace max="32767" attributes="0"/>
+                      </Group>
+                  </Group>
+              </Group>
+              <EmptySpace min="44" pref="44" max="-2" attributes="0"/>
+              <Group type="103" groupAlignment="0" max="-2" attributes="0">
+                  <Component id="btnCreateIssuer" max="32767" attributes="0"/>
+                  <Component id="btnCreateSubject" max="32767" attributes="0"/>
+                  <Component id="btnAddExtension" max="32767" attributes="0"/>
+                  <Component id="btnGenerateSerialNumber" max="32767" attributes="0"/>
+              </Group>
+              <EmptySpace pref="55" max="32767" attributes="0"/>
+          </Group>
       </Group>
     </DimensionLayout>
     <DimensionLayout dim="1">
       <Group type="103" groupAlignment="0" attributes="0">
-          <EmptySpace min="0" pref="300" max="32767" attributes="0"/>
+          <Group type="102" alignment="0" attributes="0">
+              <EmptySpace max="-2" attributes="0"/>
+              <Group type="103" groupAlignment="3" attributes="0">
+                  <Component id="cmbVersion" alignment="3" min="-2" max="-2" attributes="0"/>
+                  <Component id="lblVersion" alignment="3" min="-2" max="-2" attributes="0"/>
+              </Group>
+              <EmptySpace type="separate" max="-2" attributes="0"/>
+              <Group type="103" groupAlignment="3" attributes="0">
+                  <Component id="lblSerialNumber" alignment="3" min="-2" max="-2" attributes="0"/>
+                  <Component id="txtSerialNumber" alignment="3" min="-2" max="-2" attributes="0"/>
+                  <Component id="btnGenerateSerialNumber" alignment="1" min="-2" max="-2" attributes="0"/>
+              </Group>
+              <EmptySpace type="separate" max="-2" attributes="0"/>
+              <Group type="103" groupAlignment="3" attributes="0">
+                  <Component id="lblIssuer" alignment="3" min="-2" max="-2" attributes="0"/>
+                  <Component id="txtIssuer" alignment="3" min="-2" max="-2" attributes="0"/>
+                  <Component id="btnCreateIssuer" alignment="1" min="-2" max="-2" attributes="0"/>
+              </Group>
+              <EmptySpace type="separate" max="-2" attributes="0"/>
+              <Group type="103" groupAlignment="3" attributes="0">
+                  <Component id="lblSubject" alignment="3" min="-2" max="-2" attributes="0"/>
+                  <Component id="txtSubject" alignment="3" min="-2" max="-2" attributes="0"/>
+                  <Component id="btnCreateSubject" alignment="3" min="-2" max="-2" attributes="0"/>
+              </Group>
+              <EmptySpace min="-2" pref="15" max="-2" attributes="0"/>
+              <Group type="103" groupAlignment="3" attributes="0">
+                  <Component id="lblNotBefore" alignment="3" min="-2" max="-2" attributes="0"/>
+                  <Component id="txtNotBefore" alignment="3" min="-2" max="-2" attributes="0"/>
+              </Group>
+              <EmptySpace type="separate" max="-2" attributes="0"/>
+              <Group type="103" groupAlignment="3" attributes="0">
+                  <Component id="lblNotAfter" alignment="3" min="-2" max="-2" attributes="0"/>
+                  <Component id="txtNotAfter" alignment="3" min="-2" max="-2" attributes="0"/>
+              </Group>
+              <EmptySpace type="separate" max="-2" attributes="0"/>
+              <Group type="103" groupAlignment="0" attributes="0">
+                  <Component id="lblPublicKey" min="-2" max="-2" attributes="0"/>
+                  <Component id="jScrollPane1" min="-2" pref="220" max="-2" attributes="0"/>
+              </Group>
+              <EmptySpace type="separate" max="-2" attributes="0"/>
+              <Group type="103" groupAlignment="3" attributes="0">
+                  <Component id="txtSignatureAlgorithm" alignment="0" min="-2" max="-2" attributes="0"/>
+                  <Component id="lblSignatureAlgorithm" alignment="3" min="-2" max="-2" attributes="0"/>
+              </Group>
+              <EmptySpace type="separate" max="-2" attributes="0"/>
+              <Component id="lblExtensions" min="-2" max="-2" attributes="0"/>
+              <EmptySpace type="separate" max="-2" attributes="0"/>
+              <Group type="103" groupAlignment="0" attributes="0">
+                  <Component id="jScrollPane2" min="-2" pref="50" max="-2" attributes="0"/>
+                  <Component id="btnAddExtension" min="-2" max="-2" attributes="0"/>
+              </Group>
+              <EmptySpace max="32767" attributes="0"/>
+          </Group>
       </Group>
     </DimensionLayout>
   </Layout>
+  <SubComponents>
+    <Component class="javax.swing.JLabel" name="lblVersion">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="Version:"/>
+      </Properties>
+    </Component>
+    <Component class="javax.swing.JComboBox" name="cmbVersion">
+      <Properties>
+        <Property name="model" type="javax.swing.ComboBoxModel" editor="org.netbeans.modules.form.editors2.ComboBoxModelEditor">
+          <StringArray count="3">
+            <StringItem index="0" value="1"/>
+            <StringItem index="1" value="2"/>
+            <StringItem index="2" value="3"/>
+          </StringArray>
+        </Property>
+      </Properties>
+      <AuxValues>
+        <AuxValue name="JavaCodeGenerator_TypeParameters" type="java.lang.String" value="&lt;String&gt;"/>
+      </AuxValues>
+    </Component>
+    <Component class="javax.swing.JLabel" name="lblSerialNumber">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="Serial Number:"/>
+      </Properties>
+    </Component>
+    <Component class="javax.swing.JTextField" name="txtSerialNumber">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="txtSerialNumber"/>
+      </Properties>
+      <Events>
+        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="txtSerialNumberActionPerformed"/>
+      </Events>
+    </Component>
+    <Component class="javax.swing.JLabel" name="lblIssuer">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="Issuer:"/>
+      </Properties>
+    </Component>
+    <Component class="javax.swing.JLabel" name="lblSubject">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="Subject:"/>
+      </Properties>
+    </Component>
+    <Component class="javax.swing.JTextField" name="txtIssuer">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="txtIssuer"/>
+      </Properties>
+      <Events>
+        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="txtIssuerActionPerformed"/>
+      </Events>
+    </Component>
+    <Component class="javax.swing.JTextField" name="txtSubject">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="txtSubject"/>
+      </Properties>
+    </Component>
+    <Component class="javax.swing.JLabel" name="lblNotBefore">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="Not Before:"/>
+      </Properties>
+    </Component>
+    <Component class="javax.swing.JTextField" name="txtNotBefore">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="txtNotBefore"/>
+      </Properties>
+    </Component>
+    <Component class="javax.swing.JLabel" name="lblNotAfter">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="Not After:"/>
+      </Properties>
+    </Component>
+    <Component class="javax.swing.JButton" name="btnCreateIssuer">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="Create Issuer"/>
+      </Properties>
+      <Events>
+        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="btnCreateIssuerActionPerformed"/>
+      </Events>
+    </Component>
+    <Component class="javax.swing.JButton" name="btnCreateSubject">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="Create Subj."/>
+      </Properties>
+    </Component>
+    <Component class="javax.swing.JTextField" name="txtNotAfter">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="txtNotAfter"/>
+      </Properties>
+    </Component>
+    <Component class="javax.swing.JLabel" name="lblPublicKey">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="Public Key:"/>
+      </Properties>
+    </Component>
+    <Container class="javax.swing.JScrollPane" name="jScrollPane1">
+      <AuxValues>
+        <AuxValue name="autoScrollPane" type="java.lang.Boolean" value="true"/>
+      </AuxValues>
+
+      <Layout class="org.netbeans.modules.form.compat2.layouts.support.JScrollPaneSupportLayout"/>
+      <SubComponents>
+        <Component class="javax.swing.JTextArea" name="txtPublicKey">
+          <Properties>
+            <Property name="columns" type="int" value="20"/>
+            <Property name="rows" type="int" value="5"/>
+          </Properties>
+        </Component>
+      </SubComponents>
+    </Container>
+    <Component class="javax.swing.JLabel" name="lblSignatureAlgorithm">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="Signature Algorithm:"/>
+      </Properties>
+    </Component>
+    <Component class="javax.swing.JTextField" name="txtSignatureAlgorithm">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="txtSignatureAlgorithm"/>
+      </Properties>
+    </Component>
+    <Component class="javax.swing.JLabel" name="lblExtensions">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="Extensions:"/>
+      </Properties>
+    </Component>
+    <Container class="javax.swing.JScrollPane" name="jScrollPane2">
+      <AuxValues>
+        <AuxValue name="autoScrollPane" type="java.lang.Boolean" value="true"/>
+      </AuxValues>
+
+      <Layout class="org.netbeans.modules.form.compat2.layouts.support.JScrollPaneSupportLayout"/>
+      <SubComponents>
+        <Component class="javax.swing.JTable" name="tblExtensions">
+          <Properties>
+            <Property name="model" type="javax.swing.table.TableModel" editor="org.netbeans.modules.form.editors2.TableModelEditor">
+              <Table columnCount="2" rowCount="1">
+                <Column editable="true" title="Key" type="java.lang.String"/>
+                <Column editable="true" title="Value" type="java.lang.String"/>
+              </Table>
+            </Property>
+            <Property name="columnModel" type="javax.swing.table.TableColumnModel" editor="org.netbeans.modules.form.editors2.TableColumnModelEditor">
+              <TableColumnModel selectionModel="0">
+                <Column maxWidth="-1" minWidth="-1" prefWidth="-1" resizable="true">
+                  <Title/>
+                  <Editor/>
+                  <Renderer/>
+                </Column>
+                <Column maxWidth="-1" minWidth="-1" prefWidth="-1" resizable="true">
+                  <Title/>
+                  <Editor/>
+                  <Renderer/>
+                </Column>
+              </TableColumnModel>
+            </Property>
+            <Property name="tableHeader" type="javax.swing.table.JTableHeader" editor="org.netbeans.modules.form.editors2.JTableHeaderEditor">
+              <TableHeader reorderingAllowed="true" resizingAllowed="true"/>
+            </Property>
+          </Properties>
+        </Component>
+      </SubComponents>
+    </Container>
+    <Component class="javax.swing.JButton" name="btnAddExtension">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="Add"/>
+      </Properties>
+    </Component>
+    <Component class="javax.swing.JButton" name="btnGenerateSerialNumber">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="Generate"/>
+      </Properties>
+    </Component>
+  </SubComponents>
 </Form>
