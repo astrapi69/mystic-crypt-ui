@@ -42,13 +42,13 @@ public class NewCertificateInfoFormPanel extends javax.swing.JPanel {
         btnCreateSubject = new javax.swing.JButton();
         txtNotAfter = new javax.swing.JTextField();
         lblPublicKey = new javax.swing.JLabel();
-        jScrollPane1 = new javax.swing.JScrollPane();
+        scpPublicKey = new javax.swing.JScrollPane();
         txtPublicKey = new javax.swing.JTextArea();
         lblSignatureAlgorithm = new javax.swing.JLabel();
         txtSignatureAlgorithm = new javax.swing.JTextField();
         lblExtensions = new javax.swing.JLabel();
-        jScrollPane2 = new javax.swing.JScrollPane();
-        tblExtensions = new javax.swing.JTable();
+        scpExtensions = new javax.swing.JScrollPane();
+        srcExtensions = new javax.swing.JTable();
         btnAddExtension = new javax.swing.JButton();
         btnGenerateSerialNumber = new javax.swing.JButton();
 
@@ -59,22 +59,12 @@ public class NewCertificateInfoFormPanel extends javax.swing.JPanel {
         lblSerialNumber.setText("Serial Number:");
 
         txtSerialNumber.setText("txtSerialNumber");
-        txtSerialNumber.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                txtSerialNumberActionPerformed(evt);
-            }
-        });
 
         lblIssuer.setText("Issuer:");
 
         lblSubject.setText("Subject:");
 
         txtIssuer.setText("txtIssuer");
-        txtIssuer.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                txtIssuerActionPerformed(evt);
-            }
-        });
 
         txtSubject.setText("txtSubject");
 
@@ -87,11 +77,16 @@ public class NewCertificateInfoFormPanel extends javax.swing.JPanel {
         btnCreateIssuer.setText("Create Issuer");
         btnCreateIssuer.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                btnCreateIssuerActionPerformed(evt);
+                onCreateIssuer(evt);
             }
         });
 
         btnCreateSubject.setText("Create Subj.");
+        btnCreateSubject.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                onCreateSubject(evt);
+            }
+        });
 
         txtNotAfter.setText("txtNotAfter");
 
@@ -99,7 +94,7 @@ public class NewCertificateInfoFormPanel extends javax.swing.JPanel {
 
         txtPublicKey.setColumns(20);
         txtPublicKey.setRows(5);
-        jScrollPane1.setViewportView(txtPublicKey);
+        scpPublicKey.setViewportView(txtPublicKey);
 
         lblSignatureAlgorithm.setText("Signature Algorithm:");
 
@@ -107,7 +102,7 @@ public class NewCertificateInfoFormPanel extends javax.swing.JPanel {
 
         lblExtensions.setText("Extensions:");
 
-        tblExtensions.setModel(new javax.swing.table.DefaultTableModel(
+        srcExtensions.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
                 {null, null}
             },
@@ -123,11 +118,21 @@ public class NewCertificateInfoFormPanel extends javax.swing.JPanel {
                 return types [columnIndex];
             }
         });
-        jScrollPane2.setViewportView(tblExtensions);
+        scpExtensions.setViewportView(srcExtensions);
 
         btnAddExtension.setText("Add");
+        btnAddExtension.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                onAddExtension(evt);
+            }
+        });
 
         btnGenerateSerialNumber.setText("Generate");
+        btnGenerateSerialNumber.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                onGenerateSerialNumber(evt);
+            }
+        });
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
@@ -136,34 +141,29 @@ public class NewCertificateInfoFormPanel extends javax.swing.JPanel {
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 459, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                        .addGroup(layout.createSequentialGroup()
-                            .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                                .addComponent(lblNotAfter, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                .addComponent(lblExtensions, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                .addComponent(lblSignatureAlgorithm, javax.swing.GroupLayout.DEFAULT_SIZE, 200, Short.MAX_VALUE)
-                                .addComponent(lblPublicKey, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                .addComponent(lblVersion, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                .addComponent(lblSerialNumber, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                            .addGap(59, 59, 59)
-                            .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
-                                .addComponent(txtNotAfter, javax.swing.GroupLayout.Alignment.LEADING)
-                                .addComponent(txtNotBefore, javax.swing.GroupLayout.Alignment.LEADING)
-                                .addComponent(txtSubject, javax.swing.GroupLayout.Alignment.LEADING)
-                                .addComponent(txtIssuer, javax.swing.GroupLayout.Alignment.LEADING)
-                                .addComponent(cmbVersion, javax.swing.GroupLayout.Alignment.LEADING, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                .addComponent(txtSerialNumber, javax.swing.GroupLayout.Alignment.LEADING)
-                                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE)
-                                .addComponent(txtSignatureAlgorithm, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, 200, Short.MAX_VALUE))
-                            .addGap(0, 0, Short.MAX_VALUE))
-                        .addGroup(layout.createSequentialGroup()
-                            .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                .addComponent(lblNotBefore, javax.swing.GroupLayout.PREFERRED_SIZE, 200, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addComponent(lblSubject, javax.swing.GroupLayout.PREFERRED_SIZE, 200, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addComponent(lblIssuer, javax.swing.GroupLayout.PREFERRED_SIZE, 200, javax.swing.GroupLayout.PREFERRED_SIZE))
-                            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))
-                .addGap(44, 44, 44)
+                    .addComponent(scpExtensions, javax.swing.GroupLayout.PREFERRED_SIZE, 459, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addGroup(layout.createSequentialGroup()
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                            .addComponent(lblNotAfter, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(lblExtensions, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(lblSignatureAlgorithm, javax.swing.GroupLayout.DEFAULT_SIZE, 200, Short.MAX_VALUE)
+                            .addComponent(lblPublicKey, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(lblVersion, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(lblSerialNumber, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                        .addGap(59, 59, 59)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
+                            .addComponent(txtNotAfter, javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(txtNotBefore, javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(txtSubject, javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(txtIssuer, javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(cmbVersion, javax.swing.GroupLayout.Alignment.LEADING, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(txtSerialNumber, javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(scpPublicKey, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE)
+                            .addComponent(txtSignatureAlgorithm, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, 200, Short.MAX_VALUE)))
+                    .addComponent(lblNotBefore, javax.swing.GroupLayout.PREFERRED_SIZE, 200, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(lblSubject, javax.swing.GroupLayout.PREFERRED_SIZE, 200, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(lblIssuer, javax.swing.GroupLayout.PREFERRED_SIZE, 200, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                     .addComponent(btnCreateIssuer, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addComponent(btnCreateSubject, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
@@ -179,15 +179,17 @@ public class NewCertificateInfoFormPanel extends javax.swing.JPanel {
                     .addComponent(cmbVersion, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(lblVersion))
                 .addGap(18, 18, 18)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(lblSerialNumber)
-                    .addComponent(txtSerialNumber, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(btnGenerateSerialNumber))
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(btnGenerateSerialNumber, javax.swing.GroupLayout.Alignment.TRAILING)
+                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                        .addComponent(lblSerialNumber)
+                        .addComponent(txtSerialNumber, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
                 .addGap(18, 18, 18)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(lblIssuer)
-                    .addComponent(txtIssuer, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(btnCreateIssuer))
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(btnCreateIssuer, javax.swing.GroupLayout.Alignment.TRAILING)
+                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                        .addComponent(lblIssuer)
+                        .addComponent(txtIssuer, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
                 .addGap(18, 18, 18)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(lblSubject)
@@ -204,32 +206,36 @@ public class NewCertificateInfoFormPanel extends javax.swing.JPanel {
                 .addGap(18, 18, 18)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(lblPublicKey)
-                    .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 220, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(scpPublicKey, javax.swing.GroupLayout.PREFERRED_SIZE, 220, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addGap(18, 18, 18)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(txtSignatureAlgorithm, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(lblSignatureAlgorithm))
                 .addGap(18, 18, 18)
                 .addComponent(lblExtensions)
                 .addGap(18, 18, 18)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 50, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(scpExtensions, javax.swing.GroupLayout.PREFERRED_SIZE, 50, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(btnAddExtension))
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
     }// </editor-fold>//GEN-END:initComponents
 
-    private void btnCreateIssuerActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnCreateIssuerActionPerformed
+    private void onCreateIssuer(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_onCreateIssuer
         // TODO add your handling code here:
-    }//GEN-LAST:event_btnCreateIssuerActionPerformed
+    }//GEN-LAST:event_onCreateIssuer
 
-    private void txtSerialNumberActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txtSerialNumberActionPerformed
+    private void onGenerateSerialNumber(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_onGenerateSerialNumber
         // TODO add your handling code here:
-    }//GEN-LAST:event_txtSerialNumberActionPerformed
+    }//GEN-LAST:event_onGenerateSerialNumber
 
-    private void txtIssuerActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txtIssuerActionPerformed
+    private void onCreateSubject(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_onCreateSubject
         // TODO add your handling code here:
-    }//GEN-LAST:event_txtIssuerActionPerformed
+    }//GEN-LAST:event_onCreateSubject
+
+    private void onAddExtension(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_onAddExtension
+        // TODO add your handling code here:
+    }//GEN-LAST:event_onAddExtension
 
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
@@ -238,8 +244,6 @@ public class NewCertificateInfoFormPanel extends javax.swing.JPanel {
     private javax.swing.JButton btnCreateSubject;
     private javax.swing.JButton btnGenerateSerialNumber;
     private javax.swing.JComboBox<String> cmbVersion;
-    private javax.swing.JScrollPane jScrollPane1;
-    private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JLabel lblExtensions;
     private javax.swing.JLabel lblIssuer;
     private javax.swing.JLabel lblNotAfter;
@@ -249,7 +253,9 @@ public class NewCertificateInfoFormPanel extends javax.swing.JPanel {
     private javax.swing.JLabel lblSignatureAlgorithm;
     private javax.swing.JLabel lblSubject;
     private javax.swing.JLabel lblVersion;
-    private javax.swing.JTable tblExtensions;
+    private javax.swing.JScrollPane scpExtensions;
+    private javax.swing.JScrollPane scpPublicKey;
+    private javax.swing.JTable srcExtensions;
     private javax.swing.JTextField txtIssuer;
     private javax.swing.JTextField txtNotAfter;
     private javax.swing.JTextField txtNotBefore;
