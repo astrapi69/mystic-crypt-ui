@@ -52,6 +52,7 @@ import de.alpharogroup.model.BaseModel;
 import de.alpharogroup.model.api.Model;
 import de.alpharogroup.mystic.crypt.SpringBootSwingApplication;
 import de.alpharogroup.mystic.crypt.panels.certificate.CertificatePanel;
+import de.alpharogroup.mystic.crypt.panels.certificate.NewCertificateInfoPanel;
 import de.alpharogroup.random.RandomExtensions;
 import de.alpharogroup.random.number.RandomNumberExtensions;
 import de.alpharogroup.swing.base.BasePanel;
@@ -246,14 +247,14 @@ public class CryptographyPanel extends BasePanel<GenerateKeysModelBean>
 
 	protected void onSaveCertificate(ActionEvent actionEvent)
 	{
-		CertificatePanel certificatePanel = new CertificatePanel();
+		NewCertificateInfoPanel panel = new NewCertificateInfoPanel();
 
-		JOptionPane optionPane = new JOptionPane(certificatePanel, JOptionPane.PLAIN_MESSAGE,
+		JOptionPane optionPane = new JOptionPane(panel, JOptionPane.PLAIN_MESSAGE,
 			JOptionPane.OK_CANCEL_OPTION);
 
 		JDialog dialog = JDialogFactory.newJDialog(SpringBootSwingApplication.getInstance(),
 			optionPane, "Create certificate");
-		dialog.addWindowFocusListener(new RequestFocusListener(certificatePanel.getTxtIssuedTo()));
+		dialog.addWindowFocusListener(new RequestFocusListener(panel.getTxtIssuer()));
 		dialog.pack();
 		dialog.setLocationRelativeTo(null);
 		dialog.setVisible(true);

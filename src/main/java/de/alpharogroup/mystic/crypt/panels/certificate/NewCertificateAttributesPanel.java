@@ -8,10 +8,12 @@ package de.alpharogroup.mystic.crypt.panels.certificate;
 import de.alpharogroup.model.BaseModel;
 import de.alpharogroup.model.api.Model;
 import de.alpharogroup.swing.base.BasePanel;
+import lombok.Getter;
 
 /**
  * @author astrapi69
  */
+@Getter
 public class NewCertificateAttributesPanel extends BasePanel<CertificateAttributes> {
     private javax.swing.JLabel lblCommonName;
     private javax.swing.JLabel lblCountryCode;

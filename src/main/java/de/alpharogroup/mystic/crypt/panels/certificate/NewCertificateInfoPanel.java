@@ -2,11 +2,16 @@ package de.alpharogroup.mystic.crypt.panels.certificate;
 
 import de.alpharogroup.model.BaseModel;
 import de.alpharogroup.model.api.Model;
+import de.alpharogroup.mystic.crypt.SpringBootSwingApplication;
 import de.alpharogroup.swing.base.BasePanel;
+import de.alpharogroup.swing.dialog.factories.JDialogFactory;
+import de.alpharogroup.swing.listener.RequestFocusListener;
+import lombok.Getter;
 
 import javax.swing.*;
 import javax.swing.table.*;
 
+@Getter
 public class NewCertificateInfoPanel extends BasePanel<CertificateInfo> {
 
     private JButton btnAddExtension;
@@ -251,10 +256,25 @@ public class NewCertificateInfoPanel extends BasePanel<CertificateInfo> {
         );
     }
 
-    private void onCreateIssuer(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_onCreateIssuer
-        // TODO add your handling code here:
+    protected void onCreateIssuer(java.awt.event.ActionEvent evt) {
+        NewCertificateAttributesPanel panel = new NewCertificateAttributesPanel();
 
-    }//GEN-LAST:event_onCreateIssuer
+        JOptionPane optionPane = new JOptionPane(panel, JOptionPane.PLAIN_MESSAGE,
+                JOptionPane.OK_CANCEL_OPTION);
+
+        JDialog dialog = JDialogFactory.newJDialog(SpringBootSwingApplication.getInstance(),
+                optionPane, "Create certificate");
+        dialog.addWindowFocusListener(new RequestFocusListener(panel.getTxtCommonName()));
+        dialog.pack();
+        dialog.setLocationRelativeTo(null);
+        dialog.setVisible(true);
+
+        if (optionPane.getValue().equals(JOptionPane.OK_OPTION))
+        {
+            // TODO add your handling code here...
+        }
+
+    }
 
     private void onGenerateSerialNumber(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_onGenerateSerialNumber
         // TODO add your handling code here:
