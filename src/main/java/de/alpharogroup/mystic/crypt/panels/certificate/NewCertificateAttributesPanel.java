@@ -28,7 +28,7 @@ public class NewCertificateAttributesPanel extends BasePanel<CertificateAttribut
     private javax.swing.JTextField txtOrganizationUnit;
     private javax.swing.JTextField txtState;
     public NewCertificateAttributesPanel() {
-        this(BaseModel.of());
+        this(BaseModel.of(CertificateAttributes.builder().build()));
     }
 
     public NewCertificateAttributesPanel(final Model<CertificateAttributes> model) {

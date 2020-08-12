@@ -58,19 +58,23 @@ public class NewCertificateInfoFormPanel extends javax.swing.JPanel {
 
         lblSerialNumber.setText("Serial Number:");
 
-        txtSerialNumber.setText("txtSerialNumber");
-
         lblIssuer.setText("Issuer:");
 
         lblSubject.setText("Subject:");
 
-        txtIssuer.setText("txtIssuer");
+        txtIssuer.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                txtIssuerActionPerformed(evt);
+            }
+        });
 
-        txtSubject.setText("txtSubject");
+        txtSubject.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                txtSubjectActionPerformed(evt);
+            }
+        });
 
         lblNotBefore.setText("Not Before:");
-
-        txtNotBefore.setText("txtNotBefore");
 
         lblNotAfter.setText("Not After:");
 
@@ -88,8 +92,6 @@ public class NewCertificateInfoFormPanel extends javax.swing.JPanel {
             }
         });
 
-        txtNotAfter.setText("txtNotAfter");
-
         lblPublicKey.setText("Public Key:");
 
         txtPublicKey.setColumns(20);
@@ -98,7 +100,11 @@ public class NewCertificateInfoFormPanel extends javax.swing.JPanel {
 
         lblSignatureAlgorithm.setText("Signature Algorithm:");
 
-        txtSignatureAlgorithm.setText("txtSignatureAlgorithm");
+        txtSignatureAlgorithm.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                txtSignatureAlgorithmActionPerformed(evt);
+            }
+        });
 
         lblExtensions.setText("Extensions:");
 
@@ -236,6 +242,18 @@ public class NewCertificateInfoFormPanel extends javax.swing.JPanel {
     private void onAddExtension(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_onAddExtension
         // TODO add your handling code here:
     }//GEN-LAST:event_onAddExtension
+
+    private void txtIssuerActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txtIssuerActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_txtIssuerActionPerformed
+
+    private void txtSubjectActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txtSubjectActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_txtSubjectActionPerformed
+
+    private void txtSignatureAlgorithmActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txtSignatureAlgorithmActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_txtSignatureAlgorithmActionPerformed
 
 
     // Variables declaration - do not modify//GEN-BEGIN:variables

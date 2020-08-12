@@ -144,9 +144,6 @@
       </Properties>
     </Component>
     <Component class="javax.swing.JTextField" name="txtSerialNumber">
-      <Properties>
-        <Property name="text" type="java.lang.String" value="txtSerialNumber"/>
-      </Properties>
     </Component>
     <Component class="javax.swing.JLabel" name="lblIssuer">
       <Properties>
@@ -159,14 +156,14 @@
       </Properties>
     </Component>
     <Component class="javax.swing.JTextField" name="txtIssuer">
-      <Properties>
-        <Property name="text" type="java.lang.String" value="txtIssuer"/>
-      </Properties>
+      <Events>
+        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="txtIssuerActionPerformed"/>
+      </Events>
     </Component>
     <Component class="javax.swing.JTextField" name="txtSubject">
-      <Properties>
-        <Property name="text" type="java.lang.String" value="txtSubject"/>
-      </Properties>
+      <Events>
+        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="txtSubjectActionPerformed"/>
+      </Events>
     </Component>
     <Component class="javax.swing.JLabel" name="lblNotBefore">
       <Properties>
@@ -174,9 +171,6 @@
       </Properties>
     </Component>
     <Component class="javax.swing.JTextField" name="txtNotBefore">
-      <Properties>
-        <Property name="text" type="java.lang.String" value="txtNotBefore"/>
-      </Properties>
     </Component>
     <Component class="javax.swing.JLabel" name="lblNotAfter">
       <Properties>
@@ -200,9 +194,6 @@
       </Events>
     </Component>
     <Component class="javax.swing.JTextField" name="txtNotAfter">
-      <Properties>
-        <Property name="text" type="java.lang.String" value="txtNotAfter"/>
-      </Properties>
     </Component>
     <Component class="javax.swing.JLabel" name="lblPublicKey">
       <Properties>
@@ -230,9 +221,9 @@
       </Properties>
     </Component>
     <Component class="javax.swing.JTextField" name="txtSignatureAlgorithm">
-      <Properties>
-        <Property name="text" type="java.lang.String" value="txtSignatureAlgorithm"/>
-      </Properties>
+      <Events>
+        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="txtSignatureAlgorithmActionPerformed"/>
+      </Events>
     </Component>
     <Component class="javax.swing.JLabel" name="lblExtensions">
       <Properties>

@@ -3,6 +3,8 @@ package de.alpharogroup.mystic.crypt.panels.certificate;
 import de.alpharogroup.model.BaseModel;
 import de.alpharogroup.model.api.Model;
 import de.alpharogroup.mystic.crypt.SpringBootSwingApplication;
+import de.alpharogroup.random.RandomExtensions;
+import de.alpharogroup.random.number.RandomNumberExtensions;
 import de.alpharogroup.swing.base.BasePanel;
 import de.alpharogroup.swing.dialog.factories.JDialogFactory;
 import de.alpharogroup.swing.listener.RequestFocusListener;
@@ -10,6 +12,7 @@ import lombok.Getter;
 
 import javax.swing.*;
 import javax.swing.table.*;
+import java.math.BigInteger;
 
 @Getter
 public class NewCertificateInfoPanel extends BasePanel<CertificateInfo> {
@@ -40,7 +43,7 @@ public class NewCertificateInfoPanel extends BasePanel<CertificateInfo> {
     private JTextField txtSubject;
 
     public NewCertificateInfoPanel() {
-        this(BaseModel.of());
+        this(BaseModel.<CertificateInfo>of(CertificateInfo.builder().build()));
     }
 
     public NewCertificateInfoPanel(final Model<CertificateInfo> model) {
@@ -83,19 +86,19 @@ public class NewCertificateInfoPanel extends BasePanel<CertificateInfo> {
 
         lblSerialNumber.setText("Serial Number:");
 
-        txtSerialNumber.setText("txtSerialNumber");
+        txtSerialNumber.setText("");
 
         lblIssuer.setText("Issuer:");
 
         lblSubject.setText("Subject:");
 
-        txtIssuer.setText("txtIssuer");
+        txtIssuer.setText("");
 
-        txtSubject.setText("txtSubject");
+        txtSubject.setText("");
 
         lblNotBefore.setText("Not Before:");
 
-        txtNotBefore.setText("txtNotBefore");
+        txtNotBefore.setText("");
 
         lblNotAfter.setText("Not After:");
 
@@ -113,7 +116,7 @@ public class NewCertificateInfoPanel extends BasePanel<CertificateInfo> {
             }
         });
 
-        txtNotAfter.setText("txtNotAfter");
+        txtNotAfter.setText("");
 
         lblPublicKey.setText("Public Key:");
 
@@ -123,7 +126,7 @@ public class NewCertificateInfoPanel extends BasePanel<CertificateInfo> {
 
         lblSignatureAlgorithm.setText("Signature Algorithm:");
 
-        txtSignatureAlgorithm.setText("txtSignatureAlgorithm");
+        txtSignatureAlgorithm.setText("");
 
         lblExtensions.setText("Extensions:");
 
@@ -158,6 +161,11 @@ public class NewCertificateInfoPanel extends BasePanel<CertificateInfo> {
                 onGenerateSerialNumber(evt);
             }
         });
+
+        // Manually added:
+
+        // enable when functionality is given...
+        btnAddExtension.setEnabled(false);
 
     }
 
@@ -263,7 +271,7 @@ public class NewCertificateInfoPanel extends BasePanel<CertificateInfo> {
                 JOptionPane.OK_CANCEL_OPTION);
 
         JDialog dialog = JDialogFactory.newJDialog(SpringBootSwingApplication.getInstance(),
-                optionPane, "Create certificate");
+                optionPane, "Create issuer");
         dialog.addWindowFocusListener(new RequestFocusListener(panel.getTxtCommonName()));
         dialog.pack();
         dialog.setLocationRelativeTo(null);
@@ -271,22 +279,54 @@ public class NewCertificateInfoPanel extends BasePanel<CertificateInfo> {
 
         if (optionPane.getValue().equals(JOptionPane.OK_OPTION))
         {
-            // TODO add your handling code here...
+            panel.getModelObject().setCommonName(panel.getTxtCommonName().getText());
+            panel.getModelObject().setCountryCode(panel.getTxtCountryCode().getText());
+            panel.getModelObject().setLocation(panel.getTxtLocation().getText());
+            panel.getModelObject().setOrganisation(panel.getTxtOrganization().getText());
+            panel.getModelObject().setOrganisationUnit(panel.getTxtOrganizationUnit().getText());
+            panel.getModelObject().setState(panel.getTxtState().getText());
+            String issuer = panel.getModelObject().toRepresentableString();
+            getModelObject().setIssuer(issuer);
+            getTxtIssuer().setText(issuer);
         }
 
     }
 
-    private void onGenerateSerialNumber(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_onGenerateSerialNumber
-        // TODO add your handling code here:
-    }//GEN-LAST:event_onGenerateSerialNumber
+    protected void onGenerateSerialNumber(java.awt.event.ActionEvent evt) {
+        BigInteger serialNumber = RandomExtensions.randomSerialNumber();
+        getModelObject().setSerialNumber(serialNumber);
+        getTxtSerialNumber().setText(serialNumber.toString());
+    }
 
-    private void onCreateSubject(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_onCreateSubject
-        // TODO add your handling code here:
-    }//GEN-LAST:event_onCreateSubject
+    protected void onCreateSubject(java.awt.event.ActionEvent evt) {
+        NewCertificateAttributesPanel panel = new NewCertificateAttributesPanel();
 
-    private void onAddExtension(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_onAddExtension
-        // TODO add your handling code here:
-    }//GEN-LAST:event_onAddExtension
+        JOptionPane optionPane = new JOptionPane(panel, JOptionPane.PLAIN_MESSAGE,
+                JOptionPane.OK_CANCEL_OPTION);
 
+        JDialog dialog = JDialogFactory.newJDialog(SpringBootSwingApplication.getInstance(),
+                optionPane, "Create subject");
+        dialog.addWindowFocusListener(new RequestFocusListener(panel.getTxtCommonName()));
+        dialog.pack();
+        dialog.setLocationRelativeTo(null);
+        dialog.setVisible(true);
+
+        if (optionPane.getValue().equals(JOptionPane.OK_OPTION))
+        {
+            panel.getModelObject().setCommonName(panel.getTxtCommonName().getText());
+            panel.getModelObject().setCountryCode(panel.getTxtCountryCode().getText());
+            panel.getModelObject().setLocation(panel.getTxtLocation().getText());
+            panel.getModelObject().setOrganisation(panel.getTxtOrganization().getText());
+            panel.getModelObject().setOrganisationUnit(panel.getTxtOrganizationUnit().getText());
+            panel.getModelObject().setState(panel.getTxtState().getText());
+            String subject = panel.getModelObject().toRepresentableString();
+            getModelObject().setSubject(subject);
+            getTxtSubject().setText(subject);
+        }
+    }
+
+    protected void onAddExtension(java.awt.event.ActionEvent evt) {
+        // TODO implement functionality...
+    }
 
 }

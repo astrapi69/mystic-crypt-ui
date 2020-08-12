@@ -106,6 +106,7 @@ public class GenerateKeysPanel extends BasePanel<GenerateKeysModelBean>
 		getCryptographyPanel().getTxtPublicKey().setText("");
 		getEnDecryptPanel().getTxtEncrypted().setText("");
 		getEnDecryptPanel().getTxtToEncrypt().setText("");
+		getCryptographyPanel().getBtnSaveCertificate().setEnabled(false);
 		getModelObject().setDecryptor(null);
 		getModelObject().setEncryptor(null);
 		getModelObject().setKeySize(KeySize.KEYSIZE_1024);
@@ -198,6 +199,7 @@ public class GenerateKeysPanel extends BasePanel<GenerateKeysModelBean>
 			getCryptographyPanel().getTxtPublicKey().setText("");
 			getCryptographyPanel().getTxtPrivateKey().setText(privateKeyFormat);
 			getCryptographyPanel().getTxtPublicKey().setText(publicKeyFormat);
+			getCryptographyPanel().getBtnSaveCertificate().setEnabled(true);
 		}
 		catch (final NoSuchAlgorithmException | NoSuchProviderException | IOException e)
 		{

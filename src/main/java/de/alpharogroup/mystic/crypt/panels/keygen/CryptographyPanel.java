@@ -243,6 +243,8 @@ public class CryptographyPanel extends BasePanel<GenerateKeysModelBean>
 
 		btnSavePublicKey.setText("Save public key");
 		btnSaveCertificate.setText("Save certificate...");
+		//
+		btnSaveCertificate.setEnabled(false);
 	}
 
 	protected void onSaveCertificate(ActionEvent actionEvent)
@@ -268,23 +270,24 @@ public class CryptographyPanel extends BasePanel<GenerateKeysModelBean>
 				try
 				{
 					File selectedFile = fileChooser.getSelectedFile();
-					// TODO get values from model bean
 					String signatureAlgorithm;
 					Date start;
 					Date end;
 					BigInteger serialNumber;
 					String subject;
 					String issuer;
-					subject = "CN=Test subject";
-					issuer = "CN=Test issue";
+					subject = panel.getModelObject().getSubject();
+					issuer = panel.getModelObject().getIssuer();
+					// TODO get values from model bean
 					signatureAlgorithm = HashAlgorithm.SHA256.getAlgorithm() + UnionWord.With.name()
 							+ KeyPairGeneratorAlgorithm.RSA.getAlgorithm();
-
+					// TODO get values from model bean
 					start = Date.from(
-							LocalDate.of(2017, Month.JANUARY, 1).atStartOfDay(ZoneId.systemDefault()).toInstant());
+							LocalDate.of(2020, Month.JANUARY, 1).atStartOfDay(ZoneId.systemDefault()).toInstant());
+					// TODO get values from model bean
 					end = Date.from(
-							LocalDate.of(2027, Month.JANUARY, 1).atStartOfDay(ZoneId.systemDefault()).toInstant());
-					serialNumber = RandomExtensions.randomSerialNumber();
+							LocalDate.of(2030, Month.JANUARY, 1).atStartOfDay(ZoneId.systemDefault()).toInstant());
+					serialNumber = panel.getModelObject().getSerialNumber();
 					PublicKey publicKey = getModelObject().getPublicKey();
 					PrivateKey privateKey = getModelObject().getPrivateKey();
 					X509Certificate x509Certificate = CertFactory.newX509Certificate(publicKey, privateKey,
@@ -306,7 +309,6 @@ public class CryptographyPanel extends BasePanel<GenerateKeysModelBean>
 
 	protected void onInitializeGridBagLayout()
 	{
-
 		final GridBagLayout gbl = new GridBagLayout();
 		final GridBagConstraints gbc = new GridBagConstraints();
 		this.setLayout(gbl);
