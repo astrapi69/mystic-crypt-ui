@@ -126,59 +126,6 @@ task javadocJar(type: Jar) {
 
 def releaseVersion = !version.endsWith("SNAPSHOT")
 
-publishing {
-    publications {
-        mavenJava(MavenPublication) {
-            artifactId = "$rootProject.name"
-            from components.java
-            artifact sourcesJar
-            artifact javadocJar
-            pom {
-                name = "$rootProject.name"
-                description = "$projectDescription"
-                url = "$projectScmProviderUrl"+"$projectHolderUsername"+"/"+"$rootProject.name"
-                organization {
-                    name = "$projectOrganizationName"
-                    url = "$projectOrganizationUrl"
-                }
-                issueManagement {
-                    system = "$projectIssueManagementSystem"
-                    url = "$projectScmProviderUrl"+"$projectHolderUsername"+"/"+"$rootProject.name"+"/issues"
-                }
-                licenses {
-                    license {
-                        name = "$projectLicenseName"
-                        url = "$projectLicenseUrl"
-                        distribution = "$projectLicenseDistribution"
-                    }
-                }
-                developers {
-                    developer {
-                        id = "$projectHolderUsername"
-                        name = "Asterios Raptis"
-                    }
-                }
-                scm {
-                    connection = "scm:git:git:@" + "$projectScmProviderDomain" + ":" + "$projectHolderUsername" + "/" + "$rootProject.name" + ".git"
-                    developerConnection = "scm:git:git:@" + "$projectScmProviderDomain" + ":" + "$projectHolderUsername" + "/" + "$rootProject.name" + ".git"
-                    url = "scm:git:git:@" + "$projectScmProviderDomain" + ":" + "$projectHolderUsername" + "/" + "$rootProject.name" + ".git"
-                }
-            }
-        }
-    }
-    repositories {
-        maven {
-            credentials {
-                username System.getenv("ossrhUsername") ?: project.property("ossrhUsername")
-                password System.getenv("ossrhPassword") ?: project.property("ossrhPassword")
-            }
-            def releasesRepoUrl = "$projectRepositoriesReleasesRepoUrl"
-            def snapshotsRepoUrl = "$projectRepositoriesSnapshotsRepoUrl"
-            url = releaseVersion ? releasesRepoUrl : snapshotsRepoUrl
-        }
-    }
-}
-
 signing {
     if (releaseVersion) {
         sign publishing.publications.mavenJava
