@@ -7,29 +7,30 @@ buildscript {
         }
     }
     dependencies {
+        classpath "io.franzbecker:gradle-lombok:$gradlePluginLombokVersion"
+        classpath "org.springframework.boot:spring-boot-gradle-plugin:$springBootGradlePluginVersion"
+        classpath "io.spring.gradle:dependency-management-plugin:$springGradlePluginDependencyManagementVersion"
+        classpath "com.github.ben-manes:gradle-versions-plugin:$gradlePluginVersionsVersion"
+        classpath "gradle.plugin.com.hierynomus.gradle.plugins:license-gradle-plugin:$licenseGradlePluginVersion"
+        classpath "net.ltgt.gradle:gradle-apt-plugin:$gradleAptPluginVersion"
+        classpath "com.bmuschko:gradle-izpack-plugin:$gradleIzpackPluginVersion"
     }
 }
 
-plugins {
-    id "io.franzbecker.gradle-lombok" version "4.0.0"
-    id "org.springframework.boot" version "2.3.0.RELEASE"
-    id "io.spring.dependency-management" version "1.0.9.RELEASE"
-    id "java"
-    id "maven-publish"
-    id "signing"
-    id "idea"
-    id "net.ltgt.apt" version "0.21"
-    id "net.ltgt.apt-idea" version "0.21"
-    id "com.github.ben-manes.versions" version "0.28.0"
-    id "com.github.hierynomus.license" version "0.15.0"
-}
-
+apply plugin: "io.franzbecker.gradle-lombok"
 apply plugin: "java"
+apply plugin: "com.bmuschko.izpack"
 apply plugin: "eclipse"
 apply plugin: "idea"
+apply plugin: "net.ltgt.apt"
 apply plugin: "net.ltgt.apt-idea"
 apply plugin: "org.springframework.boot"
 apply plugin: "io.spring.dependency-management"
+apply plugin: "java-library"
+apply plugin: "maven-publish"
+apply plugin: "signing"
+apply plugin: "com.github.ben-manes.versions"
+apply plugin: "com.github.hierynomus.license"
 apply plugin: "jacoco"
 
 group = "$groupPackage"
@@ -44,9 +45,11 @@ repositories {
 }
 
 dependencies {
+    izpack("org.codehaus.izpack:izpack-standalone-compiler:$izpackVersion")
     compileOnly("org.projectlombok:lombok:$lombokVersion")
     annotationProcessor("org.projectlombok:lombok:$lombokVersion")
 
+    implementation("de.alpharogroup:silly-beans:$sillyBeansVersion")
     implementation("de.alpharogroup:crypt-api:$cryptApiVersion")
     implementation("de.alpharogroup:crypt-data:$cryptDataVersion")
     implementation("de.alpharogroup:mystic-crypt:$mysticCryptVersion")
@@ -72,6 +75,19 @@ dependencies {
     annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
     developmentOnly("org.springframework.boot:spring-boot-devtools")
     testImplementation("org.springframework.boot:spring-boot-starter-test")
+}
+
+izpack {
+    baseDir = file("$buildDir")
+    installFile = file("src/main/izpack/install.xml")
+    outputFile = file("$buildDir/distributions/$rootProject.name-${projectVersion}-installer.jar")
+    compression = "deflate"
+    compressionLevel = 9
+    appProperties = ["app.group": "$groupPackage",
+                     "app.name": "$rootProject.name",
+                     "app.title": "$rootProject.name",
+                     "app.version": "$projectVersion",
+                     "app.subpath": "$rootProject.name-${projectVersion}"]
 }
 
 license {
@@ -149,10 +165,8 @@ test {
 jacocoTestReport {
     reports {
         xml.enabled true
-        html.enabled false
+        html.enabled true
     }
 }
 
 check.dependsOn jacocoTestReport
-
-
