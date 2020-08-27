@@ -14,13 +14,11 @@ buildscript {
         classpath "gradle.plugin.com.hierynomus.gradle.plugins:license-gradle-plugin:$licenseGradlePluginVersion"
         classpath "net.ltgt.gradle:gradle-apt-plugin:$gradleAptPluginVersion"
         classpath "com.bmuschko:gradle-izpack-plugin:$gradleIzpackPluginVersion"
-        classpath "edu.sc.seis.gradle:launch4j:$gradleLaunch4jPluginVersion"
     }
 }
 
 apply plugin: "io.franzbecker.gradle-lombok"
 apply plugin: "java"
-apply plugin: "edu.sc.seis.launch4j"
 apply plugin: "com.bmuschko.izpack"
 apply plugin: "eclipse"
 apply plugin: "idea"
@@ -47,10 +45,11 @@ repositories {
 }
 
 dependencies {
-    izpack "org.codehaus.izpack:izpack-ant:$izpackVersion"
+    izpack("org.codehaus.izpack:izpack-standalone-compiler:$izpackVersion")
     compileOnly("org.projectlombok:lombok:$lombokVersion")
     annotationProcessor("org.projectlombok:lombok:$lombokVersion")
 
+    implementation("de.alpharogroup:silly-beans:$sillyBeansVersion")
     implementation("de.alpharogroup:crypt-api:$cryptApiVersion")
     implementation("de.alpharogroup:crypt-data:$cryptDataVersion")
     implementation("de.alpharogroup:mystic-crypt:$mysticCryptVersion")
@@ -78,21 +77,17 @@ dependencies {
     testImplementation("org.springframework.boot:spring-boot-starter-test")
 }
 
-launch4j {
-    outfile = "mystic-crypt-ui.exe"
-    mainClassName = "de.alpharogroup.mystic.crypt.SpringBootSwingApplication"
-    icon = "${projectDir}/src/izpack/images/logo.ico"
-    jar = "$buildDir/libs/$rootProject.name-$projectVersion"+".jar"
-}
-
 izpack {
-    baseDir = file("$buildDir/assemble/izpack")
-    installFile = file("src/izpack/install.xml")
+    baseDir = file("$buildDir")
+    installFile = file("src/main/izpack/install.xml")
     outputFile = file("$buildDir/distributions/$rootProject.name-${projectVersion}-installer.jar")
     compression = "deflate"
     compressionLevel = 9
-    appProperties = ["app.group": "$groupPackage", "app.name": "$rootProject.name", "app.title": "$rootProject.name",
-                     "app.version": "$projectVersion", "app.subpath": "$rootProject.name-${projectVersion}"]
+    appProperties = ["app.group": "$groupPackage",
+                     "app.name": "$rootProject.name",
+                     "app.title": "$rootProject.name",
+                     "app.version": "$projectVersion",
+                     "app.subpath": "$rootProject.name-${projectVersion}"]
 }
 
 license {
@@ -170,10 +165,8 @@ test {
 jacocoTestReport {
     reports {
         xml.enabled true
-        html.enabled false
+        html.enabled true
     }
 }
 
 check.dependsOn jacocoTestReport
-
-
