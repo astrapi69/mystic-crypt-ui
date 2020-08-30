@@ -23,10 +23,18 @@ package de.alpharogroup.mystic.crypt;
 import java.awt.Component;
 import java.awt.EventQueue;
 import java.io.File;
+import java.util.concurrent.atomic.AtomicReference;
 
 import javax.swing.JInternalFrame;
 
+import de.alpharogroup.model.BaseModel;
+import de.alpharogroup.model.api.Model;
 import de.alpharogroup.swing.plaf.LookAndFeels;
+import de.alpharogroup.swing.splashscreen.BaseSplashScreen;
+import de.alpharogroup.swing.splashscreen.ProgressBarSplashScreen;
+import de.alpharogroup.swing.splashscreen.SplashScreenModelBean;
+import de.alpharogroup.throwable.RuntimeExceptionDecorator;
+import de.alpharogroup.throwable.ThrowableExtensions;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.context.ConfigurableApplicationContext;
@@ -73,7 +81,20 @@ public class SpringBootSwingApplication extends ApplicationFrame<ApplicationMode
 	 *            the arguments
 	 */
 	public static void main(String[] args)
+
 	{
+
+		String imagePath = "img/icon.png";
+		SplashScreenModelBean splashScreenModelBean = SplashScreenModelBean.builder()
+		.imagePath(imagePath).text("mystic-crypt-ui").min(0).max(100).showTime(3000)
+		.showing(true).build();
+			new Thread(()->{
+			Model<SplashScreenModelBean> modelBeanModel = BaseModel.of(splashScreenModelBean);
+				new BaseSplashScreen(null, modelBeanModel);
+		}).start();
+
+		ThrowableExtensions.toRuntimeExceptionIfNeeded(i -> Thread.sleep(splashScreenModelBean.getShowTime()));
+
 		ConfigurableApplicationContext ctx = new SpringApplicationBuilder(
 			SpringBootSwingApplication.class).headless(false).run(args);
 		SpringBootSwingApplication.ctx = ctx;

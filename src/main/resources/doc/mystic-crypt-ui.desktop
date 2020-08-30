@@ -4,4 +4,4 @@ Name=mystic-crypt-ui
 GenericName=Crypto-Tool
 Comment=application that provides public and private key creation and other cool crypto-tools
 Exec=sh -c 'java -jar ~/apps/mystic-crypt-ui/mystic-crypt-ui.jar'
-Icon=~/apps/mystic-crypt-ui/icons/icon.png
+Icon=~/apps/mystic-crypt-ui/img/icon.png
