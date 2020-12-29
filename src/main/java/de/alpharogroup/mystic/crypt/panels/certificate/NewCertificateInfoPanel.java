@@ -3,8 +3,7 @@ package de.alpharogroup.mystic.crypt.panels.certificate;
 import de.alpharogroup.model.BaseModel;
 import de.alpharogroup.model.api.Model;
 import de.alpharogroup.mystic.crypt.SpringBootSwingApplication;
-import de.alpharogroup.random.RandomExtensions;
-import de.alpharogroup.random.number.RandomNumberExtensions;
+import de.alpharogroup.random.number.RandomBigIntegerFactory;
 import de.alpharogroup.swing.base.BasePanel;
 import de.alpharogroup.swing.dialog.factories.JDialogFactory;
 import de.alpharogroup.swing.listener.RequestFocusListener;
@@ -293,7 +292,7 @@ public class NewCertificateInfoPanel extends BasePanel<CertificateInfo> {
     }
 
     protected void onGenerateSerialNumber(java.awt.event.ActionEvent evt) {
-        BigInteger serialNumber = RandomExtensions.randomSerialNumber();
+        BigInteger serialNumber = RandomBigIntegerFactory.randomSerialNumber();
         getModelObject().setSerialNumber(serialNumber);
         getTxtSerialNumber().setText(serialNumber.toString());
     }

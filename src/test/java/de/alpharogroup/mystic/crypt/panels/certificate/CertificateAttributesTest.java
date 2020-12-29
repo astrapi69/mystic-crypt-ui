@@ -1,8 +1,9 @@
 package de.alpharogroup.mystic.crypt.panels.certificate;
 
-import org.junit.Test;
+import de.alpharogroup.crypto.certificate.CertificateAttributes;
+import org.junit.jupiter.api.Test;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class CertificateAttributesTest {
 
