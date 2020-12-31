@@ -107,14 +107,6 @@ task javadocJar(type: Jar) {
     javadoc.properties.failOnError = true
 }
 
-def releaseVersion = !version.endsWith("SNAPSHOT")
-
-signing {
-    if (releaseVersion) {
-        sign publishing.publications.mavenJava
-    }
-}
-
 javadoc {
     if(JavaVersion.current().isJava9Compatible()) {
         options.addBooleanOption("html5", true)
