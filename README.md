@@ -43,7 +43,7 @@ Here is the installer tool that is used for deploy the final application.
 
 # Create the izpack installer
 
-For create the installer with izpack you have to execute the izpack task in the build.gradle file. For intellij users
+For create the installer with izpack you have to execute first the build and then izpack task in the build.gradle file. For intellij users
 i have created a run configuration for it. After the execution the installer is created in the path 
 ```/build/distributions/mystic-crypt-ui-current-version-installer.jar```
 For detailed information see the izpack task in the build.gradle file or go direct to the 
