@@ -8,6 +8,7 @@ ADDED:
 
 - gradle as build system
 - simple checksum feature added
+- izpack installer introduced for create installer from application
 
 CHANGED:
 
