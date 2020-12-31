@@ -12,6 +12,7 @@ ADDED:
 
 CHANGED:
 
+- update to new group package name io.github.astrapi69
 - update of model-object version to 1.8
 - update of model-type-safe version to 1.8
 - extracted project properties to gradle.properties
