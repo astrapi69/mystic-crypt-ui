@@ -7,7 +7,7 @@ buildscript {
         }
     }
     dependencies {
-        classpath "io.franzbecker:gradle-lombok:$gradlePluginLombokVersion"
+        classpath "io.freefair.gradle:lombok-plugin:$gradlePluginLombokVersion"
         classpath "org.springframework.boot:spring-boot-gradle-plugin:$springBootGradlePluginVersion"
         classpath "io.spring.gradle:dependency-management-plugin:$springGradlePluginDependencyManagementVersion"
         classpath "com.github.ben-manes:gradle-versions-plugin:$gradlePluginVersionsVersion"
@@ -17,7 +17,7 @@ buildscript {
     }
 }
 
-apply plugin: "io.franzbecker.gradle-lombok"
+apply plugin: "io.freefair.lombok"
 apply plugin: "java"
 apply plugin: "com.bmuschko.izpack"
 apply plugin: "eclipse"
@@ -39,46 +39,9 @@ description = "$rootProject.name"
 sourceCompatibility = "$projectSourceCompatibility"
 
 repositories {
-    jcenter()
     mavenLocal()
     mavenCentral()
-}
-
-dependencies {
-    izpack("org.codehaus.izpack:izpack-standalone-compiler:$izpackVersion")
-    compileOnly("org.projectlombok:lombok:$lombokVersion")
-    annotationProcessor("org.projectlombok:lombok:$lombokVersion")
-
-    implementation("de.alpharogroup:silly-beans:$sillyBeansVersion")
-    implementation("de.alpharogroup:crypt-api:$cryptApiVersion")
-    implementation("de.alpharogroup:crypt-data:$cryptDataVersion")
-    implementation("de.alpharogroup:mystic-crypt:$mysticCryptVersion")
-    implementation("de.alpharogroup:randomizer-core:$randomizerVersion")
-    implementation("org.bouncycastle:bcprov-jdk15on:$bouncycastleVersion")
-    implementation("org.bouncycastle:bcprov-ext-jdk15on:$bouncycastleVersion")
-    implementation("org.bouncycastle:bcpkix-jdk15on:$bouncycastleVersion")
-    implementation("de.alpharogroup:checksum-up:$checksumUpVersion")
-    implementation("de.alpharogroup:model-object:$modelObjectVersion")
-    implementation("de.alpharogroup:model-type-safe:$modelTypeSafeVersion")
-    implementation("com.thoughtworks.xstream:xstream:$xstreamVersion")
-    implementation("de.alpharogroup:throw-able:$throwAbleVersion")
-    implementation("de.alpharogroup:xml-extensions:$xmlExtensionsVersion")
-    implementation("de.alpharogroup:file-worker:$fileWorkerVersion")
-    implementation("de.alpharogroup:jcommons-lang:$jcommonsLangVersion")
-    implementation("de.alpharogroup:swing-components:$swingComponentsVersion")
-    implementation("com.google.guava:guava:$guavaVersion")
-    implementation("javax.help:javahelp:$javahelpVersion")
-    implementation("org.swinglabs:swing-layout:$swingLayoutVersion")
-    implementation("org.swinglabs:jxlayer:$jxlayerVersion")
-    implementation("org.swinglabs:swing-worker:$swingWorkerVersion")
-    implementation("org.swinglabs.swingx:swingx-all:$swingxAllVersion")
-    implementation("com.miglayout:miglayout-swing:$miglayoutSwingVersion")
-    implementation("xml-apis:xml-apis:$xmlApisVersion")
-    implementation("org.springframework.boot:spring-boot-starter-integration")
-    implementation("org.springframework.boot:spring-boot-starter-validation")
-    annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
-    developmentOnly("org.springframework.boot:spring-boot-devtools")
-    testImplementation("org.springframework.boot:spring-boot-starter-test")
+    jcenter()
 }
 
 izpack {
@@ -95,8 +58,8 @@ izpack {
 }
 
 license {
-    ext.year="2015"
-    ext.owner="Asterios Raptis"
+    ext.year="$projectInceptionYear"
+    ext.owner="$projectLeaderName"
     header rootProject.file("src/main/resources/LICENSE.txt")
     excludes(["**/README",
               "**/README.md",
@@ -146,6 +109,59 @@ task javadocJar(type: Jar) {
 
 def releaseVersion = !version.endsWith("SNAPSHOT")
 
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            artifactId = "$rootProject.name"
+            from components.java
+            artifact sourcesJar
+            artifact javadocJar
+            pom {
+                name = "$rootProject.name"
+                description = "$projectDescription"
+                url = "$projectScmProviderUrl"+"$projectHolderUsername"+"$slash"+"$rootProject.name"
+                organization {
+                    name = "$projectOrganizationName"
+                    url = "$projectOrganizationUrl"
+                }
+                issueManagement {
+                    system = "$projectIssueManagementSystem"
+                    url = "$projectScmProviderUrl"+"$projectHolderUsername"+"$slash"+"$rootProject.name"+"$issuesPath"
+                }
+                licenses {
+                    license {
+                        name = "$projectLicenseName"
+                        url = "$projectLicenseUrl"
+                        distribution = "$projectLicenseDistribution"
+                    }
+                }
+                developers {
+                    developer {
+                        id = "$projectHolderUsername"
+                        name = "$projectLeaderName"
+                    }
+                }
+                scm {
+                    connection = "$projectScmGitUrlPrefix" + "$projectScmProviderDomain" + "$colon" + "$projectHolderUsername" + "$slash" + "$rootProject.name" + "$projectScmGitUrlSuffix"
+                    developerConnection = "$projectScmGitUrlPrefix" + "$projectScmProviderDomain" + "$colon" + "$projectHolderUsername" + "$slash" + "$rootProject.name" + "$projectScmGitUrlSuffix"
+                    url = "$projectScmGitUrlPrefix" + "$projectScmProviderDomain" + "$colon" + "$projectHolderUsername" + "$slash" + "$rootProject.name" + "$projectScmGitUrlSuffix"
+                }
+            }
+        }
+    }
+    repositories {
+        maven {
+            credentials {
+                username System.getenv("$projectRepositoriesUserNameKey") ?: project.property("$projectRepositoriesUserNameKey")
+                password System.getenv("$projectRepositoriesPasswordKey") ?: project.property("$projectRepositoriesPasswordKey")
+            }
+            def releasesRepoUrl = "$projectRepositoriesReleasesRepoUrl"
+            def snapshotsRepoUrl = "$projectRepositoriesSnapshotsRepoUrl"
+            url = releaseVersion ? releasesRepoUrl : snapshotsRepoUrl
+        }
+    }
+}
+
 signing {
     if (releaseVersion) {
         sign publishing.publications.mavenJava
@@ -174,3 +190,39 @@ jacocoTestReport {
 }
 
 check.dependsOn jacocoTestReport
+
+dependencies {
+    izpack("org.codehaus.izpack:izpack-standalone-compiler:$izpackVersion")
+    compileOnly("org.projectlombok:lombok:$lombokVersion")
+    annotationProcessor("org.projectlombok:lombok:$lombokVersion")
+
+    implementation("de.alpharogroup:silly-beans:$sillyBeansVersion")
+    implementation("de.alpharogroup:crypt-api:$cryptApiVersion")
+    implementation("de.alpharogroup:crypt-data:$cryptDataVersion")
+    implementation("de.alpharogroup:mystic-crypt:$mysticCryptVersion")
+    implementation("de.alpharogroup:randomizer-core:$randomizerVersion")
+    implementation("org.bouncycastle:bcprov-jdk15on:$bouncycastleVersion")
+    implementation("org.bouncycastle:bcprov-ext-jdk15on:$bouncycastleVersion")
+    implementation("org.bouncycastle:bcpkix-jdk15on:$bouncycastleVersion")
+    implementation("de.alpharogroup:checksum-up:$checksumUpVersion")
+    implementation("de.alpharogroup:model-object:$modelObjectVersion")
+    implementation("de.alpharogroup:model-type-safe:$modelTypeSafeVersion")
+    implementation("com.thoughtworks.xstream:xstream:$xstreamVersion")
+    implementation("de.alpharogroup:throw-able:$throwAbleVersion")
+    implementation("de.alpharogroup:xml-extensions:$xmlExtensionsVersion")
+    implementation("de.alpharogroup:file-worker:$fileWorkerVersion")
+    implementation("de.alpharogroup:jcommons-lang:$jcommonsLangVersion")
+    implementation("de.alpharogroup:swing-components:$swingComponentsVersion")
+    implementation("com.google.guava:guava:$guavaVersion")
+    implementation("javax.help:javahelp:$javahelpVersion")
+    implementation("org.swinglabs:swing-layout:$swingLayoutVersion")
+    implementation("org.swinglabs:jxlayer:$jxlayerVersion")
+    implementation("org.swinglabs:swing-worker:$swingWorkerVersion")
+    implementation("org.swinglabs.swingx:swingx-all:$swingxAllVersion")
+    implementation("com.miglayout:miglayout-swing:$miglayoutSwingVersion")
+    implementation("org.springframework.boot:spring-boot-starter-integration")
+    implementation("org.springframework.boot:spring-boot-starter-validation")
+    annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
+    developmentOnly("org.springframework.boot:spring-boot-devtools")
+    testImplementation("org.springframework.boot:spring-boot-starter-test")
+}

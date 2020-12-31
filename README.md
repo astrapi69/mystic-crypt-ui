@@ -12,24 +12,45 @@ This swing application provides public and private key creation and obfuscate st
 
 # Install
 
-Windows, Linux and Mac users can download and install it with [izpack installer created with DCP](https://sourceforge.net/projects/mysticcrypt/files/5.1/installer.jar/download). Note: for unix users dont forget to set the execute bit for start the jar file.
+Windows, Linux and Mac users can download and install it with 
+[izpack installer](https://sourceforge.net/projects/mysticcrypt/files/5.1/installer.jar/download). 
+Note: for unix users dont forget to set the execute bit for start the jar file.
 [![Download mystic-crypt](https://a.fsdn.com/con/app/sf-download-button)](https://sourceforge.net/projects/mysticcrypt/files/latest/download)
 [![Download mystic-crypt](https://img.shields.io/sourceforge/dm/mysticcrypt.svg)](https://sourceforge.net/projects/mysticcrypt/files/latest/download)
 
-For users that want to build it from the source files can clone this git repository. It is a maven project so you will need maven and a JDK.
+# Build from source 
 
-Than compile the project:
+For users that want to build it from the source files can clone this git repository. It is a gradle project, so you will 
+need gradle and a JDK installation.
+
+Then compile the project:
 
 ```
-mvn clean install
+./gradlew build
 ```
 
-# List of installer tools
+The jar file is now generated and is located in the path ```/build/libs/mystic-crypt-ui-current-version.jar``` and ready
+for execution.
 
-Here is a list of installer tools that are used for deploy the final application.
+Note: 
+Replace *current-version* with the current version of the project.
+
+# Installer tool
+
+Here is the installer tool that is used for deploy the final application.
 
 * [izpack](http://izpack.org/) IzPack is a widely used tool for packaging applications on the Java™ platform.
-* [DCP](http://devcompack.sourceforge.net/index.html) Powerful simple-to-use application to generate stable and multi-platform installers.
+
+# Create the izpack installer
+
+For create the installer with izpack you have to execute the izpack task in the build.gradle file. For intellij users
+i have created a run configuration for it. After the execution the installer is created in the path 
+```/build/distributions/mystic-crypt-ui-current-version-installer.jar```
+For detailed information see the izpack task in the build.gradle file or go direct to the 
+[gradle plugin page](https://github.com/bmuschko/gradle-izpack-plugin)
+
+Note:
+*current-version* is the current version of the project.
 
 ## License
 
