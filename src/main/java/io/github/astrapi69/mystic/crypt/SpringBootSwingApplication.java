@@ -80,10 +80,16 @@ public class SpringBootSwingApplication extends ApplicationFrame<ApplicationMode
 	public static void main(String[] args)
 
 	{
-
-		String imagePath = "img/icon.png";
+		String imagePath;
+		String text;
+		imagePath = Messages.getString("global.icon.app.path");
+		if(imagePath == null)
+		imagePath = "img/icon.png";
+		text = Messages.getString("mainframe.project.name");
+		if(text == null)
+		text = "mystic-crypt-ui";
 		SplashScreenModelBean splashScreenModelBean = SplashScreenModelBean.builder()
-		.imagePath(imagePath).text("mystic-crypt-ui").min(0).max(100).showTime(3000)
+		.imagePath(imagePath).text(text).min(0).max(100).showTime(3000)
 		.showing(true).build();
 			new Thread(()->{
 			Model<SplashScreenModelBean> modelBeanModel = BaseModel.of(splashScreenModelBean);
@@ -141,8 +147,9 @@ public class SpringBootSwingApplication extends ApplicationFrame<ApplicationMode
 	protected File newConfigurationDirectory(final @NonNull String parent,
 		final @NonNull String child)
 	{
+		String configurationDirectoryName = "mystic-crypt";
 		File applicationConfigurationDirectory = new File(
-			super.newConfigurationDirectory(parent, child), "mystic-crypt");
+			super.newConfigurationDirectory(parent, child), configurationDirectoryName);
 		if (!applicationConfigurationDirectory.exists())
 		{
 			applicationConfigurationDirectory.mkdir();

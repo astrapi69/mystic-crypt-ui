@@ -59,9 +59,9 @@
 			<description>The executables</description>
 			<file src="../CHANGELOG.md" targetdir="${INSTALL_PATH}" />
 			<file src="../LICENSE" targetdir="${INSTALL_PATH}" />
-			<singlefile src="libs/@{app.name}-@{app.version}.jar" target="${INSTALL_PATH}/mystic-crypt-ui.jar" />
+			<singlefile src="libs/@{app.name}-@{app.version}.jar" target="${INSTALL_PATH}/@{app.name}.jar" />
 			<file src="../README.md" targetdir="${INSTALL_PATH}" />
-			<file src="resources/main/doc/mystic-crypt-ui.desktop" targetdir="${INSTALL_PATH}" />
+			<file src="resources/main/doc/@{app.name}.desktop" targetdir="${INSTALL_PATH}" />
 			<file src="resources/main/img/icon.png" targetdir="${INSTALL_PATH}/img" />
 		</pack>
 
