@@ -4,6 +4,14 @@
 Version 5.5-SNAPSHOT
 -------------
 
+CHANGED:
+
+- update of gradle version to 6.8.3
+- update of dependency spring-boot to new version 2.4.3
+- update of dependency lombok to new version 1.18.18
+- update of com.github.ben-manes.versions.gradle.plugin to new version 0.38.0
+- update of io.spring.gradle:dependency-management-plugin to new version 1.0.11.RELEASE
+
 Version 5.4
 -------------
 
