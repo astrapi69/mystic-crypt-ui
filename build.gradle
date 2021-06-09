@@ -41,7 +41,6 @@ sourceCompatibility = "$projectSourceCompatibility"
 repositories {
     mavenLocal()
     mavenCentral()
-    jcenter()
 }
 
 izpack {

@@ -43,7 +43,7 @@ public class MasterPwFilePanelTest
 
 		final MasterPwFilePanel panel = new MasterPwFilePanel();
 		frame.add(panel);
-		frame.setBounds(0, 0, 1280, 650);
+		frame.setBounds(0, 0, 820, 380);
 		frame.setVisible(true);
 	}
 

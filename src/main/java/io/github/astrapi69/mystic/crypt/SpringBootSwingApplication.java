@@ -20,18 +20,23 @@
  */
 package io.github.astrapi69.mystic.crypt;
 
-import java.awt.Component;
-import java.awt.EventQueue;
+import java.awt.*;
 import java.io.File;
 
-import javax.swing.JInternalFrame;
+import javax.swing.*;
 
+import de.alpharogroup.layout.CloseWindow;
 import de.alpharogroup.model.BaseModel;
 import de.alpharogroup.model.api.Model;
+import de.alpharogroup.swing.dialog.factories.JDialogFactory;
+import de.alpharogroup.swing.listener.RequestFocusListener;
 import de.alpharogroup.swing.plaf.LookAndFeels;
 import de.alpharogroup.swing.splashscreen.BaseSplashScreen;
 import de.alpharogroup.swing.splashscreen.SplashScreenModelBean;
 import de.alpharogroup.throwable.ThrowableExtensions;
+import io.github.astrapi69.mystic.crypt.panels.signin.MasterPwFileDialog;
+import io.github.astrapi69.mystic.crypt.panels.signin.MasterPwFileModelBean;
+import io.github.astrapi69.mystic.crypt.panels.signin.MasterPwFilePanel;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.context.ConfigurableApplicationContext;
@@ -98,14 +103,42 @@ public class SpringBootSwingApplication extends ApplicationFrame<ApplicationMode
 
 		ThrowableExtensions.toRuntimeExceptionIfNeeded(i -> Thread.sleep(splashScreenModelBean.getShowTime()));
 
-		ConfigurableApplicationContext ctx = new SpringApplicationBuilder(
+		ConfigurableApplicationContext context = new SpringApplicationBuilder(
 			SpringBootSwingApplication.class).headless(false).run(args);
-		SpringBootSwingApplication.ctx = ctx;
+		SpringBootSwingApplication.ctx = context;
 
 		EventQueue.invokeLater(() -> {
-			SpringBootSwingApplication ex = ctx.getBean(SpringBootSwingApplication.class);
-			ex.setVisible(true);
+			SpringBootSwingApplication springBootSwingApplicationFrame =
+				context.getBean(SpringBootSwingApplication.class);
+			springBootSwingApplicationFrame.setVisible(true);
 		});
+	}
+
+	@Override protected void onBeforeInitialize()
+	{
+		showMasterPwDialog();
+		super.onBeforeInitialize();
+	}
+
+	private void showMasterPwOptionPane()
+	{
+		MasterPwFilePanel masterPwFilePanel = new MasterPwFilePanel();
+		JOptionPane optionPane = new JOptionPane(masterPwFilePanel, JOptionPane.PLAIN_MESSAGE);
+
+		JDialog dialog = JDialogFactory.newJDialog(this, optionPane, "Enter your credentials");
+		dialog.addWindowFocusListener(new RequestFocusListener(masterPwFilePanel.getTxtMasterPw()));
+		dialog.pack();
+		dialog.setLocationRelativeTo(null);
+		dialog.setVisible(true);
+	}
+
+	private void showMasterPwDialog()
+	{
+		MasterPwFileDialog dialog = new MasterPwFileDialog(this,
+			"Enter your credentials", true,
+			BaseModel.<MasterPwFileModelBean> of(MasterPwFileModelBean.builder().build()));
+		dialog.setSize(820, 380);
+		dialog.setVisible(true);
 	}
 
 	/** The console internal frame. */

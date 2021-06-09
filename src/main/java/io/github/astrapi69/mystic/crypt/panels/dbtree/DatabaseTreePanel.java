@@ -39,8 +39,8 @@ import javax.swing.tree.TreePath;
 
 import de.alpharogroup.model.BaseModel;
 import de.alpharogroup.model.api.Model;
+import de.alpharogroup.swing.panels.tree.JTreePanel;
 
-@SuppressWarnings("deprecation")
 public class DatabaseTreePanel extends JTreePanel<DatabaseTreeModelBean>
 {
 

@@ -40,10 +40,8 @@ import lombok.experimental.FieldDefaults;
 @AllArgsConstructor
 @Builder(toBuilder = true)
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class DatabaseTreeModelBean implements Serializable
+public class DatabaseTreeModelBean
 {
-
-	private static final long serialVersionUID = 1L;
 
 	String name;
 }
