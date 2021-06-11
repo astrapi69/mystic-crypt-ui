@@ -26,8 +26,8 @@ import java.util.stream.Collectors;
 
 import de.alpharogroup.collections.array.ArrayExtensions;
 import de.alpharogroup.collections.list.ListFactory;
-import de.alpharogroup.crypto.obfuscation.rule.ObfuscationOperationRule;
-import de.alpharogroup.crypto.obfuscation.rule.Operation;
+import io.github.astrapi69.crypto.obfuscation.rule.ObfuscationOperationRule;
+import io.github.astrapi69.crypto.obfuscation.rule.Operation;
 import de.alpharogroup.model.api.Model;
 import io.github.astrapi69.mystic.crypt.panels.obfuscate.ModeContext;
 import de.alpharogroup.swing.base.BasePanel;

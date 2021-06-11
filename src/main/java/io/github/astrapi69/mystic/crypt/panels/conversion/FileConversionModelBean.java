@@ -23,7 +23,7 @@ package io.github.astrapi69.mystic.crypt.panels.conversion;
 import java.io.File;
 import java.io.Serializable;
 
-import de.alpharogroup.crypto.key.KeyType;
+import io.github.astrapi69.crypto.key.KeyType;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;

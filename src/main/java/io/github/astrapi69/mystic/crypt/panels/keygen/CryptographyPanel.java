@@ -36,13 +36,13 @@ import java.util.logging.Level;
 
 import javax.swing.*;
 
-import de.alpharogroup.crypto.algorithm.HashAlgorithm;
-import de.alpharogroup.crypto.algorithm.KeyPairGeneratorAlgorithm;
-import de.alpharogroup.crypto.algorithm.UnionWord;
-import de.alpharogroup.crypto.factories.CertFactory;
-import de.alpharogroup.crypto.key.KeyFileFormat;
-import de.alpharogroup.crypto.key.KeySize;
-import de.alpharogroup.crypto.key.writer.CertificateWriter;
+import io.github.astrapi69.crypto.algorithm.HashAlgorithm;
+import io.github.astrapi69.crypto.algorithm.KeyPairGeneratorAlgorithm;
+import io.github.astrapi69.crypto.algorithm.UnionWord;
+import io.github.astrapi69.crypto.factories.CertFactory;
+import io.github.astrapi69.crypto.key.KeyFileFormat;
+import io.github.astrapi69.crypto.key.KeySize;
+import io.github.astrapi69.crypto.key.writer.CertificateWriter;
 import de.alpharogroup.layout.GridBagLayoutModel;
 import de.alpharogroup.layout.InsetsModel;
 import de.alpharogroup.layout.LayoutExtensions;

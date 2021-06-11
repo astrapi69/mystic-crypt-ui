@@ -1,17 +1,17 @@
 /**
  * The MIT License
- *
+ * <p>
  * Copyright (C) 2015 Asterios Raptis
- *
+ * <p>
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
  * associated documentation files (the "Software"), to deal in the Software without restriction,
  * including without limitation the rights to use, copy, modify, merge, publish, distribute,
  * sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- *
+ * <p>
  * The above copyright notice and this permission notice shall be included in all copies or
  * substantial portions of the Software.
- *
+ * <p>
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT
  * NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
  * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
@@ -20,45 +20,40 @@
  */
 package io.github.astrapi69.mystic.crypt;
 
-import java.awt.*;
-import java.io.File;
-
-import javax.swing.*;
-
-import de.alpharogroup.layout.CloseWindow;
+import de.alpharogroup.layout.ScreenSizeExtensions;
 import de.alpharogroup.model.BaseModel;
 import de.alpharogroup.model.api.Model;
-import de.alpharogroup.swing.dialog.factories.JDialogFactory;
-import de.alpharogroup.swing.listener.RequestFocusListener;
-import de.alpharogroup.swing.plaf.LookAndFeels;
-import de.alpharogroup.swing.splashscreen.BaseSplashScreen;
-import de.alpharogroup.swing.splashscreen.SplashScreenModelBean;
-import de.alpharogroup.throwable.ThrowableExtensions;
-import io.github.astrapi69.mystic.crypt.panels.signin.MasterPwFileDialog;
-import io.github.astrapi69.mystic.crypt.panels.signin.MasterPwFileModelBean;
-import io.github.astrapi69.mystic.crypt.panels.signin.MasterPwFilePanel;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.builder.SpringApplicationBuilder;
-import org.springframework.context.ConfigurableApplicationContext;
-
-import de.alpharogroup.layout.ScreenSizeExtensions;
 import de.alpharogroup.swing.base.ApplicationFrame;
 import de.alpharogroup.swing.base.BaseDesktopMenu;
 import de.alpharogroup.swing.components.factories.JComponentFactory;
+import de.alpharogroup.swing.dialog.factories.JDialogFactory;
+import de.alpharogroup.swing.listener.RequestFocusListener;
 import de.alpharogroup.swing.panels.output.ConsolePanel;
+import de.alpharogroup.swing.plaf.LookAndFeels;
+import de.alpharogroup.swing.splashscreen.BaseSplashScreen;
+import de.alpharogroup.swing.splashscreen.SplashScreenModelBean;
 import de.alpharogroup.swing.utils.JInternalFrameExtensions;
+import io.github.astrapi69.mystic.crypt.panels.signin.MasterPwFileDialog;
+import io.github.astrapi69.mystic.crypt.panels.signin.MasterPwFileModelBean;
+import io.github.astrapi69.mystic.crypt.panels.signin.MasterPwFilePanel;
+import io.github.astrapi69.throwable.RuntimeExceptionDecorator;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.experimental.FieldDefaults;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.builder.SpringApplicationBuilder;
+import org.springframework.context.ConfigurableApplicationContext;
+
+import javax.swing.*;
+import java.awt.*;
+import java.io.File;
 
 /**
  * The class {@link SpringBootSwingApplication}
  */
-@SuppressWarnings("serial")
-@SpringBootApplication
-@FieldDefaults(level = AccessLevel.PRIVATE)
-public class SpringBootSwingApplication extends ApplicationFrame<ApplicationModelBean>
+@SuppressWarnings("serial") @SpringBootApplication @FieldDefaults(level = AccessLevel.PRIVATE) public class SpringBootSwingApplication
+	extends ApplicationFrame<ApplicationModelBean>
 {
 
 	public static ConfigurableApplicationContext ctx;
@@ -88,28 +83,27 @@ public class SpringBootSwingApplication extends ApplicationFrame<ApplicationMode
 		String imagePath;
 		String text;
 		imagePath = Messages.getString("global.icon.app.path");
-		if(imagePath == null)
-		imagePath = "img/icon.png";
+		if (imagePath == null)
+			imagePath = "img/icon.png";
 		text = Messages.getString("mainframe.project.name");
-		if(text == null)
-		text = "mystic-crypt-ui";
+		if (text == null)
+			text = "mystic-crypt-ui";
 		SplashScreenModelBean splashScreenModelBean = SplashScreenModelBean.builder()
-		.imagePath(imagePath).text(text).min(0).max(100).showTime(3000)
-		.showing(true).build();
-			new Thread(()->{
+			.imagePath(imagePath).text(text).min(0).max(100).showTime(3000).showing(true).build();
+		new Thread(() -> {
 			Model<SplashScreenModelBean> modelBeanModel = BaseModel.of(splashScreenModelBean);
-				new BaseSplashScreen(null, modelBeanModel);
+			new BaseSplashScreen(null, modelBeanModel);
 		}).start();
 
-		ThrowableExtensions.toRuntimeExceptionIfNeeded(i -> Thread.sleep(splashScreenModelBean.getShowTime()));
+		RuntimeExceptionDecorator.decorate(i -> Thread.sleep(splashScreenModelBean.getShowTime()));
 
 		ConfigurableApplicationContext context = new SpringApplicationBuilder(
 			SpringBootSwingApplication.class).headless(false).run(args);
 		SpringBootSwingApplication.ctx = context;
 
 		EventQueue.invokeLater(() -> {
-			SpringBootSwingApplication springBootSwingApplicationFrame =
-				context.getBean(SpringBootSwingApplication.class);
+			SpringBootSwingApplication springBootSwingApplicationFrame = context
+				.getBean(SpringBootSwingApplication.class);
 			springBootSwingApplicationFrame.setVisible(true);
 		});
 	}
@@ -134,20 +128,17 @@ public class SpringBootSwingApplication extends ApplicationFrame<ApplicationMode
 
 	private void showMasterPwDialog()
 	{
-		MasterPwFileDialog dialog = new MasterPwFileDialog(this,
-			"Enter your credentials", true,
-			BaseModel.<MasterPwFileModelBean> of(MasterPwFileModelBean.builder().build()));
+		MasterPwFileDialog dialog = new MasterPwFileDialog(this, "Enter your credentials", true,
+			BaseModel.<MasterPwFileModelBean>of(MasterPwFileModelBean.builder().build()));
 		dialog.setSize(820, 380);
 		dialog.setVisible(true);
 	}
 
 	/** The console internal frame. */
-	@Getter
-	JInternalFrame consoleInternalFrame;
+	@Getter JInternalFrame consoleInternalFrame;
 
 	/** The internal frame. */
-	@Getter
-	JInternalFrame internalFrame;
+	@Getter JInternalFrame internalFrame;
 
 	/**
 	 * Instantiates a new main frame.
@@ -161,14 +152,15 @@ public class SpringBootSwingApplication extends ApplicationFrame<ApplicationMode
 	{
 		if (consoleInternalFrame == null)
 		{
-			consoleInternalFrame = JComponentFactory.newInternalFrame("Console", true, true, true,
-				true);
+			consoleInternalFrame = JComponentFactory
+				.newInternalFrame("Console", true, true, true, true);
 			ConsolePanel consolePanel = new ConsolePanel();
 			int screenHeight = ScreenSizeExtensions.getScreenHeight(this);
 			int screenWidth = ScreenSizeExtensions.getScreenWidth(this);
 			JInternalFrameExtensions.addComponentToFrame(consoleInternalFrame, consolePanel);
-			JInternalFrameExtensions.addJInternalFrame(
-				SpringBootSwingApplication.getInstance().getMainComponent(), consoleInternalFrame);
+			JInternalFrameExtensions
+				.addJInternalFrame(SpringBootSwingApplication.getInstance().getMainComponent(),
+					consoleInternalFrame);
 			consoleInternalFrame.setSize(screenWidth, (screenHeight / 4));
 			consoleInternalFrame.setLocation(0, (screenHeight / 4) * 3);
 			consoleInternalFrame.setResizable(false);
@@ -176,8 +168,7 @@ public class SpringBootSwingApplication extends ApplicationFrame<ApplicationMode
 		}
 	}
 
-	@Override
-	protected File newConfigurationDirectory(final @NonNull String parent,
+	@Override protected File newConfigurationDirectory(final @NonNull String parent,
 		final @NonNull String child)
 	{
 		String configurationDirectoryName = "mystic-crypt";
@@ -190,20 +181,17 @@ public class SpringBootSwingApplication extends ApplicationFrame<ApplicationMode
 		return applicationConfigurationDirectory;
 	}
 
-	@Override
-	protected BaseDesktopMenu newDesktopMenu(@NonNull Component applicationFrame)
+	@Override protected BaseDesktopMenu newDesktopMenu(@NonNull Component applicationFrame)
 	{
 		return new DesktopMenu(applicationFrame);
 	}
 
-	@Override
-	protected String newIconPath()
+	@Override protected String newIconPath()
 	{
 		return Messages.getString("global.icon.app.path");
 	}
 
-	@Override
-	protected void onAfterInitialize()
+	@Override protected void onAfterInitialize()
 	{
 		super.onAfterInitialize();
 
@@ -215,8 +203,7 @@ public class SpringBootSwingApplication extends ApplicationFrame<ApplicationMode
 		setTitle(Messages.getString("mainframe.title"));
 	}
 
-	@Override
-	protected LookAndFeels newLookAndFeels()
+	@Override protected LookAndFeels newLookAndFeels()
 	{
 		return LookAndFeels.METAL;
 	}

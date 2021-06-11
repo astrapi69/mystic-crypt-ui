@@ -33,9 +33,9 @@ import com.google.common.collect.HashBiMap;
 
 import de.alpharogroup.collections.list.ListFactory;
 import de.alpharogroup.collections.pairs.KeyValuePair;
-import de.alpharogroup.crypto.obfuscation.api.Obfuscatable;
-import de.alpharogroup.crypto.obfuscation.rule.ObfuscationRule;
-import de.alpharogroup.crypto.obfuscation.simple.SimpleCharacterObfuscator;
+import io.github.astrapi69.crypto.obfuscation.api.Obfuscatable;
+import io.github.astrapi69.crypto.obfuscation.rule.ObfuscationRule;
+import io.github.astrapi69.crypto.obfuscation.simple.SimpleCharacterObfuscator;
 import de.alpharogroup.model.BaseModel;
 import de.alpharogroup.model.api.Model;
 import io.github.astrapi69.mystic.crypt.panels.keygen.EnDecryptPanel;

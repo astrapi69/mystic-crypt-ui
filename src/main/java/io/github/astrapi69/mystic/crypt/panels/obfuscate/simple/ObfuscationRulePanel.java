@@ -22,7 +22,7 @@ package io.github.astrapi69.mystic.crypt.panels.obfuscate.simple;
 
 import java.awt.event.ActionEvent;
 
-import de.alpharogroup.crypto.obfuscation.rule.ObfuscationRule;
+import io.github.astrapi69.crypto.obfuscation.rule.ObfuscationRule;
 import de.alpharogroup.model.BaseModel;
 import de.alpharogroup.model.api.Model;
 import io.github.astrapi69.mystic.crypt.panels.obfuscate.ModeContext;

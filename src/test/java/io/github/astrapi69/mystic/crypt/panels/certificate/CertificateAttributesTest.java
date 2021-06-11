@@ -24,7 +24,7 @@
  */
 package io.github.astrapi69.mystic.crypt.panels.certificate;
 
-import de.alpharogroup.crypto.certificate.CertificateAttributes;
+import io.github.astrapi69.crypto.certificate.CertificateAttributes;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;

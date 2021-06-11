@@ -30,8 +30,8 @@ import com.google.common.collect.HashBiMap;
 
 import de.alpharogroup.collections.list.ListFactory;
 import de.alpharogroup.collections.pairs.KeyValuePair;
-import de.alpharogroup.crypto.obfuscation.rule.ObfuscationOperationRule;
-import de.alpharogroup.crypto.obfuscation.rule.Operation;
+import io.github.astrapi69.crypto.obfuscation.rule.ObfuscationOperationRule;
+import io.github.astrapi69.crypto.obfuscation.rule.Operation;
 import de.alpharogroup.swing.table.model.GenericTableModel;
 import lombok.Builder;
 import lombok.Getter;

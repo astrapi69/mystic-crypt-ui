@@ -22,8 +22,8 @@ package io.github.astrapi69.mystic.crypt.panels.obfuscate.simple;
 
 import java.io.Serializable;
 
-import de.alpharogroup.crypto.obfuscation.api.Obfuscatable;
-import de.alpharogroup.crypto.obfuscation.rule.ObfuscationRule;
+import io.github.astrapi69.crypto.obfuscation.api.Obfuscatable;
+import io.github.astrapi69.crypto.obfuscation.rule.ObfuscationRule;
 import io.github.astrapi69.mystic.crypt.panels.obfuscate.ModeContext;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;

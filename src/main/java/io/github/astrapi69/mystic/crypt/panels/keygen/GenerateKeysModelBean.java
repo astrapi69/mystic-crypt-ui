@@ -24,9 +24,9 @@ import java.io.Serializable;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 
-import de.alpharogroup.crypto.key.KeySize;
-import de.alpharogroup.crypto.key.PrivateKeyHexDecryptor;
-import de.alpharogroup.crypto.key.PublicKeyHexEncryptor;
+import io.github.astrapi69.crypto.key.KeySize;
+import io.github.astrapi69.crypto.key.PrivateKeyHexDecryptor;
+import io.github.astrapi69.crypto.key.PublicKeyHexEncryptor;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;

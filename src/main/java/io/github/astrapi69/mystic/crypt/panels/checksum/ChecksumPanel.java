@@ -30,9 +30,9 @@
 package io.github.astrapi69.mystic.crypt.panels.checksum;
 
 import de.alpharogroup.behaviors.EnableButtonBehavior;
-import de.alpharogroup.checksum.ChecksumExtensions;
-import de.alpharogroup.checksum.FileChecksumExtensions;
-import de.alpharogroup.checksum.api.ChecksumAlgorithm;
+import io.github.astrapi69.checksum.ChecksumExtensions;
+import io.github.astrapi69.checksum.FileChecksumExtensions;
+import io.github.astrapi69.checksum.api.ChecksumAlgorithm;
 import de.alpharogroup.file.read.ReadFileExtensions;
 import de.alpharogroup.file.system.SystemFileExtensions;
 import de.alpharogroup.model.BaseModel;

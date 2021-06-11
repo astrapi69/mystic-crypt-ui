@@ -40,7 +40,7 @@ import de.alpharogroup.collections.map.MapFactory;
 import de.alpharogroup.collections.pairs.KeyValuePair;
 import de.alpharogroup.xml.crypto.file.XmlDecryptionExtensions;
 import de.alpharogroup.xml.crypto.file.XmlEncryptionExtensions;
-import de.alpharogroup.crypto.obfuscation.rule.ObfuscationRule;
+import io.github.astrapi69.crypto.obfuscation.rule.ObfuscationRule;
 import de.alpharogroup.model.BaseModel;
 import de.alpharogroup.model.api.Model;
 import de.alpharogroup.swing.GenericJTable;

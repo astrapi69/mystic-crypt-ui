@@ -40,16 +40,16 @@ import javax.swing.JOptionPane;
 
 import org.apache.commons.codec.DecoderException;
 
-import de.alpharogroup.crypto.algorithm.KeyPairGeneratorAlgorithm;
-import de.alpharogroup.crypto.factories.KeyPairFactory;
-import de.alpharogroup.crypto.key.KeySize;
-import de.alpharogroup.crypto.key.PrivateKeyExtensions;
-import de.alpharogroup.crypto.key.PrivateKeyHexDecryptor;
-import de.alpharogroup.crypto.key.PublicKeyExtensions;
-import de.alpharogroup.crypto.key.PublicKeyHexEncryptor;
-import de.alpharogroup.crypto.key.writer.EncryptedPrivateKeyWriter;
-import de.alpharogroup.crypto.key.writer.PrivateKeyWriter;
-import de.alpharogroup.crypto.key.writer.PublicKeyWriter;
+import io.github.astrapi69.crypto.algorithm.KeyPairGeneratorAlgorithm;
+import io.github.astrapi69.crypto.factories.KeyPairFactory;
+import io.github.astrapi69.crypto.key.KeySize;
+import io.github.astrapi69.crypto.key.PrivateKeyExtensions;
+import io.github.astrapi69.crypto.key.PrivateKeyHexDecryptor;
+import io.github.astrapi69.crypto.key.PublicKeyExtensions;
+import io.github.astrapi69.crypto.key.PublicKeyHexEncryptor;
+import io.github.astrapi69.crypto.key.writer.EncryptedPrivateKeyWriter;
+import io.github.astrapi69.crypto.key.writer.PrivateKeyWriter;
+import io.github.astrapi69.crypto.key.writer.PublicKeyWriter;
 import de.alpharogroup.model.BaseModel;
 import de.alpharogroup.model.api.Model;
 import de.alpharogroup.swing.base.BasePanel;

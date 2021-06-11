@@ -45,12 +45,12 @@ import io.github.astrapi69.mystic.crypt.panels.privatekey.PrivateKeyModelBean;
 import io.github.astrapi69.mystic.crypt.panels.privatekey.PrivateKeyPanel;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 
-import de.alpharogroup.crypto.key.PrivateKeyExtensions;
-import de.alpharogroup.crypto.key.PrivateKeyHexDecryptor;
-import de.alpharogroup.crypto.key.PublicKeyExtensions;
-import de.alpharogroup.crypto.key.PublicKeyHexEncryptor;
-import de.alpharogroup.crypto.key.reader.EncryptedPrivateKeyReader;
-import de.alpharogroup.crypto.key.reader.PrivateKeyReader;
+import io.github.astrapi69.crypto.key.PrivateKeyExtensions;
+import io.github.astrapi69.crypto.key.PrivateKeyHexDecryptor;
+import io.github.astrapi69.crypto.key.PublicKeyExtensions;
+import io.github.astrapi69.crypto.key.PublicKeyHexEncryptor;
+import io.github.astrapi69.crypto.key.reader.EncryptedPrivateKeyReader;
+import io.github.astrapi69.crypto.key.reader.PrivateKeyReader;
 import de.alpharogroup.file.read.ReadFileExtensions;
 import de.alpharogroup.swing.actions.OpenFileAction;
 import de.alpharogroup.swing.components.factories.JComponentFactory;
