@@ -51,8 +51,8 @@ import io.github.astrapi69.crypto.key.writer.PublicKeyWriter;
 import io.github.astrapi69.throwable.ThrowableExtensions;
 import de.alpharogroup.model.BaseModel;
 import de.alpharogroup.model.api.Model;
-import de.alpharogroup.swing.base.BasePanel;
-import de.alpharogroup.swing.combobox.model.EnumComboBoxModel;
+import io.github.astrapi69.swing.base.BasePanel;
+import io.github.astrapi69.swing.combobox.model.EnumComboBoxModel;
 import lombok.Getter;
 import lombok.extern.java.Log;
 

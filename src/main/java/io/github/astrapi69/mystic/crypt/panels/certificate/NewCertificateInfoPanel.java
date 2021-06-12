@@ -28,9 +28,9 @@ import de.alpharogroup.model.BaseModel;
 import de.alpharogroup.model.api.Model;
 import io.github.astrapi69.mystic.crypt.SpringBootSwingApplication;
 import de.alpharogroup.random.number.RandomBigIntegerFactory;
-import de.alpharogroup.swing.base.BasePanel;
-import de.alpharogroup.swing.dialog.factories.JDialogFactory;
-import de.alpharogroup.swing.listener.RequestFocusListener;
+import io.github.astrapi69.swing.base.BasePanel;
+import io.github.astrapi69.swing.dialog.factories.JDialogFactory;
+import io.github.astrapi69.swing.listener.RequestFocusListener;
 import lombok.Getter;
 
 import javax.swing.*;

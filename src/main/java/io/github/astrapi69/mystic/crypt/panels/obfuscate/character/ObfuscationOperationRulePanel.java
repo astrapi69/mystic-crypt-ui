@@ -30,10 +30,10 @@ import io.github.astrapi69.crypto.obfuscation.rule.ObfuscationOperationRule;
 import io.github.astrapi69.crypto.obfuscation.rule.Operation;
 import de.alpharogroup.model.api.Model;
 import io.github.astrapi69.mystic.crypt.panels.obfuscate.ModeContext;
-import de.alpharogroup.swing.base.BasePanel;
-import de.alpharogroup.swing.combobox.model.EnumComboBoxModel;
-import de.alpharogroup.swing.document.NumberValuesDocument;
-import de.alpharogroup.swing.document.RangeDocument;
+import io.github.astrapi69.swing.base.BasePanel;
+import io.github.astrapi69.swing.combobox.model.EnumComboBoxModel;
+import io.github.astrapi69.swing.document.NumberValuesDocument;
+import io.github.astrapi69.swing.document.RangeDocument;
 import lombok.Getter;
 
 @Getter

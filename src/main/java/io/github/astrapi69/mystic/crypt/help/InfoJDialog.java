@@ -31,7 +31,7 @@ import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
 
-import de.alpharogroup.actions.DisposeWindowAction;
+import io.github.astrapi69.actions.DisposeWindowAction;
 import io.github.astrapi69.mystic.crypt.Messages;
 
 /**

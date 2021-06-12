@@ -23,7 +23,8 @@ package io.github.astrapi69.mystic.crypt.panels.signin;
 import de.alpharogroup.file.system.SystemFileExtensions;
 import de.alpharogroup.model.BaseModel;
 import de.alpharogroup.model.api.Model;
-import de.alpharogroup.swing.base.BasePanel;
+import io.github.astrapi69.swing.adapters.DocumentListenerAdapter;
+import io.github.astrapi69.swing.base.BasePanel;
 import lombok.Getter;
 
 import javax.swing.*;
@@ -62,8 +63,7 @@ import java.io.File;
 	/**
 	 * Instantiates a new {@link MasterPwFilePanel}
 	 *
-	 * @param model
-	 *            the model
+	 * @param model the model
 	 */
 	public MasterPwFilePanel(final Model<MasterPwFileModelBean> model)
 	{
@@ -79,6 +79,11 @@ import java.io.File;
 	protected void toggleKeyFileComponents(boolean withKeyFile)
 	{
 		txtKeyFile.setEnabled(withKeyFile);
+		if (!withKeyFile)
+		{
+			txtKeyFile.setText("");
+			getModelObject().setKeyFile(null);
+		}
 		btnKeyFileChooser.setEnabled(withKeyFile);
 	}
 
@@ -86,6 +91,11 @@ import java.io.File;
 	{
 		cbxMasterPw.setSelected(withKeyFile);
 		txtMasterPw.setEnabled(withKeyFile);
+		if (!withKeyFile)
+		{
+			txtMasterPw.setText("");
+			getModelObject().setMasterPw(null);
+		}
 		btnMasterPw.setEnabled(withKeyFile);
 		btnOk.getModel().setEnabled(getBtnOkEnabledState());
 	}
@@ -127,7 +137,11 @@ import java.io.File;
 		{
 			@Override public void onDocumentChanged(DocumentEvent e)
 			{
-				btnOk.getModel().setEnabled(getBtnOkEnabledState());
+				final boolean btnOkEnabledState = getBtnOkEnabledState();
+				btnOk.getModel().setEnabled(btnOkEnabledState);
+				if(btnOkEnabledState) {
+					getModelObject().setMasterPw(txtMasterPw.getPassword());
+				}
 			}
 		});
 
@@ -194,6 +208,7 @@ import java.io.File;
 	{
 		// TODO implement continues here...
 		System.err.println("onOk method action called");
+
 	}
 
 	protected void onCancel(ActionEvent actionEvent)

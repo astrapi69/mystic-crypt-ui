@@ -26,8 +26,8 @@ import io.github.astrapi69.crypto.obfuscation.rule.ObfuscationRule;
 import de.alpharogroup.model.BaseModel;
 import de.alpharogroup.model.api.Model;
 import io.github.astrapi69.mystic.crypt.panels.obfuscate.ModeContext;
-import de.alpharogroup.swing.base.BasePanel;
-import de.alpharogroup.swing.document.RangeDocument;
+import io.github.astrapi69.swing.base.BasePanel;
+import io.github.astrapi69.swing.document.RangeDocument;
 import lombok.Getter;
 
 @Getter

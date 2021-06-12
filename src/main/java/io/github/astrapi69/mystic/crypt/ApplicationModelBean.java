@@ -31,6 +31,8 @@ import lombok.Setter;
 import lombok.ToString;
 import lombok.experimental.FieldDefaults;
 
+import java.io.Serializable;
+
 /**
  * The class {@link ApplicationModelBean} holds application specific data
  */
@@ -42,7 +44,9 @@ import lombok.experimental.FieldDefaults;
 @AllArgsConstructor
 @Builder(toBuilder = true)
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class ApplicationModelBean
+public class ApplicationModelBean implements Serializable
 {
+	/** The Constant serialVersionUID. */
+	private static final long serialVersionUID = 1L;
 	MasterPwFileModelBean masterPwFileModelBean;
 }

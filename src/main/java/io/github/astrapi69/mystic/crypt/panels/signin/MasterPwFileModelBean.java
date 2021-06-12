@@ -42,6 +42,9 @@ import java.io.Serializable;
 	/** The Constant serialVersionUID. */
 	private static final long serialVersionUID = 1L;
 
+	/** The encrypted data file for the application. */
+	File appDataFile;
+
 	/** The key file. */
 	File keyFile;
 

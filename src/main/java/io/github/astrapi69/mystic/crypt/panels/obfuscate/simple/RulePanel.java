@@ -40,7 +40,7 @@ import de.alpharogroup.model.BaseModel;
 import de.alpharogroup.model.api.Model;
 import io.github.astrapi69.mystic.crypt.panels.keygen.EnDecryptPanel;
 import io.github.astrapi69.mystic.crypt.panels.obfuscate.ModeContext;
-import de.alpharogroup.swing.base.BasePanel;
+import io.github.astrapi69.swing.base.BasePanel;
 import lombok.Getter;
 import net.miginfocom.swing.MigLayout;
 

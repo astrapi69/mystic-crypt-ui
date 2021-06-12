@@ -29,7 +29,7 @@
  */
 package io.github.astrapi69.mystic.crypt.panels.checksum;
 
-import de.alpharogroup.behaviors.EnableButtonBehavior;
+import io.github.astrapi69.behaviors.EnableButtonBehavior;
 import io.github.astrapi69.checksum.ChecksumExtensions;
 import io.github.astrapi69.checksum.FileChecksumExtensions;
 import io.github.astrapi69.checksum.api.ChecksumAlgorithm;
@@ -37,8 +37,8 @@ import de.alpharogroup.file.read.ReadFileExtensions;
 import de.alpharogroup.file.system.SystemFileExtensions;
 import de.alpharogroup.model.BaseModel;
 import de.alpharogroup.model.api.Model;
-import de.alpharogroup.swing.base.BasePanel;
-import de.alpharogroup.swing.combobox.model.EnumComboBoxModel;
+import io.github.astrapi69.swing.base.BasePanel;
+import io.github.astrapi69.swing.combobox.model.EnumComboBoxModel;
 import lombok.Getter;
 
 import javax.swing.*;

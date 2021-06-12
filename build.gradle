@@ -150,7 +150,7 @@ dependencies {
     implementation("de.alpharogroup:xml-extensions:$xmlExtensionsVersion")
     implementation("de.alpharogroup:file-worker:$fileWorkerVersion")
     implementation("de.alpharogroup:jcommons-lang:$jcommonsLangVersion")
-    implementation("de.alpharogroup:swing-components:$swingComponentsVersion")
+    implementation("io.github.astrapi69:swing-components:$swingComponentsVersion")
     implementation("com.google.guava:guava:$guavaVersion")
     implementation("javax.help:javahelp:$javahelpVersion")
     implementation("org.swinglabs:swing-layout:$swingLayoutVersion")

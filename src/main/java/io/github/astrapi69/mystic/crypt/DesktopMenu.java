@@ -37,17 +37,17 @@ import javax.swing.KeyStroke;
 
 import org.springframework.core.io.Resource;
 
-import de.alpharogroup.layout.ScreenSizeExtensions;
+import io.github.astrapi69.layout.ScreenSizeExtensions;
 import io.github.astrapi69.mystic.crypt.actions.NewChecksumFrameAction;
 import io.github.astrapi69.mystic.crypt.actions.NewFileConversionInternalFrameAction;
 import io.github.astrapi69.mystic.crypt.actions.NewKeyGenerationInternalFrameAction;
 import io.github.astrapi69.mystic.crypt.actions.NewObfuscationInternalFrameAction;
 import io.github.astrapi69.mystic.crypt.actions.NewObfuscationOperationInternalFrameAction;
 import io.github.astrapi69.mystic.crypt.actions.OpenPrivateKeyAction;
-import de.alpharogroup.swing.actions.ExitApplicationAction;
-import de.alpharogroup.swing.actions.ToggleFullScreenAction;
-import de.alpharogroup.swing.base.BaseDesktopMenu;
-import de.alpharogroup.swing.menu.MenuExtensions;
+import io.github.astrapi69.swing.actions.ExitApplicationAction;
+import io.github.astrapi69.swing.actions.ToggleFullScreenAction;
+import io.github.astrapi69.swing.base.BaseDesktopMenu;
+import io.github.astrapi69.swing.menu.MenuExtensions;
 import lombok.NonNull;
 import lombok.extern.java.Log;
 

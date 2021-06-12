@@ -24,7 +24,7 @@ import java.io.IOException;
 
 import javax.swing.JFrame;
 
-import de.alpharogroup.layout.CloseWindow;
+import io.github.astrapi69.layout.CloseWindow;
 import io.github.astrapi69.mystic.crypt.panels.keygen.GenerateKeysPanel;
 
 public class GenerateKeysPanelTest

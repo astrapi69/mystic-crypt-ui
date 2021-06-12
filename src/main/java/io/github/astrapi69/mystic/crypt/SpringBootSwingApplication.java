@@ -20,22 +20,26 @@
  */
 package io.github.astrapi69.mystic.crypt;
 
-import de.alpharogroup.layout.ScreenSizeExtensions;
 import de.alpharogroup.model.BaseModel;
 import de.alpharogroup.model.api.Model;
-import de.alpharogroup.swing.base.ApplicationFrame;
-import de.alpharogroup.swing.base.BaseDesktopMenu;
-import de.alpharogroup.swing.components.factories.JComponentFactory;
-import de.alpharogroup.swing.dialog.factories.JDialogFactory;
-import de.alpharogroup.swing.listener.RequestFocusListener;
-import de.alpharogroup.swing.panels.output.ConsolePanel;
-import de.alpharogroup.swing.plaf.LookAndFeels;
-import de.alpharogroup.swing.splashscreen.BaseSplashScreen;
-import de.alpharogroup.swing.splashscreen.SplashScreenModelBean;
-import de.alpharogroup.swing.utils.JInternalFrameExtensions;
+import io.github.astrapi69.crypto.algorithm.SunJCEAlgorithm;
+import io.github.astrapi69.crypto.file.GenericObjectDecryptor;
+import io.github.astrapi69.crypto.file.GenericObjectEncryptor;
+import io.github.astrapi69.crypto.model.CryptModel;
+import io.github.astrapi69.layout.ScreenSizeExtensions;
 import io.github.astrapi69.mystic.crypt.panels.signin.MasterPwFileDialog;
 import io.github.astrapi69.mystic.crypt.panels.signin.MasterPwFileModelBean;
 import io.github.astrapi69.mystic.crypt.panels.signin.MasterPwFilePanel;
+import io.github.astrapi69.swing.base.ApplicationFrame;
+import io.github.astrapi69.swing.base.BaseDesktopMenu;
+import io.github.astrapi69.swing.components.factories.JComponentFactory;
+import io.github.astrapi69.swing.dialog.factories.JDialogFactory;
+import io.github.astrapi69.swing.listener.RequestFocusListener;
+import io.github.astrapi69.swing.panels.output.ConsolePanel;
+import io.github.astrapi69.swing.plaf.LookAndFeels;
+import io.github.astrapi69.swing.splashscreen.BaseSplashScreen;
+import io.github.astrapi69.swing.splashscreen.SplashScreenModelBean;
+import io.github.astrapi69.swing.utils.JInternalFrameExtensions;
 import io.github.astrapi69.throwable.RuntimeExceptionDecorator;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -45,6 +49,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.context.ConfigurableApplicationContext;
 
+import javax.crypto.Cipher;
 import javax.swing.*;
 import java.awt.*;
 import java.io.File;
@@ -58,7 +63,9 @@ import java.io.File;
 
 	public static ConfigurableApplicationContext ctx;
 
-	/** The instance. */
+	/**
+	 * The instance.
+	 */
 	private static SpringBootSwingApplication instance;
 
 	/**
@@ -74,8 +81,7 @@ import java.io.File;
 	/**
 	 * The main method that start this {@link SpringBootSwingApplication}
 	 *
-	 * @param args
-	 *            the arguments
+	 * @param args the arguments
 	 */
 	public static void main(String[] args)
 
@@ -108,12 +114,6 @@ import java.io.File;
 		});
 	}
 
-	@Override protected void onBeforeInitialize()
-	{
-		showMasterPwDialog();
-		super.onBeforeInitialize();
-	}
-
 	private void showMasterPwOptionPane()
 	{
 		MasterPwFilePanel masterPwFilePanel = new MasterPwFilePanel();
@@ -134,10 +134,14 @@ import java.io.File;
 		dialog.setVisible(true);
 	}
 
-	/** The console internal frame. */
+	/**
+	 * The console internal frame.
+	 */
 	@Getter JInternalFrame consoleInternalFrame;
 
-	/** The internal frame. */
+	/**
+	 * The internal frame.
+	 */
 	@Getter JInternalFrame internalFrame;
 
 	/**
@@ -146,6 +150,42 @@ import java.io.File;
 	public SpringBootSwingApplication()
 	{
 		super(Messages.getString("mainframe.title"));
+	}
+
+	@Override protected void onBeforeInitialize()
+	{
+		// initialize model and model object
+		setModel(BaseModel.of(ApplicationModelBean.builder().build()));
+		super.onBeforeInitialize();
+	}
+
+	@Override protected void onBeforeInitializeComponents()
+	{
+		// start
+		// TODO delete when app-file created
+		GenericObjectDecryptor<ApplicationModelBean, String> decryptor;
+		File dirToEncrypt;
+		File encrypted;
+		GenericObjectEncryptor<ApplicationModelBean, String> encryptor;
+		String firstKey;
+		CryptModel<Cipher, String, String> cryptModel;
+		ApplicationModelBean modelObject = getModelObject();
+		modelObject.setMasterPwFileModelBean(MasterPwFileModelBean.builder()
+			.masterPw("test1234".toCharArray())
+			.build());
+		firstKey = "D1D15ED36B887AF1";
+		cryptModel = CryptModel.<Cipher, String, String> builder().key(firstKey)
+			.algorithm(SunJCEAlgorithm.PBEWithMD5AndDES).build();
+		File configurationDirectory = new File(System.getProperty("user.home"), ".config");
+		File appConfigDir = new File(configurationDirectory, "mystic-crypt-ui");
+		File appData = new File(appConfigDir, "app-data.enc");
+		encryptor =
+			RuntimeExceptionDecorator.decorate(() -> new GenericObjectEncryptor<>(cryptModel, appData));
+		encrypted = RuntimeExceptionDecorator.decorate(() ->encryptor.encrypt(modelObject));
+		// TODO delete when app-file created
+		// end
+		showMasterPwDialog();
+		super.onBeforeInitializeComponents();
 	}
 
 	public void getConsoleOutput()
@@ -171,7 +211,7 @@ import java.io.File;
 	@Override protected File newConfigurationDirectory(final @NonNull String parent,
 		final @NonNull String child)
 	{
-		String configurationDirectoryName = "mystic-crypt";
+		String configurationDirectoryName = "mystic-crypt-ui";
 		File applicationConfigurationDirectory = new File(
 			super.newConfigurationDirectory(parent, child), configurationDirectoryName);
 		if (!applicationConfigurationDirectory.exists())

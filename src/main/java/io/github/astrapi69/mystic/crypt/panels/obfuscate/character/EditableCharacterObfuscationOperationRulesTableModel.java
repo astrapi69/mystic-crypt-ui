@@ -32,7 +32,7 @@ import de.alpharogroup.collections.list.ListFactory;
 import de.alpharogroup.collections.pairs.KeyValuePair;
 import io.github.astrapi69.crypto.obfuscation.rule.ObfuscationOperationRule;
 import io.github.astrapi69.crypto.obfuscation.rule.Operation;
-import de.alpharogroup.swing.table.model.GenericTableModel;
+import io.github.astrapi69.swing.table.model.GenericTableModel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.ToString;

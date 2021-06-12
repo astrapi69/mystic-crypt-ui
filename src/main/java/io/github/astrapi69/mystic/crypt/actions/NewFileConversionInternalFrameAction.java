@@ -27,8 +27,8 @@ import javax.swing.JInternalFrame;
 
 import io.github.astrapi69.mystic.crypt.SpringBootSwingApplication;
 import io.github.astrapi69.mystic.crypt.panels.conversion.FileConversionPanel;
-import de.alpharogroup.swing.components.factories.JComponentFactory;
-import de.alpharogroup.swing.utils.JInternalFrameExtensions;
+import io.github.astrapi69.swing.components.factories.JComponentFactory;
+import io.github.astrapi69.swing.utils.JInternalFrameExtensions;
 
 /**
  * The class {@link NewFileConversionInternalFrameAction}.

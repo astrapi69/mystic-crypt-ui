@@ -39,7 +39,7 @@ import javax.swing.tree.TreePath;
 
 import de.alpharogroup.model.BaseModel;
 import de.alpharogroup.model.api.Model;
-import de.alpharogroup.swing.panels.tree.JTreePanel;
+import io.github.astrapi69.swing.panels.tree.JTreePanel;
 
 public class DatabaseTreePanel extends JTreePanel<DatabaseTreeModelBean>
 {

@@ -31,8 +31,8 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextPane;
 
-import de.alpharogroup.actions.DisposeWindowAction;
-import de.alpharogroup.layout.DisposeWindow;
+import io.github.astrapi69.actions.DisposeWindowAction;
+import io.github.astrapi69.layout.DisposeWindow;
 import io.github.astrapi69.mystic.crypt.Messages;
 
 /**

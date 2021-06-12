@@ -37,7 +37,7 @@ import org.apache.commons.codec.DecoderException;
 
 import de.alpharogroup.model.BaseModel;
 import de.alpharogroup.model.api.Model;
-import de.alpharogroup.swing.base.BasePanel;
+import io.github.astrapi69.swing.base.BasePanel;
 import lombok.Getter;
 import lombok.extern.java.Log;
 import net.miginfocom.swing.MigLayout;
