@@ -24,14 +24,25 @@ import de.alpharogroup.file.search.PathFinder;
 import de.alpharogroup.file.system.SystemFileExtensions;
 import de.alpharogroup.model.BaseModel;
 import de.alpharogroup.model.api.Model;
+import io.github.astrapi69.crypto.algorithm.SunJCEAlgorithm;
+import io.github.astrapi69.crypto.file.GenericObjectDecryptor;
+import io.github.astrapi69.crypto.key.reader.EncryptedPrivateKeyReader;
+import io.github.astrapi69.crypto.key.reader.PrivateKeyReader;
+import io.github.astrapi69.crypto.model.CryptModel;
+import io.github.astrapi69.mystic.crypt.ApplicationModelBean;
+import io.github.astrapi69.mystic.crypt.SpringBootSwingApplication;
 import io.github.astrapi69.swing.adapters.DocumentListenerAdapter;
 import io.github.astrapi69.swing.base.BasePanel;
+import io.github.astrapi69.throwable.RuntimeExceptionDecorator;
 import lombok.Getter;
 
+import javax.crypto.Cipher;
 import javax.swing.*;
 import javax.swing.event.DocumentEvent;
 import java.awt.event.ActionEvent;
 import java.io.File;
+import java.security.PrivateKey;
+import java.util.Arrays;
 
 /**
  * The class {@link MasterPwFilePanel}
@@ -67,8 +78,7 @@ import java.io.File;
 	/**
 	 * Instantiates a new {@link MasterPwWithApplicationFilePanel}
 	 *
-	 * @param model
-	 *            the model
+	 * @param model the model
 	 */
 	public MasterPwWithApplicationFilePanel(final Model<MasterPwFileModelBean> model)
 	{
@@ -143,8 +153,8 @@ import java.io.File;
 		btnApplicationFileChooser.setText("File");
 		btnApplicationFileChooser.addActionListener(this::onApplicationFileChooser);
 		File configDir = PathFinder.getRelativePath(SystemFileExtensions.getUserHomeDir(),
-			".config",
-			"mystic-crypt-ui");
+			SpringBootSwingApplication.DEFAULT_USER_CONFIGURATION_DIRECTORY_NAME,
+			SpringBootSwingApplication.APPLICATION_NAME);
 		fileChooser = new JFileChooser(configDir);
 	}
 
@@ -262,7 +272,8 @@ import java.io.File;
 	protected void onCheckMasterPw(final ActionEvent actionEvent)
 	{
 		Object source = actionEvent.getSource();
-		if(source instanceof JCheckBox){
+		if (source instanceof JCheckBox)
+		{
 			JCheckBox checkBox = (JCheckBox)source;
 			checkBox.isSelected();
 			getModelObject().setWithMasterPw(checkBox.isSelected());
@@ -301,7 +312,7 @@ import java.io.File;
 	protected boolean getBtnOkEnabledState()
 	{
 		MasterPwFileModelBean modelObject = getModelObject();
-		if(modelObject.getAppDataFile() == null)
+		if (modelObject.getAppDataFile() == null)
 		{
 			return false;
 		}
@@ -331,6 +342,55 @@ import java.io.File;
 	{
 		// TODO implement continues here...
 		System.err.println("onOk method action called");
+
+		GenericObjectDecryptor<ApplicationModelBean, String> decryptor;
+		String firstKey;
+		CryptModel<Cipher, String, String> cryptModel;
+		MasterPwFileModelBean modelObject = getModelObject();
+		File appDataFile = modelObject.getAppDataFile();
+		firstKey = "D1D15ED36B887AF1";
+		cryptModel = CryptModel.<Cipher, String, String>builder().key(firstKey)
+			.algorithm(SunJCEAlgorithm.PBEWithMD5AndDES).build();
+
+		decryptor = RuntimeExceptionDecorator
+			.decorate(() -> new GenericObjectDecryptor<>(cryptModel));
+		try
+		{
+			ApplicationModelBean applicationModelBean = decryptor.decrypt(appDataFile);
+			if(modelObject.isWithMasterPw() && modelObject.isWithKeyFile()) {
+				char[] masterPw = applicationModelBean.getMasterPwFileModelBean().getMasterPw();
+				char[] password = getTxtMasterPw().getPassword();
+				File keyFile = applicationModelBean.getMasterPwFileModelBean().getKeyFile();
+				if (!Arrays.equals(masterPw, password))
+				{
+					// TODO show error dialog with message
+				}
+				PrivateKey privateKey = EncryptedPrivateKeyReader
+					.readPasswordProtectedPrivateKey(keyFile, String.valueOf(password));
+			}
+			if(modelObject.isWithMasterPw()) {
+				char[] masterPw = applicationModelBean.getMasterPwFileModelBean().getMasterPw();
+				char[] password = getTxtMasterPw().getPassword();
+				if (!Arrays.equals(masterPw, password))
+				{
+					// TODO show error dialog with message
+				}
+			}
+			if(modelObject.isWithKeyFile()) {
+				File keyFile = applicationModelBean.getMasterPwFileModelBean().getKeyFile();
+				PrivateKey privateKey;
+				if(PrivateKeyReader.isPemFormat(keyFile)){
+					privateKey = PrivateKeyReader.readPemPrivateKey(keyFile);
+				} else {
+					privateKey = PrivateKeyReader.readPrivateKey(keyFile);
+				}
+			}
+		}
+		catch (Exception e)
+		{
+			e.printStackTrace();
+		}
+
 
 	}
 

@@ -1,0 +1,33 @@
+package io.github.astrapi69.mystic.crypt.panels.signin;
+
+import io.github.astrapi69.crypto.algorithm.KeyPairGeneratorAlgorithm;
+import io.github.astrapi69.crypto.key.reader.PrivateKeyReader;
+import io.github.astrapi69.crypto.key.writer.EncryptedPrivateKeyWriter;
+import io.github.astrapi69.throwable.RuntimeExceptionDecorator;
+
+import java.security.PrivateKey;
+
+public class DefaultPrivateKeyHolder
+{
+	private static String DEFAULT_PRIVATE_KEY =
+		"MIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQC4vJdLzicDegL40umQ0Y5qUemu/bN7A5fWlKlea1BMT9zuwXxCqY7lkDaMHKMoM/ZJI0GTgs6QEWY0qAKrzKGe0nLle9IKI+NLQUpRR443wyLaV0WGqEOipvMldSdkdnreCBkHjh+90PwNqWhfTupFvYV9v3YATf1WY3yKkfh+OMq7HdtobzxvWFbFSEJTuFUnUDsq90PkK9D3AyKVmCxD05KS1qRPr3ViSoLMvgjC2PLL0sDus5Y2BEmva2K0Tzc20PFUPB9QpA4+nJUcjq5MZ5jYqFFrOHgeBCib8vBjisGAa55gNCzsu5BK9nn2awMwulEpB+IltHey69M7070zAgMBAAECggEBAJmUj+OBm4WUZewey/aNgOx69N96I0BdmFnYdYX9iWAn9PC5AmkZNac74V1SYYIG0PW0zcuor7mt/V5BXxccpDC5nLOT4OZ1N31U5kf0SROqssr6St7L/I64ZOP7JairpzH3YXeafGD94M4qzI6PuMwJ53THO369V6P+SYeaGxAzEkXQgU3K4ewRseLgjNvwoT4BxayMbx+SgzrANPphaihbSOCFdMZyj4QaDq8b5fwMV4+rFrgYZpJyRohHdL9Yr7gP04MHmx8gLJbh4oSBKQqoIqt4n9xefVNi5TidQ5G60o24d5tXQ+OvoTPvhYqKetH3O8SQtCYM81Pb4/7zz2ECgYEA9pJod3LkOvIgg1+BHfNYIHJTx1nTtH6hEuoR9NlI+9piQFfnnyP6OMd5YiKVvROgHEZsC2I13iqTl0dEWjfh17OaX02FsRmVSmqQJ4fYAWqlzBGJCAC7mbRcrlJIu4q8DtiMBibPoDoAdWVEEVgUoN4mSCgAQSd0N835i4HLBGcCgYEAv8znMzbVkKIOnng0MGcUFSN70wTeyuZogSGxorzv5f8AqT/sC2k06trcd2VWrOPRIbfG3pS++s7mLUEpz1ZrAmaqnBYvRORT2tskKLAUc+EEvV5AjmMb+aMbpMjRHDZHshIRJkYkCBubQ1OHUyBu1E8l5CYgwPfuTI7aOVEWIVUCgYEAkRY3WEoHl9PPY943mIsPCRCc0Ym+s89rMjj/VebhNikbdScEiLTf0Lc3apJVL8uzg8/AVbZ1YgQFkpeB1eBaCNWK+ZchGsOmAALSTiB17ud1Ja4PxuC/gsMJYh3S5F/PJqEvS5Ncyrg2et2afuYoRTxSpFS9SZlQnmGZ/AfkkPMCgYB/vXg+I8cZDNWvtV8M3ZoCeh9960B24f24AzjLqgocpDlMf8Y101vrDtjGrDeN7izayAsrMuX/JM0oVr4B2QxsDPSUADJ7L5aprEnoz1zP0I3XkW5tZpS7Lma62QRsRbp6Xo4Nb6mPvNMrg/Yc5vzpac1SphIqcvXDB2FPyzFyAQKBgCnPlTb3igCKzCEgn32Aa/CLCVxau9rC0BTC+NSavf6AC31hvC2sKNXDYAMIBeT/8613r+mMJohFOYfAFOS0ReGd1QvxZ13rEaKXozTCiscippgBRtLke25r270S1E64F9xJ9GdKInsbfsR3de97ucdf/yaaPe6BNTFCcCkfgQYt";
+
+	public static PrivateKey getDefaultPrivateKey() throws Exception
+	{
+		String privateKeyAsBase64String;
+		privateKeyAsBase64String = DEFAULT_PRIVATE_KEY;
+		return PrivateKeyReader
+			.readPemPrivateKey(DEFAULT_PRIVATE_KEY, KeyPairGeneratorAlgorithm.RSA.getAlgorithm());
+	}
+
+	public static PrivateKey getPasswordProtectedPrivateKey(final String password)
+	throws Exception {
+		byte[] bytes = EncryptedPrivateKeyWriter
+			.encryptPrivateKeyWithPassword(getDefaultPrivateKey(), password);
+		byte[] encryptPrivateKeyWithPassword = RuntimeExceptionDecorator.decorate(
+			() -> bytes);
+		PrivateKey privateKey = RuntimeExceptionDecorator
+			.decorate(() -> PrivateKeyReader.readPrivateKey(encryptPrivateKeyWithPassword));
+		return privateKey;
+	}
+}

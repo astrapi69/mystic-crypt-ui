@@ -20,13 +20,17 @@
  */
 package io.github.astrapi69.mystic.crypt;
 
+import de.alpharogroup.file.search.PathFinder;
+import de.alpharogroup.file.system.SystemFileExtensions;
 import de.alpharogroup.model.BaseModel;
 import de.alpharogroup.model.api.Model;
+import io.github.astrapi69.crypto.algorithm.Algorithm;
 import io.github.astrapi69.crypto.algorithm.SunJCEAlgorithm;
 import io.github.astrapi69.crypto.file.GenericObjectDecryptor;
 import io.github.astrapi69.crypto.file.GenericObjectEncryptor;
 import io.github.astrapi69.crypto.model.CryptModel;
 import io.github.astrapi69.layout.ScreenSizeExtensions;
+import io.github.astrapi69.mystic.crypt.panels.signin.CryptModelFactory;
 import io.github.astrapi69.mystic.crypt.panels.signin.MasterPwFileDialog;
 import io.github.astrapi69.mystic.crypt.panels.signin.MasterPwFileModelBean;
 import io.github.astrapi69.mystic.crypt.panels.signin.MasterPwFilePanel;
@@ -57,9 +61,15 @@ import java.io.File;
 /**
  * The class {@link SpringBootSwingApplication}
  */
-@SuppressWarnings("serial") @SpringBootApplication @FieldDefaults(level = AccessLevel.PRIVATE) public class SpringBootSwingApplication
+@SuppressWarnings("serial") @SpringBootApplication @FieldDefaults(level = AccessLevel.PRIVATE)
+public class SpringBootSwingApplication
 	extends ApplicationFrame<ApplicationModelBean>
 {
+
+	public static final String APPLICATION_NAME = "mystic-crypt-ui";
+
+	/** Constant for the default configuration directory from the current user. current value:".config" */
+	public static final String DEFAULT_USER_CONFIGURATION_DIRECTORY_NAME = ".config";
 
 	public static ConfigurableApplicationContext ctx;
 
@@ -93,7 +103,7 @@ import java.io.File;
 			imagePath = "img/icon.png";
 		text = Messages.getString("mainframe.project.name");
 		if (text == null)
-			text = "mystic-crypt-ui";
+			text = SpringBootSwingApplication.APPLICATION_NAME;
 		SplashScreenModelBean splashScreenModelBean = SplashScreenModelBean.builder()
 			.imagePath(imagePath).text(text).min(0).max(100).showTime(3000).showing(true).build();
 		new Thread(() -> {
@@ -163,29 +173,38 @@ import java.io.File;
 	{
 		// start
 		// TODO delete when app-file created
-		GenericObjectDecryptor<ApplicationModelBean, String> decryptor;
-		File dirToEncrypt;
-		File encrypted;
-		GenericObjectEncryptor<ApplicationModelBean, String> encryptor;
-		String firstKey;
-		CryptModel<Cipher, String, String> cryptModel;
-		ApplicationModelBean modelObject = getModelObject();
-		modelObject.setMasterPwFileModelBean(MasterPwFileModelBean.builder()
-			.masterPw("test1234".toCharArray())
-			.build());
-		firstKey = "D1D15ED36B887AF1";
-		cryptModel = CryptModel.<Cipher, String, String> builder().key(firstKey)
-			.algorithm(SunJCEAlgorithm.PBEWithMD5AndDES).build();
-		File configurationDirectory = new File(System.getProperty("user.home"), ".config");
-		File appConfigDir = new File(configurationDirectory, "mystic-crypt-ui");
-		File appData = new File(appConfigDir, "app-data.enc");
-		encryptor =
-			RuntimeExceptionDecorator.decorate(() -> new GenericObjectEncryptor<>(cryptModel, appData));
-		encrypted = RuntimeExceptionDecorator.decorate(() ->encryptor.encrypt(modelObject));
+		generateTempApplicationModelFile();
 		// TODO delete when app-file created
 		// end
 		showMasterPwDialog();
 		super.onBeforeInitializeComponents();
+	}
+
+	private void generateTempApplicationModelFile()
+	{
+		String key;
+		Algorithm algorithm;
+		File encrypted;
+		GenericObjectEncryptor<ApplicationModelBean, String> encryptor;
+		CryptModel<Cipher, String, String> cryptModel;
+
+		ApplicationModelBean modelObject = getModelObject();
+		MasterPwFileModelBean masterPwFileModelBean = MasterPwFileModelBean.builder()
+			.masterPw("test1234".toCharArray()).build();
+		modelObject.setMasterPwFileModelBean(masterPwFileModelBean);
+		key = "D1D15ED36B887AF1";
+		algorithm = SunJCEAlgorithm.PBEWithMD5AndDES;
+
+		cryptModel = CryptModelFactory.newCryptModel(algorithm, key);
+
+		File appConfigDir = PathFinder.getRelativePath(SystemFileExtensions.getUserHomeDir(),
+			SpringBootSwingApplication.DEFAULT_USER_CONFIGURATION_DIRECTORY_NAME,
+			SpringBootSwingApplication.APPLICATION_NAME);
+		File appData = new File(appConfigDir, "app-data.enc");
+		masterPwFileModelBean.setAppDataFile(appData);
+		encryptor =
+			RuntimeExceptionDecorator.decorate(() -> new GenericObjectEncryptor<>(cryptModel, appData));
+		encrypted = RuntimeExceptionDecorator.decorate(() ->encryptor.encrypt(modelObject));
 	}
 
 	public void getConsoleOutput()
