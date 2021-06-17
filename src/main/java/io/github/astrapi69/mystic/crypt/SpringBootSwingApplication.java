@@ -22,15 +22,18 @@ package io.github.astrapi69.mystic.crypt;
 
 import de.alpharogroup.file.search.PathFinder;
 import de.alpharogroup.file.system.SystemFileExtensions;
+import de.alpharogroup.file.write.WriteFileExtensions;
+import de.alpharogroup.json.ObjectToJsonExtensions;
 import de.alpharogroup.model.BaseModel;
 import de.alpharogroup.model.api.Model;
 import io.github.astrapi69.crypto.algorithm.Algorithm;
 import io.github.astrapi69.crypto.algorithm.SunJCEAlgorithm;
-import io.github.astrapi69.crypto.file.GenericObjectDecryptor;
+import io.github.astrapi69.crypto.factories.CryptModelFactory;
 import io.github.astrapi69.crypto.file.GenericObjectEncryptor;
+import io.github.astrapi69.crypto.file.PBEFileEncryptor;
 import io.github.astrapi69.crypto.model.CryptModel;
+import io.github.astrapi69.crypto.model.StringDecorator;
 import io.github.astrapi69.layout.ScreenSizeExtensions;
-import io.github.astrapi69.mystic.crypt.panels.signin.CryptModelFactory;
 import io.github.astrapi69.mystic.crypt.panels.signin.MasterPwFileDialog;
 import io.github.astrapi69.mystic.crypt.panels.signin.MasterPwFileModelBean;
 import io.github.astrapi69.mystic.crypt.panels.signin.MasterPwFilePanel;
@@ -164,6 +167,10 @@ public class SpringBootSwingApplication
 
 	@Override protected void onBeforeInitialize()
 	{
+		if (instance == null)
+		{
+			instance = this;
+		}
 		// initialize model and model object
 		setModel(BaseModel.of(ApplicationModelBean.builder().build()));
 		super.onBeforeInitialize();
@@ -173,11 +180,37 @@ public class SpringBootSwingApplication
 	{
 		// start
 		// TODO delete when app-file created
-		generateTempApplicationModelFile();
+//		generateTempApplicationModelFile();
+		generateTempApplicationModelFileWithPassword();
 		// TODO delete when app-file created
 		// end
 		showMasterPwDialog();
 		super.onBeforeInitializeComponents();
+	}
+	private void generateTempApplicationModelFileWithPassword()
+	{
+
+		PBEFileEncryptor encryptor;
+		String password;
+		CryptModel<Cipher, String, String> cryptModel;
+
+		password = "test1234";
+		ApplicationModelBean modelObject = getModelObject();
+		MasterPwFileModelBean masterPwFileModelBean = MasterPwFileModelBean.builder()
+			.masterPw(password.toCharArray()).build();
+		modelObject.setMasterPwFileModelBean(masterPwFileModelBean);
+		File appConfigDir = PathFinder.getRelativePath(SystemFileExtensions.getUserHomeDir(),
+			SpringBootSwingApplication.DEFAULT_USER_CONFIGURATION_DIRECTORY_NAME,
+			SpringBootSwingApplication.APPLICATION_NAME);
+		File appData = new File(appConfigDir, "app-data-only-pw.json");
+
+		cryptModel = CryptModel.<Cipher, String, String> builder().key(password)
+			.algorithm(SunJCEAlgorithm.PBEWithMD5AndDES).build();
+		encryptor = RuntimeExceptionDecorator.decorate(() -> new PBEFileEncryptor(cryptModel));
+		String json = RuntimeExceptionDecorator.decorate(() -> ObjectToJsonExtensions.toJson(modelObject));
+		RuntimeExceptionDecorator.decorate(() -> WriteFileExtensions.string2File(appData, json));
+		File encryptedAppData = RuntimeExceptionDecorator.decorate(() -> encryptor.encrypt(appData));
+		System.out.println(encryptedAppData.getAbsolutePath());
 	}
 
 	private void generateTempApplicationModelFile()
@@ -201,7 +234,7 @@ public class SpringBootSwingApplication
 			SpringBootSwingApplication.DEFAULT_USER_CONFIGURATION_DIRECTORY_NAME,
 			SpringBootSwingApplication.APPLICATION_NAME);
 		File appData = new File(appConfigDir, "app-data.enc");
-		masterPwFileModelBean.setAppDataFile(appData);
+		masterPwFileModelBean.setAppDataFile(appData.getAbsolutePath());
 		encryptor =
 			RuntimeExceptionDecorator.decorate(() -> new GenericObjectEncryptor<>(cryptModel, appData));
 		encrypted = RuntimeExceptionDecorator.decorate(() ->encryptor.encrypt(modelObject));
@@ -253,12 +286,7 @@ public class SpringBootSwingApplication
 	@Override protected void onAfterInitialize()
 	{
 		super.onAfterInitialize();
-
-		if (instance == null)
-		{
-			instance = this;
-			getConsoleOutput();
-		}
+		getConsoleOutput();
 		setTitle(Messages.getString("mainframe.title"));
 	}
 

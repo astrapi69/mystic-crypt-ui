@@ -20,34 +20,40 @@
  */
 package io.github.astrapi69.mystic.crypt.panels.signin;
 
+import java.awt.event.ActionEvent;
+import java.io.File;
+import java.security.PrivateKey;
+import java.security.PublicKey;
+
+import javax.crypto.Cipher;
+import javax.swing.*;
+import javax.swing.event.DocumentEvent;
+
+import lombok.Getter;
 import de.alpharogroup.file.search.PathFinder;
 import de.alpharogroup.file.system.SystemFileExtensions;
+import de.alpharogroup.json.JsonFileToObjectExtensions;
+import de.alpharogroup.json.factory.ObjectMapperFactory;
 import de.alpharogroup.model.BaseModel;
 import de.alpharogroup.model.api.Model;
 import io.github.astrapi69.crypto.algorithm.SunJCEAlgorithm;
+import io.github.astrapi69.crypto.factories.CryptModelFactory;
 import io.github.astrapi69.crypto.file.GenericObjectDecryptor;
+import io.github.astrapi69.crypto.file.PBEFileDecryptor;
+import io.github.astrapi69.crypto.key.PrivateKeyExtensions;
 import io.github.astrapi69.crypto.key.reader.EncryptedPrivateKeyReader;
-import io.github.astrapi69.crypto.key.reader.PrivateKeyReader;
 import io.github.astrapi69.crypto.model.CryptModel;
 import io.github.astrapi69.mystic.crypt.ApplicationModelBean;
 import io.github.astrapi69.mystic.crypt.SpringBootSwingApplication;
 import io.github.astrapi69.swing.adapters.DocumentListenerAdapter;
 import io.github.astrapi69.swing.base.BasePanel;
 import io.github.astrapi69.throwable.RuntimeExceptionDecorator;
-import lombok.Getter;
-
-import javax.crypto.Cipher;
-import javax.swing.*;
-import javax.swing.event.DocumentEvent;
-import java.awt.event.ActionEvent;
-import java.io.File;
-import java.security.PrivateKey;
-import java.util.Arrays;
 
 /**
  * The class {@link MasterPwFilePanel}
  */
-@Getter public class MasterPwWithApplicationFilePanel extends BasePanel<MasterPwFileModelBean>
+@Getter
+public class MasterPwWithApplicationFilePanel extends BasePanel<MasterPwFileModelBean>
 {
 
 	private static final long serialVersionUID = 1L;
@@ -72,13 +78,14 @@ import java.util.Arrays;
 	 */
 	public MasterPwWithApplicationFilePanel()
 	{
-		this(BaseModel.<MasterPwFileModelBean>of(MasterPwFileModelBean.builder().build()));
+		this(BaseModel.<MasterPwFileModelBean> of(MasterPwFileModelBean.builder().build()));
 	}
 
 	/**
 	 * Instantiates a new {@link MasterPwWithApplicationFilePanel}
 	 *
-	 * @param model the model
+	 * @param model
+	 *            the model
 	 */
 	public MasterPwWithApplicationFilePanel(final Model<MasterPwFileModelBean> model)
 	{
@@ -86,7 +93,8 @@ import java.util.Arrays;
 	}
 
 
-	@Override protected void onInitializeComponents()
+	@Override
+	protected void onInitializeComponents()
 	{
 		super.onInitializeComponents();
 
@@ -119,7 +127,8 @@ import java.util.Arrays;
 		txtMasterPw.setText("");
 		txtMasterPw.getDocument().addDocumentListener(new DocumentListenerAdapter()
 		{
-			@Override public void onDocumentChanged(DocumentEvent e)
+			@Override
+			public void onDocumentChanged(DocumentEvent e)
 			{
 				btnOk.getModel().setEnabled(getBtnOkEnabledState());
 			}
@@ -145,9 +154,8 @@ import java.util.Arrays;
 
 		lblApplicationFile.setText("Application File");
 
-		txtApplicationFile.setText(getModelObject().getAppDataFile() != null ?
-			getModelObject().getAppDataFile().getName() :
-			"");
+		txtApplicationFile.setText(
+			getModelObject().getAppDataFile() != null ? getModelObject().getAppDataFile() : "");
 		txtApplicationFile.setEnabled(false);
 
 		btnApplicationFileChooser.setText("File");
@@ -163,78 +171,86 @@ import java.util.Arrays;
 		GroupLayout layout = new GroupLayout(this);
 		this.setLayout(layout);
 		layout.setHorizontalGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)
-			.addGroup(layout.createSequentialGroup().addContainerGap().addGroup(
-				layout.createParallelGroup(GroupLayout.Alignment.TRAILING).addGroup(
-					layout.createSequentialGroup()
+			.addGroup(layout.createSequentialGroup().addContainerGap()
+				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.TRAILING)
+					.addGroup(layout.createSequentialGroup()
 						.addComponent(btnHelp, GroupLayout.PREFERRED_SIZE, 122,
 							GroupLayout.PREFERRED_SIZE)
 						.addPreferredGap(LayoutStyle.ComponentPlacement.RELATED,
 							GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
 						.addComponent(btnOk, GroupLayout.PREFERRED_SIZE, 140,
-							GroupLayout.PREFERRED_SIZE).addGap(18, 18, 18)
-						.addComponent(btnCancel, GroupLayout.PREFERRED_SIZE, 141,
-							GroupLayout.PREFERRED_SIZE)).addGroup(layout.createSequentialGroup()
-					.addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)
+							GroupLayout.PREFERRED_SIZE)
+						.addGap(18, 18, 18).addComponent(btnCancel, GroupLayout.PREFERRED_SIZE, 141,
+							GroupLayout.PREFERRED_SIZE))
+					.addGroup(layout.createSequentialGroup().addGroup(layout
+						.createParallelGroup(GroupLayout.Alignment.LEADING)
 						.addComponent(cbxMasterPw, GroupLayout.DEFAULT_SIZE, 210, Short.MAX_VALUE)
 						.addComponent(cbxKeyFile, GroupLayout.DEFAULT_SIZE,
 							GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
 						.addComponent(lblApplicationFile, GroupLayout.Alignment.TRAILING,
 							GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-					.addPreferredGap(LayoutStyle.ComponentPlacement.RELATED).addGroup(
-						layout.createParallelGroup(GroupLayout.Alignment.LEADING).addGroup(
-							layout.createSequentialGroup()
-								.addComponent(txtApplicationFile, GroupLayout.PREFERRED_SIZE, 520,
-									GroupLayout.PREFERRED_SIZE)
-								.addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED)
-								.addComponent(btnApplicationFileChooser, GroupLayout.PREFERRED_SIZE,
-									70, GroupLayout.PREFERRED_SIZE)).addGroup(
-							layout.createSequentialGroup().addGroup(
-								layout.createParallelGroup(GroupLayout.Alignment.LEADING, false)
-									.addComponent(txtMasterPw)
-									.addComponent(txtKeyFile, GroupLayout.PREFERRED_SIZE, 520,
-										GroupLayout.PREFERRED_SIZE))
-								.addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED).addGroup(
-								layout.createParallelGroup(GroupLayout.Alignment.LEADING, false)
-									.addComponent(btnMasterPw, GroupLayout.DEFAULT_SIZE,
-										GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-									.addComponent(btnKeyFileChooser, GroupLayout.PREFERRED_SIZE, 70,
-										GroupLayout.PREFERRED_SIZE)))))
+						.addPreferredGap(LayoutStyle.ComponentPlacement.RELATED).addGroup(
+							layout.createParallelGroup(GroupLayout.Alignment.LEADING)
+								.addGroup(layout.createSequentialGroup()
+									.addComponent(txtApplicationFile, GroupLayout.PREFERRED_SIZE,
+										520, GroupLayout.PREFERRED_SIZE)
+									.addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED)
+									.addComponent(btnApplicationFileChooser,
+										GroupLayout.PREFERRED_SIZE, 70, GroupLayout.PREFERRED_SIZE))
+								.addGroup(layout.createSequentialGroup()
+									.addGroup(layout
+										.createParallelGroup(GroupLayout.Alignment.LEADING, false)
+										.addComponent(txtMasterPw)
+										.addComponent(txtKeyFile, GroupLayout.PREFERRED_SIZE, 520,
+											GroupLayout.PREFERRED_SIZE))
+									.addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED)
+									.addGroup(layout
+										.createParallelGroup(GroupLayout.Alignment.LEADING, false)
+										.addComponent(btnMasterPw, GroupLayout.DEFAULT_SIZE,
+											GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+										.addComponent(btnKeyFileChooser, GroupLayout.PREFERRED_SIZE,
+											70, GroupLayout.PREFERRED_SIZE)))))
 					.addComponent(lblImageHeader, GroupLayout.DEFAULT_SIZE,
-						GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)).addGap(24, 24, 24)));
-		layout.setVerticalGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING).addGroup(
-			layout.createSequentialGroup().addGroup(
-				layout.createParallelGroup(GroupLayout.Alignment.LEADING).addGroup(
-					layout.createSequentialGroup().addGap(57, 57, 57).addGroup(
-						layout.createParallelGroup(GroupLayout.Alignment.BASELINE)
-							.addComponent(txtApplicationFile, GroupLayout.PREFERRED_SIZE,
+						GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+				.addGap(24, 24, 24)));
+		layout
+			.setVerticalGroup(
+				layout.createParallelGroup(GroupLayout.Alignment.LEADING)
+					.addGroup(layout.createSequentialGroup()
+						.addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)
+							.addGroup(layout.createSequentialGroup().addGap(57, 57, 57)
+								.addGroup(layout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+									.addComponent(txtApplicationFile, GroupLayout.PREFERRED_SIZE,
+										GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+									.addComponent(btnApplicationFileChooser)))
+							.addGroup(layout.createSequentialGroup().addContainerGap().addComponent(
+								lblImageHeader, GroupLayout.PREFERRED_SIZE, 34,
+								GroupLayout.PREFERRED_SIZE))
+							.addComponent(lblApplicationFile, GroupLayout.Alignment.TRAILING,
+								GroupLayout.PREFERRED_SIZE, 35, GroupLayout.PREFERRED_SIZE))
+						.addGap(18, 18, 18)
+						.addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING, false)
+							.addComponent(cbxMasterPw, GroupLayout.DEFAULT_SIZE,
+								GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+							.addGroup(layout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+								.addComponent(txtMasterPw, GroupLayout.PREFERRED_SIZE,
+									GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+								.addComponent(btnMasterPw)))
+						.addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+						.addGroup(layout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+							.addComponent(txtKeyFile, GroupLayout.PREFERRED_SIZE,
 								GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-							.addComponent(btnApplicationFileChooser))).addGroup(
-					layout.createSequentialGroup().addContainerGap()
-						.addComponent(lblImageHeader, GroupLayout.PREFERRED_SIZE, 34,
-							GroupLayout.PREFERRED_SIZE))
-					.addComponent(lblApplicationFile, GroupLayout.Alignment.TRAILING,
-						GroupLayout.PREFERRED_SIZE, 35, GroupLayout.PREFERRED_SIZE))
-				.addGap(18, 18, 18).addGroup(
-				layout.createParallelGroup(GroupLayout.Alignment.LEADING, false)
-					.addComponent(cbxMasterPw, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE,
-						Short.MAX_VALUE).addGroup(
-					layout.createParallelGroup(GroupLayout.Alignment.BASELINE)
-						.addComponent(txtMasterPw, GroupLayout.PREFERRED_SIZE,
-							GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-						.addComponent(btnMasterPw)))
-				.addPreferredGap(LayoutStyle.ComponentPlacement.RELATED).addGroup(
-				layout.createParallelGroup(GroupLayout.Alignment.BASELINE)
-					.addComponent(txtKeyFile, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE,
-						GroupLayout.PREFERRED_SIZE).addComponent(btnKeyFileChooser)
-					.addComponent(cbxKeyFile, GroupLayout.PREFERRED_SIZE, 35,
-						GroupLayout.PREFERRED_SIZE))
-				.addPreferredGap(LayoutStyle.ComponentPlacement.RELATED, 124, Short.MAX_VALUE)
-				.addGroup(
-					layout.createParallelGroup(GroupLayout.Alignment.BASELINE).addComponent(btnHelp)
-						.addComponent(btnOk).addComponent(btnCancel)).addGap(42, 42, 42)));
+							.addComponent(btnKeyFileChooser).addComponent(cbxKeyFile,
+								GroupLayout.PREFERRED_SIZE, 35, GroupLayout.PREFERRED_SIZE))
+						.addPreferredGap(LayoutStyle.ComponentPlacement.RELATED, 124,
+							Short.MAX_VALUE)
+						.addGroup(layout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+							.addComponent(btnHelp).addComponent(btnOk).addComponent(btnCancel))
+						.addGap(42, 42, 42)));
 	}
 
-	@Override protected void onInitializeLayout()
+	@Override
+	protected void onInitializeLayout()
 	{
 		super.onInitializeLayout();
 		onInitializeGroupLayout();
@@ -289,9 +305,9 @@ import java.util.Arrays;
 		if (returnVal == JFileChooser.APPROVE_OPTION)
 		{
 			final File selectedApplicationFile = fileChooser.getSelectedFile();
-			getModelObject().setAppDataFile(selectedApplicationFile);
+			getModelObject().setAppDataFile(selectedApplicationFile.getAbsolutePath());
 			toggleApplicationFileComponents(true);
-			txtApplicationFile.setText(getModelObject().getAppDataFile().getName());
+			txtApplicationFile.setText(getModelObject().getAppDataFile());
 			btnOk.getModel().setEnabled(getBtnOkEnabledState());
 		}
 	}
@@ -316,8 +332,8 @@ import java.util.Arrays;
 		{
 			return false;
 		}
-		if (modelObject.isWithMasterPw() && modelObject.isWithKeyFile() && !(0 < txtMasterPw
-			.getDocument().getLength() && modelObject.getKeyFile() != null))
+		if (modelObject.isWithMasterPw() && modelObject.isWithKeyFile()
+			&& !(0 < txtMasterPw.getDocument().getLength() && modelObject.getKeyFile() != null))
 		{
 			return false;
 		}
@@ -325,13 +341,13 @@ import java.util.Arrays;
 		{
 			return false;
 		}
-		if (modelObject.isWithMasterPw() && !modelObject.isWithKeyFile() && txtMasterPw
-			.getDocument().getLength() == 0)
+		if (modelObject.isWithMasterPw() && !modelObject.isWithKeyFile()
+			&& txtMasterPw.getDocument().getLength() == 0)
 		{
 			return false;
 		}
-		if (!modelObject.isWithMasterPw() && modelObject.isWithKeyFile() && modelObject
-			.getKeyFile() == null)
+		if (!modelObject.isWithMasterPw() && modelObject.isWithKeyFile()
+			&& modelObject.getKeyFile() == null)
 		{
 			return false;
 		}
@@ -342,48 +358,57 @@ import java.util.Arrays;
 	{
 		// TODO implement continues here...
 		System.err.println("onOk method action called");
-
+		ApplicationModelBean applicationModelBean;
 		GenericObjectDecryptor<ApplicationModelBean, String> decryptor;
 		String firstKey;
 		CryptModel<Cipher, String, String> cryptModel;
 		MasterPwFileModelBean modelObject = getModelObject();
-		File appDataFile = modelObject.getAppDataFile();
+		String appDataFile = modelObject.getAppDataFile();
 		firstKey = "D1D15ED36B887AF1";
-		cryptModel = CryptModel.<Cipher, String, String>builder().key(firstKey)
+		cryptModel = CryptModel.<Cipher, String, String> builder().key(firstKey)
 			.algorithm(SunJCEAlgorithm.PBEWithMD5AndDES).build();
 
 		decryptor = RuntimeExceptionDecorator
 			.decorate(() -> new GenericObjectDecryptor<>(cryptModel));
 		try
 		{
-			ApplicationModelBean applicationModelBean = decryptor.decrypt(appDataFile);
-			if(modelObject.isWithMasterPw() && modelObject.isWithKeyFile()) {
-				char[] masterPw = applicationModelBean.getMasterPwFileModelBean().getMasterPw();
+			if (modelObject.isWithMasterPw() && modelObject.isWithKeyFile())
+			{
 				char[] password = getTxtMasterPw().getPassword();
-				File keyFile = applicationModelBean.getMasterPwFileModelBean().getKeyFile();
-				if (!Arrays.equals(masterPw, password))
-				{
-					// TODO show error dialog with message
-				}
+				File keyFile = modelObject.getKeyFile();
 				PrivateKey privateKey = EncryptedPrivateKeyReader
 					.readPasswordProtectedPrivateKey(keyFile, String.valueOf(password));
+				PublicKey publicKey = PrivateKeyExtensions.generatePublicKey(privateKey);
+
+				CryptModel<Cipher, PublicKey, byte[]> encryptModel = CryptModel
+					.<Cipher, PublicKey, byte[]> builder().key(publicKey).build();
+
+				CryptModel<Cipher, PrivateKey, byte[]> decryptModel = CryptModel
+					.<Cipher, PrivateKey, byte[]> builder().key(privateKey).build();
+
+
 			}
-			if(modelObject.isWithMasterPw()) {
-				char[] masterPw = applicationModelBean.getMasterPwFileModelBean().getMasterPw();
+			if (modelObject.isWithMasterPw())
+			{
 				char[] password = getTxtMasterPw().getPassword();
-				if (!Arrays.equals(masterPw, password))
-				{
-					// TODO show error dialog with message
-				}
+				CryptModel<Cipher, String, String> pbeCryptModel = CryptModelFactory
+					.newCryptModel(SunJCEAlgorithm.PBEWithMD5AndDES, new String(password));
+				PBEFileDecryptor fileDecryptor = new PBEFileDecryptor(pbeCryptModel);
+				File decrypt = fileDecryptor.decrypt(new File(appDataFile));
+				applicationModelBean = JsonFileToObjectExtensions.toObject(decrypt,
+					ApplicationModelBean.class, ObjectMapperFactory.newObjectMapper());
+				SpringBootSwingApplication.getInstance().setModelObject(applicationModelBean);
+				// TODO check if something have to load
 			}
-			if(modelObject.isWithKeyFile()) {
-				File keyFile = applicationModelBean.getMasterPwFileModelBean().getKeyFile();
-				PrivateKey privateKey;
-				if(PrivateKeyReader.isPemFormat(keyFile)){
-					privateKey = PrivateKeyReader.readPemPrivateKey(keyFile);
-				} else {
-					privateKey = PrivateKeyReader.readPrivateKey(keyFile);
-				}
+			if (modelObject.isWithKeyFile())
+			{
+				// File keyFile = applicationModelBean.getMasterPwFileModelBean().getKeyFile();
+				// PrivateKey privateKey;
+				// if(PrivateKeyReader.isPemFormat(keyFile)){
+				// privateKey = PrivateKeyReader.readPemPrivateKey(keyFile);
+				// } else {
+				// privateKey = PrivateKeyReader.readPrivateKey(keyFile);
+				// }
 			}
 		}
 		catch (Exception e)

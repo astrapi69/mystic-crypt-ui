@@ -20,6 +20,9 @@
  */
 package io.github.astrapi69.mystic.crypt.panels.signin;
 
+import java.io.File;
+import java.io.Serializable;
+
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -30,20 +33,24 @@ import lombok.Setter;
 import lombok.ToString;
 import lombok.experimental.FieldDefaults;
 
-import java.io.File;
-import java.io.Serializable;
-
 /**
  * The bean class {@link MasterPwFileModelBean} is for holding the sign in data
  */
-@Getter @Setter @EqualsAndHashCode @ToString @NoArgsConstructor @AllArgsConstructor @Builder(toBuilder = true) @FieldDefaults(level = AccessLevel.PRIVATE) public class MasterPwFileModelBean
-	implements Serializable
+@Getter
+@Setter
+@EqualsAndHashCode
+@ToString
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder(toBuilder = true)
+@FieldDefaults(level = AccessLevel.PRIVATE)
+public class MasterPwFileModelBean implements Serializable
 {
 	/** The Constant serialVersionUID. */
 	private static final long serialVersionUID = 1L;
 
 	/** The encrypted data file for the application. */
-	File appDataFile;
+	String appDataFile;
 
 	/** The key file. */
 	File keyFile;
@@ -58,5 +65,6 @@ import java.io.Serializable;
 	boolean withKeyFile;
 
 	/** The flag if the master password will be used in the authentication. */
-	@Builder.Default boolean withMasterPw = true;
+	@Builder.Default
+	boolean withMasterPw = true;
 }
