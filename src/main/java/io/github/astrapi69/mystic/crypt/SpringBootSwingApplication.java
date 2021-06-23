@@ -20,7 +20,24 @@
  */
 package io.github.astrapi69.mystic.crypt;
 
-import de.alpharogroup.file.read.ReadFileExtensions;
+import java.awt.*;
+import java.io.File;
+import java.security.PrivateKey;
+import java.security.PublicKey;
+
+import javax.crypto.Cipher;
+import javax.crypto.SecretKey;
+import javax.swing.*;
+
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NonNull;
+import lombok.experimental.FieldDefaults;
+
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.builder.SpringApplicationBuilder;
+import org.springframework.context.ConfigurableApplicationContext;
+
 import de.alpharogroup.file.search.PathFinder;
 import de.alpharogroup.file.system.SystemFileExtensions;
 import de.alpharogroup.file.write.WriteFileExtensions;
@@ -28,22 +45,15 @@ import de.alpharogroup.json.ObjectToJsonExtensions;
 import de.alpharogroup.model.BaseModel;
 import de.alpharogroup.model.api.Model;
 import io.github.astrapi69.crypto.algorithm.AesAlgorithm;
-import io.github.astrapi69.crypto.algorithm.Algorithm;
 import io.github.astrapi69.crypto.algorithm.SunJCEAlgorithm;
-import io.github.astrapi69.crypto.factories.CryptModelFactory;
 import io.github.astrapi69.crypto.factories.SecretKeyFactoryExtensions;
-import io.github.astrapi69.crypto.file.GenericObjectEncryptor;
 import io.github.astrapi69.crypto.file.PBEFileEncryptor;
-import io.github.astrapi69.crypto.key.PrivateKeyDecryptor;
 import io.github.astrapi69.crypto.key.PrivateKeyExtensions;
-import io.github.astrapi69.crypto.key.PrivateKeyFileDecryptor;
 import io.github.astrapi69.crypto.key.PublicKeyEncryptor;
-import io.github.astrapi69.crypto.key.PublicKeyFileEncryptor;
 import io.github.astrapi69.crypto.key.PublicKeyGenericEncryptor;
 import io.github.astrapi69.crypto.key.reader.EncryptedPrivateKeyReader;
 import io.github.astrapi69.crypto.key.reader.PrivateKeyReader;
 import io.github.astrapi69.crypto.model.CryptModel;
-import io.github.astrapi69.crypto.model.StringDecorator;
 import io.github.astrapi69.layout.ScreenSizeExtensions;
 import io.github.astrapi69.mystic.crypt.panels.signin.MasterPwFileDialog;
 import io.github.astrapi69.mystic.crypt.panels.signin.MasterPwFileModelBean;
@@ -59,33 +69,22 @@ import io.github.astrapi69.swing.splashscreen.BaseSplashScreen;
 import io.github.astrapi69.swing.splashscreen.SplashScreenModelBean;
 import io.github.astrapi69.swing.utils.JInternalFrameExtensions;
 import io.github.astrapi69.throwable.RuntimeExceptionDecorator;
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.NonNull;
-import lombok.experimental.FieldDefaults;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.builder.SpringApplicationBuilder;
-import org.springframework.context.ConfigurableApplicationContext;
-
-import javax.crypto.Cipher;
-import javax.crypto.SecretKey;
-import javax.swing.*;
-import java.awt.*;
-import java.io.File;
-import java.security.PrivateKey;
-import java.security.PublicKey;
 
 /**
  * The class {@link SpringBootSwingApplication}
  */
-@SuppressWarnings("serial") @SpringBootApplication @FieldDefaults(level = AccessLevel.PRIVATE)
-public class SpringBootSwingApplication
-	extends ApplicationFrame<ApplicationModelBean>
+@SuppressWarnings("serial")
+@SpringBootApplication
+@FieldDefaults(level = AccessLevel.PRIVATE)
+public class SpringBootSwingApplication extends ApplicationFrame<ApplicationModelBean>
 {
 
 	public static final String APPLICATION_NAME = "mystic-crypt-ui";
 
-	/** Constant for the default configuration directory from the current user. current value:".config" */
+	/**
+	 * Constant for the default configuration directory from the current user. current
+	 * value:".config"
+	 */
 	public static final String DEFAULT_USER_CONFIGURATION_DIRECTORY_NAME = ".config";
 
 	public static ConfigurableApplicationContext ctx;
@@ -108,7 +107,8 @@ public class SpringBootSwingApplication
 	/**
 	 * The main method that start this {@link SpringBootSwingApplication}
 	 *
-	 * @param args the arguments
+	 * @param args
+	 *            the arguments
 	 */
 	public static void main(String[] args)
 
@@ -156,7 +156,7 @@ public class SpringBootSwingApplication
 	private void showMasterPwDialog()
 	{
 		MasterPwFileDialog dialog = new MasterPwFileDialog(this, "Enter your credentials", true,
-			BaseModel.<MasterPwFileModelBean>of(MasterPwFileModelBean.builder().build()));
+			BaseModel.<MasterPwFileModelBean> of(MasterPwFileModelBean.builder().build()));
 		dialog.setSize(820, 380);
 		dialog.setVisible(true);
 	}
@@ -164,12 +164,14 @@ public class SpringBootSwingApplication
 	/**
 	 * The console internal frame.
 	 */
-	@Getter JInternalFrame consoleInternalFrame;
+	@Getter
+	JInternalFrame consoleInternalFrame;
 
 	/**
 	 * The internal frame.
 	 */
-	@Getter JInternalFrame internalFrame;
+	@Getter
+	JInternalFrame internalFrame;
 
 	/**
 	 * Instantiates a new main frame.
@@ -179,7 +181,8 @@ public class SpringBootSwingApplication
 		super(Messages.getString("mainframe.title"));
 	}
 
-	@Override protected void onBeforeInitialize()
+	@Override
+	protected void onBeforeInitialize()
 	{
 		if (instance == null)
 		{
@@ -190,18 +193,20 @@ public class SpringBootSwingApplication
 		super.onBeforeInitialize();
 	}
 
-	@Override protected void onBeforeInitializeComponents()
+	@Override
+	protected void onBeforeInitializeComponents()
 	{
 		// start
 		// TODO delete when app-file created
-//		generateTempApplicationModelFileWithPassword();
-//		generateTempApplicationModelFileWithKeyFile();
-//		generateTempApplicationModelFileWithPasswordProtectedKeyFile();
+		// generateTempApplicationModelFileWithPassword();
+		// generateTempApplicationModelFileWithKeyFile();
+		// generateTempApplicationModelFileWithPasswordProtectedKeyFile();
 		// TODO delete when app-file created
 		// end
 		showMasterPwDialog();
 		super.onBeforeInitializeComponents();
 	}
+
 	private void generateTempApplicationModelFileWithPassword()
 	{
 		PBEFileEncryptor encryptor;
@@ -221,9 +226,11 @@ public class SpringBootSwingApplication
 		cryptModel = CryptModel.<Cipher, String, String> builder().key(password)
 			.algorithm(SunJCEAlgorithm.PBEWithMD5AndDES).build();
 		encryptor = RuntimeExceptionDecorator.decorate(() -> new PBEFileEncryptor(cryptModel));
-		String json = RuntimeExceptionDecorator.decorate(() -> ObjectToJsonExtensions.toJson(modelObject));
+		String json = RuntimeExceptionDecorator
+			.decorate(() -> ObjectToJsonExtensions.toJson(modelObject));
 		RuntimeExceptionDecorator.decorate(() -> WriteFileExtensions.string2File(appData, json));
-		File encryptedAppData = RuntimeExceptionDecorator.decorate(() -> encryptor.encrypt(appData));
+		File encryptedAppData = RuntimeExceptionDecorator
+			.decorate(() -> encryptor.encrypt(appData));
 		System.out.println(encryptedAppData.getAbsolutePath());
 	}
 
@@ -253,25 +260,27 @@ public class SpringBootSwingApplication
 		pwProtectedPrivateKeyFile = new File(appConfigDir, "pwp-private-key-pw-is-secret.der");
 		password = "secret";
 
-		privateKey = RuntimeExceptionDecorator.decorate(() ->EncryptedPrivateKeyReader
+		privateKey = RuntimeExceptionDecorator.decorate(() -> EncryptedPrivateKeyReader
 			.readPasswordProtectedPrivateKey(pwProtectedPrivateKeyFile, password));
-		publicKey = RuntimeExceptionDecorator.decorate(() ->
-			PrivateKeyExtensions.generatePublicKey(privateKey));
+		publicKey = RuntimeExceptionDecorator
+			.decorate(() -> PrivateKeyExtensions.generatePublicKey(privateKey));
 		encryptModel = CryptModel.<Cipher, PublicKey, byte[]> builder().key(publicKey).build();
-		symmetricKey = RuntimeExceptionDecorator.decorate( () ->
-			SecretKeyFactoryExtensions.newSecretKey(AesAlgorithm.AES.getAlgorithm(),
-				128));
+		symmetricKey = RuntimeExceptionDecorator.decorate(
+			() -> SecretKeyFactoryExtensions.newSecretKey(AesAlgorithm.AES.getAlgorithm(), 128));
 		symmetricKeyModel = CryptModel.<Cipher, SecretKey, String> builder().key(symmetricKey)
 			.algorithm(AesAlgorithm.AES).operationMode(Cipher.ENCRYPT_MODE).build();
 
-		encryptor = RuntimeExceptionDecorator.decorate( () ->
-			new PublicKeyEncryptor(encryptModel, symmetricKeyModel));
+		encryptor = RuntimeExceptionDecorator
+			.decorate(() -> new PublicKeyEncryptor(encryptModel, symmetricKeyModel));
 		genericEncryptor = new PublicKeyGenericEncryptor<>(encryptor);
 
-		String json = RuntimeExceptionDecorator.decorate(() -> ObjectToJsonExtensions.toJson(modelObject));
-		RuntimeExceptionDecorator.decorate(() -> WriteFileExtensions.string2File(appDataFile, json));
+		String json = RuntimeExceptionDecorator
+			.decorate(() -> ObjectToJsonExtensions.toJson(modelObject));
+		RuntimeExceptionDecorator
+			.decorate(() -> WriteFileExtensions.string2File(appDataFile, json));
 		byte[] encrypt = RuntimeExceptionDecorator.decorate(() -> genericEncryptor.encrypt(json));
-		RuntimeExceptionDecorator.decorate(() -> WriteFileExtensions.storeByteArrayToFile(encrypt, encryptedAppDataFile));
+		RuntimeExceptionDecorator.decorate(
+			() -> WriteFileExtensions.storeByteArrayToFile(encrypt, encryptedAppDataFile));
 		System.out.println(encryptedAppDataFile.getAbsolutePath());
 	}
 
@@ -299,24 +308,26 @@ public class SpringBootSwingApplication
 
 		privatekeyDerFile = new File(appConfigDir, "private.der");
 
-		privateKey = RuntimeExceptionDecorator.decorate(() ->
-			PrivateKeyReader.readPrivateKey(privatekeyDerFile));
-		publicKey = RuntimeExceptionDecorator.decorate(() ->
-			PrivateKeyExtensions.generatePublicKey(privateKey));
+		privateKey = RuntimeExceptionDecorator
+			.decorate(() -> PrivateKeyReader.readPrivateKey(privatekeyDerFile));
+		publicKey = RuntimeExceptionDecorator
+			.decorate(() -> PrivateKeyExtensions.generatePublicKey(privateKey));
 		encryptModel = CryptModel.<Cipher, PublicKey, byte[]> builder().key(publicKey).build();
-		symmetricKey = RuntimeExceptionDecorator.decorate( () ->
-			SecretKeyFactoryExtensions.newSecretKey(AesAlgorithm.AES.getAlgorithm(),
-			128));
+		symmetricKey = RuntimeExceptionDecorator.decorate(
+			() -> SecretKeyFactoryExtensions.newSecretKey(AesAlgorithm.AES.getAlgorithm(), 128));
 		symmetricKeyModel = CryptModel.<Cipher, SecretKey, String> builder().key(symmetricKey)
 			.algorithm(AesAlgorithm.AES).operationMode(Cipher.ENCRYPT_MODE).build();
 
-		encryptor = RuntimeExceptionDecorator.decorate( () ->
-			new PublicKeyEncryptor(encryptModel, symmetricKeyModel));
+		encryptor = RuntimeExceptionDecorator
+			.decorate(() -> new PublicKeyEncryptor(encryptModel, symmetricKeyModel));
 		genericEncryptor = new PublicKeyGenericEncryptor<>(encryptor);
-		String json = RuntimeExceptionDecorator.decorate(() -> ObjectToJsonExtensions.toJson(modelObject));
-		RuntimeExceptionDecorator.decorate(() -> WriteFileExtensions.string2File(appDataFile, json));
+		String json = RuntimeExceptionDecorator
+			.decorate(() -> ObjectToJsonExtensions.toJson(modelObject));
+		RuntimeExceptionDecorator
+			.decorate(() -> WriteFileExtensions.string2File(appDataFile, json));
 		byte[] encrypt = RuntimeExceptionDecorator.decorate(() -> genericEncryptor.encrypt(json));
-		RuntimeExceptionDecorator.decorate(() -> WriteFileExtensions.storeByteArrayToFile(encrypt, encryptedAppDataFile));
+		RuntimeExceptionDecorator.decorate(
+			() -> WriteFileExtensions.storeByteArrayToFile(encrypt, encryptedAppDataFile));
 		System.out.println(encryptedAppDataFile.getAbsolutePath());
 	}
 
@@ -324,15 +335,14 @@ public class SpringBootSwingApplication
 	{
 		if (consoleInternalFrame == null)
 		{
-			consoleInternalFrame = JComponentFactory
-				.newInternalFrame("Console", true, true, true, true);
+			consoleInternalFrame = JComponentFactory.newInternalFrame("Console", true, true, true,
+				true);
 			ConsolePanel consolePanel = new ConsolePanel();
 			int screenHeight = ScreenSizeExtensions.getScreenHeight(this);
 			int screenWidth = ScreenSizeExtensions.getScreenWidth(this);
 			JInternalFrameExtensions.addComponentToFrame(consoleInternalFrame, consolePanel);
-			JInternalFrameExtensions
-				.addJInternalFrame(SpringBootSwingApplication.getInstance().getMainComponent(),
-					consoleInternalFrame);
+			JInternalFrameExtensions.addJInternalFrame(
+				SpringBootSwingApplication.getInstance().getMainComponent(), consoleInternalFrame);
 			consoleInternalFrame.setSize(screenWidth, (screenHeight / 4));
 			consoleInternalFrame.setLocation(0, (screenHeight / 4) * 3);
 			consoleInternalFrame.setResizable(false);
@@ -340,7 +350,8 @@ public class SpringBootSwingApplication
 		}
 	}
 
-	@Override protected File newConfigurationDirectory(final @NonNull String parent,
+	@Override
+	protected File newConfigurationDirectory(final @NonNull String parent,
 		final @NonNull String child)
 	{
 		String configurationDirectoryName = "mystic-crypt-ui";
@@ -353,24 +364,28 @@ public class SpringBootSwingApplication
 		return applicationConfigurationDirectory;
 	}
 
-	@Override protected BaseDesktopMenu newDesktopMenu(@NonNull Component applicationFrame)
+	@Override
+	protected BaseDesktopMenu newDesktopMenu(@NonNull Component applicationFrame)
 	{
 		return new DesktopMenu(applicationFrame);
 	}
 
-	@Override protected String newIconPath()
+	@Override
+	protected String newIconPath()
 	{
 		return Messages.getString("global.icon.app.path");
 	}
 
-	@Override protected void onAfterInitialize()
+	@Override
+	protected void onAfterInitialize()
 	{
 		super.onAfterInitialize();
 		getConsoleOutput();
 		setTitle(Messages.getString("mainframe.title"));
 	}
 
-	@Override protected LookAndFeels newLookAndFeels()
+	@Override
+	protected LookAndFeels newLookAndFeels()
 	{
 		return LookAndFeels.METAL;
 	}

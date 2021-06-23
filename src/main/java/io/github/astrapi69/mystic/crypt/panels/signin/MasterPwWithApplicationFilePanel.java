@@ -23,6 +23,7 @@ package io.github.astrapi69.mystic.crypt.panels.signin;
 import java.awt.event.ActionEvent;
 import java.io.File;
 import java.security.PrivateKey;
+import java.security.spec.InvalidKeySpecException;
 
 import javax.crypto.Cipher;
 import javax.swing.*;
@@ -112,8 +113,8 @@ public class MasterPwWithApplicationFilePanel extends BasePanel<MasterPwFileMode
 		lblApplicationFile = new JLabel();
 		txtApplicationFile = new JTextField();
 		btnApplicationFileChooser = new JButton();
-		toggleMasterPwComponents(getModelObject().isWithMasterPw());
-		toggleKeyFileComponents(getModelObject().isWithKeyFile());
+		toggleMasterPwComponents();
+		toggleKeyFileComponents();
 
 		setPreferredSize(new java.awt.Dimension(820, 380));
 
@@ -126,6 +127,7 @@ public class MasterPwWithApplicationFilePanel extends BasePanel<MasterPwFileMode
 		cbxKeyFile.addActionListener(this::onCheckKeyFile);
 
 		txtMasterPw.setText("");
+		txtMasterPw.setEnabled(false);
 		txtMasterPw.getDocument().addDocumentListener(new DocumentListenerAdapter()
 		{
 			@Override
@@ -261,28 +263,27 @@ public class MasterPwWithApplicationFilePanel extends BasePanel<MasterPwFileMode
 	protected void onCheckKeyFile(final ActionEvent actionEvent)
 	{
 		getModelObject().setWithKeyFile(!getModelObject().isWithKeyFile());
-		toggleKeyFileComponents(getModelObject().isWithKeyFile());
+		toggleKeyFileComponents();
 	}
 
-	protected void toggleKeyFileComponents(boolean withKeyFile)
+	protected void toggleKeyFileComponents()
 	{
-		txtKeyFile.setEnabled(withKeyFile);
-		btnKeyFileChooser.setEnabled(withKeyFile);
-	}
-
-	protected void toggleMasterPwComponents(boolean withKeyFile)
-	{
-		txtMasterPw.setEnabled(withKeyFile);
-		btnMasterPw.setEnabled(withKeyFile);
+		btnKeyFileChooser.setEnabled(cbxKeyFile.isSelected());
 		btnOk.getModel().setEnabled(getBtnOkEnabledState());
 	}
 
-	protected void toggleApplicationFileComponents(boolean withKeyFile)
+	protected void toggleMasterPwComponents()
 	{
-		txtMasterPw.setEnabled(withKeyFile);
-		btnMasterPw.setEnabled(withKeyFile);
-		txtKeyFile.setEnabled(withKeyFile);
-		btnKeyFileChooser.setEnabled(withKeyFile);
+		txtMasterPw.setEnabled(cbxMasterPw.isSelected());
+		btnMasterPw.setEnabled(cbxMasterPw.isSelected());
+		btnOk.getModel().setEnabled(getBtnOkEnabledState());
+	}
+
+	protected void toggleApplicationFileComponents()
+	{
+		txtMasterPw.setEnabled(cbxMasterPw.isSelected());
+		btnMasterPw.setEnabled(cbxKeyFile.isSelected());
+		btnKeyFileChooser.setEnabled(cbxKeyFile.isSelected());
 		btnOk.getModel().setEnabled(getBtnOkEnabledState());
 	}
 
@@ -292,10 +293,9 @@ public class MasterPwWithApplicationFilePanel extends BasePanel<MasterPwFileMode
 		if (source instanceof JCheckBox)
 		{
 			JCheckBox checkBox = (JCheckBox)source;
-			checkBox.isSelected();
 			getModelObject().setWithMasterPw(checkBox.isSelected());
 		}
-		toggleMasterPwComponents(getModelObject().isWithMasterPw());
+		toggleMasterPwComponents();
 	}
 
 
@@ -307,7 +307,7 @@ public class MasterPwWithApplicationFilePanel extends BasePanel<MasterPwFileMode
 		{
 			final File selectedApplicationFile = fileChooser.getSelectedFile();
 			getModelObject().setAppDataFile(selectedApplicationFile.getAbsolutePath());
-			toggleApplicationFileComponents(true);
+			toggleApplicationFileComponents();
 			txtApplicationFile.setText(getModelObject().getAppDataFile());
 			boolean okEnabledState = getBtnOkEnabledState();
 			btnOk.getModel().setEnabled(okEnabledState);
@@ -359,7 +359,6 @@ public class MasterPwWithApplicationFilePanel extends BasePanel<MasterPwFileMode
 
 	protected void onOk(ActionEvent actionEvent)
 	{
-		// TODO implement continues here...
 		System.err.println("onOk method action called");
 		ApplicationModelBean applicationModelBean;
 		MasterPwFileModelBean modelObject = getModelObject();
@@ -371,23 +370,29 @@ public class MasterPwWithApplicationFilePanel extends BasePanel<MasterPwFileMode
 			{
 				char[] password = getTxtMasterPw().getPassword();
 				File keyFile = modelObject.getKeyFile();
-				PrivateKey privateKey = EncryptedPrivateKeyReader
-					.readPasswordProtectedPrivateKey(keyFile, String.valueOf(password));
-
+				PrivateKey privateKey;
 				PrivateKeyDecryptor decryptor;
 				PrivateKeyGenericDecryptor<String> genericDecryptor;
 				CryptModel<Cipher, PrivateKey, byte[]> decryptModel;
+				try{
 
-				decryptModel = CryptModel.<Cipher, PrivateKey, byte[]> builder().key(privateKey)
-					.build();
-				decryptor = new PrivateKeyDecryptor(decryptModel);
-				genericDecryptor = new PrivateKeyGenericDecryptor<>(decryptor);
-				byte[] encryptedBytes = ReadFileExtensions
-					.readFileToBytearray(new File(appDataFile));
-				String json = genericDecryptor.decrypt(encryptedBytes);
-				applicationModelBean = JsonStringToObjectExtensions.toObject(json,
-					ApplicationModelBean.class, ObjectMapperFactory.newObjectMapper());
-				SpringBootSwingApplication.getInstance().setModelObject(applicationModelBean);
+					privateKey = EncryptedPrivateKeyReader
+						.readPasswordProtectedPrivateKey(keyFile, String.valueOf(password));
+
+					decryptModel = CryptModel.<Cipher, PrivateKey, byte[]> builder().key(privateKey)
+						.build();
+					decryptor = new PrivateKeyDecryptor(decryptModel);
+					genericDecryptor = new PrivateKeyGenericDecryptor<>(decryptor);
+					byte[] encryptedBytes = ReadFileExtensions
+						.readFileToBytearray(new File(appDataFile));
+					String json = genericDecryptor.decrypt(encryptedBytes);
+					applicationModelBean = JsonStringToObjectExtensions.toObject(json,
+						ApplicationModelBean.class, ObjectMapperFactory.newObjectMapper());
+					SpringBootSwingApplication.getInstance().setModelObject(applicationModelBean);
+				} catch (InvalidKeySpecException exception){
+					// TODO implement continues here...
+					// Show dialog that password or key file is wrong
+				}
 			}
 			else if (modelObject.isWithMasterPw())
 			{
@@ -395,10 +400,15 @@ public class MasterPwWithApplicationFilePanel extends BasePanel<MasterPwFileMode
 				CryptModel<Cipher, String, String> pbeCryptModel = CryptModelFactory
 					.newCryptModel(SunJCEAlgorithm.PBEWithMD5AndDES, new String(password));
 				PBEFileDecryptor fileDecryptor = new PBEFileDecryptor(pbeCryptModel);
-				decrypt = fileDecryptor.decrypt(new File(appDataFile));
-				applicationModelBean = JsonFileToObjectExtensions.toObject(decrypt,
-					ApplicationModelBean.class, ObjectMapperFactory.newObjectMapper());
-				SpringBootSwingApplication.getInstance().setModelObject(applicationModelBean);
+				try {
+					decrypt = fileDecryptor.decrypt(new File(appDataFile));
+					applicationModelBean = JsonFileToObjectExtensions.toObject(decrypt,
+						ApplicationModelBean.class, ObjectMapperFactory.newObjectMapper());
+					SpringBootSwingApplication.getInstance().setModelObject(applicationModelBean);
+				} catch (Exception exception){
+					// TODO
+					// Show dialog that password is wrong
+				}
 			}
 			else if (modelObject.isWithKeyFile())
 			{
@@ -415,12 +425,17 @@ public class MasterPwWithApplicationFilePanel extends BasePanel<MasterPwFileMode
 				genericDecryptor = new PrivateKeyGenericDecryptor<>(decryptor);
 				byte[] encryptedBytes = ReadFileExtensions
 					.readFileToBytearray(new File(appDataFile));
-				String json = genericDecryptor.decrypt(encryptedBytes);
-				applicationModelBean = JsonStringToObjectExtensions.toObject(json,
-					ApplicationModelBean.class, ObjectMapperFactory.newObjectMapper());
-				SpringBootSwingApplication.getInstance().setModelObject(applicationModelBean);
+				try
+				{
+					String json = genericDecryptor.decrypt(encryptedBytes);
+					applicationModelBean = JsonStringToObjectExtensions.toObject(json,
+						ApplicationModelBean.class, ObjectMapperFactory.newObjectMapper());
+					SpringBootSwingApplication.getInstance().setModelObject(applicationModelBean);
+				} catch (Exception exception) {
+					// TODO
+					// Show dialog that key file is wrong
+				}
 			}
-			// TODO check if something have to load
 		}
 		catch (Exception e)
 		{
