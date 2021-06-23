@@ -20,17 +20,28 @@
  */
 package io.github.astrapi69.mystic.crypt;
 
+import de.alpharogroup.file.read.ReadFileExtensions;
 import de.alpharogroup.file.search.PathFinder;
 import de.alpharogroup.file.system.SystemFileExtensions;
 import de.alpharogroup.file.write.WriteFileExtensions;
 import de.alpharogroup.json.ObjectToJsonExtensions;
 import de.alpharogroup.model.BaseModel;
 import de.alpharogroup.model.api.Model;
+import io.github.astrapi69.crypto.algorithm.AesAlgorithm;
 import io.github.astrapi69.crypto.algorithm.Algorithm;
 import io.github.astrapi69.crypto.algorithm.SunJCEAlgorithm;
 import io.github.astrapi69.crypto.factories.CryptModelFactory;
+import io.github.astrapi69.crypto.factories.SecretKeyFactoryExtensions;
 import io.github.astrapi69.crypto.file.GenericObjectEncryptor;
 import io.github.astrapi69.crypto.file.PBEFileEncryptor;
+import io.github.astrapi69.crypto.key.PrivateKeyDecryptor;
+import io.github.astrapi69.crypto.key.PrivateKeyExtensions;
+import io.github.astrapi69.crypto.key.PrivateKeyFileDecryptor;
+import io.github.astrapi69.crypto.key.PublicKeyEncryptor;
+import io.github.astrapi69.crypto.key.PublicKeyFileEncryptor;
+import io.github.astrapi69.crypto.key.PublicKeyGenericEncryptor;
+import io.github.astrapi69.crypto.key.reader.EncryptedPrivateKeyReader;
+import io.github.astrapi69.crypto.key.reader.PrivateKeyReader;
 import io.github.astrapi69.crypto.model.CryptModel;
 import io.github.astrapi69.crypto.model.StringDecorator;
 import io.github.astrapi69.layout.ScreenSizeExtensions;
@@ -57,9 +68,12 @@ import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.context.ConfigurableApplicationContext;
 
 import javax.crypto.Cipher;
+import javax.crypto.SecretKey;
 import javax.swing.*;
 import java.awt.*;
 import java.io.File;
+import java.security.PrivateKey;
+import java.security.PublicKey;
 
 /**
  * The class {@link SpringBootSwingApplication}
@@ -180,8 +194,9 @@ public class SpringBootSwingApplication
 	{
 		// start
 		// TODO delete when app-file created
-//		generateTempApplicationModelFile();
-		generateTempApplicationModelFileWithPassword();
+//		generateTempApplicationModelFileWithPassword();
+//		generateTempApplicationModelFileWithKeyFile();
+//		generateTempApplicationModelFileWithPasswordProtectedKeyFile();
 		// TODO delete when app-file created
 		// end
 		showMasterPwDialog();
@@ -189,7 +204,6 @@ public class SpringBootSwingApplication
 	}
 	private void generateTempApplicationModelFileWithPassword()
 	{
-
 		PBEFileEncryptor encryptor;
 		String password;
 		CryptModel<Cipher, String, String> cryptModel;
@@ -213,31 +227,97 @@ public class SpringBootSwingApplication
 		System.out.println(encryptedAppData.getAbsolutePath());
 	}
 
-	private void generateTempApplicationModelFile()
+	private void generateTempApplicationModelFileWithPasswordProtectedKeyFile()
 	{
-		String key;
-		Algorithm algorithm;
-		File encrypted;
-		GenericObjectEncryptor<ApplicationModelBean, String> encryptor;
-		CryptModel<Cipher, String, String> cryptModel;
-
-		ApplicationModelBean modelObject = getModelObject();
-		MasterPwFileModelBean masterPwFileModelBean = MasterPwFileModelBean.builder()
-			.masterPw("test1234".toCharArray()).build();
-		modelObject.setMasterPwFileModelBean(masterPwFileModelBean);
-		key = "D1D15ED36B887AF1";
-		algorithm = SunJCEAlgorithm.PBEWithMD5AndDES;
-
-		cryptModel = CryptModelFactory.newCryptModel(algorithm, key);
+		PrivateKey privateKey;
+		File pwProtectedPrivateKeyFile;
+		String password;
+		PublicKey publicKey;
+		SecretKey symmetricKey;
+		PublicKeyEncryptor encryptor;
+		PublicKeyGenericEncryptor<String> genericEncryptor;
+		CryptModel<Cipher, PublicKey, byte[]> encryptModel;
+		CryptModel<Cipher, SecretKey, String> symmetricKeyModel;
 
 		File appConfigDir = PathFinder.getRelativePath(SystemFileExtensions.getUserHomeDir(),
 			SpringBootSwingApplication.DEFAULT_USER_CONFIGURATION_DIRECTORY_NAME,
 			SpringBootSwingApplication.APPLICATION_NAME);
-		File appData = new File(appConfigDir, "app-data.enc");
-		masterPwFileModelBean.setAppDataFile(appData.getAbsolutePath());
-		encryptor =
-			RuntimeExceptionDecorator.decorate(() -> new GenericObjectEncryptor<>(cryptModel, appData));
-		encrypted = RuntimeExceptionDecorator.decorate(() ->encryptor.encrypt(modelObject));
+		File appDataFile = new File(appConfigDir, "app-data-with-pw-protected-key.json");
+		File encryptedAppDataFile = new File(appConfigDir, "app-data-with-pw-protected-key.enc");
+
+		ApplicationModelBean modelObject = getModelObject();
+		MasterPwFileModelBean masterPwFileModelBean = MasterPwFileModelBean.builder()
+			.appDataFile(appDataFile.getAbsolutePath()).build();
+		modelObject.setMasterPwFileModelBean(masterPwFileModelBean);
+
+		pwProtectedPrivateKeyFile = new File(appConfigDir, "pwp-private-key-pw-is-secret.der");
+		password = "secret";
+
+		privateKey = RuntimeExceptionDecorator.decorate(() ->EncryptedPrivateKeyReader
+			.readPasswordProtectedPrivateKey(pwProtectedPrivateKeyFile, password));
+		publicKey = RuntimeExceptionDecorator.decorate(() ->
+			PrivateKeyExtensions.generatePublicKey(privateKey));
+		encryptModel = CryptModel.<Cipher, PublicKey, byte[]> builder().key(publicKey).build();
+		symmetricKey = RuntimeExceptionDecorator.decorate( () ->
+			SecretKeyFactoryExtensions.newSecretKey(AesAlgorithm.AES.getAlgorithm(),
+				128));
+		symmetricKeyModel = CryptModel.<Cipher, SecretKey, String> builder().key(symmetricKey)
+			.algorithm(AesAlgorithm.AES).operationMode(Cipher.ENCRYPT_MODE).build();
+
+		encryptor = RuntimeExceptionDecorator.decorate( () ->
+			new PublicKeyEncryptor(encryptModel, symmetricKeyModel));
+		genericEncryptor = new PublicKeyGenericEncryptor<>(encryptor);
+
+		String json = RuntimeExceptionDecorator.decorate(() -> ObjectToJsonExtensions.toJson(modelObject));
+		RuntimeExceptionDecorator.decorate(() -> WriteFileExtensions.string2File(appDataFile, json));
+		byte[] encrypt = RuntimeExceptionDecorator.decorate(() -> genericEncryptor.encrypt(json));
+		RuntimeExceptionDecorator.decorate(() -> WriteFileExtensions.storeByteArrayToFile(encrypt, encryptedAppDataFile));
+		System.out.println(encryptedAppDataFile.getAbsolutePath());
+	}
+
+	private void generateTempApplicationModelFileWithKeyFile()
+	{
+		PrivateKey privateKey;
+		File privatekeyDerFile;
+		PublicKey publicKey;
+		SecretKey symmetricKey;
+		PublicKeyEncryptor encryptor;
+		PublicKeyGenericEncryptor<String> genericEncryptor;
+		CryptModel<Cipher, PublicKey, byte[]> encryptModel;
+		CryptModel<Cipher, SecretKey, String> symmetricKeyModel;
+
+		File appConfigDir = PathFinder.getRelativePath(SystemFileExtensions.getUserHomeDir(),
+			SpringBootSwingApplication.DEFAULT_USER_CONFIGURATION_DIRECTORY_NAME,
+			SpringBootSwingApplication.APPLICATION_NAME);
+		File appDataFile = new File(appConfigDir, "app-data-with-key.json");
+		File encryptedAppDataFile = new File(appConfigDir, "app-data-with-key.enc");
+
+		ApplicationModelBean modelObject = getModelObject();
+		MasterPwFileModelBean masterPwFileModelBean = MasterPwFileModelBean.builder()
+			.appDataFile(appDataFile.getAbsolutePath()).build();
+		modelObject.setMasterPwFileModelBean(masterPwFileModelBean);
+
+		privatekeyDerFile = new File(appConfigDir, "private.der");
+
+		privateKey = RuntimeExceptionDecorator.decorate(() ->
+			PrivateKeyReader.readPrivateKey(privatekeyDerFile));
+		publicKey = RuntimeExceptionDecorator.decorate(() ->
+			PrivateKeyExtensions.generatePublicKey(privateKey));
+		encryptModel = CryptModel.<Cipher, PublicKey, byte[]> builder().key(publicKey).build();
+		symmetricKey = RuntimeExceptionDecorator.decorate( () ->
+			SecretKeyFactoryExtensions.newSecretKey(AesAlgorithm.AES.getAlgorithm(),
+			128));
+		symmetricKeyModel = CryptModel.<Cipher, SecretKey, String> builder().key(symmetricKey)
+			.algorithm(AesAlgorithm.AES).operationMode(Cipher.ENCRYPT_MODE).build();
+
+		encryptor = RuntimeExceptionDecorator.decorate( () ->
+			new PublicKeyEncryptor(encryptModel, symmetricKeyModel));
+		genericEncryptor = new PublicKeyGenericEncryptor<>(encryptor);
+		String json = RuntimeExceptionDecorator.decorate(() -> ObjectToJsonExtensions.toJson(modelObject));
+		RuntimeExceptionDecorator.decorate(() -> WriteFileExtensions.string2File(appDataFile, json));
+		byte[] encrypt = RuntimeExceptionDecorator.decorate(() -> genericEncryptor.encrypt(json));
+		RuntimeExceptionDecorator.decorate(() -> WriteFileExtensions.storeByteArrayToFile(encrypt, encryptedAppDataFile));
+		System.out.println(encryptedAppDataFile.getAbsolutePath());
 	}
 
 	public void getConsoleOutput()

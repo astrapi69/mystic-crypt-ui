@@ -23,31 +23,32 @@ package io.github.astrapi69.mystic.crypt.panels.signin;
 import java.awt.event.ActionEvent;
 import java.io.File;
 import java.security.PrivateKey;
-import java.security.PublicKey;
 
 import javax.crypto.Cipher;
 import javax.swing.*;
 import javax.swing.event.DocumentEvent;
 
 import lombok.Getter;
+import de.alpharogroup.file.read.ReadFileExtensions;
 import de.alpharogroup.file.search.PathFinder;
 import de.alpharogroup.file.system.SystemFileExtensions;
 import de.alpharogroup.json.JsonFileToObjectExtensions;
+import de.alpharogroup.json.JsonStringToObjectExtensions;
 import de.alpharogroup.json.factory.ObjectMapperFactory;
 import de.alpharogroup.model.BaseModel;
 import de.alpharogroup.model.api.Model;
 import io.github.astrapi69.crypto.algorithm.SunJCEAlgorithm;
 import io.github.astrapi69.crypto.factories.CryptModelFactory;
-import io.github.astrapi69.crypto.file.GenericObjectDecryptor;
 import io.github.astrapi69.crypto.file.PBEFileDecryptor;
-import io.github.astrapi69.crypto.key.PrivateKeyExtensions;
+import io.github.astrapi69.crypto.key.PrivateKeyDecryptor;
+import io.github.astrapi69.crypto.key.PrivateKeyGenericDecryptor;
 import io.github.astrapi69.crypto.key.reader.EncryptedPrivateKeyReader;
+import io.github.astrapi69.crypto.key.reader.PrivateKeyReader;
 import io.github.astrapi69.crypto.model.CryptModel;
 import io.github.astrapi69.mystic.crypt.ApplicationModelBean;
 import io.github.astrapi69.mystic.crypt.SpringBootSwingApplication;
 import io.github.astrapi69.swing.adapters.DocumentListenerAdapter;
 import io.github.astrapi69.swing.base.BasePanel;
-import io.github.astrapi69.throwable.RuntimeExceptionDecorator;
 
 /**
  * The class {@link MasterPwFilePanel}
@@ -308,7 +309,8 @@ public class MasterPwWithApplicationFilePanel extends BasePanel<MasterPwFileMode
 			getModelObject().setAppDataFile(selectedApplicationFile.getAbsolutePath());
 			toggleApplicationFileComponents(true);
 			txtApplicationFile.setText(getModelObject().getAppDataFile());
-			btnOk.getModel().setEnabled(getBtnOkEnabledState());
+			boolean okEnabledState = getBtnOkEnabledState();
+			btnOk.getModel().setEnabled(okEnabledState);
 		}
 	}
 
@@ -327,6 +329,7 @@ public class MasterPwWithApplicationFilePanel extends BasePanel<MasterPwFileMode
 
 	protected boolean getBtnOkEnabledState()
 	{
+		boolean result = true;
 		MasterPwFileModelBean modelObject = getModelObject();
 		if (modelObject.getAppDataFile() == null)
 		{
@@ -351,7 +354,7 @@ public class MasterPwWithApplicationFilePanel extends BasePanel<MasterPwFileMode
 		{
 			return false;
 		}
-		return true;
+		return result;
 	}
 
 	protected void onOk(ActionEvent actionEvent)
@@ -359,64 +362,70 @@ public class MasterPwWithApplicationFilePanel extends BasePanel<MasterPwFileMode
 		// TODO implement continues here...
 		System.err.println("onOk method action called");
 		ApplicationModelBean applicationModelBean;
-		GenericObjectDecryptor<ApplicationModelBean, String> decryptor;
-		String firstKey;
-		CryptModel<Cipher, String, String> cryptModel;
 		MasterPwFileModelBean modelObject = getModelObject();
 		String appDataFile = modelObject.getAppDataFile();
-		firstKey = "D1D15ED36B887AF1";
-		cryptModel = CryptModel.<Cipher, String, String> builder().key(firstKey)
-			.algorithm(SunJCEAlgorithm.PBEWithMD5AndDES).build();
-
-		decryptor = RuntimeExceptionDecorator
-			.decorate(() -> new GenericObjectDecryptor<>(cryptModel));
+		File decrypt = null;
 		try
 		{
-			if (modelObject.isWithMasterPw() && modelObject.isWithKeyFile())
+			if (cbxMasterPw.isSelected() && cbxKeyFile.isSelected())
 			{
 				char[] password = getTxtMasterPw().getPassword();
 				File keyFile = modelObject.getKeyFile();
 				PrivateKey privateKey = EncryptedPrivateKeyReader
 					.readPasswordProtectedPrivateKey(keyFile, String.valueOf(password));
-				PublicKey publicKey = PrivateKeyExtensions.generatePublicKey(privateKey);
 
-				CryptModel<Cipher, PublicKey, byte[]> encryptModel = CryptModel
-					.<Cipher, PublicKey, byte[]> builder().key(publicKey).build();
+				PrivateKeyDecryptor decryptor;
+				PrivateKeyGenericDecryptor<String> genericDecryptor;
+				CryptModel<Cipher, PrivateKey, byte[]> decryptModel;
 
-				CryptModel<Cipher, PrivateKey, byte[]> decryptModel = CryptModel
-					.<Cipher, PrivateKey, byte[]> builder().key(privateKey).build();
-
-
+				decryptModel = CryptModel.<Cipher, PrivateKey, byte[]> builder().key(privateKey)
+					.build();
+				decryptor = new PrivateKeyDecryptor(decryptModel);
+				genericDecryptor = new PrivateKeyGenericDecryptor<>(decryptor);
+				byte[] encryptedBytes = ReadFileExtensions
+					.readFileToBytearray(new File(appDataFile));
+				String json = genericDecryptor.decrypt(encryptedBytes);
+				applicationModelBean = JsonStringToObjectExtensions.toObject(json,
+					ApplicationModelBean.class, ObjectMapperFactory.newObjectMapper());
+				SpringBootSwingApplication.getInstance().setModelObject(applicationModelBean);
 			}
-			if (modelObject.isWithMasterPw())
+			else if (modelObject.isWithMasterPw())
 			{
 				char[] password = getTxtMasterPw().getPassword();
 				CryptModel<Cipher, String, String> pbeCryptModel = CryptModelFactory
 					.newCryptModel(SunJCEAlgorithm.PBEWithMD5AndDES, new String(password));
 				PBEFileDecryptor fileDecryptor = new PBEFileDecryptor(pbeCryptModel);
-				File decrypt = fileDecryptor.decrypt(new File(appDataFile));
+				decrypt = fileDecryptor.decrypt(new File(appDataFile));
 				applicationModelBean = JsonFileToObjectExtensions.toObject(decrypt,
 					ApplicationModelBean.class, ObjectMapperFactory.newObjectMapper());
 				SpringBootSwingApplication.getInstance().setModelObject(applicationModelBean);
-				// TODO check if something have to load
 			}
-			if (modelObject.isWithKeyFile())
+			else if (modelObject.isWithKeyFile())
 			{
-				// File keyFile = applicationModelBean.getMasterPwFileModelBean().getKeyFile();
-				// PrivateKey privateKey;
-				// if(PrivateKeyReader.isPemFormat(keyFile)){
-				// privateKey = PrivateKeyReader.readPemPrivateKey(keyFile);
-				// } else {
-				// privateKey = PrivateKeyReader.readPrivateKey(keyFile);
-				// }
+				File keyFile = modelObject.getKeyFile();
+				PrivateKey privateKey = PrivateKeyReader.readPrivateKey(keyFile);
+
+				PrivateKeyDecryptor decryptor;
+				PrivateKeyGenericDecryptor<String> genericDecryptor;
+				CryptModel<Cipher, PrivateKey, byte[]> decryptModel;
+
+				decryptModel = CryptModel.<Cipher, PrivateKey, byte[]> builder().key(privateKey)
+					.build();
+				decryptor = new PrivateKeyDecryptor(decryptModel);
+				genericDecryptor = new PrivateKeyGenericDecryptor<>(decryptor);
+				byte[] encryptedBytes = ReadFileExtensions
+					.readFileToBytearray(new File(appDataFile));
+				String json = genericDecryptor.decrypt(encryptedBytes);
+				applicationModelBean = JsonStringToObjectExtensions.toObject(json,
+					ApplicationModelBean.class, ObjectMapperFactory.newObjectMapper());
+				SpringBootSwingApplication.getInstance().setModelObject(applicationModelBean);
 			}
+			// TODO check if something have to load
 		}
 		catch (Exception e)
 		{
 			e.printStackTrace();
 		}
-
-
 	}
 
 	protected void onCancel(ActionEvent actionEvent)
