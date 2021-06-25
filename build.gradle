@@ -154,6 +154,8 @@ dependencies {
     implementation("de.alpharogroup:json-extensions:$jsonExtensionsVersion")
     implementation("com.fasterxml.jackson.core:jackson-databind:$jacksonVersion")
     implementation("io.github.astrapi69:swing-components:$swingComponentsVersion")
+    implementation("org.freedesktop.tango:tango-icon-theme:$tangoIconThemeVersion")
+    implementation("io.github.astrapi69:silk-icon-theme:$silkIconThemeVersion")
     implementation("com.google.guava:guava:$guavaVersion")
     implementation("javax.help:javahelp:$javahelpVersion")
     implementation("org.swinglabs:swing-layout:$swingLayoutVersion")

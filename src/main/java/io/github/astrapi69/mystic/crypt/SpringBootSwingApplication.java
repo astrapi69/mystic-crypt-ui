@@ -29,6 +29,8 @@ import javax.crypto.Cipher;
 import javax.crypto.SecretKey;
 import javax.swing.*;
 
+import io.github.astrapi69.mystic.crypt.tutils.IconButtonFactory;
+import io.github.astrapi69.mystic.crypt.tutils.ImageIconFactory;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NonNull;
@@ -390,5 +392,32 @@ public class SpringBootSwingApplication extends ApplicationFrame<ApplicationMode
 		return LookAndFeels.METAL;
 	}
 
+	@Override protected JToolBar newJToolBar()
+	{
+		JToolBar toolBar = super.newJToolBar();
+		toolBar.setSize(this.getWidth(), 25);
 
+		ImageIcon applicationAdd = ImageIconFactory
+			.newImageIcon("io/github/astrapi69/silk/icons/application_add.png");
+		JButton btnApplicationAdd = IconButtonFactory.newIconButton(applicationAdd, "New application");
+		toolBar.add(btnApplicationAdd);
+
+		ImageIcon folderEdit = ImageIconFactory.newImageIcon("io/github/astrapi69/silk/icons/folder_edit.png");
+		JButton btnFolderEdit = IconButtonFactory.newIconButton(folderEdit, "Open application");
+		toolBar.add(btnFolderEdit);
+
+		ImageIcon disk = ImageIconFactory.newImageIcon("io/github/astrapi69/silk/icons/disk.png");
+		JButton btnDisk = IconButtonFactory.newIconButton(disk, "Save");
+		toolBar.add(btnDisk);
+
+		ImageIcon magnifier = ImageIconFactory.newImageIcon("io/github/astrapi69/silk/icons/magnifier.png");
+		JButton btnMagnifier = IconButtonFactory.newIconButton(magnifier, "Search");
+		toolBar.add(btnMagnifier);
+
+		ImageIcon lock = ImageIconFactory.newImageIcon("io/github/astrapi69/silk/icons/lock.png");
+		JButton btnLock = IconButtonFactory.newIconButton(lock, "Lock workspace");
+		toolBar.add(btnLock);
+
+		return toolBar;
+	}
 }
