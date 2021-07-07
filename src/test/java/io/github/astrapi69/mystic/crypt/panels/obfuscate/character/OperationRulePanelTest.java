@@ -20,11 +20,11 @@
  */
 package io.github.astrapi69.mystic.crypt.panels.obfuscate.character;
 
+import io.github.astrapi69.window.adapter.CloseWindow;
+
 import java.io.IOException;
 
 import javax.swing.JFrame;
-
-import io.github.astrapi69.layout.CloseWindow;
 
 public class OperationRulePanelTest
 {
