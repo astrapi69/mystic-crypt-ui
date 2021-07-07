@@ -84,15 +84,12 @@ public class DesktopMenu extends BaseDesktopMenu
 	/**
 	 * Creates the file menu.
 	 *
-	 * @param listener
-	 *            the listener
-	 *
 	 * @return the j menu
 	 */
 	@Override
-	protected JMenu newFileMenu(final ActionListener listener)
+	protected JMenu newFileMenu()
 	{
-		final JMenu fileMenu = super.newFileMenu(listener);
+		final JMenu fileMenu = super.newFileMenu();
 
 		JMenuItem jmi;
 

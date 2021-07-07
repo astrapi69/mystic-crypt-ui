@@ -151,6 +151,7 @@ dependencies {
     implementation("commons-codec:commons-codec:$commonsCodecVersion")
     implementation("com.fasterxml.jackson.core:jackson-databind:$jacksonVersion")
     implementation("io.github.astrapi69:swing-components:$swingComponentsVersion")
+    implementation("io.github.astrapi69:menu-actions:$menuActionsVersion")
     implementation("org.freedesktop.tango:tango-icon-theme:$tangoIconThemeVersion")
     implementation("io.github.astrapi69:silk-icon-theme:$silkIconThemeVersion")
     implementation("io.github.astrapi69:swing-menu-pf4j-plugin:1.0.0-SNAPSHOT")

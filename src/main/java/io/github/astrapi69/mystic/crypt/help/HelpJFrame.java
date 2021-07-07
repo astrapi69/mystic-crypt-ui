@@ -32,8 +32,8 @@ import javax.swing.JTextArea;
 import javax.swing.JTextPane;
 
 import io.github.astrapi69.actions.DisposeWindowAction;
-import io.github.astrapi69.layout.DisposeWindow;
 import io.github.astrapi69.mystic.crypt.Messages;
+import io.github.astrapi69.window.adapter.DisposeWindow;
 
 /**
  * The Class HelpJFrame.

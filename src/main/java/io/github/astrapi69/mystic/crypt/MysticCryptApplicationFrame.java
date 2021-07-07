@@ -110,10 +110,9 @@ public class MysticCryptApplicationFrame extends ApplicationFrame<ApplicationMod
 	public static void main(String[] args)
 	{
 		MysticCryptApplicationFrame frame = new MysticCryptApplicationFrame();
-		frame.pack();
 		frame.setVisible(true);
-		frame.validate();
-		frame.repaint();
+//		frame.validate();
+//		frame.repaint();
 	}
 
 	private void showMasterPwOptionPane()
@@ -164,10 +163,12 @@ public class MysticCryptApplicationFrame extends ApplicationFrame<ApplicationMod
 			text = MysticCryptApplicationFrame.APPLICATION_NAME;
 		SplashScreenModelBean splashScreenModelBean = SplashScreenModelBean.builder()
 			.imagePath(imagePath).text(text).min(0).max(100).showTime(3000).showing(true).build();
-		new Thread(() -> {
-			Model<SplashScreenModelBean> modelBeanModel = BaseModel.of(splashScreenModelBean);
-			new BaseSplashScreen(null, modelBeanModel);
-		}).start();
+		Model<SplashScreenModelBean> modelBeanModel = BaseModel.of(splashScreenModelBean);
+//		BaseSplashScreen splashScreen = new BaseSplashScreen(null, modelBeanModel);
+//			Thread splashScreenThread = new Thread(() -> {
+//			new BaseSplashScreen(null, modelBeanModel);
+//		});
+//		splashScreenThread.start();
 
 //		RuntimeExceptionDecorator.decorate(i -> Thread.sleep(splashScreenModelBean.getShowTime()));
 	}
