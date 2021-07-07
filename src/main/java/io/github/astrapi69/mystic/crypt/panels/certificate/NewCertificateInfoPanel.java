@@ -26,6 +26,7 @@ package io.github.astrapi69.mystic.crypt.panels.certificate;
 
 import de.alpharogroup.model.BaseModel;
 import de.alpharogroup.model.api.Model;
+import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
 import io.github.astrapi69.mystic.crypt.SpringBootSwingApplication;
 import de.alpharogroup.random.number.RandomBigIntegerFactory;
 import io.github.astrapi69.swing.base.BasePanel;
@@ -293,7 +294,7 @@ public class NewCertificateInfoPanel extends BasePanel<CertificateInfo> {
         JOptionPane optionPane = new JOptionPane(panel, JOptionPane.PLAIN_MESSAGE,
                 JOptionPane.OK_CANCEL_OPTION);
 
-        JDialog dialog = JDialogFactory.newJDialog(SpringBootSwingApplication.getInstance(),
+        JDialog dialog = JDialogFactory.newJDialog(MysticCryptApplicationFrame.getInstance(),
                 optionPane, "Create issuer");
         dialog.addWindowFocusListener(new RequestFocusListener(panel.getTxtCommonName()));
         dialog.pack();
@@ -327,7 +328,7 @@ public class NewCertificateInfoPanel extends BasePanel<CertificateInfo> {
         JOptionPane optionPane = new JOptionPane(panel, JOptionPane.PLAIN_MESSAGE,
                 JOptionPane.OK_CANCEL_OPTION);
 
-        JDialog dialog = JDialogFactory.newJDialog(SpringBootSwingApplication.getInstance(),
+        JDialog dialog = JDialogFactory.newJDialog(MysticCryptApplicationFrame.getInstance(),
                 optionPane, "Create subject");
         dialog.addWindowFocusListener(new RequestFocusListener(panel.getTxtCommonName()));
         dialog.pack();

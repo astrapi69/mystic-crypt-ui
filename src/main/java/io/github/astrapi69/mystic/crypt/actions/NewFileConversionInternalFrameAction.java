@@ -25,6 +25,7 @@ import java.awt.event.ActionEvent;
 import javax.swing.AbstractAction;
 import javax.swing.JInternalFrame;
 
+import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
 import io.github.astrapi69.mystic.crypt.SpringBootSwingApplication;
 import io.github.astrapi69.mystic.crypt.panels.conversion.FileConversionPanel;
 import io.github.astrapi69.swing.components.factories.JComponentFactory;
@@ -63,7 +64,7 @@ public class NewFileConversionInternalFrameAction extends AbstractAction
 		final FileConversionPanel component = new FileConversionPanel();
 		JInternalFrameExtensions.addComponentToFrame(internalFrame, component);
 		JInternalFrameExtensions.addJInternalFrame(
-			SpringBootSwingApplication.getInstance().getMainComponent(), internalFrame);
+			MysticCryptApplicationFrame.getInstance().getMainComponent(), internalFrame);
 	}
 
 }

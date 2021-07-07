@@ -48,6 +48,7 @@ import io.github.astrapi69.layout.InsetsModel;
 import io.github.astrapi69.layout.LayoutExtensions;
 import de.alpharogroup.model.BaseModel;
 import de.alpharogroup.model.api.Model;
+import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
 import io.github.astrapi69.mystic.crypt.SpringBootSwingApplication;
 import io.github.astrapi69.mystic.crypt.panels.certificate.NewCertificateInfoPanel;
 import io.github.astrapi69.swing.base.BasePanel;
@@ -249,7 +250,7 @@ public class CryptographyPanel extends BasePanel<GenerateKeysModelBean>
 		JOptionPane optionPane = new JOptionPane(panel, JOptionPane.PLAIN_MESSAGE,
 			JOptionPane.OK_CANCEL_OPTION);
 
-		JDialog dialog = JDialogFactory.newJDialog(SpringBootSwingApplication.getInstance(),
+		JDialog dialog = JDialogFactory.newJDialog(MysticCryptApplicationFrame.getInstance(),
 			optionPane, "Create certificate");
 		dialog.addWindowFocusListener(new RequestFocusListener(panel.getTxtIssuer()));
 		dialog.pack();

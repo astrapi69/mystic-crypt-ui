@@ -33,6 +33,7 @@ import javax.swing.JLabel;
 import javax.swing.JScrollPane;
 import javax.swing.table.TableColumn;
 
+import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
 import io.github.astrapi69.mystic.crypt.SpringBootSwingApplication;
 import org.apache.commons.codec.DecoderException;
 
@@ -181,7 +182,7 @@ public class ObfuscationRuleTablePanel extends BasePanel<ObfuscationModelBean>
 		btnExport.addActionListener(this::onExport);
 
 		fileChooser = new JFileChooser(
-			SpringBootSwingApplication.getInstance().getConfigurationDirectory());
+			MysticCryptApplicationFrame.getInstance().getConfigurationDirectory());
 	}
 
 	protected void onInitializeGroupLayout()

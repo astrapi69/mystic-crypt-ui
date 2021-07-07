@@ -147,7 +147,7 @@ public class DesktopMenu extends BaseDesktopMenu
 		// Fullscreen
 		JMenuItem jmiToFullScreen;
 		jmiToFullScreen = new JMenuItem("To Fullscreen", 'F');
-		jmiToFullScreen.addActionListener(new ToggleFullScreenAction("Fullscreen", SpringBootSwingApplication.getInstance()) {
+		jmiToFullScreen.addActionListener(new ToggleFullScreenAction("Fullscreen", MysticCryptApplicationFrame.getInstance()) {
 
 			/**
 			 * {@inheritDoc}
@@ -155,7 +155,7 @@ public class DesktopMenu extends BaseDesktopMenu
 			@Override
 			public void actionPerformed(final ActionEvent e)
 			{
-				ScreenSizeExtensions.toggleFullScreen(SpringBootSwingApplication.getInstance());
+				ScreenSizeExtensions.toggleFullScreen(MysticCryptApplicationFrame.getInstance());
 			}
 		});
 		jmiToFullScreen.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F11, InputEvent.ALT_DOWN_MASK));

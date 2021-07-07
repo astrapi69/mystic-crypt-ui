@@ -40,6 +40,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPasswordField;
 
+import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
 import io.github.astrapi69.mystic.crypt.SpringBootSwingApplication;
 import io.github.astrapi69.mystic.crypt.panels.privatekey.PrivateKeyModelBean;
 import io.github.astrapi69.mystic.crypt.panels.privatekey.PrivateKeyPanel;
@@ -107,7 +108,7 @@ public class OpenPrivateKeyAction extends OpenFileAction
 				JOptionPane optionPane = new JOptionPane(panel, JOptionPane.PLAIN_MESSAGE,
 					JOptionPane.OK_CANCEL_OPTION);
 
-				JDialog dialog = JDialogFactory.newJDialog(SpringBootSwingApplication.getInstance(),
+				JDialog dialog = JDialogFactory.newJDialog(MysticCryptApplicationFrame.getInstance(),
 					optionPane, "Enter Password");
 				dialog.addWindowFocusListener(new RequestFocusListener(pf));
 				dialog.pack();
@@ -212,7 +213,7 @@ public class OpenPrivateKeyAction extends OpenFileAction
 
 		JInternalFrameExtensions.addComponentToFrame(internalFrame, component);
 		JInternalFrameExtensions.addJInternalFrame(
-			SpringBootSwingApplication.getInstance().getMainComponent(), internalFrame);
+			MysticCryptApplicationFrame.getInstance().getMainComponent(), internalFrame);
 	}
 
 

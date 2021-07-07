@@ -29,6 +29,7 @@ import javax.crypto.Cipher;
 import javax.swing.*;
 import javax.swing.event.DocumentEvent;
 
+import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
 import lombok.Getter;
 import de.alpharogroup.file.read.ReadFileExtensions;
 import de.alpharogroup.file.search.PathFinder;
@@ -164,8 +165,8 @@ public class MasterPwWithApplicationFilePanel extends BasePanel<MasterPwFileMode
 		btnApplicationFileChooser.setText("File");
 		btnApplicationFileChooser.addActionListener(this::onApplicationFileChooser);
 		File configDir = PathFinder.getRelativePath(SystemFileExtensions.getUserHomeDir(),
-			SpringBootSwingApplication.DEFAULT_USER_CONFIGURATION_DIRECTORY_NAME,
-			SpringBootSwingApplication.APPLICATION_NAME);
+			MysticCryptApplicationFrame.DEFAULT_USER_CONFIGURATION_DIRECTORY_NAME,
+			MysticCryptApplicationFrame.APPLICATION_NAME);
 		fileChooser = new JFileChooser(configDir);
 	}
 
@@ -388,7 +389,7 @@ public class MasterPwWithApplicationFilePanel extends BasePanel<MasterPwFileMode
 					String json = genericDecryptor.decrypt(encryptedBytes);
 					applicationModelBean = JsonStringToObjectExtensions.toObject(json,
 						ApplicationModelBean.class, ObjectMapperFactory.newObjectMapper());
-					SpringBootSwingApplication.getInstance().setModelObject(applicationModelBean);
+					MysticCryptApplicationFrame.getInstance().setModelObject(applicationModelBean);
 				} catch (InvalidKeySpecException exception){
 					// TODO implement continues here...
 					// Show dialog that password or key file is wrong
@@ -404,7 +405,7 @@ public class MasterPwWithApplicationFilePanel extends BasePanel<MasterPwFileMode
 					decrypt = fileDecryptor.decrypt(new File(appDataFile));
 					applicationModelBean = JsonFileToObjectExtensions.toObject(decrypt,
 						ApplicationModelBean.class, ObjectMapperFactory.newObjectMapper());
-					SpringBootSwingApplication.getInstance().setModelObject(applicationModelBean);
+					MysticCryptApplicationFrame.getInstance().setModelObject(applicationModelBean);
 				} catch (Exception exception){
 					// TODO
 					// Show dialog that password is wrong
@@ -430,7 +431,7 @@ public class MasterPwWithApplicationFilePanel extends BasePanel<MasterPwFileMode
 					String json = genericDecryptor.decrypt(encryptedBytes);
 					applicationModelBean = JsonStringToObjectExtensions.toObject(json,
 						ApplicationModelBean.class, ObjectMapperFactory.newObjectMapper());
-					SpringBootSwingApplication.getInstance().setModelObject(applicationModelBean);
+					MysticCryptApplicationFrame.getInstance().setModelObject(applicationModelBean);
 				} catch (Exception exception) {
 					// TODO
 					// Show dialog that key file is wrong
