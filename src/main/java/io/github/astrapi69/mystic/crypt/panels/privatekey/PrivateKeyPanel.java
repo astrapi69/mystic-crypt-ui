@@ -35,8 +35,8 @@ import javax.crypto.NoSuchPaddingException;
 import io.github.astrapi69.mystic.crypt.panels.keygen.EnDecryptPanel;
 import org.apache.commons.codec.DecoderException;
 
-import de.alpharogroup.model.BaseModel;
-import de.alpharogroup.model.api.Model;
+import io.github.astrapi69.model.BaseModel;
+import io.github.astrapi69.model.api.Model;
 import io.github.astrapi69.swing.base.BasePanel;
 import lombok.Getter;
 import lombok.extern.java.Log;

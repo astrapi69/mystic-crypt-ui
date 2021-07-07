@@ -20,9 +20,9 @@
  */
 package io.github.astrapi69.mystic.crypt.panels.signin;
 
-import de.alpharogroup.file.system.SystemFileExtensions;
-import de.alpharogroup.model.BaseModel;
-import de.alpharogroup.model.api.Model;
+import io.github.astrapi69.system.SystemFileExtensions;
+import io.github.astrapi69.model.BaseModel;
+import io.github.astrapi69.model.api.Model;
 import io.github.astrapi69.swing.adapters.DocumentListenerAdapter;
 import io.github.astrapi69.swing.base.BasePanel;
 import lombok.Getter;

@@ -24,11 +24,11 @@
  */
 package io.github.astrapi69.mystic.crypt.panels.certificate;
 
-import de.alpharogroup.model.BaseModel;
-import de.alpharogroup.model.api.Model;
+import io.github.astrapi69.model.BaseModel;
+import io.github.astrapi69.model.api.Model;
 import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
 import io.github.astrapi69.mystic.crypt.SpringBootSwingApplication;
-import de.alpharogroup.random.number.RandomBigIntegerFactory;
+import io.github.astrapi69.random.number.RandomBigIntegerFactory;
 import io.github.astrapi69.swing.base.BasePanel;
 import io.github.astrapi69.swing.dialog.factories.JDialogFactory;
 import io.github.astrapi69.swing.listener.RequestFocusListener;

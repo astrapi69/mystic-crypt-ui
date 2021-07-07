@@ -1,6 +1,6 @@
 package io.github.astrapi69.mystic.crypt.panels.signin;
 
-import de.alpharogroup.model.api.Model;
+import io.github.astrapi69.model.api.Model;
 import io.github.astrapi69.layout.ScreenSizeExtensions;
 import io.github.astrapi69.swing.base.PanelDialog;
 

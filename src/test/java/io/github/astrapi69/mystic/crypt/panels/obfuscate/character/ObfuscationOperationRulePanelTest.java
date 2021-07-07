@@ -26,7 +26,7 @@ import javax.swing.JFrame;
 import javax.swing.JPanel;
 
 import io.github.astrapi69.layout.CloseWindow;
-import de.alpharogroup.model.BaseModel;
+import io.github.astrapi69.model.BaseModel;
 
 public class ObfuscationOperationRulePanelTest
 {

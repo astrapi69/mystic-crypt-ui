@@ -29,17 +29,19 @@ import javax.crypto.Cipher;
 import javax.crypto.SecretKey;
 import javax.swing.*;
 
+import io.github.astrapi69.swing.button.IconButtonFactory;
+import io.github.astrapi69.swing.icon.ImageIconFactory;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.experimental.FieldDefaults;
 
-import de.alpharogroup.file.search.PathFinder;
-import de.alpharogroup.file.system.SystemFileExtensions;
-import de.alpharogroup.file.write.WriteFileExtensions;
-import de.alpharogroup.json.ObjectToJsonExtensions;
-import de.alpharogroup.model.BaseModel;
-import de.alpharogroup.model.api.Model;
+import io.github.astrapi69.search.PathFinder;
+import io.github.astrapi69.system.SystemFileExtensions;
+import io.github.astrapi69.write.WriteFileExtensions;
+import io.github.astrapi69.json.ObjectToJsonExtensions;
+import io.github.astrapi69.model.BaseModel;
+import io.github.astrapi69.model.api.Model;
 import io.github.astrapi69.crypto.algorithm.AesAlgorithm;
 import io.github.astrapi69.crypto.algorithm.SunJCEAlgorithm;
 import io.github.astrapi69.crypto.factories.SecretKeyFactoryExtensions;
@@ -54,8 +56,6 @@ import io.github.astrapi69.layout.ScreenSizeExtensions;
 import io.github.astrapi69.mystic.crypt.panels.signin.MasterPwFileDialog;
 import io.github.astrapi69.mystic.crypt.panels.signin.MasterPwFileModelBean;
 import io.github.astrapi69.mystic.crypt.panels.signin.MasterPwFilePanel;
-import io.github.astrapi69.mystic.crypt.tutils.IconButtonFactory;
-import io.github.astrapi69.mystic.crypt.tutils.ImageIconFactory;
 import io.github.astrapi69.swing.base.ApplicationFrame;
 import io.github.astrapi69.swing.base.BaseDesktopMenu;
 import io.github.astrapi69.swing.components.factories.JComponentFactory;
@@ -110,6 +110,10 @@ public class MysticCryptApplicationFrame extends ApplicationFrame<ApplicationMod
 	public static void main(String[] args)
 	{
 		MysticCryptApplicationFrame frame = new MysticCryptApplicationFrame();
+		frame.pack();
+		frame.setVisible(true);
+		frame.validate();
+		frame.repaint();
 	}
 
 	private void showMasterPwOptionPane()
@@ -165,7 +169,7 @@ public class MysticCryptApplicationFrame extends ApplicationFrame<ApplicationMod
 			new BaseSplashScreen(null, modelBeanModel);
 		}).start();
 
-		RuntimeExceptionDecorator.decorate(i -> Thread.sleep(splashScreenModelBean.getShowTime()));
+//		RuntimeExceptionDecorator.decorate(i -> Thread.sleep(splashScreenModelBean.getShowTime()));
 	}
 
 	@Override
@@ -384,7 +388,8 @@ public class MysticCryptApplicationFrame extends ApplicationFrame<ApplicationMod
 
 		ImageIcon applicationAdd = ImageIconFactory
 			.newImageIcon("io/github/astrapi69/silk/icons/application_add.png");
-		JButton btnApplicationAdd = IconButtonFactory.newIconButton(applicationAdd, "New application");
+		JButton btnApplicationAdd = IconButtonFactory
+			.newIconButton(applicationAdd, "New application");
 		toolBar.add(btnApplicationAdd);
 
 		ImageIcon folderEdit = ImageIconFactory.newImageIcon("io/github/astrapi69/silk/icons/folder_edit.png");

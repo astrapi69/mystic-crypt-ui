@@ -25,7 +25,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import de.alpharogroup.collections.pairs.KeyValuePair;
+import io.github.astrapi69.collections.pairs.KeyValuePair;
 import io.github.astrapi69.crypto.obfuscation.rule.ObfuscationRule;
 import io.github.astrapi69.swing.table.model.GenericTableModel;
 import lombok.Builder;

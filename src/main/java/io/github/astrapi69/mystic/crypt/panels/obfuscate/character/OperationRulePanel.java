@@ -32,14 +32,14 @@ import javax.swing.JOptionPane;
 
 import com.google.common.collect.BiMap;
 
-import de.alpharogroup.collections.list.ListFactory;
-import de.alpharogroup.collections.pairs.KeyValuePair;
-import de.alpharogroup.collections.set.SetFactory;
+import io.github.astrapi69.collections.list.ListFactory;
+import io.github.astrapi69.collections.pairs.KeyValuePair;
+import io.github.astrapi69.collections.set.SetFactory;
 import io.github.astrapi69.crypto.obfuscation.character.ObfuscatorExtensions;
 import io.github.astrapi69.crypto.obfuscation.rule.ObfuscationOperationRule;
 import io.github.astrapi69.crypto.obfuscation.rule.Operation;
-import de.alpharogroup.model.BaseModel;
-import de.alpharogroup.model.api.Model;
+import io.github.astrapi69.model.BaseModel;
+import io.github.astrapi69.model.api.Model;
 import io.github.astrapi69.mystic.crypt.panels.keygen.EnDecryptPanel;
 import io.github.astrapi69.mystic.crypt.panels.obfuscate.ModeContext;
 import io.github.astrapi69.swing.base.BasePanel;

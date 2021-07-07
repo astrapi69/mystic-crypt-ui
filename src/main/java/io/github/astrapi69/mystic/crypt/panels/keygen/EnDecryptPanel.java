@@ -30,9 +30,9 @@ import javax.swing.JTextArea;
 import javax.swing.LayoutStyle;
 
 import io.github.astrapi69.behaviors.EnableButtonBehavior;
-import de.alpharogroup.collections.pairs.Pair;
-import de.alpharogroup.model.BaseModel;
-import de.alpharogroup.model.api.Model;
+import io.github.astrapi69.collections.pairs.Pair;
+import io.github.astrapi69.model.BaseModel;
+import io.github.astrapi69.model.api.Model;
 import io.github.astrapi69.swing.base.BasePanel;
 import lombok.Getter;
 

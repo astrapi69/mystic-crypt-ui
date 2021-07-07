@@ -37,13 +37,13 @@ import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
 import io.github.astrapi69.mystic.crypt.SpringBootSwingApplication;
 import org.apache.commons.codec.DecoderException;
 
-import de.alpharogroup.collections.map.MapFactory;
-import de.alpharogroup.collections.pairs.KeyValuePair;
+import io.github.astrapi69.collections.map.MapFactory;
+import io.github.astrapi69.collections.pairs.KeyValuePair;
 import de.alpharogroup.xml.crypto.file.XmlDecryptionExtensions;
 import de.alpharogroup.xml.crypto.file.XmlEncryptionExtensions;
 import io.github.astrapi69.crypto.obfuscation.rule.ObfuscationOperationRule;
-import de.alpharogroup.model.BaseModel;
-import de.alpharogroup.model.api.Model;
+import io.github.astrapi69.model.BaseModel;
+import io.github.astrapi69.model.api.Model;
 import io.github.astrapi69.swing.GenericJTable;
 import io.github.astrapi69.swing.base.BasePanel;
 import io.github.astrapi69.swing.renderer.TableCellButtonRendererFactory;

@@ -52,7 +52,7 @@ import io.github.astrapi69.crypto.key.PublicKeyExtensions;
 import io.github.astrapi69.crypto.key.PublicKeyHexEncryptor;
 import io.github.astrapi69.crypto.key.reader.EncryptedPrivateKeyReader;
 import io.github.astrapi69.crypto.key.reader.PrivateKeyReader;
-import de.alpharogroup.file.read.ReadFileExtensions;
+import io.github.astrapi69.read.ReadFileExtensions;
 import io.github.astrapi69.swing.actions.OpenFileAction;
 import io.github.astrapi69.swing.components.factories.JComponentFactory;
 import io.github.astrapi69.swing.dialog.factories.JDialogFactory;
