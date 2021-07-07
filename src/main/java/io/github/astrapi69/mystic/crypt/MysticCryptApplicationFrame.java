@@ -21,6 +21,7 @@
 package io.github.astrapi69.mystic.crypt;
 
 import java.awt.*;
+import java.awt.event.ActionEvent;
 import java.io.File;
 import java.security.PrivateKey;
 import java.security.PublicKey;
@@ -29,6 +30,8 @@ import javax.crypto.Cipher;
 import javax.crypto.SecretKey;
 import javax.swing.*;
 
+import io.github.astrapi69.mystic.crypt.panels.signin.NewMasterPwFileDialog;
+import io.github.astrapi69.mystic.crypt.panels.signin.NewMasterPwFileModelBean;
 import io.github.astrapi69.swing.button.IconButtonFactory;
 import io.github.astrapi69.swing.icon.ImageIconFactory;
 import lombok.AccessLevel;
@@ -111,8 +114,6 @@ public class MysticCryptApplicationFrame extends ApplicationFrame<ApplicationMod
 	{
 		MysticCryptApplicationFrame frame = new MysticCryptApplicationFrame();
 		frame.setVisible(true);
-//		frame.validate();
-//		frame.repaint();
 	}
 
 	private void showMasterPwOptionPane()
@@ -391,6 +392,7 @@ public class MysticCryptApplicationFrame extends ApplicationFrame<ApplicationMod
 			.newImageIcon("io/github/astrapi69/silk/icons/application_add.png");
 		JButton btnApplicationAdd = IconButtonFactory
 			.newIconButton(applicationAdd, "New application");
+		btnApplicationAdd.addActionListener(this::openNewMasterPw);
 		toolBar.add(btnApplicationAdd);
 
 		ImageIcon folderEdit = ImageIconFactory.newImageIcon("io/github/astrapi69/silk/icons/folder_edit.png");
@@ -410,5 +412,14 @@ public class MysticCryptApplicationFrame extends ApplicationFrame<ApplicationMod
 		toolBar.add(btnLock);
 
 		return toolBar;
+	}
+
+	protected void openNewMasterPw(final ActionEvent actionEvent)
+	{
+		NewMasterPwFileDialog dialog = new NewMasterPwFileDialog(this,
+			"Create new application file with credentials", true,
+			BaseModel.<NewMasterPwFileModelBean> of(NewMasterPwFileModelBean.builder().build()));
+		dialog.setSize(840, 520);
+		dialog.setVisible(true);
 	}
 }

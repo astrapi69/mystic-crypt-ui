@@ -26,32 +26,27 @@
               <Group type="103" groupAlignment="0" attributes="0">
                   <Component id="lblImageHeader" alignment="0" max="32767" attributes="0"/>
                   <Group type="102" alignment="1" attributes="0">
-                      <Group type="103" groupAlignment="1" attributes="0">
-                          <Group type="102" attributes="0">
-                              <Component id="btnHelp" min="-2" pref="122" max="-2" attributes="0"/>
-                              <EmptySpace max="32767" attributes="0"/>
-                              <Component id="btnOk" min="-2" pref="140" max="-2" attributes="0"/>
-                              <EmptySpace type="separate" max="-2" attributes="0"/>
-                              <Component id="btnCancel" min="-2" pref="141" max="-2" attributes="0"/>
-                          </Group>
-                          <Group type="102" attributes="0">
-                              <Group type="103" groupAlignment="0" max="-2" attributes="0">
-                                  <Component id="cbxMasterPw" pref="201" max="32767" attributes="0"/>
-                                  <Component id="cbxKeyFile" max="32767" attributes="0"/>
-                              </Group>
-                              <EmptySpace max="-2" attributes="0"/>
-                              <Group type="103" groupAlignment="0" max="-2" attributes="0">
-                                  <Component id="txtMasterPw" max="32767" attributes="0"/>
-                                  <Component id="txtKeyFile" min="-2" pref="520" max="-2" attributes="0"/>
-                              </Group>
-                              <EmptySpace type="unrelated" max="-2" attributes="0"/>
-                              <Group type="103" groupAlignment="0" max="-2" attributes="0">
-                                  <Component id="btnMasterPw" max="32767" attributes="0"/>
-                                  <Component id="btnKeyFileChooser" min="-2" pref="70" max="-2" attributes="0"/>
-                              </Group>
-                          </Group>
+                      <Component id="btnHelp" min="-2" pref="122" max="-2" attributes="0"/>
+                      <EmptySpace pref="493" max="32767" attributes="0"/>
+                      <Component id="btnOk" min="-2" pref="140" max="-2" attributes="0"/>
+                      <EmptySpace min="-2" pref="30" max="-2" attributes="0"/>
+                      <Component id="btnCancel" min="-2" pref="141" max="-2" attributes="0"/>
+                  </Group>
+                  <Group type="102" alignment="1" attributes="0">
+                      <Group type="103" groupAlignment="0" max="-2" attributes="0">
+                          <Component id="cbxMasterPw" pref="201" max="32767" attributes="0"/>
+                          <Component id="cbxKeyFile" max="32767" attributes="0"/>
                       </Group>
-                      <EmptySpace min="-2" pref="12" max="-2" attributes="0"/>
+                      <EmptySpace max="-2" attributes="0"/>
+                      <Group type="103" groupAlignment="0" max="-2" attributes="0">
+                          <Component id="txtMasterPw" pref="625" max="32767" attributes="0"/>
+                          <Component id="cmbKeyFile" max="32767" attributes="0"/>
+                      </Group>
+                      <EmptySpace type="unrelated" max="-2" attributes="0"/>
+                      <Group type="103" groupAlignment="0" attributes="0">
+                          <Component id="btnKeyFileChooser" max="32767" attributes="0"/>
+                          <Component id="btnMasterPw" max="32767" attributes="0"/>
+                      </Group>
                   </Group>
               </Group>
               <EmptySpace max="-2" attributes="0"/>
@@ -64,25 +59,18 @@
               <EmptySpace max="-2" attributes="0"/>
               <Component id="lblImageHeader" min="-2" pref="80" max="-2" attributes="0"/>
               <EmptySpace type="separate" max="-2" attributes="0"/>
-              <Group type="103" groupAlignment="0" attributes="0">
-                  <Group type="102" attributes="0">
-                      <Component id="cbxMasterPw" min="-2" max="-2" attributes="0"/>
-                      <EmptySpace type="separate" max="-2" attributes="0"/>
-                      <Component id="cbxKeyFile" min="-2" max="-2" attributes="0"/>
-                  </Group>
-                  <Group type="102" attributes="0">
-                      <Group type="103" groupAlignment="3" attributes="0">
-                          <Component id="txtMasterPw" alignment="3" min="-2" max="-2" attributes="0"/>
-                          <Component id="btnMasterPw" alignment="3" min="-2" max="-2" attributes="0"/>
-                      </Group>
-                      <EmptySpace type="separate" max="-2" attributes="0"/>
-                      <Group type="103" groupAlignment="3" attributes="0">
-                          <Component id="txtKeyFile" alignment="3" min="-2" max="-2" attributes="0"/>
-                          <Component id="btnKeyFileChooser" alignment="3" min="-2" max="-2" attributes="0"/>
-                      </Group>
-                  </Group>
+              <Group type="103" groupAlignment="3" attributes="0">
+                  <Component id="txtMasterPw" alignment="3" min="-2" max="-2" attributes="0"/>
+                  <Component id="btnMasterPw" alignment="3" min="-2" max="-2" attributes="0"/>
+                  <Component id="cbxMasterPw" alignment="3" min="-2" max="-2" attributes="0"/>
               </Group>
-              <EmptySpace pref="128" max="32767" attributes="0"/>
+              <EmptySpace type="separate" max="-2" attributes="0"/>
+              <Group type="103" groupAlignment="3" attributes="0">
+                  <Component id="btnKeyFileChooser" alignment="3" min="-2" max="-2" attributes="0"/>
+                  <Component id="cmbKeyFile" alignment="3" min="-2" max="-2" attributes="0"/>
+                  <Component id="cbxKeyFile" alignment="3" min="-2" max="-2" attributes="0"/>
+              </Group>
+              <EmptySpace pref="87" max="32767" attributes="0"/>
               <Group type="103" groupAlignment="3" attributes="0">
                   <Component id="btnHelp" alignment="3" min="-2" max="-2" attributes="0"/>
                   <Component id="btnOk" alignment="3" min="-2" max="-2" attributes="0"/>
@@ -122,12 +110,13 @@
         <Property name="text" type="java.lang.String" value="***"/>
       </Properties>
     </Component>
-    <Component class="javax.swing.JTextField" name="txtKeyFile">
-    </Component>
     <Component class="javax.swing.JButton" name="btnKeyFileChooser">
       <Properties>
-        <Property name="text" type="java.lang.String" value="File"/>
+        <Property name="text" type="java.lang.String" value="Browse..."/>
       </Properties>
+      <Events>
+        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="btnKeyFileChooserActionPerformed"/>
+      </Events>
     </Component>
     <Component class="javax.swing.JButton" name="btnHelp">
       <Properties>
@@ -143,6 +132,21 @@
       <Properties>
         <Property name="text" type="java.lang.String" value="Cancel"/>
       </Properties>
+    </Component>
+    <Component class="javax.swing.JComboBox" name="cmbKeyFile">
+      <Properties>
+        <Property name="model" type="javax.swing.ComboBoxModel" editor="org.netbeans.modules.form.editors2.ComboBoxModelEditor">
+          <StringArray count="4">
+            <StringItem index="0" value="Item 1"/>
+            <StringItem index="1" value="Item 2"/>
+            <StringItem index="2" value="Item 3"/>
+            <StringItem index="3" value="Item 4"/>
+          </StringArray>
+        </Property>
+      </Properties>
+      <AuxValues>
+        <AuxValue name="JavaCodeGenerator_TypeParameters" type="java.lang.String" value="&lt;String&gt;"/>
+      </AuxValues>
     </Component>
   </SubComponents>
 </Form>
