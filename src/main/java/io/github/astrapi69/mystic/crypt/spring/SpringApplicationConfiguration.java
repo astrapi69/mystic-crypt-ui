@@ -8,10 +8,5 @@ import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
 @Configuration
 public class SpringApplicationConfiguration
 {
-	@Bean
-	public MysticCryptApplicationFrame mysticCryptApplicationFrame()
-	{
-		MysticCryptApplicationFrame frame = new MysticCryptApplicationFrame();
-		return frame;
-	}
+
 }

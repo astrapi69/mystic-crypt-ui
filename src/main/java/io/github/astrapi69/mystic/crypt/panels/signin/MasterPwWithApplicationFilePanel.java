@@ -29,6 +29,8 @@ import javax.crypto.Cipher;
 import javax.swing.*;
 import javax.swing.event.DocumentEvent;
 
+import io.github.astrapi69.design.pattern.state.button.BtnOkComponentStateEnum;
+import io.github.astrapi69.design.pattern.state.button.BtnOkStateMachine;
 import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
 import lombok.Getter;
 import io.github.astrapi69.read.ReadFileExtensions;
@@ -74,7 +76,11 @@ public class MasterPwWithApplicationFilePanel extends BasePanel<MasterPwFileMode
 	private JTextField txtApplicationFile;
 	private JTextField txtKeyFile;
 	private JPasswordField txtMasterPw;
+	// ===
+	// ===
+	// ===
 	private JFileChooser fileChooser;
+	BtnOkStateMachine btnOkStateMachine;
 
 	/**
 	 * Instantiates a new {@link MasterPwWithApplicationFilePanel}
@@ -114,49 +120,54 @@ public class MasterPwWithApplicationFilePanel extends BasePanel<MasterPwFileMode
 		lblApplicationFile = new JLabel();
 		txtApplicationFile = new JTextField();
 		btnApplicationFileChooser = new JButton();
-		toggleMasterPwComponents();
-		toggleKeyFileComponents();
 
 		setPreferredSize(new java.awt.Dimension(820, 380));
 
 		lblImageHeader.setText("Enter Master Key");
 
 		cbxMasterPw.setText("Master Password:");
-		cbxMasterPw.addActionListener(this::onCheckMasterPw);
 
 		cbxKeyFile.setText("Key File:");
-		cbxKeyFile.addActionListener(this::onCheckKeyFile);
 
 		txtMasterPw.setText("");
+
+		btnMasterPw.setText("***");
+
+		txtKeyFile.setText("");
+
+		btnKeyFileChooser.setText("File");
+
+		btnHelp.setText("Help");
+
+		btnOk.setText("OK");
+
+		btnCancel.setText("Cancel");
+
+		lblApplicationFile.setText("Application File");
+		// ===
+		// ===
+		// ===
+		setPreferredSize(new java.awt.Dimension(820, 380));
+
+		cbxMasterPw.addActionListener(this::onCheckMasterPw);
+		cbxKeyFile.addActionListener(this::onCheckKeyFile);
+		btnMasterPw.addActionListener(this::onShowMasterPw);
+		txtKeyFile.setEnabled(false);
+		btnKeyFileChooser.addActionListener(this::onKeyFileChooser);
+		btnOk.addActionListener(this::onOk);
+		btnCancel.addActionListener(this::onCancel);
+
+		btnOkStateMachine = BtnOkStateMachine.builder().component(btnOk)
+			.current(BtnOkComponentStateEnum.DISABLED).build();
 		txtMasterPw.setEnabled(false);
 		txtMasterPw.getDocument().addDocumentListener(new DocumentListenerAdapter()
 		{
 			@Override
 			public void onDocumentChanged(DocumentEvent e)
 			{
-				btnOk.getModel().setEnabled(getBtnOkEnabledState());
+				DocumentExtensions.processDocumentLength(e, btnOkStateMachine);
 			}
 		});
-
-		btnMasterPw.setText("***");
-		btnMasterPw.addActionListener(this::onShowMasterPw);
-
-		txtKeyFile.setText("");
-		txtKeyFile.setEnabled(false);
-
-		btnKeyFileChooser.setText("File");
-		btnKeyFileChooser.addActionListener(this::onKeyFileChooser);
-
-		btnHelp.setText("Help");
-
-		btnOk.setText("OK");
-		btnOk.addActionListener(this::onOk);
-		btnOk.getModel().setEnabled(getBtnOkEnabledState());
-
-		btnCancel.setText("Cancel");
-		btnCancel.addActionListener(this::onCancel);
-
-		lblApplicationFile.setText("Application File");
 
 		txtApplicationFile.setText(
 			getModelObject().getAppDataFile() != null ? getModelObject().getAppDataFile() : "");
@@ -168,6 +179,8 @@ public class MasterPwWithApplicationFilePanel extends BasePanel<MasterPwFileMode
 			MysticCryptApplicationFrame.DEFAULT_USER_CONFIGURATION_DIRECTORY_NAME,
 			MysticCryptApplicationFrame.APPLICATION_NAME);
 		fileChooser = new JFileChooser(configDir);
+		toggleMasterPwComponents();
+		toggleKeyFileComponents();
 	}
 
 	protected void onInitializeGroupLayout()
@@ -269,15 +282,21 @@ public class MasterPwWithApplicationFilePanel extends BasePanel<MasterPwFileMode
 
 	protected void toggleKeyFileComponents()
 	{
-		btnKeyFileChooser.setEnabled(cbxKeyFile.isSelected());
-		btnOk.getModel().setEnabled(getBtnOkEnabledState());
+		boolean cbxKeyFileSelected = cbxKeyFile.isSelected();
+		btnKeyFileChooser.setEnabled(cbxKeyFileSelected);
+		btnOkStateMachine.setKeyFile(getModelObject().getKeyFile());
+		btnOkStateMachine.setWithKeyFile(cbxKeyFileSelected);
+		btnOkStateMachine.onChangeWithKeyFile(btnOkStateMachine);
 	}
 
 	protected void toggleMasterPwComponents()
 	{
-		txtMasterPw.setEnabled(cbxMasterPw.isSelected());
-		btnMasterPw.setEnabled(cbxMasterPw.isSelected());
-		btnOk.getModel().setEnabled(getBtnOkEnabledState());
+		boolean cbxMasterPwSelected = cbxMasterPw.isSelected();
+		txtMasterPw.setEnabled(cbxMasterPwSelected);
+		btnMasterPw.setEnabled(cbxMasterPwSelected);
+		btnOkStateMachine.setWithMasterPassword(cbxMasterPwSelected);
+		btnOkStateMachine.setPasswordLength(txtMasterPw.getDocument().getLength());
+		btnOkStateMachine.onChangeWithMasterPassword(btnOkStateMachine);
 	}
 
 	protected void toggleApplicationFileComponents()
@@ -285,7 +304,6 @@ public class MasterPwWithApplicationFilePanel extends BasePanel<MasterPwFileMode
 		txtMasterPw.setEnabled(cbxMasterPw.isSelected());
 		btnMasterPw.setEnabled(cbxKeyFile.isSelected());
 		btnKeyFileChooser.setEnabled(cbxKeyFile.isSelected());
-		btnOk.getModel().setEnabled(getBtnOkEnabledState());
 	}
 
 	protected void onCheckMasterPw(final ActionEvent actionEvent)
@@ -310,8 +328,8 @@ public class MasterPwWithApplicationFilePanel extends BasePanel<MasterPwFileMode
 			getModelObject().setAppDataFile(selectedApplicationFile.getAbsolutePath());
 			toggleApplicationFileComponents();
 			txtApplicationFile.setText(getModelObject().getAppDataFile());
-			boolean okEnabledState = getBtnOkEnabledState();
-			btnOk.getModel().setEnabled(okEnabledState);
+			btnOkStateMachine.setAppDataFile(getModelObject().getAppDataFile());
+			btnOkStateMachine.onApplicationFileAdded(btnOkStateMachine);
 		}
 	}
 
@@ -323,39 +341,10 @@ public class MasterPwWithApplicationFilePanel extends BasePanel<MasterPwFileMode
 		{
 			final File selectedKeyFile = fileChooser.getSelectedFile();
 			getModelObject().setKeyFile(selectedKeyFile);
-			btnOk.getModel().setEnabled(getBtnOkEnabledState());
+			btnOkStateMachine.setKeyFile(selectedKeyFile);
+			btnOkStateMachine.onSetKeyFile(btnOkStateMachine);
 			txtKeyFile.setText(getModelObject().getKeyFile().getName());
 		}
-	}
-
-	protected boolean getBtnOkEnabledState()
-	{
-		boolean result = true;
-		MasterPwFileModelBean modelObject = getModelObject();
-		if (modelObject.getAppDataFile() == null)
-		{
-			return false;
-		}
-		if (modelObject.isWithMasterPw() && modelObject.isWithKeyFile()
-			&& !(0 < txtMasterPw.getDocument().getLength() && modelObject.getKeyFile() != null))
-		{
-			return false;
-		}
-		if (!modelObject.isWithMasterPw() && !modelObject.isWithKeyFile())
-		{
-			return false;
-		}
-		if (modelObject.isWithMasterPw() && !modelObject.isWithKeyFile()
-			&& txtMasterPw.getDocument().getLength() == 0)
-		{
-			return false;
-		}
-		if (!modelObject.isWithMasterPw() && modelObject.isWithKeyFile()
-			&& modelObject.getKeyFile() == null)
-		{
-			return false;
-		}
-		return result;
 	}
 
 	protected void onOk(ActionEvent actionEvent)

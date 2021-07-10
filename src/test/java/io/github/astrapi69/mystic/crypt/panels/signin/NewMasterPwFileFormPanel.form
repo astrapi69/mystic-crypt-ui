@@ -61,10 +61,11 @@
                                           <Component id="txtMasterPw" alignment="1" min="-2" pref="483" max="-2" attributes="0"/>
                                           <Component id="txtRepeatPw" alignment="1" min="-2" pref="483" max="-2" attributes="0"/>
                                       </Group>
-                                      <EmptySpace min="-2" pref="19" max="-2" attributes="0"/>
-                                      <Group type="103" groupAlignment="0" attributes="0">
-                                          <Component id="btnMasterPw" alignment="0" min="-2" pref="94" max="-2" attributes="0"/>
-                                          <Component id="btnApplicationFileChooser" min="-2" pref="94" max="-2" attributes="0"/>
+                                      <EmptySpace type="unrelated" max="-2" attributes="0"/>
+                                      <Group type="103" groupAlignment="1" max="-2" attributes="0">
+                                          <Component id="btnGeneratePw" pref="101" max="32767" attributes="0"/>
+                                          <Component id="btnMasterPw" alignment="1" max="32767" attributes="0"/>
+                                          <Component id="btnApplicationFileChooser" alignment="1" max="32767" attributes="0"/>
                                       </Group>
                                   </Group>
                               </Group>
@@ -106,6 +107,7 @@
               <Group type="103" groupAlignment="3" attributes="0">
                   <Component id="lblRepeatPw" alignment="3" min="-2" max="-2" attributes="0"/>
                   <Component id="txtRepeatPw" alignment="3" min="-2" max="-2" attributes="0"/>
+                  <Component id="btnGeneratePw" alignment="3" min="-2" max="-2" attributes="0"/>
               </Group>
               <EmptySpace min="-2" pref="52" max="-2" attributes="0"/>
               <Group type="103" groupAlignment="3" attributes="0">
@@ -217,6 +219,11 @@
     <Component class="javax.swing.JButton" name="btnApplicationFileChooser">
       <Properties>
         <Property name="text" type="java.lang.String" value="Browse..."/>
+      </Properties>
+    </Component>
+    <Component class="javax.swing.JButton" name="btnGeneratePw">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="Generate"/>
       </Properties>
     </Component>
   </SubComponents>

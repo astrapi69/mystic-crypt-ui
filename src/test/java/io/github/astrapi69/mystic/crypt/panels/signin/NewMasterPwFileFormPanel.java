@@ -43,6 +43,7 @@ public class NewMasterPwFileFormPanel extends javax.swing.JPanel {
         lblApplicationFile = new javax.swing.JLabel();
         txtApplicationFile = new javax.swing.JTextField();
         btnApplicationFileChooser = new javax.swing.JButton();
+        btnGeneratePw = new javax.swing.JButton();
 
         btnKeyFileChooser.setText("Browse..");
 
@@ -78,6 +79,8 @@ public class NewMasterPwFileFormPanel extends javax.swing.JPanel {
         lblApplicationFile.setText("Application File");
 
         btnApplicationFileChooser.setText("Browse...");
+
+        btnGeneratePw.setText("Generate");
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
@@ -119,10 +122,11 @@ public class NewMasterPwFileFormPanel extends javax.swing.JPanel {
                                             .addComponent(txtApplicationFile, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 483, javax.swing.GroupLayout.PREFERRED_SIZE)
                                             .addComponent(txtMasterPw, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 483, javax.swing.GroupLayout.PREFERRED_SIZE)
                                             .addComponent(txtRepeatPw, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 483, javax.swing.GroupLayout.PREFERRED_SIZE))
-                                        .addGap(19, 19, 19)
-                                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                            .addComponent(btnMasterPw, javax.swing.GroupLayout.PREFERRED_SIZE, 94, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                            .addComponent(btnApplicationFileChooser, javax.swing.GroupLayout.PREFERRED_SIZE, 94, javax.swing.GroupLayout.PREFERRED_SIZE))))
+                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
+                                            .addComponent(btnGeneratePw, javax.swing.GroupLayout.DEFAULT_SIZE, 101, Short.MAX_VALUE)
+                                            .addComponent(btnMasterPw, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                            .addComponent(btnApplicationFileChooser, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))
                                 .addGap(12, 12, 12)))
                         .addContainerGap())
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
@@ -151,7 +155,8 @@ public class NewMasterPwFileFormPanel extends javax.swing.JPanel {
                 .addGap(18, 18, 18)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(lblRepeatPw)
-                    .addComponent(txtRepeatPw, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(txtRepeatPw, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(btnGeneratePw))
                 .addGap(52, 52, 52)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(cmbKeyFile, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -178,6 +183,7 @@ public class NewMasterPwFileFormPanel extends javax.swing.JPanel {
     private javax.swing.JButton btnApplicationFileChooser;
     private javax.swing.JButton btnCancel;
     private javax.swing.JButton btnCreateKeyFile;
+    private javax.swing.JButton btnGeneratePw;
     private javax.swing.JButton btnHelp;
     private javax.swing.JButton btnKeyFileChooser;
     private javax.swing.JButton btnMasterPw;

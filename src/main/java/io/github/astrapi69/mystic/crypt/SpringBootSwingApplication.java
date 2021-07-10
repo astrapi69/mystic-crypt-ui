@@ -25,7 +25,6 @@ import java.awt.*;
 import lombok.AccessLevel;
 import lombok.experimental.FieldDefaults;
 
-import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.context.ConfigurableApplicationContext;
@@ -36,25 +35,10 @@ import org.springframework.context.ConfigurableApplicationContext;
 @SuppressWarnings("serial")
 @SpringBootApplication
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class SpringBootSwingApplication
+public class SpringBootSwingApplication extends MysticCryptApplicationFrame
 {
 
 	public static ConfigurableApplicationContext ctx;
-
-	/**
-	 * The instance.
-	 */
-	private static SpringBootSwingApplication instance;
-
-	/**
-	 * Gets the single instance of SpringBootSwingApplication.
-	 *
-	 * @return single instance of SpringBootSwingApplication
-	 */
-	public static SpringBootSwingApplication getInstance()
-	{
-		return instance;
-	}
 
 	/**
 	 * The main method that start this {@link SpringBootSwingApplication}
@@ -69,8 +53,8 @@ public class SpringBootSwingApplication
 		SpringBootSwingApplication.ctx = context;
 
 		EventQueue.invokeLater(() -> {
-			MysticCryptApplicationFrame springBootSwingApplicationFrame = context
-				.getBean(MysticCryptApplicationFrame.class);
+			SpringBootSwingApplication springBootSwingApplicationFrame = context
+				.getBean(SpringBootSwingApplication.class);
 			springBootSwingApplicationFrame.setVisible(true);
 		});
 	}

@@ -30,21 +30,10 @@ import javax.crypto.Cipher;
 import javax.crypto.SecretKey;
 import javax.swing.*;
 
-import io.github.astrapi69.mystic.crypt.panels.signin.NewMasterPwFileDialog;
-import io.github.astrapi69.mystic.crypt.panels.signin.NewMasterPwFileModelBean;
-import io.github.astrapi69.swing.button.IconButtonFactory;
-import io.github.astrapi69.swing.icon.ImageIconFactory;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.experimental.FieldDefaults;
-
-import io.github.astrapi69.search.PathFinder;
-import io.github.astrapi69.system.SystemFileExtensions;
-import io.github.astrapi69.write.WriteFileExtensions;
-import io.github.astrapi69.json.ObjectToJsonExtensions;
-import io.github.astrapi69.model.BaseModel;
-import io.github.astrapi69.model.api.Model;
 import io.github.astrapi69.crypto.algorithm.AesAlgorithm;
 import io.github.astrapi69.crypto.algorithm.SunJCEAlgorithm;
 import io.github.astrapi69.crypto.factories.SecretKeyFactoryExtensions;
@@ -55,21 +44,31 @@ import io.github.astrapi69.crypto.key.PublicKeyGenericEncryptor;
 import io.github.astrapi69.crypto.key.reader.EncryptedPrivateKeyReader;
 import io.github.astrapi69.crypto.key.reader.PrivateKeyReader;
 import io.github.astrapi69.crypto.model.CryptModel;
+import io.github.astrapi69.json.ObjectToJsonExtensions;
 import io.github.astrapi69.layout.ScreenSizeExtensions;
+import io.github.astrapi69.model.BaseModel;
+import io.github.astrapi69.model.api.Model;
 import io.github.astrapi69.mystic.crypt.panels.signin.MasterPwFileDialog;
 import io.github.astrapi69.mystic.crypt.panels.signin.MasterPwFileModelBean;
 import io.github.astrapi69.mystic.crypt.panels.signin.MasterPwFilePanel;
+import io.github.astrapi69.mystic.crypt.panels.signin.NewMasterPwFileDialog;
+import io.github.astrapi69.mystic.crypt.panels.signin.NewMasterPwFileModelBean;
+import io.github.astrapi69.search.PathFinder;
 import io.github.astrapi69.swing.base.ApplicationFrame;
 import io.github.astrapi69.swing.base.BaseDesktopMenu;
+import io.github.astrapi69.swing.button.IconButtonFactory;
 import io.github.astrapi69.swing.components.factories.JComponentFactory;
 import io.github.astrapi69.swing.dialog.factories.JDialogFactory;
+import io.github.astrapi69.swing.icon.ImageIconFactory;
 import io.github.astrapi69.swing.listener.RequestFocusListener;
 import io.github.astrapi69.swing.panels.output.ConsolePanel;
 import io.github.astrapi69.swing.plaf.LookAndFeels;
-import io.github.astrapi69.swing.splashscreen.BaseSplashScreen;
+import io.github.astrapi69.swing.splashscreen.ProgressBarSplashScreen;
 import io.github.astrapi69.swing.splashscreen.SplashScreenModelBean;
 import io.github.astrapi69.swing.utils.JInternalFrameExtensions;
+import io.github.astrapi69.system.SystemFileExtensions;
 import io.github.astrapi69.throwable.RuntimeExceptionDecorator;
+import io.github.astrapi69.write.WriteFileExtensions;
 
 /**
  * The class {@link MysticCryptApplicationFrame}
@@ -77,6 +76,17 @@ import io.github.astrapi69.throwable.RuntimeExceptionDecorator;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class MysticCryptApplicationFrame extends ApplicationFrame<ApplicationModelBean>
 {
+	/**
+	 * The main method that start this {@link MysticCryptApplicationFrame}
+	 *
+	 * @param args
+	 *            the arguments
+	 */
+	public static void main(String[] args)
+	{
+		MysticCryptApplicationFrame frame = new MysticCryptApplicationFrame();
+		frame.setVisible(true);
+	}
 
 	/** The Constant serialVersionUID. */
 	private static final long serialVersionUID = 1L;
@@ -102,18 +112,6 @@ public class MysticCryptApplicationFrame extends ApplicationFrame<ApplicationMod
 	public static MysticCryptApplicationFrame getInstance()
 	{
 		return instance;
-	}
-
-	/**
-	 * The main method that start this {@link MysticCryptApplicationFrame}
-	 *
-	 * @param args
-	 *            the arguments
-	 */
-	public static void main(String[] args)
-	{
-		MysticCryptApplicationFrame frame = new MysticCryptApplicationFrame();
-		frame.setVisible(true);
 	}
 
 	private void showMasterPwOptionPane()
@@ -154,24 +152,45 @@ public class MysticCryptApplicationFrame extends ApplicationFrame<ApplicationMod
 	public MysticCryptApplicationFrame()
 	{
 		super(Messages.getString("mainframe.title"));
-		String imagePath;
-		String text;
-		imagePath = Messages.getString("global.icon.app.path");
-		if (imagePath == null)
-			imagePath = "img/icon.png";
-		text = Messages.getString("mainframe.project.name");
-		if (text == null)
-			text = MysticCryptApplicationFrame.APPLICATION_NAME;
-		SplashScreenModelBean splashScreenModelBean = SplashScreenModelBean.builder()
-			.imagePath(imagePath).text(text).min(0).max(100).showTime(3000).showing(true).build();
-		Model<SplashScreenModelBean> modelBeanModel = BaseModel.of(splashScreenModelBean);
-//		BaseSplashScreen splashScreen = new BaseSplashScreen(null, modelBeanModel);
-//			Thread splashScreenThread = new Thread(() -> {
-//			new BaseSplashScreen(null, modelBeanModel);
-//		});
-//		splashScreenThread.start();
+		showSplashScreen();
+	}
 
-//		RuntimeExceptionDecorator.decorate(i -> Thread.sleep(splashScreenModelBean.getShowTime()));
+	protected void showSplashScreen()
+	{
+		SplashScreenModelBean splashScreenModelBean = SplashScreenModelBean.builder()
+			.imagePath(getIconPath()).text(getApplicationName()).min(0).max(100).showTime(1200)
+			.showing(true).build();
+		Model<SplashScreenModelBean> modelBeanModel = BaseModel.of(splashScreenModelBean);
+		Thread splashScreenThread = new Thread(() -> {
+			new ProgressBarSplashScreen(MysticCryptApplicationFrame.this, modelBeanModel)
+			{
+				@Override
+				protected void onBeforeInitialize()
+				{
+					super.onBeforeInitialize();
+					MysticCryptApplicationFrame.this.setVisible(false);
+				}
+			};
+		});
+		splashScreenThread.start();
+	}
+
+	protected String getApplicationName()
+	{
+		String applicationName = Messages.getString("mainframe.project.name");
+		if (applicationName == null)
+		{
+			applicationName = MysticCryptApplicationFrame.APPLICATION_NAME;
+		}
+		return applicationName;
+	}
+
+	protected String getIconPath()
+	{
+		String iconPath = Messages.getString("global.icon.app.path");
+		if (iconPath == null)
+			iconPath = "img/icon.png";
+		return iconPath;
 	}
 
 	@Override
@@ -383,19 +402,21 @@ public class MysticCryptApplicationFrame extends ApplicationFrame<ApplicationMod
 		return LookAndFeels.METAL;
 	}
 
-	@Override protected JToolBar newJToolBar()
+	@Override
+	protected JToolBar newJToolBar()
 	{
 		JToolBar toolBar = super.newJToolBar();
 		toolBar.setSize(this.getWidth(), 25);
 
 		ImageIcon applicationAdd = ImageIconFactory
 			.newImageIcon("io/github/astrapi69/silk/icons/application_add.png");
-		JButton btnApplicationAdd = IconButtonFactory
-			.newIconButton(applicationAdd, "New application");
-		btnApplicationAdd.addActionListener(this::openNewMasterPw);
+		JButton btnApplicationAdd = IconButtonFactory.newIconButton(applicationAdd,
+			"New application");
+		btnApplicationAdd.addActionListener(this::showNewMasterPw);
 		toolBar.add(btnApplicationAdd);
 
-		ImageIcon folderEdit = ImageIconFactory.newImageIcon("io/github/astrapi69/silk/icons/folder_edit.png");
+		ImageIcon folderEdit = ImageIconFactory
+			.newImageIcon("io/github/astrapi69/silk/icons/folder_edit.png");
 		JButton btnFolderEdit = IconButtonFactory.newIconButton(folderEdit, "Open application");
 		toolBar.add(btnFolderEdit);
 
@@ -403,7 +424,8 @@ public class MysticCryptApplicationFrame extends ApplicationFrame<ApplicationMod
 		JButton btnDisk = IconButtonFactory.newIconButton(disk, "Save");
 		toolBar.add(btnDisk);
 
-		ImageIcon magnifier = ImageIconFactory.newImageIcon("io/github/astrapi69/silk/icons/magnifier.png");
+		ImageIcon magnifier = ImageIconFactory
+			.newImageIcon("io/github/astrapi69/silk/icons/magnifier.png");
 		JButton btnMagnifier = IconButtonFactory.newIconButton(magnifier, "Search");
 		toolBar.add(btnMagnifier);
 
@@ -414,7 +436,7 @@ public class MysticCryptApplicationFrame extends ApplicationFrame<ApplicationMod
 		return toolBar;
 	}
 
-	protected void openNewMasterPw(final ActionEvent actionEvent)
+	protected void showNewMasterPw(final ActionEvent actionEvent)
 	{
 		NewMasterPwFileDialog dialog = new NewMasterPwFileDialog(this,
 			"Create new application file with credentials", true,

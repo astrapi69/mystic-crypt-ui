@@ -22,7 +22,9 @@ package io.github.astrapi69.mystic.crypt.panels.signin;
 
 import java.io.File;
 import java.io.Serializable;
+import java.util.List;
 
+import io.github.astrapi69.model.api.Model;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -32,6 +34,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 import lombok.experimental.FieldDefaults;
+import io.github.astrapi69.collections.list.ListFactory;
 
 /**
  * The bean class {@link NewMasterPwFileModelBean} is for holding the sign in data
@@ -56,18 +59,18 @@ public class NewMasterPwFileModelBean implements Serializable
 	File keyFile;
 
 	/** The key file paths for the combo box */
-	String[] keyFilePaths;
+	@Builder.Default
+	List<String> keyFilePaths = ListFactory.newArrayList();
 
 	/** The master password char array. */
 	char[] masterPw;
 
 	/** The flag if the master password is displayed in plain text. */
-	boolean showMasterPw;
+	Model<Boolean> showMasterPw;
 
 	/** The flag if the key file will be used in the authentication. */
-	boolean withKeyFile;
+	Model<Boolean> withKeyFile;
 
 	/** The flag if the master password will be used in the authentication. */
-	@Builder.Default
-	boolean withMasterPw = true;
+	Model<Boolean> withMasterPw;
 }
