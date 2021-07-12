@@ -36,10 +36,10 @@ public class MasterPwWithApplicationFileFormPanel extends javax.swing.JPanel
     private javax.swing.JButton btnOk;
     private javax.swing.JCheckBox cbxKeyFile;
     private javax.swing.JCheckBox cbxMasterPw;
+    private javax.swing.JComboBox<String> cmbKeyFile;
     private javax.swing.JLabel lblApplicationFile;
     private javax.swing.JLabel lblImageHeader;
     private javax.swing.JTextField txtApplicationFile;
-    private javax.swing.JTextField txtKeyFile;
     private javax.swing.JPasswordField txtMasterPw;
     // End of variables declaration//GEN-END:variables
 	/**
@@ -68,7 +68,6 @@ public class MasterPwWithApplicationFileFormPanel extends javax.swing.JPanel
         cbxKeyFile = new javax.swing.JCheckBox();
         txtMasterPw = new javax.swing.JPasswordField();
         btnMasterPw = new javax.swing.JButton();
-        txtKeyFile = new javax.swing.JTextField();
         btnKeyFileChooser = new javax.swing.JButton();
         btnHelp = new javax.swing.JButton();
         btnOk = new javax.swing.JButton();
@@ -76,6 +75,7 @@ public class MasterPwWithApplicationFileFormPanel extends javax.swing.JPanel
         lblApplicationFile = new javax.swing.JLabel();
         txtApplicationFile = new javax.swing.JTextField();
         btnApplicationFileChooser = new javax.swing.JButton();
+        cmbKeyFile = new javax.swing.JComboBox<>();
 
         setPreferredSize(new java.awt.Dimension(820, 380));
 
@@ -106,6 +106,8 @@ public class MasterPwWithApplicationFileFormPanel extends javax.swing.JPanel
 
         btnApplicationFileChooser.setText("File");
 
+        cmbKeyFile.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }));
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
@@ -121,19 +123,19 @@ public class MasterPwWithApplicationFileFormPanel extends javax.swing.JPanel
                         .addComponent(btnCancel, javax.swing.GroupLayout.PREFERRED_SIZE, 141, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addGroup(layout.createSequentialGroup()
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(cbxMasterPw, javax.swing.GroupLayout.DEFAULT_SIZE, 210, Short.MAX_VALUE)
+                            .addComponent(cbxMasterPw, javax.swing.GroupLayout.DEFAULT_SIZE, 170, Short.MAX_VALUE)
                             .addComponent(cbxKeyFile, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                             .addComponent(lblApplicationFile, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                             .addGroup(layout.createSequentialGroup()
                                 .addComponent(txtApplicationFile, javax.swing.GroupLayout.PREFERRED_SIZE, 520, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                                 .addComponent(btnApplicationFileChooser, javax.swing.GroupLayout.PREFERRED_SIZE, 70, javax.swing.GroupLayout.PREFERRED_SIZE))
                             .addGroup(layout.createSequentialGroup()
-                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                                    .addComponent(txtMasterPw)
-                                    .addComponent(txtKeyFile, javax.swing.GroupLayout.PREFERRED_SIZE, 520, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addComponent(txtMasterPw, javax.swing.GroupLayout.PREFERRED_SIZE, 520, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                    .addComponent(cmbKeyFile, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                                     .addComponent(btnMasterPw, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
@@ -160,12 +162,13 @@ public class MasterPwWithApplicationFileFormPanel extends javax.swing.JPanel
                     .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                         .addComponent(txtMasterPw, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addComponent(btnMasterPw)))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(txtKeyFile, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(btnKeyFileChooser)
-                    .addComponent(cbxKeyFile, javax.swing.GroupLayout.PREFERRED_SIZE, 35, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 124, Short.MAX_VALUE)
+                .addGap(18, 18, 18)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(cbxKeyFile, javax.swing.GroupLayout.PREFERRED_SIZE, 35, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                        .addComponent(cmbKeyFile, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addComponent(btnKeyFileChooser)))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 112, Short.MAX_VALUE)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(btnHelp)
                     .addComponent(btnOk)
