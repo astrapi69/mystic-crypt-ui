@@ -140,7 +140,8 @@ public class MysticCryptApplicationFrame extends ApplicationFrame<ApplicationMod
 	public MysticCryptApplicationFrame()
 	{
 		super(Messages.getString("mainframe.title"));
-		showSplashScreen();
+		// TODO uncomment after merge into develop branch
+//		showSplashScreen();
 	}
 
 	protected void showSplashScreen()

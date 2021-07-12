@@ -11,6 +11,9 @@ import java.io.File;
 import javax.swing.*;
 import javax.swing.event.DocumentEvent;
 
+import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
+import io.github.astrapi69.search.PathFinder;
+import io.github.astrapi69.system.SystemFileExtensions;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.experimental.FieldDefaults;
@@ -155,9 +158,68 @@ public class NewMasterPwFilePanel extends BasePanel<MasterPwFileModelBean>
 			}
 		});
 		btnMasterPw.addActionListener(this::onShowMasterPw);
+
 		cmbKeyFileModel = new StringMutableComboBoxModel(getModelObject().getKeyFilePaths());
 		cmbKeyFile.setModel(cmbKeyFileModel);
+
+		txtApplicationFile.setText(
+			getModelObject().getSelectedKeyFilePath() != null ? getModelObject().getSelectedKeyFilePath() : "");
+		txtApplicationFile.setEnabled(false);
+		btnApplicationFileChooser.addActionListener(this::onApplicationFileChooser);
+		btnKeyFileChooser.addActionListener(this::onKeyFileChooser);
+
+		File configDir = PathFinder.getRelativePath(SystemFileExtensions.getUserHomeDir(),
+			MysticCryptApplicationFrame.DEFAULT_USER_CONFIGURATION_DIRECTORY_NAME,
+			MysticCryptApplicationFrame.APPLICATION_NAME);
+		fileChooser = new JFileChooser(configDir);
+
+		cmbKeyFileModel = new StringMutableComboBoxModel(getModelObject().getKeyFilePaths(),
+			getModelObject().getSelectedKeyFilePath());
+		cmbKeyFile.setModel(cmbKeyFileModel);
+		cmbKeyFile.addActionListener(this::onChangeCmbKeyFile);
+
+		btnGeneratePw.addActionListener(this::onGeneratePassword);
+
+		toggleMasterPwComponents();
+		toggleKeyFileComponents();
 	}
+
+	protected void onGeneratePassword(final ActionEvent actionEvent) {
+		// TODO
+	}
+
+
+	protected void onChangeCmbKeyFile(final ActionEvent actionEvent)
+	{
+		Object item = cmbKeyFile.getSelectedItem();
+		String selectedKeyFilePath = (String)item;
+		getModelObject().setSelectedKeyFilePath(selectedKeyFilePath);
+		if (selectedKeyFilePath == "")
+		{
+			getModelObject().setKeyFile(null);
+			btnOkStateMachine.setKeyFile(null);
+			btnOkStateMachine.onSetKeyFile(btnOkStateMachine);
+		}
+		else
+		{
+			File selectedKeyFile = new File(selectedKeyFilePath);
+			if (selectedKeyFile != null && selectedKeyFile.exists())
+			{
+				getModelObject().setKeyFile(selectedKeyFile);
+				btnOkStateMachine.setKeyFile(selectedKeyFile);
+				btnOkStateMachine.onSetKeyFile(btnOkStateMachine);
+			}
+			else if (selectedKeyFile == null
+				|| selectedKeyFile != null && !selectedKeyFile.exists())
+			{
+				getModelObject().setKeyFile(null);
+				cmbKeyFileModel.removeElement(selectedKeyFilePath);
+				btnOkStateMachine.setKeyFile(null);
+				btnOkStateMachine.onSetKeyFile(btnOkStateMachine);
+			}
+		}
+	}
+
 
 	protected void onInitializeGroupLayout()
 	{
@@ -338,7 +400,10 @@ public class NewMasterPwFilePanel extends BasePanel<MasterPwFileModelBean>
 
 	protected void toggleKeyFileComponents()
 	{
-		btnKeyFileChooser.setEnabled(cbxKeyFile.isSelected());
+		boolean cbxKeyFileSelected = cbxKeyFile.isSelected();
+		btnKeyFileChooser.setEnabled(cbxKeyFileSelected);
+		btnCreateKeyFile.setEnabled(cbxKeyFileSelected);
+		cmbKeyFile.setEnabled(cbxKeyFileSelected);
 		btnOkStateMachine.setKeyFile(getModelObject().getKeyFile());
 		btnOkStateMachine.onSetKeyFile(btnOkStateMachine);
 	}
@@ -347,7 +412,9 @@ public class NewMasterPwFilePanel extends BasePanel<MasterPwFileModelBean>
 	{
 		boolean cbxMasterPwSelected = cbxMasterPw.isSelected();
 		txtMasterPw.setEnabled(cbxMasterPwSelected);
+		txtRepeatPw.setEnabled(cbxMasterPwSelected);
 		btnMasterPw.setEnabled(cbxMasterPwSelected);
+		btnGeneratePw.setEnabled(cbxMasterPwSelected);
 		btnOkStateMachine.setWithMasterPassword(cbxMasterPwSelected);
 		btnOkStateMachine.onChangeWithMasterPassword(btnOkStateMachine);
 	}
