@@ -9,16 +9,16 @@ import io.github.astrapi69.layout.ScreenSizeExtensions;
 import io.github.astrapi69.model.api.Model;
 import io.github.astrapi69.swing.base.PanelDialog;
 
-public class NewMasterPwFileDialog extends PanelDialog<NewMasterPwFileModelBean>
+public class NewMasterPwFileDialog extends PanelDialog<MasterPwFileModelBean>
 {
 	public NewMasterPwFileDialog(Frame owner, String title, boolean modal,
-		Model<NewMasterPwFileModelBean> model)
+		Model<MasterPwFileModelBean> model)
 	{
 		super(owner, title, modal, model);
 		ScreenSizeExtensions.centralize(this, 3, 3);
 	}
 
-	protected JPanel newContent(Model<NewMasterPwFileModelBean> model)
+	protected JPanel newContent(Model<MasterPwFileModelBean> model)
 	{
 		return new NewMasterPwFilePanel(model)
 		{

@@ -20,57 +20,21 @@
  */
 package io.github.astrapi69.mystic.crypt.panels.signin;
 
-import java.io.File;
-import java.io.Serializable;
-import java.util.List;
-
-import io.github.astrapi69.model.api.Model;
 import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
+import lombok.Data;
 import lombok.EqualsAndHashCode;
-import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.ToString;
 import lombok.experimental.FieldDefaults;
-import io.github.astrapi69.collections.list.ListFactory;
+import lombok.experimental.SuperBuilder;
 
 /**
  * The bean class {@link NewMasterPwFileModelBean} is for holding the sign in data
  */
-@Getter
-@Setter
-@EqualsAndHashCode
-@ToString
+@Data
+@EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor
-@AllArgsConstructor
-@Builder(toBuilder = true)
+@SuperBuilder(toBuilder = true)
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class NewMasterPwFileModelBean implements Serializable
+public class NewMasterPwFileModelBean extends MasterPwFileModelBean
 {
-	/** The Constant serialVersionUID. */
-	private static final long serialVersionUID = 1L;
-
-	/** The encrypted data file for the application. */
-	String appDataFile;
-
-	/** The key file. */
-	File keyFile;
-
-	/** The key file paths for the combo box */
-	@Builder.Default
-	List<String> keyFilePaths = ListFactory.newArrayList();
-
-	/** The master password char array. */
-	char[] masterPw;
-
-	/** The flag if the master password is displayed in plain text. */
-	Model<Boolean> showMasterPw;
-
-	/** The flag if the key file will be used in the authentication. */
-	Model<Boolean> withKeyFile;
-
-	/** The flag if the master password will be used in the authentication. */
-	Model<Boolean> withMasterPw;
 }

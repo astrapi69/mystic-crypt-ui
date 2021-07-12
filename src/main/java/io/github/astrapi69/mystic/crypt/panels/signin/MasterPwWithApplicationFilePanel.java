@@ -23,13 +23,14 @@ package io.github.astrapi69.mystic.crypt.panels.signin;
 import java.awt.event.ActionEvent;
 import java.io.File;
 import java.security.PrivateKey;
-import java.security.spec.InvalidKeySpecException;
+import java.util.logging.Level;
 
 import javax.crypto.Cipher;
 import javax.swing.*;
 import javax.swing.event.DocumentEvent;
 
 import lombok.Getter;
+import lombok.extern.java.Log;
 import io.github.astrapi69.crypto.algorithm.SunJCEAlgorithm;
 import io.github.astrapi69.crypto.factories.CryptModelFactory;
 import io.github.astrapi69.crypto.file.PBEFileDecryptor;
@@ -57,6 +58,7 @@ import io.github.astrapi69.system.SystemFileExtensions;
  * The class {@link MasterPwFilePanel}
  */
 @Getter
+@Log
 public class MasterPwWithApplicationFilePanel extends BasePanel<MasterPwFileModelBean>
 {
 
@@ -70,17 +72,18 @@ public class MasterPwWithApplicationFilePanel extends BasePanel<MasterPwFileMode
 	private javax.swing.JButton btnOk;
 	private javax.swing.JCheckBox cbxKeyFile;
 	private javax.swing.JCheckBox cbxMasterPw;
+	private javax.swing.JComboBox<String> cmbApplicationFile;
 	private javax.swing.JComboBox<String> cmbKeyFile;
 	private javax.swing.JLabel lblApplicationFile;
 	private javax.swing.JLabel lblImageHeader;
-	private javax.swing.JTextField txtApplicationFile;
 	private javax.swing.JPasswordField txtMasterPw;
 	// ===
 	// ===
 	// ===
 	private JFileChooser fileChooser;
 	BtnOkStateMachine btnOkStateMachine;
-	StringMutableComboBoxModel mutableComboBoxModel;
+	StringMutableComboBoxModel cmbKeyFileModel;
+	StringMutableComboBoxModel cmbApplicationFileModel;
 
 	/**
 	 * Instantiates a new {@link MasterPwWithApplicationFilePanel}
@@ -117,11 +120,11 @@ public class MasterPwWithApplicationFilePanel extends BasePanel<MasterPwFileMode
 		btnOk = new javax.swing.JButton();
 		btnCancel = new javax.swing.JButton();
 		lblApplicationFile = new javax.swing.JLabel();
-		txtApplicationFile = new javax.swing.JTextField();
 		btnApplicationFileChooser = new javax.swing.JButton();
 		cmbKeyFile = new javax.swing.JComboBox<>();
+		cmbApplicationFile = new javax.swing.JComboBox<>();
 
-		setPreferredSize(new java.awt.Dimension(820, 380));
+		setPreferredSize(new java.awt.Dimension(880, 360));
 
 		lblImageHeader.setText("Enter Master Key");
 
@@ -129,11 +132,11 @@ public class MasterPwWithApplicationFilePanel extends BasePanel<MasterPwFileMode
 
 		cbxKeyFile.setText("Key File:");
 
-		txtMasterPw.setText("jPasswordField1");
+		txtMasterPw.setText("");
 
 		btnMasterPw.setText("***");
 
-		btnKeyFileChooser.setText("File");
+		btnKeyFileChooser.setText("Browse...");
 
 		btnHelp.setText("Help");
 
@@ -143,10 +146,11 @@ public class MasterPwWithApplicationFilePanel extends BasePanel<MasterPwFileMode
 
 		lblApplicationFile.setText("Application File");
 
-		btnApplicationFileChooser.setText("File");
+		btnApplicationFileChooser.setText("Browse...");
 
-		cmbKeyFile.setModel(new javax.swing.DefaultComboBoxModel<>(
-			new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }));
+		cmbKeyFile.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }));
+
+		cmbApplicationFile.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }));
 
 		// ===
 		// ===
@@ -170,11 +174,6 @@ public class MasterPwWithApplicationFilePanel extends BasePanel<MasterPwFileMode
 			}
 		});
 
-		txtApplicationFile.setText(
-			getModelObject().getAppDataFile() != null ? getModelObject().getAppDataFile() : "");
-		txtApplicationFile.setEnabled(false);
-
-		btnApplicationFileChooser.setText("File");
 		btnApplicationFileChooser.addActionListener(this::onApplicationFileChooser);
 
 		File configDir = PathFinder.getRelativePath(SystemFileExtensions.getUserHomeDir(),
@@ -182,22 +181,61 @@ public class MasterPwWithApplicationFilePanel extends BasePanel<MasterPwFileMode
 			MysticCryptApplicationFrame.APPLICATION_NAME);
 		fileChooser = new JFileChooser(configDir);
 
-		mutableComboBoxModel = new StringMutableComboBoxModel(getModelObject().getKeyFilePaths(),
+		cmbKeyFileModel = new StringMutableComboBoxModel(getModelObject().getKeyFilePaths(),
 			getModelObject().getSelectedKeyFilePath());
-		cmbKeyFile.setModel(mutableComboBoxModel);
+		cmbKeyFile.setModel(cmbKeyFileModel);
 		cmbKeyFile.addActionListener(this::onChangeCmbKeyFile);
+
+		cmbApplicationFileModel = new StringMutableComboBoxModel(
+			getModelObject().getApplicationFilePaths(), getModelObject().getSelectedKeyFilePath());
+		cmbApplicationFile.setModel(cmbApplicationFileModel);
+		cmbApplicationFile.addActionListener(this::onChangeCmbApplicationFile);
 
 		toggleMasterPwComponents();
 		toggleKeyFileComponents();
+	}
+
+	protected void onChangeCmbApplicationFile(final ActionEvent actionEvent)
+	{
+		Object item = cmbApplicationFile.getSelectedItem();
+		String selectedApplicationFilePath = (String)item;
+		getModelObject().setSelectedApplicationFilePath(selectedApplicationFilePath);
+		if (selectedApplicationFilePath == "")
+		{
+			getModelObject().setApplicationFile(null);
+			btnOkStateMachine.setAppDataFile(getModelObject().getSelectedApplicationFilePath());
+			btnOkStateMachine.onApplicationFileAdded(btnOkStateMachine);
+		}
+		else
+		{
+			File selectedApplicationFile = new File(selectedApplicationFilePath);
+			if (selectedApplicationFile != null && selectedApplicationFile.exists())
+			{
+				getModelObject().setApplicationFile(selectedApplicationFile);
+				btnOkStateMachine.setAppDataFile(getModelObject().getSelectedApplicationFilePath());
+				btnOkStateMachine.onApplicationFileAdded(btnOkStateMachine);
+			}
+			else if (selectedApplicationFile == null
+				|| selectedApplicationFile != null && !selectedApplicationFile.exists())
+			{
+				getModelObject().setApplicationFile(null);
+				cmbApplicationFileModel.removeElement(selectedApplicationFilePath);
+				btnOkStateMachine.setAppDataFile(getModelObject().getSelectedApplicationFilePath());
+				btnOkStateMachine.onApplicationFileAdded(btnOkStateMachine);
+			}
+		}
 	}
 
 	protected void onChangeCmbKeyFile(final ActionEvent actionEvent)
 	{
 		Object item = cmbKeyFile.getSelectedItem();
 		String selectedKeyFilePath = (String)item;
+		getModelObject().setSelectedKeyFilePath(selectedKeyFilePath);
 		if (selectedKeyFilePath == "")
 		{
 			getModelObject().setKeyFile(null);
+			btnOkStateMachine.setKeyFile(null);
+			btnOkStateMachine.onSetKeyFile(btnOkStateMachine);
 		}
 		else
 		{
@@ -205,118 +243,89 @@ public class MasterPwWithApplicationFilePanel extends BasePanel<MasterPwFileMode
 			if (selectedKeyFile != null && selectedKeyFile.exists())
 			{
 				getModelObject().setKeyFile(selectedKeyFile);
+				btnOkStateMachine.setKeyFile(selectedKeyFile);
+				btnOkStateMachine.onSetKeyFile(btnOkStateMachine);
 			}
 			else if (selectedKeyFile == null
 				|| selectedKeyFile != null && !selectedKeyFile.exists())
 			{
 				getModelObject().setKeyFile(null);
-				mutableComboBoxModel.removeElement(selectedKeyFilePath);
+				cmbKeyFileModel.removeElement(selectedKeyFilePath);
+				btnOkStateMachine.setKeyFile(null);
+				btnOkStateMachine.onSetKeyFile(btnOkStateMachine);
 			}
 		}
-
 	}
 
 	protected void onInitializeGroupLayout()
 	{
+
+
 		javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
 		this.setLayout(layout);
 		layout.setHorizontalGroup(
 			layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-				.addGroup(layout.createSequentialGroup().addContainerGap().addGroup(layout
-					.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING).addGroup(
-						layout.createSequentialGroup()
-							.addComponent(btnHelp, javax.swing.GroupLayout.PREFERRED_SIZE, 122,
-								javax.swing.GroupLayout.PREFERRED_SIZE)
-							.addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED,
-								javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-							.addComponent(
-								btnOk, javax.swing.GroupLayout.PREFERRED_SIZE, 140,
-								javax.swing.GroupLayout.PREFERRED_SIZE)
-							.addGap(18, 18, 18).addComponent(btnCancel,
-								javax.swing.GroupLayout.PREFERRED_SIZE, 141,
-								javax.swing.GroupLayout.PREFERRED_SIZE))
-					.addGroup(layout.createSequentialGroup()
-						.addGroup(layout
-							.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-							.addComponent(cbxMasterPw, javax.swing.GroupLayout.DEFAULT_SIZE, 170,
-								Short.MAX_VALUE)
-							.addComponent(cbxKeyFile, javax.swing.GroupLayout.DEFAULT_SIZE,
-								javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-							.addComponent(
-								lblApplicationFile, javax.swing.GroupLayout.Alignment.TRAILING,
-								javax.swing.GroupLayout.DEFAULT_SIZE,
-								javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-						.addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-						.addGroup(layout
-							.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-							.addGroup(layout.createSequentialGroup()
-								.addComponent(txtApplicationFile,
-									javax.swing.GroupLayout.PREFERRED_SIZE, 520,
-									javax.swing.GroupLayout.PREFERRED_SIZE)
-								.addPreferredGap(
-									javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-								.addComponent(btnApplicationFileChooser,
-									javax.swing.GroupLayout.PREFERRED_SIZE, 70,
-									javax.swing.GroupLayout.PREFERRED_SIZE))
-							.addGroup(layout.createSequentialGroup().addGroup(layout
-								.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-								.addComponent(txtMasterPw, javax.swing.GroupLayout.PREFERRED_SIZE,
-									520, javax.swing.GroupLayout.PREFERRED_SIZE)
-								.addComponent(cmbKeyFile, 0, javax.swing.GroupLayout.DEFAULT_SIZE,
-									Short.MAX_VALUE))
-								.addPreferredGap(
-									javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-								.addGroup(layout
-									.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING,
-										false)
-									.addComponent(btnMasterPw, javax.swing.GroupLayout.DEFAULT_SIZE,
-										javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-									.addComponent(btnKeyFileChooser,
-										javax.swing.GroupLayout.PREFERRED_SIZE, 70,
-										javax.swing.GroupLayout.PREFERRED_SIZE)))))
-					.addComponent(lblImageHeader, javax.swing.GroupLayout.DEFAULT_SIZE,
-						javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-					.addGap(24, 24, 24)));
-		layout.setVerticalGroup(layout
-			.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-			.addGroup(layout.createSequentialGroup().addGroup(layout
-				.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-				.addGroup(layout.createSequentialGroup().addGap(57, 57, 57)
+				.addGroup(layout.createSequentialGroup()
+					.addContainerGap()
+					.addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+						.addGroup(layout.createSequentialGroup()
+							.addComponent(lblImageHeader, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+							.addGap(24, 24, 24))
+						.addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
+							.addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
+								.addGroup(layout.createSequentialGroup()
+									.addComponent(btnHelp, javax.swing.GroupLayout.PREFERRED_SIZE, 122, javax.swing.GroupLayout.PREFERRED_SIZE)
+									.addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+									.addComponent(btnOk, javax.swing.GroupLayout.PREFERRED_SIZE, 140, javax.swing.GroupLayout.PREFERRED_SIZE)
+									.addGap(18, 18, 18)
+									.addComponent(btnCancel, javax.swing.GroupLayout.PREFERRED_SIZE, 141, javax.swing.GroupLayout.PREFERRED_SIZE))
+								.addGroup(layout.createSequentialGroup()
+									.addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
+										.addComponent(cbxMasterPw, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, 180, Short.MAX_VALUE)
+										.addComponent(lblApplicationFile, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+										.addComponent(cbxKeyFile, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+									.addGap(18, 18, 18)
+									.addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+										.addComponent(txtMasterPw, javax.swing.GroupLayout.PREFERRED_SIZE, 520, javax.swing.GroupLayout.PREFERRED_SIZE)
+										.addComponent(cmbApplicationFile, javax.swing.GroupLayout.PREFERRED_SIZE, 520, javax.swing.GroupLayout.PREFERRED_SIZE)
+										.addComponent(cmbKeyFile, javax.swing.GroupLayout.PREFERRED_SIZE, 520, javax.swing.GroupLayout.PREFERRED_SIZE))
+									.addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+									.addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+										.addComponent(btnMasterPw, javax.swing.GroupLayout.PREFERRED_SIZE, 102, javax.swing.GroupLayout.PREFERRED_SIZE)
+										.addComponent(btnApplicationFileChooser, javax.swing.GroupLayout.PREFERRED_SIZE, 102, javax.swing.GroupLayout.PREFERRED_SIZE)
+										.addComponent(btnKeyFileChooser, javax.swing.GroupLayout.PREFERRED_SIZE, 102, javax.swing.GroupLayout.PREFERRED_SIZE))))
+							.addContainerGap(36, Short.MAX_VALUE))))
+		);
+		layout.setVerticalGroup(
+			layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+				.addGroup(layout.createSequentialGroup()
+					.addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+						.addGroup(layout.createSequentialGroup()
+							.addContainerGap()
+							.addComponent(lblImageHeader, javax.swing.GroupLayout.PREFERRED_SIZE, 34, javax.swing.GroupLayout.PREFERRED_SIZE)
+							.addGap(60, 60, 60))
+						.addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+							.addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+								.addComponent(lblApplicationFile, javax.swing.GroupLayout.PREFERRED_SIZE, 35, javax.swing.GroupLayout.PREFERRED_SIZE)
+								.addComponent(cmbApplicationFile, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+								.addComponent(btnApplicationFileChooser))
+							.addGap(18, 18, 18)))
 					.addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-						.addComponent(txtApplicationFile, javax.swing.GroupLayout.PREFERRED_SIZE,
-							javax.swing.GroupLayout.DEFAULT_SIZE,
-							javax.swing.GroupLayout.PREFERRED_SIZE)
-						.addComponent(btnApplicationFileChooser)))
-				.addGroup(layout.createSequentialGroup().addContainerGap().addComponent(
-					lblImageHeader, javax.swing.GroupLayout.PREFERRED_SIZE, 34,
-					javax.swing.GroupLayout.PREFERRED_SIZE))
-				.addComponent(lblApplicationFile, javax.swing.GroupLayout.Alignment.TRAILING,
-					javax.swing.GroupLayout.PREFERRED_SIZE, 35,
-					javax.swing.GroupLayout.PREFERRED_SIZE))
-				.addGap(18, 18, 18)
-				.addGroup(layout
-					.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-					.addComponent(cbxMasterPw, javax.swing.GroupLayout.DEFAULT_SIZE,
-						javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+						.addComponent(txtMasterPw, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+						.addComponent(btnMasterPw)
+						.addComponent(cbxMasterPw, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+					.addGap(18, 18, 18)
 					.addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-						.addComponent(txtMasterPw, javax.swing.GroupLayout.PREFERRED_SIZE,
-							javax.swing.GroupLayout.DEFAULT_SIZE,
-							javax.swing.GroupLayout.PREFERRED_SIZE)
-						.addComponent(btnMasterPw)))
-				.addGap(18, 18, 18)
-				.addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-					.addComponent(cbxKeyFile, javax.swing.GroupLayout.PREFERRED_SIZE, 35,
-						javax.swing.GroupLayout.PREFERRED_SIZE)
+						.addComponent(cmbKeyFile, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+						.addComponent(btnKeyFileChooser)
+						.addComponent(cbxKeyFile, javax.swing.GroupLayout.PREFERRED_SIZE, 35, javax.swing.GroupLayout.PREFERRED_SIZE))
+					.addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 96, Short.MAX_VALUE)
 					.addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-						.addComponent(cmbKeyFile, javax.swing.GroupLayout.PREFERRED_SIZE,
-							javax.swing.GroupLayout.DEFAULT_SIZE,
-							javax.swing.GroupLayout.PREFERRED_SIZE)
-						.addComponent(btnKeyFileChooser)))
-				.addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 112,
-					Short.MAX_VALUE)
-				.addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-					.addComponent(btnHelp).addComponent(btnOk).addComponent(btnCancel))
-				.addGap(42, 42, 42)));
+						.addComponent(btnHelp)
+						.addComponent(btnOk)
+						.addComponent(btnCancel))
+					.addGap(42, 42, 42))
+		);
 	}
 
 	@Override
@@ -378,10 +387,12 @@ public class MasterPwWithApplicationFilePanel extends BasePanel<MasterPwFileMode
 		if (returnVal == JFileChooser.APPROVE_OPTION)
 		{
 			final File selectedApplicationFile = fileChooser.getSelectedFile();
-			getModelObject().setAppDataFile(selectedApplicationFile.getAbsolutePath());
+			String absolutePath = selectedApplicationFile.getAbsolutePath();
+			cmbApplicationFileModel.addElement(absolutePath);
+			cmbApplicationFileModel.setSelectedItem(absolutePath);
+			getModelObject().setApplicationFile(selectedApplicationFile);
 			toggleApplicationFileComponents();
-			txtApplicationFile.setText(getModelObject().getAppDataFile());
-			btnOkStateMachine.setAppDataFile(getModelObject().getAppDataFile());
+			btnOkStateMachine.setAppDataFile(absolutePath);
 			btnOkStateMachine.onApplicationFileAdded(btnOkStateMachine);
 		}
 	}
@@ -394,8 +405,8 @@ public class MasterPwWithApplicationFilePanel extends BasePanel<MasterPwFileMode
 		{
 			final File selectedKeyFile = fileChooser.getSelectedFile();
 			String absolutePath = selectedKeyFile.getAbsolutePath();
-			mutableComboBoxModel.addElement(absolutePath);
-			mutableComboBoxModel.setSelectedItem(absolutePath);
+			cmbKeyFileModel.addElement(absolutePath);
+			cmbKeyFileModel.setSelectedItem(absolutePath);
 			getModelObject().setSelectedKeyFilePath(absolutePath);
 			getModelObject().setKeyFile(selectedKeyFile);
 			btnOkStateMachine.setKeyFile(selectedKeyFile);
@@ -408,63 +419,67 @@ public class MasterPwWithApplicationFilePanel extends BasePanel<MasterPwFileMode
 		System.err.println("onOk method action called");
 		ApplicationModelBean applicationModelBean;
 		MasterPwFileModelBean modelObject = getModelObject();
-		String appDataFile = modelObject.getAppDataFile();
-		File decrypt = null;
-		try
+		File applicationFile = modelObject.getApplicationFile();
+		if (cbxMasterPw.isSelected() && cbxKeyFile.isSelected())
 		{
-			if (cbxMasterPw.isSelected() && cbxKeyFile.isSelected())
+			char[] password = getTxtMasterPw().getPassword();
+			File keyFile = modelObject.getKeyFile();
+			PrivateKey privateKey;
+			PrivateKeyDecryptor decryptor;
+			PrivateKeyGenericDecryptor<String> genericDecryptor;
+			CryptModel<Cipher, PrivateKey, byte[]> decryptModel;
+			try
 			{
-				char[] password = getTxtMasterPw().getPassword();
-				File keyFile = modelObject.getKeyFile();
-				PrivateKey privateKey;
-				PrivateKeyDecryptor decryptor;
-				PrivateKeyGenericDecryptor<String> genericDecryptor;
-				CryptModel<Cipher, PrivateKey, byte[]> decryptModel;
-				try
-				{
+				privateKey = EncryptedPrivateKeyReader.readPasswordProtectedPrivateKey(keyFile,
+					String.valueOf(password));
 
-					privateKey = EncryptedPrivateKeyReader.readPasswordProtectedPrivateKey(keyFile,
-						String.valueOf(password));
-
-					decryptModel = CryptModel.<Cipher, PrivateKey, byte[]> builder().key(privateKey)
-						.build();
-					decryptor = new PrivateKeyDecryptor(decryptModel);
-					genericDecryptor = new PrivateKeyGenericDecryptor<>(decryptor);
-					byte[] encryptedBytes = ReadFileExtensions
-						.readFileToBytearray(new File(appDataFile));
-					String json = genericDecryptor.decrypt(encryptedBytes);
-					applicationModelBean = JsonStringToObjectExtensions.toObject(json,
-						ApplicationModelBean.class, ObjectMapperFactory.newObjectMapper());
-					MysticCryptApplicationFrame.getInstance().setModelObject(applicationModelBean);
-				}
-				catch (InvalidKeySpecException exception)
-				{
-					// TODO implement continues here...
-					// Show dialog that password or key file is wrong
-				}
+				decryptModel = CryptModel.<Cipher, PrivateKey, byte[]> builder().key(privateKey)
+					.build();
+				decryptor = new PrivateKeyDecryptor(decryptModel);
+				genericDecryptor = new PrivateKeyGenericDecryptor<>(decryptor);
+				byte[] encryptedBytes = ReadFileExtensions.readFileToBytearray(applicationFile);
+				String json = genericDecryptor.decrypt(encryptedBytes);
+				applicationModelBean = JsonStringToObjectExtensions.toObject(json,
+					ApplicationModelBean.class, ObjectMapperFactory.newObjectMapper());
+				MysticCryptApplicationFrame.getInstance().setModelObject(applicationModelBean);
 			}
-			else if (modelObject.isWithMasterPw())
+			catch (Exception exception)
 			{
-				char[] password = getTxtMasterPw().getPassword();
-				CryptModel<Cipher, String, String> pbeCryptModel = CryptModelFactory
-					.newCryptModel(SunJCEAlgorithm.PBEWithMD5AndDES, new String(password));
+				String title = "Authentication with Password or key file";
+				String htmlMessage = "<html><body width='350'>" + "<h2>" + title + "</h2>"
+					+ "<p> Password or key file or both are not valid" + "<p>"
+					+ exception.getMessage();
+				JOptionPane.showMessageDialog(this, htmlMessage, title, JOptionPane.ERROR_MESSAGE);
+				log.log(Level.SEVERE, exception.getMessage(), exception);
+			}
+		}
+		else if (modelObject.isWithMasterPw())
+		{
+			char[] password = getTxtMasterPw().getPassword();
+			CryptModel<Cipher, String, String> pbeCryptModel = CryptModelFactory
+				.newCryptModel(SunJCEAlgorithm.PBEWithMD5AndDES, new String(password));
+			try
+			{
 				PBEFileDecryptor fileDecryptor = new PBEFileDecryptor(pbeCryptModel);
-				try
-				{
-					decrypt = fileDecryptor.decrypt(new File(appDataFile));
-					applicationModelBean = JsonFileToObjectExtensions.toObject(decrypt,
-						ApplicationModelBean.class, ObjectMapperFactory.newObjectMapper());
-					MysticCryptApplicationFrame.getInstance().setModelObject(applicationModelBean);
-				}
-				catch (Exception exception)
-				{
-					// TODO
-					// Show dialog that password is wrong
-				}
+				File decrypt = fileDecryptor.decrypt(applicationFile);
+				applicationModelBean = JsonFileToObjectExtensions.toObject(decrypt,
+					ApplicationModelBean.class, ObjectMapperFactory.newObjectMapper());
+				MysticCryptApplicationFrame.getInstance().setModelObject(applicationModelBean);
 			}
-			else if (modelObject.isWithKeyFile())
+			catch (Exception exception)
 			{
-				File keyFile = modelObject.getKeyFile();
+				String title = "Authentication with Password";
+				String htmlMessage = "<html><body width='350'>" + "<h2>" + title + "</h2>"
+					+ "<p> Password is not valid" + "<p>" + exception.getMessage();
+				JOptionPane.showMessageDialog(this, htmlMessage, title, JOptionPane.ERROR_MESSAGE);
+				log.log(Level.SEVERE, exception.getMessage(), exception);
+			}
+		}
+		else if (modelObject.isWithKeyFile())
+		{
+			File keyFile = modelObject.getKeyFile();
+			try
+			{
 				PrivateKey privateKey = PrivateKeyReader.readPrivateKey(keyFile);
 
 				PrivateKeyDecryptor decryptor;
@@ -475,25 +490,20 @@ public class MasterPwWithApplicationFilePanel extends BasePanel<MasterPwFileMode
 					.build();
 				decryptor = new PrivateKeyDecryptor(decryptModel);
 				genericDecryptor = new PrivateKeyGenericDecryptor<>(decryptor);
-				byte[] encryptedBytes = ReadFileExtensions
-					.readFileToBytearray(new File(appDataFile));
-				try
-				{
-					String json = genericDecryptor.decrypt(encryptedBytes);
-					applicationModelBean = JsonStringToObjectExtensions.toObject(json,
-						ApplicationModelBean.class, ObjectMapperFactory.newObjectMapper());
-					MysticCryptApplicationFrame.getInstance().setModelObject(applicationModelBean);
-				}
-				catch (Exception exception)
-				{
-					// TODO
-					// Show dialog that key file is wrong
-				}
+				byte[] encryptedBytes = ReadFileExtensions.readFileToBytearray(applicationFile);
+				String json = genericDecryptor.decrypt(encryptedBytes);
+				applicationModelBean = JsonStringToObjectExtensions.toObject(json,
+					ApplicationModelBean.class, ObjectMapperFactory.newObjectMapper());
+				MysticCryptApplicationFrame.getInstance().setModelObject(applicationModelBean);
 			}
-		}
-		catch (Exception e)
-		{
-			e.printStackTrace();
+			catch (Exception exception)
+			{
+				String title = "Authentication with key file";
+				String htmlMessage = "<html><body width='350'>" + "<h2>" + title + "</h2>"
+					+ "<p> Key file is not valid" + "<p>" + exception.getMessage();
+				JOptionPane.showMessageDialog(this, htmlMessage, title, JOptionPane.ERROR_MESSAGE);
+				log.log(Level.SEVERE, exception.getMessage(), exception);
+			}
 		}
 	}
 

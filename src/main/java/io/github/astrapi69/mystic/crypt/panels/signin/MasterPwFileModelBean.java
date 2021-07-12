@@ -27,6 +27,7 @@ import java.util.List;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
+import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -34,17 +35,15 @@ import lombok.Setter;
 import lombok.ToString;
 import lombok.experimental.FieldDefaults;
 import io.github.astrapi69.collections.list.ListFactory;
+import lombok.experimental.SuperBuilder;
 
 /**
  * The bean class {@link MasterPwFileModelBean} is for holding the sign in data
  */
-@Getter
-@Setter
-@EqualsAndHashCode
-@ToString
+@Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder(toBuilder = true)
+@SuperBuilder(toBuilder = true)
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class MasterPwFileModelBean implements Serializable
 {
@@ -52,14 +51,20 @@ public class MasterPwFileModelBean implements Serializable
 	private static final long serialVersionUID = 1L;
 
 	/** The encrypted data file for the application. */
-	String appDataFile;
+	File applicationFile;
+
+	/** The currently selected key file path */
+	String selectedApplicationFilePath;
+
+	/** The key file paths for the combo box */
+	@Builder.Default
+	List<String> applicationFilePaths = ListFactory.newArrayList("");
 
 	/** The key file. */
 	File keyFile;
 
 	/** The currently selected key file path */
-	@Builder.Default
-	String selectedKeyFilePath = "";
+	String selectedKeyFilePath;
 
 	/** The key file paths for the combo box */
 	@Builder.Default

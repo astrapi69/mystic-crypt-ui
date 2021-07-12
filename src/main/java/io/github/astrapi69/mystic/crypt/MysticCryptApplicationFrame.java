@@ -114,23 +114,11 @@ public class MysticCryptApplicationFrame extends ApplicationFrame<ApplicationMod
 		return instance;
 	}
 
-	private void showMasterPwOptionPane()
-	{
-		MasterPwFilePanel masterPwFilePanel = new MasterPwFilePanel();
-		JOptionPane optionPane = new JOptionPane(masterPwFilePanel, JOptionPane.PLAIN_MESSAGE);
-
-		JDialog dialog = JDialogFactory.newJDialog(this, optionPane, "Enter your credentials");
-		dialog.addWindowFocusListener(new RequestFocusListener(masterPwFilePanel.getTxtMasterPw()));
-		dialog.pack();
-		dialog.setLocationRelativeTo(null);
-		dialog.setVisible(true);
-	}
-
 	private void showMasterPwDialog()
 	{
 		MasterPwFileDialog dialog = new MasterPwFileDialog(this, "Enter your credentials", true,
 			BaseModel.<MasterPwFileModelBean> of(MasterPwFileModelBean.builder().build()));
-		dialog.setSize(820, 380);
+		dialog.setSize(880, 380);
 		dialog.setVisible(true);
 	}
 
@@ -215,7 +203,9 @@ public class MysticCryptApplicationFrame extends ApplicationFrame<ApplicationMod
 		// generateTempApplicationModelFileWithPasswordProtectedKeyFile();
 		// TODO delete when app-file created
 		// end
+		// TODO FIXME uncomment if 'create new master key is finished::::!!!!:::::
 		showMasterPwDialog();
+		// TODO FIXME uncomment if 'create new master key is finished::::!!!!:::::
 		super.onBeforeInitializeComponents();
 	}
 
@@ -261,12 +251,13 @@ public class MysticCryptApplicationFrame extends ApplicationFrame<ApplicationMod
 		File appConfigDir = PathFinder.getRelativePath(SystemFileExtensions.getUserHomeDir(),
 			MysticCryptApplicationFrame.DEFAULT_USER_CONFIGURATION_DIRECTORY_NAME,
 			MysticCryptApplicationFrame.APPLICATION_NAME);
-		File appDataFile = new File(appConfigDir, "app-data-with-pw-protected-key.json");
+		File applicationFile = new File(appConfigDir, "app-data-with-pw-protected-key.json");
 		File encryptedAppDataFile = new File(appConfigDir, "app-data-with-pw-protected-key.enc");
 
 		ApplicationModelBean modelObject = getModelObject();
 		MasterPwFileModelBean masterPwFileModelBean = MasterPwFileModelBean.builder()
-			.appDataFile(appDataFile.getAbsolutePath()).build();
+			.applicationFile(applicationFile)
+			.build();
 		modelObject.setMasterPwFileModelBean(masterPwFileModelBean);
 
 		pwProtectedPrivateKeyFile = new File(appConfigDir, "pwp-private-key-pw-is-secret.der");
@@ -289,7 +280,7 @@ public class MysticCryptApplicationFrame extends ApplicationFrame<ApplicationMod
 		String json = RuntimeExceptionDecorator
 			.decorate(() -> ObjectToJsonExtensions.toJson(modelObject));
 		RuntimeExceptionDecorator
-			.decorate(() -> WriteFileExtensions.string2File(appDataFile, json));
+			.decorate(() -> WriteFileExtensions.string2File(applicationFile, json));
 		byte[] encrypt = RuntimeExceptionDecorator.decorate(() -> genericEncryptor.encrypt(json));
 		RuntimeExceptionDecorator.decorate(
 			() -> WriteFileExtensions.storeByteArrayToFile(encrypt, encryptedAppDataFile));
@@ -310,12 +301,13 @@ public class MysticCryptApplicationFrame extends ApplicationFrame<ApplicationMod
 		File appConfigDir = PathFinder.getRelativePath(SystemFileExtensions.getUserHomeDir(),
 			MysticCryptApplicationFrame.DEFAULT_USER_CONFIGURATION_DIRECTORY_NAME,
 			MysticCryptApplicationFrame.APPLICATION_NAME);
-		File appDataFile = new File(appConfigDir, "app-data-with-key.json");
+		File applicationFile = new File(appConfigDir, "app-data-with-key.json");
 		File encryptedAppDataFile = new File(appConfigDir, "app-data-with-key.enc");
 
 		ApplicationModelBean modelObject = getModelObject();
 		MasterPwFileModelBean masterPwFileModelBean = MasterPwFileModelBean.builder()
-			.appDataFile(appDataFile.getAbsolutePath()).build();
+			.applicationFile(applicationFile)
+			.build();
 		modelObject.setMasterPwFileModelBean(masterPwFileModelBean);
 
 		privatekeyDerFile = new File(appConfigDir, "private.der");
@@ -336,7 +328,7 @@ public class MysticCryptApplicationFrame extends ApplicationFrame<ApplicationMod
 		String json = RuntimeExceptionDecorator
 			.decorate(() -> ObjectToJsonExtensions.toJson(modelObject));
 		RuntimeExceptionDecorator
-			.decorate(() -> WriteFileExtensions.string2File(appDataFile, json));
+			.decorate(() -> WriteFileExtensions.string2File(applicationFile, json));
 		byte[] encrypt = RuntimeExceptionDecorator.decorate(() -> genericEncryptor.encrypt(json));
 		RuntimeExceptionDecorator.decorate(
 			() -> WriteFileExtensions.storeByteArrayToFile(encrypt, encryptedAppDataFile));
@@ -440,7 +432,7 @@ public class MysticCryptApplicationFrame extends ApplicationFrame<ApplicationMod
 	{
 		NewMasterPwFileDialog dialog = new NewMasterPwFileDialog(this,
 			"Create new application file with credentials", true,
-			BaseModel.<NewMasterPwFileModelBean> of(NewMasterPwFileModelBean.builder().build()));
+			BaseModel.<MasterPwFileModelBean> of(MasterPwFileModelBean.builder().build()));
 		dialog.setSize(840, 520);
 		dialog.setVisible(true);
 	}
