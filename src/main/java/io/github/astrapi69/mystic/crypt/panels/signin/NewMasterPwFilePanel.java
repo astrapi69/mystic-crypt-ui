@@ -155,8 +155,7 @@ public class NewMasterPwFilePanel extends BasePanel<MasterPwFileModelBean>
 			}
 		});
 		btnMasterPw.addActionListener(this::onShowMasterPw);
-		cmbKeyFileModel = new StringMutableComboBoxModel(
-			getModelObject().getKeyFilePaths());
+		cmbKeyFileModel = new StringMutableComboBoxModel(getModelObject().getKeyFilePaths());
 		cmbKeyFile.setModel(cmbKeyFileModel);
 	}
 

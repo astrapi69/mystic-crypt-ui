@@ -28,14 +28,10 @@ import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.ToString;
 import lombok.experimental.FieldDefaults;
-import io.github.astrapi69.collections.list.ListFactory;
 import lombok.experimental.SuperBuilder;
+import io.github.astrapi69.collections.list.ListFactory;
 
 /**
  * The bean class {@link MasterPwFileModelBean} is for holding the sign in data

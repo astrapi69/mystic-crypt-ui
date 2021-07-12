@@ -20,22 +20,24 @@
  */
 package io.github.astrapi69.mystic.crypt.panels.signin;
 
-import io.github.astrapi69.system.SystemFileExtensions;
+import java.awt.event.ActionEvent;
+import java.io.File;
+
+import javax.swing.*;
+import javax.swing.event.DocumentEvent;
+
+import lombok.Getter;
 import io.github.astrapi69.model.BaseModel;
 import io.github.astrapi69.model.api.Model;
 import io.github.astrapi69.swing.adapters.DocumentListenerAdapter;
 import io.github.astrapi69.swing.base.BasePanel;
-import lombok.Getter;
-
-import javax.swing.*;
-import javax.swing.event.DocumentEvent;
-import java.awt.event.ActionEvent;
-import java.io.File;
+import io.github.astrapi69.system.SystemFileExtensions;
 
 /**
  * The class {@link MasterPwFilePanel}
  */
-@Getter public class MasterPwFilePanel extends BasePanel<MasterPwFileModelBean>
+@Getter
+public class MasterPwFilePanel extends BasePanel<MasterPwFileModelBean>
 {
 
 	private static final long serialVersionUID = 1L;
@@ -57,13 +59,14 @@ import java.io.File;
 	 */
 	public MasterPwFilePanel()
 	{
-		this(BaseModel.<MasterPwFileModelBean>of(MasterPwFileModelBean.builder().build()));
+		this(BaseModel.<MasterPwFileModelBean> of(MasterPwFileModelBean.builder().build()));
 	}
 
 	/**
 	 * Instantiates a new {@link MasterPwFilePanel}
 	 *
-	 * @param model the model
+	 * @param model
+	 *            the model
 	 */
 	public MasterPwFilePanel(final Model<MasterPwFileModelBean> model)
 	{
@@ -106,7 +109,8 @@ import java.io.File;
 		toggleMasterPwComponents(getModelObject().isWithMasterPw());
 	}
 
-	@Override protected void onInitializeComponents()
+	@Override
+	protected void onInitializeComponents()
 	{
 		super.onInitializeComponents();
 		lblImageHeader = new JLabel();
@@ -135,11 +139,13 @@ import java.io.File;
 		txtMasterPw.setText("");
 		txtMasterPw.getDocument().addDocumentListener(new DocumentListenerAdapter()
 		{
-			@Override public void onDocumentChanged(DocumentEvent e)
+			@Override
+			public void onDocumentChanged(DocumentEvent e)
 			{
 				final boolean btnOkEnabledState = getBtnOkEnabledState();
 				btnOk.getModel().setEnabled(btnOkEnabledState);
-				if(btnOkEnabledState) {
+				if (btnOkEnabledState)
+				{
 					getModelObject().setMasterPw(txtMasterPw.getPassword());
 				}
 			}
@@ -182,8 +188,8 @@ import java.io.File;
 	protected boolean getBtnOkEnabledState()
 	{
 		MasterPwFileModelBean modelObject = getModelObject();
-		if (modelObject.isWithMasterPw() && modelObject.isWithKeyFile() && !(0 < txtMasterPw
-			.getDocument().getLength() && modelObject.getKeyFile() != null))
+		if (modelObject.isWithMasterPw() && modelObject.isWithKeyFile()
+			&& !(0 < txtMasterPw.getDocument().getLength() && modelObject.getKeyFile() != null))
 		{
 			return false;
 		}
@@ -191,13 +197,13 @@ import java.io.File;
 		{
 			return false;
 		}
-		if (modelObject.isWithMasterPw() && !modelObject.isWithKeyFile() && txtMasterPw
-			.getDocument().getLength() == 0)
+		if (modelObject.isWithMasterPw() && !modelObject.isWithKeyFile()
+			&& txtMasterPw.getDocument().getLength() == 0)
 		{
 			return false;
 		}
-		if (!modelObject.isWithMasterPw() && modelObject.isWithKeyFile() && modelObject
-			.getKeyFile() == null)
+		if (!modelObject.isWithMasterPw() && modelObject.isWithKeyFile()
+			&& modelObject.getKeyFile() == null)
 		{
 			return false;
 		}
@@ -221,63 +227,66 @@ import java.io.File;
 		GroupLayout layout = new GroupLayout(this);
 		this.setLayout(layout);
 		layout.setHorizontalGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)
-			.addGroup(layout.createSequentialGroup().addContainerGap().addGroup(
-				layout.createParallelGroup(GroupLayout.Alignment.LEADING)
-					.addComponent(lblImageHeader, GroupLayout.DEFAULT_SIZE,
-						GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-					.addGroup(GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-						.addGroup(layout.createParallelGroup(GroupLayout.Alignment.TRAILING)
-							.addGroup(layout.createSequentialGroup()
-								.addComponent(btnHelp, GroupLayout.PREFERRED_SIZE, 122,
-									GroupLayout.PREFERRED_SIZE)
-								.addPreferredGap(LayoutStyle.ComponentPlacement.RELATED,
-									GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-								.addComponent(btnOk, GroupLayout.PREFERRED_SIZE, 140,
-									GroupLayout.PREFERRED_SIZE).addGap(18, 18, 18)
-								.addComponent(btnCancel, GroupLayout.PREFERRED_SIZE, 141,
-									GroupLayout.PREFERRED_SIZE)).addGroup(
-								layout.createSequentialGroup().addGroup(
-									layout.createParallelGroup(GroupLayout.Alignment.LEADING, false)
-										.addComponent(cbxMasterPw, GroupLayout.DEFAULT_SIZE, 201,
-											Short.MAX_VALUE)
-										.addComponent(cbxKeyFile, GroupLayout.DEFAULT_SIZE,
-											GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-									.addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
-									.addGroup(layout
-										.createParallelGroup(GroupLayout.Alignment.LEADING, false)
-										.addComponent(txtMasterPw)
-										.addComponent(txtKeyFile, GroupLayout.PREFERRED_SIZE, 520,
-											GroupLayout.PREFERRED_SIZE))
-									.addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED)
-									.addGroup(layout
-										.createParallelGroup(GroupLayout.Alignment.LEADING, false)
-										.addComponent(btnMasterPw, GroupLayout.DEFAULT_SIZE,
-											GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-										.addComponent(btnKeyFileChooser, GroupLayout.PREFERRED_SIZE,
-											70, GroupLayout.PREFERRED_SIZE)))).addGap(12, 12, 12)))
+			.addGroup(layout.createSequentialGroup().addContainerGap().addGroup(layout
+				.createParallelGroup(GroupLayout.Alignment.LEADING)
+				.addComponent(lblImageHeader, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE,
+					Short.MAX_VALUE)
+				.addGroup(GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+					.addGroup(layout.createParallelGroup(GroupLayout.Alignment.TRAILING)
+						.addGroup(layout.createSequentialGroup()
+							.addComponent(btnHelp, GroupLayout.PREFERRED_SIZE, 122,
+								GroupLayout.PREFERRED_SIZE)
+							.addPreferredGap(LayoutStyle.ComponentPlacement.RELATED,
+								GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+							.addComponent(btnOk, GroupLayout.PREFERRED_SIZE, 140,
+								GroupLayout.PREFERRED_SIZE)
+							.addGap(18, 18, 18).addComponent(btnCancel, GroupLayout.PREFERRED_SIZE,
+								141, GroupLayout.PREFERRED_SIZE))
+						.addGroup(layout.createSequentialGroup().addGroup(layout
+							.createParallelGroup(GroupLayout.Alignment.LEADING, false)
+							.addComponent(cbxMasterPw, GroupLayout.DEFAULT_SIZE, 201,
+								Short.MAX_VALUE)
+							.addComponent(cbxKeyFile, GroupLayout.DEFAULT_SIZE,
+								GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+							.addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+							.addGroup(layout
+								.createParallelGroup(GroupLayout.Alignment.LEADING, false)
+								.addComponent(txtMasterPw).addComponent(txtKeyFile,
+									GroupLayout.PREFERRED_SIZE, 520, GroupLayout.PREFERRED_SIZE))
+							.addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED).addGroup(
+								layout.createParallelGroup(GroupLayout.Alignment.LEADING, false)
+									.addComponent(btnMasterPw, GroupLayout.DEFAULT_SIZE,
+										GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+									.addComponent(btnKeyFileChooser, GroupLayout.PREFERRED_SIZE, 70,
+										GroupLayout.PREFERRED_SIZE))))
+					.addGap(12, 12, 12)))
 				.addContainerGap()));
-		layout.setVerticalGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING).addGroup(
-			layout.createSequentialGroup().addContainerGap()
-				.addComponent(lblImageHeader, GroupLayout.PREFERRED_SIZE, 80,
-					GroupLayout.PREFERRED_SIZE).addGap(18, 18, 18).addGroup(
-				layout.createParallelGroup(GroupLayout.Alignment.LEADING).addGroup(
-					layout.createSequentialGroup().addComponent(cbxMasterPw).addGap(18, 18, 18)
-						.addComponent(cbxKeyFile)).addGroup(layout.createSequentialGroup().addGroup(
-					layout.createParallelGroup(GroupLayout.Alignment.BASELINE)
-						.addComponent(txtMasterPw, GroupLayout.PREFERRED_SIZE,
-							GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-						.addComponent(btnMasterPw)).addGap(18, 18, 18).addGroup(
-					layout.createParallelGroup(GroupLayout.Alignment.BASELINE)
-						.addComponent(txtKeyFile, GroupLayout.PREFERRED_SIZE,
-							GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-						.addComponent(btnKeyFileChooser))))
+		layout.setVerticalGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)
+			.addGroup(layout.createSequentialGroup().addContainerGap()
+				.addComponent(
+					lblImageHeader, GroupLayout.PREFERRED_SIZE, 80, GroupLayout.PREFERRED_SIZE)
+				.addGap(18, 18, 18)
+				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)
+					.addGroup(layout.createSequentialGroup().addComponent(cbxMasterPw)
+						.addGap(18, 18, 18).addComponent(cbxKeyFile))
+					.addGroup(layout.createSequentialGroup()
+						.addGroup(layout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+							.addComponent(txtMasterPw, GroupLayout.PREFERRED_SIZE,
+								GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+							.addComponent(btnMasterPw))
+						.addGap(18, 18, 18)
+						.addGroup(layout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+							.addComponent(txtKeyFile, GroupLayout.PREFERRED_SIZE,
+								GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+							.addComponent(btnKeyFileChooser))))
 				.addPreferredGap(LayoutStyle.ComponentPlacement.RELATED, 128, Short.MAX_VALUE)
-				.addGroup(
-					layout.createParallelGroup(GroupLayout.Alignment.BASELINE).addComponent(btnHelp)
-						.addComponent(btnOk).addComponent(btnCancel)).addGap(42, 42, 42)));
+				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+					.addComponent(btnHelp).addComponent(btnOk).addComponent(btnCancel))
+				.addGap(42, 42, 42)));
 	}
 
-	@Override protected void onInitializeLayout()
+	@Override
+	protected void onInitializeLayout()
 	{
 		super.onInitializeLayout();
 		onInitializeGroupLayout();

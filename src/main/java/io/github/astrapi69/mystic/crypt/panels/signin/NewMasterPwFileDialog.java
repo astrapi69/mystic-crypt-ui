@@ -22,13 +22,15 @@ public class NewMasterPwFileDialog extends PanelDialog<MasterPwFileModelBean>
 	{
 		return new NewMasterPwFilePanel(model)
 		{
-			@Override protected void onOk(ActionEvent actionEvent)
+			@Override
+			protected void onOk(ActionEvent actionEvent)
 			{
 				super.onOk(actionEvent);
 				NewMasterPwFileDialog.this.dispose();
 			}
 
-			@Override protected void onCancel(ActionEvent actionEvent)
+			@Override
+			protected void onCancel(ActionEvent actionEvent)
 			{
 				super.onCancel(actionEvent);
 				NewMasterPwFileDialog.this.dispose();
