@@ -195,6 +195,10 @@ public class NewMasterPwFilePanel extends BasePanel<MasterPwFileModelBean>
 	protected void onCreateKeyFile(final ActionEvent actionEvent)
 	{
 		// TODO create a key file dialog
+		NewPrivateKeyFileDialog dialog = new NewPrivateKeyFileDialog(MysticCryptApplicationFrame.getInstance(),
+			"Enter your credentials", true, getModel());
+		dialog.setSize(840, 520);
+		dialog.setVisible(true);
 	}
 
 	protected void onGeneratePassword(final ActionEvent actionEvent)
