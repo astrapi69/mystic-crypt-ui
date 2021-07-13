@@ -90,7 +90,11 @@ public class MasterPwWithApplicationFilePanel extends BasePanel<MasterPwFileMode
 	 */
 	public MasterPwWithApplicationFilePanel()
 	{
-		this(BaseModel.<MasterPwFileModelBean> of(MasterPwFileModelBean.builder().build()));
+		this(BaseModel.<MasterPwFileModelBean> of(MasterPwFileModelBean.builder()
+			.minPasswordLength(6)
+			.withKeyFile(false)
+			.withMasterPw(false)
+			.showMasterPw(false).build()));
 	}
 
 	/**
@@ -164,7 +168,9 @@ public class MasterPwWithApplicationFilePanel extends BasePanel<MasterPwFileMode
 		btnOk.addActionListener(this::onOk);
 		btnCancel.addActionListener(this::onCancel);
 
+		MasterPwFileModelBean modelObject = getModelObject();
 		btnOkStateMachine = BtnOkStateMachine.builder().component(btnOk)
+			.modelObject(modelObject)
 			.current(BtnOkComponentStateEnum.DISABLED).build();
 		txtMasterPw.setEnabled(false);
 		txtMasterPw.getDocument().addDocumentListener(new DocumentListenerAdapter()
@@ -172,6 +178,8 @@ public class MasterPwWithApplicationFilePanel extends BasePanel<MasterPwFileMode
 			@Override
 			public void onDocumentChanged(DocumentEvent e)
 			{
+				char[] password = txtMasterPw.getPassword();
+				getModelObject().setMasterPw(password);
 				DocumentExtensions.processDocumentLength(e, btnOkStateMachine);
 			}
 		});
@@ -183,13 +191,13 @@ public class MasterPwWithApplicationFilePanel extends BasePanel<MasterPwFileMode
 			MysticCryptApplicationFrame.APPLICATION_NAME);
 		fileChooser = new JFileChooser(configDir);
 
-		cmbKeyFileModel = new StringMutableComboBoxModel(getModelObject().getKeyFilePaths(),
-			getModelObject().getSelectedKeyFilePath());
+		cmbKeyFileModel = new StringMutableComboBoxModel(modelObject.getKeyFilePaths(),
+			modelObject.getSelectedKeyFilePath());
 		cmbKeyFile.setModel(cmbKeyFileModel);
 		cmbKeyFile.addActionListener(this::onChangeCmbKeyFile);
 
 		cmbApplicationFileModel = new StringMutableComboBoxModel(
-			getModelObject().getApplicationFilePaths(), getModelObject().getSelectedKeyFilePath());
+			modelObject.getApplicationFilePaths(), modelObject.getSelectedKeyFilePath());
 		cmbApplicationFile.setModel(cmbApplicationFileModel);
 		cmbApplicationFile.addActionListener(this::onChangeCmbApplicationFile);
 
@@ -205,7 +213,6 @@ public class MasterPwWithApplicationFilePanel extends BasePanel<MasterPwFileMode
 		if (selectedApplicationFilePath == "")
 		{
 			getModelObject().setApplicationFile(null);
-			btnOkStateMachine.setAppDataFile(getModelObject().getSelectedApplicationFilePath());
 			btnOkStateMachine.onApplicationFileAdded(btnOkStateMachine);
 		}
 		else
@@ -214,7 +221,6 @@ public class MasterPwWithApplicationFilePanel extends BasePanel<MasterPwFileMode
 			if (selectedApplicationFile != null && selectedApplicationFile.exists())
 			{
 				getModelObject().setApplicationFile(selectedApplicationFile);
-				btnOkStateMachine.setAppDataFile(getModelObject().getSelectedApplicationFilePath());
 				btnOkStateMachine.onApplicationFileAdded(btnOkStateMachine);
 			}
 			else if (selectedApplicationFile == null
@@ -222,7 +228,6 @@ public class MasterPwWithApplicationFilePanel extends BasePanel<MasterPwFileMode
 			{
 				getModelObject().setApplicationFile(null);
 				cmbApplicationFileModel.removeElement(selectedApplicationFilePath);
-				btnOkStateMachine.setAppDataFile(getModelObject().getSelectedApplicationFilePath());
 				btnOkStateMachine.onApplicationFileAdded(btnOkStateMachine);
 			}
 		}
@@ -236,7 +241,6 @@ public class MasterPwWithApplicationFilePanel extends BasePanel<MasterPwFileMode
 		if (selectedKeyFilePath == "")
 		{
 			getModelObject().setKeyFile(null);
-			btnOkStateMachine.setKeyFile(null);
 			btnOkStateMachine.onSetKeyFile(btnOkStateMachine);
 		}
 		else
@@ -245,7 +249,6 @@ public class MasterPwWithApplicationFilePanel extends BasePanel<MasterPwFileMode
 			if (selectedKeyFile != null && selectedKeyFile.exists())
 			{
 				getModelObject().setKeyFile(selectedKeyFile);
-				btnOkStateMachine.setKeyFile(selectedKeyFile);
 				btnOkStateMachine.onSetKeyFile(btnOkStateMachine);
 			}
 			else if (selectedKeyFile == null
@@ -253,7 +256,6 @@ public class MasterPwWithApplicationFilePanel extends BasePanel<MasterPwFileMode
 			{
 				getModelObject().setKeyFile(null);
 				cmbKeyFileModel.removeElement(selectedKeyFilePath);
-				btnOkStateMachine.setKeyFile(null);
 				btnOkStateMachine.onSetKeyFile(btnOkStateMachine);
 			}
 		}
@@ -367,17 +369,15 @@ public class MasterPwWithApplicationFilePanel extends BasePanel<MasterPwFileMode
 
 	protected void onCheckKeyFile(final ActionEvent actionEvent)
 	{
-		getModelObject().setWithKeyFile(!getModelObject().isWithKeyFile());
 		toggleKeyFileComponents();
 	}
 
 	protected void toggleKeyFileComponents()
 	{
 		boolean cbxKeyFileSelected = cbxKeyFile.isSelected();
+		getModelObject().setWithKeyFile(cbxKeyFileSelected);
 		cmbKeyFile.setEnabled(cbxKeyFileSelected);
 		btnKeyFileChooser.setEnabled(cbxKeyFileSelected);
-		btnOkStateMachine.setKeyFile(getModelObject().getKeyFile());
-		btnOkStateMachine.setWithKeyFile(cbxKeyFileSelected);
 		btnOkStateMachine.onChangeWithKeyFile(btnOkStateMachine);
 	}
 
@@ -386,8 +386,6 @@ public class MasterPwWithApplicationFilePanel extends BasePanel<MasterPwFileMode
 		boolean cbxMasterPwSelected = cbxMasterPw.isSelected();
 		txtMasterPw.setEnabled(cbxMasterPwSelected);
 		btnMasterPw.setEnabled(cbxMasterPwSelected);
-		btnOkStateMachine.setWithMasterPassword(cbxMasterPwSelected);
-		btnOkStateMachine.setPasswordLength(txtMasterPw.getDocument().getLength());
 		btnOkStateMachine.onChangeWithMasterPassword(btnOkStateMachine);
 	}
 
@@ -421,7 +419,6 @@ public class MasterPwWithApplicationFilePanel extends BasePanel<MasterPwFileMode
 			cmbApplicationFileModel.setSelectedItem(absolutePath);
 			getModelObject().setApplicationFile(selectedApplicationFile);
 			toggleApplicationFileComponents();
-			btnOkStateMachine.setAppDataFile(absolutePath);
 			btnOkStateMachine.onApplicationFileAdded(btnOkStateMachine);
 		}
 	}
@@ -438,7 +435,6 @@ public class MasterPwWithApplicationFilePanel extends BasePanel<MasterPwFileMode
 			cmbKeyFileModel.setSelectedItem(absolutePath);
 			getModelObject().setSelectedKeyFilePath(absolutePath);
 			getModelObject().setKeyFile(selectedKeyFile);
-			btnOkStateMachine.setKeyFile(selectedKeyFile);
 			btnOkStateMachine.onSetKeyFile(btnOkStateMachine);
 		}
 	}

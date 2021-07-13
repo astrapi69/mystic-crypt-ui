@@ -50,17 +50,13 @@ import io.github.astrapi69.model.BaseModel;
 import io.github.astrapi69.model.api.Model;
 import io.github.astrapi69.mystic.crypt.panels.signin.MasterPwFileDialog;
 import io.github.astrapi69.mystic.crypt.panels.signin.MasterPwFileModelBean;
-import io.github.astrapi69.mystic.crypt.panels.signin.MasterPwFilePanel;
 import io.github.astrapi69.mystic.crypt.panels.signin.NewMasterPwFileDialog;
-import io.github.astrapi69.mystic.crypt.panels.signin.NewMasterPwFileModelBean;
 import io.github.astrapi69.search.PathFinder;
 import io.github.astrapi69.swing.base.ApplicationFrame;
 import io.github.astrapi69.swing.base.BaseDesktopMenu;
 import io.github.astrapi69.swing.button.IconButtonFactory;
 import io.github.astrapi69.swing.components.factories.JComponentFactory;
-import io.github.astrapi69.swing.dialog.factories.JDialogFactory;
 import io.github.astrapi69.swing.icon.ImageIconFactory;
-import io.github.astrapi69.swing.listener.RequestFocusListener;
 import io.github.astrapi69.swing.panels.output.ConsolePanel;
 import io.github.astrapi69.swing.plaf.LookAndFeels;
 import io.github.astrapi69.swing.splashscreen.ProgressBarSplashScreen;
@@ -116,8 +112,12 @@ public class MysticCryptApplicationFrame extends ApplicationFrame<ApplicationMod
 
 	private void showMasterPwDialog()
 	{
-		MasterPwFileDialog dialog = new MasterPwFileDialog(this, "Enter your credentials", true,
-			BaseModel.<MasterPwFileModelBean> of(MasterPwFileModelBean.builder().build()));
+		Model<MasterPwFileModelBean> model = BaseModel.<MasterPwFileModelBean>of(
+			MasterPwFileModelBean.builder().minPasswordLength(6).withKeyFile(false)
+				.withMasterPw(false).showMasterPw(false).build());
+		MasterPwFileDialog dialog = new MasterPwFileDialog(this,
+			"Enter your credentials", true,
+			model);
 		dialog.setSize(880, 380);
 		dialog.setVisible(true);
 	}
@@ -392,7 +392,7 @@ public class MysticCryptApplicationFrame extends ApplicationFrame<ApplicationMod
 	@Override
 	protected LookAndFeels newLookAndFeels()
 	{
-		return LookAndFeels.METAL;
+		return LookAndFeels.NIMBUS;
 	}
 
 	@Override
@@ -431,9 +431,12 @@ public class MysticCryptApplicationFrame extends ApplicationFrame<ApplicationMod
 
 	protected void showNewMasterPw(final ActionEvent actionEvent)
 	{
+		Model<MasterPwFileModelBean> model = BaseModel.<MasterPwFileModelBean>of(
+			MasterPwFileModelBean.builder().minPasswordLength(6).withKeyFile(false)
+				.withMasterPw(false).showMasterPw(false).build());
 		NewMasterPwFileDialog dialog = new NewMasterPwFileDialog(this,
 			"Create new application file with credentials", true,
-			BaseModel.<MasterPwFileModelBean> of(MasterPwFileModelBean.builder().build()));
+			model);
 		dialog.setSize(840, 520);
 		dialog.setVisible(true);
 	}

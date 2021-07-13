@@ -69,13 +69,21 @@ public class MasterPwFileModelBean implements Serializable
 	/** The master password char array. */
 	char[] masterPw;
 
+	/** The repeat of the master password char array. */
+	char[] repeatPw;
+
+	/** The minimum length for the password. */
+	int minPasswordLength;
+
 	/** The flag if the master password is displayed in plain text. */
 	boolean showMasterPw;
 
 	/** The flag if the key file will be used in the authentication. */
 	boolean withKeyFile;
 
+	/** The flag if the a new application file will be created. */
+	boolean newApplicationFile;
+
 	/** The flag if the master password will be used in the authentication. */
-	@Builder.Default
-	boolean withMasterPw = true;
+	boolean withMasterPw;
 }

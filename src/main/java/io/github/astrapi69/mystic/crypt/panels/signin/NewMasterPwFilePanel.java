@@ -11,18 +11,22 @@ import java.io.File;
 import javax.swing.*;
 import javax.swing.event.DocumentEvent;
 
-import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
-import io.github.astrapi69.search.PathFinder;
-import io.github.astrapi69.system.SystemFileExtensions;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.experimental.FieldDefaults;
+import io.github.astrapi69.create.FileCreationState;
+import io.github.astrapi69.create.FileFactory;
 import io.github.astrapi69.design.pattern.state.button.BtnOkComponentStateEnum;
 import io.github.astrapi69.design.pattern.state.button.BtnOkStateMachine;
 import io.github.astrapi69.model.BaseModel;
 import io.github.astrapi69.model.api.Model;
+import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
+import io.github.astrapi69.random.object.RandomStringFactory;
+import io.github.astrapi69.search.PathFinder;
 import io.github.astrapi69.swing.adapters.DocumentListenerAdapter;
 import io.github.astrapi69.swing.base.BasePanel;
+import io.github.astrapi69.system.SystemFileExtensions;
+import io.github.astrapi69.throwable.RuntimeExceptionDecorator;
 
 /**
  *
@@ -62,8 +66,9 @@ public class NewMasterPwFilePanel extends BasePanel<MasterPwFileModelBean>
 	 */
 	public NewMasterPwFilePanel()
 	{
-		this(BaseModel.<MasterPwFileModelBean> of(MasterPwFileModelBean.builder().withKeyFile(false)
-			.withMasterPw(true).showMasterPw(false).build()));
+		this(BaseModel
+			.<MasterPwFileModelBean> of(MasterPwFileModelBean.builder().minPasswordLength(6)
+				.withKeyFile(false).withMasterPw(false).showMasterPw(false).build()));
 	}
 
 	/**
@@ -141,29 +146,30 @@ public class NewMasterPwFilePanel extends BasePanel<MasterPwFileModelBean>
 
 		cbxMasterPw.addActionListener(this::onCheckMasterPw);
 		cbxKeyFile.addActionListener(this::onCheckKeyFile);
-		btnMasterPw.addActionListener(this::onShowMasterPw);
-		btnKeyFileChooser.addActionListener(this::onKeyFileChooser);
 		btnOk.addActionListener(this::onOk);
 		btnCancel.addActionListener(this::onCancel);
-
-		btnOkStateMachine = BtnOkStateMachine.builder().component(btnOk)
+		final MasterPwFileModelBean modelObject = getModelObject();
+		btnOkStateMachine = BtnOkStateMachine.builder().component(btnOk).modelObject(modelObject)
 			.current(BtnOkComponentStateEnum.DISABLED).build();
 		txtMasterPw.setEnabled(false);
 		txtMasterPw.getDocument().addDocumentListener(new DocumentListenerAdapter()
 		{
 			@Override
-			public void onDocumentChanged(DocumentEvent e)
+			public void onDocumentChanged(DocumentEvent documentEvent)
 			{
-				DocumentExtensions.processDocumentLength(e, btnOkStateMachine);
+				char[] password = txtMasterPw.getPassword();
+				modelObject.setMasterPw(password);
+				btnOkStateMachine.onChangeMasterPasswordLength(btnOkStateMachine);
 			}
 		});
 		btnMasterPw.addActionListener(this::onShowMasterPw);
 
-		cmbKeyFileModel = new StringMutableComboBoxModel(getModelObject().getKeyFilePaths());
+		cmbKeyFileModel = new StringMutableComboBoxModel(modelObject.getKeyFilePaths());
 		cmbKeyFile.setModel(cmbKeyFileModel);
 
-		txtApplicationFile.setText(
-			getModelObject().getSelectedKeyFilePath() != null ? getModelObject().getSelectedKeyFilePath() : "");
+		txtApplicationFile.setText(modelObject.getSelectedKeyFilePath() != null
+			? modelObject.getSelectedKeyFilePath()
+			: "");
 		txtApplicationFile.setEnabled(false);
 		btnApplicationFileChooser.addActionListener(this::onApplicationFileChooser);
 		btnKeyFileChooser.addActionListener(this::onKeyFileChooser);
@@ -173,19 +179,30 @@ public class NewMasterPwFilePanel extends BasePanel<MasterPwFileModelBean>
 			MysticCryptApplicationFrame.APPLICATION_NAME);
 		fileChooser = new JFileChooser(configDir);
 
-		cmbKeyFileModel = new StringMutableComboBoxModel(getModelObject().getKeyFilePaths(),
-			getModelObject().getSelectedKeyFilePath());
+		cmbKeyFileModel = new StringMutableComboBoxModel(modelObject.getKeyFilePaths(),
+			modelObject.getSelectedKeyFilePath());
 		cmbKeyFile.setModel(cmbKeyFileModel);
 		cmbKeyFile.addActionListener(this::onChangeCmbKeyFile);
 
 		btnGeneratePw.addActionListener(this::onGeneratePassword);
 
+		btnCreateKeyFile.addActionListener(this::onCreateKeyFile);
+
 		toggleMasterPwComponents();
 		toggleKeyFileComponents();
 	}
 
-	protected void onGeneratePassword(final ActionEvent actionEvent) {
-		// TODO
+	protected void onCreateKeyFile(final ActionEvent actionEvent)
+	{
+		// TODO create a key file dialog
+	}
+
+	protected void onGeneratePassword(final ActionEvent actionEvent)
+	{
+		String randomPassword = RandomStringFactory.newRandomLongString("abcdefghijklmnopqrstuvwxyz"
+			+ "abcdefghijklmnopqrstuvwxyz".toUpperCase() + "0123456789", 15);
+		txtMasterPw.setText(randomPassword);
+		txtRepeatPw.setText(randomPassword);
 	}
 
 
@@ -197,7 +214,6 @@ public class NewMasterPwFilePanel extends BasePanel<MasterPwFileModelBean>
 		if (selectedKeyFilePath == "")
 		{
 			getModelObject().setKeyFile(null);
-			btnOkStateMachine.setKeyFile(null);
 			btnOkStateMachine.onSetKeyFile(btnOkStateMachine);
 		}
 		else
@@ -206,7 +222,6 @@ public class NewMasterPwFilePanel extends BasePanel<MasterPwFileModelBean>
 			if (selectedKeyFile != null && selectedKeyFile.exists())
 			{
 				getModelObject().setKeyFile(selectedKeyFile);
-				btnOkStateMachine.setKeyFile(selectedKeyFile);
 				btnOkStateMachine.onSetKeyFile(btnOkStateMachine);
 			}
 			else if (selectedKeyFile == null
@@ -214,7 +229,6 @@ public class NewMasterPwFilePanel extends BasePanel<MasterPwFileModelBean>
 			{
 				getModelObject().setKeyFile(null);
 				cmbKeyFileModel.removeElement(selectedKeyFilePath);
-				btnOkStateMachine.setKeyFile(null);
 				btnOkStateMachine.onSetKeyFile(btnOkStateMachine);
 			}
 		}
@@ -223,104 +237,118 @@ public class NewMasterPwFilePanel extends BasePanel<MasterPwFileModelBean>
 
 	protected void onInitializeGroupLayout()
 	{
-
 		javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
 		this.setLayout(layout);
-		layout.setHorizontalGroup(layout
-			.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-			.addGroup(layout.createSequentialGroup().addContainerGap().addGroup(layout
-				.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-				.addGroup(layout.createSequentialGroup().addGroup(layout
-					.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-					.addComponent(lblImageHeader, javax.swing.GroupLayout.DEFAULT_SIZE,
-						javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-					.addGroup(layout.createSequentialGroup().addGroup(layout
-						.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-						.addGroup(layout.createSequentialGroup().addGap(0, 0, Short.MAX_VALUE)
-							.addGroup(layout
-								.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING,
-									false)
-								.addGroup(layout.createSequentialGroup()
-									.addComponent(cbxKeyFile,
-										javax.swing.GroupLayout.PREFERRED_SIZE, 161,
-										javax.swing.GroupLayout.PREFERRED_SIZE)
-									.addPreferredGap(
-										javax.swing.LayoutStyle.ComponentPlacement.RELATED,
-										javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-									.addComponent(cmbKeyFile,
-										javax.swing.GroupLayout.PREFERRED_SIZE, 596,
-										javax.swing.GroupLayout.PREFERRED_SIZE))
-								.addGroup(layout.createSequentialGroup().addGap(8, 8, 8)
-									.addComponent(btnCreateKeyFile,
-										javax.swing.GroupLayout.PREFERRED_SIZE, 163,
-										javax.swing.GroupLayout.PREFERRED_SIZE)
-									.addGap(18, 18, 18).addComponent(btnKeyFileChooser,
-										javax.swing.GroupLayout.PREFERRED_SIZE, 111,
-										javax.swing.GroupLayout.PREFERRED_SIZE))))
-						.addGroup(javax.swing.GroupLayout.Alignment.TRAILING,
-							layout.createSequentialGroup().addGroup(layout
-								.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-								.addGroup(layout.createSequentialGroup()
-									.addGap(0, 0, Short.MAX_VALUE)
-									.addComponent(lblRepeatPw,
-										javax.swing.GroupLayout.PREFERRED_SIZE, 138,
-										javax.swing.GroupLayout.PREFERRED_SIZE)
-									.addPreferredGap(
-										javax.swing.LayoutStyle.ComponentPlacement.RELATED,
-										javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-								.addGroup(layout.createSequentialGroup().addGap(12, 12, 12)
-									.addGroup(layout
+		layout
+			.setHorizontalGroup(
+				layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+					.addGroup(layout.createSequentialGroup().addContainerGap().addGroup(layout
+						.createParallelGroup(
+							javax.swing.GroupLayout.Alignment.LEADING)
+						.addGroup(
+							layout.createSequentialGroup()
+								.addGroup(
+									layout
 										.createParallelGroup(
 											javax.swing.GroupLayout.Alignment.LEADING)
-										.addComponent(cbxMasterPw,
-											javax.swing.GroupLayout.PREFERRED_SIZE, 169,
-											javax.swing.GroupLayout.PREFERRED_SIZE)
-										.addComponent(lblApplicationFile,
-											javax.swing.GroupLayout.PREFERRED_SIZE, 169,
-											javax.swing.GroupLayout.PREFERRED_SIZE))
-									.addPreferredGap(
-										javax.swing.LayoutStyle.ComponentPlacement.RELATED,
-										javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
-								.addGroup(layout
-									.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-									.addComponent(txtApplicationFile,
-										javax.swing.GroupLayout.Alignment.TRAILING,
-										javax.swing.GroupLayout.PREFERRED_SIZE, 483,
-										javax.swing.GroupLayout.PREFERRED_SIZE)
-									.addComponent(txtMasterPw,
-										javax.swing.GroupLayout.Alignment.TRAILING,
-										javax.swing.GroupLayout.PREFERRED_SIZE, 483,
-										javax.swing.GroupLayout.PREFERRED_SIZE)
-									.addComponent(
-										txtRepeatPw, javax.swing.GroupLayout.Alignment.TRAILING,
-										javax.swing.GroupLayout.PREFERRED_SIZE, 483,
-										javax.swing.GroupLayout.PREFERRED_SIZE))
-								.addPreferredGap(
-									javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-								.addGroup(layout
-									.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING,
-										false)
-									.addComponent(btnGeneratePw,
-										javax.swing.GroupLayout.DEFAULT_SIZE, 101, Short.MAX_VALUE)
-									.addComponent(btnMasterPw, javax.swing.GroupLayout.DEFAULT_SIZE,
-										javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-									.addComponent(btnApplicationFileChooser,
-										javax.swing.GroupLayout.DEFAULT_SIZE,
-										javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))
-						.addGap(12, 12, 12)))
-					.addContainerGap())
-				.addGroup(javax.swing.GroupLayout.Alignment.TRAILING,
-					layout.createSequentialGroup()
-						.addComponent(btnHelp, javax.swing.GroupLayout.PREFERRED_SIZE, 122,
-							javax.swing.GroupLayout.PREFERRED_SIZE)
-						.addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED,
-							javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-						.addComponent(btnOk, javax.swing.GroupLayout.PREFERRED_SIZE, 140,
-							javax.swing.GroupLayout.PREFERRED_SIZE)
-						.addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-						.addComponent(btnCancel, javax.swing.GroupLayout.PREFERRED_SIZE, 141,
-							javax.swing.GroupLayout.PREFERRED_SIZE)
-						.addGap(22, 22, 22)))));
+										.addComponent(lblImageHeader,
+											javax.swing.GroupLayout.DEFAULT_SIZE,
+											javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+										.addGroup(layout.createSequentialGroup().addGroup(layout
+											.createParallelGroup(
+												javax.swing.GroupLayout.Alignment.LEADING)
+											.addGroup(
+												layout.createSequentialGroup().addGap(8, 516,
+													Short.MAX_VALUE).addComponent(btnCreateKeyFile,
+														javax.swing.GroupLayout.PREFERRED_SIZE, 163,
+														javax.swing.GroupLayout.PREFERRED_SIZE)
+													.addGap(18, 18, 18).addComponent(
+														btnKeyFileChooser,
+														javax.swing.GroupLayout.PREFERRED_SIZE, 111,
+														javax.swing.GroupLayout.PREFERRED_SIZE))
+											.addGroup(javax.swing.GroupLayout.Alignment.TRAILING,
+												layout
+													.createSequentialGroup().addGap(0, 212,
+														Short.MAX_VALUE)
+													.addComponent(cmbKeyFile,
+														javax.swing.GroupLayout.PREFERRED_SIZE, 596,
+														javax.swing.GroupLayout.PREFERRED_SIZE))
+											.addGroup(javax.swing.GroupLayout.Alignment.TRAILING,
+												layout.createSequentialGroup().addGroup(layout
+													.createParallelGroup(
+														javax.swing.GroupLayout.Alignment.LEADING)
+													.addGroup(layout.createSequentialGroup()
+														.addGap(12, 12, 12)
+														.addGroup(layout.createParallelGroup(
+															javax.swing.GroupLayout.Alignment.LEADING)
+															.addComponent(cbxMasterPw,
+																javax.swing.GroupLayout.PREFERRED_SIZE,
+																169,
+																javax.swing.GroupLayout.PREFERRED_SIZE)
+															.addComponent(lblApplicationFile,
+																javax.swing.GroupLayout.PREFERRED_SIZE,
+																169,
+																javax.swing.GroupLayout.PREFERRED_SIZE)
+															.addComponent(cbxKeyFile,
+																javax.swing.GroupLayout.PREFERRED_SIZE,
+																161,
+																javax.swing.GroupLayout.PREFERRED_SIZE)))
+													.addComponent(
+														lblRepeatPw,
+														javax.swing.GroupLayout.Alignment.TRAILING,
+														javax.swing.GroupLayout.PREFERRED_SIZE, 134,
+														javax.swing.GroupLayout.PREFERRED_SIZE))
+													.addPreferredGap(
+														javax.swing.LayoutStyle.ComponentPlacement.RELATED,
+														31, Short.MAX_VALUE)
+													.addGroup(layout.createParallelGroup(
+														javax.swing.GroupLayout.Alignment.LEADING)
+														.addComponent(txtApplicationFile,
+															javax.swing.GroupLayout.Alignment.TRAILING,
+															javax.swing.GroupLayout.PREFERRED_SIZE,
+															483,
+															javax.swing.GroupLayout.PREFERRED_SIZE)
+														.addComponent(txtMasterPw,
+															javax.swing.GroupLayout.Alignment.TRAILING,
+															javax.swing.GroupLayout.PREFERRED_SIZE,
+															483,
+															javax.swing.GroupLayout.PREFERRED_SIZE)
+														.addComponent(
+															txtRepeatPw,
+															javax.swing.GroupLayout.Alignment.TRAILING,
+															javax.swing.GroupLayout.PREFERRED_SIZE,
+															483,
+															javax.swing.GroupLayout.PREFERRED_SIZE))
+													.addPreferredGap(
+														javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+													.addGroup(layout.createParallelGroup(
+														javax.swing.GroupLayout.Alignment.TRAILING,
+														false)
+														.addComponent(btnGeneratePw,
+															javax.swing.GroupLayout.DEFAULT_SIZE,
+															101, Short.MAX_VALUE)
+														.addComponent(btnMasterPw,
+															javax.swing.GroupLayout.DEFAULT_SIZE,
+															javax.swing.GroupLayout.DEFAULT_SIZE,
+															Short.MAX_VALUE)
+														.addComponent(btnApplicationFileChooser,
+															javax.swing.GroupLayout.DEFAULT_SIZE,
+															javax.swing.GroupLayout.DEFAULT_SIZE,
+															Short.MAX_VALUE))))
+											.addGap(12, 12, 12)))
+								.addContainerGap())
+						.addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout
+							.createSequentialGroup()
+							.addComponent(btnHelp, javax.swing.GroupLayout.PREFERRED_SIZE, 122,
+								javax.swing.GroupLayout.PREFERRED_SIZE)
+							.addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED,
+								javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+							.addComponent(btnOk, javax.swing.GroupLayout.PREFERRED_SIZE, 140,
+								javax.swing.GroupLayout.PREFERRED_SIZE)
+							.addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+							.addComponent(btnCancel, javax.swing.GroupLayout.PREFERRED_SIZE, 141,
+								javax.swing.GroupLayout.PREFERRED_SIZE)
+							.addGap(22, 22, 22)))));
 		layout
 			.setVerticalGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
 				.addGroup(layout.createSequentialGroup().addContainerGap()
@@ -357,7 +385,7 @@ public class NewMasterPwFilePanel extends BasePanel<MasterPwFileModelBean>
 					.addGap(18, 18, 18)
 					.addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
 						.addComponent(btnKeyFileChooser).addComponent(btnCreateKeyFile))
-					.addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 42,
+					.addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 81,
 						Short.MAX_VALUE)
 					.addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
 						.addComponent(btnOk).addComponent(btnCancel).addComponent(btnHelp))
@@ -369,17 +397,20 @@ public class NewMasterPwFilePanel extends BasePanel<MasterPwFileModelBean>
 		if (getModelObject().isShowMasterPw())
 		{
 			getTxtMasterPw().setEchoChar('*');
+			getTxtRepeatPw().setEchoChar('*');
 		}
 		else
 		{
 			char zero = 0;
 			getTxtMasterPw().setEchoChar(zero);
+			getTxtRepeatPw().setEchoChar(zero);
 		}
 	}
 
 	protected void onShowMasterPw(final ActionEvent actionEvent)
 	{
 		setEchoChar();
+		getModelObject().setShowMasterPw(!getModelObject().isShowMasterPw());
 	}
 
 	protected void onOk(ActionEvent actionEvent)
@@ -401,10 +432,10 @@ public class NewMasterPwFilePanel extends BasePanel<MasterPwFileModelBean>
 	protected void toggleKeyFileComponents()
 	{
 		boolean cbxKeyFileSelected = cbxKeyFile.isSelected();
+		getModelObject().setWithKeyFile(cbxKeyFileSelected);
 		btnKeyFileChooser.setEnabled(cbxKeyFileSelected);
 		btnCreateKeyFile.setEnabled(cbxKeyFileSelected);
 		cmbKeyFile.setEnabled(cbxKeyFileSelected);
-		btnOkStateMachine.setKeyFile(getModelObject().getKeyFile());
 		btnOkStateMachine.onSetKeyFile(btnOkStateMachine);
 	}
 
@@ -415,7 +446,6 @@ public class NewMasterPwFilePanel extends BasePanel<MasterPwFileModelBean>
 		txtRepeatPw.setEnabled(cbxMasterPwSelected);
 		btnMasterPw.setEnabled(cbxMasterPwSelected);
 		btnGeneratePw.setEnabled(cbxMasterPwSelected);
-		btnOkStateMachine.setWithMasterPassword(cbxMasterPwSelected);
 		btnOkStateMachine.onChangeWithMasterPassword(btnOkStateMachine);
 	}
 
@@ -428,6 +458,12 @@ public class NewMasterPwFilePanel extends BasePanel<MasterPwFileModelBean>
 
 	protected void onCheckMasterPw(final ActionEvent actionEvent)
 	{
+		Object source = actionEvent.getSource();
+		if (source instanceof JCheckBox)
+		{
+			JCheckBox checkBox = (JCheckBox)source;
+			getModelObject().setWithMasterPw(checkBox.isSelected());
+		}
 		toggleMasterPwComponents();
 	}
 
@@ -439,14 +475,14 @@ public class NewMasterPwFilePanel extends BasePanel<MasterPwFileModelBean>
 		if (returnVal == JFileChooser.APPROVE_OPTION)
 		{
 			final File selectedApplicationFile = fileChooser.getSelectedFile();
+			FileCreationState fileCreationState = RuntimeExceptionDecorator
+				.decorate(() -> FileFactory.newFile(selectedApplicationFile));
 			String absolutePath = selectedApplicationFile.getAbsolutePath();
+			getModelObject().setApplicationFile(selectedApplicationFile);
 			getModelObject().setSelectedApplicationFilePath(absolutePath);
 			txtApplicationFile.setText(absolutePath);
-			toggleApplicationFileComponents();
-			// boolean okEnabledState = getBtnOkEnabledState();
-			// btnOk.getModel().setEnabled(okEnabledState);
-			btnOkStateMachine.setAppDataFile(getModelObject().getSelectedApplicationFilePath());
 			btnOkStateMachine.onApplicationFileAdded(btnOkStateMachine);
+			toggleApplicationFileComponents();
 		}
 	}
 
@@ -457,42 +493,13 @@ public class NewMasterPwFilePanel extends BasePanel<MasterPwFileModelBean>
 		if (returnVal == JFileChooser.APPROVE_OPTION)
 		{
 			final File selectedKeyFile = fileChooser.getSelectedFile();
+			String absolutePath = selectedKeyFile.getAbsolutePath();
+			cmbKeyFileModel.addElement(absolutePath);
+			cmbKeyFileModel.setSelectedItem(absolutePath);
+			getModelObject().setSelectedKeyFilePath(absolutePath);
 			getModelObject().setKeyFile(selectedKeyFile);
-			btnOkStateMachine.setKeyFile(selectedKeyFile);
 			btnOkStateMachine.onSetKeyFile(btnOkStateMachine);
-			// TODO change with cmb
-			// txtKeyFile.setText(getModelObject().getKeyFile().getName());
 		}
 	}
-	//
-	// protected boolean getBtnOkEnabledState()
-	// {
-	// boolean result = true;
-	// NewMasterPwFileModelBean modelObject = getModelObject();
-	// if (modelObject.getAppDataFile() == null)
-	// {
-	// return false;
-	// }
-	// if (modelObject.getWithMasterPw().getObject() && modelObject.getWithKeyFile().getObject()
-	// && !(0 < txtMasterPw.getDocument().getLength() && modelObject.getKeyFile() != null))
-	// {
-	// return false;
-	// }
-	// if (!modelObject.getWithMasterPw().getObject() && !modelObject.getWithKeyFile().getObject())
-	// {
-	// return false;
-	// }
-	// if (modelObject.getWithMasterPw().getObject() && !modelObject.getWithKeyFile().getObject()
-	// && txtMasterPw.getDocument().getLength() == 0)
-	// {
-	// return false;
-	// }
-	// if (!modelObject.getWithMasterPw().getObject() && modelObject.getWithKeyFile().getObject()
-	// && modelObject.getKeyFile() == null)
-	// {
-	// return false;
-	// }
-	// return result;
-	// }
 
 }

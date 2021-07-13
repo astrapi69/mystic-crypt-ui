@@ -4,6 +4,7 @@ import java.io.File;
 
 import javax.swing.*;
 
+import io.github.astrapi69.mystic.crypt.panels.signin.MasterPwFileModelBean;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
@@ -25,37 +26,36 @@ public class BtnOkStateMachine extends AbstractJComponentStateMachine<JButton, B
 	implements
 		BtnOkComponentState
 {
-	String appDataFile;
-	File keyFile;
-	@Builder.Default
-	int minPasswordLength = 6;
-	int passwordLength;
-	boolean withMasterPassword;
-	boolean withKeyFile;
+	MasterPwFileModelBean modelObject;
 
 	@Override
 	protected void updateComponentState()
 	{
-		boolean appDataFilePresent = appDataFile != null && 0 < appDataFile.length();
-		if (appDataFilePresent
-			&& withMasterPassword && minPasswordLength <= passwordLength
+		boolean applicationFilePresent = modelObject.getApplicationFile() != null && modelObject.getApplicationFile().exists();
+		int minPasswordLength = modelObject.getMinPasswordLength();
+		int passwordLength = modelObject.getMasterPw() != null ? modelObject.getMasterPw().length : 0;
+		boolean withKeyFile = modelObject.isWithKeyFile();
+		File keyFile = modelObject.getKeyFile();
+		boolean withMasterPw = modelObject.isWithMasterPw();
+		if (applicationFilePresent
+			&& withMasterPw && minPasswordLength <= passwordLength
 			&& withKeyFile && keyFile != null)
 		{
 			setCurrent(BtnOkComponentStateEnum.ENABLED);
 			setEnabled(true);
 			return;
 		}
-		else if (appDataFilePresent
-			&& !withMasterPassword
+		else if (applicationFilePresent
+			&& !withMasterPw
 			&& withKeyFile && keyFile != null)
 		{
 			setCurrent(BtnOkComponentStateEnum.ENABLED);
 			setEnabled(true);
 			return;
 		}
-		else if (appDataFilePresent
+		else if (applicationFilePresent
 			&& !withKeyFile
-			&& withMasterPassword && minPasswordLength <= passwordLength )
+			&& withMasterPw && minPasswordLength <= passwordLength )
 		{
 			setCurrent(BtnOkComponentStateEnum.ENABLED);
 			setEnabled(true);
@@ -68,21 +68,18 @@ public class BtnOkStateMachine extends AbstractJComponentStateMachine<JButton, B
 	@Override
 	public void onApplicationFileAdded(BtnOkStateMachine context)
 	{
-		appDataFile = context.getAppDataFile();
 		updateComponentState();
 	}
 
 	@Override
 	public void onChangeWithMasterPassword(BtnOkStateMachine context)
 	{
-		setWithMasterPassword(withMasterPassword);
 		updateComponentState();
 	}
 
 	@Override
 	public void onChangeMasterPasswordLength(BtnOkStateMachine context)
 	{
-		passwordLength = context.getPasswordLength();
 		updateComponentState();
 	}
 
@@ -95,7 +92,6 @@ public class BtnOkStateMachine extends AbstractJComponentStateMachine<JButton, B
 	@Override
 	public void onSetKeyFile(BtnOkStateMachine context)
 	{
-		keyFile = context.getKeyFile();
 		updateComponentState();
 	}
 
