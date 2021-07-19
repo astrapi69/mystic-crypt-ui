@@ -387,12 +387,31 @@ public class MysticCryptApplicationFrame extends ApplicationFrame<ApplicationMod
 		super.onAfterInitialize();
 		getConsoleOutput();
 		setTitle(Messages.getString("mainframe.title"));
+		setDefaultLookAndFeel(LookAndFeels.NIMBUS, this);
 	}
 
-	@Override
-	protected LookAndFeels newLookAndFeels()
+
+	/**
+	 * Sets the given {@link LookAndFeels} to the {@link UIManager}
+	 *
+	 * @param lookAndFeels
+	 *            the look and feels
+	 * @exception ClassNotFoundException
+	 *                if the <code>LookAndFeel</code> class could not be found
+	 * @exception InstantiationException
+	 *                if a new instance of the class couldn't be created
+	 * @exception IllegalAccessException
+	 *                if the class or initializer isn't accessible
+	 * @exception UnsupportedLookAndFeelException
+	 *                if <code>lnf.isSupportedLookAndFeel()</code> is false
+	 * @throws ClassCastException
+	 *             if {@code className} does not identify a class that extends {@code LookAndFeel}
+	 */
+	public static void setLookAndFeel(final @NonNull LookAndFeels lookAndFeels)
+		throws ClassNotFoundException, InstantiationException, IllegalAccessException,
+		UnsupportedLookAndFeelException
 	{
-		return LookAndFeels.NIMBUS;
+		UIManager.setLookAndFeel(lookAndFeels.getLookAndFeelName());
 	}
 
 	@Override

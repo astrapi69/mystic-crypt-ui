@@ -24,6 +24,8 @@
  */
 package io.github.astrapi69.mystic.crypt.panels.privatekey;
 
+import javax.swing.DefaultComboBoxModel;
+
 import io.github.astrapi69.crypto.key.KeySize;
 import io.github.astrapi69.swing.combobox.model.EnumComboBoxModel;
 
@@ -31,7 +33,7 @@ import io.github.astrapi69.swing.combobox.model.EnumComboBoxModel;
  *
  * @author astrapi69
  */
-public class CreatePrivateKeyPanel extends javax.swing.JPanel
+public class NewPrivateKeyFormPanel extends javax.swing.JPanel
 {
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
@@ -48,7 +50,7 @@ public class CreatePrivateKeyPanel extends javax.swing.JPanel
 	/**
 	 * Creates new form CryptographyPanel
 	 */
-	public CreatePrivateKeyPanel()
+	public NewPrivateKeyFormPanel()
 	{
 		initComponents();
 	}
@@ -76,7 +78,7 @@ public class CreatePrivateKeyPanel extends javax.swing.JPanel
         scpPrivateKey.setViewportView(txtPrivateKey);
         txtPrivateKey.getAccessibleContext().setAccessibleDescription("");
 
-        cmbKeySize.setModel(new EnumComboBoxModel<>(KeySize.class));
+		cmbKeySize.setModel(new DefaultComboBoxModel(KeySize.values()));
         cmbKeySize.setSelectedItem(KeySize.KEYSIZE_1024);
 
         btnGenerate.setText("Generate key");

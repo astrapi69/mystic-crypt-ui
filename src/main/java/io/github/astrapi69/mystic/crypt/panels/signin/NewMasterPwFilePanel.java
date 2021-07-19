@@ -11,6 +11,10 @@ import java.io.File;
 import javax.swing.*;
 import javax.swing.event.DocumentEvent;
 
+import io.github.astrapi69.mystic.crypt.panels.privatekey.NewPrivateKeyFileDialog;
+import io.github.astrapi69.mystic.crypt.panels.privatekey.NewPrivateKeyModelBean;
+import io.github.astrapi69.mystic.crypt.panels.pw.GeneratePasswordDialog;
+import io.github.astrapi69.mystic.crypt.panels.pw.GeneratePasswordModelBean;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.experimental.FieldDefaults;
@@ -21,7 +25,6 @@ import io.github.astrapi69.design.pattern.state.button.BtnOkStateMachine;
 import io.github.astrapi69.model.BaseModel;
 import io.github.astrapi69.model.api.Model;
 import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
-import io.github.astrapi69.random.object.RandomStringFactory;
 import io.github.astrapi69.search.PathFinder;
 import io.github.astrapi69.swing.adapters.DocumentListenerAdapter;
 import io.github.astrapi69.swing.base.BasePanel;
@@ -60,6 +63,7 @@ public class NewMasterPwFilePanel extends BasePanel<MasterPwFileModelBean>
 	JFileChooser fileChooser;
 	StringMutableComboBoxModel cmbKeyFileModel;
 	BtnOkStateMachine btnOkStateMachine;
+	Model<GeneratePasswordModelBean> passwordModelBeanModel;
 
 	/**
 	 * Creates new form NewMasterPwFileFormPanel
@@ -195,18 +199,32 @@ public class NewMasterPwFilePanel extends BasePanel<MasterPwFileModelBean>
 	protected void onCreateKeyFile(final ActionEvent actionEvent)
 	{
 		// TODO create a key file dialog
+		NewPrivateKeyModelBean modelBean = NewPrivateKeyModelBean.builder().build();
 		NewPrivateKeyFileDialog dialog = new NewPrivateKeyFileDialog(MysticCryptApplicationFrame.getInstance(),
-			"Enter your credentials", true, getModel());
+			"Enter your credentials", true, BaseModel.of(modelBean));
 		dialog.setSize(840, 520);
 		dialog.setVisible(true);
 	}
 
 	protected void onGeneratePassword(final ActionEvent actionEvent)
 	{
-		String randomPassword = RandomStringFactory.newRandomLongString("abcdefghijklmnopqrstuvwxyz"
-			+ "abcdefghijklmnopqrstuvwxyz".toUpperCase() + "0123456789", 15);
-		txtMasterPw.setText(randomPassword);
-		txtRepeatPw.setText(randomPassword);
+		passwordModelBeanModel = BaseModel.of(GeneratePasswordModelBean.builder()
+			.passwordLength(20)
+			.build());
+		GeneratePasswordDialog dialog =
+			new GeneratePasswordDialog(MysticCryptApplicationFrame.getInstance(),
+			"Generate Password", true, passwordModelBeanModel){
+				@Override protected void onOk()
+				{
+					char[] password = passwordModelBeanModel.getObject().getPassword();
+					NewMasterPwFilePanel.this.getModelObject().setMasterPw(password);
+					txtMasterPw.setText(String.valueOf(password));
+					txtRepeatPw.setText(String.valueOf(password));
+					super.onOk();
+				}
+			};
+		dialog.setSize(600, 420);
+		dialog.setVisible(true);
 	}
 
 
