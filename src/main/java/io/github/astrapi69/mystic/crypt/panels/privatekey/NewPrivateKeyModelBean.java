@@ -32,4 +32,7 @@ public class NewPrivateKeyModelBean
 	File privateKeyDirectory;
 
 	String filenameOfPrivateKey;
+
+	/** The private key file */
+	File privateKeyFile;
 }

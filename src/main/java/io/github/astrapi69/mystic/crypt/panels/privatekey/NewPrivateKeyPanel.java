@@ -33,7 +33,9 @@ import java.security.NoSuchProviderException;
 import java.util.logging.Level;
 
 import javax.swing.*;
+import javax.swing.event.DocumentEvent;
 
+import io.github.astrapi69.swing.adapters.DocumentListenerAdapter;
 import lombok.Getter;
 import lombok.extern.java.Log;
 import io.github.astrapi69.create.FileFactory;
@@ -74,6 +76,7 @@ public class NewPrivateKeyPanel extends BasePanel<NewPrivateKeyModelBean>
 	// ===
 	// ===
 	private JFileChooser fileChooser;
+	BtnSaveStateMachine btnSaveStateMachine;
 
 	public NewPrivateKeyPanel()
 	{
@@ -129,17 +132,30 @@ public class NewPrivateKeyPanel extends BasePanel<NewPrivateKeyModelBean>
 		// ===
 		// ===
 		// ===
+		NewPrivateKeyModelBean modelObject = getModelObject();
+		btnSaveStateMachine = BtnSaveStateMachine.builder().component(btnSave)
+			.modelObject(modelObject).build();
+
 		txtFilenameOfPrivateKey = new JMTextField();
 		((JMTextField)txtFilenameOfPrivateKey).setPropertyModel(LambdaModel.of(
-			getModelObject()::getFilenameOfPrivateKey, getModelObject()::setFilenameOfPrivateKey));
-
-		cmbKeySize.setModel(new EnumComboBoxModel<>(KeySize.class));
-		if (getModelObject().getKeySize() == null)
+			modelObject::getFilenameOfPrivateKey, modelObject::setFilenameOfPrivateKey));
+		txtFilenameOfPrivateKey.getDocument().addDocumentListener(new DocumentListenerAdapter()
 		{
-			getModelObject().setKeySize(KeySize.KEYSIZE_2048);
+			@Override
+			public void onDocumentChanged(DocumentEvent documentEvent)
+			{
+				String text = txtFilenameOfPrivateKey.getText();
+				modelObject.setFilenameOfPrivateKey(text);
+				btnSaveStateMachine.onChangeFilename();
+			}
+		});
+		cmbKeySize.setModel(new EnumComboBoxModel<>(KeySize.class));
+		if (modelObject.getKeySize() == null)
+		{
+			modelObject.setKeySize(KeySize.KEYSIZE_2048);
 		}
 		txtDirectoryOfPrivateKey.setEnabled(false);
-		cmbKeySize.setSelectedItem(getModelObject().getKeySize());
+		cmbKeySize.setSelectedItem(modelObject.getKeySize());
 
 		cmbKeySize.addActionListener(actionEvent -> onChangeKeySize(actionEvent));
 
@@ -164,6 +180,7 @@ public class NewPrivateKeyPanel extends BasePanel<NewPrivateKeyModelBean>
 			final File privateKeyDirectory = fileChooser.getSelectedFile();
 			getModelObject().setPrivateKeyDirectory(privateKeyDirectory);
 			getTxtDirectoryOfPrivateKey().setText(privateKeyDirectory.getAbsolutePath());
+			btnSaveStateMachine.onChangeDirectory();
 		}
 	}
 
@@ -174,16 +191,13 @@ public class NewPrivateKeyPanel extends BasePanel<NewPrivateKeyModelBean>
 
 	protected void onSave(ActionEvent actionEvent)
 	{
-		final int returnVal = fileChooser.showSaveDialog(NewPrivateKeyPanel.this);
-		if (returnVal == JFileChooser.APPROVE_OPTION)
-		{
-			String filenameOfPrivateKey = getTxtFilenameOfPrivateKey().getText();
-			File privateKeyDirectory = getModelObject().getPrivateKeyDirectory();
-			File privateKeyFile = RuntimeExceptionDecorator
-				.decorate(() -> FileFactory.newFile(privateKeyDirectory, filenameOfPrivateKey));
-			RuntimeExceptionDecorator.decorate(() -> PrivateKeyWriter
-				.writeInPemFormat(getModelObject().getPrivateKey(), privateKeyFile));
-		}
+		String filenameOfPrivateKey = getTxtFilenameOfPrivateKey().getText();
+		File privateKeyDirectory = getModelObject().getPrivateKeyDirectory();
+		File privateKeyFile = RuntimeExceptionDecorator
+			.decorate(() -> FileFactory.newFile(privateKeyDirectory, filenameOfPrivateKey));
+		getModelObject().setPrivateKeyFile(privateKeyFile);
+		RuntimeExceptionDecorator.decorate(() -> PrivateKeyWriter
+			.writeInPemFormat(getModelObject().getPrivateKey(), privateKeyFile));
 	}
 
 	/**
@@ -209,7 +223,7 @@ public class NewPrivateKeyPanel extends BasePanel<NewPrivateKeyModelBean>
 
 			getTxtPrivateKey().setText("");
 			getTxtPrivateKey().setText(privateKeyFormat);
-			btnSave.setEnabled(true);
+			btnSaveStateMachine.onGenerate();
 		}
 		catch (final NoSuchAlgorithmException | NoSuchProviderException | IOException e)
 		{
@@ -228,8 +242,13 @@ public class NewPrivateKeyPanel extends BasePanel<NewPrivateKeyModelBean>
 	{
 		getCmbKeySize().setSelectedItem(KeySize.KEYSIZE_2048);
 		getTxtPrivateKey().setText("");
+		getTxtDirectoryOfPrivateKey().setText("");
+		getTxtFilenameOfPrivateKey().setText("");
 		getModelObject().setKeySize(KeySize.KEYSIZE_2048);
-		btnSave.setEnabled(false);
+		getModelObject().setFilenameOfPrivateKey("");
+		getModelObject().setPrivateKey(null);
+		getModelObject().setPrivateKeyDirectory(null);
+		btnSaveStateMachine.onClear();
 	}
 
 	/**
@@ -244,6 +263,7 @@ public class NewPrivateKeyPanel extends BasePanel<NewPrivateKeyModelBean>
 		final JComboBox<String> cb = (JComboBox<String>)actionEvent.getSource();
 		final KeySize selected = (KeySize)cb.getSelectedItem();
 		getModelObject().setKeySize(selected);
+		btnSaveStateMachine.onChangeKeySize();
 	}
 
 	@Override
