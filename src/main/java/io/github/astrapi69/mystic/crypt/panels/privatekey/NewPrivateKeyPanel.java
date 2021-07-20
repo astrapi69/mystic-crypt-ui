@@ -36,7 +36,6 @@ import javax.swing.*;
 
 import lombok.Getter;
 import lombok.extern.java.Log;
-import io.github.astrapi69.create.FileCreationState;
 import io.github.astrapi69.create.FileFactory;
 import io.github.astrapi69.crypto.algorithm.KeyPairGeneratorAlgorithm;
 import io.github.astrapi69.crypto.factories.KeyPairFactory;
@@ -44,7 +43,9 @@ import io.github.astrapi69.crypto.key.KeySize;
 import io.github.astrapi69.crypto.key.PrivateKeyExtensions;
 import io.github.astrapi69.crypto.key.writer.PrivateKeyWriter;
 import io.github.astrapi69.model.BaseModel;
+import io.github.astrapi69.model.LambdaModel;
 import io.github.astrapi69.model.api.Model;
+import io.github.astrapi69.swing.JMTextField;
 import io.github.astrapi69.swing.base.BasePanel;
 import io.github.astrapi69.swing.combobox.model.EnumComboBoxModel;
 import io.github.astrapi69.system.SystemFileExtensions;
@@ -55,15 +56,20 @@ import io.github.astrapi69.throwable.RuntimeExceptionDecorator;
 public class NewPrivateKeyPanel extends BasePanel<NewPrivateKeyModelBean>
 {
 
-    private javax.swing.JButton btnCancel;
-    private javax.swing.JButton btnClear;
-    private javax.swing.JButton btnGenerate;
-    private javax.swing.JButton btnSave;
-    private javax.swing.JComboBox<KeySize> cmbKeySize;
-    private javax.swing.JLabel lblKeySize;
-    private javax.swing.JLabel lblPrivateKey;
-    private javax.swing.JScrollPane scpPrivateKey;
-    private javax.swing.JTextArea txtPrivateKey;
+	private javax.swing.JButton btnCancel;
+	private javax.swing.JButton btnClear;
+	private javax.swing.JButton btnDirectoryOfPrivateKey;
+	private javax.swing.JButton btnGenerate;
+	private javax.swing.JButton btnSave;
+	private javax.swing.JComboBox<KeySize> cmbKeySize;
+	private javax.swing.JLabel lblDirectoryOfPrivateKey;
+	private javax.swing.JLabel lblFilenameOfPrivateKey;
+	private javax.swing.JLabel lblKeySize;
+	private javax.swing.JLabel lblPrivateKey;
+	private javax.swing.JScrollPane scpPrivateKey;
+	private javax.swing.JTextField txtDirectoryOfPrivateKey;
+	private javax.swing.JTextField txtFilenameOfPrivateKey;
+	private javax.swing.JTextArea txtPrivateKey;
 	// ===
 	// ===
 	// ===
@@ -92,14 +98,16 @@ public class NewPrivateKeyPanel extends BasePanel<NewPrivateKeyModelBean>
 		btnClear = new javax.swing.JButton();
 		btnCancel = new javax.swing.JButton();
 		btnSave = new javax.swing.JButton();
+		lblFilenameOfPrivateKey = new javax.swing.JLabel();
+		txtFilenameOfPrivateKey = new javax.swing.JTextField();
+		lblDirectoryOfPrivateKey = new javax.swing.JLabel();
+		txtDirectoryOfPrivateKey = new javax.swing.JTextField();
+		btnDirectoryOfPrivateKey = new javax.swing.JButton();
 
 		txtPrivateKey.setColumns(20);
 		txtPrivateKey.setRows(5);
 		scpPrivateKey.setViewportView(txtPrivateKey);
 		txtPrivateKey.getAccessibleContext().setAccessibleDescription("");
-		txtPrivateKey.setEditable(false);
-
-		cmbKeySize.setModel(new EnumComboBoxModel<>(KeySize.class));
 
 		btnGenerate.setText("Generate key");
 
@@ -112,15 +120,25 @@ public class NewPrivateKeyPanel extends BasePanel<NewPrivateKeyModelBean>
 		btnCancel.setText("Cancel");
 
 		btnSave.setText("Save private key");
+
+		lblFilenameOfPrivateKey.setText("File name for private key");
+
+		lblDirectoryOfPrivateKey.setText("Directory to save the private key");
+
+		btnDirectoryOfPrivateKey.setText("Browse...");
 		// ===
 		// ===
 		// ===
+		txtFilenameOfPrivateKey = new JMTextField();
+		((JMTextField)txtFilenameOfPrivateKey).setPropertyModel(LambdaModel.of(
+			getModelObject()::getFilenameOfPrivateKey, getModelObject()::setFilenameOfPrivateKey));
 
 		cmbKeySize.setModel(new EnumComboBoxModel<>(KeySize.class));
 		if (getModelObject().getKeySize() == null)
 		{
 			getModelObject().setKeySize(KeySize.KEYSIZE_2048);
 		}
+		txtDirectoryOfPrivateKey.setEnabled(false);
 		cmbKeySize.setSelectedItem(getModelObject().getKeySize());
 
 		cmbKeySize.addActionListener(actionEvent -> onChangeKeySize(actionEvent));
@@ -132,8 +150,21 @@ public class NewPrivateKeyPanel extends BasePanel<NewPrivateKeyModelBean>
 		btnSave.setEnabled(false);
 
 		btnCancel.addActionListener(this::onCancel);
+		btnDirectoryOfPrivateKey.addActionListener(this::onSelectedDirectoryOfPrivateKey);
 
 		fileChooser = new JFileChooser(SystemFileExtensions.getUserDownloadsDir());
+		fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+	}
+
+	protected void onSelectedDirectoryOfPrivateKey(ActionEvent actionEvent)
+	{
+		final int returnVal = fileChooser.showSaveDialog(NewPrivateKeyPanel.this);
+		if (returnVal == JFileChooser.APPROVE_OPTION)
+		{
+			final File privateKeyDirectory = fileChooser.getSelectedFile();
+			getModelObject().setPrivateKeyDirectory(privateKeyDirectory);
+			getTxtDirectoryOfPrivateKey().setText(privateKeyDirectory.getAbsolutePath());
+		}
 	}
 
 	protected void onCancel(ActionEvent actionEvent)
@@ -146,12 +177,12 @@ public class NewPrivateKeyPanel extends BasePanel<NewPrivateKeyModelBean>
 		final int returnVal = fileChooser.showSaveDialog(NewPrivateKeyPanel.this);
 		if (returnVal == JFileChooser.APPROVE_OPTION)
 		{
-			final File selectedKeyFile = fileChooser.getSelectedFile();
-			getModelObject().setPrivateKeyFile(selectedKeyFile);
-			FileCreationState fileCreationState = RuntimeExceptionDecorator
-				.decorate(() -> FileFactory.newFile(selectedKeyFile));
+			String filenameOfPrivateKey = getTxtFilenameOfPrivateKey().getText();
+			File privateKeyDirectory = getModelObject().getPrivateKeyDirectory();
+			File privateKeyFile = RuntimeExceptionDecorator
+				.decorate(() -> FileFactory.newFile(privateKeyDirectory, filenameOfPrivateKey));
 			RuntimeExceptionDecorator.decorate(() -> PrivateKeyWriter
-				.writeInPemFormat(getModelObject().getPrivateKey(), selectedKeyFile));
+				.writeInPemFormat(getModelObject().getPrivateKey(), privateKeyFile));
 		}
 	}
 
@@ -224,44 +255,63 @@ public class NewPrivateKeyPanel extends BasePanel<NewPrivateKeyModelBean>
 
 	protected void onInitializeGroupLayout()
 	{
+
 		javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
 		this.setLayout(layout);
-		layout
-			.setHorizontalGroup(
-				layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-					.addGroup(layout.createSequentialGroup().addGroup(layout
-						.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-						.addGroup(layout.createSequentialGroup().addContainerGap().addGroup(layout
+		layout.setHorizontalGroup(
+			layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING).addGroup(layout
+				.createSequentialGroup().addContainerGap().addGroup(layout
+					.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING).addGroup(layout
+						.createSequentialGroup().addGroup(layout
 							.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-							.addComponent(cmbKeySize, 0, javax.swing.GroupLayout.DEFAULT_SIZE,
+							.addComponent(btnClear, javax.swing.GroupLayout.DEFAULT_SIZE,
+								javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+							.addComponent(btnGenerate, javax.swing.GroupLayout.DEFAULT_SIZE, 240,
 								Short.MAX_VALUE)
-							.addComponent(btnGenerate, javax.swing.GroupLayout.DEFAULT_SIZE, 206,
-								Short.MAX_VALUE)))
-						.addGroup(layout.createSequentialGroup().addGap(21, 21, 21).addComponent(
-							lblKeySize, javax.swing.GroupLayout.PREFERRED_SIZE, 147,
-							javax.swing.GroupLayout.PREFERRED_SIZE))
-						.addGroup(layout.createSequentialGroup().addContainerGap().addComponent(
-							btnClear, javax.swing.GroupLayout.DEFAULT_SIZE,
-							javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
-						.addGap(18, 18, 18)
-						.addGroup(layout
-							.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-							.addGroup(layout.createSequentialGroup()
-								.addComponent(btnSave, javax.swing.GroupLayout.PREFERRED_SIZE, 190,
+							.addComponent(cmbKeySize, 0, javax.swing.GroupLayout.DEFAULT_SIZE,
+								Short.MAX_VALUE))
+						.addGap(0, 0, Short.MAX_VALUE))
+					.addGroup(layout.createSequentialGroup()
+						.addGroup(
+							layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+								.addComponent(lblFilenameOfPrivateKey,
+									javax.swing.GroupLayout.PREFERRED_SIZE, 240,
 									javax.swing.GroupLayout.PREFERRED_SIZE)
-								.addGap(18, 18, 18).addComponent(btnCancel,
-									javax.swing.GroupLayout.PREFERRED_SIZE, 174,
-									javax.swing.GroupLayout.PREFERRED_SIZE))
+								.addComponent(lblDirectoryOfPrivateKey,
+									javax.swing.GroupLayout.PREFERRED_SIZE, 240,
+									javax.swing.GroupLayout.PREFERRED_SIZE)
+								.addComponent(lblKeySize, javax.swing.GroupLayout.PREFERRED_SIZE,
+									240, javax.swing.GroupLayout.PREFERRED_SIZE))
+						.addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED,
+							javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
+				.addGroup(layout
+					.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+					.addComponent(txtFilenameOfPrivateKey)
+					.addComponent(lblPrivateKey, javax.swing.GroupLayout.PREFERRED_SIZE, 147,
+						javax.swing.GroupLayout.PREFERRED_SIZE)
+					.addComponent(scpPrivateKey)
+					.addGroup(javax.swing.GroupLayout.Alignment.TRAILING,
+						layout.createSequentialGroup().addGroup(layout
+							.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+							.addComponent(txtDirectoryOfPrivateKey)
+							.addGroup(layout.createSequentialGroup()
+								.addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED,
+									273, Short.MAX_VALUE)
+								.addComponent(btnSave, javax.swing.GroupLayout.PREFERRED_SIZE, 190,
+									javax.swing.GroupLayout.PREFERRED_SIZE)))
+							.addGap(18, 18, 18)
 							.addGroup(layout
-								.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-								.addComponent(scpPrivateKey, javax.swing.GroupLayout.PREFERRED_SIZE,
-									480, javax.swing.GroupLayout.PREFERRED_SIZE)
-								.addComponent(lblPrivateKey, javax.swing.GroupLayout.PREFERRED_SIZE,
-									147, javax.swing.GroupLayout.PREFERRED_SIZE)))
-						.addContainerGap(57, Short.MAX_VALUE)));
-		layout
-			.setVerticalGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-				.addGroup(layout.createSequentialGroup().addGap(26, 26, 26)
+								.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING,
+									false)
+								.addComponent(btnCancel, javax.swing.GroupLayout.DEFAULT_SIZE, 185,
+									Short.MAX_VALUE)
+								.addComponent(btnDirectoryOfPrivateKey,
+									javax.swing.GroupLayout.DEFAULT_SIZE,
+									javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))
+				.addGap(20, 20, 20)));
+		layout.setVerticalGroup(layout
+			.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+			.addGroup(layout.createSequentialGroup().addGap(26, 26, 26)
 					.addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
 						.addComponent(lblPrivateKey, javax.swing.GroupLayout.PREFERRED_SIZE, 29,
 							javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -280,7 +330,29 @@ public class NewPrivateKeyPanel extends BasePanel<NewPrivateKeyModelBean>
 								javax.swing.GroupLayout.PREFERRED_SIZE))
 						.addComponent(scpPrivateKey, javax.swing.GroupLayout.PREFERRED_SIZE, 265,
 							javax.swing.GroupLayout.PREFERRED_SIZE))
-					.addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 57,
+					.addGap(19, 19, 19)
+					.addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+						.addComponent(txtFilenameOfPrivateKey,
+							javax.swing.GroupLayout.PREFERRED_SIZE, 41,
+							javax.swing.GroupLayout.PREFERRED_SIZE)
+						.addComponent(lblFilenameOfPrivateKey,
+							javax.swing.GroupLayout.PREFERRED_SIZE, 36,
+							javax.swing.GroupLayout.PREFERRED_SIZE))
+					.addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+					.addGroup(
+						layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+							.addComponent(
+								btnDirectoryOfPrivateKey, javax.swing.GroupLayout.DEFAULT_SIZE,
+								javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+							.addGroup(layout
+								.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+								.addComponent(lblDirectoryOfPrivateKey,
+									javax.swing.GroupLayout.PREFERRED_SIZE, 36,
+									javax.swing.GroupLayout.PREFERRED_SIZE)
+								.addComponent(txtDirectoryOfPrivateKey,
+									javax.swing.GroupLayout.PREFERRED_SIZE, 45,
+									javax.swing.GroupLayout.PREFERRED_SIZE)))
+					.addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 35,
 						Short.MAX_VALUE)
 					.addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
 						.addComponent(btnCancel, javax.swing.GroupLayout.PREFERRED_SIZE, 41,

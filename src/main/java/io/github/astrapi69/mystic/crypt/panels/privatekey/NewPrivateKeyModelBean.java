@@ -28,6 +28,8 @@ public class NewPrivateKeyModelBean
 
 	PrivateKey privateKey;
 
-	/** The key file. */
-	File privateKeyFile;
+	/** The private key directory */
+	File privateKeyDirectory;
+
+	String filenameOfPrivateKey;
 }

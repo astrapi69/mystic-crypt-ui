@@ -23,12 +23,12 @@ public class NewPrivateKeyFileDialog extends PanelDialog<NewPrivateKeyModelBean>
 	public static void main(String[] args)
 	{
 		Model<NewPrivateKeyModelBean> model = BaseModel
-			.of(NewPrivateKeyModelBean.builder().keySize(KeySize.KEYSIZE_4096).build());
+			.of(NewPrivateKeyModelBean.builder().keySize(KeySize.KEYSIZE_2048).build());
 		NewPrivateKeyFileDialog dialog = new NewPrivateKeyFileDialog(null,
 			"NewPrivateKeyFileDialog", true, model);
 		dialog.addWindowListener(new CloseWindow());
 		ScreenSizeExtensions.centralize(dialog, 3, 3);
-		dialog.setSize(840, 520);
+		dialog.setSize(950, 560);
 
 		dialog.setVisible(true);
 	}
