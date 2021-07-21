@@ -450,13 +450,33 @@ public class MysticCryptApplicationFrame extends ApplicationFrame<ApplicationMod
 
 	protected void showNewMasterPw(final ActionEvent actionEvent)
 	{
-		Model<MasterPwFileModelBean> model = BaseModel.<MasterPwFileModelBean>of(
-			MasterPwFileModelBean.builder().minPasswordLength(6).withKeyFile(false)
-				.withMasterPw(false).showMasterPw(false).build());
-		NewMasterPwFileDialog dialog = new NewMasterPwFileDialog(this,
-			"Create new application file with credentials", true,
-			model);
-		dialog.setSize(840, 520);
-		dialog.setVisible(true);
+
+		File configDir = PathFinder.getRelativePath(SystemFileExtensions.getUserHomeDir(),
+			MysticCryptApplicationFrame.DEFAULT_USER_CONFIGURATION_DIRECTORY_NAME,
+			MysticCryptApplicationFrame.APPLICATION_NAME);
+		JFileChooser fileChooser = new JFileChooser(configDir);
+
+		fileChooser.setDialogTitle("Specify the database file to save");
+
+		final int returnVal = fileChooser.showSaveDialog(this);
+		if (returnVal == JFileChooser.APPROVE_OPTION)
+		{
+			final File selectedApplicationFile = fileChooser.getSelectedFile();
+			String selectedApplicationFilePath = selectedApplicationFile.getAbsolutePath();
+			Model<MasterPwFileModelBean> model = BaseModel.<MasterPwFileModelBean>of(
+				MasterPwFileModelBean.builder()
+					.applicationFile(selectedApplicationFile)
+					.selectedApplicationFilePath(selectedApplicationFilePath)
+					.minPasswordLength(6).withKeyFile(false)
+					.withMasterPw(false).showMasterPw(false).build());
+			NewMasterPwFileDialog dialog = new NewMasterPwFileDialog(this,
+				"Create new application file with credentials", true,
+				model);
+			dialog.setSize(840, 520);
+			dialog.setVisible(true);
+		} else if (returnVal == JFileChooser.CANCEL_OPTION) {
+			System.err.println("Cancel was selected");
+		}
+
 	}
 }

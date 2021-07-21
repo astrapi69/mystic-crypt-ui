@@ -171,8 +171,8 @@ public class NewMasterPwFilePanel extends BasePanel<MasterPwFileModelBean>
 		cmbKeyFileModel = new StringMutableComboBoxModel(modelObject.getKeyFilePaths());
 		cmbKeyFile.setModel(cmbKeyFileModel);
 
-		txtApplicationFile.setText(modelObject.getSelectedKeyFilePath() != null
-			? modelObject.getSelectedKeyFilePath()
+		txtApplicationFile.setText(modelObject.getSelectedApplicationFilePath()!= null
+			? modelObject.getSelectedApplicationFilePath()
 			: "");
 		txtApplicationFile.setEnabled(false);
 		btnApplicationFileChooser.addActionListener(this::onApplicationFileChooser);
@@ -202,7 +202,7 @@ public class NewMasterPwFilePanel extends BasePanel<MasterPwFileModelBean>
 		NewPrivateKeyModelBean modelBean = NewPrivateKeyModelBean.builder().build();
 		NewPrivateKeyFileDialog dialog = new NewPrivateKeyFileDialog(MysticCryptApplicationFrame.getInstance(),
 			"Enter your credentials", true, BaseModel.of(modelBean));
-		dialog.setSize(840, 520);
+		dialog.setSize(950, 560);
 		dialog.setVisible(true);
 	}
 

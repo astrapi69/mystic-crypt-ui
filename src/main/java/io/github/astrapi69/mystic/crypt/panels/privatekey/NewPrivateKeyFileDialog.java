@@ -29,7 +29,6 @@ public class NewPrivateKeyFileDialog extends PanelDialog<NewPrivateKeyModelBean>
 		dialog.addWindowListener(new CloseWindow());
 		ScreenSizeExtensions.centralize(dialog, 3, 3);
 		dialog.setSize(950, 560);
-
 		dialog.setVisible(true);
 	}
 
@@ -49,7 +48,6 @@ public class NewPrivateKeyFileDialog extends PanelDialog<NewPrivateKeyModelBean>
 			protected void onSave(ActionEvent actionEvent)
 			{
 				super.onSave(actionEvent);
-				NewPrivateKeyFileDialog.this.dispose();
 			}
 
 			@Override

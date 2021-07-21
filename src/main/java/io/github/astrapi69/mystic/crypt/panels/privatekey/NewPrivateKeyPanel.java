@@ -24,6 +24,7 @@
  */
 package io.github.astrapi69.mystic.crypt.panels.privatekey;
 
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.io.File;
 import java.io.IOException;
@@ -35,7 +36,7 @@ import java.util.logging.Level;
 import javax.swing.*;
 import javax.swing.event.DocumentEvent;
 
-import io.github.astrapi69.swing.adapters.DocumentListenerAdapter;
+import io.github.astrapi69.swing.utils.AwtExtensions;
 import lombok.Getter;
 import lombok.extern.java.Log;
 import io.github.astrapi69.create.FileFactory;
@@ -48,6 +49,7 @@ import io.github.astrapi69.model.BaseModel;
 import io.github.astrapi69.model.LambdaModel;
 import io.github.astrapi69.model.api.Model;
 import io.github.astrapi69.swing.JMTextField;
+import io.github.astrapi69.swing.adapters.DocumentListenerAdapter;
 import io.github.astrapi69.swing.base.BasePanel;
 import io.github.astrapi69.swing.combobox.model.EnumComboBoxModel;
 import io.github.astrapi69.system.SystemFileExtensions;
@@ -193,11 +195,30 @@ public class NewPrivateKeyPanel extends BasePanel<NewPrivateKeyModelBean>
 	{
 		String filenameOfPrivateKey = getTxtFilenameOfPrivateKey().getText();
 		File privateKeyDirectory = getModelObject().getPrivateKeyDirectory();
-		File privateKeyFile = RuntimeExceptionDecorator
-			.decorate(() -> FileFactory.newFile(privateKeyDirectory, filenameOfPrivateKey));
+		File privateKeyFile = new File(privateKeyDirectory, filenameOfPrivateKey);
+		if (privateKeyFile.exists())
+		{
+			String title = "File already exists";
+			String message = "The file already exists. It will be overwritten if you confirm!";
+			int option = JOptionPane.showConfirmDialog(this,
+				message,
+				title,
+				JOptionPane.OK_CANCEL_OPTION);
+			if (option == JOptionPane.CANCEL_OPTION)
+			{
+				return;
+			}
+		}
+		RuntimeExceptionDecorator.decorate(() -> FileFactory.newFile(privateKeyFile));
+
 		getModelObject().setPrivateKeyFile(privateKeyFile);
 		RuntimeExceptionDecorator.decorate(() -> PrivateKeyWriter
 			.writeInPemFormat(getModelObject().getPrivateKey(), privateKeyFile));
+		Component rootJDialog = AwtExtensions.getRootJDialog(this);
+		if(rootJDialog != null && rootJDialog instanceof JDialog){
+			JDialog dialog = (JDialog)rootJDialog;
+			dialog.dispose();
+		}
 	}
 
 	/**
@@ -248,6 +269,7 @@ public class NewPrivateKeyPanel extends BasePanel<NewPrivateKeyModelBean>
 		getModelObject().setFilenameOfPrivateKey("");
 		getModelObject().setPrivateKey(null);
 		getModelObject().setPrivateKeyDirectory(null);
+		getModelObject().setPrivateKeyFile(null);
 		btnSaveStateMachine.onClear();
 	}
 
