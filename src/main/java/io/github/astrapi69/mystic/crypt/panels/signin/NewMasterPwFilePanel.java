@@ -20,8 +20,6 @@ import lombok.Getter;
 import lombok.experimental.FieldDefaults;
 import io.github.astrapi69.create.FileCreationState;
 import io.github.astrapi69.create.FileFactory;
-import io.github.astrapi69.design.pattern.state.button.BtnOkComponentStateEnum;
-import io.github.astrapi69.design.pattern.state.button.BtnOkStateMachine;
 import io.github.astrapi69.model.BaseModel;
 import io.github.astrapi69.model.api.Model;
 import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;

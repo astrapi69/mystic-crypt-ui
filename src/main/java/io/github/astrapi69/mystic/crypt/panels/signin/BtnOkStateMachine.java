@@ -1,12 +1,10 @@
-package io.github.astrapi69.design.pattern.state.button;
+package io.github.astrapi69.mystic.crypt.panels.signin;
 
 import java.io.File;
 
 import javax.swing.*;
 
-import io.github.astrapi69.mystic.crypt.panels.signin.MasterPwFileModelBean;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;

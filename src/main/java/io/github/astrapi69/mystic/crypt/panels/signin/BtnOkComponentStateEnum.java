@@ -1,4 +1,4 @@
-package io.github.astrapi69.design.pattern.state.button;
+package io.github.astrapi69.mystic.crypt.panels.signin;
 
 public enum BtnOkComponentStateEnum implements BtnOkComponentState
 {
