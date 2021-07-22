@@ -28,6 +28,7 @@ import javax.swing.*;
 import javax.swing.event.DocumentEvent;
 import javax.swing.text.Document;
 
+import io.github.astrapi69.model.BaseModel;
 import lombok.AccessLevel;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -61,6 +62,16 @@ public class JMTextField extends JTextField
 				}
 			}
 		});
+	}
+
+	/**
+	 * Constructs a new <code>TextField</code>.
+	 * @param propertyModel
+	 *            the text model to be displayed
+	 */
+	public JMTextField(Model<String> propertyModel)
+	{
+		this.propertyModel = propertyModel;
 	}
 
 	/**

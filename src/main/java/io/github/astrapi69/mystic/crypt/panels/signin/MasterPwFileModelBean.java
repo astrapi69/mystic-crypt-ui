@@ -22,6 +22,7 @@ package io.github.astrapi69.mystic.crypt.panels.signin;
 
 import java.io.File;
 import java.io.Serializable;
+import java.security.PrivateKey;
 import java.util.List;
 
 import lombok.AccessLevel;
@@ -55,6 +56,9 @@ public class MasterPwFileModelBean implements Serializable
 	/** The key file paths for the combo box */
 	@Builder.Default
 	List<String> applicationFilePaths = ListFactory.newArrayList("");
+
+	/** The private key  */
+	PrivateKey privateKey;
 
 	/** The key file. */
 	File keyFile;

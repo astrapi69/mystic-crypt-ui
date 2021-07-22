@@ -159,6 +159,9 @@ public class MasterPwWithApplicationFilePanel extends BasePanel<MasterPwFileMode
 		// ===
 		// ===
 		// ===
+		// allow pwfield to copy or cut
+		txtMasterPw.putClientProperty("JPasswordField.cutCopyAllowed",true);
+
 		cbxMasterPw.addActionListener(this::onCheckMasterPw);
 		cbxKeyFile.addActionListener(this::onCheckKeyFile);
 		btnMasterPw.addActionListener(this::onShowMasterPw);
@@ -208,7 +211,7 @@ public class MasterPwWithApplicationFilePanel extends BasePanel<MasterPwFileMode
 		Object item = cmbApplicationFile.getSelectedItem();
 		String selectedApplicationFilePath = (String)item;
 		getModelObject().setSelectedApplicationFilePath(selectedApplicationFilePath);
-		if (selectedApplicationFilePath == "")
+		if (selectedApplicationFilePath.isEmpty())
 		{
 			getModelObject().setApplicationFile(null);
 			btnOkStateMachine.onApplicationFileAdded(btnOkStateMachine);
