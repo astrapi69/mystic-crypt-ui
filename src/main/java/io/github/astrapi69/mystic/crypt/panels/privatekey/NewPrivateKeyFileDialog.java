@@ -48,6 +48,7 @@ public class NewPrivateKeyFileDialog extends PanelDialog<NewPrivateKeyModelBean>
 			protected void onSave(ActionEvent actionEvent)
 			{
 				super.onSave(actionEvent);
+				NewPrivateKeyFileDialog.this.onSave();
 			}
 
 			@Override
@@ -57,5 +58,8 @@ public class NewPrivateKeyFileDialog extends PanelDialog<NewPrivateKeyModelBean>
 				NewPrivateKeyFileDialog.this.dispose();
 			}
 		};
+	}
+
+	protected void onSave(){
 	}
 }
