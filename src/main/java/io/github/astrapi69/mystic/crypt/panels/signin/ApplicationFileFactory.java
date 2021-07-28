@@ -1,5 +1,6 @@
 package io.github.astrapi69.mystic.crypt.panels.signin;
 
+import io.github.astrapi69.create.FileFactory;
 import io.github.astrapi69.crypto.algorithm.AesAlgorithm;
 import io.github.astrapi69.crypto.algorithm.SunJCEAlgorithm;
 import io.github.astrapi69.crypto.factories.SecretKeyFactoryExtensions;
@@ -10,8 +11,12 @@ import io.github.astrapi69.crypto.key.PublicKeyGenericEncryptor;
 import io.github.astrapi69.crypto.key.reader.PrivateKeyReader;
 import io.github.astrapi69.crypto.key.writer.EncryptedPrivateKeyWriter;
 import io.github.astrapi69.crypto.model.CryptModel;
+import io.github.astrapi69.delete.DeleteFileExtensions;
 import io.github.astrapi69.json.ObjectToJsonExtensions;
 import io.github.astrapi69.mystic.crypt.ApplicationModelBean;
+import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
+import io.github.astrapi69.search.PathFinder;
+import io.github.astrapi69.system.SystemFileExtensions;
 import io.github.astrapi69.throwable.RuntimeExceptionDecorator;
 import io.github.astrapi69.write.WriteFileExtensions;
 
@@ -123,12 +128,16 @@ public class ApplicationFileFactory
 			() -> WriteFileExtensions.storeByteArrayToFile(encrypt, applicationFile));
 	}
 
-	public static void newApplicationFileWithPassword(MasterPwFileModelBean modelObject)
+	public static File newApplicationFileWithPassword(MasterPwFileModelBean modelObject)
 	{
 		PBEFileEncryptor encryptor;
 		String password;
 		CryptModel<Cipher, String, String> cryptModel;
 		ApplicationModelBean applicationModelBean = ApplicationModelBean.builder().build();
+
+		File tempJsonFile = new File(SystemFileExtensions.getTempDir(), "tempJson.json");
+		RuntimeExceptionDecorator
+			.decorate(() -> FileFactory.newFile(tempJsonFile));
 		final File applicationFile = modelObject.getApplicationFile();
 
 		password = String.valueOf(modelObject.getMasterPw());
@@ -139,15 +148,14 @@ public class ApplicationFileFactory
 
 		cryptModel = CryptModel.<Cipher, String, String> builder().key(password)
 			.algorithm(SunJCEAlgorithm.PBEWithMD5AndDES).build();
-		encryptor = RuntimeExceptionDecorator.decorate(() -> new PBEFileEncryptor(cryptModel));
+		encryptor = RuntimeExceptionDecorator.decorate(() -> new PBEFileEncryptor(cryptModel, applicationFile));
 
 		String json = RuntimeExceptionDecorator
 			.decorate(() -> ObjectToJsonExtensions.toJson(applicationModelBean));
-
-		RuntimeExceptionDecorator
-			.decorate(() -> WriteFileExtensions.string2File(applicationFile, json));
-
-		RuntimeExceptionDecorator
-			.decorate(() -> encryptor.encrypt(applicationFile));
+		RuntimeExceptionDecorator.decorate(() -> WriteFileExtensions.string2File(tempJsonFile, json));
+		File encryptedAppData = RuntimeExceptionDecorator
+			.decorate(() -> encryptor.encrypt(tempJsonFile));
+		RuntimeExceptionDecorator.decorate(() -> DeleteFileExtensions.delete(tempJsonFile));
+		return encryptedAppData;
 	}
 }

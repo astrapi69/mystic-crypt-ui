@@ -224,16 +224,16 @@ public class MysticCryptApplicationFrame extends ApplicationFrame<ApplicationMod
 		File appConfigDir = PathFinder.getRelativePath(SystemFileExtensions.getUserHomeDir(),
 			MysticCryptApplicationFrame.DEFAULT_USER_CONFIGURATION_DIRECTORY_NAME,
 			MysticCryptApplicationFrame.APPLICATION_NAME);
-		File appData = new File(appConfigDir, "app-data-only-pw.json");
+		File tempJsonFile = new File(appConfigDir, "app-data-only-pw.json");
 
 		cryptModel = CryptModel.<Cipher, String, String> builder().key(password)
 			.algorithm(SunJCEAlgorithm.PBEWithMD5AndDES).build();
 		encryptor = RuntimeExceptionDecorator.decorate(() -> new PBEFileEncryptor(cryptModel));
 		String json = RuntimeExceptionDecorator
 			.decorate(() -> ObjectToJsonExtensions.toJson(modelObject));
-		RuntimeExceptionDecorator.decorate(() -> WriteFileExtensions.string2File(appData, json));
+		RuntimeExceptionDecorator.decorate(() -> WriteFileExtensions.string2File(tempJsonFile, json));
 		File encryptedAppData = RuntimeExceptionDecorator
-			.decorate(() -> encryptor.encrypt(appData));
+			.decorate(() -> encryptor.encrypt(tempJsonFile));
 		System.out.println(encryptedAppData.getAbsolutePath());
 	}
 
