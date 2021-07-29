@@ -6,6 +6,7 @@ import io.github.astrapi69.crypto.algorithm.SunJCEAlgorithm;
 import io.github.astrapi69.crypto.file.PBEFileDecryptor;
 import io.github.astrapi69.crypto.model.CryptModel;
 import io.github.astrapi69.delete.DeleteFileExtensions;
+import io.github.astrapi69.mystic.crypt.ApplicationModelBean;
 import io.github.astrapi69.search.PathFinder;
 import io.github.astrapi69.collections.list.ListFactory;
 import io.github.astrapi69.throwable.RuntimeExceptionDecorator;
@@ -17,6 +18,7 @@ import javax.crypto.Cipher;
 import java.io.File;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 class ApplicationFileFactoryTest
 {
@@ -63,6 +65,7 @@ class ApplicationFileFactoryTest
 			.minPasswordLength(6)
 			.masterPw("foobar".toCharArray())
 			.repeatPw("foobar".toCharArray())
+			.withMasterPw(true)
 			.build();
 		File encryptedFile = ApplicationFileFactory.newApplicationFileWithPassword(modelObject);
 		System.out.println(encryptedFile.getAbsolutePath());
@@ -74,6 +77,10 @@ class ApplicationFileFactoryTest
 		expected = FileChecksumExtensions.getChecksum(expectedFile, MdAlgorithm.MD5.name());
 		actual = FileChecksumExtensions.getChecksum(encryptedFile, MdAlgorithm.MD5.name());
 		assertEquals(expected, actual);
+
+		ApplicationModelBean applicationModelBean = ApplicationFileReader.readApplicationFileWithPassword(
+			modelObject);
+		assertNotNull(applicationModelBean);
 
 	}
 

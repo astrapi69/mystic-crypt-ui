@@ -443,91 +443,20 @@ public class MasterPwWithApplicationFilePanel extends BasePanel<MasterPwFileMode
 	protected void onOk(ActionEvent actionEvent)
 	{
 		System.err.println("onOk method action called");
-		ApplicationModelBean applicationModelBean;
-		MasterPwFileModelBean modelObject = getModelObject();
-		File applicationFile = modelObject.getApplicationFile();
-		if (cbxMasterPw.isSelected() && cbxKeyFile.isSelected())
-		{
-			char[] password = getTxtMasterPw().getPassword();
-			File keyFile = modelObject.getKeyFile();
-			PrivateKey privateKey;
-			PrivateKeyDecryptor decryptor;
-			PrivateKeyGenericDecryptor<String> genericDecryptor;
-			CryptModel<Cipher, PrivateKey, byte[]> decryptModel;
-			try
-			{
-				privateKey = EncryptedPrivateKeyReader.readPasswordProtectedPrivateKey(keyFile,
-					String.valueOf(password));
-
-				decryptModel = CryptModel.<Cipher, PrivateKey, byte[]> builder().key(privateKey)
-					.build();
-				decryptor = new PrivateKeyDecryptor(decryptModel);
-				genericDecryptor = new PrivateKeyGenericDecryptor<>(decryptor);
-				byte[] encryptedBytes = ReadFileExtensions.readFileToBytearray(applicationFile);
-				String json = genericDecryptor.decrypt(encryptedBytes);
-				applicationModelBean = JsonStringToObjectExtensions.toObject(json,
-					ApplicationModelBean.class, ObjectMapperFactory.newObjectMapper());
-				MysticCryptApplicationFrame.getInstance().setModelObject(applicationModelBean);
-			}
-			catch (Exception exception)
-			{
-				String title = "Authentication with Password or key file";
-				String htmlMessage = "<html><body width='350'>" + "<h2>" + title + "</h2>"
-					+ "<p> Password or key file or both are not valid" + "<p>"
-					+ exception.getMessage();
+		try{
+			ApplicationModelBean applicationModelBean = ApplicationFileReader.read(getModelObject());
+		} catch (Exception exception) {
+			String exceptionMessage = exception.getMessage();
+			if(exceptionMessage.contains("::")){
+				String[] split = exceptionMessage.split("::");
+				String title = split[0];
+				String htmlMessage = split[1];
 				JOptionPane.showMessageDialog(this, htmlMessage, title, JOptionPane.ERROR_MESSAGE);
 				log.log(Level.SEVERE, exception.getMessage(), exception);
-			}
-		}
-		else if (modelObject.isWithMasterPw())
-		{
-			char[] password = getTxtMasterPw().getPassword();
-			CryptModel<Cipher, String, String> pbeCryptModel = CryptModelFactory
-				.newCryptModel(SunJCEAlgorithm.PBEWithMD5AndDES, new String(password));
-			try
-			{
-				PBEFileDecryptor fileDecryptor = new PBEFileDecryptor(pbeCryptModel);
-				File decrypt = fileDecryptor.decrypt(applicationFile);
-				applicationModelBean = JsonFileToObjectExtensions.toObject(decrypt,
-					ApplicationModelBean.class, ObjectMapperFactory.newObjectMapper());
-				MysticCryptApplicationFrame.getInstance().setModelObject(applicationModelBean);
-			}
-			catch (Exception exception)
-			{
-				String title = "Authentication with Password";
-				String htmlMessage = "<html><body width='350'>" + "<h2>" + title + "</h2>"
-					+ "<p> Password is not valid" + "<p>" + exception.getMessage();
-				JOptionPane.showMessageDialog(this, htmlMessage, title, JOptionPane.ERROR_MESSAGE);
-				log.log(Level.SEVERE, exception.getMessage(), exception);
-			}
-		}
-		else if (modelObject.isWithKeyFile())
-		{
-			File keyFile = modelObject.getKeyFile();
-			try
-			{
-				PrivateKey privateKey = PrivateKeyReader.readPrivateKey(keyFile);
-
-				PrivateKeyDecryptor decryptor;
-				PrivateKeyGenericDecryptor<String> genericDecryptor;
-				CryptModel<Cipher, PrivateKey, byte[]> decryptModel;
-
-				decryptModel = CryptModel.<Cipher, PrivateKey, byte[]> builder().key(privateKey)
-					.build();
-				decryptor = new PrivateKeyDecryptor(decryptModel);
-				genericDecryptor = new PrivateKeyGenericDecryptor<>(decryptor);
-				byte[] encryptedBytes = ReadFileExtensions.readFileToBytearray(applicationFile);
-				String json = genericDecryptor.decrypt(encryptedBytes);
-				applicationModelBean = JsonStringToObjectExtensions.toObject(json,
-					ApplicationModelBean.class, ObjectMapperFactory.newObjectMapper());
-				MysticCryptApplicationFrame.getInstance().setModelObject(applicationModelBean);
-			}
-			catch (Exception exception)
-			{
-				String title = "Authentication with key file";
-				String htmlMessage = "<html><body width='350'>" + "<h2>" + title + "</h2>"
-					+ "<p> Key file is not valid" + "<p>" + exception.getMessage();
-				JOptionPane.showMessageDialog(this, htmlMessage, title, JOptionPane.ERROR_MESSAGE);
+			} else {
+				String title = exceptionMessage;
+				String localizedMessage = exception.getLocalizedMessage();
+				JOptionPane.showMessageDialog(this, localizedMessage, title, JOptionPane.ERROR_MESSAGE);
 				log.log(Level.SEVERE, exception.getMessage(), exception);
 			}
 		}
