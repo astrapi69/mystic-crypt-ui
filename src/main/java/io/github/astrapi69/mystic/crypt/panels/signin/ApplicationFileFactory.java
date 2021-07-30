@@ -1,5 +1,12 @@
 package io.github.astrapi69.mystic.crypt.panels.signin;
 
+import java.io.File;
+import java.security.PrivateKey;
+import java.security.PublicKey;
+
+import javax.crypto.Cipher;
+import javax.crypto.SecretKey;
+
 import io.github.astrapi69.create.FileFactory;
 import io.github.astrapi69.crypto.algorithm.AesAlgorithm;
 import io.github.astrapi69.crypto.algorithm.SunJCEAlgorithm;
@@ -14,20 +21,16 @@ import io.github.astrapi69.crypto.model.CryptModel;
 import io.github.astrapi69.delete.DeleteFileExtensions;
 import io.github.astrapi69.gson.ObjectToJsonExtensions;
 import io.github.astrapi69.mystic.crypt.ApplicationModelBean;
-import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
-import io.github.astrapi69.search.PathFinder;
+import io.github.astrapi69.random.number.RandomIntFactory;
+import io.github.astrapi69.random.object.RandomStringFactory;
 import io.github.astrapi69.system.SystemFileExtensions;
 import io.github.astrapi69.throwable.RuntimeExceptionDecorator;
 import io.github.astrapi69.write.WriteFileExtensions;
 
-import javax.crypto.Cipher;
-import javax.crypto.SecretKey;
-import java.io.File;
-import java.security.PrivateKey;
-import java.security.PublicKey;
-
 public class ApplicationFileFactory
 {
+
+	public static final String MCRDB_FILE_EXTENSION = ".mcrdb";
 
 	public static void newApplicationFileWithPrivateKey(
 		MasterPwFileModelBean modelObject)
@@ -135,7 +138,10 @@ public class ApplicationFileFactory
 		CryptModel<Cipher, String, String> cryptModel;
 		ApplicationModelBean applicationModelBean = ApplicationModelBean.builder().build();
 
-		File tempJsonFile = new File(SystemFileExtensions.getTempDir(), "tempJson.json");
+		String randomFilename = RandomStringFactory
+			.newRandomLongString(RandomIntFactory.randomIntBetween(4, 8)) + "."
+			+ RandomStringFactory.newRandomLongString(RandomIntFactory.randomIntBetween(2, 4));
+		File tempJsonFile = new File(SystemFileExtensions.getTempDir(), randomFilename);
 		RuntimeExceptionDecorator
 			.decorate(() -> FileFactory.newFile(tempJsonFile));
 		final File applicationFile = modelObject.getApplicationFile();
@@ -146,14 +152,21 @@ public class ApplicationFileFactory
 
 		cryptModel = CryptModel.<Cipher, String, String> builder().key(password)
 			.algorithm(SunJCEAlgorithm.PBEWithMD5AndDES).build();
-		encryptor = RuntimeExceptionDecorator.decorate(() -> new PBEFileEncryptor(cryptModel, applicationFile));
+		encryptor = RuntimeExceptionDecorator
+			.decorate(() -> new PBEFileEncryptor(cryptModel,
+				applicationFile, MCRDB_FILE_EXTENSION));
 
 		String json = RuntimeExceptionDecorator
 			.decorate(() -> ObjectToJsonExtensions.toJson(applicationModelBean));
 		RuntimeExceptionDecorator.decorate(() -> WriteFileExtensions.string2File(tempJsonFile, json));
-		File encryptedAppData = RuntimeExceptionDecorator
+
+		File encryptedApplicationFile = RuntimeExceptionDecorator
 			.decorate(() -> encryptor.encrypt(tempJsonFile));
-		RuntimeExceptionDecorator.decorate(() -> DeleteFileExtensions.delete(tempJsonFile));
-		return encryptedAppData;
+
+		if (tempJsonFile.exists())
+		{
+			RuntimeExceptionDecorator.decorate(() -> DeleteFileExtensions.delete(tempJsonFile));
+		}
+		return encryptedApplicationFile;
 	}
 }

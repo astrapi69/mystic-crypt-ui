@@ -5,6 +5,8 @@ import java.security.PrivateKey;
 
 import javax.crypto.Cipher;
 
+import io.github.astrapi69.delete.DeleteFileExtensions;
+import io.github.astrapi69.throwable.RuntimeExceptionDecorator;
 import lombok.NonNull;
 import io.github.astrapi69.crypto.algorithm.SunJCEAlgorithm;
 import io.github.astrapi69.crypto.factories.CryptModelFactory;
@@ -23,7 +25,6 @@ public class ApplicationFileReader
 {
 	public static ApplicationModelBean read(@NonNull MasterPwFileModelBean modelObject)
 	{
-		ApplicationModelBean applicationModelBean = null;
 		if (modelObject.isWithMasterPw() && modelObject.isWithKeyFile() )
 		{
 			return readApplicationFileWithPasswordAndPrivateKey(modelObject);
@@ -36,7 +37,7 @@ public class ApplicationFileReader
 		{
 			return readApplicationFileWithPrivateKey(modelObject);
 		}
-		return applicationModelBean;
+		return null;
 	}
 
 	public static ApplicationModelBean readApplicationFileWithPasswordAndPrivateKey(
@@ -47,23 +48,13 @@ public class ApplicationFileReader
 		File applicationFile = modelObject.getApplicationFile();
 		char[] password = modelObject.getMasterPw();
 		File keyFile = modelObject.getKeyFile();
-		PrivateKey privateKey;
-		PrivateKeyDecryptor decryptor;
-		PrivateKeyGenericDecryptor<String> genericDecryptor;
-		CryptModel<Cipher, PrivateKey, byte[]> decryptModel;
 		try
 		{
-			privateKey = EncryptedPrivateKeyReader.readPasswordProtectedPrivateKey(keyFile,
+			PrivateKey privateKey = EncryptedPrivateKeyReader.readPasswordProtectedPrivateKey(keyFile,
 				String.valueOf(password));
 
-			decryptModel = CryptModel.<Cipher, PrivateKey, byte[]> builder().key(privateKey)
-				.build();
-			decryptor = new PrivateKeyDecryptor(decryptModel);
-			genericDecryptor = new PrivateKeyGenericDecryptor<>(decryptor);
-			byte[] encryptedBytes = ReadFileExtensions.readFileToBytearray(applicationFile);
-			String json = genericDecryptor.decrypt(encryptedBytes);
-			applicationModelBean = JsonStringToObjectExtensions.toObject(json,
-				ApplicationModelBean.class);
+			applicationModelBean = getApplicationModelBean(applicationFile,
+				privateKey);
 		}
 		catch (Exception exception)
 		{
@@ -84,19 +75,7 @@ public class ApplicationFileReader
 		try
 		{
 			PrivateKey privateKey = PrivateKeyReader.readPrivateKey(keyFile);
-
-			PrivateKeyDecryptor decryptor;
-			PrivateKeyGenericDecryptor<String> genericDecryptor;
-			CryptModel<Cipher, PrivateKey, byte[]> decryptModel;
-
-			decryptModel = CryptModel.<Cipher, PrivateKey, byte[]> builder().key(privateKey)
-				.build();
-			decryptor = new PrivateKeyDecryptor(decryptModel);
-			genericDecryptor = new PrivateKeyGenericDecryptor<>(decryptor);
-			byte[] encryptedBytes = ReadFileExtensions.readFileToBytearray(applicationFile);
-			String json = genericDecryptor.decrypt(encryptedBytes);
-			applicationModelBean = JsonStringToObjectExtensions.toObject(json,
-				ApplicationModelBean.class);
+			applicationModelBean = getApplicationModelBean(applicationFile, privateKey);
 		}
 		catch (Exception exception)
 		{
@@ -105,6 +84,24 @@ public class ApplicationFileReader
 				+ "<p> Key file is not valid" + "<p>" + exception.getMessage();
 			throw new RuntimeException(title + "::" + htmlMessage, exception);
 		}
+		return applicationModelBean;
+	}
+
+	private static ApplicationModelBean getApplicationModelBean(File applicationFile,
+		PrivateKey privateKey) throws Exception
+	{
+		CryptModel<Cipher, PrivateKey, byte[]> decryptModel;
+		PrivateKeyDecryptor decryptor;
+		PrivateKeyGenericDecryptor<String> genericDecryptor;
+		ApplicationModelBean applicationModelBean;
+		decryptModel = CryptModel.<Cipher, PrivateKey, byte[]> builder().key(privateKey)
+			.build();
+		decryptor = new PrivateKeyDecryptor(decryptModel);
+		genericDecryptor = new PrivateKeyGenericDecryptor<>(decryptor);
+		byte[] encryptedBytes = ReadFileExtensions.readFileToBytearray(applicationFile);
+		String json = genericDecryptor.decrypt(encryptedBytes);
+		applicationModelBean = JsonStringToObjectExtensions.toObject(json,
+			ApplicationModelBean.class);
 		return applicationModelBean;
 	}
 
@@ -122,6 +119,7 @@ public class ApplicationFileReader
 			File decrypt = fileDecryptor.decrypt(applicationFile);
 			applicationModelBean = JsonFileToObjectExtensions.toObject(decrypt,
 				ApplicationModelBean.class);
+			RuntimeExceptionDecorator.decorate(() -> DeleteFileExtensions.delete(decrypt));
 		}
 		catch (Exception exception)
 		{
