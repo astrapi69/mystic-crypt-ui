@@ -44,7 +44,7 @@ import io.github.astrapi69.crypto.key.PublicKeyGenericEncryptor;
 import io.github.astrapi69.crypto.key.reader.EncryptedPrivateKeyReader;
 import io.github.astrapi69.crypto.key.reader.PrivateKeyReader;
 import io.github.astrapi69.crypto.model.CryptModel;
-import io.github.astrapi69.json.ObjectToJsonExtensions;
+import io.github.astrapi69.gson.ObjectToJsonExtensions;
 import io.github.astrapi69.layout.ScreenSizeExtensions;
 import io.github.astrapi69.model.BaseModel;
 import io.github.astrapi69.model.api.Model;

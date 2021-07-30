@@ -71,7 +71,7 @@ class ApplicationFileFactoryTest
 		System.out.println(encryptedFile.getAbsolutePath());
 		final File decrypt = RuntimeExceptionDecorator
 			.decorate(() -> decryptor.decrypt(applicationFile));
-		System.out.println(decrypt.getAbsolutePath());
+
 		File expectedFile = PathFinder.getRelativePath(PathFinder.getSrcTestResourcesDir(),
 			"expected-empty-db.mcdb");
 		expected = FileChecksumExtensions.getChecksum(expectedFile, MdAlgorithm.MD5.name());
@@ -81,6 +81,8 @@ class ApplicationFileFactoryTest
 		ApplicationModelBean applicationModelBean = ApplicationFileReader.readApplicationFileWithPassword(
 			modelObject);
 		assertNotNull(applicationModelBean);
+		// cleanup
+		DeleteFileExtensions.delete(decrypt);
 
 	}
 

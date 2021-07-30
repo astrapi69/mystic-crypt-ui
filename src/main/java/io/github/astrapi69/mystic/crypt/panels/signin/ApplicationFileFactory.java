@@ -12,7 +12,7 @@ import io.github.astrapi69.crypto.key.reader.PrivateKeyReader;
 import io.github.astrapi69.crypto.key.writer.EncryptedPrivateKeyWriter;
 import io.github.astrapi69.crypto.model.CryptModel;
 import io.github.astrapi69.delete.DeleteFileExtensions;
-import io.github.astrapi69.json.ObjectToJsonExtensions;
+import io.github.astrapi69.gson.ObjectToJsonExtensions;
 import io.github.astrapi69.mystic.crypt.ApplicationModelBean;
 import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
 import io.github.astrapi69.search.PathFinder;
@@ -128,7 +128,7 @@ public class ApplicationFileFactory
 			() -> WriteFileExtensions.storeByteArrayToFile(encrypt, applicationFile));
 	}
 
-	public static File newApplicationFileWithPassword(MasterPwFileModelBean modelObject)
+	public static File newApplicationFileWithPassword(final MasterPwFileModelBean modelObject)
 	{
 		PBEFileEncryptor encryptor;
 		String password;
@@ -142,9 +142,7 @@ public class ApplicationFileFactory
 
 		password = String.valueOf(modelObject.getMasterPw());
 
-		MasterPwFileModelBean masterPwFileModelBean = MasterPwFileModelBean.builder()
-			.build();
-		applicationModelBean.setMasterPwFileModelBean(masterPwFileModelBean);
+		applicationModelBean.setMasterPwFileModelBean(modelObject);
 
 		cryptModel = CryptModel.<Cipher, String, String> builder().key(password)
 			.algorithm(SunJCEAlgorithm.PBEWithMD5AndDES).build();

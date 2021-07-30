@@ -14,9 +14,8 @@ import io.github.astrapi69.crypto.key.PrivateKeyGenericDecryptor;
 import io.github.astrapi69.crypto.key.reader.EncryptedPrivateKeyReader;
 import io.github.astrapi69.crypto.key.reader.PrivateKeyReader;
 import io.github.astrapi69.crypto.model.CryptModel;
-import io.github.astrapi69.json.JsonFileToObjectExtensions;
-import io.github.astrapi69.json.JsonStringToObjectExtensions;
-import io.github.astrapi69.json.factory.ObjectMapperFactory;
+import io.github.astrapi69.gson.JsonFileToObjectExtensions;
+import io.github.astrapi69.gson.JsonStringToObjectExtensions;
 import io.github.astrapi69.mystic.crypt.ApplicationModelBean;
 import io.github.astrapi69.read.ReadFileExtensions;
 
@@ -64,7 +63,7 @@ public class ApplicationFileReader
 			byte[] encryptedBytes = ReadFileExtensions.readFileToBytearray(applicationFile);
 			String json = genericDecryptor.decrypt(encryptedBytes);
 			applicationModelBean = JsonStringToObjectExtensions.toObject(json,
-				ApplicationModelBean.class, ObjectMapperFactory.newObjectMapper());
+				ApplicationModelBean.class);
 		}
 		catch (Exception exception)
 		{
@@ -97,7 +96,7 @@ public class ApplicationFileReader
 			byte[] encryptedBytes = ReadFileExtensions.readFileToBytearray(applicationFile);
 			String json = genericDecryptor.decrypt(encryptedBytes);
 			applicationModelBean = JsonStringToObjectExtensions.toObject(json,
-				ApplicationModelBean.class, ObjectMapperFactory.newObjectMapper());
+				ApplicationModelBean.class);
 		}
 		catch (Exception exception)
 		{
@@ -122,7 +121,7 @@ public class ApplicationFileReader
 			PBEFileDecryptor fileDecryptor = new PBEFileDecryptor(pbeCryptModel);
 			File decrypt = fileDecryptor.decrypt(applicationFile);
 			applicationModelBean = JsonFileToObjectExtensions.toObject(decrypt,
-				ApplicationModelBean.class, ObjectMapperFactory.newObjectMapper());
+				ApplicationModelBean.class);
 		}
 		catch (Exception exception)
 		{

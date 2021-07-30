@@ -39,8 +39,8 @@ import org.apache.commons.codec.DecoderException;
 
 import io.github.astrapi69.collections.map.MapFactory;
 import io.github.astrapi69.collections.pairs.KeyValuePair;
-import de.alpharogroup.xml.crypto.file.XmlDecryptionExtensions;
-import de.alpharogroup.xml.crypto.file.XmlEncryptionExtensions;
+import io.github.astrapi69.xml.crypto.file.XmlDecryptionExtensions;
+import io.github.astrapi69.xml.crypto.file.XmlEncryptionExtensions;
 import io.github.astrapi69.crypto.obfuscation.rule.ObfuscationOperationRule;
 import io.github.astrapi69.model.BaseModel;
 import io.github.astrapi69.model.api.Model;
@@ -120,7 +120,7 @@ public class ObfuscationOperationRuleTablePanel extends BasePanel<ObfuscationOpe
 			try
 			{
 				List<KeyValuePair<Character, ObfuscationOperationRule<Character, Character>>> data = XmlDecryptionExtensions
-					.readFromFileAsXmlAndHex(aliases, selectedFile, "de.alpharogroup.**");
+					.readFromFileAsXmlAndHex(aliases, selectedFile, "io.github.astrapi69.**");
 				getModelObject().getTableModel().setData(data);
 				getModelObject().getTableModel().fireTableDataChanged();
 			}

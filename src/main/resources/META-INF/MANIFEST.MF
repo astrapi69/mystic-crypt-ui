@@ -3,5 +3,5 @@ Archiver-Version: Plexus Archiver
 Created-By: Apache Maven
 Built-By: astrapi69
 Build-Jdk: 1.6.0_16
-Package: de.alpharogroup.mystic.crypt
+Package: io.github.astrapi69.mystic.crypt
 Main-Class: io.github.astrapi69.mystic.crypt.SpringBootSwingApplication
