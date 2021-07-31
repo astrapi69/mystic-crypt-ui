@@ -4,9 +4,17 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.io.File;
+import java.security.PrivateKey;
+import java.security.Security;
 
 import javax.crypto.Cipher;
 
+import io.github.astrapi69.crypto.key.PrivateKeyDecryptor;
+import io.github.astrapi69.crypto.key.PrivateKeyGenericDecryptor;
+import io.github.astrapi69.crypto.key.reader.PrivateKeyReader;
+import io.github.astrapi69.gson.JsonStringToObjectExtensions;
+import io.github.astrapi69.read.ReadFileExtensions;
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -14,8 +22,6 @@ import org.junit.jupiter.api.Test;
 import io.github.astrapi69.checksum.FileChecksumExtensions;
 import io.github.astrapi69.collections.list.ListFactory;
 import io.github.astrapi69.crypto.algorithm.MdAlgorithm;
-import io.github.astrapi69.crypto.algorithm.SunJCEAlgorithm;
-import io.github.astrapi69.crypto.file.PBEFileDecryptor;
 import io.github.astrapi69.crypto.model.CryptModel;
 import io.github.astrapi69.delete.DeleteFileExtensions;
 import io.github.astrapi69.mystic.crypt.ApplicationModelBean;
@@ -25,74 +31,83 @@ import io.github.astrapi69.throwable.RuntimeExceptionDecorator;
 class ApplicationFileWithKeyFactoryTest
 {
 
+	PrivateKey derPrivateKey;
+	PrivateKey pemPrivateKey;
+
+	File derDir;
+	File pemDir;
+
+	File privateKeyDerFile;
+	File privateKeyPemFile;
+
+
 	File applicationFile;
 	String selectedApplicationFilePath;
 	File decryptedApplicationFile;
-	PBEFileDecryptor decryptor;
-	String password;
-	CryptModel<Cipher, String, String> cryptModel;
+	CryptModel<Cipher, PrivateKey, byte[]> decryptModel;
+	PrivateKeyDecryptor decryptor;
+	PrivateKeyGenericDecryptor<String> genericDecryptor;
 
 	@BeforeEach void setUp() {
+		Security.addProvider(new BouncyCastleProvider());
 		applicationFile = PathFinder.getRelativePath(PathFinder.getSrcTestResourcesDir(),
 			"empty-db-with-key" + ApplicationFileFactory.MCRDB_FILE_EXTENSION);
 		selectedApplicationFilePath = applicationFile.getAbsolutePath();
 		decryptedApplicationFile = PathFinder.getRelativePath(PathFinder.getSrcTestResourcesDir(), "empty-db-with-key.json");
-		password = "foobar";
-		cryptModel = CryptModel.<Cipher, String, String> builder().key(password)
-			.algorithm(SunJCEAlgorithm.PBEWithMD5AndDES).build();
+
+		pemDir = new File(PathFinder.getSrcTestResourcesDir(), "pem");
+		privateKeyPemFile = new File(pemDir, "private.pem");
+		pemPrivateKey = RuntimeExceptionDecorator
+			.decorate(() -> PrivateKeyReader.readPemPrivateKey(privateKeyPemFile));
+		decryptModel = CryptModel.<Cipher, PrivateKey, byte[]> builder().key(pemPrivateKey)
+			.build();
 		decryptor = RuntimeExceptionDecorator
-			.decorate(() -> new PBEFileDecryptor(cryptModel, decryptedApplicationFile));
+			.decorate(() -> new PrivateKeyDecryptor(decryptModel));
+		genericDecryptor = new PrivateKeyGenericDecryptor<>(decryptor);
+
+		derDir = new File(PathFinder.getSrcTestResourcesDir(), "der");
+		privateKeyDerFile = new File(derDir, "private.der");
+		derPrivateKey = RuntimeExceptionDecorator
+			.decorate(() -> PrivateKeyReader.readPrivateKey(privateKeyDerFile));
+
 	}
 
 	@AfterEach void tearDown() {
 		RuntimeExceptionDecorator.decorate(() -> DeleteFileExtensions.delete(applicationFile));
 		RuntimeExceptionDecorator.decorate(() -> DeleteFileExtensions.delete(decryptedApplicationFile));
 		selectedApplicationFilePath = null;
-		password = null;
-		cryptModel = null;
-		decryptor = null;
+		decryptModel = null;
 	}
 
-	@Test void newApplicationFileWithPrivateKey()
+	@Test void newApplicationFileWithPrivateKey() throws Exception
 	{
-		MasterPwFileModelBean modelObject;
-		// new scenario TODO set the appropriate data for the unit test
-		modelObject = MasterPwFileModelBean.builder().build();
-		ApplicationFileFactory.newApplicationFileWithPrivateKey(modelObject);
-	}
-
-	@Test void testNewApplicationFileWithPassword() throws Exception
-	{
+		// define parameter for the unit test
 		String actual;
 		String expected;
+		File actualEncryptedFile;
+		File expectedFile;
 		MasterPwFileModelBean modelObject;
-		// new scenario TODO set the appropriate data for the unit test
+		ApplicationModelBean applicationModelBean;
+		// create test data
 		modelObject = MasterPwFileModelBean.builder()
 			.applicationFile(applicationFile)
-			.selectedApplicationFilePath(selectedApplicationFilePath)
+			.privateKey(pemPrivateKey)
+			.keyFile(privateKeyPemFile)
 			.applicationFilePaths(ListFactory.newArrayList(""))
 			.keyFilePaths(ListFactory.newArrayList(""))
-			.minPasswordLength(6)
-			.masterPw("foobar".toCharArray())
-			.repeatPw("foobar".toCharArray())
-			.withMasterPw(true)
 			.build();
-		File encryptedFile = ApplicationFileFactory.newApplicationFileWithPassword(modelObject);
-		System.out.println(encryptedFile.getAbsolutePath());
-		final File decrypt = RuntimeExceptionDecorator
-			.decorate(() -> decryptor.decrypt(applicationFile));
-
-		File expectedFile = PathFinder.getRelativePath(PathFinder.getSrcTestResourcesDir(),
-			"expected-empty-db.mcdb");
-		expected = FileChecksumExtensions.getChecksum(expectedFile, MdAlgorithm.MD5.name());
-		actual = FileChecksumExtensions.getChecksum(encryptedFile, MdAlgorithm.MD5.name());
-		assertEquals(expected, actual);
-
-		ApplicationModelBean applicationModelBean = ApplicationFileReader.readApplicationFileWithPassword(
-			modelObject);
+		ApplicationFileFactory.newApplicationFileWithPrivateKey(modelObject);
+		// proof that method is working as expected
+		byte[] encryptedBytes = ReadFileExtensions.readFileToBytearray(applicationFile);
+		String json = genericDecryptor.decrypt(encryptedBytes);
+		applicationModelBean = JsonStringToObjectExtensions.toObject(json,
+			ApplicationModelBean.class);
 		assertNotNull(applicationModelBean);
-		// cleanup
-		DeleteFileExtensions.delete(decrypt);
 
+		ApplicationModelBean modelBeanReaded = ApplicationFileReader.readApplicationFileWithPrivateKey(
+			modelObject);
+		assertNotNull(modelBeanReaded);
+		// cleanup TODO
 	}
+
 }

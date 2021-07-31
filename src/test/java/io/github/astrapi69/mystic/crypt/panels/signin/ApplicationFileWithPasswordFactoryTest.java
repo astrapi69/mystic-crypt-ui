@@ -53,37 +53,41 @@ class ApplicationFileWithPasswordFactoryTest
 
 	@Test void testNewApplicationFileWithPassword() throws Exception
 	{
+		// define parameter for the unit test
 		String actual;
 		String expected;
+		File actualEncryptedFile;
+		File expectedFile;
 		MasterPwFileModelBean modelObject;
-		// new scenario TODO set the appropriate data for the unit test
+		ApplicationModelBean applicationModelBean;
+		// create test data
 		modelObject = MasterPwFileModelBean.builder()
 			.applicationFile(applicationFile)
 			.selectedApplicationFilePath(selectedApplicationFilePath)
 			.applicationFilePaths(ListFactory.newArrayList(""))
 			.keyFilePaths(ListFactory.newArrayList(""))
 			.minPasswordLength(6)
-			.masterPw("foobar".toCharArray())
-			.repeatPw("foobar".toCharArray())
+			.masterPw(password.toCharArray())
+			.repeatPw(password.toCharArray())
 			.withMasterPw(true)
 			.build();
-		File encryptedFile = ApplicationFileFactory.newApplicationFileWithPassword(modelObject);
-		System.out.println(encryptedFile.getAbsolutePath());
+		// test the actual method
+		actualEncryptedFile = ApplicationFileFactory.newApplicationFileWithPassword(modelObject);
+		// proof that method is working as expected
 		final File decrypt = RuntimeExceptionDecorator
 			.decorate(() -> decryptor.decrypt(applicationFile));
 
-		File expectedFile = PathFinder.getRelativePath(PathFinder.getSrcTestResourcesDir(),
+		expectedFile = PathFinder.getRelativePath(PathFinder.getSrcTestResourcesDir(),
 			"expected-empty-db.mcdb");
 		expected = FileChecksumExtensions.getChecksum(expectedFile, MdAlgorithm.MD5.name());
-		actual = FileChecksumExtensions.getChecksum(encryptedFile, MdAlgorithm.MD5.name());
+		actual = FileChecksumExtensions.getChecksum(actualEncryptedFile, MdAlgorithm.MD5.name());
 		assertEquals(expected, actual);
 
-		ApplicationModelBean applicationModelBean = ApplicationFileReader.readApplicationFileWithPassword(
+		applicationModelBean = ApplicationFileReader.readApplicationFileWithPassword(
 			modelObject);
 		assertNotNull(applicationModelBean);
 		// cleanup
 		DeleteFileExtensions.delete(decrypt);
-
 	}
 
 }

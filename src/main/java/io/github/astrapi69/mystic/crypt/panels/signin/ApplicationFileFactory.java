@@ -45,10 +45,8 @@ public class ApplicationFileFactory
 		ApplicationModelBean applicationModelBean = ApplicationModelBean.builder().build();
 		final File applicationFile = modelObject.getApplicationFile();
 
-		MasterPwFileModelBean masterPwFileModelBean = MasterPwFileModelBean.builder()
-			.build();
-		applicationModelBean.setMasterPwFileModelBean(masterPwFileModelBean);
-
+		applicationModelBean.setMasterPwFileModelBean(modelObject);
+		// TODO check if the private key is set and get instead the private key
 		privateKey = RuntimeExceptionDecorator
 			.decorate(() -> PrivateKeyReader.readPemPrivateKey(modelObject.getKeyFile()));
 
@@ -63,7 +61,7 @@ public class ApplicationFileFactory
 		encryptor = RuntimeExceptionDecorator
 			.decorate(() -> new PublicKeyEncryptor(encryptModel, symmetricKeyModel));
 		genericEncryptor = new PublicKeyGenericEncryptor<>(encryptor);
-
+		applicationModelBean.getMasterPwFileModelBean().setPrivateKey(null);
 		String json = RuntimeExceptionDecorator
 			.decorate(() -> ObjectToJsonExtensions.toJson(applicationModelBean));
 
@@ -137,6 +135,7 @@ public class ApplicationFileFactory
 		String password;
 		CryptModel<Cipher, String, String> cryptModel;
 		ApplicationModelBean applicationModelBean = ApplicationModelBean.builder().build();
+		applicationModelBean.setMasterPwFileModelBean(modelObject);
 
 		String randomFilename = RandomStringFactory
 			.newRandomLongString(RandomIntFactory.randomIntBetween(4, 8)) + "."
@@ -147,8 +146,6 @@ public class ApplicationFileFactory
 		final File applicationFile = modelObject.getApplicationFile();
 
 		password = String.valueOf(modelObject.getMasterPw());
-
-		applicationModelBean.setMasterPwFileModelBean(modelObject);
 
 		cryptModel = CryptModel.<Cipher, String, String> builder().key(password)
 			.algorithm(SunJCEAlgorithm.PBEWithMD5AndDES).build();

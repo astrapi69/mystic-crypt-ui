@@ -74,7 +74,13 @@ public class ApplicationFileReader
 		File keyFile = modelObject.getKeyFile();
 		try
 		{
-			PrivateKey privateKey = PrivateKeyReader.readPrivateKey(keyFile);
+			PrivateKey privateKey;
+			if(modelObject.getPrivateKey()!=null){
+				privateKey = modelObject.getPrivateKey();
+			} else {
+				// TODO check which format the private key is
+				privateKey = PrivateKeyReader.readPemPrivateKey(keyFile);
+			}
 			applicationModelBean = getApplicationModelBean(applicationFile, privateKey);
 		}
 		catch (Exception exception)
