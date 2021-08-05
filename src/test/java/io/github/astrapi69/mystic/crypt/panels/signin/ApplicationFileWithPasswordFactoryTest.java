@@ -20,7 +20,7 @@ import java.io.File;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-class ApplicationFileWithPasswordFactoryTest
+public class ApplicationFileWithPasswordFactoryTest
 {
 
 	File applicationFile;
@@ -32,7 +32,7 @@ class ApplicationFileWithPasswordFactoryTest
 
 	@BeforeEach void setUp() {
 		applicationFile = PathFinder.getRelativePath(PathFinder.getSrcTestResourcesDir(),
-			"empty-db.mcdb");
+			"empty-db"+ApplicationFileFactory.MCRDB_FILE_EXTENSION);
 		selectedApplicationFilePath = applicationFile.getAbsolutePath();
 		decryptedApplicationFile = PathFinder.getRelativePath(PathFinder.getSrcTestResourcesDir(), "empty-db.json");
 		password = "foobar";
@@ -78,7 +78,7 @@ class ApplicationFileWithPasswordFactoryTest
 			.decorate(() -> decryptor.decrypt(applicationFile));
 
 		expectedFile = PathFinder.getRelativePath(PathFinder.getSrcTestResourcesDir(),
-			"expected-empty-db.mcdb");
+				"expected-empty-db"+ApplicationFileFactory.MCRDB_FILE_EXTENSION);
 		expected = FileChecksumExtensions.getChecksum(expectedFile, MdAlgorithm.MD5.name());
 		actual = FileChecksumExtensions.getChecksum(actualEncryptedFile, MdAlgorithm.MD5.name());
 		assertEquals(expected, actual);

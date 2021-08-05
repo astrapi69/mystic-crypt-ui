@@ -28,7 +28,7 @@ import io.github.astrapi69.mystic.crypt.ApplicationModelBean;
 import io.github.astrapi69.search.PathFinder;
 import io.github.astrapi69.throwable.RuntimeExceptionDecorator;
 
-class ApplicationFileWithKeyFactoryTest
+public class ApplicationFileWithKeyFactoryTest
 {
 
 	PrivateKey derPrivateKey;
@@ -39,7 +39,6 @@ class ApplicationFileWithKeyFactoryTest
 
 	File privateKeyDerFile;
 	File privateKeyPemFile;
-
 
 	File applicationFile;
 	String selectedApplicationFilePath;
@@ -82,10 +81,7 @@ class ApplicationFileWithKeyFactoryTest
 	@Test void newApplicationFileWithPrivateKey() throws Exception
 	{
 		// define parameter for the unit test
-		String actual;
-		String expected;
 		File actualEncryptedFile;
-		File expectedFile;
 		MasterPwFileModelBean modelObject;
 		ApplicationModelBean applicationModelBean;
 		// create test data
@@ -96,18 +92,22 @@ class ApplicationFileWithKeyFactoryTest
 			.applicationFilePaths(ListFactory.newArrayList(""))
 			.keyFilePaths(ListFactory.newArrayList(""))
 			.build();
-		ApplicationFileFactory.newApplicationFileWithPrivateKey(modelObject);
+		// test the actual method
+		actualEncryptedFile = ApplicationFileFactory.newApplicationFileWithPrivateKey(modelObject);
+
 		// proof that method is working as expected
-		byte[] encryptedBytes = ReadFileExtensions.readFileToBytearray(applicationFile);
+		byte[] encryptedBytes = ReadFileExtensions.readFileToBytearray(actualEncryptedFile);
 		String json = genericDecryptor.decrypt(encryptedBytes);
 		applicationModelBean = JsonStringToObjectExtensions.toObject(json,
 			ApplicationModelBean.class);
 		assertNotNull(applicationModelBean);
+		MasterPwFileModelBean masterPwFileModelBean = applicationModelBean.getMasterPwFileModelBean();
+		assertEquals(modelObject, masterPwFileModelBean);
 
 		ApplicationModelBean modelBeanReaded = ApplicationFileReader.readApplicationFileWithPrivateKey(
 			modelObject);
 		assertNotNull(modelBeanReaded);
-		// cleanup TODO
+		assertEquals(applicationModelBean, modelBeanReaded);
 	}
 
 }

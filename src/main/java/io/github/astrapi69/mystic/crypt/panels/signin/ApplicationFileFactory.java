@@ -32,10 +32,9 @@ public class ApplicationFileFactory
 
 	public static final String MCRDB_FILE_EXTENSION = ".mcrdb";
 
-	public static void newApplicationFileWithPrivateKey(
+	public static File newApplicationFileWithPrivateKey(
 		MasterPwFileModelBean modelObject)
 	{
-		PrivateKey privateKey;
 		PublicKey publicKey;
 		SecretKey symmetricKey;
 		PublicKeyEncryptor encryptor;
@@ -47,8 +46,8 @@ public class ApplicationFileFactory
 
 		applicationModelBean.setMasterPwFileModelBean(modelObject);
 		// TODO check if the private key is set and get instead the private key
-		privateKey = RuntimeExceptionDecorator
-			.decorate(() -> PrivateKeyReader.readPemPrivateKey(modelObject.getKeyFile()));
+		PrivateKey privateKey = RuntimeExceptionDecorator
+				.decorate(() -> PrivateKeyReader.readPemPrivateKey(modelObject.getKeyFile()));
 
 		publicKey = RuntimeExceptionDecorator
 			.decorate(() -> PrivateKeyExtensions.generatePublicKey(privateKey));
@@ -72,9 +71,10 @@ public class ApplicationFileFactory
 
 		RuntimeExceptionDecorator.decorate(
 			() -> WriteFileExtensions.storeByteArrayToFile(encrypt, applicationFile));
+		return applicationFile;
 	}
 
-	public static void newApplicationFileWithPasswordAndPrivateKey(MasterPwFileModelBean modelObject)
+	public static File newApplicationFileWithPasswordAndPrivateKey(MasterPwFileModelBean modelObject)
 	{
 		PrivateKey privateKey;
 		PublicKey publicKey;
@@ -127,6 +127,7 @@ public class ApplicationFileFactory
 
 		RuntimeExceptionDecorator.decorate(
 			() -> WriteFileExtensions.storeByteArrayToFile(encrypt, applicationFile));
+		return applicationFile;
 	}
 
 	public static File newApplicationFileWithPassword(final MasterPwFileModelBean modelObject)
