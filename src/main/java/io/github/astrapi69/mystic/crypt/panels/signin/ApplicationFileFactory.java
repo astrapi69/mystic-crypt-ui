@@ -16,8 +16,8 @@ import io.github.astrapi69.crypto.key.PrivateKeyExtensions;
 import io.github.astrapi69.crypto.key.PublicKeyEncryptor;
 import io.github.astrapi69.crypto.key.PublicKeyGenericEncryptor;
 import io.github.astrapi69.crypto.key.reader.PrivateKeyReader;
-import io.github.astrapi69.crypto.key.writer.EncryptedPrivateKeyWriter;
 import io.github.astrapi69.crypto.model.CryptModel;
+import io.github.astrapi69.crypto.pw.PasswordStringEncryptor;
 import io.github.astrapi69.delete.DeleteFileExtensions;
 import io.github.astrapi69.gson.ObjectToJsonExtensions;
 import io.github.astrapi69.mystic.crypt.ApplicationModelBean;
@@ -36,17 +36,23 @@ public class ApplicationFileFactory
 		MasterPwFileModelBean modelObject)
 	{
 		PublicKey publicKey;
+		PrivateKey privateKey;
 		SecretKey symmetricKey;
 		PublicKeyEncryptor encryptor;
 		PublicKeyGenericEncryptor<String> genericEncryptor;
 		CryptModel<Cipher, PublicKey, byte[]> encryptModel;
 		CryptModel<Cipher, SecretKey, String> symmetricKeyModel;
-		ApplicationModelBean applicationModelBean = ApplicationModelBean.builder().build();
-		final File applicationFile = modelObject.getApplicationFile();
+		File applicationFile;
+		String json;
+		byte[] encrypt;
+		ApplicationModelBean applicationModelBean;
+		
+		applicationModelBean = ApplicationModelBean.builder().build();
+		applicationFile = modelObject.getApplicationFile();
 
 		applicationModelBean.setMasterPwFileModelBean(modelObject);
 		// TODO check if the private key is set and get instead the private key
-		PrivateKey privateKey = RuntimeExceptionDecorator
+		privateKey = RuntimeExceptionDecorator
 				.decorate(() -> PrivateKeyReader.readPemPrivateKey(modelObject.getKeyFile()));
 
 		publicKey = RuntimeExceptionDecorator
@@ -61,13 +67,13 @@ public class ApplicationFileFactory
 			.decorate(() -> new PublicKeyEncryptor(encryptModel, symmetricKeyModel));
 		genericEncryptor = new PublicKeyGenericEncryptor<>(encryptor);
 		applicationModelBean.getMasterPwFileModelBean().setPrivateKey(null);
-		String json = RuntimeExceptionDecorator
+		json = RuntimeExceptionDecorator
 			.decorate(() -> ObjectToJsonExtensions.toJson(applicationModelBean));
 
 		RuntimeExceptionDecorator
 			.decorate(() -> WriteFileExtensions.string2File(applicationFile, json));
 
-		byte[] encrypt = RuntimeExceptionDecorator.decorate(() -> genericEncryptor.encrypt(json));
+		encrypt = RuntimeExceptionDecorator.decorate(() -> genericEncryptor.encrypt(json));
 
 		RuntimeExceptionDecorator.decorate(
 			() -> WriteFileExtensions.storeByteArrayToFile(encrypt, applicationFile));
@@ -83,23 +89,25 @@ public class ApplicationFileFactory
 		PublicKeyGenericEncryptor<String> genericEncryptor;
 		CryptModel<Cipher, PublicKey, byte[]> encryptModel;
 		CryptModel<Cipher, SecretKey, String> symmetricKeyModel;
-		ApplicationModelBean applicationModelBean = ApplicationModelBean.builder().build();
-		final File applicationFile = modelObject.getApplicationFile();
+		File applicationFile;
+		String json;
+		String encryptedJson;
+		ApplicationModelBean applicationModelBean;
+		MasterPwFileModelBean masterPwFileModelBean;
+		PasswordStringEncryptor passwordStringEncryptor;
+		char[] masterPw;
+		
+		applicationModelBean = ApplicationModelBean.builder().build();
+		applicationFile = modelObject.getApplicationFile();
 
-		MasterPwFileModelBean masterPwFileModelBean = MasterPwFileModelBean.builder()
+		masterPwFileModelBean = MasterPwFileModelBean.builder()
 			.build();
 		applicationModelBean.setMasterPwFileModelBean(masterPwFileModelBean);
 
 		privateKey = RuntimeExceptionDecorator
 			.decorate(() -> PrivateKeyReader.readPemPrivateKey(modelObject.getKeyFile()));
 
-		char[] masterPw = modelObject.getMasterPw();
-
-		byte[] encryptedPrivateKeyArray = RuntimeExceptionDecorator.decorate(
-			() -> EncryptedPrivateKeyWriter.encryptPrivateKeyWithPassword(privateKey, String.valueOf(masterPw)));
-
-		RuntimeExceptionDecorator.decorate(
-			() -> WriteFileExtensions.storeByteArrayToFile(encryptedPrivateKeyArray, modelObject.getKeyFile()));
+		masterPw = modelObject.getMasterPw();
 
 		publicKey = RuntimeExceptionDecorator
 			.decorate(() -> PrivateKeyExtensions.generatePublicKey(privateKey));
@@ -114,16 +122,22 @@ public class ApplicationFileFactory
 
 		encryptor = RuntimeExceptionDecorator
 			.decorate(() -> new PublicKeyEncryptor(encryptModel, symmetricKeyModel));
+		
 
 		genericEncryptor = new PublicKeyGenericEncryptor<>(encryptor);
 
-		String json = RuntimeExceptionDecorator
+		passwordStringEncryptor = new PasswordStringEncryptor(String.valueOf(masterPw));
+
+		json = RuntimeExceptionDecorator
 			.decorate(() -> ObjectToJsonExtensions.toJson(applicationModelBean));
+		
+		encryptedJson = RuntimeExceptionDecorator
+				.decorate(() -> passwordStringEncryptor.encrypt(json));
+//
+//		RuntimeExceptionDecorator
+//			.decorate(() -> WriteFileExtensions.string2File(applicationFile, encryptedJson));
 
-		RuntimeExceptionDecorator
-			.decorate(() -> WriteFileExtensions.string2File(applicationFile, json));
-
-		byte[] encrypt = RuntimeExceptionDecorator.decorate(() -> genericEncryptor.encrypt(json));
+		byte[] encrypt = RuntimeExceptionDecorator.decorate(() -> genericEncryptor.encrypt(encryptedJson));
 
 		RuntimeExceptionDecorator.decorate(
 			() -> WriteFileExtensions.storeByteArrayToFile(encrypt, applicationFile));
@@ -135,16 +149,22 @@ public class ApplicationFileFactory
 		PBEFileEncryptor encryptor;
 		String password;
 		CryptModel<Cipher, String, String> cryptModel;
-		ApplicationModelBean applicationModelBean = ApplicationModelBean.builder().build();
+		ApplicationModelBean applicationModelBean;
+		String randomFilename;
+		File tempJsonFile;
+		File applicationFile;
+		String json;
+		
+		applicationModelBean = ApplicationModelBean.builder().build();
 		applicationModelBean.setMasterPwFileModelBean(modelObject);
 
-		String randomFilename = RandomStringFactory
+		randomFilename = RandomStringFactory
 			.newRandomLongString(RandomIntFactory.randomIntBetween(4, 8)) + "."
 			+ RandomStringFactory.newRandomLongString(RandomIntFactory.randomIntBetween(2, 4));
-		File tempJsonFile = new File(SystemFileExtensions.getTempDir(), randomFilename);
+		tempJsonFile = new File(SystemFileExtensions.getTempDir(), randomFilename);
 		RuntimeExceptionDecorator
 			.decorate(() -> FileFactory.newFile(tempJsonFile));
-		final File applicationFile = modelObject.getApplicationFile();
+		applicationFile = modelObject.getApplicationFile();
 
 		password = String.valueOf(modelObject.getMasterPw());
 
@@ -154,7 +174,7 @@ public class ApplicationFileFactory
 			.decorate(() -> new PBEFileEncryptor(cryptModel,
 				applicationFile, MCRDB_FILE_EXTENSION));
 
-		String json = RuntimeExceptionDecorator
+		json = RuntimeExceptionDecorator
 			.decorate(() -> ObjectToJsonExtensions.toJson(applicationModelBean));
 		RuntimeExceptionDecorator.decorate(() -> WriteFileExtensions.string2File(tempJsonFile, json));
 
