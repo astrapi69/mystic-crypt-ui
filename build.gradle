@@ -166,7 +166,7 @@ dependencies {
     // implementation("io.github.astrapi69:swing-menu-pf4j-plugin:1.0.0-SNAPSHOT")
     implementation("io.github.astrapi69:xml-extensions:$xmlExtensionsVersion")
     implementation("io.github.astrapi69:gson-extensions:$gsonExtensionsVersion")
-//    implementation("io.github.astrapi69:json-extensions:$jsonExtensionsVersion")
+    implementation("io.github.astrapi69:json-extensions:$jsonExtensionsVersion")
     implementation("org.springframework.boot:spring-boot-starter-integration")
     implementation("org.springframework.boot:spring-boot-starter-validation")
     annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")

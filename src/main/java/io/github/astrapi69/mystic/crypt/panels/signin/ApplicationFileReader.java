@@ -5,21 +5,24 @@ import java.security.PrivateKey;
 
 import javax.crypto.Cipher;
 
-import io.github.astrapi69.delete.DeleteFileExtensions;
-import io.github.astrapi69.throwable.RuntimeExceptionDecorator;
-import lombok.NonNull;
 import io.github.astrapi69.crypto.algorithm.SunJCEAlgorithm;
 import io.github.astrapi69.crypto.factories.CryptModelFactory;
 import io.github.astrapi69.crypto.file.PBEFileDecryptor;
 import io.github.astrapi69.crypto.key.PrivateKeyDecryptor;
 import io.github.astrapi69.crypto.key.PrivateKeyGenericDecryptor;
-import io.github.astrapi69.crypto.key.reader.EncryptedPrivateKeyReader;
 import io.github.astrapi69.crypto.key.reader.PrivateKeyReader;
 import io.github.astrapi69.crypto.model.CryptModel;
+import io.github.astrapi69.crypto.pw.PasswordStringDecryptor;
+import io.github.astrapi69.delete.DeleteFileExtensions;
 import io.github.astrapi69.gson.JsonFileToObjectExtensions;
 import io.github.astrapi69.gson.JsonStringToObjectExtensions;
+//import io.github.astrapi69.json.JsonFileToObjectExtensions;
+//import io.github.astrapi69.json.JsonStringToObjectExtensions;
+//import io.github.astrapi69.json.factory.ObjectMapperFactory;
 import io.github.astrapi69.mystic.crypt.ApplicationModelBean;
 import io.github.astrapi69.read.ReadFileExtensions;
+import io.github.astrapi69.throwable.RuntimeExceptionDecorator;
+import lombok.NonNull;
 
 public class ApplicationFileReader
 {
@@ -50,11 +53,24 @@ public class ApplicationFileReader
 		File keyFile = modelObject.getKeyFile();
 		try
 		{
-			PrivateKey privateKey = EncryptedPrivateKeyReader.readPasswordProtectedPrivateKey(keyFile,
-				String.valueOf(password));
+			CryptModel<Cipher, PrivateKey, byte[]> decryptModel;
+			PrivateKeyDecryptor decryptor;
+			PrivateKeyGenericDecryptor<String> genericDecryptor;
+			PrivateKey privateKey;
+			PasswordStringDecryptor passwordStringDecryptor;
+			passwordStringDecryptor = new PasswordStringDecryptor(String.valueOf(password));
+			privateKey = PrivateKeyReader.readPemPrivateKey(keyFile);
+			
+			decryptModel = CryptModel.<Cipher, PrivateKey, byte[]> builder().key(privateKey)
+				.build();
+			decryptor = new PrivateKeyDecryptor(decryptModel);
+			genericDecryptor = new PrivateKeyGenericDecryptor<>(decryptor);
+			byte[] encryptedBytes = ReadFileExtensions.readFileToBytearray(applicationFile);
+			String encryptedJson = genericDecryptor.decrypt(encryptedBytes);
+			String json = passwordStringDecryptor.decrypt(encryptedJson);
+			applicationModelBean = JsonStringToObjectExtensions.toObject(json,
+				ApplicationModelBean.class);
 
-			applicationModelBean = getApplicationModelBean(applicationFile,
-				privateKey);
 		}
 		catch (Exception exception)
 		{

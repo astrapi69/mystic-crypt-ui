@@ -1,11 +1,15 @@
 package io.github.astrapi69.mystic.crypt.panels.signin;
 
 import java.io.File;
+import java.io.IOException;
+import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.Security;
 
 import javax.crypto.Cipher;
 
+import io.github.astrapi69.checksum.FileChecksumExtensions;
+import io.github.astrapi69.crypto.algorithm.MdAlgorithm;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -20,6 +24,9 @@ import io.github.astrapi69.delete.DeleteFileExtensions;
 import io.github.astrapi69.mystic.crypt.ApplicationModelBean;
 import io.github.astrapi69.search.PathFinder;
 import io.github.astrapi69.throwable.RuntimeExceptionDecorator;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 class ApplicationFileWithPasswordAndKeyFactoryTest
 {
@@ -69,16 +76,19 @@ class ApplicationFileWithPasswordAndKeyFactoryTest
 	}
 
 	@AfterEach void tearDown() {
-//		RuntimeExceptionDecorator.decorate(() -> DeleteFileExtensions.delete(applicationFile));
-//		RuntimeExceptionDecorator.decorate(() -> DeleteFileExtensions.delete(decryptedApplicationFile));
+		RuntimeExceptionDecorator.decorate(() -> DeleteFileExtensions.delete(applicationFile));
+		RuntimeExceptionDecorator.decorate(() -> DeleteFileExtensions.delete(decryptedApplicationFile));
 		selectedApplicationFilePath = null;
 		password = null;
 		decryptor = null;
 	}
 
-	@Test void newApplicationFileWithPasswordAndPrivateKey()
-	{
+	@Test void newApplicationFileWithPasswordAndPrivateKey() throws NoSuchAlgorithmException, IOException {
+		// define parameter for the unit test
+		String actual;
+		String expected;
 		File actualEncryptedFile;
+		File expectedFile;
 		MasterPwFileModelBean modelObject;
 		// new scenario
 		modelObject = MasterPwFileModelBean.builder().applicationFile(applicationFile)
@@ -92,9 +102,10 @@ class ApplicationFileWithPasswordAndKeyFactoryTest
 
 		// test the actual method
 		actualEncryptedFile = ApplicationFileFactory.newApplicationFileWithPasswordAndPrivateKey(modelObject);
+
 //
-//		ApplicationModelBean modelBeanReaded = ApplicationFileReader.readApplicationFileWithPasswordAndPrivateKey(modelObject);
-		System.out.println(actualEncryptedFile.getAbsolutePath());
+		ApplicationModelBean modelBeanReaded = ApplicationFileReader.readApplicationFileWithPasswordAndPrivateKey(modelObject);
+		assertNotNull(modelBeanReaded);
 	}
 
 }

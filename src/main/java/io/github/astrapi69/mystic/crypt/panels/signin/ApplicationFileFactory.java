@@ -93,16 +93,13 @@ public class ApplicationFileFactory
 		String json;
 		String encryptedJson;
 		ApplicationModelBean applicationModelBean;
-		MasterPwFileModelBean masterPwFileModelBean;
 		PasswordStringEncryptor passwordStringEncryptor;
 		char[] masterPw;
 		
 		applicationModelBean = ApplicationModelBean.builder().build();
 		applicationFile = modelObject.getApplicationFile();
 
-		masterPwFileModelBean = MasterPwFileModelBean.builder()
-			.build();
-		applicationModelBean.setMasterPwFileModelBean(masterPwFileModelBean);
+		applicationModelBean.setMasterPwFileModelBean(modelObject);
 
 		privateKey = RuntimeExceptionDecorator
 			.decorate(() -> PrivateKeyReader.readPemPrivateKey(modelObject.getKeyFile()));
@@ -127,15 +124,13 @@ public class ApplicationFileFactory
 		genericEncryptor = new PublicKeyGenericEncryptor<>(encryptor);
 
 		passwordStringEncryptor = new PasswordStringEncryptor(String.valueOf(masterPw));
+		applicationModelBean.getMasterPwFileModelBean().setPrivateKey(null);
 
 		json = RuntimeExceptionDecorator
 			.decorate(() -> ObjectToJsonExtensions.toJson(applicationModelBean));
 		
 		encryptedJson = RuntimeExceptionDecorator
 				.decorate(() -> passwordStringEncryptor.encrypt(json));
-//
-//		RuntimeExceptionDecorator
-//			.decorate(() -> WriteFileExtensions.string2File(applicationFile, encryptedJson));
 
 		byte[] encrypt = RuntimeExceptionDecorator.decorate(() -> genericEncryptor.encrypt(encryptedJson));
 
