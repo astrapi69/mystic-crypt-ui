@@ -46,7 +46,7 @@ public class ApplicationFileFactory
 		String json;
 		byte[] encrypt;
 		ApplicationModelBean applicationModelBean;
-		
+
 		applicationModelBean = ApplicationModelBean.builder().build();
 		applicationFile = modelObject.getApplicationFile();
 

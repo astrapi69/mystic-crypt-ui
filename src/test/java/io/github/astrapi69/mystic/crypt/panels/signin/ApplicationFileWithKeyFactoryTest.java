@@ -46,7 +46,9 @@ public class ApplicationFileWithKeyFactoryTest {
 
     @BeforeEach
     void setUp() {
-        Security.addProvider(new BouncyCastleProvider());
+        if (Security.getProvider(BouncyCastleProvider.PROVIDER_NAME) == null) {
+            Security.addProvider(new BouncyCastleProvider());
+        }
         applicationFile = PathFinder.getRelativePath(PathFinder.getSrcTestResourcesDir(),
                 "empty-db-with-key" + ApplicationFileFactory.MCRDB_FILE_EXTENSION);
         selectedApplicationFilePath = applicationFile.getAbsolutePath();

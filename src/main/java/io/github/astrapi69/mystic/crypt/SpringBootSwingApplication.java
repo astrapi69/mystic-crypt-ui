@@ -22,6 +22,7 @@ package io.github.astrapi69.mystic.crypt;
 
 import java.awt.*;
 
+import io.github.astrapi69.layout.ScreenSizeExtensions;
 import lombok.AccessLevel;
 import lombok.experimental.FieldDefaults;
 
@@ -55,7 +56,10 @@ public class SpringBootSwingApplication extends MysticCryptApplicationFrame
 		EventQueue.invokeLater(() -> {
 			SpringBootSwingApplication springBootSwingApplicationFrame = context
 				.getBean(SpringBootSwingApplication.class);
-			springBootSwingApplicationFrame.setVisible(true);
+			while (!springBootSwingApplicationFrame.isVisible()) {
+				ScreenSizeExtensions.showFrame(springBootSwingApplicationFrame);
+			}
+			System.out.println("foo");
 		});
 	}
 

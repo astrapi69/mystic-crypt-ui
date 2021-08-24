@@ -431,6 +431,7 @@ public class MasterPwWithApplicationFilePanel extends BasePanel<MasterPwFileMode
 		System.err.println("onOk method action called");
 		try{
 			ApplicationModelBean applicationModelBean = ApplicationFileReader.read(getModelObject());
+			MysticCryptApplicationFrame.getInstance().setModelObject(applicationModelBean);
 		} catch (Exception exception) {
 			String exceptionMessage = exception.getMessage();
 			if(exceptionMessage.contains("::")){

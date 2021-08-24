@@ -5,6 +5,8 @@
  */
 package io.github.astrapi69.mystic.crypt.panels.signin;
 
+import java.awt.datatransfer.Clipboard;
+import java.awt.datatransfer.StringSelection;
 import java.awt.event.ActionEvent;
 import java.io.File;
 import java.security.PrivateKey;
@@ -12,6 +14,7 @@ import java.security.PrivateKey;
 import javax.swing.*;
 import javax.swing.event.DocumentEvent;
 
+import io.github.astrapi69.swing.utils.AwtExtensions;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.experimental.FieldDefaults;
@@ -232,6 +235,9 @@ public class NewMasterPwFilePanel extends BasePanel<MasterPwFileModelBean>
 					NewMasterPwFilePanel.this.getModelObject().setMasterPw(password);
 					txtMasterPw.setText(String.valueOf(password));
 					txtRepeatPw.setText(String.valueOf(password));
+					Clipboard clipboard = AwtExtensions.getSystemClipboard();
+					StringSelection content = new StringSelection(String.valueOf(password));
+					clipboard.setContents(content, null);
 					super.onOk();
 				}
 			};
@@ -450,17 +456,20 @@ public class NewMasterPwFilePanel extends BasePanel<MasterPwFileModelBean>
 	protected void onOk(ActionEvent actionEvent)
 	{
 		MasterPwFileModelBean modelObject = getModelObject();
-		if (modelObject.isWithMasterPw() && modelObject.isWithKeyFile())
+		boolean withPrivateKeyFile = modelObject.isWithKeyFile();
+		boolean withMasterPw = modelObject.isWithMasterPw();
+		boolean withPasswordAndPrivateKey = withMasterPw && withPrivateKeyFile;
+		if (withPasswordAndPrivateKey)
 		{
-			ApplicationFileFactory.newApplicationFileWithPasswordAndPrivateKey(getModelObject());
+			ApplicationFileFactory.newApplicationFileWithPasswordAndPrivateKey(modelObject);
 		}
-		else if (modelObject.isWithKeyFile())
+		else if (withPrivateKeyFile)
 		{
-			ApplicationFileFactory.newApplicationFileWithPrivateKey(getModelObject());
+			ApplicationFileFactory.newApplicationFileWithPrivateKey(modelObject);
 		}
-		else if (modelObject.isWithMasterPw())
+		else if (withMasterPw)
 		{
-			ApplicationFileFactory.newApplicationFileWithPassword(getModelObject());
+			ApplicationFileFactory.newApplicationFileWithPassword(modelObject);
 		}
 	}
 

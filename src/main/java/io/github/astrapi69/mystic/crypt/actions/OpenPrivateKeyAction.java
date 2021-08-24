@@ -88,7 +88,9 @@ public class OpenPrivateKeyAction extends OpenFileAction
 	private PrivateKey getPrivateKey(final File file)
 	{
 		PrivateKey privateKey = null;
-		Security.addProvider(new BouncyCastleProvider());
+		if (Security.getProvider(BouncyCastleProvider.PROVIDER_NAME) == null) {
+			Security.addProvider(MysticCryptApplicationFrame.getInstance().getBouncyCastleProvider());
+		}
 		try
 		{
 			if (!PrivateKeyReader.isPrivateKeyPasswordProtected(file))
@@ -142,7 +144,6 @@ public class OpenPrivateKeyAction extends OpenFileAction
 		{
 			try
 			{
-				Security.addProvider(new BouncyCastleProvider());
 				privateKey = PrivateKeyReader.readPemPrivateKey(file);
 			}
 			catch (final Exception e)

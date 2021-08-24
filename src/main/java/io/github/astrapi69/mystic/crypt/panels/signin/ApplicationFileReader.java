@@ -2,8 +2,13 @@ package io.github.astrapi69.mystic.crypt.panels.signin;
 
 import java.io.File;
 import java.security.PrivateKey;
+import java.security.Security;
 
 import javax.crypto.Cipher;
+
+import lombok.NonNull;
+
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
 
 import io.github.astrapi69.crypto.algorithm.SunJCEAlgorithm;
 import io.github.astrapi69.crypto.factories.CryptModelFactory;
@@ -16,13 +21,10 @@ import io.github.astrapi69.crypto.pw.PasswordStringDecryptor;
 import io.github.astrapi69.delete.DeleteFileExtensions;
 import io.github.astrapi69.gson.JsonFileToObjectExtensions;
 import io.github.astrapi69.gson.JsonStringToObjectExtensions;
-//import io.github.astrapi69.json.JsonFileToObjectExtensions;
-//import io.github.astrapi69.json.JsonStringToObjectExtensions;
-//import io.github.astrapi69.json.factory.ObjectMapperFactory;
 import io.github.astrapi69.mystic.crypt.ApplicationModelBean;
+import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
 import io.github.astrapi69.read.ReadFileExtensions;
 import io.github.astrapi69.throwable.RuntimeExceptionDecorator;
-import lombok.NonNull;
 
 public class ApplicationFileReader
 {
@@ -88,6 +90,11 @@ public class ApplicationFileReader
 		ApplicationModelBean applicationModelBean;
 		File applicationFile = modelObject.getApplicationFile();
 		File keyFile = modelObject.getKeyFile();
+		if (Security.getProvider(BouncyCastleProvider.PROVIDER_NAME) == null)
+		{
+			Security
+				.addProvider(MysticCryptApplicationFrame.getInstance().getBouncyCastleProvider());
+		}
 		try
 		{
 			PrivateKey privateKey;

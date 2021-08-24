@@ -1,5 +1,7 @@
 package io.github.astrapi69.mystic.crypt.panels.signin;
 
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+
 import java.io.File;
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
@@ -8,8 +10,6 @@ import java.security.Security;
 
 import javax.crypto.Cipher;
 
-import io.github.astrapi69.checksum.FileChecksumExtensions;
-import io.github.astrapi69.crypto.algorithm.MdAlgorithm;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -24,9 +24,6 @@ import io.github.astrapi69.delete.DeleteFileExtensions;
 import io.github.astrapi69.mystic.crypt.ApplicationModelBean;
 import io.github.astrapi69.search.PathFinder;
 import io.github.astrapi69.throwable.RuntimeExceptionDecorator;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 class ApplicationFileWithPasswordAndKeyFactoryTest
 {
@@ -49,8 +46,10 @@ class ApplicationFileWithPasswordAndKeyFactoryTest
 	String password;
 
 	@BeforeEach void setUp() {
-
-		Security.addProvider(new BouncyCastleProvider());
+		if (Security.getProvider(BouncyCastleProvider.PROVIDER_NAME) == null)
+		{
+			Security.addProvider(new BouncyCastleProvider());
+		}
 		applicationFile = PathFinder.getRelativePath(PathFinder.getSrcTestResourcesDir(),
 				"empty-db-with-key-and-pw" + ApplicationFileFactory.MCRDB_FILE_EXTENSION);
 		selectedApplicationFilePath = applicationFile.getAbsolutePath();

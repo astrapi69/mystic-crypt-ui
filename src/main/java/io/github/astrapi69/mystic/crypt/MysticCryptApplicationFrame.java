@@ -23,28 +23,18 @@ package io.github.astrapi69.mystic.crypt;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.io.File;
-import java.security.PrivateKey;
-import java.security.PublicKey;
+import java.security.Security;
 
-import javax.crypto.Cipher;
-import javax.crypto.SecretKey;
 import javax.swing.*;
+import javax.swing.filechooser.FileFilter;
+import javax.swing.filechooser.FileNameExtensionFilter;
 
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.experimental.FieldDefaults;
-import io.github.astrapi69.crypto.algorithm.AesAlgorithm;
-import io.github.astrapi69.crypto.algorithm.SunJCEAlgorithm;
-import io.github.astrapi69.crypto.factories.SecretKeyFactoryExtensions;
-import io.github.astrapi69.crypto.file.PBEFileEncryptor;
-import io.github.astrapi69.crypto.key.PrivateKeyExtensions;
-import io.github.astrapi69.crypto.key.PublicKeyEncryptor;
-import io.github.astrapi69.crypto.key.PublicKeyGenericEncryptor;
-import io.github.astrapi69.crypto.key.reader.EncryptedPrivateKeyReader;
-import io.github.astrapi69.crypto.key.reader.PrivateKeyReader;
-import io.github.astrapi69.crypto.model.CryptModel;
-import io.github.astrapi69.gson.ObjectToJsonExtensions;
+import io.github.astrapi69.create.FileCreationState;
+import io.github.astrapi69.create.FileFactory;
 import io.github.astrapi69.layout.ScreenSizeExtensions;
 import io.github.astrapi69.model.BaseModel;
 import io.github.astrapi69.model.api.Model;
@@ -64,7 +54,7 @@ import io.github.astrapi69.swing.splashscreen.SplashScreenModelBean;
 import io.github.astrapi69.swing.utils.JInternalFrameExtensions;
 import io.github.astrapi69.system.SystemFileExtensions;
 import io.github.astrapi69.throwable.RuntimeExceptionDecorator;
-import io.github.astrapi69.write.WriteFileExtensions;
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
 
 /**
  * The class {@link MysticCryptApplicationFrame}
@@ -72,6 +62,14 @@ import io.github.astrapi69.write.WriteFileExtensions;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class MysticCryptApplicationFrame extends ApplicationFrame<ApplicationModelBean>
 {
+	@Getter
+	private BouncyCastleProvider bouncyCastleProvider;
+	/**
+	 * initial block
+	 */
+	{
+		bouncyCastleProvider = new BouncyCastleProvider();
+	}
 	/**
 	 * The main method that start this {@link MysticCryptApplicationFrame}
 	 *
@@ -81,7 +79,9 @@ public class MysticCryptApplicationFrame extends ApplicationFrame<ApplicationMod
 	public static void main(String[] args)
 	{
 		MysticCryptApplicationFrame frame = new MysticCryptApplicationFrame();
-		frame.setVisible(true);
+		while (!frame.isVisible()) {
+			ScreenSizeExtensions.showFrame(frame);
+		}
 	}
 
 	/** The Constant serialVersionUID. */
@@ -189,6 +189,13 @@ public class MysticCryptApplicationFrame extends ApplicationFrame<ApplicationMod
 		{
 			instance = this;
 		}
+		// add once the default provider to the Security class
+		if (Security.getProvider(BouncyCastleProvider.PROVIDER_NAME) == null) {
+			if(getBouncyCastleProvider()==null) {
+				bouncyCastleProvider = new BouncyCastleProvider();
+			}
+			Security.addProvider(bouncyCastleProvider);
+		}
 		// initialize model and model object
 		setModel(BaseModel.of(ApplicationModelBean.builder().build()));
 		super.onBeforeInitialize();
@@ -197,143 +204,10 @@ public class MysticCryptApplicationFrame extends ApplicationFrame<ApplicationMod
 	@Override
 	protected void onBeforeInitializeComponents()
 	{
-		// start
-		// TODO delete when app-file created
-		// generateTempApplicationModelFileWithPassword();
-		// generateTempApplicationModelFileWithKeyFile();
-		// generateTempApplicationModelFileWithPasswordProtectedKeyFile();
-		// TODO delete when app-file created
-		// end
-		// TODO FIXME uncomment if 'create new master key is finished::::!!!!:::::
 		showMasterPwDialog();
-		// TODO FIXME uncomment if 'create new master key is finished::::!!!!:::::
+		//Make sure we have nice window decorations.
+		JFrame.setDefaultLookAndFeelDecorated(true);
 		super.onBeforeInitializeComponents();
-	}
-
-	private void generateTempApplicationModelFileWithPassword()
-	{
-		PBEFileEncryptor encryptor;
-		String password;
-		CryptModel<Cipher, String, String> cryptModel;
-
-		password = "test1234";
-		ApplicationModelBean modelObject = getModelObject();
-		MasterPwFileModelBean masterPwFileModelBean = MasterPwFileModelBean.builder()
-			.masterPw(password.toCharArray()).build();
-		modelObject.setMasterPwFileModelBean(masterPwFileModelBean);
-		File appConfigDir = PathFinder.getRelativePath(SystemFileExtensions.getUserHomeDir(),
-			MysticCryptApplicationFrame.DEFAULT_USER_CONFIGURATION_DIRECTORY_NAME,
-			MysticCryptApplicationFrame.APPLICATION_NAME);
-		File tempJsonFile = new File(appConfigDir, "app-data-only-pw.json");
-
-		cryptModel = CryptModel.<Cipher, String, String> builder().key(password)
-			.algorithm(SunJCEAlgorithm.PBEWithMD5AndDES).build();
-		encryptor = RuntimeExceptionDecorator.decorate(() -> new PBEFileEncryptor(cryptModel));
-		String json = RuntimeExceptionDecorator
-			.decorate(() -> ObjectToJsonExtensions.toJson(modelObject));
-		RuntimeExceptionDecorator.decorate(() -> WriteFileExtensions.string2File(tempJsonFile, json));
-		File encryptedAppData = RuntimeExceptionDecorator
-			.decorate(() -> encryptor.encrypt(tempJsonFile));
-		System.out.println(encryptedAppData.getAbsolutePath());
-	}
-
-	private void generateTempApplicationModelFileWithPasswordProtectedKeyFile()
-	{
-		PrivateKey privateKey;
-		File pwProtectedPrivateKeyFile;
-		String password;
-		PublicKey publicKey;
-		SecretKey symmetricKey;
-		PublicKeyEncryptor encryptor;
-		PublicKeyGenericEncryptor<String> genericEncryptor;
-		CryptModel<Cipher, PublicKey, byte[]> encryptModel;
-		CryptModel<Cipher, SecretKey, String> symmetricKeyModel;
-
-		File appConfigDir = PathFinder.getRelativePath(SystemFileExtensions.getUserHomeDir(),
-			MysticCryptApplicationFrame.DEFAULT_USER_CONFIGURATION_DIRECTORY_NAME,
-			MysticCryptApplicationFrame.APPLICATION_NAME);
-		File applicationFile = new File(appConfigDir, "app-data-with-pw-protected-key.json");
-		File encryptedAppDataFile = new File(appConfigDir, "app-data-with-pw-protected-key.enc");
-
-		ApplicationModelBean modelObject = getModelObject();
-		MasterPwFileModelBean masterPwFileModelBean = MasterPwFileModelBean.builder()
-			.applicationFile(applicationFile)
-			.build();
-		modelObject.setMasterPwFileModelBean(masterPwFileModelBean);
-
-		pwProtectedPrivateKeyFile = new File(appConfigDir, "pwp-private-key-pw-is-secret.der");
-		password = "secret";
-
-		privateKey = RuntimeExceptionDecorator.decorate(() -> EncryptedPrivateKeyReader
-			.readPasswordProtectedPrivateKey(pwProtectedPrivateKeyFile, password));
-		publicKey = RuntimeExceptionDecorator
-			.decorate(() -> PrivateKeyExtensions.generatePublicKey(privateKey));
-		encryptModel = CryptModel.<Cipher, PublicKey, byte[]> builder().key(publicKey).build();
-		symmetricKey = RuntimeExceptionDecorator.decorate(
-			() -> SecretKeyFactoryExtensions.newSecretKey(AesAlgorithm.AES.getAlgorithm(), 128));
-		symmetricKeyModel = CryptModel.<Cipher, SecretKey, String> builder().key(symmetricKey)
-			.algorithm(AesAlgorithm.AES).operationMode(Cipher.ENCRYPT_MODE).build();
-
-		encryptor = RuntimeExceptionDecorator
-			.decorate(() -> new PublicKeyEncryptor(encryptModel, symmetricKeyModel));
-		genericEncryptor = new PublicKeyGenericEncryptor<>(encryptor);
-
-		String json = RuntimeExceptionDecorator
-			.decorate(() -> ObjectToJsonExtensions.toJson(modelObject));
-		RuntimeExceptionDecorator
-			.decorate(() -> WriteFileExtensions.string2File(applicationFile, json));
-		byte[] encrypt = RuntimeExceptionDecorator.decorate(() -> genericEncryptor.encrypt(json));
-		RuntimeExceptionDecorator.decorate(
-			() -> WriteFileExtensions.storeByteArrayToFile(encrypt, encryptedAppDataFile));
-		System.out.println(encryptedAppDataFile.getAbsolutePath());
-	}
-
-	private void generateTempApplicationModelFileWithKeyFile()
-	{
-		PrivateKey privateKey;
-		File privatekeyDerFile;
-		PublicKey publicKey;
-		SecretKey symmetricKey;
-		PublicKeyEncryptor encryptor;
-		PublicKeyGenericEncryptor<String> genericEncryptor;
-		CryptModel<Cipher, PublicKey, byte[]> encryptModel;
-		CryptModel<Cipher, SecretKey, String> symmetricKeyModel;
-
-		File appConfigDir = PathFinder.getRelativePath(SystemFileExtensions.getUserHomeDir(),
-			MysticCryptApplicationFrame.DEFAULT_USER_CONFIGURATION_DIRECTORY_NAME,
-			MysticCryptApplicationFrame.APPLICATION_NAME);
-		File applicationFile = new File(appConfigDir, "app-data-with-key.json");
-		File encryptedAppDataFile = new File(appConfigDir, "app-data-with-key.enc");
-
-		ApplicationModelBean modelObject = getModelObject();
-		MasterPwFileModelBean masterPwFileModelBean = MasterPwFileModelBean.builder()
-			.applicationFile(applicationFile)
-			.build();
-		modelObject.setMasterPwFileModelBean(masterPwFileModelBean);
-
-		privatekeyDerFile = new File(appConfigDir, "private.der");
-
-		privateKey = RuntimeExceptionDecorator
-			.decorate(() -> PrivateKeyReader.readPrivateKey(privatekeyDerFile));
-		publicKey = RuntimeExceptionDecorator
-			.decorate(() -> PrivateKeyExtensions.generatePublicKey(privateKey));
-		encryptModel = CryptModel.<Cipher, PublicKey, byte[]> builder().key(publicKey).build();
-		symmetricKey = RuntimeExceptionDecorator.decorate(
-			() -> SecretKeyFactoryExtensions.newSecretKey(AesAlgorithm.AES.getAlgorithm(), 128));
-		symmetricKeyModel = CryptModel.<Cipher, SecretKey, String> builder().key(symmetricKey)
-			.algorithm(AesAlgorithm.AES).operationMode(Cipher.ENCRYPT_MODE).build();
-
-		encryptor = RuntimeExceptionDecorator
-			.decorate(() -> new PublicKeyEncryptor(encryptModel, symmetricKeyModel));
-		genericEncryptor = new PublicKeyGenericEncryptor<>(encryptor);
-		String json = RuntimeExceptionDecorator
-			.decorate(() -> ObjectToJsonExtensions.toJson(modelObject));
-		RuntimeExceptionDecorator
-			.decorate(() -> WriteFileExtensions.string2File(applicationFile, json));
-		byte[] encrypt = RuntimeExceptionDecorator.decorate(() -> genericEncryptor.encrypt(json));
-		RuntimeExceptionDecorator.decorate(
-			() -> WriteFileExtensions.storeByteArrayToFile(encrypt, encryptedAppDataFile));
-		System.out.println(encryptedAppDataFile.getAbsolutePath());
 	}
 
 	public void getConsoleOutput()
@@ -387,7 +261,6 @@ public class MysticCryptApplicationFrame extends ApplicationFrame<ApplicationMod
 		super.onAfterInitialize();
 		getConsoleOutput();
 		setTitle(Messages.getString("mainframe.title"));
-		setDefaultLookAndFeel(LookAndFeels.NIMBUS, this);
 	}
 
 
@@ -448,6 +321,37 @@ public class MysticCryptApplicationFrame extends ApplicationFrame<ApplicationMod
 		return toolBar;
 	}
 
+	/**
+	 * Returns the selected file from the given {@link JFileChooser}, that ends with the first
+	 * extension of the {@link FileNameExtensionFilter} from the {@link JFileChooser}
+	 * 
+	 * @param fileChooser
+	 *            the file chooser
+	 * 
+	 * @return the file with the first extension of the {@link FileNameExtensionFilter} from the
+	 *         {@link JFileChooser}
+	 */
+	public static File getSelectedFileWithFirstExtension(JFileChooser fileChooser)
+	{
+		File file = fileChooser.getSelectedFile();
+		FileFilter fileFilter = fileChooser.getFileFilter();
+		if (fileFilter instanceof FileNameExtensionFilter)
+		{
+			FileNameExtensionFilter fileNameExtensionFilter = (FileNameExtensionFilter)fileFilter;
+			String[] extensions = fileNameExtensionFilter.getExtensions();
+			String fileNameToLowerCase = file.getName().toLowerCase();
+			for (String extension : extensions)
+			{
+				if (fileNameToLowerCase.endsWith('.' + extension.toLowerCase()))
+				{
+					return file;
+				}
+			}
+			file = new File(file.getAbsolutePath() + '.' + extensions[0]);
+		}
+		return file;
+	}
+
 	protected void showNewMasterPw(final ActionEvent actionEvent)
 	{
 
@@ -455,13 +359,20 @@ public class MysticCryptApplicationFrame extends ApplicationFrame<ApplicationMod
 			MysticCryptApplicationFrame.DEFAULT_USER_CONFIGURATION_DIRECTORY_NAME,
 			MysticCryptApplicationFrame.APPLICATION_NAME);
 		JFileChooser fileChooser = new JFileChooser(configDir);
-
 		fileChooser.setDialogTitle("Specify the database file to save");
+		FileNameExtensionFilter fileNameExtensionFilter = new FileNameExtensionFilter(
+			"Mystic crypt files (*.mcrdb)", "mcrdb");
+		fileChooser.setFileFilter(fileNameExtensionFilter);
 
 		final int returnVal = fileChooser.showSaveDialog(this);
 		if (returnVal == JFileChooser.APPROVE_OPTION)
 		{
-			final File selectedApplicationFile = fileChooser.getSelectedFile();
+			final File selectedApplicationFile = getSelectedFileWithFirstExtension(fileChooser);
+			if (!selectedApplicationFile.exists())
+			{
+				FileCreationState fileCreationState = RuntimeExceptionDecorator
+					.decorate(() -> FileFactory.newFile(selectedApplicationFile));
+			}
 			String selectedApplicationFilePath = selectedApplicationFile.getAbsolutePath();
 			Model<MasterPwFileModelBean> model = BaseModel.<MasterPwFileModelBean>of(
 				MasterPwFileModelBean.builder()
