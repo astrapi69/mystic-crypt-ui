@@ -299,24 +299,24 @@ public class MysticCryptApplicationFrame extends ApplicationFrame<ApplicationMod
 			"New application");
 		btnApplicationAdd.addActionListener(this::showNewMasterPw);
 		toolBar.add(btnApplicationAdd);
-
-		ImageIcon folderEdit = ImageIconFactory
-			.newImageIcon("io/github/astrapi69/silk/icons/folder_edit.png");
-		JButton btnFolderEdit = IconButtonFactory.newIconButton(folderEdit, "Open application");
-		toolBar.add(btnFolderEdit);
-
-		ImageIcon disk = ImageIconFactory.newImageIcon("io/github/astrapi69/silk/icons/disk.png");
-		JButton btnDisk = IconButtonFactory.newIconButton(disk, "Save");
-		toolBar.add(btnDisk);
-
-		ImageIcon magnifier = ImageIconFactory
-			.newImageIcon("io/github/astrapi69/silk/icons/magnifier.png");
-		JButton btnMagnifier = IconButtonFactory.newIconButton(magnifier, "Search");
-		toolBar.add(btnMagnifier);
-
-		ImageIcon lock = ImageIconFactory.newImageIcon("io/github/astrapi69/silk/icons/lock.png");
-		JButton btnLock = IconButtonFactory.newIconButton(lock, "Lock workspace");
-		toolBar.add(btnLock);
+//
+//		ImageIcon folderEdit = ImageIconFactory
+//			.newImageIcon("io/github/astrapi69/silk/icons/folder_edit.png");
+//		JButton btnFolderEdit = IconButtonFactory.newIconButton(folderEdit, "Open application");
+//		toolBar.add(btnFolderEdit);
+//
+//		ImageIcon disk = ImageIconFactory.newImageIcon("io/github/astrapi69/silk/icons/disk.png");
+//		JButton btnDisk = IconButtonFactory.newIconButton(disk, "Save");
+//		toolBar.add(btnDisk);
+//
+//		ImageIcon magnifier = ImageIconFactory
+//			.newImageIcon("io/github/astrapi69/silk/icons/magnifier.png");
+//		JButton btnMagnifier = IconButtonFactory.newIconButton(magnifier, "Search");
+//		toolBar.add(btnMagnifier);
+//
+//		ImageIcon lock = ImageIconFactory.newImageIcon("io/github/astrapi69/silk/icons/lock.png");
+//		JButton btnLock = IconButtonFactory.newIconButton(lock, "Lock workspace");
+//		toolBar.add(btnLock);
 
 		return toolBar;
 	}
