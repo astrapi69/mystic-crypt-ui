@@ -59,7 +59,6 @@ public class SpringBootSwingApplication extends MysticCryptApplicationFrame
 			while (!springBootSwingApplicationFrame.isVisible()) {
 				ScreenSizeExtensions.showFrame(springBootSwingApplicationFrame);
 			}
-			System.out.println("foo");
 		});
 	}
 
