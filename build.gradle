@@ -163,6 +163,7 @@ dependencies {
     implementation("io.github.astrapi69:jobj-core:$jobjCoreVersion")
     implementation("io.github.astrapi69:swing-components:$swingComponentsVersion")
     implementation("io.github.astrapi69:menu-actions:$menuActionsVersion")
+    implementation("io.github.astrapi69:net-extensions:$netExtensionsVersion")
     // implementation("io.github.astrapi69:swing-menu-pf4j-plugin:1.0.0-SNAPSHOT")
     implementation("io.github.astrapi69:xml-extensions:$xmlExtensionsVersion")
     implementation("io.github.astrapi69:gson-extensions:$gsonExtensionsVersion")

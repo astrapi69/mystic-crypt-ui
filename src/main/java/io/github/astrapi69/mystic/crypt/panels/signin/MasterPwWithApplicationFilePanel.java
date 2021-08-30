@@ -27,6 +27,9 @@ import java.util.logging.Level;
 import javax.swing.*;
 import javax.swing.event.DocumentEvent;
 
+import io.github.astrapi69.swing.combobox.model.StringMutableComboBoxModel;
+import io.github.astrapi69.swing.help.HelpDialog;
+import io.github.astrapi69.swing.panels.help.HelpModelBean;
 import lombok.Getter;
 import lombok.extern.java.Log;
 import io.github.astrapi69.model.BaseModel;
@@ -187,9 +190,31 @@ public class MasterPwWithApplicationFilePanel extends BasePanel<MasterPwFileMode
 			modelObject.getApplicationFilePaths(), modelObject.getSelectedKeyFilePath());
 		cmbApplicationFile.setModel(cmbApplicationFileModel);
 		cmbApplicationFile.addActionListener(this::onChangeCmbApplicationFile);
+		btnHelp.addActionListener(this::onHelp);
 
 		toggleMasterPwComponents();
 		toggleKeyFileComponents();
+	}
+
+	protected void onHelp(ActionEvent actionEvent)
+	{
+		HelpModelBean helpModelBean = HelpModelBean.builder()
+			.title("Help for authentication")
+			.content("Your mystic-crypt database is an encrypted file.\n\n" +
+				"For open your mystic-crypt database you will need your master key.\n" +
+				"You master key consist either from a password or a private key or " +
+				"both.\n\n" +
+				"The master key is set by the creation of the mystic-crypt database.\n" +
+				"Thats why the master key is essential and if you forget or lose your master key \n" +
+				"all data on your mystic-crypt database are lost.")
+			.build();
+		Model<HelpModelBean> helpModel = BaseModel.of(helpModelBean);
+		HelpDialog helpDialog = new HelpDialog(MysticCryptApplicationFrame.getInstance(),
+			"Help for sign in to the your database",
+			true,
+			helpModel);
+		helpDialog.setSize(800, 300);
+		helpDialog.setVisible(true);
 	}
 
 	protected void onChangeCmbApplicationFile(final ActionEvent actionEvent)
