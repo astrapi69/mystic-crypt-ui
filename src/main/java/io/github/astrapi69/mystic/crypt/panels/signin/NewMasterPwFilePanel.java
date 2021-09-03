@@ -7,11 +7,14 @@ package io.github.astrapi69.mystic.crypt.panels.signin;
 
 import java.awt.event.ActionEvent;
 import java.io.File;
+import java.net.URL;
 import java.security.PrivateKey;
 
 import javax.swing.*;
 import javax.swing.event.DocumentEvent;
 
+import io.github.astrapi69.net.url.URLExtensions;
+import io.github.astrapi69.swing.browser.BrowserControlExtensions;
 import io.github.astrapi69.swing.help.HelpDialog;
 import io.github.astrapi69.swing.panels.help.HelpModelBean;
 import lombok.AccessLevel;
@@ -207,27 +210,40 @@ public class NewMasterPwFilePanel extends BasePanel<MasterPwFileModelBean>
 	}
 
 	protected void onHelp(ActionEvent actionEvent)
-	{HelpModelBean helpModelBean = HelpModelBean.builder()
-		.title("Help for create new mystic-crypt database")
-		.content("For create a new mystic-crypt database and encrypt\n" +
-			" your data you will need to define first the file.\n\n" +
-			"As second step you have to set a password or a private key or a combination of both.\n" +
-			"If you want only with a password check the appropriate checkbox and leave \n" +
-			"the private key checkbox unchecked and set the password. If you want only with a \n" +
-			"private key check the appropriate checkbox and leave the password checkbox unchecked \n" +
-			"and set the private key. If you want a combination of both check both checkboxes \n" +
-			"and set the password and private key.\n" +
-			"After that you can save the mystic-crypt database by clicking ok.\n" +
-			"For all option above remember to copy the password or a private key or both \n" +
-			"and persist to save place. The same applies for the mystic-crypt database file.")
-		.build();
-		Model<HelpModelBean> helpModel = BaseModel.of(helpModelBean);
-		HelpDialog helpDialog = new HelpDialog(MysticCryptApplicationFrame.getInstance(),
-			"Help for sign in to the your database",
-			true,
-			helpModel);
-		helpDialog.setSize(800, 300);
-		helpDialog.setVisible(true);
+	{
+		String helpLink = "https://github.com/astrapi69/mystic-crypt-ui/wiki/" +
+			"Help:-create-new-mystic-crypt-database";
+		URL helpUrl = RuntimeExceptionDecorator.decorate(() -> new URL(helpLink));
+		if (URLExtensions.isReachable(helpUrl))
+		{
+			BrowserControlExtensions.displayURLonStandardBrowser(this, helpLink);
+		}
+		else
+		{
+			HelpModelBean helpModelBean = HelpModelBean.builder()
+				.title("Help for create new mystic-crypt database")
+				.content("For create a new mystic-crypt database and encrypt your data \n" +
+					"you will need to define first the application file.\n\n" +
+					"Than you have to set your master key that consist of a password or a private key\n" +
+					"or a combination of both.\n" +
+					"If you want only with a password check the appropriate checkbox and leave \n" +
+					"the private key checkbox unchecked and set the password. " +
+					"\nIf you want only with a private key check the appropriate checkbox and leave\n" +
+					"the password checkbox unchecked and set the private key.\n" +
+					"\nIf you want a combination of both check both checkboxes \n" +
+					"and set the password and private key.\n\n" +
+					"After that you can save the mystic-crypt database by clicking ok.\n" +
+					"For all option above remember to copy the password or a private key or both \n" +
+					"and backup to save place. The same applies for the mystic-crypt database file.")
+				.build();
+			Model<HelpModelBean> helpModel = BaseModel.of(helpModelBean);
+			HelpDialog helpDialog = new HelpDialog(MysticCryptApplicationFrame.getInstance(),
+				"Help for sign in to the your database",
+				true,
+				helpModel);
+			helpDialog.setSize(800, 300);
+			helpDialog.setVisible(true);
+		}
 	}
 
 	protected void onCreateKeyFile(final ActionEvent actionEvent)

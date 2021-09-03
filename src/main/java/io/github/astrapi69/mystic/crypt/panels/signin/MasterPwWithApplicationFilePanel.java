@@ -22,24 +22,28 @@ package io.github.astrapi69.mystic.crypt.panels.signin;
 
 import java.awt.event.ActionEvent;
 import java.io.File;
+import java.net.URL;
 import java.util.logging.Level;
 
 import javax.swing.*;
 import javax.swing.event.DocumentEvent;
 
-import io.github.astrapi69.swing.combobox.model.StringMutableComboBoxModel;
-import io.github.astrapi69.swing.help.HelpDialog;
-import io.github.astrapi69.swing.panels.help.HelpModelBean;
 import lombok.Getter;
 import lombok.extern.java.Log;
 import io.github.astrapi69.model.BaseModel;
 import io.github.astrapi69.model.api.Model;
 import io.github.astrapi69.mystic.crypt.ApplicationModelBean;
 import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
+import io.github.astrapi69.net.url.URLExtensions;
 import io.github.astrapi69.search.PathFinder;
 import io.github.astrapi69.swing.adapters.DocumentListenerAdapter;
 import io.github.astrapi69.swing.base.BasePanel;
+import io.github.astrapi69.swing.browser.BrowserControlExtensions;
+import io.github.astrapi69.swing.combobox.model.StringMutableComboBoxModel;
+import io.github.astrapi69.swing.help.HelpDialog;
+import io.github.astrapi69.swing.panels.help.HelpModelBean;
 import io.github.astrapi69.system.SystemFileExtensions;
+import io.github.astrapi69.throwable.RuntimeExceptionDecorator;
 
 /**
  * The class {@link MasterPwFilePanel}
@@ -198,23 +202,33 @@ public class MasterPwWithApplicationFilePanel extends BasePanel<MasterPwFileMode
 
 	protected void onHelp(ActionEvent actionEvent)
 	{
-		HelpModelBean helpModelBean = HelpModelBean.builder()
-			.title("Help for authentication")
-			.content("Your mystic-crypt database is an encrypted file.\n\n" +
-				"For open your mystic-crypt database you will need your master key.\n" +
-				"You master key consist either from a password or a private key or " +
-				"both.\n\n" +
-				"The master key is set by the creation of the mystic-crypt database.\n" +
-				"Thats why the master key is essential and if you forget or lose your master key \n" +
-				"all data on your mystic-crypt database are lost.")
-			.build();
-		Model<HelpModelBean> helpModel = BaseModel.of(helpModelBean);
-		HelpDialog helpDialog = new HelpDialog(MysticCryptApplicationFrame.getInstance(),
-			"Help for sign in to the your database",
-			true,
-			helpModel);
-		helpDialog.setSize(800, 300);
-		helpDialog.setVisible(true);
+		String helpLink = "https://github.com/astrapi69/mystic-crypt-ui/wiki/" +
+			"Help:-open-existing-mystic-crypt-database";
+		URL helpUrl = RuntimeExceptionDecorator.decorate(() -> new URL(helpLink));
+		if (URLExtensions.isReachable(helpUrl))
+		{
+			BrowserControlExtensions.displayURLonStandardBrowser(this, helpLink);
+		}
+		else
+		{
+			HelpModelBean helpModelBean = HelpModelBean.builder().title("Help for authentication")
+				.content("Your mystic-crypt database is an encrypted file.\n\n"
+					+ "For open you will need your master key.\n"
+					+ "You master key consist either from a password or a private key or "
+					+ "both.\n\n"
+					+ "The master key is set by the creation of the mystic-crypt database.\n"
+					+ "If you desided by creation only with password then enter only your password\n"
+					+ "If you desided by creation only with private key then select only the private key\n"
+				    + "If you desided by creation a combination of password and private key enter \n" +
+					"your password and select your private key\n" +
+					"After you set the master key you can open your mystic-crypt database by clicking ok.")
+				.build();
+			Model<HelpModelBean> helpModel = BaseModel.of(helpModelBean);
+			HelpDialog helpDialog = new HelpDialog(MysticCryptApplicationFrame.getInstance(),
+				"Help for sign in to the your database", true, helpModel);
+			helpDialog.setSize(800, 300);
+			helpDialog.setVisible(true);
+		}
 	}
 
 	protected void onChangeCmbApplicationFile(final ActionEvent actionEvent)
