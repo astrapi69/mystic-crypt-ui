@@ -350,7 +350,7 @@ public class NewCertificateInfoPanel extends BasePanel<CertificateInfo> {
     }
 
     protected void onAddExtension(java.awt.event.ActionEvent evt) {
-        // TODO implement functionality...
+
     }
 
 }

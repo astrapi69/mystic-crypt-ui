@@ -3,11 +3,14 @@ package io.github.astrapi69.mystic.crypt.panels.signin;
 import java.io.File;
 import java.security.PrivateKey;
 import java.security.Security;
+import java.util.logging.Level;
 
 import javax.crypto.Cipher;
 
+import io.github.astrapi69.crypto.key.reader.PemObjectReader;
 import lombok.NonNull;
 
+import lombok.extern.java.Log;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 
 import io.github.astrapi69.crypto.algorithm.SunJCEAlgorithm;
@@ -26,6 +29,7 @@ import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
 import io.github.astrapi69.read.ReadFileExtensions;
 import io.github.astrapi69.throwable.RuntimeExceptionDecorator;
 
+@Log
 public class ApplicationFileReader
 {
 	public static ApplicationModelBean read(@NonNull MasterPwFileModelBean modelObject)
@@ -76,6 +80,7 @@ public class ApplicationFileReader
 		}
 		catch (Exception exception)
 		{
+			log.log(Level.SEVERE, exception.getLocalizedMessage(), exception);
 			String title = "Authentication with Password or key file";
 			String htmlMessage = "<html><body width='350'>" + "<h2>" + title + "</h2>"
 				+ "<p> Password or key file or both are not valid" + "<p>" + exception.getMessage();
@@ -101,8 +106,11 @@ public class ApplicationFileReader
 			if(modelObject.getPrivateKey()!=null){
 				privateKey = modelObject.getPrivateKey();
 			} else {
-				// TODO check which format the private key is
-				privateKey = PrivateKeyReader.readPemPrivateKey(keyFile);
+				if(PemObjectReader.isPemObject(keyFile)) {
+					privateKey = PrivateKeyReader.readPemPrivateKey(keyFile);
+				} else {
+					privateKey = PrivateKeyReader.readPrivateKey(keyFile);
+				}
 			}
 			applicationModelBean = getApplicationModelBean(applicationFile, privateKey);
 		}

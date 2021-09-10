@@ -120,13 +120,6 @@ public class CertificatePanel extends BasePanel<CertificateInfo>
 		lblIssuedTo.setText("Issued to");
 
 		txtIssuedTo.setToolTipText("");
-		txtIssuedTo.addActionListener(new java.awt.event.ActionListener()
-		{
-			@Override public void actionPerformed(java.awt.event.ActionEvent evt)
-			{
-				txtIssuedToActionPerformed(evt);
-			}
-		});
 
 		lblIssuedBy.setText("Issued by");
 
@@ -235,8 +228,4 @@ public class CertificatePanel extends BasePanel<CertificateInfo>
 						GroupLayout.PREFERRED_SIZE)).addContainerGap(56, Short.MAX_VALUE)));
 	}
 
-	private void txtIssuedToActionPerformed(java.awt.event.ActionEvent evt)
-	{// GEN-FIRST:event_txtIssuedToActionPerformed
-		// TODO add your handling code here:
-	}// GEN-LAST:event_txtIssuedToActionPerformed
 }

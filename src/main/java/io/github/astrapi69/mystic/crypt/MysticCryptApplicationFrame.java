@@ -140,28 +140,29 @@ public class MysticCryptApplicationFrame extends ApplicationFrame<ApplicationMod
 	public MysticCryptApplicationFrame()
 	{
 		super(Messages.getString("mainframe.title"));
-		// TODO uncomment after merge into develop branch
-//		showSplashScreen();
+		showSplashScreen();
 	}
 
 	protected void showSplashScreen()
 	{
-		SplashScreenModelBean splashScreenModelBean = SplashScreenModelBean.builder()
-			.imagePath(getIconPath()).text(getApplicationName()).min(0).max(100).showTime(1200)
-			.showing(true).build();
-		Model<SplashScreenModelBean> modelBeanModel = BaseModel.of(splashScreenModelBean);
-		Thread splashScreenThread = new Thread(() -> {
-			new ProgressBarSplashScreen(MysticCryptApplicationFrame.this, modelBeanModel)
-			{
-				@Override
-				protected void onBeforeInitialize()
+		if(getModelObject().isShowSplash()) {
+			SplashScreenModelBean splashScreenModelBean = SplashScreenModelBean.builder()
+				.imagePath(getIconPath()).text(getApplicationName()).min(0).max(100).showTime(1200)
+				.showing(true).build();
+			Model<SplashScreenModelBean> modelBeanModel = BaseModel.of(splashScreenModelBean);
+			Thread splashScreenThread = new Thread(() -> {
+				new ProgressBarSplashScreen(MysticCryptApplicationFrame.this, modelBeanModel)
 				{
-					super.onBeforeInitialize();
-					MysticCryptApplicationFrame.this.setVisible(false);
-				}
-			};
-		});
-		splashScreenThread.start();
+					@Override
+					protected void onBeforeInitialize()
+					{
+						super.onBeforeInitialize();
+						MysticCryptApplicationFrame.this.setVisible(false);
+					}
+				};
+			});
+			splashScreenThread.start();
+		}
 	}
 
 	protected String getApplicationName()
@@ -370,7 +371,7 @@ public class MysticCryptApplicationFrame extends ApplicationFrame<ApplicationMod
 			final File selectedApplicationFile = getSelectedFileWithFirstExtension(fileChooser);
 			if (!selectedApplicationFile.exists())
 			{
-				FileCreationState fileCreationState = RuntimeExceptionDecorator
+				RuntimeExceptionDecorator
 					.decorate(() -> FileFactory.newFile(selectedApplicationFile));
 			}
 			String selectedApplicationFilePath = selectedApplicationFile.getAbsolutePath();
@@ -381,7 +382,7 @@ public class MysticCryptApplicationFrame extends ApplicationFrame<ApplicationMod
 					.minPasswordLength(6).withKeyFile(false)
 					.withMasterPw(false).showMasterPw(false).build());
 			NewMasterPwFileDialog dialog = new NewMasterPwFileDialog(this,
-				"Create new application file with credentials", true,
+				"Create your master key", true,
 				model);
 			dialog.setSize(840, 520);
 			dialog.setVisible(true);

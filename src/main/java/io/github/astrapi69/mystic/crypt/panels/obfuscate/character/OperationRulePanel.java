@@ -218,7 +218,6 @@ public class OperationRulePanel extends BasePanel<ObfuscationOperationModelBean>
 
 	protected void onEncrypt(final ActionEvent actionEvent)
 	{
-		// TODO FIXME
 		final String toObfuscatedString = getEnDecryptPanel().getTxtToEncrypt().getText();
 		// create the rule
 		BiMap<Character, ObfuscationOperationRule<Character, Character>> biMap = getModelObject()

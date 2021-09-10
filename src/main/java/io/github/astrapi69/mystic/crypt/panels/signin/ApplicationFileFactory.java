@@ -51,9 +51,13 @@ public class ApplicationFileFactory
 		applicationFile = modelObject.getApplicationFile();
 
 		applicationModelBean.setMasterPwFileModelBean(modelObject);
-		// TODO check if the private key is set and get instead the private key
-		privateKey = RuntimeExceptionDecorator
+
+		if(modelObject.getPrivateKey() != null){
+			privateKey = modelObject.getPrivateKey();
+		} else {
+			privateKey = RuntimeExceptionDecorator
 				.decorate(() -> PrivateKeyReader.readPemPrivateKey(modelObject.getKeyFile()));
+		}
 
 		publicKey = RuntimeExceptionDecorator
 			.decorate(() -> PrivateKeyExtensions.generatePublicKey(privateKey));

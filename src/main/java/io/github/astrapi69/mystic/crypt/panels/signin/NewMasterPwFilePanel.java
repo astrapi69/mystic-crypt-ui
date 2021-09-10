@@ -250,7 +250,7 @@ public class NewMasterPwFilePanel extends BasePanel<MasterPwFileModelBean>
 	{
 		privateKeyModelBean = NewPrivateKeyModelBean.builder().build();
 		NewPrivateKeyFileDialog dialog = new NewPrivateKeyFileDialog(MysticCryptApplicationFrame.getInstance(),
-			"Enter your credentials", true, BaseModel.of(privateKeyModelBean)){
+			"Create new private key", true, BaseModel.of(privateKeyModelBean)){
 			@Override protected void onSave()
 			{
 				PrivateKey privateKey = privateKeyModelBean.getPrivateKey();
@@ -291,7 +291,7 @@ public class NewMasterPwFilePanel extends BasePanel<MasterPwFileModelBean>
 		Object item = cmbKeyFile.getSelectedItem();
 		String selectedKeyFilePath = (String)item;
 		getModelObject().setSelectedKeyFilePath(selectedKeyFilePath);
-		if (selectedKeyFilePath == "")
+		if (selectedKeyFilePath!=null && selectedKeyFilePath.isEmpty())
 		{
 			getModelObject().setKeyFile(null);
 			btnOkStateMachine.onSetKeyFile(btnOkStateMachine);

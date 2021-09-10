@@ -212,14 +212,10 @@ public class MasterPwFilePanel extends BasePanel<MasterPwFileModelBean>
 
 	protected void onOk(ActionEvent actionEvent)
 	{
-		// TODO implement continues here...
-		System.err.println("onOk method action called");
-
 	}
 
 	protected void onCancel(ActionEvent actionEvent)
 	{
-		System.err.println("onCancel method action called");
 	}
 
 	protected void onInitializeGroupLayout()

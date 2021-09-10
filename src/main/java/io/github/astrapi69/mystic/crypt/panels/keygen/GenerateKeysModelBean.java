@@ -23,6 +23,7 @@ package io.github.astrapi69.mystic.crypt.panels.keygen;
 import java.io.Serializable;
 import java.security.PrivateKey;
 import java.security.PublicKey;
+import java.util.Date;
 
 import io.github.astrapi69.crypto.key.KeySize;
 import io.github.astrapi69.crypto.key.PrivateKeyHexDecryptor;
@@ -62,4 +63,7 @@ public class GenerateKeysModelBean implements Serializable
 	PublicKey publicKey;
 	
 	String password;
+	String signatureAlgorithm;
+	Date start;
+	Date end;
 }

@@ -49,4 +49,5 @@ public class ApplicationModelBean implements Serializable
 	/** The Constant serialVersionUID. */
 	private static final long serialVersionUID = 1L;
 	MasterPwFileModelBean masterPwFileModelBean;
+	boolean showSplash;
 }

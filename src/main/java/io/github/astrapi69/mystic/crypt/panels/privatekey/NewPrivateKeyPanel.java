@@ -246,10 +246,12 @@ public class NewPrivateKeyPanel extends BasePanel<NewPrivateKeyModelBean>
 			getTxtPrivateKey().setText(privateKeyFormat);
 			btnSaveStateMachine.onGenerate();
 		}
-		catch (final NoSuchAlgorithmException | NoSuchProviderException | IOException e)
+		catch (final NoSuchAlgorithmException | NoSuchProviderException | IOException exception)
 		{
-			// TODO show error dialog
-			log.log(Level.SEVERE, e.getLocalizedMessage(), e);
+			String title = exception.getMessage();
+			String localizedMessage = exception.getLocalizedMessage();
+			JOptionPane.showMessageDialog(this, localizedMessage, title, JOptionPane.ERROR_MESSAGE);
+			log.log(Level.SEVERE, exception.getLocalizedMessage(), exception);
 		}
 	}
 

@@ -40,6 +40,7 @@ import io.github.astrapi69.model.api.Model;
 import io.github.astrapi69.swing.base.BasePanel;
 import io.github.astrapi69.swing.combobox.model.EnumComboBoxModel;
 import lombok.Getter;
+import lombok.extern.java.Log;
 
 import javax.swing.*;
 import javax.swing.plaf.ColorUIResource;
@@ -48,8 +49,10 @@ import java.awt.event.ActionEvent;
 import java.io.File;
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
+import java.util.logging.Level;
 
 @Getter
+@Log
 public class ChecksumPanel extends BasePanel<ChecksumBean>
 {
 
@@ -193,7 +196,7 @@ public class ChecksumPanel extends BasePanel<ChecksumBean>
 				}
 				catch (IOException e)
 				{
-					e.printStackTrace();
+					log.log(Level.SEVERE, e.getLocalizedMessage(), e);
 				}
 			} else {
 				txtChecksumMatchResult.setText("Given checksum file is invalid");
@@ -270,8 +273,7 @@ public class ChecksumPanel extends BasePanel<ChecksumBean>
 			}
 			catch (NoSuchAlgorithmException | IOException e)
 			{
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				log.log(Level.SEVERE, e.getLocalizedMessage(), e);
 			}
 		}
 

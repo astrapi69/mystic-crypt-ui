@@ -21,6 +21,7 @@
 package io.github.astrapi69.mystic.crypt.panels.keygen;
 
 import java.awt.event.ActionEvent;
+import java.io.File;
 import java.io.IOException;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
@@ -245,7 +246,6 @@ public class GenerateKeysPanel extends BasePanel<GenerateKeysModelBean>
 			@Override
 			protected void onSavePrivateKeyWithPassword(final ActionEvent actionEvent)
 			{
-				// TODO Auto-generated method stub
 				GenerateKeysPanel.this.onSavePrivateKeyWithPassword(actionEvent);
 			}
 
@@ -322,7 +322,6 @@ public class GenerateKeysPanel extends BasePanel<GenerateKeysModelBean>
 
 	protected void onSavePrivateKeyWithPassword(final ActionEvent actionEvent)
 	{
-		// TODO here comes the dialog for enter the pw...
 		final Object[] options = { "Set password", "Cancel" };
 		final PasswordPanel panel = new PasswordPanel();
 
@@ -340,13 +339,13 @@ public class GenerateKeysPanel extends BasePanel<GenerateKeysModelBean>
 				final int state = fileChooser.showSaveDialog(this);
 				if (state == JFileChooser.APPROVE_OPTION)
 				{
-					// TODO save private key with password...
 					PrivateKey privateKey = null;
 					try
 					{
 						privateKey = getModelObject().getPrivateKey();
+						File selectedFile = fileChooser.getSelectedFile();
 						EncryptedPrivateKeyWriter.encryptPrivateKeyWithPassword(privateKey,
-							fileChooser.getSelectedFile(), password);
+							selectedFile, password);
 					}
 					catch (final Exception e)
 					{

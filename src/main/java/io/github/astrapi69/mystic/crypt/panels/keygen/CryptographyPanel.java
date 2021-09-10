@@ -274,18 +274,23 @@ public class CryptographyPanel extends BasePanel<GenerateKeysModelBean>
 					String issuer;
 					subject = panel.getModelObject().getSubject();
 					issuer = panel.getModelObject().getIssuer();
-					// TODO get values from model bean
-					signatureAlgorithm = HashAlgorithm.SHA256.getAlgorithm() + UnionWord.With.name()
+					GenerateKeysModelBean modelObject = getModelObject();
+					signatureAlgorithm = modelObject.getSignatureAlgorithm() != null ?
+						modelObject.getSignatureAlgorithm() :
+						HashAlgorithm.SHA256.getAlgorithm() + UnionWord.With.name()
 							+ KeyPairGeneratorAlgorithm.RSA.getAlgorithm();
-					// TODO get values from model bean
-					start = Date.from(
-							LocalDate.of(2020, Month.JANUARY, 1).atStartOfDay(ZoneId.systemDefault()).toInstant());
-					// TODO get values from model bean
-					end = Date.from(
-							LocalDate.of(2030, Month.JANUARY, 1).atStartOfDay(ZoneId.systemDefault()).toInstant());
+					start = modelObject.getStart() != null ?
+						modelObject.getStart() :
+						Date.from(
+							LocalDate.of(2021, Month.JANUARY, 1).atStartOfDay(ZoneId.systemDefault()).toInstant());
+
+					end = modelObject.getEnd() != null ?
+						modelObject.getEnd() :
+						Date.from(
+							LocalDate.of(2031, Month.JANUARY, 1).atStartOfDay(ZoneId.systemDefault()).toInstant());
 					serialNumber = panel.getModelObject().getSerialNumber();
-					PublicKey publicKey = getModelObject().getPublicKey();
-					PrivateKey privateKey = getModelObject().getPrivateKey();
+					PublicKey publicKey = modelObject.getPublicKey();
+					PrivateKey privateKey = modelObject.getPrivateKey();
 					X509Certificate x509Certificate = CertFactory.newX509Certificate(publicKey, privateKey,
 							serialNumber, subject, issuer,
 							signatureAlgorithm, start, end);
