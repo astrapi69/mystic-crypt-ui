@@ -255,6 +255,9 @@ public class NewMasterPwFilePanel extends BasePanel<MasterPwFileModelBean>
 			{
 				PrivateKey privateKey = privateKeyModelBean.getPrivateKey();
 				NewMasterPwFilePanel.this.getModelObject().setPrivateKey(privateKey);
+				NewMasterPwFilePanel.this.getModelObject().setKeyFile(privateKeyModelBean.getPrivateKeyFile());
+				NewMasterPwFilePanel.this.cmbKeyFileModel.addElement(privateKeyModelBean.getPrivateKeyFile().getAbsolutePath());
+				NewMasterPwFilePanel.this.cmbKeyFileModel.setSelectedItem(privateKeyModelBean.getPrivateKeyFile().getAbsolutePath());
 				super.onSave();
 			}
 		};

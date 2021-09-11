@@ -37,6 +37,7 @@ import javax.swing.*;
 import javax.swing.event.DocumentEvent;
 
 import io.github.astrapi69.swing.JMTextField;
+import io.github.astrapi69.swing.dialog.DialogExtensions;
 import io.github.astrapi69.swing.utils.AwtExtensions;
 import lombok.Getter;
 import lombok.extern.java.Log;
@@ -172,6 +173,7 @@ public class NewPrivateKeyPanel extends BasePanel<NewPrivateKeyModelBean>
 
 		fileChooser = new JFileChooser(SystemFileExtensions.getUserDownloadsDir());
 		fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+		txtDirectoryOfPrivateKey.setText(SystemFileExtensions.getUserDownloadsDir().getAbsolutePath());
 	}
 
 	protected void onSelectedDirectoryOfPrivateKey(ActionEvent actionEvent)
@@ -248,9 +250,7 @@ public class NewPrivateKeyPanel extends BasePanel<NewPrivateKeyModelBean>
 		}
 		catch (final NoSuchAlgorithmException | NoSuchProviderException | IOException exception)
 		{
-			String title = exception.getMessage();
-			String localizedMessage = exception.getLocalizedMessage();
-			JOptionPane.showMessageDialog(this, localizedMessage, title, JOptionPane.ERROR_MESSAGE);
+			DialogExtensions.showExceptionDialog(exception, this);
 			log.log(Level.SEVERE, exception.getLocalizedMessage(), exception);
 		}
 	}

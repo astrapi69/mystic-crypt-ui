@@ -33,28 +33,29 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.experimental.FieldDefaults;
-import io.github.astrapi69.create.FileCreationState;
+
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
+
 import io.github.astrapi69.create.FileFactory;
 import io.github.astrapi69.layout.ScreenSizeExtensions;
 import io.github.astrapi69.model.BaseModel;
 import io.github.astrapi69.model.api.Model;
 import io.github.astrapi69.mystic.crypt.panels.signin.MasterPwFileDialog;
 import io.github.astrapi69.mystic.crypt.panels.signin.MasterPwFileModelBean;
+import io.github.astrapi69.mystic.crypt.panels.signin.MemoizedSigninModelBean;
 import io.github.astrapi69.mystic.crypt.panels.signin.NewMasterPwFileDialog;
-import io.github.astrapi69.search.PathFinder;
+import io.github.astrapi69.read.ReadFileExtensions;
 import io.github.astrapi69.swing.base.ApplicationFrame;
 import io.github.astrapi69.swing.base.BaseDesktopMenu;
 import io.github.astrapi69.swing.button.IconButtonFactory;
 import io.github.astrapi69.swing.components.factories.JComponentFactory;
 import io.github.astrapi69.swing.icon.ImageIconFactory;
 import io.github.astrapi69.swing.panels.output.ConsolePanel;
-import io.github.astrapi69.swing.plaf.LookAndFeels;
 import io.github.astrapi69.swing.splashscreen.ProgressBarSplashScreen;
 import io.github.astrapi69.swing.splashscreen.SplashScreenModelBean;
 import io.github.astrapi69.swing.utils.JInternalFrameExtensions;
-import io.github.astrapi69.system.SystemFileExtensions;
 import io.github.astrapi69.throwable.RuntimeExceptionDecorator;
-import org.bouncycastle.jce.provider.BouncyCastleProvider;
+import io.github.astrapi69.xml.XmlToObjectExtensions;
 
 /**
  * The class {@link MysticCryptApplicationFrame}
@@ -62,6 +63,7 @@ import org.bouncycastle.jce.provider.BouncyCastleProvider;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class MysticCryptApplicationFrame extends ApplicationFrame<ApplicationModelBean>
 {
+	public static final String MEMOIZED_SIGNIN_XML_FILENAME = "memoizedSignin.xml";
 	@Getter
 	private BouncyCastleProvider bouncyCastleProvider;
 	/**
@@ -112,9 +114,22 @@ public class MysticCryptApplicationFrame extends ApplicationFrame<ApplicationMod
 
 	private void showMasterPwDialog()
 	{
-		Model<MasterPwFileModelBean> model = BaseModel.<MasterPwFileModelBean>of(
-			MasterPwFileModelBean.builder().minPasswordLength(6).withKeyFile(false)
-				.withMasterPw(false).showMasterPw(false).build());
+		// TODO check if a memoized signin file exists...
+		File configurationDirectory = getConfigurationDirectory();
+		File memoizedSigninFile = new File(configurationDirectory, MEMOIZED_SIGNIN_XML_FILENAME);
+		final MemoizedSigninModelBean memoizedSigninModelBean;
+		if (memoizedSigninFile.exists())
+		{
+			String xml = RuntimeExceptionDecorator
+				.decorate(() -> ReadFileExtensions.readFromFile(memoizedSigninFile));
+			memoizedSigninModelBean = XmlToObjectExtensions.toObjectWithXStream(xml);
+		} else {
+			memoizedSigninModelBean = MemoizedSigninModelBean.builder().build();
+		}
+		MasterPwFileModelBean masterPwFileModelBean = MasterPwFileModelBean.builder().minPasswordLength(6)
+			.withKeyFile(false).withMasterPw(false).showMasterPw(false).build();
+		masterPwFileModelBean.merge(memoizedSigninModelBean);
+		Model<MasterPwFileModelBean> model = BaseModel.<MasterPwFileModelBean>of(masterPwFileModelBean);
 		MasterPwFileDialog dialog = new MasterPwFileDialog(this,
 			"Enter your credentials", true,
 			model);
@@ -234,7 +249,7 @@ public class MysticCryptApplicationFrame extends ApplicationFrame<ApplicationMod
 	protected File newConfigurationDirectory(final @NonNull String parent,
 		final @NonNull String child)
 	{
-		String configurationDirectoryName = "mystic-crypt-ui";
+		String configurationDirectoryName = MysticCryptApplicationFrame.APPLICATION_NAME;
 		File applicationConfigurationDirectory = new File(
 			super.newConfigurationDirectory(parent, child), configurationDirectoryName);
 		if (!applicationConfigurationDirectory.exists())
@@ -262,30 +277,6 @@ public class MysticCryptApplicationFrame extends ApplicationFrame<ApplicationMod
 		super.onAfterInitialize();
 		getConsoleOutput();
 		setTitle(Messages.getString("mainframe.title"));
-	}
-
-
-	/**
-	 * Sets the given {@link LookAndFeels} to the {@link UIManager}
-	 *
-	 * @param lookAndFeels
-	 *            the look and feels
-	 * @exception ClassNotFoundException
-	 *                if the <code>LookAndFeel</code> class could not be found
-	 * @exception InstantiationException
-	 *                if a new instance of the class couldn't be created
-	 * @exception IllegalAccessException
-	 *                if the class or initializer isn't accessible
-	 * @exception UnsupportedLookAndFeelException
-	 *                if <code>lnf.isSupportedLookAndFeel()</code> is false
-	 * @throws ClassCastException
-	 *             if {@code className} does not identify a class that extends {@code LookAndFeel}
-	 */
-	public static void setLookAndFeel(final @NonNull LookAndFeels lookAndFeels)
-		throws ClassNotFoundException, InstantiationException, IllegalAccessException,
-		UnsupportedLookAndFeelException
-	{
-		UIManager.setLookAndFeel(lookAndFeels.getLookAndFeelName());
 	}
 
 	@Override
@@ -355,11 +346,7 @@ public class MysticCryptApplicationFrame extends ApplicationFrame<ApplicationMod
 
 	protected void showNewMasterPw(final ActionEvent actionEvent)
 	{
-
-		File configDir = PathFinder.getRelativePath(SystemFileExtensions.getUserHomeDir(),
-			MysticCryptApplicationFrame.DEFAULT_USER_CONFIGURATION_DIRECTORY_NAME,
-			MysticCryptApplicationFrame.APPLICATION_NAME);
-		JFileChooser fileChooser = new JFileChooser(configDir);
+		JFileChooser fileChooser = new JFileChooser(getConfigurationDirectory());
 		fileChooser.setDialogTitle("Specify the database file to save");
 		FileNameExtensionFilter fileNameExtensionFilter = new FileNameExtensionFilter(
 			"Mystic crypt files (*.mcrdb)", "mcrdb");

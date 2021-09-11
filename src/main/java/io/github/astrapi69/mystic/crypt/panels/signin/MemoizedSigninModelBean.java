@@ -22,39 +22,29 @@ package io.github.astrapi69.mystic.crypt.panels.signin;
 
 import java.io.File;
 import java.io.Serializable;
-import java.security.PrivateKey;
 import java.util.List;
-import java.util.logging.Level;
 
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.NonNull;
 import lombok.experimental.FieldDefaults;
 import lombok.experimental.SuperBuilder;
-import lombok.extern.java.Log;
-import de.alpharogroup.merge.object.MergeObjectExtensions;
 import io.github.astrapi69.collections.list.ListFactory;
-import io.github.astrapi69.throwable.RuntimeExceptionDecorator;
 
 /**
- * The bean class {@link MasterPwFileModelBean} is for holding the sign in data
+ * The bean class {@link MemoizedSigninModelBean} is for holding the sign in data
  */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @SuperBuilder(toBuilder = true)
 @FieldDefaults(level = AccessLevel.PRIVATE)
-@Log
-public class MasterPwFileModelBean implements Serializable
+public class MemoizedSigninModelBean implements Serializable
 {
 	/** The Constant serialVersionUID. */
 	private static final long serialVersionUID = 1L;
-
-	/** The encrypted data file for the application. */
-	File applicationFile;
 
 	/** The currently selected key file path */
 	String selectedApplicationFilePath;
@@ -62,9 +52,6 @@ public class MasterPwFileModelBean implements Serializable
 	/** The key file paths for the combo box */
 	@Builder.Default
 	List<String> applicationFilePaths = ListFactory.newArrayList("");
-
-	/** The private key  */
-	PrivateKey privateKey;
 
 	/** The key file. */
 	File keyFile;
@@ -76,49 +63,9 @@ public class MasterPwFileModelBean implements Serializable
 	@Builder.Default
 	List<String> keyFilePaths = ListFactory.newArrayList("");
 
-	/** The master password char array. */
-	char[] masterPw;
-
-	/** The repeat of the master password char array. */
-	char[] repeatPw;
-
-	/** The minimum length for the password. */
-	int minPasswordLength;
-
-	/** The flag if the master password is displayed in plain text. */
-	boolean showMasterPw;
-
 	/** The flag if the key file will be used in the authentication. */
 	boolean withKeyFile;
 
-	/** The flag if the a new application file will be created. */
-	boolean newApplicationFile;
-
 	/** The flag if the master password will be used in the authentication. */
 	boolean withMasterPw;
-
-	public void merge(final @NonNull MemoizedSigninModelBean memoizedSigninModelBean)
-	{
-		memoizedSigninModelBean.setKeyFile(this.keyFile);
-		memoizedSigninModelBean.setKeyFilePaths(this.keyFilePaths);
-		memoizedSigninModelBean.setApplicationFilePaths(this.applicationFilePaths);
-		memoizedSigninModelBean.setWithMasterPw(this.withMasterPw);
-		memoizedSigninModelBean.setWithKeyFile(this.withKeyFile);
-		memoizedSigninModelBean.setSelectedKeyFilePath(this.selectedKeyFilePath);
-		memoizedSigninModelBean.setSelectedApplicationFilePath(this.selectedApplicationFilePath);
-	}
-
-	public MemoizedSigninModelBean toMemoizedSigninModelBean()
-	{
-		MemoizedSigninModelBean memoizedSignin = MemoizedSigninModelBean.builder()
-			.keyFile(this.keyFile)
-			.keyFilePaths(this.keyFilePaths)
-			.applicationFilePaths(this.applicationFilePaths)
-			.withMasterPw(this.withMasterPw)
-			.withKeyFile(this.withKeyFile)
-			.selectedKeyFilePath(this.selectedKeyFilePath)
-			.selectedApplicationFilePath(this.selectedApplicationFilePath)
-			.build();
-		return memoizedSignin;
-	}
 }
