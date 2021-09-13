@@ -24,7 +24,7 @@ import java.io.File;
 import java.io.Serializable;
 import java.security.PrivateKey;
 import java.util.List;
-import java.util.logging.Level;
+import java.util.Set;
 
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -35,9 +35,8 @@ import lombok.NonNull;
 import lombok.experimental.FieldDefaults;
 import lombok.experimental.SuperBuilder;
 import lombok.extern.java.Log;
-import de.alpharogroup.merge.object.MergeObjectExtensions;
 import io.github.astrapi69.collections.list.ListFactory;
-import io.github.astrapi69.throwable.RuntimeExceptionDecorator;
+import io.github.astrapi69.collections.set.SetFactory;
 
 /**
  * The bean class {@link MasterPwFileModelBean} is for holding the sign in data
@@ -99,25 +98,27 @@ public class MasterPwFileModelBean implements Serializable
 
 	public void merge(final @NonNull MemoizedSigninModelBean memoizedSigninModelBean)
 	{
-		memoizedSigninModelBean.setKeyFile(this.keyFile);
-		memoizedSigninModelBean.setKeyFilePaths(this.keyFilePaths);
-		memoizedSigninModelBean.setApplicationFilePaths(this.applicationFilePaths);
-		memoizedSigninModelBean.setWithMasterPw(this.withMasterPw);
-		memoizedSigninModelBean.setWithKeyFile(this.withKeyFile);
-		memoizedSigninModelBean.setSelectedKeyFilePath(this.selectedKeyFilePath);
-		memoizedSigninModelBean.setSelectedApplicationFilePath(this.selectedApplicationFilePath);
+		setKeyFilePaths(memoizedSigninModelBean.getKeyFilePaths());
+		setSelectedKeyFilePath(memoizedSigninModelBean.getSelectedKeyFilePath());
+		setApplicationFilePaths(memoizedSigninModelBean.getApplicationFilePaths());
+		setSelectedApplicationFilePath(memoizedSigninModelBean.getSelectedApplicationFilePath());
+		setWithMasterPw(memoizedSigninModelBean.isWithMasterPw());
+		setWithKeyFile(memoizedSigninModelBean.isWithKeyFile());
 	}
 
-	public MemoizedSigninModelBean toMemoizedSigninModelBean()
+	public MemoizedSigninModelBean toMemoizedSigninModelBean(MasterPwFileModelBean modelObject)
 	{
+		Set<String> keyFilePathSet = SetFactory.newHashSet(this.keyFilePaths);
+		keyFilePathSet.addAll(modelObject.getKeyFilePaths());
+		Set<String> applicationFilePathSet = SetFactory.newHashSet(this.applicationFilePaths);
+		applicationFilePathSet.addAll(modelObject.getApplicationFilePaths());
 		MemoizedSigninModelBean memoizedSignin = MemoizedSigninModelBean.builder()
-			.keyFile(this.keyFile)
-			.keyFilePaths(this.keyFilePaths)
-			.applicationFilePaths(this.applicationFilePaths)
+			.keyFilePaths(ListFactory.newArrayList(keyFilePathSet))
+			.selectedKeyFilePath(this.selectedKeyFilePath)
+			.applicationFilePaths(ListFactory.newArrayList(applicationFilePathSet))
+			.selectedApplicationFilePath(this.selectedApplicationFilePath)
 			.withMasterPw(this.withMasterPw)
 			.withKeyFile(this.withKeyFile)
-			.selectedKeyFilePath(this.selectedKeyFilePath)
-			.selectedApplicationFilePath(this.selectedApplicationFilePath)
 			.build();
 		return memoizedSignin;
 	}

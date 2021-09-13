@@ -36,9 +36,6 @@ import java.util.logging.Level;
 import javax.swing.*;
 import javax.swing.event.DocumentEvent;
 
-import io.github.astrapi69.swing.JMTextField;
-import io.github.astrapi69.swing.dialog.DialogExtensions;
-import io.github.astrapi69.swing.utils.AwtExtensions;
 import lombok.Getter;
 import lombok.extern.java.Log;
 import io.github.astrapi69.create.FileFactory;
@@ -50,9 +47,12 @@ import io.github.astrapi69.crypto.key.writer.PrivateKeyWriter;
 import io.github.astrapi69.model.BaseModel;
 import io.github.astrapi69.model.LambdaModel;
 import io.github.astrapi69.model.api.Model;
+import io.github.astrapi69.swing.JMTextField;
 import io.github.astrapi69.swing.adapters.DocumentListenerAdapter;
 import io.github.astrapi69.swing.base.BasePanel;
 import io.github.astrapi69.swing.combobox.model.EnumComboBoxModel;
+import io.github.astrapi69.swing.dialog.DialogExtensions;
+import io.github.astrapi69.swing.utils.AwtExtensions;
 import io.github.astrapi69.system.SystemFileExtensions;
 import io.github.astrapi69.throwable.RuntimeExceptionDecorator;
 
@@ -174,6 +174,7 @@ public class NewPrivateKeyPanel extends BasePanel<NewPrivateKeyModelBean>
 		fileChooser = new JFileChooser(SystemFileExtensions.getUserDownloadsDir());
 		fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
 		txtDirectoryOfPrivateKey.setText(SystemFileExtensions.getUserDownloadsDir().getAbsolutePath());
+		getModelObject().setPrivateKeyDirectory(SystemFileExtensions.getUserDownloadsDir());
 	}
 
 	protected void onSelectedDirectoryOfPrivateKey(ActionEvent actionEvent)

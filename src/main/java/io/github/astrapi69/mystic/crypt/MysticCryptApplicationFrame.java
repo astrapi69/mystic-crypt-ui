@@ -37,6 +37,7 @@ import lombok.experimental.FieldDefaults;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 
 import io.github.astrapi69.create.FileFactory;
+import io.github.astrapi69.gson.JsonStringToObjectExtensions;
 import io.github.astrapi69.layout.ScreenSizeExtensions;
 import io.github.astrapi69.model.BaseModel;
 import io.github.astrapi69.model.api.Model;
@@ -55,7 +56,6 @@ import io.github.astrapi69.swing.splashscreen.ProgressBarSplashScreen;
 import io.github.astrapi69.swing.splashscreen.SplashScreenModelBean;
 import io.github.astrapi69.swing.utils.JInternalFrameExtensions;
 import io.github.astrapi69.throwable.RuntimeExceptionDecorator;
-import io.github.astrapi69.xml.XmlToObjectExtensions;
 
 /**
  * The class {@link MysticCryptApplicationFrame}
@@ -63,7 +63,7 @@ import io.github.astrapi69.xml.XmlToObjectExtensions;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class MysticCryptApplicationFrame extends ApplicationFrame<ApplicationModelBean>
 {
-	public static final String MEMOIZED_SIGNIN_XML_FILENAME = "memoizedSignin.xml";
+	public static final String MEMOIZED_SIGNIN_JSON_FILENAME = "memoizedSignin.json";
 	@Getter
 	private BouncyCastleProvider bouncyCastleProvider;
 	/**
@@ -114,15 +114,16 @@ public class MysticCryptApplicationFrame extends ApplicationFrame<ApplicationMod
 
 	private void showMasterPwDialog()
 	{
-		// TODO check if a memoized signin file exists...
 		File configurationDirectory = getConfigurationDirectory();
-		File memoizedSigninFile = new File(configurationDirectory, MEMOIZED_SIGNIN_XML_FILENAME);
+		File memoizedSigninFile = new File(configurationDirectory, MEMOIZED_SIGNIN_JSON_FILENAME);
 		final MemoizedSigninModelBean memoizedSigninModelBean;
 		if (memoizedSigninFile.exists())
 		{
-			String xml = RuntimeExceptionDecorator
+			String fromFile = RuntimeExceptionDecorator
 				.decorate(() -> ReadFileExtensions.readFromFile(memoizedSigninFile));
-			memoizedSigninModelBean = XmlToObjectExtensions.toObjectWithXStream(xml);
+			memoizedSigninModelBean = JsonStringToObjectExtensions.toObject(fromFile,
+				MemoizedSigninModelBean.class);
+
 		} else {
 			memoizedSigninModelBean = MemoizedSigninModelBean.builder().build();
 		}

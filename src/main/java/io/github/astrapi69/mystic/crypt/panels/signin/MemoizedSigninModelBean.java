@@ -20,7 +20,6 @@
  */
 package io.github.astrapi69.mystic.crypt.panels.signin;
 
-import java.io.File;
 import java.io.Serializable;
 import java.util.List;
 
@@ -52,9 +51,6 @@ public class MemoizedSigninModelBean implements Serializable
 	/** The key file paths for the combo box */
 	@Builder.Default
 	List<String> applicationFilePaths = ListFactory.newArrayList("");
-
-	/** The key file. */
-	File keyFile;
 
 	/** The currently selected key file path */
 	String selectedKeyFilePath;

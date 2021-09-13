@@ -30,12 +30,15 @@ import javax.swing.event.DocumentEvent;
 
 import lombok.Getter;
 import lombok.extern.java.Log;
+import io.github.astrapi69.gson.ObjectToJsonFileExtensions;
 import io.github.astrapi69.model.BaseModel;
+import io.github.astrapi69.model.LambdaModel;
 import io.github.astrapi69.model.api.Model;
 import io.github.astrapi69.mystic.crypt.ApplicationModelBean;
 import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
 import io.github.astrapi69.net.url.URLExtensions;
 import io.github.astrapi69.search.PathFinder;
+import io.github.astrapi69.swing.JMCheckBox;
 import io.github.astrapi69.swing.adapters.DocumentListenerAdapter;
 import io.github.astrapi69.swing.base.BasePanel;
 import io.github.astrapi69.swing.browser.BrowserControlExtensions;
@@ -153,6 +156,15 @@ public class MasterPwWithApplicationFilePanel extends BasePanel<MasterPwFileMode
 		// ===
 		// ===
 		// allow pwfield to copy or cut
+
+		cbxMasterPw = new JMCheckBox();
+		((JMCheckBox)cbxMasterPw).setPropertyModel(
+			LambdaModel.of(getModelObject()::isWithMasterPw, getModelObject()::setWithMasterPw));
+
+		cbxKeyFile = new JMCheckBox();
+		((JMCheckBox)cbxKeyFile).setPropertyModel(
+			LambdaModel.of(getModelObject()::isWithKeyFile, getModelObject()::setWithKeyFile));
+
 		txtMasterPw.putClientProperty("JPasswordField.cutCopyAllowed",true);
 
 		cbxMasterPw.addActionListener(this::onCheckMasterPw);
@@ -184,15 +196,38 @@ public class MasterPwWithApplicationFilePanel extends BasePanel<MasterPwFileMode
 			MysticCryptApplicationFrame.DEFAULT_USER_CONFIGURATION_DIRECTORY_NAME,
 			MysticCryptApplicationFrame.APPLICATION_NAME);
 		fileChooser = new JFileChooser(configDir);
+		String selectedKeyFilePath = modelObject.getSelectedKeyFilePath();
 
 		cmbKeyFileModel = new StringMutableComboBoxModel(modelObject.getKeyFilePaths(),
-			modelObject.getSelectedKeyFilePath());
+			selectedKeyFilePath);
 		cmbKeyFile.setModel(cmbKeyFileModel);
+		cmbKeyFile.setSelectedItem(selectedKeyFilePath);
+		if (modelObject.getKeyFile() == null)
+		{
+			File kf = new File(selectedKeyFilePath);
+			if (kf.exists())
+			{
+				modelObject.setKeyFile(kf);
+			}
+		}
 		cmbKeyFile.addActionListener(this::onChangeCmbKeyFile);
-
+		String selectedApplicationFilePath = modelObject.getSelectedApplicationFilePath();
+		if (!modelObject.getApplicationFilePaths().contains(selectedApplicationFilePath))
+		{
+			modelObject.getApplicationFilePaths().add(selectedApplicationFilePath);
+		}
 		cmbApplicationFileModel = new StringMutableComboBoxModel(
-			modelObject.getApplicationFilePaths(), modelObject.getSelectedKeyFilePath());
+			modelObject.getApplicationFilePaths(), selectedApplicationFilePath);
 		cmbApplicationFile.setModel(cmbApplicationFileModel);
+		cmbApplicationFile.setSelectedItem(selectedApplicationFilePath);
+		if (modelObject.getApplicationFile() == null)
+		{
+			File saf = new File(selectedApplicationFilePath);
+			if (saf.exists())
+			{
+				modelObject.setApplicationFile(saf);
+			}
+		}
 		cmbApplicationFile.addActionListener(this::onChangeCmbApplicationFile);
 		btnHelp.addActionListener(this::onHelp);
 
@@ -247,6 +282,12 @@ public class MasterPwWithApplicationFilePanel extends BasePanel<MasterPwFileMode
 			if (selectedApplicationFile != null && selectedApplicationFile.exists())
 			{
 				getModelObject().setApplicationFile(selectedApplicationFile);
+				if (!getModelObject().getApplicationFilePaths()
+					.contains(selectedApplicationFile.getAbsolutePath()))
+				{
+					getModelObject().getApplicationFilePaths()
+						.add(selectedApplicationFile.getAbsolutePath());
+				}
 				btnOkStateMachine.onApplicationFileAdded(btnOkStateMachine);
 			}
 			else if (selectedApplicationFile == null
@@ -264,7 +305,7 @@ public class MasterPwWithApplicationFilePanel extends BasePanel<MasterPwFileMode
 		Object item = cmbKeyFile.getSelectedItem();
 		String selectedKeyFilePath = (String)item;
 		getModelObject().setSelectedKeyFilePath(selectedKeyFilePath);
-		if (selectedKeyFilePath == "")
+		if (selectedKeyFilePath.isEmpty())
 		{
 			getModelObject().setKeyFile(null);
 			btnOkStateMachine.onSetKeyFile(btnOkStateMachine);
@@ -275,6 +316,10 @@ public class MasterPwWithApplicationFilePanel extends BasePanel<MasterPwFileMode
 			if (selectedKeyFile != null && selectedKeyFile.exists())
 			{
 				getModelObject().setKeyFile(selectedKeyFile);
+				if (!getModelObject().getKeyFilePaths().contains(selectedKeyFile.getAbsolutePath()))
+				{
+					getModelObject().getKeyFilePaths().add(selectedKeyFile.getAbsolutePath());
+				}
 				btnOkStateMachine.onSetKeyFile(btnOkStateMachine);
 			}
 			else if (selectedKeyFile == null
@@ -469,8 +514,17 @@ public class MasterPwWithApplicationFilePanel extends BasePanel<MasterPwFileMode
 	{
 		System.err.println("onOk method action called");
 		try{
-			ApplicationModelBean applicationModelBean = ApplicationFileReader.read(getModelObject());
+			MasterPwFileModelBean modelObject = getModelObject();
+			ApplicationModelBean applicationModelBean = ApplicationFileReader.read(modelObject);
 			MysticCryptApplicationFrame.getInstance().setModelObject(applicationModelBean);
+			MasterPwFileModelBean masterPwFileModelBean = applicationModelBean
+				.getMasterPwFileModelBean();
+			MemoizedSigninModelBean memoizedSigninModelBean = masterPwFileModelBean
+				.toMemoizedSigninModelBean(modelObject);
+			File memoizedSigninFile = new File(
+				MysticCryptApplicationFrame.getInstance().getConfigurationDirectory(),
+				MysticCryptApplicationFrame.MEMOIZED_SIGNIN_JSON_FILENAME);
+			ObjectToJsonFileExtensions.toJsonFile(memoizedSigninModelBean, memoizedSigninFile);
 		} catch (Exception exception) {
 			String exceptionMessage = exception.getMessage();
 			if(exceptionMessage.contains("::")){
