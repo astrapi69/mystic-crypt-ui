@@ -152,15 +152,11 @@ public class NewPrivateKeyPanel extends BasePanel<NewPrivateKeyModelBean>
 				btnSaveStateMachine.onChangeFilename();
 			}
 		});
-		cmbKeySize.setModel(new EnumComboBoxModel<>(KeySize.class));
-		if (modelObject.getKeySize() == null)
-		{
-			modelObject.setKeySize(KeySize.KEYSIZE_2048);
-		}
-		txtDirectoryOfPrivateKey.setEnabled(false);
-		cmbKeySize.setSelectedItem(modelObject.getKeySize());
-
+		cmbKeySize.setModel(new EnumComboBoxModel<>(KeySize.class,
+			modelObject.getKeySize() != null ? modelObject.getKeySize(): KeySize.KEYSIZE_2048));
 		cmbKeySize.addActionListener(actionEvent -> onChangeKeySize(actionEvent));
+
+		txtDirectoryOfPrivateKey.setEnabled(false);
 
 		btnGenerate.addActionListener(actionEvent -> onGenerate(actionEvent));
 		btnClear.addActionListener(actionEvent -> onClear(actionEvent));
