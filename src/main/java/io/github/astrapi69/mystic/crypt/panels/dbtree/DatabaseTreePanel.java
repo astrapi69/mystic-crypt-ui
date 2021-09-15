@@ -20,14 +20,10 @@
  */
 package io.github.astrapi69.mystic.crypt.panels.dbtree;
 
+import java.awt.*;
 import java.awt.event.MouseEvent;
 
-import javax.swing.JCheckBox;
-import javax.swing.JMenuItem;
-import javax.swing.JOptionPane;
-import javax.swing.JPopupMenu;
-import javax.swing.JTextField;
-import javax.swing.JTree;
+import javax.swing.*;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.TreeModelEvent;
@@ -39,6 +35,7 @@ import javax.swing.tree.TreePath;
 
 import io.github.astrapi69.model.BaseModel;
 import io.github.astrapi69.model.api.Model;
+import io.github.astrapi69.swing.listener.RequestFocusListener;
 import io.github.astrapi69.swing.panels.tree.JTreePanel;
 
 public class DatabaseTreePanel extends JTreePanel<DatabaseTreeModelBean>
@@ -161,10 +158,20 @@ public class DatabaseTreePanel extends JTreePanel<DatabaseTreeModelBean>
 					}
 				}
 			});
-			Object[] inputFields = { "Enter name for node", textField1, "Is leaf", checkBox };
+			JPanel panel = new JPanel(new GridLayout(2, 2));
+			panel.add(new JLabel("Enter name for node:"));
+			panel.add(textField1);
+			panel.add(new JLabel("Is leaf:"));
+			panel.add(checkBox);
 
-			int option = JOptionPane.showConfirmDialog(this, inputFields, "Multiple Inputs",
-				JOptionPane.OK_CANCEL_OPTION, JOptionPane.INFORMATION_MESSAGE);
+			JOptionPane pane = new JOptionPane(panel, JOptionPane.INFORMATION_MESSAGE,
+				JOptionPane.OK_CANCEL_OPTION);
+			JDialog dialog = pane.createDialog(null, "New node");
+			dialog.addWindowFocusListener(new RequestFocusListener(textField1));
+			dialog.pack();
+			dialog.setLocationRelativeTo(null);
+			dialog.setVisible(true);
+			int option = getOption(pane);
 
 			if (option == JOptionPane.OK_OPTION)
 			{
@@ -201,5 +208,27 @@ public class DatabaseTreePanel extends JTreePanel<DatabaseTreeModelBean>
 		});
 		popup.add(deleteNode);
 		popup.show(tree, x, y);
+	}
+
+	public static int getOption(JOptionPane pane)
+	{
+
+		Object selectedValue = pane.getValue();
+
+		if (selectedValue == null)
+			return -1;
+		Object[] options = pane.getOptions();
+		if (options == null)
+		{
+			if (selectedValue instanceof Integer)
+				return ((Integer)selectedValue).intValue();
+			return -1;
+		}
+		for (int counter = 0, maxCounter = options.length; counter < maxCounter; counter++)
+		{
+			if (options[counter].equals(selectedValue))
+				return counter;
+		}
+		return -1;
 	}
 }
