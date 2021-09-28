@@ -79,6 +79,7 @@ license {
               "**/*.map",
               "**/*.js.map",
               "**/*.tmpl",
+              "**/*.mcrdb",
               "**/*.js.tmpl",
               "**/*.editorconfig",
               "**/*.lombok.config",

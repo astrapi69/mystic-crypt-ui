@@ -20,7 +20,7 @@
  */
 package io.github.astrapi69.mystic.crypt.actions;
 
-import java.awt.Component;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.io.File;
 import java.io.IOException;
@@ -33,17 +33,12 @@ import java.security.spec.InvalidKeySpecException;
 import java.util.logging.Level;
 
 import javax.crypto.NoSuchPaddingException;
-import javax.swing.JDialog;
-import javax.swing.JInternalFrame;
-import javax.swing.JLabel;
-import javax.swing.JOptionPane;
-import javax.swing.JPanel;
-import javax.swing.JPasswordField;
+import javax.swing.*;
 
-import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
-import io.github.astrapi69.mystic.crypt.SpringBootSwingApplication;
-import io.github.astrapi69.mystic.crypt.panels.privatekey.PrivateKeyModelBean;
-import io.github.astrapi69.mystic.crypt.panels.privatekey.PrivateKeyPanel;
+import lombok.NonNull;
+import lombok.extern.java.Log;
+import net.miginfocom.swing.MigLayout;
+
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 
 import io.github.astrapi69.crypto.key.PrivateKeyExtensions;
@@ -52,15 +47,15 @@ import io.github.astrapi69.crypto.key.PublicKeyExtensions;
 import io.github.astrapi69.crypto.key.PublicKeyHexEncryptor;
 import io.github.astrapi69.crypto.key.reader.EncryptedPrivateKeyReader;
 import io.github.astrapi69.crypto.key.reader.PrivateKeyReader;
-import io.github.astrapi69.read.ReadFileExtensions;
+import io.github.astrapi69.file.read.ReadFileExtensions;
+import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
+import io.github.astrapi69.mystic.crypt.panels.privatekey.PrivateKeyModelBean;
+import io.github.astrapi69.mystic.crypt.panels.privatekey.PrivateKeyPanel;
 import io.github.astrapi69.swing.actions.OpenFileAction;
 import io.github.astrapi69.swing.components.factories.JComponentFactory;
 import io.github.astrapi69.swing.dialog.factories.JDialogFactory;
 import io.github.astrapi69.swing.listener.RequestFocusListener;
 import io.github.astrapi69.swing.utils.JInternalFrameExtensions;
-import lombok.NonNull;
-import lombok.extern.java.Log;
-import net.miginfocom.swing.MigLayout;
 
 /**
  * The class {@link OpenPrivateKeyAction}.

@@ -29,27 +29,28 @@
  */
 package io.github.astrapi69.mystic.crypt.panels.checksum;
 
-import io.github.astrapi69.behaviors.EnableButtonBehavior;
-import io.github.astrapi69.checksum.ChecksumExtensions;
-import io.github.astrapi69.checksum.FileChecksumExtensions;
-import io.github.astrapi69.checksum.api.ChecksumAlgorithm;
-import io.github.astrapi69.read.ReadFileExtensions;
-import io.github.astrapi69.system.SystemFileExtensions;
-import io.github.astrapi69.model.BaseModel;
-import io.github.astrapi69.model.api.Model;
-import io.github.astrapi69.swing.base.BasePanel;
-import io.github.astrapi69.swing.combobox.model.EnumComboBoxModel;
-import lombok.Getter;
-import lombok.extern.java.Log;
-
-import javax.swing.*;
-import javax.swing.plaf.ColorUIResource;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.io.File;
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.util.logging.Level;
+
+import javax.swing.*;
+import javax.swing.plaf.ColorUIResource;
+
+import lombok.Getter;
+import lombok.extern.java.Log;
+import io.github.astrapi69.behaviors.EnableButtonBehavior;
+import io.github.astrapi69.checksum.ChecksumExtensions;
+import io.github.astrapi69.checksum.FileChecksumExtensions;
+import io.github.astrapi69.checksum.api.ChecksumAlgorithm;
+import io.github.astrapi69.file.read.ReadFileExtensions;
+import io.github.astrapi69.file.system.SystemFileExtensions;
+import io.github.astrapi69.model.BaseModel;
+import io.github.astrapi69.model.api.Model;
+import io.github.astrapi69.swing.base.BasePanel;
+import io.github.astrapi69.swing.combobox.model.EnumComboBoxModel;
 
 @Getter
 @Log
