@@ -28,6 +28,8 @@ import static io.github.astrapi69.swing.tree.TreeNodeFactory.initializeTreeNodeW
 
 import java.util.List;
 
+import io.github.astrapi69.swing.panels.tree.JXTreeElement;
+import io.github.astrapi69.swing.tree.TreeNodeFactory;
 import io.github.astrapi69.tree.TreeElement;
 import io.github.astrapi69.tree.TreeNode;
 
@@ -70,6 +72,56 @@ public class TestTreeNodeFactory
 			secondChildTreeNode);
 
 		firstGrandGrandChildTreeNode = initializeTreeNodeWithTreeElement(firstGrandGrandChild,
+			firstChildTreeNode);
+		return parentTreeNode;
+	}
+
+
+
+	public static TreeNode<JXTreeElement> initializeTestJXTreeNodeElement()
+	{
+		TreeNode<JXTreeElement> firstChildTreeNode;
+		TreeNode<JXTreeElement> firstGrandChildTreeNodeLeaf;
+		TreeNode<JXTreeElement> secondGrandChildTreeNodeLeaf;
+		JXTreeElement firstGrandGrandChild;
+		TreeNode<JXTreeElement> firstGrandGrandChildTreeNode;
+		TreeNode<JXTreeElement> parentTreeNode;
+		TreeNode<JXTreeElement> secondChildTreeNode;
+		List<TreeNode<JXTreeElement>> list;
+		JXTreeElement parent;
+		JXTreeElement firstChild;
+		JXTreeElement firstGrandChild;
+		JXTreeElement secondChild;
+		JXTreeElement secondGrandChild;
+		parent = JXTreeElement.builder().name("parent")
+			.iconPath("io/github/astrapi69/silk/icons/disk.png")
+			.withText(true)
+			.parent(null).node(true).build();
+		firstChild = JXTreeElement.builder().name("firstChild/search").parent(parent)
+			.iconPath("io/github/astrapi69/silk/icons/magnifier.png")
+			.withText(true)
+			.node(true).build();
+		firstGrandChild = JXTreeElement.builder().name("firstGrandChild")
+			.iconPath("io/github/astrapi69/silk/icons/lock.png")
+			.withText(false).parent(firstChild)
+			.node(true).build();
+		firstGrandGrandChild = JXTreeElement.builder().name("firstGrandGrandChild")
+			.parent(firstGrandChild).node(false).build();
+		secondChild = JXTreeElement.builder().name("secondChild").parent(parent).node(true).build();
+		secondGrandChild = JXTreeElement.builder().name("secondGrandChild").parent(firstChild)
+			.node(false).build();
+		parentTreeNode = TreeNodeFactory.initializeTreeNodeWithTreeElement(parent, null);
+
+		firstChildTreeNode = TreeNodeFactory.initializeTreeNodeWithTreeElement(firstChild, parentTreeNode);
+
+		secondChildTreeNode = TreeNodeFactory.initializeTreeNodeWithTreeElement(secondChild, parentTreeNode);
+
+		firstGrandChildTreeNodeLeaf = TreeNodeFactory.initializeTreeNodeWithTreeElement(firstGrandChild,
+			firstChildTreeNode);
+		secondGrandChildTreeNodeLeaf = TreeNodeFactory.initializeTreeNodeWithTreeElement(secondGrandChild,
+			secondChildTreeNode);
+
+		firstGrandGrandChildTreeNode = TreeNodeFactory.initializeTreeNodeWithTreeElement(firstGrandGrandChild,
 			firstChildTreeNode);
 		return parentTreeNode;
 	}

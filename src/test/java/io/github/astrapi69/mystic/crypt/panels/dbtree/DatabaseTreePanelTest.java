@@ -22,6 +22,7 @@ package io.github.astrapi69.mystic.crypt.panels.dbtree;
 
 import io.github.astrapi69.model.BaseModel;
 import io.github.astrapi69.model.api.Model;
+import io.github.astrapi69.swing.panels.tree.JXTreeElement;
 import io.github.astrapi69.tree.TreeElement;
 import io.github.astrapi69.tree.TreeNode;
 import io.github.astrapi69.window.adapter.CloseWindow;
@@ -47,8 +48,8 @@ public class DatabaseTreePanelTest
 		frame.addWindowListener(new CloseWindow());
 		frame.setTitle("TreePanel");
 
-		Model<TreeNode<TreeElement>> parentModel = BaseModel
-			.of(TestTreeNodeFactory.initializeTestTreeNodeElement());
+		Model<TreeNode<JXTreeElement>> parentModel = BaseModel
+			.of(TestTreeNodeFactory.initializeTestJXTreeNodeElement());
 		final DatabaseTreePanel panel = new DatabaseTreePanel(parentModel);
 		frame.add(panel);
 		frame.setBounds(0, 0, 1280, 650);
