@@ -52,7 +52,6 @@ public class DatabaseTreePanel extends TreeNodeJXTreeElementPanel
 
 	public DatabaseTreePanel()
 	{
-
 		this(BaseModel.of(new TreeNode<>()));
 	}
 

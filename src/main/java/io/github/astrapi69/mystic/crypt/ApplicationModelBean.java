@@ -21,6 +21,8 @@
 package io.github.astrapi69.mystic.crypt;
 
 import io.github.astrapi69.mystic.crypt.panels.signin.MasterPwFileModelBean;
+import io.github.astrapi69.swing.panels.tree.JXTreeElement;
+import io.github.astrapi69.tree.TreeNode;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -49,5 +51,6 @@ public class ApplicationModelBean implements Serializable
 	/** The Constant serialVersionUID. */
 	private static final long serialVersionUID = 1L;
 	MasterPwFileModelBean masterPwFileModelBean;
+	TreeNode<JXTreeElement> rootTreeNode;
 	boolean showSplash;
 }
