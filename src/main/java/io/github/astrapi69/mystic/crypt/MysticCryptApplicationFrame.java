@@ -56,7 +56,7 @@ import io.github.astrapi69.swing.base.ApplicationFrame;
 import io.github.astrapi69.swing.base.BaseDesktopMenu;
 import io.github.astrapi69.swing.button.IconButtonFactory;
 import io.github.astrapi69.swing.components.factories.JComponentFactory;
-import io.github.astrapi69.swing.icon.ImageIconFactory;
+import io.github.astrapi69.icon.ImageIconFactory;
 import io.github.astrapi69.swing.panels.output.ConsolePanel;
 import io.github.astrapi69.swing.panels.tree.JXTreeElement;
 import io.github.astrapi69.swing.splashscreen.ProgressBarSplashScreen;

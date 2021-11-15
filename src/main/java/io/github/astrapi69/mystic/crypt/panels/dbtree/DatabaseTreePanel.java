@@ -33,6 +33,8 @@ import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreeModel;
 import javax.swing.tree.TreePath;
 
+import io.github.astrapi69.icon.ImageIconFactory;
+import io.github.astrapi69.throwable.RuntimeExceptionDecorator;
 import org.jdesktop.swingx.JXTree;
 
 import io.github.astrapi69.model.BaseModel;
@@ -64,7 +66,7 @@ public class DatabaseTreePanel extends TreeNodeJXTreeElementPanel
 	protected JXTree newTree()
 	{
 		JXTree tree = super.newTree();
-		tree.setCellRenderer(new JXTreeNodeCellRenderer());
+		tree.setCellRenderer(new JXTreeNodeRemixIconCellRenderer());
 		return tree;
 	}
 
