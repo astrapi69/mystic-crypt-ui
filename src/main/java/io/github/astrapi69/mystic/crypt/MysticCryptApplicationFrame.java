@@ -33,7 +33,6 @@ import javax.swing.*;
 import javax.swing.filechooser.FileFilter;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
-import io.github.astrapi69.swing.plaf.LookAndFeels;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NonNull;
@@ -44,10 +43,10 @@ import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import io.github.astrapi69.file.create.FileFactory;
 import io.github.astrapi69.file.read.ReadFileExtensions;
 import io.github.astrapi69.gson.JsonStringToObjectExtensions;
+import io.github.astrapi69.icon.ImageIconFactory;
 import io.github.astrapi69.layout.ScreenSizeExtensions;
 import io.github.astrapi69.model.BaseModel;
 import io.github.astrapi69.model.api.Model;
-import io.github.astrapi69.mystic.crypt.panels.dbtree.DatabaseTreePanel;
 import io.github.astrapi69.mystic.crypt.panels.signin.MasterPwFileDialog;
 import io.github.astrapi69.mystic.crypt.panels.signin.MasterPwFileModelBean;
 import io.github.astrapi69.mystic.crypt.panels.signin.MemoizedSigninModelBean;
@@ -56,15 +55,11 @@ import io.github.astrapi69.swing.base.ApplicationFrame;
 import io.github.astrapi69.swing.base.BaseDesktopMenu;
 import io.github.astrapi69.swing.button.IconButtonFactory;
 import io.github.astrapi69.swing.components.factories.JComponentFactory;
-import io.github.astrapi69.icon.ImageIconFactory;
 import io.github.astrapi69.swing.panels.output.ConsolePanel;
-import io.github.astrapi69.swing.panels.tree.JXTreeElement;
 import io.github.astrapi69.swing.splashscreen.ProgressBarSplashScreen;
 import io.github.astrapi69.swing.splashscreen.SplashScreenModelBean;
-import io.github.astrapi69.swing.tree.TreeNodeFactory;
 import io.github.astrapi69.swing.utils.JInternalFrameExtensions;
 import io.github.astrapi69.throwable.RuntimeExceptionDecorator;
-import io.github.astrapi69.tree.TreeNode;
 
 /**
  * The class {@link MysticCryptApplicationFrame}
@@ -224,7 +219,6 @@ public class MysticCryptApplicationFrame extends ApplicationFrame<ApplicationMod
 		}
 		// initialize model and model object
 		setModel(BaseModel.of(ApplicationModelBean.builder().build()));
-		setDefaultLookAndFeel(LookAndFeels.NIMBUS, this);
 		super.onBeforeInitialize();
 	}
 
@@ -289,27 +283,7 @@ public class MysticCryptApplicationFrame extends ApplicationFrame<ApplicationMod
 		getConsoleOutput();
 		setTitle(Messages.getString("mainframe.title"));
 		// create internal frame
-		final JInternalFrame internalFrame = JComponentFactory.newInternalFrame("Key database",
-			true, true, true, true);
-		TreeNode<JXTreeElement> rootTreeNode = getModelObject().getRootTreeNode();
-		if (rootTreeNode == null)
-		{
-			JXTreeElement parent = JXTreeElement.builder().name("root")
-				.iconPath("io/github/astrapi69/silk/icons/book.png").withText(true).parent(null)
-				.node(true).build();
-
-			JXTreeElement firstChild = JXTreeElement.builder().name("mykeys").parent(parent)
-				.iconPath("io/github/astrapi69/silk/icons/folder.png")
-				.withText(true)
-				.node(true).build();
-			rootTreeNode = TreeNodeFactory.initializeTreeNodeWithTreeElement(parent, null);
-			TreeNodeFactory.initializeTreeNodeWithTreeElement(firstChild, rootTreeNode);
-		}
-		final DatabaseTreePanel component = new DatabaseTreePanel(BaseModel.of(rootTreeNode));
-		internalFrame.add(component, "Center");
-		internalFrame.pack();
-		setCurrentVisibleInternalFrame(internalFrame);
-		setDefaultLookAndFeel(LookAndFeels.NIMBUS, this);
+		// openDatabaseTreeFrame();
 		this.setSize(ScreenSizeExtensions.getScreenWidth(), ScreenSizeExtensions.getScreenHeight());
 	}
 

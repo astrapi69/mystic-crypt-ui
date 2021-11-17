@@ -35,6 +35,7 @@ import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import javax.swing.KeyStroke;
 
+import io.github.astrapi69.mystic.crypt.actions.OpenDatabaseTreeFrameAction;
 import org.springframework.core.io.Resource;
 
 import io.github.astrapi69.layout.ScreenSizeExtensions;
@@ -93,6 +94,12 @@ public class DesktopMenu extends BaseDesktopMenu
 
 		JMenuItem jmi;
 
+		// Open Database
+		jmi = new JMenuItem("Open Database", 'D');
+		jmi.addActionListener(new OpenDatabaseTreeFrameAction("Open Database"));
+		MenuExtensions.setCtrlAccelerator(jmi, 'D');
+		fileMenu.add(jmi);
+		// Main key menu
 		final JMenu keyMenu = new JMenu("Key");
 		keyMenu.setMnemonic('K');
 		fileMenu.add(keyMenu);
