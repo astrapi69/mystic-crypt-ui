@@ -28,7 +28,6 @@ apply plugin: "maven-publish"
 apply plugin: "signing"
 apply plugin: "com.github.ben-manes.versions"
 apply plugin: "com.github.hierynomus.license"
-apply plugin: "jacoco"
 
 group = "$groupPackage"
 version = "$projectVersion"
@@ -117,15 +116,6 @@ tasks.withType(JavaCompile) {
 test {
     useJUnitPlatform()
 }
-
-jacocoTestReport {
-    reports {
-        xml.enabled true
-        html.enabled true
-    }
-}
-
-check.dependsOn jacocoTestReport
 
 dependencies {
     izpack("org.codehaus.izpack:izpack-standalone-compiler:$izpackVersion")
