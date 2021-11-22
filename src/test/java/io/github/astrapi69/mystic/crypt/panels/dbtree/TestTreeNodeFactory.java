@@ -26,6 +26,7 @@ package io.github.astrapi69.mystic.crypt.panels.dbtree;
 
 import static io.github.astrapi69.swing.tree.TreeNodeFactory.initializeTreeNodeWithTreeElement;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import io.github.astrapi69.swing.panels.tree.JXTreeElement;
@@ -36,29 +37,35 @@ import io.github.astrapi69.tree.TreeNode;
 public class TestTreeNodeFactory
 {
 
-	public static TreeNode<TreeElement> initializeTestTreeNodeElement()
+	public static TreeNode<JXTreeElement> initializeTestTreeNodeElement()
 	{
-		TreeNode<TreeElement> firstChildTreeNode;
-		TreeNode<TreeElement> firstGrandChildTreeNodeLeaf;
-		TreeNode<TreeElement> secondGrandChildTreeNodeLeaf;
-		TreeElement firstGrandGrandChild;
-		TreeNode<TreeElement> firstGrandGrandChildTreeNode;
-		TreeNode<TreeElement> parentTreeNode;
-		TreeNode<TreeElement> secondChildTreeNode;
-		List<TreeNode<TreeElement>> list;
-		TreeElement parent;
-		TreeElement firstChild;
-		TreeElement firstGrandChild;
-		TreeElement secondChild;
-		TreeElement secondGrandChild;
-		parent = TreeElement.builder().name("parent").parent(null).node(true).build();
-		firstChild = TreeElement.builder().name("firstChild").parent(parent).node(true).build();
-		firstGrandChild = TreeElement.builder().name("firstGrandChild").parent(firstChild)
+		List<MysticCryptEntryModelBean> entries;
+		TreeNode<JXTreeElement> firstChildTreeNode;
+		TreeNode<JXTreeElement> firstGrandChildTreeNodeLeaf;
+		TreeNode<JXTreeElement> secondGrandChildTreeNodeLeaf;
+		JXTreeElement firstGrandGrandChild;
+		TreeNode<JXTreeElement> firstGrandGrandChildTreeNode;
+		TreeNode<JXTreeElement> parentTreeNode;
+		TreeNode<JXTreeElement> secondChildTreeNode;
+		List<TreeNode<JXTreeElement>> list;
+		JXTreeElement parent;
+		JXTreeElement firstChild;
+		JXTreeElement firstGrandChild;
+		JXTreeElement secondChild;
+		JXTreeElement secondGrandChild;
+
+		entries = new ArrayList<>();
+		entries.add(MysticCryptEntryModelBean.builder().build());
+
+		parent = JXTreeElement.builder().name("parent").parent(null).node(true).build()
+			.setDefaultContent(entries);
+		firstChild = JXTreeElement.builder().name("firstChild").parent(parent).node(true).build();
+		firstGrandChild = JXTreeElement.builder().name("firstGrandChild").parent(firstChild)
 			.node(true).build();
-		firstGrandGrandChild = TreeElement.builder().name("firstGrandGrandChild")
+		firstGrandGrandChild = JXTreeElement.builder().name("firstGrandGrandChild")
 			.parent(firstGrandChild).node(false).build();
-		secondChild = TreeElement.builder().name("secondChild").parent(parent).node(true).build();
-		secondGrandChild = TreeElement.builder().name("secondGrandChild").parent(firstChild)
+		secondChild = JXTreeElement.builder().name("secondChild").parent(parent).node(true).build();
+		secondGrandChild = JXTreeElement.builder().name("secondGrandChild").parent(firstChild)
 			.node(false).build();
 		parentTreeNode = initializeTreeNodeWithTreeElement(parent, null);
 
@@ -80,6 +87,7 @@ public class TestTreeNodeFactory
 
 	public static TreeNode<JXTreeElement> initializeTestJXTreeNodeElement()
 	{
+		List<MysticCryptEntryModelBean> entries;
 		TreeNode<JXTreeElement> firstChildTreeNode;
 		TreeNode<JXTreeElement> firstGrandChildTreeNodeLeaf;
 		TreeNode<JXTreeElement> secondGrandChildTreeNodeLeaf;
@@ -93,23 +101,32 @@ public class TestTreeNodeFactory
 		JXTreeElement firstGrandChild;
 		JXTreeElement secondChild;
 		JXTreeElement secondGrandChild;
+		// this will be resolved from the mcdb file
+		entries = new ArrayList<>();
+		entries.add(MysticCryptEntryModelBean.builder()
+				.title("foo")
+				.userName("bar")
+				.password("secret")
+				.url("foo.com")
+			.build());
+
 		parent = JXTreeElement.builder().name("parent")
 			.iconPath("io/github/astrapi69/silk/icons/disk.png")
 			.withText(true)
-			.parent(null).node(true).build();
+			.parent(null).node(true).build().setDefaultContent(entries);
 		firstChild = JXTreeElement.builder().name("firstChild/search").parent(parent)
 			.iconPath("io/github/astrapi69/silk/icons/magnifier.png")
 			.withText(true)
-			.node(true).build();
+			.node(true).build().setDefaultContent(entries);
 		firstGrandChild = JXTreeElement.builder().name("firstGrandChild")
 			.iconPath("io/github/astrapi69/silk/icons/lock.png")
 			.withText(false).parent(firstChild)
-			.node(true).build();
+			.node(true).build().setDefaultContent(entries);
 		firstGrandGrandChild = JXTreeElement.builder().name("firstGrandGrandChild")
-			.parent(firstGrandChild).node(false).build();
-		secondChild = JXTreeElement.builder().name("secondChild").parent(parent).node(true).build();
+			.parent(firstGrandChild).node(false).build().setDefaultContent(entries);
+		secondChild = JXTreeElement.builder().name("secondChild").parent(parent).node(true).build().setDefaultContent(entries);
 		secondGrandChild = JXTreeElement.builder().name("secondGrandChild").parent(firstChild)
-			.node(false).build();
+			.node(false).build().setDefaultContent(entries);
 		parentTreeNode = TreeNodeFactory.initializeTreeNodeWithTreeElement(parent, null);
 
 		firstChildTreeNode = TreeNodeFactory.initializeTreeNodeWithTreeElement(firstChild, parentTreeNode);
