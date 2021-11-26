@@ -1,4 +1,5 @@
 <installation version="1.0">
+
 	<variables>
 		<variable name="appGroup" value="@{app.group}"/>
 		<variable name="appTitle" value="@{app.title}"/>
@@ -9,6 +10,7 @@
 		<!-- pre-select desktop shortcut checkbox -->
 		<variable name="DesktopShortcutCheckboxEnabled" value="true" />
 	</variables>
+
 	<info>
 		<javaversion>1.8</javaversion>
 		<appname>mystic-crypt-ui</appname>
@@ -64,7 +66,6 @@
 			<file src="resources/main/doc/@{app.name}.desktop" targetdir="${INSTALL_PATH}" />
 			<file src="resources/main/img/icon.png" targetdir="${INSTALL_PATH}/img" />
 		</pack>
-
 	</packs>
 
 </installation>

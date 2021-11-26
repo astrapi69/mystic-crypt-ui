@@ -214,7 +214,7 @@ public class MasterPwWithApplicationFilePanel extends BasePanel<MasterPwFileMode
                 modelObject.getApplicationFilePaths(), selectedApplicationFilePath);
         cmbApplicationFile.setModel(cmbApplicationFileModel);
         cmbApplicationFile.setSelectedItem(selectedApplicationFilePath);
-        if (modelObject.getApplicationFile() == null) {
+        if (selectedApplicationFilePath != null && modelObject.getApplicationFile() == null) {
             File saf = new File(selectedApplicationFilePath);
             if (saf.exists()) {
                 modelObject.setApplicationFile(saf);
@@ -258,12 +258,12 @@ public class MasterPwWithApplicationFilePanel extends BasePanel<MasterPwFileMode
         Object item = cmbApplicationFile.getSelectedItem();
         String selectedApplicationFilePath = (String) item;
         getModelObject().setSelectedApplicationFilePath(selectedApplicationFilePath);
-        if (selectedApplicationFilePath.isEmpty()) {
+        if (selectedApplicationFilePath != null && selectedApplicationFilePath.isEmpty()) {
             getModelObject().setApplicationFile(null);
             btnOkStateMachine.onApplicationFileAdded(btnOkStateMachine);
         } else {
             File selectedApplicationFile = new File(selectedApplicationFilePath);
-            if (selectedApplicationFile != null && selectedApplicationFile.exists()) {
+            if (selectedApplicationFile.exists()) {
                 getModelObject().setApplicationFile(selectedApplicationFile);
                 if (!getModelObject().getApplicationFilePaths()
                         .contains(selectedApplicationFile.getAbsolutePath())) {
@@ -271,8 +271,7 @@ public class MasterPwWithApplicationFilePanel extends BasePanel<MasterPwFileMode
                             .add(selectedApplicationFile.getAbsolutePath());
                 }
                 btnOkStateMachine.onApplicationFileAdded(btnOkStateMachine);
-            } else if (selectedApplicationFile == null
-                    || selectedApplicationFile != null && !selectedApplicationFile.exists()) {
+            } else if (!selectedApplicationFile.exists()) {
                 getModelObject().setApplicationFile(null);
                 cmbApplicationFileModel.removeElement(selectedApplicationFilePath);
                 btnOkStateMachine.onApplicationFileAdded(btnOkStateMachine);
@@ -289,14 +288,13 @@ public class MasterPwWithApplicationFilePanel extends BasePanel<MasterPwFileMode
             btnOkStateMachine.onSetKeyFile(btnOkStateMachine);
         } else {
             File selectedKeyFile = new File(selectedKeyFilePath);
-            if (selectedKeyFile != null && selectedKeyFile.exists()) {
+            if (selectedKeyFile.exists()) {
                 getModelObject().setKeyFile(selectedKeyFile);
                 if (!getModelObject().getKeyFilePaths().contains(selectedKeyFile.getAbsolutePath())) {
                     getModelObject().getKeyFilePaths().add(selectedKeyFile.getAbsolutePath());
                 }
                 btnOkStateMachine.onSetKeyFile(btnOkStateMachine);
-            } else if (selectedKeyFile == null
-                    || selectedKeyFile != null && !selectedKeyFile.exists()) {
+            } else if (!selectedKeyFile.exists()) {
                 getModelObject().setKeyFile(null);
                 cmbKeyFileModel.removeElement(selectedKeyFilePath);
                 btnOkStateMachine.onSetKeyFile(btnOkStateMachine);
