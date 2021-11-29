@@ -1,17 +1,17 @@
 /**
  * The MIT License
- *
+ * <p>
  * Copyright (C) 2015 Asterios Raptis
- *
+ * <p>
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
  * associated documentation files (the "Software"), to deal in the Software without restriction,
  * including without limitation the rights to use, copy, modify, merge, publish, distribute,
  * sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- *
+ * <p>
  * The above copyright notice and this permission notice shall be included in all copies or
  * substantial portions of the Software.
- *
+ * <p>
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT
  * NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
  * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
@@ -36,8 +36,6 @@ import java.util.logging.Level;
 import javax.swing.*;
 import javax.swing.event.DocumentEvent;
 
-import lombok.Getter;
-import lombok.extern.java.Log;
 import io.github.astrapi69.crypto.algorithm.KeyPairGeneratorAlgorithm;
 import io.github.astrapi69.crypto.factories.KeyPairFactory;
 import io.github.astrapi69.crypto.key.KeySize;
@@ -48,6 +46,7 @@ import io.github.astrapi69.file.system.SystemFileExtensions;
 import io.github.astrapi69.model.BaseModel;
 import io.github.astrapi69.model.LambdaModel;
 import io.github.astrapi69.model.api.Model;
+import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
 import io.github.astrapi69.swing.JMTextField;
 import io.github.astrapi69.swing.adapters.DocumentListenerAdapter;
 import io.github.astrapi69.swing.base.BasePanel;
@@ -55,6 +54,8 @@ import io.github.astrapi69.swing.combobox.model.EnumComboBoxModel;
 import io.github.astrapi69.swing.dialog.DialogExtensions;
 import io.github.astrapi69.swing.utils.AwtExtensions;
 import io.github.astrapi69.throwable.RuntimeExceptionDecorator;
+import lombok.Getter;
+import lombok.extern.java.Log;
 
 @Log
 @Getter
@@ -140,8 +141,8 @@ public class NewPrivateKeyPanel extends BasePanel<NewPrivateKeyModelBean>
 			.modelObject(modelObject).build();
 
 		txtFilenameOfPrivateKey = new JMTextField();
-		((JMTextField)txtFilenameOfPrivateKey).setPropertyModel(LambdaModel.of(
-			modelObject::getFilenameOfPrivateKey, modelObject::setFilenameOfPrivateKey));
+		((JMTextField)txtFilenameOfPrivateKey).setPropertyModel(LambdaModel
+			.of(modelObject::getFilenameOfPrivateKey, modelObject::setFilenameOfPrivateKey));
 		txtFilenameOfPrivateKey.getDocument().addDocumentListener(new DocumentListenerAdapter()
 		{
 			@Override
@@ -152,25 +153,27 @@ public class NewPrivateKeyPanel extends BasePanel<NewPrivateKeyModelBean>
 				btnSaveStateMachine.onChangeFilename();
 			}
 		});
-		cmbKeySize.setModel(new EnumComboBoxModel<>(KeySize.class,
-			modelObject.getKeySize() != null ? modelObject.getKeySize(): KeySize.KEYSIZE_2048));
-		cmbKeySize.addActionListener(actionEvent -> onChangeKeySize(actionEvent));
+		cmbKeySize.setModel(new EnumComboBoxModel<>(KeySize.class, modelObject.getKeySize()));
+		cmbKeySize.addActionListener(this::onChangeKeySize);
 
 		txtDirectoryOfPrivateKey.setEnabled(false);
 
-		btnGenerate.addActionListener(actionEvent -> onGenerate(actionEvent));
-		btnClear.addActionListener(actionEvent -> onClear(actionEvent));
+		btnGenerate.addActionListener(this::onGenerate);
+		btnClear.addActionListener(this::onClear);
 
-		btnSave.addActionListener(actionEvent -> onSave(actionEvent));
+		btnSave.addActionListener(this::onSave);
 		btnSave.setEnabled(false);
 
 		btnCancel.addActionListener(this::onCancel);
 		btnDirectoryOfPrivateKey.addActionListener(this::onSelectedDirectoryOfPrivateKey);
 
-		fileChooser = new JFileChooser(SystemFileExtensions.getUserDownloadsDir());
+		File configurationDirectory = MysticCryptApplicationFrame.getInstance().getConfigurationDirectory();
+		fileChooser = new JFileChooser(
+				configurationDirectory);
 		fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-		txtDirectoryOfPrivateKey.setText(SystemFileExtensions.getUserDownloadsDir().getAbsolutePath());
-		getModelObject().setPrivateKeyDirectory(SystemFileExtensions.getUserDownloadsDir());
+		txtDirectoryOfPrivateKey
+			.setText(configurationDirectory.getAbsolutePath());
+		getModelObject().setPrivateKeyDirectory(configurationDirectory);
 	}
 
 	protected void onSelectedDirectoryOfPrivateKey(ActionEvent actionEvent)
@@ -199,9 +202,7 @@ public class NewPrivateKeyPanel extends BasePanel<NewPrivateKeyModelBean>
 		{
 			String title = "File already exists";
 			String message = "The file already exists. It will be overwritten if you confirm!";
-			int option = JOptionPane.showConfirmDialog(this,
-				message,
-				title,
+			int option = JOptionPane.showConfirmDialog(this, message, title,
 				JOptionPane.OK_CANCEL_OPTION);
 			if (option == JOptionPane.CANCEL_OPTION)
 			{
@@ -214,7 +215,8 @@ public class NewPrivateKeyPanel extends BasePanel<NewPrivateKeyModelBean>
 		RuntimeExceptionDecorator.decorate(() -> PrivateKeyWriter
 			.writeInPemFormat(getModelObject().getPrivateKey(), privateKeyFile));
 		Component rootJDialog = AwtExtensions.getRootJDialog(this);
-		if(rootJDialog != null && rootJDialog instanceof JDialog){
+		if (rootJDialog instanceof JDialog)
+		{
 			JDialog dialog = (JDialog)rootJDialog;
 			dialog.dispose();
 		}
@@ -350,9 +352,9 @@ public class NewPrivateKeyPanel extends BasePanel<NewPrivateKeyModelBean>
 									javax.swing.GroupLayout.DEFAULT_SIZE,
 									javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))
 				.addGap(20, 20, 20)));
-		layout.setVerticalGroup(layout
-			.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-			.addGroup(layout.createSequentialGroup().addGap(26, 26, 26)
+		layout
+			.setVerticalGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+				.addGroup(layout.createSequentialGroup().addGap(26, 26, 26)
 					.addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
 						.addComponent(lblPrivateKey, javax.swing.GroupLayout.PREFERRED_SIZE, 29,
 							javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -373,20 +375,20 @@ public class NewPrivateKeyPanel extends BasePanel<NewPrivateKeyModelBean>
 							javax.swing.GroupLayout.PREFERRED_SIZE))
 					.addGap(19, 19, 19)
 					.addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-						.addComponent(txtFilenameOfPrivateKey,
-							javax.swing.GroupLayout.PREFERRED_SIZE, 41,
+						.addComponent(
+							txtFilenameOfPrivateKey, javax.swing.GroupLayout.PREFERRED_SIZE, 41,
 							javax.swing.GroupLayout.PREFERRED_SIZE)
-						.addComponent(lblFilenameOfPrivateKey,
-							javax.swing.GroupLayout.PREFERRED_SIZE, 36,
+						.addComponent(
+							lblFilenameOfPrivateKey, javax.swing.GroupLayout.PREFERRED_SIZE, 36,
 							javax.swing.GroupLayout.PREFERRED_SIZE))
 					.addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-					.addGroup(
-						layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-							.addComponent(
-								btnDirectoryOfPrivateKey, javax.swing.GroupLayout.DEFAULT_SIZE,
-								javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-							.addGroup(layout
-								.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+					.addGroup(layout
+						.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+						.addComponent(btnDirectoryOfPrivateKey,
+							javax.swing.GroupLayout.DEFAULT_SIZE,
+							javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+						.addGroup(
+							layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
 								.addComponent(lblDirectoryOfPrivateKey,
 									javax.swing.GroupLayout.PREFERRED_SIZE, 36,
 									javax.swing.GroupLayout.PREFERRED_SIZE)

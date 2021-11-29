@@ -48,7 +48,8 @@ public class NewPrivateKeyModelBean
 {
 	int keyLength;
 
-	KeySize keySize;
+	@Builder.Default
+	KeySize keySize = KeySize.KEYSIZE_2048;
 
 	PrivateKey privateKey;
 
