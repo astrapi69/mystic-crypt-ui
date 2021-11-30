@@ -63,7 +63,7 @@ public class BtnOkStateMachine extends AbstractJComponentStateMachine<JButton, B
 			&& withMasterPw && minPasswordLength <= passwordLength
 			&& withKeyFile && keyFile != null)
 		{
-			setCurrent(BtnOkComponentStateEnum.ENABLED);
+			setCurrentState(BtnOkComponentStateEnum.ENABLED);
 			setEnabled(true);
 			return;
 		}
@@ -71,7 +71,7 @@ public class BtnOkStateMachine extends AbstractJComponentStateMachine<JButton, B
 			&& !withMasterPw
 			&& withKeyFile && keyFile != null)
 		{
-			setCurrent(BtnOkComponentStateEnum.ENABLED);
+			setCurrentState(BtnOkComponentStateEnum.ENABLED);
 			setEnabled(true);
 			return;
 		}
@@ -79,11 +79,11 @@ public class BtnOkStateMachine extends AbstractJComponentStateMachine<JButton, B
 			&& !withKeyFile
 			&& withMasterPw && minPasswordLength <= passwordLength )
 		{
-			setCurrent(BtnOkComponentStateEnum.ENABLED);
+			setCurrentState(BtnOkComponentStateEnum.ENABLED);
 			setEnabled(true);
 			return;
 		}
-		setCurrent(BtnOkComponentStateEnum.DISABLED);
+		setCurrentState(BtnOkComponentStateEnum.DISABLED);
 		setEnabled(false);
 	}
 

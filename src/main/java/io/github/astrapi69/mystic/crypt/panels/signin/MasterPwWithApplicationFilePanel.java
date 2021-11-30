@@ -176,7 +176,7 @@ public class MasterPwWithApplicationFilePanel extends BasePanel<MasterPwFileMode
         MasterPwFileModelBean modelObject = getModelObject();
         btnOkStateMachine = BtnOkStateMachine.builder().component(btnOk)
                 .modelObject(modelObject)
-                .current(BtnOkComponentStateEnum.DISABLED).build();
+                .currentState(BtnOkComponentStateEnum.DISABLED).build();
         txtMasterPw.setEnabled(false);
         txtMasterPw.getDocument().addDocumentListener(new DocumentListenerAdapter() {
             @Override

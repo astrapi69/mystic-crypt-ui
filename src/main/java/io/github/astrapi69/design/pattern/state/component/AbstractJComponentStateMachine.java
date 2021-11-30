@@ -24,16 +24,10 @@
  */
 package io.github.astrapi69.design.pattern.state.component;
 
-import lombok.AllArgsConstructor;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.NonNull;
-import lombok.Setter;
-import lombok.ToString;
-import lombok.experimental.SuperBuilder;
-
 import javax.swing.*;
+
+import lombok.*;
+import lombok.experimental.SuperBuilder;
 
 /**
  * The abstact class {@link AbstractJComponentStateMachine}
@@ -44,7 +38,9 @@ import javax.swing.*;
 @ToString
 @NoArgsConstructor
 @SuperBuilder
-public abstract class AbstractJComponentStateMachine<T extends JComponent, S> extends ComponentStateMachine<T, S>
+public abstract class AbstractJComponentStateMachine<T extends JComponent, S>
+	extends
+		ComponentStateMachine<T, S>
 {
 	public void setEnabled(boolean b)
 	{
