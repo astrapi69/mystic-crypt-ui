@@ -2,20 +2,17 @@
 
 ## Supported Versions
 
-Use this section to tell people about which versions of your project are
+This section tells you about which versions of this project are
 currently being supported with security updates.
 
-| Version | Supported          |
+| Version | Supported Till         |
 | ------- | ------------------ |
-| 5.1.x   | :white_check_mark: |
-| 5.0.x   | :x:                |
-| 4.0.x   | :white_check_mark: |
-| < 4.0   | :x:                |
+| 5.4.x   | :white_check_mark: 01/01/2023 |
+| < 5.4   | :x:                |
 
 ## Reporting a Vulnerability
 
-Use this section to tell people how to report a vulnerability.
+This section tells you how to report a vulnerability.
 
-Tell them where to go, how often they can expect to get an update on a
-reported vulnerability, what to expect if the vulnerability is accepted or
-declined, etc.
+If you find any vulnerability in the mystic-crypt-ui create a github issue for it and we will analize it. 
+If the result of the analisys is positive we will provide as soon as possible an update.
