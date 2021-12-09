@@ -109,7 +109,7 @@ class ApplicationFileWithPasswordAndKeyFactoryTest
 	}
 
 	@Test
-	@Disabled void newApplicationFileWithPasswordAndPrivateKey() throws NoSuchAlgorithmException, IOException {
+	void newApplicationFileWithPasswordAndPrivateKey() throws NoSuchAlgorithmException, IOException {
 		// define parameter for the unit test
 		String actual;
 		String expected;

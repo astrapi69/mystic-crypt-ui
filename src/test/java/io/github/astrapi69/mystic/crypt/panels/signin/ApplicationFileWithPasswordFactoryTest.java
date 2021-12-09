@@ -75,7 +75,7 @@ public class ApplicationFileWithPasswordFactoryTest
 		cryptModel = null;
 		decryptor = null;
 	}
-@Disabled
+
 	@Test void testNewApplicationFileWithPassword() throws Exception
 	{
 		// define parameter for the unit test
