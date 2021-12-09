@@ -6,6 +6,7 @@ buildscript {
         }
     }
     dependencies {
+        classpath "io.freefair.gradle:aspectj-plugin:$gradlePluginAspectjVersion"
         classpath "io.freefair.gradle:lombok-plugin:$gradlePluginLombokVersion"
         classpath "org.springframework.boot:spring-boot-gradle-plugin:$springBootGradlePluginVersion"
         classpath "io.spring.gradle:dependency-management-plugin:$springGradlePluginDependencyManagementVersion"
@@ -16,6 +17,7 @@ buildscript {
     }
 }
 
+apply plugin: "io.freefair.aspectj.post-compile-weaving"
 apply plugin: "io.freefair.lombok"
 apply plugin: "java"
 apply plugin: "com.bmuschko.izpack"
@@ -162,12 +164,16 @@ dependencies {
     implementation("org.apache.xmlgraphics:batik-codec:$batikVersion")
     implementation("org.imgscalr:imgscalr-lib:$imgscalrLibVersion")
     implementation("org.xerial:sqlite-jdbc:$sqliteJdbcVersion")
+    implementation("org.aspectj:aspectjrt:$aspectjrtVersion")
+
+
     // implementation("io.github.astrapi69:swing-menu-pf4j-plugin:1.0.0-SNAPSHOT")
     implementation("io.github.astrapi69:xml-extensions:$xmlExtensionsVersion")
     implementation("io.github.astrapi69:gson-extensions:$gsonExtensionsVersion")
     implementation("io.github.astrapi69:json-extensions:$jsonExtensionsVersion")
     implementation("org.springframework.boot:spring-boot-starter-integration")
     implementation("org.springframework.boot:spring-boot-starter-validation")
+    implementation("org.springframework.boot:spring-boot-starter-aop")
     annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
     developmentOnly("org.springframework.boot:spring-boot-devtools")
     testImplementation("org.springframework.boot:spring-boot-starter-test")

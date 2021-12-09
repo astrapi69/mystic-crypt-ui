@@ -28,8 +28,10 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
+import org.springframework.context.annotation.EnableAspectJAutoProxy;
 
 @Configuration
+@EnableAspectJAutoProxy
 public class SpringApplicationConfiguration
 {
 
