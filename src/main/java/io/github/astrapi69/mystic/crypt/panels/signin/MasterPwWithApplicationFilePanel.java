@@ -24,6 +24,7 @@
  */
 package io.github.astrapi69.mystic.crypt.panels.signin;
 
+import io.github.astrapi69.browser.BrowserControlExtensions;
 import io.github.astrapi69.file.search.PathFinder;
 import io.github.astrapi69.file.system.SystemFileExtensions;
 import io.github.astrapi69.gson.ObjectToJsonFileExtensions;
@@ -34,11 +35,10 @@ import io.github.astrapi69.mystic.crypt.ApplicationModelBean;
 import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
 import io.github.astrapi69.net.url.URLExtensions;
 import io.github.astrapi69.swing.JMCheckBox;
-import io.github.astrapi69.swing.adapters.DocumentListenerAdapter;
 import io.github.astrapi69.swing.base.BasePanel;
-import io.github.astrapi69.swing.browser.BrowserControlExtensions;
 import io.github.astrapi69.swing.combobox.model.StringMutableComboBoxModel;
 import io.github.astrapi69.swing.help.HelpDialog;
+import io.github.astrapi69.swing.listener.document.DocumentListenerAdapter;
 import io.github.astrapi69.swing.panels.help.HelpModelBean;
 import io.github.astrapi69.throwable.RuntimeExceptionDecorator;
 import lombok.Getter;

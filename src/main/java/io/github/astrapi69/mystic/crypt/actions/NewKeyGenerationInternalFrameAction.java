@@ -28,7 +28,7 @@ import javax.swing.JInternalFrame;
 import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
 import io.github.astrapi69.mystic.crypt.SpringBootSwingApplication;
 import io.github.astrapi69.mystic.crypt.panels.keygen.GenerateKeysPanel;
-import io.github.astrapi69.swing.components.factories.JComponentFactory;
+import io.github.astrapi69.swing.component.factory.JComponentFactory;
 import io.github.astrapi69.swing.utils.JInternalFrameExtensions;
 
 /**

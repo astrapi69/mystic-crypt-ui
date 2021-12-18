@@ -37,6 +37,8 @@ import java.security.PrivateKey;
 import javax.swing.*;
 import javax.swing.event.DocumentEvent;
 
+import io.github.astrapi69.browser.BrowserControlExtensions;
+import io.github.astrapi69.swing.listener.document.DocumentListenerAdapter;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.experimental.FieldDefaults;
@@ -54,9 +56,7 @@ import io.github.astrapi69.mystic.crypt.panels.pw.GeneratePasswordDialog;
 import io.github.astrapi69.mystic.crypt.panels.pw.GeneratePasswordModelBean;
 import io.github.astrapi69.net.url.URLExtensions;
 import io.github.astrapi69.swing.JMTextField;
-import io.github.astrapi69.swing.adapters.DocumentListenerAdapter;
 import io.github.astrapi69.swing.base.BasePanel;
-import io.github.astrapi69.swing.browser.BrowserControlExtensions;
 import io.github.astrapi69.swing.combobox.model.StringMutableComboBoxModel;
 import io.github.astrapi69.swing.help.HelpDialog;
 import io.github.astrapi69.swing.panels.help.HelpModelBean;

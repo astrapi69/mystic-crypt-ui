@@ -36,7 +36,8 @@ import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreeModel;
 
-import io.github.astrapi69.swing.panels.tree.JXTreeElement;
+import io.github.astrapi69.swing.table.GenericJXTable;
+import io.github.astrapi69.swing.tree.JXTreeElement;
 import io.github.astrapi69.swing.table.model.dynamic.DynamicTableColumnsModel;
 import org.jdesktop.swingx.JXTree;
 
@@ -48,10 +49,9 @@ import io.github.astrapi69.swing.table.model.GenericTableModel;
 import io.github.astrapi69.swing.tree.JTreeExtensions;
 import io.github.astrapi69.swing.tree.TreeNodeFactory;
 import io.github.astrapi69.swing.tree.renderer.JXTreeNodeCellRenderer;
-import io.github.astrapi69.swing.x.GenericJXTable;
 import io.github.astrapi69.tree.TreeNode;
 
-public class TreeNodeJXTreeElementWithContentPanel extends io.github.astrapi69.swing.panels.tree.TreeNodeJXTreeElementWithContentPanel
+public class TreeNodeJXTreeElementWithContentPanel extends io.github.astrapi69.swing.tree.panel.TreeNodeJXTreeElementWithContentPanel
 {
 
 	private static final long serialVersionUID = 1L;
@@ -171,7 +171,7 @@ public class TreeNodeJXTreeElementWithContentPanel extends io.github.astrapi69.s
 	protected void onSingleLeftClick(MouseEvent mouseEvent)
 	{
 		DefaultMutableTreeNode selectedTreeNode = JTreeExtensions
-			.getSelectedDefaultMutableTreeNode(mouseEvent, tree);
+			.getSelectedTreeNode(tree);
 		TreeNode<JXTreeElement> selectedTreeNodeElement = (TreeNode<JXTreeElement>)selectedTreeNode
 			.getUserObject();
 
@@ -184,7 +184,7 @@ public class TreeNodeJXTreeElementWithContentPanel extends io.github.astrapi69.s
 	protected void onSingleRightClick(MouseEvent mouseEvent)
 	{
 		DefaultMutableTreeNode selectedTreeNode = JTreeExtensions
-			.getSelectedDefaultMutableTreeNode(mouseEvent, tree);
+			.getSelectedTreeNode(tree);
 		TreeNode<JXTreeElement> selectedTreeNodeElement = (TreeNode<JXTreeElement>)selectedTreeNode
 			.getUserObject();
 

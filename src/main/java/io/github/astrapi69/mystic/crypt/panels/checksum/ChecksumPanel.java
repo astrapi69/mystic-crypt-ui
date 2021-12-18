@@ -39,9 +39,9 @@ import java.util.logging.Level;
 import javax.swing.*;
 import javax.swing.plaf.ColorUIResource;
 
+import io.github.astrapi69.swing.listener.document.EnableButtonBehavior;
 import lombok.Getter;
 import lombok.extern.java.Log;
-import io.github.astrapi69.behaviors.EnableButtonBehavior;
 import io.github.astrapi69.checksum.ChecksumExtensions;
 import io.github.astrapi69.checksum.FileChecksumExtensions;
 import io.github.astrapi69.checksum.api.ChecksumAlgorithm;

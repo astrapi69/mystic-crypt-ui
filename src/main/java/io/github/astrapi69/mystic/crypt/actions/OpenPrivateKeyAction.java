@@ -52,8 +52,8 @@ import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
 import io.github.astrapi69.mystic.crypt.panels.privatekey.PrivateKeyModelBean;
 import io.github.astrapi69.mystic.crypt.panels.privatekey.PrivateKeyPanel;
 import io.github.astrapi69.swing.actions.OpenFileAction;
-import io.github.astrapi69.swing.components.factories.JComponentFactory;
-import io.github.astrapi69.swing.dialog.factories.JDialogFactory;
+import io.github.astrapi69.swing.component.factory.JComponentFactory;
+import io.github.astrapi69.swing.dialog.factory.JDialogFactory;
 import io.github.astrapi69.swing.listener.RequestFocusListener;
 import io.github.astrapi69.swing.utils.JInternalFrameExtensions;
 

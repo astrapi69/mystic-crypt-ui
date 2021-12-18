@@ -24,13 +24,13 @@ import java.awt.event.ActionEvent;
 
 import javax.swing.*;
 
-import io.github.astrapi69.layout.ScreenSizeExtensions;
+import io.github.astrapi69.swing.layout.ScreenSizeExtensions;
 import io.github.astrapi69.model.BaseModel;
 import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
 import io.github.astrapi69.mystic.crypt.panels.checksum.ChecksumPanel;
 import io.github.astrapi69.mystic.crypt.panels.dbtree.DatabaseTreePanel;
-import io.github.astrapi69.swing.components.factories.JComponentFactory;
-import io.github.astrapi69.swing.panels.tree.JXTreeElement;
+import io.github.astrapi69.swing.component.factory.JComponentFactory;
+import io.github.astrapi69.swing.tree.JXTreeElement;
 import io.github.astrapi69.swing.tree.TreeNodeFactory;
 import io.github.astrapi69.swing.utils.JInternalFrameExtensions;
 import io.github.astrapi69.throwable.RuntimeExceptionDecorator;

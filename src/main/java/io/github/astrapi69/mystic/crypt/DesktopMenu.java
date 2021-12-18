@@ -38,7 +38,7 @@ import javax.swing.KeyStroke;
 import io.github.astrapi69.mystic.crypt.actions.OpenDatabaseTreeFrameAction;
 import org.springframework.core.io.Resource;
 
-import io.github.astrapi69.layout.ScreenSizeExtensions;
+import io.github.astrapi69.swing.layout.ScreenSizeExtensions;
 import io.github.astrapi69.mystic.crypt.actions.NewChecksumFrameAction;
 import io.github.astrapi69.mystic.crypt.actions.NewFileConversionInternalFrameAction;
 import io.github.astrapi69.mystic.crypt.actions.NewKeyGenerationInternalFrameAction;

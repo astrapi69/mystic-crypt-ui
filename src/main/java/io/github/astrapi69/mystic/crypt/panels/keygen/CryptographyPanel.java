@@ -53,7 +53,7 @@ import io.github.astrapi69.mystic.crypt.SpringBootSwingApplication;
 import io.github.astrapi69.mystic.crypt.panels.certificate.NewCertificateInfoPanel;
 import io.github.astrapi69.swing.base.BasePanel;
 import io.github.astrapi69.swing.combobox.model.EnumComboBoxModel;
-import io.github.astrapi69.swing.dialog.factories.JDialogFactory;
+import io.github.astrapi69.swing.dialog.factory.JDialogFactory;
 import io.github.astrapi69.swing.listener.RequestFocusListener;
 import lombok.Getter;
 import lombok.extern.java.Log;

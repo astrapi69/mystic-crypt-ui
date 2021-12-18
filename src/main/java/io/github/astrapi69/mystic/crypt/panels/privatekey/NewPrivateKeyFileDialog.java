@@ -30,7 +30,7 @@ import java.awt.event.ActionEvent;
 import javax.swing.*;
 
 import io.github.astrapi69.crypto.key.KeySize;
-import io.github.astrapi69.layout.ScreenSizeExtensions;
+import io.github.astrapi69.swing.layout.ScreenSizeExtensions;
 import io.github.astrapi69.model.BaseModel;
 import io.github.astrapi69.model.api.Model;
 import io.github.astrapi69.swing.base.PanelDialog;

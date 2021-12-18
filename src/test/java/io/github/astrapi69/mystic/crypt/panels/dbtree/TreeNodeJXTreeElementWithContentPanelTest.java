@@ -2,7 +2,7 @@ package io.github.astrapi69.mystic.crypt.panels.dbtree;
 
 import io.github.astrapi69.model.BaseModel;
 import io.github.astrapi69.model.api.Model;
-import io.github.astrapi69.swing.panels.tree.JXTreeElement;
+import io.github.astrapi69.swing.tree.JXTreeElement;
 import io.github.astrapi69.tree.TreeNode;
 import io.github.astrapi69.window.adapter.CloseWindow;
 

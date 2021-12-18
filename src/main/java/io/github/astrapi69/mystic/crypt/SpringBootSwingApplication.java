@@ -26,7 +26,7 @@ package io.github.astrapi69.mystic.crypt;
 
 import java.awt.*;
 
-import io.github.astrapi69.layout.ScreenSizeExtensions;
+import io.github.astrapi69.swing.layout.ScreenSizeExtensions;
 import lombok.AccessLevel;
 import lombok.experimental.FieldDefaults;
 

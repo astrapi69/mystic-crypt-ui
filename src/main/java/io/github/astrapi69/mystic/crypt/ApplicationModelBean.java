@@ -21,7 +21,7 @@
 package io.github.astrapi69.mystic.crypt;
 
 import io.github.astrapi69.mystic.crypt.panels.signin.MasterPwFileModelBean;
-import io.github.astrapi69.swing.panels.tree.JXTreeElement;
+import io.github.astrapi69.swing.tree.JXTreeElement;
 import io.github.astrapi69.tree.TreeNode;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
