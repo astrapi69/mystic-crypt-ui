@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.aspectj.lang.JoinPoint;
+import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.AfterThrowing;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Before;
@@ -33,7 +34,7 @@ public class ExceptionHandlingAspect
 
 	@Before(/** handler(*) && */
 	"args(e)")
-	public void logCaughtException(JoinPoint thisJoinPoint, Exception e)
+	public void logCaughtException(ProceedingJoinPoint thisJoinPoint, Exception e)
 	{
 		// Exception handler
 		System.out.println(thisJoinPoint + " -> " + e.getLocalizedMessage());
