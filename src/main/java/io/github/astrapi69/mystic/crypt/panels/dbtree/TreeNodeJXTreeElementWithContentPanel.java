@@ -170,8 +170,7 @@ public class TreeNodeJXTreeElementWithContentPanel extends io.github.astrapi69.s
 	@Override
 	protected void onSingleLeftClick(MouseEvent mouseEvent)
 	{
-		DefaultMutableTreeNode selectedTreeNode = JTreeExtensions
-			.getSelectedTreeNode(tree);
+		DefaultMutableTreeNode selectedTreeNode = JTreeExtensions.getSelectedTreeNode(tree);
 		TreeNode<JXTreeElement> selectedTreeNodeElement = (TreeNode<JXTreeElement>)selectedTreeNode
 			.getUserObject();
 

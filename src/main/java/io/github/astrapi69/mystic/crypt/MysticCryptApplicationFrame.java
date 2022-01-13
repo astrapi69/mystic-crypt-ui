@@ -155,7 +155,7 @@ public class MysticCryptApplicationFrame extends ApplicationFrame<ApplicationMod
 	JInternalFrame internalFrame;
 
 	/**
-	 * Instantiates a new main frame.
+	 * Instantiates a new {@link MysticCryptApplicationFrame}
 	 */
 	public MysticCryptApplicationFrame()
 	{
