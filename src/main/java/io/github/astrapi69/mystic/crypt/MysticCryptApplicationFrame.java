@@ -27,6 +27,7 @@ package io.github.astrapi69.mystic.crypt;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.io.File;
+import java.net.URISyntaxException;
 import java.security.Security;
 
 import javax.swing.*;
@@ -88,6 +89,12 @@ public class MysticCryptApplicationFrame extends ApplicationFrame<ApplicationMod
 		while (!frame.isVisible()) {
 			ScreenSizeExtensions.showFrame(frame);
 		}
+		try {
+			File runningJarFile = getRunningJarDirectory(MysticCryptApplicationFrame.class);
+			System.out.println(runningJarFile);
+		} catch (URISyntaxException e) {
+			e.printStackTrace();
+		}
 	}
 
 	/** The Constant serialVersionUID. */
@@ -105,6 +112,11 @@ public class MysticCryptApplicationFrame extends ApplicationFrame<ApplicationMod
 	 * The instance.
 	 */
 	private static MysticCryptApplicationFrame instance;
+
+	public static File getRunningJarDirectory(Class<?> tClass) throws URISyntaxException {
+		return new File(tClass.getProtectionDomain().getCodeSource().getLocation()
+				.toURI());
+	}
 
 	/**
 	 * Gets the single instance of SpringBootSwingApplication.
@@ -265,7 +277,7 @@ public class MysticCryptApplicationFrame extends ApplicationFrame<ApplicationMod
 	}
 
 	@Override
-	protected BaseDesktopMenu newDesktopMenu(@NonNull Component applicationFrame)
+	protected JMenu newDesktopMenu(@NonNull Component applicationFrame)
 	{
 		return new DesktopMenu(applicationFrame);
 	}
