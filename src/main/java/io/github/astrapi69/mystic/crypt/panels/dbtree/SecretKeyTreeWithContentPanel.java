@@ -39,6 +39,7 @@ import javax.swing.tree.TreeModel;
 import io.github.astrapi69.swing.table.GenericJXTable;
 import io.github.astrapi69.swing.tree.JXTreeElement;
 import io.github.astrapi69.swing.table.model.dynamic.DynamicTableColumnsModel;
+import io.github.astrapi69.swing.tree.panel.TreeNodeJXTreeElementWithContentPanel;
 import org.jdesktop.swingx.JXTree;
 
 import io.github.astrapi69.model.BaseModel;
@@ -48,20 +49,19 @@ import io.github.astrapi69.swing.listener.RequestFocusListener;
 import io.github.astrapi69.swing.table.model.GenericTableModel;
 import io.github.astrapi69.swing.tree.JTreeExtensions;
 import io.github.astrapi69.swing.tree.TreeNodeFactory;
-import io.github.astrapi69.swing.tree.renderer.JXTreeNodeCellRenderer;
 import io.github.astrapi69.tree.TreeNode;
 
-public class TreeNodeJXTreeElementWithContentPanel extends io.github.astrapi69.swing.tree.panel.TreeNodeJXTreeElementWithContentPanel
+public class SecretKeyTreeWithContentPanel extends TreeNodeJXTreeElementWithContentPanel
 {
 
 	private static final long serialVersionUID = 1L;
 
-	public TreeNodeJXTreeElementWithContentPanel()
+	public SecretKeyTreeWithContentPanel()
 	{
 		this(BaseModel.of(new TreeNode<>()));
 	}
 
-	public TreeNodeJXTreeElementWithContentPanel(final Model<TreeNode<JXTreeElement>> model)
+	public SecretKeyTreeWithContentPanel(final Model<TreeNode<JXTreeElement>> model)
 	{
 		super(model);
 	}

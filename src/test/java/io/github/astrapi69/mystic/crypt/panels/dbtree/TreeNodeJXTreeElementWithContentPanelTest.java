@@ -8,8 +8,6 @@ import io.github.astrapi69.window.adapter.CloseWindow;
 
 import java.awt.*;
 
-import static org.junit.jupiter.api.Assertions.*;
-
 class TreeNodeJXTreeElementWithContentPanelTest
 {
 
@@ -25,7 +23,7 @@ class TreeNodeJXTreeElementWithContentPanelTest
 		frame.addWindowListener(new CloseWindow());
 		Model<TreeNode<JXTreeElement>> parentModel = BaseModel
 			.of(TestTreeNodeFactory.initializeTestJXTreeNodeElement());
-		frame.add(new TreeNodeJXTreeElementWithContentPanel(parentModel));
+		frame.add(new SecretKeyTreeWithContentPanel(parentModel));
 		frame.pack();
 		frame.setVisible(true);
 	}

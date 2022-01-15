@@ -37,6 +37,13 @@ sourceCompatibility = "$projectSourceCompatibility" as Object
 repositories {
     mavenLocal()
     mavenCentral()
+    maven {
+        name "Sonatype Nexus Snapshots"
+        url "https://oss.sonatype.org/content/repositories/snapshots"
+        mavenContent {
+            snapshotsOnly()
+        }
+    }
 }
 
 tasks.withType(JavaCompile) {
