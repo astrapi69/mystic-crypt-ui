@@ -1,12 +1,13 @@
 package io.github.astrapi69.mystic.crypt.panels.dbtree;
 
 import io.github.astrapi69.icon.ImageIconFactory;
+import io.github.astrapi69.swing.tree.renderer.GenericTreeNodeCellRenderer;
 import io.github.astrapi69.swing.tree.renderer.JXTreeNodeCellRenderer;
 import io.github.astrapi69.throwable.RuntimeExceptionDecorator;
 
 import javax.swing.*;
 
-public class JXTreeNodeRemixIconCellRenderer extends JXTreeNodeCellRenderer
+public class JXTreeNodeRemixIconCellRenderer<T> extends GenericTreeNodeCellRenderer<T>
 {
 	ImageIcon openIcon;
 	ImageIcon closedIcon;

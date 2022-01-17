@@ -33,8 +33,6 @@ import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreeModel;
 import javax.swing.tree.TreePath;
 
-import io.github.astrapi69.icon.ImageIconFactory;
-import io.github.astrapi69.throwable.RuntimeExceptionDecorator;
 import org.jdesktop.swingx.JXTree;
 
 import io.github.astrapi69.model.BaseModel;
@@ -42,9 +40,8 @@ import io.github.astrapi69.model.api.Model;
 import io.github.astrapi69.swing.dialog.JOptionPaneExtensions;
 import io.github.astrapi69.swing.listener.RequestFocusListener;
 import io.github.astrapi69.swing.tree.JXTreeElement;
-import io.github.astrapi69.swing.tree.panel.TreeNodeJXTreeElementPanel;
 import io.github.astrapi69.swing.tree.TreeNodeFactory;
-import io.github.astrapi69.swing.tree.renderer.JXTreeNodeCellRenderer;
+import io.github.astrapi69.swing.tree.panel.TreeNodeJXTreeElementPanel;
 import io.github.astrapi69.tree.TreeNode;
 
 public class DatabaseTreePanel extends TreeNodeJXTreeElementPanel
@@ -149,7 +146,7 @@ public class DatabaseTreePanel extends TreeNodeJXTreeElementPanel
 	}
 
 	@Override
-	protected void onSingleRightClick(MouseEvent e)
+	protected void onTreeSingleRightClick(MouseEvent e)
 	{
 		int x = e.getX();
 		int y = e.getY();
@@ -223,7 +220,8 @@ public class DatabaseTreePanel extends TreeNodeJXTreeElementPanel
 			popup.add(addChild);
 		}
 
-		if(!parentTreeNode.isRoot()) {
+		if (!parentTreeNode.isRoot())
+		{
 			JMenuItem deleteNode = new JMenuItem("delete");
 			deleteNode.addActionListener(le -> {
 				if (!selectedTreeNode.isRoot())
