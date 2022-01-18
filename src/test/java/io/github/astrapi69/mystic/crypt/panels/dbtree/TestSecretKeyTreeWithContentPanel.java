@@ -24,6 +24,9 @@ class TestSecretKeyTreeWithContentPanel
 		final Frame frame = new Frame("SecretKeyTreeWithContentPanel");
 		frame.addWindowListener(new CloseWindow());
 		List<MysticCryptEntryModelBean> first = ListFactory.newArrayList();
+		first.add(MysticCryptEntryModelBean.builder()
+				.userName("foo")
+			.build());
 		TreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>> genericTreeElementTreeNode =
 			TestTreeNodeFactory
 				.initializeTestGenericTreeNodeElement(first, first);

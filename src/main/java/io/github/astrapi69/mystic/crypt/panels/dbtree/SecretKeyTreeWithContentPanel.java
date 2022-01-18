@@ -24,14 +24,11 @@
  */
 package io.github.astrapi69.mystic.crypt.panels.dbtree;
 
-import java.awt.*;
 import java.awt.event.MouseEvent;
 import java.util.List;
 import java.util.Optional;
 
 import javax.swing.*;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
 import javax.swing.event.TreeModelEvent;
 import javax.swing.event.TreeModelListener;
 import javax.swing.tree.DefaultMutableTreeNode;
@@ -44,6 +41,7 @@ import io.github.astrapi69.model.BaseModel;
 import io.github.astrapi69.model.api.Model;
 import io.github.astrapi69.swing.dialog.JOptionPaneExtensions;
 import io.github.astrapi69.swing.listener.RequestFocusListener;
+import io.github.astrapi69.swing.menu.MenuFactory;
 import io.github.astrapi69.swing.table.GenericJXTable;
 import io.github.astrapi69.swing.table.model.GenericTableModel;
 import io.github.astrapi69.swing.table.model.dynamic.DynamicTableColumnsModel;
@@ -119,7 +117,6 @@ public class SecretKeyTreeWithContentPanel
 			{
 				SecretKeyTreeWithContentPanel.this.onTableDoubleRightClick(event);
 			}
-
 		};
 		return table;
 	}
@@ -140,13 +137,9 @@ public class SecretKeyTreeWithContentPanel
 	{
 		TreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>> parentTreeNode = model
 			.getObject();
-		TreeModel treeModel;
-
-		// treeModel = new TreeNodeModel(parentTreeNode);
-
 		DefaultMutableTreeNode rootNode = TreeNodeFactory.newDefaultMutableTreeNode(parentTreeNode);
 
-		treeModel = new DefaultTreeModel(rootNode, true);
+		TreeModel treeModel = new DefaultTreeModel(rootNode, true);
 
 		treeModel.addTreeModelListener(new TreeModelListener()
 		{
@@ -204,8 +197,7 @@ public class SecretKeyTreeWithContentPanel
 		TreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>> model)
 	{
 		GenericTreeElement<List<MysticCryptEntryModelBean>> parentTreeNode = model.getValue();
-		List<MysticCryptEntryModelBean> defaultContent = parentTreeNode.getDefaultContent();
-		List<MysticCryptEntryModelBean> permissions = (java.util.List<MysticCryptEntryModelBean>)defaultContent;
+		List<MysticCryptEntryModelBean> permissions = parentTreeNode.getDefaultContent();
 		// 2. Create a generic table model for the class Permission.
 		getTblTreeEntryTable().getGenericTableModel().removeAll();
 		getTblTreeEntryTable().getGenericTableModel().addList(permissions);
@@ -215,81 +207,82 @@ public class SecretKeyTreeWithContentPanel
 	@Override
 	protected void onTreeSingleLeftClick(MouseEvent mouseEvent)
 	{
-		DefaultMutableTreeNode selectedTreeNode = JTreeExtensions.getSelectedTreeNode(tree);
-		TreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>> selectedTreeNodeElement = (TreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>>)selectedTreeNode
-			.getUserObject();
-
-		GenericTableModel tableModel = newTableModel(selectedTreeNodeElement);
-
-		tableModel.fireTableDataChanged();
+		Optional<TreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>>> optionalSelectedUserObject = JTreeExtensions
+			.getSelectedUserObject(tree);
+		if (optionalSelectedUserObject.isPresent())
+		{
+			TreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>> selectedTreeNodeElement = optionalSelectedUserObject
+				.get();
+			GenericTableModel tableModel = newTableModel(selectedTreeNodeElement);
+			tableModel.fireTableDataChanged();
+		}
 	}
 
 	@Override
 	protected void onTreeSingleRightClick(MouseEvent mouseEvent)
 	{
-		Optional<DefaultMutableTreeNode> selectedDefaultMutableTreeNode = JTreeExtensions
-			.getSelectedDefaultMutableTreeNode(mouseEvent, tree);
-		if (selectedDefaultMutableTreeNode.isPresent())
+		Optional<TreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>>> optionalSelectedUserObject = JTreeExtensions
+			.getSelectedUserObject(tree);
+		if (optionalSelectedUserObject.isPresent())
 		{
-			DefaultMutableTreeNode selectedTreeNode = selectedDefaultMutableTreeNode.get();
-			TreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>> selectedTreeNodeElement
-				= (TreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>>)selectedTreeNode
-				.getUserObject();
+			DefaultMutableTreeNode selectedTreeNode = JTreeExtensions.getSelectedTreeNode(tree)
+				.get();
+			TreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>> selectedTreeNodeElement = optionalSelectedUserObject
+				.get();
 
-			JPopupMenu popup = new JPopupMenu();
+			JPopupMenu popup = MenuFactory.newJPopupMenu();
 			if (selectedTreeNodeElement.isNode())
 			{
-				JMenuItem addChild = new JMenuItem("add node...");
+				JMenuItem addChild = MenuFactory.newJMenuItem("add node...",
+					actionEvent -> {
+						AddNodePanel addNodePanel = new AddNodePanel();
 
-				addChild.addActionListener(le -> {
+						JOptionPane pane = new JOptionPane(addNodePanel,
+							JOptionPane.INFORMATION_MESSAGE, JOptionPane.OK_CANCEL_OPTION);
+						JDialog dialog = pane.createDialog(null, "New node");
+						dialog.addWindowFocusListener(
+							new RequestFocusListener(addNodePanel.getTxtName()));
+						dialog.pack();
+						dialog.setLocationRelativeTo(null);
+						dialog.setVisible(true);
+						int option = JOptionPaneExtensions.getSelectedOption(pane);
 
-					AddNodePanel addNodePanel = new AddNodePanel();
+						if (option == JOptionPane.OK_OPTION)
+						{
+							boolean allowsChildren = addNodePanel.getCbxNode().isSelected();
+							String userObject = addNodePanel.getTxtName().getText();
+							GenericTreeElement<List<MysticCryptEntryModelBean>> treeElement = GenericTreeElement
+								.<List<MysticCryptEntryModelBean>> builder().name(userObject)
+								.parent(selectedTreeNodeElement.getValue()).node(allowsChildren)
+								.build();
+							TreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>> newTreeNode = TreeNode
+								.<GenericTreeElement<List<MysticCryptEntryModelBean>>> builder()
+								.value(treeElement).parent(selectedTreeNodeElement)
+								.displayValue(userObject).node(allowsChildren).build();
 
-					JOptionPane pane = new JOptionPane(addNodePanel, JOptionPane.INFORMATION_MESSAGE,
-						JOptionPane.OK_CANCEL_OPTION);
-					JDialog dialog = pane.createDialog(null, "New node");
-					dialog.addWindowFocusListener(new RequestFocusListener(addNodePanel.getTxtName()));
-					dialog.pack();
-					dialog.setLocationRelativeTo(null);
-					dialog.setVisible(true);
-					int option = JOptionPaneExtensions.getSelectedOption(pane);
-
-					if (option == JOptionPane.OK_OPTION)
-					{
-						boolean allowsChildren = addNodePanel.getCbxNode().isSelected();
-						String userObject = addNodePanel.getTxtName().getText();
-						GenericTreeElement<List<MysticCryptEntryModelBean>> treeElement = GenericTreeElement
-							.<List<MysticCryptEntryModelBean>> builder().name(userObject)
-							.parent(selectedTreeNodeElement.getValue()).node(allowsChildren)
-							.build();
-						TreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>> newTreeNode = TreeNode
-							.<GenericTreeElement<List<MysticCryptEntryModelBean>>> builder()
-							.value(treeElement).parent(selectedTreeNodeElement)
-							.displayValue(userObject).node(allowsChildren).build();
-
-						DefaultMutableTreeNode newChild = new DefaultMutableTreeNode(newTreeNode,
-							allowsChildren);
-						selectedTreeNode.add(newChild);
-						((DefaultTreeModel)tree.getModel()).reload(selectedTreeNode);
-						tree.treeDidChange();
-					}
-				});
+							DefaultMutableTreeNode newChild = new DefaultMutableTreeNode(newTreeNode,
+								allowsChildren);
+							selectedTreeNode.add(newChild);
+							((DefaultTreeModel)tree.getModel()).reload(selectedTreeNode);
+							tree.treeDidChange();
+						}
+					});
 				popup.add(addChild);
 			}
 
 			if (!selectedTreeNodeElement.isRoot())
 			{
-				JMenuItem deleteNode = new JMenuItem("delete");
-				deleteNode.addActionListener(le -> {
-					int selectedNodeIndex = selectedTreeNode.getParent().getIndex(selectedTreeNode);
-					selectedTreeNode.removeAllChildren();
-					((DefaultMutableTreeNode)selectedTreeNode.getParent())
-						.remove(selectedNodeIndex);
-					((DefaultTreeModel)tree.getModel()).reload(selectedTreeNode);
-					tree.treeDidChange();
-					tree.treeDidChange();
-					this.repaint();
-				});
+				JMenuItem deleteNode = MenuFactory.newJMenuItem("delete",
+					actionEvent -> {
+						int selectedNodeIndex = selectedTreeNode.getParent().getIndex(selectedTreeNode);
+						selectedTreeNode.removeAllChildren();
+						((DefaultMutableTreeNode)selectedTreeNode.getParent())
+							.remove(selectedNodeIndex);
+						((DefaultTreeModel)tree.getModel()).reload(selectedTreeNode);
+						tree.treeDidChange();
+						tree.treeDidChange();
+						this.repaint();
+					});
 				popup.add(deleteNode);
 			}
 			int x = mouseEvent.getX();
@@ -306,6 +299,8 @@ public class SecretKeyTreeWithContentPanel
 	 */
 	protected void onTableSingleLeftClick(MouseEvent event)
 	{
+		Optional singleSelectedRowData = getTblTreeEntryTable().getSingleSelectedRowData();
+		JPopupMenu popup = MenuFactory.newJPopupMenu();
 
 	}
 
@@ -328,6 +323,7 @@ public class SecretKeyTreeWithContentPanel
 	protected void onTableSingleRightClick(MouseEvent event)
 	{
 		System.out.println("Single Right Table clicked");
+
 	}
 
 	/**
