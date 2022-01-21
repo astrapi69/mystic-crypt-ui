@@ -29,14 +29,10 @@ import java.util.List;
 import java.util.Optional;
 
 import javax.swing.*;
-import javax.swing.event.TreeModelEvent;
-import javax.swing.event.TreeModelListener;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreeModel;
 
-import io.github.astrapi69.swing.tree.panel.node.NodeModelBean;
-import io.github.astrapi69.swing.tree.panel.node.NodePanel;
 import org.jdesktop.swingx.JXTree;
 
 import io.github.astrapi69.model.BaseModel;
@@ -51,6 +47,8 @@ import io.github.astrapi69.swing.tree.GenericTreeElement;
 import io.github.astrapi69.swing.tree.JTreeExtensions;
 import io.github.astrapi69.swing.tree.TreeNodeFactory;
 import io.github.astrapi69.swing.tree.content.panel.TreeNodeGenericTreeElementWithContentPanel;
+import io.github.astrapi69.swing.tree.panel.node.NodeModelBean;
+import io.github.astrapi69.swing.tree.panel.node.NodePanel;
 import io.github.astrapi69.tree.TreeNode;
 
 public class SecretKeyTreeWithContentPanel
@@ -78,6 +76,14 @@ public class SecretKeyTreeWithContentPanel
 		tree.setCellRenderer(
 			new JXTreeNodeRemixIconCellRenderer<List<MysticCryptEntryModelBean>>());
 		return tree;
+	}
+
+	@Override protected JScrollPane newTreeScrollPane()
+	{
+		JScrollPane scroller = super.newTreeScrollPane();
+		scroller.getViewport().setOpaque(false);
+		scroller.setOpaque(false);
+		return scroller;
 	}
 
 	@Override
@@ -140,10 +146,7 @@ public class SecretKeyTreeWithContentPanel
 		TreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>> parentTreeNode = model
 			.getObject();
 		DefaultMutableTreeNode rootNode = TreeNodeFactory.newDefaultMutableTreeNode(parentTreeNode);
-
-		TreeModel treeModel = new DefaultTreeModel(rootNode, true);
-
-		return treeModel;
+		return new DefaultTreeModel(rootNode, true);
 	}
 
 	/**
@@ -323,8 +326,6 @@ public class SecretKeyTreeWithContentPanel
 	 */
 	protected void onTableSingleLeftClick(MouseEvent event)
 	{
-		Optional singleSelectedRowData = getTblTreeEntryTable().getSingleSelectedRowData();
-		JPopupMenu popup = MenuFactory.newJPopupMenu();
 
 	}
 
@@ -341,13 +342,40 @@ public class SecretKeyTreeWithContentPanel
 	/**
 	 * The callback method on the table single right click.
 	 *
-	 * @param event
+	 * @param mouseEvent
 	 *            the mouse event
 	 */
-	protected void onTableSingleRightClick(MouseEvent event)
+	protected void onTableSingleRightClick(MouseEvent mouseEvent)
 	{
-		System.out.println("Single Right Table clicked");
+		int x = mouseEvent.getX();
+		int y = mouseEvent.getY();
 
+		List<MysticCryptEntryModelBean> allSelectedRowData = getTblTreeEntryTable().getAllSelectedRowData();
+
+		JPopupMenu popup = MenuFactory.newJPopupMenu();
+
+		popup.add(MenuFactory.newJMenuItem("add ...",
+			actionEvent -> this.onAddTableEntry()));
+
+		popup.show(getTblTreeEntryTable(), x, y);
+
+	}
+
+	protected void onAddTableEntry()
+	{
+		MysticCryptEntryPanel panel = new MysticCryptEntryPanel();
+		JOptionPane pane = new JOptionPane(panel, JOptionPane.INFORMATION_MESSAGE,
+			JOptionPane.OK_CANCEL_OPTION);
+		JDialog dialog = pane.createDialog(null, "New Crypt Entry");
+		dialog.addWindowFocusListener(new RequestFocusListener(panel.getTxtEntryName()));
+		dialog.pack();
+		dialog.setLocationRelativeTo(null);
+		dialog.setVisible(true);
+		int option = JOptionPaneExtensions.getSelectedOption(pane);
+		if (option == JOptionPane.OK_OPTION)
+		{
+
+		}
 	}
 
 	/**
