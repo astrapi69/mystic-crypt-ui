@@ -25,6 +25,10 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
+import lombok.Builder;
+import lombok.Getter;
+import lombok.ToString;
+
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 
@@ -33,9 +37,6 @@ import io.github.astrapi69.collections.pairs.KeyValuePair;
 import io.github.astrapi69.crypto.obfuscation.rule.ObfuscationOperationRule;
 import io.github.astrapi69.crypto.obfuscation.rule.Operation;
 import io.github.astrapi69.swing.table.model.GenericTableModel;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.ToString;
 
 /**
  * The class {@link EditableCharacterObfuscationOperationRulesTableModel}.
@@ -128,7 +129,7 @@ public class EditableCharacterObfuscationOperationRulesTableModel
 		{
 			final KeyValuePair<Character, ObfuscationOperationRule<Character, Character>> permission = getData()
 				.get(row);
-			ObfuscationOperationRule<Character,Character> value = permission.getValue();
+			ObfuscationOperationRule<Character, Character> value = permission.getValue();
 			switch (col)
 			{
 				case 0 :
@@ -182,13 +183,15 @@ public class EditableCharacterObfuscationOperationRulesTableModel
 		return KeyValuePair.toMap(ListFactory.newArrayList(getData()));
 	}
 
-	public List<KeyValuePair<Character, ObfuscationOperationRule<Character, Character>>> toList(BiMap<Character, ObfuscationOperationRule<Character, Character>> biMap){
+	public List<KeyValuePair<Character, ObfuscationOperationRule<Character, Character>>> toList(
+		BiMap<Character, ObfuscationOperationRule<Character, Character>> biMap)
+	{
 		return KeyValuePair.toKeyValuePairs(biMap);
 	}
 
-	public BiMap<Character, ObfuscationOperationRule<Character, Character>> toBiMap(){
-		return HashBiMap
-			.create(toMap());
+	public BiMap<Character, ObfuscationOperationRule<Character, Character>> toBiMap()
+	{
+		return HashBiMap.create(toMap());
 	}
 
 }

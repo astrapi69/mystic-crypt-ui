@@ -66,7 +66,7 @@ public class MasterPwFileModelBean implements Serializable
 	@Builder.Default
 	List<String> applicationFilePaths = ListFactory.newArrayList("");
 
-	/** The private key  */
+	/** The private key */
 	PrivateKey privateKey;
 
 	/** The key file. */
@@ -121,9 +121,7 @@ public class MasterPwFileModelBean implements Serializable
 			.selectedKeyFilePath(this.selectedKeyFilePath)
 			.applicationFilePaths(ListFactory.newArrayList(applicationFilePathSet))
 			.selectedApplicationFilePath(this.selectedApplicationFilePath)
-			.withMasterPw(this.withMasterPw)
-			.withKeyFile(this.withKeyFile)
-			.build();
+			.withMasterPw(this.withMasterPw).withKeyFile(this.withKeyFile).build();
 		return memoizedSignin;
 	}
 }

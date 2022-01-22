@@ -27,32 +27,29 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 
-import javax.swing.GroupLayout;
-import javax.swing.JFileChooser;
-import javax.swing.JLabel;
-import javax.swing.JScrollPane;
+import javax.swing.*;
 import javax.swing.table.TableColumn;
 
-import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
-import io.github.astrapi69.mystic.crypt.SpringBootSwingApplication;
-import io.github.astrapi69.swing.table.GenericJXTable;
-import io.github.astrapi69.swing.table.renderer.TableCellButtonRendererFactory;
-import org.apache.commons.codec.DecoderException;
-
-import io.github.astrapi69.collections.map.MapFactory;
-import io.github.astrapi69.collections.pairs.KeyValuePair;
-import io.github.astrapi69.xml.crypto.file.XmlDecryptionExtensions;
-import io.github.astrapi69.xml.crypto.file.XmlEncryptionExtensions;
-import io.github.astrapi69.crypto.obfuscation.rule.ObfuscationOperationRule;
-import io.github.astrapi69.model.BaseModel;
-import io.github.astrapi69.model.api.Model;
-import io.github.astrapi69.swing.base.BasePanel;
-import io.github.astrapi69.swing.table.editor.DeleteRowButtonEditor;
-import io.github.astrapi69.swing.table.editor.TableCellButtonEditor;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.SneakyThrows;
 import lombok.extern.java.Log;
+
+import org.apache.commons.codec.DecoderException;
+
+import io.github.astrapi69.collections.map.MapFactory;
+import io.github.astrapi69.collections.pairs.KeyValuePair;
+import io.github.astrapi69.crypto.obfuscation.rule.ObfuscationOperationRule;
+import io.github.astrapi69.model.BaseModel;
+import io.github.astrapi69.model.api.Model;
+import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
+import io.github.astrapi69.swing.base.BasePanel;
+import io.github.astrapi69.swing.table.GenericJXTable;
+import io.github.astrapi69.swing.table.editor.DeleteRowButtonEditor;
+import io.github.astrapi69.swing.table.editor.TableCellButtonEditor;
+import io.github.astrapi69.swing.table.renderer.TableCellButtonRendererFactory;
+import io.github.astrapi69.xml.crypto.file.XmlDecryptionExtensions;
+import io.github.astrapi69.xml.crypto.file.XmlEncryptionExtensions;
 
 
 @Getter
@@ -77,8 +74,7 @@ public class ObfuscationOperationRuleTablePanel extends BasePanel<ObfuscationOpe
 
 	public ObfuscationOperationRuleTablePanel()
 	{
-		this(BaseModel
-			.of(ObfuscationOperationModelBean.builder().build()));
+		this(BaseModel.of(ObfuscationOperationModelBean.builder().build()));
 
 	}
 

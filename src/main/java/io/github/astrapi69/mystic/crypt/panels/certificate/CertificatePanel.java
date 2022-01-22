@@ -24,12 +24,12 @@
  */
 package io.github.astrapi69.mystic.crypt.panels.certificate;
 
+import javax.swing.*;
+
+import lombok.Getter;
 import io.github.astrapi69.model.BaseModel;
 import io.github.astrapi69.model.api.Model;
 import io.github.astrapi69.swing.base.BasePanel;
-import lombok.Getter;
-
-import javax.swing.*;
 
 /**
  *
@@ -93,7 +93,8 @@ public class CertificatePanel extends BasePanel<CertificateInfo>
 	}// </editor-fold>//GEN-END:initComponents
 
 
-	@Override protected void onInitializeComponents()
+	@Override
+	protected void onInitializeComponents()
 	{
 		super.onInitializeComponents();
 		lblIssuedTo = new JLabel();
@@ -148,7 +149,8 @@ public class CertificatePanel extends BasePanel<CertificateInfo>
 
 	}
 
-	@Override protected void onInitializeLayout()
+	@Override
+	protected void onInitializeLayout()
 	{
 		super.onInitializeLayout();
 		onInitializeGroupLayout();
@@ -159,11 +161,12 @@ public class CertificatePanel extends BasePanel<CertificateInfo>
 		GroupLayout layout = new GroupLayout(this);
 		this.setLayout(layout);
 		layout.setHorizontalGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)
-			.addGroup(layout.createSequentialGroup().addGap(63, 63, 63).addGroup(
-				layout.createParallelGroup(GroupLayout.Alignment.LEADING, false)
+			.addGroup(layout.createSequentialGroup().addGap(63, 63, 63)
+				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING, false)
 					.addComponent(lblPublicKey, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE,
-						Short.MAX_VALUE).addComponent(lblFingerprint, GroupLayout.DEFAULT_SIZE,
-					GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+						Short.MAX_VALUE)
+					.addComponent(lblFingerprint, GroupLayout.DEFAULT_SIZE,
+						GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
 					.addComponent(lblSignatureAlgorithm, GroupLayout.DEFAULT_SIZE,
 						GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
 					.addComponent(lblValidFrom, GroupLayout.DEFAULT_SIZE, 140, Short.MAX_VALUE)
@@ -176,56 +179,66 @@ public class CertificatePanel extends BasePanel<CertificateInfo>
 					.addComponent(lblIssuedTo, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE,
 						Short.MAX_VALUE)
 					.addComponent(lblValidUntil, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE,
-						Short.MAX_VALUE)).addGap(47, 47, 47).addGroup(
-				layout.createParallelGroup(GroupLayout.Alignment.LEADING, false)
+						Short.MAX_VALUE))
+				.addGap(47, 47, 47)
+				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING, false)
 					.addComponent(txtIssuedTo)
 					.addComponent(txtIssuedBy, GroupLayout.DEFAULT_SIZE, 480, Short.MAX_VALUE)
 					.addComponent(txtVersion, GroupLayout.DEFAULT_SIZE, 480, Short.MAX_VALUE)
 					.addComponent(txtSerialNumber).addComponent(txtValidUntil)
-					.addComponent(txtValidFrom).addComponent(txtSignatureAlgorithm).addGroup(
-					layout.createSequentialGroup()
+					.addComponent(txtValidFrom).addComponent(txtSignatureAlgorithm)
+					.addGroup(layout.createSequentialGroup()
 						.addComponent(txtFingerprint, GroupLayout.PREFERRED_SIZE, 309,
-							GroupLayout.PREFERRED_SIZE).addGap(18, 18, 18)
-						.addComponent(cmbFingerprintAlgorithm, 0, GroupLayout.DEFAULT_SIZE,
-							Short.MAX_VALUE)).addComponent(scrPublicKey))
+							GroupLayout.PREFERRED_SIZE)
+						.addGap(18, 18, 18).addComponent(cmbFingerprintAlgorithm, 0,
+							GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+					.addComponent(scrPublicKey))
 				.addContainerGap(82, Short.MAX_VALUE)));
-		layout.setVerticalGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING).addGroup(
-			layout.createSequentialGroup().addGap(38, 38, 38).addGroup(
-				layout.createParallelGroup(GroupLayout.Alignment.BASELINE).addComponent(lblIssuedTo)
-					.addComponent(txtIssuedTo, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE,
-						GroupLayout.PREFERRED_SIZE)).addGap(18, 18, 18).addGroup(
-				layout.createParallelGroup(GroupLayout.Alignment.BASELINE).addComponent(lblIssuedBy)
-					.addComponent(txtIssuedBy, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE,
-						GroupLayout.PREFERRED_SIZE)).addGap(18, 18, 18).addGroup(
-				layout.createParallelGroup(GroupLayout.Alignment.BASELINE).addComponent(lblVersion)
-					.addComponent(txtVersion, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE,
-						GroupLayout.PREFERRED_SIZE)).addGap(18, 18, 18).addGroup(
-				layout.createParallelGroup(GroupLayout.Alignment.BASELINE)
-					.addComponent(lblSerialNumber)
-					.addComponent(txtSerialNumber, GroupLayout.PREFERRED_SIZE,
-						GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)).addGap(17, 17, 17)
+		layout.setVerticalGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)
+			.addGroup(layout.createSequentialGroup().addGap(38, 38, 38)
+				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+					.addComponent(lblIssuedTo).addComponent(txtIssuedTo, GroupLayout.PREFERRED_SIZE,
+						GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+				.addGap(18, 18, 18)
+				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+					.addComponent(lblIssuedBy).addComponent(txtIssuedBy, GroupLayout.PREFERRED_SIZE,
+						GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+				.addGap(18, 18, 18)
+				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+					.addComponent(lblVersion).addComponent(txtVersion, GroupLayout.PREFERRED_SIZE,
+						GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+				.addGap(18, 18, 18)
+				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+					.addComponent(lblSerialNumber).addComponent(txtSerialNumber,
+						GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE,
+						GroupLayout.PREFERRED_SIZE))
+				.addGap(17, 17, 17)
 				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.TRAILING)
-					.addComponent(lblValidFrom)
-					.addComponent(txtValidFrom, GroupLayout.PREFERRED_SIZE,
-						GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)).addGap(18, 18, 18)
+					.addComponent(lblValidFrom).addComponent(txtValidFrom,
+						GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE,
+						GroupLayout.PREFERRED_SIZE))
+				.addGap(18, 18, 18)
 				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.BASELINE)
 					.addComponent(txtValidUntil, GroupLayout.PREFERRED_SIZE,
 						GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-					.addComponent(lblValidUntil)).addGap(18, 18, 18).addGroup(
-				layout.createParallelGroup(GroupLayout.Alignment.BASELINE)
-					.addComponent(lblSignatureAlgorithm)
-					.addComponent(txtSignatureAlgorithm, GroupLayout.PREFERRED_SIZE,
-						GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)).addGap(18, 18, 18)
+					.addComponent(lblValidUntil))
+				.addGap(18, 18, 18)
+				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+					.addComponent(lblSignatureAlgorithm).addComponent(txtSignatureAlgorithm,
+						GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE,
+						GroupLayout.PREFERRED_SIZE))
+				.addGap(18, 18, 18)
 				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.BASELINE)
 					.addComponent(lblFingerprint)
 					.addComponent(txtFingerprint, GroupLayout.PREFERRED_SIZE,
 						GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
 					.addComponent(cmbFingerprintAlgorithm, GroupLayout.PREFERRED_SIZE,
-						GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)).addGap(18, 18, 18)
+						GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+				.addGap(18, 18, 18)
 				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)
-					.addComponent(lblPublicKey)
-					.addComponent(scrPublicKey, GroupLayout.PREFERRED_SIZE, 280,
-						GroupLayout.PREFERRED_SIZE)).addContainerGap(56, Short.MAX_VALUE)));
+					.addComponent(lblPublicKey).addComponent(scrPublicKey,
+						GroupLayout.PREFERRED_SIZE, 280, GroupLayout.PREFERRED_SIZE))
+				.addContainerGap(56, Short.MAX_VALUE)));
 	}
 
 }

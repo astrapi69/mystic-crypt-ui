@@ -1,16 +1,11 @@
 package io.github.astrapi69.mystic.crypt.panels.dbtree;
 
+import javax.swing.*;
+
+import lombok.Getter;
 import io.github.astrapi69.model.BaseModel;
 import io.github.astrapi69.model.api.Model;
 import io.github.astrapi69.swing.base.BasePanel;
-import lombok.Getter;
-
-import javax.swing.GroupLayout;
-import javax.swing.JLabel;
-import javax.swing.JPasswordField;
-import javax.swing.JScrollPane;
-import javax.swing.JTextArea;
-import javax.swing.JTextField;
 
 @Getter
 public class MysticCryptEntryPanel extends BasePanel<MysticCryptEntryModelBean>
@@ -89,70 +84,77 @@ public class MysticCryptEntryPanel extends BasePanel<MysticCryptEntryModelBean>
 
 		GroupLayout layout = new GroupLayout(this);
 		this.setLayout(layout);
-		layout.setHorizontalGroup(
-			layout.createParallelGroup(GroupLayout.Alignment.LEADING)
+		layout.setHorizontalGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)
+			.addGroup(layout.createSequentialGroup().addContainerGap().addGroup(layout
+				.createParallelGroup(GroupLayout.Alignment.LEADING)
 				.addGroup(layout.createSequentialGroup()
-					.addContainerGap()
-					.addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)
-						.addGroup(layout.createSequentialGroup()
-							.addComponent(lblEntryName, GroupLayout.PREFERRED_SIZE, 140, GroupLayout.PREFERRED_SIZE)
-							.addGap(18, 18, 18)
-							.addComponent(txtEntryName))
-						.addGroup(layout.createSequentialGroup()
-							.addComponent(lblUsername, GroupLayout.PREFERRED_SIZE, 140, GroupLayout.PREFERRED_SIZE)
-							.addGap(18, 18, 18)
-							.addComponent(txtUsername))
-						.addGroup(layout.createSequentialGroup()
-							.addComponent(lblPassword, GroupLayout.PREFERRED_SIZE, 140, GroupLayout.PREFERRED_SIZE)
-							.addGap(18, 18, 18)
-							.addComponent(txtPassword))
-						.addGroup(layout.createSequentialGroup()
-							.addComponent(lblRepeat, GroupLayout.PREFERRED_SIZE, 140, GroupLayout.PREFERRED_SIZE)
-							.addGap(18, 18, 18)
-							.addComponent(txtRepeat))
-						.addGroup(layout.createSequentialGroup()
-							.addComponent(lblNotes, GroupLayout.PREFERRED_SIZE, 140, GroupLayout.PREFERRED_SIZE)
-							.addGap(18, 18, 18)
-							.addComponent(srcNotes))
-						.addGroup(layout.createSequentialGroup()
-							.addComponent(lblHeader, GroupLayout.PREFERRED_SIZE, 760, GroupLayout.PREFERRED_SIZE)
-							.addGap(0, 0, Short.MAX_VALUE))
-						.addGroup(layout.createSequentialGroup()
-							.addComponent(lblUrl, GroupLayout.PREFERRED_SIZE, 140, GroupLayout.PREFERRED_SIZE)
-							.addGap(18, 18, 18)
-							.addComponent(txtUrl)))
-					.addContainerGap())
-		);
-		layout.setVerticalGroup(
-			layout.createParallelGroup(GroupLayout.Alignment.LEADING)
+					.addComponent(lblEntryName, GroupLayout.PREFERRED_SIZE, 140,
+						GroupLayout.PREFERRED_SIZE)
+					.addGap(18, 18, 18).addComponent(txtEntryName))
 				.addGroup(layout.createSequentialGroup()
-					.addContainerGap()
-					.addComponent(lblHeader, GroupLayout.PREFERRED_SIZE, 30, GroupLayout.PREFERRED_SIZE)
-					.addGap(18, 18, 18)
-					.addGroup(layout.createParallelGroup(GroupLayout.Alignment.BASELINE)
-						.addComponent(lblEntryName, GroupLayout.PREFERRED_SIZE, 28, GroupLayout.PREFERRED_SIZE)
-						.addComponent(txtEntryName, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
-					.addGap(18, 18, 18)
-					.addGroup(layout.createParallelGroup(GroupLayout.Alignment.BASELINE)
-						.addComponent(lblUsername, GroupLayout.PREFERRED_SIZE, 28, GroupLayout.PREFERRED_SIZE)
-						.addComponent(txtUsername, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
-					.addGap(18, 18, 18)
-					.addGroup(layout.createParallelGroup(GroupLayout.Alignment.BASELINE)
-						.addComponent(lblPassword, GroupLayout.PREFERRED_SIZE, 28, GroupLayout.PREFERRED_SIZE)
-						.addComponent(txtPassword, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
-					.addGap(18, 18, 18)
-					.addGroup(layout.createParallelGroup(GroupLayout.Alignment.BASELINE)
-						.addComponent(lblRepeat, GroupLayout.PREFERRED_SIZE, 28, GroupLayout.PREFERRED_SIZE)
-						.addComponent(txtRepeat, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
-					.addGap(18, 18, 18)
-					.addGroup(layout.createParallelGroup(GroupLayout.Alignment.BASELINE)
-						.addComponent(lblUrl, GroupLayout.PREFERRED_SIZE, 28, GroupLayout.PREFERRED_SIZE)
-						.addComponent(txtUrl, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
-					.addGap(18, 18, 18)
-					.addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)
-						.addComponent(lblNotes, GroupLayout.PREFERRED_SIZE, 28, GroupLayout.PREFERRED_SIZE)
-						.addComponent(srcNotes, GroupLayout.PREFERRED_SIZE, 280, GroupLayout.PREFERRED_SIZE))
-					.addContainerGap(GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-		);
+					.addComponent(lblUsername, GroupLayout.PREFERRED_SIZE, 140,
+						GroupLayout.PREFERRED_SIZE)
+					.addGap(18, 18, 18).addComponent(txtUsername))
+				.addGroup(layout.createSequentialGroup()
+					.addComponent(lblPassword, GroupLayout.PREFERRED_SIZE, 140,
+						GroupLayout.PREFERRED_SIZE)
+					.addGap(18, 18, 18).addComponent(txtPassword))
+				.addGroup(layout.createSequentialGroup()
+					.addComponent(lblRepeat, GroupLayout.PREFERRED_SIZE, 140,
+						GroupLayout.PREFERRED_SIZE)
+					.addGap(18, 18, 18).addComponent(txtRepeat))
+				.addGroup(layout.createSequentialGroup()
+					.addComponent(lblNotes, GroupLayout.PREFERRED_SIZE, 140,
+						GroupLayout.PREFERRED_SIZE)
+					.addGap(18, 18, 18).addComponent(srcNotes))
+				.addGroup(layout.createSequentialGroup()
+					.addComponent(lblHeader, GroupLayout.PREFERRED_SIZE, 760,
+						GroupLayout.PREFERRED_SIZE)
+					.addGap(0, 0, Short.MAX_VALUE))
+				.addGroup(layout.createSequentialGroup()
+					.addComponent(lblUrl, GroupLayout.PREFERRED_SIZE, 140,
+						GroupLayout.PREFERRED_SIZE)
+					.addGap(18, 18, 18).addComponent(txtUrl)))
+				.addContainerGap()));
+		layout.setVerticalGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)
+			.addGroup(layout.createSequentialGroup().addContainerGap()
+				.addComponent(lblHeader, GroupLayout.PREFERRED_SIZE, 30, GroupLayout.PREFERRED_SIZE)
+				.addGap(18, 18, 18)
+				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+					.addComponent(lblEntryName, GroupLayout.PREFERRED_SIZE, 28,
+						GroupLayout.PREFERRED_SIZE)
+					.addComponent(txtEntryName, GroupLayout.PREFERRED_SIZE,
+						GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+				.addGap(18, 18, 18)
+				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+					.addComponent(lblUsername, GroupLayout.PREFERRED_SIZE, 28,
+						GroupLayout.PREFERRED_SIZE)
+					.addComponent(txtUsername, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE,
+						GroupLayout.PREFERRED_SIZE))
+				.addGap(18, 18, 18)
+				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+					.addComponent(lblPassword, GroupLayout.PREFERRED_SIZE, 28,
+						GroupLayout.PREFERRED_SIZE)
+					.addComponent(txtPassword, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE,
+						GroupLayout.PREFERRED_SIZE))
+				.addGap(18, 18, 18)
+				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+					.addComponent(lblRepeat, GroupLayout.PREFERRED_SIZE, 28,
+						GroupLayout.PREFERRED_SIZE)
+					.addComponent(txtRepeat, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE,
+						GroupLayout.PREFERRED_SIZE))
+				.addGap(18, 18, 18)
+				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+					.addComponent(lblUrl, GroupLayout.PREFERRED_SIZE, 28,
+						GroupLayout.PREFERRED_SIZE)
+					.addComponent(txtUrl, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE,
+						GroupLayout.PREFERRED_SIZE))
+				.addGap(18, 18, 18)
+				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)
+					.addComponent(lblNotes, GroupLayout.PREFERRED_SIZE, 28,
+						GroupLayout.PREFERRED_SIZE)
+					.addComponent(srcNotes, GroupLayout.PREFERRED_SIZE, 280,
+						GroupLayout.PREFERRED_SIZE))
+				.addContainerGap(GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)));
 	}
 }

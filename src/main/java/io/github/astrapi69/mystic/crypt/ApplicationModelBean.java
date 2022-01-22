@@ -20,9 +20,8 @@
  */
 package io.github.astrapi69.mystic.crypt;
 
-import io.github.astrapi69.mystic.crypt.panels.signin.MasterPwFileModelBean;
-import io.github.astrapi69.swing.tree.JXTreeElement;
-import io.github.astrapi69.tree.TreeNode;
+import java.io.Serializable;
+
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -32,8 +31,9 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 import lombok.experimental.FieldDefaults;
-
-import java.io.Serializable;
+import io.github.astrapi69.mystic.crypt.panels.signin.MasterPwFileModelBean;
+import io.github.astrapi69.swing.tree.JXTreeElement;
+import io.github.astrapi69.tree.TreeNode;
 
 /**
  * The class {@link ApplicationModelBean} holds application specific data

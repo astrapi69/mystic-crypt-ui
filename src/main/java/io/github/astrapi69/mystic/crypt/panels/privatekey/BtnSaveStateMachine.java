@@ -46,21 +46,22 @@ import io.github.astrapi69.design.pattern.state.component.AbstractJComponentStat
 @AllArgsConstructor
 @SuperBuilder
 public class BtnSaveStateMachine
-	extends AbstractJComponentStateMachine<JButton, BtnSaveComponentState>
-	implements BtnSaveComponentState
+	extends
+		AbstractJComponentStateMachine<JButton, BtnSaveComponentState>
+	implements
+		BtnSaveComponentState
 {
 	NewPrivateKeyModelBean modelObject;
 
 	@Override
 	protected void updateComponentState()
 	{
-		boolean filenameOfPrivateKeyPresent = !ObjectUtils.isEmpty(modelObject.getFilenameOfPrivateKey());
+		boolean filenameOfPrivateKeyPresent = !ObjectUtils
+			.isEmpty(modelObject.getFilenameOfPrivateKey());
 		boolean privateKeyDirectoryPresent = modelObject.getPrivateKeyDirectory() != null;
 		boolean privateKeyObjectPresent = modelObject.getPrivateKey() != null;
 		boolean keySizePresent = modelObject.getKeySize() != null;
-		if (filenameOfPrivateKeyPresent
-		&& privateKeyDirectoryPresent
-			&& privateKeyObjectPresent
+		if (filenameOfPrivateKeyPresent && privateKeyDirectoryPresent && privateKeyObjectPresent
 			&& keySizePresent)
 		{
 			setEnabled(true);
@@ -95,7 +96,8 @@ public class BtnSaveStateMachine
 		updateComponentState();
 	}
 
-	@Override public void onChangeKeySize()
+	@Override
+	public void onChangeKeySize()
 	{
 		updateComponentState();
 	}

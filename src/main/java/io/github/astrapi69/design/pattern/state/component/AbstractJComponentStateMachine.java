@@ -26,7 +26,11 @@ package io.github.astrapi69.design.pattern.state.component;
 
 import javax.swing.*;
 
-import lombok.*;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
 import lombok.experimental.SuperBuilder;
 
 /**

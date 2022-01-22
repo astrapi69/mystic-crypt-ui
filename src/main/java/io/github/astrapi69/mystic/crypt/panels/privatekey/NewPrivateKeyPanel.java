@@ -36,13 +36,14 @@ import java.util.logging.Level;
 import javax.swing.*;
 import javax.swing.event.DocumentEvent;
 
+import lombok.Getter;
+import lombok.extern.java.Log;
 import io.github.astrapi69.crypto.algorithm.KeyPairGeneratorAlgorithm;
 import io.github.astrapi69.crypto.factories.KeyPairFactory;
 import io.github.astrapi69.crypto.key.KeySize;
 import io.github.astrapi69.crypto.key.PrivateKeyExtensions;
 import io.github.astrapi69.crypto.key.writer.PrivateKeyWriter;
 import io.github.astrapi69.file.create.FileFactory;
-import io.github.astrapi69.file.system.SystemFileExtensions;
 import io.github.astrapi69.model.BaseModel;
 import io.github.astrapi69.model.LambdaModel;
 import io.github.astrapi69.model.api.Model;
@@ -54,14 +55,13 @@ import io.github.astrapi69.swing.dialog.DialogExtensions;
 import io.github.astrapi69.swing.listener.document.DocumentListenerAdapter;
 import io.github.astrapi69.swing.utils.AwtExtensions;
 import io.github.astrapi69.throwable.RuntimeExceptionDecorator;
-import lombok.Getter;
-import lombok.extern.java.Log;
 
 @Log
 @Getter
 public class NewPrivateKeyPanel extends BasePanel<NewPrivateKeyModelBean>
 {
 
+	BtnSaveStateMachine btnSaveStateMachine;
 	private javax.swing.JButton btnCancel;
 	private javax.swing.JButton btnClear;
 	private javax.swing.JButton btnDirectoryOfPrivateKey;
@@ -80,7 +80,6 @@ public class NewPrivateKeyPanel extends BasePanel<NewPrivateKeyModelBean>
 	// ===
 	// ===
 	private JFileChooser fileChooser;
-	BtnSaveStateMachine btnSaveStateMachine;
 
 	public NewPrivateKeyPanel()
 	{
@@ -167,12 +166,11 @@ public class NewPrivateKeyPanel extends BasePanel<NewPrivateKeyModelBean>
 		btnCancel.addActionListener(this::onCancel);
 		btnDirectoryOfPrivateKey.addActionListener(this::onSelectedDirectoryOfPrivateKey);
 
-		File configurationDirectory = MysticCryptApplicationFrame.getInstance().getConfigurationDirectory();
-		fileChooser = new JFileChooser(
-				configurationDirectory);
+		File configurationDirectory = MysticCryptApplicationFrame.getInstance()
+			.getConfigurationDirectory();
+		fileChooser = new JFileChooser(configurationDirectory);
 		fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-		txtDirectoryOfPrivateKey
-			.setText(configurationDirectory.getAbsolutePath());
+		txtDirectoryOfPrivateKey.setText(configurationDirectory.getAbsolutePath());
 		getModelObject().setPrivateKeyDirectory(configurationDirectory);
 	}
 

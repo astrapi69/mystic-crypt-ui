@@ -1,8 +1,8 @@
 package io.github.astrapi69.mystic.crypt.panels.dbtree;
 
+import lombok.NonNull;
 import io.github.astrapi69.swing.table.model.dynamic.DynamicTableColumnsModel;
 import io.github.astrapi69.swing.table.model.dynamic.DynamicTableModel;
-import lombok.NonNull;
 
 public class DynamicMysticCryptEntryTableModel extends DynamicTableModel<MysticCryptEntryModelBean>
 {
@@ -13,14 +13,16 @@ public class DynamicMysticCryptEntryTableModel extends DynamicTableModel<MysticC
 	}
 
 	/**
-	 * Returns the value for the cell at <code>columnIndex</code> and
-	 * <code>rowIndex</code>.
+	 * Returns the value for the cell at <code>columnIndex</code> and <code>rowIndex</code>.
 	 *
-	 * @param rowIndex    the row whose value is to be queried
-	 * @param columnIndex the column whose value is to be queried
+	 * @param rowIndex
+	 *            the row whose value is to be queried
+	 * @param columnIndex
+	 *            the column whose value is to be queried
 	 * @return the value Object at the specified cell
 	 */
-	@Override public Object getValueAt(int rowIndex, int columnIndex)
+	@Override
+	public Object getValueAt(int rowIndex, int columnIndex)
 	{
 		MysticCryptEntryModelBean mysticCryptEntryModelBean = getData().get(rowIndex);
 		switch (columnIndex)

@@ -25,12 +25,8 @@ import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.util.Date;
 
-import io.github.astrapi69.crypto.key.KeySize;
-import io.github.astrapi69.crypto.key.PrivateKeyHexDecryptor;
-import io.github.astrapi69.crypto.key.PublicKeyHexEncryptor;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -38,6 +34,9 @@ import lombok.Setter;
 import lombok.ToString;
 import lombok.experimental.FieldDefaults;
 import lombok.experimental.SuperBuilder;
+import io.github.astrapi69.crypto.key.KeySize;
+import io.github.astrapi69.crypto.key.PrivateKeyHexDecryptor;
+import io.github.astrapi69.crypto.key.PublicKeyHexEncryptor;
 
 @Getter
 @Setter
@@ -61,7 +60,7 @@ public class GenerateKeysModelBean implements Serializable
 	PrivateKey privateKey;
 
 	PublicKey publicKey;
-	
+
 	String password;
 	String signatureAlgorithm;
 	Date start;

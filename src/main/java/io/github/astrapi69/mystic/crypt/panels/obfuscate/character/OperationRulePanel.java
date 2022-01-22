@@ -23,12 +23,15 @@ package io.github.astrapi69.mystic.crypt.panels.obfuscate.character;
 import java.awt.event.ActionEvent;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.Set;
+import java.util.Map.Entry;
 import java.util.stream.IntStream;
 
-import javax.swing.JOptionPane;
+import javax.swing.*;
+
+import lombok.Getter;
+import net.miginfocom.swing.MigLayout;
 
 import com.google.common.collect.BiMap;
 
@@ -43,8 +46,6 @@ import io.github.astrapi69.model.api.Model;
 import io.github.astrapi69.mystic.crypt.panels.keygen.EnDecryptPanel;
 import io.github.astrapi69.mystic.crypt.panels.obfuscate.ModeContext;
 import io.github.astrapi69.swing.base.BasePanel;
-import lombok.Getter;
-import net.miginfocom.swing.MigLayout;
 
 @Getter
 public class OperationRulePanel extends BasePanel<ObfuscationOperationModelBean>

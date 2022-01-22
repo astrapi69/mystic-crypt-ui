@@ -42,100 +42,104 @@ import org.junit.jupiter.api.Test;
 import io.github.astrapi69.collections.list.ListFactory;
 import io.github.astrapi69.crypto.key.PrivateKeyDecryptor;
 import io.github.astrapi69.crypto.key.PrivateKeyGenericDecryptor;
-import io.github.astrapi69.crypto.key.reader.PrivateKeyReader;
 import io.github.astrapi69.crypto.model.CryptModel;
 import io.github.astrapi69.file.delete.DeleteFileExtensions;
-import io.github.astrapi69.gson.JsonStringToObjectExtensions;
-import io.github.astrapi69.mystic.crypt.ApplicationModelBean;
 import io.github.astrapi69.file.read.ReadFileExtensions;
 import io.github.astrapi69.file.search.PathFinder;
+import io.github.astrapi69.gson.JsonStringToObjectExtensions;
+import io.github.astrapi69.mystic.crypt.ApplicationModelBean;
 import io.github.astrapi69.throwable.RuntimeExceptionDecorator;
 
-public class ApplicationFileWithKeyFactoryTest {
+public class ApplicationFileWithKeyFactoryTest
+{
 
-    PrivateKey derPrivateKey;
-    PrivateKey pemPrivateKey;
+	PrivateKey derPrivateKey;
+	PrivateKey pemPrivateKey;
 
-    File derDir;
-    File pemDir;
+	File derDir;
+	File pemDir;
 
-    File privateKeyDerFile;
-    File privateKeyPemFile;
+	File privateKeyDerFile;
+	File privateKeyPemFile;
 
-    File applicationFile;
-    String selectedApplicationFilePath;
-    File decryptedApplicationFile;
-    CryptModel<Cipher, PrivateKey, byte[]> decryptModel;
-    PrivateKeyDecryptor decryptor;
-    PrivateKeyGenericDecryptor<String> genericDecryptor;
+	File applicationFile;
+	String selectedApplicationFilePath;
+	File decryptedApplicationFile;
+	CryptModel<Cipher, PrivateKey, byte[]> decryptModel;
+	PrivateKeyDecryptor decryptor;
+	PrivateKeyGenericDecryptor<String> genericDecryptor;
 
-    @BeforeEach
-    void setUp() {
-        if (Security.getProvider(BouncyCastleProvider.PROVIDER_NAME) == null) {
-            Security.addProvider(new BouncyCastleProvider());
-        }
-        applicationFile = PathFinder.getRelativePath(PathFinder.getSrcTestResourcesDir(),
-                "empty-db-with-key" + ApplicationFileFactory.MCRDB_FILE_EXTENSION);
-        selectedApplicationFilePath = applicationFile.getAbsolutePath();
-        decryptedApplicationFile = PathFinder.getRelativePath(PathFinder.getSrcTestResourcesDir(), "empty-db-with-key.json");
+	@BeforeEach
+	void setUp()
+	{
+		if (Security.getProvider(BouncyCastleProvider.PROVIDER_NAME) == null)
+		{
+			Security.addProvider(new BouncyCastleProvider());
+		}
+		applicationFile = PathFinder.getRelativePath(PathFinder.getSrcTestResourcesDir(),
+			"empty-db-with-key" + ApplicationFileFactory.MCRDB_FILE_EXTENSION);
+		selectedApplicationFilePath = applicationFile.getAbsolutePath();
+		decryptedApplicationFile = PathFinder.getRelativePath(PathFinder.getSrcTestResourcesDir(),
+			"empty-db-with-key.json");
 
-        pemDir = new File(PathFinder.getSrcTestResourcesDir(), "pem");
-        privateKeyPemFile = new File(pemDir, "private.pem");
-        // TODO
-//        pemPrivateKey = RuntimeExceptionDecorator
-//                .decorate(() -> PrivateKeyReader.readPemPrivateKey(privateKeyPemFile));
-//        decryptModel = CryptModel.<Cipher, PrivateKey, byte[]>builder().key(pemPrivateKey)
-//                .build();
-//        decryptor = RuntimeExceptionDecorator
-//                .decorate(() -> new PrivateKeyDecryptor(decryptModel));
-//        genericDecryptor = new PrivateKeyGenericDecryptor<>(decryptor);
-//
-//        derDir = new File(PathFinder.getSrcTestResourcesDir(), "der");
-//        privateKeyDerFile = new File(derDir, "private.der");
-//        derPrivateKey = RuntimeExceptionDecorator
-//                .decorate(() -> PrivateKeyReader.readPrivateKey(privateKeyDerFile));
+		pemDir = new File(PathFinder.getSrcTestResourcesDir(), "pem");
+		privateKeyPemFile = new File(pemDir, "private.pem");
+		// TODO
+		// pemPrivateKey = RuntimeExceptionDecorator
+		// .decorate(() -> PrivateKeyReader.readPemPrivateKey(privateKeyPemFile));
+		// decryptModel = CryptModel.<Cipher, PrivateKey, byte[]>builder().key(pemPrivateKey)
+		// .build();
+		// decryptor = RuntimeExceptionDecorator
+		// .decorate(() -> new PrivateKeyDecryptor(decryptModel));
+		// genericDecryptor = new PrivateKeyGenericDecryptor<>(decryptor);
+		//
+		// derDir = new File(PathFinder.getSrcTestResourcesDir(), "der");
+		// privateKeyDerFile = new File(derDir, "private.der");
+		// derPrivateKey = RuntimeExceptionDecorator
+		// .decorate(() -> PrivateKeyReader.readPrivateKey(privateKeyDerFile));
 
-    }
+	}
 
-    @AfterEach
-    void tearDown() {
-        RuntimeExceptionDecorator.decorate(() -> DeleteFileExtensions.delete(applicationFile));
-        RuntimeExceptionDecorator.decorate(() -> DeleteFileExtensions.delete(decryptedApplicationFile));
-        selectedApplicationFilePath = null;
-        decryptModel = null;
-    }
+	@AfterEach
+	void tearDown()
+	{
+		RuntimeExceptionDecorator.decorate(() -> DeleteFileExtensions.delete(applicationFile));
+		RuntimeExceptionDecorator
+			.decorate(() -> DeleteFileExtensions.delete(decryptedApplicationFile));
+		selectedApplicationFilePath = null;
+		decryptModel = null;
+	}
 
-    @Test
-    @Disabled
-    void newApplicationFileWithPrivateKey() throws Exception {
-        // define parameter for the unit test
-        File actualEncryptedFile;
-        MasterPwFileModelBean modelObject;
-        ApplicationModelBean applicationModelBean;
-        // create test data
-        modelObject = MasterPwFileModelBean.builder()
-                .applicationFile(applicationFile)
-                .privateKey(pemPrivateKey)
-                .keyFile(privateKeyPemFile)
-                .applicationFilePaths(ListFactory.newArrayList(""))
-                .keyFilePaths(ListFactory.newArrayList(""))
-                .build();
-        // test the actual method
-        actualEncryptedFile = ApplicationFileFactory.newApplicationFileWithPrivateKey(modelObject);
+	@Test
+	@Disabled
+	void newApplicationFileWithPrivateKey() throws Exception
+	{
+		// define parameter for the unit test
+		File actualEncryptedFile;
+		MasterPwFileModelBean modelObject;
+		ApplicationModelBean applicationModelBean;
+		// create test data
+		modelObject = MasterPwFileModelBean.builder().applicationFile(applicationFile)
+			.privateKey(pemPrivateKey).keyFile(privateKeyPemFile)
+			.applicationFilePaths(ListFactory.newArrayList(""))
+			.keyFilePaths(ListFactory.newArrayList("")).build();
+		// test the actual method
+		actualEncryptedFile = ApplicationFileFactory.newApplicationFileWithPrivateKey(modelObject);
 
-        // proof that method is working as expected
-        byte[] encryptedBytes = ReadFileExtensions.readFileToBytearray(actualEncryptedFile);
-        String json = genericDecryptor.decrypt(encryptedBytes);
-        applicationModelBean = JsonStringToObjectExtensions.toObject(json,
-                ApplicationModelBean.class);
-        assertNotNull(applicationModelBean);
-        MasterPwFileModelBean masterPwFileModelBean = applicationModelBean.getMasterPwFileModelBean();
-        assertEquals(modelObject, masterPwFileModelBean);
+		// proof that method is working as expected
+		byte[] encryptedBytes = ReadFileExtensions.readFileToBytearray(actualEncryptedFile);
+		String json = genericDecryptor.decrypt(encryptedBytes);
+		applicationModelBean = JsonStringToObjectExtensions.toObject(json,
+			ApplicationModelBean.class);
+		assertNotNull(applicationModelBean);
+		MasterPwFileModelBean masterPwFileModelBean = applicationModelBean
+			.getMasterPwFileModelBean();
+		assertEquals(modelObject, masterPwFileModelBean);
 
-        ApplicationModelBean modelBeanReaded = ApplicationFileReader.readApplicationFileWithPrivateKey(
-                modelObject);
-        assertNotNull(modelBeanReaded);
-        assertEquals(applicationModelBean, modelBeanReaded);
-    }
+		ApplicationModelBean modelBeanReaded = ApplicationFileReader
+			.readApplicationFileWithPrivateKey(modelObject);
+		assertNotNull(modelBeanReaded);
+		assertEquals(applicationModelBean, modelBeanReaded);
+	}
 
 }

@@ -27,6 +27,23 @@ package io.github.astrapi69.mystic.crypt.panels.keygen;
 public class PasswordFormDialog extends javax.swing.JDialog
 {
 
+	// Variables declaration - do not modify//GEN-BEGIN:variables
+	private javax.swing.JLabel lblPassword;
+	private javax.swing.JLabel lblRepeatPassword;
+	private javax.swing.JLabel lblSetPwHeader;
+	private javax.swing.JPasswordField txtPassword;
+	private javax.swing.JPasswordField txtRepeatPassword;
+	/**
+	 * Creates new form PasswordFormDialog
+	 */
+	public PasswordFormDialog(java.awt.Frame parent, boolean modal)
+	{
+		super(parent, modal);
+		initComponents();
+	}
+
+	// End of variables declaration//GEN-END:variables
+
 	/**
 	 * @param args
 	 *            the command line arguments
@@ -92,25 +109,6 @@ public class PasswordFormDialog extends javax.swing.JDialog
 				dialog.setVisible(true);
 			}
 		});
-	}
-
-	// Variables declaration - do not modify//GEN-BEGIN:variables
-	private javax.swing.JLabel lblPassword;
-
-	private javax.swing.JLabel lblRepeatPassword;
-
-	private javax.swing.JLabel lblSetPwHeader;
-	private javax.swing.JPasswordField txtPassword;
-	private javax.swing.JPasswordField txtRepeatPassword;
-
-	// End of variables declaration//GEN-END:variables
-	/**
-	 * Creates new form PasswordFormDialog
-	 */
-	public PasswordFormDialog(java.awt.Frame parent, boolean modal)
-	{
-		super(parent, modal);
-		initComponents();
 	}
 
 	/**

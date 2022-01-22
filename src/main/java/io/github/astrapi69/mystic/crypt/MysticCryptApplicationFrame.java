@@ -45,7 +45,6 @@ import io.github.astrapi69.file.create.FileFactory;
 import io.github.astrapi69.file.read.ReadFileExtensions;
 import io.github.astrapi69.gson.JsonStringToObjectExtensions;
 import io.github.astrapi69.icon.ImageIconFactory;
-import io.github.astrapi69.swing.layout.ScreenSizeExtensions;
 import io.github.astrapi69.model.BaseModel;
 import io.github.astrapi69.model.api.Model;
 import io.github.astrapi69.mystic.crypt.panels.signin.MasterPwFileDialog;
@@ -53,9 +52,9 @@ import io.github.astrapi69.mystic.crypt.panels.signin.MasterPwFileModelBean;
 import io.github.astrapi69.mystic.crypt.panels.signin.MemoizedSigninModelBean;
 import io.github.astrapi69.mystic.crypt.panels.signin.NewMasterPwFileDialog;
 import io.github.astrapi69.swing.base.ApplicationFrame;
-import io.github.astrapi69.swing.base.BaseDesktopMenu;
 import io.github.astrapi69.swing.button.IconButtonFactory;
 import io.github.astrapi69.swing.component.factory.JComponentFactory;
+import io.github.astrapi69.swing.layout.ScreenSizeExtensions;
 import io.github.astrapi69.swing.panels.output.ConsolePanel;
 import io.github.astrapi69.swing.splashscreen.ProgressBarSplashScreen;
 import io.github.astrapi69.swing.splashscreen.SplashScreenModelBean;
@@ -69,14 +68,47 @@ import io.github.astrapi69.throwable.RuntimeExceptionDecorator;
 public class MysticCryptApplicationFrame extends ApplicationFrame<ApplicationModelBean>
 {
 	public static final String MEMOIZED_SIGNIN_JSON_FILENAME = "memoizedSignin.json";
+	public static final String APPLICATION_NAME = "mystic-crypt-ui";
+	/**
+	 * Constant for the default configuration directory from the current user. current
+	 * value:".config"
+	 */
+	public static final String DEFAULT_USER_CONFIGURATION_DIRECTORY_NAME = ".config";
+	/** The Constant serialVersionUID. */
+	private static final long serialVersionUID = 1L;
+	/**
+	 * The instance.
+	 */
+	private static MysticCryptApplicationFrame instance;
 	@Getter
 	private BouncyCastleProvider bouncyCastleProvider;
+	/**
+	 * The console internal frame.
+	 */
+	@Getter
+	JInternalFrame consoleInternalFrame;
+	/**
+	 * The internal frame.
+	 */
+	@Getter
+	JInternalFrame internalFrame;
+
 	/**
 	 * initial block
 	 */
 	{
 		bouncyCastleProvider = new BouncyCastleProvider();
 	}
+
+	/**
+	 * Instantiates a new {@link MysticCryptApplicationFrame}
+	 */
+	public MysticCryptApplicationFrame()
+	{
+		super(Messages.getString("mainframe.title"));
+		showSplashScreen();
+	}
+
 	/**
 	 * The main method that start this {@link MysticCryptApplicationFrame}
 	 *
@@ -86,36 +118,24 @@ public class MysticCryptApplicationFrame extends ApplicationFrame<ApplicationMod
 	public static void main(String[] args)
 	{
 		MysticCryptApplicationFrame frame = new MysticCryptApplicationFrame();
-		while (!frame.isVisible()) {
+		while (!frame.isVisible())
+		{
 			ScreenSizeExtensions.showFrame(frame);
 		}
-		try {
+		try
+		{
 			File runningJarFile = getRunningJarDirectory(MysticCryptApplicationFrame.class);
 			System.out.println(runningJarFile);
-		} catch (URISyntaxException e) {
+		}
+		catch (URISyntaxException e)
+		{
 			e.printStackTrace();
 		}
 	}
 
-	/** The Constant serialVersionUID. */
-	private static final long serialVersionUID = 1L;
-
-	public static final String APPLICATION_NAME = "mystic-crypt-ui";
-
-	/**
-	 * Constant for the default configuration directory from the current user. current
-	 * value:".config"
-	 */
-	public static final String DEFAULT_USER_CONFIGURATION_DIRECTORY_NAME = ".config";
-
-	/**
-	 * The instance.
-	 */
-	private static MysticCryptApplicationFrame instance;
-
-	public static File getRunningJarDirectory(Class<?> tClass) throws URISyntaxException {
-		return new File(tClass.getProtectionDomain().getCodeSource().getLocation()
-				.toURI());
+	public static File getRunningJarDirectory(Class<?> tClass) throws URISyntaxException
+	{
+		return new File(tClass.getProtectionDomain().getCodeSource().getLocation().toURI());
 	}
 
 	/**
@@ -126,6 +146,37 @@ public class MysticCryptApplicationFrame extends ApplicationFrame<ApplicationMod
 	public static MysticCryptApplicationFrame getInstance()
 	{
 		return instance;
+	}
+
+	/**
+	 * Returns the selected file from the given {@link JFileChooser}, that ends with the first
+	 * extension of the {@link FileNameExtensionFilter} from the {@link JFileChooser}
+	 *
+	 * @param fileChooser
+	 *            the file chooser
+	 *
+	 * @return the file with the first extension of the {@link FileNameExtensionFilter} from the
+	 *         {@link JFileChooser}
+	 */
+	public static File getSelectedFileWithFirstExtension(JFileChooser fileChooser)
+	{
+		File file = fileChooser.getSelectedFile();
+		FileFilter fileFilter = fileChooser.getFileFilter();
+		if (fileFilter instanceof FileNameExtensionFilter)
+		{
+			FileNameExtensionFilter fileNameExtensionFilter = (FileNameExtensionFilter)fileFilter;
+			String[] extensions = fileNameExtensionFilter.getExtensions();
+			String fileNameToLowerCase = file.getName().toLowerCase();
+			for (String extension : extensions)
+			{
+				if (fileNameToLowerCase.endsWith('.' + extension.toLowerCase()))
+				{
+					return file;
+				}
+			}
+			file = new File(file.getAbsolutePath() + '.' + extensions[0]);
+		}
+		return file;
 	}
 
 	private void showMasterPwDialog()
@@ -140,44 +191,27 @@ public class MysticCryptApplicationFrame extends ApplicationFrame<ApplicationMod
 			memoizedSigninModelBean = JsonStringToObjectExtensions.toObject(fromFile,
 				MemoizedSigninModelBean.class);
 
-		} else {
+		}
+		else
+		{
 			memoizedSigninModelBean = MemoizedSigninModelBean.builder().build();
 		}
-		MasterPwFileModelBean masterPwFileModelBean = MasterPwFileModelBean.builder().minPasswordLength(6)
-			.withKeyFile(false).withMasterPw(false).showMasterPw(false).build();
+		MasterPwFileModelBean masterPwFileModelBean = MasterPwFileModelBean.builder()
+			.minPasswordLength(6).withKeyFile(false).withMasterPw(false).showMasterPw(false)
+			.build();
 		masterPwFileModelBean.merge(memoizedSigninModelBean);
-		Model<MasterPwFileModelBean> model = BaseModel.<MasterPwFileModelBean>of(masterPwFileModelBean);
-		MasterPwFileDialog dialog = new MasterPwFileDialog(this,
-			"Enter your credentials", true,
+		Model<MasterPwFileModelBean> model = BaseModel
+			.<MasterPwFileModelBean> of(masterPwFileModelBean);
+		MasterPwFileDialog dialog = new MasterPwFileDialog(this, "Enter your credentials", true,
 			model);
 		dialog.setSize(880, 380);
 		dialog.setVisible(true);
 	}
 
-	/**
-	 * The console internal frame.
-	 */
-	@Getter
-	JInternalFrame consoleInternalFrame;
-
-	/**
-	 * The internal frame.
-	 */
-	@Getter
-	JInternalFrame internalFrame;
-
-	/**
-	 * Instantiates a new {@link MysticCryptApplicationFrame}
-	 */
-	public MysticCryptApplicationFrame()
-	{
-		super(Messages.getString("mainframe.title"));
-		showSplashScreen();
-	}
-
 	protected void showSplashScreen()
 	{
-		if(getModelObject().isShowSplash()) {
+		if (getModelObject().isShowSplash())
+		{
 			SplashScreenModelBean splashScreenModelBean = SplashScreenModelBean.builder()
 				.imagePath(getIconPath()).text(getApplicationName()).min(0).max(100).showTime(1200)
 				.showing(true).build();
@@ -223,8 +257,10 @@ public class MysticCryptApplicationFrame extends ApplicationFrame<ApplicationMod
 			instance = this;
 		}
 		// add once the default provider to the Security class
-		if (Security.getProvider(BouncyCastleProvider.PROVIDER_NAME) == null) {
-			if(getBouncyCastleProvider()==null) {
+		if (Security.getProvider(BouncyCastleProvider.PROVIDER_NAME) == null)
+		{
+			if (getBouncyCastleProvider() == null)
+			{
 				bouncyCastleProvider = new BouncyCastleProvider();
 			}
 			Security.addProvider(bouncyCastleProvider);
@@ -238,7 +274,7 @@ public class MysticCryptApplicationFrame extends ApplicationFrame<ApplicationMod
 	protected void onBeforeInitializeComponents()
 	{
 		showMasterPwDialog();
-		//Make sure we have nice window decorations.
+		// Make sure we have nice window decorations.
 		JFrame.setDefaultLookAndFeelDecorated(true);
 		super.onBeforeInitializeComponents();
 	}
@@ -311,57 +347,28 @@ public class MysticCryptApplicationFrame extends ApplicationFrame<ApplicationMod
 			"New application");
 		btnApplicationAdd.addActionListener(this::showNewMasterPw);
 		toolBar.add(btnApplicationAdd);
-//
-//		ImageIcon folderEdit = ImageIconFactory
-//			.newImageIcon("io/github/astrapi69/silk/icons/folder_edit.png");
-//		JButton btnFolderEdit = IconButtonFactory.newIconButton(folderEdit, "Open application");
-//		toolBar.add(btnFolderEdit);
-//
-//		ImageIcon disk = ImageIconFactory.newImageIcon("io/github/astrapi69/silk/icons/disk.png");
-//		JButton btnDisk = IconButtonFactory.newIconButton(disk, "Save");
-//		toolBar.add(btnDisk);
-//
-//		ImageIcon magnifier = ImageIconFactory
-//			.newImageIcon("io/github/astrapi69/silk/icons/magnifier.png");
-//		JButton btnMagnifier = IconButtonFactory.newIconButton(magnifier, "Search");
-//		toolBar.add(btnMagnifier);
-//
-//		ImageIcon lock = ImageIconFactory.newImageIcon("io/github/astrapi69/silk/icons/lock.png");
-//		JButton btnLock = IconButtonFactory.newIconButton(lock, "Lock workspace");
-//		toolBar.add(btnLock);
+		//
+		// ImageIcon folderEdit = ImageIconFactory
+		// .newImageIcon("io/github/astrapi69/silk/icons/folder_edit.png");
+		// JButton btnFolderEdit = IconButtonFactory.newIconButton(folderEdit, "Open application");
+		// toolBar.add(btnFolderEdit);
+		//
+		// ImageIcon disk =
+		// ImageIconFactory.newImageIcon("io/github/astrapi69/silk/icons/disk.png");
+		// JButton btnDisk = IconButtonFactory.newIconButton(disk, "Save");
+		// toolBar.add(btnDisk);
+		//
+		// ImageIcon magnifier = ImageIconFactory
+		// .newImageIcon("io/github/astrapi69/silk/icons/magnifier.png");
+		// JButton btnMagnifier = IconButtonFactory.newIconButton(magnifier, "Search");
+		// toolBar.add(btnMagnifier);
+		//
+		// ImageIcon lock =
+		// ImageIconFactory.newImageIcon("io/github/astrapi69/silk/icons/lock.png");
+		// JButton btnLock = IconButtonFactory.newIconButton(lock, "Lock workspace");
+		// toolBar.add(btnLock);
 
 		return toolBar;
-	}
-
-	/**
-	 * Returns the selected file from the given {@link JFileChooser}, that ends with the first
-	 * extension of the {@link FileNameExtensionFilter} from the {@link JFileChooser}
-	 * 
-	 * @param fileChooser
-	 *            the file chooser
-	 * 
-	 * @return the file with the first extension of the {@link FileNameExtensionFilter} from the
-	 *         {@link JFileChooser}
-	 */
-	public static File getSelectedFileWithFirstExtension(JFileChooser fileChooser)
-	{
-		File file = fileChooser.getSelectedFile();
-		FileFilter fileFilter = fileChooser.getFileFilter();
-		if (fileFilter instanceof FileNameExtensionFilter)
-		{
-			FileNameExtensionFilter fileNameExtensionFilter = (FileNameExtensionFilter)fileFilter;
-			String[] extensions = fileNameExtensionFilter.getExtensions();
-			String fileNameToLowerCase = file.getName().toLowerCase();
-			for (String extension : extensions)
-			{
-				if (fileNameToLowerCase.endsWith('.' + extension.toLowerCase()))
-				{
-					return file;
-				}
-			}
-			file = new File(file.getAbsolutePath() + '.' + extensions[0]);
-		}
-		return file;
 	}
 
 	protected void showNewMasterPw(final ActionEvent actionEvent)
@@ -382,18 +389,17 @@ public class MysticCryptApplicationFrame extends ApplicationFrame<ApplicationMod
 					.decorate(() -> FileFactory.newFile(selectedApplicationFile));
 			}
 			String selectedApplicationFilePath = selectedApplicationFile.getAbsolutePath();
-			Model<MasterPwFileModelBean> model = BaseModel.<MasterPwFileModelBean>of(
-				MasterPwFileModelBean.builder()
-					.applicationFile(selectedApplicationFile)
-					.selectedApplicationFilePath(selectedApplicationFilePath)
-					.minPasswordLength(6).withKeyFile(false)
-					.withMasterPw(false).showMasterPw(false).build());
-			NewMasterPwFileDialog dialog = new NewMasterPwFileDialog(this,
-				"Create your master key", true,
-				model);
+			Model<MasterPwFileModelBean> model = BaseModel.<MasterPwFileModelBean> of(
+				MasterPwFileModelBean.builder().applicationFile(selectedApplicationFile)
+					.selectedApplicationFilePath(selectedApplicationFilePath).minPasswordLength(6)
+					.withKeyFile(false).withMasterPw(false).showMasterPw(false).build());
+			NewMasterPwFileDialog dialog = new NewMasterPwFileDialog(this, "Create your master key",
+				true, model);
 			dialog.setSize(840, 520);
 			dialog.setVisible(true);
-		} else if (returnVal == JFileChooser.CANCEL_OPTION) {
+		}
+		else if (returnVal == JFileChooser.CANCEL_OPTION)
+		{
 			System.err.println("Cancel was selected");
 		}
 

@@ -24,16 +24,13 @@ import java.awt.event.ActionEvent;
 
 import javax.swing.*;
 
-import io.github.astrapi69.swing.layout.ScreenSizeExtensions;
 import io.github.astrapi69.model.BaseModel;
 import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
-import io.github.astrapi69.mystic.crypt.panels.checksum.ChecksumPanel;
 import io.github.astrapi69.mystic.crypt.panels.dbtree.DatabaseTreePanel;
 import io.github.astrapi69.swing.component.factory.JComponentFactory;
 import io.github.astrapi69.swing.tree.JXTreeElement;
 import io.github.astrapi69.swing.tree.TreeNodeFactory;
 import io.github.astrapi69.swing.utils.JInternalFrameExtensions;
-import io.github.astrapi69.throwable.RuntimeExceptionDecorator;
 import io.github.astrapi69.tree.TreeNode;
 
 /**
@@ -56,21 +53,13 @@ public class OpenDatabaseTreeFrameAction extends AbstractAction
 		super(name);
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
-	@Override
-	public void actionPerformed(final ActionEvent e)
-	{
-		openDatabaseTreeFrame();
-	}
-
 	public static void openDatabaseTreeFrame()
 	{
 		// create internal frame
 		final JInternalFrame internalFrame = JComponentFactory.newInternalFrame("Key database",
 			true, true, true, true);
-		TreeNode<JXTreeElement> rootTreeNode = MysticCryptApplicationFrame.getInstance().getModelObject().getRootTreeNode();
+		TreeNode<JXTreeElement> rootTreeNode = MysticCryptApplicationFrame.getInstance()
+			.getModelObject().getRootTreeNode();
 		if (rootTreeNode == null)
 		{
 			JXTreeElement parent = JXTreeElement.builder().name("root")
@@ -78,9 +67,8 @@ public class OpenDatabaseTreeFrameAction extends AbstractAction
 				.node(true).build();
 
 			JXTreeElement firstChild = JXTreeElement.builder().name("mykeys").parent(parent)
-				.iconPath("io/github/astrapi69/silk/icons/folder.png")
-				.withText(true)
-				.node(true).build();
+				.iconPath("io/github/astrapi69/silk/icons/folder.png").withText(true).node(true)
+				.build();
 			rootTreeNode = TreeNodeFactory.initializeTreeNodeWithTreeElement(parent, null);
 			TreeNodeFactory.initializeTreeNodeWithTreeElement(firstChild, rootTreeNode);
 		}
@@ -89,11 +77,20 @@ public class OpenDatabaseTreeFrameAction extends AbstractAction
 		JDesktopPane mainComponent = MysticCryptApplicationFrame.getInstance().getMainComponent();
 		int screenHeight = mainComponent.getHeight() - 50;
 		int screenWidth = mainComponent.getWidth();
-		internalFrame.setSize(screenWidth , screenHeight);
+		internalFrame.setSize(screenWidth, screenHeight);
 		internalFrame.setLocation(0, 0);
 		internalFrame.setResizable(true);
 
 		JInternalFrameExtensions.addJInternalFrame(mainComponent, internalFrame);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public void actionPerformed(final ActionEvent e)
+	{
+		openDatabaseTreeFrame();
 	}
 
 }

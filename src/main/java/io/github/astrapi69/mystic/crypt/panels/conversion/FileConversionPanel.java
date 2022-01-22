@@ -32,15 +32,10 @@ import java.security.cert.X509Certificate;
 import java.security.spec.InvalidKeySpecException;
 import java.util.logging.Level;
 
-import javax.swing.GroupLayout;
-import javax.swing.JButton;
-import javax.swing.JComboBox;
-import javax.swing.JFileChooser;
-import javax.swing.JLabel;
-import javax.swing.JScrollPane;
-import javax.swing.JTextArea;
-import javax.swing.LayoutStyle;
+import javax.swing.*;
 
+import lombok.Getter;
+import lombok.extern.java.Log;
 import io.github.astrapi69.crypto.key.KeyType;
 import io.github.astrapi69.crypto.key.reader.CertificateReader;
 import io.github.astrapi69.crypto.key.reader.PrivateKeyReader;
@@ -48,13 +43,11 @@ import io.github.astrapi69.crypto.key.reader.PublicKeyReader;
 import io.github.astrapi69.crypto.key.writer.CertificateWriter;
 import io.github.astrapi69.crypto.key.writer.PrivateKeyWriter;
 import io.github.astrapi69.crypto.key.writer.PublicKeyWriter;
-import io.github.astrapi69.throwable.ThrowableExtensions;
 import io.github.astrapi69.model.BaseModel;
 import io.github.astrapi69.model.api.Model;
 import io.github.astrapi69.swing.base.BasePanel;
 import io.github.astrapi69.swing.combobox.model.EnumComboBoxModel;
-import lombok.Getter;
-import lombok.extern.java.Log;
+import io.github.astrapi69.throwable.ThrowableExtensions;
 
 @Getter
 @Log
@@ -76,8 +69,7 @@ public class FileConversionPanel extends BasePanel<FileConversionModelBean>
 
 	public FileConversionPanel()
 	{
-		this(BaseModel.of(
-			FileConversionModelBean.builder().keyType(KeyType.PRIVATE_KEY).build()));
+		this(BaseModel.of(FileConversionModelBean.builder().keyType(KeyType.PRIVATE_KEY).build()));
 	}
 
 	public FileConversionPanel(final Model<FileConversionModelBean> model)

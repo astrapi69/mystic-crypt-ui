@@ -29,14 +29,14 @@
  */
 package io.github.astrapi69.mystic.crypt.panels.pw;
 
+import java.awt.event.ActionEvent;
+
 import io.github.astrapi69.model.BaseModel;
 import io.github.astrapi69.model.LambdaModel;
 import io.github.astrapi69.model.api.Model;
 import io.github.astrapi69.swing.JMCheckBox;
 import io.github.astrapi69.swing.JMSpinner;
 import io.github.astrapi69.swing.base.BasePanel;
-
-import java.awt.event.ActionEvent;
 
 /**
  *
@@ -130,28 +130,39 @@ public class GeneratePasswordPanel extends BasePanel<GeneratePasswordModelBean>
 		// ===
 
 		spnPasswordLength = new JMSpinner<Integer>();
-		((JMSpinner)spnPasswordLength).setPropertyModel(LambdaModel.of(getModelObject()::getPasswordLength, getModelObject()::setPasswordLength));
+		((JMSpinner)spnPasswordLength).setPropertyModel(LambdaModel
+			.of(getModelObject()::getPasswordLength, getModelObject()::setPasswordLength));
 
 		cbxLowercase = new JMCheckBox();
-		((JMCheckBox)cbxLowercase).setPropertyModel(LambdaModel.of(getModelObject()::isLowercase, getModelObject()::setLowercase));
+		((JMCheckBox)cbxLowercase).setPropertyModel(
+			LambdaModel.of(getModelObject()::isLowercase, getModelObject()::setLowercase));
 		cbxUppercase = new JMCheckBox();
-		((JMCheckBox)cbxUppercase).setPropertyModel(LambdaModel.of(getModelObject()::isUppercase, getModelObject()::setUppercase));
+		((JMCheckBox)cbxUppercase).setPropertyModel(
+			LambdaModel.of(getModelObject()::isUppercase, getModelObject()::setUppercase));
 		cbxDigits = new JMCheckBox();
-		((JMCheckBox)cbxDigits).setPropertyModel(LambdaModel.of(getModelObject()::isDigits, getModelObject()::setDigits));
+		((JMCheckBox)cbxDigits).setPropertyModel(
+			LambdaModel.of(getModelObject()::isDigits, getModelObject()::setDigits));
 		cbxUnderscore = new JMCheckBox();
-		((JMCheckBox)cbxUnderscore).setPropertyModel(LambdaModel.of(getModelObject()::isUnderscore, getModelObject()::setUnderscore));
+		((JMCheckBox)cbxUnderscore).setPropertyModel(
+			LambdaModel.of(getModelObject()::isUnderscore, getModelObject()::setUnderscore));
 		cbxSpecial = new JMCheckBox();
-		((JMCheckBox)cbxSpecial).setPropertyModel(LambdaModel.of(getModelObject()::isSpecial, getModelObject()::setSpecial));
+		((JMCheckBox)cbxSpecial).setPropertyModel(
+			LambdaModel.of(getModelObject()::isSpecial, getModelObject()::setSpecial));
 		cbxMoreSpecial = new JMCheckBox();
-		((JMCheckBox)cbxMoreSpecial).setPropertyModel(LambdaModel.of(getModelObject()::isMoreSpecial, getModelObject()::setMoreSpecial));
+		((JMCheckBox)cbxMoreSpecial).setPropertyModel(
+			LambdaModel.of(getModelObject()::isMoreSpecial, getModelObject()::setMoreSpecial));
 		cbxBrackets = new JMCheckBox();
-		((JMCheckBox)cbxBrackets).setPropertyModel(LambdaModel.of(getModelObject()::isBrackets, getModelObject()::setBrackets));
+		((JMCheckBox)cbxBrackets).setPropertyModel(
+			LambdaModel.of(getModelObject()::isBrackets, getModelObject()::setBrackets));
 		cbxWhitespace = new JMCheckBox();
-		((JMCheckBox)cbxWhitespace).setPropertyModel(LambdaModel.of(getModelObject()::isWhitespace, getModelObject()::setWhitespace));
+		((JMCheckBox)cbxWhitespace).setPropertyModel(
+			LambdaModel.of(getModelObject()::isWhitespace, getModelObject()::setWhitespace));
 		cbxMinus = new JMCheckBox();
-		((JMCheckBox)cbxMinus).setPropertyModel(LambdaModel.of(getModelObject()::isMinus, getModelObject()::setMinus));
+		((JMCheckBox)cbxMinus).setPropertyModel(
+			LambdaModel.of(getModelObject()::isMinus, getModelObject()::setMinus));
 		cbxPlus = new JMCheckBox();
-		((JMCheckBox)cbxPlus).setPropertyModel(LambdaModel.of(getModelObject()::isPlus, getModelObject()::setPlus));
+		((JMCheckBox)cbxPlus)
+			.setPropertyModel(LambdaModel.of(getModelObject()::isPlus, getModelObject()::setPlus));
 
 		cbxLowercase.setText("Lower case (abc...)");
 		cbxUppercase.setText("Upper case (ABC...)");
@@ -163,7 +174,7 @@ public class GeneratePasswordPanel extends BasePanel<GeneratePasswordModelBean>
 		cbxWhitespace.setText("White space");
 		cbxMinus.setText("Minus(-)");
 		cbxPlus.setText("Plus (+)");
-		
+
 		btnOk.addActionListener(this::onOk);
 		btnCancel.addActionListener(this::onCancel);
 	}

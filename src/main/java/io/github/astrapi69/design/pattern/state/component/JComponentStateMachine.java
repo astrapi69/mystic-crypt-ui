@@ -41,7 +41,9 @@ import lombok.experimental.SuperBuilder;
 @NoArgsConstructor
 @AllArgsConstructor
 @SuperBuilder
-public class JComponentStateMachine<T extends JComponent> extends ComponentStateMachine<T, SigninComponentState>
+public class JComponentStateMachine<T extends JComponent>
+	extends
+		ComponentStateMachine<T, SigninComponentState>
 	implements
 		SigninComponentState
 {

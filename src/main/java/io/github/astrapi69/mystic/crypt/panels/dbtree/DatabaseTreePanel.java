@@ -59,6 +59,28 @@ public class DatabaseTreePanel extends TreeNodeJXTreeElementPanel
 		super(model);
 	}
 
+	public static int getOption(JOptionPane pane)
+	{
+
+		Object selectedValue = pane.getValue();
+
+		if (selectedValue == null)
+			return -1;
+		Object[] options = pane.getOptions();
+		if (options == null)
+		{
+			if (selectedValue instanceof Integer)
+				return ((Integer)selectedValue).intValue();
+			return -1;
+		}
+		for (int counter = 0, maxCounter = options.length; counter < maxCounter; counter++)
+		{
+			if (options[counter].equals(selectedValue))
+				return counter;
+		}
+		return -1;
+	}
+
 	@Override
 	protected JXTree newTree()
 	{
@@ -243,27 +265,5 @@ public class DatabaseTreePanel extends TreeNodeJXTreeElementPanel
 			popup.add(deleteNode);
 		}
 		popup.show(tree, x, y);
-	}
-
-	public static int getOption(JOptionPane pane)
-	{
-
-		Object selectedValue = pane.getValue();
-
-		if (selectedValue == null)
-			return -1;
-		Object[] options = pane.getOptions();
-		if (options == null)
-		{
-			if (selectedValue instanceof Integer)
-				return ((Integer)selectedValue).intValue();
-			return -1;
-		}
-		for (int counter = 0, maxCounter = options.length; counter < maxCounter; counter++)
-		{
-			if (options[counter].equals(selectedValue))
-				return counter;
-		}
-		return -1;
 	}
 }

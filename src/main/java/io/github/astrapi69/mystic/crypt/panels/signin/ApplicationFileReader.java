@@ -58,7 +58,7 @@ public class ApplicationFileReader
 {
 	public static ApplicationModelBean read(@NonNull MasterPwFileModelBean modelObject)
 	{
-		if (modelObject.isWithMasterPw() && modelObject.isWithKeyFile() )
+		if (modelObject.isWithMasterPw() && modelObject.isWithKeyFile())
 		{
 			return readApplicationFileWithPasswordAndPrivateKey(modelObject);
 		}
@@ -90,7 +90,7 @@ public class ApplicationFileReader
 			PasswordStringDecryptor passwordStringDecryptor;
 			passwordStringDecryptor = new PasswordStringDecryptor(String.valueOf(password));
 			privateKey = PrivateKeyReader.readPemPrivateKey(keyFile);
-			
+
 			decryptModel = CryptModel.<Cipher, PrivateKey, byte[]> builder().key(privateKey)
 				.build();
 			decryptor = new PrivateKeyDecryptor(decryptModel);
@@ -127,12 +127,18 @@ public class ApplicationFileReader
 		try
 		{
 			PrivateKey privateKey;
-			if(modelObject.getPrivateKey()!=null){
+			if (modelObject.getPrivateKey() != null)
+			{
 				privateKey = modelObject.getPrivateKey();
-			} else {
-				if(PemObjectReader.isPemObject(keyFile)) {
+			}
+			else
+			{
+				if (PemObjectReader.isPemObject(keyFile))
+				{
 					privateKey = PrivateKeyReader.readPemPrivateKey(keyFile);
-				} else {
+				}
+				else
+				{
 					privateKey = PrivateKeyReader.readPrivateKey(keyFile);
 				}
 			}
@@ -155,8 +161,7 @@ public class ApplicationFileReader
 		PrivateKeyDecryptor decryptor;
 		PrivateKeyGenericDecryptor<String> genericDecryptor;
 		ApplicationModelBean applicationModelBean;
-		decryptModel = CryptModel.<Cipher, PrivateKey, byte[]> builder().key(privateKey)
-			.build();
+		decryptModel = CryptModel.<Cipher, PrivateKey, byte[]> builder().key(privateKey).build();
 		decryptor = new PrivateKeyDecryptor(decryptModel);
 		genericDecryptor = new PrivateKeyGenericDecryptor<>(decryptor);
 		byte[] encryptedBytes = ReadFileExtensions.readFileToBytearray(applicationFile);
