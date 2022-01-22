@@ -52,6 +52,7 @@ public class GeneratePasswordFormPanel extends javax.swing.JPanel
 	private javax.swing.JLabel lblGeneratePwHeader;
 	private javax.swing.JLabel lblPasswordLength;
 	private javax.swing.JSpinner spnPasswordLength;
+
 	/**
 	 * Creates new form GeneratePasswordPanel
 	 */
@@ -284,5 +285,5 @@ public class GeneratePasswordFormPanel extends javax.swing.JPanel
 	{// GEN-FIRST:event_cbxWhitespaceActionPerformed
 		// TODO add your handling code here:
 	}// GEN-LAST:event_cbxWhitespaceActionPerformed
-	// End of variables declaration//GEN-END:variables
+		// End of variables declaration//GEN-END:variables
 }

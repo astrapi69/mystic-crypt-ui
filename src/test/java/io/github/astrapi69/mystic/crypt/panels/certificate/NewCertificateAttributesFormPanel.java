@@ -49,6 +49,7 @@ public class NewCertificateAttributesFormPanel extends javax.swing.JPanel
 	private javax.swing.JTextField txtOrganization;
 	private javax.swing.JTextField txtOrganizationUnit;
 	private javax.swing.JTextField txtState;
+
 	/**
 	 * Creates new form NewCertificateAttributesFormPanel
 	 */
@@ -160,5 +161,5 @@ public class NewCertificateAttributesFormPanel extends javax.swing.JPanel
 							javax.swing.GroupLayout.PREFERRED_SIZE))
 					.addContainerGap(21, Short.MAX_VALUE)));
 	}// </editor-fold>//GEN-END:initComponents
-	// End of variables declaration//GEN-END:variables
+		// End of variables declaration//GEN-END:variables
 }

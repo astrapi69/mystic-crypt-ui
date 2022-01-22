@@ -61,6 +61,7 @@ public class NewCertificateInfoFormPanel extends javax.swing.JPanel
 	private javax.swing.JTextField txtSerialNumber;
 	private javax.swing.JTextField txtSignatureAlgorithm;
 	private javax.swing.JTextField txtSubject;
+
 	/**
 	 * Creates new form NewCertificateInfoFormPanel
 	 */
@@ -356,5 +357,5 @@ public class NewCertificateInfoFormPanel extends javax.swing.JPanel
 	{// GEN-FIRST:event_txtSignatureAlgorithmActionPerformed
 		// TODO add your handling code here:
 	}// GEN-LAST:event_txtSignatureAlgorithmActionPerformed
-	// End of variables declaration//GEN-END:variables
+		// End of variables declaration//GEN-END:variables
 }

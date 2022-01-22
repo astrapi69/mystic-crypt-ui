@@ -33,6 +33,7 @@ public class PasswordFormDialog extends javax.swing.JDialog
 	private javax.swing.JLabel lblSetPwHeader;
 	private javax.swing.JPasswordField txtPassword;
 	private javax.swing.JPasswordField txtRepeatPassword;
+
 	/**
 	 * Creates new form PasswordFormDialog
 	 */

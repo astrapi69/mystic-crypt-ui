@@ -54,6 +54,7 @@ public class ChecksumFormPanel extends javax.swing.JPanel
 	private javax.swing.JTextArea txtGeneratedChecksum;
 	private javax.swing.JTextField txtOpenFile;
 	private javax.swing.JTextArea txtOwnersChecksum;
+
 	/**
 	 * Creates new form ChecksumPanel
 	 */
@@ -225,5 +226,5 @@ public class ChecksumFormPanel extends javax.swing.JPanel
 	{// GEN-FIRST:event_txtChecksumFileActionPerformed
 		// TODO add your handling code here:
 	}// GEN-LAST:event_txtChecksumFileActionPerformed
-	// End of variables declaration//GEN-END:variables
+		// End of variables declaration//GEN-END:variables
 }

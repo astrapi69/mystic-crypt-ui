@@ -40,6 +40,7 @@ public class EnDecryptFormPanel extends javax.swing.JFrame
 	private javax.swing.JScrollPane scpToEncrypt;
 	private javax.swing.JTextArea txtEncrypted;
 	private javax.swing.JTextArea txtToEncrypt;
+
 	/**
 	 * Creates new form EnDecryptPanel
 	 */

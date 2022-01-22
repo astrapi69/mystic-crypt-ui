@@ -54,6 +54,7 @@ public class NewMasterPwFileFormPanel extends javax.swing.JPanel
 	private javax.swing.JTextField txtApplicationFile;
 	private javax.swing.JPasswordField txtMasterPw;
 	private javax.swing.JPasswordField txtRepeatPw;
+
 	/**
 	 * Creates new form NewMasterPwFileFormPanel
 	 */
@@ -288,5 +289,5 @@ public class NewMasterPwFileFormPanel extends javax.swing.JPanel
 	{// GEN-FIRST:event_cbxMasterPwActionPerformed
 		// TODO add your handling code here:
 	}// GEN-LAST:event_cbxMasterPwActionPerformed
-	// End of variables declaration//GEN-END:variables
+		// End of variables declaration//GEN-END:variables
 }
