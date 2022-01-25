@@ -61,10 +61,13 @@ public class DesktopMenu extends BaseDesktopMenu
 	@Override
 	protected JMenu newEditMenu(final ActionListener listener) {
 		final JMenu editMenu = super.newEditMenu(listener);
-		editMenu.add(MenuFactory.newJMenuItem("Verify checksum",
+		editMenu.setName(MenuId.EDIT.id);
+		JMenuItem verifyChecksum = MenuFactory.newJMenuItem("Verify checksum",
 				'V',
 				KeyStroke.getKeyStroke(KeyEvent.VK_F3, InputEvent.ALT_DOWN_MASK),
-				new NewChecksumFrameAction("ChecksumVerifier")));
+				new NewChecksumFrameAction("ChecksumVerifier"));
+		verifyChecksum.setName(MenuId.VERIFY_CHECKSUM.id);
+		editMenu.add(verifyChecksum);
 		return editMenu;
 	}
 	/**
