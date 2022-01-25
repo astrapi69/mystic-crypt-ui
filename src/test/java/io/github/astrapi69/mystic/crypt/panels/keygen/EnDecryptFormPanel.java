@@ -31,6 +31,26 @@ package io.github.astrapi69.mystic.crypt.panels.keygen;
 public class EnDecryptFormPanel extends javax.swing.JFrame
 {
 
+	// Variables declaration - do not modify//GEN-BEGIN:variables
+	private javax.swing.JButton btnDecrypt;
+	private javax.swing.JButton btnEncrypt;
+	private javax.swing.JLabel lblEncrypted;
+	private javax.swing.JLabel lblToEncrypt;
+	private javax.swing.JScrollPane scpEncrypted;
+	private javax.swing.JScrollPane scpToEncrypt;
+	private javax.swing.JTextArea txtEncrypted;
+	private javax.swing.JTextArea txtToEncrypt;
+
+	/**
+	 * Creates new form EnDecryptPanel
+	 */
+	public EnDecryptFormPanel()
+	{
+		initComponents();
+	}
+
+	// End of variables declaration//GEN-END:variables
+
 	/**
 	 * @param args
 	 *            the command line arguments
@@ -88,28 +108,6 @@ public class EnDecryptFormPanel extends javax.swing.JFrame
 				new EnDecryptFormPanel().setVisible(true);
 			}
 		});
-	}
-
-	// Variables declaration - do not modify//GEN-BEGIN:variables
-	private javax.swing.JButton btnDecrypt;
-
-	private javax.swing.JButton btnEncrypt;
-
-	private javax.swing.JLabel lblEncrypted;
-
-	private javax.swing.JLabel lblToEncrypt;
-	private javax.swing.JScrollPane scpEncrypted;
-	private javax.swing.JScrollPane scpToEncrypt;
-	private javax.swing.JTextArea txtEncrypted;
-	private javax.swing.JTextArea txtToEncrypt;
-
-	// End of variables declaration//GEN-END:variables
-	/**
-	 * Creates new form EnDecryptPanel
-	 */
-	public EnDecryptFormPanel()
-	{
-		initComponents();
 	}
 
 	private void btnDecryptActionPerformed(java.awt.event.ActionEvent evt)

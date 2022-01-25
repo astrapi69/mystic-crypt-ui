@@ -33,8 +33,7 @@ public class GeneratePasswordExtensions
 	public static char[] generatePassword(GeneratePasswordModelBean modelObject)
 	{
 		StringBuilder stringBuilder = new StringBuilder();
-		stringBuilder
-			.append(modelObject.isLowercase() ? RandomCharacters.LOWCASECHARS : "")
+		stringBuilder.append(modelObject.isLowercase() ? RandomCharacters.LOWCASECHARS : "")
 			.append(modelObject.isUppercase() ? RandomCharacters.LOWCASECHARS.toUpperCase() : "")
 			.append(modelObject.isDigits() ? RandomCharacters.NUMBERS : "")
 			.append(modelObject.isUnderscore() ? RandomCharacters.UNDERSCORE_CHAR : "")
@@ -42,11 +41,10 @@ public class GeneratePasswordExtensions
 			.append(modelObject.isMoreSpecial() ? RandomCharacters.OTHER_SPECIALCHARS : "")
 			.append(modelObject.isBrackets() ? RandomCharacters.BRACKETS_CHAR : "")
 			.append(modelObject.isWhitespace() ? RandomCharacters.WHITE_SPACE_CHAR : "")
-			.append(modelObject.isMinus() ? "-" : "")
-			.append(modelObject.isPlus() ? "+" : "");
+			.append(modelObject.isMinus() ? "-" : "").append(modelObject.isPlus() ? "+" : "");
 		String chars = stringBuilder.toString().trim();
-		String randomPassword = RandomStringFactory.newRandomLongString(chars
-			, modelObject.getPasswordLength());
+		String randomPassword = RandomStringFactory.newRandomLongString(chars,
+			modelObject.getPasswordLength());
 		return randomPassword.toCharArray();
 	}
 }

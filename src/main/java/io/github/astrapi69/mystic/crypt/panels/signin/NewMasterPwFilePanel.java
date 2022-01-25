@@ -37,11 +37,10 @@ import java.security.PrivateKey;
 import javax.swing.*;
 import javax.swing.event.DocumentEvent;
 
-import io.github.astrapi69.browser.BrowserControlExtensions;
-import io.github.astrapi69.swing.listener.document.DocumentListenerAdapter;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.experimental.FieldDefaults;
+import io.github.astrapi69.browser.BrowserControlExtensions;
 import io.github.astrapi69.file.create.FileCreationState;
 import io.github.astrapi69.file.create.FileFactory;
 import io.github.astrapi69.file.search.PathFinder;
@@ -59,6 +58,7 @@ import io.github.astrapi69.swing.JMTextField;
 import io.github.astrapi69.swing.base.BasePanel;
 import io.github.astrapi69.swing.combobox.model.StringMutableComboBoxModel;
 import io.github.astrapi69.swing.help.HelpDialog;
+import io.github.astrapi69.swing.listener.document.DocumentListenerAdapter;
 import io.github.astrapi69.swing.panels.help.HelpModelBean;
 import io.github.astrapi69.swing.utils.ClipboardExtensions;
 import io.github.astrapi69.throwable.RuntimeExceptionDecorator;
@@ -181,8 +181,8 @@ public class NewMasterPwFilePanel extends BasePanel<MasterPwFileModelBean>
 		// ===
 		setPreferredSize(new java.awt.Dimension(840, 520));
 		// allow pwfield to copy or cut
-		txtMasterPw.putClientProperty("JPasswordField.cutCopyAllowed",true);
-		txtRepeatPw.putClientProperty("JPasswordField.cutCopyAllowed",true);
+		txtMasterPw.putClientProperty("JPasswordField.cutCopyAllowed", true);
+		txtRepeatPw.putClientProperty("JPasswordField.cutCopyAllowed", true);
 
 		cbxMasterPw.addActionListener(this::onCheckMasterPw);
 		cbxKeyFile.addActionListener(this::onCheckKeyFile);
@@ -206,7 +206,8 @@ public class NewMasterPwFilePanel extends BasePanel<MasterPwFileModelBean>
 
 		cmbKeyFileModel = new StringMutableComboBoxModel(modelObject.getKeyFilePaths());
 		cmbKeyFile.setModel(cmbKeyFileModel);
-		Model<String> selectedApplicationFilePathModel = LambdaModel.of(getModelObject()::getSelectedApplicationFilePath,
+		Model<String> selectedApplicationFilePathModel = LambdaModel.of(
+			getModelObject()::getSelectedApplicationFilePath,
 			getModelObject()::setSelectedApplicationFilePath);
 		txtApplicationFile = new JMTextField();
 		((JMTextField)txtApplicationFile).setPropertyModel(selectedApplicationFilePathModel);
@@ -235,8 +236,8 @@ public class NewMasterPwFilePanel extends BasePanel<MasterPwFileModelBean>
 
 	protected void onHelp(ActionEvent actionEvent)
 	{
-		String helpLink = "https://github.com/astrapi69/mystic-crypt-ui/wiki/" +
-			"Help:-create-new-mystic-crypt-database";
+		String helpLink = "https://github.com/astrapi69/mystic-crypt-ui/wiki/"
+			+ "Help:-create-new-mystic-crypt-database";
 		URL helpUrl = RuntimeExceptionDecorator.decorate(() -> new URL(helpLink));
 		if (URLExtensions.isReachable(helpUrl))
 		{
@@ -246,25 +247,23 @@ public class NewMasterPwFilePanel extends BasePanel<MasterPwFileModelBean>
 		{
 			HelpModelBean helpModelBean = HelpModelBean.builder()
 				.title("Help for create new mystic-crypt database")
-				.content("For create a new mystic-crypt database and encrypt your data \n" +
-					"you will need to define first the application file.\n\n" +
-					"Than you have to set your master key that consist of a password or a private key\n" +
-					"or a combination of both.\n" +
-					"If you want only with a password check the appropriate checkbox and leave \n" +
-					"the private key checkbox unchecked and set the password. " +
-					"\nIf you want only with a private key check the appropriate checkbox and leave\n" +
-					"the password checkbox unchecked and set the private key.\n" +
-					"\nIf you want a combination of both check both checkboxes \n" +
-					"and set the password and private key.\n\n" +
-					"After that you can save the mystic-crypt database by clicking ok.\n" +
-					"For all option above remember to copy the password or a private key or both \n" +
-					"and backup to save place. The same applies for the mystic-crypt database file.")
+				.content("For create a new mystic-crypt database and encrypt your data \n"
+					+ "you will need to define first the application file.\n\n"
+					+ "Than you have to set your master key that consist of a password or a private key\n"
+					+ "or a combination of both.\n"
+					+ "If you want only with a password check the appropriate checkbox and leave \n"
+					+ "the private key checkbox unchecked and set the password. "
+					+ "\nIf you want only with a private key check the appropriate checkbox and leave\n"
+					+ "the password checkbox unchecked and set the private key.\n"
+					+ "\nIf you want a combination of both check both checkboxes \n"
+					+ "and set the password and private key.\n\n"
+					+ "After that you can save the mystic-crypt database by clicking ok.\n"
+					+ "For all option above remember to copy the password or a private key or both \n"
+					+ "and backup to save place. The same applies for the mystic-crypt database file.")
 				.build();
 			Model<HelpModelBean> helpModel = BaseModel.of(helpModelBean);
 			HelpDialog helpDialog = new HelpDialog(MysticCryptApplicationFrame.getInstance(),
-				"Help for sign in to the your database",
-				true,
-				helpModel);
+				"Help for sign in to the your database", true, helpModel);
 			helpDialog.setSize(800, 300);
 			helpDialog.setVisible(true);
 		}
@@ -273,15 +272,21 @@ public class NewMasterPwFilePanel extends BasePanel<MasterPwFileModelBean>
 	protected void onCreateKeyFile(final ActionEvent actionEvent)
 	{
 		privateKeyModelBean = NewPrivateKeyModelBean.builder().build();
-		NewPrivateKeyFileDialog dialog = new NewPrivateKeyFileDialog(MysticCryptApplicationFrame.getInstance(),
-			"Create new private key", true, BaseModel.of(privateKeyModelBean)){
-			@Override protected void onSave()
+		NewPrivateKeyFileDialog dialog = new NewPrivateKeyFileDialog(
+			MysticCryptApplicationFrame.getInstance(), "Create new private key", true,
+			BaseModel.of(privateKeyModelBean))
+		{
+			@Override
+			protected void onSave()
 			{
 				PrivateKey privateKey = privateKeyModelBean.getPrivateKey();
 				NewMasterPwFilePanel.this.getModelObject().setPrivateKey(privateKey);
-				NewMasterPwFilePanel.this.getModelObject().setKeyFile(privateKeyModelBean.getPrivateKeyFile());
-				NewMasterPwFilePanel.this.cmbKeyFileModel.addElement(privateKeyModelBean.getPrivateKeyFile().getAbsolutePath());
-				NewMasterPwFilePanel.this.cmbKeyFileModel.setSelectedItem(privateKeyModelBean.getPrivateKeyFile().getAbsolutePath());
+				NewMasterPwFilePanel.this.getModelObject()
+					.setKeyFile(privateKeyModelBean.getPrivateKeyFile());
+				NewMasterPwFilePanel.this.cmbKeyFileModel
+					.addElement(privateKeyModelBean.getPrivateKeyFile().getAbsolutePath());
+				NewMasterPwFilePanel.this.cmbKeyFileModel
+					.setSelectedItem(privateKeyModelBean.getPrivateKeyFile().getAbsolutePath());
 				super.onSave();
 			}
 		};
@@ -291,23 +296,22 @@ public class NewMasterPwFilePanel extends BasePanel<MasterPwFileModelBean>
 
 	protected void onGeneratePassword(final ActionEvent actionEvent)
 	{
-		passwordModel = BaseModel.of(GeneratePasswordModelBean.builder()
-			.passwordLength(20)
-			.lowercase(true).uppercase(true).digits(true).special(true)
-			.build());
-		GeneratePasswordDialog dialog =
-			new GeneratePasswordDialog(MysticCryptApplicationFrame.getInstance(),
-			"Generate Password", true, passwordModel){
-				@Override protected void onOk()
-				{
-					char[] password = passwordModel.getObject().getPassword();
-					NewMasterPwFilePanel.this.getModelObject().setMasterPw(password);
-					txtMasterPw.setText(String.valueOf(password));
-					txtRepeatPw.setText(String.valueOf(password));
-					ClipboardExtensions.copyToClipboard(String.valueOf(password));
-					super.onOk();
-				}
-			};
+		passwordModel = BaseModel.of(GeneratePasswordModelBean.builder().passwordLength(20)
+			.lowercase(true).uppercase(true).digits(true).special(true).build());
+		GeneratePasswordDialog dialog = new GeneratePasswordDialog(
+			MysticCryptApplicationFrame.getInstance(), "Generate Password", true, passwordModel)
+		{
+			@Override
+			protected void onOk()
+			{
+				char[] password = passwordModel.getObject().getPassword();
+				NewMasterPwFilePanel.this.getModelObject().setMasterPw(password);
+				txtMasterPw.setText(String.valueOf(password));
+				txtRepeatPw.setText(String.valueOf(password));
+				ClipboardExtensions.copyToClipboard(String.valueOf(password));
+				super.onOk();
+			}
+		};
 		dialog.setSize(600, 420);
 		dialog.setVisible(true);
 	}
@@ -318,7 +322,7 @@ public class NewMasterPwFilePanel extends BasePanel<MasterPwFileModelBean>
 		Object item = cmbKeyFile.getSelectedItem();
 		String selectedKeyFilePath = (String)item;
 		getModelObject().setSelectedKeyFilePath(selectedKeyFilePath);
-		if (selectedKeyFilePath!=null && selectedKeyFilePath.isEmpty())
+		if (selectedKeyFilePath != null && selectedKeyFilePath.isEmpty())
 		{
 			getModelObject().setKeyFile(null);
 			btnOkStateMachine.onSetKeyFile(btnOkStateMachine);

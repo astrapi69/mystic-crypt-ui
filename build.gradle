@@ -37,6 +37,13 @@ sourceCompatibility = "$projectSourceCompatibility" as Object
 repositories {
     mavenLocal()
     mavenCentral()
+    maven {
+        name "Sonatype Nexus Snapshots"
+        url "https://oss.sonatype.org/content/repositories/snapshots"
+        mavenContent {
+            snapshotsOnly()
+        }
+    }
 }
 
 tasks.withType(JavaCompile) {
@@ -168,7 +175,7 @@ dependencies {
     implementation("io.github.astrapi69:checksum-up:$checksumUpVersion")
     implementation("io.github.astrapi69:mystic-crypt:$mysticCryptVersion")
     implementation("io.github.astrapi69:randomizer:$randomizerVersion")
-    implementation("io.github.astrapi69:model-api:$modelObjectVersion")
+    implementation("io.github.astrapi69:model-api:$modelApiVersion")
     implementation("io.github.astrapi69:model-object:$modelObjectVersion")
     implementation("io.github.astrapi69:model-type-safe:$modelTypeSafeVersion")
     implementation("io.github.astrapi69:throw-able:$throwAbleVersion")
@@ -195,4 +202,5 @@ dependencies {
     annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
     developmentOnly("org.springframework.boot:spring-boot-devtools")
     testImplementation("org.springframework.boot:spring-boot-starter-test")
+    testImplementation("io.github.astrapi69:test-objects:$testObjectsVersion")
 }

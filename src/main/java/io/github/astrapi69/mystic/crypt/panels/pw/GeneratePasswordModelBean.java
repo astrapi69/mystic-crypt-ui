@@ -24,7 +24,6 @@
  */
 package io.github.astrapi69.mystic.crypt.panels.pw;
 
-import io.github.astrapi69.mystic.crypt.panels.signin.MasterPwFileModelBean;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Data;

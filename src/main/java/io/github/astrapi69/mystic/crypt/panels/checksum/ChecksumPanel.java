@@ -39,7 +39,6 @@ import java.util.logging.Level;
 import javax.swing.*;
 import javax.swing.plaf.ColorUIResource;
 
-import io.github.astrapi69.swing.listener.document.EnableButtonBehavior;
 import lombok.Getter;
 import lombok.extern.java.Log;
 import io.github.astrapi69.checksum.ChecksumExtensions;
@@ -51,6 +50,7 @@ import io.github.astrapi69.model.BaseModel;
 import io.github.astrapi69.model.api.Model;
 import io.github.astrapi69.swing.base.BasePanel;
 import io.github.astrapi69.swing.combobox.model.EnumComboBoxModel;
+import io.github.astrapi69.swing.listener.document.EnableButtonBehavior;
 
 @Getter
 @Log
@@ -151,16 +151,19 @@ public class ChecksumPanel extends BasePanel<ChecksumBean>
 
 		lblChecksumAlgorithm.setText("Checksum algorithm");
 
-		cbxChecksumAlgorithm.setModel(new EnumComboBoxModel<ChecksumAlgorithm>(ChecksumAlgorithm.class){
-			@Override protected void initValueMap()
+		cbxChecksumAlgorithm
+			.setModel(new EnumComboBoxModel<ChecksumAlgorithm>(ChecksumAlgorithm.class)
 			{
-				super.initValueMap();
-//				for (final ChecksumAlgorithm enumValue : comboList)
-//				{
-//					valueMap.put(enumValue.getAlgorithm(), enumValue);
-//				}
-			}
-		});
+				@Override
+				protected void initValueMap()
+				{
+					super.initValueMap();
+					// for (final ChecksumAlgorithm enumValue : comboList)
+					// {
+					// valueMap.put(enumValue.getAlgorithm(), enumValue);
+					// }
+				}
+			});
 		cbxChecksumAlgorithm.setSelectedItem(ChecksumAlgorithm.MD5);
 		cbxChecksumAlgorithm.addActionListener(this::onChangeChecksumAlgorithm);
 		getModelObject().setSelectedAlgorithm(ChecksumAlgorithm.MD5);
@@ -180,7 +183,8 @@ public class ChecksumPanel extends BasePanel<ChecksumBean>
 		{
 			final File selectedChecksumFile = fileChooser.getSelectedFile();
 			long length = selectedChecksumFile.length();
-			if(length <= 128) {
+			if (length <= 128)
+			{
 				getModelObject().setSelectedChecksumFile(selectedChecksumFile);
 				getModelObject().setSelectedChecksumFilename(selectedChecksumFile.getName());
 				txtChecksumFile.setText(getModelObject().getSelectedChecksumFilename());
@@ -199,7 +203,9 @@ public class ChecksumPanel extends BasePanel<ChecksumBean>
 				{
 					log.log(Level.SEVERE, e.getLocalizedMessage(), e);
 				}
-			} else {
+			}
+			else
+			{
 				txtChecksumMatchResult.setText("Given checksum file is invalid");
 				txtChecksumMatchResult.setBackground(new ColorUIResource(new Color(255, 0, 0)));
 				txtChecksumMatchResult.revalidate();
@@ -221,11 +227,14 @@ public class ChecksumPanel extends BasePanel<ChecksumBean>
 	{
 		String ownersChecksumText = txtOwnersChecksum.getText();
 		String generatedChecksumText = txtGeneratedChecksum.getText();
-		if(ownersChecksumText.equals(generatedChecksumText)){
+		if (ownersChecksumText.equals(generatedChecksumText))
+		{
 			txtChecksumMatchResult.setText("Match");
 			txtChecksumMatchResult.setBackground(new ColorUIResource(new Color(0, 255, 0)));
 			txtChecksumMatchResult.revalidate();
-		} else {
+		}
+		else
+		{
 			txtChecksumMatchResult.setText("No Match");
 			txtChecksumMatchResult.setBackground(new ColorUIResource(new Color(255, 0, 0)));
 			txtChecksumMatchResult.revalidate();
@@ -236,13 +245,15 @@ public class ChecksumPanel extends BasePanel<ChecksumBean>
 	@SuppressWarnings("unchecked")
 	protected void onChangeChecksumAlgorithm(final ActionEvent actionEvent)
 	{
-		final JComboBox<ChecksumAlgorithm> cb = ((JComboBox<ChecksumAlgorithm>)actionEvent.getSource());
+		final JComboBox<ChecksumAlgorithm> cb = ((JComboBox<ChecksumAlgorithm>)actionEvent
+			.getSource());
 		final ChecksumAlgorithm selectedAlgorithm = (ChecksumAlgorithm)cb.getSelectedItem();
 		getModelObject().setSelectedAlgorithm(selectedAlgorithm);
 		calculateChecksum();
 	}
 
-	protected void onClearOpenFile(ActionEvent actionEvent) {
+	protected void onClearOpenFile(ActionEvent actionEvent)
+	{
 		getModelObject().setSelectedFile(null);
 		getModelObject().setSelectedFilename("");
 		txtOpenFile.setText(getModelObject().getSelectedFilename());
@@ -264,11 +275,14 @@ public class ChecksumPanel extends BasePanel<ChecksumBean>
 
 	private void calculateChecksum()
 	{
-		if(getModelObject().getSelectedFile()!=null && getModelObject().getSelectedFile().exists()) {
+		if (getModelObject().getSelectedFile() != null
+			&& getModelObject().getSelectedFile().exists())
+		{
 			ChecksumAlgorithm selectedAlgorithm = getModelObject().getSelectedAlgorithm();
 			try
 			{
-				String checksum = FileChecksumExtensions.getChecksum(getModelObject().getSelectedFile(), selectedAlgorithm);
+				String checksum = FileChecksumExtensions
+					.getChecksum(getModelObject().getSelectedFile(), selectedAlgorithm);
 				System.out.println(checksum);
 				txtGeneratedChecksum.setText(checksum);
 			}
@@ -291,74 +305,75 @@ public class ChecksumPanel extends BasePanel<ChecksumBean>
 	{
 		GroupLayout layout = new GroupLayout(this);
 		this.setLayout(layout);
-		layout.setHorizontalGroup(
-				layout.createParallelGroup(GroupLayout.Alignment.LEADING)
-						.addGroup(layout.createSequentialGroup()
-								.addGap(30, 30, 30)
-								.addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)
-										.addGroup(layout.createSequentialGroup()
-												.addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)
-														.addComponent(lblGeneratedChecksum, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-														.addComponent(srcGeneratedChecksum, GroupLayout.DEFAULT_SIZE, 1142, Short.MAX_VALUE)
-														.addComponent(lblOwnersChecksum, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-														.addGroup(layout.createSequentialGroup()
-																.addComponent(txtOpenFile, GroupLayout.PREFERRED_SIZE, 780, GroupLayout.PREFERRED_SIZE)
-																.addPreferredGap(LayoutStyle.ComponentPlacement.RELATED, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-																.addComponent(btnOpenFile, GroupLayout.PREFERRED_SIZE, 240, GroupLayout.PREFERRED_SIZE)
-																.addGap(18, 18, 18)
-																.addComponent(btnClearOpenFile)))
-												.addGap(30, 30, 30))
-										.addGroup(layout.createSequentialGroup()
-												.addComponent(lblChecksumAlgorithm, GroupLayout.PREFERRED_SIZE, 199, GroupLayout.PREFERRED_SIZE)
-												.addGap(0, 0, Short.MAX_VALUE))
-										.addGroup(layout.createSequentialGroup()
-												.addGroup(layout.createParallelGroup(GroupLayout.Alignment.TRAILING)
-														.addGroup(layout.createSequentialGroup()
-																.addComponent(cbxChecksumAlgorithm, GroupLayout.PREFERRED_SIZE, 240, GroupLayout.PREFERRED_SIZE)
-																.addGap(31, 31, 31)
-																.addComponent(btnCompare, GroupLayout.PREFERRED_SIZE, 180, GroupLayout.PREFERRED_SIZE)
-																.addGap(57, 57, 57)
-																.addComponent(txtChecksumMatchResult))
-														.addComponent(srcOwnersChecksum)
-														.addGroup(layout.createSequentialGroup()
-																.addComponent(txtChecksumFile, GroupLayout.PREFERRED_SIZE, 780, GroupLayout.PREFERRED_SIZE)
-																.addGap(57, 57, 57)
-																.addComponent(btnOpenChecksumFile, GroupLayout.PREFERRED_SIZE, 240, GroupLayout.PREFERRED_SIZE)
-																.addGap(18, 18, 18)
-																.addComponent(btnClearChecksumFile)))
-												.addContainerGap(GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))
-		);
-		layout.setVerticalGroup(
-				layout.createParallelGroup(GroupLayout.Alignment.LEADING)
-						.addGroup(layout.createSequentialGroup()
-								.addGap(30, 30, 30)
-								.addGroup(layout.createParallelGroup(GroupLayout.Alignment.BASELINE)
-										.addComponent(btnOpenFile)
-										.addComponent(txtOpenFile, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-										.addComponent(btnClearOpenFile))
-								.addGap(18, 18, 18)
-								.addComponent(lblGeneratedChecksum)
-								.addGap(26, 26, 26)
-								.addComponent(srcGeneratedChecksum, GroupLayout.PREFERRED_SIZE, 58, GroupLayout.PREFERRED_SIZE)
-								.addGap(18, 18, 18)
-								.addComponent(lblOwnersChecksum)
-								.addGap(18, 18, 18)
-								.addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)
-										.addGroup(layout.createParallelGroup(GroupLayout.Alignment.BASELINE)
-												.addComponent(btnOpenChecksumFile)
-												.addComponent(btnClearChecksumFile))
-										.addComponent(txtChecksumFile, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
-								.addGap(18, 18, 18)
-								.addComponent(srcOwnersChecksum, GroupLayout.PREFERRED_SIZE, 60, GroupLayout.PREFERRED_SIZE)
-								.addGap(18, 18, 18)
-								.addComponent(lblChecksumAlgorithm)
-								.addGap(18, 18, 18)
-								.addGroup(layout.createParallelGroup(GroupLayout.Alignment.BASELINE)
-										.addComponent(cbxChecksumAlgorithm, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-										.addComponent(btnCompare)
-										.addComponent(txtChecksumMatchResult, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
-								.addContainerGap(40, Short.MAX_VALUE))
-		);
+		layout.setHorizontalGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)
+			.addGroup(layout.createSequentialGroup().addGap(30, 30, 30)
+				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)
+					.addGroup(layout.createSequentialGroup()
+						.addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)
+							.addComponent(lblGeneratedChecksum, GroupLayout.DEFAULT_SIZE,
+								GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+							.addComponent(srcGeneratedChecksum, GroupLayout.DEFAULT_SIZE, 1142,
+								Short.MAX_VALUE)
+							.addComponent(lblOwnersChecksum, GroupLayout.DEFAULT_SIZE,
+								GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+							.addGroup(layout.createSequentialGroup()
+								.addComponent(txtOpenFile, GroupLayout.PREFERRED_SIZE, 780,
+									GroupLayout.PREFERRED_SIZE)
+								.addPreferredGap(LayoutStyle.ComponentPlacement.RELATED,
+									GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+								.addComponent(btnOpenFile, GroupLayout.PREFERRED_SIZE, 240,
+									GroupLayout.PREFERRED_SIZE)
+								.addGap(18, 18, 18).addComponent(btnClearOpenFile)))
+						.addGap(30, 30, 30))
+					.addGroup(layout.createSequentialGroup()
+						.addComponent(lblChecksumAlgorithm, GroupLayout.PREFERRED_SIZE, 199,
+							GroupLayout.PREFERRED_SIZE)
+						.addGap(0, 0, Short.MAX_VALUE))
+					.addGroup(layout.createSequentialGroup()
+						.addGroup(layout.createParallelGroup(GroupLayout.Alignment.TRAILING)
+							.addGroup(layout.createSequentialGroup()
+								.addComponent(cbxChecksumAlgorithm, GroupLayout.PREFERRED_SIZE, 240,
+									GroupLayout.PREFERRED_SIZE)
+								.addGap(31, 31, 31)
+								.addComponent(btnCompare, GroupLayout.PREFERRED_SIZE, 180,
+									GroupLayout.PREFERRED_SIZE)
+								.addGap(57, 57, 57).addComponent(txtChecksumMatchResult))
+							.addComponent(srcOwnersChecksum)
+							.addGroup(layout.createSequentialGroup()
+								.addComponent(txtChecksumFile, GroupLayout.PREFERRED_SIZE, 780,
+									GroupLayout.PREFERRED_SIZE)
+								.addGap(57, 57, 57)
+								.addComponent(btnOpenChecksumFile, GroupLayout.PREFERRED_SIZE, 240,
+									GroupLayout.PREFERRED_SIZE)
+								.addGap(18, 18, 18).addComponent(btnClearChecksumFile)))
+						.addContainerGap(GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))));
+		layout.setVerticalGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)
+			.addGroup(layout.createSequentialGroup().addGap(30, 30, 30)
+				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+					.addComponent(btnOpenFile)
+					.addComponent(txtOpenFile, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE,
+						GroupLayout.PREFERRED_SIZE)
+					.addComponent(btnClearOpenFile))
+				.addGap(18, 18, 18).addComponent(lblGeneratedChecksum).addGap(26, 26, 26)
+				.addComponent(srcGeneratedChecksum, GroupLayout.PREFERRED_SIZE, 58,
+					GroupLayout.PREFERRED_SIZE)
+				.addGap(18, 18, 18).addComponent(lblOwnersChecksum).addGap(18, 18, 18)
+				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)
+					.addGroup(layout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+						.addComponent(btnOpenChecksumFile).addComponent(btnClearChecksumFile))
+					.addComponent(txtChecksumFile, GroupLayout.PREFERRED_SIZE,
+						GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+				.addGap(18, 18, 18)
+				.addComponent(srcOwnersChecksum, GroupLayout.PREFERRED_SIZE, 60,
+					GroupLayout.PREFERRED_SIZE)
+				.addGap(18, 18, 18).addComponent(lblChecksumAlgorithm).addGap(18, 18, 18)
+				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+					.addComponent(cbxChecksumAlgorithm, GroupLayout.PREFERRED_SIZE,
+						GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+					.addComponent(btnCompare).addComponent(txtChecksumMatchResult,
+						GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE,
+						GroupLayout.PREFERRED_SIZE))
+				.addContainerGap(40, Short.MAX_VALUE)));
 	}
 
 }

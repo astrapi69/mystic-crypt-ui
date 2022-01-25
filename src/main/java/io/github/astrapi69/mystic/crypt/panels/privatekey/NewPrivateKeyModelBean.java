@@ -33,8 +33,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.FieldDefaults;
-import io.github.astrapi69.crypto.key.KeySize;
 import lombok.experimental.SuperBuilder;
+import io.github.astrapi69.crypto.key.KeySize;
 
 /**
  * The class {@link PrivateKeyModelBean}.

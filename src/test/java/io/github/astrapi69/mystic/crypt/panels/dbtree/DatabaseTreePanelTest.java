@@ -20,16 +20,15 @@
  */
 package io.github.astrapi69.mystic.crypt.panels.dbtree;
 
+import java.io.IOException;
+
+import javax.swing.*;
+
 import io.github.astrapi69.model.BaseModel;
 import io.github.astrapi69.model.api.Model;
 import io.github.astrapi69.swing.tree.JXTreeElement;
-import io.github.astrapi69.tree.TreeElement;
 import io.github.astrapi69.tree.TreeNode;
 import io.github.astrapi69.window.adapter.CloseWindow;
-
-import java.io.IOException;
-
-import javax.swing.JFrame;
 
 
 public class DatabaseTreePanelTest

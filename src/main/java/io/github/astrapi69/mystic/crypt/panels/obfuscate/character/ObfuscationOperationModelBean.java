@@ -22,9 +22,6 @@ package io.github.astrapi69.mystic.crypt.panels.obfuscate.character;
 
 import java.io.Serializable;
 
-import io.github.astrapi69.crypto.obfuscation.api.Obfuscatable;
-import io.github.astrapi69.crypto.obfuscation.rule.ObfuscationOperationRule;
-import io.github.astrapi69.mystic.crypt.panels.obfuscate.ModeContext;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -34,6 +31,9 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 import lombok.experimental.FieldDefaults;
+import io.github.astrapi69.crypto.obfuscation.api.Obfuscatable;
+import io.github.astrapi69.crypto.obfuscation.rule.ObfuscationOperationRule;
+import io.github.astrapi69.mystic.crypt.panels.obfuscate.ModeContext;
 
 
 @Getter

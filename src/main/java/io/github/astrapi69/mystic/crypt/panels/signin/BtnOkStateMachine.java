@@ -53,31 +53,30 @@ public class BtnOkStateMachine extends AbstractJComponentStateMachine<JButton, B
 	@Override
 	protected void updateComponentState()
 	{
-		boolean applicationFilePresent = modelObject.getApplicationFile() != null && modelObject.getApplicationFile().exists();
+		boolean applicationFilePresent = modelObject.getApplicationFile() != null
+			&& modelObject.getApplicationFile().exists();
 		int minPasswordLength = modelObject.getMinPasswordLength();
-		int passwordLength = modelObject.getMasterPw() != null ? modelObject.getMasterPw().length : 0;
+		int passwordLength = modelObject.getMasterPw() != null
+			? modelObject.getMasterPw().length
+			: 0;
 		boolean withKeyFile = modelObject.isWithKeyFile();
 		File keyFile = modelObject.getKeyFile();
 		boolean withMasterPw = modelObject.isWithMasterPw();
-		if (applicationFilePresent
-			&& withMasterPw && minPasswordLength <= passwordLength
+		if (applicationFilePresent && withMasterPw && minPasswordLength <= passwordLength
 			&& withKeyFile && keyFile != null)
 		{
 			setCurrentState(BtnOkComponentStateEnum.ENABLED);
 			setEnabled(true);
 			return;
 		}
-		else if (applicationFilePresent
-			&& !withMasterPw
-			&& withKeyFile && keyFile != null)
+		else if (applicationFilePresent && !withMasterPw && withKeyFile && keyFile != null)
 		{
 			setCurrentState(BtnOkComponentStateEnum.ENABLED);
 			setEnabled(true);
 			return;
 		}
-		else if (applicationFilePresent
-			&& !withKeyFile
-			&& withMasterPw && minPasswordLength <= passwordLength )
+		else if (applicationFilePresent && !withKeyFile && withMasterPw
+			&& minPasswordLength <= passwordLength)
 		{
 			setCurrentState(BtnOkComponentStateEnum.ENABLED);
 			setEnabled(true);

@@ -83,8 +83,10 @@ public class OpenPrivateKeyAction extends OpenFileAction
 	private PrivateKey getPrivateKey(final File file)
 	{
 		PrivateKey privateKey = null;
-		if (Security.getProvider(BouncyCastleProvider.PROVIDER_NAME) == null) {
-			Security.addProvider(MysticCryptApplicationFrame.getInstance().getBouncyCastleProvider());
+		if (Security.getProvider(BouncyCastleProvider.PROVIDER_NAME) == null)
+		{
+			Security
+				.addProvider(MysticCryptApplicationFrame.getInstance().getBouncyCastleProvider());
 		}
 		try
 		{
@@ -105,8 +107,8 @@ public class OpenPrivateKeyAction extends OpenFileAction
 				JOptionPane optionPane = new JOptionPane(panel, JOptionPane.PLAIN_MESSAGE,
 					JOptionPane.OK_CANCEL_OPTION);
 
-				JDialog dialog = JDialogFactory.newJDialog(MysticCryptApplicationFrame.getInstance(),
-					optionPane, "Enter Password");
+				JDialog dialog = JDialogFactory.newJDialog(
+					MysticCryptApplicationFrame.getInstance(), optionPane, "Enter Password");
 				dialog.addWindowFocusListener(new RequestFocusListener(pf));
 				dialog.pack();
 				dialog.setLocationRelativeTo(null);

@@ -25,13 +25,17 @@
 package io.github.astrapi69.mystic.crypt.panels.certificate;
 
 
-import lombok.*;
+import java.time.ZonedDateTime;
+
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
 import lombok.experimental.FieldDefaults;
 import lombok.experimental.SuperBuilder;
-
-import java.time.LocalDateTime;
-import java.time.ZonedDateTime;
-import java.util.Date;
 
 /**
  * Use only ZoneId.of("UTC") for the values

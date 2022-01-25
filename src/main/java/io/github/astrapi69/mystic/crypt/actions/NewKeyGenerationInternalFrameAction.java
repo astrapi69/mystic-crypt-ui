@@ -22,11 +22,9 @@ package io.github.astrapi69.mystic.crypt.actions;
 
 import java.awt.event.ActionEvent;
 
-import javax.swing.AbstractAction;
-import javax.swing.JInternalFrame;
+import javax.swing.*;
 
 import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
-import io.github.astrapi69.mystic.crypt.SpringBootSwingApplication;
 import io.github.astrapi69.mystic.crypt.panels.keygen.GenerateKeysPanel;
 import io.github.astrapi69.swing.component.factory.JComponentFactory;
 import io.github.astrapi69.swing.utils.JInternalFrameExtensions;
