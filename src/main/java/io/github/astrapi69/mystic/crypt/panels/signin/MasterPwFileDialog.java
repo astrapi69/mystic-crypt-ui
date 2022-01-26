@@ -29,20 +29,20 @@ import java.awt.event.ActionEvent;
 
 import javax.swing.*;
 
-import io.github.astrapi69.model.api.Model;
+import io.github.astrapi69.model.api.IModel;
 import io.github.astrapi69.swing.base.PanelDialog;
 import io.github.astrapi69.swing.layout.ScreenSizeExtensions;
 
 public class MasterPwFileDialog extends PanelDialog<MasterPwFileModelBean>
 {
 	public MasterPwFileDialog(Frame owner, String title, boolean modal,
-		Model<MasterPwFileModelBean> model)
+		IModel<MasterPwFileModelBean> model)
 	{
 		super(owner, title, modal, model);
 		ScreenSizeExtensions.centralize(this, 3, 3);
 	}
 
-	protected JPanel newContent(Model<MasterPwFileModelBean> model)
+	protected JPanel newContent(IModel<MasterPwFileModelBean> model)
 	{
 		return new MasterPwWithApplicationFilePanel(model)
 		{

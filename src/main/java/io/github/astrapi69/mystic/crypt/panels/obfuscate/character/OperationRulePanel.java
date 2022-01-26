@@ -42,7 +42,7 @@ import io.github.astrapi69.crypto.obfuscation.character.ObfuscatorExtensions;
 import io.github.astrapi69.crypto.obfuscation.rule.ObfuscationOperationRule;
 import io.github.astrapi69.crypto.obfuscation.rule.Operation;
 import io.github.astrapi69.model.BaseModel;
-import io.github.astrapi69.model.api.Model;
+import io.github.astrapi69.model.api.IModel;
 import io.github.astrapi69.mystic.crypt.panels.keygen.EnDecryptPanel;
 import io.github.astrapi69.mystic.crypt.panels.obfuscate.ModeContext;
 import io.github.astrapi69.swing.base.BasePanel;
@@ -63,7 +63,7 @@ public class OperationRulePanel extends BasePanel<ObfuscationOperationModelBean>
 			.build()));
 	}
 
-	public OperationRulePanel(final Model<ObfuscationOperationModelBean> model)
+	public OperationRulePanel(final IModel<ObfuscationOperationModelBean> model)
 	{
 		super(model);
 	}

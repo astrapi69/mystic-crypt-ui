@@ -47,14 +47,14 @@ import io.github.astrapi69.file.search.PathFinder;
 import io.github.astrapi69.file.system.SystemFileExtensions;
 import io.github.astrapi69.model.BaseModel;
 import io.github.astrapi69.model.LambdaModel;
-import io.github.astrapi69.model.api.Model;
+import io.github.astrapi69.model.api.IModel;
 import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
 import io.github.astrapi69.mystic.crypt.panels.privatekey.NewPrivateKeyFileDialog;
 import io.github.astrapi69.mystic.crypt.panels.privatekey.NewPrivateKeyModelBean;
 import io.github.astrapi69.mystic.crypt.panels.pw.GeneratePasswordDialog;
 import io.github.astrapi69.mystic.crypt.panels.pw.GeneratePasswordModelBean;
 import io.github.astrapi69.net.url.URLExtensions;
-import io.github.astrapi69.swing.JMTextField;
+import io.github.astrapi69.swing.component.JMTextField;
 import io.github.astrapi69.swing.base.BasePanel;
 import io.github.astrapi69.swing.combobox.model.StringMutableComboBoxModel;
 import io.github.astrapi69.swing.help.HelpDialog;
@@ -95,7 +95,7 @@ public class NewMasterPwFilePanel extends BasePanel<MasterPwFileModelBean>
 	JFileChooser fileChooser;
 	StringMutableComboBoxModel cmbKeyFileModel;
 	BtnOkStateMachine btnOkStateMachine;
-	Model<GeneratePasswordModelBean> passwordModel;
+	IModel<GeneratePasswordModelBean> passwordModel;
 	NewPrivateKeyModelBean privateKeyModelBean;
 
 	/**
@@ -114,7 +114,7 @@ public class NewMasterPwFilePanel extends BasePanel<MasterPwFileModelBean>
 	 * @param model
 	 *            the model
 	 */
-	public NewMasterPwFilePanel(final Model<MasterPwFileModelBean> model)
+	public NewMasterPwFilePanel(final IModel<MasterPwFileModelBean> model)
 	{
 		super(model);
 	}
@@ -206,7 +206,7 @@ public class NewMasterPwFilePanel extends BasePanel<MasterPwFileModelBean>
 
 		cmbKeyFileModel = new StringMutableComboBoxModel(modelObject.getKeyFilePaths());
 		cmbKeyFile.setModel(cmbKeyFileModel);
-		Model<String> selectedApplicationFilePathModel = LambdaModel.of(
+		IModel<String> selectedApplicationFilePathModel = LambdaModel.of(
 			getModelObject()::getSelectedApplicationFilePath,
 			getModelObject()::setSelectedApplicationFilePath);
 		txtApplicationFile = new JMTextField();
@@ -261,7 +261,7 @@ public class NewMasterPwFilePanel extends BasePanel<MasterPwFileModelBean>
 					+ "For all option above remember to copy the password or a private key or both \n"
 					+ "and backup to save place. The same applies for the mystic-crypt database file.")
 				.build();
-			Model<HelpModelBean> helpModel = BaseModel.of(helpModelBean);
+			IModel<HelpModelBean> helpModel = BaseModel.of(helpModelBean);
 			HelpDialog helpDialog = new HelpDialog(MysticCryptApplicationFrame.getInstance(),
 				"Help for sign in to the your database", true, helpModel);
 			helpDialog.setSize(800, 300);

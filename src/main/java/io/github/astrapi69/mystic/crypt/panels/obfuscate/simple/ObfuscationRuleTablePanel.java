@@ -41,7 +41,7 @@ import io.github.astrapi69.collections.map.MapFactory;
 import io.github.astrapi69.collections.pairs.KeyValuePair;
 import io.github.astrapi69.crypto.obfuscation.rule.ObfuscationRule;
 import io.github.astrapi69.model.BaseModel;
-import io.github.astrapi69.model.api.Model;
+import io.github.astrapi69.model.api.IModel;
 import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
 import io.github.astrapi69.swing.base.BasePanel;
 import io.github.astrapi69.swing.table.GenericJXTable;
@@ -76,7 +76,7 @@ public class ObfuscationRuleTablePanel extends BasePanel<ObfuscationModelBean>
 		this(BaseModel.of(ObfuscationModelBean.builder().build()));
 	}
 
-	public ObfuscationRuleTablePanel(final Model<ObfuscationModelBean> model)
+	public ObfuscationRuleTablePanel(final IModel<ObfuscationModelBean> model)
 	{
 		super(model);
 	}

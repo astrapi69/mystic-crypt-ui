@@ -25,7 +25,9 @@ import io.github.astrapi69.swing.actions.ExitApplicationAction;
 import io.github.astrapi69.swing.actions.ToggleFullScreenAction;
 import io.github.astrapi69.swing.base.BaseDesktopMenu;
 import io.github.astrapi69.swing.layout.ScreenSizeExtensions;
+import io.github.astrapi69.swing.menu.MenuExtensions;
 import io.github.astrapi69.swing.menu.MenuFactory;
+import io.github.astrapi69.swing.menu.builder.JMenuItemInfo;
 import lombok.NonNull;
 import lombok.extern.java.Log;
 import org.springframework.core.io.Resource;
@@ -80,13 +82,19 @@ public class DesktopMenu extends BaseDesktopMenu
 
 	@Override
 	protected JMenu newEditMenu(final ActionListener listener) {
-		final JMenu editMenu = super.newEditMenu(listener);
-		editMenu.setName(MenuId.EDIT.id);
-		JMenuItem verifyChecksum = MenuFactory.newJMenuItem("Verify checksum",
-				'V',
-				KeyStroke.getKeyStroke(KeyEvent.VK_F3, InputEvent.ALT_DOWN_MASK),
-				new NewChecksumFrameAction("ChecksumVerifier"));
-		verifyChecksum.setName(MenuId.VERIFY_CHECKSUM.id);
+		final JMenu editMenu =
+		JMenuItemInfo.builder()
+				.text("Edit")
+				.mnemonic(MenuExtensions.toMnemonic('E'))
+				.name(MenuId.EDIT.id)
+				.build().toJMenu();
+		JMenuItem verifyChecksum = JMenuItemInfo.builder()
+				.text("Verify checksum")
+				.mnemonic(MenuExtensions.toMnemonic('V'))
+				.keyStroke(KeyStroke.getKeyStroke(KeyEvent.VK_F3, InputEvent.ALT_DOWN_MASK))
+				.actionListener(new NewChecksumFrameAction("ChecksumVerifier"))
+				.name(MenuId.VERIFY_CHECKSUM.id)
+				.build().toJMenuItem();
 		editMenu.add(verifyChecksum);
 		return editMenu;
 	}

@@ -48,7 +48,7 @@ import io.github.astrapi69.layout.GridBagLayoutModel;
 import io.github.astrapi69.layout.InsetsModel;
 import io.github.astrapi69.layout.LayoutExtensions;
 import io.github.astrapi69.model.BaseModel;
-import io.github.astrapi69.model.api.Model;
+import io.github.astrapi69.model.api.IModel;
 import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
 import io.github.astrapi69.mystic.crypt.panels.certificate.NewCertificateInfoPanel;
 import io.github.astrapi69.swing.base.BasePanel;
@@ -140,7 +140,7 @@ public class CryptographyPanel extends BasePanel<GenerateKeysModelBean>
 		this(BaseModel.<GenerateKeysModelBean> of(GenerateKeysModelBean.builder().build()));
 	}
 
-	public CryptographyPanel(final Model<GenerateKeysModelBean> model)
+	public CryptographyPanel(final IModel<GenerateKeysModelBean> model)
 	{
 		super(model);
 	}

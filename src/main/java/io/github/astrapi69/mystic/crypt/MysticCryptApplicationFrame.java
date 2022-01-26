@@ -46,7 +46,7 @@ import io.github.astrapi69.file.read.ReadFileExtensions;
 import io.github.astrapi69.gson.JsonStringToObjectExtensions;
 import io.github.astrapi69.icon.ImageIconFactory;
 import io.github.astrapi69.model.BaseModel;
-import io.github.astrapi69.model.api.Model;
+import io.github.astrapi69.model.api.IModel;
 import io.github.astrapi69.mystic.crypt.panels.signin.MasterPwFileDialog;
 import io.github.astrapi69.mystic.crypt.panels.signin.MasterPwFileModelBean;
 import io.github.astrapi69.mystic.crypt.panels.signin.MemoizedSigninModelBean;
@@ -200,7 +200,7 @@ public class MysticCryptApplicationFrame extends ApplicationFrame<ApplicationMod
 			.minPasswordLength(6).withKeyFile(false).withMasterPw(false).showMasterPw(false)
 			.build();
 		masterPwFileModelBean.merge(memoizedSigninModelBean);
-		Model<MasterPwFileModelBean> model = BaseModel
+		IModel<MasterPwFileModelBean> model = BaseModel
 			.<MasterPwFileModelBean> of(masterPwFileModelBean);
 		MasterPwFileDialog dialog = new MasterPwFileDialog(this, "Enter your credentials", true,
 			model);
@@ -215,7 +215,7 @@ public class MysticCryptApplicationFrame extends ApplicationFrame<ApplicationMod
 			SplashScreenModelBean splashScreenModelBean = SplashScreenModelBean.builder()
 				.imagePath(getIconPath()).text(getApplicationName()).min(0).max(100).showTime(1200)
 				.showing(true).build();
-			Model<SplashScreenModelBean> modelBeanModel = BaseModel.of(splashScreenModelBean);
+			IModel<SplashScreenModelBean> modelBeanModel = BaseModel.of(splashScreenModelBean);
 			Thread splashScreenThread = new Thread(() -> {
 				new ProgressBarSplashScreen(MysticCryptApplicationFrame.this, modelBeanModel)
 				{
@@ -389,7 +389,7 @@ public class MysticCryptApplicationFrame extends ApplicationFrame<ApplicationMod
 					.decorate(() -> FileFactory.newFile(selectedApplicationFile));
 			}
 			String selectedApplicationFilePath = selectedApplicationFile.getAbsolutePath();
-			Model<MasterPwFileModelBean> model = BaseModel.<MasterPwFileModelBean> of(
+			IModel<MasterPwFileModelBean> model = BaseModel.<MasterPwFileModelBean> of(
 				MasterPwFileModelBean.builder().applicationFile(selectedApplicationFile)
 					.selectedApplicationFilePath(selectedApplicationFilePath).minPasswordLength(6)
 					.withKeyFile(false).withMasterPw(false).showMasterPw(false).build());

@@ -33,9 +33,9 @@ import java.awt.event.ActionEvent;
 
 import io.github.astrapi69.model.BaseModel;
 import io.github.astrapi69.model.LambdaModel;
-import io.github.astrapi69.model.api.Model;
-import io.github.astrapi69.swing.JMCheckBox;
-import io.github.astrapi69.swing.JMSpinner;
+import io.github.astrapi69.model.api.IModel;
+import io.github.astrapi69.swing.component.JMCheckBox;
+import io.github.astrapi69.swing.component.JMSpinner;
 import io.github.astrapi69.swing.base.BasePanel;
 
 /**
@@ -71,7 +71,7 @@ public class GeneratePasswordPanel extends BasePanel<GeneratePasswordModelBean>
 
 	}
 
-	public GeneratePasswordPanel(final Model<GeneratePasswordModelBean> model)
+	public GeneratePasswordPanel(final IModel<GeneratePasswordModelBean> model)
 	{
 		super(model);
 	}

@@ -33,7 +33,7 @@ import javax.swing.event.DocumentEvent;
 import lombok.Getter;
 import io.github.astrapi69.file.system.SystemFileExtensions;
 import io.github.astrapi69.model.BaseModel;
-import io.github.astrapi69.model.api.Model;
+import io.github.astrapi69.model.api.IModel;
 import io.github.astrapi69.swing.base.BasePanel;
 import io.github.astrapi69.swing.listener.document.DocumentListenerAdapter;
 
@@ -72,7 +72,7 @@ public class MasterPwFilePanel extends BasePanel<MasterPwFileModelBean>
 	 * @param model
 	 *            the model
 	 */
-	public MasterPwFilePanel(final Model<MasterPwFileModelBean> model)
+	public MasterPwFilePanel(final IModel<MasterPwFileModelBean> model)
 	{
 		super(model);
 	}

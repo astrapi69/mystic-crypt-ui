@@ -26,7 +26,7 @@ import javax.swing.*;
 
 import lombok.Getter;
 import io.github.astrapi69.model.BaseModel;
-import io.github.astrapi69.model.api.Model;
+import io.github.astrapi69.model.api.IModel;
 import io.github.astrapi69.swing.base.BasePanel;
 
 
@@ -53,7 +53,7 @@ public class PrivateKeyViewPanel extends BasePanel<PrivateKeyModelBean>
 		this(BaseModel.<PrivateKeyModelBean> of(PrivateKeyModelBean.builder().build()));
 	}
 
-	public PrivateKeyViewPanel(final Model<PrivateKeyModelBean> model)
+	public PrivateKeyViewPanel(final IModel<PrivateKeyModelBean> model)
 	{
 		super(model);
 	}

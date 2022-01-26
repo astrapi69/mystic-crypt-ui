@@ -25,7 +25,7 @@ import java.awt.event.ActionEvent;
 import lombok.Getter;
 import io.github.astrapi69.crypto.obfuscation.rule.ObfuscationRule;
 import io.github.astrapi69.model.BaseModel;
-import io.github.astrapi69.model.api.Model;
+import io.github.astrapi69.model.api.IModel;
 import io.github.astrapi69.mystic.crypt.panels.obfuscate.ModeContext;
 import io.github.astrapi69.swing.base.BasePanel;
 import io.github.astrapi69.swing.document.RangeDocument;
@@ -48,7 +48,7 @@ public class ObfuscationRulePanel extends BasePanel<ObfuscationModelBean>
 		this(BaseModel.of(ObfuscationModelBean.builder().build()));
 	}
 
-	public ObfuscationRulePanel(final Model<ObfuscationModelBean> model)
+	public ObfuscationRulePanel(final IModel<ObfuscationModelBean> model)
 	{
 		super(model);
 	}

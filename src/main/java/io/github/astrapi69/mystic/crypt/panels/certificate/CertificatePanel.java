@@ -28,7 +28,7 @@ import javax.swing.*;
 
 import lombok.Getter;
 import io.github.astrapi69.model.BaseModel;
-import io.github.astrapi69.model.api.Model;
+import io.github.astrapi69.model.api.IModel;
 import io.github.astrapi69.swing.base.BasePanel;
 
 /**
@@ -76,7 +76,7 @@ public class CertificatePanel extends BasePanel<CertificateInfo>
 		this(BaseModel.of(CertificateInfo.builder().build()));
 	}
 
-	public CertificatePanel(final Model<CertificateInfo> model)
+	public CertificatePanel(final IModel<CertificateInfo> model)
 	{
 		super(model);
 	}

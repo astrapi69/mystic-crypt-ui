@@ -29,7 +29,7 @@ import java.util.List;
 
 import io.github.astrapi69.collections.list.ListFactory;
 import io.github.astrapi69.model.BaseModel;
-import io.github.astrapi69.model.api.Model;
+import io.github.astrapi69.model.api.IModel;
 import io.github.astrapi69.swing.tree.GenericTreeElement;
 import io.github.astrapi69.tree.TreeNode;
 import io.github.astrapi69.window.adapter.CloseWindow;
@@ -51,7 +51,7 @@ class TestSecretKeyTreeWithContentPanel
 		first.add(MysticCryptEntryModelBean.builder().userName("foo").build());
 		TreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>> genericTreeElementTreeNode = TestTreeNodeFactory
 			.initializeTestGenericTreeNodeElement(first, first);
-		Model<TreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>>> parentModel = BaseModel
+		IModel<TreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>>> parentModel = BaseModel
 			.of(genericTreeElementTreeNode);
 		SecretKeyTreeWithContentPanel secretKeyTreeWithContentPanel = new SecretKeyTreeWithContentPanel(
 			parentModel);

@@ -28,7 +28,7 @@ import javax.swing.*;
 
 import lombok.Getter;
 import io.github.astrapi69.model.BaseModel;
-import io.github.astrapi69.model.api.Model;
+import io.github.astrapi69.model.api.IModel;
 import io.github.astrapi69.swing.base.BasePanel;
 
 @Getter
@@ -55,7 +55,7 @@ public class MysticCryptEntryPanel extends BasePanel<MysticCryptEntryModelBean>
 		this(BaseModel.of(MysticCryptEntryModelBean.builder().build()));
 	}
 
-	public MysticCryptEntryPanel(final Model<MysticCryptEntryModelBean> model)
+	public MysticCryptEntryPanel(final IModel<MysticCryptEntryModelBean> model)
 	{
 		super(model);
 	}

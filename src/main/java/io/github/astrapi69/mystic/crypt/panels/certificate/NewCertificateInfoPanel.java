@@ -31,7 +31,7 @@ import javax.swing.table.DefaultTableModel;
 
 import lombok.Getter;
 import io.github.astrapi69.model.BaseModel;
-import io.github.astrapi69.model.api.Model;
+import io.github.astrapi69.model.api.IModel;
 import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
 import io.github.astrapi69.random.number.RandomBigIntegerFactory;
 import io.github.astrapi69.swing.base.BasePanel;
@@ -72,7 +72,7 @@ public class NewCertificateInfoPanel extends BasePanel<CertificateInfo>
 		this(BaseModel.<CertificateInfo> of(CertificateInfo.builder().build()));
 	}
 
-	public NewCertificateInfoPanel(final Model<CertificateInfo> model)
+	public NewCertificateInfoPanel(final IModel<CertificateInfo> model)
 	{
 		super(model);
 	}

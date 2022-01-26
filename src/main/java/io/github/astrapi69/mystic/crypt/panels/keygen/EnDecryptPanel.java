@@ -27,7 +27,7 @@ import javax.swing.*;
 import lombok.Getter;
 import io.github.astrapi69.collections.pairs.Pair;
 import io.github.astrapi69.model.BaseModel;
-import io.github.astrapi69.model.api.Model;
+import io.github.astrapi69.model.api.IModel;
 import io.github.astrapi69.swing.base.BasePanel;
 import io.github.astrapi69.swing.listener.document.EnableButtonBehavior;
 
@@ -79,7 +79,7 @@ public class EnDecryptPanel extends BasePanel<Pair<String, String>>
 	 * @param model
 	 *            the model
 	 */
-	public EnDecryptPanel(final Model<Pair<String, String>> model)
+	public EnDecryptPanel(final IModel<Pair<String, String>> model)
 	{
 		super(model);
 	}

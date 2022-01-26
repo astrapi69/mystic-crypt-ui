@@ -29,20 +29,20 @@ import java.awt.event.ActionEvent;
 
 import javax.swing.*;
 
-import io.github.astrapi69.model.api.Model;
+import io.github.astrapi69.model.api.IModel;
 import io.github.astrapi69.swing.base.PanelDialog;
 import io.github.astrapi69.swing.layout.ScreenSizeExtensions;
 
 public class GeneratePasswordDialog extends PanelDialog<GeneratePasswordModelBean>
 {
 	public GeneratePasswordDialog(Frame owner, String title, boolean modal,
-		Model<GeneratePasswordModelBean> model)
+		IModel<GeneratePasswordModelBean> model)
 	{
 		super(owner, title, modal, model);
 		ScreenSizeExtensions.centralize(this, 3, 3);
 	}
 
-	protected JPanel newContent(Model<GeneratePasswordModelBean> model)
+	protected JPanel newContent(IModel<GeneratePasswordModelBean> model)
 	{
 		return new GeneratePasswordPanel(model)
 		{

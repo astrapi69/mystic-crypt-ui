@@ -39,7 +39,7 @@ import net.miginfocom.swing.MigLayout;
 import org.apache.commons.codec.DecoderException;
 
 import io.github.astrapi69.model.BaseModel;
-import io.github.astrapi69.model.api.Model;
+import io.github.astrapi69.model.api.IModel;
 import io.github.astrapi69.mystic.crypt.panels.keygen.EnDecryptPanel;
 import io.github.astrapi69.swing.base.BasePanel;
 
@@ -59,7 +59,7 @@ public class PrivateKeyPanel extends BasePanel<PrivateKeyModelBean>
 		this(BaseModel.<PrivateKeyModelBean> of(PrivateKeyModelBean.builder().build()));
 	}
 
-	public PrivateKeyPanel(final Model<PrivateKeyModelBean> model)
+	public PrivateKeyPanel(final IModel<PrivateKeyModelBean> model)
 	{
 		super(model);
 	}

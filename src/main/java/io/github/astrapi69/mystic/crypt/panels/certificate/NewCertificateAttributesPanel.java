@@ -33,7 +33,7 @@ import javax.swing.*;
 
 import lombok.Getter;
 import io.github.astrapi69.model.BaseModel;
-import io.github.astrapi69.model.api.Model;
+import io.github.astrapi69.model.api.IModel;
 import io.github.astrapi69.swing.base.BasePanel;
 
 /**
@@ -60,7 +60,7 @@ public class NewCertificateAttributesPanel extends BasePanel<CertificateAttribut
 		this(BaseModel.of(CertificateAttributes.builder().build()));
 	}
 
-	public NewCertificateAttributesPanel(final Model<CertificateAttributes> model)
+	public NewCertificateAttributesPanel(final IModel<CertificateAttributes> model)
 	{
 		super(model);
 	}

@@ -31,7 +31,7 @@ import javax.swing.*;
 
 import io.github.astrapi69.crypto.key.KeySize;
 import io.github.astrapi69.model.BaseModel;
-import io.github.astrapi69.model.api.Model;
+import io.github.astrapi69.model.api.IModel;
 import io.github.astrapi69.swing.base.PanelDialog;
 import io.github.astrapi69.swing.layout.ScreenSizeExtensions;
 import io.github.astrapi69.window.adapter.CloseWindow;
@@ -39,7 +39,7 @@ import io.github.astrapi69.window.adapter.CloseWindow;
 public class NewPrivateKeyFileDialog extends PanelDialog<NewPrivateKeyModelBean>
 {
 	public NewPrivateKeyFileDialog(Frame owner, String title, boolean modal,
-		Model<NewPrivateKeyModelBean> model)
+		IModel<NewPrivateKeyModelBean> model)
 	{
 		super(owner, title, modal, model);
 		ScreenSizeExtensions.centralize(this, 3, 3);
@@ -53,7 +53,7 @@ public class NewPrivateKeyFileDialog extends PanelDialog<NewPrivateKeyModelBean>
 	 */
 	public static void main(String[] args)
 	{
-		Model<NewPrivateKeyModelBean> model = BaseModel
+		IModel<NewPrivateKeyModelBean> model = BaseModel
 			.of(NewPrivateKeyModelBean.builder().keySize(KeySize.KEYSIZE_2048).build());
 		NewPrivateKeyFileDialog dialog = new NewPrivateKeyFileDialog(null,
 			"NewPrivateKeyFileDialog", true, model);
@@ -63,7 +63,7 @@ public class NewPrivateKeyFileDialog extends PanelDialog<NewPrivateKeyModelBean>
 		dialog.setVisible(true);
 	}
 
-	protected JPanel newContent(Model<NewPrivateKeyModelBean> model)
+	protected JPanel newContent(IModel<NewPrivateKeyModelBean> model)
 	{
 		return new NewPrivateKeyPanel(model)
 		{

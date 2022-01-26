@@ -47,7 +47,7 @@ import io.github.astrapi69.checksum.api.ChecksumAlgorithm;
 import io.github.astrapi69.file.read.ReadFileExtensions;
 import io.github.astrapi69.file.system.SystemFileExtensions;
 import io.github.astrapi69.model.BaseModel;
-import io.github.astrapi69.model.api.Model;
+import io.github.astrapi69.model.api.IModel;
 import io.github.astrapi69.swing.base.BasePanel;
 import io.github.astrapi69.swing.combobox.model.EnumComboBoxModel;
 import io.github.astrapi69.swing.listener.document.EnableButtonBehavior;
@@ -87,7 +87,7 @@ public class ChecksumPanel extends BasePanel<ChecksumBean>
 	/**
 	 * Creates new form ChecksumPanel
 	 */
-	public ChecksumPanel(final Model<ChecksumBean> model)
+	public ChecksumPanel(final IModel<ChecksumBean> model)
 	{
 		super(model);
 	}

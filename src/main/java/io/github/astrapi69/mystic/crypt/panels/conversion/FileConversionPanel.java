@@ -44,7 +44,7 @@ import io.github.astrapi69.crypto.key.writer.CertificateWriter;
 import io.github.astrapi69.crypto.key.writer.PrivateKeyWriter;
 import io.github.astrapi69.crypto.key.writer.PublicKeyWriter;
 import io.github.astrapi69.model.BaseModel;
-import io.github.astrapi69.model.api.Model;
+import io.github.astrapi69.model.api.IModel;
 import io.github.astrapi69.swing.base.BasePanel;
 import io.github.astrapi69.swing.combobox.model.EnumComboBoxModel;
 import io.github.astrapi69.throwable.ThrowableExtensions;
@@ -72,7 +72,7 @@ public class FileConversionPanel extends BasePanel<FileConversionModelBean>
 		this(BaseModel.of(FileConversionModelBean.builder().keyType(KeyType.PRIVATE_KEY).build()));
 	}
 
-	public FileConversionPanel(final Model<FileConversionModelBean> model)
+	public FileConversionPanel(final IModel<FileConversionModelBean> model)
 	{
 		super(model);
 	}

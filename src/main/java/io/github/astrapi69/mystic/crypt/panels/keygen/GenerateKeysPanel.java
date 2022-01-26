@@ -54,7 +54,7 @@ import io.github.astrapi69.crypto.key.writer.EncryptedPrivateKeyWriter;
 import io.github.astrapi69.crypto.key.writer.PrivateKeyWriter;
 import io.github.astrapi69.crypto.key.writer.PublicKeyWriter;
 import io.github.astrapi69.model.BaseModel;
-import io.github.astrapi69.model.api.Model;
+import io.github.astrapi69.model.api.IModel;
 import io.github.astrapi69.swing.base.BasePanel;
 
 @Getter
@@ -73,7 +73,7 @@ public class GenerateKeysPanel extends BasePanel<GenerateKeysModelBean>
 		this(BaseModel.<GenerateKeysModelBean> of(GenerateKeysModelBean.builder().build()));
 	}
 
-	public GenerateKeysPanel(final Model<GenerateKeysModelBean> model)
+	public GenerateKeysPanel(final IModel<GenerateKeysModelBean> model)
 	{
 		super(model);
 	}

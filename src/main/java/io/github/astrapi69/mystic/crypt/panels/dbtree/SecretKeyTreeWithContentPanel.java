@@ -36,7 +36,7 @@ import javax.swing.tree.TreeModel;
 import org.jdesktop.swingx.JXTree;
 
 import io.github.astrapi69.model.BaseModel;
-import io.github.astrapi69.model.api.Model;
+import io.github.astrapi69.model.api.IModel;
 import io.github.astrapi69.swing.dialog.JOptionPaneExtensions;
 import io.github.astrapi69.swing.listener.RequestFocusListener;
 import io.github.astrapi69.swing.menu.MenuFactory;
@@ -64,7 +64,7 @@ public class SecretKeyTreeWithContentPanel
 	}
 
 	public SecretKeyTreeWithContentPanel(
-		final Model<TreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>>> model)
+		final IModel<TreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>>> model)
 	{
 		super(model);
 	}
@@ -142,7 +142,7 @@ public class SecretKeyTreeWithContentPanel
 
 	@Override
 	protected TreeModel newTreeModel(
-		final Model<TreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>>> model)
+		final IModel<TreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>>> model)
 	{
 		TreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>> parentTreeNode = model
 			.getObject();

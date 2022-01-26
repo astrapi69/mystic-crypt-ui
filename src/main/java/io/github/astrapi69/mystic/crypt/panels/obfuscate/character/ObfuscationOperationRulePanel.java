@@ -29,7 +29,7 @@ import io.github.astrapi69.collections.array.ArrayExtensions;
 import io.github.astrapi69.collections.list.ListFactory;
 import io.github.astrapi69.crypto.obfuscation.rule.ObfuscationOperationRule;
 import io.github.astrapi69.crypto.obfuscation.rule.Operation;
-import io.github.astrapi69.model.api.Model;
+import io.github.astrapi69.model.api.IModel;
 import io.github.astrapi69.mystic.crypt.panels.obfuscate.ModeContext;
 import io.github.astrapi69.swing.base.BasePanel;
 import io.github.astrapi69.swing.combobox.model.EnumComboBoxModel;
@@ -53,7 +53,7 @@ public class ObfuscationOperationRulePanel extends BasePanel<ObfuscationOperatio
 	private javax.swing.JTextField txtOriginalChar;
 	private javax.swing.JTextField txtRelpaceWith;
 
-	public ObfuscationOperationRulePanel(final Model<ObfuscationOperationModelBean> model)
+	public ObfuscationOperationRulePanel(final IModel<ObfuscationOperationModelBean> model)
 	{
 		super(model);
 	}

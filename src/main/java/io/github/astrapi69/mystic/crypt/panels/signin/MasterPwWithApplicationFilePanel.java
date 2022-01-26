@@ -40,11 +40,11 @@ import io.github.astrapi69.file.system.SystemFileExtensions;
 import io.github.astrapi69.gson.ObjectToJsonFileExtensions;
 import io.github.astrapi69.model.BaseModel;
 import io.github.astrapi69.model.LambdaModel;
-import io.github.astrapi69.model.api.Model;
+import io.github.astrapi69.model.api.IModel;
 import io.github.astrapi69.mystic.crypt.ApplicationModelBean;
 import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
 import io.github.astrapi69.net.url.URLExtensions;
-import io.github.astrapi69.swing.JMCheckBox;
+import io.github.astrapi69.swing.component.JMCheckBox;
 import io.github.astrapi69.swing.base.BasePanel;
 import io.github.astrapi69.swing.combobox.model.StringMutableComboBoxModel;
 import io.github.astrapi69.swing.help.HelpDialog;
@@ -98,7 +98,7 @@ public class MasterPwWithApplicationFilePanel extends BasePanel<MasterPwFileMode
 	 * @param model
 	 *            the model
 	 */
-	public MasterPwWithApplicationFilePanel(final Model<MasterPwFileModelBean> model)
+	public MasterPwWithApplicationFilePanel(final IModel<MasterPwFileModelBean> model)
 	{
 		super(model);
 	}
@@ -258,7 +258,7 @@ public class MasterPwWithApplicationFilePanel extends BasePanel<MasterPwFileMode
 					+ "your password and select your private key\n"
 					+ "After you set the master key you can open your mystic-crypt database by clicking ok.")
 				.build();
-			Model<HelpModelBean> helpModel = BaseModel.of(helpModelBean);
+			IModel<HelpModelBean> helpModel = BaseModel.of(helpModelBean);
 			HelpDialog helpDialog = new HelpDialog(MysticCryptApplicationFrame.getInstance(),
 				"Help for sign in to the your database", true, helpModel);
 			helpDialog.setSize(800, 300);
