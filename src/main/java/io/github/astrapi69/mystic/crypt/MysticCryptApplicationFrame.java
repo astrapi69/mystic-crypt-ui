@@ -24,13 +24,17 @@
  */
 package io.github.astrapi69.mystic.crypt;
 
-import java.awt.*;
+import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.io.File;
 import java.net.URISyntaxException;
 import java.security.Security;
 
-import javax.swing.*;
+import javax.swing.ImageIcon;
+import javax.swing.JButton;
+import javax.swing.JFileChooser;
+import javax.swing.JMenu;
+import javax.swing.JToolBar;
 import javax.swing.filechooser.FileFilter;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
@@ -53,12 +57,9 @@ import io.github.astrapi69.mystic.crypt.panels.signin.MemoizedSigninModelBean;
 import io.github.astrapi69.mystic.crypt.panels.signin.NewMasterPwFileDialog;
 import io.github.astrapi69.swing.base.ApplicationFrame;
 import io.github.astrapi69.swing.button.IconButtonFactory;
-import io.github.astrapi69.swing.component.factory.JComponentFactory;
 import io.github.astrapi69.swing.layout.ScreenSizeExtensions;
-import io.github.astrapi69.swing.panels.output.ConsolePanel;
 import io.github.astrapi69.swing.splashscreen.ProgressBarSplashScreen;
 import io.github.astrapi69.swing.splashscreen.SplashScreenModelBean;
-import io.github.astrapi69.swing.utils.JInternalFrameExtensions;
 import io.github.astrapi69.throwable.RuntimeExceptionDecorator;
 
 /**
@@ -82,16 +83,6 @@ public class MysticCryptApplicationFrame extends ApplicationFrame<ApplicationMod
 	private static MysticCryptApplicationFrame instance;
 	@Getter
 	private BouncyCastleProvider bouncyCastleProvider;
-	/**
-	 * The console internal frame.
-	 */
-	@Getter
-	JInternalFrame consoleInternalFrame;
-	/**
-	 * The internal frame.
-	 */
-	@Getter
-	JInternalFrame internalFrame;
 
 	/**
 	 * initial block
@@ -273,30 +264,11 @@ public class MysticCryptApplicationFrame extends ApplicationFrame<ApplicationMod
 	@Override
 	protected void onBeforeInitializeComponents()
 	{
+		// show login screen dialog ...
 		showMasterPwDialog();
-		// Make sure we have nice window decorations.
-		JFrame.setDefaultLookAndFeelDecorated(true);
 		super.onBeforeInitializeComponents();
 	}
 
-	public void getConsoleOutput()
-	{
-		if (consoleInternalFrame == null)
-		{
-			consoleInternalFrame = JComponentFactory.newInternalFrame("Console", true, true, true,
-				true);
-			ConsolePanel consolePanel = new ConsolePanel();
-			int screenHeight = ScreenSizeExtensions.getScreenHeight(this);
-			int screenWidth = ScreenSizeExtensions.getScreenWidth(this);
-			JInternalFrameExtensions.addComponentToFrame(consoleInternalFrame, consolePanel);
-			JInternalFrameExtensions.addJInternalFrame(
-				MysticCryptApplicationFrame.getInstance().getMainComponent(), consoleInternalFrame);
-			consoleInternalFrame.setSize(screenWidth, (screenHeight / 4));
-			consoleInternalFrame.setLocation(0, (screenHeight / 4) * 3);
-			consoleInternalFrame.setResizable(false);
-			consoleInternalFrame.putClientProperty("dragMode", "fixed");
-		}
-	}
 
 	@Override
 	protected File newConfigurationDirectory(final @NonNull String parent,
@@ -328,7 +300,7 @@ public class MysticCryptApplicationFrame extends ApplicationFrame<ApplicationMod
 	protected void onAfterInitialize()
 	{
 		super.onAfterInitialize();
-		getConsoleOutput();
+		// getConsoleOutput();
 		setTitle(Messages.getString("mainframe.title"));
 		// create internal frame
 		// openDatabaseTreeFrame();

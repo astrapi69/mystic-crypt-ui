@@ -24,7 +24,7 @@ import java.awt.*;
 
 import javax.swing.*;
 
-import io.github.astrapi69.actions.DisposeWindowAction;
+import io.github.astrapi69.awt.action.DisposeWindowAction;
 import io.github.astrapi69.mystic.crypt.Messages;
 import io.github.astrapi69.window.adapter.DisposeWindow;
 

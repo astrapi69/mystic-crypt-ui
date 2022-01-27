@@ -20,21 +20,7 @@
  */
 package io.github.astrapi69.mystic.crypt;
 
-import io.github.astrapi69.mystic.crypt.actions.*;
-import io.github.astrapi69.swing.actions.ExitApplicationAction;
-import io.github.astrapi69.swing.actions.ToggleFullScreenAction;
-import io.github.astrapi69.swing.base.BaseDesktopMenu;
-import io.github.astrapi69.swing.layout.ScreenSizeExtensions;
-import io.github.astrapi69.swing.menu.MenuExtensions;
-import io.github.astrapi69.swing.menu.MenuFactory;
-import io.github.astrapi69.swing.menu.builder.JMenuItemInfo;
-import lombok.NonNull;
-import lombok.extern.java.Log;
-import org.springframework.core.io.Resource;
-
-import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
@@ -46,23 +32,27 @@ import java.util.logging.Level;
 
 import javax.swing.*;
 
+import io.github.astrapi69.mystic.crypt.actions.OpenConsoleFrameAction;
+import io.github.astrapi69.swing.action.OpenBrowserToDonateAction;
+import io.github.astrapi69.swing.action.ShowInfoDialogAction;
+import io.github.astrapi69.swing.action.ShowLicenseFrameAction;
+import io.github.astrapi69.swing.dialog.info.InfoDialog;
+import io.github.astrapi69.swing.dialog.info.InfoPanel;
 import lombok.NonNull;
 import lombok.extern.java.Log;
 
 import org.springframework.core.io.Resource;
 
+import io.github.astrapi69.mystic.crypt.actions.ApplicationToggleFullScreenAction;
 import io.github.astrapi69.mystic.crypt.actions.NewChecksumFrameAction;
-import io.github.astrapi69.mystic.crypt.actions.NewFileConversionInternalFrameAction;
 import io.github.astrapi69.mystic.crypt.actions.NewKeyGenerationInternalFrameAction;
 import io.github.astrapi69.mystic.crypt.actions.NewObfuscationInternalFrameAction;
-import io.github.astrapi69.mystic.crypt.actions.NewObfuscationOperationInternalFrameAction;
 import io.github.astrapi69.mystic.crypt.actions.OpenDatabaseTreeFrameAction;
 import io.github.astrapi69.mystic.crypt.actions.OpenPrivateKeyAction;
-import io.github.astrapi69.swing.actions.ExitApplicationAction;
-import io.github.astrapi69.swing.actions.ToggleFullScreenAction;
+import io.github.astrapi69.swing.action.ExitApplicationAction;
 import io.github.astrapi69.swing.base.BaseDesktopMenu;
-import io.github.astrapi69.swing.layout.ScreenSizeExtensions;
-import io.github.astrapi69.swing.menu.MenuFactory;
+import io.github.astrapi69.swing.menu.MenuExtensions;
+import io.github.astrapi69.swing.menu.builder.JMenuItemInfo;
 
 /**
  * The class {@link DesktopMenu}
@@ -71,7 +61,6 @@ import io.github.astrapi69.swing.menu.MenuFactory;
 @Log
 public class DesktopMenu extends BaseDesktopMenu
 {
-
 	/**
 	 * Instantiates a new desktop menu.
 	 */
@@ -81,20 +70,22 @@ public class DesktopMenu extends BaseDesktopMenu
 	}
 
 	@Override
-	protected JMenu newEditMenu(final ActionListener listener) {
-		final JMenu editMenu =
-		JMenuItemInfo.builder()
+	protected JMenu newEditMenu(final ActionListener listener)
+	{
+		// @formatter:on
+		final JMenu editMenu = JMenuItemInfo.builder()
 				.text("Edit")
 				.mnemonic(MenuExtensions.toMnemonic('E'))
-				.name(MenuId.EDIT.id)
+			.name(MenuId.EDIT.propertiesKey())
 				.build().toJMenu();
 		JMenuItem verifyChecksum = JMenuItemInfo.builder()
 				.text("Verify checksum")
 				.mnemonic(MenuExtensions.toMnemonic('V'))
 				.keyStroke(KeyStroke.getKeyStroke(KeyEvent.VK_F3, InputEvent.ALT_DOWN_MASK))
 				.actionListener(new NewChecksumFrameAction("ChecksumVerifier"))
-				.name(MenuId.VERIFY_CHECKSUM.id)
+			.name(MenuId.VERIFY_CHECKSUM.propertiesKey())
 				.build().toJMenuItem();
+		// @formatter:off
 		editMenu.add(verifyChecksum);
 		return editMenu;
 	}
@@ -107,63 +98,103 @@ public class DesktopMenu extends BaseDesktopMenu
 	@Override
 	protected JMenu newFileMenu()
 	{
-		final JMenu fileMenu = super.newFileMenu();
+		// @formatter:on
+		// File
+		final JMenu fileMenu = JMenuItemInfo.builder().text("File")
+			.mnemonic(MenuExtensions.toMnemonic('F')).name(MenuId.FILE.propertiesKey()).build()
+			.toJMenu();
+		super.newFileMenu();
 
 		// Open Database
-		fileMenu.add(MenuFactory.newJMenuItem("Open Database", 'D', 'D',
-			new OpenDatabaseTreeFrameAction("Open Database")));
-		// Main key menu
-		final JMenu keyMenu = MenuFactory.newJMenu("Key", 'K');
+		JMenuItem openDatabaseMenuItem = JMenuItemInfo.builder().text("Open Database")
+			.mnemonic(MenuExtensions.toMnemonic('D'))
+			.keyStroke(KeyStroke.getKeyStroke('D', Event.CTRL_MASK))
+			.actionListener(new OpenDatabaseTreeFrameAction("Open Database"))
+			.name(MenuId.OPEN_DATABASE.propertiesKey()).build().toJMenuItem();
+		fileMenu.add(openDatabaseMenuItem);
+		// @formatter:off
+		// Main secret key menu
+		// @formatter:on
+		final JMenu keyMenu = JMenuItemInfo.builder().text("Secret key")
+			.mnemonic(MenuExtensions.toMnemonic('K')).name(MenuId.SECRET_KEY.propertiesKey())
+			.build().toJMenu();
 		fileMenu.add(keyMenu);
+		// @formatter:off
+		// @formatter:on
 		// New key generation
-		keyMenu.add(MenuFactory.newJMenuItem("New key generation", 'K', 'K',
-			new NewKeyGenerationInternalFrameAction("New key generation")));
+		JMenuItem newSecretKeyJMenuItem = JMenuItemInfo.builder().text("New key generation")
+			.mnemonic(MenuExtensions.toMnemonic('K'))
+			.keyStroke(KeyStroke.getKeyStroke('K', Event.CTRL_MASK))
+			.actionListener(new NewKeyGenerationInternalFrameAction("New key generation"))
+			.name(MenuId.SECRET_KEY_NEW.propertiesKey()).build().toJMenuItem();
+		keyMenu.add(newSecretKeyJMenuItem);
 		// Open private key
-		keyMenu.add(MenuFactory.newJMenuItem("Open private key", 'e', 'e',
-			new OpenPrivateKeyAction("Open private key", getApplicationFrame())));
+		JMenuItem openPrivateKeyMenuItem = JMenuItemInfo.builder().text("Open private key")
+			.mnemonic(MenuExtensions.toMnemonic('e'))
+			.keyStroke(KeyStroke.getKeyStroke('e', Event.CTRL_MASK))
+			.actionListener(new OpenPrivateKeyAction("Open private key", getApplicationFrame()))
+			.name(MenuId.OPEN_PRIVATE_KEY.propertiesKey()).build().toJMenuItem();
+		keyMenu.add(openPrivateKeyMenuItem);
 		// Separator
 		fileMenu.addSeparator();
 
-		final JMenu obfuscationMenu = MenuFactory.newJMenu("Obfuscation", 'O');
+		final JMenu obfuscationMenu = JMenuItemInfo.builder().text("Obfuscation")
+			.mnemonic(MenuExtensions.toMnemonic('O')).name(MenuId.OBFUSCATION.propertiesKey())
+			.build().toJMenu();
 		fileMenu.add(obfuscationMenu);
 
 		// New simple obfuscation
-		obfuscationMenu.add(MenuFactory.newJMenuItem("Simple obfuscation", 'S', 'S',
-			new NewObfuscationInternalFrameAction("Simple Obfuscation")));
+		JMenuItem simpleObfuscationMenuItem = JMenuItemInfo.builder().text("Simple obfuscation")
+			.mnemonic(MenuExtensions.toMnemonic('S'))
+			.keyStroke(KeyStroke.getKeyStroke('S', Event.CTRL_MASK))
+			.actionListener(new NewObfuscationInternalFrameAction("Simple Obfuscation"))
+			.name(MenuId.SIMPLE_OBFUSCATION.propertiesKey()).build().toJMenuItem();
+
+		obfuscationMenu.add(simpleObfuscationMenuItem);
 		// New operated obfuscation
-		obfuscationMenu.add(MenuFactory.newJMenuItem("Operated obfuscation", 'N', 'N',
-			new NewObfuscationOperationInternalFrameAction("Operated Obfuscation")));
+		JMenuItem operatedObfuscationMenuItem = JMenuItemInfo.builder().text("Operated obfuscation")
+			.mnemonic(MenuExtensions.toMnemonic('N'))
+			.keyStroke(KeyStroke.getKeyStroke('N', Event.CTRL_MASK))
+			.actionListener(new NewObfuscationInternalFrameAction("Operated Obfuscation"))
+			.name(MenuId.OPERATED_OBFUSCATION.propertiesKey()).build().toJMenuItem();
+		obfuscationMenu.add(operatedObfuscationMenuItem);
 
 		// Separator
 		fileMenu.addSeparator();
 		// Convert der to pem file
-		JMenuItem jmiConvert = MenuFactory.newJMenuItem("Convert...", 'C', 'C',
-			new NewFileConversionInternalFrameAction("Convert *.der-file to *.pem-file"));
-		jmiConvert.setEnabled(true);
-		fileMenu.add(jmiConvert);
+		JMenuItem convertMenuItem = JMenuItemInfo.builder().text("Convert...")
+			.mnemonic(MenuExtensions.toMnemonic('C'))
+			.keyStroke(KeyStroke.getKeyStroke('C', Event.CTRL_MASK))
+			.actionListener(
+				new NewObfuscationInternalFrameAction("Convert *.der-file to *.pem-file"))
+			.name(MenuId.CONVERT.propertiesKey()).build().toJMenuItem();
+		convertMenuItem.setEnabled(true);
+		fileMenu.add(convertMenuItem);
 
 		// Fullscreen
-		fileMenu.add(MenuFactory.newJMenuItem("Toggle Fullscreen", 'F',
-			KeyStroke.getKeyStroke(KeyEvent.VK_F11, InputEvent.ALT_DOWN_MASK),
-			new ToggleFullScreenAction("Fullscreen", MysticCryptApplicationFrame.getInstance())
-			{
+		JMenuItem toggleFullscreenMenuItem = JMenuItemInfo.builder().text("Toggle Fullscreen")
+			.mnemonic(MenuExtensions.toMnemonic('T'))
+			.keyStroke(KeyStroke.getKeyStroke(KeyEvent.VK_F11, InputEvent.ALT_DOWN_MASK))
+			.actionListener(new ApplicationToggleFullScreenAction("Fullscreen",
+				MysticCryptApplicationFrame.getInstance()))
+			.name(MenuId.TOGGLE_FULLSCREEN.propertiesKey()).build().toJMenuItem();
+		fileMenu.add(toggleFullscreenMenuItem);
 
-				/**
-				 * {@inheritDoc}
-				 */
-				@Override
-				public void actionPerformed(final ActionEvent e)
-				{
-					ScreenSizeExtensions
-						.toggleFullScreen(MysticCryptApplicationFrame.getInstance());
-				}
-			}));
+		// Console
+		JMenuItem consoleMenuItem = JMenuItemInfo.builder().text("Console")
+				.mnemonic(MenuExtensions.toMnemonic('L'))
+				.keyStroke(KeyStroke.getKeyStroke('L', InputEvent.ALT_DOWN_MASK))
+				.actionListener(new OpenConsoleFrameAction("Console"))
+				.name(MenuId.CONSOLE.propertiesKey()).build().toJMenuItem();
+		fileMenu.add(consoleMenuItem);
 
 		// Exit
-		fileMenu.add(MenuFactory.newJMenuItem("Exit", 'E',
-			KeyStroke.getKeyStroke(KeyEvent.VK_F4, InputEvent.ALT_DOWN_MASK),
-			new ExitApplicationAction("Exit")));
-
+		JMenuItem exitMenuItem = JMenuItemInfo.builder().text("Exit")
+			.mnemonic(MenuExtensions.toMnemonic('E'))
+			.keyStroke(KeyStroke.getKeyStroke(KeyEvent.VK_F4, InputEvent.ALT_DOWN_MASK))
+			.actionListener(new ExitApplicationAction("Exit")).build().toJMenuItem();
+		fileMenu.add(exitMenuItem);
+		// @formatter:off
 		return fileMenu;
 	}
 
@@ -210,6 +241,87 @@ public class DesktopMenu extends BaseDesktopMenu
 		return Messages.getString("InfoJPanel.warning");
 	}
 
+	protected ShowLicenseFrameAction newShowLicenseFrameAction(final String name,
+															   final @NonNull String title)
+	{
+		return new ShowLicenseFrameAction(name, title)
+		{
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			protected String newLicenseText()
+			{
+				return onNewLicenseText();
+			}
+		};
+	}
+
+
+	protected InfoDialog onNewInfoDialog(Frame owner, String title)
+	{
+		return new InfoDialog(owner, title)
+		{
+
+			@Override
+			protected InfoPanel newInfoPanel()
+			{
+				return new InfoPanel()
+				{
+
+					@Override
+					protected String newLabelTextApplicationName()
+					{
+						return DesktopMenu.this.newLabelTextApplicationName();
+					}
+
+					@Override
+					protected String newLabelTextCopyright()
+					{
+						return DesktopMenu.this.newLabelTextCopyright();
+					}
+
+					@Override
+					protected String newLabelTextLabelApplicationName()
+					{
+						return DesktopMenu.this.newLabelTextLabelApplicationName();
+					}
+
+					@Override
+					protected String newLabelTextLabelCopyright()
+					{
+						return DesktopMenu.this.newLabelTextLabelCopyright();
+					}
+
+					@Override
+					protected String newLabelTextLabelVersion()
+					{
+						return DesktopMenu.this.newLabelTextLabelVersion();
+					}
+
+					@Override
+					protected String newLabelTextVersion()
+					{
+						return DesktopMenu.this.newLabelTextVersion();
+					}
+
+					@Override
+					protected String newTextWarning()
+					{
+						return DesktopMenu.this.newTextWarning();
+					}
+
+				};
+			}
+
+			@Override
+			protected String newLabelTextPlaceholder()
+			{
+				return "";
+			}
+
+		};
+	}
+
 	@Override
 	protected String onNewLicenseText()
 	{
@@ -232,5 +344,4 @@ public class DesktopMenu extends BaseDesktopMenu
 		}
 		return license.toString();
 	}
-
 }
