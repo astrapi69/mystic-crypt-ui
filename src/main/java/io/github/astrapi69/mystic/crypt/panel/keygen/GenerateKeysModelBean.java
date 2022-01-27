@@ -18,39 +18,51 @@
  * DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-package io.github.astrapi69.mystic.crypt;
+package io.github.astrapi69.mystic.crypt.panel.keygen;
 
 import java.io.Serializable;
+import java.security.PrivateKey;
+import java.security.PublicKey;
+import java.util.Date;
 
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 import lombok.experimental.FieldDefaults;
-import io.github.astrapi69.mystic.crypt.panel.signin.MasterPwFileModelBean;
-import io.github.astrapi69.swing.tree.JXTreeElement;
-import io.github.astrapi69.tree.TreeNode;
+import lombok.experimental.SuperBuilder;
+import io.github.astrapi69.crypto.key.KeySize;
+import io.github.astrapi69.crypto.key.PrivateKeyHexDecryptor;
+import io.github.astrapi69.crypto.key.PublicKeyHexEncryptor;
 
-/**
- * The class {@link ApplicationModelBean} holds application specific data
- */
 @Getter
 @Setter
 @EqualsAndHashCode
 @ToString
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder(toBuilder = true)
+@SuperBuilder(toBuilder = true)
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class ApplicationModelBean implements Serializable
+public class GenerateKeysModelBean implements Serializable
 {
 	/** The Constant serialVersionUID. */
 	private static final long serialVersionUID = 1L;
-	MasterPwFileModelBean masterPwFileModelBean;
-	TreeNode<JXTreeElement> rootTreeNode;
-	boolean showSplash;
+
+	PrivateKeyHexDecryptor decryptor;
+
+	PublicKeyHexEncryptor encryptor;
+
+	KeySize keySize;
+
+	PrivateKey privateKey;
+
+	PublicKey publicKey;
+
+	String password;
+	String signatureAlgorithm;
+	Date start;
+	Date end;
 }

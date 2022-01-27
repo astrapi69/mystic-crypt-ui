@@ -32,9 +32,7 @@ import java.util.logging.Level;
 
 import javax.swing.*;
 
-import io.github.astrapi69.mystic.crypt.actions.OpenConsoleFrameAction;
-import io.github.astrapi69.swing.action.OpenBrowserToDonateAction;
-import io.github.astrapi69.swing.action.ShowInfoDialogAction;
+import io.github.astrapi69.mystic.crypt.action.OpenConsoleFrameAction;
 import io.github.astrapi69.swing.action.ShowLicenseFrameAction;
 import io.github.astrapi69.swing.dialog.info.InfoDialog;
 import io.github.astrapi69.swing.dialog.info.InfoPanel;
@@ -43,12 +41,12 @@ import lombok.extern.java.Log;
 
 import org.springframework.core.io.Resource;
 
-import io.github.astrapi69.mystic.crypt.actions.ApplicationToggleFullScreenAction;
-import io.github.astrapi69.mystic.crypt.actions.NewChecksumFrameAction;
-import io.github.astrapi69.mystic.crypt.actions.NewKeyGenerationInternalFrameAction;
-import io.github.astrapi69.mystic.crypt.actions.NewObfuscationInternalFrameAction;
-import io.github.astrapi69.mystic.crypt.actions.OpenDatabaseTreeFrameAction;
-import io.github.astrapi69.mystic.crypt.actions.OpenPrivateKeyAction;
+import io.github.astrapi69.mystic.crypt.action.ApplicationToggleFullScreenAction;
+import io.github.astrapi69.mystic.crypt.action.NewChecksumFrameAction;
+import io.github.astrapi69.mystic.crypt.action.NewKeyGenerationInternalFrameAction;
+import io.github.astrapi69.mystic.crypt.action.NewObfuscationInternalFrameAction;
+import io.github.astrapi69.mystic.crypt.action.OpenDatabaseTreeFrameAction;
+import io.github.astrapi69.mystic.crypt.action.OpenPrivateKeyAction;
 import io.github.astrapi69.swing.action.ExitApplicationAction;
 import io.github.astrapi69.swing.base.BaseDesktopMenu;
 import io.github.astrapi69.swing.menu.MenuExtensions;

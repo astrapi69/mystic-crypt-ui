@@ -18,39 +18,27 @@
  * DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-package io.github.astrapi69.mystic.crypt;
-
-import java.io.Serializable;
-
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.ToString;
-import lombok.experimental.FieldDefaults;
-import io.github.astrapi69.mystic.crypt.panel.signin.MasterPwFileModelBean;
-import io.github.astrapi69.swing.tree.JXTreeElement;
-import io.github.astrapi69.tree.TreeNode;
+package io.github.astrapi69.mystic.crypt.panel.obfuscate;
 
 /**
- * The class {@link ApplicationModelBean} holds application specific data
+ * The enum {@link ModeContext} provides modification modes for create, delete, update and no
+ * modification
+ * 
+ * Note: will be deprecated.<br>
+ * use instead the same name enum class in the project model-core when the next release is out
  */
-@Getter
-@Setter
-@EqualsAndHashCode
-@ToString
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder(toBuilder = true)
-@FieldDefaults(level = AccessLevel.PRIVATE)
-public class ApplicationModelBean implements Serializable
+public enum ModeContext
 {
-	/** The Constant serialVersionUID. */
-	private static final long serialVersionUID = 1L;
-	MasterPwFileModelBean masterPwFileModelBean;
-	TreeNode<JXTreeElement> rootTreeNode;
-	boolean showSplash;
+
+	/** The modification mode that signals the creation mode */
+	CREATE,
+
+	/** The modification mode that signals the deletion mode */
+	DELETE,
+
+	/** The mode that signals that no modification will be done */
+	NONE,
+
+	/** The modification mode that signals the update mode */
+	UPDATE
 }

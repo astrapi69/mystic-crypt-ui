@@ -18,8 +18,9 @@
  * DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-package io.github.astrapi69.mystic.crypt;
+package io.github.astrapi69.mystic.crypt.panel.conversion;
 
+import java.io.File;
 import java.io.Serializable;
 
 import lombok.AccessLevel;
@@ -31,12 +32,10 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 import lombok.experimental.FieldDefaults;
-import io.github.astrapi69.mystic.crypt.panel.signin.MasterPwFileModelBean;
-import io.github.astrapi69.swing.tree.JXTreeElement;
-import io.github.astrapi69.tree.TreeNode;
+import io.github.astrapi69.crypto.key.KeyType;
 
 /**
- * The class {@link ApplicationModelBean} holds application specific data
+ * The class {@link FileConversionModelBean}.
  */
 @Getter
 @Setter
@@ -46,11 +45,20 @@ import io.github.astrapi69.tree.TreeNode;
 @AllArgsConstructor
 @Builder(toBuilder = true)
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class ApplicationModelBean implements Serializable
+public class FileConversionModelBean implements Serializable
 {
+
 	/** The Constant serialVersionUID. */
 	private static final long serialVersionUID = 1L;
-	MasterPwFileModelBean masterPwFileModelBean;
-	TreeNode<JXTreeElement> rootTreeNode;
-	boolean showSplash;
+
+	/** The der file. */
+	File derFile;
+
+	/** The key type. */
+	@Builder.Default
+	KeyType keyType = KeyType.PRIVATE_KEY;
+
+	/** The pem file. */
+	File pemFile;
+
 }

@@ -18,39 +18,51 @@
  * DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-package io.github.astrapi69.mystic.crypt;
+package io.github.astrapi69.mystic.crypt.action;
 
-import java.io.Serializable;
+import java.awt.event.ActionEvent;
 
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.ToString;
-import lombok.experimental.FieldDefaults;
-import io.github.astrapi69.mystic.crypt.panel.signin.MasterPwFileModelBean;
-import io.github.astrapi69.swing.tree.JXTreeElement;
-import io.github.astrapi69.tree.TreeNode;
+import javax.swing.*;
+
+import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
+import io.github.astrapi69.mystic.crypt.panel.obfuscate.simple.RulePanel;
+import io.github.astrapi69.swing.component.factory.JComponentFactory;
+import io.github.astrapi69.swing.utils.JInternalFrameExtensions;
 
 /**
- * The class {@link ApplicationModelBean} holds application specific data
+ * The class {@link NewObfuscationInternalFrameAction}.
  */
-@Getter
-@Setter
-@EqualsAndHashCode
-@ToString
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder(toBuilder = true)
-@FieldDefaults(level = AccessLevel.PRIVATE)
-public class ApplicationModelBean implements Serializable
+public class NewObfuscationInternalFrameAction extends AbstractAction
 {
+
 	/** The Constant serialVersionUID. */
 	private static final long serialVersionUID = 1L;
-	MasterPwFileModelBean masterPwFileModelBean;
-	TreeNode<JXTreeElement> rootTreeNode;
-	boolean showSplash;
+
+	/**
+	 * Instantiates a new new action.
+	 *
+	 * @param name
+	 *            the name
+	 */
+	public NewObfuscationInternalFrameAction(final String name)
+	{
+		super(name);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public void actionPerformed(final ActionEvent e)
+	{
+		// create internal frame
+		final JInternalFrame internalFrame = JComponentFactory
+			.newInternalFrame("Obfuscation Operation demo", true, true, true, true);
+		final RulePanel component = new RulePanel();
+		JInternalFrameExtensions.addComponentToFrame(internalFrame, component);
+
+		JInternalFrameExtensions.addJInternalFrame(
+			MysticCryptApplicationFrame.getInstance().getMainComponent(), internalFrame);
+	}
+
 }

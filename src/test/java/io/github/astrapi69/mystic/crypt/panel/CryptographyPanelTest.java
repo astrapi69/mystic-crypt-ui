@@ -18,39 +18,35 @@
  * DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-package io.github.astrapi69.mystic.crypt;
+package io.github.astrapi69.mystic.crypt.panel;
 
-import java.io.Serializable;
+import java.io.IOException;
 
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.ToString;
-import lombok.experimental.FieldDefaults;
-import io.github.astrapi69.mystic.crypt.panel.signin.MasterPwFileModelBean;
-import io.github.astrapi69.swing.tree.JXTreeElement;
-import io.github.astrapi69.tree.TreeNode;
+import javax.swing.*;
 
-/**
- * The class {@link ApplicationModelBean} holds application specific data
- */
-@Getter
-@Setter
-@EqualsAndHashCode
-@ToString
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder(toBuilder = true)
-@FieldDefaults(level = AccessLevel.PRIVATE)
-public class ApplicationModelBean implements Serializable
+import io.github.astrapi69.mystic.crypt.panel.keygen.CryptographyPanel;
+import io.github.astrapi69.window.adapter.CloseWindow;
+
+public class CryptographyPanelTest
 {
-	/** The Constant serialVersionUID. */
-	private static final long serialVersionUID = 1L;
-	MasterPwFileModelBean masterPwFileModelBean;
-	TreeNode<JXTreeElement> rootTreeNode;
-	boolean showSplash;
+
+	/**
+	 * The main method.
+	 *
+	 * @param args
+	 *            the arguments
+	 * @throws IOException
+	 */
+	public static void main(final String[] args) throws IOException
+	{
+		final JFrame frame = new JFrame();
+		frame.addWindowListener(new CloseWindow());
+		frame.setTitle("CryptographyPanel");
+
+		final CryptographyPanel pnlIconPanel = new CryptographyPanel();
+		frame.add(pnlIconPanel);
+		frame.setBounds(0, 0, 1020, 420);
+		frame.setVisible(true);
+	}
+
 }

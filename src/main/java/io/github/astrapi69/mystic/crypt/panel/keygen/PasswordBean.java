@@ -18,11 +18,10 @@
  * DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-package io.github.astrapi69.mystic.crypt;
+package io.github.astrapi69.mystic.crypt.panel.keygen;
 
 import java.io.Serializable;
 
-import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
@@ -30,13 +29,11 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
-import lombok.experimental.FieldDefaults;
-import io.github.astrapi69.mystic.crypt.panel.signin.MasterPwFileModelBean;
-import io.github.astrapi69.swing.tree.JXTreeElement;
-import io.github.astrapi69.tree.TreeNode;
 
 /**
- * The class {@link ApplicationModelBean} holds application specific data
+ * The Class {@link PasswordBean} captures the data for set the password.
+ *
+ * @author Asterios Raptis
  */
 @Getter
 @Setter
@@ -45,12 +42,18 @@ import io.github.astrapi69.tree.TreeNode;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder(toBuilder = true)
-@FieldDefaults(level = AccessLevel.PRIVATE)
-public class ApplicationModelBean implements Serializable
+public class PasswordBean implements Serializable
 {
-	/** The Constant serialVersionUID. */
+
+	/**
+	 * The serialVersionUID.
+	 */
 	private static final long serialVersionUID = 1L;
-	MasterPwFileModelBean masterPwFileModelBean;
-	TreeNode<JXTreeElement> rootTreeNode;
-	boolean showSplash;
+
+	/** The password */
+	private String password;
+
+	/** The repeated password */
+	private String repeatPassword;
+
 }

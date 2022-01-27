@@ -18,7 +18,7 @@
  * DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-package io.github.astrapi69.mystic.crypt;
+package io.github.astrapi69.mystic.crypt.panel.obfuscate.character;
 
 import java.io.Serializable;
 
@@ -31,13 +31,11 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 import lombok.experimental.FieldDefaults;
-import io.github.astrapi69.mystic.crypt.panel.signin.MasterPwFileModelBean;
-import io.github.astrapi69.swing.tree.JXTreeElement;
-import io.github.astrapi69.tree.TreeNode;
+import io.github.astrapi69.crypto.obfuscation.api.Obfuscatable;
+import io.github.astrapi69.crypto.obfuscation.rule.ObfuscationOperationRule;
+import io.github.astrapi69.mystic.crypt.panel.obfuscate.ModeContext;
 
-/**
- * The class {@link ApplicationModelBean} holds application specific data
- */
+
 @Getter
 @Setter
 @EqualsAndHashCode
@@ -46,11 +44,16 @@ import io.github.astrapi69.tree.TreeNode;
 @AllArgsConstructor
 @Builder(toBuilder = true)
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class ApplicationModelBean implements Serializable
+public class ObfuscationOperationModelBean implements Serializable
 {
-	/** The Constant serialVersionUID. */
 	private static final long serialVersionUID = 1L;
-	MasterPwFileModelBean masterPwFileModelBean;
-	TreeNode<JXTreeElement> rootTreeNode;
-	boolean showSplash;
+
+	Obfuscatable obfuscator;
+
+	@Builder.Default
+	ModeContext proccessMode = ModeContext.NONE;
+
+	ObfuscationOperationRule<Character, Character> selected;
+
+	EditableCharacterObfuscationOperationRulesTableModel tableModel;
 }
