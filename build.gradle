@@ -158,6 +158,9 @@ dependencies {
     implementation("org.swinglabs:swing-worker:$swingWorkerVersion")
     implementation("org.swinglabs.swingx:swingx-all:$swingxAllVersion")
     implementation("com.miglayout:miglayout-swing:$miglayoutSwingVersion")
+
+    implementation("org.jdesktop:beansbinding:1.2.1")
+
     implementation("commons-codec:commons-codec:$commonsCodecVersion")
     implementation("com.fasterxml.jackson.core:jackson-databind:$jacksonVersion")
     implementation("com.thoughtworks.xstream:xstream:$xstreamVersion")
