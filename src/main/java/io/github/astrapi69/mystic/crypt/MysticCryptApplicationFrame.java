@@ -38,6 +38,8 @@ import javax.swing.JToolBar;
 import javax.swing.filechooser.FileFilter;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
+import io.github.astrapi69.icon.ImageIconFactory;
+import io.github.astrapi69.swing.button.IconButtonFactory;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NonNull;
@@ -48,7 +50,6 @@ import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import io.github.astrapi69.file.create.FileFactory;
 import io.github.astrapi69.file.read.ReadFileExtensions;
 import io.github.astrapi69.gson.JsonStringToObjectExtensions;
-import io.github.astrapi69.icon.ImageIconFactory;
 import io.github.astrapi69.model.BaseModel;
 import io.github.astrapi69.model.api.IModel;
 import io.github.astrapi69.mystic.crypt.panel.signin.MasterPwFileDialog;
@@ -56,11 +57,11 @@ import io.github.astrapi69.mystic.crypt.panel.signin.MasterPwFileModelBean;
 import io.github.astrapi69.mystic.crypt.panel.signin.MemoizedSigninModelBean;
 import io.github.astrapi69.mystic.crypt.panel.signin.NewMasterPwFileDialog;
 import io.github.astrapi69.swing.base.ApplicationFrame;
-import io.github.astrapi69.swing.button.IconButtonFactory;
 import io.github.astrapi69.swing.layout.ScreenSizeExtensions;
 import io.github.astrapi69.swing.splashscreen.ProgressBarSplashScreen;
 import io.github.astrapi69.swing.splashscreen.SplashScreenModelBean;
 import io.github.astrapi69.throwable.RuntimeExceptionDecorator;
+import org.jdesktop.swingx.JXButton;
 
 /**
  * The class {@link MysticCryptApplicationFrame}
@@ -70,11 +71,7 @@ public class MysticCryptApplicationFrame extends ApplicationFrame<ApplicationMod
 {
 	public static final String MEMOIZED_SIGNIN_JSON_FILENAME = "memoizedSignin.json";
 	public static final String APPLICATION_NAME = "mystic-crypt-ui";
-	/**
-	 * Constant for the default configuration directory from the current user. current
-	 * value:".config"
-	 */
-	public static final String DEFAULT_USER_CONFIGURATION_DIRECTORY_NAME = ".config";
+
 	/** The Constant serialVersionUID. */
 	private static final long serialVersionUID = 1L;
 	/**
@@ -113,15 +110,15 @@ public class MysticCryptApplicationFrame extends ApplicationFrame<ApplicationMod
 		{
 			ScreenSizeExtensions.showFrame(frame);
 		}
-		try
-		{
-			File runningJarFile = getRunningJarDirectory(MysticCryptApplicationFrame.class);
-			System.out.println(runningJarFile);
-		}
-		catch (URISyntaxException e)
-		{
-			e.printStackTrace();
-		}
+		// try
+		// {
+		// File runningJarFile = getRunningJarDirectory(MysticCryptApplicationFrame.class);
+		// System.out.println(runningJarFile);
+		// }
+		// catch (URISyntaxException e)
+		// {
+		// e.printStackTrace();
+		// }
 	}
 
 	public static File getRunningJarDirectory(Class<?> tClass) throws URISyntaxException
@@ -193,7 +190,7 @@ public class MysticCryptApplicationFrame extends ApplicationFrame<ApplicationMod
 		masterPwFileModelBean.merge(memoizedSigninModelBean);
 		IModel<MasterPwFileModelBean> model = BaseModel
 			.<MasterPwFileModelBean> of(masterPwFileModelBean);
-		MasterPwFileDialog dialog = new MasterPwFileDialog(this, "Enter your credentials", true,
+		MasterPwFileDialog dialog = new MasterPwFileDialog(null, "Enter your credentials", true,
 			model);
 		dialog.setSize(880, 380);
 		dialog.setVisible(true);
@@ -300,10 +297,7 @@ public class MysticCryptApplicationFrame extends ApplicationFrame<ApplicationMod
 	protected void onAfterInitialize()
 	{
 		super.onAfterInitialize();
-		// getConsoleOutput();
 		setTitle(Messages.getString("mainframe.title"));
-		// create internal frame
-		// openDatabaseTreeFrame();
 		this.setSize(ScreenSizeExtensions.getScreenWidth(), ScreenSizeExtensions.getScreenHeight());
 	}
 
@@ -313,12 +307,14 @@ public class MysticCryptApplicationFrame extends ApplicationFrame<ApplicationMod
 		JToolBar toolBar = super.newJToolBar();
 		toolBar.setSize(this.getWidth(), 25);
 
-		ImageIcon applicationAdd = ImageIconFactory
-			.newImageIcon("io/github/astrapi69/silk/icons/application_add.png");
-		JButton btnApplicationAdd = IconButtonFactory.newIconButton(applicationAdd,
-			"New application");
-		btnApplicationAdd.addActionListener(this::showNewMasterPw);
-		toolBar.add(btnApplicationAdd);
+		 ImageIcon applicationAdd = ImageIconFactory
+		 .newImageIcon("io/github/astrapi69/silk/icons/application_add.png");
+		 JButton btnApplicationAdd = IconButtonFactory.newIconButton(applicationAdd,
+		 "New application");
+		 btnApplicationAdd.addActionListener(this::showNewMasterPw);
+		 btnApplicationAdd.setName(MenuId.OPEN_DATABASE_TOOL_BAR.propertiesKey());
+		 toolBar.add(btnApplicationAdd);
+
 		//
 		// ImageIcon folderEdit = ImageIconFactory
 		// .newImageIcon("io/github/astrapi69/silk/icons/folder_edit.png");

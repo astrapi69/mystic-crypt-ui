@@ -32,6 +32,7 @@ import java.util.logging.Level;
 import javax.swing.*;
 import javax.swing.event.DocumentEvent;
 
+import io.github.astrapi69.swing.base.AbstractApplicationFrame;
 import lombok.Getter;
 import lombok.extern.java.Log;
 import io.github.astrapi69.browser.BrowserControlExtensions;
@@ -193,7 +194,7 @@ public class MasterPwWithApplicationFilePanel extends BasePanel<MasterPwFileMode
 		btnApplicationFileChooser.addActionListener(this::onApplicationFileChooser);
 
 		File configDir = PathFinder.getRelativePath(SystemFileExtensions.getUserHomeDir(),
-			MysticCryptApplicationFrame.DEFAULT_USER_CONFIGURATION_DIRECTORY_NAME,
+				AbstractApplicationFrame.DEFAULT_USER_CONFIGURATION_DIRECTORY_NAME,
 			MysticCryptApplicationFrame.APPLICATION_NAME);
 		fileChooser = new JFileChooser(configDir);
 		String selectedKeyFilePath = modelObject.getSelectedKeyFilePath();

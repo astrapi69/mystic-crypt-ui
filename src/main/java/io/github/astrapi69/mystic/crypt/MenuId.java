@@ -41,6 +41,11 @@ public enum MenuId {
     OPEN_PRIVATE_KEY(MenuId.OPEN_PRIVATE_KEY_KEY),
 
     /**
+     * The id for open the mystic crypt database toolbar menu
+     */
+    OPEN_DATABASE_TOOL_BAR(MenuId.OPEN_DATABASE_TOOL_BAR_KEY),
+
+    /**
      * The id for the obfuscation menu
      */
     OBFUSCATION(MenuId.OBFUSCATION_KEY),
@@ -94,6 +99,8 @@ public enum MenuId {
     public static final String TOGGLE_FULLSCREEN_KEY = "global.menu.file.toggle.fullscreen";
     public static final String CONSOLE_KEY = "global.menu.file.console";
     public static final String EXIT_KEY = "global.menu.file.exit";
+
+    public static final String OPEN_DATABASE_TOOL_BAR_KEY = "global.toolbar.menu.file.open.database";
 
     /** the properties key from the current menu */
     String propertiesKey;

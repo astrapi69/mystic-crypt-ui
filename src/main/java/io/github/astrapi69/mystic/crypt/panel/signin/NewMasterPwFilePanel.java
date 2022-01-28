@@ -37,6 +37,7 @@ import java.security.PrivateKey;
 import javax.swing.*;
 import javax.swing.event.DocumentEvent;
 
+import io.github.astrapi69.swing.base.AbstractApplicationFrame;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.experimental.FieldDefaults;
@@ -216,7 +217,7 @@ public class NewMasterPwFilePanel extends BasePanel<MasterPwFileModelBean>
 		btnKeyFileChooser.addActionListener(this::onKeyFileChooser);
 
 		File configDir = PathFinder.getRelativePath(SystemFileExtensions.getUserHomeDir(),
-			MysticCryptApplicationFrame.DEFAULT_USER_CONFIGURATION_DIRECTORY_NAME,
+				AbstractApplicationFrame.DEFAULT_USER_CONFIGURATION_DIRECTORY_NAME,
 			MysticCryptApplicationFrame.APPLICATION_NAME);
 		fileChooser = new JFileChooser(configDir);
 

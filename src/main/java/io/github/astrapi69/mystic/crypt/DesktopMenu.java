@@ -68,7 +68,7 @@ public class DesktopMenu extends BaseDesktopMenu
 	}
 
 	@Override
-	protected JMenu newEditMenu(final ActionListener listener)
+	protected JMenu newEditMenu()
 	{
 		// @formatter:on
 		final JMenu editMenu = JMenuItemInfo.builder()
@@ -196,7 +196,6 @@ public class DesktopMenu extends BaseDesktopMenu
 		return fileMenu;
 	}
 
-
 	@Override
 	protected String newLabelTextApplicationName()
 	{
@@ -238,22 +237,6 @@ public class DesktopMenu extends BaseDesktopMenu
 	{
 		return Messages.getString("InfoJPanel.warning");
 	}
-
-	protected ShowLicenseFrameAction newShowLicenseFrameAction(final String name,
-															   final @NonNull String title)
-	{
-		return new ShowLicenseFrameAction(name, title)
-		{
-			private static final long serialVersionUID = 1L;
-
-			@Override
-			protected String newLicenseText()
-			{
-				return onNewLicenseText();
-			}
-		};
-	}
-
 
 	protected InfoDialog onNewInfoDialog(Frame owner, String title)
 	{

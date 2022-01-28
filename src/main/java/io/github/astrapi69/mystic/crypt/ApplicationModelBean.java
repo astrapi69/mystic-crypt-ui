@@ -21,6 +21,8 @@
 package io.github.astrapi69.mystic.crypt;
 
 import java.io.Serializable;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -53,4 +55,6 @@ public class ApplicationModelBean implements Serializable
 	MasterPwFileModelBean masterPwFileModelBean;
 	TreeNode<JXTreeElement> rootTreeNode;
 	boolean showSplash;
+	@Builder.Default
+	Map<String, Boolean> menuState = new LinkedHashMap<>();
 }
