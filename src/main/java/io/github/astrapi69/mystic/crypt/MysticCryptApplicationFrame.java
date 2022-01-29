@@ -29,17 +29,21 @@ import java.awt.event.ActionEvent;
 import java.io.File;
 import java.net.URISyntaxException;
 import java.security.Security;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JFileChooser;
 import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
 import javax.swing.JToolBar;
+import javax.swing.MenuElement;
 import javax.swing.filechooser.FileFilter;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
-import io.github.astrapi69.icon.ImageIconFactory;
-import io.github.astrapi69.swing.button.IconButtonFactory;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NonNull;
@@ -50,6 +54,7 @@ import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import io.github.astrapi69.file.create.FileFactory;
 import io.github.astrapi69.file.read.ReadFileExtensions;
 import io.github.astrapi69.gson.JsonStringToObjectExtensions;
+import io.github.astrapi69.icon.ImageIconFactory;
 import io.github.astrapi69.model.BaseModel;
 import io.github.astrapi69.model.api.IModel;
 import io.github.astrapi69.mystic.crypt.panel.signin.MasterPwFileDialog;
@@ -57,11 +62,12 @@ import io.github.astrapi69.mystic.crypt.panel.signin.MasterPwFileModelBean;
 import io.github.astrapi69.mystic.crypt.panel.signin.MemoizedSigninModelBean;
 import io.github.astrapi69.mystic.crypt.panel.signin.NewMasterPwFileDialog;
 import io.github.astrapi69.swing.base.ApplicationFrame;
+import io.github.astrapi69.swing.button.IconButtonFactory;
 import io.github.astrapi69.swing.layout.ScreenSizeExtensions;
+import io.github.astrapi69.swing.menu.ParentMenuResolver;
 import io.github.astrapi69.swing.splashscreen.ProgressBarSplashScreen;
 import io.github.astrapi69.swing.splashscreen.SplashScreenModelBean;
 import io.github.astrapi69.throwable.RuntimeExceptionDecorator;
-import org.jdesktop.swingx.JXButton;
 
 /**
  * The class {@link MysticCryptApplicationFrame}
@@ -271,9 +277,8 @@ public class MysticCryptApplicationFrame extends ApplicationFrame<ApplicationMod
 	protected File newConfigurationDirectory(final @NonNull String parent,
 		final @NonNull String child)
 	{
-		String configurationDirectoryName = MysticCryptApplicationFrame.APPLICATION_NAME;
 		File applicationConfigurationDirectory = new File(
-			super.newConfigurationDirectory(parent, child), configurationDirectoryName);
+			super.newConfigurationDirectory(parent, child), MysticCryptApplicationFrame.APPLICATION_NAME);
 		if (!applicationConfigurationDirectory.exists())
 		{
 			applicationConfigurationDirectory.mkdir();
@@ -284,7 +289,17 @@ public class MysticCryptApplicationFrame extends ApplicationFrame<ApplicationMod
 	@Override
 	protected JMenu newDesktopMenu(@NonNull Component applicationFrame)
 	{
-		return new DesktopMenu(applicationFrame);
+		DesktopMenu desktopMenu = new DesktopMenu(applicationFrame);
+		JMenuBar menubar = desktopMenu.getMenubar();
+		Map<String, Boolean> enabledMenuIdsWithEmptyModel = desktopMenu.getEnabledMenuIdsWithEmptyModel();
+		List<MenuElement> allMenuElements = ParentMenuResolver.getAllMenuElements(menubar, true);
+		allMenuElements.forEach(menuElement -> {
+			String name = menuElement.getComponent().getName();
+			if(enabledMenuIdsWithEmptyModel.containsKey(name)){
+				menuElement.getComponent().setEnabled(enabledMenuIdsWithEmptyModel.get(name));
+			}
+		});
+		return desktopMenu;
 	}
 
 	@Override
@@ -307,13 +322,13 @@ public class MysticCryptApplicationFrame extends ApplicationFrame<ApplicationMod
 		JToolBar toolBar = super.newJToolBar();
 		toolBar.setSize(this.getWidth(), 25);
 
-		 ImageIcon applicationAdd = ImageIconFactory
-		 .newImageIcon("io/github/astrapi69/silk/icons/application_add.png");
-		 JButton btnApplicationAdd = IconButtonFactory.newIconButton(applicationAdd,
-		 "New application");
-		 btnApplicationAdd.addActionListener(this::showNewMasterPw);
-		 btnApplicationAdd.setName(MenuId.OPEN_DATABASE_TOOL_BAR.propertiesKey());
-		 toolBar.add(btnApplicationAdd);
+		ImageIcon applicationAdd = ImageIconFactory
+			.newImageIcon("io/github/astrapi69/silk/icons/application_add.png");
+		JButton btnApplicationAdd = IconButtonFactory.newIconButton(applicationAdd,
+			"New application");
+		btnApplicationAdd.addActionListener(this::showNewMasterPw);
+		btnApplicationAdd.setName(MenuId.OPEN_DATABASE_TOOL_BAR.propertiesKey());
+		toolBar.add(btnApplicationAdd);
 
 		//
 		// ImageIcon folderEdit = ImageIconFactory
