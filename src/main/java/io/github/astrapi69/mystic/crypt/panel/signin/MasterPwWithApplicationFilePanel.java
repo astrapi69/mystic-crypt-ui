@@ -29,12 +29,16 @@ import java.io.File;
 import java.net.URL;
 import java.util.logging.Level;
 
-import javax.swing.*;
+import javax.swing.JCheckBox;
+import javax.swing.JFileChooser;
+import javax.swing.JOptionPane;
 import javax.swing.event.DocumentEvent;
 
-import io.github.astrapi69.swing.base.AbstractApplicationFrame;
 import lombok.Getter;
 import lombok.extern.java.Log;
+
+import org.apache.commons.lang3.StringUtils;
+
 import io.github.astrapi69.browser.BrowserControlExtensions;
 import io.github.astrapi69.file.search.PathFinder;
 import io.github.astrapi69.file.system.SystemFileExtensions;
@@ -45,9 +49,10 @@ import io.github.astrapi69.model.api.IModel;
 import io.github.astrapi69.mystic.crypt.ApplicationModelBean;
 import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
 import io.github.astrapi69.net.url.URLExtensions;
-import io.github.astrapi69.swing.component.JMCheckBox;
+import io.github.astrapi69.swing.base.AbstractApplicationFrame;
 import io.github.astrapi69.swing.base.BasePanel;
 import io.github.astrapi69.swing.combobox.model.StringMutableComboBoxModel;
+import io.github.astrapi69.swing.component.JMCheckBox;
 import io.github.astrapi69.swing.dialog.help.HelpDialog;
 import io.github.astrapi69.swing.listener.document.DocumentListenerAdapter;
 import io.github.astrapi69.swing.panel.help.HelpModelBean;
@@ -89,7 +94,7 @@ public class MasterPwWithApplicationFilePanel extends BasePanel<MasterPwFileMode
 	public MasterPwWithApplicationFilePanel()
 	{
 		this(BaseModel
-			.<MasterPwFileModelBean> of(MasterPwFileModelBean.builder().minPasswordLength(6)
+			.of(MasterPwFileModelBean.builder().minPasswordLength(6)
 				.withKeyFile(false).withMasterPw(false).showMasterPw(false).build()));
 	}
 
@@ -272,7 +277,7 @@ public class MasterPwWithApplicationFilePanel extends BasePanel<MasterPwFileMode
 		Object item = cmbApplicationFile.getSelectedItem();
 		String selectedApplicationFilePath = (String)item;
 		getModelObject().setSelectedApplicationFilePath(selectedApplicationFilePath);
-		if (selectedApplicationFilePath != null && selectedApplicationFilePath.isEmpty())
+		if (StringUtils.isEmpty(selectedApplicationFilePath))
 		{
 			getModelObject().setApplicationFile(null);
 			btnOkStateMachine.onApplicationFileAdded(btnOkStateMachine);
@@ -305,7 +310,7 @@ public class MasterPwWithApplicationFilePanel extends BasePanel<MasterPwFileMode
 		Object item = cmbKeyFile.getSelectedItem();
 		String selectedKeyFilePath = (String)item;
 		getModelObject().setSelectedKeyFilePath(selectedKeyFilePath);
-		if (selectedKeyFilePath.isEmpty())
+		if (StringUtils.isEmpty(selectedKeyFilePath))
 		{
 			getModelObject().setKeyFile(null);
 			btnOkStateMachine.onSetKeyFile(btnOkStateMachine);
@@ -514,15 +519,21 @@ public class MasterPwWithApplicationFilePanel extends BasePanel<MasterPwFileMode
 		System.err.println("onOk method action called");
 		try
 		{
+			MysticCryptApplicationFrame applicationFrame = MysticCryptApplicationFrame
+				.getInstance();
 			MasterPwFileModelBean modelObject = getModelObject();
 			ApplicationModelBean applicationModelBean = ApplicationFileReader.read(modelObject);
-			MysticCryptApplicationFrame.getInstance().setModelObject(applicationModelBean);
+			if (applicationModelBean != null)
+			{
+				applicationModelBean.setSignedIn(true);
+			}
+			applicationFrame.setModelObject(applicationModelBean);
 			MasterPwFileModelBean masterPwFileModelBean = applicationModelBean
 				.getMasterPwFileModelBean();
 			MemoizedSigninModelBean memoizedSigninModelBean = masterPwFileModelBean
 				.toMemoizedSigninModelBean(modelObject);
 			File memoizedSigninFile = new File(
-				MysticCryptApplicationFrame.getInstance().getConfigurationDirectory(),
+				applicationFrame.getConfigurationDirectory(),
 				MysticCryptApplicationFrame.MEMOIZED_SIGNIN_JSON_FILENAME);
 			ObjectToJsonFileExtensions.toJsonFile(memoizedSigninModelBean, memoizedSigninFile);
 		}
@@ -539,9 +550,8 @@ public class MasterPwWithApplicationFilePanel extends BasePanel<MasterPwFileMode
 			}
 			else
 			{
-				String title = exceptionMessage;
 				String localizedMessage = exception.getLocalizedMessage();
-				JOptionPane.showMessageDialog(this, localizedMessage, title,
+				JOptionPane.showMessageDialog(this, localizedMessage, exceptionMessage,
 					JOptionPane.ERROR_MESSAGE);
 				log.log(Level.SEVERE, exception.getMessage(), exception);
 			}
@@ -551,6 +561,14 @@ public class MasterPwWithApplicationFilePanel extends BasePanel<MasterPwFileMode
 	protected void onCancel(ActionEvent actionEvent)
 	{
 		System.err.println("onCancel method action called");
+		MysticCryptApplicationFrame applicationFrame = MysticCryptApplicationFrame.getInstance();
+		MasterPwFileModelBean modelObject = getModelObject();
+		ApplicationModelBean applicationModelBean = ApplicationFileReader.read(modelObject);
+		if (applicationModelBean != null)
+		{
+			applicationModelBean.setSignedIn(false);
+		}
+		applicationFrame.setModelObject(applicationModelBean);
 	}
 
 	protected void onShowMasterPw(final ActionEvent actionEvent)

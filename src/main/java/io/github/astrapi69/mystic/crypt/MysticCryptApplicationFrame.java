@@ -31,14 +31,12 @@ import java.net.URISyntaxException;
 import java.security.Security;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JFileChooser;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
-import javax.swing.JMenuItem;
 import javax.swing.JToolBar;
 import javax.swing.MenuElement;
 import javax.swing.filechooser.FileFilter;
@@ -195,7 +193,7 @@ public class MysticCryptApplicationFrame extends ApplicationFrame<ApplicationMod
 			.build();
 		masterPwFileModelBean.merge(memoizedSigninModelBean);
 		IModel<MasterPwFileModelBean> model = BaseModel
-			.<MasterPwFileModelBean> of(masterPwFileModelBean);
+			.of(masterPwFileModelBean);
 		MasterPwFileDialog dialog = new MasterPwFileDialog(null, "Enter your credentials", true,
 			model);
 		dialog.setSize(880, 380);
@@ -228,19 +226,21 @@ public class MysticCryptApplicationFrame extends ApplicationFrame<ApplicationMod
 	protected String getApplicationName()
 	{
 		String applicationName = Messages.getString("mainframe.project.name");
-		if (applicationName == null)
+		if (applicationName != null)
 		{
-			applicationName = MysticCryptApplicationFrame.APPLICATION_NAME;
+			return applicationName;
 		}
-		return applicationName;
+		return MysticCryptApplicationFrame.APPLICATION_NAME;
 	}
 
 	protected String getIconPath()
 	{
 		String iconPath = Messages.getString("global.icon.app.path");
-		if (iconPath == null)
-			iconPath = "img/icon.png";
-		return iconPath;
+		if (iconPath != null)
+		{
+			return iconPath;
+		}
+		return "img/icon.png";
 	}
 
 	@Override
@@ -314,6 +314,18 @@ public class MysticCryptApplicationFrame extends ApplicationFrame<ApplicationMod
 		super.onAfterInitialize();
 		setTitle(Messages.getString("mainframe.title"));
 		this.setSize(ScreenSizeExtensions.getScreenWidth(), ScreenSizeExtensions.getScreenHeight());
+		JMenuBar menubar = getJMenuBar();
+		DesktopMenu menu = (DesktopMenu)getMenu();
+		Map<String, Boolean> enabledMenuIdsWithExistingModel = menu
+			.getEnabledMenuIdsWithExistingModel();
+		List<MenuElement> allMenuElements = ParentMenuResolver.getAllMenuElements(menubar, true);
+		allMenuElements.forEach(menuElement -> {
+			String name = menuElement.getComponent().getName();
+			if (enabledMenuIdsWithExistingModel.containsKey(name))
+			{
+				menuElement.getComponent().setEnabled(enabledMenuIdsWithExistingModel.get(name));
+			}
+		});
 	}
 
 	@Override
@@ -372,7 +384,7 @@ public class MysticCryptApplicationFrame extends ApplicationFrame<ApplicationMod
 					.decorate(() -> FileFactory.newFile(selectedApplicationFile));
 			}
 			String selectedApplicationFilePath = selectedApplicationFile.getAbsolutePath();
-			IModel<MasterPwFileModelBean> model = BaseModel.<MasterPwFileModelBean> of(
+			IModel<MasterPwFileModelBean> model = BaseModel.of(
 				MasterPwFileModelBean.builder().applicationFile(selectedApplicationFile)
 					.selectedApplicationFilePath(selectedApplicationFilePath).minPasswordLength(6)
 					.withKeyFile(false).withMasterPw(false).showMasterPw(false).build());

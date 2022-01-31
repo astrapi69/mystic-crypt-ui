@@ -159,6 +159,7 @@ dependencies {
     implementation("org.swinglabs.swingx:swingx-all:$swingxAllVersion")
     implementation("com.miglayout:miglayout-swing:$miglayoutSwingVersion")
     implementation("commons-codec:commons-codec:$commonsCodecVersion")
+    implementation("org.apache.commons:commons-lang3:$commonsLang3Version")
     implementation("com.fasterxml.jackson.core:jackson-databind:$jacksonVersion")
     implementation("com.thoughtworks.xstream:xstream:$xstreamVersion")
     implementation("org.bouncycastle:bcprov-jdk15on:$bouncycastleVersion")

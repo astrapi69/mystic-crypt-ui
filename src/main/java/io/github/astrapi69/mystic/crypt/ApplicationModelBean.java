@@ -55,6 +55,7 @@ public class ApplicationModelBean implements Serializable
 	MasterPwFileModelBean masterPwFileModelBean;
 	TreeNode<JXTreeElement> rootTreeNode;
 	boolean showSplash;
+	boolean signedIn;
 	@Builder.Default
 	Map<String, Boolean> menuState = new LinkedHashMap<>();
 }
