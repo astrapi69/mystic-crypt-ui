@@ -33,6 +33,7 @@ import javax.crypto.Cipher;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import io.github.astrapi69.checksum.FileChecksumExtensions;
@@ -87,12 +88,11 @@ public class ApplicationFileWithPasswordFactoryTest
 	void testNewApplicationFileWithPassword() throws Exception
 	{
 		// define parameter for the unit test
-		String actual;
-		String expected;
+		ApplicationModelBean actual;
+		ApplicationModelBean expected;
 		File actualEncryptedFile;
 		File expectedFile;
 		MasterPwFileModelBean modelObject;
-		ApplicationModelBean applicationModelBean;
 		// create test data
 		modelObject = MasterPwFileModelBean.builder().applicationFile(applicationFile)
 			.selectedApplicationFilePath(selectedApplicationFilePath)
@@ -108,12 +108,16 @@ public class ApplicationFileWithPasswordFactoryTest
 
 		expectedFile = PathFinder.getRelativePath(PathFinder.getSrcTestResourcesDir(),
 			"expected-empty-db" + ApplicationFileFactory.MCRDB_FILE_EXTENSION);
-		expected = FileChecksumExtensions.getChecksum(expectedFile, MdAlgorithm.MD5.name());
-		actual = FileChecksumExtensions.getChecksum(actualEncryptedFile, MdAlgorithm.MD5.name());
+		expected = ApplicationFileReader.getApplicationModelBean(expectedFile, password.toCharArray());
+
+		actual = ApplicationFileReader.readApplicationFileWithPassword(modelObject);
+		assertNotNull(actual);
 		assertEquals(expected, actual);
 
-		applicationModelBean = ApplicationFileReader.readApplicationFileWithPassword(modelObject);
-		assertNotNull(applicationModelBean);
+		actual = ApplicationFileReader.getApplicationModelBean(actualEncryptedFile, password.toCharArray());
+		assertNotNull(actual);
+		assertEquals(expected, actual);
+
 		// cleanup
 		DeleteFileExtensions.delete(decrypt);
 	}

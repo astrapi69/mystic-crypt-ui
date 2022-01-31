@@ -51,11 +51,11 @@ import io.github.astrapi69.gson.JsonFileToObjectExtensions;
 import io.github.astrapi69.gson.JsonStringToObjectExtensions;
 import io.github.astrapi69.mystic.crypt.ApplicationModelBean;
 import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
-import io.github.astrapi69.throwable.RuntimeExceptionDecorator;
 
 @Log
 public class ApplicationFileReader
 {
+
 	public static ApplicationModelBean read(@NonNull MasterPwFileModelBean modelObject)
 	{
 		if (modelObject.isWithMasterPw() && modelObject.isWithKeyFile())
@@ -76,31 +76,12 @@ public class ApplicationFileReader
 	public static ApplicationModelBean readApplicationFileWithPasswordAndPrivateKey(
 		MasterPwFileModelBean modelObject)
 	{
-		ApplicationModelBean applicationModelBean;
-
 		File applicationFile = modelObject.getApplicationFile();
 		char[] password = modelObject.getMasterPw();
 		File keyFile = modelObject.getKeyFile();
 		try
 		{
-			CryptModel<Cipher, PrivateKey, byte[]> decryptModel;
-			PrivateKeyDecryptor decryptor;
-			PrivateKeyGenericDecryptor<String> genericDecryptor;
-			PrivateKey privateKey;
-			PasswordStringDecryptor passwordStringDecryptor;
-			passwordStringDecryptor = new PasswordStringDecryptor(String.valueOf(password));
-			privateKey = PrivateKeyReader.readPemPrivateKey(keyFile);
-
-			decryptModel = CryptModel.<Cipher, PrivateKey, byte[]> builder().key(privateKey)
-				.build();
-			decryptor = new PrivateKeyDecryptor(decryptModel);
-			genericDecryptor = new PrivateKeyGenericDecryptor<>(decryptor);
-			byte[] encryptedBytes = ReadFileExtensions.readFileToBytearray(applicationFile);
-			String encryptedJson = genericDecryptor.decrypt(encryptedBytes);
-			String json = passwordStringDecryptor.decrypt(encryptedJson);
-			applicationModelBean = JsonStringToObjectExtensions.toObject(json,
-				ApplicationModelBean.class);
-
+			return getApplicationModelBean(applicationFile, password, keyFile);
 		}
 		catch (Exception exception)
 		{
@@ -110,7 +91,6 @@ public class ApplicationFileReader
 				+ "<p> Password or key file or both are not valid" + "<p>" + exception.getMessage();
 			throw new RuntimeException(title + "::" + htmlMessage, exception);
 		}
-		return applicationModelBean;
 	}
 
 	public static ApplicationModelBean readApplicationFileWithPrivateKey(
@@ -154,7 +134,72 @@ public class ApplicationFileReader
 		return applicationModelBean;
 	}
 
-	private static ApplicationModelBean getApplicationModelBean(File applicationFile,
+	public static ApplicationModelBean readApplicationFileWithPassword(
+		MasterPwFileModelBean modelObject)
+	{
+		File applicationFile = modelObject.getApplicationFile();
+		char[] password = modelObject.getMasterPw();
+		try
+		{
+			return getApplicationModelBean(applicationFile, password);
+		}
+		catch (Exception exception)
+		{
+			String title = "Authentication with Password";
+			String htmlMessage = "<html><body width='350'>" + "<h2>" + title + "</h2>"
+				+ "<p> Password is not valid" + "<p>" + exception.getMessage();
+			throw new RuntimeException(title + "::" + htmlMessage, exception);
+		}
+	}
+
+	public static ApplicationModelBean getApplicationModelBean(File applicationFile,
+		char[] password) throws Exception
+	{
+		ApplicationModelBean applicationModelBean;
+		CryptModel<Cipher, String, String> pbeCryptModel = CryptModelFactory
+			.newCryptModel(SunJCEAlgorithm.PBEWithMD5AndDES, new String(password));
+
+			PBEFileDecryptor fileDecryptor = new PBEFileDecryptor(pbeCryptModel);
+			File decrypt = fileDecryptor.decrypt(applicationFile);
+			applicationModelBean = JsonFileToObjectExtensions.toObject(decrypt,
+				ApplicationModelBean.class);
+			DeleteFileExtensions.delete(decrypt);
+
+		return applicationModelBean;
+	}
+
+	public static ApplicationModelBean getApplicationModelBean(File applicationFile,
+		char[] password, File keyFile) throws Exception
+	{
+		ApplicationModelBean applicationModelBean;
+		CryptModel<Cipher, PrivateKey, byte[]> decryptModel;
+		PrivateKeyDecryptor decryptor;
+		PrivateKeyGenericDecryptor<String> genericDecryptor;
+		PrivateKey privateKey;
+		PasswordStringDecryptor passwordStringDecryptor;
+		passwordStringDecryptor = new PasswordStringDecryptor(String.valueOf(password));
+		privateKey = PrivateKeyReader.readPemPrivateKey(keyFile);
+
+		decryptModel = CryptModel.<Cipher, PrivateKey, byte[]> builder().key(privateKey).build();
+		decryptor = new PrivateKeyDecryptor(decryptModel);
+		genericDecryptor = new PrivateKeyGenericDecryptor<>(decryptor);
+		byte[] encryptedBytes = ReadFileExtensions.readFileToBytearray(applicationFile);
+		String encryptedJson = genericDecryptor.decrypt(encryptedBytes);
+		String json = passwordStringDecryptor.decrypt(encryptedJson);
+		applicationModelBean = JsonStringToObjectExtensions.toObject(json,
+			ApplicationModelBean.class);
+
+		return applicationModelBean;
+	}
+
+	public static ApplicationModelBean getApplicationModelBean(File applicationFile, File keyFile)
+		throws Exception
+	{
+		return getApplicationModelBean(applicationFile,
+			PrivateKeyReader.readPemPrivateKey(keyFile));
+	}
+
+	public static ApplicationModelBean getApplicationModelBean(File applicationFile,
 		PrivateKey privateKey) throws Exception
 	{
 		CryptModel<Cipher, PrivateKey, byte[]> decryptModel;
@@ -168,32 +213,6 @@ public class ApplicationFileReader
 		String json = genericDecryptor.decrypt(encryptedBytes);
 		applicationModelBean = JsonStringToObjectExtensions.toObject(json,
 			ApplicationModelBean.class);
-		return applicationModelBean;
-	}
-
-	public static ApplicationModelBean readApplicationFileWithPassword(
-		MasterPwFileModelBean modelObject)
-	{
-		ApplicationModelBean applicationModelBean;
-		File applicationFile = modelObject.getApplicationFile();
-		char[] password = modelObject.getMasterPw();
-		CryptModel<Cipher, String, String> pbeCryptModel = CryptModelFactory
-			.newCryptModel(SunJCEAlgorithm.PBEWithMD5AndDES, new String(password));
-		try
-		{
-			PBEFileDecryptor fileDecryptor = new PBEFileDecryptor(pbeCryptModel);
-			File decrypt = fileDecryptor.decrypt(applicationFile);
-			applicationModelBean = JsonFileToObjectExtensions.toObject(decrypt,
-				ApplicationModelBean.class);
-			RuntimeExceptionDecorator.decorate(() -> DeleteFileExtensions.delete(decrypt));
-		}
-		catch (Exception exception)
-		{
-			String title = "Authentication with Password";
-			String htmlMessage = "<html><body width='350'>" + "<h2>" + title + "</h2>"
-				+ "<p> Password is not valid" + "<p>" + exception.getMessage();
-			throw new RuntimeException(title + "::" + htmlMessage, exception);
-		}
 		return applicationModelBean;
 	}
 }

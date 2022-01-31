@@ -65,19 +65,9 @@ public enum MenuId {
     CONVERT(MenuId.CONVERT_KEY),
 
     /**
-     * The id for the toggle to fullscreen menu
-     */
-    TOGGLE_FULLSCREEN(MenuId.TOGGLE_FULLSCREEN_KEY),
-
-    /**
      * The id for the exit application menu
      */
-    CONSOLE(MenuId.CONSOLE_KEY),
-
-    /**
-     * The id for the exit application menu
-     */
-    EXIT(MenuId.EXIT_KEY);
+    CONSOLE(MenuId.CONSOLE_KEY);
 
     public static final String VERIFY_CHECKSUM_KEY = "global.menu.edit.verify.checksum";
     public static final String OPEN_DATABASE_KEY = "global.menu.file.open.database";
@@ -114,9 +104,7 @@ public enum MenuId {
         menuIds.put(MenuId.SIMPLE_OBFUSCATION.propertiesKey(), true);
         menuIds.put(MenuId.OPERATED_OBFUSCATION.propertiesKey(), true);
         menuIds.put(MenuId.CONVERT.propertiesKey(), true);
-        menuIds.put(MenuId.TOGGLE_FULLSCREEN.propertiesKey(), true);
         menuIds.put(MenuId.CONSOLE.propertiesKey(), true);
-        menuIds.put(MenuId.EXIT.propertiesKey(), true);
         return menuIds;
     }
 }

@@ -101,7 +101,6 @@ public class DesktopMenu extends BaseDesktopMenu
 		final JMenu fileMenu = JMenuItemInfo.builder().text("File")
 			.mnemonic(MenuExtensions.toMnemonic('F')).name(BaseMenuId.FILE.propertiesKey()).build()
 			.toJMenu();
-		super.newFileMenu();
 
 		// Open Database
 		JMenuItem openDatabaseMenuItem = JMenuItemInfo.builder().text("Open Database")
@@ -175,7 +174,7 @@ public class DesktopMenu extends BaseDesktopMenu
 			.keyStroke(KeyStroke.getKeyStroke(KeyEvent.VK_F11, InputEvent.ALT_DOWN_MASK))
 			.actionListener(new ApplicationToggleFullScreenAction("Fullscreen",
 				MysticCryptApplicationFrame.getInstance()))
-			.name(MenuId.TOGGLE_FULLSCREEN.propertiesKey()).build().toJMenuItem();
+			.name(BaseMenuId.TOGGLE_FULLSCREEN.propertiesKey()).build().toJMenuItem();
 		fileMenu.add(toggleFullscreenMenuItem);
 
 		// Console
@@ -191,7 +190,7 @@ public class DesktopMenu extends BaseDesktopMenu
 			.mnemonic(MenuExtensions.toMnemonic('E'))
 			.keyStroke(KeyStroke.getKeyStroke(KeyEvent.VK_F4, InputEvent.ALT_DOWN_MASK))
 			.actionListener(new ExitApplicationAction("Exit"))
-				.name(MenuId.EXIT.propertiesKey())
+				.name(BaseMenuId.EXIT.propertiesKey())
 				.build().toJMenuItem();
 		fileMenu.add(exitMenuItem);
 		// @formatter:off
@@ -344,6 +343,8 @@ public class DesktopMenu extends BaseDesktopMenu
 		menuIds.put(BaseMenuId.LOOK_AND_FEEL_MOTIF.propertiesKey(), false);
 		menuIds.put(BaseMenuId.LOOK_AND_FEEL_NIMBUS.propertiesKey(), false);
 		menuIds.put(BaseMenuId.LOOK_AND_FEEL_SYSTEM.propertiesKey(), false);
+		menuIds.put(BaseMenuId.TOGGLE_FULLSCREEN.propertiesKey(), false);
+		menuIds.put(BaseMenuId.EXIT.propertiesKey(), true);
 		menuIds.put(MenuId.VERIFY_CHECKSUM.propertiesKey(), false);
 		menuIds.put(MenuId.OPEN_DATABASE.propertiesKey(), true);
 		menuIds.put(MenuId.OPEN_DATABASE_TOOL_BAR.propertiesKey(), true);
@@ -354,9 +355,7 @@ public class DesktopMenu extends BaseDesktopMenu
 		menuIds.put(MenuId.SIMPLE_OBFUSCATION.propertiesKey(), false);
 		menuIds.put(MenuId.OPERATED_OBFUSCATION.propertiesKey(), false);
 		menuIds.put(MenuId.CONVERT.propertiesKey(), false);
-		menuIds.put(MenuId.TOGGLE_FULLSCREEN.propertiesKey(), false);
 		menuIds.put(MenuId.CONSOLE.propertiesKey(), false);
-		menuIds.put(MenuId.EXIT.propertiesKey(), true);
 		return menuIds;
 	}
 
@@ -376,6 +375,8 @@ public class DesktopMenu extends BaseDesktopMenu
 		menuIds.put(BaseMenuId.LOOK_AND_FEEL_MOTIF.propertiesKey(), true);
 		menuIds.put(BaseMenuId.LOOK_AND_FEEL_NIMBUS.propertiesKey(), true);
 		menuIds.put(BaseMenuId.LOOK_AND_FEEL_SYSTEM.propertiesKey(), true);
+		menuIds.put(BaseMenuId.TOGGLE_FULLSCREEN.propertiesKey(), true);
+		menuIds.put(BaseMenuId.EXIT.propertiesKey(), true);
 		menuIds.put(MenuId.VERIFY_CHECKSUM.propertiesKey(), true);
 		menuIds.put(MenuId.OPEN_DATABASE.propertiesKey(), true);
 		menuIds.put(MenuId.OPEN_DATABASE_TOOL_BAR.propertiesKey(), true);
@@ -386,9 +387,7 @@ public class DesktopMenu extends BaseDesktopMenu
 		menuIds.put(MenuId.SIMPLE_OBFUSCATION.propertiesKey(), true);
 		menuIds.put(MenuId.OPERATED_OBFUSCATION.propertiesKey(), true);
 		menuIds.put(MenuId.CONVERT.propertiesKey(), true);
-		menuIds.put(MenuId.TOGGLE_FULLSCREEN.propertiesKey(), true);
 		menuIds.put(MenuId.CONSOLE.propertiesKey(), true);
-		menuIds.put(MenuId.EXIT.propertiesKey(), true);
 		return menuIds;
 	}
 }
