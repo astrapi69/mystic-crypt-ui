@@ -26,6 +26,7 @@ package io.github.astrapi69.mystic.crypt.panel.dbtree;
 
 import javax.swing.*;
 
+import io.github.astrapi69.swing.component.JMTextField;
 import lombok.Getter;
 import io.github.astrapi69.model.BaseModel;
 import io.github.astrapi69.model.api.IModel;
@@ -72,8 +73,8 @@ public class MysticCryptEntryPanel extends BasePanel<MysticCryptEntryModelBean>
 		lblRepeat = new JLabel();
 		lblUrl = new JLabel();
 		lblNotes = new JLabel();
-		txtEntryName = new JTextField();
-		txtUsername = new JTextField();
+		txtEntryName = new JMTextField();
+		txtUsername = new JMTextField();
 		txtPassword = new JPasswordField();
 		txtRepeat = new JPasswordField();
 		txtUrl = new JTextField();

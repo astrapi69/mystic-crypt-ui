@@ -27,10 +27,12 @@ package io.github.astrapi69.mystic.crypt;
 import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.io.File;
+import java.io.IOException;
 import java.net.URISyntaxException;
 import java.security.Security;
 import java.util.List;
 import java.util.Map;
+import java.util.jar.JarFile;
 
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
@@ -42,6 +44,11 @@ import javax.swing.MenuElement;
 import javax.swing.filechooser.FileFilter;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
+import io.github.astrapi69.checksum.FileChecksumExtensions;
+import io.github.astrapi69.checksum.ObjectChecksumExtensions;
+import io.github.astrapi69.crypto.algorithm.Algorithm;
+import io.github.astrapi69.io.file.FileExtension;
+import io.github.astrapi69.lang.ClassExtensions;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NonNull;
@@ -114,15 +121,22 @@ public class MysticCryptApplicationFrame extends ApplicationFrame<ApplicationMod
 		{
 			ScreenSizeExtensions.showFrame(frame);
 		}
-		// try
-		// {
-		// File runningJarFile = getRunningJarDirectory(MysticCryptApplicationFrame.class);
-		// System.out.println(runningJarFile);
-		// }
-		// catch (URISyntaxException e)
-		// {
-		// e.printStackTrace();
-		// }
+		 try
+		 {
+			 File runningJarFile = ClassExtensions.getRunningJarFile(MysticCryptApplicationFrame.class);
+
+			 if(FileExtension.is(runningJarFile, FileExtension.JAR)) {
+				 JarFile jarFile = new JarFile(runningJarFile);
+				 long checksum = FileChecksumExtensions.getChecksum(runningJarFile, true);
+				 // TODO get version and the corresponding checksum
+			 }
+		 }
+		 catch (URISyntaxException e)
+		 {
+		 e.printStackTrace();
+		 } catch (IOException e) {
+			 e.printStackTrace();
+		 }
 	}
 
 	public static File getRunningJarDirectory(Class<?> tClass) throws URISyntaxException

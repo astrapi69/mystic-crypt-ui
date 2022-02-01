@@ -526,21 +526,21 @@ public class MasterPwWithApplicationFilePanel extends BasePanel<MasterPwFileMode
 			if (applicationModelBean != null)
 			{
 				applicationModelBean.setSignedIn(true);
+				applicationFrame.setModelObject(applicationModelBean);
+				MasterPwFileModelBean masterPwFileModelBean = applicationModelBean
+						.getMasterPwFileModelBean();
+				MemoizedSigninModelBean memoizedSigninModelBean = masterPwFileModelBean
+						.toMemoizedSigninModelBean(modelObject);
+				File memoizedSigninFile = new File(
+						applicationFrame.getConfigurationDirectory(),
+						MysticCryptApplicationFrame.MEMOIZED_SIGNIN_JSON_FILENAME);
+				ObjectToJsonFileExtensions.toJsonFile(memoizedSigninModelBean, memoizedSigninFile);
 			}
-			applicationFrame.setModelObject(applicationModelBean);
-			MasterPwFileModelBean masterPwFileModelBean = applicationModelBean
-				.getMasterPwFileModelBean();
-			MemoizedSigninModelBean memoizedSigninModelBean = masterPwFileModelBean
-				.toMemoizedSigninModelBean(modelObject);
-			File memoizedSigninFile = new File(
-				applicationFrame.getConfigurationDirectory(),
-				MysticCryptApplicationFrame.MEMOIZED_SIGNIN_JSON_FILENAME);
-			ObjectToJsonFileExtensions.toJsonFile(memoizedSigninModelBean, memoizedSigninFile);
 		}
 		catch (Exception exception)
 		{
 			String exceptionMessage = exception.getMessage();
-			if (exceptionMessage.contains("::"))
+			if (StringUtils.isNotEmpty(exceptionMessage) && exceptionMessage.contains("::"))
 			{
 				String[] split = exceptionMessage.split("::");
 				String title = split[0];

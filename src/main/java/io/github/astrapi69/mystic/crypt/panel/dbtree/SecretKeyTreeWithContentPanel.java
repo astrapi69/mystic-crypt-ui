@@ -359,8 +359,29 @@ public class SecretKeyTreeWithContentPanel
 
 		popup.add(MenuFactory.newJMenuItem("add ...", actionEvent -> this.onAddTableEntry()));
 
+		JMenuItem menuItem = MenuFactory.newJMenuItem("delete",
+				actionEvent -> this.onDeleteTableEntry());
+		menuItem.setEnabled(!allSelectedRowData.isEmpty());
+		popup.add(menuItem);
+
+		JMenuItem edit = MenuFactory.newJMenuItem("edit", actionEvent -> this.onEditTableEntry());
+		edit.setEnabled(allSelectedRowData.size() == 1);
+		popup.add(edit);
+
 		popup.show(getTblTreeEntryTable(), x, y);
 
+	}
+
+	protected void onEditTableEntry()
+	{
+
+	}
+
+	protected void onDeleteTableEntry() {
+		getTblTreeEntryTable().getAllSelectedRowData().forEach(tableEntry -> {
+			getTblTreeEntryTable().getGenericTableModel().remove(tableEntry);
+		});
+		getTblTreeEntryTable().getGenericTableModel().fireTableDataChanged();
 	}
 
 	protected void onAddTableEntry()
@@ -376,7 +397,8 @@ public class SecretKeyTreeWithContentPanel
 		int option = JOptionPaneExtensions.getSelectedOption(pane);
 		if (option == JOptionPane.OK_OPTION)
 		{
-
+			MysticCryptEntryModelBean.builder()
+					.build();
 		}
 	}
 

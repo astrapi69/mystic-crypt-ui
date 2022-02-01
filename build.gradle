@@ -101,6 +101,29 @@ jar {
     }
 }
 
+//jar.doLast {
+//    def libFiles = files { file('build/libs').listFiles() }
+//    libFiles.each {
+//
+//        def signedDir = new File("$buildDir/sign")
+//        signedDir.mkdirs()
+//        def pkAlias = "mystic-crypt-pk-alias"
+//        def keystoreFileName = "mystic-crypt-ui.jks"
+//        def storepass = "secret-password-foobar-hack-me"
+//        def storetype = "jks"
+//
+//        ant.signjar(
+//                destDir: 'build/sign',
+//                jar: it,
+//                alias:"$pkAlias",
+//                storetype:"$storetype",
+//                keystore:"$keystoreFileName",
+//                storepass:"$storepass",
+//                keypass:"$storepass",
+//                preservelastmodified:"true")
+//    }
+//}
+
 license {
     ext.year="$projectInceptionYear"
     ext.owner="$projectLeaderName"
@@ -180,6 +203,7 @@ dependencies {
     implementation("io.github.astrapi69:throw-able:$throwAbleVersion")
     implementation("io.github.astrapi69:file-worker:$fileWorkerVersion")
     implementation("io.github.astrapi69:jobj-core:$jobjCoreVersion")
+    implementation("io.github.astrapi69:silly-io:$sillyIoVersion")
     implementation("io.github.astrapi69:swing-components:$swingComponentsVersion")
     implementation("io.github.astrapi69:swing-base-components:$swingBaseComponentsVersion")
     implementation("io.github.astrapi69:swing-tree-component:$swingTreeComponentVersion")
