@@ -20,8 +20,7 @@ class MasterPwFileDialogTest
 			.minPasswordLength(6).withKeyFile(false).withMasterPw(false).showMasterPw(false)
 			.build();
 		masterPwFileModelBean.merge(memoizedSigninModelBean);
-		IModel<MasterPwFileModelBean> model = BaseModel
-			.of(masterPwFileModelBean);
+		IModel<MasterPwFileModelBean> model = BaseModel.of(masterPwFileModelBean);
 		MasterPwFileDialog dialog = new MasterPwFileDialog(null, "Enter your credentials", true,
 			model);
 		dialog.setSize(880, 380);

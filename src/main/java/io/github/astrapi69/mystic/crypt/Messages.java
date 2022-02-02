@@ -60,6 +60,7 @@ public class Messages
 			return "!!!" + key + "!!! not found";
 		}
 	}
+
 	/**
 	 * Gets the string.
 	 *

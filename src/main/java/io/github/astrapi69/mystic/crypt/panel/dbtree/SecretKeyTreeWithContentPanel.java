@@ -92,8 +92,7 @@ public class SecretKeyTreeWithContentPanel
 	{
 		GenericTableModel<MysticCryptEntryModelBean> permissionsTableModel = new DynamicMysticCryptEntryTableModel(
 			new DynamicTableColumnsModel<>(MysticCryptEntryModelBean.class));
-		return new GenericJXTable<MysticCryptEntryModelBean>(
-			permissionsTableModel)
+		return new GenericJXTable<MysticCryptEntryModelBean>(permissionsTableModel)
 		{
 
 			protected void onSingleLeftClick(MouseEvent event)
@@ -175,7 +174,8 @@ public class SecretKeyTreeWithContentPanel
 		{
 			TreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>> selectedTreeNodeElement = optionalSelectedUserObject
 				.get();
-			GenericTableModel<MysticCryptEntryModelBean> tableModel = newTableModel(selectedTreeNodeElement);
+			GenericTableModel<MysticCryptEntryModelBean> tableModel = newTableModel(
+				selectedTreeNodeElement);
 			tableModel.fireTableDataChanged();
 		}
 	}

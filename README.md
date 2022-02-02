@@ -9,19 +9,19 @@ This swing application provides public and private key creation and obfuscate st
  * Creation of private and public keys with 1024, 2048 and 4096 bit length
  * Save the created private and public keys
  * Obfuscate text with specified map that can be exported and imported
- * Entries in the an existing obfuscation map can be edited, deleted and new entries can be added 
+ * Entries in the an existing obfuscation map can be edited, deleted and new entries can be added
 
 # Install
 
-Windows, Linux and Mac users can download and install it with 
-[izpack installer](https://sourceforge.net/projects/mysticcrypt/files/5.1/installer.jar/download). 
+Windows, Linux and Mac users can download and install it with
+[izpack installer](https://sourceforge.net/projects/mysticcrypt/files/5.1/installer.jar/download).
 Note: for unix users dont forget to set the execute bit for start the jar file.
 [![Download mystic-crypt](https://a.fsdn.com/con/app/sf-download-button)](https://sourceforge.net/projects/mysticcrypt/files/latest/download)
 [![Download mystic-crypt](https://img.shields.io/sourceforge/dm/mysticcrypt.svg)](https://sourceforge.net/projects/mysticcrypt/files/latest/download)
 
-# Build from source 
+# Build from source
 
-For users that want to build it from the source files can clone this git repository. It is a gradle project, so you will 
+For users that want to build it from the source files can clone this git repository. It is a gradle project, so you will
 need gradle and a JDK installation.
 
 Then compile the project:
@@ -33,7 +33,7 @@ Then compile the project:
 The jar file is now generated and is located in the path ```/build/libs/mystic-crypt-ui-current-version.jar``` and ready
 for execution.
 
-Note: 
+Note:
 Replace *current-version* with the current version of the project.
 
 # Installer tool
@@ -45,9 +45,9 @@ Here is the installer tool that is used for deploy the final application.
 # Create the izpack installer
 
 For create the installer with izpack you have to execute first the build and then izpack task in the build.gradle file. For intellij users
-i have created a run configuration for it. After the execution the installer is created in the path 
+i have created a run configuration for it. After the execution the installer is created in the path
 ```/build/distributions/mystic-crypt-ui-current-version-installer.jar```
-For detailed information see the izpack task in the build.gradle file or go direct to the 
+For detailed information see the izpack task in the build.gradle file or go direct to the
 [gradle plugin page](https://github.com/bmuschko/gradle-izpack-plugin)
 
 Note:
@@ -78,7 +78,7 @@ No animals were harmed in the making of this application.
 
 # Donate
 
-If you like this application, please consider a donation through 
+If you like this application, please consider a donation through
 <a href="https://flattr.com/submit/auto?fid=r7vp62&url=https%3A%2F%2Fgithub.com%2Flightblueseas%2Fmystic-crypt-ui" target="_blank">
 <img src="http://button.flattr.com/flattr-badge-large.png" alt="Flattr this" title="Flattr this" border="0">
 </a>

@@ -56,7 +56,7 @@ Version 5.2
 -------------
 
 ADDED:
- 
+
 - obfuscation entry can be edited now
 
 CHANGED:
@@ -67,8 +67,8 @@ Version 5.1
 -------------
 
 ADDED:
- 
-- new obfuscation internal frame created to obfuscate with upper- lowercase operation with indexes 
+
+- new obfuscation internal frame created to obfuscate with upper- lowercase operation with indexes
 
 CHANGED:
 

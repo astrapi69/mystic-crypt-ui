@@ -105,9 +105,8 @@ public class NewMasterPwFilePanel extends BasePanel<MasterPwFileModelBean>
 	 */
 	public NewMasterPwFilePanel()
 	{
-		this(BaseModel
-			.of(MasterPwFileModelBean.builder().minPasswordLength(6)
-				.withKeyFile(false).withMasterPw(false).showMasterPw(false).build()));
+		this(BaseModel.of(MasterPwFileModelBean.builder().minPasswordLength(6).withKeyFile(false)
+			.withMasterPw(false).showMasterPw(false).build()));
 	}
 
 	/**
