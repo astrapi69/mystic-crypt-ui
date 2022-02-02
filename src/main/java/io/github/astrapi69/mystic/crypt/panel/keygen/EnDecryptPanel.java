@@ -22,7 +22,12 @@ package io.github.astrapi69.mystic.crypt.panel.keygen;
 
 import java.awt.event.ActionEvent;
 
-import javax.swing.*;
+import javax.swing.GroupLayout;
+import javax.swing.JButton;
+import javax.swing.JLabel;
+import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
+import javax.swing.LayoutStyle;
 
 import lombok.Getter;
 import io.github.astrapi69.collections.pairs.Pair;

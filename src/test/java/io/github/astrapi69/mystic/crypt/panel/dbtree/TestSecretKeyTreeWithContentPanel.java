@@ -24,7 +24,7 @@
  */
 package io.github.astrapi69.mystic.crypt.panel.dbtree;
 
-import java.awt.*;
+import java.awt.Frame;
 import java.util.List;
 
 import io.github.astrapi69.collections.list.ListFactory;

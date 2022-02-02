@@ -20,7 +20,7 @@
  */
 package io.github.astrapi69.mystic.crypt.panel.keygen;
 
-import javax.swing.*;
+import javax.swing.JDialog;
 
 public class PasswordDialog extends JDialog
 {

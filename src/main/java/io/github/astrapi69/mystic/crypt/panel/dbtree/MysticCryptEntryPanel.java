@@ -24,16 +24,18 @@
  */
 package io.github.astrapi69.mystic.crypt.panel.dbtree;
 
-import javax.swing.*;
+import javax.swing.GroupLayout;
+import javax.swing.JLabel;
+import javax.swing.JScrollPane;
 
+import lombok.Getter;
+import io.github.astrapi69.model.BaseModel;
 import io.github.astrapi69.model.LambdaModel;
+import io.github.astrapi69.model.api.IModel;
+import io.github.astrapi69.swing.base.BasePanel;
 import io.github.astrapi69.swing.component.JMPasswordField;
 import io.github.astrapi69.swing.component.JMTextArea;
 import io.github.astrapi69.swing.component.JMTextField;
-import lombok.Getter;
-import io.github.astrapi69.model.BaseModel;
-import io.github.astrapi69.model.api.IModel;
-import io.github.astrapi69.swing.base.BasePanel;
 
 @Getter
 public class MysticCryptEntryPanel extends BasePanel<MysticCryptEntryModelBean>
@@ -86,8 +88,10 @@ public class MysticCryptEntryPanel extends BasePanel<MysticCryptEntryModelBean>
 		MysticCryptEntryModelBean modelObject = getModelObject();
 		// bind with model
 		txtEntryName.setPropertyModel(LambdaModel.of(modelObject::getTitle, modelObject::setTitle));
-		txtUsername.setPropertyModel(LambdaModel.of(modelObject::getUserName, modelObject::setUserName));
-		txtPassword.setPropertyModel(LambdaModel.of(modelObject::getPassword, modelObject::setPassword));
+		txtUsername
+			.setPropertyModel(LambdaModel.of(modelObject::getUserName, modelObject::setUserName));
+		txtPassword
+			.setPropertyModel(LambdaModel.of(modelObject::getPassword, modelObject::setPassword));
 		txtRepeat.setPropertyModel(LambdaModel.of(modelObject::getRepeat, modelObject::setRepeat));
 		txtUrl.setPropertyModel(LambdaModel.of(modelObject::getUrl, modelObject::setUrl));
 		txtNotes.setPropertyModel(LambdaModel.of(modelObject::getNotes, modelObject::setNotes));

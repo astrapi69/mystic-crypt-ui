@@ -22,7 +22,7 @@ package io.github.astrapi69.mystic.crypt.panel.obfuscate.character;
 
 import java.io.IOException;
 
-import javax.swing.*;
+import javax.swing.JFrame;
 
 import io.github.astrapi69.window.adapter.CloseWindow;
 

@@ -29,7 +29,9 @@
  */
 package io.github.astrapi69.mystic.crypt.panel.certificate;
 
-import javax.swing.*;
+import javax.swing.GroupLayout;
+import javax.swing.JLabel;
+import javax.swing.JTextField;
 
 import lombok.Getter;
 import io.github.astrapi69.model.BaseModel;

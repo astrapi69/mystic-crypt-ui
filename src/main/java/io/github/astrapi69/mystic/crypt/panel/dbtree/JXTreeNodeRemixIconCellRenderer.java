@@ -24,7 +24,8 @@
  */
 package io.github.astrapi69.mystic.crypt.panel.dbtree;
 
-import javax.swing.*;
+import javax.swing.Icon;
+import javax.swing.ImageIcon;
 
 import io.github.astrapi69.icon.ImageIconFactory;
 import io.github.astrapi69.swing.tree.renderer.GenericTreeNodeCellRenderer;

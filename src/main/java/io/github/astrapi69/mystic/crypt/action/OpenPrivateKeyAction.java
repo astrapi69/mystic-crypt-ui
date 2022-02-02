@@ -20,7 +20,7 @@
  */
 package io.github.astrapi69.mystic.crypt.action;
 
-import java.awt.*;
+import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.io.File;
 import java.io.IOException;
@@ -33,7 +33,12 @@ import java.security.spec.InvalidKeySpecException;
 import java.util.logging.Level;
 
 import javax.crypto.NoSuchPaddingException;
-import javax.swing.*;
+import javax.swing.JDialog;
+import javax.swing.JInternalFrame;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JPasswordField;
 
 import lombok.NonNull;
 import lombok.extern.java.Log;

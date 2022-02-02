@@ -22,7 +22,7 @@ package io.github.astrapi69.mystic.crypt.panel;
 
 import java.io.IOException;
 
-import javax.swing.*;
+import javax.swing.JFrame;
 
 import io.github.astrapi69.mystic.crypt.panel.keygen.CryptographyPanel;
 import io.github.astrapi69.window.adapter.CloseWindow;

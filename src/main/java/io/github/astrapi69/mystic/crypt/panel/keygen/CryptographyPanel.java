@@ -20,7 +20,9 @@
  */
 package io.github.astrapi69.mystic.crypt.panel.keygen;
 
-import java.awt.*;
+import java.awt.Font;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
 import java.awt.event.ActionEvent;
 import java.io.File;
 import java.math.BigInteger;
@@ -33,7 +35,14 @@ import java.time.ZoneId;
 import java.util.Date;
 import java.util.logging.Level;
 
-import javax.swing.*;
+import javax.swing.JButton;
+import javax.swing.JComboBox;
+import javax.swing.JDialog;
+import javax.swing.JFileChooser;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
 
 import lombok.Getter;
 import lombok.extern.java.Log;

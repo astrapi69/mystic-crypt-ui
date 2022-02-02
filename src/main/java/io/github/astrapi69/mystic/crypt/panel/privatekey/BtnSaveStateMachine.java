@@ -24,7 +24,7 @@
  */
 package io.github.astrapi69.mystic.crypt.panel.privatekey;
 
-import javax.swing.*;
+import javax.swing.JButton;
 
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;

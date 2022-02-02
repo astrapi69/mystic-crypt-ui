@@ -28,16 +28,20 @@ import java.awt.event.MouseEvent;
 import java.util.List;
 import java.util.Optional;
 
-import javax.swing.*;
+import javax.swing.JDialog;
+import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
+import javax.swing.JPopupMenu;
+import javax.swing.JScrollPane;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreeModel;
 
-import io.github.astrapi69.swing.dialog.DialogExtensions;
 import org.jdesktop.swingx.JXTree;
 
 import io.github.astrapi69.model.BaseModel;
 import io.github.astrapi69.model.api.IModel;
+import io.github.astrapi69.swing.dialog.DialogExtensions;
 import io.github.astrapi69.swing.dialog.JOptionPaneExtensions;
 import io.github.astrapi69.swing.listener.RequestFocusListener;
 import io.github.astrapi69.swing.menu.MenuFactory;
@@ -370,9 +374,9 @@ public class SecretKeyTreeWithContentPanel
 	protected void onDeleteTableEntry()
 	{
 		int option = DialogExtensions.showConfirmDialog(null, "Confirm deletion",
-				"<div width='450'>Are you sure<br></div>"
-						+ "<div>The delete action is not recoverable</div>",
-				JOptionPane.OK_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE, null);
+			"<div width='450'>Are you sure<br></div>"
+				+ "<div>The delete action is not recoverable</div>",
+			JOptionPane.OK_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE, null);
 		if (option == JOptionPane.OK_OPTION)
 		{
 			getTblTreeEntryTable().getAllSelectedRowData().forEach(tableEntry -> {
@@ -387,7 +391,7 @@ public class SecretKeyTreeWithContentPanel
 		getTblTreeEntryTable().getSingleSelectedRowData().ifPresent(tableEntry -> {
 			MysticCryptEntryPanel panel = new MysticCryptEntryPanel(BaseModel.of(tableEntry));
 			JOptionPane pane = new JOptionPane(panel, JOptionPane.INFORMATION_MESSAGE,
-					JOptionPane.OK_CANCEL_OPTION);
+				JOptionPane.OK_CANCEL_OPTION);
 			JDialog dialog = pane.createDialog(null, "Edit Crypt Entry");
 			dialog.addWindowFocusListener(new RequestFocusListener(panel.getTxtEntryName()));
 			dialog.pack();
@@ -397,7 +401,8 @@ public class SecretKeyTreeWithContentPanel
 
 			if (option == JOptionPane.OK_OPTION)
 			{
-				List<MysticCryptEntryModelBean> data = getTblTreeEntryTable().getGenericTableModel().getData();
+				List<MysticCryptEntryModelBean> data = getTblTreeEntryTable().getGenericTableModel()
+					.getData();
 				int index = data.indexOf(tableEntry);
 				data.remove(tableEntry);
 				MysticCryptEntryModelBean modelObject = panel.getModelObject();

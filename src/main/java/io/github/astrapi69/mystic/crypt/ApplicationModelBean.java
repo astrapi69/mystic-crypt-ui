@@ -25,8 +25,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import io.github.astrapi69.mystic.crypt.panel.dbtree.MysticCryptEntryModelBean;
-import io.github.astrapi69.swing.tree.GenericTreeElement;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -36,8 +34,9 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 import lombok.experimental.FieldDefaults;
+import io.github.astrapi69.mystic.crypt.panel.dbtree.MysticCryptEntryModelBean;
 import io.github.astrapi69.mystic.crypt.panel.signin.MasterPwFileModelBean;
-import io.github.astrapi69.swing.tree.JXTreeElement;
+import io.github.astrapi69.swing.tree.GenericTreeElement;
 import io.github.astrapi69.tree.TreeNode;
 
 /**

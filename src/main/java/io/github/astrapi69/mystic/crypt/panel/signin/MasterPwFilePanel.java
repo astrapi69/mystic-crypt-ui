@@ -27,7 +27,14 @@ package io.github.astrapi69.mystic.crypt.panel.signin;
 import java.awt.event.ActionEvent;
 import java.io.File;
 
-import javax.swing.*;
+import javax.swing.GroupLayout;
+import javax.swing.JButton;
+import javax.swing.JCheckBox;
+import javax.swing.JFileChooser;
+import javax.swing.JLabel;
+import javax.swing.JPasswordField;
+import javax.swing.JTextField;
+import javax.swing.LayoutStyle;
 import javax.swing.event.DocumentEvent;
 
 import lombok.Getter;

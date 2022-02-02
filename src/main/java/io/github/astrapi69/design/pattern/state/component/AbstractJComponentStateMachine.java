@@ -24,7 +24,7 @@
  */
 package io.github.astrapi69.design.pattern.state.component;
 
-import javax.swing.*;
+import javax.swing.JComponent;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;

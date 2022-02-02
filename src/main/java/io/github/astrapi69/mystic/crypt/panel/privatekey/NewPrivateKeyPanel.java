@@ -28,7 +28,7 @@
  */
 package io.github.astrapi69.mystic.crypt.panel.privatekey;
 
-import java.awt.*;
+import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.io.File;
 import java.io.IOException;
@@ -37,7 +37,10 @@ import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
 import java.util.logging.Level;
 
-import javax.swing.*;
+import javax.swing.JComboBox;
+import javax.swing.JDialog;
+import javax.swing.JFileChooser;
+import javax.swing.JOptionPane;
 import javax.swing.event.DocumentEvent;
 
 import lombok.Getter;
@@ -52,9 +55,9 @@ import io.github.astrapi69.model.BaseModel;
 import io.github.astrapi69.model.LambdaModel;
 import io.github.astrapi69.model.api.IModel;
 import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
-import io.github.astrapi69.swing.component.JMTextField;
 import io.github.astrapi69.swing.base.BasePanel;
 import io.github.astrapi69.swing.combobox.model.EnumComboBoxModel;
+import io.github.astrapi69.swing.component.JMTextField;
 import io.github.astrapi69.swing.dialog.DialogExtensions;
 import io.github.astrapi69.swing.listener.document.DocumentListenerAdapter;
 import io.github.astrapi69.swing.utils.AwtExtensions;

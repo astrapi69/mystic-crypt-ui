@@ -22,7 +22,8 @@ package io.github.astrapi69.mystic.crypt.action;
 
 import java.awt.event.ActionEvent;
 
-import javax.swing.*;
+import javax.swing.AbstractAction;
+import javax.swing.JInternalFrame;
 
 import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
 import io.github.astrapi69.mystic.crypt.panel.conversion.FileConversionPanel;

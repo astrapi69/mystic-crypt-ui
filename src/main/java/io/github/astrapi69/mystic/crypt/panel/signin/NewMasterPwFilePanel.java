@@ -34,13 +34,16 @@ import java.io.File;
 import java.net.URL;
 import java.security.PrivateKey;
 
-import javax.swing.*;
+import javax.swing.JCheckBox;
+import javax.swing.JFileChooser;
 import javax.swing.event.DocumentEvent;
 
-import io.github.astrapi69.swing.base.AbstractApplicationFrame;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.experimental.FieldDefaults;
+
+import org.apache.commons.lang3.StringUtils;
+
 import io.github.astrapi69.browser.BrowserControlExtensions;
 import io.github.astrapi69.file.create.FileCreationState;
 import io.github.astrapi69.file.create.FileFactory;
@@ -55,15 +58,15 @@ import io.github.astrapi69.mystic.crypt.panel.privatekey.NewPrivateKeyModelBean;
 import io.github.astrapi69.mystic.crypt.panel.pw.GeneratePasswordDialog;
 import io.github.astrapi69.mystic.crypt.panel.pw.GeneratePasswordModelBean;
 import io.github.astrapi69.net.url.URLExtensions;
-import io.github.astrapi69.swing.component.JMTextField;
+import io.github.astrapi69.swing.base.AbstractApplicationFrame;
 import io.github.astrapi69.swing.base.BasePanel;
 import io.github.astrapi69.swing.combobox.model.StringMutableComboBoxModel;
+import io.github.astrapi69.swing.component.JMTextField;
 import io.github.astrapi69.swing.dialog.help.HelpDialog;
 import io.github.astrapi69.swing.listener.document.DocumentListenerAdapter;
 import io.github.astrapi69.swing.panel.help.HelpModelBean;
 import io.github.astrapi69.swing.utils.ClipboardExtensions;
 import io.github.astrapi69.throwable.RuntimeExceptionDecorator;
-import org.apache.commons.lang3.StringUtils;
 
 /**
  *

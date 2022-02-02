@@ -20,9 +20,16 @@
  */
 package io.github.astrapi69.mystic.crypt.help;
 
-import java.awt.*;
+import java.awt.BorderLayout;
+import java.awt.Container;
+import java.awt.Frame;
+import java.awt.HeadlessException;
+import java.awt.Panel;
+import java.awt.Toolkit;
 
-import javax.swing.*;
+import javax.swing.JButton;
+import javax.swing.JDialog;
+import javax.swing.JLabel;
 
 import io.github.astrapi69.awt.action.DisposeWindowAction;
 import io.github.astrapi69.mystic.crypt.Messages;

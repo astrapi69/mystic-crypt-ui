@@ -20,9 +20,13 @@
  */
 package io.github.astrapi69.mystic.crypt.help;
 
-import java.awt.*;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Insets;
 
-import javax.swing.*;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JTextArea;
 
 import io.github.astrapi69.mystic.crypt.Messages;
 

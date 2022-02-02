@@ -24,7 +24,13 @@
  */
 package io.github.astrapi69.mystic.crypt.panel.certificate;
 
-import javax.swing.*;
+import javax.swing.DefaultComboBoxModel;
+import javax.swing.GroupLayout;
+import javax.swing.JComboBox;
+import javax.swing.JLabel;
+import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
+import javax.swing.JTextField;
 
 import lombok.Getter;
 import io.github.astrapi69.model.BaseModel;

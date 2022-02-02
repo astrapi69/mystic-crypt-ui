@@ -26,7 +26,7 @@ package io.github.astrapi69.mystic.crypt.panel.signin;
 
 import java.io.File;
 
-import javax.swing.*;
+import javax.swing.JButton;
 
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;

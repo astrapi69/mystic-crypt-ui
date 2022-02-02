@@ -26,7 +26,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Map.Entry;
 
-import javax.swing.*;
+import javax.swing.JOptionPane;
 
 import lombok.Getter;
 import net.miginfocom.swing.MigLayout;

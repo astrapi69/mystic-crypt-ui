@@ -31,12 +31,11 @@ import io.github.astrapi69.swing.table.model.thread.ThreadsTableModel;
 public class MysticCryptEntryTableModel extends BaseTableModel<MysticCryptEntryModelBean>
 {
 
-	public MysticCryptEntryTableModel() {
-		this(TableColumnsModel.builder()
-				.columnNames(new String[] { "Title", "Username", "Url" })
-				.canEdit(new boolean[] { false, false, false })
-				.columnClasses(new Class<?>[] { String.class, String.class, String.class})
-				.build());
+	public MysticCryptEntryTableModel()
+	{
+		this(TableColumnsModel.builder().columnNames(new String[] { "Title", "Username", "Url" })
+			.canEdit(new boolean[] { false, false, false })
+			.columnClasses(new Class<?>[] { String.class, String.class, String.class }).build());
 	}
 
 	/**
@@ -49,6 +48,7 @@ public class MysticCryptEntryTableModel extends BaseTableModel<MysticCryptEntryM
 	{
 		super(columnsModel);
 	}
+
 	/**
 	 * Returns the value for the cell at <code>columnIndex</code> and <code>rowIndex</code>.
 	 *
