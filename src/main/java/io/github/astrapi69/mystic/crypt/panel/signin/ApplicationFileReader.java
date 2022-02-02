@@ -159,11 +159,11 @@ public class ApplicationFileReader
 		CryptModel<Cipher, String, String> pbeCryptModel = CryptModelFactory
 			.newCryptModel(SunJCEAlgorithm.PBEWithMD5AndDES, new String(password));
 
-			PBEFileDecryptor fileDecryptor = new PBEFileDecryptor(pbeCryptModel);
-			File decrypt = fileDecryptor.decrypt(applicationFile);
-			applicationModelBean = JsonFileToObjectExtensions.toObject(decrypt,
-				ApplicationModelBean.class);
-			DeleteFileExtensions.delete(decrypt);
+		PBEFileDecryptor fileDecryptor = new PBEFileDecryptor(pbeCryptModel);
+		File decrypt = fileDecryptor.decrypt(applicationFile);
+		applicationModelBean = JsonFileToObjectExtensions.toObject(decrypt,
+			ApplicationModelBean.class);
+		DeleteFileExtensions.delete(decrypt);
 
 		return applicationModelBean;
 	}

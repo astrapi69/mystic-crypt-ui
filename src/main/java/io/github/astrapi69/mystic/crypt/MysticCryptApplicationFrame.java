@@ -121,9 +121,10 @@ public class MysticCryptApplicationFrame extends ApplicationFrame<ApplicationMod
 		{
 			ScreenSizeExtensions.showFrame(frame);
 		}
-		 try
-		 {
-			 File runningJarFile = ClassExtensions.getRunningJarFile(MysticCryptApplicationFrame.class);
+		try
+		{
+			File runningJarFile = ClassExtensions
+				.getRunningJarFile(MysticCryptApplicationFrame.class);
 
 			 if(FileExtension.is(runningJarFile, FileExtension.JAR)) {
 				 JarFile jarFile = new JarFile(runningJarFile);
@@ -206,8 +207,7 @@ public class MysticCryptApplicationFrame extends ApplicationFrame<ApplicationMod
 			.minPasswordLength(6).withKeyFile(false).withMasterPw(false).showMasterPw(false)
 			.build();
 		masterPwFileModelBean.merge(memoizedSigninModelBean);
-		IModel<MasterPwFileModelBean> model = BaseModel
-			.of(masterPwFileModelBean);
+		IModel<MasterPwFileModelBean> model = BaseModel.of(masterPwFileModelBean);
 		MasterPwFileDialog dialog = new MasterPwFileDialog(null, "Enter your credentials", true,
 			model);
 		dialog.setSize(880, 380);
@@ -239,22 +239,12 @@ public class MysticCryptApplicationFrame extends ApplicationFrame<ApplicationMod
 
 	protected String getApplicationName()
 	{
-		String applicationName = Messages.getString("mainframe.project.name");
-		if (applicationName != null)
-		{
-			return applicationName;
-		}
-		return MysticCryptApplicationFrame.APPLICATION_NAME;
+		return Messages.getString("mainframe.project.name", MysticCryptApplicationFrame.APPLICATION_NAME);
 	}
 
 	protected String getIconPath()
 	{
-		String iconPath = Messages.getString("global.icon.app.path");
-		if (iconPath != null)
-		{
-			return iconPath;
-		}
-		return "img/icon.png";
+		return Messages.getString("global.icon.app.path", "img/icon.png");
 	}
 
 	@Override
@@ -292,7 +282,8 @@ public class MysticCryptApplicationFrame extends ApplicationFrame<ApplicationMod
 		final @NonNull String child)
 	{
 		File applicationConfigurationDirectory = new File(
-			super.newConfigurationDirectory(parent, child), MysticCryptApplicationFrame.APPLICATION_NAME);
+			super.newConfigurationDirectory(parent, child),
+			MysticCryptApplicationFrame.APPLICATION_NAME);
 		if (!applicationConfigurationDirectory.exists())
 		{
 			applicationConfigurationDirectory.mkdir();
@@ -305,11 +296,13 @@ public class MysticCryptApplicationFrame extends ApplicationFrame<ApplicationMod
 	{
 		DesktopMenu desktopMenu = new DesktopMenu(applicationFrame);
 		JMenuBar menubar = desktopMenu.getMenubar();
-		Map<String, Boolean> enabledMenuIdsWithEmptyModel = desktopMenu.getEnabledMenuIdsWithEmptyModel();
+		Map<String, Boolean> enabledMenuIdsWithEmptyModel = desktopMenu
+			.getEnabledMenuIdsWithEmptyModel();
 		List<MenuElement> allMenuElements = ParentMenuResolver.getAllMenuElements(menubar, true);
 		allMenuElements.forEach(menuElement -> {
 			String name = menuElement.getComponent().getName();
-			if(enabledMenuIdsWithEmptyModel.containsKey(name)){
+			if (enabledMenuIdsWithEmptyModel.containsKey(name))
+			{
 				menuElement.getComponent().setEnabled(enabledMenuIdsWithEmptyModel.get(name));
 			}
 		});
@@ -398,8 +391,8 @@ public class MysticCryptApplicationFrame extends ApplicationFrame<ApplicationMod
 					.decorate(() -> FileFactory.newFile(selectedApplicationFile));
 			}
 			String selectedApplicationFilePath = selectedApplicationFile.getAbsolutePath();
-			IModel<MasterPwFileModelBean> model = BaseModel.of(
-				MasterPwFileModelBean.builder().applicationFile(selectedApplicationFile)
+			IModel<MasterPwFileModelBean> model = BaseModel
+				.of(MasterPwFileModelBean.builder().applicationFile(selectedApplicationFile)
 					.selectedApplicationFilePath(selectedApplicationFilePath).minPasswordLength(6)
 					.withKeyFile(false).withMasterPw(false).showMasterPw(false).build());
 			NewMasterPwFileDialog dialog = new NewMasterPwFileDialog(this, "Create your master key",

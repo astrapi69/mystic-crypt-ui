@@ -189,9 +189,8 @@ public class DesktopMenu extends BaseDesktopMenu
 		JMenuItem exitMenuItem = JMenuItemInfo.builder().text("Exit")
 			.mnemonic(MenuExtensions.toMnemonic('E'))
 			.keyStroke(KeyStroke.getKeyStroke(KeyEvent.VK_F4, InputEvent.ALT_DOWN_MASK))
-			.actionListener(new ExitApplicationAction("Exit"))
-				.name(BaseMenuId.EXIT.propertiesKey())
-				.build().toJMenuItem();
+			.actionListener(new ExitApplicationAction("Exit")).name(BaseMenuId.EXIT.propertiesKey())
+			.build().toJMenuItem();
 		fileMenu.add(exitMenuItem);
 		// @formatter:off
 		return fileMenu;

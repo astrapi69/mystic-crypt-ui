@@ -16,6 +16,8 @@ buildscript {
         classpath "gradle.plugin.com.hierynomus.gradle.plugins:license-gradle-plugin:$licenseGradlePluginVersion"
         classpath "net.ltgt.gradle:gradle-apt-plugin:$gradleAptPluginVersion"
         classpath "com.bmuschko:gradle-izpack-plugin:$gradleIzpackPluginVersion"
+        classpath "org.ajoberstar.grgit:grgit-gradle:$grgitGradlePluginVersion"
+        classpath "com.diffplug.spotless:spotless-plugin-gradle:$spotlessGradlePluginVersion"
     }
 }
 
@@ -31,6 +33,35 @@ apply plugin: "maven-publish"
 apply plugin: "signing"
 apply plugin: "com.github.ben-manes.versions"
 apply plugin: "com.github.hierynomus.license"
+apply plugin: "com.diffplug.spotless"
+
+spotless {
+
+    format "misc", {
+        // define the files to apply `misc` to
+        target "*.gradle", "*.md", ".gitignore"
+
+        // define the steps to apply to those files
+        trimTrailingWhitespace()
+        indentWithSpaces() // or spaces. Takes an integer argument if you don"t like 4
+        endWithNewline()
+    }
+    java {
+        eclipse("4.19.0").configFile("src/main/resources/format/alpharo-formatter.xml")
+    }
+}
+
+apply plugin: "org.ajoberstar.grgit"
+
+task tagRelease {
+    description = "Tags the current head with the project\'s version."
+    doLast {
+        grgit.tag.add {
+            name = "RELEASE-${project.version.toString()}"
+            message = "New release in version ${version}"
+        }
+    }
+}
 
 sourceCompatibility = "$projectSourceCompatibility" as Object
 
@@ -90,6 +121,7 @@ jar {
         attributes(
                 "Name"                  : project.name,
                 "Manifest-Version"      : project.version,
+                "Main-Class"            : "$mainClass",
                 "Implementation-Title"  : "$groupPackage" + "." + "$rootProject.name",
                 "Implementation-Version": project.version,
                 "Implementation-Vendor" : "$projectLeaderName",
@@ -101,28 +133,30 @@ jar {
     }
 }
 
-//jar.doLast {
-//    def libFiles = files { file('build/libs').listFiles() }
-//    libFiles.each {
-//
-//        def signedDir = new File("$buildDir/sign")
-//        signedDir.mkdirs()
-//        def pkAlias = "mystic-crypt-pk-alias"
-//        def keystoreFileName = "mystic-crypt-ui.jks"
-//        def storepass = "secret-password-foobar-hack-me"
-//        def storetype = "jks"
-//
-//        ant.signjar(
-//                destDir: 'build/sign',
-//                jar: it,
-//                alias:"$pkAlias",
-//                storetype:"$storetype",
-//                keystore:"$keystoreFileName",
-//                storepass:"$storepass",
-//                keypass:"$storepass",
-//                preservelastmodified:"true")
-//    }
-//}
+jar.doLast {
+    def pkAlias = System.getenv("$mysticCryptKeyAlias") ?: project.property("$mysticCryptKeyAlias")
+    def keystoreFileName = System.getenv("$mysticCryptStoreFile") ?: project.property("$mysticCryptStoreFile")
+    def storePassword = System.getenv("$mysticCryptStorePassword") ?: project.property("$mysticCryptStorePassword")
+    def keyPassword = System.getenv("$mysticCryptKeyPassword") ?: project.property("$mysticCryptKeyPassword")
+    def keystoreType = System.getenv("$mysticCryptStoreType") ?: project.property("$mysticCryptStoreType")
+    def libsFilePath = "$buildDir/libs"
+    def libFiles = files { file(libsFilePath).listFiles() }
+    def destDir = "$buildDir/signed"
+    def signedDir = new File(destDir)
+    signedDir.mkdirs()
+    libFiles.each {
+        ant.signjar(
+                jar: it,
+                destDir: "$destDir",
+                alias:"$pkAlias",
+                storetype:"$keystoreType",
+                keystore:"$keystoreFileName",
+                storepass:"$storePassword",
+                keypass:"$keyPassword",
+                preservelastmodified:"true"
+        )
+    }
+}
 
 license {
     ext.year="$projectInceptionYear"

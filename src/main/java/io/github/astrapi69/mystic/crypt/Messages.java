@@ -60,5 +60,24 @@ public class Messages
 			return "!!!" + key + "!!! not found";
 		}
 	}
+	/**
+	 * Gets the string.
+	 *
+	 * @param key
+	 *            the key
+	 * @return the string
+	 */
+	public static String getString(final String key, final String defaultValue)
+	{
+		try
+		{
+			return RESOURCE_BUNDLE.getString(key);
+		}
+		catch (final MissingResourceException e)
+		{
+			log.log(Level.SEVERE, e.getLocalizedMessage(), e);
+			return defaultValue;
+		}
+	}
 
 }

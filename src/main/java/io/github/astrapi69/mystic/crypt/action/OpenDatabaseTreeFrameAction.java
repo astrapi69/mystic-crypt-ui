@@ -64,8 +64,7 @@ public class OpenDatabaseTreeFrameAction extends AbstractAction
 		final JInternalFrame internalFrame = JComponentFactory.newInternalFrame("Key database",
 			true, true, true, true);
 		TreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>> rootTreeNode = MysticCryptApplicationFrame
-			.getInstance()
-			.getModelObject().getRootTreeNode();
+			.getInstance().getModelObject().getRootTreeNode();
 		if (rootTreeNode == null)
 		{
 			GenericTreeElement<List<MysticCryptEntryModelBean>> parent = GenericTreeElement

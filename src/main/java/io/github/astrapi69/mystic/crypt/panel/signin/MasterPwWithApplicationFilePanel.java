@@ -93,9 +93,8 @@ public class MasterPwWithApplicationFilePanel extends BasePanel<MasterPwFileMode
 	 */
 	public MasterPwWithApplicationFilePanel()
 	{
-		this(BaseModel
-			.of(MasterPwFileModelBean.builder().minPasswordLength(6)
-				.withKeyFile(false).withMasterPw(false).showMasterPw(false).build()));
+		this(BaseModel.of(MasterPwFileModelBean.builder().minPasswordLength(6).withKeyFile(false)
+			.withMasterPw(false).showMasterPw(false).build()));
 	}
 
 	/**
@@ -199,7 +198,7 @@ public class MasterPwWithApplicationFilePanel extends BasePanel<MasterPwFileMode
 		btnApplicationFileChooser.addActionListener(this::onApplicationFileChooser);
 
 		File configDir = PathFinder.getRelativePath(SystemFileExtensions.getUserHomeDir(),
-				AbstractApplicationFrame.DEFAULT_USER_CONFIGURATION_DIRECTORY_NAME,
+			AbstractApplicationFrame.DEFAULT_USER_CONFIGURATION_DIRECTORY_NAME,
 			MysticCryptApplicationFrame.APPLICATION_NAME);
 		fileChooser = new JFileChooser(configDir);
 		String selectedKeyFilePath = modelObject.getSelectedKeyFilePath();
@@ -528,12 +527,11 @@ public class MasterPwWithApplicationFilePanel extends BasePanel<MasterPwFileMode
 				applicationModelBean.setSignedIn(true);
 				applicationFrame.setModelObject(applicationModelBean);
 				MasterPwFileModelBean masterPwFileModelBean = applicationModelBean
-						.getMasterPwFileModelBean();
+					.getMasterPwFileModelBean();
 				MemoizedSigninModelBean memoizedSigninModelBean = masterPwFileModelBean
-						.toMemoizedSigninModelBean(modelObject);
-				File memoizedSigninFile = new File(
-						applicationFrame.getConfigurationDirectory(),
-						MysticCryptApplicationFrame.MEMOIZED_SIGNIN_JSON_FILENAME);
+					.toMemoizedSigninModelBean(modelObject);
+				File memoizedSigninFile = new File(applicationFrame.getConfigurationDirectory(),
+					MysticCryptApplicationFrame.MEMOIZED_SIGNIN_JSON_FILENAME);
 				ObjectToJsonFileExtensions.toJsonFile(memoizedSigninModelBean, memoizedSigninFile);
 			}
 		}

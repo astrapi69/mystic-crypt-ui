@@ -92,7 +92,7 @@ public class SecretKeyTreeWithContentPanel
 	{
 		GenericTableModel<MysticCryptEntryModelBean> permissionsTableModel = new DynamicMysticCryptEntryTableModel(
 			new DynamicTableColumnsModel<>(MysticCryptEntryModelBean.class));
-		GenericJXTable<MysticCryptEntryModelBean> table = new GenericJXTable<MysticCryptEntryModelBean>(
+		return new GenericJXTable<MysticCryptEntryModelBean>(
 			permissionsTableModel)
 		{
 
@@ -127,7 +127,6 @@ public class SecretKeyTreeWithContentPanel
 				SecretKeyTreeWithContentPanel.this.onTableDoubleRightClick(event);
 			}
 		};
-		return table;
 	}
 
 	@Override
@@ -176,7 +175,7 @@ public class SecretKeyTreeWithContentPanel
 		{
 			TreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>> selectedTreeNodeElement = optionalSelectedUserObject
 				.get();
-			GenericTableModel tableModel = newTableModel(selectedTreeNodeElement);
+			GenericTableModel<MysticCryptEntryModelBean> tableModel = newTableModel(selectedTreeNodeElement);
 			tableModel.fireTableDataChanged();
 		}
 	}
@@ -189,9 +188,6 @@ public class SecretKeyTreeWithContentPanel
 		Optional<TreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>>> optionalSelectedUserObject = JTreeExtensions
 			.getSelectedUserObject(mouseEvent, tree);
 		optionalSelectedUserObject.ifPresent(selectedTreeNodeElement -> {
-			DefaultMutableTreeNode selectedTreeNode = JTreeExtensions
-				.getSelectedDefaultMutableTreeNode(mouseEvent, tree).get();
-
 			JPopupMenu popup = MenuFactory.newJPopupMenu();
 			if (selectedTreeNodeElement.isNode())
 			{
@@ -360,7 +356,7 @@ public class SecretKeyTreeWithContentPanel
 		popup.add(MenuFactory.newJMenuItem("add ...", actionEvent -> this.onAddTableEntry()));
 
 		JMenuItem menuItem = MenuFactory.newJMenuItem("delete",
-				actionEvent -> this.onDeleteTableEntry());
+			actionEvent -> this.onDeleteTableEntry());
 		menuItem.setEnabled(!allSelectedRowData.isEmpty());
 		popup.add(menuItem);
 
@@ -377,7 +373,8 @@ public class SecretKeyTreeWithContentPanel
 
 	}
 
-	protected void onDeleteTableEntry() {
+	protected void onDeleteTableEntry()
+	{
 		getTblTreeEntryTable().getAllSelectedRowData().forEach(tableEntry -> {
 			getTblTreeEntryTable().getGenericTableModel().remove(tableEntry);
 		});
@@ -397,8 +394,7 @@ public class SecretKeyTreeWithContentPanel
 		int option = JOptionPaneExtensions.getSelectedOption(pane);
 		if (option == JOptionPane.OK_OPTION)
 		{
-			MysticCryptEntryModelBean.builder()
-					.build();
+			MysticCryptEntryModelBean.builder().build();
 		}
 	}
 

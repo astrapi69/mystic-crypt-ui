@@ -57,15 +57,16 @@ public class OpenConsoleFrameAction extends AbstractAction
 	public void actionPerformed(final ActionEvent e)
 	{
 		// create internal frame
-			final JInternalFrame consoleInternalFrame =
-					JComponentFactory.newInternalFrame("Console", true, true, true,
-					true);
-			ConsolePanel consolePanel = new ConsolePanel();
-			int screenHeight = ScreenSizeExtensions.getScreenHeight(MysticCryptApplicationFrame.getInstance());
-			int screenWidth = ScreenSizeExtensions.getScreenWidth(MysticCryptApplicationFrame.getInstance());
-			JInternalFrameExtensions.addComponentToFrame(consoleInternalFrame, consolePanel);
-			JInternalFrameExtensions.addJInternalFrame(
-					MysticCryptApplicationFrame.getInstance().getMainComponent(), consoleInternalFrame);
+		final JInternalFrame consoleInternalFrame = JComponentFactory.newInternalFrame("Console",
+			true, true, true, true);
+		ConsolePanel consolePanel = new ConsolePanel();
+		int screenHeight = ScreenSizeExtensions
+			.getScreenHeight(MysticCryptApplicationFrame.getInstance());
+		int screenWidth = ScreenSizeExtensions
+			.getScreenWidth(MysticCryptApplicationFrame.getInstance());
+		JInternalFrameExtensions.addComponentToFrame(consoleInternalFrame, consolePanel);
+		JInternalFrameExtensions.addJInternalFrame(
+			MysticCryptApplicationFrame.getInstance().getMainComponent(), consoleInternalFrame);
 		consoleInternalFrame.setSize(screenWidth, (screenHeight / 4));
 		consoleInternalFrame.setLocation(0, (screenHeight / 4) * 3);
 		consoleInternalFrame.setResizable(false);

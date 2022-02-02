@@ -63,6 +63,7 @@ import io.github.astrapi69.swing.listener.document.DocumentListenerAdapter;
 import io.github.astrapi69.swing.panel.help.HelpModelBean;
 import io.github.astrapi69.swing.utils.ClipboardExtensions;
 import io.github.astrapi69.throwable.RuntimeExceptionDecorator;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  *
@@ -105,7 +106,7 @@ public class NewMasterPwFilePanel extends BasePanel<MasterPwFileModelBean>
 	public NewMasterPwFilePanel()
 	{
 		this(BaseModel
-			.<MasterPwFileModelBean> of(MasterPwFileModelBean.builder().minPasswordLength(6)
+			.of(MasterPwFileModelBean.builder().minPasswordLength(6)
 				.withKeyFile(false).withMasterPw(false).showMasterPw(false).build()));
 	}
 
@@ -217,7 +218,7 @@ public class NewMasterPwFilePanel extends BasePanel<MasterPwFileModelBean>
 		btnKeyFileChooser.addActionListener(this::onKeyFileChooser);
 
 		File configDir = PathFinder.getRelativePath(SystemFileExtensions.getUserHomeDir(),
-				AbstractApplicationFrame.DEFAULT_USER_CONFIGURATION_DIRECTORY_NAME,
+			AbstractApplicationFrame.DEFAULT_USER_CONFIGURATION_DIRECTORY_NAME,
 			MysticCryptApplicationFrame.APPLICATION_NAME);
 		fileChooser = new JFileChooser(configDir);
 
@@ -323,7 +324,7 @@ public class NewMasterPwFilePanel extends BasePanel<MasterPwFileModelBean>
 		Object item = cmbKeyFile.getSelectedItem();
 		String selectedKeyFilePath = (String)item;
 		getModelObject().setSelectedKeyFilePath(selectedKeyFilePath);
-		if (selectedKeyFilePath != null && selectedKeyFilePath.isEmpty())
+		if (StringUtils.isEmpty(selectedKeyFilePath))
 		{
 			getModelObject().setKeyFile(null);
 			btnOkStateMachine.onSetKeyFile(btnOkStateMachine);
@@ -331,13 +332,12 @@ public class NewMasterPwFilePanel extends BasePanel<MasterPwFileModelBean>
 		else
 		{
 			File selectedKeyFile = new File(selectedKeyFilePath);
-			if (selectedKeyFile != null && selectedKeyFile.exists())
+			if (selectedKeyFile.exists())
 			{
 				getModelObject().setKeyFile(selectedKeyFile);
 				btnOkStateMachine.onSetKeyFile(btnOkStateMachine);
 			}
-			else if (selectedKeyFile == null
-				|| selectedKeyFile != null && !selectedKeyFile.exists())
+			if (!selectedKeyFile.exists())
 			{
 				getModelObject().setKeyFile(null);
 				cmbKeyFileModel.removeElement(selectedKeyFilePath);

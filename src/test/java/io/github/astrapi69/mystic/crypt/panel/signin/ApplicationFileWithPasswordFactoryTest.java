@@ -108,13 +108,15 @@ public class ApplicationFileWithPasswordFactoryTest
 
 		expectedFile = PathFinder.getRelativePath(PathFinder.getSrcTestResourcesDir(),
 			"expected-empty-db" + ApplicationFileFactory.MCRDB_FILE_EXTENSION);
-		expected = ApplicationFileReader.getApplicationModelBean(expectedFile, password.toCharArray());
+		expected = ApplicationFileReader.getApplicationModelBean(expectedFile,
+			password.toCharArray());
 
 		actual = ApplicationFileReader.readApplicationFileWithPassword(modelObject);
 		assertNotNull(actual);
 		assertEquals(expected, actual);
 
-		actual = ApplicationFileReader.getApplicationModelBean(actualEncryptedFile, password.toCharArray());
+		actual = ApplicationFileReader.getApplicationModelBean(actualEncryptedFile,
+			password.toCharArray());
 		assertNotNull(actual);
 		assertEquals(expected, actual);
 
