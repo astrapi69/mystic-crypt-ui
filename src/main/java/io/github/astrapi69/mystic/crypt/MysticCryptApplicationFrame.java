@@ -27,28 +27,15 @@ package io.github.astrapi69.mystic.crypt;
 import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.io.File;
-import java.io.IOException;
-import java.net.URISyntaxException;
 import java.security.Security;
-import java.util.List;
-import java.util.Map;
-import java.util.jar.JarFile;
 
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JFileChooser;
 import javax.swing.JMenu;
-import javax.swing.JMenuBar;
 import javax.swing.JToolBar;
-import javax.swing.MenuElement;
-import javax.swing.filechooser.FileFilter;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
-import io.github.astrapi69.checksum.FileChecksumExtensions;
-import io.github.astrapi69.checksum.ObjectChecksumExtensions;
-import io.github.astrapi69.crypto.algorithm.Algorithm;
-import io.github.astrapi69.io.file.FileExtension;
-import io.github.astrapi69.lang.ClassExtensions;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NonNull;
@@ -68,8 +55,8 @@ import io.github.astrapi69.mystic.crypt.panel.signin.MemoizedSigninModelBean;
 import io.github.astrapi69.mystic.crypt.panel.signin.NewMasterPwFileDialog;
 import io.github.astrapi69.swing.base.ApplicationFrame;
 import io.github.astrapi69.swing.button.IconButtonFactory;
+import io.github.astrapi69.swing.filechooser.JFileChooserExtensions;
 import io.github.astrapi69.swing.layout.ScreenSizeExtensions;
-import io.github.astrapi69.swing.menu.ParentMenuResolver;
 import io.github.astrapi69.swing.splashscreen.ProgressBarSplashScreen;
 import io.github.astrapi69.swing.splashscreen.SplashScreenModelBean;
 import io.github.astrapi69.throwable.RuntimeExceptionDecorator;
@@ -89,8 +76,12 @@ public class MysticCryptApplicationFrame extends ApplicationFrame<ApplicationMod
 	 * The instance.
 	 */
 	private static MysticCryptApplicationFrame instance;
+
+	/**
+	 * The {@link BouncyCastleProvider} object
+	 */
 	@Getter
-	private BouncyCastleProvider bouncyCastleProvider;
+	BouncyCastleProvider bouncyCastleProvider;
 
 	/**
 	 * initial block
@@ -123,11 +114,6 @@ public class MysticCryptApplicationFrame extends ApplicationFrame<ApplicationMod
 		}
 	}
 
-	public static File getRunningJarDirectory(Class<?> tClass) throws URISyntaxException
-	{
-		return new File(tClass.getProtectionDomain().getCodeSource().getLocation().toURI());
-	}
-
 	/**
 	 * Gets the single instance of SpringBootSwingApplication.
 	 *
@@ -138,38 +124,7 @@ public class MysticCryptApplicationFrame extends ApplicationFrame<ApplicationMod
 		return instance;
 	}
 
-	/**
-	 * Returns the selected file from the given {@link JFileChooser}, that ends with the first
-	 * extension of the {@link FileNameExtensionFilter} from the {@link JFileChooser}
-	 *
-	 * @param fileChooser
-	 *            the file chooser
-	 *
-	 * @return the file with the first extension of the {@link FileNameExtensionFilter} from the
-	 *         {@link JFileChooser}
-	 */
-	public static File getSelectedFileWithFirstExtension(JFileChooser fileChooser)
-	{
-		File file = fileChooser.getSelectedFile();
-		FileFilter fileFilter = fileChooser.getFileFilter();
-		if (fileFilter instanceof FileNameExtensionFilter)
-		{
-			FileNameExtensionFilter fileNameExtensionFilter = (FileNameExtensionFilter)fileFilter;
-			String[] extensions = fileNameExtensionFilter.getExtensions();
-			String fileNameToLowerCase = file.getName().toLowerCase();
-			for (String extension : extensions)
-			{
-				if (fileNameToLowerCase.endsWith('.' + extension.toLowerCase()))
-				{
-					return file;
-				}
-			}
-			file = new File(file.getAbsolutePath() + '.' + extensions[0]);
-		}
-		return file;
-	}
-
-	private void showMasterPwDialog()
+	protected void showMasterPwDialog()
 	{
 		File configurationDirectory = getConfigurationDirectory();
 		File memoizedSigninFile = new File(configurationDirectory, MEMOIZED_SIGNIN_JSON_FILENAME);
@@ -239,6 +194,15 @@ public class MysticCryptApplicationFrame extends ApplicationFrame<ApplicationMod
 			instance = this;
 		}
 		// add once the default provider to the Security class
+		setSecurityProvider();
+		// initialize model and model object
+		setModel(BaseModel.of(ApplicationModelBean.builder().build()));
+		super.onBeforeInitialize();
+	}
+
+	private void setSecurityProvider()
+	{
+		// add once the default provider to the Security class
 		if (Security.getProvider(BouncyCastleProvider.PROVIDER_NAME) == null)
 		{
 			if (getBouncyCastleProvider() == null)
@@ -247,9 +211,6 @@ public class MysticCryptApplicationFrame extends ApplicationFrame<ApplicationMod
 			}
 			Security.addProvider(bouncyCastleProvider);
 		}
-		// initialize model and model object
-		setModel(BaseModel.of(ApplicationModelBean.builder().build()));
-		super.onBeforeInitialize();
 	}
 
 	@Override
@@ -279,17 +240,7 @@ public class MysticCryptApplicationFrame extends ApplicationFrame<ApplicationMod
 	protected JMenu newDesktopMenu(@NonNull Component applicationFrame)
 	{
 		DesktopMenu desktopMenu = new DesktopMenu(applicationFrame);
-		JMenuBar menubar = desktopMenu.getMenubar();
-		Map<String, Boolean> enabledMenuIdsWithEmptyModel = desktopMenu
-			.getEnabledMenuIdsWithEmptyModel();
-		List<MenuElement> allMenuElements = ParentMenuResolver.getAllMenuElements(menubar, true);
-		allMenuElements.forEach(menuElement -> {
-			String name = menuElement.getComponent().getName();
-			if (enabledMenuIdsWithEmptyModel.containsKey(name))
-			{
-				menuElement.getComponent().setEnabled(enabledMenuIdsWithEmptyModel.get(name));
-			}
-		});
+		desktopMenu.onEnableByPublic();
 		return desktopMenu;
 	}
 
@@ -305,18 +256,8 @@ public class MysticCryptApplicationFrame extends ApplicationFrame<ApplicationMod
 		super.onAfterInitialize();
 		setTitle(Messages.getString("mainframe.title"));
 		this.setSize(ScreenSizeExtensions.getScreenWidth(), ScreenSizeExtensions.getScreenHeight());
-		JMenuBar menubar = getJMenuBar();
 		DesktopMenu menu = (DesktopMenu)getMenu();
-		Map<String, Boolean> enabledMenuIdsWithExistingModel = menu
-			.getEnabledMenuIdsWithExistingModel();
-		List<MenuElement> allMenuElements = ParentMenuResolver.getAllMenuElements(menubar, true);
-		allMenuElements.forEach(menuElement -> {
-			String name = menuElement.getComponent().getName();
-			if (enabledMenuIdsWithExistingModel.containsKey(name))
-			{
-				menuElement.getComponent().setEnabled(enabledMenuIdsWithExistingModel.get(name));
-			}
-		});
+		menu.onEnableBySignin();
 	}
 
 	@Override
@@ -368,7 +309,8 @@ public class MysticCryptApplicationFrame extends ApplicationFrame<ApplicationMod
 		final int returnVal = fileChooser.showSaveDialog(this);
 		if (returnVal == JFileChooser.APPROVE_OPTION)
 		{
-			final File selectedApplicationFile = getSelectedFileWithFirstExtension(fileChooser);
+			final File selectedApplicationFile = JFileChooserExtensions
+				.getSelectedFileWithFirstExtension(fileChooser);
 			if (!selectedApplicationFile.exists())
 			{
 				RuntimeExceptionDecorator
@@ -386,7 +328,7 @@ public class MysticCryptApplicationFrame extends ApplicationFrame<ApplicationMod
 		}
 		else if (returnVal == JFileChooser.CANCEL_OPTION)
 		{
-			System.err.println("Cancel was selected");
+			getModelObject().setSignedIn(false);
 		}
 
 	}

@@ -33,6 +33,7 @@ apply plugin: "maven-publish"
 apply plugin: "signing"
 apply plugin: "com.github.ben-manes.versions"
 apply plugin: "com.github.hierynomus.license"
+apply plugin: "org.ajoberstar.grgit"
 apply plugin: "com.diffplug.spotless"
 
 spotless {
@@ -47,11 +48,9 @@ spotless {
         endWithNewline()
     }
     java {
-        eclipse("4.19.0").configFile("src/main/resources/format/alpharo-formatter.xml")
+        eclipse("4.19.0").configFile("src/main/resources/alpharo-formatter.xml")
     }
 }
-
-apply plugin: "org.ajoberstar.grgit"
 
 task tagRelease {
     description = "Tags the current head with the project\'s version."
@@ -64,6 +63,8 @@ task tagRelease {
 }
 
 sourceCompatibility = "$projectSourceCompatibility" as Object
+
+def releaseVersion = !version.endsWith("SNAPSHOT")
 
 repositories {
     mavenLocal()
@@ -134,27 +135,29 @@ jar {
 }
 
 jar.doLast {
-    def pkAlias = System.getenv("$mysticCryptKeyAlias") ?: project.property("$mysticCryptKeyAlias")
-    def keystoreFileName = System.getenv("$mysticCryptStoreFile") ?: project.property("$mysticCryptStoreFile")
-    def storePassword = System.getenv("$mysticCryptStorePassword") ?: project.property("$mysticCryptStorePassword")
-    def keyPassword = System.getenv("$mysticCryptKeyPassword") ?: project.property("$mysticCryptKeyPassword")
-    def keystoreType = System.getenv("$mysticCryptStoreType") ?: project.property("$mysticCryptStoreType")
-    def libsFilePath = "$buildDir/libs"
-    def libFiles = files { file(libsFilePath).listFiles() }
-    def destDir = "$buildDir/signed"
-    def signedDir = new File(destDir)
-    signedDir.mkdirs()
-    libFiles.each {
-        ant.signjar(
-                jar: it,
-                destDir: "$destDir",
-                alias:"$pkAlias",
-                storetype:"$keystoreType",
-                keystore:"$keystoreFileName",
-                storepass:"$storePassword",
-                keypass:"$keyPassword",
-                preservelastmodified:"true"
-        )
+    if (releaseVersion) {
+        def pkAlias = System.getenv("$mysticCryptKeyAlias") ?: project.property("$mysticCryptKeyAlias")
+        def keystoreFileName = System.getenv("$mysticCryptStoreFile") ?: project.property("$mysticCryptStoreFile")
+        def storePassword = System.getenv("$mysticCryptStorePassword") ?: project.property("$mysticCryptStorePassword")
+        def keyPassword = System.getenv("$mysticCryptKeyPassword") ?: project.property("$mysticCryptKeyPassword")
+        def keystoreType = System.getenv("$mysticCryptStoreType") ?: project.property("$mysticCryptStoreType")
+        def libsFilePath = "$buildDir/libs"
+        def libFiles = files { file(libsFilePath).listFiles() }
+        def destDir = "$buildDir/signed"
+        def signedDir = new File(destDir)
+        signedDir.mkdirs()
+        libFiles.each {
+            ant.signjar(
+                    jar: it,
+                    destDir: "$destDir",
+                    alias:"$pkAlias",
+                    storetype:"$keystoreType",
+                    keystore:"$keystoreFileName",
+                    storepass:"$storePassword",
+                    keypass:"$keyPassword",
+                    preservelastmodified:"true"
+            )
+        }
     }
 }
 

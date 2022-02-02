@@ -30,14 +30,16 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 
 import javax.swing.JMenu;
+import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.KeyStroke;
+import javax.swing.MenuElement;
 
-import io.github.astrapi69.swing.base.BaseMenuId;
 import lombok.NonNull;
 import lombok.extern.java.Log;
 
@@ -52,9 +54,11 @@ import io.github.astrapi69.mystic.crypt.action.OpenDatabaseTreeFrameAction;
 import io.github.astrapi69.mystic.crypt.action.OpenPrivateKeyAction;
 import io.github.astrapi69.swing.action.ExitApplicationAction;
 import io.github.astrapi69.swing.base.BaseDesktopMenu;
+import io.github.astrapi69.swing.base.BaseMenuId;
 import io.github.astrapi69.swing.dialog.info.InfoDialog;
 import io.github.astrapi69.swing.dialog.info.InfoPanel;
 import io.github.astrapi69.swing.menu.MenuExtensions;
+import io.github.astrapi69.swing.menu.ParentMenuResolver;
 import io.github.astrapi69.swing.menu.builder.JMenuItemInfo;
 
 /**
@@ -326,6 +330,39 @@ public class DesktopMenu extends BaseDesktopMenu
 		return license.toString();
 	}
 
+	public void onEnableByPublic()
+	{
+		JMenuBar menubar = getMenubar();
+		Map<String, Boolean> enabledMenuIdsWithEmptyModel = getEnabledMenuIdsWithEmptyModel();
+		List<MenuElement> allMenuElements = ParentMenuResolver.getAllMenuElements(menubar, true);
+		allMenuElements.forEach(menuElement -> {
+			String name = menuElement.getComponent().getName();
+			if (enabledMenuIdsWithEmptyModel.containsKey(name))
+			{
+				menuElement.getComponent().setEnabled(enabledMenuIdsWithEmptyModel.get(name));
+			}
+		});
+	}
+	
+	public void onEnableBySignin()
+	{
+		if (MysticCryptApplicationFrame.getInstance().getModelObject().isSignedIn())
+		{
+			JMenuBar menubar = getMenubar();
+			Map<String, Boolean> enabledMenuIdsWithExistingModel = getEnabledMenuIdsWithExistingModel();
+			List<MenuElement> allMenuElements = ParentMenuResolver.getAllMenuElements(menubar,
+					true);
+			allMenuElements.forEach(menuElement -> {
+				String name = menuElement.getComponent().getName();
+				if (enabledMenuIdsWithExistingModel.containsKey(name))
+				{
+					menuElement.getComponent()
+							.setEnabled(enabledMenuIdsWithExistingModel.get(name));
+				}
+			});
+		}
+	}
+
 	public Map<String, Boolean> getEnabledMenuIdsWithEmptyModel() {
 		Map<String, Boolean> menuIds = new LinkedHashMap<>();
 		menuIds.put(BaseMenuId.EDIT.propertiesKey(), false);
@@ -345,7 +382,7 @@ public class DesktopMenu extends BaseDesktopMenu
 		menuIds.put(BaseMenuId.TOGGLE_FULLSCREEN.propertiesKey(), false);
 		menuIds.put(BaseMenuId.EXIT.propertiesKey(), true);
 		menuIds.put(MenuId.VERIFY_CHECKSUM.propertiesKey(), false);
-		menuIds.put(MenuId.OPEN_DATABASE.propertiesKey(), true);
+		menuIds.put(MenuId.OPEN_DATABASE.propertiesKey(), false);
 		menuIds.put(MenuId.OPEN_DATABASE_TOOL_BAR.propertiesKey(), true);
 		menuIds.put(MenuId.SECRET_KEY.propertiesKey(), false);
 		menuIds.put(MenuId.SECRET_KEY_NEW.propertiesKey(), false);
