@@ -121,26 +121,6 @@ public class MysticCryptApplicationFrame extends ApplicationFrame<ApplicationMod
 		{
 			ScreenSizeExtensions.showFrame(frame);
 		}
-		try
-		{
-			File runningJarFile = ClassExtensions
-				.getRunningJarFile(MysticCryptApplicationFrame.class);
-
-			if (FileExtension.is(runningJarFile, FileExtension.JAR))
-			{
-				JarFile jarFile = new JarFile(runningJarFile);
-				long checksum = FileChecksumExtensions.getChecksum(runningJarFile, true);
-				// TODO get version and the corresponding checksum
-			}
-		}
-		catch (URISyntaxException e)
-		{
-			e.printStackTrace();
-		}
-		catch (IOException e)
-		{
-			e.printStackTrace();
-		}
 	}
 
 	public static File getRunningJarDirectory(Class<?> tClass) throws URISyntaxException
