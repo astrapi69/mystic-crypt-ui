@@ -24,18 +24,31 @@
  */
 package io.github.astrapi69.mystic.crypt.panel.dbtree;
 
-import lombok.NonNull;
-import io.github.astrapi69.swing.table.model.dynamic.DynamicTableColumnsModel;
-import io.github.astrapi69.swing.table.model.dynamic.DynamicTableModel;
+import io.github.astrapi69.swing.table.model.BaseTableModel;
+import io.github.astrapi69.swing.table.model.TableColumnsModel;
+import io.github.astrapi69.swing.table.model.thread.ThreadsTableModel;
 
-public class DynamicMysticCryptEntryTableModel extends DynamicTableModel<MysticCryptEntryModelBean>
+public class MysticCryptEntryTableModel extends BaseTableModel<MysticCryptEntryModelBean>
 {
-	public DynamicMysticCryptEntryTableModel(
-		@NonNull DynamicTableColumnsModel<MysticCryptEntryModelBean> columnsModel)
+
+	public MysticCryptEntryTableModel() {
+		this(TableColumnsModel.builder()
+				.columnNames(new String[] { "Title", "Username", "Url" })
+				.canEdit(new boolean[] { false, false, false })
+				.columnClasses(new Class<?>[] { String.class, String.class, String.class})
+				.build());
+	}
+
+	/**
+	 * Instantiates a new {@link ThreadsTableModel} object.
+	 *
+	 * @param columnsModel
+	 *            the columns model
+	 */
+	public MysticCryptEntryTableModel(final TableColumnsModel columnsModel)
 	{
 		super(columnsModel);
 	}
-
 	/**
 	 * Returns the value for the cell at <code>columnIndex</code> and <code>rowIndex</code>.
 	 *
@@ -56,8 +69,6 @@ public class DynamicMysticCryptEntryTableModel extends DynamicTableModel<MysticC
 			case 1 :
 				return mysticCryptEntryModelBean.getUserName();
 			case 2 :
-				return mysticCryptEntryModelBean.getPassword();
-			case 3 :
 				return mysticCryptEntryModelBean.getUrl();
 			default :
 				return null;

@@ -33,6 +33,7 @@ import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreeModel;
 
+import io.github.astrapi69.swing.dialog.DialogExtensions;
 import org.jdesktop.swingx.JXTree;
 
 import io.github.astrapi69.model.BaseModel;
@@ -42,7 +43,6 @@ import io.github.astrapi69.swing.listener.RequestFocusListener;
 import io.github.astrapi69.swing.menu.MenuFactory;
 import io.github.astrapi69.swing.table.GenericJXTable;
 import io.github.astrapi69.swing.table.model.GenericTableModel;
-import io.github.astrapi69.swing.table.model.dynamic.DynamicTableColumnsModel;
 import io.github.astrapi69.swing.tree.GenericTreeElement;
 import io.github.astrapi69.swing.tree.JTreeExtensions;
 import io.github.astrapi69.swing.tree.TreeNodeFactory;
@@ -90,8 +90,7 @@ public class SecretKeyTreeWithContentPanel
 	@Override
 	protected GenericJXTable<MysticCryptEntryModelBean> newJTable()
 	{
-		GenericTableModel<MysticCryptEntryModelBean> permissionsTableModel = new DynamicMysticCryptEntryTableModel(
-			new DynamicTableColumnsModel<>(MysticCryptEntryModelBean.class));
+		GenericTableModel<MysticCryptEntryModelBean> permissionsTableModel = new MysticCryptEntryTableModel();
 		return new GenericJXTable<MysticCryptEntryModelBean>(permissionsTableModel)
 		{
 
@@ -368,17 +367,45 @@ public class SecretKeyTreeWithContentPanel
 
 	}
 
-	protected void onEditTableEntry()
-	{
-
-	}
-
 	protected void onDeleteTableEntry()
 	{
-		getTblTreeEntryTable().getAllSelectedRowData().forEach(tableEntry -> {
-			getTblTreeEntryTable().getGenericTableModel().remove(tableEntry);
+		int option = DialogExtensions.showConfirmDialog(null, "Confirm deletion",
+				"<div width='450'>Are you sure<br></div>"
+						+ "<div>The delete action is not recoverable</div>",
+				JOptionPane.OK_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE, null);
+		if (option == JOptionPane.OK_OPTION)
+		{
+			getTblTreeEntryTable().getAllSelectedRowData().forEach(tableEntry -> {
+				getTblTreeEntryTable().getGenericTableModel().remove(tableEntry);
+			});
+			getTblTreeEntryTable().getGenericTableModel().fireTableDataChanged();
+		}
+	}
+
+	protected void onEditTableEntry()
+	{
+		getTblTreeEntryTable().getSingleSelectedRowData().ifPresent(tableEntry -> {
+			MysticCryptEntryPanel panel = new MysticCryptEntryPanel(BaseModel.of(tableEntry));
+			JOptionPane pane = new JOptionPane(panel, JOptionPane.INFORMATION_MESSAGE,
+					JOptionPane.OK_CANCEL_OPTION);
+			JDialog dialog = pane.createDialog(null, "Edit Crypt Entry");
+			dialog.addWindowFocusListener(new RequestFocusListener(panel.getTxtEntryName()));
+			dialog.pack();
+			dialog.setLocationRelativeTo(null);
+			dialog.setVisible(true);
+			int option = JOptionPaneExtensions.getSelectedOption(pane);
+
+			if (option == JOptionPane.OK_OPTION)
+			{
+				List<MysticCryptEntryModelBean> data = getTblTreeEntryTable().getGenericTableModel().getData();
+				int index = data.indexOf(tableEntry);
+				data.remove(tableEntry);
+				MysticCryptEntryModelBean modelObject = panel.getModelObject();
+
+				data.add(index, modelObject);
+				getTblTreeEntryTable().getGenericTableModel().fireTableDataChanged();
+			}
 		});
-		getTblTreeEntryTable().getGenericTableModel().fireTableDataChanged();
 	}
 
 	protected void onAddTableEntry()
@@ -394,7 +421,9 @@ public class SecretKeyTreeWithContentPanel
 		int option = JOptionPaneExtensions.getSelectedOption(pane);
 		if (option == JOptionPane.OK_OPTION)
 		{
-			MysticCryptEntryModelBean.builder().build();
+			MysticCryptEntryModelBean modelObject = panel.getModelObject();
+			getTblTreeEntryTable().getGenericTableModel().add(modelObject);
+			getTblTreeEntryTable().getGenericTableModel().fireTableDataChanged();
 		}
 	}
 

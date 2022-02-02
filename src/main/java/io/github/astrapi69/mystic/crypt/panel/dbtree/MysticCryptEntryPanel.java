@@ -26,6 +26,9 @@ package io.github.astrapi69.mystic.crypt.panel.dbtree;
 
 import javax.swing.*;
 
+import io.github.astrapi69.model.LambdaModel;
+import io.github.astrapi69.swing.component.JMPasswordField;
+import io.github.astrapi69.swing.component.JMTextArea;
 import io.github.astrapi69.swing.component.JMTextField;
 import lombok.Getter;
 import io.github.astrapi69.model.BaseModel;
@@ -44,12 +47,12 @@ public class MysticCryptEntryPanel extends BasePanel<MysticCryptEntryModelBean>
 	private JLabel lblUrl;
 	private JLabel lblUsername;
 	private JScrollPane srcNotes;
-	private JTextField txtEntryName;
-	private JTextArea txtNotes;
-	private JPasswordField txtPassword;
-	private JPasswordField txtRepeat;
-	private JTextField txtUrl;
-	private JTextField txtUsername;
+	private JMTextField txtEntryName;
+	private JMTextArea txtNotes;
+	private JMPasswordField txtPassword;
+	private JMPasswordField txtRepeat;
+	private JMTextField txtUrl;
+	private JMTextField txtUsername;
 
 	public MysticCryptEntryPanel()
 	{
@@ -75,11 +78,19 @@ public class MysticCryptEntryPanel extends BasePanel<MysticCryptEntryModelBean>
 		lblNotes = new JLabel();
 		txtEntryName = new JMTextField();
 		txtUsername = new JMTextField();
-		txtPassword = new JPasswordField();
-		txtRepeat = new JPasswordField();
-		txtUrl = new JTextField();
+		txtPassword = new JMPasswordField();
+		txtRepeat = new JMPasswordField();
+		txtUrl = new JMTextField();
 		srcNotes = new JScrollPane();
-		txtNotes = new JTextArea();
+		txtNotes = new JMTextArea();
+		MysticCryptEntryModelBean modelObject = getModelObject();
+		// bind with model
+		txtEntryName.setPropertyModel(LambdaModel.of(modelObject::getTitle, modelObject::setTitle));
+		txtUsername.setPropertyModel(LambdaModel.of(modelObject::getUserName, modelObject::setUserName));
+		txtPassword.setPropertyModel(LambdaModel.of(modelObject::getPassword, modelObject::setPassword));
+		txtRepeat.setPropertyModel(LambdaModel.of(modelObject::getRepeat, modelObject::setRepeat));
+		txtUrl.setPropertyModel(LambdaModel.of(modelObject::getUrl, modelObject::setUrl));
+		txtNotes.setPropertyModel(LambdaModel.of(modelObject::getNotes, modelObject::setNotes));
 
 		lblHeader.setText("Create a new database entry");
 

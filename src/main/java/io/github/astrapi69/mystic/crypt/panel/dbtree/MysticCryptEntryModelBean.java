@@ -47,6 +47,8 @@ public class MysticCryptEntryModelBean
 	final Map<String, Object> properties = new LinkedHashMap<>();
 	String title;
 	String userName;
-	String password;
+	char[] password;
+	char[] repeat;
 	String url;
+	String notes;
 }
