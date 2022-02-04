@@ -28,7 +28,6 @@ import java.io.File;
 
 import javax.swing.JButton;
 
-import io.github.astrapi69.design.pattern.state.component.AbstractJComponentStateMachine;
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -36,6 +35,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 import lombok.experimental.SuperBuilder;
+import io.github.astrapi69.design.pattern.state.component.AbstractJComponentStateMachine;
 
 @Getter
 @Setter
