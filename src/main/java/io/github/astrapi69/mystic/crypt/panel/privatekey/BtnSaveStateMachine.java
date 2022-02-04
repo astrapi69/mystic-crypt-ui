@@ -26,6 +26,7 @@ package io.github.astrapi69.mystic.crypt.panel.privatekey;
 
 import javax.swing.JButton;
 
+import io.github.astrapi69.design.pattern.state.component.AbstractJComponentStateMachine;
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -35,8 +36,6 @@ import lombok.ToString;
 import lombok.experimental.SuperBuilder;
 
 import org.springframework.util.ObjectUtils;
-
-import io.github.astrapi69.design.pattern.state.component.AbstractJComponentStateMachine;
 
 @Getter
 @Setter
@@ -68,7 +67,6 @@ public class BtnSaveStateMachine
 			return;
 		}
 		setEnabled(false);
-
 	}
 
 

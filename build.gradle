@@ -249,6 +249,7 @@ dependencies {
     implementation("io.github.astrapi69:menu-actions:$menuActionsVersion")
     implementation("io.github.astrapi69:net-extensions:$netExtensionsVersion")
     implementation("io.github.astrapi69:gen-tree:$genTreeVersion")
+    implementation("io.github.astrapi69:state:$designPatternsVersion")
     implementation("org.apache.xmlgraphics:batik-transcoder:$batikVersion")
     implementation("org.apache.xmlgraphics:batik-codec:$batikVersion")
     implementation("org.imgscalr:imgscalr-lib:$imgscalrLibVersion")
