@@ -136,11 +136,11 @@ jar {
 
 jar.doLast {
     if (releaseVersion) {
-        def pkAlias = System.getenv("$mysticCryptKeyAlias") ?: project.property("$mysticCryptKeyAlias")
-        def keystoreFileName = System.getenv("$mysticCryptStoreFile") ?: project.property("$mysticCryptStoreFile")
-        def storePassword = System.getenv("$mysticCryptStorePassword") ?: project.property("$mysticCryptStorePassword")
-        def keyPassword = System.getenv("$mysticCryptKeyPassword") ?: project.property("$mysticCryptKeyPassword")
-        def keystoreType = System.getenv("$mysticCryptStoreType") ?: project.property("$mysticCryptStoreType")
+        def pkAlias = project.property("$mysticCryptKeyAlias")
+        def keystoreFileName = project.property("$mysticCryptStoreFile")
+        def storePassword = project.property("$mysticCryptStorePassword")
+        def keyPassword = project.property("$mysticCryptKeyPassword")
+        def keystoreType = project.property("$mysticCryptStoreType")
         def libsFilePath = "$buildDir/libs"
         def libFiles = files { file(libsFilePath).listFiles() }
         def destDir = "$buildDir/signed"
@@ -150,12 +150,12 @@ jar.doLast {
             ant.signjar(
                     jar: it,
                     destDir: "$destDir",
-                    alias:"$pkAlias",
-                    storetype:"$keystoreType",
-                    keystore:"$keystoreFileName",
-                    storepass:"$storePassword",
-                    keypass:"$keyPassword",
-                    preservelastmodified:"true"
+                    alias: "$pkAlias",
+                    storetype: "$keystoreType",
+                    keystore: "$keystoreFileName",
+                    storepass: "$storePassword",
+                    keypass: "$keyPassword",
+                    preservelastmodified: "true"
             )
         }
     }
