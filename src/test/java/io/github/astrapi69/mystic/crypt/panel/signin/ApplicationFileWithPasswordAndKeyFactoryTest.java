@@ -33,7 +33,6 @@ import java.security.Security;
 
 import javax.crypto.Cipher;
 
-import io.github.astrapi69.file.delete.DeleteFileExtensions;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -44,6 +43,7 @@ import io.github.astrapi69.crypto.key.PrivateKeyDecryptor;
 import io.github.astrapi69.crypto.key.PrivateKeyGenericDecryptor;
 import io.github.astrapi69.crypto.key.reader.PrivateKeyReader;
 import io.github.astrapi69.crypto.model.CryptModel;
+import io.github.astrapi69.file.delete.DeleteFileExtensions;
 import io.github.astrapi69.file.search.PathFinder;
 import io.github.astrapi69.mystic.crypt.ApplicationModelBean;
 import io.github.astrapi69.throwable.RuntimeExceptionDecorator;
@@ -83,7 +83,7 @@ class ApplicationFileWithPasswordAndKeyFactoryTest
 		password = "secret";
 		pemDir = new File(PathFinder.getSrcTestResourcesDir(), "pem");
 		privateKeyPemFile = new File(pemDir, "private.pem");
-		// TODO check
+
 		pemPrivateKey = RuntimeExceptionDecorator
 			.decorate(() -> PrivateKeyReader.readPemPrivateKey(privateKeyPemFile));
 		decryptModel = CryptModel.<Cipher, PrivateKey, byte[]> builder().key(pemPrivateKey).build();
@@ -101,12 +101,12 @@ class ApplicationFileWithPasswordAndKeyFactoryTest
 	@AfterEach
 	void tearDown()
 	{
-		 RuntimeExceptionDecorator.decorate(() -> DeleteFileExtensions.delete(applicationFile));
-		 RuntimeExceptionDecorator
-		 .decorate(() -> DeleteFileExtensions.delete(decryptedApplicationFile));
-		 selectedApplicationFilePath = null;
-		 password = null;
-		 decryptor = null;
+		RuntimeExceptionDecorator.decorate(() -> DeleteFileExtensions.delete(applicationFile));
+		RuntimeExceptionDecorator
+			.decorate(() -> DeleteFileExtensions.delete(decryptedApplicationFile));
+		selectedApplicationFilePath = null;
+		password = null;
+		decryptor = null;
 	}
 
 	@Test
