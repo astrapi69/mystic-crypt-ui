@@ -10,12 +10,15 @@ ADDED:
 
 CHANGED:
 
-- update of gradle version to 7.3.3
+- update of gradle to new version 7.4
 - update of dependency spring-boot to new version 2.6.3
 - update of dependency lombok to new version 1.18.22
 - update of com.github.ben-manes.versions.gradle.plugin to new version 0.42.0
 - update of io.spring.gradle:dependency-management-plugin to new version 1.0.11.RELEASE
 - update of com.bmuschko:gradle-izpack-plugin to new version 3.2
+- update of mystic-crypt dependency version to 7.11
+- update of crypt-api dependency version to 7.7
+- update of crypt-data dependency version to 7.11.1
 
 Version 5.4
 -------------

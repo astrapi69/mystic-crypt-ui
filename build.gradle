@@ -171,6 +171,7 @@ jar.doLast {
 license {
     ext.year="$projectInceptionYear"
     ext.owner="$projectLeaderName"
+    ignoreFailures = true
     header rootProject.file("src/main/resources/LICENSE.txt")
     excludes(["**/README",
               "**/README.md",
@@ -192,6 +193,12 @@ license {
               "**/*.vm",
               "**/*.log",
               "**/*.map",
+              "**/*.pem",
+              "**/*.ico",
+              "**/*.png",
+              "**/*.der",
+              "**/*.form",
+              "**/*.desktop",
               "**/*.js.map",
               "**/*.tmpl",
               "**/*.mcrdb",

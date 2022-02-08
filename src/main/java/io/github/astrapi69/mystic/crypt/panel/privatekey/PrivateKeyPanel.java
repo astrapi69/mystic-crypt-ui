@@ -80,9 +80,7 @@ public class PrivateKeyPanel extends BasePanel<PrivateKeyModelBean>
 			getEnDecryptPanel().getTxtToEncrypt().setText(decryted);
 			getEnDecryptPanel().getTxtEncrypted().setText("");
 		}
-		catch (InvalidKeyException | NoSuchAlgorithmException | NoSuchPaddingException
-			| IllegalBlockSizeException | BadPaddingException | InvalidKeySpecException
-			| InvalidAlgorithmParameterException | DecoderException | IOException e)
+		catch (Exception e)
 		{
 			log.log(Level.SEVERE, e.getLocalizedMessage(), e);
 		}
@@ -104,9 +102,7 @@ public class PrivateKeyPanel extends BasePanel<PrivateKeyModelBean>
 				.encrypt(getEnDecryptPanel().getTxtToEncrypt().getText()));
 			getEnDecryptPanel().getTxtToEncrypt().setText("");
 		}
-		catch (InvalidKeyException | NoSuchAlgorithmException | InvalidKeySpecException
-			| NoSuchPaddingException | IllegalBlockSizeException | BadPaddingException
-			| IOException e)
+		catch (Exception e)
 		{
 			log.log(Level.SEVERE, e.getLocalizedMessage(), e);
 		}
