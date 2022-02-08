@@ -49,6 +49,7 @@ import io.github.astrapi69.gson.JsonStringToObjectExtensions;
 import io.github.astrapi69.icon.ImageIconFactory;
 import io.github.astrapi69.model.BaseModel;
 import io.github.astrapi69.model.api.IModel;
+import io.github.astrapi69.mystic.crypt.action.SaveApplicationFileAction;
 import io.github.astrapi69.mystic.crypt.panel.signin.MasterPwFileDialog;
 import io.github.astrapi69.mystic.crypt.panel.signin.MasterPwFileModelBean;
 import io.github.astrapi69.mystic.crypt.panel.signin.MemoizedSigninModelBean;
@@ -280,10 +281,11 @@ public class MysticCryptApplicationFrame extends ApplicationFrame<ApplicationMod
 		// JButton btnFolderEdit = IconButtonFactory.newIconButton(folderEdit, "Open application");
 		// toolBar.add(btnFolderEdit);
 		//
-		// ImageIcon disk =
-		// ImageIconFactory.newImageIcon("io/github/astrapi69/silk/icons/disk.png");
-		// JButton btnDisk = IconButtonFactory.newIconButton(disk, "Save");
-		// toolBar.add(btnDisk);
+		ImageIcon disk = ImageIconFactory.newImageIcon("io/github/astrapi69/silk/icons/disk.png");
+		JButton btnDisk = IconButtonFactory.newIconButton(disk, "Save");
+		btnDisk.addActionListener(new SaveApplicationFileAction("save"));
+		btnDisk.setName(MenuId.SAVE_APPLICATION_FILE.propertiesKey());
+		toolBar.add(btnDisk);
 		//
 		// ImageIcon magnifier = ImageIconFactory
 		// .newImageIcon("io/github/astrapi69/silk/icons/magnifier.png");
