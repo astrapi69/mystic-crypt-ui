@@ -23,18 +23,12 @@ package io.github.astrapi69.mystic.crypt.panel.keygen;
 import java.awt.event.ActionEvent;
 import java.io.File;
 import java.io.IOException;
-import java.security.InvalidAlgorithmParameterException;
-import java.security.InvalidKeyException;
 import java.security.KeyPair;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
 import java.security.PrivateKey;
-import java.security.spec.InvalidKeySpecException;
 import java.util.logging.Level;
 
-import javax.crypto.BadPaddingException;
-import javax.crypto.IllegalBlockSizeException;
-import javax.crypto.NoSuchPaddingException;
 import javax.swing.JComboBox;
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
@@ -42,9 +36,6 @@ import javax.swing.JOptionPane;
 import lombok.Getter;
 import lombok.extern.java.Log;
 import net.miginfocom.swing.MigLayout;
-
-import org.apache.commons.codec.DecoderException;
-
 import io.github.astrapi69.crypto.algorithm.KeyPairGeneratorAlgorithm;
 import io.github.astrapi69.crypto.factory.KeyPairFactory;
 import io.github.astrapi69.crypto.key.KeySize;
@@ -333,7 +324,7 @@ public class GenerateKeysPanel extends BasePanel<GenerateKeysModelBean>
 				final int state = fileChooser.showSaveDialog(this);
 				if (state == JFileChooser.APPROVE_OPTION)
 				{
-					PrivateKey privateKey = null;
+					PrivateKey privateKey;
 					try
 					{
 						privateKey = getModelObject().getPrivateKey();
