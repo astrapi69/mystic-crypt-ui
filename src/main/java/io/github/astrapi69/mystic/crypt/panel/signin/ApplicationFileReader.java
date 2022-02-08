@@ -37,7 +37,7 @@ import lombok.extern.java.Log;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 
 import io.github.astrapi69.crypto.algorithm.SunJCEAlgorithm;
-import io.github.astrapi69.crypto.factories.CryptModelFactory;
+import io.github.astrapi69.crypto.factory.CryptModelFactory;
 import io.github.astrapi69.crypto.file.PBEFileDecryptor;
 import io.github.astrapi69.crypto.key.PrivateKeyDecryptor;
 import io.github.astrapi69.crypto.key.PrivateKeyGenericDecryptor;

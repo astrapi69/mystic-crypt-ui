@@ -49,7 +49,7 @@ import lombok.extern.java.Log;
 import io.github.astrapi69.crypto.algorithm.HashAlgorithm;
 import io.github.astrapi69.crypto.algorithm.KeyPairGeneratorAlgorithm;
 import io.github.astrapi69.crypto.algorithm.UnionWord;
-import io.github.astrapi69.crypto.factories.CertFactory;
+import io.github.astrapi69.crypto.factory.CertFactory;
 import io.github.astrapi69.crypto.key.KeyFileFormat;
 import io.github.astrapi69.crypto.key.KeySize;
 import io.github.astrapi69.crypto.key.writer.CertificateWriter;
@@ -146,7 +146,7 @@ public class CryptographyPanel extends BasePanel<GenerateKeysModelBean>
 	 */
 	public CryptographyPanel()
 	{
-		this(BaseModel.<GenerateKeysModelBean> of(GenerateKeysModelBean.builder().build()));
+		this(BaseModel.of(GenerateKeysModelBean.builder().build()));
 	}
 
 	public CryptographyPanel(final IModel<GenerateKeysModelBean> model)
@@ -308,10 +308,6 @@ public class CryptographyPanel extends BasePanel<GenerateKeysModelBean>
 				}
 			}
 		}
-		if (optionPane.getValue().equals(JOptionPane.CANCEL_OPTION))
-		{
-		}
-
 	}
 
 	protected void onInitializeGridBagLayout()

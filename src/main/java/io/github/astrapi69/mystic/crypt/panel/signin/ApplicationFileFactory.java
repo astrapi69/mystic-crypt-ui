@@ -33,7 +33,7 @@ import javax.crypto.SecretKey;
 
 import io.github.astrapi69.crypto.algorithm.AesAlgorithm;
 import io.github.astrapi69.crypto.algorithm.SunJCEAlgorithm;
-import io.github.astrapi69.crypto.factories.SecretKeyFactoryExtensions;
+import io.github.astrapi69.crypto.factory.SecretKeyFactoryExtensions;
 import io.github.astrapi69.crypto.file.PBEFileEncryptor;
 import io.github.astrapi69.crypto.key.PrivateKeyExtensions;
 import io.github.astrapi69.crypto.key.PublicKeyEncryptor;

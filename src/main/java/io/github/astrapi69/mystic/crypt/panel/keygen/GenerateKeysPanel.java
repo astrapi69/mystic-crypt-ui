@@ -46,7 +46,7 @@ import net.miginfocom.swing.MigLayout;
 import org.apache.commons.codec.DecoderException;
 
 import io.github.astrapi69.crypto.algorithm.KeyPairGeneratorAlgorithm;
-import io.github.astrapi69.crypto.factories.KeyPairFactory;
+import io.github.astrapi69.crypto.factory.KeyPairFactory;
 import io.github.astrapi69.crypto.key.KeySize;
 import io.github.astrapi69.crypto.key.PrivateKeyExtensions;
 import io.github.astrapi69.crypto.key.PrivateKeyHexDecryptor;
@@ -72,7 +72,7 @@ public class GenerateKeysPanel extends BasePanel<GenerateKeysModelBean>
 
 	public GenerateKeysPanel()
 	{
-		this(BaseModel.<GenerateKeysModelBean> of(GenerateKeysModelBean.builder().build()));
+		this(BaseModel.of(GenerateKeysModelBean.builder().build()));
 	}
 
 	public GenerateKeysPanel(final IModel<GenerateKeysModelBean> model)
@@ -132,9 +132,7 @@ public class GenerateKeysPanel extends BasePanel<GenerateKeysModelBean>
 			getEnDecryptPanel().getTxtToEncrypt().setText(decryted);
 			getEnDecryptPanel().getTxtEncrypted().setText("");
 		}
-		catch (InvalidKeyException | NoSuchAlgorithmException | NoSuchPaddingException
-			| IllegalBlockSizeException | BadPaddingException | InvalidKeySpecException
-			| InvalidAlgorithmParameterException | DecoderException | IOException e)
+		catch (Exception e)
 		{
 			log.log(Level.SEVERE, e.getLocalizedMessage(), e);
 		}
@@ -158,9 +156,7 @@ public class GenerateKeysPanel extends BasePanel<GenerateKeysModelBean>
 				.encrypt(getEnDecryptPanel().getTxtToEncrypt().getText()));
 			getEnDecryptPanel().getTxtToEncrypt().setText("");
 		}
-		catch (InvalidKeyException | NoSuchAlgorithmException | InvalidKeySpecException
-			| NoSuchPaddingException | IllegalBlockSizeException | BadPaddingException
-			| IOException e)
+		catch (Exception e)
 		{
 			log.log(Level.SEVERE, e.getLocalizedMessage(), e);
 		}
@@ -315,9 +311,6 @@ public class GenerateKeysPanel extends BasePanel<GenerateKeysModelBean>
 				log.log(Level.SEVERE, e.getLocalizedMessage(), e);
 			}
 		}
-		if (state == JFileChooser.CANCEL_OPTION)
-		{
-		}
 	}
 
 
@@ -353,9 +346,6 @@ public class GenerateKeysPanel extends BasePanel<GenerateKeysModelBean>
 						log.log(Level.SEVERE, e.getLocalizedMessage(), e);
 					}
 				}
-				if (state == JFileChooser.CANCEL_OPTION)
-				{
-				}
 			}
 			else
 			{
@@ -387,9 +377,6 @@ public class GenerateKeysPanel extends BasePanel<GenerateKeysModelBean>
 			{
 				log.log(Level.SEVERE, ex.getLocalizedMessage(), ex);
 			}
-		}
-		if (state == JFileChooser.CANCEL_OPTION)
-		{
 		}
 	}
 }

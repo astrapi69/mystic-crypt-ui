@@ -46,7 +46,7 @@ import javax.swing.event.DocumentEvent;
 import lombok.Getter;
 import lombok.extern.java.Log;
 import io.github.astrapi69.crypto.algorithm.KeyPairGeneratorAlgorithm;
-import io.github.astrapi69.crypto.factories.KeyPairFactory;
+import io.github.astrapi69.crypto.factory.KeyPairFactory;
 import io.github.astrapi69.crypto.key.KeySize;
 import io.github.astrapi69.crypto.key.PrivateKeyExtensions;
 import io.github.astrapi69.crypto.key.writer.PrivateKeyWriter;
@@ -90,7 +90,7 @@ public class NewPrivateKeyPanel extends BasePanel<NewPrivateKeyModelBean>
 
 	public NewPrivateKeyPanel()
 	{
-		this(BaseModel.<NewPrivateKeyModelBean> of(NewPrivateKeyModelBean.builder().build()));
+		this(BaseModel.of(NewPrivateKeyModelBean.builder().build()));
 	}
 
 	public NewPrivateKeyPanel(final IModel<NewPrivateKeyModelBean> model)

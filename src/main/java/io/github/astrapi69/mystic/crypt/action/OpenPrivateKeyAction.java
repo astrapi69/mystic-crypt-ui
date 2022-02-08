@@ -24,15 +24,12 @@ import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.io.File;
 import java.io.IOException;
-import java.security.InvalidAlgorithmParameterException;
-import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.Security;
 import java.security.spec.InvalidKeySpecException;
 import java.util.logging.Level;
 
-import javax.crypto.NoSuchPaddingException;
 import javax.swing.JDialog;
 import javax.swing.JInternalFrame;
 import javax.swing.JLabel;
@@ -101,7 +98,7 @@ public class OpenPrivateKeyAction extends OpenFileAction
 			}
 			else
 			{
-				String password = null;
+				String password;
 				JPasswordField pf = new JPasswordField("", 10);
 				pf.setFocusable(true);
 				pf.setRequestFocusEnabled(true);
@@ -133,12 +130,10 @@ public class OpenPrivateKeyAction extends OpenFileAction
 					privateKey = EncryptedPrivateKeyReader.readPasswordProtectedPrivateKey(file,
 						password);
 				}
-				password = null;
 			}
 
 		}
-		catch (NoSuchAlgorithmException | InvalidKeySpecException | InvalidKeyException
-			| NoSuchPaddingException | InvalidAlgorithmParameterException | IOException e)
+		catch (IOException e)
 		{
 			log.log(Level.SEVERE, e.getLocalizedMessage(), e);
 		}
