@@ -40,6 +40,7 @@ import javax.swing.JMenuItem;
 import javax.swing.KeyStroke;
 import javax.swing.MenuElement;
 
+import io.github.astrapi69.mystic.crypt.action.SaveApplicationFileAction;
 import lombok.NonNull;
 import lombok.extern.java.Log;
 
@@ -106,12 +107,20 @@ public class DesktopMenu extends BaseDesktopMenu
 			.mnemonic(MenuExtensions.toMnemonic('F')).name(BaseMenuId.FILE.propertiesKey()).build()
 			.toJMenu();
 
+		// Save application file
+		JMenuItem saveApplicationFileMenuItem = JMenuItemInfo.builder().text("Save")
+				.mnemonic(MenuExtensions.toMnemonic('S'))
+				.keyStroke(KeyStroke.getKeyStroke('S', Event.CTRL_MASK))
+				.actionListener(new SaveApplicationFileAction("Save"))
+				.name(MenuId.SAVE_APPLICATION_FILE.propertiesKey()).build().toJMenuItem();
+		fileMenu.add(saveApplicationFileMenuItem);
+
 		// Open Database
 		JMenuItem openDatabaseMenuItem = JMenuItemInfo.builder().text("Open Database")
-			.mnemonic(MenuExtensions.toMnemonic('D'))
-			.keyStroke(KeyStroke.getKeyStroke('D', Event.CTRL_MASK))
-			.actionListener(new OpenDatabaseTreeFrameAction("Open Database"))
-			.name(MenuId.OPEN_DATABASE.propertiesKey()).build().toJMenuItem();
+				.mnemonic(MenuExtensions.toMnemonic('D'))
+				.keyStroke(KeyStroke.getKeyStroke('D', Event.CTRL_MASK))
+				.actionListener(new OpenDatabaseTreeFrameAction("Open Database"))
+				.name(MenuId.OPEN_DATABASE.propertiesKey()).build().toJMenuItem();
 		fileMenu.add(openDatabaseMenuItem);
 		// @formatter:off
 		// Main secret key menu
@@ -146,8 +155,8 @@ public class DesktopMenu extends BaseDesktopMenu
 
 		// New simple obfuscation
 		JMenuItem simpleObfuscationMenuItem = JMenuItemInfo.builder().text("Simple obfuscation")
-			.mnemonic(MenuExtensions.toMnemonic('S'))
-			.keyStroke(KeyStroke.getKeyStroke('S', Event.CTRL_MASK))
+			.mnemonic(MenuExtensions.toMnemonic('Y'))
+			.keyStroke(KeyStroke.getKeyStroke('Y', Event.CTRL_MASK))
 			.actionListener(new NewObfuscationInternalFrameAction("Simple Obfuscation"))
 			.name(MenuId.SIMPLE_OBFUSCATION.propertiesKey()).build().toJMenuItem();
 
@@ -383,6 +392,7 @@ public class DesktopMenu extends BaseDesktopMenu
 		menuIds.put(BaseMenuId.EXIT.propertiesKey(), true);
 		menuIds.put(MenuId.VERIFY_CHECKSUM.propertiesKey(), false);
 		menuIds.put(MenuId.OPEN_DATABASE.propertiesKey(), false);
+		menuIds.put(MenuId.SAVE_APPLICATION_FILE.propertiesKey(), false);
 		menuIds.put(MenuId.OPEN_DATABASE_TOOL_BAR.propertiesKey(), true);
 		menuIds.put(MenuId.SECRET_KEY.propertiesKey(), false);
 		menuIds.put(MenuId.SECRET_KEY_NEW.propertiesKey(), false);
@@ -415,6 +425,7 @@ public class DesktopMenu extends BaseDesktopMenu
 		menuIds.put(BaseMenuId.EXIT.propertiesKey(), true);
 		menuIds.put(MenuId.VERIFY_CHECKSUM.propertiesKey(), true);
 		menuIds.put(MenuId.OPEN_DATABASE.propertiesKey(), true);
+		menuIds.put(MenuId.SAVE_APPLICATION_FILE.propertiesKey(), true);
 		menuIds.put(MenuId.OPEN_DATABASE_TOOL_BAR.propertiesKey(), true);
 		menuIds.put(MenuId.SECRET_KEY.propertiesKey(), true);
 		menuIds.put(MenuId.SECRET_KEY_NEW.propertiesKey(), true);

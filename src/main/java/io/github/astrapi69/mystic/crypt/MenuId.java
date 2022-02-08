@@ -89,11 +89,24 @@ public enum MenuId
 	CONVERT(MenuId.CONVERT_KEY),
 
 	/**
+	 * The id for save the application file dialog menu
+	 */
+	SAVE_APPLICATION_FILE(MenuId.SAVE_APPLICATION_FILE_KEY),
+
+	/**
+	 * The id for 'save as' the application file dialog menu
+	 */
+	SAVE_AS_APPLICATION_FILE(MenuId.SAVE_AS_APPLICATION_FILE_KEY),
+
+	/**
 	 * The id for the exit application menu
 	 */
 	CONSOLE(MenuId.CONSOLE_KEY);
 
 	public static final String VERIFY_CHECKSUM_KEY = "global.menu.edit.verify.checksum";
+
+	public static final String SAVE_APPLICATION_FILE_KEY = "global.menu.file.save";
+	public static final String SAVE_AS_APPLICATION_FILE_KEY = "global.menu.file.save.as";
 	public static final String OPEN_DATABASE_KEY = "global.menu.file.open.database";
 	public static final String SECRET_KEY_KEY = "global.menu.file.secret.key";
 	public static final String SECRET_KEY_NEW_KEY = "global.menu.file.secret.key.new";
