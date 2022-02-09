@@ -10,10 +10,10 @@ public class SaveApplicationFileAction extends AbstractAction
 	/** The Constant serialVersionUID. */
 	private static final long serialVersionUID = 1L;
 
-    public SaveApplicationFileAction(final String name)
-    {
-        super(name);
-    }
+	public SaveApplicationFileAction(final String name)
+	{
+		super(name);
+	}
 
 	/**
 	 * {@inheritDoc}
@@ -21,6 +21,6 @@ public class SaveApplicationFileAction extends AbstractAction
 	@Override
 	public void actionPerformed(final ActionEvent e)
 	{
-        // TODO here comes the action for to save the application file ...
+		// TODO here comes the action for to save the application file ...
 	}
 }

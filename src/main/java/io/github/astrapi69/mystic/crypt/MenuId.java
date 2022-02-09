@@ -44,6 +44,11 @@ public enum MenuId
 	VERIFY_CHECKSUM(MenuId.VERIFY_CHECKSUM_KEY),
 
 	/**
+	 * The id for create a new mystic crypt database menu
+	 */
+	NEW_DATABASE(MenuId.NEW_DATABASE_KEY),
+
+	/**
 	 * The id for open the mystic crypt database menu
 	 */
 	OPEN_DATABASE(MenuId.OPEN_DATABASE_KEY),
@@ -52,6 +57,11 @@ public enum MenuId
 	 * The id for open the mystic crypt database toolbar menu
 	 */
 	OPEN_DATABASE_TOOL_BAR(MenuId.OPEN_DATABASE_TOOL_BAR_KEY),
+
+	/**
+	 * The id for create a new mystic crypt database toolbar menu
+	 */
+	NEW_DATABASE_TOOL_BAR(MenuId.NEW_DATABASE_TOOL_BAR_KEY),
 
 	/**
 	 * The id for the secret key menu
@@ -103,8 +113,7 @@ public enum MenuId
 	 */
 	CONSOLE(MenuId.CONSOLE_KEY);
 
-	public static final String VERIFY_CHECKSUM_KEY = "global.menu.edit.verify.checksum";
-
+	public static final String NEW_DATABASE_KEY = "global.menu.file.new.database";
 	public static final String SAVE_APPLICATION_FILE_KEY = "global.menu.file.save";
 	public static final String SAVE_AS_APPLICATION_FILE_KEY = "global.menu.file.save.as";
 	public static final String OPEN_DATABASE_KEY = "global.menu.file.open.database";
@@ -119,6 +128,9 @@ public enum MenuId
 	public static final String CONSOLE_KEY = "global.menu.file.console";
 	public static final String EXIT_KEY = "global.menu.file.exit";
 
+	public static final String VERIFY_CHECKSUM_KEY = "global.menu.edit.verify.checksum";
+
+	public static final String NEW_DATABASE_TOOL_BAR_KEY = "global.toolbar.menu.file.new.database";
 	public static final String OPEN_DATABASE_TOOL_BAR_KEY = "global.toolbar.menu.file.open.database";
 
 	/** the properties key from the current menu */

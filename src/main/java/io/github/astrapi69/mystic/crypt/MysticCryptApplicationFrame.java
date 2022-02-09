@@ -36,6 +36,7 @@ import javax.swing.JMenu;
 import javax.swing.JToolBar;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
+import io.github.astrapi69.mystic.crypt.action.NewApplicationFileAction;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NonNull;
@@ -271,16 +272,19 @@ public class MysticCryptApplicationFrame extends ApplicationFrame<ApplicationMod
 			.newImageIcon("io/github/astrapi69/silk/icons/application_add.png");
 		JButton btnApplicationAdd = IconButtonFactory.newIconButton(applicationAdd,
 			"New application");
-		btnApplicationAdd.addActionListener(this::showNewMasterPw);
-		btnApplicationAdd.setName(MenuId.OPEN_DATABASE_TOOL_BAR.propertiesKey());
+		btnApplicationAdd.addActionListener(new NewApplicationFileAction("New Application"));
+		btnApplicationAdd.setName(MenuId.NEW_DATABASE_TOOL_BAR.propertiesKey());
 		toolBar.add(btnApplicationAdd);
 
-		//
-		// ImageIcon folderEdit = ImageIconFactory
-		// .newImageIcon("io/github/astrapi69/silk/icons/folder_edit.png");
-		// JButton btnFolderEdit = IconButtonFactory.newIconButton(folderEdit, "Open application");
-		// toolBar.add(btnFolderEdit);
-		//
+
+		ImageIcon folderEdit = ImageIconFactory
+			.newImageIcon("io/github/astrapi69/silk/icons/folder_edit.png");
+		JButton btnFolderEdit = IconButtonFactory.newIconButton(folderEdit, "Open application");
+		btnFolderEdit.addActionListener(new NewApplicationFileAction("New Application"));
+		btnFolderEdit.setName(MenuId.OPEN_DATABASE_TOOL_BAR.propertiesKey());
+		toolBar.add(btnFolderEdit);
+
+
 		ImageIcon disk = ImageIconFactory.newImageIcon("io/github/astrapi69/silk/icons/disk.png");
 		JButton btnDisk = IconButtonFactory.newIconButton(disk, "Save");
 		btnDisk.addActionListener(new SaveApplicationFileAction("save"));
@@ -300,38 +304,4 @@ public class MysticCryptApplicationFrame extends ApplicationFrame<ApplicationMod
 		return toolBar;
 	}
 
-	protected void showNewMasterPw(final ActionEvent actionEvent)
-	{
-		JFileChooser fileChooser = new JFileChooser(getConfigurationDirectory());
-		fileChooser.setDialogTitle("Specify the database file to save");
-		FileNameExtensionFilter fileNameExtensionFilter = new FileNameExtensionFilter(
-			"Mystic crypt files (*.mcrdb)", "mcrdb");
-		fileChooser.setFileFilter(fileNameExtensionFilter);
-
-		final int returnVal = fileChooser.showSaveDialog(this);
-		if (returnVal == JFileChooser.APPROVE_OPTION)
-		{
-			final File selectedApplicationFile = JFileChooserExtensions
-				.getSelectedFileWithFirstExtension(fileChooser);
-			if (!selectedApplicationFile.exists())
-			{
-				RuntimeExceptionDecorator
-					.decorate(() -> FileFactory.newFile(selectedApplicationFile));
-			}
-			String selectedApplicationFilePath = selectedApplicationFile.getAbsolutePath();
-			IModel<MasterPwFileModelBean> model = BaseModel
-				.of(MasterPwFileModelBean.builder().applicationFile(selectedApplicationFile)
-					.selectedApplicationFilePath(selectedApplicationFilePath).minPasswordLength(6)
-					.withKeyFile(false).withMasterPw(false).showMasterPw(false).build());
-			NewMasterPwFileDialog dialog = new NewMasterPwFileDialog(this, "Create your master key",
-				true, model);
-			dialog.setSize(840, 520);
-			dialog.setVisible(true);
-		}
-		else if (returnVal == JFileChooser.CANCEL_OPTION)
-		{
-			getModelObject().setSignedIn(false);
-		}
-
-	}
 }
