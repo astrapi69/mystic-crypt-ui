@@ -25,18 +25,14 @@
 package io.github.astrapi69.mystic.crypt;
 
 import java.awt.Component;
-import java.awt.event.ActionEvent;
 import java.io.File;
 import java.security.Security;
 
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
-import javax.swing.JFileChooser;
 import javax.swing.JMenu;
 import javax.swing.JToolBar;
-import javax.swing.filechooser.FileNameExtensionFilter;
 
-import io.github.astrapi69.mystic.crypt.action.NewApplicationFileAction;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NonNull;
@@ -50,14 +46,13 @@ import io.github.astrapi69.gson.JsonStringToObjectExtensions;
 import io.github.astrapi69.icon.ImageIconFactory;
 import io.github.astrapi69.model.BaseModel;
 import io.github.astrapi69.model.api.IModel;
+import io.github.astrapi69.mystic.crypt.action.NewApplicationFileAction;
 import io.github.astrapi69.mystic.crypt.action.SaveApplicationFileAction;
 import io.github.astrapi69.mystic.crypt.panel.signin.MasterPwFileDialog;
 import io.github.astrapi69.mystic.crypt.panel.signin.MasterPwFileModelBean;
 import io.github.astrapi69.mystic.crypt.panel.signin.MemoizedSigninModelBean;
-import io.github.astrapi69.mystic.crypt.panel.signin.NewMasterPwFileDialog;
 import io.github.astrapi69.swing.base.ApplicationFrame;
 import io.github.astrapi69.swing.button.IconButtonFactory;
-import io.github.astrapi69.swing.filechooser.JFileChooserExtensions;
 import io.github.astrapi69.swing.layout.ScreenSizeExtensions;
 import io.github.astrapi69.swing.splashscreen.ProgressBarSplashScreen;
 import io.github.astrapi69.swing.splashscreen.SplashScreenModelBean;
@@ -74,6 +69,7 @@ public class MysticCryptApplicationFrame extends ApplicationFrame<ApplicationMod
 
 	/** The Constant serialVersionUID. */
 	private static final long serialVersionUID = 1L;
+
 	/**
 	 * The instance.
 	 */
@@ -137,7 +133,6 @@ public class MysticCryptApplicationFrame extends ApplicationFrame<ApplicationMod
 				.decorate(() -> ReadFileExtensions.readFromFile(memoizedSigninFile));
 			memoizedSigninModelBean = JsonStringToObjectExtensions.toObject(fromFile,
 				MemoizedSigninModelBean.class);
-
 		}
 		else
 		{
@@ -159,7 +154,8 @@ public class MysticCryptApplicationFrame extends ApplicationFrame<ApplicationMod
 		if (getModelObject().isShowSplash())
 		{
 			SplashScreenModelBean splashScreenModelBean = SplashScreenModelBean.builder()
-				.imagePath(getIconPath()).text(getApplicationName()).min(0).max(100).showTime(1200)
+				.imagePath(getIconPath()).text(Messages.getString("mainframe.project.name",
+							MysticCryptApplicationFrame.APPLICATION_NAME)).min(0).max(100).showTime(1200)
 				.showing(true).build();
 			IModel<SplashScreenModelBean> modelBeanModel = BaseModel.of(splashScreenModelBean);
 			Thread splashScreenThread = new Thread(() -> {
@@ -175,12 +171,6 @@ public class MysticCryptApplicationFrame extends ApplicationFrame<ApplicationMod
 			});
 			splashScreenThread.start();
 		}
-	}
-
-	protected String getApplicationName()
-	{
-		return Messages.getString("mainframe.project.name",
-			MysticCryptApplicationFrame.APPLICATION_NAME);
 	}
 
 	protected String getIconPath()
@@ -223,19 +213,19 @@ public class MysticCryptApplicationFrame extends ApplicationFrame<ApplicationMod
 		super.onBeforeInitializeComponents();
 	}
 
-
 	@Override
 	protected File newConfigurationDirectory(final @NonNull String parent,
 		final @NonNull String child)
 	{
-		File applicationConfigurationDirectory = new File(
-			super.newConfigurationDirectory(parent, child),
+		return FileFactory.newDirectory(super.newConfigurationDirectory(parent, child),
+			getApplicationName());
+	}
+
+	@Override
+	protected String newApplicationName()
+	{
+		return Messages.getString("mainframe.project.name",
 			MysticCryptApplicationFrame.APPLICATION_NAME);
-		if (!applicationConfigurationDirectory.exists())
-		{
-			applicationConfigurationDirectory.mkdir();
-		}
-		return applicationConfigurationDirectory;
 	}
 
 	@Override
