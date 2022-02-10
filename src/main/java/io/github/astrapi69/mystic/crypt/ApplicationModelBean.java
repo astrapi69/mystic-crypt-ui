@@ -58,6 +58,6 @@ public class ApplicationModelBean implements Serializable
 	TreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>> rootTreeNode;
 	boolean showSplash;
 	boolean signedIn;
-	@Builder.Default
-	Map<String, Boolean> menuState = new LinkedHashMap<>();
+	/** The flag that indicated that the application model changed */
+	boolean dirty;
 }
