@@ -22,34 +22,48 @@
  * OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
  * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-package io.github.astrapi69.mystic.crypt.panel.signin;
+package io.github.astrapi69.mystic.crypt;
 
-import java.io.File;
+import java.awt.Component;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
-import io.github.astrapi69.mystic.crypt.ApplicationModelBean;
+import javax.swing.JButton;
+import javax.swing.JToolBar;
 
-public final class ApplicationFileFactory
+import lombok.Getter;
+
+public class ApplicationToolbar extends JToolBar
 {
-	public static File newApplicationFileWithPrivateKey(MasterPwFileModelBean modelObject)
+
+	@Getter
+	private final Set<JButton> toolbarButtons = new LinkedHashSet<>();
+
+	public ApplicationToolbar()
 	{
-		ApplicationModelBean applicationModelBean = ApplicationModelBean.builder().build();
-		applicationModelBean.setMasterPwFileModelBean(modelObject);
-		return ApplicationFileStoreWorker.saveToFileWithPrivateKey(applicationModelBean);
 	}
 
-	public static File newApplicationFileWithPasswordAndPrivateKey(
-		MasterPwFileModelBean modelObject)
+	public ApplicationToolbar(int orientation)
 	{
-		ApplicationModelBean applicationModelBean = ApplicationModelBean.builder().build();
-		applicationModelBean.setMasterPwFileModelBean(modelObject);
-		return ApplicationFileStoreWorker.saveToFileWithPasswordAndPrivateKey(applicationModelBean);
+		super(orientation);
 	}
 
-	public static File newApplicationFileWithPassword(final MasterPwFileModelBean modelObject)
+	public ApplicationToolbar(String name)
 	{
-		ApplicationModelBean applicationModelBean = ApplicationModelBean.builder().build();
-		applicationModelBean.setMasterPwFileModelBean(modelObject);
-		return ApplicationFileStoreWorker.saveToFileWithPassword(applicationModelBean);
+		super(name);
 	}
 
+	public ApplicationToolbar(String name, int orientation)
+	{
+		super(name, orientation);
+	}
+
+	public Component add(Component comp)
+	{
+		if (comp instanceof JButton)
+		{
+			toolbarButtons.add((JButton)comp);
+		}
+		return super.add(comp);
+	}
 }

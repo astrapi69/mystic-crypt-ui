@@ -29,23 +29,26 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.logging.Level;
 
+import javax.swing.JButton;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.KeyStroke;
 import javax.swing.MenuElement;
 
-import io.github.astrapi69.mystic.crypt.action.SaveApplicationFileAction;
 import lombok.NonNull;
 import lombok.extern.java.Log;
 
 import org.springframework.core.io.Resource;
 
+import io.github.astrapi69.collections.set.SetFactory;
 import io.github.astrapi69.mystic.crypt.action.ApplicationToggleFullScreenAction;
 import io.github.astrapi69.mystic.crypt.action.NewChecksumFrameAction;
 import io.github.astrapi69.mystic.crypt.action.NewKeyGenerationInternalFrameAction;
@@ -53,6 +56,7 @@ import io.github.astrapi69.mystic.crypt.action.NewObfuscationInternalFrameAction
 import io.github.astrapi69.mystic.crypt.action.OpenConsoleFrameAction;
 import io.github.astrapi69.mystic.crypt.action.OpenDatabaseTreeFrameAction;
 import io.github.astrapi69.mystic.crypt.action.OpenPrivateKeyAction;
+import io.github.astrapi69.mystic.crypt.action.SaveApplicationFileAction;
 import io.github.astrapi69.swing.action.ExitApplicationAction;
 import io.github.astrapi69.swing.base.BaseDesktopMenu;
 import io.github.astrapi69.swing.base.BaseMenuId;
@@ -68,6 +72,10 @@ import io.github.astrapi69.swing.menu.builder.JMenuItemInfo;
 @Log
 public class DesktopMenu extends BaseDesktopMenu
 {
+	private Map<String, Boolean> enabledMenuIdsWithExistingModel;
+
+	private Map<String, Boolean> enabledMenuIdsWithEmptyModel;
+
 	/**
 	 * Instantiates a new desktop menu.
 	 */
@@ -342,15 +350,26 @@ public class DesktopMenu extends BaseDesktopMenu
 	public void onEnableByPublic()
 	{
 		JMenuBar menubar = getMenubar();
-		Map<String, Boolean> enabledMenuIdsWithEmptyModel = getEnabledMenuIdsWithEmptyModel();
 		List<MenuElement> allMenuElements = ParentMenuResolver.getAllMenuElements(menubar, true);
 		allMenuElements.forEach(menuElement -> {
 			String name = menuElement.getComponent().getName();
-			if (enabledMenuIdsWithEmptyModel.containsKey(name))
+			if (getEnabledMenuIdsWithEmptyModel().containsKey(name))
 			{
 				menuElement.getComponent().setEnabled(enabledMenuIdsWithEmptyModel.get(name));
 			}
 		});
+
+		final Set<String> disabledToolBarMenus = SetFactory.newHashSet(
+				MenuId.LOCK_WORKSPACE_TOOL_BAR.propertiesKey(),
+				MenuId.SEARCH_TOOL_BAR.propertiesKey()
+		);
+		ApplicationToolbar toolBar = (ApplicationToolbar) MysticCryptApplicationFrame.getInstance().getToolBar();
+		if(toolBar != null) {
+			Set<JButton> allButtonElements = toolBar.getToolbarButtons();
+			allButtonElements.forEach(jButton -> {
+				jButton.setEnabled(!disabledToolBarMenus.contains(jButton.getName()));
+			});
+		}
 	}
 	
 	public void onEnableBySignin()
@@ -358,83 +377,82 @@ public class DesktopMenu extends BaseDesktopMenu
 		if (MysticCryptApplicationFrame.getInstance().getModelObject().isSignedIn())
 		{
 			JMenuBar menubar = getMenubar();
-			Map<String, Boolean> enabledMenuIdsWithExistingModel = getEnabledMenuIdsWithExistingModel();
 			List<MenuElement> allMenuElements = ParentMenuResolver.getAllMenuElements(menubar,
 					true);
 			allMenuElements.forEach(menuElement -> {
 				String name = menuElement.getComponent().getName();
-				if (enabledMenuIdsWithExistingModel.containsKey(name))
+				if (getEnabledMenuIdsWithExistingModel().containsKey(name))
 				{
 					menuElement.getComponent()
 							.setEnabled(enabledMenuIdsWithExistingModel.get(name));
 				}
 			});
 		}
+		final Set<String> disabledToolBarMenus = SetFactory.newHashSet();
+		ApplicationToolbar toolBar = (ApplicationToolbar) MysticCryptApplicationFrame.getInstance().getToolBar();
+		Set<JButton> allButtonElements = toolBar.getToolbarButtons();
+		allButtonElements.forEach(jButton -> {
+			jButton.setEnabled(!disabledToolBarMenus.contains(jButton.getName()));
+		});
 	}
 
 	public Map<String, Boolean> getEnabledMenuIdsWithEmptyModel() {
-		Map<String, Boolean> menuIds = new LinkedHashMap<>();
-		menuIds.put(BaseMenuId.EDIT.propertiesKey(), false);
-		menuIds.put(BaseMenuId.FILE.propertiesKey(), true);
-		menuIds.put(BaseMenuId.HELP.propertiesKey(), true);
-		menuIds.put(BaseMenuId.HELP_CONTENT.propertiesKey(), true);
-		menuIds.put(BaseMenuId.HELP_DONATE.propertiesKey(), true);
-		menuIds.put(BaseMenuId.HELP_LICENSE.propertiesKey(), true);
-		menuIds.put(BaseMenuId.HELP_INFO.propertiesKey(), true);
-		menuIds.put(BaseMenuId.LOOK_AND_FEEL.propertiesKey(), false);
-		menuIds.put(BaseMenuId.LOOK_AND_FEEL_GTK.propertiesKey(), false);
-		menuIds.put(BaseMenuId.LOOK_AND_FEEL_METAL.propertiesKey(), false);
-		menuIds.put(BaseMenuId.LOOK_AND_FEEL_OCEAN.propertiesKey(), false);
-		menuIds.put(BaseMenuId.LOOK_AND_FEEL_MOTIF.propertiesKey(), false);
-		menuIds.put(BaseMenuId.LOOK_AND_FEEL_NIMBUS.propertiesKey(), false);
-		menuIds.put(BaseMenuId.LOOK_AND_FEEL_SYSTEM.propertiesKey(), false);
-		menuIds.put(BaseMenuId.TOGGLE_FULLSCREEN.propertiesKey(), false);
-		menuIds.put(BaseMenuId.EXIT.propertiesKey(), true);
-		menuIds.put(MenuId.VERIFY_CHECKSUM.propertiesKey(), false);
-		menuIds.put(MenuId.OPEN_DATABASE.propertiesKey(), false);
-		menuIds.put(MenuId.SAVE_APPLICATION_FILE.propertiesKey(), false);
-		menuIds.put(MenuId.OPEN_DATABASE_TOOL_BAR.propertiesKey(), true);
-		menuIds.put(MenuId.SECRET_KEY.propertiesKey(), false);
-		menuIds.put(MenuId.SECRET_KEY_NEW.propertiesKey(), false);
-		menuIds.put(MenuId.OPEN_PRIVATE_KEY.propertiesKey(), false);
-		menuIds.put(MenuId.OBFUSCATION.propertiesKey(), false);
-		menuIds.put(MenuId.SIMPLE_OBFUSCATION.propertiesKey(), false);
-		menuIds.put(MenuId.OPERATED_OBFUSCATION.propertiesKey(), false);
-		menuIds.put(MenuId.CONVERT.propertiesKey(), false);
-		menuIds.put(MenuId.CONSOLE.propertiesKey(), false);
-		return menuIds;
+		if(enabledMenuIdsWithEmptyModel == null) {
+			Set<BaseMenuId> disabledBaseMenus = SetFactory.newHashSet(
+					BaseMenuId.EDIT,
+					BaseMenuId.LOOK_AND_FEEL,
+					BaseMenuId.LOOK_AND_FEEL_GTK,
+					BaseMenuId.LOOK_AND_FEEL_METAL,
+					BaseMenuId.LOOK_AND_FEEL_OCEAN,
+					BaseMenuId.LOOK_AND_FEEL_MOTIF,
+					BaseMenuId.LOOK_AND_FEEL_NIMBUS,
+					BaseMenuId.LOOK_AND_FEEL_SYSTEM,
+					BaseMenuId.TOGGLE_FULLSCREEN
+			);
+			Set<MenuId> disabledMenus = SetFactory.newHashSet(
+					MenuId.VERIFY_CHECKSUM,
+					MenuId.OPEN_DATABASE,
+					MenuId.SAVE_APPLICATION_FILE,
+					MenuId.SECRET_KEY,
+					MenuId.SECRET_KEY_NEW,
+					MenuId.OPEN_PRIVATE_KEY,
+					MenuId.OBFUSCATION,
+					MenuId.SIMPLE_OBFUSCATION,
+					MenuId.OPERATED_OBFUSCATION,
+					MenuId.CONVERT,
+					MenuId.CONSOLE,
+					MenuId.SEARCH
+			);
+			enabledMenuIdsWithEmptyModel = new LinkedHashMap<>();
+			Arrays.stream(BaseMenuId.values())
+					.forEach(baseMenuId -> {
+						if(disabledBaseMenus.contains(baseMenuId)) {
+							enabledMenuIdsWithEmptyModel.put(baseMenuId.propertiesKey(), false);
+						} else {
+							enabledMenuIdsWithEmptyModel.put(baseMenuId.propertiesKey(), true);
+						}
+					});
+			Arrays.stream(MenuId.values())
+					.forEach(menuId -> {
+						if(disabledMenus.contains(menuId)) {
+							enabledMenuIdsWithEmptyModel.put(menuId.propertiesKey(), false);
+						} else {
+							enabledMenuIdsWithEmptyModel.put(menuId.propertiesKey(), true);
+						}
+					});
+		}
+		return enabledMenuIdsWithEmptyModel;
 	}
 
 	public Map<String, Boolean> getEnabledMenuIdsWithExistingModel() {
-		Map<String, Boolean> menuIds = new LinkedHashMap<>();
-		menuIds.put(BaseMenuId.EDIT.propertiesKey(), true);
-		menuIds.put(BaseMenuId.FILE.propertiesKey(), true);
-		menuIds.put(BaseMenuId.HELP.propertiesKey(), true);
-		menuIds.put(BaseMenuId.HELP_CONTENT.propertiesKey(), true);
-		menuIds.put(BaseMenuId.HELP_DONATE.propertiesKey(), true);
-		menuIds.put(BaseMenuId.HELP_LICENSE.propertiesKey(), true);
-		menuIds.put(BaseMenuId.HELP_INFO.propertiesKey(), true);
-		menuIds.put(BaseMenuId.LOOK_AND_FEEL.propertiesKey(), true);
-		menuIds.put(BaseMenuId.LOOK_AND_FEEL_GTK.propertiesKey(), true);
-		menuIds.put(BaseMenuId.LOOK_AND_FEEL_METAL.propertiesKey(), true);
-		menuIds.put(BaseMenuId.LOOK_AND_FEEL_OCEAN.propertiesKey(), true);
-		menuIds.put(BaseMenuId.LOOK_AND_FEEL_MOTIF.propertiesKey(), true);
-		menuIds.put(BaseMenuId.LOOK_AND_FEEL_NIMBUS.propertiesKey(), true);
-		menuIds.put(BaseMenuId.LOOK_AND_FEEL_SYSTEM.propertiesKey(), true);
-		menuIds.put(BaseMenuId.TOGGLE_FULLSCREEN.propertiesKey(), true);
-		menuIds.put(BaseMenuId.EXIT.propertiesKey(), true);
-		menuIds.put(MenuId.VERIFY_CHECKSUM.propertiesKey(), true);
-		menuIds.put(MenuId.OPEN_DATABASE.propertiesKey(), true);
-		menuIds.put(MenuId.SAVE_APPLICATION_FILE.propertiesKey(), true);
-		menuIds.put(MenuId.OPEN_DATABASE_TOOL_BAR.propertiesKey(), true);
-		menuIds.put(MenuId.SECRET_KEY.propertiesKey(), true);
-		menuIds.put(MenuId.SECRET_KEY_NEW.propertiesKey(), true);
-		menuIds.put(MenuId.OPEN_PRIVATE_KEY.propertiesKey(), true);
-		menuIds.put(MenuId.OBFUSCATION.propertiesKey(), true);
-		menuIds.put(MenuId.SIMPLE_OBFUSCATION.propertiesKey(), true);
-		menuIds.put(MenuId.OPERATED_OBFUSCATION.propertiesKey(), true);
-		menuIds.put(MenuId.CONVERT.propertiesKey(), true);
-		menuIds.put(MenuId.CONSOLE.propertiesKey(), true);
-		return menuIds;
+		if(enabledMenuIdsWithExistingModel == null) {
+			final Map<String, Boolean> menuIds = new LinkedHashMap<>();
+			Arrays.stream(BaseMenuId.values())
+					.forEach(baseMenuId -> menuIds.put(baseMenuId.propertiesKey(), true));
+			Arrays.stream(MenuId.values())
+					.forEach(menuId -> menuIds.put(menuId.propertiesKey(), true));
+			enabledMenuIdsWithExistingModel = menuIds;
+		}
+		return enabledMenuIdsWithExistingModel;
 	}
 }

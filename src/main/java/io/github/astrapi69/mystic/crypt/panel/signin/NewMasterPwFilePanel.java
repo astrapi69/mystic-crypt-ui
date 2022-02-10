@@ -47,8 +47,6 @@ import org.apache.commons.lang3.StringUtils;
 import io.github.astrapi69.browser.BrowserControlExtensions;
 import io.github.astrapi69.file.create.FileCreationState;
 import io.github.astrapi69.file.create.FileFactory;
-import io.github.astrapi69.file.search.PathFinder;
-import io.github.astrapi69.file.system.SystemFileExtensions;
 import io.github.astrapi69.model.BaseModel;
 import io.github.astrapi69.model.LambdaModel;
 import io.github.astrapi69.model.api.IModel;
@@ -58,7 +56,6 @@ import io.github.astrapi69.mystic.crypt.panel.privatekey.NewPrivateKeyModelBean;
 import io.github.astrapi69.mystic.crypt.panel.pw.GeneratePasswordDialog;
 import io.github.astrapi69.mystic.crypt.panel.pw.GeneratePasswordModelBean;
 import io.github.astrapi69.net.url.URLExtensions;
-import io.github.astrapi69.swing.base.AbstractApplicationFrame;
 import io.github.astrapi69.swing.base.BasePanel;
 import io.github.astrapi69.swing.combobox.model.StringMutableComboBoxModel;
 import io.github.astrapi69.swing.component.JMTextField;
@@ -219,9 +216,7 @@ public class NewMasterPwFilePanel extends BasePanel<MasterPwFileModelBean>
 		btnApplicationFileChooser.addActionListener(this::onApplicationFileChooser);
 		btnKeyFileChooser.addActionListener(this::onKeyFileChooser);
 
-		File configDir = PathFinder.getRelativePath(SystemFileExtensions.getUserHomeDir(),
-			AbstractApplicationFrame.DEFAULT_USER_CONFIGURATION_DIRECTORY_NAME,
-			MysticCryptApplicationFrame.APPLICATION_NAME);
+		File configDir = MysticCryptApplicationFrame.getInstance().getConfigurationDirectory();
 		fileChooser = new JFileChooser(configDir);
 
 		cmbKeyFileModel = new StringMutableComboBoxModel(modelObject.getKeyFilePaths(),
@@ -530,23 +525,20 @@ public class NewMasterPwFilePanel extends BasePanel<MasterPwFileModelBean>
 	protected void onOk(ActionEvent actionEvent)
 	{
 		MasterPwFileModelBean modelObject = getModelObject();
-		boolean withPrivateKeyFile = modelObject.isWithKeyFile();
-		boolean withMasterPw = modelObject.isWithMasterPw();
-		boolean withPasswordAndPrivateKey = withMasterPw && withPrivateKeyFile;
-		if (withPasswordAndPrivateKey)
+		SignInType signInType = SignInType.toSignInType(modelObject);
+		if (SignInType.PASSWORD_AND_PRIVATE_KEY.equals(signInType))
 		{
 			ApplicationFileFactory.newApplicationFileWithPasswordAndPrivateKey(modelObject);
 		}
-		else if (withPrivateKeyFile)
+		else if (SignInType.PRIVATE_KEY.equals(signInType))
 		{
 			ApplicationFileFactory.newApplicationFileWithPrivateKey(modelObject);
 		}
-		else if (withMasterPw)
+		else if (SignInType.PASSWORD.equals(signInType))
 		{
 			ApplicationFileFactory.newApplicationFileWithPassword(modelObject);
 		}
 	}
-
 
 	protected void onCancel(ActionEvent actionEvent)
 	{

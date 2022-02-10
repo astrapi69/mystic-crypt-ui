@@ -47,6 +47,7 @@ import io.github.astrapi69.file.delete.DeleteFileExtensions;
 import io.github.astrapi69.file.read.ReadFileExtensions;
 import io.github.astrapi69.file.search.PathFinder;
 import io.github.astrapi69.gson.JsonStringToObjectExtensions;
+import io.github.astrapi69.io.file.FileExtension;
 import io.github.astrapi69.mystic.crypt.ApplicationModelBean;
 import io.github.astrapi69.throwable.RuntimeExceptionDecorator;
 
@@ -77,7 +78,7 @@ public class ApplicationFileWithKeyFactoryTest
 			Security.addProvider(new BouncyCastleProvider());
 		}
 		applicationFile = PathFinder.getRelativePath(PathFinder.getSrcTestResourcesDir(),
-			"empty-db-with-key" + ApplicationFileFactory.MCRDB_FILE_EXTENSION);
+			"empty-db-with-key" + FileExtension.MYSTIC_CRYPT_ENCRYPTED.getExtension());
 		selectedApplicationFilePath = applicationFile.getAbsolutePath();
 		decryptedApplicationFile = PathFinder.getRelativePath(PathFinder.getSrcTestResourcesDir(),
 			"empty-db-with-key.json");

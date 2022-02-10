@@ -28,17 +28,13 @@ import java.awt.event.ActionEvent;
 
 import javax.swing.AbstractAction;
 
-import io.github.astrapi69.mystic.crypt.ApplicationModelBean;
-import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
-import io.github.astrapi69.mystic.crypt.panel.signin.ApplicationFileStoreWorker;
-
-public class SaveApplicationFileAction extends AbstractAction
+public class SearchApplicationFileAction extends AbstractAction
 {
 
 	/** The Constant serialVersionUID. */
 	private static final long serialVersionUID = 1L;
 
-	public SaveApplicationFileAction(final String name)
+	public SearchApplicationFileAction(final String name)
 	{
 		super(name);
 	}
@@ -49,8 +45,6 @@ public class SaveApplicationFileAction extends AbstractAction
 	@Override
 	public void actionPerformed(final ActionEvent e)
 	{
-		ApplicationModelBean applicationModelBean = MysticCryptApplicationFrame.getInstance()
-			.getModelObject();
-		ApplicationFileStoreWorker.storeApplicationFile(applicationModelBean);
+		// TODO here comes the action for to search the application file ...
 	}
 }

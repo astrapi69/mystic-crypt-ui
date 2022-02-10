@@ -40,8 +40,6 @@ import lombok.extern.java.Log;
 import org.apache.commons.lang3.StringUtils;
 
 import io.github.astrapi69.browser.BrowserControlExtensions;
-import io.github.astrapi69.file.search.PathFinder;
-import io.github.astrapi69.file.system.SystemFileExtensions;
 import io.github.astrapi69.gson.ObjectToJsonFileExtensions;
 import io.github.astrapi69.model.BaseModel;
 import io.github.astrapi69.model.LambdaModel;
@@ -49,7 +47,6 @@ import io.github.astrapi69.model.api.IModel;
 import io.github.astrapi69.mystic.crypt.ApplicationModelBean;
 import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
 import io.github.astrapi69.net.url.URLExtensions;
-import io.github.astrapi69.swing.base.AbstractApplicationFrame;
 import io.github.astrapi69.swing.base.BasePanel;
 import io.github.astrapi69.swing.combobox.model.StringMutableComboBoxModel;
 import io.github.astrapi69.swing.component.JMCheckBox;
@@ -197,9 +194,7 @@ public class MasterPwWithApplicationFilePanel extends BasePanel<MasterPwFileMode
 
 		btnApplicationFileChooser.addActionListener(this::onApplicationFileChooser);
 
-		File configDir = PathFinder.getRelativePath(SystemFileExtensions.getUserHomeDir(),
-			AbstractApplicationFrame.DEFAULT_USER_CONFIGURATION_DIRECTORY_NAME,
-			MysticCryptApplicationFrame.APPLICATION_NAME);
+		File configDir = MysticCryptApplicationFrame.getInstance().getConfigurationDirectory();
 		fileChooser = new JFileChooser(configDir);
 		String selectedKeyFilePath = modelObject.getSelectedKeyFilePath();
 

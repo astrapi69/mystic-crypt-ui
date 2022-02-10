@@ -24,32 +24,29 @@
  */
 package io.github.astrapi69.mystic.crypt.panel.signin;
 
-import java.io.File;
+import lombok.NonNull;
 
-import io.github.astrapi69.mystic.crypt.ApplicationModelBean;
-
-public final class ApplicationFileFactory
+public enum SignInType
 {
-	public static File newApplicationFileWithPrivateKey(MasterPwFileModelBean modelObject)
-	{
-		ApplicationModelBean applicationModelBean = ApplicationModelBean.builder().build();
-		applicationModelBean.setMasterPwFileModelBean(modelObject);
-		return ApplicationFileStoreWorker.saveToFileWithPrivateKey(applicationModelBean);
-	}
+	PRIVATE_KEY, PASSWORD, PASSWORD_AND_PRIVATE_KEY, UNDEFINED;
 
-	public static File newApplicationFileWithPasswordAndPrivateKey(
-		MasterPwFileModelBean modelObject)
+	public static SignInType toSignInType(final @NonNull MasterPwFileModelBean modelObject)
 	{
-		ApplicationModelBean applicationModelBean = ApplicationModelBean.builder().build();
-		applicationModelBean.setMasterPwFileModelBean(modelObject);
-		return ApplicationFileStoreWorker.saveToFileWithPasswordAndPrivateKey(applicationModelBean);
+		boolean withPrivateKeyFile = modelObject.isWithKeyFile();
+		boolean withMasterPw = modelObject.isWithMasterPw();
+		boolean withPasswordAndPrivateKey = withMasterPw && withPrivateKeyFile;
+		if (withPasswordAndPrivateKey)
+		{
+			return PASSWORD_AND_PRIVATE_KEY;
+		}
+		if (withPrivateKeyFile)
+		{
+			return PRIVATE_KEY;
+		}
+		if (withMasterPw)
+		{
+			return PASSWORD;
+		}
+		return UNDEFINED;
 	}
-
-	public static File newApplicationFileWithPassword(final MasterPwFileModelBean modelObject)
-	{
-		ApplicationModelBean applicationModelBean = ApplicationModelBean.builder().build();
-		applicationModelBean.setMasterPwFileModelBean(modelObject);
-		return ApplicationFileStoreWorker.saveToFileWithPassword(applicationModelBean);
-	}
-
 }

@@ -45,6 +45,7 @@ import io.github.astrapi69.crypto.key.reader.PrivateKeyReader;
 import io.github.astrapi69.crypto.model.CryptModel;
 import io.github.astrapi69.file.delete.DeleteFileExtensions;
 import io.github.astrapi69.file.search.PathFinder;
+import io.github.astrapi69.io.file.FileExtension;
 import io.github.astrapi69.mystic.crypt.ApplicationModelBean;
 import io.github.astrapi69.throwable.RuntimeExceptionDecorator;
 
@@ -76,7 +77,7 @@ class ApplicationFileWithPasswordAndKeyFactoryTest
 			Security.addProvider(new BouncyCastleProvider());
 		}
 		applicationFile = PathFinder.getRelativePath(PathFinder.getSrcTestResourcesDir(),
-			"empty-db-with-key-and-pw" + ApplicationFileFactory.MCRDB_FILE_EXTENSION);
+			"empty-db-with-key-and-pw" + FileExtension.MYSTIC_CRYPT_ENCRYPTED.getExtension());
 		selectedApplicationFilePath = applicationFile.getAbsolutePath();
 		decryptedApplicationFile = PathFinder.getRelativePath(PathFinder.getSrcTestResourcesDir(),
 			"empty-db-with-key-and-pw.json");

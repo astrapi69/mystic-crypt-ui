@@ -42,6 +42,7 @@ import io.github.astrapi69.crypto.file.PBEFileDecryptor;
 import io.github.astrapi69.crypto.model.CryptModel;
 import io.github.astrapi69.file.delete.DeleteFileExtensions;
 import io.github.astrapi69.file.search.PathFinder;
+import io.github.astrapi69.io.file.FileExtension;
 import io.github.astrapi69.mystic.crypt.ApplicationModelBean;
 import io.github.astrapi69.throwable.RuntimeExceptionDecorator;
 
@@ -59,7 +60,7 @@ public class ApplicationFileWithPasswordFactoryTest
 	void setUp()
 	{
 		applicationFile = PathFinder.getRelativePath(PathFinder.getSrcTestResourcesDir(),
-			"empty-db" + ApplicationFileFactory.MCRDB_FILE_EXTENSION);
+			"empty-db" + FileExtension.MYSTIC_CRYPT_ENCRYPTED.getExtension());
 		selectedApplicationFilePath = applicationFile.getAbsolutePath();
 		decryptedApplicationFile = PathFinder.getRelativePath(PathFinder.getSrcTestResourcesDir(),
 			"empty-db.json");
@@ -106,7 +107,7 @@ public class ApplicationFileWithPasswordFactoryTest
 			.decorate(() -> decryptor.decrypt(applicationFile));
 
 		expectedFile = PathFinder.getRelativePath(PathFinder.getSrcTestResourcesDir(),
-			"expected-empty-db" + ApplicationFileFactory.MCRDB_FILE_EXTENSION);
+			"expected-empty-db" + FileExtension.MYSTIC_CRYPT_ENCRYPTED.getExtension());
 		expected = ApplicationFileReader.getApplicationModelBean(expectedFile,
 			password.toCharArray());
 

@@ -64,6 +64,16 @@ public enum MenuId
 	NEW_DATABASE_TOOL_BAR(MenuId.NEW_DATABASE_TOOL_BAR_KEY),
 
 	/**
+	 * The id for 'search' the application file toolbar menu
+	 */
+	SEARCH_TOOL_BAR(MenuId.SEARCH_TOOL_BAR_KEY),
+
+	/**
+	 * The id for 'lock' the workspace dialog menu
+	 */
+	LOCK_WORKSPACE_TOOL_BAR(MenuId.LOCK_WORKSPACE_TOOL_BAR_KEY),
+
+	/**
 	 * The id for the secret key menu
 	 */
 	SECRET_KEY(MenuId.SECRET_KEY_KEY),
@@ -109,6 +119,16 @@ public enum MenuId
 	SAVE_AS_APPLICATION_FILE(MenuId.SAVE_AS_APPLICATION_FILE_KEY),
 
 	/**
+	 * The id for 'search' the application file dialog menu
+	 */
+	SEARCH(MenuId.SEARCH_KEY),
+
+	/**
+	 * The id for 'lock' the workspace dialog menu
+	 */
+	LOCK_WORKSPACE(MenuId.LOCK_WORKSPACE_KEY),
+
+	/**
 	 * The id for the exit application menu
 	 */
 	CONSOLE(MenuId.CONSOLE_KEY);
@@ -126,12 +146,16 @@ public enum MenuId
 	public static final String CONVERT_KEY = "global.menu.file.convert";
 	public static final String TOGGLE_FULLSCREEN_KEY = "global.menu.file.toggle.fullscreen";
 	public static final String CONSOLE_KEY = "global.menu.file.console";
+	public static final String SEARCH_KEY = "global.menu.file.search.database";
+	public static final String LOCK_WORKSPACE_KEY = "global.menu.file.lock.workspace";
 	public static final String EXIT_KEY = "global.menu.file.exit";
 
 	public static final String VERIFY_CHECKSUM_KEY = "global.menu.edit.verify.checksum";
 
 	public static final String NEW_DATABASE_TOOL_BAR_KEY = "global.toolbar.menu.file.new.database";
 	public static final String OPEN_DATABASE_TOOL_BAR_KEY = "global.toolbar.menu.file.open.database";
+	public static final String SEARCH_TOOL_BAR_KEY = "global.toolbar.menu.file.search.database";
+	public static final String LOCK_WORKSPACE_TOOL_BAR_KEY = "global.toolbar.menu.file.lock.workspace";
 
 	/** the properties key from the current menu */
 	String propertiesKey;

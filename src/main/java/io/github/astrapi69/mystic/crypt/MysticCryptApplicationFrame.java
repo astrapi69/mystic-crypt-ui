@@ -28,8 +28,6 @@ import java.awt.Component;
 import java.io.File;
 import java.security.Security;
 
-import javax.swing.ImageIcon;
-import javax.swing.JButton;
 import javax.swing.JMenu;
 import javax.swing.JToolBar;
 
@@ -46,13 +44,15 @@ import io.github.astrapi69.gson.JsonStringToObjectExtensions;
 import io.github.astrapi69.icon.ImageIconFactory;
 import io.github.astrapi69.model.BaseModel;
 import io.github.astrapi69.model.api.IModel;
+import io.github.astrapi69.mystic.crypt.action.LockWorkspaceAction;
 import io.github.astrapi69.mystic.crypt.action.NewApplicationFileAction;
 import io.github.astrapi69.mystic.crypt.action.SaveApplicationFileAction;
+import io.github.astrapi69.mystic.crypt.action.SearchApplicationFileAction;
 import io.github.astrapi69.mystic.crypt.panel.signin.MasterPwFileDialog;
 import io.github.astrapi69.mystic.crypt.panel.signin.MasterPwFileModelBean;
 import io.github.astrapi69.mystic.crypt.panel.signin.MemoizedSigninModelBean;
 import io.github.astrapi69.swing.base.ApplicationFrame;
-import io.github.astrapi69.swing.button.IconButtonFactory;
+import io.github.astrapi69.swing.button.builder.JButtonInfo;
 import io.github.astrapi69.swing.layout.ScreenSizeExtensions;
 import io.github.astrapi69.swing.splashscreen.ProgressBarSplashScreen;
 import io.github.astrapi69.swing.splashscreen.SplashScreenModelBean;
@@ -154,9 +154,10 @@ public class MysticCryptApplicationFrame extends ApplicationFrame<ApplicationMod
 		if (getModelObject().isShowSplash())
 		{
 			SplashScreenModelBean splashScreenModelBean = SplashScreenModelBean.builder()
-				.imagePath(getIconPath()).text(Messages.getString("mainframe.project.name",
-							MysticCryptApplicationFrame.APPLICATION_NAME)).min(0).max(100).showTime(1200)
-				.showing(true).build();
+				.imagePath(getIconPath())
+				.text(Messages.getString("mainframe.project.name",
+					MysticCryptApplicationFrame.APPLICATION_NAME))
+				.min(0).max(100).showTime(1200).showing(true).build();
 			IModel<SplashScreenModelBean> modelBeanModel = BaseModel.of(splashScreenModelBean);
 			Thread splashScreenThread = new Thread(() -> {
 				new ProgressBarSplashScreen(MysticCryptApplicationFrame.this, modelBeanModel)
@@ -231,9 +232,7 @@ public class MysticCryptApplicationFrame extends ApplicationFrame<ApplicationMod
 	@Override
 	protected JMenu newDesktopMenu(@NonNull Component applicationFrame)
 	{
-		DesktopMenu desktopMenu = new DesktopMenu(applicationFrame);
-		desktopMenu.onEnableByPublic();
-		return desktopMenu;
+		return new DesktopMenu(applicationFrame);
 	}
 
 	@Override
@@ -249,47 +248,49 @@ public class MysticCryptApplicationFrame extends ApplicationFrame<ApplicationMod
 		setTitle(Messages.getString("mainframe.title"));
 		this.setSize(ScreenSizeExtensions.getScreenWidth(), ScreenSizeExtensions.getScreenHeight());
 		DesktopMenu menu = (DesktopMenu)getMenu();
-		menu.onEnableBySignin();
+		if (getModelObject().isSignedIn())
+		{
+			menu.onEnableBySignin();
+		}
+		else
+		{
+			menu.onEnableByPublic();
+		}
 	}
 
 	@Override
 	protected JToolBar newJToolBar()
 	{
-		JToolBar toolBar = super.newJToolBar();
+		ApplicationToolbar toolBar = new ApplicationToolbar();
 		toolBar.setSize(this.getWidth(), 25);
 
-		ImageIcon applicationAdd = ImageIconFactory
-			.newImageIcon("io/github/astrapi69/silk/icons/application_add.png");
-		JButton btnApplicationAdd = IconButtonFactory.newIconButton(applicationAdd,
-			"New application");
-		btnApplicationAdd.addActionListener(new NewApplicationFileAction("New Application"));
-		btnApplicationAdd.setName(MenuId.NEW_DATABASE_TOOL_BAR.propertiesKey());
-		toolBar.add(btnApplicationAdd);
+		toolBar.add(JButtonInfo.builder()
+			.icon(
+				ImageIconFactory.newImageIcon("io/github/astrapi69/silk/icons/application_add.png"))
+			.toolTipText("New application")
+			.actionListener(new NewApplicationFileAction("New Application"))
+			.name(MenuId.NEW_DATABASE_TOOL_BAR.propertiesKey()).build().toJButton());
 
+		toolBar.add(JButtonInfo.builder()
+			.icon(ImageIconFactory.newImageIcon("io/github/astrapi69/silk/icons/folder_edit.png"))
+			.toolTipText("Open application")
+			.actionListener(new NewApplicationFileAction("Open Application"))
+			.name(MenuId.OPEN_DATABASE_TOOL_BAR.propertiesKey()).build().toJButton());
 
-		ImageIcon folderEdit = ImageIconFactory
-			.newImageIcon("io/github/astrapi69/silk/icons/folder_edit.png");
-		JButton btnFolderEdit = IconButtonFactory.newIconButton(folderEdit, "Open application");
-		btnFolderEdit.addActionListener(new NewApplicationFileAction("New Application"));
-		btnFolderEdit.setName(MenuId.OPEN_DATABASE_TOOL_BAR.propertiesKey());
-		toolBar.add(btnFolderEdit);
+		toolBar.add(JButtonInfo.builder()
+			.icon(ImageIconFactory.newImageIcon("io/github/astrapi69/silk/icons/disk.png"))
+			.toolTipText("Save").actionListener(new SaveApplicationFileAction("Save"))
+			.name(MenuId.SAVE_APPLICATION_FILE.propertiesKey()).build().toJButton());
 
+		toolBar.add(JButtonInfo.builder()
+			.icon(ImageIconFactory.newImageIcon("io/github/astrapi69/silk/icons/magnifier.png"))
+			.toolTipText("Search").actionListener(new SearchApplicationFileAction("Search"))
+			.name(MenuId.SEARCH_TOOL_BAR.propertiesKey()).build().toJButton());
 
-		ImageIcon disk = ImageIconFactory.newImageIcon("io/github/astrapi69/silk/icons/disk.png");
-		JButton btnDisk = IconButtonFactory.newIconButton(disk, "Save");
-		btnDisk.addActionListener(new SaveApplicationFileAction("save"));
-		btnDisk.setName(MenuId.SAVE_APPLICATION_FILE.propertiesKey());
-		toolBar.add(btnDisk);
-		//
-		// ImageIcon magnifier = ImageIconFactory
-		// .newImageIcon("io/github/astrapi69/silk/icons/magnifier.png");
-		// JButton btnMagnifier = IconButtonFactory.newIconButton(magnifier, "Search");
-		// toolBar.add(btnMagnifier);
-		//
-		// ImageIcon lock =
-		// ImageIconFactory.newImageIcon("io/github/astrapi69/silk/icons/lock.png");
-		// JButton btnLock = IconButtonFactory.newIconButton(lock, "Lock workspace");
-		// toolBar.add(btnLock);
+		toolBar.add(JButtonInfo.builder()
+			.icon(ImageIconFactory.newImageIcon("io/github/astrapi69/silk/icons/lock.png"))
+			.toolTipText("Lock workspace").actionListener(new LockWorkspaceAction("Lock workspace"))
+			.name(MenuId.LOCK_WORKSPACE_TOOL_BAR.propertiesKey()).build().toJButton());
 
 		return toolBar;
 	}
