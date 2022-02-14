@@ -19,13 +19,8 @@ jobs:
     - name: Set up JDK 1.8
       uses: actions/setup-java@v1
       with:
-        java-version: '8.0.302+8'
-        distribution: 'temurin'
+        java-version: 1.8
+    - name: Grant execute permission for gradlew
+      run: chmod +x gradlew
     - name: Build with Gradle
-      uses: gradle/gradle-build-action@bc3340afc5e3cc44f2321809ac090d731c13c514
-      with:
-        arguments: build
-      env:
-        ossrhUsername: ${{secrets.OSSRHUSERNAME}}
-        ossrhPassword: ${{secrets.OSSRHPASSWORD}}
-    - uses: codecov/codecov-action@v2
+      run: ./gradlew build
