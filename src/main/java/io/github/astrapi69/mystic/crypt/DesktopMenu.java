@@ -41,8 +41,16 @@ import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.KeyStroke;
+import javax.swing.LookAndFeel;
 import javax.swing.MenuElement;
+import javax.swing.UIManager;
 
+import io.github.astrapi69.design.pattern.observer.event.EventListener;
+import io.github.astrapi69.design.pattern.observer.event.EventObject;
+import io.github.astrapi69.design.pattern.observer.event.EventSource;
+import io.github.astrapi69.mystic.crypt.app.ApplicationEventBus;
+import io.github.astrapi69.swing.plaf.action.LookAndFeelGTKAction;
+import io.github.astrapi69.swing.visibility.RenderMode;
 import lombok.NonNull;
 import lombok.extern.java.Log;
 
@@ -71,6 +79,7 @@ import io.github.astrapi69.swing.menu.builder.JMenuItemInfo;
  */
 @Log
 public class DesktopMenu extends BaseDesktopMenu
+		implements EventListener<EventObject<RenderMode>>
 {
 	private Map<String, Boolean> enabledMenuIdsWithExistingModel;
 
@@ -82,6 +91,10 @@ public class DesktopMenu extends BaseDesktopMenu
 	public DesktopMenu(@NonNull Component applicationFrame)
 	{
 		super(applicationFrame);
+		// register as listener...
+		final EventSource<EventObject<RenderMode>> eventSource = ApplicationEventBus
+				.getSaveState();
+		eventSource.add(this);
 	}
 
 	@Override
@@ -117,10 +130,10 @@ public class DesktopMenu extends BaseDesktopMenu
 
 		// Save application file
 		JMenuItem saveApplicationFileMenuItem = JMenuItemInfo.builder().text("Save")
-			.mnemonic(MenuExtensions.toMnemonic('S'))
-			.keyStroke(KeyStroke.getKeyStroke('S', Event.CTRL_MASK))
-			.actionListener(new SaveApplicationFileAction("Save"))
-			.name(MenuId.SAVE_APPLICATION_FILE.propertiesKey()).build().toJMenuItem();
+				.mnemonic(MenuExtensions.toMnemonic('S'))
+				.keyStroke(KeyStroke.getKeyStroke('S', Event.CTRL_MASK))
+				.actionListener(new SaveApplicationFileAction("Save"))
+				.name(MenuId.SAVE_APPLICATION_FILE.propertiesKey()).build().toJMenuItem();
 		fileMenu.add(saveApplicationFileMenuItem);
 
 		// Open Database
@@ -361,6 +374,7 @@ public class DesktopMenu extends BaseDesktopMenu
 
 		final Set<String> disabledToolBarMenus = SetFactory.newHashSet(
 				MenuId.LOCK_WORKSPACE_TOOL_BAR.propertiesKey(),
+				MenuId.SAVE_APPLICATION_FILE_TOOL_BAR.propertiesKey(),
 				MenuId.SEARCH_TOOL_BAR.propertiesKey()
 		);
 		ApplicationToolbar toolBar = (ApplicationToolbar) MysticCryptApplicationFrame.getInstance().getToolBar();
@@ -388,7 +402,11 @@ public class DesktopMenu extends BaseDesktopMenu
 				}
 			});
 		}
-		final Set<String> disabledToolBarMenus = SetFactory.newHashSet();
+		final Set<String> disabledToolBarMenus = SetFactory.newHashSet(
+				MenuId.SAVE_APPLICATION_FILE.propertiesKey(),
+				MenuId.SAVE_APPLICATION_FILE_TOOL_BAR.propertiesKey()
+
+		);
 		ApplicationToolbar toolBar = (ApplicationToolbar) MysticCryptApplicationFrame.getInstance().getToolBar();
 		Set<JButton> allButtonElements = toolBar.getToolbarButtons();
 		allButtonElements.forEach(jButton -> {
@@ -446,13 +464,56 @@ public class DesktopMenu extends BaseDesktopMenu
 
 	public Map<String, Boolean> getEnabledMenuIdsWithExistingModel() {
 		if(enabledMenuIdsWithExistingModel == null) {
+
+			Set<MenuId> disabledMenus = SetFactory.newHashSet(
+					MenuId.SAVE_APPLICATION_FILE
+			);
 			final Map<String, Boolean> menuIds = new LinkedHashMap<>();
 			Arrays.stream(BaseMenuId.values())
 					.forEach(baseMenuId -> menuIds.put(baseMenuId.propertiesKey(), true));
-			Arrays.stream(MenuId.values())
-					.forEach(menuId -> menuIds.put(menuId.propertiesKey(), true));
+			MenuId[] values = MenuId.values();
+			Arrays.stream(values)
+					.forEach(menuId -> {
+						if(disabledMenus.contains(menuId)) {
+							menuIds.put(menuId.propertiesKey(), false);
+						} else {
+							menuIds.put(menuId.propertiesKey(), true);
+						}
+					});
 			enabledMenuIdsWithExistingModel = menuIds;
 		}
 		return enabledMenuIdsWithExistingModel;
+	}
+
+
+	@Override
+	public void onEvent(EventObject<RenderMode> event) {
+		RenderMode renderMode = event.getSource();
+		final Set<String> saveToolBarMenus = SetFactory.newHashSet(
+				MenuId.SAVE_APPLICATION_FILE_TOOL_BAR.propertiesKey()
+		);
+		Set<String> saveMenus = SetFactory.newHashSet(
+				MenuId.SAVE_APPLICATION_FILE.propertiesKey()
+		);
+
+		ApplicationToolbar toolBar = (ApplicationToolbar) MysticCryptApplicationFrame.getInstance().getToolBar();
+
+		Set<JButton> allButtonElements = toolBar.getToolbarButtons();
+		allButtonElements.forEach(jButton -> {
+			if(saveToolBarMenus.contains(jButton.getName())) {
+				jButton.setEnabled(RenderMode.EDITABLE.equals(renderMode));
+			}
+		});
+		JMenuBar menubar = getMenubar();
+		List<MenuElement> allMenuElements = ParentMenuResolver.getAllMenuElements(menubar,
+				true);
+		allMenuElements.forEach(menuElement -> {
+			String name = menuElement.getComponent().getName();
+			if (saveMenus.contains(name))
+			{
+				menuElement.getComponent()
+						.setEnabled(RenderMode.EDITABLE.equals(renderMode));
+			}
+		});
 	}
 }

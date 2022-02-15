@@ -28,9 +28,13 @@ import java.awt.event.ActionEvent;
 
 import javax.swing.AbstractAction;
 
+import io.github.astrapi69.design.pattern.observer.event.EventObject;
+import io.github.astrapi69.design.pattern.observer.event.EventSource;
 import io.github.astrapi69.mystic.crypt.ApplicationModelBean;
 import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
+import io.github.astrapi69.mystic.crypt.app.ApplicationEventBus;
 import io.github.astrapi69.mystic.crypt.panel.signin.ApplicationFileStoreWorker;
+import io.github.astrapi69.swing.visibility.RenderMode;
 
 public class SaveApplicationFileAction extends AbstractAction
 {
@@ -52,5 +56,9 @@ public class SaveApplicationFileAction extends AbstractAction
 		ApplicationModelBean applicationModelBean = MysticCryptApplicationFrame.getInstance()
 			.getModelObject();
 		ApplicationFileStoreWorker.storeApplicationFile(applicationModelBean);
+
+		final EventSource<EventObject<RenderMode>> eventSource = ApplicationEventBus
+				.getSaveState();
+		eventSource.fireEvent(new EventObject<>(RenderMode.VIEWABLE));
 	}
 }

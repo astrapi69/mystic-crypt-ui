@@ -37,6 +37,11 @@ import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreeModel;
 
+import io.github.astrapi69.design.pattern.observer.event.EventObject;
+import io.github.astrapi69.design.pattern.observer.event.EventSource;
+import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
+import io.github.astrapi69.mystic.crypt.app.ApplicationEventBus;
+import io.github.astrapi69.swing.visibility.RenderMode;
 import org.jdesktop.swingx.JXTree;
 
 import io.github.astrapi69.model.BaseModel;
@@ -163,8 +168,10 @@ public class SecretKeyTreeWithContentPanel
 		GenericTreeElement<List<MysticCryptEntryModelBean>> parentTreeNode = model.getValue();
 		List<MysticCryptEntryModelBean> tableInfo = parentTreeNode.getDefaultContent();
 		// 2. Create a generic table model for the class Permission.
-		getTblTreeEntryTable().getGenericTableModel().removeAll();
-		getTblTreeEntryTable().getGenericTableModel().addList(tableInfo);
+		if(tableInfo != null && !tableInfo.isEmpty()){
+			getTblTreeEntryTable().getGenericTableModel().removeAll();
+			getTblTreeEntryTable().getGenericTableModel().addList(tableInfo);
+		}
 		return getTblTreeEntryTable().getGenericTableModel();
 	}
 
@@ -256,6 +263,11 @@ public class SecretKeyTreeWithContentPanel
 					selectedTreeNode.getValue().setName(name);
 
 					((DefaultTreeModel)tree.getModel()).reload(selectedDefaultMutableTreeNode);
+					MysticCryptApplicationFrame.getInstance().getModelObject().setDirty(true);
+
+					final EventSource<EventObject<RenderMode>> eventSource = ApplicationEventBus
+							.getSaveState();
+					eventSource.fireEvent(new EventObject<>(RenderMode.EDITABLE));
 					tree.treeDidChange();
 				}
 			});
@@ -273,6 +285,11 @@ public class SecretKeyTreeWithContentPanel
 				selectedTreeNode.removeAllChildren();
 				((DefaultMutableTreeNode)selectedTreeNode.getParent()).remove(selectedNodeIndex);
 				((DefaultTreeModel)tree.getModel()).reload(selectedTreeNode);
+				MysticCryptApplicationFrame.getInstance().getModelObject().setDirty(true);
+
+				final EventSource<EventObject<RenderMode>> eventSource = ApplicationEventBus
+						.getSaveState();
+				eventSource.fireEvent(new EventObject<>(RenderMode.EDITABLE));
 				tree.treeDidChange();
 				tree.treeDidChange();
 				this.repaint();
@@ -314,6 +331,11 @@ public class SecretKeyTreeWithContentPanel
 					DefaultMutableTreeNode newChild = new DefaultMutableTreeNode(newTreeNode, node);
 					selectedTreeNode.add(newChild);
 					((DefaultTreeModel)tree.getModel()).reload(selectedTreeNode);
+					MysticCryptApplicationFrame.getInstance().getModelObject().setDirty(true);
+
+					final EventSource<EventObject<RenderMode>> eventSource = ApplicationEventBus
+							.getSaveState();
+					eventSource.fireEvent(new EventObject<>(RenderMode.EDITABLE));
 					tree.treeDidChange();
 				}
 			});
@@ -382,6 +404,11 @@ public class SecretKeyTreeWithContentPanel
 			getTblTreeEntryTable().getAllSelectedRowData().forEach(tableEntry -> {
 				getTblTreeEntryTable().getGenericTableModel().remove(tableEntry);
 			});
+			MysticCryptApplicationFrame.getInstance().getModelObject().setDirty(true);
+
+			final EventSource<EventObject<RenderMode>> eventSource = ApplicationEventBus
+					.getSaveState();
+			eventSource.fireEvent(new EventObject<>(RenderMode.EDITABLE));
 			getTblTreeEntryTable().getGenericTableModel().fireTableDataChanged();
 		}
 	}
@@ -408,6 +435,11 @@ public class SecretKeyTreeWithContentPanel
 				MysticCryptEntryModelBean modelObject = panel.getModelObject();
 
 				data.add(index, modelObject);
+				MysticCryptApplicationFrame.getInstance().getModelObject().setDirty(true);
+
+				final EventSource<EventObject<RenderMode>> eventSource = ApplicationEventBus
+						.getSaveState();
+				eventSource.fireEvent(new EventObject<>(RenderMode.EDITABLE));
 				getTblTreeEntryTable().getGenericTableModel().fireTableDataChanged();
 			}
 		});
@@ -428,6 +460,11 @@ public class SecretKeyTreeWithContentPanel
 		{
 			MysticCryptEntryModelBean modelObject = panel.getModelObject();
 			getTblTreeEntryTable().getGenericTableModel().add(modelObject);
+			MysticCryptApplicationFrame.getInstance().getModelObject().setDirty(true);
+
+			final EventSource<EventObject<RenderMode>> eventSource = ApplicationEventBus
+					.getSaveState();
+			eventSource.fireEvent(new EventObject<>(RenderMode.EDITABLE));
 			getTblTreeEntryTable().getGenericTableModel().fireTableDataChanged();
 		}
 	}

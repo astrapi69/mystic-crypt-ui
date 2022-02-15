@@ -27,10 +27,14 @@ package io.github.astrapi69.mystic.crypt;
 import java.awt.Component;
 import java.io.File;
 import java.security.Security;
+import java.util.Set;
 
+import javax.swing.JButton;
 import javax.swing.JMenu;
 import javax.swing.JToolBar;
 
+import io.github.astrapi69.collections.set.SetFactory;
+import io.github.astrapi69.swing.visibility.RenderMode;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NonNull;
@@ -57,6 +61,9 @@ import io.github.astrapi69.swing.layout.ScreenSizeExtensions;
 import io.github.astrapi69.swing.splashscreen.ProgressBarSplashScreen;
 import io.github.astrapi69.swing.splashscreen.SplashScreenModelBean;
 import io.github.astrapi69.throwable.RuntimeExceptionDecorator;
+import io.github.astrapi69.design.pattern.observer.event.EventListener;
+import io.github.astrapi69.design.pattern.observer.event.EventObject;
+import io.github.astrapi69.design.pattern.observer.event.EventSource;
 
 /**
  * The class {@link MysticCryptApplicationFrame}
@@ -280,7 +287,7 @@ public class MysticCryptApplicationFrame extends ApplicationFrame<ApplicationMod
 		toolBar.add(JButtonInfo.builder()
 			.icon(ImageIconFactory.newImageIcon("io/github/astrapi69/silk/icons/disk.png"))
 			.toolTipText("Save").actionListener(new SaveApplicationFileAction("Save"))
-			.name(MenuId.SAVE_APPLICATION_FILE.propertiesKey()).build().toJButton());
+			.name(MenuId.SAVE_APPLICATION_FILE_TOOL_BAR.propertiesKey()).build().toJButton());
 
 		toolBar.add(JButtonInfo.builder()
 			.icon(ImageIconFactory.newImageIcon("io/github/astrapi69/silk/icons/magnifier.png"))
@@ -294,5 +301,4 @@ public class MysticCryptApplicationFrame extends ApplicationFrame<ApplicationMod
 
 		return toolBar;
 	}
-
 }

@@ -74,6 +74,11 @@ public enum MenuId
 	LOCK_WORKSPACE_TOOL_BAR(MenuId.LOCK_WORKSPACE_TOOL_BAR_KEY),
 
 	/**
+	 * The id for 'lock' the workspace dialog menu
+	 */
+	SAVE_APPLICATION_FILE_TOOL_BAR(MenuId.SAVE_APPLICATION_FILE_TOOL_BAR_KEY),
+
+	/**
 	 * The id for the secret key menu
 	 */
 	SECRET_KEY(MenuId.SECRET_KEY_KEY),
@@ -153,6 +158,7 @@ public enum MenuId
 	public static final String VERIFY_CHECKSUM_KEY = "global.menu.edit.verify.checksum";
 
 	public static final String NEW_DATABASE_TOOL_BAR_KEY = "global.toolbar.menu.file.new.database";
+	public static final String SAVE_APPLICATION_FILE_TOOL_BAR_KEY = "global.toolbar.menu.file.save";
 	public static final String OPEN_DATABASE_TOOL_BAR_KEY = "global.toolbar.menu.file.open.database";
 	public static final String SEARCH_TOOL_BAR_KEY = "global.toolbar.menu.file.search.database";
 	public static final String LOCK_WORKSPACE_TOOL_BAR_KEY = "global.toolbar.menu.file.lock.workspace";

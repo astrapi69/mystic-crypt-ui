@@ -224,6 +224,9 @@ dependencies {
     compileOnly("org.projectlombok:lombok:$lombokVersion")
     annotationProcessor("org.projectlombok:lombok:$lombokVersion")
 
+    implementation("io.github.astrapi69:observer:$designPatternObserverVersion")
+    implementation("io.github.astrapi69:state:$designPatternStateVersion")
+    implementation("io.github.astrapi69:eventbus:$designPatternEventbusVersion")
     implementation("org.pf4j:pf4j:$pf4jVersion")
     implementation("com.google.guava:guava:$guavaVersion")
     implementation("javax.help:javahelp:$javahelpVersion")
