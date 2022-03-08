@@ -34,6 +34,7 @@ import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 import javax.swing.event.DocumentEvent;
 
+import io.github.astrapi69.mystic.crypt.app.file.ApplicationFileReader;
 import lombok.Getter;
 import lombok.extern.java.Log;
 
@@ -556,7 +557,7 @@ public class MasterPwWithApplicationFilePanel extends BasePanel<MasterPwFileMode
 		System.err.println("onCancel method action called");
 		MysticCryptApplicationFrame applicationFrame = MysticCryptApplicationFrame.getInstance();
 		MasterPwFileModelBean modelObject = getModelObject();
-		ApplicationModelBean applicationModelBean = ApplicationFileReader.read(modelObject);
+		ApplicationModelBean applicationModelBean = ApplicationModelBean.builder().build();
 		if (applicationModelBean != null)
 		{
 			applicationModelBean.setSignedIn(false);

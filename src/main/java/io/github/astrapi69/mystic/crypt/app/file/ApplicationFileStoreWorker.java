@@ -22,7 +22,7 @@
  * OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
  * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-package io.github.astrapi69.mystic.crypt.panel.signin;
+package io.github.astrapi69.mystic.crypt.app.file;
 
 import java.io.File;
 import java.security.PrivateKey;
@@ -31,6 +31,7 @@ import java.security.PublicKey;
 import javax.crypto.Cipher;
 import javax.crypto.SecretKey;
 
+import io.github.astrapi69.copy.object.CopyObjectExtensions;
 import io.github.astrapi69.crypto.algorithm.AesAlgorithm;
 import io.github.astrapi69.crypto.algorithm.SunJCEAlgorithm;
 import io.github.astrapi69.crypto.factory.SecretKeyFactoryExtensions;
@@ -48,6 +49,8 @@ import io.github.astrapi69.file.write.WriteFileExtensions;
 import io.github.astrapi69.gson.ObjectToJsonExtensions;
 import io.github.astrapi69.io.file.FileExtension;
 import io.github.astrapi69.mystic.crypt.ApplicationModelBean;
+import io.github.astrapi69.mystic.crypt.panel.signin.MasterPwFileModelBean;
+import io.github.astrapi69.mystic.crypt.panel.signin.SignInType;
 import io.github.astrapi69.random.number.RandomIntFactory;
 import io.github.astrapi69.random.object.RandomStringFactory;
 import io.github.astrapi69.throwable.RuntimeExceptionDecorator;
@@ -76,7 +79,7 @@ public final class ApplicationFileStoreWorker
 	public static File saveToFileWithPrivateKey(ApplicationModelBean applicationModelBean)
 	{
 		SecretKey symmetricKey;
-		String json;
+		String mapBase64EncodedString;
 		CryptModel<Cipher, SecretKey, String> symmetricKeyModel;
 		PublicKeyGenericEncryptor<String> genericEncryptor;
 		PublicKey publicKey;
@@ -109,13 +112,13 @@ public final class ApplicationFileStoreWorker
 			.decorate(() -> new PublicKeyEncryptor(encryptModel, symmetricKeyModel));
 		genericEncryptor = new PublicKeyGenericEncryptor<>(encryptor);
 		applicationModelBean.getMasterPwFileModelBean().setPrivateKey(null);
-		json = RuntimeExceptionDecorator
-			.decorate(() -> ObjectToJsonExtensions.toJson(applicationModelBean));
+		mapBase64EncodedString = RuntimeExceptionDecorator.decorate(() -> CopyObjectExtensions
+			.copyObjectToMapBase64EncodedString(applicationModelBean, "class"));
 
 		RuntimeExceptionDecorator
-			.decorate(() -> WriteFileExtensions.string2File(applicationFile, json));
+			.decorate(() -> WriteFileExtensions.string2File(applicationFile, mapBase64EncodedString));
 
-		encrypt = RuntimeExceptionDecorator.decorate(() -> genericEncryptor.encrypt(json));
+		encrypt = RuntimeExceptionDecorator.decorate(() -> genericEncryptor.encrypt(mapBase64EncodedString));
 
 		RuntimeExceptionDecorator
 			.decorate(() -> WriteFileExtensions.storeByteArrayToFile(encrypt, applicationFile));
@@ -131,7 +134,7 @@ public final class ApplicationFileStoreWorker
 		PublicKeyGenericEncryptor<String> genericEncryptor;
 		PrivateKey privateKey;
 		CryptModel<Cipher, PublicKey, byte[]> encryptModel;
-		String json;
+		String mapBase64EncodedString;
 		char[] masterPw;
 		PublicKey publicKey;
 		String encryptedJson;
@@ -158,17 +161,15 @@ public final class ApplicationFileStoreWorker
 		encryptor = RuntimeExceptionDecorator
 			.decorate(() -> new PublicKeyEncryptor(encryptModel, symmetricKeyModel));
 
-
 		genericEncryptor = new PublicKeyGenericEncryptor<>(encryptor);
 
 		passwordStringEncryptor = new PasswordStringEncryptor(String.valueOf(masterPw));
 		applicationModelBean.getMasterPwFileModelBean().setPrivateKey(null);
-
-		json = RuntimeExceptionDecorator
-			.decorate(() -> ObjectToJsonExtensions.toJson(applicationModelBean));
+		mapBase64EncodedString = RuntimeExceptionDecorator.decorate(() -> CopyObjectExtensions
+			.copyObjectToMapBase64EncodedString(applicationModelBean, "class"));
 
 		encryptedJson = RuntimeExceptionDecorator
-			.decorate(() -> passwordStringEncryptor.encrypt(json));
+			.decorate(() -> passwordStringEncryptor.encrypt(mapBase64EncodedString));
 
 		byte[] encrypt = RuntimeExceptionDecorator
 			.decorate(() -> genericEncryptor.encrypt(encryptedJson));
@@ -181,7 +182,7 @@ public final class ApplicationFileStoreWorker
 	public static File saveToFileWithPassword(ApplicationModelBean applicationModelBean)
 	{
 		File applicationFile;
-		String json;
+		String mapBase64EncodedString;
 		String password;
 		String randomFilename;
 		File tempJsonFile;
@@ -201,11 +202,10 @@ public final class ApplicationFileStoreWorker
 			.algorithm(SunJCEAlgorithm.PBEWithMD5AndDES).build();
 		encryptor = RuntimeExceptionDecorator.decorate(() -> new PBEFileEncryptor(cryptModel,
 			applicationFile, FileExtension.MYSTIC_CRYPT_ENCRYPTED.getExtension()));
-
-		json = RuntimeExceptionDecorator
-			.decorate(() -> ObjectToJsonExtensions.toJson(applicationModelBean));
+		mapBase64EncodedString = RuntimeExceptionDecorator.decorate(() -> CopyObjectExtensions
+			.copyObjectToMapBase64EncodedString(applicationModelBean, "class"));
 		RuntimeExceptionDecorator
-			.decorate(() -> WriteFileExtensions.string2File(tempJsonFile, json));
+			.decorate(() -> WriteFileExtensions.string2File(tempJsonFile, mapBase64EncodedString));
 
 		File encryptedApplicationFile = RuntimeExceptionDecorator
 			.decorate(() -> encryptor.encrypt(tempJsonFile));

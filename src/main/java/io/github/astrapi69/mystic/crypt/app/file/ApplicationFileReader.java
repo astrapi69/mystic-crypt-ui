@@ -22,7 +22,7 @@
  * OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
  * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-package io.github.astrapi69.mystic.crypt.panel.signin;
+package io.github.astrapi69.mystic.crypt.app.file;
 
 import java.io.File;
 import java.security.PrivateKey;
@@ -36,6 +36,7 @@ import lombok.extern.java.Log;
 
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 
+import io.github.astrapi69.copy.object.CopyObjectExtensions;
 import io.github.astrapi69.crypto.algorithm.SunJCEAlgorithm;
 import io.github.astrapi69.crypto.factory.CryptModelFactory;
 import io.github.astrapi69.crypto.file.PBEFileDecryptor;
@@ -47,10 +48,9 @@ import io.github.astrapi69.crypto.model.CryptModel;
 import io.github.astrapi69.crypto.pw.PasswordStringDecryptor;
 import io.github.astrapi69.file.delete.DeleteFileExtensions;
 import io.github.astrapi69.file.read.ReadFileExtensions;
-import io.github.astrapi69.gson.JsonFileToObjectExtensions;
-import io.github.astrapi69.gson.JsonStringToObjectExtensions;
 import io.github.astrapi69.mystic.crypt.ApplicationModelBean;
 import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
+import io.github.astrapi69.mystic.crypt.panel.signin.MasterPwFileModelBean;
 
 @Log
 public class ApplicationFileReader
@@ -161,8 +161,10 @@ public class ApplicationFileReader
 
 		PBEFileDecryptor fileDecryptor = new PBEFileDecryptor(pbeCryptModel);
 		File decrypt = fileDecryptor.decrypt(applicationFile);
-		applicationModelBean = JsonFileToObjectExtensions.toObject(decrypt,
+		String fromFile = ReadFileExtensions.readFromFile(decrypt);
+		applicationModelBean = CopyObjectExtensions.copyBase64EncodedStringMapToObject(fromFile,
 			ApplicationModelBean.class);
+
 		DeleteFileExtensions.delete(decrypt);
 
 		return applicationModelBean;
@@ -186,9 +188,8 @@ public class ApplicationFileReader
 		byte[] encryptedBytes = ReadFileExtensions.readFileToBytearray(applicationFile);
 		String encryptedJson = genericDecryptor.decrypt(encryptedBytes);
 		String json = passwordStringDecryptor.decrypt(encryptedJson);
-		applicationModelBean = JsonStringToObjectExtensions.toObject(json,
+		applicationModelBean = CopyObjectExtensions.copyBase64EncodedStringMapToObject(json,
 			ApplicationModelBean.class);
-
 		return applicationModelBean;
 	}
 
@@ -211,7 +212,7 @@ public class ApplicationFileReader
 		genericDecryptor = new PrivateKeyGenericDecryptor<>(decryptor);
 		byte[] encryptedBytes = ReadFileExtensions.readFileToBytearray(applicationFile);
 		String json = genericDecryptor.decrypt(encryptedBytes);
-		applicationModelBean = JsonStringToObjectExtensions.toObject(json,
+		applicationModelBean = CopyObjectExtensions.copyBase64EncodedStringMapToObject(json,
 			ApplicationModelBean.class);
 		return applicationModelBean;
 	}
