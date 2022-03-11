@@ -168,7 +168,8 @@ public class SecretKeyTreeWithContentPanel
 		GenericTreeElement<List<MysticCryptEntryModelBean>> parentTreeNode = model.getValue();
 		List<MysticCryptEntryModelBean> tableInfo = parentTreeNode.getDefaultContent();
 		// 2. Create a generic table model for the class Permission.
-		if(tableInfo != null && !tableInfo.isEmpty()){
+		if (tableInfo != null && !tableInfo.isEmpty())
+		{
 			getTblTreeEntryTable().getGenericTableModel().removeAll();
 			getTblTreeEntryTable().getGenericTableModel().addList(tableInfo);
 		}
@@ -266,7 +267,7 @@ public class SecretKeyTreeWithContentPanel
 					MysticCryptApplicationFrame.getInstance().getModelObject().setDirty(true);
 
 					final EventSource<EventObject<RenderMode>> eventSource = ApplicationEventBus
-							.getSaveState();
+						.getSaveState();
 					eventSource.fireEvent(new EventObject<>(RenderMode.EDITABLE));
 					tree.treeDidChange();
 				}
@@ -288,7 +289,7 @@ public class SecretKeyTreeWithContentPanel
 				MysticCryptApplicationFrame.getInstance().getModelObject().setDirty(true);
 
 				final EventSource<EventObject<RenderMode>> eventSource = ApplicationEventBus
-						.getSaveState();
+					.getSaveState();
 				eventSource.fireEvent(new EventObject<>(RenderMode.EDITABLE));
 				tree.treeDidChange();
 				tree.treeDidChange();
@@ -334,7 +335,7 @@ public class SecretKeyTreeWithContentPanel
 					MysticCryptApplicationFrame.getInstance().getModelObject().setDirty(true);
 
 					final EventSource<EventObject<RenderMode>> eventSource = ApplicationEventBus
-							.getSaveState();
+						.getSaveState();
 					eventSource.fireEvent(new EventObject<>(RenderMode.EDITABLE));
 					tree.treeDidChange();
 				}
@@ -407,7 +408,7 @@ public class SecretKeyTreeWithContentPanel
 			MysticCryptApplicationFrame.getInstance().getModelObject().setDirty(true);
 
 			final EventSource<EventObject<RenderMode>> eventSource = ApplicationEventBus
-					.getSaveState();
+				.getSaveState();
 			eventSource.fireEvent(new EventObject<>(RenderMode.EDITABLE));
 			getTblTreeEntryTable().getGenericTableModel().fireTableDataChanged();
 		}
@@ -438,7 +439,7 @@ public class SecretKeyTreeWithContentPanel
 				MysticCryptApplicationFrame.getInstance().getModelObject().setDirty(true);
 
 				final EventSource<EventObject<RenderMode>> eventSource = ApplicationEventBus
-						.getSaveState();
+					.getSaveState();
 				eventSource.fireEvent(new EventObject<>(RenderMode.EDITABLE));
 				getTblTreeEntryTable().getGenericTableModel().fireTableDataChanged();
 			}
@@ -463,7 +464,7 @@ public class SecretKeyTreeWithContentPanel
 			MysticCryptApplicationFrame.getInstance().getModelObject().setDirty(true);
 
 			final EventSource<EventObject<RenderMode>> eventSource = ApplicationEventBus
-					.getSaveState();
+				.getSaveState();
 			eventSource.fireEvent(new EventObject<>(RenderMode.EDITABLE));
 			getTblTreeEntryTable().getGenericTableModel().fireTableDataChanged();
 		}

@@ -78,8 +78,8 @@ public class OpenDatabaseTreeFrameAction extends AbstractAction
 				.build().setDefaultContent(new ArrayList<>());
 			rootTreeNode = TreeNodeFactory.initializeTreeNodeWithTreeElement(parent, null);
 			TreeNodeFactory.initializeTreeNodeWithTreeElement(firstChild, rootTreeNode);
-			MysticCryptApplicationFrame
-					.getInstance().getModelObject().setRootTreeNode(rootTreeNode);
+			MysticCryptApplicationFrame.getInstance().getModelObject()
+				.setRootTreeNode(rootTreeNode);
 		}
 		final SecretKeyTreeWithContentPanel component = new SecretKeyTreeWithContentPanel(
 			BaseModel.of(rootTreeNode));

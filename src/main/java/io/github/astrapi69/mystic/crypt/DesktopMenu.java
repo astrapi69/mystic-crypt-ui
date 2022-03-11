@@ -78,8 +78,7 @@ import io.github.astrapi69.swing.menu.builder.JMenuItemInfo;
  * The class {@link DesktopMenu}
  */
 @Log
-public class DesktopMenu extends BaseDesktopMenu
-		implements EventListener<EventObject<RenderMode>>
+public class DesktopMenu extends BaseDesktopMenu implements EventListener<EventObject<RenderMode>>
 {
 	private Map<String, Boolean> enabledMenuIdsWithExistingModel;
 
@@ -92,8 +91,7 @@ public class DesktopMenu extends BaseDesktopMenu
 	{
 		super(applicationFrame);
 		// register as listener...
-		final EventSource<EventObject<RenderMode>> eventSource = ApplicationEventBus
-				.getSaveState();
+		final EventSource<EventObject<RenderMode>> eventSource = ApplicationEventBus.getSaveState();
 		eventSource.add(this);
 	}
 
@@ -130,10 +128,10 @@ public class DesktopMenu extends BaseDesktopMenu
 
 		// Save application file
 		JMenuItem saveApplicationFileMenuItem = JMenuItemInfo.builder().text("Save")
-				.mnemonic(MenuExtensions.toMnemonic('S'))
-				.keyStroke(KeyStroke.getKeyStroke('S', Event.CTRL_MASK))
-				.actionListener(new SaveApplicationFileAction("Save"))
-				.name(MenuId.SAVE_APPLICATION_FILE.propertiesKey()).build().toJMenuItem();
+			.mnemonic(MenuExtensions.toMnemonic('S'))
+			.keyStroke(KeyStroke.getKeyStroke('S', Event.CTRL_MASK))
+			.actionListener(new SaveApplicationFileAction("Save"))
+			.name(MenuId.SAVE_APPLICATION_FILE.propertiesKey()).build().toJMenuItem();
 		fileMenu.add(saveApplicationFileMenuItem);
 
 		// Open Database

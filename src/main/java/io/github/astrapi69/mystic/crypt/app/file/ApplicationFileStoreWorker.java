@@ -55,6 +55,7 @@ import io.github.astrapi69.file.system.SystemFileExtensions;
 import io.github.astrapi69.file.write.WriteFileExtensions;
 import io.github.astrapi69.gson.ObjectToJsonExtensions;
 import io.github.astrapi69.gson.strategy.GenericMapClassFieldsExclusionStrategy;
+import io.github.astrapi69.gson.type.adapter.InterfaceAdapter;
 import io.github.astrapi69.io.file.FileExtension;
 import io.github.astrapi69.mystic.crypt.ApplicationModelBean;
 import io.github.astrapi69.mystic.crypt.panel.signin.MasterPwFileModelBean;
@@ -67,6 +68,7 @@ public final class ApplicationFileStoreWorker
 {
 
 	public static final Gson GSON = new GsonBuilder()
+		.registerTypeAdapter(TreeNode.class, new InterfaceAdapter<TreeNode>())
 		.addSerializationExclusionStrategy(new GenericMapClassFieldsExclusionStrategy(
 			MapFactory.newLinkedHashMap(KeyValuePair.<Class<?>, Set<String>> builder()
 				.key(TreeNode.class).value(SetFactory.newLinkedHashSet("children")).build())))

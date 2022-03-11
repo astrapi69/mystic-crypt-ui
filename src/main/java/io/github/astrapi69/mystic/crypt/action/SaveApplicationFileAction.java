@@ -57,8 +57,7 @@ public class SaveApplicationFileAction extends AbstractAction
 			.getModelObject();
 		ApplicationFileStoreWorker.storeApplicationFile(applicationModelBean);
 
-		final EventSource<EventObject<RenderMode>> eventSource = ApplicationEventBus
-				.getSaveState();
+		final EventSource<EventObject<RenderMode>> eventSource = ApplicationEventBus.getSaveState();
 		eventSource.fireEvent(new EventObject<>(RenderMode.VIEWABLE));
 	}
 }
