@@ -31,7 +31,6 @@ import java.util.Set;
 
 import javax.crypto.Cipher;
 import javax.crypto.SecretKey;
-import javax.swing.tree.TreeNode;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -63,12 +62,18 @@ import io.github.astrapi69.mystic.crypt.panel.signin.SignInType;
 import io.github.astrapi69.random.number.RandomIntFactory;
 import io.github.astrapi69.random.object.RandomStringFactory;
 import io.github.astrapi69.throwable.RuntimeExceptionDecorator;
+import io.github.astrapi69.tree.TreeNode;
+import io.github.astrapi69.tree.api.ITreeNode;
+import com.google.gson.typeadapters.RuntimeTypeAdapterFactory;
 
 public final class ApplicationFileStoreWorker
 {
 
 	public static final Gson GSON = new GsonBuilder()
-		.registerTypeAdapter(TreeNode.class, new InterfaceAdapter<TreeNode>())
+			.registerTypeAdapterFactory(RuntimeTypeAdapterFactory
+					.of(ITreeNode.class, "type")
+					.registerSubtype((Class<? extends ITreeNode>)TreeNode.class))
+//		.registerTypeAdapter(TreeNode.class, new InterfaceAdapter<TreeNode>())
 		.addSerializationExclusionStrategy(new GenericMapClassFieldsExclusionStrategy(
 			MapFactory.newLinkedHashMap(KeyValuePair.<Class<?>, Set<String>> builder()
 				.key(TreeNode.class).value(SetFactory.newLinkedHashSet("children")).build())))

@@ -55,7 +55,7 @@ import io.github.astrapi69.swing.table.model.GenericTableModel;
 import io.github.astrapi69.swing.tree.GenericTreeElement;
 import io.github.astrapi69.swing.tree.JTreeExtensions;
 import io.github.astrapi69.swing.tree.TreeNodeFactory;
-import io.github.astrapi69.swing.tree.content.panel.TreeNodeGenericTreeElementWithContentPanel;
+import io.github.astrapi69.swing.tree.panel.content.TreeNodeGenericTreeElementWithContentPanel;
 import io.github.astrapi69.swing.tree.panel.node.NodeModelBean;
 import io.github.astrapi69.swing.tree.panel.node.NodePanel;
 import io.github.astrapi69.tree.TreeNode;
