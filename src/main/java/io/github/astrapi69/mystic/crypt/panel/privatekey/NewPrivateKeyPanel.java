@@ -286,6 +286,7 @@ public class NewPrivateKeyPanel extends BasePanel<NewPrivateKeyModelBean>
 	 * @param actionEvent
 	 *            the action event
 	 */
+	@SuppressWarnings("unchecked")
 	protected void onChangeKeySize(final ActionEvent actionEvent)
 	{
 		final JComboBox<String> cb = (JComboBox<String>)actionEvent.getSource();

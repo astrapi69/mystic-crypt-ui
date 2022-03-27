@@ -76,7 +76,7 @@ public class GeneratePasswordPanel extends BasePanel<GeneratePasswordModelBean>
 		super(model);
 	}
 
-
+	@SuppressWarnings("unchecked")
 	@Override
 	protected void onInitializeComponents()
 	{

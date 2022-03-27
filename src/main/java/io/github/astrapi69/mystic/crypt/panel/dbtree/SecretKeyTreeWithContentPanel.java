@@ -225,6 +225,7 @@ public class SecretKeyTreeWithContentPanel
 		});
 	}
 
+	@SuppressWarnings("unchecked")
 	protected void onEditSelectedTreeNode(final MouseEvent mouseEvent)
 	{
 		JTreeExtensions.getSelectedDefaultMutableTreeNode(mouseEvent, tree)
@@ -300,6 +301,7 @@ public class SecretKeyTreeWithContentPanel
 	/**
 	 * The callback method on add a new child tree node
 	 */
+	@SuppressWarnings("unchecked")
 	protected void onAddNewChildTreeNode(MouseEvent mouseEvent)
 	{
 		JTreeExtensions.getSelectedDefaultMutableTreeNode(mouseEvent, tree)

@@ -33,7 +33,7 @@ import io.github.astrapi69.swing.tree.JXTreeElement;
 import io.github.astrapi69.swing.tree.TreeNodeFactory;
 import io.github.astrapi69.test.instances.TestPermissionFactory;
 import io.github.astrapi69.test.objects.Permission;
-import io.github.astrapi69.tree.TreeElement;
+import io.github.astrapi69.tree.element.TreeElement;
 import io.github.astrapi69.tree.TreeNode;
 
 public class TestTreeNodeFactory
@@ -141,6 +141,7 @@ public class TestTreeNodeFactory
 			TestPermissionFactory.getPermissions());
 	}
 
+	@SuppressWarnings("unchecked")
 	public static <T> TreeNode<GenericTreeElement<List<T>>> initializeTestGenericTreeNodeElement(
 		List<T> first, List<T> second)
 	{

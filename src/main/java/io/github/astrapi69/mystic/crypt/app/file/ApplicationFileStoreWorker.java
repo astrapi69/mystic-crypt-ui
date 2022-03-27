@@ -70,10 +70,9 @@ public final class ApplicationFileStoreWorker
 {
 
 	public static final Gson GSON = new GsonBuilder()
-			.registerTypeAdapterFactory(RuntimeTypeAdapterFactory
-					.of(ITreeNode.class, "type")
-					.registerSubtype((Class<? extends ITreeNode>)TreeNode.class))
-//		.registerTypeAdapter(TreeNode.class, new InterfaceAdapter<TreeNode>())
+		.registerTypeAdapterFactory(RuntimeTypeAdapterFactory.of(ITreeNode.class, "type")
+			.registerSubtype((Class<? extends ITreeNode>)TreeNode.class))
+		// .registerTypeAdapter(TreeNode.class, new InterfaceAdapter<TreeNode>())
 		.addSerializationExclusionStrategy(new GenericMapClassFieldsExclusionStrategy(
 			MapFactory.newLinkedHashMap(KeyValuePair.<Class<?>, Set<String>> builder()
 				.key(TreeNode.class).value(SetFactory.newLinkedHashSet("children")).build())))

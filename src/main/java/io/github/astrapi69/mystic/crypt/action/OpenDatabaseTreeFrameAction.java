@@ -58,6 +58,7 @@ public class OpenDatabaseTreeFrameAction extends AbstractAction
 		super(name);
 	}
 
+	@SuppressWarnings("unchecked")
 	public static void openDatabaseTreeFrame()
 	{
 		// create internal frame
