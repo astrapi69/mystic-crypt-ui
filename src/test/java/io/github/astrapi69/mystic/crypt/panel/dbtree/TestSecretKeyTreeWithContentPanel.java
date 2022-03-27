@@ -31,6 +31,7 @@ import io.github.astrapi69.collections.list.ListFactory;
 import io.github.astrapi69.model.BaseModel;
 import io.github.astrapi69.model.api.IModel;
 import io.github.astrapi69.swing.tree.GenericTreeElement;
+import io.github.astrapi69.tree.BaseTreeNode;
 import io.github.astrapi69.tree.TreeNode;
 import io.github.astrapi69.window.adapter.CloseWindow;
 
@@ -49,9 +50,9 @@ class TestSecretKeyTreeWithContentPanel
 		frame.addWindowListener(new CloseWindow());
 		List<MysticCryptEntryModelBean> first = ListFactory.newArrayList();
 		first.add(MysticCryptEntryModelBean.builder().userName("foo").build());
-		TreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>> genericTreeElementTreeNode = TestTreeNodeFactory
+		BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> genericTreeElementTreeNode = TestBaseTreeNodeFactory
 			.initializeTestGenericTreeNodeElement(first, first);
-		IModel<TreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>>> parentModel = BaseModel
+		IModel<BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long>> parentModel = BaseModel
 			.of(genericTreeElementTreeNode);
 		SecretKeyTreeWithContentPanel secretKeyTreeWithContentPanel = new SecretKeyTreeWithContentPanel(
 			parentModel);

@@ -33,9 +33,11 @@ import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
 import io.github.astrapi69.mystic.crypt.panel.dbtree.MysticCryptEntryModelBean;
 import io.github.astrapi69.mystic.crypt.panel.dbtree.SecretKeyTreeWithContentPanel;
 import io.github.astrapi69.swing.component.factory.JComponentFactory;
+import io.github.astrapi69.swing.tree.BaseTreeNodeFactory;
 import io.github.astrapi69.swing.tree.GenericTreeElement;
 import io.github.astrapi69.swing.tree.TreeNodeFactory;
 import io.github.astrapi69.swing.utils.JInternalFrameExtensions;
+import io.github.astrapi69.tree.BaseTreeNode;
 import io.github.astrapi69.tree.TreeNode;
 
 /**
@@ -58,13 +60,12 @@ public class OpenDatabaseTreeFrameAction extends AbstractAction
 		super(name);
 	}
 
-	@SuppressWarnings("unchecked")
 	public static void openDatabaseTreeFrame()
 	{
 		// create internal frame
 		final JInternalFrame internalFrame = JComponentFactory.newInternalFrame("Key database",
 			true, true, true, true);
-		TreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>> rootTreeNode = MysticCryptApplicationFrame
+		BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> rootTreeNode = MysticCryptApplicationFrame
 			.getInstance().getModelObject().getRootTreeNode();
 		if (rootTreeNode == null)
 		{
@@ -77,8 +78,8 @@ public class OpenDatabaseTreeFrameAction extends AbstractAction
 				.<List<MysticCryptEntryModelBean>> builder().name("mykeys").parent(parent)
 				.iconPath("io/github/astrapi69/silk/icons/folder.png").withText(true).node(true)
 				.build().setDefaultContent(new ArrayList<>());
-			rootTreeNode = TreeNodeFactory.initializeTreeNodeWithTreeElement(parent, null);
-			TreeNodeFactory.initializeTreeNodeWithTreeElement(firstChild, rootTreeNode);
+			rootTreeNode = BaseTreeNodeFactory.initializeTreeNodeWithTreeElement(parent, null);
+			BaseTreeNodeFactory.initializeTreeNodeWithTreeElement(firstChild, rootTreeNode);
 			MysticCryptApplicationFrame.getInstance().getModelObject()
 				.setRootTreeNode(rootTreeNode);
 		}

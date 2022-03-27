@@ -25,6 +25,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import io.github.astrapi69.tree.BaseTreeNode;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -55,7 +56,7 @@ public class ApplicationModelBean implements Serializable
 	/** The Constant serialVersionUID. */
 	private static final long serialVersionUID = 1L;
 	MasterPwFileModelBean masterPwFileModelBean;
-	TreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>> rootTreeNode;
+	BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> rootTreeNode;
 	boolean showSplash;
 	boolean signedIn;
 	/** The flag that indicated that the application model changed */
