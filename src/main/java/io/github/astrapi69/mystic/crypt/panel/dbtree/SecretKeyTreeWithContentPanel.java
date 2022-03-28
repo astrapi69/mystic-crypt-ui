@@ -42,6 +42,7 @@ import io.github.astrapi69.design.pattern.observer.event.EventSource;
 import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
 import io.github.astrapi69.mystic.crypt.app.ApplicationEventBus;
 import io.github.astrapi69.swing.tree.BaseTreeNodeFactory;
+import io.github.astrapi69.swing.tree.renderer.GenericBaseTreeNodeCellRenderer;
 import io.github.astrapi69.swing.visibility.RenderMode;
 import io.github.astrapi69.tree.BaseTreeNode;
 import org.jdesktop.swingx.JXTree;
@@ -84,7 +85,7 @@ public class SecretKeyTreeWithContentPanel
 	{
 		JXTree tree = super.newTree();
 		tree.setCellRenderer(
-			new JXTreeNodeRemixIconCellRenderer<List<MysticCryptEntryModelBean>>());
+			new GenericBaseTreeNodeCellRenderer<List<MysticCryptEntryModelBean>, Long>());
 		return tree;
 	}
 
@@ -199,7 +200,7 @@ public class SecretKeyTreeWithContentPanel
 	{
 		int x = mouseEvent.getX();
 		int y = mouseEvent.getY();
-		Optional<TreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>>> optionalSelectedUserObject = JTreeExtensions
+		Optional<BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long>> optionalSelectedUserObject = JTreeExtensions
 			.getSelectedUserObject(mouseEvent, tree);
 		optionalSelectedUserObject.ifPresent(selectedTreeNodeElement -> {
 			JPopupMenu popup = MenuFactory.newJPopupMenu();
@@ -307,7 +308,8 @@ public class SecretKeyTreeWithContentPanel
 	{
 		JTreeExtensions.getSelectedDefaultMutableTreeNode(mouseEvent, tree)
 			.ifPresent(selectedTreeNode -> {
-				TreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>> parentTreeNode = (TreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>>)selectedTreeNode
+				BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> parentTreeNode =
+					(BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long>)selectedTreeNode
 					.getUserObject();
 				NodePanel nodePanel = new NodePanel();
 				JOptionPane pane = new JOptionPane(nodePanel, JOptionPane.INFORMATION_MESSAGE,
@@ -327,9 +329,10 @@ public class SecretKeyTreeWithContentPanel
 					GenericTreeElement<List<MysticCryptEntryModelBean>> treeElement = GenericTreeElement
 						.<List<MysticCryptEntryModelBean>> builder().name(name)
 						.parent(parentTreeNode.getValue()).node(node).build();
-					TreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>> newTreeNode = TreeNode
-						.<GenericTreeElement<List<MysticCryptEntryModelBean>>> builder()
-						.value(treeElement).parent(parentTreeNode).displayValue(name).node(node)
+					BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> newTreeNode = BaseTreeNode
+						.<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> builder()
+						.value(treeElement).parent(parentTreeNode).displayValue(name)
+						.leaf(!node)
 						.build();
 
 					DefaultMutableTreeNode newChild = new DefaultMutableTreeNode(newTreeNode, node);
