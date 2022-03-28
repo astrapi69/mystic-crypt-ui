@@ -31,7 +31,6 @@ import java.util.logging.Level;
 
 import javax.crypto.Cipher;
 
-import io.github.astrapi69.mystic.crypt.panel.signin.MasterPwFileModelBean;
 import lombok.NonNull;
 import lombok.extern.java.Log;
 
@@ -52,6 +51,7 @@ import io.github.astrapi69.gson.JsonFileToObjectExtensions;
 import io.github.astrapi69.gson.JsonStringToObjectExtensions;
 import io.github.astrapi69.mystic.crypt.ApplicationModelBean;
 import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
+import io.github.astrapi69.mystic.crypt.panel.signin.MasterPwFileModelBean;
 
 @Log
 public class ApplicationFileReader

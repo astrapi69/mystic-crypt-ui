@@ -32,7 +32,6 @@ import io.github.astrapi69.model.BaseModel;
 import io.github.astrapi69.model.api.IModel;
 import io.github.astrapi69.swing.tree.GenericTreeElement;
 import io.github.astrapi69.tree.BaseTreeNode;
-import io.github.astrapi69.tree.TreeNode;
 import io.github.astrapi69.window.adapter.CloseWindow;
 
 class TestSecretKeyTreeWithContentPanel

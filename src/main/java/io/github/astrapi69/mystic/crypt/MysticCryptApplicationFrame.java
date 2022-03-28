@@ -27,14 +27,10 @@ package io.github.astrapi69.mystic.crypt;
 import java.awt.Component;
 import java.io.File;
 import java.security.Security;
-import java.util.Set;
 
-import javax.swing.JButton;
 import javax.swing.JMenu;
 import javax.swing.JToolBar;
 
-import io.github.astrapi69.collections.set.SetFactory;
-import io.github.astrapi69.swing.visibility.RenderMode;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NonNull;
@@ -61,9 +57,6 @@ import io.github.astrapi69.swing.layout.ScreenSizeExtensions;
 import io.github.astrapi69.swing.splashscreen.ProgressBarSplashScreen;
 import io.github.astrapi69.swing.splashscreen.SplashScreenModelBean;
 import io.github.astrapi69.throwable.RuntimeExceptionDecorator;
-import io.github.astrapi69.design.pattern.observer.event.EventListener;
-import io.github.astrapi69.design.pattern.observer.event.EventObject;
-import io.github.astrapi69.design.pattern.observer.event.EventSource;
 
 /**
  * The class {@link MysticCryptApplicationFrame}

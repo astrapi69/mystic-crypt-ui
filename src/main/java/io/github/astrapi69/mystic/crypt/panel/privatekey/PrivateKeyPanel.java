@@ -21,23 +21,11 @@
 package io.github.astrapi69.mystic.crypt.panel.privatekey;
 
 import java.awt.event.ActionEvent;
-import java.io.IOException;
-import java.security.InvalidAlgorithmParameterException;
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
-import java.security.spec.InvalidKeySpecException;
 import java.util.logging.Level;
-
-import javax.crypto.BadPaddingException;
-import javax.crypto.IllegalBlockSizeException;
-import javax.crypto.NoSuchPaddingException;
 
 import lombok.Getter;
 import lombok.extern.java.Log;
 import net.miginfocom.swing.MigLayout;
-
-import org.apache.commons.codec.DecoderException;
-
 import io.github.astrapi69.model.BaseModel;
 import io.github.astrapi69.model.api.IModel;
 import io.github.astrapi69.mystic.crypt.panel.keygen.EnDecryptPanel;

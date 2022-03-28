@@ -41,22 +41,17 @@ import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.KeyStroke;
-import javax.swing.LookAndFeel;
 import javax.swing.MenuElement;
-import javax.swing.UIManager;
 
-import io.github.astrapi69.design.pattern.observer.event.EventListener;
-import io.github.astrapi69.design.pattern.observer.event.EventObject;
-import io.github.astrapi69.design.pattern.observer.event.EventSource;
-import io.github.astrapi69.mystic.crypt.app.ApplicationEventBus;
-import io.github.astrapi69.swing.plaf.action.LookAndFeelGTKAction;
-import io.github.astrapi69.swing.visibility.RenderMode;
 import lombok.NonNull;
 import lombok.extern.java.Log;
 
 import org.springframework.core.io.Resource;
 
 import io.github.astrapi69.collections.set.SetFactory;
+import io.github.astrapi69.design.pattern.observer.event.EventListener;
+import io.github.astrapi69.design.pattern.observer.event.EventObject;
+import io.github.astrapi69.design.pattern.observer.event.EventSource;
 import io.github.astrapi69.mystic.crypt.action.ApplicationToggleFullScreenAction;
 import io.github.astrapi69.mystic.crypt.action.NewChecksumFrameAction;
 import io.github.astrapi69.mystic.crypt.action.NewKeyGenerationInternalFrameAction;
@@ -65,6 +60,7 @@ import io.github.astrapi69.mystic.crypt.action.OpenConsoleFrameAction;
 import io.github.astrapi69.mystic.crypt.action.OpenDatabaseTreeFrameAction;
 import io.github.astrapi69.mystic.crypt.action.OpenPrivateKeyAction;
 import io.github.astrapi69.mystic.crypt.action.SaveApplicationFileAction;
+import io.github.astrapi69.mystic.crypt.app.ApplicationEventBus;
 import io.github.astrapi69.swing.action.ExitApplicationAction;
 import io.github.astrapi69.swing.base.BaseDesktopMenu;
 import io.github.astrapi69.swing.base.BaseMenuId;
@@ -73,6 +69,7 @@ import io.github.astrapi69.swing.dialog.info.InfoPanel;
 import io.github.astrapi69.swing.menu.MenuExtensions;
 import io.github.astrapi69.swing.menu.ParentMenuResolver;
 import io.github.astrapi69.swing.menu.builder.JMenuItemInfo;
+import io.github.astrapi69.swing.visibility.RenderMode;
 
 /**
  * The class {@link DesktopMenu}

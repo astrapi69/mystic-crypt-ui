@@ -37,29 +37,29 @@ import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreeModel;
 
-import io.github.astrapi69.design.pattern.observer.event.EventObject;
-import io.github.astrapi69.design.pattern.observer.event.EventSource;
-import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
-import io.github.astrapi69.mystic.crypt.app.ApplicationEventBus;
-import io.github.astrapi69.swing.tree.BaseTreeNodeFactory;
-import io.github.astrapi69.swing.tree.renderer.GenericBaseTreeNodeCellRenderer;
-import io.github.astrapi69.swing.visibility.RenderMode;
-import io.github.astrapi69.tree.BaseTreeNode;
 import org.jdesktop.swingx.JXTree;
 
+import io.github.astrapi69.design.pattern.observer.event.EventObject;
+import io.github.astrapi69.design.pattern.observer.event.EventSource;
 import io.github.astrapi69.model.BaseModel;
 import io.github.astrapi69.model.api.IModel;
+import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
+import io.github.astrapi69.mystic.crypt.app.ApplicationEventBus;
 import io.github.astrapi69.swing.dialog.DialogExtensions;
 import io.github.astrapi69.swing.dialog.JOptionPaneExtensions;
 import io.github.astrapi69.swing.listener.RequestFocusListener;
 import io.github.astrapi69.swing.menu.MenuFactory;
 import io.github.astrapi69.swing.table.GenericJXTable;
 import io.github.astrapi69.swing.table.model.GenericTableModel;
+import io.github.astrapi69.swing.tree.BaseTreeNodeFactory;
 import io.github.astrapi69.swing.tree.GenericTreeElement;
 import io.github.astrapi69.swing.tree.JTreeExtensions;
 import io.github.astrapi69.swing.tree.panel.content.BaseTreeNodeGenericTreeElementWithContentPanel;
 import io.github.astrapi69.swing.tree.panel.node.NodeModelBean;
 import io.github.astrapi69.swing.tree.panel.node.NodePanel;
+import io.github.astrapi69.swing.tree.renderer.GenericBaseTreeNodeCellRenderer;
+import io.github.astrapi69.swing.visibility.RenderMode;
+import io.github.astrapi69.tree.BaseTreeNode;
 import io.github.astrapi69.tree.TreeNode;
 
 public class SecretKeyTreeWithContentPanel
@@ -308,8 +308,7 @@ public class SecretKeyTreeWithContentPanel
 	{
 		JTreeExtensions.getSelectedDefaultMutableTreeNode(mouseEvent, tree)
 			.ifPresent(selectedTreeNode -> {
-				BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> parentTreeNode =
-					(BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long>)selectedTreeNode
+				BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> parentTreeNode = (BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long>)selectedTreeNode
 					.getUserObject();
 				NodePanel nodePanel = new NodePanel();
 				JOptionPane pane = new JOptionPane(nodePanel, JOptionPane.INFORMATION_MESSAGE,
@@ -331,8 +330,7 @@ public class SecretKeyTreeWithContentPanel
 						.parent(parentTreeNode.getValue()).node(node).build();
 					BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> newTreeNode = BaseTreeNode
 						.<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> builder()
-						.value(treeElement).parent(parentTreeNode).displayValue(name)
-						.leaf(!node)
+						.value(treeElement).parent(parentTreeNode).displayValue(name).leaf(!node)
 						.build();
 
 					DefaultMutableTreeNode newChild = new DefaultMutableTreeNode(newTreeNode, node);

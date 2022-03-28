@@ -35,10 +35,8 @@ import io.github.astrapi69.mystic.crypt.panel.dbtree.SecretKeyTreeWithContentPan
 import io.github.astrapi69.swing.component.factory.JComponentFactory;
 import io.github.astrapi69.swing.tree.BaseTreeNodeFactory;
 import io.github.astrapi69.swing.tree.GenericTreeElement;
-import io.github.astrapi69.swing.tree.TreeNodeFactory;
 import io.github.astrapi69.swing.utils.JInternalFrameExtensions;
 import io.github.astrapi69.tree.BaseTreeNode;
-import io.github.astrapi69.tree.TreeNode;
 
 /**
  * The class {@link OpenDatabaseTreeFrameAction}.
