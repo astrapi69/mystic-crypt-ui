@@ -22,6 +22,7 @@ package io.github.astrapi69.mystic.crypt;
 
 import java.io.Serializable;
 import java.util.List;
+import java.util.Map;
 
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -35,7 +36,7 @@ import lombok.experimental.FieldDefaults;
 import io.github.astrapi69.mystic.crypt.panel.dbtree.MysticCryptEntryModelBean;
 import io.github.astrapi69.mystic.crypt.panel.signin.MasterPwFileModelBean;
 import io.github.astrapi69.swing.tree.GenericTreeElement;
-import io.github.astrapi69.tree.BaseTreeNode;
+import io.github.astrapi69.tree.TreeIdNode;
 
 /**
  * The class {@link ApplicationModelBean} holds application specific data
@@ -53,7 +54,7 @@ public class ApplicationModelBean implements Serializable
 	/** The Constant serialVersionUID. */
 	private static final long serialVersionUID = 1L;
 	MasterPwFileModelBean masterPwFileModelBean;
-	BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> rootTreeNode;
+	Map<Long, TreeIdNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long>> rootTreeAsMap;
 	boolean showSplash;
 	boolean signedIn;
 	/** The flag that indicated that the application model changed */

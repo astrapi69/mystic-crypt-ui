@@ -28,6 +28,7 @@ import java.awt.Frame;
 import java.util.List;
 
 import io.github.astrapi69.collections.list.ListFactory;
+import io.github.astrapi69.id.generate.LongIdGenerator;
 import io.github.astrapi69.model.BaseModel;
 import io.github.astrapi69.model.api.IModel;
 import io.github.astrapi69.swing.tree.GenericTreeElement;
@@ -49,8 +50,10 @@ class TestSecretKeyTreeWithContentPanel
 		frame.addWindowListener(new CloseWindow());
 		List<MysticCryptEntryModelBean> first = ListFactory.newArrayList();
 		first.add(MysticCryptEntryModelBean.builder().userName("foo").build());
+
+		LongIdGenerator idGenerator = LongIdGenerator.of(0L);
 		BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> genericTreeElementTreeNode = TestBaseTreeNodeFactory
-			.initializeTestGenericTreeNodeElement(first, first);
+			.initializeTestGenericTreeNodeElement(first, first, idGenerator);
 		IModel<BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long>> parentModel = BaseModel
 			.of(genericTreeElementTreeNode);
 		SecretKeyTreeWithContentPanel secretKeyTreeWithContentPanel = new SecretKeyTreeWithContentPanel(

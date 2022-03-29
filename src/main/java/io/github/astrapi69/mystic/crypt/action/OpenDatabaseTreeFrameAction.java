@@ -23,11 +23,13 @@ package io.github.astrapi69.mystic.crypt.action;
 import java.awt.event.ActionEvent;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import javax.swing.AbstractAction;
 import javax.swing.JDesktopPane;
 import javax.swing.JInternalFrame;
 
+import io.github.astrapi69.id.generate.LongIdGenerator;
 import io.github.astrapi69.model.BaseModel;
 import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
 import io.github.astrapi69.mystic.crypt.panel.dbtree.MysticCryptEntryModelBean;
@@ -37,6 +39,8 @@ import io.github.astrapi69.swing.tree.BaseTreeNodeFactory;
 import io.github.astrapi69.swing.tree.GenericTreeElement;
 import io.github.astrapi69.swing.utils.JInternalFrameExtensions;
 import io.github.astrapi69.tree.BaseTreeNode;
+import io.github.astrapi69.tree.TreeIdNode;
+import io.github.astrapi69.tree.convert.TreeNodeTransformer;
 
 /**
  * The class {@link OpenDatabaseTreeFrameAction}.
@@ -63,10 +67,12 @@ public class OpenDatabaseTreeFrameAction extends AbstractAction
 		// create internal frame
 		final JInternalFrame internalFrame = JComponentFactory.newInternalFrame("Key database",
 			true, true, true, true);
-		BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> rootTreeNode = MysticCryptApplicationFrame
-			.getInstance().getModelObject().getRootTreeNode();
-		if (rootTreeNode == null)
+		BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> rootTreeNode;
+		Map<Long, TreeIdNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long>> rootTreeAsMap = MysticCryptApplicationFrame
+			.getInstance().getModelObject().getRootTreeAsMap();
+		if (rootTreeAsMap != null && rootTreeAsMap.isEmpty())
 		{
+			LongIdGenerator idGenerator = LongIdGenerator.of(0L);
 			GenericTreeElement<List<MysticCryptEntryModelBean>> parent = GenericTreeElement
 				.<List<MysticCryptEntryModelBean>> builder().name("root")
 				.iconPath("io/github/astrapi69/silk/icons/book.png").withText(true).parent(null)
@@ -76,11 +82,16 @@ public class OpenDatabaseTreeFrameAction extends AbstractAction
 				.<List<MysticCryptEntryModelBean>> builder().name("mykeys").parent(parent)
 				.iconPath("io/github/astrapi69/silk/icons/folder.png").withText(true).node(true)
 				.build().setDefaultContent(new ArrayList<>());
-			rootTreeNode = BaseTreeNodeFactory.initializeTreeNodeWithTreeElement(parent, null);
-			BaseTreeNodeFactory.initializeTreeNodeWithTreeElement(firstChild, rootTreeNode);
+			rootTreeNode = BaseTreeNodeFactory.initializeTreeNodeWithTreeElement(parent, null,
+				idGenerator);
+			BaseTreeNodeFactory.initializeTreeNodeWithTreeElement(firstChild, rootTreeNode,
+				idGenerator);
 			MysticCryptApplicationFrame.getInstance().getModelObject()
-				.setRootTreeNode(rootTreeNode);
+				.setRootTreeAsMap(TreeNodeTransformer.toKeyMap(rootTreeNode));
+			rootTreeAsMap = MysticCryptApplicationFrame.getInstance().getModelObject()
+				.getRootTreeAsMap();
 		}
+		rootTreeNode = TreeNodeTransformer.getRoot(rootTreeAsMap);
 		final SecretKeyTreeWithContentPanel component = new SecretKeyTreeWithContentPanel(
 			BaseModel.of(rootTreeNode));
 		JInternalFrameExtensions.addComponentToFrame(internalFrame, component);

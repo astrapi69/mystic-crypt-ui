@@ -26,6 +26,9 @@ package io.github.astrapi69.mystic.crypt.panel.dbtree;
 
 import java.util.List;
 
+import lombok.NonNull;
+import io.github.astrapi69.data.identifiable.IdGenerator;
+import io.github.astrapi69.id.generate.LongIdGenerator;
 import io.github.astrapi69.swing.tree.BaseTreeNodeFactory;
 import io.github.astrapi69.swing.tree.GenericTreeElement;
 import io.github.astrapi69.swing.tree.JXTreeElement;
@@ -39,6 +42,7 @@ public class TestBaseTreeNodeFactory
 
 	public static BaseTreeNode<TreeElement, Long> initializeTestTreeNodeElement()
 	{
+		LongIdGenerator idGenerator = LongIdGenerator.of(0L);
 		BaseTreeNode<TreeElement, Long> firstChildTreeNode;
 		BaseTreeNode<TreeElement, Long> firstGrandChildTreeNodeLeaf;
 		BaseTreeNode<TreeElement, Long> secondGrandChildTreeNodeLeaf;
@@ -61,27 +65,29 @@ public class TestBaseTreeNodeFactory
 		secondChild = TreeElement.builder().name("secondChild").parent(parent).node(true).build();
 		secondGrandChild = TreeElement.builder().name("secondGrandChild").parent(firstChild)
 			.node(false).build();
-		parentTreeNode = BaseTreeNodeFactory.initializeTreeNodeWithTreeElement(parent, null);
+		parentTreeNode = BaseTreeNodeFactory.initializeTreeNodeWithTreeElement(parent, null,
+			idGenerator);
 
 		firstChildTreeNode = BaseTreeNodeFactory.initializeTreeNodeWithTreeElement(firstChild,
-			parentTreeNode);
+			parentTreeNode, idGenerator);
 
 		secondChildTreeNode = BaseTreeNodeFactory.initializeTreeNodeWithTreeElement(secondChild,
-			parentTreeNode);
+			parentTreeNode, idGenerator);
 
 		firstGrandChildTreeNodeLeaf = BaseTreeNodeFactory
-			.initializeTreeNodeWithTreeElement(firstGrandChild, firstChildTreeNode);
+			.initializeTreeNodeWithTreeElement(firstGrandChild, firstChildTreeNode, idGenerator);
 		secondGrandChildTreeNodeLeaf = BaseTreeNodeFactory
-			.initializeTreeNodeWithTreeElement(secondGrandChild, secondChildTreeNode);
+			.initializeTreeNodeWithTreeElement(secondGrandChild, secondChildTreeNode, idGenerator);
 
-		firstGrandGrandChildTreeNode = BaseTreeNodeFactory
-			.initializeTreeNodeWithTreeElement(firstGrandGrandChild, firstChildTreeNode);
+		firstGrandGrandChildTreeNode = BaseTreeNodeFactory.initializeTreeNodeWithTreeElement(
+			firstGrandGrandChild, firstChildTreeNode, idGenerator);
 		return parentTreeNode;
 	}
 
 
 	public static BaseTreeNode<JXTreeElement, Long> initializeTestJXTreeNodeElement()
 	{
+		LongIdGenerator idGenerator = LongIdGenerator.of(0L);
 		// 1. Create a list with data.
 		final List<Permission> permissions;
 		List<Permission> permissions1;
@@ -117,32 +123,34 @@ public class TestBaseTreeNodeFactory
 			.setDefaultContent(permissions);
 		secondGrandChild = JXTreeElement.builder().name("secondGrandChild").parent(firstChild)
 			.node(false).build().setDefaultContent(permissions);
-		parentTreeNode = BaseTreeNodeFactory.initializeTreeNodeWithTreeElement(parent, null);
+		parentTreeNode = BaseTreeNodeFactory.initializeTreeNodeWithTreeElement(parent, null,
+			idGenerator);
 
 		firstChildTreeNode = BaseTreeNodeFactory.initializeTreeNodeWithTreeElement(firstChild,
-			parentTreeNode);
+			parentTreeNode, idGenerator);
 
 		secondChildTreeNode = BaseTreeNodeFactory.initializeTreeNodeWithTreeElement(secondChild,
-			parentTreeNode);
+			parentTreeNode, idGenerator);
 
 		firstGrandChildTreeNodeLeaf = BaseTreeNodeFactory
-			.initializeTreeNodeWithTreeElement(firstGrandChild, firstChildTreeNode);
+			.initializeTreeNodeWithTreeElement(firstGrandChild, firstChildTreeNode, idGenerator);
 		secondGrandChildTreeNodeLeaf = BaseTreeNodeFactory
-			.initializeTreeNodeWithTreeElement(secondGrandChild, secondChildTreeNode);
+			.initializeTreeNodeWithTreeElement(secondGrandChild, secondChildTreeNode, idGenerator);
 
-		firstGrandGrandChildTreeNode = BaseTreeNodeFactory
-			.initializeTreeNodeWithTreeElement(firstGrandGrandChild, firstChildTreeNode);
+		firstGrandGrandChildTreeNode = BaseTreeNodeFactory.initializeTreeNodeWithTreeElement(
+			firstGrandGrandChild, firstChildTreeNode, idGenerator);
 		return parentTreeNode;
 	}
 
 	public static BaseTreeNode<GenericTreeElement<List<Permission>>, Long> initializeTestGenericTreeNodeElement()
 	{
+		LongIdGenerator idGenerator = LongIdGenerator.of(0L);
 		return initializeTestGenericTreeNodeElement(TestPermissionFactory.getPermissionsInGerman(),
-			TestPermissionFactory.getPermissions());
+			TestPermissionFactory.getPermissions(), idGenerator);
 	}
 
 	public static <T, K> BaseTreeNode<GenericTreeElement<List<T>>, K> initializeTestGenericTreeNodeElement(
-		List<T> first, List<T> second)
+		List<T> first, List<T> second, final @NonNull IdGenerator<K> idGenerator)
 	{
 		BaseTreeNode<GenericTreeElement<List<T>>, K> parentTreeNode;
 		BaseTreeNode<GenericTreeElement<List<T>>, K> firstChildTreeNode;
@@ -173,21 +181,22 @@ public class TestBaseTreeNodeFactory
 			.node(true).build().setDefaultContent(second);
 		secondGrandChild = GenericTreeElement.<List<T>> builder().name("secondGrandChild")
 			.parent(firstChild).node(false).build().setDefaultContent(second);
-		parentTreeNode = BaseTreeNodeFactory.initializeTreeNodeWithTreeElement(parent, null);
+		parentTreeNode = BaseTreeNodeFactory.initializeTreeNodeWithTreeElement(parent, null,
+			idGenerator);
 
 		firstChildTreeNode = BaseTreeNodeFactory.initializeTreeNodeWithTreeElement(firstChild,
-			parentTreeNode);
+			parentTreeNode, idGenerator);
 
 		secondChildTreeNode = BaseTreeNodeFactory.initializeTreeNodeWithTreeElement(secondChild,
-			parentTreeNode);
+			parentTreeNode, idGenerator);
 
 		firstGrandChildTreeNodeLeaf = BaseTreeNodeFactory
-			.initializeTreeNodeWithTreeElement(firstGrandChild, firstChildTreeNode);
+			.initializeTreeNodeWithTreeElement(firstGrandChild, firstChildTreeNode, idGenerator);
 		secondGrandChildTreeNodeLeaf = BaseTreeNodeFactory
-			.initializeTreeNodeWithTreeElement(secondGrandChild, secondChildTreeNode);
+			.initializeTreeNodeWithTreeElement(secondGrandChild, secondChildTreeNode, idGenerator);
 
-		firstGrandGrandChildTreeNode = BaseTreeNodeFactory
-			.initializeTreeNodeWithTreeElement(firstGrandGrandChild, firstChildTreeNode);
+		firstGrandGrandChildTreeNode = BaseTreeNodeFactory.initializeTreeNodeWithTreeElement(
+			firstGrandGrandChild, firstChildTreeNode, idGenerator);
 		return parentTreeNode;
 	}
 }

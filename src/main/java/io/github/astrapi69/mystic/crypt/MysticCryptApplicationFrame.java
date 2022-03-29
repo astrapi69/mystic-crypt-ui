@@ -31,6 +31,7 @@ import java.security.Security;
 import javax.swing.JMenu;
 import javax.swing.JToolBar;
 
+import io.github.astrapi69.id.generate.LongIdGenerator;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NonNull;
@@ -80,6 +81,9 @@ public class MysticCryptApplicationFrame extends ApplicationFrame<ApplicationMod
 	 */
 	@Getter
 	BouncyCastleProvider bouncyCastleProvider;
+
+	@Getter
+	LongIdGenerator idGenerator = LongIdGenerator.of(0L);
 
 	/**
 	 * initial block

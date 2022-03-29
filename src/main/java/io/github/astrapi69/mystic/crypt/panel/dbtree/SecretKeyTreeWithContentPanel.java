@@ -60,7 +60,7 @@ import io.github.astrapi69.swing.tree.panel.node.NodePanel;
 import io.github.astrapi69.swing.tree.renderer.GenericBaseTreeNodeCellRenderer;
 import io.github.astrapi69.swing.visibility.RenderMode;
 import io.github.astrapi69.tree.BaseTreeNode;
-import io.github.astrapi69.tree.TreeNode;
+import io.github.astrapi69.tree.convert.TreeNodeTransformer;
 
 public class SecretKeyTreeWithContentPanel
 	extends
@@ -233,9 +233,8 @@ public class SecretKeyTreeWithContentPanel
 	{
 		JTreeExtensions.getSelectedDefaultMutableTreeNode(mouseEvent, tree)
 			.ifPresent(selectedDefaultMutableTreeNode -> {
-
-				TreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>> selectedTreeNode = (TreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>>)selectedDefaultMutableTreeNode
-					.getUserObject();
+				Object userObject = selectedDefaultMutableTreeNode.getUserObject();
+				BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> selectedTreeNode = (BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long>)userObject;
 				NodePanel nodePanel = new NodePanel(
 					BaseModel.of(NodeModelBean.builder().name(selectedTreeNode.getValue().getName())
 						.node(selectedTreeNode.getValue().isNode()).build()));
@@ -253,7 +252,7 @@ public class SecretKeyTreeWithContentPanel
 					NodeModelBean modelObject = nodePanel.getModelObject();
 					boolean node = modelObject.isNode();
 					String name = modelObject.getName();
-					selectedTreeNode.setNode(node);
+					selectedTreeNode.setLeaf(!node);
 					selectedTreeNode.setDisplayValue(name);
 
 					if (selectedTreeNode.getValue().isNode() != node)
@@ -268,6 +267,8 @@ public class SecretKeyTreeWithContentPanel
 					selectedTreeNode.getValue().setName(name);
 
 					((DefaultTreeModel)tree.getModel()).reload(selectedDefaultMutableTreeNode);
+					MysticCryptApplicationFrame.getInstance().getModelObject()
+						.setRootTreeAsMap(TreeNodeTransformer.toKeyMap(getModelObject()));
 					MysticCryptApplicationFrame.getInstance().getModelObject().setDirty(true);
 
 					final EventSource<EventObject<RenderMode>> eventSource = ApplicationEventBus
@@ -290,6 +291,9 @@ public class SecretKeyTreeWithContentPanel
 				selectedTreeNode.removeAllChildren();
 				((DefaultMutableTreeNode)selectedTreeNode.getParent()).remove(selectedNodeIndex);
 				((DefaultTreeModel)tree.getModel()).reload(selectedTreeNode);
+
+				MysticCryptApplicationFrame.getInstance().getModelObject()
+					.setRootTreeAsMap(TreeNodeTransformer.toKeyMap(getModelObject()));
 				MysticCryptApplicationFrame.getInstance().getModelObject().setDirty(true);
 
 				final EventSource<EventObject<RenderMode>> eventSource = ApplicationEventBus
@@ -336,6 +340,9 @@ public class SecretKeyTreeWithContentPanel
 					DefaultMutableTreeNode newChild = new DefaultMutableTreeNode(newTreeNode, node);
 					selectedTreeNode.add(newChild);
 					((DefaultTreeModel)tree.getModel()).reload(selectedTreeNode);
+
+					MysticCryptApplicationFrame.getInstance().getModelObject()
+						.setRootTreeAsMap(TreeNodeTransformer.toKeyMap(getModelObject()));
 					MysticCryptApplicationFrame.getInstance().getModelObject().setDirty(true);
 
 					final EventSource<EventObject<RenderMode>> eventSource = ApplicationEventBus
@@ -409,6 +416,9 @@ public class SecretKeyTreeWithContentPanel
 			getTblTreeEntryTable().getAllSelectedRowData().forEach(tableEntry -> {
 				getTblTreeEntryTable().getGenericTableModel().remove(tableEntry);
 			});
+
+			MysticCryptApplicationFrame.getInstance().getModelObject()
+				.setRootTreeAsMap(TreeNodeTransformer.toKeyMap(getModelObject()));
 			MysticCryptApplicationFrame.getInstance().getModelObject().setDirty(true);
 
 			final EventSource<EventObject<RenderMode>> eventSource = ApplicationEventBus
@@ -440,6 +450,8 @@ public class SecretKeyTreeWithContentPanel
 				MysticCryptEntryModelBean modelObject = panel.getModelObject();
 
 				data.add(index, modelObject);
+				MysticCryptApplicationFrame.getInstance().getModelObject()
+					.setRootTreeAsMap(TreeNodeTransformer.toKeyMap(getModelObject()));
 				MysticCryptApplicationFrame.getInstance().getModelObject().setDirty(true);
 
 				final EventSource<EventObject<RenderMode>> eventSource = ApplicationEventBus
@@ -465,6 +477,8 @@ public class SecretKeyTreeWithContentPanel
 		{
 			MysticCryptEntryModelBean modelObject = panel.getModelObject();
 			getTblTreeEntryTable().getGenericTableModel().add(modelObject);
+			MysticCryptApplicationFrame.getInstance().getModelObject()
+				.setRootTreeAsMap(TreeNodeTransformer.toKeyMap(getModelObject()));
 			MysticCryptApplicationFrame.getInstance().getModelObject().setDirty(true);
 
 			final EventSource<EventObject<RenderMode>> eventSource = ApplicationEventBus

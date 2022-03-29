@@ -27,18 +27,13 @@ package io.github.astrapi69.mystic.crypt.app.file;
 import java.io.File;
 import java.security.PrivateKey;
 import java.security.PublicKey;
-import java.util.Set;
 
 import javax.crypto.Cipher;
 import javax.crypto.SecretKey;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.google.gson.typeadapters.RuntimeTypeAdapterFactory;
 
-import io.github.astrapi69.collections.map.MapFactory;
-import io.github.astrapi69.collections.pairs.KeyValuePair;
-import io.github.astrapi69.collections.set.SetFactory;
 import io.github.astrapi69.crypto.algorithm.AesAlgorithm;
 import io.github.astrapi69.crypto.algorithm.SunJCEAlgorithm;
 import io.github.astrapi69.crypto.factory.SecretKeyFactoryExtensions;
@@ -54,7 +49,6 @@ import io.github.astrapi69.file.delete.DeleteFileExtensions;
 import io.github.astrapi69.file.system.SystemFileExtensions;
 import io.github.astrapi69.file.write.WriteFileExtensions;
 import io.github.astrapi69.gson.ObjectToJsonExtensions;
-import io.github.astrapi69.gson.strategy.GenericMapClassFieldsExclusionStrategy;
 import io.github.astrapi69.io.file.FileExtension;
 import io.github.astrapi69.mystic.crypt.ApplicationModelBean;
 import io.github.astrapi69.mystic.crypt.panel.signin.MasterPwFileModelBean;
@@ -62,20 +56,11 @@ import io.github.astrapi69.mystic.crypt.panel.signin.SignInType;
 import io.github.astrapi69.random.number.RandomIntFactory;
 import io.github.astrapi69.random.object.RandomStringFactory;
 import io.github.astrapi69.throwable.RuntimeExceptionDecorator;
-import io.github.astrapi69.tree.TreeNode;
-import io.github.astrapi69.tree.api.ITreeNode;
 
 public final class ApplicationFileStoreWorker
 {
 
-	public static final Gson GSON = new GsonBuilder()
-		.registerTypeAdapterFactory(RuntimeTypeAdapterFactory.of(ITreeNode.class, "type")
-			.registerSubtype((Class<? extends ITreeNode>)TreeNode.class))
-		// .registerTypeAdapter(TreeNode.class, new InterfaceAdapter<TreeNode>())
-		.addSerializationExclusionStrategy(new GenericMapClassFieldsExclusionStrategy(
-			MapFactory.newLinkedHashMap(KeyValuePair.<Class<?>, Set<String>> builder()
-				.key(TreeNode.class).value(SetFactory.newLinkedHashSet("children")).build())))
-		.create();
+	public static final Gson GSON = new GsonBuilder().create();
 
 	public static void storeApplicationFile(ApplicationModelBean applicationModelBean)
 	{
