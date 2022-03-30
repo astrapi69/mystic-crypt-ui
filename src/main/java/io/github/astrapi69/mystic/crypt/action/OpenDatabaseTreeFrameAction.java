@@ -70,9 +70,10 @@ public class OpenDatabaseTreeFrameAction extends AbstractAction
 		BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> rootTreeNode;
 		Map<Long, TreeIdNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long>> rootTreeAsMap = MysticCryptApplicationFrame
 			.getInstance().getModelObject().getRootTreeAsMap();
-		if (rootTreeAsMap != null && rootTreeAsMap.isEmpty())
+		if (rootTreeAsMap == null || rootTreeAsMap.isEmpty())
 		{
-			LongIdGenerator idGenerator = LongIdGenerator.of(0L);
+			LongIdGenerator idGenerator = MysticCryptApplicationFrame
+				.getInstance().getIdGenerator();
 			GenericTreeElement<List<MysticCryptEntryModelBean>> parent = GenericTreeElement
 				.<List<MysticCryptEntryModelBean>> builder().name("root")
 				.iconPath("io/github/astrapi69/silk/icons/book.png").withText(true).parent(null)

@@ -37,6 +37,7 @@ import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreeModel;
 
+import io.github.astrapi69.id.generate.LongIdGenerator;
 import org.jdesktop.swingx.JXTree;
 
 import io.github.astrapi69.design.pattern.observer.event.EventObject;
@@ -332,10 +333,14 @@ public class SecretKeyTreeWithContentPanel
 					GenericTreeElement<List<MysticCryptEntryModelBean>> treeElement = GenericTreeElement
 						.<List<MysticCryptEntryModelBean>> builder().name(name)
 						.parent(parentTreeNode.getValue()).node(node).build();
+					LongIdGenerator idGenerator = MysticCryptApplicationFrame
+						.getInstance().getIdGenerator();
 					BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> newTreeNode = BaseTreeNode
 						.<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> builder()
+						.id(idGenerator.getNextId())
 						.value(treeElement).parent(parentTreeNode).displayValue(name).leaf(!node)
 						.build();
+					parentTreeNode.addChild(newTreeNode);
 
 					DefaultMutableTreeNode newChild = new DefaultMutableTreeNode(newTreeNode, node);
 					selectedTreeNode.add(newChild);
