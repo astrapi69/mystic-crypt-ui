@@ -282,13 +282,14 @@ public class SecretKeyTreeWithContentPanel
 			.ifPresent(selectedTreeNode -> {
 				Object userObject = selectedTreeNode.getUserObject();
 				BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> currentSelectedTreeNode = (BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long>)userObject;
-				 currentSelectedTreeNode.clearAll();
+
 				BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> parent = currentSelectedTreeNode
 					.getParent();
 				parent.removeChild(currentSelectedTreeNode);
 				int selectedNodeIndex = selectedTreeNode.getParent().getIndex(selectedTreeNode);
 				selectedTreeNode.removeAllChildren();
-				DefaultMutableTreeNode defaultMutableTreeNode = (DefaultMutableTreeNode)selectedTreeNode.getParent();
+				DefaultMutableTreeNode defaultMutableTreeNode = (DefaultMutableTreeNode)selectedTreeNode
+					.getParent();
 				defaultMutableTreeNode.remove(selectedNodeIndex);
 				reload(defaultMutableTreeNode);
 			});
@@ -302,8 +303,7 @@ public class SecretKeyTreeWithContentPanel
 			.setRootTreeAsMap(TreeNodeTransformer.toKeyMap(getModelObject()));
 		MysticCryptApplicationFrame.getInstance().getModelObject().setDirty(true);
 
-		final EventSource<EventObject<RenderMode>> eventSource = ApplicationEventBus
-			.getSaveState();
+		final EventSource<EventObject<RenderMode>> eventSource = ApplicationEventBus.getSaveState();
 		eventSource.fireEvent(new EventObject<>(RenderMode.EDITABLE));
 		tree.treeDidChange();
 		this.repaint();
