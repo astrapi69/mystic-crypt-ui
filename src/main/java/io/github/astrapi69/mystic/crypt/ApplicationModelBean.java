@@ -59,4 +59,5 @@ public class ApplicationModelBean implements Serializable
 	boolean signedIn;
 	/** The flag that indicated that the application model changed */
 	boolean dirty;
+	Long lastId = 0L;
 }

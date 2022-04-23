@@ -34,6 +34,7 @@ import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 import javax.swing.event.DocumentEvent;
 
+import io.github.astrapi69.id.generate.LongIdGenerator;
 import lombok.Getter;
 import lombok.extern.java.Log;
 
@@ -518,6 +519,7 @@ public class MasterPwWithApplicationFilePanel extends BasePanel<MasterPwFileMode
 				.getInstance();
 			MasterPwFileModelBean modelObject = getModelObject();
 			ApplicationModelBean applicationModelBean = ApplicationFileReader.read(modelObject);
+			applicationFrame.setIdGenerator(LongIdGenerator.of(applicationModelBean.getLastId()));
 			if (applicationModelBean != null)
 			{
 				applicationModelBean.setSignedIn(true);

@@ -35,6 +35,7 @@ import io.github.astrapi69.id.generate.LongIdGenerator;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NonNull;
+import lombok.Setter;
 import lombok.experimental.FieldDefaults;
 
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
@@ -83,6 +84,7 @@ public class MysticCryptApplicationFrame extends ApplicationFrame<ApplicationMod
 	BouncyCastleProvider bouncyCastleProvider;
 
 	@Getter
+		@Setter
 	LongIdGenerator idGenerator = LongIdGenerator.of(0L);
 
 	/**
