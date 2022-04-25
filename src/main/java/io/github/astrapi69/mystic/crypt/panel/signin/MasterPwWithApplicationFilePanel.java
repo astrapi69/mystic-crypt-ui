@@ -519,7 +519,6 @@ public class MasterPwWithApplicationFilePanel extends BasePanel<MasterPwFileMode
 				.getInstance();
 			MasterPwFileModelBean modelObject = getModelObject();
 			ApplicationModelBean applicationModelBean = ApplicationFileReader.read(modelObject);
-			applicationFrame.setIdGenerator(LongIdGenerator.of(applicationModelBean.getLastId()));
 			if (applicationModelBean != null)
 			{
 				applicationModelBean.setSignedIn(true);

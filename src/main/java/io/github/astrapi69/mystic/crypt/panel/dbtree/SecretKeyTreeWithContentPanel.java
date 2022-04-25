@@ -72,11 +72,6 @@ public class SecretKeyTreeWithContentPanel
 
 	private static final long serialVersionUID = 1L;
 
-	public SecretKeyTreeWithContentPanel()
-	{
-		this(BaseModel.of(new BaseTreeNode<>()));
-	}
-
 	public SecretKeyTreeWithContentPanel(
 		final IModel<BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long>> model)
 	{
