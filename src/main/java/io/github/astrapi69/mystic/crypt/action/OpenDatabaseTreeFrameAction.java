@@ -71,7 +71,8 @@ public class OpenDatabaseTreeFrameAction extends AbstractAction
 		BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> rootTreeNode;
 		ApplicationModelBean modelObject = MysticCryptApplicationFrame.getInstance()
 			.getModelObject();
-		Map<Long, TreeIdNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long>> rootTreeAsMap = modelObject.getRootTreeAsMap();
+		Map<Long, TreeIdNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long>> rootTreeAsMap = modelObject
+			.getRootTreeAsMap();
 		if (rootTreeAsMap == null || rootTreeAsMap.isEmpty())
 		{
 			LongIdGenerator idGenerator = MysticCryptApplicationFrame.getInstance()
@@ -88,16 +89,13 @@ public class OpenDatabaseTreeFrameAction extends AbstractAction
 			rootTreeNode = BaseTreeNodeFactory.initializeTreeNodeWithTreeElement(parent, null,
 				idGenerator);
 			modelObject.setLastId(rootTreeNode.getId());
-			BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> myKeysTreeNode = BaseTreeNodeFactory.initializeTreeNodeWithTreeElement(
-				firstChild, rootTreeNode, idGenerator);
+			BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> myKeysTreeNode = BaseTreeNodeFactory
+				.initializeTreeNodeWithTreeElement(firstChild, rootTreeNode, idGenerator);
 			modelObject.setLastId(myKeysTreeNode.getId());
-			Map<Long, TreeIdNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long>>
-				longTreeIdNodeMap = BaseTreeNodeTransformer.toKeyMap(
-				rootTreeNode);
-			modelObject
-				.setRootTreeAsMap(longTreeIdNodeMap);
-			rootTreeAsMap = modelObject
-				.getRootTreeAsMap();
+			Map<Long, TreeIdNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long>> longTreeIdNodeMap = BaseTreeNodeTransformer
+				.toKeyMap(rootTreeNode);
+			modelObject.setRootTreeAsMap(longTreeIdNodeMap);
+			rootTreeAsMap = modelObject.getRootTreeAsMap();
 		}
 		rootTreeNode = BaseTreeNodeTransformer.getRoot(rootTreeAsMap);
 		final SecretKeyTreeWithContentPanel component = new SecretKeyTreeWithContentPanel(

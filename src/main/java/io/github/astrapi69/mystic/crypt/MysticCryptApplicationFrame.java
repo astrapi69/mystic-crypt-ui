@@ -85,10 +85,12 @@ public class MysticCryptApplicationFrame extends ApplicationFrame<ApplicationMod
 
 	LongIdGenerator idGenerator;
 
-	public LongIdGenerator getIdGenerator() {
-		if(this.idGenerator == null) {
+	public LongIdGenerator getIdGenerator()
+	{
+		if (this.idGenerator == null)
+		{
 			Long lastId = getModelObject().getLastId();
-			this.idGenerator  = lastId != null ? LongIdGenerator.of(lastId): LongIdGenerator.of(0L);
+			this.idGenerator = lastId != null ? LongIdGenerator.of(lastId) : LongIdGenerator.of(0L);
 		}
 		return this.idGenerator;
 	}

@@ -334,8 +334,8 @@ public class SecretKeyTreeWithContentPanel
 					MysticCryptApplicationFrame.getInstance().getModelObject().setLastId(nextId);
 					BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> newTreeNode = BaseTreeNode
 						.<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> builder()
-						.id(nextId).value(treeElement).parent(parentTreeNode)
-						.displayValue(name).leaf(!node).build();
+						.id(nextId).value(treeElement).parent(parentTreeNode).displayValue(name)
+						.leaf(!node).build();
 					parentTreeNode.addChild(newTreeNode);
 
 					DefaultMutableTreeNode newChild = new DefaultMutableTreeNode(newTreeNode, node);
