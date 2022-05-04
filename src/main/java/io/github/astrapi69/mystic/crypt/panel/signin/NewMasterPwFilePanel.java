@@ -75,6 +75,14 @@ import io.github.astrapi69.throwable.RuntimeExceptionDecorator;
 public class NewMasterPwFilePanel extends BasePanel<MasterPwFileModelBean>
 {
 
+	// ===
+	// ===
+	// ===
+	JFileChooser fileChooser;
+	StringMutableComboBoxModel cmbKeyFileModel;
+	BtnOkStateMachine btnOkStateMachine;
+	IModel<GeneratePasswordModelBean> passwordModel;
+	NewPrivateKeyModelBean privateKeyModelBean;
 	private javax.swing.JButton btnApplicationFileChooser;
 	private javax.swing.JButton btnCancel;
 	private javax.swing.JButton btnCreateKeyFile;
@@ -92,14 +100,6 @@ public class NewMasterPwFilePanel extends BasePanel<MasterPwFileModelBean>
 	private javax.swing.JTextField txtApplicationFile;
 	private javax.swing.JPasswordField txtMasterPw;
 	private javax.swing.JPasswordField txtRepeatPw;
-	// ===
-	// ===
-	// ===
-	JFileChooser fileChooser;
-	StringMutableComboBoxModel cmbKeyFileModel;
-	BtnOkStateMachine btnOkStateMachine;
-	IModel<GeneratePasswordModelBean> passwordModel;
-	NewPrivateKeyModelBean privateKeyModelBean;
 
 	/**
 	 * Creates new form NewMasterPwFileFormPanel

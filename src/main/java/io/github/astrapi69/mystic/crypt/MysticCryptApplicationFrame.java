@@ -85,16 +85,6 @@ public class MysticCryptApplicationFrame extends ApplicationFrame<ApplicationMod
 
 	LongIdGenerator idGenerator;
 
-	public LongIdGenerator getIdGenerator()
-	{
-		if (this.idGenerator == null)
-		{
-			Long lastId = getModelObject().getLastId();
-			this.idGenerator = lastId != null ? LongIdGenerator.of(lastId) : LongIdGenerator.of(0L);
-		}
-		return this.idGenerator;
-	}
-
 	/**
 	 * initial block
 	 */
@@ -134,6 +124,16 @@ public class MysticCryptApplicationFrame extends ApplicationFrame<ApplicationMod
 	public static MysticCryptApplicationFrame getInstance()
 	{
 		return instance;
+	}
+
+	public LongIdGenerator getIdGenerator()
+	{
+		if (this.idGenerator == null)
+		{
+			Long lastId = getModelObject().getLastId();
+			this.idGenerator = lastId != null ? LongIdGenerator.of(lastId) : LongIdGenerator.of(0L);
+		}
+		return this.idGenerator;
 	}
 
 	protected void showMasterPwDialog()
