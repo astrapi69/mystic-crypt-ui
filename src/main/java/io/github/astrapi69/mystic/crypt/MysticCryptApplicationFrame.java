@@ -31,11 +31,9 @@ import java.security.Security;
 import javax.swing.JMenu;
 import javax.swing.JToolBar;
 
-import io.github.astrapi69.id.generate.LongIdGenerator;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NonNull;
-import lombok.Setter;
 import lombok.experimental.FieldDefaults;
 
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
@@ -44,6 +42,7 @@ import io.github.astrapi69.file.create.FileFactory;
 import io.github.astrapi69.file.read.ReadFileExtensions;
 import io.github.astrapi69.gson.JsonStringToObjectExtensions;
 import io.github.astrapi69.icon.ImageIconFactory;
+import io.github.astrapi69.id.generate.LongIdGenerator;
 import io.github.astrapi69.model.BaseModel;
 import io.github.astrapi69.model.api.IModel;
 import io.github.astrapi69.mystic.crypt.action.LockWorkspaceAction;

@@ -38,7 +38,6 @@ import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreeModel;
 
-import io.github.astrapi69.tree.TreeIdNode;
 import org.jdesktop.swingx.JXTree;
 
 import io.github.astrapi69.design.pattern.observer.event.EventObject;
@@ -63,6 +62,7 @@ import io.github.astrapi69.swing.tree.panel.node.NodePanel;
 import io.github.astrapi69.swing.tree.renderer.GenericBaseTreeNodeCellRenderer;
 import io.github.astrapi69.swing.visibility.RenderMode;
 import io.github.astrapi69.tree.BaseTreeNode;
+import io.github.astrapi69.tree.TreeIdNode;
 import io.github.astrapi69.tree.convert.BaseTreeNodeTransformer;
 
 public class SecretKeyTreeWithContentPanel
