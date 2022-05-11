@@ -38,6 +38,7 @@ import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreeModel;
 
+import io.github.astrapi69.model.node.NodeModel;
 import org.jdesktop.swingx.JXTree;
 
 import io.github.astrapi69.design.pattern.observer.event.EventObject;
@@ -57,7 +58,6 @@ import io.github.astrapi69.swing.tree.BaseTreeNodeFactory;
 import io.github.astrapi69.swing.tree.GenericTreeElement;
 import io.github.astrapi69.swing.tree.JTreeExtensions;
 import io.github.astrapi69.swing.tree.panel.content.BaseTreeNodeGenericTreeElementWithContentPanel;
-import io.github.astrapi69.swing.tree.panel.node.NodeModelBean;
 import io.github.astrapi69.swing.tree.panel.node.NodePanel;
 import io.github.astrapi69.swing.tree.renderer.GenericBaseTreeNodeCellRenderer;
 import io.github.astrapi69.swing.visibility.RenderMode;
@@ -234,8 +234,8 @@ public class SecretKeyTreeWithContentPanel
 				Object userObject = selectedDefaultMutableTreeNode.getUserObject();
 				BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> selectedTreeNode = (BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long>)userObject;
 				NodePanel nodePanel = new NodePanel(
-					BaseModel.of(NodeModelBean.builder().name(selectedTreeNode.getValue().getName())
-						.node(!selectedTreeNode.getValue().isLeaf()).build()));
+					BaseModel.of(NodeModel.builder().name(selectedTreeNode.getValue().getName())
+						.leaf(selectedTreeNode.getValue().isLeaf()).build()));
 				JOptionPane pane = new JOptionPane(nodePanel, JOptionPane.INFORMATION_MESSAGE,
 					JOptionPane.OK_CANCEL_OPTION);
 				JDialog dialog = pane.createDialog(null, "Edit node");
@@ -247,18 +247,18 @@ public class SecretKeyTreeWithContentPanel
 
 				if (option == JOptionPane.OK_OPTION)
 				{
-					NodeModelBean modelObject = nodePanel.getModelObject();
-					boolean node = modelObject.isNode();
+					NodeModel modelObject = nodePanel.getModelObject();
+					boolean leaf = modelObject.isLeaf();
 					String name = modelObject.getName();
-					selectedTreeNode.setLeaf(!node);
+					selectedTreeNode.setLeaf(leaf);
 					selectedTreeNode.setDisplayValue(name);
 
-					if (!selectedTreeNode.getValue().isLeaf() != node)
+					if (selectedTreeNode.getValue().isLeaf() != leaf)
 					{
 						// set to leaf only if the node has no children
-						if ((node) || 0 == selectedDefaultMutableTreeNode.getChildCount())
+						if ((leaf) || 0 == selectedDefaultMutableTreeNode.getChildCount())
 						{
-							selectedTreeNode.getValue().setLeaf(!node);
+							selectedTreeNode.getValue().setLeaf(!leaf);
 						}
 					}
 
@@ -323,11 +323,11 @@ public class SecretKeyTreeWithContentPanel
 
 				if (option == JOptionPane.OK_OPTION)
 				{
-					NodeModelBean modelObject = nodePanel.getModelObject();
-					boolean node = modelObject.isNode();
+					NodeModel modelObject = nodePanel.getModelObject();
+					boolean leaf = modelObject.isLeaf();
 					String name = modelObject.getName();
 					GenericTreeElement<List<MysticCryptEntryModelBean>> treeElement = GenericTreeElement
-						.<List<MysticCryptEntryModelBean>> builder().name(name).leaf(!node).build();
+						.<List<MysticCryptEntryModelBean>> builder().name(name).leaf(leaf).build();
 					LongIdGenerator idGenerator = MysticCryptApplicationFrame.getInstance()
 						.getIdGenerator();
 					Long nextId = idGenerator.getNextId();
@@ -335,10 +335,10 @@ public class SecretKeyTreeWithContentPanel
 					BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> newTreeNode = BaseTreeNode
 						.<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> builder()
 						.id(nextId).value(treeElement).parent(parentTreeNode).displayValue(name)
-						.leaf(!node).build();
+						.leaf(leaf).build();
 					parentTreeNode.addChild(newTreeNode);
 
-					DefaultMutableTreeNode newChild = new DefaultMutableTreeNode(newTreeNode, node);
+					DefaultMutableTreeNode newChild = new DefaultMutableTreeNode(newTreeNode, leaf);
 					selectedTreeNode.add(newChild);
 					reload(selectedTreeNode);
 				}

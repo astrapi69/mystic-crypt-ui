@@ -262,6 +262,8 @@ dependencies {
     implementation("io.github.astrapi69:jobj-core:$jobjCoreVersion")
     implementation("io.github.astrapi69:silly-io:$sillyIoVersion")
     implementation("io.github.astrapi69:swing-components:$swingComponentsVersion")
+    implementation("io.github.astrapi69:swing-renderer:$swingRendererVersion")
+    implementation("io.github.astrapi69:component-model:$componentModelVersion")
     implementation("io.github.astrapi69:swing-base-components:$swingBaseComponentsVersion")
     implementation("io.github.astrapi69:swing-tree-component:$swingTreeComponentVersion")
     implementation("io.github.astrapi69:swing-splashscreen:$swingSplashscreenVersion")
