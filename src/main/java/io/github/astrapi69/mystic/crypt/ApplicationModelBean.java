@@ -55,6 +55,10 @@ public class ApplicationModelBean implements Serializable
 	private static final long serialVersionUID = 1L;
 	MasterPwFileModelBean masterPwFileModelBean;
 	Map<Long, TreeIdNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long>> rootTreeAsMap;
+	/**
+	 * map for the data from the nodes
+	 */
+	Map<Long, List<MysticCryptEntryModelBean>> dataOfNodes;
 	boolean showSplash;
 	boolean signedIn;
 	/** The flag that indicated that the application model changed */
