@@ -43,6 +43,7 @@ import javax.swing.JMenuItem;
 import javax.swing.KeyStroke;
 import javax.swing.MenuElement;
 
+import io.github.astrapi69.model.enumtype.visibity.RenderMode;
 import lombok.NonNull;
 import lombok.extern.java.Log;
 
@@ -69,7 +70,6 @@ import io.github.astrapi69.swing.dialog.info.InfoPanel;
 import io.github.astrapi69.swing.menu.MenuExtensions;
 import io.github.astrapi69.swing.menu.ParentMenuResolver;
 import io.github.astrapi69.swing.menu.builder.JMenuItemInfo;
-import io.github.astrapi69.swing.visibility.RenderMode;
 
 /**
  * The class {@link DesktopMenu}

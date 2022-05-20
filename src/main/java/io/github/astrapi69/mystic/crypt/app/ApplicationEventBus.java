@@ -24,6 +24,7 @@
  */
 package io.github.astrapi69.mystic.crypt.app;
 
+import io.github.astrapi69.model.enumtype.visibity.RenderMode;
 import lombok.Getter;
 
 import com.google.common.eventbus.EventBus;
@@ -31,7 +32,6 @@ import com.google.common.eventbus.EventBus;
 import io.github.astrapi69.design.pattern.eventbus.GenericEventBus;
 import io.github.astrapi69.design.pattern.observer.event.EventObject;
 import io.github.astrapi69.design.pattern.observer.event.EventSource;
-import io.github.astrapi69.swing.visibility.RenderMode;
 
 public class ApplicationEventBus
 {
