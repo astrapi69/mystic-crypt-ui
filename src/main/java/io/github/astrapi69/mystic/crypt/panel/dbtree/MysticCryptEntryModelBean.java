@@ -24,12 +24,8 @@
  */
 package io.github.astrapi69.mystic.crypt.panel.dbtree;
 
-import java.util.LinkedHashMap;
-import java.util.Map;
-
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -42,9 +38,6 @@ import lombok.experimental.SuperBuilder;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class MysticCryptEntryModelBean
 {
-	/** The map with optional properties */
-	@Builder.Default
-	final Map<String, Object> properties = new LinkedHashMap<>();
 	String title;
 	String userName;
 	char[] password;

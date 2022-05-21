@@ -28,6 +28,8 @@ import io.github.astrapi69.swing.table.model.BaseTableModel;
 import io.github.astrapi69.swing.table.model.TableColumnsModel;
 import io.github.astrapi69.swing.table.model.thread.ThreadsTableModel;
 
+import java.util.List;
+
 public class MysticCryptEntryTableModel extends BaseTableModel<MysticCryptEntryModelBean>
 {
 
@@ -61,7 +63,8 @@ public class MysticCryptEntryTableModel extends BaseTableModel<MysticCryptEntryM
 	@Override
 	public Object getValueAt(int rowIndex, int columnIndex)
 	{
-		MysticCryptEntryModelBean mysticCryptEntryModelBean = getData().get(rowIndex);
+		List<MysticCryptEntryModelBean> data = getData();
+		MysticCryptEntryModelBean mysticCryptEntryModelBean = data.get(rowIndex);
 		switch (columnIndex)
 		{
 			case 0 :

@@ -30,7 +30,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import javax.swing.JDialog;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPopupMenu;
@@ -39,7 +38,6 @@ import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreeModel;
 
-import io.github.astrapi69.model.enumtype.visibity.RenderMode;
 import org.jdesktop.swingx.JXTree;
 
 import io.github.astrapi69.design.pattern.observer.event.EventObject;
@@ -47,12 +45,12 @@ import io.github.astrapi69.design.pattern.observer.event.EventSource;
 import io.github.astrapi69.id.generate.LongIdGenerator;
 import io.github.astrapi69.model.BaseModel;
 import io.github.astrapi69.model.api.IModel;
+import io.github.astrapi69.model.enumtype.visibity.RenderMode;
 import io.github.astrapi69.model.node.NodeModel;
 import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
 import io.github.astrapi69.mystic.crypt.app.ApplicationEventBus;
 import io.github.astrapi69.swing.dialog.DialogExtensions;
 import io.github.astrapi69.swing.dialog.JOptionPaneExtensions;
-import io.github.astrapi69.swing.listener.RequestFocusListener;
 import io.github.astrapi69.swing.menu.MenuFactory;
 import io.github.astrapi69.swing.table.GenericJXTable;
 import io.github.astrapi69.swing.table.model.GenericTableModel;
@@ -100,8 +98,8 @@ public class SecretKeyTreeWithContentPanel
 	@Override
 	protected GenericJXTable<MysticCryptEntryModelBean> newJTable()
 	{
-		GenericTableModel<MysticCryptEntryModelBean> permissionsTableModel = new MysticCryptEntryTableModel();
-		return new GenericJXTable<MysticCryptEntryModelBean>(permissionsTableModel)
+		GenericTableModel<MysticCryptEntryModelBean> tableModel = new MysticCryptEntryTableModel();
+		return new GenericJXTable<MysticCryptEntryModelBean>(tableModel)
 		{
 
 			protected void onSingleLeftClick(MouseEvent event)
@@ -237,19 +235,14 @@ public class SecretKeyTreeWithContentPanel
 			.ifPresent(selectedTreeNode -> {
 				BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> parentTreeNode = (BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long>)selectedTreeNode
 					.getUserObject();
-				NodePanel nodePanel = new NodePanel();
-				JOptionPane pane = new JOptionPane(nodePanel, JOptionPane.INFORMATION_MESSAGE,
-					JOptionPane.OK_CANCEL_OPTION);
-				JDialog dialog = pane.createDialog(null, "New node");
-				dialog.addWindowFocusListener(new RequestFocusListener(nodePanel.getTxtName()));
-				dialog.pack();
-				dialog.setLocationRelativeTo(null);
-				dialog.setVisible(true);
-				int option = JOptionPaneExtensions.getSelectedOption(pane);
+				NodePanel panel = new NodePanel();
+				int option = JOptionPaneExtensions.getSelectedOption(panel,
+					JOptionPane.INFORMATION_MESSAGE, JOptionPane.OK_CANCEL_OPTION, null, "New node",
+					panel.getTxtName());
 
 				if (option == JOptionPane.OK_OPTION)
 				{
-					NodeModel modelObject = nodePanel.getModelObject();
+					NodeModel modelObject = panel.getModelObject();
 					boolean leaf = modelObject.isLeaf();
 					String name = modelObject.getName();
 					GenericTreeElement<List<MysticCryptEntryModelBean>> treeElement = GenericTreeElement
@@ -277,21 +270,15 @@ public class SecretKeyTreeWithContentPanel
 			.ifPresent(selectedDefaultMutableTreeNode -> {
 				Object userObject = selectedDefaultMutableTreeNode.getUserObject();
 				BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> selectedTreeNode = (BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long>)userObject;
-				NodePanel nodePanel = new NodePanel(
+				NodePanel panel = new NodePanel(
 					BaseModel.of(NodeModel.builder().name(selectedTreeNode.getValue().getName())
 						.leaf(selectedTreeNode.getValue().isLeaf()).build()));
-				JOptionPane pane = new JOptionPane(nodePanel, JOptionPane.INFORMATION_MESSAGE,
-					JOptionPane.OK_CANCEL_OPTION);
-				JDialog dialog = pane.createDialog(null, "Edit node");
-				dialog.addWindowFocusListener(new RequestFocusListener(nodePanel.getTxtName()));
-				dialog.pack();
-				dialog.setLocationRelativeTo(null);
-				dialog.setVisible(true);
-				int option = JOptionPaneExtensions.getSelectedOption(pane);
-
+				int option = JOptionPaneExtensions.getSelectedOption(panel,
+					JOptionPane.INFORMATION_MESSAGE, JOptionPane.OK_CANCEL_OPTION, null,
+					"Edit node", panel.getTxtName());
 				if (option == JOptionPane.OK_OPTION)
 				{
-					NodeModel modelObject = nodePanel.getModelObject();
+					NodeModel modelObject = panel.getModelObject();
 					boolean leaf = modelObject.isLeaf();
 					String name = modelObject.getName();
 					selectedTreeNode.setLeaf(leaf);
@@ -418,14 +405,9 @@ public class SecretKeyTreeWithContentPanel
 	{
 		getTblTreeEntryTable().getSingleSelectedRowData().ifPresent(tableEntry -> {
 			MysticCryptEntryPanel panel = new MysticCryptEntryPanel(BaseModel.of(tableEntry));
-			JOptionPane pane = new JOptionPane(panel, JOptionPane.INFORMATION_MESSAGE,
-				JOptionPane.OK_CANCEL_OPTION);
-			JDialog dialog = pane.createDialog(null, "Edit Crypt Entry");
-			dialog.addWindowFocusListener(new RequestFocusListener(panel.getTxtEntryName()));
-			dialog.pack();
-			dialog.setLocationRelativeTo(null);
-			dialog.setVisible(true);
-			int option = JOptionPaneExtensions.getSelectedOption(pane);
+			int option = JOptionPaneExtensions.getSelectedOption(panel,
+				JOptionPane.INFORMATION_MESSAGE, JOptionPane.OK_CANCEL_OPTION, null,
+				"Edit Crypt Entry", panel.getTxtEntryName());
 
 			if (option == JOptionPane.OK_OPTION)
 			{
@@ -445,14 +427,9 @@ public class SecretKeyTreeWithContentPanel
 	protected void onAddTableEntry()
 	{
 		MysticCryptEntryPanel panel = new MysticCryptEntryPanel();
-		JOptionPane pane = new JOptionPane(panel, JOptionPane.INFORMATION_MESSAGE,
-			JOptionPane.OK_CANCEL_OPTION);
-		JDialog dialog = pane.createDialog(null, "New Crypt Entry");
-		dialog.addWindowFocusListener(new RequestFocusListener(panel.getTxtEntryName()));
-		dialog.pack();
-		dialog.setLocationRelativeTo(null);
-		dialog.setVisible(true);
-		int option = JOptionPaneExtensions.getSelectedOption(pane);
+
+		int option = JOptionPaneExtensions.getSelectedOption(panel, JOptionPane.INFORMATION_MESSAGE,
+			JOptionPane.OK_CANCEL_OPTION, null, "New Crypt Entry", panel.getTxtEntryName());
 		if (option == JOptionPane.OK_OPTION)
 		{
 			MysticCryptEntryModelBean modelObject = panel.getModelObject();
