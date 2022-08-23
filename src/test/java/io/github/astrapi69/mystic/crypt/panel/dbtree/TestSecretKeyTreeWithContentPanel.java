@@ -27,7 +27,7 @@ package io.github.astrapi69.mystic.crypt.panel.dbtree;
 import java.awt.Frame;
 import java.util.List;
 
-import io.github.astrapi69.collections.list.ListFactory;
+import io.github.astrapi69.collection.list.ListFactory;
 import io.github.astrapi69.id.generate.LongIdGenerator;
 import io.github.astrapi69.model.BaseModel;
 import io.github.astrapi69.model.api.IModel;

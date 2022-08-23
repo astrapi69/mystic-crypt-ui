@@ -49,7 +49,7 @@ import lombok.extern.java.Log;
 
 import org.springframework.core.io.Resource;
 
-import io.github.astrapi69.collections.set.SetFactory;
+import io.github.astrapi69.collection.set.SetFactory;
 import io.github.astrapi69.design.pattern.observer.event.EventListener;
 import io.github.astrapi69.design.pattern.observer.event.EventObject;
 import io.github.astrapi69.design.pattern.observer.event.EventSource;

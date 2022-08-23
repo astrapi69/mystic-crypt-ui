@@ -39,8 +39,8 @@ import lombok.NonNull;
 import lombok.experimental.FieldDefaults;
 import lombok.experimental.SuperBuilder;
 import lombok.extern.java.Log;
-import io.github.astrapi69.collections.list.ListFactory;
-import io.github.astrapi69.collections.set.SetFactory;
+import io.github.astrapi69.collection.list.ListFactory;
+import io.github.astrapi69.collection.set.SetFactory;
 
 /**
  * The bean class {@link MasterPwFileModelBean} is for holding the sign in data

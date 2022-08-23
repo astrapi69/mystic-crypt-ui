@@ -25,8 +25,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import lombok.Getter;
-import io.github.astrapi69.collections.array.ArrayExtensions;
-import io.github.astrapi69.collections.list.ListFactory;
+import io.github.astrapi69.collection.array.ArrayExtensions;
+import io.github.astrapi69.collection.list.ListFactory;
 import io.github.astrapi69.crypto.obfuscation.rule.ObfuscationOperationRule;
 import io.github.astrapi69.crypto.obfuscation.rule.Operation;
 import io.github.astrapi69.model.api.IModel;

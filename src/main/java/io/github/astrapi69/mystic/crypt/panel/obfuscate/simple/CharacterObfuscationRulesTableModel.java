@@ -28,7 +28,7 @@ import java.util.Optional;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.ToString;
-import io.github.astrapi69.collections.pairs.KeyValuePair;
+import io.github.astrapi69.collection.pair.KeyValuePair;
 import io.github.astrapi69.crypto.obfuscation.rule.ObfuscationRule;
 import io.github.astrapi69.swing.table.model.GenericTableModel;
 

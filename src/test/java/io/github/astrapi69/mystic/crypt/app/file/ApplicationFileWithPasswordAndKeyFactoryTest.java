@@ -38,7 +38,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import io.github.astrapi69.collections.list.ListFactory;
+import io.github.astrapi69.collection.list.ListFactory;
 import io.github.astrapi69.crypto.key.PrivateKeyDecryptor;
 import io.github.astrapi69.crypto.key.PrivateKeyGenericDecryptor;
 import io.github.astrapi69.crypto.key.reader.PrivateKeyReader;

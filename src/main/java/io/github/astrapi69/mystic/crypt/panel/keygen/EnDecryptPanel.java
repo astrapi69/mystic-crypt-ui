@@ -30,7 +30,7 @@ import javax.swing.JTextArea;
 import javax.swing.LayoutStyle;
 
 import lombok.Getter;
-import io.github.astrapi69.collections.pairs.Pair;
+import io.github.astrapi69.collection.pair.Pair;
 import io.github.astrapi69.model.BaseModel;
 import io.github.astrapi69.model.api.IModel;
 import io.github.astrapi69.swing.base.BasePanel;

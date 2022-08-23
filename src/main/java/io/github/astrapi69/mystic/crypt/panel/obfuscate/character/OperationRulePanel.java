@@ -35,9 +35,9 @@ import net.miginfocom.swing.MigLayout;
 
 import com.google.common.collect.BiMap;
 
-import io.github.astrapi69.collections.list.ListFactory;
-import io.github.astrapi69.collections.pairs.KeyValuePair;
-import io.github.astrapi69.collections.set.SetFactory;
+import io.github.astrapi69.collection.list.ListFactory;
+import io.github.astrapi69.collection.pair.KeyValuePair;
+import io.github.astrapi69.collection.set.SetFactory;
 import io.github.astrapi69.crypto.obfuscation.character.ObfuscatorExtensions;
 import io.github.astrapi69.crypto.obfuscation.rule.ObfuscationOperationRule;
 import io.github.astrapi69.crypto.obfuscation.rule.Operation;

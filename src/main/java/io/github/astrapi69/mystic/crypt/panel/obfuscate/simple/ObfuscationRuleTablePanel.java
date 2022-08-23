@@ -40,8 +40,8 @@ import lombok.extern.java.Log;
 
 import org.apache.commons.codec.DecoderException;
 
-import io.github.astrapi69.collections.map.MapFactory;
-import io.github.astrapi69.collections.pairs.KeyValuePair;
+import io.github.astrapi69.collection.map.MapFactory;
+import io.github.astrapi69.collection.pair.KeyValuePair;
 import io.github.astrapi69.crypto.obfuscation.rule.ObfuscationRule;
 import io.github.astrapi69.model.BaseModel;
 import io.github.astrapi69.model.api.IModel;
