@@ -37,9 +37,9 @@ import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import io.github.astrapi69.collection.list.ListFactory;
-import io.github.astrapi69.crypto.algorithm.SunJCEAlgorithm;
-import io.github.astrapi69.crypto.file.PBEFileDecryptor;
-import io.github.astrapi69.crypto.model.CryptModel;
+import io.github.astrapi69.crypt.api.algorithm.SunJCEAlgorithm;
+import io.github.astrapi69.mystic.crypt.file.PBEFileDecryptor;
+import io.github.astrapi69.crypt.data.model.CryptModel;
 import io.github.astrapi69.file.delete.DeleteFileExtensions;
 import io.github.astrapi69.file.search.PathFinder;
 import io.github.astrapi69.io.file.FileExtension;

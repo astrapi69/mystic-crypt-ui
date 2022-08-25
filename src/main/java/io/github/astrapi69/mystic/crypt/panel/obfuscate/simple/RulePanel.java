@@ -36,9 +36,9 @@ import com.google.common.collect.HashBiMap;
 
 import io.github.astrapi69.collection.list.ListFactory;
 import io.github.astrapi69.collection.pair.KeyValuePair;
-import io.github.astrapi69.crypto.obfuscation.api.Obfuscatable;
-import io.github.astrapi69.crypto.obfuscation.rule.ObfuscationRule;
-import io.github.astrapi69.crypto.obfuscation.simple.SimpleCharacterObfuscator;
+import io.github.astrapi69.crypt.api.obfuscation.Obfuscatable;
+import io.github.astrapi69.crypt.data.obfuscation.rule.ObfuscationRule;
+import io.github.astrapi69.mystic.crypt.obfuscation.simple.SimpleCharacterObfuscator;
 import io.github.astrapi69.model.BaseModel;
 import io.github.astrapi69.model.api.IModel;
 import io.github.astrapi69.mystic.crypt.panel.keygen.EnDecryptPanel;
@@ -210,7 +210,7 @@ public class RulePanel extends BasePanel<ObfuscationModelBean>
 		};
 		simpleRuleTablePanel = new ObfuscationRuleTablePanel(getModel())
 		{
-			@Override
+
 			protected void onEditObfuscationRule(ObfuscationRule<Character, Character> selected)
 			{
 				RulePanel.this.onEditObfuscationRule(selected);

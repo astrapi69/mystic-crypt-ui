@@ -43,12 +43,12 @@ import net.miginfocom.swing.MigLayout;
 
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 
-import io.github.astrapi69.crypto.key.PrivateKeyExtensions;
-import io.github.astrapi69.crypto.key.PrivateKeyHexDecryptor;
-import io.github.astrapi69.crypto.key.PublicKeyExtensions;
-import io.github.astrapi69.crypto.key.PublicKeyHexEncryptor;
-import io.github.astrapi69.crypto.key.reader.EncryptedPrivateKeyReader;
-import io.github.astrapi69.crypto.key.reader.PrivateKeyReader;
+import io.github.astrapi69.crypt.data.key.PrivateKeyExtensions;
+import io.github.astrapi69.mystic.crypt.key.PrivateKeyHexDecryptor;
+import io.github.astrapi69.crypt.data.key.PublicKeyExtensions;
+import io.github.astrapi69.mystic.crypt.key.PublicKeyHexEncryptor;
+import io.github.astrapi69.crypt.data.key.reader.EncryptedPrivateKeyReader;
+import io.github.astrapi69.crypt.data.key.reader.PrivateKeyReader;
 import io.github.astrapi69.file.read.ReadFileExtensions;
 import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
 import io.github.astrapi69.mystic.crypt.panel.privatekey.PrivateKeyModelBean;

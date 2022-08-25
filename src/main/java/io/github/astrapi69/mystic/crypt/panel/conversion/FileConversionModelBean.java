@@ -23,6 +23,7 @@ package io.github.astrapi69.mystic.crypt.panel.conversion;
 import java.io.File;
 import java.io.Serializable;
 
+import io.github.astrapi69.crypt.api.key.KeyType;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -32,7 +33,6 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 import lombok.experimental.FieldDefaults;
-import io.github.astrapi69.crypto.key.KeyType;
 
 /**
  * The class {@link FileConversionModelBean}.

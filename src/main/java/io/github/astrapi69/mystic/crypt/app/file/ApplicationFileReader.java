@@ -36,15 +36,15 @@ import lombok.extern.java.Log;
 
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 
-import io.github.astrapi69.crypto.algorithm.SunJCEAlgorithm;
-import io.github.astrapi69.crypto.factory.CryptModelFactory;
-import io.github.astrapi69.crypto.file.PBEFileDecryptor;
-import io.github.astrapi69.crypto.key.PrivateKeyDecryptor;
-import io.github.astrapi69.crypto.key.PrivateKeyGenericDecryptor;
-import io.github.astrapi69.crypto.key.reader.PemObjectReader;
-import io.github.astrapi69.crypto.key.reader.PrivateKeyReader;
-import io.github.astrapi69.crypto.model.CryptModel;
-import io.github.astrapi69.crypto.pw.PasswordStringDecryptor;
+import io.github.astrapi69.crypt.api.algorithm.SunJCEAlgorithm;
+import io.github.astrapi69.crypt.data.factory.CryptModelFactory;
+import io.github.astrapi69.mystic.crypt.file.PBEFileDecryptor;
+import io.github.astrapi69.mystic.crypt.key.PrivateKeyDecryptor;
+import io.github.astrapi69.mystic.crypt.key.PrivateKeyGenericDecryptor;
+import io.github.astrapi69.crypt.data.key.reader.PemObjectReader;
+import io.github.astrapi69.crypt.data.key.reader.PrivateKeyReader;
+import io.github.astrapi69.crypt.data.model.CryptModel;
+import io.github.astrapi69.mystic.crypt.pw.PasswordStringDecryptor;
 import io.github.astrapi69.file.delete.DeleteFileExtensions;
 import io.github.astrapi69.file.read.ReadFileExtensions;
 import io.github.astrapi69.gson.JsonFileToObjectExtensions;

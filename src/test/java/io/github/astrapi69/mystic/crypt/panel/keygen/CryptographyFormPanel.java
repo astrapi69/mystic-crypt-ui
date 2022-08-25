@@ -26,7 +26,7 @@ package io.github.astrapi69.mystic.crypt.panel.keygen;
 
 import javax.swing.DefaultComboBoxModel;
 
-import io.github.astrapi69.crypto.key.KeySize;
+import io.github.astrapi69.crypt.api.key.KeySize;
 
 /**
  *

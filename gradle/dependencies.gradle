@@ -35,7 +35,7 @@ dependencies {
     implementation("io.github.astrapi69:mystic-crypt:$mysticCryptVersion")
     implementation("io.github.astrapi69:randomizer:$randomizerVersion")
     implementation("io.github.astrapi69:model-data:$modelDataVersion")
-    implementation("io.github.astrapi69:throw-able:$throwAbleVersion")
+    implementation("io.github.astrapi69:throwable:$throwableVersion")
     implementation("io.github.astrapi69:file-worker:$fileWorkerVersion")
     implementation("io.github.astrapi69:jobj-core:$jobjCoreVersion")
     implementation("io.github.astrapi69:silly-io:$sillyIoVersion")
@@ -68,5 +68,5 @@ dependencies {
     annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
     developmentOnly("org.springframework.boot:spring-boot-devtools")
     testImplementation("org.springframework.boot:spring-boot-starter-test")
-    testImplementation("io.github.astrapi69:test-objects:$testObjectsVersion")
+    testImplementation("io.github.astrapi69:test-object:$testObjectVersion")
 }

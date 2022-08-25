@@ -36,7 +36,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 import lombok.experimental.FieldDefaults;
-import io.github.astrapi69.checksum.api.ChecksumAlgorithm;
+import io.github.astrapi69.crypt.api.algorithm.ChecksumAlgorithm;
 
 @Getter
 @Setter

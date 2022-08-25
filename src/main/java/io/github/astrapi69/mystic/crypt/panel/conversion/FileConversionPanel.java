@@ -41,15 +41,15 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.LayoutStyle;
 
+import io.github.astrapi69.crypt.api.key.KeyType;
 import lombok.Getter;
 import lombok.extern.java.Log;
-import io.github.astrapi69.crypto.key.KeyType;
-import io.github.astrapi69.crypto.key.reader.CertificateReader;
-import io.github.astrapi69.crypto.key.reader.PrivateKeyReader;
-import io.github.astrapi69.crypto.key.reader.PublicKeyReader;
-import io.github.astrapi69.crypto.key.writer.CertificateWriter;
-import io.github.astrapi69.crypto.key.writer.PrivateKeyWriter;
-import io.github.astrapi69.crypto.key.writer.PublicKeyWriter;
+import io.github.astrapi69.crypt.data.key.reader.CertificateReader;
+import io.github.astrapi69.crypt.data.key.reader.PrivateKeyReader;
+import io.github.astrapi69.crypt.data.key.reader.PublicKeyReader;
+import io.github.astrapi69.crypt.data.key.writer.CertificateWriter;
+import io.github.astrapi69.crypt.data.key.writer.PrivateKeyWriter;
+import io.github.astrapi69.crypt.data.key.writer.PublicKeyWriter;
 import io.github.astrapi69.model.BaseModel;
 import io.github.astrapi69.model.api.IModel;
 import io.github.astrapi69.swing.base.BasePanel;
@@ -155,14 +155,7 @@ public class FileConversionPanel extends BasePanel<FileConversionModelBean>
 		catch (NoSuchAlgorithmException | InvalidKeySpecException | NoSuchProviderException
 			| CertificateException | IOException e)
 		{
-			try
-			{
-				txtConsole.append(ThrowableExtensions.getStackTrace(e));
-			}
-			catch (IOException e1)
-			{
-				log.log(Level.SEVERE, e.getLocalizedMessage(), e);
-			}
+			txtConsole.append(ThrowableExtensions.getStackTrace(e));
 			log.log(Level.SEVERE, e.getLocalizedMessage(), e);
 		}
 		txtConsole.append("Coversion finished...\n");

@@ -45,11 +45,11 @@ import javax.swing.event.DocumentEvent;
 
 import lombok.Getter;
 import lombok.extern.java.Log;
-import io.github.astrapi69.crypto.algorithm.KeyPairGeneratorAlgorithm;
-import io.github.astrapi69.crypto.factory.KeyPairFactory;
-import io.github.astrapi69.crypto.key.KeySize;
-import io.github.astrapi69.crypto.key.PrivateKeyExtensions;
-import io.github.astrapi69.crypto.key.writer.PrivateKeyWriter;
+import io.github.astrapi69.crypt.api.algorithm.KeyPairGeneratorAlgorithm;
+import io.github.astrapi69.crypt.data.factory.KeyPairFactory;
+import io.github.astrapi69.crypt.api.key.KeySize;
+import io.github.astrapi69.crypt.data.key.PrivateKeyExtensions;
+import io.github.astrapi69.crypt.data.key.writer.PrivateKeyWriter;
 import io.github.astrapi69.file.create.FileFactory;
 import io.github.astrapi69.model.BaseModel;
 import io.github.astrapi69.model.LambdaModel;

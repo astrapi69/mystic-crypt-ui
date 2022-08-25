@@ -31,8 +31,8 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 import lombok.experimental.FieldDefaults;
-import io.github.astrapi69.crypto.obfuscation.api.Obfuscatable;
-import io.github.astrapi69.crypto.obfuscation.rule.ObfuscationOperationRule;
+import io.github.astrapi69.crypt.api.obfuscation.Obfuscatable;
+import io.github.astrapi69.crypt.data.obfuscation.rule.ObfuscationOperationRule;
 import io.github.astrapi69.mystic.crypt.panel.obfuscate.ModeContext;
 
 

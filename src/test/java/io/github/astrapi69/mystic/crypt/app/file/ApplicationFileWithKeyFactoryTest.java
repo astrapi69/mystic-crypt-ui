@@ -39,10 +39,10 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import io.github.astrapi69.collection.list.ListFactory;
-import io.github.astrapi69.crypto.key.PrivateKeyDecryptor;
-import io.github.astrapi69.crypto.key.PrivateKeyGenericDecryptor;
-import io.github.astrapi69.crypto.key.reader.PrivateKeyReader;
-import io.github.astrapi69.crypto.model.CryptModel;
+import io.github.astrapi69.mystic.crypt.key.PrivateKeyDecryptor;
+import io.github.astrapi69.mystic.crypt.key.PrivateKeyGenericDecryptor;
+import io.github.astrapi69.crypt.data.key.reader.PrivateKeyReader;
+import io.github.astrapi69.crypt.data.model.CryptModel;
 import io.github.astrapi69.file.delete.DeleteFileExtensions;
 import io.github.astrapi69.file.read.ReadFileExtensions;
 import io.github.astrapi69.file.search.PathFinder;

@@ -28,7 +28,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.junit.jupiter.api.Test;
 
-import io.github.astrapi69.crypto.certificate.CertificateAttributes;
+import io.github.astrapi69.crypt.data.certificate.CertificateAttributes;
 
 public class CertificateAttributesTest
 {

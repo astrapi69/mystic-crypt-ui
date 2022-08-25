@@ -29,7 +29,7 @@ import java.awt.event.ActionEvent;
 
 import javax.swing.JPanel;
 
-import io.github.astrapi69.crypto.key.KeySize;
+import io.github.astrapi69.crypt.api.key.KeySize;
 import io.github.astrapi69.model.BaseModel;
 import io.github.astrapi69.model.api.IModel;
 import io.github.astrapi69.swing.base.PanelDialog;

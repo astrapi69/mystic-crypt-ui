@@ -31,9 +31,9 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.FieldDefaults;
-import io.github.astrapi69.crypto.key.KeySize;
-import io.github.astrapi69.crypto.key.PrivateKeyHexDecryptor;
-import io.github.astrapi69.crypto.key.PublicKeyHexEncryptor;
+import io.github.astrapi69.crypt.api.key.KeySize;
+import io.github.astrapi69.mystic.crypt.key.PrivateKeyHexDecryptor;
+import io.github.astrapi69.mystic.crypt.key.PublicKeyHexEncryptor;
 
 /**
  * The class {@link PrivateKeyModelBean}.

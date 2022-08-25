@@ -42,7 +42,7 @@ import org.apache.commons.codec.DecoderException;
 
 import io.github.astrapi69.collection.map.MapFactory;
 import io.github.astrapi69.collection.pair.KeyValuePair;
-import io.github.astrapi69.crypto.obfuscation.rule.ObfuscationOperationRule;
+import io.github.astrapi69.crypt.data.obfuscation.rule.ObfuscationOperationRule;
 import io.github.astrapi69.model.BaseModel;
 import io.github.astrapi69.model.api.IModel;
 import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
