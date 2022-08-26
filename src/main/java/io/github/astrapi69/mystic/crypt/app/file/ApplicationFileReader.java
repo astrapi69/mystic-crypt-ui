@@ -38,20 +38,21 @@ import org.bouncycastle.jce.provider.BouncyCastleProvider;
 
 import io.github.astrapi69.crypt.api.algorithm.SunJCEAlgorithm;
 import io.github.astrapi69.crypt.data.factory.CryptModelFactory;
-import io.github.astrapi69.mystic.crypt.file.PBEFileDecryptor;
-import io.github.astrapi69.mystic.crypt.key.PrivateKeyDecryptor;
-import io.github.astrapi69.mystic.crypt.key.PrivateKeyGenericDecryptor;
 import io.github.astrapi69.crypt.data.key.reader.PemObjectReader;
 import io.github.astrapi69.crypt.data.key.reader.PrivateKeyReader;
 import io.github.astrapi69.crypt.data.model.CryptModel;
-import io.github.astrapi69.mystic.crypt.pw.PasswordStringDecryptor;
+import io.github.astrapi69.file.create.FileFactory;
 import io.github.astrapi69.file.delete.DeleteFileExtensions;
 import io.github.astrapi69.file.read.ReadFileExtensions;
 import io.github.astrapi69.gson.JsonFileToObjectExtensions;
 import io.github.astrapi69.gson.JsonStringToObjectExtensions;
 import io.github.astrapi69.mystic.crypt.ApplicationModelBean;
 import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
+import io.github.astrapi69.mystic.crypt.file.PBEFileDecryptor;
+import io.github.astrapi69.mystic.crypt.key.PrivateKeyDecryptor;
+import io.github.astrapi69.mystic.crypt.key.PrivateKeyGenericDecryptor;
 import io.github.astrapi69.mystic.crypt.panel.signin.MasterPwFileModelBean;
+import io.github.astrapi69.mystic.crypt.pw.PasswordStringDecryptor;
 
 @Log
 public class ApplicationFileReader
@@ -77,9 +78,9 @@ public class ApplicationFileReader
 	public static ApplicationModelBean readApplicationFileWithPasswordAndPrivateKey(
 		MasterPwFileModelBean modelObject)
 	{
-		File applicationFile = modelObject.getApplicationFile();
+		File applicationFile = FileFactory.newFileQuietly(modelObject.getApplicationFileInfo());
 		char[] password = modelObject.getMasterPw();
-		File keyFile = modelObject.getKeyFile();
+		File keyFile = FileFactory.newFileQuietly(modelObject.getKeyFileInfo());
 		try
 		{
 			return getApplicationModelBean(applicationFile, password, keyFile);
@@ -98,8 +99,8 @@ public class ApplicationFileReader
 		MasterPwFileModelBean modelObject)
 	{
 		ApplicationModelBean applicationModelBean;
-		File applicationFile = modelObject.getApplicationFile();
-		File keyFile = modelObject.getKeyFile();
+		File applicationFile = FileFactory.newFileQuietly(modelObject.getApplicationFileInfo());
+		File keyFile = FileFactory.newFileQuietly(modelObject.getKeyFileInfo());
 		if (Security.getProvider(BouncyCastleProvider.PROVIDER_NAME) == null)
 		{
 			Security
@@ -108,9 +109,9 @@ public class ApplicationFileReader
 		try
 		{
 			PrivateKey privateKey;
-			if (modelObject.getPrivateKey() != null)
+			if (modelObject.getPrivateKeyInfo() != null)
 			{
-				privateKey = modelObject.getPrivateKey();
+				privateKey = KeyModelExtensions.readPrivateKey(modelObject.getPrivateKeyInfo());
 			}
 			else
 			{
@@ -135,10 +136,11 @@ public class ApplicationFileReader
 		return applicationModelBean;
 	}
 
+
 	public static ApplicationModelBean readApplicationFileWithPassword(
 		MasterPwFileModelBean modelObject)
 	{
-		File applicationFile = modelObject.getApplicationFile();
+		File applicationFile = FileFactory.newFileQuietly(modelObject.getApplicationFileInfo());
 		char[] password = modelObject.getMasterPw();
 		try
 		{

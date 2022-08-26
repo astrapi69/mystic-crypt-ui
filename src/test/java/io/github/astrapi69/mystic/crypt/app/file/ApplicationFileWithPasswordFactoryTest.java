@@ -38,12 +38,13 @@ import org.junit.jupiter.api.Test;
 
 import io.github.astrapi69.collection.list.ListFactory;
 import io.github.astrapi69.crypt.api.algorithm.SunJCEAlgorithm;
-import io.github.astrapi69.mystic.crypt.file.PBEFileDecryptor;
 import io.github.astrapi69.crypt.data.model.CryptModel;
+import io.github.astrapi69.file.create.FileInfo;
 import io.github.astrapi69.file.delete.DeleteFileExtensions;
 import io.github.astrapi69.file.search.PathFinder;
 import io.github.astrapi69.io.file.FileExtension;
 import io.github.astrapi69.mystic.crypt.ApplicationModelBean;
+import io.github.astrapi69.mystic.crypt.file.PBEFileDecryptor;
 import io.github.astrapi69.mystic.crypt.panel.signin.MasterPwFileModelBean;
 import io.github.astrapi69.throwable.RuntimeExceptionDecorator;
 
@@ -95,7 +96,8 @@ public class ApplicationFileWithPasswordFactoryTest
 		File expectedFile;
 		MasterPwFileModelBean modelObject;
 		// create test data
-		modelObject = MasterPwFileModelBean.builder().applicationFile(applicationFile)
+		modelObject = MasterPwFileModelBean.builder()
+			.applicationFileInfo(FileInfo.toFileInfo(applicationFile))
 			.selectedApplicationFilePath(selectedApplicationFilePath)
 			.applicationFilePaths(ListFactory.newArrayList(""))
 			.keyFilePaths(ListFactory.newArrayList("")).minPasswordLength(6)

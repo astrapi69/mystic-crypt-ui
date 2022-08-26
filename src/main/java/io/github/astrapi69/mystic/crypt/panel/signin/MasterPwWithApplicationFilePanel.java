@@ -40,6 +40,7 @@ import lombok.extern.java.Log;
 import org.apache.commons.lang3.StringUtils;
 
 import io.github.astrapi69.browser.BrowserControlExtensions;
+import io.github.astrapi69.file.create.FileInfo;
 import io.github.astrapi69.gson.ObjectToJsonFileExtensions;
 import io.github.astrapi69.model.BaseModel;
 import io.github.astrapi69.model.LambdaModel;
@@ -203,12 +204,12 @@ public class MasterPwWithApplicationFilePanel extends BasePanel<MasterPwFileMode
 			selectedKeyFilePath);
 		cmbKeyFile.setModel(cmbKeyFileModel);
 		cmbKeyFile.setSelectedItem(selectedKeyFilePath);
-		if (selectedKeyFilePath != null && modelObject.getKeyFile() == null)
+		if (selectedKeyFilePath != null && modelObject.getKeyFileInfo() == null)
 		{
 			File kf = new File(selectedKeyFilePath);
 			if (kf.exists())
 			{
-				modelObject.setKeyFile(kf);
+				modelObject.setKeyFileInfo(FileInfo.toFileInfo(kf));
 			}
 		}
 		cmbKeyFile.addActionListener(this::onChangeCmbKeyFile);
@@ -221,12 +222,12 @@ public class MasterPwWithApplicationFilePanel extends BasePanel<MasterPwFileMode
 			modelObject.getApplicationFilePaths(), selectedApplicationFilePath);
 		cmbApplicationFile.setModel(cmbApplicationFileModel);
 		cmbApplicationFile.setSelectedItem(selectedApplicationFilePath);
-		if (selectedApplicationFilePath != null && modelObject.getApplicationFile() == null)
+		if (selectedApplicationFilePath != null && modelObject.getApplicationFileInfo() == null)
 		{
 			File saf = new File(selectedApplicationFilePath);
 			if (saf.exists())
 			{
-				modelObject.setApplicationFile(saf);
+				modelObject.setApplicationFileInfo(FileInfo.toFileInfo(saf));
 			}
 		}
 		cmbApplicationFile.addActionListener(this::onChangeCmbApplicationFile);
@@ -274,7 +275,7 @@ public class MasterPwWithApplicationFilePanel extends BasePanel<MasterPwFileMode
 		getModelObject().setSelectedApplicationFilePath(selectedApplicationFilePath);
 		if (StringUtils.isEmpty(selectedApplicationFilePath))
 		{
-			getModelObject().setApplicationFile(null);
+			getModelObject().setApplicationFileInfo(null);
 			btnOkStateMachine.onApplicationFileAdded(btnOkStateMachine);
 		}
 		else
@@ -282,7 +283,8 @@ public class MasterPwWithApplicationFilePanel extends BasePanel<MasterPwFileMode
 			File selectedApplicationFile = new File(selectedApplicationFilePath);
 			if (selectedApplicationFile.exists())
 			{
-				getModelObject().setApplicationFile(selectedApplicationFile);
+				getModelObject()
+					.setApplicationFileInfo(FileInfo.toFileInfo(selectedApplicationFile));
 				if (!getModelObject().getApplicationFilePaths()
 					.contains(selectedApplicationFile.getAbsolutePath()))
 				{
@@ -293,7 +295,7 @@ public class MasterPwWithApplicationFilePanel extends BasePanel<MasterPwFileMode
 			}
 			else if (!selectedApplicationFile.exists())
 			{
-				getModelObject().setApplicationFile(null);
+				getModelObject().setApplicationFileInfo(null);
 				cmbApplicationFileModel.removeElement(selectedApplicationFilePath);
 				btnOkStateMachine.onApplicationFileAdded(btnOkStateMachine);
 			}
@@ -307,7 +309,7 @@ public class MasterPwWithApplicationFilePanel extends BasePanel<MasterPwFileMode
 		getModelObject().setSelectedKeyFilePath(selectedKeyFilePath);
 		if (StringUtils.isEmpty(selectedKeyFilePath))
 		{
-			getModelObject().setKeyFile(null);
+			getModelObject().setKeyFileInfo(null);
 			btnOkStateMachine.onSetKeyFile(btnOkStateMachine);
 		}
 		else
@@ -315,7 +317,7 @@ public class MasterPwWithApplicationFilePanel extends BasePanel<MasterPwFileMode
 			File selectedKeyFile = new File(selectedKeyFilePath);
 			if (selectedKeyFile.exists())
 			{
-				getModelObject().setKeyFile(selectedKeyFile);
+				getModelObject().setKeyFileInfo(FileInfo.toFileInfo(selectedKeyFile));
 				if (!getModelObject().getKeyFilePaths().contains(selectedKeyFile.getAbsolutePath()))
 				{
 					getModelObject().getKeyFilePaths().add(selectedKeyFile.getAbsolutePath());
@@ -324,7 +326,7 @@ public class MasterPwWithApplicationFilePanel extends BasePanel<MasterPwFileMode
 			}
 			else if (!selectedKeyFile.exists())
 			{
-				getModelObject().setKeyFile(null);
+				getModelObject().setKeyFileInfo(null);
 				cmbKeyFileModel.removeElement(selectedKeyFilePath);
 				btnOkStateMachine.onSetKeyFile(btnOkStateMachine);
 			}
@@ -487,7 +489,7 @@ public class MasterPwWithApplicationFilePanel extends BasePanel<MasterPwFileMode
 			String absolutePath = selectedApplicationFile.getAbsolutePath();
 			cmbApplicationFileModel.addElement(absolutePath);
 			cmbApplicationFileModel.setSelectedItem(absolutePath);
-			getModelObject().setApplicationFile(selectedApplicationFile);
+			getModelObject().setApplicationFileInfo(FileInfo.toFileInfo(selectedApplicationFile));
 			toggleApplicationFileComponents();
 			btnOkStateMachine.onApplicationFileAdded(btnOkStateMachine);
 		}
@@ -504,7 +506,7 @@ public class MasterPwWithApplicationFilePanel extends BasePanel<MasterPwFileMode
 			cmbKeyFileModel.addElement(absolutePath);
 			cmbKeyFileModel.setSelectedItem(absolutePath);
 			getModelObject().setSelectedKeyFilePath(absolutePath);
-			getModelObject().setKeyFile(selectedKeyFile);
+			getModelObject().setKeyFileInfo(FileInfo.toFileInfo(selectedKeyFile));
 			btnOkStateMachine.onSetKeyFile(btnOkStateMachine);
 		}
 	}

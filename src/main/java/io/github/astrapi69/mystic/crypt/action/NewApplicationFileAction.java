@@ -32,6 +32,7 @@ import javax.swing.JFileChooser;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
 import io.github.astrapi69.file.create.FileFactory;
+import io.github.astrapi69.file.create.FileInfo;
 import io.github.astrapi69.model.BaseModel;
 import io.github.astrapi69.model.api.IModel;
 import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
@@ -77,10 +78,10 @@ public class NewApplicationFileAction extends AbstractAction
 					.decorate(() -> FileFactory.newFile(selectedApplicationFile));
 			}
 			String selectedApplicationFilePath = selectedApplicationFile.getAbsolutePath();
-			IModel<MasterPwFileModelBean> model = BaseModel
-				.of(MasterPwFileModelBean.builder().applicationFile(selectedApplicationFile)
-					.selectedApplicationFilePath(selectedApplicationFilePath).minPasswordLength(6)
-					.withKeyFile(false).withMasterPw(false).showMasterPw(false).build());
+			IModel<MasterPwFileModelBean> model = BaseModel.of(MasterPwFileModelBean.builder()
+				.applicationFileInfo(FileInfo.toFileInfo(selectedApplicationFile))
+				.selectedApplicationFilePath(selectedApplicationFilePath).minPasswordLength(6)
+				.withKeyFile(false).withMasterPw(false).showMasterPw(false).build());
 			NewMasterPwFileDialog dialog = new NewMasterPwFileDialog(mysticCryptApplicationFrame,
 				"Create your master key", true, model);
 			dialog.setSize(840, 520);

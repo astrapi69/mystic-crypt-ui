@@ -25,9 +25,7 @@
 package io.github.astrapi69.mystic.crypt.panel.privatekey;
 
 import java.io.File;
-import java.security.PrivateKey;
 
-import io.github.astrapi69.crypt.api.key.KeySize;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -35,6 +33,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.experimental.SuperBuilder;
+import io.github.astrapi69.crypt.api.key.KeySize;
+import io.github.astrapi69.crypt.data.model.KeyModel;
 
 /**
  * The class {@link PrivateKeyModelBean}.
@@ -51,7 +51,8 @@ public class NewPrivateKeyModelBean
 	@Builder.Default
 	KeySize keySize = KeySize.KEYSIZE_2048;
 
-	PrivateKey privateKey;
+	/** The model for the private key */
+	KeyModel privateKeyInfo;
 
 	/** The private key directory */
 	File privateKeyDirectory;

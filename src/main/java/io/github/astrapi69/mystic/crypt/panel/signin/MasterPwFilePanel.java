@@ -38,6 +38,7 @@ import javax.swing.LayoutStyle;
 import javax.swing.event.DocumentEvent;
 
 import lombok.Getter;
+import io.github.astrapi69.file.create.FileInfo;
 import io.github.astrapi69.file.system.SystemFileExtensions;
 import io.github.astrapi69.model.BaseModel;
 import io.github.astrapi69.model.api.IModel;
@@ -96,7 +97,7 @@ public class MasterPwFilePanel extends BasePanel<MasterPwFileModelBean>
 		if (!withKeyFile)
 		{
 			txtKeyFile.setText("");
-			getModelObject().setKeyFile(null);
+			getModelObject().setKeyFileInfo(null);
 		}
 		btnKeyFileChooser.setEnabled(withKeyFile);
 	}
@@ -190,9 +191,9 @@ public class MasterPwFilePanel extends BasePanel<MasterPwFileModelBean>
 		if (returnVal == JFileChooser.APPROVE_OPTION)
 		{
 			final File selectedKeyFile = fileChooser.getSelectedFile();
-			getModelObject().setKeyFile(selectedKeyFile);
+			getModelObject().setKeyFileInfo(FileInfo.toFileInfo(selectedKeyFile));
 			btnOk.getModel().setEnabled(getBtnOkEnabledState());
-			txtKeyFile.setText(getModelObject().getKeyFile().getName());
+			txtKeyFile.setText(getModelObject().getKeyFileInfo().getName());
 		}
 	}
 
@@ -200,7 +201,7 @@ public class MasterPwFilePanel extends BasePanel<MasterPwFileModelBean>
 	{
 		MasterPwFileModelBean modelObject = getModelObject();
 		if (modelObject.isWithMasterPw() && modelObject.isWithKeyFile()
-			&& !(0 < txtMasterPw.getDocument().getLength() && modelObject.getKeyFile() != null))
+			&& !(0 < txtMasterPw.getDocument().getLength() && modelObject.getKeyFileInfo() != null))
 		{
 			return false;
 		}
@@ -214,7 +215,7 @@ public class MasterPwFilePanel extends BasePanel<MasterPwFileModelBean>
 			return false;
 		}
 		if (!modelObject.isWithMasterPw() && modelObject.isWithKeyFile()
-			&& modelObject.getKeyFile() == null)
+			&& modelObject.getKeyFileInfo() == null)
 		{
 			return false;
 		}

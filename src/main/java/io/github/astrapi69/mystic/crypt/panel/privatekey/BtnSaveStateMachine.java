@@ -59,7 +59,7 @@ public class BtnSaveStateMachine
 		boolean filenameOfPrivateKeyPresent = !ObjectUtils
 			.isEmpty(modelObject.getFilenameOfPrivateKey());
 		boolean privateKeyDirectoryPresent = modelObject.getPrivateKeyDirectory() != null;
-		boolean privateKeyObjectPresent = modelObject.getPrivateKey() != null;
+		boolean privateKeyObjectPresent = modelObject.getPrivateKeyInfo() != null;
 		boolean keySizePresent = modelObject.getKeySize() != null;
 		if (filenameOfPrivateKeyPresent && privateKeyDirectoryPresent && privateKeyObjectPresent
 			&& keySizePresent)

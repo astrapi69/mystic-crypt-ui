@@ -46,15 +46,17 @@ import javax.swing.event.DocumentEvent;
 import lombok.Getter;
 import lombok.extern.java.Log;
 import io.github.astrapi69.crypt.api.algorithm.KeyPairGeneratorAlgorithm;
-import io.github.astrapi69.crypt.data.factory.KeyPairFactory;
 import io.github.astrapi69.crypt.api.key.KeySize;
+import io.github.astrapi69.crypt.data.factory.KeyPairFactory;
 import io.github.astrapi69.crypt.data.key.PrivateKeyExtensions;
 import io.github.astrapi69.crypt.data.key.writer.PrivateKeyWriter;
+import io.github.astrapi69.crypt.data.model.KeyModel;
 import io.github.astrapi69.file.create.FileFactory;
 import io.github.astrapi69.model.BaseModel;
 import io.github.astrapi69.model.LambdaModel;
 import io.github.astrapi69.model.api.IModel;
 import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
+import io.github.astrapi69.mystic.crypt.app.file.KeyModelExtensions;
 import io.github.astrapi69.swing.base.BasePanel;
 import io.github.astrapi69.swing.combobox.model.EnumComboBoxModel;
 import io.github.astrapi69.swing.component.JMTextField;
@@ -217,8 +219,10 @@ public class NewPrivateKeyPanel extends BasePanel<NewPrivateKeyModelBean>
 		RuntimeExceptionDecorator.decorate(() -> FileFactory.newFile(privateKeyFile));
 
 		getModelObject().setPrivateKeyFile(privateKeyFile);
+		KeyModel privateKeyInfo = getModelObject().getPrivateKeyInfo();
+
 		RuntimeExceptionDecorator.decorate(() -> PrivateKeyWriter
-			.writeInPemFormat(getModelObject().getPrivateKey(), privateKeyFile));
+			.writeInPemFormat(KeyModelExtensions.readPrivateKey(privateKeyInfo), privateKeyFile));
 		Component rootJDialog = AwtExtensions.getRootJDialog(this);
 		if (rootJDialog instanceof JDialog)
 		{
@@ -242,10 +246,10 @@ public class NewPrivateKeyPanel extends BasePanel<NewPrivateKeyModelBean>
 			final KeyPair keyPair = KeyPairFactory.newKeyPair(KeyPairGeneratorAlgorithm.RSA,
 				selected.getKeySize());
 
-			getModelObject().setPrivateKey(keyPair.getPrivate());
+			getModelObject().setPrivateKeyInfo(KeyModelExtensions.toKeyModel(keyPair.getPrivate()));
 
-			final String privateKeyFormat = PrivateKeyExtensions
-				.toPemFormat(getModelObject().getPrivateKey());
+			final String privateKeyFormat = PrivateKeyExtensions.toPemFormat(
+				KeyModelExtensions.readPrivateKey(getModelObject().getPrivateKeyInfo()));
 
 
 			getTxtPrivateKey().setText("");
@@ -273,7 +277,7 @@ public class NewPrivateKeyPanel extends BasePanel<NewPrivateKeyModelBean>
 		getTxtFilenameOfPrivateKey().setText("");
 		getModelObject().setKeySize(KeySize.KEYSIZE_2048);
 		getModelObject().setFilenameOfPrivateKey("");
-		getModelObject().setPrivateKey(null);
+		getModelObject().setPrivateKeyInfo(null);
 		getModelObject().setPrivateKeyDirectory(null);
 		getModelObject().setPrivateKeyFile(null);
 		btnSaveStateMachine.onClear();

@@ -37,13 +37,9 @@ import com.google.gson.GsonBuilder;
 import io.github.astrapi69.crypt.api.algorithm.AesAlgorithm;
 import io.github.astrapi69.crypt.api.algorithm.SunJCEAlgorithm;
 import io.github.astrapi69.crypt.data.factory.SecretKeyFactoryExtensions;
-import io.github.astrapi69.mystic.crypt.file.PBEFileEncryptor;
 import io.github.astrapi69.crypt.data.key.PrivateKeyExtensions;
-import io.github.astrapi69.mystic.crypt.key.PublicKeyEncryptor;
-import io.github.astrapi69.mystic.crypt.key.PublicKeyGenericEncryptor;
 import io.github.astrapi69.crypt.data.key.reader.PrivateKeyReader;
 import io.github.astrapi69.crypt.data.model.CryptModel;
-import io.github.astrapi69.mystic.crypt.pw.PasswordStringEncryptor;
 import io.github.astrapi69.file.create.FileFactory;
 import io.github.astrapi69.file.delete.DeleteFileExtensions;
 import io.github.astrapi69.file.system.SystemFileExtensions;
@@ -51,8 +47,12 @@ import io.github.astrapi69.file.write.WriteFileExtensions;
 import io.github.astrapi69.gson.ObjectToJsonExtensions;
 import io.github.astrapi69.io.file.FileExtension;
 import io.github.astrapi69.mystic.crypt.ApplicationModelBean;
+import io.github.astrapi69.mystic.crypt.file.PBEFileEncryptor;
+import io.github.astrapi69.mystic.crypt.key.PublicKeyEncryptor;
+import io.github.astrapi69.mystic.crypt.key.PublicKeyGenericEncryptor;
 import io.github.astrapi69.mystic.crypt.panel.signin.MasterPwFileModelBean;
 import io.github.astrapi69.mystic.crypt.panel.signin.SignInType;
+import io.github.astrapi69.mystic.crypt.pw.PasswordStringEncryptor;
 import io.github.astrapi69.random.number.RandomIntFactory;
 import io.github.astrapi69.random.object.RandomStringFactory;
 import io.github.astrapi69.throwable.RuntimeExceptionDecorator;
@@ -93,15 +93,16 @@ public final class ApplicationFileStoreWorker
 		byte[] encrypt;
 		File applicationFile;
 		MasterPwFileModelBean modelObject = applicationModelBean.getMasterPwFileModelBean();
-		applicationFile = modelObject.getApplicationFile();
-		if (modelObject.getPrivateKey() != null)
+
+		applicationFile = FileFactory.newFileQuietly(modelObject.getApplicationFileInfo());
+		if (modelObject.getPrivateKeyInfo() != null)
 		{
-			privateKey = modelObject.getPrivateKey();
+			privateKey = KeyModelExtensions.readPrivateKey(modelObject.getPrivateKeyInfo());
 		}
 		else
 		{
-			privateKey = RuntimeExceptionDecorator
-				.decorate(() -> PrivateKeyReader.readPrivateKey(modelObject.getKeyFile()));
+			privateKey = RuntimeExceptionDecorator.decorate(() -> PrivateKeyReader
+				.readPrivateKey(FileFactory.newFileQuietly(modelObject.getKeyFileInfo())));
 		}
 
 		publicKey = RuntimeExceptionDecorator
@@ -115,7 +116,7 @@ public final class ApplicationFileStoreWorker
 		encryptor = RuntimeExceptionDecorator
 			.decorate(() -> new PublicKeyEncryptor(encryptModel, symmetricKeyModel));
 		genericEncryptor = new PublicKeyGenericEncryptor<>(encryptor);
-		applicationModelBean.getMasterPwFileModelBean().setPrivateKey(null);
+		applicationModelBean.getMasterPwFileModelBean().setPrivateKeyInfo(null);
 		json = RuntimeExceptionDecorator
 			.decorate(() -> ObjectToJsonExtensions.toJson(applicationModelBean, GSON));
 
@@ -145,9 +146,9 @@ public final class ApplicationFileStoreWorker
 		File applicationFile;
 		CryptModel<Cipher, SecretKey, String> symmetricKeyModel;
 		MasterPwFileModelBean modelObject = applicationModelBean.getMasterPwFileModelBean();
-		applicationFile = modelObject.getApplicationFile();
-		privateKey = RuntimeExceptionDecorator
-			.decorate(() -> PrivateKeyReader.readPemPrivateKey(modelObject.getKeyFile()));
+		applicationFile = FileFactory.newFileQuietly(modelObject.getApplicationFileInfo());
+		privateKey = RuntimeExceptionDecorator.decorate(() -> PrivateKeyReader
+			.readPemPrivateKey(FileFactory.newFileQuietly(modelObject.getKeyFileInfo())));
 
 		masterPw = modelObject.getMasterPw();
 
@@ -169,7 +170,7 @@ public final class ApplicationFileStoreWorker
 		genericEncryptor = new PublicKeyGenericEncryptor<>(encryptor);
 
 		passwordStringEncryptor = new PasswordStringEncryptor(String.valueOf(masterPw));
-		applicationModelBean.getMasterPwFileModelBean().setPrivateKey(null);
+		applicationModelBean.getMasterPwFileModelBean().setPrivateKeyInfo(null);
 
 		json = RuntimeExceptionDecorator
 			.decorate(() -> ObjectToJsonExtensions.toJson(applicationModelBean, GSON));
@@ -200,7 +201,7 @@ public final class ApplicationFileStoreWorker
 			+ RandomStringFactory.newRandomLongString(RandomIntFactory.randomIntBetween(2, 4));
 		tempJsonFile = new File(SystemFileExtensions.getTempDir(), randomFilename);
 		RuntimeExceptionDecorator.decorate(() -> FileFactory.newFile(tempJsonFile));
-		applicationFile = modelObject.getApplicationFile();
+		applicationFile = FileFactory.newFileQuietly(modelObject.getApplicationFileInfo());
 
 		password = String.valueOf(modelObject.getMasterPw());
 

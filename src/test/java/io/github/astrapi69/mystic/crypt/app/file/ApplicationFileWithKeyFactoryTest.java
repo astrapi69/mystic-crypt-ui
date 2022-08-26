@@ -39,16 +39,17 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import io.github.astrapi69.collection.list.ListFactory;
-import io.github.astrapi69.mystic.crypt.key.PrivateKeyDecryptor;
-import io.github.astrapi69.mystic.crypt.key.PrivateKeyGenericDecryptor;
 import io.github.astrapi69.crypt.data.key.reader.PrivateKeyReader;
 import io.github.astrapi69.crypt.data.model.CryptModel;
+import io.github.astrapi69.file.create.FileInfo;
 import io.github.astrapi69.file.delete.DeleteFileExtensions;
 import io.github.astrapi69.file.read.ReadFileExtensions;
 import io.github.astrapi69.file.search.PathFinder;
 import io.github.astrapi69.gson.JsonStringToObjectExtensions;
 import io.github.astrapi69.io.file.FileExtension;
 import io.github.astrapi69.mystic.crypt.ApplicationModelBean;
+import io.github.astrapi69.mystic.crypt.key.PrivateKeyDecryptor;
+import io.github.astrapi69.mystic.crypt.key.PrivateKeyGenericDecryptor;
 import io.github.astrapi69.mystic.crypt.panel.signin.MasterPwFileModelBean;
 import io.github.astrapi69.throwable.RuntimeExceptionDecorator;
 
@@ -119,8 +120,10 @@ public class ApplicationFileWithKeyFactoryTest
 		MasterPwFileModelBean modelObject;
 		ApplicationModelBean applicationModelBean;
 		// create test data
-		modelObject = MasterPwFileModelBean.builder().applicationFile(applicationFile)
-			.privateKey(pemPrivateKey).keyFile(privateKeyPemFile)
+		modelObject = MasterPwFileModelBean.builder()
+			.applicationFileInfo(FileInfo.toFileInfo(applicationFile))
+			.privateKeyInfo(KeyModelExtensions.toKeyModel(pemPrivateKey))
+			.keyFileInfo(FileInfo.toFileInfo(privateKeyPemFile))
 			.applicationFilePaths(ListFactory.newArrayList(""))
 			.keyFilePaths(ListFactory.newArrayList("")).build();
 		// test the actual method

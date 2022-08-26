@@ -24,9 +24,7 @@
  */
 package io.github.astrapi69.mystic.crypt.panel.signin;
 
-import java.io.File;
 import java.io.Serializable;
-import java.security.PrivateKey;
 import java.util.List;
 import java.util.Set;
 
@@ -41,6 +39,8 @@ import lombok.experimental.SuperBuilder;
 import lombok.extern.java.Log;
 import io.github.astrapi69.collection.list.ListFactory;
 import io.github.astrapi69.collection.set.SetFactory;
+import io.github.astrapi69.crypt.data.model.KeyModel;
+import io.github.astrapi69.file.create.FileInfo;
 
 /**
  * The bean class {@link MasterPwFileModelBean} is for holding the sign in data
@@ -57,8 +57,8 @@ public class MasterPwFileModelBean implements Serializable
 	private static final long serialVersionUID = 1L;
 
 	/** The encrypted data file for the application. */
-	File applicationFile;
-
+	/** The application file info for create the application file object */
+	FileInfo applicationFileInfo;
 	/** The currently selected key file path */
 	String selectedApplicationFilePath;
 
@@ -66,11 +66,11 @@ public class MasterPwFileModelBean implements Serializable
 	@Builder.Default
 	List<String> applicationFilePaths = ListFactory.newArrayList("");
 
-	/** The private key */
-	PrivateKey privateKey;
+	/** The model for the private key */
+	KeyModel privateKeyInfo;
 
-	/** The key file. */
-	File keyFile;
+	/** The key file info for create the key file object */
+	FileInfo keyFileInfo;
 
 	/** The currently selected key file path */
 	String selectedKeyFilePath;

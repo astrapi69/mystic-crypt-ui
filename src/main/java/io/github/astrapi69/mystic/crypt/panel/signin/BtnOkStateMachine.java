@@ -36,6 +36,7 @@ import lombok.Setter;
 import lombok.ToString;
 import lombok.experimental.SuperBuilder;
 import io.github.astrapi69.design.pattern.state.component.AbstractJComponentStateMachine;
+import io.github.astrapi69.file.create.FileFactory;
 
 @Getter
 @Setter
@@ -53,14 +54,15 @@ public class BtnOkStateMachine extends AbstractJComponentStateMachine<JButton, B
 	@Override
 	protected void updateComponentState()
 	{
-		boolean applicationFilePresent = modelObject.getApplicationFile() != null
-			&& modelObject.getApplicationFile().exists();
+		boolean applicationFilePresent = FileFactory
+			.newFileQuietly(modelObject.getApplicationFileInfo()) != null
+			&& FileFactory.newFileQuietly(modelObject.getApplicationFileInfo()).exists();
 		int minPasswordLength = modelObject.getMinPasswordLength();
 		int passwordLength = modelObject.getMasterPw() != null
 			? modelObject.getMasterPw().length
 			: 0;
 		boolean withKeyFile = modelObject.isWithKeyFile();
-		File keyFile = modelObject.getKeyFile();
+		File keyFile = FileFactory.newFileQuietly(modelObject.getKeyFileInfo());
 		boolean withMasterPw = modelObject.isWithMasterPw();
 		if (applicationFilePresent && withMasterPw && minPasswordLength <= passwordLength
 			&& withKeyFile && keyFile != null)

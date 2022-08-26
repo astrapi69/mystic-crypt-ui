@@ -32,7 +32,6 @@ package io.github.astrapi69.mystic.crypt.panel.signin;
 import java.awt.event.ActionEvent;
 import java.io.File;
 import java.net.URL;
-import java.security.PrivateKey;
 
 import javax.swing.JCheckBox;
 import javax.swing.JFileChooser;
@@ -45,8 +44,10 @@ import lombok.experimental.FieldDefaults;
 import org.apache.commons.lang3.StringUtils;
 
 import io.github.astrapi69.browser.BrowserControlExtensions;
+import io.github.astrapi69.crypt.data.model.KeyModel;
 import io.github.astrapi69.file.create.FileCreationState;
 import io.github.astrapi69.file.create.FileFactory;
+import io.github.astrapi69.file.create.FileInfo;
 import io.github.astrapi69.model.BaseModel;
 import io.github.astrapi69.model.LambdaModel;
 import io.github.astrapi69.model.api.IModel;
@@ -279,10 +280,10 @@ public class NewMasterPwFilePanel extends BasePanel<MasterPwFileModelBean>
 			@Override
 			protected void onSave()
 			{
-				PrivateKey privateKey = privateKeyModelBean.getPrivateKey();
-				NewMasterPwFilePanel.this.getModelObject().setPrivateKey(privateKey);
+				KeyModel privateKey = privateKeyModelBean.getPrivateKeyInfo();
+				NewMasterPwFilePanel.this.getModelObject().setPrivateKeyInfo(privateKey);
 				NewMasterPwFilePanel.this.getModelObject()
-					.setKeyFile(privateKeyModelBean.getPrivateKeyFile());
+					.setKeyFileInfo(FileInfo.toFileInfo(privateKeyModelBean.getPrivateKeyFile()));
 				NewMasterPwFilePanel.this.cmbKeyFileModel
 					.addElement(privateKeyModelBean.getPrivateKeyFile().getAbsolutePath());
 				NewMasterPwFilePanel.this.cmbKeyFileModel
@@ -324,7 +325,7 @@ public class NewMasterPwFilePanel extends BasePanel<MasterPwFileModelBean>
 		getModelObject().setSelectedKeyFilePath(selectedKeyFilePath);
 		if (StringUtils.isEmpty(selectedKeyFilePath))
 		{
-			getModelObject().setKeyFile(null);
+			getModelObject().setKeyFileInfo(null);
 			btnOkStateMachine.onSetKeyFile(btnOkStateMachine);
 		}
 		else
@@ -332,12 +333,12 @@ public class NewMasterPwFilePanel extends BasePanel<MasterPwFileModelBean>
 			File selectedKeyFile = new File(selectedKeyFilePath);
 			if (selectedKeyFile.exists())
 			{
-				getModelObject().setKeyFile(selectedKeyFile);
+				getModelObject().setKeyFileInfo(FileInfo.toFileInfo(selectedKeyFile));
 				btnOkStateMachine.onSetKeyFile(btnOkStateMachine);
 			}
 			if (!selectedKeyFile.exists())
 			{
-				getModelObject().setKeyFile(null);
+				getModelObject().setKeyFileInfo(null);
 				cmbKeyFileModel.removeElement(selectedKeyFilePath);
 				btnOkStateMachine.onSetKeyFile(btnOkStateMachine);
 			}
@@ -601,7 +602,7 @@ public class NewMasterPwFilePanel extends BasePanel<MasterPwFileModelBean>
 			FileCreationState fileCreationState = RuntimeExceptionDecorator
 				.decorate(() -> FileFactory.newFile(selectedApplicationFile));
 			String absolutePath = selectedApplicationFile.getAbsolutePath();
-			getModelObject().setApplicationFile(selectedApplicationFile);
+			getModelObject().setApplicationFileInfo(FileInfo.toFileInfo(selectedApplicationFile));
 			getModelObject().setSelectedApplicationFilePath(absolutePath);
 			txtApplicationFile.setText(absolutePath);
 			btnOkStateMachine.onApplicationFileAdded(btnOkStateMachine);
@@ -620,7 +621,7 @@ public class NewMasterPwFilePanel extends BasePanel<MasterPwFileModelBean>
 			cmbKeyFileModel.addElement(absolutePath);
 			cmbKeyFileModel.setSelectedItem(absolutePath);
 			getModelObject().setSelectedKeyFilePath(absolutePath);
-			getModelObject().setKeyFile(selectedKeyFile);
+			getModelObject().setKeyFileInfo(FileInfo.toFileInfo(selectedKeyFile));
 			btnOkStateMachine.onSetKeyFile(btnOkStateMachine);
 		}
 	}
