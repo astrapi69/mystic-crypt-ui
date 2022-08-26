@@ -33,6 +33,7 @@ import java.security.Security;
 
 import javax.crypto.Cipher;
 
+import io.github.astrapi69.crypt.data.key.KeyModelExtensions;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;

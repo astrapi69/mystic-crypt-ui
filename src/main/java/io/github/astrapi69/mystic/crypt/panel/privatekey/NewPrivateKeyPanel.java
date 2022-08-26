@@ -43,6 +43,7 @@ import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 import javax.swing.event.DocumentEvent;
 
+import io.github.astrapi69.crypt.data.key.KeyModelExtensions;
 import lombok.Getter;
 import lombok.extern.java.Log;
 import io.github.astrapi69.crypt.api.algorithm.KeyPairGeneratorAlgorithm;
@@ -56,7 +57,6 @@ import io.github.astrapi69.model.BaseModel;
 import io.github.astrapi69.model.LambdaModel;
 import io.github.astrapi69.model.api.IModel;
 import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
-import io.github.astrapi69.mystic.crypt.app.file.KeyModelExtensions;
 import io.github.astrapi69.swing.base.BasePanel;
 import io.github.astrapi69.swing.combobox.model.EnumComboBoxModel;
 import io.github.astrapi69.swing.component.JMTextField;
@@ -222,7 +222,7 @@ public class NewPrivateKeyPanel extends BasePanel<NewPrivateKeyModelBean>
 		KeyModel privateKeyInfo = getModelObject().getPrivateKeyInfo();
 
 		RuntimeExceptionDecorator.decorate(() -> PrivateKeyWriter
-			.writeInPemFormat(KeyModelExtensions.readPrivateKey(privateKeyInfo), privateKeyFile));
+			.writeInPemFormat(KeyModelExtensions.toPrivateKey(privateKeyInfo), privateKeyFile));
 		Component rootJDialog = AwtExtensions.getRootJDialog(this);
 		if (rootJDialog instanceof JDialog)
 		{
@@ -248,8 +248,8 @@ public class NewPrivateKeyPanel extends BasePanel<NewPrivateKeyModelBean>
 
 			getModelObject().setPrivateKeyInfo(KeyModelExtensions.toKeyModel(keyPair.getPrivate()));
 
-			final String privateKeyFormat = PrivateKeyExtensions.toPemFormat(
-				KeyModelExtensions.readPrivateKey(getModelObject().getPrivateKeyInfo()));
+			final String privateKeyFormat = PrivateKeyExtensions
+				.toPemFormat(KeyModelExtensions.toPrivateKey(getModelObject().getPrivateKeyInfo()));
 
 
 			getTxtPrivateKey().setText("");

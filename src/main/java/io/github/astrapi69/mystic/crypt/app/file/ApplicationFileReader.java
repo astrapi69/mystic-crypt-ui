@@ -31,6 +31,7 @@ import java.util.logging.Level;
 
 import javax.crypto.Cipher;
 
+import io.github.astrapi69.crypt.data.key.KeyModelExtensions;
 import lombok.NonNull;
 import lombok.extern.java.Log;
 
@@ -111,7 +112,7 @@ public class ApplicationFileReader
 			PrivateKey privateKey;
 			if (modelObject.getPrivateKeyInfo() != null)
 			{
-				privateKey = KeyModelExtensions.readPrivateKey(modelObject.getPrivateKeyInfo());
+				privateKey = KeyModelExtensions.toPrivateKey(modelObject.getPrivateKeyInfo());
 			}
 			else
 			{

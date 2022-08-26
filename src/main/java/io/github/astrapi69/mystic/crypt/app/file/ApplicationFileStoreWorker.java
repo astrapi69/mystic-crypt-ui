@@ -37,6 +37,7 @@ import com.google.gson.GsonBuilder;
 import io.github.astrapi69.crypt.api.algorithm.AesAlgorithm;
 import io.github.astrapi69.crypt.api.algorithm.SunJCEAlgorithm;
 import io.github.astrapi69.crypt.data.factory.SecretKeyFactoryExtensions;
+import io.github.astrapi69.crypt.data.key.KeyModelExtensions;
 import io.github.astrapi69.crypt.data.key.PrivateKeyExtensions;
 import io.github.astrapi69.crypt.data.key.reader.PrivateKeyReader;
 import io.github.astrapi69.crypt.data.model.CryptModel;
@@ -97,7 +98,7 @@ public final class ApplicationFileStoreWorker
 		applicationFile = FileFactory.newFileQuietly(modelObject.getApplicationFileInfo());
 		if (modelObject.getPrivateKeyInfo() != null)
 		{
-			privateKey = KeyModelExtensions.readPrivateKey(modelObject.getPrivateKeyInfo());
+			privateKey = KeyModelExtensions.toPrivateKey(modelObject.getPrivateKeyInfo());
 		}
 		else
 		{
