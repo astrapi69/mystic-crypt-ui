@@ -24,8 +24,6 @@
  */
 package io.github.astrapi69.mystic.crypt.panel.signin;
 
-import java.io.File;
-
 import javax.swing.JButton;
 
 import lombok.AllArgsConstructor;
@@ -36,7 +34,7 @@ import lombok.Setter;
 import lombok.ToString;
 import lombok.experimental.SuperBuilder;
 import io.github.astrapi69.design.pattern.state.component.AbstractJComponentStateMachine;
-import io.github.astrapi69.file.create.FileFactory;
+import io.github.astrapi69.file.create.FileInfo;
 
 @Getter
 @Setter
@@ -54,24 +52,30 @@ public class BtnOkStateMachine extends AbstractJComponentStateMachine<JButton, B
 	@Override
 	protected void updateComponentState()
 	{
-		boolean applicationFilePresent = FileFactory
-			.newFileQuietly(modelObject.getApplicationFileInfo()) != null
-			&& FileFactory.newFileQuietly(modelObject.getApplicationFileInfo()).exists();
+		boolean applicationFilePresent = false;
+		if (modelObject.getApplicationFileInfo() != null)
+		{
+			applicationFilePresent = FileInfo.toFile(modelObject.getApplicationFileInfo()).exists();
+		}
 		int minPasswordLength = modelObject.getMinPasswordLength();
 		int passwordLength = modelObject.getMasterPw() != null
 			? modelObject.getMasterPw().length
 			: 0;
 		boolean withKeyFile = modelObject.isWithKeyFile();
-		File keyFile = FileFactory.newFileQuietly(modelObject.getKeyFileInfo());
+		boolean keyFilePresent = false;
+		if (modelObject.getKeyFileInfo() != null)
+		{
+			keyFilePresent = FileInfo.toFile(modelObject.getKeyFileInfo()).exists();
+		}
 		boolean withMasterPw = modelObject.isWithMasterPw();
 		if (applicationFilePresent && withMasterPw && minPasswordLength <= passwordLength
-			&& withKeyFile && keyFile != null)
+			&& withKeyFile && keyFilePresent)
 		{
 			setCurrentState(BtnOkComponentStateEnum.ENABLED);
 			setEnabled(true);
 			return;
 		}
-		else if (applicationFilePresent && !withMasterPw && withKeyFile && keyFile != null)
+		else if (applicationFilePresent && !withMasterPw && withKeyFile && keyFilePresent)
 		{
 			setCurrentState(BtnOkComponentStateEnum.ENABLED);
 			setEnabled(true);
