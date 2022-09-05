@@ -22,42 +22,35 @@
  * OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
  * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-package io.github.astrapi69.mystic.crypt.action;
+package io.github.astrapi69.mystic.crypt.app.file;
 
-import java.awt.event.ActionEvent;
+import java.io.File;
 
-import javax.swing.AbstractAction;
-
-import io.github.astrapi69.design.pattern.observer.event.EventObject;
-import io.github.astrapi69.design.pattern.observer.event.EventSource;
-import io.github.astrapi69.model.enumtype.visibity.RenderMode;
 import io.github.astrapi69.mystic.crypt.ApplicationModelBean;
-import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
-import io.github.astrapi69.mystic.crypt.app.ApplicationEventBus;
-import io.github.astrapi69.mystic.crypt.app.file.xml.ApplicationXmlFileStoreWorker;
+import io.github.astrapi69.mystic.crypt.panel.signin.MasterPwFileModelBean;
 
-public class SaveApplicationFileAction extends AbstractAction
+public final class ApplicationJsonFileFactory
 {
-
-	/** The Constant serialVersionUID. */
-	private static final long serialVersionUID = 1L;
-
-	public SaveApplicationFileAction(final String name)
+	public static File newApplicationFileWithPrivateKey(MasterPwFileModelBean modelObject)
 	{
-		super(name);
+		ApplicationModelBean applicationModelBean = ApplicationModelBean.builder().build();
+		applicationModelBean.setMasterPwFileModelBean(modelObject);
+		return ApplicationJsonFileStoreWorker.saveToFileWithPrivateKey(applicationModelBean);
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
-	@Override
-	public void actionPerformed(final ActionEvent e)
+	public static File newApplicationFileWithPasswordAndPrivateKey(
+		MasterPwFileModelBean modelObject)
 	{
-		ApplicationModelBean applicationModelBean = MysticCryptApplicationFrame.getInstance()
-			.getModelObject();
-		ApplicationXmlFileStoreWorker.storeApplicationFile(applicationModelBean);
-
-		final EventSource<EventObject<RenderMode>> eventSource = ApplicationEventBus.getSaveState();
-		eventSource.fireEvent(new EventObject<>(RenderMode.VIEWABLE));
+		ApplicationModelBean applicationModelBean = ApplicationModelBean.builder().build();
+		applicationModelBean.setMasterPwFileModelBean(modelObject);
+		return ApplicationJsonFileStoreWorker.saveToFileWithPasswordAndPrivateKey(applicationModelBean);
 	}
+
+	public static File newApplicationFileWithPassword(final MasterPwFileModelBean modelObject)
+	{
+		ApplicationModelBean applicationModelBean = ApplicationModelBean.builder().build();
+		applicationModelBean.setMasterPwFileModelBean(modelObject);
+		return ApplicationJsonFileStoreWorker.saveToFileWithPassword(applicationModelBean);
+	}
+
 }

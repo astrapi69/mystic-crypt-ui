@@ -47,6 +47,7 @@ import io.github.astrapi69.model.BaseModel;
 import io.github.astrapi69.model.api.IModel;
 import io.github.astrapi69.model.enumtype.visibity.RenderMode;
 import io.github.astrapi69.model.node.NodeModel;
+import io.github.astrapi69.mystic.crypt.Messages;
 import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
 import io.github.astrapi69.mystic.crypt.app.ApplicationEventBus;
 import io.github.astrapi69.swing.dialog.DialogExtensions;
@@ -168,12 +169,13 @@ public class SecretKeyTreeWithContentPanel
 	{
 		GenericTreeElement<List<MysticCryptEntryModelBean>> parentTreeNode = model.getValue();
 		List<MysticCryptEntryModelBean> tableInfo = parentTreeNode.getDefaultContent();
-		// 2. Create a generic table model for the class Permission.
-		if (tableInfo != null && !tableInfo.isEmpty())
+		if (tableInfo == null)
 		{
-			getTblTreeEntryTable().getGenericTableModel().removeAll();
-			getTblTreeEntryTable().getGenericTableModel().addList(tableInfo);
+			tableInfo = new ArrayList<>();
 		}
+		// 2. Create a generic table model
+		getTblTreeEntryTable().getGenericTableModel().removeAll();
+		getTblTreeEntryTable().getGenericTableModel().addList(tableInfo);
 		return getTblTreeEntryTable().getGenericTableModel();
 	}
 
@@ -306,8 +308,17 @@ public class SecretKeyTreeWithContentPanel
 	 */
 	protected void onDeleteSelectedTreeNode(MouseEvent mouseEvent)
 	{
-		JTreeExtensions.getSelectedDefaultMutableTreeNode(mouseEvent, tree)
-			.ifPresent(selectedTreeNode -> {
+		Optional<DefaultMutableTreeNode> selectedDefaultMutableTreeNode = JTreeExtensions
+			.getSelectedDefaultMutableTreeNode(mouseEvent, tree);
+		if (selectedDefaultMutableTreeNode.isPresent())
+		{
+			int option = DialogExtensions.showConfirmDialog(null, "Confirm deletion",
+				"<div width='450'>Are you sure<br></div>"
+					+ "<div>The delete action is not recoverable</div>",
+				JOptionPane.OK_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE, null);
+			if (option == JOptionPane.OK_OPTION)
+			{
+				DefaultMutableTreeNode selectedTreeNode = selectedDefaultMutableTreeNode.get();
 				Object userObject = selectedTreeNode.getUserObject();
 				BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> currentSelectedTreeNode = (BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long>)userObject;
 
@@ -320,18 +331,9 @@ public class SecretKeyTreeWithContentPanel
 					.getParent();
 				defaultMutableTreeNode.remove(selectedNodeIndex);
 				reload(defaultMutableTreeNode);
-			});
+			}
+		}
 	}
-
-	private void reload(DefaultMutableTreeNode selectedTreeNode)
-	{
-		((DefaultTreeModel)tree.getModel()).reload(selectedTreeNode);
-
-		getPanelModel();
-		tree.treeDidChange();
-		this.repaint();
-	}
-
 
 	/**
 	 * The callback method on the table single left click.
@@ -404,23 +406,7 @@ public class SecretKeyTreeWithContentPanel
 	protected void onEditTableEntry()
 	{
 		getTblTreeEntryTable().getSingleSelectedRowData().ifPresent(tableEntry -> {
-			MysticCryptEntryPanel panel = new MysticCryptEntryPanel(BaseModel.of(tableEntry));
-			int option = JOptionPaneExtensions.getSelectedOption(panel,
-				JOptionPane.INFORMATION_MESSAGE, JOptionPane.OK_CANCEL_OPTION, null,
-				"Edit Crypt Entry", panel.getTxtEntryName());
-
-			if (option == JOptionPane.OK_OPTION)
-			{
-				List<MysticCryptEntryModelBean> data = getTblTreeEntryTable().getGenericTableModel()
-					.getData();
-				int index = data.indexOf(tableEntry);
-				data.remove(tableEntry);
-				MysticCryptEntryModelBean modelObject = panel.getModelObject();
-
-				data.add(index, modelObject);
-
-				getBaseTreeNodeModel();
-			}
+			showEditMysticCryptEntryDialog(tableEntry);
 		});
 	}
 
@@ -456,7 +442,7 @@ public class SecretKeyTreeWithContentPanel
 		}
 	}
 
-	private void getPanelModel()
+	private void reloadApplicationTreeModel()
 	{
 		BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> rootTreeNode = getModelObject();
 		Map<Long, TreeIdNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long>> longTreeIdNodeMap = BaseTreeNodeTransformer
@@ -471,7 +457,7 @@ public class SecretKeyTreeWithContentPanel
 
 	private void getBaseTreeNodeModel()
 	{
-		getPanelModel();
+		reloadApplicationTreeModel();
 		getTblTreeEntryTable().getGenericTableModel().fireTableDataChanged();
 	}
 
@@ -483,6 +469,35 @@ public class SecretKeyTreeWithContentPanel
 	 */
 	protected void onTableDoubleLeftClick(MouseEvent event)
 	{
+		Optional<MysticCryptEntryModelBean> singleSelectedRow = getTblTreeEntryTable()
+			.getSingleSelectedRowData();
+		if (singleSelectedRow.isPresent())
+		{
+			MysticCryptEntryModelBean tableEntry = singleSelectedRow.get();
+			showEditMysticCryptEntryDialog(tableEntry);
+		}
+	}
+
+	private void showEditMysticCryptEntryDialog(MysticCryptEntryModelBean tableEntry)
+	{
+		MysticCryptEntryPanel panel = new MysticCryptEntryPanel(BaseModel.of(tableEntry));
+		int option = JOptionPaneExtensions.getSelectedOption(panel,
+			JOptionPane.INFORMATION_MESSAGE, JOptionPane.OK_CANCEL_OPTION, null,
+			Messages.getString("dialog.edit.crypt.entry.title", "Edit Crypt Entry"),
+			panel.getTxtEntryName());
+
+		if (option == JOptionPane.OK_OPTION)
+		{
+			List<MysticCryptEntryModelBean> data = getTblTreeEntryTable().getGenericTableModel()
+				.getData();
+			int index = data.indexOf(tableEntry);
+			data.remove(tableEntry);
+			MysticCryptEntryModelBean modelObject = panel.getModelObject();
+
+			data.add(index, modelObject);
+
+			getBaseTreeNodeModel();
+		}
 	}
 
 	/**
@@ -503,6 +518,15 @@ public class SecretKeyTreeWithContentPanel
 	 */
 	protected void onTableDoubleRightClick(MouseEvent event)
 	{
+	}
+
+	private void reload(DefaultMutableTreeNode selectedTreeNode)
+	{
+		((DefaultTreeModel)tree.getModel()).reload(selectedTreeNode);
+
+		reloadApplicationTreeModel();
+		tree.treeDidChange();
+		this.repaint();
 	}
 
 }

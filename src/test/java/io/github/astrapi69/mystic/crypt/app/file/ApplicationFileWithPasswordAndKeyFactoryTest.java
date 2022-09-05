@@ -134,15 +134,15 @@ class ApplicationFileWithPasswordAndKeyFactoryTest
 			.keyFilePaths(ListFactory.newArrayList("")).build();
 
 		// test the actual method
-		actualEncryptedFile = ApplicationFileFactory
+		actualEncryptedFile = ApplicationJsonFileFactory
 			.newApplicationFileWithPasswordAndPrivateKey(modelObject);
 
-		ApplicationModelBean modelBeanReaded = ApplicationFileReader
+		ApplicationModelBean modelBeanReaded = ApplicationJsonFileReader
 			.readApplicationFileWithPasswordAndPrivateKey(modelObject);
 		assertNotNull(modelBeanReaded);
 
 		// proof that method is working as expected
-		applicationModelBean = ApplicationFileReader.getApplicationModelBean(actualEncryptedFile,
+		applicationModelBean = ApplicationJsonFileReader.getApplicationModelBean(actualEncryptedFile,
 			password.toCharArray(), privateKeyPemFile);
 		assertEquals(modelBeanReaded, applicationModelBean);
 	}

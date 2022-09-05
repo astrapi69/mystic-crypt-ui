@@ -22,7 +22,7 @@
  * OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
  * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-package io.github.astrapi69.mystic.crypt.app.file;
+package io.github.astrapi69.mystic.crypt.app.file.xml;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -33,20 +33,18 @@ import java.security.Security;
 
 import javax.crypto.Cipher;
 
-import io.github.astrapi69.crypt.data.key.KeyModelExtensions;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import io.github.astrapi69.collection.list.ListFactory;
+import io.github.astrapi69.crypt.data.key.KeyModelExtensions;
 import io.github.astrapi69.crypt.data.key.reader.PrivateKeyReader;
 import io.github.astrapi69.crypt.data.model.CryptModel;
 import io.github.astrapi69.file.create.FileInfo;
 import io.github.astrapi69.file.delete.DeleteFileExtensions;
-import io.github.astrapi69.file.read.ReadFileExtensions;
 import io.github.astrapi69.file.search.PathFinder;
-import io.github.astrapi69.gson.JsonStringToObjectExtensions;
 import io.github.astrapi69.io.file.FileExtension;
 import io.github.astrapi69.mystic.crypt.ApplicationModelBean;
 import io.github.astrapi69.mystic.crypt.key.PrivateKeyDecryptor;
@@ -54,7 +52,7 @@ import io.github.astrapi69.mystic.crypt.key.PrivateKeyGenericDecryptor;
 import io.github.astrapi69.mystic.crypt.panel.signin.MasterPwFileModelBean;
 import io.github.astrapi69.throwable.RuntimeExceptionDecorator;
 
-public class ApplicationFileWithKeyFactoryTest
+class ApplicationXmlFileWithPasswordAndKeyFactoryTest
 {
 
 	PrivateKey derPrivateKey;
@@ -72,6 +70,7 @@ public class ApplicationFileWithKeyFactoryTest
 	CryptModel<Cipher, PrivateKey, byte[]> decryptModel;
 	PrivateKeyDecryptor decryptor;
 	PrivateKeyGenericDecryptor<String> genericDecryptor;
+	String password;
 
 	@BeforeEach
 	void setUp()
@@ -81,11 +80,11 @@ public class ApplicationFileWithKeyFactoryTest
 			Security.addProvider(new BouncyCastleProvider());
 		}
 		applicationFile = PathFinder.getRelativePath(PathFinder.getSrcTestResourcesDir(),
-			"empty-db-with-key" + FileExtension.MYSTIC_CRYPT_ENCRYPTED.getExtension());
+			"empty-db-with-key-and-pw-xml" + FileExtension.MYSTIC_CRYPT_ENCRYPTED.getExtension());
 		selectedApplicationFilePath = applicationFile.getAbsolutePath();
 		decryptedApplicationFile = PathFinder.getRelativePath(PathFinder.getSrcTestResourcesDir(),
-			"empty-db-with-key.json");
-
+			"empty-db-with-key-and-pw.xml");
+		password = "secret";
 		pemDir = new File(PathFinder.getSrcTestResourcesDir(), "pem");
 		privateKeyPemFile = new File(pemDir, "private.pem");
 
@@ -100,6 +99,7 @@ public class ApplicationFileWithKeyFactoryTest
 		derPrivateKey = RuntimeExceptionDecorator
 			.decorate(() -> PrivateKeyReader.readPrivateKey(privateKeyDerFile));
 
+
 	}
 
 	@AfterEach
@@ -109,41 +109,42 @@ public class ApplicationFileWithKeyFactoryTest
 		RuntimeExceptionDecorator
 			.decorate(() -> DeleteFileExtensions.delete(decryptedApplicationFile));
 		selectedApplicationFilePath = null;
-		decryptModel = null;
+		password = null;
+		decryptor = null;
 	}
 
 	@Test
-	// @Disabled
-	void newApplicationFileWithPrivateKey() throws Exception
+	void newApplicationFileWithPasswordAndPrivateKey() throws Exception
 	{
 		// define parameter for the unit test
+		String actual;
+		String expected;
 		File actualEncryptedFile;
+		File expectedFile;
 		MasterPwFileModelBean modelObject;
 		ApplicationModelBean applicationModelBean;
-		// create test data
+
+		// new scenario
 		modelObject = MasterPwFileModelBean.builder()
 			.applicationFileInfo(FileInfo.toFileInfo(applicationFile))
+			.selectedApplicationFilePath(selectedApplicationFilePath)
 			.privateKeyInfo(KeyModelExtensions.toKeyModel(pemPrivateKey))
-			.keyFileInfo(FileInfo.toFileInfo(privateKeyPemFile))
+			.keyFileInfo(FileInfo.toFileInfo(privateKeyPemFile)).masterPw(password.toCharArray())
 			.applicationFilePaths(ListFactory.newArrayList(""))
 			.keyFilePaths(ListFactory.newArrayList("")).build();
+
 		// test the actual method
-		actualEncryptedFile = ApplicationJsonFileFactory.newApplicationFileWithPrivateKey(modelObject);
+		actualEncryptedFile = ApplicationXmlFileFactory
+			.newApplicationFileWithPasswordAndPrivateKey(modelObject);
+
+		ApplicationModelBean modelBeanReaded = ApplicationXmlFileReader
+			.readApplicationFileWithPasswordAndPrivateKey(modelObject);
+		assertNotNull(modelBeanReaded);
 
 		// proof that method is working as expected
-		byte[] encryptedBytes = ReadFileExtensions.readFileToBytearray(actualEncryptedFile);
-		String json = genericDecryptor.decrypt(encryptedBytes);
-		applicationModelBean = JsonStringToObjectExtensions.toObject(json,
-			ApplicationModelBean.class);
-		assertNotNull(applicationModelBean);
-		MasterPwFileModelBean masterPwFileModelBean = applicationModelBean
-			.getMasterPwFileModelBean();
-		assertEquals(modelObject, masterPwFileModelBean);
-
-		ApplicationModelBean modelBeanReaded = ApplicationJsonFileReader
-			.readApplicationFileWithPrivateKey(modelObject);
-		assertNotNull(modelBeanReaded);
-		assertEquals(applicationModelBean, modelBeanReaded);
+		applicationModelBean = ApplicationXmlFileReader.getApplicationModelBean(actualEncryptedFile,
+			password.toCharArray(), privateKeyPemFile);
+		assertEquals(modelBeanReaded, applicationModelBean);
 	}
 
 }

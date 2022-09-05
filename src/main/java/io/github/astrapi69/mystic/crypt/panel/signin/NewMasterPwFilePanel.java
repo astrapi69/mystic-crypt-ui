@@ -37,6 +37,7 @@ import javax.swing.JCheckBox;
 import javax.swing.JFileChooser;
 import javax.swing.event.DocumentEvent;
 
+import io.github.astrapi69.mystic.crypt.app.file.xml.ApplicationXmlFileFactory;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.experimental.FieldDefaults;
@@ -52,7 +53,6 @@ import io.github.astrapi69.model.BaseModel;
 import io.github.astrapi69.model.LambdaModel;
 import io.github.astrapi69.model.api.IModel;
 import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
-import io.github.astrapi69.mystic.crypt.app.file.ApplicationFileFactory;
 import io.github.astrapi69.mystic.crypt.panel.privatekey.NewPrivateKeyFileDialog;
 import io.github.astrapi69.mystic.crypt.panel.privatekey.NewPrivateKeyModelBean;
 import io.github.astrapi69.mystic.crypt.panel.pw.GeneratePasswordDialog;
@@ -530,15 +530,15 @@ public class NewMasterPwFilePanel extends BasePanel<MasterPwFileModelBean>
 		SignInType signInType = SignInType.toSignInType(modelObject);
 		if (SignInType.PASSWORD_AND_PRIVATE_KEY.equals(signInType))
 		{
-			ApplicationFileFactory.newApplicationFileWithPasswordAndPrivateKey(modelObject);
+			ApplicationXmlFileFactory.newApplicationFileWithPasswordAndPrivateKey(modelObject);
 		}
 		else if (SignInType.PRIVATE_KEY.equals(signInType))
 		{
-			ApplicationFileFactory.newApplicationFileWithPrivateKey(modelObject);
+			ApplicationXmlFileFactory.newApplicationFileWithPrivateKey(modelObject);
 		}
 		else if (SignInType.PASSWORD.equals(signInType))
 		{
-			ApplicationFileFactory.newApplicationFileWithPassword(modelObject);
+			ApplicationXmlFileFactory.newApplicationFileWithPassword(modelObject);
 		}
 	}
 

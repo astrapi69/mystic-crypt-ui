@@ -61,6 +61,8 @@ dependencies {
     implementation("io.github.astrapi69:gson-extensions:$gsonExtensionsVersion")
     implementation("com.google.code.gson:gson:$gsonVersion")
 //    implementation("com.google.code.gson:gson-extras:2.8.5")
+    implementation("io.github.astrapi69:xstream-extensions:$xstreamExtensionsVersion")
+    implementation("io.github.astrapi69:resourcebundle-core:$resourcebundleCoreVersion")
 
     implementation("io.github.astrapi69:json-extensions:$jsonExtensionsVersion")
     implementation("org.springframework.boot:spring-boot-starter-integration")

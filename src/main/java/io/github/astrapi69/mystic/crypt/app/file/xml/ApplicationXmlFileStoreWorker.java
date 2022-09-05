@@ -22,7 +22,7 @@
  * OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
  * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-package io.github.astrapi69.mystic.crypt.app.file;
+package io.github.astrapi69.mystic.crypt.app.file.xml;
 
 import java.io.File;
 import java.security.PrivateKey;
@@ -57,11 +57,10 @@ import io.github.astrapi69.mystic.crypt.pw.PasswordStringEncryptor;
 import io.github.astrapi69.random.number.RandomIntFactory;
 import io.github.astrapi69.random.object.RandomStringFactory;
 import io.github.astrapi69.throwable.RuntimeExceptionDecorator;
+import io.github.astrapi69.xstream.ObjectToXmlExtensions;
 
-public final class ApplicationFileStoreWorker
+public final class ApplicationXmlFileStoreWorker
 {
-
-	public static final Gson GSON = new GsonBuilder().create();
 
 	public static void storeApplicationFile(ApplicationModelBean applicationModelBean)
 	{
@@ -84,7 +83,7 @@ public final class ApplicationFileStoreWorker
 	public static File saveToFileWithPrivateKey(ApplicationModelBean applicationModelBean)
 	{
 		SecretKey symmetricKey;
-		String json;
+		String xml;
 		CryptModel<Cipher, SecretKey, String> symmetricKeyModel;
 		PublicKeyGenericEncryptor<String> genericEncryptor;
 		PublicKey publicKey;
@@ -118,13 +117,13 @@ public final class ApplicationFileStoreWorker
 			.decorate(() -> new PublicKeyEncryptor(encryptModel, symmetricKeyModel));
 		genericEncryptor = new PublicKeyGenericEncryptor<>(encryptor);
 		applicationModelBean.getMasterPwFileModelBean().setPrivateKeyInfo(null);
-		json = RuntimeExceptionDecorator
-			.decorate(() -> ObjectToJsonExtensions.toJson(applicationModelBean, GSON));
+
+		xml = ObjectToXmlExtensions.toXml(applicationModelBean);
 
 		RuntimeExceptionDecorator
-			.decorate(() -> WriteFileExtensions.string2File(applicationFile, json));
+			.decorate(() -> WriteFileExtensions.string2File(applicationFile, xml));
 
-		encrypt = RuntimeExceptionDecorator.decorate(() -> genericEncryptor.encrypt(json));
+		encrypt = RuntimeExceptionDecorator.decorate(() -> genericEncryptor.encrypt(xml));
 
 		RuntimeExceptionDecorator
 			.decorate(() -> WriteFileExtensions.storeByteArrayToFile(encrypt, applicationFile));
@@ -140,7 +139,7 @@ public final class ApplicationFileStoreWorker
 		PublicKeyGenericEncryptor<String> genericEncryptor;
 		PrivateKey privateKey;
 		CryptModel<Cipher, PublicKey, byte[]> encryptModel;
-		String json;
+		String xml;
 		char[] masterPw;
 		PublicKey publicKey;
 		String encryptedJson;
@@ -173,11 +172,10 @@ public final class ApplicationFileStoreWorker
 		passwordStringEncryptor = new PasswordStringEncryptor(String.valueOf(masterPw));
 		applicationModelBean.getMasterPwFileModelBean().setPrivateKeyInfo(null);
 
-		json = RuntimeExceptionDecorator
-			.decorate(() -> ObjectToJsonExtensions.toJson(applicationModelBean, GSON));
+		xml = ObjectToXmlExtensions.toXml(applicationModelBean);
 
 		encryptedJson = RuntimeExceptionDecorator
-			.decorate(() -> passwordStringEncryptor.encrypt(json));
+			.decorate(() -> passwordStringEncryptor.encrypt(xml));
 
 		byte[] encrypt = RuntimeExceptionDecorator
 			.decorate(() -> genericEncryptor.encrypt(encryptedJson));
@@ -190,7 +188,7 @@ public final class ApplicationFileStoreWorker
 	public static File saveToFileWithPassword(ApplicationModelBean applicationModelBean)
 	{
 		File applicationFile;
-		String json;
+		String xml;
 		String password;
 		String randomFilename;
 		File tempJsonFile;
@@ -211,10 +209,9 @@ public final class ApplicationFileStoreWorker
 		encryptor = RuntimeExceptionDecorator.decorate(() -> new PBEFileEncryptor(cryptModel,
 			applicationFile, FileExtension.MYSTIC_CRYPT_ENCRYPTED.getExtension()));
 
-		json = RuntimeExceptionDecorator
-			.decorate(() -> ObjectToJsonExtensions.toJson(applicationModelBean, GSON));
+		xml = ObjectToXmlExtensions.toXml(applicationModelBean);
 		RuntimeExceptionDecorator
-			.decorate(() -> WriteFileExtensions.string2File(tempJsonFile, json));
+			.decorate(() -> WriteFileExtensions.string2File(tempJsonFile, xml));
 
 		File encryptedApplicationFile = RuntimeExceptionDecorator
 			.decorate(() -> encryptor.encrypt(tempJsonFile));

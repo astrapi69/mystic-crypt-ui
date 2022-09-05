@@ -22,20 +22,20 @@
  * OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
  * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-package io.github.astrapi69.mystic.crypt.app.file;
+package io.github.astrapi69.mystic.crypt.app.file.xml;
 
 import java.io.File;
 
 import io.github.astrapi69.mystic.crypt.ApplicationModelBean;
 import io.github.astrapi69.mystic.crypt.panel.signin.MasterPwFileModelBean;
 
-public final class ApplicationFileFactory
+public final class ApplicationXmlFileFactory
 {
 	public static File newApplicationFileWithPrivateKey(MasterPwFileModelBean modelObject)
 	{
 		ApplicationModelBean applicationModelBean = ApplicationModelBean.builder().build();
 		applicationModelBean.setMasterPwFileModelBean(modelObject);
-		return ApplicationFileStoreWorker.saveToFileWithPrivateKey(applicationModelBean);
+		return ApplicationXmlFileStoreWorker.saveToFileWithPrivateKey(applicationModelBean);
 	}
 
 	public static File newApplicationFileWithPasswordAndPrivateKey(
@@ -43,14 +43,14 @@ public final class ApplicationFileFactory
 	{
 		ApplicationModelBean applicationModelBean = ApplicationModelBean.builder().build();
 		applicationModelBean.setMasterPwFileModelBean(modelObject);
-		return ApplicationFileStoreWorker.saveToFileWithPasswordAndPrivateKey(applicationModelBean);
+		return ApplicationXmlFileStoreWorker.saveToFileWithPasswordAndPrivateKey(applicationModelBean);
 	}
 
 	public static File newApplicationFileWithPassword(final MasterPwFileModelBean modelObject)
 	{
 		ApplicationModelBean applicationModelBean = ApplicationModelBean.builder().build();
 		applicationModelBean.setMasterPwFileModelBean(modelObject);
-		return ApplicationFileStoreWorker.saveToFileWithPassword(applicationModelBean);
+		return ApplicationXmlFileStoreWorker.saveToFileWithPassword(applicationModelBean);
 	}
 
 }

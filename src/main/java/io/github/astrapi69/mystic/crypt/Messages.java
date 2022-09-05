@@ -24,6 +24,7 @@ import java.util.MissingResourceException;
 import java.util.ResourceBundle;
 import java.util.logging.Level;
 
+import io.github.astrapi69.resourcebundle.locale.ResourceBundleExtensions;
 import lombok.experimental.UtilityClass;
 import lombok.extern.java.Log;
 
@@ -50,15 +51,7 @@ public class Messages
 	 */
 	public static String getString(final String key)
 	{
-		try
-		{
-			return RESOURCE_BUNDLE.getString(key);
-		}
-		catch (final MissingResourceException e)
-		{
-			log.log(Level.SEVERE, e.getLocalizedMessage(), e);
-			return "!!!" + key + "!!! not found";
-		}
+		return ResourceBundleExtensions.getStringQuietly(RESOURCE_BUNDLE, key);
 	}
 
 	/**
@@ -70,15 +63,7 @@ public class Messages
 	 */
 	public static String getString(final String key, final String defaultValue)
 	{
-		try
-		{
-			return RESOURCE_BUNDLE.getString(key);
-		}
-		catch (final MissingResourceException e)
-		{
-			log.log(Level.SEVERE, e.getLocalizedMessage(), e);
-			return defaultValue;
-		}
+		return ResourceBundleExtensions.getStringQuietly(RESOURCE_BUNDLE, key, defaultValue);
 	}
 
 }

@@ -104,21 +104,21 @@ public class ApplicationFileWithPasswordFactoryTest
 			.masterPw(password.toCharArray()).repeatPw(password.toCharArray()).withMasterPw(true)
 			.build();
 		// test the actual method
-		actualEncryptedFile = ApplicationFileFactory.newApplicationFileWithPassword(modelObject);
+		actualEncryptedFile = ApplicationJsonFileFactory.newApplicationFileWithPassword(modelObject);
 		// proof that method is working as expected
 		final File decrypt = RuntimeExceptionDecorator
 			.decorate(() -> decryptor.decrypt(applicationFile));
 
 		expectedFile = PathFinder.getRelativePath(PathFinder.getSrcTestResourcesDir(),
 			"expected-empty-db" + FileExtension.MYSTIC_CRYPT_ENCRYPTED.getExtension());
-		expected = ApplicationFileReader.getApplicationModelBean(expectedFile,
+		expected = ApplicationJsonFileReader.getApplicationModelBean(expectedFile,
 			password.toCharArray());
 
-		actual = ApplicationFileReader.readApplicationFileWithPassword(modelObject);
+		actual = ApplicationJsonFileReader.readApplicationFileWithPassword(modelObject);
 		assertNotNull(actual);
 		assertEquals(expected, actual);
 
-		actual = ApplicationFileReader.getApplicationModelBean(actualEncryptedFile,
+		actual = ApplicationJsonFileReader.getApplicationModelBean(actualEncryptedFile,
 			password.toCharArray());
 		assertNotNull(actual);
 		assertEquals(expected, actual);
