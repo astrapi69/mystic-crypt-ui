@@ -481,8 +481,8 @@ public class SecretKeyTreeWithContentPanel
 	private void showEditMysticCryptEntryDialog(MysticCryptEntryModelBean tableEntry)
 	{
 		MysticCryptEntryPanel panel = new MysticCryptEntryPanel(BaseModel.of(tableEntry));
-		int option = JOptionPaneExtensions.getSelectedOption(panel,
-			JOptionPane.INFORMATION_MESSAGE, JOptionPane.OK_CANCEL_OPTION, null,
+		int option = JOptionPaneExtensions.getSelectedOption(panel, JOptionPane.INFORMATION_MESSAGE,
+			JOptionPane.OK_CANCEL_OPTION, null,
 			Messages.getString("dialog.edit.crypt.entry.title", "Edit Crypt Entry"),
 			panel.getTxtEntryName());
 

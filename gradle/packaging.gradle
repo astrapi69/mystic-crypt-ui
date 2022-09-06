@@ -3,6 +3,7 @@ import java.text.SimpleDateFormat
 def releaseVersion = !version.endsWith("SNAPSHOT")
 
 jar {
+    duplicatesStrategy(DuplicatesStrategy.EXCLUDE)
     manifest {
         attributes(
                 "Name"                  : project.name,

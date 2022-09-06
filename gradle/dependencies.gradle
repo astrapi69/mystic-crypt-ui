@@ -56,11 +56,9 @@ dependencies {
     implementation("io.github.astrapi69:jobj-copy:$jobjCopyVersion")
     implementation("io.github.astrapi69:data-api:$dataApiVersion")
     implementation("io.github.astrapi69:id-generate:$idGenerateVersion")
-    // implementation("io.github.astrapi69:swing-menu-pf4j-plugin:1.0.0-SNAPSHOT")
     implementation("io.github.astrapi69:xml-extensions:$xmlExtensionsVersion")
     implementation("io.github.astrapi69:gson-extensions:$gsonExtensionsVersion")
     implementation("com.google.code.gson:gson:$gsonVersion")
-//    implementation("com.google.code.gson:gson-extras:2.8.5")
     implementation("io.github.astrapi69:xstream-extensions:$xstreamExtensionsVersion")
     implementation("io.github.astrapi69:resourcebundle-core:$resourcebundleCoreVersion")
 
@@ -68,7 +66,6 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-integration")
     implementation("org.springframework.boot:spring-boot-starter-validation")
     annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
-    developmentOnly("org.springframework.boot:spring-boot-devtools")
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("io.github.astrapi69:test-object:$testObjectVersion")
 }

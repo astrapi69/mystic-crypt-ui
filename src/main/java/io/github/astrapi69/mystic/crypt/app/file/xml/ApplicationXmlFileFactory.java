@@ -43,7 +43,8 @@ public final class ApplicationXmlFileFactory
 	{
 		ApplicationModelBean applicationModelBean = ApplicationModelBean.builder().build();
 		applicationModelBean.setMasterPwFileModelBean(modelObject);
-		return ApplicationXmlFileStoreWorker.saveToFileWithPasswordAndPrivateKey(applicationModelBean);
+		return ApplicationXmlFileStoreWorker
+			.saveToFileWithPasswordAndPrivateKey(applicationModelBean);
 	}
 
 	public static File newApplicationFileWithPassword(final MasterPwFileModelBean modelObject)
