@@ -1,5 +1,4 @@
 [![Java CI with Gradle](https://github.com/astrapi69/mystic-crypt-ui/workflows/Java%20CI%20with%20Gradle/badge.svg)](https://github.com/astrapi69/mystic-crypt-ui/actions/workflows/gradle.yml)
-[![CodeQL](https://github.com/astrapi69/mystic-crypt-ui/actions/workflows/codeql-analysis.yml/badge.svg)](https://github.com/astrapi69/mystic-crypt-ui/actions/workflows/codeql-analysis.yml)
 # Overview
 
 This swing application provides public and private key creation and obfuscate strings. The initial intention was to show the features of the library [mystic-crypt](https://github.com/astrapi69/mystic-crypt).
