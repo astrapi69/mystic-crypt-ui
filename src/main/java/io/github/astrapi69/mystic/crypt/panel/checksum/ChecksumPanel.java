@@ -51,6 +51,7 @@ import lombok.Getter;
 import lombok.extern.java.Log;
 import io.github.astrapi69.checksum.ChecksumExtensions;
 import io.github.astrapi69.checksum.FileChecksumExtensions;
+import io.github.astrapi69.collection.set.SetFactory;
 import io.github.astrapi69.crypt.api.algorithm.ChecksumAlgorithm;
 import io.github.astrapi69.file.read.ReadFileExtensions;
 import io.github.astrapi69.file.system.SystemFileExtensions;
@@ -159,20 +160,9 @@ public class ChecksumPanel extends BasePanel<ChecksumBean>
 
 		lblChecksumAlgorithm.setText("Checksum algorithm");
 
-		cbxChecksumAlgorithm
-			.setModel(new EnumComboBoxModel<ChecksumAlgorithm>(ChecksumAlgorithm.class)
-			{
-				@Override
-				protected void initValueMap()
-				{
-					super.initValueMap();
-					// for (final ChecksumAlgorithm enumValue : comboList)
-					// {
-					// valueMap.put(enumValue.getAlgorithm(), enumValue);
-					// }
-				}
-			});
-		cbxChecksumAlgorithm.setSelectedItem(ChecksumAlgorithm.MD5);
+		cbxChecksumAlgorithm.setModel(new EnumComboBoxModel<>(ChecksumAlgorithm.class,
+			ChecksumAlgorithm.MD5,
+			SetFactory.newHashSet(ChecksumAlgorithm.UNDEFINED)));
 		cbxChecksumAlgorithm.addActionListener(this::onChangeChecksumAlgorithm);
 		getModelObject().setSelectedAlgorithm(ChecksumAlgorithm.MD5);
 

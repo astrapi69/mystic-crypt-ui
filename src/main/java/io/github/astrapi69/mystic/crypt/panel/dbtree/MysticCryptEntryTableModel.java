@@ -24,20 +24,23 @@
  */
 package io.github.astrapi69.mystic.crypt.panel.dbtree;
 
+import java.util.List;
+
 import io.github.astrapi69.swing.table.model.BaseTableModel;
 import io.github.astrapi69.swing.table.model.TableColumnsModel;
 import io.github.astrapi69.swing.table.model.thread.ThreadsTableModel;
-
-import java.util.List;
 
 public class MysticCryptEntryTableModel extends BaseTableModel<MysticCryptEntryModelBean>
 {
 
 	public MysticCryptEntryTableModel()
-	{
-		this(TableColumnsModel.builder().columnNames(new String[] { "Title", "Username", "Url" })
+	{	//@formatter:off
+		this(TableColumnsModel.builder().columnNames(
+			new String[] { "Title", "Username", "Url" })
 			.canEdit(new boolean[] { false, false, false })
-			.columnClasses(new Class<?>[] { String.class, String.class, String.class }).build());
+			.columnClasses(new Class<?>[] { String.class, String.class, String.class })
+			.build());
+		//@formatter:on
 	}
 
 	/**
