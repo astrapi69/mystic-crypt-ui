@@ -1,24 +1,24 @@
 ## Change log
 ----------------------
 
-Version 5.5-SNAPSHOT
+Version 6
 -------------
 
 ADDED:
 
-- new dependency 'io.github.astrapi69:state' in version 5.1
+- new dependency 'io.github.astrapi69:state' in version 6
 
 CHANGED:
 
-- update of gradle to new version 7.4
-- update of dependency spring-boot to new version 2.6.3
-- update of dependency lombok to new version 1.18.22
+- update of gradle to new version 7.5.1
+- update of dependency spring-boot to new version 2.7.3
+- update of dependency lombok to new version 1.18.24
 - update of com.github.ben-manes.versions.gradle.plugin to new version 0.42.0
 - update of io.spring.gradle:dependency-management-plugin to new version 1.0.11.RELEASE
 - update of com.bmuschko:gradle-izpack-plugin to new version 3.2
-- update of mystic-crypt dependency version to 7.11
-- update of crypt-api dependency version to 7.7
-- update of crypt-data dependency version to 7.11.1
+- update of mystic-crypt dependency version to 8
+- update of crypt-api dependency version to 8.3
+- update of crypt-data dependency version to 8.2
 
 Version 5.4
 -------------

@@ -161,8 +161,7 @@ public class ChecksumPanel extends BasePanel<ChecksumBean>
 		lblChecksumAlgorithm.setText("Checksum algorithm");
 
 		cbxChecksumAlgorithm.setModel(new EnumComboBoxModel<>(ChecksumAlgorithm.class,
-			ChecksumAlgorithm.MD5,
-			SetFactory.newHashSet(ChecksumAlgorithm.UNDEFINED)));
+			ChecksumAlgorithm.MD5, SetFactory.newHashSet(ChecksumAlgorithm.UNDEFINED)));
 		cbxChecksumAlgorithm.addActionListener(this::onChangeChecksumAlgorithm);
 		getModelObject().setSelectedAlgorithm(ChecksumAlgorithm.MD5);
 

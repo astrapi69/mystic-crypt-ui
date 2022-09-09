@@ -34,7 +34,7 @@ public class MysticCryptEntryTableModel extends BaseTableModel<MysticCryptEntryM
 {
 
 	public MysticCryptEntryTableModel()
-	{	//@formatter:off
+	{ //@formatter:off
 		this(TableColumnsModel.builder().columnNames(
 			new String[] { "Title", "Username", "Url" })
 			.canEdit(new boolean[] { false, false, false })
