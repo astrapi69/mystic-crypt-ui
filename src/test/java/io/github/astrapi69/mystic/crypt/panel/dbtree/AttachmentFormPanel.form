@@ -21,8 +21,8 @@
               <Component id="srcFiles" min="-2" max="-2" attributes="0"/>
               <EmptySpace max="-2" attributes="0"/>
               <Group type="103" groupAlignment="0" attributes="0">
-                  <Component id="btnAdd" max="32767" attributes="0"/>
-                  <Component id="btnRemove" alignment="1" pref="138" max="32767" attributes="0"/>
+                  <Component id="btnAdd" alignment="0" max="32767" attributes="0"/>
+                  <Component id="btnRemove" alignment="1" pref="170" max="32767" attributes="0"/>
                   <Component id="btnSaveTo" alignment="0" max="32767" attributes="0"/>
               </Group>
               <EmptySpace max="-2" attributes="0"/>
@@ -34,14 +34,14 @@
           <Group type="102" alignment="1" attributes="0">
               <EmptySpace max="32767" attributes="0"/>
               <Group type="103" groupAlignment="0" attributes="0">
-                  <Group type="102" attributes="0">
+                  <Group type="102" alignment="0" attributes="0">
                       <Component id="btnAdd" min="-2" max="-2" attributes="0"/>
                       <EmptySpace type="separate" max="-2" attributes="0"/>
                       <Component id="btnRemove" min="-2" max="-2" attributes="0"/>
                       <EmptySpace type="separate" max="-2" attributes="0"/>
                       <Component id="btnSaveTo" min="-2" max="-2" attributes="0"/>
                   </Group>
-                  <Component id="srcFiles" min="-2" pref="428" max="-2" attributes="0"/>
+                  <Component id="srcFiles" alignment="0" min="-2" pref="428" max="-2" attributes="0"/>
               </Group>
               <EmptySpace max="-2" attributes="0"/>
           </Group>
