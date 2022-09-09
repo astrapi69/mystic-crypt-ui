@@ -64,6 +64,7 @@
 			<singlefile src="signed/@{app.name}-@{app.version}.jar" target="${INSTALL_PATH}/@{app.name}.jar" />
 			<file src="../README.md" targetdir="${INSTALL_PATH}" />
 			<file src="resources/main/doc/@{app.name}.desktop" targetdir="${INSTALL_PATH}" />
+			<file src="resources/main/doc/start.sh" targetdir="${INSTALL_PATH}" />
 			<file src="resources/main/img/icon.png" targetdir="${INSTALL_PATH}/img" />
 		</pack>
 	</packs>
