@@ -31,6 +31,9 @@ import lombok.NoArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.experimental.SuperBuilder;
 
+import java.util.Date;
+import java.util.UUID;
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -38,10 +41,14 @@ import lombok.experimental.SuperBuilder;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class MysticCryptEntryModelBean
 {
+	UUID id;
 	String title;
 	String userName;
 	char[] password;
 	char[] repeat;
 	String url;
 	String notes;
+	boolean expirable;
+	Date expires;
+	String icon;
 }
