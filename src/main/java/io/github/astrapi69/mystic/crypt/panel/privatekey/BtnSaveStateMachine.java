@@ -34,9 +34,8 @@ import lombok.Setter;
 import lombok.ToString;
 import lombok.experimental.SuperBuilder;
 
-import org.springframework.util.ObjectUtils;
-
 import io.github.astrapi69.design.pattern.state.component.AbstractJComponentStateMachine;
+import org.apache.commons.lang3.StringUtils;
 
 @Getter
 @Setter
@@ -56,8 +55,8 @@ public class BtnSaveStateMachine
 	@Override
 	protected void updateComponentState()
 	{
-		boolean filenameOfPrivateKeyPresent = !ObjectUtils
-			.isEmpty(modelObject.getFilenameOfPrivateKey());
+		boolean filenameOfPrivateKeyPresent = StringUtils
+			.isNotEmpty(modelObject.getFilenameOfPrivateKey());
 		boolean privateKeyDirectoryPresent = modelObject.getPrivateKeyDirectory() != null;
 		boolean privateKeyObjectPresent = modelObject.getPrivateKeyInfo() != null;
 		boolean keySizePresent = modelObject.getKeySize() != null;

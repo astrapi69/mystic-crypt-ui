@@ -43,11 +43,10 @@ import javax.swing.JMenuItem;
 import javax.swing.KeyStroke;
 import javax.swing.MenuElement;
 
+import io.github.astrapi69.lang.ClassExtensions;
 import io.github.astrapi69.model.enumtype.visibity.RenderMode;
 import lombok.NonNull;
 import lombok.extern.java.Log;
-
-import org.springframework.core.io.Resource;
 
 import io.github.astrapi69.collection.set.SetFactory;
 import io.github.astrapi69.design.pattern.observer.event.EventListener;
@@ -335,10 +334,8 @@ public class DesktopMenu extends BaseDesktopMenu implements EventListener<EventO
 	@Override
 	protected String onNewLicenseText()
 	{
-		final Resource resource = SpringBootSwingApplication.ctx
-			.getResource("classpath:LICENSE.txt");
 		final StringBuilder license = new StringBuilder();
-		try (InputStream is = resource.getInputStream())
+		try (InputStream is = ClassExtensions.getResourceAsStream("LICENSE.txt"))
 		{
 			String thisLine;
 			final BufferedReader br = new BufferedReader(new InputStreamReader(is));
