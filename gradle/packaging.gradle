@@ -20,8 +20,18 @@ jar {
     }
 }
 
+task fatJar(type: Jar) {
+    duplicatesStrategy(DuplicatesStrategy.EXCLUDE)
+    manifest.from jar.manifest
+    classifier = 'all'
+    from { configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) } }
+    with jar
+}
+
 jar.doLast {
-    if (releaseVersion) {
+    def createIzPackInstallerStringProperty = project.property('createIzPackInstaller')
+    def createIzPackInstaller = createIzPackInstallerStringProperty.toBoolean()
+    if (releaseVersion || createIzPackInstaller) {
         def pkAlias = project.property("$mysticCryptKeyAlias")
         def keystoreFileName = project.property("$mysticCryptStoreFile")
         def storePassword = project.property("$mysticCryptStorePassword")
@@ -44,6 +54,9 @@ jar.doLast {
                     preservelastmodified: "true"
             )
         }
+    } else {
+        println('Created jar file is not signed.\n' +
+                'IzPackInstaller can not be created because it depends on signed jar.')
     }
 }
 

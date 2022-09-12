@@ -116,9 +116,9 @@ public class MysticCryptApplicationFrame extends ApplicationFrame<ApplicationMod
 	}
 
 	/**
-	 * Gets the single instance of SpringBootSwingApplication.
+	 * Gets the single instance of {@link MysticCryptApplicationFrame} object
 	 *
-	 * @return single instance of SpringBootSwingApplication
+	 * @return single instance of {@link MysticCryptApplicationFrame} object
 	 */
 	public static MysticCryptApplicationFrame getInstance()
 	{
