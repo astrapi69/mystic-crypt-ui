@@ -101,21 +101,6 @@ public class MysticCryptApplicationFrame extends ApplicationFrame<ApplicationMod
 	}
 
 	/**
-	 * The main method that start this {@link MysticCryptApplicationFrame}
-	 *
-	 * @param args
-	 *            the arguments
-	 */
-	public static void main(String[] args)
-	{
-		MysticCryptApplicationFrame frame = new MysticCryptApplicationFrame();
-		while (!frame.isVisible())
-		{
-			ScreenSizeExtensions.showFrame(frame);
-		}
-	}
-
-	/**
 	 * Gets the single instance of {@link MysticCryptApplicationFrame} object
 	 *
 	 * @return single instance of {@link MysticCryptApplicationFrame} object

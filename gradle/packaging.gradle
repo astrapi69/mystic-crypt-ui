@@ -1,5 +1,5 @@
 import java.text.SimpleDateFormat
-
+def mainClassName = project.property('mainClass')
 def releaseVersion = !version.endsWith("SNAPSHOT")
 
 jar {
@@ -8,7 +8,7 @@ jar {
         attributes(
                 "Name"                  : project.name,
                 "Manifest-Version"      : project.version,
-                "Main-Class"            : "$mainClass",
+                "Main-Class"            : mainClassName,
                 "Implementation-Title"  : "$groupPackage" + "." + "$rootProject.name",
                 "Implementation-Version": project.version,
                 "Implementation-Vendor" : "$projectLeaderName",
@@ -25,6 +25,17 @@ task fatJar(type: Jar) {
     manifest.from jar.manifest
     classifier = 'all'
     from { configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) } }
+    with jar
+}
+
+task uberJar(type: Jar) {
+    duplicatesStrategy(DuplicatesStrategy.EXCLUDE)
+    manifest.from jar.manifest
+    archiveClassifier = 'uber'
+
+    from {
+        configurations.runtimeClasspath.findAll { it.name.endsWith('jar') }.collect { zipTree(it) }
+    }
     with jar
 }
 
