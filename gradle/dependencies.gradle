@@ -61,6 +61,9 @@ dependencies {
     implementation("com.google.code.gson:gson:$gsonVersion")
     implementation("io.github.astrapi69:xstream-extensions:$xstreamExtensionsVersion")
     implementation("io.github.astrapi69:resourcebundle-core:$resourcebundleCoreVersion")
+    implementation("com.github.lgooddatepicker:LGoodDatePicker:11.2.1")
+
+
 
     implementation("io.github.astrapi69:json-extensions:$jsonExtensionsVersion")
     implementation("org.springframework.boot:spring-boot-starter-integration")

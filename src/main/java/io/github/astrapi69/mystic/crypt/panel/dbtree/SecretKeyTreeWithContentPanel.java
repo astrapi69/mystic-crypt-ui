@@ -419,6 +419,9 @@ public class SecretKeyTreeWithContentPanel
 		if (option == JOptionPane.OK_OPTION)
 		{
 			MysticCryptEntryModelBean modelObject = panel.getModelObject();
+			if(modelObject.isExpirable() && panel.getTxtExpires().getSelectedDate() != null) {
+				modelObject.setExpires(panel.getTxtExpires().getSelectedDate());
+			}
 			DefaultMutableTreeNode selectedTreeNode = getSelectedTreeNode();
 			BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> selectedBaseTreeNode;
 			if (selectedTreeNode == null)
@@ -493,7 +496,9 @@ public class SecretKeyTreeWithContentPanel
 			int index = data.indexOf(tableEntry);
 			data.remove(tableEntry);
 			MysticCryptEntryModelBean modelObject = panel.getModelObject();
-
+			if(modelObject.isExpirable() && panel.getTxtExpires().getSelectedDate() != null) {
+				modelObject.setExpires(panel.getTxtExpires().getSelectedDate());
+			}
 			data.add(index, modelObject);
 
 			getBaseTreeNodeModel();
