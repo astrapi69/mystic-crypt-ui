@@ -25,6 +25,7 @@
 package io.github.astrapi69.mystic.crypt.panel.dbtree;
 
 import java.time.LocalDate;
+import java.util.Set;
 import java.util.UUID;
 
 import lombok.AccessLevel;
@@ -51,4 +52,5 @@ public class MysticCryptEntryModelBean
 	boolean expirable;
 	LocalDate expires;
 	String icon;
+	Set<Resource> resources;
 }
