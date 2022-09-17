@@ -139,7 +139,8 @@ public class MysticCryptEntryPanel extends BasePanel<MysticCryptEntryModelBean>
 
 		cbxExpirable.addActionListener(this::onChangeExpirable);
 
-		if(getModelObject().isExpirable() && getModelObject().getExpires() != null) {
+		if (getModelObject().isExpirable() && getModelObject().getExpires() != null)
+		{
 			txtExpires.setSelectedDate(getModelObject().getExpires());
 		}
 		ComponentExtensions.setComponentEnabled(txtExpires, getModelObject().isExpirable());

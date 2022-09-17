@@ -12,70 +12,90 @@ public class ExtensionInfo
 	private boolean critical;
 	private ASN1OctetString value;
 
-	public ExtensionInfo(ASN1ObjectIdentifier extensionId, boolean critical, ASN1OctetString value) {
+	public ExtensionInfo(ASN1ObjectIdentifier extensionId, boolean critical, ASN1OctetString value)
+	{
 		this.extensionId = extensionId;
 		this.critical = critical;
 		this.value = value;
 	}
 
-	public ExtensionInfo() {
+	public ExtensionInfo()
+	{
 	}
 
-	protected ExtensionInfo(ExtensionInfoBuilder<?, ?> b) {
+	protected ExtensionInfo(ExtensionInfoBuilder<?, ?> b)
+	{
 		this.extensionId = b.extensionId;
 		this.critical = b.critical;
 		this.value = b.value;
 	}
 
-	public static ExtensionInfoBuilder<?, ?> builder() {
+	public static ExtensionInfoBuilder<?, ?> builder()
+	{
 		return new ExtensionInfoBuilderImpl();
 	}
 
-	public ASN1ObjectIdentifier getExtensionId() {
+	public ASN1ObjectIdentifier getExtensionId()
+	{
 		return this.extensionId;
 	}
 
-	public boolean isCritical() {
+	public boolean isCritical()
+	{
 		return this.critical;
 	}
 
-	public ASN1OctetString getValue() {
+	public ASN1OctetString getValue()
+	{
 		return this.value;
 	}
 
-	public void setExtensionId(ASN1ObjectIdentifier extensionId) {
+	public void setExtensionId(ASN1ObjectIdentifier extensionId)
+	{
 		this.extensionId = extensionId;
 	}
 
-	public void setCritical(boolean critical) {
+	public void setCritical(boolean critical)
+	{
 		this.critical = critical;
 	}
 
-	public void setValue(ASN1OctetString value) {
+	public void setValue(ASN1OctetString value)
+	{
 		this.value = value;
 	}
 
-	public boolean equals(final Object o) {
-		if (o == this) return true;
-		if (!(o instanceof ExtensionInfo)) return false;
-		final ExtensionInfo other = (ExtensionInfo) o;
-		if (!other.canEqual((Object) this)) return false;
+	public boolean equals(final Object o)
+	{
+		if (o == this)
+			return true;
+		if (!(o instanceof ExtensionInfo))
+			return false;
+		final ExtensionInfo other = (ExtensionInfo)o;
+		if (!other.canEqual((Object)this))
+			return false;
 		final Object this$extensionId = this.getExtensionId();
 		final Object other$extensionId = other.getExtensionId();
-		if (this$extensionId == null ? other$extensionId != null : !this$extensionId.equals(other$extensionId))
+		if (this$extensionId == null
+			? other$extensionId != null
+			: !this$extensionId.equals(other$extensionId))
 			return false;
-		if (this.isCritical() != other.isCritical()) return false;
+		if (this.isCritical() != other.isCritical())
+			return false;
 		final Object this$value = this.getValue();
 		final Object other$value = other.getValue();
-		if (this$value == null ? other$value != null : !this$value.equals(other$value)) return false;
+		if (this$value == null ? other$value != null : !this$value.equals(other$value))
+			return false;
 		return true;
 	}
 
-	protected boolean canEqual(final Object other) {
+	protected boolean canEqual(final Object other)
+	{
 		return other instanceof ExtensionInfo;
 	}
 
-	public int hashCode() {
+	public int hashCode()
+	{
 		final int PRIME = 59;
 		int result = 1;
 		final Object $extensionId = this.getExtensionId();
@@ -86,41 +106,51 @@ public class ExtensionInfo
 		return result;
 	}
 
-	public String toString() {
-		return "ExtensionInfo(extensionId=" + this.getExtensionId() + ", critical=" + this.isCritical() + ", value=" + this.getValue() + ")";
+	public String toString()
+	{
+		return "ExtensionInfo(extensionId=" + this.getExtensionId() + ", critical="
+			+ this.isCritical() + ", value=" + this.getValue() + ")";
 	}
 
-	public ExtensionInfoBuilder<?, ?> toBuilder() {
+	public ExtensionInfoBuilder<?, ?> toBuilder()
+	{
 		return new ExtensionInfoBuilderImpl().$fillValuesFrom(this);
 	}
 
-	public static abstract class ExtensionInfoBuilder<C extends ExtensionInfo, B extends ExtensionInfoBuilder<C, B>> {
+	public static abstract class ExtensionInfoBuilder<C extends ExtensionInfo, B extends ExtensionInfoBuilder<C, B>>
+	{
 		private ASN1ObjectIdentifier extensionId;
 		private boolean critical;
 		private ASN1OctetString value;
 
-		private static void $fillValuesFromInstanceIntoBuilder(ExtensionInfo instance, ExtensionInfoBuilder<?, ?> b) {
+		private static void $fillValuesFromInstanceIntoBuilder(ExtensionInfo instance,
+			ExtensionInfoBuilder<?, ?> b)
+		{
 			b.extensionId(instance.extensionId);
 			b.critical(instance.critical);
 			b.value(instance.value);
 		}
 
-		public B extensionId(ASN1ObjectIdentifier extensionId) {
+		public B extensionId(ASN1ObjectIdentifier extensionId)
+		{
 			this.extensionId = extensionId;
 			return self();
 		}
 
-		public B critical(boolean critical) {
+		public B critical(boolean critical)
+		{
 			this.critical = critical;
 			return self();
 		}
 
-		public B value(ASN1OctetString value) {
+		public B value(ASN1OctetString value)
+		{
 			this.value = value;
 			return self();
 		}
 
-		protected B $fillValuesFrom(C instance) {
+		protected B $fillValuesFrom(C instance)
+		{
 			ExtensionInfoBuilder.$fillValuesFromInstanceIntoBuilder(instance, this);
 			return self();
 		}
@@ -129,20 +159,28 @@ public class ExtensionInfo
 
 		public abstract C build();
 
-		public String toString() {
-			return "ExtensionInfo.ExtensionInfoBuilder(extensionId=" + this.extensionId + ", critical=" + this.critical + ", value=" + this.value + ")";
+		public String toString()
+		{
+			return "ExtensionInfo.ExtensionInfoBuilder(extensionId=" + this.extensionId
+				+ ", critical=" + this.critical + ", value=" + this.value + ")";
 		}
 	}
 
-	private static final class ExtensionInfoBuilderImpl extends ExtensionInfoBuilder<ExtensionInfo, ExtensionInfoBuilderImpl> {
-		private ExtensionInfoBuilderImpl() {
+	private static final class ExtensionInfoBuilderImpl
+		extends
+			ExtensionInfoBuilder<ExtensionInfo, ExtensionInfoBuilderImpl>
+	{
+		private ExtensionInfoBuilderImpl()
+		{
 		}
 
-		protected ExtensionInfoBuilderImpl self() {
+		protected ExtensionInfoBuilderImpl self()
+		{
 			return this;
 		}
 
-		public ExtensionInfo build() {
+		public ExtensionInfo build()
+		{
 			return new ExtensionInfo(this);
 		}
 	}

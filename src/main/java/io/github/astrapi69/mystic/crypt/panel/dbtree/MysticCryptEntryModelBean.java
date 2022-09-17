@@ -28,6 +28,7 @@ import java.time.LocalDate;
 import java.util.Set;
 import java.util.UUID;
 
+import io.github.astrapi69.resource.system.viewmodel.Resource;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Data;

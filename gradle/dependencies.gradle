@@ -61,6 +61,7 @@ dependencies {
     implementation("com.google.code.gson:gson:$gsonVersion")
     implementation("io.github.astrapi69:xstream-extensions:$xstreamExtensionsVersion")
     implementation("io.github.astrapi69:resourcebundle-core:$resourcebundleCoreVersion")
+    implementation("io.github.astrapi69:resource-viewmodels:$resourceViewmodelVersion")
     implementation("com.github.lgooddatepicker:LGoodDatePicker:11.2.1")
 
 

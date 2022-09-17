@@ -41,6 +41,7 @@ public class AttachmentPanel extends BasePanel<MysticCryptEntryModelBean>
 	private JButton btnSaveTo;
 	private JScrollPane srcFiles;
 	private JTable tblFiles;
+
 	/**
 	 * Creates new form NewAttachmentFormPanel
 	 */
@@ -53,7 +54,7 @@ public class AttachmentPanel extends BasePanel<MysticCryptEntryModelBean>
 	{
 		super(model);
 	}
-	
+
 	@Override
 	protected void onInitializeComponents()
 	{
@@ -65,8 +66,8 @@ public class AttachmentPanel extends BasePanel<MysticCryptEntryModelBean>
 		btnSaveTo = new JButton();
 
 		tblFiles.setModel(new DefaultTableModel(
-				new Object[][] { { null, null }, { null, null }, { null, null }, { null, null } },
-				new String[] { "Title 1", "Title 2" }));
+			new Object[][] { { null, null }, { null, null }, { null, null }, { null, null } },
+			new String[] { "Title 1", "Title 2" }));
 		srcFiles.setViewportView(tblFiles);
 
 		btnAdd.setText("Add File");
@@ -83,29 +84,27 @@ public class AttachmentPanel extends BasePanel<MysticCryptEntryModelBean>
 
 		GroupLayout layout = new GroupLayout(this);
 		this.setLayout(layout);
-		layout.setHorizontalGroup(layout
-				.createParallelGroup(GroupLayout.Alignment.LEADING)
-				.addGroup(layout.createSequentialGroup().addContainerGap()
-						.addComponent(srcFiles, GroupLayout.PREFERRED_SIZE,
-								GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-						.addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
-						.addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)
-								.addComponent(btnAdd, GroupLayout.DEFAULT_SIZE,
-										GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-								.addComponent(btnRemove, GroupLayout.Alignment.TRAILING,
-										GroupLayout.DEFAULT_SIZE, 170, Short.MAX_VALUE)
-								.addComponent(btnSaveTo, GroupLayout.DEFAULT_SIZE,
-										GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-						.addContainerGap()));
-		layout.setVerticalGroup(layout
-				.createParallelGroup(GroupLayout.Alignment.LEADING)
-				.addGroup(GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-						.addContainerGap(GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-						.addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)
-								.addGroup(layout.createSequentialGroup().addComponent(btnAdd).addGap(18, 18, 18)
-										.addComponent(btnRemove).addGap(18, 18, 18).addComponent(btnSaveTo))
-								.addComponent(srcFiles, GroupLayout.PREFERRED_SIZE, 428,
-										GroupLayout.PREFERRED_SIZE))
-						.addContainerGap()));
+		layout.setHorizontalGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)
+			.addGroup(layout.createSequentialGroup().addContainerGap()
+				.addComponent(srcFiles, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE,
+					GroupLayout.PREFERRED_SIZE)
+				.addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)
+					.addComponent(btnAdd, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE,
+						Short.MAX_VALUE)
+					.addComponent(btnRemove, GroupLayout.Alignment.TRAILING,
+						GroupLayout.DEFAULT_SIZE, 170, Short.MAX_VALUE)
+					.addComponent(btnSaveTo, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE,
+						Short.MAX_VALUE))
+				.addContainerGap()));
+		layout.setVerticalGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)
+			.addGroup(GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+				.addContainerGap(GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)
+					.addGroup(layout.createSequentialGroup().addComponent(btnAdd).addGap(18, 18, 18)
+						.addComponent(btnRemove).addGap(18, 18, 18).addComponent(btnSaveTo))
+					.addComponent(srcFiles, GroupLayout.PREFERRED_SIZE, 428,
+						GroupLayout.PREFERRED_SIZE))
+				.addContainerGap()));
 	}
 }
