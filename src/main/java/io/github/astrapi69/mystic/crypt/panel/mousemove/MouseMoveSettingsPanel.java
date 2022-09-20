@@ -10,6 +10,7 @@ import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JTextField;
 
+import io.github.astrapi69.swing.document.NumberValuesDocument;
 import lombok.Getter;
 import io.github.astrapi69.model.BaseModel;
 import io.github.astrapi69.model.api.IModel;
@@ -18,8 +19,8 @@ import io.github.astrapi69.swing.base.BasePanel;
 @Getter
 public class MouseMoveSettingsPanel extends BasePanel<MouseMoveSettingsModelBean>
 {
-    private JComboBox<String> cmbVariableX;
-    private JComboBox<String> cmbVariableY;
+    private JComboBox<Integer> cmbVariableX;
+    private JComboBox<Integer> cmbVariableY;
     private JLabel lblIntervalOfSeconds;
     private JLabel lblSettings;
     private JLabel lblVariableX;
@@ -46,6 +47,7 @@ public class MouseMoveSettingsPanel extends BasePanel<MouseMoveSettingsModelBean
         cmbVariableX = new JComboBox<>();
         cmbVariableY = new JComboBox<>();
         txtIntervalOfSeconds = new JTextField();
+        txtIntervalOfSeconds.setDocument(new NumberValuesDocument());
 
         lblVariableX.setText("Move mouse on X axis in pixel");
 
@@ -56,12 +58,15 @@ public class MouseMoveSettingsPanel extends BasePanel<MouseMoveSettingsModelBean
         lblIntervalOfSeconds.setText("Move mouse every time (in seconds)");
 
         cmbVariableX.setModel(new DefaultComboBoxModel<>(
-                new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }));
+                new Integer[] { 1, 2, 3, 4 }));
+        cmbVariableX.setName("cmbVariableX");
 
         cmbVariableY.setModel(new DefaultComboBoxModel<>(
-                new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }));
+                new Integer[] { 1, 2, 3, 4 }));
+        cmbVariableY.setName("cmbVariableY");
 
         txtIntervalOfSeconds.setText("60");
+        txtIntervalOfSeconds.setName("txtIntervalOfSeconds");
     }
 
     @Override
