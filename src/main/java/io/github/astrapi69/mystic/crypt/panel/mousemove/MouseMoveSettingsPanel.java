@@ -4,12 +4,16 @@
  */
 package io.github.astrapi69.mystic.crypt.panel.mousemove;
 
+import javax.swing.DefaultComboBoxModel;
+import javax.swing.GroupLayout;
+import javax.swing.JComboBox;
+import javax.swing.JLabel;
+import javax.swing.JTextField;
+
+import lombok.Getter;
 import io.github.astrapi69.model.BaseModel;
 import io.github.astrapi69.model.api.IModel;
 import io.github.astrapi69.swing.base.BasePanel;
-import lombok.Getter;
-
-import javax.swing.*;
 
 @Getter
 public class MouseMoveSettingsPanel extends BasePanel<MouseMoveSettingsModelBean>
