@@ -33,8 +33,11 @@ import javax.swing.JCheckBox;
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 import javax.swing.event.DocumentEvent;
+import javax.swing.filechooser.FileNameExtensionFilter;
 
+import io.github.astrapi69.file.create.FileFactory;
 import io.github.astrapi69.mystic.crypt.app.file.xml.ApplicationXmlFileReader;
+import io.github.astrapi69.swing.filechooser.JFileChooserExtensions;
 import lombok.Getter;
 import lombok.extern.java.Log;
 
@@ -236,9 +239,60 @@ public class MasterPwWithApplicationFilePanel extends BasePanel<MasterPwFileMode
 		}
 		cmbApplicationFile.addActionListener(this::onChangeCmbApplicationFile);
 		btnHelp.addActionListener(this::onHelp);
+		btnNewApplicationFile.addActionListener(this::onNewApplicationFile);
 
 		toggleMasterPwComponents();
 		toggleKeyFileComponents();
+	}
+
+	protected void onApplicationFileChooser(ActionEvent actionEvent)
+	{
+		System.err.println("onApplicationFileChooser method action called");
+		final int returnVal = fileChooser.showSaveDialog(MasterPwWithApplicationFilePanel.this);
+		if (returnVal == JFileChooser.APPROVE_OPTION)
+		{
+			final File selectedApplicationFile = fileChooser.getSelectedFile();
+			String absolutePath = selectedApplicationFile.getAbsolutePath();
+			cmbApplicationFileModel.addElement(absolutePath);
+			cmbApplicationFileModel.setSelectedItem(absolutePath);
+			getModelObject().setApplicationFileInfo(FileInfo.toFileInfo(selectedApplicationFile));
+			toggleApplicationFileComponents();
+			btnOkStateMachine.onApplicationFileAdded(btnOkStateMachine);
+		}
+	}
+
+	protected void onNewApplicationFile(ActionEvent actionEvent)
+	{
+		fileChooser.setDialogTitle("Specify the database file to save");
+		FileNameExtensionFilter fileNameExtensionFilter = new FileNameExtensionFilter(
+				"Mystic crypt files (*.mcrdb)", "mcrdb");
+		fileChooser.setFileFilter(fileNameExtensionFilter);
+		final int returnVal = fileChooser.showSaveDialog(MasterPwWithApplicationFilePanel.this);
+		if (returnVal == JFileChooser.APPROVE_OPTION)
+		{
+			final File selectedApplicationFile = JFileChooserExtensions
+					.getSelectedFileWithFirstExtension(fileChooser);
+			if (!selectedApplicationFile.exists())
+			{
+				RuntimeExceptionDecorator
+						.decorate(() -> FileFactory.newFile(selectedApplicationFile));
+			}
+			String absolutePath = selectedApplicationFile.getAbsolutePath();
+			IModel<MasterPwFileModelBean> model = BaseModel.of(MasterPwFileModelBean.builder()
+					.applicationFileInfo(FileInfo.toFileInfo(selectedApplicationFile))
+					.selectedApplicationFilePath(absolutePath).minPasswordLength(6)
+					.withKeyFile(false).withMasterPw(false).showMasterPw(false).build());
+			NewMasterPwFileDialog dialog = new NewMasterPwFileDialog(MysticCryptApplicationFrame
+					.getInstance(),
+					"Create your master key", true, model);
+			dialog.setSize(840, 520);
+			dialog.setVisible(true);
+			cmbApplicationFileModel.addElement(absolutePath);
+			cmbApplicationFileModel.setSelectedItem(absolutePath);
+			getModelObject().setApplicationFileInfo(FileInfo.toFileInfo(selectedApplicationFile));
+			toggleApplicationFileComponents();
+			btnOkStateMachine.onApplicationFileAdded(btnOkStateMachine);
+		}
 	}
 
 	protected void onHelp(ActionEvent actionEvent)
@@ -339,7 +393,6 @@ public class MasterPwWithApplicationFilePanel extends BasePanel<MasterPwFileMode
 
 	protected void onInitializeGroupLayout()
 	{
-
 		javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
 		this.setLayout(layout);
 		layout.setHorizontalGroup(layout
@@ -493,22 +546,6 @@ public class MasterPwWithApplicationFilePanel extends BasePanel<MasterPwFileMode
 			getModelObject().setWithMasterPw(checkBox.isSelected());
 		}
 		toggleMasterPwComponents();
-	}
-
-	protected void onApplicationFileChooser(ActionEvent actionEvent)
-	{
-		System.err.println("onApplicationFileChooser method action called");
-		final int returnVal = fileChooser.showSaveDialog(MasterPwWithApplicationFilePanel.this);
-		if (returnVal == JFileChooser.APPROVE_OPTION)
-		{
-			final File selectedApplicationFile = fileChooser.getSelectedFile();
-			String absolutePath = selectedApplicationFile.getAbsolutePath();
-			cmbApplicationFileModel.addElement(absolutePath);
-			cmbApplicationFileModel.setSelectedItem(absolutePath);
-			getModelObject().setApplicationFileInfo(FileInfo.toFileInfo(selectedApplicationFile));
-			toggleApplicationFileComponents();
-			btnOkStateMachine.onApplicationFileAdded(btnOkStateMachine);
-		}
 	}
 
 	protected void onKeyFileChooser(ActionEvent actionEvent)
