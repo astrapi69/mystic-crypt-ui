@@ -58,9 +58,9 @@
                                   </Group>
                                   <Group type="102" attributes="0">
                                       <Component id="cmbApplicationFile" max="32767" attributes="0"/>
-                                      <EmptySpace type="separate" max="-2" attributes="0"/>
-                                      <Component id="btnApplicationFileChooser" min="-2" pref="102" max="-2" attributes="0"/>
                                       <EmptySpace type="unrelated" max="-2" attributes="0"/>
+                                      <Component id="btnApplicationFileChooser" min="-2" pref="102" max="-2" attributes="0"/>
+                                      <EmptySpace type="separate" max="-2" attributes="0"/>
                                       <Component id="btnNewApplicationFile" min="-2" max="-2" attributes="0"/>
                                   </Group>
                               </Group>

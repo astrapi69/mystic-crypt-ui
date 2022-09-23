@@ -193,13 +193,12 @@ public class MasterPwWithApplicationFileFormPanel extends javax.swing.JPanel
 								.addGroup(layout.createSequentialGroup()
 									.addComponent(cmbApplicationFile, 0,
 										javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-									.addGap(18, 18, 18)
+									.addPreferredGap(
+										javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
 									.addComponent(btnApplicationFileChooser,
 										javax.swing.GroupLayout.PREFERRED_SIZE, 102,
 										javax.swing.GroupLayout.PREFERRED_SIZE)
-									.addPreferredGap(
-										javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-									.addComponent(btnNewApplicationFile)))))
+									.addGap(18, 18, 18).addComponent(btnNewApplicationFile)))))
 						.addContainerGap(42, Short.MAX_VALUE)))));
 		layout.setVerticalGroup(layout
 			.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)

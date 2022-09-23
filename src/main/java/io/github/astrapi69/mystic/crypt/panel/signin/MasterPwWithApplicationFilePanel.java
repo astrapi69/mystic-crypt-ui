@@ -37,6 +37,7 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 
 import io.github.astrapi69.file.create.FileFactory;
 import io.github.astrapi69.mystic.crypt.app.file.xml.ApplicationXmlFileReader;
+import io.github.astrapi69.swing.combobox.model.GenericMutableComboBoxModel;
 import io.github.astrapi69.swing.filechooser.JFileChooserExtensions;
 import lombok.Getter;
 import lombok.extern.java.Log;
@@ -70,8 +71,8 @@ public class MasterPwWithApplicationFilePanel extends BasePanel<MasterPwFileMode
 
 	private static final long serialVersionUID = 1L;
 	BtnOkStateMachine btnOkStateMachine;
-	StringMutableComboBoxModel cmbKeyFileModel;
-	StringMutableComboBoxModel cmbApplicationFileModel;
+	GenericMutableComboBoxModel<String> cmbKeyFileModel;
+	GenericMutableComboBoxModel<String> cmbApplicationFileModel;
 	private javax.swing.JButton btnApplicationFileChooser;
 	private javax.swing.JButton btnCancel;
 	private javax.swing.JButton btnHelp;
@@ -207,7 +208,7 @@ public class MasterPwWithApplicationFilePanel extends BasePanel<MasterPwFileMode
 		fileChooser = new JFileChooser(configDir);
 		String selectedKeyFilePath = modelObject.getSelectedKeyFilePath();
 
-		cmbKeyFileModel = new StringMutableComboBoxModel(modelObject.getKeyFilePaths(),
+		cmbKeyFileModel = new GenericMutableComboBoxModel<>(modelObject.getKeyFilePaths(),
 			selectedKeyFilePath);
 		cmbKeyFile.setModel(cmbKeyFileModel);
 		cmbKeyFile.setSelectedItem(selectedKeyFilePath);
@@ -225,7 +226,7 @@ public class MasterPwWithApplicationFilePanel extends BasePanel<MasterPwFileMode
 		{
 			modelObject.getApplicationFilePaths().add(selectedApplicationFilePath);
 		}
-		cmbApplicationFileModel = new StringMutableComboBoxModel(
+		cmbApplicationFileModel = new GenericMutableComboBoxModel<>(
 			modelObject.getApplicationFilePaths(), selectedApplicationFilePath);
 		cmbApplicationFile.setModel(cmbApplicationFileModel);
 		cmbApplicationFile.setSelectedItem(selectedApplicationFilePath);
@@ -265,26 +266,25 @@ public class MasterPwWithApplicationFilePanel extends BasePanel<MasterPwFileMode
 	{
 		fileChooser.setDialogTitle("Specify the database file to save");
 		FileNameExtensionFilter fileNameExtensionFilter = new FileNameExtensionFilter(
-				"Mystic crypt files (*.mcrdb)", "mcrdb");
+			"Mystic crypt files (*.mcrdb)", "mcrdb");
 		fileChooser.setFileFilter(fileNameExtensionFilter);
 		final int returnVal = fileChooser.showSaveDialog(MasterPwWithApplicationFilePanel.this);
 		if (returnVal == JFileChooser.APPROVE_OPTION)
 		{
 			final File selectedApplicationFile = JFileChooserExtensions
-					.getSelectedFileWithFirstExtension(fileChooser);
+				.getSelectedFileWithFirstExtension(fileChooser);
 			if (!selectedApplicationFile.exists())
 			{
 				RuntimeExceptionDecorator
-						.decorate(() -> FileFactory.newFile(selectedApplicationFile));
+					.decorate(() -> FileFactory.newFile(selectedApplicationFile));
 			}
 			String absolutePath = selectedApplicationFile.getAbsolutePath();
 			IModel<MasterPwFileModelBean> model = BaseModel.of(MasterPwFileModelBean.builder()
-					.applicationFileInfo(FileInfo.toFileInfo(selectedApplicationFile))
-					.selectedApplicationFilePath(absolutePath).minPasswordLength(6)
-					.withKeyFile(false).withMasterPw(false).showMasterPw(false).build());
-			NewMasterPwFileDialog dialog = new NewMasterPwFileDialog(MysticCryptApplicationFrame
-					.getInstance(),
-					"Create your master key", true, model);
+				.applicationFileInfo(FileInfo.toFileInfo(selectedApplicationFile))
+				.selectedApplicationFilePath(absolutePath).minPasswordLength(6).withKeyFile(false)
+				.withMasterPw(false).showMasterPw(false).build());
+			NewMasterPwFileDialog dialog = new NewMasterPwFileDialog(
+				MysticCryptApplicationFrame.getInstance(), "Create your master key", true, model);
 			dialog.setSize(840, 520);
 			dialog.setVisible(true);
 			cmbApplicationFileModel.addElement(absolutePath);
@@ -396,108 +396,108 @@ public class MasterPwWithApplicationFilePanel extends BasePanel<MasterPwFileMode
 		javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
 		this.setLayout(layout);
 		layout.setHorizontalGroup(layout
-				.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-				.addGroup(layout.createSequentialGroup().addContainerGap().addGroup(layout
-						.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+			.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+			.addGroup(layout.createSequentialGroup().addContainerGap().addGroup(layout
+				.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+				.addGroup(layout.createSequentialGroup()
+					.addComponent(lblImageHeader, javax.swing.GroupLayout.DEFAULT_SIZE,
+						javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+					.addGap(24, 24, 24))
+				.addGroup(javax.swing.GroupLayout.Alignment.LEADING,
+					layout.createSequentialGroup().addGroup(layout
+						.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
 						.addGroup(layout.createSequentialGroup()
-								.addComponent(lblImageHeader, javax.swing.GroupLayout.DEFAULT_SIZE,
-										javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-								.addGap(24, 24, 24))
-						.addGroup(javax.swing.GroupLayout.Alignment.LEADING,
-								layout.createSequentialGroup().addGroup(layout
-												.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
-												.addGroup(layout.createSequentialGroup()
-														.addComponent(btnHelp, javax.swing.GroupLayout.PREFERRED_SIZE, 122,
-																javax.swing.GroupLayout.PREFERRED_SIZE)
-														.addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED,
-																javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-														.addComponent(btnOk, javax.swing.GroupLayout.PREFERRED_SIZE, 140,
-																javax.swing.GroupLayout.PREFERRED_SIZE)
-														.addGap(18, 18, 18).addComponent(btnCancel,
-																javax.swing.GroupLayout.PREFERRED_SIZE, 141,
-																javax.swing.GroupLayout.PREFERRED_SIZE))
-												.addGroup(layout.createSequentialGroup().addGroup(layout
-																.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
-																.addComponent(cbxMasterPw, javax.swing.GroupLayout.Alignment.LEADING,
-																		javax.swing.GroupLayout.DEFAULT_SIZE, 180, Short.MAX_VALUE)
-																.addComponent(lblApplicationFile,
-																		javax.swing.GroupLayout.Alignment.LEADING,
-																		javax.swing.GroupLayout.DEFAULT_SIZE,
-																		javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-																.addComponent(cbxKeyFile, javax.swing.GroupLayout.DEFAULT_SIZE,
-																		javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-														.addGap(18, 18, 18)
-														.addGroup(layout
-																.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING,
-																		false)
-																.addGroup(layout.createSequentialGroup().addGroup(layout
-																				.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-																				.addComponent(txtMasterPw,
-																						javax.swing.GroupLayout.PREFERRED_SIZE, 520,
-																						javax.swing.GroupLayout.PREFERRED_SIZE)
-																				.addComponent(cmbKeyFile,
-																						javax.swing.GroupLayout.PREFERRED_SIZE, 520,
-																						javax.swing.GroupLayout.PREFERRED_SIZE))
-																		.addPreferredGap(
-																				javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-																		.addGroup(layout
-																				.createParallelGroup(
-																						javax.swing.GroupLayout.Alignment.LEADING)
-																				.addComponent(btnMasterPw,
-																						javax.swing.GroupLayout.PREFERRED_SIZE, 102,
-																						javax.swing.GroupLayout.PREFERRED_SIZE)
-																				.addComponent(btnKeyFileChooser,
-																						javax.swing.GroupLayout.PREFERRED_SIZE, 102,
-																						javax.swing.GroupLayout.PREFERRED_SIZE)))
-																.addGroup(layout.createSequentialGroup()
-																		.addComponent(cmbApplicationFile, 0,
-																				javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-																		.addGap(18, 18, 18)
-																		.addComponent(btnApplicationFileChooser,
-																				javax.swing.GroupLayout.PREFERRED_SIZE, 102,
-																				javax.swing.GroupLayout.PREFERRED_SIZE)
-																		.addPreferredGap(
-																				javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-																		.addComponent(btnNewApplicationFile)))))
-										.addContainerGap(42, Short.MAX_VALUE)))));
-		layout.setVerticalGroup(layout
-				.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-				.addGroup(layout.createSequentialGroup().addGroup(layout
-								.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-								.addGroup(layout.createSequentialGroup().addContainerGap()
-										.addComponent(lblImageHeader, javax.swing.GroupLayout.PREFERRED_SIZE, 34,
-												javax.swing.GroupLayout.PREFERRED_SIZE)
-										.addGap(60, 60, 60))
-								.addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-										.addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-												.addComponent(lblApplicationFile, javax.swing.GroupLayout.PREFERRED_SIZE,
-														35, javax.swing.GroupLayout.PREFERRED_SIZE)
-												.addComponent(cmbApplicationFile, javax.swing.GroupLayout.PREFERRED_SIZE,
-														javax.swing.GroupLayout.DEFAULT_SIZE,
-														javax.swing.GroupLayout.PREFERRED_SIZE)
-												.addComponent(btnApplicationFileChooser)
-												.addComponent(btnNewApplicationFile))
-										.addGap(18, 18, 18)))
-						.addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-								.addComponent(txtMasterPw, javax.swing.GroupLayout.PREFERRED_SIZE,
-										javax.swing.GroupLayout.DEFAULT_SIZE,
+							.addComponent(btnHelp, javax.swing.GroupLayout.PREFERRED_SIZE, 122,
+								javax.swing.GroupLayout.PREFERRED_SIZE)
+							.addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED,
+								javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+							.addComponent(btnOk, javax.swing.GroupLayout.PREFERRED_SIZE, 140,
+								javax.swing.GroupLayout.PREFERRED_SIZE)
+							.addGap(18, 18, 18).addComponent(btnCancel,
+								javax.swing.GroupLayout.PREFERRED_SIZE, 141,
+								javax.swing.GroupLayout.PREFERRED_SIZE))
+						.addGroup(layout.createSequentialGroup().addGroup(layout
+							.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
+							.addComponent(cbxMasterPw, javax.swing.GroupLayout.Alignment.LEADING,
+								javax.swing.GroupLayout.DEFAULT_SIZE, 180, Short.MAX_VALUE)
+							.addComponent(lblApplicationFile,
+								javax.swing.GroupLayout.Alignment.LEADING,
+								javax.swing.GroupLayout.DEFAULT_SIZE,
+								javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+							.addComponent(cbxKeyFile, javax.swing.GroupLayout.DEFAULT_SIZE,
+								javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+							.addGap(18, 18, 18)
+							.addGroup(layout
+								.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING,
+									false)
+								.addGroup(layout.createSequentialGroup().addGroup(layout
+									.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+									.addComponent(txtMasterPw,
+										javax.swing.GroupLayout.PREFERRED_SIZE, 520,
 										javax.swing.GroupLayout.PREFERRED_SIZE)
-								.addComponent(btnMasterPw).addComponent(cbxMasterPw,
-										javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE,
-										Short.MAX_VALUE))
-						.addGap(18, 18, 18)
-						.addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-								.addComponent(cmbKeyFile, javax.swing.GroupLayout.PREFERRED_SIZE,
-										javax.swing.GroupLayout.DEFAULT_SIZE,
-										javax.swing.GroupLayout.PREFERRED_SIZE)
-								.addComponent(btnKeyFileChooser).addComponent(cbxKeyFile,
-										javax.swing.GroupLayout.PREFERRED_SIZE, 35,
+									.addComponent(cmbKeyFile,
+										javax.swing.GroupLayout.PREFERRED_SIZE, 520,
 										javax.swing.GroupLayout.PREFERRED_SIZE))
-						.addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 137,
-								Short.MAX_VALUE)
-						.addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-								.addComponent(btnHelp).addComponent(btnOk).addComponent(btnCancel))
-						.addGap(42, 42, 42)));
+									.addPreferredGap(
+										javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+									.addGroup(layout
+										.createParallelGroup(
+											javax.swing.GroupLayout.Alignment.LEADING)
+										.addComponent(btnMasterPw,
+											javax.swing.GroupLayout.PREFERRED_SIZE, 102,
+											javax.swing.GroupLayout.PREFERRED_SIZE)
+										.addComponent(btnKeyFileChooser,
+											javax.swing.GroupLayout.PREFERRED_SIZE, 102,
+											javax.swing.GroupLayout.PREFERRED_SIZE)))
+								.addGroup(layout.createSequentialGroup()
+									.addComponent(cmbApplicationFile, 0,
+										javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+									.addGap(18, 18, 18)
+									.addComponent(btnApplicationFileChooser,
+										javax.swing.GroupLayout.PREFERRED_SIZE, 102,
+										javax.swing.GroupLayout.PREFERRED_SIZE)
+									.addPreferredGap(
+										javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+									.addComponent(btnNewApplicationFile)))))
+						.addContainerGap(42, Short.MAX_VALUE)))));
+		layout.setVerticalGroup(layout
+			.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+			.addGroup(layout.createSequentialGroup().addGroup(layout
+				.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+				.addGroup(layout.createSequentialGroup().addContainerGap()
+					.addComponent(lblImageHeader, javax.swing.GroupLayout.PREFERRED_SIZE, 34,
+						javax.swing.GroupLayout.PREFERRED_SIZE)
+					.addGap(60, 60, 60))
+				.addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+					.addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+						.addComponent(lblApplicationFile, javax.swing.GroupLayout.PREFERRED_SIZE,
+							35, javax.swing.GroupLayout.PREFERRED_SIZE)
+						.addComponent(cmbApplicationFile, javax.swing.GroupLayout.PREFERRED_SIZE,
+							javax.swing.GroupLayout.DEFAULT_SIZE,
+							javax.swing.GroupLayout.PREFERRED_SIZE)
+						.addComponent(btnApplicationFileChooser)
+						.addComponent(btnNewApplicationFile))
+					.addGap(18, 18, 18)))
+				.addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+					.addComponent(txtMasterPw, javax.swing.GroupLayout.PREFERRED_SIZE,
+						javax.swing.GroupLayout.DEFAULT_SIZE,
+						javax.swing.GroupLayout.PREFERRED_SIZE)
+					.addComponent(btnMasterPw).addComponent(cbxMasterPw,
+						javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE,
+						Short.MAX_VALUE))
+				.addGap(18, 18, 18)
+				.addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+					.addComponent(cmbKeyFile, javax.swing.GroupLayout.PREFERRED_SIZE,
+						javax.swing.GroupLayout.DEFAULT_SIZE,
+						javax.swing.GroupLayout.PREFERRED_SIZE)
+					.addComponent(btnKeyFileChooser).addComponent(cbxKeyFile,
+						javax.swing.GroupLayout.PREFERRED_SIZE, 35,
+						javax.swing.GroupLayout.PREFERRED_SIZE))
+				.addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 137,
+					Short.MAX_VALUE)
+				.addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+					.addComponent(btnHelp).addComponent(btnOk).addComponent(btnCancel))
+				.addGap(42, 42, 42)));
 	}
 
 	@Override
