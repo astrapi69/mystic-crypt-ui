@@ -35,7 +35,9 @@ import javax.swing.JOptionPane;
 import javax.swing.event.DocumentEvent;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
+import lombok.AccessLevel;
 import lombok.Getter;
+import lombok.experimental.FieldDefaults;
 import lombok.extern.java.Log;
 
 import org.apache.commons.lang3.StringUtils;
@@ -63,15 +65,13 @@ import io.github.astrapi69.throwable.RuntimeExceptionDecorator;
 /**
  * The class {@link MasterPwFilePanel}
  */
-@Getter
 @Log
+@Getter
+@FieldDefaults(level = AccessLevel.PRIVATE)
 public class MasterPwWithApplicationFilePanel extends BasePanel<MasterPwFileModelBean>
 {
 
 	private static final long serialVersionUID = 1L;
-	BtnOkStateMachine btnOkStateMachine;
-	GenericMutableComboBoxModel<String> cmbKeyFileModel;
-	GenericMutableComboBoxModel<String> cmbApplicationFileModel;
 	private javax.swing.JButton btnApplicationFileChooser;
 	private javax.swing.JButton btnCancel;
 	private javax.swing.JButton btnHelp;
@@ -91,6 +91,9 @@ public class MasterPwWithApplicationFilePanel extends BasePanel<MasterPwFileMode
 	// ===
 	// ===
 	private JFileChooser fileChooser;
+	BtnOkStateMachine btnOkStateMachine;
+	GenericMutableComboBoxModel<String> cmbKeyFileModel;
+	GenericMutableComboBoxModel<String> cmbApplicationFileModel;
 
 	/**
 	 * Instantiates a new {@link MasterPwWithApplicationFilePanel}
@@ -264,6 +267,7 @@ public class MasterPwWithApplicationFilePanel extends BasePanel<MasterPwFileMode
 	protected void onNewApplicationFile(ActionEvent actionEvent)
 	{
 		fileChooser.setDialogTitle("Specify the database file to save");
+		final MasterPwFileModelBean modelObject = getModelObject();
 		FileNameExtensionFilter fileNameExtensionFilter = new FileNameExtensionFilter(
 			"Mystic crypt files (*.mcrdb)", "mcrdb");
 		fileChooser.setFileFilter(fileNameExtensionFilter);
@@ -283,12 +287,24 @@ public class MasterPwWithApplicationFilePanel extends BasePanel<MasterPwFileMode
 				.selectedApplicationFilePath(absolutePath).minPasswordLength(6).withKeyFile(false)
 				.withMasterPw(false).showMasterPw(false).build());
 			NewMasterPwFileDialog dialog = new NewMasterPwFileDialog(
-				MysticCryptApplicationFrame.getInstance(), "Create your master key", true, model);
+				MysticCryptApplicationFrame.getInstance(), "Create your master key", true, model){
+				@Override
+				protected void onOk(ActionEvent actionEvent) {
+					super.onOk(actionEvent);
+					MasterPwFileModelBean dialogModelObject = this.getModelObject();
+					MasterPwWithApplicationFilePanel.this.setModelObject(dialogModelObject);
+//					modelObject.setApplicationFileInfo(dialogModelObject.getApplicationFileInfo());
+//					modelObject.setSelectedApplicationFilePath(dialogModelObject.getSelectedApplicationFilePath());
+//					modelObject.setMasterPw(dialogModelObject.getMasterPw());
+//					modelObject.setKeyFileInfo(dialogModelObject.getKeyFileInfo());
+//					modelObject.set
+				}
+			};
 			dialog.setSize(840, 520);
 			dialog.setVisible(true);
 			cmbApplicationFileModel.addElement(absolutePath);
 			cmbApplicationFileModel.setSelectedItem(absolutePath);
-			getModelObject().setApplicationFileInfo(FileInfo.toFileInfo(selectedApplicationFile));
+			modelObject.setApplicationFileInfo(FileInfo.toFileInfo(selectedApplicationFile));
 			toggleApplicationFileComponents();
 			btnOkStateMachine.onApplicationFileAdded(btnOkStateMachine);
 		}

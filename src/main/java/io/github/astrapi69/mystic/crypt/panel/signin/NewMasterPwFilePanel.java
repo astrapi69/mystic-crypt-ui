@@ -76,14 +76,6 @@ import io.github.astrapi69.throwable.RuntimeExceptionDecorator;
 public class NewMasterPwFilePanel extends BasePanel<MasterPwFileModelBean>
 {
 
-	// ===
-	// ===
-	// ===
-	JFileChooser fileChooser;
-	GenericMutableComboBoxModel<String> cmbKeyFileModel;
-	BtnOkStateMachine btnOkStateMachine;
-	IModel<GeneratePasswordModelBean> passwordModel;
-	NewPrivateKeyModelBean privateKeyModelBean;
 	private javax.swing.JButton btnApplicationFileChooser;
 	private javax.swing.JButton btnCancel;
 	private javax.swing.JButton btnCreateKeyFile;
@@ -101,7 +93,14 @@ public class NewMasterPwFilePanel extends BasePanel<MasterPwFileModelBean>
 	private javax.swing.JTextField txtApplicationFile;
 	private javax.swing.JPasswordField txtMasterPw;
 	private javax.swing.JPasswordField txtRepeatPw;
-
+	// ===
+	// ===
+	// ===
+	JFileChooser fileChooser;
+	GenericMutableComboBoxModel<String> cmbKeyFileModel;
+	BtnOkStateMachine btnOkStateMachine;
+	IModel<GeneratePasswordModelBean> passwordModel;
+	NewPrivateKeyModelBean privateKeyModelBean;
 	/**
 	 * Creates new form NewMasterPwFileFormPanel
 	 */
@@ -183,7 +182,7 @@ public class NewMasterPwFilePanel extends BasePanel<MasterPwFileModelBean>
 		// ===
 		// ===
 		setPreferredSize(new java.awt.Dimension(840, 520));
-		// allow pwfield to copy or cut
+		// allow JPasswordField to copy or cut
 		txtMasterPw.putClientProperty("JPasswordField.cutCopyAllowed", true);
 		txtRepeatPw.putClientProperty("JPasswordField.cutCopyAllowed", true);
 
