@@ -27,14 +27,29 @@ package io.github.astrapi69.mystic.crypt.panel.signin;
 import java.awt.event.ActionEvent;
 import java.io.File;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 import java.util.logging.Level;
 
 import javax.swing.JCheckBox;
+import javax.swing.JDesktopPane;
 import javax.swing.JFileChooser;
+import javax.swing.JInternalFrame;
 import javax.swing.JOptionPane;
 import javax.swing.event.DocumentEvent;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
+import io.github.astrapi69.id.generate.LongIdGenerator;
+import io.github.astrapi69.mystic.crypt.panel.dbtree.MysticCryptEntryModelBean;
+import io.github.astrapi69.mystic.crypt.panel.dbtree.SecretKeyTreeWithContentPanel;
+import io.github.astrapi69.swing.component.factory.JComponentFactory;
+import io.github.astrapi69.swing.tree.BaseTreeNodeFactory;
+import io.github.astrapi69.swing.tree.GenericTreeElement;
+import io.github.astrapi69.swing.utils.JInternalFrameExtensions;
+import io.github.astrapi69.tree.BaseTreeNode;
+import io.github.astrapi69.tree.TreeIdNode;
+import io.github.astrapi69.tree.convert.BaseTreeNodeTransformer;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.experimental.FieldDefaults;
@@ -136,7 +151,7 @@ public class MasterPwWithApplicationFilePanel extends BasePanel<MasterPwFileMode
 		cmbApplicationFile = new javax.swing.JComboBox<>();
 		btnNewApplicationFile = new javax.swing.JButton();
 
-		setPreferredSize(new java.awt.Dimension(880, 360));
+		setPreferredSize(new java.awt.Dimension(920, 380));
 
 		lblImageHeader.setText("Enter Master Key");
 
@@ -293,11 +308,6 @@ public class MasterPwWithApplicationFilePanel extends BasePanel<MasterPwFileMode
 					super.onOk(actionEvent);
 					MasterPwFileModelBean dialogModelObject = this.getModelObject();
 					MasterPwWithApplicationFilePanel.this.setModelObject(dialogModelObject);
-//					modelObject.setApplicationFileInfo(dialogModelObject.getApplicationFileInfo());
-//					modelObject.setSelectedApplicationFilePath(dialogModelObject.getSelectedApplicationFilePath());
-//					modelObject.setMasterPw(dialogModelObject.getMasterPw());
-//					modelObject.setKeyFileInfo(dialogModelObject.getKeyFileInfo());
-//					modelObject.set
 				}
 			};
 			dialog.setSize(840, 520);
@@ -443,38 +453,31 @@ public class MasterPwWithApplicationFilePanel extends BasePanel<MasterPwFileMode
 								javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
 							.addGap(18, 18, 18)
 							.addGroup(layout
-								.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING,
-									false)
-								.addGroup(layout.createSequentialGroup().addGroup(layout
-									.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-									.addComponent(txtMasterPw,
-										javax.swing.GroupLayout.PREFERRED_SIZE, 520,
-										javax.swing.GroupLayout.PREFERRED_SIZE)
-									.addComponent(cmbKeyFile,
-										javax.swing.GroupLayout.PREFERRED_SIZE, 520,
-										javax.swing.GroupLayout.PREFERRED_SIZE))
-									.addPreferredGap(
-										javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-									.addGroup(layout
-										.createParallelGroup(
-											javax.swing.GroupLayout.Alignment.LEADING)
-										.addComponent(btnMasterPw,
-											javax.swing.GroupLayout.PREFERRED_SIZE, 102,
-											javax.swing.GroupLayout.PREFERRED_SIZE)
-										.addComponent(btnKeyFileChooser,
-											javax.swing.GroupLayout.PREFERRED_SIZE, 102,
-											javax.swing.GroupLayout.PREFERRED_SIZE)))
+								.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+								.addComponent(txtMasterPw)
 								.addGroup(layout.createSequentialGroup()
-									.addComponent(cmbApplicationFile, 0,
-										javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-									.addGap(18, 18, 18)
-									.addComponent(btnApplicationFileChooser,
+									.addComponent(cmbApplicationFile, 0, 435, Short.MAX_VALUE)
+									.addGap(18, 18, 18).addComponent(btnApplicationFileChooser,
 										javax.swing.GroupLayout.PREFERRED_SIZE, 102,
-										javax.swing.GroupLayout.PREFERRED_SIZE)
-									.addPreferredGap(
-										javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-									.addComponent(btnNewApplicationFile)))))
-						.addContainerGap(42, Short.MAX_VALUE)))));
+										javax.swing.GroupLayout.PREFERRED_SIZE))
+								.addComponent(cmbKeyFile, 0, javax.swing.GroupLayout.DEFAULT_SIZE,
+									Short.MAX_VALUE))
+							.addGap(18, 18, 18)
+							.addGroup(layout
+								.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+								.addComponent(btnMasterPw,
+									javax.swing.GroupLayout.Alignment.TRAILING,
+									javax.swing.GroupLayout.PREFERRED_SIZE, 102,
+									javax.swing.GroupLayout.PREFERRED_SIZE)
+								.addComponent(btnKeyFileChooser,
+									javax.swing.GroupLayout.Alignment.TRAILING,
+									javax.swing.GroupLayout.PREFERRED_SIZE, 102,
+									javax.swing.GroupLayout.PREFERRED_SIZE)
+								.addComponent(btnNewApplicationFile,
+									javax.swing.GroupLayout.Alignment.TRAILING,
+									javax.swing.GroupLayout.PREFERRED_SIZE, 102,
+									javax.swing.GroupLayout.PREFERRED_SIZE))))
+						.addContainerGap(50, Short.MAX_VALUE)))));
 		layout.setVerticalGroup(layout
 			.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
 			.addGroup(layout.createSequentialGroup().addGroup(layout
@@ -482,7 +485,7 @@ public class MasterPwWithApplicationFilePanel extends BasePanel<MasterPwFileMode
 				.addGroup(layout.createSequentialGroup().addContainerGap()
 					.addComponent(lblImageHeader, javax.swing.GroupLayout.PREFERRED_SIZE, 34,
 						javax.swing.GroupLayout.PREFERRED_SIZE)
-					.addGap(60, 60, 60))
+					.addGap(48, 48, 48))
 				.addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
 					.addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
 						.addComponent(lblApplicationFile, javax.swing.GroupLayout.PREFERRED_SIZE,
@@ -493,13 +496,15 @@ public class MasterPwWithApplicationFilePanel extends BasePanel<MasterPwFileMode
 						.addComponent(btnApplicationFileChooser)
 						.addComponent(btnNewApplicationFile))
 					.addGap(18, 18, 18)))
-				.addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-					.addComponent(txtMasterPw, javax.swing.GroupLayout.PREFERRED_SIZE,
-						javax.swing.GroupLayout.DEFAULT_SIZE,
-						javax.swing.GroupLayout.PREFERRED_SIZE)
-					.addComponent(btnMasterPw).addComponent(cbxMasterPw,
-						javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE,
-						Short.MAX_VALUE))
+				.addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+					.addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+						.addComponent(txtMasterPw, javax.swing.GroupLayout.PREFERRED_SIZE,
+							javax.swing.GroupLayout.DEFAULT_SIZE,
+							javax.swing.GroupLayout.PREFERRED_SIZE)
+						.addComponent(cbxMasterPw, javax.swing.GroupLayout.DEFAULT_SIZE,
+							javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+					.addGroup(layout.createSequentialGroup().addComponent(btnMasterPw).addGap(0, 0,
+						Short.MAX_VALUE)))
 				.addGap(18, 18, 18)
 				.addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
 					.addComponent(cmbKeyFile, javax.swing.GroupLayout.PREFERRED_SIZE,
@@ -508,7 +513,7 @@ public class MasterPwWithApplicationFilePanel extends BasePanel<MasterPwFileMode
 					.addComponent(btnKeyFileChooser).addComponent(cbxKeyFile,
 						javax.swing.GroupLayout.PREFERRED_SIZE, 35,
 						javax.swing.GroupLayout.PREFERRED_SIZE))
-				.addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 137,
+				.addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 148,
 					Short.MAX_VALUE)
 				.addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
 					.addComponent(btnHelp).addComponent(btnOk).addComponent(btnCancel))
@@ -586,8 +591,8 @@ public class MasterPwWithApplicationFilePanel extends BasePanel<MasterPwFileMode
 		{
 			MysticCryptApplicationFrame applicationFrame = MysticCryptApplicationFrame
 				.getInstance();
-			MasterPwFileModelBean modelObject = getModelObject();
-			ApplicationModelBean applicationModelBean = ApplicationXmlFileReader.read(modelObject);
+			MasterPwFileModelBean panelModelObject = getModelObject();
+			ApplicationModelBean applicationModelBean = ApplicationXmlFileReader.read(panelModelObject);
 			if (applicationModelBean != null)
 			{
 				applicationModelBean.setSignedIn(true);
@@ -595,7 +600,7 @@ public class MasterPwWithApplicationFilePanel extends BasePanel<MasterPwFileMode
 				MasterPwFileModelBean masterPwFileModelBean = applicationModelBean
 					.getMasterPwFileModelBean();
 				MemoizedSigninModelBean memoizedSigninModelBean = masterPwFileModelBean
-					.toMemoizedSigninModelBean(modelObject);
+					.toMemoizedSigninModelBean(panelModelObject);
 				File memoizedSigninFile = new File(applicationFrame.getConfigurationDirectory(),
 					MysticCryptApplicationFrame.MEMOIZED_SIGNIN_JSON_FILENAME);
 				ObjectToJsonFileExtensions.toJsonFile(memoizedSigninModelBean, memoizedSigninFile);

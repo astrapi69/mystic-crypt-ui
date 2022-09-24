@@ -27,7 +27,13 @@ package io.github.astrapi69.mystic.crypt;
 import java.awt.Component;
 import java.io.File;
 import java.security.Security;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
+import javax.swing.JButton;
+import javax.swing.JDesktopPane;
+import javax.swing.JInternalFrame;
 import javax.swing.JMenu;
 import javax.swing.JToolBar;
 
@@ -49,15 +55,24 @@ import io.github.astrapi69.mystic.crypt.action.LockWorkspaceAction;
 import io.github.astrapi69.mystic.crypt.action.NewApplicationFileAction;
 import io.github.astrapi69.mystic.crypt.action.SaveApplicationFileAction;
 import io.github.astrapi69.mystic.crypt.action.SearchApplicationFileAction;
+import io.github.astrapi69.mystic.crypt.panel.dbtree.MysticCryptEntryModelBean;
+import io.github.astrapi69.mystic.crypt.panel.dbtree.SecretKeyTreeWithContentPanel;
 import io.github.astrapi69.mystic.crypt.panel.signin.MasterPwFileDialog;
 import io.github.astrapi69.mystic.crypt.panel.signin.MasterPwFileModelBean;
 import io.github.astrapi69.mystic.crypt.panel.signin.MemoizedSigninModelBean;
 import io.github.astrapi69.swing.base.ApplicationFrame;
 import io.github.astrapi69.swing.button.builder.JButtonInfo;
+import io.github.astrapi69.swing.component.factory.JComponentFactory;
 import io.github.astrapi69.swing.layout.ScreenSizeExtensions;
 import io.github.astrapi69.swing.splashscreen.ProgressBarSplashScreen;
 import io.github.astrapi69.swing.splashscreen.SplashScreenModelBean;
+import io.github.astrapi69.swing.tree.BaseTreeNodeFactory;
+import io.github.astrapi69.swing.tree.GenericTreeElement;
+import io.github.astrapi69.swing.utils.JInternalFrameExtensions;
 import io.github.astrapi69.throwable.RuntimeExceptionDecorator;
+import io.github.astrapi69.tree.BaseTreeNode;
+import io.github.astrapi69.tree.TreeIdNode;
+import io.github.astrapi69.tree.convert.BaseTreeNodeTransformer;
 
 /**
  * The class {@link MysticCryptApplicationFrame}
@@ -143,7 +158,7 @@ public class MysticCryptApplicationFrame extends ApplicationFrame<ApplicationMod
 		IModel<MasterPwFileModelBean> model = BaseModel.of(masterPwFileModelBean);
 		MasterPwFileDialog dialog = new MasterPwFileDialog(null, "Enter your credentials", true,
 			model);
-		dialog.setSize(880, 380);
+		dialog.setSize(920, 380);
 		dialog.setVisible(true);
 	}
 
@@ -249,6 +264,40 @@ public class MysticCryptApplicationFrame extends ApplicationFrame<ApplicationMod
 		if (getModelObject().isSignedIn())
 		{
 			menu.onEnableBySignin();
+			// create tree
+//			BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> rootTreeNode;
+//			ApplicationModelBean modelObject = getModelObject();
+//			Map<Long, TreeIdNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long>> rootTreeAsMap = modelObject
+//				.getRootTreeAsMap();
+//			if (rootTreeAsMap == null || rootTreeAsMap.isEmpty())
+//			{
+//				LongIdGenerator idGenerator = MysticCryptApplicationFrame.getInstance()
+//					.getIdGenerator();
+//				GenericTreeElement<List<MysticCryptEntryModelBean>> parent = GenericTreeElement
+//					.<List<MysticCryptEntryModelBean>> builder().name("root")
+//					.iconPath("io/github/astrapi69/silk/icons/book.png").withText(true).build()
+//					.setDefaultContent(new ArrayList<>());
+//
+//				GenericTreeElement<List<MysticCryptEntryModelBean>> firstChild = GenericTreeElement
+//					.<List<MysticCryptEntryModelBean>> builder().name("mykeys")
+//					.iconPath("io/github/astrapi69/silk/icons/folder.png").withText(true).build()
+//					.setDefaultContent(new ArrayList<>());
+//				rootTreeNode = BaseTreeNodeFactory.initializeTreeNodeWithTreeElement(parent, null,
+//					idGenerator);
+//				modelObject.setLastId(rootTreeNode.getId());
+//				BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> myKeysTreeNode = BaseTreeNodeFactory
+//					.initializeTreeNodeWithTreeElement(firstChild, rootTreeNode, idGenerator);
+//				modelObject.setLastId(myKeysTreeNode.getId());
+//				Map<Long, TreeIdNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long>> longTreeIdNodeMap = BaseTreeNodeTransformer
+//					.toKeyMap(rootTreeNode);
+//				modelObject.setRootTreeAsMap(longTreeIdNodeMap);
+//				rootTreeAsMap = modelObject.getRootTreeAsMap();
+//			}
+//			rootTreeNode = BaseTreeNodeTransformer.getRoot(rootTreeAsMap);
+//			final SecretKeyTreeWithContentPanel component = new SecretKeyTreeWithContentPanel(
+//				BaseModel.of(rootTreeNode));
+//			replaceInternalFrame("Key database", component);
+
 		}
 		else
 		{
@@ -270,25 +319,21 @@ public class MysticCryptApplicationFrame extends ApplicationFrame<ApplicationMod
 			.name(MenuId.NEW_DATABASE_TOOL_BAR.propertiesKey()).build().toJButton());
 
 		toolBar.add(JButtonInfo.builder()
-			.icon(ImageIconFactory.newImageIcon("io/github/astrapi69/silk/icons/folder_edit.png"))
-			.toolTipText("Open application")
-			.actionListener(new NewApplicationFileAction("Open Application"))
-			.name(MenuId.OPEN_DATABASE_TOOL_BAR.propertiesKey()).build().toJButton());
-
-		toolBar.add(JButtonInfo.builder()
 			.icon(ImageIconFactory.newImageIcon("io/github/astrapi69/silk/icons/disk.png"))
 			.toolTipText("Save").actionListener(new SaveApplicationFileAction("Save"))
 			.name(MenuId.SAVE_APPLICATION_FILE_TOOL_BAR.propertiesKey()).build().toJButton());
-
-		toolBar.add(JButtonInfo.builder()
+		JButton searchButton = JButtonInfo.builder()
 			.icon(ImageIconFactory.newImageIcon("io/github/astrapi69/silk/icons/magnifier.png"))
 			.toolTipText("Search").actionListener(new SearchApplicationFileAction("Search"))
-			.name(MenuId.SEARCH_TOOL_BAR.propertiesKey()).build().toJButton());
-
-		toolBar.add(JButtonInfo.builder()
+			.name(MenuId.SEARCH_TOOL_BAR.propertiesKey()).build().toJButton();
+		searchButton.setEnabled(false);
+		toolBar.add(searchButton);
+		JButton lockWorkspace = JButtonInfo.builder()
 			.icon(ImageIconFactory.newImageIcon("io/github/astrapi69/silk/icons/lock.png"))
 			.toolTipText("Lock workspace").actionListener(new LockWorkspaceAction("Lock workspace"))
-			.name(MenuId.LOCK_WORKSPACE_TOOL_BAR.propertiesKey()).build().toJButton());
+			.name(MenuId.LOCK_WORKSPACE_TOOL_BAR.propertiesKey()).build().toJButton();
+		lockWorkspace.setEnabled(false);
+		toolBar.add(lockWorkspace);
 
 		return toolBar;
 	}
