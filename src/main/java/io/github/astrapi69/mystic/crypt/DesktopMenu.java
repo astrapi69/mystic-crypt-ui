@@ -122,6 +122,14 @@ public class DesktopMenu extends BaseDesktopMenu implements EventListener<EventO
 			.mnemonic(MenuExtensions.toMnemonic('F')).name(BaseMenuId.FILE.propertiesKey()).build()
 			.toJMenu();
 
+		// Open Database
+		JMenuItem openDatabaseMenuItem = JMenuItemInfo.builder().text("Open Database")
+				.mnemonic(MenuExtensions.toMnemonic('D'))
+				.keyStroke(KeyStroke.getKeyStroke('D', Event.CTRL_MASK))
+				.actionListener(new OpenDatabaseTreeFrameAction("Open Database"))
+				.name(MenuId.OPEN_DATABASE.propertiesKey()).build().toJMenuItem();
+		fileMenu.add(openDatabaseMenuItem);
+
 		// Save application file
 		JMenuItem saveApplicationFileMenuItem = JMenuItemInfo.builder().text("Save")
 			.mnemonic(MenuExtensions.toMnemonic('S'))
@@ -130,13 +138,6 @@ public class DesktopMenu extends BaseDesktopMenu implements EventListener<EventO
 			.name(MenuId.SAVE_APPLICATION_FILE.propertiesKey()).build().toJMenuItem();
 		fileMenu.add(saveApplicationFileMenuItem);
 
-		// Open Database
-		JMenuItem openDatabaseMenuItem = JMenuItemInfo.builder().text("Open Database")
-			.mnemonic(MenuExtensions.toMnemonic('D'))
-			.keyStroke(KeyStroke.getKeyStroke('D', Event.CTRL_MASK))
-			.actionListener(new OpenDatabaseTreeFrameAction("Open Database"))
-			.name(MenuId.OPEN_DATABASE.propertiesKey()).build().toJMenuItem();
-		fileMenu.add(openDatabaseMenuItem);
 		// @formatter:off
 		// Main secret key menu
 		// @formatter:on

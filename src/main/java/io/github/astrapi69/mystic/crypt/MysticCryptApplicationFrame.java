@@ -264,40 +264,6 @@ public class MysticCryptApplicationFrame extends ApplicationFrame<ApplicationMod
 		if (getModelObject().isSignedIn())
 		{
 			menu.onEnableBySignin();
-			// create tree
-//			BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> rootTreeNode;
-//			ApplicationModelBean modelObject = getModelObject();
-//			Map<Long, TreeIdNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long>> rootTreeAsMap = modelObject
-//				.getRootTreeAsMap();
-//			if (rootTreeAsMap == null || rootTreeAsMap.isEmpty())
-//			{
-//				LongIdGenerator idGenerator = MysticCryptApplicationFrame.getInstance()
-//					.getIdGenerator();
-//				GenericTreeElement<List<MysticCryptEntryModelBean>> parent = GenericTreeElement
-//					.<List<MysticCryptEntryModelBean>> builder().name("root")
-//					.iconPath("io/github/astrapi69/silk/icons/book.png").withText(true).build()
-//					.setDefaultContent(new ArrayList<>());
-//
-//				GenericTreeElement<List<MysticCryptEntryModelBean>> firstChild = GenericTreeElement
-//					.<List<MysticCryptEntryModelBean>> builder().name("mykeys")
-//					.iconPath("io/github/astrapi69/silk/icons/folder.png").withText(true).build()
-//					.setDefaultContent(new ArrayList<>());
-//				rootTreeNode = BaseTreeNodeFactory.initializeTreeNodeWithTreeElement(parent, null,
-//					idGenerator);
-//				modelObject.setLastId(rootTreeNode.getId());
-//				BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> myKeysTreeNode = BaseTreeNodeFactory
-//					.initializeTreeNodeWithTreeElement(firstChild, rootTreeNode, idGenerator);
-//				modelObject.setLastId(myKeysTreeNode.getId());
-//				Map<Long, TreeIdNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long>> longTreeIdNodeMap = BaseTreeNodeTransformer
-//					.toKeyMap(rootTreeNode);
-//				modelObject.setRootTreeAsMap(longTreeIdNodeMap);
-//				rootTreeAsMap = modelObject.getRootTreeAsMap();
-//			}
-//			rootTreeNode = BaseTreeNodeTransformer.getRoot(rootTreeAsMap);
-//			final SecretKeyTreeWithContentPanel component = new SecretKeyTreeWithContentPanel(
-//				BaseModel.of(rootTreeNode));
-//			replaceInternalFrame("Key database", component);
-
 		}
 		else
 		{

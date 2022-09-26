@@ -65,9 +65,6 @@ public class OpenDatabaseTreeFrameAction extends AbstractAction
 
 	public static void openDatabaseTreeFrame()
 	{
-		// create internal frame
-		final JInternalFrame internalFrame = JComponentFactory.newInternalFrame("Key database",
-			true, true, true, true);
 		BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> rootTreeNode;
 		ApplicationModelBean modelObject = MysticCryptApplicationFrame.getInstance()
 			.getModelObject();
@@ -100,6 +97,9 @@ public class OpenDatabaseTreeFrameAction extends AbstractAction
 		rootTreeNode = BaseTreeNodeTransformer.getRoot(rootTreeAsMap);
 		final SecretKeyTreeWithContentPanel component = new SecretKeyTreeWithContentPanel(
 			BaseModel.of(rootTreeNode));
+		// create internal frame
+		final JInternalFrame internalFrame = JComponentFactory.newInternalFrame("Key database",
+				true, true, true, true);
 		JInternalFrameExtensions.addComponentToFrame(internalFrame, component);
 		JDesktopPane mainComponent = MysticCryptApplicationFrame.getInstance().getMainComponent();
 		int screenHeight = mainComponent.getHeight() - 50;
