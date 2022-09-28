@@ -26,6 +26,7 @@ package io.github.astrapi69.mystic.crypt.panel.dbtree;
 
 import java.util.List;
 
+import io.github.astrapi69.swing.tree.model.TreeElement;
 import lombok.NonNull;
 import io.github.astrapi69.data.identifiable.IdGenerator;
 import io.github.astrapi69.id.generate.LongIdGenerator;
@@ -35,7 +36,6 @@ import io.github.astrapi69.swing.tree.JXTreeElement;
 import io.github.astrapi69.test.instance.TestPermissionFactory;
 import io.github.astrapi69.test.object.Permission;
 import io.github.astrapi69.tree.BaseTreeNode;
-import io.github.astrapi69.tree.element.TreeElement;
 
 public class TestBaseTreeNodeFactory
 {
@@ -50,7 +50,6 @@ public class TestBaseTreeNodeFactory
 		BaseTreeNode<TreeElement, Long> firstGrandGrandChildTreeNode;
 		BaseTreeNode<TreeElement, Long> parentTreeNode;
 		BaseTreeNode<TreeElement, Long> secondChildTreeNode;
-		List<BaseTreeNode<TreeElement, Long>> list;
 		TreeElement parent;
 		TreeElement firstChild;
 		TreeElement firstGrandChild;
@@ -98,7 +97,6 @@ public class TestBaseTreeNodeFactory
 		BaseTreeNode<JXTreeElement, Long> firstGrandGrandChildTreeNode;
 		BaseTreeNode<JXTreeElement, Long> parentTreeNode;
 		BaseTreeNode<JXTreeElement, Long> secondChildTreeNode;
-		List<BaseTreeNode<JXTreeElement, Long>> list;
 		JXTreeElement parent;
 		JXTreeElement firstChild;
 		JXTreeElement firstGrandChild;
@@ -159,7 +157,6 @@ public class TestBaseTreeNodeFactory
 		GenericTreeElement<List<T>> firstGrandGrandChild;
 		BaseTreeNode<GenericTreeElement<List<T>>, K> firstGrandGrandChildTreeNode;
 		BaseTreeNode<GenericTreeElement<List<T>>, K> secondChildTreeNode;
-		List<BaseTreeNode<GenericTreeElement<List<T>>, K>> list;
 		GenericTreeElement<List<T>> parent;
 		GenericTreeElement<List<T>> firstChild;
 		GenericTreeElement<List<T>> firstGrandChild;
