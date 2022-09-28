@@ -101,6 +101,7 @@ public class NewMasterPwFilePanel extends BasePanel<MasterPwFileModelBean>
 	BtnOkStateMachine btnOkStateMachine;
 	IModel<GeneratePasswordModelBean> passwordModel;
 	NewPrivateKeyModelBean privateKeyModelBean;
+
 	/**
 	 * Creates new form NewMasterPwFileFormPanel
 	 */

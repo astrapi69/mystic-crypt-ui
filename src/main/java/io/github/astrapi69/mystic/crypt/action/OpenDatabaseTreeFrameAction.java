@@ -99,7 +99,7 @@ public class OpenDatabaseTreeFrameAction extends AbstractAction
 			BaseModel.of(rootTreeNode));
 		// create internal frame
 		final JInternalFrame internalFrame = JComponentFactory.newInternalFrame("Key database",
-				true, true, true, true);
+			true, true, true, true);
 		JInternalFrameExtensions.addComponentToFrame(internalFrame, component);
 		JDesktopPane mainComponent = MysticCryptApplicationFrame.getInstance().getMainComponent();
 		int screenHeight = mainComponent.getHeight() - 50;

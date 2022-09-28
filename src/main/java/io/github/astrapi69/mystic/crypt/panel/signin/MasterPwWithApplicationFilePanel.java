@@ -302,9 +302,11 @@ public class MasterPwWithApplicationFilePanel extends BasePanel<MasterPwFileMode
 				.selectedApplicationFilePath(absolutePath).minPasswordLength(6).withKeyFile(false)
 				.withMasterPw(false).showMasterPw(false).build());
 			NewMasterPwFileDialog dialog = new NewMasterPwFileDialog(
-				MysticCryptApplicationFrame.getInstance(), "Create your master key", true, model){
+				MysticCryptApplicationFrame.getInstance(), "Create your master key", true, model)
+			{
 				@Override
-				protected void onOk(ActionEvent actionEvent) {
+				protected void onOk(ActionEvent actionEvent)
+				{
 					super.onOk(actionEvent);
 					MasterPwFileModelBean dialogModelObject = this.getModelObject();
 					MasterPwWithApplicationFilePanel.this.setModelObject(dialogModelObject);
@@ -592,7 +594,8 @@ public class MasterPwWithApplicationFilePanel extends BasePanel<MasterPwFileMode
 			MysticCryptApplicationFrame applicationFrame = MysticCryptApplicationFrame
 				.getInstance();
 			MasterPwFileModelBean panelModelObject = getModelObject();
-			ApplicationModelBean applicationModelBean = ApplicationXmlFileReader.read(panelModelObject);
+			ApplicationModelBean applicationModelBean = ApplicationXmlFileReader
+				.read(panelModelObject);
 			if (applicationModelBean != null)
 			{
 				applicationModelBean.setSignedIn(true);
