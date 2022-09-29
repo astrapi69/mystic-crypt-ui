@@ -65,9 +65,9 @@ public class OpenDatabaseTreeFrameAction extends AbstractAction
 
 	public static void openDatabaseTreeFrame()
 	{
-		BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> rootTreeNode;
 		ApplicationModelBean modelObject = MysticCryptApplicationFrame.getInstance()
-			.getModelObject();
+				.getModelObject();
+		BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> rootTreeNode;
 		Map<Long, TreeIdNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long>> rootTreeAsMap = modelObject
 			.getRootTreeAsMap();
 		if (rootTreeAsMap == null || rootTreeAsMap.isEmpty())
