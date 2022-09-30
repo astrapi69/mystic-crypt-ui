@@ -27,8 +27,8 @@ import javax.swing.JInternalFrame;
 
 import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
 import io.github.astrapi69.mystic.crypt.panel.conversion.FileConversionPanel;
+import io.github.astrapi69.mystic.crypt.util.InternalFrameExtensions;
 import io.github.astrapi69.swing.component.factory.JComponentFactory;
-import io.github.astrapi69.swing.utils.JInternalFrameExtensions;
 
 /**
  * The class {@link NewFileConversionInternalFrameAction}.
@@ -61,9 +61,8 @@ public class NewFileConversionInternalFrameAction extends AbstractAction
 			.newInternalFrame("Convert *.der-file to *.pem-file", true, true, true, true);
 
 		final FileConversionPanel component = new FileConversionPanel();
-		JInternalFrameExtensions.addComponentToFrame(internalFrame, component);
-		JInternalFrameExtensions.addJInternalFrame(
-			MysticCryptApplicationFrame.getInstance().getMainComponent(), internalFrame);
+		InternalFrameExtensions.addInternalFrameToMainFrame(component, internalFrame,
+			MysticCryptApplicationFrame.getInstance());
 	}
 
 }

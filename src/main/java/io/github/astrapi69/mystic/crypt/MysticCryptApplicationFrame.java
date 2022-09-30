@@ -27,13 +27,8 @@ package io.github.astrapi69.mystic.crypt;
 import java.awt.Component;
 import java.io.File;
 import java.security.Security;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
 
 import javax.swing.JButton;
-import javax.swing.JDesktopPane;
-import javax.swing.JInternalFrame;
 import javax.swing.JMenu;
 import javax.swing.JToolBar;
 
@@ -55,30 +50,23 @@ import io.github.astrapi69.mystic.crypt.action.LockWorkspaceAction;
 import io.github.astrapi69.mystic.crypt.action.NewApplicationFileAction;
 import io.github.astrapi69.mystic.crypt.action.SaveApplicationFileAction;
 import io.github.astrapi69.mystic.crypt.action.SearchApplicationFileAction;
-import io.github.astrapi69.mystic.crypt.panel.dbtree.MysticCryptEntryModelBean;
-import io.github.astrapi69.mystic.crypt.panel.dbtree.SecretKeyTreeWithContentPanel;
 import io.github.astrapi69.mystic.crypt.panel.signin.MasterPwFileDialog;
 import io.github.astrapi69.mystic.crypt.panel.signin.MasterPwFileModelBean;
 import io.github.astrapi69.mystic.crypt.panel.signin.MemoizedSigninModelBean;
-import io.github.astrapi69.swing.base.ApplicationFrame;
+import io.github.astrapi69.swing.base.ApplicationPanelFrame;
+import io.github.astrapi69.swing.base.BasePanel;
 import io.github.astrapi69.swing.button.builder.JButtonInfo;
-import io.github.astrapi69.swing.component.factory.JComponentFactory;
 import io.github.astrapi69.swing.layout.ScreenSizeExtensions;
+import io.github.astrapi69.swing.panel.desktoppane.JDesktopPanePanel;
 import io.github.astrapi69.swing.splashscreen.ProgressBarSplashScreen;
 import io.github.astrapi69.swing.splashscreen.SplashScreenModelBean;
-import io.github.astrapi69.swing.tree.BaseTreeNodeFactory;
-import io.github.astrapi69.swing.tree.GenericTreeElement;
-import io.github.astrapi69.swing.utils.JInternalFrameExtensions;
 import io.github.astrapi69.throwable.RuntimeExceptionDecorator;
-import io.github.astrapi69.tree.BaseTreeNode;
-import io.github.astrapi69.tree.TreeIdNode;
-import io.github.astrapi69.tree.convert.BaseTreeNodeTransformer;
 
 /**
  * The class {@link MysticCryptApplicationFrame}
  */
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class MysticCryptApplicationFrame extends ApplicationFrame<ApplicationModelBean>
+public class MysticCryptApplicationFrame extends ApplicationPanelFrame<ApplicationModelBean>
 {
 	public static final String MEMOIZED_SIGNIN_JSON_FILENAME = "memoizedSignin.json";
 	public static final String APPLICATION_NAME = "mystic-crypt-ui";
@@ -98,6 +86,8 @@ public class MysticCryptApplicationFrame extends ApplicationFrame<ApplicationMod
 	BouncyCastleProvider bouncyCastleProvider;
 
 	LongIdGenerator idGenerator;
+	@Getter
+	JDesktopPanePanel<ApplicationModelBean> desktopPanePanel;
 
 	/**
 	 * initial block
@@ -258,6 +248,7 @@ public class MysticCryptApplicationFrame extends ApplicationFrame<ApplicationMod
 	protected void onAfterInitialize()
 	{
 		super.onAfterInitialize();
+		desktopPanePanel = (JDesktopPanePanel<ApplicationModelBean>)getMainComponent();
 		setTitle(Messages.getString("mainframe.title"));
 		this.setSize(ScreenSizeExtensions.getScreenWidth(), ScreenSizeExtensions.getScreenHeight());
 		DesktopMenu menu = (DesktopMenu)getMenu();
@@ -302,5 +293,12 @@ public class MysticCryptApplicationFrame extends ApplicationFrame<ApplicationMod
 		toolBar.add(lockWorkspace);
 
 		return toolBar;
+	}
+
+	@Override
+	protected BasePanel<ApplicationModelBean> newMainComponent()
+	{
+		JDesktopPanePanel<ApplicationModelBean> desktopPanePanel = new JDesktopPanePanel<>();
+		return desktopPanePanel;
 	}
 }

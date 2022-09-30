@@ -44,20 +44,20 @@ import net.miginfocom.swing.MigLayout;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 
 import io.github.astrapi69.crypt.data.key.PrivateKeyExtensions;
-import io.github.astrapi69.mystic.crypt.key.PrivateKeyHexDecryptor;
 import io.github.astrapi69.crypt.data.key.PublicKeyExtensions;
-import io.github.astrapi69.mystic.crypt.key.PublicKeyHexEncryptor;
 import io.github.astrapi69.crypt.data.key.reader.EncryptedPrivateKeyReader;
 import io.github.astrapi69.crypt.data.key.reader.PrivateKeyReader;
 import io.github.astrapi69.file.read.ReadFileExtensions;
 import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
+import io.github.astrapi69.mystic.crypt.key.PrivateKeyHexDecryptor;
+import io.github.astrapi69.mystic.crypt.key.PublicKeyHexEncryptor;
 import io.github.astrapi69.mystic.crypt.panel.privatekey.PrivateKeyModelBean;
 import io.github.astrapi69.mystic.crypt.panel.privatekey.PrivateKeyPanel;
+import io.github.astrapi69.mystic.crypt.util.InternalFrameExtensions;
 import io.github.astrapi69.swing.action.OpenFileAction;
 import io.github.astrapi69.swing.component.factory.JComponentFactory;
 import io.github.astrapi69.swing.dialog.factory.JDialogFactory;
 import io.github.astrapi69.swing.listener.RequestFocusListener;
-import io.github.astrapi69.swing.utils.JInternalFrameExtensions;
 
 /**
  * The class {@link OpenPrivateKeyAction}.
@@ -209,9 +209,8 @@ public class OpenPrivateKeyAction extends OpenFileAction
 		component.getPrivateKeyViewPanel().getTxtPrivateKey().setText(privateKeyFormat);
 		component.getPrivateKeyViewPanel().getTxtPublicKey().setText(publicKeyFormat);
 
-		JInternalFrameExtensions.addComponentToFrame(internalFrame, component);
-		JInternalFrameExtensions.addJInternalFrame(
-			MysticCryptApplicationFrame.getInstance().getMainComponent(), internalFrame);
+		InternalFrameExtensions.addInternalFrameToMainFrame(component, internalFrame,
+			MysticCryptApplicationFrame.getInstance());
 	}
 
 

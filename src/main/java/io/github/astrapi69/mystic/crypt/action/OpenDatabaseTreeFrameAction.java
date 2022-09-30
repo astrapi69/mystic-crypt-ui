@@ -26,7 +26,6 @@ import java.util.List;
 import java.util.Map;
 
 import javax.swing.AbstractAction;
-import javax.swing.JDesktopPane;
 import javax.swing.JInternalFrame;
 
 import io.github.astrapi69.id.generate.LongIdGenerator;
@@ -35,7 +34,9 @@ import io.github.astrapi69.mystic.crypt.ApplicationModelBean;
 import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
 import io.github.astrapi69.mystic.crypt.panel.dbtree.MysticCryptEntryModelBean;
 import io.github.astrapi69.mystic.crypt.panel.dbtree.SecretKeyTreeWithContentPanel;
+import io.github.astrapi69.swing.base.BasePanel;
 import io.github.astrapi69.swing.component.factory.JComponentFactory;
+import io.github.astrapi69.swing.panel.desktoppane.JDesktopPanePanel;
 import io.github.astrapi69.swing.tree.BaseTreeNodeFactory;
 import io.github.astrapi69.swing.tree.GenericTreeElement;
 import io.github.astrapi69.swing.utils.JInternalFrameExtensions;
@@ -66,7 +67,7 @@ public class OpenDatabaseTreeFrameAction extends AbstractAction
 	public static void openDatabaseTreeFrame()
 	{
 		ApplicationModelBean modelObject = MysticCryptApplicationFrame.getInstance()
-				.getModelObject();
+			.getModelObject();
 		BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> rootTreeNode;
 		Map<Long, TreeIdNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long>> rootTreeAsMap = modelObject
 			.getRootTreeAsMap();
@@ -101,14 +102,17 @@ public class OpenDatabaseTreeFrameAction extends AbstractAction
 		final JInternalFrame internalFrame = JComponentFactory.newInternalFrame("Key database",
 			true, true, true, true);
 		JInternalFrameExtensions.addComponentToFrame(internalFrame, component);
-		JDesktopPane mainComponent = MysticCryptApplicationFrame.getInstance().getMainComponent();
-		int screenHeight = mainComponent.getHeight() - 50;
-		int screenWidth = mainComponent.getWidth();
+		BasePanel<ApplicationModelBean> mainComponent = MysticCryptApplicationFrame.getInstance()
+			.getMainComponent();
+		JDesktopPanePanel<ApplicationModelBean> desktopPanePanel = (JDesktopPanePanel<ApplicationModelBean>)mainComponent;
+		int screenHeight = desktopPanePanel.getDesktopPane().getHeight() - 50;
+		int screenWidth = desktopPanePanel.getDesktopPane().getWidth();
 		internalFrame.setSize(screenWidth, screenHeight);
 		internalFrame.setLocation(0, 0);
 		internalFrame.setResizable(true);
 
-		JInternalFrameExtensions.addJInternalFrame(mainComponent, internalFrame);
+		JInternalFrameExtensions.addJInternalFrame(desktopPanePanel.getDesktopPane(),
+			internalFrame);
 	}
 
 	/**

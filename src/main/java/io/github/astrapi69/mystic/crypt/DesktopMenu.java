@@ -45,6 +45,7 @@ import javax.swing.MenuElement;
 
 import io.github.astrapi69.lang.ClassExtensions;
 import io.github.astrapi69.model.enumtype.visibity.RenderMode;
+import io.github.astrapi69.mystic.crypt.action.NewFileConversionInternalFrameAction;
 import lombok.NonNull;
 import lombok.extern.java.Log;
 
@@ -192,7 +193,7 @@ public class DesktopMenu extends BaseDesktopMenu implements EventListener<EventO
 			.mnemonic(MenuExtensions.toMnemonic('C'))
 			.keyStroke(KeyStroke.getKeyStroke('C', Event.CTRL_MASK))
 			.actionListener(
-				new NewObfuscationInternalFrameAction("Convert *.der-file to *.pem-file"))
+				new NewFileConversionInternalFrameAction("Convert *.der-file to *.pem-file"))
 			.name(MenuId.CONVERT.propertiesKey()).build().toJMenuItem();
 		convertMenuItem.setEnabled(true);
 		fileMenu.add(convertMenuItem);
