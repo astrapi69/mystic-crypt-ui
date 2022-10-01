@@ -1,5 +1,6 @@
 package io.github.astrapi69.mystic.crypt;
 
+import java.awt.BorderLayout;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -16,17 +17,17 @@ import io.github.astrapi69.tree.BaseTreeNode;
 import io.github.astrapi69.tree.TreeIdNode;
 import io.github.astrapi69.tree.convert.BaseTreeNodeTransformer;
 
-public class ApplicationBasePanel extends BasePanel<ApplicationModelBean>
+public class ApplicationPanel extends BasePanel<ApplicationModelBean>
 {
 
 	SecretKeyTreeWithContentPanel secretKeyTreeWithContentPanel;
 
-	public ApplicationBasePanel(final IModel<ApplicationModelBean> model)
+	public ApplicationPanel(final IModel<ApplicationModelBean> model)
 	{
 		super(model);
 	}
 
-	public ApplicationBasePanel()
+	public ApplicationPanel()
 	{
 		this(BaseModel.of(ApplicationModelBean.builder().build()));
 	}
@@ -71,7 +72,9 @@ public class ApplicationBasePanel extends BasePanel<ApplicationModelBean>
 	@Override
 	protected void onInitializeLayout()
 	{
-
-
+		super.onInitializeLayout();
+		this.setLayout(new BorderLayout());
+		this.add(this.secretKeyTreeWithContentPanel, "Center");
 	}
+
 }

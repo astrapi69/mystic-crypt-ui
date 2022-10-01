@@ -26,6 +26,7 @@ import javax.swing.AbstractAction;
 import javax.swing.JInternalFrame;
 
 import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
+import io.github.astrapi69.mystic.crypt.enumtype.FrameMode;
 import io.github.astrapi69.mystic.crypt.util.InternalFrameExtensions;
 import io.github.astrapi69.swing.component.factory.JComponentFactory;
 import io.github.astrapi69.swing.layout.ScreenSizeExtensions;
@@ -57,10 +58,14 @@ public class OpenConsoleFrameAction extends AbstractAction
 	@Override
 	public void actionPerformed(final ActionEvent e)
 	{
+		MysticCryptApplicationFrame instance = MysticCryptApplicationFrame.getInstance();
+		if (!FrameMode.DESKTOP_PANE.equals(instance.getFrameMode()))
+		{
+			instance.switchToDesktopPane();
+		}
 		// create internal frame
 		final JInternalFrame internalFrame = JComponentFactory.newInternalFrame("Console", true,
 			true, true, true);
-		MysticCryptApplicationFrame instance = MysticCryptApplicationFrame.getInstance();
 		ConsolePanel component = new ConsolePanel();
 		int screenHeight = ScreenSizeExtensions.getScreenHeight(instance);
 		int screenWidth = ScreenSizeExtensions.getScreenWidth(instance);

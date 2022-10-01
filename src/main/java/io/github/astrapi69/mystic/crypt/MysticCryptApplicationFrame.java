@@ -32,6 +32,7 @@ import javax.swing.JButton;
 import javax.swing.JMenu;
 import javax.swing.JToolBar;
 
+import io.github.astrapi69.swing.plaf.LookAndFeels;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NonNull;
@@ -50,6 +51,7 @@ import io.github.astrapi69.mystic.crypt.action.LockWorkspaceAction;
 import io.github.astrapi69.mystic.crypt.action.NewApplicationFileAction;
 import io.github.astrapi69.mystic.crypt.action.SaveApplicationFileAction;
 import io.github.astrapi69.mystic.crypt.action.SearchApplicationFileAction;
+import io.github.astrapi69.mystic.crypt.enumtype.FrameMode;
 import io.github.astrapi69.mystic.crypt.panel.signin.MasterPwFileDialog;
 import io.github.astrapi69.mystic.crypt.panel.signin.MasterPwFileModelBean;
 import io.github.astrapi69.mystic.crypt.panel.signin.MemoizedSigninModelBean;
@@ -65,6 +67,7 @@ import io.github.astrapi69.throwable.RuntimeExceptionDecorator;
 /**
  * The class {@link MysticCryptApplicationFrame}
  */
+@Getter
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class MysticCryptApplicationFrame extends ApplicationPanelFrame<ApplicationModelBean>
 {
@@ -82,12 +85,14 @@ public class MysticCryptApplicationFrame extends ApplicationPanelFrame<Applicati
 	/**
 	 * The {@link BouncyCastleProvider} object
 	 */
-	@Getter
 	BouncyCastleProvider bouncyCastleProvider;
 
 	LongIdGenerator idGenerator;
-	@Getter
 	JDesktopPanePanel<ApplicationModelBean> desktopPanePanel;
+
+	ApplicationPanel applicationPanel;
+
+	FrameMode frameMode;
 
 	/**
 	 * initial block
@@ -148,6 +153,7 @@ public class MysticCryptApplicationFrame extends ApplicationPanelFrame<Applicati
 		IModel<MasterPwFileModelBean> model = BaseModel.of(masterPwFileModelBean);
 		MasterPwFileDialog dialog = new MasterPwFileDialog(null, "Enter your credentials", true,
 			model);
+		RuntimeExceptionDecorator.decorate(()->LookAndFeels.setLookAndFeel(LookAndFeels.NIMBUS, dialog));
 		dialog.setSize(920, 380);
 		dialog.setVisible(true);
 	}
@@ -249,12 +255,17 @@ public class MysticCryptApplicationFrame extends ApplicationPanelFrame<Applicati
 	{
 		super.onAfterInitialize();
 		desktopPanePanel = (JDesktopPanePanel<ApplicationModelBean>)getMainComponent();
+		frameMode = FrameMode.DESKTOP_PANE;
 		setTitle(Messages.getString("mainframe.title"));
+		setDefaultLookAndFeel(LookAndFeels.NIMBUS, this);
 		this.setSize(ScreenSizeExtensions.getScreenWidth(), ScreenSizeExtensions.getScreenHeight());
 		DesktopMenu menu = (DesktopMenu)getMenu();
 		if (getModelObject().isSignedIn())
 		{
 			menu.onEnableBySignin();
+			applicationPanel = new ApplicationPanel(getModel());
+			switchToApplicationPanel();
+			frameMode = FrameMode.APPLICATION_PANEL;
 		}
 		else
 		{
@@ -279,18 +290,18 @@ public class MysticCryptApplicationFrame extends ApplicationPanelFrame<Applicati
 			.icon(ImageIconFactory.newImageIcon("io/github/astrapi69/silk/icons/disk.png"))
 			.toolTipText("Save").actionListener(new SaveApplicationFileAction("Save"))
 			.name(MenuId.SAVE_APPLICATION_FILE_TOOL_BAR.propertiesKey()).build().toJButton());
-		JButton searchButton = JButtonInfo.builder()
-			.icon(ImageIconFactory.newImageIcon("io/github/astrapi69/silk/icons/magnifier.png"))
-			.toolTipText("Search").actionListener(new SearchApplicationFileAction("Search"))
-			.name(MenuId.SEARCH_TOOL_BAR.propertiesKey()).build().toJButton();
-		searchButton.setEnabled(false);
-		toolBar.add(searchButton);
-		JButton lockWorkspace = JButtonInfo.builder()
-			.icon(ImageIconFactory.newImageIcon("io/github/astrapi69/silk/icons/lock.png"))
-			.toolTipText("Lock workspace").actionListener(new LockWorkspaceAction("Lock workspace"))
-			.name(MenuId.LOCK_WORKSPACE_TOOL_BAR.propertiesKey()).build().toJButton();
-		lockWorkspace.setEnabled(false);
-		toolBar.add(lockWorkspace);
+//		JButton searchButton = JButtonInfo.builder()
+//			.icon(ImageIconFactory.newImageIcon("io/github/astrapi69/silk/icons/magnifier.png"))
+//			.toolTipText("Search").actionListener(new SearchApplicationFileAction("Search"))
+//			.name(MenuId.SEARCH_TOOL_BAR.propertiesKey()).build().toJButton();
+//		searchButton.setEnabled(false);
+//		toolBar.add(searchButton);
+//		JButton lockWorkspace = JButtonInfo.builder()
+//			.icon(ImageIconFactory.newImageIcon("io/github/astrapi69/silk/icons/lock.png"))
+//			.toolTipText("Lock workspace").actionListener(new LockWorkspaceAction("Lock workspace"))
+//			.name(MenuId.LOCK_WORKSPACE_TOOL_BAR.propertiesKey()).build().toJButton();
+//		lockWorkspace.setEnabled(false);
+//		toolBar.add(lockWorkspace);
 
 		return toolBar;
 	}
@@ -300,5 +311,16 @@ public class MysticCryptApplicationFrame extends ApplicationPanelFrame<Applicati
 	{
 		JDesktopPanePanel<ApplicationModelBean> desktopPanePanel = new JDesktopPanePanel<>();
 		return desktopPanePanel;
+	}
+
+	public void switchToDesktopPane()
+	{
+		replaceMainComponent(getDesktopPanePanel());
+		instance.frameMode = FrameMode.DESKTOP_PANE;
+	}
+	public void switchToApplicationPanel()
+	{
+		replaceMainComponent(getApplicationPanel());
+		instance.frameMode = FrameMode.APPLICATION_PANEL;
 	}
 }

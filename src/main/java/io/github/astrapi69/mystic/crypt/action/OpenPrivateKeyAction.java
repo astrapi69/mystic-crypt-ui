@@ -37,6 +37,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPasswordField;
 
+import io.github.astrapi69.mystic.crypt.enumtype.FrameMode;
 import lombok.NonNull;
 import lombok.extern.java.Log;
 import net.miginfocom.swing.MigLayout;
@@ -154,6 +155,11 @@ public class OpenPrivateKeyAction extends OpenFileAction
 	@Override
 	protected void onApproveOption(final File file, final ActionEvent actionEvent)
 	{
+		MysticCryptApplicationFrame instance = MysticCryptApplicationFrame.getInstance();
+		if (!FrameMode.DESKTOP_PANE.equals(instance.getFrameMode()))
+		{
+			instance.switchToDesktopPane();
+		}
 		// create internal frame
 		final JInternalFrame internalFrame = JComponentFactory.newInternalFrame("Private key view",
 			true, true, true, true);
