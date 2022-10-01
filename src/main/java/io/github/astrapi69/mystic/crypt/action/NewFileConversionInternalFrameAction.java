@@ -67,8 +67,7 @@ public class NewFileConversionInternalFrameAction extends AbstractAction
 			.newInternalFrame("Convert *.der-file to *.pem-file", true, true, true, true);
 
 		final FileConversionPanel component = new FileConversionPanel();
-		InternalFrameExtensions.addInternalFrameToMainFrame(component, internalFrame,
-				instance);
+		InternalFrameExtensions.addInternalFrameToMainFrame(component, internalFrame, instance);
 	}
 
 }

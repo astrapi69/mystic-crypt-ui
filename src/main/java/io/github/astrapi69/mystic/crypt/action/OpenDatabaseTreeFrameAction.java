@@ -61,17 +61,20 @@ public class OpenDatabaseTreeFrameAction extends AbstractAction
 			final ApplicationPanel component = instance.getApplicationPanel();
 			// create internal frame
 			final JInternalFrame internalFrame = JComponentFactory.newInternalFrame("Key database",
-					true, true, true, true);
+				true, true, true, true);
 			JInternalFrameExtensions.addComponentToFrame(internalFrame, component);
-			JDesktopPanePanel<ApplicationModelBean> desktopPanePanel = instance.getDesktopPanePanel();
+			JDesktopPanePanel<ApplicationModelBean> desktopPanePanel = instance
+				.getDesktopPanePanel();
 			int screenHeight = desktopPanePanel.getDesktopPane().getHeight();
 			int screenWidth = desktopPanePanel.getDesktopPane().getWidth();
 			internalFrame.setSize(screenWidth, screenHeight);
 			internalFrame.setLocation(0, 0);
 			internalFrame.setResizable(true);
-			JInternalFrameExtensions.addJInternalFrame(instance.getDesktopPanePanel().getDesktopPane(),
-					internalFrame);
-		} else {
+			JInternalFrameExtensions
+				.addJInternalFrame(instance.getDesktopPanePanel().getDesktopPane(), internalFrame);
+		}
+		else
+		{
 			instance.switchToApplicationPanel();
 		}
 

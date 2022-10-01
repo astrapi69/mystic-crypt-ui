@@ -153,7 +153,8 @@ public class MysticCryptApplicationFrame extends ApplicationPanelFrame<Applicati
 		IModel<MasterPwFileModelBean> model = BaseModel.of(masterPwFileModelBean);
 		MasterPwFileDialog dialog = new MasterPwFileDialog(null, "Enter your credentials", true,
 			model);
-		RuntimeExceptionDecorator.decorate(()->LookAndFeels.setLookAndFeel(LookAndFeels.NIMBUS, dialog));
+		RuntimeExceptionDecorator
+			.decorate(() -> LookAndFeels.setLookAndFeel(LookAndFeels.NIMBUS, dialog));
 		dialog.setSize(920, 380);
 		dialog.setVisible(true);
 	}
@@ -290,18 +291,18 @@ public class MysticCryptApplicationFrame extends ApplicationPanelFrame<Applicati
 			.icon(ImageIconFactory.newImageIcon("io/github/astrapi69/silk/icons/disk.png"))
 			.toolTipText("Save").actionListener(new SaveApplicationFileAction("Save"))
 			.name(MenuId.SAVE_APPLICATION_FILE_TOOL_BAR.propertiesKey()).build().toJButton());
-//		JButton searchButton = JButtonInfo.builder()
-//			.icon(ImageIconFactory.newImageIcon("io/github/astrapi69/silk/icons/magnifier.png"))
-//			.toolTipText("Search").actionListener(new SearchApplicationFileAction("Search"))
-//			.name(MenuId.SEARCH_TOOL_BAR.propertiesKey()).build().toJButton();
-//		searchButton.setEnabled(false);
-//		toolBar.add(searchButton);
-//		JButton lockWorkspace = JButtonInfo.builder()
-//			.icon(ImageIconFactory.newImageIcon("io/github/astrapi69/silk/icons/lock.png"))
-//			.toolTipText("Lock workspace").actionListener(new LockWorkspaceAction("Lock workspace"))
-//			.name(MenuId.LOCK_WORKSPACE_TOOL_BAR.propertiesKey()).build().toJButton();
-//		lockWorkspace.setEnabled(false);
-//		toolBar.add(lockWorkspace);
+		// JButton searchButton = JButtonInfo.builder()
+		// .icon(ImageIconFactory.newImageIcon("io/github/astrapi69/silk/icons/magnifier.png"))
+		// .toolTipText("Search").actionListener(new SearchApplicationFileAction("Search"))
+		// .name(MenuId.SEARCH_TOOL_BAR.propertiesKey()).build().toJButton();
+		// searchButton.setEnabled(false);
+		// toolBar.add(searchButton);
+		// JButton lockWorkspace = JButtonInfo.builder()
+		// .icon(ImageIconFactory.newImageIcon("io/github/astrapi69/silk/icons/lock.png"))
+		// .toolTipText("Lock workspace").actionListener(new LockWorkspaceAction("Lock workspace"))
+		// .name(MenuId.LOCK_WORKSPACE_TOOL_BAR.propertiesKey()).build().toJButton();
+		// lockWorkspace.setEnabled(false);
+		// toolBar.add(lockWorkspace);
 
 		return toolBar;
 	}
@@ -318,6 +319,7 @@ public class MysticCryptApplicationFrame extends ApplicationPanelFrame<Applicati
 		replaceMainComponent(getDesktopPanePanel());
 		instance.frameMode = FrameMode.DESKTOP_PANE;
 	}
+
 	public void switchToApplicationPanel()
 	{
 		replaceMainComponent(getApplicationPanel());
