@@ -231,12 +231,13 @@ public class SecretKeyTreeWithContentPanel
 	/**
 	 * The callback method on add a new child tree node
 	 */
+	@SuppressWarnings("unchecked")
 	protected void onAddNewChildTreeNode(MouseEvent mouseEvent)
 	{
 		JTreeExtensions.getSelectedDefaultMutableTreeNode(mouseEvent, tree)
 			.ifPresent(selectedTreeNode -> {
-				BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> parentTreeNode = (BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long>)selectedTreeNode
-					.getUserObject();
+				Object userObject = selectedTreeNode.getUserObject();
+				BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> parentTreeNode = (BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long>)userObject;
 				NodePanel panel = new NodePanel();
 				int option = JOptionPaneExtensions.getSelectedOption(panel,
 					JOptionPane.INFORMATION_MESSAGE, JOptionPane.OK_CANCEL_OPTION, null, "New node",
@@ -266,6 +267,7 @@ public class SecretKeyTreeWithContentPanel
 			});
 	}
 
+	@SuppressWarnings("unchecked")
 	protected void onEditSelectedTreeNode(final MouseEvent mouseEvent)
 	{
 		JTreeExtensions.getSelectedDefaultMutableTreeNode(mouseEvent, tree)
@@ -306,6 +308,7 @@ public class SecretKeyTreeWithContentPanel
 	/**
 	 * The callback method on delete the selected tree node
 	 */
+	@SuppressWarnings("unchecked")
 	protected void onDeleteSelectedTreeNode(MouseEvent mouseEvent)
 	{
 		Optional<DefaultMutableTreeNode> selectedDefaultMutableTreeNode = JTreeExtensions
@@ -410,6 +413,7 @@ public class SecretKeyTreeWithContentPanel
 		});
 	}
 
+	@SuppressWarnings("unchecked")
 	protected void onAddTableEntry()
 	{
 		MysticCryptEntryPanel panel = new MysticCryptEntryPanel();
@@ -484,7 +488,8 @@ public class SecretKeyTreeWithContentPanel
 
 	private void showEditMysticCryptEntryDialog(MysticCryptEntryModelBean tableEntry)
 	{
-		MysticCryptEntryTabbedPanel panel = new MysticCryptEntryTabbedPanel(BaseModel.of(tableEntry));
+		MysticCryptEntryTabbedPanel panel = new MysticCryptEntryTabbedPanel(
+			BaseModel.of(tableEntry));
 		int option = JOptionPaneExtensions.getSelectedOption(panel, JOptionPane.INFORMATION_MESSAGE,
 			JOptionPane.OK_CANCEL_OPTION, null,
 			Messages.getString("dialog.edit.crypt.entry.title", "Edit Crypt Entry"),
@@ -497,9 +502,11 @@ public class SecretKeyTreeWithContentPanel
 			int index = data.indexOf(tableEntry);
 			data.remove(tableEntry);
 			MysticCryptEntryModelBean modelObject = panel.getModelObject();
-			if (modelObject.isExpirable() && panel.getMysticCryptEntryPanel().getTxtExpires().getSelectedDate() != null)
+			if (modelObject.isExpirable()
+				&& panel.getMysticCryptEntryPanel().getTxtExpires().getSelectedDate() != null)
 			{
-				modelObject.setExpires(panel.getMysticCryptEntryPanel().getTxtExpires().getSelectedDate());
+				modelObject
+					.setExpires(panel.getMysticCryptEntryPanel().getTxtExpires().getSelectedDate());
 			}
 			data.add(index, modelObject);
 

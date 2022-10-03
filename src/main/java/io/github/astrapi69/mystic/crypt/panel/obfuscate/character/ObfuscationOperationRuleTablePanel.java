@@ -33,6 +33,7 @@ import javax.swing.JLabel;
 import javax.swing.JScrollPane;
 import javax.swing.table.TableColumn;
 
+import io.github.astrapi69.throwable.RuntimeExceptionDecorator;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.SneakyThrows;
@@ -97,7 +98,6 @@ public class ObfuscationOperationRuleTablePanel extends BasePanel<ObfuscationOpe
 	{
 	}
 
-	@SneakyThrows
 	protected void onExport(final ActionEvent actionEvent)
 	{
 		final int returnVal = fileChooser.showSaveDialog(ObfuscationOperationRuleTablePanel.this);
@@ -106,7 +106,8 @@ public class ObfuscationOperationRuleTablePanel extends BasePanel<ObfuscationOpe
 			List<KeyValuePair<Character, ObfuscationOperationRule<Character, Character>>> data = getModelObject()
 				.getTableModel().getData();
 			final File selectedFile = fileChooser.getSelectedFile();
-			XmlEncryptionExtensions.writeToFileAsXmlAndHex(aliases, data, selectedFile);
+			RuntimeExceptionDecorator.decorate(
+				() -> XmlEncryptionExtensions.writeToFileAsXmlAndHex(aliases, data, selectedFile));
 		}
 	}
 
