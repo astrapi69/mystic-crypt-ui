@@ -134,9 +134,24 @@ public enum MenuId
 	LOCK_WORKSPACE(MenuId.LOCK_WORKSPACE_KEY),
 
 	/**
-	 * The id for the exit application menu
+	 * The id for the show the console menu
 	 */
-	CONSOLE(MenuId.CONSOLE_KEY);
+	CONSOLE(MenuId.CONSOLE_KEY),
+
+	/**
+	 * The id for the edit the view mode menu
+	 */
+	VIEW_MODE(MenuId.VIEW_MODE_KEY),
+
+	/**
+	 * The id for the edit the desktop view mode menu
+	 */
+	VIEW_DESKTOP_MODE(MenuId.VIEW_DESKTOP_MODE_KEY),
+
+	/**
+	 * The id for the edit the panel view mode menu
+	 */
+	VIEW_PANEL_MODE(MenuId.VIEW_PANEL_MODE_KEY);
 
 	public static final String NEW_DATABASE_KEY = "global.menu.file.new.database";
 	public static final String SAVE_APPLICATION_FILE_KEY = "global.menu.file.save";
@@ -156,6 +171,10 @@ public enum MenuId
 	public static final String EXIT_KEY = "global.menu.file.exit";
 
 	public static final String VERIFY_CHECKSUM_KEY = "global.menu.edit.verify.checksum";
+
+	public static final String VIEW_MODE_KEY = "global.menu.edit.view.mode";
+	public static final String VIEW_DESKTOP_MODE_KEY = "global.menu.edit.view.mode.desktop";
+	public static final String VIEW_PANEL_MODE_KEY = "global.menu.edit.view.mode.panel";
 
 	public static final String NEW_DATABASE_TOOL_BAR_KEY = "global.toolbar.menu.file.new.database";
 	public static final String SAVE_APPLICATION_FILE_TOOL_BAR_KEY = "global.toolbar.menu.file.save";

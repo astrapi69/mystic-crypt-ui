@@ -96,14 +96,38 @@ public class DesktopMenu extends BaseDesktopMenu implements EventListener<EventO
 	protected JMenu newEditMenu()
 	{
 		// @formatter:on
-		final JMenu editMenu = JMenuItemInfo.builder().text("Edit")
-			.mnemonic(MenuExtensions.toMnemonic('E')).name(BaseMenuId.EDIT.propertiesKey()).build()
+		final JMenu editMenu = JMenuItemInfo.builder()
+				.text(Messages.getString(BaseMenuId.EDIT.propertiesKey()))
+				.mnemonic(MenuExtensions.toMnemonic('E'))
+				.name(BaseMenuId.EDIT.propertiesKey()).build()
 			.toJMenu();
-		JMenuItem verifyChecksum = JMenuItemInfo.builder().text("Verify checksum")
-			.mnemonic(MenuExtensions.toMnemonic('V'))
-			.keyStroke(KeyStroke.getKeyStroke(KeyEvent.VK_F3, InputEvent.ALT_DOWN_MASK))
-			.actionListener(new NewChecksumFrameAction("ChecksumVerifier"))
-			.name(MenuId.VERIFY_CHECKSUM.propertiesKey()).build().toJMenuItem();
+		JMenuItem verifyChecksum = JMenuItemInfo.builder()
+				.text(Messages.getString(MenuId.VERIFY_CHECKSUM.propertiesKey()))
+				.mnemonic(MenuExtensions.toMnemonic('V'))
+				.keyStroke(KeyStroke.getKeyStroke(KeyEvent.VK_F3, InputEvent.ALT_DOWN_MASK))
+				.actionListener(new NewChecksumFrameAction("ChecksumVerifier"))
+				.name(MenuId.VERIFY_CHECKSUM.propertiesKey()).build().toJMenuItem();
+
+		final JMenu viewModeMenu = JMenuItemInfo.builder()
+				.text(Messages.getString(MenuId.VIEW_MODE.propertiesKey()))
+				.mnemonic(MenuExtensions.toMnemonic('W'))
+				.name(MenuId.VIEW_MODE.propertiesKey())
+				.build().toJMenu();
+		editMenu.add(viewModeMenu);
+		JMenuItem switchDesktopMode = JMenuItemInfo.builder()
+				.text(Messages.getString(MenuId.VIEW_DESKTOP_MODE.propertiesKey()))
+				.mnemonic(MenuExtensions.toMnemonic('M'))
+				.keyStroke(KeyStroke.getKeyStroke(KeyEvent.VK_F6, InputEvent.ALT_DOWN_MASK))
+				.actionListener(event -> {MysticCryptApplicationFrame.getInstance().switchToDesktopPane();})
+				.name(MenuId.VIEW_DESKTOP_MODE.propertiesKey()).build().toJMenuItem();
+		viewModeMenu.add(switchDesktopMode);
+		JMenuItem switchPanelMode = JMenuItemInfo.builder()
+				.text(Messages.getString(MenuId.VIEW_PANEL_MODE.propertiesKey()))
+				.mnemonic(MenuExtensions.toMnemonic('Q'))
+				.keyStroke(KeyStroke.getKeyStroke(KeyEvent.VK_F7, InputEvent.ALT_DOWN_MASK))
+				.actionListener(event -> {MysticCryptApplicationFrame.getInstance().switchToApplicationPanel();})
+				.name(MenuId.VIEW_PANEL_MODE.propertiesKey()).build().toJMenuItem();
+		viewModeMenu.add(switchPanelMode);
 		// @formatter:off
 		editMenu.add(verifyChecksum);
 		return editMenu;

@@ -23,8 +23,10 @@ public class InternalFrameExtensions
 		ApplicationPanelFrame<T> mainFrame)
 	{
 		BasePanel<T> mainComponent = mainFrame.getMainComponent();
-		JDesktopPanePanel<T> desktopPanePanel = (JDesktopPanePanel<T>)mainComponent;
-		JInternalFrameExtensions.addJInternalFrame(desktopPanePanel.getDesktopPane(),
-			internalFrame);
+		if(mainComponent instanceof JDesktopPanePanel) {
+			JDesktopPanePanel<T> desktopPanePanel = (JDesktopPanePanel<T>)mainComponent;
+			JInternalFrameExtensions.addJInternalFrame(desktopPanePanel.getDesktopPane(),
+					internalFrame);
+		}
 	}
 }
