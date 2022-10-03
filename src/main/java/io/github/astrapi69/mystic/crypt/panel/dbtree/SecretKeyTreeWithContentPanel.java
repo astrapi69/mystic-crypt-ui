@@ -484,11 +484,11 @@ public class SecretKeyTreeWithContentPanel
 
 	private void showEditMysticCryptEntryDialog(MysticCryptEntryModelBean tableEntry)
 	{
-		MysticCryptEntryPanel panel = new MysticCryptEntryPanel(BaseModel.of(tableEntry));
+		MysticCryptEntryTabbedPanel panel = new MysticCryptEntryTabbedPanel(BaseModel.of(tableEntry));
 		int option = JOptionPaneExtensions.getSelectedOption(panel, JOptionPane.INFORMATION_MESSAGE,
 			JOptionPane.OK_CANCEL_OPTION, null,
 			Messages.getString("dialog.edit.crypt.entry.title", "Edit Crypt Entry"),
-			panel.getTxtEntryName());
+			panel.getMysticCryptEntryPanel().getTxtEntryName());
 
 		if (option == JOptionPane.OK_OPTION)
 		{
@@ -497,9 +497,9 @@ public class SecretKeyTreeWithContentPanel
 			int index = data.indexOf(tableEntry);
 			data.remove(tableEntry);
 			MysticCryptEntryModelBean modelObject = panel.getModelObject();
-			if (modelObject.isExpirable() && panel.getTxtExpires().getSelectedDate() != null)
+			if (modelObject.isExpirable() && panel.getMysticCryptEntryPanel().getTxtExpires().getSelectedDate() != null)
 			{
-				modelObject.setExpires(panel.getTxtExpires().getSelectedDate());
+				modelObject.setExpires(panel.getMysticCryptEntryPanel().getTxtExpires().getSelectedDate());
 			}
 			data.add(index, modelObject);
 
