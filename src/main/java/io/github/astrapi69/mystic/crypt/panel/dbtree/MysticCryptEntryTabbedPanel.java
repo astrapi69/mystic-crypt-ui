@@ -41,6 +41,7 @@ public class MysticCryptEntryTabbedPanel extends BasePanel<MysticCryptEntryModel
 
 	MysticCryptEntryPanel mysticCryptEntryPanel;
 	AttachmentPanel attachmentPanel;
+
 	/**
 	 * Creates new form MysticCryptEntryFormPanel
 	 */
@@ -78,19 +79,17 @@ public class MysticCryptEntryTabbedPanel extends BasePanel<MysticCryptEntryModel
 		javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
 		this.setLayout(layout);
 		layout.setHorizontalGroup(
-				layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-						.addGroup(layout.createSequentialGroup()
-								.addContainerGap()
-								.addComponent(tbpMysticCryptEntry, javax.swing.GroupLayout.DEFAULT_SIZE, 768, Short.MAX_VALUE)
-								.addContainerGap())
-		);
-		layout.setVerticalGroup(
-				layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-						.addGroup(layout.createSequentialGroup()
-								.addContainerGap()
-								.addComponent(tbpMysticCryptEntry, javax.swing.GroupLayout.DEFAULT_SIZE, 640, Short.MAX_VALUE)
-								.addContainerGap())
-		);
+			layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+				.addGroup(layout
+					.createSequentialGroup().addContainerGap().addComponent(tbpMysticCryptEntry,
+						javax.swing.GroupLayout.DEFAULT_SIZE, 768, Short.MAX_VALUE)
+					.addContainerGap()));
+		layout
+			.setVerticalGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+				.addGroup(layout
+					.createSequentialGroup().addContainerGap().addComponent(tbpMysticCryptEntry,
+						javax.swing.GroupLayout.DEFAULT_SIZE, 640, Short.MAX_VALUE)
+					.addContainerGap()));
 	}
 
 }
