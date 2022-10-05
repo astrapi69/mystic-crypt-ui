@@ -28,7 +28,7 @@ import java.time.LocalDate;
 import java.util.Set;
 import java.util.UUID;
 
-import io.github.astrapi69.resource.system.viewmodel.Resource;
+import io.github.astrapi69.file.create.FileContentInfo;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -53,5 +53,5 @@ public class MysticCryptEntryModelBean
 	boolean expirable;
 	LocalDate expires;
 	String icon;
-	Set<Resource> resources;
+	Set<FileContentInfo> resources;
 }
