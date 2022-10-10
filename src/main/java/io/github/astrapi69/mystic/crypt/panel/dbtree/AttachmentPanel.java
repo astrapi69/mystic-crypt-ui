@@ -31,12 +31,14 @@ package io.github.astrapi69.mystic.crypt.panel.dbtree;
 import java.awt.event.ActionEvent;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Optional;
 
 import javax.swing.GroupLayout;
 import javax.swing.JButton;
 import javax.swing.JFileChooser;
 import javax.swing.JScrollPane;
 import javax.swing.LayoutStyle;
+import javax.swing.ListSelectionModel;
 
 import lombok.Getter;
 import io.github.astrapi69.file.create.FileContentInfo;
@@ -87,9 +89,10 @@ public class AttachmentPanel extends BasePanel<MysticCryptEntryModelBean>
 		{
 			getModelObject().setResources(new ArrayList<>());
 		}
-
 		attachmentTableModel.setData(getModelObject().getResources());
 		tblFiles = new GenericJXTable<>(attachmentTableModel);
+		// set only single selection
+		tblFiles.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		btnAdd = new JButton();
 		btnRemove = new JButton();
 		btnSaveTo = new JButton();
@@ -101,6 +104,7 @@ public class AttachmentPanel extends BasePanel<MysticCryptEntryModelBean>
 		btnRemove.setText("Remove");
 
 		btnSaveTo.setText("Save to");
+
 
 		btnAdd.addActionListener(this::onAdd);
 		btnRemove.addActionListener(this::onRemove);
@@ -122,11 +126,16 @@ public class AttachmentPanel extends BasePanel<MysticCryptEntryModelBean>
 	protected void onRemove(final ActionEvent actionEvent)
 	{
 		System.err.println("onRemove");
+		if(0 < tblFiles.getSelectedRows().length) {
+			// confirm delete
+			tblFiles.getGenericTableModel().removeAt(tblFiles.getSelectedRow());
+		}
 	}
 
 	protected void onSaveTo(final ActionEvent actionEvent)
 	{
 		System.err.println("onSaveTo");
+		Optional<FileContentInfo> singleSelectedRowData = tblFiles.getSingleSelectedRowData();
 	}
 
 	@Override
