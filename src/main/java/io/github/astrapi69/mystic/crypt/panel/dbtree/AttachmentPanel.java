@@ -29,25 +29,32 @@
 package io.github.astrapi69.mystic.crypt.panel.dbtree;
 
 import java.awt.event.ActionEvent;
+import java.io.File;
+import java.util.ArrayList;
 
 import javax.swing.GroupLayout;
 import javax.swing.JButton;
+import javax.swing.JFileChooser;
 import javax.swing.JScrollPane;
-import javax.swing.JTable;
 import javax.swing.LayoutStyle;
-import javax.swing.table.DefaultTableModel;
 
+import lombok.Getter;
+import io.github.astrapi69.file.create.FileContentInfo;
 import io.github.astrapi69.model.BaseModel;
 import io.github.astrapi69.model.api.IModel;
 import io.github.astrapi69.swing.base.BasePanel;
+import io.github.astrapi69.swing.table.GenericJXTable;
 
+@Getter
 public class AttachmentPanel extends BasePanel<MysticCryptEntryModelBean>
 {
 	private JButton btnAdd;
 	private JButton btnRemove;
 	private JButton btnSaveTo;
 	private JScrollPane srcFiles;
-	private JTable tblFiles;
+	private GenericJXTable<FileContentInfo> tblFiles;
+
+	private JFileChooser fileChooser;
 
 	/**
 	 * Creates new form NewAttachmentFormPanel
@@ -62,19 +69,31 @@ public class AttachmentPanel extends BasePanel<MysticCryptEntryModelBean>
 		super(model);
 	}
 
+	protected GenericJXTable<FileContentInfo> newJTable()
+	{
+		AttachmentTableModel tableModel = new AttachmentTableModel();
+		return new GenericJXTable<>(tableModel);
+	}
+
 	@Override
 	protected void onInitializeComponents()
 	{
 		super.onInitializeComponents();
+		fileChooser = new JFileChooser();
+
 		srcFiles = new JScrollPane();
-		tblFiles = new JTable();
+		AttachmentTableModel attachmentTableModel = new AttachmentTableModel();
+		if (getModelObject().getResources() == null)
+		{
+			getModelObject().setResources(new ArrayList<>());
+		}
+
+		attachmentTableModel.setData(getModelObject().getResources());
+		tblFiles = new GenericJXTable<>(attachmentTableModel);
 		btnAdd = new JButton();
 		btnRemove = new JButton();
 		btnSaveTo = new JButton();
 
-		tblFiles.setModel(new DefaultTableModel(
-			new Object[][] { { null, null }, { null, null }, { null, null }, { null, null } },
-			new String[] { "Title 1", "Title 2" }));
 		srcFiles.setViewportView(tblFiles);
 
 		btnAdd.setText("Add File");
@@ -90,14 +109,24 @@ public class AttachmentPanel extends BasePanel<MysticCryptEntryModelBean>
 
 	protected void onAdd(final ActionEvent actionEvent)
 	{
+		System.err.println("onAdd");
+		final int returnVal = fileChooser.showSaveDialog(AttachmentPanel.this);
+		if (returnVal == JFileChooser.APPROVE_OPTION)
+		{
+			final File newAttachment = fileChooser.getSelectedFile();
+			FileContentInfo fileContentInfo = FileContentInfo.toFileContentInfo(newAttachment);
+			getTblFiles().getGenericTableModel().add(fileContentInfo);
+		}
 	}
 
 	protected void onRemove(final ActionEvent actionEvent)
 	{
+		System.err.println("onRemove");
 	}
 
 	protected void onSaveTo(final ActionEvent actionEvent)
 	{
+		System.err.println("onSaveTo");
 	}
 
 	@Override

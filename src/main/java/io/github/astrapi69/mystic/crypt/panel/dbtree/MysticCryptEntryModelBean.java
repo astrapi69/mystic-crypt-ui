@@ -25,12 +25,16 @@
 package io.github.astrapi69.mystic.crypt.panel.dbtree;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
 import io.github.astrapi69.file.create.FileContentInfo;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -53,5 +57,6 @@ public class MysticCryptEntryModelBean
 	boolean expirable;
 	LocalDate expires;
 	String icon;
-	Set<FileContentInfo> resources;
+	@Builder.Default
+	List<FileContentInfo> resources = new ArrayList<>();
 }
