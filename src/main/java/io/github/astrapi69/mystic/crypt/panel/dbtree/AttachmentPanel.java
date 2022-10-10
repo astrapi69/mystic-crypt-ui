@@ -28,11 +28,18 @@
  */
 package io.github.astrapi69.mystic.crypt.panel.dbtree;
 
+import java.awt.event.ActionEvent;
+
+import javax.swing.GroupLayout;
+import javax.swing.JButton;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
+import javax.swing.LayoutStyle;
+import javax.swing.table.DefaultTableModel;
+
 import io.github.astrapi69.model.BaseModel;
 import io.github.astrapi69.model.api.IModel;
 import io.github.astrapi69.swing.base.BasePanel;
-import javax.swing.*;
-import javax.swing.table.DefaultTableModel;
 
 public class AttachmentPanel extends BasePanel<MysticCryptEntryModelBean>
 {
@@ -75,6 +82,22 @@ public class AttachmentPanel extends BasePanel<MysticCryptEntryModelBean>
 		btnRemove.setText("Remove");
 
 		btnSaveTo.setText("Save to");
+
+		btnAdd.addActionListener(this::onAdd);
+		btnRemove.addActionListener(this::onRemove);
+		btnSaveTo.addActionListener(this::onSaveTo);
+	}
+
+	protected void onAdd(final ActionEvent actionEvent)
+	{
+	}
+
+	protected void onRemove(final ActionEvent actionEvent)
+	{
+	}
+
+	protected void onSaveTo(final ActionEvent actionEvent)
+	{
 	}
 
 	@Override
