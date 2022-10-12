@@ -105,16 +105,12 @@ public class AttachmentPanel extends BasePanel<MysticCryptEntryModelBean>
 		btnRemove = new JButton();
 		btnSaveTo = new JButton();
 
-		btnRemoveStateMachine = BtnRemoveStateMachine.builder()
-				.button(btnRemove)
-				.attachmentTable(tblFiles)
-				.build();
+		btnRemoveStateMachine = BtnRemoveStateMachine.builder().button(btnRemove)
+			.attachmentTable(tblFiles).build();
 		btnRemoveStateMachine.onInitialize();
 
-		btnSaveToStateMachine = BtnSaveToStateMachine.builder()
-				.button(btnSaveTo)
-				.attachmentTable(tblFiles)
-				.build();
+		btnSaveToStateMachine = BtnSaveToStateMachine.builder().button(btnSaveTo)
+			.attachmentTable(tblFiles).build();
 		btnSaveToStateMachine.onInitialize();
 
 		ListSelectionModel selectionModel = tblFiles.getSelectionModel();

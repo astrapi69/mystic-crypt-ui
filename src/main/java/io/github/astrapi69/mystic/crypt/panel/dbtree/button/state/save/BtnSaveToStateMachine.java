@@ -40,7 +40,8 @@ public class BtnSaveToStateMachine extends AbstractJButtonStateMachine<BtnSaveTo
 	}
 
 	@Override
-	public void onTableSelection() {
+	public void onTableSelection()
+	{
 		updateButtonState();
 	}
 }

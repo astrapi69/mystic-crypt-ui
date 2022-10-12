@@ -41,7 +41,8 @@ public class BtnRemoveStateMachine extends AbstractJButtonStateMachine<BtnRemove
 	}
 
 	@Override
-	public void onTableSelection() {
+	public void onTableSelection()
+	{
 		updateButtonState();
 	}
 }
