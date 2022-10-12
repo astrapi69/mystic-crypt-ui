@@ -39,17 +39,17 @@ import javax.swing.JFileChooser;
 import javax.swing.JScrollPane;
 import javax.swing.LayoutStyle;
 import javax.swing.ListSelectionModel;
-import javax.swing.event.ListSelectionEvent;
-import javax.swing.event.ListSelectionListener;
 
-import io.github.astrapi69.mystic.crypt.panel.dbtree.button.state.remove.BtnRemoveStateMachine;
-import io.github.astrapi69.mystic.crypt.panel.dbtree.button.state.save.BtnSaveToStateMachine;
 import lombok.Getter;
 import io.github.astrapi69.file.create.FileContentInfo;
+import io.github.astrapi69.file.write.WriteFileExtensions;
 import io.github.astrapi69.model.BaseModel;
 import io.github.astrapi69.model.api.IModel;
+import io.github.astrapi69.mystic.crypt.panel.dbtree.button.state.remove.BtnRemoveStateMachine;
+import io.github.astrapi69.mystic.crypt.panel.dbtree.button.state.save.BtnSaveToStateMachine;
 import io.github.astrapi69.swing.base.BasePanel;
 import io.github.astrapi69.swing.table.GenericJXTable;
+import io.github.astrapi69.throwable.RuntimeExceptionDecorator;
 
 @Getter
 public class AttachmentPanel extends BasePanel<MysticCryptEntryModelBean>
@@ -164,7 +164,20 @@ public class AttachmentPanel extends BasePanel<MysticCryptEntryModelBean>
 	{
 		System.err.println("onSaveTo");
 		Optional<FileContentInfo> singleSelectedRowData = tblFiles.getSingleSelectedRowData();
-		tblFiles.getSelectedRow();
+		if (singleSelectedRowData.isPresent())
+		{
+			FileContentInfo fileContentInfo = singleSelectedRowData.get();
+			JFileChooser fileChooser = new JFileChooser();
+			fileChooser.setDialogTitle("Specify a file to save");
+			int userSelection = fileChooser.showSaveDialog(this);
+
+			if (userSelection == JFileChooser.APPROVE_OPTION)
+			{
+				File fileToSave = fileChooser.getSelectedFile();
+				RuntimeExceptionDecorator.decorate(() -> WriteFileExtensions
+					.writeByteArrayToFile(fileToSave, fileContentInfo.getContent()));
+			}
+		}
 	}
 
 	@Override
