@@ -22,19 +22,17 @@
  * OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
  * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-package io.github.astrapi69.mystic.crypt.panel.signin;
+package io.github.astrapi69.mystic.crypt.panel.signin.button.state.ok;
 
-import javax.swing.event.DocumentEvent;
-
-import lombok.NonNull;
-
-public class DocumentExtensions
+public interface BtnOkComponentState
 {
+	void onApplicationFileAdded(BtnOkStateMachine context);
 
-	public static void processDocumentLength(final @NonNull DocumentEvent documentEvent,
-		final @NonNull BtnOkStateMachine btnOkStateMachine)
-	{
-		int currentLength = documentEvent.getDocument().getLength();
-		btnOkStateMachine.onChangeMasterPasswordLength(btnOkStateMachine);
-	}
+	void onChangeWithMasterPassword(BtnOkStateMachine context);
+
+	void onChangeMasterPasswordLength(BtnOkStateMachine context);
+
+	void onChangeWithKeyFile(BtnOkStateMachine context);
+
+	void onSetKeyFile(BtnOkStateMachine context);
 }
