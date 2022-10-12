@@ -1,4 +1,4 @@
-package io.github.astrapi69.mystic.crypt.panel.dbtree.button.state.remove;
+package io.github.astrapi69.mystic.crypt.panel.dbtree.button.state.save;
 
 import io.github.astrapi69.file.create.FileContentInfo;
 import io.github.astrapi69.swing.table.GenericJXTable;
@@ -7,7 +7,6 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 import lombok.experimental.SuperBuilder;
-import io.github.astrapi69.mystic.crypt.panel.dbtree.AttachmentTableModel;
 import io.github.astrapi69.mystic.crypt.panel.dbtree.button.state.AbstractJButtonStateMachine;
 
 import java.util.Optional;
@@ -17,9 +16,9 @@ import java.util.Optional;
 @EqualsAndHashCode(callSuper = true)
 @ToString
 @SuperBuilder
-public class BtnRemoveStateMachine extends AbstractJButtonStateMachine<BtnRemoveStateMachine>
+public class BtnSaveToStateMachine extends AbstractJButtonStateMachine<BtnSaveToStateMachine>
 	implements
-		BtnRemoveState
+		BtnSaveToState
 {
 	GenericJXTable<FileContentInfo> attachmentTable;
 

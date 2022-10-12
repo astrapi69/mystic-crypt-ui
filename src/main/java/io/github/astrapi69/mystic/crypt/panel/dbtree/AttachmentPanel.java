@@ -39,7 +39,11 @@ import javax.swing.JFileChooser;
 import javax.swing.JScrollPane;
 import javax.swing.LayoutStyle;
 import javax.swing.ListSelectionModel;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
 
+import io.github.astrapi69.mystic.crypt.panel.dbtree.button.state.remove.BtnRemoveStateMachine;
+import io.github.astrapi69.mystic.crypt.panel.dbtree.button.state.save.BtnSaveToStateMachine;
 import lombok.Getter;
 import io.github.astrapi69.file.create.FileContentInfo;
 import io.github.astrapi69.model.BaseModel;
@@ -57,6 +61,10 @@ public class AttachmentPanel extends BasePanel<MysticCryptEntryModelBean>
 	private GenericJXTable<FileContentInfo> tblFiles;
 
 	private JFileChooser fileChooser;
+
+	BtnRemoveStateMachine btnRemoveStateMachine;
+
+	BtnSaveToStateMachine btnSaveToStateMachine;
 
 	/**
 	 * Creates new form NewAttachmentFormPanel
@@ -97,6 +105,25 @@ public class AttachmentPanel extends BasePanel<MysticCryptEntryModelBean>
 		btnRemove = new JButton();
 		btnSaveTo = new JButton();
 
+		btnRemoveStateMachine = BtnRemoveStateMachine.builder()
+				.button(btnRemove)
+				.attachmentTable(tblFiles)
+				.build();
+		btnRemoveStateMachine.onInitialize();
+
+		btnSaveToStateMachine = BtnSaveToStateMachine.builder()
+				.button(btnSaveTo)
+				.attachmentTable(tblFiles)
+				.build();
+		btnSaveToStateMachine.onInitialize();
+
+		ListSelectionModel selectionModel = tblFiles.getSelectionModel();
+		selectionModel.addListSelectionListener(e -> {
+			btnRemoveStateMachine.onTableSelection();
+			btnSaveToStateMachine.onTableSelection();
+		});
+
+
 		srcFiles.setViewportView(tblFiles);
 
 		btnAdd.setText("Add File");
@@ -126,7 +153,8 @@ public class AttachmentPanel extends BasePanel<MysticCryptEntryModelBean>
 	protected void onRemove(final ActionEvent actionEvent)
 	{
 		System.err.println("onRemove");
-		if(0 < tblFiles.getSelectedRows().length) {
+		if (0 < tblFiles.getSelectedRows().length)
+		{
 			// confirm delete
 			tblFiles.getGenericTableModel().removeAt(tblFiles.getSelectedRow());
 		}
@@ -136,6 +164,7 @@ public class AttachmentPanel extends BasePanel<MysticCryptEntryModelBean>
 	{
 		System.err.println("onSaveTo");
 		Optional<FileContentInfo> singleSelectedRowData = tblFiles.getSingleSelectedRowData();
+		tblFiles.getSelectedRow();
 	}
 
 	@Override
