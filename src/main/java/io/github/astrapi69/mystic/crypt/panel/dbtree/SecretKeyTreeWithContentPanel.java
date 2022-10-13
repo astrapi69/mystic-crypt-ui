@@ -240,7 +240,7 @@ public class SecretKeyTreeWithContentPanel
 				BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> parentTreeNode = (BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long>)userObject;
 				NodePanel panel = new NodePanel();
 				int option = JOptionPaneExtensions.getSelectedOption(panel,
-					JOptionPane.INFORMATION_MESSAGE, JOptionPane.OK_CANCEL_OPTION, null, "New node",
+					JOptionPane.PLAIN_MESSAGE, JOptionPane.OK_CANCEL_OPTION, null, "New node",
 					panel.getTxtName());
 
 				if (option == JOptionPane.OK_OPTION)
@@ -416,16 +416,19 @@ public class SecretKeyTreeWithContentPanel
 	@SuppressWarnings("unchecked")
 	protected void onAddTableEntry()
 	{
-		MysticCryptEntryPanel panel = new MysticCryptEntryPanel();
+		MysticCryptEntryTabbedPanel panel = new MysticCryptEntryTabbedPanel();
 
-		int option = JOptionPaneExtensions.getSelectedOption(panel, JOptionPane.INFORMATION_MESSAGE,
-			JOptionPane.OK_CANCEL_OPTION, null, "New Crypt Entry", panel.getTxtEntryName());
+		int option = JOptionPaneExtensions.getSelectedOption(panel, JOptionPane.PLAIN_MESSAGE,
+			JOptionPane.OK_CANCEL_OPTION, null, "New Crypt Entry",
+			panel.getMysticCryptEntryPanel().getTxtEntryName());
 		if (option == JOptionPane.OK_OPTION)
 		{
 			MysticCryptEntryModelBean modelObject = panel.getModelObject();
-			if (modelObject.isExpirable() && panel.getTxtExpires().getSelectedDate() != null)
+			if (modelObject.isExpirable()
+				&& panel.getMysticCryptEntryPanel().getTxtExpires().getSelectedDate() != null)
 			{
-				modelObject.setExpires(panel.getTxtExpires().getSelectedDate());
+				modelObject
+					.setExpires(panel.getMysticCryptEntryPanel().getTxtExpires().getSelectedDate());
 			}
 			DefaultMutableTreeNode selectedTreeNode = getSelectedTreeNode();
 			BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> selectedBaseTreeNode;
@@ -490,7 +493,7 @@ public class SecretKeyTreeWithContentPanel
 	{
 		MysticCryptEntryTabbedPanel panel = new MysticCryptEntryTabbedPanel(
 			BaseModel.of(tableEntry));
-		int option = JOptionPaneExtensions.getSelectedOption(panel, JOptionPane.INFORMATION_MESSAGE,
+		int option = JOptionPaneExtensions.getSelectedOption(panel, JOptionPane.PLAIN_MESSAGE,
 			JOptionPane.OK_CANCEL_OPTION, null,
 			Messages.getString("dialog.edit.crypt.entry.title", "Edit Crypt Entry"),
 			panel.getMysticCryptEntryPanel().getTxtEntryName());
