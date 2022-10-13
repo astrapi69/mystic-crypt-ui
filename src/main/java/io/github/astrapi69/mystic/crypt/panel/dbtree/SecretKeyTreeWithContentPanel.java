@@ -419,7 +419,7 @@ public class SecretKeyTreeWithContentPanel
 		MysticCryptEntryTabbedPanel panel = new MysticCryptEntryTabbedPanel();
 
 		int option = JOptionPaneExtensions.getSelectedOption(panel, JOptionPane.PLAIN_MESSAGE,
-			JOptionPane.OK_CANCEL_OPTION, null, "New Crypt Entry",
+			JOptionPane.OK_CANCEL_OPTION, this, "New Crypt Entry",
 			panel.getMysticCryptEntryPanel().getTxtEntryName());
 		if (option == JOptionPane.OK_OPTION)
 		{
