@@ -1,6 +1,6 @@
 
 dependencies {
-    izpack("org.codehaus.izpack:izpack-standalone-compiler:$izpackVersion")
+    izpack("org.codehaus.izpack:izpack-ant:$izpackVersion")
     compileOnly("org.projectlombok:lombok:$lombokVersion")
     annotationProcessor("org.projectlombok:lombok:$lombokVersion")
 
