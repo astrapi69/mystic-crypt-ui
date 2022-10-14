@@ -260,6 +260,10 @@ public class MysticCryptApplicationFrame extends ApplicationPanelFrame<Applicati
 		setTitle(Messages.getString("mainframe.title"));
 		setDefaultLookAndFeel(LookAndFeels.NIMBUS, this);
 		this.setSize(ScreenSizeExtensions.getScreenWidth(), ScreenSizeExtensions.getScreenHeight());
+		onEnableMenu();
+	}
+
+	public void onEnableMenu() {
 		DesktopMenu menu = (DesktopMenu)getMenu();
 		if (getModelObject().isSignedIn())
 		{

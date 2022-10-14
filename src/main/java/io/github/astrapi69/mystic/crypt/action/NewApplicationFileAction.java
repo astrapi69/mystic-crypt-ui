@@ -82,7 +82,8 @@ public class NewApplicationFileAction extends AbstractAction
 			IModel<MasterPwFileModelBean> model = BaseModel.of(MasterPwFileModelBean.builder()
 				.applicationFileInfo(FileInfo.toFileInfo(selectedApplicationFile))
 				.selectedApplicationFilePath(selectedApplicationFilePath).minPasswordLength(6)
-				.withKeyFile(false).withMasterPw(false).showMasterPw(false).build());
+				.withKeyFile(false).withMasterPw(false).showMasterPw(false)
+					.build());
 			NewMasterPwFileDialog dialog = new NewMasterPwFileDialog(mysticCryptApplicationFrame,
 				"Create your master key", true, model)
 			{
@@ -93,6 +94,8 @@ public class NewApplicationFileAction extends AbstractAction
 					MasterPwFileModelBean dialogModelObject = this.getModelObject();
 					mysticCryptApplicationFrame.getModelObject()
 						.setMasterPwFileModelBean(dialogModelObject);
+					mysticCryptApplicationFrame.getModelObject().setSignedIn(true);
+					mysticCryptApplicationFrame.onEnableMenu();
 				}
 			};
 			dialog.setSize(840, 520);
