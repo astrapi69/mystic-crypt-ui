@@ -35,7 +35,6 @@ import javax.swing.table.TableColumn;
 
 import lombok.Getter;
 import lombok.NonNull;
-import lombok.SneakyThrows;
 import lombok.extern.java.Log;
 
 import org.apache.commons.codec.DecoderException;
@@ -51,6 +50,7 @@ import io.github.astrapi69.swing.table.GenericJXTable;
 import io.github.astrapi69.swing.table.editor.DeleteRowButtonEditor;
 import io.github.astrapi69.swing.table.editor.TableCellButtonEditor;
 import io.github.astrapi69.swing.table.renderer.TableCellButtonRendererFactory;
+import io.github.astrapi69.throwable.RuntimeExceptionDecorator;
 import io.github.astrapi69.xml.crypto.file.XmlDecryptionExtensions;
 import io.github.astrapi69.xml.crypto.file.XmlEncryptionExtensions;
 
@@ -111,17 +111,16 @@ public class ObfuscationRuleTablePanel extends BasePanel<ObfuscationModelBean>
 	{
 	}
 
-	@SneakyThrows
 	protected void onExport(final ActionEvent actionEvent)
 	{
-
 		final int returnVal = fileChooser.showSaveDialog(ObfuscationRuleTablePanel.this);
 		if (returnVal == JFileChooser.APPROVE_OPTION)
 		{
 			List<KeyValuePair<Character, ObfuscationRule<Character, Character>>> data = getModelObject()
 				.getTableModel().getData();
 			final File selectedFile = fileChooser.getSelectedFile();
-			XmlEncryptionExtensions.writeToFileAsXmlAndHex(aliases, data, selectedFile);
+			RuntimeExceptionDecorator.decorate(
+				() -> XmlEncryptionExtensions.writeToFileAsXmlAndHex(aliases, data, selectedFile));
 		}
 	}
 

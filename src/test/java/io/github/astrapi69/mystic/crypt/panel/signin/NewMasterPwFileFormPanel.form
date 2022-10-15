@@ -16,22 +16,22 @@
   <Layout>
     <DimensionLayout dim="0">
       <Group type="103" groupAlignment="0" attributes="0">
-          <Group type="102" attributes="0">
+          <Group type="102" alignment="0" attributes="0">
               <EmptySpace max="-2" attributes="0"/>
               <Group type="103" groupAlignment="0" attributes="0">
-                  <Group type="102" attributes="0">
+                  <Group type="102" alignment="0" attributes="0">
                       <Group type="103" groupAlignment="0" attributes="0">
-                          <Component id="lblImageHeader" max="32767" attributes="0"/>
-                          <Group type="102" attributes="0">
+                          <Component id="lblImageHeader" alignment="0" max="32767" attributes="0"/>
+                          <Group type="102" alignment="0" attributes="0">
                               <Group type="103" groupAlignment="0" attributes="0">
-                                  <Group type="102" attributes="0">
-                                      <EmptySpace min="8" pref="516" max="32767" attributes="0"/>
+                                  <Group type="102" alignment="0" attributes="0">
+                                      <EmptySpace min="8" pref="524" max="32767" attributes="0"/>
                                       <Component id="btnCreateKeyFile" min="-2" pref="163" max="-2" attributes="0"/>
                                       <EmptySpace type="separate" max="-2" attributes="0"/>
                                       <Component id="btnKeyFileChooser" min="-2" pref="111" max="-2" attributes="0"/>
                                   </Group>
                                   <Group type="102" alignment="1" attributes="0">
-                                      <EmptySpace min="0" pref="212" max="32767" attributes="0"/>
+                                      <EmptySpace min="0" pref="220" max="32767" attributes="0"/>
                                       <Component id="cmbKeyFile" min="-2" pref="596" max="-2" attributes="0"/>
                                   </Group>
                                   <Group type="102" alignment="1" attributes="0">
@@ -39,24 +39,24 @@
                                           <Group type="102" attributes="0">
                                               <EmptySpace min="12" pref="12" max="-2" attributes="0"/>
                                               <Group type="103" groupAlignment="0" attributes="0">
-                                                  <Component id="cbxMasterPw" min="-2" pref="169" max="-2" attributes="0"/>
-                                                  <Component id="lblApplicationFile" min="-2" pref="169" max="-2" attributes="0"/>
+                                                  <Component id="cbxMasterPw" alignment="0" min="-2" pref="169" max="-2" attributes="0"/>
+                                                  <Component id="lblApplicationFile" alignment="0" min="-2" pref="169" max="-2" attributes="0"/>
                                                   <Component id="cbxKeyFile" alignment="0" min="-2" pref="161" max="-2" attributes="0"/>
                                               </Group>
                                           </Group>
-                                          <Component id="lblRepeatPw" alignment="1" min="-2" pref="134" max="-2" attributes="0"/>
+                                          <Component id="lblRepeatPw" alignment="1" min="-2" pref="147" max="-2" attributes="0"/>
                                       </Group>
-                                      <EmptySpace pref="31" max="32767" attributes="0"/>
-                                      <Group type="103" groupAlignment="0" attributes="0">
-                                          <Component id="txtApplicationFile" alignment="1" min="-2" pref="483" max="-2" attributes="0"/>
+                                      <EmptySpace pref="38" max="32767" attributes="0"/>
+                                      <Group type="103" groupAlignment="1" attributes="0">
+                                          <Component id="txtApplicationFile" min="-2" pref="484" max="-2" attributes="0"/>
                                           <Component id="txtMasterPw" alignment="1" min="-2" pref="483" max="-2" attributes="0"/>
                                           <Component id="txtRepeatPw" alignment="1" min="-2" pref="483" max="-2" attributes="0"/>
                                       </Group>
                                       <EmptySpace type="unrelated" max="-2" attributes="0"/>
                                       <Group type="103" groupAlignment="1" max="-2" attributes="0">
-                                          <Component id="btnGeneratePw" pref="101" max="32767" attributes="0"/>
+                                          <Component id="btnGeneratePw" alignment="1" pref="101" max="32767" attributes="0"/>
                                           <Component id="btnMasterPw" alignment="1" max="32767" attributes="0"/>
-                                          <Component id="btnApplicationFileChooser" alignment="1" max="32767" attributes="0"/>
+                                          <Component id="btnApplicationFileChooser" max="32767" attributes="0"/>
                                       </Group>
                                   </Group>
                               </Group>
@@ -110,7 +110,7 @@
                   <Component id="btnKeyFileChooser" alignment="3" min="-2" max="-2" attributes="0"/>
                   <Component id="btnCreateKeyFile" alignment="3" min="-2" max="-2" attributes="0"/>
               </Group>
-              <EmptySpace pref="81" max="32767" attributes="0"/>
+              <EmptySpace pref="73" max="32767" attributes="0"/>
               <Group type="103" groupAlignment="3" attributes="0">
                   <Component id="btnOk" alignment="3" min="-2" max="-2" attributes="0"/>
                   <Component id="btnCancel" alignment="3" min="-2" max="-2" attributes="0"/>

@@ -23,9 +23,8 @@
  * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 /*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
+ * Click nbfs://nbhost/SystemFileSystem/Templates/GUIForms/JPanel.java to edit this template
  */
 package io.github.astrapi69.mystic.crypt.panel.signin;
 
@@ -36,27 +35,8 @@ package io.github.astrapi69.mystic.crypt.panel.signin;
 public class NewMasterPwFileFormPanel extends javax.swing.JPanel
 {
 
-	// Variables declaration - do not modify//GEN-BEGIN:variables
-	private javax.swing.JButton btnApplicationFileChooser;
-	private javax.swing.JButton btnCancel;
-	private javax.swing.JButton btnCreateKeyFile;
-	private javax.swing.JButton btnGeneratePw;
-	private javax.swing.JButton btnHelp;
-	private javax.swing.JButton btnKeyFileChooser;
-	private javax.swing.JButton btnMasterPw;
-	private javax.swing.JButton btnOk;
-	private javax.swing.JCheckBox cbxKeyFile;
-	private javax.swing.JCheckBox cbxMasterPw;
-	private javax.swing.JComboBox<String> cmbKeyFile;
-	private javax.swing.JLabel lblApplicationFile;
-	private javax.swing.JLabel lblImageHeader;
-	private javax.swing.JLabel lblRepeatPw;
-	private javax.swing.JTextField txtApplicationFile;
-	private javax.swing.JPasswordField txtMasterPw;
-	private javax.swing.JPasswordField txtRepeatPw;
-
 	/**
-	 * Creates new form NewMasterPwFileFormPanel
+	 * Creates new form MasterPwWithApplicationFileFormJPanel
 	 */
 	public NewMasterPwFileFormPanel()
 	{
@@ -151,7 +131,7 @@ public class NewMasterPwFileFormPanel extends javax.swing.JPanel
 											.createParallelGroup(
 												javax.swing.GroupLayout.Alignment.LEADING)
 											.addGroup(
-												layout.createSequentialGroup().addGap(8, 516,
+												layout.createSequentialGroup().addGap(8, 524,
 													Short.MAX_VALUE).addComponent(btnCreateKeyFile,
 														javax.swing.GroupLayout.PREFERRED_SIZE, 163,
 														javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -161,7 +141,7 @@ public class NewMasterPwFileFormPanel extends javax.swing.JPanel
 														javax.swing.GroupLayout.PREFERRED_SIZE))
 											.addGroup(javax.swing.GroupLayout.Alignment.TRAILING,
 												layout
-													.createSequentialGroup().addGap(0, 212,
+													.createSequentialGroup().addGap(0, 220,
 														Short.MAX_VALUE)
 													.addComponent(cmbKeyFile,
 														javax.swing.GroupLayout.PREFERRED_SIZE, 596,
@@ -189,26 +169,23 @@ public class NewMasterPwFileFormPanel extends javax.swing.JPanel
 													.addComponent(
 														lblRepeatPw,
 														javax.swing.GroupLayout.Alignment.TRAILING,
-														javax.swing.GroupLayout.PREFERRED_SIZE, 134,
+														javax.swing.GroupLayout.PREFERRED_SIZE, 147,
 														javax.swing.GroupLayout.PREFERRED_SIZE))
 													.addPreferredGap(
 														javax.swing.LayoutStyle.ComponentPlacement.RELATED,
-														31, Short.MAX_VALUE)
+														38, Short.MAX_VALUE)
 													.addGroup(layout.createParallelGroup(
-														javax.swing.GroupLayout.Alignment.LEADING)
+														javax.swing.GroupLayout.Alignment.TRAILING)
 														.addComponent(txtApplicationFile,
-															javax.swing.GroupLayout.Alignment.TRAILING,
 															javax.swing.GroupLayout.PREFERRED_SIZE,
-															483,
+															484,
 															javax.swing.GroupLayout.PREFERRED_SIZE)
 														.addComponent(txtMasterPw,
-															javax.swing.GroupLayout.Alignment.TRAILING,
 															javax.swing.GroupLayout.PREFERRED_SIZE,
 															483,
 															javax.swing.GroupLayout.PREFERRED_SIZE)
 														.addComponent(
 															txtRepeatPw,
-															javax.swing.GroupLayout.Alignment.TRAILING,
 															javax.swing.GroupLayout.PREFERRED_SIZE,
 															483,
 															javax.swing.GroupLayout.PREFERRED_SIZE))
@@ -278,7 +255,7 @@ public class NewMasterPwFileFormPanel extends javax.swing.JPanel
 					.addGap(18, 18, 18)
 					.addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
 						.addComponent(btnKeyFileChooser).addComponent(btnCreateKeyFile))
-					.addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 81,
+					.addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 73,
 						Short.MAX_VALUE)
 					.addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
 						.addComponent(btnOk).addComponent(btnCancel).addComponent(btnHelp))
@@ -289,5 +266,25 @@ public class NewMasterPwFileFormPanel extends javax.swing.JPanel
 	{// GEN-FIRST:event_cbxMasterPwActionPerformed
 		// TODO add your handling code here:
 	}// GEN-LAST:event_cbxMasterPwActionPerformed
-		// End of variables declaration//GEN-END:variables
+
+
+	// Variables declaration - do not modify//GEN-BEGIN:variables
+	private javax.swing.JButton btnApplicationFileChooser;
+	private javax.swing.JButton btnCancel;
+	private javax.swing.JButton btnCreateKeyFile;
+	private javax.swing.JButton btnGeneratePw;
+	private javax.swing.JButton btnHelp;
+	private javax.swing.JButton btnKeyFileChooser;
+	private javax.swing.JButton btnMasterPw;
+	private javax.swing.JButton btnOk;
+	private javax.swing.JCheckBox cbxKeyFile;
+	private javax.swing.JCheckBox cbxMasterPw;
+	private javax.swing.JComboBox<String> cmbKeyFile;
+	private javax.swing.JLabel lblApplicationFile;
+	private javax.swing.JLabel lblImageHeader;
+	private javax.swing.JLabel lblRepeatPw;
+	private javax.swing.JTextField txtApplicationFile;
+	private javax.swing.JPasswordField txtMasterPw;
+	private javax.swing.JPasswordField txtRepeatPw;
+	// End of variables declaration//GEN-END:variables
 }

@@ -1,14 +1,14 @@
 [![Java CI with Gradle](https://github.com/astrapi69/mystic-crypt-ui/workflows/Java%20CI%20with%20Gradle/badge.svg)](https://github.com/astrapi69/mystic-crypt-ui/actions/workflows/gradle.yml)
 # Overview
 
-This swing application provides public and private key creation and obfuscate strings. The initial intention was to show the features of the library [mystic-crypt](https://github.com/astrapi69/mystic-crypt).
+This swing application provides the following features:
 
-# Features
-
+ * Save passwords with file attachments in a tree manner
+ * check the checksum of downloaded files with the most common algorithms
  * Creation of private and public keys with 1024, 2048 and 4096 bit length
  * Save the created private and public keys
  * Obfuscate text with specified map that can be exported and imported
- * Entries in the an existing obfuscation map can be edited, deleted and new entries can be added
+ * Entries in the existing obfuscation map can be edited, deleted and new entries can be added
 
 # Install
 
@@ -41,16 +41,7 @@ Here is the installer tool that is used for deploy the final application.
 
 * [izpack](http://izpack.org/) IzPack is a widely used tool for packaging applications on the Java™ platform.
 
-# Create the izpack installer
-
-For create the installer with izpack you have to execute first the build and then izpack task in the build.gradle file. For intellij users
-i have created a run configuration for it. After the execution the installer is created in the path
-```/build/distributions/mystic-crypt-ui-current-version-installer.jar```
-For detailed information see the izpack task in the build.gradle file or go direct to the
-[gradle plugin page](https://github.com/bmuschko/gradle-izpack-plugin)
-
-Note:
-*current-version* is the current version of the project.
+For more information about how to create the izpack installer see the [wiki izpack section](https://github.com/astrapi69/mystic-crypt-ui/wiki/How-to-create-izpack-installer-with-gradle)
 
 ## License
 

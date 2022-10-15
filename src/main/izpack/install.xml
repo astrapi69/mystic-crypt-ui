@@ -1,5 +1,7 @@
-<installation version="1.0">
-
+<izpack:installation version="5.0"
+					 xmlns:izpack="http://izpack.org/schema/installation"
+					 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+					 xsi:schemaLocation="http://izpack.org/schema/installation http://izpack.org/schema/5.0/izpack-installation-5.0.xsd">
 	<variables>
 		<variable name="appGroup" value="@{app.group}"/>
 		<variable name="appTitle" value="@{app.title}"/>
@@ -14,8 +16,8 @@
 	<info>
 		<javaversion>1.8</javaversion>
 		<appname>mystic-crypt-ui</appname>
-		<appsubpath>apps/mystic-crypt-ui</appsubpath>
-		<appversion>2.0</appversion>
+		<appsubpath>app/mystic-crypt-ui</appsubpath>
+		<appversion>6.1</appversion>
 		<authors>
 			<author name="Asterios Raptis" email="asterios.raptis@gmx.net" />
 		</authors>
@@ -65,8 +67,9 @@
 			<file src="../README.md" targetdir="${INSTALL_PATH}" />
 			<file src="resources/main/doc/@{app.name}.desktop" targetdir="${INSTALL_PATH}" />
 			<file src="resources/main/doc/start.sh" targetdir="${INSTALL_PATH}" />
+			<file src="resources/main/doc/start.bat" targetdir="${INSTALL_PATH}" />
 			<file src="resources/main/img/icon.png" targetdir="${INSTALL_PATH}/img" />
 		</pack>
 	</packs>
 
-</installation>
+</izpack:installation>

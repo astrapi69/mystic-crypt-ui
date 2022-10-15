@@ -24,11 +24,19 @@
  */
 package io.github.astrapi69.mystic.crypt.panel.dbtree;
 
+import java.awt.Component;
+import java.awt.Container;
+import java.awt.event.ActionEvent;
+
 import javax.swing.GroupLayout;
 import javax.swing.JLabel;
 import javax.swing.JScrollPane;
 
 import lombok.Getter;
+
+import com.github.lgooddatepicker.components.CalendarPanel;
+import com.github.lgooddatepicker.components.DatePicker;
+
 import io.github.astrapi69.model.BaseModel;
 import io.github.astrapi69.model.LambdaModel;
 import io.github.astrapi69.model.api.IModel;
@@ -37,6 +45,7 @@ import io.github.astrapi69.swing.component.JMCheckBox;
 import io.github.astrapi69.swing.component.JMPasswordField;
 import io.github.astrapi69.swing.component.JMTextArea;
 import io.github.astrapi69.swing.component.JMTextField;
+import io.github.astrapi69.swing.component.ComponentExtensions;
 
 @Getter
 public class MysticCryptEntryPanel extends BasePanel<MysticCryptEntryModelBean>
@@ -58,8 +67,7 @@ public class MysticCryptEntryPanel extends BasePanel<MysticCryptEntryModelBean>
 	private JMTextField txtUsername;
 
 	private JMCheckBox cbxExpirable;
-	private JMTextField txtExpires;
-
+	private CalendarPanel txtExpires;
 
 	public MysticCryptEntryPanel()
 	{
@@ -92,7 +100,7 @@ public class MysticCryptEntryPanel extends BasePanel<MysticCryptEntryModelBean>
 		txtNotes = new JMTextArea();
 
 		cbxExpirable = new JMCheckBox();
-		txtExpires = new JMTextField();
+		txtExpires = new CalendarPanel(new DatePicker());
 
 		MysticCryptEntryModelBean modelObject = getModelObject();
 		// bind with model
@@ -128,7 +136,19 @@ public class MysticCryptEntryPanel extends BasePanel<MysticCryptEntryModelBean>
 
 		cbxExpirable
 			.setPropertyModel(LambdaModel.of(modelObject::isExpirable, modelObject::setExpirable));
-		txtExpires.setEnabled(getModelObject().isExpirable());
+
+		cbxExpirable.addActionListener(this::onChangeExpirable);
+
+		if (getModelObject().isExpirable() && getModelObject().getExpires() != null)
+		{
+			txtExpires.setSelectedDate(getModelObject().getExpires());
+		}
+		ComponentExtensions.setComponentEnabled(txtExpires, getModelObject().isExpirable());
+	}
+
+	protected void onChangeExpirable(final ActionEvent actionEvent)
+	{
+		ComponentExtensions.setComponentEnabled(txtExpires, getModelObject().isExpirable());
 	}
 
 	@Override

@@ -43,11 +43,12 @@ import javax.swing.JMenuItem;
 import javax.swing.KeyStroke;
 import javax.swing.MenuElement;
 
+import io.github.astrapi69.lang.ClassExtensions;
 import io.github.astrapi69.model.enumtype.visibity.RenderMode;
+import io.github.astrapi69.mystic.crypt.action.NewFileConversionInternalFrameAction;
+import io.github.astrapi69.swing.menu.KeyStrokeExtensions;
 import lombok.NonNull;
 import lombok.extern.java.Log;
-
-import org.springframework.core.io.Resource;
 
 import io.github.astrapi69.collection.set.SetFactory;
 import io.github.astrapi69.design.pattern.observer.event.EventListener;
@@ -96,14 +97,38 @@ public class DesktopMenu extends BaseDesktopMenu implements EventListener<EventO
 	protected JMenu newEditMenu()
 	{
 		// @formatter:on
-		final JMenu editMenu = JMenuItemInfo.builder().text("Edit")
+		final JMenu editMenu = JMenuItemInfo.builder()
+			.text(Messages.getString(BaseMenuId.EDIT.propertiesKey()))
 			.mnemonic(MenuExtensions.toMnemonic('E')).name(BaseMenuId.EDIT.propertiesKey()).build()
 			.toJMenu();
-		JMenuItem verifyChecksum = JMenuItemInfo.builder().text("Verify checksum")
+		JMenuItem verifyChecksum = JMenuItemInfo.builder()
+			.text(Messages.getString(MenuId.VERIFY_CHECKSUM.propertiesKey()))
 			.mnemonic(MenuExtensions.toMnemonic('V'))
 			.keyStroke(KeyStroke.getKeyStroke(KeyEvent.VK_F3, InputEvent.ALT_DOWN_MASK))
 			.actionListener(new NewChecksumFrameAction("ChecksumVerifier"))
 			.name(MenuId.VERIFY_CHECKSUM.propertiesKey()).build().toJMenuItem();
+
+		final JMenu viewModeMenu = JMenuItemInfo.builder()
+			.text(Messages.getString(MenuId.VIEW_MODE.propertiesKey()))
+			.mnemonic(MenuExtensions.toMnemonic('W')).name(MenuId.VIEW_MODE.propertiesKey()).build()
+			.toJMenu();
+		editMenu.add(viewModeMenu);
+		JMenuItem switchDesktopMode = JMenuItemInfo.builder()
+			.text(Messages.getString(MenuId.VIEW_DESKTOP_MODE.propertiesKey()))
+			.mnemonic(MenuExtensions.toMnemonic('M'))
+			.keyStroke(KeyStroke.getKeyStroke(KeyEvent.VK_F6, InputEvent.ALT_DOWN_MASK))
+			.actionListener(event -> {
+				MysticCryptApplicationFrame.getInstance().switchToDesktopPane();
+			}).name(MenuId.VIEW_DESKTOP_MODE.propertiesKey()).build().toJMenuItem();
+		viewModeMenu.add(switchDesktopMode);
+		JMenuItem switchPanelMode = JMenuItemInfo.builder()
+			.text(Messages.getString(MenuId.VIEW_PANEL_MODE.propertiesKey()))
+			.mnemonic(MenuExtensions.toMnemonic('Q'))
+			.keyStroke(KeyStroke.getKeyStroke(KeyEvent.VK_F7, InputEvent.ALT_DOWN_MASK))
+			.actionListener(event -> {
+				MysticCryptApplicationFrame.getInstance().switchToApplicationPanel();
+			}).name(MenuId.VIEW_PANEL_MODE.propertiesKey()).build().toJMenuItem();
+		viewModeMenu.add(switchPanelMode);
 		// @formatter:off
 		editMenu.add(verifyChecksum);
 		return editMenu;
@@ -122,22 +147,23 @@ public class DesktopMenu extends BaseDesktopMenu implements EventListener<EventO
 		final JMenu fileMenu = JMenuItemInfo.builder().text("File")
 			.mnemonic(MenuExtensions.toMnemonic('F')).name(BaseMenuId.FILE.propertiesKey()).build()
 			.toJMenu();
+		// Open Database
+
+		JMenuItem openDatabaseMenuItem = JMenuItemInfo.builder().text("Open Database")
+			.mnemonic(MenuExtensions.toMnemonic('D'))
+			.keyStroke(KeyStrokeExtensions.getKeyStroke("ctrl pressed D"))
+			.actionListener(new OpenDatabaseTreeFrameAction("Open Database"))
+			.name(MenuId.OPEN_DATABASE.propertiesKey()).build().toJMenuItem();
+		fileMenu.add(openDatabaseMenuItem);
 
 		// Save application file
 		JMenuItem saveApplicationFileMenuItem = JMenuItemInfo.builder().text("Save")
 			.mnemonic(MenuExtensions.toMnemonic('S'))
-			.keyStroke(KeyStroke.getKeyStroke('S', Event.CTRL_MASK))
+			.keyStroke(KeyStrokeExtensions.getKeyStroke("ctrl pressed S"))
 			.actionListener(new SaveApplicationFileAction("Save"))
 			.name(MenuId.SAVE_APPLICATION_FILE.propertiesKey()).build().toJMenuItem();
 		fileMenu.add(saveApplicationFileMenuItem);
 
-		// Open Database
-		JMenuItem openDatabaseMenuItem = JMenuItemInfo.builder().text("Open Database")
-			.mnemonic(MenuExtensions.toMnemonic('D'))
-			.keyStroke(KeyStroke.getKeyStroke('D', Event.CTRL_MASK))
-			.actionListener(new OpenDatabaseTreeFrameAction("Open Database"))
-			.name(MenuId.OPEN_DATABASE.propertiesKey()).build().toJMenuItem();
-		fileMenu.add(openDatabaseMenuItem);
 		// @formatter:off
 		// Main secret key menu
 		// @formatter:on
@@ -150,14 +176,14 @@ public class DesktopMenu extends BaseDesktopMenu implements EventListener<EventO
 		// New key generation
 		JMenuItem newSecretKeyJMenuItem = JMenuItemInfo.builder().text("New key generation")
 			.mnemonic(MenuExtensions.toMnemonic('K'))
-			.keyStroke(KeyStroke.getKeyStroke('K', Event.CTRL_MASK))
+			.keyStroke(KeyStrokeExtensions.getKeyStroke("ctrl pressed K"))
 			.actionListener(new NewKeyGenerationInternalFrameAction("New key generation"))
 			.name(MenuId.SECRET_KEY_NEW.propertiesKey()).build().toJMenuItem();
 		keyMenu.add(newSecretKeyJMenuItem);
 		// Open private key
 		JMenuItem openPrivateKeyMenuItem = JMenuItemInfo.builder().text("Open private key")
-			.mnemonic(MenuExtensions.toMnemonic('e'))
-			.keyStroke(KeyStroke.getKeyStroke('e', Event.CTRL_MASK))
+			.mnemonic(MenuExtensions.toMnemonic('P'))
+			.keyStroke(KeyStrokeExtensions.getKeyStroke("ctrl pressed P"))
 			.actionListener(new OpenPrivateKeyAction("Open private key", getApplicationFrame()))
 			.name(MenuId.OPEN_PRIVATE_KEY.propertiesKey()).build().toJMenuItem();
 		keyMenu.add(openPrivateKeyMenuItem);
@@ -172,7 +198,7 @@ public class DesktopMenu extends BaseDesktopMenu implements EventListener<EventO
 		// New simple obfuscation
 		JMenuItem simpleObfuscationMenuItem = JMenuItemInfo.builder().text("Simple obfuscation")
 			.mnemonic(MenuExtensions.toMnemonic('Y'))
-			.keyStroke(KeyStroke.getKeyStroke('Y', Event.CTRL_MASK))
+			.keyStroke(KeyStrokeExtensions.getKeyStroke("ctrl pressed Y"))
 			.actionListener(new NewObfuscationInternalFrameAction("Simple Obfuscation"))
 			.name(MenuId.SIMPLE_OBFUSCATION.propertiesKey()).build().toJMenuItem();
 
@@ -180,7 +206,7 @@ public class DesktopMenu extends BaseDesktopMenu implements EventListener<EventO
 		// New operated obfuscation
 		JMenuItem operatedObfuscationMenuItem = JMenuItemInfo.builder().text("Operated obfuscation")
 			.mnemonic(MenuExtensions.toMnemonic('N'))
-			.keyStroke(KeyStroke.getKeyStroke('N', Event.CTRL_MASK))
+			.keyStroke(KeyStrokeExtensions.getKeyStroke("ctrl pressed N"))
 			.actionListener(new NewObfuscationInternalFrameAction("Operated Obfuscation"))
 			.name(MenuId.OPERATED_OBFUSCATION.propertiesKey()).build().toJMenuItem();
 		obfuscationMenu.add(operatedObfuscationMenuItem);
@@ -190,9 +216,9 @@ public class DesktopMenu extends BaseDesktopMenu implements EventListener<EventO
 		// Convert der to pem file
 		JMenuItem convertMenuItem = JMenuItemInfo.builder().text("Convert...")
 			.mnemonic(MenuExtensions.toMnemonic('C'))
-			.keyStroke(KeyStroke.getKeyStroke('C', Event.CTRL_MASK))
+			.keyStroke(KeyStrokeExtensions.getKeyStroke("ctrl pressed C"))
 			.actionListener(
-				new NewObfuscationInternalFrameAction("Convert *.der-file to *.pem-file"))
+				new NewFileConversionInternalFrameAction("Convert *.der-file to *.pem-file"))
 			.name(MenuId.CONVERT.propertiesKey()).build().toJMenuItem();
 		convertMenuItem.setEnabled(true);
 		fileMenu.add(convertMenuItem);
@@ -200,7 +226,7 @@ public class DesktopMenu extends BaseDesktopMenu implements EventListener<EventO
 		// Fullscreen
 		JMenuItem toggleFullscreenMenuItem = JMenuItemInfo.builder().text("Toggle Fullscreen")
 			.mnemonic(MenuExtensions.toMnemonic('T'))
-			.keyStroke(KeyStroke.getKeyStroke(KeyEvent.VK_F11, InputEvent.ALT_DOWN_MASK))
+			.keyStroke(KeyStrokeExtensions.getKeyStroke("alt pressed F11"))
 			.actionListener(new ApplicationToggleFullScreenAction("Fullscreen",
 				MysticCryptApplicationFrame.getInstance()))
 			.name(BaseMenuId.TOGGLE_FULLSCREEN.propertiesKey()).build().toJMenuItem();
@@ -209,7 +235,7 @@ public class DesktopMenu extends BaseDesktopMenu implements EventListener<EventO
 		// Console
 		JMenuItem consoleMenuItem = JMenuItemInfo.builder().text("Console")
 			.mnemonic(MenuExtensions.toMnemonic('L'))
-			.keyStroke(KeyStroke.getKeyStroke('L', InputEvent.ALT_DOWN_MASK))
+			.keyStroke(KeyStrokeExtensions.getKeyStroke("alt pressed L"))
 			.actionListener(new OpenConsoleFrameAction("Console"))
 			.name(MenuId.CONSOLE.propertiesKey()).build().toJMenuItem();
 		fileMenu.add(consoleMenuItem);
@@ -217,7 +243,7 @@ public class DesktopMenu extends BaseDesktopMenu implements EventListener<EventO
 		// Exit
 		JMenuItem exitMenuItem = JMenuItemInfo.builder().text("Exit")
 			.mnemonic(MenuExtensions.toMnemonic('E'))
-			.keyStroke(KeyStroke.getKeyStroke(KeyEvent.VK_F4, InputEvent.ALT_DOWN_MASK))
+			.keyStroke(KeyStrokeExtensions.getKeyStroke("alt pressed F4"))
 			.actionListener(new ExitApplicationAction("Exit")).name(BaseMenuId.EXIT.propertiesKey())
 			.build().toJMenuItem();
 		fileMenu.add(exitMenuItem);
@@ -335,10 +361,8 @@ public class DesktopMenu extends BaseDesktopMenu implements EventListener<EventO
 	@Override
 	protected String onNewLicenseText()
 	{
-		final Resource resource = SpringBootSwingApplication.ctx
-			.getResource("classpath:LICENSE.txt");
 		final StringBuilder license = new StringBuilder();
-		try (InputStream is = resource.getInputStream())
+		try (InputStream is = ClassExtensions.getResourceAsStream("LICENSE.txt"))
 		{
 			String thisLine;
 			final BufferedReader br = new BufferedReader(new InputStreamReader(is));

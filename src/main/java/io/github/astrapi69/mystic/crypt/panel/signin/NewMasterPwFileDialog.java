@@ -50,15 +50,25 @@ public class NewMasterPwFileDialog extends PanelDialog<MasterPwFileModelBean>
 			protected void onOk(ActionEvent actionEvent)
 			{
 				super.onOk(actionEvent);
-				NewMasterPwFileDialog.this.dispose();
+				NewMasterPwFileDialog.this.onOk(actionEvent);
 			}
 
 			@Override
 			protected void onCancel(ActionEvent actionEvent)
 			{
 				super.onCancel(actionEvent);
-				NewMasterPwFileDialog.this.dispose();
+				NewMasterPwFileDialog.this.onCancel(actionEvent);
 			}
 		};
+	}
+
+	protected void onOk(ActionEvent actionEvent)
+	{
+		NewMasterPwFileDialog.this.dispose();
+	}
+
+	protected void onCancel(ActionEvent actionEvent)
+	{
+		NewMasterPwFileDialog.this.dispose();
 	}
 }

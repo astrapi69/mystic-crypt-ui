@@ -26,10 +26,11 @@ import javax.swing.AbstractAction;
 import javax.swing.JInternalFrame;
 
 import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
+import io.github.astrapi69.mystic.crypt.enumtype.FrameMode;
+import io.github.astrapi69.mystic.crypt.util.InternalFrameExtensions;
 import io.github.astrapi69.swing.component.factory.JComponentFactory;
 import io.github.astrapi69.swing.layout.ScreenSizeExtensions;
 import io.github.astrapi69.swing.panel.output.ConsolePanel;
-import io.github.astrapi69.swing.utils.JInternalFrameExtensions;
 
 /**
  * The class {@link OpenConsoleFrameAction}.
@@ -57,21 +58,21 @@ public class OpenConsoleFrameAction extends AbstractAction
 	@Override
 	public void actionPerformed(final ActionEvent e)
 	{
+		MysticCryptApplicationFrame instance = MysticCryptApplicationFrame.getInstance();
+		if (!FrameMode.DESKTOP_PANE.equals(instance.getFrameMode()))
+		{
+			instance.switchToDesktopPane();
+		}
 		// create internal frame
-		final JInternalFrame consoleInternalFrame = JComponentFactory.newInternalFrame("Console",
-			true, true, true, true);
-		ConsolePanel consolePanel = new ConsolePanel();
-		int screenHeight = ScreenSizeExtensions
-			.getScreenHeight(MysticCryptApplicationFrame.getInstance());
-		int screenWidth = ScreenSizeExtensions
-			.getScreenWidth(MysticCryptApplicationFrame.getInstance());
-		JInternalFrameExtensions.addComponentToFrame(consoleInternalFrame, consolePanel);
-		JInternalFrameExtensions.addJInternalFrame(
-			MysticCryptApplicationFrame.getInstance().getMainComponent(), consoleInternalFrame);
-		consoleInternalFrame.setSize(screenWidth, (screenHeight / 4));
-		consoleInternalFrame.setLocation(0, (screenHeight / 4) * 3);
-		consoleInternalFrame.setResizable(false);
-		consoleInternalFrame.putClientProperty("dragMode", "fixed");
+		final JInternalFrame internalFrame = JComponentFactory.newInternalFrame("Console", true,
+			true, true, true);
+		ConsolePanel component = new ConsolePanel();
+		int screenHeight = ScreenSizeExtensions.getScreenHeight(instance);
+		int screenWidth = ScreenSizeExtensions.getScreenWidth(instance);
+		internalFrame.setSize(screenWidth, (screenHeight / 4));
+		internalFrame.setLocation(0, (screenHeight / 4) * 3);
+		internalFrame.setResizable(false);
+		internalFrame.putClientProperty("dragMode", "fixed");
+		InternalFrameExtensions.addInternalFrameToMainFrame(component, internalFrame, instance);
 	}
-
 }

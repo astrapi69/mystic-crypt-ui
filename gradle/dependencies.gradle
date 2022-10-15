@@ -1,6 +1,6 @@
 
 dependencies {
-    izpack("org.codehaus.izpack:izpack-standalone-compiler:$izpackVersion")
+    izpack("org.codehaus.izpack:izpack-ant:$izpackVersion")
     compileOnly("org.projectlombok:lombok:$lombokVersion")
     annotationProcessor("org.projectlombok:lombok:$lombokVersion")
 
@@ -61,11 +61,17 @@ dependencies {
     implementation("com.google.code.gson:gson:$gsonVersion")
     implementation("io.github.astrapi69:xstream-extensions:$xstreamExtensionsVersion")
     implementation("io.github.astrapi69:resourcebundle-core:$resourcebundleCoreVersion")
+    implementation("io.github.astrapi69:resource-viewmodels:$resourceViewmodelVersion")
+    implementation("com.github.lgooddatepicker:LGoodDatePicker:11.2.1")
+
+
 
     implementation("io.github.astrapi69:json-extensions:$jsonExtensionsVersion")
     implementation("org.springframework.boot:spring-boot-starter-integration")
     implementation("org.springframework.boot:spring-boot-starter-validation")
     annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
     testImplementation("org.springframework.boot:spring-boot-starter-test")
+    testImplementation("org.assertj:assertj-swing:$assertjSwingVersion")
+    testImplementation("io.github.astrapi69:junit-jupiter-extensions:$junitJupiterExtensionsVersion")
     testImplementation("io.github.astrapi69:test-object:$testObjectVersion")
 }

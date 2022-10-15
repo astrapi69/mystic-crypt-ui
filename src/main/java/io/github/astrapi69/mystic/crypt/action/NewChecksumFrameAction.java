@@ -26,9 +26,10 @@ import javax.swing.AbstractAction;
 import javax.swing.JInternalFrame;
 
 import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
+import io.github.astrapi69.mystic.crypt.enumtype.FrameMode;
 import io.github.astrapi69.mystic.crypt.panel.checksum.ChecksumPanel;
+import io.github.astrapi69.mystic.crypt.util.InternalFrameExtensions;
 import io.github.astrapi69.swing.component.factory.JComponentFactory;
-import io.github.astrapi69.swing.utils.JInternalFrameExtensions;
 
 /**
  * The class {@link NewChecksumFrameAction}.
@@ -56,14 +57,17 @@ public class NewChecksumFrameAction extends AbstractAction
 	@Override
 	public void actionPerformed(final ActionEvent e)
 	{
+		MysticCryptApplicationFrame instance = MysticCryptApplicationFrame.getInstance();
+		if (!FrameMode.DESKTOP_PANE.equals(instance.getFrameMode()))
+		{
+			instance.switchToDesktopPane();
+		}
 		// create internal frame
 		final JInternalFrame internalFrame = JComponentFactory.newInternalFrame("Verify checksum",
 			true, true, true, true);
 		final ChecksumPanel component = new ChecksumPanel();
-		JInternalFrameExtensions.addComponentToFrame(internalFrame, component);
-
-		JInternalFrameExtensions.addJInternalFrame(
-			MysticCryptApplicationFrame.getInstance().getMainComponent(), internalFrame);
+		InternalFrameExtensions.addInternalFrameToMainFrame(component, internalFrame,
+			MysticCryptApplicationFrame.getInstance());
 	}
 
 }

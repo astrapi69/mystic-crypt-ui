@@ -1,6 +1,19 @@
 ## Change log
 ----------------------
 
+Version 6.1
+-------------
+
+ADDED:
+
+- new tab in the mystic crypt entry for adding file attachments
+
+CHANGED:
+
+- update of izpack version from 4.x to new 5.x
+- update of dependency spring-boot to new version 2.7.4
+- update of io.spring.gradle:dependency-management-plugin to new version 1.0.14.RELEASE
+
 Version 6
 -------------
 

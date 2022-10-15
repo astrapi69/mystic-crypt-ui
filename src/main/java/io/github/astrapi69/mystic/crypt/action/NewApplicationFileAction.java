@@ -37,6 +37,7 @@ import io.github.astrapi69.model.BaseModel;
 import io.github.astrapi69.model.api.IModel;
 import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
 import io.github.astrapi69.mystic.crypt.panel.signin.MasterPwFileModelBean;
+import io.github.astrapi69.mystic.crypt.panel.signin.MasterPwWithApplicationFilePanel;
 import io.github.astrapi69.mystic.crypt.panel.signin.NewMasterPwFileDialog;
 import io.github.astrapi69.swing.filechooser.JFileChooserExtensions;
 import io.github.astrapi69.throwable.RuntimeExceptionDecorator;
@@ -83,13 +84,21 @@ public class NewApplicationFileAction extends AbstractAction
 				.selectedApplicationFilePath(selectedApplicationFilePath).minPasswordLength(6)
 				.withKeyFile(false).withMasterPw(false).showMasterPw(false).build());
 			NewMasterPwFileDialog dialog = new NewMasterPwFileDialog(mysticCryptApplicationFrame,
-				"Create your master key", true, model);
+				"Create your master key", true, model)
+			{
+				@Override
+				protected void onOk(ActionEvent actionEvent)
+				{
+					super.onOk(actionEvent);
+					MasterPwFileModelBean dialogModelObject = this.getModelObject();
+					mysticCryptApplicationFrame.getModelObject()
+						.setMasterPwFileModelBean(dialogModelObject);
+					mysticCryptApplicationFrame.getModelObject().setSignedIn(true);
+					mysticCryptApplicationFrame.onEnableMenu();
+				}
+			};
 			dialog.setSize(840, 520);
 			dialog.setVisible(true);
-		}
-		else if (returnVal == JFileChooser.CANCEL_OPTION)
-		{
-			mysticCryptApplicationFrame.getModelObject().setSignedIn(false);
 		}
 	}
 }

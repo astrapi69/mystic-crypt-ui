@@ -33,14 +33,20 @@ import javax.swing.JCheckBox;
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 import javax.swing.event.DocumentEvent;
+import javax.swing.filechooser.FileNameExtensionFilter;
 
-import io.github.astrapi69.mystic.crypt.app.file.xml.ApplicationXmlFileReader;
+import io.github.astrapi69.mystic.crypt.panel.signin.button.state.ok.BtnOkComponentStateEnum;
+import io.github.astrapi69.mystic.crypt.panel.signin.button.state.ok.BtnOkStateMachine;
+import io.github.astrapi69.mystic.crypt.panel.signin.button.state.ok.DocumentExtensions;
+import lombok.AccessLevel;
 import lombok.Getter;
+import lombok.experimental.FieldDefaults;
 import lombok.extern.java.Log;
 
 import org.apache.commons.lang3.StringUtils;
 
 import io.github.astrapi69.browser.BrowserControlExtensions;
+import io.github.astrapi69.file.create.FileFactory;
 import io.github.astrapi69.file.create.FileInfo;
 import io.github.astrapi69.gson.ObjectToJsonFileExtensions;
 import io.github.astrapi69.model.BaseModel;
@@ -48,11 +54,13 @@ import io.github.astrapi69.model.LambdaModel;
 import io.github.astrapi69.model.api.IModel;
 import io.github.astrapi69.mystic.crypt.ApplicationModelBean;
 import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
+import io.github.astrapi69.mystic.crypt.app.file.xml.ApplicationXmlFileReader;
 import io.github.astrapi69.net.url.URLExtensions;
 import io.github.astrapi69.swing.base.BasePanel;
-import io.github.astrapi69.swing.combobox.model.StringMutableComboBoxModel;
+import io.github.astrapi69.swing.combobox.model.GenericMutableComboBoxModel;
 import io.github.astrapi69.swing.component.JMCheckBox;
 import io.github.astrapi69.swing.dialog.help.HelpDialog;
+import io.github.astrapi69.swing.filechooser.JFileChooserExtensions;
 import io.github.astrapi69.swing.listener.document.DocumentListenerAdapter;
 import io.github.astrapi69.swing.panel.help.HelpModelBean;
 import io.github.astrapi69.throwable.RuntimeExceptionDecorator;
@@ -60,20 +68,20 @@ import io.github.astrapi69.throwable.RuntimeExceptionDecorator;
 /**
  * The class {@link MasterPwFilePanel}
  */
-@Getter
 @Log
+@Getter
+@FieldDefaults(level = AccessLevel.PRIVATE)
 public class MasterPwWithApplicationFilePanel extends BasePanel<MasterPwFileModelBean>
 {
 
 	private static final long serialVersionUID = 1L;
-	BtnOkStateMachine btnOkStateMachine;
-	StringMutableComboBoxModel cmbKeyFileModel;
-	StringMutableComboBoxModel cmbApplicationFileModel;
 	private javax.swing.JButton btnApplicationFileChooser;
 	private javax.swing.JButton btnCancel;
 	private javax.swing.JButton btnHelp;
 	private javax.swing.JButton btnKeyFileChooser;
 	private javax.swing.JButton btnMasterPw;
+
+	private javax.swing.JButton btnNewApplicationFile;
 	private javax.swing.JButton btnOk;
 	private javax.swing.JCheckBox cbxKeyFile;
 	private javax.swing.JCheckBox cbxMasterPw;
@@ -86,6 +94,9 @@ public class MasterPwWithApplicationFilePanel extends BasePanel<MasterPwFileMode
 	// ===
 	// ===
 	private JFileChooser fileChooser;
+	BtnOkStateMachine btnOkStateMachine;
+	GenericMutableComboBoxModel<String> cmbKeyFileModel;
+	GenericMutableComboBoxModel<String> cmbApplicationFileModel;
 
 	/**
 	 * Instantiates a new {@link MasterPwWithApplicationFilePanel}
@@ -126,8 +137,9 @@ public class MasterPwWithApplicationFilePanel extends BasePanel<MasterPwFileMode
 		btnApplicationFileChooser = new javax.swing.JButton();
 		cmbKeyFile = new javax.swing.JComboBox<>();
 		cmbApplicationFile = new javax.swing.JComboBox<>();
+		btnNewApplicationFile = new javax.swing.JButton();
 
-		setPreferredSize(new java.awt.Dimension(880, 360));
+		setPreferredSize(new java.awt.Dimension(920, 380));
 
 		lblImageHeader.setText("Enter Master Key");
 
@@ -157,6 +169,7 @@ public class MasterPwWithApplicationFilePanel extends BasePanel<MasterPwFileMode
 		cmbApplicationFile.setModel(new javax.swing.DefaultComboBoxModel<>(
 			new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }));
 
+		btnNewApplicationFile.setText("New...");
 		// ===
 		// ===
 		// ===
@@ -200,7 +213,7 @@ public class MasterPwWithApplicationFilePanel extends BasePanel<MasterPwFileMode
 		fileChooser = new JFileChooser(configDir);
 		String selectedKeyFilePath = modelObject.getSelectedKeyFilePath();
 
-		cmbKeyFileModel = new StringMutableComboBoxModel(modelObject.getKeyFilePaths(),
+		cmbKeyFileModel = new GenericMutableComboBoxModel<>(modelObject.getKeyFilePaths(),
 			selectedKeyFilePath);
 		cmbKeyFile.setModel(cmbKeyFileModel);
 		cmbKeyFile.setSelectedItem(selectedKeyFilePath);
@@ -218,7 +231,7 @@ public class MasterPwWithApplicationFilePanel extends BasePanel<MasterPwFileMode
 		{
 			modelObject.getApplicationFilePaths().add(selectedApplicationFilePath);
 		}
-		cmbApplicationFileModel = new StringMutableComboBoxModel(
+		cmbApplicationFileModel = new GenericMutableComboBoxModel<>(
 			modelObject.getApplicationFilePaths(), selectedApplicationFilePath);
 		cmbApplicationFile.setModel(cmbApplicationFileModel);
 		cmbApplicationFile.setSelectedItem(selectedApplicationFilePath);
@@ -232,9 +245,69 @@ public class MasterPwWithApplicationFilePanel extends BasePanel<MasterPwFileMode
 		}
 		cmbApplicationFile.addActionListener(this::onChangeCmbApplicationFile);
 		btnHelp.addActionListener(this::onHelp);
+		btnNewApplicationFile.addActionListener(this::onNewApplicationFile);
 
 		toggleMasterPwComponents();
 		toggleKeyFileComponents();
+	}
+
+	protected void onApplicationFileChooser(ActionEvent actionEvent)
+	{
+		System.err.println("onApplicationFileChooser method action called");
+		final int returnVal = fileChooser.showSaveDialog(MasterPwWithApplicationFilePanel.this);
+		if (returnVal == JFileChooser.APPROVE_OPTION)
+		{
+			final File selectedApplicationFile = fileChooser.getSelectedFile();
+			String absolutePath = selectedApplicationFile.getAbsolutePath();
+			cmbApplicationFileModel.addElement(absolutePath);
+			cmbApplicationFileModel.setSelectedItem(absolutePath);
+			getModelObject().setApplicationFileInfo(FileInfo.toFileInfo(selectedApplicationFile));
+			toggleApplicationFileComponents();
+			btnOkStateMachine.onApplicationFileAdded(btnOkStateMachine);
+		}
+	}
+
+	protected void onNewApplicationFile(ActionEvent actionEvent)
+	{
+		fileChooser.setDialogTitle("Specify the database file to save");
+		final MasterPwFileModelBean modelObject = getModelObject();
+		FileNameExtensionFilter fileNameExtensionFilter = new FileNameExtensionFilter(
+			"Mystic crypt files (*.mcrdb)", "mcrdb");
+		fileChooser.setFileFilter(fileNameExtensionFilter);
+		final int returnVal = fileChooser.showSaveDialog(MasterPwWithApplicationFilePanel.this);
+		if (returnVal == JFileChooser.APPROVE_OPTION)
+		{
+			final File selectedApplicationFile = JFileChooserExtensions
+				.getSelectedFileWithFirstExtension(fileChooser);
+			if (!selectedApplicationFile.exists())
+			{
+				RuntimeExceptionDecorator
+					.decorate(() -> FileFactory.newFile(selectedApplicationFile));
+			}
+			String absolutePath = selectedApplicationFile.getAbsolutePath();
+			IModel<MasterPwFileModelBean> model = BaseModel.of(MasterPwFileModelBean.builder()
+				.applicationFileInfo(FileInfo.toFileInfo(selectedApplicationFile))
+				.selectedApplicationFilePath(absolutePath).minPasswordLength(6).withKeyFile(false)
+				.withMasterPw(false).showMasterPw(false).build());
+			NewMasterPwFileDialog dialog = new NewMasterPwFileDialog(
+				MysticCryptApplicationFrame.getInstance(), "Create your master key", true, model)
+			{
+				@Override
+				protected void onOk(ActionEvent actionEvent)
+				{
+					super.onOk(actionEvent);
+					MasterPwFileModelBean dialogModelObject = this.getModelObject();
+					MasterPwWithApplicationFilePanel.this.setModelObject(dialogModelObject);
+				}
+			};
+			dialog.setSize(840, 520);
+			dialog.setVisible(true);
+			cmbApplicationFileModel.addElement(absolutePath);
+			cmbApplicationFileModel.setSelectedItem(absolutePath);
+			modelObject.setApplicationFileInfo(FileInfo.toFileInfo(selectedApplicationFile));
+			toggleApplicationFileComponents();
+			btnOkStateMachine.onApplicationFileAdded(btnOkStateMachine);
+		}
 	}
 
 	protected void onHelp(ActionEvent actionEvent)
@@ -335,8 +408,6 @@ public class MasterPwWithApplicationFilePanel extends BasePanel<MasterPwFileMode
 
 	protected void onInitializeGroupLayout()
 	{
-
-
 		javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
 		this.setLayout(layout);
 		layout.setHorizontalGroup(layout
@@ -372,26 +443,31 @@ public class MasterPwWithApplicationFilePanel extends BasePanel<MasterPwFileMode
 								javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
 							.addGap(18, 18, 18)
 							.addGroup(layout
-								.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-								.addComponent(txtMasterPw, javax.swing.GroupLayout.PREFERRED_SIZE,
-									520, javax.swing.GroupLayout.PREFERRED_SIZE)
-								.addComponent(cmbApplicationFile,
-									javax.swing.GroupLayout.PREFERRED_SIZE, 520,
-									javax.swing.GroupLayout.PREFERRED_SIZE)
-								.addComponent(cmbKeyFile, javax.swing.GroupLayout.PREFERRED_SIZE,
-									520, javax.swing.GroupLayout.PREFERRED_SIZE))
-							.addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+								.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+								.addComponent(txtMasterPw)
+								.addGroup(layout.createSequentialGroup()
+									.addComponent(cmbApplicationFile, 0, 435, Short.MAX_VALUE)
+									.addGap(18, 18, 18).addComponent(btnApplicationFileChooser,
+										javax.swing.GroupLayout.PREFERRED_SIZE, 102,
+										javax.swing.GroupLayout.PREFERRED_SIZE))
+								.addComponent(cmbKeyFile, 0, javax.swing.GroupLayout.DEFAULT_SIZE,
+									Short.MAX_VALUE))
+							.addGap(18, 18, 18)
 							.addGroup(layout
 								.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-								.addComponent(btnMasterPw, javax.swing.GroupLayout.PREFERRED_SIZE,
-									102, javax.swing.GroupLayout.PREFERRED_SIZE)
-								.addComponent(btnApplicationFileChooser,
+								.addComponent(btnMasterPw,
+									javax.swing.GroupLayout.Alignment.TRAILING,
 									javax.swing.GroupLayout.PREFERRED_SIZE, 102,
 									javax.swing.GroupLayout.PREFERRED_SIZE)
 								.addComponent(btnKeyFileChooser,
+									javax.swing.GroupLayout.Alignment.TRAILING,
+									javax.swing.GroupLayout.PREFERRED_SIZE, 102,
+									javax.swing.GroupLayout.PREFERRED_SIZE)
+								.addComponent(btnNewApplicationFile,
+									javax.swing.GroupLayout.Alignment.TRAILING,
 									javax.swing.GroupLayout.PREFERRED_SIZE, 102,
 									javax.swing.GroupLayout.PREFERRED_SIZE))))
-						.addContainerGap(36, Short.MAX_VALUE)))));
+						.addContainerGap(50, Short.MAX_VALUE)))));
 		layout.setVerticalGroup(layout
 			.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
 			.addGroup(layout.createSequentialGroup().addGroup(layout
@@ -399,7 +475,7 @@ public class MasterPwWithApplicationFilePanel extends BasePanel<MasterPwFileMode
 				.addGroup(layout.createSequentialGroup().addContainerGap()
 					.addComponent(lblImageHeader, javax.swing.GroupLayout.PREFERRED_SIZE, 34,
 						javax.swing.GroupLayout.PREFERRED_SIZE)
-					.addGap(60, 60, 60))
+					.addGap(48, 48, 48))
 				.addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
 					.addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
 						.addComponent(lblApplicationFile, javax.swing.GroupLayout.PREFERRED_SIZE,
@@ -407,15 +483,18 @@ public class MasterPwWithApplicationFilePanel extends BasePanel<MasterPwFileMode
 						.addComponent(cmbApplicationFile, javax.swing.GroupLayout.PREFERRED_SIZE,
 							javax.swing.GroupLayout.DEFAULT_SIZE,
 							javax.swing.GroupLayout.PREFERRED_SIZE)
-						.addComponent(btnApplicationFileChooser))
+						.addComponent(btnApplicationFileChooser)
+						.addComponent(btnNewApplicationFile))
 					.addGap(18, 18, 18)))
-				.addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-					.addComponent(txtMasterPw, javax.swing.GroupLayout.PREFERRED_SIZE,
-						javax.swing.GroupLayout.DEFAULT_SIZE,
-						javax.swing.GroupLayout.PREFERRED_SIZE)
-					.addComponent(btnMasterPw).addComponent(cbxMasterPw,
-						javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE,
-						Short.MAX_VALUE))
+				.addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+					.addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+						.addComponent(txtMasterPw, javax.swing.GroupLayout.PREFERRED_SIZE,
+							javax.swing.GroupLayout.DEFAULT_SIZE,
+							javax.swing.GroupLayout.PREFERRED_SIZE)
+						.addComponent(cbxMasterPw, javax.swing.GroupLayout.DEFAULT_SIZE,
+							javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+					.addGroup(layout.createSequentialGroup().addComponent(btnMasterPw).addGap(0, 0,
+						Short.MAX_VALUE)))
 				.addGap(18, 18, 18)
 				.addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
 					.addComponent(cmbKeyFile, javax.swing.GroupLayout.PREFERRED_SIZE,
@@ -424,7 +503,7 @@ public class MasterPwWithApplicationFilePanel extends BasePanel<MasterPwFileMode
 					.addComponent(btnKeyFileChooser).addComponent(cbxKeyFile,
 						javax.swing.GroupLayout.PREFERRED_SIZE, 35,
 						javax.swing.GroupLayout.PREFERRED_SIZE))
-				.addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 96,
+				.addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 148,
 					Short.MAX_VALUE)
 				.addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
 					.addComponent(btnHelp).addComponent(btnOk).addComponent(btnCancel))
@@ -479,22 +558,6 @@ public class MasterPwWithApplicationFilePanel extends BasePanel<MasterPwFileMode
 		toggleMasterPwComponents();
 	}
 
-	protected void onApplicationFileChooser(ActionEvent actionEvent)
-	{
-		System.err.println("onApplicationFileChooser method action called");
-		final int returnVal = fileChooser.showSaveDialog(MasterPwWithApplicationFilePanel.this);
-		if (returnVal == JFileChooser.APPROVE_OPTION)
-		{
-			final File selectedApplicationFile = fileChooser.getSelectedFile();
-			String absolutePath = selectedApplicationFile.getAbsolutePath();
-			cmbApplicationFileModel.addElement(absolutePath);
-			cmbApplicationFileModel.setSelectedItem(absolutePath);
-			getModelObject().setApplicationFileInfo(FileInfo.toFileInfo(selectedApplicationFile));
-			toggleApplicationFileComponents();
-			btnOkStateMachine.onApplicationFileAdded(btnOkStateMachine);
-		}
-	}
-
 	protected void onKeyFileChooser(ActionEvent actionEvent)
 	{
 		System.err.println("onKeyFileChooser method action called");
@@ -518,8 +581,9 @@ public class MasterPwWithApplicationFilePanel extends BasePanel<MasterPwFileMode
 		{
 			MysticCryptApplicationFrame applicationFrame = MysticCryptApplicationFrame
 				.getInstance();
-			MasterPwFileModelBean modelObject = getModelObject();
-			ApplicationModelBean applicationModelBean = ApplicationXmlFileReader.read(modelObject);
+			MasterPwFileModelBean panelModelObject = getModelObject();
+			ApplicationModelBean applicationModelBean = ApplicationXmlFileReader
+				.read(panelModelObject);
 			if (applicationModelBean != null)
 			{
 				applicationModelBean.setSignedIn(true);
@@ -527,7 +591,7 @@ public class MasterPwWithApplicationFilePanel extends BasePanel<MasterPwFileMode
 				MasterPwFileModelBean masterPwFileModelBean = applicationModelBean
 					.getMasterPwFileModelBean();
 				MemoizedSigninModelBean memoizedSigninModelBean = masterPwFileModelBean
-					.toMemoizedSigninModelBean(modelObject);
+					.toMemoizedSigninModelBean(panelModelObject);
 				File memoizedSigninFile = new File(applicationFrame.getConfigurationDirectory(),
 					MysticCryptApplicationFrame.MEMOIZED_SIGNIN_JSON_FILENAME);
 				ObjectToJsonFileExtensions.toJsonFile(memoizedSigninModelBean, memoizedSigninFile);

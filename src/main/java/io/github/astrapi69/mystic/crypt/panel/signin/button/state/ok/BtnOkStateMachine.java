@@ -22,10 +22,11 @@
  * OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
  * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-package io.github.astrapi69.mystic.crypt.panel.signin;
+package io.github.astrapi69.mystic.crypt.panel.signin.button.state.ok;
 
 import javax.swing.JButton;
 
+import io.github.astrapi69.mystic.crypt.panel.signin.MasterPwFileModelBean;
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;

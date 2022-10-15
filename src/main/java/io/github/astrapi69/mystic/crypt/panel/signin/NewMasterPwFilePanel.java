@@ -37,7 +37,8 @@ import javax.swing.JCheckBox;
 import javax.swing.JFileChooser;
 import javax.swing.event.DocumentEvent;
 
-import io.github.astrapi69.mystic.crypt.app.file.xml.ApplicationXmlFileFactory;
+import io.github.astrapi69.mystic.crypt.panel.signin.button.state.ok.BtnOkComponentStateEnum;
+import io.github.astrapi69.mystic.crypt.panel.signin.button.state.ok.BtnOkStateMachine;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.experimental.FieldDefaults;
@@ -53,13 +54,14 @@ import io.github.astrapi69.model.BaseModel;
 import io.github.astrapi69.model.LambdaModel;
 import io.github.astrapi69.model.api.IModel;
 import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
+import io.github.astrapi69.mystic.crypt.app.file.xml.ApplicationXmlFileFactory;
 import io.github.astrapi69.mystic.crypt.panel.privatekey.NewPrivateKeyFileDialog;
 import io.github.astrapi69.mystic.crypt.panel.privatekey.NewPrivateKeyModelBean;
 import io.github.astrapi69.mystic.crypt.panel.pw.GeneratePasswordDialog;
 import io.github.astrapi69.mystic.crypt.panel.pw.GeneratePasswordModelBean;
 import io.github.astrapi69.net.url.URLExtensions;
 import io.github.astrapi69.swing.base.BasePanel;
-import io.github.astrapi69.swing.combobox.model.StringMutableComboBoxModel;
+import io.github.astrapi69.swing.combobox.model.GenericMutableComboBoxModel;
 import io.github.astrapi69.swing.component.JMTextField;
 import io.github.astrapi69.swing.dialog.help.HelpDialog;
 import io.github.astrapi69.swing.listener.document.DocumentListenerAdapter;
@@ -76,14 +78,6 @@ import io.github.astrapi69.throwable.RuntimeExceptionDecorator;
 public class NewMasterPwFilePanel extends BasePanel<MasterPwFileModelBean>
 {
 
-	// ===
-	// ===
-	// ===
-	JFileChooser fileChooser;
-	StringMutableComboBoxModel cmbKeyFileModel;
-	BtnOkStateMachine btnOkStateMachine;
-	IModel<GeneratePasswordModelBean> passwordModel;
-	NewPrivateKeyModelBean privateKeyModelBean;
 	private javax.swing.JButton btnApplicationFileChooser;
 	private javax.swing.JButton btnCancel;
 	private javax.swing.JButton btnCreateKeyFile;
@@ -101,6 +95,14 @@ public class NewMasterPwFilePanel extends BasePanel<MasterPwFileModelBean>
 	private javax.swing.JTextField txtApplicationFile;
 	private javax.swing.JPasswordField txtMasterPw;
 	private javax.swing.JPasswordField txtRepeatPw;
+	// ===
+	// ===
+	// ===
+	JFileChooser fileChooser;
+	GenericMutableComboBoxModel<String> cmbKeyFileModel;
+	BtnOkStateMachine btnOkStateMachine;
+	IModel<GeneratePasswordModelBean> passwordModel;
+	NewPrivateKeyModelBean privateKeyModelBean;
 
 	/**
 	 * Creates new form NewMasterPwFileFormPanel
@@ -183,7 +185,7 @@ public class NewMasterPwFilePanel extends BasePanel<MasterPwFileModelBean>
 		// ===
 		// ===
 		setPreferredSize(new java.awt.Dimension(840, 520));
-		// allow pwfield to copy or cut
+		// allow JPasswordField to copy or cut
 		txtMasterPw.putClientProperty("JPasswordField.cutCopyAllowed", true);
 		txtRepeatPw.putClientProperty("JPasswordField.cutCopyAllowed", true);
 
@@ -207,7 +209,7 @@ public class NewMasterPwFilePanel extends BasePanel<MasterPwFileModelBean>
 		});
 		btnMasterPw.addActionListener(this::onShowMasterPw);
 
-		cmbKeyFileModel = new StringMutableComboBoxModel(modelObject.getKeyFilePaths());
+		cmbKeyFileModel = new GenericMutableComboBoxModel<String>(modelObject.getKeyFilePaths());
 		cmbKeyFile.setModel(cmbKeyFileModel);
 		IModel<String> selectedApplicationFilePathModel = LambdaModel.of(
 			getModelObject()::getSelectedApplicationFilePath,
@@ -221,7 +223,7 @@ public class NewMasterPwFilePanel extends BasePanel<MasterPwFileModelBean>
 		File configDir = MysticCryptApplicationFrame.getInstance().getConfigurationDirectory();
 		fileChooser = new JFileChooser(configDir);
 
-		cmbKeyFileModel = new StringMutableComboBoxModel(modelObject.getKeyFilePaths(),
+		cmbKeyFileModel = new GenericMutableComboBoxModel<>(modelObject.getKeyFilePaths(),
 			modelObject.getSelectedKeyFilePath());
 		cmbKeyFile.setModel(cmbKeyFileModel);
 		cmbKeyFile.addActionListener(this::onChangeCmbKeyFile);
