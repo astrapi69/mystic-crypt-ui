@@ -263,7 +263,8 @@ public class MysticCryptApplicationFrame extends ApplicationPanelFrame<Applicati
 		onEnableMenu();
 	}
 
-	public void onEnableMenu() {
+	public void onEnableMenu()
+	{
 		DesktopMenu menu = (DesktopMenu)getMenu();
 		if (getModelObject().isSignedIn())
 		{
