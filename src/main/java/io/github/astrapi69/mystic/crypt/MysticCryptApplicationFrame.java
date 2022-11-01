@@ -32,6 +32,7 @@ import javax.swing.JButton;
 import javax.swing.JMenu;
 import javax.swing.JToolBar;
 
+import io.github.astrapi69.file.create.DirectoryFactory;
 import io.github.astrapi69.swing.plaf.LookAndFeels;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -228,7 +229,7 @@ public class MysticCryptApplicationFrame extends ApplicationPanelFrame<Applicati
 	protected File newConfigurationDirectory(final @NonNull String parent,
 		final @NonNull String child)
 	{
-		return FileFactory.newDirectory(super.newConfigurationDirectory(parent, child),
+		return DirectoryFactory.newDirectory(super.newConfigurationDirectory(parent, child),
 			getApplicationName());
 	}
 
