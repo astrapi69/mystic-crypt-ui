@@ -31,6 +31,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
+import io.github.astrapi69.collection.pair.KeyValuePair;
 import io.github.astrapi69.file.create.FileContentInfo;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -59,4 +60,7 @@ public class MysticCryptEntryModelBean
 	String icon;
 	@Builder.Default
 	List<FileContentInfo> resources = new ArrayList<>();
+
+	@Builder.Default
+	List<KeyValuePair<String, String>> properties = new ArrayList<>();
 }
