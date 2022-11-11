@@ -22,7 +22,7 @@ public class PropertiesNewEntryFormPanel extends BasePanel<KeyValuePair<String, 
 
 	public PropertiesNewEntryFormPanel()
 	{
-		this(BaseModel.of(KeyValuePair.<String, String>builder().build()));
+		this(BaseModel.of(KeyValuePair.<String, String> builder().build()));
 	}
 
 	public PropertiesNewEntryFormPanel(final IModel<KeyValuePair<String, String>> model)

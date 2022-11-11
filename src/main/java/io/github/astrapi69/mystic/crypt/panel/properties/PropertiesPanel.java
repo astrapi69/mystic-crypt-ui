@@ -71,8 +71,8 @@ public class PropertiesPanel extends BasePanel<List<KeyValuePair<String, String>
 	protected void onAdd(final ActionEvent actionEvent)
 	{
 		// new dialog appears and user can give new property
-//		JOptionPane optionPane = new JOptionPane(panel, JOptionPane.PLAIN_MESSAGE,
-//				JOptionPane.OK_CANCEL_OPTION);
+		// JOptionPane optionPane = new JOptionPane(panel, JOptionPane.PLAIN_MESSAGE,
+		// JOptionPane.OK_CANCEL_OPTION);
 	}
 
 	protected void onRemove(final ActionEvent actionEvent)
