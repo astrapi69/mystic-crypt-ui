@@ -64,8 +64,6 @@ dependencies {
     implementation("io.github.astrapi69:resource-viewmodels:$resourceViewmodelVersion")
     implementation("com.github.lgooddatepicker:LGoodDatePicker:11.2.1")
 
-
-
     implementation("io.github.astrapi69:json-extensions:$jsonExtensionsVersion")
     implementation("org.springframework.boot:spring-boot-starter-integration")
     implementation("org.springframework.boot:spring-boot-starter-validation")
