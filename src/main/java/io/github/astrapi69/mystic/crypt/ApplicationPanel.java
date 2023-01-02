@@ -37,9 +37,9 @@ import io.github.astrapi69.mystic.crypt.panel.dbtree.SecretKeyTreeWithContentPan
 import io.github.astrapi69.swing.base.BasePanel;
 import io.github.astrapi69.swing.tree.BaseTreeNodeFactory;
 import io.github.astrapi69.swing.tree.GenericTreeElement;
-import io.github.astrapi69.tree.BaseTreeNode;
-import io.github.astrapi69.tree.TreeIdNode;
-import io.github.astrapi69.tree.convert.BaseTreeNodeTransformer;
+import io.github.astrapi69.gen.tree.BaseTreeNode;
+import io.github.astrapi69.gen.tree.TreeIdNode;
+import io.github.astrapi69.gen.tree.convert.BaseTreeNodeTransformer;
 
 public class ApplicationPanel extends BasePanel<ApplicationModelBean>
 {
