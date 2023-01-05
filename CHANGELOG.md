@@ -1,12 +1,17 @@
 ## Change log
 ----------------------
 
-Version 6.2-SNAPSHOT
+Version 7-SNAPSHOT
 -------------
+
+ADDED:
+
+- new dependency tree-api in minor version 1.2
 
 CHANGED:
 
 - update of gradle plugin dependency com.github.ben-manes.versions.gradle.plugin to new version 0.43.0
+- update of dependency gen-tree to new minor version 7.4
 
 Version 6.1
 -------------
