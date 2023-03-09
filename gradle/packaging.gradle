@@ -51,4 +51,18 @@ jar.doLast {
                 'IzPackInstaller can not be created because it depends on signed jar.')
     }
 }
+// TODO test if works with izPack...
+task withAllDependendiesJar(type: Jar) {
+    duplicatesStrategy(DuplicatesStrategy.EXCLUDE)
+    manifest.from jar.manifest
+    archiveClassifier = "all"
+    from {
+        configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
+    } {
+        exclude "META-INF/*.SF"
+        exclude "META-INF/*.DSA"
+        exclude "META-INF/*.RSA"
+    }
+    with jar
+}
 
