@@ -1,7 +1,9 @@
 <component name="ProjectRunConfigurationManager">
   <configuration default="false" name="StartMysticCryptApplication" type="Application" factoryName="Application" nameIsGenerated="true">
+    <option name="ALTERNATIVE_JRE_PATH" value="17" />
+    <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="true" />
     <option name="MAIN_CLASS_NAME" value="io.github.astrapi69.mystic.crypt.StartMysticCryptApplication" />
-    <module name="mystic-crypt-ui.main" />
+    <module name="io.github.astrapi69.mystic-crypt-ui.main" />
     <extension name="coverage">
       <pattern>
         <option name="PATTERN" value="io.github.astrapi69.mystic.crypt.*" />

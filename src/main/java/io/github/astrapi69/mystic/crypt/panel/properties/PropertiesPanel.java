@@ -5,11 +5,13 @@
 package io.github.astrapi69.mystic.crypt.panel.properties;
 
 import java.awt.event.ActionEvent;
+import java.io.Serial;
 import java.util.List;
 import java.util.Properties;
 
 import io.github.astrapi69.collection.list.ListFactory;
 import io.github.astrapi69.collection.pair.KeyValuePair;
+import io.github.astrapi69.mystic.crypt.panel.dbtree.MysticCryptEntryModelBean;
 import io.github.astrapi69.swing.dialog.factory.JDialogFactory;
 import io.github.astrapi69.swing.table.model.properties.StringKeyValueTableModel;
 import lombok.Getter;
@@ -20,9 +22,9 @@ import io.github.astrapi69.swing.base.BasePanel;
 import javax.swing.JOptionPane;
 
 @Getter
-public class PropertiesPanel extends BasePanel<List<KeyValuePair<String, String>>>
+public class PropertiesPanel extends BasePanel<MysticCryptEntryModelBean>
 {
-
+	@Serial
 	private static final long serialVersionUID = 1L;
 
 	private javax.swing.JButton btnAdd;
@@ -35,10 +37,10 @@ public class PropertiesPanel extends BasePanel<List<KeyValuePair<String, String>
 
 	public PropertiesPanel()
 	{
-		this(BaseModel.of(ListFactory.newArrayList()));
+		this(BaseModel.of(MysticCryptEntryModelBean.builder().build()));
 	}
 
-	public PropertiesPanel(final IModel<List<KeyValuePair<String, String>>> model)
+	public PropertiesPanel(final IModel<MysticCryptEntryModelBean> model)
 	{
 		super(model);
 	}
@@ -55,7 +57,7 @@ public class PropertiesPanel extends BasePanel<List<KeyValuePair<String, String>
 		btnEdit = new javax.swing.JButton();
 
 		tableModel = new StringKeyValueTableModel();
-		tableModel.addList(getModelObject());
+		tableModel.addList(getModelObject().getProperties());
 		tblProperties.setModel(tableModel);
 
 		btnAdd.setText("Add Property");
