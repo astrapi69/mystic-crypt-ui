@@ -6,20 +6,16 @@ package io.github.astrapi69.mystic.crypt.panel.properties;
 
 import java.awt.event.ActionEvent;
 import java.io.Serial;
-import java.util.List;
-import java.util.Properties;
 
-import io.github.astrapi69.collection.list.ListFactory;
-import io.github.astrapi69.collection.pair.KeyValuePair;
-import io.github.astrapi69.mystic.crypt.panel.dbtree.MysticCryptEntryModelBean;
-import io.github.astrapi69.swing.dialog.factory.JDialogFactory;
-import io.github.astrapi69.swing.table.model.properties.StringKeyValueTableModel;
 import lombok.Getter;
+import net.miginfocom.swing.MigLayout;
+import io.github.astrapi69.collection.pair.KeyValuePair;
 import io.github.astrapi69.model.BaseModel;
 import io.github.astrapi69.model.api.IModel;
+import io.github.astrapi69.mystic.crypt.panel.dbtree.MysticCryptEntryModelBean;
 import io.github.astrapi69.swing.base.BasePanel;
-
-import javax.swing.JOptionPane;
+import io.github.astrapi69.swing.table.GenericJXTable;
+import io.github.astrapi69.swing.table.model.properties.StringKeyValueTableModel;
 
 @Getter
 public class PropertiesPanel extends BasePanel<MysticCryptEntryModelBean>
@@ -31,7 +27,7 @@ public class PropertiesPanel extends BasePanel<MysticCryptEntryModelBean>
 	private javax.swing.JButton btnEdit;
 	private javax.swing.JButton btnRemove;
 	private javax.swing.JScrollPane srcProperties;
-	private javax.swing.JTable tblProperties;
+	private GenericJXTable<KeyValuePair<String, String>> tblProperties;
 
 	private StringKeyValueTableModel tableModel;
 
@@ -51,14 +47,15 @@ public class PropertiesPanel extends BasePanel<MysticCryptEntryModelBean>
 		super.onInitializeComponents();
 
 		srcProperties = new javax.swing.JScrollPane();
-		tblProperties = new javax.swing.JTable();
 		btnAdd = new javax.swing.JButton();
 		btnRemove = new javax.swing.JButton();
 		btnEdit = new javax.swing.JButton();
 
 		tableModel = new StringKeyValueTableModel();
 		tableModel.addList(getModelObject().getProperties());
-		tblProperties.setModel(tableModel);
+		tblProperties = new GenericJXTable<>(getTableModel());
+
+		srcProperties.setViewportView(tblProperties);
 
 		btnAdd.setText("Add Property");
 		btnAdd.addActionListener(this::onAdd);
@@ -94,6 +91,16 @@ public class PropertiesPanel extends BasePanel<MysticCryptEntryModelBean>
 		onInitializeGroupLayout();
 	}
 
+	/**
+	 * Initialize layout.
+	 */
+	protected void onInitializeMigLayout()
+	{
+		MigLayout layout = new MigLayout();
+		this.setLayout(layout);
+		add(srcProperties, "wrap");
+
+	}
 	protected void onInitializeGroupLayout()
 	{
 		javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
@@ -115,7 +122,7 @@ public class PropertiesPanel extends BasePanel<MysticCryptEntryModelBean>
 		layout.setVerticalGroup(layout
 			.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
 			.addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-				.addContainerGap(14, Short.MAX_VALUE)
+				.addContainerGap(42, Short.MAX_VALUE)
 				.addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
 					.addComponent(srcProperties, javax.swing.GroupLayout.PREFERRED_SIZE, 172,
 						javax.swing.GroupLayout.PREFERRED_SIZE)
