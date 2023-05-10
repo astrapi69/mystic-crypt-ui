@@ -40,7 +40,7 @@ import javax.swing.JScrollPane;
 import javax.swing.LayoutStyle;
 import javax.swing.ListSelectionModel;
 
-import io.github.astrapi69.mystic.crypt.panel.dbtree.button.state.ButtonGenericJXTableFileContentInfoStateMachine;
+import io.github.astrapi69.mystic.crypt.button.state.GenericButtonGenericJXTableStateMachine;
 import lombok.Getter;
 import io.github.astrapi69.file.create.FileContentInfo;
 import io.github.astrapi69.file.write.WriteFileExtensions;
@@ -61,9 +61,9 @@ public class AttachmentPanel extends BasePanel<MysticCryptEntryModelBean>
 
 	private JFileChooser fileChooser;
 
-	ButtonGenericJXTableFileContentInfoStateMachine btnRemoveStateMachine;
+	GenericButtonGenericJXTableStateMachine<FileContentInfo> btnRemoveStateMachine;
 
-	ButtonGenericJXTableFileContentInfoStateMachine btnSaveToStateMachine;
+	GenericButtonGenericJXTableStateMachine<FileContentInfo> btnSaveToStateMachine;
 
 	/**
 	 * Creates new form NewAttachmentFormPanel
@@ -104,12 +104,13 @@ public class AttachmentPanel extends BasePanel<MysticCryptEntryModelBean>
 		btnRemove = new JButton();
 		btnSaveTo = new JButton();
 
-		btnRemoveStateMachine = ButtonGenericJXTableFileContentInfoStateMachine.builder()
+		btnRemoveStateMachine = GenericButtonGenericJXTableStateMachine.<FileContentInfo>builder()
 				.button(btnRemove)
 			.component(tblFiles).build();
 		btnRemoveStateMachine.onInitialize();
 
-		btnSaveToStateMachine = ButtonGenericJXTableFileContentInfoStateMachine.builder().button(btnSaveTo)
+		btnSaveToStateMachine = GenericButtonGenericJXTableStateMachine.<FileContentInfo>builder()
+				.button(btnSaveTo)
 			.component(tblFiles).build();
 		btnSaveToStateMachine.onInitialize();
 
