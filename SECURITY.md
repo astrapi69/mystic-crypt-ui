@@ -6,7 +6,8 @@ This section tells you about which versions of this project are
 currently being supported with security updates.
 
 | Version | Supported Till         |
-| ------- | ------------------ |
+| 7.x     | :white_check_mark: |
+| 6.1.x   | :white_check_mark: |
 | 5.4.x   | :white_check_mark: 01/01/2023 |
 | < 5.4   | :x:                |
 
