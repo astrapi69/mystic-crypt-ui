@@ -22,16 +22,24 @@
  * OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
  * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-package io.github.astrapi69.mystic.crypt.panel.dbtree.button.state;
+package io.github.astrapi69.mystic.crypt.button.state;
 
-import io.github.astrapi69.design.pattern.state.button.ButtonStateMachine;
+import javax.swing.*;
+
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
 import lombok.experimental.SuperBuilder;
-
-import javax.swing.JButton;
-
+import io.github.astrapi69.design.pattern.state.button.ButtonStateMachine;
+@Getter
+@Setter
+@EqualsAndHashCode(callSuper = true)
+@ToString
 @SuperBuilder
-public abstract class AbstractJButtonStateMachine<ST> extends ButtonStateMachine<JButton, ST>
+public abstract class AbstractJButtonAndComponentStateMachine<ST, C extends JComponent> extends ButtonStateMachine<JButton, ST>
 {
+	C component;
 
 	public void setEnabled(final boolean enabled)
 	{

@@ -10,7 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import io.github.astrapi69.mystic.crypt.Messages;
-import io.github.astrapi69.mystic.crypt.panel.dbtree.button.state.remove.GenericBtnRemoveStateMachine;
+import io.github.astrapi69.mystic.crypt.button.state.GenericButtonGenericJXTableStateMachine;
 import io.github.astrapi69.swing.dialog.JOptionPaneExtensions;
 import lombok.Getter;
 import net.miginfocom.swing.MigLayout;
@@ -38,8 +38,8 @@ public class PropertiesPanel extends BasePanel<MysticCryptEntryModelBean>
 
 	private StringKeyValueTableModel tableModel;
 
-	GenericBtnRemoveStateMachine<KeyValuePair<String, String>> btnRemoveStateMachine;
-	GenericBtnRemoveStateMachine<KeyValuePair<String, String>> btnEditStateMachine;
+	GenericButtonGenericJXTableStateMachine<KeyValuePair<String, String>> btnRemoveStateMachine;
+	GenericButtonGenericJXTableStateMachine<KeyValuePair<String, String>> btnEditStateMachine;
 
 	public PropertiesPanel() {
 		this(BaseModel.of(MysticCryptEntryModelBean.builder().build()));
@@ -71,13 +71,13 @@ public class PropertiesPanel extends BasePanel<MysticCryptEntryModelBean>
 		srcProperties.setViewportView(tblProperties);
 
 
-		btnRemoveStateMachine = GenericBtnRemoveStateMachine.<KeyValuePair<String, String>>builder()
+		btnRemoveStateMachine = GenericButtonGenericJXTableStateMachine.<KeyValuePair<String, String>>builder()
 				.button(btnRemove)
 				.component(tblProperties)
 				.build();
 		btnRemoveStateMachine.onInitialize();
 
-		btnEditStateMachine = GenericBtnRemoveStateMachine.<KeyValuePair<String, String>>builder()
+		btnEditStateMachine = GenericButtonGenericJXTableStateMachine.<KeyValuePair<String, String>>builder()
 				.button(btnEdit)
 				.component(tblProperties)
 				.build();

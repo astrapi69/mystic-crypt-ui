@@ -22,46 +22,21 @@
  * OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
  * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-package io.github.astrapi69.mystic.crypt.panel.dbtree.button.state.remove;
+package io.github.astrapi69.mystic.crypt.panel.dbtree.button.state;
 
-import io.github.astrapi69.mystic.crypt.panel.dbtree.button.state.AbstractJButtonAndComponentStateMachine;
+import io.github.astrapi69.mystic.crypt.button.state.GenericButtonGenericJXTableStateMachine;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 import lombok.experimental.SuperBuilder;
-import io.github.astrapi69.swing.table.GenericJXTable;
+import io.github.astrapi69.file.create.FileContentInfo;
 
 @Getter
 @Setter
 @EqualsAndHashCode(callSuper = true)
 @ToString
 @SuperBuilder
-public class GenericBtnRemoveStateMachine<T> extends AbstractJButtonAndComponentStateMachine<GenericBtnRemoveStateMachine, GenericJXTable<T>>
-	implements
-		BtnRemoveState
+public class ButtonGenericJXTableFileContentInfoStateMachine extends GenericButtonGenericJXTableStateMachine<FileContentInfo>
 {
-
-	@Override
-	protected void updateButtonState()
-	{
-		if (getComponent() == null)
-		{
-			setEnabled(false);
-			return;
-		}
-		setEnabled(getComponent().getSingleSelectedRowData().isPresent());
-	}
-
-	@Override
-	public void onInitialize()
-	{
-		updateButtonState();
-	}
-
-	@Override
-	public void onTableSelection()
-	{
-		updateButtonState();
-	}
 }

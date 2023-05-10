@@ -40,13 +40,12 @@ import javax.swing.JScrollPane;
 import javax.swing.LayoutStyle;
 import javax.swing.ListSelectionModel;
 
+import io.github.astrapi69.mystic.crypt.panel.dbtree.button.state.ButtonGenericJXTableFileContentInfoStateMachine;
 import lombok.Getter;
 import io.github.astrapi69.file.create.FileContentInfo;
 import io.github.astrapi69.file.write.WriteFileExtensions;
 import io.github.astrapi69.model.BaseModel;
 import io.github.astrapi69.model.api.IModel;
-import io.github.astrapi69.mystic.crypt.panel.dbtree.button.state.remove.BtnRemoveStateMachine;
-import io.github.astrapi69.mystic.crypt.panel.dbtree.button.state.save.BtnSaveToStateMachine;
 import io.github.astrapi69.swing.base.BasePanel;
 import io.github.astrapi69.swing.table.GenericJXTable;
 import io.github.astrapi69.throwable.RuntimeExceptionDecorator;
@@ -62,9 +61,9 @@ public class AttachmentPanel extends BasePanel<MysticCryptEntryModelBean>
 
 	private JFileChooser fileChooser;
 
-	BtnRemoveStateMachine btnRemoveStateMachine;
+	ButtonGenericJXTableFileContentInfoStateMachine btnRemoveStateMachine;
 
-	BtnSaveToStateMachine btnSaveToStateMachine;
+	ButtonGenericJXTableFileContentInfoStateMachine btnSaveToStateMachine;
 
 	/**
 	 * Creates new form NewAttachmentFormPanel
@@ -105,12 +104,13 @@ public class AttachmentPanel extends BasePanel<MysticCryptEntryModelBean>
 		btnRemove = new JButton();
 		btnSaveTo = new JButton();
 
-		btnRemoveStateMachine = BtnRemoveStateMachine.builder().button(btnRemove)
-			.attachmentTable(tblFiles).build();
+		btnRemoveStateMachine = ButtonGenericJXTableFileContentInfoStateMachine.builder()
+				.button(btnRemove)
+			.component(tblFiles).build();
 		btnRemoveStateMachine.onInitialize();
 
-		btnSaveToStateMachine = BtnSaveToStateMachine.builder().button(btnSaveTo)
-			.attachmentTable(tblFiles).build();
+		btnSaveToStateMachine = ButtonGenericJXTableFileContentInfoStateMachine.builder().button(btnSaveTo)
+			.component(tblFiles).build();
 		btnSaveToStateMachine.onInitialize();
 
 		ListSelectionModel selectionModel = tblFiles.getSelectionModel();
