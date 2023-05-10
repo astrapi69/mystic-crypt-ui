@@ -6,26 +6,28 @@ package io.github.astrapi69.mystic.crypt.panel.properties;
 
 import io.github.astrapi69.collection.pair.KeyValuePair;
 import io.github.astrapi69.model.BaseModel;
+import io.github.astrapi69.model.LambdaModel;
 import io.github.astrapi69.model.api.IModel;
 import io.github.astrapi69.swing.base.BasePanel;
+import io.github.astrapi69.swing.component.JMTextField;
 import lombok.Getter;
 
 @Getter
-public class PropertiesNewEntryFormPanel extends BasePanel<KeyValuePair<String, String>>
+public class PropertiesNewEntryPanel extends BasePanel<KeyValuePair<String, String>>
 {
 
 	private javax.swing.JLabel lblCreateNewEntry;
 	private javax.swing.JLabel lblKey;
 	private javax.swing.JLabel lblValue;
-	private javax.swing.JTextField txtKey;
-	private javax.swing.JTextField txtValue;
+	private JMTextField txtKey;
+	private JMTextField txtValue;
 
-	public PropertiesNewEntryFormPanel()
+	public PropertiesNewEntryPanel()
 	{
 		this(BaseModel.of(KeyValuePair.<String, String> builder().build()));
 	}
 
-	public PropertiesNewEntryFormPanel(final IModel<KeyValuePair<String, String>> model)
+	public PropertiesNewEntryPanel(final IModel<KeyValuePair<String, String>> model)
 	{
 		super(model);
 	}
@@ -36,8 +38,8 @@ public class PropertiesNewEntryFormPanel extends BasePanel<KeyValuePair<String, 
 		super.onInitializeComponents();
 		lblKey = new javax.swing.JLabel();
 		lblValue = new javax.swing.JLabel();
-		txtKey = new javax.swing.JTextField();
-		txtValue = new javax.swing.JTextField();
+		txtKey = new JMTextField();
+		txtValue = new JMTextField();
 		lblCreateNewEntry = new javax.swing.JLabel();
 
 		lblKey.setText("Key");
@@ -45,6 +47,10 @@ public class PropertiesNewEntryFormPanel extends BasePanel<KeyValuePair<String, 
 		lblValue.setText("Value");
 
 		lblCreateNewEntry.setText("Create new entry");
+		// bind with model
+		KeyValuePair<String, String> modelObject = getModelObject();
+		txtKey.setPropertyModel(LambdaModel.of(modelObject::getKey, modelObject::setKey));
+		txtValue.setPropertyModel(LambdaModel.of(modelObject::getValue, modelObject::setValue));
 	}
 
 	@Override

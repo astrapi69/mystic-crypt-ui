@@ -241,7 +241,8 @@ public class SecretKeyTreeWithContentPanel
 				BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> parentTreeNode = (BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long>)userObject;
 				NodePanel panel = new NodePanel();
 				int option = JOptionPaneExtensions.getSelectedOption(panel,
-					JOptionPane.PLAIN_MESSAGE, JOptionPane.OK_CANCEL_OPTION, null, "New node",
+					JOptionPane.PLAIN_MESSAGE, JOptionPane.OK_CANCEL_OPTION, null,
+						Messages.getString("dialog.new.node.entry.title", "New node."),
 					panel.getTxtName());
 
 				if (option == JOptionPane.OK_OPTION)
@@ -280,7 +281,8 @@ public class SecretKeyTreeWithContentPanel
 						.leaf(selectedTreeNode.getValue().isLeaf()).build()));
 				int option = JOptionPaneExtensions.getSelectedOption(panel,
 					JOptionPane.INFORMATION_MESSAGE, JOptionPane.OK_CANCEL_OPTION, null,
-					"Edit node", panel.getTxtName());
+						Messages.getString("dialog.edit.node.entry.title", "Edit node."),
+						panel.getTxtName());
 				if (option == JOptionPane.OK_OPTION)
 				{
 					NodeModel modelObject = panel.getModelObject();
@@ -421,7 +423,8 @@ public class SecretKeyTreeWithContentPanel
 		MysticCryptEntryTabbedPanel panel = new MysticCryptEntryTabbedPanel();
 
 		int option = JOptionPaneExtensions.getSelectedOption(panel, JOptionPane.PLAIN_MESSAGE,
-			JOptionPane.OK_CANCEL_OPTION, this, "New Crypt Entry",
+			JOptionPane.OK_CANCEL_OPTION, this,
+				Messages.getString("dialog.new.crypt.entry.title", "New Crypt Entry."),
 			panel.getMysticCryptEntryPanel().getTxtEntryName());
 		if (option == JOptionPane.OK_OPTION)
 		{
@@ -497,7 +500,7 @@ public class SecretKeyTreeWithContentPanel
 			BaseModel.of(tableEntry));
 		int option = JOptionPaneExtensions.getSelectedOption(panel, JOptionPane.PLAIN_MESSAGE,
 			JOptionPane.OK_CANCEL_OPTION, null,
-			Messages.getString("dialog.edit.crypt.entry.title", "Edit Crypt Entry"),
+			Messages.getString("dialog.edit.crypt.entry.title", "Edit Crypt Entry."),
 			panel.getMysticCryptEntryPanel().getTxtEntryName());
 
 		if (option == JOptionPane.OK_OPTION)
