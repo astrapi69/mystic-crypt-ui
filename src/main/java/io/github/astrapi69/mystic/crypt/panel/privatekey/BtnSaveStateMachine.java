@@ -24,7 +24,7 @@
  */
 package io.github.astrapi69.mystic.crypt.panel.privatekey;
 
-import javax.swing.JButton;
+import javax.swing.*;
 
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
@@ -34,8 +34,9 @@ import lombok.Setter;
 import lombok.ToString;
 import lombok.experimental.SuperBuilder;
 
-import io.github.astrapi69.design.pattern.state.component.AbstractJComponentStateMachine;
 import org.apache.commons.lang3.StringUtils;
+
+import io.github.astrapi69.design.pattern.state.component.AbstractJComponentStateMachine;
 
 @Getter
 @Setter

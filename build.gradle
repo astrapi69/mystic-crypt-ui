@@ -14,7 +14,6 @@ buildscript {
         classpath "io.spring.gradle:dependency-management-plugin:$springGradlePluginDependencyManagementVersion"
         classpath "com.github.ben-manes:gradle-versions-plugin:$gradlePluginVersionsVersion"
         classpath "gradle.plugin.com.hierynomus.gradle.plugins:license-gradle-plugin:$licenseGradlePluginVersion"
-        classpath "net.ltgt.gradle:gradle-apt-plugin:$gradleAptPluginVersion"
         classpath "com.bmuschko:gradle-izpack-plugin:$gradleIzpackPluginVersion"
         classpath "org.ajoberstar.grgit:grgit-gradle:$grgitGradlePluginVersion"
         classpath "com.diffplug.spotless:spotless-plugin-gradle:$spotlessGradlePluginVersion"

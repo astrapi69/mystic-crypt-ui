@@ -35,6 +35,13 @@ package io.github.astrapi69.mystic.crypt.panel.dbtree;
 public class AttachmentFormPanel extends javax.swing.JPanel
 {
 
+	// Variables declaration - do not modify//GEN-BEGIN:variables
+	private javax.swing.JButton btnAdd;
+	private javax.swing.JButton btnRemove;
+	private javax.swing.JButton btnSaveTo;
+	private javax.swing.JScrollPane srcFiles;
+	private javax.swing.JTable tblFiles;
+
 	/**
 	 * Creates new form NewAttachmentFormPanel
 	 */
@@ -95,26 +102,18 @@ public class AttachmentFormPanel extends javax.swing.JPanel
 		layout.setVerticalGroup(layout
 			.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
 			.addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-				.addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+				.addContainerGap(30, Short.MAX_VALUE)
 				.addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+					.addComponent(srcFiles, javax.swing.GroupLayout.PREFERRED_SIZE, 171,
+						javax.swing.GroupLayout.PREFERRED_SIZE)
 					.addGroup(layout.createSequentialGroup().addComponent(btnAdd).addGap(18, 18, 18)
-						.addComponent(btnRemove).addGap(18, 18, 18).addComponent(btnSaveTo))
-					.addComponent(srcFiles, javax.swing.GroupLayout.PREFERRED_SIZE, 428,
-						javax.swing.GroupLayout.PREFERRED_SIZE))
-				.addContainerGap()));
+						.addComponent(btnRemove).addGap(18, 18, 18).addComponent(btnSaveTo)))
+				.addGap(19, 19, 19)));
 	}// </editor-fold>//GEN-END:initComponents
 
 	private void btnAddActionPerformed(java.awt.event.ActionEvent evt)
 	{// GEN-FIRST:event_btnAddActionPerformed
 		// TODO add your handling code here:
 	}// GEN-LAST:event_btnAddActionPerformed
-
-
-	// Variables declaration - do not modify//GEN-BEGIN:variables
-	private javax.swing.JButton btnAdd;
-	private javax.swing.JButton btnRemove;
-	private javax.swing.JButton btnSaveTo;
-	private javax.swing.JScrollPane srcFiles;
-	private javax.swing.JTable tblFiles;
-	// End of variables declaration//GEN-END:variables
+		// End of variables declaration//GEN-END:variables
 }

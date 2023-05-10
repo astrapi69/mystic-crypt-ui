@@ -31,9 +31,6 @@ import java.security.PublicKey;
 import javax.crypto.Cipher;
 import javax.crypto.SecretKey;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-
 import io.github.astrapi69.crypt.api.algorithm.AesAlgorithm;
 import io.github.astrapi69.crypt.api.algorithm.SunJCEAlgorithm;
 import io.github.astrapi69.crypt.data.factory.SecretKeyFactoryExtensions;
@@ -45,7 +42,6 @@ import io.github.astrapi69.file.create.FileFactory;
 import io.github.astrapi69.file.delete.DeleteFileExtensions;
 import io.github.astrapi69.file.system.SystemFileExtensions;
 import io.github.astrapi69.file.write.WriteFileExtensions;
-import io.github.astrapi69.gson.ObjectToJsonExtensions;
 import io.github.astrapi69.io.file.FileExtension;
 import io.github.astrapi69.mystic.crypt.ApplicationModelBean;
 import io.github.astrapi69.mystic.crypt.file.PBEFileEncryptor;

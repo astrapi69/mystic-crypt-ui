@@ -22,8 +22,7 @@ package io.github.astrapi69.mystic.crypt.action;
 
 import java.awt.event.ActionEvent;
 
-import javax.swing.AbstractAction;
-import javax.swing.JInternalFrame;
+import javax.swing.*;
 
 import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
 import io.github.astrapi69.mystic.crypt.enumtype.FrameMode;

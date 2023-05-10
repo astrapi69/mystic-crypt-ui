@@ -20,9 +20,7 @@
  */
 package io.github.astrapi69.mystic.crypt.panel.keygen;
 
-import java.awt.Font;
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.io.File;
 import java.math.BigInteger;
@@ -35,23 +33,16 @@ import java.time.ZoneId;
 import java.util.Date;
 import java.util.logging.Level;
 
-import javax.swing.JButton;
-import javax.swing.JComboBox;
-import javax.swing.JDialog;
-import javax.swing.JFileChooser;
-import javax.swing.JLabel;
-import javax.swing.JOptionPane;
-import javax.swing.JScrollPane;
-import javax.swing.JTextArea;
+import javax.swing.*;
 
 import lombok.Getter;
 import lombok.extern.java.Log;
 import io.github.astrapi69.crypt.api.algorithm.HashAlgorithm;
 import io.github.astrapi69.crypt.api.algorithm.KeyPairGeneratorAlgorithm;
 import io.github.astrapi69.crypt.api.algorithm.UnionWord;
-import io.github.astrapi69.crypt.data.factory.CertFactory;
 import io.github.astrapi69.crypt.api.key.KeyFileFormat;
 import io.github.astrapi69.crypt.api.key.KeySize;
+import io.github.astrapi69.crypt.data.factory.CertFactory;
 import io.github.astrapi69.crypt.data.key.writer.CertificateWriter;
 import io.github.astrapi69.layout.GridBagLayoutModel;
 import io.github.astrapi69.layout.InsetsModel;

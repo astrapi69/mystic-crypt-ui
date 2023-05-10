@@ -32,8 +32,8 @@ h1  {font-size: 20pt;
      margin-top: 0;
      margin-bottom: 0}
 
-h1.cover {border-top="300em";
-	  margin-botttom="120";
+h1.cover {border-top:300em;
+	  margin-botttom: 120;
 	  font-family: Palatino; font-size: 24pt; font-style: normal; font-weight: bold}
 
 h2 {font-size: 18pt;

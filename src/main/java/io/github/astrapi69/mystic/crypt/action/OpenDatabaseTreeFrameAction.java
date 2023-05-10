@@ -21,9 +21,9 @@
 package io.github.astrapi69.mystic.crypt.action;
 
 import java.awt.event.ActionEvent;
+import java.io.Serial;
 
-import javax.swing.AbstractAction;
-import javax.swing.JInternalFrame;
+import javax.swing.*;
 
 import io.github.astrapi69.mystic.crypt.ApplicationModelBean;
 import io.github.astrapi69.mystic.crypt.ApplicationPanel;
@@ -40,10 +40,11 @@ public class OpenDatabaseTreeFrameAction extends AbstractAction
 {
 
 	/** The Constant serialVersionUID. */
+	@Serial
 	private static final long serialVersionUID = 1L;
 
 	/**
-	 * Instantiates a new new action.
+	 * Instantiates a new action
 	 *
 	 * @param name
 	 *            the name

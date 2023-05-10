@@ -24,15 +24,15 @@
  */
 package io.github.astrapi69.mystic.crypt.panel.dbtree;
 
-import java.awt.Frame;
+import java.awt.*;
 import java.util.List;
 
 import io.github.astrapi69.collection.list.ListFactory;
+import io.github.astrapi69.gen.tree.BaseTreeNode;
 import io.github.astrapi69.id.generate.LongIdGenerator;
 import io.github.astrapi69.model.BaseModel;
 import io.github.astrapi69.model.api.IModel;
 import io.github.astrapi69.swing.tree.GenericTreeElement;
-import io.github.astrapi69.tree.BaseTreeNode;
 import io.github.astrapi69.window.adapter.CloseWindow;
 
 class TestSecretKeyTreeWithContentPanel

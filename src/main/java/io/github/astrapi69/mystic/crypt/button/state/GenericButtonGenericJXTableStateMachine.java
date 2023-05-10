@@ -22,19 +22,47 @@
  * OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
  * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-package io.github.astrapi69.mystic.crypt.panel.dbtree.button.state;
+package io.github.astrapi69.mystic.crypt.button.state;
 
-import io.github.astrapi69.design.pattern.state.button.ButtonStateMachine;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
 import lombok.experimental.SuperBuilder;
+import io.github.astrapi69.swing.table.GenericJXTable;
 
-import javax.swing.JButton;
-
+@Getter
+@Setter
+@EqualsAndHashCode(callSuper = true)
+@ToString
 @SuperBuilder
-public abstract class AbstractJButtonStateMachine<ST> extends ButtonStateMachine<JButton, ST>
+public class GenericButtonGenericJXTableStateMachine<T>
+	extends
+		AbstractJButtonAndComponentStateMachine<GenericButtonGenericJXTableStateMachine<T>, GenericJXTable<T>>
+	implements
+		ButtonTableSelectionToState
 {
 
-	public void setEnabled(final boolean enabled)
+	@Override
+	protected void updateButtonState()
 	{
-		getButton().setEnabled(enabled);
+		if (getComponent() == null)
+		{
+			setEnabled(false);
+			return;
+		}
+		setEnabled(getComponent().getSingleSelectedRowData().isPresent());
+	}
+
+	@Override
+	public void onInitialize()
+	{
+		updateButtonState();
+	}
+
+	@Override
+	public void onTableSelection()
+	{
+		updateButtonState();
 	}
 }

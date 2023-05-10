@@ -46,7 +46,7 @@ dependencies {
     implementation("io.github.astrapi69:swing-tree-component:$swingTreeComponentVersion")
     implementation("io.github.astrapi69:swing-splashscreen:$swingSplashscreenVersion")
     implementation("io.github.astrapi69:swing-table-components:$swingTableComponentsVersion")
-    implementation("io.github.astrapi69:menu-actions:$menuActionsVersion")
+    implementation("io.github.astrapi69:menu-action:$menuActionVersion")
     implementation("io.github.astrapi69:net-extensions:$netExtensionsVersion")
     implementation("io.github.astrapi69:gen-tree:$genTreeVersion")
     implementation("org.apache.xmlgraphics:batik-transcoder:$batikVersion")
@@ -63,8 +63,7 @@ dependencies {
     implementation("io.github.astrapi69:resourcebundle-core:$resourcebundleCoreVersion")
     implementation("io.github.astrapi69:resource-viewmodels:$resourceViewmodelVersion")
     implementation("com.github.lgooddatepicker:LGoodDatePicker:11.2.1")
-
-
+    implementation("io.github.astrapi69:tree-api:$treeApiVersion")
 
     implementation("io.github.astrapi69:json-extensions:$jsonExtensionsVersion")
     implementation("org.springframework.boot:spring-boot-starter-integration")

@@ -27,10 +27,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 
-import javax.swing.JCheckBox;
-import javax.swing.JFileChooser;
-import javax.swing.JLabel;
-import javax.swing.JScrollPane;
+import javax.swing.*;
 import javax.swing.table.TableColumn;
 
 import lombok.Getter;

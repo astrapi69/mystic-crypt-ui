@@ -33,12 +33,9 @@ import java.awt.event.ActionEvent;
 import java.io.File;
 import java.net.URL;
 
-import javax.swing.JCheckBox;
-import javax.swing.JFileChooser;
+import javax.swing.*;
 import javax.swing.event.DocumentEvent;
 
-import io.github.astrapi69.mystic.crypt.panel.signin.button.state.ok.BtnOkComponentStateEnum;
-import io.github.astrapi69.mystic.crypt.panel.signin.button.state.ok.BtnOkStateMachine;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.experimental.FieldDefaults;
@@ -59,6 +56,8 @@ import io.github.astrapi69.mystic.crypt.panel.privatekey.NewPrivateKeyFileDialog
 import io.github.astrapi69.mystic.crypt.panel.privatekey.NewPrivateKeyModelBean;
 import io.github.astrapi69.mystic.crypt.panel.pw.GeneratePasswordDialog;
 import io.github.astrapi69.mystic.crypt.panel.pw.GeneratePasswordModelBean;
+import io.github.astrapi69.mystic.crypt.panel.signin.button.state.ok.BtnOkComponentStateEnum;
+import io.github.astrapi69.mystic.crypt.panel.signin.button.state.ok.BtnOkStateMachine;
 import io.github.astrapi69.net.url.URLExtensions;
 import io.github.astrapi69.swing.base.BasePanel;
 import io.github.astrapi69.swing.combobox.model.GenericMutableComboBoxModel;

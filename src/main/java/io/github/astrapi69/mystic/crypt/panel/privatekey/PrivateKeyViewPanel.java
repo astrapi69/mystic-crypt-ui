@@ -20,13 +20,9 @@
  */
 package io.github.astrapi69.mystic.crypt.panel.privatekey;
 
-import java.awt.Font;
+import java.awt.*;
 
-import javax.swing.GroupLayout;
-import javax.swing.JLabel;
-import javax.swing.JScrollPane;
-import javax.swing.JTextArea;
-import javax.swing.LayoutStyle;
+import javax.swing.*;
 
 import lombok.Getter;
 import io.github.astrapi69.model.BaseModel;

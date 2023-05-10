@@ -1,6 +1,6 @@
-<izpack:installation version="5.0"
-					 xmlns:izpack="http://izpack.org/schema/installation"
+<izpack:installation xmlns:izpack="http://izpack.org/schema/installation"
 					 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+					 version="5.0"
 					 xsi:schemaLocation="http://izpack.org/schema/installation http://izpack.org/schema/5.0/izpack-installation-5.0.xsd">
 	<variables>
 		<variable name="appGroup" value="@{app.group}"/>
@@ -30,12 +30,12 @@
 
 	<guiprefs width="800" height="600" resizable="no">
 		<splash>images/peas_load.gif</splash>
-		<laf name="substance">
+		<laf name="kunststoff">
 			<os family="windows" />
 			<os family="unix" />
 			<param name="variant" value="mist-silver" />
 		</laf>
-		<laf name="substance">
+		<laf name="kunststoff">
 			<os family="mac" />
 			<param name="variant" value="mist-aqua" />
 		</laf>

@@ -25,15 +25,13 @@
 package io.github.astrapi69.mystic.crypt.panel.dbtree;
 
 import java.awt.event.MouseEvent;
+import java.io.Serial;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import javax.swing.JMenuItem;
-import javax.swing.JOptionPane;
-import javax.swing.JPopupMenu;
-import javax.swing.JScrollPane;
+import javax.swing.*;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreeModel;
@@ -42,6 +40,9 @@ import org.jdesktop.swingx.JXTree;
 
 import io.github.astrapi69.design.pattern.observer.event.EventObject;
 import io.github.astrapi69.design.pattern.observer.event.EventSource;
+import io.github.astrapi69.gen.tree.BaseTreeNode;
+import io.github.astrapi69.gen.tree.TreeIdNode;
+import io.github.astrapi69.gen.tree.convert.BaseTreeNodeTransformer;
 import io.github.astrapi69.id.generate.LongIdGenerator;
 import io.github.astrapi69.model.BaseModel;
 import io.github.astrapi69.model.api.IModel;
@@ -52,7 +53,8 @@ import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
 import io.github.astrapi69.mystic.crypt.app.ApplicationEventBus;
 import io.github.astrapi69.swing.dialog.DialogExtensions;
 import io.github.astrapi69.swing.dialog.JOptionPaneExtensions;
-import io.github.astrapi69.swing.menu.MenuFactory;
+import io.github.astrapi69.swing.menu.factory.JMenuItemFactory;
+import io.github.astrapi69.swing.menu.factory.JPopupMenuFactory;
 import io.github.astrapi69.swing.table.GenericJXTable;
 import io.github.astrapi69.swing.table.model.GenericTableModel;
 import io.github.astrapi69.swing.tree.BaseTreeNodeFactory;
@@ -61,15 +63,12 @@ import io.github.astrapi69.swing.tree.JTreeExtensions;
 import io.github.astrapi69.swing.tree.panel.content.BaseTreeNodeGenericTreeElementWithContentPanel;
 import io.github.astrapi69.swing.tree.panel.node.NodePanel;
 import io.github.astrapi69.swing.tree.renderer.state.NewGenericBaseTreeNodeCellRenderer;
-import io.github.astrapi69.tree.BaseTreeNode;
-import io.github.astrapi69.tree.TreeIdNode;
-import io.github.astrapi69.tree.convert.BaseTreeNodeTransformer;
 
 public class SecretKeyTreeWithContentPanel
 	extends
 		BaseTreeNodeGenericTreeElementWithContentPanel<List<MysticCryptEntryModelBean>, Long, MysticCryptEntryModelBean>
 {
-
+	@Serial
 	private static final long serialVersionUID = 1L;
 
 	public SecretKeyTreeWithContentPanel(
@@ -100,7 +99,7 @@ public class SecretKeyTreeWithContentPanel
 	protected GenericJXTable<MysticCryptEntryModelBean> newJTable()
 	{
 		GenericTableModel<MysticCryptEntryModelBean> tableModel = new MysticCryptEntryTableModel();
-		return new GenericJXTable<MysticCryptEntryModelBean>(tableModel)
+		return new GenericJXTable<>(tableModel)
 		{
 
 			protected void onSingleLeftClick(MouseEvent event)
@@ -202,26 +201,26 @@ public class SecretKeyTreeWithContentPanel
 		Optional<BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long>> optionalSelectedUserObject = JTreeExtensions
 			.getSelectedUserObject(mouseEvent, tree);
 		optionalSelectedUserObject.ifPresent(selectedTreeNodeElement -> {
-			JPopupMenu popup = MenuFactory.newJPopupMenu();
+			JPopupMenu popup = JPopupMenuFactory.newJPopupMenu();
 			if (selectedTreeNodeElement.isNode())
 			{
-				popup.add(MenuFactory.newJMenuItem("add node...",
+				popup.add(JMenuItemFactory.newJMenuItem("add node...",
 					actionEvent -> this.onAddNewChildTreeNode(mouseEvent)));
 			}
 
 			if (!selectedTreeNodeElement.isRoot())
 			{
-				popup.add(MenuFactory.newJMenuItem("delete",
+				popup.add(JMenuItemFactory.newJMenuItem("delete",
 					actionEvent -> this.onDeleteSelectedTreeNode(mouseEvent)));
 			}
 
-			popup.add(MenuFactory.newJMenuItem("Edit node...",
+			popup.add(JMenuItemFactory.newJMenuItem("Edit node...",
 				actionEvent -> this.onEditSelectedTreeNode(mouseEvent)));
 
-			popup.add(MenuFactory.newJMenuItem("Collapse node",
+			popup.add(JMenuItemFactory.newJMenuItem("Collapse node",
 				actionEvent -> this.onCollapseSelectedTreeNode(mouseEvent)));
 
-			popup.add(MenuFactory.newJMenuItem("Expand node",
+			popup.add(JMenuItemFactory.newJMenuItem("Expand node",
 				actionEvent -> this.onExpandSelectedTreeNode(mouseEvent)));
 
 			popup.show(tree, x, y);
@@ -240,7 +239,8 @@ public class SecretKeyTreeWithContentPanel
 				BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> parentTreeNode = (BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long>)userObject;
 				NodePanel panel = new NodePanel();
 				int option = JOptionPaneExtensions.getSelectedOption(panel,
-					JOptionPane.PLAIN_MESSAGE, JOptionPane.OK_CANCEL_OPTION, null, "New node",
+					JOptionPane.PLAIN_MESSAGE, JOptionPane.OK_CANCEL_OPTION, null,
+					Messages.getString("dialog.new.node.entry.title", "New node."),
 					panel.getTxtName());
 
 				if (option == JOptionPane.OK_OPTION)
@@ -279,7 +279,8 @@ public class SecretKeyTreeWithContentPanel
 						.leaf(selectedTreeNode.getValue().isLeaf()).build()));
 				int option = JOptionPaneExtensions.getSelectedOption(panel,
 					JOptionPane.INFORMATION_MESSAGE, JOptionPane.OK_CANCEL_OPTION, null,
-					"Edit node", panel.getTxtName());
+					Messages.getString("dialog.edit.node.entry.title", "Edit node."),
+					panel.getTxtName());
 				if (option == JOptionPane.OK_OPTION)
 				{
 					NodeModel modelObject = panel.getModelObject();
@@ -373,16 +374,17 @@ public class SecretKeyTreeWithContentPanel
 		List<MysticCryptEntryModelBean> allSelectedRowData = getTblTreeEntryTable()
 			.getAllSelectedRowData();
 
-		JPopupMenu popup = MenuFactory.newJPopupMenu();
+		JPopupMenu popup = JPopupMenuFactory.newJPopupMenu();
 
-		popup.add(MenuFactory.newJMenuItem("add ...", actionEvent -> this.onAddTableEntry()));
+		popup.add(JMenuItemFactory.newJMenuItem("add ...", actionEvent -> this.onAddTableEntry()));
 
-		JMenuItem menuItem = MenuFactory.newJMenuItem("delete",
+		JMenuItem menuItem = JMenuItemFactory.newJMenuItem("delete",
 			actionEvent -> this.onDeleteTableEntry());
 		menuItem.setEnabled(!allSelectedRowData.isEmpty());
 		popup.add(menuItem);
 
-		JMenuItem edit = MenuFactory.newJMenuItem("edit", actionEvent -> this.onEditTableEntry());
+		JMenuItem edit = JMenuItemFactory.newJMenuItem("edit",
+			actionEvent -> this.onEditTableEntry());
 		edit.setEnabled(allSelectedRowData.size() == 1);
 		popup.add(edit);
 
@@ -419,7 +421,8 @@ public class SecretKeyTreeWithContentPanel
 		MysticCryptEntryTabbedPanel panel = new MysticCryptEntryTabbedPanel();
 
 		int option = JOptionPaneExtensions.getSelectedOption(panel, JOptionPane.PLAIN_MESSAGE,
-			JOptionPane.OK_CANCEL_OPTION, this, "New Crypt Entry",
+			JOptionPane.OK_CANCEL_OPTION, this,
+			Messages.getString("dialog.new.crypt.entry.title", "New Crypt Entry."),
 			panel.getMysticCryptEntryPanel().getTxtEntryName());
 		if (option == JOptionPane.OK_OPTION)
 		{
@@ -495,7 +498,7 @@ public class SecretKeyTreeWithContentPanel
 			BaseModel.of(tableEntry));
 		int option = JOptionPaneExtensions.getSelectedOption(panel, JOptionPane.PLAIN_MESSAGE,
 			JOptionPane.OK_CANCEL_OPTION, null,
-			Messages.getString("dialog.edit.crypt.entry.title", "Edit Crypt Entry"),
+			Messages.getString("dialog.edit.crypt.entry.title", "Edit Crypt Entry."),
 			panel.getMysticCryptEntryPanel().getTxtEntryName());
 
 		if (option == JOptionPane.OK_OPTION)

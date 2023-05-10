@@ -34,8 +34,8 @@ import com.google.common.collect.HashBiMap;
 
 import io.github.astrapi69.collection.list.ListFactory;
 import io.github.astrapi69.collection.pair.KeyValuePair;
-import io.github.astrapi69.crypt.data.obfuscation.rule.ObfuscationOperationRule;
 import io.github.astrapi69.crypt.api.obfuscation.rule.Operation;
+import io.github.astrapi69.crypt.data.obfuscation.rule.ObfuscationOperationRule;
 import io.github.astrapi69.swing.table.model.GenericTableModel;
 
 /**

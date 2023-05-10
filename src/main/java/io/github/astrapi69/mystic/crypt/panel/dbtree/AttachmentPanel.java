@@ -33,20 +33,14 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Optional;
 
-import javax.swing.GroupLayout;
-import javax.swing.JButton;
-import javax.swing.JFileChooser;
-import javax.swing.JScrollPane;
-import javax.swing.LayoutStyle;
-import javax.swing.ListSelectionModel;
+import javax.swing.*;
 
 import lombok.Getter;
 import io.github.astrapi69.file.create.FileContentInfo;
 import io.github.astrapi69.file.write.WriteFileExtensions;
 import io.github.astrapi69.model.BaseModel;
 import io.github.astrapi69.model.api.IModel;
-import io.github.astrapi69.mystic.crypt.panel.dbtree.button.state.remove.BtnRemoveStateMachine;
-import io.github.astrapi69.mystic.crypt.panel.dbtree.button.state.save.BtnSaveToStateMachine;
+import io.github.astrapi69.mystic.crypt.button.state.GenericButtonGenericJXTableStateMachine;
 import io.github.astrapi69.swing.base.BasePanel;
 import io.github.astrapi69.swing.table.GenericJXTable;
 import io.github.astrapi69.throwable.RuntimeExceptionDecorator;
@@ -54,17 +48,14 @@ import io.github.astrapi69.throwable.RuntimeExceptionDecorator;
 @Getter
 public class AttachmentPanel extends BasePanel<MysticCryptEntryModelBean>
 {
+	GenericButtonGenericJXTableStateMachine<FileContentInfo> btnRemoveStateMachine;
+	GenericButtonGenericJXTableStateMachine<FileContentInfo> btnSaveToStateMachine;
 	private JButton btnAdd;
 	private JButton btnRemove;
 	private JButton btnSaveTo;
 	private JScrollPane srcFiles;
 	private GenericJXTable<FileContentInfo> tblFiles;
-
 	private JFileChooser fileChooser;
-
-	BtnRemoveStateMachine btnRemoveStateMachine;
-
-	BtnSaveToStateMachine btnSaveToStateMachine;
 
 	/**
 	 * Creates new form NewAttachmentFormPanel
@@ -77,12 +68,6 @@ public class AttachmentPanel extends BasePanel<MysticCryptEntryModelBean>
 	public AttachmentPanel(final IModel<MysticCryptEntryModelBean> model)
 	{
 		super(model);
-	}
-
-	protected GenericJXTable<FileContentInfo> newJTable()
-	{
-		AttachmentTableModel tableModel = new AttachmentTableModel();
-		return new GenericJXTable<>(tableModel);
 	}
 
 	@Override
@@ -105,12 +90,12 @@ public class AttachmentPanel extends BasePanel<MysticCryptEntryModelBean>
 		btnRemove = new JButton();
 		btnSaveTo = new JButton();
 
-		btnRemoveStateMachine = BtnRemoveStateMachine.builder().button(btnRemove)
-			.attachmentTable(tblFiles).build();
+		btnRemoveStateMachine = GenericButtonGenericJXTableStateMachine.<FileContentInfo> builder()
+			.button(btnRemove).component(tblFiles).build();
 		btnRemoveStateMachine.onInitialize();
 
-		btnSaveToStateMachine = BtnSaveToStateMachine.builder().button(btnSaveTo)
-			.attachmentTable(tblFiles).build();
+		btnSaveToStateMachine = GenericButtonGenericJXTableStateMachine.<FileContentInfo> builder()
+			.button(btnSaveTo).component(tblFiles).build();
 		btnSaveToStateMachine.onInitialize();
 
 		ListSelectionModel selectionModel = tblFiles.getSelectionModel();
