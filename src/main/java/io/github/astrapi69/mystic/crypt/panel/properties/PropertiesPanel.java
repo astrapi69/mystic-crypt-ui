@@ -41,16 +41,19 @@ public class PropertiesPanel extends BasePanel<MysticCryptEntryModelBean>
 	GenericButtonGenericJXTableStateMachine<KeyValuePair<String, String>> btnRemoveStateMachine;
 	GenericButtonGenericJXTableStateMachine<KeyValuePair<String, String>> btnEditStateMachine;
 
-	public PropertiesPanel() {
+	public PropertiesPanel()
+	{
 		this(BaseModel.of(MysticCryptEntryModelBean.builder().build()));
 	}
 
-	public PropertiesPanel(final IModel<MysticCryptEntryModelBean> model) {
+	public PropertiesPanel(final IModel<MysticCryptEntryModelBean> model)
+	{
 		super(model);
 	}
 
 	@Override
-	protected void onInitializeComponents() {
+	protected void onInitializeComponents()
+	{
 		super.onInitializeComponents();
 
 		srcProperties = new javax.swing.JScrollPane();
@@ -59,9 +62,9 @@ public class PropertiesPanel extends BasePanel<MysticCryptEntryModelBean>
 		btnEdit = new javax.swing.JButton();
 
 		tableModel = new StringKeyValueTableModel();
-		List<KeyValuePair<String, String>> properties = getModelObject().getProperties() != null ?
-				getModelObject().getProperties():
-				new ArrayList<>();
+		List<KeyValuePair<String, String>> properties = getModelObject().getProperties() != null
+			? getModelObject().getProperties()
+			: new ArrayList<>();
 
 		tableModel.addList(properties);
 		tblProperties = new GenericJXTable<>(getTableModel());
@@ -71,16 +74,14 @@ public class PropertiesPanel extends BasePanel<MysticCryptEntryModelBean>
 		srcProperties.setViewportView(tblProperties);
 
 
-		btnRemoveStateMachine = GenericButtonGenericJXTableStateMachine.<KeyValuePair<String, String>>builder()
-				.button(btnRemove)
-				.component(tblProperties)
-				.build();
+		btnRemoveStateMachine = GenericButtonGenericJXTableStateMachine
+			.<KeyValuePair<String, String>> builder().button(btnRemove).component(tblProperties)
+			.build();
 		btnRemoveStateMachine.onInitialize();
 
-		btnEditStateMachine = GenericButtonGenericJXTableStateMachine.<KeyValuePair<String, String>>builder()
-				.button(btnEdit)
-				.component(tblProperties)
-				.build();
+		btnEditStateMachine = GenericButtonGenericJXTableStateMachine
+			.<KeyValuePair<String, String>> builder().button(btnEdit).component(tblProperties)
+			.build();
 		btnEditStateMachine.onInitialize();
 
 		ListSelectionModel selectionModel = tblProperties.getSelectionModel();
@@ -99,44 +100,51 @@ public class PropertiesPanel extends BasePanel<MysticCryptEntryModelBean>
 		btnEdit.setText("Edit");
 	}
 
-	protected void onAdd(final ActionEvent actionEvent) {
+	protected void onAdd(final ActionEvent actionEvent)
+	{
 		PropertiesNewEntryPanel panel = new PropertiesNewEntryPanel();
-		int option = JOptionPaneExtensions.getSelectedOption(panel,
-				JOptionPane.PLAIN_MESSAGE, JOptionPane.OK_CANCEL_OPTION, null,
-				Messages.getString("dialog.new.crypt.properties.title", "New Property Value."),
-				panel.getTxtKey());
-		if (option == JOptionPane.OK_OPTION) {
+		int option = JOptionPaneExtensions.getSelectedOption(panel, JOptionPane.PLAIN_MESSAGE,
+			JOptionPane.OK_CANCEL_OPTION, null,
+			Messages.getString("dialog.new.crypt.properties.title", "New Property Value."),
+			panel.getTxtKey());
+		if (option == JOptionPane.OK_OPTION)
+		{
 			KeyValuePair<String, String> newProperty = panel.getModelObject();
 			PropertiesPanel.this.getModelObject().getProperties().add(newProperty);
 			tableModel.add(newProperty);
 		}
 	}
 
-	protected void onRemove(final ActionEvent actionEvent) {
+	protected void onRemove(final ActionEvent actionEvent)
+	{
 		// Get selected property and remove it from table
 		System.err.println("onRemove");
-		if (0 < tblProperties.getSelectedRows().length) {
+		if (0 < tblProperties.getSelectedRows().length)
+		{
 			// confirm delete
 			tblProperties.getGenericTableModel().removeAt(tblProperties.getSelectedRow());
 		}
 	}
 
-	protected void onEdit(final ActionEvent actionEvent) {
+	protected void onEdit(final ActionEvent actionEvent)
+	{
 		System.err.println("onEdit");
 		getTblProperties().getSingleSelectedRowData().ifPresent(tableEntry -> {
 			showEditPropertyDialog(tableEntry);
 		});
 	}
 
-	private void showEditPropertyDialog(KeyValuePair tableEntry) {
+	private void showEditPropertyDialog(KeyValuePair<String, String> tableEntry)
+	{
 		PropertiesNewEntryPanel panel = new PropertiesNewEntryPanel(BaseModel.of(tableEntry));
-		int option = JOptionPaneExtensions.getSelectedOption(panel,
-				JOptionPane.PLAIN_MESSAGE, JOptionPane.OK_CANCEL_OPTION, null,
-				Messages.getString("dialog.edit.crypt.properties.title", "Edit Property Value."),
-				panel.getTxtKey());
-		if (option == JOptionPane.OK_OPTION) {
+		int option = JOptionPaneExtensions.getSelectedOption(panel, JOptionPane.PLAIN_MESSAGE,
+			JOptionPane.OK_CANCEL_OPTION, null,
+			Messages.getString("dialog.edit.crypt.properties.title", "Edit Property Value."),
+			panel.getTxtKey());
+		if (option == JOptionPane.OK_OPTION)
+		{
 			List<KeyValuePair<String, String>> data = getTblProperties().getGenericTableModel()
-					.getData();
+				.getData();
 			int index = data.indexOf(tableEntry);
 			data.remove(tableEntry);
 			KeyValuePair<String, String> newProperty = panel.getModelObject();
@@ -146,7 +154,8 @@ public class PropertiesPanel extends BasePanel<MysticCryptEntryModelBean>
 	}
 
 	@Override
-	protected void onInitializeLayout() {
+	protected void onInitializeLayout()
+	{
 		super.onInitializeLayout();
 		onInitializeGroupLayout();
 	}
@@ -154,40 +163,42 @@ public class PropertiesPanel extends BasePanel<MysticCryptEntryModelBean>
 	/**
 	 * Initialize layout.
 	 */
-	protected void onInitializeMigLayout() {
+	protected void onInitializeMigLayout()
+	{
 		MigLayout layout = new MigLayout();
 		this.setLayout(layout);
 		add(srcProperties, "wrap");
 
 	}
 
-	protected void onInitializeGroupLayout() {
+	protected void onInitializeGroupLayout()
+	{
 		javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
 		this.setLayout(layout);
 		layout.setHorizontalGroup(layout
-				.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-				.addGroup(layout.createSequentialGroup().addContainerGap()
-						.addComponent(srcProperties, javax.swing.GroupLayout.PREFERRED_SIZE,
-								javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-						.addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-						.addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-								.addComponent(btnAdd, javax.swing.GroupLayout.DEFAULT_SIZE,
-										javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-								.addComponent(btnRemove, javax.swing.GroupLayout.Alignment.TRAILING,
-										javax.swing.GroupLayout.DEFAULT_SIZE, 170, Short.MAX_VALUE)
-								.addComponent(btnEdit, javax.swing.GroupLayout.DEFAULT_SIZE,
-										javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-						.addContainerGap()));
+			.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+			.addGroup(layout.createSequentialGroup().addContainerGap()
+				.addComponent(srcProperties, javax.swing.GroupLayout.PREFERRED_SIZE,
+					javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+				.addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+				.addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+					.addComponent(btnAdd, javax.swing.GroupLayout.DEFAULT_SIZE,
+						javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+					.addComponent(btnRemove, javax.swing.GroupLayout.Alignment.TRAILING,
+						javax.swing.GroupLayout.DEFAULT_SIZE, 170, Short.MAX_VALUE)
+					.addComponent(btnEdit, javax.swing.GroupLayout.DEFAULT_SIZE,
+						javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+				.addContainerGap()));
 		layout.setVerticalGroup(layout
-				.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-				.addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-						.addContainerGap(42, Short.MAX_VALUE)
-						.addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-								.addComponent(srcProperties, javax.swing.GroupLayout.PREFERRED_SIZE, 172,
-										javax.swing.GroupLayout.PREFERRED_SIZE)
-								.addGroup(layout.createSequentialGroup().addComponent(btnAdd).addGap(18, 18, 18)
-										.addComponent(btnRemove).addGap(18, 18, 18).addComponent(btnEdit)))
-						.addContainerGap()));
+			.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+			.addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+				.addContainerGap(42, Short.MAX_VALUE)
+				.addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+					.addComponent(srcProperties, javax.swing.GroupLayout.PREFERRED_SIZE, 172,
+						javax.swing.GroupLayout.PREFERRED_SIZE)
+					.addGroup(layout.createSequentialGroup().addComponent(btnAdd).addGap(18, 18, 18)
+						.addComponent(btnRemove).addGap(18, 18, 18).addComponent(btnEdit)))
+				.addContainerGap()));
 	}
 
 }

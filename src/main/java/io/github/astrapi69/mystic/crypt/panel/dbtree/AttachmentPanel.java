@@ -78,12 +78,6 @@ public class AttachmentPanel extends BasePanel<MysticCryptEntryModelBean>
 		super(model);
 	}
 
-	protected GenericJXTable<FileContentInfo> newJTable()
-	{
-		AttachmentTableModel tableModel = new AttachmentTableModel();
-		return new GenericJXTable<>(tableModel);
-	}
-
 	@Override
 	protected void onInitializeComponents()
 	{
@@ -104,14 +98,12 @@ public class AttachmentPanel extends BasePanel<MysticCryptEntryModelBean>
 		btnRemove = new JButton();
 		btnSaveTo = new JButton();
 
-		btnRemoveStateMachine = GenericButtonGenericJXTableStateMachine.<FileContentInfo>builder()
-				.button(btnRemove)
-			.component(tblFiles).build();
+		btnRemoveStateMachine = GenericButtonGenericJXTableStateMachine.<FileContentInfo> builder()
+			.button(btnRemove).component(tblFiles).build();
 		btnRemoveStateMachine.onInitialize();
 
-		btnSaveToStateMachine = GenericButtonGenericJXTableStateMachine.<FileContentInfo>builder()
-				.button(btnSaveTo)
-			.component(tblFiles).build();
+		btnSaveToStateMachine = GenericButtonGenericJXTableStateMachine.<FileContentInfo> builder()
+			.button(btnSaveTo).component(tblFiles).build();
 		btnSaveToStateMachine.onInitialize();
 
 		ListSelectionModel selectionModel = tblFiles.getSelectionModel();

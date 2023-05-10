@@ -25,6 +25,7 @@
 package io.github.astrapi69.mystic.crypt.panel.dbtree;
 
 import java.awt.event.MouseEvent;
+import java.io.Serial;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -70,7 +71,7 @@ public class SecretKeyTreeWithContentPanel
 	extends
 		BaseTreeNodeGenericTreeElementWithContentPanel<List<MysticCryptEntryModelBean>, Long, MysticCryptEntryModelBean>
 {
-
+	@Serial
 	private static final long serialVersionUID = 1L;
 
 	public SecretKeyTreeWithContentPanel(
@@ -101,7 +102,7 @@ public class SecretKeyTreeWithContentPanel
 	protected GenericJXTable<MysticCryptEntryModelBean> newJTable()
 	{
 		GenericTableModel<MysticCryptEntryModelBean> tableModel = new MysticCryptEntryTableModel();
-		return new GenericJXTable<MysticCryptEntryModelBean>(tableModel)
+		return new GenericJXTable<>(tableModel)
 		{
 
 			protected void onSingleLeftClick(MouseEvent event)
@@ -242,7 +243,7 @@ public class SecretKeyTreeWithContentPanel
 				NodePanel panel = new NodePanel();
 				int option = JOptionPaneExtensions.getSelectedOption(panel,
 					JOptionPane.PLAIN_MESSAGE, JOptionPane.OK_CANCEL_OPTION, null,
-						Messages.getString("dialog.new.node.entry.title", "New node."),
+					Messages.getString("dialog.new.node.entry.title", "New node."),
 					panel.getTxtName());
 
 				if (option == JOptionPane.OK_OPTION)
@@ -281,8 +282,8 @@ public class SecretKeyTreeWithContentPanel
 						.leaf(selectedTreeNode.getValue().isLeaf()).build()));
 				int option = JOptionPaneExtensions.getSelectedOption(panel,
 					JOptionPane.INFORMATION_MESSAGE, JOptionPane.OK_CANCEL_OPTION, null,
-						Messages.getString("dialog.edit.node.entry.title", "Edit node."),
-						panel.getTxtName());
+					Messages.getString("dialog.edit.node.entry.title", "Edit node."),
+					panel.getTxtName());
 				if (option == JOptionPane.OK_OPTION)
 				{
 					NodeModel modelObject = panel.getModelObject();
@@ -424,7 +425,7 @@ public class SecretKeyTreeWithContentPanel
 
 		int option = JOptionPaneExtensions.getSelectedOption(panel, JOptionPane.PLAIN_MESSAGE,
 			JOptionPane.OK_CANCEL_OPTION, this,
-				Messages.getString("dialog.new.crypt.entry.title", "New Crypt Entry."),
+			Messages.getString("dialog.new.crypt.entry.title", "New Crypt Entry."),
 			panel.getMysticCryptEntryPanel().getTxtEntryName());
 		if (option == JOptionPane.OK_OPTION)
 		{

@@ -36,7 +36,9 @@ import io.github.astrapi69.swing.table.GenericJXTable;
 @EqualsAndHashCode(callSuper = true)
 @ToString
 @SuperBuilder
-public class GenericButtonGenericJXTableStateMachine<T> extends AbstractJButtonAndComponentStateMachine<GenericButtonGenericJXTableStateMachine, GenericJXTable<T>>
+public class GenericButtonGenericJXTableStateMachine<T>
+	extends
+		AbstractJButtonAndComponentStateMachine<GenericButtonGenericJXTableStateMachine<T>, GenericJXTable<T>>
 	implements
 		ButtonTableSelectionToState
 {

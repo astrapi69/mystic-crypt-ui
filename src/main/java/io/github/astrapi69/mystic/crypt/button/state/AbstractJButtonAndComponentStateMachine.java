@@ -32,12 +32,15 @@ import lombok.Setter;
 import lombok.ToString;
 import lombok.experimental.SuperBuilder;
 import io.github.astrapi69.design.pattern.state.button.ButtonStateMachine;
+
 @Getter
 @Setter
 @EqualsAndHashCode(callSuper = true)
 @ToString
 @SuperBuilder
-public abstract class AbstractJButtonAndComponentStateMachine<ST, C extends JComponent> extends ButtonStateMachine<JButton, ST>
+public abstract class AbstractJButtonAndComponentStateMachine<ST, C extends JComponent>
+	extends
+		ButtonStateMachine<JButton, ST>
 {
 	C component;
 
