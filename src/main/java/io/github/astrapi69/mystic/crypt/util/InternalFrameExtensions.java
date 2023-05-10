@@ -24,9 +24,9 @@
  */
 package io.github.astrapi69.mystic.crypt.util;
 
-import java.awt.Component;
+import java.awt.*;
 
-import javax.swing.JInternalFrame;
+import javax.swing.*;
 
 import io.github.astrapi69.swing.base.ApplicationPanelFrame;
 import io.github.astrapi69.swing.base.BasePanel;

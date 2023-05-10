@@ -24,10 +24,10 @@
  */
 package io.github.astrapi69.mystic.crypt.panel.privatekey;
 
-import java.awt.Frame;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 
-import javax.swing.JPanel;
+import javax.swing.*;
 
 import io.github.astrapi69.crypt.api.key.KeySize;
 import io.github.astrapi69.model.BaseModel;

@@ -35,6 +35,15 @@ package io.github.astrapi69.mystic.crypt.panel.mousemove;
 public class MouseMoveSettingsFormPanel extends javax.swing.JPanel
 {
 
+	// Variables declaration - do not modify//GEN-BEGIN:variables
+	private javax.swing.JComboBox<String> cmbVariableX;
+	private javax.swing.JComboBox<String> cmbVariableY;
+	private javax.swing.JLabel lblIntervalOfSeconds;
+	private javax.swing.JLabel lblSettings;
+	private javax.swing.JLabel lblVariableX;
+	private javax.swing.JLabel lblVariableY;
+	private javax.swing.JTextField txtIntervalOfSeconds;
+
 	/**
 	 * Creates new form MouseMoveSettingsFormPanel
 	 */
@@ -129,15 +138,5 @@ public class MouseMoveSettingsFormPanel extends javax.swing.JPanel
 							javax.swing.GroupLayout.PREFERRED_SIZE))
 					.addContainerGap(21, Short.MAX_VALUE)));
 	}// </editor-fold>//GEN-END:initComponents
-
-
-	// Variables declaration - do not modify//GEN-BEGIN:variables
-	private javax.swing.JComboBox<String> cmbVariableX;
-	private javax.swing.JComboBox<String> cmbVariableY;
-	private javax.swing.JLabel lblIntervalOfSeconds;
-	private javax.swing.JLabel lblSettings;
-	private javax.swing.JLabel lblVariableX;
-	private javax.swing.JLabel lblVariableY;
-	private javax.swing.JTextField txtIntervalOfSeconds;
-	// End of variables declaration//GEN-END:variables
+		// End of variables declaration//GEN-END:variables
 }

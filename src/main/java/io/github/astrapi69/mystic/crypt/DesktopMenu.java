@@ -20,9 +20,7 @@
  */
 package io.github.astrapi69.mystic.crypt;
 
-import java.awt.Component;
-import java.awt.Event;
-import java.awt.Frame;
+import java.awt.*;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.io.BufferedReader;
@@ -36,27 +34,19 @@ import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
 
-import javax.swing.JButton;
-import javax.swing.JMenu;
-import javax.swing.JMenuBar;
-import javax.swing.JMenuItem;
-import javax.swing.KeyStroke;
-import javax.swing.MenuElement;
+import javax.swing.*;
 
-import io.github.astrapi69.lang.ClassExtensions;
-import io.github.astrapi69.model.enumtype.visibity.RenderMode;
-import io.github.astrapi69.mystic.crypt.action.NewFileConversionInternalFrameAction;
-import io.github.astrapi69.swing.menu.KeyStrokeExtensions;
-import io.github.astrapi69.swing.menu.model.MenuItemInfo;
 import lombok.NonNull;
 import lombok.extern.java.Log;
-
 import io.github.astrapi69.collection.set.SetFactory;
 import io.github.astrapi69.design.pattern.observer.event.EventListener;
 import io.github.astrapi69.design.pattern.observer.event.EventObject;
 import io.github.astrapi69.design.pattern.observer.event.EventSource;
+import io.github.astrapi69.lang.ClassExtensions;
+import io.github.astrapi69.model.enumtype.visibity.RenderMode;
 import io.github.astrapi69.mystic.crypt.action.ApplicationToggleFullScreenAction;
 import io.github.astrapi69.mystic.crypt.action.NewChecksumFrameAction;
+import io.github.astrapi69.mystic.crypt.action.NewFileConversionInternalFrameAction;
 import io.github.astrapi69.mystic.crypt.action.NewKeyGenerationInternalFrameAction;
 import io.github.astrapi69.mystic.crypt.action.NewObfuscationInternalFrameAction;
 import io.github.astrapi69.mystic.crypt.action.OpenConsoleFrameAction;
@@ -69,8 +59,10 @@ import io.github.astrapi69.swing.base.BaseDesktopMenu;
 import io.github.astrapi69.swing.base.BaseMenuId;
 import io.github.astrapi69.swing.dialog.info.InfoDialog;
 import io.github.astrapi69.swing.dialog.info.InfoPanel;
+import io.github.astrapi69.swing.menu.KeyStrokeExtensions;
 import io.github.astrapi69.swing.menu.MenuExtensions;
 import io.github.astrapi69.swing.menu.ParentMenuResolver;
+import io.github.astrapi69.swing.menu.model.MenuItemInfo;
 
 /**
  * The class {@link DesktopMenu}

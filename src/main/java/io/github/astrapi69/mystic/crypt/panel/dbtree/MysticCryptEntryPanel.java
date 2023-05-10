@@ -24,13 +24,9 @@
  */
 package io.github.astrapi69.mystic.crypt.panel.dbtree;
 
-import java.awt.Component;
-import java.awt.Container;
 import java.awt.event.ActionEvent;
 
-import javax.swing.GroupLayout;
-import javax.swing.JLabel;
-import javax.swing.JScrollPane;
+import javax.swing.*;
 
 import lombok.Getter;
 
@@ -41,11 +37,11 @@ import io.github.astrapi69.model.BaseModel;
 import io.github.astrapi69.model.LambdaModel;
 import io.github.astrapi69.model.api.IModel;
 import io.github.astrapi69.swing.base.BasePanel;
+import io.github.astrapi69.swing.component.ComponentExtensions;
 import io.github.astrapi69.swing.component.JMCheckBox;
 import io.github.astrapi69.swing.component.JMPasswordField;
 import io.github.astrapi69.swing.component.JMTextArea;
 import io.github.astrapi69.swing.component.JMTextField;
-import io.github.astrapi69.swing.component.ComponentExtensions;
 
 @Getter
 public class MysticCryptEntryPanel extends BasePanel<MysticCryptEntryModelBean>

@@ -35,6 +35,9 @@ package io.github.astrapi69.mystic.crypt.panel.dbtree;
 public class MysticCryptEntryTabbedFormPanel extends javax.swing.JPanel
 {
 
+	// Variables declaration - do not modify//GEN-BEGIN:variables
+	private javax.swing.JTabbedPane tbpMysticCryptEntry;
+
 	/**
 	 * Creates new form MysticCryptEntryFormPanel
 	 */
@@ -79,9 +82,5 @@ public class MysticCryptEntryTabbedFormPanel extends javax.swing.JPanel
 	{// GEN-FIRST:event_txtUrlActionPerformed
 		// TODO add your handling code here:
 	}// GEN-LAST:event_txtUrlActionPerformed
-
-
-	// Variables declaration - do not modify//GEN-BEGIN:variables
-	private javax.swing.JTabbedPane tbpMysticCryptEntry;
-	// End of variables declaration//GEN-END:variables
+		// End of variables declaration//GEN-END:variables
 }

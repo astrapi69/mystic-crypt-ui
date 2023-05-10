@@ -26,6 +26,7 @@ package io.github.astrapi69.mystic.crypt.panel.certificate;
 
 import lombok.AccessLevel;
 import lombok.experimental.FieldDefaults;
+
 import org.bouncycastle.asn1.ASN1ObjectIdentifier;
 import org.bouncycastle.asn1.ASN1OctetString;
 
@@ -64,24 +65,24 @@ public class ExtensionInfo
 		return this.extensionId;
 	}
 
-	public boolean isCritical()
-	{
-		return this.critical;
-	}
-
-	public ASN1OctetString getValue()
-	{
-		return this.value;
-	}
-
 	public void setExtensionId(ASN1ObjectIdentifier extensionId)
 	{
 		this.extensionId = extensionId;
 	}
 
+	public boolean isCritical()
+	{
+		return this.critical;
+	}
+
 	public void setCritical(boolean critical)
 	{
 		this.critical = critical;
+	}
+
+	public ASN1OctetString getValue()
+	{
+		return this.value;
 	}
 
 	public void setValue(ASN1OctetString value)

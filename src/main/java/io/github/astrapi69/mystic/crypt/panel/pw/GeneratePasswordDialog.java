@@ -24,10 +24,10 @@
  */
 package io.github.astrapi69.mystic.crypt.panel.pw;
 
-import java.awt.Frame;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 
-import javax.swing.JPanel;
+import javax.swing.*;
 
 import io.github.astrapi69.model.api.IModel;
 import io.github.astrapi69.swing.base.PanelDialog;

@@ -26,7 +26,7 @@ package io.github.astrapi69.mystic.crypt.action;
 
 import java.awt.event.ActionEvent;
 
-import javax.swing.JFrame;
+import javax.swing.*;
 
 import io.github.astrapi69.swing.action.ToggleFullScreenAction;
 

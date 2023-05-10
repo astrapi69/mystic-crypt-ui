@@ -1,3 +1,27 @@
+/**
+ * The MIT License
+ *
+ * Copyright (C) 2015 Asterios Raptis
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining
+ * a copy of this software and associated documentation files (the
+ * "Software"), to deal in the Software without restriction, including
+ * without limitation the rights to use, copy, modify, merge, publish,
+ * distribute, sublicense, and/or sell copies of the Software, and to
+ * permit persons to whom the Software is furnished to do so, subject to
+ * the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
+ * LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+ * OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+ * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
 /*
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/GUIForms/JPanel.java to edit this template
@@ -10,6 +34,13 @@ package io.github.astrapi69.mystic.crypt.panel.properties;
  */
 public class PropertiesFormPanel extends javax.swing.JPanel
 {
+
+	// Variables declaration - do not modify//GEN-BEGIN:variables
+	private javax.swing.JButton btnAdd;
+	private javax.swing.JButton btnEdit;
+	private javax.swing.JButton btnRemove;
+	private javax.swing.JScrollPane srcProperties;
+	private javax.swing.JTable tblProperties;
 
 	/**
 	 * Creates new form PropertiesFormPanel
@@ -84,13 +115,5 @@ public class PropertiesFormPanel extends javax.swing.JPanel
 	{// GEN-FIRST:event_btnAddActionPerformed
 		// TODO add your handling code here:
 	}// GEN-LAST:event_btnAddActionPerformed
-
-
-	// Variables declaration - do not modify//GEN-BEGIN:variables
-	private javax.swing.JButton btnAdd;
-	private javax.swing.JButton btnEdit;
-	private javax.swing.JButton btnRemove;
-	private javax.swing.JScrollPane srcProperties;
-	private javax.swing.JTable tblProperties;
-	// End of variables declaration//GEN-END:variables
+		// End of variables declaration//GEN-END:variables
 }

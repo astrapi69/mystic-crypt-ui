@@ -35,6 +35,25 @@ package io.github.astrapi69.mystic.crypt.panel.signin;
 public class NewMasterPwFileFormPanel extends javax.swing.JPanel
 {
 
+	// Variables declaration - do not modify//GEN-BEGIN:variables
+	private javax.swing.JButton btnApplicationFileChooser;
+	private javax.swing.JButton btnCancel;
+	private javax.swing.JButton btnCreateKeyFile;
+	private javax.swing.JButton btnGeneratePw;
+	private javax.swing.JButton btnHelp;
+	private javax.swing.JButton btnKeyFileChooser;
+	private javax.swing.JButton btnMasterPw;
+	private javax.swing.JButton btnOk;
+	private javax.swing.JCheckBox cbxKeyFile;
+	private javax.swing.JCheckBox cbxMasterPw;
+	private javax.swing.JComboBox<String> cmbKeyFile;
+	private javax.swing.JLabel lblApplicationFile;
+	private javax.swing.JLabel lblImageHeader;
+	private javax.swing.JLabel lblRepeatPw;
+	private javax.swing.JTextField txtApplicationFile;
+	private javax.swing.JPasswordField txtMasterPw;
+	private javax.swing.JPasswordField txtRepeatPw;
+
 	/**
 	 * Creates new form MasterPwWithApplicationFileFormJPanel
 	 */
@@ -266,25 +285,5 @@ public class NewMasterPwFileFormPanel extends javax.swing.JPanel
 	{// GEN-FIRST:event_cbxMasterPwActionPerformed
 		// TODO add your handling code here:
 	}// GEN-LAST:event_cbxMasterPwActionPerformed
-
-
-	// Variables declaration - do not modify//GEN-BEGIN:variables
-	private javax.swing.JButton btnApplicationFileChooser;
-	private javax.swing.JButton btnCancel;
-	private javax.swing.JButton btnCreateKeyFile;
-	private javax.swing.JButton btnGeneratePw;
-	private javax.swing.JButton btnHelp;
-	private javax.swing.JButton btnKeyFileChooser;
-	private javax.swing.JButton btnMasterPw;
-	private javax.swing.JButton btnOk;
-	private javax.swing.JCheckBox cbxKeyFile;
-	private javax.swing.JCheckBox cbxMasterPw;
-	private javax.swing.JComboBox<String> cmbKeyFile;
-	private javax.swing.JLabel lblApplicationFile;
-	private javax.swing.JLabel lblImageHeader;
-	private javax.swing.JLabel lblRepeatPw;
-	private javax.swing.JTextField txtApplicationFile;
-	private javax.swing.JPasswordField txtMasterPw;
-	private javax.swing.JPasswordField txtRepeatPw;
-	// End of variables declaration//GEN-END:variables
+		// End of variables declaration//GEN-END:variables
 }

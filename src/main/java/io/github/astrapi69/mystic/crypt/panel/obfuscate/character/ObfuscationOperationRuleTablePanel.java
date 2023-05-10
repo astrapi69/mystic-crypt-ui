@@ -27,16 +27,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 
-import javax.swing.GroupLayout;
-import javax.swing.JFileChooser;
-import javax.swing.JLabel;
-import javax.swing.JScrollPane;
+import javax.swing.*;
 import javax.swing.table.TableColumn;
 
-import io.github.astrapi69.throwable.RuntimeExceptionDecorator;
 import lombok.Getter;
 import lombok.NonNull;
-import lombok.SneakyThrows;
 import lombok.extern.java.Log;
 
 import org.apache.commons.codec.DecoderException;
@@ -52,6 +47,7 @@ import io.github.astrapi69.swing.table.GenericJXTable;
 import io.github.astrapi69.swing.table.editor.DeleteRowButtonEditor;
 import io.github.astrapi69.swing.table.editor.TableCellButtonEditor;
 import io.github.astrapi69.swing.table.renderer.TableCellButtonRendererFactory;
+import io.github.astrapi69.throwable.RuntimeExceptionDecorator;
 import io.github.astrapi69.xml.crypto.file.XmlDecryptionExtensions;
 import io.github.astrapi69.xml.crypto.file.XmlEncryptionExtensions;
 

@@ -35,6 +35,24 @@ package io.github.astrapi69.mystic.crypt.panel.checksum;
 public class ChecksumFormPanel extends javax.swing.JPanel
 {
 
+	// Variables declaration - do not modify//GEN-BEGIN:variables
+	private javax.swing.JButton btnClearChecksumFile;
+	private javax.swing.JButton btnClearOpenFile;
+	private javax.swing.JButton btnCompare;
+	private javax.swing.JButton btnOpenChecksumFile;
+	private javax.swing.JButton btnOpenFile;
+	private javax.swing.JComboBox<String> cbxChecksumAlgorithm;
+	private javax.swing.JLabel lblChecksumAlgorithm;
+	private javax.swing.JLabel lblGeneratedChecksum;
+	private javax.swing.JLabel lblOwnersChecksum;
+	private javax.swing.JScrollPane srcGeneratedChecksum;
+	private javax.swing.JScrollPane srcOwnersChecksum;
+	private javax.swing.JTextField txtChecksumFile;
+	private javax.swing.JTextField txtChecksumMatchResult;
+	private javax.swing.JTextArea txtGeneratedChecksum;
+	private javax.swing.JTextField txtOpenFile;
+	private javax.swing.JTextArea txtOwnersChecksum;
+
 	/**
 	 * Creates new form NewJPanel
 	 */
@@ -206,24 +224,5 @@ public class ChecksumFormPanel extends javax.swing.JPanel
 	{// GEN-FIRST:event_txtChecksumFileActionPerformed
 		// TODO add your handling code here:
 	}// GEN-LAST:event_txtChecksumFileActionPerformed
-
-
-	// Variables declaration - do not modify//GEN-BEGIN:variables
-	private javax.swing.JButton btnClearChecksumFile;
-	private javax.swing.JButton btnClearOpenFile;
-	private javax.swing.JButton btnCompare;
-	private javax.swing.JButton btnOpenChecksumFile;
-	private javax.swing.JButton btnOpenFile;
-	private javax.swing.JComboBox<String> cbxChecksumAlgorithm;
-	private javax.swing.JLabel lblChecksumAlgorithm;
-	private javax.swing.JLabel lblGeneratedChecksum;
-	private javax.swing.JLabel lblOwnersChecksum;
-	private javax.swing.JScrollPane srcGeneratedChecksum;
-	private javax.swing.JScrollPane srcOwnersChecksum;
-	private javax.swing.JTextField txtChecksumFile;
-	private javax.swing.JTextField txtChecksumMatchResult;
-	private javax.swing.JTextArea txtGeneratedChecksum;
-	private javax.swing.JTextField txtOpenFile;
-	private javax.swing.JTextArea txtOwnersChecksum;
-	// End of variables declaration//GEN-END:variables
+		// End of variables declaration//GEN-END:variables
 }

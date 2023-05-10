@@ -33,10 +33,10 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 import lombok.experimental.FieldDefaults;
+import io.github.astrapi69.gen.tree.TreeIdNode;
 import io.github.astrapi69.mystic.crypt.panel.dbtree.MysticCryptEntryModelBean;
 import io.github.astrapi69.mystic.crypt.panel.signin.MasterPwFileModelBean;
 import io.github.astrapi69.swing.tree.GenericTreeElement;
-import io.github.astrapi69.gen.tree.TreeIdNode;
 
 /**
  * The class {@link ApplicationModelBean} holds application specific data

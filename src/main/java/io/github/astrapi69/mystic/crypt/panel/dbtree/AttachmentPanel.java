@@ -33,19 +33,14 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Optional;
 
-import javax.swing.GroupLayout;
-import javax.swing.JButton;
-import javax.swing.JFileChooser;
-import javax.swing.JScrollPane;
-import javax.swing.LayoutStyle;
-import javax.swing.ListSelectionModel;
+import javax.swing.*;
 
-import io.github.astrapi69.mystic.crypt.button.state.GenericButtonGenericJXTableStateMachine;
 import lombok.Getter;
 import io.github.astrapi69.file.create.FileContentInfo;
 import io.github.astrapi69.file.write.WriteFileExtensions;
 import io.github.astrapi69.model.BaseModel;
 import io.github.astrapi69.model.api.IModel;
+import io.github.astrapi69.mystic.crypt.button.state.GenericButtonGenericJXTableStateMachine;
 import io.github.astrapi69.swing.base.BasePanel;
 import io.github.astrapi69.swing.table.GenericJXTable;
 import io.github.astrapi69.throwable.RuntimeExceptionDecorator;
@@ -53,17 +48,14 @@ import io.github.astrapi69.throwable.RuntimeExceptionDecorator;
 @Getter
 public class AttachmentPanel extends BasePanel<MysticCryptEntryModelBean>
 {
+	GenericButtonGenericJXTableStateMachine<FileContentInfo> btnRemoveStateMachine;
+	GenericButtonGenericJXTableStateMachine<FileContentInfo> btnSaveToStateMachine;
 	private JButton btnAdd;
 	private JButton btnRemove;
 	private JButton btnSaveTo;
 	private JScrollPane srcFiles;
 	private GenericJXTable<FileContentInfo> tblFiles;
-
 	private JFileChooser fileChooser;
-
-	GenericButtonGenericJXTableStateMachine<FileContentInfo> btnRemoveStateMachine;
-
-	GenericButtonGenericJXTableStateMachine<FileContentInfo> btnSaveToStateMachine;
 
 	/**
 	 * Creates new form NewAttachmentFormPanel

@@ -26,7 +26,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Map.Entry;
 
-import javax.swing.JOptionPane;
+import javax.swing.*;
 
 import lombok.Getter;
 import net.miginfocom.swing.MigLayout;
@@ -38,9 +38,9 @@ import io.github.astrapi69.collection.list.ListFactory;
 import io.github.astrapi69.collection.pair.KeyValuePair;
 import io.github.astrapi69.crypt.api.obfuscation.Obfuscatable;
 import io.github.astrapi69.crypt.data.obfuscation.rule.ObfuscationRule;
-import io.github.astrapi69.mystic.crypt.obfuscation.simple.SimpleCharacterObfuscator;
 import io.github.astrapi69.model.BaseModel;
 import io.github.astrapi69.model.api.IModel;
+import io.github.astrapi69.mystic.crypt.obfuscation.simple.SimpleCharacterObfuscator;
 import io.github.astrapi69.mystic.crypt.panel.keygen.EnDecryptPanel;
 import io.github.astrapi69.mystic.crypt.panel.obfuscate.ModeContext;
 import io.github.astrapi69.swing.base.BasePanel;

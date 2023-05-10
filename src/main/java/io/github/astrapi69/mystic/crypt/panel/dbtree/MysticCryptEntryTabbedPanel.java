@@ -38,11 +38,10 @@ import io.github.astrapi69.swing.base.BasePanel;
 public class MysticCryptEntryTabbedPanel extends BasePanel<MysticCryptEntryModelBean>
 {
 
-	private javax.swing.JTabbedPane tbpMysticCryptEntry;
-
 	MysticCryptEntryPanel mysticCryptEntryPanel;
 	AttachmentPanel attachmentPanel;
 	PropertiesPanel propertiesPanel;
+	private javax.swing.JTabbedPane tbpMysticCryptEntry;
 
 	/**
 	 * Creates new form MysticCryptEntryFormPanel

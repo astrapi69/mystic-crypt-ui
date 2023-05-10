@@ -35,6 +35,13 @@ package io.github.astrapi69.mystic.crypt.panel.dbtree;
 public class AttachmentFormPanel extends javax.swing.JPanel
 {
 
+	// Variables declaration - do not modify//GEN-BEGIN:variables
+	private javax.swing.JButton btnAdd;
+	private javax.swing.JButton btnRemove;
+	private javax.swing.JButton btnSaveTo;
+	private javax.swing.JScrollPane srcFiles;
+	private javax.swing.JTable tblFiles;
+
 	/**
 	 * Creates new form NewAttachmentFormPanel
 	 */
@@ -108,13 +115,5 @@ public class AttachmentFormPanel extends javax.swing.JPanel
 	{// GEN-FIRST:event_btnAddActionPerformed
 		// TODO add your handling code here:
 	}// GEN-LAST:event_btnAddActionPerformed
-
-
-	// Variables declaration - do not modify//GEN-BEGIN:variables
-	private javax.swing.JButton btnAdd;
-	private javax.swing.JButton btnRemove;
-	private javax.swing.JButton btnSaveTo;
-	private javax.swing.JScrollPane srcFiles;
-	private javax.swing.JTable tblFiles;
-	// End of variables declaration//GEN-END:variables
+		// End of variables declaration//GEN-END:variables
 }

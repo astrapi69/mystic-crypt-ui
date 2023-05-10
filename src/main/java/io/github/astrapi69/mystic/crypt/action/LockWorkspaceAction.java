@@ -26,7 +26,7 @@ package io.github.astrapi69.mystic.crypt.action;
 
 import java.awt.event.ActionEvent;
 
-import javax.swing.AbstractAction;
+import javax.swing.*;
 
 public class LockWorkspaceAction extends AbstractAction
 {

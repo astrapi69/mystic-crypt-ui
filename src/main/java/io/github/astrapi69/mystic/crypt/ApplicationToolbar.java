@@ -24,12 +24,11 @@
  */
 package io.github.astrapi69.mystic.crypt;
 
-import java.awt.Component;
+import java.awt.*;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
-import javax.swing.JButton;
-import javax.swing.JToolBar;
+import javax.swing.*;
 
 import lombok.Getter;
 

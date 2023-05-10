@@ -26,22 +26,11 @@ package io.github.astrapi69.mystic.crypt.panel.certificate;
 
 import java.math.BigInteger;
 
-import javax.swing.DefaultComboBoxModel;
-import javax.swing.GroupLayout;
-import javax.swing.JButton;
-import javax.swing.JComboBox;
-import javax.swing.JDialog;
-import javax.swing.JLabel;
-import javax.swing.JOptionPane;
-import javax.swing.JScrollPane;
-import javax.swing.JTable;
-import javax.swing.JTextArea;
-import javax.swing.JTextField;
-import javax.swing.LayoutStyle;
+import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 
-import io.github.astrapi69.crypt.data.certificate.CertificateInfo;
 import lombok.Getter;
+import io.github.astrapi69.crypt.data.certificate.CertificateInfo;
 import io.github.astrapi69.model.BaseModel;
 import io.github.astrapi69.model.api.IModel;
 import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;

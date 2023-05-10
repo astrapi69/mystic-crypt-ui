@@ -24,7 +24,7 @@
  */
 package io.github.astrapi69.mystic.crypt;
 
-import java.awt.EventQueue;
+import java.awt.*;
 
 import lombok.AccessLevel;
 import lombok.experimental.FieldDefaults;
