@@ -1,0 +1,186 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<Form version="1.3" maxVersion="1.9" type="org.netbeans.modules.form.forminfo.JPanelFormInfo">
+  <AuxValues>
+    <AuxValue name="FormSettings_autoResourcing" type="java.lang.Integer" value="0"/>
+    <AuxValue name="FormSettings_autoSetComponentName" type="java.lang.Boolean" value="false"/>
+    <AuxValue name="FormSettings_generateFQN" type="java.lang.Boolean" value="true"/>
+    <AuxValue name="FormSettings_generateMnemonicsCode" type="java.lang.Boolean" value="false"/>
+    <AuxValue name="FormSettings_i18nAutoMode" type="java.lang.Boolean" value="false"/>
+    <AuxValue name="FormSettings_layoutCodeTarget" type="java.lang.Integer" value="1"/>
+    <AuxValue name="FormSettings_listenerGenerationStyle" type="java.lang.Integer" value="0"/>
+    <AuxValue name="FormSettings_variablesLocal" type="java.lang.Boolean" value="false"/>
+    <AuxValue name="FormSettings_variablesModifier" type="java.lang.Integer" value="2"/>
+  </AuxValues>
+
+  <Layout>
+    <DimensionLayout dim="0">
+      <Group type="103" groupAlignment="0" attributes="0">
+          <Group type="102" alignment="0" attributes="0">
+              <EmptySpace max="-2" attributes="0"/>
+              <Group type="103" groupAlignment="0" max="-2" attributes="0">
+                  <Group type="103" groupAlignment="1" max="-2" attributes="0">
+                      <Component id="lblUrl" max="32767" attributes="0"/>
+                      <Component id="lblRepeat" alignment="0" max="32767" attributes="0"/>
+                      <Component id="lblPassword" alignment="0" max="32767" attributes="0"/>
+                      <Component id="lblUsername" alignment="0" max="32767" attributes="0"/>
+                      <Component id="lblEntryName" alignment="0" pref="155" max="32767" attributes="0"/>
+                  </Group>
+                  <Component id="lblNotes" alignment="0" max="32767" attributes="0"/>
+                  <Component id="cbxExpirable" pref="161" max="32767" attributes="0"/>
+              </Group>
+              <EmptySpace type="separate" max="-2" attributes="0"/>
+              <Group type="103" groupAlignment="0" max="-2" attributes="0">
+                  <Component id="txtEntryName" max="32767" attributes="0"/>
+                  <Component id="txtUsername" max="32767" attributes="0"/>
+                  <Group type="102" alignment="0" attributes="0">
+                      <Group type="103" groupAlignment="1" max="-2" attributes="0">
+                          <Component id="txtRepeat" alignment="0" pref="398" max="32767" attributes="0"/>
+                          <Component id="txtPassword" alignment="0" max="32767" attributes="0"/>
+                      </Group>
+                      <EmptySpace type="separate" max="-2" attributes="0"/>
+                      <Group type="103" groupAlignment="0" attributes="0">
+                          <Component id="btnShowPassword" max="32767" attributes="0"/>
+                          <Component id="btnGeneratePassword" max="32767" attributes="0"/>
+                      </Group>
+                  </Group>
+                  <Component id="txtUrl" max="32767" attributes="0"/>
+                  <Component id="srcNotes" pref="530" max="32767" attributes="0"/>
+                  <Component id="txtExpires" max="32767" attributes="0"/>
+              </Group>
+              <EmptySpace pref="25" max="32767" attributes="0"/>
+          </Group>
+      </Group>
+    </DimensionLayout>
+    <DimensionLayout dim="1">
+      <Group type="103" groupAlignment="0" attributes="0">
+          <Group type="102" alignment="0" attributes="0">
+              <EmptySpace min="-2" pref="29" max="-2" attributes="0"/>
+              <Group type="103" groupAlignment="1" attributes="0">
+                  <Group type="102" attributes="0">
+                      <Group type="103" groupAlignment="1" attributes="0">
+                          <Group type="102" attributes="0">
+                              <Group type="103" groupAlignment="3" attributes="0">
+                                  <Component id="lblEntryName" alignment="3" min="-2" max="-2" attributes="0"/>
+                                  <Component id="txtEntryName" alignment="3" min="-2" max="-2" attributes="0"/>
+                              </Group>
+                              <EmptySpace type="separate" max="-2" attributes="0"/>
+                              <Component id="lblUsername" min="-2" max="-2" attributes="0"/>
+                          </Group>
+                          <Component id="txtUsername" min="-2" max="-2" attributes="0"/>
+                      </Group>
+                      <EmptySpace type="separate" max="-2" attributes="0"/>
+                      <Group type="103" groupAlignment="3" attributes="0">
+                          <Component id="lblPassword" alignment="3" min="-2" max="-2" attributes="0"/>
+                          <Component id="txtPassword" alignment="3" min="-2" max="-2" attributes="0"/>
+                          <Component id="btnShowPassword" alignment="3" min="-2" max="-2" attributes="0"/>
+                      </Group>
+                      <EmptySpace min="-2" pref="21" max="-2" attributes="0"/>
+                      <Component id="lblRepeat" min="-2" max="-2" attributes="0"/>
+                  </Group>
+                  <Group type="103" groupAlignment="3" attributes="0">
+                      <Component id="txtRepeat" alignment="3" min="-2" max="-2" attributes="0"/>
+                      <Component id="btnGeneratePassword" alignment="3" min="-2" max="-2" attributes="0"/>
+                  </Group>
+              </Group>
+              <EmptySpace type="separate" max="-2" attributes="0"/>
+              <Group type="103" groupAlignment="3" attributes="0">
+                  <Component id="lblUrl" alignment="3" min="-2" max="-2" attributes="0"/>
+                  <Component id="txtUrl" alignment="3" min="-2" max="-2" attributes="0"/>
+              </Group>
+              <EmptySpace type="separate" max="-2" attributes="0"/>
+              <Group type="103" groupAlignment="0" attributes="0">
+                  <Component id="lblNotes" min="-2" max="-2" attributes="0"/>
+                  <Component id="srcNotes" min="-2" max="-2" attributes="0"/>
+              </Group>
+              <EmptySpace min="-2" pref="21" max="-2" attributes="0"/>
+              <Group type="103" groupAlignment="3" attributes="0">
+                  <Component id="cbxExpirable" alignment="3" min="-2" max="-2" attributes="0"/>
+                  <Component id="txtExpires" alignment="3" min="-2" max="-2" attributes="0"/>
+              </Group>
+              <EmptySpace pref="20" max="32767" attributes="0"/>
+          </Group>
+      </Group>
+    </DimensionLayout>
+  </Layout>
+  <SubComponents>
+    <Component class="javax.swing.JLabel" name="lblEntryName">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="Entry name"/>
+      </Properties>
+    </Component>
+    <Component class="javax.swing.JLabel" name="lblUsername">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="Username"/>
+      </Properties>
+    </Component>
+    <Component class="javax.swing.JLabel" name="lblPassword">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="Password"/>
+      </Properties>
+    </Component>
+    <Component class="javax.swing.JLabel" name="lblRepeat">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="Repeat"/>
+      </Properties>
+    </Component>
+    <Component class="javax.swing.JLabel" name="lblUrl">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="Url"/>
+      </Properties>
+    </Component>
+    <Component class="javax.swing.JLabel" name="lblNotes">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="Notes"/>
+      </Properties>
+    </Component>
+    <Component class="javax.swing.JTextField" name="txtEntryName">
+      <Events>
+        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="txtEntryNameActionPerformed"/>
+      </Events>
+    </Component>
+    <Component class="javax.swing.JTextField" name="txtUsername">
+    </Component>
+    <Component class="javax.swing.JPasswordField" name="txtPassword">
+    </Component>
+    <Component class="javax.swing.JPasswordField" name="txtRepeat">
+    </Component>
+    <Component class="javax.swing.JTextField" name="txtUrl">
+    </Component>
+    <Container class="javax.swing.JScrollPane" name="srcNotes">
+      <AuxValues>
+        <AuxValue name="autoScrollPane" type="java.lang.Boolean" value="true"/>
+      </AuxValues>
+
+      <Layout class="org.netbeans.modules.form.compat2.layouts.support.JScrollPaneSupportLayout"/>
+      <SubComponents>
+        <Component class="javax.swing.JTextArea" name="txtNotes">
+          <Properties>
+            <Property name="columns" type="int" value="20"/>
+            <Property name="rows" type="int" value="5"/>
+          </Properties>
+        </Component>
+      </SubComponents>
+    </Container>
+    <Component class="javax.swing.JButton" name="btnShowPassword">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="***"/>
+      </Properties>
+    </Component>
+    <Component class="javax.swing.JButton" name="btnGeneratePassword">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="Generate"/>
+      </Properties>
+    </Component>
+    <Component class="javax.swing.JCheckBox" name="cbxExpirable">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="Expires"/>
+      </Properties>
+    </Component>
+    <Component class="javax.swing.JTextField" name="txtExpires">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="never"/>
+      </Properties>
+    </Component>
+  </SubComponents>
+</Form>

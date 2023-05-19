@@ -5,10 +5,10 @@
 This section tells you about which versions of this project are
 currently being supported with security updates.
 
-| Version | Supported Till         |
-| 7.x     | :white_check_mark: |
-| 6.1.x   | :white_check_mark: |
-| 5.4.x   | :white_check_mark: 01/01/2023 |
+| Version | Supported Till         | Required JDK |
+| 7.x     | :white_check_mark: | 17.x and above |
+| 6.1.x   | :white_check_mark: | 11.x and above |
+| 5.4.x   | :white_check_mark: 01/01/2023 | 1.8.x and above |
 | < 5.4   | :x:                |
 
 ## Reporting a Vulnerability

@@ -56,6 +56,9 @@ public class MysticCryptEntryModelBean
 	boolean expirable;
 	LocalDate expires;
 	String icon;
+
+	/** The flag if the password is displayed in plain text */
+	boolean showPassword;
 	@Builder.Default
 	List<FileContentInfo> resources = new ArrayList<>();
 

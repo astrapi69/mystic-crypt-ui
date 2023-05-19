@@ -26,6 +26,7 @@ package io.github.astrapi69.mystic.crypt.panel.signin;
 
 import java.awt.event.ActionEvent;
 import java.io.File;
+import java.io.Serial;
 import java.net.URL;
 import java.util.logging.Level;
 
@@ -41,6 +42,7 @@ import lombok.extern.java.Log;
 import org.apache.commons.lang3.StringUtils;
 
 import io.github.astrapi69.browser.BrowserControlExtensions;
+import io.github.astrapi69.collection.pair.ValueBox;
 import io.github.astrapi69.file.create.FileFactory;
 import io.github.astrapi69.file.create.FileInfo;
 import io.github.astrapi69.gson.ObjectToJsonFileExtensions;
@@ -57,6 +59,8 @@ import io.github.astrapi69.net.url.URLExtensions;
 import io.github.astrapi69.swing.base.BasePanel;
 import io.github.astrapi69.swing.combobox.model.GenericMutableComboBoxModel;
 import io.github.astrapi69.swing.component.JMCheckBox;
+import io.github.astrapi69.swing.component.JMComboBox;
+import io.github.astrapi69.swing.component.JMPasswordField;
 import io.github.astrapi69.swing.dialog.help.HelpDialog;
 import io.github.astrapi69.swing.filechooser.JFileChooserExtensions;
 import io.github.astrapi69.swing.listener.document.DocumentListenerAdapter;
@@ -71,23 +75,22 @@ import io.github.astrapi69.throwable.RuntimeExceptionDecorator;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class MasterPwWithApplicationFilePanel extends BasePanel<MasterPwFileModelBean>
 {
-
+	@Serial
 	private static final long serialVersionUID = 1L;
 	private javax.swing.JButton btnApplicationFileChooser;
 	private javax.swing.JButton btnCancel;
 	private javax.swing.JButton btnHelp;
 	private javax.swing.JButton btnKeyFileChooser;
 	private javax.swing.JButton btnMasterPw;
-
 	private javax.swing.JButton btnNewApplicationFile;
 	private javax.swing.JButton btnOk;
-	private javax.swing.JCheckBox cbxKeyFile;
-	private javax.swing.JCheckBox cbxMasterPw;
-	private javax.swing.JComboBox<String> cmbApplicationFile;
-	private javax.swing.JComboBox<String> cmbKeyFile;
+	private JMCheckBox cbxKeyFile;
+	private JMCheckBox cbxMasterPw;
+	private JMComboBox<String, GenericMutableComboBoxModel<String>> cmbApplicationFile;
+	private JMComboBox<String, GenericMutableComboBoxModel<String>> cmbKeyFile;
 	private javax.swing.JLabel lblApplicationFile;
 	private javax.swing.JLabel lblImageHeader;
-	private javax.swing.JPasswordField txtMasterPw;
+	private JMPasswordField txtMasterPw;
 	// ===
 	// ===
 	// ===
@@ -95,15 +98,6 @@ public class MasterPwWithApplicationFilePanel extends BasePanel<MasterPwFileMode
 	BtnOkStateMachine btnOkStateMachine;
 	GenericMutableComboBoxModel<String> cmbKeyFileModel;
 	GenericMutableComboBoxModel<String> cmbApplicationFileModel;
-
-	/**
-	 * Instantiates a new {@link MasterPwWithApplicationFilePanel}
-	 */
-	public MasterPwWithApplicationFilePanel()
-	{
-		this(BaseModel.of(MasterPwFileModelBean.builder().minPasswordLength(6).withKeyFile(false)
-			.withMasterPw(false).showMasterPw(false).build()));
-	}
 
 	/**
 	 * Instantiates a new {@link MasterPwWithApplicationFilePanel}
@@ -123,9 +117,9 @@ public class MasterPwWithApplicationFilePanel extends BasePanel<MasterPwFileMode
 		super.onInitializeComponents();
 
 		lblImageHeader = new javax.swing.JLabel();
-		cbxMasterPw = new javax.swing.JCheckBox();
-		cbxKeyFile = new javax.swing.JCheckBox();
-		txtMasterPw = new javax.swing.JPasswordField();
+		cbxMasterPw = new JMCheckBox();
+		cbxKeyFile = new JMCheckBox();
+		txtMasterPw = new JMPasswordField();
 		btnMasterPw = new javax.swing.JButton();
 		btnKeyFileChooser = new javax.swing.JButton();
 		btnHelp = new javax.swing.JButton();
@@ -133,8 +127,6 @@ public class MasterPwWithApplicationFilePanel extends BasePanel<MasterPwFileMode
 		btnCancel = new javax.swing.JButton();
 		lblApplicationFile = new javax.swing.JLabel();
 		btnApplicationFileChooser = new javax.swing.JButton();
-		cmbKeyFile = new javax.swing.JComboBox<>();
-		cmbApplicationFile = new javax.swing.JComboBox<>();
 		btnNewApplicationFile = new javax.swing.JButton();
 
 		setPreferredSize(new java.awt.Dimension(920, 380));
@@ -161,24 +153,17 @@ public class MasterPwWithApplicationFilePanel extends BasePanel<MasterPwFileMode
 
 		btnApplicationFileChooser.setText("Browse...");
 
-		cmbKeyFile.setModel(new javax.swing.DefaultComboBoxModel<>(
-			new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }));
-
-		cmbApplicationFile.setModel(new javax.swing.DefaultComboBoxModel<>(
-			new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }));
-
 		btnNewApplicationFile.setText("New...");
 		// ===
 		// ===
 		// ===
 		// allow pwfield to copy or cut
 
-		cbxMasterPw = new JMCheckBox();
-		((JMCheckBox)cbxMasterPw).setPropertyModel(
+		cbxMasterPw.setPropertyModel(
 			LambdaModel.of(getModelObject()::isWithMasterPw, getModelObject()::setWithMasterPw));
+		cbxMasterPw.setText("Master Password:");
 
-		cbxKeyFile = new JMCheckBox();
-		((JMCheckBox)cbxKeyFile).setPropertyModel(
+		cbxKeyFile.setPropertyModel(
 			LambdaModel.of(getModelObject()::isWithKeyFile, getModelObject()::setWithKeyFile));
 
 		txtMasterPw.putClientProperty("JPasswordField.cutCopyAllowed", true);
@@ -211,10 +196,16 @@ public class MasterPwWithApplicationFilePanel extends BasePanel<MasterPwFileMode
 		fileChooser = new JFileChooser(configDir);
 		String selectedKeyFilePath = modelObject.getSelectedKeyFilePath();
 
+
+		ValueBox<String> keyFileValueBox;
+		IModel<String> selectedKeyFileItemModel;
 		cmbKeyFileModel = new GenericMutableComboBoxModel<>(modelObject.getKeyFilePaths(),
 			selectedKeyFilePath);
-		cmbKeyFile.setModel(cmbKeyFileModel);
-		cmbKeyFile.setSelectedItem(selectedKeyFilePath);
+		keyFileValueBox = ValueBox.<String> builder().value(selectedKeyFilePath).build();
+		selectedKeyFileItemModel = LambdaModel.of(keyFileValueBox::getValue,
+			keyFileValueBox::setValue);
+		cmbKeyFile = new JMComboBox<>(cmbKeyFileModel, selectedKeyFileItemModel);
+
 		if (selectedKeyFilePath != null && modelObject.getKeyFileInfo() == null)
 		{
 			File kf = new File(selectedKeyFilePath);
@@ -229,10 +220,20 @@ public class MasterPwWithApplicationFilePanel extends BasePanel<MasterPwFileMode
 		{
 			modelObject.getApplicationFilePaths().add(selectedApplicationFilePath);
 		}
+
+		ValueBox<String> applicationFileValueBox;
+		IModel<String> selectedApplicationFileItemModel;
+		applicationFileValueBox = ValueBox.<String> builder().value(selectedApplicationFilePath)
+			.build();
+		selectedApplicationFileItemModel = LambdaModel.of(applicationFileValueBox::getValue,
+			applicationFileValueBox::setValue);
+
 		cmbApplicationFileModel = new GenericMutableComboBoxModel<>(
 			modelObject.getApplicationFilePaths(), selectedApplicationFilePath);
-		cmbApplicationFile.setModel(cmbApplicationFileModel);
-		cmbApplicationFile.setSelectedItem(selectedApplicationFilePath);
+
+		cmbApplicationFile = new JMComboBox<>(cmbApplicationFileModel,
+			selectedApplicationFileItemModel);
+
 		if (selectedApplicationFilePath != null && modelObject.getApplicationFileInfo() == null)
 		{
 			File saf = new File(selectedApplicationFilePath);
@@ -296,6 +297,10 @@ public class MasterPwWithApplicationFilePanel extends BasePanel<MasterPwFileMode
 					super.onOk(actionEvent);
 					MasterPwFileModelBean dialogModelObject = this.getModelObject();
 					MasterPwWithApplicationFilePanel.this.setModelObject(dialogModelObject);
+					MasterPwWithApplicationFilePanel.this.cmbKeyFileModel
+						.addElement(dialogModelObject.getSelectedKeyFilePath());
+					MasterPwWithApplicationFilePanel.this.cmbKeyFileModel
+						.setSelectedItem(dialogModelObject.getSelectedKeyFilePath());
 				}
 			};
 			dialog.setSize(840, 520);
@@ -548,9 +553,9 @@ public class MasterPwWithApplicationFilePanel extends BasePanel<MasterPwFileMode
 	protected void onCheckMasterPw(final ActionEvent actionEvent)
 	{
 		Object source = actionEvent.getSource();
-		if (source instanceof JCheckBox)
+		if (source instanceof JMCheckBox)
 		{
-			JCheckBox checkBox = (JCheckBox)source;
+			JMCheckBox checkBox = (JMCheckBox)source;
 			getModelObject().setWithMasterPw(checkBox.isSelected());
 		}
 		toggleMasterPwComponents();
@@ -618,9 +623,7 @@ public class MasterPwWithApplicationFilePanel extends BasePanel<MasterPwFileMode
 
 	protected void onCancel(ActionEvent actionEvent)
 	{
-		System.err.println("onCancel method action called");
 		MysticCryptApplicationFrame applicationFrame = MysticCryptApplicationFrame.getInstance();
-		MasterPwFileModelBean modelObject = getModelObject();
 		ApplicationModelBean applicationModelBean = ApplicationModelBean.builder().build();
 		if (applicationModelBean != null)
 		{
