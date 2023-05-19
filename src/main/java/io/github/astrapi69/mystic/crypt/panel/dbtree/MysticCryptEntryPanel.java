@@ -47,14 +47,16 @@ import io.github.astrapi69.swing.component.JMTextField;
 public class MysticCryptEntryPanel extends BasePanel<MysticCryptEntryModelBean>
 {
 
-	private JLabel lblEntryName;
+	private javax.swing.JButton btnGeneratePassword;
+	private javax.swing.JButton btnShowPassword;
+	private javax.swing.JLabel lblEntryName;
+	private javax.swing.JLabel lblNotes;
+	private javax.swing.JLabel lblPassword;
+	private javax.swing.JLabel lblRepeat;
+	private javax.swing.JLabel lblUrl;
+	private javax.swing.JLabel lblUsername;
+	private javax.swing.JScrollPane srcNotes;
 	private JLabel lblHeader;
-	private JLabel lblNotes;
-	private JLabel lblPassword;
-	private JLabel lblRepeat;
-	private JLabel lblUrl;
-	private JLabel lblUsername;
-	private JScrollPane srcNotes;
 	private JMTextField txtEntryName;
 	private JMTextArea txtNotes;
 	private JMPasswordField txtPassword;
@@ -81,6 +83,7 @@ public class MysticCryptEntryPanel extends BasePanel<MysticCryptEntryModelBean>
 		super.onInitializeComponents();
 
 		lblHeader = new JLabel();
+
 		lblEntryName = new JLabel();
 		lblUsername = new JLabel();
 		lblPassword = new JLabel();
@@ -97,6 +100,9 @@ public class MysticCryptEntryPanel extends BasePanel<MysticCryptEntryModelBean>
 
 		cbxExpirable = new JMCheckBox();
 		txtExpires = new CalendarPanel(new DatePicker());
+
+		btnShowPassword = new javax.swing.JButton();
+		btnGeneratePassword = new javax.swing.JButton();
 
 		MysticCryptEntryModelBean modelObject = getModelObject();
 		// bind with model
@@ -130,6 +136,13 @@ public class MysticCryptEntryPanel extends BasePanel<MysticCryptEntryModelBean>
 		srcNotes.setViewportView(txtNotes);
 		cbxExpirable.setText("Expires");
 
+		btnShowPassword.setText("***");
+
+		btnShowPassword.addActionListener(this::onShowPassword);
+
+		btnGeneratePassword.setText("Generate");
+		btnGeneratePassword.addActionListener(this::onGeneratePassword);
+
 		cbxExpirable
 			.setPropertyModel(LambdaModel.of(modelObject::isExpirable, modelObject::setExpirable));
 
@@ -142,6 +155,15 @@ public class MysticCryptEntryPanel extends BasePanel<MysticCryptEntryModelBean>
 		ComponentExtensions.setComponentEnabled(txtExpires, getModelObject().isExpirable());
 	}
 
+	protected void onShowPassword(final ActionEvent actionEvent)
+	{
+
+	}
+	protected void onGeneratePassword(final ActionEvent actionEvent)
+	{
+
+	}
+
 	protected void onChangeExpirable(final ActionEvent actionEvent)
 	{
 		ComponentExtensions.setComponentEnabled(txtExpires, getModelObject().isExpirable());
@@ -151,97 +173,75 @@ public class MysticCryptEntryPanel extends BasePanel<MysticCryptEntryModelBean>
 	protected void onInitializeLayout()
 	{
 		super.onInitializeLayout();
-
-		GroupLayout layout = new GroupLayout(this);
+		javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
 		this.setLayout(layout);
-		layout.setHorizontalGroup(layout
-			.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-			.addGroup(layout.createSequentialGroup().addContainerGap().addGroup(layout
-				.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-				.addGroup(layout.createSequentialGroup()
-					.addComponent(lblEntryName, javax.swing.GroupLayout.PREFERRED_SIZE, 140,
-						javax.swing.GroupLayout.PREFERRED_SIZE)
-					.addGap(18, 18, 18).addComponent(txtEntryName))
-				.addGroup(layout.createSequentialGroup()
-					.addComponent(lblUsername, javax.swing.GroupLayout.PREFERRED_SIZE, 140,
-						javax.swing.GroupLayout.PREFERRED_SIZE)
-					.addGap(18, 18, 18).addComponent(txtUsername))
-				.addGroup(layout.createSequentialGroup()
-					.addComponent(lblPassword, javax.swing.GroupLayout.PREFERRED_SIZE, 140,
-						javax.swing.GroupLayout.PREFERRED_SIZE)
-					.addGap(18, 18, 18).addComponent(txtPassword))
-				.addGroup(layout.createSequentialGroup()
-					.addComponent(lblRepeat, javax.swing.GroupLayout.PREFERRED_SIZE, 140,
-						javax.swing.GroupLayout.PREFERRED_SIZE)
-					.addGap(18, 18, 18).addComponent(txtRepeat))
-				.addGroup(layout.createSequentialGroup()
-					.addComponent(lblNotes, javax.swing.GroupLayout.PREFERRED_SIZE, 140,
-						javax.swing.GroupLayout.PREFERRED_SIZE)
-					.addGap(18, 18, 18).addComponent(srcNotes))
-				.addGroup(layout.createSequentialGroup()
-					.addComponent(lblUrl, javax.swing.GroupLayout.PREFERRED_SIZE, 140,
-						javax.swing.GroupLayout.PREFERRED_SIZE)
-					.addGap(18, 18, 18).addComponent(txtUrl))
-				.addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-					.addGroup(layout.createSequentialGroup()
-						.addComponent(lblHeader, javax.swing.GroupLayout.PREFERRED_SIZE, 760,
-							javax.swing.GroupLayout.PREFERRED_SIZE)
-						.addGap(0, 0, Short.MAX_VALUE))
-					.addGroup(layout.createSequentialGroup().addComponent(cbxExpirable)
-						.addGap(86, 86, 86).addComponent(txtExpires))))
-				.addContainerGap()));
-		layout
-			.setVerticalGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-				.addGroup(layout.createSequentialGroup().addContainerGap()
-					.addComponent(lblHeader, javax.swing.GroupLayout.PREFERRED_SIZE, 30,
-						javax.swing.GroupLayout.PREFERRED_SIZE)
-					.addGap(18, 18, 18)
-					.addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-						.addComponent(lblEntryName, javax.swing.GroupLayout.PREFERRED_SIZE, 28,
-							javax.swing.GroupLayout.PREFERRED_SIZE)
-						.addComponent(txtEntryName, javax.swing.GroupLayout.PREFERRED_SIZE,
-							javax.swing.GroupLayout.DEFAULT_SIZE,
-							javax.swing.GroupLayout.PREFERRED_SIZE))
-					.addGap(18, 18, 18)
-					.addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-						.addComponent(lblUsername, javax.swing.GroupLayout.PREFERRED_SIZE, 28,
-							javax.swing.GroupLayout.PREFERRED_SIZE)
-						.addComponent(txtUsername, javax.swing.GroupLayout.PREFERRED_SIZE,
-							javax.swing.GroupLayout.DEFAULT_SIZE,
-							javax.swing.GroupLayout.PREFERRED_SIZE))
-					.addGap(18, 18, 18)
-					.addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-						.addComponent(lblPassword, javax.swing.GroupLayout.PREFERRED_SIZE, 28,
-							javax.swing.GroupLayout.PREFERRED_SIZE)
-						.addComponent(txtPassword, javax.swing.GroupLayout.PREFERRED_SIZE,
-							javax.swing.GroupLayout.DEFAULT_SIZE,
-							javax.swing.GroupLayout.PREFERRED_SIZE))
-					.addGap(18, 18, 18)
-					.addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-						.addComponent(lblRepeat, javax.swing.GroupLayout.PREFERRED_SIZE, 28,
-							javax.swing.GroupLayout.PREFERRED_SIZE)
-						.addComponent(txtRepeat, javax.swing.GroupLayout.PREFERRED_SIZE,
-							javax.swing.GroupLayout.DEFAULT_SIZE,
-							javax.swing.GroupLayout.PREFERRED_SIZE))
-					.addGap(18, 18, 18)
-					.addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-						.addComponent(lblUrl, javax.swing.GroupLayout.PREFERRED_SIZE, 28,
-							javax.swing.GroupLayout.PREFERRED_SIZE)
-						.addComponent(txtUrl, javax.swing.GroupLayout.PREFERRED_SIZE,
-							javax.swing.GroupLayout.DEFAULT_SIZE,
-							javax.swing.GroupLayout.PREFERRED_SIZE))
-					.addGap(18, 18, 18)
-					.addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-						.addComponent(lblNotes, javax.swing.GroupLayout.PREFERRED_SIZE, 28,
-							javax.swing.GroupLayout.PREFERRED_SIZE)
-						.addComponent(srcNotes, javax.swing.GroupLayout.PREFERRED_SIZE, 280,
-							javax.swing.GroupLayout.PREFERRED_SIZE))
-					.addGap(18, 18, 18)
-					.addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-						.addComponent(txtExpires, javax.swing.GroupLayout.PREFERRED_SIZE,
-							javax.swing.GroupLayout.DEFAULT_SIZE,
-							javax.swing.GroupLayout.PREFERRED_SIZE)
-						.addComponent(cbxExpirable))
-					.addContainerGap(23, Short.MAX_VALUE)));
+		layout.setHorizontalGroup(
+				layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+						.addGroup(layout.createSequentialGroup()
+								.addContainerGap()
+								.addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+										.addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
+												.addComponent(lblUrl, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+												.addComponent(lblRepeat, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+												.addComponent(lblPassword, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+												.addComponent(lblUsername, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+												.addComponent(lblEntryName, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, 155, Short.MAX_VALUE))
+										.addComponent(lblNotes, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+										.addComponent(cbxExpirable, javax.swing.GroupLayout.DEFAULT_SIZE, 161, Short.MAX_VALUE))
+								.addGap(18, 18, 18)
+								.addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+										.addComponent(txtEntryName)
+										.addComponent(txtUsername)
+										.addGroup(layout.createSequentialGroup()
+												.addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
+														.addComponent(txtRepeat, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, 398, Short.MAX_VALUE)
+														.addComponent(txtPassword, javax.swing.GroupLayout.Alignment.LEADING))
+												.addGap(18, 18, 18)
+												.addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+														.addComponent(btnShowPassword, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+														.addComponent(btnGeneratePassword, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
+										.addComponent(txtUrl)
+										.addComponent(srcNotes, javax.swing.GroupLayout.DEFAULT_SIZE, 530, Short.MAX_VALUE)
+										.addComponent(txtExpires))
+								.addContainerGap(25, Short.MAX_VALUE))
+		);
+		layout.setVerticalGroup(
+				layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+						.addGroup(layout.createSequentialGroup()
+								.addGap(29, 29, 29)
+								.addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+										.addGroup(layout.createSequentialGroup()
+												.addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+														.addGroup(layout.createSequentialGroup()
+																.addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+																		.addComponent(lblEntryName)
+																		.addComponent(txtEntryName, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+																.addGap(18, 18, 18)
+																.addComponent(lblUsername))
+														.addComponent(txtUsername, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+												.addGap(18, 18, 18)
+												.addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+														.addComponent(lblPassword)
+														.addComponent(txtPassword, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+														.addComponent(btnShowPassword))
+												.addGap(21, 21, 21)
+												.addComponent(lblRepeat))
+										.addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+												.addComponent(txtRepeat, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+												.addComponent(btnGeneratePassword)))
+								.addGap(18, 18, 18)
+								.addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+										.addComponent(lblUrl)
+										.addComponent(txtUrl, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+								.addGap(18, 18, 18)
+								.addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+										.addComponent(lblNotes)
+										.addComponent(srcNotes, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+								.addGap(21, 21, 21)
+								.addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+										.addComponent(cbxExpirable)
+										.addComponent(txtExpires, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+								.addContainerGap(20, Short.MAX_VALUE))
+		);
 	}
 }

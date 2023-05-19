@@ -68,10 +68,6 @@ import io.github.astrapi69.swing.panel.help.HelpModelBean;
 import io.github.astrapi69.swing.utils.ClipboardExtensions;
 import io.github.astrapi69.throwable.RuntimeExceptionDecorator;
 
-/**
- *
- * @author astrapi69
- */
 @Getter
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class NewMasterPwFilePanel extends BasePanel<MasterPwFileModelBean>
