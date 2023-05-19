@@ -7,6 +7,14 @@ Version 7.2-SNAPSHOT
 Version 7.1
 -------------
 
+ADDED:
+
+- new button for show the password in the mystic entry dialog
+- new button for generate a new password in the mystic entry dialog
+
+CHANGED:
+
+- the new dialog is synchronized now with the sign in dialog
 
 Version 7
 -------------
