@@ -26,6 +26,8 @@ package io.github.astrapi69.mystic.crypt.panel.dbtree;
 
 import java.awt.event.MouseEvent;
 import java.io.Serial;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -36,6 +38,8 @@ import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreeModel;
 
+import io.github.astrapi69.browser.BrowserControlExtensions;
+import io.github.astrapi69.swing.utils.ClipboardExtensions;
 import org.jdesktop.swingx.JXTree;
 
 import io.github.astrapi69.design.pattern.observer.event.EventObject;
@@ -376,20 +380,76 @@ public class SecretKeyTreeWithContentPanel
 
 		JPopupMenu popup = JPopupMenuFactory.newJPopupMenu();
 
-		popup.add(JMenuItemFactory.newJMenuItem("add ...", actionEvent -> this.onAddTableEntry()));
+		JMenuItem copyUsername = JMenuItemFactory.newJMenuItem("Copy Password",
+				actionEvent -> this.onCopyUsernameTableEntry());
+		copyUsername.setEnabled(allSelectedRowData.size() == 1);
+		popup.add(copyUsername);
 
-		JMenuItem menuItem = JMenuItemFactory.newJMenuItem("delete",
-			actionEvent -> this.onDeleteTableEntry());
-		menuItem.setEnabled(!allSelectedRowData.isEmpty());
-		popup.add(menuItem);
+		JMenuItem copyPassword = JMenuItemFactory.newJMenuItem("Copy Password",
+				actionEvent -> this.onCopyPasswordTableEntry());
+		copyPassword.setEnabled(allSelectedRowData.size() == 1);
+		popup.add(copyPassword);
+
+		JMenuItem openUrl = JMenuItemFactory.newJMenuItem("Open url",
+				actionEvent -> this.onOpenUrlOfTableEntry());
+		openUrl.setEnabled(allSelectedRowData.size() == 1 && allSelectedRowData.get(0).getUrl() != null);
+		popup.add(openUrl);
+
+		// Separator
+		popup.addSeparator();
+
+		JMenuItem add = JMenuItemFactory.newJMenuItem("add ...",
+				actionEvent -> this.onAddTableEntry());
+		popup.add(add);
 
 		JMenuItem edit = JMenuItemFactory.newJMenuItem("edit",
-			actionEvent -> this.onEditTableEntry());
+				actionEvent -> this.onEditTableEntry());
 		edit.setEnabled(allSelectedRowData.size() == 1);
 		popup.add(edit);
 
-		popup.show(getTblTreeEntryTable(), x, y);
+		JMenuItem duplicate = JMenuItemFactory.newJMenuItem("duplicate",
+				actionEvent -> this.onDuplicateTableEntry());
+		duplicate.setEnabled(allSelectedRowData.size() == 1);
+		popup.add(duplicate);
 
+		JMenuItem delete = JMenuItemFactory.newJMenuItem("delete",
+				actionEvent -> this.onDeleteTableEntry());
+		delete.setEnabled(!allSelectedRowData.isEmpty());
+		popup.add(delete);
+		// Separator
+		popup.addSeparator();
+
+		JMenuItem selectAll = JMenuItemFactory.newJMenuItem("select all",
+				actionEvent -> this.onSelectAllTableEntries());
+		selectAll.setEnabled(0 < getTblTreeEntryTable().getRowCount());
+		popup.add(selectAll);
+
+		popup.show(getTblTreeEntryTable(), x, y);
+	}
+
+	protected void onSelectAllTableEntries() {
+		getTblTreeEntryTable().selectAll();
+	}
+
+	protected void onDuplicateTableEntry() {
+		getTblTreeEntryTable().getSingleSelectedRowData().ifPresent(tableEntry -> {
+
+			// TODO...
+		});
+	}
+
+	protected void onCopyUsernameTableEntry() {
+		getTblTreeEntryTable().getSingleSelectedRowData().ifPresent(tableEntry -> {
+			String userName = tableEntry.getUserName();
+			ClipboardExtensions.copyToClipboard(userName);
+		});
+	}
+
+	protected void onCopyPasswordTableEntry() {
+		getTblTreeEntryTable().getSingleSelectedRowData().ifPresent(tableEntry -> {
+			char[] password = tableEntry.getPassword();
+			ClipboardExtensions.copyToClipboard(String.valueOf(password));
+		});
 	}
 
 	protected void onDeleteTableEntry()
@@ -412,6 +472,18 @@ public class SecretKeyTreeWithContentPanel
 	{
 		getTblTreeEntryTable().getSingleSelectedRowData().ifPresent(tableEntry -> {
 			showEditMysticCryptEntryDialog(tableEntry);
+		});
+	}
+	
+	protected void onOpenUrlOfTableEntry() {
+		getTblTreeEntryTable().getSingleSelectedRowData().ifPresent(tableEntry -> {
+			String urlString = tableEntry.getUrl();
+			try {
+				URL url = new URL(urlString);
+				BrowserControlExtensions.displayURLonStandardBrowser(this, urlString);
+			} catch (MalformedURLException e) {
+				throw new RuntimeException(e);
+			}
 		});
 	}
 
