@@ -381,71 +381,76 @@ public class SecretKeyTreeWithContentPanel
 		JPopupMenu popup = JPopupMenuFactory.newJPopupMenu();
 
 		JMenuItem copyUsername = JMenuItemFactory.newJMenuItem("Copy Password",
-				actionEvent -> this.onCopyUsernameTableEntry());
+			actionEvent -> this.onCopyUsernameTableEntry());
 		copyUsername.setEnabled(allSelectedRowData.size() == 1);
 		popup.add(copyUsername);
 
 		JMenuItem copyPassword = JMenuItemFactory.newJMenuItem("Copy Password",
-				actionEvent -> this.onCopyPasswordTableEntry());
+			actionEvent -> this.onCopyPasswordTableEntry());
 		copyPassword.setEnabled(allSelectedRowData.size() == 1);
 		popup.add(copyPassword);
 
 		JMenuItem openUrl = JMenuItemFactory.newJMenuItem("Open url",
-				actionEvent -> this.onOpenUrlOfTableEntry());
-		openUrl.setEnabled(allSelectedRowData.size() == 1 && allSelectedRowData.get(0).getUrl() != null);
+			actionEvent -> this.onOpenUrlOfTableEntry());
+		openUrl.setEnabled(
+			allSelectedRowData.size() == 1 && allSelectedRowData.get(0).getUrl() != null);
 		popup.add(openUrl);
 
 		// Separator
 		popup.addSeparator();
 
 		JMenuItem add = JMenuItemFactory.newJMenuItem("add ...",
-				actionEvent -> this.onAddTableEntry());
+			actionEvent -> this.onAddTableEntry());
 		popup.add(add);
 
 		JMenuItem edit = JMenuItemFactory.newJMenuItem("edit",
-				actionEvent -> this.onEditTableEntry());
+			actionEvent -> this.onEditTableEntry());
 		edit.setEnabled(allSelectedRowData.size() == 1);
 		popup.add(edit);
 
 		JMenuItem duplicate = JMenuItemFactory.newJMenuItem("duplicate",
-				actionEvent -> this.onDuplicateTableEntry());
+			actionEvent -> this.onDuplicateTableEntry());
 		duplicate.setEnabled(allSelectedRowData.size() == 1);
 		popup.add(duplicate);
 
 		JMenuItem delete = JMenuItemFactory.newJMenuItem("delete",
-				actionEvent -> this.onDeleteTableEntry());
+			actionEvent -> this.onDeleteTableEntry());
 		delete.setEnabled(!allSelectedRowData.isEmpty());
 		popup.add(delete);
 		// Separator
 		popup.addSeparator();
 
 		JMenuItem selectAll = JMenuItemFactory.newJMenuItem("select all",
-				actionEvent -> this.onSelectAllTableEntries());
+			actionEvent -> this.onSelectAllTableEntries());
 		selectAll.setEnabled(0 < getTblTreeEntryTable().getRowCount());
 		popup.add(selectAll);
 
 		popup.show(getTblTreeEntryTable(), x, y);
 	}
 
-	protected void onSelectAllTableEntries() {
+	protected void onSelectAllTableEntries()
+	{
 		getTblTreeEntryTable().selectAll();
 	}
 
-	protected void onDuplicateTableEntry() {
+	protected void onDuplicateTableEntry()
+	{
 		getTblTreeEntryTable().getSingleSelectedRowData().ifPresent(tableEntry -> {
 
 			// TODO...
 		});
 	}
 
-	protected void onCopyUsernameTableEntry() {
+	protected void onCopyUsernameTableEntry()
+	{
 		getTblTreeEntryTable().getSingleSelectedRowData().ifPresent(tableEntry -> {
 			String userName = tableEntry.getUserName();
 			ClipboardExtensions.copyToClipboard(userName);
 		});
 	}
 
-	protected void onCopyPasswordTableEntry() {
+	protected void onCopyPasswordTableEntry()
+	{
 		getTblTreeEntryTable().getSingleSelectedRowData().ifPresent(tableEntry -> {
 			char[] password = tableEntry.getPassword();
 			ClipboardExtensions.copyToClipboard(String.valueOf(password));
@@ -474,14 +479,18 @@ public class SecretKeyTreeWithContentPanel
 			showEditMysticCryptEntryDialog(tableEntry);
 		});
 	}
-	
-	protected void onOpenUrlOfTableEntry() {
+
+	protected void onOpenUrlOfTableEntry()
+	{
 		getTblTreeEntryTable().getSingleSelectedRowData().ifPresent(tableEntry -> {
 			String urlString = tableEntry.getUrl();
-			try {
+			try
+			{
 				URL url = new URL(urlString);
 				BrowserControlExtensions.displayURLonStandardBrowser(this, urlString);
-			} catch (MalformedURLException e) {
+			}
+			catch (MalformedURLException e)
+			{
 				throw new RuntimeException(e);
 			}
 		});
