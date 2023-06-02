@@ -26,6 +26,7 @@ package io.github.astrapi69.mystic.crypt;
 
 import java.awt.*;
 import java.io.File;
+import java.io.Serial;
 import java.security.Security;
 
 import javax.swing.*;
@@ -71,6 +72,7 @@ public class MysticCryptApplicationFrame extends ApplicationPanelFrame<Applicati
 	public static final String APPLICATION_NAME = "mystic-crypt-ui";
 
 	/** The Constant serialVersionUID. */
+	@Serial
 	private static final long serialVersionUID = 1L;
 
 	/**
@@ -126,6 +128,11 @@ public class MysticCryptApplicationFrame extends ApplicationPanelFrame<Applicati
 		return this.idGenerator;
 	}
 
+	public void setIdGenerator(@NonNull final LongIdGenerator idGenerator)
+	{
+		this.idGenerator = idGenerator;
+	}
+
 	protected void showMasterPwDialog()
 	{
 		File configurationDirectory = getConfigurationDirectory();
@@ -134,7 +141,7 @@ public class MysticCryptApplicationFrame extends ApplicationPanelFrame<Applicati
 		if (memoizedSigninFile.exists())
 		{
 			String fromFile = RuntimeExceptionDecorator
-				.decorate(() -> ReadFileExtensions.readFromFile(memoizedSigninFile));
+				.decorate(() -> ReadFileExtensions.fromFile(memoizedSigninFile));
 			memoizedSigninModelBean = JsonStringToObjectExtensions.toObject(fromFile,
 				MemoizedSigninModelBean.class);
 		}

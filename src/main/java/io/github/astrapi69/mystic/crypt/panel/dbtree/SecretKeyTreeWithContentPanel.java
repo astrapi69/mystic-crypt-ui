@@ -27,6 +27,7 @@ package io.github.astrapi69.mystic.crypt.panel.dbtree;
 import java.awt.event.MouseEvent;
 import java.io.Serial;
 import java.net.MalformedURLException;
+import java.net.URI;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
@@ -38,15 +39,22 @@ import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreeModel;
 
-import io.github.astrapi69.browser.BrowserControlExtensions;
-import io.github.astrapi69.swing.utils.ClipboardExtensions;
+import net.miginfocom.layout.AC;
+import net.miginfocom.layout.CC;
+import net.miginfocom.layout.LC;
+import net.miginfocom.swing.MigLayout;
+
 import org.jdesktop.swingx.JXTree;
 
+import io.github.astrapi69.browser.BrowserControlExtensions;
+import io.github.astrapi69.clone.CloneQuietlyExtensions;
 import io.github.astrapi69.design.pattern.observer.event.EventObject;
 import io.github.astrapi69.design.pattern.observer.event.EventSource;
 import io.github.astrapi69.gen.tree.BaseTreeNode;
 import io.github.astrapi69.gen.tree.TreeIdNode;
 import io.github.astrapi69.gen.tree.convert.BaseTreeNodeTransformer;
+import io.github.astrapi69.gen.tree.visitor.MaxIndexFinderTreeNodeVisitor;
+import io.github.astrapi69.gen.tree.visitor.ReindexTreeNodeVisitor;
 import io.github.astrapi69.id.generate.LongIdGenerator;
 import io.github.astrapi69.model.BaseModel;
 import io.github.astrapi69.model.api.IModel;
@@ -67,6 +75,7 @@ import io.github.astrapi69.swing.tree.JTreeExtensions;
 import io.github.astrapi69.swing.tree.panel.content.BaseTreeNodeGenericTreeElementWithContentPanel;
 import io.github.astrapi69.swing.tree.panel.node.NodePanel;
 import io.github.astrapi69.swing.tree.renderer.state.NewGenericBaseTreeNodeCellRenderer;
+import io.github.astrapi69.swing.utils.ClipboardExtensions;
 
 public class SecretKeyTreeWithContentPanel
 	extends
@@ -212,14 +221,19 @@ public class SecretKeyTreeWithContentPanel
 					actionEvent -> this.onAddNewChildTreeNode(mouseEvent)));
 			}
 
+			popup.add(JMenuItemFactory.newJMenuItem("Edit node...",
+				actionEvent -> this.onEditSelectedTreeNode(mouseEvent)));
+
+
 			if (!selectedTreeNodeElement.isRoot())
 			{
+				popup.add(JMenuItemFactory.newJMenuItem("Duplicate node...",
+					actionEvent -> this.onDuplicateSelectedTreeNode(mouseEvent)));
+
 				popup.add(JMenuItemFactory.newJMenuItem("delete",
 					actionEvent -> this.onDeleteSelectedTreeNode(mouseEvent)));
 			}
 
-			popup.add(JMenuItemFactory.newJMenuItem("Edit node...",
-				actionEvent -> this.onEditSelectedTreeNode(mouseEvent)));
 
 			popup.add(JMenuItemFactory.newJMenuItem("Collapse node",
 				actionEvent -> this.onCollapseSelectedTreeNode(mouseEvent)));
@@ -232,14 +246,104 @@ public class SecretKeyTreeWithContentPanel
 	}
 
 	/**
+	 * The callback method on duplicate a tree node
+	 */
+	@SuppressWarnings("unchecked")
+	protected void onDuplicateSelectedTreeNode(MouseEvent mouseEvent)
+	{
+		JTreeExtensions.getSelectedDefaultMutableTreeNode(mouseEvent, tree)
+			.ifPresent(selectedDefaultMutableTreeNode -> {
+				BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> selectedTreeNode = (BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long>)selectedDefaultMutableTreeNode
+					.getUserObject();
+				BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> parentTreeNode = selectedTreeNode
+					.getParent();
+				ReindexTreeNodeVisitor<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long, BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long>> reindexTreeNodeVisitor;
+				MaxIndexFinderTreeNodeVisitor<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long, BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long>> maxIndexFinderTreeNodeVisitor;
+
+				Long maxIndex;
+				Long nextId;
+				maxIndexFinderTreeNodeVisitor = new MaxIndexFinderTreeNodeVisitor<>()
+				{
+					@Override
+					public boolean isGreater(Long id)
+					{
+						return getMaxIndex() < id;
+					}
+				};
+				BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> clonedTreeNode = CloneQuietlyExtensions
+					.clone(selectedTreeNode);
+				NodePanel panel = new NodePanel()
+				{
+					protected void onInitializeMigLayout()
+					{
+						MigLayout layout = new MigLayout(new LC().fillX().wrapAfter(2),
+							new AC().align("left").gap("10").grow().fill(),
+							new AC().fill().gap("10"));
+						this.setLayout(layout);
+
+						add(getLblName());
+						add(getTxtName(), new CC().grow().width("120px"));
+					}
+				};
+				String newName = clonedTreeNode.getDisplayValue() + "-Copy";
+				panel.getModelObject().setName(newName);
+				panel.getTxtName().setText(newName);
+				int option = JOptionPaneExtensions.getSelectedOption(panel,
+					JOptionPane.PLAIN_MESSAGE, JOptionPane.OK_CANCEL_OPTION, null,
+					Messages.getString("dialog.duplicate.node.entry.title", "Name for duplicate"),
+					panel.getTxtName());
+				if (option == JOptionPane.OK_OPTION)
+				{
+					NodeModel modelObject = panel.getModelObject();
+					newName = modelObject.getName();
+				}
+
+				clonedTreeNode.getValue().setName(newName);
+				clonedTreeNode.setDisplayValue(newName);
+				clonedTreeNode.setParent(parentTreeNode);
+
+				parentTreeNode.addChild(clonedTreeNode);
+
+				selectedTreeNode.getRoot().accept(maxIndexFinderTreeNodeVisitor);
+				maxIndex = maxIndexFinderTreeNodeVisitor.getMaxIndex();
+
+				nextId = maxIndex + 1;
+				MysticCryptApplicationFrame.getInstance()
+					.setIdGenerator(LongIdGenerator.of(nextId));
+				LongIdGenerator idGenerator = MysticCryptApplicationFrame.getInstance()
+					.getIdGenerator();
+				reindexTreeNodeVisitor = new ReindexTreeNodeVisitor<>(idGenerator);
+				clonedTreeNode.accept(reindexTreeNodeVisitor);
+
+				BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> rootTreeNode = selectedTreeNode
+					.getRoot();
+				Map<Long, TreeIdNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long>> clonedKeyMap = BaseTreeNodeTransformer
+					.toKeyMap(clonedTreeNode);
+				Map<Long, TreeIdNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long>> longTreeIdNodeMap = BaseTreeNodeTransformer
+					.toKeyMap(rootTreeNode);
+				longTreeIdNodeMap.putAll(clonedKeyMap);
+				MysticCryptApplicationFrame.getInstance().getModelObject()
+					.setRootTreeAsMap(longTreeIdNodeMap);
+
+				DefaultMutableTreeNode parent = (DefaultMutableTreeNode)selectedDefaultMutableTreeNode
+					.getParent();
+
+				BaseTreeNodeFactory
+					.newDefaultMutableTreeNode(clonedTreeNode, parent, false);
+
+				reload(parent);
+			});
+	}
+
+	/**
 	 * The callback method on add a new child tree node
 	 */
 	@SuppressWarnings("unchecked")
 	protected void onAddNewChildTreeNode(MouseEvent mouseEvent)
 	{
 		JTreeExtensions.getSelectedDefaultMutableTreeNode(mouseEvent, tree)
-			.ifPresent(selectedTreeNode -> {
-				Object userObject = selectedTreeNode.getUserObject();
+			.ifPresent(selectedDefaultMutableTreeNode -> {
+				Object userObject = selectedDefaultMutableTreeNode.getUserObject();
 				BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> parentTreeNode = (BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long>)userObject;
 				NodePanel panel = new NodePanel();
 				int option = JOptionPaneExtensions.getSelectedOption(panel,
@@ -265,8 +369,8 @@ public class SecretKeyTreeWithContentPanel
 					parentTreeNode.addChild(newTreeNode);
 
 					DefaultMutableTreeNode newChild = new DefaultMutableTreeNode(newTreeNode, leaf);
-					selectedTreeNode.add(newChild);
-					reload(selectedTreeNode);
+					selectedDefaultMutableTreeNode.add(newChild);
+					reload(selectedDefaultMutableTreeNode);
 				}
 			});
 	}
@@ -487,6 +591,7 @@ public class SecretKeyTreeWithContentPanel
 			try
 			{
 				URL url = new URL(urlString);
+				url.toExternalForm();
 				BrowserControlExtensions.displayURLonStandardBrowser(this, urlString);
 			}
 			catch (MalformedURLException e)
