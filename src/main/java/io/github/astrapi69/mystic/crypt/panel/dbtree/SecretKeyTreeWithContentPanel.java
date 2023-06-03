@@ -27,7 +27,6 @@ package io.github.astrapi69.mystic.crypt.panel.dbtree;
 import java.awt.event.MouseEvent;
 import java.io.Serial;
 import java.net.MalformedURLException;
-import java.net.URI;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;

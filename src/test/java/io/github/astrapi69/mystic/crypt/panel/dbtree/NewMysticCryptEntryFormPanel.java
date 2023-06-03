@@ -35,6 +35,25 @@ package io.github.astrapi69.mystic.crypt.panel.dbtree;
 public class NewMysticCryptEntryFormPanel extends javax.swing.JPanel
 {
 
+	// Variables declaration - do not modify//GEN-BEGIN:variables
+	private javax.swing.JButton btnGeneratePassword;
+	private javax.swing.JButton btnShowPassword;
+	private javax.swing.JCheckBox cbxExpirable;
+	private javax.swing.JLabel lblEntryName;
+	private javax.swing.JLabel lblNotes;
+	private javax.swing.JLabel lblPassword;
+	private javax.swing.JLabel lblRepeat;
+	private javax.swing.JLabel lblUrl;
+	private javax.swing.JLabel lblUsername;
+	private javax.swing.JScrollPane srcNotes;
+	private javax.swing.JTextField txtEntryName;
+	private javax.swing.JTextField txtExpires;
+	private javax.swing.JTextArea txtNotes;
+	private javax.swing.JPasswordField txtPassword;
+	private javax.swing.JPasswordField txtRepeat;
+	private javax.swing.JTextField txtUrl;
+	private javax.swing.JTextField txtUsername;
+
 	/**
 	 * Creates new form NewMysticCryptEntryFormPanel
 	 */
@@ -214,25 +233,5 @@ public class NewMysticCryptEntryFormPanel extends javax.swing.JPanel
 	{// GEN-FIRST:event_txtEntryNameActionPerformed
 		// TODO add your handling code here:
 	}// GEN-LAST:event_txtEntryNameActionPerformed
-
-
-	// Variables declaration - do not modify//GEN-BEGIN:variables
-	private javax.swing.JButton btnGeneratePassword;
-	private javax.swing.JButton btnShowPassword;
-	private javax.swing.JCheckBox cbxExpirable;
-	private javax.swing.JLabel lblEntryName;
-	private javax.swing.JLabel lblNotes;
-	private javax.swing.JLabel lblPassword;
-	private javax.swing.JLabel lblRepeat;
-	private javax.swing.JLabel lblUrl;
-	private javax.swing.JLabel lblUsername;
-	private javax.swing.JScrollPane srcNotes;
-	private javax.swing.JTextField txtEntryName;
-	private javax.swing.JTextField txtExpires;
-	private javax.swing.JTextArea txtNotes;
-	private javax.swing.JPasswordField txtPassword;
-	private javax.swing.JPasswordField txtRepeat;
-	private javax.swing.JTextField txtUrl;
-	private javax.swing.JTextField txtUsername;
-	// End of variables declaration//GEN-END:variables
+		// End of variables declaration//GEN-END:variables
 }
