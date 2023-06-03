@@ -328,8 +328,7 @@ public class SecretKeyTreeWithContentPanel
 				DefaultMutableTreeNode parent = (DefaultMutableTreeNode)selectedDefaultMutableTreeNode
 					.getParent();
 
-				BaseTreeNodeFactory
-					.newDefaultMutableTreeNode(clonedTreeNode, parent, false);
+				BaseTreeNodeFactory.newDefaultMutableTreeNode(clonedTreeNode, parent, false);
 
 				reload(parent);
 			});
