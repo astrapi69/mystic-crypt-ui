@@ -20,25 +20,6 @@ jar {
     }
 }
 
-task fatJar(type: Jar) {
-    duplicatesStrategy(DuplicatesStrategy.EXCLUDE)
-    manifest.from jar.manifest
-    classifier = 'all'
-    from { configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) } }
-    with jar
-}
-
-task uberJar(type: Jar) {
-    duplicatesStrategy(DuplicatesStrategy.EXCLUDE)
-    manifest.from jar.manifest
-    archiveClassifier = 'uber'
-
-    from {
-        configurations.runtimeClasspath.findAll { it.name.endsWith('jar') }.collect { zipTree(it) }
-    }
-    with jar
-}
-
 jar.doLast {
     def createIzPackInstallerStringProperty = project.property('createIzPackInstaller')
     def createIzPackInstaller = createIzPackInstallerStringProperty.toBoolean()
@@ -85,8 +66,9 @@ task withAllDependendiesJar(type: Jar) {
     with jar
 }
 
-task createIzPackInstallerFromSignedJar(dependsOn: [clean, build, izPackCreateInstaller]) {
+task createIzPackInstallerFromSignedJar(dependsOn: [clean, build, withAllDependendiesJar, izPackCreateInstaller]) {
     build.mustRunAfter(clean)
-    izPackCreateInstaller.mustRunAfter(build)
+    withAllDependendiesJar.mustRunAfter(build)
+    izPackCreateInstaller.mustRunAfter(withAllDependendiesJar)
 }
 

@@ -21,7 +21,6 @@
 package io.github.astrapi69.mystic.crypt;
 
 import java.awt.Component;
-import java.awt.Event;
 import java.awt.Frame;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
