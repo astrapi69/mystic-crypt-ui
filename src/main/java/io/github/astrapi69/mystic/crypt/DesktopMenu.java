@@ -20,7 +20,8 @@
  */
 package io.github.astrapi69.mystic.crypt;
 
-import java.awt.*;
+import java.awt.Component;
+import java.awt.Frame;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.io.BufferedReader;
@@ -34,10 +35,17 @@ import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
 
-import javax.swing.*;
+import javax.swing.JButton;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
+import javax.swing.KeyStroke;
+import javax.swing.MenuElement;
 
+import io.github.astrapi69.model.enumtype.visibity.RenderMode;
 import lombok.NonNull;
 import lombok.extern.java.Log;
+
 import io.github.astrapi69.collection.set.SetFactory;
 import io.github.astrapi69.design.pattern.observer.event.EventListener;
 import io.github.astrapi69.design.pattern.observer.event.EventObject;

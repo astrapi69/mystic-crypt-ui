@@ -66,8 +66,9 @@ task withAllDependendiesJar(type: Jar) {
     with jar
 }
 
-task createIzPackInstallerFromSignedJar(dependsOn: [clean, build, izPackCreateInstaller]) {
-    build.mustRunAfter(clean)
+task createIzPackInstallerFromSignedJar(dependsOn: [clean, build, withAllDependendiesJar, izPackCreateInstaller]) {
+    withAllDependendiesJar.mustRunAfter(clean)
+    build.mustRunAfter(withAllDependendiesJar)
     izPackCreateInstaller.mustRunAfter(build)
 }
 

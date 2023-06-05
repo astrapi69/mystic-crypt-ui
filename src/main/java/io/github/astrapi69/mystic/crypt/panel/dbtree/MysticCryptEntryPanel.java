@@ -50,6 +50,7 @@ import io.github.astrapi69.swing.component.JMTextField;
 public class MysticCryptEntryPanel extends BasePanel<MysticCryptEntryModelBean>
 {
 
+	IModel<GeneratePasswordModelBean> passwordModel;
 	private javax.swing.JButton btnGeneratePassword;
 	private javax.swing.JButton btnShowPassword;
 	private javax.swing.JLabel lblEntryName;
@@ -59,17 +60,14 @@ public class MysticCryptEntryPanel extends BasePanel<MysticCryptEntryModelBean>
 	private javax.swing.JLabel lblUrl;
 	private javax.swing.JLabel lblUsername;
 	private javax.swing.JScrollPane srcNotes;
-
 	private JMTextField txtEntryName;
 	private JMTextArea txtNotes;
 	private JMPasswordField txtPassword;
 	private JMPasswordField txtRepeat;
 	private JMTextField txtUrl;
 	private JMTextField txtUsername;
-
 	private JMCheckBox cbxExpirable;
 	private CalendarPanel txtExpires;
-	IModel<GeneratePasswordModelBean> passwordModel;
 
 	public MysticCryptEntryPanel()
 	{
