@@ -27,7 +27,7 @@ package io.github.astrapi69.mystic.crypt;
 import io.github.astrapi69.swing.layout.ScreenSizeExtensions;
 
 /**
- * The class {@link StartMysticCryptApplication} without spring-boot
+ * The class {@link StartMysticCryptApplication} starts the application
  */
 public class StartMysticCryptApplication
 {
