@@ -1,8 +1,16 @@
 ## Change log
 ----------------------
 
-Version 7.2-SNAPSHOT
+Version 7.2
 -------------
+
+ADDED:
+
+- new popup menu for duplicate an existing tree node
+
+CHANGED:
+
+- removed spring-boot dependencies
 
 Version 7.1
 -------------

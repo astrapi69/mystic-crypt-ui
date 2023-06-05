@@ -295,41 +295,41 @@ public class SecretKeyTreeWithContentPanel
 				{
 					NodeModel modelObject = panel.getModelObject();
 					newName = modelObject.getName();
+
+					clonedTreeNode.getValue().setName(newName);
+					clonedTreeNode.setDisplayValue(newName);
+					clonedTreeNode.setParent(parentTreeNode);
+
+					parentTreeNode.addChild(clonedTreeNode);
+
+					selectedTreeNode.getRoot().accept(maxIndexFinderTreeNodeVisitor);
+					maxIndex = maxIndexFinderTreeNodeVisitor.getMaxIndex();
+
+					nextId = maxIndex + 1;
+					MysticCryptApplicationFrame.getInstance()
+						.setIdGenerator(LongIdGenerator.of(nextId));
+					LongIdGenerator idGenerator = MysticCryptApplicationFrame.getInstance()
+						.getIdGenerator();
+					reindexTreeNodeVisitor = new ReindexTreeNodeVisitor<>(idGenerator);
+					clonedTreeNode.accept(reindexTreeNodeVisitor);
+
+					BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> rootTreeNode = selectedTreeNode
+						.getRoot();
+					Map<Long, TreeIdNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long>> clonedKeyMap = BaseTreeNodeTransformer
+						.toKeyMap(clonedTreeNode);
+					Map<Long, TreeIdNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long>> longTreeIdNodeMap = BaseTreeNodeTransformer
+						.toKeyMap(rootTreeNode);
+					longTreeIdNodeMap.putAll(clonedKeyMap);
+					MysticCryptApplicationFrame.getInstance().getModelObject()
+						.setRootTreeAsMap(longTreeIdNodeMap);
+
+					DefaultMutableTreeNode parent = (DefaultMutableTreeNode)selectedDefaultMutableTreeNode
+						.getParent();
+
+					BaseTreeNodeFactory.newDefaultMutableTreeNode(clonedTreeNode, parent, false);
+
+					reload(parent);
 				}
-
-				clonedTreeNode.getValue().setName(newName);
-				clonedTreeNode.setDisplayValue(newName);
-				clonedTreeNode.setParent(parentTreeNode);
-
-				parentTreeNode.addChild(clonedTreeNode);
-
-				selectedTreeNode.getRoot().accept(maxIndexFinderTreeNodeVisitor);
-				maxIndex = maxIndexFinderTreeNodeVisitor.getMaxIndex();
-
-				nextId = maxIndex + 1;
-				MysticCryptApplicationFrame.getInstance()
-					.setIdGenerator(LongIdGenerator.of(nextId));
-				LongIdGenerator idGenerator = MysticCryptApplicationFrame.getInstance()
-					.getIdGenerator();
-				reindexTreeNodeVisitor = new ReindexTreeNodeVisitor<>(idGenerator);
-				clonedTreeNode.accept(reindexTreeNodeVisitor);
-
-				BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> rootTreeNode = selectedTreeNode
-					.getRoot();
-				Map<Long, TreeIdNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long>> clonedKeyMap = BaseTreeNodeTransformer
-					.toKeyMap(clonedTreeNode);
-				Map<Long, TreeIdNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long>> longTreeIdNodeMap = BaseTreeNodeTransformer
-					.toKeyMap(rootTreeNode);
-				longTreeIdNodeMap.putAll(clonedKeyMap);
-				MysticCryptApplicationFrame.getInstance().getModelObject()
-					.setRootTreeAsMap(longTreeIdNodeMap);
-
-				DefaultMutableTreeNode parent = (DefaultMutableTreeNode)selectedDefaultMutableTreeNode
-					.getParent();
-
-				BaseTreeNodeFactory.newDefaultMutableTreeNode(clonedTreeNode, parent, false);
-
-				reload(parent);
 			});
 	}
 
