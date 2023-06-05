@@ -66,12 +66,7 @@ dependencies {
     implementation("io.github.astrapi69:tree-api:$treeApiVersion")
     implementation("io.github.astrapi69:jobj-cloner:$jobjClonerVersion")
 
-    implementation("io.github.astrapi69:json-extensions:$jsonExtensionsVersion")
-    implementation("org.springframework.boot:spring-boot-starter-integration")
-    implementation("org.springframework.boot:spring-boot-starter-validation")
-    annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
-    testImplementation("org.springframework.boot:spring-boot-starter-test")
-    testImplementation("org.assertj:assertj-swing:$assertjSwingVersion")
-    testImplementation("io.github.astrapi69:junit-jupiter-extensions:$junitJupiterExtensionsVersion")
+    testImplementation("org.junit.jupiter:junit-jupiter-api:$junitJupiterVersion")
+    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$junitJupiterVersion")
     testImplementation("io.github.astrapi69:test-object:$testObjectVersion")
 }

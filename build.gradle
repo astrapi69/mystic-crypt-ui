@@ -10,8 +10,6 @@ buildscript {
     }
     dependencies {
         classpath "io.freefair.gradle:lombok-plugin:$gradlePluginLombokVersion"
-        classpath "org.springframework.boot:spring-boot-gradle-plugin:$springBootGradlePluginVersion"
-        classpath "io.spring.gradle:dependency-management-plugin:$springGradlePluginDependencyManagementVersion"
         classpath "com.github.ben-manes:gradle-versions-plugin:$gradlePluginVersionsVersion"
         classpath "gradle.plugin.com.hierynomus.gradle.plugins:license-gradle-plugin:$licenseGradlePluginVersion"
         classpath "com.bmuschko:gradle-izpack-plugin:$gradleIzpackPluginVersion"
@@ -24,8 +22,6 @@ apply plugin: "io.freefair.lombok"
 apply plugin: "java"
 apply plugin: "com.bmuschko.izpack"
 apply plugin: "idea"
-apply plugin: "org.springframework.boot"
-apply plugin: "io.spring.dependency-management"
 apply plugin: "java-library"
 apply plugin: "maven-publish"
 apply plugin: "signing"
