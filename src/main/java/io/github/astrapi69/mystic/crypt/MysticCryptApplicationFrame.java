@@ -31,6 +31,7 @@ import java.security.Security;
 
 import javax.swing.*;
 
+import io.github.astrapi69.swing.enumeration.FrameMode;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NonNull;
@@ -47,7 +48,6 @@ import io.github.astrapi69.model.BaseModel;
 import io.github.astrapi69.model.api.IModel;
 import io.github.astrapi69.mystic.crypt.action.NewApplicationFileAction;
 import io.github.astrapi69.mystic.crypt.action.SaveApplicationFileAction;
-import io.github.astrapi69.mystic.crypt.enumtype.FrameMode;
 import io.github.astrapi69.mystic.crypt.panel.signin.MasterPwFileDialog;
 import io.github.astrapi69.mystic.crypt.panel.signin.MasterPwFileModelBean;
 import io.github.astrapi69.mystic.crypt.panel.signin.MemoizedSigninModelBean;

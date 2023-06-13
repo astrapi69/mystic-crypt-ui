@@ -61,7 +61,7 @@ import io.github.astrapi69.model.enumtype.visibity.RenderMode;
 import io.github.astrapi69.model.node.NodeModel;
 import io.github.astrapi69.mystic.crypt.Messages;
 import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
-import io.github.astrapi69.mystic.crypt.app.ApplicationEventBus;
+import io.github.astrapi69.mystic.crypt.eventbus.ApplicationEventBus;
 import io.github.astrapi69.swing.dialog.DialogExtensions;
 import io.github.astrapi69.swing.dialog.JOptionPaneExtensions;
 import io.github.astrapi69.swing.menu.factory.JMenuItemFactory;

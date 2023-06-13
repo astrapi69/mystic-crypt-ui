@@ -28,8 +28,8 @@ import javax.swing.*;
 import io.github.astrapi69.mystic.crypt.ApplicationModelBean;
 import io.github.astrapi69.mystic.crypt.ApplicationPanel;
 import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
-import io.github.astrapi69.mystic.crypt.enumtype.FrameMode;
 import io.github.astrapi69.swing.component.factory.JComponentFactory;
+import io.github.astrapi69.swing.enumeration.FrameMode;
 import io.github.astrapi69.swing.panel.desktoppane.JDesktopPanePanel;
 import io.github.astrapi69.swing.utils.JInternalFrameExtensions;
 

@@ -33,7 +33,7 @@ import io.github.astrapi69.design.pattern.observer.event.EventSource;
 import io.github.astrapi69.model.enumtype.visibity.RenderMode;
 import io.github.astrapi69.mystic.crypt.ApplicationModelBean;
 import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
-import io.github.astrapi69.mystic.crypt.app.ApplicationEventBus;
+import io.github.astrapi69.mystic.crypt.eventbus.ApplicationEventBus;
 import io.github.astrapi69.mystic.crypt.app.file.xml.ApplicationXmlFileStoreWorker;
 
 public class SaveApplicationFileAction extends AbstractAction

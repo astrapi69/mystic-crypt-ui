@@ -25,9 +25,9 @@ import java.awt.event.ActionEvent;
 import javax.swing.*;
 
 import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
-import io.github.astrapi69.mystic.crypt.enumtype.FrameMode;
 import io.github.astrapi69.mystic.crypt.util.InternalFrameExtensions;
 import io.github.astrapi69.swing.component.factory.JComponentFactory;
+import io.github.astrapi69.swing.enumeration.FrameMode;
 import io.github.astrapi69.swing.layout.ScreenSizeExtensions;
 import io.github.astrapi69.swing.panel.output.ConsolePanel;
 
