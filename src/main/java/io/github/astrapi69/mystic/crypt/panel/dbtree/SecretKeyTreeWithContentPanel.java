@@ -254,13 +254,18 @@ public class SecretKeyTreeWithContentPanel
 			.ifPresent(selectedDefaultMutableTreeNode -> {
 				BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> selectedTreeNode = (BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long>)selectedDefaultMutableTreeNode
 					.getUserObject();
+				// get parent
 				BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> parentTreeNode = selectedTreeNode
 					.getParent();
+				// declare a visitor for reindex the new tree nodes
 				ReindexTreeNodeVisitor<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long, BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long>> reindexTreeNodeVisitor;
+
+				// declare a visitor for find the maximum index
 				MaxIndexFinderTreeNodeVisitor<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long, BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long>> maxIndexFinderTreeNodeVisitor;
 
 				Long maxIndex;
 				Long nextId;
+				// implement the visitor for find the max index
 				maxIndexFinderTreeNodeVisitor = new MaxIndexFinderTreeNodeVisitor<>()
 				{
 					@Override
@@ -269,6 +274,7 @@ public class SecretKeyTreeWithContentPanel
 						return getMaxIndex() < id;
 					}
 				};
+				// clone the tree structure
 				BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> clonedTreeNode = CloneQuietlyExtensions
 					.clone(selectedTreeNode);
 				NodePanel panel = new NodePanel()
@@ -295,7 +301,7 @@ public class SecretKeyTreeWithContentPanel
 				{
 					NodeModel modelObject = panel.getModelObject();
 					newName = modelObject.getName();
-
+					// set new name ...
 					clonedTreeNode.getValue().setName(newName);
 					clonedTreeNode.setDisplayValue(newName);
 					clonedTreeNode.setParent(parentTreeNode);
