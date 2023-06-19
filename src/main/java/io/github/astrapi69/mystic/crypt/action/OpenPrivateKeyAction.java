@@ -33,6 +33,7 @@ import java.util.logging.Level;
 import javax.swing.*;
 
 import io.github.astrapi69.swing.enumeration.FrameMode;
+import io.github.astrapi69.swing.util.JInternalFrameExtensions;
 import lombok.NonNull;
 import lombok.extern.java.Log;
 import net.miginfocom.swing.MigLayout;
@@ -49,7 +50,6 @@ import io.github.astrapi69.mystic.crypt.key.PrivateKeyHexDecryptor;
 import io.github.astrapi69.mystic.crypt.key.PublicKeyHexEncryptor;
 import io.github.astrapi69.mystic.crypt.panel.privatekey.PrivateKeyModelBean;
 import io.github.astrapi69.mystic.crypt.panel.privatekey.PrivateKeyPanel;
-import io.github.astrapi69.mystic.crypt.util.InternalFrameExtensions;
 import io.github.astrapi69.swing.action.OpenFileAction;
 import io.github.astrapi69.swing.component.factory.JComponentFactory;
 import io.github.astrapi69.swing.dialog.factory.JDialogFactory;
@@ -210,7 +210,7 @@ public class OpenPrivateKeyAction extends OpenFileAction
 		component.getPrivateKeyViewPanel().getTxtPrivateKey().setText(privateKeyFormat);
 		component.getPrivateKeyViewPanel().getTxtPublicKey().setText(publicKeyFormat);
 
-		InternalFrameExtensions.addInternalFrameToMainFrame(component, internalFrame,
+		JInternalFrameExtensions.addInternalFrameToMainFrame(component, internalFrame,
 			MysticCryptApplicationFrame.getInstance());
 	}
 

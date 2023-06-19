@@ -25,11 +25,11 @@ import java.awt.event.ActionEvent;
 import javax.swing.*;
 
 import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
-import io.github.astrapi69.mystic.crypt.util.InternalFrameExtensions;
 import io.github.astrapi69.swing.component.factory.JComponentFactory;
 import io.github.astrapi69.swing.enumeration.FrameMode;
 import io.github.astrapi69.swing.layout.ScreenSizeExtensions;
 import io.github.astrapi69.swing.panel.output.ConsolePanel;
+import io.github.astrapi69.swing.util.JInternalFrameExtensions;
 
 /**
  * The class {@link OpenConsoleFrameAction}.
@@ -72,6 +72,6 @@ public class OpenConsoleFrameAction extends AbstractAction
 		internalFrame.setLocation(0, (screenHeight / 4) * 3);
 		internalFrame.setResizable(false);
 		internalFrame.putClientProperty("dragMode", "fixed");
-		InternalFrameExtensions.addInternalFrameToMainFrame(component, internalFrame, instance);
+		JInternalFrameExtensions.addInternalFrameToMainFrame(component, internalFrame, instance);
 	}
 }
