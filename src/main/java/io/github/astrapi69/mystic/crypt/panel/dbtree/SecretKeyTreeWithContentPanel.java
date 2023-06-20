@@ -74,7 +74,7 @@ import io.github.astrapi69.swing.tree.JTreeExtensions;
 import io.github.astrapi69.swing.tree.panel.content.BaseTreeNodeGenericTreeElementWithContentPanel;
 import io.github.astrapi69.swing.tree.panel.node.NodePanel;
 import io.github.astrapi69.swing.tree.renderer.state.NewGenericBaseTreeNodeCellRenderer;
-import io.github.astrapi69.swing.utils.ClipboardExtensions;
+import io.github.astrapi69.swing.util.ClipboardExtensions;
 
 public class SecretKeyTreeWithContentPanel
 	extends
