@@ -233,7 +233,6 @@ public class SecretKeyTreeWithContentPanel
 					actionEvent -> this.onDeleteSelectedTreeNode(mouseEvent)));
 			}
 
-
 			popup.add(JMenuItemFactory.newJMenuItem("Collapse node",
 				actionEvent -> this.onCollapseSelectedTreeNode(mouseEvent)));
 
