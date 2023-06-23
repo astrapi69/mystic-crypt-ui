@@ -4,6 +4,9 @@
 Version 7.3-SNAPSHOT
 -------------
 
+CHANGED:
+
+- update of dependency commons-codec to new minor version 1.16.0
 
 Version 7.2
 -------------

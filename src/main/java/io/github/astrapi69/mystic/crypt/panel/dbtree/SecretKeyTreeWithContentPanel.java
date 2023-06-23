@@ -251,11 +251,9 @@ public class SecretKeyTreeWithContentPanel
 	{
 		JTreeExtensions.getSelectedDefaultMutableTreeNode(mouseEvent, tree)
 			.ifPresent(selectedDefaultMutableTreeNode -> {
+				// get the selected tree node from the DefaultMutableTreeNode
 				BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> selectedTreeNode = (BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long>)selectedDefaultMutableTreeNode
 					.getUserObject();
-				// get parent
-				BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> parentTreeNode = selectedTreeNode
-					.getParent();
 				// declare a visitor for reindex the new tree nodes
 				ReindexTreeNodeVisitor<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long, BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long>> reindexTreeNodeVisitor;
 
@@ -298,6 +296,9 @@ public class SecretKeyTreeWithContentPanel
 					panel.getTxtName());
 				if (option == JOptionPane.OK_OPTION)
 				{
+					// get parent
+					BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> parentTreeNode = selectedTreeNode
+						.getParent();
 					NodeModel modelObject = panel.getModelObject();
 					newName = modelObject.getName();
 					// set new name ...
