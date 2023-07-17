@@ -32,6 +32,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 
 import javax.swing.*;
 import javax.swing.tree.DefaultMutableTreeNode;
@@ -333,6 +334,12 @@ public class SecretKeyTreeWithContentPanel
 						.getParent();
 
 					BaseTreeNodeFactory.newDefaultMutableTreeNode(clonedTreeNode, parent, false);
+
+					try {
+						TimeUnit.MILLISECONDS.sleep(200);
+					} catch (InterruptedException e) {
+						throw new RuntimeException(e);
+					}
 
 					reload(parent);
 				}
