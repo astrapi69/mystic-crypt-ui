@@ -6,7 +6,12 @@ Version 7.3-SNAPSHOT
 
 CHANGED:
 
+- update of gradle to new patch version 8.2.1
+- update of gradle plugin dependency io.freefair.gradle:lombok-plugin to new minor version 8.1.0
 - update of dependency commons-codec to new minor version 1.16.0
+- update of mystic-crypt dependency to new minor version to 8.1
+- update of crypt-api dependency to new minor version to 8.6
+- update of crypt-data dependency to new minor version to 8.5
 
 Version 7.2
 -------------
