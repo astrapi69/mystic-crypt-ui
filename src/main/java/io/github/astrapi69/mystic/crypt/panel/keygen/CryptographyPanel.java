@@ -44,15 +44,15 @@ import io.github.astrapi69.crypt.api.key.KeyFileFormat;
 import io.github.astrapi69.crypt.api.key.KeySize;
 import io.github.astrapi69.crypt.data.factory.CertFactory;
 import io.github.astrapi69.crypt.data.key.writer.CertificateWriter;
-import io.github.astrapi69.layout.GridBagLayoutModel;
-import io.github.astrapi69.layout.InsetsModel;
+import io.github.astrapi69.swing.model.layout.GridBagLayoutModel;
+import io.github.astrapi69.swing.model.layout.InsetsModel;
 import io.github.astrapi69.layout.LayoutExtensions;
 import io.github.astrapi69.model.BaseModel;
 import io.github.astrapi69.model.api.IModel;
 import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
 import io.github.astrapi69.mystic.crypt.panel.certificate.NewCertificateInfoPanel;
 import io.github.astrapi69.swing.base.BasePanel;
-import io.github.astrapi69.swing.combobox.model.EnumComboBoxModel;
+import io.github.astrapi69.swing.model.combobox.EnumComboBoxModel;
 import io.github.astrapi69.swing.dialog.factory.JDialogFactory;
 import io.github.astrapi69.swing.listener.RequestFocusListener;
 

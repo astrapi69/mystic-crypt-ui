@@ -55,7 +55,7 @@ import io.github.astrapi69.model.LambdaModel;
 import io.github.astrapi69.model.api.IModel;
 import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
 import io.github.astrapi69.swing.base.BasePanel;
-import io.github.astrapi69.swing.combobox.model.EnumComboBoxModel;
+import io.github.astrapi69.swing.model.combobox.EnumComboBoxModel;
 import io.github.astrapi69.swing.component.JMTextField;
 import io.github.astrapi69.swing.dialog.DialogExtensions;
 import io.github.astrapi69.swing.listener.document.DocumentListenerAdapter;

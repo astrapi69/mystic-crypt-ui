@@ -49,7 +49,7 @@ import io.github.astrapi69.file.system.SystemFileExtensions;
 import io.github.astrapi69.model.BaseModel;
 import io.github.astrapi69.model.api.IModel;
 import io.github.astrapi69.swing.base.BasePanel;
-import io.github.astrapi69.swing.combobox.model.EnumComboBoxModel;
+import io.github.astrapi69.swing.model.combobox.EnumComboBoxModel;
 import io.github.astrapi69.swing.listener.document.EnableButtonBehavior;
 
 @Getter

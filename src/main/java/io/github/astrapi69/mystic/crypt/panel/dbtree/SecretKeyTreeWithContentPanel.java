@@ -335,9 +335,12 @@ public class SecretKeyTreeWithContentPanel
 
 					BaseTreeNodeFactory.newDefaultMutableTreeNode(clonedTreeNode, parent, false);
 
-					try {
+					try
+					{
 						TimeUnit.MILLISECONDS.sleep(200);
-					} catch (InterruptedException e) {
+					}
+					catch (InterruptedException e)
+					{
 						throw new RuntimeException(e);
 					}
 
