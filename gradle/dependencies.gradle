@@ -65,6 +65,8 @@ dependencies {
     implementation("com.github.lgooddatepicker:LGoodDatePicker:$lGoodDatePickerVersion")
     implementation("io.github.astrapi69:tree-api:$treeApiVersion")
     implementation("io.github.astrapi69:jobj-cloner:$jobjClonerVersion")
+    implementation("org.kquiet:auto-browser:$autoBrowserVersion")
+
 
     testImplementation("org.junit.jupiter:junit-jupiter-api:$junitJupiterVersion")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$junitJupiterVersion")
