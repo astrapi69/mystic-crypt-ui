@@ -25,13 +25,19 @@
 package io.github.astrapi69.mystic.crypt.panel.dbtree;
 
 import java.awt.event.MouseEvent;
+import java.io.IOException;
 import java.io.Serial;
 import java.net.MalformedURLException;
+import java.net.URISyntaxException;
 import java.net.URL;
+import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.TimeUnit;
 
 import javax.swing.*;
@@ -79,6 +85,15 @@ import io.github.astrapi69.swing.tree.panel.content.BaseTreeNodeGenericTreeEleme
 import io.github.astrapi69.swing.tree.panel.node.NodePanel;
 import io.github.astrapi69.swing.tree.renderer.state.NewGenericBaseTreeNodeCellRenderer;
 import io.github.astrapi69.swing.util.ClipboardExtensions;
+import org.kquiet.browser.ActionComposer;
+import org.kquiet.browser.ActionComposerBuilder;
+import org.kquiet.browser.ActionRunner;
+import org.kquiet.browser.BasicActionRunner;
+import org.kquiet.browser.BrowserType;
+import org.openqa.selenium.By;
+import org.openqa.selenium.PageLoadStrategy;
+
+import static org.openqa.selenium.support.ui.ExpectedConditions.elementToBeClickable;
 
 public class SecretKeyTreeWithContentPanel
 	extends
@@ -495,15 +510,25 @@ public class SecretKeyTreeWithContentPanel
 	{
 		int x = mouseEvent.getX();
 		int y = mouseEvent.getY();
+		MysticCryptEntryModelBean singleSelectedRow = null;
 
 		List<MysticCryptEntryModelBean> allSelectedRowData = getTblTreeEntryTable()
 			.getAllSelectedRowData();
+
+		boolean isSingleSelectedRow = allSelectedRowData.size() == 1;
+		boolean validUrl = false;
+		if (isSingleSelectedRow)
+		{
+			singleSelectedRow = allSelectedRowData.get(0);
+			String urlString = singleSelectedRow.getUrl();
+			validUrl = validateUrlString(urlString);
+		}
 
 		JPopupMenu popup = JPopupMenuFactory.newJPopupMenu();
 
 		JMenuItem copyUsername = JMenuItemFactory.newJMenuItem("Copy Username",
 			actionEvent -> this.onCopyUsernameTableEntry());
-		copyUsername.setEnabled(allSelectedRowData.size() == 1);
+		copyUsername.setEnabled(isSingleSelectedRow);
 		popup.add(copyUsername);
 
 		JMenuItem copyPassword = JMenuItemFactory.newJMenuItem("Copy Password",
@@ -513,15 +538,13 @@ public class SecretKeyTreeWithContentPanel
 
 		JMenuItem openUrl = JMenuItemFactory.newJMenuItem("Open url",
 			actionEvent -> this.onOpenUrlOfTableEntry());
-		openUrl.setEnabled(
-			allSelectedRowData.size() == 1 && allSelectedRowData.get(0).getUrl() != null);
+		openUrl.setEnabled(validUrl);
 		popup.add(openUrl);
 
 		JMenuItem openUrlAndAutotype = JMenuItemFactory.newJMenuItem("Autotype",
 			actionEvent -> this.onOpenUrlAndAutotypeOfTableEntry());
-		openUrl.setEnabled(
-			allSelectedRowData.size() == 1 && allSelectedRowData.get(0).getUrl() != null);
-		popup.add(openUrl);
+		openUrl.setEnabled(validUrl);
+		popup.add(openUrlAndAutotype);
 
 		// Separator
 		popup.addSeparator();
@@ -555,10 +578,43 @@ public class SecretKeyTreeWithContentPanel
 		popup.show(getTblTreeEntryTable(), x, y);
 	}
 
+	private static boolean validateUrlString(String urlString)
+	{
+		try
+		{
+			new URL(urlString).toURI();
+		}
+		catch (MalformedURLException | URISyntaxException e)
+		{
+			return false;
+		}
+		return true;
+	}
+
 	protected void onOpenUrlAndAutotypeOfTableEntry()
 	{
-		getTblTreeEntryTable().getSingleSelectedRowData().ifPresent(tableEntry -> {
-			// TODO IMPLEMENT ...
+		getTblTreeEntryTable().getSingleSelectedRowData().ifPresent(selectedTableEntry -> {
+			String url = selectedTableEntry.getUrl();
+			try (ActionRunner actionRunner = new MyBasicActionRunner())
+			{
+				ActionComposer actionComposer = new ActionComposerBuilder().prepareActionSequence()
+					.getUrl(url)
+					.waitUntil(elementToBeClickable(By.xpath("//input[@id='UserName']")), 3000)
+					.sendKey(By.xpath("//input[@id='UserName']"), selectedTableEntry.getUserName())
+					.waitUntil(elementToBeClickable(By.xpath("//input[@id='Password']")), 3000)
+					.sendKey(By.xpath("//input[@id='Password']"),
+						String.valueOf(selectedTableEntry.getPassword()))
+					.waitUntil(elementToBeClickable(By.cssSelector("input[type='submit']")), 3000)
+					.prepareClick(By.cssSelector("input[type='submit']")).done()
+					.returnToComposerBuilder().buildBasic().setCloseWindow(false)
+					.onFail(ac -> System.err.println(
+						"an exception is thrown or is marked as failed " +
+								"when open and auto type the username and password"))
+					.onDone(ac -> System.out
+						.println("open and auto type the username and password done"));
+				CompletableFuture<Void> voidCompletableFuture = actionRunner.executeComposer(actionComposer);
+				voidCompletableFuture.join();
+			}
 		});
 	}
 
