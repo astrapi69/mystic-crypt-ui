@@ -190,7 +190,7 @@ public class OpenPrivateKeyAction extends OpenFileAction
 		{
 			if (PrivateKeyReader.isPemFormat(file))
 			{
-				privateKeyFormat = ReadFileExtensions.readFromFile(file);
+				privateKeyFormat = ReadFileExtensions.fromFile(file);
 			}
 			else
 			{

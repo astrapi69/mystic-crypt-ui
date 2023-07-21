@@ -178,7 +178,7 @@ public class ChecksumPanel extends BasePanel<ChecksumBean>
 				txtChecksumFile.setText(getModelObject().getSelectedChecksumFilename());
 				try
 				{
-					String checksum = ReadFileExtensions.readFromFile(selectedChecksumFile).trim();
+					String checksum = ReadFileExtensions.fromFile(selectedChecksumFile).trim();
 					System.out.println(checksum);
 					txtOwnersChecksum.setText(checksum);
 					txtOwnersChecksum.setEnabled(false);

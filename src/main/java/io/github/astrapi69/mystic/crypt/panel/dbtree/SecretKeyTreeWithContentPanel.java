@@ -39,6 +39,9 @@ import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreeModel;
 
+import io.github.astrapi69.mystic.crypt.panel.table.NewTableEntryModel;
+import io.github.astrapi69.mystic.crypt.panel.table.NewTableEntryPanel;
+import io.github.astrapi69.swing.model.label.LabelModel;
 import net.miginfocom.layout.AC;
 import net.miginfocom.layout.CC;
 import net.miginfocom.layout.LC;
@@ -498,7 +501,7 @@ public class SecretKeyTreeWithContentPanel
 
 		JPopupMenu popup = JPopupMenuFactory.newJPopupMenu();
 
-		JMenuItem copyUsername = JMenuItemFactory.newJMenuItem("Copy Password",
+		JMenuItem copyUsername = JMenuItemFactory.newJMenuItem("Copy Username",
 			actionEvent -> this.onCopyUsernameTableEntry());
 		copyUsername.setEnabled(allSelectedRowData.size() == 1);
 		popup.add(copyUsername);
@@ -514,19 +517,25 @@ public class SecretKeyTreeWithContentPanel
 			allSelectedRowData.size() == 1 && allSelectedRowData.get(0).getUrl() != null);
 		popup.add(openUrl);
 
+		JMenuItem openUrlAndAutotype = JMenuItemFactory.newJMenuItem("Autotype",
+			actionEvent -> this.onOpenUrlAndAutotypeOfTableEntry());
+		openUrl.setEnabled(
+			allSelectedRowData.size() == 1 && allSelectedRowData.get(0).getUrl() != null);
+		popup.add(openUrl);
+
 		// Separator
 		popup.addSeparator();
 
-		JMenuItem add = JMenuItemFactory.newJMenuItem("add ...",
+		JMenuItem add = JMenuItemFactory.newJMenuItem("add...",
 			actionEvent -> this.onAddTableEntry());
 		popup.add(add);
 
-		JMenuItem edit = JMenuItemFactory.newJMenuItem("edit",
+		JMenuItem edit = JMenuItemFactory.newJMenuItem("edit...",
 			actionEvent -> this.onEditTableEntry());
 		edit.setEnabled(allSelectedRowData.size() == 1);
 		popup.add(edit);
 
-		JMenuItem duplicate = JMenuItemFactory.newJMenuItem("duplicate",
+		JMenuItem duplicate = JMenuItemFactory.newJMenuItem("duplicate...",
 			actionEvent -> this.onDuplicateTableEntry());
 		duplicate.setEnabled(allSelectedRowData.size() == 1);
 		popup.add(duplicate);
@@ -546,6 +555,13 @@ public class SecretKeyTreeWithContentPanel
 		popup.show(getTblTreeEntryTable(), x, y);
 	}
 
+	protected void onOpenUrlAndAutotypeOfTableEntry()
+	{
+		getTblTreeEntryTable().getSingleSelectedRowData().ifPresent(tableEntry -> {
+			// TODO IMPLEMENT ...
+		});
+	}
+
 	protected void onSelectAllTableEntries()
 	{
 		getTblTreeEntryTable().selectAll();
@@ -553,9 +569,31 @@ public class SecretKeyTreeWithContentPanel
 
 	protected void onDuplicateTableEntry()
 	{
-		getTblTreeEntryTable().getSingleSelectedRowData().ifPresent(tableEntry -> {
+		getTblTreeEntryTable().getSingleSelectedRowData().ifPresent(selectedTableEntry -> {
+			MysticCryptEntryModelBean clonedMysticCryptEntry = CloneQuietlyExtensions
+				.clone(selectedTableEntry);
 
-			// TODO...
+			String newName = clonedMysticCryptEntry.getTitle() + "-Copy";
+			NewTableEntryModel newTableEntryModel = NewTableEntryModel.builder().name(newName)
+				.labelModelName(LabelModel.builder()
+					.text(Messages.getString("dialog.duplicate.crypt.entry.new.title.name",
+						"Name of title for duplicate"))
+					.build())
+				.build();
+
+			NewTableEntryPanel panel = new NewTableEntryPanel(BaseModel.of(newTableEntryModel));
+
+			int option = JOptionPaneExtensions.getSelectedOption(panel, JOptionPane.PLAIN_MESSAGE,
+				JOptionPane.OK_CANCEL_OPTION, null,
+				Messages.getString("dialog.duplicate.crypt.entry.title", "New title for duplicate"),
+				panel.getTxtName());
+			if (option == JOptionPane.OK_OPTION)
+			{
+				String name = panel.getModelObject().getName();
+				clonedMysticCryptEntry.setTitle(name);
+
+				addNewTableEntryToModel(clonedMysticCryptEntry);
+			}
 		});
 	}
 
@@ -633,27 +671,38 @@ public class SecretKeyTreeWithContentPanel
 				modelObject
 					.setExpires(panel.getMysticCryptEntryPanel().getTxtExpires().getSelectedDate());
 			}
-			DefaultMutableTreeNode selectedTreeNode = getSelectedTreeNode();
-			BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> selectedBaseTreeNode;
-			if (selectedTreeNode == null)
-			{
-				selectedBaseTreeNode = getModelObject().getRoot();
-			}
-			else
-			{
-				Object userObject = selectedTreeNode.getUserObject();
-				selectedBaseTreeNode = (BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long>)userObject;
-			}
-			GenericTreeElement<List<MysticCryptEntryModelBean>> value = selectedBaseTreeNode
-				.getValue();
-			if (value.getDefaultContent() == null)
-			{
-				value.setDefaultContent(new ArrayList<>());
-			}
-			value.getDefaultContent().add(modelObject);
-			getTblTreeEntryTable().getGenericTableModel().add(modelObject);
-			getBaseTreeNodeModel();
+			addNewTableEntryToModel(modelObject);
 		}
+	}
+
+	private void addNewTableEntryToModel(MysticCryptEntryModelBean modelObject)
+	{
+		BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> selectedBaseTreeNode = getSelectedBaseTreeNode();
+
+		GenericTreeElement<List<MysticCryptEntryModelBean>> value = selectedBaseTreeNode.getValue();
+		if (value.getDefaultContent() == null)
+		{
+			value.setDefaultContent(new ArrayList<>());
+		}
+		value.getDefaultContent().add(modelObject);
+		getTblTreeEntryTable().getGenericTableModel().add(modelObject);
+		getBaseTreeNodeModel();
+	}
+
+	@SuppressWarnings("unchecked")
+	private BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> getSelectedBaseTreeNode()
+	{
+		DefaultMutableTreeNode selectedTreeNode = getSelectedTreeNode();
+		BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> selectedBaseTreeNode;
+		if (selectedTreeNode == null)
+		{
+			selectedBaseTreeNode = getModelObject().getRoot();
+		}
+		{
+			Object userObject = selectedTreeNode.getUserObject();
+			selectedBaseTreeNode = (BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long>)userObject;
+		}
+		return selectedBaseTreeNode;
 	}
 
 	private void reloadApplicationTreeModel()
