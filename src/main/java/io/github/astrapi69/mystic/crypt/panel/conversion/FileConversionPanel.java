@@ -46,7 +46,7 @@ import io.github.astrapi69.crypt.data.key.writer.PublicKeyWriter;
 import io.github.astrapi69.model.BaseModel;
 import io.github.astrapi69.model.api.IModel;
 import io.github.astrapi69.swing.base.BasePanel;
-import io.github.astrapi69.swing.combobox.model.EnumComboBoxModel;
+import io.github.astrapi69.swing.model.combobox.EnumComboBoxModel;
 import io.github.astrapi69.throwable.ThrowableExtensions;
 
 @Getter

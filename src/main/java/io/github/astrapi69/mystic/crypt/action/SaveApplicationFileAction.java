@@ -25,21 +25,21 @@
 package io.github.astrapi69.mystic.crypt.action;
 
 import java.awt.event.ActionEvent;
+import java.io.Serial;
 
 import javax.swing.*;
 
 import io.github.astrapi69.design.pattern.observer.event.EventObject;
-import io.github.astrapi69.design.pattern.observer.event.EventSource;
 import io.github.astrapi69.model.enumtype.visibity.RenderMode;
-import io.github.astrapi69.mystic.crypt.ApplicationModelBean;
 import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
-import io.github.astrapi69.mystic.crypt.app.ApplicationEventBus;
+import io.github.astrapi69.mystic.crypt.eventbus.ApplicationEventBus;
 import io.github.astrapi69.mystic.crypt.app.file.xml.ApplicationXmlFileStoreWorker;
 
 public class SaveApplicationFileAction extends AbstractAction
 {
 
 	/** The Constant serialVersionUID. */
+	@Serial
 	private static final long serialVersionUID = 1L;
 
 	public SaveApplicationFileAction(final String name)
@@ -53,11 +53,8 @@ public class SaveApplicationFileAction extends AbstractAction
 	@Override
 	public void actionPerformed(final ActionEvent e)
 	{
-		ApplicationModelBean applicationModelBean = MysticCryptApplicationFrame.getInstance()
-			.getModelObject();
-		ApplicationXmlFileStoreWorker.storeApplicationFile(applicationModelBean);
-
-		final EventSource<EventObject<RenderMode>> eventSource = ApplicationEventBus.getSaveState();
-		eventSource.fireEvent(new EventObject<>(RenderMode.VIEWABLE));
+		ApplicationXmlFileStoreWorker
+			.storeApplicationFile(MysticCryptApplicationFrame.getInstance().getModelObject());
+		ApplicationEventBus.getSaveState().fireEvent(new EventObject<>(RenderMode.VIEWABLE));
 	}
 }

@@ -61,6 +61,10 @@ public final class ApplicationXmlFileStoreWorker
 	public static void storeApplicationFile(ApplicationModelBean applicationModelBean)
 	{
 		MasterPwFileModelBean modelObject = applicationModelBean.getMasterPwFileModelBean();
+		if (applicationModelBean.isDirty())
+		{
+			applicationModelBean.setDirty(false);
+		}
 		SignInType signInType = SignInType.toSignInType(modelObject);
 		if (SignInType.PASSWORD_AND_PRIVATE_KEY.equals(signInType))
 		{

@@ -25,10 +25,10 @@ import java.awt.event.ActionEvent;
 import javax.swing.*;
 
 import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
-import io.github.astrapi69.mystic.crypt.enumtype.FrameMode;
 import io.github.astrapi69.mystic.crypt.panel.obfuscate.character.OperationRulePanel;
-import io.github.astrapi69.mystic.crypt.util.InternalFrameExtensions;
 import io.github.astrapi69.swing.component.factory.JComponentFactory;
+import io.github.astrapi69.swing.enumeration.FrameMode;
+import io.github.astrapi69.swing.util.JInternalFrameExtensions;
 
 /**
  * The class {@link NewObfuscationOperationInternalFrameAction}.
@@ -65,7 +65,7 @@ public class NewObfuscationOperationInternalFrameAction extends AbstractAction
 		final JInternalFrame internalFrame = JComponentFactory
 			.newInternalFrame("Obfuscation Operation demo", true, true, true, true);
 		final OperationRulePanel component = new OperationRulePanel();
-		InternalFrameExtensions.addInternalFrameToMainFrame(component, internalFrame,
+		JInternalFrameExtensions.addInternalFrameToMainFrame(component, internalFrame,
 			MysticCryptApplicationFrame.getInstance());
 	}
 

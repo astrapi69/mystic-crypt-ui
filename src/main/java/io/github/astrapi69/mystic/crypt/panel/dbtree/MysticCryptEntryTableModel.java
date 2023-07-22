@@ -47,7 +47,7 @@ public class MysticCryptEntryTableModel extends BaseTableModel<MysticCryptEntryM
 	 * Instantiates a new {@link ThreadsTableModel} object.
 	 *
 	 * @param columnsModel
-	 *            the columns model
+	 *            the column model
 	 */
 	public MysticCryptEntryTableModel(final TableColumnsModel columnsModel)
 	{

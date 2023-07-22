@@ -22,36 +22,42 @@
  * OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
  * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-package io.github.astrapi69.mystic.crypt.util;
+package io.github.astrapi69.mystic.crypt.eventbus;
 
-import java.awt.*;
+import lombok.Getter;
 
-import javax.swing.*;
+import com.google.common.eventbus.EventBus;
 
-import io.github.astrapi69.swing.base.ApplicationPanelFrame;
-import io.github.astrapi69.swing.base.BasePanel;
-import io.github.astrapi69.swing.panel.desktoppane.JDesktopPanePanel;
-import io.github.astrapi69.swing.utils.JInternalFrameExtensions;
+import io.github.astrapi69.design.pattern.eventbus.GenericEventBus;
+import io.github.astrapi69.design.pattern.observer.event.EventObject;
+import io.github.astrapi69.design.pattern.observer.event.EventSource;
+import io.github.astrapi69.model.enumtype.visibity.RenderMode;
 
-public class InternalFrameExtensions
+public class ApplicationEventBus
 {
 
-	public static <T> void addInternalFrameToMainFrame(final Component component,
-		JInternalFrame internalFrame, ApplicationPanelFrame<T> mainFrame)
+	/** The instance. */
+	private static final ApplicationEventBus instance = new ApplicationEventBus();
+	@Getter
+	private final EventBus applicationEventBus = new EventBus();
+
+	private ApplicationEventBus()
 	{
-		JInternalFrameExtensions.addComponentToFrame(internalFrame, component);
-		addInternalFrameToMainFrame(internalFrame, mainFrame);
 	}
 
-	public static <T> void addInternalFrameToMainFrame(JInternalFrame internalFrame,
-		ApplicationPanelFrame<T> mainFrame)
+	public static EventSource<EventObject<RenderMode>> getSaveState()
 	{
-		BasePanel<T> mainComponent = mainFrame.getMainComponent();
-		if (mainComponent instanceof JDesktopPanePanel)
-		{
-			JDesktopPanePanel<T> desktopPanePanel = (JDesktopPanePanel<T>)mainComponent;
-			JInternalFrameExtensions.addJInternalFrame(desktopPanePanel.getDesktopPane(),
-				internalFrame);
-		}
+		return GenericEventBus.getEventSource(RenderMode.class);
 	}
+
+	public static EventSource<?> get(final String key)
+	{
+		return GenericEventBus.get(key);
+	}
+
+	public static ApplicationEventBus getInstance()
+	{
+		return instance;
+	}
+
 }

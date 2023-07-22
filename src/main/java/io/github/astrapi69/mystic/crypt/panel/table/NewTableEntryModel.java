@@ -22,42 +22,29 @@
  * OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
  * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-package io.github.astrapi69.mystic.crypt.app;
+package io.github.astrapi69.mystic.crypt.panel.table;
 
+import io.github.astrapi69.swing.model.label.LabelModel;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
+import lombok.experimental.FieldDefaults;
 
-import com.google.common.eventbus.EventBus;
-
-import io.github.astrapi69.design.pattern.eventbus.GenericEventBus;
-import io.github.astrapi69.design.pattern.observer.event.EventObject;
-import io.github.astrapi69.design.pattern.observer.event.EventSource;
-import io.github.astrapi69.model.enumtype.visibity.RenderMode;
-
-public class ApplicationEventBus
+@Getter
+@Setter
+@EqualsAndHashCode
+@ToString
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder(toBuilder = true)
+@FieldDefaults(level = AccessLevel.PRIVATE)
+public class NewTableEntryModel
 {
-
-	/** The instance. */
-	private static final ApplicationEventBus instance = new ApplicationEventBus();
-	@Getter
-	private final EventBus applicationEventBus = new EventBus();
-
-	private ApplicationEventBus()
-	{
-	}
-
-	public static EventSource<EventObject<RenderMode>> getSaveState()
-	{
-		return GenericEventBus.getEventSource(RenderMode.class);
-	}
-
-	public static EventSource<?> get(final String key)
-	{
-		return GenericEventBus.get(key);
-	}
-
-	public static ApplicationEventBus getInstance()
-	{
-		return instance;
-	}
-
+	String name;
+	LabelModel labelModelName;
 }

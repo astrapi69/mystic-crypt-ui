@@ -57,7 +57,7 @@ import io.github.astrapi69.mystic.crypt.panel.signin.button.state.ok.BtnOkStateM
 import io.github.astrapi69.mystic.crypt.panel.signin.button.state.ok.DocumentExtensions;
 import io.github.astrapi69.net.url.URLExtensions;
 import io.github.astrapi69.swing.base.BasePanel;
-import io.github.astrapi69.swing.combobox.model.GenericMutableComboBoxModel;
+import io.github.astrapi69.swing.model.combobox.GenericMutableComboBoxModel;
 import io.github.astrapi69.swing.component.JMCheckBox;
 import io.github.astrapi69.swing.component.JMComboBox;
 import io.github.astrapi69.swing.component.JMPasswordField;
@@ -587,8 +587,13 @@ public class MasterPwWithApplicationFilePanel extends BasePanel<MasterPwFileMode
 			MasterPwFileModelBean panelModelObject = getModelObject();
 			ApplicationModelBean applicationModelBean = ApplicationXmlFileReader
 				.read(panelModelObject);
+
 			if (applicationModelBean != null)
 			{
+				if (applicationModelBean.isDirty())
+				{
+					applicationModelBean.setDirty(false);
+				}
 				applicationModelBean.setSignedIn(true);
 				applicationFrame.setModelObject(applicationModelBean);
 				MasterPwFileModelBean masterPwFileModelBean = applicationModelBean

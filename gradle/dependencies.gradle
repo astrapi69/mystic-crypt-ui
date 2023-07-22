@@ -62,9 +62,11 @@ dependencies {
     implementation("io.github.astrapi69:xstream-extensions:$xstreamExtensionsVersion")
     implementation("io.github.astrapi69:resourcebundle-core:$resourcebundleCoreVersion")
     implementation("io.github.astrapi69:resource-viewmodels:$resourceViewmodelVersion")
-    implementation("com.github.lgooddatepicker:LGoodDatePicker:11.2.1")
+    implementation("com.github.lgooddatepicker:LGoodDatePicker:$lGoodDatePickerVersion")
     implementation("io.github.astrapi69:tree-api:$treeApiVersion")
     implementation("io.github.astrapi69:jobj-cloner:$jobjClonerVersion")
+    implementation("org.kquiet:auto-browser:$autoBrowserVersion")
+
 
     testImplementation("org.junit.jupiter:junit-jupiter-api:$junitJupiterVersion")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$junitJupiterVersion")

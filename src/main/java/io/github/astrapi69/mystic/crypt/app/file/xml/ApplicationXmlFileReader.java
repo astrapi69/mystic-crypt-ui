@@ -137,9 +137,8 @@ public class ApplicationXmlFileReader
 		return applicationModelBean;
 	}
 
-
 	public static ApplicationModelBean readApplicationFileWithPassword(
-		MasterPwFileModelBean modelObject)
+		@NonNull final MasterPwFileModelBean modelObject)
 	{
 		File applicationFile = FileFactory.newFileQuietly(modelObject.getApplicationFileInfo());
 		char[] password = modelObject.getMasterPw();

@@ -34,7 +34,7 @@ import javax.swing.*;
 import lombok.Getter;
 import lombok.extern.java.Log;
 import net.miginfocom.swing.MigLayout;
-import io.github.astrapi69.crypt.api.algorithm.KeyPairGeneratorAlgorithm;
+import io.github.astrapi69.crypt.api.algorithm.key.KeyPairGeneratorAlgorithm;
 import io.github.astrapi69.crypt.api.key.KeySize;
 import io.github.astrapi69.crypt.data.factory.KeyPairFactory;
 import io.github.astrapi69.crypt.data.key.PrivateKeyExtensions;
