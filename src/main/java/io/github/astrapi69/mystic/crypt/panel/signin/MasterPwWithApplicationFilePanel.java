@@ -587,8 +587,13 @@ public class MasterPwWithApplicationFilePanel extends BasePanel<MasterPwFileMode
 			MasterPwFileModelBean panelModelObject = getModelObject();
 			ApplicationModelBean applicationModelBean = ApplicationXmlFileReader
 				.read(panelModelObject);
+
 			if (applicationModelBean != null)
 			{
+				if (applicationModelBean.isDirty())
+				{
+					applicationModelBean.setDirty(false);
+				}
 				applicationModelBean.setSignedIn(true);
 				applicationFrame.setModelObject(applicationModelBean);
 				MasterPwFileModelBean masterPwFileModelBean = applicationModelBean

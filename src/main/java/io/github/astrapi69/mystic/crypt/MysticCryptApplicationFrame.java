@@ -25,13 +25,22 @@
 package io.github.astrapi69.mystic.crypt;
 
 import java.awt.*;
+import java.awt.event.WindowEvent;
 import java.io.File;
 import java.io.Serial;
 import java.security.Security;
 
 import javax.swing.*;
 
+import io.github.astrapi69.design.pattern.observer.event.EventObject;
+import io.github.astrapi69.design.pattern.observer.event.EventSource;
+import io.github.astrapi69.model.enumtype.visibity.RenderMode;
+import io.github.astrapi69.mystic.crypt.app.file.xml.ApplicationXmlFileStoreWorker;
+import io.github.astrapi69.mystic.crypt.eventbus.ApplicationEventBus;
+import io.github.astrapi69.swing.dialog.JOptionPaneExtensions;
 import io.github.astrapi69.swing.enumeration.FrameMode;
+import io.github.astrapi69.swing.panel.label.LabelPanel;
+import io.github.astrapi69.window.adapter.CloseWindow;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NonNull;
@@ -202,7 +211,8 @@ public class MysticCryptApplicationFrame extends ApplicationPanelFrame<Applicati
 		// add once the default provider to the Security class
 		setSecurityProvider();
 		// initialize model and model object
-		setModel(BaseModel.of(ApplicationModelBean.builder().build()));
+		ApplicationModelBean applicationModelBean = ApplicationModelBean.builder().build();
+		setModel(BaseModel.of(applicationModelBean));
 		super.onBeforeInitialize();
 	}
 
@@ -264,6 +274,7 @@ public class MysticCryptApplicationFrame extends ApplicationPanelFrame<Applicati
 		setDefaultLookAndFeel(LookAndFeels.NIMBUS, this);
 		this.setSize(ScreenSizeExtensions.getScreenWidth(), ScreenSizeExtensions.getScreenHeight());
 		onEnableMenu();
+		onWindowClosing();
 	}
 
 	public void onEnableMenu()
@@ -332,5 +343,40 @@ public class MysticCryptApplicationFrame extends ApplicationPanelFrame<Applicati
 	{
 		replaceMainComponent(getApplicationPanel());
 		instance.frameMode = FrameMode.APPLICATION_PANEL;
+	}
+
+	protected void onWindowClosing()
+	{
+		MysticCryptApplicationFrame.this.addWindowListener(new CloseWindow()
+		{
+			@Override
+			public void windowClosing(WindowEvent windowEvent)
+			{
+				ApplicationModelBean modelObject = MysticCryptApplicationFrame.this
+					.getModelObject();
+				boolean dirty = modelObject.isDirty();
+				if (dirty)
+				{
+					String defaultMessage = "<html><body>"
+						+ "<div>The current database file is modified.</div>"
+						+ "<div>Store your changes before finish application</div>"
+						+ "</body></html>";
+					String confirmMessage = Messages
+						.getString("dialog.confirm.save.before.close.message", defaultMessage);
+					LabelPanel panel = new LabelPanel(BaseModel.of(confirmMessage));
+					int option = JOptionPaneExtensions.getSelectedOption(panel,
+						JOptionPane.QUESTION_MESSAGE, JOptionPane.YES_NO_CANCEL_OPTION,
+						MysticCryptApplicationFrame.this,
+						Messages.getString("dialog.confirm.save.before.close.title",
+							"Save Database Before Close."),
+						null);
+					if (option == JOptionPane.YES_OPTION)
+					{
+						ApplicationXmlFileStoreWorker.storeApplicationFile(modelObject);
+					}
+				}
+				super.windowClosing(windowEvent);
+			}
+		});
 	}
 }

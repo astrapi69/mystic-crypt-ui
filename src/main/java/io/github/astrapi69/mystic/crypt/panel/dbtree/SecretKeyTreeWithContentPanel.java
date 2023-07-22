@@ -24,20 +24,18 @@
  */
 package io.github.astrapi69.mystic.crypt.panel.dbtree;
 
+import static org.openqa.selenium.support.ui.ExpectedConditions.elementToBeClickable;
+
 import java.awt.event.MouseEvent;
-import java.io.IOException;
 import java.io.Serial;
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.TimeUnit;
 
 import javax.swing.*;
@@ -45,15 +43,16 @@ import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreeModel;
 
-import io.github.astrapi69.mystic.crypt.panel.table.NewTableEntryModel;
-import io.github.astrapi69.mystic.crypt.panel.table.NewTableEntryPanel;
-import io.github.astrapi69.swing.model.label.LabelModel;
 import net.miginfocom.layout.AC;
 import net.miginfocom.layout.CC;
 import net.miginfocom.layout.LC;
 import net.miginfocom.swing.MigLayout;
 
 import org.jdesktop.swingx.JXTree;
+import org.kquiet.browser.ActionComposer;
+import org.kquiet.browser.ActionComposerBuilder;
+import org.kquiet.browser.ActionRunner;
+import org.openqa.selenium.By;
 
 import io.github.astrapi69.browser.BrowserControlExtensions;
 import io.github.astrapi69.clone.CloneQuietlyExtensions;
@@ -72,10 +71,13 @@ import io.github.astrapi69.model.node.NodeModel;
 import io.github.astrapi69.mystic.crypt.Messages;
 import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
 import io.github.astrapi69.mystic.crypt.eventbus.ApplicationEventBus;
+import io.github.astrapi69.mystic.crypt.panel.table.NewTableEntryModel;
+import io.github.astrapi69.mystic.crypt.panel.table.NewTableEntryPanel;
 import io.github.astrapi69.swing.dialog.DialogExtensions;
 import io.github.astrapi69.swing.dialog.JOptionPaneExtensions;
 import io.github.astrapi69.swing.menu.factory.JMenuItemFactory;
 import io.github.astrapi69.swing.menu.factory.JPopupMenuFactory;
+import io.github.astrapi69.swing.model.label.LabelModel;
 import io.github.astrapi69.swing.table.GenericJXTable;
 import io.github.astrapi69.swing.table.model.GenericTableModel;
 import io.github.astrapi69.swing.tree.BaseTreeNodeFactory;
@@ -85,15 +87,6 @@ import io.github.astrapi69.swing.tree.panel.content.BaseTreeNodeGenericTreeEleme
 import io.github.astrapi69.swing.tree.panel.node.NodePanel;
 import io.github.astrapi69.swing.tree.renderer.state.NewGenericBaseTreeNodeCellRenderer;
 import io.github.astrapi69.swing.util.ClipboardExtensions;
-import org.kquiet.browser.ActionComposer;
-import org.kquiet.browser.ActionComposerBuilder;
-import org.kquiet.browser.ActionRunner;
-import org.kquiet.browser.BasicActionRunner;
-import org.kquiet.browser.BrowserType;
-import org.openqa.selenium.By;
-import org.openqa.selenium.PageLoadStrategy;
-
-import static org.openqa.selenium.support.ui.ExpectedConditions.elementToBeClickable;
 
 public class SecretKeyTreeWithContentPanel
 	extends
@@ -510,7 +503,7 @@ public class SecretKeyTreeWithContentPanel
 	{
 		int x = mouseEvent.getX();
 		int y = mouseEvent.getY();
-		MysticCryptEntryModelBean singleSelectedRow = null;
+		MysticCryptEntryModelBean singleSelectedRow;
 
 		List<MysticCryptEntryModelBean> allSelectedRowData = getTblTreeEntryTable()
 			.getAllSelectedRowData();
@@ -607,12 +600,13 @@ public class SecretKeyTreeWithContentPanel
 					.waitUntil(elementToBeClickable(By.cssSelector("input[type='submit']")), 3000)
 					.prepareClick(By.cssSelector("input[type='submit']")).done()
 					.returnToComposerBuilder().buildBasic().setCloseWindow(false)
-					.onFail(ac -> System.err.println(
-						"an exception is thrown or is marked as failed " +
-								"when open and auto type the username and password"))
+					.onFail(
+						ac -> System.err.println("an exception is thrown or is marked as failed "
+							+ "when open and auto type the username and password"))
 					.onDone(ac -> System.out
 						.println("open and auto type the username and password done"));
-				CompletableFuture<Void> voidCompletableFuture = actionRunner.executeComposer(actionComposer);
+				CompletableFuture<Void> voidCompletableFuture = actionRunner
+					.executeComposer(actionComposer);
 				voidCompletableFuture.join();
 			}
 		});
