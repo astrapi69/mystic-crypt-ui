@@ -1,8 +1,14 @@
 ## Change log
 ----------------------
 
-Version 7.3-SNAPSHOT
+Version 7.3
 -------------
+
+ADDED:
+
+- new feature for an auto type from the mystic crypt entry
+- new feature for save before close
+- new feature for duplicate mystic crypt entry in table
 
 CHANGED:
 
