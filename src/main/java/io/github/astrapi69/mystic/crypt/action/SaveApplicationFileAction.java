@@ -53,8 +53,8 @@ public class SaveApplicationFileAction extends AbstractAction
 	@Override
 	public void actionPerformed(final ActionEvent e)
 	{
-		ApplicationXmlFileStoreWorker.storeApplicationFile(MysticCryptApplicationFrame.getInstance()
-				.getModelObject());
+		ApplicationXmlFileStoreWorker
+			.storeApplicationFile(MysticCryptApplicationFrame.getInstance().getModelObject());
 		ApplicationEventBus.getSaveState().fireEvent(new EventObject<>(RenderMode.VIEWABLE));
 	}
 }
