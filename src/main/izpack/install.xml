@@ -17,7 +17,7 @@
 		<javaversion>1.8</javaversion>
 		<appname>mystic-crypt-ui</appname>
 		<appsubpath>app/mystic-crypt-ui</appsubpath>
-		<appversion>7.3</appversion>
+		<appversion>7.4-SNAPSHOT</appversion>
 		<authors>
 			<author name="Asterios Raptis" email="asterios.raptis@gmx.net" />
 		</authors>
