@@ -43,6 +43,7 @@ import javax.swing.KeyStroke;
 import javax.swing.MenuElement;
 
 import io.github.astrapi69.model.enumtype.visibity.RenderMode;
+import io.github.astrapi69.swing.panel.info.InfoModelBean;
 import lombok.NonNull;
 import lombok.extern.java.Log;
 
@@ -289,7 +290,7 @@ public class DesktopMenu extends BaseDesktopMenu implements EventListener<EventO
 	@Override
 	protected String newTextWarning()
 	{
-		return Messages.getString("InfoJPanel.warning");
+		return Messages.getString("InfoJPanel.license.information.value");
 	}
 
 	protected InfoDialog onNewInfoDialog(Frame owner, String title)
@@ -300,49 +301,58 @@ public class DesktopMenu extends BaseDesktopMenu implements EventListener<EventO
 			@Override
 			protected InfoPanel newInfoPanel()
 			{
+				final InfoModelBean infoModelBean = InfoModelBean.builder()
+						.labelApplicationName(Messages.getString("InfoJPanel.application.name.key", "Application name:"))
+						.applicationName(Messages.getString("InfoJPanel.application.name.value", "mystic-crypt-ui"))
+						.labelCopyright(Messages.getString("InfoJPanel.copyright.key", "Copyright(C):"))
+						.copyright(Messages.getString("InfoJPanel.copyright.value", "2016 Asterios Raptis"))
+						.labelVersion(Messages.getString("InfoJPanel.version.key", "Version:"))
+						.version(Messages.getString("InfoJPanel.version.value", "7.4-SNAPSHOT"))
+						.licence(Messages.getString("InfoJPanel.license.information.value", "This Software is licensed under the MIT License"))
+						.build();
 				return new InfoPanel()
 				{
 
 					@Override
 					protected String newLabelTextApplicationName()
 					{
-						return DesktopMenu.this.newLabelTextApplicationName();
+						return infoModelBean.getApplicationName();
 					}
 
 					@Override
 					protected String newLabelTextCopyright()
 					{
-						return DesktopMenu.this.newLabelTextCopyright();
+						return infoModelBean.getCopyright();
 					}
 
 					@Override
 					protected String newLabelTextLabelApplicationName()
 					{
-						return DesktopMenu.this.newLabelTextLabelApplicationName();
+						return infoModelBean.getLabelApplicationName();
 					}
 
 					@Override
 					protected String newLabelTextLabelCopyright()
 					{
-						return DesktopMenu.this.newLabelTextLabelCopyright();
+						return infoModelBean.getLabelCopyright();
 					}
 
 					@Override
 					protected String newLabelTextLabelVersion()
 					{
-						return DesktopMenu.this.newLabelTextLabelVersion();
+						return infoModelBean.getLabelVersion();
 					}
 
 					@Override
 					protected String newLabelTextVersion()
 					{
-						return DesktopMenu.this.newLabelTextVersion();
+						return infoModelBean.getVersion();
 					}
 
 					@Override
 					protected String newTextWarning()
 					{
-						return DesktopMenu.this.newTextWarning();
+						return infoModelBean.getLicence();
 					}
 
 				};
