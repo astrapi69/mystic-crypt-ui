@@ -345,6 +345,9 @@ public class MysticCryptApplicationFrame extends ApplicationPanelFrame<Applicati
 		instance.frameMode = FrameMode.APPLICATION_PANEL;
 	}
 
+	/**
+	 * Checks if all changes have been stored to the application file
+	 */
 	protected void onWindowClosing()
 	{
 		MysticCryptApplicationFrame.this.addWindowListener(new CloseWindow()
