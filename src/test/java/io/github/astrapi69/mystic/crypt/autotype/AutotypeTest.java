@@ -24,17 +24,22 @@
  */
 package io.github.astrapi69.mystic.crypt.autotype;
 
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 import org.kquiet.browser.*;
 import org.openqa.selenium.By;
-import org.openqa.selenium.support.ui.ExpectedCondition;
-import org.openqa.selenium.support.ui.ExpectedConditions;
 
-import java.util.List;
+import java.util.concurrent.ExecutionException;
+
 import static org.openqa.selenium.support.ui.ExpectedConditions.*;
 
-public class Sample
+public class AutotypeTest
 {
-	public static void main(String args[]) throws Exception
+
+
+	@Test
+	@Disabled
+	public void testAutoType() throws ExecutionException, InterruptedException
 	{
 		try (ActionRunner actionRunner = new BasicActionRunner())
 		{
