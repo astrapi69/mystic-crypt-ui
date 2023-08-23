@@ -25,6 +25,7 @@
 package io.github.astrapi69.mystic.crypt.keepass2;
 
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
@@ -44,12 +45,27 @@ public class KeePass2Test
 		InputStream inputStream = getClass().getClassLoader().getResourceAsStream("test-db.kdbx");
 		Database database = SimpleDatabase.load(credentials, inputStream);
 		Group rootGroup = database.getRootGroup();
-		List groups = rootGroup.getGroups();
-		List entries = rootGroup.getEntries();
-		if(!entries.isEmpty()) {
-			Entry o = (Entry) entries.get(0);
-			System.out.println(o);
+
+		List<Group> allGroups = getAllGroups(rootGroup);
+		allGroups.add(rootGroup);
+		for (Group currentGroup: allGroups){
+			List<Entry> currentEntries = currentGroup.getEntries();
+			for (Entry currentEntry: currentEntries) {
+				System.out.println(currentEntry);
+			}
 		}
+
+	}
+
+	public static List<Group> getAllGroups(Group someA) {
+		List<Group> returnList = new ArrayList<>();
+		returnList.addAll(someA.getGroups());
+
+		for(Object otherA: someA.getGroups()) {
+			returnList.addAll(getAllGroups((Group)otherA));
+		}
+
+		return returnList;
 	}
 
 }
