@@ -57,12 +57,12 @@ public class KeePass2Test
 
 	}
 
-	public static List<Group> getAllGroups(Group someA) {
+	public static List<Group> getAllGroups(Group group) {
 		List<Group> returnList = new ArrayList<>();
-		returnList.addAll(someA.getGroups());
+		returnList.addAll(group.getGroups());
 
-		for(Object otherA: someA.getGroups()) {
-			returnList.addAll(getAllGroups((Group)otherA));
+		for(Object currentGroup: group.getGroups()) {
+			returnList.addAll(getAllGroups((Group)currentGroup));
 		}
 
 		return returnList;
