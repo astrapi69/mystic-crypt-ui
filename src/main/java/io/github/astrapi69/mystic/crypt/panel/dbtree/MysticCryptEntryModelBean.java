@@ -25,7 +25,7 @@
 package io.github.astrapi69.mystic.crypt.panel.dbtree;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -65,8 +65,13 @@ public class MysticCryptEntryModelBean
 	@Builder.Default
 	List<FileContentInfo> resources = new ArrayList<>();
 
+	/** The properties for this entry */
 	@Builder.Default
 	List<KeyValuePair<String, String>> properties = new ArrayList<>();
+
+	/** The set with the modification date times for this entry */
+	@Builder.Default
+	KeySetPair<String, OffsetDateTime> dateTimesOfModification = new KeySetPair<>();
 
 	public String getProperty(String name)
 	{
@@ -97,13 +102,8 @@ public class MysticCryptEntryModelBean
 		return ListExtensions.toList(KeyValuePair.toMap(properties).keySet());
 	}
 
-	public KeySetPair<String, LocalDateTime> getKeySetPair()
-	{
-		return null;
-	}
-
 	public String getPath()
 	{
-		return "";
+		return getProperty("path");
 	}
 }

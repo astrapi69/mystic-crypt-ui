@@ -66,10 +66,10 @@ dependencies {
     implementation("io.github.astrapi69:tree-api:$treeApiVersion")
     implementation("io.github.astrapi69:jobj-cloner:$jobjClonerVersion")
     implementation("org.kquiet:auto-browser:$autoBrowserVersion")
+
     testImplementation("org.linguafranca.pwdb:KeePassJava2:$keePassJava2Version")
 
-
-    testImplementation("org.junit.jupiter:junit-jupiter-api:$junitJupiterVersion")
-    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$junitJupiterVersion")
     testImplementation("io.github.astrapi69:test-object:$testObjectVersion")
+    testImplementation("org.junit.jupiter:junit-jupiter:$junitJupiterVersion")
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
