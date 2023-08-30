@@ -32,7 +32,6 @@ import java.util.UUID;
 
 import io.github.astrapi69.collection.list.ListExtensions;
 import io.github.astrapi69.collection.pair.KeySetPair;
-import io.github.astrapi69.collection.set.SetExtensions;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -69,35 +68,42 @@ public class MysticCryptEntryModelBean
 	@Builder.Default
 	List<KeyValuePair<String, String>> properties = new ArrayList<>();
 
-	public String getProperty(String name) {
-		String property = KeyValuePair.toMap(properties).get(name);
-		return property;
+	public String getProperty(String name)
+	{
+		return KeyValuePair.toMap(properties).get(name);
 	}
 
-	public void setProperty(String name, String value){
-		properties.add(KeyValuePair.<String, String>builder().key(name).value(value).build());
+	public void setProperty(String name, String value)
+	{
+		properties.add(KeyValuePair.<String, String> builder().key(name).value(value).build());
 	}
 
-	public boolean removeProperty(String name) {
+	public boolean removeProperty(String name)
+	{
 		String value = getProperty(name);
-		KeyValuePair<String, String> remove = KeyValuePair.<String, String>builder().key(name).value(value).build();
+		KeyValuePair<String, String> remove = KeyValuePair.<String, String> builder().key(name)
+			.value(value).build();
 		int indexToRemove = properties.indexOf(remove);
-		if(-1 < indexToRemove) {
+		if (-1 < indexToRemove)
+		{
 			properties.remove(indexToRemove);
 			return true;
 		}
 		return false;
 	}
 
-	public List<String> getPropertyNames() {
+	public List<String> getPropertyNames()
+	{
 		return ListExtensions.toList(KeyValuePair.toMap(properties).keySet());
 	}
 
-	public KeySetPair<String, LocalDateTime> getKeySetPair(){
+	public KeySetPair<String, LocalDateTime> getKeySetPair()
+	{
 		return null;
 	}
 
-	public String getPath(){
+	public String getPath()
+	{
 		return "";
 	}
 }

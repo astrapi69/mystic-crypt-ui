@@ -29,42 +29,41 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
-import org.linguafranca.pwdb.Database;
-import org.linguafranca.pwdb.Entry;
-import org.linguafranca.pwdb.Group;
 import org.linguafranca.pwdb.kdbx.KdbxCreds;
 import org.linguafranca.pwdb.kdbx.simple.SimpleDatabase;
+import org.linguafranca.pwdb.kdbx.simple.SimpleEntry;
+import org.linguafranca.pwdb.kdbx.simple.SimpleGroup;
 
 public class KeePass2Test
 {
 
-
 	@Test
-	public void testKeePass2() throws Exception {
+	public void testKeePass2() throws Exception
+	{
 		KdbxCreds credentials = new KdbxCreds("foo-secret-bar-1969-?".getBytes());
 		InputStream inputStream = getClass().getClassLoader().getResourceAsStream("test-db.kdbx");
-		Database database = SimpleDatabase.load(credentials, inputStream);
-		Group rootGroup = database.getRootGroup();
+		SimpleDatabase database = SimpleDatabase.load(credentials, inputStream);
+		SimpleGroup rootGroup = database.getRootGroup();
 
-		List<Group> allGroups = getAllGroups(rootGroup);
+		List<SimpleGroup> allGroups = getAllGroups(rootGroup);
 		allGroups.add(rootGroup);
-		for (Group currentGroup: allGroups){
-			List<Entry> currentEntries = currentGroup.getEntries();
-			for (Entry currentEntry: currentEntries) {
+		for (SimpleGroup currentGroup : allGroups)
+		{
+			List<SimpleEntry> currentEntries = currentGroup.getEntries();
+			for (SimpleEntry currentEntry : currentEntries)
+			{
 				System.out.println(currentEntry);
 			}
 		}
-
 	}
 
-	public static List<Group> getAllGroups(Group group) {
-		List<Group> returnList = new ArrayList<>();
-		returnList.addAll(group.getGroups());
-
-		for(Object currentGroup: group.getGroups()) {
-			returnList.addAll(getAllGroups((Group)currentGroup));
+	public static List<SimpleGroup> getAllGroups(SimpleGroup group)
+	{
+		List<SimpleGroup> returnList = new ArrayList<>(group.getGroups());
+		for (SimpleGroup currentGroup : group.getGroups())
+		{
+			returnList.addAll(getAllGroups(currentGroup));
 		}
-
 		return returnList;
 	}
 
