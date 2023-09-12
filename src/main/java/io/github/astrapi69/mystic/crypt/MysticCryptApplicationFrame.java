@@ -69,6 +69,8 @@ import io.github.astrapi69.swing.plaf.LookAndFeels;
 import io.github.astrapi69.swing.splashscreen.ProgressBarSplashScreen;
 import io.github.astrapi69.swing.splashscreen.SplashScreenModelBean;
 import io.github.astrapi69.throwable.RuntimeExceptionDecorator;
+import org.pf4j.DefaultPluginManager;
+import org.pf4j.PluginManager;
 
 /**
  * The class {@link MysticCryptApplicationFrame}
@@ -100,6 +102,8 @@ public class MysticCryptApplicationFrame extends ApplicationPanelFrame<Applicati
 	ApplicationPanel applicationPanel;
 
 	FrameMode frameMode;
+
+	PluginManager pluginManager;
 
 	/**
 	 * initial block
@@ -208,6 +212,7 @@ public class MysticCryptApplicationFrame extends ApplicationPanelFrame<Applicati
 		{
 			instance = this;
 		}
+		pluginManager = new DefaultPluginManager();
 		// add once the default provider to the Security class
 		setSecurityProvider();
 		// initialize model and model object
@@ -270,6 +275,9 @@ public class MysticCryptApplicationFrame extends ApplicationPanelFrame<Applicati
 		super.onAfterInitialize();
 		desktopPanePanel = (JDesktopPanePanel<ApplicationModelBean>)getMainComponent();
 		frameMode = FrameMode.DESKTOP_PANE;
+		// start and load all plugins of application
+		pluginManager.loadPlugins();
+		pluginManager.startPlugins();
 		setTitle(Messages.getString("mainframe.title"));
 		setDefaultLookAndFeel(LookAndFeels.NIMBUS, this);
 		this.setSize(ScreenSizeExtensions.getScreenWidth(), ScreenSizeExtensions.getScreenHeight());
