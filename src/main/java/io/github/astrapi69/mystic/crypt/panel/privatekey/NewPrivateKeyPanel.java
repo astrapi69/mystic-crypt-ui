@@ -59,7 +59,7 @@ import io.github.astrapi69.swing.model.combobox.EnumComboBoxModel;
 import io.github.astrapi69.swing.component.JMTextField;
 import io.github.astrapi69.swing.dialog.DialogExtensions;
 import io.github.astrapi69.swing.listener.document.DocumentListenerAdapter;
-import io.github.astrapi69.swing.util.AwtExtensions;
+import io.github.astrapi69.awt.extension.AwtExtensions;
 import io.github.astrapi69.throwable.RuntimeExceptionDecorator;
 
 @Log

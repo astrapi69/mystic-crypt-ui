@@ -65,7 +65,7 @@ import io.github.astrapi69.swing.component.JMTextField;
 import io.github.astrapi69.swing.dialog.help.HelpDialog;
 import io.github.astrapi69.swing.listener.document.DocumentListenerAdapter;
 import io.github.astrapi69.swing.panel.help.HelpModelBean;
-import io.github.astrapi69.swing.util.ClipboardExtensions;
+import io.github.astrapi69.awt.extension.ClipboardExtensions;
 import io.github.astrapi69.throwable.RuntimeExceptionDecorator;
 
 @Getter

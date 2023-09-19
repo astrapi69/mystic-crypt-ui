@@ -66,6 +66,7 @@ dependencies {
     implementation("io.github.astrapi69:tree-api:$treeApiVersion")
     implementation("io.github.astrapi69:jobj-cloner:$jobjClonerVersion")
     implementation("org.kquiet:auto-browser:$autoBrowserVersion")
+    implementation("io.github.astrapi69:awt-extensions:$awtExtensionsVersion")
 
     testImplementation("org.linguafranca.pwdb:KeePassJava2:$keePassJava2Version")
 

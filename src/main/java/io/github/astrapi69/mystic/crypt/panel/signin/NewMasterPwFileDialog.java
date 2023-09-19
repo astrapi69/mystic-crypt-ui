@@ -31,7 +31,7 @@ import javax.swing.*;
 
 import io.github.astrapi69.model.api.IModel;
 import io.github.astrapi69.swing.base.PanelDialog;
-import io.github.astrapi69.swing.layout.ScreenSizeExtensions;
+import io.github.astrapi69.awt.screen.ScreenSizeExtensions;
 
 public class NewMasterPwFileDialog extends PanelDialog<MasterPwFileModelBean>
 {
