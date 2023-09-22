@@ -43,7 +43,7 @@ import io.github.astrapi69.model.BaseModel;
 import io.github.astrapi69.model.api.IModel;
 import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
 import io.github.astrapi69.swing.base.BasePanel;
-import io.github.astrapi69.swing.table.GenericJXTable;
+import io.github.astrapi69.swing.table.GenericJTable;
 import io.github.astrapi69.swing.table.editor.DeleteRowButtonEditor;
 import io.github.astrapi69.swing.table.editor.TableCellButtonEditor;
 import io.github.astrapi69.swing.table.renderer.TableCellButtonRendererFactory;
@@ -63,7 +63,7 @@ public class ObfuscationRuleTablePanel extends BasePanel<ObfuscationModelBean>
 	private JFileChooser fileChooser;
 	private JLabel lblKeyRules;
 	private JScrollPane scpKeyRules;
-	private GenericJXTable<KeyValuePair<Character, ObfuscationRule<Character, Character>>> tblKeyRules;
+	private GenericJTable<KeyValuePair<Character, ObfuscationRule<Character, Character>>> tblKeyRules;
 
 	{
 		aliases = MapFactory.newLinkedHashMap();
@@ -150,7 +150,7 @@ public class ObfuscationRuleTablePanel extends BasePanel<ObfuscationModelBean>
 
 		lblKeyRules = new javax.swing.JLabel();
 		scpKeyRules = new javax.swing.JScrollPane();
-		tblKeyRules = new GenericJXTable<>(getModelObject().getTableModel());
+		tblKeyRules = new GenericJTable<>(getModelObject().getTableModel());
 		btnImport = new javax.swing.JButton();
 		btnExport = new javax.swing.JButton();
 

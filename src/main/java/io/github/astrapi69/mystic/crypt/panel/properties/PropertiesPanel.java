@@ -45,7 +45,7 @@ import io.github.astrapi69.mystic.crypt.button.state.GenericButtonGenericJXTable
 import io.github.astrapi69.mystic.crypt.panel.dbtree.MysticCryptEntryModelBean;
 import io.github.astrapi69.swing.base.BasePanel;
 import io.github.astrapi69.swing.dialog.JOptionPaneExtensions;
-import io.github.astrapi69.swing.table.GenericJXTable;
+import io.github.astrapi69.swing.table.GenericJTable;
 import io.github.astrapi69.swing.table.model.properties.StringKeyValueTableModel;
 
 @Getter
@@ -59,7 +59,7 @@ public class PropertiesPanel extends BasePanel<MysticCryptEntryModelBean>
 	private javax.swing.JButton btnEdit;
 	private javax.swing.JButton btnRemove;
 	private javax.swing.JScrollPane srcProperties;
-	private GenericJXTable<KeyValuePair<String, String>> tblProperties;
+	private GenericJTable<KeyValuePair<String, String>> tblProperties;
 	private StringKeyValueTableModel tableModel;
 
 	public PropertiesPanel()
@@ -88,7 +88,7 @@ public class PropertiesPanel extends BasePanel<MysticCryptEntryModelBean>
 			: new ArrayList<>();
 
 		tableModel.addList(properties);
-		tblProperties = new GenericJXTable<>(getTableModel());
+		tblProperties = new GenericJTable<>(getTableModel());
 		// set only single selection
 		tblProperties.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 

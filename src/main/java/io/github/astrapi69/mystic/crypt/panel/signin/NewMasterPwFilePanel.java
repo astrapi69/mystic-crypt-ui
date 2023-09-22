@@ -61,7 +61,7 @@ import io.github.astrapi69.mystic.crypt.panel.signin.button.state.ok.BtnOkStateM
 import io.github.astrapi69.net.url.URLExtensions;
 import io.github.astrapi69.swing.base.BasePanel;
 import io.github.astrapi69.swing.model.combobox.GenericMutableComboBoxModel;
-import io.github.astrapi69.swing.component.JMTextField;
+import io.github.astrapi69.swing.model.component.JMTextField;
 import io.github.astrapi69.swing.dialog.help.HelpDialog;
 import io.github.astrapi69.swing.listener.document.DocumentListenerAdapter;
 import io.github.astrapi69.swing.panel.help.HelpModelBean;

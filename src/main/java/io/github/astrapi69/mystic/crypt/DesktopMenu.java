@@ -42,7 +42,7 @@ import javax.swing.JMenuItem;
 import javax.swing.KeyStroke;
 import javax.swing.MenuElement;
 
-import io.github.astrapi69.model.enumtype.visibity.RenderMode;
+import io.github.astrapi69.component.model.enumeration.visibility.RenderMode;
 import io.github.astrapi69.swing.menu.model.KeyStrokeInfo;
 import io.github.astrapi69.swing.menu.model.MenuInfo;
 import io.github.astrapi69.swing.panel.info.InfoModelBean;
