@@ -401,7 +401,7 @@ public class DesktopMenu extends BaseDesktopMenu implements EventListener<EventO
 						.labelCopyright(Messages.getString("InfoJPanel.copyright.key", "Copyright(C):"))
 						.copyright(Messages.getString("InfoJPanel.copyright.value", "2016 Asterios Raptis"))
 						.labelVersion(Messages.getString("InfoJPanel.version.key", "Version:"))
-						.version(Messages.getString("InfoJPanel.version.value", "7.4-SNAPSHOT"))
+						.version(Messages.getString("InfoJPanel.version.value", "8-SNAPSHOT"))
 						.licence(Messages.getString("InfoJPanel.license.information.value", "This Software is licensed under the MIT License"))
 						.build();
 				return new InfoPanel()
