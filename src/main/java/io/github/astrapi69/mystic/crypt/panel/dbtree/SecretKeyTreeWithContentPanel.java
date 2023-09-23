@@ -44,6 +44,7 @@ import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreeModel;
 
 import io.github.astrapi69.design.pattern.observer.event.EventSource;
+import io.github.astrapi69.swing.listener.mouse.MouseDoubleClickListener;
 import io.github.astrapi69.swing.renderer.tree.renderer.state.NewGenericBaseTreeNodeCellRenderer;
 import net.miginfocom.layout.AC;
 import net.miginfocom.layout.CC;
@@ -112,10 +113,66 @@ public class SecretKeyTreeWithContentPanel
 	@Override
 	protected JScrollPane newTreeScrollPane()
 	{
-		JScrollPane scroller = super.newTreeScrollPane();
-		scroller.getViewport().setOpaque(false);
-		scroller.setOpaque(false);
-		return scroller;
+		JScrollPane treeScrollPane = super.newTreeScrollPane();
+		treeScrollPane.getViewport().setOpaque(false);
+		treeScrollPane.setOpaque(false);
+		return treeScrollPane;
+	}
+
+	@Override
+	protected JScrollPane newTableScrollPane()
+	{
+		JScrollPane tableScrollPane = super.newTableScrollPane();
+		tableScrollPane.getViewport().setOpaque(false);
+		tableScrollPane.setOpaque(false);
+		tableScrollPane.addMouseListener(new MouseDoubleClickListener()
+		{
+			@Override
+			public void onSingleClick(MouseEvent mouseEvent)
+			{
+				List<MysticCryptEntryModelBean> data = getTblTreeEntryTable().getGenericTableModel()
+					.getData();
+				List<MysticCryptEntryModelBean> allSelectedRowData = getTblTreeEntryTable()
+						.getAllSelectedRowData();
+
+				boolean noRowSelected = allSelectedRowData.isEmpty();
+				boolean emptyTable = data.isEmpty();
+				if(emptyTable || noRowSelected) {
+					if (mouseEvent.getButton() == MouseEvent.BUTTON1)
+					{
+						 SecretKeyTreeWithContentPanel.this.onTableSingleLeftClick(mouseEvent);
+					}
+					if (mouseEvent.getButton() == MouseEvent.BUTTON2)
+					{
+
+						 SecretKeyTreeWithContentPanel.this.onTableSingleMiddleClick(mouseEvent);
+					}
+					if (mouseEvent.getButton() == MouseEvent.BUTTON3)
+					{
+						 SecretKeyTreeWithContentPanel.this.onTableSingleRightClick(mouseEvent);
+					}
+				}
+			}
+
+			@Override
+			public void onDoubleClick(MouseEvent mouseEvent)
+			{
+				if (mouseEvent.getButton() == MouseEvent.BUTTON1)
+				{
+					// SecretKeyTreeWithContentPanel.this.onTableDoubleLeftClick(mouseEvent);
+				}
+				if (mouseEvent.getButton() == MouseEvent.BUTTON2)
+				{
+
+					// SecretKeyTreeWithContentPanel.this.onTableDoubleMiddleClick(mouseEvent);
+				}
+				if (mouseEvent.getButton() == MouseEvent.BUTTON3)
+				{
+					// SecretKeyTreeWithContentPanel.this.onTableDoubleRightClick(mouseEvent);
+				}
+			}
+		});
+		return tableScrollPane;
 	}
 
 	@Override
@@ -502,17 +559,19 @@ public class SecretKeyTreeWithContentPanel
 	{
 		int x = mouseEvent.getX();
 		int y = mouseEvent.getY();
-		MysticCryptEntryModelBean singleSelectedRow;
+		MysticCryptEntryModelBean selectedRow;
 
 		List<MysticCryptEntryModelBean> allSelectedRowData = getTblTreeEntryTable()
 			.getAllSelectedRowData();
 
-		boolean isSingleSelectedRow = allSelectedRowData.size() == 1;
+		boolean noRowSelected = allSelectedRowData.isEmpty();
+		boolean singleSelectedRow = allSelectedRowData.size() == 1;
+		boolean rowsSelected = !noRowSelected;
 		boolean validUrl = false;
-		if (isSingleSelectedRow)
+		if (singleSelectedRow)
 		{
-			singleSelectedRow = allSelectedRowData.get(0);
-			String urlString = singleSelectedRow.getUrl();
+			selectedRow = allSelectedRowData.get(0);
+			String urlString = selectedRow.getUrl();
 			validUrl = validateUrlString(urlString);
 		}
 
@@ -520,12 +579,12 @@ public class SecretKeyTreeWithContentPanel
 
 		JMenuItem copyUsername = JMenuItemFactory.newJMenuItem("Copy Username",
 			actionEvent -> this.onCopyUsernameTableEntry());
-		copyUsername.setEnabled(isSingleSelectedRow);
+		copyUsername.setEnabled(singleSelectedRow);
 		popup.add(copyUsername);
 
 		JMenuItem copyPassword = JMenuItemFactory.newJMenuItem("Copy Password",
 			actionEvent -> this.onCopyPasswordTableEntry());
-		copyPassword.setEnabled(allSelectedRowData.size() == 1);
+		copyPassword.setEnabled(singleSelectedRow);
 		popup.add(copyPassword);
 
 		JMenuItem openUrl = JMenuItemFactory.newJMenuItem("Open url",
@@ -535,7 +594,7 @@ public class SecretKeyTreeWithContentPanel
 
 		JMenuItem openUrlAndAutotype = JMenuItemFactory.newJMenuItem("Autotype",
 			actionEvent -> this.onOpenUrlAndAutotypeOfTableEntry());
-		openUrl.setEnabled(validUrl);
+		openUrlAndAutotype.setEnabled(validUrl);
 		popup.add(openUrlAndAutotype);
 
 		// Separator
@@ -547,25 +606,32 @@ public class SecretKeyTreeWithContentPanel
 
 		JMenuItem edit = JMenuItemFactory.newJMenuItem("edit...",
 			actionEvent -> this.onEditTableEntry());
-		edit.setEnabled(allSelectedRowData.size() == 1);
+		edit.setEnabled(singleSelectedRow);
 		popup.add(edit);
 
 		JMenuItem duplicate = JMenuItemFactory.newJMenuItem("duplicate...",
 			actionEvent -> this.onDuplicateTableEntry());
-		duplicate.setEnabled(allSelectedRowData.size() == 1);
+		duplicate.setEnabled(singleSelectedRow);
 		popup.add(duplicate);
 
 		JMenuItem delete = JMenuItemFactory.newJMenuItem("delete",
 			actionEvent -> this.onDeleteTableEntry());
-		delete.setEnabled(!allSelectedRowData.isEmpty());
+		delete.setEnabled(rowsSelected);
 		popup.add(delete);
 		// Separator
 		popup.addSeparator();
 
 		JMenuItem selectAll = JMenuItemFactory.newJMenuItem("select all",
-			actionEvent -> this.onSelectAllTableEntries());
+				actionEvent -> this.onSelectAllTableEntries());
 		selectAll.setEnabled(0 < getTblTreeEntryTable().getRowCount());
+
 		popup.add(selectAll);
+
+		JMenuItem clearSelection = JMenuItemFactory.newJMenuItem("clear selection",
+				actionEvent -> this.onDeselectAllTableEntries());
+		clearSelection.setEnabled(rowsSelected);
+
+		popup.add(clearSelection);
 
 		popup.show(getTblTreeEntryTable(), x, y);
 	}
@@ -614,6 +680,11 @@ public class SecretKeyTreeWithContentPanel
 	protected void onSelectAllTableEntries()
 	{
 		getTblTreeEntryTable().selectAll();
+	}
+
+	protected void onDeselectAllTableEntries()
+	{
+		getTblTreeEntryTable().clearSelection();
 	}
 
 	protected void onDuplicateTableEntry()
