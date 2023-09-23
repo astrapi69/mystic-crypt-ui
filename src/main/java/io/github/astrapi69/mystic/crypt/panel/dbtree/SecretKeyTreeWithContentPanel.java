@@ -239,8 +239,6 @@ public class SecretKeyTreeWithContentPanel
 
 	/**
 	 * {@inheritDoc}
-	 *
-	 * @param model
 	 */
 	@Override
 	protected GenericTableModel<MysticCryptEntryModelBean> newTableModel(
@@ -258,6 +256,9 @@ public class SecretKeyTreeWithContentPanel
 		return getTblTreeEntryTable().getGenericTableModel();
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
 	protected void onTreeSingleLeftClick(MouseEvent mouseEvent)
 	{
@@ -273,6 +274,9 @@ public class SecretKeyTreeWithContentPanel
 		}
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
 	protected void onTreeSingleRightClick(MouseEvent mouseEvent)
 	{
