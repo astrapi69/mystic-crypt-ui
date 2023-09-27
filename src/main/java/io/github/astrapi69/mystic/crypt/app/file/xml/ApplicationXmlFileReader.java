@@ -52,8 +52,9 @@ import io.github.astrapi69.mystic.crypt.key.PrivateKeyDecryptor;
 import io.github.astrapi69.mystic.crypt.key.PrivateKeyGenericDecryptor;
 import io.github.astrapi69.mystic.crypt.panel.signin.MasterPwFileModelBean;
 import io.github.astrapi69.mystic.crypt.pw.PasswordStringDecryptor;
-import io.github.astrapi69.xstream.XmlFileToObjectExtensions;
-import io.github.astrapi69.xstream.XmlToObjectExtensions;
+import io.github.astrapi69.jaxb.XmlFileToObjectExtensions;
+import io.github.astrapi69.jaxb.XmlToObjectExtensions;
+
 
 @Log
 public class ApplicationXmlFileReader
@@ -164,7 +165,7 @@ public class ApplicationXmlFileReader
 
 		PBEFileDecryptor fileDecryptor = new PBEFileDecryptor(pbeCryptModel);
 		File decrypt = fileDecryptor.decrypt(applicationFile);
-		applicationModelBean = XmlFileToObjectExtensions.toObject(decrypt);
+		applicationModelBean = XmlFileToObjectExtensions.toObject(decrypt, ApplicationModelBean.class);
 		DeleteFileExtensions.delete(decrypt);
 
 		return applicationModelBean;
@@ -188,7 +189,7 @@ public class ApplicationXmlFileReader
 		byte[] encryptedBytes = ReadFileExtensions.readFileToBytearray(applicationFile);
 		String encryptedXml = genericDecryptor.decrypt(encryptedBytes);
 		String xml = passwordStringDecryptor.decrypt(encryptedXml);
-		applicationModelBean = XmlToObjectExtensions.toObject(xml);
+		applicationModelBean = XmlToObjectExtensions.toObject(xml, ApplicationModelBean.class);
 		return applicationModelBean;
 	}
 
@@ -211,7 +212,7 @@ public class ApplicationXmlFileReader
 		genericDecryptor = new PrivateKeyGenericDecryptor<>(decryptor);
 		byte[] encryptedBytes = ReadFileExtensions.readFileToBytearray(applicationFile);
 		String xml = genericDecryptor.decrypt(encryptedBytes);
-		applicationModelBean = XmlToObjectExtensions.toObject(xml);
+		applicationModelBean = XmlToObjectExtensions.toObject(xml, ApplicationModelBean.class);
 		return applicationModelBean;
 	}
 }

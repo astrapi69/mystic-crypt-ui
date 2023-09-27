@@ -52,7 +52,7 @@ import io.github.astrapi69.mystic.crypt.key.PrivateKeyDecryptor;
 import io.github.astrapi69.mystic.crypt.key.PrivateKeyGenericDecryptor;
 import io.github.astrapi69.mystic.crypt.panel.signin.MasterPwFileModelBean;
 import io.github.astrapi69.throwable.RuntimeExceptionDecorator;
-import io.github.astrapi69.xstream.XmlToObjectExtensions;
+import io.github.astrapi69.jaxb.XmlToObjectExtensions;
 
 public class ApplicationXmlFileWithKeyFactoryTest
 {
@@ -135,7 +135,7 @@ public class ApplicationXmlFileWithKeyFactoryTest
 		byte[] encryptedBytes = ReadFileExtensions.readFileToBytearray(actualEncryptedFile);
 		String xml = genericDecryptor.decrypt(encryptedBytes);
 
-		applicationModelBean = XmlToObjectExtensions.toObject(xml);
+		applicationModelBean = XmlToObjectExtensions.toObject(xml, ApplicationModelBean.class);
 		assertNotNull(applicationModelBean);
 		MasterPwFileModelBean masterPwFileModelBean = applicationModelBean
 			.getMasterPwFileModelBean();

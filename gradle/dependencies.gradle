@@ -59,7 +59,6 @@ dependencies {
     implementation("io.github.astrapi69:xml-extensions:$xmlExtensionsVersion")
     implementation("io.github.astrapi69:gson-extensions:$gsonExtensionsVersion")
     implementation("com.google.code.gson:gson:$gsonVersion")
-    implementation("io.github.astrapi69:xstream-extensions:$xstreamExtensionsVersion")
     implementation("io.github.astrapi69:resourcebundle-core:$resourcebundleCoreVersion")
     implementation("io.github.astrapi69:resource-viewmodels:$resourceViewmodelVersion")
     implementation("com.github.lgooddatepicker:LGoodDatePicker:$lGoodDatePickerVersion")
@@ -68,6 +67,7 @@ dependencies {
     implementation("org.kquiet:auto-browser:$autoBrowserVersion")
     implementation("io.github.astrapi69:awt-extensions:$awtExtensionsVersion")
     implementation("io.github.astrapi69:swing-model-components:$swingModelComponentsVersion")
+    implementation("io.github.astrapi69:jaxb-extensions:$jaxbExtensionsVersion")
 
     testImplementation("org.linguafranca.pwdb:KeePassJava2:$keePassJava2Version")
 

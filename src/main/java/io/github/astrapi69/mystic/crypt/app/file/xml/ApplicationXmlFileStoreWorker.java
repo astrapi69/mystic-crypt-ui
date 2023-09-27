@@ -53,7 +53,7 @@ import io.github.astrapi69.mystic.crypt.pw.PasswordStringEncryptor;
 import io.github.astrapi69.random.number.RandomIntFactory;
 import io.github.astrapi69.random.object.RandomStringFactory;
 import io.github.astrapi69.throwable.RuntimeExceptionDecorator;
-import io.github.astrapi69.xstream.ObjectToXmlExtensions;
+import io.github.astrapi69.jaxb.ObjectToXmlExtensions;
 
 public final class ApplicationXmlFileStoreWorker
 {
