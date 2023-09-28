@@ -32,6 +32,7 @@ import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -44,6 +45,7 @@ import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreeModel;
 
 import io.github.astrapi69.design.pattern.observer.event.EventSource;
+import io.github.astrapi69.mystic.crypt.app.convert.ApplicationBaseTreeNodeTransformer;
 import io.github.astrapi69.swing.listener.mouse.MouseDoubleClickListener;
 import io.github.astrapi69.swing.renderer.tree.renderer.state.NewGenericBaseTreeNodeCellRenderer;
 import net.miginfocom.layout.AC;
@@ -80,9 +82,9 @@ import io.github.astrapi69.swing.menu.factory.JPopupMenuFactory;
 import io.github.astrapi69.swing.model.label.LabelModel;
 import io.github.astrapi69.swing.table.GenericJTable;
 import io.github.astrapi69.swing.table.model.GenericTableModel;
-import io.github.astrapi69.swing.tree.BaseTreeNodeFactory;
+import io.github.astrapi69.swing.tree.factory.BaseTreeNodeFactory;
 import io.github.astrapi69.swing.renderer.tree.GenericTreeElement;
-import io.github.astrapi69.swing.tree.JTreeExtensions;
+import io.github.astrapi69.swing.tree.extension.JTreeExtensions;
 import io.github.astrapi69.swing.tree.panel.content.BaseTreeNodeGenericTreeElementWithContentPanel;
 import io.github.astrapi69.swing.tree.panel.node.NodePanel;
 import io.github.astrapi69.awt.extension.ClipboardExtensions;
@@ -90,13 +92,13 @@ import io.github.astrapi69.component.model.enumeration.visibility.RenderMode;
 
 public class SecretKeyTreeWithContentPanel
 	extends
-		BaseTreeNodeGenericTreeElementWithContentPanel<List<MysticCryptEntryModelBean>, Long, MysticCryptEntryModelBean>
+		BaseTreeNodeGenericTreeElementWithContentPanel<ArrayList<MysticCryptEntryModelBean>, Long, MysticCryptEntryModelBean>
 {
 	@Serial
 	private static final long serialVersionUID = 1L;
 
 	public SecretKeyTreeWithContentPanel(
-		final IModel<BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long>> model)
+		final IModel<BaseTreeNode<GenericTreeElement<ArrayList<MysticCryptEntryModelBean>>, Long>> model)
 	{
 		super(model);
 	}
@@ -106,7 +108,7 @@ public class SecretKeyTreeWithContentPanel
 	{
 		JTree tree = super.newTree();
 		tree.setCellRenderer(
-			new NewGenericBaseTreeNodeCellRenderer<List<MysticCryptEntryModelBean>, Long>());
+			new NewGenericBaseTreeNodeCellRenderer<ArrayList<MysticCryptEntryModelBean>, Long>());
 		return tree;
 	}
 
@@ -220,16 +222,16 @@ public class SecretKeyTreeWithContentPanel
 	{
 		super.onAfterInitializeComponents();
 		// set root
-		BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> root = getModelObject()
+		BaseTreeNode<GenericTreeElement<ArrayList<MysticCryptEntryModelBean>>, Long> root = getModelObject()
 			.getRoot();
 		getTblTreeEntryTable().setModel(newTableModel(root));
 	}
 
 	@Override
 	protected TreeModel newTreeModel(
-		final IModel<BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long>> model)
+		final IModel<BaseTreeNode<GenericTreeElement<ArrayList<MysticCryptEntryModelBean>>, Long>> model)
 	{
-		BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> parentTreeNode = model
+		BaseTreeNode<GenericTreeElement<ArrayList<MysticCryptEntryModelBean>>, Long> parentTreeNode = model
 			.getObject();
 		DefaultMutableTreeNode rootNode = BaseTreeNodeFactory
 			.newDefaultMutableTreeNode(parentTreeNode);
@@ -242,9 +244,9 @@ public class SecretKeyTreeWithContentPanel
 	 */
 	@Override
 	protected GenericTableModel<MysticCryptEntryModelBean> newTableModel(
-		BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> model)
+		BaseTreeNode<GenericTreeElement<ArrayList<MysticCryptEntryModelBean>>, Long> model)
 	{
-		GenericTreeElement<List<MysticCryptEntryModelBean>> parentTreeNode = model.getValue();
+		GenericTreeElement<ArrayList<MysticCryptEntryModelBean>> parentTreeNode = model.getValue();
 		List<MysticCryptEntryModelBean> tableInfo = parentTreeNode.getDefaultContent();
 		if (tableInfo == null)
 		{
@@ -262,11 +264,11 @@ public class SecretKeyTreeWithContentPanel
 	@Override
 	protected void onTreeSingleLeftClick(MouseEvent mouseEvent)
 	{
-		Optional<BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long>> optionalSelectedUserObject = JTreeExtensions
+		Optional<BaseTreeNode<GenericTreeElement<ArrayList<MysticCryptEntryModelBean>>, Long>> optionalSelectedUserObject = JTreeExtensions
 			.getSelectedUserObject(mouseEvent, tree);
 		if (optionalSelectedUserObject.isPresent())
 		{
-			BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> selectedTreeNodeElement = optionalSelectedUserObject
+			BaseTreeNode<GenericTreeElement<ArrayList<MysticCryptEntryModelBean>>, Long> selectedTreeNodeElement = optionalSelectedUserObject
 				.get();
 			GenericTableModel<MysticCryptEntryModelBean> tableModel = newTableModel(
 				selectedTreeNodeElement);
@@ -282,7 +284,7 @@ public class SecretKeyTreeWithContentPanel
 	{
 		int x = mouseEvent.getX();
 		int y = mouseEvent.getY();
-		Optional<BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long>> optionalSelectedUserObject = JTreeExtensions
+		Optional<BaseTreeNode<GenericTreeElement<ArrayList<MysticCryptEntryModelBean>>, Long>> optionalSelectedUserObject = JTreeExtensions
 			.getSelectedUserObject(mouseEvent, tree);
 		optionalSelectedUserObject.ifPresent(selectedTreeNodeElement -> {
 			JPopupMenu popup = JPopupMenuFactory.newJPopupMenu();
@@ -324,13 +326,13 @@ public class SecretKeyTreeWithContentPanel
 		JTreeExtensions.getSelectedDefaultMutableTreeNode(mouseEvent, tree)
 			.ifPresent(selectedDefaultMutableTreeNode -> {
 				// get the selected tree node from the DefaultMutableTreeNode
-				BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> selectedTreeNode = (BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long>)selectedDefaultMutableTreeNode
+				BaseTreeNode<GenericTreeElement<ArrayList<MysticCryptEntryModelBean>>, Long> selectedTreeNode = (BaseTreeNode<GenericTreeElement<ArrayList<MysticCryptEntryModelBean>>, Long>)selectedDefaultMutableTreeNode
 					.getUserObject();
 				// declare a visitor for reindex the new tree nodes
-				ReindexTreeNodeVisitor<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long, BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long>> reindexTreeNodeVisitor;
+				ReindexTreeNodeVisitor<GenericTreeElement<ArrayList<MysticCryptEntryModelBean>>, Long, BaseTreeNode<GenericTreeElement<ArrayList<MysticCryptEntryModelBean>>, Long>> reindexTreeNodeVisitor;
 
 				// declare a visitor for find the maximum index
-				MaxIndexFinderTreeNodeVisitor<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long, BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long>> maxIndexFinderTreeNodeVisitor;
+				MaxIndexFinderTreeNodeVisitor<GenericTreeElement<ArrayList<MysticCryptEntryModelBean>>, Long, BaseTreeNode<GenericTreeElement<ArrayList<MysticCryptEntryModelBean>>, Long>> maxIndexFinderTreeNodeVisitor;
 
 				Long maxIndex;
 				Long nextId;
@@ -344,7 +346,7 @@ public class SecretKeyTreeWithContentPanel
 					}
 				};
 				// clone the tree structure
-				BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> clonedTreeNode = CloneQuietlyExtensions
+				BaseTreeNode<GenericTreeElement<ArrayList<MysticCryptEntryModelBean>>, Long> clonedTreeNode = CloneQuietlyExtensions
 					.clone(selectedTreeNode);
 				NodePanel panel = new NodePanel()
 				{
@@ -369,7 +371,7 @@ public class SecretKeyTreeWithContentPanel
 				if (option == JOptionPane.OK_OPTION)
 				{
 					// get parent
-					BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> parentTreeNode = selectedTreeNode
+					BaseTreeNode<GenericTreeElement<ArrayList<MysticCryptEntryModelBean>>, Long> parentTreeNode = selectedTreeNode
 						.getParent();
 					NodeModel modelObject = panel.getModelObject();
 					newName = modelObject.getName();
@@ -391,11 +393,11 @@ public class SecretKeyTreeWithContentPanel
 					reindexTreeNodeVisitor = new ReindexTreeNodeVisitor<>(idGenerator);
 					clonedTreeNode.accept(reindexTreeNodeVisitor);
 
-					BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> rootTreeNode = selectedTreeNode
+					BaseTreeNode<GenericTreeElement<ArrayList<MysticCryptEntryModelBean>>, Long> rootTreeNode = selectedTreeNode
 						.getRoot();
-					Map<Long, TreeIdNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long>> clonedKeyMap = BaseTreeNodeTransformer
+					LinkedHashMap<Long, TreeIdNode<GenericTreeElement<ArrayList<MysticCryptEntryModelBean>>, Long>> clonedKeyMap = ApplicationBaseTreeNodeTransformer
 						.toKeyMap(clonedTreeNode);
-					Map<Long, TreeIdNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long>> longTreeIdNodeMap = BaseTreeNodeTransformer
+					LinkedHashMap<Long, TreeIdNode<GenericTreeElement<ArrayList<MysticCryptEntryModelBean>>, Long>> longTreeIdNodeMap = ApplicationBaseTreeNodeTransformer
 						.toKeyMap(rootTreeNode);
 					longTreeIdNodeMap.putAll(clonedKeyMap);
 					MysticCryptApplicationFrame.getInstance().getModelObject()
@@ -429,7 +431,7 @@ public class SecretKeyTreeWithContentPanel
 		JTreeExtensions.getSelectedDefaultMutableTreeNode(mouseEvent, tree)
 			.ifPresent(selectedDefaultMutableTreeNode -> {
 				Object userObject = selectedDefaultMutableTreeNode.getUserObject();
-				BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> parentTreeNode = (BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long>)userObject;
+				BaseTreeNode<GenericTreeElement<ArrayList<MysticCryptEntryModelBean>>, Long> parentTreeNode = (BaseTreeNode<GenericTreeElement<ArrayList<MysticCryptEntryModelBean>>, Long>)userObject;
 				NodePanel panel = new NodePanel();
 				int option = JOptionPaneExtensions.getSelectedOption(panel,
 					JOptionPane.PLAIN_MESSAGE, JOptionPane.OK_CANCEL_OPTION, null,
@@ -441,14 +443,14 @@ public class SecretKeyTreeWithContentPanel
 					NodeModel modelObject = panel.getModelObject();
 					boolean leaf = modelObject.isLeaf();
 					String name = modelObject.getName();
-					GenericTreeElement<List<MysticCryptEntryModelBean>> treeElement = GenericTreeElement
-						.<List<MysticCryptEntryModelBean>> builder().name(name).leaf(leaf).build();
+					GenericTreeElement<ArrayList<MysticCryptEntryModelBean>> treeElement = GenericTreeElement
+						.<ArrayList<MysticCryptEntryModelBean>> builder().name(name).leaf(leaf).build();
 					LongIdGenerator idGenerator = MysticCryptApplicationFrame.getInstance()
 						.getIdGenerator();
 					Long nextId = idGenerator.getNextId();
 					MysticCryptApplicationFrame.getInstance().getModelObject().setLastId(nextId);
-					BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> newTreeNode = BaseTreeNode
-						.<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> builder()
+					BaseTreeNode<GenericTreeElement<ArrayList<MysticCryptEntryModelBean>>, Long> newTreeNode = BaseTreeNode
+						.<GenericTreeElement<ArrayList<MysticCryptEntryModelBean>>, Long> builder()
 						.id(nextId).value(treeElement).parent(parentTreeNode).displayValue(name)
 						.leaf(leaf).build();
 					parentTreeNode.addChild(newTreeNode);
@@ -466,7 +468,7 @@ public class SecretKeyTreeWithContentPanel
 		JTreeExtensions.getSelectedDefaultMutableTreeNode(mouseEvent, tree)
 			.ifPresent(selectedDefaultMutableTreeNode -> {
 				Object userObject = selectedDefaultMutableTreeNode.getUserObject();
-				BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> selectedTreeNode = (BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long>)userObject;
+				BaseTreeNode<GenericTreeElement<ArrayList<MysticCryptEntryModelBean>>, Long> selectedTreeNode = (BaseTreeNode<GenericTreeElement<ArrayList<MysticCryptEntryModelBean>>, Long>)userObject;
 				NodePanel panel = new NodePanel(
 					BaseModel.of(NodeModel.builder().name(selectedTreeNode.getValue().getName())
 						.leaf(selectedTreeNode.getValue().isLeaf()).build()));
@@ -517,9 +519,9 @@ public class SecretKeyTreeWithContentPanel
 			{
 				DefaultMutableTreeNode selectedTreeNode = selectedDefaultMutableTreeNode.get();
 				Object userObject = selectedTreeNode.getUserObject();
-				BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> currentSelectedTreeNode = (BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long>)userObject;
+				BaseTreeNode<GenericTreeElement<ArrayList<MysticCryptEntryModelBean>>, Long> currentSelectedTreeNode = (BaseTreeNode<GenericTreeElement<ArrayList<MysticCryptEntryModelBean>>, Long>)userObject;
 
-				BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> parent = currentSelectedTreeNode
+				BaseTreeNode<GenericTreeElement<ArrayList<MysticCryptEntryModelBean>>, Long> parent = currentSelectedTreeNode
 					.getParent();
 				parent.removeChild(currentSelectedTreeNode);
 				int selectedNodeIndex = selectedTreeNode.getParent().getIndex(selectedTreeNode);
@@ -801,9 +803,9 @@ public class SecretKeyTreeWithContentPanel
 
 	private void addNewTableEntryToModel(MysticCryptEntryModelBean modelObject)
 	{
-		BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> selectedBaseTreeNode = getSelectedBaseTreeNode();
+		BaseTreeNode<GenericTreeElement<ArrayList<MysticCryptEntryModelBean>>, Long> selectedBaseTreeNode = getSelectedBaseTreeNode();
 
-		GenericTreeElement<List<MysticCryptEntryModelBean>> value = selectedBaseTreeNode.getValue();
+		GenericTreeElement<ArrayList<MysticCryptEntryModelBean>> value = selectedBaseTreeNode.getValue();
 		if (value.getDefaultContent() == null)
 		{
 			value.setDefaultContent(new ArrayList<>());
@@ -814,25 +816,25 @@ public class SecretKeyTreeWithContentPanel
 	}
 
 	@SuppressWarnings("unchecked")
-	private BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> getSelectedBaseTreeNode()
+	private BaseTreeNode<GenericTreeElement<ArrayList<MysticCryptEntryModelBean>>, Long> getSelectedBaseTreeNode()
 	{
 		DefaultMutableTreeNode selectedTreeNode = getSelectedTreeNode();
-		BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> selectedBaseTreeNode;
+		BaseTreeNode<GenericTreeElement<ArrayList<MysticCryptEntryModelBean>>, Long> selectedBaseTreeNode;
 		if (selectedTreeNode == null)
 		{
 			selectedBaseTreeNode = getModelObject().getRoot();
 		}
 		{
 			Object userObject = selectedTreeNode.getUserObject();
-			selectedBaseTreeNode = (BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long>)userObject;
+			selectedBaseTreeNode = (BaseTreeNode<GenericTreeElement<ArrayList<MysticCryptEntryModelBean>>, Long>)userObject;
 		}
 		return selectedBaseTreeNode;
 	}
 
 	private void reloadApplicationTreeModel()
 	{
-		BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> rootTreeNode = getModelObject();
-		Map<Long, TreeIdNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long>> longTreeIdNodeMap = BaseTreeNodeTransformer
+		BaseTreeNode<GenericTreeElement<ArrayList<MysticCryptEntryModelBean>>, Long> rootTreeNode = getModelObject();
+		LinkedHashMap<Long, TreeIdNode<GenericTreeElement<ArrayList<MysticCryptEntryModelBean>>, Long>> longTreeIdNodeMap = ApplicationBaseTreeNodeTransformer
 			.toKeyMap(rootTreeNode);
 		MysticCryptApplicationFrame.getInstance().getModelObject()
 			.setRootTreeAsMap(longTreeIdNodeMap);

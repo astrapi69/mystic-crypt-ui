@@ -26,6 +26,7 @@ package io.github.astrapi69.mystic.crypt;
 
 import java.awt.*;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -35,11 +36,13 @@ import io.github.astrapi69.gen.tree.convert.BaseTreeNodeTransformer;
 import io.github.astrapi69.id.generate.LongIdGenerator;
 import io.github.astrapi69.model.BaseModel;
 import io.github.astrapi69.model.api.IModel;
+import io.github.astrapi69.mystic.crypt.app.convert.ApplicationBaseTreeNodeTransformer;
+import io.github.astrapi69.mystic.crypt.app.factory.ApplicationBaseTreeNodeFactory;
 import io.github.astrapi69.mystic.crypt.panel.dbtree.MysticCryptEntryModelBean;
 import io.github.astrapi69.mystic.crypt.panel.dbtree.SecretKeyTreeWithContentPanel;
 import io.github.astrapi69.swing.base.BasePanel;
 import io.github.astrapi69.swing.renderer.tree.GenericTreeElement;
-import io.github.astrapi69.swing.tree.BaseTreeNodeFactory;
+import io.github.astrapi69.swing.tree.factory.BaseTreeNodeFactory;
 
 public class ApplicationPanel extends BasePanel<ApplicationModelBean>
 {
@@ -61,34 +64,34 @@ public class ApplicationPanel extends BasePanel<ApplicationModelBean>
 	{
 		super.onInitializeComponents();
 		ApplicationModelBean modelObject = getModelObject();
-		BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> rootTreeNode;
-		Map<Long, TreeIdNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long>> rootTreeAsMap = modelObject
+		BaseTreeNode<GenericTreeElement<ArrayList<MysticCryptEntryModelBean>>, Long> rootTreeNode;
+		LinkedHashMap<Long, TreeIdNode<GenericTreeElement<ArrayList<MysticCryptEntryModelBean>>, Long>> rootTreeAsMap = modelObject
 			.getRootTreeAsMap();
 		if (rootTreeAsMap == null || rootTreeAsMap.isEmpty())
 		{
 			LongIdGenerator idGenerator = MysticCryptApplicationFrame.getInstance()
 				.getIdGenerator();
-			GenericTreeElement<List<MysticCryptEntryModelBean>> parent = GenericTreeElement
-				.<List<MysticCryptEntryModelBean>> builder().name("root")
+			GenericTreeElement<ArrayList<MysticCryptEntryModelBean>> parent = GenericTreeElement
+				.<ArrayList<MysticCryptEntryModelBean>> builder().name("root")
 				.iconPath("io/github/astrapi69/silk/icons/book.png").withText(true).build()
 				.setDefaultContent(new ArrayList<>());
 
-			GenericTreeElement<List<MysticCryptEntryModelBean>> firstChild = GenericTreeElement
-				.<List<MysticCryptEntryModelBean>> builder().name("mykeys")
+			GenericTreeElement<ArrayList<MysticCryptEntryModelBean>> firstChild = GenericTreeElement
+				.<ArrayList<MysticCryptEntryModelBean>> builder().name("mykeys")
 				.iconPath("io/github/astrapi69/silk/icons/folder.png").withText(true).build()
 				.setDefaultContent(new ArrayList<>());
-			rootTreeNode = BaseTreeNodeFactory.initializeTreeNodeWithTreeElement(parent, null,
+			rootTreeNode = ApplicationBaseTreeNodeFactory.initializeTreeNodeWithTreeElement(parent, null,
 				idGenerator);
 			modelObject.setLastId(rootTreeNode.getId());
-			BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> myKeysTreeNode = BaseTreeNodeFactory
+			BaseTreeNode<GenericTreeElement<ArrayList<MysticCryptEntryModelBean>>, Long> myKeysTreeNode = ApplicationBaseTreeNodeFactory
 				.initializeTreeNodeWithTreeElement(firstChild, rootTreeNode, idGenerator);
 			modelObject.setLastId(myKeysTreeNode.getId());
-			Map<Long, TreeIdNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long>> longTreeIdNodeMap = BaseTreeNodeTransformer
+			LinkedHashMap<Long, TreeIdNode<GenericTreeElement<ArrayList<MysticCryptEntryModelBean>>, Long>> longTreeIdNodeMap = ApplicationBaseTreeNodeTransformer
 				.toKeyMap(rootTreeNode);
 			modelObject.setRootTreeAsMap(longTreeIdNodeMap);
 			rootTreeAsMap = modelObject.getRootTreeAsMap();
 		}
-		rootTreeNode = BaseTreeNodeTransformer.getRoot(rootTreeAsMap);
+		rootTreeNode = ApplicationBaseTreeNodeTransformer.getRoot(rootTreeAsMap);
 		secretKeyTreeWithContentPanel = new SecretKeyTreeWithContentPanel(
 			BaseModel.of(rootTreeNode));
 	}
