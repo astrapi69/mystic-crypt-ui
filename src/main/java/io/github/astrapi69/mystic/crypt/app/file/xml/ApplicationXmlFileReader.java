@@ -165,7 +165,8 @@ public class ApplicationXmlFileReader
 
 		PBEFileDecryptor fileDecryptor = new PBEFileDecryptor(pbeCryptModel);
 		File decrypt = fileDecryptor.decrypt(applicationFile);
-		applicationModelBean = XmlFileToObjectExtensions.toObject(decrypt, ApplicationModelBean.class);
+		applicationModelBean = XmlFileToObjectExtensions.toObject(decrypt,
+			ApplicationModelBean.class);
 		DeleteFileExtensions.delete(decrypt);
 
 		return applicationModelBean;

@@ -68,10 +68,11 @@ dependencies {
     implementation("io.github.astrapi69:awt-extensions:$awtExtensionsVersion")
     implementation("io.github.astrapi69:swing-model-components:$swingModelComponentsVersion")
     implementation("io.github.astrapi69:jaxb-extensions:$jaxbExtensionsVersion")
+    implementation("io.github.astrapi69:swing-menu-pf4j-plugin:$swingMenuPf4jPluginVersion")
 
     testImplementation("org.linguafranca.pwdb:KeePassJava2:$keePassJava2Version")
 
     testImplementation("io.github.astrapi69:test-object:$testObjectVersion")
     testImplementation("org.junit.jupiter:junit-jupiter:$junitJupiterVersion")
-    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher:$junitPlatformLauncherVersion")
 }

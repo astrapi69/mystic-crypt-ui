@@ -135,23 +135,24 @@ public class SecretKeyTreeWithContentPanel
 				List<MysticCryptEntryModelBean> data = getTblTreeEntryTable().getGenericTableModel()
 					.getData();
 				List<MysticCryptEntryModelBean> allSelectedRowData = getTblTreeEntryTable()
-						.getAllSelectedRowData();
+					.getAllSelectedRowData();
 
 				boolean noRowSelected = allSelectedRowData.isEmpty();
 				boolean emptyTable = data.isEmpty();
-				if(emptyTable || noRowSelected) {
+				if (emptyTable || noRowSelected)
+				{
 					if (mouseEvent.getButton() == MouseEvent.BUTTON1)
 					{
-						 SecretKeyTreeWithContentPanel.this.onTableSingleLeftClick(mouseEvent);
+						SecretKeyTreeWithContentPanel.this.onTableSingleLeftClick(mouseEvent);
 					}
 					if (mouseEvent.getButton() == MouseEvent.BUTTON2)
 					{
 
-						 SecretKeyTreeWithContentPanel.this.onTableSingleMiddleClick(mouseEvent);
+						SecretKeyTreeWithContentPanel.this.onTableSingleMiddleClick(mouseEvent);
 					}
 					if (mouseEvent.getButton() == MouseEvent.BUTTON3)
 					{
-						 SecretKeyTreeWithContentPanel.this.onTableSingleRightClick(mouseEvent);
+						SecretKeyTreeWithContentPanel.this.onTableSingleRightClick(mouseEvent);
 					}
 				}
 			}
@@ -444,7 +445,8 @@ public class SecretKeyTreeWithContentPanel
 					boolean leaf = modelObject.isLeaf();
 					String name = modelObject.getName();
 					GenericTreeElement<ArrayList<MysticCryptEntryModelBean>> treeElement = GenericTreeElement
-						.<ArrayList<MysticCryptEntryModelBean>> builder().name(name).leaf(leaf).build();
+						.<ArrayList<MysticCryptEntryModelBean>> builder().name(name).leaf(leaf)
+						.build();
 					LongIdGenerator idGenerator = MysticCryptApplicationFrame.getInstance()
 						.getIdGenerator();
 					Long nextId = idGenerator.getNextId();
@@ -628,13 +630,13 @@ public class SecretKeyTreeWithContentPanel
 		popup.addSeparator();
 
 		JMenuItem selectAll = JMenuItemFactory.newJMenuItem("select all",
-				actionEvent -> this.onSelectAllTableEntries());
+			actionEvent -> this.onSelectAllTableEntries());
 		selectAll.setEnabled(0 < getTblTreeEntryTable().getRowCount());
 
 		popup.add(selectAll);
 
 		JMenuItem clearSelection = JMenuItemFactory.newJMenuItem("clear selection",
-				actionEvent -> this.onDeselectAllTableEntries());
+			actionEvent -> this.onDeselectAllTableEntries());
 		clearSelection.setEnabled(rowsSelected);
 
 		popup.add(clearSelection);
@@ -805,7 +807,8 @@ public class SecretKeyTreeWithContentPanel
 	{
 		BaseTreeNode<GenericTreeElement<ArrayList<MysticCryptEntryModelBean>>, Long> selectedBaseTreeNode = getSelectedBaseTreeNode();
 
-		GenericTreeElement<ArrayList<MysticCryptEntryModelBean>> value = selectedBaseTreeNode.getValue();
+		GenericTreeElement<ArrayList<MysticCryptEntryModelBean>> value = selectedBaseTreeNode
+			.getValue();
 		if (value.getDefaultContent() == null)
 		{
 			value.setDefaultContent(new ArrayList<>());

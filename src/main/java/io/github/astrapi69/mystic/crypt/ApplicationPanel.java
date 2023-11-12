@@ -80,8 +80,8 @@ public class ApplicationPanel extends BasePanel<ApplicationModelBean>
 				.<ArrayList<MysticCryptEntryModelBean>> builder().name("mykeys")
 				.iconPath("io/github/astrapi69/silk/icons/folder.png").withText(true).build()
 				.setDefaultContent(new ArrayList<>());
-			rootTreeNode = ApplicationBaseTreeNodeFactory.initializeTreeNodeWithTreeElement(parent, null,
-				idGenerator);
+			rootTreeNode = ApplicationBaseTreeNodeFactory.initializeTreeNodeWithTreeElement(parent,
+				null, idGenerator);
 			modelObject.setLastId(rootTreeNode.getId());
 			BaseTreeNode<GenericTreeElement<ArrayList<MysticCryptEntryModelBean>>, Long> myKeysTreeNode = ApplicationBaseTreeNodeFactory
 				.initializeTreeNodeWithTreeElement(firstChild, rootTreeNode, idGenerator);

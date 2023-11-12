@@ -35,11 +35,11 @@ import io.github.astrapi69.gen.tree.TreeIdNode;
 import lombok.NonNull;
 
 /**
- * The class {@link ApplicationBaseTreeNodeTransformer} provides algorithms for converting between the
- * {@link BaseTreeNode} objects and {@link TreeIdNode} objects. This is useful if you want to save
- * {@link BaseTreeNode} objects in a store, you have first to transform the {@link BaseTreeNode}
- * objects (you want to store) to {@link TreeIdNode} objects and save them. Note: The
- * {@link BaseTreeNode} object can not be stored
+ * The class {@link ApplicationBaseTreeNodeTransformer} provides algorithms for converting between
+ * the {@link BaseTreeNode} objects and {@link TreeIdNode} objects. This is useful if you want to
+ * save {@link BaseTreeNode} objects in a store, you have first to transform the
+ * {@link BaseTreeNode} objects (you want to store) to {@link TreeIdNode} objects and save them.
+ * Note: The {@link BaseTreeNode} object can not be stored
  */
 public final class ApplicationBaseTreeNodeTransformer
 {
@@ -59,7 +59,8 @@ public final class ApplicationBaseTreeNodeTransformer
 	 *            the {@link BaseTreeNode} object to transform
 	 * @return a {@link Map} object with the corresponding {@link TreeIdNode} objects
 	 */
-	public static <T, K> LinkedHashMap<K, TreeIdNode<T, K>> toKeyMap(final @NonNull BaseTreeNode<T, K> root)
+	public static <T, K> LinkedHashMap<K, TreeIdNode<T, K>> toKeyMap(
+		final @NonNull BaseTreeNode<T, K> root)
 	{
 		return root.traverse().stream().collect(Collectors.toMap(BaseTreeNode::getId, // keyMapper
 			ApplicationBaseTreeNodeTransformer::toTreeIdNode, // valueMapper
@@ -127,8 +128,8 @@ public final class ApplicationBaseTreeNodeTransformer
 	public static <T, K> LinkedHashMap<K, BaseTreeNode<T, K>> transform(
 		final @NonNull LinkedHashMap<K, TreeIdNode<T, K>> treeIdNodeMap)
 	{
-		final LinkedHashMap<K, BaseTreeNode<T, K>> baseTreeNodeMap = treeIdNodeMap.entrySet().stream()
-			.collect(Collectors.toMap(Map.Entry::getKey, // keyMapper
+		final LinkedHashMap<K, BaseTreeNode<T, K>> baseTreeNodeMap = treeIdNodeMap.entrySet()
+			.stream().collect(Collectors.toMap(Map.Entry::getKey, // keyMapper
 				entry -> BaseTreeNode.<T, K> builder().id(entry.getValue().getId())
 					.value(entry.getValue().getValue())
 					.displayValue(entry.getValue().getDisplayValue())
