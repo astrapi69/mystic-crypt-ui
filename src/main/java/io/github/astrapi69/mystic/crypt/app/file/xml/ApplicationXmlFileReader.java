@@ -31,6 +31,7 @@ import java.util.logging.Level;
 
 import javax.crypto.Cipher;
 
+import io.github.astrapi69.mystic.crypt.panel.signin.PasswordType;
 import lombok.NonNull;
 import lombok.extern.java.Log;
 
@@ -61,19 +62,17 @@ public class ApplicationXmlFileReader
 
 	public static ApplicationModelBean read(@NonNull MasterPwFileModelBean modelObject)
 	{
-		if (modelObject.isWithMasterPw() && modelObject.isWithKeyFile())
+		PasswordType passwordType = PasswordType.resolve(modelObject.isWithMasterPw(),
+			modelObject.isWithKeyFile());
+		if (passwordType.equals(PasswordType.PASSWORD_WITH_PRIVATE_KEY))
 		{
 			return readApplicationFileWithPasswordAndPrivateKey(modelObject);
 		}
-		else if (modelObject.isWithMasterPw())
+		else if (passwordType.equals(PasswordType.PASSWORD))
 		{
 			return readApplicationFileWithPassword(modelObject);
 		}
-		else if (modelObject.isWithKeyFile())
-		{
-			return readApplicationFileWithPrivateKey(modelObject);
-		}
-		return null;
+		return readApplicationFileWithPrivateKey(modelObject);
 	}
 
 	public static ApplicationModelBean readApplicationFileWithPasswordAndPrivateKey(
