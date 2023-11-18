@@ -334,7 +334,7 @@ public class SecretKeyTreeWithContentPanel
 				MaxIndexFinderTreeNodeVisitor<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long, BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long>> maxIndexFinderTreeNodeVisitor;
 
 				Long maxIndex;
-				Long nextId;
+				long nextId;
 				// implement the visitor for find the max index
 				maxIndexFinderTreeNodeVisitor = new MaxIndexFinderTreeNodeVisitor<>()
 				{
@@ -756,9 +756,7 @@ public class SecretKeyTreeWithContentPanel
 
 	protected void onEditTableEntry()
 	{
-		getTblTreeEntryTable().getSingleSelectedRowData().ifPresent(tableEntry -> {
-			showEditMysticCryptEntryDialog(tableEntry);
-		});
+		getTblTreeEntryTable().getSingleSelectedRowData().ifPresent(this::showEditMysticCryptEntryDialog);
 	}
 
 	protected void onOpenUrlOfTableEntry()
@@ -778,7 +776,6 @@ public class SecretKeyTreeWithContentPanel
 		});
 	}
 
-	@SuppressWarnings("unchecked")
 	protected void onAddTableEntry()
 	{
 		MysticCryptEntryTabbedPanel panel = new MysticCryptEntryTabbedPanel();
@@ -818,16 +815,14 @@ public class SecretKeyTreeWithContentPanel
 	private BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> getSelectedBaseTreeNode()
 	{
 		DefaultMutableTreeNode selectedTreeNode = getSelectedTreeNode();
-		BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> selectedBaseTreeNode;
 		if (selectedTreeNode == null)
 		{
-			selectedBaseTreeNode = getModelObject().getRoot();
+			return getModelObject().getRoot();
 		}
 		{
 			Object userObject = selectedTreeNode.getUserObject();
-			selectedBaseTreeNode = (BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long>)userObject;
+			return (BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long>)userObject;
 		}
-		return selectedBaseTreeNode;
 	}
 
 	private void reloadApplicationTreeModel()
