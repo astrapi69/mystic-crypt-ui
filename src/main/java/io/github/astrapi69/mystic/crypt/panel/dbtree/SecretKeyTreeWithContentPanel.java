@@ -756,7 +756,8 @@ public class SecretKeyTreeWithContentPanel
 
 	protected void onEditTableEntry()
 	{
-		getTblTreeEntryTable().getSingleSelectedRowData().ifPresent(this::showEditMysticCryptEntryDialog);
+		getTblTreeEntryTable().getSingleSelectedRowData()
+			.ifPresent(this::showEditMysticCryptEntryDialog);
 	}
 
 	protected void onOpenUrlOfTableEntry()
