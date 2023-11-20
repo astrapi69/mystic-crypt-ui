@@ -68,6 +68,7 @@ dependencies {
     implementation("org.kquiet:auto-browser:$autoBrowserVersion")
     implementation("io.github.astrapi69:awt-extensions:$awtExtensionsVersion")
     implementation("io.github.astrapi69:swing-model-components:$swingModelComponentsVersion")
+    implementation("io.github.astrapi69:swing-menu-pf4j-plugin:$swingMenuPf4jPluginVersion")
 
     testImplementation("org.linguafranca.pwdb:KeePassJava2:$keePassJava2Version")
 
