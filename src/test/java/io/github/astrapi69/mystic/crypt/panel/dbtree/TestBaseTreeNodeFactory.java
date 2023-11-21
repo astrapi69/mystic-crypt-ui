@@ -34,7 +34,7 @@ import io.github.astrapi69.id.generate.LongIdGenerator;
 import io.github.astrapi69.swing.tree.factory.BaseTreeNodeFactory;
 import io.github.astrapi69.swing.renderer.tree.GenericTreeElement;
 import io.github.astrapi69.swing.tree.model.TreeElement;
-import io.github.astrapi69.test.instance.TestPermissionFactory;
+import io.github.astrapi69.test.object.factory.TestPermissionFactory;
 import io.github.astrapi69.test.object.Permission;
 
 public class TestBaseTreeNodeFactory
