@@ -271,15 +271,28 @@ public class MysticCryptApplicationFrame extends ApplicationPanelFrame<Applicati
 		super.onAfterInitialize();
 		desktopPanePanel = (JDesktopPanePanel<ApplicationModelBean>)getMainComponent();
 		frameMode = FrameMode.DESKTOP_PANE;
-		// start and load all plugins of application
-		pluginManager.loadPlugins();
-		pluginManager.startPlugins();
+		loadApplicationPlugins();
+
 		setTitle(Messages.getString("mainframe.title"));
 		setDefaultLookAndFeel(LookAndFeels.NIMBUS, this);
 		this.setSize(ScreenSizeExtensions.getScreenWidth(), ScreenSizeExtensions.getScreenHeight());
 		onEnableMenu();
 		onWindowClosing();
 	}
+
+	protected void loadApplicationPlugins(){
+		// start and load all plugins of application
+		pluginManager.loadPlugins();
+		pluginManager.startPlugins();
+		pluginManager.getResolvedPlugins();
+		System.out.println();
+		// retrieve all extension points for "menu-plugin" extension point
+//		List<DesktopMenuExtensionPoint> extensionPoints = pluginManager
+//				.getExtensions(DesktopMenuExtensionPoint.class);
+//		Optional<DesktopMenuExtensionPoint> desktopMenuExtensionPointOptional = ListExtensions
+//				.getFirstElement(extensionPoints);
+	}
+
 
 	public void onEnableMenu()
 	{
