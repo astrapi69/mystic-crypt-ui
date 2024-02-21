@@ -41,7 +41,7 @@ import io.github.astrapi69.crypt.data.model.CryptModel;
 import io.github.astrapi69.file.create.FileFactory;
 import io.github.astrapi69.file.delete.DeleteFileExtensions;
 import io.github.astrapi69.file.system.SystemFileExtensions;
-import io.github.astrapi69.file.write.WriteFileExtensions;
+import io.github.astrapi69.file.write.StoreFileExtensions;
 import io.github.astrapi69.io.file.FileExtension;
 import io.github.astrapi69.mystic.crypt.ApplicationModelBean;
 import io.github.astrapi69.mystic.crypt.file.PBEFileEncryptor;
@@ -120,13 +120,12 @@ public final class ApplicationXmlFileStoreWorker
 
 		xml = ObjectToXmlExtensions.toXml(applicationModelBean);
 
-		RuntimeExceptionDecorator
-			.decorate(() -> WriteFileExtensions.string2File(applicationFile, xml));
+		RuntimeExceptionDecorator.decorate(() -> StoreFileExtensions.toFile(applicationFile, xml));
 
 		encrypt = RuntimeExceptionDecorator.decorate(() -> genericEncryptor.encrypt(xml));
 
 		RuntimeExceptionDecorator
-			.decorate(() -> WriteFileExtensions.storeByteArrayToFile(encrypt, applicationFile));
+			.decorate(() -> StoreFileExtensions.toFile(applicationFile, encrypt));
 		return applicationFile;
 	}
 
@@ -181,7 +180,7 @@ public final class ApplicationXmlFileStoreWorker
 			.decorate(() -> genericEncryptor.encrypt(encryptedJson));
 
 		RuntimeExceptionDecorator
-			.decorate(() -> WriteFileExtensions.storeByteArrayToFile(encrypt, applicationFile));
+			.decorate(() -> StoreFileExtensions.toFile(applicationFile, encrypt));
 		return applicationFile;
 	}
 
@@ -210,8 +209,7 @@ public final class ApplicationXmlFileStoreWorker
 			applicationFile, FileExtension.MYSTIC_CRYPT_ENCRYPTED.getExtension()));
 
 		xml = ObjectToXmlExtensions.toXml(applicationModelBean);
-		RuntimeExceptionDecorator
-			.decorate(() -> WriteFileExtensions.string2File(tempJsonFile, xml));
+		RuntimeExceptionDecorator.decorate(() -> StoreFileExtensions.toFile(tempJsonFile, xml));
 
 		File encryptedApplicationFile = RuntimeExceptionDecorator
 			.decorate(() -> encryptor.encrypt(tempJsonFile));
