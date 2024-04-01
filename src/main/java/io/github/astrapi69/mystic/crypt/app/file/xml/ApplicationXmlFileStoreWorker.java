@@ -116,7 +116,6 @@ public final class ApplicationXmlFileStoreWorker
 		encryptor = RuntimeExceptionDecorator
 			.decorate(() -> new PublicKeyEncryptor(encryptModel, symmetricKeyModel));
 		genericEncryptor = new PublicKeyGenericEncryptor<>(encryptor);
-		applicationModelBean.getMasterPwFileModelBean().setPrivateKeyInfo(null);
 
 		xml = ObjectToXmlExtensions.toXml(applicationModelBean);
 
@@ -137,7 +136,7 @@ public final class ApplicationXmlFileStoreWorker
 		SecretKey symmetricKey;
 		PublicKeyGenericEncryptor<String> genericEncryptor;
 		PrivateKey privateKey;
-		CryptModel<Cipher, PublicKey, byte[]> encryptModel;
+		CryptModel<Cipher, PublicKey, byte[]> encryptionModel;
 		String xml;
 		char[] masterPw;
 		PublicKey publicKey;
@@ -154,7 +153,7 @@ public final class ApplicationXmlFileStoreWorker
 		publicKey = RuntimeExceptionDecorator
 			.decorate(() -> PrivateKeyExtensions.generatePublicKey(privateKey));
 
-		encryptModel = CryptModel.<Cipher, PublicKey, byte[]> builder().key(publicKey).build();
+		encryptionModel = CryptModel.<Cipher, PublicKey, byte[]> builder().key(publicKey).build();
 
 		symmetricKey = RuntimeExceptionDecorator.decorate(
 			() -> SecretKeyFactoryExtensions.newSecretKey(AesAlgorithm.AES.getAlgorithm(), 128));
@@ -163,13 +162,12 @@ public final class ApplicationXmlFileStoreWorker
 			.algorithm(AesAlgorithm.AES).operationMode(Cipher.ENCRYPT_MODE).build();
 
 		encryptor = RuntimeExceptionDecorator
-			.decorate(() -> new PublicKeyEncryptor(encryptModel, symmetricKeyModel));
+			.decorate(() -> new PublicKeyEncryptor(encryptionModel, symmetricKeyModel));
 
 
 		genericEncryptor = new PublicKeyGenericEncryptor<>(encryptor);
 
 		passwordStringEncryptor = new PasswordStringEncryptor(String.valueOf(masterPw));
-		applicationModelBean.getMasterPwFileModelBean().setPrivateKeyInfo(null);
 
 		xml = ObjectToXmlExtensions.toXml(applicationModelBean);
 

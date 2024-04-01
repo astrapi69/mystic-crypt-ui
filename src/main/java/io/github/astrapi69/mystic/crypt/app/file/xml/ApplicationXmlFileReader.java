@@ -211,6 +211,8 @@ public class ApplicationXmlFileReader
 		byte[] encryptedBytes = ReadFileExtensions.readFileToBytearray(applicationFile);
 		String xml = genericDecryptor.decrypt(encryptedBytes);
 		applicationModelBean = XmlToObjectExtensions.toObject(xml);
+		applicationModelBean.getMasterPwFileModelBean()
+			.setPrivateKeyInfo(KeyModelExtensions.toKeyModel(privateKey));
 		return applicationModelBean;
 	}
 }

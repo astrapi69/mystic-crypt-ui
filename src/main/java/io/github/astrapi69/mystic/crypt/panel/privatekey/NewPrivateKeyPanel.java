@@ -274,7 +274,6 @@ public class NewPrivateKeyPanel extends BasePanel<NewPrivateKeyModelBean>
 		getTxtFilenameOfPrivateKey().setText("");
 		getModelObject().setKeySize(KeySize.KEYSIZE_2048);
 		getModelObject().setFilenameOfPrivateKey("");
-		getModelObject().setPrivateKeyInfo(null);
 		getModelObject().setPrivateKeyDirectory(null);
 		getModelObject().setPrivateKeyFile(null);
 		btnSaveStateMachine.onClear();
