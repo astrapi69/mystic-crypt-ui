@@ -21,6 +21,8 @@ jar {
 }
 
 jar.doLast {
+    DirectoryProperty buildDirectoryProperty = layout.buildDirectory
+    String buildDirectory = buildDirectoryProperty.get()
     def createIzPackInstallerStringProperty = project.property('createIzPackInstaller')
     def createIzPackInstaller = createIzPackInstallerStringProperty.toBoolean()
     if (releaseVersion || createIzPackInstaller) {
@@ -29,9 +31,9 @@ jar.doLast {
         def storePassword = project.property("$mysticCryptStorePassword")
         def keyPassword = project.property("$mysticCryptKeyPassword")
         def keystoreType = project.property("$mysticCryptStoreType")
-        def libsFilePath = "$buildDir/libs"
+        def libsFilePath = "$buildDirectory/libs"
         def libFiles = files { file(libsFilePath).listFiles() }
-        def destDir = "$buildDir/signed"
+        def destDir = "$buildDirectory/signed"
         def signedDir = new File(destDir)
         signedDir.mkdirs()
         libFiles.each {
@@ -43,6 +45,7 @@ jar.doLast {
                     keystore: "$keystoreFileName",
                     storepass: "$storePassword",
                     keypass: "$keyPassword",
+                    verbose: true,
                     preservelastmodified: "true"
             )
         }
