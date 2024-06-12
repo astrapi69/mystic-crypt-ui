@@ -21,6 +21,8 @@ jar {
 }
 
 jar.doLast {
+    DirectoryProperty buildDirectoryProperty = layout.buildDirectory
+    String buildDirectory = buildDirectoryProperty.get()
     def createIzPackInstallerStringProperty = project.property('createIzPackInstaller')
     def createIzPackInstaller = createIzPackInstallerStringProperty.toBoolean()
     if (releaseVersion || createIzPackInstaller) {
@@ -29,20 +31,21 @@ jar.doLast {
         def storePassword = project.property("$mysticCryptStorePassword")
         def keyPassword = project.property("$mysticCryptKeyPassword")
         def keystoreType = project.property("$mysticCryptStoreType")
-        def libsFilePath = "$buildDir/libs"
+        def libsFilePath = "$buildDirectory/libs"
         def libFiles = files { file(libsFilePath).listFiles() }
-        def destDir = "$buildDir/signed"
+        def destDir = "$buildDirectory/signed"
         def signedDir = new File(destDir)
         signedDir.mkdirs()
         libFiles.each {
             ant.signjar(
-                    jar: it,
+                    jar: 'build/libs/*.jar',
                     destDir: "$destDir",
                     alias: "$pkAlias",
                     storetype: "$keystoreType",
                     keystore: "$keystoreFileName",
                     storepass: "$storePassword",
                     keypass: "$keyPassword",
+                    verbose: true,
                     preservelastmodified: "true"
             )
         }
@@ -51,6 +54,32 @@ jar.doLast {
                 'IzPackInstaller can not be created because it depends on signed jar.')
     }
 }
+
+////Signing
+//// def jarsignerskip = false
+//def keystoreFile = new File('urkeystore.jks')
+//def keystorepass = 'keystoreP@@S'
+//def keyalias = 'selfSigned'
+//
+//task signJar(dependsOn: 'jar',description: 'to Sign JAR.',group: 'Build'){
+//
+//    doLast{
+//        println ":$project.name:${name}"
+//        def signdir  = new File("$buildDir/jars/signed")
+//        signdir.mkdirs()
+//        ant.signjar(
+//                destDir: "${signdir.absolutePath}",
+//                jar: 'build/jars/*.jar',
+//                alias:keyalias,
+//                storetype:"jks",
+//                keystore:"${keystoreFile.absolutePath}",
+//                storepass:keystorepass,
+//                verbose:true,
+//                preservelastmodified:"true"
+//        )
+//    }
+//
+//}
 
 task withAllDependendiesJar(type: Jar) {
     duplicatesStrategy(DuplicatesStrategy.EXCLUDE)
