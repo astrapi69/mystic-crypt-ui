@@ -1,0 +1,172 @@
+[versions]
+auto-browser-version = "2.0.6"
+awt-extensions-version = "1.2"
+batik-codec-version = "1.17"
+batik-transcoder-version = "1.17"
+bcpkix-jdk15on-version = "1.70"
+bcprov-ext-jdk15on-version = "1.70"
+bcprov-jdk15on-version = "1.70"
+checksum-up-version = "3"
+commons-codec-version = "1.16.1"
+commons-lang3-version = "3.14.0"
+component-model-version = "2"
+crypt-api-version = "9"
+crypt-data-version = "9"
+data-api-version = "4.1"
+eventbus-version = "6"
+file-worker-version = "17.1"
+gen-tree-version = "9"
+gradle-izpack-plugin-version = "3.2"
+gradle-plugin-grgit-version = "5.2.2"
+gradle-plugin-license-version = "0.16.1"
+gradle-plugin-lombok-version = "8.6"
+gradle-plugin-spotless-version = "7.0.0.BETA1"
+gradle-plugin-version-catalog-update-version = "0.8.4"
+gradle-plugin-versions-version = "0.51.0"
+gson-extensions-version = "2.1"
+gson-version = "2.10.1"
+guava-version = "33.0.0-jre"
+icon-img-extensions-version = "3.2"
+id-generate-version = "1.1"
+imgscalr-lib-version = "4.2"
+izpack-ant-version = "5.2.1"
+jackson-databind-version = "2.16.1"
+javahelp-version = "2.0.05"
+jobj-cloner-version = "2.1"
+jobj-copy-version = "4.2"
+jobj-core-version = "8.2"
+jremix-icon-version = "1.1"
+junit-jupiter-version = "5.10.2"
+jxlayer-version = "3.0.4"
+kee-pass-java2-version = "2.2.1"
+lgood-date-picker-version = "11.2.1"
+lombok-version = "1.18.30"
+meanbean-version = "3.0.0-M9"
+menu-action-version = "3.4"
+miglayout-swing-version = "11.3"
+mockito-core-version = "5.12.0"
+model-data-version = "3.1"
+mystic-crypt-version = "9"
+net-extensions-version = "5.2"
+observer-version = "6"
+pf4j-version = "3.10.0"
+randomizer-version = "10.2"
+resource-viewmodels-version = "6"
+resourcebundle-core-version = "5"
+silk-icon-theme-version = "1"
+silly-bean-version = "2"
+silly-collection-version = "27"
+silly-io-version = "3"
+sqlite-jdbc-version = "3.45.1.0"
+state-version = "6"
+swing-base-components-version = "4.2"
+swing-components-version = "9"
+swing-layout-version = "1.0.3"
+swing-menu-pf4j-plugin-version = "1.0.0-SNAPSHOT"
+swing-model-components-version = "1"
+swing-renderer-version = "3.1"
+swing-splashscreen-version = "2"
+swing-table-components-version = "3.1"
+swing-tree-component-version = "3.1"
+swing-worker-version = "1.1"
+swingx-all-version = "1.6.5-1"
+tango-icon-theme-version = "0.8.90"
+test-object-version = "8.2"
+throwable-version = "2.3"
+tree-api-version = "1.5"
+visitor-version = "6"
+xml-extensions-version = "8.2"
+xstream-extensions-version = "1.1"
+xstream-version = "1.4.20"
+
+[libraries]
+auto-browser = { module = "org.kquiet:auto-browser", version.ref = "auto-browser-version" }
+awt-extensions = { module = "io.github.astrapi69:awt-extensions", version.ref = "awt-extensions-version" }
+batik-codec = { module = "org.apache.xmlgraphics:batik-codec", version.ref = "batik-codec-version" }
+batik-transcoder = { module = "org.apache.xmlgraphics:batik-transcoder", version.ref = "batik-transcoder-version" }
+bcpkix-jdk15on = { module = "org.bouncycastle:bcpkix-jdk15on", version.ref = "bcpkix-jdk15on-version" }
+bcprov-ext-jdk15on = { module = "org.bouncycastle:bcprov-ext-jdk15on", version.ref = "bcprov-ext-jdk15on-version" }
+bcprov-jdk15on = { module = "org.bouncycastle:bcprov-jdk15on", version.ref = "bcprov-jdk15on-version" }
+checksum-up = { module = "io.github.astrapi69:checksum-up", version.ref = "checksum-up-version" }
+commons-codec = { module = "commons-codec:commons-codec", version.ref = "commons-codec-version" }
+commons-lang3 = { module = "org.apache.commons:commons-lang3", version.ref = "commons-lang3-version" }
+component-model = { module = "io.github.astrapi69:component-model", version.ref = "component-model-version" }
+crypt-api = { module = "io.github.astrapi69:crypt-api", version.ref = "crypt-api-version" }
+crypt-data = { module = "io.github.astrapi69:crypt-data", version.ref = "crypt-data-version" }
+data-api = { module = "io.github.astrapi69:data-api", version.ref = "data-api-version" }
+eventbus = { module = "io.github.astrapi69:eventbus", version.ref = "eventbus-version" }
+file-worker = { module = "io.github.astrapi69:file-worker", version.ref = "file-worker-version" }
+gen-tree = { module = "io.github.astrapi69:gen-tree", version.ref = "gen-tree-version" }
+gson = { module = "com.google.code.gson:gson", version.ref = "gson-version" }
+gson-extensions = { module = "io.github.astrapi69:gson-extensions", version.ref = "gson-extensions-version" }
+guava = { module = "com.google.guava:guava", version.ref = "guava-version" }
+icon-img-extensions = { module = "io.github.astrapi69:icon-img-extensions", version.ref = "icon-img-extensions-version" }
+id-generate = { module = "io.github.astrapi69:id-generate", version.ref = "id-generate-version" }
+imgscalr-lib = { module = "org.imgscalr:imgscalr-lib", version.ref = "imgscalr-lib-version" }
+izpack-ant = { module = "org.codehaus.izpack:izpack-ant", version.ref = "izpack-ant-version" }
+jackson-databind = { module = "com.fasterxml.jackson.core:jackson-databind", version.ref = "jackson-databind-version" }
+javahelp = { module = "javax.help:javahelp", version.ref = "javahelp-version" }
+jobj-cloner = { module = "io.github.astrapi69:jobj-cloner", version.ref = "jobj-cloner-version" }
+jobj-copy = { module = "io.github.astrapi69:jobj-copy", version.ref = "jobj-copy-version" }
+jobj-core = { module = "io.github.astrapi69:jobj-core", version.ref = "jobj-core-version" }
+jremix-icon = { module = "io.github.astrapi69:jremix-icon", version.ref = "jremix-icon-version" }
+junit-jupiter = { module = "org.junit.jupiter:junit-jupiter", version.ref = "junit-jupiter-version" }
+junit-platform-launcher = { module = "org.junit.platform:junit-platform-launcher" }
+jxlayer = { module = "org.swinglabs:jxlayer", version.ref = "jxlayer-version" }
+kee-pass-java2 = { module = "org.linguafranca.pwdb:KeePassJava2", version.ref = "kee-pass-java2-version" }
+lgood-date-picker = { module = "com.github.lgooddatepicker:LGoodDatePicker", version.ref = "lgood-date-picker-version" }
+lombok = { module = "org.projectlombok:lombok", version.ref = "lombok-version" }
+meanbean = { module = "com.github.meanbeanlib:meanbean", version.ref = "meanbean-version" }
+menu-action = { module = "io.github.astrapi69:menu-action", version.ref = "menu-action-version" }
+miglayout-swing = { module = "com.miglayout:miglayout-swing", version.ref = "miglayout-swing-version" }
+mockito-core = { module = "org.mockito:mockito-core", version.ref = "mockito-core-version" }
+model-data = { module = "io.github.astrapi69:model-data", version.ref = "model-data-version" }
+mystic-crypt = { module = "io.github.astrapi69:mystic-crypt", version.ref = "mystic-crypt-version" }
+net-extensions = { module = "io.github.astrapi69:net-extensions", version.ref = "net-extensions-version" }
+observer = { module = "io.github.astrapi69:observer", version.ref = "observer-version" }
+pf4j = { module = "org.pf4j:pf4j", version.ref = "pf4j-version" }
+randomizer = { module = "io.github.astrapi69:randomizer", version.ref = "randomizer-version" }
+resource-viewmodels = { module = "io.github.astrapi69:resource-viewmodels", version.ref = "resource-viewmodels-version" }
+resourcebundle-core = { module = "io.github.astrapi69:resourcebundle-core", version.ref = "resourcebundle-core-version" }
+silk-icon-theme = { module = "io.github.astrapi69:silk-icon-theme", version.ref = "silk-icon-theme-version" }
+silly-bean = { module = "io.github.astrapi69:silly-bean", version.ref = "silly-bean-version" }
+silly-collection = { module = "io.github.astrapi69:silly-collection", version.ref = "silly-collection-version" }
+silly-io = { module = "io.github.astrapi69:silly-io", version.ref = "silly-io-version" }
+sqlite-jdbc = { module = "org.xerial:sqlite-jdbc", version.ref = "sqlite-jdbc-version" }
+state = { module = "io.github.astrapi69:state", version.ref = "state-version" }
+swing-base-components = { module = "io.github.astrapi69:swing-base-components", version.ref = "swing-base-components-version" }
+swing-components = { module = "io.github.astrapi69:swing-components", version.ref = "swing-components-version" }
+swing-layout = { module = "org.swinglabs:swing-layout", version.ref = "swing-layout-version" }
+swing-menu-pf4j-plugin = { module = "io.github.astrapi69:swing-menu-pf4j-plugin", version.ref = "swing-menu-pf4j-plugin-version" }
+swing-model-components = { module = "io.github.astrapi69:swing-model-components", version.ref = "swing-model-components-version" }
+swing-renderer = { module = "io.github.astrapi69:swing-renderer", version.ref = "swing-renderer-version" }
+swing-splashscreen = { module = "io.github.astrapi69:swing-splashscreen", version.ref = "swing-splashscreen-version" }
+swing-table-components = { module = "io.github.astrapi69:swing-table-components", version.ref = "swing-table-components-version" }
+swing-tree-component = { module = "io.github.astrapi69:swing-tree-component", version.ref = "swing-tree-component-version" }
+swing-worker = { module = "org.swinglabs:swing-worker", version.ref = "swing-worker-version" }
+swingx-all = { module = "org.swinglabs.swingx:swingx-all", version.ref = "swingx-all-version" }
+tango-icon-theme = { module = "org.freedesktop.tango:tango-icon-theme", version.ref = "tango-icon-theme-version" }
+test-object = { module = "io.github.astrapi69:test-object", version.ref = "test-object-version" }
+throwable = { module = "io.github.astrapi69:throwable", version.ref = "throwable-version" }
+tree-api = { module = "io.github.astrapi69:tree-api", version.ref = "tree-api-version" }
+visitor = { module = "io.github.astrapi69:visitor", version.ref = "visitor-version" }
+xml-extensions = { module = "io.github.astrapi69:xml-extensions", version.ref = "xml-extensions-version" }
+xstream = { module = "com.thoughtworks.xstream:xstream", version.ref = "xstream-version" }
+xstream-extensions = { module = "io.github.astrapi69:xstream-extensions", version.ref = "xstream-extensions-version" }
+
+[bundles]
+unit-testing = [
+    "junit-jupiter",
+    "meanbean",
+    "mockito-core",
+    "test-object",
+]
+
+[plugins]
+gradle-izpack-plugin = { id = "com.bmuschko.izpack", version.ref = "gradle-izpack-plugin-version" }
+gradle-versions-plugin = { id = "com.github.ben-manes.versions", version.ref = "gradle-plugin-versions-version" }
+grgit-gradle = { id = "org.ajoberstar.grgit", version.ref = "gradle-plugin-grgit-version" }
+license-gradle-plugin = { id = "com.github.hierynomus.license", version.ref = "gradle-plugin-license-version" }
+lombok-plugin = { id = "io.freefair.lombok", version.ref = "gradle-plugin-lombok-version" }
+spotless-plugin-gradle = { id = "com.diffplug.spotless", version.ref = "gradle-plugin-spotless-version" }
+version-catalog-update = { id = "nl.littlerobots.version-catalog-update", version.ref = "gradle-plugin-version-catalog-update-version" }

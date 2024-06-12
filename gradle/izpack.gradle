@@ -1,5 +1,7 @@
 
 izpack {
+    DirectoryProperty buildDirectoryProperty = layout.buildDirectory
+    println("buildDirectoryProperty.get():" + buildDirectoryProperty.get())
     baseDir = file("$buildDir")
     installFile = file("src/main/izpack/install.xml")
     outputFile = file("$buildDir/distributions/$rootProject.name-${projectVersion}-installer.jar")

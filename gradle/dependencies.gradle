@@ -1,78 +1,79 @@
-
 dependencies {
-    izpack("org.codehaus.izpack:izpack-ant:$izpackVersion")
-    compileOnly("org.projectlombok:lombok:$lombokVersion")
-    annotationProcessor("org.projectlombok:lombok:$lombokVersion")
+    izpack libs.izpack.ant
 
-    implementation("com.miglayout:miglayout-swing:$miglayoutSwingVersion")
-    implementation("com.google.code.gson:gson:$gsonVersion")
-    implementation("com.google.guava:guava:$guavaVersion")
-    implementation("com.fasterxml.jackson.core:jackson-databind:$jacksonVersion")
-    implementation("com.thoughtworks.xstream:xstream:$xstreamVersion")
-    implementation("com.github.lgooddatepicker:LGoodDatePicker:$lGoodDatePickerVersion")
-    implementation("commons-codec:commons-codec:$commonsCodecVersion")
-    implementation("javax.help:javahelp:$javahelpVersion")
-    implementation("org.pf4j:pf4j:$pf4jVersion")
-    implementation("org.swinglabs:swing-layout:$swingLayoutVersion")
-    implementation("org.swinglabs:jxlayer:$jxlayerVersion")
-    implementation("org.swinglabs:swing-worker:$swingWorkerVersion")
-    implementation("org.swinglabs.swingx:swingx-all:$swingxAllVersion")
-    implementation("org.apache.commons:commons-lang3:$commonsLang3Version")
-    implementation("org.bouncycastle:bcprov-jdk15on:$bouncycastleVersion")
-    implementation("org.bouncycastle:bcprov-ext-jdk15on:$bouncycastleVersion")
-    implementation("org.bouncycastle:bcpkix-jdk15on:$bouncycastleVersion")
-    implementation("org.apache.xmlgraphics:batik-transcoder:$batikVersion")
-    implementation("org.apache.xmlgraphics:batik-codec:$batikVersion")
-    implementation("org.imgscalr:imgscalr-lib:$imgscalrLibVersion")
-    implementation("org.xerial:sqlite-jdbc:$sqliteJdbcVersion")
-    implementation("org.kquiet:auto-browser:$autoBrowserVersion")
-    implementation("org.freedesktop.tango:tango-icon-theme:$tangoIconThemeVersion")
-    implementation("io.github.astrapi69:observer:$designPatternObserverVersion")
-    implementation("io.github.astrapi69:state:$designPatternStateVersion")
-    implementation("io.github.astrapi69:eventbus:$designPatternEventbusVersion")
-    implementation("io.github.astrapi69:visitor:$designVisitorPatternsVersion")
-    implementation("io.github.astrapi69:icon-img-extensions:$iconImgExtensionsVersion")
-    implementation("io.github.astrapi69:jremix-icon:$jremixIconVersion")
-    implementation("io.github.astrapi69:silk-icon-theme:$silkIconThemeVersion")
-    implementation("io.github.astrapi69:silly-collection:$sillyCollectionVersion")
-    implementation("io.github.astrapi69:silly-bean:$sillyBeanVersion")
-    implementation("io.github.astrapi69:crypt-api:$cryptApiVersion")
-    implementation("io.github.astrapi69:crypt-data:$cryptDataVersion")
-    implementation("io.github.astrapi69:checksum-up:$checksumUpVersion")
-    implementation("io.github.astrapi69:mystic-crypt:$mysticCryptVersion")
-    implementation("io.github.astrapi69:randomizer:$randomizerVersion")
-    implementation("io.github.astrapi69:model-data:$modelDataVersion")
-    implementation("io.github.astrapi69:throwable:$throwableVersion")
-    implementation("io.github.astrapi69:file-worker:$fileWorkerVersion")
-    implementation("io.github.astrapi69:jobj-core:$jobjCoreVersion")
-    implementation("io.github.astrapi69:silly-io:$sillyIoVersion")
-    implementation("io.github.astrapi69:swing-components:$swingComponentsVersion")
-    implementation("io.github.astrapi69:swing-renderer:$swingRendererVersion")
-    implementation("io.github.astrapi69:component-model:$componentModelVersion")
-    implementation("io.github.astrapi69:swing-base-components:$swingBaseComponentsVersion")
-    implementation("io.github.astrapi69:swing-tree-component:$swingTreeComponentVersion")
-    implementation("io.github.astrapi69:swing-splashscreen:$swingSplashscreenVersion")
-    implementation("io.github.astrapi69:swing-table-components:$swingTableComponentsVersion")
-    implementation("io.github.astrapi69:menu-action:$menuActionVersion")
-    implementation("io.github.astrapi69:net-extensions:$netExtensionsVersion")
-    implementation("io.github.astrapi69:gen-tree:$genTreeVersion")
-    implementation("io.github.astrapi69:jobj-copy:$jobjCopyVersion")
-    implementation("io.github.astrapi69:data-api:$dataApiVersion")
-    implementation("io.github.astrapi69:id-generate:$idGenerateVersion")
-    implementation("io.github.astrapi69:xml-extensions:$xmlExtensionsVersion")
-    implementation("io.github.astrapi69:gson-extensions:$gsonExtensionsVersion")
-    implementation("io.github.astrapi69:xstream-extensions:$xstreamExtensionsVersion")
-    implementation("io.github.astrapi69:resourcebundle-core:$resourcebundleCoreVersion")
-    implementation("io.github.astrapi69:resource-viewmodels:$resourceViewmodelVersion")
-    implementation("io.github.astrapi69:tree-api:$treeApiVersion")
-    implementation("io.github.astrapi69:jobj-cloner:$jobjClonerVersion")
-    implementation("io.github.astrapi69:awt-extensions:$awtExtensionsVersion")
-    implementation("io.github.astrapi69:swing-model-components:$swingModelComponentsVersion")
-    implementation("io.github.astrapi69:swing-menu-pf4j-plugin:$swingMenuPf4jPluginVersion")
+    compileOnly libs.lombok
+    annotationProcessor libs.lombok
+    testCompileOnly libs.lombok
+    testAnnotationProcessor libs.lombok
 
-    testImplementation("org.linguafranca.pwdb:KeePassJava2:$keePassJava2Version")
+    implementation libs.miglayout.swing
+    implementation libs.gson
+    implementation libs.guava
+    implementation libs.jackson.databind
+    implementation libs.xstream
+    implementation libs.lgood.date.picker
+    implementation libs.commons.codec
+    implementation libs.javahelp
+    implementation libs.pf4j
+    implementation libs.swing.layout
+    implementation libs.jxlayer
+    implementation libs.swing.worker
+    implementation libs.swingx.all
+    implementation libs.commons.lang3
+    implementation libs.bcprov.jdk15on
+    implementation libs.bcprov.ext.jdk15on
+    implementation libs.bcpkix.jdk15on
+    implementation libs.batik.transcoder
+    implementation libs.batik.codec
+    implementation libs.imgscalr.lib
+    implementation libs.sqlite.jdbc
+    implementation libs.auto.browser
+    implementation libs.tango.icon.theme
+    implementation libs.observer
+    implementation libs.state
+    implementation libs.eventbus
+    implementation libs.visitor
+    implementation libs.icon.img.extensions
+    implementation libs.jremix.icon
+    implementation libs.silk.icon.theme
+    implementation libs.silly.collection
+    implementation libs.silly.bean
+    implementation libs.crypt.api
+    implementation libs.crypt.data
+    implementation libs.checksum.up
+    implementation libs.mystic.crypt
+    implementation libs.randomizer
+    implementation libs.model.data
+    implementation libs.throwable
+    implementation libs.file.worker
+    implementation libs.jobj.core
+    implementation libs.silly.io
+    implementation libs.swing.components
+    implementation libs.swing.renderer
+    implementation libs.component.model
+    implementation libs.swing.base.components
+    implementation libs.swing.tree.component
+    implementation libs.swing.splashscreen
+    implementation libs.swing.table.components
+    implementation libs.menu.action
+    implementation libs.net.extensions
+    implementation libs.gen.tree
+    implementation libs.jobj.copy
+    implementation libs.data.api
+    implementation libs.id.generate
+    implementation libs.xml.extensions
+    implementation libs.gson.extensions
+    implementation libs.xstream.extensions
+    implementation libs.resourcebundle.core
+    implementation libs.resource.viewmodels
+    implementation libs.tree.api
+    implementation libs.jobj.cloner
+    implementation libs.awt.extensions
+    implementation libs.swing.model.components
+    implementation libs.swing.menu.pf4j.plugin
 
-    testImplementation("io.github.astrapi69:test-object:$testObjectVersion")
-    testImplementation("org.junit.jupiter:junit-jupiter:$junitJupiterVersion")
-    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+    testImplementation libs.kee.pass.java2
+    // Note: use of bundles...
+    testImplementation libs.bundles.unit.testing
+    testRuntimeOnly libs.junit.platform.launcher
 }
