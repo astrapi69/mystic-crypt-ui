@@ -55,32 +55,6 @@ jar.doLast {
     }
 }
 
-////Signing
-//// def jarsignerskip = false
-//def keystoreFile = new File('urkeystore.jks')
-//def keystorepass = 'keystoreP@@S'
-//def keyalias = 'selfSigned'
-//
-//task signJar(dependsOn: 'jar',description: 'to Sign JAR.',group: 'Build'){
-//
-//    doLast{
-//        println ":$project.name:${name}"
-//        def signdir  = new File("$buildDir/jars/signed")
-//        signdir.mkdirs()
-//        ant.signjar(
-//                destDir: "${signdir.absolutePath}",
-//                jar: 'build/jars/*.jar',
-//                alias:keyalias,
-//                storetype:"jks",
-//                keystore:"${keystoreFile.absolutePath}",
-//                storepass:keystorepass,
-//                verbose:true,
-//                preservelastmodified:"true"
-//        )
-//    }
-//
-//}
-
 task withAllDependendiesJar(type: Jar) {
     duplicatesStrategy(DuplicatesStrategy.EXCLUDE)
     manifest.from jar.manifest
