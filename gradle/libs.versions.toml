@@ -1,4 +1,5 @@
 [versions]
+assertj-swing-version = "3.17.1"
 auto-browser-version = "2.0.6"
 awt-extensions-version = "1.2"
 batik-codec-version = "1.17"
@@ -36,6 +37,7 @@ jobj-cloner-version = "2.1"
 jobj-copy-version = "4.2"
 jobj-core-version = "8.2"
 jremix-icon-version = "1.1"
+junit-jupiter-extensions-version = "1.1"
 junit-jupiter-version = "5.10.2"
 jxlayer-version = "3.0.4"
 kee-pass-java2-version = "2.2.1"
@@ -80,6 +82,7 @@ xstream-extensions-version = "1.1"
 xstream-version = "1.4.20"
 
 [libraries]
+assertj-swing = { module = "org.assertj:assertj-swing", version.ref = "assertj-swing-version" }
 auto-browser = { module = "org.kquiet:auto-browser", version.ref = "auto-browser-version" }
 awt-extensions = { module = "io.github.astrapi69:awt-extensions", version.ref = "awt-extensions-version" }
 batik-codec = { module = "org.apache.xmlgraphics:batik-codec", version.ref = "batik-codec-version" }
@@ -111,6 +114,7 @@ jobj-copy = { module = "io.github.astrapi69:jobj-copy", version.ref = "jobj-copy
 jobj-core = { module = "io.github.astrapi69:jobj-core", version.ref = "jobj-core-version" }
 jremix-icon = { module = "io.github.astrapi69:jremix-icon", version.ref = "jremix-icon-version" }
 junit-jupiter = { module = "org.junit.jupiter:junit-jupiter", version.ref = "junit-jupiter-version" }
+junit-jupiter-extensions = { module = "org.kquiet:auto-browser", version.ref = "junit-jupiter-extensions-version" }
 junit-platform-launcher = { module = "org.junit.platform:junit-platform-launcher" }
 jxlayer = { module = "org.swinglabs:jxlayer", version.ref = "jxlayer-version" }
 kee-pass-java2 = { module = "org.linguafranca.pwdb:KeePassJava2", version.ref = "kee-pass-java2-version" }
@@ -156,7 +160,9 @@ xstream-extensions = { module = "io.github.astrapi69:xstream-extensions", versio
 
 [bundles]
 unit-testing = [
+    "assertj-swing",
     "junit-jupiter",
+    "junit-jupiter-extensions",
     "meanbean",
     "mockito-core",
     "test-object",
