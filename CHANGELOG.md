@@ -1,6 +1,17 @@
 ## Change log
 ----------------------
 
+Version 8
+-------------
+
+ADDED:
+
+- new format of database file not compatible with version 7.x
+
+CHANGED:
+
+- update of gradle to new version 8.8
+
 Version 7.3
 -------------
 

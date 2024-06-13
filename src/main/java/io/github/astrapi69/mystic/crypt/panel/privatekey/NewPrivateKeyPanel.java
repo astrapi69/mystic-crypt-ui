@@ -56,10 +56,10 @@ import io.github.astrapi69.model.api.IModel;
 import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
 import io.github.astrapi69.swing.base.BasePanel;
 import io.github.astrapi69.swing.model.combobox.EnumComboBoxModel;
-import io.github.astrapi69.swing.component.JMTextField;
+import io.github.astrapi69.swing.model.component.JMTextField;
 import io.github.astrapi69.swing.dialog.DialogExtensions;
 import io.github.astrapi69.swing.listener.document.DocumentListenerAdapter;
-import io.github.astrapi69.swing.util.AwtExtensions;
+import io.github.astrapi69.awt.extension.AwtExtensions;
 import io.github.astrapi69.throwable.RuntimeExceptionDecorator;
 
 @Log
@@ -274,7 +274,6 @@ public class NewPrivateKeyPanel extends BasePanel<NewPrivateKeyModelBean>
 		getTxtFilenameOfPrivateKey().setText("");
 		getModelObject().setKeySize(KeySize.KEYSIZE_2048);
 		getModelObject().setFilenameOfPrivateKey("");
-		getModelObject().setPrivateKeyInfo(null);
 		getModelObject().setPrivateKeyDirectory(null);
 		getModelObject().setPrivateKeyFile(null);
 		btnSaveStateMachine.onClear();

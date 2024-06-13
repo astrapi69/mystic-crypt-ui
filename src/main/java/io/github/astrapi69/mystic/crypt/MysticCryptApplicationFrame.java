@@ -32,15 +32,11 @@ import java.security.Security;
 
 import javax.swing.*;
 
-import io.github.astrapi69.design.pattern.observer.event.EventObject;
-import io.github.astrapi69.design.pattern.observer.event.EventSource;
-import io.github.astrapi69.model.enumtype.visibity.RenderMode;
 import io.github.astrapi69.mystic.crypt.app.file.xml.ApplicationXmlFileStoreWorker;
-import io.github.astrapi69.mystic.crypt.eventbus.ApplicationEventBus;
 import io.github.astrapi69.swing.dialog.JOptionPaneExtensions;
 import io.github.astrapi69.swing.enumeration.FrameMode;
 import io.github.astrapi69.swing.panel.label.LabelPanel;
-import io.github.astrapi69.window.adapter.CloseWindow;
+import io.github.astrapi69.awt.window.adapter.CloseWindow;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NonNull;
@@ -63,12 +59,14 @@ import io.github.astrapi69.mystic.crypt.panel.signin.MemoizedSigninModelBean;
 import io.github.astrapi69.swing.base.ApplicationPanelFrame;
 import io.github.astrapi69.swing.base.BasePanel;
 import io.github.astrapi69.swing.button.builder.JButtonInfo;
-import io.github.astrapi69.swing.layout.ScreenSizeExtensions;
+import io.github.astrapi69.awt.screen.ScreenSizeExtensions;
 import io.github.astrapi69.swing.panel.desktoppane.JDesktopPanePanel;
 import io.github.astrapi69.swing.plaf.LookAndFeels;
 import io.github.astrapi69.swing.splashscreen.ProgressBarSplashScreen;
 import io.github.astrapi69.swing.splashscreen.SplashScreenModelBean;
 import io.github.astrapi69.throwable.RuntimeExceptionDecorator;
+import org.pf4j.DefaultPluginManager;
+import org.pf4j.PluginManager;
 
 /**
  * The class {@link MysticCryptApplicationFrame}
@@ -100,6 +98,8 @@ public class MysticCryptApplicationFrame extends ApplicationPanelFrame<Applicati
 	ApplicationPanel applicationPanel;
 
 	FrameMode frameMode;
+
+	PluginManager pluginManager;
 
 	/**
 	 * initial block
@@ -208,6 +208,7 @@ public class MysticCryptApplicationFrame extends ApplicationPanelFrame<Applicati
 		{
 			instance = this;
 		}
+		pluginManager = new DefaultPluginManager();
 		// add once the default provider to the Security class
 		setSecurityProvider();
 		// initialize model and model object
@@ -270,6 +271,9 @@ public class MysticCryptApplicationFrame extends ApplicationPanelFrame<Applicati
 		super.onAfterInitialize();
 		desktopPanePanel = (JDesktopPanePanel<ApplicationModelBean>)getMainComponent();
 		frameMode = FrameMode.DESKTOP_PANE;
+		// start and load all plugins of application
+		pluginManager.loadPlugins();
+		pluginManager.startPlugins();
 		setTitle(Messages.getString("mainframe.title"));
 		setDefaultLookAndFeel(LookAndFeels.NIMBUS, this);
 		this.setSize(ScreenSizeExtensions.getScreenWidth(), ScreenSizeExtensions.getScreenHeight());
@@ -345,6 +349,9 @@ public class MysticCryptApplicationFrame extends ApplicationPanelFrame<Applicati
 		instance.frameMode = FrameMode.APPLICATION_PANEL;
 	}
 
+	/**
+	 * Checks if all changes have been stored to the application file
+	 */
 	protected void onWindowClosing()
 	{
 		MysticCryptApplicationFrame.this.addWindowListener(new CloseWindow()

@@ -24,6 +24,7 @@
  */
 package io.github.astrapi69.mystic.crypt.panel.signin;
 
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.List;
 import java.util.Set;
@@ -54,11 +55,13 @@ import io.github.astrapi69.file.create.FileInfo;
 public class MasterPwFileModelBean implements Serializable
 {
 	/** The Constant serialVersionUID. */
+	@Serial
 	private static final long serialVersionUID = 1L;
 
 	/** The encrypted data file for the application. */
 	/** The application file info for create the application file object */
 	FileInfo applicationFileInfo;
+
 	/** The currently selected key file path */
 	String selectedApplicationFilePath;
 
@@ -116,12 +119,11 @@ public class MasterPwFileModelBean implements Serializable
 		keyFilePathSet.addAll(modelObject.getKeyFilePaths());
 		Set<String> applicationFilePathSet = SetFactory.newHashSet(this.applicationFilePaths);
 		applicationFilePathSet.addAll(modelObject.getApplicationFilePaths());
-		MemoizedSigninModelBean memoizedSignin = MemoizedSigninModelBean.builder()
+		return MemoizedSigninModelBean.builder()
 			.keyFilePaths(ListFactory.newArrayList(keyFilePathSet))
 			.selectedKeyFilePath(this.selectedKeyFilePath)
 			.applicationFilePaths(ListFactory.newArrayList(applicationFilePathSet))
 			.selectedApplicationFilePath(this.selectedApplicationFilePath)
 			.withMasterPw(this.withMasterPw).withKeyFile(this.withKeyFile).build();
-		return memoizedSignin;
 	}
 }

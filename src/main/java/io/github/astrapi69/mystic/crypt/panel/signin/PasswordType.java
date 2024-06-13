@@ -24,51 +24,53 @@
  */
 package io.github.astrapi69.mystic.crypt.panel.signin;
 
-import java.awt.*;
-import java.awt.event.ActionEvent;
-
-import javax.swing.*;
-
-import io.github.astrapi69.model.api.IModel;
-import io.github.astrapi69.swing.base.PanelDialog;
-import io.github.astrapi69.awt.screen.ScreenSizeExtensions;
-
-public class NewMasterPwFileDialog extends PanelDialog<MasterPwFileModelBean>
+/**
+ * The enum class {@link PasswordType} provides the password types for signing in an application
+ */
+public enum PasswordType
 {
-	public NewMasterPwFileDialog(Frame owner, String title, boolean modal,
-		IModel<MasterPwFileModelBean> model)
-	{
-		super(owner, title, modal, model);
-		ScreenSizeExtensions.centralize(this, 3, 3);
-	}
 
-	protected JPanel newContent(IModel<MasterPwFileModelBean> model)
+	/**
+	 * The <code>PasswordType#PASSWORD</code> type indicates that only a password is needed
+	 */
+	PASSWORD,
+
+	/**
+	 * The <code>PasswordType#PRIVATE_KEY</code> type indicates that only a private key is needed
+	 */
+	PRIVATE_KEY,
+
+	/**
+	 * The <code>PasswordType#PASSWORD_WITH_PRIVATE_KEY</code> type indicates that a password and a
+	 * key is needed
+	 */
+	PASSWORD_WITH_PRIVATE_KEY,
+
+	/**
+	 * The <code>PasswordType#UNKNOWN</code> type indicates that the password type is unknown
+	 */
+	UNKNOWN;
+
+	/**
+	 * Resolves the {@link PasswordType} object from the given flags
+	 *
+	 * @param withPassword
+	 *            the flag if it is with a password
+	 * @param withPrivateKey
+	 *            the flag if it is with a private key file
+	 * @return the resolved {@link PasswordType} object
+	 */
+	public static PasswordType resolve(boolean withPassword, boolean withPrivateKey)
 	{
-		return new NewMasterPwFilePanel(model)
+		if (withPassword && withPrivateKey)
 		{
-			@Override
-			protected void onOk(ActionEvent actionEvent)
-			{
-				super.onOk(actionEvent);
-				NewMasterPwFileDialog.this.onOk(actionEvent);
-			}
-
-			@Override
-			protected void onCancel(ActionEvent actionEvent)
-			{
-				super.onCancel(actionEvent);
-				NewMasterPwFileDialog.this.onCancel(actionEvent);
-			}
-		};
+			return PASSWORD_WITH_PRIVATE_KEY;
+		}
+		else if (withPassword)
+		{
+			return PASSWORD;
+		}
+		return PRIVATE_KEY;
 	}
 
-	protected void onOk(ActionEvent actionEvent)
-	{
-		NewMasterPwFileDialog.this.dispose();
-	}
-
-	protected void onCancel(ActionEvent actionEvent)
-	{
-		NewMasterPwFileDialog.this.dispose();
-	}
 }

@@ -43,12 +43,14 @@ import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreeModel;
 
+import io.github.astrapi69.design.pattern.observer.event.EventSource;
+import io.github.astrapi69.swing.listener.mouse.MouseDoubleClickListener;
+import io.github.astrapi69.swing.renderer.tree.renderer.state.NewGenericBaseTreeNodeCellRenderer;
 import net.miginfocom.layout.AC;
 import net.miginfocom.layout.CC;
 import net.miginfocom.layout.LC;
 import net.miginfocom.swing.MigLayout;
 
-import org.jdesktop.swingx.JXTree;
 import org.kquiet.browser.ActionComposer;
 import org.kquiet.browser.ActionComposerBuilder;
 import org.kquiet.browser.ActionRunner;
@@ -57,7 +59,6 @@ import org.openqa.selenium.By;
 import io.github.astrapi69.browser.BrowserControlExtensions;
 import io.github.astrapi69.clone.CloneQuietlyExtensions;
 import io.github.astrapi69.design.pattern.observer.event.EventObject;
-import io.github.astrapi69.design.pattern.observer.event.EventSource;
 import io.github.astrapi69.gen.tree.BaseTreeNode;
 import io.github.astrapi69.gen.tree.TreeIdNode;
 import io.github.astrapi69.gen.tree.convert.BaseTreeNodeTransformer;
@@ -66,8 +67,7 @@ import io.github.astrapi69.gen.tree.visitor.ReindexTreeNodeVisitor;
 import io.github.astrapi69.id.generate.LongIdGenerator;
 import io.github.astrapi69.model.BaseModel;
 import io.github.astrapi69.model.api.IModel;
-import io.github.astrapi69.model.enumtype.visibity.RenderMode;
-import io.github.astrapi69.model.node.NodeModel;
+import io.github.astrapi69.component.model.node.NodeModel;
 import io.github.astrapi69.mystic.crypt.Messages;
 import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
 import io.github.astrapi69.mystic.crypt.eventbus.ApplicationEventBus;
@@ -78,15 +78,15 @@ import io.github.astrapi69.swing.dialog.JOptionPaneExtensions;
 import io.github.astrapi69.swing.menu.factory.JMenuItemFactory;
 import io.github.astrapi69.swing.menu.factory.JPopupMenuFactory;
 import io.github.astrapi69.swing.model.label.LabelModel;
-import io.github.astrapi69.swing.table.GenericJXTable;
+import io.github.astrapi69.swing.table.GenericJTable;
 import io.github.astrapi69.swing.table.model.GenericTableModel;
-import io.github.astrapi69.swing.tree.BaseTreeNodeFactory;
-import io.github.astrapi69.swing.tree.GenericTreeElement;
-import io.github.astrapi69.swing.tree.JTreeExtensions;
+import io.github.astrapi69.swing.tree.factory.BaseTreeNodeFactory;
+import io.github.astrapi69.swing.renderer.tree.GenericTreeElement;
+import io.github.astrapi69.swing.tree.extension.JTreeExtensions;
 import io.github.astrapi69.swing.tree.panel.content.BaseTreeNodeGenericTreeElementWithContentPanel;
 import io.github.astrapi69.swing.tree.panel.node.NodePanel;
-import io.github.astrapi69.swing.tree.renderer.state.NewGenericBaseTreeNodeCellRenderer;
-import io.github.astrapi69.swing.util.ClipboardExtensions;
+import io.github.astrapi69.awt.extension.ClipboardExtensions;
+import io.github.astrapi69.component.model.enumeration.visibility.RenderMode;
 
 public class SecretKeyTreeWithContentPanel
 	extends
@@ -102,9 +102,9 @@ public class SecretKeyTreeWithContentPanel
 	}
 
 	@Override
-	protected JXTree newTree()
+	protected JTree newTree()
 	{
-		JXTree tree = super.newTree();
+		JTree tree = super.newTree();
 		tree.setCellRenderer(
 			new NewGenericBaseTreeNodeCellRenderer<List<MysticCryptEntryModelBean>, Long>());
 		return tree;
@@ -113,17 +113,74 @@ public class SecretKeyTreeWithContentPanel
 	@Override
 	protected JScrollPane newTreeScrollPane()
 	{
-		JScrollPane scroller = super.newTreeScrollPane();
-		scroller.getViewport().setOpaque(false);
-		scroller.setOpaque(false);
-		return scroller;
+		JScrollPane treeScrollPane = super.newTreeScrollPane();
+		treeScrollPane.getViewport().setOpaque(false);
+		treeScrollPane.setOpaque(false);
+		return treeScrollPane;
 	}
 
 	@Override
-	protected GenericJXTable<MysticCryptEntryModelBean> newJTable()
+	protected JScrollPane newTableScrollPane()
+	{
+		JScrollPane tableScrollPane = super.newTableScrollPane();
+		tableScrollPane.getViewport().setOpaque(false);
+		tableScrollPane.setOpaque(false);
+		tableScrollPane.addMouseListener(new MouseDoubleClickListener()
+		{
+			@Override
+			public void onSingleClick(MouseEvent mouseEvent)
+			{
+				List<MysticCryptEntryModelBean> data = getTblTreeEntryTable().getGenericTableModel()
+					.getData();
+				List<MysticCryptEntryModelBean> allSelectedRowData = getTblTreeEntryTable()
+					.getAllSelectedRowData();
+
+				boolean noRowSelected = allSelectedRowData.isEmpty();
+				boolean emptyTable = data.isEmpty();
+				if (emptyTable || noRowSelected)
+				{
+					if (mouseEvent.getButton() == MouseEvent.BUTTON1)
+					{
+						SecretKeyTreeWithContentPanel.this.onTableSingleLeftClick(mouseEvent);
+					}
+					if (mouseEvent.getButton() == MouseEvent.BUTTON2)
+					{
+
+						SecretKeyTreeWithContentPanel.this.onTableSingleMiddleClick(mouseEvent);
+					}
+					if (mouseEvent.getButton() == MouseEvent.BUTTON3)
+					{
+						SecretKeyTreeWithContentPanel.this.onTableSingleRightClick(mouseEvent);
+					}
+				}
+			}
+
+			@Override
+			public void onDoubleClick(MouseEvent mouseEvent)
+			{
+				if (mouseEvent.getButton() == MouseEvent.BUTTON1)
+				{
+					// SecretKeyTreeWithContentPanel.this.onTableDoubleLeftClick(mouseEvent);
+				}
+				if (mouseEvent.getButton() == MouseEvent.BUTTON2)
+				{
+
+					// SecretKeyTreeWithContentPanel.this.onTableDoubleMiddleClick(mouseEvent);
+				}
+				if (mouseEvent.getButton() == MouseEvent.BUTTON3)
+				{
+					// SecretKeyTreeWithContentPanel.this.onTableDoubleRightClick(mouseEvent);
+				}
+			}
+		});
+		return tableScrollPane;
+	}
+
+	@Override
+	protected GenericJTable<MysticCryptEntryModelBean> newJTable()
 	{
 		GenericTableModel<MysticCryptEntryModelBean> tableModel = new MysticCryptEntryTableModel();
-		return new GenericJXTable<>(tableModel)
+		return new GenericJTable<>(tableModel)
 		{
 
 			protected void onSingleLeftClick(MouseEvent event)
@@ -183,8 +240,6 @@ public class SecretKeyTreeWithContentPanel
 
 	/**
 	 * {@inheritDoc}
-	 *
-	 * @param model
 	 */
 	@Override
 	protected GenericTableModel<MysticCryptEntryModelBean> newTableModel(
@@ -202,6 +257,9 @@ public class SecretKeyTreeWithContentPanel
 		return getTblTreeEntryTable().getGenericTableModel();
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
 	protected void onTreeSingleLeftClick(MouseEvent mouseEvent)
 	{
@@ -217,6 +275,9 @@ public class SecretKeyTreeWithContentPanel
 		}
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
 	protected void onTreeSingleRightClick(MouseEvent mouseEvent)
 	{
@@ -273,7 +334,7 @@ public class SecretKeyTreeWithContentPanel
 				MaxIndexFinderTreeNodeVisitor<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long, BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long>> maxIndexFinderTreeNodeVisitor;
 
 				Long maxIndex;
-				Long nextId;
+				long nextId;
 				// implement the visitor for find the max index
 				maxIndexFinderTreeNodeVisitor = new MaxIndexFinderTreeNodeVisitor<>()
 				{
@@ -503,17 +564,19 @@ public class SecretKeyTreeWithContentPanel
 	{
 		int x = mouseEvent.getX();
 		int y = mouseEvent.getY();
-		MysticCryptEntryModelBean singleSelectedRow;
+		MysticCryptEntryModelBean selectedRow;
 
 		List<MysticCryptEntryModelBean> allSelectedRowData = getTblTreeEntryTable()
 			.getAllSelectedRowData();
 
-		boolean isSingleSelectedRow = allSelectedRowData.size() == 1;
+		boolean noRowSelected = allSelectedRowData.isEmpty();
+		boolean singleSelectedRow = allSelectedRowData.size() == 1;
+		boolean rowsSelected = !noRowSelected;
 		boolean validUrl = false;
-		if (isSingleSelectedRow)
+		if (singleSelectedRow)
 		{
-			singleSelectedRow = allSelectedRowData.get(0);
-			String urlString = singleSelectedRow.getUrl();
+			selectedRow = allSelectedRowData.get(0);
+			String urlString = selectedRow.getUrl();
 			validUrl = validateUrlString(urlString);
 		}
 
@@ -521,12 +584,12 @@ public class SecretKeyTreeWithContentPanel
 
 		JMenuItem copyUsername = JMenuItemFactory.newJMenuItem("Copy Username",
 			actionEvent -> this.onCopyUsernameTableEntry());
-		copyUsername.setEnabled(isSingleSelectedRow);
+		copyUsername.setEnabled(singleSelectedRow);
 		popup.add(copyUsername);
 
 		JMenuItem copyPassword = JMenuItemFactory.newJMenuItem("Copy Password",
 			actionEvent -> this.onCopyPasswordTableEntry());
-		copyPassword.setEnabled(allSelectedRowData.size() == 1);
+		copyPassword.setEnabled(singleSelectedRow);
 		popup.add(copyPassword);
 
 		JMenuItem openUrl = JMenuItemFactory.newJMenuItem("Open url",
@@ -536,7 +599,7 @@ public class SecretKeyTreeWithContentPanel
 
 		JMenuItem openUrlAndAutotype = JMenuItemFactory.newJMenuItem("Autotype",
 			actionEvent -> this.onOpenUrlAndAutotypeOfTableEntry());
-		openUrl.setEnabled(validUrl);
+		openUrlAndAutotype.setEnabled(validUrl);
 		popup.add(openUrlAndAutotype);
 
 		// Separator
@@ -548,17 +611,17 @@ public class SecretKeyTreeWithContentPanel
 
 		JMenuItem edit = JMenuItemFactory.newJMenuItem("edit...",
 			actionEvent -> this.onEditTableEntry());
-		edit.setEnabled(allSelectedRowData.size() == 1);
+		edit.setEnabled(singleSelectedRow);
 		popup.add(edit);
 
 		JMenuItem duplicate = JMenuItemFactory.newJMenuItem("duplicate...",
 			actionEvent -> this.onDuplicateTableEntry());
-		duplicate.setEnabled(allSelectedRowData.size() == 1);
+		duplicate.setEnabled(singleSelectedRow);
 		popup.add(duplicate);
 
 		JMenuItem delete = JMenuItemFactory.newJMenuItem("delete",
 			actionEvent -> this.onDeleteTableEntry());
-		delete.setEnabled(!allSelectedRowData.isEmpty());
+		delete.setEnabled(rowsSelected);
 		popup.add(delete);
 		// Separator
 		popup.addSeparator();
@@ -566,7 +629,14 @@ public class SecretKeyTreeWithContentPanel
 		JMenuItem selectAll = JMenuItemFactory.newJMenuItem("select all",
 			actionEvent -> this.onSelectAllTableEntries());
 		selectAll.setEnabled(0 < getTblTreeEntryTable().getRowCount());
+
 		popup.add(selectAll);
+
+		JMenuItem clearSelection = JMenuItemFactory.newJMenuItem("clear selection",
+			actionEvent -> this.onDeselectAllTableEntries());
+		clearSelection.setEnabled(rowsSelected);
+
+		popup.add(clearSelection);
 
 		popup.show(getTblTreeEntryTable(), x, y);
 	}
@@ -615,6 +685,11 @@ public class SecretKeyTreeWithContentPanel
 	protected void onSelectAllTableEntries()
 	{
 		getTblTreeEntryTable().selectAll();
+	}
+
+	protected void onDeselectAllTableEntries()
+	{
+		getTblTreeEntryTable().clearSelection();
 	}
 
 	protected void onDuplicateTableEntry()
@@ -681,9 +756,8 @@ public class SecretKeyTreeWithContentPanel
 
 	protected void onEditTableEntry()
 	{
-		getTblTreeEntryTable().getSingleSelectedRowData().ifPresent(tableEntry -> {
-			showEditMysticCryptEntryDialog(tableEntry);
-		});
+		getTblTreeEntryTable().getSingleSelectedRowData()
+			.ifPresent(this::showEditMysticCryptEntryDialog);
 	}
 
 	protected void onOpenUrlOfTableEntry()
@@ -703,7 +777,6 @@ public class SecretKeyTreeWithContentPanel
 		});
 	}
 
-	@SuppressWarnings("unchecked")
 	protected void onAddTableEntry()
 	{
 		MysticCryptEntryTabbedPanel panel = new MysticCryptEntryTabbedPanel();
@@ -743,16 +816,14 @@ public class SecretKeyTreeWithContentPanel
 	private BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> getSelectedBaseTreeNode()
 	{
 		DefaultMutableTreeNode selectedTreeNode = getSelectedTreeNode();
-		BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> selectedBaseTreeNode;
 		if (selectedTreeNode == null)
 		{
-			selectedBaseTreeNode = getModelObject().getRoot();
+			return getModelObject().getRoot();
 		}
 		{
 			Object userObject = selectedTreeNode.getUserObject();
-			selectedBaseTreeNode = (BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long>)userObject;
+			return (BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long>)userObject;
 		}
-		return selectedBaseTreeNode;
 	}
 
 	private void reloadApplicationTreeModel()

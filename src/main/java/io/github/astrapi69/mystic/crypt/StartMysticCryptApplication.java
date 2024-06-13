@@ -24,7 +24,7 @@
  */
 package io.github.astrapi69.mystic.crypt;
 
-import io.github.astrapi69.swing.layout.ScreenSizeExtensions;
+import io.github.astrapi69.awt.screen.ScreenSizeExtensions;
 
 /**
  * The class {@link StartMysticCryptApplication} starts the application

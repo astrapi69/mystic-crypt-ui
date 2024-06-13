@@ -42,7 +42,7 @@ import io.github.astrapi69.model.BaseModel;
 import io.github.astrapi69.model.api.IModel;
 import io.github.astrapi69.mystic.crypt.button.state.GenericButtonGenericJXTableStateMachine;
 import io.github.astrapi69.swing.base.BasePanel;
-import io.github.astrapi69.swing.table.GenericJXTable;
+import io.github.astrapi69.swing.table.GenericJTable;
 import io.github.astrapi69.throwable.RuntimeExceptionDecorator;
 
 @Getter
@@ -54,7 +54,7 @@ public class AttachmentPanel extends BasePanel<MysticCryptEntryModelBean>
 	private JButton btnRemove;
 	private JButton btnSaveTo;
 	private JScrollPane srcFiles;
-	private GenericJXTable<FileContentInfo> tblFiles;
+	private GenericJTable<FileContentInfo> tblFiles;
 	private JFileChooser fileChooser;
 
 	/**
@@ -83,7 +83,7 @@ public class AttachmentPanel extends BasePanel<MysticCryptEntryModelBean>
 			getModelObject().setResources(new ArrayList<>());
 		}
 		attachmentTableModel.setData(getModelObject().getResources());
-		tblFiles = new GenericJXTable<>(attachmentTableModel);
+		tblFiles = new GenericJTable<>(attachmentTableModel);
 		// set only single selection
 		tblFiles.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		btnAdd = new JButton();

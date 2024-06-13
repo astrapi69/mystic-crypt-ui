@@ -34,6 +34,8 @@ import javax.swing.*;
 import javax.swing.event.DocumentEvent;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
+import io.github.astrapi69.swing.model.component.JMComboBox;
+import io.github.astrapi69.swing.model.component.JMPasswordField;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.experimental.FieldDefaults;
@@ -58,9 +60,7 @@ import io.github.astrapi69.mystic.crypt.panel.signin.button.state.ok.DocumentExt
 import io.github.astrapi69.net.url.URLExtensions;
 import io.github.astrapi69.swing.base.BasePanel;
 import io.github.astrapi69.swing.model.combobox.GenericMutableComboBoxModel;
-import io.github.astrapi69.swing.component.JMCheckBox;
-import io.github.astrapi69.swing.component.JMComboBox;
-import io.github.astrapi69.swing.component.JMPasswordField;
+import io.github.astrapi69.swing.model.component.JMCheckBox;
 import io.github.astrapi69.swing.dialog.help.HelpDialog;
 import io.github.astrapi69.swing.filechooser.JFileChooserExtensions;
 import io.github.astrapi69.swing.listener.document.DocumentListenerAdapter;

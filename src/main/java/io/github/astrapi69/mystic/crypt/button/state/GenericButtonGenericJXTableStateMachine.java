@@ -29,7 +29,7 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 import lombok.experimental.SuperBuilder;
-import io.github.astrapi69.swing.table.GenericJXTable;
+import io.github.astrapi69.swing.table.GenericJTable;
 
 @Getter
 @Setter
@@ -38,7 +38,7 @@ import io.github.astrapi69.swing.table.GenericJXTable;
 @SuperBuilder
 public class GenericButtonGenericJXTableStateMachine<T>
 	extends
-		AbstractJButtonAndComponentStateMachine<GenericButtonGenericJXTableStateMachine<T>, GenericJXTable<T>>
+		AbstractJButtonAndComponentStateMachine<GenericButtonGenericJXTableStateMachine<T>, GenericJTable<T>>
 	implements
 		ButtonTableSelectionToState
 {

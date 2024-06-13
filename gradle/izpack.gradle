@@ -1,8 +1,10 @@
 
 izpack {
-    baseDir = file("$buildDir")
+    DirectoryProperty buildDirectoryProperty = layout.buildDirectory
+    String buildDirectory = buildDirectoryProperty.get()
+    baseDir = file("$buildDirectory")
     installFile = file("src/main/izpack/install.xml")
-    outputFile = file("$buildDir/distributions/$rootProject.name-${projectVersion}-installer.jar")
+    outputFile = file("$buildDirectory/distributions/$rootProject.name-${projectVersion}-installer.jar")
     compression = "deflate"
     compressionLevel = 9
     appProperties = ["app.group": "$groupPackage",

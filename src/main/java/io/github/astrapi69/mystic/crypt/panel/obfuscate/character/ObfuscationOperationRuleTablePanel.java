@@ -23,13 +23,26 @@ package io.github.astrapi69.mystic.crypt.panel.obfuscate.character;
 import java.awt.event.ActionEvent;
 import java.io.File;
 import java.io.IOException;
+import java.security.PrivateKey;
+import java.security.PublicKey;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 
 import javax.swing.*;
+import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.table.TableColumn;
 
+import io.github.astrapi69.crypt.data.key.KeyModelExtensions;
+import io.github.astrapi69.crypt.data.key.PrivateKeyExtensions;
+import io.github.astrapi69.crypt.data.model.KeyModel;
+import io.github.astrapi69.file.read.ReadFileExtensions;
+import io.github.astrapi69.file.write.StoreFileExtensions;
+import io.github.astrapi69.mystic.crypt.ApplicationModelBean;
+import io.github.astrapi69.mystic.crypt.key.PrivateKeyStringDecryptor;
+import io.github.astrapi69.mystic.crypt.key.PublicKeyStringEncryptor;
+import io.github.astrapi69.xstream.ObjectToXmlExtensions;
+import io.github.astrapi69.xstream.XmlToObjectExtensions;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.extern.java.Log;
@@ -43,7 +56,7 @@ import io.github.astrapi69.model.BaseModel;
 import io.github.astrapi69.model.api.IModel;
 import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
 import io.github.astrapi69.swing.base.BasePanel;
-import io.github.astrapi69.swing.table.GenericJXTable;
+import io.github.astrapi69.swing.table.GenericJTable;
 import io.github.astrapi69.swing.table.editor.DeleteRowButtonEditor;
 import io.github.astrapi69.swing.table.editor.TableCellButtonEditor;
 import io.github.astrapi69.swing.table.renderer.TableCellButtonRendererFactory;
@@ -62,9 +75,10 @@ public class ObfuscationOperationRuleTablePanel extends BasePanel<ObfuscationOpe
 	private javax.swing.JButton btnExport;
 	private javax.swing.JButton btnImport;
 	private JFileChooser fileChooser;
+	private FileNameExtensionFilter fileNameExtensionFilter;
 	private JLabel lblKeyRules;
 	private JScrollPane scpKeyRules;
-	private GenericJXTable<KeyValuePair<Character, ObfuscationOperationRule<Character, Character>>> tblKeyRules;
+	private GenericJTable<KeyValuePair<Character, ObfuscationOperationRule<Character, Character>>> tblKeyRules;
 
 	{
 		aliases = MapFactory.newLinkedHashMap();
@@ -96,31 +110,56 @@ public class ObfuscationOperationRuleTablePanel extends BasePanel<ObfuscationOpe
 
 	protected void onExport(final ActionEvent actionEvent)
 	{
+		fileChooser.setFileFilter(fileNameExtensionFilter);
 		final int returnVal = fileChooser.showSaveDialog(ObfuscationOperationRuleTablePanel.this);
 		if (returnVal == JFileChooser.APPROVE_OPTION)
 		{
 			List<KeyValuePair<Character, ObfuscationOperationRule<Character, Character>>> data = getModelObject()
 				.getTableModel().getData();
 			final File selectedFile = fileChooser.getSelectedFile();
-			RuntimeExceptionDecorator.decorate(
-				() -> XmlEncryptionExtensions.writeToFileAsXmlAndHex(aliases, data, selectedFile));
+
+			ApplicationModelBean modelObject = MysticCryptApplicationFrame.getInstance()
+				.getModelObject();
+			KeyModel privateKeyInfo = modelObject.getMasterPwFileModelBean().getPrivateKeyInfo();
+			PrivateKey privateKey = KeyModelExtensions.toPrivateKey(privateKeyInfo);
+			PublicKey publicKey = RuntimeExceptionDecorator
+				.decorate(() -> PrivateKeyExtensions.generatePublicKey(privateKey));
+			PublicKeyStringEncryptor encryptor = new PublicKeyStringEncryptor(publicKey);
+
+			String xml = ObjectToXmlExtensions.toXml(data);
+			byte[] encrypted = RuntimeExceptionDecorator.decorate(() -> encryptor.encrypt(xml));
+
+			RuntimeExceptionDecorator
+				.decorate(() -> StoreFileExtensions.toFile(selectedFile, encrypted));
 		}
 	}
 
 	protected void onImport(final ActionEvent actionEvent)
 	{
+		fileChooser.setFileFilter(fileNameExtensionFilter);
 		final int returnVal = fileChooser.showOpenDialog(ObfuscationOperationRuleTablePanel.this);
 		if (returnVal == JFileChooser.APPROVE_OPTION)
 		{
 			final File selectedFile = fileChooser.getSelectedFile();
 			try
 			{
-				List<KeyValuePair<Character, ObfuscationOperationRule<Character, Character>>> data = XmlDecryptionExtensions
-					.readFromFileAsXmlAndHex(aliases, selectedFile, "io.github.astrapi69.**");
+				KeyModel privateKeyInfo = MysticCryptApplicationFrame.getInstance().getModelObject()
+					.getMasterPwFileModelBean().getPrivateKeyInfo();
+				PrivateKey privateKey = KeyModelExtensions.toPrivateKey(privateKeyInfo);
+
+				byte[] encrypted = ReadFileExtensions.readFileToBytearray(selectedFile);
+
+				PrivateKeyStringDecryptor decryptor = new PrivateKeyStringDecryptor(privateKey);
+
+				String xml = RuntimeExceptionDecorator.decorate(() -> decryptor.decrypt(encrypted));
+
+				List<KeyValuePair<Character, ObfuscationOperationRule<Character, Character>>> data = XmlToObjectExtensions
+					.toObject(xml);
+
 				getModelObject().getTableModel().setData(data);
 				getModelObject().getTableModel().fireTableDataChanged();
 			}
-			catch (final IOException | DecoderException e)
+			catch (final IOException e)
 			{
 				log.log(Level.SEVERE, e.getLocalizedMessage(), e);
 			}
@@ -137,7 +176,7 @@ public class ObfuscationOperationRuleTablePanel extends BasePanel<ObfuscationOpe
 
 		lblKeyRules = new JLabel();
 		scpKeyRules = new JScrollPane();
-		tblKeyRules = new GenericJXTable<>(getModelObject().getTableModel());
+		tblKeyRules = new GenericJTable<>(getModelObject().getTableModel());
 		btnImport = new javax.swing.JButton();
 		btnExport = new javax.swing.JButton();
 
@@ -185,6 +224,9 @@ public class ObfuscationOperationRuleTablePanel extends BasePanel<ObfuscationOpe
 
 		fileChooser = new JFileChooser(
 			MysticCryptApplicationFrame.getInstance().getConfigurationDirectory());
+
+		fileNameExtensionFilter = new FileNameExtensionFilter(
+			"Mystic crypt obfuscation files (*.obf)", "obf");
 	}
 
 	protected void onInitializeGroupLayout()

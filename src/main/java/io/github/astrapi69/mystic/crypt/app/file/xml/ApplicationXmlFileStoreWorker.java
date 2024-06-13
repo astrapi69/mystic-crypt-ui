@@ -41,7 +41,7 @@ import io.github.astrapi69.crypt.data.model.CryptModel;
 import io.github.astrapi69.file.create.FileFactory;
 import io.github.astrapi69.file.delete.DeleteFileExtensions;
 import io.github.astrapi69.file.system.SystemFileExtensions;
-import io.github.astrapi69.file.write.WriteFileExtensions;
+import io.github.astrapi69.file.write.StoreFileExtensions;
 import io.github.astrapi69.io.file.FileExtension;
 import io.github.astrapi69.mystic.crypt.ApplicationModelBean;
 import io.github.astrapi69.mystic.crypt.file.PBEFileEncryptor;
@@ -116,17 +116,15 @@ public final class ApplicationXmlFileStoreWorker
 		encryptor = RuntimeExceptionDecorator
 			.decorate(() -> new PublicKeyEncryptor(encryptModel, symmetricKeyModel));
 		genericEncryptor = new PublicKeyGenericEncryptor<>(encryptor);
-		applicationModelBean.getMasterPwFileModelBean().setPrivateKeyInfo(null);
 
 		xml = ObjectToXmlExtensions.toXml(applicationModelBean);
 
-		RuntimeExceptionDecorator
-			.decorate(() -> WriteFileExtensions.string2File(applicationFile, xml));
+		RuntimeExceptionDecorator.decorate(() -> StoreFileExtensions.toFile(applicationFile, xml));
 
 		encrypt = RuntimeExceptionDecorator.decorate(() -> genericEncryptor.encrypt(xml));
 
 		RuntimeExceptionDecorator
-			.decorate(() -> WriteFileExtensions.storeByteArrayToFile(encrypt, applicationFile));
+			.decorate(() -> StoreFileExtensions.toFile(applicationFile, encrypt));
 		return applicationFile;
 	}
 
@@ -138,7 +136,7 @@ public final class ApplicationXmlFileStoreWorker
 		SecretKey symmetricKey;
 		PublicKeyGenericEncryptor<String> genericEncryptor;
 		PrivateKey privateKey;
-		CryptModel<Cipher, PublicKey, byte[]> encryptModel;
+		CryptModel<Cipher, PublicKey, byte[]> encryptionModel;
 		String xml;
 		char[] masterPw;
 		PublicKey publicKey;
@@ -155,7 +153,7 @@ public final class ApplicationXmlFileStoreWorker
 		publicKey = RuntimeExceptionDecorator
 			.decorate(() -> PrivateKeyExtensions.generatePublicKey(privateKey));
 
-		encryptModel = CryptModel.<Cipher, PublicKey, byte[]> builder().key(publicKey).build();
+		encryptionModel = CryptModel.<Cipher, PublicKey, byte[]> builder().key(publicKey).build();
 
 		symmetricKey = RuntimeExceptionDecorator.decorate(
 			() -> SecretKeyFactoryExtensions.newSecretKey(AesAlgorithm.AES.getAlgorithm(), 128));
@@ -164,13 +162,12 @@ public final class ApplicationXmlFileStoreWorker
 			.algorithm(AesAlgorithm.AES).operationMode(Cipher.ENCRYPT_MODE).build();
 
 		encryptor = RuntimeExceptionDecorator
-			.decorate(() -> new PublicKeyEncryptor(encryptModel, symmetricKeyModel));
+			.decorate(() -> new PublicKeyEncryptor(encryptionModel, symmetricKeyModel));
 
 
 		genericEncryptor = new PublicKeyGenericEncryptor<>(encryptor);
 
 		passwordStringEncryptor = new PasswordStringEncryptor(String.valueOf(masterPw));
-		applicationModelBean.getMasterPwFileModelBean().setPrivateKeyInfo(null);
 
 		xml = ObjectToXmlExtensions.toXml(applicationModelBean);
 
@@ -181,7 +178,7 @@ public final class ApplicationXmlFileStoreWorker
 			.decorate(() -> genericEncryptor.encrypt(encryptedJson));
 
 		RuntimeExceptionDecorator
-			.decorate(() -> WriteFileExtensions.storeByteArrayToFile(encrypt, applicationFile));
+			.decorate(() -> StoreFileExtensions.toFile(applicationFile, encrypt));
 		return applicationFile;
 	}
 
@@ -210,8 +207,7 @@ public final class ApplicationXmlFileStoreWorker
 			applicationFile, FileExtension.MYSTIC_CRYPT_ENCRYPTED.getExtension()));
 
 		xml = ObjectToXmlExtensions.toXml(applicationModelBean);
-		RuntimeExceptionDecorator
-			.decorate(() -> WriteFileExtensions.string2File(tempJsonFile, xml));
+		RuntimeExceptionDecorator.decorate(() -> StoreFileExtensions.toFile(tempJsonFile, xml));
 
 		File encryptedApplicationFile = RuntimeExceptionDecorator
 			.decorate(() -> encryptor.encrypt(tempJsonFile));
