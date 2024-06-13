@@ -44,7 +44,6 @@ import javax.swing.MenuElement;
 
 import io.github.astrapi69.component.model.enumeration.visibility.RenderMode;
 import io.github.astrapi69.swing.menu.model.KeyStrokeInfo;
-import io.github.astrapi69.swing.menu.model.MenuInfo;
 import io.github.astrapi69.swing.panel.info.InfoModelBean;
 import lombok.NonNull;
 import lombok.extern.java.Log;
@@ -329,7 +328,7 @@ public class DesktopMenu extends BaseDesktopMenu implements EventListener<EventO
 						.labelCopyright(Messages.getString("InfoJPanel.copyright.key", "Copyright(C):"))
 						.copyright(Messages.getString("InfoJPanel.copyright.value", "2016 Asterios Raptis"))
 						.labelVersion(Messages.getString("InfoJPanel.version.key", "Version:"))
-						.version(Messages.getString("InfoJPanel.version.value", "8-SNAPSHOT"))
+						.version(Messages.getString("InfoJPanel.version.value", "8"))
 						.licence(Messages.getString("InfoJPanel.license.information.value", "This Software is licensed under the MIT License"))
 						.build();
 				return new InfoPanel()
