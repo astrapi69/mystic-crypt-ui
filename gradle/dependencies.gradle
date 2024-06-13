@@ -70,7 +70,6 @@ dependencies {
     implementation libs.jobj.cloner
     implementation libs.awt.extensions
     implementation libs.swing.model.components
-    implementation libs.swing.menu.pf4j.plugin
 
     testImplementation libs.kee.pass.java2
     // Note: use of bundles...
