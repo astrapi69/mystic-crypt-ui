@@ -24,8 +24,8 @@ import java.io.IOException;
 
 import javax.swing.*;
 
-import io.github.astrapi69.model.BaseModel;
 import io.github.astrapi69.awt.window.adapter.CloseWindow;
+import io.github.astrapi69.model.BaseModel;
 
 public class ObfuscationOperationRulePanelTest
 {

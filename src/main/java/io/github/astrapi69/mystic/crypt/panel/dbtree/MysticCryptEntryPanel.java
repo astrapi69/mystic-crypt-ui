@@ -28,10 +28,6 @@ import java.awt.event.ActionEvent;
 
 import javax.swing.*;
 
-import io.github.astrapi69.swing.model.component.JMPasswordField;
-import io.github.astrapi69.swing.model.component.JMTextArea;
-import lombok.Getter;
-
 import com.github.lgooddatepicker.components.CalendarPanel;
 import com.github.lgooddatepicker.components.DatePicker;
 
@@ -44,7 +40,10 @@ import io.github.astrapi69.mystic.crypt.panel.pw.GeneratePasswordModelBean;
 import io.github.astrapi69.swing.base.BasePanel;
 import io.github.astrapi69.swing.component.ComponentExtensions;
 import io.github.astrapi69.swing.model.component.JMCheckBox;
+import io.github.astrapi69.swing.model.component.JMPasswordField;
+import io.github.astrapi69.swing.model.component.JMTextArea;
 import io.github.astrapi69.swing.model.component.JMTextField;
+import lombok.Getter;
 
 @Getter
 public class MysticCryptEntryPanel extends BasePanel<MysticCryptEntryModelBean>

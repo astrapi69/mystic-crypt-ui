@@ -42,13 +42,8 @@ import javax.swing.JMenuItem;
 import javax.swing.KeyStroke;
 import javax.swing.MenuElement;
 
-import io.github.astrapi69.component.model.enumeration.visibility.RenderMode;
-import io.github.astrapi69.swing.menu.model.KeyStrokeInfo;
-import io.github.astrapi69.swing.panel.info.InfoModelBean;
-import lombok.NonNull;
-import lombok.extern.java.Log;
-
 import io.github.astrapi69.collection.set.SetFactory;
+import io.github.astrapi69.component.model.enumeration.visibility.RenderMode;
 import io.github.astrapi69.design.pattern.observer.event.EventListener;
 import io.github.astrapi69.design.pattern.observer.event.EventObject;
 import io.github.astrapi69.design.pattern.observer.event.EventSource;
@@ -71,7 +66,11 @@ import io.github.astrapi69.swing.dialog.info.InfoPanel;
 import io.github.astrapi69.swing.menu.KeyStrokeExtensions;
 import io.github.astrapi69.swing.menu.MenuExtensions;
 import io.github.astrapi69.swing.menu.ParentMenuResolver;
+import io.github.astrapi69.swing.menu.model.KeyStrokeInfo;
 import io.github.astrapi69.swing.menu.model.MenuItemInfo;
+import io.github.astrapi69.swing.panel.info.InfoModelBean;
+import lombok.NonNull;
+import lombok.extern.java.Log;
 
 /**
  * The class {@link DesktopMenu}

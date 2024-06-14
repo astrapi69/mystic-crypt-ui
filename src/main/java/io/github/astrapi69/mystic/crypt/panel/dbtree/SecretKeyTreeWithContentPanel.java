@@ -43,22 +43,18 @@ import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreeModel;
 
-import io.github.astrapi69.design.pattern.observer.event.EventSource;
-import io.github.astrapi69.swing.listener.mouse.MouseDoubleClickListener;
-import io.github.astrapi69.swing.renderer.tree.renderer.state.NewGenericBaseTreeNodeCellRenderer;
-import net.miginfocom.layout.AC;
-import net.miginfocom.layout.CC;
-import net.miginfocom.layout.LC;
-import net.miginfocom.swing.MigLayout;
-
 import org.kquiet.browser.ActionComposer;
 import org.kquiet.browser.ActionComposerBuilder;
 import org.kquiet.browser.ActionRunner;
 import org.openqa.selenium.By;
 
+import io.github.astrapi69.awt.extension.ClipboardExtensions;
 import io.github.astrapi69.browser.BrowserControlExtensions;
 import io.github.astrapi69.clone.CloneQuietlyExtensions;
+import io.github.astrapi69.component.model.enumeration.visibility.RenderMode;
+import io.github.astrapi69.component.model.node.NodeModel;
 import io.github.astrapi69.design.pattern.observer.event.EventObject;
+import io.github.astrapi69.design.pattern.observer.event.EventSource;
 import io.github.astrapi69.gen.tree.BaseTreeNode;
 import io.github.astrapi69.gen.tree.TreeIdNode;
 import io.github.astrapi69.gen.tree.convert.BaseTreeNodeTransformer;
@@ -67,7 +63,6 @@ import io.github.astrapi69.gen.tree.visitor.ReindexTreeNodeVisitor;
 import io.github.astrapi69.id.generate.LongIdGenerator;
 import io.github.astrapi69.model.BaseModel;
 import io.github.astrapi69.model.api.IModel;
-import io.github.astrapi69.component.model.node.NodeModel;
 import io.github.astrapi69.mystic.crypt.Messages;
 import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
 import io.github.astrapi69.mystic.crypt.eventbus.ApplicationEventBus;
@@ -75,18 +70,22 @@ import io.github.astrapi69.mystic.crypt.panel.table.NewTableEntryModel;
 import io.github.astrapi69.mystic.crypt.panel.table.NewTableEntryPanel;
 import io.github.astrapi69.swing.dialog.DialogExtensions;
 import io.github.astrapi69.swing.dialog.JOptionPaneExtensions;
+import io.github.astrapi69.swing.listener.mouse.MouseDoubleClickListener;
 import io.github.astrapi69.swing.menu.factory.JMenuItemFactory;
 import io.github.astrapi69.swing.menu.factory.JPopupMenuFactory;
 import io.github.astrapi69.swing.model.label.LabelModel;
+import io.github.astrapi69.swing.renderer.tree.GenericTreeElement;
+import io.github.astrapi69.swing.renderer.tree.renderer.state.NewGenericBaseTreeNodeCellRenderer;
 import io.github.astrapi69.swing.table.GenericJTable;
 import io.github.astrapi69.swing.table.model.GenericTableModel;
-import io.github.astrapi69.swing.tree.factory.BaseTreeNodeFactory;
-import io.github.astrapi69.swing.renderer.tree.GenericTreeElement;
 import io.github.astrapi69.swing.tree.extension.JTreeExtensions;
+import io.github.astrapi69.swing.tree.factory.BaseTreeNodeFactory;
 import io.github.astrapi69.swing.tree.panel.content.BaseTreeNodeGenericTreeElementWithContentPanel;
 import io.github.astrapi69.swing.tree.panel.node.NodePanel;
-import io.github.astrapi69.awt.extension.ClipboardExtensions;
-import io.github.astrapi69.component.model.enumeration.visibility.RenderMode;
+import net.miginfocom.layout.AC;
+import net.miginfocom.layout.CC;
+import net.miginfocom.layout.LC;
+import net.miginfocom.swing.MigLayout;
 
 public class SecretKeyTreeWithContentPanel
 	extends

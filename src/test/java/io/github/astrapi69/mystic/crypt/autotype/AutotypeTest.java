@@ -24,14 +24,14 @@
  */
 package io.github.astrapi69.mystic.crypt.autotype;
 
+import static org.openqa.selenium.support.ui.ExpectedConditions.*;
+
+import java.util.concurrent.ExecutionException;
+
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.kquiet.browser.*;
 import org.openqa.selenium.By;
-
-import java.util.concurrent.ExecutionException;
-
-import static org.openqa.selenium.support.ui.ExpectedConditions.*;
 
 public class AutotypeTest
 {

@@ -23,13 +23,10 @@ package io.github.astrapi69.mystic.crypt.panel.obfuscate.simple;
 import java.awt.event.ActionEvent;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Map.Entry;
+import java.util.Optional;
 
 import javax.swing.*;
-
-import lombok.Getter;
-import net.miginfocom.swing.MigLayout;
 
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
@@ -44,6 +41,8 @@ import io.github.astrapi69.mystic.crypt.obfuscation.simple.SimpleCharacterObfusc
 import io.github.astrapi69.mystic.crypt.panel.keygen.EnDecryptPanel;
 import io.github.astrapi69.mystic.crypt.panel.obfuscate.ModeContext;
 import io.github.astrapi69.swing.base.BasePanel;
+import lombok.Getter;
+import net.miginfocom.swing.MigLayout;
 
 @Getter
 public class RulePanel extends BasePanel<ObfuscationModelBean>

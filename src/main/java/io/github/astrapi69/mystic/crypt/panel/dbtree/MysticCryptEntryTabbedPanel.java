@@ -28,11 +28,11 @@
  */
 package io.github.astrapi69.mystic.crypt.panel.dbtree;
 
-import lombok.Getter;
 import io.github.astrapi69.model.BaseModel;
 import io.github.astrapi69.model.api.IModel;
 import io.github.astrapi69.mystic.crypt.panel.properties.PropertiesPanel;
 import io.github.astrapi69.swing.base.BasePanel;
+import lombok.Getter;
 
 @Getter
 public class MysticCryptEntryTabbedPanel extends BasePanel<MysticCryptEntryModelBean>

@@ -22,9 +22,9 @@ package io.github.astrapi69.mystic.crypt;
 
 import java.util.ResourceBundle;
 
+import io.github.astrapi69.resourcebundle.locale.ResourceBundleExtensions;
 import lombok.experimental.UtilityClass;
 import lombok.extern.java.Log;
-import io.github.astrapi69.resourcebundle.locale.ResourceBundleExtensions;
 
 /**
  * The Class Messages.

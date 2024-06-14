@@ -33,29 +33,23 @@ import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.table.TableColumn;
 
-import io.github.astrapi69.crypt.data.key.KeyModelExtensions;
-import io.github.astrapi69.crypt.data.key.PrivateKeyExtensions;
-import io.github.astrapi69.crypt.data.model.KeyModel;
-import io.github.astrapi69.crypt.data.obfuscation.rule.ObfuscationOperationRule;
-import io.github.astrapi69.file.read.ReadFileExtensions;
-import io.github.astrapi69.file.write.StoreFileExtensions;
-import io.github.astrapi69.mystic.crypt.ApplicationModelBean;
-import io.github.astrapi69.mystic.crypt.key.PrivateKeyStringDecryptor;
-import io.github.astrapi69.mystic.crypt.key.PublicKeyStringEncryptor;
-import io.github.astrapi69.xstream.ObjectToXmlExtensions;
-import io.github.astrapi69.xstream.XmlToObjectExtensions;
-import lombok.Getter;
-import lombok.NonNull;
-import lombok.extern.java.Log;
-
 import org.apache.commons.codec.DecoderException;
 
 import io.github.astrapi69.collection.map.MapFactory;
 import io.github.astrapi69.collection.pair.KeyValuePair;
+import io.github.astrapi69.crypt.data.key.KeyModelExtensions;
+import io.github.astrapi69.crypt.data.key.PrivateKeyExtensions;
+import io.github.astrapi69.crypt.data.model.KeyModel;
+import io.github.astrapi69.crypt.data.obfuscation.rule.ObfuscationOperationRule;
 import io.github.astrapi69.crypt.data.obfuscation.rule.ObfuscationRule;
+import io.github.astrapi69.file.read.ReadFileExtensions;
+import io.github.astrapi69.file.write.StoreFileExtensions;
 import io.github.astrapi69.model.BaseModel;
 import io.github.astrapi69.model.api.IModel;
+import io.github.astrapi69.mystic.crypt.ApplicationModelBean;
 import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
+import io.github.astrapi69.mystic.crypt.key.PrivateKeyStringDecryptor;
+import io.github.astrapi69.mystic.crypt.key.PublicKeyStringEncryptor;
 import io.github.astrapi69.swing.base.BasePanel;
 import io.github.astrapi69.swing.table.GenericJTable;
 import io.github.astrapi69.swing.table.editor.DeleteRowButtonEditor;
@@ -64,6 +58,11 @@ import io.github.astrapi69.swing.table.renderer.TableCellButtonRendererFactory;
 import io.github.astrapi69.throwable.RuntimeExceptionDecorator;
 import io.github.astrapi69.xml.crypto.file.XmlDecryptionExtensions;
 import io.github.astrapi69.xml.crypto.file.XmlEncryptionExtensions;
+import io.github.astrapi69.xstream.ObjectToXmlExtensions;
+import io.github.astrapi69.xstream.XmlToObjectExtensions;
+import lombok.Getter;
+import lombok.NonNull;
+import lombok.extern.java.Log;
 
 @Getter
 @Log

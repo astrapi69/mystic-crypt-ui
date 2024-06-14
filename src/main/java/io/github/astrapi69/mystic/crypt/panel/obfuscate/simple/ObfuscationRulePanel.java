@@ -22,13 +22,13 @@ package io.github.astrapi69.mystic.crypt.panel.obfuscate.simple;
 
 import java.awt.event.ActionEvent;
 
-import lombok.Getter;
 import io.github.astrapi69.crypt.data.obfuscation.rule.ObfuscationRule;
 import io.github.astrapi69.model.BaseModel;
 import io.github.astrapi69.model.api.IModel;
 import io.github.astrapi69.mystic.crypt.panel.obfuscate.ModeContext;
 import io.github.astrapi69.swing.base.BasePanel;
 import io.github.astrapi69.swing.document.RangeDocument;
+import lombok.Getter;
 
 @Getter
 public class ObfuscationRulePanel extends BasePanel<ObfuscationModelBean>

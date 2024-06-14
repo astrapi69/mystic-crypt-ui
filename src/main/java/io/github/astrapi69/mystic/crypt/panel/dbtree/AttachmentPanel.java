@@ -35,7 +35,6 @@ import java.util.Optional;
 
 import javax.swing.*;
 
-import lombok.Getter;
 import io.github.astrapi69.file.create.FileContentInfo;
 import io.github.astrapi69.file.write.WriteFileExtensions;
 import io.github.astrapi69.model.BaseModel;
@@ -44,6 +43,7 @@ import io.github.astrapi69.mystic.crypt.button.state.GenericButtonGenericJXTable
 import io.github.astrapi69.swing.base.BasePanel;
 import io.github.astrapi69.swing.table.GenericJTable;
 import io.github.astrapi69.throwable.RuntimeExceptionDecorator;
+import lombok.Getter;
 
 @Getter
 public class AttachmentPanel extends BasePanel<MysticCryptEntryModelBean>

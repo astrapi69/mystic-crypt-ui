@@ -32,18 +32,12 @@ import java.security.Security;
 
 import javax.swing.*;
 
-import io.github.astrapi69.mystic.crypt.app.file.xml.ApplicationXmlFileStoreWorker;
-import io.github.astrapi69.swing.dialog.JOptionPaneExtensions;
-import io.github.astrapi69.swing.enumeration.FrameMode;
-import io.github.astrapi69.swing.panel.label.LabelPanel;
-import io.github.astrapi69.awt.window.adapter.CloseWindow;
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.NonNull;
-import lombok.experimental.FieldDefaults;
-
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
+import org.pf4j.DefaultPluginManager;
+import org.pf4j.PluginManager;
 
+import io.github.astrapi69.awt.screen.ScreenSizeExtensions;
+import io.github.astrapi69.awt.window.adapter.CloseWindow;
 import io.github.astrapi69.file.create.DirectoryFactory;
 import io.github.astrapi69.file.read.ReadFileExtensions;
 import io.github.astrapi69.gson.JsonStringToObjectExtensions;
@@ -53,20 +47,25 @@ import io.github.astrapi69.model.BaseModel;
 import io.github.astrapi69.model.api.IModel;
 import io.github.astrapi69.mystic.crypt.action.NewApplicationFileAction;
 import io.github.astrapi69.mystic.crypt.action.SaveApplicationFileAction;
+import io.github.astrapi69.mystic.crypt.app.file.xml.ApplicationXmlFileStoreWorker;
 import io.github.astrapi69.mystic.crypt.panel.signin.MasterPwFileDialog;
 import io.github.astrapi69.mystic.crypt.panel.signin.MasterPwFileModelBean;
 import io.github.astrapi69.mystic.crypt.panel.signin.MemoizedSigninModelBean;
 import io.github.astrapi69.swing.base.ApplicationPanelFrame;
 import io.github.astrapi69.swing.base.BasePanel;
 import io.github.astrapi69.swing.button.builder.JButtonInfo;
-import io.github.astrapi69.awt.screen.ScreenSizeExtensions;
+import io.github.astrapi69.swing.dialog.JOptionPaneExtensions;
+import io.github.astrapi69.swing.enumeration.FrameMode;
 import io.github.astrapi69.swing.panel.desktoppane.JDesktopPanePanel;
+import io.github.astrapi69.swing.panel.label.LabelPanel;
 import io.github.astrapi69.swing.plaf.LookAndFeels;
 import io.github.astrapi69.swing.splashscreen.ProgressBarSplashScreen;
 import io.github.astrapi69.swing.splashscreen.SplashScreenModelBean;
 import io.github.astrapi69.throwable.RuntimeExceptionDecorator;
-import org.pf4j.DefaultPluginManager;
-import org.pf4j.PluginManager;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NonNull;
+import lombok.experimental.FieldDefaults;
 
 /**
  * The class {@link MysticCryptApplicationFrame}

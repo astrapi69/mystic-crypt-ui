@@ -36,12 +36,9 @@ import java.net.URL;
 import javax.swing.*;
 import javax.swing.event.DocumentEvent;
 
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.experimental.FieldDefaults;
-
 import org.apache.commons.lang3.StringUtils;
 
+import io.github.astrapi69.awt.extension.ClipboardExtensions;
 import io.github.astrapi69.browser.BrowserControlExtensions;
 import io.github.astrapi69.crypt.data.model.KeyModel;
 import io.github.astrapi69.file.create.FileCreationState;
@@ -60,13 +57,15 @@ import io.github.astrapi69.mystic.crypt.panel.signin.button.state.ok.BtnOkCompon
 import io.github.astrapi69.mystic.crypt.panel.signin.button.state.ok.BtnOkStateMachine;
 import io.github.astrapi69.net.url.URLExtensions;
 import io.github.astrapi69.swing.base.BasePanel;
-import io.github.astrapi69.swing.model.combobox.GenericMutableComboBoxModel;
-import io.github.astrapi69.swing.model.component.JMTextField;
 import io.github.astrapi69.swing.dialog.help.HelpDialog;
 import io.github.astrapi69.swing.listener.document.DocumentListenerAdapter;
+import io.github.astrapi69.swing.model.combobox.GenericMutableComboBoxModel;
+import io.github.astrapi69.swing.model.component.JMTextField;
 import io.github.astrapi69.swing.panel.help.HelpModelBean;
-import io.github.astrapi69.awt.extension.ClipboardExtensions;
 import io.github.astrapi69.throwable.RuntimeExceptionDecorator;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.experimental.FieldDefaults;
 
 @Getter
 @FieldDefaults(level = AccessLevel.PRIVATE)

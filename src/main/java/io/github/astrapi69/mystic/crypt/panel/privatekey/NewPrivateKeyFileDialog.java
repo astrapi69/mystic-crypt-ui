@@ -29,12 +29,12 @@ import java.awt.event.ActionEvent;
 
 import javax.swing.*;
 
+import io.github.astrapi69.awt.screen.ScreenSizeExtensions;
+import io.github.astrapi69.awt.window.adapter.CloseWindow;
 import io.github.astrapi69.crypt.api.key.KeySize;
 import io.github.astrapi69.model.BaseModel;
 import io.github.astrapi69.model.api.IModel;
 import io.github.astrapi69.swing.base.PanelDialog;
-import io.github.astrapi69.awt.screen.ScreenSizeExtensions;
-import io.github.astrapi69.awt.window.adapter.CloseWindow;
 
 public class NewPrivateKeyFileDialog extends PanelDialog<NewPrivateKeyModelBean>
 {

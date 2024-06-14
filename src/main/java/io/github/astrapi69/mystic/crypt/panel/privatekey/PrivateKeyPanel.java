@@ -23,13 +23,13 @@ package io.github.astrapi69.mystic.crypt.panel.privatekey;
 import java.awt.event.ActionEvent;
 import java.util.logging.Level;
 
-import lombok.Getter;
-import lombok.extern.java.Log;
-import net.miginfocom.swing.MigLayout;
 import io.github.astrapi69.model.BaseModel;
 import io.github.astrapi69.model.api.IModel;
 import io.github.astrapi69.mystic.crypt.panel.keygen.EnDecryptPanel;
 import io.github.astrapi69.swing.base.BasePanel;
+import lombok.Getter;
+import lombok.extern.java.Log;
+import net.miginfocom.swing.MigLayout;
 
 @Getter
 @Log

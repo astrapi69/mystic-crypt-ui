@@ -34,13 +34,6 @@ import javax.swing.*;
 import javax.swing.event.DocumentEvent;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
-import io.github.astrapi69.swing.model.component.JMComboBox;
-import io.github.astrapi69.swing.model.component.JMPasswordField;
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.experimental.FieldDefaults;
-import lombok.extern.java.Log;
-
 import org.apache.commons.lang3.StringUtils;
 
 import io.github.astrapi69.browser.BrowserControlExtensions;
@@ -59,13 +52,19 @@ import io.github.astrapi69.mystic.crypt.panel.signin.button.state.ok.BtnOkStateM
 import io.github.astrapi69.mystic.crypt.panel.signin.button.state.ok.DocumentExtensions;
 import io.github.astrapi69.net.url.URLExtensions;
 import io.github.astrapi69.swing.base.BasePanel;
-import io.github.astrapi69.swing.model.combobox.GenericMutableComboBoxModel;
-import io.github.astrapi69.swing.model.component.JMCheckBox;
 import io.github.astrapi69.swing.dialog.help.HelpDialog;
 import io.github.astrapi69.swing.filechooser.JFileChooserExtensions;
 import io.github.astrapi69.swing.listener.document.DocumentListenerAdapter;
+import io.github.astrapi69.swing.model.combobox.GenericMutableComboBoxModel;
+import io.github.astrapi69.swing.model.component.JMCheckBox;
+import io.github.astrapi69.swing.model.component.JMComboBox;
+import io.github.astrapi69.swing.model.component.JMPasswordField;
 import io.github.astrapi69.swing.panel.help.HelpModelBean;
 import io.github.astrapi69.throwable.RuntimeExceptionDecorator;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.experimental.FieldDefaults;
+import lombok.extern.java.Log;
 
 /**
  * The class {@link MasterPwFilePanel}

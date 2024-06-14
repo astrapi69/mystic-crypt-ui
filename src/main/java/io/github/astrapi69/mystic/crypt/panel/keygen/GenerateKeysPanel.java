@@ -31,9 +31,6 @@ import java.util.logging.Level;
 
 import javax.swing.*;
 
-import lombok.Getter;
-import lombok.extern.java.Log;
-import net.miginfocom.swing.MigLayout;
 import io.github.astrapi69.crypt.api.algorithm.key.KeyPairGeneratorAlgorithm;
 import io.github.astrapi69.crypt.api.key.KeySize;
 import io.github.astrapi69.crypt.data.factory.KeyPairFactory;
@@ -47,6 +44,9 @@ import io.github.astrapi69.model.api.IModel;
 import io.github.astrapi69.mystic.crypt.key.PrivateKeyHexDecryptor;
 import io.github.astrapi69.mystic.crypt.key.PublicKeyHexEncryptor;
 import io.github.astrapi69.swing.base.BasePanel;
+import lombok.Getter;
+import lombok.extern.java.Log;
+import net.miginfocom.swing.MigLayout;
 
 @Getter
 @Log

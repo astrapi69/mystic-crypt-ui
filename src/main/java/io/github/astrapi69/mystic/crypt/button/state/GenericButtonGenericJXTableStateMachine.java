@@ -24,12 +24,12 @@
  */
 package io.github.astrapi69.mystic.crypt.button.state;
 
+import io.github.astrapi69.swing.table.GenericJTable;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 import lombok.experimental.SuperBuilder;
-import io.github.astrapi69.swing.table.GenericJTable;
 
 @Getter
 @Setter

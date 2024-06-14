@@ -24,7 +24,6 @@ import java.awt.event.ActionEvent;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import lombok.Getter;
 import io.github.astrapi69.collection.array.ArrayExtensions;
 import io.github.astrapi69.collection.list.ListFactory;
 import io.github.astrapi69.crypt.api.obfuscation.rule.Operation;
@@ -32,9 +31,10 @@ import io.github.astrapi69.crypt.data.obfuscation.rule.ObfuscationOperationRule;
 import io.github.astrapi69.model.api.IModel;
 import io.github.astrapi69.mystic.crypt.panel.obfuscate.ModeContext;
 import io.github.astrapi69.swing.base.BasePanel;
-import io.github.astrapi69.swing.model.combobox.EnumComboBoxModel;
 import io.github.astrapi69.swing.document.NumberValuesDocument;
 import io.github.astrapi69.swing.document.RangeDocument;
+import io.github.astrapi69.swing.model.combobox.EnumComboBoxModel;
+import lombok.Getter;
 
 @Getter
 public class ObfuscationOperationRulePanel extends BasePanel<ObfuscationOperationModelBean>

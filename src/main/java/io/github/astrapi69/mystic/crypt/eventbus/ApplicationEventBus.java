@@ -24,14 +24,13 @@
  */
 package io.github.astrapi69.mystic.crypt.eventbus;
 
-import lombok.Getter;
-
 import com.google.common.eventbus.EventBus;
 
+import io.github.astrapi69.component.model.enumeration.visibility.RenderMode;
 import io.github.astrapi69.design.pattern.eventbus.GenericEventBus;
 import io.github.astrapi69.design.pattern.observer.event.EventObject;
 import io.github.astrapi69.design.pattern.observer.event.EventSource;
-import io.github.astrapi69.component.model.enumeration.visibility.RenderMode;
+import lombok.Getter;
 
 public class ApplicationEventBus
 {

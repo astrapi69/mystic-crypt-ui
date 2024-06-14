@@ -35,8 +35,6 @@ import java.util.List;
 
 import javax.swing.*;
 
-import lombok.Getter;
-import net.miginfocom.swing.MigLayout;
 import io.github.astrapi69.collection.pair.KeyValuePair;
 import io.github.astrapi69.model.BaseModel;
 import io.github.astrapi69.model.api.IModel;
@@ -47,6 +45,8 @@ import io.github.astrapi69.swing.base.BasePanel;
 import io.github.astrapi69.swing.dialog.JOptionPaneExtensions;
 import io.github.astrapi69.swing.table.GenericJTable;
 import io.github.astrapi69.swing.table.model.properties.StringKeyValueTableModel;
+import lombok.Getter;
+import net.miginfocom.swing.MigLayout;
 
 @Getter
 public class PropertiesPanel extends BasePanel<MysticCryptEntryModelBean>

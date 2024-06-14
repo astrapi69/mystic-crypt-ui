@@ -27,6 +27,7 @@ package io.github.astrapi69.mystic.crypt.panel.checksum;
 import java.io.File;
 import java.io.Serializable;
 
+import io.github.astrapi69.crypt.api.algorithm.ChecksumAlgorithm;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -36,7 +37,6 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 import lombok.experimental.FieldDefaults;
-import io.github.astrapi69.crypt.api.algorithm.ChecksumAlgorithm;
 
 @Getter
 @Setter

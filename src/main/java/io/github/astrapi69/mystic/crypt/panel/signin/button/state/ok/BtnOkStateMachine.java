@@ -26,6 +26,9 @@ package io.github.astrapi69.mystic.crypt.panel.signin.button.state.ok;
 
 import javax.swing.*;
 
+import io.github.astrapi69.design.pattern.state.component.AbstractJComponentStateMachine;
+import io.github.astrapi69.file.create.FileInfo;
+import io.github.astrapi69.mystic.crypt.panel.signin.MasterPwFileModelBean;
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -33,9 +36,6 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 import lombok.experimental.SuperBuilder;
-import io.github.astrapi69.design.pattern.state.component.AbstractJComponentStateMachine;
-import io.github.astrapi69.file.create.FileInfo;
-import io.github.astrapi69.mystic.crypt.panel.signin.MasterPwFileModelBean;
 
 @Getter
 @Setter

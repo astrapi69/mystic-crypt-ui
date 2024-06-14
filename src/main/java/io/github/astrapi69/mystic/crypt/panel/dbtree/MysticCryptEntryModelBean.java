@@ -32,6 +32,8 @@ import java.util.UUID;
 
 import io.github.astrapi69.collection.list.ListExtensions;
 import io.github.astrapi69.collection.pair.KeySetPair;
+import io.github.astrapi69.collection.pair.KeyValuePair;
+import io.github.astrapi69.file.create.FileContentInfo;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -39,8 +41,6 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.experimental.SuperBuilder;
-import io.github.astrapi69.collection.pair.KeyValuePair;
-import io.github.astrapi69.file.create.FileContentInfo;
 
 @Data
 @NoArgsConstructor

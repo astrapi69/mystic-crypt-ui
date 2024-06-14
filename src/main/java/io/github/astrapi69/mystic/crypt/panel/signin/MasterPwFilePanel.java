@@ -30,13 +30,13 @@ import java.io.File;
 import javax.swing.*;
 import javax.swing.event.DocumentEvent;
 
-import lombok.Getter;
 import io.github.astrapi69.file.create.FileInfo;
 import io.github.astrapi69.file.system.SystemFileExtensions;
 import io.github.astrapi69.model.BaseModel;
 import io.github.astrapi69.model.api.IModel;
 import io.github.astrapi69.swing.base.BasePanel;
 import io.github.astrapi69.swing.listener.document.DocumentListenerAdapter;
+import lombok.Getter;
 
 /**
  * The class {@link MasterPwFilePanel}

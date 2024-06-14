@@ -39,8 +39,6 @@ import java.util.logging.Level;
 import javax.swing.*;
 import javax.swing.plaf.ColorUIResource;
 
-import lombok.Getter;
-import lombok.extern.java.Log;
 import io.github.astrapi69.checksum.ChecksumExtensions;
 import io.github.astrapi69.checksum.FileChecksumExtensions;
 import io.github.astrapi69.crypt.api.algorithm.ChecksumAlgorithm;
@@ -49,8 +47,10 @@ import io.github.astrapi69.file.system.SystemFileExtensions;
 import io.github.astrapi69.model.BaseModel;
 import io.github.astrapi69.model.api.IModel;
 import io.github.astrapi69.swing.base.BasePanel;
-import io.github.astrapi69.swing.model.combobox.EnumComboBoxModel;
 import io.github.astrapi69.swing.listener.document.EnableButtonBehavior;
+import io.github.astrapi69.swing.model.combobox.EnumComboBoxModel;
+import lombok.Getter;
+import lombok.extern.java.Log;
 
 @Getter
 @Log

@@ -29,7 +29,6 @@ import java.math.BigInteger;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 
-import lombok.Getter;
 import io.github.astrapi69.crypt.data.certificate.CertificateInfo;
 import io.github.astrapi69.model.BaseModel;
 import io.github.astrapi69.model.api.IModel;
@@ -38,6 +37,7 @@ import io.github.astrapi69.random.number.RandomBigIntegerFactory;
 import io.github.astrapi69.swing.base.BasePanel;
 import io.github.astrapi69.swing.dialog.factory.JDialogFactory;
 import io.github.astrapi69.swing.listener.RequestFocusListener;
+import lombok.Getter;
 
 @Getter
 public class NewCertificateInfoPanel extends BasePanel<CertificateInfo>

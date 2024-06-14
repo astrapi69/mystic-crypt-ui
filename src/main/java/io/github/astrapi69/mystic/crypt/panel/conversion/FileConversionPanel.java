@@ -34,8 +34,6 @@ import java.util.logging.Level;
 
 import javax.swing.*;
 
-import lombok.Getter;
-import lombok.extern.java.Log;
 import io.github.astrapi69.crypt.api.key.KeyType;
 import io.github.astrapi69.crypt.data.key.reader.CertificateReader;
 import io.github.astrapi69.crypt.data.key.reader.PrivateKeyReader;
@@ -48,6 +46,8 @@ import io.github.astrapi69.model.api.IModel;
 import io.github.astrapi69.swing.base.BasePanel;
 import io.github.astrapi69.swing.model.combobox.EnumComboBoxModel;
 import io.github.astrapi69.throwable.ThrowableExtensions;
+import lombok.Getter;
+import lombok.extern.java.Log;
 
 @Getter
 @Log

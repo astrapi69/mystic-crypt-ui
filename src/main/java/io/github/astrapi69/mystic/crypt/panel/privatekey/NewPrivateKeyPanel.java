@@ -40,8 +40,7 @@ import java.util.logging.Level;
 import javax.swing.*;
 import javax.swing.event.DocumentEvent;
 
-import lombok.Getter;
-import lombok.extern.java.Log;
+import io.github.astrapi69.awt.extension.AwtExtensions;
 import io.github.astrapi69.crypt.api.algorithm.key.KeyPairGeneratorAlgorithm;
 import io.github.astrapi69.crypt.api.key.KeySize;
 import io.github.astrapi69.crypt.data.factory.KeyPairFactory;
@@ -55,12 +54,13 @@ import io.github.astrapi69.model.LambdaModel;
 import io.github.astrapi69.model.api.IModel;
 import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
 import io.github.astrapi69.swing.base.BasePanel;
-import io.github.astrapi69.swing.model.combobox.EnumComboBoxModel;
-import io.github.astrapi69.swing.model.component.JMTextField;
 import io.github.astrapi69.swing.dialog.DialogExtensions;
 import io.github.astrapi69.swing.listener.document.DocumentListenerAdapter;
-import io.github.astrapi69.awt.extension.AwtExtensions;
+import io.github.astrapi69.swing.model.combobox.EnumComboBoxModel;
+import io.github.astrapi69.swing.model.component.JMTextField;
 import io.github.astrapi69.throwable.RuntimeExceptionDecorator;
+import lombok.Getter;
+import lombok.extern.java.Log;
 
 @Log
 @Getter

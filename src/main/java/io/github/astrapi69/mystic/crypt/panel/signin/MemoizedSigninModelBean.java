@@ -27,6 +27,7 @@ package io.github.astrapi69.mystic.crypt.panel.signin;
 import java.io.Serializable;
 import java.util.List;
 
+import io.github.astrapi69.collection.list.ListFactory;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -34,7 +35,6 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.experimental.SuperBuilder;
-import io.github.astrapi69.collection.list.ListFactory;
 
 /**
  * The bean class {@link MemoizedSigninModelBean} is for holding the sign in data

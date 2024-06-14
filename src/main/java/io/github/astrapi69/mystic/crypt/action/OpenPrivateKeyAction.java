@@ -32,12 +32,6 @@ import java.util.logging.Level;
 
 import javax.swing.*;
 
-import io.github.astrapi69.swing.enumeration.FrameMode;
-import io.github.astrapi69.swing.util.JInternalFrameExtensions;
-import lombok.NonNull;
-import lombok.extern.java.Log;
-import net.miginfocom.swing.MigLayout;
-
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 
 import io.github.astrapi69.crypt.data.key.PrivateKeyExtensions;
@@ -53,7 +47,12 @@ import io.github.astrapi69.mystic.crypt.panel.privatekey.PrivateKeyPanel;
 import io.github.astrapi69.swing.action.OpenFileAction;
 import io.github.astrapi69.swing.component.factory.JComponentFactory;
 import io.github.astrapi69.swing.dialog.factory.JDialogFactory;
+import io.github.astrapi69.swing.enumeration.FrameMode;
 import io.github.astrapi69.swing.listener.RequestFocusListener;
+import io.github.astrapi69.swing.util.JInternalFrameExtensions;
+import lombok.NonNull;
+import lombok.extern.java.Log;
+import net.miginfocom.swing.MigLayout;
 
 /**
  * The class {@link OpenPrivateKeyAction}.

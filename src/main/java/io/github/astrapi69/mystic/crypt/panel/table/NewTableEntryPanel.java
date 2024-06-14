@@ -26,18 +26,18 @@ package io.github.astrapi69.mystic.crypt.panel.table;
 
 import java.awt.*;
 
+import io.github.astrapi69.model.BaseModel;
+import io.github.astrapi69.model.LambdaModel;
+import io.github.astrapi69.model.api.IModel;
+import io.github.astrapi69.swing.base.BasePanel;
 import io.github.astrapi69.swing.model.component.JMLabel;
+import io.github.astrapi69.swing.model.component.JMTextField;
+import io.github.astrapi69.swing.model.label.LabelModel;
 import lombok.Getter;
 import net.miginfocom.layout.AC;
 import net.miginfocom.layout.CC;
 import net.miginfocom.layout.LC;
 import net.miginfocom.swing.MigLayout;
-import io.github.astrapi69.model.BaseModel;
-import io.github.astrapi69.model.LambdaModel;
-import io.github.astrapi69.model.api.IModel;
-import io.github.astrapi69.swing.base.BasePanel;
-import io.github.astrapi69.swing.model.component.JMTextField;
-import io.github.astrapi69.swing.model.label.LabelModel;
 
 @Getter
 public class NewTableEntryPanel extends BasePanel<NewTableEntryModel>

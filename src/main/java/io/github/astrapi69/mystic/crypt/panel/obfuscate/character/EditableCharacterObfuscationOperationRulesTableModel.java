@@ -25,10 +25,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
-import lombok.Builder;
-import lombok.Getter;
-import lombok.ToString;
-
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 
@@ -37,6 +33,9 @@ import io.github.astrapi69.collection.pair.KeyValuePair;
 import io.github.astrapi69.crypt.api.obfuscation.rule.Operation;
 import io.github.astrapi69.crypt.data.obfuscation.rule.ObfuscationOperationRule;
 import io.github.astrapi69.swing.table.model.GenericTableModel;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.ToString;
 
 /**
  * The class {@link EditableCharacterObfuscationOperationRulesTableModel}.

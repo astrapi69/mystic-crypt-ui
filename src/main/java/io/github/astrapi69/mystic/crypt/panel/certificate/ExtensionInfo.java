@@ -24,11 +24,11 @@
  */
 package io.github.astrapi69.mystic.crypt.panel.certificate;
 
-import lombok.AccessLevel;
-import lombok.experimental.FieldDefaults;
-
 import org.bouncycastle.asn1.ASN1ObjectIdentifier;
 import org.bouncycastle.asn1.ASN1OctetString;
+
+import lombok.AccessLevel;
+import lombok.experimental.FieldDefaults;
 
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class ExtensionInfo

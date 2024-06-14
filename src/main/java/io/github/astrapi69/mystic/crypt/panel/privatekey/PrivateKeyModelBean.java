@@ -25,15 +25,15 @@ import java.io.Serializable;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 
+import io.github.astrapi69.crypt.api.key.KeySize;
+import io.github.astrapi69.mystic.crypt.key.PrivateKeyHexDecryptor;
+import io.github.astrapi69.mystic.crypt.key.PublicKeyHexEncryptor;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.FieldDefaults;
-import io.github.astrapi69.crypt.api.key.KeySize;
-import io.github.astrapi69.mystic.crypt.key.PrivateKeyHexDecryptor;
-import io.github.astrapi69.mystic.crypt.key.PublicKeyHexEncryptor;
 
 /**
  * The class {@link PrivateKeyModelBean}.

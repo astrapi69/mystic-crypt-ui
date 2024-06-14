@@ -26,12 +26,12 @@ package io.github.astrapi69.mystic.crypt.button.state;
 
 import javax.swing.*;
 
+import io.github.astrapi69.design.pattern.state.button.ButtonStateMachine;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 import lombok.experimental.SuperBuilder;
-import io.github.astrapi69.design.pattern.state.button.ButtonStateMachine;
 
 @Getter
 @Setter
