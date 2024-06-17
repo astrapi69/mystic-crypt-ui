@@ -4,6 +4,11 @@
 Version 8.1-SNAPSHOT
 -------------
 
+CHANGED:
+
+- update of dependency file-worker to new version 17.2
+- update of test-dependency junit-jupiter-extensions to new major version 2
+
 Version 8
 -------------
 
