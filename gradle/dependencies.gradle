@@ -1,4 +1,5 @@
 dependencies {
+
     izpack libs.izpack.ant
 
     compileOnly libs.lombok
