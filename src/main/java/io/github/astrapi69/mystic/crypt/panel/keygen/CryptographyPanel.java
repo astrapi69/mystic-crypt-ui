@@ -26,10 +26,11 @@ import java.io.File;
 import java.math.BigInteger;
 import java.security.PrivateKey;
 import java.security.PublicKey;
+import java.security.SecureRandom;
 import java.security.cert.X509Certificate;
 import java.time.LocalDate;
-import java.time.Month;
 import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.Date;
 import java.util.logging.Level;
 
@@ -42,6 +43,10 @@ import io.github.astrapi69.crypt.api.key.KeyFileFormat;
 import io.github.astrapi69.crypt.api.key.KeySize;
 import io.github.astrapi69.crypt.data.factory.CertFactory;
 import io.github.astrapi69.crypt.data.key.writer.CertificateWriter;
+import io.github.astrapi69.crypt.data.model.DistinguishedNameInfo;
+import io.github.astrapi69.crypt.data.model.Validity;
+import io.github.astrapi69.crypt.data.model.X509CertificateV1Info;
+import io.github.astrapi69.crypt.data.model.X509CertificateV3Info;
 import io.github.astrapi69.layout.LayoutExtensions;
 import io.github.astrapi69.model.BaseModel;
 import io.github.astrapi69.model.api.IModel;
@@ -243,7 +248,21 @@ public class CryptographyPanel extends BasePanel<GenerateKeysModelBean>
 
 	protected void onSaveCertificate(ActionEvent actionEvent)
 	{
-		NewCertificateInfoPanel panel = new NewCertificateInfoPanel();
+		DistinguishedNameInfo.builder().build();
+		ZonedDateTime notBefore = ZonedDateTime.now();
+		ZonedDateTime notAfter = notBefore.plusYears(5);
+		X509CertificateV1Info x509CertificateV1Info = X509CertificateV1Info.builder()
+			.issuer(DistinguishedNameInfo.builder().build())
+			.serial(new BigInteger(160, new SecureRandom()))
+			.validity(Validity.builder().notBefore(notBefore).notAfter(notAfter).build())
+			.subject(DistinguishedNameInfo.builder().build()).signatureAlgorithm("SHA256withRSA")
+			.build();
+
+		X509CertificateV3Info x509CertificateV3Info = X509CertificateV3Info.builder()
+			.certificateV1Info(x509CertificateV1Info).build();
+		// TODO implement and test...
+		NewCertificateInfoPanel panel = new NewCertificateInfoPanel(
+			BaseModel.<X509CertificateV3Info> of(x509CertificateV3Info));
 
 		JOptionPane optionPane = new JOptionPane(panel, JOptionPane.PLAIN_MESSAGE,
 			JOptionPane.OK_CANCEL_OPTION);
@@ -255,7 +274,7 @@ public class CryptographyPanel extends BasePanel<GenerateKeysModelBean>
 		dialog.setLocationRelativeTo(null);
 		dialog.setVisible(true);
 
-		if (optionPane.getValue().equals(JOptionPane.OK_OPTION))
+		if (optionPane.getValue() != null && optionPane.getValue().equals(JOptionPane.OK_OPTION))
 		{
 			final JFileChooser fileChooser = new JFileChooser();
 			final int state = fileChooser.showSaveDialog(this);
@@ -270,8 +289,10 @@ public class CryptographyPanel extends BasePanel<GenerateKeysModelBean>
 					BigInteger serialNumber;
 					String subject;
 					String issuer;
-					subject = panel.getModelObject().getSubject();
-					issuer = panel.getModelObject().getIssuer();
+					subject = panel.getModelObject().getCertificateV1Info().getSubject()
+						.toRepresentableString();
+					issuer = panel.getModelObject().getCertificateV1Info().getIssuer()
+						.toRepresentableString();
 					GenerateKeysModelBean modelObject = getModelObject();
 					signatureAlgorithm = modelObject.getSignatureAlgorithm() != null
 						? modelObject.getSignatureAlgorithm()
@@ -279,23 +300,28 @@ public class CryptographyPanel extends BasePanel<GenerateKeysModelBean>
 							+ KeyPairGeneratorAlgorithm.RSA.getAlgorithm();
 					start = modelObject.getStart() != null
 						? modelObject.getStart()
-						: Date.from(LocalDate.of(2021, Month.JANUARY, 1)
-							.atStartOfDay(ZoneId.systemDefault()).toInstant());
+						: Date
+							.from(LocalDate.now().atStartOfDay(ZoneId.systemDefault()).toInstant());
 
 					end = modelObject.getEnd() != null
 						? modelObject.getEnd()
-						: Date.from(LocalDate.of(2031, Month.JANUARY, 1)
+						: Date.from(LocalDate.now().plusYears(1)
 							.atStartOfDay(ZoneId.systemDefault()).toInstant());
-					serialNumber = panel.getModelObject().getSerialNumber();
+					serialNumber = panel.getModelObject().getCertificateV1Info().getSerial();
 					PublicKey publicKey = modelObject.getPublicKey();
 					PrivateKey privateKey = modelObject.getPrivateKey();
 					X509Certificate x509Certificate = CertFactory.newX509Certificate(publicKey,
 						privateKey, serialNumber, subject, issuer, signatureAlgorithm, start, end);
 					CertificateWriter.write(x509Certificate, selectedFile, KeyFileFormat.PEM);
 				}
-				catch (final Exception ex)
+				catch (final Exception exception)
 				{
-					log.log(Level.SEVERE, ex.getLocalizedMessage(), ex);
+					log.log(Level.SEVERE, exception.getLocalizedMessage(), exception);
+					String title = "Creation of certificate failed";
+					String htmlMessage = "<html><body width='350'>" + "<h2>" + title + "</h2>"
+						+ "<p> Password or key file or both are not valid" + "<p>"
+						+ exception.getMessage();
+					throw new RuntimeException(title + "::" + htmlMessage, exception);
 				}
 			}
 		}

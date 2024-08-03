@@ -26,7 +26,7 @@ package io.github.astrapi69.mystic.crypt.panel.certificate;
 
 import javax.swing.*;
 
-import io.github.astrapi69.crypt.data.certificate.CertificateInfo;
+import io.github.astrapi69.crypt.data.model.X509CertificateV3Info;
 import io.github.astrapi69.model.BaseModel;
 import io.github.astrapi69.model.api.IModel;
 import io.github.astrapi69.swing.base.BasePanel;
@@ -37,7 +37,7 @@ import lombok.Getter;
  * @author astrapi69
  */
 @Getter
-public class CertificatePanel extends BasePanel<CertificateInfo>
+public class CertificatePanel extends BasePanel<X509CertificateV3Info>
 {
 
 	/**
@@ -74,10 +74,10 @@ public class CertificatePanel extends BasePanel<CertificateInfo>
 
 	public CertificatePanel()
 	{
-		this(BaseModel.of(CertificateInfo.builder().build()));
+		this(BaseModel.of(X509CertificateV3Info.builder().build()));
 	}
 
-	public CertificatePanel(final IModel<CertificateInfo> model)
+	public CertificatePanel(final IModel<X509CertificateV3Info> model)
 	{
 		super(model);
 	}

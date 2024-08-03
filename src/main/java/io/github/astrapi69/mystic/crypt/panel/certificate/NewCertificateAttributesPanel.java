@@ -31,7 +31,7 @@ package io.github.astrapi69.mystic.crypt.panel.certificate;
 
 import javax.swing.*;
 
-import io.github.astrapi69.crypt.data.certificate.CertificateAttributes;
+import io.github.astrapi69.crypt.data.model.DistinguishedNameInfo;
 import io.github.astrapi69.model.BaseModel;
 import io.github.astrapi69.model.api.IModel;
 import io.github.astrapi69.swing.base.BasePanel;
@@ -41,7 +41,7 @@ import lombok.Getter;
  * @author astrapi69
  */
 @Getter
-public class NewCertificateAttributesPanel extends BasePanel<CertificateAttributes>
+public class NewCertificateAttributesPanel extends BasePanel<DistinguishedNameInfo>
 {
 	private JLabel lblCommonName;
 	private JLabel lblCountryCode;
@@ -58,10 +58,10 @@ public class NewCertificateAttributesPanel extends BasePanel<CertificateAttribut
 
 	public NewCertificateAttributesPanel()
 	{
-		this(BaseModel.of(CertificateAttributes.builder().build()));
+		this(BaseModel.of(DistinguishedNameInfo.builder().build()));
 	}
 
-	public NewCertificateAttributesPanel(final IModel<CertificateAttributes> model)
+	public NewCertificateAttributesPanel(final IModel<DistinguishedNameInfo> model)
 	{
 		super(model);
 	}

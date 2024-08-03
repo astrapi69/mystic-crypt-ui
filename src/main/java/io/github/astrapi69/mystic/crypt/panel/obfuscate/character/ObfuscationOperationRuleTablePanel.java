@@ -33,8 +33,6 @@ import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.table.TableColumn;
 
-import org.apache.commons.codec.DecoderException;
-
 import io.github.astrapi69.collection.map.MapFactory;
 import io.github.astrapi69.collection.pair.KeyValuePair;
 import io.github.astrapi69.crypt.data.key.KeyModelExtensions;
@@ -55,8 +53,6 @@ import io.github.astrapi69.swing.table.editor.DeleteRowButtonEditor;
 import io.github.astrapi69.swing.table.editor.TableCellButtonEditor;
 import io.github.astrapi69.swing.table.renderer.TableCellButtonRendererFactory;
 import io.github.astrapi69.throwable.RuntimeExceptionDecorator;
-import io.github.astrapi69.xml.crypto.file.XmlDecryptionExtensions;
-import io.github.astrapi69.xml.crypto.file.XmlEncryptionExtensions;
 import io.github.astrapi69.xstream.ObjectToXmlExtensions;
 import io.github.astrapi69.xstream.XmlToObjectExtensions;
 import lombok.Getter;
