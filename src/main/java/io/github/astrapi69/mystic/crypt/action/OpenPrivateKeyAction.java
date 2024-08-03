@@ -33,6 +33,8 @@ import java.util.logging.Level;
 import javax.swing.*;
 
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
+import org.bouncycastle.operator.OperatorCreationException;
+import org.bouncycastle.pkcs.PKCSException;
 
 import io.github.astrapi69.crypt.data.key.PrivateKeyExtensions;
 import io.github.astrapi69.crypt.data.key.PublicKeyExtensions;
@@ -131,6 +133,16 @@ public class OpenPrivateKeyAction extends OpenFileAction
 		catch (IOException e)
 		{
 			log.log(Level.SEVERE, e.getLocalizedMessage(), e);
+		}
+		catch (OperatorCreationException e)
+		{
+			log.log(Level.SEVERE, e.getLocalizedMessage(), e);
+			throw new RuntimeException(e);
+		}
+		catch (PKCSException e)
+		{
+			log.log(Level.SEVERE, e.getLocalizedMessage(), e);
+			throw new RuntimeException(e);
 		}
 		if (privateKey == null)
 		{
