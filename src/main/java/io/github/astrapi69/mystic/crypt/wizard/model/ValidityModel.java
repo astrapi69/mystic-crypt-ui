@@ -22,34 +22,42 @@
  * OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
  * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-package io.github.astrapi69.mystic.crypt.panel.certificate;
-
+package io.github.astrapi69.mystic.crypt.wizard.model;
 
 import java.time.ZonedDateTime;
+import java.time.temporal.ChronoUnit;
 
 import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.ToString;
+import lombok.Data;
 import lombok.experimental.FieldDefaults;
 import lombok.experimental.SuperBuilder;
 
 /**
- * Use only ZoneId.of("UTC") for the values
- **/
-@Getter
-@Setter
-@EqualsAndHashCode
-@ToString
-@NoArgsConstructor
-@AllArgsConstructor
+ * Data class representing the validity period with start and end times.
+ */
+@Data
 @SuperBuilder(toBuilder = true)
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class Valitidy
+public class ValidityModel
 {
-	ZonedDateTime notBefore;
-	ZonedDateTime notAfter;
+	/**
+	 * The end time of the validity period.
+	 */
+	private ZonedDateTime notAfter;
+
+	/**
+	 * The start time of the validity period.
+	 */
+	private ZonedDateTime notBefore;
+
+	/**
+	 * Calculates the number of days between the notBefore and notAfter dates.
+	 *
+	 * @return the number of days between notBefore and notAfter.
+	 */
+	public long getValidityInDays()
+	{
+		return ChronoUnit.DAYS.between(notBefore, notAfter);
+	}
+
 }
