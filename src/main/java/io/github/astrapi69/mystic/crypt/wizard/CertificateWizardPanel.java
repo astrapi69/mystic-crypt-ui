@@ -7,15 +7,19 @@ import io.github.astrapi69.design.pattern.state.wizard.model.BaseWizardStateMach
 import io.github.astrapi69.model.BaseModel;
 import io.github.astrapi69.model.api.IModel;
 import io.github.astrapi69.mystic.crypt.wizard.model.CertificateInfoModel;
+import io.github.astrapi69.mystic.crypt.wizard.state.CertificateWizardState;
 import io.github.astrapi69.swing.wizard.AbstractWizardPanel;
 import io.github.astrapi69.swing.wizard.BaseWizardContentPanel;
 import io.github.astrapi69.swing.wizard.NavigationPanel;
+import lombok.Getter;
 
 public class CertificateWizardPanel extends AbstractWizardPanel<CertificateInfoModel>
 {
 
 	private static final long serialVersionUID = 1L;
 	private NavigationPanel<Void> navigationPanel;
+
+	@Getter
 	private CertificateWizardContentPanel wizardContentPanel;
 
 	public CertificateWizardPanel(IModel<CertificateInfoModel> model)
@@ -26,10 +30,13 @@ public class CertificateWizardPanel extends AbstractWizardPanel<CertificateInfoM
 	@Override
 	protected void onInitializeComponents()
 	{
-		super.onInitializeComponents();
+		BaseWizardStateMachineModel<CertificateInfoModel> stateMachineModel = BaseWizardStateMachineModel
+			.<CertificateInfoModel> builder().currentState(CertificateWizardState.ISSUER)
+			.modelObject(getModelObject()).build();
 		IModel<BaseWizardStateMachineModel<CertificateInfoModel>> machineModelIModel = BaseModel
-			.of(BaseWizardStateMachineModel.<CertificateInfoModel> builder()
-				.modelObject(getModelObject()).build());
+			.of(stateMachineModel);
+		setStateMachine(stateMachineModel);
+		super.onInitializeComponents();
 		wizardContentPanel = new CertificateWizardContentPanel(machineModelIModel);
 		navigationPanel = newNavigationPanel();
 	}
@@ -87,13 +94,13 @@ public class CertificateWizardPanel extends AbstractWizardPanel<CertificateInfoM
 	{
 		getStateMachine().cancel();
 		// from here application specific behavior...
-		System.exit(0);
 	}
 
 	protected void onFinish()
 	{
 		getStateMachine().finish();
 		// from here application specific behavior...
+		// TODO after insert to application remove System.exit !!!
 		System.exit(0);
 	}
 

@@ -23,25 +23,27 @@ package io.github.astrapi69.mystic.crypt.panel.keygen;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.math.BigInteger;
-import java.security.SecureRandom;
+import java.security.PrivateKey;
+import java.security.PublicKey;
 import java.time.ZonedDateTime;
 import java.util.logging.Level;
 
 import javax.swing.*;
 
 import io.github.astrapi69.crypt.api.key.KeySize;
-import io.github.astrapi69.crypt.data.model.DistinguishedNameInfo;
-import io.github.astrapi69.crypt.data.model.Validity;
-import io.github.astrapi69.crypt.data.model.X509CertificateV1Info;
-import io.github.astrapi69.crypt.data.model.X509CertificateV3Info;
+import io.github.astrapi69.crypt.data.key.KeyInfoExtensions;
 import io.github.astrapi69.layout.LayoutExtensions;
 import io.github.astrapi69.model.BaseModel;
 import io.github.astrapi69.model.api.IModel;
 import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
+import io.github.astrapi69.mystic.crypt.panel.certificate.NewCertificateInfoPanel;
 import io.github.astrapi69.mystic.crypt.wizard.CertificateWizardPanel;
 import io.github.astrapi69.mystic.crypt.wizard.model.CertificateInfoModel;
+import io.github.astrapi69.mystic.crypt.wizard.model.KeyInfoModel;
+import io.github.astrapi69.mystic.crypt.wizard.model.ValidityModel;
 import io.github.astrapi69.swing.base.BasePanel;
 import io.github.astrapi69.swing.dialog.factory.JDialogFactory;
+import io.github.astrapi69.swing.listener.RequestFocusListener;
 import io.github.astrapi69.swing.model.combobox.EnumComboBoxModel;
 import io.github.astrapi69.swing.model.layout.GridBagLayoutModel;
 import io.github.astrapi69.swing.model.layout.InsetsModel;
@@ -235,31 +237,36 @@ public class CryptographyPanel extends BasePanel<GenerateKeysModelBean>
 
 	protected void onSaveCertificate(ActionEvent actionEvent)
 	{
-		DistinguishedNameInfo.builder().build();
-		ZonedDateTime notBefore = ZonedDateTime.now();
-		ZonedDateTime notAfter = notBefore.plusYears(5);
-		X509CertificateV1Info x509CertificateV1Info = X509CertificateV1Info.builder()
-			.issuer(DistinguishedNameInfo.builder().build())
-			.serial(new BigInteger(160, new SecureRandom()))
-			.validity(Validity.builder().notBefore(notBefore).notAfter(notAfter).build())
-			.subject(DistinguishedNameInfo.builder().build()).signatureAlgorithm("SHA256withRSA")
-			.build();
 
-		X509CertificateV3Info x509CertificateV3Info = X509CertificateV3Info.builder()
-			.certificateV1Info(x509CertificateV1Info).build();
+		GenerateKeysModelBean modelObject = getModelObject();
+		PublicKey publicKey = modelObject.getPublicKey();
+		PrivateKey privateKey = modelObject.getPrivateKey();
+		KeyInfoModel privateKeyInfoModel = KeyInfoModel
+			.toKeyInfoModel(KeyInfoExtensions.toKeyInfo(privateKey));
+		KeyInfoModel publicKeyInfoModel = KeyInfoModel
+			.toKeyInfoModel(KeyInfoExtensions.toKeyInfo(publicKey));
+		ZonedDateTime now = ZonedDateTime.now();
+		ValidityModel validityModel = ValidityModel.builder().notBefore(now)
+			.notAfter(now.plusYears(1)).build();
+
+		final CertificateInfoModel certificateInfoModel = CertificateInfoModel.builder()
+			.publicKeyInfo(publicKeyInfoModel).privateKeyInfo(privateKeyInfoModel)
+			.serial(BigInteger.ONE).validityModel(validityModel).build();
+
 		// TODO implement and test...
 		CertificateWizardPanel wizardPanel = new CertificateWizardPanel(
-			BaseModel.of(CertificateInfoModel.builder().build()));
-		// NewCertificateInfoPanel panel = new NewCertificateInfoPanel(
-		// BaseModel.<X509CertificateV3Info> of(x509CertificateV3Info));
+			BaseModel.of(certificateInfoModel));
 
-		JOptionPane optionPane = new JOptionPane(wizardPanel, JOptionPane.PLAIN_MESSAGE,
+
+		NewCertificateInfoPanel panel = new NewCertificateInfoPanel(
+			BaseModel.<CertificateInfoModel> of(certificateInfoModel));
+
+		JOptionPane optionPane = new JOptionPane(panel, JOptionPane.PLAIN_MESSAGE,
 			JOptionPane.OK_CANCEL_OPTION);
 
 		JDialog dialog = JDialogFactory.newJDialog(MysticCryptApplicationFrame.getInstance(),
 			optionPane, "Create certificate");
-		// dialog.addWindowFocusListener(new
-		// RequestFocusListener(certificateWizardPanel.getTxtIssuer()));
+		dialog.addWindowFocusListener(new RequestFocusListener(panel.getTxtIssuer()));
 		dialog.pack();
 		dialog.setLocationRelativeTo(null);
 		dialog.setVisible(true);

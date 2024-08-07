@@ -24,8 +24,10 @@
  */
 package io.github.astrapi69.mystic.crypt.wizard.model;
 
+import io.github.astrapi69.crypt.data.model.KeyInfo;
 import lombok.AccessLevel;
 import lombok.Data;
+import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.experimental.SuperBuilder;
@@ -53,4 +55,16 @@ public class KeyInfoModel
 	 * The algorithm of the key
 	 */
 	String algorithm;
+
+	public static KeyInfoModel toKeyInfoModel(final @NonNull KeyInfo keyInfo)
+	{
+		return KeyInfoModel.builder().keyType(keyInfo.getKeyType())
+			.algorithm(keyInfo.getAlgorithm()).encoded(keyInfo.getEncoded()).build();
+	}
+
+	public static KeyInfo toKeyInfo(final @NonNull KeyInfoModel keyInfo)
+	{
+		return KeyInfo.builder().keyType(keyInfo.getKeyType()).algorithm(keyInfo.getAlgorithm())
+			.encoded(keyInfo.getEncoded()).build();
+	}
 }

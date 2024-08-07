@@ -14,6 +14,13 @@ public class CertificateWizardContentPanel extends BaseWizardContentPanel<Certif
 		IModel<BaseWizardStateMachineModel<CertificateInfoModel>> model)
 	{
 		super(model);
+	}
+
+	@Override
+	protected void onInitializeComponents()
+	{
+		super.onInitializeComponents();
+		IModel<BaseWizardStateMachineModel<CertificateInfoModel>> model = getModel();
 		add(new IssuerPanel(model), "ISSUER");
 		add(new SubjectPanel(model), "SUBJECT");
 		add(new DatesPanel(model), "DATES");

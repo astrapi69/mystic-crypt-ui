@@ -1,5 +1,6 @@
 package io.github.astrapi69.mystic.crypt.wizard.model;
 
+import io.github.astrapi69.crypt.data.model.DistinguishedNameInfo;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -20,4 +21,16 @@ public class DistinguishedNameInfoModel
 	private String organisation;
 	private String organisationUnit;
 	private String state;
+
+	public static DistinguishedNameInfo toDistinguishedNameInfo(
+		final DistinguishedNameInfoModel distinguishedNameInfoModel)
+	{
+		return DistinguishedNameInfo.builder()
+			.commonName(distinguishedNameInfoModel.getCommonName())
+			.countryCode(distinguishedNameInfoModel.getCountryCode())
+			.location(distinguishedNameInfoModel.getLocation())
+			.organisation(distinguishedNameInfoModel.getOrganisation())
+			.organisationUnit(distinguishedNameInfoModel.getOrganisationUnit())
+			.state(distinguishedNameInfoModel.getState()).build();
+	}
 }

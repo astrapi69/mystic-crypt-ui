@@ -29,12 +29,11 @@ import java.math.BigInteger;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 
-import io.github.astrapi69.crypt.data.model.DistinguishedNameInfo;
-import io.github.astrapi69.crypt.data.model.X509CertificateV1Info;
-import io.github.astrapi69.crypt.data.model.X509CertificateV3Info;
 import io.github.astrapi69.model.BaseModel;
 import io.github.astrapi69.model.api.IModel;
 import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
+import io.github.astrapi69.mystic.crypt.wizard.model.CertificateInfoModel;
+import io.github.astrapi69.mystic.crypt.wizard.model.DistinguishedNameInfoModel;
 import io.github.astrapi69.random.number.RandomBigIntegerFactory;
 import io.github.astrapi69.swing.base.BasePanel;
 import io.github.astrapi69.swing.dialog.factory.JDialogFactory;
@@ -42,7 +41,7 @@ import io.github.astrapi69.swing.listener.RequestFocusListener;
 import lombok.Getter;
 
 @Getter
-public class NewCertificateInfoPanel extends BasePanel<X509CertificateV3Info>
+public class NewCertificateInfoPanel extends BasePanel<CertificateInfoModel>
 {
 
 	private JButton btnAddExtension;
@@ -72,10 +71,10 @@ public class NewCertificateInfoPanel extends BasePanel<X509CertificateV3Info>
 
 	public NewCertificateInfoPanel()
 	{
-		this(BaseModel.<X509CertificateV3Info> of(X509CertificateV3Info.builder().build()));
+		this(BaseModel.<CertificateInfoModel> of(CertificateInfoModel.builder().build()));
 	}
 
-	public NewCertificateInfoPanel(final IModel<X509CertificateV3Info> model)
+	public NewCertificateInfoPanel(final IModel<CertificateInfoModel> model)
 	{
 		super(model);
 	}
@@ -328,15 +327,12 @@ public class NewCertificateInfoPanel extends BasePanel<X509CertificateV3Info>
 
 		if (optionPane.getValue().equals(JOptionPane.OK_OPTION))
 		{
-			DistinguishedNameInfo newIssuerModelObject = getDistinguishedNameInfo(panel);
+			DistinguishedNameInfoModel newIssuerModelObject = getDistinguishedNameInfo(panel);
 
-			String issuer = newIssuerModelObject.toRepresentableString();
-			X509CertificateV3Info oldModelObject = getModelObject();
-			X509CertificateV1Info x509CertificateV1Info = oldModelObject.getCertificateV1Info()
-				.toBuilder().issuer(newIssuerModelObject).build();
-			X509CertificateV3Info x509CertificateV3Info = oldModelObject.toBuilder()
-				.certificateV1Info(x509CertificateV1Info).build();
-			setModelObject(x509CertificateV3Info);
+			String issuer = DistinguishedNameInfoModel.toDistinguishedNameInfo(newIssuerModelObject)
+				.toRepresentableString();
+			CertificateInfoModel modelObject = getModelObject();
+			modelObject.setIssuer(newIssuerModelObject);
 			getTxtIssuer().setText(issuer);
 		}
 
@@ -345,12 +341,8 @@ public class NewCertificateInfoPanel extends BasePanel<X509CertificateV3Info>
 	protected void onGenerateSerialNumber(java.awt.event.ActionEvent evt)
 	{
 		BigInteger serialNumber = RandomBigIntegerFactory.randomSerialNumber();
-		X509CertificateV3Info oldModelObject = getModelObject();
-		X509CertificateV1Info x509CertificateV1Info = oldModelObject.getCertificateV1Info()
-			.toBuilder().serial(serialNumber).build();
-		X509CertificateV3Info x509CertificateV3Info = oldModelObject.toBuilder()
-			.certificateV1Info(x509CertificateV1Info).build();
-		setModelObject(x509CertificateV3Info);
+		CertificateInfoModel modelObject = getModelObject();
+		modelObject.setSerial(serialNumber);
 		getTxtSerialNumber().setText(serialNumber.toString());
 	}
 
@@ -370,23 +362,20 @@ public class NewCertificateInfoPanel extends BasePanel<X509CertificateV3Info>
 
 		if (optionPane.getValue().equals(JOptionPane.OK_OPTION))
 		{
-			DistinguishedNameInfo newSubjectModelObject = getDistinguishedNameInfo(panel);
+			DistinguishedNameInfoModel newSubjectModelObject = getDistinguishedNameInfo(panel);
+			CertificateInfoModel modelObject = getModelObject();
+			modelObject.setSubject(newSubjectModelObject);
 
-			String subject = newSubjectModelObject.toRepresentableString();
-			X509CertificateV3Info oldModelObject = getModelObject();
-			X509CertificateV1Info x509CertificateV1Info = oldModelObject.getCertificateV1Info()
-				.toBuilder().subject(newSubjectModelObject).build();
-			X509CertificateV3Info x509CertificateV3Info = oldModelObject.toBuilder()
-				.certificateV1Info(x509CertificateV1Info).build();
-			setModelObject(x509CertificateV3Info);
+			String subject = DistinguishedNameInfoModel
+				.toDistinguishedNameInfo(newSubjectModelObject).toRepresentableString();
 			getTxtSubject().setText(subject);
 		}
 	}
 
-	private static DistinguishedNameInfo getDistinguishedNameInfo(
+	private static DistinguishedNameInfoModel getDistinguishedNameInfo(
 		NewCertificateAttributesPanel panel)
 	{
-		DistinguishedNameInfo newModelObject = DistinguishedNameInfo.builder()
+		DistinguishedNameInfoModel newModelObject = DistinguishedNameInfoModel.builder()
 			.commonName(panel.getTxtCommonName().getText())
 			.countryCode(panel.getTxtCountryCode().getText())
 			.location(panel.getTxtLocation().getText())
