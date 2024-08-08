@@ -20,6 +20,7 @@ import io.github.astrapi69.random.number.RandomBigIntegerFactory;
 import io.github.astrapi69.swing.base.BasePanel;
 import io.github.astrapi69.swing.model.combobox.GenericComboBoxModel;
 import io.github.astrapi69.swing.model.combobox.GenericMutableComboBoxModel;
+import io.github.astrapi69.swing.model.component.JMBigIntegerTextField;
 import io.github.astrapi69.swing.model.component.JMComboBox;
 import lombok.Getter;
 import net.miginfocom.swing.MigLayout;
@@ -51,7 +52,7 @@ public class DatesPanel extends BasePanel<BaseWizardStateMachineModel<Certificat
 	{
 		super.onInitializeComponents();
 
-		lblHeader = new JLabel("Issuer");
+		lblHeader = new JLabel("Certificate Data");
 		lblNotAfter = new JLabel("Not After:");
 		lblNotBefore = new JLabel("Not Before:");
 		lblSerialNumber = new JLabel("Serial Number:");
@@ -111,23 +112,23 @@ public class DatesPanel extends BasePanel<BaseWizardStateMachineModel<Certificat
 	protected void onInitializeLayout()
 	{
 		super.onInitializeLayout();
-		setLayout(new MigLayout("", "[][grow]", "[][][][][]"));
+		setLayout(new MigLayout("", "[right][grow]", "[][][][][][]"));
 
 		add(lblHeader, "span, align center, wrap 10");
-		add(lblVersion, "cell 0 0, alignx trailing");
-		add(cmbVersion, "cell 1 0, growx");
+		add(lblVersion, "cell 0 1, alignx trailing");
+		add(cmbVersion, "cell 1 1, growx");
 
-		add(lblSerialNumber, "cell 0 1, alignx trailing");
-		add(txtSerialNumber, "cell 1 1, growx, split 2");
-		add(btnGenerateSerialNumber, "cell 1 1");
+		add(lblSerialNumber, "cell 0 2, alignx trailing");
+		add(txtSerialNumber, "cell 1 2, growx, split 2");
+		add(btnGenerateSerialNumber, "cell 1 2");
 
-		add(lblNotBefore, "cell 0 2, alignx trailing");
-		add(txtNotBefore, "cell 1 2, growx");
+		add(lblNotBefore, "cell 0 3, alignx trailing");
+		add(txtNotBefore, "cell 1 3, growx");
 
-		add(lblNotAfter, "cell 0 3, alignx trailing");
-		add(txtNotAfter, "cell 1 3, growx");
+		add(lblNotAfter, "cell 0 4, alignx trailing");
+		add(txtNotAfter, "cell 1 4, growx");
 
-		add(lblSignatureAlgorithm, "cell 0 4, alignx trailing");
-		add(cmbSignatureAlgorithm, "cell 1 4, growx");
+		add(lblSignatureAlgorithm, "cell 0 5, alignx trailing");
+		add(cmbSignatureAlgorithm, "cell 1 5, growx");
 	}
 }
