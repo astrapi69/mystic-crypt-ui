@@ -27,6 +27,7 @@ package io.github.astrapi69.mystic.crypt.wizard.model;
 import java.math.BigInteger;
 
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Data;
 import lombok.experimental.FieldDefaults;
 import lombok.experimental.SuperBuilder;
@@ -77,7 +78,8 @@ public class CertificateInfoModel
 	/**
 	 * The version of the certificate
 	 */
-	Integer version;
+	@Builder.Default
+	Integer version = 3;
 
 	/**
 	 * The extensions added in X.509 V3 certificate

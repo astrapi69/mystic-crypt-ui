@@ -2,6 +2,7 @@ package io.github.astrapi69.mystic.crypt.panel.certificate.wizard;
 
 import io.github.astrapi69.design.pattern.state.wizard.BaseWizardState;
 import io.github.astrapi69.design.pattern.state.wizard.BaseWizardStateMachine;
+import io.github.astrapi69.design.pattern.state.wizard.model.WizardStateInfo;
 
 public enum CertificateCreationState implements BaseWizardState<BaseWizardStateMachine>
 {
@@ -36,6 +37,19 @@ public enum CertificateCreationState implements BaseWizardState<BaseWizardStateM
 		{
 		}
 
+		@Override
+		public WizardStateInfo getWizardStateInfo()
+		{
+			return null;
+		}
+
+		@Override
+		public void setWizardStateInfo(WizardStateInfo wizardStateInfo)
+		{
+
+		}
+
+
 	},
 
 	/** The finish {@link CertificateCreationState} object. */
@@ -67,6 +81,19 @@ public enum CertificateCreationState implements BaseWizardState<BaseWizardStateM
 		public void goPrevious(final BaseWizardStateMachine stateMachine)
 		{
 		}
+
+		@Override
+		public WizardStateInfo getWizardStateInfo()
+		{
+			return null;
+		}
+
+		@Override
+		public void setWizardStateInfo(WizardStateInfo wizardStateInfo)
+		{
+
+		}
+
 
 	},
 
@@ -113,6 +140,19 @@ public enum CertificateCreationState implements BaseWizardState<BaseWizardStateM
 			return true;
 		}
 
+		@Override
+		public WizardStateInfo getWizardStateInfo()
+		{
+			return null;
+		}
+
+		@Override
+		public void setWizardStateInfo(WizardStateInfo wizardStateInfo)
+		{
+
+		}
+
+
 	},
 
 	/** The second {@link CertificateCreationState} object. */
@@ -146,6 +186,19 @@ public enum CertificateCreationState implements BaseWizardState<BaseWizardStateM
 		{
 			stateMachine.setCurrentState(CertificateCreationState.FIRST);
 		}
+
+		@Override
+		public WizardStateInfo getWizardStateInfo()
+		{
+			return null;
+		}
+
+		@Override
+		public void setWizardStateInfo(WizardStateInfo wizardStateInfo)
+		{
+
+		}
+
 
 	},
 
@@ -191,6 +244,19 @@ public enum CertificateCreationState implements BaseWizardState<BaseWizardStateM
 		{
 			return true;
 		}
+
+		@Override
+		public WizardStateInfo getWizardStateInfo()
+		{
+			return null;
+		}
+
+		@Override
+		public void setWizardStateInfo(WizardStateInfo wizardStateInfo)
+		{
+
+		}
+
 
 	}
 }

@@ -3,7 +3,10 @@ package io.github.astrapi69.mystic.crypt.wizard;
 import java.awt.BorderLayout;
 import java.awt.CardLayout;
 
+import io.github.astrapi69.design.pattern.observer.event.EventListener;
+import io.github.astrapi69.design.pattern.observer.event.EventObject;
 import io.github.astrapi69.design.pattern.state.wizard.model.BaseWizardStateMachineModel;
+import io.github.astrapi69.design.pattern.state.wizard.model.NavigationEventState;
 import io.github.astrapi69.model.BaseModel;
 import io.github.astrapi69.model.api.IModel;
 import io.github.astrapi69.mystic.crypt.wizard.model.CertificateInfoModel;
@@ -14,6 +17,8 @@ import io.github.astrapi69.swing.wizard.NavigationPanel;
 import lombok.Getter;
 
 public class CertificateWizardPanel extends AbstractWizardPanel<CertificateInfoModel>
+	implements
+		EventListener<EventObject<NavigationEventState>>
 {
 
 	private static final long serialVersionUID = 1L;
@@ -25,6 +30,17 @@ public class CertificateWizardPanel extends AbstractWizardPanel<CertificateInfoM
 	public CertificateWizardPanel(IModel<CertificateInfoModel> model)
 	{
 		super(model);
+	}
+
+	@Override
+	public void onEvent(final EventObject<NavigationEventState> event)
+	{
+		final NavigationEventState navigationState = event.getSource();
+		if (NavigationEventState.UPDATE.equals(navigationState))
+		{
+			System.out.println(navigationState);
+			updateButtonState();
+		}
 	}
 
 	@Override

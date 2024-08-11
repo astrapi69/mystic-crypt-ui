@@ -2,6 +2,7 @@ package io.github.astrapi69.mystic.crypt.wizard.state;
 
 import io.github.astrapi69.design.pattern.state.wizard.BaseWizardState;
 import io.github.astrapi69.design.pattern.state.wizard.model.BaseWizardStateMachineModel;
+import io.github.astrapi69.design.pattern.state.wizard.model.WizardStateInfo;
 import io.github.astrapi69.mystic.crypt.wizard.model.CertificateInfoModel;
 
 public enum CertificateWizardState
@@ -52,6 +53,19 @@ public enum CertificateWizardState
 		{
 
 		}
+
+		@Override
+		public WizardStateInfo getWizardStateInfo()
+		{
+			return null;
+		}
+
+		@Override
+		public void setWizardStateInfo(WizardStateInfo wizardStateInfo)
+		{
+
+		}
+
 	},
 	SUBJECT {
 
@@ -87,19 +101,34 @@ public enum CertificateWizardState
 
 		}
 
-	},
-	DATES {
+		@Override
+		public WizardStateInfo getWizardStateInfo()
+		{
+			return null;
+		}
 
 		@Override
-		public String getName()
+		public void setWizardStateInfo(WizardStateInfo wizardStateInfo)
 		{
-			return name();
+
+		}
+
+
+	},
+	DATES {
+		WizardStateInfo wizardStateInfo;
+		{
+			wizardStateInfo = WizardStateInfo.builder().next(true).last(false).name(name()).build();
 		}
 
 		@Override
 		public void goNext(BaseWizardStateMachineModel<CertificateInfoModel> stateMachine)
 		{
-			stateMachine.setCurrentState(EXTENSIONS);
+			CertificateInfoModel modelObject = stateMachine.getModelObject();
+			if (modelObject.getVersion() == 3)
+			{
+				stateMachine.setCurrentState(EXTENSIONS);
+			}
 		}
 
 		@Override
@@ -121,6 +150,19 @@ public enum CertificateWizardState
 		{
 
 		}
+
+		@Override
+		public WizardStateInfo getWizardStateInfo()
+		{
+			return wizardStateInfo;
+		}
+
+		@Override
+		public void setWizardStateInfo(WizardStateInfo wizardStateInfo)
+		{
+			this.wizardStateInfo = wizardStateInfo;
+		}
+
 	},
 	EXTENSIONS {
 
@@ -167,5 +209,18 @@ public enum CertificateWizardState
 		{
 
 		}
+
+		@Override
+		public WizardStateInfo getWizardStateInfo()
+		{
+			return null;
+		}
+
+		@Override
+		public void setWizardStateInfo(WizardStateInfo wizardStateInfo)
+		{
+
+		}
+
 	}
 }

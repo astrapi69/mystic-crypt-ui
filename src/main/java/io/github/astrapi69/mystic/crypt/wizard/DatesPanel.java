@@ -1,5 +1,6 @@
 package io.github.astrapi69.mystic.crypt.wizard;
 
+import java.awt.event.ActionEvent;
 import java.math.BigInteger;
 import java.util.Set;
 
@@ -12,9 +13,13 @@ import com.github.lgooddatepicker.components.DatePicker;
 import io.github.astrapi69.collection.array.ArrayFactory;
 import io.github.astrapi69.collection.pair.ValueBox;
 import io.github.astrapi69.crypt.data.algorithm.AlgorithmExtensions;
+import io.github.astrapi69.design.pattern.observer.event.EventObject;
+import io.github.astrapi69.design.pattern.observer.event.EventSource;
 import io.github.astrapi69.design.pattern.state.wizard.model.BaseWizardStateMachineModel;
+import io.github.astrapi69.design.pattern.state.wizard.model.NavigationEventState;
 import io.github.astrapi69.model.LambdaModel;
 import io.github.astrapi69.model.api.IModel;
+import io.github.astrapi69.mystic.crypt.eventbus.ApplicationEventBus;
 import io.github.astrapi69.mystic.crypt.wizard.model.CertificateInfoModel;
 import io.github.astrapi69.random.number.RandomBigIntegerFactory;
 import io.github.astrapi69.swing.base.BasePanel;
@@ -90,6 +95,8 @@ public class DatesPanel extends BasePanel<BaseWizardStateMachineModel<Certificat
 		selectedItemModel = LambdaModel.of(valueBox::getValue, valueBox::setValue);
 		cmbVersion = new JMComboBox<>(comboBoxModel, selectedItemModel);
 
+		cmbVersion.addActionListener(this::onChangeVersion);
+
 		txtSerialNumber
 			.setPropertyModel(LambdaModel.of(modelObject::getSerial, modelObject::setSerial));
 
@@ -98,6 +105,37 @@ public class DatesPanel extends BasePanel<BaseWizardStateMachineModel<Certificat
 
 		btnGenerateSerialNumber.setText("Generate");
 		btnGenerateSerialNumber.addActionListener(this::onGenerateSerialNumber);
+	}
+
+	/**
+	 * Callback method that can be overwritten to provide specific action for the on change key
+	 * size.
+	 *
+	 * @param actionEvent
+	 *            the action event
+	 */
+	@SuppressWarnings("unchecked")
+	protected void onChangeVersion(final ActionEvent actionEvent)
+	{
+		Object item = cmbVersion.getSelectedItem();
+		Integer selectedVersion = (Integer)item;
+		if (selectedVersion.equals(1))
+		{
+			getModelObject().getCurrentState().getWizardStateInfo().setNext(false);
+			updateWizardButtons();
+		}
+		else if (selectedVersion.equals(3))
+		{
+			getModelObject().getCurrentState().getWizardStateInfo().setNext(true);
+			updateWizardButtons();
+		}
+	}
+
+	protected void updateWizardButtons()
+	{
+		final EventSource<EventObject<NavigationEventState>> eventSource = ApplicationEventBus
+			.getNavigationState();
+		eventSource.fireEvent(new EventObject<>(NavigationEventState.UPDATE));
 	}
 
 	protected void onGenerateSerialNumber(java.awt.event.ActionEvent evt)
