@@ -29,19 +29,23 @@
  */
 package io.github.astrapi69.mystic.crypt.panel.certificate;
 
+
 import javax.swing.*;
 
-import io.github.astrapi69.crypt.data.model.DistinguishedNameInfo;
 import io.github.astrapi69.model.BaseModel;
+import io.github.astrapi69.model.LambdaModel;
 import io.github.astrapi69.model.api.IModel;
+import io.github.astrapi69.mystic.crypt.wizard.model.DistinguishedNameInfoModel;
 import io.github.astrapi69.swing.base.BasePanel;
+import io.github.astrapi69.swing.model.component.JMTextField;
 import lombok.Getter;
+import net.miginfocom.swing.MigLayout;
 
 /**
  * @author astrapi69
  */
 @Getter
-public class NewCertificateAttributesPanel extends BasePanel<DistinguishedNameInfo>
+public class NewCertificateAttributesPanel extends BasePanel<DistinguishedNameInfoModel>
 {
 	private JLabel lblCommonName;
 	private JLabel lblCountryCode;
@@ -49,19 +53,19 @@ public class NewCertificateAttributesPanel extends BasePanel<DistinguishedNameIn
 	private JLabel lblOrganization;
 	private JLabel lblOrganizationUnit;
 	private JLabel lblState;
-	private JTextField txtCommonName;
-	private JTextField txtCountryCode;
-	private JTextField txtLocation;
-	private JTextField txtOrganization;
-	private JTextField txtOrganizationUnit;
-	private JTextField txtState;
+	private JMTextField txtCommonName;
+	private JMTextField txtCountryCode;
+	private JMTextField txtLocation;
+	private JMTextField txtOrganization;
+	private JMTextField txtOrganizationUnit;
+	private JMTextField txtState;
 
 	public NewCertificateAttributesPanel()
 	{
-		this(BaseModel.of(DistinguishedNameInfo.builder().build()));
+		this(BaseModel.of(DistinguishedNameInfoModel.builder().build()));
 	}
 
-	public NewCertificateAttributesPanel(final IModel<DistinguishedNameInfo> model)
+	public NewCertificateAttributesPanel(final IModel<DistinguishedNameInfoModel> model)
 	{
 		super(model);
 	}
@@ -76,12 +80,26 @@ public class NewCertificateAttributesPanel extends BasePanel<DistinguishedNameIn
 		lblCountryCode = new JLabel();
 		lblState = new JLabel();
 		lblLocation = new JLabel();
-		txtCommonName = new JTextField();
-		txtOrganization = new JTextField();
-		txtOrganizationUnit = new JTextField();
-		txtCountryCode = new JTextField();
-		txtState = new JTextField();
-		txtLocation = new JTextField();
+		txtCommonName = new JMTextField();
+		txtOrganization = new JMTextField();
+		txtOrganizationUnit = new JMTextField();
+		txtCountryCode = new JMTextField();
+		txtState = new JMTextField();
+		txtLocation = new JMTextField();
+
+		DistinguishedNameInfoModel modelObject = getModelObject();
+
+		txtCommonName.setPropertyModel(
+			LambdaModel.of(modelObject::getCommonName, modelObject::setCommonName));
+		txtOrganization.setPropertyModel(
+			LambdaModel.of(modelObject::getOrganisation, modelObject::setOrganisation));
+		txtOrganizationUnit.setPropertyModel(
+			LambdaModel.of(modelObject::getOrganisationUnit, modelObject::setOrganisationUnit));
+		txtCountryCode.setPropertyModel(
+			LambdaModel.of(modelObject::getCountryCode, modelObject::setCountryCode));
+		txtState.setPropertyModel(LambdaModel.of(modelObject::getState, modelObject::setState));
+		txtLocation
+			.setPropertyModel(LambdaModel.of(modelObject::getLocation, modelObject::setLocation));
 
 		lblCommonName.setText("Common Name:");
 
@@ -100,7 +118,32 @@ public class NewCertificateAttributesPanel extends BasePanel<DistinguishedNameIn
 	protected void onInitializeLayout()
 	{
 		super.onInitializeLayout();
-		onInitializeGroupLayout();
+		onInitializeMigLayout();
+	}
+
+	protected void onInitializeMigLayout()
+	{
+		MigLayout migLayout = new MigLayout("wrap 2", "[right][grow, fill]");
+
+		setLayout(migLayout);
+
+		add(lblCommonName);
+		add(txtCommonName, "wrap");
+
+		add(lblOrganization);
+		add(txtOrganization, "wrap");
+
+		add(lblOrganizationUnit);
+		add(txtOrganizationUnit, "wrap");
+
+		add(lblCountryCode);
+		add(txtCountryCode, "wrap");
+
+		add(lblState);
+		add(txtState, "wrap");
+
+		add(lblLocation);
+		add(txtLocation, "wrap");
 	}
 
 	protected void onInitializeGroupLayout()

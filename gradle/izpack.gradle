@@ -11,5 +11,9 @@ izpack {
                      "app.name": "$rootProject.name",
                      "app.title": "$rootProject.name",
                      "app.version": "$projectVersion",
+                     "app.java.version": "$projectSourceCompatibility",
+                     "app.author": "$projectLeaderName",
+                     "app.author.email": "$projectOrganizationEmailName" + "$ad" + "$projectOrganizationEmailDomain",
+                     "app.url": "$projectScmProviderUrl" + "$projectHolderUsername" + "$slash" + "$rootProject.name",
                      "app.subpath": "$rootProject.name-${projectVersion}"]
 }

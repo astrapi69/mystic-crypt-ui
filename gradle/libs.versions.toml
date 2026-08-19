@@ -61,7 +61,7 @@ silly-bean-version = "3.0"
 silly-collection-version = "28.1"
 silly-io-version = "3.6"
 sqlite-jdbc-version = "3.53.2.1"
-state-version = "6"
+state-pattern-version = "7.1"
 swing-base-components-version = "5.1"
 swing-components-version = "9"
 swing-layout-version = "1.0.3"
@@ -70,6 +70,7 @@ swing-renderer-version = "3.1"
 swing-splashscreen-version = "2"
 swing-table-components-version = "3.1"
 swing-tree-component-version = "3.1"
+swing-wizard-version = "2.1"
 swing-worker-version = "1.1"
 swingx-all-version = "1.6.5-1"
 tango-icon-theme-version = "0.8.90"
@@ -137,7 +138,7 @@ silly-bean = { module = "io.github.astrapi69:silly-bean", version.ref = "silly-b
 silly-collection = { module = "io.github.astrapi69:silly-collection", version.ref = "silly-collection-version" }
 silly-io = { module = "io.github.astrapi69:silly-io", version.ref = "silly-io-version" }
 sqlite-jdbc = { module = "org.xerial:sqlite-jdbc", version.ref = "sqlite-jdbc-version" }
-state = { module = "io.github.astrapi69:state", version.ref = "state-version" }
+state-pattern = { module = "io.github.astrapi69:state-pattern", version.ref = "state-pattern-version" }
 swing-base-components = { module = "io.github.astrapi69:swing-base-components", version.ref = "swing-base-components-version" }
 swing-components = { module = "io.github.astrapi69:swing-components", version.ref = "swing-components-version" }
 swing-layout = { module = "org.swinglabs:swing-layout", version.ref = "swing-layout-version" }
@@ -146,6 +147,7 @@ swing-renderer = { module = "io.github.astrapi69:swing-renderer", version.ref = 
 swing-splashscreen = { module = "io.github.astrapi69:swing-splashscreen", version.ref = "swing-splashscreen-version" }
 swing-table-components = { module = "io.github.astrapi69:swing-table-components", version.ref = "swing-table-components-version" }
 swing-tree-component = { module = "io.github.astrapi69:swing-tree-component", version.ref = "swing-tree-component-version" }
+swing-wizard = { module = "io.github.astrapi69:swing-wizard", version.ref = "swing-wizard-version" }
 swing-worker = { module = "org.swinglabs:swing-worker", version.ref = "swing-worker-version" }
 swingx-all = { module = "org.swinglabs.swingx:swingx-all", version.ref = "swingx-all-version" }
 tango-icon-theme = { module = "org.freedesktop.tango:tango-icon-theme", version.ref = "tango-icon-theme-version" }

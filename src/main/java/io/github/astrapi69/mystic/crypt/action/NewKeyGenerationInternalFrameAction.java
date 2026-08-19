@@ -24,7 +24,10 @@ import java.awt.event.ActionEvent;
 
 import javax.swing.*;
 
+import io.github.astrapi69.model.BaseModel;
+import io.github.astrapi69.model.api.IModel;
 import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
+import io.github.astrapi69.mystic.crypt.panel.keygen.GenerateKeysModelBean;
 import io.github.astrapi69.mystic.crypt.panel.keygen.GenerateKeysPanel;
 import io.github.astrapi69.swing.component.factory.JComponentFactory;
 import io.github.astrapi69.swing.enumeration.FrameMode;
@@ -64,10 +67,16 @@ public class NewKeyGenerationInternalFrameAction extends AbstractAction
 		// create internal frame
 		final JInternalFrame internalFrame = JComponentFactory
 			.newInternalFrame("Key generation demo", true, true, true, true);
-
-		final GenerateKeysPanel component = new GenerateKeysPanel();
+		GenerateKeysModelBean generateKeysModelBean = GenerateKeysModelBean.builder().build();
+		IModel<GenerateKeysModelBean> model = BaseModel.of(generateKeysModelBean);
+		final GenerateKeysPanel component = newGenerateKeysPanel(model);
 		JInternalFrameExtensions.addInternalFrameToMainFrame(component, internalFrame,
 			MysticCryptApplicationFrame.getInstance());
+	}
+
+	protected GenerateKeysPanel newGenerateKeysPanel(final IModel<GenerateKeysModelBean> model)
+	{
+		return new GenerateKeysPanel(model);
 	}
 
 }

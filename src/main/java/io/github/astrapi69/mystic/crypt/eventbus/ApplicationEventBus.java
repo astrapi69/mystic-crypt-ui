@@ -30,6 +30,7 @@ import io.github.astrapi69.component.model.enumeration.visibility.RenderMode;
 import io.github.astrapi69.design.pattern.eventbus.GenericEventBus;
 import io.github.astrapi69.design.pattern.observer.event.EventObject;
 import io.github.astrapi69.design.pattern.observer.event.EventSource;
+import io.github.astrapi69.design.pattern.state.wizard.model.NavigationEventState;
 import lombok.Getter;
 
 public class ApplicationEventBus
@@ -48,6 +49,13 @@ public class ApplicationEventBus
 	{
 		return GenericEventBus.getEventSource(RenderMode.class);
 	}
+
+
+	public static EventSource<EventObject<NavigationEventState>> getNavigationState()
+	{
+		return GenericEventBus.getEventSource(NavigationEventState.class);
+	}
+
 
 	public static EventSource<?> get(final String key)
 	{

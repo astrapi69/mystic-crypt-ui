@@ -31,7 +31,7 @@ dependencies {
     implementation libs.auto.browser
     implementation libs.tango.icon.theme
     implementation libs.observer
-    implementation libs.state
+    implementation libs.state.pattern
     implementation libs.eventbus
     implementation libs.visitor
     implementation libs.icon.img.extensions
@@ -71,6 +71,7 @@ dependencies {
     implementation libs.jobj.cloner
     implementation libs.awt.extensions
     implementation libs.swing.model.components
+    implementation libs.swing.wizard
 
     testImplementation libs.kee.pass.java2
     // Note: use of bundles...

@@ -57,6 +57,8 @@ public class GenerateKeysModelBean implements Serializable
 
 	KeySize keySize;
 
+	String algorithm;
+
 	PrivateKey privateKey;
 
 	PublicKey publicKey;

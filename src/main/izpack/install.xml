@@ -14,14 +14,14 @@
 	</variables>
 
 	<info>
-		<javaversion>17</javaversion>
-		<appname>mystic-crypt-ui</appname>
-		<appsubpath>app/mystic-crypt-ui</appsubpath>
-		<appversion>8.1-SNAPSHOT</appversion>
+		<javaversion>@{app.java.version}</javaversion>
+		<appname>@{app.name}</appname>
+		<appsubpath>app/@{app.name}</appsubpath>
+		<appversion>@{app.version}</appversion>
 		<authors>
-			<author name="Asterios Raptis" email="asterios.raptis@gmx.net" />
+			<author name="@{app.author}" email="@{app.author.email}" />
 		</authors>
-		<url>https://github.com/astrapi69/mystic-crypt-ui</url>
+		<url>@{app.url}</url>
 	</info>
 
 	<locale>

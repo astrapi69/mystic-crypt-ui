@@ -22,36 +22,25 @@ package io.github.astrapi69.mystic.crypt.panel.keygen;
 
 import java.awt.*;
 import java.awt.event.ActionEvent;
-import java.io.File;
 import java.math.BigInteger;
 import java.security.PrivateKey;
 import java.security.PublicKey;
-import java.security.SecureRandom;
-import java.security.cert.X509Certificate;
-import java.time.LocalDate;
-import java.time.ZoneId;
 import java.time.ZonedDateTime;
-import java.util.Date;
 import java.util.logging.Level;
 
 import javax.swing.*;
 
-import io.github.astrapi69.crypt.api.algorithm.HashAlgorithm;
-import io.github.astrapi69.crypt.api.algorithm.UnionWord;
-import io.github.astrapi69.crypt.api.algorithm.key.KeyPairGeneratorAlgorithm;
-import io.github.astrapi69.crypt.api.key.KeyFileFormat;
 import io.github.astrapi69.crypt.api.key.KeySize;
-import io.github.astrapi69.crypt.data.factory.CertFactory;
-import io.github.astrapi69.crypt.data.key.writer.CertificateWriter;
-import io.github.astrapi69.crypt.data.model.DistinguishedNameInfo;
-import io.github.astrapi69.crypt.data.model.Validity;
-import io.github.astrapi69.crypt.data.model.X509CertificateV1Info;
-import io.github.astrapi69.crypt.data.model.X509CertificateV3Info;
+import io.github.astrapi69.crypt.data.key.KeyInfoExtensions;
 import io.github.astrapi69.layout.LayoutExtensions;
 import io.github.astrapi69.model.BaseModel;
 import io.github.astrapi69.model.api.IModel;
 import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
 import io.github.astrapi69.mystic.crypt.panel.certificate.NewCertificateInfoPanel;
+import io.github.astrapi69.mystic.crypt.wizard.CertificateWizardPanel;
+import io.github.astrapi69.mystic.crypt.wizard.model.CertificateInfoModel;
+import io.github.astrapi69.mystic.crypt.wizard.model.KeyInfoModel;
+import io.github.astrapi69.mystic.crypt.wizard.model.ValidityModel;
 import io.github.astrapi69.swing.base.BasePanel;
 import io.github.astrapi69.swing.dialog.factory.JDialogFactory;
 import io.github.astrapi69.swing.listener.RequestFocusListener;
@@ -248,21 +237,29 @@ public class CryptographyPanel extends BasePanel<GenerateKeysModelBean>
 
 	protected void onSaveCertificate(ActionEvent actionEvent)
 	{
-		DistinguishedNameInfo.builder().build();
-		ZonedDateTime notBefore = ZonedDateTime.now();
-		ZonedDateTime notAfter = notBefore.plusYears(5);
-		X509CertificateV1Info x509CertificateV1Info = X509CertificateV1Info.builder()
-			.issuer(DistinguishedNameInfo.builder().build())
-			.serial(new BigInteger(160, new SecureRandom()))
-			.validity(Validity.builder().notBefore(notBefore).notAfter(notAfter).build())
-			.subject(DistinguishedNameInfo.builder().build()).signatureAlgorithm("SHA256withRSA")
-			.build();
 
-		X509CertificateV3Info x509CertificateV3Info = X509CertificateV3Info.builder()
-			.certificateV1Info(x509CertificateV1Info).build();
+		GenerateKeysModelBean modelObject = getModelObject();
+		PublicKey publicKey = modelObject.getPublicKey();
+		PrivateKey privateKey = modelObject.getPrivateKey();
+		KeyInfoModel privateKeyInfoModel = KeyInfoModel
+			.toKeyInfoModel(KeyInfoExtensions.toKeyInfo(privateKey));
+		KeyInfoModel publicKeyInfoModel = KeyInfoModel
+			.toKeyInfoModel(KeyInfoExtensions.toKeyInfo(publicKey));
+		ZonedDateTime now = ZonedDateTime.now();
+		ValidityModel validityModel = ValidityModel.builder().notBefore(now)
+			.notAfter(now.plusYears(1)).build();
+
+		final CertificateInfoModel certificateInfoModel = CertificateInfoModel.builder()
+			.publicKeyInfo(publicKeyInfoModel).privateKeyInfo(privateKeyInfoModel)
+			.serial(BigInteger.ONE).validityModel(validityModel).build();
+
 		// TODO implement and test...
+		CertificateWizardPanel wizardPanel = new CertificateWizardPanel(
+			BaseModel.of(certificateInfoModel));
+
+
 		NewCertificateInfoPanel panel = new NewCertificateInfoPanel(
-			BaseModel.<X509CertificateV3Info> of(x509CertificateV3Info));
+			BaseModel.<CertificateInfoModel> of(certificateInfoModel));
 
 		JOptionPane optionPane = new JOptionPane(panel, JOptionPane.PLAIN_MESSAGE,
 			JOptionPane.OK_CANCEL_OPTION);
@@ -282,37 +279,38 @@ public class CryptographyPanel extends BasePanel<GenerateKeysModelBean>
 			{
 				try
 				{
-					File selectedFile = fileChooser.getSelectedFile();
-					String signatureAlgorithm;
-					Date start;
-					Date end;
-					BigInteger serialNumber;
-					String subject;
-					String issuer;
-					subject = panel.getModelObject().getCertificateV1Info().getSubject()
-						.toRepresentableString();
-					issuer = panel.getModelObject().getCertificateV1Info().getIssuer()
-						.toRepresentableString();
-					GenerateKeysModelBean modelObject = getModelObject();
-					signatureAlgorithm = modelObject.getSignatureAlgorithm() != null
-						? modelObject.getSignatureAlgorithm()
-						: HashAlgorithm.SHA256.getAlgorithm() + UnionWord.With.name()
-							+ KeyPairGeneratorAlgorithm.RSA.getAlgorithm();
-					start = modelObject.getStart() != null
-						? modelObject.getStart()
-						: Date
-							.from(LocalDate.now().atStartOfDay(ZoneId.systemDefault()).toInstant());
-
-					end = modelObject.getEnd() != null
-						? modelObject.getEnd()
-						: Date.from(LocalDate.now().plusYears(1)
-							.atStartOfDay(ZoneId.systemDefault()).toInstant());
-					serialNumber = panel.getModelObject().getCertificateV1Info().getSerial();
-					PublicKey publicKey = modelObject.getPublicKey();
-					PrivateKey privateKey = modelObject.getPrivateKey();
-					X509Certificate x509Certificate = CertFactory.newX509Certificate(publicKey,
-						privateKey, serialNumber, subject, issuer, signatureAlgorithm, start, end);
-					CertificateWriter.write(x509Certificate, selectedFile, KeyFileFormat.PEM);
+					// TODO
+					// File selectedFile = fileChooser.getSelectedFile();
+					// String signatureAlgorithm;
+					// Date start;
+					// Date end;
+					// BigInteger serialNumber;
+					// String subject;
+					// String issuer;
+					// subject = panel.getModelObject().getCertificateV1Info().getSubject()
+					// .toRepresentableString();
+					// issuer = panel.getModelObject().getCertificateV1Info().getIssuer()
+					// .toRepresentableString();
+					// GenerateKeysModelBean modelObject = getModelObject();
+					// signatureAlgorithm = modelObject.getSignatureAlgorithm() != null
+					// ? modelObject.getSignatureAlgorithm()
+					// : HashAlgorithm.SHA256.getAlgorithm() + UnionWord.With.name()
+					// + KeyPairGeneratorAlgorithm.RSA.getAlgorithm();
+					// start = modelObject.getStart() != null
+					// ? modelObject.getStart()
+					// : Date
+					// .from(LocalDate.now().atStartOfDay(ZoneId.systemDefault()).toInstant());
+					//
+					// end = modelObject.getEnd() != null
+					// ? modelObject.getEnd()
+					// : Date.from(LocalDate.now().plusYears(1)
+					// .atStartOfDay(ZoneId.systemDefault()).toInstant());
+					// serialNumber = panel.getModelObject().getCertificateV1Info().getSerial();
+					// PublicKey publicKey = modelObject.getPublicKey();
+					// PrivateKey privateKey = modelObject.getPrivateKey();
+					// X509Certificate x509Certificate = CertFactory.newX509Certificate(publicKey,
+					// privateKey, serialNumber, subject, issuer, signatureAlgorithm, start, end);
+					// CertificateWriter.write(x509Certificate, selectedFile, KeyFileFormat.PEM);
 				}
 				catch (final Exception exception)
 				{
