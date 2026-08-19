@@ -268,7 +268,6 @@ public class MasterPwWithApplicationFilePanel extends BasePanel<MasterPwFileMode
 	protected void onNewApplicationFile(ActionEvent actionEvent)
 	{
 		fileChooser.setDialogTitle("Specify the database file to save");
-		final MasterPwFileModelBean modelObject = getModelObject();
 		FileNameExtensionFilter fileNameExtensionFilter = new FileNameExtensionFilter(
 			"Mystic crypt files (*.mcrdb)", "mcrdb");
 		fileChooser.setFileFilter(fileNameExtensionFilter);
@@ -295,7 +294,11 @@ public class MasterPwWithApplicationFilePanel extends BasePanel<MasterPwFileMode
 				{
 					super.onOk(actionEvent);
 					MasterPwFileModelBean dialogModelObject = this.getModelObject();
+					dialogModelObject
+						.setApplicationFileInfo(FileInfo.toFileInfo(selectedApplicationFile));
 					MasterPwWithApplicationFilePanel.this.setModelObject(dialogModelObject);
+					MasterPwWithApplicationFilePanel.this.btnOkStateMachine
+						.setModelObject(dialogModelObject);
 					MasterPwWithApplicationFilePanel.this.cmbKeyFileModel
 						.addElement(dialogModelObject.getSelectedKeyFilePath());
 					MasterPwWithApplicationFilePanel.this.cmbKeyFileModel
@@ -306,7 +309,6 @@ public class MasterPwWithApplicationFilePanel extends BasePanel<MasterPwFileMode
 			dialog.setVisible(true);
 			cmbApplicationFileModel.addElement(absolutePath);
 			cmbApplicationFileModel.setSelectedItem(absolutePath);
-			modelObject.setApplicationFileInfo(FileInfo.toFileInfo(selectedApplicationFile));
 			toggleApplicationFileComponents();
 			btnOkStateMachine.onApplicationFileAdded(btnOkStateMachine);
 		}
@@ -479,7 +481,7 @@ public class MasterPwWithApplicationFilePanel extends BasePanel<MasterPwFileMode
 						javax.swing.GroupLayout.PREFERRED_SIZE)
 					.addGap(48, 48, 48))
 				.addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-					.addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+					.addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.CENTER)
 						.addComponent(lblApplicationFile, javax.swing.GroupLayout.PREFERRED_SIZE,
 							35, javax.swing.GroupLayout.PREFERRED_SIZE)
 						.addComponent(cmbApplicationFile, javax.swing.GroupLayout.PREFERRED_SIZE,
@@ -498,7 +500,7 @@ public class MasterPwWithApplicationFilePanel extends BasePanel<MasterPwFileMode
 					.addGroup(layout.createSequentialGroup().addComponent(btnMasterPw).addGap(0, 0,
 						Short.MAX_VALUE)))
 				.addGap(18, 18, 18)
-				.addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+				.addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.CENTER)
 					.addComponent(cmbKeyFile, javax.swing.GroupLayout.PREFERRED_SIZE,
 						javax.swing.GroupLayout.DEFAULT_SIZE,
 						javax.swing.GroupLayout.PREFERRED_SIZE)

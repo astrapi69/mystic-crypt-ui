@@ -1,0 +1,41 @@
+plugins {
+    id 'java'
+}
+
+group = 'com.example'
+version = '1.0.0'
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
+}
+
+repositories {
+    mavenLocal()
+    mavenCentral()
+}
+
+dependencies {
+    // provides the io.github.astrapi69.mystic.crypt.plugin.api.PluginMenuContribution
+    // extension point and the app classes referenced from HelloMenuContribution
+    compileOnly "io.github.astrapi69:mystic-crypt-ui:8.1-SNAPSHOT"
+    // transitive UI helpers used by the "open a real panel" example (implementation-scoped in
+    // the host, so not pulled in automatically) - a real plugin only needs the ones it uses
+    compileOnly "io.github.astrapi69:swing-base-components:5.1"
+    compileOnly "org.pf4j:pf4j:3.15.0"
+    // required so the @Extension annotation processor runs and writes META-INF/extensions.idx
+    annotationProcessor "org.pf4j:pf4j:3.15.0"
+}
+
+tasks.register('pluginZip', Zip) {
+    archiveFileName = "hello-plugin-${version}.zip"
+    destinationDirectory = layout.buildDirectory.dir("plugin-dist")
+    from("src/main/resources") {
+        include "plugin.properties"
+    }
+    into("classes") {
+        from sourceSets.main.output.classesDirs
+    }
+    dependsOn classes
+}

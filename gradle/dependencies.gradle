@@ -72,8 +72,8 @@ dependencies {
     implementation libs.awt.extensions
     implementation libs.swing.model.components
     implementation libs.swing.wizard
+    implementation libs.kee.pass.java2.simple
 
-    testImplementation libs.kee.pass.java2
     // Note: use of bundles...
     testImplementation libs.bundles.unit.testing
     testRuntimeOnly libs.junit.platform.launcher

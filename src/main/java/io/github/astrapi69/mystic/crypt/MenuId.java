@@ -151,7 +151,22 @@ public enum MenuId
 	/**
 	 * The id for the edit the panel view mode menu
 	 */
-	VIEW_PANEL_MODE(MenuId.VIEW_PANEL_MODE_KEY);
+	VIEW_PANEL_MODE(MenuId.VIEW_PANEL_MODE_KEY),
+
+	/**
+	 * The id for the plugins menu
+	 */
+	PLUGINS(MenuId.PLUGINS_KEY),
+
+	/**
+	 * The id for the import from KeePass menu
+	 */
+	IMPORT_KEEPASS(MenuId.IMPORT_KEEPASS_KEY),
+
+	/**
+	 * The id for the export to KeePass menu
+	 */
+	EXPORT_KEEPASS(MenuId.EXPORT_KEEPASS_KEY);
 
 	public static final String NEW_DATABASE_KEY = "global.menu.file.new.database";
 	public static final String SAVE_APPLICATION_FILE_KEY = "global.menu.file.save";
@@ -169,6 +184,8 @@ public enum MenuId
 	public static final String SEARCH_KEY = "global.menu.file.search.database";
 	public static final String LOCK_WORKSPACE_KEY = "global.menu.file.lock.workspace";
 	public static final String EXIT_KEY = "global.menu.file.exit";
+	public static final String IMPORT_KEEPASS_KEY = "global.menu.file.import.keepass";
+	public static final String EXPORT_KEEPASS_KEY = "global.menu.file.export.keepass";
 
 	public static final String VERIFY_CHECKSUM_KEY = "global.menu.edit.verify.checksum";
 
@@ -181,6 +198,8 @@ public enum MenuId
 	public static final String OPEN_DATABASE_TOOL_BAR_KEY = "global.toolbar.menu.file.open.database";
 	public static final String SEARCH_TOOL_BAR_KEY = "global.toolbar.menu.file.search.database";
 	public static final String LOCK_WORKSPACE_TOOL_BAR_KEY = "global.toolbar.menu.file.lock.workspace";
+
+	public static final String PLUGINS_KEY = "global.menu.plugins";
 
 	/** the properties key from the current menu */
 	String propertiesKey;

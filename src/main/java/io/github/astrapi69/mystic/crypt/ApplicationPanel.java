@@ -40,7 +40,9 @@ import io.github.astrapi69.mystic.crypt.panel.dbtree.SecretKeyTreeWithContentPan
 import io.github.astrapi69.swing.base.BasePanel;
 import io.github.astrapi69.swing.renderer.tree.GenericTreeElement;
 import io.github.astrapi69.swing.tree.factory.BaseTreeNodeFactory;
+import lombok.Getter;
 
+@Getter
 public class ApplicationPanel extends BasePanel<ApplicationModelBean>
 {
 

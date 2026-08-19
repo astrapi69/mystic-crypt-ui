@@ -29,6 +29,7 @@ import java.awt.event.WindowEvent;
 import java.io.File;
 import java.io.Serial;
 import java.security.Security;
+import java.util.logging.Level;
 
 import javax.swing.*;
 
@@ -51,6 +52,7 @@ import io.github.astrapi69.mystic.crypt.app.file.xml.ApplicationXmlFileStoreWork
 import io.github.astrapi69.mystic.crypt.panel.signin.MasterPwFileDialog;
 import io.github.astrapi69.mystic.crypt.panel.signin.MasterPwFileModelBean;
 import io.github.astrapi69.mystic.crypt.panel.signin.MemoizedSigninModelBean;
+import io.github.astrapi69.mystic.crypt.plugin.api.PluginMenuContribution;
 import io.github.astrapi69.swing.base.ApplicationPanelFrame;
 import io.github.astrapi69.swing.base.BasePanel;
 import io.github.astrapi69.swing.button.builder.JButtonInfo;
@@ -66,12 +68,14 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.experimental.FieldDefaults;
+import lombok.extern.java.Log;
 
 /**
  * The class {@link MysticCryptApplicationFrame}
  */
 @Getter
 @FieldDefaults(level = AccessLevel.PRIVATE)
+@Log
 public class MysticCryptApplicationFrame extends ApplicationPanelFrame<ApplicationModelBean>
 {
 	public static final String MEMOIZED_SIGNIN_JSON_FILENAME = "memoizedSignin.json";
@@ -131,7 +135,12 @@ public class MysticCryptApplicationFrame extends ApplicationPanelFrame<Applicati
 		if (this.idGenerator == null)
 		{
 			Long lastId = getModelObject().getLastId();
-			this.idGenerator = lastId != null ? LongIdGenerator.of(lastId) : LongIdGenerator.of(0L);
+			// LongIdGenerator.getNextId() returns its seed value on the first call
+			// (AtomicLong.getAndIncrement()), so seed with lastId + 1 to avoid reissuing
+			// the id that was already used for the last created node
+			this.idGenerator = lastId != null
+				? LongIdGenerator.of(lastId + 1)
+				: LongIdGenerator.of(0L);
 		}
 		return this.idGenerator;
 	}
@@ -207,13 +216,16 @@ public class MysticCryptApplicationFrame extends ApplicationPanelFrame<Applicati
 		{
 			instance = this;
 		}
-		pluginManager = new DefaultPluginManager();
 		// add once the default provider to the Security class
 		setSecurityProvider();
 		// initialize model and model object
 		ApplicationModelBean applicationModelBean = ApplicationModelBean.builder().build();
 		setModel(BaseModel.of(applicationModelBean));
+		// sets the configuration directory that the plugins directory is nested under
 		super.onBeforeInitialize();
+		File pluginsDirectory = DirectoryFactory.newDirectory(getConfigurationDirectory(),
+			"plugins");
+		pluginManager = new DefaultPluginManager(pluginsDirectory.toPath());
 	}
 
 	private void setSecurityProvider()
@@ -273,6 +285,8 @@ public class MysticCryptApplicationFrame extends ApplicationPanelFrame<Applicati
 		// start and load all plugins of application
 		pluginManager.loadPlugins();
 		pluginManager.startPlugins();
+		((DesktopMenu)getMenu())
+			.addPluginsMenu(pluginManager.getExtensions(PluginMenuContribution.class));
 		setTitle(Messages.getString("mainframe.title"));
 		setDefaultLookAndFeel(LookAndFeels.NIMBUS, this);
 		this.setSize(ScreenSizeExtensions.getScreenWidth(), ScreenSizeExtensions.getScreenHeight());
@@ -381,8 +395,29 @@ public class MysticCryptApplicationFrame extends ApplicationPanelFrame<Applicati
 						ApplicationXmlFileStoreWorker.storeApplicationFile(modelObject);
 					}
 				}
+				stopPluginsQuietly();
 				super.windowClosing(windowEvent);
 			}
 		});
+	}
+
+	/**
+	 * Stops all plugins, swallowing and logging any exception a plugin's {@code stop()} throws so a
+	 * broken plugin cannot prevent the application window from closing
+	 */
+	private void stopPluginsQuietly()
+	{
+		if (pluginManager == null)
+		{
+			return;
+		}
+		try
+		{
+			pluginManager.stopPlugins();
+		}
+		catch (RuntimeException runtimeException)
+		{
+			log.log(Level.SEVERE, "Error while stopping plugins", runtimeException);
+		}
 	}
 }

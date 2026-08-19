@@ -49,6 +49,8 @@ import io.github.astrapi69.design.pattern.observer.event.EventObject;
 import io.github.astrapi69.design.pattern.observer.event.EventSource;
 import io.github.astrapi69.lang.ClassExtensions;
 import io.github.astrapi69.mystic.crypt.action.ApplicationToggleFullScreenAction;
+import io.github.astrapi69.mystic.crypt.action.ExportKeePassDatabaseAction;
+import io.github.astrapi69.mystic.crypt.action.ImportKeePassDatabaseAction;
 import io.github.astrapi69.mystic.crypt.action.NewChecksumFrameAction;
 import io.github.astrapi69.mystic.crypt.action.NewFileConversionInternalFrameAction;
 import io.github.astrapi69.mystic.crypt.action.NewKeyGenerationInternalFrameAction;
@@ -58,6 +60,7 @@ import io.github.astrapi69.mystic.crypt.action.OpenDatabaseTreeFrameAction;
 import io.github.astrapi69.mystic.crypt.action.OpenPrivateKeyAction;
 import io.github.astrapi69.mystic.crypt.action.SaveApplicationFileAction;
 import io.github.astrapi69.mystic.crypt.eventbus.ApplicationEventBus;
+import io.github.astrapi69.mystic.crypt.plugin.api.PluginMenuContribution;
 import io.github.astrapi69.swing.action.ExitApplicationAction;
 import io.github.astrapi69.swing.base.BaseDesktopMenu;
 import io.github.astrapi69.swing.base.BaseMenuId;
@@ -172,6 +175,23 @@ public class DesktopMenu extends BaseDesktopMenu implements EventListener<EventO
 
 			.actionListener(new SaveApplicationFileAction("Save")).build().toJMenuItem();
 		fileMenu.add(saveApplicationFileMenuItem);
+
+		// Separator
+		fileMenu.addSeparator();
+
+		// Import from KeePass
+		JMenuItem importKeePassMenuItem = MenuItemInfo.builder().text("Import from KeePass...")
+			.name(MenuId.IMPORT_KEEPASS.propertiesKey()).mnemonic(MenuExtensions.toMnemonic('I'))
+			.actionListener(new ImportKeePassDatabaseAction("Import from KeePass")).build()
+			.toJMenuItem();
+		fileMenu.add(importKeePassMenuItem);
+
+		// Export to KeePass
+		JMenuItem exportKeePassMenuItem = MenuItemInfo.builder().text("Export to KeePass...")
+			.name(MenuId.EXPORT_KEEPASS.propertiesKey()).mnemonic(MenuExtensions.toMnemonic('X'))
+			.actionListener(new ExportKeePassDatabaseAction("Export to KeePass")).build()
+			.toJMenuItem();
+		fileMenu.add(exportKeePassMenuItem);
 
 		// @formatter:off
 		// Main secret key menu
@@ -406,6 +426,47 @@ public class DesktopMenu extends BaseDesktopMenu implements EventListener<EventO
 			log.log(Level.SEVERE, e.getLocalizedMessage(), e);
 		}
 		return license.toString();
+	}
+
+	/**
+	 * Builds the "Plugins" menu from the given extensions and, if it has at least one item,
+	 * appends it to the menu bar
+	 *
+	 * @param contributions
+	 *            the {@link PluginMenuContribution} extensions found by the plugin manager
+	 * @return the created "Plugins" {@link JMenu}, not attached to the menu bar if no items were
+	 *         contributed
+	 */
+	public JMenu addPluginsMenu(@NonNull List<PluginMenuContribution> contributions)
+	{
+		JMenu pluginsMenu = MenuItemInfo.builder()
+			.text(Messages.getString(MenuId.PLUGINS.propertiesKey(), "Plugins"))
+			.name(MenuId.PLUGINS.propertiesKey()).mnemonic(MenuExtensions.toMnemonic('P')).build()
+			.toJMenu();
+
+		for (PluginMenuContribution contribution : contributions)
+		{
+			try
+			{
+				List<JMenuItem> items = contribution.getMenuItems();
+				if (items != null)
+				{
+					items.forEach(pluginsMenu::add);
+				}
+			}
+			catch (RuntimeException runtimeException)
+			{
+				log.log(Level.WARNING, "Plugin extension " + contribution.getClass().getName()
+					+ " failed to provide menu items", runtimeException);
+			}
+		}
+		if (pluginsMenu.getItemCount() > 0)
+		{
+			getMenubar().add(pluginsMenu);
+			getMenubar().revalidate();
+			getMenubar().repaint();
+		}
+		return pluginsMenu;
 	}
 
 	public void onEnableByPublic()

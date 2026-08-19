@@ -60,6 +60,10 @@
 /.gradle
 /gradle
 /out
+# standalone example projects under examples/ (e.g. the hello-plugin template) have their own
+# independent Gradle builds - ignore their build output/cache too, only source should be tracked
+examples/*/build/
+examples/*/.gradle/
 # Ignore Gradle GUI config
 gradle-app.setting
 # Avoid ignoring Gradle wrapper jar file (.jar files are usually ignored)

@@ -118,7 +118,7 @@ junit-jupiter = { module = "org.junit.jupiter:junit-jupiter", version.ref = "jun
 junit-jupiter-extensions = { module = "io.github.astrapi69:junit-jupiter-extensions", version.ref = "junit-jupiter-extensions-version" }
 junit-platform-launcher = { module = "org.junit.platform:junit-platform-launcher", version.ref = "junit-platform-launcher-version" }
 jxlayer = { module = "org.swinglabs:jxlayer", version.ref = "jxlayer-version" }
-kee-pass-java2 = { module = "org.linguafranca.pwdb:KeePassJava2", version.ref = "kee-pass-java2-version" }
+kee-pass-java2-simple = { module = "org.linguafranca.pwdb:KeePassJava2-simple", version.ref = "kee-pass-java2-version" }
 lgood-date-picker = { module = "com.github.lgooddatepicker:LGoodDatePicker", version.ref = "lgood-date-picker-version" }
 lombok = { module = "org.projectlombok:lombok", version.ref = "lombok-version" }
 meanbean = { module = "com.github.meanbeanlib:meanbean", version.ref = "meanbean-version" }
@@ -171,7 +171,7 @@ unit-testing = [
 
 [plugins]
 gradle-izpack-plugin = { id = "com.bmuschko.izpack", version.ref = "gradle-izpack-plugin-version" }
-gradle-versions-plugin = { id = "com.github.ben-manes.versions", version.ref = "gradle-plugin-versions-version" }
+gradle-versions-plugin = { id = "io.github.ben-manes.versions", version.ref = "gradle-plugin-versions-version" }
 grgit-gradle = { id = "org.ajoberstar.grgit", version.ref = "gradle-plugin-grgit-version" }
 license-gradle-plugin = { id = "com.github.hierynomus.license", version.ref = "gradle-plugin-license-version" }
 lombok-plugin = { id = "io.freefair.lombok", version.ref = "gradle-plugin-lombok-version" }
