@@ -44,6 +44,7 @@ import io.github.astrapi69.file.system.SystemFileExtensions;
 import io.github.astrapi69.file.write.StoreFileExtensions;
 import io.github.astrapi69.io.file.FileExtension;
 import io.github.astrapi69.mystic.crypt.ApplicationModelBean;
+import io.github.astrapi69.mystic.crypt.algorithm.MysticSymmetricAlgorithm;
 import io.github.astrapi69.mystic.crypt.file.PBEFileEncryptor;
 import io.github.astrapi69.mystic.crypt.key.PublicKeyEncryptor;
 import io.github.astrapi69.mystic.crypt.key.PublicKeyGenericEncryptor;
@@ -111,7 +112,8 @@ public final class ApplicationXmlFileStoreWorker
 		symmetricKey = RuntimeExceptionDecorator.decorate(
 			() -> SecretKeyFactoryExtensions.newSecretKey(AesAlgorithm.AES.getAlgorithm(), 128));
 		symmetricKeyModel = CryptModel.<Cipher, SecretKey, String> builder().key(symmetricKey)
-			.algorithm(AesAlgorithm.AES).operationMode(Cipher.ENCRYPT_MODE).build();
+			.algorithm(MysticSymmetricAlgorithm.AES_GCM_NO_PADDING)
+			.operationMode(Cipher.ENCRYPT_MODE).build();
 
 		encryptor = RuntimeExceptionDecorator
 			.decorate(() -> new PublicKeyEncryptor(encryptModel, symmetricKeyModel));
@@ -159,7 +161,8 @@ public final class ApplicationXmlFileStoreWorker
 			() -> SecretKeyFactoryExtensions.newSecretKey(AesAlgorithm.AES.getAlgorithm(), 128));
 
 		symmetricKeyModel = CryptModel.<Cipher, SecretKey, String> builder().key(symmetricKey)
-			.algorithm(AesAlgorithm.AES).operationMode(Cipher.ENCRYPT_MODE).build();
+			.algorithm(MysticSymmetricAlgorithm.AES_GCM_NO_PADDING)
+			.operationMode(Cipher.ENCRYPT_MODE).build();
 
 		encryptor = RuntimeExceptionDecorator
 			.decorate(() -> new PublicKeyEncryptor(encryptionModel, symmetricKeyModel));

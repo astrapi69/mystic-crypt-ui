@@ -35,7 +35,7 @@ import java.util.Optional;
 
 import javax.swing.*;
 
-import io.github.astrapi69.file.create.FileContentInfo;
+import io.github.astrapi69.file.create.model.FileContentInfo;
 import io.github.astrapi69.file.write.WriteFileExtensions;
 import io.github.astrapi69.model.BaseModel;
 import io.github.astrapi69.model.api.IModel;

@@ -39,7 +39,7 @@ import org.apache.commons.lang3.StringUtils;
 import io.github.astrapi69.browser.BrowserControlExtensions;
 import io.github.astrapi69.collection.pair.ValueBox;
 import io.github.astrapi69.file.create.FileFactory;
-import io.github.astrapi69.file.create.FileInfo;
+import io.github.astrapi69.file.create.model.FileInfo;
 import io.github.astrapi69.gson.ObjectToJsonFileExtensions;
 import io.github.astrapi69.model.BaseModel;
 import io.github.astrapi69.model.LambdaModel;

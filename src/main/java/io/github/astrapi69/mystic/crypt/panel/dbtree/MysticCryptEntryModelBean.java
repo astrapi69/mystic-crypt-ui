@@ -33,7 +33,7 @@ import java.util.UUID;
 import io.github.astrapi69.collection.list.ListExtensions;
 import io.github.astrapi69.collection.pair.KeySetPair;
 import io.github.astrapi69.collection.pair.KeyValuePair;
-import io.github.astrapi69.file.create.FileContentInfo;
+import io.github.astrapi69.file.create.model.FileContentInfo;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;

@@ -26,7 +26,7 @@ package io.github.astrapi69.mystic.crypt.panel.dbtree;
 
 import java.util.List;
 
-import io.github.astrapi69.file.create.FileContentInfo;
+import io.github.astrapi69.file.create.model.FileContentInfo;
 import io.github.astrapi69.swing.table.model.BaseTableModel;
 import io.github.astrapi69.swing.table.model.TableColumnsModel;
 import io.github.astrapi69.swing.table.model.thread.ThreadsTableModel;
