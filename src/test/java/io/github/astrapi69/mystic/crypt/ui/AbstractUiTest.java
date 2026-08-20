@@ -25,6 +25,7 @@
 package io.github.astrapi69.mystic.crypt.ui;
 
 import java.awt.Dialog;
+import java.awt.GraphicsEnvironment;
 import java.awt.Window;
 import java.awt.event.WindowListener;
 import java.io.File;
@@ -40,6 +41,7 @@ import org.assertj.swing.edt.GuiActionRunner;
 import org.assertj.swing.finder.WindowFinder;
 import org.assertj.swing.fixture.DialogFixture;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.BeforeEach;
 
 import io.github.astrapi69.awt.window.adapter.CloseWindow;
@@ -76,6 +78,9 @@ abstract class AbstractUiTest
 	@BeforeEach
 	void setUpUiTest() throws IOException
 	{
+		// no display, no UI test: skips cleanly on headless CI runners instead of failing there
+		Assumptions.assumeFalse(GraphicsEnvironment.isHeadless(),
+			"UI tests need a graphical display and are skipped in headless environments");
 		originalUserHome = System.getProperty("user.home");
 		tempHome = Files.createTempDirectory("mystic-crypt-ui-test-home").toFile();
 		System.setProperty("user.home", tempHome.getAbsolutePath());
@@ -89,6 +94,11 @@ abstract class AbstractUiTest
 	@AfterEach
 	void tearDownUiTest() throws InterruptedException
 	{
+		if (robot == null)
+		{
+			// setup was skipped by the headless assumption - nothing to tear down
+			return;
+		}
 		try
 		{
 			// let the application thread finish its frame construction first: after the sign-in

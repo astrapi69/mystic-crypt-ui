@@ -1,4 +1,4 @@
-JAVA_HOME ?= /home/astrapi69/.sdkman/candidates/java/21.0.6-tem
+JAVA_HOME ?= /home/astrapi69/.sdkman/candidates/java/25-tem
 JAR := $(shell find build/libs -maxdepth 1 -name '*-all.jar' 2>/dev/null | head -1)
 
 .PHONY: build build-full run all clean test test-e2e test-e2e-demo \
