@@ -93,6 +93,82 @@ final class CreateMasterKeySteps
 		return this;
 	}
 
+	/** Ensures the "Key File:" checkbox is selected */
+	CreateMasterKeySteps checkKeyFile()
+	{
+		GuiActionRunner.execute(() -> {
+			javax.swing.JCheckBox checkBox = (javax.swing.JCheckBox)dialog.checkBox("cbxKeyFile")
+				.target();
+			if (!checkBox.isSelected())
+			{
+				checkBox.doClick();
+			}
+		});
+		dialog.checkBox("cbxKeyFile").requireSelected();
+		robot.waitForIdle();
+		UiTestSpeed.step();
+		return this;
+	}
+
+	/**
+	 * Creates a new private key file through the real user flow: "Create key file..." opens the
+	 * "Create new private key" dialog, "Generate key" produces an RSA key (waits until the Save
+	 * button enables), the file name is entered and "Save private key" writes the PEM file and
+	 * closes the dialog
+	 *
+	 * @param fileName
+	 *            the file name for the new private key (created in the configuration directory)
+	 */
+	CreateMasterKeySteps createKeyFile(String fileName)
+	{
+		SwingUtilities.invokeLater(() -> dialog.button("btnCreateKeyFile").target().doClick());
+
+		org.assertj.swing.fixture.DialogFixture keyDialog = org.assertj.swing.finder.WindowFinder
+			.findDialog(new org.assertj.swing.core.GenericTypeMatcher<java.awt.Dialog>(
+				java.awt.Dialog.class)
+			{
+				@Override
+				protected boolean isMatching(java.awt.Dialog candidate)
+				{
+					return "Create new private key".equals(candidate.getTitle())
+						&& candidate.isShowing();
+				}
+			}).withTimeout(10, java.util.concurrent.TimeUnit.SECONDS).using(robot);
+		UiTestSpeed.step();
+
+		// the Save button's state machine requires file name AND generated key (plus directory
+		// and key size, which are pre-filled) - set the name first, then generate. Generating the
+		// RSA key runs synchronously in the button's listener on the EDT, so fire it
+		// asynchronously and wait for the Save button to enable
+		GuiActionRunner
+			.execute(() -> keyDialog.textBox("txtFilenameOfPrivateKey").target().setText(fileName));
+		robot.waitForIdle();
+		UiTestSpeed.step();
+
+		SwingUtilities.invokeLater(() -> keyDialog.button("btnGenerate").target().doClick());
+		Pause.pause(new Condition("private key is generated (Save button enabled)")
+		{
+			@Override
+			public boolean test()
+			{
+				return keyDialog.button("btnSave").target().isEnabled();
+			}
+		}, 30000);
+		UiTestSpeed.step();
+
+		SwingUtilities.invokeLater(() -> keyDialog.button("btnSave").target().doClick());
+		Pause.pause(new Condition("create-new-private-key dialog is closed")
+		{
+			@Override
+			public boolean test()
+			{
+				return !keyDialog.target().isShowing();
+			}
+		}, 15000);
+		UiTestSpeed.step();
+		return this;
+	}
+
 	/** Clicks Cancel and waits for this dialog to close - the flow-ending button of an abort */
 	void cancelAndAwaitClose()
 	{

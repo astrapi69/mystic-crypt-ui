@@ -116,6 +116,17 @@ public class NewPrivateKeyPanel extends BasePanel<NewPrivateKeyModelBean>
 		txtDirectoryOfPrivateKey = new javax.swing.JTextField();
 		btnDirectoryOfPrivateKey = new javax.swing.JButton();
 
+		// stable component names for UI tests (AssertJ-Swing lookups by name)
+		txtPrivateKey.setName("txtPrivateKey");
+		cmbKeySize.setName("cmbKeySize");
+		btnGenerate.setName("btnGenerate");
+		btnClear.setName("btnClear");
+		btnCancel.setName("btnCancel");
+		btnSave.setName("btnSave");
+		txtFilenameOfPrivateKey.setName("txtFilenameOfPrivateKey");
+		txtDirectoryOfPrivateKey.setName("txtDirectoryOfPrivateKey");
+		btnDirectoryOfPrivateKey.setName("btnDirectoryOfPrivateKey");
+
 		txtPrivateKey.setColumns(20);
 		txtPrivateKey.setRows(5);
 		scpPrivateKey.setViewportView(txtPrivateKey);
@@ -146,6 +157,8 @@ public class NewPrivateKeyPanel extends BasePanel<NewPrivateKeyModelBean>
 			.modelObject(modelObject).build();
 
 		txtFilenameOfPrivateKey = new JMTextField();
+		// the field is re-created here, so the test-lookup name must be (re)assigned afterwards
+		txtFilenameOfPrivateKey.setName("txtFilenameOfPrivateKey");
 		((JMTextField)txtFilenameOfPrivateKey).setPropertyModel(LambdaModel
 			.of(modelObject::getFilenameOfPrivateKey, modelObject::setFilenameOfPrivateKey));
 		txtFilenameOfPrivateKey.getDocument().addDocumentListener(new DocumentListenerAdapter()

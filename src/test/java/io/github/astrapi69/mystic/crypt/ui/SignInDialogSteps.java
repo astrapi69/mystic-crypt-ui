@@ -109,6 +109,33 @@ final class SignInDialogSteps
 		return this;
 	}
 
+	/** Ensures the "Key File:" checkbox is selected */
+	SignInDialogSteps checkKeyFile()
+	{
+		GuiActionRunner.execute(() -> {
+			javax.swing.JCheckBox checkBox = (javax.swing.JCheckBox)dialog.checkBox("cbxKeyFile")
+				.target();
+			if (!checkBox.isSelected())
+			{
+				checkBox.doClick();
+			}
+		});
+		dialog.checkBox("cbxKeyFile").requireSelected();
+		robot.waitForIdle();
+		UiTestSpeed.step();
+		return this;
+	}
+
+	/** Clicks the key file's "Browse..." and selects the given file in the chooser that opens */
+	SignInDialogSteps browseKeyFile(File keyFile)
+	{
+		SwingUtilities.invokeLater(() -> dialog.button("btnKeyFileChooser").target().doClick());
+		approveInFileChooser(keyFile);
+		robot.waitForIdle();
+		UiTestSpeed.step();
+		return this;
+	}
+
 	/** Clicks "Browse..." and selects the given file in the save chooser that opens */
 	SignInDialogSteps browseApplicationFile(File applicationFile)
 	{

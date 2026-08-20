@@ -185,6 +185,25 @@ final class ApplicationSteps
 	}
 
 	/**
+	 * Duplicates the tree node with the given display name through the real user flow: right-click,
+	 * "Duplicate node...", type the duplicate's name into the "Name for duplicate" dialog, OK
+	 */
+	ApplicationSteps duplicateNode(org.assertj.swing.fixture.FrameFixture frame, String nodeName,
+		String duplicateName)
+	{
+		rightClickTreeNodeByName(frame, nodeName);
+		chooseFromShowingPopup("Duplicate node...");
+
+		DialogFixture duplicateDialog = findDialogWithTitle("Name for duplicate");
+		GuiActionRunner.execute(() -> duplicateDialog.textBox().target().setText(duplicateName));
+		robot.waitForIdle();
+		UiTestSpeed.step();
+		clickDialogButton(duplicateDialog, "OK");
+		awaitDialogClosed(duplicateDialog, "duplicate-node dialog");
+		return this;
+	}
+
+	/**
 	 * Deletes the tree node with the given display name through the real user flow: right-click,
 	 * "delete", confirm the "Confirm deletion" dialog with OK
 	 */
@@ -230,6 +249,60 @@ final class ApplicationSteps
 		robot.waitForIdle();
 		UiTestSpeed.step();
 		return this;
+	}
+
+	/** Selects the visible tree node with the given display name so entry operations target it */
+	ApplicationSteps selectTreeRowByName(org.assertj.swing.fixture.FrameFixture frame,
+		String nodeName)
+	{
+		javax.swing.JTree tree = frame.tree().target();
+		GuiActionRunner.execute(() -> {
+			tree.expandRow(0);
+			javax.swing.tree.TreePath rowPath = findTreePathByName(tree, nodeName);
+			tree.setSelectionPath(rowPath);
+			// the entries table refreshes on a left CLICK, not on selection alone - dispatch one
+			// on the selected row so the table shows this node's entries
+			java.awt.Rectangle rowBounds = tree.getPathBounds(rowPath);
+			long now = System.currentTimeMillis();
+			int x = rowBounds.x + rowBounds.width / 2;
+			int y = rowBounds.y + rowBounds.height / 2;
+			tree.dispatchEvent(
+				new java.awt.event.MouseEvent(tree, java.awt.event.MouseEvent.MOUSE_PRESSED, now,
+					java.awt.event.InputEvent.BUTTON1_DOWN_MASK, x, y, 1, false,
+					java.awt.event.MouseEvent.BUTTON1));
+			tree.dispatchEvent(
+				new java.awt.event.MouseEvent(tree, java.awt.event.MouseEvent.MOUSE_RELEASED, now,
+					java.awt.event.InputEvent.BUTTON1_DOWN_MASK, x, y, 1, false,
+					java.awt.event.MouseEvent.BUTTON1));
+			tree.dispatchEvent(
+				new java.awt.event.MouseEvent(tree, java.awt.event.MouseEvent.MOUSE_CLICKED, now,
+					java.awt.event.InputEvent.BUTTON1_DOWN_MASK, x, y, 1, false,
+					java.awt.event.MouseEvent.BUTTON1));
+		});
+		robot.waitForIdle();
+		// the tree's click listener defers single-click handling by the multi-click interval
+		// before it refreshes the entries table - give that timer room to fire
+		Pause.pause(700);
+		UiTestSpeed.step();
+		return this;
+	}
+
+	private static javax.swing.tree.TreePath findTreePathByName(javax.swing.JTree tree,
+		String nodeName)
+	{
+		for (int row = 0; row < tree.getRowCount(); row++)
+		{
+			javax.swing.tree.TreePath rowPath = tree.getPathForRow(row);
+			Object lastComponent = rowPath.getLastPathComponent();
+			if (lastComponent instanceof javax.swing.tree.DefaultMutableTreeNode treeNode
+				&& treeNode.getUserObject()instanceof BaseTreeNode<?, ?> baseTreeNode
+				&& baseTreeNode.getValue()instanceof GenericTreeElement<?> treeElement
+				&& nodeName.equals(treeElement.getName()))
+			{
+				return rowPath;
+			}
+		}
+		throw new IllegalStateException("tree has no visible node named '" + nodeName + "'");
 	}
 
 	/**
