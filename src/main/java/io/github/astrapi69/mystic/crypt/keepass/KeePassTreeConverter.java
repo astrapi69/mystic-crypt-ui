@@ -31,6 +31,7 @@ import java.util.function.Supplier;
 import org.linguafranca.pwdb.kdbx.simple.SimpleDatabase;
 import org.linguafranca.pwdb.kdbx.simple.SimpleEntry;
 import org.linguafranca.pwdb.kdbx.simple.SimpleGroup;
+import org.linguafranca.pwdb.kdbx.simple.SimpleIcon;
 
 import io.github.astrapi69.gen.tree.BaseTreeNode;
 import io.github.astrapi69.mystic.crypt.panel.dbtree.MysticCryptEntryModelBean;
@@ -38,10 +39,22 @@ import io.github.astrapi69.swing.renderer.tree.GenericTreeElement;
 
 /**
  * Converts the group/entry tree of a KeePassJava2 {@link SimpleDatabase} into/from this app's own
- * {@link BaseTreeNode} of {@link GenericTreeElement}s
+ * {@link BaseTreeNode} of {@link GenericTreeElement}s.
+ * <p>
+ * {@link GenericTreeElement}/{@link BaseTreeNode} are library types this app doesn't own, so
+ * group-level KeePass metadata that has no dedicated field there (uuid, icon index, recycle-bin
+ * flag) is preserved in {@link GenericTreeElement}'s generic properties map instead, under the
+ * {@code KEEPASS_*} keys below. KeePassJava2's {@code Group} type has no public setter for uuid or
+ * recycle-bin status, so only the icon index can be fed back on {@link #toSimpleGroup} -
+ * uuid/recycle-bin are preserved on import for completeness even though the library gives no way to
+ * re-apply them on export
  */
 public final class KeePassTreeConverter
 {
+
+	public static final String KEEPASS_UUID_PROPERTY = "keepass.uuid";
+	public static final String KEEPASS_ICON_INDEX_PROPERTY = "keepass.iconIndex";
+	public static final String KEEPASS_RECYCLE_BIN_PROPERTY = "keepass.recycleBin";
 
 	private KeePassTreeConverter()
 	{
@@ -76,6 +89,13 @@ public final class KeePassTreeConverter
 		GenericTreeElement<List<MysticCryptEntryModelBean>> treeElement = GenericTreeElement
 			.<List<MysticCryptEntryModelBean>> builder().name(name).leaf(leaf).build();
 		treeElement.setDefaultContent(entries);
+		treeElement.getProperties().put(KEEPASS_UUID_PROPERTY, group.getUuid());
+		if (group.getIcon() != null)
+		{
+			treeElement.getProperties().put(KEEPASS_ICON_INDEX_PROPERTY,
+				group.getIcon().getIndex());
+		}
+		treeElement.getProperties().put(KEEPASS_RECYCLE_BIN_PROPERTY, group.isRecycleBin());
 
 		BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> treeNode = BaseTreeNode
 			.<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> builder().id(nextId.get())
@@ -113,6 +133,12 @@ public final class KeePassTreeConverter
 		GenericTreeElement<List<MysticCryptEntryModelBean>> treeElement = treeNode.getValue();
 		SimpleGroup group = database.newGroup(treeElement.getName());
 		parent.addGroup(group);
+
+		Object iconIndex = treeElement.getProperties().get(KEEPASS_ICON_INDEX_PROPERTY);
+		if (iconIndex instanceof Integer)
+		{
+			group.setIcon(new SimpleIcon((Integer)iconIndex));
+		}
 
 		List<MysticCryptEntryModelBean> entries = treeElement.getDefaultContent();
 		if (entries != null)

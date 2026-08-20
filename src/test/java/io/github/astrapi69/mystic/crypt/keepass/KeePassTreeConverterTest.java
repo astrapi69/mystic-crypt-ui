@@ -100,6 +100,34 @@ public class KeePassTreeConverterTest
 			"swing General node should have exactly 1 child");
 	}
 
+	@Test
+	public void testGroupMetadataIsPreservedOnImportAndIconOnExport()
+	{
+		SimpleDatabase database = new SimpleDatabase();
+		SimpleGroup root = database.getRootGroup();
+		SimpleGroup general = database.newGroup("General");
+		general.setIcon(new org.linguafranca.pwdb.kdbx.simple.SimpleIcon(3));
+		root.addGroup(general);
+
+		AtomicLong idCounter = new AtomicLong(0);
+		BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> rootNode = KeePassTreeConverter
+			.toTreeNode(root, null, idCounter::incrementAndGet);
+		BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> generalNode = rootNode
+			.getChildren().iterator().next();
+
+		assertEquals(general.getUuid(),
+			generalNode.getValue().getProperties().get(KeePassTreeConverter.KEEPASS_UUID_PROPERTY));
+		assertEquals(3, generalNode.getValue().getProperties()
+			.get(KeePassTreeConverter.KEEPASS_ICON_INDEX_PROPERTY));
+		assertEquals(false, generalNode.getValue().getProperties()
+			.get(KeePassTreeConverter.KEEPASS_RECYCLE_BIN_PROPERTY));
+
+		SimpleDatabase exportDatabase = new SimpleDatabase();
+		SimpleGroup exportedGroup = KeePassTreeConverter.toSimpleGroup(exportDatabase, generalNode,
+			exportDatabase.getRootGroup());
+		assertEquals(3, exportedGroup.getIcon().getIndex());
+	}
+
 	private void printSwingTree(DefaultMutableTreeNode node, int depth)
 	{
 		BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> treeNode = (BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long>)node

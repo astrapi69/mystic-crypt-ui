@@ -60,6 +60,28 @@ public class MysticCryptEntryModelBean
 	LocalDate expires;
 	String icon;
 
+	/**
+	 * The exact expiry timestamp as provided by an imported source (e.g. KeePass), preserved for
+	 * lossless round-tripping. The UI-facing {@link #expires} field only has day precision; this
+	 * field keeps the original time-of-day and offset, if any
+	 */
+	OffsetDateTime preciseExpiryTime;
+
+	/** When this entry was created, if known (e.g. imported from a KeePass database) */
+	OffsetDateTime creationTime;
+
+	/** When this entry was last accessed, if known (e.g. imported from a KeePass database) */
+	OffsetDateTime lastAccessTime;
+
+	/** When this entry was last modified, if known (e.g. imported from a KeePass database) */
+	OffsetDateTime lastModificationTime;
+
+	/**
+	 * The icon index of an imported KeePass entry, kept separate from {@link #icon} (this app's own
+	 * icon convention) since the two are not compatible representations
+	 */
+	Integer keePassIconIndex;
+
 	/** The flag if the password is displayed in plain text */
 	boolean showPassword;
 	@Builder.Default

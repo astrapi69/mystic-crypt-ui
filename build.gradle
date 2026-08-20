@@ -49,4 +49,9 @@ tasks.named("test") {
     // KeePassJava2-simple's SimpleXML-based serialization reflects into java.util (e.g. UUID)
     // at runtime, which the JDK 9+ module system blocks without this on JDK 17+
     it.jvmArgs "--add-opens", "java.base/java.util=ALL-UNNAMED"
+    // forward -Dmystic.crypt.ui.test.mode=demo to the forked test JVM (UiTestSpeed), e.g.
+    // ./gradlew test -Dmystic.crypt.ui.test.mode=demo
+    if (System.getProperty("mystic.crypt.ui.test.mode") != null) {
+        it.systemProperty "mystic.crypt.ui.test.mode", System.getProperty("mystic.crypt.ui.test.mode")
+    }
 }

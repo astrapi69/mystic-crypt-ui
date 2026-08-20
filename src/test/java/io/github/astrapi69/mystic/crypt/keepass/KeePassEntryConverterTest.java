@@ -26,12 +26,20 @@ package io.github.astrapi69.mystic.crypt.keepass;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import java.time.Instant;
+import java.time.ZoneOffset;
+import java.util.Date;
 
 import org.junit.jupiter.api.Test;
 import org.linguafranca.pwdb.Entry;
 import org.linguafranca.pwdb.kdbx.simple.SimpleDatabase;
 import org.linguafranca.pwdb.kdbx.simple.SimpleEntry;
+import org.linguafranca.pwdb.kdbx.simple.SimpleIcon;
 
 import io.github.astrapi69.mystic.crypt.panel.dbtree.MysticCryptEntryModelBean;
 
@@ -50,6 +58,10 @@ public class KeePassEntryConverterTest
 		entry.setProperty(Entry.STANDARD_PROPERTY_NAME_NOTES, "some notes");
 		entry.setProperty("custom-field", "custom-value");
 		entry.setBinaryProperty("attachment.txt", "hello".getBytes());
+		entry.setIcon(new SimpleIcon(7));
+		Date expiry = Date.from(Instant.parse("2030-06-15T10:30:00Z"));
+		entry.setExpires(true);
+		entry.setExpiryTime(expiry);
 
 		MysticCryptEntryModelBean bean = KeePassEntryConverter.toEntryModelBean(entry);
 
@@ -62,15 +74,41 @@ public class KeePassEntryConverterTest
 		assertTrue(bean.getResources().stream()
 			.anyMatch(resource -> "attachment.txt".equals(resource.getName())
 				&& "hello".equals(new String(resource.getContent()))));
+
+		// fields that must round-trip losslessly
+		assertEquals(entry.getUuid(), bean.getId());
+		assertEquals(Integer.valueOf(7), bean.getKeePassIconIndex());
+		assertTrue(bean.isExpirable());
+		assertEquals(expiry.toInstant(), bean.getPreciseExpiryTime().toInstant());
+		assertEquals(expiry.toInstant().atZone(ZoneOffset.UTC).toLocalDate(), bean.getExpires());
+		assertNotNull(bean.getCreationTime());
+		assertNotNull(bean.getLastAccessTime());
+		assertNotNull(bean.getLastModificationTime());
+	}
+
+	@Test
+	public void testToEntryModelBeanNotExpirable()
+	{
+		SimpleDatabase database = new SimpleDatabase();
+		SimpleEntry entry = database.newEntry();
+		entry.setExpires(false);
+
+		MysticCryptEntryModelBean bean = KeePassEntryConverter.toEntryModelBean(entry);
+
+		assertFalse(bean.isExpirable());
+		assertNull(bean.getPreciseExpiryTime());
+		assertNull(bean.getExpires());
 	}
 
 	@Test
 	public void testToSimpleEntryRoundTrip()
 	{
 		SimpleDatabase database = new SimpleDatabase();
+		Instant preciseExpiry = Instant.parse("2030-06-15T10:30:00Z");
 		MysticCryptEntryModelBean bean = MysticCryptEntryModelBean.builder().title("My Title")
 			.userName("my-user").password("s3cr3t".toCharArray()).url("https://example.com")
-			.notes("some notes").build();
+			.notes("some notes").expirable(true)
+			.preciseExpiryTime(preciseExpiry.atOffset(ZoneOffset.UTC)).keePassIconIndex(9).build();
 		bean.setProperty("custom-field", "custom-value");
 
 		SimpleEntry entry = KeePassEntryConverter.toSimpleEntry(database, bean);
@@ -81,6 +119,24 @@ public class KeePassEntryConverterTest
 		assertEquals("https://example.com", entry.getProperty(Entry.STANDARD_PROPERTY_NAME_URL));
 		assertEquals("some notes", entry.getProperty(Entry.STANDARD_PROPERTY_NAME_NOTES));
 		assertEquals("custom-value", entry.getProperty("custom-field"));
+		assertTrue(entry.getExpires());
+		assertEquals(preciseExpiry, entry.getExpiryTime().toInstant());
+		assertEquals(9, entry.getIcon().getIndex());
+	}
+
+	@Test
+	public void testToSimpleEntryNotExpirableStillSetsANonNullExpiryTime()
+	{
+		SimpleDatabase database = new SimpleDatabase();
+		MysticCryptEntryModelBean bean = MysticCryptEntryModelBean.builder().title("My Title")
+			.build();
+
+		SimpleEntry entry = KeePassEntryConverter.toSimpleEntry(database, bean);
+
+		assertFalse(entry.getExpires());
+		// Entry.setExpiryTime(...) throws on null, so this must never be null even when
+		// the entry isn't actually expirable
+		assertNotNull(entry.getExpiryTime());
 	}
 
 }

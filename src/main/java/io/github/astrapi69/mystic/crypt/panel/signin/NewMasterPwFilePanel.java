@@ -175,6 +175,21 @@ public class NewMasterPwFilePanel extends BasePanel<MasterPwFileModelBean>
 		btnApplicationFileChooser.setText("Browse...");
 
 		btnGeneratePw.setText("Generate");
+
+		// stable component names for UI tests (AssertJ-Swing lookups by name)
+		btnKeyFileChooser.setName("btnKeyFileChooser");
+		btnHelp.setName("btnHelp");
+		btnOk.setName("btnOk");
+		btnCancel.setName("btnCancel");
+		cbxMasterPw.setName("cbxMasterPw");
+		cbxKeyFile.setName("cbxKeyFile");
+		txtRepeatPw.setName("txtRepeatPw");
+		btnMasterPw.setName("btnMasterPw");
+		txtMasterPw.setName("txtMasterPw");
+		btnCreateKeyFile.setName("btnCreateKeyFile");
+		btnApplicationFileChooser.setName("btnApplicationFileChooser");
+		btnGeneratePw.setName("btnGeneratePw");
+		cmbKeyFile.setName("cmbKeyFile");
 		// ===
 		// ===
 		// ===
@@ -210,6 +225,7 @@ public class NewMasterPwFilePanel extends BasePanel<MasterPwFileModelBean>
 			getModelObject()::setSelectedApplicationFilePath);
 		txtApplicationFile = new JMTextField();
 		((JMTextField)txtApplicationFile).setPropertyModel(selectedApplicationFilePathModel);
+		txtApplicationFile.setName("txtApplicationFile");
 		txtApplicationFile.setEnabled(false);
 		btnApplicationFileChooser.addActionListener(this::onApplicationFileChooser);
 		btnKeyFileChooser.addActionListener(this::onKeyFileChooser);

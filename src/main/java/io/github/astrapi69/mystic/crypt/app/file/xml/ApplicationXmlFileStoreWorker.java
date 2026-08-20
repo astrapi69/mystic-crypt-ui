@@ -33,6 +33,7 @@ import javax.crypto.SecretKey;
 
 import io.github.astrapi69.crypt.api.algorithm.AesAlgorithm;
 import io.github.astrapi69.crypt.api.algorithm.SunJCEAlgorithm;
+import io.github.astrapi69.crypt.api.algorithm.compound.CompoundAlgorithm;
 import io.github.astrapi69.crypt.data.factory.SecretKeyFactoryExtensions;
 import io.github.astrapi69.crypt.data.key.KeyModelExtensions;
 import io.github.astrapi69.crypt.data.key.PrivateKeyExtensions;
@@ -204,8 +205,13 @@ public final class ApplicationXmlFileStoreWorker
 
 		password = String.valueOf(modelObject.getMasterPw());
 
+		// salt and iteration count MUST be pinned explicitly: since mystic-crypt 10.1 an absent
+		// salt makes the encryptor generate a random one that is persisted nowhere, so a reader
+		// building its own CryptModel could never decrypt the file again. These constants are the
+		// pre-10.1 defaults, so files written by older releases stay readable too
 		cryptModel = CryptModel.<Cipher, String, String> builder().key(password)
-			.algorithm(SunJCEAlgorithm.PBEWithMD5AndDES).build();
+			.algorithm(SunJCEAlgorithm.PBEWithMD5AndDES).salt(CompoundAlgorithm.SALT)
+			.iterationCount(CompoundAlgorithm.ITERATIONCOUNT).build();
 		encryptor = RuntimeExceptionDecorator.decorate(() -> new PBEFileEncryptor(cryptModel,
 			applicationFile, FileExtension.MYSTIC_CRYPT_ENCRYPTED.getExtension()));
 

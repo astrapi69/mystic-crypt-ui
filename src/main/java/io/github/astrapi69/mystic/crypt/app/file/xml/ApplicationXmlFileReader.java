@@ -34,7 +34,7 @@ import javax.crypto.Cipher;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 
 import io.github.astrapi69.crypt.api.algorithm.SunJCEAlgorithm;
-import io.github.astrapi69.crypt.data.factory.CryptModelFactory;
+import io.github.astrapi69.crypt.api.algorithm.compound.CompoundAlgorithm;
 import io.github.astrapi69.crypt.data.key.KeyModelExtensions;
 import io.github.astrapi69.crypt.data.key.reader.PemObjectReader;
 import io.github.astrapi69.crypt.data.key.reader.PrivateKeyReader;
@@ -50,7 +50,6 @@ import io.github.astrapi69.mystic.crypt.key.PrivateKeyGenericDecryptor;
 import io.github.astrapi69.mystic.crypt.panel.signin.MasterPwFileModelBean;
 import io.github.astrapi69.mystic.crypt.panel.signin.PasswordType;
 import io.github.astrapi69.mystic.crypt.pw.PasswordStringDecryptor;
-import io.github.astrapi69.xstream.XmlFileToObjectExtensions;
 import io.github.astrapi69.xstream.XmlToObjectExtensions;
 import lombok.NonNull;
 import lombok.extern.java.Log;
@@ -157,12 +156,20 @@ public class ApplicationXmlFileReader
 		char[] password) throws Exception
 	{
 		ApplicationModelBean applicationModelBean;
-		CryptModel<Cipher, String, String> pbeCryptModel = CryptModelFactory
-			.newCryptModel(SunJCEAlgorithm.PBEWithMD5AndDES, new String(password));
+		// salt and iteration count MUST match ApplicationXmlFileStoreWorker.saveToFileWithPassword
+		// exactly: since mystic-crypt 10.1 an absent salt makes the decryptor generate its own
+		// random one, which can never match what the file was encrypted with
+		CryptModel<Cipher, String, String> pbeCryptModel = CryptModel
+			.<Cipher, String, String> builder().key(new String(password))
+			.algorithm(SunJCEAlgorithm.PBEWithMD5AndDES).salt(CompoundAlgorithm.SALT)
+			.iterationCount(CompoundAlgorithm.ITERATIONCOUNT).build();
 
 		PBEFileDecryptor fileDecryptor = new PBEFileDecryptor(pbeCryptModel);
 		File decrypt = fileDecryptor.decrypt(applicationFile);
-		applicationModelBean = XmlFileToObjectExtensions.toObject(decrypt);
+		// note: not XmlFileToObjectExtensions.toObject(decrypt) - xstream-extensions 1.1 calls the
+		// pre-19.0 file-worker method ReadFileExtensions.readFromFile(File), which no longer
+		// exists on this classpath (renamed to fromFile), so that path throws NoSuchMethodError
+		applicationModelBean = XmlToObjectExtensions.toObject(ReadFileExtensions.fromFile(decrypt));
 		DeleteFileExtensions.delete(decrypt);
 
 		return applicationModelBean;

@@ -1,7 +1,7 @@
 JAVA_HOME ?= /home/astrapi69/.sdkman/candidates/java/21.0.6-tem
 JAR := $(shell find build/libs -maxdepth 1 -name '*-all.jar' 2>/dev/null | head -1)
 
-.PHONY: build build-full run all clean test \
+.PHONY: build build-full run all clean test test-e2e test-e2e-demo \
 	bootRun clean-build-installer izpack-installer izpack-installer-signed \
 	dependencies dependency-updates jacoco-coverage jacoco-report jar javadoc \
 	license-format publish spotless-java spotless-misc tag-release \
@@ -32,6 +32,14 @@ all: build run
 
 test:
 	JAVA_HOME=$(JAVA_HOME) ./gradlew test
+
+# end-to-end UI tests (AssertJ-Swing) - fast mode (default): as fast as possible
+test-e2e:
+	JAVA_HOME=$(JAVA_HOME) ./gradlew test --tests "io.github.astrapi69.mystic.crypt.ui.*" --rerun
+
+# end-to-end UI tests in demo mode: paced like a real user, watchable on screen
+test-e2e-demo:
+	JAVA_HOME=$(JAVA_HOME) ./gradlew test --tests "io.github.astrapi69.mystic.crypt.ui.*" --rerun -Dmystic.crypt.ui.test.mode=demo
 
 clean:
 	JAVA_HOME=$(JAVA_HOME) ./gradlew clean

@@ -153,6 +153,18 @@ public class MasterPwWithApplicationFilePanel extends BasePanel<MasterPwFileMode
 		btnApplicationFileChooser.setText("Browse...");
 
 		btnNewApplicationFile.setText("New...");
+
+		// stable component names for UI tests (AssertJ-Swing lookups by name)
+		cbxMasterPw.setName("cbxMasterPw");
+		cbxKeyFile.setName("cbxKeyFile");
+		txtMasterPw.setName("txtMasterPw");
+		btnMasterPw.setName("btnMasterPw");
+		btnKeyFileChooser.setName("btnKeyFileChooser");
+		btnHelp.setName("btnHelp");
+		btnOk.setName("btnOk");
+		btnCancel.setName("btnCancel");
+		btnApplicationFileChooser.setName("btnApplicationFileChooser");
+		btnNewApplicationFile.setName("btnNewApplicationFile");
 		// ===
 		// ===
 		// ===
@@ -204,6 +216,7 @@ public class MasterPwWithApplicationFilePanel extends BasePanel<MasterPwFileMode
 		selectedKeyFileItemModel = LambdaModel.of(keyFileValueBox::getValue,
 			keyFileValueBox::setValue);
 		cmbKeyFile = new JMComboBox<>(cmbKeyFileModel, selectedKeyFileItemModel);
+		cmbKeyFile.setName("cmbKeyFile");
 
 		if (selectedKeyFilePath != null && modelObject.getKeyFileInfo() == null)
 		{
@@ -232,6 +245,7 @@ public class MasterPwWithApplicationFilePanel extends BasePanel<MasterPwFileMode
 
 		cmbApplicationFile = new JMComboBox<>(cmbApplicationFileModel,
 			selectedApplicationFileItemModel);
+		cmbApplicationFile.setName("cmbApplicationFile");
 
 		if (selectedApplicationFilePath != null && modelObject.getApplicationFileInfo() == null)
 		{
@@ -491,7 +505,10 @@ public class MasterPwWithApplicationFilePanel extends BasePanel<MasterPwFileMode
 						.addComponent(btnNewApplicationFile))
 					.addGap(18, 18, 18)))
 				.addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-					.addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+					// CENTER, not BASELINE: a BASELINE group whose sibling combo-box models are
+					// mutated at runtime triggers a known GroupLayout NPE
+					// (ComponentSpring.getBaseline: "horizontalSpring is null")
+					.addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.CENTER)
 						.addComponent(txtMasterPw, javax.swing.GroupLayout.PREFERRED_SIZE,
 							javax.swing.GroupLayout.DEFAULT_SIZE,
 							javax.swing.GroupLayout.PREFERRED_SIZE)
