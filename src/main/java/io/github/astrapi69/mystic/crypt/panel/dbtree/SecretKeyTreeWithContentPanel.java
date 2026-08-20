@@ -751,8 +751,17 @@ public class SecretKeyTreeWithContentPanel
 			JOptionPane.OK_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE, null);
 		if (option == JOptionPane.OK_OPTION)
 		{
+			List<MysticCryptEntryModelBean> defaultContent = getSelectedBaseTreeNode().getValue()
+				.getDefaultContent();
 			getTblTreeEntryTable().getAllSelectedRowData().forEach(tableEntry -> {
 				getTblTreeEntryTable().getGenericTableModel().remove(tableEntry);
+				// the table model holds a COPY of the node's entry list (newTableModel does
+				// removeAll+addList), so removing there alone leaves the entry in the node's
+				// defaultContent - it would reappear on reselecting the node or after a reopen
+				if (defaultContent != null)
+				{
+					defaultContent.removeIf(entry -> entry == tableEntry);
+				}
 			});
 
 			getBaseTreeNodeModel();

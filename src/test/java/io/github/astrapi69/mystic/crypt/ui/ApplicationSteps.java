@@ -192,18 +192,7 @@ final class ApplicationSteps
 	{
 		rightClickTreeNodeByName(frame, nodeName);
 		chooseFromShowingPopup("delete");
-
-		DialogFixture confirmDialog = findDialogWithTitle("Confirm deletion");
-		// answer through the option pane's own API: JOptionPane.showConfirmDialog compares the
-		// selected VALUE, and a synthetic click on the OK button did not translate into OK_OPTION
-		// here - setValue(OK_OPTION) is exactly what the button's listener sets
-		GuiActionRunner.execute(() -> {
-			javax.swing.JOptionPane optionPane = (javax.swing.JOptionPane)robot.finder()
-				.findByType(confirmDialog.target(), javax.swing.JOptionPane.class);
-			optionPane.setValue(javax.swing.JOptionPane.OK_OPTION);
-		});
-		UiTestSpeed.step();
-		awaitDialogClosed(confirmDialog, "confirm-deletion dialog");
+		confirmOptionPaneDialog("Confirm deletion");
 		return this;
 	}
 
@@ -241,6 +230,149 @@ final class ApplicationSteps
 		robot.waitForIdle();
 		UiTestSpeed.step();
 		return this;
+	}
+
+	/**
+	 * Selects the entries-table row whose title column matches the given title (the context-menu
+	 * actions on entries operate on the selected rows, a right-click alone selects nothing)
+	 */
+	ApplicationSteps selectEntryRowByTitle(org.assertj.swing.fixture.FrameFixture frame,
+		String title)
+	{
+		javax.swing.JTable table = frame.table().target();
+		GuiActionRunner.execute(() -> {
+			int row = findEntryRow(table, title);
+			table.setRowSelectionInterval(row, row);
+		});
+		robot.waitForIdle();
+		UiTestSpeed.step();
+		return this;
+	}
+
+	/**
+	 * Edits the selected entry through the real user flow: right-click the selected row, "edit...",
+	 * change the title in the "Edit Crypt Entry" dialog, OK
+	 */
+	ApplicationSteps editSelectedEntryTitle(org.assertj.swing.fixture.FrameFixture frame,
+		String newTitle)
+	{
+		rightClickSelectedTableRow(frame);
+		chooseFromShowingPopup("edit...");
+
+		DialogFixture editDialog = findDialogWithTitle("Edit Crypt Entry");
+		GuiActionRunner
+			.execute(() -> editDialog.textBox("txtEntryName").target().setText(newTitle));
+		robot.waitForIdle();
+		UiTestSpeed.step();
+		clickDialogButton(editDialog, "OK");
+		awaitDialogClosed(editDialog, "edit-crypt-entry dialog");
+		return this;
+	}
+
+	/**
+	 * Duplicates the selected entry through the real user flow: right-click, "duplicate...", type
+	 * the duplicate's title into the "New title for duplicate" dialog, OK
+	 */
+	ApplicationSteps duplicateSelectedEntry(org.assertj.swing.fixture.FrameFixture frame,
+		String duplicateTitle)
+	{
+		rightClickSelectedTableRow(frame);
+		chooseFromShowingPopup("duplicate...");
+
+		DialogFixture duplicateDialog = findDialogWithTitle("New title for duplicate");
+		GuiActionRunner.execute(() -> duplicateDialog.textBox().target().setText(duplicateTitle));
+		robot.waitForIdle();
+		UiTestSpeed.step();
+		clickDialogButton(duplicateDialog, "OK");
+		awaitDialogClosed(duplicateDialog, "duplicate-entry dialog");
+		return this;
+	}
+
+	/**
+	 * Deletes the selected entries through the real user flow: right-click, "delete", confirm the
+	 * "Confirm deletion" dialog
+	 */
+	ApplicationSteps deleteSelectedEntry(org.assertj.swing.fixture.FrameFixture frame)
+	{
+		rightClickSelectedTableRow(frame);
+		chooseFromShowingPopup("delete");
+		confirmOptionPaneDialog("Confirm deletion");
+		return this;
+	}
+
+	/** Copies the selected entry's user name to the system clipboard via the context menu */
+	ApplicationSteps copyUsernameOfSelectedEntry(org.assertj.swing.fixture.FrameFixture frame)
+	{
+		rightClickSelectedTableRow(frame);
+		chooseFromShowingPopup("Copy Username");
+		robot.waitForIdle();
+		UiTestSpeed.step();
+		return this;
+	}
+
+	/** Copies the selected entry's password to the system clipboard via the context menu */
+	ApplicationSteps copyPasswordOfSelectedEntry(org.assertj.swing.fixture.FrameFixture frame)
+	{
+		rightClickSelectedTableRow(frame);
+		chooseFromShowingPopup("Copy Password");
+		robot.waitForIdle();
+		UiTestSpeed.step();
+		return this;
+	}
+
+	/** Reads the current plain-text content of the system clipboard */
+	String clipboardText()
+	{
+		return GuiActionRunner.execute(() -> (String)java.awt.Toolkit.getDefaultToolkit()
+			.getSystemClipboard().getData(java.awt.datatransfer.DataFlavor.stringFlavor));
+	}
+
+	private void rightClickSelectedTableRow(org.assertj.swing.fixture.FrameFixture frame)
+	{
+		javax.swing.JTable table = frame.table().target();
+		GuiActionRunner.execute(() -> {
+			int row = table.getSelectedRow();
+			if (row < 0)
+			{
+				throw new IllegalStateException("no table row is selected");
+			}
+			java.awt.Rectangle cellRect = table.getCellRect(row, 0, true);
+			table.scrollRectToVisible(cellRect);
+			dispatchRightClickEvents(table, cellRect.x + cellRect.width / 2,
+				cellRect.y + cellRect.height / 2);
+		});
+		robot.waitForIdle();
+	}
+
+	@SuppressWarnings("unchecked")
+	private static int findEntryRow(javax.swing.JTable table, String title)
+	{
+		io.github.astrapi69.swing.table.model.GenericTableModel<MysticCryptEntryModelBean> tableModel = (io.github.astrapi69.swing.table.model.GenericTableModel<MysticCryptEntryModelBean>)table
+			.getModel();
+		List<MysticCryptEntryModelBean> data = tableModel.getData();
+		for (int index = 0; index < data.size(); index++)
+		{
+			if (title.equals(data.get(index).getTitle()))
+			{
+				return table.convertRowIndexToView(index);
+			}
+		}
+		throw new IllegalStateException("entries table has no row with title '" + title + "'");
+	}
+
+	/** Confirms the option-pane dialog with the given title by setting OK_OPTION as its value */
+	private void confirmOptionPaneDialog(String title)
+	{
+		DialogFixture confirmDialog = findDialogWithTitle(title);
+		// answer through the option pane's own API: a synthetic click on the OK button did not
+		// translate into OK_OPTION here - setValue(OK_OPTION) is what the button's listener sets
+		GuiActionRunner.execute(() -> {
+			javax.swing.JOptionPane optionPane = (javax.swing.JOptionPane)robot.finder()
+				.findByType(confirmDialog.target(), javax.swing.JOptionPane.class);
+			optionPane.setValue(javax.swing.JOptionPane.OK_OPTION);
+		});
+		UiTestSpeed.step();
+		awaitDialogClosed(confirmDialog, "'" + title + "' dialog");
 	}
 
 	/** Debug helper: prints every node name in the model tree to stderr */
