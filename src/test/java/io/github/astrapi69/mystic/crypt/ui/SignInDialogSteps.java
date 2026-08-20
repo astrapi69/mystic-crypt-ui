@@ -84,7 +84,16 @@ final class SignInDialogSteps
 
 	SignInDialogSteps checkMasterPassword()
 	{
-		GuiActionRunner.execute(() -> dialog.checkBox("cbxMasterPw").target().doClick());
+		// ensure-semantics, not toggle: when a memoized sign-in pre-selects the checkbox
+		// (returning-user launch), a blind doClick would deselect it again
+		GuiActionRunner.execute(() -> {
+			javax.swing.JCheckBox checkBox = (javax.swing.JCheckBox)dialog.checkBox("cbxMasterPw")
+				.target();
+			if (!checkBox.isSelected())
+			{
+				checkBox.doClick();
+			}
+		});
 		dialog.checkBox("cbxMasterPw").requireSelected();
 		robot.waitForIdle();
 		UiTestSpeed.step();

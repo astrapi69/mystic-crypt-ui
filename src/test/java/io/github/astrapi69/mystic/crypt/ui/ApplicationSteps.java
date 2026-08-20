@@ -124,6 +124,120 @@ final class ApplicationSteps
 		return this;
 	}
 
+	/**
+	 * Makes the main application frame visible and returns a fixture for it. Needed for use cases
+	 * that require real mouse interaction with components inside the frame (e.g. the database
+	 * tree's context menu) - pure menu-action use cases work without ever showing the frame
+	 */
+	org.assertj.swing.fixture.FrameFixture showMainFrame()
+	{
+		MysticCryptApplicationFrame applicationFrame = MysticCryptApplicationFrame.getInstance();
+		GuiActionRunner.execute(() -> {
+			applicationFrame.setSize(1200, 800);
+			applicationFrame.setVisible(true);
+			applicationFrame.toFront();
+		});
+		robot.waitForIdle();
+		UiTestSpeed.windowManagerSettle();
+		return new org.assertj.swing.fixture.FrameFixture(robot, applicationFrame);
+	}
+
+	/**
+	 * Adds a child node to the tree's root through the real user flow: right-click the root row,
+	 * choose "add node..." from the context menu, type the name into the "New node" dialog and
+	 * confirm with OK.
+	 * <p>
+	 * The right-click is dispatched as a synthetic {@link java.awt.event.MouseEvent} straight to
+	 * the tree (same listener path as a real click) - an OS-level robot right-click proved
+	 * unreliable on this shared, live desktop display
+	 */
+	ApplicationSteps addNodeToTreeRoot(org.assertj.swing.fixture.FrameFixture frame, String name)
+	{
+		javax.swing.JTree tree = frame.tree().target();
+		GuiActionRunner.execute(() -> {
+			java.awt.Rectangle rowBounds = tree.getRowBounds(0);
+			int x = rowBounds.x + rowBounds.width / 2;
+			int y = rowBounds.y + rowBounds.height / 2;
+			long now = System.currentTimeMillis();
+			tree.dispatchEvent(
+				new java.awt.event.MouseEvent(tree, java.awt.event.MouseEvent.MOUSE_PRESSED, now,
+					java.awt.event.InputEvent.BUTTON3_DOWN_MASK, x, y, 1, true,
+					java.awt.event.MouseEvent.BUTTON3));
+			tree.dispatchEvent(
+				new java.awt.event.MouseEvent(tree, java.awt.event.MouseEvent.MOUSE_RELEASED, now,
+					java.awt.event.InputEvent.BUTTON3_DOWN_MASK, x, y, 1, true,
+					java.awt.event.MouseEvent.BUTTON3));
+			tree.dispatchEvent(
+				new java.awt.event.MouseEvent(tree, java.awt.event.MouseEvent.MOUSE_CLICKED, now,
+					java.awt.event.InputEvent.BUTTON3_DOWN_MASK, x, y, 1, true,
+					java.awt.event.MouseEvent.BUTTON3));
+		});
+		robot.waitForIdle();
+
+		// the tree's click listener defers single-click handling by the desktop's multi-click
+		// interval (to distinguish it from a double click), so the popup appears only after that
+		// timer fires - poll for the menu item instead of failing on an immediate lookup
+		GenericTypeMatcher<JMenuItem> addNodeMatcher = new GenericTypeMatcher<JMenuItem>(
+			JMenuItem.class, true)
+		{
+			@Override
+			protected boolean isMatching(JMenuItem candidate)
+			{
+				return "add node...".equals(candidate.getText());
+			}
+		};
+		Pause.pause(new Condition("tree context menu with 'add node...' is showing")
+		{
+			@Override
+			public boolean test()
+			{
+				try
+				{
+					robot.finder().find(addNodeMatcher);
+					return true;
+				}
+				catch (org.assertj.swing.exception.ComponentLookupException notYetShowing)
+				{
+					return false;
+				}
+			}
+		}, 10000);
+		JMenuItem addNodeItem = robot.finder().find(addNodeMatcher);
+		UiTestSpeed.step();
+		SwingUtilities.invokeLater(addNodeItem::doClick);
+
+		DialogFixture newNodeDialog = findDialogWithTitle("New node");
+		GuiActionRunner.execute(() -> newNodeDialog.textBox().target().setText(name));
+		robot.waitForIdle();
+		UiTestSpeed.step();
+		clickDialogButton(newNodeDialog, "OK");
+		Pause.pause(new Condition("new-node dialog is closed")
+		{
+			@Override
+			public boolean test()
+			{
+				return !newNodeDialog.target().isShowing();
+			}
+		}, 10000);
+		return this;
+	}
+
+	/** Saves the open database via the File menu and waits until the model is no longer dirty */
+	ApplicationSteps saveDatabase()
+	{
+		clickMenuItem(MenuId.SAVE_APPLICATION_FILE.propertiesKey());
+		Pause.pause(new Condition("model is saved (no longer dirty)")
+		{
+			@Override
+			public boolean test()
+			{
+				return !MysticCryptApplicationFrame.getInstance().getModelObject().isDirty();
+			}
+		}, 15000);
+		UiTestSpeed.step();
+		return this;
+	}
+
 	/** True if the signed-in database tree contains a node whose name starts with the prefix */
 	boolean treeContainsNodeStartingWith(String namePrefix)
 	{

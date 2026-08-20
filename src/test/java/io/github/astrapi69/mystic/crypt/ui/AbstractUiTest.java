@@ -215,6 +215,22 @@ abstract class AbstractUiTest
 	}
 
 	/**
+	 * Shuts the running application instance down (as far as tests can: window disposal plus
+	 * singleton reset) so the same test can launch the application again - for use cases that span
+	 * an application restart, like "save, reopen, data still there"
+	 */
+	protected void shutdownApplication() throws InterruptedException
+	{
+		if (appThread != null)
+		{
+			appThread.join(15000);
+			appThread = null;
+		}
+		disposeAllWindows();
+		resetApplicationFrameSingleton();
+	}
+
+	/**
 	 * Raises and focuses the given dialog. On this shared, live desktop display (no isolated Xvfb
 	 * in this environment) a window manager focus race can otherwise leave it without OS focus
 	 */

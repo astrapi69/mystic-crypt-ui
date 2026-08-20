@@ -41,6 +41,8 @@ import org.linguafranca.pwdb.kdbx.KdbxCreds;
 import org.linguafranca.pwdb.kdbx.simple.SimpleDatabase;
 import org.linguafranca.pwdb.kdbx.simple.SimpleGroup;
 
+import io.github.astrapi69.component.model.enumeration.visibility.RenderMode;
+import io.github.astrapi69.design.pattern.observer.event.EventObject;
 import io.github.astrapi69.gen.tree.BaseTreeNode;
 import io.github.astrapi69.gen.tree.TreeIdNode;
 import io.github.astrapi69.gen.tree.convert.BaseTreeNodeTransformer;
@@ -48,6 +50,7 @@ import io.github.astrapi69.id.generate.LongIdGenerator;
 import io.github.astrapi69.mystic.crypt.ApplicationModelBean;
 import io.github.astrapi69.mystic.crypt.ApplicationPanel;
 import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
+import io.github.astrapi69.mystic.crypt.eventbus.ApplicationEventBus;
 import io.github.astrapi69.mystic.crypt.keepass.KeePassTreeConverter;
 import io.github.astrapi69.mystic.crypt.keepass.MemoizedKeePassModelBean;
 import io.github.astrapi69.mystic.crypt.panel.dbtree.MysticCryptEntryModelBean;
@@ -174,6 +177,9 @@ public class ImportKeePassDatabaseAction extends AbstractAction
 			.toKeyMap(root);
 		applicationModelBean.setRootTreeAsMap(updatedTreeAsMap);
 		applicationModelBean.setDirty(true);
+		// same event the tree panel fires on its own edits: without it the Save menu item and
+		// toolbar button stay disabled and the imported data cannot be saved
+		ApplicationEventBus.getSaveState().fireEvent(new EventObject<>(RenderMode.EDITABLE));
 
 		JOptionPane.showMessageDialog(instance, "KeePass database imported successfully.",
 			"Import successful", JOptionPane.INFORMATION_MESSAGE);
