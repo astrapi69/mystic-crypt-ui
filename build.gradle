@@ -54,4 +54,9 @@ tasks.named("test") {
     if (System.getProperty("mystic.crypt.ui.test.mode") != null) {
         it.systemProperty "mystic.crypt.ui.test.mode", System.getProperty("mystic.crypt.ui.test.mode")
     }
+    // in a Wayland session java.awt.Robot (used by AssertJ-Swing) takes screenshots through the
+    // XDG desktop portal, which pops up a "share your screen" permission dialog on every UI-test
+    // run - force the X11 path instead (the Swing windows run on XWayland anyway); ignored on
+    // plain X11 and in headless environments
+    it.systemProperty "awt.robot.screenshotMethod", "x11"
 }

@@ -28,8 +28,12 @@ jobs:
           distribution: 'temurin'
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v3
+      - name: Install Xvfb
+        run: sudo apt-get update && sudo apt-get install -y xvfb
       - name: Execute Gradle build
-        run: ./gradlew build
+        # xvfb-run provides a virtual display so the AssertJ-Swing e2e UI tests really run
+        # in CI (without it they would be skipped by their headless assumption)
+        run: xvfb-run -a --server-args="-screen 0 1920x1080x24" ./gradlew build
         env:
           ossrhUsername: ${{secrets.OSSRHUSERNAME}}
           ossrhPassword: ${{secrets.OSSRHPASSWORD}}
