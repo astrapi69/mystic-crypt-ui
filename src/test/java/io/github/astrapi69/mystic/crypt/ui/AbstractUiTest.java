@@ -169,6 +169,52 @@ abstract class AbstractUiTest
 	}
 
 	/**
+	 * Creates a password-only application database file directly through the persistence layer (no
+	 * UI), for tests whose use case STARTS from an already existing database - the UI creation flow
+	 * itself is covered by {@code CreateNewDatabaseUiTest}
+	 *
+	 * @param databaseFile
+	 *            the database file to create
+	 * @param masterPassword
+	 *            the master password
+	 */
+	protected void createDatabaseFileHeadless(File databaseFile, String masterPassword)
+		throws IOException
+	{
+		if (java.security.Security
+			.getProvider(org.bouncycastle.jce.provider.BouncyCastleProvider.PROVIDER_NAME) == null)
+		{
+			java.security.Security
+				.addProvider(new org.bouncycastle.jce.provider.BouncyCastleProvider());
+		}
+		Files.createFile(databaseFile.toPath());
+		io.github.astrapi69.mystic.crypt.panel.signin.MasterPwFileModelBean masterPwFileModelBean = io.github.astrapi69.mystic.crypt.panel.signin.MasterPwFileModelBean
+			.builder()
+			.applicationFileInfo(
+				io.github.astrapi69.file.create.model.FileInfo.toFileInfo(databaseFile))
+			.selectedApplicationFilePath(databaseFile.getAbsolutePath())
+			.masterPw(masterPassword.toCharArray()).withMasterPw(true).withKeyFile(false)
+			.minPasswordLength(6).build();
+		io.github.astrapi69.mystic.crypt.app.file.xml.ApplicationXmlFileFactory
+			.newApplicationFileWithPassword(masterPwFileModelBean);
+	}
+
+	/**
+	 * Complete "open an existing database" use case through the UI: launch, check the master
+	 * password box, type the password, browse to the database file, click OK - and wait until the
+	 * application is signed in
+	 *
+	 * @return steps for the signed-in application
+	 */
+	protected ApplicationSteps signInWithExistingDatabase(File databaseFile, String masterPassword)
+	{
+		SignInDialogSteps signIn = launchApplication();
+		signIn.requireOkDisabled().checkMasterPassword().typeMasterPassword(masterPassword)
+			.browseApplicationFile(databaseFile).requireOkEnabled().okAndAwaitSignIn();
+		return new ApplicationSteps(robot).awaitSignedIn();
+	}
+
+	/**
 	 * Raises and focuses the given dialog. On this shared, live desktop display (no isolated Xvfb
 	 * in this environment) a window manager focus race can otherwise leave it without OS focus
 	 */

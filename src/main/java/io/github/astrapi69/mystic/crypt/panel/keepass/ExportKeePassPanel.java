@@ -72,6 +72,14 @@ public class ExportKeePassPanel extends JPanel
 		JButton btnFile = new JButton("Browse...");
 		JButton btnKeyFile = new JButton("Browse...");
 
+		// stable component names for UI tests (AssertJ-Swing lookups by name)
+		txtFile.setName("txtFile");
+		txtPassword.setName("txtPassword");
+		cbxKeyFile.setName("cbxKeyFile");
+		txtKeyFile.setName("txtKeyFile");
+		btnFile.setName("btnFile");
+		btnKeyFile.setName("btnKeyFile");
+
 		txtFile.setEditable(false);
 		txtKeyFile.setEditable(false);
 		txtKeyFile.setEnabled(false);

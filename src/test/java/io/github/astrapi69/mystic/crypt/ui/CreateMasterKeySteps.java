@@ -93,6 +93,21 @@ final class CreateMasterKeySteps
 		return this;
 	}
 
+	/** Clicks Cancel and waits for this dialog to close - the flow-ending button of an abort */
+	void cancelAndAwaitClose()
+	{
+		SwingUtilities.invokeLater(() -> dialog.button("btnCancel").target().doClick());
+		Pause.pause(new Condition("create-master-key dialog is closed after cancel")
+		{
+			@Override
+			public boolean test()
+			{
+				return !dialog.target().isShowing();
+			}
+		}, 10000);
+		UiTestSpeed.step();
+	}
+
 	/** Clicks OK (creates and encrypts the database file) and waits for this dialog to close */
 	void okAndAwaitClose()
 	{

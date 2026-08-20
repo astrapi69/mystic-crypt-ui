@@ -134,6 +134,16 @@ final class SignInDialogSteps
 		return new CreateMasterKeySteps(robot, createMasterKeyDialog);
 	}
 
+	/**
+	 * Clicks OK without waiting for anything - for flows where the click is expected to produce an
+	 * error dialog instead of a successful sign-in
+	 */
+	void clickOk()
+	{
+		SwingUtilities.invokeLater(() -> dialog.button("btnOk").target().doClick());
+		UiTestSpeed.step();
+	}
+
 	/** Clicks OK and waits for the sign-in dialog to close (successful sign-in) */
 	void okAndAwaitSignIn()
 	{
