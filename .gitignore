@@ -9,9 +9,19 @@
 *.iws
 *.iml
 *.ipr
-!.idea/runConfigurations
 .idea/**
 .idea/*.*
+# share these project-level settings so a fresh checkout gets a working IDE setup without
+# needing to rediscover module/JDK/run-config quirks by hand; workspace.xml stays ignored,
+# it's per-user session state (window layout, recently opened files, ...), not shared config
+!.idea/runConfigurations
+!.idea/compiler.xml
+!.idea/gradle.xml
+!.idea/misc.xml
+!.idea/modules.xml
+!.idea/vcs.xml
+!.idea/modules
+!.idea/modules/*.iml
 
 #################
 # eclipse files #
