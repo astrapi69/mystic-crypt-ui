@@ -521,7 +521,13 @@ public class SecretKeyTreeWithContentPanel
 
 				BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> parent = currentSelectedTreeNode
 					.getParent();
-				parent.removeChild(currentSelectedTreeNode);
+				// NOT parent.removeChild(...): the children live in a LinkedHashSet and
+				// BaseTreeNode's equals/hashCode include value and displayValue - after a rename
+				// the node's hash no longer matches its bucket, contains() fails and removeChild
+				// silently does nothing (a renamed node could never be deleted). Remove by
+				// identity instead, which is immune to mutated hash codes
+				parent.getChildren().removeIf(child -> child == currentSelectedTreeNode);
+				currentSelectedTreeNode.setParent(null);
 				int selectedNodeIndex = selectedTreeNode.getParent().getIndex(selectedTreeNode);
 				selectedTreeNode.removeAllChildren();
 				DefaultMutableTreeNode defaultMutableTreeNode = (DefaultMutableTreeNode)selectedTreeNode

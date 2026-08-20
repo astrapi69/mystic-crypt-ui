@@ -103,6 +103,17 @@ public class MysticCryptEntryPanel extends BasePanel<MysticCryptEntryModelBean>
 		btnShowPassword = new javax.swing.JButton();
 		btnGeneratePassword = new javax.swing.JButton();
 
+		// stable component names for UI tests (AssertJ-Swing lookups by name)
+		txtEntryName.setName("txtEntryName");
+		txtUsername.setName("txtUsername");
+		txtPassword.setName("txtPassword");
+		txtRepeat.setName("txtRepeat");
+		txtUrl.setName("txtUrl");
+		txtNotes.setName("txtNotes");
+		cbxExpirable.setName("cbxExpirable");
+		btnShowPassword.setName("btnShowPassword");
+		btnGeneratePassword.setName("btnGeneratePassword");
+
 		MysticCryptEntryModelBean modelObject = getModelObject();
 		// bind with model
 		txtEntryName.setPropertyModel(LambdaModel.of(modelObject::getTitle, modelObject::setTitle));

@@ -153,47 +153,227 @@ final class ApplicationSteps
 	 */
 	ApplicationSteps addNodeToTreeRoot(org.assertj.swing.fixture.FrameFixture frame, String name)
 	{
-		javax.swing.JTree tree = frame.tree().target();
+		rightClickTreeRow(frame, 0);
+		chooseFromShowingPopup("add node...");
+
+		DialogFixture newNodeDialog = findDialogWithTitle("New node");
+		GuiActionRunner.execute(() -> newNodeDialog.textBox().target().setText(name));
+		robot.waitForIdle();
+		UiTestSpeed.step();
+		clickDialogButton(newNodeDialog, "OK");
+		awaitDialogClosed(newNodeDialog, "new-node dialog");
+		return this;
+	}
+
+	/**
+	 * Renames the tree node with the given display name through the real user flow: right-click,
+	 * "Edit node...", change the name in the "Edit node" dialog, OK
+	 */
+	ApplicationSteps editNodeName(org.assertj.swing.fixture.FrameFixture frame, String nodeName,
+		String newName)
+	{
+		rightClickTreeNodeByName(frame, nodeName);
+		chooseFromShowingPopup("Edit node...");
+
+		DialogFixture editNodeDialog = findDialogWithTitle("Edit node");
+		GuiActionRunner.execute(() -> editNodeDialog.textBox().target().setText(newName));
+		robot.waitForIdle();
+		UiTestSpeed.step();
+		clickDialogButton(editNodeDialog, "OK");
+		awaitDialogClosed(editNodeDialog, "edit-node dialog");
+		return this;
+	}
+
+	/**
+	 * Deletes the tree node with the given display name through the real user flow: right-click,
+	 * "delete", confirm the "Confirm deletion" dialog with OK
+	 */
+	ApplicationSteps deleteNode(org.assertj.swing.fixture.FrameFixture frame, String nodeName)
+	{
+		rightClickTreeNodeByName(frame, nodeName);
+		chooseFromShowingPopup("delete");
+
+		DialogFixture confirmDialog = findDialogWithTitle("Confirm deletion");
+		// answer through the option pane's own API: JOptionPane.showConfirmDialog compares the
+		// selected VALUE, and a synthetic click on the OK button did not translate into OK_OPTION
+		// here - setValue(OK_OPTION) is exactly what the button's listener sets
 		GuiActionRunner.execute(() -> {
-			java.awt.Rectangle rowBounds = tree.getRowBounds(0);
-			int x = rowBounds.x + rowBounds.width / 2;
-			int y = rowBounds.y + rowBounds.height / 2;
-			long now = System.currentTimeMillis();
-			tree.dispatchEvent(
-				new java.awt.event.MouseEvent(tree, java.awt.event.MouseEvent.MOUSE_PRESSED, now,
-					java.awt.event.InputEvent.BUTTON3_DOWN_MASK, x, y, 1, true,
-					java.awt.event.MouseEvent.BUTTON3));
-			tree.dispatchEvent(
-				new java.awt.event.MouseEvent(tree, java.awt.event.MouseEvent.MOUSE_RELEASED, now,
-					java.awt.event.InputEvent.BUTTON3_DOWN_MASK, x, y, 1, true,
-					java.awt.event.MouseEvent.BUTTON3));
-			tree.dispatchEvent(
-				new java.awt.event.MouseEvent(tree, java.awt.event.MouseEvent.MOUSE_CLICKED, now,
-					java.awt.event.InputEvent.BUTTON3_DOWN_MASK, x, y, 1, true,
-					java.awt.event.MouseEvent.BUTTON3));
+			javax.swing.JOptionPane optionPane = (javax.swing.JOptionPane)robot.finder()
+				.findByType(confirmDialog.target(), javax.swing.JOptionPane.class);
+			optionPane.setValue(javax.swing.JOptionPane.OK_OPTION);
+		});
+		UiTestSpeed.step();
+		awaitDialogClosed(confirmDialog, "confirm-deletion dialog");
+		return this;
+	}
+
+	/**
+	 * Adds a password entry to the currently selected tree node through the real user flow:
+	 * right-click the entries table, "add...", fill title, user name and password (with repeat) in
+	 * the "New Crypt Entry" dialog, OK
+	 */
+	ApplicationSteps addEntry(org.assertj.swing.fixture.FrameFixture frame, String title,
+		String userName, String password)
+	{
+		javax.swing.JTable table = frame.table().target();
+		dispatchRightClick(table, 20, 10);
+		chooseFromShowingPopup("add...");
+
+		DialogFixture newEntryDialog = findDialogWithTitle("New Crypt Entry");
+		GuiActionRunner.execute(() -> {
+			newEntryDialog.textBox("txtEntryName").target().setText(title);
+			newEntryDialog.textBox("txtUsername").target().setText(userName);
+			newEntryDialog.textBox("txtPassword").target().setText(password);
+			newEntryDialog.textBox("txtRepeat").target().setText(password);
 		});
 		robot.waitForIdle();
+		UiTestSpeed.step();
+		clickDialogButton(newEntryDialog, "OK");
+		awaitDialogClosed(newEntryDialog, "new-crypt-entry dialog");
+		return this;
+	}
 
-		// the tree's click listener defers single-click handling by the desktop's multi-click
-		// interval (to distinguish it from a double click), so the popup appears only after that
-		// timer fires - poll for the menu item instead of failing on an immediate lookup
-		GenericTypeMatcher<JMenuItem> addNodeMatcher = new GenericTypeMatcher<JMenuItem>(
+	/** Selects the tree row (left click semantics) so entry operations target that node */
+	ApplicationSteps selectTreeRow(org.assertj.swing.fixture.FrameFixture frame, int row)
+	{
+		javax.swing.JTree tree = frame.tree().target();
+		GuiActionRunner.execute(() -> tree.setSelectionRow(row));
+		robot.waitForIdle();
+		UiTestSpeed.step();
+		return this;
+	}
+
+	/** Debug helper: prints every node name in the model tree to stderr */
+	void printTreeNames(String label)
+	{
+		GuiActionRunner.execute(() -> {
+			BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> root = MysticCryptApplicationFrame
+				.getInstance().getApplicationPanel().getSecretKeyTreeWithContentPanel()
+				.getModelObject();
+			root.traverse().forEach(node -> System.err.println("### " + label + " node: '"
+				+ (node.getValue() != null ? node.getValue().getName() : null) + "'"));
+		});
+	}
+
+	/** True if any tree node's entry list contains an entry with exactly the given title */
+	boolean entryExistsWithTitle(String title)
+	{
+		return GuiActionRunner.execute(() -> {
+			BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> root = MysticCryptApplicationFrame
+				.getInstance().getApplicationPanel().getSecretKeyTreeWithContentPanel()
+				.getModelObject();
+			return root.traverse().stream().anyMatch(
+				node -> node.getValue() != null && node.getValue().getDefaultContent() != null
+					&& node.getValue().getDefaultContent().stream()
+						.anyMatch(entry -> title.equals(entry.getTitle())));
+		});
+	}
+
+	/**
+	 * Dispatches a synthetic right-click to the center of the given visible tree row - an OS-level
+	 * robot right-click proved unreliable on this shared, live desktop display
+	 */
+	private void rightClickTreeRow(org.assertj.swing.fixture.FrameFixture frame, int row)
+	{
+		javax.swing.JTree tree = frame.tree().target();
+		GuiActionRunner.execute(() -> {
+			// make sure the target row is expanded, laid out and visible before resolving its
+			// bounds - a reload() swaps the tree model and can leave row geometry stale
+			tree.expandRow(0);
+			javax.swing.tree.TreePath rowPath = tree.getPathForRow(row);
+			if (rowPath == null)
+			{
+				throw new IllegalStateException("tree has no visible row " + row);
+			}
+			rightClickTreePath(tree, rowPath);
+		});
+		robot.waitForIdle();
+	}
+
+	/**
+	 * Finds the visible tree row whose node carries the given display name (expanding the root
+	 * first) and dispatches a synthetic right-click on it - row indices are deliberately not part
+	 * of the step API, since a fresh database already ships with default nodes
+	 */
+	private void rightClickTreeNodeByName(org.assertj.swing.fixture.FrameFixture frame,
+		String nodeName)
+	{
+		javax.swing.JTree tree = frame.tree().target();
+		GuiActionRunner.execute(() -> {
+			tree.expandRow(0);
+			for (int row = 0; row < tree.getRowCount(); row++)
+			{
+				javax.swing.tree.TreePath rowPath = tree.getPathForRow(row);
+				Object lastComponent = rowPath.getLastPathComponent();
+				if (lastComponent instanceof javax.swing.tree.DefaultMutableTreeNode treeNode
+					&& treeNode.getUserObject()instanceof BaseTreeNode<?, ?> baseTreeNode
+					&& baseTreeNode.getValue()instanceof GenericTreeElement<?> treeElement
+					&& nodeName.equals(treeElement.getName()))
+				{
+					rightClickTreePath(tree, rowPath);
+					return;
+				}
+			}
+			throw new IllegalStateException("tree has no visible node named '" + nodeName + "'");
+		});
+		robot.waitForIdle();
+	}
+
+	private static void rightClickTreePath(javax.swing.JTree tree,
+		javax.swing.tree.TreePath rowPath)
+	{
+		tree.scrollPathToVisible(rowPath);
+		java.awt.Rectangle rowBounds = tree.getPathBounds(rowPath);
+		dispatchRightClickEvents(tree, rowBounds.x + rowBounds.width / 2,
+			rowBounds.y + rowBounds.height / 2);
+	}
+
+	private void dispatchRightClick(javax.swing.JComponent component, int x, int y)
+	{
+		GuiActionRunner.execute(() -> dispatchRightClickEvents(component, x, y));
+		robot.waitForIdle();
+	}
+
+	private static void dispatchRightClickEvents(java.awt.Component component, int x, int y)
+	{
+		long now = System.currentTimeMillis();
+		component.dispatchEvent(
+			new java.awt.event.MouseEvent(component, java.awt.event.MouseEvent.MOUSE_PRESSED, now,
+				java.awt.event.InputEvent.BUTTON3_DOWN_MASK, x, y, 1, true,
+				java.awt.event.MouseEvent.BUTTON3));
+		component.dispatchEvent(
+			new java.awt.event.MouseEvent(component, java.awt.event.MouseEvent.MOUSE_RELEASED, now,
+				java.awt.event.InputEvent.BUTTON3_DOWN_MASK, x, y, 1, true,
+				java.awt.event.MouseEvent.BUTTON3));
+		component.dispatchEvent(
+			new java.awt.event.MouseEvent(component, java.awt.event.MouseEvent.MOUSE_CLICKED, now,
+				java.awt.event.InputEvent.BUTTON3_DOWN_MASK, x, y, 1, true,
+				java.awt.event.MouseEvent.BUTTON3));
+	}
+
+	/**
+	 * Waits for the context menu item with the given text (the click listeners defer single-click
+	 * handling by the desktop's multi-click interval, so the popup appears delayed) and fires it
+	 */
+	private void chooseFromShowingPopup(String menuItemText)
+	{
+		GenericTypeMatcher<JMenuItem> itemMatcher = new GenericTypeMatcher<JMenuItem>(
 			JMenuItem.class, true)
 		{
 			@Override
 			protected boolean isMatching(JMenuItem candidate)
 			{
-				return "add node...".equals(candidate.getText());
+				return menuItemText.equals(candidate.getText());
 			}
 		};
-		Pause.pause(new Condition("tree context menu with 'add node...' is showing")
+		Pause.pause(new Condition("context menu with '" + menuItemText + "' is showing")
 		{
 			@Override
 			public boolean test()
 			{
 				try
 				{
-					robot.finder().find(addNodeMatcher);
+					robot.finder().find(itemMatcher);
 					return true;
 				}
 				catch (org.assertj.swing.exception.ComponentLookupException notYetShowing)
@@ -202,24 +382,21 @@ final class ApplicationSteps
 				}
 			}
 		}, 10000);
-		JMenuItem addNodeItem = robot.finder().find(addNodeMatcher);
+		JMenuItem menuItem = robot.finder().find(itemMatcher);
 		UiTestSpeed.step();
-		SwingUtilities.invokeLater(addNodeItem::doClick);
+		SwingUtilities.invokeLater(menuItem::doClick);
+	}
 
-		DialogFixture newNodeDialog = findDialogWithTitle("New node");
-		GuiActionRunner.execute(() -> newNodeDialog.textBox().target().setText(name));
-		robot.waitForIdle();
-		UiTestSpeed.step();
-		clickDialogButton(newNodeDialog, "OK");
-		Pause.pause(new Condition("new-node dialog is closed")
+	private void awaitDialogClosed(DialogFixture dialog, String description)
+	{
+		Pause.pause(new Condition(description + " is closed")
 		{
 			@Override
 			public boolean test()
 			{
-				return !newNodeDialog.target().isShowing();
+				return !dialog.target().isShowing();
 			}
 		}, 10000);
-		return this;
 	}
 
 	/** Saves the open database via the File menu and waits until the model is no longer dirty */
