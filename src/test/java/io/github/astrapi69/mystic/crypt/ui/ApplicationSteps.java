@@ -755,6 +755,13 @@ final class ApplicationSteps
 		return this;
 	}
 
+	/** Opens the settings dialog via the File menu and returns a fixture for it */
+	DialogFixture openSettingsDialog()
+	{
+		clickMenuItem(MenuId.SETTINGS.propertiesKey());
+		return findDialogWithTitle("Settings");
+	}
+
 	/** Opens the Search dialog via the File menu, enters the term and confirms with OK */
 	ApplicationSteps searchFor(String term)
 	{

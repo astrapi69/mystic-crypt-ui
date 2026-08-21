@@ -53,6 +53,8 @@ import io.github.astrapi69.mystic.crypt.panel.signin.MasterPwFileDialog;
 import io.github.astrapi69.mystic.crypt.panel.signin.MasterPwFileModelBean;
 import io.github.astrapi69.mystic.crypt.panel.signin.MemoizedSigninModelBean;
 import io.github.astrapi69.mystic.crypt.plugin.api.PluginMenuContribution;
+import io.github.astrapi69.mystic.crypt.settings.GeneralSettingsPanel;
+import io.github.astrapi69.mystic.crypt.settings.MysticCryptSettings;
 import io.github.astrapi69.swing.base.ApplicationPanelFrame;
 import io.github.astrapi69.swing.base.BasePanel;
 import io.github.astrapi69.swing.button.builder.JButtonInfo;
@@ -289,9 +291,22 @@ public class MysticCryptApplicationFrame extends ApplicationPanelFrame<Applicati
 			.addPluginsMenu(pluginManager.getExtensions(PluginMenuContribution.class));
 		setTitle(Messages.getString("mainframe.title"));
 		setDefaultLookAndFeel(LookAndFeels.NIMBUS, this);
+		// apply a persisted look-and-feel choice on top of the Nimbus default
+		GeneralSettingsPanel.applyLookAndFeel(
+			MysticCryptSettings.load(getConfigurationDirectory()).getLookAndFeel());
 		this.setSize(ScreenSizeExtensions.getScreenWidth(), ScreenSizeExtensions.getScreenHeight());
 		onEnableMenu();
 		onWindowClosing();
+	}
+
+	/**
+	 * Rebuilds the "Plugins" menu from the currently resolved plugin contributions - call after
+	 * enabling, disabling or installing plugins so the menu reflects the change
+	 */
+	public void refreshPluginsMenu()
+	{
+		((DesktopMenu)getMenu())
+			.addPluginsMenu(pluginManager.getExtensions(PluginMenuContribution.class));
 	}
 
 	public void onEnableMenu()

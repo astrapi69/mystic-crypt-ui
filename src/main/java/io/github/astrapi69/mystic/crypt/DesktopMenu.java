@@ -52,6 +52,7 @@ import io.github.astrapi69.mystic.crypt.action.ApplicationToggleFullScreenAction
 import io.github.astrapi69.mystic.crypt.action.ExportKeePassDatabaseAction;
 import io.github.astrapi69.mystic.crypt.action.ImportKeePassDatabaseAction;
 import io.github.astrapi69.mystic.crypt.action.LockWorkspaceAction;
+import io.github.astrapi69.mystic.crypt.action.NewSettingsFrameAction;
 import io.github.astrapi69.mystic.crypt.action.OpenDatabaseTreeFrameAction;
 import io.github.astrapi69.mystic.crypt.action.OpenPrivateKeyAction;
 import io.github.astrapi69.mystic.crypt.action.SaveApplicationFileAction;
@@ -255,6 +256,15 @@ public class DesktopMenu extends BaseDesktopMenu implements EventListener<EventO
 		// note: "Console" used to be a built-in file-menu item - it now ships as the internal
 		// console plugin (plugins/console-plugin) and appears under the "Plugins" menu
 
+		// Separator
+		fileMenu.addSeparator();
+
+		// Settings (plugins management + general preferences); always available
+		JMenuItem settingsMenuItem = MenuItemInfo.builder().text("Settings...")
+			.name(MenuId.SETTINGS.propertiesKey()).mnemonic(MenuExtensions.toMnemonic('G'))
+			.actionListener(new NewSettingsFrameAction("Settings")).build().toJMenuItem();
+		fileMenu.add(settingsMenuItem);
+
 		// Exit
 		JMenuItem exitMenuItem = MenuItemInfo.builder().text("Exit")
 			.name(BaseMenuId.EXIT.propertiesKey()).mnemonic(MenuExtensions.toMnemonic('E'))
@@ -414,6 +424,18 @@ public class DesktopMenu extends BaseDesktopMenu implements EventListener<EventO
 	 */
 	public JMenu addPluginsMenu(@NonNull List<PluginMenuContribution> contributions)
 	{
+		JMenuBar menubar = getMenubar();
+		// remove a previously built plugins menu so a refresh replaces it instead of stacking a
+		// second "Plugins" menu onto the menu bar
+		for (int index = menubar.getMenuCount() - 1; index >= 0; index--)
+		{
+			JMenu existing = menubar.getMenu(index);
+			if (existing != null && MenuId.PLUGINS.propertiesKey().equals(existing.getName()))
+			{
+				menubar.remove(index);
+			}
+		}
+
 		JMenu pluginsMenu = MenuItemInfo.builder()
 			.text(Messages.getString(MenuId.PLUGINS.propertiesKey(), "Plugins"))
 			.name(MenuId.PLUGINS.propertiesKey()).mnemonic(MenuExtensions.toMnemonic('P')).build()
@@ -437,10 +459,10 @@ public class DesktopMenu extends BaseDesktopMenu implements EventListener<EventO
 		}
 		if (pluginsMenu.getItemCount() > 0)
 		{
-			getMenubar().add(pluginsMenu);
-			getMenubar().revalidate();
-			getMenubar().repaint();
+			menubar.add(pluginsMenu);
 		}
+		menubar.revalidate();
+		menubar.repaint();
 		return pluginsMenu;
 	}
 
