@@ -52,7 +52,6 @@ import io.github.astrapi69.mystic.crypt.action.ApplicationToggleFullScreenAction
 import io.github.astrapi69.mystic.crypt.action.ExportKeePassDatabaseAction;
 import io.github.astrapi69.mystic.crypt.action.ImportKeePassDatabaseAction;
 import io.github.astrapi69.mystic.crypt.action.NewKeyGenerationInternalFrameAction;
-import io.github.astrapi69.mystic.crypt.action.OpenConsoleFrameAction;
 import io.github.astrapi69.mystic.crypt.action.OpenDatabaseTreeFrameAction;
 import io.github.astrapi69.mystic.crypt.action.OpenPrivateKeyAction;
 import io.github.astrapi69.mystic.crypt.action.SaveApplicationFileAction;
@@ -228,13 +227,8 @@ public class DesktopMenu extends BaseDesktopMenu implements EventListener<EventO
 			.build().toJMenuItem();
 		fileMenu.add(toggleFullscreenMenuItem);
 
-		// Console
-		JMenuItem consoleMenuItem = MenuItemInfo.builder().text("Console")
-			.name(MenuId.CONSOLE.propertiesKey()).mnemonic(MenuExtensions.toMnemonic('L'))
-			.keyStrokeInfo(
-				KeyStrokeInfo.toKeyStrokeInfo(KeyStrokeExtensions.getKeyStroke("alt pressed L")))
-			.actionListener(new OpenConsoleFrameAction("Console")).build().toJMenuItem();
-		fileMenu.add(consoleMenuItem);
+		// note: "Console" used to be a built-in file-menu item - it now ships as the internal
+		// console plugin (plugins/console-plugin) and appears under the "Plugins" menu
 
 		// Exit
 		JMenuItem exitMenuItem = MenuItemInfo.builder().text("Exit")
@@ -498,7 +492,6 @@ public class DesktopMenu extends BaseDesktopMenu implements EventListener<EventO
 					MenuId.SECRET_KEY,
 					MenuId.SECRET_KEY_NEW,
 					MenuId.OPEN_PRIVATE_KEY,
-					MenuId.CONSOLE,
 					MenuId.SEARCH
 			);
 			enabledMenuIdsWithEmptyModel = new LinkedHashMap<>();

@@ -109,10 +109,6 @@ public enum MenuId
 	 */
 	LOCK_WORKSPACE(MenuId.LOCK_WORKSPACE_KEY),
 
-	/**
-	 * The id for the show the console menu
-	 */
-	CONSOLE(MenuId.CONSOLE_KEY),
 
 	/**
 	 * The id for the edit the view mode menu
@@ -152,7 +148,6 @@ public enum MenuId
 	public static final String SECRET_KEY_NEW_KEY = "global.menu.file.secret.key.new";
 	public static final String OPEN_PRIVATE_KEY_KEY = "global.menu.file.secret.key.open.private.key";
 	public static final String TOGGLE_FULLSCREEN_KEY = "global.menu.file.toggle.fullscreen";
-	public static final String CONSOLE_KEY = "global.menu.file.console";
 	public static final String SEARCH_KEY = "global.menu.file.search.database";
 	public static final String LOCK_WORKSPACE_KEY = "global.menu.file.lock.workspace";
 	public static final String EXIT_KEY = "global.menu.file.exit";
@@ -189,7 +184,6 @@ public enum MenuId
 		menuIds.put(MenuId.SECRET_KEY.propertiesKey(), true);
 		menuIds.put(MenuId.SECRET_KEY_NEW.propertiesKey(), true);
 		menuIds.put(MenuId.OPEN_PRIVATE_KEY.propertiesKey(), true);
-		menuIds.put(MenuId.CONSOLE.propertiesKey(), true);
 		return menuIds;
 	}
 }

@@ -1,0 +1,52 @@
+plugins {
+    id 'java'
+}
+
+group = 'io.github.astrapi69'
+version = '1.0.0'
+
+java {
+    toolchain {
+        // must match the host: its classes are compiled for JDK 25 (class file major 69),
+        // which a lower toolchain's javac cannot read from the compile classpath
+        languageVersion = JavaLanguageVersion.of(25)
+    }
+}
+
+repositories {
+    mavenLocal()
+    mavenCentral()
+}
+
+// compileOnly against the host jar (extension point + app classes) plus the libraries the console
+// contribution references directly; these are implementation-scoped in the host, so they are not
+// exposed transitively and the host classloader provides them at runtime. There is nothing to unit
+// test here - the contribution only opens the library ConsolePanel - so coverage is the host e2e
+// (PluginLoadingUiTest).
+dependencies {
+    compileOnly "io.github.astrapi69:mystic-crypt-ui:8.1-SNAPSHOT"
+    compileOnly "io.github.astrapi69:swing-components:9"
+    compileOnly "io.github.astrapi69:swing-base-components:5.1"
+    compileOnly "io.github.astrapi69:awt-extensions:2.0"
+
+    compileOnly "org.pf4j:pf4j:3.15.0"
+    // required so the @Extension annotation processor runs and writes META-INF/extensions.idx
+    annotationProcessor "org.pf4j:pf4j:3.15.0"
+}
+
+// packages the plugin the way the host's DefaultPluginManager expects: plugin.properties at the
+// root, compiled classes under classes/
+tasks.register('pluginZip', Zip) {
+    archiveFileName = "console-plugin-${version}.zip"
+    destinationDirectory = layout.buildDirectory.dir("plugin-dist")
+    from("src/main/resources") {
+        include "plugin.properties"
+    }
+    into("classes") {
+        from sourceSets.main.output.classesDirs
+        from("src/main/resources") {
+            exclude "plugin.properties"
+        }
+    }
+    dependsOn classes
+}

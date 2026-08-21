@@ -35,14 +35,14 @@ import io.github.astrapi69.crypt.data.key.writer.PrivateKeyWriter;
 import io.github.astrapi69.mystic.crypt.MenuId;
 
 /**
- * End-to-end smoke coverage for the niche menu use cases: every tool the menus offer after sign-in
- * must actually open its internal frame on the desktop pane - console, key generation, and the
- * private key viewer (which goes through a file chooser with a real PEM file). Each frame is closed
- * again so equally titled frames stay unambiguous.
+ * End-to-end smoke coverage for the remaining niche menu use cases: every tool the built-in menus
+ * still offer after sign-in must actually open its internal frame on the desktop pane - key
+ * generation and the private key viewer (which goes through a file chooser with a real PEM file).
+ * Each frame is closed again so equally titled frames stay unambiguous.
  * <p>
- * Obfuscation, checksum and the der-to-pem converter are intentionally not covered here anymore:
- * they moved out of the built-in menus into internal plugins and now appear under the "Plugins"
- * menu
+ * Obfuscation, checksum, the der-to-pem converter and the console are intentionally not covered
+ * here anymore: they moved out of the built-in menus into internal plugins and now appear under the
+ * "Plugins" menu
  */
 class NicheMenuFramesUiTest extends AbstractUiTest
 {
@@ -56,9 +56,6 @@ class NicheMenuFramesUiTest extends AbstractUiTest
 		createDatabaseFileHeadless(databaseFile, MASTER_PASSWORD);
 
 		ApplicationSteps application = signInWithExistingDatabase(databaseFile, MASTER_PASSWORD);
-
-		application.openInternalFrameViaMenu(MenuId.CONSOLE.propertiesKey(), "Console")
-			.closeInternalFrame("Console");
 
 		application
 			.openInternalFrameViaMenu(MenuId.SECRET_KEY_NEW.propertiesKey(), "Key generation demo")
