@@ -37,8 +37,9 @@ run:
 	echo "==> Starting $$jar"; \
 	"$(JAVA_HOME)/bin/java" -jar "$$jar"
 
-# build then run - always launches exactly what was just built
-all: build run
+# build then run - always launches exactly what was just built, with the standard internal
+# plugins built and installed into the app's plugins directory beforehand
+all: build plugins-install run
 
 test:
 	JAVA_HOME=$(JAVA_HOME) ./gradlew test
@@ -100,7 +101,7 @@ plugins-install: plugins
 
 # --- mirrors Gradle "Run Configurations" panel ---
 
-bootRun:
+bootRun: plugins-install
 	JAVA_HOME=$(JAVA_HOME) ./gradlew bootRun
 
 build-stacktrace:
