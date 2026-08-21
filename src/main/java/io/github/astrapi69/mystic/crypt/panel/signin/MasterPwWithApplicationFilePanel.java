@@ -185,6 +185,14 @@ public class MasterPwWithApplicationFilePanel extends BasePanel<MasterPwFileMode
 		btnKeyFileChooser.addActionListener(this::onKeyFileChooser);
 		btnOk.addActionListener(this::onOk);
 		btnCancel.addActionListener(this::onCancel);
+		// pressing Enter in the master-password field confirms the dialog with OK (when OK is
+		// enabled), so the user does not have to reach for the button
+		txtMasterPw.addActionListener(actionEvent -> {
+			if (btnOk.isEnabled())
+			{
+				btnOk.doClick();
+			}
+		});
 
 		MasterPwFileModelBean modelObject = getModelObject();
 		btnOkStateMachine = BtnOkStateMachine.builder().component(btnOk).modelObject(modelObject)

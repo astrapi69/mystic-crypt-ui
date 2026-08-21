@@ -459,7 +459,17 @@ public class DesktopMenu extends BaseDesktopMenu implements EventListener<EventO
 		}
 		if (pluginsMenu.getItemCount() > 0)
 		{
-			menubar.add(pluginsMenu);
+			// best practice: the Help menu stays last, so insert the Plugins menu just before it
+			JMenu helpMenu = getHelpMenu();
+			int helpIndex = helpMenu == null ? -1 : menubar.getComponentIndex(helpMenu);
+			if (helpIndex >= 0)
+			{
+				menubar.add(pluginsMenu, helpIndex);
+			}
+			else
+			{
+				menubar.add(pluginsMenu);
+			}
 		}
 		menubar.revalidate();
 		menubar.repaint();
