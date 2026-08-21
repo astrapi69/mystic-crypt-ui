@@ -1,6 +1,11 @@
 
 test {
     useJUnitPlatform()
+    // the AssertJ-Swing UI tests drive a process-wide singleton (MysticCryptApplicationFrame)
+    // and register listeners on the static ApplicationEventBus; run each test class in its own
+    // fresh JVM so that static/singleton state from one class cannot contaminate the next - this
+    // is what makes the full UI suite pass, not just each test in isolation
+    forkEvery = 1
 }
 
 jacocoTestReport {
