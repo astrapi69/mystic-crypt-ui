@@ -37,13 +37,12 @@ import io.github.astrapi69.mystic.crypt.MenuId;
 /**
  * End-to-end smoke coverage for the niche menu use cases: every tool the menus offer after sign-in
  * must actually open its internal frame on the desktop pane - checksum verifier, console, key
- * generation, both obfuscation variants, the der-to-pem converter, and the private key viewer
- * (which goes through a file chooser with a real PEM file). Each frame is closed again so equally
- * titled frames stay unambiguous.
+ * generation, the der-to-pem converter, and the private key viewer (which goes through a file
+ * chooser with a real PEM file). Each frame is closed again so equally titled frames stay
+ * unambiguous.
  * <p>
- * Note: the "Simple obfuscation" and "Obfuscation operation" menu items currently both open a frame
- * titled "Obfuscation Operation demo" (copy-paste title in NewObfuscationInternalFrameAction) - if
- * that title ever gets its own name, this test needs the new title
+ * Obfuscation is intentionally not covered here anymore: it moved out of the built-in menus into
+ * the internal obfuscation plugin and now appears under the "Plugins" menu
  */
 class NicheMenuFramesUiTest extends AbstractUiTest
 {
@@ -68,12 +67,6 @@ class NicheMenuFramesUiTest extends AbstractUiTest
 		application
 			.openInternalFrameViaMenu(MenuId.SECRET_KEY_NEW.propertiesKey(), "Key generation demo")
 			.closeInternalFrame("Key generation demo");
-
-		application.openInternalFrameViaMenu(MenuId.SIMPLE_OBFUSCATION.propertiesKey(),
-			"Obfuscation Operation demo").closeInternalFrame("Obfuscation Operation demo");
-
-		application.openInternalFrameViaMenu(MenuId.OPERATED_OBFUSCATION.propertiesKey(),
-			"Obfuscation Operation demo").closeInternalFrame("Obfuscation Operation demo");
 
 		application
 			.openInternalFrameViaMenu(MenuId.CONVERT.propertiesKey(),

@@ -3,12 +3,15 @@
 JAVA_HOME := /home/astrapi69/.sdkman/candidates/java/25-tem
 JAR := $(shell find build/libs -maxdepth 1 -name '*-all.jar' 2>/dev/null | head -1)
 
+PLUGIN_OBFUSCATION_DIR := plugins/obfuscation-plugin
+PLUGIN_INSTALL_DIR := $(HOME)/.config/mystic-crypt-ui/plugins
+
 .PHONY: build build-full run all clean test test-e2e test-e2e-demo \
 	bootRun clean-build-installer izpack-installer izpack-installer-signed \
 	dependencies dependency-updates jacoco-coverage jacoco-report jar javadoc \
-	license-format publish spotless-java spotless-misc tag-release \
+	license-format publish publish-local spotless-java spotless-misc tag-release \
 	version-catalog-format version-catalog-update all-dependencies-jar \
-	build-stacktrace build-warning
+	build-stacktrace build-warning plugin-obfuscation plugins-install
 
 # fast build: clean, compile, package the runnable jar - skips tests/spotless/license
 build:
@@ -45,6 +48,23 @@ test-e2e-demo:
 
 clean:
 	JAVA_HOME=$(JAVA_HOME) ./gradlew clean
+
+# --- internal plugins ---
+
+# publish the host to the local Maven cache so the plugins can compile against the current API
+publish-local:
+	JAVA_HOME=$(JAVA_HOME) ./gradlew publishToMavenLocal -x test
+
+# build the internal obfuscation plugin zip (needs the host published locally first)
+plugin-obfuscation: publish-local
+	JAVA_HOME=$(JAVA_HOME) ./gradlew -p $(PLUGIN_OBFUSCATION_DIR) test pluginZip
+	@echo "==> plugin zip: $$(find $(PLUGIN_OBFUSCATION_DIR)/build/plugin-dist -name '*.zip')"
+
+# build the obfuscation plugin and install it into the app's plugins directory
+plugins-install: plugin-obfuscation
+	mkdir -p "$(PLUGIN_INSTALL_DIR)"
+	cp $(PLUGIN_OBFUSCATION_DIR)/build/plugin-dist/*.zip "$(PLUGIN_INSTALL_DIR)/"
+	@echo "==> installed obfuscation plugin into $(PLUGIN_INSTALL_DIR)"
 
 # --- mirrors Gradle "Run Configurations" panel ---
 

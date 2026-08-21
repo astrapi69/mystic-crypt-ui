@@ -54,7 +54,6 @@ import io.github.astrapi69.mystic.crypt.action.ImportKeePassDatabaseAction;
 import io.github.astrapi69.mystic.crypt.action.NewChecksumFrameAction;
 import io.github.astrapi69.mystic.crypt.action.NewFileConversionInternalFrameAction;
 import io.github.astrapi69.mystic.crypt.action.NewKeyGenerationInternalFrameAction;
-import io.github.astrapi69.mystic.crypt.action.NewObfuscationInternalFrameAction;
 import io.github.astrapi69.mystic.crypt.action.OpenConsoleFrameAction;
 import io.github.astrapi69.mystic.crypt.action.OpenDatabaseTreeFrameAction;
 import io.github.astrapi69.mystic.crypt.action.OpenPrivateKeyAction;
@@ -219,33 +218,9 @@ public class DesktopMenu extends BaseDesktopMenu implements EventListener<EventO
 			.actionListener(new OpenPrivateKeyAction("Open private key", getApplicationFrame()))
 			.build().toJMenuItem();
 		keyMenu.add(openPrivateKeyMenuItem);
-		// Separator
-		fileMenu.addSeparator();
-
-		final JMenu obfuscationMenu = MenuItemInfo.builder().text("Obfuscation")
-			.name(MenuId.OBFUSCATION.propertiesKey()).mnemonic(MenuExtensions.toMnemonic('O'))
-			.build().toJMenu();
-		fileMenu.add(obfuscationMenu);
-
-		// New simple obfuscation
-		JMenuItem simpleObfuscationMenuItem = MenuItemInfo.builder().text("Simple obfuscation")
-			.name(MenuId.SIMPLE_OBFUSCATION.propertiesKey())
-			.mnemonic(MenuExtensions.toMnemonic('Y'))
-			.keyStrokeInfo(
-				KeyStrokeInfo.toKeyStrokeInfo(KeyStrokeExtensions.getKeyStroke("ctrl pressed Y")))
-			.actionListener(new NewObfuscationInternalFrameAction("Simple Obfuscation")).build()
-			.toJMenuItem();
-
-		obfuscationMenu.add(simpleObfuscationMenuItem);
-		// New operated obfuscation
-		JMenuItem operatedObfuscationMenuItem = MenuItemInfo.builder().text("Operated obfuscation")
-			.name(MenuId.OPERATED_OBFUSCATION.propertiesKey())
-			.mnemonic(MenuExtensions.toMnemonic('N'))
-			.keyStrokeInfo(
-				KeyStrokeInfo.toKeyStrokeInfo(KeyStrokeExtensions.getKeyStroke("ctrl pressed N")))
-			.actionListener(new NewObfuscationInternalFrameAction("Operated Obfuscation")).build()
-			.toJMenuItem();
-		obfuscationMenu.add(operatedObfuscationMenuItem);
+		// note: obfuscation used to be wired here as two built-in menu items - it now ships as the
+		// internal obfuscation plugin (plugins/obfuscation-plugin) and appears under the "Plugins"
+		// menu instead
 
 		// Separator
 		fileMenu.addSeparator();
@@ -543,9 +518,6 @@ public class DesktopMenu extends BaseDesktopMenu implements EventListener<EventO
 					MenuId.SECRET_KEY,
 					MenuId.SECRET_KEY_NEW,
 					MenuId.OPEN_PRIVATE_KEY,
-					MenuId.OBFUSCATION,
-					MenuId.SIMPLE_OBFUSCATION,
-					MenuId.OPERATED_OBFUSCATION,
 					MenuId.CONVERT,
 					MenuId.CONSOLE,
 					MenuId.SEARCH

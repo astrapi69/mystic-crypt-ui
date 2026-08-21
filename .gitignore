@@ -74,6 +74,9 @@
 # independent Gradle builds - ignore their build output/cache too, only source should be tracked
 examples/*/build/
 examples/*/.gradle/
+# same for the internal plugins under plugins/ (e.g. the obfuscation plugin) - source only
+plugins/*/build/
+plugins/*/.gradle/
 # Ignore Gradle GUI config
 gradle-app.setting
 # Avoid ignoring Gradle wrapper jar file (.jar files are usually ignored)

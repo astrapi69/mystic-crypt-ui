@@ -1,0 +1,75 @@
+plugins {
+    id 'java'
+}
+
+group = 'io.github.astrapi69'
+version = '1.0.0'
+
+java {
+    toolchain {
+        // must match the host: its classes are compiled for JDK 25 (class file major 69),
+        // which a lower toolchain's javac cannot read from the compile classpath
+        languageVersion = JavaLanguageVersion.of(25)
+    }
+}
+
+repositories {
+    mavenLocal()
+    mavenCentral()
+}
+
+// compileOnly against everything the moved obfuscation panels reference: the host jar (for the
+// PluginMenuContribution extension point and the app classes) plus every library the panels use
+// directly. These are implementation-scoped in the host, so they are not exposed transitively
+// through the host jar and must be listed here; at runtime the host classloader provides them.
+dependencies {
+    compileOnly "io.github.astrapi69:mystic-crypt-ui:8.1-SNAPSHOT"
+    compileOnly "io.github.astrapi69:mystic-crypt:10.1"
+    compileOnly "io.github.astrapi69:crypt-api:9.7"
+    compileOnly "io.github.astrapi69:crypt-data:10.3"
+    compileOnly "io.github.astrapi69:swing-base-components:5.1"
+    compileOnly "io.github.astrapi69:swing-table-components:3.1"
+    compileOnly "io.github.astrapi69:model-data:3.1"
+    compileOnly "io.github.astrapi69:silly-bean:3.0"
+    compileOnly "io.github.astrapi69:silly-collection:28.1"
+    compileOnly "io.github.astrapi69:file-worker:19.0"
+    compileOnly "io.github.astrapi69:xstream-extensions:1.1"
+    compileOnly "io.github.astrapi69:throwable:3"
+    compileOnly "com.google.guava:guava:33.7.1-jre"
+    compileOnly "com.miglayout:miglayout-swing:11.4.3"
+    compileOnly "org.projectlombok:lombok:1.18.46"
+    annotationProcessor "org.projectlombok:lombok:1.18.46"
+
+    compileOnly "org.pf4j:pf4j:3.15.0"
+    // required so the @Extension annotation processor runs and writes META-INF/extensions.idx
+    annotationProcessor "org.pf4j:pf4j:3.15.0"
+
+    // the round-trip test drives the obfuscation library directly (headless)
+    testImplementation "org.junit.jupiter:junit-jupiter:5.11.4"
+    testImplementation "io.github.astrapi69:mystic-crypt:10.1"
+    testImplementation "io.github.astrapi69:crypt-api:9.7"
+    testImplementation "io.github.astrapi69:crypt-data:10.3"
+    testImplementation "com.google.guava:guava:33.7.1-jre"
+    testRuntimeOnly "org.junit.platform:junit-platform-launcher"
+}
+
+test {
+    useJUnitPlatform()
+}
+
+// packages the plugin the way the host's DefaultPluginManager expects: plugin.properties at the
+// root, compiled classes under classes/
+tasks.register('pluginZip', Zip) {
+    archiveFileName = "obfuscation-plugin-${version}.zip"
+    destinationDirectory = layout.buildDirectory.dir("plugin-dist")
+    from("src/main/resources") {
+        include "plugin.properties"
+    }
+    into("classes") {
+        from sourceSets.main.output.classesDirs
+        from("src/main/resources") {
+            exclude "plugin.properties"
+        }
+    }
+    dependsOn classes
+}
