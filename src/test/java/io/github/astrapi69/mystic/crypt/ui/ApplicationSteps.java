@@ -45,6 +45,7 @@ import io.github.astrapi69.gen.tree.BaseTreeNode;
 import io.github.astrapi69.mystic.crypt.MenuId;
 import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
 import io.github.astrapi69.mystic.crypt.panel.dbtree.MysticCryptEntryModelBean;
+import io.github.astrapi69.swing.base.BaseMenuId;
 import io.github.astrapi69.swing.enumeration.FrameMode;
 import io.github.astrapi69.swing.renderer.tree.GenericTreeElement;
 
@@ -762,6 +763,22 @@ final class ApplicationSteps
 		return findDialogWithTitle("Settings");
 	}
 
+	/** Opens the Help menu's info/about dialog and returns a fixture for the shown dialog */
+	DialogFixture openHelpInfoDialog()
+	{
+		clickMenuItem(BaseMenuId.HELP_INFO.propertiesKey());
+		DialogFixture dialog = WindowFinder.findDialog(new GenericTypeMatcher<Dialog>(Dialog.class)
+		{
+			@Override
+			protected boolean isMatching(Dialog candidate)
+			{
+				return candidate.isShowing();
+			}
+		}).withTimeout(10, TimeUnit.SECONDS).using(robot);
+		UiTestSpeed.step();
+		return dialog;
+	}
+
 	/** Opens the Search dialog via the File menu, enters the term and confirms with OK */
 	ApplicationSteps searchFor(String term)
 	{
@@ -918,6 +935,12 @@ final class ApplicationSteps
 		robot.waitForIdle();
 		UiTestSpeed.step();
 		return this;
+	}
+
+	/** True if an internal frame with the given title is currently open on the desktop pane */
+	boolean isInternalFrameShowing(String title)
+	{
+		return GuiActionRunner.execute(() -> findInternalFrameByTitle(title) != null);
 	}
 
 	private static javax.swing.JInternalFrame findInternalFrameByTitle(String title)
