@@ -18,42 +18,53 @@
  * DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-package io.github.astrapi69.mystic.crypt.panel.keygen;
+package io.github.astrapi69.mystic.crypt.plugin.keygen;
 
 import java.io.Serializable;
+import java.security.PrivateKey;
+import java.security.PublicKey;
+import java.util.Date;
 
+import io.github.astrapi69.crypt.api.key.KeySize;
+import io.github.astrapi69.mystic.crypt.key.PrivateKeyHexDecryptor;
+import io.github.astrapi69.mystic.crypt.key.PublicKeyHexEncryptor;
+import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
+import lombok.experimental.FieldDefaults;
+import lombok.experimental.SuperBuilder;
 
-/**
- * The Class {@link PasswordBean} captures the data for set the password.
- *
- * @author Asterios Raptis
- */
 @Getter
 @Setter
 @EqualsAndHashCode
 @ToString
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder(toBuilder = true)
-public class PasswordBean implements Serializable
+@SuperBuilder(toBuilder = true)
+@FieldDefaults(level = AccessLevel.PRIVATE)
+public class GenerateKeysModelBean implements Serializable
 {
-
-	/**
-	 * The serialVersionUID.
-	 */
+	/** The Constant serialVersionUID. */
 	private static final long serialVersionUID = 1L;
 
-	/** The password */
-	private String password;
+	PrivateKeyHexDecryptor decryptor;
 
-	/** The repeated password */
-	private String repeatPassword;
+	PublicKeyHexEncryptor encryptor;
 
+	KeySize keySize;
+
+	String algorithm;
+
+	PrivateKey privateKey;
+
+	PublicKey publicKey;
+
+	String password;
+	String signatureAlgorithm;
+	Date start;
+	Date end;
 }

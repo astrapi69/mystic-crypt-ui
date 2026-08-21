@@ -18,35 +18,42 @@
  * DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-package io.github.astrapi69.mystic.crypt.panel;
+package io.github.astrapi69.mystic.crypt.plugin.keygen;
 
-import java.io.IOException;
+import java.io.Serializable;
 
-import javax.swing.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
 
-import io.github.astrapi69.awt.window.adapter.CloseWindow;
-import io.github.astrapi69.mystic.crypt.panel.keygen.GenerateKeysPanel;
-
-public class GenerateKeysPanelTest
+/**
+ * The Class {@link PasswordBean} captures the data for set the password.
+ *
+ * @author Asterios Raptis
+ */
+@Getter
+@Setter
+@EqualsAndHashCode
+@ToString
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder(toBuilder = true)
+public class PasswordBean implements Serializable
 {
 
 	/**
-	 * The main method.
-	 *
-	 * @param args
-	 *            the arguments
-	 * @throws IOException
+	 * The serialVersionUID.
 	 */
-	public static void main(final String[] args) throws IOException
-	{
-		final JFrame frame = new JFrame();
-		frame.addWindowListener(new CloseWindow());
-		frame.setTitle("CryptographyPanel");
+	private static final long serialVersionUID = 1L;
 
-		final GenerateKeysPanel panel = new GenerateKeysPanel();
-		frame.add(panel);
-		frame.setBounds(0, 0, 1280, 650);
-		frame.setVisible(true);
-	}
+	/** The password */
+	private String password;
+
+	/** The repeated password */
+	private String repeatPassword;
 
 }

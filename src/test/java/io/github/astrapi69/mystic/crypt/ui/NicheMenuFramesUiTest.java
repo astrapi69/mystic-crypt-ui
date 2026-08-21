@@ -32,17 +32,15 @@ import org.junit.jupiter.api.Test;
 import io.github.astrapi69.crypt.api.algorithm.key.KeyPairGeneratorAlgorithm;
 import io.github.astrapi69.crypt.data.factory.KeyPairFactory;
 import io.github.astrapi69.crypt.data.key.writer.PrivateKeyWriter;
-import io.github.astrapi69.mystic.crypt.MenuId;
 
 /**
- * End-to-end smoke coverage for the remaining niche menu use cases: every tool the built-in menus
- * still offer after sign-in must actually open its internal frame on the desktop pane - key
- * generation and the private key viewer (which goes through a file chooser with a real PEM file).
- * Each frame is closed again so equally titled frames stay unambiguous.
+ * End-to-end smoke coverage for the remaining niche menu use case: the private key viewer (reached
+ * through a file chooser with a real PEM file) must actually open its internal frame on the desktop
+ * pane. The frame is closed again so equally titled frames stay unambiguous.
  * <p>
- * Obfuscation, checksum, the der-to-pem converter and the console are intentionally not covered
- * here anymore: they moved out of the built-in menus into internal plugins and now appear under the
- * "Plugins" menu
+ * Obfuscation, checksum, the der-to-pem converter, the console and key generation are intentionally
+ * not covered here anymore: they moved out of the built-in menus into internal plugins and now
+ * appear under the "Plugins" menu
  */
 class NicheMenuFramesUiTest extends AbstractUiTest
 {
@@ -50,16 +48,12 @@ class NicheMenuFramesUiTest extends AbstractUiTest
 	private static final String MASTER_PASSWORD = "niche-db-pw-123";
 
 	@Test
-	void allNicheMenuActionsOpenTheirInternalFrames() throws Exception
+	void openPrivateKeyOpensItsInternalFrame() throws Exception
 	{
 		File databaseFile = new File(tempHome, "niche-database.mcrdb");
 		createDatabaseFileHeadless(databaseFile, MASTER_PASSWORD);
 
 		ApplicationSteps application = signInWithExistingDatabase(databaseFile, MASTER_PASSWORD);
-
-		application
-			.openInternalFrameViaMenu(MenuId.SECRET_KEY_NEW.propertiesKey(), "Key generation demo")
-			.closeInternalFrame("Key generation demo");
 
 		File privateKeyPemFile = new File(tempHome, "niche-private-key.pem");
 		KeyPair keyPair = KeyPairFactory.newKeyPair(KeyPairGeneratorAlgorithm.RSA, 2048);

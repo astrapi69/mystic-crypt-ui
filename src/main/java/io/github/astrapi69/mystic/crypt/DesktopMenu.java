@@ -51,7 +51,6 @@ import io.github.astrapi69.lang.ClassExtensions;
 import io.github.astrapi69.mystic.crypt.action.ApplicationToggleFullScreenAction;
 import io.github.astrapi69.mystic.crypt.action.ExportKeePassDatabaseAction;
 import io.github.astrapi69.mystic.crypt.action.ImportKeePassDatabaseAction;
-import io.github.astrapi69.mystic.crypt.action.NewKeyGenerationInternalFrameAction;
 import io.github.astrapi69.mystic.crypt.action.OpenDatabaseTreeFrameAction;
 import io.github.astrapi69.mystic.crypt.action.OpenPrivateKeyAction;
 import io.github.astrapi69.mystic.crypt.action.SaveApplicationFileAction;
@@ -190,14 +189,9 @@ public class DesktopMenu extends BaseDesktopMenu implements EventListener<EventO
 		fileMenu.add(keyMenu);
 		// @formatter:off
 		// @formatter:on
-		// New key generation
-		JMenuItem newSecretKeyJMenuItem = MenuItemInfo.builder().text("New key generation")
-			.name(MenuId.SECRET_KEY_NEW.propertiesKey()).mnemonic(MenuExtensions.toMnemonic('K'))
-			.keyStrokeInfo(
-				KeyStrokeInfo.toKeyStrokeInfo(KeyStrokeExtensions.getKeyStroke("ctrl pressed K")))
-			.actionListener(new NewKeyGenerationInternalFrameAction("New key generation")).build()
-			.toJMenuItem();
-		keyMenu.add(newSecretKeyJMenuItem);
+		// note: "New key generation" used to be a built-in item under this Secret key submenu -
+		// it now ships as the internal keygen plugin (plugins/keygen-plugin) and appears under the
+		// "Plugins" menu
 		// Open private key
 		JMenuItem openPrivateKeyMenuItem = MenuItemInfo.builder().text("Open private key")
 			.name(MenuId.OPEN_PRIVATE_KEY.propertiesKey()).mnemonic(MenuExtensions.toMnemonic('P'))
@@ -490,7 +484,6 @@ public class DesktopMenu extends BaseDesktopMenu implements EventListener<EventO
 					MenuId.OPEN_DATABASE,
 					MenuId.SAVE_APPLICATION_FILE,
 					MenuId.SECRET_KEY,
-					MenuId.SECRET_KEY_NEW,
 					MenuId.OPEN_PRIVATE_KEY,
 					MenuId.SEARCH
 			);

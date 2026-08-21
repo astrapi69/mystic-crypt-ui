@@ -78,10 +78,6 @@ public enum MenuId
 	 */
 	SECRET_KEY(MenuId.SECRET_KEY_KEY),
 
-	/**
-	 * The id for the menu to create a new secret key
-	 */
-	SECRET_KEY_NEW(MenuId.SECRET_KEY_NEW_KEY),
 
 	/**
 	 * The id for open a private key menu
@@ -145,7 +141,6 @@ public enum MenuId
 	public static final String SAVE_AS_APPLICATION_FILE_KEY = "global.menu.file.save.as";
 	public static final String OPEN_DATABASE_KEY = "global.menu.file.open.database";
 	public static final String SECRET_KEY_KEY = "global.menu.file.secret.key";
-	public static final String SECRET_KEY_NEW_KEY = "global.menu.file.secret.key.new";
 	public static final String OPEN_PRIVATE_KEY_KEY = "global.menu.file.secret.key.open.private.key";
 	public static final String TOGGLE_FULLSCREEN_KEY = "global.menu.file.toggle.fullscreen";
 	public static final String SEARCH_KEY = "global.menu.file.search.database";
@@ -182,7 +177,6 @@ public enum MenuId
 		menuIds.put(MenuId.OPEN_DATABASE.propertiesKey(), true);
 		menuIds.put(MenuId.OPEN_DATABASE_TOOL_BAR.propertiesKey(), true);
 		menuIds.put(MenuId.SECRET_KEY.propertiesKey(), true);
-		menuIds.put(MenuId.SECRET_KEY_NEW.propertiesKey(), true);
 		menuIds.put(MenuId.OPEN_PRIVATE_KEY.propertiesKey(), true);
 		return menuIds;
 	}
