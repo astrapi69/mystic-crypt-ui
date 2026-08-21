@@ -65,14 +65,17 @@ class PluginLoadingUiTest extends AbstractUiTest
 		.of("plugins/obfuscation-plugin/build/plugin-dist/obfuscation-plugin-1.0.0.zip");
 	private static final Path CHECKSUM_ZIP = Path
 		.of("plugins/checksum-plugin/build/plugin-dist/checksum-plugin-1.0.0.zip");
+	private static final Path CONVERSION_ZIP = Path
+		.of("plugins/conversion-plugin/build/plugin-dist/conversion-plugin-1.0.0.zip");
 
 	@Test
 	void internalPluginsLoadFromZipAndContributeTheirMenuItems() throws Exception
 	{
 		boolean obfuscationBuilt = Files.exists(OBFUSCATION_ZIP);
 		boolean checksumBuilt = Files.exists(CHECKSUM_ZIP);
-		Assumptions.assumeTrue(obfuscationBuilt || checksumBuilt,
-			"no plugin zips built - run 'make plugin-obfuscation' / 'make plugin-checksum' first");
+		boolean conversionBuilt = Files.exists(CONVERSION_ZIP);
+		Assumptions.assumeTrue(obfuscationBuilt || checksumBuilt || conversionBuilt,
+			"no plugin zips built - run 'make plugins' first");
 
 		// place the plugins into the app's (isolated, per-test) config plugins directory before the
 		// app starts, so its DefaultPluginManager discovers and loads them during initialization
@@ -85,6 +88,10 @@ class PluginLoadingUiTest extends AbstractUiTest
 		if (checksumBuilt)
 		{
 			installPlugin(pluginsDir, CHECKSUM_ZIP);
+		}
+		if (conversionBuilt)
+		{
+			installPlugin(pluginsDir, CONVERSION_ZIP);
 		}
 
 		File databaseFile = new File(tempHome, "plugin-loading-database.mcrdb");
@@ -106,6 +113,12 @@ class PluginLoadingUiTest extends AbstractUiTest
 		{
 			assertTrue(pluginMenuItemTexts.contains("Verify Checksum"),
 				"the checksum plugin must contribute 'Verify Checksum', found: "
+					+ pluginMenuItemTexts);
+		}
+		if (conversionBuilt)
+		{
+			assertTrue(pluginMenuItemTexts.contains("Convert DER to PEM"),
+				"the conversion plugin must contribute 'Convert DER to PEM', found: "
 					+ pluginMenuItemTexts);
 		}
 	}

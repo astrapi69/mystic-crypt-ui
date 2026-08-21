@@ -36,12 +36,13 @@ import io.github.astrapi69.mystic.crypt.MenuId;
 
 /**
  * End-to-end smoke coverage for the niche menu use cases: every tool the menus offer after sign-in
- * must actually open its internal frame on the desktop pane - console, key generation, the
- * der-to-pem converter, and the private key viewer (which goes through a file chooser with a real
- * PEM file). Each frame is closed again so equally titled frames stay unambiguous.
+ * must actually open its internal frame on the desktop pane - console, key generation, and the
+ * private key viewer (which goes through a file chooser with a real PEM file). Each frame is closed
+ * again so equally titled frames stay unambiguous.
  * <p>
- * Obfuscation and checksum are intentionally not covered here anymore: they moved out of the
- * built-in menus into internal plugins and now appear under the "Plugins" menu
+ * Obfuscation, checksum and the der-to-pem converter are intentionally not covered here anymore:
+ * they moved out of the built-in menus into internal plugins and now appear under the "Plugins"
+ * menu
  */
 class NicheMenuFramesUiTest extends AbstractUiTest
 {
@@ -62,11 +63,6 @@ class NicheMenuFramesUiTest extends AbstractUiTest
 		application
 			.openInternalFrameViaMenu(MenuId.SECRET_KEY_NEW.propertiesKey(), "Key generation demo")
 			.closeInternalFrame("Key generation demo");
-
-		application
-			.openInternalFrameViaMenu(MenuId.CONVERT.propertiesKey(),
-				"Convert *.der-file to *.pem-file")
-			.closeInternalFrame("Convert *.der-file to *.pem-file");
 
 		File privateKeyPemFile = new File(tempHome, "niche-private-key.pem");
 		KeyPair keyPair = KeyPairFactory.newKeyPair(KeyPairGeneratorAlgorithm.RSA, 2048);

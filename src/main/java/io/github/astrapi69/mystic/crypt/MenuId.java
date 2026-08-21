@@ -88,10 +88,6 @@ public enum MenuId
 	 */
 	OPEN_PRIVATE_KEY(MenuId.OPEN_PRIVATE_KEY_KEY),
 
-	/**
-	 * The id for the convert dialog menu
-	 */
-	CONVERT(MenuId.CONVERT_KEY),
 
 	/**
 	 * The id for save the application file dialog menu
@@ -155,7 +151,6 @@ public enum MenuId
 	public static final String SECRET_KEY_KEY = "global.menu.file.secret.key";
 	public static final String SECRET_KEY_NEW_KEY = "global.menu.file.secret.key.new";
 	public static final String OPEN_PRIVATE_KEY_KEY = "global.menu.file.secret.key.open.private.key";
-	public static final String CONVERT_KEY = "global.menu.file.convert";
 	public static final String TOGGLE_FULLSCREEN_KEY = "global.menu.file.toggle.fullscreen";
 	public static final String CONSOLE_KEY = "global.menu.file.console";
 	public static final String SEARCH_KEY = "global.menu.file.search.database";
@@ -194,7 +189,6 @@ public enum MenuId
 		menuIds.put(MenuId.SECRET_KEY.propertiesKey(), true);
 		menuIds.put(MenuId.SECRET_KEY_NEW.propertiesKey(), true);
 		menuIds.put(MenuId.OPEN_PRIVATE_KEY.propertiesKey(), true);
-		menuIds.put(MenuId.CONVERT.propertiesKey(), true);
 		menuIds.put(MenuId.CONSOLE.propertiesKey(), true);
 		return menuIds;
 	}

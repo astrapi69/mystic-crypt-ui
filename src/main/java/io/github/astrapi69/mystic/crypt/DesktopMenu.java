@@ -51,7 +51,6 @@ import io.github.astrapi69.lang.ClassExtensions;
 import io.github.astrapi69.mystic.crypt.action.ApplicationToggleFullScreenAction;
 import io.github.astrapi69.mystic.crypt.action.ExportKeePassDatabaseAction;
 import io.github.astrapi69.mystic.crypt.action.ImportKeePassDatabaseAction;
-import io.github.astrapi69.mystic.crypt.action.NewFileConversionInternalFrameAction;
 import io.github.astrapi69.mystic.crypt.action.NewKeyGenerationInternalFrameAction;
 import io.github.astrapi69.mystic.crypt.action.OpenConsoleFrameAction;
 import io.github.astrapi69.mystic.crypt.action.OpenDatabaseTreeFrameAction;
@@ -213,18 +212,9 @@ public class DesktopMenu extends BaseDesktopMenu implements EventListener<EventO
 		// internal obfuscation plugin (plugins/obfuscation-plugin) and appears under the "Plugins"
 		// menu instead
 
-		// Separator
-		fileMenu.addSeparator();
-		// Convert der to pem file
-		JMenuItem convertMenuItem = MenuItemInfo.builder().text("Convert...")
-			.name(MenuId.CONVERT.propertiesKey()).mnemonic(MenuExtensions.toMnemonic('C'))
-			.keyStrokeInfo(
-				KeyStrokeInfo.toKeyStrokeInfo(KeyStrokeExtensions.getKeyStroke("ctrl pressed C")))
-			.actionListener(
-				new NewFileConversionInternalFrameAction("Convert *.der-file to *.pem-file"))
-			.build().toJMenuItem();
-		convertMenuItem.setEnabled(true);
-		fileMenu.add(convertMenuItem);
+		// note: "Convert *.der-file to *.pem-file" used to be a built-in file-menu item - it now
+		// ships as the internal conversion plugin (plugins/conversion-plugin) and appears under
+		// the "Plugins" menu
 
 		// Fullscreen
 		JMenuItem toggleFullscreenMenuItem = MenuItemInfo.builder().text("Toggle Fullscreen")
@@ -508,7 +498,6 @@ public class DesktopMenu extends BaseDesktopMenu implements EventListener<EventO
 					MenuId.SECRET_KEY,
 					MenuId.SECRET_KEY_NEW,
 					MenuId.OPEN_PRIVATE_KEY,
-					MenuId.CONVERT,
 					MenuId.CONSOLE,
 					MenuId.SEARCH
 			);
