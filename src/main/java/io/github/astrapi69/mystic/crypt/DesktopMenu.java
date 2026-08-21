@@ -51,6 +51,7 @@ import io.github.astrapi69.lang.ClassExtensions;
 import io.github.astrapi69.mystic.crypt.action.ApplicationToggleFullScreenAction;
 import io.github.astrapi69.mystic.crypt.action.ExportKeePassDatabaseAction;
 import io.github.astrapi69.mystic.crypt.action.ImportKeePassDatabaseAction;
+import io.github.astrapi69.mystic.crypt.action.LockWorkspaceAction;
 import io.github.astrapi69.mystic.crypt.action.OpenDatabaseTreeFrameAction;
 import io.github.astrapi69.mystic.crypt.action.OpenPrivateKeyAction;
 import io.github.astrapi69.mystic.crypt.action.SaveApplicationFileAction;
@@ -189,6 +190,17 @@ public class DesktopMenu extends BaseDesktopMenu implements EventListener<EventO
 			.actionListener(new ExportKeePassDatabaseAction("Export to KeePass")).build()
 			.toJMenuItem();
 		fileMenu.add(exportKeePassMenuItem);
+
+		// Separator
+		fileMenu.addSeparator();
+
+		// Lock workspace (hide content behind a master-password prompt)
+		JMenuItem lockWorkspaceMenuItem = MenuItemInfo.builder().text("Lock workspace")
+			.name(MenuId.LOCK_WORKSPACE.propertiesKey()).mnemonic(MenuExtensions.toMnemonic('L'))
+			.keyStrokeInfo(
+				KeyStrokeInfo.toKeyStrokeInfo(KeyStrokeExtensions.getKeyStroke("ctrl pressed L")))
+			.actionListener(new LockWorkspaceAction("Lock workspace")).build().toJMenuItem();
+		fileMenu.add(lockWorkspaceMenuItem);
 
 		// @formatter:off
 		// Main secret key menu

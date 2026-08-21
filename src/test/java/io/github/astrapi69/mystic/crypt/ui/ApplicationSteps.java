@@ -696,6 +696,65 @@ final class ApplicationSteps
 		return this;
 	}
 
+	/** Locks the workspace via the File menu and waits until the model is no longer signed in */
+	ApplicationSteps lockWorkspace()
+	{
+		clickMenuItem(MenuId.LOCK_WORKSPACE.propertiesKey());
+		Pause.pause(new Condition("workspace is locked (model no longer signed in)")
+		{
+			@Override
+			public boolean test()
+			{
+				return !MysticCryptApplicationFrame.getInstance().getModelObject().isSignedIn();
+			}
+		}, 10000);
+		UiTestSpeed.step();
+		return this;
+	}
+
+	/**
+	 * Enters the given password into the "Unlock workspace" dialog, confirms and waits until the
+	 * model is signed in again
+	 */
+	ApplicationSteps unlockWorkspace(String password)
+	{
+		DialogFixture unlockDialog = findDialogWithTitle("Unlock workspace");
+		GuiActionRunner
+			.execute(() -> unlockDialog.textBox("txtUnlockPassword").target().setText(password));
+		robot.waitForIdle();
+		UiTestSpeed.step();
+		clickDialogButton(unlockDialog, "OK");
+		Pause.pause(new Condition("workspace is unlocked (model signed in)")
+		{
+			@Override
+			public boolean test()
+			{
+				return MysticCryptApplicationFrame.getInstance().getModelObject().isSignedIn();
+			}
+		}, 10000);
+		// the unlock sets the signed-in flag before switching the frame back to the application
+		// panel - wait for the EDT to finish that switch before callers assert on the frame mode
+		robot.waitForIdle();
+		UiTestSpeed.step();
+		return this;
+	}
+
+	/**
+	 * Enters a wrong password into the "Unlock workspace" dialog, confirms and closes the resulting
+	 * "Unlock failed" error dialog - the workspace stays locked
+	 */
+	ApplicationSteps enterUnlockPasswordExpectingFailure(String wrongPassword)
+	{
+		DialogFixture unlockDialog = findDialogWithTitle("Unlock workspace");
+		GuiActionRunner.execute(
+			() -> unlockDialog.textBox("txtUnlockPassword").target().setText(wrongPassword));
+		robot.waitForIdle();
+		UiTestSpeed.step();
+		clickDialogButton(unlockDialog, "OK");
+		dismissMessageDialog("Unlock failed");
+		return this;
+	}
+
 	/** True if the signed-in database tree contains a node whose name starts with the prefix */
 	boolean treeContainsNodeStartingWith(String namePrefix)
 	{
