@@ -56,6 +56,7 @@ import io.github.astrapi69.mystic.crypt.action.OpenDatabaseTreeFrameAction;
 import io.github.astrapi69.mystic.crypt.action.OpenPrivateKeyAction;
 import io.github.astrapi69.mystic.crypt.action.SaveApplicationFileAction;
 import io.github.astrapi69.mystic.crypt.action.SaveAsApplicationFileAction;
+import io.github.astrapi69.mystic.crypt.action.SearchApplicationFileAction;
 import io.github.astrapi69.mystic.crypt.eventbus.ApplicationEventBus;
 import io.github.astrapi69.mystic.crypt.plugin.api.PluginMenuContribution;
 import io.github.astrapi69.swing.action.ExitApplicationAction;
@@ -154,6 +155,14 @@ public class DesktopMenu extends BaseDesktopMenu implements EventListener<EventO
 				KeyStrokeInfo.toKeyStrokeInfo(KeyStrokeExtensions.getKeyStroke("ctrl pressed D")))
 			.actionListener(new OpenDatabaseTreeFrameAction("Open Database")).build().toJMenuItem();
 		fileMenu.add(openDatabaseMenuItem);
+
+		// Search the open database
+		JMenuItem searchMenuItem = MenuItemInfo.builder().text("Search...")
+			.name(MenuId.SEARCH.propertiesKey()).mnemonic(MenuExtensions.toMnemonic('F'))
+			.keyStrokeInfo(
+				KeyStrokeInfo.toKeyStrokeInfo(KeyStrokeExtensions.getKeyStroke("ctrl pressed F")))
+			.actionListener(new SearchApplicationFileAction("Search")).build().toJMenuItem();
+		fileMenu.add(searchMenuItem);
 
 		// Save application file
 		JMenuItem saveApplicationFileMenuItem = MenuItemInfo.builder().text("Save")

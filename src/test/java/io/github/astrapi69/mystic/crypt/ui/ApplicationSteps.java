@@ -755,6 +755,60 @@ final class ApplicationSteps
 		return this;
 	}
 
+	/** Opens the Search dialog via the File menu, enters the term and confirms with OK */
+	ApplicationSteps searchFor(String term)
+	{
+		clickMenuItem(MenuId.SEARCH.propertiesKey());
+		DialogFixture searchDialog = findDialogWithTitle("Search");
+		GuiActionRunner.execute(() -> searchDialog.textBox("txtSearch").target().setText(term));
+		robot.waitForIdle();
+		UiTestSpeed.step();
+		clickDialogButton(searchDialog, "OK");
+		robot.waitForIdle();
+		UiTestSpeed.step();
+		return this;
+	}
+
+	/**
+	 * Opens the Search dialog, enters a term that matches nothing and closes the resulting "No
+	 * match" info dialog
+	 */
+	ApplicationSteps searchExpectingNoMatch(String term)
+	{
+		clickMenuItem(MenuId.SEARCH.propertiesKey());
+		DialogFixture searchDialog = findDialogWithTitle("Search");
+		GuiActionRunner.execute(() -> searchDialog.textBox("txtSearch").target().setText(term));
+		robot.waitForIdle();
+		UiTestSpeed.step();
+		clickDialogButton(searchDialog, "OK");
+		dismissMessageDialog("No match");
+		return this;
+	}
+
+	/**
+	 * The display name of the currently selected tree node, or {@code null} if nothing is selected
+	 */
+	String selectedTreeNodeName()
+	{
+		return GuiActionRunner.execute(() -> {
+			javax.swing.JTree tree = MysticCryptApplicationFrame.getInstance().getApplicationPanel()
+				.getSecretKeyTreeWithContentPanel().getTree();
+			javax.swing.tree.TreePath path = tree.getSelectionPath();
+			if (path == null)
+			{
+				return null;
+			}
+			Object lastComponent = path.getLastPathComponent();
+			if (lastComponent instanceof javax.swing.tree.DefaultMutableTreeNode treeNode
+				&& treeNode.getUserObject()instanceof BaseTreeNode<?, ?> baseTreeNode
+				&& baseTreeNode.getValue()instanceof GenericTreeElement<?> treeElement)
+			{
+				return treeElement.getName();
+			}
+			return null;
+		});
+	}
+
 	/** True if the signed-in database tree contains a node whose name starts with the prefix */
 	boolean treeContainsNodeStartingWith(String namePrefix)
 	{
