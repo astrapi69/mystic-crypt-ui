@@ -82,7 +82,7 @@ plugin-console: publish-local
 
 # build the internal keygen plugin zip (needs the host published locally first)
 plugin-keygen: publish-local
-	JAVA_HOME=$(JAVA_HOME) ./gradlew -p $(PLUGIN_KEYGEN_DIR) pluginZip
+	JAVA_HOME=$(JAVA_HOME) ./gradlew -p $(PLUGIN_KEYGEN_DIR) test pluginZip
 	@echo "==> plugin zip: $$(find $(PLUGIN_KEYGEN_DIR)/build/plugin-dist -name '*.zip')"
 
 # build every internal plugin
