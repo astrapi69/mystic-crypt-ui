@@ -679,6 +679,35 @@ final class ApplicationSteps
 	}
 
 	/**
+	 * Fires the Plugins-menu item with the given text (plugin menu items have no stable name, so
+	 * they are matched by text) and waits for the internal frame with the given title to appear -
+	 * the entry point for a plugin's end-to-end test
+	 */
+	ApplicationSteps openPluginTool(String menuItemText, String internalFrameTitle)
+	{
+		JMenuItem menuItem = robot.finder()
+			.find(new GenericTypeMatcher<JMenuItem>(JMenuItem.class, false)
+			{
+				@Override
+				protected boolean isMatching(JMenuItem candidate)
+				{
+					return menuItemText.equals(candidate.getText());
+				}
+			});
+		SwingUtilities.invokeLater(menuItem::doClick);
+		Pause.pause(new Condition("plugin internal frame '" + internalFrameTitle + "' is open")
+		{
+			@Override
+			public boolean test()
+			{
+				return findInternalFrameByTitle(internalFrameTitle) != null;
+			}
+		}, 10000);
+		UiTestSpeed.step();
+		return this;
+	}
+
+	/**
 	 * Closes the internal frame with the given title (so equally titled frames stay unambiguous)
 	 */
 	ApplicationSteps closeInternalFrame(String internalFrameTitle)

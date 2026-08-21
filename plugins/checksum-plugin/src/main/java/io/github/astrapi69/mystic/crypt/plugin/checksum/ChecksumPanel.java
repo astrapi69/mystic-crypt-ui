@@ -119,6 +119,11 @@ public class ChecksumPanel extends BasePanel<ChecksumBean>
 		txtGeneratedChecksum.setEnabled(false);
 		txtChecksumFile.setEnabled(false);
 
+		// stable component names for UI tests (AssertJ-Swing lookups by name)
+		cbxChecksumAlgorithm.setName("cbxChecksumAlgorithm");
+		btnOpenFile.setName("btnOpenFile");
+		txtGeneratedChecksum.setName("txtGeneratedChecksum");
+
 		btnOpenFile.addActionListener(this::onOpenFile);
 		btnClearOpenFile.addActionListener(this::onClearOpenFile);
 		EnableButtonBehavior.builder().buttonModel(btnClearOpenFile.getModel())

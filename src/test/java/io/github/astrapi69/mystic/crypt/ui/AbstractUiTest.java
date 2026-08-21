@@ -32,6 +32,8 @@ import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.util.concurrent.TimeUnit;
 
 import org.assertj.swing.core.BasicRobot;
@@ -65,6 +67,21 @@ import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
  */
 abstract class AbstractUiTest
 {
+
+	/**
+	 * Built zips of the internal plugins, produced by {@code make plugins} (or the per-plugin
+	 * targets)
+	 */
+	protected static final Path OBFUSCATION_ZIP = Path
+		.of("plugins/obfuscation-plugin/build/plugin-dist/obfuscation-plugin-1.0.0.zip");
+	protected static final Path CHECKSUM_ZIP = Path
+		.of("plugins/checksum-plugin/build/plugin-dist/checksum-plugin-1.0.0.zip");
+	protected static final Path CONVERSION_ZIP = Path
+		.of("plugins/conversion-plugin/build/plugin-dist/conversion-plugin-1.0.0.zip");
+	protected static final Path CONSOLE_ZIP = Path
+		.of("plugins/console-plugin/build/plugin-dist/console-plugin-1.0.0.zip");
+	protected static final Path KEYGEN_ZIP = Path
+		.of("plugins/keygen-plugin/build/plugin-dist/keygen-plugin-1.0.0.zip");
 
 	private String originalUserHome;
 
@@ -212,6 +229,29 @@ abstract class AbstractUiTest
 		signIn.requireOkDisabled().checkMasterPassword().typeMasterPassword(masterPassword)
 			.browseApplicationFile(databaseFile).requireOkEnabled().okAndAwaitSignIn();
 		return new ApplicationSteps(robot).awaitSignedIn();
+	}
+
+	/**
+	 * Copies the given built plugin zip into the (isolated, per-test) config plugins directory so
+	 * the application's DefaultPluginManager discovers and loads it during initialization. Must be
+	 * called BEFORE launching the application. Skips the whole test (via a JUnit assumption) when
+	 * the zip is not built, so a plain {@code ./gradlew test} that did not build the plugins does
+	 * not fail
+	 *
+	 * @param pluginZip
+	 *            the built plugin zip (one of the {@code *_ZIP} constants)
+	 */
+	protected void installPluginRequiringItBuilt(Path pluginZip) throws IOException
+	{
+		Assumptions.assumeTrue(Files.exists(pluginZip),
+			"plugin zip " + pluginZip + " not built - run 'make plugins' first");
+		File pluginsDir = new File(tempHome, ".config/mystic-crypt-ui/plugins");
+		if (!pluginsDir.mkdirs() && !pluginsDir.isDirectory())
+		{
+			throw new IOException("could not create plugins dir " + pluginsDir);
+		}
+		Files.copy(pluginZip, pluginsDir.toPath().resolve(pluginZip.getFileName()),
+			StandardCopyOption.REPLACE_EXISTING);
 	}
 
 	/**

@@ -195,6 +195,13 @@ public class FileConversionPanel extends BasePanel<FileConversionModelBean>
 
 		btnConvert.setText("Convert");
 
+		// stable component names for UI tests (AssertJ-Swing lookups by name)
+		btnChoose.setName("btnChoose");
+		btnSaveTo.setName("btnSaveTo");
+		btnConvert.setName("btnConvert");
+		txtConsole.setName("txtConsole");
+		cmbChooseType.setName("cmbChooseType");
+
 		// -----------------------------
 
 		btnChoose.addActionListener(this::onChooseFile);

@@ -100,6 +100,13 @@ public class EnDecryptPanel extends BasePanel<Pair<String, String>>
 
 		lblToEncrypt.setText("Text to encrypt");
 
+		// stable component names for UI tests (AssertJ-Swing lookups by name); this panel is
+		// shared by the obfuscation and keygen plugins, which drive it through these names
+		txtToEncrypt.setName("txtToEncrypt");
+		txtEncrypted.setName("txtEncrypted");
+		btnEncrypt.setName("btnEncrypt");
+		btnDecrypt.setName("btnDecrypt");
+
 		txtToEncrypt.setColumns(20);
 		txtToEncrypt.setRows(5);
 		scpToEncrypt.setViewportView(txtToEncrypt);

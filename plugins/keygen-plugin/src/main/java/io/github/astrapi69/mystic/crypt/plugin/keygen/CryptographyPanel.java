@@ -193,6 +193,12 @@ public class CryptographyPanel extends BasePanel<GenerateKeysModelBean>
 		txtPrivateKey.setEditable(false);
 		txtPublicKey.setEditable(false);
 
+		// stable component names for UI tests (AssertJ-Swing lookups by name)
+		btnGenerate.setName("btnGenerate");
+		cmbKeySize.setName("cmbKeySize");
+		txtPrivateKey.setName("txtPrivateKey");
+		txtPublicKey.setName("txtPublicKey");
+
 		txtPrivateKey.setFont(new Font("monospaced", Font.PLAIN, 12));
 		txtPublicKey.setFont(new Font("monospaced", Font.PLAIN, 12));
 

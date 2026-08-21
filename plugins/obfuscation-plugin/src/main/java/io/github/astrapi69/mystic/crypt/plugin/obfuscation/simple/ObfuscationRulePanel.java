@@ -86,6 +86,11 @@ public class ObfuscationRulePanel extends BasePanel<ObfuscationModelBean>
 		lblObfuscationOperationRule.setFont(new java.awt.Font("Ubuntu", 1, 12)); // NOI18N
 		lblObfuscationOperationRule.setText("Obfuscation Rule");
 
+		// stable component names for UI tests (AssertJ-Swing lookups by name)
+		txtOriginalChar.setName("txtOriginalChar");
+		txtRelpaceWith.setName("txtRelpaceWith");
+		btnAdd.setName("btnAddRule");
+
 		// == custom edit ==
 		txtOriginalChar.setDocument(new RangeDocument(0, 1));
 		txtRelpaceWith.setDocument(new RangeDocument(0, 1));
