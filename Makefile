@@ -1,4 +1,6 @@
-JAVA_HOME ?= /home/astrapi69/.sdkman/candidates/java/25-tem
+# pinned on purpose with := (not ?=): the shell's JAVA_HOME (e.g. sdkman's "current") may point
+# at an older JDK, and running the JDK-25-built jar on it fails with UnsupportedClassVersionError
+JAVA_HOME := /home/astrapi69/.sdkman/candidates/java/25-tem
 JAR := $(shell find build/libs -maxdepth 1 -name '*-all.jar' 2>/dev/null | head -1)
 
 .PHONY: build build-full run all clean test test-e2e test-e2e-demo \
