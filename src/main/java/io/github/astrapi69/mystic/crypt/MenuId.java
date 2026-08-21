@@ -39,11 +39,6 @@ public enum MenuId
 {
 
 	/**
-	 * The id for verify the checksum menu
-	 */
-	VERIFY_CHECKSUM(MenuId.VERIFY_CHECKSUM_KEY),
-
-	/**
 	 * The id for create a new mystic crypt database menu
 	 */
 	NEW_DATABASE(MenuId.NEW_DATABASE_KEY),
@@ -169,7 +164,6 @@ public enum MenuId
 	public static final String IMPORT_KEEPASS_KEY = "global.menu.file.import.keepass";
 	public static final String EXPORT_KEEPASS_KEY = "global.menu.file.export.keepass";
 
-	public static final String VERIFY_CHECKSUM_KEY = "global.menu.edit.verify.checksum";
 
 	public static final String VIEW_MODE_KEY = "global.menu.edit.view.mode";
 	public static final String VIEW_DESKTOP_MODE_KEY = "global.menu.edit.view.mode.desktop";
@@ -195,7 +189,6 @@ public enum MenuId
 	public static Map<String, Boolean> getBaseMenuIdsAsMap()
 	{
 		Map<String, Boolean> menuIds = new LinkedHashMap<>();
-		menuIds.put(MenuId.VERIFY_CHECKSUM.propertiesKey(), true);
 		menuIds.put(MenuId.OPEN_DATABASE.propertiesKey(), true);
 		menuIds.put(MenuId.OPEN_DATABASE_TOOL_BAR.propertiesKey(), true);
 		menuIds.put(MenuId.SECRET_KEY.propertiesKey(), true);

@@ -36,13 +36,12 @@ import io.github.astrapi69.mystic.crypt.MenuId;
 
 /**
  * End-to-end smoke coverage for the niche menu use cases: every tool the menus offer after sign-in
- * must actually open its internal frame on the desktop pane - checksum verifier, console, key
- * generation, the der-to-pem converter, and the private key viewer (which goes through a file
- * chooser with a real PEM file). Each frame is closed again so equally titled frames stay
- * unambiguous.
+ * must actually open its internal frame on the desktop pane - console, key generation, the
+ * der-to-pem converter, and the private key viewer (which goes through a file chooser with a real
+ * PEM file). Each frame is closed again so equally titled frames stay unambiguous.
  * <p>
- * Obfuscation is intentionally not covered here anymore: it moved out of the built-in menus into
- * the internal obfuscation plugin and now appears under the "Plugins" menu
+ * Obfuscation and checksum are intentionally not covered here anymore: they moved out of the
+ * built-in menus into internal plugins and now appear under the "Plugins" menu
  */
 class NicheMenuFramesUiTest extends AbstractUiTest
 {
@@ -56,10 +55,6 @@ class NicheMenuFramesUiTest extends AbstractUiTest
 		createDatabaseFileHeadless(databaseFile, MASTER_PASSWORD);
 
 		ApplicationSteps application = signInWithExistingDatabase(databaseFile, MASTER_PASSWORD);
-
-		application
-			.openInternalFrameViaMenu(MenuId.VERIFY_CHECKSUM.propertiesKey(), "Verify checksum")
-			.closeInternalFrame("Verify checksum");
 
 		application.openInternalFrameViaMenu(MenuId.CONSOLE.propertiesKey(), "Console")
 			.closeInternalFrame("Console");

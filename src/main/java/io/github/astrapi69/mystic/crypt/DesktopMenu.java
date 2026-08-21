@@ -51,7 +51,6 @@ import io.github.astrapi69.lang.ClassExtensions;
 import io.github.astrapi69.mystic.crypt.action.ApplicationToggleFullScreenAction;
 import io.github.astrapi69.mystic.crypt.action.ExportKeePassDatabaseAction;
 import io.github.astrapi69.mystic.crypt.action.ImportKeePassDatabaseAction;
-import io.github.astrapi69.mystic.crypt.action.NewChecksumFrameAction;
 import io.github.astrapi69.mystic.crypt.action.NewFileConversionInternalFrameAction;
 import io.github.astrapi69.mystic.crypt.action.NewKeyGenerationInternalFrameAction;
 import io.github.astrapi69.mystic.crypt.action.OpenConsoleFrameAction;
@@ -104,15 +103,8 @@ public class DesktopMenu extends BaseDesktopMenu implements EventListener<EventO
 			.mnemonic(MenuExtensions.toMnemonic('E')).name(BaseMenuId.EDIT.propertiesKey()).build()
 			.toJMenu();
 
-		JMenuItem verifyChecksum = MenuItemInfo.builder()
-			.text(Messages.getString(MenuId.VERIFY_CHECKSUM.propertiesKey()))
-			.name(MenuId.VERIFY_CHECKSUM.propertiesKey()).mnemonic(MenuExtensions.toMnemonic('V'))
-			.keyStrokeInfo(KeyStrokeInfo
-				.toKeyStrokeInfo(KeyStroke.getKeyStroke(KeyEvent.VK_F3, InputEvent.ALT_DOWN_MASK)))
-
-			.actionListener(new NewChecksumFrameAction("ChecksumVerifier"))
-
-			.build().toJMenuItem();
+		// note: "Verify checksum" used to be a built-in edit-menu item - it now ships as the
+		// internal checksum plugin (plugins/checksum-plugin) and appears under the "Plugins" menu
 
 		final JMenu viewModeMenu = MenuItemInfo.builder()
 			.text(Messages.getString(MenuId.VIEW_MODE.propertiesKey()))
@@ -139,7 +131,6 @@ public class DesktopMenu extends BaseDesktopMenu implements EventListener<EventO
 			}).build().toJMenuItem();
 		viewModeMenu.add(switchPanelMode);
 		// @formatter:off
-		editMenu.add(verifyChecksum);
 		return editMenu;
 	}
 
@@ -512,7 +503,6 @@ public class DesktopMenu extends BaseDesktopMenu implements EventListener<EventO
 					BaseMenuId.TOGGLE_FULLSCREEN
 			);
 			Set<MenuId> disabledMenus = SetFactory.newHashSet(
-					MenuId.VERIFY_CHECKSUM,
 					MenuId.OPEN_DATABASE,
 					MenuId.SAVE_APPLICATION_FILE,
 					MenuId.SECRET_KEY,

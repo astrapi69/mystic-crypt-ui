@@ -45,48 +45,75 @@ import org.junit.jupiter.api.Test;
 import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
 
 /**
- * End-to-end proof that the internal obfuscation plugin is loaded from its packaged zip and
- * contributes its tools to the host's "Plugins" menu - the definitive integration test for
- * "obfuscation as a plugin".
+ * End-to-end proof that the internal plugins are loaded from their packaged zips and contribute
+ * their tools to the host's "Plugins" menu - the definitive integration test for the "feature as a
+ * plugin" approach (obfuscation and checksum).
  * <p>
- * The test drops the pre-built plugin zip into the (temp, isolated) config plugins directory before
- * launching the app, signs in, and asserts the "Plugins" menu now carries both obfuscation tools.
- * It requires the plugin zip to be built first (e.g. {@code make plugin-obfuscation}); when the zip
- * is absent - as on a plain {@code ./gradlew test} that did not build the plugin - the test skips
- * instead of failing
+ * The test drops the pre-built plugin zips into the (temp, isolated) config plugins directory
+ * before launching the app, signs in, and asserts the "Plugins" menu carries every contributed
+ * tool. It requires the plugin zips to be built first (e.g. {@code make plugin-obfuscation} and
+ * {@code make plugin-checksum}); each plugin is skipped individually when its zip is absent - as on
+ * a plain {@code ./gradlew test} that did not build the plugins - and the whole test skips when
+ * none are present
  */
-class ObfuscationPluginUiTest extends AbstractUiTest
+class PluginLoadingUiTest extends AbstractUiTest
 {
 
-	private static final String MASTER_PASSWORD = "obfuscation-plugin-db-pw-123";
-	private static final Path PLUGIN_ZIP = Path
+	private static final String MASTER_PASSWORD = "plugin-loading-db-pw-123";
+
+	private static final Path OBFUSCATION_ZIP = Path
 		.of("plugins/obfuscation-plugin/build/plugin-dist/obfuscation-plugin-1.0.0.zip");
+	private static final Path CHECKSUM_ZIP = Path
+		.of("plugins/checksum-plugin/build/plugin-dist/checksum-plugin-1.0.0.zip");
 
 	@Test
-	void obfuscationPluginLoadsFromZipAndContributesItsMenuItems() throws Exception
+	void internalPluginsLoadFromZipAndContributeTheirMenuItems() throws Exception
 	{
-		Assumptions.assumeTrue(Files.exists(PLUGIN_ZIP),
-			"obfuscation plugin zip not built - run 'make plugin-obfuscation' first");
+		boolean obfuscationBuilt = Files.exists(OBFUSCATION_ZIP);
+		boolean checksumBuilt = Files.exists(CHECKSUM_ZIP);
+		Assumptions.assumeTrue(obfuscationBuilt || checksumBuilt,
+			"no plugin zips built - run 'make plugin-obfuscation' / 'make plugin-checksum' first");
 
-		// place the plugin into the app's (isolated, per-test) config plugins directory before the
-		// app starts, so its DefaultPluginManager discovers and loads it during initialization
+		// place the plugins into the app's (isolated, per-test) config plugins directory before the
+		// app starts, so its DefaultPluginManager discovers and loads them during initialization
 		File pluginsDir = new File(tempHome, ".config/mystic-crypt-ui/plugins");
 		assertTrue(pluginsDir.mkdirs() || pluginsDir.isDirectory());
-		Files.copy(PLUGIN_ZIP, pluginsDir.toPath().resolve(PLUGIN_ZIP.getFileName()),
-			StandardCopyOption.REPLACE_EXISTING);
+		if (obfuscationBuilt)
+		{
+			installPlugin(pluginsDir, OBFUSCATION_ZIP);
+		}
+		if (checksumBuilt)
+		{
+			installPlugin(pluginsDir, CHECKSUM_ZIP);
+		}
 
-		File databaseFile = new File(tempHome, "obfuscation-plugin-database.mcrdb");
+		File databaseFile = new File(tempHome, "plugin-loading-database.mcrdb");
 		createDatabaseFileHeadless(databaseFile, MASTER_PASSWORD);
 
 		signInWithExistingDatabase(databaseFile, MASTER_PASSWORD);
 
 		List<String> pluginMenuItemTexts = readPluginMenuItemTexts();
-		assertTrue(pluginMenuItemTexts.contains("Simple Obfuscation"),
-			"the loaded plugin must contribute a 'Simple Obfuscation' menu item, found: "
-				+ pluginMenuItemTexts);
-		assertTrue(pluginMenuItemTexts.contains("Operated Obfuscation"),
-			"the loaded plugin must contribute an 'Operated Obfuscation' menu item, found: "
-				+ pluginMenuItemTexts);
+		if (obfuscationBuilt)
+		{
+			assertTrue(pluginMenuItemTexts.contains("Simple Obfuscation"),
+				"the obfuscation plugin must contribute 'Simple Obfuscation', found: "
+					+ pluginMenuItemTexts);
+			assertTrue(pluginMenuItemTexts.contains("Operated Obfuscation"),
+				"the obfuscation plugin must contribute 'Operated Obfuscation', found: "
+					+ pluginMenuItemTexts);
+		}
+		if (checksumBuilt)
+		{
+			assertTrue(pluginMenuItemTexts.contains("Verify Checksum"),
+				"the checksum plugin must contribute 'Verify Checksum', found: "
+					+ pluginMenuItemTexts);
+		}
+	}
+
+	private static void installPlugin(File pluginsDir, Path zip) throws Exception
+	{
+		Files.copy(zip, pluginsDir.toPath().resolve(zip.getFileName()),
+			StandardCopyOption.REPLACE_EXISTING);
 	}
 
 	/** Reads the texts of all items under the frame's "Plugins" menu, on the EDT */

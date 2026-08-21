@@ -27,7 +27,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package io.github.astrapi69.mystic.crypt.panel.checksum;
+package io.github.astrapi69.mystic.crypt.plugin.checksum;
 
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -271,7 +271,6 @@ public class ChecksumPanel extends BasePanel<ChecksumBean>
 			{
 				String checksum = FileChecksumExtensions
 					.getChecksum(getModelObject().getSelectedFile(), selectedAlgorithm);
-				System.out.println(checksum);
 				txtGeneratedChecksum.setText(checksum);
 			}
 			catch (NoSuchAlgorithmException | IOException e)

@@ -1,0 +1,66 @@
+plugins {
+    id 'java'
+}
+
+group = 'io.github.astrapi69'
+version = '1.0.0'
+
+java {
+    toolchain {
+        // must match the host: its classes are compiled for JDK 25 (class file major 69),
+        // which a lower toolchain's javac cannot read from the compile classpath
+        languageVersion = JavaLanguageVersion.of(25)
+    }
+}
+
+repositories {
+    mavenLocal()
+    mavenCentral()
+}
+
+// compileOnly against the host jar (extension point + app classes) plus every library the moved
+// ChecksumPanel/ChecksumBean reference directly; these are implementation-scoped in the host, so
+// they are not exposed transitively and the host classloader provides them at runtime.
+dependencies {
+    compileOnly "io.github.astrapi69:mystic-crypt-ui:8.1-SNAPSHOT"
+    compileOnly "io.github.astrapi69:checksum-up:3.1"
+    compileOnly "io.github.astrapi69:crypt-api:9.7"
+    compileOnly "io.github.astrapi69:file-worker:19.0"
+    compileOnly "io.github.astrapi69:model-data:3.1"
+    compileOnly "io.github.astrapi69:swing-base-components:5.1"
+    // EnableButtonBehavior lives here
+    compileOnly "io.github.astrapi69:menu-action:4.1"
+    compileOnly "org.projectlombok:lombok:1.18.46"
+    annotationProcessor "org.projectlombok:lombok:1.18.46"
+
+    compileOnly "org.pf4j:pf4j:3.15.0"
+    // required so the @Extension annotation processor runs and writes META-INF/extensions.idx
+    annotationProcessor "org.pf4j:pf4j:3.15.0"
+
+    // the checksum test drives the checksum library directly (headless)
+    testImplementation "org.junit.jupiter:junit-jupiter:5.11.4"
+    testImplementation "io.github.astrapi69:checksum-up:3.1"
+    testImplementation "io.github.astrapi69:crypt-api:9.7"
+    testRuntimeOnly "org.junit.platform:junit-platform-launcher"
+}
+
+test {
+    useJUnitPlatform()
+}
+
+// packages the plugin the way the host's DefaultPluginManager expects: plugin.properties at the
+// root, compiled classes under classes/
+tasks.register('pluginZip', Zip) {
+    archiveFileName = "checksum-plugin-${version}.zip"
+    destinationDirectory = layout.buildDirectory.dir("plugin-dist")
+    from("src/main/resources") {
+        include "plugin.properties"
+    }
+    into("classes") {
+        from sourceSets.main.output.classesDirs
+        from("src/main/resources") {
+            exclude "plugin.properties"
+        }
+    }
+    dependsOn classes
+}
