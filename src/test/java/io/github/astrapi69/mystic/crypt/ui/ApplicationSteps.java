@@ -45,6 +45,7 @@ import io.github.astrapi69.gen.tree.BaseTreeNode;
 import io.github.astrapi69.mystic.crypt.MenuId;
 import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
 import io.github.astrapi69.mystic.crypt.panel.dbtree.MysticCryptEntryModelBean;
+import io.github.astrapi69.swing.enumeration.FrameMode;
 import io.github.astrapi69.swing.renderer.tree.GenericTreeElement;
 
 /**
@@ -101,6 +102,55 @@ final class ApplicationSteps
 
 		dismissMessageDialog("Import successful");
 		return this;
+	}
+
+	/**
+	 * Drives the KeePass import dialog exactly like {@link #importKeePassDatabase} but with a wrong
+	 * password, and closes the resulting "Import failed" error dialog - the negative use case
+	 */
+	ApplicationSteps importKeePassDatabaseExpectingFailure(File keePassFile, String wrongPassword)
+	{
+		clickMenuItem(MenuId.IMPORT_KEEPASS.propertiesKey());
+
+		DialogFixture importDialog = findDialogWithTitle("Import from KeePass");
+		browseAndPickFile(importDialog, "btnFile", keePassFile);
+		GuiActionRunner
+			.execute(() -> importDialog.textBox("txtPassword").target().setText(wrongPassword));
+		robot.waitForIdle();
+		UiTestSpeed.step();
+		clickDialogButton(importDialog, "OK");
+
+		dismissMessageDialog("Import failed");
+		return this;
+	}
+
+	/** Switches the frame to application-panel view mode via the Edit menu and waits for it */
+	ApplicationSteps switchToPanelMode()
+	{
+		clickMenuItem(MenuId.VIEW_PANEL_MODE.propertiesKey());
+		awaitFrameMode(FrameMode.APPLICATION_PANEL);
+		return this;
+	}
+
+	/** Switches the frame back to desktop-pane view mode via the Edit menu and waits for it */
+	ApplicationSteps switchToDesktopMode()
+	{
+		clickMenuItem(MenuId.VIEW_DESKTOP_MODE.propertiesKey());
+		awaitFrameMode(FrameMode.DESKTOP_PANE);
+		return this;
+	}
+
+	private void awaitFrameMode(FrameMode expected)
+	{
+		Pause.pause(new Condition("frame is in " + expected + " mode")
+		{
+			@Override
+			public boolean test()
+			{
+				return MysticCryptApplicationFrame.getInstance().getFrameMode() == expected;
+			}
+		}, 10000);
+		UiTestSpeed.step();
 	}
 
 	/**
