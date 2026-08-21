@@ -284,6 +284,8 @@ public class MysticCryptApplicationFrame extends ApplicationPanelFrame<Applicati
 		super.onAfterInitialize();
 		desktopPanePanel = (JDesktopPanePanel<ApplicationModelBean>)getMainComponent();
 		frameMode = FrameMode.DESKTOP_PANE;
+		// best-practice menu layout: consolidate Look and Feel + View Mode under a "View" menu
+		((DesktopMenu)getMenu()).reorganizeMenus();
 		// start and load all plugins of application
 		pluginManager.loadPlugins();
 		pluginManager.startPlugins();

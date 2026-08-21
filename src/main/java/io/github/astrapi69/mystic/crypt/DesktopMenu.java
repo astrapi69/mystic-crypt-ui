@@ -84,6 +84,9 @@ public class DesktopMenu extends BaseDesktopMenu implements EventListener<EventO
 
 	private Map<String, Boolean> enabledMenuIdsWithEmptyModel;
 
+	/** the view-mode submenu, kept so it can be relocated under the View menu */
+	private JMenu viewModeMenu;
+
 	/**
 	 * Instantiates a new desktop menu.
 	 */
@@ -107,7 +110,7 @@ public class DesktopMenu extends BaseDesktopMenu implements EventListener<EventO
 		// note: "Verify checksum" used to be a built-in edit-menu item - it now ships as the
 		// internal checksum plugin (plugins/checksum-plugin) and appears under the "Plugins" menu
 
-		final JMenu viewModeMenu = MenuItemInfo.builder()
+		viewModeMenu = MenuItemInfo.builder()
 			.text(Messages.getString(MenuId.VIEW_MODE.propertiesKey()))
 			.name(MenuId.VIEW_MODE.propertiesKey()).mnemonic(MenuExtensions.toMnemonic('W')).build()
 			.toJMenu();
@@ -411,6 +414,51 @@ public class DesktopMenu extends BaseDesktopMenu implements EventListener<EventO
 			log.log(Level.SEVERE, e.getLocalizedMessage(), e);
 		}
 		return license.toString();
+	}
+
+	/**
+	 * Rearranges the menu bar into a best-practice layout: the top-level "Look and Feel" menu and
+	 * the "View Mode" submenu (the app's only Edit item) are moved under a single new top-level
+	 * "View" menu, and the now-empty Edit menu is dropped - leaving File | View | ... | Help
+	 */
+	public void reorganizeMenus()
+	{
+		JMenuBar menubar = getMenubar();
+		JMenu viewMenu = MenuItemInfo.builder().text("View").name("global.menu.view")
+			.mnemonic(MenuExtensions.toMnemonic('V')).build().toJMenu();
+
+		// move the view-mode submenu out of Edit into View
+		if (viewModeMenu != null)
+		{
+			JMenu editMenu = getEditMenu();
+			if (editMenu != null)
+			{
+				editMenu.remove(viewModeMenu);
+			}
+			viewMenu.add(viewModeMenu);
+		}
+		// move the top-level Look and Feel menu under View
+		JMenu lookAndFeelMenu = getLookAndFeelMenu();
+		if (lookAndFeelMenu != null)
+		{
+			menubar.remove(lookAndFeelMenu);
+			viewMenu.add(lookAndFeelMenu);
+		}
+		// drop the now-empty Edit menu and put View where Edit was (right after File)
+		int insertIndex = menubar.getMenuCount();
+		JMenu editMenu = getEditMenu();
+		if (editMenu != null)
+		{
+			int editIndex = menubar.getComponentIndex(editMenu);
+			if (editIndex >= 0)
+			{
+				insertIndex = editIndex;
+				menubar.remove(editMenu);
+			}
+		}
+		menubar.add(viewMenu, insertIndex);
+		menubar.revalidate();
+		menubar.repaint();
 	}
 
 	/**
