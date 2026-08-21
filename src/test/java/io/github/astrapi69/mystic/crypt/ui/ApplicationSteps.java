@@ -670,6 +670,32 @@ final class ApplicationSteps
 		return this;
 	}
 
+	/**
+	 * Saves the open database to a new file via the File menu's "Save As": fires the menu item,
+	 * picks the given target in the file chooser and waits until it has been written to disk
+	 */
+	ApplicationSteps saveAsDatabase(File target)
+	{
+		clickMenuItem(MenuId.SAVE_AS_APPLICATION_FILE.propertiesKey());
+		javax.swing.JFileChooser fileChooser = org.assertj.swing.finder.JFileChooserFinder
+			.findFileChooser().withTimeout(10, TimeUnit.SECONDS).using(robot).target();
+		UiTestSpeed.step();
+		SwingUtilities.invokeLater(() -> {
+			fileChooser.setSelectedFile(target);
+			fileChooser.approveSelection();
+		});
+		Pause.pause(new Condition("save-as target file '" + target.getName() + "' is written")
+		{
+			@Override
+			public boolean test()
+			{
+				return target.exists() && target.length() > 0;
+			}
+		}, 15000);
+		UiTestSpeed.step();
+		return this;
+	}
+
 	/** True if the signed-in database tree contains a node whose name starts with the prefix */
 	boolean treeContainsNodeStartingWith(String namePrefix)
 	{

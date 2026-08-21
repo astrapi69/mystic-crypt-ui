@@ -54,6 +54,7 @@ import io.github.astrapi69.mystic.crypt.action.ImportKeePassDatabaseAction;
 import io.github.astrapi69.mystic.crypt.action.OpenDatabaseTreeFrameAction;
 import io.github.astrapi69.mystic.crypt.action.OpenPrivateKeyAction;
 import io.github.astrapi69.mystic.crypt.action.SaveApplicationFileAction;
+import io.github.astrapi69.mystic.crypt.action.SaveAsApplicationFileAction;
 import io.github.astrapi69.mystic.crypt.eventbus.ApplicationEventBus;
 import io.github.astrapi69.mystic.crypt.plugin.api.PluginMenuContribution;
 import io.github.astrapi69.swing.action.ExitApplicationAction;
@@ -162,6 +163,15 @@ public class DesktopMenu extends BaseDesktopMenu implements EventListener<EventO
 
 			.actionListener(new SaveApplicationFileAction("Save")).build().toJMenuItem();
 		fileMenu.add(saveApplicationFileMenuItem);
+
+		// Save as a new database file
+		JMenuItem saveAsApplicationFileMenuItem = MenuItemInfo.builder().text("Save As...")
+			.name(MenuId.SAVE_AS_APPLICATION_FILE.propertiesKey())
+			.mnemonic(MenuExtensions.toMnemonic('A'))
+			.keyStrokeInfo(KeyStrokeInfo
+				.toKeyStrokeInfo(KeyStrokeExtensions.getKeyStroke("ctrl shift pressed S")))
+			.actionListener(new SaveAsApplicationFileAction("Save As")).build().toJMenuItem();
+		fileMenu.add(saveAsApplicationFileMenuItem);
 
 		// Separator
 		fileMenu.addSeparator();
@@ -483,6 +493,7 @@ public class DesktopMenu extends BaseDesktopMenu implements EventListener<EventO
 			Set<MenuId> disabledMenus = SetFactory.newHashSet(
 					MenuId.OPEN_DATABASE,
 					MenuId.SAVE_APPLICATION_FILE,
+					MenuId.SAVE_AS_APPLICATION_FILE,
 					MenuId.SECRET_KEY,
 					MenuId.OPEN_PRIVATE_KEY,
 					MenuId.SEARCH
