@@ -29,6 +29,7 @@ import java.awt.event.WindowEvent;
 import java.io.File;
 import java.io.Serial;
 import java.security.Security;
+import java.util.ArrayList;
 import java.util.logging.Level;
 
 import javax.swing.*;
@@ -36,6 +37,7 @@ import javax.swing.*;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.pf4j.DefaultPluginManager;
 import org.pf4j.PluginManager;
+import org.pf4j.PluginWrapper;
 
 import io.github.astrapi69.awt.screen.ScreenSizeExtensions;
 import io.github.astrapi69.awt.window.adapter.CloseWindow;
@@ -428,13 +430,20 @@ public class MysticCryptApplicationFrame extends ApplicationPanelFrame<Applicati
 		{
 			return;
 		}
-		try
+		// stop each plugin individually over a snapshot copy: pf4j's own stopPlugins() iterates the
+		// started-plugins list while stopPlugin() removes from it, which throws a
+		// ConcurrentModificationException once more than one plugin is started
+		for (PluginWrapper startedPlugin : new ArrayList<>(pluginManager.getStartedPlugins()))
 		{
-			pluginManager.stopPlugins();
-		}
-		catch (RuntimeException runtimeException)
-		{
-			log.log(Level.SEVERE, "Error while stopping plugins", runtimeException);
+			try
+			{
+				pluginManager.stopPlugin(startedPlugin.getPluginId());
+			}
+			catch (RuntimeException runtimeException)
+			{
+				log.log(Level.SEVERE, "Error while stopping plugin " + startedPlugin.getPluginId(),
+					runtimeException);
+			}
 		}
 	}
 }

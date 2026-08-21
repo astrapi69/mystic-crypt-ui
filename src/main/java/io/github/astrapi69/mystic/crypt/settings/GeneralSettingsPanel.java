@@ -85,6 +85,13 @@ public class GeneralSettingsPanel extends JPanel
 		{
 			if (info.getName().equals(name))
 			{
+				LookAndFeel current = UIManager.getLookAndFeel();
+				if (current != null && current.getClass().getName().equals(info.getClassName()))
+				{
+					// already the active look and feel - skip the needless updateComponentTreeUI
+					// pass (it re-installs every menu's UI and spams KeyboardManager warnings)
+					return;
+				}
 				try
 				{
 					UIManager.setLookAndFeel(info.getClassName());
