@@ -113,7 +113,6 @@ public class GenerateKeysPanel extends BasePanel<GenerateKeysModelBean>
 	 */
 	protected void onDecrypt(final ActionEvent actionEvent)
 	{
-		System.out.println("onDecrypt");
 		try
 		{
 			final String decryted = getModelObject().getDecryptor()
@@ -138,7 +137,6 @@ public class GenerateKeysPanel extends BasePanel<GenerateKeysModelBean>
 	 */
 	protected void onEncrypt(final ActionEvent actionEvent)
 	{
-		System.out.println("onEncrypt");
 		try
 		{
 			getEnDecryptPanel().getTxtEncrypted().setText(getModelObject().getEncryptor()

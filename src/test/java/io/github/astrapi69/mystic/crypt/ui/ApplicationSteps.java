@@ -633,6 +633,86 @@ final class ApplicationSteps
 		});
 	}
 
+	/**
+	 * Fires the menu item with the given stable name and waits for the internal frame with the
+	 * given title to appear on the desktop pane
+	 */
+	ApplicationSteps openInternalFrameViaMenu(String menuItemName, String internalFrameTitle)
+	{
+		clickMenuItem(menuItemName);
+		Pause.pause(new Condition("internal frame '" + internalFrameTitle + "' is open")
+		{
+			@Override
+			public boolean test()
+			{
+				return findInternalFrameByTitle(internalFrameTitle) != null;
+			}
+		}, 10000);
+		UiTestSpeed.step();
+		return this;
+	}
+
+	/**
+	 * Opens a private key through the File menu's "Open private key": the menu action directly
+	 * shows a file chooser; picking the given PEM file opens the "Private key view" internal frame
+	 */
+	ApplicationSteps openPrivateKeyViaMenu(File privateKeyPemFile)
+	{
+		clickMenuItem(MenuId.OPEN_PRIVATE_KEY.propertiesKey());
+		javax.swing.JFileChooser fileChooser = org.assertj.swing.finder.JFileChooserFinder
+			.findFileChooser().withTimeout(10, TimeUnit.SECONDS).using(robot).target();
+		UiTestSpeed.step();
+		SwingUtilities.invokeLater(() -> {
+			fileChooser.setSelectedFile(privateKeyPemFile);
+			fileChooser.approveSelection();
+		});
+		Pause.pause(new Condition("internal frame 'Private key view' is open")
+		{
+			@Override
+			public boolean test()
+			{
+				return findInternalFrameByTitle("Private key view") != null;
+			}
+		}, 15000);
+		UiTestSpeed.step();
+		return this;
+	}
+
+	/**
+	 * Closes the internal frame with the given title (so equally titled frames stay unambiguous)
+	 */
+	ApplicationSteps closeInternalFrame(String internalFrameTitle)
+	{
+		GuiActionRunner.execute(() -> {
+			javax.swing.JInternalFrame internalFrame = findInternalFrameByTitle(internalFrameTitle);
+			if (internalFrame != null)
+			{
+				internalFrame.dispose();
+			}
+		});
+		robot.waitForIdle();
+		UiTestSpeed.step();
+		return this;
+	}
+
+	private static javax.swing.JInternalFrame findInternalFrameByTitle(String title)
+	{
+		MysticCryptApplicationFrame applicationFrame = MysticCryptApplicationFrame.getInstance();
+		if (applicationFrame == null || applicationFrame.getDesktopPanePanel() == null)
+		{
+			return null;
+		}
+		for (javax.swing.JInternalFrame internalFrame : applicationFrame.getDesktopPanePanel()
+			.getDesktopPane().getAllFrames())
+		{
+			if (title.equals(internalFrame.getTitle()) && internalFrame.isVisible())
+			{
+				return internalFrame;
+			}
+		}
+		return null;
+	}
+
 	/** Finds a menu item by its stable name and fires it (the menu bar is never shown in tests) */
 	private void clickMenuItem(String menuItemName)
 	{

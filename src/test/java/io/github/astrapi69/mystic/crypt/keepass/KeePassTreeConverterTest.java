@@ -66,22 +66,14 @@ public class KeePassTreeConverterTest
 		SimpleGroup backup = database.newGroup("Backup");
 		root.addGroup(backup);
 
-		System.out.println("root.getGroups() names: "
-			+ root.getGroups().stream().map(SimpleGroup::getName).toList());
-		System.out.println("general.getGroups() names: "
-			+ general.getGroups().stream().map(SimpleGroup::getName).toList());
 
 		AtomicLong idCounter = new AtomicLong(0);
 		BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> rootNode = KeePassTreeConverter
 			.toTreeNode(root, null, idCounter::incrementAndGet);
 
-		System.out.println(
-			"rootNode children: " + rootNode.getChildren().stream().map(this::name).toList());
 		for (BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> child : rootNode
 			.getChildren())
 		{
-			System.out.println("  " + name(child) + " children: "
-				+ child.getChildren().stream().map(this::name).toList());
 		}
 
 		assertEquals(3, rootNode.getChildren().size(), "root should have exactly 3 children");
@@ -93,7 +85,6 @@ public class KeePassTreeConverterTest
 		assertTrue(generalNode.getChildren().stream().anyMatch(n -> "Internet".equals(name(n))));
 
 		DefaultMutableTreeNode swingRoot = BaseTreeNodeFactory.newDefaultMutableTreeNode(rootNode);
-		printSwingTree(swingRoot, 0);
 		assertEquals(3, swingRoot.getChildCount(), "swing root should have exactly 3 children");
 		DefaultMutableTreeNode swingGeneral = (DefaultMutableTreeNode)swingRoot.getChildAt(0);
 		assertEquals(1, swingGeneral.getChildCount(),
@@ -126,18 +117,6 @@ public class KeePassTreeConverterTest
 		SimpleGroup exportedGroup = KeePassTreeConverter.toSimpleGroup(exportDatabase, generalNode,
 			exportDatabase.getRootGroup());
 		assertEquals(3, exportedGroup.getIcon().getIndex());
-	}
-
-	private void printSwingTree(DefaultMutableTreeNode node, int depth)
-	{
-		BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> treeNode = (BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long>)node
-			.getUserObject();
-		System.out.println(
-			"  ".repeat(depth) + name(treeNode) + " (childCount=" + node.getChildCount() + ")");
-		for (int i = 0; i < node.getChildCount(); i++)
-		{
-			printSwingTree((DefaultMutableTreeNode)node.getChildAt(i), depth + 1);
-		}
 	}
 
 	private String name(

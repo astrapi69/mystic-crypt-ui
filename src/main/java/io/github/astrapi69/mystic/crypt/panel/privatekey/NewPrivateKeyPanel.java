@@ -207,7 +207,6 @@ public class NewPrivateKeyPanel extends BasePanel<NewPrivateKeyModelBean>
 
 	protected void onCancel(ActionEvent actionEvent)
 	{
-		System.err.println("onCancel method action called");
 	}
 
 	protected void onSave(ActionEvent actionEvent)

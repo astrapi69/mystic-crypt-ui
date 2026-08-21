@@ -42,6 +42,10 @@ license {
               "build/**"])
 }
 
-// workhack for license issue #76
-gradle.startParameter.excludedTaskNames += "licenseMain"
-gradle.startParameter.excludedTaskNames += "licenseTest"
+// workhack for license issue #76: the check tasks are permanently disabled (licenseFormat stays
+// available). Disabling the tasks directly (instead of the previous startParameter exclusion)
+// also works with the configuration cache, where the license plugin's execution-time
+// Task.project access would otherwise fail the build
+tasks.matching { it.name == "licenseMain" || it.name == "licenseTest" }.configureEach {
+    enabled = false
+}

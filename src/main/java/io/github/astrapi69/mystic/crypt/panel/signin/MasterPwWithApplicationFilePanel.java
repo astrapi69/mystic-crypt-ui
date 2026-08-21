@@ -265,7 +265,6 @@ public class MasterPwWithApplicationFilePanel extends BasePanel<MasterPwFileMode
 
 	protected void onApplicationFileChooser(ActionEvent actionEvent)
 	{
-		System.err.println("onApplicationFileChooser method action called");
 		final int returnVal = fileChooser.showSaveDialog(MasterPwWithApplicationFilePanel.this);
 		if (returnVal == JFileChooser.APPROVE_OPTION)
 		{
@@ -581,7 +580,6 @@ public class MasterPwWithApplicationFilePanel extends BasePanel<MasterPwFileMode
 
 	protected void onKeyFileChooser(ActionEvent actionEvent)
 	{
-		System.err.println("onKeyFileChooser method action called");
 		final int returnVal = fileChooser.showSaveDialog(MasterPwWithApplicationFilePanel.this);
 		if (returnVal == JFileChooser.APPROVE_OPTION)
 		{
@@ -597,7 +595,6 @@ public class MasterPwWithApplicationFilePanel extends BasePanel<MasterPwFileMode
 
 	protected void onOk(ActionEvent actionEvent)
 	{
-		System.err.println("onOk method action called");
 		try
 		{
 			MysticCryptApplicationFrame applicationFrame = MysticCryptApplicationFrame

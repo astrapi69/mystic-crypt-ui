@@ -130,7 +130,6 @@ public class EnDecryptPanel extends BasePanel<Pair<String, String>>
 	 */
 	protected void onDecrypt(final ActionEvent actionEvent)
 	{
-		System.out.println("onDecrypt");
 	}
 
 	/**
@@ -141,7 +140,6 @@ public class EnDecryptPanel extends BasePanel<Pair<String, String>>
 	 */
 	protected void onEncrypt(final ActionEvent actionEvent)
 	{
-		System.out.println("onEncrypt");
 
 	}
 

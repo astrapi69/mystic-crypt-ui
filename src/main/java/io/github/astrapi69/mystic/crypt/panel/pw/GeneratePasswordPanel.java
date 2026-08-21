@@ -187,7 +187,6 @@ public class GeneratePasswordPanel extends BasePanel<GeneratePasswordModelBean>
 
 	protected void onCancel(ActionEvent actionEvent)
 	{
-		System.err.println("onCancel method action called");
 	}
 
 	protected void onInitializeGroupLayout()

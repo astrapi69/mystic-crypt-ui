@@ -25,6 +25,12 @@ jar {
     }
 }
 
+// the signing block below reaches for script objects (layout, project.property, ant) at
+// execution time, which the configuration cache forbids - opt this task out instead of
+// failing the whole build
+jar.notCompatibleWithConfigurationCache(
+        "jar signing doLast uses script objects at execution time")
+
 jar.doLast {
     DirectoryProperty buildDirectoryProperty = layout.buildDirectory
     String buildDirectory = buildDirectoryProperty.get()

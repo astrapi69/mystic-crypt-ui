@@ -24,16 +24,26 @@
  */
 package io.github.astrapi69.mystic.crypt.keepass2;
 
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
+import org.linguafranca.pwdb.Entry;
 import org.linguafranca.pwdb.kdbx.KdbxCreds;
 import org.linguafranca.pwdb.kdbx.simple.SimpleDatabase;
 import org.linguafranca.pwdb.kdbx.simple.SimpleEntry;
 import org.linguafranca.pwdb.kdbx.simple.SimpleGroup;
 
+/**
+ * Smoke test for the checked-in KeePass test fixture: {@code test-db.kdbx} must load with its known
+ * credentials and contain at least one group and one entry with a readable title - the same fixture
+ * the KeePass-import UI test builds on
+ */
 public class KeePass2Test
 {
 
@@ -42,19 +52,25 @@ public class KeePass2Test
 	{
 		KdbxCreds credentials = new KdbxCreds("foo-secret-bar-1969-?".getBytes());
 		InputStream inputStream = getClass().getClassLoader().getResourceAsStream("test-db.kdbx");
+		assertNotNull(inputStream, "test fixture test-db.kdbx must be on the test classpath");
 		SimpleDatabase database = SimpleDatabase.load(credentials, inputStream);
 		SimpleGroup rootGroup = database.getRootGroup();
+		assertNotNull(rootGroup);
 
 		List<SimpleGroup> allGroups = getAllGroups(rootGroup);
 		allGroups.add(rootGroup);
+		assertFalse(allGroups.isEmpty(), "the fixture must contain at least one group");
+
+		List<SimpleEntry> allEntries = new ArrayList<>();
 		for (SimpleGroup currentGroup : allGroups)
 		{
-			List<SimpleEntry> currentEntries = currentGroup.getEntries();
-			for (SimpleEntry currentEntry : currentEntries)
-			{
-				System.out.println(currentEntry);
-			}
+			allEntries.addAll(currentGroup.getEntries());
 		}
+		assertFalse(allEntries.isEmpty(), "the fixture must contain at least one entry");
+		assertTrue(
+			allEntries.stream()
+				.allMatch(entry -> entry.getProperty(Entry.STANDARD_PROPERTY_NAME_TITLE) != null),
+			"every entry in the fixture must have a readable title");
 	}
 
 	public static List<SimpleGroup> getAllGroups(SimpleGroup group)

@@ -139,7 +139,6 @@ public class PropertiesPanel extends BasePanel<MysticCryptEntryModelBean>
 	protected void onRemove(final ActionEvent actionEvent)
 	{
 		// Get selected property and remove it from table
-		System.err.println("onRemove");
 		if (0 < tblProperties.getSelectedRows().length)
 		{
 			// confirm delete
@@ -149,7 +148,6 @@ public class PropertiesPanel extends BasePanel<MysticCryptEntryModelBean>
 
 	protected void onEdit(final ActionEvent actionEvent)
 	{
-		System.err.println("onEdit");
 		getTblProperties().getSingleSelectedRowData().ifPresent(tableEntry -> {
 			showEditPropertyDialog(tableEntry);
 		});

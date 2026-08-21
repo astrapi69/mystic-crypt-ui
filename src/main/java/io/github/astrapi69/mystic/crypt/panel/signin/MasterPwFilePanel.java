@@ -179,7 +179,6 @@ public class MasterPwFilePanel extends BasePanel<MasterPwFileModelBean>
 
 	protected void onKeyFileChooser(ActionEvent actionEvent)
 	{
-		System.err.println("onKeyFileChooser method action called");
 		final int returnVal = fileChooser.showSaveDialog(MasterPwFilePanel.this);
 		if (returnVal == JFileChooser.APPROVE_OPTION)
 		{

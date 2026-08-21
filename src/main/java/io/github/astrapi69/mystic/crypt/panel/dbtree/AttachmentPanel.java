@@ -121,7 +121,6 @@ public class AttachmentPanel extends BasePanel<MysticCryptEntryModelBean>
 
 	protected void onAdd(final ActionEvent actionEvent)
 	{
-		System.err.println("onAdd");
 		final int returnVal = fileChooser.showSaveDialog(AttachmentPanel.this);
 		if (returnVal == JFileChooser.APPROVE_OPTION)
 		{
@@ -133,7 +132,6 @@ public class AttachmentPanel extends BasePanel<MysticCryptEntryModelBean>
 
 	protected void onRemove(final ActionEvent actionEvent)
 	{
-		System.err.println("onRemove");
 		if (0 < tblFiles.getSelectedRows().length)
 		{
 			// confirm delete
@@ -143,7 +141,6 @@ public class AttachmentPanel extends BasePanel<MysticCryptEntryModelBean>
 
 	protected void onSaveTo(final ActionEvent actionEvent)
 	{
-		System.err.println("onSaveTo");
 		Optional<FileContentInfo> singleSelectedRowData = tblFiles.getSingleSelectedRowData();
 		if (singleSelectedRowData.isPresent())
 		{
