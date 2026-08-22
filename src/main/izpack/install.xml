@@ -70,6 +70,20 @@
 			<file src="resources/main/doc/start.bat" targetdir="${INSTALL_PATH}" />
 			<file src="resources/main/img/icon.png" targetdir="${INSTALL_PATH}/img" />
 		</pack>
+		<!--
+			The command-line interface ships as launcher scripts that run the CLI entry point from the
+			same application jar (it bundles the mystic-crypt library which carries the CLI). Requires
+			the application jar from the "executables" pack. Note: functional once this app depends on
+			a mystic-crypt release that includes the CLI (io.github.astrapi69.mystic.crypt.cli).
+		-->
+		<pack name="commandline" required="no" preselected="yes">
+			<description>Command-line interface (the 'mystic-crypt' console tool)</description>
+			<depends packname="executables" />
+			<file src="resources/main/doc/mystic-crypt" targetdir="${INSTALL_PATH}" />
+			<file src="resources/main/doc/mystic-crypt.bat" targetdir="${INSTALL_PATH}" />
+			<!-- mark the unix launcher executable without running it -->
+			<executable targetfile="${INSTALL_PATH}/mystic-crypt" stage="never" keep="true" />
+		</pack>
 	</packs>
 
 </izpack:installation>
