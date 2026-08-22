@@ -906,6 +906,13 @@ final class ApplicationSteps
 		return findDialogWithTitle("Settings");
 	}
 
+	/** Opens the certificate wizard via the File menu and returns a fixture for its dialog */
+	DialogFixture openCertificateWizard()
+	{
+		clickMenuItem(MenuId.CERTIFICATE_WIZARD.propertiesKey());
+		return findDialogWithTitle("Create Certificate");
+	}
+
 	/** Opens the Help menu's info/about dialog and returns a fixture for the shown dialog */
 	DialogFixture openHelpInfoDialog()
 	{

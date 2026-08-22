@@ -1,0 +1,164 @@
+/**
+ * The MIT License
+ *
+ * Copyright (C) 2015 Asterios Raptis
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining
+ * a copy of this software and associated documentation files (the
+ * "Software"), to deal in the Software without restriction, including
+ * without limitation the rights to use, copy, modify, merge, publish,
+ * distribute, sublicense, and/or sell copies of the Software, and to
+ * permit persons to whom the Software is furnished to do so, subject to
+ * the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
+ * LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+ * OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+ * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
+package io.github.astrapi69.mystic.crypt.action;
+
+import java.awt.BorderLayout;
+import java.awt.event.ActionEvent;
+import java.io.File;
+import java.io.Serial;
+import java.math.BigInteger;
+import java.security.KeyPair;
+import java.security.cert.X509Certificate;
+import java.time.ZonedDateTime;
+
+import javax.swing.*;
+import javax.swing.filechooser.FileNameExtensionFilter;
+
+import io.github.astrapi69.crypt.data.factory.KeyPairFactory;
+import io.github.astrapi69.crypt.data.key.KeyInfoExtensions;
+import io.github.astrapi69.crypt.data.key.writer.CertificateWriter;
+import io.github.astrapi69.model.BaseModel;
+import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
+import io.github.astrapi69.mystic.crypt.wizard.CertificateInfoModelToX509;
+import io.github.astrapi69.mystic.crypt.wizard.CertificateWizardPanel;
+import io.github.astrapi69.mystic.crypt.wizard.model.CertificateInfoModel;
+import io.github.astrapi69.mystic.crypt.wizard.model.DistinguishedNameInfoModel;
+import io.github.astrapi69.mystic.crypt.wizard.model.KeyInfoModel;
+import io.github.astrapi69.mystic.crypt.wizard.model.ValidityModel;
+import io.github.astrapi69.swing.filechooser.JFileChooserExtensions;
+
+/**
+ * Opens the certificate wizard in a modal dialog. The wizard collects issuer, subject, validity and
+ * extensions for a fresh key pair; on Finish the X.509 certificate is generated and saved to a
+ * chosen file, on Cancel the dialog is closed.
+ */
+public class CertificateWizardAction extends AbstractAction
+{
+
+	/** The Constant serialVersionUID. */
+	@Serial
+	private static final long serialVersionUID = 1L;
+
+	public CertificateWizardAction(final String name)
+	{
+		super(name);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public void actionPerformed(final ActionEvent e)
+	{
+		MysticCryptApplicationFrame frame = MysticCryptApplicationFrame.getInstance();
+		final CertificateInfoModel model;
+		try
+		{
+			model = newDefaultCertificateInfoModel();
+		}
+		catch (Exception exception)
+		{
+			JOptionPane.showMessageDialog(frame,
+				"Could not initialize the certificate wizard: " + exception.getMessage(),
+				"Certificate wizard failed", JOptionPane.ERROR_MESSAGE);
+			return;
+		}
+
+		final JDialog dialog = new JDialog(frame, "Create Certificate", true);
+		dialog.setName("dlgCertificateWizard");
+		CertificateWizardPanel wizardPanel = new CertificateWizardPanel(BaseModel.of(model))
+		{
+			@Override
+			protected void onFinish()
+			{
+				super.onFinish();
+				generateAndSave(dialog, frame, model);
+			}
+
+			@Override
+			protected void onCancel()
+			{
+				super.onCancel();
+				dialog.dispose();
+			}
+		};
+		dialog.getContentPane().add(wizardPanel, BorderLayout.CENTER);
+		dialog.setSize(820, 600);
+		dialog.setLocationRelativeTo(frame);
+		dialog.setVisible(true);
+	}
+
+	private static void generateAndSave(JDialog dialog, MysticCryptApplicationFrame frame,
+		CertificateInfoModel model)
+	{
+		try
+		{
+			X509Certificate certificate = CertificateInfoModelToX509.toX509Certificate(model);
+			JFileChooser fileChooser = new JFileChooser(frame.getConfigurationDirectory());
+			fileChooser.setDialogTitle("Save the certificate as");
+			fileChooser.setFileFilter(new FileNameExtensionFilter("Certificate (*.crt)", "crt"));
+			if (fileChooser.showSaveDialog(dialog) == JFileChooser.APPROVE_OPTION)
+			{
+				File file = JFileChooserExtensions.getSelectedFileWithFirstExtension(fileChooser);
+				CertificateWriter.writeInPemFormat(certificate, file);
+				JOptionPane.showMessageDialog(dialog, "Certificate saved to " + file.getName(),
+					"Certificate created", JOptionPane.INFORMATION_MESSAGE);
+			}
+			dialog.dispose();
+		}
+		catch (Exception exception)
+		{
+			JOptionPane.showMessageDialog(dialog,
+				"Could not create the certificate: " + exception.getMessage(), "Certificate failed",
+				JOptionPane.ERROR_MESSAGE);
+		}
+	}
+
+	/**
+	 * Builds a ready-to-edit certificate model backed by a fresh RSA key pair and a one-year
+	 * validity, so the wizard opens without null fields
+	 *
+	 * @return the default {@link CertificateInfoModel}
+	 * @throws Exception
+	 *             if the key pair cannot be generated
+	 */
+	static CertificateInfoModel newDefaultCertificateInfoModel() throws Exception
+	{
+		KeyPair keyPair = KeyPairFactory.newKeyPair("RSA");
+		KeyInfoModel privateKeyInfo = KeyInfoModel
+			.toKeyInfoModel(KeyInfoExtensions.toKeyInfo(keyPair.getPrivate()));
+		KeyInfoModel publicKeyInfo = KeyInfoModel
+			.toKeyInfoModel(KeyInfoExtensions.toKeyInfo(keyPair.getPublic()));
+		ZonedDateTime now = ZonedDateTime.now();
+		return CertificateInfoModel.builder().privateKeyInfo(privateKeyInfo)
+			.publicKeyInfo(publicKeyInfo)
+			.issuer(DistinguishedNameInfoModel.builder().commonName("mystic-crypt").build())
+			.subject(DistinguishedNameInfoModel.builder().commonName("mystic-crypt").build())
+			.validityModel(
+				ValidityModel.builder().notBefore(now).notAfter(now.plusYears(1)).build())
+			.serial(BigInteger.valueOf(now.toInstant().toEpochMilli()))
+			.signatureAlgorithm("SHA256withRSA").build();
+	}
+}

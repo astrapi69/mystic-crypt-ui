@@ -139,9 +139,8 @@ public class CertificateWizardPanel extends AbstractWizardPanel<CertificateInfoM
 	protected void onFinish()
 	{
 		getStateMachine().finish();
-		// from here application specific behavior...
-		// TODO after insert to application remove System.exit !!!
-		System.exit(0);
+		// application-specific behavior is provided by whoever opens the wizard (it overrides this
+		// method to generate/save the certificate and close its dialog)
 	}
 
 	@Override
