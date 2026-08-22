@@ -185,6 +185,14 @@ final class ApplicationSteps
 		return this;
 	}
 
+	/** Opens the KeePass export dialog via the File menu and cancels it - nothing is exported */
+	ApplicationSteps exportKeePassCancel()
+	{
+		clickMenuItem(MenuId.EXPORT_KEEPASS.propertiesKey());
+		cancelOptionPaneDialog("Export to KeePass");
+		return this;
+	}
+
 	/**
 	 * Makes the main application frame visible and returns a fixture for it. Needed for use cases
 	 * that require real mouse interaction with components inside the frame (e.g. the database
@@ -226,6 +234,15 @@ final class ApplicationSteps
 		return this;
 	}
 
+	/** Opens the "New node" dialog and closes it without confirming - no node is added */
+	ApplicationSteps addNodeButCancel(org.assertj.swing.fixture.FrameFixture frame)
+	{
+		rightClickTreeRow(frame, 0);
+		chooseFromShowingPopup("add node...");
+		disposeDialog("New node");
+		return this;
+	}
+
 	/**
 	 * Renames the tree node with the given display name through the real user flow: right-click,
 	 * "Edit node...", change the name in the "Edit node" dialog, OK
@@ -246,6 +263,18 @@ final class ApplicationSteps
 	}
 
 	/**
+	 * Opens the "Edit node" dialog for the node and closes it without confirming - name unchanged
+	 */
+	ApplicationSteps editNodeButCancel(org.assertj.swing.fixture.FrameFixture frame,
+		String nodeName)
+	{
+		rightClickTreeNodeByName(frame, nodeName);
+		chooseFromShowingPopup("Edit node...");
+		disposeDialog("Edit node");
+		return this;
+	}
+
+	/**
 	 * Duplicates the tree node with the given display name through the real user flow: right-click,
 	 * "Duplicate node...", type the duplicate's name into the "Name for duplicate" dialog, OK
 	 */
@@ -261,6 +290,16 @@ final class ApplicationSteps
 		UiTestSpeed.step();
 		clickDialogButton(duplicateDialog, "OK");
 		awaitDialogClosed(duplicateDialog, "duplicate-node dialog");
+		return this;
+	}
+
+	/** Opens the "Name for duplicate" dialog and closes it without confirming - no duplicate */
+	ApplicationSteps duplicateNodeButCancel(org.assertj.swing.fixture.FrameFixture frame,
+		String nodeName)
+	{
+		rightClickTreeNodeByName(frame, nodeName);
+		chooseFromShowingPopup("Duplicate node...");
+		disposeDialog("Name for duplicate");
 		return this;
 	}
 
@@ -312,6 +351,24 @@ final class ApplicationSteps
 		UiTestSpeed.step();
 		clickDialogButton(newEntryDialog, "OK");
 		awaitDialogClosed(newEntryDialog, "new-crypt-entry dialog");
+		return this;
+	}
+
+	/**
+	 * Opens the "New Crypt Entry" dialog, types a title but closes without confirming - no entry
+	 */
+	ApplicationSteps addEntryButCancel(org.assertj.swing.fixture.FrameFixture frame, String title)
+	{
+		javax.swing.JTable table = frame.table().target();
+		dispatchRightClick(table, 20, 10);
+		chooseFromShowingPopup("add...");
+
+		DialogFixture newEntryDialog = findDialogWithTitle("New Crypt Entry");
+		GuiActionRunner
+			.execute(() -> newEntryDialog.textBox("txtEntryName").target().setText(title));
+		robot.waitForIdle();
+		UiTestSpeed.step();
+		disposeDialog("New Crypt Entry");
 		return this;
 	}
 
@@ -701,6 +758,22 @@ final class ApplicationSteps
 				return !dialog.target().isShowing();
 			}
 		}, 10000);
+	}
+
+	/** Closes the dialog with the given title without confirming it (disposes it) */
+	private void disposeDialog(String title)
+	{
+		DialogFixture dialog = findDialogWithTitle(title);
+		GuiActionRunner.execute(() -> dialog.target().dispose());
+		awaitDialogClosed(dialog, "'" + title + "' dialog");
+	}
+
+	/** The number of nodes in the signed-in database tree (root included) */
+	int treeNodeCount()
+	{
+		return GuiActionRunner
+			.execute(() -> MysticCryptApplicationFrame.getInstance().getApplicationPanel()
+				.getSecretKeyTreeWithContentPanel().getModelObject().traverse().size());
 	}
 
 	/** Saves the open database via the File menu and waits until the model is no longer dirty */
