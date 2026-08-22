@@ -125,6 +125,16 @@ final class ApplicationSteps
 		return this;
 	}
 
+	/** Opens the KeePass import dialog via the File menu and cancels it - nothing is imported */
+	ApplicationSteps importKeePassCancel()
+	{
+		clickMenuItem(MenuId.IMPORT_KEEPASS.propertiesKey());
+		// cancel through the option pane's value (locale-independent: the button reads "Abbrechen"
+		// under the app's German locale, not "Cancel")
+		cancelOptionPaneDialog("Import from KeePass");
+		return this;
+	}
+
 	/** Switches the frame to application-panel view mode via the Edit menu and waits for it */
 	ApplicationSteps switchToPanelMode()
 	{
@@ -263,6 +273,19 @@ final class ApplicationSteps
 		rightClickTreeNodeByName(frame, nodeName);
 		chooseFromShowingPopup("delete");
 		confirmOptionPaneDialog("Confirm deletion");
+		return this;
+	}
+
+	/**
+	 * Starts deleting the tree node but cancels the "Confirm deletion" dialog - the node must
+	 * survive
+	 */
+	ApplicationSteps deleteNodeButCancel(org.assertj.swing.fixture.FrameFixture frame,
+		String nodeName)
+	{
+		rightClickTreeNodeByName(frame, nodeName);
+		chooseFromShowingPopup("delete");
+		cancelOptionPaneDialog("Confirm deletion");
 		return this;
 	}
 
@@ -424,6 +447,18 @@ final class ApplicationSteps
 		return this;
 	}
 
+	/**
+	 * Starts deleting the selected entry but cancels the "Confirm deletion" dialog - the entry must
+	 * survive
+	 */
+	ApplicationSteps deleteSelectedEntryButCancel(org.assertj.swing.fixture.FrameFixture frame)
+	{
+		rightClickSelectedTableRow(frame);
+		chooseFromShowingPopup("delete");
+		cancelOptionPaneDialog("Confirm deletion");
+		return this;
+	}
+
 	/** Copies the selected entry's user name to the system clipboard via the context menu */
 	ApplicationSteps copyUsernameOfSelectedEntry(org.assertj.swing.fixture.FrameFixture frame)
 	{
@@ -494,6 +529,19 @@ final class ApplicationSteps
 			javax.swing.JOptionPane optionPane = (javax.swing.JOptionPane)robot.finder()
 				.findByType(confirmDialog.target(), javax.swing.JOptionPane.class);
 			optionPane.setValue(javax.swing.JOptionPane.OK_OPTION);
+		});
+		UiTestSpeed.step();
+		awaitDialogClosed(confirmDialog, "'" + title + "' dialog");
+	}
+
+	/** Cancels the option-pane dialog with the given title by setting CANCEL_OPTION as its value */
+	private void cancelOptionPaneDialog(String title)
+	{
+		DialogFixture confirmDialog = findDialogWithTitle(title);
+		GuiActionRunner.execute(() -> {
+			javax.swing.JOptionPane optionPane = (javax.swing.JOptionPane)robot.finder()
+				.findByType(confirmDialog.target(), javax.swing.JOptionPane.class);
+			optionPane.setValue(javax.swing.JOptionPane.CANCEL_OPTION);
 		});
 		UiTestSpeed.step();
 		awaitDialogClosed(confirmDialog, "'" + title + "' dialog");
@@ -697,6 +745,19 @@ final class ApplicationSteps
 		return this;
 	}
 
+	/** Fires "Save As" via the File menu but cancels the file chooser - nothing is written */
+	ApplicationSteps saveAsCancel()
+	{
+		clickMenuItem(MenuId.SAVE_AS_APPLICATION_FILE.propertiesKey());
+		javax.swing.JFileChooser fileChooser = org.assertj.swing.finder.JFileChooserFinder
+			.findFileChooser().withTimeout(10, TimeUnit.SECONDS).using(robot).target();
+		UiTestSpeed.step();
+		SwingUtilities.invokeLater(fileChooser::cancelSelection);
+		robot.waitForIdle();
+		UiTestSpeed.step();
+		return this;
+	}
+
 	/** Locks the workspace via the File menu and waits until the model is no longer signed in */
 	ApplicationSteps lockWorkspace()
 	{
@@ -753,6 +814,15 @@ final class ApplicationSteps
 		UiTestSpeed.step();
 		clickDialogButton(unlockDialog, "OK");
 		dismissMessageDialog("Unlock failed");
+		return this;
+	}
+
+	/** Cancels the "Unlock workspace" dialog - the workspace stays locked */
+	ApplicationSteps cancelUnlock()
+	{
+		// cancel through the option pane's value (locale-independent: the button reads "Abbrechen"
+		// under the app's German locale, not "Cancel")
+		cancelOptionPaneDialog("Unlock workspace");
 		return this;
 	}
 
