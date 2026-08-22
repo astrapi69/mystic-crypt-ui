@@ -1,0 +1,61 @@
+plugins {
+    id 'java'
+}
+
+group = 'io.github.astrapi69'
+version = '1.0.0'
+
+java {
+    toolchain {
+        // must match the host: its classes are compiled for JDK 25 (class file major 69),
+        // which a lower toolchain's javac cannot read from the compile classpath
+        languageVersion = JavaLanguageVersion.of(25)
+    }
+}
+
+repositories {
+    mavenLocal()
+    mavenCentral()
+}
+
+// compileOnly against the host jar and the mystic-crypt library that provides the Argon2id / PBKDF2
+// password hashing (PasswordEncryptor), plus the swing helpers the plugin uses to open its tool.
+dependencies {
+    compileOnly "io.github.astrapi69:mystic-crypt-ui:8.1-SNAPSHOT"
+    // PasswordEncryptor / Argon2Support / Pbkdf2Support live in the mystic-crypt library
+    compileOnly "io.github.astrapi69:mystic-crypt:10.1"
+    compileOnly "io.github.astrapi69:swing-base-components:5.1"
+    compileOnly "io.github.astrapi69:swing-components:9"
+    compileOnly "org.projectlombok:lombok:1.18.46"
+    annotationProcessor "org.projectlombok:lombok:1.18.46"
+
+    compileOnly "org.pf4j:pf4j:3.15.0"
+    // required so the @Extension annotation processor runs and writes META-INF/extensions.idx
+    annotationProcessor "org.pf4j:pf4j:3.15.0"
+
+    // the round-trip test drives the Argon2id / PBKDF2 hashing + verification headlessly
+    testImplementation "org.junit.jupiter:junit-jupiter:5.11.4"
+    testImplementation "io.github.astrapi69:mystic-crypt:10.1"
+    testRuntimeOnly "org.junit.platform:junit-platform-launcher"
+}
+
+test {
+    useJUnitPlatform()
+}
+
+// packages the plugin the way the host's DefaultPluginManager expects: plugin.properties at the
+// root, compiled classes under classes/
+tasks.register('pluginZip', Zip) {
+    archiveFileName = "password-hash-plugin-${version}.zip"
+    destinationDirectory = layout.buildDirectory.dir("plugin-dist")
+    from("src/main/resources") {
+        include "plugin.properties"
+    }
+    into("classes") {
+        from sourceSets.main.output.classesDirs
+        from("src/main/resources") {
+            exclude "plugin.properties"
+        }
+    }
+    dependsOn classes
+}

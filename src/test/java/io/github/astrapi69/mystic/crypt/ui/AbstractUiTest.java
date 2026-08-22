@@ -86,6 +86,9 @@ abstract class AbstractUiTest
 	protected static final Path CERTIFICATE_ZIP = Path
 		.of("plugins/certificate-plugin/build/plugin-dist/certificate-plugin-1.0.0.zip");
 
+	protected static final Path PASSWORD_HASH_ZIP = Path
+		.of("plugins/password-hash-plugin/build/plugin-dist/password-hash-plugin-1.0.0.zip");
+
 	private String originalUserHome;
 
 	/** Per-test isolated home directory that {@code user.home} points to during the test */
