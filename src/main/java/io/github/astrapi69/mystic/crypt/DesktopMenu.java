@@ -49,7 +49,6 @@ import io.github.astrapi69.design.pattern.observer.event.EventObject;
 import io.github.astrapi69.design.pattern.observer.event.EventSource;
 import io.github.astrapi69.lang.ClassExtensions;
 import io.github.astrapi69.mystic.crypt.action.ApplicationToggleFullScreenAction;
-import io.github.astrapi69.mystic.crypt.action.CertificateWizardAction;
 import io.github.astrapi69.mystic.crypt.action.ExportKeePassDatabaseAction;
 import io.github.astrapi69.mystic.crypt.action.ImportKeePassDatabaseAction;
 import io.github.astrapi69.mystic.crypt.action.LockWorkspaceAction;
@@ -263,13 +262,8 @@ public class DesktopMenu extends BaseDesktopMenu implements EventListener<EventO
 		// Separator
 		fileMenu.addSeparator();
 
-		// Create Certificate wizard; always available
-		JMenuItem certificateWizardMenuItem = MenuItemInfo.builder().text("Create Certificate...")
-			.name(MenuId.CERTIFICATE_WIZARD.propertiesKey())
-			.mnemonic(MenuExtensions.toMnemonic('C'))
-			.actionListener(new CertificateWizardAction("Create Certificate")).build()
-			.toJMenuItem();
-		fileMenu.add(certificateWizardMenuItem);
+		// note: "Create Certificate" now ships as the internal certificate plugin
+		// (plugins/certificate-plugin) and appears under the "Plugins" menu
 
 		// Settings (plugins management + general preferences); always available
 		JMenuItem settingsMenuItem = MenuItemInfo.builder().text("Settings...")

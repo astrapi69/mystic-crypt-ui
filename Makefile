@@ -8,6 +8,7 @@ PLUGIN_CHECKSUM_DIR := plugins/checksum-plugin
 PLUGIN_CONVERSION_DIR := plugins/conversion-plugin
 PLUGIN_CONSOLE_DIR := plugins/console-plugin
 PLUGIN_KEYGEN_DIR := plugins/keygen-plugin
+PLUGIN_CERTIFICATE_DIR := plugins/certificate-plugin
 PLUGIN_INSTALL_DIR := $(HOME)/.config/mystic-crypt-ui/plugins
 
 .PHONY: build build-full run all clean test test-e2e test-e2e-demo \
@@ -16,7 +17,7 @@ PLUGIN_INSTALL_DIR := $(HOME)/.config/mystic-crypt-ui/plugins
 	license-format publish publish-local spotless-java spotless-misc tag-release \
 	version-catalog-format version-catalog-update all-dependencies-jar \
 	build-stacktrace build-warning plugin-obfuscation plugin-checksum plugin-conversion \
-	plugin-console plugin-keygen plugins plugins-install
+	plugin-console plugin-keygen plugin-certificate plugins plugins-install
 
 # fast build: clean, compile, package the runnable jar - skips tests/spotless/license
 build:
@@ -86,8 +87,13 @@ plugin-keygen: publish-local
 	JAVA_HOME=$(JAVA_HOME) ./gradlew -p $(PLUGIN_KEYGEN_DIR) test pluginZip
 	@echo "==> plugin zip: $$(find $(PLUGIN_KEYGEN_DIR)/build/plugin-dist -name '*.zip')"
 
+# build the internal certificate plugin zip (needs the host published locally first)
+plugin-certificate: publish-local
+	JAVA_HOME=$(JAVA_HOME) ./gradlew -p $(PLUGIN_CERTIFICATE_DIR) pluginZip
+	@echo "==> plugin zip: $$(find $(PLUGIN_CERTIFICATE_DIR)/build/plugin-dist -name '*.zip')"
+
 # build every internal plugin
-plugins: plugin-obfuscation plugin-checksum plugin-conversion plugin-console plugin-keygen
+plugins: plugin-obfuscation plugin-checksum plugin-conversion plugin-console plugin-keygen plugin-certificate
 
 # build all internal plugins and install them into the app's plugins directory
 plugins-install: plugins
@@ -97,6 +103,7 @@ plugins-install: plugins
 	cp $(PLUGIN_CONVERSION_DIR)/build/plugin-dist/*.zip "$(PLUGIN_INSTALL_DIR)/"
 	cp $(PLUGIN_CONSOLE_DIR)/build/plugin-dist/*.zip "$(PLUGIN_INSTALL_DIR)/"
 	cp $(PLUGIN_KEYGEN_DIR)/build/plugin-dist/*.zip "$(PLUGIN_INSTALL_DIR)/"
+	cp $(PLUGIN_CERTIFICATE_DIR)/build/plugin-dist/*.zip "$(PLUGIN_INSTALL_DIR)/"
 	@echo "==> installed all internal plugins into $(PLUGIN_INSTALL_DIR)"
 
 # --- mirrors Gradle "Run Configurations" panel ---

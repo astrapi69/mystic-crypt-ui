@@ -22,25 +22,27 @@
  * OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
  * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-package io.github.astrapi69.mystic.crypt.action;
+package io.github.astrapi69.mystic.crypt.plugin.certificate;
 
 import java.awt.BorderLayout;
-import java.awt.event.ActionEvent;
 import java.io.File;
-import java.io.Serial;
 import java.math.BigInteger;
 import java.security.KeyPair;
 import java.security.cert.X509Certificate;
 import java.time.ZonedDateTime;
+import java.util.List;
 
 import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
+
+import org.pf4j.Extension;
 
 import io.github.astrapi69.crypt.data.factory.KeyPairFactory;
 import io.github.astrapi69.crypt.data.key.KeyInfoExtensions;
 import io.github.astrapi69.crypt.data.key.writer.CertificateWriter;
 import io.github.astrapi69.model.BaseModel;
 import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
+import io.github.astrapi69.mystic.crypt.plugin.api.PluginMenuContribution;
 import io.github.astrapi69.mystic.crypt.wizard.CertificateInfoModelToX509;
 import io.github.astrapi69.mystic.crypt.wizard.CertificateWizardPanel;
 import io.github.astrapi69.mystic.crypt.wizard.model.CertificateInfoModel;
@@ -50,27 +52,29 @@ import io.github.astrapi69.mystic.crypt.wizard.model.ValidityModel;
 import io.github.astrapi69.swing.filechooser.JFileChooserExtensions;
 
 /**
- * Opens the certificate wizard in a modal dialog. The wizard collects issuer, subject, validity and
- * extensions for a fresh key pair; on Finish the X.509 certificate is generated and saved to a
- * chosen file, on Cancel the dialog is closed.
+ * Contributes the "Create Certificate" tool to the host's "Plugins" menu. The wizard panels and the
+ * model-to-certificate generator live in the host (shared with the keygen plugin); this plugin only
+ * opens the wizard in a modal dialog and, on Finish, generates the X.509 certificate and saves it.
  */
-public class CertificateWizardAction extends AbstractAction
+@Extension
+public class CertificateMenuContribution implements PluginMenuContribution
 {
 
-	/** The Constant serialVersionUID. */
-	@Serial
-	private static final long serialVersionUID = 1L;
-
-	public CertificateWizardAction(final String name)
+	@Override
+	public List<JMenuItem> getMenuItems()
 	{
-		super(name);
+		JMenuItem createCertificate = new JMenuItem("Create Certificate...");
+		createCertificate.addActionListener(event -> openWizard());
+		return List.of(createCertificate);
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	@Override
-	public void actionPerformed(final ActionEvent e)
+	public String getMenuName()
+	{
+		return "Certificate";
+	}
+
+	private void openWizard()
 	{
 		MysticCryptApplicationFrame frame = MysticCryptApplicationFrame.getInstance();
 		final CertificateInfoModel model;
@@ -136,15 +140,7 @@ public class CertificateWizardAction extends AbstractAction
 		}
 	}
 
-	/**
-	 * Builds a ready-to-edit certificate model backed by a fresh RSA key pair and a one-year
-	 * validity, so the wizard opens without null fields
-	 *
-	 * @return the default {@link CertificateInfoModel}
-	 * @throws Exception
-	 *             if the key pair cannot be generated
-	 */
-	static CertificateInfoModel newDefaultCertificateInfoModel() throws Exception
+	private static CertificateInfoModel newDefaultCertificateInfoModel() throws Exception
 	{
 		KeyPair keyPair = KeyPairFactory.newKeyPair("RSA");
 		KeyInfoModel privateKeyInfo = KeyInfoModel
@@ -156,8 +152,7 @@ public class CertificateWizardAction extends AbstractAction
 			.publicKeyInfo(publicKeyInfo)
 			.issuer(DistinguishedNameInfoModel.builder().commonName("mystic-crypt").build())
 			.subject(DistinguishedNameInfoModel.builder().commonName("mystic-crypt").build())
-			.validityModel(
-				ValidityModel.builder().notBefore(now).notAfter(now.plusYears(1)).build())
+			.validityModel(ValidityModel.builder().notBefore(now).notAfter(now.plusYears(1)).build())
 			.serial(BigInteger.valueOf(now.toInstant().toEpochMilli()))
 			.signatureAlgorithm("SHA256withRSA").build();
 	}

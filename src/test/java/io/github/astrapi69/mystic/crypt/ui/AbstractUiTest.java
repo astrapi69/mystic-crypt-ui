@@ -83,6 +83,9 @@ abstract class AbstractUiTest
 	protected static final Path KEYGEN_ZIP = Path
 		.of("plugins/keygen-plugin/build/plugin-dist/keygen-plugin-1.0.0.zip");
 
+	protected static final Path CERTIFICATE_ZIP = Path
+		.of("plugins/certificate-plugin/build/plugin-dist/certificate-plugin-1.0.0.zip");
+
 	private String originalUserHome;
 
 	/** Per-test isolated home directory that {@code user.home} points to during the test */

@@ -906,10 +906,23 @@ final class ApplicationSteps
 		return findDialogWithTitle("Settings");
 	}
 
-	/** Opens the certificate wizard via the File menu and returns a fixture for its dialog */
+	/**
+	 * Opens the certificate wizard via the certificate plugin's "Create Certificate..." menu item
+	 * (matched by text, like the other plugin tools) and returns a fixture for its dialog
+	 */
 	DialogFixture openCertificateWizard()
 	{
-		clickMenuItem(MenuId.CERTIFICATE_WIZARD.propertiesKey());
+		JMenuItem menuItem = robot.finder()
+			.find(new GenericTypeMatcher<JMenuItem>(JMenuItem.class, false)
+			{
+				@Override
+				protected boolean isMatching(JMenuItem candidate)
+				{
+					return !(candidate instanceof javax.swing.JMenu)
+						&& "Create Certificate...".equals(candidate.getText());
+				}
+			});
+		SwingUtilities.invokeLater(menuItem::doClick);
 		return findDialogWithTitle("Create Certificate");
 	}
 

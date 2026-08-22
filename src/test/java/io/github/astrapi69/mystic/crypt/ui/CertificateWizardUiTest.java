@@ -29,7 +29,6 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.File;
-import java.io.IOException;
 
 import org.assertj.swing.edt.GuiActionRunner;
 import org.assertj.swing.fixture.DialogFixture;
@@ -38,9 +37,9 @@ import org.junit.jupiter.api.Test;
 import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
 
 /**
- * End-to-end test that the certificate wizard is wired and non-destructive: File -> Create
- * Certificate opens the wizard dialog, and closing it leaves the application running (the old
- * wizard killed the whole app with System.exit on finish)
+ * Functional end-to-end test of the certificate plugin: with the plugin installed, the Plugins menu
+ * gains a "Create Certificate..." item that opens the wizard dialog, and closing it leaves the
+ * application running (the old in-host wizard killed the whole app with System.exit on finish)
  */
 class CertificateWizardUiTest extends AbstractUiTest
 {
@@ -48,12 +47,15 @@ class CertificateWizardUiTest extends AbstractUiTest
 	private static final String MASTER_PASSWORD = "certwizard-pw-123";
 
 	@Test
-	void certificateWizardOpensAndClosesWithoutKillingTheApp() throws IOException
+	void certificateWizardOpensAndClosesWithoutKillingTheApp() throws Exception
 	{
+		installPluginRequiringItBuilt(CERTIFICATE_ZIP);
+
 		File databaseFile = new File(tempHome, "certwizard-database.mcrdb");
 		createDatabaseFileHeadless(databaseFile, MASTER_PASSWORD);
 
 		ApplicationSteps application = signInWithExistingDatabase(databaseFile, MASTER_PASSWORD);
+		application.showMainFrame();
 		DialogFixture wizard = application.openCertificateWizard();
 
 		assertTrue(wizard.target().isShowing(), "the certificate wizard dialog must open");
