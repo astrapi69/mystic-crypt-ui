@@ -25,6 +25,7 @@
 package io.github.astrapi69.mystic.crypt.ui;
 
 import java.awt.Dialog;
+import java.awt.event.KeyEvent;
 import java.io.File;
 import java.util.concurrent.TimeUnit;
 
@@ -185,6 +186,23 @@ final class SignInDialogSteps
 	{
 		SwingUtilities.invokeLater(() -> dialog.button("btnOk").target().doClick());
 		Pause.pause(new Condition("sign-in dialog is closed after successful sign-in")
+		{
+			@Override
+			public boolean test()
+			{
+				return !dialog.target().isShowing();
+			}
+		}, 15000);
+	}
+
+	/**
+	 * Presses Enter in the master-password field and waits for the sign-in dialog to close. Exercises
+	 * the field's action listener, which clicks OK when it is enabled (the "Enter submits" behavior).
+	 */
+	void enterInMasterPasswordAndAwaitSignIn()
+	{
+		dialog.textBox("txtMasterPw").focus().pressAndReleaseKeys(KeyEvent.VK_ENTER);
+		Pause.pause(new Condition("sign-in dialog is closed after Enter-submit sign-in")
 		{
 			@Override
 			public boolean test()

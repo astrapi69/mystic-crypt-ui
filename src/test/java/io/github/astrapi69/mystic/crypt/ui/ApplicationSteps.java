@@ -106,6 +106,39 @@ final class ApplicationSteps
 	}
 
 	/**
+	 * Drives the KeePass import dialog like {@link #importKeePassDatabase} but additionally supplies a
+	 * key file: it enables the "Key File" checkbox and browses to the given key file, so the import
+	 * builds a password + key-file {@code KdbxCreds}.
+	 *
+	 * @param keePassFile
+	 *            the {@code .kdbx} file to import
+	 * @param password
+	 *            the database password
+	 * @param keyFile
+	 *            the key file protecting the database
+	 * @return this
+	 */
+	ApplicationSteps importKeePassDatabaseWithKeyFile(File keePassFile, String password, File keyFile)
+	{
+		clickMenuItem(MenuId.IMPORT_KEEPASS.propertiesKey());
+
+		DialogFixture importDialog = findDialogWithTitle("Import from KeePass");
+		browseAndPickFile(importDialog, "btnFile", keePassFile);
+		GuiActionRunner
+			.execute(() -> importDialog.textBox("txtPassword").target().setText(password));
+		// doClick (not setSelected) so the checkbox's listener fires and enables the key-file browser
+		GuiActionRunner.execute(() -> importDialog.checkBox("cbxKeyFile").target().doClick());
+		robot.waitForIdle();
+		browseAndPickFile(importDialog, "btnKeyFile", keyFile);
+		robot.waitForIdle();
+		UiTestSpeed.step();
+		clickDialogButton(importDialog, "OK");
+
+		dismissMessageDialog("Import successful");
+		return this;
+	}
+
+	/**
 	 * Drives the KeePass import dialog exactly like {@link #importKeePassDatabase} but with a wrong
 	 * password, and closes the resulting "Import failed" error dialog - the negative use case
 	 */
