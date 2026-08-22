@@ -27,6 +27,7 @@ package io.github.astrapi69.mystic.crypt.plugin.keygen;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.security.KeyPair;
 import java.security.Security;
@@ -34,10 +35,14 @@ import java.security.Security;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 
 import io.github.astrapi69.crypt.api.algorithm.key.KeyPairGeneratorAlgorithm;
 import io.github.astrapi69.crypt.api.key.KeySize;
 import io.github.astrapi69.crypt.data.factory.KeyPairFactory;
+import io.github.astrapi69.crypt.data.key.PrivateKeyExtensions;
+import io.github.astrapi69.crypt.data.key.PublicKeyExtensions;
 import io.github.astrapi69.mystic.crypt.key.PrivateKeyHexDecryptor;
 import io.github.astrapi69.mystic.crypt.key.PublicKeyHexEncryptor;
 
@@ -79,5 +84,34 @@ class KeyGenerationRoundTripTest
 		// what onDecrypt does
 		String decrypted = decryptor.decrypt(encrypted);
 		assertEquals(original, decrypted, "decrypting the hex must return the original text");
+	}
+
+	/**
+	 * Proves the modern-algorithm branch of {@link GenerateKeysPanel#onGenerate}: each of the
+	 * curated modern algorithms (the X25519/X448 key-agreement curves and the post-quantum ML-KEM /
+	 * ML-DSA parameter sets) generates a key pair whose private and public keys serialize to PEM,
+	 * exactly what the panel writes into its two text areas
+	 *
+	 * @param algorithm
+	 *            the modern key-pair algorithm under test
+	 */
+	@ParameterizedTest
+	@EnumSource(value = KeyPairGeneratorAlgorithm.class, names = { "X25519", "X448", "ML_KEM_768",
+			"ML_DSA_65" })
+	void modernAlgorithmsGenerateAndSerializeToPem(KeyPairGeneratorAlgorithm algorithm)
+		throws Exception
+	{
+		// what onGenerate does for a non-RSA algorithm: no classical key size
+		KeyPair keyPair = KeyPairFactory.newKeyPair(algorithm);
+		assertNotNull(keyPair.getPrivate());
+		assertNotNull(keyPair.getPublic());
+
+		String privateKeyPem = PrivateKeyExtensions.toPemFormat(keyPair.getPrivate());
+		String publicKeyPem = PublicKeyExtensions.toPemFormat(keyPair.getPublic());
+
+		assertTrue(privateKeyPem.contains("PRIVATE KEY"),
+			"the generated " + algorithm + " private key must serialize to PEM");
+		assertTrue(publicKeyPem.contains("PUBLIC KEY"),
+			"the generated " + algorithm + " public key must serialize to PEM");
 	}
 }

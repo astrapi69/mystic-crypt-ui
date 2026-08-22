@@ -57,9 +57,25 @@ public class GenerateKeysPanel extends BasePanel<GenerateKeysModelBean>
 
 	private static final long serialVersionUID = 1L;
 
+	/**
+	 * The algorithms offered in the key-pair dropdown: RSA (classical, drives the full
+	 * encrypt/decrypt demo) plus a curated set of modern algorithms - the X25519/X448 key-agreement
+	 * curves and the NIST post-quantum ML-KEM (key encapsulation) and ML-DSA (signature) parameter
+	 * sets. The modern ones only generate and display their key pair as PEM; the RSA-only hex
+	 * encrypt/decrypt demo does not apply to them.
+	 */
+	private static final KeyPairGeneratorAlgorithm[] SUPPORTED_ALGORITHMS = {
+			KeyPairGeneratorAlgorithm.RSA, KeyPairGeneratorAlgorithm.X25519,
+			KeyPairGeneratorAlgorithm.X448, KeyPairGeneratorAlgorithm.ML_KEM_768,
+			KeyPairGeneratorAlgorithm.ML_DSA_65 };
+
 	private CryptographyPanel cryptographyPanel;
 
 	private EnDecryptPanel enDecryptPanel;
+
+	private JComboBox<KeyPairGeneratorAlgorithm> cmbAlgorithm;
+
+	private JLabel lblAlgorithm;
 
 	public GenerateKeysPanel()
 	{
@@ -87,6 +103,25 @@ public class GenerateKeysPanel extends BasePanel<GenerateKeysModelBean>
 	}
 
 	/**
+	 * Callback for the algorithm dropdown: remembers the chosen algorithm and only keeps the key
+	 * size relevant for RSA, since the modern algorithms have fixed parameter sets.
+	 *
+	 * @param actionEvent
+	 *            the action event
+	 */
+	protected void onChangeAlgorithm(final ActionEvent actionEvent)
+	{
+		final KeyPairGeneratorAlgorithm algorithm = (KeyPairGeneratorAlgorithm)cmbAlgorithm
+			.getSelectedItem();
+		if (algorithm != null)
+		{
+			getModelObject().setAlgorithm(algorithm.getAlgorithm());
+			getCryptographyPanel().getCmbKeySize()
+				.setEnabled(KeyPairGeneratorAlgorithm.RSA.equals(algorithm));
+		}
+	}
+
+	/**
 	 * Callback method that can be overwritten to provide specific action for the on clear.
 	 *
 	 * @param actionEvent
@@ -94,6 +129,8 @@ public class GenerateKeysPanel extends BasePanel<GenerateKeysModelBean>
 	 */
 	protected void onClear(final ActionEvent actionEvent)
 	{
+		cmbAlgorithm.setSelectedItem(KeyPairGeneratorAlgorithm.RSA);
+		getCryptographyPanel().getCmbKeySize().setEnabled(true);
 		getCryptographyPanel().getCmbKeySize().setSelectedItem(KeySize.KEYSIZE_1024);
 		getCryptographyPanel().getTxtPrivateKey().setText("");
 		getCryptographyPanel().getTxtPublicKey().setText("");
@@ -103,6 +140,7 @@ public class GenerateKeysPanel extends BasePanel<GenerateKeysModelBean>
 		getModelObject().setDecryptor(null);
 		getModelObject().setEncryptor(null);
 		getModelObject().setKeySize(KeySize.KEYSIZE_1024);
+		getModelObject().setAlgorithm(KeyPairGeneratorAlgorithm.RSA.getAlgorithm());
 		getModelObject().setPrivateKey(null);
 		getModelObject().setPublicKey(null);
 	}
@@ -115,6 +153,11 @@ public class GenerateKeysPanel extends BasePanel<GenerateKeysModelBean>
 	 */
 	protected void onDecrypt(final ActionEvent actionEvent)
 	{
+		if (getModelObject().getDecryptor() == null)
+		{
+			showEncryptDecryptUnavailable();
+			return;
+		}
 		try
 		{
 			final String decryted = getModelObject().getDecryptor()
@@ -139,6 +182,11 @@ public class GenerateKeysPanel extends BasePanel<GenerateKeysModelBean>
 	 */
 	protected void onEncrypt(final ActionEvent actionEvent)
 	{
+		if (getModelObject().getEncryptor() == null)
+		{
+			showEncryptDecryptUnavailable();
+			return;
+		}
 		try
 		{
 			getEnDecryptPanel().getTxtEncrypted().setText(getModelObject().getEncryptor()
@@ -153,6 +201,18 @@ public class GenerateKeysPanel extends BasePanel<GenerateKeysModelBean>
 	}
 
 	/**
+	 * Tells the user that the hex encrypt/decrypt demo only works with an RSA key pair, which is the
+	 * case when no {@link PublicKeyHexEncryptor}/{@link PrivateKeyHexDecryptor} was built for the
+	 * generated key pair (the modern key-agreement and post-quantum algorithms).
+	 */
+	private void showEncryptDecryptUnavailable()
+	{
+		JOptionPane.showMessageDialog(this,
+			"Encrypt/decrypt is available for RSA keys only. Select RSA and generate a key pair to use it.",
+			"Not available for this algorithm", JOptionPane.INFORMATION_MESSAGE);
+	}
+
+	/**
 	 * Callback method that can be overwritten to provide specific action for the on generate.
 	 *
 	 * @param actionEvent
@@ -160,21 +220,47 @@ public class GenerateKeysPanel extends BasePanel<GenerateKeysModelBean>
 	 */
 	protected void onGenerate(final ActionEvent actionEvent)
 	{
-		final KeySize selected = (KeySize)getCryptographyPanel().getCmbKeySize().getSelectedItem();
+		final KeyPairGeneratorAlgorithm algorithm = (KeyPairGeneratorAlgorithm)cmbAlgorithm
+			.getSelectedItem();
+		final boolean rsa = KeyPairGeneratorAlgorithm.RSA.equals(algorithm);
 		getCryptographyPanel().getTxtPrivateKey().setText("Generating private key...");
 		getCryptographyPanel().getTxtPublicKey().setText("Generating public key...");
 		try
 		{
-			final KeyPair keyPair = KeyPairFactory.newKeyPair(KeyPairGeneratorAlgorithm.RSA,
-				selected.getKeySize());
+			final KeyPair keyPair;
+			if (rsa)
+			{
+				final KeySize selected = (KeySize)getCryptographyPanel().getCmbKeySize()
+					.getSelectedItem();
+				keyPair = KeyPairFactory.newKeyPair(KeyPairGeneratorAlgorithm.RSA,
+					selected.getKeySize());
+			}
+			else
+			{
+				// the modern algorithms (X25519/X448, ML-KEM, ML-DSA) have fixed parameter sets and
+				// take no classical key size
+				keyPair = KeyPairFactory.newKeyPair(algorithm);
+			}
 
 			getModelObject().setPrivateKey(keyPair.getPrivate());
 			getModelObject().setPublicKey(keyPair.getPublic());
+			getModelObject().setAlgorithm(algorithm.getAlgorithm());
 
-			getModelObject()
-				.setDecryptor(new PrivateKeyHexDecryptor(getModelObject().getPrivateKey()));
-			getModelObject()
-				.setEncryptor(new PublicKeyHexEncryptor(getModelObject().getPublicKey()));
+			if (rsa)
+			{
+				getModelObject()
+					.setDecryptor(new PrivateKeyHexDecryptor(getModelObject().getPrivateKey()));
+				getModelObject()
+					.setEncryptor(new PublicKeyHexEncryptor(getModelObject().getPublicKey()));
+			}
+			else
+			{
+				// no hex public-key encrypt/decrypt demo for key-agreement/signature algorithms
+				getModelObject().setDecryptor(null);
+				getModelObject().setEncryptor(null);
+				getEnDecryptPanel().getTxtToEncrypt().setText("");
+				getEnDecryptPanel().getTxtEncrypted().setText("");
+			}
 
 			final String privateKeyFormat = PrivateKeyExtensions
 				.toPemFormat(getModelObject().getPrivateKey());
@@ -186,11 +272,14 @@ public class GenerateKeysPanel extends BasePanel<GenerateKeysModelBean>
 			getCryptographyPanel().getTxtPublicKey().setText("");
 			getCryptographyPanel().getTxtPrivateKey().setText(privateKeyFormat);
 			getCryptographyPanel().getTxtPublicKey().setText(publicKeyFormat);
-			getCryptographyPanel().getBtnSaveCertificate().setEnabled(true);
+			// certificate creation only wired for RSA in this demo
+			getCryptographyPanel().getBtnSaveCertificate().setEnabled(rsa);
 		}
 		catch (final NoSuchAlgorithmException | NoSuchProviderException | IOException e)
 		{
 			log.log(Level.SEVERE, e.getLocalizedMessage(), e);
+			getCryptographyPanel().getTxtPrivateKey().setText("");
+			getCryptographyPanel().getTxtPublicKey().setText("");
 		}
 
 	}
@@ -199,6 +288,12 @@ public class GenerateKeysPanel extends BasePanel<GenerateKeysModelBean>
 	protected void onInitializeComponents()
 	{
 		super.onInitializeComponents();
+
+		lblAlgorithm = new JLabel("Algorithm");
+		cmbAlgorithm = new JComboBox<>(SUPPORTED_ALGORITHMS);
+		cmbAlgorithm.setName("cmbAlgorithm");
+		cmbAlgorithm.setSelectedItem(KeyPairGeneratorAlgorithm.RSA);
+		cmbAlgorithm.addActionListener(actionEvent -> onChangeAlgorithm(actionEvent));
 
 		cryptographyPanel = new CryptographyPanel(getModel())
 		{
@@ -273,6 +368,8 @@ public class GenerateKeysPanel extends BasePanel<GenerateKeysModelBean>
 	protected void onInitializeMigLayout()
 	{
 		setLayout(new MigLayout());
+		add(lblAlgorithm, "split 2");
+		add(cmbAlgorithm, "wrap");
 		add(cryptographyPanel, "wrap");
 		add(enDecryptPanel);
 	}
