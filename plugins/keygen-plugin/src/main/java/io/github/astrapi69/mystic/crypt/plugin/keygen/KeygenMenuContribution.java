@@ -69,4 +69,10 @@ public class KeygenMenuContribution implements PluginMenuContribution
 		return List.of(keyGeneration);
 	}
 
+	@Override
+	public String getMenuName()
+	{
+		return "Key Generation";
+	}
+
 }

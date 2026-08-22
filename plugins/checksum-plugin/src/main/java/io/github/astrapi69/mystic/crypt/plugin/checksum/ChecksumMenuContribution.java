@@ -65,4 +65,10 @@ public class ChecksumMenuContribution implements PluginMenuContribution
 		return List.of(verifyChecksum);
 	}
 
+	@Override
+	public String getMenuName()
+	{
+		return "Checksum";
+	}
+
 }

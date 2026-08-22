@@ -67,4 +67,10 @@ public class ConversionMenuContribution implements PluginMenuContribution
 		return List.of(convert);
 	}
 
+	@Override
+	public String getMenuName()
+	{
+		return "Conversion";
+	}
+
 }

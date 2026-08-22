@@ -74,4 +74,10 @@ public class ConsoleMenuContribution implements PluginMenuContribution
 		return List.of(console);
 	}
 
+	@Override
+	public String getMenuName()
+	{
+		return "Console";
+	}
+
 }

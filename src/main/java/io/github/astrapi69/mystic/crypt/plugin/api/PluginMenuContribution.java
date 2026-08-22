@@ -44,4 +44,16 @@ public interface PluginMenuContribution extends ExtensionPoint
 	 */
 	List<JMenuItem> getMenuItems();
 
+	/**
+	 * Gets the display name of this plugin's own submenu under the "Plugins" menu. When a non-blank
+	 * name is returned, the host groups this plugin's items under a submenu with that name; when
+	 * {@code null} or blank, the items are added directly to the "Plugins" menu.
+	 *
+	 * @return the submenu name, or {@code null} to add the items ungrouped
+	 */
+	default String getMenuName()
+	{
+		return null;
+	}
+
 }

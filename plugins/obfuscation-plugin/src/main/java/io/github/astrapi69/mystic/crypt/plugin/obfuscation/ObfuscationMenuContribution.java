@@ -71,6 +71,12 @@ public class ObfuscationMenuContribution implements PluginMenuContribution
 		return List.of(simpleObfuscation, operatedObfuscation);
 	}
 
+	@Override
+	public String getMenuName()
+	{
+		return "Obfuscation";
+	}
+
 	private void openInternalFrame(String title, Component panel)
 	{
 		MysticCryptApplicationFrame instance = MysticCryptApplicationFrame.getInstance();

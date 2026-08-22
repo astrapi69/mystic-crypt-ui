@@ -494,8 +494,22 @@ public class DesktopMenu extends BaseDesktopMenu implements EventListener<EventO
 			try
 			{
 				List<JMenuItem> items = contribution.getMenuItems();
-				if (items != null)
+				if (items == null || items.isEmpty())
 				{
+					continue;
+				}
+				String menuName = contribution.getMenuName();
+				if (menuName != null && !menuName.isBlank())
+				{
+					// group this plugin's items under its own submenu of the "Plugins" menu
+					JMenu pluginSubmenu = new JMenu(menuName);
+					pluginSubmenu.setName(menuName);
+					items.forEach(pluginSubmenu::add);
+					pluginsMenu.add(pluginSubmenu);
+				}
+				else
+				{
+					// no submenu name declared: add the items directly to the "Plugins" menu
 					items.forEach(pluginsMenu::add);
 				}
 			}
