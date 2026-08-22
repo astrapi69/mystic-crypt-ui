@@ -904,7 +904,10 @@ final class ApplicationSteps
 				@Override
 				protected boolean isMatching(JMenuItem candidate)
 				{
-					return menuItemText.equals(candidate.getText());
+					// exclude JMenu: a single-item plugin's submenu header can share the item's
+					// text (e.g. "Console"), and only the leaf item opens the tool
+					return !(candidate instanceof javax.swing.JMenu)
+						&& menuItemText.equals(candidate.getText());
 				}
 			});
 		SwingUtilities.invokeLater(menuItem::doClick);
