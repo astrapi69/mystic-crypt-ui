@@ -8,25 +8,13 @@ dependencies {
     testAnnotationProcessor libs.lombok
 
     implementation libs.miglayout.swing
-    implementation libs.gson
     implementation libs.guava
-    implementation libs.jackson.databind
-    implementation libs.xstream
     implementation libs.lgood.date.picker
-    implementation libs.commons.codec
     implementation libs.javahelp
     implementation libs.pf4j
-    implementation libs.swing.layout
-    implementation libs.jxlayer
-    implementation libs.swing.worker
-    implementation libs.swingx.all
     implementation libs.commons.lang3
     implementation libs.bcprov.jdk18on
     implementation libs.bcpkix.jdk18on
-    implementation libs.batik.transcoder
-    implementation libs.batik.codec
-    implementation libs.imgscalr.lib
-    implementation libs.sqlite.jdbc
     implementation libs.auto.browser
     implementation libs.tango.icon.theme
     implementation libs.observer
@@ -38,6 +26,7 @@ dependencies {
     implementation libs.silk.icon.theme
     implementation libs.silly.collection
     implementation libs.silly.bean
+    implementation libs.commons.codec
     implementation libs.crypt.api
     implementation libs.crypt.data
     implementation libs.checksum.up
@@ -58,10 +47,12 @@ dependencies {
     implementation libs.menu.action
     implementation libs.net.extensions
     implementation libs.gen.tree
+    implementation libs.gson
     implementation libs.jobj.copy
     implementation libs.data.api
     implementation libs.id.generate
     implementation libs.xml.extensions
+    implementation libs.xstream
     implementation libs.gson.extensions
     implementation libs.xstream.extensions
     implementation libs.resourcebundle.core
