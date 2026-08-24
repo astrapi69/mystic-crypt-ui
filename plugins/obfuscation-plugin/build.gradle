@@ -23,7 +23,7 @@ repositories {
 // directly. These are implementation-scoped in the host, so they are not exposed transitively
 // through the host jar and must be listed here; at runtime the host classloader provides them.
 dependencies {
-    compileOnly "io.github.astrapi69:mystic-crypt-ui:8.1.1"
+    compileOnly "io.github.astrapi69:mystic-crypt-ui:8.2-SNAPSHOT"
     compileOnly "io.github.astrapi69:mystic-crypt:11.0.0"
     compileOnly "io.github.astrapi69:crypt-api:10.1"
     compileOnly "io.github.astrapi69:crypt-data:11.1"

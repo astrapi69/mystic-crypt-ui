@@ -21,7 +21,7 @@ repositories {
 // compileOnly against the host jar and the mystic-crypt library that provides the Argon2id / PBKDF2
 // password hashing (PasswordEncryptor), plus the swing helpers the plugin uses to open its tool.
 dependencies {
-    compileOnly "io.github.astrapi69:mystic-crypt-ui:8.1.1"
+    compileOnly "io.github.astrapi69:mystic-crypt-ui:8.2-SNAPSHOT"
     // PasswordEncryptor / Argon2Support / Pbkdf2Support live in the mystic-crypt library
     compileOnly "io.github.astrapi69:mystic-crypt:11.0.0"
     compileOnly "io.github.astrapi69:swing-base-components:5.1"

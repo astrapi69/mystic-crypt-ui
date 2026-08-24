@@ -24,7 +24,7 @@ repositories {
 // test here - the contribution only opens the library ConsolePanel - so coverage is the host e2e
 // (PluginLoadingUiTest).
 dependencies {
-    compileOnly "io.github.astrapi69:mystic-crypt-ui:8.1.1"
+    compileOnly "io.github.astrapi69:mystic-crypt-ui:8.2-SNAPSHOT"
     compileOnly "io.github.astrapi69:swing-components:9"
     compileOnly "io.github.astrapi69:swing-base-components:5.1"
     compileOnly "io.github.astrapi69:awt-extensions:2.0"

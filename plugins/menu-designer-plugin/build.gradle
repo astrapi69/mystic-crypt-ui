@@ -21,7 +21,7 @@ repositories {
 // the panel is a thin ui over the host's menu layout API (exportCurrentMenuXml / applyMenuXml /
 // saveMenuLayout / resetMenuLayout), so only the host jar and the swing helpers are needed
 dependencies {
-    compileOnly "io.github.astrapi69:mystic-crypt-ui:8.1.1"
+    compileOnly "io.github.astrapi69:mystic-crypt-ui:8.2-SNAPSHOT"
     compileOnly "io.github.astrapi69:swing-base-components:5.1"
     compileOnly "io.github.astrapi69:swing-components:9"
 
