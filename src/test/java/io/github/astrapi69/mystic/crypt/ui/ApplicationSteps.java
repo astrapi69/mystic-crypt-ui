@@ -106,9 +106,9 @@ final class ApplicationSteps
 	}
 
 	/**
-	 * Drives the KeePass import dialog like {@link #importKeePassDatabase} but additionally supplies a
-	 * key file: it enables the "Key File" checkbox and browses to the given key file, so the import
-	 * builds a password + key-file {@code KdbxCreds}.
+	 * Drives the KeePass import dialog like {@link #importKeePassDatabase} but additionally
+	 * supplies a key file: it enables the "Key File" checkbox and browses to the given key file, so
+	 * the import builds a password + key-file {@code KdbxCreds}.
 	 *
 	 * @param keePassFile
 	 *            the {@code .kdbx} file to import
@@ -118,7 +118,8 @@ final class ApplicationSteps
 	 *            the key file protecting the database
 	 * @return this
 	 */
-	ApplicationSteps importKeePassDatabaseWithKeyFile(File keePassFile, String password, File keyFile)
+	ApplicationSteps importKeePassDatabaseWithKeyFile(File keePassFile, String password,
+		File keyFile)
 	{
 		clickMenuItem(MenuId.IMPORT_KEEPASS.propertiesKey());
 
@@ -126,7 +127,8 @@ final class ApplicationSteps
 		browseAndPickFile(importDialog, "btnFile", keePassFile);
 		GuiActionRunner
 			.execute(() -> importDialog.textBox("txtPassword").target().setText(password));
-		// doClick (not setSelected) so the checkbox's listener fires and enables the key-file browser
+		// doClick (not setSelected) so the checkbox's listener fires and enables the key-file
+		// browser
 		GuiActionRunner.execute(() -> importDialog.checkBox("cbxKeyFile").target().doClick());
 		robot.waitForIdle();
 		browseAndPickFile(importDialog, "btnKeyFile", keyFile);

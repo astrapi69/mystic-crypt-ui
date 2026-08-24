@@ -60,13 +60,14 @@ class KeygenEncryptUnavailableUiTest extends AbstractUiTest
 		application.openPluginTool("Key Generation", "Key generation demo");
 
 		// generate an X25519 key pair - a non-RSA algorithm, so encrypt/decrypt is unavailable
-		GuiActionRunner.execute(() -> frame.comboBox("cmbAlgorithm").target()
-			.setSelectedItem(io.github.astrapi69.crypt.api.algorithm.key.KeyPairGeneratorAlgorithm.X25519));
+		GuiActionRunner.execute(() -> frame.comboBox("cmbAlgorithm").target().setSelectedItem(
+			io.github.astrapi69.crypt.api.algorithm.key.KeyPairGeneratorAlgorithm.X25519));
 		robot.waitForIdle();
 		GuiActionRunner.execute(() -> frame.button("btnGenerate").target().doClick());
 		robot.waitForIdle();
 
-		// give the Encrypt button some text so it is enabled, then press it. The click opens a modal
+		// give the Encrypt button some text so it is enabled, then press it. The click opens a
+		// modal
 		// dialog, so trigger it off the test thread (invokeLater) and find the dialog separately.
 		GuiActionRunner.execute(() -> frame.textBox("txtToEncrypt").target().setText("anything"));
 		robot.waitForIdle();

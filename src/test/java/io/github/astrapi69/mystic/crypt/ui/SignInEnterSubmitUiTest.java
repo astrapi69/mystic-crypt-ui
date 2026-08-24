@@ -34,8 +34,8 @@ import org.junit.jupiter.api.Test;
 
 /**
  * End-to-end test of the "Enter submits the sign-in" convenience: with a valid master password and
- * application file provided, pressing Enter in the master-password field signs in just like clicking
- * OK. Complements the OK-button state-machine coverage in {@link SignInDialogUiTest}.
+ * application file provided, pressing Enter in the master-password field signs in just like
+ * clicking OK. Complements the OK-button state-machine coverage in {@link SignInDialogUiTest}.
  */
 class SignInEnterSubmitUiTest extends AbstractUiTest
 {
@@ -53,7 +53,8 @@ class SignInEnterSubmitUiTest extends AbstractUiTest
 			.browseApplicationFile(databaseFile).requireOkEnabled()
 			.enterInMasterPasswordAndAwaitSignIn();
 
-		// the sign-in dialog closed on Enter; awaitSignedIn returning proves the Enter key signed in
+		// the sign-in dialog closed on Enter; awaitSignedIn returning proves the Enter key signed
+		// in
 		FrameFixture frame = new ApplicationSteps(robot).awaitSignedIn().showMainFrame();
 		assertTrue(GuiActionRunner.execute(() -> frame.target().isShowing()),
 			"after Enter-submit sign-in the main application frame must be showing");

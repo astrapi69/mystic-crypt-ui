@@ -42,8 +42,8 @@ import org.junit.jupiter.api.Test;
 
 /**
  * End-to-end file-IO test of the keygen plugin: generates an RSA key pair, presses "Save public
- * key", and through the real save dialog writes the public key to a file on disk, asserting the file
- * is actually produced.
+ * key", and through the real save dialog writes the public key to a file on disk, asserting the
+ * file is actually produced.
  */
 class KeygenSavePublicKeyUiTest extends AbstractUiTest
 {

@@ -36,8 +36,8 @@ import org.junit.jupiter.api.Test;
 /**
  * Functional end-to-end test of the KEM demo plugin's hybrid mode: selects "Hybrid X25519 +
  * ML-KEM-768" from the dropdown, runs the exchange, and asserts through the real UI that both sides
- * derive the same 32-byte shared secret. Separate class from {@link KemDemoPluginUiTest} because the
- * suite runs one UI test per JVM (forkEvery = 1).
+ * derive the same 32-byte shared secret. Separate class from {@link KemDemoPluginUiTest} because
+ * the suite runs one UI test per JVM (forkEvery = 1).
  */
 class KemHybridPluginUiTest extends AbstractUiTest
 {

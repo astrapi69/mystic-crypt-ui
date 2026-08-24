@@ -67,12 +67,12 @@ class SettingsInstallPluginUiTest extends AbstractUiTest
 		JTable table = settings.table("tblPlugins").target();
 
 		// no plugins were pre-installed, so the obfuscation plugin must not be listed yet
-		Assumptions.assumeTrue(GuiActionRunner.execute(() -> findPluginRow(table, "obfuscation")) < 0,
+		Assumptions.assumeTrue(
+			GuiActionRunner.execute(() -> findPluginRow(table, "obfuscation")) < 0,
 			"test must start with no obfuscation plugin installed");
 
 		// Install from Zip... -> approve the obfuscation plugin zip in the chooser
-		SwingUtilities
-			.invokeLater(() -> settings.button("btnInstallPlugin").target().doClick());
+		SwingUtilities.invokeLater(() -> settings.button("btnInstallPlugin").target().doClick());
 		JFileChooser fileChooser = JFileChooserFinder.findFileChooser()
 			.withTimeout(10, TimeUnit.SECONDS).using(robot).target();
 		File zip = OBFUSCATION_ZIP.toFile().getAbsoluteFile();
@@ -95,7 +95,8 @@ class SettingsInstallPluginUiTest extends AbstractUiTest
 		}, 10000);
 
 		int row = GuiActionRunner.execute(() -> findPluginRow(table, "obfuscation"));
-		assertEquals("STARTED", GuiActionRunner.execute(() -> String.valueOf(table.getValueAt(row, 2))),
+		assertEquals("STARTED",
+			GuiActionRunner.execute(() -> String.valueOf(table.getValueAt(row, 2))),
 			"the freshly installed plugin must be listed as STARTED");
 
 		GuiActionRunner.execute(() -> settings.button("btnCloseSettings").target().doClick());

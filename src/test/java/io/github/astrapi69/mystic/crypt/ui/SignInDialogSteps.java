@@ -196,8 +196,9 @@ final class SignInDialogSteps
 	}
 
 	/**
-	 * Presses Enter in the master-password field and waits for the sign-in dialog to close. Exercises
-	 * the field's action listener, which clicks OK when it is enabled (the "Enter submits" behavior).
+	 * Presses Enter in the master-password field and waits for the sign-in dialog to close.
+	 * Exercises the field's action listener, which clicks OK when it is enabled (the "Enter
+	 * submits" behavior).
 	 */
 	void enterInMasterPasswordAndAwaitSignIn()
 	{

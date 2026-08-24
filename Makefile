@@ -11,6 +11,7 @@ PLUGIN_KEYGEN_DIR := plugins/keygen-plugin
 PLUGIN_CERTIFICATE_DIR := plugins/certificate-plugin
 PLUGIN_PASSWORD_HASH_DIR := plugins/password-hash-plugin
 PLUGIN_KEM_DEMO_DIR := plugins/kem-demo-plugin
+PLUGIN_MENU_DESIGNER_DIR := plugins/menu-designer-plugin
 PLUGIN_INSTALL_DIR := $(HOME)/.config/mystic-crypt-ui/plugins
 
 .PHONY: build build-full run all clean test test-e2e test-e2e-demo \
@@ -20,7 +21,7 @@ PLUGIN_INSTALL_DIR := $(HOME)/.config/mystic-crypt-ui/plugins
 	version-catalog-format version-catalog-update all-dependencies-jar \
 	build-stacktrace build-warning plugin-obfuscation plugin-checksum plugin-conversion \
 	plugin-console plugin-keygen plugin-certificate plugin-password-hash plugin-kem-demo \
-	plugins plugins-install
+	plugin-menu-designer plugins plugins-install
 
 # fast build: clean, compile, package the runnable jar - skips tests/spotless/license
 build:
@@ -106,8 +107,13 @@ plugin-kem-demo: publish-local
 	JAVA_HOME=$(JAVA_HOME) ./gradlew -p $(PLUGIN_KEM_DEMO_DIR) test pluginZip
 	@echo "==> plugin zip: $$(find $(PLUGIN_KEM_DEMO_DIR)/build/plugin-dist -name '*.zip')"
 
+# build the internal menu-designer plugin zip (needs the host published locally first)
+plugin-menu-designer: publish-local
+	JAVA_HOME=$(JAVA_HOME) ./gradlew -p $(PLUGIN_MENU_DESIGNER_DIR) pluginZip
+	@echo "==> plugin zip: $$(find $(PLUGIN_MENU_DESIGNER_DIR)/build/plugin-dist -name '*.zip')"
+
 # build every internal plugin
-plugins: plugin-obfuscation plugin-checksum plugin-conversion plugin-console plugin-keygen plugin-certificate plugin-password-hash plugin-kem-demo
+plugins: plugin-obfuscation plugin-checksum plugin-conversion plugin-console plugin-keygen plugin-certificate plugin-password-hash plugin-kem-demo plugin-menu-designer
 
 # build all internal plugins and install them into the app's plugins directory
 plugins-install: plugins
@@ -120,6 +126,7 @@ plugins-install: plugins
 	cp $(PLUGIN_CERTIFICATE_DIR)/build/plugin-dist/*.zip "$(PLUGIN_INSTALL_DIR)/"
 	cp $(PLUGIN_PASSWORD_HASH_DIR)/build/plugin-dist/*.zip "$(PLUGIN_INSTALL_DIR)/"
 	cp $(PLUGIN_KEM_DEMO_DIR)/build/plugin-dist/*.zip "$(PLUGIN_INSTALL_DIR)/"
+	cp $(PLUGIN_MENU_DESIGNER_DIR)/build/plugin-dist/*.zip "$(PLUGIN_INSTALL_DIR)/"
 	@echo "==> installed all internal plugins into $(PLUGIN_INSTALL_DIR)"
 
 # --- mirrors Gradle "Run Configurations" panel ---

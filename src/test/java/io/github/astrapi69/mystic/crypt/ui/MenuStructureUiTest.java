@@ -41,10 +41,10 @@ import io.github.astrapi69.mystic.crypt.DesktopMenu;
 import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
 
 /**
- * End-to-end regression test for the best-practice menu layout: after sign-in the menu bar must read
- * File | View | ... | Help - Help stays last, the former top-level "Look and Feel" menu is gone from
- * the bar and now lives under a "View" menu together with the View Mode submenu. Guards the
- * reorganizeMenus() rework, locale-independently (checks menu identity, not localized text).
+ * End-to-end regression test for the best-practice menu layout: after sign-in the menu bar must
+ * read File | View | ... | Help - Help stays last, the former top-level "Look and Feel" menu is
+ * gone from the bar and now lives under a "View" menu together with the View Mode submenu. Guards
+ * the reorganizeMenus() rework, locale-independently (checks menu identity, not localized text).
  */
 class MenuStructureUiTest extends AbstractUiTest
 {
@@ -93,7 +93,8 @@ class MenuStructureUiTest extends AbstractUiTest
 					break;
 				}
 			}
-			assertTrue(viewContainsLookAndFeel, "the View menu must contain the Look and Feel menu");
+			assertTrue(viewContainsLookAndFeel,
+				"the View menu must contain the Look and Feel menu");
 			return null;
 		});
 	}

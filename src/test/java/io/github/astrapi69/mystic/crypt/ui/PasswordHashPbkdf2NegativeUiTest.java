@@ -34,9 +34,10 @@ import org.assertj.swing.fixture.FrameFixture;
 import org.junit.jupiter.api.Test;
 
 /**
- * Negative-path end-to-end test of the password-hash plugin: selects PBKDF2, hashes a password, then
- * verifies a WRONG password against that hash and asserts the panel reports "does not match" through
- * the real UI. The happy path (Argon2id, matching) lives in {@link PasswordHashPluginUiTest}.
+ * Negative-path end-to-end test of the password-hash plugin: selects PBKDF2, hashes a password,
+ * then verifies a WRONG password against that hash and asserts the panel reports "does not match"
+ * through the real UI. The happy path (Argon2id, matching) lives in
+ * {@link PasswordHashPluginUiTest}.
  */
 class PasswordHashPbkdf2NegativeUiTest extends AbstractUiTest
 {

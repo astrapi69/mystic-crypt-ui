@@ -36,11 +36,11 @@ import io.github.astrapi69.crypt.api.algorithm.key.KeyPairGeneratorAlgorithm;
 
 /**
  * Functional end-to-end test of the keygen plugin's modern-algorithm branch: opens the "Key
- * Generation" tool, selects the post-quantum ML-KEM-768 algorithm from the new dropdown, generates a
- * key pair, and asserts both keys are shown as PEM through the real UI. This is a separate class from
- * {@link KeygenPluginUiTest} on purpose - the suite runs one UI test class per JVM (forkEvery = 1),
- * so keeping a single {@code @Test} per class avoids the singleton frame leaking a second open tool
- * window between methods.
+ * Generation" tool, selects the post-quantum ML-KEM-768 algorithm from the new dropdown, generates
+ * a key pair, and asserts both keys are shown as PEM through the real UI. This is a separate class
+ * from {@link KeygenPluginUiTest} on purpose - the suite runs one UI test class per JVM (forkEvery
+ * = 1), so keeping a single {@code @Test} per class avoids the singleton frame leaking a second
+ * open tool window between methods.
  */
 class KeygenPqcPluginUiTest extends AbstractUiTest
 {

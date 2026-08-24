@@ -33,6 +33,7 @@ import java.util.ArrayList;
 import java.util.logging.Level;
 
 import javax.swing.*;
+import javax.swing.JMenuBar;
 
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.pf4j.DefaultPluginManager;
@@ -51,6 +52,7 @@ import io.github.astrapi69.model.api.IModel;
 import io.github.astrapi69.mystic.crypt.action.NewApplicationFileAction;
 import io.github.astrapi69.mystic.crypt.action.SaveApplicationFileAction;
 import io.github.astrapi69.mystic.crypt.app.file.xml.ApplicationXmlFileStoreWorker;
+import io.github.astrapi69.mystic.crypt.menu.MenuLayoutSupport;
 import io.github.astrapi69.mystic.crypt.panel.signin.MasterPwFileDialog;
 import io.github.astrapi69.mystic.crypt.panel.signin.MasterPwFileModelBean;
 import io.github.astrapi69.mystic.crypt.panel.signin.MemoizedSigninModelBean;
@@ -293,6 +295,9 @@ public class MysticCryptApplicationFrame extends ApplicationPanelFrame<Applicati
 		pluginManager.startPlugins();
 		((DesktopMenu)getMenu())
 			.addPluginsMenu(pluginManager.getExtensions(PluginMenuContribution.class));
+		// a user defined menu layout, if there is one, wins over the programmatic menu - applied
+		// last so it can also rearrange the contributed plugin items
+		applyPersistedMenuLayout();
 		setTitle(Messages.getString("mainframe.title"));
 		setDefaultLookAndFeel(LookAndFeels.NIMBUS, this);
 		// apply a persisted look-and-feel choice on top of the Nimbus default
@@ -301,6 +306,82 @@ public class MysticCryptApplicationFrame extends ApplicationPanelFrame<Applicati
 		this.setSize(ScreenSizeExtensions.getScreenWidth(), ScreenSizeExtensions.getScreenHeight());
 		onEnableMenu();
 		onWindowClosing();
+	}
+
+	/**
+	 * Replaces the menu bar with the one described by the persisted menu layout, when the
+	 * configuration directory holds one. Without a layout file, or when it cannot be applied, the
+	 * programmatically built menu stays in place
+	 */
+	public void applyPersistedMenuLayout()
+	{
+		JMenuBar currentMenuBar = currentMenuBar();
+		JMenuBar menuBar = MenuLayoutSupport.applyPersistedLayout(currentMenuBar,
+			getConfigurationDirectory());
+		if (menuBar != currentMenuBar)
+		{
+			setJMenuBar(menuBar);
+			menuBar.revalidate();
+			menuBar.repaint();
+		}
+	}
+
+	/**
+	 * Exports the menu bar that is currently in place as menu xml
+	 *
+	 * @return the current menu as xml
+	 */
+	public String exportCurrentMenuXml()
+	{
+		return MenuLayoutSupport.exportXml(currentMenuBar());
+	}
+
+	/**
+	 * Replaces the menu bar with the one described by the given menu xml. Every item keeps the
+	 * action it currently has; items with an unknown action id are built but disabled
+	 *
+	 * @param xml
+	 *            the menu xml describing the wanted layout
+	 */
+	public void applyMenuXml(final @NonNull String xml)
+	{
+		JMenuBar menuBar = MenuLayoutSupport.build(xml, currentMenuBar());
+		setJMenuBar(menuBar);
+		menuBar.revalidate();
+		menuBar.repaint();
+	}
+
+	/**
+	 * Saves the given menu xml as the layout that is applied on the next start
+	 *
+	 * @param xml
+	 *            the menu xml
+	 * @return the file the layout was written to
+	 * @throws java.io.IOException
+	 *             if writing fails
+	 */
+	public java.nio.file.Path saveMenuLayout(final @NonNull String xml) throws java.io.IOException
+	{
+		return MenuLayoutSupport.save(xml, getConfigurationDirectory());
+	}
+
+	/**
+	 * Removes a persisted menu layout, so the next start builds the standard menu again
+	 *
+	 * @return true if a layout file was removed
+	 * @throws java.io.IOException
+	 *             if deleting fails
+	 */
+	public boolean resetMenuLayout() throws java.io.IOException
+	{
+		return java.nio.file.Files
+			.deleteIfExists(MenuLayoutSupport.layoutFile(getConfigurationDirectory()));
+	}
+
+	private JMenuBar currentMenuBar()
+	{
+		JMenuBar menuBar = getJMenuBar();
+		return menuBar != null ? menuBar : ((DesktopMenu)getMenu()).getMenubar();
 	}
 
 	/**

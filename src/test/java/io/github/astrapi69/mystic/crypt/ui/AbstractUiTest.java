@@ -92,6 +92,9 @@ abstract class AbstractUiTest
 	protected static final Path KEM_DEMO_ZIP = Path
 		.of("plugins/kem-demo-plugin/build/plugin-dist/kem-demo-plugin-1.0.0.zip");
 
+	protected static final Path MENU_DESIGNER_ZIP = Path
+		.of("plugins/menu-designer-plugin/build/plugin-dist/menu-designer-plugin-1.0.0.zip");
+
 	private String originalUserHome;
 
 	/** Per-test isolated home directory that {@code user.home} points to during the test */

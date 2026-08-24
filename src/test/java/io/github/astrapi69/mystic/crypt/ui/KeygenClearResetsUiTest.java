@@ -37,9 +37,9 @@ import org.junit.jupiter.api.Test;
 import io.github.astrapi69.crypt.api.algorithm.key.KeyPairGeneratorAlgorithm;
 
 /**
- * End-to-end test of the keygen plugin's Clear button after a modern-algorithm generation: selecting
- * a non-RSA algorithm disables the key-size combo, and pressing Clear must reset the algorithm back
- * to RSA and re-enable the key size. Drives that reset through the real UI.
+ * End-to-end test of the keygen plugin's Clear button after a modern-algorithm generation:
+ * selecting a non-RSA algorithm disables the key-size combo, and pressing Clear must reset the
+ * algorithm back to RSA and re-enable the key size. Drives that reset through the real UI.
  */
 class KeygenClearResetsUiTest extends AbstractUiTest
 {
@@ -72,7 +72,8 @@ class KeygenClearResetsUiTest extends AbstractUiTest
 		robot.waitForIdle();
 
 		assertEquals(KeyPairGeneratorAlgorithm.RSA,
-			GuiActionRunner.execute(() -> frame.comboBox("cmbAlgorithm").target().getSelectedItem()),
+			GuiActionRunner
+				.execute(() -> frame.comboBox("cmbAlgorithm").target().getSelectedItem()),
 			"Clear must reset the algorithm back to RSA");
 		assertTrue(GuiActionRunner.execute(() -> frame.comboBox("cmbKeySize").target().isEnabled()),
 			"Clear must re-enable the key size combo");
