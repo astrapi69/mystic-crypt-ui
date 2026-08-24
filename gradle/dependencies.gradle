@@ -21,9 +21,8 @@ dependencies {
     implementation libs.swing.worker
     implementation libs.swingx.all
     implementation libs.commons.lang3
-    implementation libs.bcprov.jdk15on
-    implementation libs.bcprov.ext.jdk15on
-    implementation libs.bcpkix.jdk15on
+    implementation libs.bcprov.jdk18on
+    implementation libs.bcpkix.jdk18on
     implementation libs.batik.transcoder
     implementation libs.batik.codec
     implementation libs.imgscalr.lib
