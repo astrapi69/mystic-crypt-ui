@@ -4,6 +4,13 @@
 Version 8.2-SNAPSHOT
 -------------
 
+Version 8.1.1
+-------------
+
+CHANGED:
+
+- the released artifacts are signed with a certificate that identifies the project (CN=Asterios Raptis, O=mystic-crypt-ui, 4096-bit RSA, SHA384withRSA) instead of the previous placeholder certificate CN=Test subject
+
 Version 8.1
 -------------
 
