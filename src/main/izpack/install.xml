@@ -66,6 +66,21 @@
 			<singlefile src="signed/@{app.name}-@{app.version}-all.jar" target="${INSTALL_PATH}/@{app.name}.jar" />
 			<file src="../README.md" targetdir="${INSTALL_PATH}" />
 			<file src="resources/main/doc/@{app.name}.desktop" targetdir="${INSTALL_PATH}" />
+			<!--
+				Register the application with the desktop environment. A desktop entry is only picked up
+				from the applications directory, and the Desktop Entry specification does not expand "~",
+				so Exec and Icon have to carry the real installation path - which is what the parsable
+				declarations below substitute into ${INSTALL_PATH}. The launcher also has to be readable
+				and executable for the desktop to offer it.
+			-->
+			<singlefile src="resources/main/doc/@{app.name}.desktop"
+						target="${USER_HOME}/.local/share/applications/@{app.name}.desktop" />
+			<parsable targetfile="${INSTALL_PATH}/@{app.name}.desktop" type="plain" encoding="UTF-8" />
+			<parsable targetfile="${USER_HOME}/.local/share/applications/@{app.name}.desktop"
+					  type="plain" encoding="UTF-8" />
+			<executable targetfile="${USER_HOME}/.local/share/applications/@{app.name}.desktop"
+						stage="never" keep="true" />
+			<executable targetfile="${INSTALL_PATH}/start.sh" stage="never" keep="true" />
 			<file src="resources/main/doc/start.sh" targetdir="${INSTALL_PATH}" />
 			<file src="resources/main/doc/start.bat" targetdir="${INSTALL_PATH}" />
 			<file src="resources/main/img/icon.png" targetdir="${INSTALL_PATH}/img" />
