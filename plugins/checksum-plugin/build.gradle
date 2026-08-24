@@ -22,7 +22,7 @@ repositories {
 // ChecksumPanel/ChecksumBean reference directly; these are implementation-scoped in the host, so
 // they are not exposed transitively and the host classloader provides them at runtime.
 dependencies {
-    compileOnly "io.github.astrapi69:mystic-crypt-ui:8.1-SNAPSHOT"
+    compileOnly "io.github.astrapi69:mystic-crypt-ui:8.1"
     compileOnly "io.github.astrapi69:checksum-up:3.1"
     compileOnly "io.github.astrapi69:crypt-api:10.1"
     compileOnly "io.github.astrapi69:file-worker:19.0"

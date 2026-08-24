@@ -1,13 +1,46 @@
 ## Change log
 ----------------------
 
-Version 8.1-SNAPSHOT
+Version 8.1
 -------------
+
+ADDED:
+
+- new plugin system based on pf4j: nine internal plugins that contribute their tools to the "Plugins" menu
+- new internal plugin for simple and operated obfuscation
+- new internal plugin for verifying checksums
+- new internal plugin for converting der files to pem
+- new internal plugin for the output console
+- new internal plugin for key generation, extended with the modern algorithms X25519, X448, ML-KEM-768 and ML-DSA-65
+- new internal plugin for creating X.509 certificates through the certificate wizard
+- new internal plugin for hashing and verifying passwords with Argon2id or PBKDF2
+- new internal plugin demonstrating ML-KEM and hybrid X25519+ML-KEM key encapsulation
+- new internal plugin "Menu Designer" for viewing, editing, applying and saving the application menu as xml
+- new user defined menu layout: a menubar.xml in the configuration directory is applied on start
+- new settings dialog with a plugins tab (enable, disable, install from zip) and a general tab for the look and feel
+- new feature Search, Lock Workspace and Save As, which were unwired stubs before
+- new command line interface shipped with the installer as an optional pack
 
 CHANGED:
 
-- update of dependency file-worker to new version 17.2
-- update of test-dependency junit-jupiter-extensions to new major version 2
+- the certificate wizard creates and saves a certificate now instead of exiting the application
+- menu layout follows the common conventions: Look and Feel and View Mode moved under a new View menu, Help stays last
+- the sign-in dialog submits on Enter in the master password field
+- each plugin groups its items under its own submenu of the "Plugins" menu
+- update of mystic-crypt dependency to new major version 11.0.0, which carries the command line interface
+- update of crypt-api dependency to new major version 10.1
+- update of crypt-data dependency to new major version 11.1
+- update of menu-action dependency to new major version 5.1
+- update of model-data dependency to new version 3.2.1
+- update of swing-tree-component dependency to new version 3.2
+- update of gen-tree dependency to new major version 11.1
+- unified all Bouncy Castle artifacts on the jdk18on family, replacing the jdk15on ones
+- removed the unused dependencies swingx-all, sqlite-jdbc, jackson-databind, imgscalr-lib, batik-codec, batik-transcoder, jxlayer, swing-layout, swing-worker and bcprov-ext
+
+FIXED:
+
+- fixed a ConcurrentModificationException when closing the application with plugins started
+- fixed needless look-and-feel churn on start
 
 Version 8
 -------------

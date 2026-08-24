@@ -24,7 +24,7 @@ repositories {
 // key encryptor/decryptor and the whole certificate-wizard subsystem it can launch - all provided
 // by the host classloader at runtime through the host jar dependency.
 dependencies {
-    compileOnly "io.github.astrapi69:mystic-crypt-ui:8.1-SNAPSHOT"
+    compileOnly "io.github.astrapi69:mystic-crypt-ui:8.1"
     // PrivateKeyHexDecryptor / PublicKeyHexEncryptor live in the mystic-crypt library, not the host
     compileOnly "io.github.astrapi69:mystic-crypt:11.0.0"
     compileOnly "io.github.astrapi69:crypt-api:10.1"
