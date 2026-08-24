@@ -84,6 +84,34 @@
 			<!-- mark the unix launcher executable without running it -->
 			<executable targetfile="${INSTALL_PATH}/mystic-crypt" stage="never" keep="true" />
 		</pack>
+		<!--
+			The internal plugins contribute their tools to the application's "Plugins" menu. They are
+			installed into the user's plugin directory, which is where the application's plugin
+			manager looks for them; without this pack the "Plugins" menu stays empty until the user
+			adds them by hand through Settings > Plugins > "Install from Zip...".
+		-->
+		<pack name="plugins" required="no" preselected="yes">
+			<description>The internal plugins: obfuscation, checksums, der to pem, console, key generation, certificates, password hashing, key encapsulation demo and the menu designer</description>
+			<depends packname="executables" />
+			<singlefile src="../plugins/obfuscation-plugin/build/plugin-dist/obfuscation-plugin-1.0.0.zip"
+						target="${USER_HOME}/.config/mystic-crypt-ui/plugins/obfuscation-plugin-1.0.0.zip" />
+			<singlefile src="../plugins/checksum-plugin/build/plugin-dist/checksum-plugin-1.0.0.zip"
+						target="${USER_HOME}/.config/mystic-crypt-ui/plugins/checksum-plugin-1.0.0.zip" />
+			<singlefile src="../plugins/conversion-plugin/build/plugin-dist/conversion-plugin-1.0.0.zip"
+						target="${USER_HOME}/.config/mystic-crypt-ui/plugins/conversion-plugin-1.0.0.zip" />
+			<singlefile src="../plugins/console-plugin/build/plugin-dist/console-plugin-1.0.0.zip"
+						target="${USER_HOME}/.config/mystic-crypt-ui/plugins/console-plugin-1.0.0.zip" />
+			<singlefile src="../plugins/keygen-plugin/build/plugin-dist/keygen-plugin-1.0.0.zip"
+						target="${USER_HOME}/.config/mystic-crypt-ui/plugins/keygen-plugin-1.0.0.zip" />
+			<singlefile src="../plugins/certificate-plugin/build/plugin-dist/certificate-plugin-1.0.0.zip"
+						target="${USER_HOME}/.config/mystic-crypt-ui/plugins/certificate-plugin-1.0.0.zip" />
+			<singlefile src="../plugins/password-hash-plugin/build/plugin-dist/password-hash-plugin-1.0.0.zip"
+						target="${USER_HOME}/.config/mystic-crypt-ui/plugins/password-hash-plugin-1.0.0.zip" />
+			<singlefile src="../plugins/kem-demo-plugin/build/plugin-dist/kem-demo-plugin-1.0.0.zip"
+						target="${USER_HOME}/.config/mystic-crypt-ui/plugins/kem-demo-plugin-1.0.0.zip" />
+			<singlefile src="../plugins/menu-designer-plugin/build/plugin-dist/menu-designer-plugin-1.0.0.zip"
+						target="${USER_HOME}/.config/mystic-crypt-ui/plugins/menu-designer-plugin-1.0.0.zip" />
+		</pack>
 	</packs>
 
 </izpack:installation>

@@ -140,13 +140,15 @@ build-stacktrace:
 build-warning:
 	JAVA_HOME=$(JAVA_HOME) ./gradlew build --warning-mode all
 
-clean-build-installer:
+# the installer ships the internal plugin zips (pack "plugins" in src/main/izpack/install.xml),
+# so they have to be built before izpack packs them - otherwise it fails on the missing files
+clean-build-installer: plugins
 	JAVA_HOME=$(JAVA_HOME) ./gradlew clean build izPackCreateInstaller
 
-izpack-installer:
+izpack-installer: plugins
 	JAVA_HOME=$(JAVA_HOME) ./gradlew izPackCreateInstaller
 
-izpack-installer-signed:
+izpack-installer-signed: plugins
 	JAVA_HOME=$(JAVA_HOME) ./gradlew createIzPackInstallerFromSignedJar
 
 dependencies:
