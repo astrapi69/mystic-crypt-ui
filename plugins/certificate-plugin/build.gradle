@@ -25,8 +25,8 @@ repositories {
 // needed to resolve CertificateWizardPanel's class hierarchy at compile time.
 dependencies {
     compileOnly "io.github.astrapi69:mystic-crypt-ui:8.1-SNAPSHOT"
-    compileOnly "io.github.astrapi69:crypt-api:10.0.0"
-    compileOnly "io.github.astrapi69:crypt-data:11.0.0"
+    compileOnly "io.github.astrapi69:crypt-api:10.1"
+    compileOnly "io.github.astrapi69:crypt-data:11.1"
     compileOnly "io.github.astrapi69:model-data:3.1"
     compileOnly "io.github.astrapi69:swing-base-components:5.1"
     compileOnly "io.github.astrapi69:swing-components:9"
@@ -42,8 +42,8 @@ dependencies {
     annotationProcessor "org.pf4j:pf4j:3.15.0"
 
     testImplementation "org.junit.jupiter:junit-jupiter:5.11.4"
-    testImplementation "io.github.astrapi69:crypt-api:10.0.0"
-    testImplementation "io.github.astrapi69:crypt-data:11.0.0"
+    testImplementation "io.github.astrapi69:crypt-api:10.1"
+    testImplementation "io.github.astrapi69:crypt-data:11.1"
     testImplementation "org.bouncycastle:bcpkix-jdk18on:1.85"
     testRuntimeOnly "org.junit.platform:junit-platform-launcher"
 }

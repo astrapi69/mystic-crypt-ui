@@ -27,8 +27,8 @@ dependencies {
     compileOnly "io.github.astrapi69:mystic-crypt-ui:8.1-SNAPSHOT"
     // PrivateKeyHexDecryptor / PublicKeyHexEncryptor live in the mystic-crypt library, not the host
     compileOnly "io.github.astrapi69:mystic-crypt:11.0.0"
-    compileOnly "io.github.astrapi69:crypt-api:10.0.0"
-    compileOnly "io.github.astrapi69:crypt-data:11.0.0"
+    compileOnly "io.github.astrapi69:crypt-api:10.1"
+    compileOnly "io.github.astrapi69:crypt-data:11.1"
     compileOnly "io.github.astrapi69:model-data:3.1"
     compileOnly "io.github.astrapi69:swing-base-components:5.1"
     compileOnly "io.github.astrapi69:swing-components:9"
@@ -46,8 +46,8 @@ dependencies {
     // the round-trip test drives the key generation + hex encrypt/decrypt library calls headlessly
     testImplementation "org.junit.jupiter:junit-jupiter:5.11.4"
     testImplementation "io.github.astrapi69:mystic-crypt:11.0.0"
-    testImplementation "io.github.astrapi69:crypt-api:10.0.0"
-    testImplementation "io.github.astrapi69:crypt-data:11.0.0"
+    testImplementation "io.github.astrapi69:crypt-api:10.1"
+    testImplementation "io.github.astrapi69:crypt-data:11.1"
     testImplementation "org.bouncycastle:bcpkix-jdk18on:1.85"
     testRuntimeOnly "org.junit.platform:junit-platform-launcher"
 }

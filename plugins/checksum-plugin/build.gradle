@@ -24,7 +24,7 @@ repositories {
 dependencies {
     compileOnly "io.github.astrapi69:mystic-crypt-ui:8.1-SNAPSHOT"
     compileOnly "io.github.astrapi69:checksum-up:3.1"
-    compileOnly "io.github.astrapi69:crypt-api:10.0.0"
+    compileOnly "io.github.astrapi69:crypt-api:10.1"
     compileOnly "io.github.astrapi69:file-worker:19.0"
     compileOnly "io.github.astrapi69:model-data:3.1"
     compileOnly "io.github.astrapi69:swing-base-components:5.1"
@@ -40,7 +40,7 @@ dependencies {
     // the checksum test drives the checksum library directly (headless)
     testImplementation "org.junit.jupiter:junit-jupiter:5.11.4"
     testImplementation "io.github.astrapi69:checksum-up:3.1"
-    testImplementation "io.github.astrapi69:crypt-api:10.0.0"
+    testImplementation "io.github.astrapi69:crypt-api:10.1"
     testRuntimeOnly "org.junit.platform:junit-platform-launcher"
 }
 
