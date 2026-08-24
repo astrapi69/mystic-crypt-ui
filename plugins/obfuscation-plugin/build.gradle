@@ -29,7 +29,7 @@ dependencies {
     compileOnly "io.github.astrapi69:crypt-data:11.1"
     compileOnly "io.github.astrapi69:swing-base-components:5.1"
     compileOnly "io.github.astrapi69:swing-table-components:3.1"
-    compileOnly "io.github.astrapi69:model-data:3.1"
+    compileOnly "io.github.astrapi69:model-data:3.2.1"
     compileOnly "io.github.astrapi69:silly-bean:3.0"
     compileOnly "io.github.astrapi69:silly-collection:28.1"
     compileOnly "io.github.astrapi69:file-worker:19.0"

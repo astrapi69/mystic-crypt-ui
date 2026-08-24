@@ -27,7 +27,7 @@ dependencies {
     compileOnly "io.github.astrapi69:mystic-crypt-ui:8.1-SNAPSHOT"
     compileOnly "io.github.astrapi69:crypt-api:10.1"
     compileOnly "io.github.astrapi69:crypt-data:11.1"
-    compileOnly "io.github.astrapi69:model-data:3.1"
+    compileOnly "io.github.astrapi69:model-data:3.2.1"
     compileOnly "io.github.astrapi69:swing-base-components:5.1"
     compileOnly "io.github.astrapi69:swing-components:9"
     compileOnly "io.github.astrapi69:swing-wizard:2.1"

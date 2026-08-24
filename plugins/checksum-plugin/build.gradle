@@ -26,10 +26,10 @@ dependencies {
     compileOnly "io.github.astrapi69:checksum-up:3.1"
     compileOnly "io.github.astrapi69:crypt-api:10.1"
     compileOnly "io.github.astrapi69:file-worker:19.0"
-    compileOnly "io.github.astrapi69:model-data:3.1"
+    compileOnly "io.github.astrapi69:model-data:3.2.1"
     compileOnly "io.github.astrapi69:swing-base-components:5.1"
     // EnableButtonBehavior lives here
-    compileOnly "io.github.astrapi69:menu-action:4.1"
+    compileOnly "io.github.astrapi69:menu-action:5.1"
     compileOnly "org.projectlombok:lombok:1.18.46"
     annotationProcessor "org.projectlombok:lombok:1.18.46"
 
