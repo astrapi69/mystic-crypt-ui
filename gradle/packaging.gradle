@@ -34,7 +34,16 @@ jar.notCompatibleWithConfigurationCache(
 jar.doLast {
     DirectoryProperty buildDirectoryProperty = layout.buildDirectory
     String buildDirectory = buildDirectoryProperty.get()
-    if (releaseVersion || createIzPackInstaller) {
+    // the keystore properties live in the developer's private gradle.properties, never in the
+    // repository - so a build that wants signing but has no keystore configured (CI, a fresh
+    // clone, a contributor's machine) says so and produces an unsigned jar instead of failing
+    def signingConfigured = [mysticCryptKeyAlias, mysticCryptStoreFile, mysticCryptStorePassword,
+                             mysticCryptKeyPassword, mysticCryptStoreType].every { project.hasProperty(it) }
+    if ((releaseVersion || createIzPackInstaller) && !signingConfigured) {
+        println('No signing configuration found, the created jar file is not signed.\n' +
+                'Set the release.mystic-crypt.* properties to sign it.')
+    }
+    if ((releaseVersion || createIzPackInstaller) && signingConfigured) {
         def pkAlias = project.property("$mysticCryptKeyAlias")
         def keystoreFileName = project.property("$mysticCryptStoreFile")
         def storePassword = project.property("$mysticCryptStorePassword")

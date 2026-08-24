@@ -64,9 +64,12 @@ publishing {
     repositories {
         maven {
             if (releaseVersion) {
+                // the credentials come from the environment or the developer's private
+                // gradle.properties; a build that only compiles and tests a release version - CI,
+                // a fresh clone - has neither, and must not fail at configuration time for that
                 credentials {
-                    username System.getenv("$projectRepositoriesUserNameKey") ?: project.property("$projectRepositoriesUserNameKey")
-                    password System.getenv("$projectRepositoriesPasswordKey") ?: project.property("$projectRepositoriesPasswordKey")
+                    username System.getenv("$projectRepositoriesUserNameKey") ?: project.findProperty("$projectRepositoriesUserNameKey")
+                    password System.getenv("$projectRepositoriesPasswordKey") ?: project.findProperty("$projectRepositoriesPasswordKey")
                 }
             }
             def releasesRepoUrl = "$projectRepositoriesReleasesRepoUrl" as Object

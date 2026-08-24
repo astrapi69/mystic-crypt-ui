@@ -25,11 +25,11 @@
 package io.github.astrapi69.mystic.crypt.ui;
 
 import java.awt.Dialog;
-import java.awt.event.KeyEvent;
 import java.io.File;
 import java.util.concurrent.TimeUnit;
 
 import javax.swing.JFileChooser;
+import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
 
 import org.assertj.swing.core.GenericTypeMatcher;
@@ -196,13 +196,20 @@ final class SignInDialogSteps
 	}
 
 	/**
-	 * Presses Enter in the master-password field and waits for the sign-in dialog to close.
-	 * Exercises the field's action listener, which clicks OK when it is enabled (the "Enter
-	 * submits" behavior).
+	 * Triggers the master-password field's action - what a text field does when Enter is pressed in
+	 * it - and waits for the sign-in dialog to close. This exercises the listener the application
+	 * registers on that field, which clicks OK when it is enabled (the "Enter submits" behavior).
+	 * <p>
+	 * Deliberately {@code postActionEvent()} rather than a real {@code VK_ENTER} key press: a
+	 * physical key press needs the dialog to own the keyboard focus, which requires a window
+	 * manager. The CI runner has an X server but no window manager, so the key would go nowhere.
+	 * Turning the key binding into an action event is the JDK's own behaviour and not what this
+	 * test owns - the application's listener on top of it is.
 	 */
 	void enterInMasterPasswordAndAwaitSignIn()
 	{
-		dialog.textBox("txtMasterPw").focus().pressAndReleaseKeys(KeyEvent.VK_ENTER);
+		GuiActionRunner
+			.execute(() -> ((JTextField)dialog.textBox("txtMasterPw").target()).postActionEvent());
 		Pause.pause(new Condition("sign-in dialog is closed after Enter-submit sign-in")
 		{
 			@Override
