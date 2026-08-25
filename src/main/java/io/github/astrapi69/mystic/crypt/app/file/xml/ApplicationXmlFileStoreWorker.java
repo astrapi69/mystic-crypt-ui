@@ -25,6 +25,7 @@
 package io.github.astrapi69.mystic.crypt.app.file.xml;
 
 import java.io.File;
+import java.nio.file.Files;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 
@@ -32,28 +33,20 @@ import javax.crypto.Cipher;
 import javax.crypto.SecretKey;
 
 import io.github.astrapi69.crypt.api.algorithm.AesAlgorithm;
-import io.github.astrapi69.crypt.api.algorithm.SunJCEAlgorithm;
-import io.github.astrapi69.crypt.api.algorithm.compound.CompoundAlgorithm;
 import io.github.astrapi69.crypt.data.factory.SecretKeyFactoryExtensions;
 import io.github.astrapi69.crypt.data.key.KeyModelExtensions;
 import io.github.astrapi69.crypt.data.key.PrivateKeyExtensions;
 import io.github.astrapi69.crypt.data.key.reader.PrivateKeyReader;
 import io.github.astrapi69.crypt.data.model.CryptModel;
 import io.github.astrapi69.file.create.FileFactory;
-import io.github.astrapi69.file.delete.DeleteFileExtensions;
-import io.github.astrapi69.file.system.SystemFileExtensions;
 import io.github.astrapi69.file.write.StoreFileExtensions;
-import io.github.astrapi69.io.file.FileExtension;
 import io.github.astrapi69.mystic.crypt.ApplicationModelBean;
 import io.github.astrapi69.mystic.crypt.algorithm.MysticSymmetricAlgorithm;
-import io.github.astrapi69.mystic.crypt.file.PBEFileEncryptor;
 import io.github.astrapi69.mystic.crypt.key.PublicKeyEncryptor;
 import io.github.astrapi69.mystic.crypt.key.PublicKeyGenericEncryptor;
 import io.github.astrapi69.mystic.crypt.panel.signin.MasterPwFileModelBean;
 import io.github.astrapi69.mystic.crypt.panel.signin.SignInType;
 import io.github.astrapi69.mystic.crypt.pw.PasswordStringEncryptor;
-import io.github.astrapi69.random.number.RandomIntFactory;
-import io.github.astrapi69.random.object.RandomStringFactory;
 import io.github.astrapi69.throwable.RuntimeExceptionDecorator;
 import io.github.astrapi69.xstream.ObjectToXmlExtensions;
 
@@ -188,43 +181,18 @@ public final class ApplicationXmlFileStoreWorker
 
 	public static File saveToFileWithPassword(ApplicationModelBean applicationModelBean)
 	{
-		File applicationFile;
-		String xml;
-		String password;
-		String randomFilename;
-		File tempJsonFile;
-		CryptModel<Cipher, String, String> cryptModel;
-		PBEFileEncryptor encryptor;
 		MasterPwFileModelBean modelObject = applicationModelBean.getMasterPwFileModelBean();
-		randomFilename = RandomStringFactory
-			.newRandomLongString(RandomIntFactory.randomIntBetween(4, 8)) + "."
-			+ RandomStringFactory.newRandomLongString(RandomIntFactory.randomIntBetween(2, 4));
-		tempJsonFile = new File(SystemFileExtensions.getTempDir(), randomFilename);
-		RuntimeExceptionDecorator.decorate(() -> FileFactory.newFile(tempJsonFile));
-		applicationFile = FileFactory.newFileQuietly(modelObject.getApplicationFileInfo());
+		File applicationFile = FileFactory.newFileQuietly(modelObject.getApplicationFileInfo());
+		String password = String.valueOf(modelObject.getMasterPw());
+		String xml = ObjectToXmlExtensions.toXml(applicationModelBean);
 
-		password = String.valueOf(modelObject.getMasterPw());
-
-		// salt and iteration count MUST be pinned explicitly: since mystic-crypt 10.1 an absent
-		// salt makes the encryptor generate a random one that is persisted nowhere, so a reader
-		// building its own CryptModel could never decrypt the file again. These constants are the
-		// pre-10.1 defaults, so files written by older releases stay readable too
-		cryptModel = CryptModel.<Cipher, String, String> builder().key(password)
-			.algorithm(SunJCEAlgorithm.PBEWithMD5AndDES).salt(CompoundAlgorithm.SALT)
-			.iterationCount(CompoundAlgorithm.ITERATIONCOUNT).build();
-		encryptor = RuntimeExceptionDecorator.decorate(() -> new PBEFileEncryptor(cryptModel,
-			applicationFile, FileExtension.MYSTIC_CRYPT_ENCRYPTED.getExtension()));
-
-		xml = ObjectToXmlExtensions.toXml(applicationModelBean);
-		RuntimeExceptionDecorator.decorate(() -> StoreFileExtensions.toFile(tempJsonFile, xml));
-
-		File encryptedApplicationFile = RuntimeExceptionDecorator
-			.decorate(() -> encryptor.encrypt(tempJsonFile));
-
-		if (tempJsonFile.exists())
-		{
-			RuntimeExceptionDecorator.decorate(() -> DeleteFileExtensions.delete(tempJsonFile));
-		}
-		return encryptedApplicationFile;
+		// straight from memory into the encrypted file: the xml is never written anywhere in the
+		// clear, not even into a temporary file that is deleted afterwards - deleting is not
+		// wiping, and a temporary directory is a poor place for a decrypted password database
+		byte[] fileContent = RuntimeExceptionDecorator
+			.decorate(() -> PasswordVaultFormat.encrypt(xml, password));
+		RuntimeExceptionDecorator
+			.decorate(() -> Files.write(applicationFile.toPath(), fileContent));
+		return applicationFile;
 	}
 }

@@ -33,18 +33,14 @@ import javax.crypto.Cipher;
 
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 
-import io.github.astrapi69.crypt.api.algorithm.SunJCEAlgorithm;
-import io.github.astrapi69.crypt.api.algorithm.compound.CompoundAlgorithm;
 import io.github.astrapi69.crypt.data.key.KeyModelExtensions;
 import io.github.astrapi69.crypt.data.key.reader.PemObjectReader;
 import io.github.astrapi69.crypt.data.key.reader.PrivateKeyReader;
 import io.github.astrapi69.crypt.data.model.CryptModel;
 import io.github.astrapi69.file.create.FileFactory;
-import io.github.astrapi69.file.delete.DeleteFileExtensions;
 import io.github.astrapi69.file.read.ReadFileExtensions;
 import io.github.astrapi69.mystic.crypt.ApplicationModelBean;
 import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
-import io.github.astrapi69.mystic.crypt.file.PBEFileDecryptor;
 import io.github.astrapi69.mystic.crypt.key.PrivateKeyDecryptor;
 import io.github.astrapi69.mystic.crypt.key.PrivateKeyGenericDecryptor;
 import io.github.astrapi69.mystic.crypt.panel.signin.MasterPwFileModelBean;
@@ -155,24 +151,10 @@ public class ApplicationXmlFileReader
 	public static ApplicationModelBean getApplicationModelBean(File applicationFile,
 		char[] password) throws Exception
 	{
-		ApplicationModelBean applicationModelBean;
-		// salt and iteration count MUST match ApplicationXmlFileStoreWorker.saveToFileWithPassword
-		// exactly: since mystic-crypt 10.1 an absent salt makes the decryptor generate its own
-		// random one, which can never match what the file was encrypted with
-		CryptModel<Cipher, String, String> pbeCryptModel = CryptModel
-			.<Cipher, String, String> builder().key(new String(password))
-			.algorithm(SunJCEAlgorithm.PBEWithMD5AndDES).salt(CompoundAlgorithm.SALT)
-			.iterationCount(CompoundAlgorithm.ITERATIONCOUNT).build();
-
-		PBEFileDecryptor fileDecryptor = new PBEFileDecryptor(pbeCryptModel);
-		File decrypt = fileDecryptor.decrypt(applicationFile);
-		// note: not XmlFileToObjectExtensions.toObject(decrypt) - xstream-extensions 1.1 calls the
-		// pre-19.0 file-worker method ReadFileExtensions.readFromFile(File), which no longer
-		// exists on this classpath (renamed to fromFile), so that path throws NoSuchMethodError
-		applicationModelBean = XmlToObjectExtensions.toObject(ReadFileExtensions.fromFile(decrypt));
-		DeleteFileExtensions.delete(decrypt);
-
-		return applicationModelBean;
+		// PasswordVaultFormat decides by the marker in the file which of the two formats this is,
+		// and reads a database written before the marker existed just as well
+		return XmlToObjectExtensions
+			.toObject(PasswordVaultFormat.decrypt(applicationFile, new String(password)));
 	}
 
 	public static ApplicationModelBean getApplicationModelBean(File applicationFile,

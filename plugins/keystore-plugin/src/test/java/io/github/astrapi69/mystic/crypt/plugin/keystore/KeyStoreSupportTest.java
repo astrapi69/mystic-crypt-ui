@@ -130,7 +130,7 @@ class KeyStoreSupportTest
 	}
 
 	@ParameterizedTest
-	@CsvSource({ "RSA,SHA256withRSA", "RSASSA_PSS,SHA256withRSA", "EC,SHA256withECDSA",
+	@CsvSource({ "RSA,SHA256withRSA", "RSASSA_PSS,SHA256withRSAandMGF1", "EC,SHA256withECDSA",
 			"DSA,SHA256withDSA", "ML_DSA_44,ML-DSA-44", "ML_DSA_65,ML-DSA-65",
 			"ML_DSA_87,ML-DSA-87" })
 	void mapsEverySigningAlgorithmToItsSignatureAlgorithm(KeyPairGeneratorAlgorithm algorithm,

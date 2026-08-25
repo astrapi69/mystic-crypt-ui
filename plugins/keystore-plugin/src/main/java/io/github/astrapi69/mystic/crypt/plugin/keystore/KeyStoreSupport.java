@@ -94,7 +94,10 @@ public final class KeyStoreSupport
 	{
 		return switch (algorithm)
 		{
-			case RSA, RSASSA_PSS -> "SHA256withRSA";
+			case RSA -> "SHA256withRSA";
+			// an RSASSA-PSS key signed with the PKCS#1 v1.5 scheme produces a certificate that
+			// contradicts RFC 4055 and that openssl rejects when verifying it
+			case RSASSA_PSS -> "SHA256withRSAandMGF1";
 			case EC -> "SHA256withECDSA";
 			case DSA -> "SHA256withDSA";
 			case ML_DSA_44 -> "ML-DSA-44";
