@@ -87,12 +87,12 @@ class MoveNodeUiTest extends AbstractUiTest
 	}
 
 	/**
-	 * The root is the one node that must stay where it is: there is exactly one of it, so it has no
-	 * siblings to move among, nothing to be moved under, and it must not be removable - a second
-	 * top level node would be a tree with two roots.
+	 * The root is what the whole database hangs off: there can only be one of it, so it is not
+	 * shown at all - what the user sees as the top level are its children. Nothing may promote a
+	 * node next to it, which is why the first node of the top level cannot be moved up.
 	 */
 	@Test
-	void theRootCanNeitherBeMovedNorDeleted() throws Exception
+	void theRootIsNotShownAndNothingCanBeMovedNextToIt() throws Exception
 	{
 		File databaseFile = new File(tempHome, "move-node-root.mcrdb");
 		createDatabaseFileHeadless(databaseFile, MASTER_PASSWORD);
@@ -100,16 +100,18 @@ class MoveNodeUiTest extends AbstractUiTest
 		ApplicationSteps application = signInWithExistingDatabase(databaseFile, MASTER_PASSWORD);
 		FrameFixture frame = application.showMainFrame();
 
-		assertFalse(application.treeContextMenuHasItem(frame, "root", "Move up"),
-			"the root has no siblings, so it must not offer to move up");
-		assertFalse(application.treeContextMenuHasItem(frame, "root", "Move down"),
-			"the root has no siblings, so it must not offer to move down");
-		assertFalse(application.treeContextMenuHasItem(frame, "root", "Move to node..."),
-			"there is nothing the root could be moved under");
-		assertFalse(application.treeContextMenuHasItem(frame, "root", "delete"),
-			"deleting the root would leave the tree without one");
-		assertTrue(application.treeContextMenuHasItem(frame, "root", "add node..."),
-			"the root must still take new children");
+		assertFalse(application.treeShowsARowNamed("root"),
+			"the root must not be a row of its own; the top level is what hangs under it");
+		assertEquals(List.of("mykeys"), application.treeTopLevelNames(),
+			"what the tree shows on its top level are the children of the root");
+
+		application.addNodeToTreeRoot(frame, "Second");
+		assertFalse(application.treeContextMenuItemIsEnabled(frame, "mykeys", "Move up"),
+			"the first node of the top level has nothing above it - a node next to the root would "
+				+ "be a second root");
+		assertTrue(application.treeContextMenuHasItem(frame, "mykeys", "Move to node..."),
+			"moving under a sibling stays possible - what it must never offer is the level above, "
+				+ "which SecretKeyTreeMoveTest pins down");
 	}
 
 	@Test

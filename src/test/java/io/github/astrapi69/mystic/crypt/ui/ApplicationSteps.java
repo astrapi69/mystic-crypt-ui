@@ -257,7 +257,7 @@ final class ApplicationSteps
 	 */
 	ApplicationSteps addNodeToTreeRoot(org.assertj.swing.fixture.FrameFixture frame, String name)
 	{
-		rightClickTreeRow(frame, 0);
+		rightClickBelowTheTreeNodes(frame);
 		chooseFromShowingPopup("add node...");
 
 		DialogFixture newNodeDialog = findDialogWithTitle("New node");
@@ -272,7 +272,7 @@ final class ApplicationSteps
 	/** Opens the "New node" dialog and closes it without confirming - no node is added */
 	ApplicationSteps addNodeButCancel(org.assertj.swing.fixture.FrameFixture frame)
 	{
-		rightClickTreeRow(frame, 0);
+		rightClickBelowTheTreeNodes(frame);
 		chooseFromShowingPopup("add node...");
 		disposeDialog("New node");
 		return this;
@@ -459,6 +459,47 @@ final class ApplicationSteps
 		return this;
 	}
 
+	/** Whether the tree shows a row with the given display name */
+	boolean treeShowsARowNamed(String name)
+	{
+		return GuiActionRunner.execute(() -> {
+			javax.swing.JTree tree = MysticCryptApplicationFrame.getInstance().getApplicationPanel()
+				.getSecretKeyTreeWithContentPanel().getTree();
+			for (int row = 0; row < tree.getRowCount(); row++)
+			{
+				Object last = tree.getPathForRow(row).getLastPathComponent();
+				if (last instanceof javax.swing.tree.DefaultMutableTreeNode node
+					&& String.valueOf(node.getUserObject()).contains("displayValue=" + name + ","))
+				{
+					return true;
+				}
+			}
+			return false;
+		});
+	}
+
+	/** The display names of the rows the tree shows on its top level */
+	List<String> treeTopLevelNames()
+	{
+		return GuiActionRunner.execute(() -> {
+			javax.swing.JTree tree = MysticCryptApplicationFrame.getInstance().getApplicationPanel()
+				.getSecretKeyTreeWithContentPanel().getTree();
+			javax.swing.tree.TreeModel model = tree.getModel();
+			Object root = model.getRoot();
+			List<String> names = new java.util.ArrayList<>();
+			for (int index = 0; index < model.getChildCount(root); index++)
+			{
+				Object child = model.getChild(root, index);
+				if (child instanceof javax.swing.tree.DefaultMutableTreeNode node
+					&& node.getUserObject()instanceof BaseTreeNode<?, ?> treeNode)
+				{
+					names.add(String.valueOf(treeNode.getDisplayValue()));
+				}
+			}
+			return names;
+		});
+	}
+
 	/** The display names of the children of the tree root, in the order the tree shows them */
 	List<String> treeRootChildNames()
 	{
@@ -605,7 +646,10 @@ final class ApplicationSteps
 	{
 		javax.swing.JTree tree = frame.tree().target();
 		GuiActionRunner.execute(() -> {
-			tree.expandRow(0);
+			for (int row = 0; row < tree.getRowCount(); row++)
+			{
+				tree.expandRow(row);
+			}
 			javax.swing.tree.TreePath rowPath = findTreePathByName(tree, nodeName);
 			tree.setSelectionPath(rowPath);
 			// the entries table refreshes on a left CLICK, not on selection alone - dispatch one
@@ -851,19 +895,23 @@ final class ApplicationSteps
 	 * Dispatches a synthetic right-click to the center of the given visible tree row - an OS-level
 	 * robot right-click proved unreliable on this shared, live desktop display
 	 */
-	private void rightClickTreeRow(org.assertj.swing.fixture.FrameFixture frame, int row)
+	/**
+	 * Right-clicks the empty area below the nodes. The tree hides its root, so this is the place
+	 * the application offers "add node..." for the top level
+	 */
+	private void rightClickBelowTheTreeNodes(org.assertj.swing.fixture.FrameFixture frame)
 	{
 		javax.swing.JTree tree = frame.tree().target();
 		GuiActionRunner.execute(() -> {
-			// make sure the target row is expanded, laid out and visible before resolving its
-			// bounds - a reload() swaps the tree model and can leave row geometry stale
-			tree.expandRow(0);
-			javax.swing.tree.TreePath rowPath = tree.getPathForRow(row);
-			if (rowPath == null)
-			{
-				throw new IllegalStateException("tree has no visible row " + row);
-			}
-			rightClickTreePath(tree, rowPath);
+			int belowLastRow = tree.getRowCount() == 0
+				? 4
+				: tree.getRowBounds(tree.getRowCount() - 1).y
+					+ tree.getRowBounds(tree.getRowCount() - 1).height + 8;
+			long now = System.currentTimeMillis();
+			tree.dispatchEvent(
+				new java.awt.event.MouseEvent(tree, java.awt.event.MouseEvent.MOUSE_CLICKED, now,
+					java.awt.event.InputEvent.BUTTON3_DOWN_MASK, 8, belowLastRow, 1, true,
+					java.awt.event.MouseEvent.BUTTON3));
 		});
 		robot.waitForIdle();
 	}
@@ -878,7 +926,10 @@ final class ApplicationSteps
 	{
 		javax.swing.JTree tree = frame.tree().target();
 		GuiActionRunner.execute(() -> {
-			tree.expandRow(0);
+			for (int row = 0; row < tree.getRowCount(); row++)
+			{
+				tree.expandRow(row);
+			}
 			for (int row = 0; row < tree.getRowCount(); row++)
 			{
 				javax.swing.tree.TreePath rowPath = tree.getPathForRow(row);

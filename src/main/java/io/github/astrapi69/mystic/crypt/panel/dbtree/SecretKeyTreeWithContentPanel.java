@@ -109,7 +109,28 @@ public class SecretKeyTreeWithContentPanel
 		JTree tree = super.newTree();
 		tree.setCellRenderer(
 			new NewGenericBaseTreeNodeCellRenderer<List<MysticCryptEntryModelBean>, Long>());
+		// the root is what the whole database hangs off, not something the user put there: there
+		// can only ever be one of it, it cannot be renamed away, moved or deleted, and showing it
+		// only makes every real node look like it sits one level too deep. Hidden, the nodes the
+		// user created - and a subtree imported from KeePass - are the top level, which is what
+		// they are meant to be
+		tree.setRootVisible(false);
+		// without the root row there would be nothing to click to open the top level, so the
+		// handles have to be drawn for its children
+		tree.setShowsRootHandles(true);
 		return tree;
+	}
+
+	/**
+	 * The root of the tree, which is not shown: everything the user sees is one of its children
+	 *
+	 * @return the root node
+	 */
+	@SuppressWarnings("unchecked")
+	protected BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> rootTreeNode()
+	{
+		return (BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long>)((DefaultMutableTreeNode)tree
+			.getModel().getRoot()).getUserObject();
 	}
 
 	@Override
@@ -287,6 +308,18 @@ public class SecretKeyTreeWithContentPanel
 		int y = mouseEvent.getY();
 		Optional<BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long>> optionalSelectedUserObject = JTreeExtensions
 			.getSelectedUserObject(mouseEvent, tree);
+		if (optionalSelectedUserObject.isEmpty())
+		{
+			// clicked next to the nodes: the root is hidden, so this is the only way left to put a
+			// node on the top level
+			JPopupMenu rootPopup = JPopupMenuFactory.newJPopupMenu();
+			JMenuItem addTopLevelNode = JMenuItemFactory.newJMenuItem("add node...",
+				actionEvent -> this.onAddNewTopLevelTreeNode());
+			addTopLevelNode.setName("treeAddTopLevelNode");
+			rootPopup.add(addTopLevelNode);
+			rootPopup.show(tree, x, y);
+			return;
+		}
 		optionalSelectedUserObject.ifPresent(selectedTreeNodeElement -> {
 			JPopupMenu popup = JPopupMenuFactory.newJPopupMenu();
 			if (selectedTreeNodeElement.isNode())
@@ -745,43 +778,58 @@ public class SecretKeyTreeWithContentPanel
 	}
 
 	/**
+	 * The callback method on add a new node on the top level, which is what the children of the
+	 * hidden root are
+	 */
+	protected void onAddNewTopLevelTreeNode()
+	{
+		addChildTreeNode((DefaultMutableTreeNode)tree.getModel().getRoot());
+	}
+
+	/**
 	 * The callback method on add a new child tree node
 	 */
-	@SuppressWarnings("unchecked")
 	protected void onAddNewChildTreeNode(MouseEvent mouseEvent)
 	{
 		JTreeExtensions.getSelectedDefaultMutableTreeNode(mouseEvent, tree)
-			.ifPresent(selectedDefaultMutableTreeNode -> {
-				Object userObject = selectedDefaultMutableTreeNode.getUserObject();
-				BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> parentTreeNode = (BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long>)userObject;
-				NodePanel panel = new NodePanel();
-				int option = JOptionPaneExtensions.getSelectedOption(panel,
-					JOptionPane.PLAIN_MESSAGE, JOptionPane.OK_CANCEL_OPTION, null,
-					Messages.getString("dialog.new.node.entry.title", "New node."),
-					panel.getTxtName());
+			.ifPresent(this::addChildTreeNode);
+	}
 
-				if (option == JOptionPane.OK_OPTION)
-				{
-					NodeModel modelObject = panel.getModelObject();
-					boolean leaf = modelObject.isLeaf();
-					String name = modelObject.getName();
-					GenericTreeElement<List<MysticCryptEntryModelBean>> treeElement = GenericTreeElement
-						.<List<MysticCryptEntryModelBean>> builder().name(name).leaf(leaf).build();
-					LongIdGenerator idGenerator = MysticCryptApplicationFrame.getInstance()
-						.getIdGenerator();
-					Long nextId = idGenerator.getNextId();
-					MysticCryptApplicationFrame.getInstance().getModelObject().setLastId(nextId);
-					BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> newTreeNode = BaseTreeNode
-						.<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> builder()
-						.id(nextId).value(treeElement).parent(parentTreeNode).displayValue(name)
-						.leaf(leaf).build();
-					parentTreeNode.addChild(newTreeNode);
+	/**
+	 * Asks for a name and adds a new child under the given node
+	 *
+	 * @param parentSwingNode
+	 *            the node the new child goes under
+	 */
+	@SuppressWarnings("unchecked")
+	protected void addChildTreeNode(DefaultMutableTreeNode parentSwingNode)
+	{
+		BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> parentTreeNode = (BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long>)parentSwingNode
+			.getUserObject();
+		NodePanel panel = new NodePanel();
+		int option = JOptionPaneExtensions.getSelectedOption(panel, JOptionPane.PLAIN_MESSAGE,
+			JOptionPane.OK_CANCEL_OPTION, null,
+			Messages.getString("dialog.new.node.entry.title", "New node."), panel.getTxtName());
+		if (option != JOptionPane.OK_OPTION)
+		{
+			return;
+		}
+		NodeModel modelObject = panel.getModelObject();
+		boolean leaf = modelObject.isLeaf();
+		String name = modelObject.getName();
+		GenericTreeElement<List<MysticCryptEntryModelBean>> treeElement = GenericTreeElement
+			.<List<MysticCryptEntryModelBean>> builder().name(name).leaf(leaf).build();
+		LongIdGenerator idGenerator = MysticCryptApplicationFrame.getInstance().getIdGenerator();
+		Long nextId = idGenerator.getNextId();
+		MysticCryptApplicationFrame.getInstance().getModelObject().setLastId(nextId);
+		BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> newTreeNode = BaseTreeNode
+			.<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> builder().id(nextId)
+			.value(treeElement).parent(parentTreeNode).displayValue(name).leaf(leaf).build();
+		parentTreeNode.addChild(newTreeNode);
 
-					DefaultMutableTreeNode newChild = new DefaultMutableTreeNode(newTreeNode, leaf);
-					selectedDefaultMutableTreeNode.add(newChild);
-					reload(selectedDefaultMutableTreeNode);
-				}
-			});
+		DefaultMutableTreeNode newChild = new DefaultMutableTreeNode(newTreeNode, leaf);
+		parentSwingNode.add(newChild);
+		reload(parentSwingNode);
 	}
 
 	@SuppressWarnings("unchecked")
