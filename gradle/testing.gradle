@@ -6,6 +6,15 @@ test {
     // fresh JVM so that static/singleton state from one class cannot contaminate the next - this
     // is what makes the full UI suite pass, not just each test in isolation
     forkEvery = 1
+    testLogging {
+        // print the whole stack trace of a failed test to the console. Without this Gradle shows
+        // only the top frame - on CI, where the html and xml reports are not at hand, a failure
+        // like "NullPointerException at Preconditions.java:82" carries no information about where
+        // it came from, which makes a rarely failing test impossible to diagnose after the fact
+        exceptionFormat = 'full'
+        showStackTraces = true
+        events 'failed'
+    }
 }
 
 jacocoTestReport {

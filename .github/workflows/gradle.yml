@@ -37,3 +37,15 @@ jobs:
         env:
           ossrhUsername: ${{secrets.OSSRHUSERNAME}}
           ossrhPassword: ${{secrets.OSSRHPASSWORD}}
+      - name: Upload the test reports
+        # a failing UI test prints only its top stack frame to the console; the full trace lives in
+        # the xml reports, so keep them when something goes red - otherwise a flaky failure is
+        # impossible to diagnose after the fact
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-reports
+          path: |
+            build/reports/tests/test
+            build/test-results/test
+          retention-days: 14
