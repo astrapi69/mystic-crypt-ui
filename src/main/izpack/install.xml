@@ -106,7 +106,7 @@
 			adds them by hand through Settings > Plugins > "Install from Zip...".
 		-->
 		<pack name="plugins" required="no" preselected="yes">
-			<description>The internal plugins: obfuscation, checksums, der to pem, console, key generation, certificates, password hashing, key encapsulation demo, post-quantum signatures, key store management and the menu designer</description>
+			<description>The internal plugins: obfuscation, checksums, der to pem, console, key generation, certificates, password hashing, key encapsulation demo, post-quantum signatures, key store management, file encryption and the menu designer</description>
 			<depends packname="executables" />
 			<singlefile src="../plugins/obfuscation-plugin/build/plugin-dist/obfuscation-plugin-1.0.0.zip"
 						target="${USER_HOME}/.config/mystic-crypt-ui/plugins/obfuscation-plugin-1.0.0.zip" />
@@ -130,6 +130,8 @@
 						target="${USER_HOME}/.config/mystic-crypt-ui/plugins/pqc-signature-plugin-1.0.0.zip" />
 			<singlefile src="../plugins/keystore-plugin/build/plugin-dist/keystore-plugin-1.0.0.zip"
 						target="${USER_HOME}/.config/mystic-crypt-ui/plugins/keystore-plugin-1.0.0.zip" />
+			<singlefile src="../plugins/file-crypt-plugin/build/plugin-dist/file-crypt-plugin-1.0.0.zip"
+						target="${USER_HOME}/.config/mystic-crypt-ui/plugins/file-crypt-plugin-1.0.0.zip" />
 		</pack>
 	</packs>
 

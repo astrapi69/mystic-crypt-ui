@@ -25,24 +25,18 @@
 package io.github.astrapi69.mystic.crypt.app.file.xml;
 
 import java.io.File;
-import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
-import java.security.SecureRandom;
-import java.util.Arrays;
 
 import javax.crypto.Cipher;
 import javax.crypto.SecretKey;
-import javax.crypto.SecretKeyFactory;
-import javax.crypto.spec.PBEKeySpec;
-import javax.crypto.spec.SecretKeySpec;
 
 import io.github.astrapi69.crypt.api.algorithm.SunJCEAlgorithm;
 import io.github.astrapi69.crypt.api.algorithm.compound.CompoundAlgorithm;
 import io.github.astrapi69.crypt.data.model.CryptModel;
 import io.github.astrapi69.file.delete.DeleteFileExtensions;
 import io.github.astrapi69.file.read.ReadFileExtensions;
-import io.github.astrapi69.mystic.crypt.aead.KeyCommittingAeadEncryptor;
+import io.github.astrapi69.mystic.crypt.crypto.PassphraseBox;
 import io.github.astrapi69.mystic.crypt.file.PBEFileDecryptor;
 
 /**
@@ -87,21 +81,10 @@ public final class PasswordVaultFormat
 	public static final byte[] MAGIC = "MCRDB2".getBytes(StandardCharsets.US_ASCII);
 
 	/** The length of the salt that goes into the key derivation */
-	public static final int SALT_LENGTH = 16;
+	public static final int SALT_LENGTH = PassphraseBox.SALT_LENGTH;
 
-	/**
-	 * How many rounds the key derivation costs for a file written today. The current OWASP
-	 * recommendation for PBKDF2-HMAC-SHA256; measured at about a tenth of a second here, which is
-	 * nothing next to opening a database and everything next to guessing a password
-	 */
-	public static final int ITERATIONS = 600_000;
-
-	/** The length of the derived key in bits */
-	public static final int KEY_LENGTH_BITS = 256;
-
-	private static final String KEY_DERIVATION_ALGORITHM = "PBKDF2WithHmacSHA256";
-
-	private static final int HEADER_LENGTH = MAGIC.length + SALT_LENGTH + Integer.BYTES;
+	/** How many rounds the key derivation costs for a file written today */
+	public static final int ITERATIONS = PassphraseBox.ITERATIONS;
 
 	private PasswordVaultFormat()
 	{
@@ -116,8 +99,7 @@ public final class PasswordVaultFormat
 	 */
 	public static boolean isCurrentFormat(final byte[] fileContent)
 	{
-		return fileContent != null && fileContent.length >= MAGIC.length
-			&& Arrays.equals(Arrays.copyOf(fileContent, MAGIC.length), MAGIC);
+		return PassphraseBox.hasMagic(fileContent, MAGIC);
 	}
 
 	/**
@@ -136,19 +118,7 @@ public final class PasswordVaultFormat
 	public static SecretKey deriveKey(final String password, final byte[] salt,
 		final int iterations) throws Exception
 	{
-		PBEKeySpec keySpec = new PBEKeySpec(password.toCharArray(), salt, iterations,
-			KEY_LENGTH_BITS);
-		try
-		{
-			byte[] keyBytes = SecretKeyFactory.getInstance(KEY_DERIVATION_ALGORITHM)
-				.generateSecret(keySpec).getEncoded();
-			return new SecretKeySpec(keyBytes, "AES");
-		}
-		finally
-		{
-			// the spec holds a copy of the password; there is no reason to leave it lying around
-			keySpec.clearPassword();
-		}
+		return PassphraseBox.deriveKey(password, salt, iterations);
 	}
 
 	/**
@@ -164,15 +134,7 @@ public final class PasswordVaultFormat
 	 */
 	public static byte[] encrypt(final String xml, final String password) throws Exception
 	{
-		byte[] salt = new byte[SALT_LENGTH];
-		// deliberately not SecureRandom.getInstanceStrong(): on Linux that can resolve to the
-		// blocking source, and a save must never hang waiting for entropy. The default instance
-		// reads from the non-blocking pool, which is the right source for a salt
-		new SecureRandom().nextBytes(salt);
-		byte[] header = newHeader(salt, ITERATIONS);
-		byte[] payload = new KeyCommittingAeadEncryptor(deriveKey(password, salt, ITERATIONS))
-			.encrypt(xml.getBytes(StandardCharsets.UTF_8), header);
-		return ByteBuffer.allocate(header.length + payload.length).put(header).put(payload).array();
+		return PassphraseBox.encrypt(MAGIC, xml.getBytes(StandardCharsets.UTF_8), password);
 	}
 
 	/**
@@ -194,20 +156,8 @@ public final class PasswordVaultFormat
 		{
 			return decryptLegacy(applicationFile, password);
 		}
-		if (fileContent.length <= HEADER_LENGTH)
-		{
-			throw new IllegalArgumentException(
-				"the database file is truncated: it carries the " + "marker but no content");
-		}
-		byte[] header = Arrays.copyOf(fileContent, HEADER_LENGTH);
-		byte[] salt = Arrays.copyOfRange(header, MAGIC.length, MAGIC.length + SALT_LENGTH);
-		int iterations = ByteBuffer.wrap(header, MAGIC.length + SALT_LENGTH, Integer.BYTES)
-			.getInt();
-		byte[] payload = Arrays.copyOfRange(fileContent, HEADER_LENGTH, fileContent.length);
-		// the header is the associated data, so a changed salt or iteration count breaks the tag
-		byte[] xml = new KeyCommittingAeadEncryptor(deriveKey(password, salt, iterations))
-			.decrypt(payload, header);
-		return new String(xml, StandardCharsets.UTF_8);
+		return new String(PassphraseBox.decrypt(MAGIC, fileContent, password),
+			StandardCharsets.UTF_8);
 	}
 
 	/**
@@ -243,10 +193,5 @@ public final class PasswordVaultFormat
 		{
 			DeleteFileExtensions.delete(decrypted);
 		}
-	}
-
-	private static byte[] newHeader(final byte[] salt, final int iterations)
-	{
-		return ByteBuffer.allocate(HEADER_LENGTH).put(MAGIC).put(salt).putInt(iterations).array();
 	}
 }
