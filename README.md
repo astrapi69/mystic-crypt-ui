@@ -9,6 +9,7 @@ export data to and from real KeePass `.kdbx` databases — extensible through a 
 ## Table of Contents
 
 - [Features](#features)
+- [Requirements](#requirements)
 - [Install](#install)
 - [Build from source](#build-from-source)
 - [Plugins](#plugins)
@@ -33,10 +34,32 @@ export data to and from real KeePass `.kdbx` databases — extensible through a 
 - Extend the application with plugins — third-party `.zip` plugins are picked up automatically,
   no installation step required beyond dropping the file in
 
+## Requirements
+
+**Java 25 or later.** The application is compiled for JDK 25, so an older runtime cannot start it,
+and the installer refuses to run with the message *"The application that you are trying to install
+requires a 25 version or later of the Java platform"*. Check with `java -version`; if it is older,
+install a JDK 25, for example `sdk install java 25-tem` with SDKMAN or your distribution's
+`openjdk-25-jdk` package.
+
 ## Install
 
-Windows, Linux and Mac users can download and install it with the
-[izpack installer](https://sourceforge.net/projects/mysticcrypt/files/5.1/installer.jar/download).
+The [latest release](https://github.com/astrapi69/mystic-crypt-ui/releases/latest) ships an izpack
+installer for Windows, Linux and Mac. Run it with a Java 25 runtime:
+
+```bash
+java -jar mystic-crypt-ui-<version>-installer.jar
+```
+
+If Java 25 is installed but is not your default, point at it explicitly, for example
+`~/.sdkman/candidates/java/25-tem/bin/java -jar ...`.
+
+The installer offers three packs: the application itself, an optional command-line interface, and
+the internal plugins (preselected). It also registers a desktop entry, so the application shows up
+in your desktop environment's menu.
+
+Older versions are also on
+[SourceForge](https://sourceforge.net/projects/mysticcrypt/files/latest/download).
 
 > Unix users: don't forget to set the execute bit before running the jar file.
 
@@ -45,8 +68,8 @@ Windows, Linux and Mac users can download and install it with the
 
 ## Build from source
 
-Clone the repository. It's a Gradle project, so you'll need a JDK installation (the project
-targets Java 21) — the bundled Gradle wrapper takes care of the rest.
+Clone the repository. It's a Gradle project, so you'll need a JDK 25 installation (the project
+targets Java 25) — the bundled Gradle wrapper takes care of the rest.
 
 The fastest way to build and launch the app in one step is the bundled `Makefile`:
 
