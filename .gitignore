@@ -93,3 +93,6 @@ gradle-app.setting
 ##############################################################
 hs_err_pid*
 /.attach_pid*
+
+# Claude Code creates worktrees here; they are checkouts of this repository, not content of it
+.claude/worktrees/
