@@ -142,7 +142,8 @@ public class CertificateMenuContribution implements PluginMenuContribution
 
 	private static CertificateInfoModel newDefaultCertificateInfoModel() throws Exception
 	{
-		KeyPair keyPair = KeyPairFactory.newKeyPair("RSA");
+		// the wizard follows the configured key algorithm; RSA is merely its default
+		KeyPair keyPair = KeyPairFactory.newKeyPair(CertificateSettingsContribution.keyAlgorithm());
 		KeyInfoModel privateKeyInfo = KeyInfoModel
 			.toKeyInfoModel(KeyInfoExtensions.toKeyInfo(keyPair.getPrivate()));
 		KeyInfoModel publicKeyInfo = KeyInfoModel

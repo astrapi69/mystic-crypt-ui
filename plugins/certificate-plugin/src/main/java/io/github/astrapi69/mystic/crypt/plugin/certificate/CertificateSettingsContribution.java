@@ -30,6 +30,7 @@ import java.util.Map;
 import org.pf4j.Extension;
 
 import io.github.astrapi69.mystic.crypt.plugin.api.PluginSettingsContribution;
+import io.github.astrapi69.mystic.crypt.wizard.CertificateInfoModelToX509;
 import io.github.astrapi69.mystic.crypt.settings.PluginSettings;
 
 /**
@@ -46,6 +47,9 @@ public class CertificateSettingsContribution implements PluginSettingsContributi
 	/** The common name the wizard starts with */
 	public static final String KEY_COMMON_NAME = "default.common.name";
 
+	/** The key algorithm the wizard starts with */
+	public static final String KEY_KEY_ALGORITHM = "default.key.algorithm";
+
 	/** The signature algorithm the wizard starts with */
 	public static final String KEY_SIGNATURE_ALGORITHM = "default.signature.algorithm";
 
@@ -54,6 +58,9 @@ public class CertificateSettingsContribution implements PluginSettingsContributi
 
 	/** The common name used when nothing else is configured */
 	public static final String DEFAULT_COMMON_NAME = "mystic-crypt";
+
+	/** The key algorithm used when nothing else is configured */
+	public static final String DEFAULT_KEY_ALGORITHM = "RSA";
 
 	/** The signature algorithm used when nothing else is configured */
 	public static final String DEFAULT_SIGNATURE_ALGORITHM = "SHA256withRSA";
@@ -78,6 +85,7 @@ public class CertificateSettingsContribution implements PluginSettingsContributi
 	{
 		Map<String, String> defaults = new LinkedHashMap<>();
 		defaults.put(KEY_COMMON_NAME, DEFAULT_COMMON_NAME);
+		defaults.put(KEY_KEY_ALGORITHM, DEFAULT_KEY_ALGORITHM);
 		defaults.put(KEY_SIGNATURE_ALGORITHM, DEFAULT_SIGNATURE_ALGORITHM);
 		defaults.put(KEY_VALIDITY_YEARS, String.valueOf(DEFAULT_VALIDITY_YEARS));
 		return defaults;
@@ -89,6 +97,7 @@ public class CertificateSettingsContribution implements PluginSettingsContributi
 		return switch (key)
 		{
 			case KEY_COMMON_NAME -> "the CN the wizard starts with, for issuer and subject";
+			case KEY_KEY_ALGORITHM -> "RSA, EC, DSA or Ed25519";
 			case KEY_SIGNATURE_ALGORITHM -> "for instance SHA256withRSA or SHA512withRSA";
 			case KEY_VALIDITY_YEARS -> "how many years the certificate stays valid";
 			default -> null;
@@ -113,16 +122,34 @@ public class CertificateSettingsContribution implements PluginSettingsContributi
 	}
 
 	/**
-	 * The configured signature algorithm
+	 * The configured key algorithm
 	 *
-	 * @return the signature algorithm the wizard starts with
+	 * @return the key algorithm the wizard starts with
+	 */
+	public static String keyAlgorithm()
+	{
+		String configured = current().get(KEY_KEY_ALGORITHM);
+		return configured == null || configured.isBlank()
+			? DEFAULT_KEY_ALGORITHM
+			: configured.trim();
+	}
+
+	/**
+	 * The configured signature algorithm, or none when it does not fit the configured key - the
+	 * wizard then picks the one that key can actually produce
+	 *
+	 * @return the signature algorithm the wizard starts with, or {@code null} to let the key decide
 	 */
 	public static String signatureAlgorithm()
 	{
 		String configured = current().get(KEY_SIGNATURE_ALGORITHM);
-		return configured == null || configured.isBlank()
-			? DEFAULT_SIGNATURE_ALGORITHM
-			: configured.trim();
+		if (configured == null || configured.isBlank())
+		{
+			return null;
+		}
+		return CertificateInfoModelToX509.signatureAlgorithmFits(configured.trim(), keyAlgorithm())
+			? configured.trim()
+			: null;
 	}
 
 	/**

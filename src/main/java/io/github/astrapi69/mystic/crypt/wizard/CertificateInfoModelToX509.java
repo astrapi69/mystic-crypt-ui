@@ -32,11 +32,13 @@ import java.security.cert.X509Certificate;
 import java.util.Date;
 
 import org.bouncycastle.asn1.x500.X500Name;
+import org.bouncycastle.asn1.x509.Extension;
 
 import io.github.astrapi69.crypt.data.factory.CertFactory;
 import io.github.astrapi69.crypt.data.key.KeyInfoExtensions;
 import io.github.astrapi69.mystic.crypt.wizard.model.CertificateInfoModel;
 import io.github.astrapi69.mystic.crypt.wizard.model.DistinguishedNameInfoModel;
+import io.github.astrapi69.mystic.crypt.wizard.model.ExtensionInfoModel;
 import io.github.astrapi69.mystic.crypt.wizard.model.KeyInfoModel;
 import io.github.astrapi69.mystic.crypt.wizard.model.ValidityModel;
 
@@ -82,9 +84,99 @@ public final class CertificateInfoModelToX509
 			: BigInteger.valueOf(notBefore.getTime());
 		String signatureAlgorithm = model.getSignatureAlgorithm() != null
 			? model.getSignatureAlgorithm()
-			: "SHA256withRSA";
+			: defaultSignatureAlgorithmFor(privateKey.getAlgorithm());
+		// a signature algorithm that the key cannot produce fails deep inside the certificate
+		// builder with a message nobody can act on; saying it plainly here is worth the two lines
+		if (!signatureAlgorithmFits(signatureAlgorithm, privateKey.getAlgorithm()))
+		{
+			throw new IllegalArgumentException(
+				"a " + privateKey.getAlgorithm() + " key cannot sign with '" + signatureAlgorithm
+					+ "' - use " + defaultSignatureAlgorithmFor(privateKey.getAlgorithm())
+					+ " or another algorithm of that family");
+		}
+
+		// what the wizard collected on its "Extensions" step used to stop here: the extensions were
+		// built into the model and then never handed to the certificate, so key usage, subject
+		// alternative names and basic constraints were silently missing from every certificate
+		Extension[] extensions = toExtensions(model.getExtensions());
 
 		return CertFactory.newX509CertificateV3(keyPair, issuer, serial, notBefore, notAfter,
-			subject, signatureAlgorithm);
+			subject, signatureAlgorithm, extensions);
+	}
+
+	/**
+	 * Builds the extensions of a certificate from what the wizard collected
+	 *
+	 * @param extensionInfoModels
+	 *            the extensions from the wizard, which may be null or empty
+	 * @return the extensions, empty when there are none
+	 * @throws IllegalArgumentException
+	 *             if one of them cannot be built
+	 */
+	public static Extension[] toExtensions(final ExtensionInfoModel[] extensionInfoModels)
+	{
+		if (extensionInfoModels == null || extensionInfoModels.length == 0)
+		{
+			return new Extension[0];
+		}
+		Extension[] extensions = new Extension[extensionInfoModels.length];
+		for (int index = 0; index < extensionInfoModels.length; index++)
+		{
+			ExtensionInfoModel extensionInfoModel = extensionInfoModels[index];
+			extensions[index] = CertificateExtensionValues.toExtension(
+				extensionInfoModel.getExtensionId(), extensionInfoModel.isCritical(),
+				extensionInfoModel.getValue());
+		}
+		return extensions;
+	}
+
+	/**
+	 * The signature algorithm to use when none was chosen, for a key of the given kind
+	 *
+	 * @param keyAlgorithm
+	 *            the algorithm of the private key, as the key itself reports it
+	 * @return the signature algorithm
+	 */
+	public static String defaultSignatureAlgorithmFor(final String keyAlgorithm)
+	{
+		return switch (keyAlgorithm.toUpperCase(java.util.Locale.ROOT))
+		{
+			case "EC", "ECDSA" -> "SHA256withECDSA";
+			case "DSA" -> "SHA256withDSA";
+			case "ED25519" -> "Ed25519";
+			case "ED448" -> "Ed448";
+			// an RSASSA-PSS key signed the PKCS#1 v1.5 way produces a certificate that contradicts
+			// RFC 4055 and that openssl refuses to verify
+			case "RSASSA-PSS" -> "SHA256withRSAandMGF1";
+			default -> "SHA256withRSA";
+		};
+	}
+
+	/**
+	 * Whether a key of the given kind can sign with the given signature algorithm
+	 *
+	 * @param signatureAlgorithm
+	 *            the signature algorithm that was chosen
+	 * @param keyAlgorithm
+	 *            the algorithm of the private key
+	 * @return true if the two fit together
+	 */
+	public static boolean signatureAlgorithmFits(final String signatureAlgorithm,
+		final String keyAlgorithm)
+	{
+		String signature = signatureAlgorithm.toUpperCase(java.util.Locale.ROOT).replace("-", "");
+		String key = keyAlgorithm.toUpperCase(java.util.Locale.ROOT).replace("-", "");
+		return switch (key)
+		{
+			case "RSA" -> signature.contains("RSA");
+			case "RSASSAPSS" -> signature.contains("RSA") && signature.contains("MGF1")
+				|| signature.contains("PSS");
+			case "EC", "ECDSA" -> signature.contains("ECDSA");
+			case "DSA" -> signature.contains("DSA") && !signature.contains("ECDSA");
+			case "ED25519" -> signature.contains("ED25519");
+			case "ED448" -> signature.contains("ED448");
+			// anything else - the post-quantum families among them - names itself in its signature
+			default -> signature.contains(key);
+		};
 	}
 }

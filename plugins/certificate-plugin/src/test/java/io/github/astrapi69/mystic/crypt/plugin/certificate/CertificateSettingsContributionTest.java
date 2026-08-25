@@ -27,6 +27,7 @@ package io.github.astrapi69.mystic.crypt.plugin.certificate;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.File;
@@ -80,7 +81,9 @@ class CertificateSettingsContributionTest
 	void declaresItsPluginIdAndItsDefaults()
 	{
 		assertEquals("certificate-plugin", CONTRIBUTION.getPluginId());
-		assertEquals(3, CONTRIBUTION.getDefaults().size());
+		assertEquals(4, CONTRIBUTION.getDefaults().size());
+		assertEquals("RSA",
+			CONTRIBUTION.getDefaults().get(CertificateSettingsContribution.KEY_KEY_ALGORITHM));
 	}
 
 	@Test
@@ -91,6 +94,33 @@ class CertificateSettingsContributionTest
 		assertEquals(1, CertificateSettingsContribution.validityYears());
 	}
 
+	/**
+	 * A signature algorithm the configured key cannot produce would fail deep inside the
+	 * certificate builder; the wizard then picks the one that fits instead
+	 */
+	@Test
+	void aSignatureAlgorithmThatDoesNotFitTheKeyIsDropped() throws Exception
+	{
+		store(CertificateSettingsContribution.KEY_KEY_ALGORITHM, "EC");
+		PluginSettings.save(configurationDirectory, CONTRIBUTION.getPluginId(),
+			CONTRIBUTION.getDefaults(), Map.of(CertificateSettingsContribution.KEY_KEY_ALGORITHM,
+				"EC", CertificateSettingsContribution.KEY_SIGNATURE_ALGORITHM, "SHA256withRSA"));
+
+		assertEquals("EC", CertificateSettingsContribution.keyAlgorithm());
+		assertNull(CertificateSettingsContribution.signatureAlgorithm(),
+			"an RSA signature over an EC key is not something to hand on");
+	}
+
+	@Test
+	void aSignatureAlgorithmThatFitsIsKept() throws Exception
+	{
+		PluginSettings.save(configurationDirectory, CONTRIBUTION.getPluginId(),
+			CONTRIBUTION.getDefaults(), Map.of(CertificateSettingsContribution.KEY_KEY_ALGORITHM,
+				"EC", CertificateSettingsContribution.KEY_SIGNATURE_ALGORITHM, "SHA256withECDSA"));
+
+		assertEquals("SHA256withECDSA", CertificateSettingsContribution.signatureAlgorithm());
+	}
+
 	@Test
 	void storedValuesAreUsed() throws Exception
 	{
@@ -98,7 +128,8 @@ class CertificateSettingsContributionTest
 		assertEquals("my server", CertificateSettingsContribution.commonName());
 
 		store(CertificateSettingsContribution.KEY_SIGNATURE_ALGORITHM, "SHA512withRSA");
-		assertEquals("SHA512withRSA", CertificateSettingsContribution.signatureAlgorithm());
+		assertEquals("SHA512withRSA", CertificateSettingsContribution.signatureAlgorithm(),
+			"a stronger RSA signature over an RSA key fits and must be kept");
 
 		store(CertificateSettingsContribution.KEY_VALIDITY_YEARS, "10");
 		assertEquals(10, CertificateSettingsContribution.validityYears());

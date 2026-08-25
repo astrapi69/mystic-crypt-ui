@@ -26,15 +26,13 @@ package io.github.astrapi69.mystic.crypt.wizard;
 
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
+import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.table.DefaultTableModel;
-
-import org.bouncycastle.asn1.ASN1ObjectIdentifier;
-import org.bouncycastle.asn1.DEROctetString;
 
 import io.github.astrapi69.design.pattern.state.wizard.model.BaseWizardStateMachineModel;
 import io.github.astrapi69.model.api.IModel;
@@ -55,7 +53,13 @@ import net.miginfocom.swing.MigLayout;
 public class ExtensionsPanel extends BasePanel<BaseWizardStateMachineModel<CertificateInfoModel>>
 {
 
+	/** What the choice is called when the extension is not one of the understood ones */
+	public static final String OTHER_EXTENSION = "Other (object id)";
+
+
 	JLabel lblHeader;
+	JComboBox<String> cmbExtensionKind;
+	JLabel lblValueHint;
 	JTable tblExtensions;
 	DefaultTableModel tableModel;
 	JTextField txtExtensionId;
@@ -97,9 +101,30 @@ public class ExtensionsPanel extends BasePanel<BaseWizardStateMachineModel<Certi
 		txtExtensionValue = new JTextField(20);
 		chkCritical = new JCheckBox("Critical");
 
+		// the three extensions that actually come up can be picked by name; nobody should have to
+		// know that "basic constraints" is 2.5.29.19
+		java.util.List<String> kinds = new java.util.ArrayList<>(
+			CertificateExtensionValues.understoodExtensionIds().stream()
+				.map(CertificateExtensionValues::displayName).toList());
+		kinds.add(OTHER_EXTENSION);
+		cmbExtensionKind = new JComboBox<>(kinds.toArray(new String[0]));
+		cmbExtensionKind.setName("cmbExtensionKind");
+		cmbExtensionKind.addActionListener(e -> onChangeExtensionKind());
+		lblValueHint = new JLabel(" ");
+		lblValueHint.setName("lblValueHint");
+		txtExtensionId.setName("txtExtensionId");
+		txtExtensionValue.setName("txtExtensionValue");
+		chkCritical.setName("chkCritical");
+		tblExtensions.setName("tblExtensions");
+		onChangeExtensionKind();
+
 		btnAddExtension = new JButton("Add");
 		btnEditExtension = new JButton("Edit");
 		btnDeleteExtension = new JButton("Delete");
+
+		btnAddExtension.setName("btnAddExtension");
+		btnEditExtension.setName("btnEditExtension");
+		btnDeleteExtension.setName("btnDeleteExtension");
 
 		btnAddExtension.addActionListener(e -> onAddExtension());
 		btnEditExtension.addActionListener(e -> onEditExtension());
@@ -117,6 +142,9 @@ public class ExtensionsPanel extends BasePanel<BaseWizardStateMachineModel<Certi
 
 		add(lblHeader, "span, align center, wrap 10");
 
+		add(new JLabel("Extension:"));
+		add(cmbExtensionKind, "wrap");
+
 		add(new JLabel("Extension ID:"));
 		add(txtExtensionId, "wrap");
 
@@ -125,6 +153,9 @@ public class ExtensionsPanel extends BasePanel<BaseWizardStateMachineModel<Certi
 
 		add(new JLabel("Value:"));
 		add(txtExtensionValue, "wrap");
+
+		add(new JLabel(""));
+		add(lblValueHint, "wrap");
 
 		add(btnAddExtension, "split 3, align center");
 		add(btnEditExtension);
@@ -186,34 +217,39 @@ public class ExtensionsPanel extends BasePanel<BaseWizardStateMachineModel<Certi
 	{
 		String extensionId = txtExtensionId.getText();
 		String value = txtExtensionValue.getText();
-
 		try
 		{
-			new ASN1ObjectIdentifier(extensionId);
+			// building it is the only honest check: an extension whose value is not proper DER
+			// produces a certificate that other tools reject, and the field it was meant to carry
+			// is simply not there
+			CertificateExtensionValues.toExtension(extensionId, chkCritical.isSelected(), value);
+			return true;
 		}
-		catch (IllegalArgumentException e)
+		catch (IllegalArgumentException exception)
 		{
-			showErrorDialog("Invalid Extension ID",
-				"<html>The provided Extension ID is invalid. Please ensure it is a valid ASN.1 OID.<br>"
-					+ "Refer to the following resource for more details: <a href='https://en.wikipedia.org/wiki/Object_identifier'>Object Identifier</a>"
-					+ " <br>https://en.wikipedia.org/wiki/Object_identifier</html>");
+			showErrorDialog("This extension cannot be built",
+				"<html><body width='420'>" + exception.getMessage() + "</body></html>");
 			return false;
 		}
+	}
 
-		try
+	/**
+	 * Puts the object id of the chosen extension into the form and shows what its value looks like
+	 */
+	protected void onChangeExtensionKind()
+	{
+		String selected = String.valueOf(cmbExtensionKind.getSelectedItem());
+		if (OTHER_EXTENSION.equals(selected))
 		{
-			new DEROctetString(value.getBytes());
+			lblValueHint.setText(CertificateExtensionValues.valueHint("other"));
+			return;
 		}
-		catch (IllegalArgumentException e)
-		{
-			showErrorDialog("Invalid Value",
-				"<html>The provided Value is invalid. Please ensure it is a valid ASN.1 Octet String.<br>"
-					+ "Refer to the following resource for more details: <a href='https://en.wikipedia.org/wiki/ASN.1'>ASN.1</a></html>"
-					+ " <br>https://en.wikipedia.org/wiki/ASN.1</html>");
-			return false;
-		}
-
-		return true;
+		CertificateExtensionValues.understoodExtensionIds().stream()
+			.filter(id -> CertificateExtensionValues.displayName(id).equals(selected)).findFirst()
+			.ifPresent(id -> {
+				txtExtensionId.setText(id);
+				lblValueHint.setText(CertificateExtensionValues.valueHint(id));
+			});
 	}
 
 	/**
