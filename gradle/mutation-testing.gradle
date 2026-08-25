@@ -1,0 +1,45 @@
+// Mutation testing with PIT.
+//
+// Scoped on purpose: only the classes that carry logic, never the Swing user interface. PIT reruns
+// the covering tests for every single mutation, and this project's user interface tests are
+// AssertJ-Swing end-to-end tests that need a display and take minutes for one full run - mutating
+// against them would take hours. On top of that, mutations in layout and wiring code are usually
+// equivalent, so they produce noise instead of insight.
+//
+// What stays in scope are the headless, fast tests: the menu layout, the KeePass converters and the
+// settings.
+//
+// Left out for now, to be added once their tests stand on their own: the application file format in
+// ...crypt.app and the KdbxCreds round trip. Their tests read keys that only parse with a security
+// provider and with fixtures another test class prepares, so they pass in a full suite run but not
+// when PIT runs them in its own forked JVM. That is a real coupling in those tests, not a PIT
+// problem - PIT just makes it visible.
+//
+// Run it with `./gradlew pitest`; the report lands in build/reports/pitest. There is deliberately
+// One mutant in MenuLayoutSupport.harvestActions survives on purpose and cannot be killed: turning
+// `index < menuBar.getMenuCount()` into `<=` makes getMenu(count) return null, which the null guard
+// right below already handles - the behaviour is identical, so it is an equivalent mutant.
+//
+// There is deliberately no mutationThreshold yet - a threshold picked before the first measurement would either fail the
+// build for no reason or be meaningless. Measure first, then set it just below what was reached, so
+// it guards against regressions.
+pitest {
+    junit5PluginVersion = libs.versions.pitest.junit5.plugin.version.get()
+    pitestVersion = libs.versions.pitest.version.get()
+    targetClasses = [
+            "io.github.astrapi69.mystic.crypt.menu.*",
+            "io.github.astrapi69.mystic.crypt.keepass.KeePassEntryConverter",
+            "io.github.astrapi69.mystic.crypt.keepass.KeePassTreeConverter",
+            "io.github.astrapi69.mystic.crypt.settings.MysticCryptSettings"
+    ]
+    // only the headless tests - excludes the whole ...crypt.ui package with its Swing tests
+    targetTests = [
+            "io.github.astrapi69.mystic.crypt.menu.*",
+            "io.github.astrapi69.mystic.crypt.keepass.KeePassEntryConverterTest",
+            "io.github.astrapi69.mystic.crypt.keepass.KeePassTreeConverterTest",
+            "io.github.astrapi69.mystic.crypt.settings.MysticCryptSettingsTest"
+    ]
+    threads = 4
+    outputFormats = ["HTML", "XML"]
+    timestampedReports = false
+}
