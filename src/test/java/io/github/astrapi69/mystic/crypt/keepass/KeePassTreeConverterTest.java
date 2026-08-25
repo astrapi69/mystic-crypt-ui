@@ -125,4 +125,57 @@ public class KeePassTreeConverterTest
 		return node.getValue().getName();
 	}
 
+
+	/**
+	 * A group node whose content list is null and which has no children at all - the two guards in
+	 * {@link KeePassTreeConverter#toSimpleGroup} that a tree built by hand can easily hit, for
+	 * instance a freshly created empty folder.
+	 */
+	@Test
+	public void testToSimpleGroupWithoutEntriesAndWithoutChildren()
+	{
+		SimpleDatabase database = new SimpleDatabase();
+		GenericTreeElement<List<MysticCryptEntryModelBean>> element = new GenericTreeElement<>();
+		element.setName("Empty folder");
+		element.setDefaultContent(null);
+		BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> node = BaseTreeNode
+			.<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> builder().id(1L)
+			.value(element).build();
+
+		SimpleGroup group = KeePassTreeConverter.toSimpleGroup(database, node,
+			database.getRootGroup());
+
+		assertEquals("Empty folder", group.getName());
+		assertTrue(group.getEntries().isEmpty(), "a group without content must have no entries");
+		assertTrue(group.getGroups().isEmpty(), "a group without children must have no subgroups");
+	}
+
+	@Test
+	public void testToSimpleGroupWithEntriesAndAChild()
+	{
+		SimpleDatabase database = new SimpleDatabase();
+		GenericTreeElement<List<MysticCryptEntryModelBean>> childElement = new GenericTreeElement<>();
+		childElement.setName("Child folder");
+		BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> child = BaseTreeNode
+			.<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> builder().id(2L)
+			.value(childElement).build();
+
+		GenericTreeElement<List<MysticCryptEntryModelBean>> element = new GenericTreeElement<>();
+		element.setName("Parent folder");
+		element.setDefaultContent(
+			List.of(MysticCryptEntryModelBean.builder().title("An entry").build()));
+		BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> node = BaseTreeNode
+			.<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> builder().id(1L)
+			.value(element).build();
+		node.addChild(child);
+
+		SimpleGroup group = KeePassTreeConverter.toSimpleGroup(database, node,
+			database.getRootGroup());
+
+		assertEquals(1, group.getEntries().size(), "the content must become an entry");
+		assertEquals("An entry", group.getEntries().get(0).getTitle());
+		assertEquals(1, group.getGroups().size(), "the child node must become a subgroup");
+		assertEquals("Child folder", group.getGroups().get(0).getName());
+	}
+
 }

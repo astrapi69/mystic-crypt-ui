@@ -32,15 +32,22 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.time.Instant;
+import java.time.LocalDate;
 import java.time.ZoneOffset;
 import java.util.Date;
+import java.util.List;
+import java.util.function.Consumer;
+import java.util.stream.Stream;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.linguafranca.pwdb.Entry;
 import org.linguafranca.pwdb.kdbx.simple.SimpleDatabase;
 import org.linguafranca.pwdb.kdbx.simple.SimpleEntry;
 import org.linguafranca.pwdb.kdbx.simple.SimpleIcon;
 
+import io.github.astrapi69.file.create.model.FileContentInfo;
 import io.github.astrapi69.mystic.crypt.panel.dbtree.MysticCryptEntryModelBean;
 
 public class KeePassEntryConverterTest
@@ -137,6 +144,67 @@ public class KeePassEntryConverterTest
 		// Entry.setExpiryTime(...) throws on null, so this must never be null even when
 		// the entry isn't actually expirable
 		assertNotNull(entry.getExpiryTime());
+	}
+
+
+	/**
+	 * The three ways an entry can state when it expires: a precise timestamp, a day-precision date
+	 * that gets widened to the start of that day, and nothing at all - for which the converter
+	 * still has to produce a non-null time, because KeePass demands one even for entries that never
+	 * expire.
+	 */
+	static Stream<org.junit.jupiter.params.provider.Arguments> expiryCases()
+	{
+		Instant precise = Instant.parse("2030-06-15T10:30:00Z");
+		return Stream.of(
+			org.junit.jupiter.params.provider.Arguments.of("precise timestamp",
+				(Consumer<MysticCryptEntryModelBean>)bean -> bean
+					.setPreciseExpiryTime(precise.atOffset(ZoneOffset.UTC)),
+				precise),
+			org.junit.jupiter.params.provider.Arguments.of("day precision date",
+				(Consumer<MysticCryptEntryModelBean>)bean -> bean
+					.setExpires(LocalDate.parse("2031-01-20")),
+				Instant.parse("2031-01-20T00:00:00Z")),
+			org.junit.jupiter.params.provider.Arguments.of("nothing set",
+				(Consumer<MysticCryptEntryModelBean>)bean -> {
+				}, null));
+	}
+
+	@ParameterizedTest(name = "{0}")
+	@MethodSource("expiryCases")
+	public void testToSimpleEntryAlwaysSetsAnExpiryTime(String description,
+		Consumer<MysticCryptEntryModelBean> prepare, Instant expected)
+	{
+		SimpleDatabase database = new SimpleDatabase();
+		MysticCryptEntryModelBean bean = MysticCryptEntryModelBean.builder().title("Expiry")
+			.build();
+		prepare.accept(bean);
+
+		SimpleEntry entry = KeePassEntryConverter.toSimpleEntry(database, bean);
+
+		assertNotNull(entry.getExpiryTime(),
+			"KeePass needs an expiry time even when none was given (" + description + ")");
+		if (expected != null)
+		{
+			assertEquals(expected, entry.getExpiryTime().toInstant(),
+				"the expiry time must come from the " + description);
+		}
+	}
+
+	@Test
+	public void testToSimpleEntryCarriesAttachmentsOver()
+	{
+		SimpleDatabase database = new SimpleDatabase();
+		byte[] content = "attached bytes".getBytes(java.nio.charset.StandardCharsets.UTF_8);
+		MysticCryptEntryModelBean bean = MysticCryptEntryModelBean.builder()
+			.title("With attachment")
+			.resources(List.of(FileContentInfo.builder().name("note.txt").content(content).build()))
+			.build();
+
+		SimpleEntry entry = KeePassEntryConverter.toSimpleEntry(database, bean);
+
+		assertArrayEquals(content, entry.getBinaryProperty("note.txt"),
+			"an attachment must be written as a binary property");
 	}
 
 }

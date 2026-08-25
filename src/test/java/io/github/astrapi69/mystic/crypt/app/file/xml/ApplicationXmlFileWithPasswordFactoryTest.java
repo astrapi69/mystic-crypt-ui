@@ -28,10 +28,13 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.io.File;
+import java.security.Security;
 
 import javax.crypto.Cipher;
 
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
@@ -50,6 +53,21 @@ import io.github.astrapi69.throwable.RuntimeExceptionDecorator;
 
 public class ApplicationXmlFileWithPasswordFactoryTest
 {
+
+	/**
+	 * Registers Bouncy Castle for this test class instead of relying on another test having done it
+	 * already. The provider is global to the JVM, so in a full suite run some other class registers
+	 * it first and this one passes by accident; run in isolation - as a mutation testing run does -
+	 * it would fail with an InvalidKeySpecException.
+	 */
+	@BeforeAll
+	public static void registerBouncyCastle()
+	{
+		if (Security.getProvider(BouncyCastleProvider.PROVIDER_NAME) == null)
+		{
+			Security.addProvider(new BouncyCastleProvider());
+		}
+	}
 
 	File applicationFile;
 	String selectedApplicationFilePath;

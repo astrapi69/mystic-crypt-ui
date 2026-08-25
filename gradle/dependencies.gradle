@@ -67,4 +67,7 @@ dependencies {
     // Note: use of bundles...
     testImplementation libs.bundles.unit.testing
     testRuntimeOnly libs.junit.platform.launcher
+
+    // mutation testing (see gradle/mutation-testing.gradle)
+    pitest libs.pitest.junit5.plugin
 }

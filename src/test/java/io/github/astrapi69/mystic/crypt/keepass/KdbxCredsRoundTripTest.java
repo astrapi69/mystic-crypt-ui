@@ -33,13 +33,31 @@ import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.security.Security;
 
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.linguafranca.pwdb.kdbx.KdbxCreds;
 import org.linguafranca.pwdb.kdbx.simple.SimpleDatabase;
 
 public class KdbxCredsRoundTripTest
 {
+
+	/**
+	 * Registers Bouncy Castle for this test class instead of relying on another test having done it
+	 * already. The provider is global to the JVM, so in a full suite run some other class registers
+	 * it first and this one passes by accident; run in isolation - as a mutation testing run does -
+	 * it would fail with an InvalidKeySpecException.
+	 */
+	@BeforeAll
+	public static void registerBouncyCastle()
+	{
+		if (Security.getProvider(BouncyCastleProvider.PROVIDER_NAME) == null)
+		{
+			Security.addProvider(new BouncyCastleProvider());
+		}
+	}
 
 	@Test
 	public void testPasswordOnlyRoundTrip() throws Exception

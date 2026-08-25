@@ -3,6 +3,7 @@ gradle/formatting.gradle
 gradle/grgit.gradle
 gradle/izpack.gradle
 gradle/licensing.gradle
+gradle/mutation-testing.gradle
 gradle/packaging.gradle
 gradle/publishing.gradle
 gradle/repositories.gradle

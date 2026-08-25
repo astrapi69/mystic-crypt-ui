@@ -42,6 +42,8 @@ import javax.swing.JMenuItem;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 /**
  * Headless tests of {@link MenuLayoutSupport}: exporting a menu bar to xml, rebuilding a menu bar
@@ -150,6 +152,84 @@ class MenuLayoutSupportTest
 		JMenuBar applied = MenuLayoutSupport.applyPersistedLayout(original, configurationDirectory);
 		assertTrue(applied != original, "with a layout file a new menu bar is built");
 		assertEquals(original.getMenuCount(), applied.getMenuCount());
+	}
+
+	/**
+	 * Menu xml that is not a usable layout, each broken in its own way: no xml at all, a truncated
+	 * document, a root element the reader does not know, and an empty document.
+	 */
+	@ParameterizedTest
+	@ValueSource(strings = { "this is not menu xml", "<menubar id=\"x\">", "<nonsense/>", "" })
+	void validateReportsProblemsForBrokenXml(String xml)
+	{
+		assertFalse(MenuLayoutSupport.validate(xml).isEmpty(),
+			"broken menu xml must be reported as invalid, was accepted: '" + xml + "'");
+	}
+
+	@Test
+	void validateAcceptsAnExportedLayout()
+	{
+		String xml = MenuLayoutSupport.exportXml(newMenuBar(new AtomicInteger()));
+
+		assertTrue(MenuLayoutSupport.validate(xml).isEmpty(),
+			"the xml this class exports must validate");
+	}
+
+	@Test
+	void anEmptyMenuBarHarvestsNoActions()
+	{
+		assertTrue(MenuLayoutSupport.harvestActions(new JMenuBar()).isEmpty(),
+			"a menu bar without menus has no actions to harvest");
+	}
+
+	@Test
+	void anItemBackedByAnActionIsHarvestedThroughThatAction()
+	{
+		AtomicInteger calls = new AtomicInteger();
+		JMenuBar menuBar = new JMenuBar();
+		JMenu menu = new JMenu("File");
+		menu.setName("global.menu.file");
+		// the host builds its menu items from Actions rather than plain listeners, so this is the
+		// shape that actually occurs in the application
+		javax.swing.Action action = new javax.swing.AbstractAction("Save")
+		{
+			@Override
+			public void actionPerformed(java.awt.event.ActionEvent event)
+			{
+				calls.incrementAndGet();
+			}
+		};
+		JMenuItem withAction = new JMenuItem(action);
+		withAction.setName("global.menu.file.save");
+		menu.add(withAction);
+		menuBar.add(menu);
+
+		java.awt.event.ActionListener harvested = MenuLayoutSupport.harvestActions(menuBar)
+			.get("global.menu.file.save");
+
+		assertNotNull(harvested, "an item backed by an Action must be harvested");
+		harvested.actionPerformed(new java.awt.event.ActionEvent(withAction, 0, "test"));
+		assertEquals(1, calls.get(), "the harvested listener must run the item's Action");
+	}
+
+	@Test
+	void anItemWithoutAnActionIsNotHarvested()
+	{
+		JMenuBar menuBar = new JMenuBar();
+		JMenu menu = new JMenu("File");
+		menu.setName("global.menu.file");
+		// a plain label-like item: no Action, no ActionListener
+		JMenuItem withoutAction = new JMenuItem("Nothing happens");
+		withoutAction.setName("global.menu.file.nothing");
+		menu.add(withoutAction);
+		menuBar.add(menu);
+
+		Map<String, java.awt.event.ActionListener> actions = MenuLayoutSupport
+			.harvestActions(menuBar);
+
+		assertFalse(actions.containsKey("global.menu.file.nothing"),
+			"an item that carries no action must not end up in the registry, was: "
+				+ actions.keySet());
 	}
 
 	@Test

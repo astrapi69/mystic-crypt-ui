@@ -18,6 +18,9 @@ file-worker-version = "19.0"
 gen-tree-version = "11.1"
 gradle-izpack-plugin-version = "3.2"
 gradle-plugin-grgit-version = "5.3.3"
+gradle-plugin-pitest-version = "1.19.0"
+pitest-junit5-plugin-version = "1.2.3"
+pitest-version = "1.25.9"
 gradle-plugin-license-version = "0.16.1"
 gradle-plugin-lombok-version = "9.5.0"
 gradle-plugin-spotless-version = "8.10.0"
@@ -157,6 +160,8 @@ xml-extensions = { module = "io.github.astrapi69:xml-extensions", version.ref = 
 xstream = { module = "com.thoughtworks.xstream:xstream", version.ref = "xstream-version" }
 xstream-extensions = { module = "io.github.astrapi69:xstream-extensions", version.ref = "xstream-extensions-version" }
 
+pitest-junit5-plugin = { module = "org.pitest:pitest-junit5-plugin", version.ref = "pitest-junit5-plugin-version" }
+
 [bundles]
 unit-testing = [
     "assertj-swing",
@@ -173,5 +178,6 @@ gradle-versions-plugin = { id = "io.github.ben-manes.versions", version.ref = "g
 grgit-gradle = { id = "org.ajoberstar.grgit", version.ref = "gradle-plugin-grgit-version" }
 license-gradle-plugin = { id = "com.github.hierynomus.license", version.ref = "gradle-plugin-license-version" }
 lombok-plugin = { id = "io.freefair.lombok", version.ref = "gradle-plugin-lombok-version" }
+pitest-gradle-plugin = { id = "info.solidsoft.pitest", version.ref = "gradle-plugin-pitest-version" }
 spotless-plugin-gradle = { id = "com.diffplug.spotless", version.ref = "gradle-plugin-spotless-version" }
 version-catalog-update = { id = "nl.littlerobots.version-catalog-update", version.ref = "gradle-plugin-version-catalog-update-version" }

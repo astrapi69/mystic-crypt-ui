@@ -1,0 +1,76 @@
+# Mutation testing with PIT.
+#
+# Deliberately separate from the build workflow and deliberately not on every push: PIT reruns the
+# covering tests for every single mutation, so it is far slower than a normal build. Keeping it out
+# of the push path leaves the regular feedback loop fast, and mutation quality changes slowly enough
+# that a weekly run plus a manual trigger is enough.
+#
+# The scope is configured in gradle/mutation-testing.gradle: only the headless logic classes, never
+# the Swing user interface. No display is needed here for that reason.
+
+name: Mutation testing
+
+on:
+  workflow_dispatch:
+  schedule:
+    # Mondays at 04:17 UTC - an odd minute, so it does not queue up with everyone else's hourly jobs
+    - cron: '17 4 * * 1'
+  pull_request:
+    branches: [ master, develop ]
+    # only when the measured logic or its tests change, not for every pull request
+    paths:
+      - 'src/main/java/io/github/astrapi69/mystic/crypt/menu/**'
+      - 'src/main/java/io/github/astrapi69/mystic/crypt/keepass/**'
+      - 'src/main/java/io/github/astrapi69/mystic/crypt/settings/**'
+      - 'src/test/java/io/github/astrapi69/mystic/crypt/menu/**'
+      - 'src/test/java/io/github/astrapi69/mystic/crypt/keepass/**'
+      - 'src/test/java/io/github/astrapi69/mystic/crypt/settings/**'
+      - 'gradle/mutation-testing.gradle'
+
+jobs:
+  pitest:
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v4
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          java-version: '25'
+          distribution: 'temurin'
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v3
+      - name: Run mutation testing
+        run: ./gradlew pitest
+      - name: Report the result in the job summary
+        # the numbers belong in the summary, so a run can be judged without downloading anything
+        if: always()
+        run: |
+          report="build/reports/pitest/mutations.xml"
+          if [ ! -f "$report" ]; then
+            echo "No mutation report was produced." >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          killed=$(grep -c "status='KILLED'" "$report" || true)
+          survived=$(grep -c "status='SURVIVED'" "$report" || true)
+          uncovered=$(grep -c "status='NO_COVERAGE'" "$report" || true)
+          total=$(grep -c "<mutation " "$report" || true)
+          {
+            echo "## Mutation testing"
+            echo ""
+            echo "| result | count |"
+            echo "|---|---:|"
+            echo "| killed | $killed |"
+            echo "| survived | $survived |"
+            echo "| not covered | $uncovered |"
+            echo "| total | $total |"
+          } >> "$GITHUB_STEP_SUMMARY"
+      - name: Upload the html report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pitest-report
+          path: build/reports/pitest
+          retention-days: 14

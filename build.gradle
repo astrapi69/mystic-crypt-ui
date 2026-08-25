@@ -18,6 +18,7 @@ plugins {
     alias(libs.plugins.grgit.gradle)
     alias(libs.plugins.license.gradle.plugin)
     alias(libs.plugins.lombok.plugin)
+    alias(libs.plugins.pitest.gradle.plugin)
     alias(libs.plugins.spotless.plugin.gradle)
     alias(libs.plugins.version.catalog.update)
 }
