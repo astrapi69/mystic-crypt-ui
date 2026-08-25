@@ -32,6 +32,9 @@ import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Enumeration;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -42,6 +45,7 @@ import javax.swing.*;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreeModel;
+import javax.swing.tree.TreePath;
 
 import org.kquiet.browser.ActionComposer;
 import org.kquiet.browser.ActionComposerBuilder;
@@ -302,6 +306,27 @@ public class SecretKeyTreeWithContentPanel
 
 				popup.add(JMenuItemFactory.newJMenuItem("delete",
 					actionEvent -> this.onDeleteSelectedTreeNode(mouseEvent)));
+
+				popup.addSeparator();
+
+				// moving is only offered where it can do something: the first child cannot go up,
+				// the last cannot go down, and the root has no siblings at all
+				JMenuItem moveUp = JMenuItemFactory.newJMenuItem("Move up",
+					actionEvent -> this.onMoveSelectedTreeNode(mouseEvent, -1));
+				moveUp.setName("treeMoveUp");
+				moveUp.setEnabled(canMove(selectedTreeNodeElement, -1));
+				popup.add(moveUp);
+
+				JMenuItem moveDown = JMenuItemFactory.newJMenuItem("Move down",
+					actionEvent -> this.onMoveSelectedTreeNode(mouseEvent, 1));
+				moveDown.setName("treeMoveDown");
+				moveDown.setEnabled(canMove(selectedTreeNodeElement, 1));
+				popup.add(moveDown);
+
+				JMenuItem moveTo = JMenuItemFactory.newJMenuItem("Move to node...",
+					actionEvent -> this.onMoveSelectedTreeNodeToAnotherParent(mouseEvent));
+				moveTo.setName("treeMoveTo");
+				popup.add(moveTo);
 			}
 
 			popup.add(JMenuItemFactory.newJMenuItem("Collapse node",
@@ -473,6 +498,250 @@ public class SecretKeyTreeWithContentPanel
 			}
 		}
 		return copy;
+	}
+
+	/**
+	 * The siblings of a node in the order they are shown, as a list - the children are held in a
+	 * set, which has an order but no positions
+	 *
+	 * @param treeNode
+	 *            the node whose siblings are wanted
+	 * @return the siblings including the node itself, empty for the root
+	 */
+	public static List<BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long>> siblingsOf(
+		BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> treeNode)
+	{
+		BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> parent = treeNode
+			.getParent();
+		return parent == null ? new ArrayList<>() : new ArrayList<>(parent.getChildren());
+	}
+
+	/**
+	 * The position of a node among its siblings, compared by identity - not by equals, which
+	 * includes the name and therefore cannot tell two nodes of the same name apart
+	 *
+	 * @param treeNode
+	 *            the node to look for
+	 * @return the position, or -1 when the node has no parent
+	 */
+	public static int positionOf(
+		BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> treeNode)
+	{
+		List<BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long>> siblings = siblingsOf(
+			treeNode);
+		for (int position = 0; position < siblings.size(); position++)
+		{
+			if (siblings.get(position) == treeNode)
+			{
+				return position;
+			}
+		}
+		return -1;
+	}
+
+	/**
+	 * Whether a node can be moved by the given offset: the first child cannot go further up, the
+	 * last cannot go further down, and the root has no siblings to move among
+	 *
+	 * @param treeNode
+	 *            the node to move
+	 * @param offset
+	 *            -1 for up, 1 for down
+	 * @return true if the move would change the order
+	 */
+	public static boolean canMove(
+		BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> treeNode,
+		int offset)
+	{
+		int position = positionOf(treeNode);
+		int target = position + offset;
+		return 0 <= position && 0 <= target && target < siblingsOf(treeNode).size();
+	}
+
+	/**
+	 * The callback method on moving the selected tree node one position up or down among its
+	 * siblings
+	 *
+	 * @param mouseEvent
+	 *            the mouse event that opened the context menu
+	 * @param offset
+	 *            -1 for up, 1 for down
+	 */
+	@SuppressWarnings("unchecked")
+	protected void onMoveSelectedTreeNode(MouseEvent mouseEvent, int offset)
+	{
+		JTreeExtensions.getSelectedDefaultMutableTreeNode(mouseEvent, tree)
+			.ifPresent(selectedDefaultMutableTreeNode -> {
+				BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> selectedTreeNode = (BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long>)selectedDefaultMutableTreeNode
+					.getUserObject();
+				if (!canMove(selectedTreeNode, offset))
+				{
+					return;
+				}
+				int position = positionOf(selectedTreeNode);
+				int target = position + offset;
+				List<BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long>> siblings = siblingsOf(
+					selectedTreeNode);
+				siblings.remove(position);
+				siblings.add(target, selectedTreeNode);
+
+				BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> parentTreeNode = selectedTreeNode
+					.getParent();
+				Collection<BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long>> reordered = new LinkedHashSet<>(
+					siblings);
+				if (reordered.size() != siblings.size())
+				{
+					// two siblings that are equal by name would collapse into one here, which would
+					// lose a node; refuse the move instead of silently dropping it
+					DialogExtensions.showMessageDialog(null, "Move not possible",
+						"Two nodes of the same name are on this level. Rename one of them first.",
+						JOptionPane.WARNING_MESSAGE);
+					return;
+				}
+				parentTreeNode.setChildren(reordered);
+
+				DefaultMutableTreeNode swingParent = (DefaultMutableTreeNode)selectedDefaultMutableTreeNode
+					.getParent();
+				swingParent.insert(selectedDefaultMutableTreeNode, target);
+				reload(swingParent);
+				// keep the moved node selected, so it can be moved again without picking it anew
+				tree.setSelectionPath(new TreePath(selectedDefaultMutableTreeNode.getPath()));
+			});
+	}
+
+	/**
+	 * The callback method on moving the selected tree node under another node. The move itself is
+	 * the one the tree library already offers - it refuses a leaf as the new parent and refuses a
+	 * node that is inside the moved subtree, which would cut the tree in two
+	 *
+	 * @param mouseEvent
+	 *            the mouse event that opened the context menu
+	 */
+	@SuppressWarnings("unchecked")
+	protected void onMoveSelectedTreeNodeToAnotherParent(MouseEvent mouseEvent)
+	{
+		JTreeExtensions.getSelectedDefaultMutableTreeNode(mouseEvent, tree)
+			.ifPresent(selectedDefaultMutableTreeNode -> {
+				BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> selectedTreeNode = (BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long>)selectedDefaultMutableTreeNode
+					.getUserObject();
+				List<BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long>> targets = possibleMoveTargets(
+					selectedTreeNode);
+				if (targets.isEmpty())
+				{
+					DialogExtensions.showMessageDialog(null, "Move not possible",
+						"There is no other node this one could be moved under.",
+						JOptionPane.INFORMATION_MESSAGE);
+					return;
+				}
+				JComboBox<BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long>> targetChooser = new JComboBox<>(
+					targets.toArray(new BaseTreeNode[0]));
+				targetChooser.setName("cmbMoveTarget");
+				targetChooser.setRenderer(new DefaultListCellRenderer()
+				{
+					private static final long serialVersionUID = 1L;
+
+					@Override
+					public java.awt.Component getListCellRendererComponent(JList<?> list,
+						Object value, int index, boolean isSelected, boolean cellHasFocus)
+					{
+						BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> node = (BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long>)value;
+						return super.getListCellRendererComponent(list,
+							node != null ? pathOf(node) : "", index, isSelected, cellHasFocus);
+					}
+				});
+				JPanel panel = new JPanel();
+				panel.add(new JLabel("Move under:"));
+				panel.add(targetChooser);
+				int option = JOptionPaneExtensions.getSelectedOption(panel,
+					JOptionPane.PLAIN_MESSAGE, JOptionPane.OK_CANCEL_OPTION, null,
+					Messages.getString("dialog.move.node.title", "Move node"), targetChooser);
+				if (option != JOptionPane.OK_OPTION)
+				{
+					return;
+				}
+				BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> newParentTreeNode = (BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long>)targetChooser
+					.getSelectedItem();
+				DefaultMutableTreeNode oldSwingParent = (DefaultMutableTreeNode)selectedDefaultMutableTreeNode
+					.getParent();
+				BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> oldParentTreeNode = selectedTreeNode
+					.getParent();
+
+				// the library guards against a leaf target and against a target inside the moved
+				// subtree, but it detaches the node with a hash based remove, which a renamed node
+				// survives - so the node is detached by identity here and only then handed over
+				if (!newParentTreeNode.isNode() || newParentTreeNode.isDescendant(selectedTreeNode))
+				{
+					DialogExtensions.showMessageDialog(null, "Move not possible",
+						"A node cannot be moved into a leaf or into one of its own children.",
+						JOptionPane.WARNING_MESSAGE);
+					return;
+				}
+				oldParentTreeNode.getChildren().removeIf(child -> child == selectedTreeNode);
+				selectedTreeNode.setParent(newParentTreeNode);
+				newParentTreeNode.addChild(selectedTreeNode);
+
+				oldSwingParent.remove(selectedDefaultMutableTreeNode);
+				DefaultMutableTreeNode newSwingParent = findSwingNodeOf(newParentTreeNode);
+				if (newSwingParent != null)
+				{
+					newSwingParent.add(selectedDefaultMutableTreeNode);
+					reload(newSwingParent);
+					tree.setSelectionPath(new TreePath(selectedDefaultMutableTreeNode.getPath()));
+				}
+				reload(oldSwingParent);
+			});
+	}
+
+	/**
+	 * The nodes a given node could be moved under: every node that can hold children, except the
+	 * node itself, its current parent and everything inside its own subtree
+	 *
+	 * @param treeNode
+	 *            the node to move
+	 * @return the possible new parents
+	 */
+	public static List<BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long>> possibleMoveTargets(
+		BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> treeNode)
+	{
+		return treeNode.getRoot().traverse().stream().filter(BaseTreeNode::isNode)
+			.filter(candidate -> candidate != treeNode)
+			.filter(candidate -> candidate != treeNode.getParent())
+			.filter(candidate -> !treeNode.isDescendant(candidate)).toList();
+	}
+
+	/**
+	 * The path of a node as text, so a target can be told apart from another one of the same name
+	 */
+	private static String pathOf(
+		BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> treeNode)
+	{
+		StringBuilder path = new StringBuilder(String.valueOf(treeNode.getDisplayValue()));
+		BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> parent = treeNode
+			.getParent();
+		while (parent != null)
+		{
+			path.insert(0, parent.getDisplayValue() + " / ");
+			parent = parent.getParent();
+		}
+		return path.toString();
+	}
+
+	/** Finds the Swing node that carries the given tree node, comparing by identity */
+	private DefaultMutableTreeNode findSwingNodeOf(
+		BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> treeNode)
+	{
+		DefaultMutableTreeNode root = (DefaultMutableTreeNode)tree.getModel().getRoot();
+		Enumeration<javax.swing.tree.TreeNode> nodes = root.depthFirstEnumeration();
+		while (nodes.hasMoreElements())
+		{
+			javax.swing.tree.TreeNode candidate = nodes.nextElement();
+			if (candidate instanceof DefaultMutableTreeNode mutableTreeNode
+				&& mutableTreeNode.getUserObject() == treeNode)
+			{
+				return mutableTreeNode;
+			}
+		}
+		return null;
 	}
 
 	/**

@@ -298,6 +298,130 @@ final class ApplicationSteps
 	}
 
 	/**
+	 * Moves the tree node with the given display name one position up among its siblings, through
+	 * the real user flow: right-click, "Move up"
+	 */
+	ApplicationSteps moveNodeUp(org.assertj.swing.fixture.FrameFixture frame, String nodeName)
+	{
+		rightClickTreeNodeByName(frame, nodeName);
+		chooseFromShowingPopup("Move up");
+		robot.waitForIdle();
+		UiTestSpeed.step();
+		return this;
+	}
+
+	/** Moves the tree node one position down among its siblings */
+	ApplicationSteps moveNodeDown(org.assertj.swing.fixture.FrameFixture frame, String nodeName)
+	{
+		rightClickTreeNodeByName(frame, nodeName);
+		chooseFromShowingPopup("Move down");
+		robot.waitForIdle();
+		UiTestSpeed.step();
+		return this;
+	}
+
+	/**
+	 * Whether the context menu of the given node offers the entry with the given text, and whether
+	 * it is enabled - the popup is closed again afterwards
+	 */
+	boolean treeContextMenuItemIsEnabled(org.assertj.swing.fixture.FrameFixture frame,
+		String nodeName, String menuItemText)
+	{
+		rightClickTreeNodeByName(frame, nodeName);
+		GenericTypeMatcher<JMenuItem> itemMatcher = new GenericTypeMatcher<JMenuItem>(
+			JMenuItem.class, true)
+		{
+			@Override
+			protected boolean isMatching(JMenuItem candidate)
+			{
+				return menuItemText.equals(candidate.getText());
+			}
+		};
+		// the popup appears delayed, exactly like it does for chooseFromShowingPopup
+		Pause.pause(new Condition("context menu with '" + menuItemText + "' is showing")
+		{
+			@Override
+			public boolean test()
+			{
+				try
+				{
+					robot.finder().find(itemMatcher);
+					return true;
+				}
+				catch (org.assertj.swing.exception.ComponentLookupException notYetShowing)
+				{
+					return false;
+				}
+			}
+		}, 10000);
+		JMenuItem menuItem = robot.finder().find(itemMatcher);
+		boolean enabled = GuiActionRunner.execute(menuItem::isEnabled);
+		// close the popup again, so the next right-click starts from a clean state
+		GuiActionRunner.execute(() -> {
+			java.awt.Container parent = menuItem.getParent();
+			if (parent instanceof javax.swing.JPopupMenu popupMenu)
+			{
+				popupMenu.setVisible(false);
+			}
+		});
+		robot.waitForIdle();
+		UiTestSpeed.step();
+		return enabled;
+	}
+
+	/**
+	 * Moves the tree node with the given display name under another node, through the real user
+	 * flow: right-click, "Move to node...", pick the target whose path ends with the given name, OK
+	 */
+	ApplicationSteps moveNodeUnder(org.assertj.swing.fixture.FrameFixture frame, String nodeName,
+		String targetNodeName)
+	{
+		rightClickTreeNodeByName(frame, nodeName);
+		chooseFromShowingPopup("Move to node...");
+
+		DialogFixture moveDialog = findDialogWithTitle("Move node");
+		GuiActionRunner.execute(() -> {
+			javax.swing.JComboBox<?> chooser = moveDialog.comboBox("cmbMoveTarget").target();
+			for (int index = 0; index < chooser.getItemCount(); index++)
+			{
+				Object item = chooser.getItemAt(index);
+				if (String.valueOf(item).contains("displayValue=" + targetNodeName + ","))
+				{
+					chooser.setSelectedIndex(index);
+					return;
+				}
+			}
+			throw new IllegalStateException("no move target named '" + targetNodeName + "' among "
+				+ chooser.getItemCount() + " targets");
+		});
+		robot.waitForIdle();
+		UiTestSpeed.step();
+		clickDialogButton(moveDialog, "OK");
+		awaitDialogClosed(moveDialog, "move-node dialog");
+		return this;
+	}
+
+	/** The display names of the children of the tree root, in the order the tree shows them */
+	List<String> treeRootChildNames()
+	{
+		return GuiActionRunner.execute(() -> MysticCryptApplicationFrame.getInstance()
+			.getApplicationPanel().getSecretKeyTreeWithContentPanel().getModelObject().getChildren()
+			.stream().map(child -> String.valueOf(child.getDisplayValue())).toList());
+	}
+
+	/** The display names of the children of the node with the given name */
+	List<String> treeChildNamesOf(String nodeName)
+	{
+		return GuiActionRunner
+			.execute(() -> MysticCryptApplicationFrame.getInstance().getApplicationPanel()
+				.getSecretKeyTreeWithContentPanel().getModelObject().traverse().stream()
+				.filter(node -> nodeName.equals(String.valueOf(node.getDisplayValue()))).findFirst()
+				.map(node -> node.getChildren().stream()
+					.map(child -> String.valueOf(child.getDisplayValue())).toList())
+				.orElseThrow(() -> new IllegalStateException("no node named '" + nodeName + "'")));
+	}
+
+	/**
 	 * Opens the "Edit node" dialog for the node and closes it without confirming - name unchanged
 	 */
 	ApplicationSteps editNodeButCancel(org.assertj.swing.fixture.FrameFixture frame,
