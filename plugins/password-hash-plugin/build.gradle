@@ -23,7 +23,7 @@ repositories {
 dependencies {
     compileOnly "io.github.astrapi69:mystic-crypt-ui:8.2-SNAPSHOT"
     // PasswordEncryptor / Argon2Support / Pbkdf2Support live in the mystic-crypt library
-    compileOnly "io.github.astrapi69:mystic-crypt:11.0.0"
+    compileOnly "io.github.astrapi69:mystic-crypt:11.2"
     compileOnly "io.github.astrapi69:swing-base-components:5.1"
     compileOnly "io.github.astrapi69:swing-components:9"
     compileOnly "org.projectlombok:lombok:1.18.46"
@@ -35,7 +35,7 @@ dependencies {
 
     // the round-trip test drives the Argon2id / PBKDF2 hashing + verification headlessly
     testImplementation "org.junit.jupiter:junit-jupiter:5.11.4"
-    testImplementation "io.github.astrapi69:mystic-crypt:11.0.0"
+    testImplementation "io.github.astrapi69:mystic-crypt:11.2"
     testRuntimeOnly "org.junit.platform:junit-platform-launcher"
     // the settings contribution implements the host's extension point and reads through the host's
     // settings store, so the host jar has to be on the test classpath to load it

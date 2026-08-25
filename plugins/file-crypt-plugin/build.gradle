@@ -23,7 +23,7 @@ repositories {
 // swing helpers are only needed to open the tool window
 dependencies {
     compileOnly "io.github.astrapi69:mystic-crypt-ui:8.2-SNAPSHOT"
-    compileOnly "io.github.astrapi69:mystic-crypt:11.0.0"
+    compileOnly "io.github.astrapi69:mystic-crypt:11.2"
     compileOnly "io.github.astrapi69:swing-base-components:5.1"
     compileOnly "io.github.astrapi69:swing-components:9"
     // the passphrase construction lives in the host and uses Bouncy Castle underneath

@@ -24,9 +24,9 @@ repositories {
 // through the host jar and must be listed here; at runtime the host classloader provides them.
 dependencies {
     compileOnly "io.github.astrapi69:mystic-crypt-ui:8.2-SNAPSHOT"
-    compileOnly "io.github.astrapi69:mystic-crypt:11.0.0"
+    compileOnly "io.github.astrapi69:mystic-crypt:11.2"
     compileOnly "io.github.astrapi69:crypt-api:10.1"
-    compileOnly "io.github.astrapi69:crypt-data:11.1"
+    compileOnly "io.github.astrapi69:crypt-data:11.2"
     compileOnly "io.github.astrapi69:swing-base-components:5.1"
     compileOnly "io.github.astrapi69:swing-table-components:3.1"
     compileOnly "io.github.astrapi69:model-data:3.2.1"
@@ -46,9 +46,9 @@ dependencies {
 
     // the round-trip test drives the obfuscation library directly (headless)
     testImplementation "org.junit.jupiter:junit-jupiter:5.11.4"
-    testImplementation "io.github.astrapi69:mystic-crypt:11.0.0"
+    testImplementation "io.github.astrapi69:mystic-crypt:11.2"
     testImplementation "io.github.astrapi69:crypt-api:10.1"
-    testImplementation "io.github.astrapi69:crypt-data:11.1"
+    testImplementation "io.github.astrapi69:crypt-data:11.2"
     testImplementation "com.google.guava:guava:33.7.1-jre"
     testRuntimeOnly "org.junit.platform:junit-platform-launcher"
     // the settings contribution implements the host's extension point and reads through the host's
