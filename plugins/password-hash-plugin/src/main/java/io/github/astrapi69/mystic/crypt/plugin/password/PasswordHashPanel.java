@@ -40,8 +40,11 @@ public class PasswordHashPanel extends JPanel
 {
 
 	private static final long serialVersionUID = 1L;
-	private static final String ARGON2ID = "Argon2id";
-	private static final String PBKDF2 = "PBKDF2";
+	/** The memory hard algorithm, the one to prefer */
+	public static final String ARGON2ID = "Argon2id";
+
+	/** The classical alternative, for a system that has to stay interoperable */
+	public static final String PBKDF2 = "PBKDF2";
 
 	private final transient PasswordEncryptor passwordEncryptor = PasswordEncryptor.getInstance();
 
@@ -55,6 +58,8 @@ public class PasswordHashPanel extends JPanel
 	{
 		super(new GridBagLayout());
 		cmbAlgorithm.setName("cmbAlgorithm");
+		// the tool starts with what the user configured in the settings dialog
+		cmbAlgorithm.setSelectedItem(PasswordHashSettingsContribution.algorithm());
 		txtPassword.setName("txtPassword");
 		txtHash.setName("txtHash");
 		txtHash.setEditable(false);

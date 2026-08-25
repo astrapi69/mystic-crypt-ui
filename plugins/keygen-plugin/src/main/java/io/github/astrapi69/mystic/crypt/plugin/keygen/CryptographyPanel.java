@@ -217,6 +217,8 @@ public class CryptographyPanel extends BasePanel<GenerateKeysModelBean>
 		txtPrivateKey.getAccessibleContext().setAccessibleDescription("");
 
 		cmbKeySize.setModel(new EnumComboBoxModel<>(KeySize.class));
+		// the tool starts with what the user configured in the settings dialog
+		cmbKeySize.setSelectedItem(KeygenSettingsContribution.keySize());
 
 		btnGenerate.setText("Generate keys");
 

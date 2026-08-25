@@ -13,6 +13,7 @@ PLUGIN_PASSWORD_HASH_DIR := plugins/password-hash-plugin
 PLUGIN_KEM_DEMO_DIR := plugins/kem-demo-plugin
 PLUGIN_MENU_DESIGNER_DIR := plugins/menu-designer-plugin
 PLUGIN_PQC_SIGNATURE_DIR := plugins/pqc-signature-plugin
+PLUGIN_KEYSTORE_DIR := plugins/keystore-plugin
 PLUGIN_INSTALL_DIR := $(HOME)/.config/mystic-crypt-ui/plugins
 
 .PHONY: build build-full run all clean test test-e2e test-e2e-demo \
@@ -22,7 +23,7 @@ PLUGIN_INSTALL_DIR := $(HOME)/.config/mystic-crypt-ui/plugins
 	version-catalog-format version-catalog-update all-dependencies-jar \
 	build-stacktrace build-warning plugin-obfuscation plugin-checksum plugin-conversion \
 	plugin-console plugin-keygen plugin-certificate plugin-password-hash plugin-kem-demo \
-	plugin-menu-designer plugin-pqc-signature plugins plugins-install
+	plugin-menu-designer plugin-pqc-signature plugin-keystore plugins plugins-install
 
 # fast build: clean, compile, package the runnable jar - skips tests/spotless/license
 build:
@@ -84,7 +85,7 @@ plugin-conversion: publish-local
 
 # build the internal console plugin zip (needs the host published locally first)
 plugin-console: publish-local
-	JAVA_HOME=$(JAVA_HOME) ./gradlew -p $(PLUGIN_CONSOLE_DIR) pluginZip
+	JAVA_HOME=$(JAVA_HOME) ./gradlew -p $(PLUGIN_CONSOLE_DIR) test pluginZip
 	@echo "==> plugin zip: $$(find $(PLUGIN_CONSOLE_DIR)/build/plugin-dist -name '*.zip')"
 
 # build the internal keygen plugin zip (needs the host published locally first)
@@ -94,7 +95,7 @@ plugin-keygen: publish-local
 
 # build the internal certificate plugin zip (needs the host published locally first)
 plugin-certificate: publish-local
-	JAVA_HOME=$(JAVA_HOME) ./gradlew -p $(PLUGIN_CERTIFICATE_DIR) pluginZip
+	JAVA_HOME=$(JAVA_HOME) ./gradlew -p $(PLUGIN_CERTIFICATE_DIR) test pluginZip
 	@echo "==> plugin zip: $$(find $(PLUGIN_CERTIFICATE_DIR)/build/plugin-dist -name '*.zip')"
 
 # build the internal password-hash plugin zip (needs the host published locally first)
@@ -110,7 +111,7 @@ plugin-kem-demo: publish-local
 
 # build the internal menu-designer plugin zip (needs the host published locally first)
 plugin-menu-designer: publish-local
-	JAVA_HOME=$(JAVA_HOME) ./gradlew -p $(PLUGIN_MENU_DESIGNER_DIR) pluginZip
+	JAVA_HOME=$(JAVA_HOME) ./gradlew -p $(PLUGIN_MENU_DESIGNER_DIR) test pluginZip
 	@echo "==> plugin zip: $$(find $(PLUGIN_MENU_DESIGNER_DIR)/build/plugin-dist -name '*.zip')"
 
 # build the internal post-quantum signature plugin zip (needs the host published locally first)
@@ -118,8 +119,13 @@ plugin-pqc-signature: publish-local
 	JAVA_HOME=$(JAVA_HOME) ./gradlew -p $(PLUGIN_PQC_SIGNATURE_DIR) test pluginZip
 	@echo "==> plugin zip: $$(find $(PLUGIN_PQC_SIGNATURE_DIR)/build/plugin-dist -name '*.zip')"
 
+# build the internal key store plugin zip (needs the host published locally first)
+plugin-keystore: publish-local
+	JAVA_HOME=$(JAVA_HOME) ./gradlew -p $(PLUGIN_KEYSTORE_DIR) test pluginZip
+	@echo "==> plugin zip: $$(find $(PLUGIN_KEYSTORE_DIR)/build/plugin-dist -name '*.zip')"
+
 # build every internal plugin
-plugins: plugin-obfuscation plugin-checksum plugin-conversion plugin-console plugin-keygen plugin-certificate plugin-password-hash plugin-kem-demo plugin-menu-designer plugin-pqc-signature
+plugins: plugin-obfuscation plugin-checksum plugin-conversion plugin-console plugin-keygen plugin-certificate plugin-password-hash plugin-kem-demo plugin-menu-designer plugin-pqc-signature plugin-keystore
 
 # build all internal plugins and install them into the app's plugins directory
 plugins-install: plugins
@@ -134,6 +140,7 @@ plugins-install: plugins
 	cp $(PLUGIN_KEM_DEMO_DIR)/build/plugin-dist/*.zip "$(PLUGIN_INSTALL_DIR)/"
 	cp $(PLUGIN_MENU_DESIGNER_DIR)/build/plugin-dist/*.zip "$(PLUGIN_INSTALL_DIR)/"
 	cp $(PLUGIN_PQC_SIGNATURE_DIR)/build/plugin-dist/*.zip "$(PLUGIN_INSTALL_DIR)/"
+	cp $(PLUGIN_KEYSTORE_DIR)/build/plugin-dist/*.zip "$(PLUGIN_INSTALL_DIR)/"
 	@echo "==> installed all internal plugins into $(PLUGIN_INSTALL_DIR)"
 
 # --- mirrors Gradle "Run Configurations" panel ---

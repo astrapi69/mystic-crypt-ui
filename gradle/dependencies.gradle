@@ -31,6 +31,9 @@ dependencies {
     implementation libs.crypt.data
     implementation libs.checksum.up
     implementation libs.mystic.crypt
+    // the library brings picocli only at runtime scope; the command line entry point of this
+    // application compiles against it, so it is declared here with the very same version
+    implementation libs.picocli
     implementation libs.randomizer
     implementation libs.model.data
     implementation libs.throwable

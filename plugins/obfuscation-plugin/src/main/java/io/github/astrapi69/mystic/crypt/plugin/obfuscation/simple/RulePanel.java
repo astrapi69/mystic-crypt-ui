@@ -40,6 +40,7 @@ import io.github.astrapi69.model.api.IModel;
 import io.github.astrapi69.mystic.crypt.obfuscation.simple.SimpleCharacterObfuscator;
 import io.github.astrapi69.mystic.crypt.obfuscation.simple.SimpleObfuscatorExtensions;
 import io.github.astrapi69.mystic.crypt.panel.keygen.EnDecryptPanel;
+import io.github.astrapi69.mystic.crypt.plugin.obfuscation.ObfuscationSettingsContribution;
 import io.github.astrapi69.mystic.crypt.plugin.obfuscation.ModeContext;
 import io.github.astrapi69.swing.base.BasePanel;
 import lombok.Getter;
@@ -189,7 +190,10 @@ public class RulePanel extends BasePanel<ObfuscationModelBean>
 		final String disentangled = SimpleObfuscatorExtensions.disentangleBiMap(characterBiMap,
 			obfuscated);
 		getEnDecryptPanel().getTxtToEncrypt().setText(disentangled);
-		getEnDecryptPanel().getTxtEncrypted().setText("");
+		if (ObfuscationSettingsContribution.clearInputAfterRun())
+		{
+			getEnDecryptPanel().getTxtEncrypted().setText("");
+		}
 	}
 
 	protected void onEditObfuscationRule(ObfuscationRule<Character, Character> selected)
@@ -209,7 +213,10 @@ public class RulePanel extends BasePanel<ObfuscationModelBean>
 		getModelObject().setObfuscator(obfuscator);
 		final String result = getModelObject().getObfuscator().obfuscate();
 		getEnDecryptPanel().getTxtEncrypted().setText(result);
-		getEnDecryptPanel().getTxtToEncrypt().setText("");
+		if (ObfuscationSettingsContribution.clearInputAfterRun())
+		{
+			getEnDecryptPanel().getTxtToEncrypt().setText("");
+		}
 	}
 
 	@SuppressWarnings("serial")

@@ -7,7 +7,14 @@
 // equivalent, so they produce noise instead of insight.
 //
 // What stays in scope are the headless, fast tests: the menu layout, the KeePass converters and the
-// settings.
+// settings, including the store behind the per-plugin configuration.
+//
+// Measured and left out again for the same reason the user interface is left out:
+// PluginSettingsPanel is a Swing panel - almost all of its mutations hit setName/add/setText calls
+// that no assertion can see - and MysticCryptUiCli is plumbing around the pf4j plugin manager,
+// whose loadPlugins/startPlugins/stopPlugins calls only become observable with plugin zips actually
+// installed, which a mutation run does not have. Both are covered by their own tests
+// (PluginSettingsPanelTest, MysticCryptUiCliTest); they just make poor mutation targets.
 //
 // Left out for now, to be added once their tests stand on their own: the application file format in
 // ...crypt.app and the KdbxCreds round trip. Their tests read keys that only parse with a security
@@ -30,14 +37,16 @@ pitest {
             "io.github.astrapi69.mystic.crypt.menu.*",
             "io.github.astrapi69.mystic.crypt.keepass.KeePassEntryConverter",
             "io.github.astrapi69.mystic.crypt.keepass.KeePassTreeConverter",
-            "io.github.astrapi69.mystic.crypt.settings.MysticCryptSettings"
+            "io.github.astrapi69.mystic.crypt.settings.MysticCryptSettings",
+            "io.github.astrapi69.mystic.crypt.settings.PluginSettings"
     ]
     // only the headless tests - excludes the whole ...crypt.ui package with its Swing tests
     targetTests = [
             "io.github.astrapi69.mystic.crypt.menu.*",
             "io.github.astrapi69.mystic.crypt.keepass.KeePassEntryConverterTest",
             "io.github.astrapi69.mystic.crypt.keepass.KeePassTreeConverterTest",
-            "io.github.astrapi69.mystic.crypt.settings.MysticCryptSettingsTest"
+            "io.github.astrapi69.mystic.crypt.settings.MysticCryptSettingsTest",
+            "io.github.astrapi69.mystic.crypt.settings.PluginSettingsTest"
     ]
     threads = 4
     outputFormats = ["HTML", "XML"]

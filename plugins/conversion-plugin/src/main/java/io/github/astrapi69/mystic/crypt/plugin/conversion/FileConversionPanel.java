@@ -176,7 +176,12 @@ public class FileConversionPanel extends BasePanel<FileConversionModelBean>
 		lblChooseType.setText("Choose type to convert");
 
 		cmbChooseType.setModel(new EnumComboBoxModel<>(KeyType.class));
-		cmbChooseType.setSelectedItem(getModelObject().getKeyType());
+		// what the model already carries wins; otherwise the tool starts with the configured type
+		KeyType keyType = getModelObject().getKeyType() != null
+			? getModelObject().getKeyType()
+			: ConversionSettingsContribution.keyType();
+		getModelObject().setKeyType(keyType);
+		cmbChooseType.setSelectedItem(keyType);
 		cmbChooseType.addActionListener(this::onChangeKeyType);
 
 		lblChoose.setText("Choose private key in *.der format to convert");

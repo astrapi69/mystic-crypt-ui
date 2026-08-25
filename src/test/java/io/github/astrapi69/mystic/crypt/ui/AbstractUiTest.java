@@ -98,6 +98,9 @@ abstract class AbstractUiTest
 	protected static final Path PQC_SIGNATURE_ZIP = Path
 		.of("plugins/pqc-signature-plugin/build/plugin-dist/pqc-signature-plugin-1.0.0.zip");
 
+	protected static final Path KEYSTORE_ZIP = Path
+		.of("plugins/keystore-plugin/build/plugin-dist/keystore-plugin-1.0.0.zip");
+
 	private String originalUserHome;
 
 	/** Per-test isolated home directory that {@code user.home} points to during the test */

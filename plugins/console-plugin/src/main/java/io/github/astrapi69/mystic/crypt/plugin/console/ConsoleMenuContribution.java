@@ -64,11 +64,14 @@ public class ConsoleMenuContribution implements PluginMenuContribution
 			ConsolePanel component = new ConsolePanel();
 			int screenHeight = ScreenSizeExtensions.getScreenHeight(instance);
 			int screenWidth = ScreenSizeExtensions.getScreenWidth(instance);
-			// dock it into the bottom quarter of the desktop, fixed like the old built-in item
-			internalFrame.setSize(screenWidth, screenHeight / 4);
-			internalFrame.setLocation(0, (screenHeight / 4) * 3);
-			internalFrame.setResizable(false);
-			internalFrame.putClientProperty("dragMode", "fixed");
+			// dock it into the bottom of the desktop; how much room it takes and whether it can be
+			// moved is what the user configured in the settings dialog
+			int divisor = ConsoleSettingsContribution.heightDivisor();
+			boolean resizable = ConsoleSettingsContribution.resizable();
+			internalFrame.setSize(screenWidth, screenHeight / divisor);
+			internalFrame.setLocation(0, screenHeight - (screenHeight / divisor));
+			internalFrame.setResizable(resizable);
+			internalFrame.putClientProperty("dragMode", resizable ? "default" : "fixed");
 			JInternalFrameExtensions.addInternalFrameToMainFrame(component, internalFrame, instance);
 		});
 		return List.of(console);

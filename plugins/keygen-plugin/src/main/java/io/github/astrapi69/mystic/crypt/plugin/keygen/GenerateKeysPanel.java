@@ -129,7 +129,7 @@ public class GenerateKeysPanel extends BasePanel<GenerateKeysModelBean>
 	 */
 	protected void onClear(final ActionEvent actionEvent)
 	{
-		cmbAlgorithm.setSelectedItem(KeyPairGeneratorAlgorithm.RSA);
+		cmbAlgorithm.setSelectedItem(KeygenSettingsContribution.algorithm());
 		getCryptographyPanel().getCmbKeySize().setEnabled(true);
 		getCryptographyPanel().getCmbKeySize().setSelectedItem(KeySize.KEYSIZE_1024);
 		getCryptographyPanel().getTxtPrivateKey().setText("");
@@ -292,7 +292,7 @@ public class GenerateKeysPanel extends BasePanel<GenerateKeysModelBean>
 		lblAlgorithm = new JLabel("Algorithm");
 		cmbAlgorithm = new JComboBox<>(SUPPORTED_ALGORITHMS);
 		cmbAlgorithm.setName("cmbAlgorithm");
-		cmbAlgorithm.setSelectedItem(KeyPairGeneratorAlgorithm.RSA);
+		cmbAlgorithm.setSelectedItem(KeygenSettingsContribution.algorithm());
 		cmbAlgorithm.addActionListener(actionEvent -> onChangeAlgorithm(actionEvent));
 
 		cryptographyPanel = new CryptographyPanel(getModel())

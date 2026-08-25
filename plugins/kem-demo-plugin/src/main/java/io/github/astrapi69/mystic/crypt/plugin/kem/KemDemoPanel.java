@@ -53,10 +53,14 @@ public class KemDemoPanel extends JPanel
 	private static final String ML_KEM_1024 = "ML-KEM-1024";
 	private static final String HYBRID = "Hybrid X25519 + ML-KEM-768";
 
+	/** The mechanisms this tool offers, in the order the combo box shows them */
+	public static final java.util.List<String> ALGORITHMS = java.util.List.of(ML_KEM_768,
+		ML_KEM_512, ML_KEM_1024, HYBRID);
+
 	private static final HexFormat HEX = HexFormat.of();
 
 	private final JComboBox<String> cmbAlgorithm = new JComboBox<>(
-		new String[] { ML_KEM_768, ML_KEM_512, ML_KEM_1024, HYBRID });
+		ALGORITHMS.toArray(new String[0]));
 	private final JTextArea txtCiphertext = new JTextArea(3, 46);
 	private final JTextArea txtSenderSecret = new JTextArea(2, 46);
 	private final JTextArea txtRecipientSecret = new JTextArea(2, 46);
@@ -67,6 +71,8 @@ public class KemDemoPanel extends JPanel
 		super(new GridBagLayout());
 
 		cmbAlgorithm.setName("cmbAlgorithm");
+		// the tool starts with what the user configured in the settings dialog
+		cmbAlgorithm.setSelectedItem(KemSettingsContribution.algorithm());
 		configureReadOnly(txtCiphertext, "txtCiphertext");
 		configureReadOnly(txtSenderSecret, "txtSenderSecret");
 		configureReadOnly(txtRecipientSecret, "txtRecipientSecret");

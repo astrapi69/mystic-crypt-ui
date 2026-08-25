@@ -156,10 +156,12 @@ public class ChecksumPanel extends BasePanel<ChecksumBean>
 
 		lblChecksumAlgorithm.setText("Checksum algorithm");
 
+		// the tool starts with what the user configured in the settings dialog
+		ChecksumAlgorithm configuredAlgorithm = ChecksumSettingsContribution.algorithm();
 		cbxChecksumAlgorithm
-			.setModel(new EnumComboBoxModel<>(ChecksumAlgorithm.class, ChecksumAlgorithm.MD5));
+			.setModel(new EnumComboBoxModel<>(ChecksumAlgorithm.class, configuredAlgorithm));
 		cbxChecksumAlgorithm.addActionListener(this::onChangeChecksumAlgorithm);
-		getModelObject().setSelectedAlgorithm(ChecksumAlgorithm.MD5);
+		getModelObject().setSelectedAlgorithm(configuredAlgorithm);
 
 		btnCompare.setText("Compare");
 		btnCompare.addActionListener(this::onCompare);

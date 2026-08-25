@@ -36,9 +36,9 @@ import io.github.astrapi69.mystic.crypt.settings.MysticCryptSettings;
 import io.github.astrapi69.mystic.crypt.settings.SettingsPanel;
 
 /**
- * Opens the modal settings dialog (Plugins and General tabs). The settings are persisted to the
- * configuration directory when the dialog is closed; plugin enable/disable state is persisted by
- * pf4j itself as it happens.
+ * Opens the modal settings dialog (Plugins, Plugin settings and General tabs). The settings are
+ * persisted to the configuration directory when the dialog is closed; plugin enable/disable state
+ * is persisted by pf4j itself as it happens.
  */
 public class NewSettingsFrameAction extends AbstractAction
 {
@@ -61,7 +61,7 @@ public class NewSettingsFrameAction extends AbstractAction
 		MysticCryptApplicationFrame frame = MysticCryptApplicationFrame.getInstance();
 		MysticCryptSettings settings = MysticCryptSettings.load(frame.getConfigurationDirectory());
 		SettingsPanel settingsPanel = new SettingsPanel(settings, frame.getPluginManager(),
-			frame::refreshPluginsMenu);
+			frame::refreshPluginsMenu, frame.getConfigurationDirectory());
 
 		JDialog dialog = new JDialog(frame, "Settings", true);
 		dialog.setName("dlgSettings");

@@ -84,7 +84,10 @@ public class MenuDesignerPanel extends JPanel
 		add(new JScrollPane(txtMenuXml), BorderLayout.CENTER);
 		add(south, BorderLayout.SOUTH);
 
-		onExport();
+		if (MenuDesignerSettingsContribution.exportOnOpen())
+		{
+			onExport();
+		}
 	}
 
 	private static JButton button(String name, String text, java.awt.event.ActionListener listener)

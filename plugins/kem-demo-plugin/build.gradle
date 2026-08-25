@@ -37,6 +37,11 @@ dependencies {
     // the same JDK 25 native providers the panel uses - no external crypto dependency needed
     testImplementation "org.junit.jupiter:junit-jupiter:5.11.4"
     testRuntimeOnly "org.junit.platform:junit-platform-launcher"
+    // the settings contribution implements the host's extension point and reads through the host's
+    // settings store, so the host jar has to be on the test classpath to load it
+    testImplementation "io.github.astrapi69:mystic-crypt-ui:8.2-SNAPSHOT"
+    testImplementation "org.pf4j:pf4j:3.15.0"
+
 }
 
 test {

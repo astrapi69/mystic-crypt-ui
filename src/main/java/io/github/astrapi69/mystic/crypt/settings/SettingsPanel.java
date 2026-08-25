@@ -25,15 +25,19 @@
 package io.github.astrapi69.mystic.crypt.settings;
 
 import java.awt.BorderLayout;
+import java.io.File;
 
 import javax.swing.*;
 
 import org.pf4j.PluginManager;
 
+import io.github.astrapi69.mystic.crypt.plugin.api.PluginSettingsContribution;
+
 /**
- * The settings dialog content: a tabbed pane with a "Plugins" tab (manage/install the pf4j plugins)
- * and a "General" tab (look and feel, language). Both tabs read from and write into the shared
- * {@link MysticCryptSettings} passed in.
+ * The settings dialog content: a tabbed pane with a "Plugins" tab (manage/install the pf4j
+ * plugins), a "Plugin settings" tab (the configuration each plugin declares for itself) and a
+ * "General" tab (look and feel, language). The "General" tab reads from and writes into the shared
+ * {@link MysticCryptSettings} passed in; the plugin settings live in their own file per plugin.
  */
 public class SettingsPanel extends JPanel
 {
@@ -43,7 +47,7 @@ public class SettingsPanel extends JPanel
 	private final transient MysticCryptSettings settings;
 
 	public SettingsPanel(MysticCryptSettings settings, PluginManager pluginManager,
-		Runnable onPluginsChanged)
+		Runnable onPluginsChanged, File configurationDirectory)
 	{
 		super(new BorderLayout());
 		this.settings = settings;
@@ -51,6 +55,9 @@ public class SettingsPanel extends JPanel
 		JTabbedPane tabbedPane = new JTabbedPane();
 		tabbedPane.setName("tabSettings");
 		tabbedPane.addTab("Plugins", new PluginsSettingsPanel(pluginManager, onPluginsChanged));
+		tabbedPane.addTab("Plugin settings",
+			new PluginSettingsPanel(configurationDirectory, PluginSettingsPanel
+				.usable(pluginManager.getExtensions(PluginSettingsContribution.class))));
 		tabbedPane.addTab("General", new GeneralSettingsPanel(settings));
 		add(tabbedPane, BorderLayout.CENTER);
 	}

@@ -22,9 +22,11 @@ on:
       - 'src/main/java/io/github/astrapi69/mystic/crypt/menu/**'
       - 'src/main/java/io/github/astrapi69/mystic/crypt/keepass/**'
       - 'src/main/java/io/github/astrapi69/mystic/crypt/settings/**'
+      - 'src/main/java/io/github/astrapi69/mystic/crypt/cli/**'
       - 'src/test/java/io/github/astrapi69/mystic/crypt/menu/**'
       - 'src/test/java/io/github/astrapi69/mystic/crypt/keepass/**'
       - 'src/test/java/io/github/astrapi69/mystic/crypt/settings/**'
+      - 'src/test/java/io/github/astrapi69/mystic/crypt/cli/**'
       - 'gradle/mutation-testing.gradle'
 
 jobs:

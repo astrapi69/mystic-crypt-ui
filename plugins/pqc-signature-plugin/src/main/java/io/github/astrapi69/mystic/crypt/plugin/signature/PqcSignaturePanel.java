@@ -51,8 +51,7 @@ public class PqcSignaturePanel extends JPanel
 
 	private final JComboBox<String> cmbAlgorithm = new JComboBox<>(
 		SignatureSupport.algorithms().toArray(new String[0]));
-	private final JTextArea txtMessage = new JTextArea("The quick brown fox jumps over the lazy dog",
-		3, 60);
+	private final JTextArea txtMessage = new JTextArea(3, 60);
 	private final JTextArea txtPublicKey = new JTextArea(4, 60);
 	private final JTextArea txtSignature = new JTextArea(5, 60);
 	private final JLabel lblResult = new JLabel(" ");
@@ -64,6 +63,9 @@ public class PqcSignaturePanel extends JPanel
 		super(new GridBagLayout());
 
 		cmbAlgorithm.setName("cmbAlgorithm");
+		// the tool starts with what the user configured in the settings dialog
+		cmbAlgorithm.setSelectedItem(SignatureSettingsContribution.algorithm());
+		txtMessage.setText(SignatureSettingsContribution.message());
 		txtMessage.setName("txtMessage");
 		txtMessage.setLineWrap(true);
 		configureReadOnly(txtPublicKey, "txtPublicKey");

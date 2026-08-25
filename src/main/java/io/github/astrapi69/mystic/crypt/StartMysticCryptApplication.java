@@ -25,6 +25,7 @@
 package io.github.astrapi69.mystic.crypt;
 
 import io.github.astrapi69.awt.screen.ScreenSizeExtensions;
+import io.github.astrapi69.mystic.crypt.cli.MysticCryptUiCli;
 
 /**
  * The class {@link StartMysticCryptApplication} starts the application
@@ -33,13 +34,19 @@ public class StartMysticCryptApplication
 {
 
 	/**
-	 * The main method that start this {@link MysticCryptApplicationFrame}
+	 * The main method that start this {@link MysticCryptApplicationFrame}, or, when the first
+	 * argument is {@code --cli}, runs a command line command instead and exits with its exit code -
+	 * without ever creating a window, so it also works on a machine without a display
 	 *
 	 * @param args
 	 *            the arguments
 	 */
 	public static void main(String[] args)
 	{
+		if (MysticCryptUiCli.isCliInvocation(args))
+		{
+			System.exit(MysticCryptUiCli.execute(MysticCryptUiCli.stripCliArgument(args)));
+		}
 		MysticCryptApplicationFrame frame = new MysticCryptApplicationFrame();
 		while (!frame.isVisible())
 		{

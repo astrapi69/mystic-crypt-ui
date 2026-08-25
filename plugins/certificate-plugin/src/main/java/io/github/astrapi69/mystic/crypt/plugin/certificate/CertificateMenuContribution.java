@@ -150,10 +150,14 @@ public class CertificateMenuContribution implements PluginMenuContribution
 		ZonedDateTime now = ZonedDateTime.now();
 		return CertificateInfoModel.builder().privateKeyInfo(privateKeyInfo)
 			.publicKeyInfo(publicKeyInfo)
-			.issuer(DistinguishedNameInfoModel.builder().commonName("mystic-crypt").build())
-			.subject(DistinguishedNameInfoModel.builder().commonName("mystic-crypt").build())
-			.validityModel(ValidityModel.builder().notBefore(now).notAfter(now.plusYears(1)).build())
+			// the wizard starts with what the user configured in the settings dialog
+			.issuer(DistinguishedNameInfoModel.builder()
+				.commonName(CertificateSettingsContribution.commonName()).build())
+			.subject(DistinguishedNameInfoModel.builder()
+				.commonName(CertificateSettingsContribution.commonName()).build())
+			.validityModel(ValidityModel.builder().notBefore(now)
+				.notAfter(now.plusYears(CertificateSettingsContribution.validityYears())).build())
 			.serial(BigInteger.valueOf(now.toInstant().toEpochMilli()))
-			.signatureAlgorithm("SHA256withRSA").build();
+			.signatureAlgorithm(CertificateSettingsContribution.signatureAlgorithm()).build();
 	}
 }

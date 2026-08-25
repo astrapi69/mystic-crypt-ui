@@ -52,6 +52,7 @@ miglayout-swing-version = "11.4.3"
 mockito-core-version = "5.23.0"
 model-data-version = "3.2.1"
 mystic-crypt-version = "11.0.0"
+picocli-version = "4.7.6"
 net-extensions-version = "6.1"
 observer-version = "6"
 pf4j-version = "3.15.0"
@@ -128,6 +129,7 @@ miglayout-swing = { module = "com.miglayout:miglayout-swing", version.ref = "mig
 mockito-core = { module = "org.mockito:mockito-core", version.ref = "mockito-core-version" }
 model-data = { module = "io.github.astrapi69:model-data", version.ref = "model-data-version" }
 mystic-crypt = { module = "io.github.astrapi69:mystic-crypt", version.ref = "mystic-crypt-version" }
+picocli = { module = "info.picocli:picocli", version.ref = "picocli-version" }
 net-extensions = { module = "io.github.astrapi69:net-extensions", version.ref = "net-extensions-version" }
 observer = { module = "io.github.astrapi69:observer", version.ref = "observer-version" }
 pf4j = { module = "org.pf4j:pf4j", version.ref = "pf4j-version" }
