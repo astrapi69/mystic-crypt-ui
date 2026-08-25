@@ -370,6 +370,64 @@ final class ApplicationSteps
 	}
 
 	/**
+	 * Whether the context menu of the given node offers an entry with the given text at all - the
+	 * popup is closed again afterwards
+	 */
+	boolean treeContextMenuHasItem(org.assertj.swing.fixture.FrameFixture frame, String nodeName,
+		String menuItemText)
+	{
+		rightClickTreeNodeByName(frame, nodeName);
+		GenericTypeMatcher<JMenuItem> itemMatcher = new GenericTypeMatcher<JMenuItem>(
+			JMenuItem.class, true)
+		{
+			@Override
+			protected boolean isMatching(JMenuItem candidate)
+			{
+				return menuItemText.equals(candidate.getText());
+			}
+		};
+		// wait for the popup itself, not for the entry: the entry is what is being asked about
+		Pause.pause(new Condition("context menu of '" + nodeName + "' is showing")
+		{
+			@Override
+			public boolean test()
+			{
+				return !robot.finder().findAll(new GenericTypeMatcher<javax.swing.JPopupMenu>(
+					javax.swing.JPopupMenu.class, true)
+				{
+					@Override
+					protected boolean isMatching(javax.swing.JPopupMenu candidate)
+					{
+						return true;
+					}
+				}).isEmpty();
+			}
+		}, 10000);
+		boolean present;
+		try
+		{
+			robot.finder().find(itemMatcher);
+			present = true;
+		}
+		catch (org.assertj.swing.exception.ComponentLookupException notThere)
+		{
+			present = false;
+		}
+		GuiActionRunner.execute(() -> robot.finder().findAll(
+			new GenericTypeMatcher<javax.swing.JPopupMenu>(javax.swing.JPopupMenu.class, true)
+			{
+				@Override
+				protected boolean isMatching(javax.swing.JPopupMenu candidate)
+				{
+					return true;
+				}
+			}).forEach(popupMenu -> popupMenu.setVisible(false)));
+		robot.waitForIdle();
+		UiTestSpeed.step();
+		return present;
+	}
+
+	/**
 	 * Moves the tree node with the given display name under another node, through the real user
 	 * flow: right-click, "Move to node...", pick the target whose path ends with the given name, OK
 	 */

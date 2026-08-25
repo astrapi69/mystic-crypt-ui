@@ -86,6 +86,32 @@ class MoveNodeUiTest extends AbstractUiTest
 			"the moved node must be under its new parent");
 	}
 
+	/**
+	 * The root is the one node that must stay where it is: there is exactly one of it, so it has no
+	 * siblings to move among, nothing to be moved under, and it must not be removable - a second
+	 * top level node would be a tree with two roots.
+	 */
+	@Test
+	void theRootCanNeitherBeMovedNorDeleted() throws Exception
+	{
+		File databaseFile = new File(tempHome, "move-node-root.mcrdb");
+		createDatabaseFileHeadless(databaseFile, MASTER_PASSWORD);
+
+		ApplicationSteps application = signInWithExistingDatabase(databaseFile, MASTER_PASSWORD);
+		FrameFixture frame = application.showMainFrame();
+
+		assertFalse(application.treeContextMenuHasItem(frame, "root", "Move up"),
+			"the root has no siblings, so it must not offer to move up");
+		assertFalse(application.treeContextMenuHasItem(frame, "root", "Move down"),
+			"the root has no siblings, so it must not offer to move down");
+		assertFalse(application.treeContextMenuHasItem(frame, "root", "Move to node..."),
+			"there is nothing the root could be moved under");
+		assertFalse(application.treeContextMenuHasItem(frame, "root", "delete"),
+			"deleting the root would leave the tree without one");
+		assertTrue(application.treeContextMenuHasItem(frame, "root", "add node..."),
+			"the root must still take new children");
+	}
+
 	@Test
 	void theFirstNodeCannotGoUpAndTheLastCannotGoDown() throws Exception
 	{
