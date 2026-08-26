@@ -1,0 +1,73 @@
+plugins {
+    id 'java'
+}
+
+group = 'io.github.astrapi69'
+version = '1.0.0'
+
+java {
+    toolchain {
+        // must match the host: its classes are compiled for JDK 25 (class file major 69),
+        // which a lower toolchain's javac cannot read from the compile classpath
+        languageVersion = JavaLanguageVersion.of(25)
+    }
+}
+
+repositories {
+    mavenLocal()
+    mavenCentral()
+}
+
+// the key store handling comes from crypt-data (KeyStoreFactory, KeyStoreExtensions, the
+// certificate readers and writers) and crypt-api (KeystoreType, HashAlgorithm); the host and the
+// swing helpers are only needed to open the tool window
+dependencies {
+    compileOnly "io.github.astrapi69:mystic-crypt-ui:8.2-SNAPSHOT"
+    compileOnly "io.github.astrapi69:mystic-crypt:11.2"
+    compileOnly "io.github.astrapi69:swing-base-components:5.1"
+    compileOnly "io.github.astrapi69:swing-components:9"
+    // ShamirSecretSharingFactory lives in crypt-data, FeldmanVSS in the mystic-crypt library
+    compileOnly "io.github.astrapi69:crypt-data:11.2"
+    compileOnly "org.bouncycastle:bcprov-jdk18on:1.85.2"
+
+    // the command line side: the host puts picocli on the classpath, so like everything else it
+    // is only needed to compile against here
+    compileOnly "info.picocli:picocli:4.7.6"
+
+    compileOnly "org.pf4j:pf4j:3.15.0"
+    // required so the @Extension annotation processor runs and writes META-INF/extensions.idx
+    annotationProcessor "org.pf4j:pf4j:3.15.0"
+
+    // the tests split and rejoin real secrets; the splitter goes through Bouncy Castle, which the
+    // host registers at startup
+    testImplementation "org.junit.jupiter:junit-jupiter:5.11.4"
+    testImplementation "info.picocli:picocli:4.7.6"
+    // the contribution class implements the host's extension point, so the host jar has to be on
+    // the test classpath to load it - for the main sources it stays compileOnly like everything else
+    testImplementation "io.github.astrapi69:mystic-crypt-ui:8.2-SNAPSHOT"
+    testImplementation "org.pf4j:pf4j:3.15.0"
+    testImplementation "io.github.astrapi69:crypt-data:11.2"
+    testImplementation "org.bouncycastle:bcprov-jdk18on:1.85.2"
+    testRuntimeOnly "org.junit.platform:junit-platform-launcher"
+}
+
+test {
+    useJUnitPlatform()
+}
+
+// packages the plugin the way the host's DefaultPluginManager expects: plugin.properties at the
+// root, compiled classes under classes/
+tasks.register('pluginZip', Zip) {
+    archiveFileName = "secret-sharing-plugin-${version}.zip"
+    destinationDirectory = layout.buildDirectory.dir("plugin-dist")
+    from("src/main/resources") {
+        include "plugin.properties"
+    }
+    into("classes") {
+        from sourceSets.main.output.classesDirs
+        from("src/main/resources") {
+            exclude "plugin.properties"
+        }
+    }
+    dependsOn classes
+}
