@@ -39,7 +39,8 @@ import io.github.astrapi69.swing.enumeration.FrameMode;
 import io.github.astrapi69.swing.util.JInternalFrameExtensions;
 
 /**
- * Contributes the "Key Encapsulation Demo" tool to the host's "Plugins" menu.
+ * Contributes this plugin's two tools to the host's "Plugins" menu: the exchange between two
+ * people, and the demo that plays both sides at once.
  */
 @Extension
 public class KemDemoMenuContribution implements PluginMenuContribution
@@ -48,10 +49,13 @@ public class KemDemoMenuContribution implements PluginMenuContribution
 	@Override
 	public List<JMenuItem> getMenuItems()
 	{
+		JMenuItem keyExchange = new JMenuItem("Key Exchange");
+		keyExchange.addActionListener(
+			event -> openInternalFrame("Key Exchange", new KeyExchangePanel()));
 		JMenuItem kemDemo = new JMenuItem("Key Encapsulation Demo");
 		kemDemo.addActionListener(
 			event -> openInternalFrame("Key Encapsulation Demo", new KemDemoPanel()));
-		return List.of(kemDemo);
+		return List.of(keyExchange, kemDemo);
 	}
 
 	@Override

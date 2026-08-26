@@ -43,8 +43,11 @@ public class KemSettingsContribution implements PluginSettingsContribution
 	/** The plugin id, the same one {@code plugin.properties} declares */
 	public static final String PLUGIN_ID = "kem-demo-plugin";
 
-	/** The mechanism the tool starts with */
+	/** The mechanism the demo starts with */
 	public static final String KEY_ALGORITHM = "default.algorithm";
+
+	/** The algorithm the exchange between two people starts with */
+	public static final String KEY_EXCHANGE_ALGORITHM = "default.exchange.algorithm";
 
 	@Override
 	public String getPluginId()
@@ -63,13 +66,21 @@ public class KemSettingsContribution implements PluginSettingsContribution
 	{
 		Map<String, String> defaults = new LinkedHashMap<>();
 		defaults.put(KEY_ALGORITHM, KemDemoPanel.ALGORITHMS.get(0));
+		defaults.put(KEY_EXCHANGE_ALGORITHM, KeyExchangeSupport.algorithms().get(0));
 		return defaults;
 	}
 
 	@Override
 	public String getDescription(String key)
 	{
-		return KEY_ALGORITHM.equals(key) ? String.join(", ", KemDemoPanel.ALGORITHMS) : null;
+		return switch (key)
+		{
+			case KEY_ALGORITHM -> "what the demo starts with: "
+				+ String.join(", ", KemDemoPanel.ALGORITHMS);
+			case KEY_EXCHANGE_ALGORITHM -> "what the exchange starts with: "
+				+ String.join(", ", KeyExchangeSupport.algorithms());
+			default -> null;
+		};
 	}
 
 	/**
@@ -80,9 +91,24 @@ public class KemSettingsContribution implements PluginSettingsContribution
 	 */
 	public static String algorithm()
 	{
+		return offeredOrFirst(KEY_ALGORITHM, KemDemoPanel.ALGORITHMS);
+	}
+
+	/**
+	 * The configured algorithm of the exchange between two people, the first offered one when the
+	 * setting names one that tool does not have
+	 *
+	 * @return the algorithm the exchange starts with
+	 */
+	public static String exchangeAlgorithm()
+	{
+		return offeredOrFirst(KEY_EXCHANGE_ALGORITHM, KeyExchangeSupport.algorithms());
+	}
+
+	private static String offeredOrFirst(final String key, final List<String> offered)
+	{
 		String configured = PluginSettings
-			.load(PLUGIN_ID, new KemSettingsContribution().getDefaults()).get(KEY_ALGORITHM);
-		List<String> offered = KemDemoPanel.ALGORITHMS;
+			.load(PLUGIN_ID, new KemSettingsContribution().getDefaults()).get(key);
 		return offered.contains(configured) ? configured : offered.get(0);
 	}
 }
