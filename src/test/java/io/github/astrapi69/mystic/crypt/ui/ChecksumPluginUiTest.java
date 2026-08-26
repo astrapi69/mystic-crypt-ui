@@ -43,6 +43,7 @@ import org.assertj.swing.timing.Pause;
 import org.junit.jupiter.api.Test;
 
 import io.github.astrapi69.crypt.api.algorithm.ChecksumAlgorithm;
+import io.github.astrapi69.mystic.crypt.TestPasswords;
 
 /**
  * Functional end-to-end test of the checksum plugin: loads the plugin from its zip, opens the
@@ -53,7 +54,7 @@ import io.github.astrapi69.crypt.api.algorithm.ChecksumAlgorithm;
 class ChecksumPluginUiTest extends AbstractUiTest
 {
 
-	private static final String MASTER_PASSWORD = "checksum-e2e-pw-123";
+	private static final String MASTER_PASSWORD = TestPasswords.throwaway();
 	private static final String SHA256_OF_ABC = "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad";
 
 	@Test

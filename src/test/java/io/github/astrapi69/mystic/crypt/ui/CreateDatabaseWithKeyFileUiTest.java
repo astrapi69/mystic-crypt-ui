@@ -34,6 +34,7 @@ import org.assertj.swing.timing.Pause;
 import org.junit.jupiter.api.Test;
 
 import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
+import io.github.astrapi69.mystic.crypt.TestPasswords;
 
 /**
  * End-to-end use case "create a database protected by password AND private key file" - the
@@ -45,7 +46,7 @@ import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
 class CreateDatabaseWithKeyFileUiTest extends AbstractUiTest
 {
 
-	private static final String MASTER_PASSWORD = "keyfile-db-pw-123";
+	private static final String MASTER_PASSWORD = TestPasswords.throwaway();
 	private static final String KEY_FILE_NAME = "test-private-key.pem";
 
 	@Test

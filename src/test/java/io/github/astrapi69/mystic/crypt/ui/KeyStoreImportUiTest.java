@@ -44,6 +44,7 @@ import io.github.astrapi69.crypt.data.factory.CertFactory;
 import io.github.astrapi69.crypt.data.factory.KeyPairFactory;
 import io.github.astrapi69.crypt.data.key.writer.CertificateWriter;
 import io.github.astrapi69.crypt.data.key.writer.PrivateKeyWriter;
+import io.github.astrapi69.mystic.crypt.TestPasswords;
 
 /**
  * Functional end-to-end test of taking a key that came from somewhere else into a key store: the
@@ -53,9 +54,9 @@ import io.github.astrapi69.crypt.data.key.writer.PrivateKeyWriter;
 class KeyStoreImportUiTest extends AbstractUiTest
 {
 
-	private static final String MASTER_PASSWORD = "keystore-import-e2e-pw-123";
+	private static final String MASTER_PASSWORD = TestPasswords.throwaway();
 
-	private static final String STORE_PASSWORD = "store-import-e2e-pw-456";
+	private static final String STORE_PASSWORD = TestPasswords.throwaway();
 
 	@Test
 	void importsAKeyAndItsCertificateThroughTheUi() throws Exception

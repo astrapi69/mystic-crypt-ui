@@ -65,7 +65,7 @@ import io.github.astrapi69.crypt.data.key.writer.PrivateKeyWriter;
 class KeyStoreImportAndDetailsTest
 {
 
-	private static final String STORE_PASSWORD = "keystore-import-pw-1969";
+	private static final String STORE_PASSWORD = "throwaway-" + java.util.UUID.randomUUID();
 
 	@BeforeAll
 	static void registerBouncyCastle()

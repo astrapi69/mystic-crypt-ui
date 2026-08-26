@@ -39,6 +39,7 @@ import io.github.astrapi69.crypt.api.algorithm.SunJCEAlgorithm;
 import io.github.astrapi69.crypt.api.algorithm.compound.CompoundAlgorithm;
 import io.github.astrapi69.crypt.data.model.CryptModel;
 import io.github.astrapi69.file.write.StoreFileExtensions;
+import io.github.astrapi69.mystic.crypt.TestPasswords;
 import io.github.astrapi69.mystic.crypt.app.file.xml.PasswordVaultFormat;
 import io.github.astrapi69.mystic.crypt.file.PBEFileEncryptor;
 
@@ -49,7 +50,7 @@ import io.github.astrapi69.mystic.crypt.file.PBEFileEncryptor;
 class LegacyDatabaseMigrationUiTest extends AbstractUiTest
 {
 
-	private static final String MASTER_PASSWORD = "legacy-migration-pw-123";
+	private static final String MASTER_PASSWORD = TestPasswords.throwaway();
 
 	private static final String NODE_NAME = "Node in the migrated database";
 

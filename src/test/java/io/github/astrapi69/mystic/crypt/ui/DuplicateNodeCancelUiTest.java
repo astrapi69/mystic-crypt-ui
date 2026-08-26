@@ -32,6 +32,8 @@ import java.io.IOException;
 import org.assertj.swing.fixture.FrameFixture;
 import org.junit.jupiter.api.Test;
 
+import io.github.astrapi69.mystic.crypt.TestPasswords;
+
 /**
  * Negative end-to-end case: cancelling the "Name for duplicate" dialog must not create a duplicate
  * node
@@ -39,7 +41,7 @@ import org.junit.jupiter.api.Test;
 class DuplicateNodeCancelUiTest extends AbstractUiTest
 {
 
-	private static final String MASTER_PASSWORD = "duplicate-node-cancel-pw-123";
+	private static final String MASTER_PASSWORD = TestPasswords.throwaway();
 
 	@Test
 	void cancellingDuplicateNodeCreatesNothing() throws IOException

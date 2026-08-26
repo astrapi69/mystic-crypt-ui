@@ -32,6 +32,7 @@ import org.junit.jupiter.api.Test;
 import io.github.astrapi69.crypt.api.algorithm.key.KeyPairGeneratorAlgorithm;
 import io.github.astrapi69.crypt.data.factory.KeyPairFactory;
 import io.github.astrapi69.crypt.data.key.writer.PrivateKeyWriter;
+import io.github.astrapi69.mystic.crypt.TestPasswords;
 
 /**
  * End-to-end smoke coverage for the remaining niche menu use case: the private key viewer (reached
@@ -45,7 +46,7 @@ import io.github.astrapi69.crypt.data.key.writer.PrivateKeyWriter;
 class NicheMenuFramesUiTest extends AbstractUiTest
 {
 
-	private static final String MASTER_PASSWORD = "niche-db-pw-123";
+	private static final String MASTER_PASSWORD = TestPasswords.throwaway();
 
 	@Test
 	void openPrivateKeyOpensItsInternalFrame() throws Exception

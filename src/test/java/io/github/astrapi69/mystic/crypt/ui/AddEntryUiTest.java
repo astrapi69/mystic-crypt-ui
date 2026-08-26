@@ -31,6 +31,8 @@ import java.io.File;
 import org.assertj.swing.fixture.FrameFixture;
 import org.junit.jupiter.api.Test;
 
+import io.github.astrapi69.mystic.crypt.TestPasswords;
+
 /**
  * End-to-end use case "add a password entry" - the core purpose of the whole application: select
  * the root node, right-click the entries table, choose "add...", fill title, user name and password
@@ -40,7 +42,7 @@ import org.junit.jupiter.api.Test;
 class AddEntryUiTest extends AbstractUiTest
 {
 
-	private static final String MASTER_PASSWORD = "add-entry-db-pw-123";
+	private static final String MASTER_PASSWORD = TestPasswords.throwaway();
 	private static final String ENTRY_TITLE = "My Bank Account";
 
 	@Test

@@ -36,6 +36,8 @@ import org.assertj.swing.edt.GuiActionRunner;
 import org.assertj.swing.fixture.DialogFixture;
 import org.junit.jupiter.api.Test;
 
+import io.github.astrapi69.mystic.crypt.TestPasswords;
+
 /**
  * Functional end-to-end test of the settings dialog: with a plugin installed, opening File ->
  * Settings must show the "Plugins" and "General" tabs, list the installed plugin in the plugins
@@ -44,7 +46,7 @@ import org.junit.jupiter.api.Test;
 class SettingsUiTest extends AbstractUiTest
 {
 
-	private static final String MASTER_PASSWORD = "settings-pw-123";
+	private static final String MASTER_PASSWORD = TestPasswords.throwaway();
 
 	@Test
 	void settingsDialogListsPluginsAndCanDisableThem() throws Exception

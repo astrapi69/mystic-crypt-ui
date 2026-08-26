@@ -32,6 +32,7 @@ import java.io.IOException;
 import org.junit.jupiter.api.Test;
 
 import io.github.astrapi69.mystic.crypt.MenuId;
+import io.github.astrapi69.mystic.crypt.TestPasswords;
 
 /**
  * End-to-end use case "Open Database": in desktop-pane mode the File menu's "Open Database" item
@@ -40,7 +41,7 @@ import io.github.astrapi69.mystic.crypt.MenuId;
 class OpenDatabaseUiTest extends AbstractUiTest
 {
 
-	private static final String MASTER_PASSWORD = "opendb-pw-123";
+	private static final String MASTER_PASSWORD = TestPasswords.throwaway();
 
 	@Test
 	void openDatabaseShowsTheKeyDatabaseInternalFrame() throws IOException

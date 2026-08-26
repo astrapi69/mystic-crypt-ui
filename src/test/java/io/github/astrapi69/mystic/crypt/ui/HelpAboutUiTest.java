@@ -33,13 +33,15 @@ import org.assertj.swing.edt.GuiActionRunner;
 import org.assertj.swing.fixture.DialogFixture;
 import org.junit.jupiter.api.Test;
 
+import io.github.astrapi69.mystic.crypt.TestPasswords;
+
 /**
  * End-to-end use case "Help -> Info": the Help menu's info/about item opens its dialog
  */
 class HelpAboutUiTest extends AbstractUiTest
 {
 
-	private static final String MASTER_PASSWORD = "help-pw-123";
+	private static final String MASTER_PASSWORD = TestPasswords.throwaway();
 
 	@Test
 	void helpInfoOpensItsDialog() throws IOException

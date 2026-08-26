@@ -34,6 +34,7 @@ import org.junit.jupiter.api.Test;
 
 import io.github.astrapi69.file.create.model.FileInfo;
 import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
+import io.github.astrapi69.mystic.crypt.TestPasswords;
 
 /**
  * End-to-end use case "Save As": saving the open database to a newly chosen {@code .mcrdb} file
@@ -42,7 +43,7 @@ import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
 class SaveAsUiTest extends AbstractUiTest
 {
 
-	private static final String MASTER_PASSWORD = "saveas-pw-123";
+	private static final String MASTER_PASSWORD = TestPasswords.throwaway();
 
 	@Test
 	void saveAsWritesTheDatabaseToTheChosenFileAndRetargetsTheModel() throws IOException

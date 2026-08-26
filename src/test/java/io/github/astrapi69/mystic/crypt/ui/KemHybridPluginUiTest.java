@@ -33,6 +33,8 @@ import org.assertj.swing.edt.GuiActionRunner;
 import org.assertj.swing.fixture.FrameFixture;
 import org.junit.jupiter.api.Test;
 
+import io.github.astrapi69.mystic.crypt.TestPasswords;
+
 /**
  * Functional end-to-end test of the KEM demo plugin's hybrid mode: selects "Hybrid X25519 +
  * ML-KEM-768" from the dropdown, runs the exchange, and asserts through the real UI that both sides
@@ -42,7 +44,7 @@ import org.junit.jupiter.api.Test;
 class KemHybridPluginUiTest extends AbstractUiTest
 {
 
-	private static final String MASTER_PASSWORD = "kem-hybrid-e2e-pw-123";
+	private static final String MASTER_PASSWORD = TestPasswords.throwaway();
 
 	@Test
 	void runsAHybridKeyEncapsulationExchangeThroughTheUi() throws Exception

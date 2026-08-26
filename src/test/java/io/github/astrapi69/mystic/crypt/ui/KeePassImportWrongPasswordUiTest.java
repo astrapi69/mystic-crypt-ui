@@ -33,6 +33,7 @@ import java.io.IOException;
 import org.junit.jupiter.api.Test;
 
 import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
+import io.github.astrapi69.mystic.crypt.TestPasswords;
 
 /**
  * Negative end-to-end use case "import a KeePass database with the wrong password": the import must
@@ -42,7 +43,7 @@ import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
 class KeePassImportWrongPasswordUiTest extends AbstractUiTest
 {
 
-	private static final String MASTER_PASSWORD = "wrongpw-import-pw-123";
+	private static final String MASTER_PASSWORD = TestPasswords.throwaway();
 
 	@Test
 	void wrongKeePassPasswordShowsErrorAndImportsNothing() throws IOException

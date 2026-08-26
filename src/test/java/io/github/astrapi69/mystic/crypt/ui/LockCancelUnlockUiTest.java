@@ -32,6 +32,7 @@ import java.io.IOException;
 import org.junit.jupiter.api.Test;
 
 import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
+import io.github.astrapi69.mystic.crypt.TestPasswords;
 
 /**
  * Negative end-to-end case: cancelling the unlock dialog after locking the workspace must keep the
@@ -40,7 +41,7 @@ import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
 class LockCancelUnlockUiTest extends AbstractUiTest
 {
 
-	private static final String MASTER_PASSWORD = "lock-cancel-pw-123";
+	private static final String MASTER_PASSWORD = TestPasswords.throwaway();
 
 	@Test
 	void cancellingUnlockKeepsWorkspaceLocked() throws IOException

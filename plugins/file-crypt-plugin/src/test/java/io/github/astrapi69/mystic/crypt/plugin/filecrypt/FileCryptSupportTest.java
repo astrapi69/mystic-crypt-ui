@@ -53,7 +53,7 @@ import org.junit.jupiter.params.provider.ValueSource;
 class FileCryptSupportTest
 {
 
-	private static final String PASSPHRASE = "file-crypt-test-passphrase-1969";
+	private static final String PASSPHRASE = "throwaway-" + java.util.UUID.randomUUID();
 
 	@BeforeAll
 	static void registerBouncyCastle()

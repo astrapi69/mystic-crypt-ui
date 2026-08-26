@@ -33,15 +33,17 @@ import org.assertj.swing.edt.GuiActionRunner;
 import org.assertj.swing.fixture.FrameFixture;
 import org.junit.jupiter.api.Test;
 
+import io.github.astrapi69.mystic.crypt.TestPasswords;
+
 /**
  * Functional end-to-end test of encrypting a piece of text through the real user interface.
  */
 class FileCryptTextUiTest extends AbstractUiTest
 {
 
-	private static final String MASTER_PASSWORD = "file-crypt-e2e-pw-123";
+	private static final String MASTER_PASSWORD = TestPasswords.throwaway();
 
-	private static final String PASSPHRASE = "file-crypt-e2e-passphrase-456";
+	private static final String PASSPHRASE = TestPasswords.throwaway();
 
 	@Test
 	void encryptsAndDecryptsATextThroughTheUi() throws Exception

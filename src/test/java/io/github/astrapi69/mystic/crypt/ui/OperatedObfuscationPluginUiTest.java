@@ -30,6 +30,8 @@ import java.io.File;
 
 import org.junit.jupiter.api.Test;
 
+import io.github.astrapi69.mystic.crypt.TestPasswords;
+
 /**
  * Functional end-to-end test of the obfuscation plugin's second tool, "Operated Obfuscation": it
  * opens its internal frame, constructing the character rule/table panels (OperationRulePanel,
@@ -39,7 +41,7 @@ import org.junit.jupiter.api.Test;
 class OperatedObfuscationPluginUiTest extends AbstractUiTest
 {
 
-	private static final String MASTER_PASSWORD = "operated-obf-pw-123";
+	private static final String MASTER_PASSWORD = TestPasswords.throwaway();
 
 	@Test
 	void operatedObfuscationToolOpensThroughTheUi() throws Exception

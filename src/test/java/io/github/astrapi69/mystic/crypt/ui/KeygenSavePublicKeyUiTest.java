@@ -40,6 +40,8 @@ import org.assertj.swing.timing.Condition;
 import org.assertj.swing.timing.Pause;
 import org.junit.jupiter.api.Test;
 
+import io.github.astrapi69.mystic.crypt.TestPasswords;
+
 /**
  * End-to-end file-IO test of the keygen plugin: generates an RSA key pair, presses "Save public
  * key", and through the real save dialog writes the public key to a file on disk, asserting the
@@ -48,7 +50,7 @@ import org.junit.jupiter.api.Test;
 class KeygenSavePublicKeyUiTest extends AbstractUiTest
 {
 
-	private static final String MASTER_PASSWORD = "keygen-save-e2e-pw-123";
+	private static final String MASTER_PASSWORD = TestPasswords.throwaway();
 
 	@Test
 	void savesTheGeneratedPublicKeyToAFileThroughTheUi() throws Exception

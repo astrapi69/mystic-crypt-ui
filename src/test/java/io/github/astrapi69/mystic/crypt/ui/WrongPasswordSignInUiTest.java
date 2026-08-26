@@ -32,6 +32,7 @@ import java.io.IOException;
 import org.junit.jupiter.api.Test;
 
 import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
+import io.github.astrapi69.mystic.crypt.TestPasswords;
 
 /**
  * End-to-end use case "sign in with a wrong password": the error dialog "Authentication with
@@ -45,7 +46,7 @@ import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
 class WrongPasswordSignInUiTest extends AbstractUiTest
 {
 
-	private static final String MASTER_PASSWORD = "correct-pw-123";
+	private static final String MASTER_PASSWORD = TestPasswords.throwaway();
 
 	@Test
 	void wrongPasswordShowsErrorAndDoesNotSignIn() throws IOException

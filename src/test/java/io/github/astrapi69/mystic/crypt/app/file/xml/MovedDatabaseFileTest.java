@@ -41,6 +41,7 @@ import org.junit.jupiter.api.io.TempDir;
 
 import io.github.astrapi69.file.create.model.FileInfo;
 import io.github.astrapi69.mystic.crypt.ApplicationModelBean;
+import io.github.astrapi69.mystic.crypt.TestPasswords;
 import io.github.astrapi69.mystic.crypt.panel.signin.MasterPwFileModelBean;
 
 /**
@@ -54,7 +55,7 @@ import io.github.astrapi69.mystic.crypt.panel.signin.MasterPwFileModelBean;
 class MovedDatabaseFileTest
 {
 
-	private static final char[] MASTER_PASSWORD = "moved-database-pw-123".toCharArray();
+	private static final char[] MASTER_PASSWORD = TestPasswords.throwawayChars();
 
 	@BeforeAll
 	static void registerBouncyCastle()

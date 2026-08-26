@@ -34,6 +34,8 @@ import java.util.List;
 import org.assertj.swing.fixture.FrameFixture;
 import org.junit.jupiter.api.Test;
 
+import io.github.astrapi69.mystic.crypt.TestPasswords;
+
 /**
  * End-to-end test of moving nodes in the tree: up and down among the siblings, under another node,
  * and that the new order survives saving and reopening the database.
@@ -41,7 +43,7 @@ import org.junit.jupiter.api.Test;
 class MoveNodeUiTest extends AbstractUiTest
 {
 
-	private static final String MASTER_PASSWORD = "move-node-pw-123";
+	private static final String MASTER_PASSWORD = TestPasswords.throwaway();
 
 	@Test
 	void movesNodesUpAndDownAndUnderAnotherNode() throws Exception

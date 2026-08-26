@@ -50,6 +50,7 @@ import io.github.astrapi69.crypt.api.algorithm.SunJCEAlgorithm;
 import io.github.astrapi69.crypt.api.algorithm.compound.CompoundAlgorithm;
 import io.github.astrapi69.crypt.data.model.CryptModel;
 import io.github.astrapi69.file.write.StoreFileExtensions;
+import io.github.astrapi69.mystic.crypt.TestPasswords;
 import io.github.astrapi69.mystic.crypt.file.PBEFileEncryptor;
 
 /**
@@ -59,7 +60,7 @@ import io.github.astrapi69.mystic.crypt.file.PBEFileEncryptor;
 class PasswordVaultFormatTest
 {
 
-	private static final String PASSWORD = "vault-format-test-pw-1969";
+	private static final String PASSWORD = TestPasswords.throwaway();
 
 	private static final String XML = "<applicationModelBean><entries>secret</entries></applicationModelBean>";
 

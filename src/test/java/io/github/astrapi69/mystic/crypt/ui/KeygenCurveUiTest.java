@@ -36,6 +36,7 @@ import org.assertj.swing.fixture.FrameFixture;
 import org.junit.jupiter.api.Test;
 
 import io.github.astrapi69.crypt.api.algorithm.key.KeyPairGeneratorAlgorithm;
+import io.github.astrapi69.mystic.crypt.TestPasswords;
 import io.github.astrapi69.mystic.crypt.crypto.KeyFiles;
 
 /**
@@ -46,7 +47,7 @@ import io.github.astrapi69.mystic.crypt.crypto.KeyFiles;
 class KeygenCurveUiTest extends AbstractUiTest
 {
 
-	private static final String MASTER_PASSWORD = "keygen-curve-e2e-pw-123";
+	private static final String MASTER_PASSWORD = TestPasswords.throwaway();
 
 	@Test
 	void generatesAnEcKeyOnTheChosenCurveThroughTheUi() throws Exception

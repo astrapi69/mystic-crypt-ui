@@ -48,7 +48,7 @@ import org.junit.jupiter.params.provider.ValueSource;
 class PasswordHashSupportTest
 {
 
-	private static final String PASSWORD = "correct horse battery staple";
+	private static final String PASSWORD = "throwaway-" + java.util.UUID.randomUUID();
 
 	@BeforeAll
 	static void registerBouncyCastle()

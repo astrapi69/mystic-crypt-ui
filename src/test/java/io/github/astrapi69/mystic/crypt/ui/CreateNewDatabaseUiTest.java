@@ -33,6 +33,7 @@ import org.assertj.swing.timing.Pause;
 import org.junit.jupiter.api.Test;
 
 import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
+import io.github.astrapi69.mystic.crypt.TestPasswords;
 
 /**
  * The foundational end-to-end UI test: creates the very first mystic-crypt database exactly the way
@@ -50,7 +51,7 @@ import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
 class CreateNewDatabaseUiTest extends AbstractUiTest
 {
 
-	private static final String MASTER_PASSWORD = "test-master-pw-123";
+	private static final String MASTER_PASSWORD = TestPasswords.throwaway();
 
 	@Test
 	void createFirstDatabaseThroughNewFlowAndSignIn()

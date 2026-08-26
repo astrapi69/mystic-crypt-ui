@@ -6,11 +6,14 @@
 # somewhere for the test to be readable, and the scanner cannot tell it apart
 # from a real credential - it reports the shape, not the meaning.
 #
-# Left alone, that fails the check on every pull request that touches a test.
-# A check that always fails is a check nobody reads, and the one time it finds
-# something real it will look like the twenty false alarms before it.
+# This file is read by the ggshield command line tool. The GitGuardian GitHub
+# App, which is what posts the check on a pull request here, does not read it:
+# a pull request whose only new credential-shaped string was a test constant was
+# still failed while this file was on the branch. The real fix was to stop
+# writing such constants at all, which is what TestPasswords does now; this file
+# stays for anyone running ggshield locally.
 #
-# So the test trees are excluded, and only those. Everything under src/main,
+# The test trees are excluded, and only those. Everything under src/main,
 # every plugin's main sources, every configuration file, every workflow and
 # every resource outside the test trees stays scanned. A real credential still
 # has no place in a test file: the rule that forbids committing keys, key

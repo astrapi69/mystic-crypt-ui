@@ -41,6 +41,7 @@ import org.junit.jupiter.api.Test;
 import io.github.astrapi69.crypt.data.factory.KeyPairFactory;
 import io.github.astrapi69.crypt.data.key.writer.PrivateKeyWriter;
 import io.github.astrapi69.crypt.data.key.writer.PublicKeyWriter;
+import io.github.astrapi69.mystic.crypt.TestPasswords;
 
 /**
  * Functional end-to-end test of signing the way it is actually done: with a key that already exists
@@ -51,7 +52,7 @@ import io.github.astrapi69.crypt.data.key.writer.PublicKeyWriter;
 class SignatureWithKeyFileUiTest extends AbstractUiTest
 {
 
-	private static final String MASTER_PASSWORD = "signature-keyfile-e2e-pw-123";
+	private static final String MASTER_PASSWORD = TestPasswords.throwaway();
 
 	@Test
 	void signsAFileWithAKeyFromDiskAndVerifiesItAgain() throws Exception

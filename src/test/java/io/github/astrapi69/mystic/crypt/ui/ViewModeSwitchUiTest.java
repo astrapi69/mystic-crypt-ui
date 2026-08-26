@@ -32,6 +32,7 @@ import java.io.IOException;
 import org.junit.jupiter.api.Test;
 
 import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
+import io.github.astrapi69.mystic.crypt.TestPasswords;
 import io.github.astrapi69.swing.enumeration.FrameMode;
 
 /**
@@ -42,7 +43,7 @@ import io.github.astrapi69.swing.enumeration.FrameMode;
 class ViewModeSwitchUiTest extends AbstractUiTest
 {
 
-	private static final String MASTER_PASSWORD = "viewmode-pw-123";
+	private static final String MASTER_PASSWORD = TestPasswords.throwaway();
 
 	@Test
 	void switchingViewModeUpdatesTheFrameMode() throws IOException

@@ -30,6 +30,8 @@ import java.io.File;
 
 import org.junit.jupiter.api.Test;
 
+import io.github.astrapi69.mystic.crypt.TestPasswords;
+
 /**
  * End-to-end use case "changes survive a restart": import a KeePass database, save via the File
  * menu, shut the application down, sign in again - the imported group must still be in the tree.
@@ -39,9 +41,9 @@ import org.junit.jupiter.api.Test;
 class SaveAndReopenDatabaseUiTest extends AbstractUiTest
 {
 
-	private static final String MASTER_PASSWORD = "reopen-db-pw-123";
+	private static final String MASTER_PASSWORD = TestPasswords.throwaway();
 	/** Credentials of the checked-in test fixture src/test/resources/test-db.kdbx */
-	private static final String KEEPASS_PASSWORD = "foo-secret-bar-1969-?";
+	private static final String KEEPASS_PASSWORD = TestPasswords.KEEPASS_FIXTURE;
 
 	@Test
 	void importedDataIsStillThereAfterSaveAndReopen() throws Exception

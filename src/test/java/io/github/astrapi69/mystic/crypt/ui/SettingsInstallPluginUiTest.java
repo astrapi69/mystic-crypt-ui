@@ -42,6 +42,8 @@ import org.assertj.swing.timing.Pause;
 import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.Test;
 
+import io.github.astrapi69.mystic.crypt.TestPasswords;
+
 /**
  * End-to-end test of installing a plugin through the Settings dialog: starting with no plugins
  * installed, "Install from Zip..." on the Plugins tab picks a built plugin zip, and the plugins
@@ -51,7 +53,7 @@ import org.junit.jupiter.api.Test;
 class SettingsInstallPluginUiTest extends AbstractUiTest
 {
 
-	private static final String MASTER_PASSWORD = "settings-install-e2e-pw-123";
+	private static final String MASTER_PASSWORD = TestPasswords.throwaway();
 
 	@Test
 	void installingAPluginFromZipListsItInThePluginsTable() throws Exception

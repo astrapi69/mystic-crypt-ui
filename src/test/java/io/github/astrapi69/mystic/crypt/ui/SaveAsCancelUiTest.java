@@ -34,6 +34,7 @@ import org.junit.jupiter.api.Test;
 
 import io.github.astrapi69.file.create.model.FileInfo;
 import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
+import io.github.astrapi69.mystic.crypt.TestPasswords;
 
 /**
  * Negative end-to-end case: cancelling the Save As file chooser must write nothing and must not
@@ -42,7 +43,7 @@ import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
 class SaveAsCancelUiTest extends AbstractUiTest
 {
 
-	private static final String MASTER_PASSWORD = "saveas-cancel-pw-123";
+	private static final String MASTER_PASSWORD = TestPasswords.throwaway();
 
 	@Test
 	void cancellingSaveAsWritesNothingAndKeepsTheTarget() throws IOException

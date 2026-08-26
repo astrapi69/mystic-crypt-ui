@@ -37,6 +37,7 @@ import org.assertj.swing.fixture.FrameFixture;
 import org.junit.jupiter.api.Test;
 
 import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
+import io.github.astrapi69.mystic.crypt.TestPasswords;
 
 /**
  * Functional end-to-end test of the menu-designer plugin: opens the "Menu Designer" tool, which
@@ -46,7 +47,7 @@ import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
 class MenuDesignerPluginUiTest extends AbstractUiTest
 {
 
-	private static final String MASTER_PASSWORD = "menu-designer-e2e-pw-123";
+	private static final String MASTER_PASSWORD = TestPasswords.throwaway();
 
 	@Test
 	void exportsValidatesAppliesAndSavesTheMenuThroughTheUi() throws Exception

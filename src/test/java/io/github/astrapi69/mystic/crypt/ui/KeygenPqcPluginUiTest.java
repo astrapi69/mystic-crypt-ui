@@ -33,6 +33,7 @@ import org.assertj.swing.fixture.FrameFixture;
 import org.junit.jupiter.api.Test;
 
 import io.github.astrapi69.crypt.api.algorithm.key.KeyPairGeneratorAlgorithm;
+import io.github.astrapi69.mystic.crypt.TestPasswords;
 
 /**
  * Functional end-to-end test of the keygen plugin's modern-algorithm branch: opens the "Key
@@ -45,7 +46,7 @@ import io.github.astrapi69.crypt.api.algorithm.key.KeyPairGeneratorAlgorithm;
 class KeygenPqcPluginUiTest extends AbstractUiTest
 {
 
-	private static final String MASTER_PASSWORD = "keygen-pqc-e2e-pw-123";
+	private static final String MASTER_PASSWORD = TestPasswords.throwaway();
 
 	@Test
 	void generatesAPostQuantumKeyPairThroughTheAlgorithmDropdown() throws Exception

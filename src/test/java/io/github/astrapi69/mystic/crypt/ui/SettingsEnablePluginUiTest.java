@@ -35,6 +35,8 @@ import org.assertj.swing.edt.GuiActionRunner;
 import org.assertj.swing.fixture.DialogFixture;
 import org.junit.jupiter.api.Test;
 
+import io.github.astrapi69.mystic.crypt.TestPasswords;
+
 /**
  * Functional end-to-end test of the settings dialog's plugin management: a plugin can be disabled
  * and then enabled again through the UI, and its state in the plugins table reflects each change
@@ -42,7 +44,7 @@ import org.junit.jupiter.api.Test;
 class SettingsEnablePluginUiTest extends AbstractUiTest
 {
 
-	private static final String MASTER_PASSWORD = "settings-enable-pw-123";
+	private static final String MASTER_PASSWORD = TestPasswords.throwaway();
 
 	@Test
 	void aPluginCanBeDisabledThenEnabledAgain() throws Exception

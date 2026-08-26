@@ -33,6 +33,8 @@ import org.assertj.swing.edt.GuiActionRunner;
 import org.assertj.swing.fixture.FrameFixture;
 import org.junit.jupiter.api.Test;
 
+import io.github.astrapi69.mystic.crypt.TestPasswords;
+
 /**
  * Functional end-to-end test of the KEM demo plugin: opens the "Key Encapsulation Demo" tool, runs
  * the default ML-KEM-768 exchange, and asserts through the real UI that the sender and recipient
@@ -41,7 +43,7 @@ import org.junit.jupiter.api.Test;
 class KemDemoPluginUiTest extends AbstractUiTest
 {
 
-	private static final String MASTER_PASSWORD = "kem-e2e-pw-123";
+	private static final String MASTER_PASSWORD = TestPasswords.throwaway();
 
 	@Test
 	void runsAKeyEncapsulationExchangeThroughTheUi() throws Exception
