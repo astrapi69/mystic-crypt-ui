@@ -33,32 +33,44 @@ import java.io.File;
 
 import javax.swing.*;
 
+import io.github.astrapi69.model.LambdaModel;
+import io.github.astrapi69.model.api.IModel;
+import io.github.astrapi69.swing.model.component.JMPasswordField;
+import io.github.astrapi69.swing.model.component.JMTextArea;
+import io.github.astrapi69.swing.model.component.JMTextField;
+
 /**
  * Tool panel for encrypting and decrypting: a file on one tab, a piece of text on the other.
  * <p>
  * The passphrase is what protects the result, so it is asked for twice when something is being
  * encrypted - a typo in a passphrase that nothing checks means the content is gone. On decrypting
  * one field is enough: a wrong passphrase is refused by the cipher itself.
+ * <p>
+ * Every component is bound to {@link FileCryptPanelModel}, so what the user entered is read from
+ * the model when a button is pressed, not out of the widgets.
  */
 public class FileCryptPanel extends JPanel
 {
 
 	private static final long serialVersionUID = 1L;
 
-	private final JTextField txtSourceFile = new JTextField(38);
-	private final JTextField txtTargetFile = new JTextField(38);
-	private final JPasswordField pwdFile = new JPasswordField(20);
-	private final JPasswordField pwdFileRepeated = new JPasswordField(20);
-	private final JTextArea txtPlainText = new JTextArea(6, 52);
-	private final JTextArea txtEncryptedText = new JTextArea(6, 52);
-	private final JPasswordField pwdText = new JPasswordField(20);
-	private final JPasswordField pwdTextRepeated = new JPasswordField(20);
-	private final JLabel lblResult = new JLabel(" ");
+	private final FileCryptPanelModel modelObject = new FileCryptPanelModel();
+	private final JMTextField txtSourceFile = new JMTextField(38);
+	private final JMTextField txtTargetFile = new JMTextField(38);
+	private final JMPasswordField pwdFile = new JMPasswordField(20);
+	private final JMPasswordField pwdFileRepeated = new JMPasswordField(20);
+	private final JMTextArea txtPlainText = new JMTextArea(6, 52);
+	private final JMTextArea txtEncryptedText = new JMTextArea(6, 52);
+	private final JMPasswordField pwdText = new JMPasswordField(20);
+	private final JMPasswordField pwdTextRepeated = new JMPasswordField(20);
+	private final JLabel lblResult = new JLabel(modelObject.getResultText());
 	private final JTabbedPane tabs = new JTabbedPane();
 
 	public FileCryptPanel()
 	{
 		super(new BorderLayout(4, 4));
+
+		bindToModel();
 
 		lblResult.setName("lblResult");
 		lblResult.setFont(lblResult.getFont().deriveFont(Font.BOLD));
@@ -72,6 +84,35 @@ public class FileCryptPanel extends JPanel
 		add(lblResult, BorderLayout.SOUTH);
 	}
 
+	/** Binds every entry component to its field in {@link FileCryptPanelModel} */
+	private void bindToModel()
+	{
+		txtSourceFile.setPropertyModel(sourceFileModel());
+		txtTargetFile.setPropertyModel(targetFileModel());
+		pwdFile.setPropertyModel(
+			LambdaModel.of(modelObject::getFilePassphrase, modelObject::setFilePassphrase));
+		pwdFileRepeated.setPropertyModel(LambdaModel.of(modelObject::getFilePassphraseRepeated,
+			modelObject::setFilePassphraseRepeated));
+		txtPlainText
+			.setPropertyModel(LambdaModel.of(modelObject::getPlainText, modelObject::setPlainText));
+		txtEncryptedText.setPropertyModel(
+			LambdaModel.of(modelObject::getEncryptedText, modelObject::setEncryptedText));
+		pwdText.setPropertyModel(
+			LambdaModel.of(modelObject::getTextPassphrase, modelObject::setTextPassphrase));
+		pwdTextRepeated.setPropertyModel(LambdaModel.of(modelObject::getTextPassphraseRepeated,
+			modelObject::setTextPassphraseRepeated));
+	}
+
+	private IModel<String> sourceFileModel()
+	{
+		return LambdaModel.of(modelObject::getSourceFile, modelObject::setSourceFile);
+	}
+
+	private IModel<String> targetFileModel()
+	{
+		return LambdaModel.of(modelObject::getTargetFile, modelObject::setTargetFile);
+	}
+
 	private JPanel newFileTab()
 	{
 		txtSourceFile.setName("txtSourceFile");
@@ -83,11 +124,13 @@ public class FileCryptPanel extends JPanel
 		int row = 0;
 		panel.add(new JLabel("File:"), at(0, row, GridBagConstraints.EAST));
 		panel.add(txtSourceFile, at(1, row, GridBagConstraints.WEST));
-		panel.add(button("btnBrowseSource", "...", event -> onBrowse(txtSourceFile)),
+		panel.add(
+			button("btnBrowseSource", "...", event -> onBrowse(txtSourceFile, sourceFileModel())),
 			at(2, row++, GridBagConstraints.WEST));
 		panel.add(new JLabel("Write to:"), at(0, row, GridBagConstraints.EAST));
 		panel.add(txtTargetFile, at(1, row, GridBagConstraints.WEST));
-		panel.add(button("btnBrowseTarget", "...", event -> onBrowse(txtTargetFile)),
+		panel.add(
+			button("btnBrowseTarget", "...", event -> onBrowse(txtTargetFile, targetFileModel())),
 			at(2, row++, GridBagConstraints.WEST));
 		panel.add(new JLabel("Passphrase:"), at(0, row, GridBagConstraints.EAST));
 		panel.add(pwdFile, at(1, row++, GridBagConstraints.WEST));
@@ -127,10 +170,11 @@ public class FileCryptPanel extends JPanel
 	private void onEncryptFile()
 	{
 		run("encrypted", () -> {
-			String passphrase = matchingPassphrase(pwdFile, pwdFileRepeated);
-			File source = new File(txtSourceFile.getText().trim());
+			String passphrase = matchingPassphrase(modelObject.getFilePassphrase(),
+				modelObject.getFilePassphraseRepeated());
+			File source = new File(modelObject.getSourceFile().trim());
 			File written = FileCryptSupport.encryptFile(source, targetOrNull(), passphrase);
-			txtTargetFile.setText(written.getAbsolutePath());
+			showTargetFile(written);
 			String message = "encrypted to " + written.getName();
 			if (FileCryptSettingsContribution.deleteSourceAfterEncrypt()
 				&& java.nio.file.Files.deleteIfExists(source.toPath()))
@@ -144,9 +188,10 @@ public class FileCryptPanel extends JPanel
 	private void onDecryptFile()
 	{
 		run("decrypted", () -> {
-			File written = FileCryptSupport.decryptFile(new File(txtSourceFile.getText().trim()),
-				targetOrNull(), new String(pwdFile.getPassword()));
-			txtTargetFile.setText(written.getAbsolutePath());
+			File source = new File(modelObject.getSourceFile().trim());
+			File written = FileCryptSupport.decryptFile(source, targetOrNull(),
+				new String(modelObject.getFilePassphrase()));
+			showTargetFile(written);
 			return "decrypted to " + written.getName();
 		});
 	}
@@ -154,21 +199,19 @@ public class FileCryptPanel extends JPanel
 	private void onEncryptText()
 	{
 		run("encrypted", () -> {
-			String passphrase = matchingPassphrase(pwdText, pwdTextRepeated);
-			txtEncryptedText.setText(FileCryptSupport.encryptText(txtPlainText.getText(),
-				passphrase));
-			txtEncryptedText.setCaretPosition(0);
-			return "encrypted " + txtPlainText.getText().length() + " characters";
+			String passphrase = matchingPassphrase(modelObject.getTextPassphrase(),
+				modelObject.getTextPassphraseRepeated());
+			showEncryptedText(FileCryptSupport.encryptText(modelObject.getPlainText(), passphrase));
+			return "encrypted " + modelObject.getPlainText().length() + " characters";
 		});
 	}
 
 	private void onDecryptText()
 	{
 		run("decrypted", () -> {
-			txtPlainText.setText(FileCryptSupport.decryptText(txtEncryptedText.getText(),
-				new String(pwdText.getPassword())));
-			txtPlainText.setCaretPosition(0);
-			return "decrypted " + txtPlainText.getText().length() + " characters";
+			showPlainText(FileCryptSupport.decryptText(modelObject.getEncryptedText(),
+				new String(modelObject.getTextPassphrase())));
+			return "decrypted " + modelObject.getPlainText().length() + " characters";
 		});
 	}
 
@@ -176,10 +219,10 @@ public class FileCryptPanel extends JPanel
 	 * The passphrase from the two fields, provided they agree - a typo in a passphrase that nothing
 	 * checks means the content cannot be got back
 	 */
-	private String matchingPassphrase(JPasswordField first, JPasswordField repeated)
+	private String matchingPassphrase(char[] entered, char[] repeated)
 	{
-		String passphrase = new String(first.getPassword());
-		String repetition = new String(repeated.getPassword());
+		String passphrase = new String(entered);
+		String repetition = new String(repeated);
 		if (!passphrase.equals(repetition))
 		{
 			throw new IllegalArgumentException("the two passphrases are not the same");
@@ -189,7 +232,7 @@ public class FileCryptPanel extends JPanel
 
 	private File targetOrNull()
 	{
-		String target = txtTargetFile.getText().trim();
+		String target = modelObject.getTargetFile().trim();
 		return target.isEmpty() ? null : new File(target);
 	}
 
@@ -197,30 +240,61 @@ public class FileCryptPanel extends JPanel
 	{
 		try
 		{
-			lblResult.setText(operation.execute());
+			showResult(operation.execute());
 		}
 		catch (Exception exception)
 		{
-			lblResult.setText("not " + what + ": " + message(exception));
+			showResult("not " + what + ": " + message(exception));
 		}
+	}
+
+	/** Puts the file that was written into the model and shows its path in the target field */
+	private void showTargetFile(File written)
+	{
+		modelObject.setTargetFile(written.getAbsolutePath());
+		txtTargetFile.setText(modelObject.getTargetFile());
+	}
+
+	/** Puts the encrypted text into the model and shows it from its beginning */
+	private void showEncryptedText(String encrypted)
+	{
+		modelObject.setEncryptedText(encrypted);
+		txtEncryptedText.setText(modelObject.getEncryptedText());
+		txtEncryptedText.setCaretPosition(0);
+	}
+
+	/** Puts the decrypted text into the model and shows it from its beginning */
+	private void showPlainText(String decrypted)
+	{
+		modelObject.setPlainText(decrypted);
+		txtPlainText.setText(modelObject.getPlainText());
+		txtPlainText.setCaretPosition(0);
+	}
+
+	/** Puts the message into the model and shows it below the tabs */
+	private void showResult(String resultText)
+	{
+		modelObject.setResultText(resultText);
+		lblResult.setText(modelObject.getResultText());
 	}
 
 	/** The message shown below the tabs */
 	public String getResultText()
 	{
-		return lblResult.getText();
+		return modelObject.getResultText();
 	}
 
-	private void onBrowse(JTextField target)
+	private void onBrowse(JTextField field, IModel<String> chosenFile)
 	{
 		JFileChooser fileChooser = new JFileChooser();
-		if (!target.getText().isBlank())
+		if (!chosenFile.getObject().isBlank())
 		{
-			fileChooser.setSelectedFile(new File(target.getText()));
+			fileChooser.setSelectedFile(new File(chosenFile.getObject()));
 		}
 		if (fileChooser.showDialog(this, "Select") == JFileChooser.APPROVE_OPTION)
 		{
-			target.setText(fileChooser.getSelectedFile().getAbsolutePath());
+			chosenFile.setObject(fileChooser.getSelectedFile().getAbsolutePath());
+			field.setText(chosenFile.getObject());
 		}
 	}
 

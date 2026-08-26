@@ -29,7 +29,7 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.io.File;
-import java.security.KeyStore;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -38,7 +38,12 @@ import javax.swing.table.DefaultTableModel;
 
 import io.github.astrapi69.crypt.api.algorithm.key.KeyPairGeneratorAlgorithm;
 import io.github.astrapi69.crypt.api.type.KeystoreType;
+import io.github.astrapi69.model.LambdaModel;
 import io.github.astrapi69.mystic.crypt.settings.PluginSettings;
+import io.github.astrapi69.swing.model.combobox.EnumComboBoxModel;
+import io.github.astrapi69.swing.model.component.JMComboBox;
+import io.github.astrapi69.swing.model.component.JMPasswordField;
+import io.github.astrapi69.swing.model.component.JMTextField;
 
 /**
  * Tool panel for working with a Java key store: open or create one, see what it holds, add a
@@ -56,16 +61,19 @@ public class KeyStorePanel extends JPanel
 	private static final String[] COLUMNS = { "alias", "kind", "algorithm", "subject",
 			"valid until", "SHA-256 fingerprint" };
 
-	private final JTextField txtKeyStoreFile = new JTextField(40);
-	private final JComboBox<KeystoreType> cmbType = new JComboBox<>(
-		KeyStoreSupport.USABLE_TYPES.toArray(new KeystoreType[0]));
-	private final JPasswordField pwdStore = new JPasswordField(20);
-	private final JTextField txtAlias = new JTextField(20);
-	private final JTextField txtDistinguishedName = new JTextField(30);
-	private final JComboBox<KeyPairGeneratorAlgorithm> cmbKeyAlgorithm = new JComboBox<>(
-		KeyStoreSupport.KEY_ALGORITHMS.toArray(new KeyPairGeneratorAlgorithm[0]));
-	private final JTextField txtCertificateFile = new JTextField(40);
-	private final JTextField txtPrivateKeyFile = new JTextField(40);
+	/** Everything the user typed or chose; every component below writes into it */
+	private final transient KeyStorePanelModel modelObject = new KeyStorePanelModel();
+
+	private final JMTextField txtKeyStoreFile = new JMTextField(40);
+	private final JMComboBox<KeystoreType, ?> cmbType = new JMComboBox<>(
+		offeredValues(KeystoreType.class, KeyStoreSupport.USABLE_TYPES));
+	private final JMPasswordField pwdStore = new JMPasswordField(20);
+	private final JMTextField txtAlias = new JMTextField(20);
+	private final JMTextField txtDistinguishedName = new JMTextField(30);
+	private final JMComboBox<KeyPairGeneratorAlgorithm, ?> cmbKeyAlgorithm = new JMComboBox<>(
+		offeredValues(KeyPairGeneratorAlgorithm.class, KeyStoreSupport.KEY_ALGORITHMS));
+	private final JMTextField txtCertificateFile = new JMTextField(40);
+	private final JMTextField txtPrivateKeyFile = new JMTextField(40);
 	private final DefaultTableModel entryModel = new DefaultTableModel(COLUMNS, 0)
 	{
 		private static final long serialVersionUID = 1L;
@@ -81,19 +89,19 @@ public class KeyStorePanel extends JPanel
 	private final JTable tblEntries = new JTable(entryModel);
 	private final JLabel lblResult = new JLabel(" ");
 
-	private transient KeyStore keyStore;
-
 	private final transient Map<String, String> settings;
 
 	public KeyStorePanel()
 	{
 		super(new GridBagLayout());
 
-		// what the user configured in the settings dialog decides what this tool starts with
+		// what the user configured in the settings dialog decides what this tool starts with; the
+		// components take it from the model when they are bound to it
 		settings = KeyStoreSettings.values();
-		cmbType.setSelectedItem(KeyStoreSettings.type(settings));
-		cmbKeyAlgorithm.setSelectedItem(KeyStoreSettings.algorithm(settings));
-		txtDistinguishedName.setText(KeyStoreSettings.distinguishedName(settings));
+		modelObject.setKeystoreType(KeyStoreSettings.type(settings));
+		modelObject.setKeyAlgorithm(KeyStoreSettings.algorithm(settings));
+		modelObject.setDistinguishedName(KeyStoreSettings.distinguishedName(settings));
+		bindComponents();
 
 		txtKeyStoreFile.setName("txtKeyStoreFile");
 		cmbType.setName("cmbType");
@@ -158,6 +166,50 @@ public class KeyStorePanel extends JPanel
 		add(lblResult, span(0, row, 3));
 	}
 
+	/**
+	 * Binds every component to the model, so that each edit lands in the model and the model is
+	 * what the buttons read - the components carry the values the model already holds
+	 */
+	private void bindComponents()
+	{
+		txtKeyStoreFile.setPropertyModel(
+			LambdaModel.of(modelObject::getKeyStoreFilePath, modelObject::setKeyStoreFilePath));
+		cmbType.setPropertyModel(
+			LambdaModel.of(modelObject::getKeystoreType, modelObject::setKeystoreType));
+		pwdStore.setPropertyModel(
+			LambdaModel.of(modelObject::getStorePassword, modelObject::setStorePassword));
+		txtAlias.setPropertyModel(LambdaModel.of(modelObject::getAlias, modelObject::setAlias));
+		txtDistinguishedName.setPropertyModel(
+			LambdaModel.of(modelObject::getDistinguishedName, modelObject::setDistinguishedName));
+		cmbKeyAlgorithm.setPropertyModel(
+			LambdaModel.of(modelObject::getKeyAlgorithm, modelObject::setKeyAlgorithm));
+		txtCertificateFile.setPropertyModel(LambdaModel.of(modelObject::getCertificateFilePath,
+			modelObject::setCertificateFilePath));
+		txtPrivateKeyFile.setPropertyModel(
+			LambdaModel.of(modelObject::getPrivateKeyFilePath, modelObject::setPrivateKeyFilePath));
+	}
+
+	/**
+	 * A combo box model over an enum, holding only the values this tool offers and holding them in
+	 * the order they are offered in - the exclude set of {@link EnumComboBoxModel} is a hash set
+	 * and would leave the order to the hash codes
+	 *
+	 * @param <E>
+	 *            the type of the enum
+	 * @param enumClass
+	 *            the enum class the values come from
+	 * @param offered
+	 *            the values the tool offers, in the order they are offered in
+	 * @return the combo box model over the offered values
+	 */
+	private static <E extends Enum<E>> EnumComboBoxModel<E> offeredValues(final Class<E> enumClass,
+		final List<E> offered)
+	{
+		EnumComboBoxModel<E> comboBoxModel = new EnumComboBoxModel<>(enumClass, offered.get(0));
+		comboBoxModel.setComboList(new ArrayList<>(offered));
+		return comboBoxModel;
+	}
+
 	private void onBrowse(JTextField target)
 	{
 		JFileChooser fileChooser = new JFileChooser();
@@ -177,7 +229,7 @@ public class KeyStorePanel extends JPanel
 			// the file says what kind of store it is; the combo only decides when it does not
 			KeystoreType detected = KeyStoreSupport.detectType(file(), password());
 			KeystoreType type = detected != null ? detected : type();
-			keyStore = KeyStoreSupport.open(file(), type, password());
+			modelObject.setKeyStore(KeyStoreSupport.open(file(), type, password()));
 			if (detected != null && detected != type())
 			{
 				cmbType.setSelectedItem(detected);
@@ -192,9 +244,9 @@ public class KeyStorePanel extends JPanel
 		run("imported", () -> {
 			requireOpenKeyStore();
 			String alias = requireAlias();
-			KeyStoreSupport.importKeyPair(keyStore, file(), password(), alias,
-				new File(txtPrivateKeyFile.getText().trim()),
-				new File(txtCertificateFile.getText().trim()));
+			KeyStoreSupport.importKeyPair(modelObject.getKeyStore(), file(), password(), alias,
+				new File(modelObject.getPrivateKeyFilePath().trim()),
+				new File(modelObject.getCertificateFilePath().trim()));
 			return "imported the key and its certificate as '" + alias + "'";
 		});
 	}
@@ -204,8 +256,8 @@ public class KeyStorePanel extends JPanel
 		run("added", () -> {
 			requireOpenKeyStore();
 			String alias = requireAlias();
-			KeyStoreSupport.addSecretKey(keyStore, file(), password(), alias, "AES",
-				KeyStoreSettings.secretKeySize());
+			KeyStoreSupport.addSecretKey(modelObject.getKeyStore(), file(), password(), alias,
+				"AES", KeyStoreSettings.secretKeySize());
 			return "added the " + KeyStoreSettings.secretKeySize() + " bit AES key '" + alias + "'";
 		});
 	}
@@ -215,7 +267,8 @@ public class KeyStorePanel extends JPanel
 		run("shown", () -> {
 			requireOpenKeyStore();
 			String alias = selectedAlias();
-			KeyStoreSupport.CertificateDetails details = KeyStoreSupport.details(keyStore, alias);
+			KeyStoreSupport.CertificateDetails details = KeyStoreSupport
+				.details(modelObject.getKeyStore(), alias);
 			JOptionPane.showMessageDialog(this, newDetailsPanel(details),
 				"Certificate of '" + alias + "'", JOptionPane.PLAIN_MESSAGE);
 			return "showed the details of '" + alias + "'";
@@ -266,7 +319,7 @@ public class KeyStorePanel extends JPanel
 	private void onCreate()
 	{
 		run("created", () -> {
-			keyStore = KeyStoreSupport.create(file(), type(), password());
+			modelObject.setKeyStore(KeyStoreSupport.create(file(), type(), password()));
 			return "created " + file().getName();
 		});
 	}
@@ -276,11 +329,10 @@ public class KeyStorePanel extends JPanel
 		run("added", () -> {
 			requireOpenKeyStore();
 			String alias = requireAlias();
-			KeyPairGeneratorAlgorithm algorithm = (KeyPairGeneratorAlgorithm)cmbKeyAlgorithm
-				.getSelectedItem();
+			KeyPairGeneratorAlgorithm algorithm = modelObject.getKeyAlgorithm();
 			long started = System.currentTimeMillis();
-			KeyStoreSupport.addKeyPair(keyStore, file(), password(), alias,
-				txtDistinguishedName.getText(), algorithm,
+			KeyStoreSupport.addKeyPair(modelObject.getKeyStore(), file(), password(), alias,
+				modelObject.getDistinguishedName(), algorithm,
 				PluginSettings.asInt(settings, KeyStoreSettingsContribution.KEY_KEY_SIZE,
 					KeyStoreSupport.DEFAULT_KEY_SIZE),
 				KeyStoreSupport.signatureAlgorithmFor(algorithm),
@@ -296,7 +348,7 @@ public class KeyStorePanel extends JPanel
 		run("deleted", () -> {
 			requireOpenKeyStore();
 			String alias = selectedAlias();
-			keyStore = KeyStoreSupport.deleteAlias(file(), type(), password(), alias);
+			modelObject.setKeyStore(KeyStoreSupport.deleteAlias(file(), type(), password(), alias));
 			return "deleted '" + alias + "'";
 		});
 	}
@@ -306,8 +358,8 @@ public class KeyStorePanel extends JPanel
 		run("imported", () -> {
 			requireOpenKeyStore();
 			String alias = requireAlias();
-			KeyStoreSupport.importCertificate(keyStore, file(), password(), alias,
-				new File(txtCertificateFile.getText()));
+			KeyStoreSupport.importCertificate(modelObject.getKeyStore(), file(), password(), alias,
+				new File(modelObject.getCertificateFilePath()));
 			return "imported the certificate as '" + alias + "'";
 		});
 	}
@@ -317,10 +369,11 @@ public class KeyStorePanel extends JPanel
 		run("exported", () -> {
 			requireOpenKeyStore();
 			String alias = selectedAlias();
-			File target = txtCertificateFile.getText().isBlank()
+			File target = modelObject.getCertificateFilePath().isBlank()
 				? new File(file().getParentFile(), alias + ".pem")
-				: new File(txtCertificateFile.getText());
-			KeyStoreSupport.exportCertificate(keyStore, alias, target);
+				: new File(modelObject.getCertificateFilePath());
+			KeyStoreSupport.exportCertificate(modelObject.getKeyStore(), alias, target);
+			// setting the field is what puts the path into the model as well
 			txtCertificateFile.setText(target.getAbsolutePath());
 			return "exported '" + alias + "' to " + target.getName();
 		});
@@ -335,25 +388,36 @@ public class KeyStorePanel extends JPanel
 	{
 		try
 		{
-			lblResult.setText(operation.execute());
+			showResult(operation.execute());
 		}
 		catch (Exception exception)
 		{
-			lblResult.setText("not " + what + ": " + message(exception));
+			showResult("not " + what + ": " + message(exception));
 		}
 		refreshEntries();
+	}
+
+	/**
+	 * Keeps the message of the last operation in the model and shows it, so what the label says and
+	 * what the model holds cannot drift apart
+	 */
+	private void showResult(String resultMessage)
+	{
+		modelObject.setResultMessage(resultMessage);
+		lblResult.setText(resultMessage);
 	}
 
 	private void refreshEntries()
 	{
 		entryModel.setRowCount(0);
-		if (keyStore == null)
+		if (modelObject.getKeyStore() == null)
 		{
 			return;
 		}
 		try
 		{
-			List<KeyStoreSupport.EntryInfo> entries = KeyStoreSupport.entries(keyStore);
+			List<KeyStoreSupport.EntryInfo> entries = KeyStoreSupport
+				.entries(modelObject.getKeyStore());
 			for (KeyStoreSupport.EntryInfo entry : entries)
 			{
 				entryModel.addRow(new Object[] { entry.alias(), entry.entryKind(),
@@ -363,13 +427,13 @@ public class KeyStorePanel extends JPanel
 		}
 		catch (Exception exception)
 		{
-			lblResult.setText("the entries could not be read: " + message(exception));
+			showResult("the entries could not be read: " + message(exception));
 		}
 	}
 
 	private void requireOpenKeyStore()
 	{
-		if (keyStore == null)
+		if (modelObject.getKeyStore() == null)
 		{
 			throw new IllegalStateException("open or create a key store first");
 		}
@@ -377,7 +441,7 @@ public class KeyStorePanel extends JPanel
 
 	private String requireAlias()
 	{
-		String alias = txtAlias.getText().trim();
+		String alias = modelObject.getAlias().trim();
 		if (alias.isEmpty())
 		{
 			throw new IllegalStateException("enter an alias");
@@ -398,17 +462,17 @@ public class KeyStorePanel extends JPanel
 
 	private File file()
 	{
-		return new File(txtKeyStoreFile.getText().trim());
+		return new File(modelObject.getKeyStoreFilePath().trim());
 	}
 
 	private KeystoreType type()
 	{
-		return (KeystoreType)cmbType.getSelectedItem();
+		return modelObject.getKeystoreType();
 	}
 
 	private String password()
 	{
-		return new String(pwdStore.getPassword());
+		return new String(modelObject.getStorePassword());
 	}
 
 	private static String message(Exception exception)

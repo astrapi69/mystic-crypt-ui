@@ -28,6 +28,8 @@ dependencies {
     compileOnly "io.github.astrapi69:file-worker:19.0"
     compileOnly "io.github.astrapi69:model-data:3.2.1"
     compileOnly "io.github.astrapi69:swing-base-components:5.1"
+    // the model backed components the ChecksumAndMacPanel binds to its model
+    compileOnly "io.github.astrapi69:swing-model-components:1.2"
     // EnableButtonBehavior lives here
     compileOnly "io.github.astrapi69:menu-action:5.1"
     compileOnly "org.projectlombok:lombok:1.18.46"
@@ -46,6 +48,10 @@ dependencies {
     testRuntimeOnly "org.junit.platform:junit-platform-launcher"
     // the settings contribution implements the host's extension point and reads through the host's
     // settings store, so the host jar has to be on the test classpath to load it
+    // the binding test builds the ChecksumAndMacPanel, so its model backed components have to
+    // be on the test classpath the way the host provides them at runtime
+    testImplementation "io.github.astrapi69:swing-model-components:1.2"
+    testImplementation "io.github.astrapi69:model-data:3.2.1"
     testImplementation "io.github.astrapi69:mystic-crypt-ui:8.2-SNAPSHOT"
     testImplementation "org.pf4j:pf4j:3.15.0"
 

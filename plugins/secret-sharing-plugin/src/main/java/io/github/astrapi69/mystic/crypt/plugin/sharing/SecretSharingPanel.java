@@ -34,8 +34,16 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 
 import javax.swing.*;
+
+import io.github.astrapi69.model.LambdaModel;
+import io.github.astrapi69.swing.model.component.JMCheckBox;
+import io.github.astrapi69.swing.model.component.JMPasswordField;
+import io.github.astrapi69.swing.model.component.JMSpinner;
+import io.github.astrapi69.swing.model.component.JMTextArea;
+import io.github.astrapi69.swing.model.component.JMTextField;
 
 /**
  * Tool panel for splitting a secret into shares and putting it back together.
@@ -44,20 +52,28 @@ import javax.swing.*;
  * split so that a few of the shares are enough to rebuild it, and fewer than that reveal nothing.
  * Each share is a line of text meant to leave this machine - onto paper, into someone else's safe -
  * so each one carries a check value that catches a character mistyped while copying it back.
+ * <p>
+ * Every component is bound to {@link SecretSharingPanelModel}, so a button reads what the user
+ * entered from the model and never out of the widgets.
  */
 public class SecretSharingPanel extends JPanel
 {
 
 	private static final long serialVersionUID = 1L;
 
-	private final JPasswordField pwdSecret = new JPasswordField(28);
-	private final JTextField txtSecretFile = new JTextField(34);
-	private final JCheckBox chkUseFile = new JCheckBox("split the file instead of the secret above");
-	private final JSpinner spnThreshold = new JSpinner(new SpinnerNumberModel(3, 2, 255, 1));
-	private final JSpinner spnTotalShares = new JSpinner(new SpinnerNumberModel(5, 2, 255, 1));
-	private final JTextArea txtShares = new JTextArea(8, 62);
-	private final JTextArea txtRebuilt = new JTextArea(3, 62);
-	private final JTextField txtRebuiltFile = new JTextField(34);
+	private final SecretSharingPanelModel modelObject = new SecretSharingPanelModel();
+
+	private final JMPasswordField pwdSecret = new JMPasswordField(28);
+	private final JMTextField txtSecretFile = new JMTextField(34);
+	private final JMCheckBox chkUseFile = new JMCheckBox(
+		"split the file instead of the secret above");
+	private final JMSpinner<Integer> spnThreshold = new JMSpinner<>(
+		new SpinnerNumberModel(3, 2, 255, 1));
+	private final JMSpinner<Integer> spnTotalShares = new JMSpinner<>(
+		new SpinnerNumberModel(5, 2, 255, 1));
+	private final JMTextArea txtShares = new JMTextArea(8, 62);
+	private final JMTextArea txtRebuilt = new JMTextArea(3, 62);
+	private final JMTextField txtRebuiltFile = new JMTextField(34);
 	private final JLabel lblResult = new JLabel(" ");
 
 	public SecretSharingPanel()
@@ -78,8 +94,10 @@ public class SecretSharingPanel extends JPanel
 		lblResult.setFont(lblResult.getFont().deriveFont(Font.BOLD));
 
 		// the tool starts with what the user configured in the settings dialog
-		spnThreshold.setValue(SecretSharingSettingsContribution.threshold());
-		spnTotalShares.setValue(SecretSharingSettingsContribution.totalShares());
+		modelObject.setThreshold(SecretSharingSettingsContribution.threshold());
+		modelObject.setTotalShares(SecretSharingSettingsContribution.totalShares());
+
+		bindToModel();
 
 		JPanel form = new JPanel(new GridBagLayout());
 		int row = 0;
@@ -87,7 +105,7 @@ public class SecretSharingPanel extends JPanel
 		form.add(pwdSecret, at(1, row++, GridBagConstraints.WEST));
 		form.add(new JLabel("or file:"), at(0, row, GridBagConstraints.EAST));
 		form.add(txtSecretFile, at(1, row, GridBagConstraints.WEST));
-		form.add(button("btnBrowseSecretFile", "...", event -> onBrowse(txtSecretFile)),
+		form.add(button("btnBrowseSecretFile", "...", event -> onBrowseSecretFile()),
 			at(2, row++, GridBagConstraints.WEST));
 		form.add(chkUseFile, at(1, row++, GridBagConstraints.WEST));
 		form.add(new JLabel("Shares needed:"), at(0, row, GridBagConstraints.EAST));
@@ -108,7 +126,7 @@ public class SecretSharingPanel extends JPanel
 		form.add(new JScrollPane(txtRebuilt), at(1, row++, GridBagConstraints.WEST));
 		form.add(new JLabel("Write it to:"), at(0, row, GridBagConstraints.EAST));
 		form.add(txtRebuiltFile, at(1, row, GridBagConstraints.WEST));
-		form.add(button("btnBrowseRebuiltFile", "...", event -> onBrowse(txtRebuiltFile)),
+		form.add(button("btnBrowseRebuiltFile", "...", event -> onBrowseRebuiltFile()),
 			at(2, row++, GridBagConstraints.WEST));
 		form.add(button("btnSaveRebuilt", "Save rebuilt secret", event -> onSaveRebuilt()),
 			at(1, row, GridBagConstraints.WEST));
@@ -117,17 +135,39 @@ public class SecretSharingPanel extends JPanel
 		add(lblResult, BorderLayout.SOUTH);
 	}
 
+	/**
+	 * Binds every component to its field in {@link SecretSharingPanelModel}: from here on an edit
+	 * in the panel lands in the model, and a value set on a component is passed into the model by
+	 * the component itself.
+	 */
+	private void bindToModel()
+	{
+		pwdSecret.setPropertyModel(LambdaModel.of(modelObject::getSecret, modelObject::setSecret));
+		txtSecretFile.setPropertyModel(
+			LambdaModel.of(modelObject::getSecretFile, modelObject::setSecretFile));
+		chkUseFile
+			.setPropertyModel(LambdaModel.of(modelObject::isUseFile, modelObject::setUseFile));
+		spnThreshold
+			.setPropertyModel(LambdaModel.of(modelObject::getThreshold, modelObject::setThreshold));
+		spnTotalShares.setPropertyModel(
+			LambdaModel.of(modelObject::getTotalShares, modelObject::setTotalShares));
+		txtShares.setPropertyModel(LambdaModel.of(modelObject::getShares, modelObject::setShares));
+		txtRebuilt.setPropertyModel(
+			LambdaModel.of(modelObject::getRebuiltSecret, modelObject::setRebuiltSecret));
+		txtRebuiltFile.setPropertyModel(
+			LambdaModel.of(modelObject::getRebuiltFile, modelObject::setRebuiltFile));
+	}
+
 	private void onSplit()
 	{
 		run("split", () -> {
-			int threshold = (Integer)spnThreshold.getValue();
-			int totalShares = (Integer)spnTotalShares.getValue();
+			int threshold = modelObject.getThreshold();
+			int totalShares = modelObject.getTotalShares();
 			byte[] secret = secret();
 			try
 			{
 				List<String> shares = SecretSharingSupport.split(secret, threshold, totalShares);
-				txtShares.setText(String.join(System.lineSeparator(), shares));
-				txtShares.setCaretPosition(0);
+				showShares(String.join(System.lineSeparator(), shares));
 				return totalShares + " shares, " + threshold + " of them are enough - keep them apart";
 			}
 			finally
@@ -140,10 +180,9 @@ public class SecretSharingPanel extends JPanel
 	private void onCombine()
 	{
 		run("combined", () -> {
-			List<String> shares = List.of(txtShares.getText().split("\\R"));
+			List<String> shares = List.of(modelObject.getShares().split("\\R"));
 			byte[] secret = SecretSharingSupport.combine(shares);
-			txtRebuilt.setText(new String(secret, StandardCharsets.UTF_8));
-			txtRebuilt.setCaretPosition(0);
+			showRebuiltSecret(new String(secret, StandardCharsets.UTF_8));
 			return "rebuilt " + secret.length + " bytes";
 		});
 	}
@@ -151,12 +190,12 @@ public class SecretSharingPanel extends JPanel
 	private void onSaveShares()
 	{
 		run("saved", () -> {
-			if (txtShares.getText().isBlank())
+			if (modelObject.getShares().isBlank())
 			{
 				throw new IllegalArgumentException("there is nothing to save - split a secret first");
 			}
-			File target = requireNewFile(txtSecretFile, ".shares.txt");
-			Files.writeString(target.toPath(), txtShares.getText(), StandardCharsets.UTF_8);
+			File target = requireNewFile(modelObject.getSecretFile(), ".shares.txt");
+			Files.writeString(target.toPath(), modelObject.getShares(), StandardCharsets.UTF_8);
 			return "wrote the shares to " + target.getName()
 				+ " - they belong apart, not in one file";
 		});
@@ -165,13 +204,12 @@ public class SecretSharingPanel extends JPanel
 	private void onLoadShares()
 	{
 		run("loaded", () -> {
-			File source = new File(txtSecretFile.getText().trim());
+			File source = new File(modelObject.getSecretFile().trim());
 			if (!source.isFile())
 			{
 				throw new IllegalArgumentException("choose the file the shares are in");
 			}
-			txtShares.setText(Files.readString(source.toPath(), StandardCharsets.UTF_8));
-			txtShares.setCaretPosition(0);
+			showShares(Files.readString(source.toPath(), StandardCharsets.UTF_8));
 			return "read the shares from " + source.getName();
 		});
 	}
@@ -179,11 +217,11 @@ public class SecretSharingPanel extends JPanel
 	private void onSaveRebuilt()
 	{
 		run("saved", () -> {
-			if (txtRebuilt.getText().isEmpty())
+			if (modelObject.getRebuiltSecret().isEmpty())
 			{
 				throw new IllegalArgumentException("there is nothing to save - combine the shares first");
 			}
-			String path = txtRebuiltFile.getText().trim();
+			String path = modelObject.getRebuiltFile().trim();
 			if (path.isEmpty())
 			{
 				throw new IllegalArgumentException("choose a file to write the secret to");
@@ -195,34 +233,34 @@ public class SecretSharingPanel extends JPanel
 					+ "' already exists - pick another name or remove it first");
 			}
 			Files.write(target.toPath(),
-				txtRebuilt.getText().getBytes(StandardCharsets.UTF_8));
+				modelObject.getRebuiltSecret().getBytes(StandardCharsets.UTF_8));
 			return "wrote the secret to " + target.getName();
 		});
 	}
 
 	private byte[] secret() throws Exception
 	{
-		if (chkUseFile.isSelected())
+		if (modelObject.isUseFile())
 		{
-			File file = new File(txtSecretFile.getText().trim());
+			File file = new File(modelObject.getSecretFile().trim());
 			if (!file.isFile())
 			{
 				throw new IllegalArgumentException("choose a file to split");
 			}
 			return Files.readAllBytes(file.toPath());
 		}
-		char[] typed = pwdSecret.getPassword();
-		if (typed.length == 0)
+		char[] typed = modelObject.getSecret();
+		if (typed == null || typed.length == 0)
 		{
 			throw new IllegalArgumentException("there is no secret to split");
 		}
 		return new String(typed).getBytes(StandardCharsets.UTF_8);
 	}
 
-	private File requireNewFile(JTextField field, String suffix)
+	private File requireNewFile(String path, String suffix)
 	{
-		String path = field.getText().trim();
-		File target = path.isEmpty() ? new File("shares" + suffix) : new File(path + suffix);
+		String chosen = path.trim();
+		File target = chosen.isEmpty() ? new File("shares" + suffix) : new File(chosen + suffix);
 		if (target.exists())
 		{
 			throw new IllegalArgumentException(
@@ -234,32 +272,88 @@ public class SecretSharingPanel extends JPanel
 	/** The message shown at the bottom of the panel */
 	public String getResultText()
 	{
-		return lblResult.getText();
+		return modelObject.getResultText();
 	}
 
 	private void run(String what, SharingOperation operation)
 	{
 		try
 		{
-			lblResult.setText(operation.execute());
+			showResult(operation.execute());
 		}
 		catch (Exception exception)
 		{
-			lblResult.setText("not " + what + ": " + message(exception));
+			showResult("not " + what + ": " + message(exception));
 		}
 	}
 
-	private void onBrowse(JTextField target)
+	/**
+	 * Shows the given share lines: written into the model backed text area, which passes them on
+	 * into the model
+	 *
+	 * @param shareLines
+	 *            the share lines, one share per line
+	 */
+	private void showShares(String shareLines)
+	{
+		txtShares.setText(shareLines);
+		txtShares.setCaretPosition(0);
+	}
+
+	/**
+	 * Shows the secret that was rebuilt from the shares: written into the model backed text area,
+	 * which passes it on into the model
+	 *
+	 * @param rebuiltSecret
+	 *            the rebuilt secret
+	 */
+	private void showRebuiltSecret(String rebuiltSecret)
+	{
+		txtRebuilt.setText(rebuiltSecret);
+		txtRebuilt.setCaretPosition(0);
+	}
+
+	/**
+	 * Shows the given message at the bottom of the panel and keeps it in the model
+	 *
+	 * @param resultText
+	 *            the message
+	 */
+	private void showResult(String resultText)
+	{
+		modelObject.setResultText(resultText);
+		lblResult.setText(resultText);
+	}
+
+	private void onBrowseSecretFile()
+	{
+		chooseFile(modelObject.getSecretFile()).ifPresent(txtSecretFile::setText);
+	}
+
+	private void onBrowseRebuiltFile()
+	{
+		chooseFile(modelObject.getRebuiltFile()).ifPresent(txtRebuiltFile::setText);
+	}
+
+	/**
+	 * Opens the file chooser, starting at the path the model already holds
+	 *
+	 * @param currentPath
+	 *            the path the model holds, may be empty
+	 * @return the absolute path of the chosen file, or empty if nothing was chosen
+	 */
+	private Optional<String> chooseFile(String currentPath)
 	{
 		JFileChooser fileChooser = new JFileChooser();
-		if (!target.getText().isBlank())
+		if (currentPath != null && !currentPath.isBlank())
 		{
-			fileChooser.setSelectedFile(new File(target.getText()));
+			fileChooser.setSelectedFile(new File(currentPath));
 		}
 		if (fileChooser.showDialog(this, "Select") == JFileChooser.APPROVE_OPTION)
 		{
-			target.setText(fileChooser.getSelectedFile().getAbsolutePath());
+			return Optional.of(fileChooser.getSelectedFile().getAbsolutePath());
 		}
+		return Optional.empty();
 	}
 
 	private static String message(Exception exception)

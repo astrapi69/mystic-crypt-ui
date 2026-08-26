@@ -26,6 +26,9 @@ dependencies {
     compileOnly "io.github.astrapi69:mystic-crypt:11.2"
     compileOnly "io.github.astrapi69:swing-base-components:5.1"
     compileOnly "io.github.astrapi69:swing-components:9"
+    // the panel holds its state in a model object and binds the JM* components to it
+    compileOnly "io.github.astrapi69:swing-model-components:1.2"
+    compileOnly "io.github.astrapi69:model-data:3.2.1"
     // the passphrase construction lives in the host and uses Bouncy Castle underneath
     compileOnly "org.bouncycastle:bcprov-jdk18on:1.85.2"
 
@@ -45,6 +48,9 @@ dependencies {
     // the test classpath to load it - for the main sources it stays compileOnly like everything else
     testImplementation "io.github.astrapi69:mystic-crypt-ui:8.2-SNAPSHOT"
     testImplementation "org.pf4j:pf4j:3.15.0"
+    // the panel test builds the panel, so the model backed components have to be there for real
+    testImplementation "io.github.astrapi69:swing-model-components:1.2"
+    testImplementation "io.github.astrapi69:model-data:3.2.1"
     testImplementation "org.bouncycastle:bcprov-jdk18on:1.85.2"
     testRuntimeOnly "org.junit.platform:junit-platform-launcher"
 }
