@@ -24,6 +24,7 @@
  */
 package io.github.astrapi69.mystic.crypt.plugin.signature;
 
+import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -68,6 +69,15 @@ public class PqcSignaturePanel extends JPanel
 	/** What the result line shows as long as nothing was done */
 	private static final String NO_RESULT_YET = " ";
 
+	/** The column that holds the text fields, the combo box and the scroll panes */
+	private static final int INPUT_COLUMN = 1;
+
+	/**
+	 * The width an input component keeps for itself when the window is narrower than the panel
+	 * would like to be
+	 */
+	private static final int MINIMUM_INPUT_WIDTH = 180;
+
 	private final PqcSignaturePanelModel modelObject = new PqcSignaturePanelModel();
 
 	private final JMComboBox<String, DefaultComboBoxModel<String>> cmbAlgorithm = new JMComboBox<>(
@@ -105,6 +115,10 @@ public class PqcSignaturePanel extends JPanel
 		configureReadOnly(txtSignature, "txtSignature");
 		lblResult.setName("lblResult");
 		lblResult.setFont(lblResult.getFont().deriveFont(Font.BOLD));
+		withHonestMinimumWidth(txtDataFile);
+		withHonestMinimumWidth(txtPrivateKeyFile);
+		withHonestMinimumWidth(txtPublicKeyFile);
+		withHonestMinimumWidth(txtSignatureFile);
 	}
 
 	/**
@@ -141,34 +155,34 @@ public class PqcSignaturePanel extends JPanel
 	{
 		int row = 0;
 		add(new JLabel("Algorithm:"), at(0, row, GridBagConstraints.EAST));
-		add(cmbAlgorithm, at(1, row, GridBagConstraints.WEST));
+		add(cmbAlgorithm, input(row, GridBagConstraints.WEST));
 		add(button("btnGenerate", "Generate key pair", event -> onGenerate()),
 			at(2, row++, GridBagConstraints.WEST));
 
 		add(new JLabel("Private key file:"), at(0, row, GridBagConstraints.EAST));
-		add(txtPrivateKeyFile, at(1, row, GridBagConstraints.WEST));
+		add(txtPrivateKeyFile, input(row, GridBagConstraints.WEST));
 		add(button("btnBrowsePrivateKey", "...", event -> onBrowse(txtPrivateKeyFile)),
 			at(2, row++, GridBagConstraints.WEST));
 		add(new JLabel("Public key or certificate:"), at(0, row, GridBagConstraints.EAST));
-		add(txtPublicKeyFile, at(1, row, GridBagConstraints.WEST));
+		add(txtPublicKeyFile, input(row, GridBagConstraints.WEST));
 		add(button("btnBrowsePublicKey", "...", event -> onBrowse(txtPublicKeyFile)),
 			at(2, row++, GridBagConstraints.WEST));
 
 		add(new JLabel("Public key:"), at(0, row, GridBagConstraints.NORTHEAST));
-		add(new JScrollPane(txtPublicKey), at(1, row++, GridBagConstraints.WEST));
+		add(scrollPaneFor(txtPublicKey), input(row++, GridBagConstraints.WEST));
 
 		add(new JLabel("Message:"), at(0, row, GridBagConstraints.NORTHEAST));
-		add(new JScrollPane(txtMessage), at(1, row++, GridBagConstraints.WEST));
+		add(scrollPaneFor(txtMessage), input(row++, GridBagConstraints.WEST));
 		add(new JLabel("File to sign:"), at(0, row, GridBagConstraints.EAST));
-		add(txtDataFile, at(1, row, GridBagConstraints.WEST));
+		add(txtDataFile, input(row, GridBagConstraints.WEST));
 		add(button("btnBrowseDataFile", "...", event -> onBrowse(txtDataFile)),
 			at(2, row++, GridBagConstraints.WEST));
 		add(chkUseFile, at(1, row++, GridBagConstraints.WEST));
 
 		add(new JLabel("Signature (Base64):"), at(0, row, GridBagConstraints.NORTHEAST));
-		add(new JScrollPane(txtSignature), at(1, row++, GridBagConstraints.WEST));
+		add(scrollPaneFor(txtSignature), input(row++, GridBagConstraints.WEST));
 		add(new JLabel("Signature file:"), at(0, row, GridBagConstraints.EAST));
-		add(txtSignatureFile, at(1, row, GridBagConstraints.WEST));
+		add(txtSignatureFile, input(row, GridBagConstraints.WEST));
 		add(button("btnBrowseSignatureFile", "...", event -> onBrowse(txtSignatureFile)),
 			at(2, row++, GridBagConstraints.WEST));
 
@@ -452,5 +466,56 @@ public class PqcSignaturePanel extends JPanel
 		constraints.anchor = anchor;
 		constraints.insets = new Insets(4, 4, 4, 4);
 		return constraints;
+	}
+
+	/**
+	 * The constraints for a component of the input column. That column takes whatever width the
+	 * window leaves over, so a window narrower than the panel wants makes the text components
+	 * smaller instead of letting them collapse to their minimum of nearly nothing
+	 *
+	 * @param row
+	 *            the row of the grid the component goes into
+	 * @param anchor
+	 *            the anchor of the component
+	 * @return the constraints for a component of the input column
+	 */
+	private static GridBagConstraints input(int row, int anchor)
+	{
+		GridBagConstraints constraints = at(INPUT_COLUMN, row, anchor);
+		constraints.fill = GridBagConstraints.HORIZONTAL;
+		constraints.weightx = 1.0;
+		return constraints;
+	}
+
+	/**
+	 * Wraps a text area in the scroll pane it is shown in. The minimum width belongs on the
+	 * scroll pane and not on the area: the scroll pane is what the layout sizes, the area only
+	 * follows the viewport it sits in
+	 *
+	 * @param textArea
+	 *            the text area to wrap
+	 * @return the scroll pane around the given text area
+	 */
+	private static JScrollPane scrollPaneFor(JTextArea textArea)
+	{
+		return withHonestMinimumWidth(new JScrollPane(textArea));
+	}
+
+	/**
+	 * Gives a component a minimum width it can still be used at. A text component reports a
+	 * minimum width of nearly zero, and GridBagLayout hands out exactly that as soon as the
+	 * container is narrower than the grid wants
+	 *
+	 * @param <T>
+	 *            the type of the component
+	 * @param component
+	 *            the component that gets the minimum width
+	 * @return the component that was passed in
+	 */
+	private static <T extends JComponent> T withHonestMinimumWidth(T component)
+	{
+		component.setMinimumSize(
+			new Dimension(MINIMUM_INPUT_WIDTH, component.getMinimumSize().height));
+		return component;
 	}
 }

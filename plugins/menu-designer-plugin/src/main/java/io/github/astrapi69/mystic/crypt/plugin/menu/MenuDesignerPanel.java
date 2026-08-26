@@ -25,6 +25,7 @@
 package io.github.astrapi69.mystic.crypt.plugin.menu;
 
 import java.awt.BorderLayout;
+import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -50,6 +51,12 @@ public class MenuDesignerPanel extends JPanel
 {
 
 	private static final long serialVersionUID = 1L;
+
+	/** The width the xml editor keeps even in a layout that is built from minimum sizes */
+	private static final int MINIMUM_EDITOR_WIDTH = 320;
+
+	/** The height the xml editor keeps even in a layout that is built from minimum sizes */
+	private static final int MINIMUM_EDITOR_HEIGHT = 160;
 
 	private final JTextArea txtMenuXml = new JTextArea(24, 90);
 	private final JLabel lblResult = new JLabel(" ");
@@ -81,13 +88,30 @@ public class MenuDesignerPanel extends JPanel
 		south.add(buttons, BorderLayout.NORTH);
 		south.add(lblResult, BorderLayout.SOUTH);
 
-		add(new JScrollPane(txtMenuXml), BorderLayout.CENTER);
+		add(editorScrollPane(), BorderLayout.CENTER);
 		add(south, BorderLayout.SOUTH);
 
 		if (MenuDesignerSettingsContribution.exportOnOpen())
 		{
 			onExport();
 		}
+	}
+
+	/**
+	 * Builds the scroll pane that carries the xml editor.
+	 * <p>
+	 * A viewport reports a minimum size of a few pixels, so without a stated minimum the scroll
+	 * pane claims 22 x 22 px and any container that honours minimum sizes is free to squeeze the
+	 * editor away entirely. The honest minimum belongs on the scroll pane rather than on the text
+	 * area, whose own size is the size of the text it holds.
+	 *
+	 * @return the scroll pane around the xml editor, with a minimum size that stays readable
+	 */
+	private JScrollPane editorScrollPane()
+	{
+		JScrollPane editor = new JScrollPane(txtMenuXml);
+		editor.setMinimumSize(new Dimension(MINIMUM_EDITOR_WIDTH, MINIMUM_EDITOR_HEIGHT));
+		return editor;
 	}
 
 	private static JButton button(String name, String text, java.awt.event.ActionListener listener)

@@ -25,6 +25,7 @@
 package io.github.astrapi69.mystic.crypt.plugin.filecrypt;
 
 import java.awt.BorderLayout;
+import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -32,6 +33,7 @@ import java.awt.Insets;
 import java.io.File;
 
 import javax.swing.*;
+import javax.swing.text.JTextComponent;
 
 import io.github.astrapi69.model.LambdaModel;
 import io.github.astrapi69.model.api.IModel;
@@ -48,11 +50,21 @@ import io.github.astrapi69.swing.model.component.JMTextField;
  * <p>
  * Every component is bound to {@link FileCryptPanelModel}, so what the user entered is read from
  * the model when a button is pressed, not out of the widgets.
+ * <p>
+ * The entry column of both tabs is laid out to take the width the window has left over, and every
+ * text component carries a minimum width of its own, so that a window narrower than the panel would
+ * like shrinks the fields instead of collapsing them to nothing.
  */
 public class FileCryptPanel extends JPanel
 {
 
 	private static final long serialVersionUID = 1L;
+
+	/** The width a text field may be shrunk to before it stops being usable */
+	private static final int MINIMUM_TEXT_WIDTH = 180;
+
+	/** The height a text area may be shrunk to before it stops being usable */
+	private static final int MINIMUM_TEXT_AREA_HEIGHT = 90;
 
 	private final FileCryptPanelModel modelObject = new FileCryptPanelModel();
 	private final JMTextField txtSourceFile = new JMTextField(38);
@@ -123,19 +135,19 @@ public class FileCryptPanel extends JPanel
 		JPanel panel = new JPanel(new GridBagLayout());
 		int row = 0;
 		panel.add(new JLabel("File:"), at(0, row, GridBagConstraints.EAST));
-		panel.add(txtSourceFile, at(1, row, GridBagConstraints.WEST));
+		panel.add(usableWhenNarrow(txtSourceFile), stretched(1, row, GridBagConstraints.WEST));
 		panel.add(
 			button("btnBrowseSource", "...", event -> onBrowse(txtSourceFile, sourceFileModel())),
 			at(2, row++, GridBagConstraints.WEST));
 		panel.add(new JLabel("Write to:"), at(0, row, GridBagConstraints.EAST));
-		panel.add(txtTargetFile, at(1, row, GridBagConstraints.WEST));
+		panel.add(usableWhenNarrow(txtTargetFile), stretched(1, row, GridBagConstraints.WEST));
 		panel.add(
 			button("btnBrowseTarget", "...", event -> onBrowse(txtTargetFile, targetFileModel())),
 			at(2, row++, GridBagConstraints.WEST));
 		panel.add(new JLabel("Passphrase:"), at(0, row, GridBagConstraints.EAST));
-		panel.add(pwdFile, at(1, row++, GridBagConstraints.WEST));
+		panel.add(usableWhenNarrow(pwdFile), stretched(1, row++, GridBagConstraints.WEST));
 		panel.add(new JLabel("Repeat (to encrypt):"), at(0, row, GridBagConstraints.EAST));
-		panel.add(pwdFileRepeated, at(1, row++, GridBagConstraints.WEST));
+		panel.add(usableWhenNarrow(pwdFileRepeated), stretched(1, row++, GridBagConstraints.WEST));
 		panel.add(buttonRow(button("btnEncryptFile", "Encrypt", event -> onEncryptFile()),
 			button("btnDecryptFile", "Decrypt", event -> onDecryptFile())),
 			at(1, row, GridBagConstraints.WEST));
@@ -154,13 +166,13 @@ public class FileCryptPanel extends JPanel
 		JPanel panel = new JPanel(new GridBagLayout());
 		int row = 0;
 		panel.add(new JLabel("Text:"), at(0, row, GridBagConstraints.NORTHEAST));
-		panel.add(new JScrollPane(txtPlainText), at(1, row++, GridBagConstraints.WEST));
+		panel.add(scrollPaneAround(txtPlainText), stretched(1, row++, GridBagConstraints.WEST));
 		panel.add(new JLabel("Encrypted (Base64):"), at(0, row, GridBagConstraints.NORTHEAST));
-		panel.add(new JScrollPane(txtEncryptedText), at(1, row++, GridBagConstraints.WEST));
+		panel.add(scrollPaneAround(txtEncryptedText), stretched(1, row++, GridBagConstraints.WEST));
 		panel.add(new JLabel("Passphrase:"), at(0, row, GridBagConstraints.EAST));
-		panel.add(pwdText, at(1, row++, GridBagConstraints.WEST));
+		panel.add(usableWhenNarrow(pwdText), stretched(1, row++, GridBagConstraints.WEST));
 		panel.add(new JLabel("Repeat (to encrypt):"), at(0, row, GridBagConstraints.EAST));
-		panel.add(pwdTextRepeated, at(1, row++, GridBagConstraints.WEST));
+		panel.add(usableWhenNarrow(pwdTextRepeated), stretched(1, row++, GridBagConstraints.WEST));
 		panel.add(buttonRow(button("btnEncryptText", "Encrypt", event -> onEncryptText()),
 			button("btnDecryptText", "Decrypt", event -> onDecryptText())),
 			at(1, row, GridBagConstraints.WEST));
@@ -331,6 +343,17 @@ public class FileCryptPanel extends JPanel
 		return panel;
 	}
 
+	/**
+	 * Constraints for a component that keeps the size it asks for, such as a label or a button
+	 *
+	 * @param column
+	 *            the grid column
+	 * @param row
+	 *            the grid row
+	 * @param anchor
+	 *            where the component sits in its cell
+	 * @return the constraints to add the component with
+	 */
 	private static GridBagConstraints at(int column, int row, int anchor)
 	{
 		GridBagConstraints constraints = new GridBagConstraints();
@@ -339,5 +362,60 @@ public class FileCryptPanel extends JPanel
 		constraints.anchor = anchor;
 		constraints.insets = new Insets(4, 4, 4, 4);
 		return constraints;
+	}
+
+	/**
+	 * Constraints for the entry column: the component takes the width the row has left over, so a
+	 * window narrower than the panel would like makes the entry components smaller instead of
+	 * cutting them off
+	 *
+	 * @param column
+	 *            the grid column
+	 * @param row
+	 *            the grid row
+	 * @param anchor
+	 *            where the component sits in its cell
+	 * @return the constraints to add the component with
+	 */
+	private static GridBagConstraints stretched(int column, int row, int anchor)
+	{
+		GridBagConstraints constraints = at(column, row, anchor);
+		constraints.fill = GridBagConstraints.HORIZONTAL;
+		constraints.weightx = 1.0;
+		return constraints;
+	}
+
+	/**
+	 * Gives a text component a width it can honestly be shrunk to. A text component reports a
+	 * minimum width of almost nothing, and {@link GridBagLayout} lays its container out at the
+	 * minimum widths as soon as the container is narrower than the grid wants - without this the
+	 * field is not small in a narrow window, it is gone
+	 *
+	 * @param <T>
+	 *            the type of the text component
+	 * @param textComponent
+	 *            the text component to give a minimum width to
+	 * @return the same text component, so it can be added in one expression
+	 */
+	private static <T extends JTextComponent> T usableWhenNarrow(T textComponent)
+	{
+		textComponent.setMinimumSize(
+			new Dimension(MINIMUM_TEXT_WIDTH, textComponent.getPreferredSize().height));
+		return textComponent;
+	}
+
+	/**
+	 * The scroll pane a text area is shown in. The minimum size belongs here and not on the text
+	 * area: the layout sizes the scroll pane, and the area inside follows its viewport
+	 *
+	 * @param textArea
+	 *            the text area to wrap
+	 * @return the scroll pane to add to the grid
+	 */
+	private static JScrollPane scrollPaneAround(JTextArea textArea)
+	{
+		JScrollPane scrollPane = new JScrollPane(textArea);
+		scrollPane.setMinimumSize(new Dimension(MINIMUM_TEXT_WIDTH, MINIMUM_TEXT_AREA_HEIGHT));
+		return scrollPane;
 	}
 }

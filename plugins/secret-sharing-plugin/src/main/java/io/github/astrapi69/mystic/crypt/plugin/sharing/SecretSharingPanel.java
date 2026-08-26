@@ -25,6 +25,7 @@
 package io.github.astrapi69.mystic.crypt.plugin.sharing;
 
 import java.awt.BorderLayout;
+import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -60,6 +61,13 @@ public class SecretSharingPanel extends JPanel
 {
 
 	private static final long serialVersionUID = 1L;
+
+	/**
+	 * The width the components of the input column keep even when the window is narrower than the
+	 * form wants: without it the layout falls back to the minimum width a text component reports,
+	 * which is next to nothing, and the fields disappear
+	 */
+	private static final int MINIMUM_INPUT_WIDTH = 180;
 
 	private final SecretSharingPanelModel modelObject = new SecretSharingPanelModel();
 
@@ -99,12 +107,17 @@ public class SecretSharingPanel extends JPanel
 
 		bindToModel();
 
+		JScrollPane sharesPane = new JScrollPane(txtShares);
+		JScrollPane rebuiltPane = new JScrollPane(txtRebuilt);
+		keepUsableWhenNarrow(pwdSecret, txtSecretFile, txtRebuiltFile, sharesPane, rebuiltPane);
+		keepAtItsOwnWidth(spnThreshold, spnTotalShares);
+
 		JPanel form = new JPanel(new GridBagLayout());
 		int row = 0;
 		form.add(new JLabel("Secret:"), at(0, row, GridBagConstraints.EAST));
-		form.add(pwdSecret, at(1, row++, GridBagConstraints.WEST));
+		form.add(pwdSecret, growing(row++));
 		form.add(new JLabel("or file:"), at(0, row, GridBagConstraints.EAST));
-		form.add(txtSecretFile, at(1, row, GridBagConstraints.WEST));
+		form.add(txtSecretFile, growing(row));
 		form.add(button("btnBrowseSecretFile", "...", event -> onBrowseSecretFile()),
 			at(2, row++, GridBagConstraints.WEST));
 		form.add(chkUseFile, at(1, row++, GridBagConstraints.WEST));
@@ -117,15 +130,15 @@ public class SecretSharingPanel extends JPanel
 			at(1, row++, GridBagConstraints.WEST));
 
 		form.add(new JLabel("Shares:"), at(0, row, GridBagConstraints.NORTHEAST));
-		form.add(new JScrollPane(txtShares), at(1, row++, GridBagConstraints.WEST));
+		form.add(sharesPane, growing(row++));
 		form.add(buttonRow(button("btnCombine", "Combine", event -> onCombine()),
 			button("btnLoadShares", "Load shares", event -> onLoadShares())),
 			at(1, row++, GridBagConstraints.WEST));
 
 		form.add(new JLabel("Rebuilt secret:"), at(0, row, GridBagConstraints.NORTHEAST));
-		form.add(new JScrollPane(txtRebuilt), at(1, row++, GridBagConstraints.WEST));
+		form.add(rebuiltPane, growing(row++));
 		form.add(new JLabel("Write it to:"), at(0, row, GridBagConstraints.EAST));
-		form.add(txtRebuiltFile, at(1, row, GridBagConstraints.WEST));
+		form.add(txtRebuiltFile, growing(row));
 		form.add(button("btnBrowseRebuiltFile", "...", event -> onBrowseRebuiltFile()),
 			at(2, row++, GridBagConstraints.WEST));
 		form.add(button("btnSaveRebuilt", "Save rebuilt secret", event -> onSaveRebuilt()),
@@ -395,5 +408,56 @@ public class SecretSharingPanel extends JPanel
 		constraints.anchor = anchor;
 		constraints.insets = new Insets(4, 4, 4, 4);
 		return constraints;
+	}
+
+	/**
+	 * The constraints for a component of the input column that takes the width the window has: the
+	 * column carries the whole change in width, and the component follows it instead of falling
+	 * back to its minimum width. Labels and buttons keep their anchor and their own width.
+	 *
+	 * @param row
+	 *            the row the component stands in
+	 * @return the constraints
+	 */
+	private static GridBagConstraints growing(int row)
+	{
+		GridBagConstraints constraints = at(1, row, GridBagConstraints.WEST);
+		constraints.fill = GridBagConstraints.HORIZONTAL;
+		constraints.weightx = 1.0;
+		return constraints;
+	}
+
+	/**
+	 * Gives every one of the given components an honest minimum width, so even the narrowest layout
+	 * leaves them usable: the minimum a text component reports on its own is next to nothing, which
+	 * is why a window narrower than the form wants used to make the fields vanish. For a text area
+	 * the minimum belongs on the scroll pane around it, which is what is passed in here.
+	 *
+	 * @param components
+	 *            the components of the input column that grow and shrink with the window
+	 */
+	private static void keepUsableWhenNarrow(JComponent... components)
+	{
+		for (JComponent component : components)
+		{
+			component.setMinimumSize(
+				new Dimension(MINIMUM_INPUT_WIDTH, component.getMinimumSize().height));
+		}
+	}
+
+	/**
+	 * Holds every one of the given components at the width it asks for: it carries a number of at
+	 * most three digits, so it is neither stretched across the window nor allowed to collapse when
+	 * the window gets narrow.
+	 *
+	 * @param components
+	 *            the components that keep their own width
+	 */
+	private static void keepAtItsOwnWidth(JComponent... components)
+	{
+		for (JComponent component : components)
+		{
+			component.setMinimumSize(component.getPreferredSize());
+		}
 	}
 }

@@ -85,15 +85,15 @@ public class KemDemoPanel extends JPanel
 
 		int row = 0;
 		add(new JLabel("Algorithm:"), at(0, row, GridBagConstraints.EAST));
-		add(cmbAlgorithm, at(1, row++, GridBagConstraints.WEST));
+		add(cmbAlgorithm, stretched(1, row++));
 		add(btnRun, at(1, row++, GridBagConstraints.WEST));
 		add(new JLabel("Ciphertext (sender to recipient):"),
 			at(0, row, GridBagConstraints.NORTHEAST));
-		add(new JScrollPane(txtCiphertext), at(1, row++, GridBagConstraints.WEST));
+		add(KemPanelLayout.scrolled(txtCiphertext), stretched(1, row++));
 		add(new JLabel("Sender shared secret:"), at(0, row, GridBagConstraints.NORTHEAST));
-		add(new JScrollPane(txtSenderSecret), at(1, row++, GridBagConstraints.WEST));
+		add(KemPanelLayout.scrolled(txtSenderSecret), stretched(1, row++));
 		add(new JLabel("Recipient shared secret:"), at(0, row, GridBagConstraints.NORTHEAST));
-		add(new JScrollPane(txtRecipientSecret), at(1, row++, GridBagConstraints.WEST));
+		add(KemPanelLayout.scrolled(txtRecipientSecret), stretched(1, row++));
 		add(lblResult, at(1, row, GridBagConstraints.WEST));
 	}
 
@@ -136,6 +136,25 @@ public class KemDemoPanel extends JPanel
 		constraints.gridy = y;
 		constraints.anchor = anchor;
 		constraints.insets = new Insets(4, 6, 4, 6);
+		return constraints;
+	}
+
+	/**
+	 * The constraints of the column that holds the entry components. That column takes whatever
+	 * width the labels leave over, so a field grows with the window and shrinks with it instead of
+	 * collapsing to a few pixels. Labels and buttons keep their anchor.
+	 *
+	 * @param x
+	 *            the column of the cell
+	 * @param y
+	 *            the row of the cell
+	 * @return the constraints for that cell
+	 */
+	private static GridBagConstraints stretched(int x, int y)
+	{
+		GridBagConstraints constraints = at(x, y, GridBagConstraints.WEST);
+		constraints.fill = GridBagConstraints.HORIZONTAL;
+		constraints.weightx = 1.0;
 		return constraints;
 	}
 }
