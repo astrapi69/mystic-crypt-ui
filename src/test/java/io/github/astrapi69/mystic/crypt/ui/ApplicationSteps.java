@@ -41,6 +41,7 @@ import org.assertj.swing.fixture.DialogFixture;
 import org.assertj.swing.timing.Condition;
 import org.assertj.swing.timing.Pause;
 
+import io.github.astrapi69.file.create.model.FileInfo;
 import io.github.astrapi69.gen.tree.BaseTreeNode;
 import io.github.astrapi69.mystic.crypt.MenuId;
 import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
@@ -1262,6 +1263,13 @@ final class ApplicationSteps
 			}
 			return null;
 		});
+	}
+
+	/** The file the signed-in application believes it has open, as its model holds it */
+	File applicationFileOnScreen()
+	{
+		return GuiActionRunner.execute(() -> FileInfo.toFile(MysticCryptApplicationFrame
+			.getInstance().getModelObject().getMasterPwFileModelBean().getApplicationFileInfo()));
 	}
 
 	/** True if the signed-in database tree contains a node whose name starts with the prefix */
