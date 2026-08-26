@@ -64,8 +64,12 @@ public class GenerateKeysPanel extends BasePanel<GenerateKeysModelBean>
 	 * sets. The modern ones only generate and display their key pair as PEM; the RSA-only hex
 	 * encrypt/decrypt demo does not apply to them.
 	 */
+	private JComboBox<String> cmbCurve;
+	private JComboBox<io.github.astrapi69.crypt.api.key.KeyFormat> cmbKeyFormat;
+
 	private static final KeyPairGeneratorAlgorithm[] SUPPORTED_ALGORITHMS = {
-			KeyPairGeneratorAlgorithm.RSA, KeyPairGeneratorAlgorithm.X25519,
+			KeyPairGeneratorAlgorithm.RSA, KeyPairGeneratorAlgorithm.EC,
+			KeyPairGeneratorAlgorithm.X25519,
 			KeyPairGeneratorAlgorithm.X448, KeyPairGeneratorAlgorithm.ML_KEM_768,
 			KeyPairGeneratorAlgorithm.ML_DSA_65 };
 
@@ -235,6 +239,22 @@ public class GenerateKeysPanel extends BasePanel<GenerateKeysModelBean>
 				keyPair = KeyPairFactory.newKeyPair(KeyPairGeneratorAlgorithm.RSA,
 					selected.getKeySize());
 			}
+			else if (KeyPairGeneratorAlgorithm.EC.equals(algorithm))
+			{
+				// an EC key without a named curve leaves the choice to the provider, and what it
+				// chooses is neither written down nor the same everywhere
+				String curve = String.valueOf(cmbCurve.getSelectedItem());
+				try
+				{
+					keyPair = KeygenSupport.newEcKeyPair(curve);
+				}
+				catch (Exception thisMachineDoesNotKnowThatCurve)
+				{
+					throw new NoSuchAlgorithmException(
+						"this machine cannot generate a key on the curve '" + curve + "'",
+						thisMachineDoesNotKnowThatCurve);
+				}
+			}
 			else
 			{
 				// the modern algorithms (X25519/X448, ML-KEM, ML-DSA) have fixed parameter sets and
@@ -290,6 +310,29 @@ public class GenerateKeysPanel extends BasePanel<GenerateKeysModelBean>
 		super.onInitializeComponents();
 
 		lblAlgorithm = new JLabel("Algorithm");
+		cmbCurve = new JComboBox<>(KeygenSupport.CURVES.toArray(new String[0]));
+		cmbCurve.setName("cmbCurve");
+		cmbCurve.setToolTipText("the curve an EC key sits on - a certificate or a wallet usually "
+			+ "requires one particular one");
+		cmbKeyFormat = new JComboBox<>(
+			KeygenSupport.keyFormats().toArray(new io.github.astrapi69.crypt.api.key.KeyFormat[0]));
+		cmbKeyFormat.setName("cmbKeyFormat");
+		cmbKeyFormat.setRenderer(new javax.swing.DefaultListCellRenderer()
+		{
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public java.awt.Component getListCellRendererComponent(javax.swing.JList<?> list,
+				Object value, int index, boolean isSelected, boolean cellHasFocus)
+			{
+				return super.getListCellRendererComponent(list,
+					value == null
+						? ""
+						: KeygenSupport
+							.displayName((io.github.astrapi69.crypt.api.key.KeyFormat)value),
+					index, isSelected, cellHasFocus);
+			}
+		});
 		cmbAlgorithm = new JComboBox<>(SUPPORTED_ALGORITHMS);
 		cmbAlgorithm.setName("cmbAlgorithm");
 		cmbAlgorithm.setSelectedItem(KeygenSettingsContribution.algorithm());
@@ -370,6 +413,10 @@ public class GenerateKeysPanel extends BasePanel<GenerateKeysModelBean>
 		setLayout(new MigLayout());
 		add(lblAlgorithm, "split 2");
 		add(cmbAlgorithm, "wrap");
+		add(new javax.swing.JLabel("Curve (EC):"));
+		add(cmbCurve, "wrap");
+		add(new javax.swing.JLabel("Private key file format:"));
+		add(cmbKeyFormat, "wrap");
 		add(cryptographyPanel, "wrap");
 		add(enDecryptPanel);
 	}
@@ -389,8 +436,9 @@ public class GenerateKeysPanel extends BasePanel<GenerateKeysModelBean>
 		{
 			try
 			{
-				PrivateKeyWriter.writeInPemFormat(getModelObject().getPrivateKey(),
-					fileChooser.getSelectedFile());
+				KeygenSupport.writePrivateKey(getModelObject().getPrivateKey(),
+					fileChooser.getSelectedFile(),
+					(io.github.astrapi69.crypt.api.key.KeyFormat)cmbKeyFormat.getSelectedItem());
 			}
 			catch (final Exception e)
 			{
