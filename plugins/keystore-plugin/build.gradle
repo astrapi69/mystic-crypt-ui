@@ -29,6 +29,10 @@ dependencies {
     compileOnly "io.github.astrapi69:crypt-data:11.2"
     compileOnly "io.github.astrapi69:swing-base-components:5.1"
     compileOnly "io.github.astrapi69:swing-components:9"
+    // the model backed components the panel binds to its model; the host brings both jars at
+    // runtime, so they stay compileOnly here like everything else
+    compileOnly "io.github.astrapi69:swing-model-components:1.2"
+    compileOnly "io.github.astrapi69:model-data:3.2.1"
     // X500Name, used to build the subject of a self-signed certificate, lives in bcutil; the host
     // brings both jars at runtime, so they stay compileOnly here like everything else
     compileOnly "org.bouncycastle:bcprov-jdk18on:1.85.2"
@@ -55,6 +59,11 @@ dependencies {
     // the contribution class implements the host's extension point, so the host jar has to be on
     // the test classpath to load it - for the main sources it stays compileOnly like everything else
     testImplementation "io.github.astrapi69:mystic-crypt-ui:8.2-SNAPSHOT"
+    // the panel test constructs the panel, so the model backed components and the combo box models
+    // it is built from have to be on the test classpath as well
+    testImplementation "io.github.astrapi69:swing-model-components:1.2"
+    testImplementation "io.github.astrapi69:model-data:3.2.1"
+    testImplementation "io.github.astrapi69:swing-base-components:5.1"
     testImplementation "org.pf4j:pf4j:3.15.0"
     testImplementation "org.bouncycastle:bcprov-jdk18on:1.85.2"
     testImplementation "org.bouncycastle:bcpkix-jdk18on:1.85"

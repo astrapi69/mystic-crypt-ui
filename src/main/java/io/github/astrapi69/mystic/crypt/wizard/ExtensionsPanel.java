@@ -24,20 +24,25 @@
  */
 package io.github.astrapi69.mystic.crypt.wizard;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.swing.ComboBoxModel;
 import javax.swing.JButton;
-import javax.swing.JCheckBox;
-import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
-import javax.swing.JTextField;
 import javax.swing.table.DefaultTableModel;
 
 import io.github.astrapi69.design.pattern.state.wizard.model.BaseWizardStateMachineModel;
+import io.github.astrapi69.model.LambdaModel;
 import io.github.astrapi69.model.api.IModel;
 import io.github.astrapi69.mystic.crypt.wizard.model.CertificateInfoModel;
 import io.github.astrapi69.swing.base.BasePanel;
+import io.github.astrapi69.swing.model.component.JMCheckBox;
+import io.github.astrapi69.swing.model.component.JMComboBox;
+import io.github.astrapi69.swing.model.component.JMTextField;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.experimental.FieldDefaults;
@@ -47,6 +52,10 @@ import net.miginfocom.swing.MigLayout;
  * The class {@link ExtensionsPanel} provides a user interface for managing extensions in a
  * certificate wizard. Users can add, edit, and delete extensions, as well as mark them as critical.
  * The inputs for extension ID and value are validated to ensure they conform to ASN.1 standards
+ * <p>
+ * What the entry form holds is kept in an {@link ExtensionsPanelModel}: every input component is
+ * bound to it, so the form state can be read at any moment instead of being fished out of the
+ * widgets when a button is pressed
  */
 @Getter
 @FieldDefaults(level = AccessLevel.PRIVATE)
@@ -58,17 +67,24 @@ public class ExtensionsPanel extends BasePanel<BaseWizardStateMachineModel<Certi
 
 
 	JLabel lblHeader;
-	JComboBox<String> cmbExtensionKind;
+	JMComboBox<String, ComboBoxModel<String>> cmbExtensionKind;
 	JLabel lblValueHint;
 	JTable tblExtensions;
 	DefaultTableModel tableModel;
-	JTextField txtExtensionId;
-	JTextField txtExtensionValue;
-	JCheckBox chkCritical;
+	JMTextField txtExtensionId;
+	JMTextField txtExtensionValue;
+	JMCheckBox chkCritical;
 	JButton btnAddExtension;
 	JButton btnEditExtension;
 	JButton btnDeleteExtension;
 	JScrollPane scrExtensions;
+
+	/**
+	 * What the entry form currently holds. It is created in {@link #onInitializeComponents()} and
+	 * not in a field initializer, because the base panel initializes the components from its own
+	 * constructor, before any field initializer of this class has run
+	 */
+	ExtensionsPanelModel extensionFormModel;
 
 	/**
 	 * Instantiates a new ExtensionsPanel
@@ -89,6 +105,8 @@ public class ExtensionsPanel extends BasePanel<BaseWizardStateMachineModel<Certi
 	{
 		super.onInitializeComponents();
 
+		extensionFormModel = new ExtensionsPanelModel();
+
 		lblHeader = new JLabel("Extensions");
 
 		tableModel = new DefaultTableModel(new Object[] { "Extension ID", "Critical", "Value" }, 0);
@@ -97,17 +115,18 @@ public class ExtensionsPanel extends BasePanel<BaseWizardStateMachineModel<Certi
 
 		scrExtensions.setViewportView(tblExtensions);
 
-		txtExtensionId = new JTextField(20);
-		txtExtensionValue = new JTextField(20);
-		chkCritical = new JCheckBox("Critical");
+		txtExtensionId = new JMTextField(20);
+		txtExtensionValue = new JMTextField(20);
+		chkCritical = new JMCheckBox("Critical");
 
 		// the three extensions that actually come up can be picked by name; nobody should have to
 		// know that "basic constraints" is 2.5.29.19
-		java.util.List<String> kinds = new java.util.ArrayList<>(
-			CertificateExtensionValues.understoodExtensionIds().stream()
-				.map(CertificateExtensionValues::displayName).toList());
+		List<String> kinds = new ArrayList<>(CertificateExtensionValues.understoodExtensionIds()
+			.stream().map(CertificateExtensionValues::displayName).toList());
 		kinds.add(OTHER_EXTENSION);
-		cmbExtensionKind = new JComboBox<>(kinds.toArray(new String[0]));
+		extensionFormModel.setExtensionKind(kinds.get(0));
+		cmbExtensionKind = new JMComboBox<>(kinds.toArray(new String[0]), LambdaModel
+			.of(extensionFormModel::getExtensionKind, extensionFormModel::setExtensionKind));
 		cmbExtensionKind.setName("cmbExtensionKind");
 		cmbExtensionKind.addActionListener(e -> onChangeExtensionKind());
 		lblValueHint = new JLabel(" ");
@@ -116,6 +135,12 @@ public class ExtensionsPanel extends BasePanel<BaseWizardStateMachineModel<Certi
 		txtExtensionValue.setName("txtExtensionValue");
 		chkCritical.setName("chkCritical");
 		tblExtensions.setName("tblExtensions");
+		txtExtensionId.setPropertyModel(
+			LambdaModel.of(extensionFormModel::getExtensionId, extensionFormModel::setExtensionId));
+		txtExtensionValue.setPropertyModel(LambdaModel.of(extensionFormModel::getExtensionValue,
+			extensionFormModel::setExtensionValue));
+		chkCritical.setPropertyModel(
+			LambdaModel.of(extensionFormModel::isCritical, extensionFormModel::setCritical));
 		onChangeExtensionKind();
 
 		btnAddExtension = new JButton("Add");
@@ -171,11 +196,8 @@ public class ExtensionsPanel extends BasePanel<BaseWizardStateMachineModel<Certi
 	{
 		if (validateInputs())
 		{
-			String extensionId = txtExtensionId.getText();
-			boolean critical = chkCritical.isSelected();
-			String value = txtExtensionValue.getText();
-
-			tableModel.addRow(new Object[] { extensionId, critical, value });
+			tableModel.addRow(new Object[] { extensionFormModel.getExtensionId(),
+					extensionFormModel.isCritical(), extensionFormModel.getExtensionValue() });
 			clearForm();
 		}
 	}
@@ -188,9 +210,9 @@ public class ExtensionsPanel extends BasePanel<BaseWizardStateMachineModel<Certi
 		int selectedRow = tblExtensions.getSelectedRow();
 		if (selectedRow != -1 && validateInputs())
 		{
-			tableModel.setValueAt(txtExtensionId.getText(), selectedRow, 0);
-			tableModel.setValueAt(chkCritical.isSelected(), selectedRow, 1);
-			tableModel.setValueAt(txtExtensionValue.getText(), selectedRow, 2);
+			tableModel.setValueAt(extensionFormModel.getExtensionId(), selectedRow, 0);
+			tableModel.setValueAt(extensionFormModel.isCritical(), selectedRow, 1);
+			tableModel.setValueAt(extensionFormModel.getExtensionValue(), selectedRow, 2);
 			clearForm();
 		}
 	}
@@ -215,14 +237,15 @@ public class ExtensionsPanel extends BasePanel<BaseWizardStateMachineModel<Certi
 	 */
 	protected boolean validateInputs()
 	{
-		String extensionId = txtExtensionId.getText();
-		String value = txtExtensionValue.getText();
+		String extensionId = extensionFormModel.getExtensionId();
+		String value = extensionFormModel.getExtensionValue();
 		try
 		{
 			// building it is the only honest check: an extension whose value is not proper DER
 			// produces a certificate that other tools reject, and the field it was meant to carry
 			// is simply not there
-			CertificateExtensionValues.toExtension(extensionId, chkCritical.isSelected(), value);
+			CertificateExtensionValues.toExtension(extensionId, extensionFormModel.isCritical(),
+				value);
 			return true;
 		}
 		catch (IllegalArgumentException exception)
@@ -238,7 +261,7 @@ public class ExtensionsPanel extends BasePanel<BaseWizardStateMachineModel<Certi
 	 */
 	protected void onChangeExtensionKind()
 	{
-		String selected = String.valueOf(cmbExtensionKind.getSelectedItem());
+		String selected = extensionFormModel.getExtensionKind();
 		if (OTHER_EXTENSION.equals(selected))
 		{
 			lblValueHint.setText(CertificateExtensionValues.valueHint("other"));

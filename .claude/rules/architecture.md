@@ -32,6 +32,18 @@ INTERNAL (debug/tuning only). Hidden settings that change user-visible behavior 
 forbidden. Dead settings (fields the code never reads) are forbidden: when adding a
 setting, verify the code reads it; when removing a feature, remove its settings with it.
 
+## Every panel holds its state in a model
+
+Swing components in this application are model backed: `JMTextField`, `JMPasswordField`,
+`JMCheckBox`, `JMComboBox`, `JMSpinner` from swing-model-components, bound to one model
+object per panel, so the panel's state is readable at any moment and every edit updates
+it. A combo box over an enum uses `EnumComboBoxModel` rather than a hand built array.
+
+Reading values out of components when a button is pressed is the pattern this replaces:
+it scatters the state across the widgets and makes it unreachable from anywhere else -
+tests, the command line side, a second panel. New panels are written this way; a panel
+that is touched for another reason is converted while it is open (Boy Scout).
+
 ## Architectural decisions
 
 Before implementing a larger architectural decision, check ROADMAP/open issues and

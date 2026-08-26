@@ -235,4 +235,24 @@ class ExtensionsPanelTest
 		assertTrue(panel.shownError.contains("Basic Constraints"), panel.shownError);
 		assertTrue(panel.shownError.contains("CA:true"), panel.shownError);
 	}
+
+	@Test
+	void nothingOfTheAddedExtensionIsCarriedIntoTheNextOne() throws Exception
+	{
+		TestableExtensionsPanel panel = newPanel();
+		kindChooser(panel).setSelectedItem("Key Usage");
+		extensionValue(panel).setText("digitalSignature");
+		critical(panel).setSelected(true);
+		panel.onAddExtension();
+
+		kindChooser(panel).setSelectedItem("Basic Constraints");
+		extensionValue(panel).setText("CA:false");
+		panel.onAddExtension();
+
+		assertEquals(2, rows(panel).getRowCount());
+		assertEquals("2.5.29.19", rows(panel).getValueAt(1, 0));
+		assertEquals(false, rows(panel).getValueAt(1, 1),
+			"the critical flag of the previous extension must not survive the form being cleared");
+		assertEquals("CA:false", rows(panel).getValueAt(1, 2));
+	}
 }

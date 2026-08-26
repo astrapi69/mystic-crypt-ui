@@ -35,7 +35,9 @@ import java.util.Map;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 
+import io.github.astrapi69.model.LambdaModel;
 import io.github.astrapi69.mystic.crypt.plugin.api.PluginSettingsContribution;
+import io.github.astrapi69.swing.model.component.JMList;
 
 /**
  * The "Plugin settings" tab: on the left the plugins that have settings, on the right their keys
@@ -56,9 +58,11 @@ public class PluginSettingsPanel extends JPanel
 
 	private final transient List<PluginSettingsContribution> contributions;
 
+	private final transient PluginSettingsPanelModel modelObject = new PluginSettingsPanelModel();
+
 	private final DefaultListModel<String> pluginNames = new DefaultListModel<>();
 
-	private final JList<String> lstPluginSettings = new JList<>(pluginNames);
+	private final JMList<String> lstPluginSettings = new JMList<>(pluginNames);
 
 	private final DefaultTableModel valueModel = new DefaultTableModel(COLUMNS, 0)
 	{
@@ -74,7 +78,7 @@ public class PluginSettingsPanel extends JPanel
 
 	private final JTable tblPluginSettings = new JTable(valueModel);
 
-	private final JLabel lblPluginSettingsResult = new JLabel(" ");
+	private final JLabel lblPluginSettingsResult = new JLabel(modelObject.getResultText());
 
 	public PluginSettingsPanel(File configurationDirectory,
 		List<PluginSettingsContribution> contributions)
@@ -85,6 +89,8 @@ public class PluginSettingsPanel extends JPanel
 
 		lstPluginSettings.setName("lstPluginSettings");
 		lstPluginSettings.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+		lstPluginSettings.setPropertyModel(
+			LambdaModel.of(modelObject::getSelectedPluginName, modelObject::setSelectedPluginName));
 		tblPluginSettings.setName("tblPluginSettings");
 		lblPluginSettingsResult.setName("lblPluginSettingsResult");
 
@@ -93,11 +99,13 @@ public class PluginSettingsPanel extends JPanel
 			pluginNames.addElement(contribution.getDisplayName());
 		}
 		lstPluginSettings.addListSelectionListener(event -> {
+			modelObject.setSelectedPluginIndex(lstPluginSettings.getSelectedIndex());
 			if (!event.getValueIsAdjusting())
 			{
 				showSelectedSettings();
 			}
 		});
+		valueModel.addTableModelListener(event -> readShownValuesIntoModel());
 
 		JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT,
 			new JScrollPane(lstPluginSettings), new JScrollPane(tblPluginSettings));
@@ -119,7 +127,7 @@ public class PluginSettingsPanel extends JPanel
 		}
 		else
 		{
-			lblPluginSettingsResult.setText("no plugin brings its own settings");
+			showResult("no plugin brings its own settings");
 		}
 	}
 
@@ -130,7 +138,7 @@ public class PluginSettingsPanel extends JPanel
 	 */
 	public PluginSettingsContribution getSelectedContribution()
 	{
-		int index = lstPluginSettings.getSelectedIndex();
+		int index = modelObject.getSelectedPluginIndex();
 		return index < 0 || index >= contributions.size() ? null : contributions.get(index);
 	}
 
@@ -141,13 +149,7 @@ public class PluginSettingsPanel extends JPanel
 	 */
 	public Map<String, String> getShownValues()
 	{
-		Map<String, String> values = new LinkedHashMap<>();
-		for (int row = 0; row < valueModel.getRowCount(); row++)
-		{
-			values.put(String.valueOf(valueModel.getValueAt(row, 0)),
-				String.valueOf(valueModel.getValueAt(row, 1)));
-		}
-		return values;
+		return new LinkedHashMap<>(modelObject.getShownValues());
 	}
 
 	/** Puts a value into the table, as editing the cell would */
@@ -166,7 +168,7 @@ public class PluginSettingsPanel extends JPanel
 	/** The message shown below the table */
 	public String getResultText()
 	{
-		return lblPluginSettingsResult.getText();
+		return modelObject.getResultText();
 	}
 
 	private void showSelectedSettings()
@@ -184,8 +186,7 @@ public class PluginSettingsPanel extends JPanel
 		{
 			valueModel.addRow(new Object[] { entry.getKey(), entry.getValue() });
 		}
-		lblPluginSettingsResult
-			.setText(contribution.getDisplayName() + ": " + stored.size() + " settings");
+		showResult(contribution.getDisplayName() + ": " + stored.size() + " settings");
 	}
 
 	private void applySelectedSettings()
@@ -200,12 +201,11 @@ public class PluginSettingsPanel extends JPanel
 		{
 			PluginSettings.save(configurationDirectory, contribution.getPluginId(),
 				contribution.getDefaults(), getShownValues());
-			lblPluginSettingsResult
-				.setText("saved the settings of " + contribution.getDisplayName());
+			showResult("saved the settings of " + contribution.getDisplayName());
 		}
 		catch (Exception exception)
 		{
-			lblPluginSettingsResult.setText("not saved: " + exception);
+			showResult("not saved: " + exception);
 		}
 	}
 
@@ -221,13 +221,34 @@ public class PluginSettingsPanel extends JPanel
 		{
 			PluginSettings.reset(configurationDirectory, contribution.getPluginId());
 			showSelectedSettings();
-			lblPluginSettingsResult
-				.setText("the defaults of " + contribution.getDisplayName() + " apply again");
+			showResult("the defaults of " + contribution.getDisplayName() + " apply again");
 		}
 		catch (Exception exception)
 		{
-			lblPluginSettingsResult.setText("not reset: " + exception);
+			showResult("not reset: " + exception);
 		}
+	}
+
+	/**
+	 * Takes over what the table shows, so an edited cell is in the model the moment the editing
+	 * stops
+	 */
+	private void readShownValuesIntoModel()
+	{
+		Map<String, String> values = new LinkedHashMap<>();
+		for (int row = 0; row < valueModel.getRowCount(); row++)
+		{
+			values.put(String.valueOf(valueModel.getValueAt(row, 0)),
+				String.valueOf(valueModel.getValueAt(row, 1)));
+		}
+		modelObject.setShownValues(values);
+	}
+
+	/** Keeps the message in the model and on the label the same */
+	private void showResult(String message)
+	{
+		modelObject.setResultText(message);
+		lblPluginSettingsResult.setText(message);
 	}
 
 	private void stopEditing()

@@ -29,6 +29,8 @@ dependencies {
     // PemObject and PemWriter, to write a pem file under the right header
     compileOnly "org.bouncycastle:bcprov-jdk18on:1.85.2"
     compileOnly "io.github.astrapi69:model-data:3.2.1"
+    // the panels bind their components to one model object per panel (JMTextField and friends)
+    compileOnly "io.github.astrapi69:swing-model-components:1.2"
     compileOnly "io.github.astrapi69:swing-base-components:5.1"
     compileOnly "io.github.astrapi69:throwable:3"
     compileOnly "org.projectlombok:lombok:1.18.46"
@@ -49,6 +51,9 @@ dependencies {
     // settings store, so the host jar has to be on the test classpath to load it
     testImplementation "io.github.astrapi69:mystic-crypt-ui:8.2-SNAPSHOT"
     testImplementation "org.pf4j:pf4j:3.15.0"
+    // the binding test builds the panel, whose components are bound to its model
+    testImplementation "io.github.astrapi69:model-data:3.2.1"
+    testImplementation "io.github.astrapi69:swing-model-components:1.2"
 
 }
 

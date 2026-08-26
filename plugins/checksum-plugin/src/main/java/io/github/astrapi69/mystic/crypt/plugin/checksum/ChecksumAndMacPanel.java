@@ -33,6 +33,13 @@ import java.io.File;
 
 import javax.swing.*;
 
+import io.github.astrapi69.model.LambdaModel;
+import io.github.astrapi69.swing.model.component.JMCheckBox;
+import io.github.astrapi69.swing.model.component.JMComboBox;
+import io.github.astrapi69.swing.model.component.JMPasswordField;
+import io.github.astrapi69.swing.model.component.JMTextArea;
+import io.github.astrapi69.swing.model.component.JMTextField;
+
 /**
  * Tool panel for the two questions about integrity that are not the same question.
  * <p>
@@ -40,30 +47,37 @@ import javax.swing.*;
  * whoever changed it. A message authentication code takes a key, so only someone holding that key
  * can produce one that checks out. Each has its own tab, both work on typed text or on a file, and
  * both can check a value that was pasted in rather than only produce one.
+ * <p>
+ * Every component is bound to {@link ChecksumAndMacPanelModel}, so a button reads what the user
+ * entered from the model instead of out of the widgets.
  */
 public class ChecksumAndMacPanel extends JPanel
 {
 
 	private static final long serialVersionUID = 1L;
 
-	private final JComboBox<String> cmbDigest = new JComboBox<>(
+	/** Everything this panel holds; every component below writes into it */
+	private final ChecksumAndMacPanelModel modelObject = new ChecksumAndMacPanelModel();
+
+	private final JMComboBox<String, ComboBoxModel<String>> cmbDigest = new JMComboBox<>(
 		ChecksumSupport.DIGESTS.toArray(new String[0]));
-	private final JTextArea txtChecksumText = new JTextArea(4, 52);
-	private final JTextField txtChecksumFile = new JTextField(38);
-	private final JCheckBox chkChecksumUseFile = new JCheckBox("use the file instead of the text");
-	private final JTextArea txtChecksum = new JTextArea(2, 52);
-	private final JTextField txtExpected = new JTextField(52);
+	private final JMTextArea txtChecksumText = new JMTextArea(4, 52);
+	private final JMTextField txtChecksumFile = new JMTextField(38);
+	private final JMCheckBox chkChecksumUseFile = new JMCheckBox(
+		"use the file instead of the text");
+	private final JMTextArea txtChecksum = new JMTextArea(2, 52);
+	private final JMTextField txtExpected = new JMTextField(52);
 
-	private final JComboBox<String> cmbMac = new JComboBox<>(
+	private final JMComboBox<String, ComboBoxModel<String>> cmbMac = new JMComboBox<>(
 		ChecksumSupport.MACS.toArray(new String[0]));
-	private final JTextArea txtMacText = new JTextArea(4, 52);
-	private final JTextField txtMacFile = new JTextField(38);
-	private final JCheckBox chkMacUseFile = new JCheckBox("use the file instead of the text");
-	private final JPasswordField pwdMacKey = new JPasswordField(24);
-	private final JTextArea txtMac = new JTextArea(2, 52);
-	private final JTextField txtMacExpected = new JTextField(52);
+	private final JMTextArea txtMacText = new JMTextArea(4, 52);
+	private final JMTextField txtMacFile = new JMTextField(38);
+	private final JMCheckBox chkMacUseFile = new JMCheckBox("use the file instead of the text");
+	private final JMPasswordField pwdMacKey = new JMPasswordField(24);
+	private final JMTextArea txtMac = new JMTextArea(2, 52);
+	private final JMTextField txtMacExpected = new JMTextField(52);
 
-	private final JLabel lblResult = new JLabel(" ");
+	private final JLabel lblResult = new JLabel();
 	private final JTabbedPane tabs = new JTabbedPane();
 
 	public ChecksumAndMacPanel()
@@ -72,10 +86,13 @@ public class ChecksumAndMacPanel extends JPanel
 
 		lblResult.setName("lblResult");
 		lblResult.setFont(lblResult.getFont().deriveFont(Font.BOLD));
+		showResult(modelObject.getResultMessage());
 		tabs.setName("tabChecksum");
+		// the model carries what the tool starts with into the two combo boxes when they bind
+		modelObject.setDigest(ChecksumSettingsContribution.digest());
+		modelObject.setMacAlgorithm(ChecksumSupport.MACS.get(0));
 		tabs.addTab("Checksum", newChecksumTab());
 		tabs.addTab("Message authentication code", newMacTab());
-		cmbDigest.setSelectedItem(ChecksumSettingsContribution.digest());
 
 		add(tabs, BorderLayout.CENTER);
 		add(lblResult, BorderLayout.SOUTH);
@@ -89,6 +106,7 @@ public class ChecksumAndMacPanel extends JPanel
 		chkChecksumUseFile.setName("chkChecksumUseFile");
 		configureReadOnly(txtChecksum, "txtChecksum");
 		txtExpected.setName("txtExpected");
+		bindChecksumComponents();
 
 		JPanel panel = new JPanel(new GridBagLayout());
 		int row = 0;
@@ -98,7 +116,8 @@ public class ChecksumAndMacPanel extends JPanel
 		panel.add(new JScrollPane(txtChecksumText), at(1, row++, GridBagConstraints.WEST));
 		panel.add(new JLabel("File:"), at(0, row, GridBagConstraints.EAST));
 		panel.add(txtChecksumFile, at(1, row, GridBagConstraints.WEST));
-		panel.add(button("btnBrowseChecksumFile", "...", event -> onBrowse(txtChecksumFile)),
+		panel.add(button("btnBrowseChecksumFile", "...",
+			event -> onBrowse(txtChecksumFile, modelObject.getChecksumFile())),
 			at(2, row++, GridBagConstraints.WEST));
 		panel.add(chkChecksumUseFile, at(1, row++, GridBagConstraints.WEST));
 		panel.add(new JLabel("Checksum:"), at(0, row, GridBagConstraints.NORTHEAST));
@@ -111,6 +130,21 @@ public class ChecksumAndMacPanel extends JPanel
 		return panel;
 	}
 
+	private void bindChecksumComponents()
+	{
+		cmbDigest.setPropertyModel(LambdaModel.of(modelObject::getDigest, modelObject::setDigest));
+		txtChecksumText.setPropertyModel(
+			LambdaModel.of(modelObject::getChecksumText, modelObject::setChecksumText));
+		txtChecksumFile.setPropertyModel(
+			LambdaModel.of(modelObject::getChecksumFile, modelObject::setChecksumFile));
+		chkChecksumUseFile.setPropertyModel(
+			LambdaModel.of(modelObject::isChecksumOverFile, modelObject::setChecksumOverFile));
+		txtChecksum
+			.setPropertyModel(LambdaModel.of(modelObject::getChecksum, modelObject::setChecksum));
+		txtExpected.setPropertyModel(
+			LambdaModel.of(modelObject::getExpectedChecksum, modelObject::setExpectedChecksum));
+	}
+
 	private JPanel newMacTab()
 	{
 		cmbMac.setName("cmbMac");
@@ -120,6 +154,7 @@ public class ChecksumAndMacPanel extends JPanel
 		pwdMacKey.setName("pwdMacKey");
 		configureReadOnly(txtMac, "txtMac");
 		txtMacExpected.setName("txtMacExpected");
+		bindMacComponents();
 
 		JPanel panel = new JPanel(new GridBagLayout());
 		int row = 0;
@@ -131,7 +166,9 @@ public class ChecksumAndMacPanel extends JPanel
 		panel.add(new JScrollPane(txtMacText), at(1, row++, GridBagConstraints.WEST));
 		panel.add(new JLabel("File:"), at(0, row, GridBagConstraints.EAST));
 		panel.add(txtMacFile, at(1, row, GridBagConstraints.WEST));
-		panel.add(button("btnBrowseMacFile", "...", event -> onBrowse(txtMacFile)),
+		panel.add(
+			button("btnBrowseMacFile", "...",
+				event -> onBrowse(txtMacFile, modelObject.getMacFile())),
 			at(2, row++, GridBagConstraints.WEST));
 		panel.add(chkMacUseFile, at(1, row++, GridBagConstraints.WEST));
 		panel.add(new JLabel("Code:"), at(0, row, GridBagConstraints.NORTHEAST));
@@ -144,34 +181,51 @@ public class ChecksumAndMacPanel extends JPanel
 		return panel;
 	}
 
+	private void bindMacComponents()
+	{
+		cmbMac.setPropertyModel(
+			LambdaModel.of(modelObject::getMacAlgorithm, modelObject::setMacAlgorithm));
+		pwdMacKey.setPropertyModel(LambdaModel.of(modelObject::getMacKey, modelObject::setMacKey));
+		txtMacText
+			.setPropertyModel(LambdaModel.of(modelObject::getMacText, modelObject::setMacText));
+		txtMacFile
+			.setPropertyModel(LambdaModel.of(modelObject::getMacFile, modelObject::setMacFile));
+		chkMacUseFile.setPropertyModel(
+			LambdaModel.of(modelObject::isMacOverFile, modelObject::setMacOverFile));
+		txtMac.setPropertyModel(LambdaModel.of(modelObject::getMac, modelObject::setMac));
+		txtMacExpected.setPropertyModel(
+			LambdaModel.of(modelObject::getExpectedMac, modelObject::setExpectedMac));
+	}
+
 	private void onChecksum()
 	{
 		run("computed", () -> {
-			String digest = String.valueOf(cmbDigest.getSelectedItem());
-			String checksum = chkChecksumUseFile.isSelected()
-				? ChecksumSupport.checksumOfFile(new File(txtChecksumFile.getText().trim()), digest)
-				: ChecksumSupport.checksumOfText(txtChecksumText.getText(), digest);
+			String digest = modelObject.getDigest();
+			String checksum = modelObject.isChecksumOverFile()
+				? ChecksumSupport.checksumOfFile(new File(modelObject.getChecksumFile().trim()),
+					digest)
+				: ChecksumSupport.checksumOfText(modelObject.getChecksumText(), digest);
 			txtChecksum.setText(checksum);
 			txtChecksum.setCaretPosition(0);
-			return digest + " over " + (chkChecksumUseFile.isSelected() ? "the file" : "the text");
+			return digest + " over " + (modelObject.isChecksumOverFile() ? "the file" : "the text");
 		});
 	}
 
 	private void onCompare()
 	{
-		String expected = txtExpected.getText();
+		String expected = modelObject.getExpectedChecksum();
 		String suggestion = ChecksumSupport.digestByLength(expected);
-		if (suggestion != null && !suggestion.equals(cmbDigest.getSelectedItem()))
+		if (suggestion != null && !suggestion.equals(modelObject.getDigest()))
 		{
 			// a value pasted from a download page says by its length which digest made it
 			cmbDigest.setSelectedItem(suggestion);
 		}
 		onChecksum();
-		if (txtChecksum.getText().isBlank())
+		if (modelObject.getChecksum().isBlank())
 		{
 			return;
 		}
-		lblResult.setText(ChecksumSupport.matches(expected, txtChecksum.getText())
+		showResult(ChecksumSupport.matches(expected, modelObject.getChecksum())
 			? "the checksums are the same"
 			: "the checksums are NOT the same");
 	}
@@ -179,27 +233,39 @@ public class ChecksumAndMacPanel extends JPanel
 	private void onMac()
 	{
 		run("computed", () -> {
-			String algorithm = String.valueOf(cmbMac.getSelectedItem());
-			String key = new String(pwdMacKey.getPassword());
-			String code = chkMacUseFile.isSelected()
-				? ChecksumSupport.macOfFile(new File(txtMacFile.getText().trim()), key, algorithm)
-				: ChecksumSupport.macOfText(txtMacText.getText(), key, algorithm);
+			String algorithm = modelObject.getMacAlgorithm();
+			String key = new String(modelObject.getMacKey());
+			String code = modelObject.isMacOverFile()
+				? ChecksumSupport.macOfFile(new File(modelObject.getMacFile().trim()), key,
+					algorithm)
+				: ChecksumSupport.macOfText(modelObject.getMacText(), key, algorithm);
 			txtMac.setText(code);
 			txtMac.setCaretPosition(0);
-			return algorithm + " over " + (chkMacUseFile.isSelected() ? "the file" : "the text");
+			return algorithm + " over " + (modelObject.isMacOverFile() ? "the file" : "the text");
 		});
 	}
 
 	private void onCompareMac()
 	{
 		onMac();
-		if (txtMac.getText().isBlank())
+		if (modelObject.getMac().isBlank())
 		{
 			return;
 		}
-		lblResult.setText(ChecksumSupport.matches(txtMacExpected.getText(), txtMac.getText())
+		showResult(ChecksumSupport.matches(modelObject.getExpectedMac(), modelObject.getMac())
 			? "the codes are the same"
 			: "the codes are NOT the same");
+	}
+
+	/**
+	 * The state of this panel: what is entered in both tabs, what was computed and what the panel
+	 * last said about it
+	 *
+	 * @return the model every component of this panel is bound to
+	 */
+	public ChecksumAndMacPanelModel getModelObject()
+	{
+		return modelObject;
 	}
 
 	/** The message shown below the tabs */
@@ -212,20 +278,41 @@ public class ChecksumAndMacPanel extends JPanel
 	{
 		try
 		{
-			lblResult.setText(operation.execute());
+			showResult(operation.execute());
 		}
 		catch (Exception exception)
 		{
-			lblResult.setText("not " + what + ": " + message(exception));
+			showResult("not " + what + ": " + message(exception));
 		}
 	}
 
-	private void onBrowse(JTextField target)
+	/**
+	 * Keeps the message in the model and shows it below the tabs
+	 *
+	 * @param resultMessage
+	 *            what the panel has to say about what it did
+	 */
+	private void showResult(String resultMessage)
+	{
+		modelObject.setResultMessage(resultMessage);
+		lblResult.setText(modelObject.getResultMessage());
+	}
+
+	/**
+	 * Lets the user pick a file, starting at the path the model holds, and writes the chosen path
+	 * into the field - which is what carries it back into the model
+	 *
+	 * @param target
+	 *            the field the chosen path is written into
+	 * @param currentPath
+	 *            the path the model holds for that field
+	 */
+	private void onBrowse(JTextField target, String currentPath)
 	{
 		JFileChooser fileChooser = new JFileChooser();
-		if (!target.getText().isBlank())
+		if (!currentPath.isBlank())
 		{
-			fileChooser.setSelectedFile(new File(target.getText()));
+			fileChooser.setSelectedFile(new File(currentPath));
 		}
 		if (fileChooser.showDialog(this, "Select") == JFileChooser.APPROVE_OPTION)
 		{

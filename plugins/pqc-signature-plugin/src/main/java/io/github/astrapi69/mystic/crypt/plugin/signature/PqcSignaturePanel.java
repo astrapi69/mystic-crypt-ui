@@ -40,6 +40,11 @@ import javax.swing.*;
 
 import io.github.astrapi69.crypt.data.key.PrivateKeyExtensions;
 import io.github.astrapi69.crypt.data.key.PublicKeyExtensions;
+import io.github.astrapi69.model.LambdaModel;
+import io.github.astrapi69.swing.model.component.JMCheckBox;
+import io.github.astrapi69.swing.model.component.JMComboBox;
+import io.github.astrapi69.swing.model.component.JMTextArea;
+import io.github.astrapi69.swing.model.component.JMTextField;
 
 /**
  * Tool panel for signing and verifying, with the classical Ed25519 and RSA/ECDSA/DSA algorithms and
@@ -50,34 +55,45 @@ import io.github.astrapi69.crypt.data.key.PublicKeyExtensions;
  * is 64 bytes. The other way is the one that matters in practice: a private key from a file to sign
  * with, and a public key - or the certificate carrying it - to verify against. What is signed is
  * either the text in the field or a file on disk.
+ * <p>
+ * The state of the panel lives in a {@link PqcSignaturePanelModel}: every component is bound to one
+ * of its fields, so an action reads what the user entered from the model instead of out of the
+ * widgets.
  */
 public class PqcSignaturePanel extends JPanel
 {
 
 	private static final long serialVersionUID = 1L;
 
-	private final JComboBox<String> cmbAlgorithm = new JComboBox<>(
-		SignatureSupport.allAlgorithms().toArray(new String[0]));
-	private final JTextArea txtMessage = new JTextArea(3, 60);
-	private final JTextField txtDataFile = new JTextField(40);
-	private final JCheckBox chkUseFile = new JCheckBox("sign the file instead of the text");
-	private final JTextField txtPrivateKeyFile = new JTextField(40);
-	private final JTextField txtPublicKeyFile = new JTextField(40);
-	private final JTextField txtSignatureFile = new JTextField(40);
-	private final JTextArea txtPublicKey = new JTextArea(4, 60);
-	private final JTextArea txtSignature = new JTextArea(5, 60);
-	private final JLabel lblResult = new JLabel(" ");
+	/** What the result line shows as long as nothing was done */
+	private static final String NO_RESULT_YET = " ";
 
-	private transient KeyPair keyPair;
+	private final PqcSignaturePanelModel modelObject = new PqcSignaturePanelModel();
+
+	private final JMComboBox<String, DefaultComboBoxModel<String>> cmbAlgorithm = new JMComboBox<>(
+		SignatureSupport.allAlgorithms().toArray(new String[0]));
+	private final JMTextArea txtMessage = new JMTextArea(3, 60);
+	private final JMTextField txtDataFile = new JMTextField(40);
+	private final JMCheckBox chkUseFile = new JMCheckBox("sign the file instead of the text");
+	private final JMTextField txtPrivateKeyFile = new JMTextField(40);
+	private final JMTextField txtPublicKeyFile = new JMTextField(40);
+	private final JMTextField txtSignatureFile = new JMTextField(40);
+	private final JMTextArea txtPublicKey = new JMTextArea(4, 60);
+	private final JMTextArea txtSignature = new JMTextArea(5, 60);
+	private final JLabel lblResult = new JLabel(NO_RESULT_YET);
 
 	public PqcSignaturePanel()
 	{
 		super(new GridBagLayout());
 
+		configureComponents();
+		bindComponentsToModel();
+		layoutComponents();
+	}
+
+	private void configureComponents()
+	{
 		cmbAlgorithm.setName("cmbAlgorithm");
-		// the tool starts with what the user configured in the settings dialog
-		cmbAlgorithm.setSelectedItem(SignatureSettingsContribution.algorithm());
-		txtMessage.setText(SignatureSettingsContribution.message());
 		txtMessage.setName("txtMessage");
 		txtMessage.setLineWrap(true);
 		txtDataFile.setName("txtDataFile");
@@ -89,7 +105,40 @@ public class PqcSignaturePanel extends JPanel
 		configureReadOnly(txtSignature, "txtSignature");
 		lblResult.setName("lblResult");
 		lblResult.setFont(lblResult.getFont().deriveFont(Font.BOLD));
+	}
 
+	/**
+	 * Binds every component to its field in the model. The algorithm and the message start with
+	 * what the user configured in the settings dialog
+	 */
+	private void bindComponentsToModel()
+	{
+		modelObject.setAlgorithm(SignatureSettingsContribution.algorithm());
+		modelObject.setMessage(SignatureSettingsContribution.message());
+
+		cmbAlgorithm.setPropertyModel(
+			LambdaModel.of(modelObject::getAlgorithm, modelObject::setAlgorithm));
+		txtMessage
+			.setPropertyModel(LambdaModel.of(modelObject::getMessage, modelObject::setMessage));
+		txtDataFile
+			.setPropertyModel(LambdaModel.of(modelObject::getDataFile, modelObject::setDataFile));
+		chkUseFile
+			.setPropertyModel(LambdaModel.of(modelObject::isUseFile, modelObject::setUseFile));
+		txtPrivateKeyFile.setPropertyModel(
+			LambdaModel.of(modelObject::getPrivateKeyFile, modelObject::setPrivateKeyFile));
+		txtPublicKeyFile.setPropertyModel(
+			LambdaModel.of(modelObject::getPublicKeyFile, modelObject::setPublicKeyFile));
+		txtSignatureFile.setPropertyModel(
+			LambdaModel.of(modelObject::getSignatureFile, modelObject::setSignatureFile));
+		txtPublicKey
+			.setPropertyModel(LambdaModel.of(modelObject::getPublicKey, modelObject::setPublicKey));
+		txtSignature
+			.setPropertyModel(LambdaModel.of(modelObject::getSignature, modelObject::setSignature));
+		showResult(NO_RESULT_YET);
+	}
+
+	private void layoutComponents()
+	{
 		int row = 0;
 		add(new JLabel("Algorithm:"), at(0, row, GridBagConstraints.EAST));
 		add(cmbAlgorithm, at(1, row, GridBagConstraints.WEST));
@@ -142,11 +191,11 @@ public class PqcSignaturePanel extends JPanel
 					+ "and SLH-DSA families");
 			}
 			long started = System.currentTimeMillis();
-			keyPair = SignatureSupport.newKeyPair(algorithm);
+			KeyPair generatedKeyPair = SignatureSupport.newKeyPair(algorithm);
 			long took = System.currentTimeMillis() - started;
-			txtPublicKey.setText(PublicKeyExtensions.toPemFormat(keyPair.getPublic()));
-			txtPublicKey.setCaretPosition(0);
-			txtSignature.setText("");
+			modelObject.setKeyPair(generatedKeyPair);
+			showPublicKey(PublicKeyExtensions.toPemFormat(generatedKeyPair.getPublic()));
+			showSignature("");
 			return "generated a " + algorithm + " key pair in " + took + " ms";
 		});
 	}
@@ -156,13 +205,12 @@ public class PqcSignaturePanel extends JPanel
 		run("signed", () -> {
 			PrivateKey privateKey = privateKey();
 			String algorithm = algorithmFor(privateKey);
-			byte[] data = dataToSign();
+			byte[] dataToSign = dataToSign();
 			long started = System.currentTimeMillis();
-			byte[] signature = SignatureSupport.sign(algorithm, privateKey, data);
+			byte[] signature = SignatureSupport.sign(algorithm, privateKey, dataToSign);
 			long took = System.currentTimeMillis() - started;
-			txtSignature.setText(Base64.getEncoder().encodeToString(signature));
-			txtSignature.setCaretPosition(0);
-			return "signed " + data.length + " bytes with " + algorithm + " in " + took
+			showSignature(Base64.getEncoder().encodeToString(signature));
+			return "signed " + dataToSign.length + " bytes with " + algorithm + " in " + took
 				+ " ms, signature is " + signature.length + " bytes";
 		});
 	}
@@ -172,33 +220,33 @@ public class PqcSignaturePanel extends JPanel
 		try
 		{
 			PublicKey publicKey = publicKey();
-			if (txtSignature.getText().isBlank())
+			String signature = modelObject.getSignature();
+			if (signature.isBlank())
 			{
-				lblResult.setText("there is no signature to check");
+				showResult("there is no signature to check");
 				return;
 			}
-			byte[] signature = Base64.getDecoder().decode(txtSignature.getText().trim());
 			boolean valid = SignatureSupport.verify(algorithmFor(publicKey), publicKey,
-				dataToSign(), signature);
-			lblResult.setText(valid ? "signature is valid" : "signature is not valid");
+				dataToSign(), Base64.getDecoder().decode(signature.trim()));
+			showResult(valid ? "signature is valid" : "signature is not valid");
 		}
 		catch (Exception exception)
 		{
 			// a signature that does not belong to the data can also make the verifier throw
-			lblResult.setText("signature is not valid");
+			showResult("signature is not valid");
 		}
 	}
 
 	private void onSaveSignature()
 	{
 		run("saved", () -> {
-			if (txtSignature.getText().isBlank())
+			String signature = modelObject.getSignature();
+			if (signature.isBlank())
 			{
 				throw new IllegalArgumentException("there is no signature to save");
 			}
-			File target = requireFile(txtSignatureFile, "a signature file");
-			Files.write(target.toPath(),
-				Base64.getDecoder().decode(txtSignature.getText().trim()));
+			File target = requireFile(modelObject.getSignatureFile(), "a signature file");
+			Files.write(target.toPath(), Base64.getDecoder().decode(signature.trim()));
 			return "saved the signature to " + target.getName();
 		});
 	}
@@ -206,10 +254,8 @@ public class PqcSignaturePanel extends JPanel
 	private void onLoadSignature()
 	{
 		run("loaded", () -> {
-			File source = requireFile(txtSignatureFile, "a signature file");
-			txtSignature.setText(
-				Base64.getEncoder().encodeToString(Files.readAllBytes(source.toPath())));
-			txtSignature.setCaretPosition(0);
+			File source = requireFile(modelObject.getSignatureFile(), "a signature file");
+			showSignature(Base64.getEncoder().encodeToString(Files.readAllBytes(source.toPath())));
 			return "loaded the signature from " + source.getName();
 		});
 	}
@@ -220,13 +266,15 @@ public class PqcSignaturePanel extends JPanel
 	 */
 	private PrivateKey privateKey() throws Exception
 	{
-		if (!txtPrivateKeyFile.getText().isBlank())
+		String privateKeyFile = modelObject.getPrivateKeyFile();
+		if (!privateKeyFile.isBlank())
 		{
 			PrivateKey privateKey = SignatureSupport
-				.readPrivateKey(new File(txtPrivateKeyFile.getText().trim()));
-			txtPublicKey.setText(describe(privateKey));
+				.readPrivateKey(new File(privateKeyFile.trim()));
+			showPublicKey(describe(privateKey));
 			return privateKey;
 		}
+		KeyPair keyPair = modelObject.getKeyPair();
 		if (keyPair == null)
 		{
 			throw new IllegalStateException(
@@ -241,10 +289,12 @@ public class PqcSignaturePanel extends JPanel
 	 */
 	private PublicKey publicKey() throws Exception
 	{
-		if (!txtPublicKeyFile.getText().isBlank())
+		String publicKeyFile = modelObject.getPublicKeyFile();
+		if (!publicKeyFile.isBlank())
 		{
-			return SignatureSupport.readPublicKey(new File(txtPublicKeyFile.getText().trim()));
+			return SignatureSupport.readPublicKey(new File(publicKeyFile.trim()));
 		}
+		KeyPair keyPair = modelObject.getKeyPair();
 		if (keyPair == null)
 		{
 			throw new IllegalStateException(
@@ -260,27 +310,28 @@ public class PqcSignaturePanel extends JPanel
 	private String algorithmFor(final java.security.Key key)
 	{
 		boolean keyCameFromAFile = key instanceof PrivateKey
-			? !txtPrivateKeyFile.getText().isBlank()
-			: !txtPublicKeyFile.getText().isBlank();
+			? !modelObject.getPrivateKeyFile().isBlank()
+			: !modelObject.getPublicKeyFile().isBlank();
 		return keyCameFromAFile ? SignatureSupport.algorithmFor(key) : selectedAlgorithm();
 	}
 
 	private byte[] dataToSign() throws Exception
 	{
-		if (chkUseFile.isSelected())
+		if (modelObject.isUseFile())
 		{
-			return Files.readAllBytes(requireFile(txtDataFile, "a file to sign").toPath());
+			return Files
+				.readAllBytes(requireFile(modelObject.getDataFile(), "a file to sign").toPath());
 		}
-		return txtMessage.getText().getBytes(StandardCharsets.UTF_8);
+		return modelObject.getMessage().getBytes(StandardCharsets.UTF_8);
 	}
 
-	private File requireFile(final JTextField field, final String what)
+	private File requireFile(final String path, final String what)
 	{
-		if (field.getText().isBlank())
+		if (path.isBlank())
 		{
 			throw new IllegalArgumentException("choose " + what);
 		}
-		return new File(field.getText().trim());
+		return new File(path.trim());
 	}
 
 	private String describe(final PrivateKey privateKey)
@@ -299,33 +350,55 @@ public class PqcSignaturePanel extends JPanel
 
 	private String selectedAlgorithm()
 	{
-		return String.valueOf(cmbAlgorithm.getSelectedItem());
+		return modelObject.getAlgorithm();
 	}
 
 	private void run(String what, SignatureOperation operation)
 	{
 		try
 		{
-			lblResult.setText(operation.execute());
+			showResult(operation.execute());
 		}
 		catch (Exception exception)
 		{
-			lblResult.setText("not " + what + ": " + message(exception));
+			showResult("not " + what + ": " + message(exception));
 		}
 	}
 
 	/** The message shown at the bottom of the panel */
 	public String getResultText()
 	{
-		return lblResult.getText();
+		return modelObject.getResultText();
 	}
 
-	private void onBrowse(JTextField target)
+	/** Shows the public key; the bound model follows through the document of the area */
+	private void showPublicKey(final String publicKeyInPemFormat)
+	{
+		txtPublicKey.setText(publicKeyInPemFormat);
+		txtPublicKey.setCaretPosition(0);
+	}
+
+	/** Shows the signature; the bound model follows through the document of the area */
+	private void showSignature(final String base64Signature)
+	{
+		txtSignature.setText(base64Signature);
+		txtSignature.setCaretPosition(0);
+	}
+
+	/** Shows the result line; a label has no document, so the model is set here */
+	private void showResult(final String resultText)
+	{
+		modelObject.setResultText(resultText);
+		lblResult.setText(resultText);
+	}
+
+	private void onBrowse(JMTextField target)
 	{
 		JFileChooser fileChooser = new JFileChooser();
-		if (!target.getText().isBlank())
+		String chosenBefore = target.getPropertyModel().getObject();
+		if (chosenBefore != null && !chosenBefore.isBlank())
 		{
-			fileChooser.setSelectedFile(new File(target.getText()));
+			fileChooser.setSelectedFile(new File(chosenBefore));
 		}
 		if (fileChooser.showDialog(this, "Select") == JFileChooser.APPROVE_OPTION)
 		{
