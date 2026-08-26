@@ -48,11 +48,13 @@ public class PasswordHashPanel extends JPanel
 
 	private final transient PasswordEncryptor passwordEncryptor = PasswordEncryptor.getInstance();
 
-	private final JComboBox<String> cmbAlgorithm = new JComboBox<>(new String[] { ARGON2ID, PBKDF2 });
+	private final JComboBox<String> cmbAlgorithm = new JComboBox<>(
+		PasswordHashSupport.algorithms().toArray(new String[0]));
 	private final JPasswordField txtPassword = new JPasswordField(24);
 	private final JTextArea txtHash = new JTextArea(3, 40);
 	private final JPasswordField txtVerifyPassword = new JPasswordField(24);
 	private final JLabel lblResult = new JLabel(" ");
+	private final JLabel lblAbout = new JLabel(" ");
 
 	public PasswordHashPanel()
 	{
@@ -60,9 +62,14 @@ public class PasswordHashPanel extends JPanel
 		cmbAlgorithm.setName("cmbAlgorithm");
 		// the tool starts with what the user configured in the settings dialog
 		cmbAlgorithm.setSelectedItem(PasswordHashSettingsContribution.algorithm());
+		lblAbout.setName("lblAbout");
+		lblAbout.setText(PasswordHashSupport
+			.describe(String.valueOf(cmbAlgorithm.getSelectedItem())));
+		cmbAlgorithm.addActionListener(event -> lblAbout.setText(
+			PasswordHashSupport.describe(String.valueOf(cmbAlgorithm.getSelectedItem()))));
 		txtPassword.setName("txtPassword");
 		txtHash.setName("txtHash");
-		txtHash.setEditable(false);
+		txtHash.setEditable(true);
 		txtHash.setLineWrap(true);
 		txtHash.setWrapStyleWord(false);
 		txtVerifyPassword.setName("txtVerifyPassword");
@@ -78,6 +85,7 @@ public class PasswordHashPanel extends JPanel
 		int row = 0;
 		add(new JLabel("Algorithm:"), at(0, row, GridBagConstraints.EAST));
 		add(cmbAlgorithm, at(1, row++, GridBagConstraints.WEST));
+		add(lblAbout, at(1, row++, GridBagConstraints.WEST));
 		add(new JLabel("Password:"), at(0, row, GridBagConstraints.EAST));
 		add(txtPassword, at(1, row++, GridBagConstraints.WEST));
 		add(btnHash, at(1, row++, GridBagConstraints.WEST));
@@ -92,29 +100,49 @@ public class PasswordHashPanel extends JPanel
 
 	private void onHash()
 	{
-		String password = new String(txtPassword.getPassword());
-		txtHash.setText(isArgon2id() ? passwordEncryptor.hashPasswordArgon2id(password)
-			: passwordEncryptor.hashPasswordPbkdf2(password));
-		lblResult.setText(" ");
+		try
+		{
+			String algorithm = String.valueOf(cmbAlgorithm.getSelectedItem());
+			long started = System.currentTimeMillis();
+			txtHash.setText(PasswordHashSupport.hash(algorithm, txtPassword.getPassword()));
+			long took = System.currentTimeMillis() - started;
+			txtHash.setCaretPosition(0);
+			String cost = PasswordHashSupport.costOf(txtHash.getText());
+			lblResult.setText(algorithm + " took " + took + " ms"
+				+ (cost.isEmpty() ? "" : " at " + cost));
+		}
+		catch (Exception exception)
+		{
+			txtHash.setText("");
+			lblResult.setText("not hashed: " + message(exception));
+		}
 	}
 
 	private void onVerify()
 	{
-		String password = new String(txtVerifyPassword.getPassword());
 		String encodedHash = txtHash.getText();
 		if (encodedHash.isBlank())
 		{
 			lblResult.setText("hash a password first");
 			return;
 		}
-		boolean matches = isArgon2id() ? passwordEncryptor.matchArgon2id(password, encodedHash)
-			: passwordEncryptor.matchPbkdf2(password, encodedHash);
-		lblResult.setText(matches ? "matches" : "does not match");
+		// which algorithm made the hash is read out of the hash, so a value pasted in is checked
+		// correctly whatever the combo box happens to show
+		String algorithm = PasswordHashSupport.algorithmOf(encodedHash);
+		if (algorithm == null)
+		{
+			lblResult.setText("this does not look like a hash any of these algorithms made");
+			return;
+		}
+		boolean matches = PasswordHashSupport.verify(txtVerifyPassword.getPassword(), encodedHash);
+		lblResult.setText(matches ? "matches (" + algorithm + ")" : "does not match");
 	}
 
-	private boolean isArgon2id()
+	private static String message(Exception exception)
 	{
-		return ARGON2ID.equals(cmbAlgorithm.getSelectedItem());
+		return exception.getMessage() != null
+			? exception.getMessage()
+			: exception.getClass().getSimpleName();
 	}
 
 	private static GridBagConstraints at(int x, int y, int anchor)

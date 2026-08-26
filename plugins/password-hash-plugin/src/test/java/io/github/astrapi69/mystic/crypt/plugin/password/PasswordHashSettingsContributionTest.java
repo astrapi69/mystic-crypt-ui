@@ -79,18 +79,19 @@ class PasswordHashSettingsContributionTest
 	void declaresItsPluginIdAndItsDefault()
 	{
 		assertEquals("password-hash-plugin", CONTRIBUTION.getPluginId());
-		assertEquals(PasswordHashPanel.ARGON2ID,
+		assertEquals(PasswordHashSupport.ARGON2ID,
 			CONTRIBUTION.getDefaults().get(PasswordHashSettingsContribution.KEY_ALGORITHM));
 	}
 
 	@Test
 	void withoutAStoredValueTheMemoryHardAlgorithmApplies()
 	{
-		assertEquals(PasswordHashPanel.ARGON2ID, PasswordHashSettingsContribution.algorithm());
+		assertEquals(PasswordHashSupport.ARGON2ID, PasswordHashSettingsContribution.algorithm());
 	}
 
 	@ParameterizedTest
-	@CsvSource({ "PBKDF2,PBKDF2", "Argon2id,Argon2id", "something else,Argon2id" })
+	@CsvSource({ "PBKDF2,PBKDF2", "Argon2id,Argon2id", "bcrypt,bcrypt", "scrypt,scrypt",
+			"something else,Argon2id" })
 	void theStoredValueDecides(String stored, String expected) throws Exception
 	{
 		store(PasswordHashSettingsContribution.KEY_ALGORITHM, stored);

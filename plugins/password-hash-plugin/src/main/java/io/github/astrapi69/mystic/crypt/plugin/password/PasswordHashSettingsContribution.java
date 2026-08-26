@@ -61,7 +61,7 @@ public class PasswordHashSettingsContribution implements PluginSettingsContribut
 	public Map<String, String> getDefaults()
 	{
 		Map<String, String> defaults = new LinkedHashMap<>();
-		defaults.put(KEY_ALGORITHM, PasswordHashPanel.ARGON2ID);
+		defaults.put(KEY_ALGORITHM, PasswordHashSupport.ARGON2ID);
 		return defaults;
 	}
 
@@ -69,7 +69,7 @@ public class PasswordHashSettingsContribution implements PluginSettingsContribut
 	public String getDescription(String key)
 	{
 		return KEY_ALGORITHM.equals(key)
-			? PasswordHashPanel.ARGON2ID + " or " + PasswordHashPanel.PBKDF2
+			? String.join(", ", PasswordHashSupport.algorithms())
 			: null;
 	}
 
@@ -83,8 +83,8 @@ public class PasswordHashSettingsContribution implements PluginSettingsContribut
 		String configured = PluginSettings
 			.load(PLUGIN_ID, new PasswordHashSettingsContribution().getDefaults())
 			.get(KEY_ALGORITHM);
-		return PasswordHashPanel.PBKDF2.equals(configured)
-			? PasswordHashPanel.PBKDF2
-			: PasswordHashPanel.ARGON2ID;
+		return PasswordHashSupport.algorithms().contains(configured)
+			? configured
+			: PasswordHashSupport.ARGON2ID;
 	}
 }

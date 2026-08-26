@@ -70,8 +70,8 @@ class PasswordHashPluginUiTest extends AbstractUiTest
 		});
 		robot.waitForIdle();
 
-		assertEquals("matches",
+		assertEquals("matches (Argon2id)",
 			GuiActionRunner.execute(() -> frame.label("lblResult").target().getText()),
-			"verifying the correct password must report a match");
+			"verifying the correct password must report a match, and say what recognised it");
 	}
 }
