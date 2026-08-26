@@ -6,6 +6,39 @@ Version 8.2-SNAPSHOT
 
 ADDED:
 
+- four new internal plugins, bringing the count to thirteen (the Makefile "plugins:" target is the canonical list): a key store manager, a file and text encryptor, a post-quantum signature tool, and a secret splitter based on Shamir secret sharing
+- new command line: `--cli` hands over to the mystic-crypt library's picocli root command, and every plugin may contribute its own commands to it
+- per-plugin settings: each plugin declares its own configuration with defaults and descriptions, editable in the settings dialog, stored one properties file per plugin
+- key store manager: create, open and fill PKCS12, JKS and JCEKS stores, import keys and certificates the tool did not make itself, and read what a store holds
+- file and text encryptor: a passphrase encrypts a file or a piece of text, asked for twice when encrypting so that a typo cannot silently cost the content
+- post-quantum signature tool: sign and verify with ML-DSA and SLH-DSA, and with the classical RSA, ECDSA and Ed25519, using key files that already exist rather than only freshly generated ones
+- secret splitter: split a secret into shares of which a chosen number are needed to put it back together
+- password hashing gained bcrypt and scrypt next to Argon2id and PBKDF2, with the algorithm detected from the stored hash when verifying
+- checksums gained message authentication: a keyed HMAC answers whether a file was changed by someone without the key, next to the digest that answers whether it was changed at all
+- key conversion tool: a key or certificate file is examined, told what it is, and offered the conversions that make sense for it (PEM, DER, PKCS#1, PKCS#8, X.509)
+- key generation says which curve a key is on and which format it is written in
+- the certificate wizard's extensions do what they say: basic constraints, key usage and subject alternative names are built from readable text and land in the certificate
+- mutation testing (PIT) with a workflow, and the tests the first run showed were missing
+
+CHANGED:
+
+- every panel holds its state in a model object with its components bound to it, so a panel's state is readable at any moment instead of living scattered across the widgets
+- the tree hides the root when only one root may exist, so an imported KeePass database no longer appears as a subtree under a node the user cannot remove
+- tree nodes can be moved: up, down, and into another node, with the moves that would break the tree refused rather than half-performed
+- the installer registers a desktop entry that works, and the install instructions name the Java 25 requirement
+
+FIXED:
+
+- the key store command is taken from the library instead of being duplicated in the application
+- signing with an existing key file failed for keys on named elliptic curves, because the JDK provider refused what Bouncy Castle had generated; classical signing and key reading now go through Bouncy Castle throughout
+- a self-signed certificate written by the key store tool used SHA256withRSA where RFC 4055 requires SHA256withRSAandMGF1
+
+SECURITY:
+
+- a database protected by a password alone was encrypted with PBEWithMD5AndDES using a salt built into the source and 19 iterations - a 56-bit cipher with no per-file salt, which a modern machine takes apart. It is now AES-GCM with a 256-bit key derived by PBKDF2-HMAC-SHA256 over 600,000 iterations and a random 16-byte salt per file, marked "MCRDB2" so the format is recognisable. Databases in the old format are still read and are written back in the new one, so opening and saving an existing database migrates it
+
+ADDED:
+
 - new "Key Exchange" tool for an exchange between two people, where each side holds only its own half: one side hands out a public key, the other encapsulates against it and sends back a handshake, and both arrive at the same shared secret without either private key ever travelling
 - the shared secret encrypts a message, and both sides can compare an eight character fingerprint to check they hold the same one
 - supported algorithms: ML-KEM 512, 768 and 1024, X25519, and the hybrid of X25519 with ML-KEM-768, which stays secure as long as either half does
