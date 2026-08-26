@@ -147,6 +147,18 @@ public final class KeyStoreSettings
 			KeyStoreSupport.DEFAULT_DAYS_VALID);
 	}
 
+	/**
+	 * The length of a generated symmetric key; a length AES does not have falls back to 256
+	 *
+	 * @return the key size in bits
+	 */
+	public static int secretKeySize()
+	{
+		int size = PluginSettings.asInt(values(), KeyStoreSettingsContribution.KEY_SECRET_KEY_SIZE,
+			256);
+		return size == 128 || size == 192 || size == 256 ? size : 256;
+	}
+
 	private static <T extends Enum<T>> T parse(final Class<T> type, final String value)
 	{
 		if (value == null || value.isBlank())

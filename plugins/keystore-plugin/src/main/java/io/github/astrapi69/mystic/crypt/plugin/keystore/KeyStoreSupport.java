@@ -36,6 +36,7 @@ import java.util.Collections;
 import java.util.List;
 
 import org.bouncycastle.asn1.x500.X500Name;
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
 
 import io.github.astrapi69.crypt.api.algorithm.HashAlgorithm;
 import io.github.astrapi69.crypt.api.algorithm.key.KeyPairGeneratorAlgorithm;
@@ -47,6 +48,8 @@ import io.github.astrapi69.crypt.data.key.CertificateExtensions;
 import io.github.astrapi69.crypt.data.key.KeyStoreExtensions;
 import io.github.astrapi69.crypt.data.key.reader.CertificateReader;
 import io.github.astrapi69.crypt.data.key.writer.CertificateWriter;
+import io.github.astrapi69.mystic.crypt.crypto.KeyFiles;
+import io.github.astrapi69.mystic.crypt.ssl.KeystoreVerifier;
 
 /**
  * Everything the key store tool does, without any user interface: opening and creating a key store,
@@ -321,6 +324,280 @@ public final class KeyStoreSupport
 			throw new IllegalArgumentException("'" + alias + "' holds no X.509 certificate");
 		}
 		CertificateWriter.writeInPemFormat(x509, target);
+	}
+
+	/**
+	 * What a certificate says about itself, for the dialog that shows one entry in full.
+	 *
+	 * @param alias
+	 *            the alias the certificate is stored under
+	 * @param subject
+	 *            who the certificate was issued to
+	 * @param issuer
+	 *            who issued it
+	 * @param validFrom
+	 *            the beginning of its validity
+	 * @param validUntil
+	 *            the end of its validity
+	 * @param expired
+	 *            whether that end is in the past
+	 * @param serialNumber
+	 *            the serial number
+	 * @param signatureAlgorithm
+	 *            how the certificate is signed
+	 * @param keyAlgorithm
+	 *            the algorithm of the key inside
+	 * @param version
+	 *            the X.509 version
+	 * @param fingerprint
+	 *            the SHA-256 fingerprint
+	 * @param pem
+	 *            the certificate itself, as PEM
+	 */
+	public record CertificateDetails(String alias, String subject, String issuer, String validFrom,
+		String validUntil, boolean expired, String serialNumber, String signatureAlgorithm,
+		String keyAlgorithm, int version, String fingerprint, String pem)
+	{
+	}
+
+	/**
+	 * Everything a certificate says about itself
+	 *
+	 * @param keyStore
+	 *            the key store to read from
+	 * @param alias
+	 *            the alias whose certificate is read
+	 * @return the details
+	 * @throws Exception
+	 *             if the alias holds no X.509 certificate
+	 */
+	public static CertificateDetails details(final KeyStore keyStore, final String alias)
+		throws Exception
+	{
+		Certificate certificate = KeyStoreExtensions.getCertificate(keyStore, alias);
+		if (!(certificate instanceof X509Certificate x509))
+		{
+			throw new IllegalArgumentException("'" + alias + "' holds no X.509 certificate");
+		}
+		return new CertificateDetails(alias, CertificateExtensions.getSubject(x509),
+			CertificateExtensions.getIssuedBy(x509), String.valueOf(x509.getNotBefore()),
+			String.valueOf(x509.getNotAfter()), x509.getNotAfter().before(new java.util.Date()),
+			String.valueOf(CertificateExtensions.getSerialNumber(x509)), x509.getSigAlgName(),
+			x509.getPublicKey().getAlgorithm(), x509.getVersion(),
+			CertificateExtensions.getFingerprint(x509, HashAlgorithm.SHA256),
+			toPem(x509));
+	}
+
+	/**
+	 * Puts a private key that came from somewhere else into the store, together with the
+	 * certificate that belongs to it. This is the usual way a key arrives: from a certificate
+	 * authority, from another tool, from a server that is being moved
+	 *
+	 * @param keyStore
+	 *            the key store to add to
+	 * @param file
+	 *            the key store file, written again afterwards
+	 * @param storePassword
+	 *            the store password
+	 * @param alias
+	 *            the alias for the new entry
+	 * @param privateKeyFile
+	 *            the private key file, PEM or DER
+	 * @param certificateFile
+	 *            the certificate that belongs to that key
+	 * @throws Exception
+	 *             if either file cannot be read, the two do not belong together, or storing fails
+	 */
+	public static void importKeyPair(final KeyStore keyStore, final File file,
+		final String storePassword, final String alias, final File privateKeyFile,
+		final File certificateFile) throws Exception
+	{
+		PrivateKey privateKey = KeyFiles.readPrivateKey(privateKeyFile);
+		X509Certificate certificate = KeyFiles.readCertificate(certificateFile);
+		if (!belongTogether(privateKey, certificate))
+		{
+			throw new IllegalArgumentException("the private key and the certificate do not belong "
+				+ "together - the key is " + privateKey.getAlgorithm() + ", the certificate holds a "
+				+ certificate.getPublicKey().getAlgorithm() + " key");
+		}
+		KeyStoreExtensions.addAndStorePrivateKey(keyStore, file, alias, privateKey,
+			storePassword.toCharArray(), new Certificate[] { certificate });
+	}
+
+	/**
+	 * Generates a symmetric key and puts it into the store. Only JCEKS and PKCS12 can hold one; a
+	 * JKS store cannot, and says so
+	 *
+	 * @param keyStore
+	 *            the key store to add to
+	 * @param file
+	 *            the key store file, written again afterwards
+	 * @param storePassword
+	 *            the store password
+	 * @param alias
+	 *            the alias for the new entry
+	 * @param algorithm
+	 *            the algorithm, for instance AES
+	 * @param keySize
+	 *            the key size in bits
+	 * @throws Exception
+	 *             if the store cannot hold a symmetric key or writing fails
+	 */
+	public static void addSecretKey(final KeyStore keyStore, final File file,
+		final String storePassword, final String alias, final String algorithm, final int keySize)
+		throws Exception
+	{
+		javax.crypto.KeyGenerator keyGenerator = javax.crypto.KeyGenerator.getInstance(algorithm);
+		keyGenerator.init(keySize);
+		KeyStoreExtensions.setKeyEntry(keyStore, alias, keyGenerator.generateKey(),
+			storePassword.toCharArray(), null);
+		try (java.io.OutputStream out = java.nio.file.Files.newOutputStream(file.toPath()))
+		{
+			keyStore.store(out, storePassword.toCharArray());
+		}
+	}
+
+	/**
+	 * Works out what kind of key store a file is, so nobody has to know beforehand
+	 *
+	 * @param file
+	 *            the key store file
+	 * @param password
+	 *            the store password
+	 * @return the type, or {@code null} when the password does not open it as any of them
+	 */
+	public static KeystoreType detectType(final File file, final String password)
+	{
+		KeystoreType byItsFirstBytes = typeByMagicNumber(file);
+		if (byItsFirstBytes != null && KeystoreVerifier.isKeystoreFile(file,
+			password.toCharArray(), byItsFirstBytes.getType()))
+		{
+			return byItsFirstBytes;
+		}
+		// asking the readers in turn is only the fallback, and PKCS12 has to be asked last: since
+		// JDK 9 its reader opens a JKS file as well, so it answers yes for everything
+		for (KeystoreType type : List.of(KeystoreType.JKS, KeystoreType.JCEKS,
+			KeystoreType.PKCS12))
+		{
+			if (KeystoreVerifier.isKeystoreFile(file, password.toCharArray(), type.getType()))
+			{
+				return type;
+			}
+		}
+		return null;
+	}
+
+	/**
+	 * What a key store file says it is in its first four bytes. JKS and JCEKS each start with a
+	 * number of their own; a PKCS12 file is ASN.1 and starts with a sequence
+	 *
+	 * @param file
+	 *            the file to look at
+	 * @return the type, or {@code null} when the first bytes say nothing
+	 */
+	public static KeystoreType typeByMagicNumber(final File file)
+	{
+		try (java.io.InputStream in = java.nio.file.Files.newInputStream(file.toPath()))
+		{
+			byte[] first = in.readNBytes(4);
+			if (first.length < 4)
+			{
+				return null;
+			}
+			int magic = ((first[0] & 0xff) << 24) | ((first[1] & 0xff) << 16)
+				| ((first[2] & 0xff) << 8) | (first[3] & 0xff);
+			if (magic == 0xFEEDFEED)
+			{
+				return KeystoreType.JKS;
+			}
+			if (magic == 0xCECECECE)
+			{
+				return KeystoreType.JCEKS;
+			}
+			return (first[0] & 0xff) == 0x30 ? KeystoreType.PKCS12 : null;
+		}
+		catch (Exception unreadable)
+		{
+			return null;
+		}
+	}
+
+	/**
+	 * Whether a private key and a certificate are two halves of the same pair.
+	 * <p>
+	 * Comparing the algorithm names is not enough, and not even reliable: the same EC key calls
+	 * itself "ECDSA" while the certificate calls its half "EC". So the two are actually used
+	 * together - something is signed with the key and checked against the certificate. That answers
+	 * the question rather than approximating it.
+	 */
+	private static boolean belongTogether(final PrivateKey privateKey,
+		final X509Certificate certificate)
+	{
+		try
+		{
+			String signatureAlgorithm = SIGNATURE_FOR_CHECK
+				.getOrDefault(family(privateKey.getAlgorithm()), null);
+			if (signatureAlgorithm == null)
+			{
+				// an algorithm that cannot sign cannot be checked this way; fall back to the family
+				return family(privateKey.getAlgorithm())
+					.equals(family(certificate.getPublicKey().getAlgorithm()));
+			}
+			byte[] probe = "does this key belong to this certificate"
+				.getBytes(java.nio.charset.StandardCharsets.UTF_8);
+			java.security.Signature signature = java.security.Signature
+				.getInstance(signatureAlgorithm, BouncyCastleProvider.PROVIDER_NAME);
+			signature.initSign(privateKey);
+			signature.update(probe);
+			byte[] signed = signature.sign();
+
+			java.security.Signature check = java.security.Signature
+				.getInstance(signatureAlgorithm, BouncyCastleProvider.PROVIDER_NAME);
+			check.initVerify(certificate.getPublicKey());
+			check.update(probe);
+			return check.verify(signed);
+		}
+		catch (Exception theyDoNotWorkTogether)
+		{
+			return false;
+		}
+	}
+
+	/** The signature algorithm used to check whether a key and a certificate match */
+	private static final java.util.Map<String, String> SIGNATURE_FOR_CHECK = java.util.Map.of("RSA",
+		"SHA256withRSA", "EC", "SHA256withECDSA", "DSA", "SHA256withDSA", "ED25519", "Ed25519");
+
+	/** The family a key belongs to, whatever name it happens to give itself */
+	private static String family(final String algorithm)
+	{
+		String upper = algorithm.toUpperCase(java.util.Locale.ROOT);
+		if (upper.startsWith("EC"))
+		{
+			return "EC";
+		}
+		if (upper.startsWith("ED"))
+		{
+			return "ED25519";
+		}
+		if (upper.startsWith("RSA"))
+		{
+			return "RSA";
+		}
+		return upper;
+	}
+
+	private static String toPem(final X509Certificate certificate) throws Exception
+	{
+		java.io.File temporary = java.io.File.createTempFile("certificate", ".pem");
+		try
+		{
+			CertificateWriter.writeInPemFormat(certificate, temporary);
+			return java.nio.file.Files.readString(temporary.toPath());
+		}
+		finally
+		{
+			java.nio.file.Files.deleteIfExists(temporary.toPath());
+		}
 	}
 
 	/**

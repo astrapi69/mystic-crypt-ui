@@ -65,6 +65,7 @@ public class KeyStorePanel extends JPanel
 	private final JComboBox<KeyPairGeneratorAlgorithm> cmbKeyAlgorithm = new JComboBox<>(
 		KeyStoreSupport.KEY_ALGORITHMS.toArray(new KeyPairGeneratorAlgorithm[0]));
 	private final JTextField txtCertificateFile = new JTextField(40);
+	private final JTextField txtPrivateKeyFile = new JTextField(40);
 	private final DefaultTableModel entryModel = new DefaultTableModel(COLUMNS, 0)
 	{
 		private static final long serialVersionUID = 1L;
@@ -101,6 +102,7 @@ public class KeyStorePanel extends JPanel
 		txtDistinguishedName.setName("txtDistinguishedName");
 		cmbKeyAlgorithm.setName("cmbKeyAlgorithm");
 		txtCertificateFile.setName("txtCertificateFile");
+		txtPrivateKeyFile.setName("txtPrivateKeyFile");
 		tblEntries.setName("tblEntries");
 		tblEntries.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		lblResult.setName("lblResult");
@@ -115,6 +117,11 @@ public class KeyStorePanel extends JPanel
 			event -> onBrowse(txtCertificateFile));
 		JButton btnImport = button("btnImport", "Import certificate", event -> onImport());
 		JButton btnExport = button("btnExport", "Export certificate as PEM", event -> onExport());
+		JButton btnImportKeyPair = button("btnImportKeyPair", "Import key + certificate",
+			event -> onImportKeyPair());
+		JButton btnAddSecretKey = button("btnAddSecretKey", "Add secret key",
+			event -> onAddSecretKey());
+		JButton btnDetails = button("btnDetails", "Details...", event -> onShowDetails());
 
 		int row = 0;
 		add(new JLabel("Key store file:"), at(0, row, GridBagConstraints.EAST));
@@ -141,7 +148,13 @@ public class KeyStorePanel extends JPanel
 		add(new JLabel("Certificate file:"), at(0, row, GridBagConstraints.EAST));
 		add(txtCertificateFile, at(1, row, GridBagConstraints.WEST));
 		add(btnBrowseCertificate, at(2, row++, GridBagConstraints.WEST));
+		add(new JLabel("Private key file:"), at(0, row, GridBagConstraints.EAST));
+		add(txtPrivateKeyFile, at(1, row, GridBagConstraints.WEST));
+		add(button("btnBrowsePrivateKey", "...", event -> onBrowse(txtPrivateKeyFile)),
+			at(2, row++, GridBagConstraints.WEST));
 		add(buttonRow(btnImport, btnExport), at(1, row++, GridBagConstraints.WEST));
+		add(buttonRow(btnImportKeyPair, btnAddSecretKey, btnDetails),
+			at(1, row++, GridBagConstraints.WEST));
 		add(lblResult, span(0, row, 3));
 	}
 
@@ -161,9 +174,93 @@ public class KeyStorePanel extends JPanel
 	private void onOpen()
 	{
 		run("opened", () -> {
-			keyStore = KeyStoreSupport.open(file(), type(), password());
+			// the file says what kind of store it is; the combo only decides when it does not
+			KeystoreType detected = KeyStoreSupport.detectType(file(), password());
+			KeystoreType type = detected != null ? detected : type();
+			keyStore = KeyStoreSupport.open(file(), type, password());
+			if (detected != null && detected != type())
+			{
+				cmbType.setSelectedItem(detected);
+				return "opened " + file().getName() + " - it is a " + detected + " store";
+			}
 			return "opened " + file().getName();
 		});
+	}
+
+	private void onImportKeyPair()
+	{
+		run("imported", () -> {
+			requireOpenKeyStore();
+			String alias = requireAlias();
+			KeyStoreSupport.importKeyPair(keyStore, file(), password(), alias,
+				new File(txtPrivateKeyFile.getText().trim()),
+				new File(txtCertificateFile.getText().trim()));
+			return "imported the key and its certificate as '" + alias + "'";
+		});
+	}
+
+	private void onAddSecretKey()
+	{
+		run("added", () -> {
+			requireOpenKeyStore();
+			String alias = requireAlias();
+			KeyStoreSupport.addSecretKey(keyStore, file(), password(), alias, "AES",
+				KeyStoreSettings.secretKeySize());
+			return "added the " + KeyStoreSettings.secretKeySize() + " bit AES key '" + alias + "'";
+		});
+	}
+
+	private void onShowDetails()
+	{
+		run("shown", () -> {
+			requireOpenKeyStore();
+			String alias = selectedAlias();
+			KeyStoreSupport.CertificateDetails details = KeyStoreSupport.details(keyStore, alias);
+			JOptionPane.showMessageDialog(this, newDetailsPanel(details),
+				"Certificate of '" + alias + "'", JOptionPane.PLAIN_MESSAGE);
+			return "showed the details of '" + alias + "'";
+		});
+	}
+
+	/**
+	 * The details of one certificate, laid out as a form with the certificate itself underneath, so
+	 * it can be selected and copied out
+	 */
+	protected JComponent newDetailsPanel(KeyStoreSupport.CertificateDetails details)
+	{
+		JPanel panel = new JPanel(new GridBagLayout());
+		int row = 0;
+		row = addDetail(panel, row, "Issued to", details.subject());
+		row = addDetail(panel, row, "Issued by", details.issuer());
+		row = addDetail(panel, row, "Valid from", details.validFrom());
+		row = addDetail(panel, row, "Valid until",
+			details.validUntil() + (details.expired() ? "  (expired)" : ""));
+		row = addDetail(panel, row, "Key", details.keyAlgorithm());
+		row = addDetail(panel, row, "Signed with", details.signatureAlgorithm());
+		row = addDetail(panel, row, "Serial number", details.serialNumber());
+		row = addDetail(panel, row, "X.509 version", String.valueOf(details.version()));
+		row = addDetail(panel, row, "SHA-256", details.fingerprint());
+
+		JTextArea pem = new JTextArea(details.pem(), 8, 64);
+		pem.setName("txtCertificatePem");
+		pem.setEditable(false);
+		pem.setFont(new java.awt.Font("monospaced", java.awt.Font.PLAIN, 11));
+		pem.setCaretPosition(0);
+		GridBagConstraints constraints = at(0, row, GridBagConstraints.WEST);
+		constraints.gridwidth = 2;
+		constraints.fill = GridBagConstraints.BOTH;
+		panel.add(new JScrollPane(pem), constraints);
+		return panel;
+	}
+
+	private int addDetail(JPanel panel, int row, String label, String value)
+	{
+		panel.add(new JLabel(label + ":"), at(0, row, GridBagConstraints.EAST));
+		JTextField field = new JTextField(value, 52);
+		field.setName("txtDetail" + label.replace(" ", ""));
+		field.setEditable(false);
+		panel.add(field, at(1, row, GridBagConstraints.WEST));
+		return row + 1;
 	}
 
 	private void onCreate()

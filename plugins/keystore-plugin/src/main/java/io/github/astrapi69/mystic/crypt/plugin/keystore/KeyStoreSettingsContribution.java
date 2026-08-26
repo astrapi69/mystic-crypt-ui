@@ -59,6 +59,9 @@ public class KeyStoreSettingsContribution implements PluginSettingsContribution
 	/** How long a generated certificate is valid */
 	public static final String KEY_DAYS_VALID = "default.days.valid";
 
+	/** The length of a generated symmetric key */
+	public static final String KEY_SECRET_KEY_SIZE = "default.secret.key.size";
+
 	@Override
 	public String getPluginId()
 	{
@@ -81,6 +84,7 @@ public class KeyStoreSettingsContribution implements PluginSettingsContribution
 		defaults.put(KEY_DISTINGUISHED_NAME, "CN=mystic-crypt, O=mystic-crypt");
 		defaults.put(KEY_KEY_SIZE, String.valueOf(KeyStoreSupport.DEFAULT_KEY_SIZE));
 		defaults.put(KEY_DAYS_VALID, String.valueOf(KeyStoreSupport.DEFAULT_DAYS_VALID));
+		defaults.put(KEY_SECRET_KEY_SIZE, "256");
 		return defaults;
 	}
 
@@ -94,6 +98,7 @@ public class KeyStoreSettingsContribution implements PluginSettingsContribution
 			case KEY_DISTINGUISHED_NAME -> "the subject of a generated certificate";
 			case KEY_KEY_SIZE -> "only used by the size based algorithms such as RSA";
 			case KEY_DAYS_VALID -> "how long a generated certificate is valid";
+			case KEY_SECRET_KEY_SIZE -> "the length of a generated AES key: 128, 192 or 256";
 			default -> null;
 		};
 	}

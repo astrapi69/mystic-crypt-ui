@@ -33,9 +33,7 @@ import java.util.List;
 
 import io.github.astrapi69.crypt.api.algorithm.key.KeyPairGeneratorAlgorithm;
 import io.github.astrapi69.crypt.data.factory.SignatureFactory;
-import io.github.astrapi69.crypt.data.key.reader.CertificateReader;
-import io.github.astrapi69.crypt.data.key.reader.PrivateKeyReader;
-import io.github.astrapi69.crypt.data.key.reader.PublicKeyReader;
+import io.github.astrapi69.mystic.crypt.crypto.KeyFiles;
 import io.github.astrapi69.mystic.crypt.key.Ed25519Signer;
 import io.github.astrapi69.mystic.crypt.key.Ed25519Verifier;
 import io.github.astrapi69.mystic.crypt.key.MlDsaSigner;
@@ -144,7 +142,7 @@ public final class SignatureSupport
 	}
 
 	/**
-	 * Reads a private key from a file, in whichever of the two formats it is in
+	 * Reads a private key from a file, in whichever shape it happens to be in
 	 *
 	 * @param file
 	 *            the key file, PEM or DER
@@ -154,51 +152,7 @@ public final class SignatureSupport
 	 */
 	public static PrivateKey readPrivateKey(final java.io.File file) throws Exception
 	{
-		boolean pem = PrivateKeyReader.isPemFormat(file);
-		PrivateKey privateKey = null;
-		Exception firstFailure = null;
-		try
-		{
-			privateKey = pem
-				? PrivateKeyReader.readPemPrivateKey(file)
-				: PrivateKeyReader.readPrivateKey(file);
-		}
-		catch (Exception exception)
-		{
-			firstFailure = exception;
-		}
-		if (privateKey == null)
-		{
-			// the reader guesses RSA unless it is told otherwise, and it decodes with whichever
-			// provider the JDK picks - which cannot read an EC key on a Bouncy Castle named curve.
-			// Decoding the bytes with Bouncy Castle, once per key type, answers both
-			privateKey = readPemPrivateKeyWithBouncyCastle(file);
-			if (privateKey == null)
-			{
-				byte[] encoded = encodedKey(file, pem);
-				for (String algorithm : KEY_ALGORITHMS_TO_TRY)
-				{
-					try
-					{
-						privateKey = java.security.KeyFactory
-							.getInstance(algorithm,
-								org.bouncycastle.jce.provider.BouncyCastleProvider.PROVIDER_NAME)
-							.generatePrivate(new java.security.spec.PKCS8EncodedKeySpec(encoded));
-						break;
-					}
-					catch (Exception nextOne)
-					{
-						// try the next key type
-					}
-				}
-			}
-		}
-		if (privateKey == null)
-		{
-			throw new IllegalArgumentException("'" + file + "' holds no private key this tool can "
-				+ "read", firstFailure);
-		}
-		return privateKey;
+		return KeyFiles.readPrivateKey(file);
 	}
 
 	/**
@@ -213,102 +167,7 @@ public final class SignatureSupport
 	 */
 	public static PublicKey readPublicKey(final java.io.File file) throws Exception
 	{
-		try
-		{
-			byte[] encoded = encodedKey(file, PrivateKeyReader.isPemFormat(file));
-			for (String algorithm : KEY_ALGORITHMS_TO_TRY)
-			{
-				try
-				{
-					return java.security.KeyFactory
-						.getInstance(algorithm,
-							org.bouncycastle.jce.provider.BouncyCastleProvider.PROVIDER_NAME)
-						.generatePublic(new java.security.spec.X509EncodedKeySpec(encoded));
-				}
-				catch (Exception nextOne)
-				{
-					// try the next key type
-				}
-			}
-		}
-		catch (Exception notAKeyFileAtAll)
-		{
-			// fall through to the certificate
-		}
-		try
-		{
-			PublicKey publicKey = PublicKeyReader.readPublicKey(file);
-			if (publicKey != null)
-			{
-				return publicKey;
-			}
-		}
-		catch (Exception notADerPublicKeyEither)
-		{
-			// fall through to the certificate
-		}
-		// a public key most often arrives inside a certificate
-		java.security.cert.X509Certificate certificate = CertificateReader.readCertificate(file);
-		if (certificate == null)
-		{
-			throw new IllegalArgumentException(
-				"'" + file + "' holds neither a public key nor a certificate");
-		}
-		return certificate.getPublicKey();
-	}
-
-	/** The key types whose files this tool can read, in the order they are tried */
-	private static final List<String> KEY_ALGORITHMS_TO_TRY = List.of("RSA", "EC", "DSA", "EdDSA",
-		"Ed25519");
-
-	/**
-	 * Reads a private key with Bouncy Castle's own pem parser, which is the one thing that knows
-	 * every shape a private key file comes in - PKCS#8 ("BEGIN PRIVATE KEY"), the openssl style
-	 * ("BEGIN RSA PRIVATE KEY", "BEGIN EC PRIVATE KEY") and a key pair file that carries both
-	 * halves
-	 *
-	 * @param file
-	 *            the key file
-	 * @return the private key, or {@code null} when this file is not one
-	 */
-	private static PrivateKey readPemPrivateKeyWithBouncyCastle(final java.io.File file)
-	{
-		try (java.io.Reader reader = java.nio.file.Files.newBufferedReader(file.toPath());
-			org.bouncycastle.openssl.PEMParser parser = new org.bouncycastle.openssl.PEMParser(
-				reader))
-		{
-			Object parsed = parser.readObject();
-			org.bouncycastle.openssl.jcajce.JcaPEMKeyConverter converter = new org.bouncycastle.openssl.jcajce.JcaPEMKeyConverter()
-				.setProvider(org.bouncycastle.jce.provider.BouncyCastleProvider.PROVIDER_NAME);
-			if (parsed instanceof org.bouncycastle.openssl.PEMKeyPair keyPair)
-			{
-				return converter.getKeyPair(keyPair).getPrivate();
-			}
-			if (parsed instanceof org.bouncycastle.asn1.pkcs.PrivateKeyInfo privateKeyInfo)
-			{
-				return converter.getPrivateKey(privateKeyInfo);
-			}
-			return null;
-		}
-		catch (Exception notReadableThisWay)
-		{
-			return null;
-		}
-	}
-
-	/**
-	 * The raw bytes of a key file: the Base64 body for a PEM file, the file itself for a DER one
-	 */
-	private static byte[] encodedKey(final java.io.File file, final boolean pem) throws Exception
-	{
-		if (!pem)
-		{
-			return java.nio.file.Files.readAllBytes(file.toPath());
-		}
-		String base64 = java.nio.file.Files.readAllLines(file.toPath()).stream()
-			.filter(line -> !line.startsWith("-----")).reduce("", String::concat)
-			.replaceAll("\\s", "");
-		return java.util.Base64.getDecoder().decode(base64);
+		return KeyFiles.readPublicKey(file);
 	}
 
 	/** Whether the given name is a classical signature algorithm rather than one of the families */
