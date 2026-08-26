@@ -53,18 +53,24 @@ public class ConversionMenuContribution implements PluginMenuContribution
 	public List<JMenuItem> getMenuItems()
 	{
 		JMenuItem convert = new JMenuItem("Convert DER to PEM");
-		convert.addActionListener(event -> {
-			MysticCryptApplicationFrame instance = MysticCryptApplicationFrame.getInstance();
-			if (!FrameMode.DESKTOP_PANE.equals(instance.getFrameMode()))
-			{
-				instance.switchToDesktopPane();
-			}
-			JInternalFrame internalFrame = JComponentFactory.newInternalFrame(FRAME_TITLE, true,
-				true, true, true);
-			JInternalFrameExtensions.addInternalFrameToMainFrame(new FileConversionPanel(),
-				internalFrame, instance);
-		});
-		return List.of(convert);
+		convert.addActionListener(
+			event -> openInternalFrame(FRAME_TITLE, new FileConversionPanel()));
+		JMenuItem convertKeyFile = new JMenuItem("Convert key file...");
+		convertKeyFile.addActionListener(
+			event -> openInternalFrame("Convert key file", new ConversionPanel()));
+		return List.of(convert, convertKeyFile);
+	}
+
+	private void openInternalFrame(String title, java.awt.Component panel)
+	{
+		MysticCryptApplicationFrame instance = MysticCryptApplicationFrame.getInstance();
+		if (!FrameMode.DESKTOP_PANE.equals(instance.getFrameMode()))
+		{
+			instance.switchToDesktopPane();
+		}
+		JInternalFrame internalFrame = JComponentFactory.newInternalFrame(title, true, true, true,
+			true);
+		JInternalFrameExtensions.addInternalFrameToMainFrame(panel, internalFrame, instance);
 	}
 
 	@Override
