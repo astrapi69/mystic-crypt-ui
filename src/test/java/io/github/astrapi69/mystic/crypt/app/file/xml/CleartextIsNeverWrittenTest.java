@@ -85,7 +85,11 @@ class CleartextIsNeverWrittenTest
 	void theFirstThingWrittenIsAlreadyEncrypted(@TempDir File directory) throws Exception
 	{
 		File vault = new File(directory, "watched.mcrdb");
-		namedPipeAt(vault);
+		// the save writes its bytes next to the database and moves them onto it, so the pipe goes
+		// where the writing actually happens
+		File written = new File(directory,
+			vault.getName() + VaultFileWriter.WORK_IN_PROGRESS_SUFFIX);
+		namedPipeAt(written);
 		KeyPair keyPair = KeyPairFactory.newKeyPair(KeyPairGeneratorAlgorithm.RSA, 2048);
 		ApplicationModelBean applicationModelBean = ApplicationModelBean.builder()
 			.masterPwFileModelBean(
@@ -97,7 +101,7 @@ class CleartextIsNeverWrittenTest
 
 		BlockingQueue<byte[]> whatWasWrittenFirst = new ArrayBlockingQueue<>(1);
 		Thread reader = new Thread(() -> {
-			try (InputStream pipe = Files.newInputStream(vault.toPath()))
+			try (InputStream pipe = Files.newInputStream(written.toPath()))
 			{
 				whatWasWrittenFirst.offer(pipe.readNBytes(ENOUGH_TO_RECOGNISE_XML));
 			}

@@ -25,7 +25,6 @@
 package io.github.astrapi69.mystic.crypt.app.file.xml;
 
 import java.io.File;
-import java.nio.file.Files;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 
@@ -39,7 +38,6 @@ import io.github.astrapi69.crypt.data.key.PrivateKeyExtensions;
 import io.github.astrapi69.crypt.data.key.reader.PrivateKeyReader;
 import io.github.astrapi69.crypt.data.model.CryptModel;
 import io.github.astrapi69.file.create.FileFactory;
-import io.github.astrapi69.file.write.StoreFileExtensions;
 import io.github.astrapi69.mystic.crypt.ApplicationModelBean;
 import io.github.astrapi69.mystic.crypt.algorithm.MysticSymmetricAlgorithm;
 import io.github.astrapi69.mystic.crypt.key.PublicKeyEncryptor;
@@ -120,8 +118,7 @@ public final class ApplicationXmlFileStoreWorker
 		// the whole database lying there in the clear whenever anything came in between
 		encrypt = RuntimeExceptionDecorator.decorate(() -> genericEncryptor.encrypt(xml));
 
-		RuntimeExceptionDecorator
-			.decorate(() -> StoreFileExtensions.toFile(applicationFile, encrypt));
+		RuntimeExceptionDecorator.decorate(() -> VaultFileWriter.write(applicationFile, encrypt));
 		return applicationFile;
 	}
 
@@ -175,8 +172,7 @@ public final class ApplicationXmlFileStoreWorker
 		byte[] encrypt = RuntimeExceptionDecorator
 			.decorate(() -> genericEncryptor.encrypt(encryptedJson));
 
-		RuntimeExceptionDecorator
-			.decorate(() -> StoreFileExtensions.toFile(applicationFile, encrypt));
+		RuntimeExceptionDecorator.decorate(() -> VaultFileWriter.write(applicationFile, encrypt));
 		return applicationFile;
 	}
 
@@ -193,7 +189,7 @@ public final class ApplicationXmlFileStoreWorker
 		byte[] fileContent = RuntimeExceptionDecorator
 			.decorate(() -> PasswordVaultFormat.encrypt(xml, password));
 		RuntimeExceptionDecorator
-			.decorate(() -> Files.write(applicationFile.toPath(), fileContent));
+			.decorate(() -> VaultFileWriter.write(applicationFile, fileContent));
 		return applicationFile;
 	}
 }
