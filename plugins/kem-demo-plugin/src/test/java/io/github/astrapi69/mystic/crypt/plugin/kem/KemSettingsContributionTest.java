@@ -105,4 +105,50 @@ class KemSettingsContributionTest
 
 		assertEquals(KemDemoPanel.ALGORITHMS.get(0), KemSettingsContribution.algorithm());
 	}
+
+	/**
+	 * The exchange between two people has its own setting, because it offers an algorithm the demo
+	 * does not
+	 */
+	@ParameterizedTest
+	@ValueSource(strings = { "X25519", "ML-KEM-512", "Hybrid X25519 + ML-KEM-768" })
+	void aStoredExchangeAlgorithmIsUsed(String stored) throws Exception
+	{
+		store(KemSettingsContribution.KEY_EXCHANGE_ALGORITHM, stored);
+
+		assertEquals(stored, KemSettingsContribution.exchangeAlgorithm());
+	}
+
+	/**
+	 * The two settings are separate: what the demo is set to must not decide what the exchange
+	 * starts with
+	 */
+	@Test
+	void theTwoToolsHaveTheirOwnSetting() throws Exception
+	{
+		store(KemSettingsContribution.KEY_ALGORITHM, "ML-KEM-1024");
+
+		assertEquals("ML-KEM-1024", KemSettingsContribution.algorithm());
+		assertEquals(KeyExchangeSupport.algorithms().get(0),
+			KemSettingsContribution.exchangeAlgorithm());
+	}
+
+	@Test
+	void anExchangeAlgorithmThatIsNotOfferedFallsBack() throws Exception
+	{
+		store(KemSettingsContribution.KEY_EXCHANGE_ALGORITHM, "Curve25519");
+
+		assertEquals(KeyExchangeSupport.algorithms().get(0),
+			KemSettingsContribution.exchangeAlgorithm());
+	}
+
+	/**
+	 * A setting nobody can read in the dialog is a setting nobody can change
+	 */
+	@Test
+	void bothSettingsExplainThemselvesInTheDialog()
+	{
+		CONTRIBUTION.getDefaults().keySet()
+			.forEach(key -> assertNotNull(CONTRIBUTION.getDescription(key), key));
+	}
 }

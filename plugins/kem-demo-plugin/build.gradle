@@ -29,6 +29,19 @@ dependencies {
     compileOnly "io.github.astrapi69:swing-base-components:5.1"
     compileOnly "io.github.astrapi69:swing-components:9"
 
+    // the key exchange lives in the mystic-crypt library
+    compileOnly "io.github.astrapi69:mystic-crypt:11.2"
+
+    compileOnly "io.github.astrapi69:crypt-api:10.1"
+
+    // the model backed components the exchange panel binds to its model; the host brings both
+    // jars at runtime, so they stay compileOnly here like everything else
+    compileOnly "io.github.astrapi69:swing-model-components:1.2"
+    compileOnly "io.github.astrapi69:model-data:3.2.1"
+
+    // the command line side: the host puts picocli on the classpath
+    compileOnly "info.picocli:picocli:4.7.6"
+
     compileOnly "org.pf4j:pf4j:3.15.0"
     // required so the @Extension annotation processor runs and writes META-INF/extensions.idx
     annotationProcessor "org.pf4j:pf4j:3.15.0"
@@ -36,6 +49,14 @@ dependencies {
     // the round-trip test drives the ML-KEM / hybrid encapsulate + decapsulate headlessly, against
     // the same JDK 25 native providers the panel uses - no external crypto dependency needed
     testImplementation "org.junit.jupiter:junit-jupiter:5.11.4"
+    testImplementation "io.github.astrapi69:crypt-api:10.1"
+    testImplementation "io.github.astrapi69:mystic-crypt:11.2"
+    testImplementation "org.bouncycastle:bcprov-jdk18on:1.85.2"
+    testImplementation "info.picocli:picocli:4.7.6"
+    // the panel test constructs the panel, so the model backed components have to be on the test
+    // classpath as well
+    testImplementation "io.github.astrapi69:swing-model-components:1.2"
+    testImplementation "io.github.astrapi69:model-data:3.2.1"
     testRuntimeOnly "org.junit.platform:junit-platform-launcher"
     // the settings contribution implements the host's extension point and reads through the host's
     // settings store, so the host jar has to be on the test classpath to load it

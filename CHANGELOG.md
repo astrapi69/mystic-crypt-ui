@@ -4,6 +4,14 @@
 Version 8.2-SNAPSHOT
 -------------
 
+ADDED:
+
+- new "Key Exchange" tool for an exchange between two people, where each side holds only its own half: one side hands out a public key, the other encapsulates against it and sends back a handshake, and both arrive at the same shared secret without either private key ever travelling
+- the shared secret encrypts a message, and both sides can compare an eight character fingerprint to check they hold the same one
+- supported algorithms: ML-KEM 512, 768 and 1024, X25519, and the hybrid of X25519 with ML-KEM-768, which stays secure as long as either half does
+- new command line side of the exchange with `--cli keyx new|send|receive`, one run per step, so the two sides can be two machines
+- new setting for the algorithm the exchange starts with, separate from the one the demo uses
+
 Version 8.1.1
 -------------
 
