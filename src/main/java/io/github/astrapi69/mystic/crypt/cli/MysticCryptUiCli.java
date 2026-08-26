@@ -195,9 +195,46 @@ public final class MysticCryptUiCli
 			io.github.astrapi69.mystic.crypt.cli.MysticCryptCli.class);
 		for (Object command : commands(contributions))
 		{
-			commandLine.addSubcommand(command);
+			addUnlessTheNameIsTaken(commandLine, command);
 		}
 		return commandLine;
+	}
+
+
+	/**
+	 * Adds a contributed command, unless the library already has one under that name.
+	 * <p>
+	 * A plugin can be installed from anywhere, and a library release can take a name that was free
+	 * yesterday, so a clash is a situation to survive rather than to prevent. Both ways it can go
+	 * wrong are bad: picocli throws while the command line is still being assembled, which used to
+	 * cost every other command including the library's own, and where it does not throw it replaces
+	 * the library command silently, so {@code hash} would quietly become something else.
+	 * <p>
+	 * The name is therefore checked before the command is added, and the library keeps it.
+	 *
+	 * @param commandLine
+	 *            the command line being assembled
+	 * @param command
+	 *            the contributed command
+	 */
+	private static void addUnlessTheNameIsTaken(final CommandLine commandLine, final Object command)
+	{
+		try
+		{
+			String name = CommandLine.Model.CommandSpec.forAnnotatedObject(command).name();
+			if (commandLine.getSubcommands().containsKey(name))
+			{
+				// the command line is a terminal tool, so this belongs where the user can see it
+				System.err.println("the plugin command '" + name
+					+ "' was left out: the name is already in use by mystic-crypt");
+				return;
+			}
+			commandLine.addSubcommand(command);
+		}
+		catch (RuntimeException notUsable)
+		{
+			System.err.println("a plugin command is not usable and was left out: " + notUsable);
+		}
 	}
 
 	/**
