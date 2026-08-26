@@ -33,6 +33,8 @@ import org.assertj.swing.edt.GuiActionRunner;
 import org.assertj.swing.fixture.FrameFixture;
 import org.junit.jupiter.api.Test;
 
+import io.github.astrapi69.mystic.crypt.TestPasswords;
+
 /**
  * Negative-path end-to-end test of the password-hash plugin: selects PBKDF2, hashes a password,
  * then verifies a WRONG password against that hash and asserts the panel reports "does not match"
@@ -42,7 +44,7 @@ import org.junit.jupiter.api.Test;
 class PasswordHashPbkdf2NegativeUiTest extends AbstractUiTest
 {
 
-	private static final String MASTER_PASSWORD = "pwhash-neg-e2e-pw-123";
+	private static final String MASTER_PASSWORD = TestPasswords.throwaway();
 
 	@Test
 	void pbkdf2VerifyingAWrongPasswordReportsNoMatchThroughTheUi() throws Exception

@@ -31,6 +31,8 @@ import java.io.File;
 import org.assertj.swing.fixture.FrameFixture;
 import org.junit.jupiter.api.Test;
 
+import io.github.astrapi69.mystic.crypt.TestPasswords;
+
 /**
  * End-to-end use cases "copy user name" and "copy password" - the daily bread of a password
  * manager: select the entry, use the context menu, and the credential must land on the system
@@ -42,10 +44,10 @@ import org.junit.jupiter.api.Test;
 class CopyEntryCredentialsUiTest extends AbstractUiTest
 {
 
-	private static final String MASTER_PASSWORD = "copy-db-pw-123";
+	private static final String MASTER_PASSWORD = TestPasswords.throwaway();
 	private static final String ENTRY_TITLE = "Copy Source";
 	private static final String ENTRY_USERNAME = "copy-user";
-	private static final String ENTRY_PASSWORD = "copy-secret-pw-1";
+	private static final String ENTRY_PASSWORD = TestPasswords.throwaway();
 
 	@Test
 	void copyUsernameAndPasswordPutThemOnTheClipboard() throws Exception

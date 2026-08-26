@@ -32,6 +32,8 @@ import java.io.File;
 import org.assertj.swing.fixture.FrameFixture;
 import org.junit.jupiter.api.Test;
 
+import io.github.astrapi69.mystic.crypt.TestPasswords;
+
 /**
  * End-to-end use cases "edit an entry", "duplicate an entry" and "delete an entry", chained the way
  * a user works on the entries table: create an entry, rename it via "edit...", duplicate it via
@@ -41,7 +43,7 @@ import org.junit.jupiter.api.Test;
 class EditDuplicateAndDeleteEntryUiTest extends AbstractUiTest
 {
 
-	private static final String MASTER_PASSWORD = "entry-crud-db-pw-123";
+	private static final String MASTER_PASSWORD = TestPasswords.throwaway();
 	private static final String ORIGINAL_TITLE = "Mail Account";
 	private static final String EDITED_TITLE = "Mail Account Work";
 	private static final String DUPLICATE_TITLE = "Mail Account Private";

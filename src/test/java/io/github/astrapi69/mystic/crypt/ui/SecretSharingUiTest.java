@@ -34,6 +34,8 @@ import org.assertj.swing.edt.GuiActionRunner;
 import org.assertj.swing.fixture.FrameFixture;
 import org.junit.jupiter.api.Test;
 
+import io.github.astrapi69.mystic.crypt.TestPasswords;
+
 /**
  * Functional end-to-end test of the case this tool exists for: a master password is split so that
  * three of five shares rebuild it, and two do not. Everything through the real user interface.
@@ -41,7 +43,7 @@ import org.junit.jupiter.api.Test;
 class SecretSharingUiTest extends AbstractUiTest
 {
 
-	private static final String MASTER_PASSWORD = "secret-sharing-e2e-pw-123";
+	private static final String MASTER_PASSWORD = TestPasswords.throwaway();
 
 	private static final String SECRET = "the master password nobody may lose";
 

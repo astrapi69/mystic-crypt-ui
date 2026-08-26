@@ -32,6 +32,8 @@ import java.io.IOException;
 import org.assertj.swing.fixture.FrameFixture;
 import org.junit.jupiter.api.Test;
 
+import io.github.astrapi69.mystic.crypt.TestPasswords;
+
 /**
  * End-to-end use case "search the open database": entering a term must select the first tree node
  * whose name (or one of whose entries) matches, and a term that matches nothing must be reported
@@ -39,7 +41,7 @@ import org.junit.jupiter.api.Test;
 class SearchUiTest extends AbstractUiTest
 {
 
-	private static final String MASTER_PASSWORD = "search-pw-123";
+	private static final String MASTER_PASSWORD = TestPasswords.throwaway();
 
 	@Test
 	void searchSelectsTheMatchingNode() throws IOException

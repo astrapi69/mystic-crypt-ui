@@ -36,6 +36,8 @@ import org.junit.jupiter.api.Test;
 import org.linguafranca.pwdb.kdbx.KdbxCreds;
 import org.linguafranca.pwdb.kdbx.simple.SimpleDatabase;
 
+import io.github.astrapi69.mystic.crypt.TestPasswords;
+
 /**
  * End-to-end use case "export to a KeePass database": sign in, run the File menu's export action
  * with a destination file and password - the written {@code .kdbx} file must be readable by
@@ -44,8 +46,8 @@ import org.linguafranca.pwdb.kdbx.simple.SimpleDatabase;
 class KeePassExportUiTest extends AbstractUiTest
 {
 
-	private static final String MASTER_PASSWORD = "export-db-pw-123";
-	private static final String EXPORT_PASSWORD = "exported-kdbx-pw-1";
+	private static final String MASTER_PASSWORD = TestPasswords.throwaway();
+	private static final String EXPORT_PASSWORD = TestPasswords.throwaway();
 
 	@Test
 	void exportedKdbxFileIsReadableWithTheChosenPassword() throws Exception

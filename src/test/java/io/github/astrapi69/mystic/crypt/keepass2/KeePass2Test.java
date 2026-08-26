@@ -39,6 +39,8 @@ import org.linguafranca.pwdb.kdbx.simple.SimpleDatabase;
 import org.linguafranca.pwdb.kdbx.simple.SimpleEntry;
 import org.linguafranca.pwdb.kdbx.simple.SimpleGroup;
 
+import io.github.astrapi69.mystic.crypt.TestPasswords;
+
 /**
  * Smoke test for the checked-in KeePass test fixture: {@code test-db.kdbx} must load with its known
  * credentials and contain at least one group and one entry with a readable title - the same fixture
@@ -50,7 +52,7 @@ public class KeePass2Test
 	@Test
 	public void testKeePass2() throws Exception
 	{
-		KdbxCreds credentials = new KdbxCreds("foo-secret-bar-1969-?".getBytes());
+		KdbxCreds credentials = new KdbxCreds(TestPasswords.KEEPASS_FIXTURE.getBytes());
 		InputStream inputStream = getClass().getClassLoader().getResourceAsStream("test-db.kdbx");
 		assertNotNull(inputStream, "test fixture test-db.kdbx must be on the test classpath");
 		SimpleDatabase database = SimpleDatabase.load(credentials, inputStream);

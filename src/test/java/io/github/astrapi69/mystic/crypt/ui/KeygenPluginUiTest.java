@@ -33,6 +33,8 @@ import org.assertj.swing.edt.GuiActionRunner;
 import org.assertj.swing.fixture.FrameFixture;
 import org.junit.jupiter.api.Test;
 
+import io.github.astrapi69.mystic.crypt.TestPasswords;
+
 /**
  * Functional end-to-end test of the keygen plugin: loads the plugin from its zip, opens the "Key
  * Generation" tool from the Plugins menu, generates an RSA key pair, then encrypts a text and
@@ -42,7 +44,7 @@ import org.junit.jupiter.api.Test;
 class KeygenPluginUiTest extends AbstractUiTest
 {
 
-	private static final String MASTER_PASSWORD = "keygen-e2e-pw-123";
+	private static final String MASTER_PASSWORD = TestPasswords.throwaway();
 
 	@Test
 	void keyGenerationGeneratesAndRoundTripsEncryptionThroughTheUi() throws Exception

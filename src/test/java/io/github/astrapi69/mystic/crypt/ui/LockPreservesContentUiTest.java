@@ -32,6 +32,8 @@ import java.io.IOException;
 import org.assertj.swing.fixture.FrameFixture;
 import org.junit.jupiter.api.Test;
 
+import io.github.astrapi69.mystic.crypt.TestPasswords;
+
 /**
  * End-to-end good case: locking and then unlocking the workspace keeps the open database in memory,
  * so a node added before locking is still there after unlocking
@@ -39,7 +41,7 @@ import org.junit.jupiter.api.Test;
 class LockPreservesContentUiTest extends AbstractUiTest
 {
 
-	private static final String MASTER_PASSWORD = "lock-preserve-pw-123";
+	private static final String MASTER_PASSWORD = TestPasswords.throwaway();
 
 	@Test
 	void unlockRestoresTheTreeContent() throws IOException

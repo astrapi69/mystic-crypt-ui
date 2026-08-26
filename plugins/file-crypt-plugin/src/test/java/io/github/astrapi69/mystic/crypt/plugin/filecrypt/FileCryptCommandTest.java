@@ -50,7 +50,7 @@ import picocli.CommandLine;
 class FileCryptCommandTest
 {
 
-	private static final String PASSPHRASE = "cli-file-crypt-pw-1969";
+	private static final String PASSPHRASE = "throwaway-" + java.util.UUID.randomUUID();
 
 	private StringWriter out;
 

@@ -39,6 +39,8 @@ import org.linguafranca.pwdb.kdbx.simple.SimpleDatabase;
 import org.linguafranca.pwdb.kdbx.simple.SimpleEntry;
 import org.linguafranca.pwdb.kdbx.simple.SimpleGroup;
 
+import io.github.astrapi69.mystic.crypt.TestPasswords;
+
 /**
  * End-to-end test of importing a KeePass database that is protected by BOTH a password and a key
  * file: builds such a {@code .kdbx} in-place, then drives the import dialog with the "Key File"
@@ -48,8 +50,8 @@ import org.linguafranca.pwdb.kdbx.simple.SimpleGroup;
 class KeePassImportKeyFileUiTest extends AbstractUiTest
 {
 
-	private static final String MASTER_PASSWORD = "import-keyfile-db-pw-123";
-	private static final String KEEPASS_PASSWORD = "keepass-secret-1969";
+	private static final String MASTER_PASSWORD = TestPasswords.throwaway();
+	private static final String KEEPASS_PASSWORD = TestPasswords.throwaway();
 
 	@Test
 	void importKeePassDatabaseProtectedByAKeyFileShowsEntriesInTree() throws Exception

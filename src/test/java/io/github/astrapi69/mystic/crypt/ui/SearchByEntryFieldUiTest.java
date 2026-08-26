@@ -32,6 +32,8 @@ import java.io.IOException;
 import org.assertj.swing.fixture.FrameFixture;
 import org.junit.jupiter.api.Test;
 
+import io.github.astrapi69.mystic.crypt.TestPasswords;
+
 /**
  * End-to-end good case for search: searching for an entry's user name (not a node name) selects the
  * tree node that holds the matching entry
@@ -39,7 +41,7 @@ import org.junit.jupiter.api.Test;
 class SearchByEntryFieldUiTest extends AbstractUiTest
 {
 
-	private static final String MASTER_PASSWORD = "search-entry-pw-123";
+	private static final String MASTER_PASSWORD = TestPasswords.throwaway();
 
 	@Test
 	void searchFindsTheNodeByAnEntryUserName() throws IOException

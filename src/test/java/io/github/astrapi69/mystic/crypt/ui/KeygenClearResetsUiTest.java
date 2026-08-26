@@ -35,6 +35,7 @@ import org.assertj.swing.fixture.FrameFixture;
 import org.junit.jupiter.api.Test;
 
 import io.github.astrapi69.crypt.api.algorithm.key.KeyPairGeneratorAlgorithm;
+import io.github.astrapi69.mystic.crypt.TestPasswords;
 
 /**
  * End-to-end test of the keygen plugin's Clear button after a modern-algorithm generation:
@@ -44,7 +45,7 @@ import io.github.astrapi69.crypt.api.algorithm.key.KeyPairGeneratorAlgorithm;
 class KeygenClearResetsUiTest extends AbstractUiTest
 {
 
-	private static final String MASTER_PASSWORD = "keygen-clear-e2e-pw-123";
+	private static final String MASTER_PASSWORD = TestPasswords.throwaway();
 
 	@Test
 	void clearResetsTheAlgorithmToRsaAndReenablesTheKeySize() throws Exception

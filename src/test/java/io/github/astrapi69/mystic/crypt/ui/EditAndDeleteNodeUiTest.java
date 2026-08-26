@@ -32,6 +32,8 @@ import java.io.File;
 import org.assertj.swing.fixture.FrameFixture;
 import org.junit.jupiter.api.Test;
 
+import io.github.astrapi69.mystic.crypt.TestPasswords;
+
 /**
  * End-to-end use cases "rename a node" and "delete a node", chained the way a user works: create a
  * node, rename it via the context menu's "Edit node...", then delete it via "delete" plus the
@@ -40,7 +42,7 @@ import org.junit.jupiter.api.Test;
 class EditAndDeleteNodeUiTest extends AbstractUiTest
 {
 
-	private static final String MASTER_PASSWORD = "edit-node-db-pw-123";
+	private static final String MASTER_PASSWORD = TestPasswords.throwaway();
 	private static final String ORIGINAL_NAME = "Node To Rename";
 	private static final String RENAMED_NAME = "Renamed Node";
 

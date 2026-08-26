@@ -34,6 +34,8 @@ import org.assertj.swing.edt.GuiActionRunner;
 import org.assertj.swing.fixture.FrameFixture;
 import org.junit.jupiter.api.Test;
 
+import io.github.astrapi69.mystic.crypt.TestPasswords;
+
 /**
  * Functional end-to-end test of hashing a password with bcrypt and checking it again, plus the
  * refusal bcrypt needs: it looks at the first 72 bytes of a password and no further, so a longer
@@ -42,9 +44,9 @@ import org.junit.jupiter.api.Test;
 class PasswordHashBcryptUiTest extends AbstractUiTest
 {
 
-	private static final String MASTER_PASSWORD = "password-hash-bcrypt-e2e-pw-123";
+	private static final String MASTER_PASSWORD = TestPasswords.throwaway();
 
-	private static final String PASSWORD = "correct horse battery staple";
+	private static final String PASSWORD = TestPasswords.throwaway();
 
 	@Test
 	void hashesWithBcryptAndChecksItAgainThroughTheUi() throws Exception

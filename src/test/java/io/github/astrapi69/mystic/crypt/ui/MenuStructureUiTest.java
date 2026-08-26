@@ -39,6 +39,7 @@ import org.junit.jupiter.api.Test;
 
 import io.github.astrapi69.mystic.crypt.DesktopMenu;
 import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
+import io.github.astrapi69.mystic.crypt.TestPasswords;
 
 /**
  * End-to-end regression test for the best-practice menu layout: after sign-in the menu bar must
@@ -49,7 +50,7 @@ import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
 class MenuStructureUiTest extends AbstractUiTest
 {
 
-	private static final String MASTER_PASSWORD = "menu-structure-e2e-pw-123";
+	private static final String MASTER_PASSWORD = TestPasswords.throwaway();
 
 	@Test
 	void helpIsLastAndLookAndFeelLivesUnderView() throws Exception

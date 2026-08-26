@@ -34,6 +34,8 @@ import org.assertj.swing.edt.GuiActionRunner;
 import org.assertj.swing.fixture.FrameFixture;
 import org.junit.jupiter.api.Test;
 
+import io.github.astrapi69.mystic.crypt.TestPasswords;
+
 /**
  * Functional end-to-end test of the key exchange: opens the "Key Exchange" tool through the real
  * application, makes a key pair on the receiving tab, carries the public key over to the sending
@@ -43,7 +45,7 @@ import org.junit.jupiter.api.Test;
 class KeyExchangeUiTest extends AbstractUiTest
 {
 
-	private static final String MASTER_PASSWORD = "key-exchange-e2e-pw-123";
+	private static final String MASTER_PASSWORD = TestPasswords.throwaway();
 
 	@Test
 	void carriesAMessageBetweenTheTwoSidesThroughTheUi() throws Exception

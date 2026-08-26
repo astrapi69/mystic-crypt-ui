@@ -37,6 +37,8 @@ import org.assertj.swing.fixture.FrameFixture;
 import org.assertj.swing.fixture.JOptionPaneFixture;
 import org.junit.jupiter.api.Test;
 
+import io.github.astrapi69.mystic.crypt.TestPasswords;
+
 /**
  * Negative-path end-to-end test of the keygen plugin's modern-algorithm branch: after generating a
  * non-RSA (X25519) key pair, the hex Encrypt/Decrypt demo does not apply, so pressing Encrypt must
@@ -45,7 +47,7 @@ import org.junit.jupiter.api.Test;
 class KeygenEncryptUnavailableUiTest extends AbstractUiTest
 {
 
-	private static final String MASTER_PASSWORD = "keygen-guard-e2e-pw-123";
+	private static final String MASTER_PASSWORD = TestPasswords.throwaway();
 
 	@Test
 	void encryptOnANonRsaKeyShowsAnInformationDialog() throws Exception

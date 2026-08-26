@@ -38,6 +38,8 @@ import org.assertj.swing.finder.JFileChooserFinder;
 import org.assertj.swing.fixture.FrameFixture;
 import org.junit.jupiter.api.Test;
 
+import io.github.astrapi69.mystic.crypt.TestPasswords;
+
 /**
  * Negative-path end-to-end test of the DER-to-PEM conversion plugin: choosing a file that is not a
  * valid DER key must not produce a PEM output file - the converter logs the error and writes
@@ -46,7 +48,7 @@ import org.junit.jupiter.api.Test;
 class ConversionInvalidDerUiTest extends AbstractUiTest
 {
 
-	private static final String MASTER_PASSWORD = "conversion-neg-e2e-pw-123";
+	private static final String MASTER_PASSWORD = TestPasswords.throwaway();
 
 	@Test
 	void convertingAnInvalidDerFileProducesNoPemFile() throws Exception

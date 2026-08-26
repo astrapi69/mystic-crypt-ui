@@ -56,7 +56,7 @@ import io.github.astrapi69.crypt.api.type.KeystoreType;
 class KeyStoreSupportTest
 {
 
-	private static final String STORE_PASSWORD = "keystore-test-pw-1969";
+	private static final String STORE_PASSWORD = "throwaway-" + java.util.UUID.randomUUID();
 
 	@BeforeAll
 	static void registerBouncyCastle()

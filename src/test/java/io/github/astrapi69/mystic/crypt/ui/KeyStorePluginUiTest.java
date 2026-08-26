@@ -33,6 +33,8 @@ import org.assertj.swing.edt.GuiActionRunner;
 import org.assertj.swing.fixture.FrameFixture;
 import org.junit.jupiter.api.Test;
 
+import io.github.astrapi69.mystic.crypt.TestPasswords;
+
 /**
  * Functional end-to-end test of the key store plugin: creates a PKCS12 store through the real UI,
  * puts a generated key pair into it, exports the certificate as PEM, imports it back under a second
@@ -41,9 +43,9 @@ import org.junit.jupiter.api.Test;
 class KeyStorePluginUiTest extends AbstractUiTest
 {
 
-	private static final String MASTER_PASSWORD = "keystore-e2e-pw-123";
+	private static final String MASTER_PASSWORD = TestPasswords.throwaway();
 
-	private static final String STORE_PASSWORD = "store-e2e-pw-456";
+	private static final String STORE_PASSWORD = TestPasswords.throwaway();
 
 	@Test
 	void managesAKeyStoreThroughTheUi() throws Exception

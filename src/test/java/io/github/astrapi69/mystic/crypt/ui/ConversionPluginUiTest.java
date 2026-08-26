@@ -48,6 +48,7 @@ import io.github.astrapi69.crypt.api.algorithm.key.KeyPairGeneratorAlgorithm;
 import io.github.astrapi69.crypt.data.factory.KeyPairFactory;
 import io.github.astrapi69.crypt.data.key.reader.PrivateKeyReader;
 import io.github.astrapi69.crypt.data.key.writer.PrivateKeyWriter;
+import io.github.astrapi69.mystic.crypt.TestPasswords;
 
 /**
  * Functional end-to-end test of the conversion plugin: loads the plugin from its zip, opens the
@@ -58,7 +59,7 @@ import io.github.astrapi69.crypt.data.key.writer.PrivateKeyWriter;
 class ConversionPluginUiTest extends AbstractUiTest
 {
 
-	private static final String MASTER_PASSWORD = "conversion-e2e-pw-123";
+	private static final String MASTER_PASSWORD = TestPasswords.throwaway();
 
 	@Test
 	void convertDerToPemWritesTheKeyAsPemThroughTheUi() throws Exception

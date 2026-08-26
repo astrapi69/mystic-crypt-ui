@@ -58,7 +58,7 @@ class FileCryptPanelTest
 		System.setProperty("java.awt.headless", "true");
 	}
 
-	private static final String PASSPHRASE = "file-crypt-panel-test-passphrase-1969";
+	private static final String PASSPHRASE = "throwaway-" + java.util.UUID.randomUUID();
 
 	@BeforeAll
 	static void registerBouncyCastle()

@@ -33,6 +33,8 @@ import org.assertj.swing.edt.GuiActionRunner;
 import org.assertj.swing.fixture.FrameFixture;
 import org.junit.jupiter.api.Test;
 
+import io.github.astrapi69.mystic.crypt.TestPasswords;
+
 /**
  * Functional end-to-end test of the password-hash plugin: opens the "Password Hashing" tool, hashes
  * a password (Argon2id, the default) and verifies the same password against the produced hash
@@ -41,7 +43,7 @@ import org.junit.jupiter.api.Test;
 class PasswordHashPluginUiTest extends AbstractUiTest
 {
 
-	private static final String MASTER_PASSWORD = "pwhash-e2e-pw-123";
+	private static final String MASTER_PASSWORD = TestPasswords.throwaway();
 
 	@Test
 	void hashesAndVerifiesAPasswordThroughTheUi() throws Exception

@@ -35,6 +35,7 @@ import org.assertj.swing.fixture.DialogFixture;
 import org.junit.jupiter.api.Test;
 
 import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
+import io.github.astrapi69.mystic.crypt.TestPasswords;
 
 /**
  * Functional end-to-end test of the certificate plugin: with the plugin installed, the Plugins menu
@@ -44,7 +45,7 @@ import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
 class CertificateWizardUiTest extends AbstractUiTest
 {
 
-	private static final String MASTER_PASSWORD = "certwizard-pw-123";
+	private static final String MASTER_PASSWORD = TestPasswords.throwaway();
 
 	@Test
 	void certificateWizardOpensAndClosesWithoutKillingTheApp() throws Exception

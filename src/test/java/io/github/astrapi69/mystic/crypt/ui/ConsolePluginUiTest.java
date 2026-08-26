@@ -38,6 +38,8 @@ import org.assertj.swing.timing.Condition;
 import org.assertj.swing.timing.Pause;
 import org.junit.jupiter.api.Test;
 
+import io.github.astrapi69.mystic.crypt.TestPasswords;
+
 /**
  * Functional end-to-end test of the console plugin: loads the plugin from its zip, opens the
  * "Console" tool from the Plugins menu, and verifies the console captures standard output - after
@@ -47,7 +49,7 @@ import org.junit.jupiter.api.Test;
 class ConsolePluginUiTest extends AbstractUiTest
 {
 
-	private static final String MASTER_PASSWORD = "console-e2e-pw-123";
+	private static final String MASTER_PASSWORD = TestPasswords.throwaway();
 	private static final String MARKER = "console-plugin-e2e-marker-line";
 
 	@Test

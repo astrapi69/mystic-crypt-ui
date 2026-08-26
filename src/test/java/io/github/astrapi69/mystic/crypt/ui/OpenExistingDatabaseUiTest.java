@@ -32,6 +32,7 @@ import java.io.IOException;
 import org.junit.jupiter.api.Test;
 
 import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
+import io.github.astrapi69.mystic.crypt.TestPasswords;
 
 /**
  * End-to-end use case "open an existing database": the database file already exists on disk (the
@@ -42,7 +43,7 @@ import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
 class OpenExistingDatabaseUiTest extends AbstractUiTest
 {
 
-	private static final String MASTER_PASSWORD = "existing-db-pw-123";
+	private static final String MASTER_PASSWORD = TestPasswords.throwaway();
 
 	@Test
 	void signInToExistingDatabaseWithPassword() throws IOException

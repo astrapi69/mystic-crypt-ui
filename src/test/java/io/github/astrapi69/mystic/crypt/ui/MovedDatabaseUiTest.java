@@ -36,6 +36,8 @@ import org.assertj.swing.timing.Condition;
 import org.assertj.swing.timing.Pause;
 import org.junit.jupiter.api.Test;
 
+import io.github.astrapi69.mystic.crypt.TestPasswords;
+
 /**
  * A database that was moved since it was last saved must be written where it now is.
  * <p>
@@ -50,7 +52,7 @@ import org.junit.jupiter.api.Test;
 class MovedDatabaseUiTest extends AbstractUiTest
 {
 
-	private static final String MASTER_PASSWORD = "moved-database-e2e-pw-123";
+	private static final String MASTER_PASSWORD = TestPasswords.throwaway();
 
 	private static final String NODE_NAME = "Node added after the move";
 

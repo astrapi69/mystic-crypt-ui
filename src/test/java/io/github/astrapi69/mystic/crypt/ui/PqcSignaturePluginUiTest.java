@@ -34,6 +34,8 @@ import org.assertj.swing.edt.GuiActionRunner;
 import org.assertj.swing.fixture.FrameFixture;
 import org.junit.jupiter.api.Test;
 
+import io.github.astrapi69.mystic.crypt.TestPasswords;
+
 /**
  * Functional end-to-end test of the post-quantum signature plugin: generates an ML-DSA-65 key pair,
  * signs a message, verifies the signature, and then changes the message so the very same signature
@@ -42,7 +44,7 @@ import org.junit.jupiter.api.Test;
 class PqcSignaturePluginUiTest extends AbstractUiTest
 {
 
-	private static final String MASTER_PASSWORD = "pqc-signature-e2e-pw-123";
+	private static final String MASTER_PASSWORD = TestPasswords.throwaway();
 
 	@Test
 	void signsAndVerifiesAndRejectsATamperedMessageThroughTheUi() throws Exception

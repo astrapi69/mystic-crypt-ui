@@ -43,6 +43,7 @@ import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.Test;
 
 import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
+import io.github.astrapi69.mystic.crypt.TestPasswords;
 
 /**
  * End-to-end proof that the internal plugins are loaded from their packaged zips and contribute
@@ -59,7 +60,7 @@ import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
 class PluginLoadingUiTest extends AbstractUiTest
 {
 
-	private static final String MASTER_PASSWORD = "plugin-loading-db-pw-123";
+	private static final String MASTER_PASSWORD = TestPasswords.throwaway();
 
 	private static final Path OBFUSCATION_ZIP = Path
 		.of("plugins/obfuscation-plugin/build/plugin-dist/obfuscation-plugin-1.0.0.zip");

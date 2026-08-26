@@ -39,6 +39,7 @@ import org.junit.jupiter.api.Test;
 
 import io.github.astrapi69.crypt.data.factory.KeyPairFactory;
 import io.github.astrapi69.crypt.data.key.writer.PrivateKeyWriter;
+import io.github.astrapi69.mystic.crypt.TestPasswords;
 import io.github.astrapi69.mystic.crypt.crypto.KeyFiles;
 
 /**
@@ -48,7 +49,7 @@ import io.github.astrapi69.mystic.crypt.crypto.KeyFiles;
 class ConversionDetectsAndConvertsUiTest extends AbstractUiTest
 {
 
-	private static final String MASTER_PASSWORD = "conversion-detect-e2e-pw-123";
+	private static final String MASTER_PASSWORD = TestPasswords.throwaway();
 
 	@Test
 	void saysWhatTheFileHoldsAndConvertsItToPkcs8() throws Exception

@@ -33,6 +33,8 @@ import org.assertj.swing.edt.GuiActionRunner;
 import org.assertj.swing.fixture.FrameFixture;
 import org.junit.jupiter.api.Test;
 
+import io.github.astrapi69.mystic.crypt.TestPasswords;
+
 /**
  * Functional end-to-end test of the two questions the checksum tool answers: the checksum of a
  * typed text with a digest the window could not offer before, and a message authentication code,
@@ -41,7 +43,7 @@ import org.junit.jupiter.api.Test;
 class ChecksumAndMacUiTest extends AbstractUiTest
 {
 
-	private static final String MASTER_PASSWORD = "checksum-mac-e2e-pw-123";
+	private static final String MASTER_PASSWORD = TestPasswords.throwaway();
 
 	@Test
 	void computesAChecksumAndAMacThroughTheUi() throws Exception

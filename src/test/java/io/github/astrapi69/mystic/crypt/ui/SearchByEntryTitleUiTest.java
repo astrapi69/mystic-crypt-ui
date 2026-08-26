@@ -32,13 +32,15 @@ import java.io.IOException;
 import org.assertj.swing.fixture.FrameFixture;
 import org.junit.jupiter.api.Test;
 
+import io.github.astrapi69.mystic.crypt.TestPasswords;
+
 /**
  * End-to-end good case: searching for an entry's title selects the node that holds the entry
  */
 class SearchByEntryTitleUiTest extends AbstractUiTest
 {
 
-	private static final String MASTER_PASSWORD = "search-title-pw-123";
+	private static final String MASTER_PASSWORD = TestPasswords.throwaway();
 
 	@Test
 	void searchFindsTheNodeByAnEntryTitle() throws IOException

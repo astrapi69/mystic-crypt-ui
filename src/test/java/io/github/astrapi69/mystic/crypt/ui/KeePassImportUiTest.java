@@ -32,6 +32,7 @@ import java.io.IOException;
 import org.junit.jupiter.api.Test;
 
 import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
+import io.github.astrapi69.mystic.crypt.TestPasswords;
 
 /**
  * End-to-end use case "import a KeePass database": sign in to an existing database, open the File
@@ -42,9 +43,9 @@ import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
 class KeePassImportUiTest extends AbstractUiTest
 {
 
-	private static final String MASTER_PASSWORD = "import-db-pw-123";
+	private static final String MASTER_PASSWORD = TestPasswords.throwaway();
 	/** Credentials of the checked-in test fixture src/test/resources/test-db.kdbx */
-	private static final String KEEPASS_PASSWORD = "foo-secret-bar-1969-?";
+	private static final String KEEPASS_PASSWORD = TestPasswords.KEEPASS_FIXTURE;
 
 	@Test
 	void importKeePassDatabaseShowsEntriesInTree() throws IOException

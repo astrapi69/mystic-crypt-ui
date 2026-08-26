@@ -32,6 +32,8 @@ import org.assertj.swing.edt.GuiActionRunner;
 import org.assertj.swing.fixture.FrameFixture;
 import org.junit.jupiter.api.Test;
 
+import io.github.astrapi69.mystic.crypt.TestPasswords;
+
 /**
  * End-to-end test of the "Enter submits the sign-in" convenience: with a valid master password and
  * application file provided, pressing Enter in the master-password field signs in just like
@@ -40,7 +42,7 @@ import org.junit.jupiter.api.Test;
 class SignInEnterSubmitUiTest extends AbstractUiTest
 {
 
-	private static final String MASTER_PASSWORD = "enter-submit-e2e-pw-123";
+	private static final String MASTER_PASSWORD = TestPasswords.throwaway();
 
 	@Test
 	void pressingEnterInTheMasterPasswordFieldSignsIn() throws Exception

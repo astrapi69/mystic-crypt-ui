@@ -31,13 +31,15 @@ import java.io.IOException;
 
 import org.junit.jupiter.api.Test;
 
+import io.github.astrapi69.mystic.crypt.TestPasswords;
+
 /**
  * Negative end-to-end case: cancelling the KeePass export dialog must not write any file
  */
 class KeePassExportCancelUiTest extends AbstractUiTest
 {
 
-	private static final String MASTER_PASSWORD = "export-cancel-pw-123";
+	private static final String MASTER_PASSWORD = TestPasswords.throwaway();
 
 	@Test
 	void cancellingKeePassExportWritesNothing() throws IOException

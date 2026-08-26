@@ -32,6 +32,8 @@ import java.io.IOException;
 import org.assertj.swing.fixture.FrameFixture;
 import org.junit.jupiter.api.Test;
 
+import io.github.astrapi69.mystic.crypt.TestPasswords;
+
 /**
  * End-to-end good case: an entry added to the database survives a KeePass export followed by a
  * re-import - proof that entry data (not just the group structure) round-trips through KDBX
@@ -39,8 +41,8 @@ import org.junit.jupiter.api.Test;
 class KeePassRoundTripPreservesEntryUiTest extends AbstractUiTest
 {
 
-	private static final String MASTER_PASSWORD = "rt-entry-pw-123";
-	private static final String KDBX_PASSWORD = "rt-entry-kdbx-pw-1";
+	private static final String MASTER_PASSWORD = TestPasswords.throwaway();
+	private static final String KDBX_PASSWORD = TestPasswords.throwaway();
 
 	@Test
 	void anEntrySurvivesExportAndReimport() throws IOException

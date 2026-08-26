@@ -32,6 +32,7 @@ import java.io.IOException;
 import org.junit.jupiter.api.Test;
 
 import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
+import io.github.astrapi69.mystic.crypt.TestPasswords;
 
 /**
  * End-to-end round-trip use case "export then re-import": exporting the open database to a
@@ -41,8 +42,8 @@ import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
 class KeePassRoundTripUiTest extends AbstractUiTest
 {
 
-	private static final String MASTER_PASSWORD = "roundtrip-pw-123";
-	private static final String KDBX_PASSWORD = "roundtrip-kdbx-pw-1";
+	private static final String MASTER_PASSWORD = TestPasswords.throwaway();
+	private static final String KDBX_PASSWORD = TestPasswords.throwaway();
 
 	@Test
 	void exportedDatabaseCanBeReimported() throws IOException

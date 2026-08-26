@@ -31,6 +31,8 @@ import java.io.File;
 import org.assertj.swing.fixture.FrameFixture;
 import org.junit.jupiter.api.Test;
 
+import io.github.astrapi69.mystic.crypt.TestPasswords;
+
 /**
  * End-to-end use case "duplicate a node": create a node with an entry inside, duplicate it via the
  * context menu's "Duplicate node..." - both nodes (and the entry in each) must exist, also after
@@ -39,7 +41,7 @@ import org.junit.jupiter.api.Test;
 class DuplicateNodeUiTest extends AbstractUiTest
 {
 
-	private static final String MASTER_PASSWORD = "duplicate-node-db-pw-123";
+	private static final String MASTER_PASSWORD = TestPasswords.throwaway();
 	private static final String NODE_NAME = "Original Node";
 	private static final String DUPLICATE_NAME = "Duplicated Node";
 	private static final String ENTRY_TITLE = "Entry Inside";

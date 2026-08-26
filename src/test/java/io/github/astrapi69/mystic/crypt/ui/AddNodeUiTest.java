@@ -31,6 +31,8 @@ import java.io.File;
 import org.assertj.swing.fixture.FrameFixture;
 import org.junit.jupiter.api.Test;
 
+import io.github.astrapi69.mystic.crypt.TestPasswords;
+
 /**
  * End-to-end use case "add a node to the database tree": right-click the root node in the visible
  * main frame, choose "add node..." from the context menu, name it, confirm - then save, restart and
@@ -42,7 +44,7 @@ import org.junit.jupiter.api.Test;
 class AddNodeUiTest extends AbstractUiTest
 {
 
-	private static final String MASTER_PASSWORD = "add-node-db-pw-123";
+	private static final String MASTER_PASSWORD = TestPasswords.throwaway();
 	private static final String NEW_NODE_NAME = "My New Test Node";
 
 	@Test
