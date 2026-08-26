@@ -243,7 +243,7 @@ public class KeyStorePanel extends JPanel
 	{
 		run("imported", () -> {
 			requireOpenKeyStore();
-			String alias = requireAlias();
+			String alias = requireFreeAlias();
 			KeyStoreSupport.importKeyPair(modelObject.getKeyStore(), file(), password(), alias,
 				new File(modelObject.getPrivateKeyFilePath().trim()),
 				new File(modelObject.getCertificateFilePath().trim()));
@@ -255,7 +255,7 @@ public class KeyStorePanel extends JPanel
 	{
 		run("added", () -> {
 			requireOpenKeyStore();
-			String alias = requireAlias();
+			String alias = requireFreeAlias();
 			KeyStoreSupport.addSecretKey(modelObject.getKeyStore(), file(), password(), alias,
 				"AES", KeyStoreSettings.secretKeySize());
 			return "added the " + KeyStoreSettings.secretKeySize() + " bit AES key '" + alias + "'";
@@ -319,6 +319,7 @@ public class KeyStorePanel extends JPanel
 	private void onCreate()
 	{
 		run("created", () -> {
+			requireFreeFile();
 			modelObject.setKeyStore(KeyStoreSupport.create(file(), type(), password()));
 			return "created " + file().getName();
 		});
@@ -328,7 +329,7 @@ public class KeyStorePanel extends JPanel
 	{
 		run("added", () -> {
 			requireOpenKeyStore();
-			String alias = requireAlias();
+			String alias = requireFreeAlias();
 			KeyPairGeneratorAlgorithm algorithm = modelObject.getKeyAlgorithm();
 			long started = System.currentTimeMillis();
 			KeyStoreSupport.addKeyPair(modelObject.getKeyStore(), file(), password(), alias,
@@ -357,7 +358,7 @@ public class KeyStorePanel extends JPanel
 	{
 		run("imported", () -> {
 			requireOpenKeyStore();
-			String alias = requireAlias();
+			String alias = requireFreeAlias();
 			KeyStoreSupport.importCertificate(modelObject.getKeyStore(), file(), password(), alias,
 				new File(modelObject.getCertificateFilePath()));
 			return "imported the certificate as '" + alias + "'";
@@ -447,6 +448,42 @@ public class KeyStorePanel extends JPanel
 			throw new IllegalStateException("enter an alias");
 		}
 		return alias;
+	}
+
+	/**
+	 * The alias of an entry that is about to be written, refused when the store already holds one
+	 * under that name.
+	 * <p>
+	 * A key store replaces an entry silently, which for a private key means it is gone. The
+	 * command line refuses the same thing, so the two halves of this tool now agree.
+	 *
+	 * @return the alias, which is free
+	 * @throws Exception
+	 *             if the store cannot be asked
+	 */
+	private String requireFreeAlias() throws Exception
+	{
+		String alias = requireAlias();
+		if (modelObject.getKeyStore().containsAlias(alias))
+		{
+			throw new IllegalStateException("'" + alias + "' already exists in "
+				+ file().getName() + "; delete it first or choose another alias");
+		}
+		return alias;
+	}
+
+	/**
+	 * Refuses a path that already holds something, because creating a key store there writes an
+	 * empty one over whatever was in it
+	 */
+	private void requireFreeFile()
+	{
+		File keyStoreFile = file();
+		if (keyStoreFile.exists() && keyStoreFile.length() > 0)
+		{
+			throw new IllegalStateException("'" + keyStoreFile.getName()
+				+ "' already exists; open it instead, or choose another file");
+		}
 	}
 
 	private String selectedAlias()
