@@ -40,7 +40,7 @@ import picocli.CommandLine.Spec;
  * Both work on a file or on a piece of text, and both call {@link FileCryptSupport}, exactly like
  * the panel does - the behaviour cannot drift apart between the two ways of using it.
  */
-@Command(name = "filecrypt", description = "Encrypt and decrypt a file or a text with a passphrase", subcommands = {
+@Command(name = "filecrypt", mixinStandardHelpOptions = true, description = "Encrypt and decrypt a file or a text with a passphrase", subcommands = {
 		FileCryptCommand.EncryptCommand.class, FileCryptCommand.DecryptCommand.class })
 public class FileCryptCommand implements Runnable
 {
@@ -90,7 +90,7 @@ public class FileCryptCommand implements Runnable
 		}
 	}
 
-	@Command(name = "encrypt", description = "Encrypt a file or a text with a passphrase")
+	@Command(name = "encrypt", mixinStandardHelpOptions = true, description = "Encrypt a file or a text with a passphrase")
 	public static class EncryptCommand implements Callable<Integer>
 	{
 		@CommandLine.Mixin
@@ -116,7 +116,7 @@ public class FileCryptCommand implements Runnable
 		}
 	}
 
-	@Command(name = "decrypt", description = "Decrypt a file or a text that was encrypted with 'encrypt'")
+	@Command(name = "decrypt", mixinStandardHelpOptions = true, description = "Decrypt a file or a text that was encrypted with 'encrypt'")
 	public static class DecryptCommand implements Callable<Integer>
 	{
 		@CommandLine.Mixin
