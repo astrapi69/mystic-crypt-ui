@@ -115,8 +115,9 @@ public final class ApplicationXmlFileStoreWorker
 
 		xml = ObjectToXmlExtensions.toXml(applicationModelBean);
 
-		RuntimeExceptionDecorator.decorate(() -> StoreFileExtensions.toFile(applicationFile, xml));
-
+		// nothing readable goes to disk on the way: the xml is encrypted in memory and the file is
+		// written once, with the result. Writing the xml first and overwriting it afterwards left
+		// the whole database lying there in the clear whenever anything came in between
 		encrypt = RuntimeExceptionDecorator.decorate(() -> genericEncryptor.encrypt(xml));
 
 		RuntimeExceptionDecorator
