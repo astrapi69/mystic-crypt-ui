@@ -51,18 +51,24 @@ public class ChecksumMenuContribution implements PluginMenuContribution
 	public List<JMenuItem> getMenuItems()
 	{
 		JMenuItem verifyChecksum = new JMenuItem("Verify Checksum");
-		verifyChecksum.addActionListener(event -> {
-			MysticCryptApplicationFrame instance = MysticCryptApplicationFrame.getInstance();
-			if (!FrameMode.DESKTOP_PANE.equals(instance.getFrameMode()))
-			{
-				instance.switchToDesktopPane();
-			}
-			JInternalFrame internalFrame = JComponentFactory.newInternalFrame("Verify Checksum",
-				true, true, true, true);
-			JInternalFrameExtensions.addInternalFrameToMainFrame(new ChecksumPanel(), internalFrame,
-				instance);
-		});
-		return List.of(verifyChecksum);
+		verifyChecksum.addActionListener(
+			event -> openInternalFrame("Verify Checksum", new ChecksumPanel()));
+		JMenuItem checksumAndMac = new JMenuItem("Checksum and MAC");
+		checksumAndMac.addActionListener(
+			event -> openInternalFrame("Checksum and MAC", new ChecksumAndMacPanel()));
+		return List.of(verifyChecksum, checksumAndMac);
+	}
+
+	private void openInternalFrame(String title, java.awt.Component panel)
+	{
+		MysticCryptApplicationFrame instance = MysticCryptApplicationFrame.getInstance();
+		if (!FrameMode.DESKTOP_PANE.equals(instance.getFrameMode()))
+		{
+			instance.switchToDesktopPane();
+		}
+		JInternalFrame internalFrame = JComponentFactory.newInternalFrame(title, true, true, true,
+			true);
+		JInternalFrameExtensions.addInternalFrameToMainFrame(panel, internalFrame, instance);
 	}
 
 	@Override

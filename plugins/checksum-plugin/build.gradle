@@ -39,6 +39,8 @@ dependencies {
 
     // the checksum test drives the checksum library directly (headless)
     testImplementation "org.junit.jupiter:junit-jupiter:5.11.4"
+    // SHA-3 and BLAKE2 come from Bouncy Castle, which the host registers at startup
+    testImplementation "org.bouncycastle:bcprov-jdk18on:1.85.2"
     testImplementation "io.github.astrapi69:checksum-up:3.1"
     testImplementation "io.github.astrapi69:crypt-api:10.1"
     testRuntimeOnly "org.junit.platform:junit-platform-launcher"

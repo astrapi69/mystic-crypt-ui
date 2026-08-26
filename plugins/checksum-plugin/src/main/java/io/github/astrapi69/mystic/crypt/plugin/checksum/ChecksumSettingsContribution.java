@@ -47,6 +47,9 @@ public class ChecksumSettingsContribution implements PluginSettingsContribution
 	/** The checksum algorithm the tool starts with */
 	public static final String KEY_ALGORITHM = "default.algorithm";
 
+	/** The digest the checksum and MAC tool starts with */
+	public static final String KEY_DIGEST = "default.digest";
+
 	@Override
 	public String getPluginId()
 	{
@@ -64,14 +67,31 @@ public class ChecksumSettingsContribution implements PluginSettingsContribution
 	{
 		Map<String, String> defaults = new LinkedHashMap<>();
 		defaults.put(KEY_ALGORITHM, ChecksumAlgorithm.MD5.name());
+		defaults.put(KEY_DIGEST, "SHA-256");
 		return defaults;
 	}
 
 	@Override
 	public String getDescription(String key)
 	{
-		return KEY_ALGORITHM.equals(key) ? "one of the ChecksumAlgorithm constants, such as SHA_256"
-			: null;
+		if (KEY_ALGORITHM.equals(key))
+		{
+			return "one of the ChecksumAlgorithm constants, such as SHA_256";
+		}
+		return KEY_DIGEST.equals(key) ? String.join(", ", ChecksumSupport.DIGESTS) : null;
+	}
+
+	/**
+	 * The digest the checksum and MAC tool starts with, SHA-256 when the setting names none this
+	 * machine knows
+	 *
+	 * @return the digest
+	 */
+	public static String digest()
+	{
+		String configured = PluginSettings
+			.load(PLUGIN_ID, new ChecksumSettingsContribution().getDefaults()).get(KEY_DIGEST);
+		return ChecksumSupport.DIGESTS.contains(configured) ? configured : "SHA-256";
 	}
 
 	/**
