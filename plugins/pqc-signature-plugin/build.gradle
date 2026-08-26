@@ -22,9 +22,9 @@ repositories {
 // the PEM writers in crypt-data; everything else is the host plus the swing helpers
 dependencies {
     compileOnly "io.github.astrapi69:mystic-crypt-ui:8.2-SNAPSHOT"
-    compileOnly "io.github.astrapi69:mystic-crypt:11.2"
+    compileOnly "io.github.astrapi69:mystic-crypt:12.0.0"
     compileOnly "io.github.astrapi69:crypt-api:10.1"
-    compileOnly "io.github.astrapi69:crypt-data:11.2"
+    compileOnly "io.github.astrapi69:crypt-data:12.0.0"
     // the pem parser that knows every shape a key file comes in lives in bcpkix
     compileOnly "org.bouncycastle:bcpkix-jdk18on:1.85"
     compileOnly "org.bouncycastle:bcprov-jdk18on:1.85.2"
@@ -41,9 +41,9 @@ dependencies {
     // the round-trip test signs and verifies with every offered algorithm headlessly; the
     // post-quantum algorithms resolve through Bouncy Castle, which the host registers at startup
     testImplementation "org.junit.jupiter:junit-jupiter:5.11.4"
-    testImplementation "io.github.astrapi69:mystic-crypt:11.2"
+    testImplementation "io.github.astrapi69:mystic-crypt:12.0.0"
     testImplementation "io.github.astrapi69:crypt-api:10.1"
-    testImplementation "io.github.astrapi69:crypt-data:11.2"
+    testImplementation "io.github.astrapi69:crypt-data:12.0.0"
     // CertFactory declares OperatorCreationException from bcpkix in its throws clause, and X500Name
     // lives in bcutil - javac needs both to compile a call to it
     testImplementation "org.bouncycastle:bcpkix-jdk18on:1.85"

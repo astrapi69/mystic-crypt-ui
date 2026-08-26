@@ -30,7 +30,7 @@ dependencies {
     compileOnly "io.github.astrapi69:swing-components:9"
 
     // the key exchange lives in the mystic-crypt library
-    compileOnly "io.github.astrapi69:mystic-crypt:11.2"
+    compileOnly "io.github.astrapi69:mystic-crypt:12.0.0"
 
     compileOnly "io.github.astrapi69:crypt-api:10.1"
 
@@ -50,7 +50,7 @@ dependencies {
     // the same JDK 25 native providers the panel uses - no external crypto dependency needed
     testImplementation "org.junit.jupiter:junit-jupiter:5.11.4"
     testImplementation "io.github.astrapi69:crypt-api:10.1"
-    testImplementation "io.github.astrapi69:mystic-crypt:11.2"
+    testImplementation "io.github.astrapi69:mystic-crypt:12.0.0"
     testImplementation "org.bouncycastle:bcprov-jdk18on:1.85.2"
     testImplementation "info.picocli:picocli:4.7.6"
     // the panel test constructs the panel, so the model backed components have to be on the test
