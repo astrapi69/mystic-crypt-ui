@@ -59,8 +59,8 @@ class LegacyDatabaseMigrationUiTest extends AbstractUiTest
 	 */
 	private File writeDatabaseInTheOldFormat(File directory, String password) throws Exception
 	{
-		// the database carries its own path inside its xml and saves itself back to that path, so
-		// the old format has to end up at exactly the path the database was created for
+		// the old format has to end up at the path the database was created for, because the
+		// fixture is built by decrypting and re-encrypting that very file in place
 		File databaseFile = new File(directory, "legacy.mcrdb");
 		createDatabaseFileHeadless(databaseFile, password);
 		String xml = PasswordVaultFormat.decrypt(databaseFile, password);

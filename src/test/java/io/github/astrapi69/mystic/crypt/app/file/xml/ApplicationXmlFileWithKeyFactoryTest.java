@@ -144,6 +144,19 @@ public class ApplicationXmlFileWithKeyFactoryTest
 		ApplicationModelBean modelBeanReaded = ApplicationXmlFileReader
 			.readApplicationFileWithPrivateKey(modelObject);
 		assertNotNull(modelBeanReaded);
+
+		// the reader stamps the file it actually opened onto the model it hands back, so that a
+		// database opened from a new location is saved back there instead of to the path that was
+		// baked into its xml when it was last written (#27)
+		MasterPwFileModelBean signInModelBean = modelBeanReaded.getMasterPwFileModelBean();
+		assertEquals(applicationFile.getAbsolutePath(),
+			signInModelBean.getSelectedApplicationFilePath());
+		assertEquals(FileInfo.toFileInfo(applicationFile),
+			signInModelBean.getApplicationFileInfo());
+
+		// and nothing else about the model changes on the way through the file
+		applicationModelBean.getMasterPwFileModelBean()
+			.setSelectedApplicationFilePath(applicationFile.getAbsolutePath());
 		assertEquals(applicationModelBean, modelBeanReaded);
 	}
 

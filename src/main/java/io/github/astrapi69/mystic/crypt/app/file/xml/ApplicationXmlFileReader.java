@@ -38,6 +38,7 @@ import io.github.astrapi69.crypt.data.key.reader.PemObjectReader;
 import io.github.astrapi69.crypt.data.key.reader.PrivateKeyReader;
 import io.github.astrapi69.crypt.data.model.CryptModel;
 import io.github.astrapi69.file.create.FileFactory;
+import io.github.astrapi69.file.create.model.FileInfo;
 import io.github.astrapi69.file.read.ReadFileExtensions;
 import io.github.astrapi69.mystic.crypt.ApplicationModelBean;
 import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
@@ -69,6 +70,35 @@ public class ApplicationXmlFileReader
 		return readApplicationFileWithPrivateKey(modelObject);
 	}
 
+	/**
+	 * Stamps the file that was actually opened onto the model that came out of it.
+	 * <p>
+	 * A database carries its own path inside its encrypted xml, which is the path it had when it
+	 * was last saved. Without this, opening a file that was moved, renamed or copied leaves the
+	 * application pointing at where the file used to be, and every later save goes there instead: a
+	 * moved file is recreated at the old location holding the new entries, and a copy overwrites
+	 * the database it was copied from. Neither says anything.
+	 *
+	 * @param applicationModelBean
+	 *            the model read out of the file
+	 * @param applicationFile
+	 *            the file the user actually opened
+	 * @return the same model, pointing at the file it was read from
+	 */
+	private static ApplicationModelBean openedFrom(final ApplicationModelBean applicationModelBean,
+		final File applicationFile)
+	{
+		if (applicationModelBean == null || applicationModelBean.getMasterPwFileModelBean() == null
+			|| applicationFile == null)
+		{
+			return applicationModelBean;
+		}
+		MasterPwFileModelBean signInModelBean = applicationModelBean.getMasterPwFileModelBean();
+		signInModelBean.setApplicationFileInfo(FileInfo.toFileInfo(applicationFile));
+		signInModelBean.setSelectedApplicationFilePath(applicationFile.getAbsolutePath());
+		return applicationModelBean;
+	}
+
 	public static ApplicationModelBean readApplicationFileWithPasswordAndPrivateKey(
 		MasterPwFileModelBean modelObject)
 	{
@@ -77,7 +107,8 @@ public class ApplicationXmlFileReader
 		File keyFile = FileFactory.newFileQuietly(modelObject.getKeyFileInfo());
 		try
 		{
-			return getApplicationModelBean(applicationFile, password, keyFile);
+			return openedFrom(getApplicationModelBean(applicationFile, password, keyFile),
+				applicationFile);
 		}
 		catch (Exception exception)
 		{
@@ -118,7 +149,8 @@ public class ApplicationXmlFileReader
 					privateKey = PrivateKeyReader.readPrivateKey(keyFile);
 				}
 			}
-			applicationModelBean = getApplicationModelBean(applicationFile, privateKey);
+			applicationModelBean = openedFrom(getApplicationModelBean(applicationFile, privateKey),
+				applicationFile);
 		}
 		catch (Exception exception)
 		{
@@ -137,7 +169,7 @@ public class ApplicationXmlFileReader
 		char[] password = modelObject.getMasterPw();
 		try
 		{
-			return getApplicationModelBean(applicationFile, password);
+			return openedFrom(getApplicationModelBean(applicationFile, password), applicationFile);
 		}
 		catch (Exception exception)
 		{
