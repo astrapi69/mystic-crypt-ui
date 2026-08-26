@@ -3,7 +3,7 @@ Type=Application
 Name=Mystic Crypt UI
 GenericName=Crypto-Tool
 Comment=application that provides public and private key creation and other cool crypto-tools
-Exec=java --add-opens java.base/java.time=ALL-UNNAMED -jar ${INSTALL_PATH}/mystic-crypt-ui.jar
+Exec=java --add-opens java.base/java.time=ALL-UNNAMED --sun-misc-unsafe-memory-access=allow -jar ${INSTALL_PATH}/mystic-crypt-ui.jar
 Icon=${INSTALL_PATH}/img/icon.png
 Terminal=false
 Categories=Utility;Security;
