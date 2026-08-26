@@ -82,11 +82,18 @@ public class MasterPwFileModelBean implements Serializable
 	@Builder.Default
 	List<String> keyFilePaths = ListFactory.newArrayList("");
 
-	/** The master password char array. */
-	char[] masterPw;
+	/**
+	 * The master password char array.
+	 * <p>
+	 * Transient on purpose: this bean is serialized into the database it protects, and a database
+	 * has no business carrying the password that opens it. Every decrypted copy would carry the
+	 * credential along with the data. It is held for the length of the session and comes from the
+	 * sign-in dialog, not from the file.
+	 */
+	transient char[] masterPw;
 
-	/** The repeat of the master password char array. */
-	char[] repeatPw;
+	/** The repeat of the master password char array, transient for the same reason as masterPw. */
+	transient char[] repeatPw;
 
 	/** The minimum length for the password. */
 	int minPasswordLength;
