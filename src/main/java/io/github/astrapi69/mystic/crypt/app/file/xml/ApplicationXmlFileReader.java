@@ -86,16 +86,19 @@ public class ApplicationXmlFileReader
 	 * @return the same model, pointing at the file it was read from
 	 */
 	private static ApplicationModelBean openedFrom(final ApplicationModelBean applicationModelBean,
-		final File applicationFile)
+		final File applicationFile, final MasterPwFileModelBean credentials)
 	{
 		if (applicationModelBean == null || applicationModelBean.getMasterPwFileModelBean() == null
-			|| applicationFile == null)
+			|| applicationFile == null || credentials == null)
 		{
 			return applicationModelBean;
 		}
 		MasterPwFileModelBean signInModelBean = applicationModelBean.getMasterPwFileModelBean();
 		signInModelBean.setApplicationFileInfo(FileInfo.toFileInfo(applicationFile));
 		signInModelBean.setSelectedApplicationFilePath(applicationFile.getAbsolutePath());
+		// the password is not in the file and must not be: it comes from whoever just signed in,
+		// and the model needs it for the next save and for the unlock dialog
+		signInModelBean.setMasterPw(credentials.getMasterPw());
 		return applicationModelBean;
 	}
 
@@ -108,7 +111,7 @@ public class ApplicationXmlFileReader
 		try
 		{
 			return openedFrom(getApplicationModelBean(applicationFile, password, keyFile),
-				applicationFile);
+				applicationFile, modelObject);
 		}
 		catch (Exception exception)
 		{
@@ -150,7 +153,7 @@ public class ApplicationXmlFileReader
 				}
 			}
 			applicationModelBean = openedFrom(getApplicationModelBean(applicationFile, privateKey),
-				applicationFile);
+				applicationFile, modelObject);
 		}
 		catch (Exception exception)
 		{
@@ -169,7 +172,8 @@ public class ApplicationXmlFileReader
 		char[] password = modelObject.getMasterPw();
 		try
 		{
-			return openedFrom(getApplicationModelBean(applicationFile, password), applicationFile);
+			return openedFrom(getApplicationModelBean(applicationFile, password), applicationFile,
+				modelObject);
 		}
 		catch (Exception exception)
 		{
