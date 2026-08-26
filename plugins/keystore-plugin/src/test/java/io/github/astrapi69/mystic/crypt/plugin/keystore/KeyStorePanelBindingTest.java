@@ -34,6 +34,7 @@ import java.security.KeyStore;
 import java.security.Security;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 import javax.swing.JButton;
 import javax.swing.JComboBox;
@@ -59,7 +60,11 @@ import io.github.astrapi69.crypt.api.type.KeystoreType;
 class KeyStorePanelBindingTest
 {
 
-	private static final String STORE_PASSWORD = "keystore-panel-pw-1969";
+	/**
+	 * The password of the throwaway store this test builds in its temporary directory. It is made up
+	 * per run rather than written into the source, so nothing here reads as a credential.
+	 */
+	private static final String STORE_PASSWORD = "store-" + UUID.randomUUID();
 
 	private static final String DISTINGUISHED_NAME = "CN=bound panel";
 
