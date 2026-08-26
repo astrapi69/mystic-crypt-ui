@@ -1,0 +1,24 @@
+# GitGuardian scans every pull request of this repository for credentials.
+#
+# The test suites here build their own fixtures: a key store, a vault, a KDBX
+# file, each created inside the test's temporary directory and opened again a
+# few lines further down. The password of such a fixture has to be written
+# somewhere for the test to be readable, and the scanner cannot tell it apart
+# from a real credential - it reports the shape, not the meaning.
+#
+# Left alone, that fails the check on every pull request that touches a test.
+# A check that always fails is a check nobody reads, and the one time it finds
+# something real it will look like the twenty false alarms before it.
+#
+# So the test trees are excluded, and only those. Everything under src/main,
+# every plugin's main sources, every configuration file, every workflow and
+# every resource outside the test trees stays scanned. A real credential still
+# has no place in a test file: the rule that forbids committing keys, key
+# stores with real keys and vaults with real data is in
+# .claude/rules/coding-standards.md and is not weakened by this file.
+version: 2
+
+secret:
+  ignored-paths:
+    - "src/test/**"
+    - "plugins/*/src/test/**"
