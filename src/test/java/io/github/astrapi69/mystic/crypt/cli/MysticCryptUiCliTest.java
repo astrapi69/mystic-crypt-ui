@@ -119,7 +119,8 @@ class MysticCryptUiCliTest
 
 	/** The commands the library brings today; they must not need a contribution */
 	@ParameterizedTest
-	@ValueSource(strings = { "hash", "verify", "keygen", "checksum", "obfuscate" })
+	@ValueSource(strings = { "hash", "verify", "keygen", "checksum", "obfuscate", "encrypt",
+			"decrypt", "share", "keyx", "convert" })
 	void aLibraryCommandIsReachableThroughTheApplicationsCommandLine(String command)
 	{
 		assertTrue(MysticCryptUiCli.newCommandLine(List.of()).getSubcommands().containsKey(command),
@@ -196,6 +197,65 @@ class MysticCryptUiCliTest
 				System.clearProperty(MysticCryptUiCli.PLUGINS_DIRECTORY_PROPERTY);
 			}
 		}
+	}
+
+	/**
+	 * A command whose name the library already uses. Since 12.0.0 the library carries encrypt,
+	 * decrypt, share, keyx and convert, and a plugin - one installed from anywhere - can name its
+	 * own command like any of them.
+	 */
+	@CommandLine.Command(name = "hash", description = "a plugin command that wants a taken name")
+	static class ClashingCommand implements Runnable
+	{
+		@Override
+		public void run()
+		{
+		}
+	}
+
+	/**
+	 * A clash used to cost everything: picocli refuses a duplicate name by throwing, and the throw
+	 * happened while the command line was still being assembled, so one plugin command left the
+	 * user with no command line at all. It is what a dependency bump did to this application when
+	 * the library took the name 'keyx'.
+	 */
+	@Test
+	void aClashingPluginCommandDoesNotTakeTheRestWithIt()
+	{
+		CommandLine commandLine = MysticCryptUiCli.newCommandLine(List.of(
+			(PluginCommandContribution)() -> List.of(new ClashingCommand(), new TestCommand())));
+
+		assertNotNull(commandLine);
+		assertTrue(commandLine.getSubcommands().containsKey("test-command"),
+			"the plugin command with a free name was lost");
+		assertTrue(commandLine.getSubcommands().containsKey("keygen"),
+			"the library commands were lost");
+	}
+
+	/**
+	 * And the library keeps the name, because the other way it can go wrong is quieter and worse:
+	 * where picocli does not throw it replaces, so 'hash' would silently become something else
+	 */
+	@Test
+	void theLibraryKeepsAContestedName()
+	{
+		CommandLine commandLine = MysticCryptUiCli.newCommandLine(
+			List.of((PluginCommandContribution)() -> List.of(new ClashingCommand())));
+
+		assertFalse(
+			commandLine.getSubcommands().get("hash").getCommandSpec()
+				.userObject() instanceof ClashingCommand,
+			"a plugin took over a name the library documents");
+	}
+
+	/**
+	 * The plugins of this repository stopped contributing commands when 12.0.0 brought them into
+	 * the library; the command line is a backlink to it, not a second implementation
+	 */
+	@Test
+	void noPluginOfThisRepositoryContributesACommand()
+	{
+		assertTrue(MysticCryptUiCli.commands(List.of()).isEmpty());
 	}
 
 	@Test

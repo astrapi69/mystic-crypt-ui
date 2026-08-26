@@ -32,9 +32,6 @@ dependencies {
     // the passphrase construction lives in the host and uses Bouncy Castle underneath
     compileOnly "org.bouncycastle:bcprov-jdk18on:1.85.2"
 
-    // the command line side: the host puts picocli on the classpath, so like everything else it
-    // is only needed to compile against here
-    compileOnly "info.picocli:picocli:4.7.6"
 
     compileOnly "org.pf4j:pf4j:3.15.0"
     // required so the @Extension annotation processor runs and writes META-INF/extensions.idx
@@ -43,7 +40,6 @@ dependencies {
     // the tests encrypt real files on disk; the AES-GCM construction goes through Bouncy Castle,
     // which the host registers at startup
     testImplementation "org.junit.jupiter:junit-jupiter:5.11.4"
-    testImplementation "info.picocli:picocli:4.7.6"
     // the contribution class implements the host's extension point, so the host jar has to be on
     // the test classpath to load it - for the main sources it stays compileOnly like everything else
     testImplementation "io.github.astrapi69:mystic-crypt-ui:8.2-SNAPSHOT"

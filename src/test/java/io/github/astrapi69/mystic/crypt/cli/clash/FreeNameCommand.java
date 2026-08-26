@@ -22,24 +22,21 @@
  * OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
  * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-package io.github.astrapi69.mystic.crypt.plugin.kem;
+package io.github.astrapi69.mystic.crypt.cli.clash;
 
-import java.util.List;
-
-import org.pf4j.Extension;
-
-import io.github.astrapi69.mystic.crypt.plugin.api.PluginCommandContribution;
+import picocli.CommandLine.Command;
 
 /**
- * Contributes the {@code keyx} command to the application's command line.
+ * A command of the same test plugin whose name nothing else uses. It has to survive the clash of
+ * its neighbour, or the guard would be trading one outage for a smaller one.
  */
-@Extension
-public class KeyExchangeCommandContribution implements PluginCommandContribution
+@Command(name = "a-name-nobody-uses", description = "a plugin command with a free name")
+public class FreeNameCommand implements Runnable
 {
 
 	@Override
-	public List<Object> getCommands()
+	public void run()
 	{
-		return List.of(new KeyExchangeCommand());
+		System.out.println("the free command ran");
 	}
 }

@@ -22,7 +22,7 @@
  * OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
  * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-package io.github.astrapi69.mystic.crypt.plugin.sharing;
+package io.github.astrapi69.mystic.crypt.cli.clash;
 
 import java.util.List;
 
@@ -31,15 +31,16 @@ import org.pf4j.Extension;
 import io.github.astrapi69.mystic.crypt.plugin.api.PluginCommandContribution;
 
 /**
- * Contributes the {@code share} command to the application's command line.
+ * The contribution of the test plugin: one command whose name the library owns, and one whose name
+ * is free.
  */
 @Extension
-public class SecretSharingCommandContribution implements PluginCommandContribution
+public class ClashingContribution implements PluginCommandContribution
 {
 
 	@Override
 	public List<Object> getCommands()
 	{
-		return List.of(new SecretSharingCommand());
+		return List.of(new TakenNameCommand(), new FreeNameCommand());
 	}
 }

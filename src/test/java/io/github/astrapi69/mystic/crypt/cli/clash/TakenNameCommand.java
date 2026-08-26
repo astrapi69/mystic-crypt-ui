@@ -22,24 +22,25 @@
  * OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
  * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-package io.github.astrapi69.mystic.crypt.plugin.filecrypt;
+package io.github.astrapi69.mystic.crypt.cli.clash;
 
-import java.util.List;
-
-import org.pf4j.Extension;
-
-import io.github.astrapi69.mystic.crypt.plugin.api.PluginCommandContribution;
+import picocli.CommandLine.Command;
 
 /**
- * Contributes the {@code filecrypt} command to the application's command line.
+ * A command that takes a name the mystic-crypt library already uses.
+ * <p>
+ * Part of a plugin that is packaged and installed by {@code CommandLineWithInstalledPluginsTest},
+ * so the clash is exercised the way it happens in the field: through a real zip, a real plugin
+ * classloader and the real command line assembly, rather than through an object handed straight to
+ * the assembler.
  */
-@Extension
-public class FileCryptCommandContribution implements PluginCommandContribution
+@Command(name = "hash", description = "a plugin command that wants a name the library uses")
+public class TakenNameCommand implements Runnable
 {
 
 	@Override
-	public List<Object> getCommands()
+	public void run()
 	{
-		return List.of(new FileCryptCommand());
+		System.out.println("the plugin command ran, which it must not");
 	}
 }
