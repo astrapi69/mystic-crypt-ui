@@ -25,6 +25,9 @@ dependencies {
     compileOnly "io.github.astrapi69:mystic-crypt:11.2"
     compileOnly "io.github.astrapi69:crypt-api:10.1"
     compileOnly "io.github.astrapi69:crypt-data:11.2"
+    // the pem parser that knows every shape a key file comes in lives in bcpkix
+    compileOnly "org.bouncycastle:bcpkix-jdk18on:1.85"
+    compileOnly "org.bouncycastle:bcprov-jdk18on:1.85.2"
     compileOnly "io.github.astrapi69:swing-base-components:5.1"
     compileOnly "io.github.astrapi69:swing-components:9"
 
@@ -37,6 +40,11 @@ dependencies {
     testImplementation "org.junit.jupiter:junit-jupiter:5.11.4"
     testImplementation "io.github.astrapi69:mystic-crypt:11.2"
     testImplementation "io.github.astrapi69:crypt-api:10.1"
+    testImplementation "io.github.astrapi69:crypt-data:11.2"
+    // CertFactory declares OperatorCreationException from bcpkix in its throws clause, and X500Name
+    // lives in bcutil - javac needs both to compile a call to it
+    testImplementation "org.bouncycastle:bcpkix-jdk18on:1.85"
+    testImplementation "org.bouncycastle:bcutil-jdk18on:1.85"
     testImplementation "org.bouncycastle:bcprov-jdk18on:1.85.2"
     testRuntimeOnly "org.junit.platform:junit-platform-launcher"
     // the settings contribution implements the host's extension point and reads through the host's
