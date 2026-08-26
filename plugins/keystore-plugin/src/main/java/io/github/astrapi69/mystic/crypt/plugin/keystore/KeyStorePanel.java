@@ -24,6 +24,7 @@
  */
 package io.github.astrapi69.mystic.crypt.plugin.keystore;
 
+import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -60,6 +61,15 @@ public class KeyStorePanel extends JPanel
 
 	private static final String[] COLUMNS = { "alias", "kind", "algorithm", "subject",
 			"valid until", "SHA-256 fingerprint" };
+
+	/**
+	 * The width an input keeps even in the minimum layout. A text field reports a minimum width of
+	 * nearly zero, so without this the fields do not shrink with the window, they vanish.
+	 */
+	private static final int MINIMUM_INPUT_WIDTH = 160;
+
+	/** The height the certificate view keeps even in the minimum layout */
+	private static final int MINIMUM_CERTIFICATE_HEIGHT = 120;
 
 	/** Everything the user typed or chose; every component below writes into it */
 	private final transient KeyStorePanelModel modelObject = new KeyStorePanelModel();
@@ -133,31 +143,31 @@ public class KeyStorePanel extends JPanel
 
 		int row = 0;
 		add(new JLabel("Key store file:"), at(0, row, GridBagConstraints.EAST));
-		add(txtKeyStoreFile, at(1, row, GridBagConstraints.WEST));
+		add(withMinimumWidth(txtKeyStoreFile), stretched(1, row));
 		add(btnBrowse, at(2, row++, GridBagConstraints.WEST));
 		add(new JLabel("Type:"), at(0, row, GridBagConstraints.EAST));
-		add(cmbType, at(1, row++, GridBagConstraints.WEST));
+		add(withMinimumWidth(cmbType), stretched(1, row++));
 		add(new JLabel("Store password:"), at(0, row, GridBagConstraints.EAST));
-		add(pwdStore, at(1, row++, GridBagConstraints.WEST));
+		add(withMinimumWidth(pwdStore), stretched(1, row++));
 		add(buttonRow(btnOpen, btnCreate), at(1, row++, GridBagConstraints.WEST));
 
 		JScrollPane entryScrollPane = new JScrollPane(tblEntries);
-		entryScrollPane.setPreferredSize(new java.awt.Dimension(760, 200));
+		entryScrollPane.setPreferredSize(new Dimension(760, 200));
 		add(entryScrollPane, span(0, row++, 3));
 
 		add(new JLabel("Alias:"), at(0, row, GridBagConstraints.EAST));
-		add(txtAlias, at(1, row++, GridBagConstraints.WEST));
+		add(withMinimumWidth(txtAlias), stretched(1, row++));
 		add(new JLabel("Distinguished name:"), at(0, row, GridBagConstraints.EAST));
-		add(txtDistinguishedName, at(1, row++, GridBagConstraints.WEST));
+		add(withMinimumWidth(txtDistinguishedName), stretched(1, row++));
 		add(new JLabel("Key algorithm:"), at(0, row, GridBagConstraints.EAST));
-		add(cmbKeyAlgorithm, at(1, row++, GridBagConstraints.WEST));
+		add(withMinimumWidth(cmbKeyAlgorithm), stretched(1, row++));
 		add(buttonRow(btnAddKeyPair, btnDelete), at(1, row++, GridBagConstraints.WEST));
 
 		add(new JLabel("Certificate file:"), at(0, row, GridBagConstraints.EAST));
-		add(txtCertificateFile, at(1, row, GridBagConstraints.WEST));
+		add(withMinimumWidth(txtCertificateFile), stretched(1, row));
 		add(btnBrowseCertificate, at(2, row++, GridBagConstraints.WEST));
 		add(new JLabel("Private key file:"), at(0, row, GridBagConstraints.EAST));
-		add(txtPrivateKeyFile, at(1, row, GridBagConstraints.WEST));
+		add(withMinimumWidth(txtPrivateKeyFile), stretched(1, row));
 		add(button("btnBrowsePrivateKey", "...", event -> onBrowse(txtPrivateKeyFile)),
 			at(2, row++, GridBagConstraints.WEST));
 		add(buttonRow(btnImport, btnExport), at(1, row++, GridBagConstraints.WEST));
@@ -299,10 +309,16 @@ public class KeyStorePanel extends JPanel
 		pem.setEditable(false);
 		pem.setFont(new java.awt.Font("monospaced", java.awt.Font.PLAIN, 11));
 		pem.setCaretPosition(0);
-		GridBagConstraints constraints = at(0, row, GridBagConstraints.WEST);
+		JScrollPane pemScrollPane = new JScrollPane(pem);
+		// the minimum belongs here and not on the text area: a text area asks for the size of its
+		// content, which leaves the pane around it free to collapse
+		pemScrollPane
+			.setMinimumSize(new Dimension(MINIMUM_INPUT_WIDTH, MINIMUM_CERTIFICATE_HEIGHT));
+		GridBagConstraints constraints = stretched(0, row);
 		constraints.gridwidth = 2;
 		constraints.fill = GridBagConstraints.BOTH;
-		panel.add(new JScrollPane(pem), constraints);
+		constraints.weighty = 1.0;
+		panel.add(pemScrollPane, constraints);
 		return panel;
 	}
 
@@ -312,7 +328,7 @@ public class KeyStorePanel extends JPanel
 		JTextField field = new JTextField(value, 52);
 		field.setName("txtDetail" + label.replace(" ", ""));
 		field.setEditable(false);
-		panel.add(field, at(1, row, GridBagConstraints.WEST));
+		panel.add(withMinimumWidth(field), stretched(1, row));
 		return row + 1;
 	}
 
@@ -553,6 +569,43 @@ public class KeyStorePanel extends JPanel
 		constraints.anchor = anchor;
 		constraints.insets = new Insets(4, 4, 4, 4);
 		return constraints;
+	}
+
+	/**
+	 * The constraints of the column that holds the inputs: what sits in it takes the width the
+	 * window has left over and shrinks with it, instead of being dropped to its minimum width the
+	 * moment the window is narrower than the grid wants. Labels and buttons keep their anchors.
+	 *
+	 * @param column
+	 *            the column the component sits in
+	 * @param row
+	 *            the row the component sits in
+	 * @return the constraints for a component of the input column
+	 */
+	private static GridBagConstraints stretched(int column, int row)
+	{
+		GridBagConstraints constraints = at(column, row, GridBagConstraints.WEST);
+		constraints.fill = GridBagConstraints.HORIZONTAL;
+		constraints.weightx = 1.0;
+		return constraints;
+	}
+
+	/**
+	 * Gives a component an honest minimum width, so that even the minimum layout - the one
+	 * GridBagLayout falls back to when the window is narrower than the grid wants - still shows a
+	 * field wide enough to read what is in it
+	 *
+	 * @param <C>
+	 *            the type of the component
+	 * @param component
+	 *            the component that gets the minimum width
+	 * @return the same component
+	 */
+	private static <C extends JComponent> C withMinimumWidth(C component)
+	{
+		component.setMinimumSize(
+			new Dimension(MINIMUM_INPUT_WIDTH, component.getPreferredSize().height));
+		return component;
 	}
 
 	private static GridBagConstraints span(int column, int row, int width)

@@ -64,6 +64,19 @@ public class CryptographyPanel extends BasePanel<GenerateKeysModelBean>
 	private static final long serialVersionUID = 1L;
 
 	/**
+	 * The smallest width in pixels a key area keeps when the window is narrower than this panel
+	 * wants. It belongs on the scroll pane around the text area, because a text area on its own
+	 * reports a minimum width of nearly zero and would collapse instead of shrinking.
+	 */
+	private static final int MINIMUM_KEY_AREA_WIDTH = 180;
+
+	/**
+	 * The smallest height in pixels a key area keeps when the window is shorter than this panel
+	 * wants.
+	 */
+	private static final int MINIMUM_KEY_AREA_HEIGHT = 120;
+
+	/**
 	 * The btn clear.
 	 */
 	private JButton btnClear;
@@ -214,6 +227,7 @@ public class CryptographyPanel extends BasePanel<GenerateKeysModelBean>
 		txtPrivateKey.setColumns(20);
 		txtPrivateKey.setRows(5);
 		scpPrivateKey.setViewportView(txtPrivateKey);
+		applyMinimumKeyAreaSize(scpPrivateKey);
 		txtPrivateKey.getAccessibleContext().setAccessibleDescription("");
 
 		cmbKeySize.setModel(new EnumComboBoxModel<>(KeySize.class));
@@ -229,6 +243,7 @@ public class CryptographyPanel extends BasePanel<GenerateKeysModelBean>
 		txtPublicKey.setColumns(20);
 		txtPublicKey.setRows(5);
 		scpPublicKey.setViewportView(txtPublicKey);
+		applyMinimumKeyAreaSize(scpPublicKey);
 
 		lblPublicKey.setText("Public key");
 
@@ -241,6 +256,19 @@ public class CryptographyPanel extends BasePanel<GenerateKeysModelBean>
 		btnSaveCertificate.setText("Save certificate...");
 		//
 		btnSaveCertificate.setEnabled(false);
+	}
+
+	/**
+	 * Gives the given scroll pane around a key area an honest minimum size, so that the key stays
+	 * readable when the layout has no room for the preferred width.
+	 *
+	 * @param keyAreaScrollPane
+	 *            the scroll pane around the private or the public key area
+	 */
+	private void applyMinimumKeyAreaSize(final JScrollPane keyAreaScrollPane)
+	{
+		keyAreaScrollPane
+			.setMinimumSize(new Dimension(MINIMUM_KEY_AREA_WIDTH, MINIMUM_KEY_AREA_HEIGHT));
 	}
 
 	protected void onSaveCertificate(ActionEvent actionEvent)
@@ -424,17 +452,17 @@ public class CryptographyPanel extends BasePanel<GenerateKeysModelBean>
 					Short.MAX_VALUE)))
 				.addGap(18, 18, 18)
 				.addGroup(layout
-					.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
+					.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
 					.addGroup(layout.createSequentialGroup()
-						.addComponent(btnSavePrivKeyWithPw, javax.swing.GroupLayout.PREFERRED_SIZE,
-							267, javax.swing.GroupLayout.PREFERRED_SIZE)
+						.addComponent(btnSavePrivKeyWithPw, javax.swing.GroupLayout.DEFAULT_SIZE,
+							267, 267)
 						.addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED,
 							javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-						.addComponent(btnSavePrivateKey, javax.swing.GroupLayout.PREFERRED_SIZE,
-							174, javax.swing.GroupLayout.PREFERRED_SIZE))
+						.addComponent(btnSavePrivateKey, javax.swing.GroupLayout.DEFAULT_SIZE,
+							174, 174))
 					.addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-						.addComponent(scpPrivateKey, javax.swing.GroupLayout.PREFERRED_SIZE, 480,
-							javax.swing.GroupLayout.PREFERRED_SIZE)
+						.addComponent(scpPrivateKey, javax.swing.GroupLayout.DEFAULT_SIZE, 480,
+							Short.MAX_VALUE)
 						.addComponent(lblPrivateKey, javax.swing.GroupLayout.PREFERRED_SIZE, 147,
 							javax.swing.GroupLayout.PREFERRED_SIZE)))
 				.addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 56,
@@ -443,17 +471,16 @@ public class CryptographyPanel extends BasePanel<GenerateKeysModelBean>
 					.addComponent(lblPublicKey, javax.swing.GroupLayout.PREFERRED_SIZE, 147,
 						javax.swing.GroupLayout.PREFERRED_SIZE)
 					.addGroup(layout
-						.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
+						.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
 						.addGroup(layout.createSequentialGroup()
 							.addComponent(btnSaveCertificate,
-								javax.swing.GroupLayout.PREFERRED_SIZE, 174,
-								javax.swing.GroupLayout.PREFERRED_SIZE)
+								javax.swing.GroupLayout.DEFAULT_SIZE, 174, 174)
 							.addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED,
 								javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-							.addComponent(btnSavePublicKey, javax.swing.GroupLayout.PREFERRED_SIZE,
-								174, javax.swing.GroupLayout.PREFERRED_SIZE))
-						.addComponent(scpPublicKey, javax.swing.GroupLayout.PREFERRED_SIZE, 480,
-							javax.swing.GroupLayout.PREFERRED_SIZE)))
+							.addComponent(btnSavePublicKey, javax.swing.GroupLayout.DEFAULT_SIZE,
+								174, 174))
+						.addComponent(scpPublicKey, javax.swing.GroupLayout.DEFAULT_SIZE, 480,
+							Short.MAX_VALUE)))
 				.addContainerGap(28, Short.MAX_VALUE)));
 		layout
 			.setVerticalGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)

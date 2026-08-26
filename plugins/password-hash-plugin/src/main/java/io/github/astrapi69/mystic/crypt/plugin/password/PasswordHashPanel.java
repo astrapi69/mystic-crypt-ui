@@ -24,6 +24,7 @@
  */
 package io.github.astrapi69.mystic.crypt.plugin.password;
 
+import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
@@ -45,6 +46,9 @@ public class PasswordHashPanel extends JPanel
 
 	/** The classical alternative, for a system that has to stay interoperable */
 	public static final String PBKDF2 = "PBKDF2";
+
+	/** The width below which a text input is no longer usable */
+	private static final int MINIMUM_INPUT_WIDTH = 160;
 
 	private final transient PasswordEncryptor passwordEncryptor = PasswordEncryptor.getInstance();
 
@@ -75,6 +79,13 @@ public class PasswordHashPanel extends JPanel
 		txtVerifyPassword.setName("txtVerifyPassword");
 		lblResult.setName("lblResult");
 
+		JScrollPane hashScrollPane = new JScrollPane(txtHash);
+		keepUsableWhenNarrow(txtPassword);
+		keepUsableWhenNarrow(txtVerifyPassword);
+		// a text area reports the minimum of its own content, so the minimum that keeps the
+		// hash readable belongs on the scroll pane around it
+		keepUsableWhenNarrow(hashScrollPane);
+
 		JButton btnHash = new JButton("Hash");
 		btnHash.setName("btnHash");
 		btnHash.addActionListener(event -> onHash());
@@ -84,16 +95,16 @@ public class PasswordHashPanel extends JPanel
 
 		int row = 0;
 		add(new JLabel("Algorithm:"), at(0, row, GridBagConstraints.EAST));
-		add(cmbAlgorithm, at(1, row++, GridBagConstraints.WEST));
+		add(cmbAlgorithm, input(row++));
 		add(lblAbout, at(1, row++, GridBagConstraints.WEST));
 		add(new JLabel("Password:"), at(0, row, GridBagConstraints.EAST));
-		add(txtPassword, at(1, row++, GridBagConstraints.WEST));
+		add(txtPassword, input(row++));
 		add(btnHash, at(1, row++, GridBagConstraints.WEST));
 		add(new JLabel("Hash:"), at(0, row, GridBagConstraints.NORTHEAST));
-		add(new JScrollPane(txtHash), at(1, row++, GridBagConstraints.WEST));
+		add(hashScrollPane, input(row++));
 		add(new JSeparator(), fullWidth(row++));
 		add(new JLabel("Verify password:"), at(0, row, GridBagConstraints.EAST));
-		add(txtVerifyPassword, at(1, row++, GridBagConstraints.WEST));
+		add(txtVerifyPassword, input(row++));
 		add(btnVerify, at(1, row++, GridBagConstraints.WEST));
 		add(lblResult, at(1, row, GridBagConstraints.WEST));
 	}
@@ -153,6 +164,36 @@ public class PasswordHashPanel extends JPanel
 		constraints.anchor = anchor;
 		constraints.insets = new Insets(4, 6, 4, 6);
 		return constraints;
+	}
+
+	/**
+	 * Constraints for the input column: the component fills the width its column gets, and the
+	 * column takes whatever width the panel has left over. Without this a window narrower than the
+	 * panel wants falls back to the minimum widths and the inputs collapse instead of shrinking.
+	 *
+	 * @param y
+	 *            the row of the grid
+	 * @return the constraints for the input component of that row
+	 */
+	private static GridBagConstraints input(int y)
+	{
+		GridBagConstraints constraints = at(1, y, GridBagConstraints.WEST);
+		constraints.fill = GridBagConstraints.HORIZONTAL;
+		constraints.weightx = 1.0;
+		return constraints;
+	}
+
+	/**
+	 * Gives the component an honest minimum width, so that even the minimum layout of a narrow
+	 * window still shows an input one can read and type in
+	 *
+	 * @param component
+	 *            the component that gets the minimum width
+	 */
+	private static void keepUsableWhenNarrow(JComponent component)
+	{
+		component
+			.setMinimumSize(new Dimension(MINIMUM_INPUT_WIDTH, component.getPreferredSize().height));
 	}
 
 	private static GridBagConstraints fullWidth(int y)

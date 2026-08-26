@@ -380,11 +380,19 @@ public class KeyExchangePanel extends JPanel
 		String execute() throws Exception;
 	}
 
+	/**
+	 * Wraps a text area of this panel in a scroll pane that keeps a usable minimum width, so
+	 * the area stays readable when the window is narrower than the tab wants
+	 *
+	 * @param area
+	 *            the area to wrap
+	 * @return the scroll pane around it
+	 */
 	private static JScrollPane scrolled(JMTextArea area)
 	{
 		area.setLineWrap(true);
 		area.setWrapStyleWord(false);
-		return new JScrollPane(area);
+		return KemPanelLayout.scrolled(area);
 	}
 
 	private static JPanel fingerprintRow(String label, JLabel fingerprint)
@@ -416,6 +424,15 @@ public class KeyExchangePanel extends JPanel
 		return button;
 	}
 
+	/**
+	 * The constraints of the one column both tabs are built from. It carries the whole width of
+	 * the tab, so a field grows with the window and shrinks with it instead of falling back to the
+	 * width the widest button row happens to need.
+	 *
+	 * @param row
+	 *            the row of the cell
+	 * @return the constraints for that cell
+	 */
 	private static GridBagConstraints across(int row)
 	{
 		GridBagConstraints constraints = new GridBagConstraints();
@@ -423,6 +440,7 @@ public class KeyExchangePanel extends JPanel
 		constraints.gridy = row;
 		constraints.anchor = GridBagConstraints.WEST;
 		constraints.fill = GridBagConstraints.HORIZONTAL;
+		constraints.weightx = 1.0;
 		constraints.insets = new Insets(2, 6, 2, 6);
 		return constraints;
 	}

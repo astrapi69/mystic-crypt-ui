@@ -25,6 +25,7 @@
 package io.github.astrapi69.mystic.crypt.plugin.checksum;
 
 import java.awt.BorderLayout;
+import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -55,6 +56,12 @@ public class ChecksumAndMacPanel extends JPanel
 {
 
 	private static final long serialVersionUID = 1L;
+
+	/**
+	 * The width in pixels a text component of this panel is never laid out below, so that even the
+	 * minimum layout of a narrow window shows a usable field instead of a sliver
+	 */
+	private static final int MINIMUM_TEXT_WIDTH = 160;
 
 	/** Everything this panel holds; every component below writes into it */
 	private final ChecksumAndMacPanelModel modelObject = new ChecksumAndMacPanelModel();
@@ -102,28 +109,28 @@ public class ChecksumAndMacPanel extends JPanel
 	{
 		cmbDigest.setName("cmbDigest");
 		configure(txtChecksumText, "txtChecksumText");
-		txtChecksumFile.setName("txtChecksumFile");
+		configure(txtChecksumFile, "txtChecksumFile");
 		chkChecksumUseFile.setName("chkChecksumUseFile");
 		configureReadOnly(txtChecksum, "txtChecksum");
-		txtExpected.setName("txtExpected");
+		configure(txtExpected, "txtExpected");
 		bindChecksumComponents();
 
 		JPanel panel = new JPanel(new GridBagLayout());
 		int row = 0;
 		panel.add(new JLabel("Digest:"), at(0, row, GridBagConstraints.EAST));
-		panel.add(cmbDigest, at(1, row++, GridBagConstraints.WEST));
+		panel.add(cmbDigest, stretched(1, row++));
 		panel.add(new JLabel("Text:"), at(0, row, GridBagConstraints.NORTHEAST));
-		panel.add(new JScrollPane(txtChecksumText), at(1, row++, GridBagConstraints.WEST));
+		panel.add(scrollPaneAround(txtChecksumText), stretched(1, row++));
 		panel.add(new JLabel("File:"), at(0, row, GridBagConstraints.EAST));
-		panel.add(txtChecksumFile, at(1, row, GridBagConstraints.WEST));
+		panel.add(txtChecksumFile, stretched(1, row));
 		panel.add(button("btnBrowseChecksumFile", "...",
 			event -> onBrowse(txtChecksumFile, modelObject.getChecksumFile())),
 			at(2, row++, GridBagConstraints.WEST));
 		panel.add(chkChecksumUseFile, at(1, row++, GridBagConstraints.WEST));
 		panel.add(new JLabel("Checksum:"), at(0, row, GridBagConstraints.NORTHEAST));
-		panel.add(new JScrollPane(txtChecksum), at(1, row++, GridBagConstraints.WEST));
+		panel.add(scrollPaneAround(txtChecksum), stretched(1, row++));
 		panel.add(new JLabel("Compare with:"), at(0, row, GridBagConstraints.EAST));
-		panel.add(txtExpected, at(1, row++, GridBagConstraints.WEST));
+		panel.add(txtExpected, stretched(1, row++));
 		panel.add(buttonRow(button("btnChecksum", "Compute", event -> onChecksum()),
 			button("btnCompare", "Compare", event -> onCompare())),
 			at(1, row, GridBagConstraints.WEST));
@@ -149,32 +156,32 @@ public class ChecksumAndMacPanel extends JPanel
 	{
 		cmbMac.setName("cmbMac");
 		configure(txtMacText, "txtMacText");
-		txtMacFile.setName("txtMacFile");
+		configure(txtMacFile, "txtMacFile");
 		chkMacUseFile.setName("chkMacUseFile");
-		pwdMacKey.setName("pwdMacKey");
+		configure(pwdMacKey, "pwdMacKey");
 		configureReadOnly(txtMac, "txtMac");
-		txtMacExpected.setName("txtMacExpected");
+		configure(txtMacExpected, "txtMacExpected");
 		bindMacComponents();
 
 		JPanel panel = new JPanel(new GridBagLayout());
 		int row = 0;
 		panel.add(new JLabel("Code:"), at(0, row, GridBagConstraints.EAST));
-		panel.add(cmbMac, at(1, row++, GridBagConstraints.WEST));
+		panel.add(cmbMac, stretched(1, row++));
 		panel.add(new JLabel("Key:"), at(0, row, GridBagConstraints.EAST));
-		panel.add(pwdMacKey, at(1, row++, GridBagConstraints.WEST));
+		panel.add(pwdMacKey, stretched(1, row++));
 		panel.add(new JLabel("Text:"), at(0, row, GridBagConstraints.NORTHEAST));
-		panel.add(new JScrollPane(txtMacText), at(1, row++, GridBagConstraints.WEST));
+		panel.add(scrollPaneAround(txtMacText), stretched(1, row++));
 		panel.add(new JLabel("File:"), at(0, row, GridBagConstraints.EAST));
-		panel.add(txtMacFile, at(1, row, GridBagConstraints.WEST));
+		panel.add(txtMacFile, stretched(1, row));
 		panel.add(
 			button("btnBrowseMacFile", "...",
 				event -> onBrowse(txtMacFile, modelObject.getMacFile())),
 			at(2, row++, GridBagConstraints.WEST));
 		panel.add(chkMacUseFile, at(1, row++, GridBagConstraints.WEST));
 		panel.add(new JLabel("Code:"), at(0, row, GridBagConstraints.NORTHEAST));
-		panel.add(new JScrollPane(txtMac), at(1, row++, GridBagConstraints.WEST));
+		panel.add(scrollPaneAround(txtMac), stretched(1, row++));
 		panel.add(new JLabel("Compare with:"), at(0, row, GridBagConstraints.EAST));
-		panel.add(txtMacExpected, at(1, row++, GridBagConstraints.WEST));
+		panel.add(txtMacExpected, stretched(1, row++));
 		panel.add(buttonRow(button("btnMac", "Compute", event -> onMac()),
 			button("btnCompareMac", "Compare", event -> onCompareMac())),
 			at(1, row, GridBagConstraints.WEST));
@@ -345,6 +352,39 @@ public class ChecksumAndMacPanel extends JPanel
 		textArea.setEditable(false);
 	}
 
+	/**
+	 * Names a text field and gives it the width it is never laid out below - a text field reports a
+	 * minimum width of nearly zero, which lets a narrow window collapse it to a sliver
+	 *
+	 * @param textField
+	 *            the field to configure, a password field included
+	 * @param name
+	 *            the name the field is looked up by
+	 */
+	private static void configure(JTextField textField, String name)
+	{
+		textField.setName(name);
+		textField.setMinimumSize(
+			new Dimension(MINIMUM_TEXT_WIDTH, textField.getPreferredSize().height));
+	}
+
+	/**
+	 * Wraps a text area in the scroll pane the panel shows it in, with the width that scroll pane is
+	 * never laid out below - the area itself takes whatever the viewport gives it, so the minimum
+	 * belongs on the scroll pane
+	 *
+	 * @param textArea
+	 *            the text area to wrap
+	 * @return the scroll pane around the text area
+	 */
+	private static JScrollPane scrollPaneAround(JTextArea textArea)
+	{
+		JScrollPane scrollPane = new JScrollPane(textArea);
+		scrollPane.setMinimumSize(
+			new Dimension(MINIMUM_TEXT_WIDTH, scrollPane.getPreferredSize().height));
+		return scrollPane;
+	}
+
 	private static JButton button(String name, String text, java.awt.event.ActionListener listener)
 	{
 		JButton button = new JButton(text);
@@ -370,6 +410,26 @@ public class ChecksumAndMacPanel extends JPanel
 		constraints.gridy = row;
 		constraints.anchor = anchor;
 		constraints.insets = new Insets(4, 4, 4, 4);
+		return constraints;
+	}
+
+	/**
+	 * Constraints for the column that holds the inputs: that column takes the width the labels and
+	 * the buttons leave over, and the input in it is stretched across it. Without this the grid
+	 * falls back to the minimum widths as soon as the window is narrower than it wants, and the
+	 * inputs vanish instead of getting smaller.
+	 *
+	 * @param column
+	 *            the column of the grid the input sits in
+	 * @param row
+	 *            the row of the grid the input sits in
+	 * @return the constraints for an input component
+	 */
+	private static GridBagConstraints stretched(int column, int row)
+	{
+		GridBagConstraints constraints = at(column, row, GridBagConstraints.WEST);
+		constraints.fill = GridBagConstraints.HORIZONTAL;
+		constraints.weightx = 1.0;
 		return constraints;
 	}
 }
