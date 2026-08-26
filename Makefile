@@ -44,7 +44,7 @@ run:
 		exit 1; \
 	fi; \
 	echo "==> Starting $$jar"; \
-	"$(JAVA_HOME)/bin/java" -jar "$$jar"
+	"$(JAVA_HOME)/bin/java" --sun-misc-unsafe-memory-access=allow -jar "$$jar"
 
 # build then run - always launches exactly what was just built, with the standard internal
 # plugins built and installed into the app's plugins directory beforehand

@@ -50,6 +50,12 @@ tasks.named("test") {
     // KeePassJava2-simple's SimpleXML-based serialization reflects into java.util (e.g. UUID)
     // at runtime, which the JDK 9+ module system blocks without this on JDK 17+
     it.jvmArgs "--add-opens", "java.base/java.util=ALL-UNNAMED"
+    // XStream asks once per JVM whether it may write fields through sun.misc.Unsafe, by trying it.
+    // That method is deprecated for removal, so JDK 25 prints a five line warning for the attempt -
+    // once per forked test JVM, and forkEvery is 1, so the suite drowns in them. The probe is
+    // guarded (XStream falls back to SunLimitedUnsafeReflectionProvider when the call fails), so
+    // this permits what XStream is going to do anyway and keeps the test output readable
+    it.jvmArgs "--sun-misc-unsafe-memory-access=allow"
     // forward -Dmystic.crypt.ui.test.mode=demo to the forked test JVM (UiTestSpeed), e.g.
     // ./gradlew test -Dmystic.crypt.ui.test.mode=demo
     if (System.getProperty("mystic.crypt.ui.test.mode") != null) {
