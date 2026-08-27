@@ -25,6 +25,8 @@
 package io.github.astrapi69.mystic.crypt.plugin.certificate;
 
 import java.awt.BorderLayout;
+import java.awt.Dimension;
+import java.awt.Toolkit;
 import java.io.File;
 import java.math.BigInteger;
 import java.security.KeyPair;
@@ -74,6 +76,9 @@ public class CertificateMenuContribution implements PluginMenuContribution
 		return "Certificate";
 	}
 
+	/** What the dialog's own frame takes around the wizard */
+	private static final int WIZARD_INSETS = 24;
+
 	private void openWizard()
 	{
 		MysticCryptApplicationFrame frame = MysticCryptApplicationFrame.getInstance();
@@ -108,8 +113,17 @@ public class CertificateMenuContribution implements PluginMenuContribution
 				dialog.dispose();
 			}
 		};
-		dialog.getContentPane().add(wizardPanel, BorderLayout.CENTER);
-		dialog.setSize(820, 600);
+		// the wizard scrolls rather than losing its lower half on a screen that cannot hold it
+		JScrollPane scrollPane = new JScrollPane(wizardPanel);
+		scrollPane.setBorder(BorderFactory.createEmptyBorder());
+		scrollPane.getVerticalScrollBar().setUnitIncrement(16);
+		dialog.getContentPane().add(scrollPane, BorderLayout.CENTER);
+		Dimension wanted = wizardPanel.getPreferredSize();
+		dialog.setSize(WizardWindowSize.on(
+			new Dimension(wanted.width + WIZARD_INSETS, wanted.height + WIZARD_INSETS),
+			Toolkit.getDefaultToolkit().getScreenSize()));
+		dialog.setMinimumSize(new Dimension(WizardWindowSize.MINIMUM_WIDTH / 2,
+			WizardWindowSize.MINIMUM_HEIGHT / 2));
 		dialog.setLocationRelativeTo(frame);
 		dialog.setVisible(true);
 	}
