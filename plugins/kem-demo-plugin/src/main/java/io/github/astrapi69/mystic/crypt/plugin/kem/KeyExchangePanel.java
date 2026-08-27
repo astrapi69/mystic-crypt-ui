@@ -25,6 +25,8 @@
 package io.github.astrapi69.mystic.crypt.plugin.kem;
 
 import java.awt.BorderLayout;
+import java.awt.Dimension;
+import java.awt.Rectangle;
 import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -93,8 +95,8 @@ public class KeyExchangePanel extends JPanel
 		lblMyFingerprint.setName("lblMyFingerprint");
 		lblTheirFingerprint.setName("lblTheirFingerprint");
 		tabs.setName("tabKeyExchange");
-		tabs.addTab("Receive", newReceiveTab());
-		tabs.addTab("Send", newSendTab());
+		tabs.addTab("Receive", scrollable(newReceiveTab()));
+		tabs.addTab("Send", scrollable(newSendTab()));
 
 		JPanel top = new JPanel();
 		top.add(new JLabel("Algorithm:"));
@@ -141,21 +143,21 @@ public class KeyExchangePanel extends JPanel
 			button("btnLoadMyKey", "Load my key...", event -> onLoadMyKey())),
 			across(row++));
 		panel.add(new JLabel("1. Hand this public key to the other side:"), across(row++));
-		panel.add(scrolled(txtMyPublicKey), across(row++));
+		panel.add(scrolled(txtMyPublicKey), growing(row++, 2.0));
 		panel.add(buttonRow(button("btnSaveMyPublicKey", "Save public key...",
 			event -> onSaveToFile(modelObject.getMyPublicKey(), "public key"))), across(row++));
 		panel.add(new JLabel("2. Paste the handshake that came back:"), across(row++));
-		panel.add(scrolled(txtHandshakeIn), across(row++));
+		panel.add(scrolled(txtHandshakeIn), growing(row++, 2.0));
 		panel.add(buttonRow(button("btnLoadHandshake", "Load...",
 			event -> onLoadInto(txtHandshakeIn, modelObject::setHandshakeIn)),
 			button("btnDecapsulate", "Derive the secret", event -> onDecapsulate())),
 			across(row++));
 		panel.add(fingerprintRow("My secret:", lblMyFingerprint), across(row++));
 		panel.add(new JLabel("3. A message that arrived with it:"), across(row++));
-		panel.add(scrolled(txtEncryptedIn), across(row++));
+		panel.add(scrolled(txtEncryptedIn), growing(row++, 1.5));
 		panel.add(buttonRow(button("btnDecryptMessage", "Read it", event -> onDecryptMessage())),
 			across(row++));
-		panel.add(scrolled(txtMessageReceived), across(row));
+		panel.add(scrolled(txtMessageReceived), growing(row, 1.5));
 		return panel;
 	}
 
@@ -169,24 +171,93 @@ public class KeyExchangePanel extends JPanel
 		JPanel panel = new JPanel(new GridBagLayout());
 		int row = 0;
 		panel.add(new JLabel("1. Paste the public key you were given:"), across(row++));
-		panel.add(scrolled(txtTheirPublicKey), across(row++));
+		panel.add(scrolled(txtTheirPublicKey), growing(row++, 2.0));
 		panel.add(buttonRow(button("btnLoadTheirPublicKey", "Load...",
 			event -> onLoadInto(txtTheirPublicKey, modelObject::setTheirPublicKey)),
 			button("btnEncapsulate", "Make a shared secret", event -> onEncapsulate())),
 			across(row++));
 		panel.add(fingerprintRow("Shared secret:", lblTheirFingerprint), across(row++));
 		panel.add(new JLabel("2. Send this handshake back:"), across(row++));
-		panel.add(scrolled(txtHandshakeOut), across(row++));
+		panel.add(scrolled(txtHandshakeOut), growing(row++, 2.0));
 		panel.add(buttonRow(button("btnSaveHandshake", "Save...",
 			event -> onSaveToFile(modelObject.getHandshakeOut(), "handshake"))), across(row++));
 		panel.add(new JLabel("3. A message to send with it:"), across(row++));
-		panel.add(scrolled(txtMessageToSend), across(row++));
+		panel.add(scrolled(txtMessageToSend), growing(row++, 1.5));
 		panel.add(buttonRow(button("btnEncryptMessage", "Encrypt it", event -> onEncryptMessage())),
 			across(row++));
-		panel.add(scrolled(txtEncryptedOut), across(row++));
+		panel.add(scrolled(txtEncryptedOut), growing(row++, 1.5));
 		panel.add(buttonRow(button("btnSaveEncrypted", "Save...",
 			event -> onSaveToFile(modelObject.getEncryptedOut(), "message"))), across(row));
 		return panel;
+	}
+
+
+	/**
+	 * Puts a tab into a scroll pane that lets it grow.
+	 * <p>
+	 * The two things a window has to do are in tension here: use the height it is given, and never
+	 * put a field out of reach. The rows carry a vertical weight so a tall window shows more of the
+	 * keys, and a window too short for all of it scrolls instead of cutting the last field off.
+	 *
+	 * @param content
+	 *            the tab
+	 * @return the tab, in a scroll pane
+	 */
+	private static JScrollPane scrollable(JPanel content)
+	{
+		JScrollPane scrollPane = new JScrollPane(new GrowingContent(content));
+		scrollPane.setBorder(BorderFactory.createEmptyBorder());
+		scrollPane.getVerticalScrollBar().setUnitIncrement(16);
+		return scrollPane;
+	}
+
+	/**
+	 * A tab that fills its viewport while there is room and keeps its own height once there is not,
+	 * which is what makes the scroll pane above do both things
+	 */
+	private static final class GrowingContent extends JPanel implements Scrollable
+	{
+		private static final long serialVersionUID = 1L;
+
+		private GrowingContent(JPanel content)
+		{
+			super(new BorderLayout());
+			add(content, BorderLayout.CENTER);
+		}
+
+		@Override
+		public Dimension getPreferredScrollableViewportSize()
+		{
+			return getPreferredSize();
+		}
+
+		@Override
+		public int getScrollableUnitIncrement(Rectangle visibleRect, int orientation, int direction)
+		{
+			return 16;
+		}
+
+		@Override
+		public int getScrollableBlockIncrement(Rectangle visibleRect, int orientation,
+			int direction)
+		{
+			return orientation == SwingConstants.VERTICAL
+				? visibleRect.height
+				: visibleRect.width;
+		}
+
+		@Override
+		public boolean getScrollableTracksViewportWidth()
+		{
+			return true;
+		}
+
+		@Override
+		public boolean getScrollableTracksViewportHeight()
+		{
+			return getParent() instanceof JViewport viewport
+				&& viewport.getHeight() >= getPreferredSize().height;
+		}
 	}
 
 	private void onNewKeyPair()
@@ -433,6 +504,27 @@ public class KeyExchangePanel extends JPanel
 	 *            the row of the cell
 	 * @return the constraints for that cell
 	 */
+	/**
+	 * A row that grows with the window, for the areas holding what the two sides read and paste.
+	 * <p>
+	 * Without a vertical weight the height of a larger window goes nowhere and every area keeps the
+	 * three rows it was built with: eight areas of 54 pixels and 450 pixels of empty space below
+	 * them, which is what this window used to look like at 780x900.
+	 *
+	 * @param row
+	 *            the row
+	 * @param share
+	 *            how much of the free height this row takes, relative to the other growing rows
+	 * @return the constraints
+	 */
+	private static GridBagConstraints growing(int row, double share)
+	{
+		GridBagConstraints constraints = across(row);
+		constraints.fill = GridBagConstraints.BOTH;
+		constraints.weighty = share;
+		return constraints;
+	}
+
 	private static GridBagConstraints across(int row)
 	{
 		GridBagConstraints constraints = new GridBagConstraints();

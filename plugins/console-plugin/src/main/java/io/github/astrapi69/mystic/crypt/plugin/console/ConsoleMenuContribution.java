@@ -26,6 +26,10 @@ package io.github.astrapi69.mystic.crypt.plugin.console;
 
 import java.util.List;
 
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
+
+import javax.swing.JDesktopPane;
 import javax.swing.JInternalFrame;
 import javax.swing.JMenuItem;
 
@@ -62,15 +66,27 @@ public class ConsoleMenuContribution implements PluginMenuContribution
 			JInternalFrame internalFrame = JComponentFactory.newInternalFrame("Console", true, true,
 				true, true);
 			ConsolePanel component = new ConsolePanel();
-			int screenHeight = ScreenSizeExtensions.getScreenHeight(instance);
-			int screenWidth = ScreenSizeExtensions.getScreenWidth(instance);
-			// dock it into the bottom of the desktop; how much room it takes and whether it can be
-			// moved is what the user configured in the settings dialog
+			// the console lives inside the application's desktop, so that is what it is measured
+			// against; the screen is the wrong yardstick and left it a stamp in the corner of a
+			// window that did not fill the screen
+			JDesktopPane desktopPane = instance.getDesktopPanePanel().getDesktopPane();
 			int divisor = ConsoleSettingsContribution.heightDivisor();
 			boolean resizable = ConsoleSettingsContribution.resizable();
-			internalFrame.setSize(screenWidth, screenHeight / divisor);
-			internalFrame.setLocation(0, screenHeight - (screenHeight / divisor));
+			ConsoleDock.dock(internalFrame, desktopPane, divisor);
 			internalFrame.setResizable(resizable);
+			if (!resizable)
+			{
+				// docked rather than floating: follow the desktop when the window is resized,
+				// instead of sitting at a size that fitted the window it was opened in
+				desktopPane.addComponentListener(new ComponentAdapter()
+				{
+					@Override
+					public void componentResized(ComponentEvent event)
+					{
+						ConsoleDock.dock(internalFrame, desktopPane, divisor);
+					}
+				});
+			}
 			internalFrame.putClientProperty("dragMode", resizable ? "default" : "fixed");
 			JInternalFrameExtensions.addInternalFrameToMainFrame(component, internalFrame, instance);
 		});

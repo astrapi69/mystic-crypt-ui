@@ -89,11 +89,11 @@ public class KemDemoPanel extends JPanel
 		add(btnRun, at(1, row++, GridBagConstraints.WEST));
 		add(new JLabel("Ciphertext (sender to recipient):"),
 			at(0, row, GridBagConstraints.NORTHEAST));
-		add(KemPanelLayout.scrolled(txtCiphertext), stretched(1, row++));
+		add(KemPanelLayout.scrolled(txtCiphertext), growing(1, row++, 2.0));
 		add(new JLabel("Sender shared secret:"), at(0, row, GridBagConstraints.NORTHEAST));
-		add(KemPanelLayout.scrolled(txtSenderSecret), stretched(1, row++));
+		add(KemPanelLayout.scrolled(txtSenderSecret), growing(1, row++, 1.0));
 		add(new JLabel("Recipient shared secret:"), at(0, row, GridBagConstraints.NORTHEAST));
-		add(KemPanelLayout.scrolled(txtRecipientSecret), stretched(1, row++));
+		add(KemPanelLayout.scrolled(txtRecipientSecret), growing(1, row++, 1.0));
 		add(lblResult, at(1, row, GridBagConstraints.WEST));
 	}
 
@@ -155,6 +155,29 @@ public class KemDemoPanel extends JPanel
 		GridBagConstraints constraints = at(x, y, GridBagConstraints.WEST);
 		constraints.fill = GridBagConstraints.HORIZONTAL;
 		constraints.weightx = 1.0;
+		return constraints;
+	}
+
+	/**
+	 * A row that grows with the window, for the areas that hold something worth reading.
+	 * <p>
+	 * Without a vertical weight the extra height of a larger window goes nowhere and the area keeps
+	 * the rows it was built with, which is why the ciphertext used to show two lines in a window
+	 * with room for twenty.
+	 *
+	 * @param x
+	 *            the column
+	 * @param y
+	 *            the row
+	 * @param share
+	 *            how much of the free height this row takes, relative to the other growing rows
+	 * @return the constraints
+	 */
+	private static GridBagConstraints growing(int x, int y, double share)
+	{
+		GridBagConstraints constraints = stretched(x, y);
+		constraints.fill = GridBagConstraints.BOTH;
+		constraints.weighty = share;
 		return constraints;
 	}
 }
