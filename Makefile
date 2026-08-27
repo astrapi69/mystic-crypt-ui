@@ -168,7 +168,8 @@ build-stacktrace:
 build-warning:
 	JAVA_HOME=$(JAVA_HOME) ./gradlew build --warning-mode all
 
-# the installer ships the internal plugin zips (pack "plugins" in src/main/izpack/install.xml),
+# the installer ships the internal plugin zips (pack "plugins" in src/main/izpack/install.xml)
+# except menu-designer, which edits the application's own menu bar and is for development only,
 # so they have to be built before izpack packs them - otherwise it fails on the missing files
 clean-build-installer: plugins
 	JAVA_HOME=$(JAVA_HOME) ./gradlew clean build izPackCreateInstaller

@@ -14,9 +14,11 @@
 New features ALWAYS belong in an internal plugin under `plugins/{name}-plugin/`, unless
 they touch the core (vault open/save/format, sign-in, main frame/menu shell, settings
 infrastructure). Each plugin brings its own submenu, its own settings, and may contribute
-CLI commands. The Makefile target list (`plugins:`) is the canonical plugin inventory —
+CLI commands. The Makefile target list (`plugins:`) is the canonical plugin inventory -
 a new plugin is added there, to the izpack installer config, and to the test wiring in
-the same change.
+the same change. One deliberate exception: `menu-designer` edits the application's own
+menu bar, is development tooling, and is built and tested but NOT shipped by the
+installer; it appears in the menu only with `-Dmystic.crypt.ui.menu.designer=true`.
 
 ## CLI is a backlink to the library
 

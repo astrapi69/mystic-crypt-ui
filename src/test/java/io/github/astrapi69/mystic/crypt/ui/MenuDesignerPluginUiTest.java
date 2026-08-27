@@ -34,6 +34,8 @@ import javax.swing.JMenuBar;
 
 import org.assertj.swing.edt.GuiActionRunner;
 import org.assertj.swing.fixture.FrameFixture;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
@@ -43,11 +45,39 @@ import io.github.astrapi69.mystic.crypt.TestPasswords;
  * Functional end-to-end test of the menu-designer plugin: opens the "Menu Designer" tool, which
  * shows the running menu as xml, validates it, applies it back to the live menu bar and saves it as
  * the layout for the next start - all through the real UI.
+ * <p>
+ * The tool is for development and an installation does not receive it, so the test asks for it the
+ * way a developer does, with the property the plugin looks at.
  */
 class MenuDesignerPluginUiTest extends AbstractUiTest
 {
 
 	private static final String MASTER_PASSWORD = TestPasswords.throwaway();
+
+	/** The property the plugin looks at, kept here rather than depending on the plugin's class */
+	private static final String DEVELOPER_PROPERTY = "mystic.crypt.ui.menu.designer";
+
+	private String originalProperty;
+
+	@BeforeEach
+	void askForTheDevelopmentTool()
+	{
+		originalProperty = System.getProperty(DEVELOPER_PROPERTY);
+		System.setProperty(DEVELOPER_PROPERTY, "true");
+	}
+
+	@AfterEach
+	void stopAskingForIt()
+	{
+		if (originalProperty == null)
+		{
+			System.clearProperty(DEVELOPER_PROPERTY);
+		}
+		else
+		{
+			System.setProperty(DEVELOPER_PROPERTY, originalProperty);
+		}
+	}
 
 	@Test
 	void exportsValidatesAppliesAndSavesTheMenuThroughTheUi() throws Exception
