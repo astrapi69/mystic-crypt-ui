@@ -124,8 +124,6 @@
 						target="${USER_HOME}/.config/mystic-crypt-ui/plugins/password-hash-plugin-1.0.0.zip" />
 			<singlefile src="../plugins/kem-demo-plugin/build/plugin-dist/kem-demo-plugin-1.0.0.zip"
 						target="${USER_HOME}/.config/mystic-crypt-ui/plugins/kem-demo-plugin-1.0.0.zip" />
-			<singlefile src="../plugins/menu-designer-plugin/build/plugin-dist/menu-designer-plugin-1.0.0.zip"
-						target="${USER_HOME}/.config/mystic-crypt-ui/plugins/menu-designer-plugin-1.0.0.zip" />
 			<singlefile src="../plugins/pqc-signature-plugin/build/plugin-dist/pqc-signature-plugin-1.0.0.zip"
 						target="${USER_HOME}/.config/mystic-crypt-ui/plugins/pqc-signature-plugin-1.0.0.zip" />
 			<singlefile src="../plugins/keystore-plugin/build/plugin-dist/keystore-plugin-1.0.0.zip"

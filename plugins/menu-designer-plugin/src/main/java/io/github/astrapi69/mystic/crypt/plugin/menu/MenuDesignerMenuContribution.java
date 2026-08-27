@@ -39,15 +39,43 @@ import io.github.astrapi69.swing.enumeration.FrameMode;
 import io.github.astrapi69.swing.util.JInternalFrameExtensions;
 
 /**
- * Contributes the "Menu Designer" tool to the host's "Plugins" menu.
+ * Contributes the "Menu Designer" tool to the host's "Plugins" menu, for development only.
+ * <p>
+ * This tool edits the application's own menu bar and writes the layout the application reads on
+ * start. That is work on the application, not work a user of a password manager has any reason to
+ * do, and a menu rearranged by accident is a support case rather than a feature. The installer
+ * therefore does not ship this plugin at all.
+ * <p>
+ * A machine that received it from an earlier release still has the zip, so the entry is offered
+ * only when {@value #DEVELOPER_PROPERTY} says so. Without it the plugin loads, contributes nothing
+ * and stays out of the way.
  */
 @Extension
 public class MenuDesignerMenuContribution implements PluginMenuContribution
 {
 
+	/**
+	 * The system property that makes this development tool appear: {@code -Dmystic.crypt.ui.menu.designer=true}
+	 */
+	public static final String DEVELOPER_PROPERTY = "mystic.crypt.ui.menu.designer";
+
+	/**
+	 * Whether this tool is offered at all
+	 *
+	 * @return true when the developer property asks for it
+	 */
+	public static boolean isOffered()
+	{
+		return Boolean.parseBoolean(System.getProperty(DEVELOPER_PROPERTY));
+	}
+
 	@Override
 	public List<JMenuItem> getMenuItems()
 	{
+		if (!isOffered())
+		{
+			return List.of();
+		}
 		JMenuItem menuDesigner = new JMenuItem("Menu Designer");
 		menuDesigner
 			.addActionListener(event -> openInternalFrame("Menu Designer", new MenuDesignerPanel()));
