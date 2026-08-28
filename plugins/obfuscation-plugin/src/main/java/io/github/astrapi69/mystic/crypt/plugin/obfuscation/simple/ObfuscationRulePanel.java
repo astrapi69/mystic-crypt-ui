@@ -26,6 +26,7 @@ import io.github.astrapi69.crypt.data.obfuscation.rule.ObfuscationRule;
 import io.github.astrapi69.model.BaseModel;
 import io.github.astrapi69.model.api.IModel;
 import io.github.astrapi69.mystic.crypt.plugin.obfuscation.ModeContext;
+import io.github.astrapi69.mystic.crypt.ui.form.ToolForm;
 import io.github.astrapi69.swing.base.BasePanel;
 import io.github.astrapi69.swing.document.RangeDocument;
 import lombok.Getter;
@@ -99,53 +100,23 @@ public class ObfuscationRulePanel extends BasePanel<ObfuscationModelBean>
 
 	}
 
-	protected void onInitializeGroupLayout()
+	/**
+	 * Lays this panel out with the shared tool window form: the heading over the whole width, a
+	 * right aligned label next to every field, and the button under the fields it acts on
+	 */
+	protected void onInitializeToolFormLayout()
 	{
-		javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
-		this.setLayout(layout);
-		layout.setHorizontalGroup(layout
-			.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-			.addGroup(layout.createSequentialGroup().addContainerGap().addGroup(layout
-				.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-				.addComponent(lblObfuscationOperationRule)
-				.addGroup(layout
-					.createSequentialGroup()
-					.addGroup(
-						layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-							.addComponent(txtOriginalChar, javax.swing.GroupLayout.DEFAULT_SIZE,
-								140, Short.MAX_VALUE)
-							.addComponent(lblOriginalChar, javax.swing.GroupLayout.DEFAULT_SIZE,
-								javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-					.addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-					.addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-						.addGroup(layout.createSequentialGroup()
-							.addComponent(txtRelpaceWith, javax.swing.GroupLayout.PREFERRED_SIZE,
-								140, javax.swing.GroupLayout.PREFERRED_SIZE)
-							.addGap(18, 18, 18).addComponent(btnAdd,
-								javax.swing.GroupLayout.PREFERRED_SIZE, 140,
-								javax.swing.GroupLayout.PREFERRED_SIZE))
-						.addComponent(lblReplaceWith, javax.swing.GroupLayout.PREFERRED_SIZE, 140,
-							javax.swing.GroupLayout.PREFERRED_SIZE))))
-				.addContainerGap(24, Short.MAX_VALUE)));
-		layout
-			.setVerticalGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-				.addGroup(layout.createSequentialGroup().addContainerGap()
-					.addComponent(lblObfuscationOperationRule)
-					.addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-					.addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-						.addComponent(lblOriginalChar, javax.swing.GroupLayout.PREFERRED_SIZE, 15,
-							javax.swing.GroupLayout.PREFERRED_SIZE)
-						.addComponent(lblReplaceWith))
-					.addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-					.addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-						.addComponent(txtOriginalChar, javax.swing.GroupLayout.PREFERRED_SIZE,
-							javax.swing.GroupLayout.DEFAULT_SIZE,
-							javax.swing.GroupLayout.PREFERRED_SIZE)
-						.addComponent(txtRelpaceWith, javax.swing.GroupLayout.PREFERRED_SIZE,
-							javax.swing.GroupLayout.DEFAULT_SIZE,
-							javax.swing.GroupLayout.PREFERRED_SIZE)
-						.addComponent(btnAdd))
-					.addContainerGap(22, Short.MAX_VALUE)));
+		setLayout(ToolForm.newLayout());
+
+		add(lblObfuscationOperationRule, ToolForm.WIDE);
+
+		add(lblOriginalChar);
+		add(ToolForm.sized(txtOriginalChar), ToolForm.FIELD);
+
+		add(lblReplaceWith);
+		add(ToolForm.sized(txtRelpaceWith), ToolForm.FIELD);
+
+		add(ToolForm.buttons(btnAdd), ToolForm.BUTTON_ROW);
 
 		getAccessibleContext().setAccessibleDescription("");
 	}
@@ -154,7 +125,7 @@ public class ObfuscationRulePanel extends BasePanel<ObfuscationModelBean>
 	protected void onInitializeLayout()
 	{
 		super.onInitializeLayout();
-		onInitializeGroupLayout();
+		onInitializeToolFormLayout();
 	}
 
 }

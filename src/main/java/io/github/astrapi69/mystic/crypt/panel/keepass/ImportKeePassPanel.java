@@ -35,6 +35,7 @@ import javax.swing.JPasswordField;
 import javax.swing.JTextField;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
+import io.github.astrapi69.mystic.crypt.ui.form.ToolForm;
 import lombok.Getter;
 
 /**
@@ -134,30 +135,23 @@ public class ImportKeePassPanel extends JPanel
 			}
 		});
 
-		setLayout(new java.awt.GridBagLayout());
-		java.awt.GridBagConstraints c = new java.awt.GridBagConstraints();
-		c.insets = new java.awt.Insets(4, 4, 4, 4);
-		c.gridy = 0;
-		c.gridx = 0;
-		add(new JLabel("KeePass file:"), c);
-		c.gridx = 1;
-		add(txtFile, c);
-		c.gridx = 2;
-		add(btnFile, c);
+		// one layout for every tool window: labels in a narrow right aligned column, the fields
+		// taking the width, each browse button next to the field it fills
+		setLayout(ToolForm.newLayout());
+		ToolForm.sized(txtFile);
+		ToolForm.sized(txtPassword);
+		ToolForm.sized(txtKeyFile);
 
-		c.gridy = 1;
-		c.gridx = 0;
-		add(new JLabel("Password:"), c);
-		c.gridx = 1;
-		add(txtPassword, c);
+		add(new JLabel("KeePass file:"));
+		add(txtFile, ToolForm.FIELD + ", split 2");
+		add(btnFile);
 
-		c.gridy = 2;
-		c.gridx = 0;
-		add(cbxKeyFile, c);
-		c.gridx = 1;
-		add(txtKeyFile, c);
-		c.gridx = 2;
-		add(btnKeyFile, c);
+		add(new JLabel("Password:"));
+		add(txtPassword, ToolForm.FIELD);
+
+		add(cbxKeyFile);
+		add(txtKeyFile, ToolForm.FIELD + ", split 2");
+		add(btnKeyFile);
 	}
 
 	public char[] getPassword()

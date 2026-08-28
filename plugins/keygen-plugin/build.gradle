@@ -61,6 +61,8 @@ dependencies {
     // compile classpath as well (the host jar exposes them only at runtime)
     testImplementation "io.github.astrapi69:swing-base-components:5.1"
     testImplementation "io.github.astrapi69:model-data:3.2.1"
+    // the panels lay themselves out with the host's ToolForm, which returns a MigLayout
+    testImplementation "com.miglayout:miglayout-swing:11.4.3"
 
 }
 

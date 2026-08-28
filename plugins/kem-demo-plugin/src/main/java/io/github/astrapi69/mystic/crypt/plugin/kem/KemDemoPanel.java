@@ -25,12 +25,11 @@
 package io.github.astrapi69.mystic.crypt.plugin.kem;
 
 import java.awt.Font;
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
-import java.awt.Insets;
 import java.util.HexFormat;
 
 import javax.swing.*;
+
+import io.github.astrapi69.mystic.crypt.ui.form.ToolForm;
 
 /**
  * Tool panel demonstrating a key-encapsulation exchange between two parties. The recipient generates
@@ -57,6 +56,18 @@ public class KemDemoPanel extends JPanel
 	public static final java.util.List<String> ALGORITHMS = java.util.List.of(ML_KEM_768,
 		ML_KEM_512, ML_KEM_1024, HYBRID);
 
+	/** The label of a row whose field is a text area belongs at the top of that row */
+	private static final String AREA_LABEL = "aligny top";
+
+	/**
+	 * The ciphertext is by far the longest of the three values, so its row takes twice the height a
+	 * larger window has left over
+	 */
+	private static final String CIPHERTEXT_ROW = "grow, pushx, pushy 200";
+
+	/** A shared secret is a single line of hex, so its row takes half of what the ciphertext takes */
+	private static final String SECRET_ROW = "grow, pushx, pushy 100";
+
 	private static final HexFormat HEX = HexFormat.of();
 
 	private final JComboBox<String> cmbAlgorithm = new JComboBox<>(
@@ -68,7 +79,10 @@ public class KemDemoPanel extends JPanel
 
 	public KemDemoPanel()
 	{
-		super(new GridBagLayout());
+		// one layout for every tool window, so this one looks like the one next to it: labels in a
+		// narrow right aligned column, fields taking the width, the areas taking the height that is
+		// left, buttons under what they act on
+		super(ToolForm.newLayout());
 
 		cmbAlgorithm.setName("cmbAlgorithm");
 		// the tool starts with what the user configured in the settings dialog
@@ -83,18 +97,17 @@ public class KemDemoPanel extends JPanel
 		btnRun.setName("btnRun");
 		btnRun.addActionListener(event -> onRun());
 
-		int row = 0;
-		add(new JLabel("Algorithm:"), at(0, row, GridBagConstraints.EAST));
-		add(cmbAlgorithm, stretched(1, row++));
-		add(btnRun, at(1, row++, GridBagConstraints.WEST));
-		add(new JLabel("Ciphertext (sender to recipient):"),
-			at(0, row, GridBagConstraints.NORTHEAST));
-		add(KemPanelLayout.scrolled(txtCiphertext), growing(1, row++, 2.0));
-		add(new JLabel("Sender shared secret:"), at(0, row, GridBagConstraints.NORTHEAST));
-		add(KemPanelLayout.scrolled(txtSenderSecret), growing(1, row++, 1.0));
-		add(new JLabel("Recipient shared secret:"), at(0, row, GridBagConstraints.NORTHEAST));
-		add(KemPanelLayout.scrolled(txtRecipientSecret), growing(1, row++, 1.0));
-		add(lblResult, at(1, row, GridBagConstraints.WEST));
+		add(new JLabel("Algorithm:"));
+		add(cmbAlgorithm, ToolForm.FIELD);
+		add(ToolForm.buttons(btnRun), ToolForm.BUTTON_ROW);
+
+		add(new JLabel("Ciphertext (sender to recipient):"), AREA_LABEL);
+		add(ToolForm.scrolled(txtCiphertext), CIPHERTEXT_ROW);
+		add(new JLabel("Sender shared secret:"), AREA_LABEL);
+		add(ToolForm.scrolled(txtSenderSecret), SECRET_ROW);
+		add(new JLabel("Recipient shared secret:"), AREA_LABEL);
+		add(ToolForm.scrolled(txtRecipientSecret), SECRET_ROW);
+		add(lblResult, ToolForm.RESULT_LINE);
 	}
 
 	private void onRun()
@@ -127,57 +140,5 @@ public class KemDemoPanel extends JPanel
 		textArea.setLineWrap(true);
 		textArea.setWrapStyleWord(false);
 		textArea.setFont(new Font("monospaced", Font.PLAIN, 12));
-	}
-
-	private static GridBagConstraints at(int x, int y, int anchor)
-	{
-		GridBagConstraints constraints = new GridBagConstraints();
-		constraints.gridx = x;
-		constraints.gridy = y;
-		constraints.anchor = anchor;
-		constraints.insets = new Insets(4, 6, 4, 6);
-		return constraints;
-	}
-
-	/**
-	 * The constraints of the column that holds the entry components. That column takes whatever
-	 * width the labels leave over, so a field grows with the window and shrinks with it instead of
-	 * collapsing to a few pixels. Labels and buttons keep their anchor.
-	 *
-	 * @param x
-	 *            the column of the cell
-	 * @param y
-	 *            the row of the cell
-	 * @return the constraints for that cell
-	 */
-	private static GridBagConstraints stretched(int x, int y)
-	{
-		GridBagConstraints constraints = at(x, y, GridBagConstraints.WEST);
-		constraints.fill = GridBagConstraints.HORIZONTAL;
-		constraints.weightx = 1.0;
-		return constraints;
-	}
-
-	/**
-	 * A row that grows with the window, for the areas that hold something worth reading.
-	 * <p>
-	 * Without a vertical weight the extra height of a larger window goes nowhere and the area keeps
-	 * the rows it was built with, which is why the ciphertext used to show two lines in a window
-	 * with room for twenty.
-	 *
-	 * @param x
-	 *            the column
-	 * @param y
-	 *            the row
-	 * @param share
-	 *            how much of the free height this row takes, relative to the other growing rows
-	 * @return the constraints
-	 */
-	private static GridBagConstraints growing(int x, int y, double share)
-	{
-		GridBagConstraints constraints = stretched(x, y);
-		constraints.fill = GridBagConstraints.BOTH;
-		constraints.weighty = share;
-		return constraints;
 	}
 }

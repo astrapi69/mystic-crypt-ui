@@ -26,9 +26,6 @@ package io.github.astrapi69.mystic.crypt.plugin.keystore;
 
 import java.awt.Dimension;
 import java.awt.Font;
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
-import java.awt.Insets;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
@@ -41,6 +38,7 @@ import io.github.astrapi69.crypt.api.algorithm.key.KeyPairGeneratorAlgorithm;
 import io.github.astrapi69.crypt.api.type.KeystoreType;
 import io.github.astrapi69.model.LambdaModel;
 import io.github.astrapi69.mystic.crypt.settings.PluginSettings;
+import io.github.astrapi69.mystic.crypt.ui.form.ToolForm;
 import io.github.astrapi69.swing.model.combobox.EnumComboBoxModel;
 import io.github.astrapi69.swing.model.component.JMComboBox;
 import io.github.astrapi69.swing.model.component.JMPasswordField;
@@ -62,14 +60,14 @@ public class KeyStorePanel extends JPanel
 	private static final String[] COLUMNS = { "alias", "kind", "algorithm", "subject",
 			"valid until", "SHA-256 fingerprint" };
 
-	/**
-	 * The width an input keeps even in the minimum layout. A text field reports a minimum width of
-	 * nearly zero, so without this the fields do not shrink with the window, they vanish.
-	 */
-	private static final int MINIMUM_INPUT_WIDTH = 160;
-
 	/** The height the certificate view keeps even in the minimum layout */
 	private static final int MINIMUM_CERTIFICATE_HEIGHT = 120;
+
+	/** The size the table of entries asks for, so the tool window opens wide enough to read a row */
+	private static final Dimension PREFERRED_ENTRY_TABLE_SIZE = new Dimension(760, 200);
+
+	/** The height the table of entries keeps when the window has nothing left to give */
+	private static final int MINIMUM_ENTRY_TABLE_HEIGHT = 48;
 
 	/** Everything the user typed or chose; every component below writes into it */
 	private final transient KeyStorePanelModel modelObject = new KeyStorePanelModel();
@@ -103,7 +101,10 @@ public class KeyStorePanel extends JPanel
 
 	public KeyStorePanel()
 	{
-		super(new GridBagLayout());
+		// one layout for every tool window, so this one looks like the one next to it: labels in a
+		// narrow right aligned column, fields taking the width, the table of entries taking the
+		// height that is left, buttons under what they act on
+		super(ToolForm.newLayout());
 
 		// what the user configured in the settings dialog decides what this tool starts with; the
 		// components take it from the model when they are bound to it
@@ -141,39 +142,48 @@ public class KeyStorePanel extends JPanel
 			event -> onAddSecretKey());
 		JButton btnDetails = button("btnDetails", "Details...", event -> onShowDetails());
 
-		int row = 0;
-		add(new JLabel("Key store file:"), at(0, row, GridBagConstraints.EAST));
-		add(withMinimumWidth(txtKeyStoreFile), stretched(1, row));
-		add(btnBrowse, at(2, row++, GridBagConstraints.WEST));
-		add(new JLabel("Type:"), at(0, row, GridBagConstraints.EAST));
-		add(withMinimumWidth(cmbType), stretched(1, row++));
-		add(new JLabel("Store password:"), at(0, row, GridBagConstraints.EAST));
-		add(withMinimumWidth(pwdStore), stretched(1, row++));
-		add(buttonRow(btnOpen, btnCreate), at(1, row++, GridBagConstraints.WEST));
+		ToolForm.sized(txtKeyStoreFile);
+		ToolForm.sized(pwdStore);
+		ToolForm.sized(txtAlias);
+		ToolForm.sized(txtDistinguishedName);
+		ToolForm.sized(txtCertificateFile);
+		ToolForm.sized(txtPrivateKeyFile);
+
+		add(new JLabel("Key store file:"));
+		add(txtKeyStoreFile, ToolForm.FIELD + ", split 2");
+		add(btnBrowse);
+		add(new JLabel("Type:"));
+		add(cmbType, ToolForm.FIELD);
+		add(new JLabel("Store password:"));
+		add(pwdStore, ToolForm.FIELD);
+		add(ToolForm.buttons(btnOpen, btnCreate), ToolForm.BUTTON_ROW);
 
 		JScrollPane entryScrollPane = new JScrollPane(tblEntries);
-		entryScrollPane.setPreferredSize(new Dimension(760, 200));
-		add(entryScrollPane, span(0, row++, 3));
+		// a table asks for a viewport of its own whatever it holds, which would make the table the
+		// one thing in this window that cannot give way; the window decides its height, and the
+		// floor below only keeps a row visible when there is nothing left to give
+		entryScrollPane.setPreferredSize(PREFERRED_ENTRY_TABLE_SIZE);
+		entryScrollPane.setMinimumSize(
+			new Dimension(ToolForm.MINIMUM_FIELD_WIDTH, MINIMUM_ENTRY_TABLE_HEIGHT));
+		add(entryScrollPane, ToolForm.GROWING);
 
-		add(new JLabel("Alias:"), at(0, row, GridBagConstraints.EAST));
-		add(withMinimumWidth(txtAlias), stretched(1, row++));
-		add(new JLabel("Distinguished name:"), at(0, row, GridBagConstraints.EAST));
-		add(withMinimumWidth(txtDistinguishedName), stretched(1, row++));
-		add(new JLabel("Key algorithm:"), at(0, row, GridBagConstraints.EAST));
-		add(withMinimumWidth(cmbKeyAlgorithm), stretched(1, row++));
-		add(buttonRow(btnAddKeyPair, btnDelete), at(1, row++, GridBagConstraints.WEST));
+		add(new JLabel("Alias:"));
+		add(txtAlias, ToolForm.FIELD);
+		add(new JLabel("Distinguished name:"));
+		add(txtDistinguishedName, ToolForm.FIELD);
+		add(new JLabel("Key algorithm:"));
+		add(cmbKeyAlgorithm, ToolForm.FIELD);
+		add(ToolForm.buttons(btnAddKeyPair, btnDelete), ToolForm.BUTTON_ROW);
 
-		add(new JLabel("Certificate file:"), at(0, row, GridBagConstraints.EAST));
-		add(withMinimumWidth(txtCertificateFile), stretched(1, row));
-		add(btnBrowseCertificate, at(2, row++, GridBagConstraints.WEST));
-		add(new JLabel("Private key file:"), at(0, row, GridBagConstraints.EAST));
-		add(withMinimumWidth(txtPrivateKeyFile), stretched(1, row));
-		add(button("btnBrowsePrivateKey", "...", event -> onBrowse(txtPrivateKeyFile)),
-			at(2, row++, GridBagConstraints.WEST));
-		add(buttonRow(btnImport, btnExport), at(1, row++, GridBagConstraints.WEST));
-		add(buttonRow(btnImportKeyPair, btnAddSecretKey, btnDetails),
-			at(1, row++, GridBagConstraints.WEST));
-		add(lblResult, span(0, row, 3));
+		add(new JLabel("Certificate file:"));
+		add(txtCertificateFile, ToolForm.FIELD + ", split 2");
+		add(btnBrowseCertificate);
+		add(new JLabel("Private key file:"));
+		add(txtPrivateKeyFile, ToolForm.FIELD + ", split 2");
+		add(button("btnBrowsePrivateKey", "...", event -> onBrowse(txtPrivateKeyFile)));
+		add(ToolForm.buttons(btnImport, btnExport), ToolForm.BUTTON_ROW);
+		add(ToolForm.buttons(btnImportKeyPair, btnAddSecretKey, btnDetails), ToolForm.BUTTON_ROW);
+		add(lblResult, ToolForm.RESULT_LINE);
 	}
 
 	/**
@@ -291,45 +301,50 @@ public class KeyStorePanel extends JPanel
 	 */
 	protected JComponent newDetailsPanel(KeyStoreSupport.CertificateDetails details)
 	{
-		JPanel panel = new JPanel(new GridBagLayout());
-		int row = 0;
-		row = addDetail(panel, row, "Issued to", details.subject());
-		row = addDetail(panel, row, "Issued by", details.issuer());
-		row = addDetail(panel, row, "Valid from", details.validFrom());
-		row = addDetail(panel, row, "Valid until",
+		JPanel panel = new JPanel(ToolForm.newLayout());
+		addDetail(panel, "Issued to", details.subject());
+		addDetail(panel, "Issued by", details.issuer());
+		addDetail(panel, "Valid from", details.validFrom());
+		addDetail(panel, "Valid until",
 			details.validUntil() + (details.expired() ? "  (expired)" : ""));
-		row = addDetail(panel, row, "Key", details.keyAlgorithm());
-		row = addDetail(panel, row, "Signed with", details.signatureAlgorithm());
-		row = addDetail(panel, row, "Serial number", details.serialNumber());
-		row = addDetail(panel, row, "X.509 version", String.valueOf(details.version()));
-		row = addDetail(panel, row, "SHA-256", details.fingerprint());
+		addDetail(panel, "Key", details.keyAlgorithm());
+		addDetail(panel, "Signed with", details.signatureAlgorithm());
+		addDetail(panel, "Serial number", details.serialNumber());
+		addDetail(panel, "X.509 version", String.valueOf(details.version()));
+		addDetail(panel, "SHA-256", details.fingerprint());
 
 		JTextArea pem = new JTextArea(details.pem(), 8, 64);
 		pem.setName("txtCertificatePem");
 		pem.setEditable(false);
-		pem.setFont(new java.awt.Font("monospaced", java.awt.Font.PLAIN, 11));
+		pem.setFont(new Font("monospaced", Font.PLAIN, 11));
 		pem.setCaretPosition(0);
-		JScrollPane pemScrollPane = new JScrollPane(pem);
+		JScrollPane pemScrollPane = ToolForm.scrolled(pem);
 		// the minimum belongs here and not on the text area: a text area asks for the size of its
 		// content, which leaves the pane around it free to collapse
-		pemScrollPane
-			.setMinimumSize(new Dimension(MINIMUM_INPUT_WIDTH, MINIMUM_CERTIFICATE_HEIGHT));
-		GridBagConstraints constraints = stretched(0, row);
-		constraints.gridwidth = 2;
-		constraints.fill = GridBagConstraints.BOTH;
-		constraints.weighty = 1.0;
-		panel.add(pemScrollPane, constraints);
+		pemScrollPane.setMinimumSize(
+			new Dimension(ToolForm.MINIMUM_FIELD_WIDTH, MINIMUM_CERTIFICATE_HEIGHT));
+		panel.add(pemScrollPane, ToolForm.GROWING);
 		return panel;
 	}
 
-	private int addDetail(JPanel panel, int row, String label, String value)
+	/**
+	 * Adds one labelled line of the certificate to the details form, in a field that can be
+	 * selected and copied out but not edited
+	 *
+	 * @param panel
+	 *            the form the line is added to
+	 * @param label
+	 *            the label in front of the value
+	 * @param value
+	 *            the value the certificate holds
+	 */
+	private void addDetail(JPanel panel, String label, String value)
 	{
-		panel.add(new JLabel(label + ":"), at(0, row, GridBagConstraints.EAST));
+		panel.add(new JLabel(label + ":"));
 		JTextField field = new JTextField(value, 52);
 		field.setName("txtDetail" + label.replace(" ", ""));
 		field.setEditable(false);
-		panel.add(withMinimumWidth(field), stretched(1, row));
-		return row + 1;
+		panel.add(ToolForm.sized(field), ToolForm.FIELD);
 	}
 
 	private void onCreate()
@@ -551,68 +566,4 @@ public class KeyStorePanel extends JPanel
 		return button;
 	}
 
-	private static JPanel buttonRow(JButton... buttons)
-	{
-		JPanel panel = new JPanel(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT, 0, 0));
-		for (JButton button : buttons)
-		{
-			panel.add(button);
-		}
-		return panel;
-	}
-
-	private static GridBagConstraints at(int column, int row, int anchor)
-	{
-		GridBagConstraints constraints = new GridBagConstraints();
-		constraints.gridx = column;
-		constraints.gridy = row;
-		constraints.anchor = anchor;
-		constraints.insets = new Insets(4, 4, 4, 4);
-		return constraints;
-	}
-
-	/**
-	 * The constraints of the column that holds the inputs: what sits in it takes the width the
-	 * window has left over and shrinks with it, instead of being dropped to its minimum width the
-	 * moment the window is narrower than the grid wants. Labels and buttons keep their anchors.
-	 *
-	 * @param column
-	 *            the column the component sits in
-	 * @param row
-	 *            the row the component sits in
-	 * @return the constraints for a component of the input column
-	 */
-	private static GridBagConstraints stretched(int column, int row)
-	{
-		GridBagConstraints constraints = at(column, row, GridBagConstraints.WEST);
-		constraints.fill = GridBagConstraints.HORIZONTAL;
-		constraints.weightx = 1.0;
-		return constraints;
-	}
-
-	/**
-	 * Gives a component an honest minimum width, so that even the minimum layout - the one
-	 * GridBagLayout falls back to when the window is narrower than the grid wants - still shows a
-	 * field wide enough to read what is in it
-	 *
-	 * @param <C>
-	 *            the type of the component
-	 * @param component
-	 *            the component that gets the minimum width
-	 * @return the same component
-	 */
-	private static <C extends JComponent> C withMinimumWidth(C component)
-	{
-		component.setMinimumSize(
-			new Dimension(MINIMUM_INPUT_WIDTH, component.getPreferredSize().height));
-		return component;
-	}
-
-	private static GridBagConstraints span(int column, int row, int width)
-	{
-		GridBagConstraints constraints = at(column, row, GridBagConstraints.WEST);
-		constraints.gridwidth = width;
-		constraints.fill = GridBagConstraints.HORIZONTAL;
-		return constraints;
-	}
 }

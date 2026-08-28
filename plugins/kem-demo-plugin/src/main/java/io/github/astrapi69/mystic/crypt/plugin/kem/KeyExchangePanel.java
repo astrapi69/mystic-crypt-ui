@@ -26,11 +26,8 @@ package io.github.astrapi69.mystic.crypt.plugin.kem;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;
-import java.awt.Rectangle;
 import java.awt.Font;
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
-import java.awt.Insets;
+import java.awt.Rectangle;
 import java.io.File;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -38,8 +35,10 @@ import java.nio.file.Files;
 import javax.swing.*;
 
 import io.github.astrapi69.model.LambdaModel;
+import io.github.astrapi69.mystic.crypt.ui.form.ToolForm;
 import io.github.astrapi69.swing.model.component.JMComboBox;
 import io.github.astrapi69.swing.model.component.JMTextArea;
+import net.miginfocom.swing.MigLayout;
 
 /**
  * Tool panel for a key exchange between two people, where each side holds only its own half.
@@ -61,11 +60,23 @@ import io.github.astrapi69.swing.model.component.JMTextArea;
  * <p>
  * Every component is bound to {@link KeyExchangePanelModel}, so what a button works with is what
  * the model holds.
+ * <p>
+ * The frame and both tabs are built from {@link ToolForm}, the one layout every tool window in this
+ * application uses.
  */
 public class KeyExchangePanel extends JPanel
 {
 
 	private static final long serialVersionUID = 1L;
+
+	/**
+	 * A key or a handshake is the longest thing a tab holds, so its row takes twice the height a
+	 * larger window has left over
+	 */
+	private static final String KEY_ROW = "span 2, grow, pushx, pushy 200";
+
+	/** A message is shorter than a key, so its row takes three quarters of that */
+	private static final String MESSAGE_ROW = "span 2, grow, pushx, pushy 150";
 
 	private final KeyExchangePanelModel modelObject = new KeyExchangePanelModel();
 	private final JMComboBox<String, ?> cmbAlgorithm = new JMComboBox<>(
@@ -85,7 +96,9 @@ public class KeyExchangePanel extends JPanel
 
 	public KeyExchangePanel()
 	{
-		super(new BorderLayout(4, 4));
+		// one layout for every tool window: the algorithm on the first row, the two tabs taking the
+		// height that is left, the line that reports what happened at the bottom
+		super(ToolForm.newLayout());
 
 		bindToModel();
 
@@ -98,12 +111,10 @@ public class KeyExchangePanel extends JPanel
 		tabs.addTab("Receive", scrollable(newReceiveTab()));
 		tabs.addTab("Send", scrollable(newSendTab()));
 
-		JPanel top = new JPanel();
-		top.add(new JLabel("Algorithm:"));
-		top.add(cmbAlgorithm);
-		add(top, BorderLayout.NORTH);
-		add(tabs, BorderLayout.CENTER);
-		add(lblResult, BorderLayout.SOUTH);
+		add(new JLabel("Algorithm:"));
+		add(cmbAlgorithm, ToolForm.FIELD);
+		add(tabs, ToolForm.GROWING);
+		add(lblResult, ToolForm.RESULT_LINE);
 	}
 
 	/** Binds every entry component to its field in {@link KeyExchangePanelModel} */
@@ -136,28 +147,29 @@ public class KeyExchangePanel extends JPanel
 		txtEncryptedIn.setName("txtEncryptedIn");
 		txtMessageReceived.setName("txtMessageReceived");
 
-		JPanel panel = new JPanel(new GridBagLayout());
-		int row = 0;
-		panel.add(buttonRow(button("btnNewKeyPair", "New key pair", event -> onNewKeyPair()),
+		JPanel panel = new JPanel(ToolForm.newLayout());
+		panel.add(ToolForm.buttons(button("btnNewKeyPair", "New key pair", event -> onNewKeyPair()),
 			button("btnSaveMyKey", "Save my key...", event -> onSaveMyKey()),
 			button("btnLoadMyKey", "Load my key...", event -> onLoadMyKey())),
-			across(row++));
-		panel.add(new JLabel("1. Hand this public key to the other side:"), across(row++));
-		panel.add(scrolled(txtMyPublicKey), growing(row++, 2.0));
-		panel.add(buttonRow(button("btnSaveMyPublicKey", "Save public key...",
-			event -> onSaveToFile(modelObject.getMyPublicKey(), "public key"))), across(row++));
-		panel.add(new JLabel("2. Paste the handshake that came back:"), across(row++));
-		panel.add(scrolled(txtHandshakeIn), growing(row++, 2.0));
-		panel.add(buttonRow(button("btnLoadHandshake", "Load...",
+			ToolForm.BUTTON_ROW);
+		panel.add(new JLabel("1. Hand this public key to the other side:"), ToolForm.WIDE);
+		panel.add(scrolled(txtMyPublicKey), KEY_ROW);
+		panel.add(ToolForm.buttons(button("btnSaveMyPublicKey", "Save public key...",
+			event -> onSaveToFile(modelObject.getMyPublicKey(), "public key"))),
+			ToolForm.BUTTON_ROW);
+		panel.add(new JLabel("2. Paste the handshake that came back:"), ToolForm.WIDE);
+		panel.add(scrolled(txtHandshakeIn), KEY_ROW);
+		panel.add(ToolForm.buttons(button("btnLoadHandshake", "Load...",
 			event -> onLoadInto(txtHandshakeIn, modelObject::setHandshakeIn)),
 			button("btnDecapsulate", "Derive the secret", event -> onDecapsulate())),
-			across(row++));
-		panel.add(fingerprintRow("My secret:", lblMyFingerprint), across(row++));
-		panel.add(new JLabel("3. A message that arrived with it:"), across(row++));
-		panel.add(scrolled(txtEncryptedIn), growing(row++, 1.5));
-		panel.add(buttonRow(button("btnDecryptMessage", "Read it", event -> onDecryptMessage())),
-			across(row++));
-		panel.add(scrolled(txtMessageReceived), growing(row, 1.5));
+			ToolForm.BUTTON_ROW);
+		panel.add(fingerprintRow("My secret:", lblMyFingerprint), ToolForm.WIDE);
+		panel.add(new JLabel("3. A message that arrived with it:"), ToolForm.WIDE);
+		panel.add(scrolled(txtEncryptedIn), MESSAGE_ROW);
+		panel.add(
+			ToolForm.buttons(button("btnDecryptMessage", "Read it", event -> onDecryptMessage())),
+			ToolForm.BUTTON_ROW);
+		panel.add(scrolled(txtMessageReceived), MESSAGE_ROW);
 		return panel;
 	}
 
@@ -168,29 +180,30 @@ public class KeyExchangePanel extends JPanel
 		txtMessageToSend.setName("txtMessageToSend");
 		txtEncryptedOut.setName("txtEncryptedOut");
 
-		JPanel panel = new JPanel(new GridBagLayout());
-		int row = 0;
-		panel.add(new JLabel("1. Paste the public key you were given:"), across(row++));
-		panel.add(scrolled(txtTheirPublicKey), growing(row++, 2.0));
-		panel.add(buttonRow(button("btnLoadTheirPublicKey", "Load...",
+		JPanel panel = new JPanel(ToolForm.newLayout());
+		panel.add(new JLabel("1. Paste the public key you were given:"), ToolForm.WIDE);
+		panel.add(scrolled(txtTheirPublicKey), KEY_ROW);
+		panel.add(ToolForm.buttons(button("btnLoadTheirPublicKey", "Load...",
 			event -> onLoadInto(txtTheirPublicKey, modelObject::setTheirPublicKey)),
 			button("btnEncapsulate", "Make a shared secret", event -> onEncapsulate())),
-			across(row++));
-		panel.add(fingerprintRow("Shared secret:", lblTheirFingerprint), across(row++));
-		panel.add(new JLabel("2. Send this handshake back:"), across(row++));
-		panel.add(scrolled(txtHandshakeOut), growing(row++, 2.0));
-		panel.add(buttonRow(button("btnSaveHandshake", "Save...",
-			event -> onSaveToFile(modelObject.getHandshakeOut(), "handshake"))), across(row++));
-		panel.add(new JLabel("3. A message to send with it:"), across(row++));
-		panel.add(scrolled(txtMessageToSend), growing(row++, 1.5));
-		panel.add(buttonRow(button("btnEncryptMessage", "Encrypt it", event -> onEncryptMessage())),
-			across(row++));
-		panel.add(scrolled(txtEncryptedOut), growing(row++, 1.5));
-		panel.add(buttonRow(button("btnSaveEncrypted", "Save...",
-			event -> onSaveToFile(modelObject.getEncryptedOut(), "message"))), across(row));
+			ToolForm.BUTTON_ROW);
+		panel.add(fingerprintRow("Shared secret:", lblTheirFingerprint), ToolForm.WIDE);
+		panel.add(new JLabel("2. Send this handshake back:"), ToolForm.WIDE);
+		panel.add(scrolled(txtHandshakeOut), KEY_ROW);
+		panel.add(ToolForm.buttons(button("btnSaveHandshake", "Save...",
+			event -> onSaveToFile(modelObject.getHandshakeOut(), "handshake"))),
+			ToolForm.BUTTON_ROW);
+		panel.add(new JLabel("3. A message to send with it:"), ToolForm.WIDE);
+		panel.add(scrolled(txtMessageToSend), MESSAGE_ROW);
+		panel.add(
+			ToolForm.buttons(button("btnEncryptMessage", "Encrypt it", event -> onEncryptMessage())),
+			ToolForm.BUTTON_ROW);
+		panel.add(scrolled(txtEncryptedOut), MESSAGE_ROW);
+		panel.add(ToolForm.buttons(button("btnSaveEncrypted", "Save...",
+			event -> onSaveToFile(modelObject.getEncryptedOut(), "message"))),
+			ToolForm.BUTTON_ROW);
 		return panel;
 	}
-
 
 	/**
 	 * Puts a tab into a scroll pane that lets it grow.
@@ -452,8 +465,8 @@ public class KeyExchangePanel extends JPanel
 	}
 
 	/**
-	 * Wraps a text area of this panel in a scroll pane that keeps a usable minimum width, so
-	 * the area stays readable when the window is narrower than the tab wants
+	 * Wraps a text area of this panel in the scroll pane the shared layout shows it in, so the area
+	 * keeps a usable minimum width when the window is narrower than the tab wants
 	 *
 	 * @param area
 	 *            the area to wrap
@@ -463,26 +476,27 @@ public class KeyExchangePanel extends JPanel
 	{
 		area.setLineWrap(true);
 		area.setWrapStyleWord(false);
-		return KemPanelLayout.scrolled(area);
+		return ToolForm.scrolled(area);
 	}
 
+	/**
+	 * The line that reports a shared secret: its fingerprint next to what it belongs to, sitting at
+	 * the left edge like the button rows above it
+	 *
+	 * @param label
+	 *            what the fingerprint belongs to
+	 * @param fingerprint
+	 *            the label that carries the fingerprint
+	 * @return the row to add to the tab
+	 */
 	private static JPanel fingerprintRow(String label, JLabel fingerprint)
 	{
-		JPanel row = new JPanel();
+		JPanel row = new JPanel(new MigLayout("insets 0, gap 6", "[]", "[]"));
+		row.setOpaque(false);
 		row.add(new JLabel(label));
 		fingerprint.setFont(new Font(Font.MONOSPACED, Font.BOLD, fingerprint.getFont().getSize()));
 		row.add(fingerprint);
 		row.add(new JLabel("(both sides must read the same)"));
-		return row;
-	}
-
-	private static JPanel buttonRow(JButton... buttons)
-	{
-		JPanel row = new JPanel();
-		for (JButton button : buttons)
-		{
-			row.add(button);
-		}
 		return row;
 	}
 
@@ -493,47 +507,5 @@ public class KeyExchangePanel extends JPanel
 		button.setName(name);
 		button.addActionListener(listener);
 		return button;
-	}
-
-	/**
-	 * The constraints of the one column both tabs are built from. It carries the whole width of
-	 * the tab, so a field grows with the window and shrinks with it instead of falling back to the
-	 * width the widest button row happens to need.
-	 *
-	 * @param row
-	 *            the row of the cell
-	 * @return the constraints for that cell
-	 */
-	/**
-	 * A row that grows with the window, for the areas holding what the two sides read and paste.
-	 * <p>
-	 * Without a vertical weight the height of a larger window goes nowhere and every area keeps the
-	 * three rows it was built with: eight areas of 54 pixels and 450 pixels of empty space below
-	 * them, which is what this window used to look like at 780x900.
-	 *
-	 * @param row
-	 *            the row
-	 * @param share
-	 *            how much of the free height this row takes, relative to the other growing rows
-	 * @return the constraints
-	 */
-	private static GridBagConstraints growing(int row, double share)
-	{
-		GridBagConstraints constraints = across(row);
-		constraints.fill = GridBagConstraints.BOTH;
-		constraints.weighty = share;
-		return constraints;
-	}
-
-	private static GridBagConstraints across(int row)
-	{
-		GridBagConstraints constraints = new GridBagConstraints();
-		constraints.gridx = 0;
-		constraints.gridy = row;
-		constraints.anchor = GridBagConstraints.WEST;
-		constraints.fill = GridBagConstraints.HORIZONTAL;
-		constraints.weightx = 1.0;
-		constraints.insets = new Insets(2, 6, 2, 6);
-		return constraints;
 	}
 }

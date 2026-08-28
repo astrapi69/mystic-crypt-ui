@@ -39,6 +39,9 @@ dependencies {
     compileOnly "io.github.astrapi69:swing-model-components:1.2"
     compileOnly "io.github.astrapi69:model-data:3.2.1"
 
+    // the shared tool window layout (ToolForm in the host) is a MigLayout; the host brings the jar
+    // at runtime, so the plugin only needs it to compile against
+    compileOnly "com.miglayout:miglayout-swing:11.4.3"
 
     compileOnly "org.pf4j:pf4j:3.15.0"
     // required so the @Extension annotation processor runs and writes META-INF/extensions.idx
@@ -54,6 +57,8 @@ dependencies {
     // classpath as well
     testImplementation "io.github.astrapi69:swing-model-components:1.2"
     testImplementation "io.github.astrapi69:model-data:3.2.1"
+    // the panel test lays the panel out, so the layout manager has to be there as well
+    testImplementation "com.miglayout:miglayout-swing:11.4.3"
     testRuntimeOnly "org.junit.platform:junit-platform-launcher"
     // the settings contribution implements the host's extension point and reads through the host's
     // settings store, so the host jar has to be on the test classpath to load it

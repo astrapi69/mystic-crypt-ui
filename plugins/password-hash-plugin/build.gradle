@@ -29,6 +29,9 @@ dependencies {
     compileOnly "org.projectlombok:lombok:1.18.46"
     annotationProcessor "org.projectlombok:lombok:1.18.46"
 
+    // the shared tool window layout comes from the host, which brings MigLayout with it
+    compileOnly "com.miglayout:miglayout-swing:11.4.3"
+
     compileOnly "org.pf4j:pf4j:3.15.0"
     // required so the @Extension annotation processor runs and writes META-INF/extensions.idx
     annotationProcessor "org.pf4j:pf4j:3.15.0"
@@ -40,6 +43,7 @@ dependencies {
     // the settings contribution implements the host's extension point and reads through the host's
     // settings store, so the host jar has to be on the test classpath to load it
     testImplementation "io.github.astrapi69:mystic-crypt-ui:8.2-SNAPSHOT"
+    testImplementation "com.miglayout:miglayout-swing:11.4.3"
     testImplementation "org.pf4j:pf4j:3.15.0"
 
 }

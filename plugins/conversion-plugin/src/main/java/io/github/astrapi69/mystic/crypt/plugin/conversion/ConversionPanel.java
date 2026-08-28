@@ -24,20 +24,15 @@
  */
 package io.github.astrapi69.mystic.crypt.plugin.conversion;
 
-import java.awt.BorderLayout;
-import java.awt.Dimension;
 import java.awt.Font;
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
-import java.awt.Insets;
 import java.io.File;
 
 import javax.swing.*;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
-import javax.swing.text.JTextComponent;
 
 import io.github.astrapi69.model.LambdaModel;
+import io.github.astrapi69.mystic.crypt.ui.form.ToolForm;
 import io.github.astrapi69.swing.model.component.JMTextField;
 
 /**
@@ -50,6 +45,10 @@ import io.github.astrapi69.swing.model.component.JMTextField;
  * <p>
  * Every value the panel works with lives in its {@link ConversionPanelModel}: the text fields are
  * bound to it, and the buttons read the model rather than the widgets.
+ * <p>
+ * The form is laid out with {@link ToolForm}, the one shape every tool window in this application
+ * uses: labels in a narrow right aligned column, fields taking the width the window has, a row of
+ * buttons under what they act on and the result line at the bottom.
  */
 public class ConversionPanel extends JPanel
 {
@@ -57,10 +56,10 @@ public class ConversionPanel extends JPanel
 	private static final long serialVersionUID = 1L;
 
 	/**
-	 * The width a text field keeps even in the minimum layout a {@link GridBagLayout} falls
-	 * back to, so a narrow window shrinks the fields instead of collapsing them
+	 * A field that shares its cell with the button that browses for it: the field takes the width
+	 * of the field column, the button keeps its own width at the end of the row
 	 */
-	private static final int USABLE_FIELD_WIDTH = 160;
+	private static final String FIELD_WITH_BUTTON = ToolForm.FIELD + ", split 2";
 
 	private final ConversionPanelModel modelObject = new ConversionPanelModel();
 
@@ -77,35 +76,35 @@ public class ConversionPanel extends JPanel
 
 	public ConversionPanel()
 	{
-		super(new BorderLayout(4, 4));
+		super(ToolForm.newLayout());
 
 		txtSourceFile.setName("txtSourceFile");
 		txtTargetFile.setName("txtTargetFile");
 		lblWhatItHolds.setName("lblWhatItHolds");
 		lblResult.setName("lblResult");
 		lblResult.setFont(lblResult.getFont().deriveFont(Font.BOLD));
-		keepUsableWhenSqueezed(txtSourceFile);
-		keepUsableWhenSqueezed(txtTargetFile);
+		ToolForm.sized(txtSourceFile);
+		ToolForm.sized(txtTargetFile);
 
 		txtSourceFile.setPropertyModel(
 			LambdaModel.of(modelObject::getSourceFilePath, modelObject::setSourceFilePath));
 		txtTargetFile.setPropertyModel(
 			LambdaModel.of(modelObject::getTargetFilePath, modelObject::setTargetFilePath));
 
-		JPanel form = new JPanel(new GridBagLayout());
-		int row = 0;
-		form.add(new JLabel("File:"), at(0, row, GridBagConstraints.EAST));
-		form.add(txtSourceFile, stretching(1, row));
-		form.add(button("btnBrowseSource", "...", event -> onBrowseSource()),
-			at(2, row++, GridBagConstraints.WEST));
-		form.add(new JLabel("It holds:"), at(0, row, GridBagConstraints.EAST));
-		form.add(lblWhatItHolds, at(1, row++, GridBagConstraints.WEST));
-		form.add(new JLabel("Write to:"), at(0, row, GridBagConstraints.EAST));
-		form.add(txtTargetFile, stretching(1, row));
-		form.add(button("btnBrowseTarget", "...", event -> onBrowseTarget()),
-			at(2, row++, GridBagConstraints.WEST));
-		form.add(buttonRow(btnPemToDer, btnDerToPem, btnToPkcs8, btnToPkcs1),
-			at(1, row, GridBagConstraints.WEST));
+		add(new JLabel("File:"));
+		add(txtSourceFile, FIELD_WITH_BUTTON);
+		add(button("btnBrowseSource", "...", event -> onBrowseSource()));
+
+		add(new JLabel("It holds:"));
+		add(lblWhatItHolds, ToolForm.FIELD);
+
+		add(new JLabel("Write to:"));
+		add(txtTargetFile, FIELD_WITH_BUTTON);
+		add(button("btnBrowseTarget", "...", event -> onBrowseTarget()));
+
+		add(ToolForm.buttons(btnPemToDer, btnDerToPem, btnToPkcs8, btnToPkcs1),
+			ToolForm.BUTTON_ROW);
+		add(lblResult, ToolForm.RESULT_LINE);
 
 		// the file itself says what it is, so the tool looks as soon as there is a path - typed,
 		// pasted or picked
@@ -130,8 +129,6 @@ public class ConversionPanel extends JPanel
 			}
 		});
 
-		add(form, BorderLayout.CENTER);
-		add(lblResult, BorderLayout.SOUTH);
 		setConversionsFor(null);
 	}
 
@@ -337,59 +334,5 @@ public class ConversionPanel extends JPanel
 		button.setName(name);
 		button.addActionListener(listener);
 		return button;
-	}
-
-	private static JPanel buttonRow(JButton... buttons)
-	{
-		JPanel panel = new JPanel(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT, 0, 0));
-		for (JButton button : buttons)
-		{
-			panel.add(button);
-		}
-		return panel;
-	}
-
-	private static GridBagConstraints at(int column, int row, int anchor)
-	{
-		GridBagConstraints constraints = new GridBagConstraints();
-		constraints.gridx = column;
-		constraints.gridy = row;
-		constraints.anchor = anchor;
-		constraints.insets = new Insets(4, 4, 4, 4);
-		return constraints;
-	}
-
-	/**
-	 * Answers the constraints for the column that holds the input fields: that column takes
-	 * whatever width the window has left, so a window narrower than the panel wants shrinks
-	 * the fields instead of falling back to their minimum. Labels and buttons keep their
-	 * anchor and their own width.
-	 *
-	 * @param column
-	 *            the column of the grid the component goes into
-	 * @param row
-	 *            the row of the grid the component goes into
-	 * @return the constraints for a component that stretches with the window
-	 */
-	private static GridBagConstraints stretching(int column, int row)
-	{
-		GridBagConstraints constraints = at(column, row, GridBagConstraints.WEST);
-		constraints.fill = GridBagConstraints.HORIZONTAL;
-		constraints.weightx = 1.0;
-		return constraints;
-	}
-
-	/**
-	 * Gives a text component an honest minimum width. A text field reports a minimum width of
-	 * nearly nothing, so the minimum layout a {@link GridBagLayout} falls back to in a narrow
-	 * window left the field a few pixels wide and the user with nothing to type into.
-	 *
-	 * @param textComponent
-	 *            the text component that is kept readable
-	 */
-	private static void keepUsableWhenSqueezed(JTextComponent textComponent)
-	{
-		textComponent.setMinimumSize(
-			new Dimension(USABLE_FIELD_WIDTH, textComponent.getPreferredSize().height));
 	}
 }

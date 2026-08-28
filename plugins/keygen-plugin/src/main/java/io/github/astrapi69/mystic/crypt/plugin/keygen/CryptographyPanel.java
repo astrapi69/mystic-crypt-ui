@@ -32,11 +32,11 @@ import javax.swing.*;
 
 import io.github.astrapi69.crypt.api.key.KeySize;
 import io.github.astrapi69.crypt.data.key.KeyInfoExtensions;
-import io.github.astrapi69.layout.LayoutExtensions;
 import io.github.astrapi69.model.BaseModel;
 import io.github.astrapi69.model.api.IModel;
 import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
 import io.github.astrapi69.mystic.crypt.panel.certificate.NewCertificateInfoPanel;
+import io.github.astrapi69.mystic.crypt.ui.form.ToolForm;
 import io.github.astrapi69.mystic.crypt.wizard.CertificateWizardPanel;
 import io.github.astrapi69.mystic.crypt.wizard.model.CertificateInfoModel;
 import io.github.astrapi69.mystic.crypt.wizard.model.KeyInfoModel;
@@ -45,8 +45,6 @@ import io.github.astrapi69.swing.base.BasePanel;
 import io.github.astrapi69.swing.dialog.factory.JDialogFactory;
 import io.github.astrapi69.swing.listener.RequestFocusListener;
 import io.github.astrapi69.swing.model.combobox.EnumComboBoxModel;
-import io.github.astrapi69.swing.model.layout.GridBagLayoutModel;
-import io.github.astrapi69.swing.model.layout.InsetsModel;
 import lombok.Getter;
 import lombok.extern.java.Log;
 
@@ -75,6 +73,15 @@ public class CryptographyPanel extends BasePanel<GenerateKeysModelBean>
 	 * wants.
 	 */
 	private static final int MINIMUM_KEY_AREA_HEIGHT = 120;
+
+	/**
+	 * The width of a key area in characters. A PEM line is 64 characters wide, so a key area that
+	 * asks for this many columns shows a key line unwrapped at the size this panel prefers.
+	 */
+	private static final int KEY_AREA_COLUMNS = 64;
+
+	/** The number of key lines a key area shows before it scrolls */
+	private static final int KEY_AREA_ROWS = 5;
 
 	/**
 	 * The btn clear.
@@ -205,6 +212,12 @@ public class CryptographyPanel extends BasePanel<GenerateKeysModelBean>
 
 		txtPrivateKey.setEditable(false);
 		txtPublicKey.setEditable(false);
+		// a key area wraps instead of scrolling sideways, so that a window narrower than a PEM
+		// line still shows the whole key
+		txtPrivateKey.setLineWrap(true);
+		txtPrivateKey.setWrapStyleWord(false);
+		txtPublicKey.setLineWrap(true);
+		txtPublicKey.setWrapStyleWord(false);
 
 		// stable component names for UI tests (AssertJ-Swing lookups by name)
 		btnGenerate.setName("btnGenerate");
@@ -224,8 +237,8 @@ public class CryptographyPanel extends BasePanel<GenerateKeysModelBean>
 		btnSavePublicKey.addActionListener(actionEvent -> onSavePublicKey(actionEvent));
 		btnSaveCertificate.addActionListener(actionEvent -> onSaveCertificate(actionEvent));
 
-		txtPrivateKey.setColumns(20);
-		txtPrivateKey.setRows(5);
+		txtPrivateKey.setColumns(KEY_AREA_COLUMNS);
+		txtPrivateKey.setRows(KEY_AREA_ROWS);
 		scpPrivateKey.setViewportView(txtPrivateKey);
 		applyMinimumKeyAreaSize(scpPrivateKey);
 		txtPrivateKey.getAccessibleContext().setAccessibleDescription("");
@@ -240,8 +253,8 @@ public class CryptographyPanel extends BasePanel<GenerateKeysModelBean>
 
 		lblKeySize.setText("Keysize");
 
-		txtPublicKey.setColumns(20);
-		txtPublicKey.setRows(5);
+		txtPublicKey.setColumns(KEY_AREA_COLUMNS);
+		txtPublicKey.setRows(KEY_AREA_ROWS);
 		scpPublicKey.setViewportView(txtPublicKey);
 		applyMinimumKeyAreaSize(scpPublicKey);
 
@@ -361,172 +374,33 @@ public class CryptographyPanel extends BasePanel<GenerateKeysModelBean>
 		}
 	}
 
-	protected void onInitializeGridBagLayout()
+	/**
+	 * Lays this panel out with the layout every tool window in this application uses: the key size
+	 * in a labelled row, the two key areas below each other taking the height the window has left,
+	 * and every button in a row under the thing it acts on.
+	 */
+	protected void onInitializeMigLayout()
 	{
-		final GridBagLayout gbl = new GridBagLayout();
-		final GridBagConstraints gbc = new GridBagConstraints();
-		this.setLayout(gbl);
+		setLayout(ToolForm.newLayout());
 
-		LayoutExtensions.add(GridBagLayoutModel.builder().layoutComponent(lblKeySize).parent(this)
-			.gridBagLayout(gbl).gridBagConstraints(gbc).anchor(GridBagConstraints.NORTHWEST)
-			.fill(GridBagConstraints.BOTH)
-			.insets(InsetsModel.builder().top(2).left(2).bottom(2).right(2).build()).gridx(0)
-			.gridy(1).gridwidth(1).gridheight(1).weightx(100).weighty(100).build());
+		add(lblKeySize);
+		add(cmbKeySize, ToolForm.FIELD);
+		add(ToolForm.buttons(btnGenerate, btnClear), ToolForm.BUTTON_ROW);
 
-		LayoutExtensions.add(GridBagLayoutModel.builder().layoutComponent(lblPrivateKey)
-			.parent(this).gridBagLayout(gbl).gridBagConstraints(gbc)
-			.anchor(GridBagConstraints.NORTHWEST).fill(GridBagConstraints.BOTH)
-			.insets(InsetsModel.builder().top(2).left(2).bottom(2).right(2).build()).gridx(1)
-			.gridy(1).gridwidth(1).gridheight(1).weightx(100).weighty(100).build());
+		add(lblPrivateKey, "aligny top");
+		add(scpPrivateKey, "grow, push");
+		add(ToolForm.buttons(btnSavePrivateKey, btnSavePrivKeyWithPw), ToolForm.BUTTON_ROW);
 
-		LayoutExtensions.add(GridBagLayoutModel.builder().layoutComponent(lblPublicKey).parent(this)
-			.gridBagLayout(gbl).gridBagConstraints(gbc).anchor(GridBagConstraints.NORTHWEST)
-			.fill(GridBagConstraints.BOTH)
-			.insets(InsetsModel.builder().top(2).left(2).bottom(2).right(2).build()).gridx(2)
-			.gridy(1).gridwidth(1).gridheight(1).weightx(100).weighty(100).build());
-
-		LayoutExtensions.add(GridBagLayoutModel.builder().layoutComponent(cmbKeySize).parent(this)
-			.gridBagLayout(gbl).gridBagConstraints(gbc).anchor(GridBagConstraints.NORTHWEST)
-			.fill(GridBagConstraints.HORIZONTAL)
-			.insets(InsetsModel.builder().top(2).left(2).bottom(2).right(2).build()).gridx(0)
-			.gridy(2).gridwidth(1).gridheight(1).weightx(100).weighty(100).build());
-
-		LayoutExtensions.add(GridBagLayoutModel.builder().layoutComponent(txtPrivateKey)
-			.parent(this).gridBagLayout(gbl).gridBagConstraints(gbc)
-			.anchor(GridBagConstraints.NORTHWEST).fill(GridBagConstraints.BOTH)
-			.insets(InsetsModel.builder().top(2).left(2).bottom(2).right(2).build()).gridx(1)
-			.gridy(2).gridwidth(1).gridheight(1).weightx(100).weighty(100).build());
-
-		LayoutExtensions.add(GridBagLayoutModel.builder().layoutComponent(txtPublicKey).parent(this)
-			.gridBagLayout(gbl).gridBagConstraints(gbc).anchor(GridBagConstraints.NORTHWEST)
-			.fill(GridBagConstraints.BOTH)
-			.insets(InsetsModel.builder().top(2).left(2).bottom(2).right(2).build()).gridx(2)
-			.gridy(2).ipady(140)// make this component tall
-			.gridwidth(1).gridheight(1).weightx(100).weighty(100).build());
-
-		LayoutExtensions.add(GridBagLayoutModel.builder().layoutComponent(btnGenerate).parent(this)
-			.gridBagLayout(gbl).gridBagConstraints(gbc).anchor(GridBagConstraints.NORTHWEST)
-			.fill(GridBagConstraints.HORIZONTAL)
-			.insets(InsetsModel.builder().top(2).left(2).bottom(2).right(2).build()).gridx(0)
-			.gridy(3).gridwidth(1).gridheight(1).weightx(100).weighty(100).build());
-
-		LayoutExtensions.add(GridBagLayoutModel.builder().layoutComponent(btnClear).parent(this)
-			.gridBagLayout(gbl).gridBagConstraints(gbc).anchor(GridBagConstraints.NORTHWEST)
-			.fill(GridBagConstraints.HORIZONTAL)
-			.insets(InsetsModel.builder().top(2).left(2).bottom(2).right(2).build()).gridx(0)
-			.gridy(4).gridwidth(1).gridheight(1).weightx(100).weighty(100).build());
-
-		LayoutExtensions.add(GridBagLayoutModel.builder().layoutComponent(btnSavePrivateKey)
-			.parent(this).gridBagLayout(gbl).gridBagConstraints(gbc)
-			.anchor(GridBagConstraints.NORTHWEST).fill(GridBagConstraints.BOTH)
-			.insets(InsetsModel.builder().top(2).left(2).bottom(2).right(2).build()).gridx(1)
-			.gridy(5).gridwidth(1).gridheight(1).weightx(100).weighty(100).build());
-
-		LayoutExtensions.add(GridBagLayoutModel.builder().layoutComponent(btnSavePublicKey)
-			.parent(this).gridBagLayout(gbl).gridBagConstraints(gbc)
-			.anchor(GridBagConstraints.NORTHWEST).fill(GridBagConstraints.BOTH)
-			.insets(InsetsModel.builder().top(2).left(2).bottom(2).right(2).build()).gridx(2)
-			.gridy(5).gridwidth(1).gridheight(1).weightx(100).weighty(100).build());
-
-	}
-
-	protected void onInitializeGroupLayout()
-	{
-		final javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
-		this.setLayout(layout);
-		layout.setHorizontalGroup(layout
-			.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-			.addGroup(layout.createSequentialGroup().addGroup(layout
-				.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-				.addGroup(layout.createSequentialGroup().addContainerGap().addGroup(
-					layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-						.addComponent(cmbKeySize, 0, javax.swing.GroupLayout.DEFAULT_SIZE,
-							Short.MAX_VALUE)
-						.addComponent(btnGenerate, javax.swing.GroupLayout.DEFAULT_SIZE, 206,
-							Short.MAX_VALUE)))
-				.addGroup(layout.createSequentialGroup().addGap(21, 21, 21).addComponent(lblKeySize,
-					javax.swing.GroupLayout.PREFERRED_SIZE, 147,
-					javax.swing.GroupLayout.PREFERRED_SIZE))
-				.addGroup(layout.createSequentialGroup().addContainerGap().addComponent(btnClear,
-					javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE,
-					Short.MAX_VALUE)))
-				.addGap(18, 18, 18)
-				.addGroup(layout
-					.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-					.addGroup(layout.createSequentialGroup()
-						.addComponent(btnSavePrivKeyWithPw, javax.swing.GroupLayout.DEFAULT_SIZE,
-							267, 267)
-						.addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED,
-							javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-						.addComponent(btnSavePrivateKey, javax.swing.GroupLayout.DEFAULT_SIZE,
-							174, 174))
-					.addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-						.addComponent(scpPrivateKey, javax.swing.GroupLayout.DEFAULT_SIZE, 480,
-							Short.MAX_VALUE)
-						.addComponent(lblPrivateKey, javax.swing.GroupLayout.PREFERRED_SIZE, 147,
-							javax.swing.GroupLayout.PREFERRED_SIZE)))
-				.addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 56,
-					Short.MAX_VALUE)
-				.addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-					.addComponent(lblPublicKey, javax.swing.GroupLayout.PREFERRED_SIZE, 147,
-						javax.swing.GroupLayout.PREFERRED_SIZE)
-					.addGroup(layout
-						.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-						.addGroup(layout.createSequentialGroup()
-							.addComponent(btnSaveCertificate,
-								javax.swing.GroupLayout.DEFAULT_SIZE, 174, 174)
-							.addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED,
-								javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-							.addComponent(btnSavePublicKey, javax.swing.GroupLayout.DEFAULT_SIZE,
-								174, 174))
-						.addComponent(scpPublicKey, javax.swing.GroupLayout.DEFAULT_SIZE, 480,
-							Short.MAX_VALUE)))
-				.addContainerGap(28, Short.MAX_VALUE)));
-		layout
-			.setVerticalGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-				.addGroup(layout.createSequentialGroup().addGap(26, 26, 26)
-					.addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-						.addComponent(lblPrivateKey, javax.swing.GroupLayout.PREFERRED_SIZE, 29,
-							javax.swing.GroupLayout.PREFERRED_SIZE)
-						.addComponent(lblKeySize, javax.swing.GroupLayout.PREFERRED_SIZE, 29,
-							javax.swing.GroupLayout.PREFERRED_SIZE)
-						.addComponent(lblPublicKey, javax.swing.GroupLayout.PREFERRED_SIZE, 29,
-							javax.swing.GroupLayout.PREFERRED_SIZE))
-					.addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-					.addGroup(layout
-						.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-						.addGroup(layout.createSequentialGroup()
-							.addComponent(cmbKeySize, javax.swing.GroupLayout.PREFERRED_SIZE, 43,
-								javax.swing.GroupLayout.PREFERRED_SIZE)
-							.addGap(18, 18, 18)
-							.addComponent(btnGenerate, javax.swing.GroupLayout.PREFERRED_SIZE, 41,
-								javax.swing.GroupLayout.PREFERRED_SIZE)
-							.addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-							.addComponent(btnClear, javax.swing.GroupLayout.PREFERRED_SIZE, 41,
-								javax.swing.GroupLayout.PREFERRED_SIZE))
-						.addComponent(scpPrivateKey, javax.swing.GroupLayout.DEFAULT_SIZE, 265,
-							Short.MAX_VALUE)
-						.addComponent(scpPublicKey))
-					.addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 24,
-						Short.MAX_VALUE)
-					.addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-						.addComponent(btnSaveCertificate, javax.swing.GroupLayout.PREFERRED_SIZE,
-							41, javax.swing.GroupLayout.PREFERRED_SIZE)
-						.addComponent(btnSavePrivateKey, javax.swing.GroupLayout.PREFERRED_SIZE, 41,
-							javax.swing.GroupLayout.PREFERRED_SIZE)
-						.addComponent(btnSavePrivKeyWithPw, javax.swing.GroupLayout.PREFERRED_SIZE,
-							41, javax.swing.GroupLayout.PREFERRED_SIZE)
-						.addComponent(btnSavePublicKey, javax.swing.GroupLayout.PREFERRED_SIZE, 41,
-							javax.swing.GroupLayout.PREFERRED_SIZE))
-					.addContainerGap()));
+		add(lblPublicKey, "aligny top");
+		add(scpPublicKey, "grow, push");
+		add(ToolForm.buttons(btnSavePublicKey, btnSaveCertificate), ToolForm.BUTTON_ROW);
 	}
 
 	@Override
 	protected void onInitializeLayout()
 	{
 		super.onInitializeLayout();
-		onInitializeGroupLayout();
-		// onInitializeGridBagLayout();
+		onInitializeMigLayout();
 	}
 
 	/**

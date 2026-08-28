@@ -54,12 +54,13 @@ import io.github.astrapi69.mystic.crypt.settings.PluginSettings;
  * The collapse this protects against is the one measured on the sibling panels: a text component in
  * a {@code GridBagLayout} column without {@code fill} and without {@code weightx} falls back to its
  * minimum width, which for a text component is close to zero, so the field does not shrink, it
- * disappears. This panel does not fall into that trap, because the editor sits in a scroll pane in
- * the center of a {@link java.awt.BorderLayout}. Measured before the change:
+ * disappears. This panel does not fall into that trap, because the editor sits in a scroll pane
+ * that spans the whole width of the shared tool window layout and takes the height that is left.
+ * Measured:
  * <ul>
- * <li>at the preferred width of 676 px the editor is 673 px wide</li>
- * <li>120 px below it, at 556 px, the editor is still 630 px wide and the scroll pane shows a
- * horizontal scroll bar</li>
+ * <li>at the preferred width of 664 px the editor is 637 px wide</li>
+ * <li>120 px below it, at 544 px, the editor is still 637 px wide, because the scroll pane states a
+ * minimum width the layout does not go below</li>
  * </ul>
  * What was dishonest was the minimum. The scroll pane around the editor reported 22 x 22 px, the
  * bare minimum of an empty viewport, so every container that honours minimum sizes was free to

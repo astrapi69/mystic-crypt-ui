@@ -42,9 +42,9 @@ import io.github.astrapi69.model.api.IModel;
 import io.github.astrapi69.mystic.crypt.obfuscation.character.ObfuscatorExtensions;
 import io.github.astrapi69.mystic.crypt.panel.keygen.EnDecryptPanel;
 import io.github.astrapi69.mystic.crypt.plugin.obfuscation.ModeContext;
+import io.github.astrapi69.mystic.crypt.ui.form.ToolForm;
 import io.github.astrapi69.swing.base.BasePanel;
 import lombok.Getter;
-import net.miginfocom.swing.MigLayout;
 
 @Getter
 public class OperationRulePanel extends BasePanel<ObfuscationOperationModelBean>
@@ -279,12 +279,16 @@ public class OperationRulePanel extends BasePanel<ObfuscationOperationModelBean>
 		onInitializeMigLayout();
 	}
 
+	/**
+	 * Lays this tool window out with the shared form: the rule editor on top, the table of rules
+	 * taking the height the window has left, and the obfuscate / disentangle panel under it
+	 */
 	protected void onInitializeMigLayout()
 	{
-		setLayout(new MigLayout());
-		add(simpleRulePanel, "wrap");
-		add(simpleRuleTablePanel, "wrap");
-		add(enDecryptPanel);
+		setLayout(ToolForm.newLayout());
+		add(simpleRulePanel, ToolForm.WIDE);
+		add(simpleRuleTablePanel, ToolForm.GROWING);
+		add(enDecryptPanel, ToolForm.WIDE);
 	}
 
 }

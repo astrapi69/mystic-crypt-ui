@@ -53,6 +53,9 @@ import io.github.astrapi69.mystic.crypt.settings.PluginSettings;
  * pixels below the preferred width the fields were 5 pixels and the areas 4 pixels wide. With
  * the horizontal fill and the weight on the input column the same measurement gives 543 pixels
  * for the fields and 525 pixels for the areas.
+ * <p>
+ * The panel is laid out with the shared {@code ToolForm} since then, whose field column grows the
+ * same way; the numbers above are kept as the record of the bug this test guards against.
  */
 @DisplayName("the signature panel keeps every text component readable in a narrow window")
 class PqcSignaturePanelLayoutTest
