@@ -30,6 +30,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.awt.Component;
 import java.awt.Container;
 import java.io.File;
+import java.nio.file.Files;
 import java.security.KeyStore;
 import java.security.Security;
 import java.util.ArrayList;
@@ -38,6 +39,7 @@ import java.util.UUID;
 
 import javax.swing.JButton;
 import javax.swing.JComboBox;
+import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPasswordField;
 import javax.swing.JTextField;
@@ -49,6 +51,8 @@ import org.junit.jupiter.api.io.TempDir;
 
 import io.github.astrapi69.crypt.api.algorithm.key.KeyPairGeneratorAlgorithm;
 import io.github.astrapi69.crypt.api.type.KeystoreType;
+import io.github.astrapi69.swing.model.component.JMTextArea;
+import io.github.astrapi69.swing.model.component.JMTextField;
 
 /**
  * Tests that the components of {@link KeyStorePanel} are bound to {@link KeyStorePanelModel}: what
@@ -67,6 +71,9 @@ class KeyStorePanelBindingTest
 	private static final String STORE_PASSWORD = "store-" + UUID.randomUUID();
 
 	private static final String DISTINGUISHED_NAME = "CN=bound panel";
+
+	/** The alias every test that needs an entry writes its key pair under */
+	private static final String ALIAS = "bound-alias";
 
 	@BeforeAll
 	static void registerBouncyCastle()
@@ -97,6 +104,30 @@ class KeyStorePanelBindingTest
 			}
 		}
 		return null;
+	}
+
+	/**
+	 * A panel with a key store of its own, holding one key pair under {@link #ALIAS} - built the way
+	 * a user builds it, by typing into the components and pressing the buttons
+	 *
+	 * @param storeFile
+	 *            the file the store is created in
+	 * @return the panel, with the store open and the entry in it
+	 */
+	private static KeyStorePanel panelWithAKeyPair(File storeFile)
+	{
+		KeyStorePanel panel = new KeyStorePanel();
+		named(panel, "txtKeyStoreFile", JTextField.class).setText(storeFile.getAbsolutePath());
+		named(panel, "cmbType", JComboBox.class).setSelectedItem(KeystoreType.PKCS12);
+		named(panel, "pwdStore", JPasswordField.class).setText(STORE_PASSWORD);
+		named(panel, "btnCreate", JButton.class).doClick();
+
+		named(panel, "txtAlias", JTextField.class).setText(ALIAS);
+		named(panel, "txtDistinguishedName", JTextField.class).setText(DISTINGUISHED_NAME);
+		named(panel, "cmbKeyAlgorithm", JComboBox.class)
+			.setSelectedItem(KeyPairGeneratorAlgorithm.EC);
+		named(panel, "btnAddKeyPair", JButton.class).doClick();
+		return panel;
 	}
 
 	private static List<Object> itemsOf(JComboBox<?> comboBox)
@@ -141,26 +172,63 @@ class KeyStorePanelBindingTest
 	void addKeyPairUsesTheAliasSubjectAndAlgorithmFromTheBoundComponents(@TempDir File directory)
 		throws Exception
 	{
-		KeyStorePanel panel = new KeyStorePanel();
 		File storeFile = new File(directory, "bound-entries.p12");
 
-		named(panel, "txtKeyStoreFile", JTextField.class).setText(storeFile.getAbsolutePath());
-		named(panel, "cmbType", JComboBox.class).setSelectedItem(KeystoreType.PKCS12);
-		named(panel, "pwdStore", JPasswordField.class).setText(STORE_PASSWORD);
-		named(panel, "btnCreate", JButton.class).doClick();
-
-		named(panel, "txtAlias", JTextField.class).setText("bound-alias");
-		named(panel, "txtDistinguishedName", JTextField.class).setText(DISTINGUISHED_NAME);
-		named(panel, "cmbKeyAlgorithm", JComboBox.class)
-			.setSelectedItem(KeyPairGeneratorAlgorithm.EC);
-
-		named(panel, "btnAddKeyPair", JButton.class).doClick();
+		panelWithAKeyPair(storeFile);
 
 		KeyStore reopened = KeyStoreSupport.open(storeFile, KeystoreType.PKCS12, STORE_PASSWORD);
-		assertTrue(reopened.containsAlias("bound-alias"),
+		assertTrue(reopened.containsAlias(ALIAS),
 			"the alias of the bound field did not reach the store");
-		assertEquals(DISTINGUISHED_NAME,
-			KeyStoreSupport.details(reopened, "bound-alias").subject());
+		assertEquals(DISTINGUISHED_NAME, KeyStoreSupport.details(reopened, ALIAS).subject());
+	}
+
+	/**
+	 * Exporting writes the certificate where the bound field points and puts the path it wrote to
+	 * back - the file on disk proves the path travelled through the model in both directions
+	 */
+	@Test
+	void exportWritesThePemWhereTheBoundFieldPointsAndPutsThePathBack(@TempDir File directory)
+		throws Exception
+	{
+		File storeFile = new File(directory, "bound-export.p12");
+		KeyStorePanel panel = panelWithAKeyPair(storeFile);
+		File pemFile = new File(directory, "exported.pem");
+		named(panel, "txtCertificateFile", JTextField.class).setText(pemFile.getAbsolutePath());
+
+		named(panel, "btnExport", JButton.class).doClick();
+
+		assertTrue(pemFile.exists(), "the certificate was not written where the field points");
+		assertTrue(Files.readString(pemFile.toPath()).contains("BEGIN CERTIFICATE"),
+			"what was written is not a certificate in PEM form");
+		assertEquals("exported '" + ALIAS + "' to " + pemFile.getName(),
+			named(panel, "lblResult", JLabel.class).getText());
+		assertEquals(pemFile.getAbsolutePath(),
+			named(panel, "txtCertificateFile", JTextField.class).getText(),
+			"the path the certificate went to did not come back into the bound field");
+	}
+
+	/**
+	 * The details of a certificate are shown in model backed components as well: what a user reads
+	 * and copies out of them is what the certificate holds, and it is readable from their models
+	 */
+	@Test
+	void theDetailsShowWhatTheCertificateHoldsInModelBackedComponents(@TempDir File directory)
+		throws Exception
+	{
+		File storeFile = new File(directory, "bound-details.p12");
+		KeyStorePanel panel = panelWithAKeyPair(storeFile);
+		KeyStore reopened = KeyStoreSupport.open(storeFile, KeystoreType.PKCS12, STORE_PASSWORD);
+		KeyStoreSupport.CertificateDetails details = KeyStoreSupport.details(reopened, ALIAS);
+
+		JComponent detailsPanel = panel.newDetailsPanel(details);
+
+		JMTextArea pem = named(detailsPanel, "txtCertificatePem", JMTextArea.class);
+		JMTextField subject = named(detailsPanel, "txtDetailIssuedto", JMTextField.class);
+		JMTextField fingerprint = named(detailsPanel, "txtDetailSHA-256", JMTextField.class);
+		assertEquals(details.pem(), pem.getPropertyModel().getObject(),
+			"the certificate itself is not in the model of the component that shows it");
+		assertEquals(details.subject(), subject.getPropertyModel().getObject());
+		assertEquals(details.fingerprint(), fingerprint.getPropertyModel().getObject());
 	}
 
 	/**

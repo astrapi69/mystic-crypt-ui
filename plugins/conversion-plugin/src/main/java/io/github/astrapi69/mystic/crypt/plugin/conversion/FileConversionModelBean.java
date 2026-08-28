@@ -51,6 +51,10 @@ public class FileConversionModelBean implements Serializable
 	/** The Constant serialVersionUID. */
 	private static final long serialVersionUID = 1L;
 
+	/** The text the console of the panel shows. */
+	@Builder.Default
+	String consoleOutput = "";
+
 	/** The der file. */
 	File derFile;
 

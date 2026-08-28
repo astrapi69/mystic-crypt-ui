@@ -31,6 +31,9 @@ dependencies {
     compileOnly "io.github.astrapi69:crypt-data:12.0.0"
     // random bytes for a nonce, an initialisation vector or a salt
     compileOnly "io.github.astrapi69:randomizer:10.4"
+    // the model backed components the panels bind to their model; the host brings both jars at
+    // runtime, so they stay compileOnly here like everything else
+    compileOnly "io.github.astrapi69:swing-model-components:1.2"
     compileOnly "io.github.astrapi69:model-data:3.2.1"
     compileOnly "io.github.astrapi69:swing-base-components:5.1"
     compileOnly "io.github.astrapi69:swing-components:9"
@@ -60,6 +63,9 @@ dependencies {
     // the layout test builds the real panels, so their base classes have to be on the test
     // compile classpath as well (the host jar exposes them only at runtime)
     testImplementation "io.github.astrapi69:swing-base-components:5.1"
+    // the binding tests build the real panels, so the model backed components have to be on the
+    // test classpath as well
+    testImplementation "io.github.astrapi69:swing-model-components:1.2"
     testImplementation "io.github.astrapi69:model-data:3.2.1"
     // the panels lay themselves out with the host's ToolForm, which returns a MigLayout
     testImplementation "com.miglayout:miglayout-swing:11.4.3"

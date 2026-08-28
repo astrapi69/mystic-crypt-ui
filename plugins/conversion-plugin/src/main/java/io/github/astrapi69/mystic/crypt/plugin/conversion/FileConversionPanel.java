@@ -42,13 +42,24 @@ import io.github.astrapi69.crypt.data.key.writer.CertificateWriter;
 import io.github.astrapi69.crypt.data.key.writer.PrivateKeyWriter;
 import io.github.astrapi69.crypt.data.key.writer.PublicKeyWriter;
 import io.github.astrapi69.model.BaseModel;
+import io.github.astrapi69.model.LambdaModel;
 import io.github.astrapi69.model.api.IModel;
 import io.github.astrapi69.swing.base.BasePanel;
 import io.github.astrapi69.swing.model.combobox.EnumComboBoxModel;
+import io.github.astrapi69.swing.model.component.JMComboBox;
+import io.github.astrapi69.swing.model.component.JMTextArea;
 import io.github.astrapi69.throwable.ThrowableExtensions;
 import lombok.Getter;
 import lombok.extern.java.Log;
 
+/**
+ * Tool panel that writes a DER encoded key or certificate out in the PEM format.
+ * <p>
+ * Every value the panel works with lives in its {@link FileConversionModelBean}: the type to
+ * convert is chosen in a combo box bound to it, the two files are put there by the file choosers,
+ * and the console shows what the model holds. The convert button reads the model, never the
+ * widgets.
+ */
 @Getter
 @Log
 public class FileConversionPanel extends BasePanel<FileConversionModelBean>
@@ -58,14 +69,14 @@ public class FileConversionPanel extends BasePanel<FileConversionModelBean>
 	private JButton btnChoose;
 	private JButton btnConvert;
 	private JButton btnSaveTo;
-	private JComboBox<KeyType> cmbChooseType;
+	private JMComboBox<KeyType, EnumComboBoxModel<KeyType>> cmbChooseType;
 	private JFileChooser fileChooser;
 	private JLabel lblChoose;
 	private JLabel lblChooseType;
 	private JLabel lblConsole;
 	private JLabel lblSaveTo;
 	private JScrollPane srcConsole;
-	private JTextArea txtConsole;
+	private JMTextArea txtConsole;
 
 	public FileConversionPanel()
 	{
@@ -75,21 +86,6 @@ public class FileConversionPanel extends BasePanel<FileConversionModelBean>
 	public FileConversionPanel(final IModel<FileConversionModelBean> model)
 	{
 		super(model);
-	}
-
-	/**
-	 * Callback method that can be overwritten to provide specific action for the on change key
-	 * size.
-	 *
-	 * @param actionEvent
-	 *            the action event
-	 */
-	@SuppressWarnings("unchecked")
-	protected void onChangeKeyType(final ActionEvent actionEvent)
-	{
-		final JComboBox<String> cb = (JComboBox<String>)actionEvent.getSource();
-		final KeyType selected = (KeyType)cb.getSelectedItem();
-		getModelObject().setKeyType(selected);
 	}
 
 	protected void onChooseFile(final ActionEvent actionEvent)
@@ -163,26 +159,23 @@ public class FileConversionPanel extends BasePanel<FileConversionModelBean>
 		// -----------------------------
 
 		lblChooseType = new JLabel();
-		cmbChooseType = new JComboBox<>();
+		cmbChooseType = new JMComboBox<>(new EnumComboBoxModel<>(KeyType.class));
 		lblChoose = new JLabel();
 		btnChoose = new JButton();
 		lblSaveTo = new JLabel();
 		btnSaveTo = new JButton();
 		lblConsole = new JLabel();
 		srcConsole = new JScrollPane();
-		txtConsole = new JTextArea();
+		txtConsole = new JMTextArea();
 		btnConvert = new JButton();
 
 		lblChooseType.setText("Choose type to convert");
 
-		cmbChooseType.setModel(new EnumComboBoxModel<>(KeyType.class));
 		// what the model already carries wins; otherwise the tool starts with the configured type
 		KeyType keyType = getModelObject().getKeyType() != null
 			? getModelObject().getKeyType()
 			: ConversionSettingsContribution.keyType();
 		getModelObject().setKeyType(keyType);
-		cmbChooseType.setSelectedItem(keyType);
-		cmbChooseType.addActionListener(this::onChangeKeyType);
 
 		lblChoose.setText("Choose private key in *.der format to convert");
 
@@ -207,6 +200,8 @@ public class FileConversionPanel extends BasePanel<FileConversionModelBean>
 		txtConsole.setName("txtConsole");
 		cmbChooseType.setName("cmbChooseType");
 
+		bindComponents();
+
 		// -----------------------------
 
 		btnChoose.addActionListener(this::onChooseFile);
@@ -214,6 +209,20 @@ public class FileConversionPanel extends BasePanel<FileConversionModelBean>
 		btnSaveTo.addActionListener(this::onSaveFile);
 
 		btnConvert.addActionListener(this::onConvert);
+	}
+
+	/**
+	 * Binds the components to the panel's model, so that what is chosen is in the model at once and
+	 * the console shows what the model holds. The combo box carries the type the model already
+	 * names, and every line appended to the console lands in the model with it.
+	 */
+	private void bindComponents()
+	{
+		final FileConversionModelBean modelObject = getModelObject();
+		cmbChooseType
+			.setPropertyModel(LambdaModel.of(modelObject::getKeyType, modelObject::setKeyType));
+		txtConsole.setPropertyModel(
+			LambdaModel.of(modelObject::getConsoleOutput, modelObject::setConsoleOutput));
 	}
 
 	/**

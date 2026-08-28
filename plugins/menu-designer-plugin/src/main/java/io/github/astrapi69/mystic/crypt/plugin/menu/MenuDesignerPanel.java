@@ -31,8 +31,10 @@ import java.util.List;
 
 import javax.swing.*;
 
+import io.github.astrapi69.model.LambdaModel;
 import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
 import io.github.astrapi69.mystic.crypt.ui.form.ToolForm;
+import io.github.astrapi69.swing.model.component.JMTextArea;
 
 /**
  * Tool panel for viewing and editing the application menu as xml.
@@ -43,6 +45,9 @@ import io.github.astrapi69.mystic.crypt.ui.form.ToolForm;
  * because the layout only refers to action ids that are harvested from the running menu; unknown
  * ids produce a disabled item instead of breaking the menu. "Reset" removes a persisted layout
  * again.
+ * <p>
+ * The editor is bound to {@link MenuDesignerPanelModel}, so the xml a button works with is read
+ * from the model rather than out of the widget.
  */
 public class MenuDesignerPanel extends JPanel
 {
@@ -55,7 +60,10 @@ public class MenuDesignerPanel extends JPanel
 	/** The height the xml editor keeps even in a layout that is built from minimum sizes */
 	private static final int MINIMUM_EDITOR_HEIGHT = 160;
 
-	private final JTextArea txtMenuXml = new JTextArea(24, 90);
+	/** The xml being edited and the message of the last operation; the editor writes into it */
+	private final transient MenuDesignerPanelModel modelObject = new MenuDesignerPanelModel();
+
+	private final JMTextArea txtMenuXml = new JMTextArea(24, 90);
 	private final JLabel lblResult = new JLabel(" ");
 
 	public MenuDesignerPanel()
@@ -64,6 +72,8 @@ public class MenuDesignerPanel extends JPanel
 		// editor taking the height that is left, the buttons under what they act on, the result of
 		// the last one of them on the line below
 		super(ToolForm.newLayout());
+
+		bindToModel();
 
 		txtMenuXml.setName("txtMenuXml");
 		txtMenuXml.setFont(new Font("monospaced", Font.PLAIN, 12));
@@ -84,6 +94,16 @@ public class MenuDesignerPanel extends JPanel
 		{
 			onExport();
 		}
+	}
+
+	/**
+	 * Binds the editor to the model, so that every edit lands in the model and the model is what
+	 * the buttons read
+	 */
+	private void bindToModel()
+	{
+		txtMenuXml.setPropertyModel(
+			LambdaModel.of(modelObject::getMenuXml, modelObject::setMenuXml));
 	}
 
 	/**
@@ -113,17 +133,40 @@ public class MenuDesignerPanel extends JPanel
 		return button;
 	}
 
+	/**
+	 * Shows the given menu xml in the editor, which carries it into the model on its way
+	 *
+	 * @param menuXml
+	 *            the menu xml to show
+	 */
+	private void showMenuXml(String menuXml)
+	{
+		txtMenuXml.setText(menuXml);
+		txtMenuXml.setCaretPosition(0);
+	}
+
+	/**
+	 * Reports what the last operation did, in the model and on the line below the buttons
+	 *
+	 * @param resultMessage
+	 *            the message of the last operation
+	 */
+	private void showResult(String resultMessage)
+	{
+		modelObject.setResultMessage(resultMessage);
+		lblResult.setText(resultMessage);
+	}
+
 	private void onExport()
 	{
 		try
 		{
-			txtMenuXml.setText(MysticCryptApplicationFrame.getInstance().exportCurrentMenuXml());
-			txtMenuXml.setCaretPosition(0);
-			lblResult.setText("exported the current menu");
+			showMenuXml(MysticCryptApplicationFrame.getInstance().exportCurrentMenuXml());
+			showResult("exported the current menu");
 		}
 		catch (Exception exception)
 		{
-			lblResult.setText("export failed: " + exception.getMessage());
+			showResult("export failed: " + exception.getMessage());
 		}
 	}
 
@@ -132,13 +175,13 @@ public class MenuDesignerPanel extends JPanel
 		try
 		{
 			List<String> errors = io.github.astrapi69.mystic.crypt.menu.MenuLayoutSupport
-				.validate(txtMenuXml.getText());
-			lblResult.setText(
+				.validate(modelObject.getMenuXml());
+			showResult(
 				errors.isEmpty() ? "valid" : errors.size() + " problem(s): " + errors.get(0));
 		}
 		catch (Exception exception)
 		{
-			lblResult.setText("invalid: " + exception.getMessage());
+			showResult("invalid: " + exception.getMessage());
 		}
 	}
 
@@ -146,12 +189,12 @@ public class MenuDesignerPanel extends JPanel
 	{
 		try
 		{
-			MysticCryptApplicationFrame.getInstance().applyMenuXml(txtMenuXml.getText());
-			lblResult.setText("applied to the running menu");
+			MysticCryptApplicationFrame.getInstance().applyMenuXml(modelObject.getMenuXml());
+			showResult("applied to the running menu");
 		}
 		catch (Exception exception)
 		{
-			lblResult.setText("apply failed: " + exception.getMessage());
+			showResult("apply failed: " + exception.getMessage());
 		}
 	}
 
@@ -160,12 +203,12 @@ public class MenuDesignerPanel extends JPanel
 		try
 		{
 			Path file = MysticCryptApplicationFrame.getInstance()
-				.saveMenuLayout(txtMenuXml.getText());
-			lblResult.setText("saved to " + file);
+				.saveMenuLayout(modelObject.getMenuXml());
+			showResult("saved to " + file);
 		}
 		catch (Exception exception)
 		{
-			lblResult.setText("save failed: " + exception.getMessage());
+			showResult("save failed: " + exception.getMessage());
 		}
 	}
 
@@ -174,13 +217,13 @@ public class MenuDesignerPanel extends JPanel
 		try
 		{
 			boolean removed = MysticCryptApplicationFrame.getInstance().resetMenuLayout();
-			lblResult.setText(removed
+			showResult(removed
 				? "removed the saved menu, the standard menu returns on the next start"
 				: "there was no saved menu");
 		}
 		catch (Exception exception)
 		{
-			lblResult.setText("reset failed: " + exception.getMessage());
+			showResult("reset failed: " + exception.getMessage());
 		}
 	}
 }

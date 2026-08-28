@@ -55,9 +55,12 @@ dependencies {
     testImplementation "io.github.astrapi69:mystic-crypt-ui:8.2-SNAPSHOT"
     testImplementation "com.miglayout:miglayout-swing:11.4.3"
     testImplementation "org.pf4j:pf4j:3.15.0"
-    // the binding test builds the panel, whose components are bound to its model
+    // the binding test builds the panel, whose components are bound to its model; the panel is a
+    // BasePanel and its combo box an EnumComboBoxModel, both from swing-base-components
     testImplementation "io.github.astrapi69:model-data:3.2.1"
     testImplementation "io.github.astrapi69:swing-model-components:1.2"
+    testImplementation "io.github.astrapi69:swing-base-components:5.1"
+    testImplementation "io.github.astrapi69:throwable:3"
 
 }
 

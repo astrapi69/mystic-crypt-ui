@@ -26,10 +26,14 @@ package io.github.astrapi69.mystic.crypt.plugin.kem;
 
 import java.awt.Font;
 import java.util.HexFormat;
+import java.util.function.Consumer;
 
 import javax.swing.*;
 
+import io.github.astrapi69.model.LambdaModel;
 import io.github.astrapi69.mystic.crypt.ui.form.ToolForm;
+import io.github.astrapi69.swing.model.component.JMComboBox;
+import io.github.astrapi69.swing.model.component.JMTextArea;
 
 /**
  * Tool panel demonstrating a key-encapsulation exchange between two parties. The recipient generates
@@ -41,6 +45,9 @@ import io.github.astrapi69.mystic.crypt.ui.form.ToolForm;
  * combines classical X25519 key agreement with ML-KEM, so the exchange stays secure as long as
  * either building block does. All of it runs on the JDK 25 native crypto providers - see
  * {@link NativeKemExchange}.
+ * <p>
+ * Every component is bound to {@link KemDemoPanelModel}, so what the button runs with is what the
+ * model holds, and what a run produced is readable there without asking a text area for it.
  */
 public class KemDemoPanel extends JPanel
 {
@@ -70,11 +77,12 @@ public class KemDemoPanel extends JPanel
 
 	private static final HexFormat HEX = HexFormat.of();
 
-	private final JComboBox<String> cmbAlgorithm = new JComboBox<>(
+	private final KemDemoPanelModel modelObject = new KemDemoPanelModel();
+	private final JMComboBox<String, ?> cmbAlgorithm = new JMComboBox<>(
 		ALGORITHMS.toArray(new String[0]));
-	private final JTextArea txtCiphertext = new JTextArea(3, 46);
-	private final JTextArea txtSenderSecret = new JTextArea(2, 46);
-	private final JTextArea txtRecipientSecret = new JTextArea(2, 46);
+	private final JMTextArea txtCiphertext = new JMTextArea(3, 46);
+	private final JMTextArea txtSenderSecret = new JMTextArea(2, 46);
+	private final JMTextArea txtRecipientSecret = new JMTextArea(2, 46);
 	private final JLabel lblResult = new JLabel(" ");
 
 	public KemDemoPanel()
@@ -84,9 +92,11 @@ public class KemDemoPanel extends JPanel
 		// left, buttons under what they act on
 		super(ToolForm.newLayout());
 
+		// the tool starts with what the user configured in the settings dialog, because that is
+		// what the model was built with
+		bindToModel();
+
 		cmbAlgorithm.setName("cmbAlgorithm");
-		// the tool starts with what the user configured in the settings dialog
-		cmbAlgorithm.setSelectedItem(KemSettingsContribution.algorithm());
 		configureReadOnly(txtCiphertext, "txtCiphertext");
 		configureReadOnly(txtSenderSecret, "txtSenderSecret");
 		configureReadOnly(txtRecipientSecret, "txtRecipientSecret");
@@ -110,27 +120,57 @@ public class KemDemoPanel extends JPanel
 		add(lblResult, ToolForm.RESULT_LINE);
 	}
 
+	/** Binds every component of this panel to its property in {@link KemDemoPanelModel} */
+	private void bindToModel()
+	{
+		cmbAlgorithm.setPropertyModel(
+			LambdaModel.of(modelObject::getAlgorithm, modelObject::setAlgorithm));
+		txtCiphertext.setPropertyModel(
+			LambdaModel.of(modelObject::getCiphertext, modelObject::setCiphertext));
+		txtSenderSecret.setPropertyModel(
+			LambdaModel.of(modelObject::getSenderSecret, modelObject::setSenderSecret));
+		txtRecipientSecret.setPropertyModel(
+			LambdaModel.of(modelObject::getRecipientSecret, modelObject::setRecipientSecret));
+	}
+
 	private void onRun()
 	{
 		try
 		{
-			String selection = (String)cmbAlgorithm.getSelectedItem();
+			String selection = modelObject.getAlgorithm();
 			NativeKemExchange.Result result = HYBRID.equals(selection) ? NativeKemExchange.hybrid()
 				: NativeKemExchange.mlKem(selection);
 
-			txtCiphertext.setText(HEX.formatHex(result.getCiphertext()));
-			txtSenderSecret.setText(HEX.formatHex(result.getSenderSecret()));
-			txtRecipientSecret.setText(HEX.formatHex(result.getRecipientSecret()));
-			lblResult.setText(
+			show(txtCiphertext, HEX.formatHex(result.getCiphertext()),
+				modelObject::setCiphertext);
+			show(txtSenderSecret, HEX.formatHex(result.getSenderSecret()),
+				modelObject::setSenderSecret);
+			show(txtRecipientSecret, HEX.formatHex(result.getRecipientSecret()),
+				modelObject::setRecipientSecret);
+			showResult(
 				result.secretsMatch() ? "shared secrets match" : "shared secrets do not match");
 		}
 		catch (Exception exception)
 		{
-			txtCiphertext.setText("");
-			txtSenderSecret.setText("");
-			txtRecipientSecret.setText("");
-			lblResult.setText("error: " + exception.getMessage());
+			show(txtCiphertext, "", modelObject::setCiphertext);
+			show(txtSenderSecret, "", modelObject::setSenderSecret);
+			show(txtRecipientSecret, "", modelObject::setRecipientSecret);
+			showResult("error: " + exception.getMessage());
 		}
+	}
+
+	/** Puts a value into the model and shows it in the area that is bound to it */
+	private static void show(JMTextArea area, String value, Consumer<String> intoModel)
+	{
+		intoModel.accept(value);
+		area.setText(value);
+	}
+
+	/** Puts the line the last run left into the model and shows it */
+	private void showResult(String resultText)
+	{
+		modelObject.setResultText(resultText);
+		lblResult.setText(modelObject.getResultText());
 	}
 
 	private static void configureReadOnly(JTextArea textArea, String name)

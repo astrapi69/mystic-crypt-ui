@@ -24,6 +24,10 @@ dependencies {
     compileOnly "io.github.astrapi69:mystic-crypt-ui:8.2-SNAPSHOT"
     compileOnly "io.github.astrapi69:swing-base-components:5.1"
     compileOnly "io.github.astrapi69:swing-components:9"
+    // the model backed components the editor binds to its model; the host brings both jars at
+    // runtime, so they stay compileOnly here like everything else
+    compileOnly "io.github.astrapi69:swing-model-components:1.2"
+    compileOnly "io.github.astrapi69:model-data:3.2.1"
 
     // the shared tool window layout comes from the host, which brings MigLayout with it
     compileOnly "com.miglayout:miglayout-swing:11.4.3"
@@ -36,6 +40,10 @@ dependencies {
     testImplementation "io.github.astrapi69:mystic-crypt-ui:8.2-SNAPSHOT"
     // the layout measurement constructs the panel, so the layout manager has to be there too
     testImplementation "com.miglayout:miglayout-swing:11.4.3"
+    // the panel tests construct the panel, so the model backed components it is built from have to
+    // be on the test classpath as well
+    testImplementation "io.github.astrapi69:swing-model-components:1.2"
+    testImplementation "io.github.astrapi69:model-data:3.2.1"
     testImplementation "org.pf4j:pf4j:3.15.0"
 
     testImplementation "org.junit.jupiter:junit-jupiter:5.11.4"

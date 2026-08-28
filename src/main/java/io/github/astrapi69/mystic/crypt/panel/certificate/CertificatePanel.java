@@ -28,8 +28,13 @@ import javax.swing.*;
 
 import io.github.astrapi69.crypt.data.model.X509CertificateV3Info;
 import io.github.astrapi69.model.BaseModel;
+import io.github.astrapi69.model.LambdaModel;
 import io.github.astrapi69.model.api.IModel;
 import io.github.astrapi69.swing.base.BasePanel;
+import io.github.astrapi69.swing.model.combobox.GenericComboBoxModel;
+import io.github.astrapi69.swing.model.component.JMComboBox;
+import io.github.astrapi69.swing.model.component.JMTextArea;
+import io.github.astrapi69.swing.model.component.JMTextField;
 import lombok.Getter;
 
 /**
@@ -44,8 +49,18 @@ public class CertificatePanel extends BasePanel<X509CertificateV3Info>
 	 * The Constant serialVersionUID.
 	 */
 	private static final long serialVersionUID = 1L;
+
+	/**
+	 * The algorithms the fingerprint can be taken with, as the form was designed with them
+	 */
+	private static final String[] FINGERPRINT_ALGORITHMS = { "Item 1", "Item 2", "Item 3",
+			"Item 4" };
+
+	/** What this panel shows about the certificate; every component below writes into it */
+	private transient CertificatePanelModel certificateModel;
+
 	// Variables declaration - do not modify//GEN-BEGIN:variables
-	private JComboBox<String> cmbFingerprintAlgorithm;
+	private JMComboBox<String, GenericComboBoxModel<String>> cmbFingerprintAlgorithm;
 
 	private JLabel lblFingerprint;
 
@@ -60,15 +75,15 @@ public class CertificatePanel extends BasePanel<X509CertificateV3Info>
 	private JLabel lblValidUntil;
 	private JLabel lblVersion;
 	private JScrollPane scrPublicKey;
-	private JTextField txtFingerprint;
-	private JTextField txtIssuedBy;
-	private JTextField txtIssuedTo;
-	private JTextArea txtPublicKey;
-	private JTextField txtSerialNumber;
-	private JTextField txtSignatureAlgorithm;
-	private JTextField txtValidFrom;
-	private JTextField txtValidUntil;
-	private JTextField txtVersion;
+	private JMTextField txtFingerprint;
+	private JMTextField txtIssuedBy;
+	private JMTextField txtIssuedTo;
+	private JMTextArea txtPublicKey;
+	private JMTextField txtSerialNumber;
+	private JMTextField txtSignatureAlgorithm;
+	private JMTextField txtValidFrom;
+	private JMTextField txtValidUntil;
+	private JMTextField txtVersion;
 
 	// End of variables declaration//GEN-END:variables
 
@@ -98,26 +113,32 @@ public class CertificatePanel extends BasePanel<X509CertificateV3Info>
 	protected void onInitializeComponents()
 	{
 		super.onInitializeComponents();
+		certificateModel = new CertificatePanelModel();
+		// the combo starts on the first algorithm it offers, so the model carries what is shown
+		certificateModel.setFingerprintAlgorithm(FINGERPRINT_ALGORITHMS[0]);
 		lblIssuedTo = new JLabel();
-		txtIssuedTo = new JTextField();
+		txtIssuedTo = new JMTextField();
 		lblIssuedBy = new JLabel();
-		txtIssuedBy = new JTextField();
+		txtIssuedBy = new JMTextField();
 		lblVersion = new JLabel();
-		txtVersion = new JTextField();
+		txtVersion = new JMTextField();
 		lblSerialNumber = new JLabel();
-		txtSerialNumber = new JTextField();
+		txtSerialNumber = new JMTextField();
 		lblValidFrom = new JLabel();
-		txtValidUntil = new JTextField();
-		txtValidFrom = new JTextField();
+		txtValidUntil = new JMTextField();
+		txtValidFrom = new JMTextField();
 		lblValidUntil = new JLabel();
 		lblSignatureAlgorithm = new JLabel();
-		txtFingerprint = new JTextField();
+		txtFingerprint = new JMTextField();
 		lblFingerprint = new JLabel();
-		txtSignatureAlgorithm = new JTextField();
-		cmbFingerprintAlgorithm = new JComboBox<>();
+		txtSignatureAlgorithm = new JMTextField();
+		// the combo box model starts on the algorithm the model holds, so the selection the combo
+		// box remembers and the one the model carries cannot drift apart
+		cmbFingerprintAlgorithm = new JMComboBox<>(new GenericComboBoxModel<>(
+			FINGERPRINT_ALGORITHMS, certificateModel.getFingerprintAlgorithm()));
 		lblPublicKey = new JLabel();
 		scrPublicKey = new JScrollPane();
-		txtPublicKey = new JTextArea();
+		txtPublicKey = new JMTextArea();
 
 		lblIssuedTo.setText("Issued to");
 
@@ -139,15 +160,42 @@ public class CertificatePanel extends BasePanel<X509CertificateV3Info>
 
 		lblFingerprint.setText("Fingerprint");
 
-		cmbFingerprintAlgorithm.setModel(
-			new DefaultComboBoxModel<>(new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }));
-
 		lblPublicKey.setText("Public key");
 
 		txtPublicKey.setColumns(20);
 		txtPublicKey.setRows(5);
 		scrPublicKey.setViewportView(txtPublicKey);
 
+		bindComponents();
+	}
+
+	/**
+	 * Binds every component to {@link CertificatePanelModel}, so that each edit lands in the model
+	 * and the model is what the panel state is read from - the components carry the values the
+	 * model already holds
+	 */
+	protected void bindComponents()
+	{
+		txtIssuedTo.setPropertyModel(
+			LambdaModel.of(certificateModel::getIssuedTo, certificateModel::setIssuedTo));
+		txtIssuedBy.setPropertyModel(
+			LambdaModel.of(certificateModel::getIssuedBy, certificateModel::setIssuedBy));
+		txtVersion.setPropertyModel(
+			LambdaModel.of(certificateModel::getVersion, certificateModel::setVersion));
+		txtSerialNumber.setPropertyModel(
+			LambdaModel.of(certificateModel::getSerialNumber, certificateModel::setSerialNumber));
+		txtValidFrom.setPropertyModel(
+			LambdaModel.of(certificateModel::getValidFrom, certificateModel::setValidFrom));
+		txtValidUntil.setPropertyModel(
+			LambdaModel.of(certificateModel::getValidUntil, certificateModel::setValidUntil));
+		txtSignatureAlgorithm.setPropertyModel(LambdaModel
+			.of(certificateModel::getSignatureAlgorithm, certificateModel::setSignatureAlgorithm));
+		txtFingerprint.setPropertyModel(
+			LambdaModel.of(certificateModel::getFingerprint, certificateModel::setFingerprint));
+		cmbFingerprintAlgorithm.setPropertyModel(LambdaModel.of(
+			certificateModel::getFingerprintAlgorithm, certificateModel::setFingerprintAlgorithm));
+		txtPublicKey.setPropertyModel(
+			LambdaModel.of(certificateModel::getPublicKey, certificateModel::setPublicKey));
 	}
 
 	@Override

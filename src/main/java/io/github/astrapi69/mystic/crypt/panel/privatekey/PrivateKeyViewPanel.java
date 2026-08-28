@@ -25,13 +25,18 @@ import java.awt.*;
 import javax.swing.*;
 
 import io.github.astrapi69.model.BaseModel;
+import io.github.astrapi69.model.LambdaModel;
 import io.github.astrapi69.model.api.IModel;
 import io.github.astrapi69.swing.base.BasePanel;
+import io.github.astrapi69.swing.model.component.JMTextArea;
 import lombok.Getter;
 
 
 /**
  * The class {@link PrivateKeyViewPanel}.
+ * <p>
+ * Both key views are bound to {@link PrivateKeyViewPanelModel}, so the key texts this panel was
+ * filled with are readable from the model at any moment and not only out of the two text areas.
  */
 @Getter
 public class PrivateKeyViewPanel extends BasePanel<PrivateKeyModelBean>
@@ -43,10 +48,13 @@ public class PrivateKeyViewPanel extends BasePanel<PrivateKeyModelBean>
 	private JLabel lblKeySizeDisplay;
 	private JLabel lblPrivateKey;
 	private JLabel lblPublicKey;
+
+	/** Everything this panel shows of the two keys; both text areas write into it */
+	private PrivateKeyViewPanelModel panelModelObject;
 	private JScrollPane scpPrivateKey;
 	private JScrollPane scpPublicKey;
-	private JTextArea txtPrivateKey;
-	private JTextArea txtPublicKey;
+	private JMTextArea txtPrivateKey;
+	private JMTextArea txtPublicKey;
 
 	public PrivateKeyViewPanel()
 	{
@@ -62,14 +70,16 @@ public class PrivateKeyViewPanel extends BasePanel<PrivateKeyModelBean>
 	protected void onInitializeComponents()
 	{
 		super.onInitializeComponents();
+		panelModelObject = new PrivateKeyViewPanelModel();
 		lblKeySize = new JLabel();
 		lblKeySizeDisplay = new JLabel();
 		lblPrivateKey = new JLabel();
 		scpPrivateKey = new JScrollPane();
-		txtPrivateKey = new JTextArea();
+		txtPrivateKey = new JMTextArea();
 		lblPublicKey = new JLabel();
 		scpPublicKey = new JScrollPane();
-		txtPublicKey = new JTextArea();
+		txtPublicKey = new JMTextArea();
+		bindToModel();
 
 		lblKeySize.setText("Keysize");
 
@@ -92,6 +102,18 @@ public class PrivateKeyViewPanel extends BasePanel<PrivateKeyModelBean>
 
 		txtPrivateKey.setFont(new Font("monospaced", Font.PLAIN, 12));
 		txtPublicKey.setFont(new Font("monospaced", Font.PLAIN, 12));
+	}
+
+	/**
+	 * Binds both key views to {@link PrivateKeyViewPanelModel}, so that every key text that is put
+	 * into a view lands in the model and the model is what anyone else reads the shown keys from
+	 */
+	private void bindToModel()
+	{
+		txtPrivateKey.setPropertyModel(LambdaModel.of(panelModelObject::getPrivateKeyText,
+			panelModelObject::setPrivateKeyText));
+		txtPublicKey.setPropertyModel(
+			LambdaModel.of(panelModelObject::getPublicKeyText, panelModelObject::setPublicKeyText));
 	}
 
 	protected void onInitializeGroupLayout()

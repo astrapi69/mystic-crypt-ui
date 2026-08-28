@@ -28,6 +28,7 @@ import io.github.astrapi69.collection.array.ArrayExtensions;
 import io.github.astrapi69.collection.list.ListFactory;
 import io.github.astrapi69.crypt.api.obfuscation.rule.Operation;
 import io.github.astrapi69.crypt.data.obfuscation.rule.ObfuscationOperationRule;
+import io.github.astrapi69.model.LambdaModel;
 import io.github.astrapi69.model.api.IModel;
 import io.github.astrapi69.mystic.crypt.plugin.obfuscation.ModeContext;
 import io.github.astrapi69.mystic.crypt.ui.form.ToolForm;
@@ -35,6 +36,8 @@ import io.github.astrapi69.swing.base.BasePanel;
 import io.github.astrapi69.swing.document.NumberValuesDocument;
 import io.github.astrapi69.swing.document.RangeDocument;
 import io.github.astrapi69.swing.model.combobox.EnumComboBoxModel;
+import io.github.astrapi69.swing.model.component.JMComboBox;
+import io.github.astrapi69.swing.model.component.JMTextField;
 import lombok.Getter;
 
 @Getter
@@ -44,19 +47,32 @@ public class ObfuscationOperationRulePanel extends BasePanel<ObfuscationOperatio
 	private static final long serialVersionUID = 1L;
 
 	private javax.swing.JButton btnAdd;
-	private javax.swing.JComboBox<Operation> cmbOperation;
+	private JMComboBox<Operation, EnumComboBoxModel<Operation>> cmbOperation;
 	private javax.swing.JLabel lblIndexes;
 	private javax.swing.JLabel lblObfuscationOperationRule;
 	private javax.swing.JLabel lblOperation;
 	private javax.swing.JLabel lblOriginalChar;
 	private javax.swing.JLabel lblReplaceWith;
-	private javax.swing.JTextField txtIndexes;
-	private javax.swing.JTextField txtOriginalChar;
-	private javax.swing.JTextField txtRelpaceWith;
+	private JMTextField txtIndexes;
+	private JMTextField txtOriginalChar;
+	private JMTextField txtRelpaceWith;
+
+	/** What the user typed or chose; every component below writes into it */
+	private transient ObfuscationOperationRulePanelModel ruleModelObject;
 
 	public ObfuscationOperationRulePanel(final IModel<ObfuscationOperationModelBean> model)
 	{
 		super(model);
+	}
+
+	/**
+	 * Gets the rule the fields and the combo box describe, as it stands at this moment
+	 *
+	 * @return the model the components of this panel write into
+	 */
+	public ObfuscationOperationRulePanelModel getRuleModelObject()
+	{
+		return ruleModelObject;
 	}
 
 	protected void onAdd(final ActionEvent actionEvent)
@@ -92,17 +108,23 @@ public class ObfuscationOperationRulePanel extends BasePanel<ObfuscationOperatio
 	{
 		super.onInitializeComponents();
 
+		ruleModelObject = new ObfuscationOperationRulePanelModel();
+
 		lblOriginalChar = new javax.swing.JLabel();
 		lblReplaceWith = new javax.swing.JLabel();
-		txtOriginalChar = new javax.swing.JTextField();
-		txtRelpaceWith = new javax.swing.JTextField();
+		// the documents that limit a field to one character, or to numbers, are passed to the
+		// constructor rather than set afterwards: a model backed field listens to the document it
+		// is built with, and a later setDocument would leave that listener behind on the discarded
+		// one
+		txtOriginalChar = new JMTextField(new RangeDocument(0, 1), null, 0);
+		txtRelpaceWith = new JMTextField(new RangeDocument(0, 1), null, 0);
 		btnAdd = new javax.swing.JButton();
 		lblObfuscationOperationRule = new javax.swing.JLabel();
 		lblIndexes = new javax.swing.JLabel();
-		txtIndexes = new javax.swing.JTextField();
+		txtIndexes = new JMTextField(new NumberValuesDocument(), null, 0);
 
 		lblOperation = new javax.swing.JLabel();
-		cmbOperation = new javax.swing.JComboBox<>();
+		cmbOperation = new JMComboBox<>(new EnumComboBoxModel<>(Operation.class));
 
 		lblOriginalChar.setText("Original Character");
 
@@ -117,15 +139,31 @@ public class ObfuscationOperationRulePanel extends BasePanel<ObfuscationOperatio
 
 		lblOperation.setText("Operation");
 
-		// == custom edit ==
-		txtOriginalChar.setDocument(new RangeDocument(0, 1));
-		txtRelpaceWith.setDocument(new RangeDocument(0, 1));
+		bindComponents();
 
 		btnAdd.addActionListener(actionEvent -> onAdd(actionEvent));
-		cmbOperation.setModel(new EnumComboBoxModel<>(Operation.class));
 
-		txtIndexes.setDocument(new NumberValuesDocument());
+	}
 
+	/**
+	 * Binds every component to the model, so that each edit lands in the model and the model is
+	 * what the Add button reads. The operation the combo box already shows is put into the model
+	 * first, so that binding it does not clear the selection the user sees
+	 */
+	private void bindComponents()
+	{
+		if (cmbOperation.getSelectedItem() instanceof Operation preselected)
+		{
+			ruleModelObject.setOperation(preselected);
+		}
+		txtOriginalChar.setPropertyModel(LambdaModel.of(ruleModelObject::getOriginalCharacter,
+			ruleModelObject::setOriginalCharacter));
+		txtRelpaceWith.setPropertyModel(
+			LambdaModel.of(ruleModelObject::getReplaceWith, ruleModelObject::setReplaceWith));
+		txtIndexes.setPropertyModel(
+			LambdaModel.of(ruleModelObject::getIndexes, ruleModelObject::setIndexes));
+		cmbOperation.setPropertyModel(
+			LambdaModel.of(ruleModelObject::getOperation, ruleModelObject::setOperation));
 	}
 
 	/**

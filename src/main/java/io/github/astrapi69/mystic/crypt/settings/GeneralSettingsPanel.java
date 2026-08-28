@@ -31,46 +31,81 @@ import java.util.Arrays;
 
 import javax.swing.*;
 
+import io.github.astrapi69.model.LambdaModel;
+import io.github.astrapi69.swing.model.component.JMComboBox;
+
 /**
  * The "General" tab of the settings dialog: choose the Swing look and feel (applied live) and the
  * UI language (applied on the next start). Both are written straight into the shared
  * {@link MysticCryptSettings} so the dialog can persist them when it closes.
+ * <p>
+ * That settings object is the model of this panel: both combo boxes are bound to it, so a choice is
+ * in the model the moment it is made, and the look-and-feel switch reads the name from there
+ * instead of asking a combo box what it currently shows.
  */
 public class GeneralSettingsPanel extends JPanel
 {
 
 	private static final long serialVersionUID = 1L;
 
+	/** The languages the user interface is offered in, as language tags */
+	private static final String[] LANGUAGES = { "en", "de" };
+
+	/** The settings this panel edits; both combo boxes below write into it */
 	private final transient MysticCryptSettings settings;
 
+	private final JMComboBox<String, ?> cmbLookAndFeel = new JMComboBox<>(
+		installedLookAndFeelNames());
+
+	private final JMComboBox<String, ?> cmbLanguage = new JMComboBox<>(LANGUAGES);
+
+	/**
+	 * Instantiates a new {@link GeneralSettingsPanel} over the settings it edits
+	 *
+	 * @param settings
+	 *            the settings this panel reads from and writes into
+	 */
 	public GeneralSettingsPanel(MysticCryptSettings settings)
 	{
 		super(new BorderLayout());
 		this.settings = settings;
 
-		String[] lookAndFeelNames = Arrays.stream(UIManager.getInstalledLookAndFeels())
-			.map(UIManager.LookAndFeelInfo::getName).toArray(String[]::new);
-		JComboBox<String> lookAndFeelCombo = new JComboBox<>(lookAndFeelNames);
-		lookAndFeelCombo.setName("cmbLookAndFeel");
-		lookAndFeelCombo.setSelectedItem(settings.getLookAndFeel());
-		lookAndFeelCombo.addActionListener(e -> {
-			String name = (String)lookAndFeelCombo.getSelectedItem();
-			settings.setLookAndFeel(name);
-			applyLookAndFeel(name);
-		});
-
-		JComboBox<String> languageCombo = new JComboBox<>(new String[] { "en", "de" });
-		languageCombo.setName("cmbLanguage");
-		languageCombo.setSelectedItem(settings.getLanguage());
-		languageCombo
-			.addActionListener(e -> settings.setLanguage((String)languageCombo.getSelectedItem()));
+		cmbLookAndFeel.setName("cmbLookAndFeel");
+		cmbLanguage.setName("cmbLanguage");
+		bindComponents();
+		// added after the binding on purpose: binding selects what the settings already hold, and
+		// that must not switch the look and feel while the dialog is still being built
+		cmbLookAndFeel.addActionListener(
+			e -> applyLookAndFeel(GeneralSettingsPanel.this.settings.getLookAndFeel()));
 
 		JPanel form = new JPanel(new GridLayout(0, 2, 8, 6));
 		form.add(new JLabel("Look and feel:"));
-		form.add(lookAndFeelCombo);
+		form.add(cmbLookAndFeel);
 		form.add(new JLabel("Language (applies after restart):"));
-		form.add(languageCombo);
+		form.add(cmbLanguage);
 		add(form, BorderLayout.NORTH);
+	}
+
+	/**
+	 * Binds both combo boxes to the settings object, so that a choice lands there as it is made and
+	 * the combo boxes start on what the settings already hold
+	 */
+	private void bindComponents()
+	{
+		cmbLookAndFeel
+			.setPropertyModel(LambdaModel.of(settings::getLookAndFeel, settings::setLookAndFeel));
+		cmbLanguage.setPropertyModel(LambdaModel.of(settings::getLanguage, settings::setLanguage));
+	}
+
+	/**
+	 * The names of the look and feels this Java runtime has installed
+	 *
+	 * @return the names of the installed look and feels
+	 */
+	private static String[] installedLookAndFeelNames()
+	{
+		return Arrays.stream(UIManager.getInstalledLookAndFeels())
+			.map(UIManager.LookAndFeelInfo::getName).toArray(String[]::new);
 	}
 
 	/**

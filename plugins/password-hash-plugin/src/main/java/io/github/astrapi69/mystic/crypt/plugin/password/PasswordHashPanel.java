@@ -28,12 +28,19 @@ import java.awt.Dimension;
 
 import javax.swing.*;
 
+import io.github.astrapi69.model.LambdaModel;
 import io.github.astrapi69.mystic.crypt.pw.PasswordEncryptor;
 import io.github.astrapi69.mystic.crypt.ui.form.ToolForm;
+import io.github.astrapi69.swing.model.component.JMComboBox;
+import io.github.astrapi69.swing.model.component.JMPasswordField;
+import io.github.astrapi69.swing.model.component.JMTextArea;
 
 /**
  * Tool panel: hash a password with Argon2id or PBKDF2 and verify a password against the produced
  * hash. Hashing and verification are delegated to the mystic-crypt {@link PasswordEncryptor}.
+ * <p>
+ * Every component is bound to {@link PasswordHashPanelModel}, so a button reads what the user
+ * entered from the model instead of out of the widgets.
  */
 public class PasswordHashPanel extends JPanel
 {
@@ -50,11 +57,14 @@ public class PasswordHashPanel extends JPanel
 
 	private final transient PasswordEncryptor passwordEncryptor = PasswordEncryptor.getInstance();
 
-	private final JComboBox<String> cmbAlgorithm = new JComboBox<>(
+	/** Everything the user typed or chose; every component below writes into it */
+	private final transient PasswordHashPanelModel modelObject = new PasswordHashPanelModel();
+
+	private final JMComboBox<String, ComboBoxModel<String>> cmbAlgorithm = new JMComboBox<>(
 		PasswordHashSupport.algorithms().toArray(new String[0]));
-	private final JPasswordField txtPassword = new JPasswordField(24);
-	private final JTextArea txtHash = new JTextArea(3, 40);
-	private final JPasswordField txtVerifyPassword = new JPasswordField(24);
+	private final JMPasswordField txtPassword = new JMPasswordField(24);
+	private final JMTextArea txtHash = new JMTextArea(3, 40);
+	private final JMPasswordField txtVerifyPassword = new JMPasswordField(24);
 	private final JLabel lblResult = new JLabel(" ");
 	private final JLabel lblAbout = new JLabel(" ");
 
@@ -65,13 +75,14 @@ public class PasswordHashPanel extends JPanel
 		// left, buttons under what they act on
 		super(ToolForm.newLayout());
 		cmbAlgorithm.setName("cmbAlgorithm");
-		// the tool starts with what the user configured in the settings dialog
-		cmbAlgorithm.setSelectedItem(PasswordHashSettingsContribution.algorithm());
+		// the tool starts with what the user configured in the settings dialog; the combo box takes
+		// that from the model when it is bound to it
+		modelObject.setAlgorithm(PasswordHashSettingsContribution.algorithm());
+		bindComponents();
 		lblAbout.setName("lblAbout");
-		lblAbout.setText(PasswordHashSupport
-			.describe(String.valueOf(cmbAlgorithm.getSelectedItem())));
-		cmbAlgorithm.addActionListener(event -> lblAbout.setText(
-			PasswordHashSupport.describe(String.valueOf(cmbAlgorithm.getSelectedItem()))));
+		lblAbout.setText(PasswordHashSupport.describe(modelObject.getAlgorithm()));
+		cmbAlgorithm.addActionListener(
+			event -> lblAbout.setText(PasswordHashSupport.describe(modelObject.getAlgorithm())));
 		txtPassword.setName("txtPassword");
 		txtHash.setName("txtHash");
 		txtHash.setEditable(true);
@@ -79,6 +90,7 @@ public class PasswordHashPanel extends JPanel
 		txtHash.setWrapStyleWord(false);
 		txtVerifyPassword.setName("txtVerifyPassword");
 		lblResult.setName("lblResult");
+		showResult(modelObject.getResultMessage());
 
 		ToolForm.sized(txtPassword);
 		ToolForm.sized(txtVerifyPassword);
@@ -109,32 +121,67 @@ public class PasswordHashPanel extends JPanel
 		add(lblResult, ToolForm.RESULT_LINE);
 	}
 
+	/**
+	 * Binds every component to the model, so that each edit lands in the model and the model is
+	 * what the buttons read - the components carry the values the model already holds
+	 */
+	private void bindComponents()
+	{
+		cmbAlgorithm.setPropertyModel(
+			LambdaModel.of(modelObject::getAlgorithm, modelObject::setAlgorithm));
+		txtPassword
+			.setPropertyModel(LambdaModel.of(modelObject::getPassword, modelObject::setPassword));
+		txtHash.setPropertyModel(LambdaModel.of(modelObject::getHash, modelObject::setHash));
+		txtVerifyPassword.setPropertyModel(
+			LambdaModel.of(modelObject::getVerifyPassword, modelObject::setVerifyPassword));
+	}
+
+	/**
+	 * The state of this panel: the algorithm, the two passwords, the hash and what the panel last
+	 * said about what it did
+	 *
+	 * @return the model every component of this panel is bound to
+	 */
+	public PasswordHashPanelModel getModelObject()
+	{
+		return modelObject;
+	}
+
+	/**
+	 * The message shown at the bottom of the panel
+	 *
+	 * @return what the panel last said about what it did
+	 */
+	public String getResultText()
+	{
+		return lblResult.getText();
+	}
+
 	private void onHash()
 	{
 		try
 		{
-			String algorithm = String.valueOf(cmbAlgorithm.getSelectedItem());
+			String algorithm = modelObject.getAlgorithm();
 			long started = System.currentTimeMillis();
-			txtHash.setText(PasswordHashSupport.hash(algorithm, txtPassword.getPassword()));
+			txtHash.setText(PasswordHashSupport.hash(algorithm, modelObject.getPassword()));
 			long took = System.currentTimeMillis() - started;
 			txtHash.setCaretPosition(0);
-			String cost = PasswordHashSupport.costOf(txtHash.getText());
-			lblResult.setText(algorithm + " took " + took + " ms"
-				+ (cost.isEmpty() ? "" : " at " + cost));
+			String cost = PasswordHashSupport.costOf(modelObject.getHash());
+			showResult(algorithm + " took " + took + " ms" + (cost.isEmpty() ? "" : " at " + cost));
 		}
 		catch (Exception exception)
 		{
 			txtHash.setText("");
-			lblResult.setText("not hashed: " + message(exception));
+			showResult("not hashed: " + message(exception));
 		}
 	}
 
 	private void onVerify()
 	{
-		String encodedHash = txtHash.getText();
+		String encodedHash = modelObject.getHash();
 		if (encodedHash.isBlank())
 		{
-			lblResult.setText("hash a password first");
+			showResult("hash a password first");
 			return;
 		}
 		// which algorithm made the hash is read out of the hash, so a value pasted in is checked
@@ -142,11 +189,23 @@ public class PasswordHashPanel extends JPanel
 		String algorithm = PasswordHashSupport.algorithmOf(encodedHash);
 		if (algorithm == null)
 		{
-			lblResult.setText("this does not look like a hash any of these algorithms made");
+			showResult("this does not look like a hash any of these algorithms made");
 			return;
 		}
-		boolean matches = PasswordHashSupport.verify(txtVerifyPassword.getPassword(), encodedHash);
-		lblResult.setText(matches ? "matches (" + algorithm + ")" : "does not match");
+		boolean matches = PasswordHashSupport.verify(modelObject.getVerifyPassword(), encodedHash);
+		showResult(matches ? "matches (" + algorithm + ")" : "does not match");
+	}
+
+	/**
+	 * Keeps the message in the model and shows it at the bottom of the panel
+	 *
+	 * @param resultMessage
+	 *            what the panel has to say about what it did
+	 */
+	private void showResult(String resultMessage)
+	{
+		modelObject.setResultMessage(resultMessage);
+		lblResult.setText(modelObject.getResultMessage());
 	}
 
 	private static String message(Exception exception)

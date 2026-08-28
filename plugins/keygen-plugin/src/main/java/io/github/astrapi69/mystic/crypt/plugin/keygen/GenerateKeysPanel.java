@@ -34,6 +34,7 @@ import java.util.logging.Level;
 import javax.swing.*;
 
 import io.github.astrapi69.crypt.api.algorithm.key.KeyPairGeneratorAlgorithm;
+import io.github.astrapi69.crypt.api.key.KeyFormat;
 import io.github.astrapi69.crypt.api.key.KeySize;
 import io.github.astrapi69.crypt.data.factory.KeyPairFactory;
 import io.github.astrapi69.crypt.data.key.PrivateKeyExtensions;
@@ -42,11 +43,13 @@ import io.github.astrapi69.crypt.data.key.writer.EncryptedPrivateKeyWriter;
 import io.github.astrapi69.crypt.data.key.writer.PrivateKeyWriter;
 import io.github.astrapi69.crypt.data.key.writer.PublicKeyWriter;
 import io.github.astrapi69.model.BaseModel;
+import io.github.astrapi69.model.LambdaModel;
 import io.github.astrapi69.model.api.IModel;
 import io.github.astrapi69.mystic.crypt.key.PrivateKeyHexDecryptor;
 import io.github.astrapi69.mystic.crypt.key.PublicKeyHexEncryptor;
 import io.github.astrapi69.mystic.crypt.ui.form.ToolForm;
 import io.github.astrapi69.swing.base.BasePanel;
+import io.github.astrapi69.swing.model.component.JMComboBox;
 import lombok.Getter;
 import lombok.extern.java.Log;
 
@@ -64,8 +67,8 @@ public class GenerateKeysPanel extends BasePanel<GenerateKeysModelBean>
 	 * sets. The modern ones only generate and display their key pair as PEM; the RSA-only hex
 	 * encrypt/decrypt demo does not apply to them.
 	 */
-	private JComboBox<String> cmbCurve;
-	private JComboBox<io.github.astrapi69.crypt.api.key.KeyFormat> cmbKeyFormat;
+	private JMComboBox<String, ?> cmbCurve;
+	private JMComboBox<KeyFormat, ?> cmbKeyFormat;
 
 	private static final KeyPairGeneratorAlgorithm[] SUPPORTED_ALGORITHMS = {
 			KeyPairGeneratorAlgorithm.RSA, KeyPairGeneratorAlgorithm.EC,
@@ -77,7 +80,7 @@ public class GenerateKeysPanel extends BasePanel<GenerateKeysModelBean>
 
 	private EnDecryptPanel enDecryptPanel;
 
-	private JComboBox<KeyPairGeneratorAlgorithm> cmbAlgorithm;
+	private JMComboBox<KeyPairGeneratorAlgorithm, ?> cmbAlgorithm;
 
 	private JLabel lblAlgorithm;
 
@@ -92,34 +95,18 @@ public class GenerateKeysPanel extends BasePanel<GenerateKeysModelBean>
 	}
 
 	/**
-	 * Callback method that can be overwritten to provide specific action for the on change key
-	 * size.
-	 *
-	 * @param actionEvent
-	 *            the action event
-	 */
-	@SuppressWarnings("unchecked")
-	protected void onChangeKeySize(final ActionEvent actionEvent)
-	{
-		final JComboBox<String> cb = (JComboBox<String>)actionEvent.getSource();
-		final KeySize selected = (KeySize)cb.getSelectedItem();
-		getModelObject().setKeySize(selected);
-	}
-
-	/**
-	 * Callback for the algorithm dropdown: remembers the chosen algorithm and only keeps the key
-	 * size relevant for RSA, since the modern algorithms have fixed parameter sets.
+	 * Callback for the algorithm dropdown: the bound box has already written the chosen algorithm
+	 * into the model, so this only keeps the key size relevant for RSA, since the modern algorithms
+	 * have fixed parameter sets.
 	 *
 	 * @param actionEvent
 	 *            the action event
 	 */
 	protected void onChangeAlgorithm(final ActionEvent actionEvent)
 	{
-		final KeyPairGeneratorAlgorithm algorithm = (KeyPairGeneratorAlgorithm)cmbAlgorithm
-			.getSelectedItem();
+		final KeyPairGeneratorAlgorithm algorithm = getModelObject().getAlgorithm();
 		if (algorithm != null)
 		{
-			getModelObject().setAlgorithm(algorithm.getAlgorithm());
 			getCryptographyPanel().getCmbKeySize()
 				.setEnabled(KeyPairGeneratorAlgorithm.RSA.equals(algorithm));
 		}
@@ -141,10 +128,10 @@ public class GenerateKeysPanel extends BasePanel<GenerateKeysModelBean>
 		getEnDecryptPanel().getTxtEncrypted().setText("");
 		getEnDecryptPanel().getTxtToEncrypt().setText("");
 		getCryptographyPanel().getBtnSaveCertificate().setEnabled(false);
+		// the algorithm, the key size and both key areas are bound, so setting them above has put
+		// them into the model as well; what is left is the state no component shows
 		getModelObject().setDecryptor(null);
 		getModelObject().setEncryptor(null);
-		getModelObject().setKeySize(KeySize.KEYSIZE_1024);
-		getModelObject().setAlgorithm(KeyPairGeneratorAlgorithm.RSA.getAlgorithm());
 		getModelObject().setPrivateKey(null);
 		getModelObject().setPublicKey(null);
 	}
@@ -224,8 +211,7 @@ public class GenerateKeysPanel extends BasePanel<GenerateKeysModelBean>
 	 */
 	protected void onGenerate(final ActionEvent actionEvent)
 	{
-		final KeyPairGeneratorAlgorithm algorithm = (KeyPairGeneratorAlgorithm)cmbAlgorithm
-			.getSelectedItem();
+		final KeyPairGeneratorAlgorithm algorithm = getModelObject().getAlgorithm();
 		final boolean rsa = KeyPairGeneratorAlgorithm.RSA.equals(algorithm);
 		getCryptographyPanel().getTxtPrivateKey().setText("Generating private key...");
 		getCryptographyPanel().getTxtPublicKey().setText("Generating public key...");
@@ -234,8 +220,7 @@ public class GenerateKeysPanel extends BasePanel<GenerateKeysModelBean>
 			final KeyPair keyPair;
 			if (rsa)
 			{
-				final KeySize selected = (KeySize)getCryptographyPanel().getCmbKeySize()
-					.getSelectedItem();
+				final KeySize selected = getModelObject().getKeySize();
 				keyPair = KeyPairFactory.newKeyPair(KeyPairGeneratorAlgorithm.RSA,
 					selected.getKeySize());
 			}
@@ -243,7 +228,7 @@ public class GenerateKeysPanel extends BasePanel<GenerateKeysModelBean>
 			{
 				// an EC key without a named curve leaves the choice to the provider, and what it
 				// chooses is neither written down nor the same everywhere
-				String curve = String.valueOf(cmbCurve.getSelectedItem());
+				String curve = getModelObject().getCurve();
 				try
 				{
 					keyPair = KeygenSupport.newEcKeyPair(curve);
@@ -264,7 +249,6 @@ public class GenerateKeysPanel extends BasePanel<GenerateKeysModelBean>
 
 			getModelObject().setPrivateKey(keyPair.getPrivate());
 			getModelObject().setPublicKey(keyPair.getPublic());
-			getModelObject().setAlgorithm(algorithm.getAlgorithm());
 
 			if (rsa)
 			{
@@ -310,12 +294,11 @@ public class GenerateKeysPanel extends BasePanel<GenerateKeysModelBean>
 		super.onInitializeComponents();
 
 		lblAlgorithm = new JLabel("Algorithm");
-		cmbCurve = new JComboBox<>(KeygenSupport.CURVES.toArray(new String[0]));
+		cmbCurve = new JMComboBox<>(KeygenSupport.CURVES.toArray(new String[0]));
 		cmbCurve.setName("cmbCurve");
 		cmbCurve.setToolTipText("the curve an EC key sits on - a certificate or a wallet usually "
 			+ "requires one particular one");
-		cmbKeyFormat = new JComboBox<>(
-			KeygenSupport.keyFormats().toArray(new io.github.astrapi69.crypt.api.key.KeyFormat[0]));
+		cmbKeyFormat = new JMComboBox<>(KeygenSupport.keyFormats().toArray(new KeyFormat[0]));
 		cmbKeyFormat.setName("cmbKeyFormat");
 		cmbKeyFormat.setRenderer(new javax.swing.DefaultListCellRenderer()
 		{
@@ -326,28 +309,29 @@ public class GenerateKeysPanel extends BasePanel<GenerateKeysModelBean>
 				Object value, int index, boolean isSelected, boolean cellHasFocus)
 			{
 				return super.getListCellRendererComponent(list,
-					value == null
-						? ""
-						: KeygenSupport
-							.displayName((io.github.astrapi69.crypt.api.key.KeyFormat)value),
-					index, isSelected, cellHasFocus);
+					value == null ? "" : KeygenSupport.displayName((KeyFormat)value), index,
+					isSelected, cellHasFocus);
 			}
 		});
-		cmbAlgorithm = new JComboBox<>(SUPPORTED_ALGORITHMS);
+		cmbAlgorithm = new JMComboBox<>(SUPPORTED_ALGORITHMS);
 		cmbAlgorithm.setName("cmbAlgorithm");
-		cmbAlgorithm.setSelectedItem(KeygenSettingsContribution.algorithm());
+
+		// the tool starts with the algorithm the user configured in the settings dialog and with
+		// the first curve and key file format it offers, which is what the boxes showed before;
+		// the components take all three from the model when they are bound to it
+		getModelObject().setAlgorithm(KeygenSettingsContribution.algorithm());
+		getModelObject().setCurve(KeygenSupport.CURVES.get(0));
+		getModelObject().setKeyFormat(KeygenSupport.keyFormats().get(0));
+		bindComponents();
+
+		// the listener comes after the binding, because it reaches for the key generation panel
+		// that is built below
 		cmbAlgorithm.addActionListener(actionEvent -> onChangeAlgorithm(actionEvent));
 
 		cryptographyPanel = new CryptographyPanel(getModel())
 		{
 
 			private static final long serialVersionUID = 1L;
-
-			@Override
-			protected void onChangeKeySize(final ActionEvent actionEvent)
-			{
-				GenerateKeysPanel.this.onChangeKeySize(actionEvent);
-			}
 
 			@Override
 			protected void onClear(final ActionEvent actionEvent)
@@ -398,6 +382,20 @@ public class GenerateKeysPanel extends BasePanel<GenerateKeysModelBean>
 	}
 
 
+	/**
+	 * Binds the algorithm, the curve and the key file format box to the model of this panel, so
+	 * that what was chosen is readable from the model at any moment instead of out of the boxes
+	 */
+	private void bindComponents()
+	{
+		final GenerateKeysModelBean modelObject = getModelObject();
+		cmbAlgorithm.setPropertyModel(
+			LambdaModel.of(modelObject::getAlgorithm, modelObject::setAlgorithm));
+		cmbCurve.setPropertyModel(LambdaModel.of(modelObject::getCurve, modelObject::setCurve));
+		cmbKeyFormat.setPropertyModel(
+			LambdaModel.of(modelObject::getKeyFormat, modelObject::setKeyFormat));
+	}
+
 	@Override
 	protected void onInitializeLayout()
 	{
@@ -436,16 +434,26 @@ public class GenerateKeysPanel extends BasePanel<GenerateKeysModelBean>
 		final int state = fileChooser.showSaveDialog(this);
 		if (state == JFileChooser.APPROVE_OPTION)
 		{
-			try
-			{
-				KeygenSupport.writePrivateKey(getModelObject().getPrivateKey(),
-					fileChooser.getSelectedFile(),
-					(io.github.astrapi69.crypt.api.key.KeyFormat)cmbKeyFormat.getSelectedItem());
-			}
-			catch (final Exception e)
-			{
-				log.log(Level.SEVERE, e.getLocalizedMessage(), e);
-			}
+			savePrivateKeyTo(fileChooser.getSelectedFile());
+		}
+	}
+
+	/**
+	 * Writes the generated private key to the given file, in the key file format the model holds
+	 *
+	 * @param file
+	 *            the file the private key is written to
+	 */
+	protected void savePrivateKeyTo(final File file)
+	{
+		try
+		{
+			KeygenSupport.writePrivateKey(getModelObject().getPrivateKey(), file,
+				getModelObject().getKeyFormat());
+		}
+		catch (final Exception e)
+		{
+			log.log(Level.SEVERE, e.getLocalizedMessage(), e);
 		}
 	}
 
@@ -457,9 +465,9 @@ public class GenerateKeysPanel extends BasePanel<GenerateKeysModelBean>
 
 		final int result = JOptionPane.showOptionDialog(null, panel, "Enter a password",
 			JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE, null, options, null);
-		final String password = String.copyValueOf(panel.getTxtPassword().getPassword());
-		final String repeatPassword = String
-			.copyValueOf(panel.getTxtRepeatPassword().getPassword());
+		final PasswordBean enteredPasswords = panel.getModelObject();
+		final String password = String.copyValueOf(enteredPasswords.getPassword());
+		final String repeatPassword = String.copyValueOf(enteredPasswords.getRepeatPassword());
 		if (result == 0 && 0 < password.length())
 		{
 			if (password.equals(repeatPassword))

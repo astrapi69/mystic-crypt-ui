@@ -37,11 +37,13 @@ import javax.swing.table.DefaultTableModel;
 import io.github.astrapi69.crypt.api.algorithm.key.KeyPairGeneratorAlgorithm;
 import io.github.astrapi69.crypt.api.type.KeystoreType;
 import io.github.astrapi69.model.LambdaModel;
+import io.github.astrapi69.model.api.IModel;
 import io.github.astrapi69.mystic.crypt.settings.PluginSettings;
 import io.github.astrapi69.mystic.crypt.ui.form.ToolForm;
 import io.github.astrapi69.swing.model.combobox.EnumComboBoxModel;
 import io.github.astrapi69.swing.model.component.JMComboBox;
 import io.github.astrapi69.swing.model.component.JMPasswordField;
+import io.github.astrapi69.swing.model.component.JMTextArea;
 import io.github.astrapi69.swing.model.component.JMTextField;
 
 /**
@@ -127,13 +129,14 @@ public class KeyStorePanel extends JPanel
 		lblResult.setName("lblResult");
 		lblResult.setFont(lblResult.getFont().deriveFont(Font.BOLD));
 
-		JButton btnBrowse = button("btnBrowse", "...", event -> onBrowse(txtKeyStoreFile));
+		JButton btnBrowse = button("btnBrowse", "...",
+			event -> onBrowse(txtKeyStoreFile, keyStoreFilePathModel()));
 		JButton btnOpen = button("btnOpen", "Open", event -> onOpen());
 		JButton btnCreate = button("btnCreate", "Create", event -> onCreate());
 		JButton btnAddKeyPair = button("btnAddKeyPair", "Add key pair", event -> onAddKeyPair());
 		JButton btnDelete = button("btnDelete", "Delete alias", event -> onDelete());
 		JButton btnBrowseCertificate = button("btnBrowseCertificate", "...",
-			event -> onBrowse(txtCertificateFile));
+			event -> onBrowse(txtCertificateFile, certificateFilePathModel()));
 		JButton btnImport = button("btnImport", "Import certificate", event -> onImport());
 		JButton btnExport = button("btnExport", "Export certificate as PEM", event -> onExport());
 		JButton btnImportKeyPair = button("btnImportKeyPair", "Import key + certificate",
@@ -180,7 +183,8 @@ public class KeyStorePanel extends JPanel
 		add(btnBrowseCertificate);
 		add(new JLabel("Private key file:"));
 		add(txtPrivateKeyFile, ToolForm.FIELD + ", split 2");
-		add(button("btnBrowsePrivateKey", "...", event -> onBrowse(txtPrivateKeyFile)));
+		add(button("btnBrowsePrivateKey", "...",
+			event -> onBrowse(txtPrivateKeyFile, privateKeyFilePathModel())));
 		add(ToolForm.buttons(btnImport, btnExport), ToolForm.BUTTON_ROW);
 		add(ToolForm.buttons(btnImportKeyPair, btnAddSecretKey, btnDetails), ToolForm.BUTTON_ROW);
 		add(lblResult, ToolForm.RESULT_LINE);
@@ -192,8 +196,7 @@ public class KeyStorePanel extends JPanel
 	 */
 	private void bindComponents()
 	{
-		txtKeyStoreFile.setPropertyModel(
-			LambdaModel.of(modelObject::getKeyStoreFilePath, modelObject::setKeyStoreFilePath));
+		txtKeyStoreFile.setPropertyModel(keyStoreFilePathModel());
 		cmbType.setPropertyModel(
 			LambdaModel.of(modelObject::getKeystoreType, modelObject::setKeystoreType));
 		pwdStore.setPropertyModel(
@@ -203,10 +206,28 @@ public class KeyStorePanel extends JPanel
 			LambdaModel.of(modelObject::getDistinguishedName, modelObject::setDistinguishedName));
 		cmbKeyAlgorithm.setPropertyModel(
 			LambdaModel.of(modelObject::getKeyAlgorithm, modelObject::setKeyAlgorithm));
-		txtCertificateFile.setPropertyModel(LambdaModel.of(modelObject::getCertificateFilePath,
-			modelObject::setCertificateFilePath));
-		txtPrivateKeyFile.setPropertyModel(
-			LambdaModel.of(modelObject::getPrivateKeyFilePath, modelObject::setPrivateKeyFilePath));
+		txtCertificateFile.setPropertyModel(certificateFilePathModel());
+		txtPrivateKeyFile.setPropertyModel(privateKeyFilePathModel());
+	}
+
+	/** The path of the key store file, bound to its field and read by its browse button */
+	private IModel<String> keyStoreFilePathModel()
+	{
+		return LambdaModel.of(modelObject::getKeyStoreFilePath, modelObject::setKeyStoreFilePath);
+	}
+
+	/** The path of the certificate file, bound to its field and read by its browse button */
+	private IModel<String> certificateFilePathModel()
+	{
+		return LambdaModel.of(modelObject::getCertificateFilePath,
+			modelObject::setCertificateFilePath);
+	}
+
+	/** The path of the private key file, bound to its field and read by its browse button */
+	private IModel<String> privateKeyFilePathModel()
+	{
+		return LambdaModel.of(modelObject::getPrivateKeyFilePath,
+			modelObject::setPrivateKeyFilePath);
 	}
 
 	/**
@@ -230,16 +251,17 @@ public class KeyStorePanel extends JPanel
 		return comboBoxModel;
 	}
 
-	private void onBrowse(JTextField target)
+	private void onBrowse(JMTextField field, IModel<String> chosenFile)
 	{
 		JFileChooser fileChooser = new JFileChooser();
-		if (!target.getText().isBlank())
+		if (!chosenFile.getObject().isBlank())
 		{
-			fileChooser.setSelectedFile(new File(target.getText()));
+			fileChooser.setSelectedFile(new File(chosenFile.getObject()));
 		}
 		if (fileChooser.showDialog(this, "Select") == JFileChooser.APPROVE_OPTION)
 		{
-			target.setText(fileChooser.getSelectedFile().getAbsolutePath());
+			chosenFile.setObject(fileChooser.getSelectedFile().getAbsolutePath());
+			field.setText(chosenFile.getObject());
 		}
 	}
 
@@ -287,10 +309,11 @@ public class KeyStorePanel extends JPanel
 		run("shown", () -> {
 			requireOpenKeyStore();
 			String alias = selectedAlias();
-			KeyStoreSupport.CertificateDetails details = KeyStoreSupport
-				.details(modelObject.getKeyStore(), alias);
-			JOptionPane.showMessageDialog(this, newDetailsPanel(details),
-				"Certificate of '" + alias + "'", JOptionPane.PLAIN_MESSAGE);
+			modelObject.setCertificateDetails(
+				KeyStoreSupport.details(modelObject.getKeyStore(), alias));
+			JComponent detailsPanel = newDetailsPanel(modelObject.getCertificateDetails());
+			JOptionPane.showMessageDialog(this, detailsPanel, "Certificate of '" + alias + "'",
+				JOptionPane.PLAIN_MESSAGE);
 			return "showed the details of '" + alias + "'";
 		});
 	}
@@ -313,7 +336,7 @@ public class KeyStorePanel extends JPanel
 		addDetail(panel, "X.509 version", String.valueOf(details.version()));
 		addDetail(panel, "SHA-256", details.fingerprint());
 
-		JTextArea pem = new JTextArea(details.pem(), 8, 64);
+		JMTextArea pem = new JMTextArea(details.pem(), 8, 64);
 		pem.setName("txtCertificatePem");
 		pem.setEditable(false);
 		pem.setFont(new Font("monospaced", Font.PLAIN, 11));
@@ -341,7 +364,7 @@ public class KeyStorePanel extends JPanel
 	private void addDetail(JPanel panel, String label, String value)
 	{
 		panel.add(new JLabel(label + ":"));
-		JTextField field = new JTextField(value, 52);
+		JMTextField field = new JMTextField(value, 52);
 		field.setName("txtDetail" + label.replace(" ", ""));
 		field.setEditable(false);
 		panel.add(ToolForm.sized(field), ToolForm.FIELD);
@@ -405,8 +428,10 @@ public class KeyStorePanel extends JPanel
 				? new File(file().getParentFile(), alias + ".pem")
 				: new File(modelObject.getCertificateFilePath());
 			KeyStoreSupport.exportCertificate(modelObject.getKeyStore(), alias, target);
-			// setting the field is what puts the path into the model as well
-			txtCertificateFile.setText(target.getAbsolutePath());
+			// where the certificate went is part of what this panel holds, so it goes into the
+			// model and the field shows what the model says
+			modelObject.setCertificateFilePath(target.getAbsolutePath());
+			txtCertificateFile.setText(modelObject.getCertificateFilePath());
 			return "exported '" + alias + "' to " + target.getName();
 		});
 	}

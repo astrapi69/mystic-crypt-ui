@@ -25,6 +25,8 @@ import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.util.Date;
 
+import io.github.astrapi69.crypt.api.algorithm.key.KeyPairGeneratorAlgorithm;
+import io.github.astrapi69.crypt.api.key.KeyFormat;
 import io.github.astrapi69.crypt.api.key.KeySize;
 import io.github.astrapi69.mystic.crypt.key.PrivateKeyHexDecryptor;
 import io.github.astrapi69.mystic.crypt.key.PublicKeyHexEncryptor;
@@ -38,6 +40,14 @@ import lombok.ToString;
 import lombok.experimental.FieldDefaults;
 import lombok.experimental.SuperBuilder;
 
+/**
+ * Everything the key generation tool holds: the algorithm and the parameters a key pair is
+ * generated with, the generated key pair itself with the PEM text of both keys, the format a
+ * private key file is written in and the hex encryptor and decryptor the RSA demo runs on.
+ * <p>
+ * The panels bind their components to this object, so what the user chose is readable here at any
+ * moment - no button handler has to ask a widget for its content.
+ */
 @Getter
 @Setter
 @EqualsAndHashCode
@@ -55,13 +65,27 @@ public class GenerateKeysModelBean implements Serializable
 
 	PublicKeyHexEncryptor encryptor;
 
+	/** The key size a size based algorithm generates its key pair with */
 	KeySize keySize;
 
-	String algorithm;
+	/** The algorithm a key pair is generated with */
+	KeyPairGeneratorAlgorithm algorithm;
+
+	/** The curve an EC key sits on */
+	String curve;
+
+	/** The format a private key file is written in */
+	KeyFormat keyFormat;
 
 	PrivateKey privateKey;
 
 	PublicKey publicKey;
+
+	/** The generated private key as PEM, the text the private key area shows */
+	String privateKeyPem;
+
+	/** The generated public key as PEM, the text the public key area shows */
+	String publicKeyPem;
 
 	String password;
 	String signatureAlgorithm;

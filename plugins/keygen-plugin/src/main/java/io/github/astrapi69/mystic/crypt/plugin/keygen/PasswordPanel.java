@@ -21,10 +21,18 @@
 package io.github.astrapi69.mystic.crypt.plugin.keygen;
 
 import io.github.astrapi69.model.BaseModel;
+import io.github.astrapi69.model.LambdaModel;
 import io.github.astrapi69.model.api.IModel;
 import io.github.astrapi69.swing.base.BasePanel;
+import io.github.astrapi69.swing.model.component.JMPasswordField;
 import lombok.Getter;
 
+/**
+ * The panel that asks for a password and its repetition before a private key is written encrypted.
+ * <p>
+ * Both fields are bound to the {@link PasswordBean} of this panel, so the caller of the dialog
+ * reads what was typed from the model instead of out of the fields.
+ */
 @Getter
 public class PasswordPanel extends BasePanel<PasswordBean>
 {
@@ -32,8 +40,8 @@ public class PasswordPanel extends BasePanel<PasswordBean>
 	private static final long serialVersionUID = 1L;
 	private javax.swing.JLabel lblPassword;
 	private javax.swing.JLabel lblRepeatPassword;
-	private javax.swing.JPasswordField txtPassword;
-	private javax.swing.JPasswordField txtRepeatPassword;
+	private JMPasswordField txtPassword;
+	private JMPasswordField txtRepeatPassword;
 
 	public PasswordPanel()
 	{
@@ -50,13 +58,32 @@ public class PasswordPanel extends BasePanel<PasswordBean>
 	{
 		super.onInitializeComponents();
 		lblPassword = new javax.swing.JLabel();
-		txtPassword = new javax.swing.JPasswordField();
+		txtPassword = new JMPasswordField();
 		lblRepeatPassword = new javax.swing.JLabel();
-		txtRepeatPassword = new javax.swing.JPasswordField();
+		txtRepeatPassword = new JMPasswordField();
+
+		// a password field binds to a character array, and the bean is built empty; starting the
+		// model with empty arrays keeps a dialog that is closed untouched readable
+		getModelObject().setPassword(new char[0]);
+		getModelObject().setRepeatPassword(new char[0]);
+		bindComponents();
 
 		lblPassword.setText("Password");
 
 		lblRepeatPassword.setText("Repeat password");
+	}
+
+	/**
+	 * Binds both password fields to the model of this panel, so that what was typed is readable
+	 * from the model rather than out of the fields
+	 */
+	private void bindComponents()
+	{
+		final PasswordBean modelObject = getModelObject();
+		txtPassword.setPropertyModel(
+			LambdaModel.of(modelObject::getPassword, modelObject::setPassword));
+		txtRepeatPassword.setPropertyModel(
+			LambdaModel.of(modelObject::getRepeatPassword, modelObject::setRepeatPassword));
 	}
 
 	@Override

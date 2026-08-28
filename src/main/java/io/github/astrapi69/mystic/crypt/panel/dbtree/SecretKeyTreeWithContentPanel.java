@@ -65,6 +65,7 @@ import io.github.astrapi69.gen.tree.visitor.MaxIndexFinderTreeNodeVisitor;
 import io.github.astrapi69.gen.tree.visitor.ReindexTreeNodeVisitor;
 import io.github.astrapi69.id.generate.LongIdGenerator;
 import io.github.astrapi69.model.BaseModel;
+import io.github.astrapi69.model.LambdaModel;
 import io.github.astrapi69.model.api.IModel;
 import io.github.astrapi69.mystic.crypt.Messages;
 import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
@@ -76,6 +77,7 @@ import io.github.astrapi69.swing.dialog.JOptionPaneExtensions;
 import io.github.astrapi69.swing.listener.mouse.MouseDoubleClickListener;
 import io.github.astrapi69.swing.menu.factory.JMenuItemFactory;
 import io.github.astrapi69.swing.menu.factory.JPopupMenuFactory;
+import io.github.astrapi69.swing.model.component.JMComboBox;
 import io.github.astrapi69.swing.model.label.LabelModel;
 import io.github.astrapi69.swing.renderer.tree.GenericTreeElement;
 import io.github.astrapi69.swing.renderer.tree.renderer.state.NewGenericBaseTreeNodeCellRenderer;
@@ -97,10 +99,28 @@ public class SecretKeyTreeWithContentPanel
 	@Serial
 	private static final long serialVersionUID = 1L;
 
+	/**
+	 * Everything this panel holds outside the tree itself: the node the move dialog offers as the
+	 * new parent. It is assigned after the components are built, which is what the base class does
+	 * in its constructor - nothing in that cycle reads it
+	 */
+	private final transient SecretKeyTreeWithContentPanelModel panelModelObject;
+
 	public SecretKeyTreeWithContentPanel(
 		final IModel<BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long>> model)
 	{
 		super(model);
+		panelModelObject = new SecretKeyTreeWithContentPanelModel();
+	}
+
+	/**
+	 * Gets the model of this panel, which holds the node the move dialog offers as the new parent
+	 *
+	 * @return the model of this panel
+	 */
+	public SecretKeyTreeWithContentPanelModel getPanelModelObject()
+	{
+		return panelModelObject;
 	}
 
 	@Override
@@ -666,22 +686,8 @@ public class SecretKeyTreeWithContentPanel
 						JOptionPane.INFORMATION_MESSAGE);
 					return;
 				}
-				JComboBox<BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long>> targetChooser = new JComboBox<>(
-					targets.toArray(new BaseTreeNode[0]));
-				targetChooser.setName("cmbMoveTarget");
-				targetChooser.setRenderer(new DefaultListCellRenderer()
-				{
-					private static final long serialVersionUID = 1L;
-
-					@Override
-					public java.awt.Component getListCellRendererComponent(JList<?> list,
-						Object value, int index, boolean isSelected, boolean cellHasFocus)
-					{
-						BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> node = (BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long>)value;
-						return super.getListCellRendererComponent(list,
-							node != null ? pathOf(node) : "", index, isSelected, cellHasFocus);
-					}
-				});
+				JMComboBox<BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long>, ?> targetChooser = newMoveTargetChooser(
+					targets);
 				JPanel panel = new JPanel();
 				panel.add(new JLabel("Move under:"));
 				panel.add(targetChooser);
@@ -692,8 +698,8 @@ public class SecretKeyTreeWithContentPanel
 				{
 					return;
 				}
-				BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> newParentTreeNode = (BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long>)targetChooser
-					.getSelectedItem();
+				BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> newParentTreeNode = panelModelObject
+					.getMoveTarget();
 				DefaultMutableTreeNode oldSwingParent = (DefaultMutableTreeNode)selectedDefaultMutableTreeNode
 					.getParent();
 				BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> oldParentTreeNode = selectedTreeNode
@@ -723,6 +729,42 @@ public class SecretKeyTreeWithContentPanel
 				}
 				reload(oldSwingParent);
 			});
+	}
+
+	/**
+	 * The combo box the move dialog offers the possible new parents in, bound to the model of this
+	 * panel so that the move reads the chosen target from there and not out of the widget
+	 *
+	 * @param targets
+	 *            the nodes the selected node could be moved under
+	 * @return the combo box over the given targets, the first of them chosen
+	 */
+	@SuppressWarnings("unchecked")
+	protected JMComboBox<BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long>, ?> newMoveTargetChooser(
+		List<BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long>> targets)
+	{
+		// the combo box opens on its first entry, so the model carries that one before anything is
+		// picked - a dialog that is confirmed unchanged moves the node where it says it will
+		panelModelObject.setMoveTarget(targets.get(0));
+		JMComboBox<BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long>, ?> targetChooser = new JMComboBox<>(
+			targets.toArray(new BaseTreeNode[0]));
+		targetChooser.setName("cmbMoveTarget");
+		targetChooser.setRenderer(new DefaultListCellRenderer()
+		{
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public java.awt.Component getListCellRendererComponent(JList<?> list, Object value,
+				int index, boolean isSelected, boolean cellHasFocus)
+			{
+				BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> node = (BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long>)value;
+				return super.getListCellRendererComponent(list, node != null ? pathOf(node) : "",
+					index, isSelected, cellHasFocus);
+			}
+		});
+		targetChooser.setPropertyModel(
+			LambdaModel.of(panelModelObject::getMoveTarget, panelModelObject::setMoveTarget));
+		return targetChooser;
 	}
 
 	/**

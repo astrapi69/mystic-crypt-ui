@@ -26,13 +26,19 @@ import javax.swing.*;
 
 import io.github.astrapi69.collection.pair.Pair;
 import io.github.astrapi69.model.BaseModel;
+import io.github.astrapi69.model.LambdaModel;
 import io.github.astrapi69.model.api.IModel;
 import io.github.astrapi69.swing.base.BasePanel;
 import io.github.astrapi69.swing.listener.document.EnableButtonBehavior;
+import io.github.astrapi69.swing.model.component.JMTextArea;
 import lombok.Getter;
 
 /**
  * The class {@link EnDecryptPanel} holds components for encrypt and decrypt text.
+ * <p>
+ * Both text areas are bound to the model of this panel: the left side of the pair carries the text
+ * to encrypt, the right side the encrypted text. A callback that encrypts or decrypts therefore
+ * reads what the user entered from {@link #getModelObject()} and not out of the widgets.
  */
 @Getter
 public class EnDecryptPanel extends BasePanel<Pair<String, String>>
@@ -60,17 +66,18 @@ public class EnDecryptPanel extends BasePanel<Pair<String, String>>
 	private JScrollPane scpToEncrypt;
 
 	/** The txt encrypted. */
-	private JTextArea txtEncrypted;
+	private JMTextArea txtEncrypted;
 
 	/** The txt to encrypt. */
-	private JTextArea txtToEncrypt;
+	private JMTextArea txtToEncrypt;
 
 	/**
 	 * Instantiates a new {@link EnDecryptPanel}.
 	 */
 	public EnDecryptPanel()
 	{
-		this(BaseModel.<Pair<String, String>> of(Pair.<String, String> builder().build()));
+		this(BaseModel.<Pair<String, String>> of(
+			Pair.<String, String> builder().leftContent("").rightContent("").build()));
 	}
 
 	/**
@@ -91,11 +98,11 @@ public class EnDecryptPanel extends BasePanel<Pair<String, String>>
 	{
 		lblToEncrypt = new JLabel();
 		scpToEncrypt = new JScrollPane();
-		txtToEncrypt = new JTextArea();
+		txtToEncrypt = new JMTextArea();
 		btnEncrypt = new JButton();
 		btnDecrypt = new JButton();
 		scpEncrypted = new JScrollPane();
-		txtEncrypted = new JTextArea();
+		txtEncrypted = new JMTextArea();
 		lblEncrypted = new JLabel();
 
 		lblToEncrypt.setText("Text to encrypt");
@@ -106,6 +113,8 @@ public class EnDecryptPanel extends BasePanel<Pair<String, String>>
 		txtEncrypted.setName("txtEncrypted");
 		btnEncrypt.setName("btnEncrypt");
 		btnDecrypt.setName("btnDecrypt");
+
+		bindToModel();
 
 		txtToEncrypt.setColumns(20);
 		txtToEncrypt.setRows(5);
@@ -127,6 +136,19 @@ public class EnDecryptPanel extends BasePanel<Pair<String, String>>
 
 		lblEncrypted.setText("Encrypted text");
 
+	}
+
+	/**
+	 * Binds both text areas to the model of this panel, so that every edit lands in the model and
+	 * the model is what an encrypt or decrypt callback reads: the left side of the pair carries the
+	 * text to encrypt, the right side the encrypted text
+	 */
+	private void bindToModel()
+	{
+		txtToEncrypt.setPropertyModel(
+			LambdaModel.of(getModel(), Pair::getLeftContent, Pair::setLeftContent));
+		txtEncrypted.setPropertyModel(
+			LambdaModel.of(getModel(), Pair::getRightContent, Pair::setRightContent));
 	}
 
 	/**

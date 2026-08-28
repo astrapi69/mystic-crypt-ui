@@ -25,30 +25,51 @@
 package io.github.astrapi69.mystic.crypt.panel.certificate;
 
 import java.math.BigInteger;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeParseException;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 
+import io.github.astrapi69.crypt.data.model.DistinguishedNameInfo;
 import io.github.astrapi69.model.BaseModel;
+import io.github.astrapi69.model.LambdaModel;
 import io.github.astrapi69.model.api.IModel;
 import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
 import io.github.astrapi69.mystic.crypt.wizard.model.CertificateInfoModel;
 import io.github.astrapi69.mystic.crypt.wizard.model.DistinguishedNameInfoModel;
+import io.github.astrapi69.mystic.crypt.wizard.model.ValidityModel;
 import io.github.astrapi69.random.number.RandomBigIntegerFactory;
 import io.github.astrapi69.swing.base.BasePanel;
 import io.github.astrapi69.swing.dialog.factory.JDialogFactory;
 import io.github.astrapi69.swing.listener.RequestFocusListener;
+import io.github.astrapi69.swing.model.combobox.GenericComboBoxModel;
+import io.github.astrapi69.swing.model.component.JMBigIntegerTextField;
+import io.github.astrapi69.swing.model.component.JMComboBox;
+import io.github.astrapi69.swing.model.component.JMTextField;
 import lombok.Getter;
 
+/**
+ * Panel for the data of a new certificate: its version and serial number, the issuer and the
+ * subject that are picked in a dialog of their own, the period it is valid in and the algorithm it
+ * is signed with.
+ * <p>
+ * Every component is bound to the {@link CertificateInfoModel} the panel was constructed with, so
+ * what was typed or chosen is readable there at any moment - the same model the certificate wizard
+ * fills on its own steps.
+ */
 @Getter
 public class NewCertificateInfoPanel extends BasePanel<CertificateInfoModel>
 {
+
+	/** The X.509 versions a new certificate can be created in */
+	private static final Integer[] VERSIONS = { 1, 2, 3 };
 
 	private JButton btnAddExtension;
 	private JButton btnCreateIssuer;
 	private JButton btnCreateSubject;
 	private JButton btnGenerateSerialNumber;
-	private JComboBox<String> cmbVersion;
+	private JMComboBox<Integer, GenericComboBoxModel<Integer>> cmbVersion;
 	private JLabel lblExtensions;
 	private JLabel lblIssuer;
 	private JLabel lblNotAfter;
@@ -61,13 +82,13 @@ public class NewCertificateInfoPanel extends BasePanel<CertificateInfoModel>
 	private JScrollPane scpExtensions;
 	private JScrollPane scpPublicKey;
 	private JTable srcExtensions;
-	private JTextField txtIssuer;
-	private JTextField txtNotAfter;
-	private JTextField txtNotBefore;
+	private JMTextField txtIssuer;
+	private JMTextField txtNotAfter;
+	private JMTextField txtNotBefore;
 	private JTextArea txtPublicKey;
-	private JTextField txtSerialNumber;
-	private JTextField txtSignatureAlgorithm;
-	private JTextField txtSubject;
+	private JMBigIntegerTextField txtSerialNumber;
+	private JMTextField txtSignatureAlgorithm;
+	private JMTextField txtSubject;
 
 	public NewCertificateInfoPanel()
 	{
@@ -85,24 +106,27 @@ public class NewCertificateInfoPanel extends BasePanel<CertificateInfoModel>
 		super.onInitializeComponents();
 
 		lblVersion = new JLabel();
-		cmbVersion = new JComboBox<>();
+		// the combo box model starts on the version the model holds, so the selection the combo box
+		// remembers and the one the model carries cannot drift apart
+		cmbVersion = new JMComboBox<>(
+			new GenericComboBoxModel<>(VERSIONS, getModelObject().getVersion()));
 		lblSerialNumber = new JLabel();
-		txtSerialNumber = new JTextField();
+		txtSerialNumber = new JMBigIntegerTextField();
 		lblIssuer = new JLabel();
 		lblSubject = new JLabel();
-		txtIssuer = new JTextField();
-		txtSubject = new JTextField();
+		txtIssuer = new JMTextField();
+		txtSubject = new JMTextField();
 		lblNotBefore = new JLabel();
-		txtNotBefore = new JTextField();
+		txtNotBefore = new JMTextField();
 		lblNotAfter = new JLabel();
 		btnCreateIssuer = new JButton();
 		btnCreateSubject = new JButton();
-		txtNotAfter = new JTextField();
+		txtNotAfter = new JMTextField();
 		lblPublicKey = new JLabel();
 		scpPublicKey = new JScrollPane();
 		txtPublicKey = new JTextArea();
 		lblSignatureAlgorithm = new JLabel();
-		txtSignatureAlgorithm = new JTextField();
+		txtSignatureAlgorithm = new JMTextField();
 		lblExtensions = new JLabel();
 		scpExtensions = new JScrollPane();
 		srcExtensions = new JTable();
@@ -110,8 +134,6 @@ public class NewCertificateInfoPanel extends BasePanel<CertificateInfoModel>
 		btnGenerateSerialNumber = new JButton();
 
 		lblVersion.setText("Version:");
-
-		cmbVersion.setModel(new DefaultComboBoxModel<>(new String[] { "1", "2", "3" }));
 
 		lblSerialNumber.setText("Serial Number:");
 
@@ -198,6 +220,167 @@ public class NewCertificateInfoPanel extends BasePanel<CertificateInfoModel>
 		// enable when functionality is given...
 		btnAddExtension.setEnabled(false);
 
+		bindComponents();
+	}
+
+	/**
+	 * Binds every component to the {@link CertificateInfoModel} of this panel, so that each edit
+	 * lands in the model and the model is what the buttons read - the components carry the values
+	 * the model already holds
+	 */
+	protected void bindComponents()
+	{
+		CertificateInfoModel modelObject = getModelObject();
+		cmbVersion
+			.setPropertyModel(LambdaModel.of(modelObject::getVersion, modelObject::setVersion));
+		txtSerialNumber
+			.setPropertyModel(LambdaModel.of(modelObject::getSerial, modelObject::setSerial));
+		txtIssuer.setPropertyModel(LambdaModel
+			.<String> of(() -> representableString(modelObject.getIssuer()), issuer -> modelObject
+				.setIssuer(toDistinguishedNameInfoModel(issuer, modelObject.getIssuer()))));
+		txtSubject.setPropertyModel(LambdaModel
+			.<String> of(() -> representableString(modelObject.getSubject()), subject -> modelObject
+				.setSubject(toDistinguishedNameInfoModel(subject, modelObject.getSubject()))));
+		txtNotBefore.setPropertyModel(LambdaModel.of(this::notBeforeText, this::setNotBeforeText));
+		txtNotAfter.setPropertyModel(LambdaModel.of(this::notAfterText, this::setNotAfterText));
+		txtSignatureAlgorithm.setPropertyModel(
+			LambdaModel.of(modelObject::getSignatureAlgorithm, modelObject::setSignatureAlgorithm));
+	}
+
+	/**
+	 * The first moment the certificate is valid at, as text and empty when no validity period was
+	 * collected yet
+	 *
+	 * @return the start of the validity period as text
+	 */
+	protected String notBeforeText()
+	{
+		ValidityModel validityModel = getModelObject().getValidityModel();
+		return validityModel == null ? "" : text(validityModel.getNotBefore());
+	}
+
+	/**
+	 * Sets the first moment the certificate is valid at from what was typed
+	 *
+	 * @param notBefore
+	 *            the start of the validity period as text
+	 */
+	protected void setNotBeforeText(final String notBefore)
+	{
+		ValidityModel validityModel = getModelObject().getValidityModel();
+		if (validityModel != null)
+		{
+			validityModel.setNotBefore(toZonedDateTime(notBefore, validityModel.getNotBefore()));
+		}
+	}
+
+	/**
+	 * The last moment the certificate is valid at, as text and empty when no validity period was
+	 * collected yet
+	 *
+	 * @return the end of the validity period as text
+	 */
+	protected String notAfterText()
+	{
+		ValidityModel validityModel = getModelObject().getValidityModel();
+		return validityModel == null ? "" : text(validityModel.getNotAfter());
+	}
+
+	/**
+	 * Sets the last moment the certificate is valid at from what was typed
+	 *
+	 * @param notAfter
+	 *            the end of the validity period as text
+	 */
+	protected void setNotAfterText(final String notAfter)
+	{
+		ValidityModel validityModel = getModelObject().getValidityModel();
+		if (validityModel != null)
+		{
+			validityModel.setNotAfter(toZonedDateTime(notAfter, validityModel.getNotAfter()));
+		}
+	}
+
+	/**
+	 * The moment as text, empty when there is none
+	 *
+	 * @param moment
+	 *            the moment, may be null
+	 * @return the moment as text, empty when there is none
+	 */
+	private static String text(final ZonedDateTime moment)
+	{
+		return moment == null ? "" : moment.toString();
+	}
+
+	/**
+	 * The moment a typed text describes. A blank or half typed date is an edit in progress and not
+	 * a new moment, so it keeps the one the validity period already holds.
+	 *
+	 * @param text
+	 *            the text that was typed
+	 * @param current
+	 *            the moment the validity period holds
+	 * @return the moment the text describes, or the current one when the text is not a moment yet
+	 */
+	private static ZonedDateTime toZonedDateTime(final String text, final ZonedDateTime current)
+	{
+		if (text == null || text.isBlank())
+		{
+			return current;
+		}
+		try
+		{
+			return ZonedDateTime.parse(text);
+		}
+		catch (final DateTimeParseException editInProgress)
+		{
+			return current;
+		}
+	}
+
+	/**
+	 * The distinguished name as a certificate writes it, empty when there is none yet
+	 *
+	 * @param distinguishedNameInfoModel
+	 *            the distinguished name, may be null
+	 * @return the representable string of the distinguished name, empty when there is none
+	 */
+	private static String representableString(
+		final DistinguishedNameInfoModel distinguishedNameInfoModel)
+	{
+		return distinguishedNameInfoModel == null
+			? ""
+			: DistinguishedNameInfoModel.toDistinguishedNameInfo(distinguishedNameInfoModel)
+				.toRepresentableString();
+	}
+
+	/**
+	 * The distinguished name a typed text describes. A blank field says that nothing was entered
+	 * and not that the distinguished name is gone, so it keeps the one the model already holds.
+	 *
+	 * @param text
+	 *            the text that was typed
+	 * @param current
+	 *            the distinguished name the model holds
+	 * @return the distinguished name the text describes, or the current one when the text is blank
+	 */
+	private static DistinguishedNameInfoModel toDistinguishedNameInfoModel(final String text,
+		final DistinguishedNameInfoModel current)
+	{
+		if (text == null || text.isBlank())
+		{
+			return current;
+		}
+		DistinguishedNameInfo distinguishedNameInfo = DistinguishedNameInfo
+			.toDistinguishedNameInfo(text);
+		return DistinguishedNameInfoModel.builder()
+			.commonName(distinguishedNameInfo.getCommonName())
+			.countryCode(distinguishedNameInfo.getCountryCode())
+			.location(distinguishedNameInfo.getLocation())
+			.organisation(distinguishedNameInfo.getOrganisation())
+			.organisationUnit(distinguishedNameInfo.getOrganisationUnit())
+			.state(distinguishedNameInfo.getState()).build();
 	}
 
 	@Override
@@ -327,13 +510,15 @@ public class NewCertificateInfoPanel extends BasePanel<CertificateInfoModel>
 
 		if (optionPane.getValue().equals(JOptionPane.OK_OPTION))
 		{
-			DistinguishedNameInfoModel newIssuerModelObject = getDistinguishedNameInfo(panel);
+			DistinguishedNameInfoModel newIssuerModelObject = panel.getModelObject();
 
 			String issuer = DistinguishedNameInfoModel.toDistinguishedNameInfo(newIssuerModelObject)
 				.toRepresentableString();
 			CertificateInfoModel modelObject = getModelObject();
-			modelObject.setIssuer(newIssuerModelObject);
+			// the field writes what it shows back into the model, so the issuer that was picked is
+			// set afterwards and is the one the model keeps
 			getTxtIssuer().setText(issuer);
+			modelObject.setIssuer(newIssuerModelObject);
 		}
 
 	}
@@ -362,28 +547,16 @@ public class NewCertificateInfoPanel extends BasePanel<CertificateInfoModel>
 
 		if (optionPane.getValue().equals(JOptionPane.OK_OPTION))
 		{
-			DistinguishedNameInfoModel newSubjectModelObject = getDistinguishedNameInfo(panel);
+			DistinguishedNameInfoModel newSubjectModelObject = panel.getModelObject();
 			CertificateInfoModel modelObject = getModelObject();
-			modelObject.setSubject(newSubjectModelObject);
 
 			String subject = DistinguishedNameInfoModel
 				.toDistinguishedNameInfo(newSubjectModelObject).toRepresentableString();
+			// the field writes what it shows back into the model, so the subject that was picked is
+			// set afterwards and is the one the model keeps
 			getTxtSubject().setText(subject);
+			modelObject.setSubject(newSubjectModelObject);
 		}
-	}
-
-	private static DistinguishedNameInfoModel getDistinguishedNameInfo(
-		NewCertificateAttributesPanel panel)
-	{
-		DistinguishedNameInfoModel newModelObject = DistinguishedNameInfoModel.builder()
-			.commonName(panel.getTxtCommonName().getText())
-			.countryCode(panel.getTxtCountryCode().getText())
-			.location(panel.getTxtLocation().getText())
-			.organisation(panel.getTxtOrganization().getText())
-			.organisationUnit(panel.getTxtOrganizationUnit().getText())
-			.state(panel.getTxtState().getText()).build();
-		panel.setModelObject(newModelObject);
-		return newModelObject;
 	}
 
 	protected void onAddExtension(java.awt.event.ActionEvent evt)
