@@ -24,7 +24,7 @@ repositories {
 dependencies {
     compileOnly "io.github.astrapi69:mystic-crypt-ui:8.2-SNAPSHOT"
     compileOnly "io.github.astrapi69:checksum-up:3.1"
-    compileOnly "io.github.astrapi69:crypt-api:10.1"
+    compileOnly "io.github.astrapi69:crypt-api:10.0.0"
     compileOnly "io.github.astrapi69:file-worker:19.0"
     compileOnly "io.github.astrapi69:model-data:3.2.1"
     compileOnly "io.github.astrapi69:swing-base-components:5.1"
@@ -47,7 +47,7 @@ dependencies {
     // SHA-3 and BLAKE2 come from Bouncy Castle, which the host registers at startup
     testImplementation "org.bouncycastle:bcprov-jdk18on:1.85.2"
     testImplementation "io.github.astrapi69:checksum-up:3.1"
-    testImplementation "io.github.astrapi69:crypt-api:10.1"
+    testImplementation "io.github.astrapi69:crypt-api:10.0.0"
     testRuntimeOnly "org.junit.platform:junit-platform-launcher"
     // the settings contribution implements the host's extension point and reads through the host's
     // settings store, so the host jar has to be on the test classpath to load it
