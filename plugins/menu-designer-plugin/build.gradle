@@ -25,12 +25,17 @@ dependencies {
     compileOnly "io.github.astrapi69:swing-base-components:5.1"
     compileOnly "io.github.astrapi69:swing-components:9"
 
+    // the shared tool window layout comes from the host, which brings MigLayout with it
+    compileOnly "com.miglayout:miglayout-swing:11.4.3"
+
     compileOnly "org.pf4j:pf4j:3.15.0"
     // required so the @Extension annotation processor runs and writes META-INF/extensions.idx
     annotationProcessor "org.pf4j:pf4j:3.15.0"
     // the settings contribution implements the host's extension point and reads through the host's
     // settings store, so the host jar has to be on the test classpath to load it
     testImplementation "io.github.astrapi69:mystic-crypt-ui:8.2-SNAPSHOT"
+    // the layout measurement constructs the panel, so the layout manager has to be there too
+    testImplementation "com.miglayout:miglayout-swing:11.4.3"
     testImplementation "org.pf4j:pf4j:3.15.0"
 
     testImplementation "org.junit.jupiter:junit-jupiter:5.11.4"

@@ -45,10 +45,10 @@ import io.github.astrapi69.model.BaseModel;
 import io.github.astrapi69.model.api.IModel;
 import io.github.astrapi69.mystic.crypt.key.PrivateKeyHexDecryptor;
 import io.github.astrapi69.mystic.crypt.key.PublicKeyHexEncryptor;
+import io.github.astrapi69.mystic.crypt.ui.form.ToolForm;
 import io.github.astrapi69.swing.base.BasePanel;
 import lombok.Getter;
 import lombok.extern.java.Log;
-import net.miginfocom.swing.MigLayout;
 
 @Getter
 @Log
@@ -406,19 +406,21 @@ public class GenerateKeysPanel extends BasePanel<GenerateKeysModelBean>
 	}
 
 	/**
-	 * Initialize layout.
+	 * Lays this tool window out with the layout every tool window in this application uses: the
+	 * algorithm, the curve and the key file format in labelled rows, the key generation panel
+	 * taking the height the window has left and the encrypt/decrypt panel under it.
 	 */
 	protected void onInitializeMigLayout()
 	{
-		setLayout(new MigLayout());
-		add(lblAlgorithm, "split 2");
-		add(cmbAlgorithm, "wrap");
+		setLayout(ToolForm.newLayout());
+		add(lblAlgorithm);
+		add(cmbAlgorithm, ToolForm.FIELD);
 		add(new javax.swing.JLabel("Curve (EC):"));
-		add(cmbCurve, "wrap");
+		add(cmbCurve, ToolForm.FIELD);
 		add(new javax.swing.JLabel("Private key file format:"));
-		add(cmbKeyFormat, "wrap");
-		add(cryptographyPanel, "wrap");
-		add(enDecryptPanel);
+		add(cmbKeyFormat, ToolForm.FIELD);
+		add(cryptographyPanel, ToolForm.GROWING);
+		add(enDecryptPanel, ToolForm.WIDE);
 	}
 
 	/**

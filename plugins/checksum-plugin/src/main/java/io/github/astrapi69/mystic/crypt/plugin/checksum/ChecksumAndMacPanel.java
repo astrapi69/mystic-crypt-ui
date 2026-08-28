@@ -24,22 +24,19 @@
  */
 package io.github.astrapi69.mystic.crypt.plugin.checksum;
 
-import java.awt.BorderLayout;
-import java.awt.Dimension;
 import java.awt.Font;
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
-import java.awt.Insets;
 import java.io.File;
 
 import javax.swing.*;
 
 import io.github.astrapi69.model.LambdaModel;
+import io.github.astrapi69.mystic.crypt.ui.form.ToolForm;
 import io.github.astrapi69.swing.model.component.JMCheckBox;
 import io.github.astrapi69.swing.model.component.JMComboBox;
 import io.github.astrapi69.swing.model.component.JMPasswordField;
 import io.github.astrapi69.swing.model.component.JMTextArea;
 import io.github.astrapi69.swing.model.component.JMTextField;
+import net.miginfocom.swing.MigLayout;
 
 /**
  * Tool panel for the two questions about integrity that are not the same question.
@@ -57,11 +54,19 @@ public class ChecksumAndMacPanel extends JPanel
 
 	private static final long serialVersionUID = 1L;
 
+	/** A label that belongs to a text area sits at the top of it, not in the middle */
+	private static final String LABEL_OF_AN_AREA = "aligny top";
+
 	/**
-	 * The width in pixels a text component of this panel is never laid out below, so that even the
-	 * minimum layout of a narrow window shows a usable field instead of a sliver
+	 * The area the user types into, which takes the larger share of the height a window has spare
 	 */
-	private static final int MINIMUM_TEXT_WIDTH = 160;
+	private static final String INPUT_AREA = "grow, pushy 200";
+
+	/** The area a computed value appears in, which takes the smaller share */
+	private static final String OUTPUT_AREA = "grow, pushy 100";
+
+	/** Something that belongs under the field above it rather than next to a label of its own */
+	private static final String UNDER_THE_FIELD = "skip 1, growx";
 
 	/** Everything this panel holds; every component below writes into it */
 	private final ChecksumAndMacPanelModel modelObject = new ChecksumAndMacPanelModel();
@@ -89,7 +94,10 @@ public class ChecksumAndMacPanel extends JPanel
 
 	public ChecksumAndMacPanel()
 	{
-		super(new BorderLayout(4, 4));
+		// one layout for every tool window, so this one looks like the one next to it: labels in a
+		// narrow right aligned column, fields taking the width, the tabs taking the height that is
+		// left, the result line under them
+		super(ToolForm.newLayout());
 
 		lblResult.setName("lblResult");
 		lblResult.setFont(lblResult.getFont().deriveFont(Font.BOLD));
@@ -101,8 +109,8 @@ public class ChecksumAndMacPanel extends JPanel
 		tabs.addTab("Checksum", newChecksumTab());
 		tabs.addTab("Message authentication code", newMacTab());
 
-		add(tabs, BorderLayout.CENTER);
-		add(lblResult, BorderLayout.SOUTH);
+		add(tabs, ToolForm.GROWING);
+		add(lblResult, ToolForm.RESULT_LINE);
 	}
 
 	private JPanel newChecksumTab()
@@ -115,25 +123,21 @@ public class ChecksumAndMacPanel extends JPanel
 		configure(txtExpected, "txtExpected");
 		bindChecksumComponents();
 
-		JPanel panel = new JPanel(new GridBagLayout());
-		int row = 0;
-		panel.add(new JLabel("Digest:"), at(0, row, GridBagConstraints.EAST));
-		panel.add(cmbDigest, stretched(1, row++));
-		panel.add(new JLabel("Text:"), at(0, row, GridBagConstraints.NORTHEAST));
-		panel.add(scrollPaneAround(txtChecksumText), stretched(1, row++));
-		panel.add(new JLabel("File:"), at(0, row, GridBagConstraints.EAST));
-		panel.add(txtChecksumFile, stretched(1, row));
-		panel.add(button("btnBrowseChecksumFile", "...",
-			event -> onBrowse(txtChecksumFile, modelObject.getChecksumFile())),
-			at(2, row++, GridBagConstraints.WEST));
-		panel.add(chkChecksumUseFile, at(1, row++, GridBagConstraints.WEST));
-		panel.add(new JLabel("Checksum:"), at(0, row, GridBagConstraints.NORTHEAST));
-		panel.add(scrollPaneAround(txtChecksum), stretched(1, row++));
-		panel.add(new JLabel("Compare with:"), at(0, row, GridBagConstraints.EAST));
-		panel.add(txtExpected, stretched(1, row++));
-		panel.add(buttonRow(button("btnChecksum", "Compute", event -> onChecksum()),
-			button("btnCompare", "Compare", event -> onCompare())),
-			at(1, row, GridBagConstraints.WEST));
+		JPanel panel = new JPanel(ToolForm.newLayout());
+		panel.add(new JLabel("Digest:"));
+		panel.add(cmbDigest, ToolForm.FIELD);
+		panel.add(new JLabel("Text:"), LABEL_OF_AN_AREA);
+		panel.add(ToolForm.scrolled(txtChecksumText), INPUT_AREA);
+		panel.add(new JLabel("File:"));
+		panel.add(fileRow(txtChecksumFile, button("btnBrowseChecksumFile", "...",
+			event -> onBrowse(txtChecksumFile, modelObject.getChecksumFile()))), ToolForm.FIELD);
+		panel.add(chkChecksumUseFile, UNDER_THE_FIELD);
+		panel.add(new JLabel("Checksum:"), LABEL_OF_AN_AREA);
+		panel.add(ToolForm.scrolled(txtChecksum), OUTPUT_AREA);
+		panel.add(new JLabel("Compare with:"));
+		panel.add(txtExpected, ToolForm.FIELD);
+		panel.add(ToolForm.buttons(button("btnChecksum", "Compute", event -> onChecksum()),
+			button("btnCompare", "Compare", event -> onCompare())), ToolForm.BUTTON_ROW);
 		return panel;
 	}
 
@@ -163,28 +167,25 @@ public class ChecksumAndMacPanel extends JPanel
 		configure(txtMacExpected, "txtMacExpected");
 		bindMacComponents();
 
-		JPanel panel = new JPanel(new GridBagLayout());
-		int row = 0;
-		panel.add(new JLabel("Code:"), at(0, row, GridBagConstraints.EAST));
-		panel.add(cmbMac, stretched(1, row++));
-		panel.add(new JLabel("Key:"), at(0, row, GridBagConstraints.EAST));
-		panel.add(pwdMacKey, stretched(1, row++));
-		panel.add(new JLabel("Text:"), at(0, row, GridBagConstraints.NORTHEAST));
-		panel.add(scrollPaneAround(txtMacText), stretched(1, row++));
-		panel.add(new JLabel("File:"), at(0, row, GridBagConstraints.EAST));
-		panel.add(txtMacFile, stretched(1, row));
-		panel.add(
+		JPanel panel = new JPanel(ToolForm.newLayout());
+		panel.add(new JLabel("Code:"));
+		panel.add(cmbMac, ToolForm.FIELD);
+		panel.add(new JLabel("Key:"));
+		panel.add(pwdMacKey, ToolForm.FIELD);
+		panel.add(new JLabel("Text:"), LABEL_OF_AN_AREA);
+		panel.add(ToolForm.scrolled(txtMacText), INPUT_AREA);
+		panel.add(new JLabel("File:"));
+		panel.add(fileRow(txtMacFile,
 			button("btnBrowseMacFile", "...",
-				event -> onBrowse(txtMacFile, modelObject.getMacFile())),
-			at(2, row++, GridBagConstraints.WEST));
-		panel.add(chkMacUseFile, at(1, row++, GridBagConstraints.WEST));
-		panel.add(new JLabel("Code:"), at(0, row, GridBagConstraints.NORTHEAST));
-		panel.add(scrollPaneAround(txtMac), stretched(1, row++));
-		panel.add(new JLabel("Compare with:"), at(0, row, GridBagConstraints.EAST));
-		panel.add(txtMacExpected, stretched(1, row++));
-		panel.add(buttonRow(button("btnMac", "Compute", event -> onMac()),
-			button("btnCompareMac", "Compare", event -> onCompareMac())),
-			at(1, row, GridBagConstraints.WEST));
+				event -> onBrowse(txtMacFile, modelObject.getMacFile()))),
+			ToolForm.FIELD);
+		panel.add(chkMacUseFile, UNDER_THE_FIELD);
+		panel.add(new JLabel("Code:"), LABEL_OF_AN_AREA);
+		panel.add(ToolForm.scrolled(txtMac), OUTPUT_AREA);
+		panel.add(new JLabel("Compare with:"));
+		panel.add(txtMacExpected, ToolForm.FIELD);
+		panel.add(ToolForm.buttons(button("btnMac", "Compute", event -> onMac()),
+			button("btnCompareMac", "Compare", event -> onCompareMac())), ToolForm.BUTTON_ROW);
 		return panel;
 	}
 
@@ -364,25 +365,26 @@ public class ChecksumAndMacPanel extends JPanel
 	private static void configure(JTextField textField, String name)
 	{
 		textField.setName(name);
-		textField.setMinimumSize(
-			new Dimension(MINIMUM_TEXT_WIDTH, textField.getPreferredSize().height));
+		ToolForm.sized(textField);
 	}
 
 	/**
-	 * Wraps a text area in the scroll pane the panel shows it in, with the width that scroll pane is
-	 * never laid out below - the area itself takes whatever the viewport gives it, so the minimum
-	 * belongs on the scroll pane
+	 * Puts a path field next to the button that fills it in, so the field still takes the width the
+	 * form gives its second column while the button keeps only the width it needs
 	 *
-	 * @param textArea
-	 *            the text area to wrap
-	 * @return the scroll pane around the text area
+	 * @param pathField
+	 *            the field that holds the path
+	 * @param browseButton
+	 *            the button that opens the file chooser for that field
+	 * @return the row to add to the form
 	 */
-	private static JScrollPane scrollPaneAround(JTextArea textArea)
+	private static JPanel fileRow(JTextField pathField, JButton browseButton)
 	{
-		JScrollPane scrollPane = new JScrollPane(textArea);
-		scrollPane.setMinimumSize(
-			new Dimension(MINIMUM_TEXT_WIDTH, scrollPane.getPreferredSize().height));
-		return scrollPane;
+		JPanel row = new JPanel(new MigLayout("insets 0, gap 6", "[grow,fill][]", "[]"));
+		row.setOpaque(false);
+		row.add(pathField, "growx");
+		row.add(browseButton);
+		return row;
 	}
 
 	private static JButton button(String name, String text, java.awt.event.ActionListener listener)
@@ -393,43 +395,4 @@ public class ChecksumAndMacPanel extends JPanel
 		return button;
 	}
 
-	private static JPanel buttonRow(JButton... buttons)
-	{
-		JPanel panel = new JPanel(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT, 0, 0));
-		for (JButton button : buttons)
-		{
-			panel.add(button);
-		}
-		return panel;
-	}
-
-	private static GridBagConstraints at(int column, int row, int anchor)
-	{
-		GridBagConstraints constraints = new GridBagConstraints();
-		constraints.gridx = column;
-		constraints.gridy = row;
-		constraints.anchor = anchor;
-		constraints.insets = new Insets(4, 4, 4, 4);
-		return constraints;
-	}
-
-	/**
-	 * Constraints for the column that holds the inputs: that column takes the width the labels and
-	 * the buttons leave over, and the input in it is stretched across it. Without this the grid
-	 * falls back to the minimum widths as soon as the window is narrower than it wants, and the
-	 * inputs vanish instead of getting smaller.
-	 *
-	 * @param column
-	 *            the column of the grid the input sits in
-	 * @param row
-	 *            the row of the grid the input sits in
-	 * @return the constraints for an input component
-	 */
-	private static GridBagConstraints stretched(int column, int row)
-	{
-		GridBagConstraints constraints = at(column, row, GridBagConstraints.WEST);
-		constraints.fill = GridBagConstraints.HORIZONTAL;
-		constraints.weightx = 1.0;
-		return constraints;
-	}
 }

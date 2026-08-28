@@ -31,6 +31,8 @@ dependencies {
     compileOnly "io.github.astrapi69:model-data:3.2.1"
     // the passphrase construction lives in the host and uses Bouncy Castle underneath
     compileOnly "org.bouncycastle:bcprov-jdk18on:1.85.2"
+    // the shared tool window layout comes from the host, which brings MigLayout with it
+    compileOnly "com.miglayout:miglayout-swing:11.4.3"
 
 
     compileOnly "org.pf4j:pf4j:3.15.0"
@@ -47,6 +49,8 @@ dependencies {
     // the panel test builds the panel, so the model backed components have to be there for real
     testImplementation "io.github.astrapi69:swing-model-components:1.2"
     testImplementation "io.github.astrapi69:model-data:3.2.1"
+    // the panel test lays the shared tool window form out for real
+    testImplementation "com.miglayout:miglayout-swing:11.4.3"
     testImplementation "org.bouncycastle:bcprov-jdk18on:1.85.2"
     testRuntimeOnly "org.junit.platform:junit-platform-launcher"
 }

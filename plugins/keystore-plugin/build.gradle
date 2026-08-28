@@ -45,6 +45,9 @@ dependencies {
     // is only needed to compile against here
     compileOnly "info.picocli:picocli:4.7.6"
 
+    // the shared tool window layout comes from the host, which brings MigLayout with it
+    compileOnly "com.miglayout:miglayout-swing:11.4.3"
+
     compileOnly "org.pf4j:pf4j:3.15.0"
     // required so the @Extension annotation processor runs and writes META-INF/extensions.idx
     annotationProcessor "org.pf4j:pf4j:3.15.0"
@@ -59,6 +62,7 @@ dependencies {
     // the contribution class implements the host's extension point, so the host jar has to be on
     // the test classpath to load it - for the main sources it stays compileOnly like everything else
     testImplementation "io.github.astrapi69:mystic-crypt-ui:8.2-SNAPSHOT"
+    testImplementation "com.miglayout:miglayout-swing:11.4.3"
     // the panel test constructs the panel, so the model backed components and the combo box models
     // it is built from have to be on the test classpath as well
     testImplementation "io.github.astrapi69:swing-model-components:1.2"

@@ -24,18 +24,15 @@
  */
 package io.github.astrapi69.mystic.crypt.plugin.menu;
 
-import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.Font;
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
-import java.awt.Insets;
 import java.nio.file.Path;
 import java.util.List;
 
 import javax.swing.*;
 
 import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
+import io.github.astrapi69.mystic.crypt.ui.form.ToolForm;
 
 /**
  * Tool panel for viewing and editing the application menu as xml.
@@ -63,7 +60,10 @@ public class MenuDesignerPanel extends JPanel
 
 	public MenuDesignerPanel()
 	{
-		super(new BorderLayout());
+		// one layout for every tool window, so this one looks like the one next to it: the xml
+		// editor taking the height that is left, the buttons under what they act on, the result of
+		// the last one of them on the line below
+		super(ToolForm.newLayout());
 
 		txtMenuXml.setName("txtMenuXml");
 		txtMenuXml.setFont(new Font("monospaced", Font.PLAIN, 12));
@@ -75,21 +75,10 @@ public class MenuDesignerPanel extends JPanel
 		JButton btnSave = button("btnSave", "Save as my menu", event -> onSave());
 		JButton btnReset = button("btnReset", "Reset to standard", event -> onReset());
 
-		JPanel buttons = new JPanel(new GridBagLayout());
-		GridBagConstraints constraints = new GridBagConstraints();
-		constraints.insets = new Insets(4, 6, 4, 6);
-		constraints.gridy = 0;
-		for (JButton button : new JButton[] { btnExport, btnValidate, btnApply, btnSave, btnReset })
-		{
-			buttons.add(button, constraints);
-		}
-
-		JPanel south = new JPanel(new BorderLayout());
-		south.add(buttons, BorderLayout.NORTH);
-		south.add(lblResult, BorderLayout.SOUTH);
-
-		add(editorScrollPane(), BorderLayout.CENTER);
-		add(south, BorderLayout.SOUTH);
+		add(editorScrollPane(), ToolForm.GROWING);
+		add(ToolForm.buttons(btnExport, btnValidate, btnApply, btnSave, btnReset),
+			ToolForm.BUTTON_ROW);
+		add(lblResult, ToolForm.RESULT_LINE);
 
 		if (MenuDesignerSettingsContribution.exportOnOpen())
 		{
@@ -103,13 +92,15 @@ public class MenuDesignerPanel extends JPanel
 	 * A viewport reports a minimum size of a few pixels, so without a stated minimum the scroll
 	 * pane claims 22 x 22 px and any container that honours minimum sizes is free to squeeze the
 	 * editor away entirely. The honest minimum belongs on the scroll pane rather than on the text
-	 * area, whose own size is the size of the text it holds.
+	 * area, whose own size is the size of the text it holds. The shared floor of a tool window is
+	 * the one every other window uses; an xml document needs more room than a single line field, so
+	 * this editor states a wider and taller one of its own.
 	 *
 	 * @return the scroll pane around the xml editor, with a minimum size that stays readable
 	 */
 	private JScrollPane editorScrollPane()
 	{
-		JScrollPane editor = new JScrollPane(txtMenuXml);
+		JScrollPane editor = ToolForm.scrolled(txtMenuXml);
 		editor.setMinimumSize(new Dimension(MINIMUM_EDITOR_WIDTH, MINIMUM_EDITOR_HEIGHT));
 		return editor;
 	}

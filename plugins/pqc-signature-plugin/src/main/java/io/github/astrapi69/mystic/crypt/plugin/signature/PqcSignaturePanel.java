@@ -24,11 +24,7 @@
  */
 package io.github.astrapi69.mystic.crypt.plugin.signature;
 
-import java.awt.Dimension;
 import java.awt.Font;
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
-import java.awt.Insets;
 import java.io.File;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -42,10 +38,12 @@ import javax.swing.*;
 import io.github.astrapi69.crypt.data.key.PrivateKeyExtensions;
 import io.github.astrapi69.crypt.data.key.PublicKeyExtensions;
 import io.github.astrapi69.model.LambdaModel;
+import io.github.astrapi69.mystic.crypt.ui.form.ToolForm;
 import io.github.astrapi69.swing.model.component.JMCheckBox;
 import io.github.astrapi69.swing.model.component.JMComboBox;
 import io.github.astrapi69.swing.model.component.JMTextArea;
 import io.github.astrapi69.swing.model.component.JMTextField;
+import net.miginfocom.swing.MigLayout;
 
 /**
  * Tool panel for signing and verifying, with the classical Ed25519 and RSA/ECDSA/DSA algorithms and
@@ -69,14 +67,11 @@ public class PqcSignaturePanel extends JPanel
 	/** What the result line shows as long as nothing was done */
 	private static final String NO_RESULT_YET = " ";
 
-	/** The column that holds the text fields, the combo box and the scroll panes */
-	private static final int INPUT_COLUMN = 1;
+	/** The label of a text area belongs at the top of the area, not in the middle of it */
+	private static final String AREA_LABEL = "aligny top";
 
-	/**
-	 * The width an input component keeps for itself when the window is narrower than the panel
-	 * would like to be
-	 */
-	private static final int MINIMUM_INPUT_WIDTH = 180;
+	/** A text area takes its share of the height the window has left over */
+	private static final String GROWING_AREA = "grow, push";
 
 	private final PqcSignaturePanelModel modelObject = new PqcSignaturePanelModel();
 
@@ -94,7 +89,10 @@ public class PqcSignaturePanel extends JPanel
 
 	public PqcSignaturePanel()
 	{
-		super(new GridBagLayout());
+		// one layout for every tool window, so this one looks like the one next to it: labels in a
+		// narrow right aligned column, fields taking the width, the text areas taking the height
+		// that is left, buttons under what they act on
+		super(ToolForm.newLayout());
 
 		configureComponents();
 		bindComponentsToModel();
@@ -115,10 +113,10 @@ public class PqcSignaturePanel extends JPanel
 		configureReadOnly(txtSignature, "txtSignature");
 		lblResult.setName("lblResult");
 		lblResult.setFont(lblResult.getFont().deriveFont(Font.BOLD));
-		withHonestMinimumWidth(txtDataFile);
-		withHonestMinimumWidth(txtPrivateKeyFile);
-		withHonestMinimumWidth(txtPublicKeyFile);
-		withHonestMinimumWidth(txtSignatureFile);
+		ToolForm.sized(txtDataFile);
+		ToolForm.sized(txtPrivateKeyFile);
+		ToolForm.sized(txtPublicKeyFile);
+		ToolForm.sized(txtSignatureFile);
 	}
 
 	/**
@@ -153,45 +151,44 @@ public class PqcSignaturePanel extends JPanel
 
 	private void layoutComponents()
 	{
-		int row = 0;
-		add(new JLabel("Algorithm:"), at(0, row, GridBagConstraints.EAST));
-		add(cmbAlgorithm, input(row, GridBagConstraints.WEST));
-		add(button("btnGenerate", "Generate key pair", event -> onGenerate()),
-			at(2, row++, GridBagConstraints.WEST));
+		add(new JLabel("Algorithm:"));
+		add(cmbAlgorithm, ToolForm.FIELD);
+		add(ToolForm.buttons(button("btnGenerate", "Generate key pair", event -> onGenerate())),
+			ToolForm.BUTTON_ROW);
 
-		add(new JLabel("Private key file:"), at(0, row, GridBagConstraints.EAST));
-		add(txtPrivateKeyFile, input(row, GridBagConstraints.WEST));
-		add(button("btnBrowsePrivateKey", "...", event -> onBrowse(txtPrivateKeyFile)),
-			at(2, row++, GridBagConstraints.WEST));
-		add(new JLabel("Public key or certificate:"), at(0, row, GridBagConstraints.EAST));
-		add(txtPublicKeyFile, input(row, GridBagConstraints.WEST));
-		add(button("btnBrowsePublicKey", "...", event -> onBrowse(txtPublicKeyFile)),
-			at(2, row++, GridBagConstraints.WEST));
+		add(new JLabel("Private key file:"));
+		add(fileRow(txtPrivateKeyFile,
+			button("btnBrowsePrivateKey", "...", event -> onBrowse(txtPrivateKeyFile))),
+			ToolForm.FIELD);
+		add(new JLabel("Public key or certificate:"));
+		add(fileRow(txtPublicKeyFile,
+			button("btnBrowsePublicKey", "...", event -> onBrowse(txtPublicKeyFile))),
+			ToolForm.FIELD);
 
-		add(new JLabel("Public key:"), at(0, row, GridBagConstraints.NORTHEAST));
-		add(scrollPaneFor(txtPublicKey), input(row++, GridBagConstraints.WEST));
+		add(new JLabel("Public key:"), AREA_LABEL);
+		add(ToolForm.scrolled(txtPublicKey), GROWING_AREA);
 
-		add(new JLabel("Message:"), at(0, row, GridBagConstraints.NORTHEAST));
-		add(scrollPaneFor(txtMessage), input(row++, GridBagConstraints.WEST));
-		add(new JLabel("File to sign:"), at(0, row, GridBagConstraints.EAST));
-		add(txtDataFile, input(row, GridBagConstraints.WEST));
-		add(button("btnBrowseDataFile", "...", event -> onBrowse(txtDataFile)),
-			at(2, row++, GridBagConstraints.WEST));
-		add(chkUseFile, at(1, row++, GridBagConstraints.WEST));
+		add(new JLabel("Message:"), AREA_LABEL);
+		add(ToolForm.scrolled(txtMessage), GROWING_AREA);
+		add(new JLabel("File to sign:"));
+		add(fileRow(txtDataFile,
+			button("btnBrowseDataFile", "...", event -> onBrowse(txtDataFile))),
+			ToolForm.FIELD);
+		add(chkUseFile, "skip 1, growx");
 
-		add(new JLabel("Signature (Base64):"), at(0, row, GridBagConstraints.NORTHEAST));
-		add(scrollPaneFor(txtSignature), input(row++, GridBagConstraints.WEST));
-		add(new JLabel("Signature file:"), at(0, row, GridBagConstraints.EAST));
-		add(txtSignatureFile, input(row, GridBagConstraints.WEST));
-		add(button("btnBrowseSignatureFile", "...", event -> onBrowse(txtSignatureFile)),
-			at(2, row++, GridBagConstraints.WEST));
+		add(new JLabel("Signature (Base64):"), AREA_LABEL);
+		add(ToolForm.scrolled(txtSignature), GROWING_AREA);
+		add(new JLabel("Signature file:"));
+		add(fileRow(txtSignatureFile,
+			button("btnBrowseSignatureFile", "...", event -> onBrowse(txtSignatureFile))),
+			ToolForm.FIELD);
 
-		add(buttonRow(button("btnSign", "Sign", event -> onSign()),
+		add(ToolForm.buttons(button("btnSign", "Sign", event -> onSign()),
 			button("btnVerify", "Verify", event -> onVerify()),
 			button("btnSaveSignature", "Save signature", event -> onSaveSignature()),
 			button("btnLoadSignature", "Load signature", event -> onLoadSignature())),
-			at(1, row++, GridBagConstraints.WEST));
-		add(lblResult, at(1, row, GridBagConstraints.WEST));
+			ToolForm.BUTTON_ROW);
+		add(lblResult, ToolForm.RESULT_LINE);
 	}
 
 	private void onGenerate()
@@ -448,74 +445,22 @@ public class PqcSignaturePanel extends JPanel
 		return button;
 	}
 
-	private static JPanel buttonRow(JButton... buttons)
-	{
-		JPanel panel = new JPanel(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT, 0, 0));
-		for (JButton button : buttons)
-		{
-			panel.add(button);
-		}
-		return panel;
-	}
-
-	private static GridBagConstraints at(int column, int row, int anchor)
-	{
-		GridBagConstraints constraints = new GridBagConstraints();
-		constraints.gridx = column;
-		constraints.gridy = row;
-		constraints.anchor = anchor;
-		constraints.insets = new Insets(4, 4, 4, 4);
-		return constraints;
-	}
-
 	/**
-	 * The constraints for a component of the input column. That column takes whatever width the
-	 * window leaves over, so a window narrower than the panel wants makes the text components
-	 * smaller instead of letting them collapse to their minimum of nearly nothing
+	 * Keeps a file field and the button that opens its file chooser in one row of the form: the
+	 * field takes the width the window leaves over, the button stays as wide as its text
 	 *
-	 * @param row
-	 *            the row of the grid the component goes into
-	 * @param anchor
-	 *            the anchor of the component
-	 * @return the constraints for a component of the input column
+	 * @param fileField
+	 *            the field that holds the path
+	 * @param browseButton
+	 *            the button that opens the file chooser for that field
+	 * @return the component that goes into the field cell of the form
 	 */
-	private static GridBagConstraints input(int row, int anchor)
+	private static JComponent fileRow(JMTextField fileField, JButton browseButton)
 	{
-		GridBagConstraints constraints = at(INPUT_COLUMN, row, anchor);
-		constraints.fill = GridBagConstraints.HORIZONTAL;
-		constraints.weightx = 1.0;
-		return constraints;
-	}
-
-	/**
-	 * Wraps a text area in the scroll pane it is shown in. The minimum width belongs on the
-	 * scroll pane and not on the area: the scroll pane is what the layout sizes, the area only
-	 * follows the viewport it sits in
-	 *
-	 * @param textArea
-	 *            the text area to wrap
-	 * @return the scroll pane around the given text area
-	 */
-	private static JScrollPane scrollPaneFor(JTextArea textArea)
-	{
-		return withHonestMinimumWidth(new JScrollPane(textArea));
-	}
-
-	/**
-	 * Gives a component a minimum width it can still be used at. A text component reports a
-	 * minimum width of nearly zero, and GridBagLayout hands out exactly that as soon as the
-	 * container is narrower than the grid wants
-	 *
-	 * @param <T>
-	 *            the type of the component
-	 * @param component
-	 *            the component that gets the minimum width
-	 * @return the component that was passed in
-	 */
-	private static <T extends JComponent> T withHonestMinimumWidth(T component)
-	{
-		component.setMinimumSize(
-			new Dimension(MINIMUM_INPUT_WIDTH, component.getMinimumSize().height));
-		return component;
+		JPanel row = new JPanel(new MigLayout("insets 0, gap 6", "[grow,fill][]", "[]"));
+		row.setOpaque(false);
+		row.add(fileField, "growx");
+		row.add(browseButton);
+		return row;
 	}
 }

@@ -20,6 +20,7 @@
  */
 package io.github.astrapi69.mystic.crypt.plugin.obfuscation.simple;
 
+import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.io.File;
 import java.io.IOException;
@@ -47,6 +48,7 @@ import io.github.astrapi69.mystic.crypt.ApplicationModelBean;
 import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
 import io.github.astrapi69.mystic.crypt.key.PrivateKeyStringDecryptor;
 import io.github.astrapi69.mystic.crypt.key.PublicKeyStringEncryptor;
+import io.github.astrapi69.mystic.crypt.ui.form.ToolForm;
 import io.github.astrapi69.swing.base.BasePanel;
 import io.github.astrapi69.swing.table.GenericJTable;
 import io.github.astrapi69.swing.table.editor.DeleteRowButtonEditor;
@@ -65,6 +67,10 @@ public class ObfuscationRuleTablePanel extends BasePanel<ObfuscationModelBean>
 {
 
 	private static final long serialVersionUID = 1L;
+
+	/** How many rows of the rule table are visible before the window is made taller */
+	private static final int VISIBLE_RULE_ROWS = 10;
+
 	private Map<String, Class<?>> aliases;
 	private javax.swing.JButton btnExport;
 	private javax.swing.JButton btnImport;
@@ -186,14 +192,16 @@ public class ObfuscationRuleTablePanel extends BasePanel<ObfuscationModelBean>
 		String deleteText = CharacterObfuscationRulesTableModel.DELETE;
 
 		lblKeyRules = new javax.swing.JLabel();
-		scpKeyRules = new javax.swing.JScrollPane();
 		tblKeyRules = new GenericJTable<>(getModelObject().getTableModel());
+		// the table opens showing ten rows and takes every further row from the height the window
+		// is given, instead of the fixed 217 px the hand written GroupLayout pinned it to
+		tblKeyRules.setPreferredScrollableViewportSize(new Dimension(
+			tblKeyRules.getPreferredSize().width, tblKeyRules.getRowHeight() * VISIBLE_RULE_ROWS));
+		scpKeyRules = ToolForm.scrolled(tblKeyRules);
 		btnImport = new javax.swing.JButton();
 		btnExport = new javax.swing.JButton();
 
 		lblKeyRules.setText("Table of key rules for obfuscate");
-
-		scpKeyRules.setViewportView(tblKeyRules);
 
 		btnImport.setText("Import");
 
@@ -220,48 +228,24 @@ public class ObfuscationRuleTablePanel extends BasePanel<ObfuscationModelBean>
 			"Mystic crypt obfuscation files (*.obf)", "obf");
 	}
 
-	protected void onInitializeGroupLayout()
+	/**
+	 * Lays this panel out with the shared tool window form: the caption over the whole width, the
+	 * table of rules taking the height the window has left, and the buttons under it
+	 */
+	protected void onInitializeToolFormLayout()
 	{
-		javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
-		this.setLayout(layout);
-		layout.setHorizontalGroup(
-			layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-				.addGroup(layout.createSequentialGroup().addContainerGap().addGroup(layout
-					.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING).addGroup(layout
-						.createSequentialGroup().addGap(0, 0, Short.MAX_VALUE)
-						.addComponent(btnImport, javax.swing.GroupLayout.PREFERRED_SIZE, 128,
-							javax.swing.GroupLayout.PREFERRED_SIZE)
-						.addGap(18, 18, 18).addComponent(
-							btnExport, javax.swing.GroupLayout.PREFERRED_SIZE, 128,
-							javax.swing.GroupLayout.PREFERRED_SIZE))
-					.addGroup(javax.swing.GroupLayout.Alignment.LEADING,
-						layout.createSequentialGroup().addGroup(layout
-							.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-							.addComponent(scpKeyRules, javax.swing.GroupLayout.Alignment.LEADING,
-								javax.swing.GroupLayout.PREFERRED_SIZE, 1000,
-								javax.swing.GroupLayout.PREFERRED_SIZE)
-							.addComponent(lblKeyRules, javax.swing.GroupLayout.Alignment.LEADING,
-								javax.swing.GroupLayout.PREFERRED_SIZE, 280,
-								javax.swing.GroupLayout.PREFERRED_SIZE))
-							.addGap(0, 0, Short.MAX_VALUE)))
-					.addContainerGap()));
-		layout.setVerticalGroup(layout
-			.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-			.addGroup(layout.createSequentialGroup().addGap(29, 29, 29).addComponent(lblKeyRules)
-				.addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-				.addComponent(scpKeyRules, javax.swing.GroupLayout.PREFERRED_SIZE, 217,
-					javax.swing.GroupLayout.PREFERRED_SIZE)
-				.addGap(18, 18, 18)
-				.addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-					.addComponent(btnImport).addComponent(btnExport))
-				.addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)));
+		setLayout(ToolForm.newLayout());
+
+		add(lblKeyRules, ToolForm.WIDE);
+		add(scpKeyRules, ToolForm.GROWING);
+		add(ToolForm.buttons(btnImport, btnExport), ToolForm.BUTTON_ROW);
 	}
 
 	@Override
 	protected void onInitializeLayout()
 	{
 		super.onInitializeLayout();
-		onInitializeGroupLayout();
+		onInitializeToolFormLayout();
 	}
 
 }

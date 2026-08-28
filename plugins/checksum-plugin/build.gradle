@@ -30,6 +30,9 @@ dependencies {
     compileOnly "io.github.astrapi69:swing-base-components:5.1"
     // the model backed components the ChecksumAndMacPanel binds to its model
     compileOnly "io.github.astrapi69:swing-model-components:1.2"
+    // the layout every tool window shares, through the host's ToolForm; the host
+    // brings it at runtime
+    compileOnly "com.miglayout:miglayout-swing:11.4.3"
     // EnableButtonBehavior lives here
     compileOnly "io.github.astrapi69:menu-action:5.1"
     compileOnly "org.projectlombok:lombok:1.18.46"
@@ -53,6 +56,8 @@ dependencies {
     testImplementation "io.github.astrapi69:swing-model-components:1.2"
     testImplementation "io.github.astrapi69:model-data:3.2.1"
     testImplementation "io.github.astrapi69:mystic-crypt-ui:8.2-SNAPSHOT"
+    // the panel tests lay the panel out, so the shared layout has to be on the test classpath too
+    testImplementation "com.miglayout:miglayout-swing:11.4.3"
     testImplementation "org.pf4j:pf4j:3.15.0"
 
 }

@@ -48,8 +48,9 @@ import org.junit.jupiter.api.Test;
  * width of almost nothing, so the fields did not shrink, they disappeared: the panel wants 713
  * pixels, and at 593 pixels the two text areas measured 4 pixels and every entry field 5 pixels.
  * <p>
- * With the entry column stretched and the text components given a minimum width of their own, the
- * narrowest text component at the same 593 pixels is 404 pixels wide.
+ * Both tabs are laid out with the shared tool window form now, whose field column grows with the
+ * window and whose text components carry a minimum width of their own: the panel wants 753 pixels,
+ * and at 633 pixels the narrowest text component is 406 pixels wide.
  * <p>
  * The two tests below measure the same panel twice: squeezed, where the old layout collapsed, and
  * at its preferred width, so that a fix which only works while squeezed is caught as well.

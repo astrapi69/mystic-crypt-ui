@@ -24,12 +24,7 @@
  */
 package io.github.astrapi69.mystic.crypt.plugin.sharing;
 
-import java.awt.BorderLayout;
-import java.awt.Dimension;
 import java.awt.Font;
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
-import java.awt.Insets;
 import java.io.File;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -40,6 +35,7 @@ import java.util.Optional;
 import javax.swing.*;
 
 import io.github.astrapi69.model.LambdaModel;
+import io.github.astrapi69.mystic.crypt.ui.form.ToolForm;
 import io.github.astrapi69.swing.model.component.JMCheckBox;
 import io.github.astrapi69.swing.model.component.JMPasswordField;
 import io.github.astrapi69.swing.model.component.JMSpinner;
@@ -56,18 +52,33 @@ import io.github.astrapi69.swing.model.component.JMTextField;
  * <p>
  * Every component is bound to {@link SecretSharingPanelModel}, so a button reads what the user
  * entered from the model and never out of the widgets.
+ * <p>
+ * The window is laid out with {@link ToolForm}, the one shape every tool window in this
+ * application uses: labels in a narrow right aligned column, fields taking the width, the share
+ * list and the rebuilt secret taking the height that is left, buttons under what they act on.
  */
 public class SecretSharingPanel extends JPanel
 {
 
 	private static final long serialVersionUID = 1L;
 
+	/** A field that shares its cell with the button that fills it from a file chooser */
+	private static final String WITH_BUTTON = "growx, split 2";
+
+	/** Something that belongs to the field above it rather than to a label of its own */
+	private static final String UNDER_THE_FIELD = "skip, growx";
+
 	/**
-	 * The width the components of the input column keep even when the window is narrower than the
-	 * form wants: without it the layout falls back to the minimum width a text component reports,
-	 * which is next to nothing, and the fields disappear
+	 * A component that is not stretched across the window: a spinner over the range 2 to 255 is
+	 * read at the width it asks for
 	 */
-	private static final int MINIMUM_INPUT_WIDTH = 180;
+	private static final String OWN_WIDTH = "alignx left, width pref!";
+
+	/**
+	 * The rebuilt secret takes height when the window has it, but less of it than the share list
+	 * above, which is the longer text of the two
+	 */
+	private static final String REBUILT_AREA = "grow, pushy 40";
 
 	private final SecretSharingPanelModel modelObject = new SecretSharingPanelModel();
 
@@ -86,7 +97,7 @@ public class SecretSharingPanel extends JPanel
 
 	public SecretSharingPanel()
 	{
-		super(new BorderLayout(4, 4));
+		super(ToolForm.newLayout());
 
 		pwdSecret.setName("pwdSecret");
 		txtSecretFile.setName("txtSecretFile");
@@ -107,45 +118,40 @@ public class SecretSharingPanel extends JPanel
 
 		bindToModel();
 
-		JScrollPane sharesPane = new JScrollPane(txtShares);
-		JScrollPane rebuiltPane = new JScrollPane(txtRebuilt);
-		keepUsableWhenNarrow(pwdSecret, txtSecretFile, txtRebuiltFile, sharesPane, rebuiltPane);
-		keepAtItsOwnWidth(spnThreshold, spnTotalShares);
+		ToolForm.sized(pwdSecret);
+		ToolForm.sized(txtSecretFile);
+		ToolForm.sized(txtRebuiltFile);
 
-		JPanel form = new JPanel(new GridBagLayout());
-		int row = 0;
-		form.add(new JLabel("Secret:"), at(0, row, GridBagConstraints.EAST));
-		form.add(pwdSecret, growing(row++));
-		form.add(new JLabel("or file:"), at(0, row, GridBagConstraints.EAST));
-		form.add(txtSecretFile, growing(row));
-		form.add(button("btnBrowseSecretFile", "...", event -> onBrowseSecretFile()),
-			at(2, row++, GridBagConstraints.WEST));
-		form.add(chkUseFile, at(1, row++, GridBagConstraints.WEST));
-		form.add(new JLabel("Shares needed:"), at(0, row, GridBagConstraints.EAST));
-		form.add(spnThreshold, at(1, row++, GridBagConstraints.WEST));
-		form.add(new JLabel("Shares produced:"), at(0, row, GridBagConstraints.EAST));
-		form.add(spnTotalShares, at(1, row++, GridBagConstraints.WEST));
-		form.add(buttonRow(button("btnSplit", "Split", event -> onSplit()),
-			button("btnSaveShares", "Save shares", event -> onSaveShares())),
-			at(1, row++, GridBagConstraints.WEST));
+		add(new JLabel("Secret:"));
+		add(pwdSecret, ToolForm.FIELD);
 
-		form.add(new JLabel("Shares:"), at(0, row, GridBagConstraints.NORTHEAST));
-		form.add(sharesPane, growing(row++));
-		form.add(buttonRow(button("btnCombine", "Combine", event -> onCombine()),
-			button("btnLoadShares", "Load shares", event -> onLoadShares())),
-			at(1, row++, GridBagConstraints.WEST));
+		add(new JLabel("or file:"));
+		add(txtSecretFile, WITH_BUTTON);
+		add(button("btnBrowseSecretFile", "...", event -> onBrowseSecretFile()));
+		add(chkUseFile, UNDER_THE_FIELD);
 
-		form.add(new JLabel("Rebuilt secret:"), at(0, row, GridBagConstraints.NORTHEAST));
-		form.add(rebuiltPane, growing(row++));
-		form.add(new JLabel("Write it to:"), at(0, row, GridBagConstraints.EAST));
-		form.add(txtRebuiltFile, growing(row));
-		form.add(button("btnBrowseRebuiltFile", "...", event -> onBrowseRebuiltFile()),
-			at(2, row++, GridBagConstraints.WEST));
-		form.add(button("btnSaveRebuilt", "Save rebuilt secret", event -> onSaveRebuilt()),
-			at(1, row, GridBagConstraints.WEST));
+		add(new JLabel("Shares needed:"));
+		add(spnThreshold, OWN_WIDTH);
+		add(new JLabel("Shares produced:"));
+		add(spnTotalShares, OWN_WIDTH);
+		add(ToolForm.buttons(button("btnSplit", "Split", event -> onSplit()),
+			button("btnSaveShares", "Save shares", event -> onSaveShares())), ToolForm.BUTTON_ROW);
 
-		add(form, BorderLayout.CENTER);
-		add(lblResult, BorderLayout.SOUTH);
+		add(new JLabel("Shares:"), "aligny top");
+		add(ToolForm.scrolled(txtShares), "grow, push");
+		add(ToolForm.buttons(button("btnCombine", "Combine", event -> onCombine()),
+			button("btnLoadShares", "Load shares", event -> onLoadShares())), ToolForm.BUTTON_ROW);
+
+		add(new JLabel("Rebuilt secret:"), "aligny top");
+		add(ToolForm.scrolled(txtRebuilt), REBUILT_AREA);
+		add(new JLabel("Write it to:"));
+		add(txtRebuiltFile, WITH_BUTTON);
+		add(button("btnBrowseRebuiltFile", "...", event -> onBrowseRebuiltFile()));
+		add(ToolForm.buttons(
+			button("btnSaveRebuilt", "Save rebuilt secret", event -> onSaveRebuilt())),
+			ToolForm.BUTTON_ROW);
+
+		add(lblResult, ToolForm.RESULT_LINE);
 	}
 
 	/**
@@ -388,76 +394,5 @@ public class SecretSharingPanel extends JPanel
 		button.setName(name);
 		button.addActionListener(listener);
 		return button;
-	}
-
-	private static JPanel buttonRow(JButton... buttons)
-	{
-		JPanel panel = new JPanel(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT, 0, 0));
-		for (JButton button : buttons)
-		{
-			panel.add(button);
-		}
-		return panel;
-	}
-
-	private static GridBagConstraints at(int column, int row, int anchor)
-	{
-		GridBagConstraints constraints = new GridBagConstraints();
-		constraints.gridx = column;
-		constraints.gridy = row;
-		constraints.anchor = anchor;
-		constraints.insets = new Insets(4, 4, 4, 4);
-		return constraints;
-	}
-
-	/**
-	 * The constraints for a component of the input column that takes the width the window has: the
-	 * column carries the whole change in width, and the component follows it instead of falling
-	 * back to its minimum width. Labels and buttons keep their anchor and their own width.
-	 *
-	 * @param row
-	 *            the row the component stands in
-	 * @return the constraints
-	 */
-	private static GridBagConstraints growing(int row)
-	{
-		GridBagConstraints constraints = at(1, row, GridBagConstraints.WEST);
-		constraints.fill = GridBagConstraints.HORIZONTAL;
-		constraints.weightx = 1.0;
-		return constraints;
-	}
-
-	/**
-	 * Gives every one of the given components an honest minimum width, so even the narrowest layout
-	 * leaves them usable: the minimum a text component reports on its own is next to nothing, which
-	 * is why a window narrower than the form wants used to make the fields vanish. For a text area
-	 * the minimum belongs on the scroll pane around it, which is what is passed in here.
-	 *
-	 * @param components
-	 *            the components of the input column that grow and shrink with the window
-	 */
-	private static void keepUsableWhenNarrow(JComponent... components)
-	{
-		for (JComponent component : components)
-		{
-			component.setMinimumSize(
-				new Dimension(MINIMUM_INPUT_WIDTH, component.getMinimumSize().height));
-		}
-	}
-
-	/**
-	 * Holds every one of the given components at the width it asks for: it carries a number of at
-	 * most three digits, so it is neither stretched across the window nor allowed to collapse when
-	 * the window gets narrow.
-	 *
-	 * @param components
-	 *            the components that keep their own width
-	 */
-	private static void keepAtItsOwnWidth(JComponent... components)
-	{
-		for (JComponent component : components)
-		{
-			component.setMinimumSize(component.getPreferredSize());
-		}
 	}
 }

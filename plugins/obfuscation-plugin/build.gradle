@@ -55,6 +55,12 @@ dependencies {
     // settings store, so the host jar has to be on the test classpath to load it
     testImplementation "io.github.astrapi69:mystic-crypt-ui:8.2-SNAPSHOT"
     testImplementation "org.pf4j:pf4j:3.15.0"
+    // the layout test builds the real panels, so their base classes and the shared tool window
+    // layout have to be on the test compile classpath as well (the host jar exposes them only at
+    // runtime)
+    testImplementation "io.github.astrapi69:swing-base-components:5.1"
+    testImplementation "io.github.astrapi69:model-data:3.2.1"
+    testImplementation "com.miglayout:miglayout-swing:11.4.3"
 
 }
 
