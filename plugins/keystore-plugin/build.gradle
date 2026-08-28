@@ -24,9 +24,7 @@ repositories {
 dependencies {
     compileOnly "io.github.astrapi69:mystic-crypt-ui:8.2-SNAPSHOT"
     // KeystoreVerifier, to tell what kind of key store a file is
-    compileOnly "io.github.astrapi69:mystic-crypt:12.0.0"
-    compileOnly "io.github.astrapi69:crypt-api:10.1"
-    compileOnly "io.github.astrapi69:crypt-data:12.0.0"
+    compileOnly "io.github.astrapi69:mystic-crypt:12.1-SNAPSHOT"
     compileOnly "io.github.astrapi69:swing-base-components:5.1"
     compileOnly "io.github.astrapi69:swing-components:9"
     // the model backed components the panel binds to its model; the host brings both jars at
@@ -55,9 +53,7 @@ dependencies {
     // the tests drive real key stores on disk; certificate creation and the PKCS12 handling go
     // through Bouncy Castle, which the host registers at startup
     testImplementation "org.junit.jupiter:junit-jupiter:5.11.4"
-    testImplementation "io.github.astrapi69:mystic-crypt:12.0.0"
-    testImplementation "io.github.astrapi69:crypt-api:10.1"
-    testImplementation "io.github.astrapi69:crypt-data:12.0.0"
+    testImplementation "io.github.astrapi69:mystic-crypt:12.1-SNAPSHOT"
     testImplementation "info.picocli:picocli:4.7.6"
     // the contribution class implements the host's extension point, so the host jar has to be on
     // the test classpath to load it - for the main sources it stays compileOnly like everything else

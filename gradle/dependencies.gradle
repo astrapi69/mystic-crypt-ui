@@ -27,9 +27,10 @@ dependencies {
     implementation libs.silly.collection
     implementation libs.silly.bean
     implementation libs.commons.codec
-    implementation libs.crypt.api
-    implementation libs.crypt.data
     implementation libs.checksum.up
+    // the only version this project pins of the crypt family: mystic-crypt brings crypt-api,
+    // crypt-data, silly-bean and bouncycastle along as api dependencies, so pinning them here as
+    // well would only invite them to drift apart from what the library was built against
     implementation libs.mystic.crypt
     // the library brings picocli only at runtime scope; the command line entry point of this
     // application compiles against it, so it is declared here with the very same version

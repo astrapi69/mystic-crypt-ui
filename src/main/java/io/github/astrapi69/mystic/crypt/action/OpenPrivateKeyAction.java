@@ -24,6 +24,7 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.io.File;
 import java.io.IOException;
+import java.security.GeneralSecurityException;
 import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.Security;
@@ -140,6 +141,15 @@ public class OpenPrivateKeyAction extends OpenFileAction
 			throw new RuntimeException(e);
 		}
 		catch (PKCSException e)
+		{
+			log.log(Level.SEVERE, e.getLocalizedMessage(), e);
+			throw new RuntimeException(e);
+		}
+		// crypt-data 12.1 widened what reading an encrypted key may throw: the algorithm, the
+		// padding, the key spec and the key itself can each be refused. All five are
+		// GeneralSecurityException, and none of them is something this dialog can do anything
+		// about beyond saying so, which is what the two above already do
+		catch (GeneralSecurityException e)
 		{
 			log.log(Level.SEVERE, e.getLocalizedMessage(), e);
 			throw new RuntimeException(e);

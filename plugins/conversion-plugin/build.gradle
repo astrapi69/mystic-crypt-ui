@@ -24,8 +24,8 @@ repositories {
 // runtime.
 dependencies {
     compileOnly "io.github.astrapi69:mystic-crypt-ui:8.2-SNAPSHOT"
-    compileOnly "io.github.astrapi69:crypt-api:10.1"
-    compileOnly "io.github.astrapi69:crypt-data:12.0.0"
+    compileOnly "io.github.astrapi69:crypt-api:10.0.0"
+    compileOnly "io.github.astrapi69:crypt-data:12.2"
     // PemObject and PemWriter, to write a pem file under the right header
     compileOnly "org.bouncycastle:bcprov-jdk18on:1.85.2"
     compileOnly "io.github.astrapi69:model-data:3.2.1"
@@ -45,8 +45,8 @@ dependencies {
 
     // the round-trip test drives the key reader/writer library directly (headless)
     testImplementation "org.junit.jupiter:junit-jupiter:5.11.4"
-    testImplementation "io.github.astrapi69:crypt-api:10.1"
-    testImplementation "io.github.astrapi69:crypt-data:12.0.0"
+    testImplementation "io.github.astrapi69:crypt-api:10.0.0"
+    testImplementation "io.github.astrapi69:crypt-data:12.2"
     testImplementation "org.bouncycastle:bcprov-jdk18on:1.85.2"
     testImplementation "org.bouncycastle:bcpkix-jdk18on:1.85"
     testRuntimeOnly "org.junit.platform:junit-platform-launcher"
