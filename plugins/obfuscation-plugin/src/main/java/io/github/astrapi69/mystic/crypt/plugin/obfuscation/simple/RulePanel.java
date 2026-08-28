@@ -175,7 +175,7 @@ public class RulePanel extends BasePanel<ObfuscationModelBean>
 		// Obfuscate time and undid it, so it always returned the original key, ignored the
 		// encrypted field entirely, and threw a NullPointerException when Disentangle was clicked
 		// before Obfuscate. This mirrors the (correct) operation variant
-		final String obfuscated = getEnDecryptPanel().getTxtEncrypted().getText();
+		final String obfuscated = getEnDecryptPanel().getModelObject().getRightContent();
 		final Map<Character, ObfuscationRule<Character, Character>> keymap = getModelObject()
 			.getTableModel().toMap();
 		final BiMap<Character, ObfuscationRule<Character, Character>> ruleBiMap = HashBiMap
@@ -205,7 +205,7 @@ public class RulePanel extends BasePanel<ObfuscationModelBean>
 
 	protected void onEncrypt(final ActionEvent actionEvent)
 	{
-		final String toObfuscatedString = getEnDecryptPanel().getTxtToEncrypt().getText();
+		final String toObfuscatedString = getEnDecryptPanel().getModelObject().getLeftContent();
 		final Map<Character, ObfuscationRule<Character, Character>> keymap = getModelObject()
 			.getTableModel().toMap();
 		// create the rule

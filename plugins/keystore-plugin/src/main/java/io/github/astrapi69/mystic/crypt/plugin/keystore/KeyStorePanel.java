@@ -336,7 +336,9 @@ public class KeyStorePanel extends JPanel
 		addDetail(panel, "X.509 version", String.valueOf(details.version()));
 		addDetail(panel, "SHA-256", details.fingerprint());
 
-		JMTextArea pem = new JMTextArea(details.pem(), 8, 64);
+		// a snapshot of what the store holds, not state the user edits: a model backed
+		// component here would carry a property model that nothing ever reads
+		JTextArea pem = new JTextArea(details.pem(), 8, 64);
 		pem.setName("txtCertificatePem");
 		pem.setEditable(false);
 		pem.setFont(new Font("monospaced", Font.PLAIN, 11));
@@ -364,7 +366,8 @@ public class KeyStorePanel extends JPanel
 	private void addDetail(JPanel panel, String label, String value)
 	{
 		panel.add(new JLabel(label + ":"));
-		JMTextField field = new JMTextField(value, 52);
+		// the same: this shows one line of the certificate that was just read
+		JTextField field = new JTextField(value, 52);
 		field.setName("txtDetail" + label.replace(" ", ""));
 		field.setEditable(false);
 		panel.add(ToolForm.sized(field), ToolForm.FIELD);

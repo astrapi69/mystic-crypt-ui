@@ -152,7 +152,7 @@ public class GenerateKeysPanel extends BasePanel<GenerateKeysModelBean>
 		try
 		{
 			final String decryted = getModelObject().getDecryptor()
-				.decrypt(getEnDecryptPanel().getTxtEncrypted().getText());
+				.decrypt(getEnDecryptPanel().getModelObject().getRightContent());
 			getEnDecryptPanel().getTxtToEncrypt().setText(decryted);
 			getEnDecryptPanel().getTxtEncrypted().setText("");
 		}
@@ -181,7 +181,7 @@ public class GenerateKeysPanel extends BasePanel<GenerateKeysModelBean>
 		try
 		{
 			getEnDecryptPanel().getTxtEncrypted().setText(getModelObject().getEncryptor()
-				.encrypt(getEnDecryptPanel().getTxtToEncrypt().getText()));
+				.encrypt(getEnDecryptPanel().getModelObject().getLeftContent()));
 			getEnDecryptPanel().getTxtToEncrypt().setText("");
 		}
 		catch (Exception e)

@@ -63,7 +63,7 @@ public class PrivateKeyPanel extends BasePanel<PrivateKeyModelBean>
 		try
 		{
 			final String decryted = getModelObject().getDecryptor()
-				.decrypt(getEnDecryptPanel().getTxtEncrypted().getText());
+				.decrypt(getEnDecryptPanel().getModelObject().getRightContent());
 			getEnDecryptPanel().getTxtToEncrypt().setText(decryted);
 			getEnDecryptPanel().getTxtEncrypted().setText("");
 		}
@@ -85,7 +85,7 @@ public class PrivateKeyPanel extends BasePanel<PrivateKeyModelBean>
 		try
 		{
 			getEnDecryptPanel().getTxtEncrypted().setText(getModelObject().getEncryptor()
-				.encrypt(getEnDecryptPanel().getTxtToEncrypt().getText()));
+				.encrypt(getEnDecryptPanel().getModelObject().getLeftContent()));
 			getEnDecryptPanel().getTxtToEncrypt().setText("");
 		}
 		catch (Exception e)

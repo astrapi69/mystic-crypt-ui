@@ -42,6 +42,7 @@ import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPasswordField;
+import javax.swing.JTextArea;
 import javax.swing.JTextField;
 
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
@@ -208,12 +209,15 @@ class KeyStorePanelBindingTest
 	}
 
 	/**
-	 * The details of a certificate are shown in model backed components as well: what a user reads
-	 * and copies out of them is what the certificate holds, and it is readable from their models
+	 * The details view shows what the certificate holds.
+	 * <p>
+	 * These components are not model backed and are not meant to be: they show a snapshot that was
+	 * just read out of the store, nothing writes into them and no button reads them back. What is
+	 * worth pinning is that the values on screen are the certificate's own, which is what a user
+	 * reads and copies out of this window.
 	 */
 	@Test
-	void theDetailsShowWhatTheCertificateHoldsInModelBackedComponents(@TempDir File directory)
-		throws Exception
+	void theDetailsShowWhatTheCertificateHolds(@TempDir File directory) throws Exception
 	{
 		File storeFile = new File(directory, "bound-details.p12");
 		KeyStorePanel panel = panelWithAKeyPair(storeFile);
@@ -222,13 +226,13 @@ class KeyStorePanelBindingTest
 
 		JComponent detailsPanel = panel.newDetailsPanel(details);
 
-		JMTextArea pem = named(detailsPanel, "txtCertificatePem", JMTextArea.class);
-		JMTextField subject = named(detailsPanel, "txtDetailIssuedto", JMTextField.class);
-		JMTextField fingerprint = named(detailsPanel, "txtDetailSHA-256", JMTextField.class);
-		assertEquals(details.pem(), pem.getPropertyModel().getObject(),
-			"the certificate itself is not in the model of the component that shows it");
-		assertEquals(details.subject(), subject.getPropertyModel().getObject());
-		assertEquals(details.fingerprint(), fingerprint.getPropertyModel().getObject());
+		assertEquals(details.pem(),
+			named(detailsPanel, "txtCertificatePem", JTextArea.class).getText(),
+			"the certificate itself is not in the component that shows it");
+		assertEquals(details.subject(),
+			named(detailsPanel, "txtDetailIssuedto", JTextField.class).getText());
+		assertEquals(details.fingerprint(),
+			named(detailsPanel, "txtDetailSHA-256", JTextField.class).getText());
 	}
 
 	/**

@@ -70,8 +70,8 @@ class SecretKeyTreeWithContentPanelBindingTest
 		String nodeName)
 	{
 		BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> nodeToMove = root
-			.traverse().stream()
-			.filter(treeNode -> nodeName.equals(treeNode.getValue().getName())).findFirst()
+			.traverse().stream().filter(treeNode -> nodeName.equals(treeNode.getValue().getName()))
+			.findFirst()
 			.orElseThrow(() -> new IllegalStateException("no node named '" + nodeName + "'"));
 		return SecretKeyTreeWithContentPanel.possibleMoveTargets(nodeToMove);
 	}
