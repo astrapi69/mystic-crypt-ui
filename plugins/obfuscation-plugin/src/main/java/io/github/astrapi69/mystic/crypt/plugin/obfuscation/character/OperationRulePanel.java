@@ -69,7 +69,7 @@ public class OperationRulePanel extends BasePanel<ObfuscationOperationModelBean>
 
 	protected void onAdd(final ActionEvent actionEvent)
 	{
-		if (simpleRulePanel.getTxtOriginalChar().getText().isEmpty())
+		if (simpleRulePanel.getRuleModelObject().getOriginalCharacter().isEmpty())
 		{
 
 			String title = "Original character is empty";
@@ -78,7 +78,7 @@ public class OperationRulePanel extends BasePanel<ObfuscationOperationModelBean>
 			JOptionPane.showMessageDialog(this, htmlMessage, title, JOptionPane.WARNING_MESSAGE);
 			return;
 		}
-		if (simpleRulePanel.getTxtRelpaceWith().getText().isEmpty())
+		if (simpleRulePanel.getRuleModelObject().getReplaceWith().isEmpty())
 		{
 
 			String title = "Replace with character is empty";
@@ -87,8 +87,10 @@ public class OperationRulePanel extends BasePanel<ObfuscationOperationModelBean>
 			JOptionPane.showMessageDialog(this, htmlMessage, title, JOptionPane.WARNING_MESSAGE);
 			return;
 		}
-		final Character origChar = simpleRulePanel.getTxtOriginalChar().getText().charAt(0);
-		final Character replaceWith = simpleRulePanel.getTxtRelpaceWith().getText().charAt(0);
+		final Character origChar = simpleRulePanel.getRuleModelObject().getOriginalCharacter()
+			.charAt(0);
+		final Character replaceWith = simpleRulePanel.getRuleModelObject().getReplaceWith()
+			.charAt(0);
 		Map<Character, ObfuscationOperationRule<Character, Character>> map = getModelObject()
 			.getTableModel().toMap();
 		KeyValuePair<Character, ObfuscationOperationRule<Character, Character>> keyValuePair;
@@ -120,10 +122,9 @@ public class OperationRulePanel extends BasePanel<ObfuscationOperationModelBean>
 					return;
 				}
 
-				String indexesAsString = simpleRulePanel.getTxtIndexes().getText();
+				String indexesAsString = simpleRulePanel.getRuleModelObject().getIndexes();
 				Set<Integer> indexes = SetFactory.newTreeSet();
-				Object selectedItem = simpleRulePanel.getCmbOperation().getSelectedItem();
-				Operation selectedOperation = (Operation)selectedItem;
+				Operation selectedOperation = simpleRulePanel.getRuleModelObject().getOperation();
 				String[] strings = indexesAsString.split(",");
 				IntStream.range(0, strings.length).forEach(i -> {
 					String index = strings[i];
@@ -167,10 +168,9 @@ public class OperationRulePanel extends BasePanel<ObfuscationOperationModelBean>
 					JOptionPane.WARNING_MESSAGE);
 				return;
 			}
-			String indexesAsString = simpleRulePanel.getTxtIndexes().getText();
+			String indexesAsString = simpleRulePanel.getRuleModelObject().getIndexes();
 			Set<Integer> indexes = SetFactory.newTreeSet();
-			Object selectedItem = simpleRulePanel.getCmbOperation().getSelectedItem();
-			Operation selectedOperation = (Operation)selectedItem;
+			Operation selectedOperation = simpleRulePanel.getRuleModelObject().getOperation();
 			String[] strings = indexesAsString.split(",");
 			for (String index : strings)
 			{
@@ -204,7 +204,7 @@ public class OperationRulePanel extends BasePanel<ObfuscationOperationModelBean>
 	{
 		BiMap<Character, ObfuscationOperationRule<Character, Character>> biMap = getModelObject()
 			.getTableModel().toBiMap();
-		String text = getEnDecryptPanel().getTxtEncrypted().getText();
+		String text = getEnDecryptPanel().getModelObject().getRightContent();
 		String disentangled = ObfuscatorExtensions.disentangleImproved(biMap, text);
 		getEnDecryptPanel().getTxtToEncrypt().setText(disentangled);
 		getEnDecryptPanel().getTxtEncrypted().setText("");
@@ -218,7 +218,7 @@ public class OperationRulePanel extends BasePanel<ObfuscationOperationModelBean>
 
 	protected void onEncrypt(final ActionEvent actionEvent)
 	{
-		final String toObfuscatedString = getEnDecryptPanel().getTxtToEncrypt().getText();
+		final String toObfuscatedString = getEnDecryptPanel().getModelObject().getLeftContent();
 		// create the rule
 		BiMap<Character, ObfuscationOperationRule<Character, Character>> biMap = getModelObject()
 			.getTableModel().toBiMap();

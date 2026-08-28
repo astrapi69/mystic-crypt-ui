@@ -34,6 +34,7 @@ import java.awt.event.ActionEvent;
 import java.io.File;
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
+import java.util.Objects;
 import java.util.logging.Level;
 
 import javax.swing.*;
@@ -45,17 +46,41 @@ import io.github.astrapi69.crypt.api.algorithm.ChecksumAlgorithm;
 import io.github.astrapi69.file.read.ReadFileExtensions;
 import io.github.astrapi69.file.system.SystemFileExtensions;
 import io.github.astrapi69.model.BaseModel;
+import io.github.astrapi69.model.LambdaModel;
 import io.github.astrapi69.model.api.IModel;
 import io.github.astrapi69.swing.base.BasePanel;
 import io.github.astrapi69.swing.listener.document.EnableButtonBehavior;
 import io.github.astrapi69.swing.model.combobox.EnumComboBoxModel;
+import io.github.astrapi69.swing.model.component.JMComboBox;
+import io.github.astrapi69.swing.model.component.JMTextArea;
+import io.github.astrapi69.swing.model.component.JMTextField;
 import lombok.Getter;
 import lombok.extern.java.Log;
 
+/**
+ * The tool that computes the checksum of a file and compares it with the checksum its owner
+ * published.
+ * <p>
+ * Every input component is bound to the {@link ChecksumBean} this panel holds as its model, so what
+ * was chosen, typed or computed is readable from the model at any moment and the buttons read their
+ * values there instead of out of the widgets.
+ */
 @Getter
 @Log
 public class ChecksumPanel extends BasePanel<ChecksumBean>
 {
+
+	/** The message shown in the result field before anything was compared */
+	private static final String NOTHING_COMPARED_YET = "Checksum Match Result";
+
+	/** The colour the result field takes when the two checksums are the same */
+	private static final Color MATCH_COLOR = new Color(0, 255, 0);
+
+	/** The colour the result field takes when they are not, or when the file cannot be used */
+	private static final Color NO_MATCH_COLOR = new Color(255, 0, 0);
+
+	/** The size a checksum file may have at most, in bytes */
+	private static final long MAXIMUM_CHECKSUM_FILE_LENGTH = 128;
 
 	private JButton btnClearChecksumFile;
 	private JButton btnClearOpenFile;
@@ -67,13 +92,13 @@ public class ChecksumPanel extends BasePanel<ChecksumBean>
 	private JLabel lblOwnersChecksum;
 	private JScrollPane srcGeneratedChecksum;
 	private JScrollPane srcOwnersChecksum;
-	private JTextField txtChecksumFile;
-	private JTextField txtChecksumMatchResult;
-	private JTextArea txtGeneratedChecksum;
-	private JTextField txtOpenFile;
-	private JTextArea txtOwnersChecksum;
+	private JMTextField txtChecksumFile;
+	private JMTextField txtChecksumMatchResult;
+	private JMTextArea txtGeneratedChecksum;
+	private JMTextField txtOpenFile;
+	private JMTextArea txtOwnersChecksum;
 	// manually changed
-	private JComboBox<ChecksumAlgorithm> cbxChecksumAlgorithm;
+	private JMComboBox<ChecksumAlgorithm, ComboBoxModel<ChecksumAlgorithm>> cbxChecksumAlgorithm;
 	private JFileChooser fileChooser;
 
 	/**
@@ -97,22 +122,22 @@ public class ChecksumPanel extends BasePanel<ChecksumBean>
 	{
 		super.onInitializeComponents();
 
-		txtOpenFile = new JTextField();
+		txtOpenFile = new JMTextField();
 		btnOpenFile = new JButton();
 		btnClearOpenFile = new JButton();
 		lblGeneratedChecksum = new JLabel();
 		srcGeneratedChecksum = new JScrollPane();
-		txtGeneratedChecksum = new JTextArea();
+		txtGeneratedChecksum = new JMTextArea();
 		lblOwnersChecksum = new JLabel();
-		txtChecksumFile = new JTextField();
+		txtChecksumFile = new JMTextField();
 		btnOpenChecksumFile = new JButton();
 		btnClearChecksumFile = new JButton();
 		srcOwnersChecksum = new JScrollPane();
-		txtOwnersChecksum = new JTextArea();
+		txtOwnersChecksum = new JMTextArea();
 		lblChecksumAlgorithm = new JLabel();
-		cbxChecksumAlgorithm = new JComboBox<>();
+		cbxChecksumAlgorithm = new JMComboBox<>();
 		btnCompare = new JButton();
-		txtChecksumMatchResult = new JTextField();
+		txtChecksumMatchResult = new JMTextField();
 
 		// manually changed
 		txtOpenFile.setEnabled(false);
@@ -156,19 +181,44 @@ public class ChecksumPanel extends BasePanel<ChecksumBean>
 
 		lblChecksumAlgorithm.setText("Checksum algorithm");
 
-		// the tool starts with what the user configured in the settings dialog
+		// the tool starts with what the user configured in the settings dialog; the model carries
+		// it into the combo box when the components are bound
 		ChecksumAlgorithm configuredAlgorithm = ChecksumSettingsContribution.algorithm();
+		getModelObject().setSelectedAlgorithm(configuredAlgorithm);
 		cbxChecksumAlgorithm
 			.setModel(new EnumComboBoxModel<>(ChecksumAlgorithm.class, configuredAlgorithm));
 		cbxChecksumAlgorithm.addActionListener(this::onChangeChecksumAlgorithm);
-		getModelObject().setSelectedAlgorithm(configuredAlgorithm);
 
 		btnCompare.setText("Compare");
 		btnCompare.addActionListener(this::onCompare);
 
-		txtChecksumMatchResult.setText("Checksum Match Result");
+		getModelObject().setChecksumMatchResult(NOTHING_COMPARED_YET);
+
+		bindComponents();
 
 		fileChooser = new JFileChooser(SystemFileExtensions.getUserDownloadsDir());
+	}
+
+	/**
+	 * Binds every input component to the model of this panel, so that each edit lands in the model
+	 * and the model is what the buttons read - the components take the values the model already
+	 * holds
+	 */
+	private void bindComponents()
+	{
+		ChecksumBean modelObject = getModelObject();
+		txtOpenFile.setPropertyModel(
+			LambdaModel.of(modelObject::getSelectedFilename, modelObject::setSelectedFilename));
+		txtGeneratedChecksum.setPropertyModel(
+			LambdaModel.of(modelObject::getGeneratedChecksum, modelObject::setGeneratedChecksum));
+		txtChecksumFile.setPropertyModel(LambdaModel.of(modelObject::getSelectedChecksumFilename,
+			modelObject::setSelectedChecksumFilename));
+		txtOwnersChecksum.setPropertyModel(
+			LambdaModel.of(modelObject::getOwnersChecksum, modelObject::setOwnersChecksum));
+		cbxChecksumAlgorithm.setPropertyModel(
+			LambdaModel.of(modelObject::getSelectedAlgorithm, modelObject::setSelectedAlgorithm));
+		txtChecksumMatchResult.setPropertyModel(LambdaModel.of(modelObject::getChecksumMatchResult,
+			modelObject::setChecksumMatchResult));
 	}
 
 	private void onOpenChecksumFile(ActionEvent actionEvent)
@@ -178,15 +228,13 @@ public class ChecksumPanel extends BasePanel<ChecksumBean>
 		{
 			final File selectedChecksumFile = fileChooser.getSelectedFile();
 			long length = selectedChecksumFile.length();
-			if (length <= 128)
+			if (length <= MAXIMUM_CHECKSUM_FILE_LENGTH)
 			{
 				getModelObject().setSelectedChecksumFile(selectedChecksumFile);
-				getModelObject().setSelectedChecksumFilename(selectedChecksumFile.getName());
-				txtChecksumFile.setText(getModelObject().getSelectedChecksumFilename());
+				txtChecksumFile.setText(selectedChecksumFile.getName());
 				try
 				{
 					String checksum = ReadFileExtensions.fromFile(selectedChecksumFile).trim();
-					System.out.println(checksum);
 					txtOwnersChecksum.setText(checksum);
 					txtOwnersChecksum.setEnabled(false);
 					ChecksumAlgorithm checksumAlgorithmOfFile = ChecksumExtensions
@@ -201,9 +249,7 @@ public class ChecksumPanel extends BasePanel<ChecksumBean>
 			}
 			else
 			{
-				txtChecksumMatchResult.setText("Given checksum file is invalid");
-				txtChecksumMatchResult.setBackground(new ColorUIResource(new Color(255, 0, 0)));
-				txtChecksumMatchResult.revalidate();
+				showChecksumMatchResult("Given checksum file is invalid", NO_MATCH_COLOR);
 			}
 
 		}
@@ -212,46 +258,50 @@ public class ChecksumPanel extends BasePanel<ChecksumBean>
 	protected void onClearChecksumFile(ActionEvent actionEvent)
 	{
 		getModelObject().setSelectedChecksumFile(null);
-		getModelObject().setSelectedChecksumFilename("");
-		txtChecksumFile.setText(getModelObject().getSelectedChecksumFilename());
+		txtChecksumFile.setText("");
 		txtOwnersChecksum.setText("");
 		txtOwnersChecksum.setEnabled(true);
 	}
 
 	protected void onCompare(final ActionEvent actionEvent)
 	{
-		String ownersChecksumText = txtOwnersChecksum.getText();
-		String generatedChecksumText = txtGeneratedChecksum.getText();
-		if (ownersChecksumText.equals(generatedChecksumText))
+		String ownersChecksumText = getModelObject().getOwnersChecksum();
+		String generatedChecksumText = getModelObject().getGeneratedChecksum();
+		if (Objects.equals(ownersChecksumText, generatedChecksumText))
 		{
-			txtChecksumMatchResult.setText("Match");
-			txtChecksumMatchResult.setBackground(new ColorUIResource(new Color(0, 255, 0)));
-			txtChecksumMatchResult.revalidate();
+			showChecksumMatchResult("Match", MATCH_COLOR);
 		}
 		else
 		{
-			txtChecksumMatchResult.setText("No Match");
-			txtChecksumMatchResult.setBackground(new ColorUIResource(new Color(255, 0, 0)));
-			txtChecksumMatchResult.revalidate();
-
+			showChecksumMatchResult("No Match", NO_MATCH_COLOR);
 		}
 	}
 
-	@SuppressWarnings("unchecked")
+	/**
+	 * Shows what the last comparison found, which the result field carries into the model
+	 *
+	 * @param matchResult
+	 *            what the panel has to say about the two checksums
+	 * @param background
+	 *            the colour that says the same thing without being read
+	 */
+	private void showChecksumMatchResult(final String matchResult, final Color background)
+	{
+		txtChecksumMatchResult.setText(matchResult);
+		txtChecksumMatchResult.setBackground(new ColorUIResource(background));
+		txtChecksumMatchResult.revalidate();
+	}
+
 	protected void onChangeChecksumAlgorithm(final ActionEvent actionEvent)
 	{
-		final JComboBox<ChecksumAlgorithm> cb = ((JComboBox<ChecksumAlgorithm>)actionEvent
-			.getSource());
-		final ChecksumAlgorithm selectedAlgorithm = (ChecksumAlgorithm)cb.getSelectedItem();
-		getModelObject().setSelectedAlgorithm(selectedAlgorithm);
+		// the combo box has already written the chosen algorithm into the model
 		calculateChecksum();
 	}
 
 	protected void onClearOpenFile(ActionEvent actionEvent)
 	{
 		getModelObject().setSelectedFile(null);
-		getModelObject().setSelectedFilename("");
-		txtOpenFile.setText(getModelObject().getSelectedFilename());
+		txtOpenFile.setText("");
 		txtGeneratedChecksum.setText("");
 	}
 
@@ -262,8 +312,7 @@ public class ChecksumPanel extends BasePanel<ChecksumBean>
 		{
 			final File selectedFile = fileChooser.getSelectedFile();
 			getModelObject().setSelectedFile(selectedFile);
-			getModelObject().setSelectedFilename(selectedFile.getName());
-			txtOpenFile.setText(getModelObject().getSelectedFilename());
+			txtOpenFile.setText(selectedFile.getName());
 			calculateChecksum();
 		}
 	}

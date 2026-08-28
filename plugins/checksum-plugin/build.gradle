@@ -59,6 +59,12 @@ dependencies {
     // the panel tests lay the panel out, so the shared layout has to be on the test classpath too
     testImplementation "com.miglayout:miglayout-swing:11.4.3"
     testImplementation "org.pf4j:pf4j:3.15.0"
+    // the binding test of the ChecksumPanel builds a panel that extends the base panel, starts in
+    // the user's downloads directory and enables its clear buttons from a document; the host brings
+    // these three at runtime
+    testImplementation "io.github.astrapi69:swing-base-components:5.1"
+    testImplementation "io.github.astrapi69:file-worker:19.0"
+    testImplementation "io.github.astrapi69:menu-action:5.1"
 
 }
 

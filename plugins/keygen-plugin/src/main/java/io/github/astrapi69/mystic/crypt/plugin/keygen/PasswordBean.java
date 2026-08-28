@@ -50,10 +50,12 @@ public class PasswordBean implements Serializable
 	 */
 	private static final long serialVersionUID = 1L;
 
-	/** The password */
-	private String password;
+	/** The password, kept as a character array so it never becomes an interned string */
+	@ToString.Exclude
+	private char[] password;
 
-	/** The repeated password */
-	private String repeatPassword;
+	/** The repeated password, kept as a character array like the password itself */
+	@ToString.Exclude
+	private char[] repeatPassword;
 
 }

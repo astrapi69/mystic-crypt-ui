@@ -38,6 +38,16 @@ import lombok.Setter;
 import lombok.ToString;
 import lombok.experimental.FieldDefaults;
 
+/**
+ * Everything the {@link ChecksumPanel} holds: the file whose checksum is computed and the algorithm
+ * it is computed with, the checksum file the owner's value was read from, both checksums and what
+ * the last comparison of the two found.
+ * <p>
+ * The panel binds its components to this object, so what the user chose, typed or had computed is
+ * readable here at any moment - no button handler has to ask a widget for its content. The text
+ * properties start empty rather than {@code null}: a text component without text holds empty text,
+ * and the binding would otherwise have to guess which of the two an untouched field means.
+ */
 @Getter
 @Setter
 @EqualsAndHashCode
@@ -50,9 +60,32 @@ public class ChecksumBean implements Serializable
 {
 	private static final long serialVersionUID = 1L;
 
+	/** The file the checksum is computed over, null as long as none was chosen */
 	File selectedFile;
-	String selectedFilename;
+
+	/** The name of that file, as the field under the buttons shows it */
+	@Builder.Default
+	String selectedFilename = "";
+
+	/** The algorithm the checksum is computed with */
 	ChecksumAlgorithm selectedAlgorithm;
+
+	/** The file the owner's checksum was read from, null as long as none was chosen */
 	File selectedChecksumFile;
-	String selectedChecksumFilename;
+
+	/** The name of that file, as the field next to it shows it */
+	@Builder.Default
+	String selectedChecksumFilename = "";
+
+	/** The checksum this tool computed for the selected file */
+	@Builder.Default
+	String generatedChecksum = "";
+
+	/** The checksum the owner published, typed in or read from a checksum file */
+	@Builder.Default
+	String ownersChecksum = "";
+
+	/** What the last comparison of the two checksums found */
+	@Builder.Default
+	String checksumMatchResult = "";
 }

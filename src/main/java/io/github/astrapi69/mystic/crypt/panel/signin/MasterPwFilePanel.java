@@ -33,13 +33,23 @@ import javax.swing.event.DocumentEvent;
 import io.github.astrapi69.file.create.model.FileInfo;
 import io.github.astrapi69.file.system.SystemFileExtensions;
 import io.github.astrapi69.model.BaseModel;
+import io.github.astrapi69.model.LambdaModel;
 import io.github.astrapi69.model.api.IModel;
 import io.github.astrapi69.swing.base.BasePanel;
 import io.github.astrapi69.swing.listener.document.DocumentListenerAdapter;
+import io.github.astrapi69.swing.model.component.JMCheckBox;
+import io.github.astrapi69.swing.model.component.JMPasswordField;
+import io.github.astrapi69.swing.model.component.JMTextField;
 import lombok.Getter;
 
 /**
- * The class {@link MasterPwFilePanel}
+ * The class {@link MasterPwFilePanel} asks for the master key of a database: a master password, a
+ * key file, or both of them.
+ * <p>
+ * Every input component is bound to the {@link MasterPwFileModelBean} of this panel, so what was
+ * typed or checked is readable from the model at any moment. The OK button and the enabled state it
+ * is kept in ask the model, never a widget - that keeps the answer the same for a test, for a
+ * dialog around this panel and for the panel itself.
  */
 @Getter
 public class MasterPwFilePanel extends BasePanel<MasterPwFileModelBean>
@@ -52,11 +62,11 @@ public class MasterPwFilePanel extends BasePanel<MasterPwFileModelBean>
 	private JButton btnKeyFileChooser;
 	private JButton btnMasterPw;
 	private JButton btnOk;
-	private JCheckBox cbxKeyFile;
-	private JCheckBox cbxMasterPw;
+	private JMCheckBox cbxKeyFile;
+	private JMCheckBox cbxMasterPw;
 	private JLabel lblImageHeader;
-	private JTextField txtKeyFile;
-	private JPasswordField txtMasterPw;
+	private JMTextField txtKeyFile;
+	private JMPasswordField txtMasterPw;
 	private JFileChooser fileChooser;
 
 	/**
@@ -80,7 +90,9 @@ public class MasterPwFilePanel extends BasePanel<MasterPwFileModelBean>
 
 	protected void onCheckKeyFile(final ActionEvent actionEvent)
 	{
-		getModelObject().setWithKeyFile(!getModelObject().isWithKeyFile());
+		// the check box has written its state into the model already; writing it again keeps this
+		// handler independent of the order in which a check box notifies its listeners
+		getModelObject().setWithKeyFile(cbxKeyFile.isSelected());
 		toggleKeyFileComponents(getModelObject().isWithKeyFile());
 	}
 
@@ -95,22 +107,24 @@ public class MasterPwFilePanel extends BasePanel<MasterPwFileModelBean>
 		btnKeyFileChooser.setEnabled(withKeyFile);
 	}
 
-	protected void toggleMasterPwComponents(boolean withKeyFile)
+	protected void toggleMasterPwComponents(boolean withMasterPw)
 	{
-		cbxMasterPw.setSelected(withKeyFile);
-		txtMasterPw.setEnabled(withKeyFile);
-		if (!withKeyFile)
+		cbxMasterPw.setSelected(withMasterPw);
+		txtMasterPw.setEnabled(withMasterPw);
+		if (!withMasterPw)
 		{
 			txtMasterPw.setText("");
 			getModelObject().setMasterPw(null);
 		}
-		btnMasterPw.setEnabled(withKeyFile);
+		btnMasterPw.setEnabled(withMasterPw);
 		btnOk.getModel().setEnabled(getBtnOkEnabledState());
 	}
 
 	protected void onCheckMasterPw(final ActionEvent actionEvent)
 	{
-		getModelObject().setWithMasterPw(!getModelObject().isWithMasterPw());
+		// the check box has written its state into the model already; writing it again keeps this
+		// handler independent of the order in which a check box notifies its listeners
+		getModelObject().setWithMasterPw(cbxMasterPw.isSelected());
 		toggleMasterPwComponents(getModelObject().isWithMasterPw());
 	}
 
@@ -119,15 +133,16 @@ public class MasterPwFilePanel extends BasePanel<MasterPwFileModelBean>
 	{
 		super.onInitializeComponents();
 		lblImageHeader = new JLabel();
-		cbxMasterPw = new JCheckBox();
-		cbxKeyFile = new JCheckBox();
-		txtMasterPw = new JPasswordField();
+		cbxMasterPw = new JMCheckBox();
+		cbxKeyFile = new JMCheckBox();
+		txtMasterPw = new JMPasswordField();
 		btnMasterPw = new JButton();
-		txtKeyFile = new JTextField();
+		txtKeyFile = new JMTextField();
 		btnKeyFileChooser = new JButton();
 		btnHelp = new JButton();
 		btnOk = new JButton();
 		btnCancel = new JButton();
+		bindComponents();
 		toggleMasterPwComponents(getModelObject().isWithMasterPw());
 		toggleKeyFileComponents(getModelObject().isWithKeyFile());
 
@@ -147,12 +162,11 @@ public class MasterPwFilePanel extends BasePanel<MasterPwFileModelBean>
 			@Override
 			public void onDocumentChanged(DocumentEvent e)
 			{
-				final boolean btnOkEnabledState = getBtnOkEnabledState();
-				btnOk.getModel().setEnabled(btnOkEnabledState);
-				if (btnOkEnabledState)
-				{
-					getModelObject().setMasterPw(txtMasterPw.getPassword());
-				}
+				// the model first, the enabled state from the model afterwards: a document
+				// notifies its listeners in reverse registration order, so this listener runs
+				// before the one the password field keeps for its own property model
+				getModelObject().setMasterPw(txtMasterPw.getPassword());
+				btnOk.getModel().setEnabled(getBtnOkEnabledState());
 			}
 		});
 
@@ -177,6 +191,23 @@ public class MasterPwFilePanel extends BasePanel<MasterPwFileModelBean>
 		fileChooser = new JFileChooser(SystemFileExtensions.getUserDownloadsDir());
 	}
 
+	/**
+	 * Binds every input component to the model bean of this panel, so that each edit lands in the
+	 * model and the model is what the buttons read - the components carry the values the model
+	 * already holds
+	 */
+	protected void bindComponents()
+	{
+		cbxMasterPw.setPropertyModel(LambdaModel.of(() -> getModelObject().isWithMasterPw(),
+			(Boolean withMasterPw) -> getModelObject().setWithMasterPw(withMasterPw)));
+		cbxKeyFile.setPropertyModel(LambdaModel.of(() -> getModelObject().isWithKeyFile(),
+			(Boolean withKeyFile) -> getModelObject().setWithKeyFile(withKeyFile)));
+		txtMasterPw.setPropertyModel(LambdaModel.of(() -> getModelObject().getMasterPw(),
+			(char[] masterPw) -> getModelObject().setMasterPw(masterPw)));
+		txtKeyFile.setPropertyModel(LambdaModel.of(() -> getModelObject().getSelectedKeyFilePath(),
+			(String keyFilePath) -> getModelObject().setSelectedKeyFilePath(keyFilePath)));
+	}
+
 	protected void onKeyFileChooser(ActionEvent actionEvent)
 	{
 		final int returnVal = fileChooser.showSaveDialog(MasterPwFilePanel.this);
@@ -189,11 +220,19 @@ public class MasterPwFilePanel extends BasePanel<MasterPwFileModelBean>
 		}
 	}
 
+	/**
+	 * Gets the enabled state the OK button has to be in for the master key the model currently
+	 * holds
+	 *
+	 * @return true if the master key is complete, otherwise false
+	 */
 	protected boolean getBtnOkEnabledState()
 	{
 		MasterPwFileModelBean modelObject = getModelObject();
+		char[] masterPw = modelObject.getMasterPw();
+		int masterPwLength = masterPw != null ? masterPw.length : 0;
 		if (modelObject.isWithMasterPw() && modelObject.isWithKeyFile()
-			&& !(0 < txtMasterPw.getDocument().getLength() && modelObject.getKeyFileInfo() != null))
+			&& !(0 < masterPwLength && modelObject.getKeyFileInfo() != null))
 		{
 			return false;
 		}
@@ -201,8 +240,7 @@ public class MasterPwFilePanel extends BasePanel<MasterPwFileModelBean>
 		{
 			return false;
 		}
-		if (modelObject.isWithMasterPw() && !modelObject.isWithKeyFile()
-			&& txtMasterPw.getDocument().getLength() == 0)
+		if (modelObject.isWithMasterPw() && !modelObject.isWithKeyFile() && masterPwLength == 0)
 		{
 			return false;
 		}

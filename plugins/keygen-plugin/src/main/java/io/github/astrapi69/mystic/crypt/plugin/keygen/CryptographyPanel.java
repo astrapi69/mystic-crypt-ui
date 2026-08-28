@@ -33,6 +33,7 @@ import javax.swing.*;
 import io.github.astrapi69.crypt.api.key.KeySize;
 import io.github.astrapi69.crypt.data.key.KeyInfoExtensions;
 import io.github.astrapi69.model.BaseModel;
+import io.github.astrapi69.model.LambdaModel;
 import io.github.astrapi69.model.api.IModel;
 import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
 import io.github.astrapi69.mystic.crypt.panel.certificate.NewCertificateInfoPanel;
@@ -45,6 +46,8 @@ import io.github.astrapi69.swing.base.BasePanel;
 import io.github.astrapi69.swing.dialog.factory.JDialogFactory;
 import io.github.astrapi69.swing.listener.RequestFocusListener;
 import io.github.astrapi69.swing.model.combobox.EnumComboBoxModel;
+import io.github.astrapi69.swing.model.component.JMComboBox;
+import io.github.astrapi69.swing.model.component.JMTextArea;
 import lombok.Getter;
 import lombok.extern.java.Log;
 
@@ -109,7 +112,7 @@ public class CryptographyPanel extends BasePanel<GenerateKeysModelBean>
 	/**
 	 * The cmb key size.
 	 */
-	private JComboBox<KeySize> cmbKeySize;
+	private JMComboBox<KeySize, EnumComboBoxModel<KeySize>> cmbKeySize;
 
 	/**
 	 * The lbl key size.
@@ -139,12 +142,12 @@ public class CryptographyPanel extends BasePanel<GenerateKeysModelBean>
 	/**
 	 * The txt private key.
 	 */
-	private JTextArea txtPrivateKey;
+	private JMTextArea txtPrivateKey;
 
 	/**
 	 * The txt public key.
 	 */
-	private JTextArea txtPublicKey;
+	private JMTextArea txtPublicKey;
 
 	/**
 	 * Instantiates a new {@link CryptographyPanel}.
@@ -196,12 +199,12 @@ public class CryptographyPanel extends BasePanel<GenerateKeysModelBean>
 		super.onInitializeComponents();
 
 		scpPrivateKey = new JScrollPane();
-		txtPrivateKey = new JTextArea();
-		cmbKeySize = new JComboBox<>();
+		txtPrivateKey = new JMTextArea();
+		cmbKeySize = new JMComboBox<>(new EnumComboBoxModel<>(KeySize.class));
 		lblPrivateKey = new JLabel();
 		lblKeySize = new JLabel();
 		scpPublicKey = new JScrollPane();
-		txtPublicKey = new JTextArea();
+		txtPublicKey = new JMTextArea();
 		lblPublicKey = new JLabel();
 		btnGenerate = new JButton();
 		btnClear = new JButton();
@@ -209,6 +212,11 @@ public class CryptographyPanel extends BasePanel<GenerateKeysModelBean>
 		btnSavePublicKey = new JButton();
 		btnSavePrivKeyWithPw = new JButton();
 		btnSaveCertificate = new JButton();
+
+		// the tool starts with the key size the user configured in the settings dialog; the model
+		// carries it, and the bound key size box takes it from there
+		getModelObject().setKeySize(KeygenSettingsContribution.keySize());
+		bindComponents();
 
 		txtPrivateKey.setEditable(false);
 		txtPublicKey.setEditable(false);
@@ -243,10 +251,6 @@ public class CryptographyPanel extends BasePanel<GenerateKeysModelBean>
 		applyMinimumKeyAreaSize(scpPrivateKey);
 		txtPrivateKey.getAccessibleContext().setAccessibleDescription("");
 
-		cmbKeySize.setModel(new EnumComboBoxModel<>(KeySize.class));
-		// the tool starts with what the user configured in the settings dialog
-		cmbKeySize.setSelectedItem(KeygenSettingsContribution.keySize());
-
 		btnGenerate.setText("Generate keys");
 
 		lblPrivateKey.setText("Private key");
@@ -269,6 +273,22 @@ public class CryptographyPanel extends BasePanel<GenerateKeysModelBean>
 		btnSaveCertificate.setText("Save certificate...");
 		//
 		btnSaveCertificate.setEnabled(false);
+	}
+
+	/**
+	 * Binds the key size box and the two key areas to the model of this panel, so that the chosen
+	 * key size and the generated key pair are readable from the model at any moment instead of out
+	 * of the components
+	 */
+	private void bindComponents()
+	{
+		final GenerateKeysModelBean modelObject = getModelObject();
+		cmbKeySize.setPropertyModel(
+			LambdaModel.of(modelObject::getKeySize, modelObject::setKeySize));
+		txtPrivateKey.setPropertyModel(
+			LambdaModel.of(modelObject::getPrivateKeyPem, modelObject::setPrivateKeyPem));
+		txtPublicKey.setPropertyModel(
+			LambdaModel.of(modelObject::getPublicKeyPem, modelObject::setPublicKeyPem));
 	}
 
 	/**

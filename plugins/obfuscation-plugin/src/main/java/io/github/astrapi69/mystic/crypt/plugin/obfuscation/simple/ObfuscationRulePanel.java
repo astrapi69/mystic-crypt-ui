@@ -24,11 +24,13 @@ import java.awt.event.ActionEvent;
 
 import io.github.astrapi69.crypt.data.obfuscation.rule.ObfuscationRule;
 import io.github.astrapi69.model.BaseModel;
+import io.github.astrapi69.model.LambdaModel;
 import io.github.astrapi69.model.api.IModel;
 import io.github.astrapi69.mystic.crypt.plugin.obfuscation.ModeContext;
 import io.github.astrapi69.mystic.crypt.ui.form.ToolForm;
 import io.github.astrapi69.swing.base.BasePanel;
 import io.github.astrapi69.swing.document.RangeDocument;
+import io.github.astrapi69.swing.model.component.JMTextField;
 import lombok.Getter;
 
 @Getter
@@ -41,8 +43,11 @@ public class ObfuscationRulePanel extends BasePanel<ObfuscationModelBean>
 	private javax.swing.JLabel lblObfuscationOperationRule;
 	private javax.swing.JLabel lblOriginalChar;
 	private javax.swing.JLabel lblReplaceWith;
-	private javax.swing.JTextField txtOriginalChar;
-	private javax.swing.JTextField txtRelpaceWith;
+	private JMTextField txtOriginalChar;
+	private JMTextField txtRelpaceWith;
+
+	/** What the user typed; both fields below write into it and the Add button reads it */
+	private transient ObfuscationRulePanelModel ruleModelObject;
 
 	public ObfuscationRulePanel()
 	{
@@ -52,6 +57,16 @@ public class ObfuscationRulePanel extends BasePanel<ObfuscationModelBean>
 	public ObfuscationRulePanel(final IModel<ObfuscationModelBean> model)
 	{
 		super(model);
+	}
+
+	/**
+	 * Gets the rule the two fields describe, as it stands at this moment
+	 *
+	 * @return the model the two fields of this panel write into
+	 */
+	public ObfuscationRulePanelModel getRuleModelObject()
+	{
+		return ruleModelObject;
 	}
 
 	protected void onAdd(final ActionEvent actionEvent)
@@ -71,10 +86,15 @@ public class ObfuscationRulePanel extends BasePanel<ObfuscationModelBean>
 	{
 		super.onInitializeComponents();
 
+		ruleModelObject = new ObfuscationRulePanelModel();
+
 		lblOriginalChar = new javax.swing.JLabel();
 		lblReplaceWith = new javax.swing.JLabel();
-		txtOriginalChar = new javax.swing.JTextField();
-		txtRelpaceWith = new javax.swing.JTextField();
+		// the document that limits a field to one character is passed to the constructor rather
+		// than set afterwards: a model backed field listens to the document it is built with, and
+		// a later setDocument would leave that listener behind on the discarded one
+		txtOriginalChar = new JMTextField(new RangeDocument(0, 1), null, 0);
+		txtRelpaceWith = new JMTextField(new RangeDocument(0, 1), null, 0);
 		btnAdd = new javax.swing.JButton();
 		lblObfuscationOperationRule = new javax.swing.JLabel();
 
@@ -92,12 +112,22 @@ public class ObfuscationRulePanel extends BasePanel<ObfuscationModelBean>
 		txtRelpaceWith.setName("txtRelpaceWith");
 		btnAdd.setName("btnAddRule");
 
-		// == custom edit ==
-		txtOriginalChar.setDocument(new RangeDocument(0, 1));
-		txtRelpaceWith.setDocument(new RangeDocument(0, 1));
+		bindComponents();
 
 		btnAdd.addActionListener(actionEvent -> onAdd(actionEvent));
 
+	}
+
+	/**
+	 * Binds both fields to the model, so that every edit lands in the model and the model is what
+	 * the Add button reads
+	 */
+	private void bindComponents()
+	{
+		txtOriginalChar.setPropertyModel(LambdaModel.of(ruleModelObject::getOriginalCharacter,
+			ruleModelObject::setOriginalCharacter));
+		txtRelpaceWith.setPropertyModel(
+			LambdaModel.of(ruleModelObject::getReplaceWith, ruleModelObject::setReplaceWith));
 	}
 
 	/**

@@ -68,7 +68,7 @@ public class RulePanel extends BasePanel<ObfuscationModelBean>
 
 	protected void onAdd(final ActionEvent actionEvent)
 	{
-		if (simpleRulePanel.getTxtOriginalChar().getText().isEmpty())
+		if (simpleRulePanel.getRuleModelObject().getOriginalCharacter().isEmpty())
 		{
 			String title = "Original character is empty";
 			String htmlMessage = "<html><body width='350'>" + "<h2>" + title + "</h2>"
@@ -76,7 +76,7 @@ public class RulePanel extends BasePanel<ObfuscationModelBean>
 			JOptionPane.showMessageDialog(this, htmlMessage, title, JOptionPane.WARNING_MESSAGE);
 			return;
 		}
-		if (simpleRulePanel.getTxtRelpaceWith().getText().isEmpty())
+		if (simpleRulePanel.getRuleModelObject().getReplaceWith().isEmpty())
 		{
 			String title = "Replace with character is empty";
 			String htmlMessage = "<html><body width='350'>" + "<h2>" + title + "</h2>"
@@ -85,8 +85,10 @@ public class RulePanel extends BasePanel<ObfuscationModelBean>
 			return;
 		}
 
-		final Character origChar = simpleRulePanel.getTxtOriginalChar().getText().charAt(0);
-		final Character replaceWith = simpleRulePanel.getTxtRelpaceWith().getText().charAt(0);
+		final Character origChar = simpleRulePanel.getRuleModelObject().getOriginalCharacter()
+			.charAt(0);
+		final Character replaceWith = simpleRulePanel.getRuleModelObject().getReplaceWith()
+			.charAt(0);
 		Map<Character, ObfuscationRule<Character, Character>> map = getModelObject().getTableModel()
 			.toMap();
 		KeyValuePair<Character, ObfuscationRule<Character, Character>> keyValuePair = null;
@@ -173,7 +175,7 @@ public class RulePanel extends BasePanel<ObfuscationModelBean>
 		// Obfuscate time and undid it, so it always returned the original key, ignored the
 		// encrypted field entirely, and threw a NullPointerException when Disentangle was clicked
 		// before Obfuscate. This mirrors the (correct) operation variant
-		final String obfuscated = getEnDecryptPanel().getTxtEncrypted().getText();
+		final String obfuscated = getEnDecryptPanel().getModelObject().getRightContent();
 		final Map<Character, ObfuscationRule<Character, Character>> keymap = getModelObject()
 			.getTableModel().toMap();
 		final BiMap<Character, ObfuscationRule<Character, Character>> ruleBiMap = HashBiMap
@@ -203,7 +205,7 @@ public class RulePanel extends BasePanel<ObfuscationModelBean>
 
 	protected void onEncrypt(final ActionEvent actionEvent)
 	{
-		final String toObfuscatedString = getEnDecryptPanel().getTxtToEncrypt().getText();
+		final String toObfuscatedString = getEnDecryptPanel().getModelObject().getLeftContent();
 		final Map<Character, ObfuscationRule<Character, Character>> keymap = getModelObject()
 			.getTableModel().toMap();
 		// create the rule
