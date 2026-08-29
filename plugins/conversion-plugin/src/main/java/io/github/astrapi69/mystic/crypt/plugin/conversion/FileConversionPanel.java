@@ -108,7 +108,15 @@ public class FileConversionPanel extends BasePanel<FileConversionModelBean>
 
 	protected void onConvert(final ActionEvent actionEvent)
 	{
-		txtConsole.append("Coversion started...\n");
+		final File derFile = getModelObject().getDerFile();
+		if (derFile == null)
+		{
+			txtConsole.append("No file chosen - choose a *.der file first." + System.lineSeparator());
+			txtConsole.setCaretPosition(txtConsole.getDocument().getLength());
+			return;
+		}
+		final File pemFile = ConversionSupport.pemFileFor(derFile, getModelObject().getPemFile());
+		txtConsole.append("Conversion started...\n");
 
 		try
 		{
@@ -116,25 +124,22 @@ public class FileConversionPanel extends BasePanel<FileConversionModelBean>
 			switch (keyType)
 			{
 				case PRIVATE_KEY :
-					final PrivateKey privateKey = PrivateKeyReader
-						.readPrivateKey(getModelObject().getDerFile());
+					final PrivateKey privateKey = PrivateKeyReader.readPrivateKey(derFile);
 					txtConsole.append("read private key...\n");
-					PrivateKeyWriter.writeInPemFormat(privateKey, getModelObject().getPemFile());
-					txtConsole.append("private key written to file...\n");
+					PrivateKeyWriter.writeInPemFormat(privateKey, pemFile);
+					txtConsole.append("private key written to " + pemFile.getName() + System.lineSeparator());
 					break;
 				case CERTIFICATE :
-					final X509Certificate certificate = CertificateReader
-						.readCertificate(getModelObject().getDerFile());
+					final X509Certificate certificate = CertificateReader.readCertificate(derFile);
 					txtConsole.append("read X.509 certificate...\n");
-					CertificateWriter.writeInPemFormat(certificate, getModelObject().getPemFile());
-					txtConsole.append("X.509 certificate written to file...");
+					CertificateWriter.writeInPemFormat(certificate, pemFile);
+					txtConsole.append("X.509 certificate written to " + pemFile.getName() + System.lineSeparator());
 					break;
 				case PUBLIC_KEY :
-					final PublicKey publicKey = PublicKeyReader
-						.readPublicKey(getModelObject().getDerFile());
+					final PublicKey publicKey = PublicKeyReader.readPublicKey(derFile);
 					txtConsole.append("read public key...\n");
-					PublicKeyWriter.write(publicKey, getModelObject().getPemFile());
-					txtConsole.append("public key written to file...");
+					PublicKeyWriter.write(publicKey, pemFile);
+					txtConsole.append("public key written to " + pemFile.getName() + System.lineSeparator());
 					break;
 				default :
 					txtConsole.append("unknown key type...");
@@ -147,7 +152,7 @@ public class FileConversionPanel extends BasePanel<FileConversionModelBean>
 			txtConsole.append(ThrowableExtensions.getStackTrace(e));
 			log.log(Level.SEVERE, e.getLocalizedMessage(), e);
 		}
-		txtConsole.append("Coversion finished...\n");
+		txtConsole.append("Conversion finished...\n");
 	}
 
 	@Override
