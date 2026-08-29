@@ -277,8 +277,40 @@ public class SecretKeyTreeWithContentPanel
 			.getObject();
 		DefaultMutableTreeNode rootNode = BaseTreeNodeFactory
 			.newDefaultMutableTreeNode(parentTreeNode);
+		letTheModelDecideWhatIsALeaf(rootNode);
 
 		return new DefaultTreeModel(rootNode, true);
+	}
+
+
+	/**
+	 * Makes the swing nodes agree with the leaf flag the application maintains.
+	 * <p>
+	 * The tree model is built with {@code asksAllowsChildren}, so swing decides leaf or not from
+	 * {@link DefaultMutableTreeNode#getAllowsChildren()} and never looks at
+	 * {@link BaseTreeNode#isLeaf()}. The factory that builds the swing nodes sets it to true for
+	 * every one of them, which is why every row used to carry an expand handle, including the rows
+	 * with nothing behind them.
+	 *
+	 * @param node
+	 *            the root of the swing tree to walk
+	 */
+	public static void letTheModelDecideWhatIsALeaf(final DefaultMutableTreeNode node)
+	{
+		if (node == null)
+		{
+			return;
+		}
+		Enumeration<javax.swing.tree.TreeNode> nodes = node.preorderEnumeration();
+		while (nodes.hasMoreElements())
+		{
+			javax.swing.tree.TreeNode next = nodes.nextElement();
+			if (next instanceof DefaultMutableTreeNode swingNode
+				&& swingNode.getUserObject() instanceof BaseTreeNode<?, ?> treeNode)
+			{
+				swingNode.setAllowsChildren(!treeNode.isLeaf());
+			}
+		}
 	}
 
 	/**
@@ -869,7 +901,9 @@ public class SecretKeyTreeWithContentPanel
 			.value(treeElement).parent(parentTreeNode).displayValue(name).leaf(leaf).build();
 		parentTreeNode.addChild(newTreeNode);
 
-		DefaultMutableTreeNode newChild = new DefaultMutableTreeNode(newTreeNode, leaf);
+		// the second argument is allowsChildren, so a leaf must not allow them; passing 'leaf'
+		// here gave a leaf a handle and told swing a folder had none, which hid its children
+		DefaultMutableTreeNode newChild = new DefaultMutableTreeNode(newTreeNode, !leaf);
 		parentSwingNode.add(newChild);
 		reload(parentSwingNode);
 	}
