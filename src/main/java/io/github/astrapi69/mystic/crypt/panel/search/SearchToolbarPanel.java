@@ -112,6 +112,11 @@ public class SearchToolbarPanel extends BasePanel<SearchToolbarModelBean>
 	 */
 	protected void onSearchTermChanged()
 	{
+		// the term is taken from the document rather than read back from the model: both this
+		// listener and the binding's own listener hang on the same document, and which of them runs
+		// first is not defined - reading the model here would search for the term as it was one
+		// keystroke ago, or for nothing at all when the whole term arrives at once
+		getModelObject().setSearchTerm(txtToolbarSearch.getText());
 		getModelObject().setMatchIndex(0);
 		jumpToCurrentMatch();
 	}

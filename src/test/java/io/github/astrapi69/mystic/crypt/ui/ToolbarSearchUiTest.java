@@ -54,6 +54,37 @@ class ToolbarSearchUiTest extends AbstractUiTest
 		return frame.textBox("global.toolbar.menu.file.search.database");
 	}
 
+	/**
+	 * Types into the given field the way the user does, through its own document, and waits until
+	 * the application has reacted.
+	 * <p>
+	 * Not through the robot: driving the pointer onto a component needs a positioned window, which
+	 * a build machine without a window manager does not reliably provide - and what is under test
+	 * here is the field's listener, not whether a mouse can reach it.
+	 *
+	 * @param field
+	 *            the field to type into
+	 * @param text
+	 *            what to type
+	 */
+	private void type(final JTextComponentFixture field, final String text)
+	{
+		GuiActionRunner.execute(() -> field.target().setText(text));
+		robot.waitForIdle();
+	}
+
+	/**
+	 * Presses Enter in the given field, which fires exactly the action listeners a real Enter fires
+	 *
+	 * @param field
+	 *            the field to press Enter in
+	 */
+	private void pressEnter(final JTextComponentFixture field)
+	{
+		GuiActionRunner.execute(() -> ((javax.swing.JTextField)field.target()).postActionEvent());
+		robot.waitForIdle();
+	}
+
 	@Test
 	@DisplayName("typing jumps to the first match, enter to the next, and around again")
 	void typingJumpsToTheFirstMatchAndEnterToTheNext() throws IOException
@@ -69,18 +100,15 @@ class ToolbarSearchUiTest extends AbstractUiTest
 		assertTrue(GuiActionRunner.execute(() -> searchField.target().isEnabled()),
 			"the search field has to be usable once a database is open");
 
-		searchField.click().enterText("findme");
-		robot.waitForIdle();
+		type(searchField, "findme");
 		assertEquals("FindMeFirst", application.selectedTreeNodeName(),
 			"typing did not jump to the first match the user sees");
 
-		searchField.pressAndReleaseKeys(java.awt.event.KeyEvent.VK_ENTER);
-		robot.waitForIdle();
+		pressEnter(searchField);
 		assertEquals("FindMeSecond", application.selectedTreeNodeName(),
 			"enter did not jump to the next match");
 
-		searchField.pressAndReleaseKeys(java.awt.event.KeyEvent.VK_ENTER);
-		robot.waitForIdle();
+		pressEnter(searchField);
 		assertEquals("FindMeFirst", application.selectedTreeNodeName(),
 			"after the last match enter has to come around to the first again");
 	}
@@ -96,8 +124,7 @@ class ToolbarSearchUiTest extends AbstractUiTest
 		application.addNodeToTreeRoot(frame, "SomethingToFind");
 
 		JTextComponentFixture searchField = toolbarSearchField(frame);
-		searchField.click().enterText("something");
-		robot.waitForIdle();
+		type(searchField, "something");
 
 		application.lockWorkspace();
 
