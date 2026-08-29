@@ -70,8 +70,8 @@ class TreeLeavesHaveNoHandleTest
 		while (nodes.hasMoreElements())
 		{
 			DefaultMutableTreeNode node = (DefaultMutableTreeNode)nodes.nextElement();
-			if (node.getUserObject() instanceof BaseTreeNode<?, ?> treeNode
-				&& treeNode.getValue() instanceof GenericTreeElement<?> element
+			if (node.getUserObject()instanceof BaseTreeNode<?, ?> treeNode
+				&& treeNode.getValue()instanceof GenericTreeElement<?> element
 				&& name.equals(element.getName()))
 			{
 				return node;
