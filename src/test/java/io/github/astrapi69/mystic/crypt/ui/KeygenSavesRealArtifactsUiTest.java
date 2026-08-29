@@ -84,17 +84,37 @@ class KeygenSavesRealArtifactsUiTest extends AbstractUiTest
 	}
 
 	/**
-	 * Presses the button with the given text and answers the file chooser that comes up with the
-	 * given file
+	 * Presses the button with the given text, answers the file chooser with the file a user would
+	 * type, and waits for the file the window is expected to write
+	 *
+	 * @param frame
+	 *            the application frame
+	 * @param buttonText
+	 *            the button to press
+	 * @param target
+	 *            what is typed into the chooser
+	 * @param expected
+	 *            the file that has to appear
 	 */
-	private void saveThrough(final FrameFixture frame, final String buttonText, final File target)
+	private void saveThrough(final FrameFixture frame, final String buttonText, final File target,
+		final File expected)
 	{
 		SwingUtilities.invokeLater(
 			() -> frame.button(JButtonMatcher.withText(buttonText)).target().doClick());
-		approveFileChooserWith(target);
+		approveFileChooserWith(target, expected);
 	}
 
-	private void approveFileChooserWith(final File target)
+	/**
+	 * Picks the given file in the chooser and waits for the file the window is expected to write.
+	 * The two differ on purpose: a user types a name without an ending, and the window has to add
+	 * the one that matches what it writes.
+	 *
+	 * @param target
+	 *            what is typed into the chooser
+	 * @param expected
+	 *            the file that has to appear
+	 */
+	private void approveFileChooserWith(final File target, final File expected)
 	{
 		JFileChooser fileChooser = JFileChooserFinder.findFileChooser()
 			.withTimeout(15, TimeUnit.SECONDS).using(robot).target();
@@ -103,7 +123,7 @@ class KeygenSavesRealArtifactsUiTest extends AbstractUiTest
 			fileChooser.approveSelection();
 		});
 		robot.waitForIdle();
-		waitUntilWritten(target);
+		waitUntilWritten(expected);
 	}
 
 	private void waitUntilWritten(final File target)
@@ -164,9 +184,10 @@ class KeygenSavesRealArtifactsUiTest extends AbstractUiTest
 	private void theSavedPrivateKeyIsTheKeyTheWindowGenerated(final FrameFixture frame,
 		final PublicKey onScreen) throws Exception
 	{
+		File chosen = new File(tempHome, "saved-private-key");
 		File privateKeyFile = new File(tempHome, "saved-private-key.pem");
 
-		saveThrough(frame, "Save private key", privateKeyFile);
+		saveThrough(frame, "Save private key", chosen, privateKeyFile);
 
 		assertTheyBelongTogether(PrivateKeyReader.readPemPrivateKey(privateKeyFile), onScreen);
 	}
@@ -175,7 +196,8 @@ class KeygenSavesRealArtifactsUiTest extends AbstractUiTest
 	private void thePasswordProtectedPrivateKeyOpensWithThatPassword(final FrameFixture frame,
 		final PublicKey onScreen) throws Exception
 	{
-		File protectedKeyFile = new File(tempHome, "saved-protected-key.pem");
+		File chosenProtected = new File(tempHome, "saved-protected-key");
+		File protectedKeyFile = new File(tempHome, "saved-protected-key.der");
 		String password = TestPasswords.throwaway();
 
 		SwingUtilities.invokeLater(() -> frame
@@ -200,7 +222,7 @@ class KeygenSavesRealArtifactsUiTest extends AbstractUiTest
 		});
 		robot.waitForIdle();
 		SwingUtilities.invokeLater(() -> passwordDialog.target().setValue("Set password"));
-		approveFileChooserWith(protectedKeyFile);
+		approveFileChooserWith(chosenProtected, protectedKeyFile);
 
 		PrivateKey opened = EncryptedPrivateKeyReader
 			.readPasswordProtectedPrivateKey(protectedKeyFile, password);
@@ -211,26 +233,18 @@ class KeygenSavesRealArtifactsUiTest extends AbstractUiTest
 	private void theSavedCertificateCarriesTheGeneratedKey(final FrameFixture frame,
 		final PublicKey onScreen) throws Exception
 	{
+		File chosenCertificate = new File(tempHome, "saved-certificate");
 		File certificateFile = new File(tempHome, "saved-certificate.pem");
 
 		SwingUtilities.invokeLater(
 			() -> frame.button(JButtonMatcher.withText("Save certificate...")).target().doClick());
 		JOptionPaneFixture certificateDialog = JOptionPaneFinder.findOptionPane()
 			.withTimeout(15, TimeUnit.SECONDS).using(robot);
-		GuiActionRunner.execute(() -> {
-			certificateDialog.robot().finder()
-				.find(certificateDialog.target(),
-					org.assertj.swing.core.matcher.JTextComponentMatcher.withName("txtIssuer"))
-				.setText("CN=the issuer");
-			certificateDialog.robot().finder()
-				.find(certificateDialog.target(),
-					org.assertj.swing.core.matcher.JTextComponentMatcher.withName("txtSubject"))
-				.setText("CN=the subject");
-		});
-		robot.waitForIdle();
+		// nothing is typed on purpose: this is the way the window is used, and pressing OK on the
+		// form as it comes up used to end in a null pointer instead of a certificate
 		SwingUtilities
 			.invokeLater(() -> certificateDialog.target().setValue(JOptionPane.OK_OPTION));
-		approveFileChooserWith(certificateFile);
+		approveFileChooserWith(chosenCertificate, certificateFile);
 
 		X509Certificate certificate = CertificateReader.readPemCertificate(certificateFile);
 		assertArrayEquals(onScreen.getEncoded(), certificate.getPublicKey().getEncoded(),

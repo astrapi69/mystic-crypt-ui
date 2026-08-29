@@ -38,6 +38,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import io.github.astrapi69.crypt.api.algorithm.key.KeyPairGeneratorAlgorithm;
+import io.github.astrapi69.crypt.api.key.KeySize;
 import io.github.astrapi69.crypt.data.key.reader.PrivateKeyReader;
 import io.github.astrapi69.crypt.data.key.reader.PublicKeyReader;
 import io.github.astrapi69.mystic.crypt.TestPasswords;
@@ -84,6 +85,26 @@ class KeygenEveryAlgorithmUiTest extends AbstractUiTest
 				"the encrypt panel moved after generating with " + algorithm);
 			assertEquals(keyAreaLeftEdge, leftEdgeOf(frame, "txtPrivateKey"),
 				"the key areas moved after generating with " + algorithm);
+		}
+
+		// a longer key writes longer lines into the key areas, and a form whose columns follow
+		// what happens to be in them moves while it is being used
+		GuiActionRunner.execute(() -> frame.comboBox("cmbAlgorithm").target()
+			.setSelectedItem(KeyPairGeneratorAlgorithm.RSA));
+		robot.waitForIdle();
+		for (KeySize keySize : new KeySize[] { KeySize.KEYSIZE_1024, KeySize.KEYSIZE_2048,
+				KeySize.KEYSIZE_4096 })
+		{
+			GuiActionRunner
+				.execute(() -> frame.comboBox("cmbKeySize").target().setSelectedItem(keySize));
+			robot.waitForIdle();
+			GuiActionRunner.execute(() -> frame.button("btnGenerate").target().doClick());
+			robot.waitForIdle();
+
+			assertEquals(encryptPanelLeftEdge, leftEdgeOf(frame, "txtToEncrypt"),
+				"the encrypt panel moved after generating a " + keySize + " key");
+			assertEquals(keyAreaLeftEdge, leftEdgeOf(frame, "txtPrivateKey"),
+				"the key areas moved after generating a " + keySize + " key");
 		}
 	}
 

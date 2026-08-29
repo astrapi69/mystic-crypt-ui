@@ -42,6 +42,7 @@ import javax.crypto.SecretKey;
 
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -218,4 +219,30 @@ class KeygenSupportTest
 		assertTrue(KeygenSupport.SECRET_KEY_SIZES.contains(256));
 		assertTrue(KeygenSupport.RANDOM_LENGTHS.contains(12), "a GCM nonce is twelve bytes");
 	}
+
+	@Test
+	@DisplayName("a name without an ending gets the one the content calls for")
+	void aNameWithoutAnEndingGetsTheOneTheContentCallsFor()
+	{
+		assertEquals("mykey.pem",
+			KeygenSupport.withEnding(new File("/somewhere/mykey"), KeygenSupport.PEM_ENDING)
+				.getName());
+		assertEquals("mykey.der",
+			KeygenSupport.withEnding(new File("/somewhere/mykey"), KeygenSupport.DER_ENDING)
+				.getName());
+	}
+
+	@Test
+	@DisplayName("a name that already carries an ending is left alone")
+	void aNameThatAlreadyCarriesAnEndingIsLeftAlone()
+	{
+		assertEquals("mykey.pem",
+			KeygenSupport.withEnding(new File("/somewhere/mykey.pem"), KeygenSupport.DER_ENDING)
+				.getName(),
+			"a typed ending was overruled, which turns mykey.pem into mykey.pem.der");
+		assertEquals("mykey.key",
+			KeygenSupport.withEnding(new File("/somewhere/mykey.key"), KeygenSupport.PEM_ENDING)
+				.getName());
+	}
+
 }

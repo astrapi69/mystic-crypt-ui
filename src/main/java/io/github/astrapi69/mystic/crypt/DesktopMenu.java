@@ -451,7 +451,15 @@ public class DesktopMenu extends BaseDesktopMenu implements EventListener<EventO
 			.name(MenuId.PLUGINS.propertiesKey()).mnemonic(MenuExtensions.toMnemonic('P')).build()
 			.toJMenu();
 
-		for (PluginMenuContribution contribution : contributions)
+		// by name rather than in the order the plugin manager happens to hand them over: that order
+		// follows how the plugin directory is read, so it changes when a plugin is reinstalled and
+		// the menu a user has learned rearranges itself for no reason they can see
+		List<PluginMenuContribution> inNameOrder = new java.util.ArrayList<>(contributions);
+		inNameOrder.sort(java.util.Comparator.comparing(
+			contribution -> contribution.getMenuName() == null ? "" : contribution.getMenuName(),
+			String.CASE_INSENSITIVE_ORDER));
+
+		for (PluginMenuContribution contribution : inNameOrder)
 		{
 			try
 			{

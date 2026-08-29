@@ -329,7 +329,9 @@ public class CryptographyPanel extends BasePanel<GenerateKeysModelBean>
 		{
 			return;
 		}
-		writeCertificateTo(fileChooser.getSelectedFile(), panel.getModelObject());
+		writeCertificateTo(
+			KeygenSupport.withEnding(fileChooser.getSelectedFile(), KeygenSupport.PEM_ENDING),
+			panel.getModelObject());
 	}
 
 	/**
@@ -375,11 +377,11 @@ public class CryptographyPanel extends BasePanel<GenerateKeysModelBean>
 		add(ToolForm.buttons(btnGenerate, btnClear), ToolForm.BUTTON_ROW);
 
 		add(lblPrivateKey, "aligny top");
-		add(scpPrivateKey, "grow, push");
+		add(scpPrivateKey, ToolForm.KEY_AREA);
 		add(ToolForm.buttons(btnSavePrivateKey, btnSavePrivKeyWithPw), ToolForm.BUTTON_ROW);
 
 		add(lblPublicKey, "aligny top");
-		add(scpPublicKey, "grow, push");
+		add(scpPublicKey, ToolForm.KEY_AREA);
 		add(ToolForm.buttons(btnSavePublicKey, btnSaveCertificate), ToolForm.BUTTON_ROW);
 	}
 

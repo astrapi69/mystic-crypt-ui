@@ -78,10 +78,20 @@ public final class ToolForm
 	 * then decided by whatever is widest in them - which is how changing a key size in one panel
 	 * moved the panel below it several hundred pixels to the right.
 	 */
-	public static final String WIDE = "newline, span 2, growx";
+	public static final String WIDE = "newline, span 2, growx, pushx";
 
 	/** A text area that takes the height the window has left, in proportion to the others */
 	public static final String GROWING = "newline, span 2, grow, push";
+
+	/**
+	 * A text area that fills the width it is given and keeps the height it is given a share of.
+	 * <p>
+	 * {@code wmin 0} is what makes it fill: without it the widest thing in the area - a line of a
+	 * key, or the column count of the text area itself - becomes a lower bound for the column, and
+	 * the area collapses to that width the first time the form is laid out again, which reads as
+	 * the form jumping while it is being used.
+	 */
+	public static final String KEY_AREA = "grow, push, wmin 0";
 
 	/** A row of buttons under what they act on */
 	public static final String BUTTON_ROW = "newline, span 2, align left, gaptop 2";
