@@ -23,13 +23,14 @@ package io.github.astrapi69.mystic.crypt.panel.keygen;
 import java.awt.event.ActionEvent;
 
 import javax.swing.*;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 
 import io.github.astrapi69.collection.pair.Pair;
 import io.github.astrapi69.model.BaseModel;
 import io.github.astrapi69.model.LambdaModel;
 import io.github.astrapi69.model.api.IModel;
 import io.github.astrapi69.swing.base.BasePanel;
-import io.github.astrapi69.swing.listener.document.EnableButtonBehavior;
 import io.github.astrapi69.swing.model.component.JMTextArea;
 import lombok.Getter;
 
@@ -122,13 +123,13 @@ public class EnDecryptPanel extends BasePanel<Pair<String, String>>
 
 		btnEncrypt.setText("Encrypt >");
 		btnEncrypt.addActionListener(actionEvent -> onEncrypt(actionEvent));
-		EnableButtonBehavior.builder().buttonModel(btnEncrypt.getModel())
-			.document(txtToEncrypt.getDocument()).build();
 
 		btnDecrypt.setText("< Decrypt");
 		btnDecrypt.addActionListener(actionEvent -> onDecrypt(actionEvent));
-		EnableButtonBehavior.builder().buttonModel(btnDecrypt.getModel())
-			.document(txtEncrypted.getDocument()).build();
+
+		followTheContentOf(txtToEncrypt);
+		followTheContentOf(txtEncrypted);
+		updateButtonState();
 
 		txtEncrypted.setColumns(20);
 		txtEncrypted.setRows(5);
@@ -136,6 +137,78 @@ public class EnDecryptPanel extends BasePanel<Pair<String, String>>
 
 		lblEncrypted.setText("Encrypted text");
 
+	}
+
+	/**
+	 * Whether this panel is in a state where encrypting and decrypting can work at all. False puts
+	 * both buttons out of reach, whatever the text areas contain.
+	 */
+	private boolean enDecryptAvailable = true;
+
+	/** What to tell the user while the buttons are out of reach */
+	private String unavailableReason;
+
+	/**
+	 * Says whether encrypting and decrypting are possible at all right now, and why not when they
+	 * are not.
+	 * <p>
+	 * A button that is offered and then answers with a message box has already wasted the click.
+	 * The owner of this panel knows what it can serve - only an RSA key pair carries the hex
+	 * encrypt/decrypt demo, for instance - and says so here, so the buttons are simply out of reach
+	 * with the reason on them.
+	 *
+	 * @param available
+	 *            true if both buttons may be used once there is text for them
+	 * @param reason
+	 *            what to show on a button that is out of reach, ignored when available
+	 */
+	public void setEnDecryptAvailable(final boolean available, final String reason)
+	{
+		this.enDecryptAvailable = available;
+		this.unavailableReason = reason;
+		updateButtonState();
+	}
+
+	/**
+	 * Keeps the buttons in step with what the given text area holds
+	 *
+	 * @param textArea
+	 *            the text area whose content decides whether its button has anything to work on
+	 */
+	private void followTheContentOf(final JMTextArea textArea)
+	{
+		textArea.getDocument().addDocumentListener(new DocumentListener()
+		{
+			@Override
+			public void changedUpdate(final DocumentEvent documentEvent)
+			{
+				updateButtonState();
+			}
+
+			@Override
+			public void insertUpdate(final DocumentEvent documentEvent)
+			{
+				updateButtonState();
+			}
+
+			@Override
+			public void removeUpdate(final DocumentEvent documentEvent)
+			{
+				updateButtonState();
+			}
+		});
+	}
+
+	/**
+	 * A button is usable when this panel can do the job at all and there is text for it to work on;
+	 * otherwise it is out of reach and carries the reason
+	 */
+	private void updateButtonState()
+	{
+		btnEncrypt.setEnabled(enDecryptAvailable && 0 < txtToEncrypt.getDocument().getLength());
+		btnDecrypt.setEnabled(enDecryptAvailable && 0 < txtEncrypted.getDocument().getLength());
+		btnEncrypt.setToolTipText(enDecryptAvailable ? null : unavailableReason);
+		btnDecrypt.setToolTipText(enDecryptAvailable ? null : unavailableReason);
 	}
 
 	/**

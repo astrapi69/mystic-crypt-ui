@@ -22,26 +22,19 @@ package io.github.astrapi69.mystic.crypt.plugin.keygen;
 
 import java.awt.*;
 import java.awt.event.ActionEvent;
-import java.math.BigInteger;
-import java.security.PrivateKey;
-import java.security.PublicKey;
-import java.time.ZonedDateTime;
+import java.io.File;
 import java.util.logging.Level;
 
 import javax.swing.*;
 
 import io.github.astrapi69.crypt.api.key.KeySize;
-import io.github.astrapi69.crypt.data.key.KeyInfoExtensions;
 import io.github.astrapi69.model.BaseModel;
 import io.github.astrapi69.model.LambdaModel;
 import io.github.astrapi69.model.api.IModel;
 import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
 import io.github.astrapi69.mystic.crypt.panel.certificate.NewCertificateInfoPanel;
 import io.github.astrapi69.mystic.crypt.ui.form.ToolForm;
-import io.github.astrapi69.mystic.crypt.wizard.CertificateWizardPanel;
 import io.github.astrapi69.mystic.crypt.wizard.model.CertificateInfoModel;
-import io.github.astrapi69.mystic.crypt.wizard.model.KeyInfoModel;
-import io.github.astrapi69.mystic.crypt.wizard.model.ValidityModel;
 import io.github.astrapi69.swing.base.BasePanel;
 import io.github.astrapi69.swing.dialog.factory.JDialogFactory;
 import io.github.astrapi69.swing.listener.RequestFocusListener;
@@ -304,35 +297,21 @@ public class CryptographyPanel extends BasePanel<GenerateKeysModelBean>
 			.setMinimumSize(new Dimension(MINIMUM_KEY_AREA_WIDTH, MINIMUM_KEY_AREA_HEIGHT));
 	}
 
+	/**
+	 * Asks for the issuer and the subject of the certificate, then writes the certificate of the
+	 * generated key pair where the user points.
+	 *
+	 * @param actionEvent
+	 *            the action event
+	 */
 	protected void onSaveCertificate(ActionEvent actionEvent)
 	{
-
 		GenerateKeysModelBean modelObject = getModelObject();
-		PublicKey publicKey = modelObject.getPublicKey();
-		PrivateKey privateKey = modelObject.getPrivateKey();
-		KeyInfoModel privateKeyInfoModel = KeyInfoModel
-			.toKeyInfoModel(KeyInfoExtensions.toKeyInfo(privateKey));
-		KeyInfoModel publicKeyInfoModel = KeyInfoModel
-			.toKeyInfoModel(KeyInfoExtensions.toKeyInfo(publicKey));
-		ZonedDateTime now = ZonedDateTime.now();
-		ValidityModel validityModel = ValidityModel.builder().notBefore(now)
-			.notAfter(now.plusYears(1)).build();
-
-		final CertificateInfoModel certificateInfoModel = CertificateInfoModel.builder()
-			.publicKeyInfo(publicKeyInfoModel).privateKeyInfo(privateKeyInfoModel)
-			.serial(BigInteger.ONE).validityModel(validityModel).build();
-
-		// TODO implement and test...
-		CertificateWizardPanel wizardPanel = new CertificateWizardPanel(
-			BaseModel.of(certificateInfoModel));
-
-
-		NewCertificateInfoPanel panel = new NewCertificateInfoPanel(
-			BaseModel.<CertificateInfoModel> of(certificateInfoModel));
+		NewCertificateInfoPanel panel = new NewCertificateInfoPanel(BaseModel.of(KeygenSupport
+			.newCertificateInfo(modelObject.getPublicKey(), modelObject.getPrivateKey())));
 
 		JOptionPane optionPane = new JOptionPane(panel, JOptionPane.PLAIN_MESSAGE,
 			JOptionPane.OK_CANCEL_OPTION);
-
 		JDialog dialog = JDialogFactory.newJDialog(MysticCryptApplicationFrame.getInstance(),
 			optionPane, "Create certificate");
 		dialog.addWindowFocusListener(new RequestFocusListener(panel.getTxtIssuer()));
@@ -340,57 +319,44 @@ public class CryptographyPanel extends BasePanel<GenerateKeysModelBean>
 		dialog.setLocationRelativeTo(null);
 		dialog.setVisible(true);
 
-		if (optionPane.getValue() != null && optionPane.getValue().equals(JOptionPane.OK_OPTION))
+		if (!Integer.valueOf(JOptionPane.OK_OPTION).equals(optionPane.getValue()))
 		{
-			final JFileChooser fileChooser = new JFileChooser();
-			final int state = fileChooser.showSaveDialog(this);
-			if (state == JFileChooser.APPROVE_OPTION)
-			{
-				try
-				{
-					// TODO
-					// File selectedFile = fileChooser.getSelectedFile();
-					// String signatureAlgorithm;
-					// Date start;
-					// Date end;
-					// BigInteger serialNumber;
-					// String subject;
-					// String issuer;
-					// subject = panel.getModelObject().getCertificateV1Info().getSubject()
-					// .toRepresentableString();
-					// issuer = panel.getModelObject().getCertificateV1Info().getIssuer()
-					// .toRepresentableString();
-					// GenerateKeysModelBean modelObject = getModelObject();
-					// signatureAlgorithm = modelObject.getSignatureAlgorithm() != null
-					// ? modelObject.getSignatureAlgorithm()
-					// : HashAlgorithm.SHA256.getAlgorithm() + UnionWord.With.name()
-					// + KeyPairGeneratorAlgorithm.RSA.getAlgorithm();
-					// start = modelObject.getStart() != null
-					// ? modelObject.getStart()
-					// : Date
-					// .from(LocalDate.now().atStartOfDay(ZoneId.systemDefault()).toInstant());
-					//
-					// end = modelObject.getEnd() != null
-					// ? modelObject.getEnd()
-					// : Date.from(LocalDate.now().plusYears(1)
-					// .atStartOfDay(ZoneId.systemDefault()).toInstant());
-					// serialNumber = panel.getModelObject().getCertificateV1Info().getSerial();
-					// PublicKey publicKey = modelObject.getPublicKey();
-					// PrivateKey privateKey = modelObject.getPrivateKey();
-					// X509Certificate x509Certificate = CertFactory.newX509Certificate(publicKey,
-					// privateKey, serialNumber, subject, issuer, signatureAlgorithm, start, end);
-					// CertificateWriter.write(x509Certificate, selectedFile, KeyFileFormat.PEM);
-				}
-				catch (final Exception exception)
-				{
-					log.log(Level.SEVERE, exception.getLocalizedMessage(), exception);
-					String title = "Creation of certificate failed";
-					String htmlMessage = "<html><body width='350'>" + "<h2>" + title + "</h2>"
-						+ "<p> Password or key file or both are not valid" + "<p>"
-						+ exception.getMessage();
-					throw new RuntimeException(title + "::" + htmlMessage, exception);
-				}
-			}
+			return;
+		}
+		final JFileChooser fileChooser = new JFileChooser();
+		if (fileChooser.showSaveDialog(this) != JFileChooser.APPROVE_OPTION)
+		{
+			return;
+		}
+		writeCertificateTo(fileChooser.getSelectedFile(), panel.getModelObject());
+	}
+
+	/**
+	 * Writes the described certificate to the given file and tells the user when that fails.
+	 * <p>
+	 * A failure here is the user's business: the reason - a name that is not a distinguished name,
+	 * a key that cannot sign with the chosen algorithm - is what makes the next attempt work, and
+	 * a button that answers with nothing at all is worse than one that answers with a problem.
+	 *
+	 * @param file
+	 *            the file to write the certificate to
+	 * @param certificateInfo
+	 *            what the certificate is to contain
+	 */
+	protected void writeCertificateTo(final File file,
+		final CertificateInfoModel certificateInfo)
+	{
+		try
+		{
+			KeygenSupport.writeCertificate(certificateInfo, file);
+		}
+		catch (final Exception couldNotWriteTheCertificate)
+		{
+			log.log(Level.SEVERE, couldNotWriteTheCertificate.getLocalizedMessage(),
+				couldNotWriteTheCertificate);
+			JOptionPane.showMessageDialog(this,
+				"The certificate was not written: " + couldNotWriteTheCertificate.getMessage(),
+				"Creation of certificate failed", JOptionPane.ERROR_MESSAGE);
 		}
 	}
 

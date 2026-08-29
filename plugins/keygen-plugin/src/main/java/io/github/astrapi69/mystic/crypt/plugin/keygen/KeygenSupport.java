@@ -26,9 +26,12 @@ package io.github.astrapi69.mystic.crypt.plugin.keygen;
 
 import java.io.File;
 import java.io.OutputStream;
+import java.math.BigInteger;
 import java.nio.file.Files;
 import java.security.KeyPair;
 import java.security.PrivateKey;
+import java.security.PublicKey;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.HexFormat;
@@ -42,7 +45,13 @@ import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import io.github.astrapi69.crypt.api.key.KeyFileFormat;
 import io.github.astrapi69.crypt.api.key.KeyFormat;
 import io.github.astrapi69.crypt.data.factory.KeyPairFactory;
+import io.github.astrapi69.crypt.data.key.KeyInfoExtensions;
+import io.github.astrapi69.crypt.data.key.writer.CertificateWriter;
 import io.github.astrapi69.crypt.data.key.writer.PrivateKeyWriter;
+import io.github.astrapi69.mystic.crypt.wizard.CertificateInfoModelToX509;
+import io.github.astrapi69.mystic.crypt.wizard.model.CertificateInfoModel;
+import io.github.astrapi69.mystic.crypt.wizard.model.KeyInfoModel;
+import io.github.astrapi69.mystic.crypt.wizard.model.ValidityModel;
 import io.github.astrapi69.random.number.RandomByteFactory;
 
 /**
@@ -175,6 +184,52 @@ public final class KeygenSupport
 	public static String toBase64(final byte[] bytes)
 	{
 		return Base64.getEncoder().encodeToString(bytes);
+	}
+
+	/**
+	 * Describes the certificate that fits the given key pair: the two keys, a serial, one year of
+	 * validity from now and the signature algorithm the private key can actually produce.
+	 * <p>
+	 * Issuer and subject are deliberately left open - they are what the user is asked for before
+	 * the certificate is written.
+	 *
+	 * @param publicKey
+	 *            the public key the certificate is for
+	 * @param privateKey
+	 *            the private key that signs it
+	 * @return the description, ready to be completed with issuer and subject
+	 */
+	public static CertificateInfoModel newCertificateInfo(final PublicKey publicKey,
+		final PrivateKey privateKey)
+	{
+		ZonedDateTime now = ZonedDateTime.now();
+		return CertificateInfoModel.builder()
+			.publicKeyInfo(KeyInfoModel.toKeyInfoModel(KeyInfoExtensions.toKeyInfo(publicKey)))
+			.privateKeyInfo(KeyInfoModel.toKeyInfoModel(KeyInfoExtensions.toKeyInfo(privateKey)))
+			.serial(BigInteger.ONE)
+			.validityModel(
+				ValidityModel.builder().notBefore(now).notAfter(now.plusYears(1)).build())
+			.signatureAlgorithm(CertificateInfoModelToX509
+				.defaultSignatureAlgorithmFor(privateKey.getAlgorithm()))
+			.build();
+	}
+
+	/**
+	 * Writes the certificate the given description asks for, in PEM form
+	 *
+	 * @param certificateInfo
+	 *            what the certificate is to contain
+	 * @param file
+	 *            the file to write it to
+	 * @throws Exception
+	 *             if the keys cannot be restored, the description does not add up, or the file
+	 *             cannot be written
+	 */
+	public static void writeCertificate(final CertificateInfoModel certificateInfo, final File file)
+		throws Exception
+	{
+		CertificateWriter.writeInPemFormat(
+			CertificateInfoModelToX509.toX509Certificate(certificateInfo), file);
 	}
 
 	/**

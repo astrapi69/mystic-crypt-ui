@@ -113,6 +113,13 @@ public class GenerateKeysPanel extends BasePanel<GenerateKeysModelBean>
 	}
 
 	/**
+	 * What the encrypt and decrypt buttons say while they are out of reach: this demo encrypts with
+	 * the public key itself, which only an RSA pair does - the key agreement and signature
+	 * algorithms have no such operation
+	 */
+	private static final String ONLY_RSA_CAN_DO_THIS = "The hex encrypt/decrypt demo needs an RSA key pair. Choose RSA and press Generate.";
+
+	/**
 	 * Callback method that can be overwritten to provide specific action for the on clear.
 	 *
 	 * @param actionEvent
@@ -134,6 +141,7 @@ public class GenerateKeysPanel extends BasePanel<GenerateKeysModelBean>
 		getModelObject().setEncryptor(null);
 		getModelObject().setPrivateKey(null);
 		getModelObject().setPublicKey(null);
+		getEnDecryptPanel().setEnDecryptAvailable(false, ONLY_RSA_CAN_DO_THIS);
 	}
 
 	/**
@@ -278,6 +286,7 @@ public class GenerateKeysPanel extends BasePanel<GenerateKeysModelBean>
 			getCryptographyPanel().getTxtPublicKey().setText(publicKeyFormat);
 			// certificate creation only wired for RSA in this demo
 			getCryptographyPanel().getBtnSaveCertificate().setEnabled(rsa);
+			getEnDecryptPanel().setEnDecryptAvailable(rsa, ONLY_RSA_CAN_DO_THIS);
 		}
 		catch (final NoSuchAlgorithmException | NoSuchProviderException | IOException e)
 		{
@@ -352,7 +361,7 @@ public class GenerateKeysPanel extends BasePanel<GenerateKeysModelBean>
 			}
 
 			@Override
-			protected void onSavePrivateKeyWithPassword(final ActionEvent actionEvent)
+				protected void onSavePrivateKeyWithPassword(final ActionEvent actionEvent)
 			{
 				GenerateKeysPanel.this.onSavePrivateKeyWithPassword(actionEvent);
 			}
@@ -458,6 +467,31 @@ public class GenerateKeysPanel extends BasePanel<GenerateKeysModelBean>
 	}
 
 
+/**
+	 * Writes the generated private key to the given file, encrypted with the given password, and
+	 * tells the user when that fails
+	 *
+	 * @param file
+	 *            the file the encrypted private key is written to
+	 * @param password
+	 *            the password that protects it
+	 */
+	protected void savePrivateKeyWithPasswordTo(final File file, final String password)
+	{
+		try
+		{
+			EncryptedPrivateKeyWriter.encryptPrivateKeyWithPassword(getModelObject().getPrivateKey(),
+				file, password);
+		}
+		catch (final Exception couldNotWriteTheKey)
+		{
+			log.log(Level.SEVERE, couldNotWriteTheKey.getLocalizedMessage(), couldNotWriteTheKey);
+			JOptionPane.showMessageDialog(this,
+				"The private key was not written: " + couldNotWriteTheKey.getMessage(),
+				"Saving the private key failed", JOptionPane.ERROR_MESSAGE);
+		}
+	}
+
 	protected void onSavePrivateKeyWithPassword(final ActionEvent actionEvent)
 	{
 		final Object[] options = { "Set password", "Cancel" };
@@ -477,18 +511,7 @@ public class GenerateKeysPanel extends BasePanel<GenerateKeysModelBean>
 				final int state = fileChooser.showSaveDialog(this);
 				if (state == JFileChooser.APPROVE_OPTION)
 				{
-					PrivateKey privateKey;
-					try
-					{
-						privateKey = getModelObject().getPrivateKey();
-						File selectedFile = fileChooser.getSelectedFile();
-						EncryptedPrivateKeyWriter.encryptPrivateKeyWithPassword(privateKey,
-							selectedFile, password);
-					}
-					catch (final Exception e)
-					{
-						log.log(Level.SEVERE, e.getLocalizedMessage(), e);
-					}
+					savePrivateKeyWithPasswordTo(fileChooser.getSelectedFile(), password);
 				}
 			}
 			else
