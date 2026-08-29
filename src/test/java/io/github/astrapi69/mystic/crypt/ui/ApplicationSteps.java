@@ -477,6 +477,62 @@ final class ApplicationSteps
 		return this;
 	}
 
+	/**
+	 * Selects the tree row with the given display name and puts the keyboard focus on the tree, so
+	 * that the next key press lands where the user would have put it
+	 *
+	 * @param name
+	 *            the display name of the row
+	 */
+	ApplicationSteps selectTreeNodeByNameAndFocus(final String name)
+	{
+		GuiActionRunner.execute(() -> {
+			javax.swing.JTree tree = MysticCryptApplicationFrame.getInstance().getApplicationPanel()
+				.getSecretKeyTreeWithContentPanel().getTree();
+			for (int row = 0; row < tree.getRowCount(); row++)
+			{
+				javax.swing.tree.TreePath path = tree.getPathForRow(row);
+				if (path
+					.getLastPathComponent()instanceof javax.swing.tree.DefaultMutableTreeNode node
+					&& node.getUserObject()instanceof BaseTreeNode<?, ?> treeNode
+					&& name.equals(String.valueOf(treeNode.getDisplayValue())))
+				{
+					tree.setSelectionPath(path);
+					tree.requestFocusInWindow();
+					return;
+				}
+			}
+		});
+		robot.waitForIdle();
+		UiTestSpeed.step();
+		return this;
+	}
+
+	/**
+	 * Presses the given key on the tree, the way a user does with the tree focused
+	 *
+	 * @param keyCode
+	 *            the key to press
+	 */
+	ApplicationSteps pressOnTree(final int keyCode)
+	{
+		GuiActionRunner.execute(() -> {
+			javax.swing.JTree tree = MysticCryptApplicationFrame.getInstance().getApplicationPanel()
+				.getSecretKeyTreeWithContentPanel().getTree();
+			Object actionKey = tree.getInputMap(javax.swing.JComponent.WHEN_FOCUSED)
+				.get(javax.swing.KeyStroke.getKeyStroke(keyCode, 0));
+			javax.swing.Action action = actionKey == null
+				? null
+				: tree.getActionMap().get(actionKey);
+			if (action != null)
+			{
+				action.actionPerformed(null);
+			}
+		});
+		robot.waitForIdle();
+		return this;
+	}
+
 	/** Whether the tree shows a row with the given display name */
 	boolean treeShowsARowNamed(String name)
 	{
@@ -1463,7 +1519,7 @@ final class ApplicationSteps
 		}, 10000);
 	}
 
-	private DialogFixture findDialogWithTitle(String title)
+	DialogFixture findDialogWithTitle(String title)
 	{
 		DialogFixture dialog = WindowFinder.findDialog(new GenericTypeMatcher<Dialog>(Dialog.class)
 		{
