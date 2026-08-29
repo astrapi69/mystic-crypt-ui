@@ -27,6 +27,8 @@ package io.github.astrapi69.mystic.crypt.action;
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.io.Serial;
 
 import javax.swing.*;
@@ -70,8 +72,19 @@ public class NewSettingsFrameAction extends AbstractAction
 		JButton closeButton = new JButton("Close");
 		closeButton.setName("btnCloseSettings");
 		closeButton.addActionListener(event -> {
-			settings.save(frame.getConfigurationDirectory());
+			keepAndApply(frame, settings);
 			dialog.dispose();
+		});
+		// closing with the window button is closing too: a setting that is silently thrown away
+		// because the dialog was dismissed the other way is worse than no setting
+		dialog.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
+		dialog.addWindowListener(new WindowAdapter()
+		{
+			@Override
+			public void windowClosing(final WindowEvent windowEvent)
+			{
+				keepAndApply(frame, settings);
+			}
 		});
 		JPanel south = new JPanel(new FlowLayout(FlowLayout.RIGHT));
 		south.add(closeButton);
@@ -80,5 +93,24 @@ public class NewSettingsFrameAction extends AbstractAction
 		dialog.setSize(640, 420);
 		dialog.setLocationRelativeTo(frame);
 		dialog.setVisible(true);
+	}
+
+	/**
+	 * Writes the settings down and puts the frame into the view they now ask for.
+	 * <p>
+	 * Applying the view on every close and not only on a change is deliberate: a plugin switches
+	 * the frame to the desktop view to open its window, and choosing the same value again fires no
+	 * event, so without this there would be no way back to the panel view.
+	 *
+	 * @param frame
+	 *            the application frame
+	 * @param settings
+	 *            the settings as the dialog left them
+	 */
+	private static void keepAndApply(final MysticCryptApplicationFrame frame,
+		final MysticCryptSettings settings)
+	{
+		settings.save(frame.getConfigurationDirectory());
+		frame.applyViewMode(settings.getViewMode());
 	}
 }

@@ -24,6 +24,7 @@
  */
 package io.github.astrapi69.mystic.crypt.settings;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
@@ -33,7 +34,10 @@ import java.awt.Container;
 import javax.swing.JComboBox;
 import javax.swing.UIManager;
 
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+
+import io.github.astrapi69.swing.enumeration.FrameMode;
 
 /**
  * Tests that the two combo boxes of {@link GeneralSettingsPanel} are bound to the
@@ -143,4 +147,45 @@ class GeneralSettingsPanelBindingTest
 		assertEquals(lookAndFeelBefore, UIManager.getLookAndFeel().getID(),
 			"building the settings panel must not switch the look and feel");
 	}
+
+	@Test
+	@DisplayName("the chosen view lands in the settings")
+	void theChosenViewLandsInTheSettings()
+	{
+		MysticCryptSettings settings = new MysticCryptSettings();
+		GeneralSettingsPanel panel = new GeneralSettingsPanel(settings);
+
+		named(panel, "cmbViewMode", JComboBox.class).setSelectedItem(FrameMode.DESKTOP_PANE);
+
+		assertEquals(FrameMode.DESKTOP_PANE, settings.getViewMode(),
+			"what was chosen in the box did not reach the settings");
+	}
+
+	@Test
+	@DisplayName("the view box starts on what the settings hold")
+	void theViewBoxStartsOnWhatTheSettingsHold()
+	{
+		MysticCryptSettings settings = new MysticCryptSettings();
+		settings.setViewMode(FrameMode.DESKTOP_PANE);
+
+		GeneralSettingsPanel panel = new GeneralSettingsPanel(settings);
+
+		assertEquals(FrameMode.DESKTOP_PANE,
+			named(panel, "cmbViewMode", JComboBox.class).getSelectedItem(),
+			"the box does not show the view the settings already hold");
+	}
+
+	@Test
+	@DisplayName("building the panel does not switch the view")
+	void buildingThePanelDoesNotSwitchTheView()
+	{
+		MysticCryptSettings settings = new MysticCryptSettings();
+		settings.setViewMode(FrameMode.DESKTOP_PANE);
+
+		// binding selects what the settings hold, which fires an action event; nothing may act on
+		// it here - there is no application frame in a headless test, and the settings dialog can
+		// be opened before signing in
+		assertDoesNotThrow(() -> new GeneralSettingsPanel(settings));
+	}
+
 }

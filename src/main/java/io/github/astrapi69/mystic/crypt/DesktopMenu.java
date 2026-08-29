@@ -22,8 +22,6 @@ package io.github.astrapi69.mystic.crypt;
 
 import java.awt.Component;
 import java.awt.Frame;
-import java.awt.event.InputEvent;
-import java.awt.event.KeyEvent;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -39,7 +37,6 @@ import javax.swing.JButton;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
-import javax.swing.KeyStroke;
 import javax.swing.MenuElement;
 
 import io.github.astrapi69.collection.set.SetFactory;
@@ -84,9 +81,6 @@ public class DesktopMenu extends BaseDesktopMenu implements EventListener<EventO
 
 	private Map<String, Boolean> enabledMenuIdsWithEmptyModel;
 
-	/** the view-mode submenu, kept so it can be relocated under the View menu */
-	private JMenu viewModeMenu;
-
 	/**
 	 * Instantiates a new desktop menu.
 	 */
@@ -110,30 +104,6 @@ public class DesktopMenu extends BaseDesktopMenu implements EventListener<EventO
 		// note: "Verify checksum" used to be a built-in edit-menu item - it now ships as the
 		// internal checksum plugin (plugins/checksum-plugin) and appears under the "Plugins" menu
 
-		viewModeMenu = MenuItemInfo.builder()
-			.text(Messages.getString(MenuId.VIEW_MODE.propertiesKey()))
-			.name(MenuId.VIEW_MODE.propertiesKey()).mnemonic(MenuExtensions.toMnemonic('W')).build()
-			.toJMenu();
-		editMenu.add(viewModeMenu);
-		JMenuItem switchDesktopMode = MenuItemInfo.builder()
-			.text(Messages.getString(MenuId.VIEW_DESKTOP_MODE.propertiesKey()))
-			.name(MenuId.VIEW_DESKTOP_MODE.propertiesKey()).mnemonic(MenuExtensions.toMnemonic('M'))
-			.keyStrokeInfo(KeyStrokeInfo
-				.toKeyStrokeInfo(KeyStroke.getKeyStroke(KeyEvent.VK_F6, InputEvent.ALT_DOWN_MASK)))
-
-			.actionListener(event -> {
-				MysticCryptApplicationFrame.getInstance().switchToDesktopPane();
-			}).build().toJMenuItem();
-		viewModeMenu.add(switchDesktopMode);
-		JMenuItem switchPanelMode = MenuItemInfo.builder()
-			.text(Messages.getString(MenuId.VIEW_PANEL_MODE.propertiesKey()))
-			.name(MenuId.VIEW_PANEL_MODE.propertiesKey()).mnemonic(MenuExtensions.toMnemonic('Q'))
-			.keyStrokeInfo(KeyStrokeInfo
-				.toKeyStrokeInfo(KeyStroke.getKeyStroke(KeyEvent.VK_F7, InputEvent.ALT_DOWN_MASK)))
-			.actionListener(event -> {
-				MysticCryptApplicationFrame.getInstance().switchToApplicationPanel();
-			}).build().toJMenuItem();
-		viewModeMenu.add(switchPanelMode);
 		// @formatter:off
 		return editMenu;
 	}
@@ -430,16 +400,6 @@ public class DesktopMenu extends BaseDesktopMenu implements EventListener<EventO
 		JMenu viewMenu = MenuItemInfo.builder().text("View").name("global.menu.view")
 			.mnemonic(MenuExtensions.toMnemonic('V')).build().toJMenu();
 
-		// move the view-mode submenu out of Edit into View
-		if (viewModeMenu != null)
-		{
-			JMenu editMenu = getEditMenu();
-			if (editMenu != null)
-			{
-				editMenu.remove(viewModeMenu);
-			}
-			viewMenu.add(viewModeMenu);
-		}
 		// move the top-level Look and Feel menu under View
 		JMenu lookAndFeelMenu = getLookAndFeelMenu();
 		if (lookAndFeelMenu != null)

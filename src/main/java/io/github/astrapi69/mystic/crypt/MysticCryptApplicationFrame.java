@@ -49,6 +49,7 @@ import io.github.astrapi69.id.generate.LongIdGenerator;
 import io.github.astrapi69.model.BaseModel;
 import io.github.astrapi69.model.api.IModel;
 import io.github.astrapi69.mystic.crypt.action.NewApplicationFileAction;
+import io.github.astrapi69.mystic.crypt.action.OpenDatabaseTreeFrameAction;
 import io.github.astrapi69.mystic.crypt.action.SaveApplicationFileAction;
 import io.github.astrapi69.mystic.crypt.app.file.xml.ApplicationXmlFileStoreWorker;
 import io.github.astrapi69.mystic.crypt.menu.MenuLayoutSupport;
@@ -411,8 +412,15 @@ public class MysticCryptApplicationFrame extends ApplicationPanelFrame<Applicati
 		{
 			menu.onEnableBySignin();
 			applicationPanel = new ApplicationPanel(getModel());
-			switchToApplicationPanel();
-			frameMode = FrameMode.APPLICATION_PANEL;
+			FrameMode remembered = MysticCryptSettings.load(getConfigurationDirectory())
+				.getViewMode();
+			applyViewMode(remembered);
+			if (FrameMode.DESKTOP_PANE.equals(remembered))
+			{
+				// the desktop view starts empty, and an empty desktop with the database nowhere in
+				// sight is not what someone who chose that view asked for
+				OpenDatabaseTreeFrameAction.openDatabaseTreeFrame();
+			}
 		}
 		else
 		{
@@ -458,6 +466,30 @@ public class MysticCryptApplicationFrame extends ApplicationPanelFrame<Applicati
 	{
 		JDesktopPanePanel<ApplicationModelBean> desktopPanePanel = new JDesktopPanePanel<>();
 		return desktopPanePanel;
+	}
+
+	/**
+	 * Puts this frame into the given view.
+	 * <p>
+	 * Switching to the panel view before signing in is refused rather than attempted: the
+	 * application panel only exists once a database is open, and the library refuses a null main
+	 * component. The plugins keep calling {@link #switchToDesktopPane()} directly for the window
+	 * they are about to open - that is a temporary move and must not become the remembered view.
+	 *
+	 * @param viewMode
+	 *            the view to put the frame into; null is the panel view
+	 */
+	public void applyViewMode(final FrameMode viewMode)
+	{
+		if (FrameMode.DESKTOP_PANE.equals(viewMode))
+		{
+			switchToDesktopPane();
+			return;
+		}
+		if (getApplicationPanel() != null)
+		{
+			switchToApplicationPanel();
+		}
 	}
 
 	public void switchToDesktopPane()

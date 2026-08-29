@@ -29,6 +29,7 @@ import java.io.File;
 import io.github.astrapi69.file.read.ReadFileExtensions;
 import io.github.astrapi69.gson.JsonStringToObjectExtensions;
 import io.github.astrapi69.gson.ObjectToJsonFileExtensions;
+import io.github.astrapi69.swing.enumeration.FrameMode;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -49,6 +50,26 @@ public class MysticCryptSettings
 
 	/** The UI language tag; defaults to English */
 	private String language = "en";
+
+	/**
+	 * The view the application opens in. Defaults to the panel view, which is what the application
+	 * has always shown after signing in.
+	 */
+	private FrameMode viewMode = FrameMode.APPLICATION_PANEL;
+
+	/**
+	 * The view the application opens in.
+	 * <p>
+	 * Written by hand rather than left to lombok because a settings file can say
+	 * {@code "viewMode": null} or name a mode this version does not know, and json turns both into
+	 * a null field. A view mode nobody can read is the default view, not a crash on start.
+	 *
+	 * @return the view mode, never null
+	 */
+	public FrameMode getViewMode()
+	{
+		return viewMode == null ? FrameMode.APPLICATION_PANEL : viewMode;
+	}
 
 	/**
 	 * Loads the settings from the given configuration directory, or a fresh, default settings

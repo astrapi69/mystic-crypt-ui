@@ -107,21 +107,6 @@ public enum MenuId
 
 
 	/**
-	 * The id for the edit the view mode menu
-	 */
-	VIEW_MODE(MenuId.VIEW_MODE_KEY),
-
-	/**
-	 * The id for the edit the desktop view mode menu
-	 */
-	VIEW_DESKTOP_MODE(MenuId.VIEW_DESKTOP_MODE_KEY),
-
-	/**
-	 * The id for the edit the panel view mode menu
-	 */
-	VIEW_PANEL_MODE(MenuId.VIEW_PANEL_MODE_KEY),
-
-	/**
 	 * The id for the plugins menu
 	 */
 	PLUGINS(MenuId.PLUGINS_KEY),
@@ -155,10 +140,6 @@ public enum MenuId
 	public static final String EXPORT_KEEPASS_KEY = "global.menu.file.export.keepass";
 	public static final String SETTINGS_KEY = "global.menu.file.settings";
 
-
-	public static final String VIEW_MODE_KEY = "global.menu.edit.view.mode";
-	public static final String VIEW_DESKTOP_MODE_KEY = "global.menu.edit.view.mode.desktop";
-	public static final String VIEW_PANEL_MODE_KEY = "global.menu.edit.view.mode.panel";
 
 	public static final String NEW_DATABASE_TOOL_BAR_KEY = "global.toolbar.menu.file.new.database";
 	public static final String SAVE_APPLICATION_FILE_TOOL_BAR_KEY = "global.toolbar.menu.file.save";
