@@ -29,6 +29,8 @@
 package io.github.astrapi69.mystic.crypt.panel.dbtree;
 
 import java.awt.event.ActionEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Optional;
@@ -40,6 +42,7 @@ import io.github.astrapi69.file.write.WriteFileExtensions;
 import io.github.astrapi69.model.BaseModel;
 import io.github.astrapi69.model.api.IModel;
 import io.github.astrapi69.mystic.crypt.button.state.GenericButtonGenericJXTableStateMachine;
+import io.github.astrapi69.mystic.crypt.ui.attachment.AttachmentContent;
 import io.github.astrapi69.swing.base.BasePanel;
 import io.github.astrapi69.swing.table.GenericJTable;
 import io.github.astrapi69.throwable.RuntimeExceptionDecorator;
@@ -117,6 +120,43 @@ public class AttachmentPanel extends BasePanel<MysticCryptEntryModelBean>
 		btnAdd.addActionListener(this::onAdd);
 		btnRemove.addActionListener(this::onRemove);
 		btnSaveTo.addActionListener(this::onSaveTo);
+		tblFiles.addMouseListener(new MouseAdapter()
+		{
+			@Override
+			public void mouseClicked(final MouseEvent mouseEvent)
+			{
+				if (mouseEvent.getClickCount() == 2 && mouseEvent.getButton() == MouseEvent.BUTTON1)
+				{
+					onShowSelectedContent();
+				}
+			}
+		});
+	}
+
+	/**
+	 * Shows what is in the selected attachment. A row that answers a double click with nothing
+	 * reads as broken, and opening the file is the reason one looks at the row in the first place.
+	 */
+	protected void onShowSelectedContent()
+	{
+		tblFiles.getSingleSelectedRowData().ifPresent(this::showContentOf);
+	}
+
+	/**
+	 * Puts the content of the given attachment on screen, as text when it is text and as a
+	 * description when it is not
+	 *
+	 * @param fileContentInfo
+	 *            the attachment to show
+	 */
+	protected void showContentOf(final FileContentInfo fileContentInfo)
+	{
+		JTextArea content = new JTextArea(AttachmentContent.readable(fileContentInfo), 20, 60);
+		content.setName("txtAttachmentContent");
+		content.setEditable(false);
+		content.setCaretPosition(0);
+		JOptionPane.showMessageDialog(this, new JScrollPane(content), fileContentInfo.getName(),
+			JOptionPane.PLAIN_MESSAGE);
 	}
 
 	protected void onAdd(final ActionEvent actionEvent)
@@ -139,6 +179,23 @@ public class AttachmentPanel extends BasePanel<MysticCryptEntryModelBean>
 		}
 	}
 
+	/**
+	 * The file name the save dialog opens with: the attachment's own.
+	 * <p>
+	 * The dialog used to open with an empty name, so the name the attachment already carries had to
+	 * be typed again, and typing it differently is how an attachment ends up on disk under a name
+	 * that says nothing about it.
+	 *
+	 * @param fileContentInfo
+	 *            the attachment about to be saved
+	 * @return the file to propose
+	 */
+	protected File proposedTargetFor(final FileContentInfo fileContentInfo)
+	{
+		String name = fileContentInfo.getName();
+		return new File(name == null || name.isBlank() ? "attachment" : name);
+	}
+
 	protected void onSaveTo(final ActionEvent actionEvent)
 	{
 		Optional<FileContentInfo> singleSelectedRowData = tblFiles.getSingleSelectedRowData();
@@ -147,6 +204,7 @@ public class AttachmentPanel extends BasePanel<MysticCryptEntryModelBean>
 			FileContentInfo fileContentInfo = singleSelectedRowData.get();
 			JFileChooser fileChooser = new JFileChooser();
 			fileChooser.setDialogTitle("Specify a file to save");
+			fileChooser.setSelectedFile(proposedTargetFor(fileContentInfo));
 			int userSelection = fileChooser.showSaveDialog(this);
 
 			if (userSelection == JFileChooser.APPROVE_OPTION)

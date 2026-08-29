@@ -29,6 +29,8 @@
 package io.github.astrapi69.mystic.crypt.panel.properties;
 
 import java.awt.event.ActionEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.io.Serial;
 import java.util.ArrayList;
 import java.util.List;
@@ -114,6 +116,17 @@ public class PropertiesPanel extends BasePanel<MysticCryptEntryModelBean>
 		btnAdd.setText("Add Property");
 		btnAdd.addActionListener(this::onAdd);
 		btnEdit.addActionListener(this::onEdit);
+		tblProperties.addMouseListener(new MouseAdapter()
+		{
+			@Override
+			public void mouseClicked(final MouseEvent mouseEvent)
+			{
+				if (mouseEvent.getClickCount() == 2 && mouseEvent.getButton() == MouseEvent.BUTTON1)
+				{
+					onEditSelected();
+				}
+			}
+		});
 		btnRemove.addActionListener(this::onRemove);
 
 		btnRemove.setText("Remove");
@@ -148,9 +161,16 @@ public class PropertiesPanel extends BasePanel<MysticCryptEntryModelBean>
 
 	protected void onEdit(final ActionEvent actionEvent)
 	{
-		getTblProperties().getSingleSelectedRowData().ifPresent(tableEntry -> {
-			showEditPropertyDialog(tableEntry);
-		});
+		onEditSelected();
+	}
+
+	/**
+	 * Opens the selected property for editing. Pressing Edit and double clicking the row are the
+	 * same thing, and a table row that answers a double click with nothing reads as broken.
+	 */
+	protected void onEditSelected()
+	{
+		getTblProperties().getSingleSelectedRowData().ifPresent(this::showEditPropertyDialog);
 	}
 
 	private void showEditPropertyDialog(KeyValuePair<String, String> tableEntry)
