@@ -155,6 +155,13 @@ plugins-install: plugins
 	cp $(PLUGIN_KEYSTORE_DIR)/build/plugin-dist/*.zip "$(PLUGIN_INSTALL_DIR)/"
 	cp $(PLUGIN_FILE_CRYPT_DIR)/build/plugin-dist/*.zip "$(PLUGIN_INSTALL_DIR)/"
 	cp $(PLUGIN_SECRET_SHARING_DIR)/build/plugin-dist/*.zip "$(PLUGIN_INSTALL_DIR)/"
+	@# pf4j loads an already extracted plugin directory in preference to the zip beside it, so a
+	@# directory left over from an earlier install keeps serving old code however often the zip is
+	@# replaced - the freshly installed zip has to be the only thing left to extract
+	@for zip in "$(PLUGIN_INSTALL_DIR)"/*.zip; do \
+		dir="$${zip%.zip}"; \
+		if [ -d "$$dir" ]; then rm -rf "$$dir"; echo "==> removed stale $$(basename $$dir)"; fi; \
+	done
 	@echo "==> installed all internal plugins into $(PLUGIN_INSTALL_DIR)"
 
 # --- mirrors Gradle "Run Configurations" panel ---

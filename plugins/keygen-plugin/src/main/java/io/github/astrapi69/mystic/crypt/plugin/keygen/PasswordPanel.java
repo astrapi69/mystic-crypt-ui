@@ -59,8 +59,12 @@ public class PasswordPanel extends BasePanel<PasswordBean>
 		super.onInitializeComponents();
 		lblPassword = new javax.swing.JLabel();
 		txtPassword = new JMPasswordField();
+		// stable component names for UI tests, the way every other panel in this application names
+		// what a test has to reach
+		txtPassword.setName("txtPassword");
 		lblRepeatPassword = new javax.swing.JLabel();
 		txtRepeatPassword = new JMPasswordField();
+		txtRepeatPassword.setName("txtRepeatPassword");
 
 		// a password field binds to a character array, and the bean is built empty; starting the
 		// model with empty arrays keeps a dialog that is closed untouched readable
