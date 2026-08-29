@@ -70,14 +70,21 @@ public final class ToolForm
 	/** A field next to its label, growing with the window */
 	public static final String FIELD = "growx";
 
-	/** Something that has no label of its own and takes both columns */
-	public static final String WIDE = "span 2, growx";
+	/**
+	 * Something that has no label of its own and takes both columns.
+	 * <p>
+	 * The row is started explicitly. Spanning both columns from a row that is already half used
+	 * puts the component in the second column instead of the first, and the width of the columns is
+	 * then decided by whatever is widest in them - which is how changing a key size in one panel
+	 * moved the panel below it several hundred pixels to the right.
+	 */
+	public static final String WIDE = "newline, span 2, growx";
 
 	/** A text area that takes the height the window has left, in proportion to the others */
-	public static final String GROWING = "span 2, grow, push";
+	public static final String GROWING = "newline, span 2, grow, push";
 
 	/** A row of buttons under what they act on */
-	public static final String BUTTON_ROW = "span 2, align left, gaptop 2";
+	public static final String BUTTON_ROW = "newline, span 2, align left, gaptop 2";
 
 	/** A line that reports what happened, at the bottom */
 	public static final String RESULT_LINE = "span 2, growx, gaptop 6";
