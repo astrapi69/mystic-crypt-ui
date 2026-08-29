@@ -957,6 +957,29 @@ public class SecretKeyTreeWithContentPanel
 		return path.toString();
 	}
 
+	/**
+	 * Selects and shows the given node in the tree.
+	 * <p>
+	 * Scrolling to the path expands its ancestors by itself, so the tree is not expanded whole
+	 * first - a search that jumps from match to match runs this per keystroke, and laying out the
+	 * entire tree each time is a cost nobody ordered.
+	 *
+	 * @param treeNode
+	 *            the node to select; nothing happens when it is not in the tree
+	 */
+	public void selectTreeNode(
+		final BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> treeNode)
+	{
+		DefaultMutableTreeNode swingNode = findSwingNodeOf(treeNode);
+		if (swingNode == null)
+		{
+			return;
+		}
+		TreePath path = new TreePath(swingNode.getPath());
+		tree.setSelectionPath(path);
+		tree.scrollPathToVisible(path);
+	}
+
 	/** Finds the Swing node that carries the given tree node, comparing by identity */
 	private DefaultMutableTreeNode findSwingNodeOf(
 		BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> treeNode)

@@ -30,14 +30,13 @@ import java.io.Serial;
 import java.util.List;
 
 import javax.swing.*;
-import javax.swing.tree.DefaultMutableTreeNode;
-import javax.swing.tree.TreePath;
 
 import io.github.astrapi69.gen.tree.BaseTreeNode;
 import io.github.astrapi69.mystic.crypt.ApplicationPanel;
 import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
 import io.github.astrapi69.mystic.crypt.panel.dbtree.MysticCryptEntryModelBean;
 import io.github.astrapi69.mystic.crypt.panel.dbtree.SecretKeyTreeWithContentPanel;
+import io.github.astrapi69.mystic.crypt.search.DatabaseSearchSupport;
 import io.github.astrapi69.swing.dialog.JOptionPaneExtensions;
 import io.github.astrapi69.swing.renderer.tree.GenericTreeElement;
 
@@ -93,91 +92,14 @@ public class SearchApplicationFileAction extends AbstractAction
 
 		SecretKeyTreeWithContentPanel treePanel = applicationPanel
 			.getSecretKeyTreeWithContentPanel();
-		BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> match = findFirstMatch(
-			treePanel.getModelObject(), term.toLowerCase());
+		BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> match = DatabaseSearchSupport
+			.findFirstMatch(treePanel.getModelObject(), term);
 		if (match == null)
 		{
 			JOptionPane.showMessageDialog(frame, "No match found for \"" + term + "\".", "No match",
 				JOptionPane.INFORMATION_MESSAGE);
 			return;
 		}
-		selectNodeInTree(treePanel.getTree(), match);
-	}
-
-	private static BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> findFirstMatch(
-		BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> root,
-		String lowerTerm)
-	{
-		for (BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> node : root
-			.traverse())
-		{
-			if (nodeMatches(node, lowerTerm))
-			{
-				return node;
-			}
-		}
-		return null;
-	}
-
-	private static boolean nodeMatches(
-		BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> node,
-		String lowerTerm)
-	{
-		GenericTreeElement<List<MysticCryptEntryModelBean>> value = node.getValue();
-		if (value == null)
-		{
-			return false;
-		}
-		if (contains(value.getName(), lowerTerm))
-		{
-			return true;
-		}
-		List<MysticCryptEntryModelBean> entries = value.getDefaultContent();
-		if (entries != null)
-		{
-			for (MysticCryptEntryModelBean entry : entries)
-			{
-				if (contains(entry.getTitle(), lowerTerm)
-					|| contains(entry.getUserName(), lowerTerm)
-					|| contains(entry.getUrl(), lowerTerm) || contains(entry.getNotes(), lowerTerm))
-				{
-					return true;
-				}
-			}
-		}
-		return false;
-	}
-
-	private static boolean contains(String value, String lowerTerm)
-	{
-		return value != null && value.toLowerCase().contains(lowerTerm);
-	}
-
-	private static void selectNodeInTree(JTree tree,
-		BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> match)
-	{
-		// fully expand the tree so the matching row is laid out before it is resolved
-		int previousRowCount = -1;
-		while (tree.getRowCount() != previousRowCount)
-		{
-			previousRowCount = tree.getRowCount();
-			for (int row = 0; row < tree.getRowCount(); row++)
-			{
-				tree.expandRow(row);
-			}
-		}
-		for (int row = 0; row < tree.getRowCount(); row++)
-		{
-			TreePath path = tree.getPathForRow(row);
-			Object lastComponent = path.getLastPathComponent();
-			if (lastComponent instanceof DefaultMutableTreeNode treeNode
-				&& treeNode.getUserObject()instanceof BaseTreeNode<?, ?> baseTreeNode
-				&& baseTreeNode.getId() != null && baseTreeNode.getId().equals(match.getId()))
-			{
-				tree.setSelectionPath(path);
-				tree.scrollPathToVisible(path);
-				return;
-			}
-		}
+		treePanel.selectTreeNode(match);
 	}
 }

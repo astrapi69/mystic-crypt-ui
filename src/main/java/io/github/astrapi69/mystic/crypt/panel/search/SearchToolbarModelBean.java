@@ -22,52 +22,50 @@
  * OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
  * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-package io.github.astrapi69.mystic.crypt;
+package io.github.astrapi69.mystic.crypt.panel.search;
 
-import java.awt.*;
-import java.util.LinkedHashSet;
-import java.util.Set;
+import java.io.Serializable;
 
-import javax.swing.*;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.experimental.FieldDefaults;
 
-import lombok.Getter;
-
-public class ApplicationToolbar extends JToolBar
+/**
+ * What the toolbar search holds: the term as it is typed, and which of the matches the user is on.
+ * The term is what somebody is searching for in their own password database - it never belongs in a
+ * log or an error message.
+ */
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@FieldDefaults(level = AccessLevel.PRIVATE)
+public class SearchToolbarModelBean implements Serializable
 {
 
+	private static final long serialVersionUID = 1L;
+
+	/** The term as it stands in the field */
+	String searchTerm = "";
+
+	/** Which of the current matches is selected, 0 based */
+	int matchIndex;
+
 	/**
-	 * Every component this toolbar holds, in the order it was added. The menu walks these to enable
-	 * and disable by component name - a set of buttons only would leave anything else on the
-	 * toolbar, like the search field, invisible to those walks.
+	 * The match to be on after pressing Enter: the next one, and the first again after the last
+	 *
+	 * @param matchCount
+	 *            how many matches there are
+	 * @return the next index, 0 when there are no matches
 	 */
-	@Getter
-	private final Set<JComponent> toolbarItems = new LinkedHashSet<>();
-
-	public ApplicationToolbar()
+	public int nextMatchIndex(final int matchCount)
 	{
-	}
-
-	public ApplicationToolbar(int orientation)
-	{
-		super(orientation);
-	}
-
-	public ApplicationToolbar(String name)
-	{
-		super(name);
-	}
-
-	public ApplicationToolbar(String name, int orientation)
-	{
-		super(name, orientation);
-	}
-
-	public Component add(Component comp)
-	{
-		if (comp instanceof JComponent jComponent)
+		if (matchCount <= 0)
 		{
-			toolbarItems.add(jComponent);
+			return 0;
 		}
-		return super.add(comp);
+		return (matchIndex + 1) % matchCount;
 	}
+
 }

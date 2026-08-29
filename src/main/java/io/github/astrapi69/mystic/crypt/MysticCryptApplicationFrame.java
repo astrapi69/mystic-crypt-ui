@@ -53,6 +53,7 @@ import io.github.astrapi69.mystic.crypt.action.OpenDatabaseTreeFrameAction;
 import io.github.astrapi69.mystic.crypt.action.SaveApplicationFileAction;
 import io.github.astrapi69.mystic.crypt.app.file.xml.ApplicationXmlFileStoreWorker;
 import io.github.astrapi69.mystic.crypt.menu.MenuLayoutSupport;
+import io.github.astrapi69.mystic.crypt.panel.search.SearchToolbarPanel;
 import io.github.astrapi69.mystic.crypt.panel.signin.MasterPwFileDialog;
 import io.github.astrapi69.mystic.crypt.panel.signin.MasterPwFileModelBean;
 import io.github.astrapi69.mystic.crypt.panel.signin.MemoizedSigninModelBean;
@@ -65,6 +66,7 @@ import io.github.astrapi69.swing.base.BasePanel;
 import io.github.astrapi69.swing.button.builder.JButtonInfo;
 import io.github.astrapi69.swing.dialog.JOptionPaneExtensions;
 import io.github.astrapi69.swing.enumeration.FrameMode;
+import io.github.astrapi69.swing.model.component.JMTextField;
 import io.github.astrapi69.swing.panel.desktoppane.JDesktopPanePanel;
 import io.github.astrapi69.swing.panel.label.LabelPanel;
 import io.github.astrapi69.swing.plaf.LookAndFeels;
@@ -445,12 +447,16 @@ public class MysticCryptApplicationFrame extends ApplicationPanelFrame<Applicati
 			.icon(ImageIconFactory.newImageIcon("io/github/astrapi69/silk/icons/disk.png"))
 			.toolTipText("Save").actionListener(new SaveApplicationFileAction("Save"))
 			.name(MenuId.SAVE_APPLICATION_FILE_TOOL_BAR.propertiesKey()).build().toJButton());
-		// JButton searchButton = JButtonInfo.builder()
-		// .icon(ImageIconFactory.newImageIcon("io/github/astrapi69/silk/icons/magnifier.png"))
-		// .toolTipText("Search").actionListener(new SearchApplicationFileAction("Search"))
-		// .name(MenuId.SEARCH_TOOL_BAR.propertiesKey()).build().toJButton();
-		// searchButton.setEnabled(false);
-		// toolBar.add(searchButton);
+		SearchToolbarPanel searchPanel = new SearchToolbarPanel();
+		JMTextField searchField = searchPanel.getTxtToolbarSearch();
+		// named with the toolbar search id so the menu's enable walks switch it with the rest;
+		// disabled until those walks run, because there is nothing to search before signing in.
+		// The panel goes onto the toolbar, the field goes into the registry the walks read - a
+		// disabled panel would not disable the field inside it.
+		searchField.setName(MenuId.SEARCH_TOOL_BAR.propertiesKey());
+		searchField.setEnabled(false);
+		toolBar.add(searchPanel);
+		toolBar.getToolbarItems().add(searchField);
 		// JButton lockWorkspace = JButtonInfo.builder()
 		// .icon(ImageIconFactory.newImageIcon("io/github/astrapi69/silk/icons/lock.png"))
 		// .toolTipText("Lock workspace").actionListener(new LockWorkspaceAction("Lock workspace"))
