@@ -75,6 +75,31 @@ public final class ConversionSupport
 	 * @throws Exception
 	 *             if the file cannot be read at all
 	 */
+	/**
+	 * The file a conversion writes to: the one that was picked, or - when none was picked - the
+	 * source file with a {@code .pem} ending, next to it.
+	 * <p>
+	 * Picking an output file is the step everybody forgets, and forgetting it used to mean the
+	 * conversion wrote to nothing at all.
+	 *
+	 * @param sourceFile
+	 *            the file being converted
+	 * @param pickedTarget
+	 *            the file the user picked, may be null
+	 * @return the file to write to
+	 */
+	public static File pemFileFor(final File sourceFile, final File pickedTarget)
+	{
+		if (pickedTarget != null)
+		{
+			return pickedTarget;
+		}
+		String name = sourceFile.getName();
+		int lastDot = name.lastIndexOf('.');
+		String withoutEnding = 0 < lastDot ? name.substring(0, lastDot) : name;
+		return new File(sourceFile.getAbsoluteFile().getParentFile(), withoutEnding + ".pem");
+	}
+
 	public static FileKind kindOf(final File file) throws Exception
 	{
 		if (file == null || !file.isFile())

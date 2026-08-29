@@ -129,7 +129,7 @@ class FileConversionPanelBindingTest
 		button(panel, "btnConvert").doClick();
 
 		String consoleOutput = panel.getModelObject().getConsoleOutput();
-		assertTrue(consoleOutput.contains("private key written to file..."),
+		assertTrue(consoleOutput.contains("private key written to key.pem"),
 			"the console messages belong in the model, it holds: " + consoleOutput);
 		assertEquals(textArea(panel, "txtConsole").getText(), consoleOutput,
 			"the model has to hold exactly what the console shows");
