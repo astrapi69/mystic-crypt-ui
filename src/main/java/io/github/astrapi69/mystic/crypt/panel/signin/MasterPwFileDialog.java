@@ -29,22 +29,57 @@ import java.awt.event.ActionEvent;
 
 import javax.swing.*;
 
-import io.github.astrapi69.awt.screen.ScreenSizeExtensions;
 import io.github.astrapi69.model.api.IModel;
+import io.github.astrapi69.mystic.crypt.ui.screen.ScreenPlacement;
 import io.github.astrapi69.swing.base.PanelDialog;
 
 public class MasterPwFileDialog extends PanelDialog<MasterPwFileModelBean>
 {
+
+	/**
+	 * The panel this dialog shows. Assigned while the base class builds the content, so it must not
+	 * carry an initializer - one would run after that and wipe it out again.
+	 */
+	private MasterPwWithApplicationFilePanel signinPanel;
+
 	public MasterPwFileDialog(Frame owner, String title, boolean modal,
 		IModel<MasterPwFileModelBean> model)
 	{
 		super(owner, title, modal, model);
-		ScreenSizeExtensions.centralize(this, 3, 3);
+		ScreenPlacement.centerOnScreenOf(this, owner);
+		putTheCaretWhereTypingStarts();
+	}
+
+	/**
+	 * Makes the component the user types into first this window's initial component, so the caret
+	 * is there whenever the window takes the focus - when it opens, and again when the user comes
+	 * back to it from somewhere else.
+	 * <p>
+	 * Asking for the focus once while the dialog appears is not enough: the window takes the focus
+	 * itself at that moment, and a request on a component that is not showing yet is dropped
+	 * without a word. Naming the component in the traversal policy is what actually holds.
+	 */
+	private void putTheCaretWhereTypingStarts()
+	{
+		setFocusTraversalPolicy(new LayoutFocusTraversalPolicy()
+		{
+			@Override
+			public Component getDefaultComponent(final Container container)
+			{
+				return signinPanel.componentToFocus();
+			}
+
+			@Override
+			public Component getInitialComponent(final Window window)
+			{
+				return signinPanel.componentToFocus();
+			}
+		});
 	}
 
 	protected JPanel newContent(IModel<MasterPwFileModelBean> model)
 	{
-		return new MasterPwWithApplicationFilePanel(model)
+		signinPanel = new MasterPwWithApplicationFilePanel(model)
 		{
 			@Override
 			protected void onOk(ActionEvent actionEvent)
@@ -60,5 +95,6 @@ public class MasterPwFileDialog extends PanelDialog<MasterPwFileModelBean>
 				MasterPwFileDialog.this.dispose();
 			}
 		};
+		return signinPanel;
 	}
 }
