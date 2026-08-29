@@ -36,6 +36,7 @@ import io.github.astrapi69.model.BaseModel;
 import io.github.astrapi69.model.LambdaModel;
 import io.github.astrapi69.model.api.IModel;
 import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
+import io.github.astrapi69.mystic.crypt.ui.screen.ScreenPlacement;
 import io.github.astrapi69.mystic.crypt.wizard.model.CertificateInfoModel;
 import io.github.astrapi69.mystic.crypt.wizard.model.DistinguishedNameInfoModel;
 import io.github.astrapi69.mystic.crypt.wizard.model.ValidityModel;
@@ -505,7 +506,7 @@ public class NewCertificateInfoPanel extends BasePanel<CertificateInfoModel>
 			optionPane, "Create issuer");
 		dialog.addWindowFocusListener(new RequestFocusListener(panel.getTxtCommonName()));
 		dialog.pack();
-		dialog.setLocationRelativeTo(null);
+		ScreenPlacement.centerOnScreenOf(dialog, this);
 		dialog.setVisible(true);
 
 		if (optionPane.getValue().equals(JOptionPane.OK_OPTION))
@@ -542,7 +543,7 @@ public class NewCertificateInfoPanel extends BasePanel<CertificateInfoModel>
 			optionPane, "Create subject");
 		dialog.addWindowFocusListener(new RequestFocusListener(panel.getTxtCommonName()));
 		dialog.pack();
-		dialog.setLocationRelativeTo(null);
+		ScreenPlacement.centerOnScreenOf(dialog, this);
 		dialog.setVisible(true);
 
 		if (optionPane.getValue().equals(JOptionPane.OK_OPTION))

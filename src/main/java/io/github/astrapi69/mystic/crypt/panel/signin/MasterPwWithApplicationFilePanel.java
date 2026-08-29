@@ -110,6 +110,21 @@ public class MasterPwWithApplicationFilePanel extends BasePanel<MasterPwFileMode
 	}
 
 
+	/**
+	 * The component the caret belongs in when this panel is shown.
+	 * <p>
+	 * Typing the master password is the first thing anyone does here, so that is where the focus
+	 * goes. When the master password is not in use - a database opened with a key file alone - the
+	 * check box that turns it on takes the focus instead, because the field behind it is not usable
+	 * yet and focusing it would leave the keyboard pointing at nothing.
+	 *
+	 * @return the component to focus, never null
+	 */
+	public JComponent componentToFocus()
+	{
+		return txtMasterPw.isEnabled() ? txtMasterPw : cbxMasterPw;
+	}
+
 	@Override
 	protected void onInitializeComponents()
 	{
@@ -584,6 +599,12 @@ public class MasterPwWithApplicationFilePanel extends BasePanel<MasterPwFileMode
 			getModelObject().setWithMasterPw(checkBox.isSelected());
 		}
 		toggleMasterPwComponents();
+		if (txtMasterPw.isEnabled())
+		{
+			// turning the master password on means the password is typed next, so the caret goes
+			// there rather than leaving the user to reach for the field
+			txtMasterPw.requestFocusInWindow();
+		}
 	}
 
 	protected void onKeyFileChooser(ActionEvent actionEvent)

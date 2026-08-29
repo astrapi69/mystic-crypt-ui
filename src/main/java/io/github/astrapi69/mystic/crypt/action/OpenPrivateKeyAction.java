@@ -47,6 +47,7 @@ import io.github.astrapi69.mystic.crypt.key.PrivateKeyHexDecryptor;
 import io.github.astrapi69.mystic.crypt.key.PublicKeyHexEncryptor;
 import io.github.astrapi69.mystic.crypt.panel.privatekey.PrivateKeyModelBean;
 import io.github.astrapi69.mystic.crypt.panel.privatekey.PrivateKeyPanel;
+import io.github.astrapi69.mystic.crypt.ui.screen.ScreenPlacement;
 import io.github.astrapi69.swing.action.OpenFileAction;
 import io.github.astrapi69.swing.component.factory.JComponentFactory;
 import io.github.astrapi69.swing.dialog.factory.JDialogFactory;
@@ -111,7 +112,7 @@ public class OpenPrivateKeyAction extends OpenFileAction
 					MysticCryptApplicationFrame.getInstance(), optionPane, "Enter Password");
 				dialog.addWindowFocusListener(new RequestFocusListener(pf));
 				dialog.pack();
-				dialog.setLocationRelativeTo(null);
+				ScreenPlacement.centerOnScreenOf(dialog, MysticCryptApplicationFrame.getInstance());
 				dialog.setVisible(true);
 
 				if (optionPane.getValue().equals(JOptionPane.OK_OPTION))

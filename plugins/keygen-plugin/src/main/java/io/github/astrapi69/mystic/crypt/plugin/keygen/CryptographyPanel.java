@@ -32,6 +32,7 @@ import io.github.astrapi69.model.BaseModel;
 import io.github.astrapi69.model.LambdaModel;
 import io.github.astrapi69.model.api.IModel;
 import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
+import io.github.astrapi69.mystic.crypt.ui.screen.ScreenPlacement;
 import io.github.astrapi69.mystic.crypt.panel.certificate.NewCertificateInfoPanel;
 import io.github.astrapi69.mystic.crypt.ui.form.ToolForm;
 import io.github.astrapi69.mystic.crypt.wizard.model.CertificateInfoModel;
@@ -316,7 +317,7 @@ public class CryptographyPanel extends BasePanel<GenerateKeysModelBean>
 			optionPane, "Create certificate");
 		dialog.addWindowFocusListener(new RequestFocusListener(panel.getTxtIssuer()));
 		dialog.pack();
-		dialog.setLocationRelativeTo(null);
+		ScreenPlacement.centerOnScreenOf(dialog, this);
 		dialog.setVisible(true);
 
 		if (!Integer.valueOf(JOptionPane.OK_OPTION).equals(optionPane.getValue()))
