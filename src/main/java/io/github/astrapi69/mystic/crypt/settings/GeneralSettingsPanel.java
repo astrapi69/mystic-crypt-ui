@@ -32,6 +32,8 @@ import java.util.Arrays;
 import javax.swing.*;
 
 import io.github.astrapi69.model.LambdaModel;
+import io.github.astrapi69.swing.enumeration.FrameMode;
+import io.github.astrapi69.swing.model.combobox.EnumComboBoxModel;
 import io.github.astrapi69.swing.model.component.JMComboBox;
 
 /**
@@ -59,6 +61,9 @@ public class GeneralSettingsPanel extends JPanel
 
 	private final JMComboBox<String, ?> cmbLanguage = new JMComboBox<>(LANGUAGES);
 
+	private final JMComboBox<FrameMode, EnumComboBoxModel<FrameMode>> cmbViewMode = new JMComboBox<>(
+		new EnumComboBoxModel<>(FrameMode.class));
+
 	/**
 	 * Instantiates a new {@link GeneralSettingsPanel} over the settings it edits
 	 *
@@ -72,6 +77,7 @@ public class GeneralSettingsPanel extends JPanel
 
 		cmbLookAndFeel.setName("cmbLookAndFeel");
 		cmbLanguage.setName("cmbLanguage");
+		cmbViewMode.setName("cmbViewMode");
 		bindComponents();
 		// added after the binding on purpose: binding selects what the settings already hold, and
 		// that must not switch the look and feel while the dialog is still being built
@@ -83,6 +89,8 @@ public class GeneralSettingsPanel extends JPanel
 		form.add(cmbLookAndFeel);
 		form.add(new JLabel("Language (applies after restart):"));
 		form.add(cmbLanguage);
+		form.add(new JLabel("View:"));
+		form.add(cmbViewMode);
 		add(form, BorderLayout.NORTH);
 	}
 
@@ -95,6 +103,7 @@ public class GeneralSettingsPanel extends JPanel
 		cmbLookAndFeel
 			.setPropertyModel(LambdaModel.of(settings::getLookAndFeel, settings::setLookAndFeel));
 		cmbLanguage.setPropertyModel(LambdaModel.of(settings::getLanguage, settings::setLanguage));
+		cmbViewMode.setPropertyModel(LambdaModel.of(settings::getViewMode, settings::setViewMode));
 	}
 
 	/**

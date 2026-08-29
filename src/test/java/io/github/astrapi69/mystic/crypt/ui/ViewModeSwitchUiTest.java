@@ -29,16 +29,18 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import java.io.File;
 import java.io.IOException;
 
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
 import io.github.astrapi69.mystic.crypt.TestPasswords;
+import io.github.astrapi69.mystic.crypt.settings.MysticCryptSettings;
 import io.github.astrapi69.swing.enumeration.FrameMode;
 
 /**
- * End-to-end use case "switch the view mode": the Edit menu's view-mode items toggle the frame
- * between the desktop-pane and the application-panel representation - each switch must update the
- * frame's {@link FrameMode}
+ * End-to-end use case "choose the view": the view is a setting now, not a menu item. Choosing it in
+ * the settings dialog puts the frame into that view at once, and the application opens in it the
+ * next time - which is the whole point of moving it out of the menu.
  */
 class ViewModeSwitchUiTest extends AbstractUiTest
 {
@@ -46,21 +48,45 @@ class ViewModeSwitchUiTest extends AbstractUiTest
 	private static final String MASTER_PASSWORD = TestPasswords.throwaway();
 
 	@Test
-	void switchingViewModeUpdatesTheFrameMode() throws IOException
+	@DisplayName("the view chosen in the settings is the view the frame is in")
+	void theViewChosenInTheSettingsIsTheViewTheFrameIsIn() throws IOException
 	{
 		File databaseFile = new File(tempHome, "viewmode-database.mcrdb");
 		createDatabaseFileHeadless(databaseFile, MASTER_PASSWORD);
 
 		ApplicationSteps application = signInWithExistingDatabase(databaseFile, MASTER_PASSWORD);
 
-		application.switchToDesktopMode();
+		application.chooseViewMode(FrameMode.DESKTOP_PANE);
 		assertEquals(FrameMode.DESKTOP_PANE,
 			MysticCryptApplicationFrame.getInstance().getFrameMode(),
-			"the desktop view-mode item must put the frame into DESKTOP_PANE mode");
+			"choosing the desktop view in the settings did not put the frame into it");
 
-		application.switchToPanelMode();
+		application.chooseViewMode(FrameMode.APPLICATION_PANEL);
 		assertEquals(FrameMode.APPLICATION_PANEL,
 			MysticCryptApplicationFrame.getInstance().getFrameMode(),
-			"the panel view-mode item must put the frame into APPLICATION_PANEL mode");
+			"choosing the panel view in the settings did not put the frame into it");
 	}
+
+	@Test
+	@DisplayName("the chosen view is the view the application opens in next time")
+	void theChosenViewIsTheViewTheApplicationOpensInNextTime() throws Exception
+	{
+		File databaseFile = new File(tempHome, "viewmode-restart.mcrdb");
+		createDatabaseFileHeadless(databaseFile, MASTER_PASSWORD);
+
+		signInWithExistingDatabase(databaseFile, MASTER_PASSWORD)
+			.chooseViewMode(FrameMode.DESKTOP_PANE);
+		File configurationDirectory = new File(tempHome, ".config/mystic-crypt-ui");
+		assertEquals(FrameMode.DESKTOP_PANE,
+			MysticCryptSettings.load(configurationDirectory).getViewMode(),
+			"closing the settings dialog did not write the chosen view down");
+
+		shutdownApplication();
+		signInWithExistingDatabase(databaseFile, MASTER_PASSWORD);
+
+		assertEquals(FrameMode.DESKTOP_PANE,
+			MysticCryptApplicationFrame.getInstance().getFrameMode(),
+			"the application did not open in the view that was chosen before");
+	}
+
 }

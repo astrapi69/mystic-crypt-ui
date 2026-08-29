@@ -171,19 +171,36 @@ final class ApplicationSteps
 		return this;
 	}
 
-	/** Switches the frame to application-panel view mode via the Edit menu and waits for it */
+	/** Chooses the panel view in the settings and waits until the frame is in it */
 	ApplicationSteps switchToPanelMode()
 	{
-		clickMenuItem(MenuId.VIEW_PANEL_MODE.propertiesKey());
-		awaitFrameMode(FrameMode.APPLICATION_PANEL);
+		chooseViewMode(FrameMode.APPLICATION_PANEL);
 		return this;
 	}
 
-	/** Switches the frame back to desktop-pane view mode via the Edit menu and waits for it */
+	/** Chooses the desktop view in the settings and waits until the frame is in it */
 	ApplicationSteps switchToDesktopMode()
 	{
-		clickMenuItem(MenuId.VIEW_DESKTOP_MODE.propertiesKey());
-		awaitFrameMode(FrameMode.DESKTOP_PANE);
+		chooseViewMode(FrameMode.DESKTOP_PANE);
+		return this;
+	}
+
+	/**
+	 * Picks the given view in the settings dialog and closes it, which is what saves the choice and
+	 * puts the frame into that view
+	 *
+	 * @param viewMode
+	 *            the view to choose
+	 */
+	ApplicationSteps chooseViewMode(final FrameMode viewMode)
+	{
+		DialogFixture settings = openSettingsDialog();
+		settings.tabbedPane("tabSettings").selectTab("General");
+		GuiActionRunner
+			.execute(() -> settings.comboBox("cmbViewMode").target().setSelectedItem(viewMode));
+		robot.waitForIdle();
+		settings.button("btnCloseSettings").click();
+		awaitFrameMode(viewMode);
 		return this;
 	}
 

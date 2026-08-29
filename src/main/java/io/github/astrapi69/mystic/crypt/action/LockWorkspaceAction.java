@@ -34,6 +34,7 @@ import javax.swing.*;
 import io.github.astrapi69.mystic.crypt.DesktopMenu;
 import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
 import io.github.astrapi69.mystic.crypt.panel.signin.MasterPwFileModelBean;
+import io.github.astrapi69.mystic.crypt.settings.MysticCryptSettings;
 import io.github.astrapi69.swing.dialog.JOptionPaneExtensions;
 
 /**
@@ -102,7 +103,10 @@ public class LockWorkspaceAction extends AbstractAction
 		if (Arrays.equals(entered, credentials.getMasterPw()))
 		{
 			frame.getModelObject().setSignedIn(true);
-			frame.switchToApplicationPanel();
+			// back into the view the user chose, not always into the panel view: locking switched
+			// to the desktop pane to hide the content, and unlocking has to undo exactly that
+			frame.applyViewMode(
+				MysticCryptSettings.load(frame.getConfigurationDirectory()).getViewMode());
 			((DesktopMenu)frame.getMenu()).onEnableBySignin();
 		}
 		else

@@ -30,11 +30,14 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.awt.Component;
 import java.io.File;
+import java.io.IOException;
+import java.util.List;
 
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 
 import org.assertj.swing.edt.GuiActionRunner;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import io.github.astrapi69.mystic.crypt.DesktopMenu;
@@ -99,4 +102,55 @@ class MenuStructureUiTest extends AbstractUiTest
 			return null;
 		});
 	}
+
+	@Test
+	@DisplayName("the view mode is no longer offered in the menu bar")
+	void theViewModeIsNoLongerOfferedInTheMenuBar() throws IOException
+	{
+		File databaseFile = new File(tempHome, "menu-structure-view-mode.mcrdb");
+		createDatabaseFileHeadless(databaseFile, MASTER_PASSWORD);
+		signInWithExistingDatabase(databaseFile, MASTER_PASSWORD).showMainFrame();
+
+		List<String> viewModeItems = GuiActionRunner.execute(() -> {
+			DesktopMenu menu = (DesktopMenu)MysticCryptApplicationFrame.getInstance().getMenu();
+			return namesUnder(menu.getMenubar()).stream()
+				.filter(name -> name.startsWith("global.menu.edit.view.mode")).toList();
+		});
+
+		assertTrue(viewModeItems.isEmpty(),
+			"the view mode moved into the settings but is still in the menu: " + viewModeItems);
+	}
+
+	/**
+	 * Every component name under the given container, nested menus included
+	 *
+	 * @param container
+	 *            the container to walk
+	 * @return the names, never null
+	 */
+	private static List<String> namesUnder(final java.awt.Container container)
+	{
+		List<String> names = new java.util.ArrayList<>();
+		if (container == null)
+		{
+			return names;
+		}
+		for (java.awt.Component child : container.getComponents())
+		{
+			if (child.getName() != null)
+			{
+				names.add(child.getName());
+			}
+			if (child instanceof javax.swing.JMenu menu)
+			{
+				names.addAll(namesUnder(menu.getPopupMenu()));
+			}
+			else if (child instanceof java.awt.Container nested)
+			{
+				names.addAll(namesUnder(nested));
+			}
+		}
+		return names;
+	}
+
 }
