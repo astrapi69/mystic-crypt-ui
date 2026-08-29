@@ -26,6 +26,7 @@ import java.security.PublicKey;
 import java.util.Date;
 
 import io.github.astrapi69.crypt.api.algorithm.key.KeyPairGeneratorAlgorithm;
+import io.github.astrapi69.crypt.api.key.KeyFileFormat;
 import io.github.astrapi69.crypt.api.key.KeyFormat;
 import io.github.astrapi69.crypt.api.key.KeySize;
 import io.github.astrapi69.mystic.crypt.key.PrivateKeyHexDecryptor;
@@ -76,6 +77,13 @@ public class GenerateKeysModelBean implements Serializable
 
 	/** The format a private key file is written in */
 	KeyFormat keyFormat;
+
+	/**
+	 * The encoding a saved file is written in. PEM by default: it is the text the key areas show,
+	 * and what most tools expect to be handed.
+	 */
+	@lombok.Builder.Default
+	KeyFileFormat saveFormat = KeyFileFormat.PEM;
 
 	PrivateKey privateKey;
 

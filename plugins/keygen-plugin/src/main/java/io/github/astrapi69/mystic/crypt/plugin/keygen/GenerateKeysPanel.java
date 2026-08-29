@@ -34,6 +34,7 @@ import java.util.logging.Level;
 import javax.swing.*;
 
 import io.github.astrapi69.crypt.api.algorithm.key.KeyPairGeneratorAlgorithm;
+import io.github.astrapi69.crypt.api.key.KeyFileFormat;
 import io.github.astrapi69.crypt.api.key.KeyFormat;
 import io.github.astrapi69.crypt.api.key.KeySize;
 import io.github.astrapi69.crypt.data.factory.KeyPairFactory;
@@ -69,6 +70,9 @@ public class GenerateKeysPanel extends BasePanel<GenerateKeysModelBean>
 	 */
 	private JMComboBox<String, ?> cmbCurve;
 	private JMComboBox<KeyFormat, ?> cmbKeyFormat;
+
+	/** PEM text or the binary encoding, for every file this window saves */
+	private JMComboBox<KeyFileFormat, ?> cmbSaveFormat;
 
 	private static final KeyPairGeneratorAlgorithm[] SUPPORTED_ALGORITHMS = {
 			KeyPairGeneratorAlgorithm.RSA, KeyPairGeneratorAlgorithm.EC,
@@ -308,6 +312,11 @@ public class GenerateKeysPanel extends BasePanel<GenerateKeysModelBean>
 		cmbCurve.setToolTipText("the curve an EC key sits on - a certificate or a wallet usually "
 			+ "requires one particular one");
 		cmbKeyFormat = new JMComboBox<>(KeygenSupport.keyFormats().toArray(new KeyFormat[0]));
+		cmbSaveFormat = new JMComboBox<>(
+			new KeyFileFormat[] { KeyFileFormat.PEM, KeyFileFormat.DER });
+		cmbSaveFormat.setName("cmbSaveFormat");
+		cmbSaveFormat.setToolTipText(
+			"the encoding every file this window saves is written in - PEM is text, DER is binary");
 		cmbKeyFormat.setName("cmbKeyFormat");
 		cmbKeyFormat.setRenderer(new javax.swing.DefaultListCellRenderer()
 		{
@@ -403,6 +412,8 @@ public class GenerateKeysPanel extends BasePanel<GenerateKeysModelBean>
 		cmbCurve.setPropertyModel(LambdaModel.of(modelObject::getCurve, modelObject::setCurve));
 		cmbKeyFormat.setPropertyModel(
 			LambdaModel.of(modelObject::getKeyFormat, modelObject::setKeyFormat));
+		cmbSaveFormat.setPropertyModel(
+			LambdaModel.of(modelObject::getSaveFormat, modelObject::setSaveFormat));
 	}
 
 	@Override
@@ -430,6 +441,8 @@ public class GenerateKeysPanel extends BasePanel<GenerateKeysModelBean>
 		choices.add(cmbCurve, ToolForm.FIELD);
 		choices.add(new javax.swing.JLabel("Private key file format:"));
 		choices.add(cmbKeyFormat, ToolForm.FIELD);
+		choices.add(new javax.swing.JLabel("Save as:"));
+		choices.add(cmbSaveFormat, ToolForm.FIELD);
 
 		JPanel workingAreas = new JPanel(new java.awt.GridLayout(2, 1, 0, 8));
 		workingAreas.add(cryptographyPanel);
@@ -453,8 +466,8 @@ public class GenerateKeysPanel extends BasePanel<GenerateKeysModelBean>
 		final int state = fileChooser.showSaveDialog(this);
 		if (state == JFileChooser.APPROVE_OPTION)
 		{
-			savePrivateKeyTo(
-				KeygenSupport.withEnding(fileChooser.getSelectedFile(), KeygenSupport.PEM_ENDING));
+			savePrivateKeyTo(KeygenSupport.withEnding(fileChooser.getSelectedFile(),
+				KeygenSupport.endingFor(getModelObject().getSaveFormat())));
 		}
 	}
 
@@ -469,7 +482,7 @@ public class GenerateKeysPanel extends BasePanel<GenerateKeysModelBean>
 		try
 		{
 			KeygenSupport.writePrivateKey(getModelObject().getPrivateKey(), file,
-				getModelObject().getKeyFormat());
+				getModelObject().getKeyFormat(), getModelObject().getSaveFormat());
 		}
 		catch (final Exception e)
 		{
@@ -542,6 +555,32 @@ public class GenerateKeysPanel extends BasePanel<GenerateKeysModelBean>
 	 * @param actionEvent
 	 *            the action event
 	 */
+	/**
+	 * Writes the generated public key to the given file, in the encoding the window is set to
+	 *
+	 * @param file
+	 *            the file to write to
+	 */
+	protected void savePublicKeyTo(final File file)
+	{
+		try
+		{
+			if (KeyFileFormat.DER.equals(getModelObject().getSaveFormat()))
+			{
+				PublicKeyWriter.write(getModelObject().getPublicKey(), file);
+				return;
+			}
+			PublicKeyWriter.writeInPemFormat(getModelObject().getPublicKey(), file);
+		}
+		catch (final Exception couldNotWriteTheKey)
+		{
+			log.log(Level.SEVERE, couldNotWriteTheKey.getLocalizedMessage(), couldNotWriteTheKey);
+			JOptionPane.showMessageDialog(this,
+				"The public key was not written: " + couldNotWriteTheKey.getMessage(),
+				"Saving the public key failed", JOptionPane.ERROR_MESSAGE);
+		}
+	}
+
 	protected void onSavePublicKey(final ActionEvent actionEvent)
 	{
 		final JFileChooser fileChooser = new JFileChooser();
@@ -550,10 +589,8 @@ public class GenerateKeysPanel extends BasePanel<GenerateKeysModelBean>
 		{
 			try
 			{
-				// as PEM, like the private key and the certificate this window writes: the same
-				// text form the key areas show, and what most tools expect to be handed
-				PublicKeyWriter.writeInPemFormat(getModelObject().getPublicKey(), KeygenSupport
-					.withEnding(fileChooser.getSelectedFile(), KeygenSupport.PEM_ENDING));
+				savePublicKeyTo(KeygenSupport.withEnding(fileChooser.getSelectedFile(),
+					KeygenSupport.endingFor(getModelObject().getSaveFormat())));
 			}
 			catch (final Exception ex)
 			{

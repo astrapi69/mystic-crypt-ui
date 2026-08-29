@@ -25,6 +25,7 @@
 package io.github.astrapi69.mystic.crypt.ui;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.File;
@@ -178,6 +179,33 @@ class KeygenSavesRealArtifactsUiTest extends AbstractUiTest
 		theSavedPrivateKeyIsTheKeyTheWindowGenerated(frame, onScreen);
 		thePasswordProtectedPrivateKeyOpensWithThatPassword(frame, onScreen);
 		theSavedCertificateCarriesTheGeneratedKey(frame, onScreen);
+		theChosenFormatIsWhatIsWritten(frame, onScreen);
+	}
+
+	/**
+	 * Choosing the binary encoding has to reach the file, and the ending has to say so: a name that
+	 * promises PEM over binary content is refused by whatever it is handed to next
+	 *
+	 * @param frame
+	 *            the application frame
+	 * @param onScreen
+	 *            the public key the window shows
+	 */
+	private void theChosenFormatIsWhatIsWritten(final FrameFixture frame, final PublicKey onScreen)
+		throws Exception
+	{
+		GuiActionRunner.execute(() -> frame.comboBox("cmbSaveFormat").target()
+			.setSelectedItem(io.github.astrapi69.crypt.api.key.KeyFileFormat.DER));
+		robot.waitForIdle();
+		File chosen = new File(tempHome, "saved-as-binary");
+		File expected = new File(tempHome, "saved-as-binary.der");
+
+		saveThrough(frame, "Save private key", chosen, expected);
+
+		assertFalse(
+			new String(java.nio.file.Files.readAllBytes(expected.toPath())).contains("PRIVATE KEY"),
+			"the file named .der holds PEM text");
+		assertTheyBelongTogether(PrivateKeyReader.readPrivateKey(expected), onScreen);
 	}
 
 	/** The plain private key file has to be the partner of the public key on screen */
