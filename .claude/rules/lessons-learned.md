@@ -62,6 +62,12 @@ a real legacy file, not through unit tests.)
 Every gitignored config that has a committed `.example`/template must be checked when
 the config schema changes — CI reads the example, developers read the real file.
 
+## `make test` is not the gate CI runs
+
+`test` compiles and runs tests; CI runs `build`, which also runs `spotlessJavaCheck`. A branch can
+be green locally through every test and still turn develop red on formatting alone. Before pushing,
+run the gate CI runs, not the one that is quicker.
+
 ## Run UI e2e tests locally with the Xvfb harness
 
 The full Swing e2e suite needs Xvfb + fluxbox + JDK 25 + `forkEvery=1`

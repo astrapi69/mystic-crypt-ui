@@ -306,7 +306,7 @@ public class SecretKeyTreeWithContentPanel
 		{
 			javax.swing.tree.TreeNode next = nodes.nextElement();
 			if (next instanceof DefaultMutableTreeNode swingNode
-				&& swingNode.getUserObject() instanceof BaseTreeNode<?, ?> treeNode)
+				&& swingNode.getUserObject()instanceof BaseTreeNode<?, ?> treeNode)
 			{
 				swingNode.setAllowsChildren(!treeNode.isLeaf());
 			}
