@@ -29,32 +29,41 @@ import java.io.File;
 import javax.swing.JButton;
 import javax.swing.JFileChooser;
 import javax.swing.JLabel;
-import javax.swing.JPanel;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
+import io.github.astrapi69.model.BaseModel;
 import io.github.astrapi69.model.LambdaModel;
+import io.github.astrapi69.model.api.IModel;
 import io.github.astrapi69.mystic.crypt.ui.form.ToolForm;
+import io.github.astrapi69.swing.base.BasePanel;
 import io.github.astrapi69.swing.model.component.JMCheckBox;
 import io.github.astrapi69.swing.model.component.JMPasswordField;
 import io.github.astrapi69.swing.model.component.JMTextField;
 import lombok.Getter;
 
 /**
- * Form for picking a source {@code .kdbx} file plus password/key-file credentials to import from
+ * Form for picking a source {@code .kdbx} file plus password/key-file credentials to import from.
+ * <p>
+ * Everything the user picks or types lives in a {@link KeePassPanelModel}; the components are bound
+ * to it and the import reads it there.
  */
 @Getter
-public class ImportKeePassPanel extends JPanel
+public class ImportKeePassPanel extends BasePanel<KeePassPanelModel>
 {
 
 	private static final long serialVersionUID = 1L;
 
-	/** Everything the user picked or typed; every component below writes into it */
-	private final transient KeePassPanelModel modelObject = new KeePassPanelModel();
+	private JMTextField txtFile;
 
-	private final JMTextField txtFile = new JMTextField(24);
-	private final JMPasswordField txtPassword = new JMPasswordField(24);
-	private final JMCheckBox cbxKeyFile = new JMCheckBox("Key File:");
-	private final JMTextField txtKeyFile = new JMTextField(24);
+	private JMPasswordField txtPassword;
+
+	private JMCheckBox cbxKeyFile;
+
+	private JMTextField txtKeyFile;
+
+	private JButton btnFile;
+
+	private JButton btnKeyFile;
 
 	public ImportKeePassPanel()
 	{
@@ -70,10 +79,32 @@ public class ImportKeePassPanel extends JPanel
 	 * @param lastKeyFilePath
 	 *            the last used key file path, or {@code null}
 	 */
-	public ImportKeePassPanel(String lastFilePath, String lastKeyFilePath)
+	public ImportKeePassPanel(final String lastFilePath, final String lastKeyFilePath)
 	{
-		JButton btnFile = new JButton("Browse...");
-		JButton btnKeyFile = new JButton("Browse...");
+		this(BaseModel.of(KeePassPanelModel.rememberingSource(lastFilePath, lastKeyFilePath)));
+	}
+
+	/**
+	 * Instantiates a new {@link ImportKeePassPanel} over the given model
+	 *
+	 * @param model
+	 *            what the panel is to show and write into
+	 */
+	public ImportKeePassPanel(final IModel<KeePassPanelModel> model)
+	{
+		super(model);
+	}
+
+	@Override
+	protected void onInitializeComponents()
+	{
+		super.onInitializeComponents();
+		txtFile = new JMTextField(24);
+		txtPassword = new JMPasswordField(24);
+		cbxKeyFile = new JMCheckBox("Key File:");
+		txtKeyFile = new JMTextField(24);
+		btnFile = new JButton("Browse...");
+		btnKeyFile = new JButton("Browse...");
 
 		bindComponents();
 
@@ -87,20 +118,8 @@ public class ImportKeePassPanel extends JPanel
 
 		txtFile.setEditable(false);
 		txtKeyFile.setEditable(false);
-		txtKeyFile.setEnabled(false);
-		btnKeyFile.setEnabled(false);
 
-		if (lastFilePath != null && new File(lastFilePath).exists())
-		{
-			txtFile.setText(lastFilePath);
-		}
-		if (lastKeyFilePath != null && new File(lastKeyFilePath).exists())
-		{
-			txtKeyFile.setText(lastKeyFilePath);
-			cbxKeyFile.setSelected(true);
-			txtKeyFile.setEnabled(true);
-			btnKeyFile.setEnabled(true);
-		}
+		showWhatTheModelHolds();
 
 		btnFile.addActionListener(event -> {
 			File pickedFile = getSelectedFile();
@@ -116,15 +135,7 @@ public class ImportKeePassPanel extends JPanel
 			}
 		});
 
-		cbxKeyFile.addActionListener(event -> {
-			boolean selected = cbxKeyFile.isSelected();
-			txtKeyFile.setEnabled(selected);
-			btnKeyFile.setEnabled(selected);
-			if (!selected)
-			{
-				txtKeyFile.setText("");
-			}
-		});
+		cbxKeyFile.addActionListener(event -> onCheckKeyFile());
 
 		btnKeyFile.addActionListener(event -> {
 			JFileChooser fileChooser = new JFileChooser();
@@ -134,7 +145,12 @@ public class ImportKeePassPanel extends JPanel
 				txtKeyFile.setText(fileChooser.getSelectedFile().getAbsolutePath());
 			}
 		});
+	}
 
+	@Override
+	protected void onInitializeLayout()
+	{
+		super.onInitializeLayout();
 		// one layout for every tool window: labels in a narrow right aligned column, the fields
 		// taking the width, each browse button next to the field it fills
 		setLayout(ToolForm.newLayout());
@@ -160,14 +176,49 @@ public class ImportKeePassPanel extends JPanel
 	 */
 	private void bindComponents()
 	{
-		txtFile
-			.setPropertyModel(LambdaModel.of(modelObject::getFilePath, modelObject::setFilePath));
-		txtPassword
-			.setPropertyModel(LambdaModel.of(modelObject::getPassword, modelObject::setPassword));
+		txtFile.setPropertyModel(
+			LambdaModel.of(() -> getModelObject().getFilePath(), getModelObject()::setFilePath));
+		txtPassword.setPropertyModel(
+			LambdaModel.of(() -> getModelObject().getPassword(), getModelObject()::setPassword));
 		cbxKeyFile.setPropertyModel(
-			LambdaModel.of(modelObject::isUseKeyFile, modelObject::setUseKeyFile));
-		txtKeyFile.setPropertyModel(
-			LambdaModel.of(modelObject::getKeyFilePath, modelObject::setKeyFilePath));
+			LambdaModel.of(() -> getModelObject().isUseKeyFile(), getModelObject()::setUseKeyFile));
+		txtKeyFile.setPropertyModel(LambdaModel.of(() -> getModelObject().getKeyFilePath(),
+			getModelObject()::setKeyFilePath));
+	}
+
+	/**
+	 * Puts what the model already holds on screen, for a panel that was opened with remembered
+	 * paths in it
+	 */
+	private void showWhatTheModelHolds()
+	{
+		KeePassPanelModel modelObject = getModelObject();
+		txtFile.setText(modelObject.getFilePath());
+		txtKeyFile.setText(modelObject.getKeyFilePath());
+		cbxKeyFile.setSelected(modelObject.isUseKeyFile());
+		toggleKeyFileComponents();
+	}
+
+	/**
+	 * The key file is only pickable while it is in use. What decides that is the model, not the
+	 * check box: the box writes into the model and the rest of the panel reads it there.
+	 */
+	protected void onCheckKeyFile()
+	{
+		getModelObject().setUseKeyFile(cbxKeyFile.isSelected());
+		if (!getModelObject().isUseKeyFile())
+		{
+			txtKeyFile.setText("");
+		}
+		toggleKeyFileComponents();
+	}
+
+	/** Puts the key file components in the state the model asks for */
+	private void toggleKeyFileComponents()
+	{
+		boolean useKeyFile = getModelObject().isUseKeyFile();
+		txtKeyFile.setEnabled(useKeyFile);
+		btnKeyFile.setEnabled(useKeyFile);
 	}
 
 	/**
@@ -177,7 +228,7 @@ public class ImportKeePassPanel extends JPanel
 	 */
 	public File getSelectedFile()
 	{
-		return modelObject.getFile();
+		return getModelObject().getFile();
 	}
 
 	/**
@@ -187,7 +238,7 @@ public class ImportKeePassPanel extends JPanel
 	 */
 	public File getSelectedKeyFile()
 	{
-		return modelObject.getKeyFile();
+		return getModelObject().getKeyFile();
 	}
 
 	/**
@@ -197,7 +248,7 @@ public class ImportKeePassPanel extends JPanel
 	 */
 	public char[] getPassword()
 	{
-		return modelObject.getPassword();
+		return getModelObject().getPassword();
 	}
 
 }

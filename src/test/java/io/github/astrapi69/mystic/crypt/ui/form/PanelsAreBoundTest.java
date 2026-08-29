@@ -42,6 +42,8 @@ import io.github.astrapi69.mystic.crypt.panel.certificate.NewCertificateInfoPane
 import io.github.astrapi69.mystic.crypt.panel.dbtree.AttachmentPanel;
 import io.github.astrapi69.mystic.crypt.panel.dbtree.MysticCryptEntryModelBean;
 import io.github.astrapi69.mystic.crypt.panel.dbtree.MysticCryptEntryPanel;
+import io.github.astrapi69.mystic.crypt.panel.keepass.ExportKeePassPanel;
+import io.github.astrapi69.mystic.crypt.panel.keepass.ImportKeePassPanel;
 import io.github.astrapi69.mystic.crypt.panel.keygen.EnDecryptPanel;
 import io.github.astrapi69.mystic.crypt.panel.properties.PropertiesNewEntryPanel;
 import io.github.astrapi69.mystic.crypt.panel.properties.PropertiesPanel;
@@ -106,6 +108,8 @@ class PanelsAreBoundTest
 				(Supplier<BasePanel<?>>)() -> new MysticCryptEntryPanel(BaseModel.of(anEntry()))),
 			Arguments.of("AttachmentPanel",
 				(Supplier<BasePanel<?>>)() -> new AttachmentPanel(BaseModel.of(anEntry()))),
+			Arguments.of("ImportKeePassPanel", (Supplier<BasePanel<?>>)ImportKeePassPanel::new),
+			Arguments.of("ExportKeePassPanel", (Supplier<BasePanel<?>>)ExportKeePassPanel::new),
 			Arguments.of("PropertiesPanel",
 				(Supplier<BasePanel<?>>)() -> new PropertiesPanel(BaseModel.of(anEntry()))));
 	}
