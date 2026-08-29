@@ -286,6 +286,48 @@ public final class KeygenSupport
 	 * @throws Exception
 	 *             if the key cannot be written in that format
 	 */
+	/**
+	 * The file ending that belongs to the given encoding
+	 *
+	 * @param saveFormat
+	 *            the encoding a file is written in
+	 * @return the ending, including the dot
+	 */
+	public static String endingFor(final KeyFileFormat saveFormat)
+	{
+		return KeyFileFormat.DER.equals(saveFormat) ? DER_ENDING : PEM_ENDING;
+	}
+
+	/**
+	 * Writes a private key in the given encoding, in the given structure
+	 *
+	 * @param privateKey
+	 *            the key to write
+	 * @param file
+	 *            the file to write it to
+	 * @param format
+	 *            PKCS#1 or PKCS#8
+	 * @param saveFormat
+	 *            PEM text or the binary encoding
+	 * @throws Exception
+	 *             if the key cannot be written that way
+	 */
+	public static void writePrivateKey(final PrivateKey privateKey, final File file,
+		final KeyFormat format, final KeyFileFormat saveFormat) throws Exception
+	{
+		if (KeyFileFormat.DER.equals(saveFormat))
+		{
+			// the binary encoding is the structure itself, so PKCS#8 or PKCS#1 is all there is to
+			// say about it
+			try (OutputStream out = Files.newOutputStream(file.toPath()))
+			{
+				PrivateKeyWriter.write(privateKey, out, KeyFileFormat.DER, format);
+			}
+			return;
+		}
+		writePrivateKey(privateKey, file, format);
+	}
+
 	public static void writePrivateKey(final PrivateKey privateKey, final File file,
 		final KeyFormat format) throws Exception
 	{
