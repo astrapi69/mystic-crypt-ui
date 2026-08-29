@@ -37,6 +37,7 @@ import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
 import lombok.experimental.FieldDefaults;
@@ -65,8 +66,12 @@ public class MasterPwFileModelBean implements Serializable
 	/** The currently selected key file path */
 	String selectedApplicationFilePath;
 
-	/** The key file paths for the combo box */
+	/**
+	 * The application file paths for the combo box, excluded from the identity for the reason given
+	 * on {@link #keyFilePaths}
+	 */
 	@Builder.Default
+	@EqualsAndHashCode.Exclude
 	List<String> applicationFilePaths = ListFactory.newArrayList("");
 
 	/** The model for the private key */
@@ -78,8 +83,15 @@ public class MasterPwFileModelBean implements Serializable
 	/** The currently selected key file path */
 	String selectedKeyFilePath;
 
-	/** The key file paths for the combo box */
+	/**
+	 * The key file paths for the combo box.
+	 * <p>
+	 * Left out of the identity of this bean on purpose: the dialog that holds the bean chains its
+	 * own hash code into it, and whatever hashes a window may do so from a thread that is not the
+	 * one filling this list, which walked a list while it grew.
+	 */
 	@Builder.Default
+	@EqualsAndHashCode.Exclude
 	List<String> keyFilePaths = ListFactory.newArrayList("");
 
 	/**
