@@ -23,7 +23,7 @@ repositories {
 // swing helpers are only needed to open the tool window
 dependencies {
     compileOnly "io.github.astrapi69:mystic-crypt-ui:8.2-SNAPSHOT"
-    compileOnly "io.github.astrapi69:mystic-crypt:12.1-SNAPSHOT"
+    compileOnly "io.github.astrapi69:mystic-crypt:12.1"
     compileOnly "io.github.astrapi69:swing-base-components:5.1"
     compileOnly "io.github.astrapi69:swing-components:9"
     // the tool window binds every component to its panel model, the host carries both at runtime
