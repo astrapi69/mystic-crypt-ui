@@ -24,25 +24,22 @@
  */
 package io.github.astrapi69.mystic.crypt.ui;
 
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.File;
 
-import javax.swing.JOptionPane;
-import javax.swing.SwingUtilities;
-
 import org.assertj.swing.edt.GuiActionRunner;
-import org.assertj.swing.finder.JOptionPaneFinder;
 import org.assertj.swing.fixture.FrameFixture;
-import org.assertj.swing.fixture.JOptionPaneFixture;
 import org.junit.jupiter.api.Test;
 
 import io.github.astrapi69.mystic.crypt.TestPasswords;
 
 /**
  * Negative-path end-to-end test of the keygen plugin's modern-algorithm branch: after generating a
- * non-RSA (X25519) key pair, the hex Encrypt/Decrypt demo does not apply, so pressing Encrypt must
- * pop an information dialog rather than throw. Drives that guard through the real UI.
+ * non-RSA (X25519) key pair, the hex Encrypt/Decrypt demo does not apply. The buttons must then be
+ * out of reach and carry the reason, so the click that leads nowhere never happens. Drives that
+ * through the real UI.
  */
 class KeygenEncryptUnavailableUiTest extends AbstractUiTest
 {
@@ -50,7 +47,7 @@ class KeygenEncryptUnavailableUiTest extends AbstractUiTest
 	private static final String MASTER_PASSWORD = TestPasswords.throwaway();
 
 	@Test
-	void encryptOnANonRsaKeyShowsAnInformationDialog() throws Exception
+	void encryptOnANonRsaKeyIsOutOfReachAndSaysWhy() throws Exception
 	{
 		installPluginRequiringItBuilt(KEYGEN_ZIP);
 
@@ -68,22 +65,16 @@ class KeygenEncryptUnavailableUiTest extends AbstractUiTest
 		GuiActionRunner.execute(() -> frame.button("btnGenerate").target().doClick());
 		robot.waitForIdle();
 
-		// give the Encrypt button some text so it is enabled, then press it. The click opens a
-		// modal
-		// dialog, so trigger it off the test thread (invokeLater) and find the dialog separately.
+		// text alone used to be enough to enable the button; the algorithm has the last word now
 		GuiActionRunner.execute(() -> frame.textBox("txtToEncrypt").target().setText("anything"));
 		robot.waitForIdle();
-		SwingUtilities.invokeLater(() -> frame.button("btnEncrypt").target().doClick());
 
-		JOptionPaneFixture optionPane = JOptionPaneFinder.findOptionPane().withTimeout(5000)
-			.using(robot);
-		String message = GuiActionRunner
-			.execute(() -> String.valueOf(optionPane.target().getMessage()));
-		assertTrue(message.contains("RSA"),
-			"the guard dialog must explain that encrypt/decrypt is RSA-only, was: " + message);
-
-		// close the dialog locale-independently (the OK button label is localized)
-		GuiActionRunner.execute(() -> optionPane.target().setValue(JOptionPane.CLOSED_OPTION));
-		robot.waitForIdle();
+		assertFalse(GuiActionRunner.execute(() -> frame.button("btnEncrypt").target().isEnabled()),
+			"encrypt offered itself for an algorithm it cannot serve");
+		String reason = GuiActionRunner
+			.execute(() -> frame.button("btnEncrypt").target().getToolTipText());
+		assertTrue(reason != null && reason.contains("RSA"),
+			"the button that is out of reach must explain that this demo is RSA-only, was: "
+				+ reason);
 	}
 }
