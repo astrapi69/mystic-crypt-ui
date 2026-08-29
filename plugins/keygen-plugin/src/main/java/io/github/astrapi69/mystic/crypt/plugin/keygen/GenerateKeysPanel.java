@@ -550,8 +550,10 @@ public class GenerateKeysPanel extends BasePanel<GenerateKeysModelBean>
 		{
 			try
 			{
-				PublicKeyWriter.write(getModelObject().getPublicKey(), KeygenSupport
-					.withEnding(fileChooser.getSelectedFile(), KeygenSupport.DER_ENDING));
+				// as PEM, like the private key and the certificate this window writes: the same
+				// text form the key areas show, and what most tools expect to be handed
+				PublicKeyWriter.writeInPemFormat(getModelObject().getPublicKey(), KeygenSupport
+					.withEnding(fileChooser.getSelectedFile(), KeygenSupport.PEM_ENDING));
 			}
 			catch (final Exception ex)
 			{
