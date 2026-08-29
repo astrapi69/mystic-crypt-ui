@@ -171,6 +171,8 @@ public class ImportKeePassDatabaseAction extends AbstractAction
 		importedNode.getValue().setName("Imported from " + sourceFileName);
 
 		DefaultMutableTreeNode newRootNode = BaseTreeNodeFactory.newDefaultMutableTreeNode(root);
+		// an imported tree is built by the same factory, so it needs the same correction
+		SecretKeyTreeWithContentPanel.letTheModelDecideWhatIsALeaf(newRootNode);
 		treePanel.getTree().setModel(new DefaultTreeModel(newRootNode, true));
 
 		Map<Long, TreeIdNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long>> updatedTreeAsMap = BaseTreeNodeTransformer
