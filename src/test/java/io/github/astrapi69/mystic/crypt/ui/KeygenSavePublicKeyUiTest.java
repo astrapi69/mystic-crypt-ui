@@ -24,6 +24,8 @@
  */
 package io.github.astrapi69.mystic.crypt.ui;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.File;
@@ -59,6 +61,7 @@ class KeygenSavePublicKeyUiTest extends AbstractUiTest
 
 		File databaseFile = new File(tempHome, "keygen-save-database.mcrdb");
 		createDatabaseFileHeadless(databaseFile, MASTER_PASSWORD);
+		File chosen = new File(tempHome, "generated-public-key");
 		File publicKeyFile = new File(tempHome, "generated-public-key.pem");
 
 		ApplicationSteps application = signInWithExistingDatabase(databaseFile, MASTER_PASSWORD);
@@ -75,7 +78,7 @@ class KeygenSavePublicKeyUiTest extends AbstractUiTest
 		JFileChooser fileChooser = JFileChooserFinder.findFileChooser()
 			.withTimeout(10, TimeUnit.SECONDS).using(robot).target();
 		SwingUtilities.invokeLater(() -> {
-			fileChooser.setSelectedFile(publicKeyFile);
+			fileChooser.setSelectedFile(chosen);
 			fileChooser.approveSelection();
 		});
 		robot.waitForIdle();
@@ -88,7 +91,13 @@ class KeygenSavePublicKeyUiTest extends AbstractUiTest
 				return publicKeyFile.exists() && publicKeyFile.length() > 0;
 			}
 		}, 10000);
-		assertTrue(publicKeyFile.exists() && publicKeyFile.length() > 0,
-			"saving the public key must produce a non-empty file on disk");
+		assertTrue(publicKeyFile.exists(),
+			"the window did not give the saved public key the ending its content calls for");
+		assertEquals(
+			GuiActionRunner.execute(() -> frame.textBox("txtPublicKey").target().getText()).trim(),
+			java.nio.file.Files.readString(publicKeyFile.toPath()).trim(),
+			"what was written is not the key the window shows");
+		assertNotNull(io.github.astrapi69.crypt.data.key.reader.PublicKeyReader
+			.readPemPublicKey(publicKeyFile), "the saved public key cannot be read back as PEM");
 	}
 }

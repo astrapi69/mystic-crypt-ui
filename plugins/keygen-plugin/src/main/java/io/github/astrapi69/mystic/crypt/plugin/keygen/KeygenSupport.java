@@ -50,6 +50,7 @@ import io.github.astrapi69.crypt.data.key.writer.CertificateWriter;
 import io.github.astrapi69.crypt.data.key.writer.PrivateKeyWriter;
 import io.github.astrapi69.mystic.crypt.wizard.CertificateInfoModelToX509;
 import io.github.astrapi69.mystic.crypt.wizard.model.CertificateInfoModel;
+import io.github.astrapi69.mystic.crypt.wizard.model.DistinguishedNameInfoModel;
 import io.github.astrapi69.mystic.crypt.wizard.model.KeyInfoModel;
 import io.github.astrapi69.mystic.crypt.wizard.model.ValidityModel;
 import io.github.astrapi69.random.number.RandomByteFactory;
@@ -186,6 +187,35 @@ public final class KeygenSupport
 		return Base64.getEncoder().encodeToString(bytes);
 	}
 
+	/** What a file holding PEM text is called */
+	public static final String PEM_ENDING = ".pem";
+
+	/** What a file holding the binary encoding is called */
+	public static final String DER_ENDING = ".der";
+
+	/**
+	 * The given file with the given ending, added when it is not already there.
+	 * <p>
+	 * The endings are not decoration: this window writes PEM text for a plain private key and a
+	 * certificate, and the binary encoding for a public key and for a password protected private
+	 * key. A file named after the wrong one is refused by whatever it is handed to next.
+	 *
+	 * @param file
+	 *            the file the user picked
+	 * @param ending
+	 *            the ending the written content calls for
+	 * @return the file to write to
+	 */
+	public static File withEnding(final File file, final String ending)
+	{
+		String name = file.getName();
+		// a name that already carries an ending is left as it is, whatever the ending: someone who
+		// types one means it, and turning "key.pem" into "key.pem.der" helps nobody
+		return 0 < name.lastIndexOf('.')
+			? file
+			: new File(file.getParentFile(), name + ending);
+	}
+
 	/**
 	 * Describes the certificate that fits the given key pair: the two keys, a serial, one year of
 	 * validity from now and the signature algorithm the private key can actually produce.
@@ -199,11 +229,19 @@ public final class KeygenSupport
 	 *            the private key that signs it
 	 * @return the description, ready to be completed with issuer and subject
 	 */
+	/** What the certificate is issued to and by when the user does not say otherwise */
+	public static final String DEFAULT_COMMON_NAME = "mystic-crypt";
+
 	public static CertificateInfoModel newCertificateInfo(final PublicKey publicKey,
 		final PrivateKey privateKey)
 	{
 		ZonedDateTime now = ZonedDateTime.now();
-		return CertificateInfoModel.builder()
+		// issuer and subject are filled in rather than left open: this is a self signed certificate
+		// for a key that was just generated, and pressing OK without typing a name used to end in a
+		// null pointer instead of a certificate
+		DistinguishedNameInfoModel name = DistinguishedNameInfoModel.builder()
+			.commonName(DEFAULT_COMMON_NAME).build();
+		return CertificateInfoModel.builder().issuer(name).subject(name)
 			.publicKeyInfo(KeyInfoModel.toKeyInfoModel(KeyInfoExtensions.toKeyInfo(publicKey)))
 			.privateKeyInfo(KeyInfoModel.toKeyInfoModel(KeyInfoExtensions.toKeyInfo(privateKey)))
 			.serial(BigInteger.ONE)

@@ -419,15 +419,25 @@ public class GenerateKeysPanel extends BasePanel<GenerateKeysModelBean>
 	 */
 	protected void onInitializeMigLayout()
 	{
-		setLayout(ToolForm.newLayout());
-		add(lblAlgorithm);
-		add(cmbAlgorithm, ToolForm.FIELD);
-		add(new javax.swing.JLabel("Curve (EC):"));
-		add(cmbCurve, ToolForm.FIELD);
-		add(new javax.swing.JLabel("Private key file format:"));
-		add(cmbKeyFormat, ToolForm.FIELD);
-		add(cryptographyPanel, ToolForm.GROWING);
-		add(enDecryptPanel, ToolForm.WIDE);
+		// the three choices in a form at the top, the two working areas below it in a region that
+		// always takes the rest of the window: letting the form's own column arithmetic size the
+		// nested panels made them shrink to their preferred width the first time the window was
+		// laid out again, which is the form moving while it is being used
+		JPanel choices = new JPanel(ToolForm.newLayout());
+		choices.add(lblAlgorithm);
+		choices.add(cmbAlgorithm, ToolForm.FIELD);
+		choices.add(new javax.swing.JLabel("Curve (EC):"));
+		choices.add(cmbCurve, ToolForm.FIELD);
+		choices.add(new javax.swing.JLabel("Private key file format:"));
+		choices.add(cmbKeyFormat, ToolForm.FIELD);
+
+		JPanel workingAreas = new JPanel(new java.awt.GridLayout(2, 1, 0, 8));
+		workingAreas.add(cryptographyPanel);
+		workingAreas.add(enDecryptPanel);
+
+		setLayout(new java.awt.BorderLayout(0, 8));
+		add(choices, java.awt.BorderLayout.NORTH);
+		add(workingAreas, java.awt.BorderLayout.CENTER);
 	}
 
 	/**
@@ -443,7 +453,8 @@ public class GenerateKeysPanel extends BasePanel<GenerateKeysModelBean>
 		final int state = fileChooser.showSaveDialog(this);
 		if (state == JFileChooser.APPROVE_OPTION)
 		{
-			savePrivateKeyTo(fileChooser.getSelectedFile());
+			savePrivateKeyTo(
+				KeygenSupport.withEnding(fileChooser.getSelectedFile(), KeygenSupport.PEM_ENDING));
 		}
 	}
 
@@ -511,7 +522,9 @@ public class GenerateKeysPanel extends BasePanel<GenerateKeysModelBean>
 				final int state = fileChooser.showSaveDialog(this);
 				if (state == JFileChooser.APPROVE_OPTION)
 				{
-					savePrivateKeyWithPasswordTo(fileChooser.getSelectedFile(), password);
+					savePrivateKeyWithPasswordTo(KeygenSupport
+						.withEnding(fileChooser.getSelectedFile(), KeygenSupport.DER_ENDING),
+						password);
 				}
 			}
 			else
@@ -537,8 +550,10 @@ public class GenerateKeysPanel extends BasePanel<GenerateKeysModelBean>
 		{
 			try
 			{
-				PublicKeyWriter.write(getModelObject().getPublicKey(),
-					fileChooser.getSelectedFile());
+				// as PEM, like the private key and the certificate this window writes: the same
+				// text form the key areas show, and what most tools expect to be handed
+				PublicKeyWriter.writeInPemFormat(getModelObject().getPublicKey(), KeygenSupport
+					.withEnding(fileChooser.getSelectedFile(), KeygenSupport.PEM_ENDING));
 			}
 			catch (final Exception ex)
 			{
