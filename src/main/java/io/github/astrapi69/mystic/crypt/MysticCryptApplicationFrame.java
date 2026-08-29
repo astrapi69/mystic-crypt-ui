@@ -40,7 +40,6 @@ import org.pf4j.DefaultPluginManager;
 import org.pf4j.PluginManager;
 import org.pf4j.PluginWrapper;
 
-import io.github.astrapi69.awt.screen.ScreenSizeExtensions;
 import io.github.astrapi69.awt.window.adapter.CloseWindow;
 import io.github.astrapi69.file.create.DirectoryFactory;
 import io.github.astrapi69.file.read.ReadFileExtensions;
@@ -59,6 +58,7 @@ import io.github.astrapi69.mystic.crypt.panel.signin.MemoizedSigninModelBean;
 import io.github.astrapi69.mystic.crypt.plugin.api.PluginMenuContribution;
 import io.github.astrapi69.mystic.crypt.settings.GeneralSettingsPanel;
 import io.github.astrapi69.mystic.crypt.settings.MysticCryptSettings;
+import io.github.astrapi69.mystic.crypt.ui.screen.ScreenPlacement;
 import io.github.astrapi69.swing.base.ApplicationPanelFrame;
 import io.github.astrapi69.swing.base.BasePanel;
 import io.github.astrapi69.swing.button.builder.JButtonInfo;
@@ -156,6 +156,12 @@ public class MysticCryptApplicationFrame extends ApplicationPanelFrame<Applicati
 		this.idGenerator = idGenerator;
 	}
 
+	/**
+	 * The screen the sign-in dialog was shown on, which is the screen this window opens on. Null
+	 * until the dialog has been shown.
+	 */
+	private transient java.awt.GraphicsConfiguration signinScreen;
+
 	protected void showMasterPwDialog()
 	{
 		File configurationDirectory = getConfigurationDirectory();
@@ -183,6 +189,7 @@ public class MysticCryptApplicationFrame extends ApplicationPanelFrame<Applicati
 			.decorate(() -> LookAndFeels.setLookAndFeel(LookAndFeels.NIMBUS, dialog));
 		dialog.setSize(920, 380);
 		dialog.setVisible(true);
+		signinScreen = dialog.getGraphicsConfiguration();
 	}
 
 	protected void showSplashScreen()
@@ -303,7 +310,10 @@ public class MysticCryptApplicationFrame extends ApplicationPanelFrame<Applicati
 		// apply a persisted look-and-feel choice on top of the Nimbus default
 		GeneralSettingsPanel.applyLookAndFeel(
 			MysticCryptSettings.load(getConfigurationDirectory()).getLookAndFeel());
-		this.setSize(ScreenSizeExtensions.getScreenWidth(), ScreenSizeExtensions.getScreenHeight());
+		// the sign-in dialog has already been on screen at this point, and the screen it was on is
+		// the one the user is sitting in front of - filling the first screen instead is how the
+		// application used to open somewhere else entirely on a desk with two monitors
+		ScreenPlacement.fillScreen(this, signinScreen);
 		onEnableMenu();
 		onWindowClosing();
 	}

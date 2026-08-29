@@ -29,8 +29,8 @@ import java.awt.event.ActionEvent;
 
 import javax.swing.*;
 
-import io.github.astrapi69.awt.screen.ScreenSizeExtensions;
 import io.github.astrapi69.model.api.IModel;
+import io.github.astrapi69.mystic.crypt.ui.screen.ScreenPlacement;
 import io.github.astrapi69.swing.base.PanelDialog;
 
 public class GeneratePasswordDialog extends PanelDialog<GeneratePasswordModelBean>
@@ -39,7 +39,7 @@ public class GeneratePasswordDialog extends PanelDialog<GeneratePasswordModelBea
 		IModel<GeneratePasswordModelBean> model)
 	{
 		super(owner, title, modal, model);
-		ScreenSizeExtensions.centralize(this, 3, 3);
+		ScreenPlacement.centerOnScreenOf(this, owner);
 	}
 
 	protected JPanel newContent(IModel<GeneratePasswordModelBean> model)

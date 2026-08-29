@@ -29,11 +29,11 @@ import java.awt.event.ActionEvent;
 
 import javax.swing.*;
 
-import io.github.astrapi69.awt.screen.ScreenSizeExtensions;
 import io.github.astrapi69.awt.window.adapter.CloseWindow;
 import io.github.astrapi69.crypt.api.key.KeySize;
 import io.github.astrapi69.model.BaseModel;
 import io.github.astrapi69.model.api.IModel;
+import io.github.astrapi69.mystic.crypt.ui.screen.ScreenPlacement;
 import io.github.astrapi69.swing.base.PanelDialog;
 
 public class NewPrivateKeyFileDialog extends PanelDialog<NewPrivateKeyModelBean>
@@ -42,7 +42,7 @@ public class NewPrivateKeyFileDialog extends PanelDialog<NewPrivateKeyModelBean>
 		IModel<NewPrivateKeyModelBean> model)
 	{
 		super(owner, title, modal, model);
-		ScreenSizeExtensions.centralize(this, 3, 3);
+		ScreenPlacement.centerOnScreenOf(this, owner);
 	}
 
 	/**
@@ -58,7 +58,7 @@ public class NewPrivateKeyFileDialog extends PanelDialog<NewPrivateKeyModelBean>
 		NewPrivateKeyFileDialog dialog = new NewPrivateKeyFileDialog(null,
 			"NewPrivateKeyFileDialog", true, model);
 		dialog.addWindowListener(new CloseWindow());
-		ScreenSizeExtensions.centralize(dialog, 3, 3);
+		ScreenPlacement.centerOnScreenOf(dialog, dialog.getOwner());
 		dialog.setSize(950, 560);
 		dialog.setVisible(true);
 	}
