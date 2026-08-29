@@ -48,6 +48,7 @@ import io.github.astrapi69.mystic.crypt.panel.keygen.EnDecryptPanel;
 import io.github.astrapi69.mystic.crypt.panel.properties.PropertiesNewEntryPanel;
 import io.github.astrapi69.mystic.crypt.panel.properties.PropertiesPanel;
 import io.github.astrapi69.mystic.crypt.panel.pw.GeneratePasswordPanel;
+import io.github.astrapi69.mystic.crypt.panel.search.SearchToolbarPanel;
 import io.github.astrapi69.mystic.crypt.wizard.model.CertificateInfoModel;
 import io.github.astrapi69.mystic.crypt.wizard.model.DistinguishedNameInfoModel;
 import io.github.astrapi69.mystic.crypt.wizard.model.ValidityModel;
@@ -108,6 +109,7 @@ class PanelsAreBoundTest
 				(Supplier<BasePanel<?>>)() -> new MysticCryptEntryPanel(BaseModel.of(anEntry()))),
 			Arguments.of("AttachmentPanel",
 				(Supplier<BasePanel<?>>)() -> new AttachmentPanel(BaseModel.of(anEntry()))),
+			Arguments.of("SearchToolbarPanel", (Supplier<BasePanel<?>>)SearchToolbarPanel::new),
 			Arguments.of("ImportKeePassPanel", (Supplier<BasePanel<?>>)ImportKeePassPanel::new),
 			Arguments.of("ExportKeePassPanel", (Supplier<BasePanel<?>>)ExportKeePassPanel::new),
 			Arguments.of("PropertiesPanel",

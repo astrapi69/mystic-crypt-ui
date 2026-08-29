@@ -35,7 +35,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
 
-import javax.swing.JButton;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
@@ -560,10 +559,8 @@ public class DesktopMenu extends BaseDesktopMenu implements EventListener<EventO
 		);
 		ApplicationToolbar toolBar = (ApplicationToolbar) MysticCryptApplicationFrame.getInstance().getToolBar();
 		if(toolBar != null) {
-			Set<JButton> allButtonElements = toolBar.getToolbarButtons();
-			allButtonElements.forEach(jButton -> {
-				jButton.setEnabled(!disabledToolBarMenus.contains(jButton.getName()));
-			});
+			toolBar.getToolbarItems().forEach(toolbarItem -> toolbarItem
+				.setEnabled(!disabledToolBarMenus.contains(toolbarItem.getName())));
 		}
 	}
 	
@@ -589,10 +586,8 @@ public class DesktopMenu extends BaseDesktopMenu implements EventListener<EventO
 
 		);
 		ApplicationToolbar toolBar = (ApplicationToolbar) MysticCryptApplicationFrame.getInstance().getToolBar();
-		Set<JButton> allButtonElements = toolBar.getToolbarButtons();
-		allButtonElements.forEach(jButton -> {
-			jButton.setEnabled(!disabledToolBarMenus.contains(jButton.getName()));
-		});
+		toolBar.getToolbarItems().forEach(toolbarItem -> toolbarItem
+			.setEnabled(!disabledToolBarMenus.contains(toolbarItem.getName())));
 	}
 
 	public Map<String, Boolean> getEnabledMenuIdsWithEmptyModel() {
@@ -673,10 +668,10 @@ public class DesktopMenu extends BaseDesktopMenu implements EventListener<EventO
 
 		ApplicationToolbar toolBar = (ApplicationToolbar) MysticCryptApplicationFrame.getInstance().getToolBar();
 
-		Set<JButton> allButtonElements = toolBar.getToolbarButtons();
-		allButtonElements.forEach(jButton -> {
-			if(saveToolBarMenus.contains(jButton.getName())) {
-				jButton.setEnabled(RenderMode.EDITABLE.equals(renderMode));
+		toolBar.getToolbarItems().forEach(toolbarItem -> {
+			if (saveToolBarMenus.contains(toolbarItem.getName()))
+			{
+				toolbarItem.setEnabled(RenderMode.EDITABLE.equals(renderMode));
 			}
 		});
 		JMenuBar menubar = getMenubar();
