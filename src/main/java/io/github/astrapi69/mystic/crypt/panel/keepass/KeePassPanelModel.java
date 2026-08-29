@@ -154,6 +154,77 @@ public class KeePassPanelModel
 	}
 
 	/**
+	 * What the import form starts with when it remembers where it was last pointed.
+	 * <p>
+	 * The source has to exist: a remembered path whose file has since been deleted or moved is not
+	 * offered again, because importing from it would fail at the first read.
+	 *
+	 * @param lastFilePath
+	 *            the last used KeePass file path, or null
+	 * @param lastKeyFilePath
+	 *            the last used key file path, or null
+	 * @return the model the form starts on
+	 */
+	public static KeePassPanelModel rememberingSource(final String lastFilePath,
+		final String lastKeyFilePath)
+	{
+		KeePassPanelModel model = new KeePassPanelModel();
+		if (exists(lastFilePath))
+		{
+			model.setFilePath(lastFilePath);
+		}
+		rememberKeyFile(model, lastKeyFilePath);
+		return model;
+	}
+
+	/**
+	 * What the export form starts with when it remembers where it last wrote.
+	 * <p>
+	 * The destination is taken as it is: it is where the file is going to be written, so it does
+	 * not have to exist yet.
+	 *
+	 * @param lastFilePath
+	 *            the last used destination path, or null
+	 * @param lastKeyFilePath
+	 *            the last used key file path, or null
+	 * @return the model the form starts on
+	 */
+	public static KeePassPanelModel rememberingDestination(final String lastFilePath,
+		final String lastKeyFilePath)
+	{
+		KeePassPanelModel model = new KeePassPanelModel();
+		if (lastFilePath != null && !lastFilePath.isBlank())
+		{
+			model.setFilePath(lastFilePath);
+		}
+		rememberKeyFile(model, lastKeyFilePath);
+		return model;
+	}
+
+	/**
+	 * Takes over a remembered key file, and switches the key file on with it, when it is still
+	 * there
+	 *
+	 * @param model
+	 *            the model to fill
+	 * @param lastKeyFilePath
+	 *            the last used key file path, or null
+	 */
+	private static void rememberKeyFile(final KeePassPanelModel model, final String lastKeyFilePath)
+	{
+		if (exists(lastKeyFilePath))
+		{
+			model.setKeyFilePath(lastKeyFilePath);
+			model.setUseKeyFile(true);
+		}
+	}
+
+	private static boolean exists(final String path)
+	{
+		return path != null && !path.isBlank() && new File(path).exists();
+	}
+
+	/**
 	 * The file a path points at, or null when there is no path - an unset path is what "nothing
 	 * picked" looks like in this form, and the callers act on the null, not on an empty string
 	 *
