@@ -26,6 +26,7 @@ package io.github.astrapi69.mystic.crypt.panel.dbtree;
 
 import static org.openqa.selenium.support.ui.ExpectedConditions.elementToBeClickable;
 
+import java.awt.event.ActionEvent;
 import java.awt.event.MouseEvent;
 import java.io.Serial;
 import java.net.MalformedURLException;
@@ -40,6 +41,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 
 import javax.swing.*;
 import javax.swing.tree.DefaultMutableTreeNode;
@@ -267,6 +269,104 @@ public class SecretKeyTreeWithContentPanel
 		BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> root = getModelObject()
 			.getRoot();
 		getTblTreeEntryTable().setModel(newTableModel(root));
+		onInitializeKeyboardShortcuts();
+	}
+
+	/**
+	 * The keyboard shortcuts of the tree and the entries table, the set a KeePass user expects.
+	 * <p>
+	 * A key press acts on the SELECTED node - the popup menu acts on the node under the click, and
+	 * the two resolve differently on purpose: a click has coordinates, a key press has none. Both
+	 * end in the same seam methods, so what a shortcut does and what the menu item does can never
+	 * drift apart.
+	 * <p>
+	 * On the entries table, control C copies the entry's password and control B its user name, the
+	 * way KeePass has it - which deliberately replaces the table's built-in copy of the visible
+	 * cell text.
+	 */
+	protected void onInitializeKeyboardShortcuts()
+	{
+		installTreeShortcut("DELETE", "deleteSelectedNode", this::onDeleteSelectedTreeNode);
+		installTreeShortcut("F2", "editSelectedNode", this::onEditSelectedTreeNode);
+		installTreeShortcut("control K", "duplicateSelectedNode",
+			this::onDuplicateSelectedTreeNode);
+		installTreeShortcut("INSERT", "addChildToSelectedNode", this::addChildTreeNode);
+		installTreeShortcut("alt UP", "moveSelectedNodeUp",
+			selectedNode -> onMoveSelectedTreeNode(selectedNode, -1));
+		installTreeShortcut("alt DOWN", "moveSelectedNodeDown",
+			selectedNode -> onMoveSelectedTreeNode(selectedNode, 1));
+
+		installTableShortcut("control B", "copyUsernameOfSelectedEntry",
+			this::onCopyUsernameTableEntry);
+		installTableShortcut("control C", "copyPasswordOfSelectedEntry",
+			this::onCopyPasswordTableEntry);
+		installTableShortcut("ENTER", "editSelectedEntry", this::onEditTableEntry);
+		installTableShortcut("DELETE", "deleteSelectedEntries", this::onDeleteTableEntry);
+		installTableShortcut("INSERT", "addEntryUnderSelectedNode", this::onAddTableEntry);
+	}
+
+	/**
+	 * Binds the given key on the tree to the given action over the selected node. Without a
+	 * selection, or with the hidden root selected, the key does nothing - a key press must never
+	 * guess a node the way a click never has to.
+	 *
+	 * @param keyStroke
+	 *            the key, in {@link KeyStroke#getKeyStroke(String)} form
+	 * @param actionKey
+	 *            the name the binding is registered under
+	 * @param action
+	 *            what to do with the selected node
+	 */
+	protected void installTreeShortcut(final String keyStroke, final String actionKey,
+		final Consumer<DefaultMutableTreeNode> action)
+	{
+		tree.getInputMap(JComponent.WHEN_FOCUSED).put(KeyStroke.getKeyStroke(keyStroke), actionKey);
+		tree.getActionMap().put(actionKey, new AbstractAction()
+		{
+			@Override
+			public void actionPerformed(final ActionEvent actionEvent)
+			{
+				if (tree
+					.getLastSelectedPathComponent()instanceof DefaultMutableTreeNode selectedNode
+					&& !selectedNode.isRoot())
+				{
+					action.accept(selectedNode);
+				}
+			}
+		});
+	}
+
+	/**
+	 * Binds the given key on the entries table to the given action. The action only runs while the
+	 * table has a selection AND a node is selected in the tree: the entry operations resolve the
+	 * node the entries belong to, and without one they would have to guess.
+	 *
+	 * @param keyStroke
+	 *            the key, in {@link KeyStroke#getKeyStroke(String)} form
+	 * @param actionKey
+	 *            the name the binding is registered under
+	 * @param action
+	 *            what to do
+	 */
+	protected void installTableShortcut(final String keyStroke, final String actionKey,
+		final Runnable action)
+	{
+		getTblTreeEntryTable().getInputMap(JComponent.WHEN_FOCUSED)
+			.put(KeyStroke.getKeyStroke(keyStroke), actionKey);
+		getTblTreeEntryTable().getActionMap().put(actionKey, new AbstractAction()
+		{
+			@Override
+			public void actionPerformed(final ActionEvent actionEvent)
+			{
+				boolean aNodeIsSelected = tree
+					.getLastSelectedPathComponent()instanceof DefaultMutableTreeNode selectedNode
+					&& !selectedNode.isRoot();
+				if (aNodeIsSelected && 0 < getTblTreeEntryTable().getSelectedRows().length)
+				{
+					action.run();
+				}
+			}
+		});
 	}
 
 	@Override
@@ -428,108 +528,119 @@ public class SecretKeyTreeWithContentPanel
 	 * The callback method on duplicate a tree node
 	 */
 	@SuppressWarnings("unchecked")
-	protected void onDuplicateSelectedTreeNode(MouseEvent mouseEvent)
+	protected void onDuplicateSelectedTreeNode(final MouseEvent mouseEvent)
 	{
 		JTreeExtensions.getSelectedDefaultMutableTreeNode(mouseEvent, tree)
-			.ifPresent(selectedDefaultMutableTreeNode -> {
-				// get the selected tree node from the DefaultMutableTreeNode
-				BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> selectedTreeNode = (BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long>)selectedDefaultMutableTreeNode
-					.getUserObject();
-				// declare a visitor for reindex the new tree nodes
-				ReindexTreeNodeVisitor<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long, BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long>> reindexTreeNodeVisitor;
+			.ifPresent(selectedDefaultMutableTreeNode -> onDuplicateSelectedTreeNode(
+				selectedDefaultMutableTreeNode));
+	}
 
-				// declare a visitor for find the maximum index
-				MaxIndexFinderTreeNodeVisitor<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long, BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long>> maxIndexFinderTreeNodeVisitor;
+	/**
+	 * Duplicates the given node with its whole subtree, after asking for the copy's name. This is
+	 * the seam the mouse path and the keyboard path share: the popup resolves its node by where the
+	 * click landed, a key press resolves it from the selection, and both end here.
+	 *
+	 * @param selectedDefaultMutableTreeNode
+	 *            the node to act on
+	 */
+	protected void onDuplicateSelectedTreeNode(
+		final DefaultMutableTreeNode selectedDefaultMutableTreeNode)
+	{
+		// get the selected tree node from the DefaultMutableTreeNode
+		BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> selectedTreeNode = (BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long>)selectedDefaultMutableTreeNode
+			.getUserObject();
+		// declare a visitor for reindex the new tree nodes
+		ReindexTreeNodeVisitor<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long, BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long>> reindexTreeNodeVisitor;
 
-				Long maxIndex;
-				long nextId;
-				// implement the visitor for find the max index
-				maxIndexFinderTreeNodeVisitor = new MaxIndexFinderTreeNodeVisitor<>()
-				{
-					@Override
-					public boolean isGreater(Long id)
-					{
-						return getMaxIndex() < id;
-					}
-				};
-				// NOT CloneQuietlyExtensions.clone(...): that resolves to a SHALLOW
-				// Object.clone(), so original and duplicate shared the same GenericTreeElement -
-				// renaming the duplicate renamed the original too, and both pointed at the same
-				// entry list. Deep-copy the subtree instead
-				BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> clonedTreeNode = deepCopyTreeNode(
-					selectedTreeNode, null);
-				NodePanel panel = new NodePanel()
-				{
-					protected void onInitializeMigLayout()
-					{
-						MigLayout layout = new MigLayout(new LC().fillX().wrapAfter(2),
-							new AC().align("left").gap("10").grow().fill(),
-							new AC().fill().gap("10"));
-						this.setLayout(layout);
+		// declare a visitor for find the maximum index
+		MaxIndexFinderTreeNodeVisitor<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long, BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long>> maxIndexFinderTreeNodeVisitor;
 
-						add(getLblName());
-						add(getTxtName(), new CC().grow().width("120px"));
-					}
-				};
-				String newName = clonedTreeNode.getDisplayValue() + "-Copy";
-				panel.getModelObject().setName(newName);
-				panel.getTxtName().setText(newName);
-				int option = JOptionPaneExtensions.getSelectedOption(panel,
-					JOptionPane.PLAIN_MESSAGE, JOptionPane.OK_CANCEL_OPTION, null,
-					Messages.getString("dialog.duplicate.node.entry.title", "Name for duplicate"),
-					panel.getTxtName());
-				if (option == JOptionPane.OK_OPTION)
-				{
-					// get parent
-					BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> parentTreeNode = selectedTreeNode
-						.getParent();
-					NodeModel modelObject = panel.getModelObject();
-					newName = modelObject.getName();
-					// set new name ...
-					clonedTreeNode.getValue().setName(newName);
-					clonedTreeNode.setDisplayValue(newName);
-					clonedTreeNode.setParent(parentTreeNode);
+		Long maxIndex;
+		long nextId;
+		// implement the visitor for find the max index
+		maxIndexFinderTreeNodeVisitor = new MaxIndexFinderTreeNodeVisitor<>()
+		{
+			@Override
+			public boolean isGreater(Long id)
+			{
+				return getMaxIndex() < id;
+			}
+		};
+		// NOT CloneQuietlyExtensions.clone(...): that resolves to a SHALLOW
+		// Object.clone(), so original and duplicate shared the same GenericTreeElement -
+		// renaming the duplicate renamed the original too, and both pointed at the same
+		// entry list. Deep-copy the subtree instead
+		BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> clonedTreeNode = deepCopyTreeNode(
+			selectedTreeNode, null);
+		NodePanel panel = new NodePanel()
+		{
+			protected void onInitializeMigLayout()
+			{
+				MigLayout layout = new MigLayout(new LC().fillX().wrapAfter(2),
+					new AC().align("left").gap("10").grow().fill(), new AC().fill().gap("10"));
+				this.setLayout(layout);
 
-					parentTreeNode.addChild(clonedTreeNode);
+				add(getLblName());
+				add(getTxtName(), new CC().grow().width("120px"));
+			}
+		};
+		String newName = clonedTreeNode.getDisplayValue() + "-Copy";
+		panel.getModelObject().setName(newName);
+		panel.getTxtName().setText(newName);
+		int option = JOptionPaneExtensions.getSelectedOption(panel, JOptionPane.PLAIN_MESSAGE,
+			JOptionPane.OK_CANCEL_OPTION, null,
+			Messages.getString("dialog.duplicate.node.entry.title", "Name for duplicate"),
+			panel.getTxtName());
+		if (option == JOptionPane.OK_OPTION)
+		{
+			// get parent
+			BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> parentTreeNode = selectedTreeNode
+				.getParent();
+			NodeModel modelObject = panel.getModelObject();
+			newName = modelObject.getName();
+			// set new name ...
+			clonedTreeNode.getValue().setName(newName);
+			clonedTreeNode.setDisplayValue(newName);
+			clonedTreeNode.setParent(parentTreeNode);
 
-					selectedTreeNode.getRoot().accept(maxIndexFinderTreeNodeVisitor);
-					maxIndex = maxIndexFinderTreeNodeVisitor.getMaxIndex();
+			parentTreeNode.addChild(clonedTreeNode);
 
-					nextId = maxIndex + 1;
-					MysticCryptApplicationFrame.getInstance()
-						.setIdGenerator(LongIdGenerator.of(nextId));
-					LongIdGenerator idGenerator = MysticCryptApplicationFrame.getInstance()
-						.getIdGenerator();
-					reindexTreeNodeVisitor = new ReindexTreeNodeVisitor<>(idGenerator);
-					clonedTreeNode.accept(reindexTreeNodeVisitor);
+			selectedTreeNode.getRoot().accept(maxIndexFinderTreeNodeVisitor);
+			maxIndex = maxIndexFinderTreeNodeVisitor.getMaxIndex();
 
-					BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> rootTreeNode = selectedTreeNode
-						.getRoot();
-					Map<Long, TreeIdNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long>> clonedKeyMap = BaseTreeNodeTransformer
-						.toKeyMap(clonedTreeNode);
-					Map<Long, TreeIdNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long>> longTreeIdNodeMap = BaseTreeNodeTransformer
-						.toKeyMap(rootTreeNode);
-					longTreeIdNodeMap.putAll(clonedKeyMap);
-					MysticCryptApplicationFrame.getInstance().getModelObject()
-						.setRootTreeAsMap(longTreeIdNodeMap);
+			nextId = maxIndex + 1;
+			MysticCryptApplicationFrame.getInstance().setIdGenerator(LongIdGenerator.of(nextId));
+			LongIdGenerator idGenerator = MysticCryptApplicationFrame.getInstance()
+				.getIdGenerator();
+			reindexTreeNodeVisitor = new ReindexTreeNodeVisitor<>(idGenerator);
+			clonedTreeNode.accept(reindexTreeNodeVisitor);
 
-					DefaultMutableTreeNode parent = (DefaultMutableTreeNode)selectedDefaultMutableTreeNode
-						.getParent();
+			BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> rootTreeNode = selectedTreeNode
+				.getRoot();
+			Map<Long, TreeIdNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long>> clonedKeyMap = BaseTreeNodeTransformer
+				.toKeyMap(clonedTreeNode);
+			Map<Long, TreeIdNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long>> longTreeIdNodeMap = BaseTreeNodeTransformer
+				.toKeyMap(rootTreeNode);
+			longTreeIdNodeMap.putAll(clonedKeyMap);
+			MysticCryptApplicationFrame.getInstance().getModelObject()
+				.setRootTreeAsMap(longTreeIdNodeMap);
 
-					BaseTreeNodeFactory.newDefaultMutableTreeNode(clonedTreeNode, parent, false);
+			DefaultMutableTreeNode parent = (DefaultMutableTreeNode)selectedDefaultMutableTreeNode
+				.getParent();
 
-					try
-					{
-						TimeUnit.MILLISECONDS.sleep(200);
-					}
-					catch (InterruptedException e)
-					{
-						throw new RuntimeException(e);
-					}
+			BaseTreeNodeFactory.newDefaultMutableTreeNode(clonedTreeNode, parent, false);
 
-					reload(parent);
-				}
-			});
+			try
+			{
+				TimeUnit.MILLISECONDS.sleep(200);
+			}
+			catch (InterruptedException e)
+			{
+				throw new RuntimeException(e);
+			}
+
+			reload(parent);
+		}
 	}
 
 	/**
@@ -653,45 +764,58 @@ public class SecretKeyTreeWithContentPanel
 	 *            -1 for up, 1 for down
 	 */
 	@SuppressWarnings("unchecked")
-	protected void onMoveSelectedTreeNode(MouseEvent mouseEvent, int offset)
+	protected void onMoveSelectedTreeNode(final MouseEvent mouseEvent, final int offset)
 	{
-		JTreeExtensions.getSelectedDefaultMutableTreeNode(mouseEvent, tree)
-			.ifPresent(selectedDefaultMutableTreeNode -> {
-				BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> selectedTreeNode = (BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long>)selectedDefaultMutableTreeNode
-					.getUserObject();
-				if (!canMove(selectedTreeNode, offset))
-				{
-					return;
-				}
-				int position = positionOf(selectedTreeNode);
-				int target = position + offset;
-				List<BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long>> siblings = siblingsOf(
-					selectedTreeNode);
-				siblings.remove(position);
-				siblings.add(target, selectedTreeNode);
+		JTreeExtensions.getSelectedDefaultMutableTreeNode(mouseEvent, tree).ifPresent(
+			selectedDefaultMutableTreeNode -> onMoveSelectedTreeNode(selectedDefaultMutableTreeNode,
+				offset));
+	}
 
-				BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> parentTreeNode = selectedTreeNode
-					.getParent();
-				Collection<BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long>> reordered = new LinkedHashSet<>(
-					siblings);
-				if (reordered.size() != siblings.size())
-				{
-					// two siblings that are equal by name would collapse into one here, which would
-					// lose a node; refuse the move instead of silently dropping it
-					DialogExtensions.showMessageDialog(null, "Move not possible",
-						"Two nodes of the same name are on this level. Rename one of them first.",
-						JOptionPane.WARNING_MESSAGE);
-					return;
-				}
-				parentTreeNode.setChildren(reordered);
+	/**
+	 * Moves the given node by the given offset among its siblings. This is the seam the mouse path
+	 * and the keyboard path share: the popup resolves its node by where the click landed, a key
+	 * press resolves it from the selection, and both end here.
+	 *
+	 * @param selectedDefaultMutableTreeNode
+	 *            the node to act on
+	 */
+	protected void onMoveSelectedTreeNode(
+		final DefaultMutableTreeNode selectedDefaultMutableTreeNode, final int offset)
+	{
+		BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> selectedTreeNode = (BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long>)selectedDefaultMutableTreeNode
+			.getUserObject();
+		if (!canMove(selectedTreeNode, offset))
+		{
+			return;
+		}
+		int position = positionOf(selectedTreeNode);
+		int target = position + offset;
+		List<BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long>> siblings = siblingsOf(
+			selectedTreeNode);
+		siblings.remove(position);
+		siblings.add(target, selectedTreeNode);
 
-				DefaultMutableTreeNode swingParent = (DefaultMutableTreeNode)selectedDefaultMutableTreeNode
-					.getParent();
-				swingParent.insert(selectedDefaultMutableTreeNode, target);
-				reload(swingParent);
-				// keep the moved node selected, so it can be moved again without picking it anew
-				tree.setSelectionPath(new TreePath(selectedDefaultMutableTreeNode.getPath()));
-			});
+		BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> parentTreeNode = selectedTreeNode
+			.getParent();
+		Collection<BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long>> reordered = new LinkedHashSet<>(
+			siblings);
+		if (reordered.size() != siblings.size())
+		{
+			// two siblings that are equal by name would collapse into one here, which would
+			// lose a node; refuse the move instead of silently dropping it
+			DialogExtensions.showMessageDialog(null, "Move not possible",
+				"Two nodes of the same name are on this level. Rename one of them first.",
+				JOptionPane.WARNING_MESSAGE);
+			return;
+		}
+		parentTreeNode.setChildren(reordered);
+
+		DefaultMutableTreeNode swingParent = (DefaultMutableTreeNode)selectedDefaultMutableTreeNode
+			.getParent();
+		swingParent.insert(selectedDefaultMutableTreeNode, target);
+		reload(swingParent);
+		// keep the moved node selected, so it can be moved again without picking it anew
+		tree.setSelectionPath(new TreePath(selectedDefaultMutableTreeNode.getPath()));
 	}
 
 	/**
@@ -912,50 +1036,72 @@ public class SecretKeyTreeWithContentPanel
 	protected void onEditSelectedTreeNode(final MouseEvent mouseEvent)
 	{
 		JTreeExtensions.getSelectedDefaultMutableTreeNode(mouseEvent, tree)
-			.ifPresent(selectedDefaultMutableTreeNode -> {
-				Object userObject = selectedDefaultMutableTreeNode.getUserObject();
-				BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> selectedTreeNode = (BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long>)userObject;
-				NodePanel panel = new NodePanel(
-					BaseModel.of(NodeModel.builder().name(selectedTreeNode.getValue().getName())
-						.leaf(selectedTreeNode.getValue().isLeaf()).build()));
-				int option = JOptionPaneExtensions.getSelectedOption(panel,
-					JOptionPane.INFORMATION_MESSAGE, JOptionPane.OK_CANCEL_OPTION, null,
-					Messages.getString("dialog.edit.node.entry.title", "Edit node."),
-					panel.getTxtName());
-				if (option == JOptionPane.OK_OPTION)
+			.ifPresent(selectedDefaultMutableTreeNode -> onEditSelectedTreeNode(
+				selectedDefaultMutableTreeNode));
+	}
+
+	/**
+	 * Opens the given node for editing. This is the seam the mouse path and the keyboard path
+	 * share: the popup resolves its node by where the click landed, a key press resolves it from
+	 * the selection, and both end here.
+	 *
+	 * @param selectedDefaultMutableTreeNode
+	 *            the node to act on
+	 */
+	protected void onEditSelectedTreeNode(
+		final DefaultMutableTreeNode selectedDefaultMutableTreeNode)
+	{
+		Object userObject = selectedDefaultMutableTreeNode.getUserObject();
+		BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> selectedTreeNode = (BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long>)userObject;
+		NodePanel panel = new NodePanel(
+			BaseModel.of(NodeModel.builder().name(selectedTreeNode.getValue().getName())
+				.leaf(selectedTreeNode.getValue().isLeaf()).build()));
+		int option = JOptionPaneExtensions.getSelectedOption(panel, JOptionPane.INFORMATION_MESSAGE,
+			JOptionPane.OK_CANCEL_OPTION, null,
+			Messages.getString("dialog.edit.node.entry.title", "Edit node."), panel.getTxtName());
+		if (option == JOptionPane.OK_OPTION)
+		{
+			NodeModel modelObject = panel.getModelObject();
+			boolean leaf = modelObject.isLeaf();
+			String name = modelObject.getName();
+			selectedTreeNode.setLeaf(leaf);
+			selectedTreeNode.setDisplayValue(name);
+
+			if (selectedTreeNode.getValue().isLeaf() != leaf)
+			{
+				// set to leaf only if the node has no children
+				if ((leaf) || 0 == selectedDefaultMutableTreeNode.getChildCount())
 				{
-					NodeModel modelObject = panel.getModelObject();
-					boolean leaf = modelObject.isLeaf();
-					String name = modelObject.getName();
-					selectedTreeNode.setLeaf(leaf);
-					selectedTreeNode.setDisplayValue(name);
-
-					if (selectedTreeNode.getValue().isLeaf() != leaf)
-					{
-						// set to leaf only if the node has no children
-						if ((leaf) || 0 == selectedDefaultMutableTreeNode.getChildCount())
-						{
-							selectedTreeNode.getValue().setLeaf(!leaf);
-						}
-					}
-
-					selectedTreeNode.getValue().setName(name);
-
-					reload(selectedDefaultMutableTreeNode);
+					selectedTreeNode.getValue().setLeaf(!leaf);
 				}
-			});
+			}
 
+			selectedTreeNode.getValue().setName(name);
+
+			reload(selectedDefaultMutableTreeNode);
+		}
 	}
 
 	/**
 	 * The callback method on delete the selected tree node
 	 */
 	@SuppressWarnings("unchecked")
-	protected void onDeleteSelectedTreeNode(MouseEvent mouseEvent)
+	protected void onDeleteSelectedTreeNode(final MouseEvent mouseEvent)
 	{
-		Optional<DefaultMutableTreeNode> selectedDefaultMutableTreeNode = JTreeExtensions
-			.getSelectedDefaultMutableTreeNode(mouseEvent, tree);
-		if (selectedDefaultMutableTreeNode.isPresent())
+		JTreeExtensions.getSelectedDefaultMutableTreeNode(mouseEvent, tree)
+			.ifPresent(this::onDeleteSelectedTreeNode);
+	}
+
+	/**
+	 * Deletes the given node with everything under it, after asking for confirmation. This is the
+	 * seam the mouse path and the keyboard path share: the popup resolves its node by where the
+	 * click landed, a key press resolves it from the selection, and both end here.
+	 *
+	 * @param selectedTreeNodeToDelete
+	 *            the node to delete
+	 */
+	protected void onDeleteSelectedTreeNode(final DefaultMutableTreeNode selectedTreeNodeToDelete)
+	{
 		{
 			int option = DialogExtensions.showConfirmDialog(null, "Confirm deletion",
 				"<div width='450'>Are you sure<br></div>"
@@ -963,7 +1109,7 @@ public class SecretKeyTreeWithContentPanel
 				JOptionPane.OK_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE, null);
 			if (option == JOptionPane.OK_OPTION)
 			{
-				DefaultMutableTreeNode selectedTreeNode = selectedDefaultMutableTreeNode.get();
+				DefaultMutableTreeNode selectedTreeNode = selectedTreeNodeToDelete;
 				Object userObject = selectedTreeNode.getUserObject();
 				BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> currentSelectedTreeNode = (BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long>)userObject;
 
