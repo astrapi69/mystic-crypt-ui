@@ -26,6 +26,7 @@ package io.github.astrapi69.mystic.crypt.ui;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.File;
@@ -61,6 +62,21 @@ class CertificateWizardUiTest extends AbstractUiTest
 
 		assertTrue(wizard.target().isShowing(), "the certificate wizard dialog must open");
 		assertTrue(wizard.target().getComponentCount() > 0, "the wizard must render its content");
+
+		// the first step is a short form, and it used to come up with a scroll bar next to it that
+		// revealed nothing but the empty space a later step would have needed
+		String tooTall = GuiActionRunner.execute(() -> {
+			javax.swing.JScrollPane scrollPane = (javax.swing.JScrollPane)wizard.robot().finder()
+				.find(wizard.target(), component -> component instanceof javax.swing.JScrollPane
+					&& "scpCertificateWizard".equals(component.getName()));
+			java.awt.Dimension shown = scrollPane.getViewport().getExtentSize();
+			java.awt.Dimension wanted = scrollPane.getViewport().getView().getPreferredSize();
+			return wanted.height <= shown.height
+				? null
+				: "the wizard asks for " + wanted.height + " pixels of height in a window that "
+					+ "shows " + shown.height;
+		});
+		assertNull(tooTall, "the first step of the wizard makes the user scroll: " + tooTall);
 
 		GuiActionRunner.execute(() -> wizard.target().dispose());
 		robot.waitForIdle();

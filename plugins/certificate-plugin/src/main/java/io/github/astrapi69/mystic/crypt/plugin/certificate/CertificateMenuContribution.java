@@ -115,10 +115,14 @@ public class CertificateMenuContribution implements PluginMenuContribution
 		};
 		// the wizard scrolls rather than losing its lower half on a screen that cannot hold it
 		JScrollPane scrollPane = new JScrollPane(wizardPanel);
+		// named so a test can tell this one from the scroll panes inside the steps
+		scrollPane.setName("scpCertificateWizard");
 		scrollPane.setBorder(BorderFactory.createEmptyBorder());
 		scrollPane.getVerticalScrollBar().setUnitIncrement(16);
 		dialog.getContentPane().add(scrollPane, BorderLayout.CENTER);
-		Dimension wanted = wizardPanel.getPreferredSize();
+		// the size that holds every step, not the one the first step happens to need: the window is
+		// opened once and must not resize itself while the user walks through the wizard
+		Dimension wanted = wizardPanel.preferredSizeForEveryStep();
 		dialog.setSize(WizardWindowSize.on(
 			new Dimension(wanted.width + WIZARD_INSETS, wanted.height + WIZARD_INSETS),
 			Toolkit.getDefaultToolkit().getScreenSize()));
