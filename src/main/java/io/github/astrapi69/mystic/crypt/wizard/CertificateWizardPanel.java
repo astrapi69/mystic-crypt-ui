@@ -89,6 +89,22 @@ public class CertificateWizardPanel extends AbstractWizardPanel<CertificateInfoM
 		return new CertificateWizardContentPanel(model);
 	}
 
+	/**
+	 * The size this wizard needs to show any of its steps without scrolling, so the window is
+	 * opened once at a size that fits all of them
+	 *
+	 * @return the size, navigation included
+	 */
+	public java.awt.Dimension preferredSizeForEveryStep()
+	{
+		java.awt.Dimension content = getWizardContentPanel()instanceof CertificateWizardContentPanel certificateContent
+			? certificateContent.preferredSizeForEveryStep()
+			: getWizardContentPanel().getPreferredSize();
+		java.awt.Dimension navigation = getNavigationPanel().getPreferredSize();
+		return new java.awt.Dimension(Math.max(content.width, navigation.width),
+			content.height + navigation.height);
+	}
+
 	protected NavigationPanel<Void> newNavigationPanel()
 	{
 		final NavigationPanel<Void> navigationPanel = new NavigationPanel<Void>()
