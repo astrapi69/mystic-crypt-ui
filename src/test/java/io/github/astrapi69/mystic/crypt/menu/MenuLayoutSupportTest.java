@@ -40,6 +40,7 @@ import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -244,4 +245,47 @@ class MenuLayoutSupportTest
 			MenuLayoutSupport.applyPersistedLayout(original, configurationDirectory),
 			"a broken layout must never break the application menu");
 	}
+
+	@Test
+	@DisplayName("a persisted layout survives the plugins menu being rebuilt")
+	void aPersistedLayoutSurvivesThePluginsMenuBeingRebuilt(@TempDir File configurationDirectory)
+		throws Exception
+	{
+		// the arrangement a user saved: Certificate before Checksum, the opposite of what a fresh,
+		// alphabetically sorted plugins menu would show
+		JMenuBar arranged = new JMenuBar();
+		JMenu pluginsMenu = new JMenu("Plugins");
+		pluginsMenu.setName("global.menu.plugins");
+		pluginsMenu.add(pluginItem("Certificate"));
+		pluginsMenu.add(pluginItem("Checksum"));
+		arranged.add(pluginsMenu);
+		MenuLayoutSupport.save(MenuLayoutSupport.exportXml(arranged), configurationDirectory);
+
+		// a plugin is enabled: the host rebuilds the plugins menu from scratch, alphabetically -
+		// "Checksum" now comes before "Certificate"
+		JMenuBar rebuilt = new JMenuBar();
+		JMenu freshPluginsMenu = new JMenu("Plugins");
+		freshPluginsMenu.setName("global.menu.plugins");
+		freshPluginsMenu.add(pluginItem("Checksum"));
+		freshPluginsMenu.add(pluginItem("Certificate"));
+		rebuilt.add(freshPluginsMenu);
+
+		JMenuBar afterApplyingTheLayoutAgain = MenuLayoutSupport.applyPersistedLayout(rebuilt,
+			configurationDirectory);
+
+		JMenu resultingPluginsMenu = (JMenu)afterApplyingTheLayoutAgain.getMenu(0);
+		assertEquals("Certificate", resultingPluginsMenu.getItem(0).getText(),
+			"the saved arrangement was lost when the plugins menu was rebuilt");
+		assertEquals("Checksum", resultingPluginsMenu.getItem(1).getText());
+	}
+
+	private static JMenuItem pluginItem(final String text)
+	{
+		JMenuItem item = new JMenuItem(text);
+		item.setName("text:" + text);
+		item.addActionListener(event -> {
+		});
+		return item;
+	}
+
 }
