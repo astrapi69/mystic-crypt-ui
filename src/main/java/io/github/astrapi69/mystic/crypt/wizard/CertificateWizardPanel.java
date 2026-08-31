@@ -24,21 +24,15 @@
  */
 package io.github.astrapi69.mystic.crypt.wizard;
 
-import java.awt.BorderLayout;
-import java.awt.CardLayout;
-
 import io.github.astrapi69.design.pattern.observer.event.EventListener;
 import io.github.astrapi69.design.pattern.observer.event.EventObject;
 import io.github.astrapi69.design.pattern.state.wizard.model.BaseWizardStateMachineModel;
 import io.github.astrapi69.design.pattern.state.wizard.model.NavigationEventState;
-import io.github.astrapi69.model.BaseModel;
 import io.github.astrapi69.model.api.IModel;
 import io.github.astrapi69.mystic.crypt.wizard.model.CertificateInfoModel;
 import io.github.astrapi69.mystic.crypt.wizard.state.CertificateWizardState;
 import io.github.astrapi69.swing.wizard.AbstractWizardPanel;
 import io.github.astrapi69.swing.wizard.BaseWizardContentPanel;
-import io.github.astrapi69.swing.wizard.NavigationPanel;
-import lombok.Getter;
 
 public class CertificateWizardPanel extends AbstractWizardPanel<CertificateInfoModel>
 	implements
@@ -46,10 +40,6 @@ public class CertificateWizardPanel extends AbstractWizardPanel<CertificateInfoM
 {
 
 	private static final long serialVersionUID = 1L;
-	private NavigationPanel<Void> navigationPanel;
-
-	@Getter
-	private CertificateWizardContentPanel wizardContentPanel;
 
 	public CertificateWizardPanel(IModel<CertificateInfoModel> model)
 	{
@@ -62,7 +52,6 @@ public class CertificateWizardPanel extends AbstractWizardPanel<CertificateInfoM
 		final NavigationEventState navigationState = event.getSource();
 		if (NavigationEventState.UPDATE.equals(navigationState))
 		{
-			System.out.println(navigationState);
 			updateButtonState();
 		}
 	}
@@ -73,14 +62,9 @@ public class CertificateWizardPanel extends AbstractWizardPanel<CertificateInfoM
 		BaseWizardStateMachineModel<CertificateInfoModel> stateMachineModel = BaseWizardStateMachineModel
 			.<CertificateInfoModel> builder().currentState(CertificateWizardState.ISSUER)
 			.modelObject(getModelObject()).build();
-		IModel<BaseWizardStateMachineModel<CertificateInfoModel>> machineModelIModel = BaseModel
-			.of(stateMachineModel);
 		setStateMachine(stateMachineModel);
 		super.onInitializeComponents();
-		wizardContentPanel = new CertificateWizardContentPanel(machineModelIModel);
-		navigationPanel = newNavigationPanel();
 	}
-
 
 	@Override
 	protected BaseWizardContentPanel<CertificateInfoModel> newWizardContentPanel(
@@ -105,46 +89,12 @@ public class CertificateWizardPanel extends AbstractWizardPanel<CertificateInfoM
 			content.height + navigation.height);
 	}
 
-	protected NavigationPanel<Void> newNavigationPanel()
-	{
-		final NavigationPanel<Void> navigationPanel = new NavigationPanel<Void>()
-		{
-			private static final long serialVersionUID = 1L;
-
-			@Override
-			protected void onCancel()
-			{
-				CertificateWizardPanel.this.onCancel();
-			}
-
-			@Override
-			protected void onFinish()
-			{
-				CertificateWizardPanel.this.onFinish();
-			}
-
-			@Override
-			protected void onNext()
-			{
-				CertificateWizardPanel.this.onNext();
-			}
-
-			@Override
-			protected void onPrevious()
-			{
-				CertificateWizardPanel.this.onPrevious();
-			}
-		};
-		return navigationPanel;
-	}
-
 	@Override
 	protected void onAfterInitializeComponents()
 	{
 		super.onAfterInitializeComponents();
 		updateButtonState();
 	}
-
 
 	protected void onCancel()
 	{
@@ -157,44 +107,6 @@ public class CertificateWizardPanel extends AbstractWizardPanel<CertificateInfoM
 		getStateMachine().finish();
 		// application-specific behavior is provided by whoever opens the wizard (it overrides this
 		// method to generate/save the certificate and close its dialog)
-	}
-
-	@Override
-	protected void onInitializeLayout()
-	{
-		super.onInitializeLayout();
-		setLayout(new BorderLayout());
-		add(wizardContentPanel, BorderLayout.CENTER);
-		add(navigationPanel, BorderLayout.SOUTH);
-	}
-
-	protected void onNext()
-	{
-		BaseWizardStateMachineModel<CertificateInfoModel> stateMachine = getStateMachine();
-		stateMachine.next();
-		updateButtonState();
-		final String name = stateMachine.getCurrentState().getName();
-		final CardLayout cardLayout = wizardContentPanel.getCardLayout();
-		cardLayout.show(wizardContentPanel, name);
-	}
-
-	protected void onPrevious()
-	{
-		getStateMachine().previous();
-		updateButtonState();
-		final String name = getStateMachine().getCurrentState().getName();
-		final CardLayout cardLayout = wizardContentPanel.getCardLayout();
-		cardLayout.show(wizardContentPanel, name);
-	}
-
-	protected void updateButtonState()
-	{
-		if (getStateMachine() != null)
-		{
-			navigationPanel.getBtnPrevious()
-				.setEnabled(getStateMachine().getCurrentState().hasPrevious());
-			navigationPanel.getBtnNext().setEnabled(getStateMachine().getCurrentState().hasNext());
-		}
 	}
 
 }
