@@ -405,6 +405,10 @@ public class MysticCryptApplicationFrame extends ApplicationPanelFrame<Applicati
 	{
 		((DesktopMenu)getMenu())
 			.addPluginsMenu(pluginManager.getExtensions(PluginMenuContribution.class));
+		// a persisted arrangement of the plugin entries applies here too - enabling or installing a
+		// plugin rebuilds the "Plugins" menu from scratch, and without this the rebuilt menu falls
+		// back to the alphabetical default and silently drops what the user had arranged
+		applyPersistedMenuLayout();
 	}
 
 	public void onEnableMenu()
