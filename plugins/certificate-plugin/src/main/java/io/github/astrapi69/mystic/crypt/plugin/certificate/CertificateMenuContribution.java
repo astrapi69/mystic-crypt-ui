@@ -76,9 +76,6 @@ public class CertificateMenuContribution implements PluginMenuContribution
 		return "Certificate";
 	}
 
-	/** What the dialog's own frame takes around the wizard */
-	private static final int WIZARD_INSETS = 24;
-
 	private void openWizard()
 	{
 		MysticCryptApplicationFrame frame = MysticCryptApplicationFrame.getInstance();
@@ -121,11 +118,19 @@ public class CertificateMenuContribution implements PluginMenuContribution
 		scrollPane.getVerticalScrollBar().setUnitIncrement(16);
 		dialog.getContentPane().add(scrollPane, BorderLayout.CENTER);
 		// the size that holds every step, not the one the first step happens to need: the window is
-		// opened once and must not resize itself while the user walks through the wizard
-		Dimension wanted = wizardPanel.preferredSizeForEveryStep();
-		dialog.setSize(WizardWindowSize.on(
-			new Dimension(wanted.width + WIZARD_INSETS, wanted.height + WIZARD_INSETS),
-			Toolkit.getDefaultToolkit().getScreenSize()));
+		// opened once and must not resize itself while the user walks through the wizard.
+		// pack() is used instead of a guessed inset constant so the title bar and dialog border are
+		// whatever the window manager actually gives them, not a fixed number tuned against one
+		// environment and short everywhere else (the scroll bar this dialog carries for exactly that
+		// case turned out to still be needed on the tallest step - see #93 follow-up).
+		// preferredSizeForEveryStep() is asked only after a first pack(): a step measured before the
+		// dialog has a real display connection gets its text laid out with approximated font metrics,
+		// which comes out a little short of what the same step asks for once realized
+		dialog.pack();
+		scrollPane.setPreferredSize(wizardPanel.preferredSizeForEveryStep());
+		dialog.pack();
+		dialog.setSize(
+			WizardWindowSize.on(dialog.getSize(), Toolkit.getDefaultToolkit().getScreenSize()));
 		dialog.setMinimumSize(new Dimension(WizardWindowSize.MINIMUM_WIDTH / 2,
 			WizardWindowSize.MINIMUM_HEIGHT / 2));
 		dialog.setLocationRelativeTo(frame);

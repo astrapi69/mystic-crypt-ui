@@ -142,7 +142,12 @@ public enum CertificateWizardState
 	DATES {
 		WizardStateInfo wizardStateInfo;
 		{
-			wizardStateInfo = WizardStateInfo.builder().next(true).last(false).name(name()).build();
+			// previous(true) is not optional here: WizardStateInfo.previous is a primitive boolean,
+			// so leaving it off the builder chain does not mean "unset" - it means false, and the
+			// Previous button was disabled on this, the one step in the middle of the wizard that
+			// most needs it
+			wizardStateInfo = WizardStateInfo.builder().previous(true).next(true).last(false)
+				.name(name()).build();
 		}
 
 		@Override
