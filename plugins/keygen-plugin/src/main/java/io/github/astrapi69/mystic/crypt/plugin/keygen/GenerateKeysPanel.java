@@ -101,7 +101,7 @@ public class GenerateKeysPanel extends BasePanel<GenerateKeysModelBean>
 	/**
 	 * Callback for the algorithm dropdown: the bound box has already written the chosen algorithm
 	 * into the model, so this only keeps the key size relevant for RSA, since the modern algorithms
-	 * have fixed parameter sets.
+	 * have fixed parameter sets, and closes the key format box down to PKCS#8 outside RSA and EC.
 	 *
 	 * @param actionEvent
 	 *            the action event
@@ -113,6 +113,26 @@ public class GenerateKeysPanel extends BasePanel<GenerateKeysModelBean>
 		{
 			getCryptographyPanel().getCmbKeySize()
 				.setEnabled(KeyPairGeneratorAlgorithm.RSA.equals(algorithm));
+			applyKeyFormatAvailability(algorithm);
+		}
+	}
+
+	/**
+	 * PKCS#1 is a real, distinct encoding only for RSA and EC keys; for every other algorithm this
+	 * window offers, the writer silently falls back to PKCS#8 no matter what is chosen, so offering
+	 * the choice there would be misleading (issue #101)
+	 *
+	 * @param algorithm
+	 *            the algorithm now selected
+	 */
+	private void applyKeyFormatAvailability(final KeyPairGeneratorAlgorithm algorithm)
+	{
+		final boolean pkcs1Available = KeyPairGeneratorAlgorithm.RSA.equals(algorithm)
+			|| KeyPairGeneratorAlgorithm.EC.equals(algorithm);
+		cmbKeyFormat.setEnabled(pkcs1Available);
+		if (!pkcs1Available)
+		{
+			cmbKeyFormat.setSelectedItem(KeyFormat.PKCS_8);
 		}
 	}
 
@@ -131,9 +151,11 @@ public class GenerateKeysPanel extends BasePanel<GenerateKeysModelBean>
 	 */
 	protected void onClear(final ActionEvent actionEvent)
 	{
-		cmbAlgorithm.setSelectedItem(KeygenSettingsContribution.algorithm());
+		final KeyPairGeneratorAlgorithm configuredAlgorithm = KeygenSettingsContribution.algorithm();
+		cmbAlgorithm.setSelectedItem(configuredAlgorithm);
 		getCryptographyPanel().getCmbKeySize().setEnabled(true);
 		getCryptographyPanel().getCmbKeySize().setSelectedItem(KeySize.KEYSIZE_1024);
+		applyKeyFormatAvailability(configuredAlgorithm);
 		getCryptographyPanel().getTxtPrivateKey().setText("");
 		getCryptographyPanel().getTxtPublicKey().setText("");
 		getEnDecryptPanel().getTxtEncrypted().setText("");
