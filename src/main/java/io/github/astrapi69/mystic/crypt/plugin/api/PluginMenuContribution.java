@@ -30,6 +30,8 @@ import javax.swing.JMenuItem;
 
 import org.pf4j.ExtensionPoint;
 
+import io.github.astrapi69.swing.menu.enumeration.Anchor;
+
 /**
  * Extension point that lets a plugin contribute one or more {@link JMenuItem}s to the host
  * application's dedicated "Plugins" menu.
@@ -52,6 +54,35 @@ public interface PluginMenuContribution extends ExtensionPoint
 	 * @return the submenu name, or {@code null} to add the items ungrouped
 	 */
 	default String getMenuName()
+	{
+		return null;
+	}
+
+	/**
+	 * Gets where this plugin's submenu belongs among its siblings.
+	 * <p>
+	 * The default, {@link Anchor#LAST}, means this plugin does not care: it takes the alphabetical
+	 * position every plugin has always had. {@link Anchor#FIRST} always wins over the alphabetical
+	 * order; {@link Anchor#BEFORE} and {@link Anchor#AFTER} place this submenu next to the one
+	 * named by {@link #getRelativeToMenuId()}.
+	 *
+	 * @return the anchor, {@link Anchor#LAST} by default
+	 */
+	default Anchor getAnchor()
+	{
+		return Anchor.LAST;
+	}
+
+	/**
+	 * The {@link #getMenuName()} of the plugin this one is anchored to, when {@link #getAnchor()}
+	 * is {@link Anchor#BEFORE} or {@link Anchor#AFTER}. Ignored for every other anchor. A name that
+	 * does not match any currently contributed plugin is not an error - this plugin's submenu is
+	 * simply placed as if it had not named a target.
+	 *
+	 * @return the target plugin's menu name, or {@code null} when {@link #getAnchor()} does not
+	 *         need one
+	 */
+	default String getRelativeToMenuId()
 	{
 		return null;
 	}

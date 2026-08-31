@@ -36,16 +36,24 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import io.github.astrapi69.mystic.crypt.plugin.api.PluginMenuContribution;
+import io.github.astrapi69.swing.menu.enumeration.Anchor;
 
 /**
- * The plugin manager hands its contributions over in the order it reads the plugin directory, so
- * reinstalling a plugin used to rearrange the Plugins menu for no reason the user could see. The
- * menu sorts them by name instead.
+ * Whether an anchor puts a submenu where it belongs is
+ * {@link io.github.astrapi69.mystic.crypt.menu.PluginMenuOrderTest}'s job - a plain ordering
+ * question, tested there without a display. This class is the Swing-level counterpart: does
+ * {@link DesktopMenu#addPluginsMenu} actually build the {@code JMenu} tree that decision describes.
  */
 class PluginMenuOrderTest
 {
 
 	private static PluginMenuContribution contributing(final String menuName)
+	{
+		return contributing(menuName, Anchor.LAST, null);
+	}
+
+	private static PluginMenuContribution contributing(final String menuName, final Anchor anchor,
+		final String relativeToMenuId)
 	{
 		return new PluginMenuContribution()
 		{
@@ -60,35 +68,44 @@ class PluginMenuOrderTest
 			{
 				return List.of(new JMenuItem(menuName));
 			}
+
+			@Override
+			public Anchor getAnchor()
+			{
+				return anchor;
+			}
+
+			@Override
+			public String getRelativeToMenuId()
+			{
+				return relativeToMenuId;
+			}
 		};
 	}
 
-	private List<String> submenusFor(final List<String> asTheyWereFound)
+	private static List<String> submenusFor(final List<String> asTheyWereFound)
+	{
+		return submenusForContributions(
+			asTheyWereFound.stream().map(PluginMenuOrderTest::contributing).toList());
+	}
+
+	private static List<String> submenusForContributions(
+		final List<PluginMenuContribution> contributions)
 	{
 		DesktopMenu menu = new DesktopMenu(new JFrame());
-		JMenu pluginsMenu = menu.addPluginsMenu(
-			asTheyWereFound.stream().map(PluginMenuOrderTest::contributing).toList());
+		JMenu pluginsMenu = menu.addPluginsMenu(contributions);
 		return java.util.Arrays.stream(pluginsMenu.getMenuComponents())
 			.filter(JMenu.class::isInstance).map(component -> ((JMenu)component).getText())
 			.toList();
 	}
 
 	@Test
-	@DisplayName("the plugins are shown in the same order however they were found")
-	void thePluginsAreShownInTheSameOrderHoweverTheyWereFound()
-	{
-		assertEquals(List.of("Certificate", "Checksum", "Key Generation", "Obfuscation"),
-			submenusFor(List.of("Obfuscation", "Checksum", "Key Generation", "Certificate")),
-			"the menu follows the order the plugins happened to be read in");
-	}
-
-	@Test
-	@DisplayName("the order does not depend on the case of the names")
-	void theOrderDoesNotDependOnTheCaseOfTheNames()
+	@DisplayName("with no anchor declared, plugins are shown alphabetically, case-insensitively")
+	void withNoAnchorDeclaredPluginsAreShownAlphabetically()
 	{
 		assertEquals(List.of("apple", "Banana", "cherry"),
 			submenusFor(List.of("cherry", "Banana", "apple")),
-			"a lower case name was sorted behind every upper case one");
+			"the menu follows the order the plugins happened to be read in, not the alphabet");
 	}
 
 	@Test
@@ -99,6 +116,42 @@ class PluginMenuOrderTest
 
 		assertEquals(List.of("Alpha", "Zeta"), shown,
 			"a contribution with no submenu name has to be added directly, not sorted as a submenu");
+	}
+
+	@Test
+	@DisplayName("a plugin's declared anchor is honoured in the JMenu the host actually builds")
+	void aPluginsDeclaredAnchorIsHonouredInTheJMenuTheHostActuallyBuilds()
+	{
+		List<PluginMenuContribution> contributions = List.of(contributing("Checksum"),
+			contributing("Obfuscation"), contributing("Zebra", Anchor.AFTER, "Checksum"));
+
+		assertEquals(List.of("Checksum", "Zebra", "Obfuscation"),
+			submenusForContributions(contributions),
+			"DesktopMenu did not place the submenu where PluginMenuOrder decided it belongs");
+	}
+
+	@Test
+	@DisplayName("a contribution that declares no anchor at all defaults to LAST with no target")
+	void aContributionThatDeclaresNoAnchorAtAllDefaultsToLastWithNoTarget()
+	{
+		// neither getAnchor() nor getRelativeToMenuId() overridden - every existing plugin today
+		PluginMenuContribution bare = new PluginMenuContribution()
+		{
+			@Override
+			public String getMenuName()
+			{
+				return "Solo";
+			}
+
+			@Override
+			public List<JMenuItem> getMenuItems()
+			{
+				return List.of(new JMenuItem("Solo"));
+			}
+		};
+
+		assertEquals(Anchor.LAST, bare.getAnchor());
+		assertEquals(null, bare.getRelativeToMenuId());
 	}
 
 }
