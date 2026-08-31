@@ -33,6 +33,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
 
+import javax.swing.JFrame;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
@@ -64,7 +65,9 @@ import io.github.astrapi69.swing.dialog.info.InfoPanel;
 import io.github.astrapi69.swing.menu.KeyStrokeExtensions;
 import io.github.astrapi69.swing.menu.MenuExtensions;
 import io.github.astrapi69.swing.menu.ParentMenuResolver;
+import io.github.astrapi69.swing.menu.build.MenuInfoExtensions;
 import io.github.astrapi69.swing.menu.model.KeyStrokeInfo;
+import io.github.astrapi69.swing.menu.model.MenuInfo;
 import io.github.astrapi69.swing.menu.model.MenuItemInfo;
 import io.github.astrapi69.swing.panel.info.InfoModelBean;
 import lombok.NonNull;
@@ -89,6 +92,28 @@ public class DesktopMenu extends BaseDesktopMenu implements EventListener<EventO
 		// register as listener...
 		final EventSource<EventObject<RenderMode>> eventSource = ApplicationEventBus.getSaveState();
 		eventSource.add(this);
+	}
+
+	/**
+	 * The menu bar that is actually showing, not the one this menu was built with.
+	 * <p>
+	 * The library field this would otherwise return is a snapshot taken once, in the constructor,
+	 * and never updated - {@code setJMenuBar(...)} replaces what the frame displays without telling
+	 * this class. Deferring to the frame's own, live {@code JMenuBar} is what every caller of
+	 * {@link #getMenubar()} in this class actually wants: the bar the user is looking at, whether
+	 * or not a persisted layout has swapped it out since this menu was constructed.
+	 *
+	 * @return the frame's current menu bar, or the constructor's snapshot when the frame has none
+	 *         yet or is not a {@link JFrame}
+	 */
+	@Override
+	public JMenuBar getMenubar()
+	{
+		if (getApplicationFrame()instanceof JFrame frame && frame.getJMenuBar() != null)
+		{
+			return frame.getJMenuBar();
+		}
+		return super.getMenubar();
 	}
 
 	@Override
@@ -451,14 +476,18 @@ public class DesktopMenu extends BaseDesktopMenu implements EventListener<EventO
 			.name(MenuId.PLUGINS.propertiesKey()).mnemonic(MenuExtensions.toMnemonic('P')).build()
 			.toJMenu();
 
-		// by name rather than in the order the plugin manager happens to hand them over: that order
-		// follows how the plugin directory is read, so it changes when a plugin is reinstalled and
-		// the menu a user has learned rearranges itself for no reason they can see
+		// alphabetical by name is the fallback every plugin gets by leaving its anchor at the
+		// default LAST - not the order the plugin manager happens to hand contributions over in,
+		// which follows how the plugin directory is read and changes on every reinstall
 		List<PluginMenuContribution> inNameOrder = new java.util.ArrayList<>(contributions);
 		inNameOrder.sort(java.util.Comparator.comparing(
 			contribution -> contribution.getMenuName() == null ? "" : contribution.getMenuName(),
 			String.CASE_INSENSITIVE_ORDER));
 
+		// a plugin's own submenu, keyed by its name so it can be placed once every submenu's
+		// anchor has been resolved against its siblings - orderByAnchor needs the whole list
+		Map<String, JMenu> submenusByName = new LinkedHashMap<>();
+		List<MenuInfo> orderingKeys = new java.util.ArrayList<>();
 		for (PluginMenuContribution contribution : inNameOrder)
 		{
 			try
@@ -475,11 +504,16 @@ public class DesktopMenu extends BaseDesktopMenu implements EventListener<EventO
 					JMenu pluginSubmenu = new JMenu(menuName);
 					pluginSubmenu.setName(menuName);
 					items.forEach(pluginSubmenu::add);
-					pluginsMenu.add(pluginSubmenu);
+					submenusByName.put(menuName, pluginSubmenu);
+					orderingKeys.add(MenuInfo.builder().name(menuName)
+						.anchor(contribution.getAnchor())
+						.relativeToMenuId(contribution.getRelativeToMenuId()).build());
 				}
 				else
 				{
-					// no submenu name declared: add the items directly to the "Plugins" menu
+					// no submenu name declared: added directly, in today's alphabetical position.
+					// There is no stable name here for another plugin to anchor against, or for
+					// this one to anchor itself with, so it stays out of anchor ordering entirely
 					items.forEach(pluginsMenu::add);
 				}
 			}
@@ -488,6 +522,13 @@ public class DesktopMenu extends BaseDesktopMenu implements EventListener<EventO
 				log.log(Level.WARNING, "Plugin extension " + contribution.getClass().getName()
 					+ " failed to provide menu items", runtimeException);
 			}
+		}
+		// FIRST/BEFORE/AFTER move a submenu to its declared place; everything left at the default
+		// LAST flows through in the alphabetical order it was fed in above - so a plugin that
+		// never sets an anchor keeps exactly today's position
+		for (MenuInfo ordered : MenuInfoExtensions.orderByAnchor(orderingKeys))
+		{
+			pluginsMenu.add(submenusByName.get(ordered.getName()));
 		}
 		if (pluginsMenu.getItemCount() > 0)
 		{
