@@ -56,6 +56,7 @@ import io.github.astrapi69.mystic.crypt.action.SaveApplicationFileAction;
 import io.github.astrapi69.mystic.crypt.action.SaveAsApplicationFileAction;
 import io.github.astrapi69.mystic.crypt.action.SearchApplicationFileAction;
 import io.github.astrapi69.mystic.crypt.eventbus.ApplicationEventBus;
+import io.github.astrapi69.mystic.crypt.menu.PluginMenuOrder;
 import io.github.astrapi69.mystic.crypt.plugin.api.PluginMenuContribution;
 import io.github.astrapi69.swing.action.ExitApplicationAction;
 import io.github.astrapi69.swing.base.BaseDesktopMenu;
@@ -65,9 +66,7 @@ import io.github.astrapi69.swing.dialog.info.InfoPanel;
 import io.github.astrapi69.swing.menu.KeyStrokeExtensions;
 import io.github.astrapi69.swing.menu.MenuExtensions;
 import io.github.astrapi69.swing.menu.ParentMenuResolver;
-import io.github.astrapi69.swing.menu.build.MenuInfoExtensions;
 import io.github.astrapi69.swing.menu.model.KeyStrokeInfo;
-import io.github.astrapi69.swing.menu.model.MenuInfo;
 import io.github.astrapi69.swing.menu.model.MenuItemInfo;
 import io.github.astrapi69.swing.panel.info.InfoModelBean;
 import lombok.NonNull;
@@ -484,10 +483,10 @@ public class DesktopMenu extends BaseDesktopMenu implements EventListener<EventO
 			contribution -> contribution.getMenuName() == null ? "" : contribution.getMenuName(),
 			String.CASE_INSENSITIVE_ORDER));
 
-		// a plugin's own submenu, keyed by its name so it can be placed once every submenu's
-		// anchor has been resolved against its siblings - orderByAnchor needs the whole list
+		// a plugin's own submenu, keyed by its name so it can be placed once PluginMenuOrder has
+		// resolved every submenu's anchor against its siblings
 		Map<String, JMenu> submenusByName = new LinkedHashMap<>();
-		List<MenuInfo> orderingKeys = new java.util.ArrayList<>();
+		List<PluginMenuOrder.Entry> orderingEntries = new java.util.ArrayList<>();
 		for (PluginMenuContribution contribution : inNameOrder)
 		{
 			try
@@ -505,9 +504,8 @@ public class DesktopMenu extends BaseDesktopMenu implements EventListener<EventO
 					pluginSubmenu.setName(menuName);
 					items.forEach(pluginSubmenu::add);
 					submenusByName.put(menuName, pluginSubmenu);
-					orderingKeys.add(MenuInfo.builder().name(menuName)
-						.anchor(contribution.getAnchor())
-						.relativeToMenuId(contribution.getRelativeToMenuId()).build());
+					orderingEntries.add(new PluginMenuOrder.Entry(menuName, contribution.getAnchor(),
+						contribution.getRelativeToMenuId()));
 				}
 				else
 				{
@@ -526,9 +524,9 @@ public class DesktopMenu extends BaseDesktopMenu implements EventListener<EventO
 		// FIRST/BEFORE/AFTER move a submenu to its declared place; everything left at the default
 		// LAST flows through in the alphabetical order it was fed in above - so a plugin that
 		// never sets an anchor keeps exactly today's position
-		for (MenuInfo ordered : MenuInfoExtensions.orderByAnchor(orderingKeys))
+		for (String name : PluginMenuOrder.orderedNames(orderingEntries))
 		{
-			pluginsMenu.add(submenusByName.get(ordered.getName()));
+			pluginsMenu.add(submenusByName.get(name));
 		}
 		if (pluginsMenu.getItemCount() > 0)
 		{

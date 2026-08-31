@@ -40,7 +40,9 @@ pitest {
             "io.github.astrapi69.mystic.crypt.settings.MysticCryptSettings",
             "io.github.astrapi69.mystic.crypt.settings.PluginSettings"
     ]
-    // only the headless tests - excludes the whole ...crypt.ui package with its Swing tests
+    // only the headless tests - excludes the whole ...crypt.ui package with its Swing tests, and
+    // excludes the root-package PluginMenuOrderTest, which is deliberately a DesktopMenu/JMenu
+    // wiring test rather than a test of PluginMenuOrder's own ordering decision
     targetTests = [
             "io.github.astrapi69.mystic.crypt.menu.*",
             "io.github.astrapi69.mystic.crypt.keepass.KeePassEntryConverterTest",

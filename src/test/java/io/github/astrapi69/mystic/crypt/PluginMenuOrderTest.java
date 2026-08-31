@@ -39,11 +39,10 @@ import io.github.astrapi69.mystic.crypt.plugin.api.PluginMenuContribution;
 import io.github.astrapi69.swing.menu.enumeration.Anchor;
 
 /**
- * The plugin manager hands its contributions over in the order it reads the plugin directory, so
- * reinstalling a plugin used to rearrange the Plugins menu for no reason the user could see.
- * Alphabetical order is the fallback for a plugin that does not care; a plugin that does can anchor
- * itself before, after, or first relative to another plugin's menu name, the way IntelliJ lets a
- * platform action declare its place among its siblings.
+ * Whether an anchor puts a submenu where it belongs is
+ * {@link io.github.astrapi69.mystic.crypt.menu.PluginMenuOrderTest}'s job - a plain ordering
+ * question, tested there without a display. This class is the Swing-level counterpart: does
+ * {@link DesktopMenu#addPluginsMenu} actually build the {@code JMenu} tree that decision describes.
  */
 class PluginMenuOrderTest
 {
@@ -84,13 +83,14 @@ class PluginMenuOrderTest
 		};
 	}
 
-	private List<String> submenusFor(final List<String> asTheyWereFound)
+	private static List<String> submenusFor(final List<String> asTheyWereFound)
 	{
 		return submenusForContributions(
 			asTheyWereFound.stream().map(PluginMenuOrderTest::contributing).toList());
 	}
 
-	private List<String> submenusForContributions(final List<PluginMenuContribution> contributions)
+	private static List<String> submenusForContributions(
+		final List<PluginMenuContribution> contributions)
 	{
 		DesktopMenu menu = new DesktopMenu(new JFrame());
 		JMenu pluginsMenu = menu.addPluginsMenu(contributions);
@@ -100,21 +100,12 @@ class PluginMenuOrderTest
 	}
 
 	@Test
-	@DisplayName("the plugins are shown in the same order however they were found")
-	void thePluginsAreShownInTheSameOrderHoweverTheyWereFound()
-	{
-		assertEquals(List.of("Certificate", "Checksum", "Key Generation", "Obfuscation"),
-			submenusFor(List.of("Obfuscation", "Checksum", "Key Generation", "Certificate")),
-			"the menu follows the order the plugins happened to be read in");
-	}
-
-	@Test
-	@DisplayName("the order does not depend on the case of the names")
-	void theOrderDoesNotDependOnTheCaseOfTheNames()
+	@DisplayName("with no anchor declared, plugins are shown alphabetically, case-insensitively")
+	void withNoAnchorDeclaredPluginsAreShownAlphabetically()
 	{
 		assertEquals(List.of("apple", "Banana", "cherry"),
 			submenusFor(List.of("cherry", "Banana", "apple")),
-			"a lower case name was sorted behind every upper case one");
+			"the menu follows the order the plugins happened to be read in, not the alphabet");
 	}
 
 	@Test
@@ -128,55 +119,15 @@ class PluginMenuOrderTest
 	}
 
 	@Test
-	@DisplayName("a plugin anchored after another one lands right after it")
-	void aPluginAnchoredAfterAnotherOneLandsRightAfterIt()
+	@DisplayName("a plugin's declared anchor is honoured in the JMenu the host actually builds")
+	void aPluginsDeclaredAnchorIsHonouredInTheJMenuTheHostActuallyBuilds()
 	{
 		List<PluginMenuContribution> contributions = List.of(contributing("Checksum"),
 			contributing("Obfuscation"), contributing("Zebra", Anchor.AFTER, "Checksum"));
 
-		List<String> shown = submenusForContributions(contributions);
-
-		assertEquals(List.of("Checksum", "Zebra", "Obfuscation"), shown,
-			"the anchored plugin did not land right after the one it named");
-	}
-
-	@Test
-	@DisplayName("a plugin anchored before another one lands right before it")
-	void aPluginAnchoredBeforeAnotherOneLandsRightBeforeIt()
-	{
-		List<PluginMenuContribution> contributions = List.of(contributing("Checksum"),
-			contributing("Obfuscation"), contributing("Aardvark", Anchor.BEFORE, "Obfuscation"));
-
-		List<String> shown = submenusForContributions(contributions);
-
-		assertEquals(List.of("Checksum", "Aardvark", "Obfuscation"), shown,
-			"the anchored plugin did not land right before the one it named");
-	}
-
-	@Test
-	@DisplayName("a plugin anchored first overrides the alphabetical position")
-	void aPluginAnchoredFirstOverridesTheAlphabeticalPosition()
-	{
-		List<PluginMenuContribution> contributions = List.of(contributing("Checksum"),
-			contributing("Obfuscation"), contributing("Zebra", Anchor.FIRST, null));
-
-		List<String> shown = submenusForContributions(contributions);
-
-		assertEquals(List.of("Zebra", "Checksum", "Obfuscation"), shown,
-			"first must win over the alphabetical order every unanchored plugin still follows");
-	}
-
-	@Test
-	@DisplayName("an anchor naming a plugin that is not installed does not break the menu")
-	void anAnchorNamingAPluginThatIsNotInstalledDoesNotBreakTheMenu()
-	{
-		List<PluginMenuContribution> contributions = List.of(contributing("Checksum"),
-			contributing("Zebra", Anchor.AFTER, "Not Installed"));
-
-		List<String> shown = submenusForContributions(contributions);
-
-		assertEquals(List.of("Checksum", "Zebra"), shown,
-			"an anchor to an absent plugin must not throw or drop the item");
+		assertEquals(List.of("Checksum", "Zebra", "Obfuscation"),
+			submenusForContributions(contributions),
+			"DesktopMenu did not place the submenu where PluginMenuOrder decided it belongs");
 	}
 
 	@Test
