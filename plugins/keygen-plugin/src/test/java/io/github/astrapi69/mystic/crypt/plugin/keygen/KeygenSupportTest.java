@@ -51,6 +51,8 @@ import org.junit.jupiter.params.provider.EnumSource;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.ValueSource;
 
+import io.github.astrapi69.crypt.api.algorithm.key.KeyPairGeneratorAlgorithm;
+import io.github.astrapi69.crypt.api.key.KeyFileFormat;
 import io.github.astrapi69.crypt.api.key.KeyFormat;
 import io.github.astrapi69.crypt.data.factory.KeyPairFactory;
 import io.github.astrapi69.mystic.crypt.crypto.KeyFiles;
@@ -206,6 +208,56 @@ class KeygenSupportTest
 		}
 		assertEquals(keyPair.getPrivate(), KeyFiles.readPrivateKey(file),
 			"whatever was written has to be readable again, and be the same key");
+	}
+
+	private static final KeyPairGeneratorAlgorithm[] EVERY_ALGORITHM_THE_WINDOW_OFFERS = {
+			KeyPairGeneratorAlgorithm.RSA, KeyPairGeneratorAlgorithm.EC,
+			KeyPairGeneratorAlgorithm.X25519, KeyPairGeneratorAlgorithm.X448,
+			KeyPairGeneratorAlgorithm.ML_KEM_768, KeyPairGeneratorAlgorithm.ML_DSA_65 };
+
+	static java.util.stream.Stream<org.junit.jupiter.params.provider.Arguments> algorithmsAndSaveFormats()
+	{
+		return Arrays.stream(EVERY_ALGORITHM_THE_WINDOW_OFFERS)
+			.flatMap(algorithm -> java.util.stream.Stream.of(KeyFileFormat.PEM, KeyFileFormat.DER)
+				.map(saveFormat -> org.junit.jupiter.params.provider.Arguments.of(algorithm,
+					saveFormat)));
+	}
+
+	private static KeyPair keyPairFor(KeyPairGeneratorAlgorithm algorithm) throws Exception
+	{
+		if (algorithm == KeyPairGeneratorAlgorithm.RSA)
+		{
+			return KeyPairFactory.newKeyPair(KeyPairGeneratorAlgorithm.RSA,
+				io.github.astrapi69.crypt.api.key.KeySize.KEYSIZE_1024.getKeySize());
+		}
+		if (algorithm == KeyPairGeneratorAlgorithm.EC)
+		{
+			return KeygenSupport.newEcKeyPair(KeygenSupport.CURVES.get(0));
+		}
+		return KeyPairFactory.newKeyPair(algorithm);
+	}
+
+	/**
+	 * The window offers every one of these algorithms with no guard on the save format - this pins
+	 * that the write path {@link GenerateKeysPanel} actually calls (PKCS#8, since PKCS#1 is only
+	 * offered for RSA and EC after #101) produces a readable key for every one of them, in both
+	 * encodings. Before this test only RSA was ever written and read back.
+	 */
+	@ParameterizedTest(name = "{0} as {1}")
+	@MethodSource("algorithmsAndSaveFormats")
+	void writesAndReadsBackAPrivateKeyForEveryAlgorithmTheWindowOffers(
+		KeyPairGeneratorAlgorithm algorithm, KeyFileFormat saveFormat, @TempDir File directory)
+		throws Exception
+	{
+		KeyPair keyPair = keyPairFor(algorithm);
+		File file = new File(directory,
+			"private-" + algorithm + "-" + saveFormat + KeygenSupport.endingFor(saveFormat));
+
+		KeygenSupport.writePrivateKey(keyPair.getPrivate(), file, KeyFormat.PKCS_8, saveFormat);
+
+		assertEquals(keyPair.getPrivate(), KeyFiles.readPrivateKey(file),
+			"the key written for " + algorithm + " as " + saveFormat
+				+ " must read back as the key that was generated");
 	}
 
 	@Test

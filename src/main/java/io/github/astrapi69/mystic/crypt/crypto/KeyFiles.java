@@ -62,9 +62,13 @@ import io.github.astrapi69.crypt.data.key.reader.PublicKeyReader;
 public final class KeyFiles
 {
 
-	/** The key types tried in turn when a file does not say which one it holds */
+	/**
+	 * The key types tried in turn when a file does not say which one it holds - every algorithm the
+	 * key generation window offers has to be in here, or its DER-saved keys come back unreadable
+	 * (#102)
+	 */
 	private static final List<String> KEY_ALGORITHMS = List.of("RSA", "EC", "DSA", "EdDSA",
-		"Ed25519");
+		"Ed25519", "X25519", "X448", "ML-KEM-768", "ML-DSA-65");
 
 	private KeyFiles()
 	{
