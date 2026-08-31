@@ -111,12 +111,19 @@ public class FileConversionPanel extends BasePanel<FileConversionModelBean>
 		final File derFile = getModelObject().getDerFile();
 		if (derFile == null)
 		{
-			txtConsole.append("No file chosen - choose a *.der file first." + System.lineSeparator());
-			txtConsole.setCaretPosition(txtConsole.getDocument().getLength());
+			say("No file chosen - choose a *.der file first.");
 			return;
 		}
-		final File pemFile = ConversionSupport.pemFileFor(derFile, getModelObject().getPemFile());
-		txtConsole.append("Conversion started...\n");
+		final File chosenTarget = getModelObject().getPemFile();
+		final File pemFile = ConversionSupport.pemFileFor(derFile, chosenTarget);
+		say("Conversion started...");
+		say("  reading:  " + derFile.getAbsolutePath() + " (" + derFile.length() + " bytes)");
+		if (chosenTarget == null)
+		{
+			// the most common way to lose a converted file is not knowing where it went
+			say("  no output file was chosen, writing next to the source");
+		}
+		say("  writing:  " + pemFile.getAbsolutePath());
 
 		try
 		{
@@ -125,34 +132,83 @@ public class FileConversionPanel extends BasePanel<FileConversionModelBean>
 			{
 				case PRIVATE_KEY :
 					final PrivateKey privateKey = PrivateKeyReader.readPrivateKey(derFile);
-					txtConsole.append("read private key...\n");
+					say("  read a private key: " + describe(privateKey.getAlgorithm(),
+						privateKey.getFormat()));
 					PrivateKeyWriter.writeInPemFormat(privateKey, pemFile);
-					txtConsole.append("private key written to " + pemFile.getName() + System.lineSeparator());
+					sayWritten("private key", pemFile);
 					break;
 				case CERTIFICATE :
 					final X509Certificate certificate = CertificateReader.readCertificate(derFile);
-					txtConsole.append("read X.509 certificate...\n");
+					say("  read an X.509 certificate: subject "
+						+ certificate.getSubjectX500Principal().getName() + ", signed with "
+						+ certificate.getSigAlgName());
 					CertificateWriter.writeInPemFormat(certificate, pemFile);
-					txtConsole.append("X.509 certificate written to " + pemFile.getName() + System.lineSeparator());
+					sayWritten("X.509 certificate", pemFile);
 					break;
 				case PUBLIC_KEY :
 					final PublicKey publicKey = PublicKeyReader.readPublicKey(derFile);
-					txtConsole.append("read public key...\n");
-					PublicKeyWriter.write(publicKey, pemFile);
-					txtConsole.append("public key written to " + pemFile.getName() + System.lineSeparator());
+					say("  read a public key: " + describe(publicKey.getAlgorithm(),
+						publicKey.getFormat()));
+					// in PEM form: this window converts to PEM, and writing the binary encoding
+					// into a file called .pem is how a converted key is refused everywhere else
+					PublicKeyWriter.writeInPemFormat(publicKey, pemFile);
+					sayWritten("public key", pemFile);
 					break;
 				default :
-					txtConsole.append("unknown key type...");
+					say("  nothing was written: this window cannot convert " + keyType);
 					break;
 			}
 		}
 		catch (NoSuchAlgorithmException | InvalidKeySpecException | NoSuchProviderException
-			| CertificateException | IOException e)
+			| CertificateException | IOException conversionFailed)
 		{
-			txtConsole.append(ThrowableExtensions.getStackTrace(e));
-			log.log(Level.SEVERE, e.getLocalizedMessage(), e);
+			log.log(Level.SEVERE, conversionFailed.getLocalizedMessage(), conversionFailed);
+			say("  nothing was written: " + conversionFailed.getClass().getSimpleName() + " - "
+				+ conversionFailed.getMessage());
+			say("  the file was read as " + getModelObject().getKeyType()
+				+ " - if that is not what it is, choose the right type above");
 		}
-		txtConsole.append("Conversion finished...\n");
+		say("Conversion finished...");
+	}
+
+	/**
+	 * Puts one line into the output and keeps the newest line in view
+	 *
+	 * @param line
+	 *            what to say
+	 */
+	private void say(final String line)
+	{
+		txtConsole.append(line + System.lineSeparator());
+		txtConsole.setCaretPosition(txtConsole.getDocument().getLength());
+	}
+
+	/**
+	 * Reports what was written, with the size, so an empty file is visible as one
+	 *
+	 * @param what
+	 *            what was written
+	 * @param file
+	 *            where it went
+	 */
+	private void sayWritten(final String what, final File file)
+	{
+		say("  wrote the " + what + ": " + file.getAbsolutePath() + " (" + file.length()
+			+ " bytes)");
+	}
+
+	/**
+	 * Describes a key by what it says about itself
+	 *
+	 * @param algorithm
+	 *            the key algorithm
+	 * @param format
+	 *            the encoding the key reports
+	 * @return the description
+	 */
+	private static String describe(final String algorithm, final String format)
+	{
+		return algorithm + ", encoded as " + format;
 	}
 
 	@Override
