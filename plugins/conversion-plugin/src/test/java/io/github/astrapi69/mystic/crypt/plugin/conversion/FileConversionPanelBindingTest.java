@@ -129,7 +129,7 @@ class FileConversionPanelBindingTest
 		button(panel, "btnConvert").doClick();
 
 		String consoleOutput = panel.getModelObject().getConsoleOutput();
-		assertTrue(consoleOutput.contains("private key written to key.pem"),
+		assertTrue(consoleOutput.contains("wrote the private key: " + pemFile.getAbsolutePath()),
 			"the console messages belong in the model, it holds: " + consoleOutput);
 		assertEquals(textArea(panel, "txtConsole").getText(), consoleOutput,
 			"the model has to hold exactly what the console shows");
@@ -153,7 +153,7 @@ class FileConversionPanelBindingTest
 
 		assertEquals(KeyType.UNKNOWN, panel.getModelObject().getKeyType(),
 			"the chosen type has to be in the model");
-		assertTrue(panel.getModelObject().getConsoleOutput().contains("unknown key type..."),
+		assertTrue(panel.getModelObject().getConsoleOutput().contains("cannot convert"),
 			"the tool has to say that it cannot convert this type");
 		assertFalse(pemFile.exists(), "nothing may be written for a type the tool cannot convert");
 	}

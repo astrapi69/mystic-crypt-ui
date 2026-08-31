@@ -31,6 +31,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.awt.Component;
 import java.awt.Container;
 import java.io.File;
+import java.nio.file.Files;
 import java.security.KeyPair;
 import java.security.PrivateKey;
 import java.security.Security;
@@ -47,7 +48,9 @@ import io.github.astrapi69.crypt.api.algorithm.key.KeyPairGeneratorAlgorithm;
 import io.github.astrapi69.crypt.api.key.KeyType;
 import io.github.astrapi69.crypt.data.factory.KeyPairFactory;
 import io.github.astrapi69.crypt.data.key.reader.PrivateKeyReader;
+import io.github.astrapi69.crypt.data.key.reader.PublicKeyReader;
 import io.github.astrapi69.crypt.data.key.writer.PrivateKeyWriter;
+import io.github.astrapi69.crypt.data.key.writer.PublicKeyWriter;
 import io.github.astrapi69.model.BaseModel;
 
 /**
@@ -149,6 +152,48 @@ class ConvertWithoutPickingATargetTest
 		String console = panel.getModelObject().getConsoleOutput();
 		assertTrue(console.toLowerCase().contains("no file") || console.toLowerCase().contains("choose"),
 			"the tool did not say that no file was chosen, it said: " + console);
+	}
+
+	@Test
+	@DisplayName("a converted public key is PEM, not the binary encoding under a pem name")
+	void aConvertedPublicKeyIsPem(@TempDir File directory) throws Exception
+	{
+		KeyPair keyPair = KeyPairFactory.newKeyPair(KeyPairGeneratorAlgorithm.RSA, 2048);
+		File derFile = new File(directory, "public.der");
+		PublicKeyWriter.write(keyPair.getPublic(), derFile);
+		FileConversionPanel panel = new FileConversionPanel(
+			BaseModel.of(FileConversionModelBean.builder().derFile(derFile)
+				.keyType(KeyType.PUBLIC_KEY).build()));
+
+		((JButton)componentNamed(panel, "btnConvert")).doClick();
+
+		File written = new File(directory, "public.pem");
+		assertTrue(Files.readString(written.toPath()).contains("BEGIN PUBLIC KEY"),
+			"the window that converts to PEM wrote the binary encoding into a file called .pem: "
+				+ panel.getModelObject().getConsoleOutput());
+		assertArrayEquals(keyPair.getPublic().getEncoded(),
+			PublicKeyReader.readPemPublicKey(written).getEncoded(),
+			"the key read back from the produced PEM is not the key that went in");
+	}
+
+	@Test
+	@DisplayName("the output says where it read and where it wrote")
+	void theOutputSaysWhereItReadAndWhereItWrote(@TempDir File directory) throws Exception
+	{
+		File derFile = aPrivateKeyInDerForm(directory, "verbose.der");
+		FileConversionPanel panel = panelFor(derFile, null);
+
+		((JButton)componentNamed(panel, "btnConvert")).doClick();
+
+		String output = panel.getModelObject().getConsoleOutput();
+		assertTrue(output.contains(derFile.getAbsolutePath()),
+			"the output does not say which file was read: " + output);
+		assertTrue(output.contains(new File(directory, "verbose.pem").getAbsolutePath()),
+			"the output does not say where the result went: " + output);
+		assertTrue(output.contains("no output file was chosen"),
+			"the output does not say that it fell back to writing next to the source: " + output);
+		assertTrue(output.contains("bytes"),
+			"the output does not say how much was written, so an empty file looks fine: " + output);
 	}
 
 }
