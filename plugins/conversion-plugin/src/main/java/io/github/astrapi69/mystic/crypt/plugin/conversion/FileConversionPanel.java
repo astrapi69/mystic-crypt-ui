@@ -132,6 +132,11 @@ public class FileConversionPanel extends BasePanel<FileConversionModelBean>
 			{
 				case PRIVATE_KEY :
 					final PrivateKey privateKey = PrivateKeyReader.readPrivateKey(derFile);
+					if (privateKey == null)
+					{
+						sayNothingWasRead("private key");
+						break;
+					}
 					say("  read a private key: " + describe(privateKey.getAlgorithm(),
 						privateKey.getFormat()));
 					PrivateKeyWriter.writeInPemFormat(privateKey, pemFile);
@@ -139,6 +144,11 @@ public class FileConversionPanel extends BasePanel<FileConversionModelBean>
 					break;
 				case CERTIFICATE :
 					final X509Certificate certificate = CertificateReader.readCertificate(derFile);
+					if (certificate == null)
+					{
+						sayNothingWasRead("X.509 certificate");
+						break;
+					}
 					say("  read an X.509 certificate: subject "
 						+ certificate.getSubjectX500Principal().getName() + ", signed with "
 						+ certificate.getSigAlgName());
@@ -147,6 +157,11 @@ public class FileConversionPanel extends BasePanel<FileConversionModelBean>
 					break;
 				case PUBLIC_KEY :
 					final PublicKey publicKey = PublicKeyReader.readPublicKey(derFile);
+					if (publicKey == null)
+					{
+						sayNothingWasRead("public key");
+						break;
+					}
 					say("  read a public key: " + describe(publicKey.getAlgorithm(),
 						publicKey.getFormat()));
 					// in PEM form: this window converts to PEM, and writing the binary encoding
@@ -195,6 +210,20 @@ public class FileConversionPanel extends BasePanel<FileConversionModelBean>
 	{
 		say("  wrote the " + what + ": " + file.getAbsolutePath() + " (" + file.length()
 			+ " bytes)");
+	}
+
+	/**
+	 * Reports that the chosen file did not hold what the selected key type expects - the readers
+	 * this method delegates to return {@code null} rather than throwing for input that is not a
+	 * DER-encoded instance of the requested type, which is not itself an error state
+	 *
+	 * @param what
+	 *            what was expected to be read
+	 */
+	private void sayNothingWasRead(final String what)
+	{
+		say("  nothing was written: the file is not a valid " + what
+			+ " - if it is a different key type, choose the right one above");
 	}
 
 	/**
