@@ -43,6 +43,7 @@ dependencies {
     implementation libs.silly.io
     implementation libs.swing.components
     implementation libs.swing.renderer
+    implementation libs.flatlaf
     implementation libs.component.model
     implementation libs.swing.base.components
     implementation libs.swing.tree.component
