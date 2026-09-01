@@ -20,8 +20,10 @@
  */
 package io.github.astrapi69.mystic.crypt;
 
+import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Frame;
+import java.awt.event.ActionEvent;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -33,12 +35,17 @@ import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
 
+import javax.swing.JButton;
+import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
+import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
 import javax.swing.MenuElement;
 
+import io.github.astrapi69.browser.BrowserControlExtensions;
 import io.github.astrapi69.collection.set.SetFactory;
 import io.github.astrapi69.component.model.enumeration.visibility.RenderMode;
 import io.github.astrapi69.design.pattern.observer.event.EventListener;
@@ -57,18 +64,19 @@ import io.github.astrapi69.mystic.crypt.action.SaveAsApplicationFileAction;
 import io.github.astrapi69.mystic.crypt.action.SearchApplicationFileAction;
 import io.github.astrapi69.mystic.crypt.eventbus.ApplicationEventBus;
 import io.github.astrapi69.mystic.crypt.menu.PluginMenuOrder;
+import io.github.astrapi69.mystic.crypt.panel.info.ApplicationInfo;
+import io.github.astrapi69.mystic.crypt.panel.info.ApplicationInfoPanel;
 import io.github.astrapi69.mystic.crypt.plugin.api.PluginMenuContribution;
 import io.github.astrapi69.swing.action.ExitApplicationAction;
+import io.github.astrapi69.swing.action.OpenBrowserAction;
+import io.github.astrapi69.swing.action.ShowInfoDialogAction;
 import io.github.astrapi69.swing.base.BaseDesktopMenu;
 import io.github.astrapi69.swing.base.BaseMenuId;
-import io.github.astrapi69.swing.dialog.info.InfoDialog;
-import io.github.astrapi69.swing.dialog.info.InfoPanel;
 import io.github.astrapi69.swing.menu.KeyStrokeExtensions;
 import io.github.astrapi69.swing.menu.MenuExtensions;
 import io.github.astrapi69.swing.menu.ParentMenuResolver;
 import io.github.astrapi69.swing.menu.model.KeyStrokeInfo;
 import io.github.astrapi69.swing.menu.model.MenuItemInfo;
-import io.github.astrapi69.swing.panel.info.InfoModelBean;
 import lombok.NonNull;
 import lombok.extern.java.Log;
 
@@ -275,119 +283,114 @@ public class DesktopMenu extends BaseDesktopMenu implements EventListener<EventO
 		return fileMenu;
 	}
 
+	/**
+	 * {@inheritDoc}
+	 * <p>
+	 * Overridden to show this application's own {@link ApplicationInfoPanel} in a plain dialog
+	 * instead of the library's {@code InfoDialog}/{@code InfoPanel}, whose layout and fixed
+	 * four-field content are not overridable - the redesign needed an icon, links, and more than
+	 * those four fields
+	 */
 	@Override
-	protected String newLabelTextApplicationName()
+	protected ShowInfoDialogAction newShowInfoDialogAction(final String name, final Frame owner,
+		final String title)
 	{
-		return Messages.getString("InfoJPanel.application.name.value");
-	}
-
-	@Override
-	protected String newLabelTextCopyright()
-	{
-		return Messages.getString("InfoJPanel.copyright.value");
-	}
-
-	@Override
-	protected String newLabelTextLabelApplicationName()
-	{
-		return Messages.getString("InfoJPanel.application.name.key");
-	}
-
-	@Override
-	protected String newLabelTextLabelCopyright()
-	{
-		return Messages.getString("InfoJPanel.copyright.key");
-	}
-
-	@Override
-	protected String newLabelTextLabelVersion()
-	{
-		return Messages.getString("InfoJPanel.version.key");
-	}
-
-	@Override
-	protected String newLabelTextVersion()
-	{
-		return Messages.getString("InfoJPanel.version.value");
-	}
-
-	@Override
-	protected String newTextWarning()
-	{
-		return Messages.getString("InfoJPanel.license.information.value");
-	}
-
-	protected InfoDialog onNewInfoDialog(Frame owner, String title)
-	{
-		return new InfoDialog(owner, title)
+		return new ShowInfoDialogAction(name, owner, title)
 		{
+			private static final long serialVersionUID = 1L;
 
 			@Override
-			protected InfoPanel newInfoPanel()
+			protected JDialog newJDialog(final Frame owner, final String title)
 			{
-				final InfoModelBean infoModelBean = InfoModelBean.builder()
-						.labelApplicationName(Messages.getString("InfoJPanel.application.name.key", "Application name:"))
-						.applicationName(Messages.getString("InfoJPanel.application.name.value", "mystic-crypt-ui"))
-						.labelCopyright(Messages.getString("InfoJPanel.copyright.key", "Copyright(C):"))
-						.copyright(Messages.getString("InfoJPanel.copyright.value", "2016 Asterios Raptis"))
-						.labelVersion(Messages.getString("InfoJPanel.version.key", "Version:"))
-						.version(Messages.getString("InfoJPanel.version.value", "8.1-SNAPSHOT"))
-						.licence(Messages.getString("InfoJPanel.license.information.value", "This Software is licensed under the MIT License"))
-						.build();
-				return new InfoPanel()
+				return newApplicationInfoDialog(owner, title);
+			}
+		};
+	}
+
+	/**
+	 * Builds the Help &gt; Info dialog
+	 *
+	 * @param owner
+	 *            the application frame to center the dialog on
+	 * @param title
+	 *            the dialog title
+	 * @return the dialog, not yet shown
+	 */
+	protected JDialog newApplicationInfoDialog(final Frame owner, final String title)
+	{
+		final JDialog dialog = new JDialog(owner, title, true);
+		dialog.setName("dlgApplicationInfo");
+		final ApplicationInfo info = ApplicationInfo.current(
+			Messages.getString("InfoJPanel.application.name.value", "mystic-crypt-ui"),
+			Messages.getString("InfoJPanel.copyright.value", "2016 Asterios Raptis").trim(),
+			Messages.getString("InfoJPanel.license.information.value",
+				"This Software is licensed under the MIT License"));
+		final JButton closeButton = new JButton("Close");
+		closeButton.addActionListener(event -> dialog.dispose());
+		final JPanel buttonRow = new JPanel();
+		buttonRow.add(closeButton);
+		dialog.getContentPane().setLayout(new BorderLayout());
+		dialog.getContentPane().add(new ApplicationInfoPanel(info), BorderLayout.CENTER);
+		dialog.getContentPane().add(buttonRow, BorderLayout.SOUTH);
+		dialog.pack();
+		dialog.setLocationRelativeTo(owner);
+		return dialog;
+	}
+
+	/** One place someone can donate through, shown as a choice in the Donate menu */
+	record DonateTarget(String label, String url)
+	{
+	}
+
+	/**
+	 * Where this project can be donated to. The library's own default was one hardcoded,
+	 * dead SourceForge URL unrelated to this project (#113) - donations here go through
+	 * several real, currently active accounts instead of a single choice
+	 */
+	static final List<DonateTarget> DONATE_TARGETS = List.of(
+		new DonateTarget("GitHub Sponsors", "https://github.com/sponsors/astrapi69"),
+		new DonateTarget("Liberapay", "https://liberapay.com/astrapi69"),
+		new DonateTarget("Ko-fi", "https://ko-fi.com/astrapi69"), new DonateTarget("PayPal",
+			"https://www.paypal.com/donate/?cmd=_s-xclick&hosted_button_id=MJ7V43GU2H386"));
+
+	/**
+	 * {@inheritDoc}
+	 * <p>
+	 * Overridden to show a choice of donation targets instead of jumping straight to the
+	 * library's own hardcoded, dead default (#113)
+	 */
+	@Override
+	protected OpenBrowserAction newOpenBrowserToDonateAction(final String name,
+		final Component component)
+	{
+		return new OpenBrowserAction(name, null)
+		{
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public void actionPerformed(final ActionEvent actionEvent)
+			{
+				final JPopupMenu choices = new JPopupMenu();
+				for (DonateTarget target : DONATE_TARGETS)
 				{
-
-					@Override
-					protected String newLabelTextApplicationName()
-					{
-						return infoModelBean.getApplicationName();
-					}
-
-					@Override
-					protected String newLabelTextCopyright()
-					{
-						return infoModelBean.getCopyright();
-					}
-
-					@Override
-					protected String newLabelTextLabelApplicationName()
-					{
-						return infoModelBean.getLabelApplicationName();
-					}
-
-					@Override
-					protected String newLabelTextLabelCopyright()
-					{
-						return infoModelBean.getLabelCopyright();
-					}
-
-					@Override
-					protected String newLabelTextLabelVersion()
-					{
-						return infoModelBean.getLabelVersion();
-					}
-
-					@Override
-					protected String newLabelTextVersion()
-					{
-						return infoModelBean.getVersion();
-					}
-
-					@Override
-					protected String newTextWarning()
-					{
-						return infoModelBean.getLicence();
-					}
-
-				};
+					final JMenuItem item = new JMenuItem(target.label());
+					item.addActionListener(event -> BrowserControlExtensions
+						.displayURLonStandardBrowser(component, target.url()));
+					choices.add(item);
+				}
+				// shown on the application frame, not on the clicked menu item: a JMenuItem found
+				// and clicked by name (as the e2e tests do, since the menu bar's dropdown is never
+				// actually opened) is not always "showing" in the sense JPopupMenu.show(...)
+				// requires, where the frame that opened the menu always is
+				choices.show(component, 0, 0);
 			}
 
 			@Override
-			protected String newLabelTextPlaceholder()
+			protected void onDisplayURLonStandardBrowser(final String url)
 			{
-				return "";
+				// unused: actionPerformed is overridden to show the choice of donation targets
+				// above instead of opening one fixed URL
 			}
-
 		};
 	}
 
@@ -395,7 +398,11 @@ public class DesktopMenu extends BaseDesktopMenu implements EventListener<EventO
 	protected String onNewLicenseText()
 	{
 		final StringBuilder license = new StringBuilder();
-		try (InputStream is = ClassExtensions.getResourceAsStream("LICENSE.txt"))
+		// a plain, unqualified resource name is ambiguous across every jar on the classpath - this
+		// app's own swing-base-components dependency bundles its own "LICENSE.txt" with an unfilled
+		// "${year} ${owner}" template, and classpath order decided which one won (#112); the
+		// namespaced path below cannot collide with a dependency's own root-level file
+		try (InputStream is = ClassExtensions.getResourceAsStream("legal/license.txt"))
 		{
 			String thisLine;
 			final BufferedReader br = new BufferedReader(new InputStreamReader(is));

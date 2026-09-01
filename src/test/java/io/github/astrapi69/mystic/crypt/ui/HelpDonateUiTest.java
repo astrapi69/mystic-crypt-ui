@@ -24,50 +24,55 @@
  */
 package io.github.astrapi69.mystic.crypt.ui;
 
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Set;
+import java.util.stream.Collectors;
 
-import javax.swing.JButton;
+import javax.swing.JMenuItem;
+import javax.swing.JPopupMenu;
 
-import org.assertj.swing.core.matcher.JButtonMatcher;
 import org.assertj.swing.edt.GuiActionRunner;
-import org.assertj.swing.fixture.DialogFixture;
 import org.junit.jupiter.api.Test;
 
 import io.github.astrapi69.mystic.crypt.TestPasswords;
 
 /**
- * End-to-end use case "Help -> Info": the Help menu's info/about item opens its dialog. The
- * redesigned dialog (#112 follow-up) replaced the library's own {@code InfoDialog}/{@code
- * InfoPanel} with one this application controls - this proves the real menu click reaches it, not
- * only that {@link io.github.astrapi69.mystic.crypt.panel.info.ApplicationInfoPanel} constructs
- * correctly in isolation.
+ * End-to-end use case "Help -> Donate": the library's own default was one hardcoded, dead
+ * SourceForge URL unrelated to this project (#113) - this proves the real menu click reaches the
+ * replacement, a popup of several real, currently active donation targets, not only that the data
+ * behind it is correct in isolation.
  */
-class HelpAboutUiTest extends AbstractUiTest
+class HelpDonateUiTest extends AbstractUiTest
 {
 
 	private static final String MASTER_PASSWORD = TestPasswords.throwaway();
 
 	@Test
-	void helpInfoOpensItsDialogWithTheApplicationNameAndAGithubLink() throws IOException
+	void donateShowsEveryRealTarget() throws IOException
 	{
-		File databaseFile = new File(tempHome, "help-database.mcrdb");
+		File databaseFile = new File(tempHome, "donate-database.mcrdb");
 		createDatabaseFileHeadless(databaseFile, MASTER_PASSWORD);
 
 		ApplicationSteps application = signInWithExistingDatabase(databaseFile, MASTER_PASSWORD);
-		DialogFixture infoDialog = application.openHelpInfoDialog();
+		application.showMainFrame();
+		application.clickDonateMenuItem();
+		robot.waitForIdle();
 
-		assertTrue(infoDialog.target().isShowing(), "the Help info dialog must be shown");
+		JPopupMenu popup = (JPopupMenu)robot.finder()
+			.findAll(component -> component instanceof JPopupMenu && component.isShowing()).stream()
+			.findFirst()
+			.orElseThrow(() -> new AssertionError("Donate must show a popup of targets"));
 
-		JButton githubLink = GuiActionRunner.execute(() -> (JButton)infoDialog.robot().finder()
-			.find(infoDialog.target(), JButtonMatcher.withName("btnProjectonGitHub")));
-		assertNotNull(githubLink,
-			"the redesigned dialog must show a way to reach the project on GitHub");
+		Set<String> labels = GuiActionRunner.execute(
+			() -> java.util.Arrays.stream(popup.getComponents()).filter(JMenuItem.class::isInstance)
+				.map(component -> ((JMenuItem)component).getText()).collect(Collectors.toSet()));
 
-		GuiActionRunner.execute(() -> infoDialog.target().dispose());
+		assertEquals(Set.of("GitHub Sponsors", "Liberapay", "Ko-fi", "PayPal"), labels);
+
+		GuiActionRunner.execute(() -> popup.setVisible(false));
 		robot.waitForIdle();
 	}
 }
