@@ -111,9 +111,11 @@ public class ExtensionsPanel extends BasePanel<BaseWizardStateMachineModel<Certi
 
 		tableModel = new DefaultTableModel(new Object[] { "Extension ID", "Critical", "Value" }, 0);
 		tblExtensions = new JTable(tableModel);
+		// JTable defaults preferredViewportSize to a fixed 450x400 regardless of row count - an
+		// empty table would otherwise reserve that much room before a single extension is added
+		tblExtensions.setPreferredScrollableViewportSize(
+			new java.awt.Dimension(450, tblExtensions.getRowHeight() * 5));
 		scrExtensions = new JScrollPane(tblExtensions);
-
-		scrExtensions.setViewportView(tblExtensions);
 
 		txtExtensionId = new JMTextField(20);
 		txtExtensionValue = new JMTextField(20);
@@ -163,7 +165,10 @@ public class ExtensionsPanel extends BasePanel<BaseWizardStateMachineModel<Certi
 	protected void onInitializeLayout()
 	{
 		super.onInitializeLayout();
-		setLayout(new MigLayout("wrap 2", "[grow,fill][grow,fill]", "[][][grow][][]"));
+		// one row template per row this panel actually has (header, kind, id, critical, value,
+		// hint, buttons, table) - a shorter list has MigLayout repeat the last template for every
+		// row beyond it, which put "[grow]" on the Extension ID row instead of the table (#106)
+		setLayout(new MigLayout("wrap 2", "[grow,fill][grow,fill]", "[][][][][][][][grow]"));
 
 		add(lblHeader, "span, align center, wrap 10");
 
@@ -186,7 +191,7 @@ public class ExtensionsPanel extends BasePanel<BaseWizardStateMachineModel<Certi
 		add(btnEditExtension);
 		add(btnDeleteExtension, "wrap");
 
-		add(new JScrollPane(tblExtensions), "span, grow");
+		add(scrExtensions, "span, grow");
 	}
 
 	/**
