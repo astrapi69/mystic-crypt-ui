@@ -1268,6 +1268,12 @@ final class ApplicationSteps
 		return findDialogWithTitle("Create Certificate");
 	}
 
+	/** Clicks the Help menu's Donate item, which shows a popup of donation targets */
+	void clickDonateMenuItem()
+	{
+		clickMenuItem(BaseMenuId.HELP_DONATE.propertiesKey());
+	}
+
 	/** Opens the Help menu's info/about dialog and returns a fixture for the shown dialog */
 	DialogFixture openHelpInfoDialog()
 	{
