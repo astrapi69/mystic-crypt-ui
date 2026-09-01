@@ -37,6 +37,7 @@ import java.security.NoSuchAlgorithmException;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.logging.Level;
 
@@ -223,8 +224,8 @@ public class ChecksumPanel extends BasePanel<ChecksumBean>
 		// it into the combo box when the components are bound
 		ChecksumAlgorithm configuredAlgorithm = ChecksumSettingsContribution.algorithm();
 		getModelObject().setSelectedAlgorithm(configuredAlgorithm);
-		// UNKNOWN is a sentinel ChecksumExtensions.resolveChecksumAlgorithm returns when it cannot
-		// tell what algorithm a checksum belongs to, not a real choice for generating one
+		// UNKNOWN is crypt-api's own sentinel for "not one of the real algorithms" - not a real
+		// choice for generating a checksum, so it never belongs in this box
 		cbxChecksumAlgorithm.setModel(new EnumComboBoxModel<>(ChecksumAlgorithm.class,
 			configuredAlgorithm, Set.of(ChecksumAlgorithm.UNKNOWN)));
 		cbxChecksumAlgorithm.addActionListener(this::onChangeChecksumAlgorithm);
@@ -289,8 +290,8 @@ public class ChecksumPanel extends BasePanel<ChecksumBean>
 				String checksum = ReadFileExtensions.fromFile(checksumFile).trim();
 				txtOwnersChecksum.setText(checksum);
 				txtOwnersChecksum.setEnabled(false);
-				ChecksumAlgorithm checksumAlgorithmOfFile = ChecksumExtensions
-					.resolveChecksumAlgorithm(checksum);
+				ChecksumAlgorithm checksumAlgorithmOfFile = algorithmForFileExtension(checksumFile)
+					.orElseGet(() -> ChecksumExtensions.resolveChecksumAlgorithm(checksum));
 				cbxChecksumAlgorithm.setSelectedItem(checksumAlgorithmOfFile);
 				this.revalidate();
 			}
@@ -335,6 +336,31 @@ public class ChecksumPanel extends BasePanel<ChecksumBean>
 				return;
 			}
 		}
+	}
+
+	/**
+	 * Looks up which algorithm a checksum file's own extension implies, from the same
+	 * {@link #CHECKSUM_FILE_EXTENSIONS} table {@link #probeForSiblingChecksumFile(File)} searches
+	 * with - a reliable answer where {@link ChecksumExtensions#resolveChecksumAlgorithm(String)}
+	 * is not: MD2 and MD5 both produce a 32 hex character digest, so guessing from the checksum
+	 * text alone can never tell them apart and always lands on MD5 (#128)
+	 *
+	 * @param checksumFile
+	 *            the checksum file whose extension is checked
+	 * @return the algorithm the extension names, empty if the extension names none of them
+	 */
+	private static Optional<ChecksumAlgorithm> algorithmForFileExtension(final File checksumFile)
+	{
+		String name = checksumFile.getName();
+		int dot = name.lastIndexOf('.');
+		if (dot < 0)
+		{
+			return Optional.empty();
+		}
+		String extension = name.substring(dot + 1);
+		return CHECKSUM_FILE_EXTENSIONS.entrySet().stream()
+			.filter(entry -> entry.getValue().equalsIgnoreCase(extension)).map(Map.Entry::getKey)
+			.findFirst();
 	}
 
 	protected void onClearChecksumFile(ActionEvent actionEvent)
