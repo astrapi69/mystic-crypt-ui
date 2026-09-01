@@ -40,6 +40,7 @@ import java.util.logging.Level;
 import javax.swing.*;
 import javax.swing.plaf.ColorUIResource;
 
+import io.github.astrapi69.awt.extension.ClipboardExtensions;
 import io.github.astrapi69.checksum.ChecksumExtensions;
 import io.github.astrapi69.checksum.FileChecksumExtensions;
 import io.github.astrapi69.crypt.api.algorithm.ChecksumAlgorithm;
@@ -85,6 +86,8 @@ public class ChecksumPanel extends BasePanel<ChecksumBean>
 	private JButton btnClearChecksumFile;
 	private JButton btnClearOpenFile;
 	private JButton btnCompare;
+	private JButton btnCopyGeneratedChecksum;
+	private JButton btnCopyOwnersChecksum;
 	private JButton btnOpenChecksumFile;
 	private JButton btnOpenFile;
 	private JLabel lblChecksumAlgorithm;
@@ -128,12 +131,14 @@ public class ChecksumPanel extends BasePanel<ChecksumBean>
 		lblGeneratedChecksum = new JLabel();
 		srcGeneratedChecksum = new JScrollPane();
 		txtGeneratedChecksum = new JMTextArea();
+		btnCopyGeneratedChecksum = new JButton();
 		lblOwnersChecksum = new JLabel();
 		txtChecksumFile = new JMTextField();
 		btnOpenChecksumFile = new JButton();
 		btnClearChecksumFile = new JButton();
 		srcOwnersChecksum = new JScrollPane();
 		txtOwnersChecksum = new JMTextArea();
+		btnCopyOwnersChecksum = new JButton();
 		lblChecksumAlgorithm = new JLabel();
 		cbxChecksumAlgorithm = new JMComboBox<>();
 		btnCompare = new JButton();
@@ -164,10 +169,24 @@ public class ChecksumPanel extends BasePanel<ChecksumBean>
 		txtGeneratedChecksum.setRows(3);
 		srcGeneratedChecksum.setViewportView(txtGeneratedChecksum);
 
+		btnCopyGeneratedChecksum.setName("btnCopyGeneratedChecksum");
+		btnCopyGeneratedChecksum.setText("Copy");
+		btnCopyGeneratedChecksum.addActionListener(this::onCopyGeneratedChecksum);
+		// nothing to copy before a checksum was generated
+		EnableButtonBehavior.builder().buttonModel(btnCopyGeneratedChecksum.getModel())
+			.document(txtGeneratedChecksum.getDocument()).build();
+
 		lblOwnersChecksum.setText("Checksum from owner");
 
 		txtOwnersChecksum.setColumns(20);
 		txtOwnersChecksum.setRows(3);
+
+		btnCopyOwnersChecksum.setName("btnCopyOwnersChecksum");
+		btnCopyOwnersChecksum.setText("Copy");
+		btnCopyOwnersChecksum.addActionListener(this::onCopyOwnersChecksum);
+		// nothing to copy before the owner's checksum was typed or loaded
+		EnableButtonBehavior.builder().buttonModel(btnCopyOwnersChecksum.getModel())
+			.document(txtOwnersChecksum.getDocument()).build();
 
 		btnOpenChecksumFile.addActionListener(this::onOpenChecksumFile);
 		btnClearChecksumFile.addActionListener(this::onClearChecksumFile);
@@ -263,6 +282,29 @@ public class ChecksumPanel extends BasePanel<ChecksumBean>
 		txtOwnersChecksum.setEnabled(true);
 	}
 
+	/**
+	 * Copies the generated checksum to the system clipboard, so it can be pasted wherever it needs
+	 * to be published or compared, without selecting the text by hand
+	 *
+	 * @param actionEvent
+	 *            the action event
+	 */
+	protected void onCopyGeneratedChecksum(final ActionEvent actionEvent)
+	{
+		ClipboardExtensions.copyToClipboard(getModelObject().getGeneratedChecksum());
+	}
+
+	/**
+	 * Copies the checksum published by the file's owner to the system clipboard
+	 *
+	 * @param actionEvent
+	 *            the action event
+	 */
+	protected void onCopyOwnersChecksum(final ActionEvent actionEvent)
+	{
+		ClipboardExtensions.copyToClipboard(getModelObject().getOwnersChecksum());
+	}
+
 	protected void onCompare(final ActionEvent actionEvent)
 	{
 		String ownersChecksumText = getModelObject().getOwnersChecksum();
@@ -355,8 +397,10 @@ public class ChecksumPanel extends BasePanel<ChecksumBean>
 						.addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)
 							.addComponent(lblGeneratedChecksum, GroupLayout.DEFAULT_SIZE,
 								GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-							.addComponent(srcGeneratedChecksum, GroupLayout.DEFAULT_SIZE, 1142,
-								Short.MAX_VALUE)
+							.addGroup(layout.createSequentialGroup()
+								.addComponent(srcGeneratedChecksum, GroupLayout.DEFAULT_SIZE, 1000,
+									Short.MAX_VALUE)
+								.addGap(18, 18, 18).addComponent(btnCopyGeneratedChecksum))
 							.addComponent(lblOwnersChecksum, GroupLayout.DEFAULT_SIZE,
 								GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
 							.addGroup(layout.createSequentialGroup()
@@ -381,7 +425,9 @@ public class ChecksumPanel extends BasePanel<ChecksumBean>
 								.addComponent(btnCompare, GroupLayout.PREFERRED_SIZE, 180,
 									GroupLayout.PREFERRED_SIZE)
 								.addGap(57, 57, 57).addComponent(txtChecksumMatchResult))
-							.addComponent(srcOwnersChecksum)
+							.addGroup(layout.createSequentialGroup()
+								.addComponent(srcOwnersChecksum).addGap(18, 18, 18)
+								.addComponent(btnCopyOwnersChecksum))
 							.addGroup(layout.createSequentialGroup()
 								.addComponent(txtChecksumFile, GroupLayout.PREFERRED_SIZE, 780,
 									GroupLayout.PREFERRED_SIZE)
@@ -398,8 +444,10 @@ public class ChecksumPanel extends BasePanel<ChecksumBean>
 						GroupLayout.PREFERRED_SIZE)
 					.addComponent(btnClearOpenFile))
 				.addGap(18, 18, 18).addComponent(lblGeneratedChecksum).addGap(26, 26, 26)
-				.addComponent(srcGeneratedChecksum, GroupLayout.PREFERRED_SIZE, 58,
-					GroupLayout.PREFERRED_SIZE)
+				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.CENTER)
+					.addComponent(srcGeneratedChecksum, GroupLayout.PREFERRED_SIZE, 58,
+						GroupLayout.PREFERRED_SIZE)
+					.addComponent(btnCopyGeneratedChecksum))
 				.addGap(18, 18, 18).addComponent(lblOwnersChecksum).addGap(18, 18, 18)
 				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)
 					.addGroup(layout.createParallelGroup(GroupLayout.Alignment.BASELINE)
@@ -407,8 +455,10 @@ public class ChecksumPanel extends BasePanel<ChecksumBean>
 					.addComponent(txtChecksumFile, GroupLayout.PREFERRED_SIZE,
 						GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
 				.addGap(18, 18, 18)
-				.addComponent(srcOwnersChecksum, GroupLayout.PREFERRED_SIZE, 60,
-					GroupLayout.PREFERRED_SIZE)
+				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.CENTER)
+					.addComponent(srcOwnersChecksum, GroupLayout.PREFERRED_SIZE, 60,
+						GroupLayout.PREFERRED_SIZE)
+					.addComponent(btnCopyOwnersChecksum))
 				.addGap(18, 18, 18).addComponent(lblChecksumAlgorithm).addGap(18, 18, 18)
 				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.BASELINE)
 					.addComponent(cbxChecksumAlgorithm, GroupLayout.PREFERRED_SIZE,
