@@ -49,11 +49,6 @@ import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
 
-import com.formdev.flatlaf.FlatDarculaLaf;
-import com.formdev.flatlaf.FlatDarkLaf;
-import com.formdev.flatlaf.FlatIntelliJLaf;
-import com.formdev.flatlaf.FlatLightLaf;
-
 import io.github.astrapi69.browser.BrowserControlExtensions;
 import io.github.astrapi69.collection.set.SetFactory;
 import io.github.astrapi69.component.model.enumeration.visibility.RenderMode;
@@ -76,6 +71,7 @@ import io.github.astrapi69.mystic.crypt.menu.PluginMenuOrder;
 import io.github.astrapi69.mystic.crypt.panel.info.ApplicationInfo;
 import io.github.astrapi69.mystic.crypt.panel.info.ApplicationInfoPanel;
 import io.github.astrapi69.mystic.crypt.plugin.api.PluginMenuContribution;
+import io.github.astrapi69.mystic.crypt.settings.FlatLafTheme;
 import io.github.astrapi69.swing.action.ExitApplicationAction;
 import io.github.astrapi69.swing.action.OpenBrowserAction;
 import io.github.astrapi69.swing.action.ShowInfoDialogAction;
@@ -428,23 +424,6 @@ public class DesktopMenu extends BaseDesktopMenu implements EventListener<EventO
 		return license.toString();
 	}
 
-	/** One FlatLaf theme offered in the Look and Feel menu, alongside the JDK-bundled ones */
-	private enum FlatLafTheme
-	{
-		LIGHT("FlatLaf Light", FlatLightLaf.class), DARK("FlatLaf Dark", FlatDarkLaf.class),
-		INTELLIJ("FlatLaf IntelliJ", FlatIntelliJLaf.class), DARCULA("FlatLaf Darcula",
-			FlatDarculaLaf.class);
-
-		private final String label;
-		private final Class<? extends LookAndFeel> lookAndFeelClass;
-
-		FlatLafTheme(final String label, final Class<? extends LookAndFeel> lookAndFeelClass)
-		{
-			this.label = label;
-			this.lookAndFeelClass = lookAndFeelClass;
-		}
-	}
-
 	/**
 	 * {@inheritDoc}
 	 * <p>
@@ -472,7 +451,7 @@ public class DesktopMenu extends BaseDesktopMenu implements EventListener<EventO
 	 */
 	private JMenuItem newFlatLafMenuItem(final FlatLafTheme theme)
 	{
-		final JMenuItem item = new JMenuItem(theme.label)
+		final JMenuItem item = new JMenuItem(theme.getLabel())
 		{
 			private static final long serialVersionUID = 1L;
 
@@ -480,7 +459,7 @@ public class DesktopMenu extends BaseDesktopMenu implements EventListener<EventO
 			public boolean isEnabled()
 			{
 				final LookAndFeel current = UIManager.getLookAndFeel();
-				if (current != null && theme.lookAndFeelClass.equals(current.getClass()))
+				if (current != null && theme.getLookAndFeelClass().equals(current.getClass()))
 				{
 					return false;
 				}
@@ -502,12 +481,14 @@ public class DesktopMenu extends BaseDesktopMenu implements EventListener<EventO
 	{
 		try
 		{
-			UIManager.setLookAndFeel(theme.lookAndFeelClass.getDeclaredConstructor().newInstance());
+			UIManager
+				.setLookAndFeel(theme.getLookAndFeelClass().getDeclaredConstructor().newInstance());
 			SwingUtilities.updateComponentTreeUI(getApplicationFrame());
 		}
 		catch (ReflectiveOperationException | UnsupportedLookAndFeelException exception)
 		{
-			log.log(Level.INFO, "Look and Feel could not be applied: " + theme.label, exception);
+			log.log(Level.INFO, "Look and Feel could not be applied: " + theme.getLabel(),
+				exception);
 		}
 	}
 

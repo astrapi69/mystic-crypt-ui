@@ -49,7 +49,7 @@ class MysticCryptSettingsTest
 	void freshSettingsHaveSensibleDefaults()
 	{
 		MysticCryptSettings settings = new MysticCryptSettings();
-		assertEquals("Nimbus", settings.getLookAndFeel());
+		assertEquals("FlatLaf Light", settings.getLookAndFeel());
 		assertEquals("en", settings.getLanguage());
 		assertEquals(FrameMode.APPLICATION_PANEL, settings.getViewMode(),
 			"the default view has to be the one the application always showed after signing in");
@@ -76,7 +76,7 @@ class MysticCryptSettingsTest
 	void loadingFromAnEmptyDirectoryReturnsDefaults(@TempDir File configurationDirectory)
 	{
 		MysticCryptSettings loaded = MysticCryptSettings.load(configurationDirectory);
-		assertEquals("Nimbus", loaded.getLookAndFeel());
+		assertEquals("FlatLaf Light", loaded.getLookAndFeel());
 		assertEquals("en", loaded.getLanguage());
 	}
 

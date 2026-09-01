@@ -45,8 +45,11 @@ public class MysticCryptSettings
 {
 	public static final String JSON_FILENAME = "settings.json";
 
-	/** The look and feel name (as reported by {@link javax.swing.UIManager}); defaults to Nimbus */
-	private String lookAndFeel = "Nimbus";
+	/**
+	 * The look and feel name (as reported by {@link javax.swing.UIManager}); defaults to FlatLaf
+	 * Light (#125)
+	 */
+	private String lookAndFeel = "FlatLaf Light";
 
 	/** The UI language tag; defaults to English */
 	private String language = "en";
