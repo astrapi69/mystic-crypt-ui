@@ -43,7 +43,16 @@ import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
+import javax.swing.LookAndFeel;
 import javax.swing.MenuElement;
+import javax.swing.SwingUtilities;
+import javax.swing.UIManager;
+import javax.swing.UnsupportedLookAndFeelException;
+
+import com.formdev.flatlaf.FlatDarculaLaf;
+import com.formdev.flatlaf.FlatDarkLaf;
+import com.formdev.flatlaf.FlatIntelliJLaf;
+import com.formdev.flatlaf.FlatLightLaf;
 
 import io.github.astrapi69.browser.BrowserControlExtensions;
 import io.github.astrapi69.collection.set.SetFactory;
@@ -417,6 +426,89 @@ public class DesktopMenu extends BaseDesktopMenu implements EventListener<EventO
 			log.log(Level.SEVERE, e.getLocalizedMessage(), e);
 		}
 		return license.toString();
+	}
+
+	/** One FlatLaf theme offered in the Look and Feel menu, alongside the JDK-bundled ones */
+	private enum FlatLafTheme
+	{
+		LIGHT("FlatLaf Light", FlatLightLaf.class), DARK("FlatLaf Dark", FlatDarkLaf.class),
+		INTELLIJ("FlatLaf IntelliJ", FlatIntelliJLaf.class), DARCULA("FlatLaf Darcula",
+			FlatDarculaLaf.class);
+
+		private final String label;
+		private final Class<? extends LookAndFeel> lookAndFeelClass;
+
+		FlatLafTheme(final String label, final Class<? extends LookAndFeel> lookAndFeelClass)
+		{
+			this.label = label;
+			this.lookAndFeelClass = lookAndFeelClass;
+		}
+	}
+
+	/**
+	 * {@inheritDoc}
+	 * <p>
+	 * Overridden to add FlatLaf's four themes alongside the JDK-bundled ones already there (#116)
+	 */
+	@Override
+	protected JMenu newLookAndFeelMenu()
+	{
+		final JMenu menu = super.newLookAndFeelMenu();
+		menu.addSeparator();
+		for (final FlatLafTheme theme : FlatLafTheme.values())
+		{
+			menu.add(newFlatLafMenuItem(theme));
+		}
+		return menu;
+	}
+
+	/**
+	 * One Look and Feel menu item for a FlatLaf theme, greyed out while it is already the active
+	 * one - the same self-disabling pattern the JDK-bundled items above already use
+	 *
+	 * @param theme
+	 *            the theme this item switches to
+	 * @return the menu item
+	 */
+	private JMenuItem newFlatLafMenuItem(final FlatLafTheme theme)
+	{
+		final JMenuItem item = new JMenuItem(theme.label)
+		{
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public boolean isEnabled()
+			{
+				final LookAndFeel current = UIManager.getLookAndFeel();
+				if (current != null && theme.lookAndFeelClass.equals(current.getClass()))
+				{
+					return false;
+				}
+				return super.isEnabled();
+			}
+		};
+		item.setName("mihLookAndFeel" + theme.name());
+		item.addActionListener(event -> applyFlatLaf(theme));
+		return item;
+	}
+
+	/**
+	 * Switches to the given FlatLaf theme and updates every open window's UI to match
+	 *
+	 * @param theme
+	 *            the theme to switch to
+	 */
+	private void applyFlatLaf(final FlatLafTheme theme)
+	{
+		try
+		{
+			UIManager.setLookAndFeel(theme.lookAndFeelClass.getDeclaredConstructor().newInstance());
+			SwingUtilities.updateComponentTreeUI(getApplicationFrame());
+		}
+		catch (ReflectiveOperationException | UnsupportedLookAndFeelException exception)
+		{
+			log.log(Level.INFO, "Look and Feel could not be applied: " + theme.label, exception);
+		}
 	}
 
 	/**
