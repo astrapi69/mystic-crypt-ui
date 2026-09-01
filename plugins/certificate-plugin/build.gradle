@@ -30,6 +30,8 @@ dependencies {
     compileOnly "io.github.astrapi69:model-data:3.2.1"
     compileOnly "io.github.astrapi69:swing-base-components:5.1"
     compileOnly "io.github.astrapi69:swing-components:9"
+    // the JMTextArea the in-app certificate editor binds to its model
+    compileOnly "io.github.astrapi69:swing-model-components:1.2"
     compileOnly "io.github.astrapi69:swing-wizard:2.1"
     compileOnly "io.github.astrapi69:state-pattern:7.1"
     // AbstractWizardPanel (swing-wizard) implements the observer EventListener/EventObject
@@ -50,6 +52,11 @@ dependencies {
     // settings store, so the host jar has to be on the test classpath to load it
     testImplementation "io.github.astrapi69:mystic-crypt-ui:8.2-SNAPSHOT"
     testImplementation "org.pf4j:pf4j:3.15.0"
+    // the editor panel test builds the real panel, so its base classes have to be on the test
+    // compile classpath as well (the host jar exposes them only at runtime)
+    testImplementation "io.github.astrapi69:swing-base-components:5.1"
+    testImplementation "io.github.astrapi69:swing-model-components:1.2"
+    testImplementation "io.github.astrapi69:model-data:3.2.1"
 
 }
 
