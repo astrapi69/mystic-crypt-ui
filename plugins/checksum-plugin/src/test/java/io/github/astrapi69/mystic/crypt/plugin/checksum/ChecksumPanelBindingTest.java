@@ -101,6 +101,21 @@ class ChecksumPanelBindingTest
 	}
 
 	@Test
+	void theAlgorithmComboBoxDoesNotOfferTheUnknownSentinelAsAChoice()
+	{
+		ChecksumPanel panel = new ChecksumPanel();
+
+		JComboBox<ChecksumAlgorithm> comboBox = panel.getCbxChecksumAlgorithm();
+		for (int index = 0; index < comboBox.getItemCount(); index++)
+		{
+			assertTrue(ChecksumAlgorithm.UNKNOWN != comboBox.getItemAt(index),
+				"UNKNOWN is a sentinel ChecksumExtensions.resolveChecksumAlgorithm returns when it "
+					+ "cannot tell what algorithm a checksum belongs to, not something a user "
+					+ "should ever pick to generate one");
+		}
+	}
+
+	@Test
 	void theAlgorithmChosenInTheComboBoxDecidesWhatIsComputed(@TempDir File directory)
 		throws Exception
 	{
@@ -165,6 +180,55 @@ class ChecksumPanelBindingTest
 		assertEquals("", panel.getModelObject().getSelectedFilename(), "and so is its name");
 		assertEquals("", panel.getModelObject().getGeneratedChecksum(),
 			"and so is what was computed for it");
+	}
+
+	@Test
+	void openingAFileWithASiblingChecksumFileLoadsItAutomatically(@TempDir File directory)
+		throws Exception
+	{
+		File file = fileWithAbc(directory);
+		File siblingChecksumFile = new File(directory, file.getName() + ".sha256");
+		Files.write(siblingChecksumFile.toPath(),
+			SHA_256_OF_ABC.getBytes(StandardCharsets.UTF_8));
+		ChecksumPanel panel = new ChecksumPanel();
+
+		panel.applySelectedFile(file);
+
+		assertEquals(SHA_256_OF_ABC, panel.getModelObject().getOwnersChecksum(),
+			"a checksum file sitting right next to the chosen one must be loaded automatically, "
+				+ "the same as choosing it by hand would");
+		assertEquals(siblingChecksumFile.getName(), panel.getModelObject().getSelectedChecksumFilename(),
+			"and the field must say which file it came from");
+	}
+
+	@Test
+	void openingAFileWithNoSiblingChecksumFileLeavesTheOwnersChecksumEmpty(@TempDir File directory)
+		throws Exception
+	{
+		File file = fileWithAbc(directory);
+		ChecksumPanel panel = new ChecksumPanel();
+
+		panel.applySelectedFile(file);
+
+		assertEquals("", panel.getModelObject().getOwnersChecksum(),
+			"nothing to auto-load, so the field stays exactly as untouched as it always did");
+	}
+
+	@Test
+	void openingAFileDoesNotOverwriteAChecksumTheUserAlreadyTyped(@TempDir File directory)
+		throws Exception
+	{
+		File file = fileWithAbc(directory);
+		File siblingChecksumFile = new File(directory, file.getName() + ".sha256");
+		Files.write(siblingChecksumFile.toPath(),
+			SHA_256_OF_ABC.getBytes(StandardCharsets.UTF_8));
+		ChecksumPanel panel = new ChecksumPanel();
+		panel.getTxtOwnersChecksum().setText(MD5_OF_ABC);
+
+		panel.applySelectedFile(file);
+
+		assertEquals(MD5_OF_ABC, panel.getModelObject().getOwnersChecksum(),
+			"a checksum the user already typed must never be silently replaced");
 	}
 
 	@Test
