@@ -34,7 +34,10 @@ import java.awt.event.ActionEvent;
 import java.io.File;
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.logging.Level;
 
 import javax.swing.*;
@@ -82,6 +85,22 @@ public class ChecksumPanel extends BasePanel<ChecksumBean>
 
 	/** The size a checksum file may have at most, in bytes */
 	private static final long MAXIMUM_CHECKSUM_FILE_LENGTH = 128;
+
+	/**
+	 * The file extension conventionally produced for each algorithm this tool offers (the same
+	 * ones {@code md5sum}, {@code sha256sum} and their siblings write), tried in this order when
+	 * looking for a checksum file next to the one being checked
+	 */
+	private static final Map<ChecksumAlgorithm, String> CHECKSUM_FILE_EXTENSIONS = new LinkedHashMap<>();
+	static
+	{
+		CHECKSUM_FILE_EXTENSIONS.put(ChecksumAlgorithm.SHA_256, "sha256");
+		CHECKSUM_FILE_EXTENSIONS.put(ChecksumAlgorithm.SHA_512, "sha512");
+		CHECKSUM_FILE_EXTENSIONS.put(ChecksumAlgorithm.SHA_384, "sha384");
+		CHECKSUM_FILE_EXTENSIONS.put(ChecksumAlgorithm.SHA_1, "sha1");
+		CHECKSUM_FILE_EXTENSIONS.put(ChecksumAlgorithm.MD5, "md5");
+		CHECKSUM_FILE_EXTENSIONS.put(ChecksumAlgorithm.MD2, "md2");
+	}
 
 	private JButton btnClearChecksumFile;
 	private JButton btnClearOpenFile;
@@ -204,8 +223,10 @@ public class ChecksumPanel extends BasePanel<ChecksumBean>
 		// it into the combo box when the components are bound
 		ChecksumAlgorithm configuredAlgorithm = ChecksumSettingsContribution.algorithm();
 		getModelObject().setSelectedAlgorithm(configuredAlgorithm);
-		cbxChecksumAlgorithm
-			.setModel(new EnumComboBoxModel<>(ChecksumAlgorithm.class, configuredAlgorithm));
+		// UNKNOWN is a sentinel ChecksumExtensions.resolveChecksumAlgorithm returns when it cannot
+		// tell what algorithm a checksum belongs to, not a real choice for generating one
+		cbxChecksumAlgorithm.setModel(new EnumComboBoxModel<>(ChecksumAlgorithm.class,
+			configuredAlgorithm, Set.of(ChecksumAlgorithm.UNKNOWN)));
 		cbxChecksumAlgorithm.addActionListener(this::onChangeChecksumAlgorithm);
 
 		btnCompare.setText("Compare");
@@ -245,32 +266,74 @@ public class ChecksumPanel extends BasePanel<ChecksumBean>
 		final int returnVal = fileChooser.showSaveDialog(ChecksumPanel.this);
 		if (returnVal == JFileChooser.APPROVE_OPTION)
 		{
-			final File selectedChecksumFile = fileChooser.getSelectedFile();
-			long length = selectedChecksumFile.length();
-			if (length <= MAXIMUM_CHECKSUM_FILE_LENGTH)
-			{
-				getModelObject().setSelectedChecksumFile(selectedChecksumFile);
-				txtChecksumFile.setText(selectedChecksumFile.getName());
-				try
-				{
-					String checksum = ReadFileExtensions.fromFile(selectedChecksumFile).trim();
-					txtOwnersChecksum.setText(checksum);
-					txtOwnersChecksum.setEnabled(false);
-					ChecksumAlgorithm checksumAlgorithmOfFile = ChecksumExtensions
-						.resolveChecksumAlgorithm(checksum);
-					cbxChecksumAlgorithm.setSelectedItem(checksumAlgorithmOfFile);
-					this.revalidate();
-				}
-				catch (IOException e)
-				{
-					log.log(Level.SEVERE, e.getLocalizedMessage(), e);
-				}
-			}
-			else
-			{
-				showChecksumMatchResult("Given checksum file is invalid", NO_MATCH_COLOR);
-			}
+			applyChecksumFile(fileChooser.getSelectedFile());
+		}
+	}
 
+	/**
+	 * Loads the given file into "Checksum from owner" - what "Open Checksum File" does once a file
+	 * is chosen, and what a sibling file found next to the file being checked is loaded with too
+	 *
+	 * @param checksumFile
+	 *            the checksum file to load
+	 */
+	private void applyChecksumFile(final File checksumFile)
+	{
+		long length = checksumFile.length();
+		if (length <= MAXIMUM_CHECKSUM_FILE_LENGTH)
+		{
+			getModelObject().setSelectedChecksumFile(checksumFile);
+			txtChecksumFile.setText(checksumFile.getName());
+			try
+			{
+				String checksum = ReadFileExtensions.fromFile(checksumFile).trim();
+				txtOwnersChecksum.setText(checksum);
+				txtOwnersChecksum.setEnabled(false);
+				ChecksumAlgorithm checksumAlgorithmOfFile = ChecksumExtensions
+					.resolveChecksumAlgorithm(checksum);
+				cbxChecksumAlgorithm.setSelectedItem(checksumAlgorithmOfFile);
+				this.revalidate();
+			}
+			catch (IOException e)
+			{
+				log.log(Level.SEVERE, e.getLocalizedMessage(), e);
+			}
+		}
+		else
+		{
+			showChecksumMatchResult("Given checksum file is invalid", NO_MATCH_COLOR);
+		}
+	}
+
+	/**
+	 * Looks for a same-named file with one of the extensions {@code md5sum}, {@code sha256sum} and
+	 * their siblings conventionally produce (e.g. {@code backup.alb} + {@code backup.alb.sha256}
+	 * in the same folder), and loads it into "Checksum from owner" the way choosing one by hand
+	 * would - only when that field is still empty, so a checksum the user already typed or loaded
+	 * is never silently replaced
+	 *
+	 * @param file
+	 *            the file that was chosen to be checked
+	 */
+	private void probeForSiblingChecksumFile(final File file)
+	{
+		if (!txtOwnersChecksum.getText().isBlank())
+		{
+			return;
+		}
+		File parent = file.getParentFile();
+		if (parent == null)
+		{
+			return;
+		}
+		for (String extension : CHECKSUM_FILE_EXTENSIONS.values())
+		{
+			File candidate = new File(parent, file.getName() + "." + extension);
+			if (candidate.isFile())
+			{
+				applyChecksumFile(candidate);
+				return;
+			}
 		}
 	}
 
@@ -352,11 +415,24 @@ public class ChecksumPanel extends BasePanel<ChecksumBean>
 		final int returnVal = fileChooser.showSaveDialog(ChecksumPanel.this);
 		if (returnVal == JFileChooser.APPROVE_OPTION)
 		{
-			final File selectedFile = fileChooser.getSelectedFile();
-			getModelObject().setSelectedFile(selectedFile);
-			txtOpenFile.setText(selectedFile.getName());
-			calculateChecksum();
+			applySelectedFile(fileChooser.getSelectedFile());
 		}
+	}
+
+	/**
+	 * Applies the file chosen to be checked - what {@link #onOpenFile(ActionEvent)} does once a
+	 * file is chosen, factored out so it is reachable without the interactive file chooser it is
+	 * otherwise reached through
+	 *
+	 * @param selectedFile
+	 *            the file to check
+	 */
+	void applySelectedFile(final File selectedFile)
+	{
+		getModelObject().setSelectedFile(selectedFile);
+		txtOpenFile.setText(selectedFile.getName());
+		calculateChecksum();
+		probeForSiblingChecksumFile(selectedFile);
 	}
 
 	private void calculateChecksum()
