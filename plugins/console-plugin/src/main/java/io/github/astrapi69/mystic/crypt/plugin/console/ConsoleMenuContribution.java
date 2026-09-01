@@ -66,6 +66,10 @@ public class ConsoleMenuContribution implements PluginMenuContribution
 			JInternalFrame internalFrame = JComponentFactory.newInternalFrame("Console", true, true,
 				true, true);
 			ConsolePanel component = new ConsolePanel();
+			// the panel just redirected System.out/err to itself; java.util.logging keeps its own
+			// stale reference to the original System.err otherwise, so nothing logged through it
+			// would ever reach the panel (#133)
+			ConsoleLogRedirectSupport.redirectRootLoggingToCurrentSystemErr();
 			// the console lives inside the application's desktop, so that is what it is measured
 			// against; the screen is the wrong yardstick and left it a stamp in the corner of a
 			// window that did not fill the screen

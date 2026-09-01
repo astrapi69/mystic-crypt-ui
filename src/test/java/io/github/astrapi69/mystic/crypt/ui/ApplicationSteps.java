@@ -1464,6 +1464,15 @@ final class ApplicationSteps
 		return GuiActionRunner.execute(() -> findInternalFrameByTitle(title) != null);
 	}
 
+	/**
+	 * The internal frame with the given title, for a test that needs to inspect it directly (its
+	 * bounds, for instance) rather than just knowing it is there
+	 */
+	javax.swing.JInternalFrame internalFrame(String title)
+	{
+		return GuiActionRunner.execute(() -> findInternalFrameByTitle(title));
+	}
+
 	private static javax.swing.JInternalFrame findInternalFrameByTitle(String title)
 	{
 		MysticCryptApplicationFrame applicationFrame = MysticCryptApplicationFrame.getInstance();
