@@ -18,7 +18,7 @@ PLUGIN_FILE_CRYPT_DIR := plugins/file-crypt-plugin
 PLUGIN_SECRET_SHARING_DIR := plugins/secret-sharing-plugin
 PLUGIN_INSTALL_DIR := $(HOME)/.config/mystic-crypt-ui/plugins
 
-.PHONY: build build-full run all clean test test-e2e test-e2e-demo \
+.PHONY: build build-full build-with-plugins bwp run all clean test test-e2e test-e2e-demo \
 	bootRun clean-build-installer izpack-installer izpack-installer-signed \
 	dependencies dependency-updates jacoco-coverage jacoco-report jar javadoc \
 	license-format publish publish-local spotless-java spotless-misc tag-release \
@@ -36,6 +36,14 @@ build-full:
 	JAVA_HOME=$(JAVA_HOME) ./gradlew clean build
 	JAVA_HOME=$(JAVA_HOME) ./gradlew createAllDependendiesJar
 
+# host jar plus every internal plugin, built and installed into the app's plugins directory -
+# root `build` alone never touches plugins/ (each is its own separate Gradle build), so this is
+# the one command that leaves both the jar and the installed plugins current
+build-with-plugins: build plugins-install
+
+# shortcut alias for build-with-plugins
+bwp: build-with-plugins
+
 # run the most recently built jar - fails loudly if none exists yet
 run:
 	@jar=$$(find build/libs -maxdepth 1 -name '*-all.jar' -print -quit); \
@@ -48,7 +56,7 @@ run:
 
 # build then run - always launches exactly what was just built, with the standard internal
 # plugins built and installed into the app's plugins directory beforehand
-all: build plugins-install run
+all: build-with-plugins run
 
 test:
 	JAVA_HOME=$(JAVA_HOME) ./gradlew test
