@@ -31,6 +31,7 @@ import java.awt.Toolkit;
 import java.io.File;
 import java.io.IOException;
 import java.math.BigInteger;
+import java.nio.file.Files;
 import java.security.KeyPair;
 import java.security.cert.X509Certificate;
 import java.time.ZonedDateTime;
@@ -165,9 +166,9 @@ public class CertificateMenuContribution implements PluginMenuContribution
 	}
 
 	/**
-	 * Tells the user the certificate was saved, with the choice to open it right away - there is no
-	 * in-app viewer for it, so "open" always goes through whatever the operating system associates
-	 * with the file
+	 * Tells the user the certificate was saved, with the choice to open it right away - either in
+	 * the small in-app text editor (#110), since the wizard always writes PEM, or through whatever
+	 * the operating system associates with the file
 	 *
 	 * @param dialog
 	 *            the wizard dialog, as the parent for both this and any error dialog
@@ -176,11 +177,16 @@ public class CertificateMenuContribution implements PluginMenuContribution
 	 */
 	private static void offerToOpen(JDialog dialog, File file)
 	{
-		Object[] options = { "Open", "OK" };
+		Object[] options = { "Edit", "Open", "OK" };
 		int chosen = JOptionPane.showOptionDialog(dialog, "Certificate saved to " + file.getName(),
-			"Certificate created", JOptionPane.YES_NO_OPTION, JOptionPane.INFORMATION_MESSAGE, null,
-			options, options[1]);
-		if (chosen != 0)
+			"Certificate created", JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.INFORMATION_MESSAGE,
+			null, options, options[2]);
+		if (chosen == 0)
+		{
+			openInEditor(dialog, file);
+			return;
+		}
+		if (chosen != 1)
 		{
 			return;
 		}
@@ -194,6 +200,49 @@ public class CertificateMenuContribution implements PluginMenuContribution
 				"Could not open " + file.getName() + ": " + exception.getMessage(), "Open failed",
 				JOptionPane.ERROR_MESSAGE);
 		}
+	}
+
+	/**
+	 * Opens the saved certificate in the in-app text editor, in a dialog owned by the given parent
+	 *
+	 * @param parent
+	 *            the dialog to show this on top of, and to show any read error on
+	 * @param file
+	 *            the file to edit
+	 */
+	private static void openInEditor(JDialog parent, File file)
+	{
+		final String content;
+		try
+		{
+			content = Files.readString(file.toPath());
+		}
+		catch (IOException exception)
+		{
+			JOptionPane.showMessageDialog(parent,
+				"Could not open " + file.getName() + ": " + exception.getMessage(), "Open failed",
+				JOptionPane.ERROR_MESSAGE);
+			return;
+		}
+		JDialog editorDialog = new JDialog(parent, "Edit " + file.getName(), true);
+		editorDialog.setName("dlgCertificateFileEditor");
+		CertificateFileEditorModel editorModel = CertificateFileEditorModel.builder().file(file)
+			.content(content).build();
+		CertificateFileEditorPanel editorPanel = new CertificateFileEditorPanel(
+			BaseModel.of(editorModel))
+		{
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			protected void onClose()
+			{
+				editorDialog.dispose();
+			}
+		};
+		editorDialog.getContentPane().add(editorPanel);
+		editorDialog.setSize(WizardWindowSize.MINIMUM_WIDTH, WizardWindowSize.MINIMUM_HEIGHT);
+		editorDialog.setLocationRelativeTo(parent);
+		editorDialog.setVisible(true);
 	}
 
 	/**
