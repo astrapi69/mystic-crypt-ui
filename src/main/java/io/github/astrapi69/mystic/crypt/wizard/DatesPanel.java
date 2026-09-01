@@ -31,7 +31,6 @@ import java.util.Set;
 import javax.swing.JButton;
 import javax.swing.JLabel;
 
-import com.github.lgooddatepicker.components.CalendarPanel;
 import com.github.lgooddatepicker.components.DatePicker;
 
 import io.github.astrapi69.collection.array.ArrayFactory;
@@ -64,8 +63,8 @@ public class DatesPanel extends BasePanel<BaseWizardStateMachineModel<Certificat
 	private JLabel lblSerialNumber;
 	private JLabel lblSignatureAlgorithm;
 	private JLabel lblVersion;
-	private CalendarPanel txtNotAfter;
-	private CalendarPanel txtNotBefore;
+	private DatePicker txtNotAfter;
+	private DatePicker txtNotBefore;
 	private JMBigIntegerTextField txtSerialNumber;
 	private JMComboBox<Integer, GenericComboBoxModel<Integer>> cmbVersion;
 	private JButton btnGenerateSerialNumber;
@@ -88,8 +87,11 @@ public class DatesPanel extends BasePanel<BaseWizardStateMachineModel<Certificat
 		lblSignatureAlgorithm = new JLabel("Signature Algorithm:");
 		lblVersion = new JLabel("Version:");
 
-		txtNotBefore = new CalendarPanel(new DatePicker());
-		txtNotAfter = new CalendarPanel(new DatePicker());
+		// a plain DatePicker, not a CalendarPanel: CalendarPanel is the always-visible 42-cell
+		// month grid a DatePicker opens transiently in its own popup - embedding it directly took
+		// far more room than a date field needs (#105)
+		txtNotBefore = new DatePicker();
+		txtNotAfter = new DatePicker();
 		txtSerialNumber = new JMBigIntegerTextField();
 		btnGenerateSerialNumber = new JButton();
 
@@ -124,8 +126,25 @@ public class DatesPanel extends BasePanel<BaseWizardStateMachineModel<Certificat
 		txtSerialNumber
 			.setPropertyModel(LambdaModel.of(modelObject::getSerial, modelObject::setSerial));
 
-		txtNotAfter.setSelectedDate(modelObject.getValidityModel().getNotAfter().toLocalDate());
-		txtNotBefore.setSelectedDate(modelObject.getValidityModel().getNotBefore().toLocalDate());
+		txtNotAfter.setDate(modelObject.getValidityModel().getNotAfter().toLocalDate());
+		txtNotBefore.setDate(modelObject.getValidityModel().getNotBefore().toLocalDate());
+		// the panels are model-backed like every other panel in this wizard (architecture.md): a
+		// date picked here has to reach the certificate that gets built, not only the text field
+		// (#105)
+		txtNotBefore.addDateChangeListener(event -> {
+			if (event.getNewDate() != null)
+			{
+				modelObject.getValidityModel().setNotBefore(
+					modelObject.getValidityModel().getNotBefore().with(event.getNewDate()));
+			}
+		});
+		txtNotAfter.addDateChangeListener(event -> {
+			if (event.getNewDate() != null)
+			{
+				modelObject.getValidityModel().setNotAfter(
+					modelObject.getValidityModel().getNotAfter().with(event.getNewDate()));
+			}
+		});
 
 		btnGenerateSerialNumber.setText("Generate");
 		btnGenerateSerialNumber.addActionListener(this::onGenerateSerialNumber);
