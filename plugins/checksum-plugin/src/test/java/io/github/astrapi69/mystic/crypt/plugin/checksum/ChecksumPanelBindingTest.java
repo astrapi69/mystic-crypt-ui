@@ -25,6 +25,7 @@
 package io.github.astrapi69.mystic.crypt.plugin.checksum;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -164,6 +165,28 @@ class ChecksumPanelBindingTest
 		assertEquals("", panel.getModelObject().getSelectedFilename(), "and so is its name");
 		assertEquals("", panel.getModelObject().getGeneratedChecksum(),
 			"and so is what was computed for it");
+	}
+
+	@Test
+	void copyButtonsStayDisabledUntilThereIsSomethingToCopy(@TempDir File directory)
+		throws Exception
+	{
+		File file = fileWithAbc(directory);
+		ChecksumPanel panel = new ChecksumPanel();
+
+		assertFalse(panel.getBtnCopyGeneratedChecksum().getModel().isEnabled(),
+			"nothing was generated yet, so there is nothing to copy");
+		assertFalse(panel.getBtnCopyOwnersChecksum().getModel().isEnabled(),
+			"nothing was typed or loaded yet either");
+
+		panel.getModelObject().setSelectedFile(file);
+		chooseAlgorithm(panel, ChecksumAlgorithm.MD5);
+		assertTrue(panel.getBtnCopyGeneratedChecksum().getModel().isEnabled(),
+			"a checksum was generated, so it can now be copied");
+
+		panel.getTxtOwnersChecksum().setText(MD5_OF_ABC);
+		assertTrue(panel.getBtnCopyOwnersChecksum().getModel().isEnabled(),
+			"a checksum was typed, so it can now be copied");
 	}
 
 	/**

@@ -26,6 +26,9 @@ package io.github.astrapi69.mystic.crypt.ui;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import java.awt.Toolkit;
+import java.awt.datatransfer.Clipboard;
+import java.awt.datatransfer.DataFlavor;
 import java.io.File;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -48,8 +51,8 @@ import io.github.astrapi69.mystic.crypt.TestPasswords;
 /**
  * Functional end-to-end test of the checksum plugin: loads the plugin from its zip, opens the
  * "Verify Checksum" tool from the Plugins menu, chooses SHA-256, browses to a file whose content is
- * "abc" and asserts the computed checksum equals the well-known SHA-256 digest - all through the
- * real UI
+ * "abc" and asserts the computed checksum equals the well-known SHA-256 digest, then copies it and
+ * checks the real system clipboard (#120) - all through the real UI
  */
 class ChecksumPluginUiTest extends AbstractUiTest
 {
@@ -107,5 +110,15 @@ class ChecksumPluginUiTest extends AbstractUiTest
 			.execute(() -> frame.textBox("txtGeneratedChecksum").target().getText());
 		assertEquals(SHA256_OF_ABC, checksum.trim(),
 			"the tool must compute the SHA-256 of the file content \"abc\"");
+
+		// Copy the generated checksum (#120): the button next to it must put exactly that text on
+		// the real system clipboard - not a mock, the same clipboard a paste anywhere else on the
+		// machine would read from
+		GuiActionRunner.execute(() -> frame.button("btnCopyGeneratedChecksum").target().doClick());
+		robot.waitForIdle();
+		Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+		String clipboardContent = (String)clipboard.getData(DataFlavor.stringFlavor);
+		assertEquals(checksum, clipboardContent,
+			"the clipboard must hold exactly what the field showed, not something else");
 	}
 }
