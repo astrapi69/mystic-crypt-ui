@@ -58,6 +58,7 @@ import io.github.astrapi69.mystic.crypt.panel.signin.MasterPwFileDialog;
 import io.github.astrapi69.mystic.crypt.panel.signin.MasterPwFileModelBean;
 import io.github.astrapi69.mystic.crypt.panel.signin.MemoizedSigninModelBean;
 import io.github.astrapi69.mystic.crypt.plugin.api.PluginMenuContribution;
+import io.github.astrapi69.mystic.crypt.settings.FlatLafTheme;
 import io.github.astrapi69.mystic.crypt.settings.GeneralSettingsPanel;
 import io.github.astrapi69.mystic.crypt.settings.MysticCryptSettings;
 import io.github.astrapi69.mystic.crypt.ui.screen.ScreenPlacement;
@@ -98,6 +99,14 @@ public class MysticCryptApplicationFrame extends ApplicationPanelFrame<Applicati
 	 * The instance.
 	 */
 	private static MysticCryptApplicationFrame instance;
+
+	static
+	{
+		// registers FlatLaf's four themes with UIManager, before the settings dropdown is built
+		// and before onAfterInitialize() replays a persisted look-and-feel choice - both look
+		// FlatLaf up by name through UIManager.getInstalledLookAndFeels() (#125)
+		FlatLafTheme.installAll();
+	}
 
 	/**
 	 * The {@link BouncyCastleProvider} object

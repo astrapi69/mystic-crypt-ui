@@ -37,6 +37,8 @@ import javax.swing.UIManager;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import com.formdev.flatlaf.FlatDarkLaf;
+
 import io.github.astrapi69.swing.enumeration.FrameMode;
 
 /**
@@ -88,6 +90,29 @@ class GeneralSettingsPanelBindingTest
 			"the chosen look and feel did not reach the settings");
 		assertEquals("Metal", UIManager.getLookAndFeel().getID(),
 			"the look and feel of the settings was not applied");
+	}
+
+	/**
+	 * A FlatLaf theme is not a JDK-bundled look and feel, but once
+	 * {@link FlatLafTheme#installAll()} has registered it with {@link UIManager} it is
+	 * indistinguishable from one to this panel: found in the dropdown, written into the settings
+	 * the moment it is chosen, and applied from there (#125)
+	 */
+	@Test
+	@DisplayName("a registered FlatLaf theme cooperates with the settings model like any other look and feel")
+	void aRegisteredFlatLafThemeCanBeChosenPersistedAndApplied()
+	{
+		FlatLafTheme.installAll();
+		MysticCryptSettings settings = new MysticCryptSettings();
+		GeneralSettingsPanel panel = new GeneralSettingsPanel(settings);
+		JComboBox<?> comboBox = named(panel, "cmbLookAndFeel", JComboBox.class);
+
+		comboBox.setSelectedItem("FlatLaf Dark");
+
+		assertEquals("FlatLaf Dark", settings.getLookAndFeel(),
+			"the chosen FlatLaf theme did not reach the settings");
+		assertEquals(FlatDarkLaf.class, UIManager.getLookAndFeel().getClass(),
+			"the settings' FlatLaf theme was not applied, the same way a JDK-bundled one is");
 	}
 
 	/**
