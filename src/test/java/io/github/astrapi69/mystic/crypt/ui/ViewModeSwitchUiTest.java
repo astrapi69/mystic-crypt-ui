@@ -25,10 +25,12 @@
 package io.github.astrapi69.mystic.crypt.ui;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.File;
 import java.io.IOException;
 
+import org.assertj.swing.fixture.DialogFixture;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -87,6 +89,35 @@ class ViewModeSwitchUiTest extends AbstractUiTest
 		assertEquals(FrameMode.DESKTOP_PANE,
 			MysticCryptApplicationFrame.getInstance().getFrameMode(),
 			"the application did not open in the view that was chosen before");
+	}
+
+	@Test
+	@DisplayName("opening a plugin tool keeps the database view reachable, and closing Settings restores Panel view")
+	void openingAPluginToolKeepsTheDatabaseViewReachableAndClosingSettingsRestoresPanelView()
+		throws IOException
+	{
+		installPluginRequiringItBuilt(CHECKSUM_ZIP);
+		File databaseFile = new File(tempHome, "viewmode-stuck-database.mcrdb");
+		createDatabaseFileHeadless(databaseFile, MASTER_PASSWORD);
+
+		ApplicationSteps application = signInWithExistingDatabase(databaseFile, MASTER_PASSWORD);
+		application.openPluginTool("Verify Checksum", "Verify Checksum");
+		assertEquals(FrameMode.DESKTOP_PANE,
+			MysticCryptApplicationFrame.getInstance().getFrameMode(),
+			"opening a plugin tool switches the frame to Desktop mode to have somewhere to put "
+				+ "its window - the premise this regression test builds on (#132)");
+		assertTrue(application.isInternalFrameShowing("Key database"),
+			"a plugin switching the frame to Desktop mode must not make the database view "
+				+ "disappear - it has to keep showing as its own internal frame there (#132)");
+
+		DialogFixture settings = application.openSettingsDialog();
+		settings.button("btnCloseSettings").click();
+
+		assertEquals(FrameMode.APPLICATION_PANEL,
+			MysticCryptApplicationFrame.getInstance().getFrameMode(),
+			"closing Settings without touching the view combo must still restore Panel view - the "
+				+ "persisted setting never changed, so the combo fires no event, and this is the "
+				+ "only way back (#132)");
 	}
 
 }
