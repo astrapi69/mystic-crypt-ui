@@ -40,6 +40,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
+import io.github.astrapi69.checksum.FileChecksumExtensions;
 import io.github.astrapi69.crypt.api.algorithm.ChecksumAlgorithm;
 import io.github.astrapi69.mystic.crypt.settings.PluginSettings;
 
@@ -109,9 +110,8 @@ class ChecksumPanelBindingTest
 		for (int index = 0; index < comboBox.getItemCount(); index++)
 		{
 			assertTrue(ChecksumAlgorithm.UNKNOWN != comboBox.getItemAt(index),
-				"UNKNOWN is a sentinel ChecksumExtensions.resolveChecksumAlgorithm returns when it "
-					+ "cannot tell what algorithm a checksum belongs to, not something a user "
-					+ "should ever pick to generate one");
+				"UNKNOWN is crypt-api's own sentinel for \"not one of the real algorithms\", not "
+					+ "something a user should ever pick to generate one");
 		}
 	}
 
@@ -229,6 +229,24 @@ class ChecksumPanelBindingTest
 
 		assertEquals(MD5_OF_ABC, panel.getModelObject().getOwnersChecksum(),
 			"a checksum the user already typed must never be silently replaced");
+	}
+
+	@Test
+	void openingAFileWithAnMd2SiblingChecksumFileSelectsMd2NotMd5(@TempDir File directory)
+		throws Exception
+	{
+		File file = fileWithAbc(directory);
+		String md2OfAbc = FileChecksumExtensions.getChecksum(file, ChecksumAlgorithm.MD2);
+		File siblingChecksumFile = new File(directory, file.getName() + ".md2");
+		Files.write(siblingChecksumFile.toPath(), md2OfAbc.getBytes(StandardCharsets.UTF_8));
+		ChecksumPanel panel = new ChecksumPanel();
+
+		panel.applySelectedFile(file);
+
+		assertEquals(ChecksumAlgorithm.MD2, panel.getModelObject().getSelectedAlgorithm(),
+			"the sibling file's own .md2 extension has to decide the algorithm - MD2 and MD5 both "
+				+ "produce a 32 hex character digest, so guessing from the checksum text alone "
+				+ "always lands on MD5 (#128)");
 	}
 
 	@Test
