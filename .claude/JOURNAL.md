@@ -58,10 +58,20 @@ in this app (checked - `Desktop` is used exactly once elsewhere, `PluginsSetting
 plugins folder"), so this uses the same `Desktop.getDesktop().open(file)` pattern, with a real
 guard-clause test for "this system offers no way to open files."
 
+**In-app editor for the saved certificate (PR #111, closes #110).** Built: "Edit" alongside
+"Open" (system) in the certificate-created dialog, a small in-app text editor
+(`CertificateFileEditorPanel`, model-bound `JMTextArea`) with a Save that writes back the
+editor's current content.
+
 ### Open ideas (discussed, not yet built)
 
-- **In-app editor for the saved certificate**, offered alongside "Open" (system) in the same
-  confirmation dialog (#107 only added the system-open path). Certificates from this wizard are
-  always written PEM (`CertificateWriter.writeInPemFormat`), so this is plain text - a small
-  `JTextArea`-based dialog reading the file back, editable, with a save action, would not need any
-  new architecture. No issue filed yet.
+- **Shell/CLI vault unlock and read, security-first.** Discussed 2026-09-01: the mystic-crypt
+  library CLI (`--cli`, backlink pattern) has no vault-open command yet. User wants to unlock a
+  vault and read entries from the shell, no GUI - confirmed the design must be security-first
+  ("bombensicher"), modeled on the Unix `pass` tool rather than a naive dump: master password
+  NEVER as a CLI argument (only an interactive masked prompt or stdin, never in `ps aux`/shell
+  history), a `list` command that shows entry names only, and a `show <entry>` that defaults to
+  clipboard-copy with an auto-clear timeout instead of printing the secret to stdout (terminal
+  scrollback/tmux/session-logging exposure). New capability goes into the mystic-crypt LIBRARY
+  first (separate repo, own release cycle), per the CLI-is-a-backlink rule - not started, no issue
+  filed yet.
