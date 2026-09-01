@@ -19,6 +19,7 @@ new CLI capability is built in the library first. Vault format: versioned
 - `make test` — the everyday gate; must stay green after every change
 - `make test-e2e` — Swing e2e suite (needs Xvfb harness, see rules/lessons-learned.md)
 - `make plugins` / `make plugins-install` — build/install internal plugins
+- `make build-with-plugins` (alias `make bwp`) — `build` + `plugins-install` together
 - `make run` / `make bootRun` — run the app
 - `make spotless-java` — format before committing
 - `make izpack-installer` — installer
