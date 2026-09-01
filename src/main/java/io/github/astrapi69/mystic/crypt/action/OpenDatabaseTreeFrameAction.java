@@ -21,6 +21,7 @@
 package io.github.astrapi69.mystic.crypt.action;
 
 import java.awt.event.ActionEvent;
+import java.beans.PropertyVetoException;
 import java.io.Serial;
 
 import javax.swing.*;
@@ -43,6 +44,9 @@ public class OpenDatabaseTreeFrameAction extends AbstractAction
 	@Serial
 	private static final long serialVersionUID = 1L;
 
+	/** The title of the database tree's internal frame - also used to find it again */
+	private static final String DATABASE_TREE_FRAME_TITLE = "Key database";
+
 	/**
 	 * Instantiates a new action
 	 *
@@ -59,26 +63,69 @@ public class OpenDatabaseTreeFrameAction extends AbstractAction
 		MysticCryptApplicationFrame instance = MysticCryptApplicationFrame.getInstance();
 		if (FrameMode.DESKTOP_PANE.equals(instance.getFrameMode()))
 		{
-			final ApplicationPanel component = instance.getApplicationPanel();
-			// create internal frame
-			final JInternalFrame internalFrame = JComponentFactory.newInternalFrame("Key database",
-				true, true, true, true);
-			JInternalFrameExtensions.addComponentToFrame(internalFrame, component);
-			JDesktopPanePanel<ApplicationModelBean> desktopPanePanel = instance
-				.getDesktopPanePanel();
-			int screenHeight = desktopPanePanel.getDesktopPane().getHeight();
-			int screenWidth = desktopPanePanel.getDesktopPane().getWidth();
-			internalFrame.setSize(screenWidth, screenHeight);
-			internalFrame.setLocation(0, 0);
-			internalFrame.setResizable(true);
-			JInternalFrameExtensions
-				.addJInternalFrame(instance.getDesktopPanePanel().getDesktopPane(), internalFrame);
+			ensureDatabaseTreeFrameOpen(instance);
 		}
 		else
 		{
 			instance.switchToApplicationPanel();
 		}
 
+	}
+
+	/**
+	 * Makes sure the database tree - the whole {@link ApplicationPanel}, tree and content table
+	 * alike - is showing as its own internal frame in the desktop pane, bringing an already open
+	 * one to the front instead of creating a duplicate.
+	 * <p>
+	 * Called from {@link MysticCryptApplicationFrame#switchToDesktopPane()} every time the frame
+	 * switches into Desktop mode, including when a plugin tool triggers the switch to have
+	 * somewhere to put its own window - so the database view never just vanishes, it stays
+	 * reachable as its own widget instead of requiring a mode switch back to Panel view
+	 *
+	 * @param instance
+	 *            the application frame
+	 */
+	public static void ensureDatabaseTreeFrameOpen(final MysticCryptApplicationFrame instance)
+	{
+		JDesktopPanePanel<ApplicationModelBean> desktopPanePanel = instance.getDesktopPanePanel();
+		for (JInternalFrame existing : desktopPanePanel.getDesktopPane().getAllFrames())
+		{
+			if (DATABASE_TREE_FRAME_TITLE.equals(existing.getTitle()))
+			{
+				bringToFront(existing);
+				return;
+			}
+		}
+		newDatabaseTreeFrame(instance, desktopPanePanel);
+	}
+
+	private static void newDatabaseTreeFrame(final MysticCryptApplicationFrame instance,
+		final JDesktopPanePanel<ApplicationModelBean> desktopPanePanel)
+	{
+		final ApplicationPanel component = instance.getApplicationPanel();
+		final JInternalFrame internalFrame = JComponentFactory
+			.newInternalFrame(DATABASE_TREE_FRAME_TITLE, true, true, true, true);
+		JInternalFrameExtensions.addComponentToFrame(internalFrame, component);
+		int screenHeight = desktopPanePanel.getDesktopPane().getHeight();
+		int screenWidth = desktopPanePanel.getDesktopPane().getWidth();
+		internalFrame.setSize(screenWidth, screenHeight);
+		internalFrame.setLocation(0, 0);
+		internalFrame.setResizable(true);
+		JInternalFrameExtensions.addJInternalFrame(desktopPanePanel.getDesktopPane(),
+			internalFrame);
+	}
+
+	private static void bringToFront(final JInternalFrame internalFrame)
+	{
+		internalFrame.toFront();
+		try
+		{
+			internalFrame.setSelected(true);
+		}
+		catch (PropertyVetoException exception)
+		{
+			// a vetoed selection change is not worth failing this for - the frame is still on top
+		}
 	}
 
 	/**

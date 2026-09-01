@@ -429,13 +429,9 @@ public class MysticCryptApplicationFrame extends ApplicationPanelFrame<Applicati
 			applicationPanel = new ApplicationPanel(getModel());
 			FrameMode remembered = MysticCryptSettings.load(getConfigurationDirectory())
 				.getViewMode();
+			// an empty desktop with the database nowhere in sight is not what someone who chose
+			// that view asked for - switchToDesktopPane() itself now takes care of that (#132)
 			applyViewMode(remembered);
-			if (FrameMode.DESKTOP_PANE.equals(remembered))
-			{
-				// the desktop view starts empty, and an empty desktop with the database nowhere in
-				// sight is not what someone who chose that view asked for
-				OpenDatabaseTreeFrameAction.openDatabaseTreeFrame();
-			}
 		}
 		else
 		{
@@ -511,10 +507,20 @@ public class MysticCryptApplicationFrame extends ApplicationPanelFrame<Applicati
 		}
 	}
 
+	/**
+	 * Switches into Desktop mode and, once a database is open, makes sure the database view (tree
+	 * and content table alike) is showing as its own internal frame there - every plugin tool
+	 * switches into this mode to have somewhere to put its own window, and the database view must
+	 * not just vanish when that happens (#132)
+	 */
 	public void switchToDesktopPane()
 	{
 		replaceMainComponent(getDesktopPanePanel());
 		instance.frameMode = FrameMode.DESKTOP_PANE;
+		if (getApplicationPanel() != null)
+		{
+			OpenDatabaseTreeFrameAction.ensureDatabaseTreeFrameOpen(instance);
+		}
 	}
 
 	public void switchToApplicationPanel()
