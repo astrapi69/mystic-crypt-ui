@@ -110,9 +110,8 @@ class ChecksumPanelBindingTest
 		for (int index = 0; index < comboBox.getItemCount(); index++)
 		{
 			assertTrue(ChecksumAlgorithm.UNKNOWN != comboBox.getItemAt(index),
-				"UNKNOWN is a sentinel ChecksumExtensions.resolveChecksumAlgorithm returns when it "
-					+ "cannot tell what algorithm a checksum belongs to, not something a user "
-					+ "should ever pick to generate one");
+				"UNKNOWN is crypt-api's own sentinel for \"not one of the real algorithms\", not "
+					+ "something a user should ever pick to generate one");
 		}
 	}
 
