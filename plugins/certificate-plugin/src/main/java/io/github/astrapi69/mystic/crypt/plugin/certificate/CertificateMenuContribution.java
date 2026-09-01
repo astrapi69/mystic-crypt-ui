@@ -25,9 +25,11 @@
 package io.github.astrapi69.mystic.crypt.plugin.certificate;
 
 import java.awt.BorderLayout;
+import java.awt.Desktop;
 import java.awt.Dimension;
 import java.awt.Toolkit;
 import java.io.File;
+import java.io.IOException;
 import java.math.BigInteger;
 import java.security.KeyPair;
 import java.security.cert.X509Certificate;
@@ -150,8 +152,7 @@ public class CertificateMenuContribution implements PluginMenuContribution
 			{
 				File file = JFileChooserExtensions.getSelectedFileWithFirstExtension(fileChooser);
 				CertificateWriter.writeInPemFormat(certificate, file);
-				JOptionPane.showMessageDialog(dialog, "Certificate saved to " + file.getName(),
-					"Certificate created", JOptionPane.INFORMATION_MESSAGE);
+				offerToOpen(dialog, file);
 			}
 			dialog.dispose();
 		}
@@ -161,6 +162,56 @@ public class CertificateMenuContribution implements PluginMenuContribution
 				"Could not create the certificate: " + exception.getMessage(), "Certificate failed",
 				JOptionPane.ERROR_MESSAGE);
 		}
+	}
+
+	/**
+	 * Tells the user the certificate was saved, with the choice to open it right away - there is no
+	 * in-app viewer for it, so "open" always goes through whatever the operating system associates
+	 * with the file
+	 *
+	 * @param dialog
+	 *            the wizard dialog, as the parent for both this and any error dialog
+	 * @param file
+	 *            the file that was just written
+	 */
+	private static void offerToOpen(JDialog dialog, File file)
+	{
+		Object[] options = { "Open", "OK" };
+		int chosen = JOptionPane.showOptionDialog(dialog, "Certificate saved to " + file.getName(),
+			"Certificate created", JOptionPane.YES_NO_OPTION, JOptionPane.INFORMATION_MESSAGE, null,
+			options, options[1]);
+		if (chosen != 0)
+		{
+			return;
+		}
+		try
+		{
+			openWithSystemDefault(file);
+		}
+		catch (IOException exception)
+		{
+			JOptionPane.showMessageDialog(dialog,
+				"Could not open " + file.getName() + ": " + exception.getMessage(), "Open failed",
+				JOptionPane.ERROR_MESSAGE);
+		}
+	}
+
+	/**
+	 * Opens a file with whatever the operating system associates with it
+	 *
+	 * @param file
+	 *            the file to open
+	 * @throws IOException
+	 *             if this system has no way to open files from an application, or launching the
+	 *             association failed
+	 */
+	static void openWithSystemDefault(File file) throws IOException
+	{
+		if (!Desktop.isDesktopSupported() || !Desktop.getDesktop().isSupported(Desktop.Action.OPEN))
+		{
+			throw new IOException("this system offers no way to open files from an application");
+		}
+		Desktop.getDesktop().open(file);
 	}
 
 	private static CertificateInfoModel newDefaultCertificateInfoModel() throws Exception

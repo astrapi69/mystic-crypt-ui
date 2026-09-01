@@ -255,4 +255,37 @@ class ExtensionsPanelTest
 			"the critical flag of the previous extension must not survive the form being cleared");
 		assertEquals("CA:false", rows(panel).getValueAt(1, 2));
 	}
+
+	/**
+	 * {@code scrExtensions} is built and stored in
+	 * {@link ExtensionsPanel#onInitializeComponents()}, but
+	 * {@link ExtensionsPanel#onInitializeLayout()} used to build and show a second, separate
+	 * {@code JScrollPane} around the same table instead of the field - leaving
+	 * {@link ExtensionsPanel#getScrExtensions()} pointing at a component nobody ever sees (#106)
+	 */
+	@Test
+	void theScrollPaneFieldIsTheOneActuallyShown() throws Exception
+	{
+		TestableExtensionsPanel panel = newPanel();
+
+		assertTrue(
+			java.util.Arrays.asList(panel.getComponents()).contains(panel.getScrExtensions()),
+			"getScrExtensions() must return the scroll pane the panel actually shows, not an "
+				+ "orphaned second one");
+	}
+
+	/**
+	 * {@link javax.swing.JTable} defaults {@code preferredViewportSize} to a fixed 450x400
+	 * regardless of how many rows it holds - an empty extensions table reserved that much room
+	 * before anything was ever added to it (#106)
+	 */
+	@Test
+	void anEmptyTableDoesNotReserveTheSwingDefaultFourHundredPixels() throws Exception
+	{
+		TestableExtensionsPanel panel = newPanel();
+
+		assertTrue(panel.getScrExtensions().getPreferredSize().height < 300,
+			"an empty extensions table must not ask for anywhere near JTable's built-in 400 pixel "
+				+ "default, was " + panel.getScrExtensions().getPreferredSize().height);
+	}
 }
