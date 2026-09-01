@@ -37,3 +37,5 @@ Binding rules live in `.claude/rules/`: vibe-coding (priorities, freeze),
 coding-standards (Java/git), tdd, quality-checks (pyramid, gates, round-trip duty for
 vault changes), architecture (plugin-first, layers), release-workflow, lessons-learned,
 ai-workflow/ (issue-, PR-policy, implementation, documentation).
+
+Session history and discussed-but-not-yet-built ideas: `.claude/JOURNAL.md`.
