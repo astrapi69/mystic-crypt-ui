@@ -37,8 +37,11 @@ import javax.swing.JComboBox;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 
 import io.github.astrapi69.checksum.FileChecksumExtensions;
 import io.github.astrapi69.crypt.api.algorithm.ChecksumAlgorithm;
@@ -201,21 +204,50 @@ class ChecksumPanelBindingTest
 			"and the field must say which file it came from");
 	}
 
-	@Test
-	void openingAFileWithAReplaceExtensionSiblingChecksumFileLoadsItAutomatically(
-		@TempDir File directory) throws Exception
+	@ParameterizedTest
+	@EnumSource(value = ChecksumAlgorithm.class, mode = EnumSource.Mode.EXCLUDE, names = "UNKNOWN")
+	@DisplayName("an appended sibling checksum file is found, loaded and correctly attributed for every algorithm")
+	void openingAFileFindsAnAppendedSiblingChecksumFileForEveryAlgorithm(
+		final ChecksumAlgorithm algorithm, @TempDir File directory) throws Exception
 	{
 		File file = fileWithAbc(directory);
-		File siblingChecksumFile = new File(directory, "abc.sha256");
-		Files.write(siblingChecksumFile.toPath(),
-			SHA_256_OF_ABC.getBytes(StandardCharsets.UTF_8));
+		String expectedChecksum = FileChecksumExtensions.getChecksum(file, algorithm);
+		String extension = ChecksumPanel.CHECKSUM_FILE_EXTENSIONS.get(algorithm);
+		File siblingChecksumFile = new File(directory, file.getName() + "." + extension);
+		Files.write(siblingChecksumFile.toPath(), expectedChecksum.getBytes(StandardCharsets.UTF_8));
 		ChecksumPanel panel = new ChecksumPanel();
 
 		panel.applySelectedFile(file);
 
-		assertEquals(SHA_256_OF_ABC, panel.getModelObject().getOwnersChecksum(),
+		assertEquals(expectedChecksum, panel.getModelObject().getOwnersChecksum(),
+			"a " + algorithm + " sibling file sitting right next to the chosen one must be "
+				+ "loaded automatically");
+		assertEquals(algorithm, panel.getModelObject().getSelectedAlgorithm(),
+			"and the sibling's own extension must decide the algorithm - MD2 and MD5 both "
+				+ "produce a 32 hex character digest, so guessing from the checksum text alone "
+				+ "cannot always tell algorithms apart (#128)");
+	}
+
+	@ParameterizedTest
+	@EnumSource(value = ChecksumAlgorithm.class, mode = EnumSource.Mode.EXCLUDE, names = "UNKNOWN")
+	@DisplayName("a replace-extension sibling checksum file is found and loaded for every algorithm")
+	void openingAFileFindsAReplaceExtensionSiblingChecksumFileForEveryAlgorithm(
+		final ChecksumAlgorithm algorithm, @TempDir File directory) throws Exception
+	{
+		File file = fileWithAbc(directory);
+		String expectedChecksum = FileChecksumExtensions.getChecksum(file, algorithm);
+		String extension = ChecksumPanel.CHECKSUM_FILE_EXTENSIONS.get(algorithm);
+		File siblingChecksumFile = new File(directory, "abc." + extension);
+		Files.write(siblingChecksumFile.toPath(), expectedChecksum.getBytes(StandardCharsets.UTF_8));
+		ChecksumPanel panel = new ChecksumPanel();
+
+		panel.applySelectedFile(file);
+
+		assertEquals(expectedChecksum, panel.getModelObject().getOwnersChecksum(),
 			"a checksum file that replaces the original extension instead of appending to it "
-				+ "(abc.sha256 next to abc.txt) must be found too - not every tool appends (#137)");
+				+ "(abc." + extension + " next to abc.txt) must be found too, for every "
+				+ "algorithm - not every tool appends (#137)");
+		assertEquals(algorithm, panel.getModelObject().getSelectedAlgorithm());
 	}
 
 	@Test
@@ -246,24 +278,6 @@ class ChecksumPanelBindingTest
 
 		assertEquals(MD5_OF_ABC, panel.getModelObject().getOwnersChecksum(),
 			"a checksum the user already typed must never be silently replaced");
-	}
-
-	@Test
-	void openingAFileWithAnMd2SiblingChecksumFileSelectsMd2NotMd5(@TempDir File directory)
-		throws Exception
-	{
-		File file = fileWithAbc(directory);
-		String md2OfAbc = FileChecksumExtensions.getChecksum(file, ChecksumAlgorithm.MD2);
-		File siblingChecksumFile = new File(directory, file.getName() + ".md2");
-		Files.write(siblingChecksumFile.toPath(), md2OfAbc.getBytes(StandardCharsets.UTF_8));
-		ChecksumPanel panel = new ChecksumPanel();
-
-		panel.applySelectedFile(file);
-
-		assertEquals(ChecksumAlgorithm.MD2, panel.getModelObject().getSelectedAlgorithm(),
-			"the sibling file's own .md2 extension has to decide the algorithm - MD2 and MD5 both "
-				+ "produce a 32 hex character digest, so guessing from the checksum text alone "
-				+ "always lands on MD5 (#128)");
 	}
 
 	@Test

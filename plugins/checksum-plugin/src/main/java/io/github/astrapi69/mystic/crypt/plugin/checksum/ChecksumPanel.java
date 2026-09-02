@@ -92,7 +92,10 @@ public class ChecksumPanel extends BasePanel<ChecksumBean>
 	 * ones {@code md5sum}, {@code sha256sum} and their siblings write), tried in this order when
 	 * looking for a checksum file next to the one being checked
 	 */
-	private static final Map<ChecksumAlgorithm, String> CHECKSUM_FILE_EXTENSIONS = new LinkedHashMap<>();
+	// package-private (not private): the sibling-detection tests parameterize over this same
+	// mapping instead of duplicating it, so a changed extension cannot silently drift out of sync
+	// with what is actually tested
+	static final Map<ChecksumAlgorithm, String> CHECKSUM_FILE_EXTENSIONS = new LinkedHashMap<>();
 	static
 	{
 		CHECKSUM_FILE_EXTENSIONS.put(ChecksumAlgorithm.SHA_256, "sha256");
