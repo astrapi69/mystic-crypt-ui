@@ -202,6 +202,23 @@ class ChecksumPanelBindingTest
 	}
 
 	@Test
+	void openingAFileWithAReplaceExtensionSiblingChecksumFileLoadsItAutomatically(
+		@TempDir File directory) throws Exception
+	{
+		File file = fileWithAbc(directory);
+		File siblingChecksumFile = new File(directory, "abc.sha256");
+		Files.write(siblingChecksumFile.toPath(),
+			SHA_256_OF_ABC.getBytes(StandardCharsets.UTF_8));
+		ChecksumPanel panel = new ChecksumPanel();
+
+		panel.applySelectedFile(file);
+
+		assertEquals(SHA_256_OF_ABC, panel.getModelObject().getOwnersChecksum(),
+			"a checksum file that replaces the original extension instead of appending to it "
+				+ "(abc.sha256 next to abc.txt) must be found too - not every tool appends (#137)");
+	}
+
+	@Test
 	void openingAFileWithNoSiblingChecksumFileLeavesTheOwnersChecksumEmpty(@TempDir File directory)
 		throws Exception
 	{
