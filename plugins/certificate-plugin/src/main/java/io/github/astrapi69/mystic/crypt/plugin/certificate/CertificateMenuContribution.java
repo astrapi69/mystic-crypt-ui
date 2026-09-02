@@ -43,6 +43,7 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 import org.pf4j.Extension;
 
 import io.github.astrapi69.crypt.data.factory.KeyPairFactory;
+import io.github.astrapi69.crypt.data.factory.KeyPairGeneratorFactory;
 import io.github.astrapi69.crypt.data.key.KeyInfoExtensions;
 import io.github.astrapi69.crypt.data.key.writer.CertificateWriter;
 import io.github.astrapi69.model.BaseModel;
@@ -292,7 +293,7 @@ public class CertificateMenuContribution implements PluginMenuContribution
 	private static CertificateInfoModel newDefaultCertificateInfoModel() throws Exception
 	{
 		// the wizard follows the configured key algorithm; RSA is merely its default
-		KeyPair keyPair = KeyPairFactory.newKeyPair(CertificateSettingsContribution.keyAlgorithm());
+		KeyPair keyPair = newCertificateKeyPair(CertificateSettingsContribution.keyAlgorithm());
 		KeyInfoModel privateKeyInfo = KeyInfoModel
 			.toKeyInfoModel(KeyInfoExtensions.toKeyInfo(keyPair.getPrivate()));
 		KeyInfoModel publicKeyInfo = KeyInfoModel
@@ -309,5 +310,30 @@ public class CertificateMenuContribution implements PluginMenuContribution
 				.notAfter(now.plusYears(CertificateSettingsContribution.validityYears())).build())
 			.serial(BigInteger.valueOf(now.toInstant().toEpochMilli()))
 			.signatureAlgorithm(CertificateSettingsContribution.signatureAlgorithm()).build();
+	}
+
+	/**
+	 * Generates a key pair for the given algorithm the way each actually needs to be generated -
+	 * RSA and DSA take an explicit classical bit size, but EC, Ed25519 and every other
+	 * fixed-parameter algorithm have no such size and crash if forced through
+	 * {@code KeyPairFactory}'s size-defaulting convenience method (a default of 2048 makes no
+	 * sense for a curve or a fixed-parameter algorithm -
+	 * {@code java.security.InvalidParameterException: Unsupported size: 2048} for Ed25519, #141).
+	 * Mirrors the same distinction {@code keygen-plugin}'s key generator already draws.
+	 *
+	 * @param keyAlgorithm
+	 *            the key algorithm, as {@link CertificateSettingsContribution} documents it: RSA,
+	 *            EC, DSA or Ed25519
+	 * @return the generated key pair
+	 * @throws Exception
+	 *             if this machine cannot generate a key pair for the given algorithm
+	 */
+	static KeyPair newCertificateKeyPair(final String keyAlgorithm) throws Exception
+	{
+		if ("RSA".equalsIgnoreCase(keyAlgorithm) || "DSA".equalsIgnoreCase(keyAlgorithm))
+		{
+			return KeyPairFactory.newKeyPair(keyAlgorithm);
+		}
+		return KeyPairGeneratorFactory.newKeyPairGenerator(keyAlgorithm).generateKeyPair();
 	}
 }

@@ -84,14 +84,14 @@ public final class CertificateInfoModelToX509
 			: BigInteger.valueOf(notBefore.getTime());
 		String signatureAlgorithm = model.getSignatureAlgorithm() != null
 			? model.getSignatureAlgorithm()
-			: defaultSignatureAlgorithmFor(privateKey.getAlgorithm());
+			: defaultSignatureAlgorithmFor(privateKey);
 		// a signature algorithm that the key cannot produce fails deep inside the certificate
 		// builder with a message nobody can act on; saying it plainly here is worth the two lines
 		if (!signatureAlgorithmFits(signatureAlgorithm, privateKey.getAlgorithm()))
 		{
 			throw new IllegalArgumentException(
 				"a " + privateKey.getAlgorithm() + " key cannot sign with '" + signatureAlgorithm
-					+ "' - use " + defaultSignatureAlgorithmFor(privateKey.getAlgorithm())
+					+ "' - use " + defaultSignatureAlgorithmFor(privateKey)
 					+ " or another algorithm of that family");
 		}
 
@@ -153,6 +153,29 @@ public final class CertificateInfoModelToX509
 	}
 
 	/**
+	 * The signature algorithm to use when none was chosen, for the given private key.
+	 * <p>
+	 * A real JDK-generated Ed25519/Ed448 key reports the generic family name "EdDSA" through
+	 * {@link PrivateKey#getAlgorithm()}, not "Ed25519"/"Ed448" specifically - BouncyCastle refuses
+	 * the bare "EdDSA" as a signature algorithm name ("Unknown signature type requested: EdDSA"),
+	 * it needs the exact curve. {@link java.security.interfaces.EdECKey#getParams()} still knows
+	 * which curve the key actually is, which {@link #defaultSignatureAlgorithmFor(String)} alone
+	 * cannot recover from the algorithm name (#142).
+	 *
+	 * @param privateKey
+	 *            the private key that will do the signing
+	 * @return the signature algorithm
+	 */
+	public static String defaultSignatureAlgorithmFor(final PrivateKey privateKey)
+	{
+		if (privateKey instanceof java.security.interfaces.EdECKey edECKey)
+		{
+			return edECKey.getParams().getName();
+		}
+		return defaultSignatureAlgorithmFor(privateKey.getAlgorithm());
+	}
+
+	/**
 	 * Whether a key of the given kind can sign with the given signature algorithm
 	 *
 	 * @param signatureAlgorithm
@@ -175,6 +198,9 @@ public final class CertificateInfoModelToX509
 			case "DSA" -> signature.contains("DSA") && !signature.contains("ECDSA");
 			case "ED25519" -> signature.contains("ED25519");
 			case "ED448" -> signature.contains("ED448");
+			// the generic family name a real Ed25519/Ed448 key actually reports (#142) - either
+			// curve-specific signature name fits it
+			case "EDDSA" -> signature.contains("ED25519") || signature.contains("ED448");
 			// anything else - the post-quantum families among them - names itself in its signature
 			default -> signature.contains(key);
 		};
