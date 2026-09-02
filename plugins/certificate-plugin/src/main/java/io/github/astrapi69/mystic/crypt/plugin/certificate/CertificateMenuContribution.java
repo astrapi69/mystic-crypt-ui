@@ -154,7 +154,7 @@ public class CertificateMenuContribution implements PluginMenuContribution
 			{
 				File file = JFileChooserExtensions.getSelectedFileWithFirstExtension(fileChooser);
 				CertificateWriter.writeInPemFormat(certificate, file);
-				offerToOpen(dialog, file);
+				offerToOpen(dialog, file, certificate);
 			}
 			dialog.dispose();
 		}
@@ -169,19 +169,24 @@ public class CertificateMenuContribution implements PluginMenuContribution
 	/**
 	 * Tells the user the certificate was saved, with the choice to open it right away - either in
 	 * the small in-app text editor (#110), since the wizard always writes PEM, or through whatever
-	 * the operating system associates with the file
+	 * the operating system associates with the file. The message names the certificate's important
+	 * fields (#136) rather than just the filename, the way a certificate viewer would.
 	 *
 	 * @param dialog
 	 *            the wizard dialog, as the parent for both this and any error dialog
 	 * @param file
 	 *            the file that was just written
+	 * @param certificate
+	 *            the certificate that was just written into it
 	 */
-	private static void offerToOpen(JDialog dialog, File file)
+	private static void offerToOpen(JDialog dialog, File file, X509Certificate certificate)
 	{
 		Object[] options = { "Edit", "Open", "OK" };
-		int chosen = JOptionPane.showOptionDialog(dialog, "Certificate saved to " + file.getName(),
-			"Certificate created", JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.INFORMATION_MESSAGE,
-			null, options, options[2]);
+		String message = "Certificate saved to " + file.getName() + "\n\n"
+			+ certificateSummary(certificate);
+		int chosen = JOptionPane.showOptionDialog(dialog, message, "Certificate created",
+			JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.INFORMATION_MESSAGE, null, options,
+			options[2]);
 		if (chosen == 0)
 		{
 			openInEditor(dialog, file);
@@ -201,6 +206,27 @@ public class CertificateMenuContribution implements PluginMenuContribution
 				"Could not open " + file.getName() + ": " + exception.getMessage(), "Open failed",
 				JOptionPane.ERROR_MESSAGE);
 		}
+	}
+
+	/**
+	 * The certificate's important fields, one per line: subject, issuer, serial number (hex, the
+	 * way a certificate viewer reports it), validity window, signature algorithm and public key
+	 * algorithm - everything a "Certificate saved" confirmation needs to say what was actually
+	 * created, not just where it went (#136)
+	 *
+	 * @param certificate
+	 *            the certificate to summarize
+	 * @return the summary, one field per line
+	 */
+	static String certificateSummary(X509Certificate certificate)
+	{
+		return String.join("\n", "Subject: " + certificate.getSubjectX500Principal().getName(),
+			"Issuer: " + certificate.getIssuerX500Principal().getName(),
+			"Serial: " + certificate.getSerialNumber().toString(16),
+			"Valid from: " + certificate.getNotBefore(),
+			"Valid until: " + certificate.getNotAfter(),
+			"Signature algorithm: " + certificate.getSigAlgName(),
+			"Public key algorithm: " + certificate.getPublicKey().getAlgorithm());
 	}
 
 	/**
