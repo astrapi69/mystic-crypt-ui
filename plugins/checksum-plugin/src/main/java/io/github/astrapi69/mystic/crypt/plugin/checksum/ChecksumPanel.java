@@ -92,7 +92,10 @@ public class ChecksumPanel extends BasePanel<ChecksumBean>
 	 * ones {@code md5sum}, {@code sha256sum} and their siblings write), tried in this order when
 	 * looking for a checksum file next to the one being checked
 	 */
-	private static final Map<ChecksumAlgorithm, String> CHECKSUM_FILE_EXTENSIONS = new LinkedHashMap<>();
+	// package-private (not private): the sibling-detection tests parameterize over this same
+	// mapping instead of duplicating it, so a changed extension cannot silently drift out of sync
+	// with what is actually tested
+	static final Map<ChecksumAlgorithm, String> CHECKSUM_FILE_EXTENSIONS = new LinkedHashMap<>();
 	static
 	{
 		CHECKSUM_FILE_EXTENSIONS.put(ChecksumAlgorithm.SHA_256, "sha256");
@@ -307,11 +310,12 @@ public class ChecksumPanel extends BasePanel<ChecksumBean>
 	}
 
 	/**
-	 * Looks for a same-named file with one of the extensions {@code md5sum}, {@code sha256sum} and
-	 * their siblings conventionally produce (e.g. {@code backup.alb} + {@code backup.alb.sha256}
-	 * in the same folder), and loads it into "Checksum from owner" the way choosing one by hand
-	 * would - only when that field is still empty, so a checksum the user already typed or loaded
-	 * is never silently replaced
+	 * Looks for a same-named checksum file next to the one being checked, trying both naming
+	 * conventions tools actually use: appending the algorithm extension ({@code backup.alb} +
+	 * {@code backup.alb.sha256}) and replacing the original extension with it ({@code backup.alb}
+	 * + {@code backup.sha256}) - and loads it into "Checksum from owner" the way choosing one by
+	 * hand would - only when that field is still empty, so a checksum the user already typed or
+	 * loaded is never silently replaced
 	 *
 	 * @param file
 	 *            the file that was chosen to be checked
@@ -327,15 +331,36 @@ public class ChecksumPanel extends BasePanel<ChecksumBean>
 		{
 			return;
 		}
+		String baseName = baseNameWithoutExtension(file.getName());
 		for (String extension : CHECKSUM_FILE_EXTENSIONS.values())
 		{
-			File candidate = new File(parent, file.getName() + "." + extension);
-			if (candidate.isFile())
+			File appended = new File(parent, file.getName() + "." + extension);
+			if (appended.isFile())
 			{
-				applyChecksumFile(candidate);
+				applyChecksumFile(appended);
+				return;
+			}
+			File replaced = new File(parent, baseName + "." + extension);
+			if (replaced.isFile())
+			{
+				applyChecksumFile(replaced);
 				return;
 			}
 		}
+	}
+
+	/**
+	 * The given file name with its own extension removed, or the name unchanged if it has none -
+	 * {@code "backup.alb"} becomes {@code "backup"}
+	 *
+	 * @param name
+	 *            the file name
+	 * @return the name without its extension
+	 */
+	private static String baseNameWithoutExtension(final String name)
+	{
+		int dot = name.lastIndexOf('.');
+		return dot < 0 ? name : name.substring(0, dot);
 	}
 
 	/**
