@@ -286,4 +286,42 @@ class KeyStorePanelBindingTest
 			named(panel, "txtDistinguishedName", JTextField.class).getText());
 	}
 
+	private static void assertHasTooltip(JComponent component, String fieldName)
+	{
+		String tooltip = component.getToolTipText();
+		assertTrue(tooltip != null && !tooltip.isBlank(), fieldName + " must have a tooltip");
+	}
+
+	/**
+	 * Every field and button in this panel had no tooltip at all - a first-time user has no way
+	 * to tell what "Distinguished name" expects, or what "Details..." does before clicking it
+	 */
+	@Test
+	void everyFieldExplainsItselfWithATooltip()
+	{
+		KeyStorePanel panel = new KeyStorePanel();
+
+		assertHasTooltip(named(panel, "txtKeyStoreFile", JComponent.class), "key store file");
+		assertHasTooltip(named(panel, "cmbType", JComponent.class), "type");
+		assertHasTooltip(named(panel, "pwdStore", JComponent.class), "store password");
+		assertHasTooltip(named(panel, "txtAlias", JComponent.class), "alias");
+		assertHasTooltip(named(panel, "txtDistinguishedName", JComponent.class),
+			"distinguished name");
+		assertHasTooltip(named(panel, "cmbKeyAlgorithm", JComponent.class), "key algorithm");
+		assertHasTooltip(named(panel, "txtCertificateFile", JComponent.class), "certificate file");
+		assertHasTooltip(named(panel, "txtPrivateKeyFile", JComponent.class), "private key file");
+		assertHasTooltip(named(panel, "btnBrowse", JComponent.class), "browse");
+		assertHasTooltip(named(panel, "btnOpen", JComponent.class), "open");
+		assertHasTooltip(named(panel, "btnCreate", JComponent.class), "create");
+		assertHasTooltip(named(panel, "btnAddKeyPair", JComponent.class), "add key pair");
+		assertHasTooltip(named(panel, "btnDelete", JComponent.class), "delete");
+		assertHasTooltip(named(panel, "btnBrowseCertificate", JComponent.class), "browse certificate");
+		assertHasTooltip(named(panel, "btnImport", JComponent.class), "import");
+		assertHasTooltip(named(panel, "btnExport", JComponent.class), "export");
+		assertHasTooltip(named(panel, "btnImportKeyPair", JComponent.class), "import key pair");
+		assertHasTooltip(named(panel, "btnAddSecretKey", JComponent.class), "add secret key");
+		assertHasTooltip(named(panel, "btnDetails", JComponent.class), "details");
+		assertHasTooltip(named(panel, "btnBrowsePrivateKey", JComponent.class), "browse private key");
+	}
+
 }

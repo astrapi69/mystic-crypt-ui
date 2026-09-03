@@ -38,6 +38,7 @@ import javax.swing.table.DefaultTableModel;
 import io.github.astrapi69.design.pattern.state.wizard.model.BaseWizardStateMachineModel;
 import io.github.astrapi69.model.LambdaModel;
 import io.github.astrapi69.model.api.IModel;
+import io.github.astrapi69.mystic.crypt.Messages;
 import io.github.astrapi69.mystic.crypt.wizard.model.CertificateInfoModel;
 import io.github.astrapi69.swing.base.BasePanel;
 import io.github.astrapi69.swing.model.component.JMCheckBox;
@@ -156,6 +157,26 @@ public class ExtensionsPanel extends BasePanel<BaseWizardStateMachineModel<Certi
 		btnAddExtension.addActionListener(e -> onAddExtension());
 		btnEditExtension.addActionListener(e -> onEditExtension());
 		btnDeleteExtension.addActionListener(e -> onDeleteExtension());
+
+		cmbExtensionKind
+			.setToolTipText(Messages.getString("wizard.certificate.extensions.tooltip.kind",
+				"which X.509 extension to add - picking one fills in its object id below"));
+		txtExtensionId.setToolTipText(Messages.getString("wizard.certificate.extensions.tooltip.id",
+			"the extension's object identifier (OID), filled in automatically for a known kind"));
+		txtExtensionValue
+			.setToolTipText(Messages.getString("wizard.certificate.extensions.tooltip.value",
+				"the extension's value, in the format the hint below describes"));
+		chkCritical.setToolTipText(Messages.getString(
+			"wizard.certificate.extensions.tooltip.critical",
+			"whether a system that does not understand this extension must reject the certificate"));
+		btnAddExtension
+			.setToolTipText(Messages.getString("wizard.certificate.extensions.tooltip.add",
+				"adds the extension above to the certificate"));
+		btnEditExtension
+			.setToolTipText(Messages.getString("wizard.certificate.extensions.tooltip.edit",
+				"applies the fields above to the selected row"));
+		btnDeleteExtension.setToolTipText(Messages.getString(
+			"wizard.certificate.extensions.tooltip.delete", "removes the selected extension"));
 	}
 
 	/**

@@ -34,6 +34,7 @@ import javax.swing.JScrollPane;
 import io.github.astrapi69.design.pattern.state.wizard.model.BaseWizardStateMachineModel;
 import io.github.astrapi69.model.LambdaModel;
 import io.github.astrapi69.model.api.IModel;
+import io.github.astrapi69.mystic.crypt.Messages;
 import io.github.astrapi69.mystic.crypt.wizard.model.CertificateInfoModel;
 import io.github.astrapi69.swing.base.BasePanel;
 import io.github.astrapi69.swing.model.component.JMTextArea;
@@ -121,6 +122,17 @@ public class ReviewPanel extends BasePanel<BaseWizardStateMachineModel<Certifica
 		btnBrowseDirectory = new JButton("Browse...");
 		btnBrowseDirectory.setName("btnBrowseDirectory");
 		btnBrowseDirectory.addActionListener(event -> onBrowseDirectory());
+
+		txtPreview.setToolTipText(Messages.getString("wizard.certificate.review.tooltip.preview",
+			"a read-only preview of what would be written to the file"));
+		txtFileName.setToolTipText(Messages.getString("wizard.certificate.review.tooltip.file.name",
+			"the file name the certificate is saved as, defaults to the subject's common name"));
+		txtSaveDirectory
+			.setToolTipText(Messages.getString("wizard.certificate.review.tooltip.save.directory",
+				"the folder the certificate is saved in"));
+		btnBrowseDirectory
+			.setToolTipText(Messages.getString("wizard.certificate.review.tooltip.browse",
+				"choose the folder to save the certificate in"));
 	}
 
 	/**

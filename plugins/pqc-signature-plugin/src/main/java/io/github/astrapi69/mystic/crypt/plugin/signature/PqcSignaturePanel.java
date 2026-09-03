@@ -117,6 +117,30 @@ public class PqcSignaturePanel extends JPanel
 		ToolForm.sized(txtPrivateKeyFile);
 		ToolForm.sized(txtPublicKeyFile);
 		ToolForm.sized(txtSignatureFile);
+
+		cmbAlgorithm.setToolTipText(SignatureMessages.getString("signature.tooltip.algorithm",
+			"the signature algorithm - Ed25519 and RSA/ECDSA/DSA are classical, ML-DSA and "
+				+ "SLH-DSA are post-quantum; a SLH-DSA signature runs tens of kilobytes where an "
+				+ "Ed25519 one is 64 bytes"));
+		txtMessage.setToolTipText(SignatureMessages.getString("signature.tooltip.message",
+			"the text to sign or verify, used instead of the file below unless checked"));
+		txtDataFile.setToolTipText(SignatureMessages.getString("signature.tooltip.data.file",
+			"the file to sign or verify, used instead of the text above when checked"));
+		chkUseFile.setToolTipText(SignatureMessages.getString("signature.tooltip.use.file",
+			"sign or verify the file above instead of the typed text"));
+		txtPrivateKeyFile.setToolTipText(SignatureMessages.getString(
+			"signature.tooltip.private.key.file",
+			"the private key file to sign with - leave blank to use a key pair generated here"));
+		txtPublicKeyFile.setToolTipText(SignatureMessages.getString(
+			"signature.tooltip.public.key.file",
+			"the public key or certificate file to verify against - leave blank to use a key "
+				+ "pair generated here"));
+		txtSignatureFile.setToolTipText(SignatureMessages.getString(
+			"signature.tooltip.signature.file", "the file the signature is saved to or loaded from"));
+		txtPublicKey.setToolTipText(SignatureMessages.getString("signature.tooltip.public.key",
+			"the public key, in PEM format"));
+		txtSignature.setToolTipText(SignatureMessages.getString("signature.tooltip.signature",
+			"the signature, Base64 encoded"));
 	}
 
 	/**
@@ -153,16 +177,23 @@ public class PqcSignaturePanel extends JPanel
 	{
 		add(new JLabel("Algorithm:"));
 		add(cmbAlgorithm, ToolForm.FIELD);
-		add(ToolForm.buttons(button("btnGenerate", "Generate key pair", event -> onGenerate())),
+		add(ToolForm.buttons(button("btnGenerate", "Generate key pair", event -> onGenerate(),
+			SignatureMessages.getString("signature.tooltip.generate",
+				"generates a throwaway key pair for the selected algorithm - only Ed25519, "
+					+ "ML-DSA and SLH-DSA can be generated here, RSA/ECDSA/DSA need a key file"))),
 			ToolForm.BUTTON_ROW);
 
 		add(new JLabel("Private key file:"));
 		add(fileRow(txtPrivateKeyFile,
-			button("btnBrowsePrivateKey", "...", event -> onBrowse(txtPrivateKeyFile))),
+			button("btnBrowsePrivateKey", "...", event -> onBrowse(txtPrivateKeyFile),
+				SignatureMessages.getString("signature.tooltip.browse.private.key",
+					"choose the private key file"))),
 			ToolForm.FIELD);
 		add(new JLabel("Public key or certificate:"));
 		add(fileRow(txtPublicKeyFile,
-			button("btnBrowsePublicKey", "...", event -> onBrowse(txtPublicKeyFile))),
+			button("btnBrowsePublicKey", "...", event -> onBrowse(txtPublicKeyFile),
+				SignatureMessages.getString("signature.tooltip.browse.public.key",
+					"choose the public key or certificate file"))),
 			ToolForm.FIELD);
 
 		add(new JLabel("Public key:"), AREA_LABEL);
@@ -172,7 +203,9 @@ public class PqcSignaturePanel extends JPanel
 		add(ToolForm.scrolled(txtMessage), GROWING_AREA);
 		add(new JLabel("File to sign:"));
 		add(fileRow(txtDataFile,
-			button("btnBrowseDataFile", "...", event -> onBrowse(txtDataFile))),
+			button("btnBrowseDataFile", "...", event -> onBrowse(txtDataFile),
+				SignatureMessages.getString("signature.tooltip.browse.data.file",
+					"choose the file to sign or verify"))),
 			ToolForm.FIELD);
 		add(chkUseFile, "skip 1, growx");
 
@@ -180,13 +213,25 @@ public class PqcSignaturePanel extends JPanel
 		add(ToolForm.scrolled(txtSignature), GROWING_AREA);
 		add(new JLabel("Signature file:"));
 		add(fileRow(txtSignatureFile,
-			button("btnBrowseSignatureFile", "...", event -> onBrowse(txtSignatureFile))),
+			button("btnBrowseSignatureFile", "...", event -> onBrowse(txtSignatureFile),
+				SignatureMessages.getString("signature.tooltip.browse.signature.file",
+					"choose the signature file"))),
 			ToolForm.FIELD);
 
-		add(ToolForm.buttons(button("btnSign", "Sign", event -> onSign()),
-			button("btnVerify", "Verify", event -> onVerify()),
-			button("btnSaveSignature", "Save signature", event -> onSaveSignature()),
-			button("btnLoadSignature", "Load signature", event -> onLoadSignature())),
+		add(ToolForm.buttons(
+			button("btnSign", "Sign", event -> onSign(),
+				SignatureMessages.getString("signature.tooltip.sign",
+					"signs the message or file above with the private key")),
+			button("btnVerify", "Verify", event -> onVerify(),
+				SignatureMessages.getString("signature.tooltip.verify",
+					"checks the signature against the message or file above, with the public "
+						+ "key")),
+			button("btnSaveSignature", "Save signature", event -> onSaveSignature(),
+				SignatureMessages.getString("signature.tooltip.save.signature",
+					"writes the signature to the signature file above")),
+			button("btnLoadSignature", "Load signature", event -> onLoadSignature(),
+				SignatureMessages.getString("signature.tooltip.load.signature",
+					"reads the signature from the signature file above"))),
 			ToolForm.BUTTON_ROW);
 		add(lblResult, ToolForm.RESULT_LINE);
 	}
@@ -437,11 +482,13 @@ public class PqcSignaturePanel extends JPanel
 		textArea.setLineWrap(true);
 	}
 
-	private static JButton button(String name, String text, java.awt.event.ActionListener listener)
+	private static JButton button(String name, String text, java.awt.event.ActionListener listener,
+		String tooltip)
 	{
 		JButton button = new JButton(text);
 		button.setName(name);
 		button.addActionListener(listener);
+		button.setToolTipText(tooltip);
 		return button;
 	}
 

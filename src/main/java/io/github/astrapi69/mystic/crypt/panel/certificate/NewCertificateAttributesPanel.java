@@ -35,6 +35,7 @@ import javax.swing.*;
 import io.github.astrapi69.model.BaseModel;
 import io.github.astrapi69.model.LambdaModel;
 import io.github.astrapi69.model.api.IModel;
+import io.github.astrapi69.mystic.crypt.Messages;
 import io.github.astrapi69.mystic.crypt.wizard.model.DistinguishedNameInfoModel;
 import io.github.astrapi69.swing.base.BasePanel;
 import io.github.astrapi69.swing.model.component.JMTextField;
@@ -100,6 +101,23 @@ public class NewCertificateAttributesPanel extends BasePanel<DistinguishedNameIn
 		txtState.setPropertyModel(LambdaModel.of(modelObject::getState, modelObject::setState));
 		txtLocation
 			.setPropertyModel(LambdaModel.of(modelObject::getLocation, modelObject::setLocation));
+
+		txtCommonName.setToolTipText(Messages.getString(
+			"wizard.certificate.attributes.tooltip.common.name",
+			"the name the certificate identifies - a person, a server's hostname, or a service"));
+		txtOrganization
+			.setToolTipText(Messages.getString("wizard.certificate.attributes.tooltip.organisation",
+				"the company or organisation this certificate is issued for, if any"));
+		txtOrganizationUnit.setToolTipText(
+			Messages.getString("wizard.certificate.attributes.tooltip.organisation.unit",
+				"the department or division within the organisation, if any"));
+		txtCountryCode
+			.setToolTipText(Messages.getString("wizard.certificate.attributes.tooltip.country.code",
+				"the two-letter ISO 3166-1 country code, for example DE or US"));
+		txtState.setToolTipText(Messages.getString("wizard.certificate.attributes.tooltip.state",
+			"the state or province, written out in full rather than abbreviated"));
+		txtLocation.setToolTipText(Messages
+			.getString("wizard.certificate.attributes.tooltip.location", "the city or locality"));
 
 		lblCommonName.setText("Common Name:");
 

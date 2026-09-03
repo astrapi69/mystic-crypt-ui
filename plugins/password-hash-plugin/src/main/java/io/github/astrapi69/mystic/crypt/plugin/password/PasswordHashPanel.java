@@ -95,12 +95,27 @@ public class PasswordHashPanel extends JPanel
 		ToolForm.sized(txtPassword);
 		ToolForm.sized(txtVerifyPassword);
 
+		cmbAlgorithm.setToolTipText(PasswordHashMessages.getString("passwordhash.tooltip.algorithm",
+			"the algorithm used to hash the password below - the description to the right "
+				+ "explains the tradeoff"));
+		txtPassword.setToolTipText(
+			PasswordHashMessages.getString("passwordhash.tooltip.password", "the password to hash"));
+		txtHash.setToolTipText(PasswordHashMessages.getString("passwordhash.tooltip.hash",
+			"the computed hash - or paste one here to verify a password against it"));
+		txtVerifyPassword.setToolTipText(PasswordHashMessages.getString(
+			"passwordhash.tooltip.verify.password", "the password to check against the hash above"));
+
 		JButton btnHash = new JButton("Hash");
 		btnHash.setName("btnHash");
 		btnHash.addActionListener(event -> onHash());
+		btnHash.setToolTipText(PasswordHashMessages.getString("passwordhash.tooltip.hash.button",
+			"hashes the password above with the selected algorithm"));
 		JButton btnVerify = new JButton("Verify");
 		btnVerify.setName("btnVerify");
 		btnVerify.addActionListener(event -> onVerify());
+		btnVerify.setToolTipText(PasswordHashMessages.getString("passwordhash.tooltip.verify.button",
+			"checks the password below against the hash above - the algorithm is read from the "
+				+ "hash itself"));
 
 		add(new JLabel("Algorithm:"));
 		add(cmbAlgorithm, ToolForm.FIELD);

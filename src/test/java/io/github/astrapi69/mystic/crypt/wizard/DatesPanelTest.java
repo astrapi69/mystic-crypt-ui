@@ -25,10 +25,14 @@
 package io.github.astrapi69.mystic.crypt.wizard;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.time.LocalDate;
 import java.time.ZonedDateTime;
+
+import javax.swing.JComponent;
 
 import org.junit.jupiter.api.Test;
 
@@ -119,6 +123,27 @@ class DatesPanelTest
 			java.util.Arrays.stream(panel.getComponents()).noneMatch(
 				component -> component.getClass().getSimpleName().equals("CalendarPanel")),
 			"a CalendarPanel must not be embedded directly in the step");
+	}
+
+	private static void assertHasTooltip(JComponent component, String fieldName)
+	{
+		String tooltip = component.getToolTipText();
+		assertNotNull(tooltip, fieldName + " must have a tooltip");
+		assertFalse(tooltip.isBlank(), fieldName + " must have a tooltip");
+	}
+
+	@Test
+	void everyFieldExplainsItselfWithATooltip()
+	{
+		ZonedDateTime now = ZonedDateTime.now();
+		DatesPanel panel = newPanel(now, now.plusYears(1));
+
+		assertHasTooltip(panel.getCmbVersion(), "version");
+		assertHasTooltip(panel.getTxtSerialNumber(), "serial number");
+		assertHasTooltip(panel.getBtnGenerateSerialNumber(), "generate serial number");
+		assertHasTooltip(panel.getTxtNotBefore(), "not before");
+		assertHasTooltip(panel.getTxtNotAfter(), "not after");
+		assertHasTooltip(panel.getCmbSignatureAlgorithm(), "signature algorithm");
 	}
 
 }

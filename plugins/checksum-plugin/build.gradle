@@ -25,6 +25,10 @@ dependencies {
     compileOnly "io.github.astrapi69:mystic-crypt-ui:8.2-SNAPSHOT"
     // ClipboardExtensions for the checksum copy buttons
     compileOnly "io.github.astrapi69:awt-extensions:2.0"
+    // ResourceBundleExtensions.getStringQuietly - the tooltip/label text this plugin loads from
+    // checksum/messages.properties falls back to a literal default rather than throwing when a key
+    // is missing, the same way the host's own Messages class already behaves
+    compileOnly "io.github.astrapi69:resourcebundle-core:6.0"
     compileOnly "io.github.astrapi69:checksum-up:3.1"
     compileOnly "io.github.astrapi69:crypt-api:10.0.0"
     compileOnly "io.github.astrapi69:file-worker:19.0"
@@ -68,6 +72,7 @@ dependencies {
     testImplementation "io.github.astrapi69:file-worker:19.0"
     testImplementation "io.github.astrapi69:menu-action:5.1"
     testImplementation "io.github.astrapi69:awt-extensions:2.0"
+    testImplementation "io.github.astrapi69:resourcebundle-core:6.0"
 
 }
 
