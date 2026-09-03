@@ -251,6 +251,22 @@ public class CryptographyPanel extends BasePanel<GenerateKeysModelBean>
 
 		lblKeySize.setText("Keysize");
 
+		cmbKeySize.setToolTipText(KeygenMessages.getString("keygen.tooltip.key.size",
+			"the RSA key size - disabled for every other algorithm, which already has a fixed size"));
+		btnGenerate.setToolTipText(KeygenMessages.getString("keygen.tooltip.generate.button",
+			"generates a new key pair with the algorithm and options chosen above"));
+		btnClear.setToolTipText(KeygenMessages.getString("keygen.tooltip.clear.button",
+			"clears the generated key pair and resets the choices to the configured defaults"));
+		btnSavePrivateKey.setToolTipText(KeygenMessages.getString("keygen.tooltip.save.private.key.button",
+			"writes the generated private key to a file, in the format and encoding chosen above"));
+		btnSavePrivKeyWithPw.setToolTipText(
+			KeygenMessages.getString("keygen.tooltip.save.private.key.with.password.button",
+				"writes the generated private key to a file, encrypted with a password you enter next"));
+		btnSavePublicKey.setToolTipText(KeygenMessages.getString("keygen.tooltip.save.public.key.button",
+			"writes the generated public key to a file, in the encoding chosen above"));
+		btnSaveCertificate.setToolTipText(KeygenMessages.getString("keygen.tooltip.save.certificate.button",
+			"creates and writes a self-signed certificate for the generated key pair - RSA only"));
+
 		txtPublicKey.setColumns(KEY_AREA_COLUMNS);
 		txtPublicKey.setRows(KEY_AREA_ROWS);
 		scpPublicKey.setViewportView(txtPublicKey);

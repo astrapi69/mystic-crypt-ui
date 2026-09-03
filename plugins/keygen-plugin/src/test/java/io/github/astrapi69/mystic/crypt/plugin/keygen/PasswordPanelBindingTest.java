@@ -26,8 +26,11 @@ package io.github.astrapi69.mystic.crypt.plugin.keygen;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.UUID;
+
+import javax.swing.JComponent;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -68,5 +71,21 @@ class PasswordPanelBindingTest
 
 		assertEquals(0, panel.getModelObject().getPassword().length);
 		assertEquals(0, panel.getModelObject().getRepeatPassword().length);
+	}
+
+	private static void assertHasTooltip(JComponent component, String fieldName)
+	{
+		String tooltip = component.getToolTipText();
+		assertTrue(tooltip != null && !tooltip.isBlank(), fieldName + " must have a tooltip");
+	}
+
+	@Test
+	@DisplayName("both password fields explain themselves")
+	void bothFieldsExplainThemselvesWithATooltip()
+	{
+		PasswordPanel panel = new PasswordPanel();
+
+		assertHasTooltip(panel.getTxtPassword(), "password");
+		assertHasTooltip(panel.getTxtRepeatPassword(), "repeat password");
 	}
 }
