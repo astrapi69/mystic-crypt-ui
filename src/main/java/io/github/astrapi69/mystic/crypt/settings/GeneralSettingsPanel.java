@@ -32,6 +32,7 @@ import java.util.Arrays;
 import javax.swing.*;
 
 import io.github.astrapi69.model.LambdaModel;
+import io.github.astrapi69.mystic.crypt.Messages;
 import io.github.astrapi69.swing.enumeration.FrameMode;
 import io.github.astrapi69.swing.model.combobox.EnumComboBoxModel;
 import io.github.astrapi69.swing.model.component.JMCheckBox;
@@ -81,6 +82,8 @@ public class GeneralSettingsPanel extends JPanel
 		cmbLookAndFeel.setName("cmbLookAndFeel");
 		cmbLanguage.setName("cmbLanguage");
 		cmbViewMode.setName("cmbViewMode");
+		cmbViewMode.setToolTipText(Messages.getString("settings.general.tooltip.view.mode",
+			"whether the application opens as a desktop-style window manager or a single panel"));
 		chkTooltipsEnabled.setName("chkTooltipsEnabled");
 		bindComponents();
 		// added after the binding on purpose: binding selects what the settings already hold, and

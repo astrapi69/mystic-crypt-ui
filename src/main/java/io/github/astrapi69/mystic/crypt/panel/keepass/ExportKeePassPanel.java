@@ -34,6 +34,7 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 import io.github.astrapi69.model.BaseModel;
 import io.github.astrapi69.model.LambdaModel;
 import io.github.astrapi69.model.api.IModel;
+import io.github.astrapi69.mystic.crypt.Messages;
 import io.github.astrapi69.mystic.crypt.ui.form.ToolForm;
 import io.github.astrapi69.swing.base.BasePanel;
 import io.github.astrapi69.swing.model.component.JMCheckBox;
@@ -119,6 +120,19 @@ public class ExportKeePassPanel extends BasePanel<KeePassPanelModel>
 
 		txtFile.setEditable(false);
 		txtKeyFile.setEditable(false);
+
+		txtFile.setToolTipText(
+			Messages.getString("keepass.export.tooltip.file", "the KeePass file to write to"));
+		btnFile.setToolTipText(Messages.getString("keepass.export.tooltip.browse.file.button",
+			"choose the destination file"));
+		txtPassword.setToolTipText(Messages.getString("keepass.export.tooltip.password",
+			"the password that protects the exported file"));
+		cbxKeyFile.setToolTipText(Messages.getString("keepass.export.tooltip.key.file.checkbox",
+			"additionally protect the exported file with a key file, the way KeePass itself supports"));
+		txtKeyFile.setToolTipText(Messages.getString("keepass.export.tooltip.key.file",
+			"the key file to protect the exported file with"));
+		btnKeyFile.setToolTipText(Messages
+			.getString("keepass.export.tooltip.browse.key.file.button", "choose the key file"));
 
 		showWhatTheModelHolds();
 

@@ -31,6 +31,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.swing.JComponent;
+
 import org.junit.jupiter.api.Test;
 
 import io.github.astrapi69.gen.tree.BaseTreeNode;
@@ -135,5 +137,23 @@ class SecretKeyTreeWithContentPanelBindingTest
 		{
 			assertSame(targets.get(index), targetChooser.getItemAt(index));
 		}
+	}
+
+	/**
+	 * "Move under:" only makes sense once the combo box next to it is understood - the tooltip says
+	 * what it offers (#163)
+	 */
+	@Test
+	void theTargetChooserExplainsItselfWithATooltip()
+	{
+		SecretKeyTreeWithContentPanel panel = newPanel();
+		List<BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long>> targets = targetsFor(
+			NODE_TO_MOVE);
+
+		JMComboBox<BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long>, ?> targetChooser = panel
+			.newMoveTargetChooser(targets);
+
+		String tooltip = ((JComponent)targetChooser).getToolTipText();
+		assertTrue(tooltip != null && !tooltip.isBlank(), "cmbMoveTarget must have a tooltip");
 	}
 }

@@ -52,6 +52,7 @@ import io.github.astrapi69.file.create.FileFactory;
 import io.github.astrapi69.model.BaseModel;
 import io.github.astrapi69.model.LambdaModel;
 import io.github.astrapi69.model.api.IModel;
+import io.github.astrapi69.mystic.crypt.Messages;
 import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
 import io.github.astrapi69.swing.base.BasePanel;
 import io.github.astrapi69.swing.dialog.DialogExtensions;
@@ -149,6 +150,20 @@ public class NewPrivateKeyPanel extends BasePanel<NewPrivateKeyModelBean>
 		lblDirectoryOfPrivateKey.setText("Directory to save the private key");
 
 		btnDirectoryOfPrivateKey.setText("Browse...");
+
+		cmbKeySize.setToolTipText(Messages.getString("private.key.tooltip.key.size",
+			"the size of the RSA key to generate"));
+		btnGenerate.setToolTipText(Messages.getString("private.key.tooltip.generate.button",
+			"generates a new private key of the chosen size"));
+		btnClear.setToolTipText(Messages.getString("private.key.tooltip.clear.button",
+			"clears the generated key and the file name and directory chosen for it"));
+		txtDirectoryOfPrivateKey.setToolTipText(Messages.getString("private.key.tooltip.directory",
+			"the folder the private key is saved in"));
+		btnDirectoryOfPrivateKey
+			.setToolTipText(Messages.getString("private.key.tooltip.browse.directory.button",
+				"choose the folder to save the private key in"));
+		btnSave.setToolTipText(Messages.getString("private.key.tooltip.save.button",
+			"writes the generated key to the file above - disabled until a key was generated and a file name was typed"));
 		// ===
 		// ===
 		// ===
@@ -159,6 +174,8 @@ public class NewPrivateKeyPanel extends BasePanel<NewPrivateKeyModelBean>
 		txtFilenameOfPrivateKey = new JMTextField();
 		// the field is re-created here, so the test-lookup name must be (re)assigned afterwards
 		txtFilenameOfPrivateKey.setName("txtFilenameOfPrivateKey");
+		txtFilenameOfPrivateKey.setToolTipText(Messages.getString("private.key.tooltip.filename",
+			"the file name the private key is saved as"));
 		((JMTextField)txtFilenameOfPrivateKey).setPropertyModel(LambdaModel
 			.of(modelObject::getFilenameOfPrivateKey, modelObject::setFilenameOfPrivateKey));
 		txtFilenameOfPrivateKey.getDocument().addDocumentListener(new DocumentListenerAdapter()

@@ -273,4 +273,18 @@ class GeneralSettingsPanelBindingTest
 			"building the settings panel must not change the shared ToolTipManager");
 	}
 
+	/**
+	 * "Desktop" versus "Panel" view is not explained anywhere else in the dialog (#163)
+	 */
+	@Test
+	@DisplayName("the view mode box explains itself with a tooltip")
+	void theViewModeBoxExplainsItselfWithATooltip()
+	{
+		MysticCryptSettings settings = new MysticCryptSettings();
+		GeneralSettingsPanel panel = new GeneralSettingsPanel(settings);
+
+		String tooltip = named(panel, "cmbViewMode", JComboBox.class).getToolTipText();
+		assertTrue(tooltip != null && !tooltip.isBlank(), "cmbViewMode must have a tooltip");
+	}
+
 }

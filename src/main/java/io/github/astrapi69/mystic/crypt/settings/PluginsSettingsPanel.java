@@ -41,6 +41,8 @@ import org.pf4j.PluginManager;
 import org.pf4j.PluginState;
 import org.pf4j.PluginWrapper;
 
+import io.github.astrapi69.mystic.crypt.Messages;
+
 /**
  * The "Plugins" tab of the settings dialog: lists the installed pf4j plugins with their id, version
  * and state and lets the user enable, disable and install plugins. Enable/disable state is
@@ -70,20 +72,28 @@ public class PluginsSettingsPanel extends JPanel
 		add(new JScrollPane(pluginTable), BorderLayout.CENTER);
 
 		JPanel buttons = new JPanel(new FlowLayout(FlowLayout.LEFT));
-		buttons.add(button("btnEnablePlugin", "Enable", e -> enableSelected()));
-		buttons.add(button("btnDisablePlugin", "Disable", e -> disableSelected()));
-		buttons.add(button("btnInstallPlugin", "Install from Zip...", e -> installFromZip()));
-		buttons
-			.add(button("btnOpenPluginsFolder", "Open plugins folder", e -> openPluginsFolder()));
-		buttons.add(button("btnRefreshPlugins", "Refresh", e -> refresh()));
+		buttons.add(button("btnEnablePlugin", "Enable", e -> enableSelected(), Messages.getString(
+			"settings.plugins.tooltip.enable.button", "enables and starts the selected plugin")));
+		buttons.add(button("btnDisablePlugin", "Disable", e -> disableSelected(), Messages
+			.getString("settings.plugins.tooltip.disable.button", "disables the selected plugin")));
+		buttons.add(button("btnInstallPlugin", "Install from Zip...", e -> installFromZip(),
+			Messages.getString("settings.plugins.tooltip.install.button",
+				"installs a zip file as a new plugin and starts it - only install plugins from sources you trust, a plugin runs with the same access as the application")));
+		buttons.add(button("btnOpenPluginsFolder", "Open plugins folder", e -> openPluginsFolder(),
+			Messages.getString("settings.plugins.tooltip.open.folder.button",
+				"opens the folder the plugins are installed in")));
+		buttons.add(button("btnRefreshPlugins", "Refresh", e -> refresh(), Messages
+			.getString("settings.plugins.tooltip.refresh.button", "re-reads the plugin list")));
 		add(buttons, BorderLayout.SOUTH);
 	}
 
-	private static JButton button(String name, String text, java.awt.event.ActionListener listener)
+	private static JButton button(String name, String text, java.awt.event.ActionListener listener,
+		String tooltip)
 	{
 		JButton button = new JButton(text);
 		button.setName(name);
 		button.addActionListener(listener);
+		button.setToolTipText(tooltip);
 		return button;
 	}
 
