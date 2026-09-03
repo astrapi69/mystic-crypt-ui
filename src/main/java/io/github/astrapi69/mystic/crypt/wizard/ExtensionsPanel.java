@@ -156,6 +156,18 @@ public class ExtensionsPanel extends BasePanel<BaseWizardStateMachineModel<Certi
 		btnAddExtension.addActionListener(e -> onAddExtension());
 		btnEditExtension.addActionListener(e -> onEditExtension());
 		btnDeleteExtension.addActionListener(e -> onDeleteExtension());
+
+		cmbExtensionKind.setToolTipText(
+			"which X.509 extension to add - picking one fills in its object id below");
+		txtExtensionId.setToolTipText(
+			"the extension's object identifier (OID), filled in automatically for a known kind");
+		txtExtensionValue
+			.setToolTipText("the extension's value, in the format the hint below describes");
+		chkCritical.setToolTipText(
+			"whether a system that does not understand this extension must reject the certificate");
+		btnAddExtension.setToolTipText("adds the extension above to the certificate");
+		btnEditExtension.setToolTipText("applies the fields above to the selected row");
+		btnDeleteExtension.setToolTipText("removes the selected extension");
 	}
 
 	/**

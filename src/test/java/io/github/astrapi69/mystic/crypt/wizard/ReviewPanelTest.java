@@ -25,6 +25,8 @@
 package io.github.astrapi69.mystic.crypt.wizard;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.io.File;
 import java.math.BigInteger;
@@ -122,5 +124,23 @@ class ReviewPanelTest
 		panel.refresh("second version", "subject.crt", new File("/tmp"));
 
 		assertEquals("second version", panel.getTxtPreview().getText());
+	}
+
+	private static void assertHasTooltip(javax.swing.JComponent component, String fieldName)
+	{
+		String tooltip = component.getToolTipText();
+		assertNotNull(tooltip, fieldName + " must have a tooltip");
+		assertFalse(tooltip.isBlank(), fieldName + " must have a tooltip");
+	}
+
+	@Test
+	void everyFieldExplainsItselfWithATooltip() throws Exception
+	{
+		ReviewPanel panel = newPanel();
+
+		assertHasTooltip(panel.getTxtPreview(), "preview");
+		assertHasTooltip(panel.getTxtFileName(), "file name");
+		assertHasTooltip(panel.getTxtSaveDirectory(), "save directory");
+		assertHasTooltip(panel.getBtnBrowseDirectory(), "browse");
 	}
 }

@@ -101,6 +101,18 @@ public class NewCertificateAttributesPanel extends BasePanel<DistinguishedNameIn
 		txtLocation
 			.setPropertyModel(LambdaModel.of(modelObject::getLocation, modelObject::setLocation));
 
+		txtCommonName.setToolTipText(
+			"the name the certificate identifies - a person, a server's hostname, or a service");
+		txtOrganization
+			.setToolTipText("the company or organisation this certificate is issued for, if any");
+		txtOrganizationUnit
+			.setToolTipText("the department or division within the organisation, if any");
+		txtCountryCode
+			.setToolTipText("the two-letter ISO 3166-1 country code, for example DE or US");
+		txtState
+			.setToolTipText("the state or province, written out in full rather than abbreviated");
+		txtLocation.setToolTipText("the city or locality");
+
 		lblCommonName.setText("Common Name:");
 
 		lblOrganization.setText("Organisation:");

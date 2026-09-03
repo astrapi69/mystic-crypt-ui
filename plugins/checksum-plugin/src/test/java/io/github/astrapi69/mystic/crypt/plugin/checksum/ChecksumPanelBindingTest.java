@@ -401,4 +401,31 @@ class ChecksumPanelBindingTest
 		}
 		comboBox.setSelectedItem(algorithm);
 	}
+
+	private static void assertHasTooltip(javax.swing.JComponent component, String fieldName)
+	{
+		String tooltip = component.getToolTipText();
+		assertTrue(tooltip != null && !tooltip.isBlank(), fieldName + " must have a tooltip");
+	}
+
+	@Test
+	@DisplayName("every field and button explains itself with a tooltip")
+	void everyFieldExplainsItselfWithATooltip()
+	{
+		ChecksumPanel panel = new ChecksumPanel();
+
+		assertHasTooltip(panel.getTxtOpenFile(), "open file");
+		assertHasTooltip(panel.getBtnOpenFile(), "open file button");
+		assertHasTooltip(panel.getBtnClearOpenFile(), "clear open file button");
+		assertHasTooltip(panel.getTxtGeneratedChecksum(), "generated checksum");
+		assertHasTooltip(panel.getBtnCopyGeneratedChecksum(), "copy generated checksum button");
+		assertHasTooltip(panel.getTxtChecksumFile(), "checksum file");
+		assertHasTooltip(panel.getBtnOpenChecksumFile(), "open checksum file button");
+		assertHasTooltip(panel.getBtnClearChecksumFile(), "clear checksum file button");
+		assertHasTooltip(panel.getTxtOwnersChecksum(), "owner's checksum");
+		assertHasTooltip(panel.getBtnCopyOwnersChecksum(), "copy owner's checksum button");
+		assertHasTooltip(panel.getCbxChecksumAlgorithm(), "checksum algorithm");
+		assertHasTooltip(panel.getBtnCompare(), "compare button");
+		assertHasTooltip(panel.getTxtChecksumMatchResult(), "checksum match result");
+	}
 }

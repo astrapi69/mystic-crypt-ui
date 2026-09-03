@@ -121,6 +121,12 @@ public class ReviewPanel extends BasePanel<BaseWizardStateMachineModel<Certifica
 		btnBrowseDirectory = new JButton("Browse...");
 		btnBrowseDirectory.setName("btnBrowseDirectory");
 		btnBrowseDirectory.addActionListener(event -> onBrowseDirectory());
+
+		txtPreview.setToolTipText("a read-only preview of what would be written to the file");
+		txtFileName.setToolTipText(
+			"the file name the certificate is saved as, defaults to the subject's common name");
+		txtSaveDirectory.setToolTipText("the folder the certificate is saved in");
+		btnBrowseDirectory.setToolTipText("choose the folder to save the certificate in");
 	}
 
 	/**

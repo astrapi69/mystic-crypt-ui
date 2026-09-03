@@ -240,6 +240,26 @@ public class ChecksumPanel extends BasePanel<ChecksumBean>
 
 		bindComponents();
 
+		txtOpenFile.setToolTipText("the file whose checksum is computed");
+		btnOpenFile.setToolTipText("choose the file to check");
+		btnClearOpenFile.setToolTipText("clears the file to check and the checksum computed for it");
+		txtGeneratedChecksum.setToolTipText(
+			"the checksum computed for the file above, using the selected algorithm");
+		btnCopyGeneratedChecksum.setToolTipText("copies the generated checksum to the clipboard");
+		txtChecksumFile.setToolTipText("the file the checksum below was loaded from, if any");
+		btnOpenChecksumFile
+			.setToolTipText("load a checksum published by the file's owner from a file");
+		btnClearChecksumFile.setToolTipText(
+			"clears the loaded checksum file and what was typed or loaded below");
+		txtOwnersChecksum.setToolTipText(
+			"the checksum published by the file's owner, typed or loaded from a file");
+		btnCopyOwnersChecksum.setToolTipText("copies the owner's checksum to the clipboard");
+		cbxChecksumAlgorithm.setToolTipText(
+			"the algorithm used to compute the checksum above - it has to match what the owner used");
+		btnCompare.setToolTipText("compares the generated checksum with the owner's checksum");
+		txtChecksumMatchResult.setToolTipText(
+			"Match or No Match, depending on whether the two checksums above are the same");
+
 		fileChooser = new JFileChooser(SystemFileExtensions.getUserDownloadsDir());
 	}
 
