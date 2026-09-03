@@ -26,10 +26,15 @@ package io.github.astrapi69.mystic.crypt.plugin.checksum;
 
 import java.util.ResourceBundle;
 
+import io.github.astrapi69.resourcebundle.locale.ResourceBundleExtensions;
+
 /**
  * The plugin's own text, kept in {@code checksum/messages.properties} inside this plugin's jar - a
  * plugin brings its own everything (architecture.md), including the strings it shows, rather than
- * reaching into the host's {@code ui.messages} bundle.
+ * reaching into the host's {@code ui.messages} bundle. Mirrors the host's own
+ * {@code io.github.astrapi69.mystic.crypt.Messages}: every lookup takes a default, so a missing key
+ * or a corrupted properties file shows that default instead of throwing
+ * {@link java.util.MissingResourceException} out of a panel constructor.
  */
 public final class ChecksumMessages
 {
@@ -43,15 +48,17 @@ public final class ChecksumMessages
 	}
 
 	/**
-	 * Gets the string for the given key
+	 * Gets the string for the given key, falling back to the given default when the key is missing
 	 *
 	 * @param key
 	 *            the key
+	 * @param defaultValue
+	 *            what to return when the key is not in the bundle
 	 * @return the string
 	 */
-	public static String getString(final String key)
+	public static String getString(final String key, final String defaultValue)
 	{
-		return RESOURCE_BUNDLE.getString(key);
+		return ResourceBundleExtensions.getStringQuietly(RESOURCE_BUNDLE, key, defaultValue);
 	}
 
 }

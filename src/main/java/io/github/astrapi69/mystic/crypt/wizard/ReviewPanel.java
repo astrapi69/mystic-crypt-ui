@@ -123,13 +123,16 @@ public class ReviewPanel extends BasePanel<BaseWizardStateMachineModel<Certifica
 		btnBrowseDirectory.setName("btnBrowseDirectory");
 		btnBrowseDirectory.addActionListener(event -> onBrowseDirectory());
 
-		txtPreview.setToolTipText(Messages.getString("wizard.certificate.review.tooltip.preview"));
-		txtFileName
-			.setToolTipText(Messages.getString("wizard.certificate.review.tooltip.file.name"));
+		txtPreview.setToolTipText(Messages.getString("wizard.certificate.review.tooltip.preview",
+			"a read-only preview of what would be written to the file"));
+		txtFileName.setToolTipText(Messages.getString("wizard.certificate.review.tooltip.file.name",
+			"the file name the certificate is saved as, defaults to the subject's common name"));
 		txtSaveDirectory
-			.setToolTipText(Messages.getString("wizard.certificate.review.tooltip.save.directory"));
+			.setToolTipText(Messages.getString("wizard.certificate.review.tooltip.save.directory",
+				"the folder the certificate is saved in"));
 		btnBrowseDirectory
-			.setToolTipText(Messages.getString("wizard.certificate.review.tooltip.browse"));
+			.setToolTipText(Messages.getString("wizard.certificate.review.tooltip.browse",
+				"choose the folder to save the certificate in"));
 	}
 
 	/**

@@ -159,19 +159,24 @@ public class ExtensionsPanel extends BasePanel<BaseWizardStateMachineModel<Certi
 		btnDeleteExtension.addActionListener(e -> onDeleteExtension());
 
 		cmbExtensionKind
-			.setToolTipText(Messages.getString("wizard.certificate.extensions.tooltip.kind"));
-		txtExtensionId
-			.setToolTipText(Messages.getString("wizard.certificate.extensions.tooltip.id"));
+			.setToolTipText(Messages.getString("wizard.certificate.extensions.tooltip.kind",
+				"which X.509 extension to add - picking one fills in its object id below"));
+		txtExtensionId.setToolTipText(Messages.getString("wizard.certificate.extensions.tooltip.id",
+			"the extension's object identifier (OID), filled in automatically for a known kind"));
 		txtExtensionValue
-			.setToolTipText(Messages.getString("wizard.certificate.extensions.tooltip.value"));
-		chkCritical
-			.setToolTipText(Messages.getString("wizard.certificate.extensions.tooltip.critical"));
+			.setToolTipText(Messages.getString("wizard.certificate.extensions.tooltip.value",
+				"the extension's value, in the format the hint below describes"));
+		chkCritical.setToolTipText(Messages.getString(
+			"wizard.certificate.extensions.tooltip.critical",
+			"whether a system that does not understand this extension must reject the certificate"));
 		btnAddExtension
-			.setToolTipText(Messages.getString("wizard.certificate.extensions.tooltip.add"));
+			.setToolTipText(Messages.getString("wizard.certificate.extensions.tooltip.add",
+				"adds the extension above to the certificate"));
 		btnEditExtension
-			.setToolTipText(Messages.getString("wizard.certificate.extensions.tooltip.edit"));
-		btnDeleteExtension
-			.setToolTipText(Messages.getString("wizard.certificate.extensions.tooltip.delete"));
+			.setToolTipText(Messages.getString("wizard.certificate.extensions.tooltip.edit",
+				"applies the fields above to the selected row"));
+		btnDeleteExtension.setToolTipText(Messages.getString(
+			"wizard.certificate.extensions.tooltip.delete", "removes the selected extension"));
 	}
 
 	/**
