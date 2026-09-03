@@ -45,6 +45,7 @@ import io.github.astrapi69.model.BaseModel;
 import io.github.astrapi69.model.LambdaModel;
 import io.github.astrapi69.model.api.IModel;
 import io.github.astrapi69.mystic.crypt.ApplicationModelBean;
+import io.github.astrapi69.mystic.crypt.Messages;
 import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
 import io.github.astrapi69.mystic.crypt.app.file.xml.ApplicationXmlFileReader;
 import io.github.astrapi69.mystic.crypt.panel.signin.button.state.ok.BtnOkComponentStateEnum;
@@ -284,6 +285,27 @@ public class MasterPwWithApplicationFilePanel extends BasePanel<MasterPwFileMode
 
 		toggleMasterPwComponents();
 		toggleKeyFileComponents();
+
+		cbxMasterPw.setToolTipText(Messages.getString("signin.tooltip.master.password.checkbox",
+			"unlock using a master password"));
+		cbxKeyFile.setToolTipText(
+			Messages.getString("signin.tooltip.key.file.checkbox", "unlock using a key file"));
+		txtMasterPw.setToolTipText(
+			Messages.getString("signin.tooltip.master.password", "the master password"));
+		btnMasterPw.setToolTipText(Messages.getString("signin.tooltip.show.hide.master.password",
+			"show or hide the typed password"));
+		btnKeyFileChooser.setToolTipText(
+			Messages.getString("signin.tooltip.key.file.chooser", "choose the key file"));
+		cmbKeyFile.setToolTipText(Messages.getString("signin.tooltip.key.file.combo.existing",
+			"a previously chosen key file - use Browse to add another"));
+		cmbApplicationFile
+			.setToolTipText(Messages.getString("signin.tooltip.application.file.combo",
+				"a previously opened database file - use Browse to open another, or New... to "
+					+ "create one"));
+		btnApplicationFileChooser.setToolTipText(Messages.getString(
+			"signin.tooltip.application.file.chooser", "choose an existing database file"));
+		btnNewApplicationFile.setToolTipText(Messages
+			.getString("signin.tooltip.new.application.file", "create a new, empty database file"));
 	}
 
 	protected void onApplicationFileChooser(ActionEvent actionEvent)

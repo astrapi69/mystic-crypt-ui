@@ -47,6 +47,7 @@ import io.github.astrapi69.file.create.model.FileInfo;
 import io.github.astrapi69.model.BaseModel;
 import io.github.astrapi69.model.LambdaModel;
 import io.github.astrapi69.model.api.IModel;
+import io.github.astrapi69.mystic.crypt.Messages;
 import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
 import io.github.astrapi69.mystic.crypt.app.file.xml.ApplicationXmlFileFactory;
 import io.github.astrapi69.mystic.crypt.panel.privatekey.NewPrivateKeyFileDialog;
@@ -245,6 +246,32 @@ public class NewMasterPwFilePanel extends BasePanel<MasterPwFileModelBean>
 
 		toggleMasterPwComponents();
 		toggleKeyFileComponents();
+
+		cbxMasterPw.setToolTipText(Messages.getString("signin.tooltip.master.password.checkbox",
+			"unlock using a master password"));
+		cbxKeyFile.setToolTipText(
+			Messages.getString("signin.tooltip.key.file.checkbox", "unlock using a key file"));
+		txtMasterPw.setToolTipText(
+			Messages.getString("signin.tooltip.master.password", "the master password"));
+		txtRepeatPw.setToolTipText(Messages.getString("signin.tooltip.repeat.password",
+			"repeat the master password, to catch a typo"));
+		btnMasterPw.setToolTipText(Messages.getString("signin.tooltip.show.hide.master.password",
+			"show or hide the typed password"));
+		btnGeneratePw.setToolTipText(Messages.getString("signin.tooltip.generate.password",
+			"generates a random password, fills both password fields and copies it to the "
+				+ "clipboard"));
+		cmbKeyFile.setToolTipText(Messages.getString("signin.tooltip.key.file.combo",
+			"a previously chosen key file - use Browse to add another, or Create key file... to "
+				+ "generate one"));
+		btnKeyFileChooser.setToolTipText(
+			Messages.getString("signin.tooltip.key.file.chooser", "choose an existing key file"));
+		btnCreateKeyFile.setToolTipText(Messages.getString("signin.tooltip.create.key.file",
+			"generates a brand-new private key to use as the key file"));
+		txtApplicationFile.setToolTipText(Messages
+			.getString("signin.tooltip.new.application.file.path", "the new database file's path"));
+		btnApplicationFileChooser
+			.setToolTipText(Messages.getString("signin.tooltip.new.application.file.chooser",
+				"choose where to create the new database file"));
 	}
 
 	protected void onHelp(ActionEvent actionEvent)

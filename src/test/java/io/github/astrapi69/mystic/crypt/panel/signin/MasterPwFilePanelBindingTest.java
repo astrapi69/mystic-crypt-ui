@@ -227,4 +227,28 @@ class MasterPwFilePanelBindingTest
 		assertEquals('*', panel.getTxtMasterPw().getEchoChar(),
 			"the master password must be masked again");
 	}
+
+	private static void assertHasTooltip(javax.swing.JComponent component, String fieldName)
+	{
+		String tooltip = component.getToolTipText();
+		assertTrue(tooltip != null && !tooltip.isBlank(), fieldName + " must have a tooltip");
+	}
+
+	/**
+	 * The "***" button is an icon-only toggle whose purpose is not obvious, and the checkboxes'
+	 * either-or-both relationship with the OK button is not obvious either (#156) - the panel had
+	 * no tooltip at all
+	 */
+	@Test
+	void everyFieldExplainsItselfWithATooltip()
+	{
+		RecordingMasterPwFilePanel panel = newPanel();
+
+		assertHasTooltip(panel.getCbxMasterPw(), "master password checkbox");
+		assertHasTooltip(panel.getCbxKeyFile(), "key file checkbox");
+		assertHasTooltip(panel.getTxtMasterPw(), "master password");
+		assertHasTooltip(panel.getBtnMasterPw(), "show/hide master password");
+		assertHasTooltip(panel.getTxtKeyFile(), "key file");
+		assertHasTooltip(panel.getBtnKeyFileChooser(), "key file chooser");
+	}
 }

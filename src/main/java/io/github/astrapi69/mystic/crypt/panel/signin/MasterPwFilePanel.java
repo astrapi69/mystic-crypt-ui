@@ -35,6 +35,7 @@ import io.github.astrapi69.file.system.SystemFileExtensions;
 import io.github.astrapi69.model.BaseModel;
 import io.github.astrapi69.model.LambdaModel;
 import io.github.astrapi69.model.api.IModel;
+import io.github.astrapi69.mystic.crypt.Messages;
 import io.github.astrapi69.swing.base.BasePanel;
 import io.github.astrapi69.swing.listener.document.DocumentListenerAdapter;
 import io.github.astrapi69.swing.model.component.JMCheckBox;
@@ -189,6 +190,19 @@ public class MasterPwFilePanel extends BasePanel<MasterPwFileModelBean>
 		btnCancel.addActionListener(this::onCancel);
 
 		fileChooser = new JFileChooser(SystemFileExtensions.getUserDownloadsDir());
+
+		cbxMasterPw.setToolTipText(Messages.getString("signin.tooltip.master.password.checkbox",
+			"unlock using a master password"));
+		cbxKeyFile.setToolTipText(
+			Messages.getString("signin.tooltip.key.file.checkbox", "unlock using a key file"));
+		txtMasterPw.setToolTipText(
+			Messages.getString("signin.tooltip.master.password", "the master password"));
+		btnMasterPw.setToolTipText(Messages.getString("signin.tooltip.show.hide.master.password",
+			"show or hide the typed password"));
+		txtKeyFile.setToolTipText(
+			Messages.getString("signin.tooltip.key.file", "the key file chosen to unlock with"));
+		btnKeyFileChooser.setToolTipText(
+			Messages.getString("signin.tooltip.key.file.chooser", "choose the key file"));
 	}
 
 	/**
