@@ -216,4 +216,45 @@ class PluginSettingsPanelTest
 		assertNull(new EmptyContribution().getDescription("first"),
 			"a plugin need not explain its settings");
 	}
+
+	private static JComponent componentNamed(JComponent component, String name)
+	{
+		if (name.equals(component.getName()))
+		{
+			return component;
+		}
+		for (java.awt.Component child : component.getComponents())
+		{
+			if (child instanceof JComponent childComponent)
+			{
+				JComponent found = componentNamed(childComponent, name);
+				if (found != null)
+				{
+					return found;
+				}
+			}
+		}
+		return null;
+	}
+
+	private static void assertHasTooltip(JComponent component, String fieldName)
+	{
+		String tooltip = component.getToolTipText();
+		assertTrue(tooltip != null && !tooltip.isBlank(), fieldName + " must have a tooltip");
+	}
+
+	/**
+	 * Only the value column is editable, and "Reset to defaults" deletes the stored settings file -
+	 * neither is obvious from the table or the button label alone (#163)
+	 */
+	@Test
+	void theTableAndBothButtonsExplainThemselvesWithATooltip(@TempDir File configurationDirectory)
+	{
+		PluginSettingsPanel panel = new PluginSettingsPanel(configurationDirectory,
+			List.of(new TestContribution()));
+
+		assertHasTooltip(componentNamed(panel, "tblPluginSettings"), "settings table");
+		assertHasTooltip(button(panel, "btnApplyPluginSettings"), "apply button");
+		assertHasTooltip(button(panel, "btnResetPluginSettings"), "reset button");
+	}
 }

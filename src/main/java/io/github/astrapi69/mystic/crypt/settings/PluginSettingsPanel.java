@@ -36,6 +36,7 @@ import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 
 import io.github.astrapi69.model.LambdaModel;
+import io.github.astrapi69.mystic.crypt.Messages;
 import io.github.astrapi69.mystic.crypt.plugin.api.PluginSettingsContribution;
 import io.github.astrapi69.swing.model.component.JMList;
 
@@ -92,6 +93,8 @@ public class PluginSettingsPanel extends JPanel
 		lstPluginSettings.setPropertyModel(
 			LambdaModel.of(modelObject::getSelectedPluginName, modelObject::setSelectedPluginName));
 		tblPluginSettings.setName("tblPluginSettings");
+		tblPluginSettings.setToolTipText(Messages.getString("settings.plugin.tooltip.table",
+			"only the value column is editable - the setting names are fixed by the plugin"));
 		lblPluginSettingsResult.setName("lblPluginSettingsResult");
 
 		for (PluginSettingsContribution contribution : this.contributions)
@@ -114,9 +117,13 @@ public class PluginSettingsPanel extends JPanel
 
 		JPanel south = new JPanel(new BorderLayout());
 		JPanel buttons = new JPanel(new FlowLayout(FlowLayout.LEFT));
-		buttons.add(button("btnApplyPluginSettings", "Apply", event -> applySelectedSettings()));
+		buttons.add(button("btnApplyPluginSettings", "Apply", event -> applySelectedSettings(),
+			Messages.getString("settings.plugin.tooltip.apply.button",
+				"writes the edited values to the stored settings file")));
 		buttons.add(button("btnResetPluginSettings", "Reset to defaults",
-			event -> resetSelectedSettings()));
+			event -> resetSelectedSettings(),
+			Messages.getString("settings.plugin.tooltip.reset.button",
+				"removes the stored settings file - destructive, the plugin's declared defaults apply again")));
 		south.add(buttons, BorderLayout.WEST);
 		south.add(lblPluginSettingsResult, BorderLayout.SOUTH);
 		add(south, BorderLayout.SOUTH);
@@ -295,11 +302,13 @@ public class PluginSettingsPanel extends JPanel
 		return usable;
 	}
 
-	private static JButton button(String name, String text, java.awt.event.ActionListener listener)
+	private static JButton button(String name, String text, java.awt.event.ActionListener listener,
+		String tooltip)
 	{
 		JButton button = new JButton(text);
 		button.setName(name);
 		button.addActionListener(listener);
+		button.setToolTipText(tooltip);
 		return button;
 	}
 }

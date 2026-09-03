@@ -34,6 +34,7 @@ import com.github.lgooddatepicker.components.DatePicker;
 import io.github.astrapi69.model.BaseModel;
 import io.github.astrapi69.model.LambdaModel;
 import io.github.astrapi69.model.api.IModel;
+import io.github.astrapi69.mystic.crypt.Messages;
 import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
 import io.github.astrapi69.mystic.crypt.panel.pw.GeneratePasswordDialog;
 import io.github.astrapi69.mystic.crypt.panel.pw.GeneratePasswordModelBean;
@@ -143,6 +144,8 @@ public class MysticCryptEntryPanel extends BasePanel<MysticCryptEntryModelBean>
 		cbxExpirable.setText("Expires");
 
 		btnShowPassword.setText("***");
+		btnShowPassword.setToolTipText(Messages.getString("entry.tooltip.show.password",
+			"shows or hides the typed password and its repetition"));
 
 		btnShowPassword.addActionListener(this::onShowPassword);
 
@@ -151,6 +154,10 @@ public class MysticCryptEntryPanel extends BasePanel<MysticCryptEntryModelBean>
 
 		cbxExpirable
 			.setPropertyModel(LambdaModel.of(modelObject::isExpirable, modelObject::setExpirable));
+		cbxExpirable.setToolTipText(Messages.getString("entry.tooltip.expirable",
+			"whether this entry has an expiry date - ticking it enables the date below"));
+		txtExpires.setToolTipText(Messages.getString("entry.tooltip.expires",
+			"the date this entry expires, only used while Expires is ticked"));
 
 		cbxExpirable.addActionListener(this::onChangeExpirable);
 

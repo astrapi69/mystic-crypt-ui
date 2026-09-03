@@ -905,6 +905,8 @@ public class SecretKeyTreeWithContentPanel
 		JMComboBox<BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long>, ?> targetChooser = new JMComboBox<>(
 			targets.toArray(new BaseTreeNode[0]));
 		targetChooser.setName("cmbMoveTarget");
+		targetChooser.setToolTipText(Messages.getString("dbtree.move.tooltip.target",
+			"the node the selected one is moved under"));
 		targetChooser.setRenderer(new DefaultListCellRenderer()
 		{
 			private static final long serialVersionUID = 1L;

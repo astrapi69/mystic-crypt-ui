@@ -41,6 +41,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 
 import javax.swing.JCheckBox;
+import javax.swing.JComponent;
 import javax.swing.JPasswordField;
 import javax.swing.JTextField;
 
@@ -247,6 +248,28 @@ class ExportKeePassPanelBindingTest
 		assertNull(panel.getSelectedFile());
 		assertNull(panel.getSelectedKeyFile());
 		assertEquals(0, panel.getPassword().length);
+	}
+
+	private static void assertHasTooltip(JComponent component, String fieldName)
+	{
+		String tooltip = component.getToolTipText();
+		assertTrue(tooltip != null && !tooltip.isBlank(), fieldName + " must have a tooltip");
+	}
+
+	/**
+	 * "Key File" may not mean anything to a user who has not used KeePass before (#163)
+	 */
+	@Test
+	void everyFieldExplainsItselfWithATooltip()
+	{
+		ExportKeePassPanel panel = new ExportKeePassPanel();
+
+		assertHasTooltip(named(panel, "txtFile", JComponent.class), "file");
+		assertHasTooltip(named(panel, "btnFile", JComponent.class), "browse file button");
+		assertHasTooltip(named(panel, "txtPassword", JComponent.class), "password");
+		assertHasTooltip(named(panel, "cbxKeyFile", JComponent.class), "key file checkbox");
+		assertHasTooltip(named(panel, "txtKeyFile", JComponent.class), "key file");
+		assertHasTooltip(named(panel, "btnKeyFile", JComponent.class), "browse key file button");
 	}
 
 }
