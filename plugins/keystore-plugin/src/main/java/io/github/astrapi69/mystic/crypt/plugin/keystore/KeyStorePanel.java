@@ -129,21 +129,62 @@ public class KeyStorePanel extends JPanel
 		lblResult.setName("lblResult");
 		lblResult.setFont(lblResult.getFont().deriveFont(Font.BOLD));
 
+		txtKeyStoreFile.setToolTipText(KeyStoreMessages.getString("keystore.tooltip.file",
+			"the .jks or .p12 file this tool works on"));
+		cmbType.setToolTipText(KeyStoreMessages.getString("keystore.tooltip.type",
+			"the key store format - JKS or PKCS12"));
+		pwdStore.setToolTipText(KeyStoreMessages.getString("keystore.tooltip.password",
+			"the password that opens and protects this key store"));
+		txtAlias.setToolTipText(KeyStoreMessages.getString("keystore.tooltip.alias",
+			"the name an entry is stored and looked up under"));
+		txtDistinguishedName.setToolTipText(
+			KeyStoreMessages.getString("keystore.tooltip.distinguished.name",
+				"the subject of the self-signed certificate generated with a new key pair, "
+					+ "for example CN=example.com"));
+		cmbKeyAlgorithm.setToolTipText(KeyStoreMessages.getString("keystore.tooltip.key.algorithm",
+			"the algorithm a newly generated key pair uses"));
+		txtCertificateFile.setToolTipText(KeyStoreMessages.getString(
+			"keystore.tooltip.certificate.file", "the certificate file used to import or export"));
+		txtPrivateKeyFile.setToolTipText(
+			KeyStoreMessages.getString("keystore.tooltip.private.key.file",
+				"the private key file used together with the certificate to import a key pair"));
+
 		JButton btnBrowse = button("btnBrowse", "...",
-			event -> onBrowse(txtKeyStoreFile, keyStoreFilePathModel()));
-		JButton btnOpen = button("btnOpen", "Open", event -> onOpen());
-		JButton btnCreate = button("btnCreate", "Create", event -> onCreate());
-		JButton btnAddKeyPair = button("btnAddKeyPair", "Add key pair", event -> onAddKeyPair());
-		JButton btnDelete = button("btnDelete", "Delete alias", event -> onDelete());
+			event -> onBrowse(txtKeyStoreFile, keyStoreFilePathModel()),
+			KeyStoreMessages.getString("keystore.tooltip.browse", "choose the key store file"));
+		JButton btnOpen = button("btnOpen", "Open", event -> onOpen(),
+			KeyStoreMessages.getString("keystore.tooltip.open", "opens the key store file above"));
+		JButton btnCreate = button("btnCreate", "Create", event -> onCreate(),
+			KeyStoreMessages.getString("keystore.tooltip.create",
+				"creates a new, empty key store at the file above - refuses to overwrite an "
+					+ "existing one"));
+		JButton btnAddKeyPair = button("btnAddKeyPair", "Add key pair", event -> onAddKeyPair(),
+			KeyStoreMessages.getString("keystore.tooltip.add.key.pair",
+				"generates a new key pair with a self-signed certificate and adds it under the "
+					+ "alias above"));
+		JButton btnDelete = button("btnDelete", "Delete alias", event -> onDelete(),
+			KeyStoreMessages.getString("keystore.tooltip.delete",
+				"removes the selected alias from the key store"));
 		JButton btnBrowseCertificate = button("btnBrowseCertificate", "...",
-			event -> onBrowse(txtCertificateFile, certificateFilePathModel()));
-		JButton btnImport = button("btnImport", "Import certificate", event -> onImport());
-		JButton btnExport = button("btnExport", "Export certificate as PEM", event -> onExport());
+			event -> onBrowse(txtCertificateFile, certificateFilePathModel()), KeyStoreMessages
+				.getString("keystore.tooltip.browse.certificate", "choose the certificate file"));
+		JButton btnImport = button("btnImport", "Import certificate", event -> onImport(),
+			KeyStoreMessages.getString("keystore.tooltip.import",
+				"imports the certificate file above under the alias"));
+		JButton btnExport = button("btnExport", "Export certificate as PEM", event -> onExport(),
+			KeyStoreMessages.getString("keystore.tooltip.export",
+				"exports the selected alias's certificate as PEM to the certificate file above, "
+					+ "or next to the key store file if left blank"));
 		JButton btnImportKeyPair = button("btnImportKeyPair", "Import key + certificate",
-			event -> onImportKeyPair());
+			event -> onImportKeyPair(),
+			KeyStoreMessages.getString("keystore.tooltip.import.key.pair",
+				"imports the private key and certificate files above together, under the alias"));
 		JButton btnAddSecretKey = button("btnAddSecretKey", "Add secret key",
-			event -> onAddSecretKey());
-		JButton btnDetails = button("btnDetails", "Details...", event -> onShowDetails());
+			event -> onAddSecretKey(), KeyStoreMessages.getString("keystore.tooltip.add.secret.key",
+				"adds a new AES secret key under the alias above"));
+		JButton btnDetails = button("btnDetails", "Details...", event -> onShowDetails(),
+			KeyStoreMessages.getString("keystore.tooltip.details",
+				"shows the full details of the selected alias's certificate"));
 
 		ToolForm.sized(txtKeyStoreFile);
 		ToolForm.sized(pwdStore);
@@ -184,7 +225,9 @@ public class KeyStorePanel extends JPanel
 		add(new JLabel("Private key file:"));
 		add(txtPrivateKeyFile, ToolForm.FIELD + ", split 2");
 		add(button("btnBrowsePrivateKey", "...",
-			event -> onBrowse(txtPrivateKeyFile, privateKeyFilePathModel())));
+			event -> onBrowse(txtPrivateKeyFile, privateKeyFilePathModel()),
+			KeyStoreMessages.getString("keystore.tooltip.browse.private.key",
+				"choose the private key file")));
 		add(ToolForm.buttons(btnImport, btnExport), ToolForm.BUTTON_ROW);
 		add(ToolForm.buttons(btnImportKeyPair, btnAddSecretKey, btnDetails), ToolForm.BUTTON_ROW);
 		add(lblResult, ToolForm.RESULT_LINE);
@@ -586,11 +629,13 @@ public class KeyStorePanel extends JPanel
 		String execute() throws Exception;
 	}
 
-	private static JButton button(String name, String text, java.awt.event.ActionListener listener)
+	private static JButton button(String name, String text, java.awt.event.ActionListener listener,
+		String tooltip)
 	{
 		JButton button = new JButton(text);
 		button.setName(name);
 		button.addActionListener(listener);
+		button.setToolTipText(tooltip);
 		return button;
 	}
 
