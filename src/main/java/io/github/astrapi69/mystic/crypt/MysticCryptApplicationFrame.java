@@ -319,9 +319,12 @@ public class MysticCryptApplicationFrame extends ApplicationPanelFrame<Applicati
 		applyPersistedMenuLayout();
 		setTitle(Messages.getString("mainframe.title"));
 		setDefaultLookAndFeel(LookAndFeels.NIMBUS, this);
+		MysticCryptSettings persistedSettings = MysticCryptSettings
+			.load(getConfigurationDirectory());
 		// apply a persisted look-and-feel choice on top of the Nimbus default
-		GeneralSettingsPanel.applyLookAndFeel(
-			MysticCryptSettings.load(getConfigurationDirectory()).getLookAndFeel());
+		GeneralSettingsPanel.applyLookAndFeel(persistedSettings.getLookAndFeel());
+		// same for a persisted "no tooltips" preference (#170)
+		GeneralSettingsPanel.applyTooltipsEnabled(persistedSettings.isTooltipsEnabled());
 		// the sign-in dialog has already been on screen at this point, and the screen it was on is
 		// the one the user is sitting in front of - filling the first screen instead is how the
 		// application used to open somewhere else entirely on a desk with two monitors
