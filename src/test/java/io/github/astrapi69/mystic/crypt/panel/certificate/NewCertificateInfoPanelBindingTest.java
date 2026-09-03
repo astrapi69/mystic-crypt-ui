@@ -227,4 +227,34 @@ class NewCertificateInfoPanelBindingTest
 
 		assertEquals("bound issuer", panel.getModelObject().getIssuer().getCommonName());
 	}
+
+	private static void assertHasTooltip(javax.swing.JComponent component, String fieldName)
+	{
+		String tooltip = component.getToolTipText();
+		org.junit.jupiter.api.Assertions.assertTrue(tooltip != null && !tooltip.isBlank(),
+			fieldName + " must have a tooltip");
+	}
+
+	/**
+	 * "Not Before"/"Not After" expect a full ISO {@code ZonedDateTime} string and silently ignore
+	 * anything else while it is being typed (#155) - a first-time user has no way to know that
+	 * format is expected without a tooltip
+	 */
+	@Test
+	void everyFieldExplainsItselfWithATooltip()
+	{
+		NewCertificateInfoPanel panel = newPanel();
+
+		assertHasTooltip(panel.getCmbVersion(), "version");
+		assertHasTooltip(panel.getTxtSerialNumber(), "serial number");
+		assertHasTooltip(panel.getTxtIssuer(), "issuer");
+		assertHasTooltip(panel.getTxtSubject(), "subject");
+		assertHasTooltip(panel.getTxtNotBefore(), "not before");
+		assertHasTooltip(panel.getTxtNotAfter(), "not after");
+		assertHasTooltip(panel.getTxtSignatureAlgorithm(), "signature algorithm");
+		assertHasTooltip(panel.getTxtPublicKey(), "public key");
+		assertHasTooltip(panel.getBtnCreateIssuer(), "create issuer");
+		assertHasTooltip(panel.getBtnCreateSubject(), "create subject");
+		assertHasTooltip(panel.getBtnGenerateSerialNumber(), "generate serial number");
+	}
 }
