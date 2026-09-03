@@ -35,6 +35,7 @@ import io.github.astrapi69.crypt.data.model.DistinguishedNameInfo;
 import io.github.astrapi69.model.BaseModel;
 import io.github.astrapi69.model.LambdaModel;
 import io.github.astrapi69.model.api.IModel;
+import io.github.astrapi69.mystic.crypt.Messages;
 import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
 import io.github.astrapi69.mystic.crypt.ui.screen.ScreenPlacement;
 import io.github.astrapi69.mystic.crypt.wizard.model.CertificateInfoModel;
@@ -226,6 +227,37 @@ public class NewCertificateInfoPanel extends BasePanel<CertificateInfoModel>
 
 		// enable when functionality is given...
 		btnAddExtension.setEnabled(false);
+
+		cmbVersion.setToolTipText(Messages.getString("certificate.info.tooltip.version",
+			"the X.509 version this certificate is created in"));
+		txtSerialNumber.setToolTipText(Messages.getString("certificate.info.tooltip.serial.number",
+			"the certificate's unique serial number, assigned by whoever issues it"));
+		txtIssuer.setToolTipText(Messages.getString("certificate.info.tooltip.issuer",
+			"the distinguished name of whoever signs this certificate, for example CN=example.com"));
+		txtSubject.setToolTipText(Messages.getString("certificate.info.tooltip.subject",
+			"the distinguished name this certificate identifies, for example CN=example.com"));
+		txtNotBefore.setToolTipText(Messages.getString("certificate.info.tooltip.not.before",
+			"the date the certificate becomes valid, as a full ISO date and time, for example "
+				+ "2026-01-01T00:00:00Z - anything else is silently ignored while typing"));
+		txtNotAfter.setToolTipText(Messages.getString("certificate.info.tooltip.not.after",
+			"the date the certificate expires, as a full ISO date and time, for example "
+				+ "2027-01-01T00:00:00Z - anything else is silently ignored while typing"));
+		txtSignatureAlgorithm
+			.setToolTipText(Messages.getString("certificate.info.tooltip.signature.algorithm",
+				"the algorithm used to sign the certificate - it has to match what the private "
+					+ "key can produce"));
+		txtPublicKey.setToolTipText(Messages.getString("certificate.info.tooltip.public.key",
+			"the public key this certificate carries, in PEM format"));
+		btnCreateIssuer.setToolTipText(Messages.getString("certificate.info.tooltip.create.issuer",
+			"opens a dialog to fill in the issuer's name, organisation and location field by "
+				+ "field"));
+		btnCreateSubject
+			.setToolTipText(Messages.getString("certificate.info.tooltip.create.subject",
+				"opens a dialog to fill in the subject's name, organisation and location field by "
+					+ "field"));
+		btnGenerateSerialNumber
+			.setToolTipText(Messages.getString("certificate.info.tooltip.generate.serial.number",
+				"fills the serial number with a fresh random value"));
 
 		bindComponents();
 	}
