@@ -67,12 +67,20 @@ public class ConversionPanel extends JPanel
 	private final JMTextField txtTargetFile = new JMTextField(38);
 	private final JLabel lblWhatItHolds = new JLabel(ConversionPanelModel.NOTHING_TO_SAY);
 	private final JLabel lblResult = new JLabel(ConversionPanelModel.NOTHING_TO_SAY);
-	private final JButton btnPemToDer = button("btnPemToDer", "to DER", event -> onPemToDer());
-	private final JButton btnDerToPem = button("btnDerToPem", "to PEM", event -> onDerToPem());
+	private final JButton btnPemToDer = button("btnPemToDer", "to DER", event -> onPemToDer(),
+		ConversionMessages.getString("conversion.tooltip.pem.to.der.button",
+			"converts the chosen PEM file to the binary DER encoding"));
+	private final JButton btnDerToPem = button("btnDerToPem", "to PEM", event -> onDerToPem(),
+		ConversionMessages.getString("conversion.tooltip.der.to.pem.button",
+			"converts the chosen DER file to the text PEM encoding"));
 	private final JButton btnToPkcs8 = button("btnToPkcs8", "to PKCS#8 (Java)",
-		event -> onToPkcs8());
+		event -> onToPkcs8(),
+		ConversionMessages.getString("conversion.tooltip.to.pkcs8.button",
+			"converts the chosen private key to PKCS#8, the encoding Java reads"));
 	private final JButton btnToPkcs1 = button("btnToPkcs1", "to PKCS#1 (openssl)",
-		event -> onToPkcs1());
+		event -> onToPkcs1(),
+		ConversionMessages.getString("conversion.tooltip.to.pkcs1.button",
+			"converts the chosen private key to PKCS#1, the encoding openssl reads"));
 
 	public ConversionPanel()
 	{
@@ -86,6 +94,15 @@ public class ConversionPanel extends JPanel
 		ToolForm.sized(txtSourceFile);
 		ToolForm.sized(txtTargetFile);
 
+		txtSourceFile.setToolTipText(ConversionMessages.getString("conversion.tooltip.source.file",
+			"the key or certificate file to convert - its own content says what it holds, nothing has to be chosen"));
+		txtTargetFile.setToolTipText(ConversionMessages.getString("conversion.tooltip.target.file",
+			"the file to write to - left blank, the result is written next to the source file"));
+		lblWhatItHolds.setToolTipText(ConversionMessages.getString("conversion.tooltip.what.it.holds",
+			"what the chosen file was found to hold"));
+		lblResult.setToolTipText(
+			ConversionMessages.getString("conversion.tooltip.result", "what the last conversion did"));
+
 		txtSourceFile.setPropertyModel(
 			LambdaModel.of(modelObject::getSourceFilePath, modelObject::setSourceFilePath));
 		txtTargetFile.setPropertyModel(
@@ -93,14 +110,18 @@ public class ConversionPanel extends JPanel
 
 		add(new JLabel("File:"));
 		add(txtSourceFile, FIELD_WITH_BUTTON);
-		add(button("btnBrowseSource", "...", event -> onBrowseSource()));
+		add(button("btnBrowseSource", "...", event -> onBrowseSource(),
+			ConversionMessages.getString("conversion.tooltip.browse.source.button",
+				"choose the file to convert")));
 
 		add(new JLabel("It holds:"));
 		add(lblWhatItHolds, ToolForm.FIELD);
 
 		add(new JLabel("Write to:"));
 		add(txtTargetFile, FIELD_WITH_BUTTON);
-		add(button("btnBrowseTarget", "...", event -> onBrowseTarget()));
+		add(button("btnBrowseTarget", "...", event -> onBrowseTarget(),
+			ConversionMessages.getString("conversion.tooltip.browse.target.button",
+				"choose where to write the result")));
 
 		add(ToolForm.buttons(btnPemToDer, btnDerToPem, btnToPkcs8, btnToPkcs1),
 			ToolForm.BUTTON_ROW);
@@ -328,11 +349,13 @@ public class ConversionPanel extends JPanel
 		String execute() throws Exception;
 	}
 
-	private static JButton button(String name, String text, java.awt.event.ActionListener listener)
+	private static JButton button(String name, String text, java.awt.event.ActionListener listener,
+		String tooltip)
 	{
 		JButton button = new JButton(text);
 		button.setName(name);
 		button.addActionListener(listener);
+		button.setToolTipText(tooltip);
 		return button;
 	}
 }

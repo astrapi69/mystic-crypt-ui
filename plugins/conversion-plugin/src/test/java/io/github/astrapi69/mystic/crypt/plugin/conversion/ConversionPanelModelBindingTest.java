@@ -37,6 +37,7 @@ import java.security.KeyPair;
 import java.security.Security;
 
 import javax.swing.JButton;
+import javax.swing.JComponent;
 import javax.swing.JTextField;
 
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
@@ -125,6 +126,31 @@ class ConversionPanelModelBindingTest
 			"the converted file has to hold the same key");
 		assertEquals("written as PKCS#8 to " + target.getName(),
 			panel.getModelObject().getResultMessage(), "the message shown belongs in the model");
+	}
+
+	private static void assertHasTooltip(JComponent component, String fieldName)
+	{
+		String tooltip = component.getToolTipText();
+		assertTrue(tooltip != null && !tooltip.isBlank(), fieldName + " must have a tooltip");
+	}
+
+	@Test
+	void everyFieldExplainsItselfWithATooltip()
+	{
+		ConversionPanel panel = new ConversionPanel();
+
+		assertHasTooltip((JComponent)componentNamed(panel, "txtSourceFile"), "source file");
+		assertHasTooltip((JComponent)componentNamed(panel, "btnBrowseSource"),
+			"browse source button");
+		assertHasTooltip((JComponent)componentNamed(panel, "lblWhatItHolds"), "what it holds");
+		assertHasTooltip((JComponent)componentNamed(panel, "txtTargetFile"), "target file");
+		assertHasTooltip((JComponent)componentNamed(panel, "btnBrowseTarget"),
+			"browse target button");
+		assertHasTooltip(button(panel, "btnPemToDer"), "PEM to DER button");
+		assertHasTooltip(button(panel, "btnDerToPem"), "DER to PEM button");
+		assertHasTooltip(button(panel, "btnToPkcs8"), "to PKCS#8 button");
+		assertHasTooltip(button(panel, "btnToPkcs1"), "to PKCS#1 button");
+		assertHasTooltip((JComponent)componentNamed(panel, "lblResult"), "result label");
 	}
 
 	private File writePkcs1PrivateKey(File directory) throws Exception

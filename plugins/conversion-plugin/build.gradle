@@ -33,6 +33,7 @@ dependencies {
     compileOnly "io.github.astrapi69:swing-model-components:1.2"
     compileOnly "io.github.astrapi69:swing-base-components:5.1"
     compileOnly "io.github.astrapi69:throwable:3"
+    compileOnly "io.github.astrapi69:resourcebundle-core:6.0"
     compileOnly "org.projectlombok:lombok:1.18.46"
     annotationProcessor "org.projectlombok:lombok:1.18.46"
 
@@ -61,6 +62,9 @@ dependencies {
     testImplementation "io.github.astrapi69:swing-model-components:1.2"
     testImplementation "io.github.astrapi69:swing-base-components:5.1"
     testImplementation "io.github.astrapi69:throwable:3"
+    // the panels under test resolve their tooltip text through ConversionMessages at construction
+    // time, so the resource bundle loader has to be on the test classpath too
+    testImplementation "io.github.astrapi69:resourcebundle-core:6.0"
 
 }
 
