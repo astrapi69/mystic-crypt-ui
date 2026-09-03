@@ -33,6 +33,7 @@ import java.io.File;
 import java.util.List;
 
 import javax.swing.JButton;
+import javax.swing.JTextField;
 
 import org.assertj.swing.core.matcher.JButtonMatcher;
 import org.assertj.swing.edt.GuiActionRunner;
@@ -40,6 +41,7 @@ import org.assertj.swing.fixture.DialogFixture;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import io.github.astrapi69.crypt.data.key.reader.CertificateReader;
 import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
 import io.github.astrapi69.mystic.crypt.TestPasswords;
 
@@ -107,7 +109,7 @@ class CertificateWizardUiTest extends AbstractUiTest
 		application.showMainFrame();
 		DialogFixture wizard = application.openCertificateWizard();
 
-		List<String> steps = List.of("Issuer", "Subject", "Dates", "Extensions");
+		List<String> steps = List.of("Issuer", "Subject", "Dates", "Extensions", "Review");
 		for (int index = 0; index < steps.size(); index++)
 		{
 			assertStepDoesNotNeedToScroll(wizard, steps.get(index));
@@ -125,6 +127,46 @@ class CertificateWizardUiTest extends AbstractUiTest
 
 		GuiActionRunner.execute(() -> wizard.target().dispose());
 		robot.waitForIdle();
+	}
+
+	/**
+	 * The review step (#146) replaced the old post-save "Certificate created" confirmation dialog:
+	 * walking to it and pressing Finish must save a real, readable certificate to the directory and
+	 * file name the step shows, and close the wizard without any dialog popping up in between.
+	 */
+	@Test
+	@DisplayName("Finish from the Review step saves the certificate without a confirmation dialog")
+	void finishFromTheReviewStepSavesTheCertificateWithoutAConfirmationDialog() throws Exception
+	{
+		installPluginRequiringItBuilt(CERTIFICATE_ZIP);
+		File databaseFile = new File(tempHome, "certwizard-finish-database.mcrdb");
+		createDatabaseFileHeadless(databaseFile, MASTER_PASSWORD);
+		ApplicationSteps application = signInWithExistingDatabase(databaseFile, MASTER_PASSWORD);
+		application.showMainFrame();
+		DialogFixture wizard = application.openCertificateWizard();
+
+		for (int index = 0; index < 4; index++)
+		{
+			click(wizard, "Next");
+		}
+
+		File savedFile = GuiActionRunner
+			.execute(() -> new File(((JTextField)named(wizard, "txtSaveDirectory")).getText(),
+				((JTextField)named(wizard, "txtFileName")).getText()));
+
+		click(wizard, "Finish");
+
+		assertFalse(wizard.target().isShowing(),
+			"the wizard dialog must close without a confirmation dialog appearing first");
+		assertTrue(savedFile.exists(), "the certificate must actually be written to " + savedFile);
+		assertNotNull(CertificateReader.readPemCertificate(savedFile),
+			"what was written must be a certificate the library can read back");
+	}
+
+	private java.awt.Component named(final DialogFixture wizard, final String name)
+	{
+		return wizard.robot().finder().find(wizard.target(),
+			component -> name.equals(component.getName()));
 	}
 
 	private void click(final DialogFixture wizard, final String buttonText)

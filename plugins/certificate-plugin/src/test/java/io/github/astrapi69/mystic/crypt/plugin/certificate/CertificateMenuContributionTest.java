@@ -25,12 +25,9 @@
 package io.github.astrapi69.mystic.crypt.plugin.certificate;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.awt.Desktop;
 import java.io.File;
-import java.io.IOException;
 import java.math.BigInteger;
 import java.security.KeyPair;
 import java.security.Security;
@@ -41,7 +38,6 @@ import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
@@ -54,13 +50,13 @@ import io.github.astrapi69.mystic.crypt.wizard.model.KeyInfoModel;
 import io.github.astrapi69.mystic.crypt.wizard.model.ValidityModel;
 
 /**
- * Covers three independent behaviors of {@link CertificateMenuContribution}: there is no in-app
- * viewer for a certificate file, so "open" after creating one has to go through whatever the
- * operating system associates with it - a system that offers no way to open files must fail with a
- * reason a user can act on, rather than silently doing nothing or throwing something unexplained;
- * the "Certificate created" confirmation has to actually say what was created (#136), not just
- * where it went; and every key algorithm the settings document as valid ("RSA, EC, DSA or
- * Ed25519") actually has to work, not just the RSA default (#141).
+ * Covers three independent behaviors of {@link CertificateMenuContribution}: the "Certificate
+ * created" confirmation that used to follow saving has to actually say what was created (#136), not
+ * just where it went - the review step that replaced it (#146) still uses the same summary; every
+ * key algorithm the settings document as valid ("RSA, EC, DSA or Ed25519") actually has to work, not
+ * just the RSA default (#141); and the file the review step ends up saving to has to fall back
+ * sensibly when the user never typed a name or picked a directory there, since Finish works from any
+ * step of the wizard, not only Review.
  */
 class CertificateMenuContributionTest
 {
@@ -74,41 +70,27 @@ class CertificateMenuContributionTest
 		}
 	}
 
-	@Test
-	void aSystemWithNoWayToOpenFilesSaysSo(@TempDir File directory) throws Exception
-	{
-		File file = new File(directory, "test.crt");
-		file.createNewFile();
-
-		if (Desktop.isDesktopSupported() && Desktop.getDesktop().isSupported(Desktop.Action.OPEN))
-		{
-			// the CI/Xvfb environment this normally runs in has no desktop session to open
-			// anything with, which is exactly the case this test pins - a real desktop is free to
-			// skip it
-			return;
-		}
-
-		IOException thrown = assertThrows(IOException.class,
-			() -> CertificateMenuContribution.openWithSystemDefault(file));
-		assertTrue(thrown.getMessage() != null && !thrown.getMessage().isBlank(),
-			"the reason has to be shown, not swallowed");
-	}
-
-	@Test
-	void theSummaryNamesEveryImportantFieldOfTheCertificate() throws Exception
+	private static CertificateInfoModel modelWithSubjectCommonName(String commonName)
+		throws Exception
 	{
 		KeyPair keyPair = KeyPairFactory.newKeyPair("RSA");
 		ZonedDateTime now = ZonedDateTime.now();
-		CertificateInfoModel model = CertificateInfoModel.builder()
+		return CertificateInfoModel.builder()
 			.privateKeyInfo(
 				KeyInfoModel.toKeyInfoModel(KeyInfoExtensions.toKeyInfo(keyPair.getPrivate())))
 			.publicKeyInfo(
 				KeyInfoModel.toKeyInfoModel(KeyInfoExtensions.toKeyInfo(keyPair.getPublic())))
 			.issuer(DistinguishedNameInfoModel.builder().commonName("test ca").build())
-			.subject(DistinguishedNameInfoModel.builder().commonName("test subject").build())
+			.subject(DistinguishedNameInfoModel.builder().commonName(commonName).build())
 			.validityModel(
 				ValidityModel.builder().notBefore(now).notAfter(now.plusYears(1)).build())
 			.serial(BigInteger.valueOf(305441741)).build();
+	}
+
+	@Test
+	void theSummaryNamesEveryImportantFieldOfTheCertificate() throws Exception
+	{
+		CertificateInfoModel model = modelWithSubjectCommonName("test subject");
 		X509Certificate certificate = CertificateInfoModelToX509.toX509Certificate(model);
 
 		String summary = CertificateMenuContribution.certificateSummary(certificate);
@@ -139,6 +121,54 @@ class CertificateMenuContributionTest
 			? "EDDSA"
 			: keyAlgorithm.toUpperCase(java.util.Locale.ROOT);
 		assertEquals(expected, actual);
+	}
+
+	@Test
+	void defaultFileNameUsesTheSubjectsCommonName() throws Exception
+	{
+		CertificateInfoModel model = modelWithSubjectCommonName("mystic-crypt");
+
+		assertEquals("mystic-crypt.crt", CertificateMenuContribution.defaultFileName(model));
+	}
+
+	@Test
+	void defaultFileNameSanitizesWhatTheFilesystemWouldReject() throws Exception
+	{
+		CertificateInfoModel model = modelWithSubjectCommonName("*.example.com/test?");
+
+		assertEquals("_.example.com_test_.crt",
+			CertificateMenuContribution.defaultFileName(model));
+	}
+
+	@Test
+	void defaultFileNameFallsBackWhenThereIsNoCommonName() throws Exception
+	{
+		CertificateInfoModel model = modelWithSubjectCommonName(null);
+
+		assertEquals("certificate.crt", CertificateMenuContribution.defaultFileName(model));
+	}
+
+	@Test
+	void resolveSaveTargetUsesWhatTheReviewStepHolds() throws Exception
+	{
+		CertificateInfoModel model = modelWithSubjectCommonName("subject");
+
+		File file = CertificateMenuContribution.resolveSaveTarget("chosen.crt",
+			new File("/chosen/directory"), model, new File("/default/directory"));
+
+		assertEquals(new File("/chosen/directory", "chosen.crt"), file);
+	}
+
+	@Test
+	@DisplayName("Finish works even when the review step was never visited, with sensible defaults")
+	void resolveSaveTargetFallsBackWhenNothingWasEnteredYet() throws Exception
+	{
+		CertificateInfoModel model = modelWithSubjectCommonName("subject");
+
+		File file = CertificateMenuContribution.resolveSaveTarget(null, null, model,
+			new File("/default/directory"));
+
+		assertEquals(new File("/default/directory", "subject.crt"), file);
 	}
 
 }

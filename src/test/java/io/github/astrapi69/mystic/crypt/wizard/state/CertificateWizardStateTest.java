@@ -42,7 +42,7 @@ class CertificateWizardStateTest
 
 	@ParameterizedTest(name = "{0}: previous={1}, next={2}")
 	@CsvSource({ "ISSUER, false, true", "SUBJECT, true, true", "DATES, true, true",
-			"EXTENSIONS, true, false" })
+			"EXTENSIONS, true, true", "REVIEW, true, false" })
 	void hasPreviousAndHasNextMatchThePositionInTheSequence(final CertificateWizardState state,
 		final boolean expectedHasPrevious, final boolean expectedHasNext)
 	{
