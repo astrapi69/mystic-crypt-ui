@@ -163,6 +163,67 @@ class ChecksumPanelBindingTest
 			"a value that is not the computed one is reported as no match");
 	}
 
+	@ParameterizedTest
+	@EnumSource(value = ChecksumAlgorithm.class, mode = EnumSource.Mode.EXCLUDE, names = "UNKNOWN")
+	@DisplayName("choosing an algorithm computes that algorithm's own correct checksum, for every algorithm")
+	void everyAlgorithmComputesItsOwnCorrectChecksum(final ChecksumAlgorithm algorithm,
+		@TempDir File directory) throws Exception
+	{
+		File file = fileWithAbc(directory);
+		String expectedChecksum = FileChecksumExtensions.getChecksum(file, algorithm);
+		ChecksumPanel panel = new ChecksumPanel();
+		panel.getModelObject().setSelectedFile(file);
+
+		chooseAlgorithm(panel, algorithm);
+
+		assertEquals(expectedChecksum, panel.getModelObject().getGeneratedChecksum(),
+			"the " + algorithm + " checksum computed through the combo box must match what "
+				+ "FileChecksumExtensions computes independently for the same file (#144)");
+		assertEquals(expectedChecksum, panel.getTxtGeneratedChecksum().getText(),
+			"and the text area shows exactly that");
+	}
+
+	@ParameterizedTest
+	@EnumSource(value = ChecksumAlgorithm.class, mode = EnumSource.Mode.EXCLUDE, names = "UNKNOWN")
+	@DisplayName("comparing the correct owner's checksum reports Match, for every algorithm")
+	void comparingReportsMatchForEveryAlgorithm(final ChecksumAlgorithm algorithm,
+		@TempDir File directory) throws Exception
+	{
+		File file = fileWithAbc(directory);
+		String expectedChecksum = FileChecksumExtensions.getChecksum(file, algorithm);
+		ChecksumPanel panel = new ChecksumPanel();
+		panel.getModelObject().setSelectedFile(file);
+		chooseAlgorithm(panel, algorithm);
+		panel.getTxtOwnersChecksum().setText(expectedChecksum);
+
+		panel.getBtnCompare().doClick();
+
+		assertEquals("Match", panel.getModelObject().getChecksumMatchResult(),
+			"the correct " + algorithm + " checksum must be reported as a match (#144)");
+	}
+
+	@ParameterizedTest
+	@EnumSource(value = ChecksumAlgorithm.class, mode = EnumSource.Mode.EXCLUDE, names = "UNKNOWN")
+	@DisplayName("comparing a wrong owner's checksum reports No Match, for every algorithm")
+	void comparingReportsNoMatchForEveryAlgorithm(final ChecksumAlgorithm algorithm,
+		@TempDir File directory) throws Exception
+	{
+		File file = fileWithAbc(directory);
+		String expectedChecksum = FileChecksumExtensions.getChecksum(file, algorithm);
+		// flip the first character to something guaranteed different, whatever it started as
+		char differentFirstChar = expectedChecksum.charAt(0) == '0' ? '1' : '0';
+		String wrongChecksum = differentFirstChar + expectedChecksum.substring(1);
+		ChecksumPanel panel = new ChecksumPanel();
+		panel.getModelObject().setSelectedFile(file);
+		chooseAlgorithm(panel, algorithm);
+		panel.getTxtOwnersChecksum().setText(wrongChecksum);
+
+		panel.getBtnCompare().doClick();
+
+		assertEquals("No Match", panel.getModelObject().getChecksumMatchResult(),
+			"a tampered " + algorithm + " checksum must be reported as no match (#144)");
+	}
+
 	@Test
 	void clearingTakesTheFileAndWhatWasComputedForItOutOfTheModel(@TempDir File directory)
 		throws Exception
