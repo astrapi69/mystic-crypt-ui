@@ -112,6 +112,24 @@ public class SecretSharingPanel extends JPanel
 		lblResult.setName("lblResult");
 		lblResult.setFont(lblResult.getFont().deriveFont(Font.BOLD));
 
+		pwdSecret.setToolTipText(SecretSharingMessages.getString("sharing.tooltip.secret",
+			"the secret to split, typed directly"));
+		txtSecretFile.setToolTipText(SecretSharingMessages.getString("sharing.tooltip.secret.file",
+			"the file to split, used instead of the secret above when checked"));
+		chkUseFile.setToolTipText(SecretSharingMessages.getString("sharing.tooltip.use.file",
+			"split the file above instead of the typed secret"));
+		spnThreshold.setToolTipText(SecretSharingMessages.getString("sharing.tooltip.threshold",
+			"how many shares are enough to rebuild the secret - fewer than this reveal nothing"));
+		spnTotalShares.setToolTipText(SecretSharingMessages.getString(
+			"sharing.tooltip.total.shares", "how many shares are produced in total"));
+		txtShares.setToolTipText(SecretSharingMessages.getString("sharing.tooltip.shares",
+			"the shares, one per line - paste them here to rebuild the secret, or read them back "
+				+ "after splitting"));
+		txtRebuilt.setToolTipText(SecretSharingMessages.getString("sharing.tooltip.rebuilt",
+			"the secret rebuilt from the shares"));
+		txtRebuiltFile.setToolTipText(SecretSharingMessages.getString(
+			"sharing.tooltip.rebuilt.file", "the file the rebuilt secret is written to"));
+
 		// the tool starts with what the user configured in the settings dialog
 		modelObject.setThreshold(SecretSharingSettingsContribution.threshold());
 		modelObject.setTotalShares(SecretSharingSettingsContribution.totalShares());
@@ -127,28 +145,47 @@ public class SecretSharingPanel extends JPanel
 
 		add(new JLabel("or file:"));
 		add(txtSecretFile, WITH_BUTTON);
-		add(button("btnBrowseSecretFile", "...", event -> onBrowseSecretFile()));
+		add(button("btnBrowseSecretFile", "...", event -> onBrowseSecretFile(),
+			SecretSharingMessages.getString("sharing.tooltip.browse.secret.file",
+				"choose the file to split")));
 		add(chkUseFile, UNDER_THE_FIELD);
 
 		add(new JLabel("Shares needed:"));
 		add(spnThreshold, OWN_WIDTH);
 		add(new JLabel("Shares produced:"));
 		add(spnTotalShares, OWN_WIDTH);
-		add(ToolForm.buttons(button("btnSplit", "Split", event -> onSplit()),
-			button("btnSaveShares", "Save shares", event -> onSaveShares())), ToolForm.BUTTON_ROW);
+		add(ToolForm.buttons(
+			button("btnSplit", "Split", event -> onSplit(),
+				SecretSharingMessages.getString("sharing.tooltip.split",
+					"splits the secret or file above into shares - keep them apart from each "
+						+ "other")),
+			button("btnSaveShares", "Save shares", event -> onSaveShares(),
+				SecretSharingMessages.getString("sharing.tooltip.save.shares",
+					"writes the shares to one text file for now - move each share to its own "
+						+ "safe place afterward, they must not stay together"))),
+			ToolForm.BUTTON_ROW);
 
 		add(new JLabel("Shares:"), "aligny top");
 		add(ToolForm.scrolled(txtShares), "grow, push");
-		add(ToolForm.buttons(button("btnCombine", "Combine", event -> onCombine()),
-			button("btnLoadShares", "Load shares", event -> onLoadShares())), ToolForm.BUTTON_ROW);
+		add(ToolForm.buttons(
+			button("btnCombine", "Combine", event -> onCombine(), SecretSharingMessages
+				.getString("sharing.tooltip.combine", "rebuilds the secret from the shares above")),
+			button("btnLoadShares", "Load shares", event -> onLoadShares(),
+				SecretSharingMessages.getString("sharing.tooltip.load.shares",
+					"reads shares from a file into the field above"))),
+			ToolForm.BUTTON_ROW);
 
 		add(new JLabel("Rebuilt secret:"), "aligny top");
 		add(ToolForm.scrolled(txtRebuilt), REBUILT_AREA);
 		add(new JLabel("Write it to:"));
 		add(txtRebuiltFile, WITH_BUTTON);
-		add(button("btnBrowseRebuiltFile", "...", event -> onBrowseRebuiltFile()));
-		add(ToolForm.buttons(
-			button("btnSaveRebuilt", "Save rebuilt secret", event -> onSaveRebuilt())),
+		add(button("btnBrowseRebuiltFile", "...", event -> onBrowseRebuiltFile(),
+			SecretSharingMessages.getString("sharing.tooltip.browse.rebuilt.file",
+				"choose where to write the rebuilt secret")));
+		add(ToolForm.buttons(button("btnSaveRebuilt", "Save rebuilt secret",
+			event -> onSaveRebuilt(),
+			SecretSharingMessages.getString("sharing.tooltip.save.rebuilt",
+				"writes the rebuilt secret to the file above"))),
 			ToolForm.BUTTON_ROW);
 
 		add(lblResult, ToolForm.RESULT_LINE);
@@ -388,11 +425,13 @@ public class SecretSharingPanel extends JPanel
 		String execute() throws Exception;
 	}
 
-	private static JButton button(String name, String text, java.awt.event.ActionListener listener)
+	private static JButton button(String name, String text, java.awt.event.ActionListener listener,
+		String tooltip)
 	{
 		JButton button = new JButton(text);
 		button.setName(name);
 		button.addActionListener(listener);
+		button.setToolTipText(tooltip);
 		return button;
 	}
 }
