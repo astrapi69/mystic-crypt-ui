@@ -22,12 +22,14 @@ package io.github.astrapi69.mystic.crypt.plugin.obfuscation.simple;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.awt.Component;
 import java.awt.Container;
 import java.awt.event.ActionEvent;
 
 import javax.swing.JButton;
+import javax.swing.JComponent;
 import javax.swing.text.JTextComponent;
 
 import org.junit.jupiter.api.Test;
@@ -209,5 +211,26 @@ class ObfuscationRulePanelBindingTest
 
 		assertEquals("a", panel.getRuleModelObject().getOriginalCharacter(),
 			"the second character must not reach the model");
+	}
+
+	private static void assertHasTooltip(JComponent component, String fieldName)
+	{
+		String tooltip = component.getToolTipText();
+		assertTrue(tooltip != null && !tooltip.isBlank(), fieldName + " must have a tooltip");
+	}
+
+	/**
+	 * Both fields silently cap what is typed to one character via {@link
+	 * io.github.astrapi69.swing.document.RangeDocument}, which is not obvious from the label
+	 * alone (#162) - every field and the Add button must explain itself
+	 */
+	@Test
+	void everyFieldExplainsItselfWithATooltip()
+	{
+		ObfuscationRulePanel panel = newPanelAddingWhatTheModelHolds();
+
+		assertHasTooltip(named(panel, "txtOriginalChar", JComponent.class), "original character");
+		assertHasTooltip(named(panel, "txtRelpaceWith", JComponent.class), "replace with");
+		assertHasTooltip(named(panel, "btnAddRule", JComponent.class), "add button");
 	}
 }

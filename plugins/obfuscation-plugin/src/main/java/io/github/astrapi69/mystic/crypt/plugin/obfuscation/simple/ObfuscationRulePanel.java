@@ -27,6 +27,7 @@ import io.github.astrapi69.model.BaseModel;
 import io.github.astrapi69.model.LambdaModel;
 import io.github.astrapi69.model.api.IModel;
 import io.github.astrapi69.mystic.crypt.plugin.obfuscation.ModeContext;
+import io.github.astrapi69.mystic.crypt.plugin.obfuscation.ObfuscationMessages;
 import io.github.astrapi69.mystic.crypt.ui.form.ToolForm;
 import io.github.astrapi69.swing.base.BasePanel;
 import io.github.astrapi69.swing.document.RangeDocument;
@@ -111,6 +112,13 @@ public class ObfuscationRulePanel extends BasePanel<ObfuscationModelBean>
 		txtOriginalChar.setName("txtOriginalChar");
 		txtRelpaceWith.setName("txtRelpaceWith");
 		btnAdd.setName("btnAddRule");
+
+		txtOriginalChar.setToolTipText(ObfuscationMessages.getString(
+			"obfuscation.rule.tooltip.original.char", "the character to replace - one character only"));
+		txtRelpaceWith.setToolTipText(ObfuscationMessages.getString("obfuscation.rule.tooltip.replace.with",
+			"the character it is replaced with - one character only"));
+		btnAdd.setToolTipText(ObfuscationMessages.getString("obfuscation.rule.tooltip.add.button",
+			"adds this rule to the table below"));
 
 		bindComponents();
 

@@ -31,6 +31,7 @@ import io.github.astrapi69.crypt.data.obfuscation.rule.ObfuscationOperationRule;
 import io.github.astrapi69.model.LambdaModel;
 import io.github.astrapi69.model.api.IModel;
 import io.github.astrapi69.mystic.crypt.plugin.obfuscation.ModeContext;
+import io.github.astrapi69.mystic.crypt.plugin.obfuscation.ObfuscationMessages;
 import io.github.astrapi69.mystic.crypt.ui.form.ToolForm;
 import io.github.astrapi69.swing.base.BasePanel;
 import io.github.astrapi69.swing.document.NumberValuesDocument;
@@ -138,6 +139,19 @@ public class ObfuscationOperationRulePanel extends BasePanel<ObfuscationOperatio
 		lblIndexes.setText("Indexes");
 
 		lblOperation.setText("Operation");
+
+		txtOriginalChar.setToolTipText(ObfuscationMessages.getString(
+			"obfuscation.operation.rule.tooltip.original.char",
+			"the character to replace - one character only"));
+		txtRelpaceWith.setToolTipText(ObfuscationMessages.getString(
+			"obfuscation.operation.rule.tooltip.replace.with",
+			"the character it is replaced with - one character only"));
+		txtIndexes.setToolTipText(ObfuscationMessages.getString("obfuscation.operation.rule.tooltip.indexes",
+			"comma separated positions in the text where the chosen operation is applied instead of the plain replacement"));
+		cmbOperation.setToolTipText(ObfuscationMessages.getString("obfuscation.operation.rule.tooltip.operation",
+			"the transformation applied to the original character at the named indexes"));
+		btnAdd.setToolTipText(ObfuscationMessages.getString("obfuscation.operation.rule.tooltip.add.button",
+			"adds this rule to the table below"));
 
 		bindComponents();
 
