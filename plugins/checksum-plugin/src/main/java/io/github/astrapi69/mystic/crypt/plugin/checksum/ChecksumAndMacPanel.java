@@ -101,6 +101,8 @@ public class ChecksumAndMacPanel extends JPanel
 
 		lblResult.setName("lblResult");
 		lblResult.setFont(lblResult.getFont().deriveFont(Font.BOLD));
+		lblResult.setToolTipText(ChecksumMessages.getString("checksum.and.mac.tooltip.result.message",
+			"what the last computation or comparison found"));
 		showResult(modelObject.getResultMessage());
 		tabs.setName("tabChecksum");
 		// the model carries what the tool starts with into the two combo boxes when they bind
@@ -116,11 +118,24 @@ public class ChecksumAndMacPanel extends JPanel
 	private JPanel newChecksumTab()
 	{
 		cmbDigest.setName("cmbDigest");
-		configure(txtChecksumText, "txtChecksumText");
-		configure(txtChecksumFile, "txtChecksumFile");
+		cmbDigest.setToolTipText(ChecksumMessages.getString("checksum.and.mac.tooltip.digest",
+			"the algorithm used to compute the checksum below"));
+		configure(txtChecksumText, "txtChecksumText",
+			ChecksumMessages.getString("checksum.and.mac.tooltip.checksum.text",
+				"the text to compute the checksum of, unless the checkbox below switches to the file"));
+		configure(txtChecksumFile, "txtChecksumFile",
+			ChecksumMessages.getString("checksum.and.mac.tooltip.checksum.file",
+				"the file to compute the checksum of, used instead of the text above once the checkbox below is ticked"));
 		chkChecksumUseFile.setName("chkChecksumUseFile");
-		configureReadOnly(txtChecksum, "txtChecksum");
-		configure(txtExpected, "txtExpected");
+		chkChecksumUseFile.setToolTipText(
+			ChecksumMessages.getString("checksum.and.mac.tooltip.checksum.use.file",
+				"compute the checksum of the file above instead of the text"));
+		configureReadOnly(txtChecksum, "txtChecksum",
+			ChecksumMessages.getString("checksum.and.mac.tooltip.checksum.result",
+				"the checksum computed for the text or file above, using the selected algorithm"));
+		configure(txtExpected, "txtExpected", ChecksumMessages.getString(
+			"checksum.and.mac.tooltip.checksum.expected",
+			"the checksum to compare the computed one with - pasting one from elsewhere can select the matching algorithm above automatically, by its length"));
 		bindChecksumComponents();
 
 		JPanel panel = new JPanel(ToolForm.newLayout());
@@ -129,15 +144,27 @@ public class ChecksumAndMacPanel extends JPanel
 		panel.add(new JLabel("Text:"), LABEL_OF_AN_AREA);
 		panel.add(ToolForm.scrolled(txtChecksumText), INPUT_AREA);
 		panel.add(new JLabel("File:"));
-		panel.add(fileRow(txtChecksumFile, button("btnBrowseChecksumFile", "...",
-			event -> onBrowse(txtChecksumFile, modelObject.getChecksumFile()))), ToolForm.FIELD);
+		panel.add(
+			fileRow(txtChecksumFile,
+				button("btnBrowseChecksumFile", "...",
+					event -> onBrowse(txtChecksumFile, modelObject.getChecksumFile()),
+					ChecksumMessages.getString("checksum.and.mac.tooltip.browse.checksum.file",
+						"choose the file to compute the checksum of"))),
+			ToolForm.FIELD);
 		panel.add(chkChecksumUseFile, UNDER_THE_FIELD);
 		panel.add(new JLabel("Checksum:"), LABEL_OF_AN_AREA);
 		panel.add(ToolForm.scrolled(txtChecksum), OUTPUT_AREA);
 		panel.add(new JLabel("Compare with:"));
 		panel.add(txtExpected, ToolForm.FIELD);
-		panel.add(ToolForm.buttons(button("btnChecksum", "Compute", event -> onChecksum()),
-			button("btnCompare", "Compare", event -> onCompare())), ToolForm.BUTTON_ROW);
+		panel.add(
+			ToolForm.buttons(
+				button("btnChecksum", "Compute", event -> onChecksum(),
+					ChecksumMessages.getString("checksum.and.mac.tooltip.checksum.compute.button",
+						"computes the checksum of the text or file above")),
+				button("btnCompare", "Compare", event -> onCompare(),
+					ChecksumMessages.getString("checksum.and.mac.tooltip.checksum.compare.button",
+						"computes the checksum and compares it with the value above"))),
+			ToolForm.BUTTON_ROW);
 		return panel;
 	}
 
@@ -159,12 +186,24 @@ public class ChecksumAndMacPanel extends JPanel
 	private JPanel newMacTab()
 	{
 		cmbMac.setName("cmbMac");
-		configure(txtMacText, "txtMacText");
-		configure(txtMacFile, "txtMacFile");
+		cmbMac.setToolTipText(ChecksumMessages.getString("checksum.and.mac.tooltip.mac.algorithm",
+			"the message authentication code algorithm used below"));
+		configure(txtMacText, "txtMacText",
+			ChecksumMessages.getString("checksum.and.mac.tooltip.mac.text",
+				"the text to compute the code of, unless the checkbox below switches to the file"));
+		configure(txtMacFile, "txtMacFile",
+			ChecksumMessages.getString("checksum.and.mac.tooltip.mac.file",
+				"the file to compute the code of, used instead of the text above once the checkbox below is ticked"));
 		chkMacUseFile.setName("chkMacUseFile");
-		configure(pwdMacKey, "pwdMacKey");
-		configureReadOnly(txtMac, "txtMac");
-		configure(txtMacExpected, "txtMacExpected");
+		chkMacUseFile.setToolTipText(ChecksumMessages.getString("checksum.and.mac.tooltip.mac.use.file",
+			"compute the code of the file above instead of the text"));
+		configure(pwdMacKey, "pwdMacKey", ChecksumMessages.getString("checksum.and.mac.tooltip.mac.key",
+			"the secret key the code is computed with - the same key is needed to verify it later"));
+		configureReadOnly(txtMac, "txtMac",
+			ChecksumMessages.getString("checksum.and.mac.tooltip.mac.result",
+				"the message authentication code computed for the text or file above, using the selected algorithm and key"));
+		configure(txtMacExpected, "txtMacExpected", ChecksumMessages
+			.getString("checksum.and.mac.tooltip.mac.expected", "the code to compare the computed one with"));
 		bindMacComponents();
 
 		JPanel panel = new JPanel(ToolForm.newLayout());
@@ -175,17 +214,27 @@ public class ChecksumAndMacPanel extends JPanel
 		panel.add(new JLabel("Text:"), LABEL_OF_AN_AREA);
 		panel.add(ToolForm.scrolled(txtMacText), INPUT_AREA);
 		panel.add(new JLabel("File:"));
-		panel.add(fileRow(txtMacFile,
-			button("btnBrowseMacFile", "...",
-				event -> onBrowse(txtMacFile, modelObject.getMacFile()))),
+		panel.add(
+			fileRow(txtMacFile,
+				button("btnBrowseMacFile", "...",
+					event -> onBrowse(txtMacFile, modelObject.getMacFile()),
+					ChecksumMessages.getString("checksum.and.mac.tooltip.browse.mac.file",
+						"choose the file to compute the code of"))),
 			ToolForm.FIELD);
 		panel.add(chkMacUseFile, UNDER_THE_FIELD);
 		panel.add(new JLabel("Code:"), LABEL_OF_AN_AREA);
 		panel.add(ToolForm.scrolled(txtMac), OUTPUT_AREA);
 		panel.add(new JLabel("Compare with:"));
 		panel.add(txtMacExpected, ToolForm.FIELD);
-		panel.add(ToolForm.buttons(button("btnMac", "Compute", event -> onMac()),
-			button("btnCompareMac", "Compare", event -> onCompareMac())), ToolForm.BUTTON_ROW);
+		panel.add(
+			ToolForm.buttons(
+				button("btnMac", "Compute", event -> onMac(),
+					ChecksumMessages.getString("checksum.and.mac.tooltip.mac.compute.button",
+						"computes the message authentication code of the text or file above")),
+				button("btnCompareMac", "Compare", event -> onCompareMac(),
+					ChecksumMessages.getString("checksum.and.mac.tooltip.mac.compare.button",
+						"computes the code and compares it with the value above"))),
+			ToolForm.BUTTON_ROW);
 		return panel;
 	}
 
@@ -341,15 +390,16 @@ public class ChecksumAndMacPanel extends JPanel
 		String execute() throws Exception;
 	}
 
-	private static void configure(JTextArea textArea, String name)
+	private static void configure(JTextArea textArea, String name, String tooltip)
 	{
 		textArea.setName(name);
 		textArea.setLineWrap(true);
+		textArea.setToolTipText(tooltip);
 	}
 
-	private static void configureReadOnly(JTextArea textArea, String name)
+	private static void configureReadOnly(JTextArea textArea, String name, String tooltip)
 	{
-		configure(textArea, name);
+		configure(textArea, name, tooltip);
 		textArea.setEditable(false);
 	}
 
@@ -361,10 +411,13 @@ public class ChecksumAndMacPanel extends JPanel
 	 *            the field to configure, a password field included
 	 * @param name
 	 *            the name the field is looked up by
+	 * @param tooltip
+	 *            the tooltip explaining the field
 	 */
-	private static void configure(JTextField textField, String name)
+	private static void configure(JTextField textField, String name, String tooltip)
 	{
 		textField.setName(name);
+		textField.setToolTipText(tooltip);
 		ToolForm.sized(textField);
 	}
 
@@ -387,11 +440,13 @@ public class ChecksumAndMacPanel extends JPanel
 		return row;
 	}
 
-	private static JButton button(String name, String text, java.awt.event.ActionListener listener)
+	private static JButton button(String name, String text, java.awt.event.ActionListener listener,
+		String tooltip)
 	{
 		JButton button = new JButton(text);
 		button.setName(name);
 		button.addActionListener(listener);
+		button.setToolTipText(tooltip);
 		return button;
 	}
 

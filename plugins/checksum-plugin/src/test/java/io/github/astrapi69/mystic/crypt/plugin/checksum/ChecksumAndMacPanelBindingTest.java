@@ -38,6 +38,8 @@ import java.nio.file.Files;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
+import javax.swing.JComponent;
+import javax.swing.JLabel;
 import javax.swing.JPasswordField;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
@@ -185,6 +187,49 @@ class ChecksumAndMacPanelBindingTest
 		find(panel, "btnCompareMac", JButton.class).doClick();
 		assertEquals("the codes are the same", panel.getModelObject().getResultMessage(),
 			"the comparison reads both values from the model");
+	}
+
+	private static void assertHasTooltip(JComponent component, String fieldName)
+	{
+		String tooltip = component.getToolTipText();
+		assertTrue(tooltip != null && !tooltip.isBlank(), fieldName + " must have a tooltip");
+	}
+
+	/**
+	 * Unlike its structural sibling {@link ChecksumPanel} (covered by an earlier pass), this panel
+	 * had zero tooltip coverage - neither the algorithm choosers, the file/text toggle, the MAC key
+	 * field nor the compute/compare buttons explained themselves (#152)
+	 */
+	@Test
+	void everyFieldExplainsItselfWithATooltip()
+	{
+		ChecksumAndMacPanel panel = new ChecksumAndMacPanel();
+
+		assertHasTooltip(find(panel, "cmbDigest", JComponent.class), "digest");
+		assertHasTooltip(find(panel, "txtChecksumText", JComponent.class), "checksum text");
+		assertHasTooltip(find(panel, "txtChecksumFile", JComponent.class), "checksum file");
+		assertHasTooltip(find(panel, "btnBrowseChecksumFile", JComponent.class),
+			"browse checksum file button");
+		assertHasTooltip(find(panel, "chkChecksumUseFile", JComponent.class),
+			"checksum use file checkbox");
+		assertHasTooltip(find(panel, "txtChecksum", JComponent.class), "checksum result");
+		assertHasTooltip(find(panel, "txtExpected", JComponent.class), "expected checksum");
+		assertHasTooltip(find(panel, "btnChecksum", JComponent.class), "compute checksum button");
+		assertHasTooltip(find(panel, "btnCompare", JComponent.class), "compare checksum button");
+
+		assertHasTooltip(find(panel, "cmbMac", JComponent.class), "mac algorithm");
+		assertHasTooltip(find(panel, "txtMacText", JComponent.class), "mac text");
+		assertHasTooltip(find(panel, "txtMacFile", JComponent.class), "mac file");
+		assertHasTooltip(find(panel, "btnBrowseMacFile", JComponent.class),
+			"browse mac file button");
+		assertHasTooltip(find(panel, "chkMacUseFile", JComponent.class), "mac use file checkbox");
+		assertHasTooltip(find(panel, "pwdMacKey", JComponent.class), "mac key");
+		assertHasTooltip(find(panel, "txtMac", JComponent.class), "mac result");
+		assertHasTooltip(find(panel, "txtMacExpected", JComponent.class), "expected mac");
+		assertHasTooltip(find(panel, "btnMac", JComponent.class), "compute mac button");
+		assertHasTooltip(find(panel, "btnCompareMac", JComponent.class), "compare mac button");
+
+		assertHasTooltip(find(panel, "lblResult", JLabel.class), "result label");
 	}
 
 	private static <T extends Component> T find(Container root, String name, Class<T> type)
