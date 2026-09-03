@@ -283,6 +283,17 @@ public class FileConversionPanel extends BasePanel<FileConversionModelBean>
 
 		btnConvert.setText("Convert");
 
+		cmbChooseType.setToolTipText(ConversionMessages.getString("conversion.file.tooltip.choose.type",
+			"the kind of DER content to read - determines how the file below is parsed"));
+		btnChoose.setToolTipText(ConversionMessages.getString("conversion.file.tooltip.choose.button",
+			"choose the DER file to convert"));
+		btnSaveTo.setToolTipText(ConversionMessages.getString("conversion.file.tooltip.save.to.button",
+			"choose where the converted PEM file is written"));
+		btnConvert.setToolTipText(ConversionMessages.getString("conversion.file.tooltip.convert.button",
+			"reads the DER file as the chosen type and writes it as PEM"));
+		txtConsole.setToolTipText(ConversionMessages.getString("conversion.file.tooltip.console",
+			"what each conversion did, in order"));
+
 		// stable component names for UI tests (AssertJ-Swing lookups by name)
 		btnChoose.setName("btnChoose");
 		btnSaveTo.setName("btnSaveTo");

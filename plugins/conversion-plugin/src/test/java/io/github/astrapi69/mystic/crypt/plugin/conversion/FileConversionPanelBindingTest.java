@@ -41,6 +41,7 @@ import java.util.Set;
 
 import javax.swing.JButton;
 import javax.swing.JComboBox;
+import javax.swing.JComponent;
 import javax.swing.JTextArea;
 
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
@@ -185,6 +186,25 @@ class FileConversionPanelBindingTest
 
 		assertEquals(KeyType.PUBLIC_KEY, comboBox(panel).getSelectedItem());
 		assertEquals(KeyType.PUBLIC_KEY, panel.getModelObject().getKeyType());
+	}
+
+	private static void assertHasTooltip(JComponent component, String fieldName)
+	{
+		String tooltip = component.getToolTipText();
+		assertTrue(tooltip != null && !tooltip.isBlank(), fieldName + " must have a tooltip");
+	}
+
+	@Test
+	void everyFieldExplainsItselfWithATooltip(@TempDir File directory)
+	{
+		FileConversionPanel panel = panelFor(new File(directory, "key.der"),
+			new File(directory, "key.pem"), KeyType.PRIVATE_KEY);
+
+		assertHasTooltip(comboBox(panel), "choose type");
+		assertHasTooltip(button(panel, "btnChoose"), "choose button");
+		assertHasTooltip(button(panel, "btnSaveTo"), "save to button");
+		assertHasTooltip(button(panel, "btnConvert"), "convert button");
+		assertHasTooltip(textArea(panel, "txtConsole"), "console");
 	}
 
 	private FileConversionPanel panelFor(File derFile, File pemFile, KeyType keyType)
