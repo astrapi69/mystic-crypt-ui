@@ -225,4 +225,24 @@ class PasswordHashPanelBindingTest
 		}
 		return null;
 	}
+
+	private static void assertHasTooltip(javax.swing.JComponent component, String fieldName)
+	{
+		String tooltip = component.getToolTipText();
+		assertTrue(tooltip != null && !tooltip.isBlank(), fieldName + " must have a tooltip");
+	}
+
+	@Test
+	void everyFieldExplainsItselfWithATooltip()
+	{
+		PasswordHashPanel panel = new PasswordHashPanel();
+
+		assertHasTooltip(find(panel, "cmbAlgorithm", JComboBox.class), "algorithm");
+		assertHasTooltip(find(panel, "txtPassword", javax.swing.JPasswordField.class), "password");
+		assertHasTooltip(find(panel, "txtHash", JTextArea.class), "hash");
+		assertHasTooltip(find(panel, "txtVerifyPassword", javax.swing.JPasswordField.class),
+			"verify password");
+		assertHasTooltip(find(panel, "btnHash", JButton.class), "hash button");
+		assertHasTooltip(find(panel, "btnVerify", JButton.class), "verify button");
+	}
 }
