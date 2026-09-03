@@ -240,25 +240,27 @@ public class ChecksumPanel extends BasePanel<ChecksumBean>
 
 		bindComponents();
 
-		txtOpenFile.setToolTipText("the file whose checksum is computed");
-		btnOpenFile.setToolTipText("choose the file to check");
-		btnClearOpenFile.setToolTipText("clears the file to check and the checksum computed for it");
-		txtGeneratedChecksum.setToolTipText(
-			"the checksum computed for the file above, using the selected algorithm");
-		btnCopyGeneratedChecksum.setToolTipText("copies the generated checksum to the clipboard");
-		txtChecksumFile.setToolTipText("the file the checksum below was loaded from, if any");
-		btnOpenChecksumFile
-			.setToolTipText("load a checksum published by the file's owner from a file");
+		txtOpenFile.setToolTipText(ChecksumMessages.getString("checksum.tooltip.open.file"));
+		btnOpenFile.setToolTipText(ChecksumMessages.getString("checksum.tooltip.open.file.button"));
+		btnClearOpenFile
+			.setToolTipText(ChecksumMessages.getString("checksum.tooltip.clear.open.file.button"));
+		txtGeneratedChecksum
+			.setToolTipText(ChecksumMessages.getString("checksum.tooltip.generated.checksum"));
+		btnCopyGeneratedChecksum.setToolTipText(
+			ChecksumMessages.getString("checksum.tooltip.copy.generated.checksum.button"));
+		txtChecksumFile.setToolTipText(ChecksumMessages.getString("checksum.tooltip.checksum.file"));
+		btnOpenChecksumFile.setToolTipText(
+			ChecksumMessages.getString("checksum.tooltip.open.checksum.file.button"));
 		btnClearChecksumFile.setToolTipText(
-			"clears the loaded checksum file and what was typed or loaded below");
-		txtOwnersChecksum.setToolTipText(
-			"the checksum published by the file's owner, typed or loaded from a file");
-		btnCopyOwnersChecksum.setToolTipText("copies the owner's checksum to the clipboard");
-		cbxChecksumAlgorithm.setToolTipText(
-			"the algorithm used to compute the checksum above - it has to match what the owner used");
-		btnCompare.setToolTipText("compares the generated checksum with the owner's checksum");
-		txtChecksumMatchResult.setToolTipText(
-			"Match or No Match, depending on whether the two checksums above are the same");
+			ChecksumMessages.getString("checksum.tooltip.clear.checksum.file.button"));
+		txtOwnersChecksum
+			.setToolTipText(ChecksumMessages.getString("checksum.tooltip.owners.checksum"));
+		btnCopyOwnersChecksum.setToolTipText(
+			ChecksumMessages.getString("checksum.tooltip.copy.owners.checksum.button"));
+		cbxChecksumAlgorithm.setToolTipText(ChecksumMessages.getString("checksum.tooltip.algorithm"));
+		btnCompare.setToolTipText(ChecksumMessages.getString("checksum.tooltip.compare.button"));
+		txtChecksumMatchResult
+			.setToolTipText(ChecksumMessages.getString("checksum.tooltip.match.result"));
 
 		fileChooser = new JFileChooser(SystemFileExtensions.getUserDownloadsDir());
 	}
