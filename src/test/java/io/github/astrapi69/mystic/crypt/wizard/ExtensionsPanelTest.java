@@ -25,6 +25,8 @@
 package io.github.astrapi69.mystic.crypt.wizard;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -287,5 +289,26 @@ class ExtensionsPanelTest
 		assertTrue(panel.getScrExtensions().getPreferredSize().height < 300,
 			"an empty extensions table must not ask for anywhere near JTable's built-in 400 pixel "
 				+ "default, was " + panel.getScrExtensions().getPreferredSize().height);
+	}
+
+	private static void assertHasTooltip(javax.swing.JComponent component, String fieldName)
+	{
+		String tooltip = component.getToolTipText();
+		assertNotNull(tooltip, fieldName + " must have a tooltip");
+		assertFalse(tooltip.isBlank(), fieldName + " must have a tooltip");
+	}
+
+	@Test
+	void everyFieldExplainsItselfWithATooltip() throws Exception
+	{
+		TestableExtensionsPanel panel = newPanel();
+
+		assertHasTooltip(kindChooser(panel), "extension kind");
+		assertHasTooltip(extensionId(panel), "extension id");
+		assertHasTooltip(extensionValue(panel), "extension value");
+		assertHasTooltip(critical(panel), "critical");
+		assertHasTooltip(panel.getBtnAddExtension(), "add");
+		assertHasTooltip(panel.getBtnEditExtension(), "edit");
+		assertHasTooltip(panel.getBtnDeleteExtension(), "delete");
 	}
 }

@@ -229,4 +229,42 @@ class PqcSignaturePanelBindingTest
 		}
 		return null;
 	}
+
+	private static void assertHasTooltip(javax.swing.JComponent component, String fieldName)
+	{
+		String tooltip = component.getToolTipText();
+		assertTrue(tooltip != null && !tooltip.isBlank(), fieldName + " must have a tooltip");
+	}
+
+	@Test
+	void everyFieldExplainsItselfWithATooltip()
+	{
+		assertHasTooltip(component(javax.swing.JComponent.class, "cmbAlgorithm"), "algorithm");
+		assertHasTooltip(component(javax.swing.JComponent.class, "txtMessage"), "message");
+		assertHasTooltip(component(javax.swing.JComponent.class, "txtDataFile"), "data file");
+		assertHasTooltip(component(javax.swing.JComponent.class, "chkUseFile"), "use file");
+		assertHasTooltip(component(javax.swing.JComponent.class, "txtPrivateKeyFile"),
+			"private key file");
+		assertHasTooltip(component(javax.swing.JComponent.class, "txtPublicKeyFile"),
+			"public key file");
+		assertHasTooltip(component(javax.swing.JComponent.class, "txtSignatureFile"),
+			"signature file");
+		assertHasTooltip(component(javax.swing.JComponent.class, "txtPublicKey"), "public key");
+		assertHasTooltip(component(javax.swing.JComponent.class, "txtSignature"), "signature");
+		assertHasTooltip(component(javax.swing.JComponent.class, "btnGenerate"), "generate");
+		assertHasTooltip(component(javax.swing.JComponent.class, "btnBrowsePrivateKey"),
+			"browse private key");
+		assertHasTooltip(component(javax.swing.JComponent.class, "btnBrowsePublicKey"),
+			"browse public key");
+		assertHasTooltip(component(javax.swing.JComponent.class, "btnBrowseDataFile"),
+			"browse data file");
+		assertHasTooltip(component(javax.swing.JComponent.class, "btnBrowseSignatureFile"),
+			"browse signature file");
+		assertHasTooltip(component(javax.swing.JComponent.class, "btnSign"), "sign");
+		assertHasTooltip(component(javax.swing.JComponent.class, "btnVerify"), "verify");
+		assertHasTooltip(component(javax.swing.JComponent.class, "btnSaveSignature"),
+			"save signature");
+		assertHasTooltip(component(javax.swing.JComponent.class, "btnLoadSignature"),
+			"load signature");
+	}
 }

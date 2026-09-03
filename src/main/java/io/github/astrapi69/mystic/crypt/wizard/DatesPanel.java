@@ -42,6 +42,7 @@ import io.github.astrapi69.design.pattern.state.wizard.model.BaseWizardStateMach
 import io.github.astrapi69.design.pattern.state.wizard.model.NavigationEventState;
 import io.github.astrapi69.model.LambdaModel;
 import io.github.astrapi69.model.api.IModel;
+import io.github.astrapi69.mystic.crypt.Messages;
 import io.github.astrapi69.mystic.crypt.eventbus.ApplicationEventBus;
 import io.github.astrapi69.mystic.crypt.wizard.model.CertificateInfoModel;
 import io.github.astrapi69.random.number.RandomBigIntegerFactory;
@@ -148,6 +149,23 @@ public class DatesPanel extends BasePanel<BaseWizardStateMachineModel<Certificat
 
 		btnGenerateSerialNumber.setText("Generate");
 		btnGenerateSerialNumber.addActionListener(this::onGenerateSerialNumber);
+
+		cmbVersion.setToolTipText(Messages.getString("wizard.certificate.dates.tooltip.version",
+			"the X.509 version - version 1 has no extensions step, version 3 adds one"));
+		txtSerialNumber
+			.setToolTipText(Messages.getString("wizard.certificate.dates.tooltip.serial.number",
+				"the certificate's unique serial number, assigned by whoever issues it"));
+		btnGenerateSerialNumber.setToolTipText(
+			Messages.getString("wizard.certificate.dates.tooltip.generate.serial.number",
+				"fills the serial number with a fresh random value"));
+		txtNotBefore
+			.setToolTipText(Messages.getString("wizard.certificate.dates.tooltip.not.before",
+				"the date the certificate becomes valid"));
+		txtNotAfter.setToolTipText(Messages.getString("wizard.certificate.dates.tooltip.not.after",
+			"the date the certificate expires"));
+		cmbSignatureAlgorithm.setToolTipText(Messages.getString(
+			"wizard.certificate.dates.tooltip.signature.algorithm",
+			"the algorithm used to sign the certificate - it has to match what the private key can produce"));
 	}
 
 	/**
