@@ -34,6 +34,7 @@ import javax.swing.*;
 import io.github.astrapi69.model.LambdaModel;
 import io.github.astrapi69.swing.enumeration.FrameMode;
 import io.github.astrapi69.swing.model.combobox.EnumComboBoxModel;
+import io.github.astrapi69.swing.model.component.JMCheckBox;
 import io.github.astrapi69.swing.model.component.JMComboBox;
 
 /**
@@ -64,6 +65,8 @@ public class GeneralSettingsPanel extends JPanel
 	private final JMComboBox<FrameMode, EnumComboBoxModel<FrameMode>> cmbViewMode = new JMComboBox<>(
 		new EnumComboBoxModel<>(FrameMode.class));
 
+	private final JMCheckBox chkTooltipsEnabled = new JMCheckBox("Show tooltips");
+
 	/**
 	 * Instantiates a new {@link GeneralSettingsPanel} over the settings it edits
 	 *
@@ -78,11 +81,16 @@ public class GeneralSettingsPanel extends JPanel
 		cmbLookAndFeel.setName("cmbLookAndFeel");
 		cmbLanguage.setName("cmbLanguage");
 		cmbViewMode.setName("cmbViewMode");
+		chkTooltipsEnabled.setName("chkTooltipsEnabled");
 		bindComponents();
 		// added after the binding on purpose: binding selects what the settings already hold, and
 		// that must not switch the look and feel while the dialog is still being built
 		cmbLookAndFeel.addActionListener(
 			e -> applyLookAndFeel(GeneralSettingsPanel.this.settings.getLookAndFeel()));
+		// same reasoning as the look-and-feel listener above: added after binding, so building the
+		// panel does not itself flip the shared ToolTipManager
+		chkTooltipsEnabled.addActionListener(
+			e -> applyTooltipsEnabled(GeneralSettingsPanel.this.settings.isTooltipsEnabled()));
 
 		JPanel form = new JPanel(new GridLayout(0, 2, 8, 6));
 		form.add(new JLabel("Look and feel:"));
@@ -91,12 +99,14 @@ public class GeneralSettingsPanel extends JPanel
 		form.add(cmbLanguage);
 		form.add(new JLabel("View:"));
 		form.add(cmbViewMode);
+		form.add(new JLabel("Tooltips:"));
+		form.add(chkTooltipsEnabled);
 		add(form, BorderLayout.NORTH);
 	}
 
 	/**
-	 * Binds both combo boxes to the settings object, so that a choice lands there as it is made and
-	 * the combo boxes start on what the settings already hold
+	 * Binds every component to the settings object, so that a choice lands there as it is made and
+	 * the components start on what the settings already hold
 	 */
 	private void bindComponents()
 	{
@@ -104,6 +114,8 @@ public class GeneralSettingsPanel extends JPanel
 			.setPropertyModel(LambdaModel.of(settings::getLookAndFeel, settings::setLookAndFeel));
 		cmbLanguage.setPropertyModel(LambdaModel.of(settings::getLanguage, settings::setLanguage));
 		cmbViewMode.setPropertyModel(LambdaModel.of(settings::getViewMode, settings::setViewMode));
+		chkTooltipsEnabled.setPropertyModel(
+			LambdaModel.of(settings::isTooltipsEnabled, settings::setTooltipsEnabled));
 	}
 
 	/**
@@ -151,5 +163,17 @@ public class GeneralSettingsPanel extends JPanel
 				return;
 			}
 		}
+	}
+
+	/**
+	 * Turns tooltips on or off for the whole application - a single JDK-wide switch, so this needs
+	 * no per-component work in any of the panels that call {@code setToolTipText(...)}
+	 *
+	 * @param enabled
+	 *            whether tooltips are shown
+	 */
+	public static void applyTooltipsEnabled(boolean enabled)
+	{
+		ToolTipManager.sharedInstance().setEnabled(enabled);
 	}
 }

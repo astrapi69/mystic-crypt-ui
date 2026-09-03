@@ -25,6 +25,7 @@
 package io.github.astrapi69.mystic.crypt.settings;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.File;
@@ -53,6 +54,7 @@ class MysticCryptSettingsTest
 		assertEquals("en", settings.getLanguage());
 		assertEquals(FrameMode.APPLICATION_PANEL, settings.getViewMode(),
 			"the default view has to be the one the application always showed after signing in");
+		assertTrue(settings.isTooltipsEnabled(), "tooltips must be on by default");
 	}
 
 	@Test
@@ -60,7 +62,7 @@ class MysticCryptSettingsTest
 		@TempDir File configurationDirectory)
 	{
 		MysticCryptSettings settings = new MysticCryptSettings("Metal", "de",
-			FrameMode.DESKTOP_PANE);
+			FrameMode.DESKTOP_PANE, false);
 		settings.save(configurationDirectory);
 		assertTrue(new File(configurationDirectory, MysticCryptSettings.JSON_FILENAME).exists(),
 			"saving must write the settings json");
@@ -70,6 +72,8 @@ class MysticCryptSettingsTest
 			"the chosen view did not survive the round trip");
 		assertEquals("Metal", loaded.getLookAndFeel());
 		assertEquals("de", loaded.getLanguage());
+		assertFalse(loaded.isTooltipsEnabled(),
+			"the chosen tooltips preference did not survive the round trip");
 	}
 
 	@Test

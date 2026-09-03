@@ -60,6 +60,9 @@ public class MysticCryptSettings
 	 */
 	private FrameMode viewMode = FrameMode.APPLICATION_PANEL;
 
+	/** Whether tooltips are shown across the application; defaults to on */
+	private boolean tooltipsEnabled = true;
+
 	/**
 	 * The view the application opens in.
 	 * <p>

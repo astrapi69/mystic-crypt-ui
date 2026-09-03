@@ -26,12 +26,16 @@ package io.github.astrapi69.mystic.crypt.settings;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.awt.Component;
 import java.awt.Container;
 
+import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
+import javax.swing.ToolTipManager;
 import javax.swing.UIManager;
 
 import org.junit.jupiter.api.DisplayName;
@@ -211,6 +215,62 @@ class GeneralSettingsPanelBindingTest
 		// it here - there is no application frame in a headless test, and the settings dialog can
 		// be opened before signing in
 		assertDoesNotThrow(() -> new GeneralSettingsPanel(settings));
+	}
+
+	/**
+	 * Unchecking "tooltips" puts that into the settings and applies it live - the switch reads the
+	 * flag from the settings, so {@link ToolTipManager} being disabled afterwards proves the choice
+	 * arrived there (#170)
+	 */
+	@Test
+	@DisplayName("unchecking tooltips lands in the settings and is applied")
+	void togglingTooltipsLandsInTheSettingsAndIsApplied()
+	{
+		ToolTipManager.sharedInstance().setEnabled(true);
+		MysticCryptSettings settings = new MysticCryptSettings();
+		GeneralSettingsPanel panel = new GeneralSettingsPanel(settings);
+		JCheckBox checkBox = named(panel, "chkTooltipsEnabled", JCheckBox.class);
+		assertNotNull(checkBox, "the tooltips checkbox must keep its name");
+
+		checkBox.doClick();
+
+		assertFalse(settings.isTooltipsEnabled(), "unchecking tooltips did not reach the settings");
+		assertFalse(ToolTipManager.sharedInstance().isEnabled(),
+			"unchecking tooltips must disable them application-wide");
+
+		checkBox.doClick();
+
+		assertTrue(settings.isTooltipsEnabled(), "checking tooltips did not reach the settings");
+		assertTrue(ToolTipManager.sharedInstance().isEnabled(),
+			"checking tooltips must enable them application-wide again");
+	}
+
+	@Test
+	@DisplayName("the tooltips checkbox starts on what the settings hold")
+	void theTooltipsCheckboxStartsOnWhatTheSettingsHold()
+	{
+		MysticCryptSettings settings = new MysticCryptSettings();
+		settings.setTooltipsEnabled(false);
+
+		GeneralSettingsPanel panel = new GeneralSettingsPanel(settings);
+
+		assertFalse(named(panel, "chkTooltipsEnabled", JCheckBox.class).isSelected(),
+			"the checkbox does not show what the settings hold");
+	}
+
+	@Test
+	@DisplayName("building the panel does not toggle tooltips")
+	void buildingThePanelDoesNotToggleTooltips()
+	{
+		ToolTipManager.sharedInstance().setEnabled(true);
+		MysticCryptSettings settings = new MysticCryptSettings();
+		settings.setTooltipsEnabled(false);
+
+		// binding selects what the settings hold, which fires an action event; nothing may act on
+		// it here, the same way building the panel must not switch the look and feel
+		assertDoesNotThrow(() -> new GeneralSettingsPanel(settings));
+		assertTrue(ToolTipManager.sharedInstance().isEnabled(),
+			"building the settings panel must not change the shared ToolTipManager");
 	}
 
 }
