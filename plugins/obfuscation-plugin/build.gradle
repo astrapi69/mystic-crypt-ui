@@ -34,6 +34,7 @@ dependencies {
     compileOnly "io.github.astrapi69:file-worker:19.0"
     compileOnly "io.github.astrapi69:xstream-extensions:1.1"
     compileOnly "io.github.astrapi69:throwable:3"
+    compileOnly "io.github.astrapi69:resourcebundle-core:6.0"
     compileOnly "com.google.guava:guava:33.7.1-jre"
     compileOnly "com.miglayout:miglayout-swing:11.4.3"
     compileOnly "org.projectlombok:lombok:1.18.46"
@@ -59,6 +60,9 @@ dependencies {
     testImplementation "io.github.astrapi69:swing-model-components:1.2"
     testImplementation "io.github.astrapi69:model-data:3.2.1"
     testImplementation "com.miglayout:miglayout-swing:11.4.3"
+    // the panels under test resolve their tooltip text through ObfuscationMessages at
+    // construction time, so the resource bundle loader has to be on the test classpath too
+    testImplementation "io.github.astrapi69:resourcebundle-core:6.0"
 
 }
 

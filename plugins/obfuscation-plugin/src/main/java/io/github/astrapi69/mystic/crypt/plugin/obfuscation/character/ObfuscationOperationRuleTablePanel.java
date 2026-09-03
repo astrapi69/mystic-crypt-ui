@@ -48,6 +48,7 @@ import io.github.astrapi69.mystic.crypt.ApplicationModelBean;
 import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
 import io.github.astrapi69.mystic.crypt.key.PrivateKeyStringDecryptor;
 import io.github.astrapi69.mystic.crypt.key.PublicKeyStringEncryptor;
+import io.github.astrapi69.mystic.crypt.plugin.obfuscation.ObfuscationMessages;
 import io.github.astrapi69.mystic.crypt.ui.form.ToolForm;
 import io.github.astrapi69.swing.base.BasePanel;
 import io.github.astrapi69.swing.table.GenericJTable;
@@ -189,6 +190,11 @@ public class ObfuscationOperationRuleTablePanel extends BasePanel<ObfuscationOpe
 
 		btnImport.setText("Import");
 		btnExport.setText("Export");
+
+		btnImport.setToolTipText(ObfuscationMessages.getString("obfuscation.rule.table.tooltip.import.button",
+			"loads rules from a file, decrypted with the signed-in database's key pair - only works while signed in"));
+		btnExport.setToolTipText(ObfuscationMessages.getString("obfuscation.rule.table.tooltip.export.button",
+			"saves the rules below to a file, encrypted with the signed-in database's key pair - only works while signed in"));
 
 		final TableColumn editValueColumn = tblKeyRules.getColumn(editText);
 

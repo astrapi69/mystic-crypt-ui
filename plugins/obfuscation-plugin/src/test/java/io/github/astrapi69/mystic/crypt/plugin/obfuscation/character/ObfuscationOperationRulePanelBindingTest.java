@@ -22,10 +22,13 @@ package io.github.astrapi69.mystic.crypt.plugin.obfuscation.character;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.awt.event.ActionEvent;
 import java.util.Set;
 import java.util.TreeSet;
+
+import javax.swing.JComponent;
 
 import org.junit.jupiter.api.Test;
 
@@ -175,5 +178,28 @@ class ObfuscationOperationRulePanelBindingTest
 
 		assertEquals("1,2", panel.getRuleModelObject().getIndexes(),
 			"a letter must not reach the model");
+	}
+
+	private static void assertHasTooltip(JComponent component, String fieldName)
+	{
+		String tooltip = component.getToolTipText();
+		assertTrue(tooltip != null && !tooltip.isBlank(), fieldName + " must have a tooltip");
+	}
+
+	/**
+	 * The original/replacement fields silently cap what is typed to one character, and the
+	 * indexes field only accepts comma separated numbers - neither is obvious from the label
+	 * alone (#162)
+	 */
+	@Test
+	void everyFieldExplainsItselfWithATooltip()
+	{
+		ObfuscationOperationRulePanel panel = newPanelAddingWhatTheModelHolds();
+
+		assertHasTooltip(panel.getTxtOriginalChar(), "original character");
+		assertHasTooltip(panel.getTxtRelpaceWith(), "replace with");
+		assertHasTooltip(panel.getTxtIndexes(), "indexes");
+		assertHasTooltip(panel.getCmbOperation(), "operation");
+		assertHasTooltip(panel.getBtnAdd(), "add button");
 	}
 }
