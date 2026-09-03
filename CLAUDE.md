@@ -36,7 +36,8 @@ trailers. TDD for logic changes (`.claude/rules/tdd.md`).
 
 Binding rules live in `.claude/rules/`: vibe-coding (priorities, freeze),
 coding-standards (Java/git), tdd, quality-checks (pyramid, gates, round-trip duty for
-vault changes), architecture (plugin-first, layers), release-workflow, lessons-learned,
+vault changes), architecture (plugin-first, layers), i18n (properties over hardcoded
+text, host vs. per-plugin bundles), release-workflow, lessons-learned,
 ai-workflow/ (issue-, PR-policy, implementation, documentation).
 
 Session history and discussed-but-not-yet-built ideas: `.claude/JOURNAL.md`.
