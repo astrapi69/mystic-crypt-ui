@@ -123,21 +123,48 @@ public class ChecksumAndMacPanel extends JPanel
 		configure(txtExpected, "txtExpected");
 		bindChecksumComponents();
 
+		cmbDigest.setToolTipText(ChecksumMessages.getString("checksum.and.mac.tooltip.digest",
+			"the digest algorithm to compute the checksum with"));
+		txtChecksumText.setToolTipText(ChecksumMessages
+			.getString("checksum.and.mac.tooltip.checksum.text", "the text to compute the checksum of"));
+		txtChecksumFile.setToolTipText(ChecksumMessages.getString(
+			"checksum.and.mac.tooltip.checksum.file",
+			"the file to compute the checksum of, used instead of the text below when checked"));
+		chkChecksumUseFile.setToolTipText(ChecksumMessages.getString(
+			"checksum.and.mac.tooltip.checksum.use.file",
+			"compute over the file above instead of the typed text"));
+		txtChecksum.setToolTipText(
+			ChecksumMessages.getString("checksum.and.mac.tooltip.checksum", "the computed checksum"));
+		txtExpected.setToolTipText(ChecksumMessages.getString(
+			"checksum.and.mac.tooltip.expected.checksum",
+			"paste a checksum here to compare it against the computed one"));
+
 		JPanel panel = new JPanel(ToolForm.newLayout());
 		panel.add(new JLabel("Digest:"));
 		panel.add(cmbDigest, ToolForm.FIELD);
 		panel.add(new JLabel("Text:"), LABEL_OF_AN_AREA);
 		panel.add(ToolForm.scrolled(txtChecksumText), INPUT_AREA);
 		panel.add(new JLabel("File:"));
-		panel.add(fileRow(txtChecksumFile, button("btnBrowseChecksumFile", "...",
-			event -> onBrowse(txtChecksumFile, modelObject.getChecksumFile()))), ToolForm.FIELD);
+		panel.add(fileRow(txtChecksumFile,
+			button("btnBrowseChecksumFile", "...",
+				event -> onBrowse(txtChecksumFile, modelObject.getChecksumFile()),
+				ChecksumMessages.getString("checksum.and.mac.tooltip.browse.checksum.file",
+					"choose the file to compute the checksum of"))),
+			ToolForm.FIELD);
 		panel.add(chkChecksumUseFile, UNDER_THE_FIELD);
 		panel.add(new JLabel("Checksum:"), LABEL_OF_AN_AREA);
 		panel.add(ToolForm.scrolled(txtChecksum), OUTPUT_AREA);
 		panel.add(new JLabel("Compare with:"));
 		panel.add(txtExpected, ToolForm.FIELD);
-		panel.add(ToolForm.buttons(button("btnChecksum", "Compute", event -> onChecksum()),
-			button("btnCompare", "Compare", event -> onCompare())), ToolForm.BUTTON_ROW);
+		panel.add(ToolForm.buttons(
+			button("btnChecksum", "Compute", event -> onChecksum(),
+				ChecksumMessages.getString("checksum.and.mac.tooltip.compute.checksum",
+					"computes the checksum of the text or file above")),
+			button("btnCompare", "Compare", event -> onCompare(),
+				ChecksumMessages.getString("checksum.and.mac.tooltip.compare.checksum",
+					"computes the checksum and compares it with what was pasted below - also "
+						+ "picks the digest the pasted value's length implies, if different"))),
+			ToolForm.BUTTON_ROW);
 		return panel;
 	}
 
@@ -167,6 +194,24 @@ public class ChecksumAndMacPanel extends JPanel
 		configure(txtMacExpected, "txtMacExpected");
 		bindMacComponents();
 
+		cmbMac.setToolTipText(ChecksumMessages.getString("checksum.and.mac.tooltip.mac.algorithm",
+			"the message authentication code algorithm - unlike a checksum, only someone holding "
+				+ "the key can produce a matching code"));
+		txtMacText.setToolTipText(ChecksumMessages.getString("checksum.and.mac.tooltip.mac.text",
+			"the text to compute the code for"));
+		txtMacFile.setToolTipText(ChecksumMessages.getString("checksum.and.mac.tooltip.mac.file",
+			"the file to compute the code for, used instead of the text below when checked"));
+		chkMacUseFile.setToolTipText(ChecksumMessages.getString(
+			"checksum.and.mac.tooltip.mac.use.file",
+			"compute over the file above instead of the typed text"));
+		pwdMacKey.setToolTipText(ChecksumMessages.getString("checksum.and.mac.tooltip.mac.key",
+			"the shared secret key the code is computed with"));
+		txtMac.setToolTipText(
+			ChecksumMessages.getString("checksum.and.mac.tooltip.mac", "the computed code"));
+		txtMacExpected.setToolTipText(ChecksumMessages.getString(
+			"checksum.and.mac.tooltip.expected.mac",
+			"paste a code here to compare it against the computed one"));
+
 		JPanel panel = new JPanel(ToolForm.newLayout());
 		panel.add(new JLabel("Code:"));
 		panel.add(cmbMac, ToolForm.FIELD);
@@ -177,15 +222,23 @@ public class ChecksumAndMacPanel extends JPanel
 		panel.add(new JLabel("File:"));
 		panel.add(fileRow(txtMacFile,
 			button("btnBrowseMacFile", "...",
-				event -> onBrowse(txtMacFile, modelObject.getMacFile()))),
+				event -> onBrowse(txtMacFile, modelObject.getMacFile()),
+				ChecksumMessages.getString("checksum.and.mac.tooltip.browse.mac.file",
+					"choose the file to compute the code for"))),
 			ToolForm.FIELD);
 		panel.add(chkMacUseFile, UNDER_THE_FIELD);
 		panel.add(new JLabel("Code:"), LABEL_OF_AN_AREA);
 		panel.add(ToolForm.scrolled(txtMac), OUTPUT_AREA);
 		panel.add(new JLabel("Compare with:"));
 		panel.add(txtMacExpected, ToolForm.FIELD);
-		panel.add(ToolForm.buttons(button("btnMac", "Compute", event -> onMac()),
-			button("btnCompareMac", "Compare", event -> onCompareMac())), ToolForm.BUTTON_ROW);
+		panel.add(ToolForm.buttons(
+			button("btnMac", "Compute", event -> onMac(),
+				ChecksumMessages.getString("checksum.and.mac.tooltip.compute.mac",
+					"computes the code of the text or file above, with the key above")),
+			button("btnCompareMac", "Compare", event -> onCompareMac(),
+				ChecksumMessages.getString("checksum.and.mac.tooltip.compare.mac",
+					"computes the code and compares it with what was pasted below"))),
+			ToolForm.BUTTON_ROW);
 		return panel;
 	}
 
@@ -387,11 +440,13 @@ public class ChecksumAndMacPanel extends JPanel
 		return row;
 	}
 
-	private static JButton button(String name, String text, java.awt.event.ActionListener listener)
+	private static JButton button(String name, String text, java.awt.event.ActionListener listener,
+		String tooltip)
 	{
 		JButton button = new JButton(text);
 		button.setName(name);
 		button.addActionListener(listener);
+		button.setToolTipText(tooltip);
 		return button;
 	}
 

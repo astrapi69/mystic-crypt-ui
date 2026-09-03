@@ -213,4 +213,38 @@ class ChecksumAndMacPanelBindingTest
 		}
 		return null;
 	}
+
+	private static void assertHasTooltip(javax.swing.JComponent component, String fieldName)
+	{
+		String tooltip = component.getToolTipText();
+		assertTrue(tooltip != null && !tooltip.isBlank(), fieldName + " must have a tooltip");
+	}
+
+	@Test
+	void everyFieldExplainsItselfWithATooltip()
+	{
+		ChecksumAndMacPanel panel = new ChecksumAndMacPanel();
+
+		assertHasTooltip(find(panel, "cmbDigest", JComboBox.class), "digest");
+		assertHasTooltip(find(panel, "txtChecksumText", JTextArea.class), "checksum text");
+		assertHasTooltip(find(panel, "txtChecksumFile", JTextField.class), "checksum file");
+		assertHasTooltip(find(panel, "chkChecksumUseFile", JCheckBox.class), "checksum use file");
+		assertHasTooltip(find(panel, "txtChecksum", JTextArea.class), "checksum");
+		assertHasTooltip(find(panel, "txtExpected", JTextField.class), "expected checksum");
+		assertHasTooltip(find(panel, "btnBrowseChecksumFile", JButton.class),
+			"browse checksum file");
+		assertHasTooltip(find(panel, "btnChecksum", JButton.class), "compute checksum");
+		assertHasTooltip(find(panel, "btnCompare", JButton.class), "compare checksum");
+
+		assertHasTooltip(find(panel, "cmbMac", JComboBox.class), "mac algorithm");
+		assertHasTooltip(find(panel, "txtMacText", JTextArea.class), "mac text");
+		assertHasTooltip(find(panel, "txtMacFile", JTextField.class), "mac file");
+		assertHasTooltip(find(panel, "chkMacUseFile", JCheckBox.class), "mac use file");
+		assertHasTooltip(find(panel, "pwdMacKey", JPasswordField.class), "mac key");
+		assertHasTooltip(find(panel, "txtMac", JTextArea.class), "mac");
+		assertHasTooltip(find(panel, "txtMacExpected", JTextField.class), "expected mac");
+		assertHasTooltip(find(panel, "btnBrowseMacFile", JButton.class), "browse mac file");
+		assertHasTooltip(find(panel, "btnMac", JButton.class), "compute mac");
+		assertHasTooltip(find(panel, "btnCompareMac", JButton.class), "compare mac");
+	}
 }
