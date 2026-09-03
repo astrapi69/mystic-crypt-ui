@@ -36,6 +36,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javax.swing.JComboBox;
+import javax.swing.JComponent;
 
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.junit.jupiter.api.AfterEach;
@@ -177,5 +178,23 @@ class GenerateKeysPanelBindingTest
 			"the curve the box starts on has to be in the model");
 		assertEquals(KeygenSupport.keyFormats().get(0), panel.getModelObject().getKeyFormat(),
 			"the key file format the box starts on has to be in the model");
+	}
+
+	private static void assertHasTooltip(JComponent component, String fieldName)
+	{
+		String tooltip = component.getToolTipText();
+		assertTrue(tooltip != null && !tooltip.isBlank(), fieldName + " must have a tooltip");
+	}
+
+	@Test
+	@DisplayName("the algorithm, curve, key format and save format boxes all explain themselves")
+	void everyBoxExplainsItselfWithATooltip()
+	{
+		GenerateKeysPanel panel = new GenerateKeysPanel();
+
+		assertHasTooltip(panel.getCmbAlgorithm(), "algorithm");
+		assertHasTooltip(panel.getCmbCurve(), "curve");
+		assertHasTooltip(panel.getCmbKeyFormat(), "key format");
+		assertHasTooltip(panel.getCmbSaveFormat(), "save format");
 	}
 }

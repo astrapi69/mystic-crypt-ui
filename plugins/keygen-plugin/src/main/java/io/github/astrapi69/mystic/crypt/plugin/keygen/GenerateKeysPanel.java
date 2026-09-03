@@ -331,15 +331,17 @@ public class GenerateKeysPanel extends BasePanel<GenerateKeysModelBean>
 		lblAlgorithm = new JLabel("Algorithm");
 		cmbCurve = new JMComboBox<>(KeygenSupport.CURVES.toArray(new String[0]));
 		cmbCurve.setName("cmbCurve");
-		cmbCurve.setToolTipText("the curve an EC key sits on - a certificate or a wallet usually "
-			+ "requires one particular one");
+		cmbCurve.setToolTipText(KeygenMessages.getString("keygen.tooltip.curve",
+			"the curve an EC key sits on - a certificate or a wallet usually requires one particular one"));
 		cmbKeyFormat = new JMComboBox<>(KeygenSupport.keyFormats().toArray(new KeyFormat[0]));
 		cmbSaveFormat = new JMComboBox<>(
 			new KeyFileFormat[] { KeyFileFormat.PEM, KeyFileFormat.DER });
 		cmbSaveFormat.setName("cmbSaveFormat");
-		cmbSaveFormat.setToolTipText(
-			"the encoding every file this window saves is written in - PEM is text, DER is binary");
+		cmbSaveFormat.setToolTipText(KeygenMessages.getString("keygen.tooltip.save.format",
+			"the encoding every file this window saves is written in - PEM is text, DER is binary"));
 		cmbKeyFormat.setName("cmbKeyFormat");
+		cmbKeyFormat.setToolTipText(KeygenMessages.getString("keygen.tooltip.key.format",
+			"the private key encoding - PKCS#8 works for every algorithm, PKCS#1 is only available for RSA and EC"));
 		cmbKeyFormat.setRenderer(new javax.swing.DefaultListCellRenderer()
 		{
 			private static final long serialVersionUID = 1L;
@@ -355,6 +357,8 @@ public class GenerateKeysPanel extends BasePanel<GenerateKeysModelBean>
 		});
 		cmbAlgorithm = new JMComboBox<>(SUPPORTED_ALGORITHMS);
 		cmbAlgorithm.setName("cmbAlgorithm");
+		cmbAlgorithm.setToolTipText(KeygenMessages.getString("keygen.tooltip.algorithm",
+			"the key pair algorithm - picks which downstream features (the hex encrypt/decrypt demo, saving a certificate) are even available"));
 
 		// the tool starts with the algorithm the user configured in the settings dialog and with
 		// the first curve and key file format it offers, which is what the boxes showed before;

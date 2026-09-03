@@ -31,6 +31,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.io.File;
 import java.security.interfaces.RSAPublicKey;
 
+import javax.swing.JComponent;
+
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -137,5 +139,26 @@ class CryptographyPanelBindingTest
 		assertEquals(KeySize.KEYSIZE_1024, modelObject.getKeySize());
 		assertNull(modelObject.getPrivateKey());
 		assertNull(modelObject.getPublicKey());
+	}
+
+	private static void assertHasTooltip(JComponent component, String fieldName)
+	{
+		String tooltip = component.getToolTipText();
+		assertTrue(tooltip != null && !tooltip.isBlank(), fieldName + " must have a tooltip");
+	}
+
+	@Test
+	@DisplayName("the key size box and every button explain themselves")
+	void everyFieldExplainsItselfWithATooltip()
+	{
+		CryptographyPanel panel = new CryptographyPanel();
+
+		assertHasTooltip(panel.getCmbKeySize(), "key size");
+		assertHasTooltip(panel.getBtnGenerate(), "generate button");
+		assertHasTooltip(panel.getBtnClear(), "clear button");
+		assertHasTooltip(panel.getBtnSavePrivateKey(), "save private key button");
+		assertHasTooltip(panel.getBtnSavePrivKeyWithPw(), "save private key with password button");
+		assertHasTooltip(panel.getBtnSavePublicKey(), "save public key button");
+		assertHasTooltip(panel.getBtnSaveCertificate(), "save certificate button");
 	}
 }

@@ -75,6 +75,11 @@ public class PasswordPanel extends BasePanel<PasswordBean>
 		lblPassword.setText("Password");
 
 		lblRepeatPassword.setText("Repeat password");
+
+		txtPassword.setToolTipText(KeygenMessages.getString("keygen.tooltip.password",
+			"the password the private key file is encrypted with"));
+		txtRepeatPassword.setToolTipText(KeygenMessages.getString("keygen.tooltip.repeat.password",
+			"repeat the password to catch a typo before the key is written"));
 	}
 
 	/**

@@ -38,6 +38,7 @@ dependencies {
     // Pair (used by the host EnDecryptPanel this plugin's GenerateKeysPanel embeds)
     compileOnly "io.github.astrapi69:silly-bean:3.0"
     compileOnly "io.github.astrapi69:menu-action:5.1"
+    compileOnly "io.github.astrapi69:resourcebundle-core:6.0"
     compileOnly "com.miglayout:miglayout-swing:11.4.3"
     compileOnly "org.projectlombok:lombok:1.18.46"
     annotationProcessor "org.projectlombok:lombok:1.18.46"
@@ -65,6 +66,9 @@ dependencies {
     testImplementation "io.github.astrapi69:model-data:3.2.1"
     // the panels lay themselves out with the host's ToolForm, which returns a MigLayout
     testImplementation "com.miglayout:miglayout-swing:11.4.3"
+    // the panels under test resolve their tooltip text through KeygenMessages at construction
+    // time, so the resource bundle loader has to be on the test classpath too
+    testImplementation "io.github.astrapi69:resourcebundle-core:6.0"
 
 }
 
