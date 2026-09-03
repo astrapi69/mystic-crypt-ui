@@ -22,32 +22,21 @@
  * OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
  * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-package io.github.astrapi69.mystic.crypt.ui;
+package io.github.astrapi69.mystic.crypt.wizard;
 
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import java.io.File;
 import java.math.BigInteger;
 import java.security.KeyPair;
 import java.time.ZonedDateTime;
 
-import javax.swing.JPanel;
-
-import org.assertj.swing.edt.GuiActionRunner;
 import org.junit.jupiter.api.Test;
 
 import io.github.astrapi69.crypt.data.factory.KeyPairFactory;
 import io.github.astrapi69.crypt.data.key.KeyInfoExtensions;
 import io.github.astrapi69.design.pattern.state.wizard.model.BaseWizardStateMachineModel;
 import io.github.astrapi69.model.BaseModel;
-import io.github.astrapi69.model.api.IModel;
-import io.github.astrapi69.mystic.crypt.wizard.CertificateWizardContentPanel;
-import io.github.astrapi69.mystic.crypt.wizard.CertificateWizardPanel;
-import io.github.astrapi69.mystic.crypt.wizard.DatesPanel;
-import io.github.astrapi69.mystic.crypt.wizard.ExtensionsPanel;
-import io.github.astrapi69.mystic.crypt.wizard.IssuerPanel;
-import io.github.astrapi69.mystic.crypt.wizard.ReviewPanel;
-import io.github.astrapi69.mystic.crypt.wizard.SubjectPanel;
 import io.github.astrapi69.mystic.crypt.wizard.model.CertificateInfoModel;
 import io.github.astrapi69.mystic.crypt.wizard.model.DistinguishedNameInfoModel;
 import io.github.astrapi69.mystic.crypt.wizard.model.KeyInfoModel;
@@ -55,17 +44,18 @@ import io.github.astrapi69.mystic.crypt.wizard.model.ValidityModel;
 import io.github.astrapi69.mystic.crypt.wizard.state.CertificateWizardState;
 
 /**
- * Construction smoke tests for the (now live) certificate-wizard panels: each must build with a
- * fully populated model without throwing
+ * Tests of the wizard's last step: it shows whatever preview it was given and fills in the file
+ * name and save directory it was given as defaults - but only while the user has not typed
+ * something of their own there, since a later refresh must not silently overwrite an edit
  */
-class CertificateWizardPanelsConstructionSmokeTest
+class ReviewPanelTest
 {
 
-	private static CertificateInfoModel newModel() throws Exception
+	private static ReviewPanel newPanel() throws Exception
 	{
 		KeyPair keyPair = KeyPairFactory.newKeyPair("RSA");
 		ZonedDateTime now = ZonedDateTime.now();
-		return CertificateInfoModel.builder()
+		CertificateInfoModel certificateInfoModel = CertificateInfoModel.builder()
 			.privateKeyInfo(
 				KeyInfoModel.toKeyInfoModel(KeyInfoExtensions.toKeyInfo(keyPair.getPrivate())))
 			.publicKeyInfo(
@@ -74,68 +64,63 @@ class CertificateWizardPanelsConstructionSmokeTest
 			.subject(DistinguishedNameInfoModel.builder().commonName("subject").build())
 			.validityModel(
 				ValidityModel.builder().notBefore(now).notAfter(now.plusYears(1)).build())
-			.serial(BigInteger.ONE).signatureAlgorithm("SHA256withRSA").build();
-	}
-
-	private static IModel<BaseWizardStateMachineModel<CertificateInfoModel>> stateMachineModel()
-		throws Exception
-	{
-		return BaseModel.of(BaseWizardStateMachineModel.<CertificateInfoModel> builder()
-			.currentState(CertificateWizardState.ISSUER).modelObject(newModel()).build());
-	}
-
-	private static void assertConstructs(GuiActionRunnerFactory factory)
-	{
-		JPanel panel = GuiActionRunner.execute(factory::create);
-		assertNotNull(panel, "the panel must be constructed");
-		assertTrue(panel.getComponentCount() > 0, "the panel must lay out its components");
-	}
-
-	@FunctionalInterface
-	private interface GuiActionRunnerFactory
-	{
-		JPanel create() throws Exception;
+			.serial(BigInteger.ONE).build();
+		return new ReviewPanel(BaseModel.of(BaseWizardStateMachineModel
+			.<CertificateInfoModel> builder().currentState(CertificateWizardState.REVIEW)
+			.modelObject(certificateInfoModel).build()));
 	}
 
 	@Test
-	void certificateWizardPanelConstructs()
+	void refreshShowsThePreviewItWasGiven() throws Exception
 	{
-		assertConstructs(() -> new CertificateWizardPanel(BaseModel.of(newModel())));
+		ReviewPanel panel = newPanel();
+
+		panel.refresh("-----BEGIN CERTIFICATE-----", "subject.crt", new File("/tmp"));
+
+		assertEquals("-----BEGIN CERTIFICATE-----", panel.getTxtPreview().getText());
 	}
 
 	@Test
-	void certificateWizardContentPanelConstructs()
+	void refreshFillsInTheDefaultsWhenNothingWasTypedYet() throws Exception
 	{
-		assertConstructs(() -> new CertificateWizardContentPanel(stateMachineModel()));
+		ReviewPanel panel = newPanel();
+
+		panel.refresh("preview", "subject.crt", new File("/tmp"));
+
+		assertEquals("subject.crt", panel.getReviewFormModel().getFileName());
+		assertEquals(new File("/tmp"), panel.getReviewFormModel().getSaveDirectory());
 	}
 
 	@Test
-	void issuerPanelConstructs()
+	void refreshDoesNotOverwriteAFileNameTheUserAlreadyTyped() throws Exception
 	{
-		assertConstructs(() -> new IssuerPanel(stateMachineModel()));
+		ReviewPanel panel = newPanel();
+		panel.getTxtFileName().setText("my-own-name.crt");
+
+		panel.refresh("preview", "subject.crt", new File("/tmp"));
+
+		assertEquals("my-own-name.crt", panel.getReviewFormModel().getFileName());
 	}
 
 	@Test
-	void subjectPanelConstructs()
+	void refreshDoesNotOverwriteADirectoryTheUserAlreadyPicked() throws Exception
 	{
-		assertConstructs(() -> new SubjectPanel(stateMachineModel()));
+		ReviewPanel panel = newPanel();
+		panel.getReviewFormModel().setSaveDirectory(new File("/opt/somewhere"));
+
+		panel.refresh("preview", "subject.crt", new File("/tmp"));
+
+		assertEquals(new File("/opt/somewhere"), panel.getReviewFormModel().getSaveDirectory());
 	}
 
 	@Test
-	void datesPanelConstructs()
+	void refreshingTwiceWithADifferentPreviewReplacesIt() throws Exception
 	{
-		assertConstructs(() -> new DatesPanel(stateMachineModel()));
-	}
+		ReviewPanel panel = newPanel();
+		panel.refresh("first version", "subject.crt", new File("/tmp"));
 
-	@Test
-	void extensionsPanelConstructs()
-	{
-		assertConstructs(() -> new ExtensionsPanel(stateMachineModel()));
-	}
+		panel.refresh("second version", "subject.crt", new File("/tmp"));
 
-	@Test
-	void reviewPanelConstructs()
-	{
-		assertConstructs(() -> new ReviewPanel(stateMachineModel()));
+		assertEquals("second version", panel.getTxtPreview().getText());
 	}
 }

@@ -204,13 +204,60 @@ public enum CertificateWizardState
 		@Override
 		public void goNext(BaseWizardStateMachineModel<CertificateInfoModel> stateMachine)
 		{
-			// No next state
+			stateMachine.setCurrentState(REVIEW);
 		}
 
 		@Override
 		public void goPrevious(BaseWizardStateMachineModel<CertificateInfoModel> stateMachine)
 		{
 			stateMachine.setCurrentState(DATES);
+		}
+
+		@Override
+		public void cancel(
+			BaseWizardStateMachineModel<CertificateInfoModel> x509CertificateV3InfoBaseWizardStateMachineModel)
+		{
+
+		}
+
+		@Override
+		public void finish(
+			BaseWizardStateMachineModel<CertificateInfoModel> x509CertificateV3InfoBaseWizardStateMachineModel)
+		{
+
+		}
+
+		@Override
+		public WizardStateInfo getWizardStateInfo()
+		{
+			return null;
+		}
+
+		@Override
+		public void setWizardStateInfo(WizardStateInfo wizardStateInfo)
+		{
+
+		}
+
+	},
+	REVIEW {
+
+		@Override
+		public String getName()
+		{
+			return name();
+		}
+
+		@Override
+		public void goNext(BaseWizardStateMachineModel<CertificateInfoModel> stateMachine)
+		{
+			// No next state
+		}
+
+		@Override
+		public void goPrevious(BaseWizardStateMachineModel<CertificateInfoModel> stateMachine)
+		{
+			stateMachine.setCurrentState(EXTENSIONS);
 		}
 
 		@Override

@@ -34,6 +34,8 @@ public class CertificateWizardContentPanel extends BaseWizardContentPanel<Certif
 
 	private static final long serialVersionUID = 1L;
 
+	private ReviewPanel reviewPanel;
+
 	public CertificateWizardContentPanel(
 		IModel<BaseWizardStateMachineModel<CertificateInfoModel>> model)
 	{
@@ -49,6 +51,19 @@ public class CertificateWizardContentPanel extends BaseWizardContentPanel<Certif
 		add(new SubjectPanel(model), "SUBJECT");
 		add(new DatesPanel(model), "DATES");
 		add(new ExtensionsPanel(model), "EXTENSIONS");
+		reviewPanel = new ReviewPanel(model);
+		add(reviewPanel, "REVIEW");
+	}
+
+	/**
+	 * The review step, so whoever opens the wizard can push a preview and defaults into it once the
+	 * user reaches it
+	 *
+	 * @return the review step's panel
+	 */
+	public ReviewPanel getReviewPanel()
+	{
+		return reviewPanel;
 	}
 
 	/**

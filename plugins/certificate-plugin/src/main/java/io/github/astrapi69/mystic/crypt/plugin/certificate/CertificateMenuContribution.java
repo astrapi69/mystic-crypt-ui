@@ -25,20 +25,18 @@
 package io.github.astrapi69.mystic.crypt.plugin.certificate;
 
 import java.awt.BorderLayout;
-import java.awt.Desktop;
 import java.awt.Dimension;
 import java.awt.Toolkit;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.IOException;
 import java.math.BigInteger;
-import java.nio.file.Files;
+import java.nio.charset.StandardCharsets;
 import java.security.KeyPair;
 import java.security.cert.X509Certificate;
 import java.time.ZonedDateTime;
 import java.util.List;
 
 import javax.swing.*;
-import javax.swing.filechooser.FileNameExtensionFilter;
 
 import org.pf4j.Extension;
 
@@ -50,17 +48,21 @@ import io.github.astrapi69.model.BaseModel;
 import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
 import io.github.astrapi69.mystic.crypt.plugin.api.PluginMenuContribution;
 import io.github.astrapi69.mystic.crypt.wizard.CertificateInfoModelToX509;
+import io.github.astrapi69.mystic.crypt.wizard.CertificateWizardContentPanel;
 import io.github.astrapi69.mystic.crypt.wizard.CertificateWizardPanel;
+import io.github.astrapi69.mystic.crypt.wizard.ReviewPanel;
+import io.github.astrapi69.mystic.crypt.wizard.ReviewPanelModel;
 import io.github.astrapi69.mystic.crypt.wizard.model.CertificateInfoModel;
 import io.github.astrapi69.mystic.crypt.wizard.model.DistinguishedNameInfoModel;
 import io.github.astrapi69.mystic.crypt.wizard.model.KeyInfoModel;
 import io.github.astrapi69.mystic.crypt.wizard.model.ValidityModel;
-import io.github.astrapi69.swing.filechooser.JFileChooserExtensions;
+import io.github.astrapi69.mystic.crypt.wizard.state.CertificateWizardState;
 
 /**
  * Contributes the "Create Certificate" tool to the host's "Plugins" menu. The wizard panels and the
  * model-to-certificate generator live in the host (shared with the keygen plugin); this plugin only
- * opens the wizard in a modal dialog and, on Finish, generates the X.509 certificate and saves it.
+ * opens the wizard in a modal dialog, keeps the wizard's Review step supplied with a preview of what
+ * would be generated and, on Finish, generates the X.509 certificate and saves it.
  */
 @Extension
 public class CertificateMenuContribution implements PluginMenuContribution
@@ -101,10 +103,20 @@ public class CertificateMenuContribution implements PluginMenuContribution
 		CertificateWizardPanel wizardPanel = new CertificateWizardPanel(BaseModel.of(model))
 		{
 			@Override
+			protected void onNext()
+			{
+				super.onNext();
+				if (getStateMachine().getCurrentState() == CertificateWizardState.REVIEW)
+				{
+					refreshReview(this, model, frame);
+				}
+			}
+
+			@Override
 			protected void onFinish()
 			{
 				super.onFinish();
-				generateAndSave(dialog, frame, model);
+				saveReviewedCertificate(dialog, frame, reviewPanelOf(this), model);
 			}
 
 			@Override
@@ -141,21 +153,67 @@ public class CertificateMenuContribution implements PluginMenuContribution
 		dialog.setVisible(true);
 	}
 
-	private static void generateAndSave(JDialog dialog, MysticCryptApplicationFrame frame,
-		CertificateInfoModel model)
+	private static ReviewPanel reviewPanelOf(CertificateWizardPanel wizardPanel)
 	{
+		return ((CertificateWizardContentPanel)wizardPanel.getWizardContentPanel())
+			.getReviewPanel();
+	}
+
+	/**
+	 * Regenerates the review step's preview and defaults once the user reaches it. Generating the
+	 * certificate can fail - an earlier step left incomplete, a key that cannot use the configured
+	 * signature algorithm - in which case the preview says why instead of leaving the wizard on a
+	 * blank step with no feedback at all.
+	 *
+	 * @param wizardPanel
+	 *            the wizard, to reach its review step through
+	 * @param model
+	 *            what the wizard has collected so far
+	 * @param frame
+	 *            the application frame, for the default save directory
+	 */
+	private static void refreshReview(CertificateWizardPanel wizardPanel, CertificateInfoModel model,
+		MysticCryptApplicationFrame frame)
+	{
+		String preview;
 		try
 		{
 			X509Certificate certificate = CertificateInfoModelToX509.toX509Certificate(model);
-			JFileChooser fileChooser = new JFileChooser(frame.getConfigurationDirectory());
-			fileChooser.setDialogTitle("Save the certificate as");
-			fileChooser.setFileFilter(new FileNameExtensionFilter("Certificate (*.crt)", "crt"));
-			if (fileChooser.showSaveDialog(dialog) == JFileChooser.APPROVE_OPTION)
-			{
-				File file = JFileChooserExtensions.getSelectedFileWithFirstExtension(fileChooser);
-				CertificateWriter.writeInPemFormat(certificate, file);
-				offerToOpen(dialog, file, certificate);
-			}
+			preview = certificateSummary(certificate) + "\n\n" + toPemString(certificate);
+		}
+		catch (Exception exception)
+		{
+			preview = "Could not generate the certificate: " + exception.getMessage();
+		}
+		reviewPanelOf(wizardPanel).refresh(preview, defaultFileName(model),
+			frame.getConfigurationDirectory());
+	}
+
+	/**
+	 * Writes the certificate the review step describes and closes the wizard. The wizard's Finish
+	 * button works from any step, not only Review, so the file name and directory the review step
+	 * would have defaulted to are recomputed here rather than trusted to already be filled in.
+	 *
+	 * @param dialog
+	 *            the wizard dialog, to close on success and to show an error dialog on top of
+	 *            otherwise
+	 * @param frame
+	 *            the application frame, for the default save directory
+	 * @param reviewPanel
+	 *            the review step, for what the user entered there
+	 * @param model
+	 *            what the wizard has collected
+	 */
+	private static void saveReviewedCertificate(JDialog dialog, MysticCryptApplicationFrame frame,
+		ReviewPanel reviewPanel, CertificateInfoModel model)
+	{
+		ReviewPanelModel reviewFormModel = reviewPanel.getReviewFormModel();
+		File file = resolveSaveTarget(reviewFormModel.getFileName(),
+			reviewFormModel.getSaveDirectory(), model, frame.getConfigurationDirectory());
+		try
+		{
+			X509Certificate certificate = CertificateInfoModelToX509.toX509Certificate(model);
+			CertificateWriter.writeInPemFormat(certificate, file);
 			dialog.dispose();
 		}
 		catch (Exception exception)
@@ -167,52 +225,58 @@ public class CertificateMenuContribution implements PluginMenuContribution
 	}
 
 	/**
-	 * Tells the user the certificate was saved, with the choice to open it right away - either in
-	 * the small in-app text editor (#110), since the wizard always writes PEM, or through whatever
-	 * the operating system associates with the file. The message names the certificate's important
-	 * fields (#136) rather than just the filename, the way a certificate viewer would.
+	 * The file the certificate is saved to: what the review step holds, falling back to the same
+	 * defaults it would have shown had the user visited it
 	 *
-	 * @param dialog
-	 *            the wizard dialog, as the parent for both this and any error dialog
-	 * @param file
-	 *            the file that was just written
-	 * @param certificate
-	 *            the certificate that was just written into it
+	 * @param fileName
+	 *            the file name from the review step, possibly blank
+	 * @param directory
+	 *            the directory from the review step, possibly {@code null}
+	 * @param model
+	 *            what the wizard collected, to derive a default file name from
+	 * @param defaultDirectory
+	 *            the directory to fall back to
+	 * @return the file to save the certificate to
 	 */
-	private static void offerToOpen(JDialog dialog, File file, X509Certificate certificate)
+	static File resolveSaveTarget(String fileName, File directory, CertificateInfoModel model,
+		File defaultDirectory)
 	{
-		Object[] options = { "Edit", "Open", "OK" };
-		String message = "Certificate saved to " + file.getName() + "\n\n"
-			+ certificateSummary(certificate);
-		int chosen = JOptionPane.showOptionDialog(dialog, message, "Certificate created",
-			JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.INFORMATION_MESSAGE, null, options,
-			options[2]);
-		if (chosen == 0)
-		{
-			openInEditor(dialog, file);
-			return;
-		}
-		if (chosen != 1)
-		{
-			return;
-		}
-		try
-		{
-			openWithSystemDefault(file);
-		}
-		catch (IOException exception)
-		{
-			JOptionPane.showMessageDialog(dialog,
-				"Could not open " + file.getName() + ": " + exception.getMessage(), "Open failed",
-				JOptionPane.ERROR_MESSAGE);
-		}
+		String effectiveFileName = fileName == null || fileName.isBlank()
+			? defaultFileName(model)
+			: fileName;
+		File effectiveDirectory = directory != null ? directory : defaultDirectory;
+		return new File(effectiveDirectory, effectiveFileName);
+	}
+
+	/**
+	 * The file name the review step starts with: the subject's common name, sanitized to what every
+	 * filesystem this application runs on accepts
+	 *
+	 * @param model
+	 *            what the wizard collected
+	 * @return the default file name, always ending in {@code .crt}
+	 */
+	static String defaultFileName(CertificateInfoModel model)
+	{
+		String commonName = model.getSubject() == null ? null : model.getSubject().getCommonName();
+		String base = commonName == null || commonName.isBlank()
+			? "certificate"
+			: commonName.trim().replaceAll("[^a-zA-Z0-9._-]+", "_");
+		return base + ".crt";
+	}
+
+	private static String toPemString(X509Certificate certificate) throws Exception
+	{
+		ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+		CertificateWriter.writeInPemFormat(certificate, buffer);
+		return buffer.toString(StandardCharsets.US_ASCII);
 	}
 
 	/**
 	 * The certificate's important fields, one per line: subject, issuer, serial number (hex, the
 	 * way a certificate viewer reports it), validity window, signature algorithm and public key
-	 * algorithm - everything a "Certificate saved" confirmation needs to say what was actually
-	 * created, not just where it went (#136)
+	 * algorithm - everything a reviewer needs to see what would actually be created, not just where
+	 * it would go (#136)
 	 *
 	 * @param certificate
 	 *            the certificate to summarize
@@ -227,67 +291,6 @@ public class CertificateMenuContribution implements PluginMenuContribution
 			"Valid until: " + certificate.getNotAfter(),
 			"Signature algorithm: " + certificate.getSigAlgName(),
 			"Public key algorithm: " + certificate.getPublicKey().getAlgorithm());
-	}
-
-	/**
-	 * Opens the saved certificate in the in-app text editor, in a dialog owned by the given parent
-	 *
-	 * @param parent
-	 *            the dialog to show this on top of, and to show any read error on
-	 * @param file
-	 *            the file to edit
-	 */
-	private static void openInEditor(JDialog parent, File file)
-	{
-		final String content;
-		try
-		{
-			content = Files.readString(file.toPath());
-		}
-		catch (IOException exception)
-		{
-			JOptionPane.showMessageDialog(parent,
-				"Could not open " + file.getName() + ": " + exception.getMessage(), "Open failed",
-				JOptionPane.ERROR_MESSAGE);
-			return;
-		}
-		JDialog editorDialog = new JDialog(parent, "Edit " + file.getName(), true);
-		editorDialog.setName("dlgCertificateFileEditor");
-		CertificateFileEditorModel editorModel = CertificateFileEditorModel.builder().file(file)
-			.content(content).build();
-		CertificateFileEditorPanel editorPanel = new CertificateFileEditorPanel(
-			BaseModel.of(editorModel))
-		{
-			private static final long serialVersionUID = 1L;
-
-			@Override
-			protected void onClose()
-			{
-				editorDialog.dispose();
-			}
-		};
-		editorDialog.getContentPane().add(editorPanel);
-		editorDialog.setSize(WizardWindowSize.MINIMUM_WIDTH, WizardWindowSize.MINIMUM_HEIGHT);
-		editorDialog.setLocationRelativeTo(parent);
-		editorDialog.setVisible(true);
-	}
-
-	/**
-	 * Opens a file with whatever the operating system associates with it
-	 *
-	 * @param file
-	 *            the file to open
-	 * @throws IOException
-	 *             if this system has no way to open files from an application, or launching the
-	 *             association failed
-	 */
-	static void openWithSystemDefault(File file) throws IOException
-	{
-		if (!Desktop.isDesktopSupported() || !Desktop.getDesktop().isSupported(Desktop.Action.OPEN))
-		{
-			throw new IOException("this system offers no way to open files from an application");
-		}
-		Desktop.getDesktop().open(file);
 	}
 
 	private static CertificateInfoModel newDefaultCertificateInfoModel() throws Exception
