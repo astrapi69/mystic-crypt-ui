@@ -37,6 +37,7 @@ import java.util.List;
 
 import javax.swing.JButton;
 import javax.swing.JComboBox;
+import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.text.JTextComponent;
 
@@ -236,5 +237,49 @@ class KeyExchangePanelBindingTest
 
 		assertEquals("-", named(panel, "lblMyFingerprint", JLabel.class).getText());
 		assertNotEquals(first, textOf(panel, "txtMyPublicKey"));
+	}
+
+	private static void assertHasTooltip(JComponent component, String fieldName)
+	{
+		String tooltip = component.getToolTipText();
+		assertTrue(tooltip != null && !tooltip.isBlank(), fieldName + " must have a tooltip");
+	}
+
+	@Test
+	@DisplayName("every field and button on both tabs explains itself with a tooltip")
+	void everyFieldExplainsItselfWithATooltip()
+	{
+		KeyExchangePanel panel = new KeyExchangePanel();
+
+		assertHasTooltip(named(panel, "cmbAlgorithm", JComponent.class), "algorithm");
+		assertHasTooltip(named(panel, "lblResult", JComponent.class), "result label");
+		assertHasTooltip(named(panel, "lblMyFingerprint", JComponent.class), "my fingerprint");
+		assertHasTooltip(named(panel, "lblTheirFingerprint", JComponent.class), "their fingerprint");
+
+		assertHasTooltip(named(panel, "txtMyPublicKey", JComponent.class), "my public key");
+		assertHasTooltip(named(panel, "btnNewKeyPair", JComponent.class), "new key pair button");
+		assertHasTooltip(named(panel, "btnSaveMyKey", JComponent.class), "save my key button");
+		assertHasTooltip(named(panel, "btnLoadMyKey", JComponent.class), "load my key button");
+		assertHasTooltip(named(panel, "btnSaveMyPublicKey", JComponent.class),
+			"save my public key button");
+		assertHasTooltip(named(panel, "txtHandshakeIn", JComponent.class), "handshake in");
+		assertHasTooltip(named(panel, "btnLoadHandshake", JComponent.class), "load handshake button");
+		assertHasTooltip(named(panel, "btnDecapsulate", JComponent.class), "decapsulate button");
+		assertHasTooltip(named(panel, "txtEncryptedIn", JComponent.class), "encrypted in");
+		assertHasTooltip(named(panel, "btnDecryptMessage", JComponent.class),
+			"decrypt message button");
+		assertHasTooltip(named(panel, "txtMessageReceived", JComponent.class), "message received");
+
+		assertHasTooltip(named(panel, "txtTheirPublicKey", JComponent.class), "their public key");
+		assertHasTooltip(named(panel, "btnLoadTheirPublicKey", JComponent.class),
+			"load their public key button");
+		assertHasTooltip(named(panel, "btnEncapsulate", JComponent.class), "encapsulate button");
+		assertHasTooltip(named(panel, "txtHandshakeOut", JComponent.class), "handshake out");
+		assertHasTooltip(named(panel, "btnSaveHandshake", JComponent.class), "save handshake button");
+		assertHasTooltip(named(panel, "txtMessageToSend", JComponent.class), "message to send");
+		assertHasTooltip(named(panel, "btnEncryptMessage", JComponent.class),
+			"encrypt message button");
+		assertHasTooltip(named(panel, "txtEncryptedOut", JComponent.class), "encrypted out");
+		assertHasTooltip(named(panel, "btnSaveEncrypted", JComponent.class), "save encrypted button");
 	}
 }
