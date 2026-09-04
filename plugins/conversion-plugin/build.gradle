@@ -34,6 +34,10 @@ dependencies {
     compileOnly "io.github.astrapi69:swing-base-components:5.1"
     compileOnly "io.github.astrapi69:throwable:3"
     compileOnly "io.github.astrapi69:resourcebundle-core:6.0"
+    // the conversion wizard's base classes: AbstractWizardPanel/BaseWizardContentPanel and the
+    // BaseWizardState/BaseWizardStateMachineModel state machine it runs on
+    compileOnly "io.github.astrapi69:swing-wizard:2.1"
+    compileOnly "io.github.astrapi69:state-pattern:7.1"
     compileOnly "org.projectlombok:lombok:1.18.46"
     annotationProcessor "org.projectlombok:lombok:1.18.46"
 
@@ -65,6 +69,9 @@ dependencies {
     // the panels under test resolve their tooltip text through ConversionMessages at construction
     // time, so the resource bundle loader has to be on the test classpath too
     testImplementation "io.github.astrapi69:resourcebundle-core:6.0"
+    // the wizard state/panel tests build the real state machine and the real panels
+    testImplementation "io.github.astrapi69:swing-wizard:2.1"
+    testImplementation "io.github.astrapi69:state-pattern:7.1"
 
 }
 
