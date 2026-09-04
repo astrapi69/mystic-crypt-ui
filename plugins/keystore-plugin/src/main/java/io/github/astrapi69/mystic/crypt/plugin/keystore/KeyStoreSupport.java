@@ -236,11 +236,40 @@ public final class KeyStoreSupport
 		KeyPair keyPair = isSizeBased(algorithm)
 			? KeyPairFactory.newKeyPair(algorithm, keySize)
 			: KeyPairFactory.newKeyPair(algorithm);
-		X500Name name = new X500Name(distinguishedName);
+		X500Name name = parseDistinguishedName(distinguishedName);
 		X509Certificate certificate = CertFactory.newX509CertificateV3(keyPair, name, daysValid,
 			name, signatureAlgorithm);
 		KeyStoreExtensions.addAndStorePrivateKey(keyStore, file, alias, keyPair.getPrivate(),
 			storePassword.toCharArray(), new Certificate[] { certificate });
+	}
+
+	/**
+	 * Parses a distinguished name, naming the expected format when it is not one.
+	 * <p>
+	 * {@link X500Name}'s own constructor throws with BouncyCastle's raw internal parsing message
+	 * ("badly formatted directory string") - accurate, but it reads like a file-path problem and
+	 * is not actionable without already knowing X.500 DN syntax (#196).
+	 *
+	 * @param distinguishedName
+	 *            the distinguished name to parse, for instance {@code CN=example.com}
+	 * @return the parsed name
+	 * @throws IllegalArgumentException
+	 *             if the given string is not a valid distinguished name
+	 */
+	private static X500Name parseDistinguishedName(final String distinguishedName)
+	{
+		try
+		{
+			return new X500Name(distinguishedName);
+		}
+		catch (final IllegalArgumentException invalidDistinguishedName)
+		{
+			throw new IllegalArgumentException(
+				"'" + distinguishedName + "' is not a valid distinguished name - use the form "
+					+ "'CN=name', for example 'CN=example.com': "
+					+ invalidDistinguishedName.getMessage(),
+				invalidDistinguishedName);
+		}
 	}
 
 	/**
