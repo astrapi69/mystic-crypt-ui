@@ -144,6 +144,15 @@ public class GenerateKeysPanel extends BasePanel<GenerateKeysModelBean>
 	private static final String ONLY_RSA_CAN_DO_THIS = "The hex encrypt/decrypt demo needs an RSA key pair. Choose RSA and press Generate.";
 
 	/**
+	 * What the certificate button says while it is out of reach: only RSA and EC keys can sign a
+	 * self-signed certificate here - the key-agreement curves (X25519/X448), the pure KEM
+	 * (ML-KEM-768) and the post-quantum signature (ML-DSA-65) cannot (#189)
+	 */
+	private static final String ONLY_RSA_OR_EC_CAN_CERTIFY = KeygenMessages.getString(
+		"keygen.certificate.unavailable.reason",
+		"Only RSA and EC keys can be used for a self-signed certificate. Choose one of them and press Generate.");
+
+	/**
 	 * Callback method that can be overwritten to provide specific action for the on clear.
 	 *
 	 * @param actionEvent
@@ -160,7 +169,7 @@ public class GenerateKeysPanel extends BasePanel<GenerateKeysModelBean>
 		getCryptographyPanel().getTxtPublicKey().setText("");
 		getEnDecryptPanel().getTxtEncrypted().setText("");
 		getEnDecryptPanel().getTxtToEncrypt().setText("");
-		getCryptographyPanel().getBtnSaveCertificate().setEnabled(false);
+		getCryptographyPanel().setCertificateAvailable(false, ONLY_RSA_OR_EC_CAN_CERTIFY);
 		// the algorithm, the key size and both key areas are bound, so setting them above has put
 		// them into the model as well; what is left is the state no component shows
 		getModelObject().setDecryptor(null);
@@ -247,6 +256,10 @@ public class GenerateKeysPanel extends BasePanel<GenerateKeysModelBean>
 	{
 		final KeyPairGeneratorAlgorithm algorithm = getModelObject().getAlgorithm();
 		final boolean rsa = KeyPairGeneratorAlgorithm.RSA.equals(algorithm);
+		// RSA and EC are the only two of the offered algorithms that can sign a certificate at all -
+		// X25519/X448 are pure key agreement, ML-KEM-768 is a pure KEM and ML-DSA-65 (post-quantum
+		// signature) is not supported by the certificate builder here (#189)
+		final boolean canCertify = rsa || KeyPairGeneratorAlgorithm.EC.equals(algorithm);
 		getCryptographyPanel().getTxtPrivateKey().setText("Generating private key...");
 		getCryptographyPanel().getTxtPublicKey().setText("Generating public key...");
 		try
@@ -310,8 +323,7 @@ public class GenerateKeysPanel extends BasePanel<GenerateKeysModelBean>
 			getCryptographyPanel().getTxtPublicKey().setText("");
 			getCryptographyPanel().getTxtPrivateKey().setText(privateKeyFormat);
 			getCryptographyPanel().getTxtPublicKey().setText(publicKeyFormat);
-			// certificate creation only wired for RSA in this demo
-			getCryptographyPanel().getBtnSaveCertificate().setEnabled(rsa);
+			getCryptographyPanel().setCertificateAvailable(canCertify, ONLY_RSA_OR_EC_CAN_CERTIFY);
 			getEnDecryptPanel().setEnDecryptAvailable(rsa, ONLY_RSA_CAN_DO_THIS);
 		}
 		catch (final NoSuchAlgorithmException | NoSuchProviderException | IOException e)

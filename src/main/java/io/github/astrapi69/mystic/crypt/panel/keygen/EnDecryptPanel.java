@@ -60,6 +60,12 @@ public class EnDecryptPanel extends BasePanel<Pair<String, String>>
 	/** The lbl to encrypt. */
 	private JLabel lblToEncrypt;
 
+	/**
+	 * Says why encrypting and decrypting are out of reach, visibly - a disabled button that only
+	 * explains itself on hover reads as broken until someone thinks to hover it (#189)
+	 */
+	private JLabel lblReason;
+
 	/** The scp encrypted. */
 	private JScrollPane scpEncrypted;
 
@@ -105,6 +111,7 @@ public class EnDecryptPanel extends BasePanel<Pair<String, String>>
 		scpEncrypted = new JScrollPane();
 		txtEncrypted = new JMTextArea();
 		lblEncrypted = new JLabel();
+		lblReason = new JLabel(" ");
 
 		lblToEncrypt.setText("Text to encrypt");
 
@@ -114,6 +121,7 @@ public class EnDecryptPanel extends BasePanel<Pair<String, String>>
 		txtEncrypted.setName("txtEncrypted");
 		btnEncrypt.setName("btnEncrypt");
 		btnDecrypt.setName("btnDecrypt");
+		lblReason.setName("lblReason");
 
 		bindToModel();
 
@@ -209,6 +217,7 @@ public class EnDecryptPanel extends BasePanel<Pair<String, String>>
 		btnDecrypt.setEnabled(enDecryptAvailable && 0 < txtEncrypted.getDocument().getLength());
 		btnEncrypt.setToolTipText(enDecryptAvailable ? null : unavailableReason);
 		btnDecrypt.setToolTipText(enDecryptAvailable ? null : unavailableReason);
+		lblReason.setText(enDecryptAvailable ? " " : unavailableReason);
 	}
 
 	/**
@@ -271,6 +280,8 @@ public class EnDecryptPanel extends BasePanel<Pair<String, String>>
 				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING, false)
 					.addComponent(btnDecrypt, GroupLayout.DEFAULT_SIZE, 167, Short.MAX_VALUE)
 					.addComponent(btnEncrypt, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE,
+						Short.MAX_VALUE)
+					.addComponent(lblReason, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE,
 						Short.MAX_VALUE))
 				.addPreferredGap(LayoutStyle.ComponentPlacement.RELATED, 36, Short.MAX_VALUE)
 				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)
@@ -289,7 +300,9 @@ public class EnDecryptPanel extends BasePanel<Pair<String, String>>
 				.addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
 				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING, false)
 					.addGroup(layout.createSequentialGroup().addComponent(btnEncrypt)
-						.addGap(90, 90, 90).addComponent(btnDecrypt))
+						.addGap(90, 90, 90).addComponent(btnDecrypt)
+						.addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+						.addComponent(lblReason))
 					.addComponent(scpEncrypted).addComponent(scpToEncrypt))
 				.addContainerGap(40, Short.MAX_VALUE)));
 	}
