@@ -28,6 +28,7 @@ import java.awt.Font;
 import java.io.File;
 
 import javax.swing.*;
+import javax.swing.text.JTextComponent;
 
 import io.github.astrapi69.model.LambdaModel;
 import io.github.astrapi69.model.api.IModel;
@@ -90,14 +91,14 @@ public class FileCryptPanel extends JPanel
 		// the tool starts on the tab the user configured in the settings dialog
 		tabs.setSelectedIndex("text".equals(FileCryptSettingsContribution.startTab()) ? 1 : 0);
 
-		JLabel lblIntro = new JLabel("<html>" + FileCryptMessages.getString("filecrypt.intro",
+		JTextComponent lblIntro = ToolForm.intro(FileCryptMessages.getString("filecrypt.intro",
 			"Encrypts or decrypts a file or a piece of text with a passphrase - use the File tab "
 				+ "for a file on disk, the Text tab to encrypt or decrypt text directly. There is "
 				+ "no way to recover the content if the passphrase is lost - nothing here can "
-				+ "bypass it.") + "</html>");
+				+ "bypass it."));
 		lblIntro.setName("lblIntro");
 
-		add(lblIntro, ToolForm.WIDE);
+		add(lblIntro, ToolForm.INTRO_ROW);
 		add(tabs, ToolForm.GROWING);
 		add(lblResult, ToolForm.RESULT_LINE);
 	}

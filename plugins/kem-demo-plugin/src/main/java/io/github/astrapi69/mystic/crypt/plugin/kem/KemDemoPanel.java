@@ -29,6 +29,7 @@ import java.util.HexFormat;
 import java.util.function.Consumer;
 
 import javax.swing.*;
+import javax.swing.text.JTextComponent;
 
 import io.github.astrapi69.model.LambdaModel;
 import io.github.astrapi69.mystic.crypt.ui.form.ToolForm;
@@ -117,15 +118,15 @@ public class KemDemoPanel extends JPanel
 			"runs the whole exchange: generates a key pair, encapsulates a shared secret against it, decapsulates it back, and shows both sides"));
 		btnRun.addActionListener(event -> onRun());
 
-		JLabel lblIntro = new JLabel("<html>" + KemDemoMessages.getString("kemdemo.intro",
+		JTextComponent lblIntro = ToolForm.intro(KemDemoMessages.getString(
+			"kemdemo.intro",
 			"Simulates a full key encapsulation between a sender and a recipient in one window: "
 				+ "generates a key pair, encapsulates a shared secret against it, decapsulates it "
 				+ "back, and shows whether both sides agree. To actually exchange keys with someone "
-				+ "else, use Key Exchange instead - this tool only demonstrates the mathematics.")
-			+ "</html>");
+				+ "else, use Key Exchange instead - this tool only demonstrates the mathematics."));
 		lblIntro.setName("lblIntro");
 
-		add(lblIntro, ToolForm.WIDE);
+		add(lblIntro, ToolForm.INTRO_ROW);
 		add(new JLabel("Algorithm:"));
 		add(cmbAlgorithm, ToolForm.FIELD);
 		add(ToolForm.buttons(btnRun), ToolForm.BUTTON_ROW);

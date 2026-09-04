@@ -297,7 +297,7 @@ class KemDemoPanelBindingTest
 	{
 		KemDemoPanel panel = new KemDemoPanel();
 
-		JLabel intro = named(panel, "lblIntro", JLabel.class);
+		JTextComponent intro = named(panel, "lblIntro", JTextComponent.class);
 
 		assertTrue(intro != null && intro.getText() != null && !intro.getText().isBlank(),
 			"the panel must explain what it simulates before the first field");

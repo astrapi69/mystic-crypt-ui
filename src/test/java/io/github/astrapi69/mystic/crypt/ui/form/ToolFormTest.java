@@ -25,6 +25,7 @@
 package io.github.astrapi69.mystic.crypt.ui.form;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -121,5 +122,35 @@ class ToolFormTest
 		assertEquals(ToolForm.COLUMNS, layout.getColumnConstraints());
 		assertEquals("[][grow 200][grow 100]", layout.getRowConstraints());
 		assertNotNull(layout.getLayoutConstraints());
+	}
+
+	/**
+	 * Three panels each wrapped an intro text in a plain {@code "<html>" + text + "</html>"} label,
+	 * which does not reflow to the width its row is actually given without an explicit CSS width -
+	 * it rendered as one long unwrapped line, running off to one side (#202). The replacement has
+	 * to actually wrap, not just avoid the html tag.
+	 */
+	@Test
+	@DisplayName("an intro reads as a wrapping, non-editable block of text, not a single unwrapped line")
+	void introWrapsInsteadOfRunningOffToOneSide()
+	{
+		JTextArea intro = (JTextArea)ToolForm.intro("some explanatory text");
+
+		assertEquals("some explanatory text", intro.getText());
+		assertTrue(intro.getLineWrap(), "the text must wrap instead of running off to one side");
+		assertTrue(intro.getWrapStyleWord(),
+			"wrapping must break on word boundaries, not mid-word");
+		assertFalse(intro.isEditable(), "an intro is not a field the user types into");
+		assertFalse(intro.isFocusable(), "an intro is not a stop on the tab order");
+	}
+
+	/** The intro is visually set off from the rest of the form, not blending into a plain line */
+	@Test
+	@DisplayName("an intro is framed, not a bare line of text")
+	void introIsFramed()
+	{
+		JTextArea intro = (JTextArea)ToolForm.intro("some explanatory text");
+
+		assertNotNull(intro.getBorder(), "an intro must be visibly set off with a border");
 	}
 }
