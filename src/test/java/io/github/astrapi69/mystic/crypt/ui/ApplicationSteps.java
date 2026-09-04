@@ -1288,6 +1288,26 @@ final class ApplicationSteps
 		return findDialogWithTitle("Convert Key or Certificate File");
 	}
 
+	/**
+	 * Opens the key store creation wizard via the key store plugin's "Create Key Store..." menu
+	 * item (matched by text, like the other plugin tools) and returns a fixture for its dialog
+	 */
+	DialogFixture openKeyStoreWizard()
+	{
+		JMenuItem menuItem = robot.finder()
+			.find(new GenericTypeMatcher<JMenuItem>(JMenuItem.class, false)
+			{
+				@Override
+				protected boolean isMatching(JMenuItem candidate)
+				{
+					return !(candidate instanceof javax.swing.JMenu)
+						&& "Create Key Store...".equals(candidate.getText());
+				}
+			});
+		SwingUtilities.invokeLater(menuItem::doClick);
+		return findDialogWithTitle("Create Key Store");
+	}
+
 	/** Clicks the Help menu's Donate item, which shows a popup of donation targets */
 	void clickDonateMenuItem()
 	{
