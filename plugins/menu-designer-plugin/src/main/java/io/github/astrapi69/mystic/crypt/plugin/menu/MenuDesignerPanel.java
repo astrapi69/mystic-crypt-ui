@@ -77,13 +77,27 @@ public class MenuDesignerPanel extends JPanel
 
 		txtMenuXml.setName("txtMenuXml");
 		txtMenuXml.setFont(new Font("monospaced", Font.PLAIN, 12));
+		txtMenuXml.setToolTipText(MenuDesignerMessages.getString("menudesigner.tooltip.menu.xml",
+			"the xml layout of the application menu, in the schema Export produces"));
 		lblResult.setName("lblResult");
+		lblResult.setToolTipText(
+			MenuDesignerMessages.getString("menudesigner.tooltip.result", "what the last operation did"));
 
-		JButton btnExport = button("btnExport", "Export current menu", event -> onExport());
-		JButton btnValidate = button("btnValidate", "Validate", event -> onValidate());
-		JButton btnApply = button("btnApply", "Apply now", event -> onApply());
-		JButton btnSave = button("btnSave", "Save as my menu", event -> onSave());
-		JButton btnReset = button("btnReset", "Reset to standard", event -> onReset());
+		JButton btnExport = button("btnExport", "Export current menu", event -> onExport(),
+			MenuDesignerMessages.getString("menudesigner.tooltip.export.button",
+				"replaces the editor's content with the menu bar currently in place, so it can be reviewed or edited"));
+		JButton btnValidate = button("btnValidate", "Validate", event -> onValidate(),
+			MenuDesignerMessages.getString("menudesigner.tooltip.validate.button",
+				"checks the edited xml without touching the running application"));
+		JButton btnApply = button("btnApply", "Apply now", event -> onApply(),
+			MenuDesignerMessages.getString("menudesigner.tooltip.apply.button",
+				"rebuilds the live menu bar from the edited xml - not saved, lost on restart unless Save is used too"));
+		JButton btnSave = button("btnSave", "Save as my menu", event -> onSave(),
+			MenuDesignerMessages.getString("menudesigner.tooltip.save.button",
+				"persists the edited xml so it is applied again on the next start"));
+		JButton btnReset = button("btnReset", "Reset to standard", event -> onReset(),
+			MenuDesignerMessages.getString("menudesigner.tooltip.reset.button",
+				"removes the saved menu layout - destructive, the standard menu returns on the next start"));
 
 		add(editorScrollPane(), ToolForm.GROWING);
 		add(ToolForm.buttons(btnExport, btnValidate, btnApply, btnSave, btnReset),
@@ -125,11 +139,13 @@ public class MenuDesignerPanel extends JPanel
 		return editor;
 	}
 
-	private static JButton button(String name, String text, java.awt.event.ActionListener listener)
+	private static JButton button(String name, String text, java.awt.event.ActionListener listener,
+		String tooltip)
 	{
 		JButton button = new JButton(text);
 		button.setName(name);
 		button.addActionListener(listener);
+		button.setToolTipText(tooltip);
 		return button;
 	}
 

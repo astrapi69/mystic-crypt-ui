@@ -34,6 +34,7 @@ import java.io.File;
 import java.util.Map;
 
 import javax.swing.JButton;
+import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
@@ -214,5 +215,30 @@ class MenuDesignerPanelBindingTest
 		JMTextArea editor = named(panel, "txtMenuXml", JMTextArea.class);
 		assertNotNull(editor, "the xml editor is not a model backed component");
 		assertEquals(menuXml, editor.getPropertyModel().getObject());
+	}
+
+	private static void assertHasTooltip(JComponent component, String fieldName)
+	{
+		String tooltip = component.getToolTipText();
+		assertTrue(tooltip != null && !tooltip.isBlank(), fieldName + " must have a tooltip");
+	}
+
+	/**
+	 * The xml editor expects a specific schema and Reset is destructive - neither is obvious from
+	 * the label alone (#161)
+	 */
+	@Test
+	@DisplayName("the editor and every button explain themselves with a tooltip")
+	void everyFieldExplainsItselfWithATooltip()
+	{
+		MenuDesignerPanel panel = new MenuDesignerPanel();
+
+		assertHasTooltip(named(panel, "txtMenuXml", JComponent.class), "menu xml editor");
+		assertHasTooltip(named(panel, "btnExport", JComponent.class), "export button");
+		assertHasTooltip(named(panel, "btnValidate", JComponent.class), "validate button");
+		assertHasTooltip(named(panel, "btnApply", JComponent.class), "apply button");
+		assertHasTooltip(named(panel, "btnSave", JComponent.class), "save button");
+		assertHasTooltip(named(panel, "btnReset", JComponent.class), "reset button");
+		assertHasTooltip(named(panel, "lblResult", JComponent.class), "result label");
 	}
 }
