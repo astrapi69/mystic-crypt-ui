@@ -31,6 +31,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.awt.Component;
 import java.awt.Container;
+import java.awt.Toolkit;
+import java.awt.datatransfer.DataFlavor;
 import java.security.Security;
 import java.util.ArrayList;
 import java.util.List;
@@ -46,6 +48,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.MethodSource;
 
 /**
@@ -281,5 +284,46 @@ class KeyExchangePanelBindingTest
 			"encrypt message button");
 		assertHasTooltip(named(panel, "txtEncryptedOut", JComponent.class), "encrypted out");
 		assertHasTooltip(named(panel, "btnSaveEncrypted", JComponent.class), "save encrypted button");
+	}
+
+	private static String clipboardText() throws Exception
+	{
+		return (String)Toolkit.getDefaultToolkit().getSystemClipboard()
+			.getData(DataFlavor.stringFlavor);
+	}
+
+	/**
+	 * What travels through this panel is text a user has to move to another machine or another
+	 * program by hand - selecting a multi-line key or handshake correctly is easy to get wrong, so
+	 * every area gets a copy button that puts exactly what it holds on the clipboard (#184)
+	 */
+	@ParameterizedTest
+	@CsvSource({ "txtMyPublicKey, btnCopyMyPublicKey", "txtHandshakeIn, btnCopyHandshakeIn",
+			"txtEncryptedIn, btnCopyEncryptedIn", "txtMessageReceived, btnCopyMessageReceived",
+			"txtTheirPublicKey, btnCopyTheirPublicKey", "txtHandshakeOut, btnCopyHandshakeOut",
+			"txtMessageToSend, btnCopyMessageToSend", "txtEncryptedOut, btnCopyEncryptedOut" })
+	@DisplayName("the copy button next to an area puts exactly that area's text on the clipboard")
+	void theCopyButtonPutsTheAreasTextOnTheClipboard(String areaName, String copyButtonName)
+		throws Exception
+	{
+		KeyExchangePanel panel = new KeyExchangePanel();
+		String value = "sample-" + areaName;
+		type(panel, areaName, value);
+
+		click(panel, copyButtonName);
+
+		assertEquals(value, clipboardText());
+	}
+
+	@Test
+	@DisplayName("the panel explains what it does before the algorithm field")
+	void thePanelExplainsWhatItDoesBeforeTheAlgorithmField()
+	{
+		KeyExchangePanel panel = new KeyExchangePanel();
+
+		JLabel intro = named(panel, "lblIntro", JLabel.class);
+
+		assertTrue(intro != null && intro.getText() != null && !intro.getText().isBlank(),
+			"the panel must explain what Receive and Send do before the tabs");
 	}
 }

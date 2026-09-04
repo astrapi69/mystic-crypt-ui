@@ -117,16 +117,34 @@ public class KemDemoPanel extends JPanel
 			"runs the whole exchange: generates a key pair, encapsulates a shared secret against it, decapsulates it back, and shows both sides"));
 		btnRun.addActionListener(event -> onRun());
 
+		JLabel lblIntro = new JLabel("<html>" + KemDemoMessages.getString("kemdemo.intro",
+			"Simulates a full key encapsulation between a sender and a recipient in one window: "
+				+ "generates a key pair, encapsulates a shared secret against it, decapsulates it "
+				+ "back, and shows whether both sides agree. To actually exchange keys with someone "
+				+ "else, use Key Exchange instead - this tool only demonstrates the mathematics.")
+			+ "</html>");
+		lblIntro.setName("lblIntro");
+
+		add(lblIntro, ToolForm.WIDE);
 		add(new JLabel("Algorithm:"));
 		add(cmbAlgorithm, ToolForm.FIELD);
 		add(ToolForm.buttons(btnRun), ToolForm.BUTTON_ROW);
 
 		add(new JLabel("Ciphertext (sender to recipient):"), AREA_LABEL);
 		add(ToolForm.scrolled(txtCiphertext), CIPHERTEXT_ROW);
+		add(ToolForm.buttons(CopyButtons.copyButton("btnCopyCiphertext", txtCiphertext,
+			KemDemoMessages.getString("kemdemo.tooltip.copy.ciphertext",
+				"copies the ciphertext to the clipboard"))), ToolForm.BUTTON_ROW);
 		add(new JLabel("Sender shared secret:"), AREA_LABEL);
 		add(ToolForm.scrolled(txtSenderSecret), SECRET_ROW);
+		add(ToolForm.buttons(CopyButtons.copyButton("btnCopySenderSecret", txtSenderSecret,
+			KemDemoMessages.getString("kemdemo.tooltip.copy.sender.secret",
+				"copies the sender's shared secret to the clipboard"))), ToolForm.BUTTON_ROW);
 		add(new JLabel("Recipient shared secret:"), AREA_LABEL);
 		add(ToolForm.scrolled(txtRecipientSecret), SECRET_ROW);
+		add(ToolForm.buttons(CopyButtons.copyButton("btnCopyRecipientSecret", txtRecipientSecret,
+			KemDemoMessages.getString("kemdemo.tooltip.copy.recipient.secret",
+				"copies the recipient's shared secret to the clipboard"))), ToolForm.BUTTON_ROW);
 		add(lblResult, ToolForm.RESULT_LINE);
 	}
 

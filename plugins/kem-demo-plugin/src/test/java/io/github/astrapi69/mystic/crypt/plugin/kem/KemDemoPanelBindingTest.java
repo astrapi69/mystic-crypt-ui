@@ -31,6 +31,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.awt.Component;
 import java.awt.Container;
+import java.awt.Toolkit;
+import java.awt.datatransfer.DataFlavor;
 import java.io.File;
 import java.util.List;
 import java.util.Map;
@@ -46,6 +48,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.MethodSource;
 
 import io.github.astrapi69.mystic.crypt.settings.PluginSettings;
@@ -259,5 +262,44 @@ class KemDemoPanelBindingTest
 		assertHasTooltip(named(panel, "txtSenderSecret", JComponent.class), "sender secret");
 		assertHasTooltip(named(panel, "txtRecipientSecret", JComponent.class), "recipient secret");
 		assertHasTooltip(named(panel, "lblResult", JComponent.class), "result label");
+	}
+
+	private static String clipboardText() throws Exception
+	{
+		return (String)Toolkit.getDefaultToolkit().getSystemClipboard()
+			.getData(DataFlavor.stringFlavor);
+	}
+
+	/**
+	 * Every value the demo produces is long Base64/hex a user has to move elsewhere by hand -
+	 * selecting it correctly across a wrapped, multi-line area is easy to get wrong, so each one
+	 * gets a copy button that puts exactly what the area holds on the clipboard (#184)
+	 */
+	@ParameterizedTest
+	@CsvSource({ "txtCiphertext, btnCopyCiphertext", "txtSenderSecret, btnCopySenderSecret",
+			"txtRecipientSecret, btnCopyRecipientSecret" })
+	@DisplayName("the copy button next to a value area puts exactly that value on the clipboard")
+	void theCopyButtonPutsTheAreasValueOnTheClipboard(String areaName, String copyButtonName)
+		throws Exception
+	{
+		KemDemoPanel panel = new KemDemoPanel();
+		String value = "sample-" + areaName;
+		named(panel, areaName, JTextComponent.class).setText(value);
+
+		click(panel, copyButtonName);
+
+		assertEquals(value, clipboardText());
+	}
+
+	@Test
+	@DisplayName("the panel explains what it does before the first field")
+	void thePanelExplainsWhatItDoesBeforeTheFirstField()
+	{
+		KemDemoPanel panel = new KemDemoPanel();
+
+		JLabel intro = named(panel, "lblIntro", JLabel.class);
+
+		assertTrue(intro != null && intro.getText() != null && !intro.getText().isBlank(),
+			"the panel must explain what it simulates before the first field");
 	}
 }
