@@ -22,6 +22,7 @@ ADDED:
 - key exchange and key encapsulation demo: both panels explain what they simulate before the first field, and every key, handshake, ciphertext or secret text area has a copy button next to it
 - file and text encryptor: explains what it does, that a lost passphrase cannot be recovered, and which tab to use, before the first field
 - key store manager gained a guided "Create Key Store..." wizard next to "Manage Key Store": file, type and a twice-asked password, an optional first key pair, then a review before Finish - refuses to overwrite an existing file the same way the certificate and conversion wizards do, and hands off to "Manage Key Store" on success
+- every password field gets FlatLaf's built-in reveal button, so a typo is no longer only found out after the password already failed
 
 CHANGED:
 

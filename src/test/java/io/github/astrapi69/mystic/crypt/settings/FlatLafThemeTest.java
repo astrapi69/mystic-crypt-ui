@@ -57,4 +57,20 @@ class FlatLafThemeTest
 				+ " must be registered with UIManager, not only known to the menu");
 		}
 	}
+
+	/**
+	 * No password field anywhere in the app had a way to show what was typed - a typo was only
+	 * found out the hard way, after the password already failed. FlatLaf already ships a
+	 * reveal-password button for every {@link javax.swing.JPasswordField}; turning it on is one
+	 * {@link UIManager} default, set once here so every password field gets it without a per-panel
+	 * change (#198)
+	 */
+	@Test
+	void installAllTurnsOnTheRevealPasswordButton()
+	{
+		FlatLafTheme.installAll();
+
+		assertTrue(UIManager.getBoolean("PasswordField.showRevealButton"),
+			"every password field must get FlatLaf's built-in reveal button");
+	}
 }
