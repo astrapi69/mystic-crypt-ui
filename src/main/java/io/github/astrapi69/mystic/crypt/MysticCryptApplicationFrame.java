@@ -197,8 +197,12 @@ public class MysticCryptApplicationFrame extends ApplicationPanelFrame<Applicati
 		IModel<MasterPwFileModelBean> model = BaseModel.of(masterPwFileModelBean);
 		MasterPwFileDialog dialog = new MasterPwFileDialog(null, "Enter your credentials", true,
 			model);
-		RuntimeExceptionDecorator
-			.decorate(() -> LookAndFeels.setLookAndFeel(LookAndFeels.NIMBUS, dialog));
+		// the persisted choice, not a hardcoded Nimbus - onAfterInitialize() applied it after the
+		// sign-in dialog had already been shown and dismissed, so it never actually reached this
+		// dialog (#192); configurationDirectory is already resolved above for the memoized sign-in
+		// file, so nothing here waits on main-frame initialization to know the choice
+		MysticCryptSettings persistedSettings = MysticCryptSettings.load(configurationDirectory);
+		GeneralSettingsPanel.applyLookAndFeel(persistedSettings.getLookAndFeel());
 		dialog.setSize(920, 380);
 		dialog.setVisible(true);
 		signinScreen = dialog.getGraphicsConfiguration();
