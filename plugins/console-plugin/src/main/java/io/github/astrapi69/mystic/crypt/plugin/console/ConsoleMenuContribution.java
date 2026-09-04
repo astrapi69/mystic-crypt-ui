@@ -26,6 +26,7 @@ package io.github.astrapi69.mystic.crypt.plugin.console;
 
 import java.util.List;
 
+import java.awt.BorderLayout;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 
@@ -76,7 +77,6 @@ public class ConsoleMenuContribution implements PluginMenuContribution
 			JDesktopPane desktopPane = instance.getDesktopPanePanel().getDesktopPane();
 			int divisor = ConsoleSettingsContribution.heightDivisor();
 			boolean resizable = ConsoleSettingsContribution.resizable();
-			ConsoleDock.dock(internalFrame, desktopPane, divisor);
 			internalFrame.setResizable(resizable);
 			if (!resizable)
 			{
@@ -92,7 +92,14 @@ public class ConsoleMenuContribution implements PluginMenuContribution
 				});
 			}
 			internalFrame.putClientProperty("dragMode", resizable ? "default" : "fixed");
-			JInternalFrameExtensions.addInternalFrameToMainFrame(component, internalFrame, instance);
+			// add the component directly, without JInternalFrameExtensions.addComponentToFrame's
+			// pack() - pack() resizes the frame to the content's tiny preferred size, silently
+			// overwriting whatever bounds are set before it runs. dock() below has to be the very
+			// last thing that touches this frame's bounds, so nothing after it can clobber them
+			// again (#133)
+			internalFrame.add(component, BorderLayout.CENTER);
+			JInternalFrameExtensions.addInternalFrameToMainFrame(internalFrame, instance);
+			ConsoleDock.dock(internalFrame, desktopPane, divisor);
 		});
 		return List.of(console);
 	}

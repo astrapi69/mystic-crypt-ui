@@ -27,11 +27,14 @@ package io.github.astrapi69.mystic.crypt.ui;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.awt.Component;
 import java.io.File;
 import java.io.PrintStream;
 import java.util.logging.Logger;
 
+import javax.swing.JDesktopPane;
 import javax.swing.JInternalFrame;
+import javax.swing.JMenuItem;
 import javax.swing.JTextArea;
 
 import org.assertj.swing.core.GenericTypeMatcher;
@@ -39,6 +42,7 @@ import org.assertj.swing.edt.GuiActionRunner;
 import org.assertj.swing.fixture.FrameFixture;
 import org.assertj.swing.timing.Condition;
 import org.assertj.swing.timing.Pause;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
@@ -123,6 +127,84 @@ class ConsolePluginUiTest extends AbstractUiTest
 		{
 			System.setOut(originalOut);
 		}
+	}
+
+	/**
+	 * The docked bounds must be right from the console's very first frame on screen, not just
+	 * eventually.
+	 * <p>
+	 * {@code JInternalFrameExtensions.addComponentToFrame()} calls {@code JInternalFrame.pack()},
+	 * which resizes the frame to its content's tiny preferred size - if that runs after
+	 * {@link io.github.astrapi69.mystic.crypt.plugin.console.ConsoleDock#dock} has already set the
+	 * docked bounds, it silently overwrites them. A desktop-resize listener the menu contribution
+	 * also registers happens to re-dock correctly a moment later, which is exactly why a test that
+	 * waits before measuring (the other test in this class included, deliberately left as-is - it
+	 * still proves the EVENTUAL state is right) cannot tell the clobber from a correct first frame:
+	 * both converge to the same numbers a few hundred milliseconds later. Reading the bounds inside
+	 * the SAME EDT dispatch as the menu click, before any later event can run, is what actually
+	 * catches it (#133)
+	 */
+	@Test
+	@DisplayName("the console docks at its configured height on its very first frame, not only eventually")
+	void theConsoleDocksCorrectlyOnItsFirstFrame() throws Exception
+	{
+		installPluginRequiringItBuilt(CONSOLE_ZIP);
+		File databaseFile = new File(tempHome, "console-first-frame-database.mcrdb");
+		createDatabaseFileHeadless(databaseFile, MASTER_PASSWORD);
+		ApplicationSteps application = signInWithExistingDatabase(databaseFile, MASTER_PASSWORD);
+		application.showMainFrame();
+
+		JMenuItem consoleMenuItem = robot.finder()
+			.find(new GenericTypeMatcher<JMenuItem>(JMenuItem.class, false)
+			{
+				@Override
+				protected boolean isMatching(JMenuItem candidate)
+				{
+					return !(candidate instanceof javax.swing.JMenu)
+						&& "Console".equals(candidate.getText());
+				}
+			});
+
+		int[] bounds = GuiActionRunner.execute(() -> {
+			// synchronous: doClick() runs the whole menu action, including dock(), to completion
+			// before this lambda continues - nothing else can run on the EDT in between
+			consoleMenuItem.doClick();
+			MysticCryptApplicationFrame instance = MysticCryptApplicationFrame.getInstance();
+			JDesktopPane desktopPane = instance.getDesktopPanePanel().getDesktopPane();
+			JInternalFrame console = null;
+			for (Component component : desktopPane.getComponents())
+			{
+				if (component instanceof JInternalFrame internalFrame
+					&& "Console".equals(internalFrame.getTitle()))
+				{
+					console = internalFrame;
+					break;
+				}
+			}
+			int desktopHeight = desktopPane.getHeight();
+			return new int[] { desktopHeight, console == null ? -1 : console.getWidth(),
+					console == null ? -1 : console.getHeight() };
+		});
+		int desktopHeight = bounds[0];
+		int consoleWidth = bounds[1];
+		int consoleHeight = bounds[2];
+
+		assertTrue(consoleWidth >= 0,
+			"the console must already be on the desktop pane on its first frame");
+		int expectedHeight = Math.max(120, desktopHeight / 4);
+		assertEquals(desktopPaneWidth(), consoleWidth,
+			"the console must already span the full desktop width on its first frame");
+		assertEquals(expectedHeight, consoleHeight,
+			"the console's first frame must already be docked at its configured height ("
+				+ expectedHeight + " px), not packed down to its content's tiny preferred size ("
+				+ consoleHeight + " px) - see the class javadoc for why a delayed measurement "
+				+ "cannot tell these apart");
+	}
+
+	private int desktopPaneWidth()
+	{
+		return GuiActionRunner.execute(() -> MysticCryptApplicationFrame.getInstance()
+			.getDesktopPanePanel().getDesktopPane().getWidth());
 	}
 
 	private boolean consoleTextContains(FrameFixture frame, String marker)
