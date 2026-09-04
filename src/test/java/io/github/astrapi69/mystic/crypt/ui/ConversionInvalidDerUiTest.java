@@ -24,26 +24,31 @@
  */
 package io.github.astrapi69.mystic.crypt.ui;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.File;
 import java.nio.file.Files;
-import java.util.concurrent.TimeUnit;
 
-import javax.swing.JFileChooser;
-import javax.swing.SwingUtilities;
+import javax.swing.JLabel;
+import javax.swing.JTextField;
 
+import org.assertj.swing.core.matcher.JButtonMatcher;
 import org.assertj.swing.edt.GuiActionRunner;
-import org.assertj.swing.finder.JFileChooserFinder;
-import org.assertj.swing.fixture.FrameFixture;
+import org.assertj.swing.fixture.DialogFixture;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import io.github.astrapi69.mystic.crypt.TestPasswords;
 
 /**
- * Negative-path end-to-end test of the DER-to-PEM conversion plugin: choosing a file that is not a
- * valid DER key must not produce a PEM output file - the converter logs the error and writes
- * nothing, rather than crashing. The happy path lives in {@link ConversionPluginUiTest}.
+ * Negative-path end-to-end test of the conversion wizard: a file that is not a key or certificate
+ * the tool recognises has to be reported inline on the Source step, not crash the wizard, and
+ * Finish pressed anyway (the wizard's Finish button works from any step, not only Review) has to
+ * refuse with a dialog naming the reason rather than writing a broken or empty output file.
+ * Replaces the old single-tool {@code FileConversionPanel} flow this test used to drive (issue
+ * #182).
  */
 class ConversionInvalidDerUiTest extends AbstractUiTest
 {
@@ -51,6 +56,7 @@ class ConversionInvalidDerUiTest extends AbstractUiTest
 	private static final String MASTER_PASSWORD = TestPasswords.throwaway();
 
 	@Test
+	@DisplayName("a file the tool does not recognise is reported inline, and Finish refuses to convert it")
 	void convertingAnInvalidDerFileProducesNoPemFile() throws Exception
 	{
 		installPluginRequiringItBuilt(CONVERSION_ZIP);
@@ -64,29 +70,44 @@ class ConversionInvalidDerUiTest extends AbstractUiTest
 		createDatabaseFileHeadless(databaseFile, MASTER_PASSWORD);
 
 		ApplicationSteps application = signInWithExistingDatabase(databaseFile, MASTER_PASSWORD);
-		FrameFixture frame = application.showMainFrame();
-		application.openPluginTool("Convert DER to PEM", "Convert *.der-file to *.pem-file");
+		application.showMainFrame();
+		DialogFixture wizard = application.openConversionWizard();
 
-		clickAndApproveInChooser(frame, "btnChoose", notDerFile);
-		clickAndApproveInChooser(frame, "btnSaveTo", pemFile);
-		GuiActionRunner.execute(() -> frame.button("btnConvert").target().doClick());
+		GuiActionRunner.execute(() -> ((JTextField)named(wizard, "txtSourceFile"))
+			.setText(notDerFile.getAbsolutePath()));
 		robot.waitForIdle();
 
+		assertEquals("nothing this tool recognises",
+			GuiActionRunner.execute(() -> ((JLabel)named(wizard, "lblWhatItHolds")).getText()),
+			"a file the tool does not recognise must be reported, not crash the wizard");
+
+		// fired without waiting for it to finish: the click itself blocks on the EDT until the
+		// error
+		// dialog it triggers is dismissed, so a synchronous click() here would deadlock the test
+		// the
+		// same way it would deadlock the real application if nothing ever answered it (mirrors
+		// CertificateWizardUiTest.finishRefusesToOverwriteAnExistingFile)
+		javax.swing.SwingUtilities.invokeLater(() -> ((javax.swing.JButton)wizard.robot().finder()
+			.find(wizard.target(), JButtonMatcher.withText("Finish"))).doClick());
+
+		DialogFixture failureDialog = application.findDialogWithTitle("Conversion failed");
+		assertTrue(failureDialog.target().isShowing(),
+			"nothing was chosen to convert, so Finish must refuse with a dialog naming the reason");
+		failureDialog.close();
+		robot.waitForIdle();
+
+		assertTrue(wizard.target().isShowing(),
+			"the wizard must stay open after a refused Finish, nothing was saved to act on");
 		assertFalse(pemFile.exists() && pemFile.length() > 0,
 			"an invalid DER input must not produce a non-empty PEM file");
+
+		GuiActionRunner.execute(() -> wizard.target().dispose());
+		robot.waitForIdle();
 	}
 
-	private void clickAndApproveInChooser(FrameFixture frame, String buttonName, File file)
+	private java.awt.Component named(final DialogFixture wizard, final String name)
 	{
-		SwingUtilities.invokeLater(() -> frame.button(buttonName).target().doClick());
-		JFileChooser fileChooser = JFileChooserFinder.findFileChooser()
-			.withTimeout(10, TimeUnit.SECONDS).using(robot).target();
-		UiTestSpeed.step();
-		SwingUtilities.invokeLater(() -> {
-			fileChooser.setSelectedFile(file);
-			fileChooser.approveSelection();
-		});
-		robot.waitForIdle();
-		UiTestSpeed.step();
+		return wizard.robot().finder().find(wizard.target(),
+			component -> name.equals(component.getName()));
 	}
 }

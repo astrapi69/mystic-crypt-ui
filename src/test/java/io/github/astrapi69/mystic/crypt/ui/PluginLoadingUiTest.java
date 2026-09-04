@@ -133,8 +133,8 @@ class PluginLoadingUiTest extends AbstractUiTest
 		}
 		if (conversionBuilt)
 		{
-			assertTrue(pluginMenuItemTexts.contains("Convert DER to PEM"),
-				"the conversion plugin must contribute 'Convert DER to PEM', found: "
+			assertTrue(pluginMenuItemTexts.contains("Convert Key/Certificate..."),
+				"the conversion plugin must contribute 'Convert Key/Certificate...', found: "
 					+ pluginMenuItemTexts);
 		}
 		if (consoleBuilt)

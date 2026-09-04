@@ -1268,6 +1268,26 @@ final class ApplicationSteps
 		return findDialogWithTitle("Create Certificate");
 	}
 
+	/**
+	 * Opens the conversion wizard via the conversion plugin's "Convert Key/Certificate..." menu
+	 * item (matched by text, like the other plugin tools) and returns a fixture for its dialog
+	 */
+	DialogFixture openConversionWizard()
+	{
+		JMenuItem menuItem = robot.finder()
+			.find(new GenericTypeMatcher<JMenuItem>(JMenuItem.class, false)
+			{
+				@Override
+				protected boolean isMatching(JMenuItem candidate)
+				{
+					return !(candidate instanceof javax.swing.JMenu)
+						&& "Convert Key/Certificate...".equals(candidate.getText());
+				}
+			});
+		SwingUtilities.invokeLater(menuItem::doClick);
+		return findDialogWithTitle("Convert Key or Certificate File");
+	}
+
 	/** Clicks the Help menu's Donate item, which shows a popup of donation targets */
 	void clickDonateMenuItem()
 	{

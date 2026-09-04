@@ -26,6 +26,7 @@ CHANGED:
 - the tree hides the root when only one root may exist, so an imported KeePass database no longer appears as a subtree under a node the user cannot remove
 - tree nodes can be moved: up, down, and into another node, with the moves that would break the tree refused rather than half-performed
 - the installer registers a desktop entry that works, and the install instructions name the Java 25 requirement
+- the conversion plugin now offers one guided wizard (Source, Target, Review) instead of two separate tools; the "Convert DER to PEM" and "Convert key file..." menu items are gone, replaced by a single "Convert Key/Certificate..." entry that walks through picking the file, choosing the conversion and confirming the destination, and refuses to overwrite an existing file the same way the certificate wizard does
 
 FIXED:
 
