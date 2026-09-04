@@ -24,11 +24,14 @@
  */
 package io.github.astrapi69.mystic.crypt.plugin.certificate;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.File;
 import java.math.BigInteger;
+import java.nio.file.Files;
 import java.security.KeyPair;
 import java.security.Security;
 import java.security.cert.X509Certificate;
@@ -38,6 +41,7 @@ import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
@@ -169,6 +173,33 @@ class CertificateMenuContributionTest
 			new File("/default/directory"));
 
 		assertEquals(new File("/default/directory", "subject.crt"), file);
+	}
+
+	/**
+	 * Finish used to write straight over whatever was already at the save target - the same bug
+	 * class as #28 ("Create empties an existing key store without asking"), never fixed here (#180)
+	 */
+	@Test
+	@DisplayName("refuses to overwrite a file that already exists at the save target")
+	void requireFreeFileRefusesAnExistingFile(@TempDir File directory) throws Exception
+	{
+		File existing = new File(directory, "already-there.crt");
+		Files.writeString(existing.toPath(), "not a certificate, just something already there");
+
+		IllegalStateException thrown = assertThrows(IllegalStateException.class,
+			() -> CertificateMenuContribution.requireFreeFile(existing));
+
+		assertTrue(thrown.getMessage().contains("already-there.crt"),
+			"the message must name the file that is in the way: " + thrown.getMessage());
+	}
+
+	@Test
+	@DisplayName("a save target that does not exist yet is left alone")
+	void requireFreeFileAllowsAFreshPath(@TempDir File directory)
+	{
+		File fresh = new File(directory, "not-there-yet.crt");
+
+		assertDoesNotThrow(() -> CertificateMenuContribution.requireFreeFile(fresh));
 	}
 
 }

@@ -24,12 +24,15 @@
  */
 package io.github.astrapi69.mystic.crypt.ui;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.File;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.util.List;
 
 import javax.swing.JButton;
@@ -161,6 +164,53 @@ class CertificateWizardUiTest extends AbstractUiTest
 		assertTrue(savedFile.exists(), "the certificate must actually be written to " + savedFile);
 		assertNotNull(CertificateReader.readPemCertificate(savedFile),
 			"what was written must be a certificate the library can read back");
+	}
+
+	/**
+	 * Finish used to write straight over whatever file was already at the save target, destroying
+	 * it without asking - the same bug class as #28 ("Create empties an existing key store without
+	 * asking"), never fixed here until now (#180)
+	 */
+	@Test
+	@DisplayName("Finish refuses to overwrite a file that already exists at the save target")
+	void finishRefusesToOverwriteAnExistingFile() throws Exception
+	{
+		installPluginRequiringItBuilt(CERTIFICATE_ZIP);
+		File databaseFile = new File(tempHome, "certwizard-overwrite-database.mcrdb");
+		createDatabaseFileHeadless(databaseFile, MASTER_PASSWORD);
+		ApplicationSteps application = signInWithExistingDatabase(databaseFile, MASTER_PASSWORD);
+		application.showMainFrame();
+		DialogFixture wizard = application.openCertificateWizard();
+
+		for (int index = 0; index < 4; index++)
+		{
+			click(wizard, "Next");
+		}
+
+		File targetFile = GuiActionRunner
+			.execute(() -> new File(((JTextField)named(wizard, "txtSaveDirectory")).getText(),
+				((JTextField)named(wizard, "txtFileName")).getText()));
+		String originalContent = "whatever was already there must survive";
+		Files.writeString(targetFile.toPath(), originalContent, StandardCharsets.UTF_8);
+
+		// fired without waiting for it to finish: the click itself blocks on the EDT until the
+		// error dialog it triggers is dismissed, so a synchronous click() here would deadlock the
+		// test the same way it would deadlock the real application if nothing ever answered it
+		javax.swing.SwingUtilities.invokeLater(() -> onlyOneMatching(wizard, "Finish").doClick());
+
+		DialogFixture failureDialog = application.findDialogWithTitle("Certificate failed");
+		assertTrue(failureDialog.target().isShowing(),
+			"an existing file at the save target must be refused with a dialog naming the reason");
+		failureDialog.close();
+		robot.waitForIdle();
+
+		assertTrue(wizard.target().isShowing(),
+			"the wizard must stay open after a refused Finish, nothing was saved to act on");
+		assertEquals(originalContent, Files.readString(targetFile.toPath(), StandardCharsets.UTF_8),
+			"the file that was already there must not have been touched");
+
+		GuiActionRunner.execute(() -> wizard.target().dispose());
+		robot.waitForIdle();
 	}
 
 	private java.awt.Component named(final DialogFixture wizard, final String name)
