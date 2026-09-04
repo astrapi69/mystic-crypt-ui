@@ -212,6 +212,7 @@ public class CertificateMenuContribution implements PluginMenuContribution
 			reviewFormModel.getSaveDirectory(), model, frame.getConfigurationDirectory());
 		try
 		{
+			requireFreeFile(file);
 			X509Certificate certificate = CertificateInfoModelToX509.toX509Certificate(model);
 			CertificateWriter.writeInPemFormat(certificate, file);
 			dialog.dispose();
@@ -221,6 +222,25 @@ public class CertificateMenuContribution implements PluginMenuContribution
 			JOptionPane.showMessageDialog(dialog,
 				"Could not create the certificate: " + exception.getMessage(), "Certificate failed",
 				JOptionPane.ERROR_MESSAGE);
+		}
+	}
+
+	/**
+	 * Refuses a path that already holds something, because writing a certificate there would
+	 * silently truncate whatever was in it. Mirrors the same guard {@code KeyStorePanel} and
+	 * {@code SecretSharingPanel} already use for their own save targets (#180).
+	 *
+	 * @param file
+	 *            the resolved save target
+	 * @throws IllegalStateException
+	 *             if the file already exists
+	 */
+	static void requireFreeFile(File file)
+	{
+		if (file.exists())
+		{
+			throw new IllegalStateException(
+				"'" + file.getName() + "' already exists - pick another name or remove it first");
 		}
 	}
 
