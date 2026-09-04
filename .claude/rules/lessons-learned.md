@@ -62,11 +62,16 @@ a real legacy file, not through unit tests.)
 Every gitignored config that has a committed `.example`/template must be checked when
 the config schema changes — CI reads the example, developers read the real file.
 
-## `make test` is not the gate CI runs
+## `make test` is not the gate CI runs - and reproducing that gate locally is not the fix
 
-`test` compiles and runs tests; CI runs `build`, which also runs `spotlessJavaCheck`. A branch can
-be green locally through every test and still turn develop red on formatting alone. Before pushing,
-run the gate CI runs, not the one that is quicker.
+`test` compiles and runs tests; CI runs `build`, which also runs `spotlessJavaCheck` and the full
+e2e suite. A branch can be green locally through every test and still turn develop red on
+formatting alone - but chasing that by rerunning the full `build` locally (Xvfb + fluxbox, many
+minutes) burns local resources on verification GitHub Actions already does on every push. For
+everyday changes: run `spotlessApply` before committing (cheap, catches the most common CI-only
+failure), then push and let CI run the real gate - react to what it reports instead of blocking
+the push on a local rerun. Exception: a release cut, where `release-workflow.md`'s full local gate
+stays mandatory (nothing to react to after tagging).
 
 ## Run UI e2e tests locally with the Xvfb harness
 
