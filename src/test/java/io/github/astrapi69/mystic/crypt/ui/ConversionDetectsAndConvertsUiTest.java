@@ -25,6 +25,7 @@
 package io.github.astrapi69.mystic.crypt.ui;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.File;
@@ -32,8 +33,14 @@ import java.nio.file.Files;
 import java.security.KeyPair;
 import java.security.Security;
 
+import javax.swing.AbstractButton;
+import javax.swing.JButton;
+import javax.swing.JLabel;
+import javax.swing.JTextField;
+
+import org.assertj.swing.core.matcher.JButtonMatcher;
 import org.assertj.swing.edt.GuiActionRunner;
-import org.assertj.swing.fixture.FrameFixture;
+import org.assertj.swing.fixture.DialogFixture;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.junit.jupiter.api.Test;
 
@@ -43,8 +50,10 @@ import io.github.astrapi69.mystic.crypt.TestPasswords;
 import io.github.astrapi69.mystic.crypt.crypto.KeyFiles;
 
 /**
- * Functional end-to-end test of converting a key file: the tool has to say what the chosen file
- * holds rather than ask, and turn a key openssl wrote into one Java reads.
+ * Functional end-to-end test of the conversion wizard's auto-detection and the PKCS#8 conversion:
+ * the Source step has to say what a chosen file holds rather than ask, and the Target step has to
+ * turn a key openssl wrote into one Java reads. Replaces the old single-tool
+ * {@code ConversionPanel} flow this test used to drive (issue #182).
  */
 class ConversionDetectsAndConvertsUiTest extends AbstractUiTest
 {
@@ -72,31 +81,47 @@ class ConversionDetectsAndConvertsUiTest extends AbstractUiTest
 		File target = new File(tempHome, "java-key.pem");
 
 		ApplicationSteps application = signInWithExistingDatabase(databaseFile, MASTER_PASSWORD);
-		FrameFixture frame = application.showMainFrame();
-		application.openPluginTool("Convert key file...", "Convert key file");
+		application.showMainFrame();
+		DialogFixture wizard = application.openConversionWizard();
 
-		GuiActionRunner.execute(() -> {
-			frame.textBox("txtSourceFile").target().setText(source.getAbsolutePath());
-			frame.textBox("txtTargetFile").target().setText(target.getAbsolutePath());
-		});
+		GuiActionRunner.execute(
+			() -> ((JTextField)named(wizard, "txtSourceFile")).setText(source.getAbsolutePath()));
 		robot.waitForIdle();
 
 		assertEquals("an RSA private key, PKCS#1",
-			GuiActionRunner.execute(() -> frame.label("lblWhatItHolds").target().getText()),
-			"the tool has to say what the file holds rather than ask");
+			GuiActionRunner.execute(() -> ((JLabel)named(wizard, "lblWhatItHolds")).getText()),
+			"the Source step has to say what the file holds rather than ask");
 
-		GuiActionRunner.execute(() -> frame.button("btnToPkcs8").target().doClick());
+		click(wizard, "Next");
+		GuiActionRunner.execute(() -> ((AbstractButton)named(wizard, "rdoToPkcs8")).doClick());
+		GuiActionRunner.execute(
+			() -> ((JTextField)named(wizard, "txtTargetFile")).setText(target.getAbsolutePath()));
 		robot.waitForIdle();
+		click(wizard, "Next");
+		click(wizard, "Finish");
 
-		assertTrue(target.exists(), "the converted key must be written: " + result(frame));
+		assertFalse(wizard.target().isShowing(), "the wizard must close after a successful Finish");
+		assertTrue(target.exists(), "the converted key must be written");
 		assertTrue(Files.readString(target.toPath()).contains("BEGIN PRIVATE KEY"),
 			"PKCS#8 is what Java reads, and it says so in its header");
 		assertEquals(keyPair.getPrivate(), KeyFiles.readPrivateKey(target),
 			"the converted file has to hold the same key");
 	}
 
-	private String result(FrameFixture frame)
+	private java.awt.Component named(final DialogFixture wizard, final String name)
 	{
-		return GuiActionRunner.execute(() -> frame.label("lblResult").target().getText());
+		return wizard.robot().finder().find(wizard.target(),
+			component -> name.equals(component.getName()));
+	}
+
+	private void click(final DialogFixture wizard, final String buttonText)
+	{
+		GuiActionRunner.execute(() -> {
+			JButton button = (JButton)wizard.robot().finder().find(wizard.target(),
+				JButtonMatcher.withText(buttonText));
+			button.doClick();
+			return null;
+		});
+		robot.waitForIdle();
 	}
 }
