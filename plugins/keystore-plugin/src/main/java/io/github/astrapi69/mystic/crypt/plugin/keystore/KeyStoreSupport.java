@@ -601,6 +601,27 @@ public final class KeyStoreSupport
 	}
 
 	/**
+	 * Refuses a path that already holds something, because creating a key store there writes an
+	 * empty one over whatever was in it.
+	 * <p>
+	 * Shared by every entry point that creates a key store - the dense "Manage Key Store" panel and
+	 * the guided creation wizard - so the two cannot drift into different overwrite behaviour.
+	 *
+	 * @param file
+	 *            the key store file a create operation is about to write to
+	 * @throws IllegalStateException
+	 *             if the file already exists and is not empty
+	 */
+	public static void requireFreeFile(final File file)
+	{
+		if (file.exists() && file.length() > 0)
+		{
+			throw new IllegalStateException(
+				"'" + file.getName() + "' already exists; open it instead, or choose another file");
+		}
+	}
+
+	/**
 	 * Removes an alias from a key store file
 	 *
 	 * @param file

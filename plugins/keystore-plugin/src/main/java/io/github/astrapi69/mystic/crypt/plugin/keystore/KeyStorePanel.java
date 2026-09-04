@@ -576,16 +576,12 @@ public class KeyStorePanel extends JPanel
 
 	/**
 	 * Refuses a path that already holds something, because creating a key store there writes an
-	 * empty one over whatever was in it
+	 * empty one over whatever was in it. Delegates to {@link KeyStoreSupport#requireFreeFile(File)},
+	 * the same guard the "Create Key Store..." wizard uses, so the two cannot drift apart.
 	 */
 	private void requireFreeFile()
 	{
-		File keyStoreFile = file();
-		if (keyStoreFile.exists() && keyStoreFile.length() > 0)
-		{
-			throw new IllegalStateException("'" + keyStoreFile.getName()
-				+ "' already exists; open it instead, or choose another file");
-		}
+		KeyStoreSupport.requireFreeFile(file());
 	}
 
 	private String selectedAlias()

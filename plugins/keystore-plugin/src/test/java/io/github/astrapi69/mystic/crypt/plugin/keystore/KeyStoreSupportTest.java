@@ -240,4 +240,36 @@ class KeyStoreSupportTest
 				STORE_PASSWORD)).isEmpty(),
 			"a freshly created store has nothing to list");
 	}
+
+	/**
+	 * The shared overwrite guard both {@code KeyStorePanel} and the creation wizard call: a path
+	 * that does not exist yet, or that exists but is empty, is free to write to.
+	 */
+	@Test
+	void requireFreeFileAcceptsAMissingOrEmptyPath(@TempDir File directory) throws Exception
+	{
+		File missing = new File(directory, "missing.p12");
+		File empty = new File(directory, "empty.p12");
+		Files.createFile(empty.toPath());
+
+		KeyStoreSupport.requireFreeFile(missing);
+		KeyStoreSupport.requireFreeFile(empty);
+	}
+
+	/**
+	 * A path that already holds a real key store must be refused - creating one there would write
+	 * an empty store over whatever was in it
+	 */
+	@Test
+	void requireFreeFileRejectsAnExistingNonEmptyFile(@TempDir File directory) throws Exception
+	{
+		File file = newStoreFile(directory, "already-there.p12");
+		KeyStoreSupport.create(file, KeystoreType.PKCS12, STORE_PASSWORD);
+
+		IllegalStateException exception = assertThrows(IllegalStateException.class,
+			() -> KeyStoreSupport.requireFreeFile(file));
+
+		assertTrue(exception.getMessage().contains("already-there.p12"), exception.getMessage());
+		assertTrue(exception.getMessage().contains("already exists"), exception.getMessage());
+	}
 }
