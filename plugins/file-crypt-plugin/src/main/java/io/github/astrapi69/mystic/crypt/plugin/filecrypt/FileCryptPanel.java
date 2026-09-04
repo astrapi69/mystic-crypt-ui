@@ -90,6 +90,14 @@ public class FileCryptPanel extends JPanel
 		// the tool starts on the tab the user configured in the settings dialog
 		tabs.setSelectedIndex("text".equals(FileCryptSettingsContribution.startTab()) ? 1 : 0);
 
+		JLabel lblIntro = new JLabel("<html>" + FileCryptMessages.getString("filecrypt.intro",
+			"Encrypts or decrypts a file or a piece of text with a passphrase - use the File tab "
+				+ "for a file on disk, the Text tab to encrypt or decrypt text directly. There is "
+				+ "no way to recover the content if the passphrase is lost - nothing here can "
+				+ "bypass it.") + "</html>");
+		lblIntro.setName("lblIntro");
+
+		add(lblIntro, ToolForm.WIDE);
 		add(tabs, ToolForm.GROWING);
 		add(lblResult, ToolForm.RESULT_LINE);
 	}
