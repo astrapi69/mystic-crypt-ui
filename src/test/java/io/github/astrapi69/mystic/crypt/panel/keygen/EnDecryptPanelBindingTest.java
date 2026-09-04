@@ -21,11 +21,13 @@
 package io.github.astrapi69.mystic.crypt.panel.keygen;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.awt.event.ActionEvent;
 
 import javax.swing.text.BadLocationException;
 
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -153,5 +155,33 @@ class EnDecryptPanelBindingTest
 		assertEquals("txtEncrypted", panel.getTxtEncrypted().getName());
 		assertEquals("btnEncrypt", panel.getBtnEncrypt().getName());
 		assertEquals("btnDecrypt", panel.getBtnDecrypt().getName());
+	}
+
+	/**
+	 * A disabled button that explains itself only on hover reads as broken until someone thinks to
+	 * hover it - the reason has to be readable without hovering anything (#189)
+	 */
+	@Test
+	@DisplayName("the reason the buttons are out of reach is shown, not only on the buttons' tooltip")
+	void theUnavailableReasonIsVisibleWithoutHoveringAnything()
+	{
+		EnDecryptPanel panel = new EnDecryptPanel();
+
+		panel.setEnDecryptAvailable(false, "only RSA can do this");
+
+		assertEquals("only RSA can do this", panel.getLblReason().getText());
+	}
+
+	@Test
+	@DisplayName("the reason disappears once encrypting and decrypting are available again")
+	void theReasonIsClearedOnceAvailableAgain()
+	{
+		EnDecryptPanel panel = new EnDecryptPanel();
+		panel.setEnDecryptAvailable(false, "only RSA can do this");
+
+		panel.setEnDecryptAvailable(true, "only RSA can do this");
+
+		assertTrue(panel.getLblReason().getText().isBlank(),
+			"the old reason must not linger once the buttons work again");
 	}
 }

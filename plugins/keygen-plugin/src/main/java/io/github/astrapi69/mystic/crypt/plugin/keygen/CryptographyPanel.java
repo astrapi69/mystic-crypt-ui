@@ -104,6 +104,12 @@ public class CryptographyPanel extends BasePanel<GenerateKeysModelBean>
 	private JButton btnSavePublicKey;
 
 	/**
+	 * Says why "Save certificate..." is out of reach, visibly - a disabled button that only
+	 * explains itself on hover reads as broken until someone thinks to hover it (#189)
+	 */
+	private JLabel lblCertificateReason;
+
+	/**
 	 * The cmb key size.
 	 */
 	private JMComboBox<KeySize, EnumComboBoxModel<KeySize>> cmbKeySize;
@@ -206,6 +212,7 @@ public class CryptographyPanel extends BasePanel<GenerateKeysModelBean>
 		btnSavePublicKey = new JButton();
 		btnSavePrivKeyWithPw = new JButton();
 		btnSaveCertificate = new JButton();
+		lblCertificateReason = new JLabel(" ");
 
 		// the tool starts with the key size the user configured in the settings dialog; the model
 		// carries it, and the bound key size box takes it from there
@@ -265,7 +272,8 @@ public class CryptographyPanel extends BasePanel<GenerateKeysModelBean>
 		btnSavePublicKey.setToolTipText(KeygenMessages.getString("keygen.tooltip.save.public.key.button",
 			"writes the generated public key to a file, in the encoding chosen above"));
 		btnSaveCertificate.setToolTipText(KeygenMessages.getString("keygen.tooltip.save.certificate.button",
-			"creates and writes a self-signed certificate for the generated key pair - RSA only"));
+			"creates and writes a self-signed certificate for the generated key pair - RSA or EC only"));
+		lblCertificateReason.setName("lblCertificateReason");
 
 		txtPublicKey.setColumns(KEY_AREA_COLUMNS);
 		txtPublicKey.setRows(KEY_AREA_ROWS);
@@ -281,8 +289,27 @@ public class CryptographyPanel extends BasePanel<GenerateKeysModelBean>
 
 		btnSavePublicKey.setText("Save public key");
 		btnSaveCertificate.setText("Save certificate...");
-		//
-		btnSaveCertificate.setEnabled(false);
+		setCertificateAvailable(false, KeygenMessages.getString("keygen.certificate.unavailable.reason",
+			"Only RSA and EC keys can be used for a self-signed certificate. Choose one of them and press Generate."));
+	}
+
+	/**
+	 * Says whether "Save certificate..." can be used at all right now, and why not when it cannot.
+	 * <p>
+	 * A button that is offered and then answers with a message box has already wasted the click -
+	 * only RSA and EC keys can sign a self-signed certificate here, the owner of this panel knows
+	 * that and says so, so the button is simply out of reach with the reason on it, visibly and not
+	 * only on hover (#189).
+	 *
+	 * @param available
+	 *            true if the button may be used
+	 * @param reason
+	 *            what to show while the button is out of reach, ignored when available
+	 */
+	public void setCertificateAvailable(final boolean available, final String reason)
+	{
+		btnSaveCertificate.setEnabled(available);
+		lblCertificateReason.setText(available ? " " : reason);
 	}
 
 	/**
@@ -399,6 +426,9 @@ public class CryptographyPanel extends BasePanel<GenerateKeysModelBean>
 		add(lblPublicKey, "aligny top");
 		add(scpPublicKey, ToolForm.KEY_AREA);
 		add(ToolForm.buttons(btnSavePublicKey, btnSaveCertificate), ToolForm.BUTTON_ROW);
+		// wmin 0: without it the unwrapped reason text becomes a lower bound for the column, the
+		// same collapse-to-minimum-width bug ToolForm.KEY_AREA documents for the key text areas
+		add(lblCertificateReason, ToolForm.WIDE + ", wmin 0");
 	}
 
 	@Override

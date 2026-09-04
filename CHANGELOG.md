@@ -29,6 +29,7 @@ CHANGED:
 - tree nodes can be moved: up, down, and into another node, with the moves that would break the tree refused rather than half-performed
 - the installer registers a desktop entry that works, and the install instructions name the Java 25 requirement
 - the conversion plugin now offers one guided wizard (Source, Target, Review) instead of two separate tools; the "Convert DER to PEM" and "Convert key file..." menu items are gone, replaced by a single "Convert Key/Certificate..." entry that walks through picking the file, choosing the conversion and confirming the destination, and refuses to overwrite an existing file the same way the certificate wizard does
+- key generation demo: "Save certificate..." now enables for EC keys too, not RSA only; a disabled certificate or encrypt/decrypt control now says why, visibly, not only on hover
 
 FIXED:
 

@@ -197,4 +197,49 @@ class GenerateKeysPanelBindingTest
 		assertHasTooltip(panel.getCmbKeyFormat(), "key format");
 		assertHasTooltip(panel.getCmbSaveFormat(), "save format");
 	}
+
+	/**
+	 * "Save certificate..." used to enable for RSA only, though the underlying certificate builder
+	 * ({@code CertificateInfoModelToX509.defaultSignatureAlgorithmFor}) already signs with EC just
+	 * as well - RSA and EC are the only two of the six offered algorithms that can sign a
+	 * certificate at all, the rest are pure key agreement (X25519, X448), a pure KEM (ML-KEM-768)
+	 * or a post-quantum signature this certificate builder does not support (ML-DSA-65) (#189)
+	 */
+	@ParameterizedTest(name = "{0} can create a certificate: {1}")
+	@CsvSource({ "RSA, true", "EC, true", "X25519, false", "X448, false", "ML_KEM_768, false",
+			"ML_DSA_65, false" })
+	@DisplayName("save certificate enables for exactly the algorithms that can sign one")
+	void saveCertificateEnablesForExactlyTheAlgorithmsThatCanSignOne(String algorithmName,
+		boolean canCertify)
+	{
+		GenerateKeysPanel panel = new GenerateKeysPanel();
+		KeyPairGeneratorAlgorithm algorithm = KeyPairGeneratorAlgorithm.valueOf(algorithmName);
+		panel.getCmbAlgorithm().setSelectedItem(algorithm);
+		if (KeyPairGeneratorAlgorithm.EC.equals(algorithm))
+		{
+			panel.getCmbCurve().setSelectedItem(CHOSEN_CURVE);
+		}
+
+		panel.getCryptographyPanel().getBtnGenerate().doClick();
+
+		assertEquals(canCertify, panel.getCryptographyPanel().getBtnSaveCertificate().isEnabled());
+		assertEquals(canCertify,
+			panel.getCryptographyPanel().getLblCertificateReason().getText().isBlank(),
+			"an algorithm that cannot certify must say why, visibly, not only on hover");
+	}
+
+	@Test
+	@DisplayName("clearing puts the certificate button out of reach again, with a visible reason")
+	void clearingPutsTheCertificateButtonOutOfReachWithAVisibleReason()
+	{
+		GenerateKeysPanel panel = new GenerateKeysPanel();
+		panel.getCmbAlgorithm().setSelectedItem(KeyPairGeneratorAlgorithm.RSA);
+		panel.getCryptographyPanel().getCmbKeySize().setSelectedItem(KeySize.KEYSIZE_1024);
+		panel.getCryptographyPanel().getBtnGenerate().doClick();
+
+		panel.getCryptographyPanel().getBtnClear().doClick();
+
+		assertFalse(panel.getCryptographyPanel().getBtnSaveCertificate().isEnabled());
+		assertFalse(panel.getCryptographyPanel().getLblCertificateReason().getText().isBlank());
+	}
 }

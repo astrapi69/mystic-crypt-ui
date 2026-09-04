@@ -75,6 +75,14 @@ class SaveCertificateTest
 		return panel;
 	}
 
+	private static GenerateKeysPanel panelWithAnEcKeyPair()
+	{
+		GenerateKeysPanel panel = new GenerateKeysPanel();
+		panel.getCmbAlgorithm().setSelectedItem(KeyPairGeneratorAlgorithm.EC);
+		panel.getCryptographyPanel().getBtnGenerate().doClick();
+		return panel;
+	}
+
 	private static CertificateInfoModel named(final CertificateInfoModel certificateInfo,
 		final String commonName)
 	{
@@ -140,6 +148,32 @@ class SaveCertificateTest
 
 		X509Certificate written = CertificateReader.readPemCertificate(certificateFile);
 		written.checkValidity();
+	}
+
+	/**
+	 * "Save certificate..." used to enable for RSA only, though the certificate builder already
+	 * picks a fitting signature algorithm for EC (SHA256withECDSA) generically, not RSA-specifically
+	 * - this proves the EC path produces a real, verifiable certificate, not only that the button
+	 * becomes clickable (#189)
+	 */
+	@Test
+	@DisplayName("an EC key pair also produces a real, verifiable certificate")
+	void anEcKeyPairAlsoProducesARealVerifiableCertificate() throws Exception
+	{
+		GenerateKeysPanel panel = panelWithAnEcKeyPair();
+		CertificateInfoModel certificateInfo = named(
+			KeygenSupport.newCertificateInfo(panel.getModelObject().getPublicKey(),
+				panel.getModelObject().getPrivateKey()),
+			"CN=ec generated pair");
+		File certificateFile = new File(temporaryDirectory, "ec-generated.pem");
+
+		KeygenSupport.writeCertificate(certificateInfo, certificateFile);
+
+		X509Certificate written = CertificateReader.readPemCertificate(certificateFile);
+		assertEquals(panel.getModelObject().getPublicKey(), written.getPublicKey());
+		written.verify(panel.getModelObject().getPublicKey());
+		assertTrue(written.getSigAlgName().toUpperCase(java.util.Locale.ROOT).contains("ECDSA"),
+			"an EC key must sign with an ECDSA algorithm: " + written.getSigAlgName());
 	}
 
 }
