@@ -207,6 +207,24 @@ class FileCryptPanelTest
 		assertHasTooltip((JComponent)find(panel, "lblResult"), "result label");
 	}
 
+	/**
+	 * Tooltips only explain a field once the user hovers it - nothing said what the panel does at
+	 * all, that a lost passphrase cannot be recovered, or which tab to use for a file versus a
+	 * piece of text, before this (#183)
+	 */
+	@Test
+	void thePanelExplainsWhatItDoesBeforeTheFirstField()
+	{
+		FileCryptPanel panel = new FileCryptPanel();
+
+		Component intro = find(panel, "lblIntro");
+
+		assertTrue(intro instanceof JComponent, "the panel must show an intro before the tabs");
+		String text = ((javax.swing.JLabel)intro).getText();
+		assertTrue(text != null && !text.isBlank(),
+			"the intro must explain what the panel does, not be empty");
+	}
+
 	private void type(Container panel, String name, String text)
 	{
 		Component component = find(panel, name);

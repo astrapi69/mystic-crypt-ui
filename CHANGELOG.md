@@ -20,6 +20,7 @@ ADDED:
 - the certificate wizard's extensions do what they say: basic constraints, key usage and subject alternative names are built from readable text and land in the certificate
 - mutation testing (PIT) with a workflow, and the tests the first run showed were missing
 - key exchange and key encapsulation demo: both panels explain what they simulate before the first field, and every key, handshake, ciphertext or secret text area has a copy button next to it
+- file and text encryptor: explains what it does, that a lost passphrase cannot be recovered, and which tab to use, before the first field
 
 CHANGED:
 
