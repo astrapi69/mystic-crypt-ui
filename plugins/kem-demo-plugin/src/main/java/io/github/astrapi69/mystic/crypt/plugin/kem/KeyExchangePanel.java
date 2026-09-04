@@ -103,10 +103,19 @@ public class KeyExchangePanel extends JPanel
 		bindToModel();
 
 		cmbAlgorithm.setName("cmbAlgorithm");
+		cmbAlgorithm.setToolTipText(KemDemoMessages.getString("key.exchange.tooltip.algorithm",
+			"the key exchange mechanism used by both tabs"));
 		lblResult.setName("lblResult");
 		lblResult.setFont(lblResult.getFont().deriveFont(Font.BOLD));
+		lblResult.setToolTipText(
+			KemDemoMessages.getString("key.exchange.tooltip.result", "what the last action did"));
 		lblMyFingerprint.setName("lblMyFingerprint");
+		lblMyFingerprint.setToolTipText(KemDemoMessages.getString("key.exchange.tooltip.my.fingerprint",
+			"the fingerprint of your derived secret - read it out to the other side, it must match theirs"));
 		lblTheirFingerprint.setName("lblTheirFingerprint");
+		lblTheirFingerprint.setToolTipText(
+			KemDemoMessages.getString("key.exchange.tooltip.their.fingerprint",
+				"the fingerprint of the shared secret you derived - read it out to the other side, it must match theirs"));
 		tabs.setName("tabKeyExchange");
 		tabs.addTab("Receive", scrollable(newReceiveTab()));
 		tabs.addTab("Send", scrollable(newSendTab()));
@@ -143,31 +152,57 @@ public class KeyExchangePanel extends JPanel
 	private JPanel newReceiveTab()
 	{
 		txtMyPublicKey.setName("txtMyPublicKey");
+		txtMyPublicKey.setToolTipText(KemDemoMessages.getString("key.exchange.tooltip.my.public.key",
+			"your public key - hand this to the other side, it is safe to share"));
 		txtHandshakeIn.setName("txtHandshakeIn");
+		txtHandshakeIn.setToolTipText(KemDemoMessages.getString("key.exchange.tooltip.handshake.in",
+			"the handshake the other side sent back after encapsulating against your public key"));
 		txtEncryptedIn.setName("txtEncryptedIn");
+		txtEncryptedIn.setToolTipText(KemDemoMessages.getString("key.exchange.tooltip.encrypted.in",
+			"a message the other side encrypted with the shared secret"));
 		txtMessageReceived.setName("txtMessageReceived");
+		txtMessageReceived.setToolTipText(
+			KemDemoMessages.getString("key.exchange.tooltip.message.received", "the decrypted message"));
 
 		JPanel panel = new JPanel(ToolForm.newLayout());
-		panel.add(ToolForm.buttons(button("btnNewKeyPair", "New key pair", event -> onNewKeyPair()),
-			button("btnSaveMyKey", "Save my key...", event -> onSaveMyKey()),
-			button("btnLoadMyKey", "Load my key...", event -> onLoadMyKey())),
+		panel.add(ToolForm.buttons(
+			button("btnNewKeyPair", "New key pair", event -> onNewKeyPair(),
+				KemDemoMessages.getString("key.exchange.tooltip.new.key.pair.button",
+					"generates a fresh key pair for you to receive with")),
+			button("btnSaveMyKey", "Save my key...", event -> onSaveMyKey(),
+				KemDemoMessages.getString("key.exchange.tooltip.save.my.key.button",
+					"saves your private key to a file - whoever gets it can read everything ever sent to this key pair")),
+			button("btnLoadMyKey", "Load my key...", event -> onLoadMyKey(),
+				KemDemoMessages.getString("key.exchange.tooltip.load.my.key.button",
+					"loads a previously saved private key, replacing the current one"))),
 			ToolForm.BUTTON_ROW);
 		panel.add(new JLabel("1. Hand this public key to the other side:"), ToolForm.WIDE);
 		panel.add(scrolled(txtMyPublicKey), KEY_ROW);
-		panel.add(ToolForm.buttons(button("btnSaveMyPublicKey", "Save public key...",
-			event -> onSaveToFile(modelObject.getMyPublicKey(), "public key"))),
+		panel.add(
+			ToolForm.buttons(button("btnSaveMyPublicKey", "Save public key...",
+				event -> onSaveToFile(modelObject.getMyPublicKey(), "public key"),
+				KemDemoMessages.getString("key.exchange.tooltip.save.my.public.key.button",
+					"saves your public key to a file, to hand to the other side"))),
 			ToolForm.BUTTON_ROW);
 		panel.add(new JLabel("2. Paste the handshake that came back:"), ToolForm.WIDE);
 		panel.add(scrolled(txtHandshakeIn), KEY_ROW);
-		panel.add(ToolForm.buttons(button("btnLoadHandshake", "Load...",
-			event -> onLoadInto(txtHandshakeIn, modelObject::setHandshakeIn)),
-			button("btnDecapsulate", "Derive the secret", event -> onDecapsulate())),
+		panel.add(
+			ToolForm.buttons(
+				button("btnLoadHandshake", "Load...",
+					event -> onLoadInto(txtHandshakeIn, modelObject::setHandshakeIn),
+					KemDemoMessages.getString("key.exchange.tooltip.load.handshake.button",
+						"loads a handshake from a file")),
+				button("btnDecapsulate", "Derive the secret", event -> onDecapsulate(),
+					KemDemoMessages.getString("key.exchange.tooltip.decapsulate.button",
+						"derives the shared secret from the handshake above, using your private key"))),
 			ToolForm.BUTTON_ROW);
 		panel.add(fingerprintRow("My secret:", lblMyFingerprint), ToolForm.WIDE);
 		panel.add(new JLabel("3. A message that arrived with it:"), ToolForm.WIDE);
 		panel.add(scrolled(txtEncryptedIn), MESSAGE_ROW);
 		panel.add(
-			ToolForm.buttons(button("btnDecryptMessage", "Read it", event -> onDecryptMessage())),
+			ToolForm.buttons(button("btnDecryptMessage", "Read it", event -> onDecryptMessage(),
+				KemDemoMessages.getString("key.exchange.tooltip.decrypt.message.button",
+					"decrypts the message above with the derived shared secret"))),
 			ToolForm.BUTTON_ROW);
 		panel.add(scrolled(txtMessageReceived), MESSAGE_ROW);
 		return panel;
@@ -176,31 +211,53 @@ public class KeyExchangePanel extends JPanel
 	private JPanel newSendTab()
 	{
 		txtTheirPublicKey.setName("txtTheirPublicKey");
+		txtTheirPublicKey.setToolTipText(KemDemoMessages.getString("key.exchange.tooltip.their.public.key",
+			"the public key you were given by the other side"));
 		txtHandshakeOut.setName("txtHandshakeOut");
+		txtHandshakeOut.setToolTipText(KemDemoMessages.getString("key.exchange.tooltip.handshake.out",
+			"the handshake to send back to the other side"));
 		txtMessageToSend.setName("txtMessageToSend");
+		txtMessageToSend.setToolTipText(KemDemoMessages.getString("key.exchange.tooltip.message.to.send",
+			"the message to encrypt and send along with the handshake"));
 		txtEncryptedOut.setName("txtEncryptedOut");
+		txtEncryptedOut.setToolTipText(KemDemoMessages.getString("key.exchange.tooltip.encrypted.out",
+			"the encrypted message to send"));
 
 		JPanel panel = new JPanel(ToolForm.newLayout());
 		panel.add(new JLabel("1. Paste the public key you were given:"), ToolForm.WIDE);
 		panel.add(scrolled(txtTheirPublicKey), KEY_ROW);
-		panel.add(ToolForm.buttons(button("btnLoadTheirPublicKey", "Load...",
-			event -> onLoadInto(txtTheirPublicKey, modelObject::setTheirPublicKey)),
-			button("btnEncapsulate", "Make a shared secret", event -> onEncapsulate())),
+		panel.add(
+			ToolForm.buttons(
+				button("btnLoadTheirPublicKey", "Load...",
+					event -> onLoadInto(txtTheirPublicKey, modelObject::setTheirPublicKey),
+					KemDemoMessages.getString("key.exchange.tooltip.load.their.public.key.button",
+						"loads a public key from a file")),
+				button("btnEncapsulate", "Make a shared secret", event -> onEncapsulate(),
+					KemDemoMessages.getString("key.exchange.tooltip.encapsulate.button",
+						"derives a fresh shared secret against the public key above and produces the handshake to send back"))),
 			ToolForm.BUTTON_ROW);
 		panel.add(fingerprintRow("Shared secret:", lblTheirFingerprint), ToolForm.WIDE);
 		panel.add(new JLabel("2. Send this handshake back:"), ToolForm.WIDE);
 		panel.add(scrolled(txtHandshakeOut), KEY_ROW);
-		panel.add(ToolForm.buttons(button("btnSaveHandshake", "Save...",
-			event -> onSaveToFile(modelObject.getHandshakeOut(), "handshake"))),
+		panel.add(
+			ToolForm.buttons(button("btnSaveHandshake", "Save...",
+				event -> onSaveToFile(modelObject.getHandshakeOut(), "handshake"),
+				KemDemoMessages.getString("key.exchange.tooltip.save.handshake.button",
+					"saves the handshake to a file"))),
 			ToolForm.BUTTON_ROW);
 		panel.add(new JLabel("3. A message to send with it:"), ToolForm.WIDE);
 		panel.add(scrolled(txtMessageToSend), MESSAGE_ROW);
 		panel.add(
-			ToolForm.buttons(button("btnEncryptMessage", "Encrypt it", event -> onEncryptMessage())),
+			ToolForm.buttons(button("btnEncryptMessage", "Encrypt it", event -> onEncryptMessage(),
+				KemDemoMessages.getString("key.exchange.tooltip.encrypt.message.button",
+					"encrypts the message above with the shared secret"))),
 			ToolForm.BUTTON_ROW);
 		panel.add(scrolled(txtEncryptedOut), MESSAGE_ROW);
-		panel.add(ToolForm.buttons(button("btnSaveEncrypted", "Save...",
-			event -> onSaveToFile(modelObject.getEncryptedOut(), "message"))),
+		panel.add(
+			ToolForm.buttons(button("btnSaveEncrypted", "Save...",
+				event -> onSaveToFile(modelObject.getEncryptedOut(), "message"),
+				KemDemoMessages.getString("key.exchange.tooltip.save.encrypted.button",
+					"saves the encrypted message to a file"))),
 			ToolForm.BUTTON_ROW);
 		return panel;
 	}
@@ -500,12 +557,13 @@ public class KeyExchangePanel extends JPanel
 		return row;
 	}
 
-	private static JButton button(String name, String text,
-		java.awt.event.ActionListener listener)
+	private static JButton button(String name, String text, java.awt.event.ActionListener listener,
+		String tooltip)
 	{
 		JButton button = new JButton(text);
 		button.setName(name);
 		button.addActionListener(listener);
+		button.setToolTipText(tooltip);
 		return button;
 	}
 }

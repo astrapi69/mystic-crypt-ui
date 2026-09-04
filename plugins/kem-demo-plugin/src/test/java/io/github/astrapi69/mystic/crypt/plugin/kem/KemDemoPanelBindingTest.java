@@ -27,6 +27,7 @@ package io.github.astrapi69.mystic.crypt.plugin.kem;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.awt.Component;
 import java.awt.Container;
@@ -36,6 +37,7 @@ import java.util.Map;
 
 import javax.swing.JButton;
 import javax.swing.JComboBox;
+import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.text.JTextComponent;
 
@@ -237,5 +239,25 @@ class KemDemoPanelBindingTest
 		{
 			assertEquals(KemDemoPanel.ALGORITHMS.get(index), comboBox.getItemAt(index));
 		}
+	}
+
+	private static void assertHasTooltip(JComponent component, String fieldName)
+	{
+		String tooltip = component.getToolTipText();
+		assertTrue(tooltip != null && !tooltip.isBlank(), fieldName + " must have a tooltip");
+	}
+
+	@Test
+	@DisplayName("every field and button explains itself with a tooltip")
+	void everyFieldExplainsItselfWithATooltip()
+	{
+		KemDemoPanel panel = new KemDemoPanel();
+
+		assertHasTooltip(named(panel, "cmbAlgorithm", JComponent.class), "algorithm");
+		assertHasTooltip(named(panel, "btnRun", JComponent.class), "run button");
+		assertHasTooltip(named(panel, "txtCiphertext", JComponent.class), "ciphertext");
+		assertHasTooltip(named(panel, "txtSenderSecret", JComponent.class), "sender secret");
+		assertHasTooltip(named(panel, "txtRecipientSecret", JComponent.class), "recipient secret");
+		assertHasTooltip(named(panel, "lblResult", JComponent.class), "result label");
 	}
 }

@@ -97,14 +97,24 @@ public class KemDemoPanel extends JPanel
 		bindToModel();
 
 		cmbAlgorithm.setName("cmbAlgorithm");
-		configureReadOnly(txtCiphertext, "txtCiphertext");
-		configureReadOnly(txtSenderSecret, "txtSenderSecret");
-		configureReadOnly(txtRecipientSecret, "txtRecipientSecret");
+		cmbAlgorithm.setToolTipText(KemDemoMessages.getString("kemdemo.tooltip.algorithm",
+			"the key-encapsulation mechanism to demonstrate - the pure ML-KEM sizes trade security level for speed and size, the hybrid mode adds classical X25519 alongside ML-KEM-768 so the exchange stays secure even if one of the two breaks"));
+		configureReadOnly(txtCiphertext, "txtCiphertext", KemDemoMessages.getString(
+			"kemdemo.tooltip.ciphertext", "what the sender's encapsulation produces and hands to the recipient"));
+		configureReadOnly(txtSenderSecret, "txtSenderSecret", KemDemoMessages.getString(
+			"kemdemo.tooltip.sender.secret", "the shared secret the sender derived while encapsulating"));
+		configureReadOnly(txtRecipientSecret, "txtRecipientSecret",
+			KemDemoMessages.getString("kemdemo.tooltip.recipient.secret",
+				"the shared secret the recipient derived by decapsulating the ciphertext - equal to the sender's secret when the exchange worked"));
 		lblResult.setName("lblResult");
 		lblResult.setFont(lblResult.getFont().deriveFont(Font.BOLD));
+		lblResult.setToolTipText(KemDemoMessages.getString("kemdemo.tooltip.result",
+			"whether the two derived secrets matched, or what went wrong"));
 
 		JButton btnRun = new JButton("Run key exchange");
 		btnRun.setName("btnRun");
+		btnRun.setToolTipText(KemDemoMessages.getString("kemdemo.tooltip.run.button",
+			"runs the whole exchange: generates a key pair, encapsulates a shared secret against it, decapsulates it back, and shows both sides"));
 		btnRun.addActionListener(event -> onRun());
 
 		add(new JLabel("Algorithm:"));
@@ -173,12 +183,13 @@ public class KemDemoPanel extends JPanel
 		lblResult.setText(modelObject.getResultText());
 	}
 
-	private static void configureReadOnly(JTextArea textArea, String name)
+	private static void configureReadOnly(JTextArea textArea, String name, String tooltip)
 	{
 		textArea.setName(name);
 		textArea.setEditable(false);
 		textArea.setLineWrap(true);
 		textArea.setWrapStyleWord(false);
 		textArea.setFont(new Font("monospaced", Font.PLAIN, 12));
+		textArea.setToolTipText(tooltip);
 	}
 }
