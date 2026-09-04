@@ -38,6 +38,7 @@ import java.security.SecureRandom;
 import java.security.Security;
 
 import javax.swing.AbstractButton;
+import javax.swing.JComponent;
 import javax.swing.JPasswordField;
 import javax.swing.text.JTextComponent;
 
@@ -170,6 +171,40 @@ class FileCryptPanelTest
 
 		assertTrue(panel.getResultText().startsWith("not decrypted: "),
 			"the message says what went wrong, but was: " + panel.getResultText());
+	}
+
+	private static void assertHasTooltip(JComponent component, String fieldName)
+	{
+		String tooltip = component.getToolTipText();
+		assertTrue(tooltip != null && !tooltip.isBlank(), fieldName + " must have a tooltip");
+	}
+
+	/**
+	 * The repeated passphrase fields are only checked while encrypting, and the target file is
+	 * optional - neither is obvious from the label alone (#159)
+	 */
+	@Test
+	void everyFieldExplainsItselfWithATooltip()
+	{
+		FileCryptPanel panel = new FileCryptPanel();
+
+		assertHasTooltip((JComponent)find(panel, "txtSourceFile"), "source file");
+		assertHasTooltip((JComponent)find(panel, "btnBrowseSource"), "browse source button");
+		assertHasTooltip((JComponent)find(panel, "txtTargetFile"), "target file");
+		assertHasTooltip((JComponent)find(panel, "btnBrowseTarget"), "browse target button");
+		assertHasTooltip((JComponent)find(panel, "pwdFile"), "file passphrase");
+		assertHasTooltip((JComponent)find(panel, "pwdFileRepeated"), "file passphrase repeated");
+		assertHasTooltip((JComponent)find(panel, "btnEncryptFile"), "encrypt file button");
+		assertHasTooltip((JComponent)find(panel, "btnDecryptFile"), "decrypt file button");
+
+		assertHasTooltip((JComponent)find(panel, "txtPlainText"), "plain text");
+		assertHasTooltip((JComponent)find(panel, "txtEncryptedText"), "encrypted text");
+		assertHasTooltip((JComponent)find(panel, "pwdText"), "text passphrase");
+		assertHasTooltip((JComponent)find(panel, "pwdTextRepeated"), "text passphrase repeated");
+		assertHasTooltip((JComponent)find(panel, "btnEncryptText"), "encrypt text button");
+		assertHasTooltip((JComponent)find(panel, "btnDecryptText"), "decrypt text button");
+
+		assertHasTooltip((JComponent)find(panel, "lblResult"), "result label");
 	}
 
 	private void type(Container panel, String name, String text)
