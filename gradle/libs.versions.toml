@@ -10,6 +10,7 @@ checksum-up-version = "3.2"
 commons-codec-version = "1.22.1"
 commons-lang3-version = "3.20.0"
 component-model-version = "2.1"
+crypt-api-version = "10.1"
 data-api-version = "5.1"
 eventbus-version = "6"
 file-worker-version = "19.0"
@@ -96,6 +97,7 @@ checksum-up = { module = "io.github.astrapi69:checksum-up", version.ref = "check
 commons-codec = { module = "commons-codec:commons-codec", version.ref = "commons-codec-version" }
 commons-lang3 = { module = "org.apache.commons:commons-lang3", version.ref = "commons-lang3-version" }
 component-model = { module = "io.github.astrapi69:component-model", version.ref = "component-model-version" }
+crypt-api = { module = "io.github.astrapi69:crypt-api", version.ref = "crypt-api-version" }
 data-api = { module = "io.github.astrapi69:data-api", version.ref = "data-api-version" }
 eventbus = { module = "io.github.astrapi69:eventbus", version.ref = "eventbus-version" }
 file-worker = { module = "io.github.astrapi69:file-worker", version.ref = "file-worker-version" }
