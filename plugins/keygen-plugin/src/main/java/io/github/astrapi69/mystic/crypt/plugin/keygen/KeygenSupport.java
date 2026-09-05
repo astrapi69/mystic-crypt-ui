@@ -46,8 +46,13 @@ import io.github.astrapi69.crypt.api.key.KeyFileFormat;
 import io.github.astrapi69.crypt.api.key.KeyFormat;
 import io.github.astrapi69.crypt.data.factory.KeyPairFactory;
 import io.github.astrapi69.crypt.data.key.KeyInfoExtensions;
+import io.github.astrapi69.crypt.api.algorithm.key.KeyPairGeneratorAlgorithm;
 import io.github.astrapi69.crypt.data.key.writer.CertificateWriter;
 import io.github.astrapi69.crypt.data.key.writer.PrivateKeyWriter;
+import io.github.astrapi69.mystic.crypt.key.EcPrivateKeyHexDecryptor;
+import io.github.astrapi69.mystic.crypt.key.EcPublicKeyHexEncryptor;
+import io.github.astrapi69.mystic.crypt.key.PrivateKeyHexDecryptor;
+import io.github.astrapi69.mystic.crypt.key.PublicKeyHexEncryptor;
 import io.github.astrapi69.mystic.crypt.wizard.CertificateInfoModelToX509;
 import io.github.astrapi69.mystic.crypt.wizard.model.CertificateInfoModel;
 import io.github.astrapi69.mystic.crypt.wizard.model.DistinguishedNameInfoModel;
@@ -97,6 +102,58 @@ public final class KeygenSupport
 	public static KeyPair newEcKeyPair(final String curve) throws Exception
 	{
 		return KeyPairFactory.newKeyPair(curve, "EC", BouncyCastleProvider.PROVIDER_NAME);
+	}
+
+	/**
+	 * The hex encryptor for a key pair of the given algorithm, or nothing when that algorithm has no
+	 * way to encrypt with a public key at all.
+	 * <p>
+	 * RSA encrypts with the public key directly; EC has no such primitive and goes through ECIES
+	 * instead (mystic-crypt 12.2, #195). The remaining offered algorithms are key agreement
+	 * (X25519/X448), a pure KEM (ML-KEM-768) or a signature scheme (ML-DSA-65) and have no
+	 * encryption primitive to offer
+	 *
+	 * @param algorithm
+	 *            the algorithm the key pair was generated with
+	 * @param publicKey
+	 *            the public key to encrypt with
+	 * @return the encryptor, or {@code null} when the algorithm cannot encrypt
+	 */
+	public static HexEncryptor newHexEncryptor(final KeyPairGeneratorAlgorithm algorithm,
+		final PublicKey publicKey)
+	{
+		if (KeyPairGeneratorAlgorithm.RSA.equals(algorithm))
+		{
+			return new PublicKeyHexEncryptor(publicKey)::encrypt;
+		}
+		if (KeyPairGeneratorAlgorithm.EC.equals(algorithm))
+		{
+			return new EcPublicKeyHexEncryptor(publicKey)::encrypt;
+		}
+		return null;
+	}
+
+	/**
+	 * The hex decryptor matching {@link #newHexEncryptor(KeyPairGeneratorAlgorithm, PublicKey)}
+	 *
+	 * @param algorithm
+	 *            the algorithm the key pair was generated with
+	 * @param privateKey
+	 *            the private key to decrypt with
+	 * @return the decryptor, or {@code null} when the algorithm cannot decrypt
+	 */
+	public static HexDecryptor newHexDecryptor(final KeyPairGeneratorAlgorithm algorithm,
+		final PrivateKey privateKey)
+	{
+		if (KeyPairGeneratorAlgorithm.RSA.equals(algorithm))
+		{
+			return new PrivateKeyHexDecryptor(privateKey)::decrypt;
+		}
+		if (KeyPairGeneratorAlgorithm.EC.equals(algorithm))
+		{
+			return new EcPrivateKeyHexDecryptor(privateKey)::decrypt;
+		}
+		return null;
 	}
 
 	/**
