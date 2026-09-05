@@ -59,6 +59,10 @@ public class MysticCryptEntryPanel extends BasePanel<MysticCryptEntryModelBean>
 	private javax.swing.JLabel lblRepeat;
 	private javax.swing.JLabel lblUrl;
 	private javax.swing.JLabel lblUsername;
+	private javax.swing.JLabel lblCreated;
+	private javax.swing.JLabel lblLastAccessed;
+	private javax.swing.JLabel lblLastModified;
+	private javax.swing.JLabel lblPreciseExpiry;
 	private javax.swing.JScrollPane srcNotes;
 	private JMTextField txtEntryName;
 	private JMTextArea txtNotes;
@@ -66,6 +70,10 @@ public class MysticCryptEntryPanel extends BasePanel<MysticCryptEntryModelBean>
 	private JMPasswordField txtRepeat;
 	private JMTextField txtUrl;
 	private JMTextField txtUsername;
+	private JMTextField txtCreated;
+	private JMTextField txtLastAccessed;
+	private JMTextField txtLastModified;
+	private JMTextField txtPreciseExpiry;
 	private JMCheckBox cbxExpirable;
 	private CalendarPanel txtExpires;
 
@@ -101,6 +109,15 @@ public class MysticCryptEntryPanel extends BasePanel<MysticCryptEntryModelBean>
 		cbxExpirable = new JMCheckBox();
 		txtExpires = new CalendarPanel(new DatePicker());
 
+		lblCreated = new JLabel();
+		lblLastAccessed = new JLabel();
+		lblLastModified = new JLabel();
+		lblPreciseExpiry = new JLabel();
+		txtCreated = new JMTextField();
+		txtLastAccessed = new JMTextField();
+		txtLastModified = new JMTextField();
+		txtPreciseExpiry = new JMTextField();
+
 		btnShowPassword = new javax.swing.JButton();
 		btnGeneratePassword = new javax.swing.JButton();
 
@@ -114,6 +131,10 @@ public class MysticCryptEntryPanel extends BasePanel<MysticCryptEntryModelBean>
 		cbxExpirable.setName("cbxExpirable");
 		btnShowPassword.setName("btnShowPassword");
 		btnGeneratePassword.setName("btnGeneratePassword");
+		txtCreated.setName("txtCreated");
+		txtLastAccessed.setName("txtLastAccessed");
+		txtLastModified.setName("txtLastModified");
+		txtPreciseExpiry.setName("txtPreciseExpiry");
 
 		MysticCryptEntryModelBean modelObject = getModelObject();
 		// bind with model
@@ -160,6 +181,40 @@ public class MysticCryptEntryPanel extends BasePanel<MysticCryptEntryModelBean>
 			"the date this entry expires, only used while Expires is ticked"));
 
 		cbxExpirable.addActionListener(this::onChangeExpirable);
+
+		lblCreated.setText(Messages.getString("entry.label.created", "Created"));
+		lblLastAccessed.setText(Messages.getString("entry.label.last.accessed", "Last accessed"));
+		lblLastModified.setText(Messages.getString("entry.label.last.modified", "Last modified"));
+		lblPreciseExpiry
+			.setText(Messages.getString("entry.label.precise.expiry", "Precise expiry"));
+
+		txtCreated.setPropertyModel(LambdaModel
+			.of(() -> EntryTimestampFormatter.format(modelObject.getCreationTime()), unused -> {
+			}));
+		txtLastAccessed.setPropertyModel(LambdaModel
+			.of(() -> EntryTimestampFormatter.format(modelObject.getLastAccessTime()), unused -> {
+			}));
+		txtLastModified.setPropertyModel(LambdaModel.of(
+			() -> EntryTimestampFormatter.format(modelObject.getLastModificationTime()), unused -> {
+			}));
+		txtPreciseExpiry.setPropertyModel(LambdaModel.of(
+			() -> EntryTimestampFormatter.format(modelObject.getPreciseExpiryTime()), unused -> {
+			}));
+
+		txtCreated.setEditable(false);
+		txtLastAccessed.setEditable(false);
+		txtLastModified.setEditable(false);
+		txtPreciseExpiry.setEditable(false);
+
+		txtCreated.setToolTipText(Messages.getString("entry.tooltip.created",
+			"when this entry was created, if known (e.g. imported from a KeePass database)"));
+		txtLastAccessed.setToolTipText(Messages.getString("entry.tooltip.last.accessed",
+			"when this entry was last accessed, if known (e.g. imported from a KeePass database)"));
+		txtLastModified.setToolTipText(Messages.getString("entry.tooltip.last.modified",
+			"when this entry was last modified, if known (e.g. imported from a KeePass database)"));
+		txtPreciseExpiry.setToolTipText(Messages.getString("entry.tooltip.precise.expiry",
+			"the exact expiry timestamp from the imported source, including time of day and offset "
+				+ "- the Expires date above only has day precision"));
 
 		if (getModelObject().isExpirable() && getModelObject().getExpires() != null)
 		{
@@ -243,7 +298,15 @@ public class MysticCryptEntryPanel extends BasePanel<MysticCryptEntryModelBean>
 				.addComponent(lblNotes, javax.swing.GroupLayout.DEFAULT_SIZE,
 					javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
 				.addComponent(cbxExpirable, javax.swing.GroupLayout.DEFAULT_SIZE, 161,
-					Short.MAX_VALUE))
+					Short.MAX_VALUE)
+				.addComponent(lblPreciseExpiry, javax.swing.GroupLayout.DEFAULT_SIZE,
+					javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+				.addComponent(lblCreated, javax.swing.GroupLayout.DEFAULT_SIZE,
+					javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+				.addComponent(lblLastAccessed, javax.swing.GroupLayout.DEFAULT_SIZE,
+					javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+				.addComponent(lblLastModified, javax.swing.GroupLayout.DEFAULT_SIZE,
+					javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
 				.addGap(18, 18, 18)
 				.addGroup(layout
 					.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
@@ -264,7 +327,9 @@ public class MysticCryptEntryPanel extends BasePanel<MysticCryptEntryModelBean>
 					.addComponent(txtUrl)
 					.addComponent(srcNotes, javax.swing.GroupLayout.DEFAULT_SIZE, 530,
 						Short.MAX_VALUE)
-					.addComponent(txtExpires))
+					.addComponent(txtExpires).addComponent(txtPreciseExpiry)
+					.addComponent(txtCreated).addComponent(txtLastAccessed)
+					.addComponent(txtLastModified))
 				.addContainerGap(25, Short.MAX_VALUE)));
 		layout
 			.setVerticalGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -321,6 +386,30 @@ public class MysticCryptEntryPanel extends BasePanel<MysticCryptEntryModelBean>
 					.addGap(21, 21, 21)
 					.addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
 						.addComponent(cbxExpirable).addComponent(txtExpires,
+							javax.swing.GroupLayout.PREFERRED_SIZE,
+							javax.swing.GroupLayout.DEFAULT_SIZE,
+							javax.swing.GroupLayout.PREFERRED_SIZE))
+					.addGap(18, 18, 18)
+					.addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+						.addComponent(lblPreciseExpiry).addComponent(txtPreciseExpiry,
+							javax.swing.GroupLayout.PREFERRED_SIZE,
+							javax.swing.GroupLayout.DEFAULT_SIZE,
+							javax.swing.GroupLayout.PREFERRED_SIZE))
+					.addGap(18, 18, 18)
+					.addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+						.addComponent(lblCreated).addComponent(txtCreated,
+							javax.swing.GroupLayout.PREFERRED_SIZE,
+							javax.swing.GroupLayout.DEFAULT_SIZE,
+							javax.swing.GroupLayout.PREFERRED_SIZE))
+					.addGap(18, 18, 18)
+					.addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+						.addComponent(lblLastAccessed).addComponent(txtLastAccessed,
+							javax.swing.GroupLayout.PREFERRED_SIZE,
+							javax.swing.GroupLayout.DEFAULT_SIZE,
+							javax.swing.GroupLayout.PREFERRED_SIZE))
+					.addGap(18, 18, 18)
+					.addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+						.addComponent(lblLastModified).addComponent(txtLastModified,
 							javax.swing.GroupLayout.PREFERRED_SIZE,
 							javax.swing.GroupLayout.DEFAULT_SIZE,
 							javax.swing.GroupLayout.PREFERRED_SIZE))
