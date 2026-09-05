@@ -218,6 +218,7 @@ public class EnDecryptPanel extends BasePanel<Pair<String, String>>
 		btnEncrypt.setToolTipText(enDecryptAvailable ? null : unavailableReason);
 		btnDecrypt.setToolTipText(enDecryptAvailable ? null : unavailableReason);
 		lblReason.setText(enDecryptAvailable ? " " : unavailableReason);
+		lblReason.setToolTipText(enDecryptAvailable ? null : unavailableReason);
 	}
 
 	/**
@@ -281,8 +282,12 @@ public class EnDecryptPanel extends BasePanel<Pair<String, String>>
 					.addComponent(btnDecrypt, GroupLayout.DEFAULT_SIZE, 167, Short.MAX_VALUE)
 					.addComponent(btnEncrypt, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE,
 						Short.MAX_VALUE)
-					.addComponent(lblReason, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE,
-						Short.MAX_VALUE))
+					// neither minimum nor preferred width comes from the text: a parallel group
+					// is as wide as its widest child wants to be, so a longer wording used to
+					// widen this column and move the whole form. The label still fills whatever
+					// the buttons beside it claim, and the full text stays reachable through the
+					// tooltip below and on both buttons
+					.addComponent(lblReason, 0, 0, Short.MAX_VALUE))
 				.addPreferredGap(LayoutStyle.ComponentPlacement.RELATED, 36, Short.MAX_VALUE)
 				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)
 					.addComponent(scpEncrypted, GroupLayout.PREFERRED_SIZE, 500,
