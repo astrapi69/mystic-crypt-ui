@@ -75,3 +75,10 @@ editor's current content.
   scrollback/tmux/session-logging exposure). New capability goes into the mystic-crypt LIBRARY
   first (separate repo, own release cycle), per the CLI-is-a-backlink rule - not started, no issue
   filed yet.
+
+- **Error handling as a concept, revisit.** Raised 2026-09-05 during branch cleanup: the orphaned
+  `feature/error-handling` branch (2021, AspectJ-based logging/exception aspect, no issue/PR, never
+  merged, deleted) prompted the user to want a real brainstorm of error handling as a concept for
+  this app, rather than reviving that old AspectJ prototype as-is. Not scoped yet - no approach
+  chosen (AspectJ vs. the plain catch/rethrow-with-actionable-message pattern coding-standards.md
+  already mandates), no issue filed.
