@@ -60,8 +60,13 @@ import io.github.astrapi69.swing.base.BasePanel;
  * for a field added later by someone who did not think of it.
  * <p>
  * Panels that need a running application to be built are not here; they are reached through the
- * end-to-end suite instead. The two KeePass panels are not here either, and for a different reason:
- * they hold no model at all (see #77).
+ * end-to-end suite instead.
+ * <p>
+ * A field the user cannot type into is checked like every other one: a chooser or a generator fills
+ * it through {@code setText}, and its binding is the only path from there into the model - see
+ * {@code ModelBindingTest.aFieldTheUserCannotTypeIntoIsCheckedLikeEveryOtherOne}. A display that
+ * genuinely holds nothing is not a model component in the first place (the imported timestamps of
+ * {@link MysticCryptEntryPanel} are plain fields, #206).
  */
 class PanelsAreBoundTest
 {

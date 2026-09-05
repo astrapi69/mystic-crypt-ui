@@ -227,6 +227,40 @@ class ModelBindingTest
 			"a plain swing component must not be asked about a binding it cannot have");
 	}
 
+	/**
+	 * A panel whose unbound field the user cannot type into, the shape of a field filled by a file
+	 * chooser or a generator: the binding is the only path from the component into the model
+	 */
+	static final class ReadOnlyProbePanel extends BasePanel<Held>
+	{
+		private JMTextField txtReadOnlyAndForgotten;
+
+		ReadOnlyProbePanel(final IModel<Held> model)
+		{
+			super(model);
+		}
+
+		@Override
+		protected void onInitializeComponents()
+		{
+			super.onInitializeComponents();
+			txtReadOnlyAndForgotten = new JMTextField();
+			txtReadOnlyAndForgotten.setName("txtReadOnlyAndForgotten");
+			txtReadOnlyAndForgotten.setEditable(false);
+			add(txtReadOnlyAndForgotten);
+		}
+	}
+
+	@Test
+	@DisplayName("a field the user cannot type into is checked like every other one")
+	void aFieldTheUserCannotTypeIntoIsCheckedLikeEveryOtherOne()
+	{
+		assertEquals(List.of("txtReadOnlyAndForgotten"),
+			ModelBinding.unboundComponentsOf(new ReadOnlyProbePanel(BaseModel.of(new Held()))),
+			"a non editable model component was not asked whether it reaches the model - "
+				+ "a field filled by a chooser or a generator is bound by nothing else");
+	}
+
 	@Test
 	@DisplayName("a subclass of a model component is still a model component")
 	void aSubclassOfAModelComponentIsStillAModelComponent()
