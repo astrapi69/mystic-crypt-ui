@@ -220,7 +220,7 @@ class FileCryptPanelTest
 		Component intro = find(panel, "lblIntro");
 
 		assertTrue(intro instanceof JComponent, "the panel must show an intro before the tabs");
-		String text = ((javax.swing.JLabel)intro).getText();
+		String text = ((JTextComponent)intro).getText();
 		assertTrue(text != null && !text.isBlank(),
 			"the intro must explain what the panel does, not be empty");
 	}

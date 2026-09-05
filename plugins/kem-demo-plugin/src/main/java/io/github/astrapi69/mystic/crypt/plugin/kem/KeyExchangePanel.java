@@ -33,6 +33,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 
 import javax.swing.*;
+import javax.swing.text.JTextComponent;
 
 import io.github.astrapi69.model.LambdaModel;
 import io.github.astrapi69.mystic.crypt.ui.form.ToolForm;
@@ -120,16 +121,15 @@ public class KeyExchangePanel extends JPanel
 		tabs.addTab("Receive", scrollable(newReceiveTab()));
 		tabs.addTab("Send", scrollable(newSendTab()));
 
-		JLabel lblIntro = new JLabel("<html>" + KemDemoMessages.getString("key.exchange.intro",
+		JTextComponent lblIntro = ToolForm.intro(KemDemoMessages.getString("key.exchange.intro",
 			"A key exchange between two people, each holding only their own half - normally the two "
 				+ "tabs below run on two different machines. Receive: make a key pair and hand out "
 				+ "your public key. Send: take someone's public key and encapsulate a shared secret "
 				+ "against it. The shared secret itself is never shown, only its fingerprint - read "
-				+ "it aloud to the other side to confirm both of you derived the same one.")
-			+ "</html>");
+				+ "it aloud to the other side to confirm both of you derived the same one."));
 		lblIntro.setName("lblIntro");
 
-		add(lblIntro, ToolForm.WIDE);
+		add(lblIntro, ToolForm.INTRO_ROW);
 		add(new JLabel("Algorithm:"));
 		add(cmbAlgorithm, ToolForm.FIELD);
 		add(tabs, ToolForm.GROWING);

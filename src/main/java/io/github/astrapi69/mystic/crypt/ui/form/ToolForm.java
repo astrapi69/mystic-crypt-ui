@@ -24,12 +24,16 @@
  */
 package io.github.astrapi69.mystic.crypt.ui.form;
 
+import java.awt.Color;
 import java.awt.Dimension;
 
+import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
+import javax.swing.UIManager;
 import javax.swing.text.JTextComponent;
 
 import net.miginfocom.swing.MigLayout;
@@ -92,6 +96,13 @@ public final class ToolForm
 	 * the form jumping while it is being used.
 	 */
 	public static final String KEY_AREA = "grow, push, wmin 0";
+
+	/**
+	 * A row for {@link #intro(String)}, wide like {@link #WIDE} but with {@code wmin 0} - without
+	 * it the intro's unwrapped-at-preferred-width measurement becomes a lower bound for the column,
+	 * the same collapse {@link #KEY_AREA}'s javadoc already documents for a text area.
+	 */
+	public static final String INTRO_ROW = WIDE + ", wmin 0";
 
 	/** A row of buttons under what they act on */
 	public static final String BUTTON_ROW = "newline, span 2, align left, gaptop 2";
@@ -158,6 +169,36 @@ public final class ToolForm
 		scrollPane.setMinimumSize(
 			new Dimension(MINIMUM_FIELD_WIDTH, Math.max(48, scrollPane.getPreferredSize().height)));
 		return scrollPane;
+	}
+
+	/**
+	 * A short block of introductory text above a tool window's first field, explaining what the
+	 * window does before the user starts filling it in.
+	 * <p>
+	 * A {@code JLabel} wrapped in {@code "<html>"} does not reflow to the width its row is actually
+	 * given without an explicit CSS width - it renders as one long unwrapped line, running off to
+	 * one side instead of wrapping like the rest of the window (#202). A non-editable, unfocusable
+	 * {@link JTextArea} wraps correctly and is styled to read as a label, set off with a light
+	 * border so it reads as a distinct note rather than blending into the form.
+	 *
+	 * @param text
+	 *            the text to show
+	 * @return the component to add with {@link #INTRO_ROW}
+	 */
+	public static JTextComponent intro(final String text)
+	{
+		JTextArea intro = new JTextArea(text);
+		intro.setEditable(false);
+		intro.setFocusable(false);
+		intro.setLineWrap(true);
+		intro.setWrapStyleWord(true);
+		intro.setOpaque(false);
+		intro.setFont(UIManager.getFont("Label.font"));
+		Color borderColor = UIManager.getColor("Separator.foreground");
+		intro.setBorder(BorderFactory.createCompoundBorder(
+			BorderFactory.createLineBorder(borderColor != null ? borderColor : Color.GRAY),
+			BorderFactory.createEmptyBorder(8, 10, 8, 10)));
+		return intro;
 	}
 
 	/**
