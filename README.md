@@ -179,8 +179,9 @@ comments, bug reports, or feature requests.
 
 ## Donate
 
-If you like this application, please consider a donation through
+If you like this application, please consider supporting it through one of these channels:
 
-<a href="https://flattr.com/submit/auto?fid=r7vp62&url=https%3A%2F%2Fgithub.com%2Flightblueseas%2Fmystic-crypt-ui" target="_blank">
-<img src="http://button.flattr.com/flattr-badge-large.png" alt="Flattr this" title="Flattr this" border="0">
-</a>
+- [GitHub Sponsors](https://github.com/sponsors/astrapi69)
+- [Liberapay](https://liberapay.com/astrapi69)
+- [Ko-fi](https://ko-fi.com/astrapi69)
+- [PayPal](https://www.paypal.com/donate/?cmd=_s-xclick&hosted_button_id=MJ7V43GU2H386)
