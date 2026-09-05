@@ -49,6 +49,9 @@ import io.github.astrapi69.mystic.crypt.crypto.KeyFiles;
 public final class ConversionSupport
 {
 
+	/** The header a PKCS#8 PEM carries, which is what a key without a traditional form falls back to. */
+	private static final String PKCS8_PEM_HEADER = "-----BEGIN PRIVATE KEY-----";
+
 	/** What was found in a file: its shape, its type, and what to call that in a sentence.
 	 *
 	 * @param pem
@@ -250,11 +253,34 @@ public final class ConversionSupport
 	public static void toPkcs1(final File source, final File target) throws Exception
 	{
 		PrivateKey privateKey = KeyFiles.readPrivateKey(source);
-		try (java.io.OutputStream out = Files.newOutputStream(requireNewFile(target).toPath()))
+		String pem = io.github.astrapi69.crypt.data.key.PrivateKeyExtensions
+			.toPemFormat(privateKey);
+		requirePkcs1WasProduced(pem, privateKey);
+		Files.writeString(requireNewFile(target).toPath(), pem, StandardCharsets.UTF_8);
+	}
+
+	/**
+	 * Refuses a conversion the key cannot satisfy. RSA, DSA, EC and RSASSA-PSS have a traditional
+	 * form of their own; the edwards and montgomery families, Diffie-Hellman and the post-quantum
+	 * families have only PKCS#8, and crypt-data's writer falls through to it silently. The decision
+	 * is read off the PEM that was produced rather than predicted from the algorithm name, so it
+	 * cannot drift away from what the writer actually does - a second list of names is what went
+	 * wrong everywhere else this question was answered.
+	 *
+	 * @param pem
+	 *            the PEM the writer produced
+	 * @param privateKey
+	 *            the key it was produced from, named in the message
+	 * @throws IllegalArgumentException
+	 *             if PKCS#8 is what came out
+	 */
+	private static void requirePkcs1WasProduced(final String pem, final PrivateKey privateKey)
+	{
+		if (pem.startsWith(PKCS8_PEM_HEADER))
 		{
-			io.github.astrapi69.crypt.data.key.writer.PrivateKeyWriter.write(privateKey, out,
-				io.github.astrapi69.crypt.api.key.KeyFileFormat.PEM,
-				io.github.astrapi69.crypt.api.key.KeyFormat.PKCS_1);
+			throw new IllegalArgumentException("PKCS#1 was asked for, but a '"
+				+ privateKey.getAlgorithm()
+				+ "' private key has no traditional form - PKCS#8 is the only encoding it has.");
 		}
 	}
 

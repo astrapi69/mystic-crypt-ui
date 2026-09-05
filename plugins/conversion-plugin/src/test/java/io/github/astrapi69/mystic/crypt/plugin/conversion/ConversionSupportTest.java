@@ -44,9 +44,11 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.ValueSource;
 
+import io.github.astrapi69.crypt.api.algorithm.key.KeyPairGeneratorAlgorithm;
 import io.github.astrapi69.crypt.api.key.PemType;
 import io.github.astrapi69.crypt.data.factory.CertFactory;
 import io.github.astrapi69.crypt.data.factory.KeyPairFactory;
@@ -276,5 +278,93 @@ class ConversionSupportTest
 	void aTypeTheToolDoesNotKnowSaysSo()
 	{
 		assertTrue(ConversionSupport.describe(PemType.UNKNOWN).contains("does not recognise"));
+	}
+
+	/**
+	 * A key whose algorithm has no traditional form cannot be written as PKCS#1. crypt-data's writer
+	 * falls through to PKCS#8 for those, so this used to produce a file the user did not ask for and
+	 * say nothing about it. It must refuse, and leave nothing behind. See crypt-data#42.
+	 *
+	 * @param algorithm
+	 *            an algorithm whose private key has no traditional form
+	 * @param directory
+	 *            the directory the files are written to
+	 * @throws Exception
+	 *             if the source key cannot be written
+	 */
+	@ParameterizedTest(name = "toPkcs1 refuses {0}")
+	@EnumSource(value = KeyPairGeneratorAlgorithm.class,
+		names = { "ML_DSA_65", "ML_KEM_768", "X25519", "X448" })
+	void refusesToWritePkcs1ForAKeyThatHasNoTraditionalForm(KeyPairGeneratorAlgorithm algorithm,
+		@TempDir File directory) throws Exception
+	{
+		PrivateKey original = KeyPairFactory.newKeyPair(algorithm).getPrivate();
+		File source = new File(directory, "source.pem");
+		PrivateKeyWriter.writeInPemFormat(original, source);
+		File pkcs1 = new File(directory, "pkcs1.pem");
+
+		Exception refused = assertThrows(Exception.class,
+			() -> ConversionSupport.toPkcs1(source, pkcs1));
+
+		assertTrue(refused.getMessage() != null && refused.getMessage().contains("PKCS#1"),
+			"the message must say what was asked for, but was: '" + refused.getMessage() + "'");
+		assertFalse(pkcs1.exists(),
+			"nothing may be left behind when the requested format cannot be produced");
+	}
+
+	/**
+	 * The counterpart, so the refusal above cannot be satisfied by refusing everything: the
+	 * algorithms that do have a traditional form still convert, and the file carries their own
+	 * header rather than the generic PKCS#8 one.
+	 *
+	 * @param algorithm
+	 *            an algorithm whose private key has a traditional form
+	 * @param directory
+	 *            the directory the files are written to
+	 * @throws Exception
+	 *             if the key cannot be written or read back
+	 */
+	@ParameterizedTest(name = "toPkcs1 keeps working for {0}")
+	@EnumSource(value = KeyPairGeneratorAlgorithm.class, names = { "RSA", "DSA" })
+	void stillConvertsTheAlgorithmsThatDoHaveATraditionalForm(KeyPairGeneratorAlgorithm algorithm,
+		@TempDir File directory) throws Exception
+	{
+		PrivateKey original = KeyPairFactory.newKeyPair(algorithm).getPrivate();
+		File source = new File(directory, "source.pem");
+		PrivateKeyWriter.writeInPemFormat(original, source);
+		File pkcs1 = new File(directory, "pkcs1.pem");
+
+		ConversionSupport.toPkcs1(source, pkcs1);
+
+		assertFalse("-----BEGIN PRIVATE KEY-----".equals(Files.readAllLines(pkcs1.toPath()).get(0)),
+			algorithm + " has a traditional form, so the generic PKCS#8 label is the wrong answer");
+		assertEquals(original, KeyFiles.readPrivateKey(pkcs1), "it has to be the same key");
+	}
+
+	/**
+	 * EC gets its own case because the product never generates a curveless EC key: this plugin and
+	 * mystic-crypt's CLI both name a curve, and a key from the curveless factory call cannot be
+	 * written to PEM at all - Bouncy Castle throws, because the PEM key pair it builds carries no
+	 * public key. Driving the path the product does not use would prove nothing about the one it
+	 * does.
+	 *
+	 * @param directory
+	 *            the directory the files are written to
+	 * @throws Exception
+	 *             if the key cannot be written or read back
+	 */
+	@Test
+	void stillConvertsAnEcKeyOnANamedCurve(@TempDir File directory) throws Exception
+	{
+		PrivateKey original = KeyPairFactory
+			.newKeyPair("secp256r1", "EC", BouncyCastleProvider.PROVIDER_NAME).getPrivate();
+		File source = new File(directory, "source.pem");
+		PrivateKeyWriter.writeInPemFormat(original, source);
+		File pkcs1 = new File(directory, "pkcs1.pem");
+
+		ConversionSupport.toPkcs1(source, pkcs1);
+
+		assertEquals("-----BEGIN EC PRIVATE KEY-----", Files.readAllLines(pkcs1.toPath()).get(0),
+			"RFC 5915 is EC's traditional form and names the algorithm in its header");
 	}
 }

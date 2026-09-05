@@ -35,11 +35,18 @@ import io.github.astrapi69.crypt.api.algorithm.key.KeyPairGeneratorAlgorithm;
 import io.github.astrapi69.crypt.api.key.KeyFormat;
 
 /**
- * PKCS#1 is a real, distinct encoding only for RSA and EC (crypt-data's
+ * PKCS#1 is a real, distinct encoding for RSA, DSA, EC and RSASSA-PSS; crypt-data's
  * {@code PrivateKeyExtensions#toPemFormat} falls through to PKCS#8 for everything else, silently -
- * see issue #101). Offering the choice for an algorithm where it changes nothing is misleading, so
- * the box has to close itself down to PKCS#8 exactly where the key size box already closes itself
- * down to one value: outside RSA - here, outside RSA and EC.
+ * see issue #101 and crypt-data#42. Offering the choice where it changes nothing is misleading, so
+ * the box closes itself down to PKCS#8 exactly where the key size box already closes itself down to
+ * one value.
+ * <p>
+ * {@code GenerateKeysPanel} names only RSA and EC in that check, which is correct here and only
+ * here: {@code SUPPORTED_ALGORITHMS} offers RSA, EC, X25519, X448, ML-KEM-768 and ML-DSA-65, so DSA
+ * and RSASSA-PSS can never reach the box. A case for either would pass whatever the code did -
+ * selecting an algorithm the combo does not carry changes nothing - so widening this test would add
+ * a row that proves nothing. If either is ever added to SUPPORTED_ALGORITHMS, the check has to grow
+ * with it.
  */
 class KeyFormatAvailabilityTest
 {
