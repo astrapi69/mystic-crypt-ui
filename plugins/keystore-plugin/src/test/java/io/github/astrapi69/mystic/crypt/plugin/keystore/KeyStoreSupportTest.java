@@ -38,6 +38,7 @@ import java.util.List;
 
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -271,5 +272,28 @@ class KeyStoreSupportTest
 
 		assertTrue(exception.getMessage().contains("already-there.p12"), exception.getMessage());
 		assertTrue(exception.getMessage().contains("already exists"), exception.getMessage());
+	}
+
+	/**
+	 * An invalid distinguished name used to surface BouncyCastle's raw internal parsing message
+	 * verbatim ("badly formatted directory string") - confusing, reads like a file-path problem,
+	 * and not actionable without already knowing X.500 DN syntax. The message must instead name
+	 * the expected format (#196)
+	 */
+	@Test
+	@DisplayName("an invalid distinguished name names the expected format, not BouncyCastle's raw parsing error")
+	void anInvalidDistinguishedNameNamesTheExpectedFormat(@TempDir File directory) throws Exception
+	{
+		File file = newStoreFile(directory, "invalid-dn.p12");
+		KeyStore keyStore = KeyStoreSupport.create(file, KeystoreType.PKCS12, STORE_PASSWORD);
+
+		IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
+			() -> KeyStoreSupport.addKeyPair(keyStore, file, STORE_PASSWORD, "server",
+				"not a distinguished name", KeyPairGeneratorAlgorithm.RSA));
+
+		assertTrue(exception.getMessage().contains("not a distinguished name"),
+			"the message must name what was rejected: " + exception.getMessage());
+		assertTrue(exception.getMessage().contains("CN="),
+			"the message must show the expected format: " + exception.getMessage());
 	}
 }
