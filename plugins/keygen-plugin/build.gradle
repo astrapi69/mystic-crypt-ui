@@ -26,7 +26,7 @@ repositories {
 dependencies {
     compileOnly "io.github.astrapi69:mystic-crypt-ui:8.2-SNAPSHOT"
     // PrivateKeyHexDecryptor / PublicKeyHexEncryptor live in the mystic-crypt library, not the host
-    compileOnly "io.github.astrapi69:mystic-crypt:12.1"
+    compileOnly libs.mystic.crypt
     // random bytes for a nonce, an initialisation vector or a salt
     compileOnly "io.github.astrapi69:randomizer:10.4"
     // the model backed components the panels bind to their model; the host brings both jars at
@@ -49,7 +49,7 @@ dependencies {
 
     // the round-trip test drives the key generation + hex encrypt/decrypt library calls headlessly
     testImplementation "org.junit.jupiter:junit-jupiter:5.11.4"
-    testImplementation "io.github.astrapi69:mystic-crypt:12.1"
+    testImplementation libs.mystic.crypt
     testImplementation "io.github.astrapi69:randomizer:10.4"
     testImplementation "org.bouncycastle:bcpkix-jdk18on:1.85"
     testRuntimeOnly "org.junit.platform:junit-platform-launcher"

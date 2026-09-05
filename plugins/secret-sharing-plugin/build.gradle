@@ -23,7 +23,7 @@ repositories {
 // swing helpers are only needed to open the tool window
 dependencies {
     compileOnly "io.github.astrapi69:mystic-crypt-ui:8.2-SNAPSHOT"
-    compileOnly "io.github.astrapi69:mystic-crypt:12.1"
+    compileOnly libs.mystic.crypt
     // ResourceBundleExtensions.getStringQuietly - tooltip/label text from sharing/messages.properties
     // falls back to a literal default rather than throwing when a key is missing, the same way the
     // host's own Messages class already behaves (.claude/rules/i18n.md)
