@@ -23,6 +23,9 @@ ADDED:
 - file and text encryptor: explains what it does, that a lost passphrase cannot be recovered, and which tab to use, before the first field
 - key store manager gained a guided "Create Key Store..." wizard next to "Manage Key Store": file, type and a twice-asked password, an optional first key pair, then a review before Finish - refuses to overwrite an existing file the same way the certificate and conversion wizards do, and hands off to "Manage Key Store" on success
 - every password field gets FlatLaf's built-in reveal button, so a typo is no longer only found out after the password already failed
+- imported KeePass entries show the timestamps they carry: created, last accessed, last modified, and the exact expiry time of day the day-precision expiry date cannot show
+- imported KeePass entries and groups show the icon their owner picked in KeePass, instead of this application's generic one
+- the hex encrypt/decrypt demo next to a generated key pair works with EC keys as well, through ECIES, and no longer only with RSA
 
 CHANGED:
 
