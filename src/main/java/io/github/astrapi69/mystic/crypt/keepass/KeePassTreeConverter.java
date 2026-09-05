@@ -92,8 +92,17 @@ public final class KeePassTreeConverter
 		treeElement.getProperties().put(KEEPASS_UUID_PROPERTY, group.getUuid());
 		if (group.getIcon() != null)
 		{
-			treeElement.getProperties().put(KEEPASS_ICON_INDEX_PROPERTY,
-				group.getIcon().getIndex());
+			int iconIndex = group.getIcon().getIndex();
+			treeElement.getProperties().put(KEEPASS_ICON_INDEX_PROPERTY, iconIndex);
+			// the index alone is only good for writing the group back out; what the tree cell
+			// renderer draws is the icon path, and a node that has one keeps its name only while it
+			// is marked as carrying text (#206)
+			String iconPath = KeePassIcons.pathOf(iconIndex);
+			if (iconPath != null)
+			{
+				treeElement.setIconPath(iconPath);
+				treeElement.setWithText(true);
+			}
 		}
 		treeElement.getProperties().put(KEEPASS_RECYCLE_BIN_PROPERTY, group.isRecycleBin());
 
