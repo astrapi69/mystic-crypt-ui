@@ -25,6 +25,7 @@
 package io.github.astrapi69.mystic.crypt.keepass;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
@@ -117,6 +118,59 @@ public class KeePassTreeConverterTest
 		SimpleGroup exportedGroup = KeePassTreeConverter.toSimpleGroup(exportDatabase, generalNode,
 			exportDatabase.getRootGroup());
 		assertEquals(3, exportedGroup.getIcon().getIndex());
+	}
+
+	/**
+	 * The icon index alone stays invisible: the tree cell renderer of this application draws
+	 * {@code GenericTreeElement.iconPath}, so an imported group only shows its KeePass icon once
+	 * the index is turned into that path (#206). The text flag matters just as much - the renderer
+	 * blanks a node's name as soon as it has an icon and is not marked as carrying text.
+	 */
+	@Test
+	public void testGroupIconIndexBecomesTheIconTheRendererDraws()
+	{
+		SimpleDatabase database = new SimpleDatabase();
+		SimpleGroup root = database.getRootGroup();
+		SimpleGroup general = database.newGroup("General");
+		general.setIcon(new org.linguafranca.pwdb.kdbx.simple.SimpleIcon(48));
+		root.addGroup(general);
+
+		AtomicLong idCounter = new AtomicLong(0);
+		BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> rootNode = KeePassTreeConverter
+			.toTreeNode(root, null, idCounter::incrementAndGet);
+		GenericTreeElement<List<MysticCryptEntryModelBean>> general48 = rootNode.getChildren()
+			.iterator().next().getValue();
+
+		assertEquals("img/keepass/C48_Folder.png", general48.getIconPath());
+		assertTrue(general48.isWithText(),
+			"a node with an icon keeps its name only with this flag");
+		assertEquals("General", general48.getName());
+	}
+
+	/**
+	 * A KeePass database may point at an icon this application does not ship - a custom icon lives
+	 * beyond the built in set. Such a group keeps its index for the way back out, but must not be
+	 * given a path to an image that is not there
+	 */
+	@Test
+	public void testAGroupWithAnIconOutsideTheShippedSetGetsNoIconPath()
+	{
+		SimpleDatabase database = new SimpleDatabase();
+		SimpleGroup root = database.getRootGroup();
+		SimpleGroup general = database.newGroup("General");
+		general.setIcon(new org.linguafranca.pwdb.kdbx.simple.SimpleIcon(200));
+		root.addGroup(general);
+
+		AtomicLong idCounter = new AtomicLong(0);
+		BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> rootNode = KeePassTreeConverter
+			.toTreeNode(root, null, idCounter::incrementAndGet);
+		GenericTreeElement<List<MysticCryptEntryModelBean>> unknownIcon = rootNode.getChildren()
+			.iterator().next().getValue();
+
+		assertNull(unknownIcon.getIconPath());
+		assertEquals(200,
+			unknownIcon.getProperties().get(KeePassTreeConverter.KEEPASS_ICON_INDEX_PROPERTY));
+		assertEquals("General", unknownIcon.getName());
 	}
 
 	private String name(

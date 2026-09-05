@@ -26,6 +26,9 @@ package io.github.astrapi69.mystic.crypt.panel.dbtree;
 
 import java.util.List;
 
+import javax.swing.Icon;
+
+import io.github.astrapi69.mystic.crypt.keepass.KeePassIcons;
 import io.github.astrapi69.swing.table.model.BaseTableModel;
 import io.github.astrapi69.swing.table.model.TableColumnsModel;
 import io.github.astrapi69.swing.table.model.thread.ThreadsTableModel;
@@ -36,9 +39,9 @@ public class MysticCryptEntryTableModel extends BaseTableModel<MysticCryptEntryM
 	public MysticCryptEntryTableModel()
 	{ //@formatter:off
 		this(TableColumnsModel.builder().columnNames(
-			new String[] { "Title", "Username", "Url" })
-			.canEdit(new boolean[] { false, false, false })
-			.columnClasses(new Class<?>[] { String.class, String.class, String.class })
+			new String[] { "", "Title", "Username", "Url" })
+			.canEdit(new boolean[] { false, false, false, false })
+			.columnClasses(new Class<?>[] { Icon.class, String.class, String.class, String.class })
 			.build());
 		//@formatter:on
 	}
@@ -71,10 +74,14 @@ public class MysticCryptEntryTableModel extends BaseTableModel<MysticCryptEntryM
 		switch (columnIndex)
 		{
 			case 0 :
-				return mysticCryptEntryModelBean.getTitle();
+				// the icon an imported entry was given in KeePass; a table column of type Icon is
+				// drawn by Swing's own renderer, so no cell renderer is needed for it (#206)
+				return KeePassIcons.of(mysticCryptEntryModelBean.getKeePassIconIndex());
 			case 1 :
-				return mysticCryptEntryModelBean.getUserName();
+				return mysticCryptEntryModelBean.getTitle();
 			case 2 :
+				return mysticCryptEntryModelBean.getUserName();
+			case 3 :
 				return mysticCryptEntryModelBean.getUrl();
 			default :
 				return null;
