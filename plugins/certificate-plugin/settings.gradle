@@ -1,1 +1,13 @@
 rootProject.name = 'certificate-plugin'
+
+// shares the host's version catalog instead of hardcoding a second copy of the crypt-api
+// version here - this plugin is its own independent Gradle build (no `include` from the root
+// settings.gradle), so Gradle's automatic gradle/libs.versions.toml detection does not apply;
+// pointing explicitly at the host's file is what makes libs.crypt.api resolve here too (#213)
+dependencyResolutionManagement {
+    versionCatalogs {
+        libs {
+            from(files("../../gradle/libs.versions.toml"))
+        }
+    }
+}
