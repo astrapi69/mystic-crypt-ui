@@ -45,6 +45,7 @@ FIXED:
 - the intro text on the key exchange, key encapsulation demo and file/text encryptor panels ran off in one unwrapped line instead of wrapping, and now reads as a framed note
 - an invalid distinguished name when adding a key pair to a key store used to surface BouncyCastle's raw internal parsing error ("badly formatted directory string") - it now names the expected format instead
 - the console tool opened packed down to its content's tiny preferred size on its very first frame instead of the configured docked height - it self-healed a moment later on a lucky coincidental resize, which is why it looked fine in earlier testing despite never actually being fixed
+- converting a key to PKCS#1 silently produced a PKCS#8 file for the algorithms that have no traditional form of their own (the edwards and montgomery families, Diffie-Hellman and the post-quantum families): the conversion reported success and wrote a file whose shape was not the one asked for, and it now refuses before writing, naming the algorithm
 
 SECURITY:
 
