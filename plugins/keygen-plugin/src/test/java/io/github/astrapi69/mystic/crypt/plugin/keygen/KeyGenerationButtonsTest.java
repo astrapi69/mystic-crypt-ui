@@ -103,7 +103,8 @@ class KeyGenerationButtonsTest
 	@DisplayName("the encrypt button is off for an algorithm that has no hex demo, and says why")
 	void theEncryptButtonIsOffForAnAlgorithmThatHasNoHexDemo()
 	{
-		GenerateKeysPanel panel = panelWithAKeyPairOf(KeyPairGeneratorAlgorithm.EC);
+		// X25519 is key agreement: unlike RSA and EC it has no encryption primitive at all (#195)
+		GenerateKeysPanel panel = panelWithAKeyPairOf(KeyPairGeneratorAlgorithm.X25519);
 		panel.getEnDecryptPanel().getTxtToEncrypt().setText(PLAIN_TEXT);
 
 		assertFalse(panel.getEnDecryptPanel().getBtnEncrypt().isEnabled(),
@@ -113,11 +114,35 @@ class KeyGenerationButtonsTest
 		assertFalse(reason.isBlank(), "a button that is off must say why");
 	}
 
+	/**
+	 * EC drives the same demo as RSA since the library gained ECIES (#195): generating an EC key
+	 * pair has to arm the buttons, not leave them off as it did while the demo was RSA only
+	 */
+	@Test
+	@DisplayName("an EC key pair drives the demo and its text comes back")
+	void anEcKeyPairDrivesTheDemo()
+	{
+		GenerateKeysPanel panel = panelWithAKeyPairOf(KeyPairGeneratorAlgorithm.EC);
+		panel.getEnDecryptPanel().getTxtToEncrypt().setText(PLAIN_TEXT);
+
+		assertTrue(panel.getEnDecryptPanel().getBtnEncrypt().isEnabled(),
+			"encrypt stayed off although an EC key pair can drive the demo");
+		panel.getEnDecryptPanel().getBtnEncrypt().doClick();
+		String encrypted = panel.getEnDecryptPanel().getTxtEncrypted().getText();
+		assertFalse(encrypted.isEmpty(), "pressing encrypt left the encrypted area empty");
+		assertFalse(encrypted.contains(PLAIN_TEXT), "the text was not encrypted at all");
+
+		panel.getEnDecryptPanel().getBtnDecrypt().doClick();
+
+		assertEquals(PLAIN_TEXT, panel.getEnDecryptPanel().getTxtToEncrypt().getText(),
+			"the text did not come back through the decrypt button");
+	}
+
 	@Test
 	@DisplayName("the encrypt button is on again after an RSA key pair is generated")
 	void theEncryptButtonIsOnAgainAfterAnRsaKeyPairIsGenerated()
 	{
-		GenerateKeysPanel panel = panelWithAKeyPairOf(KeyPairGeneratorAlgorithm.EC);
+		GenerateKeysPanel panel = panelWithAKeyPairOf(KeyPairGeneratorAlgorithm.X25519);
 		panel.getCmbAlgorithm().setSelectedItem(KeyPairGeneratorAlgorithm.RSA);
 		panel.getCryptographyPanel().getBtnGenerate().doClick();
 

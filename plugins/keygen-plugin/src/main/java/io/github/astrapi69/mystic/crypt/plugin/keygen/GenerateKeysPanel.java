@@ -46,8 +46,6 @@ import io.github.astrapi69.crypt.data.key.writer.PublicKeyWriter;
 import io.github.astrapi69.model.BaseModel;
 import io.github.astrapi69.model.LambdaModel;
 import io.github.astrapi69.model.api.IModel;
-import io.github.astrapi69.mystic.crypt.key.PrivateKeyHexDecryptor;
-import io.github.astrapi69.mystic.crypt.key.PublicKeyHexEncryptor;
 import io.github.astrapi69.mystic.crypt.ui.form.ToolForm;
 import io.github.astrapi69.swing.base.BasePanel;
 import io.github.astrapi69.swing.model.component.JMComboBox;
@@ -62,11 +60,11 @@ public class GenerateKeysPanel extends BasePanel<GenerateKeysModelBean>
 	private static final long serialVersionUID = 1L;
 
 	/**
-	 * The algorithms offered in the key-pair dropdown: RSA (classical, drives the full
-	 * encrypt/decrypt demo) plus a curated set of modern algorithms - the X25519/X448 key-agreement
-	 * curves and the NIST post-quantum ML-KEM (key encapsulation) and ML-DSA (signature) parameter
-	 * sets. The modern ones only generate and display their key pair as PEM; the RSA-only hex
-	 * encrypt/decrypt demo does not apply to them.
+	 * The algorithms offered in the key-pair dropdown: the classical RSA and EC, which both drive
+	 * the full encrypt/decrypt demo (RSA with the public key itself, EC through ECIES), plus a
+	 * curated set of modern algorithms - the X25519/X448 key-agreement curves and the NIST
+	 * post-quantum ML-KEM (key encapsulation) and ML-DSA (signature) parameter sets. Those only
+	 * generate and display their key pair as PEM: none of them has an encryption primitive.
 	 */
 	private JMComboBox<String, ?> cmbCurve;
 	private JMComboBox<KeyFormat, ?> cmbKeyFormat;
@@ -137,11 +135,14 @@ public class GenerateKeysPanel extends BasePanel<GenerateKeysModelBean>
 	}
 
 	/**
-	 * What the encrypt and decrypt buttons say while they are out of reach: this demo encrypts with
-	 * the public key itself, which only an RSA pair does - the key agreement and signature
-	 * algorithms have no such operation
+	 * What the encrypt and decrypt buttons say while they are out of reach: an RSA pair encrypts
+	 * with the public key itself and an EC pair through ECIES, while the key agreement curves
+	 * (X25519/X448), the pure KEM (ML-KEM-768) and the signature scheme (ML-DSA-65) have no
+	 * encryption operation at all (#195)
 	 */
-	private static final String ONLY_RSA_CAN_DO_THIS = "The hex encrypt/decrypt demo needs an RSA key pair. Choose RSA and press Generate.";
+	private static final String ONLY_RSA_OR_EC_CAN_DO_THIS = KeygenMessages.getString(
+		"keygen.endecrypt.unavailable.reason",
+		"The hex encrypt/decrypt demo needs an RSA or an EC key pair. Choose one of them and press Generate.");
 
 	/**
 	 * What the certificate button says while it is out of reach: only RSA and EC keys can sign a
@@ -176,7 +177,7 @@ public class GenerateKeysPanel extends BasePanel<GenerateKeysModelBean>
 		getModelObject().setEncryptor(null);
 		getModelObject().setPrivateKey(null);
 		getModelObject().setPublicKey(null);
-		getEnDecryptPanel().setEnDecryptAvailable(false, ONLY_RSA_CAN_DO_THIS);
+		getEnDecryptPanel().setEnDecryptAvailable(false, ONLY_RSA_OR_EC_CAN_DO_THIS);
 	}
 
 	/**
@@ -235,15 +236,18 @@ public class GenerateKeysPanel extends BasePanel<GenerateKeysModelBean>
 	}
 
 	/**
-	 * Tells the user that the hex encrypt/decrypt demo only works with an RSA key pair, which is the
-	 * case when no {@link PublicKeyHexEncryptor}/{@link PrivateKeyHexDecryptor} was built for the
-	 * generated key pair (the modern key-agreement and post-quantum algorithms).
+	 * Tells the user that the hex encrypt/decrypt demo needs an RSA or an EC key pair, which is the
+	 * case when no encryptor/decryptor was built for the generated key pair (the key agreement and
+	 * post-quantum algorithms have no encryption primitive).
 	 */
 	private void showEncryptDecryptUnavailable()
 	{
 		JOptionPane.showMessageDialog(this,
-			"Encrypt/decrypt is available for RSA keys only. Select RSA and generate a key pair to use it.",
-			"Not available for this algorithm", JOptionPane.INFORMATION_MESSAGE);
+			KeygenMessages.getString("keygen.endecrypt.unavailable.message",
+				"Encrypt/decrypt is available for RSA and EC keys. Select one of them and generate a key pair to use it."),
+			KeygenMessages.getString("keygen.endecrypt.unavailable.title",
+				"Not available for this algorithm"),
+			JOptionPane.INFORMATION_MESSAGE);
 	}
 
 	/**
@@ -297,18 +301,15 @@ public class GenerateKeysPanel extends BasePanel<GenerateKeysModelBean>
 			getModelObject().setPrivateKey(keyPair.getPrivate());
 			getModelObject().setPublicKey(keyPair.getPublic());
 
-			if (rsa)
+			// RSA encrypts with the public key itself, EC goes through ECIES, and the rest cannot
+			// encrypt at all - which of the three it is, is decided in one place (#195)
+			getModelObject().setEncryptor(
+				KeygenSupport.newHexEncryptor(algorithm, getModelObject().getPublicKey()));
+			getModelObject().setDecryptor(
+				KeygenSupport.newHexDecryptor(algorithm, getModelObject().getPrivateKey()));
+			final boolean canEnDecrypt = getModelObject().getEncryptor() != null;
+			if (!canEnDecrypt)
 			{
-				getModelObject()
-					.setDecryptor(new PrivateKeyHexDecryptor(getModelObject().getPrivateKey()));
-				getModelObject()
-					.setEncryptor(new PublicKeyHexEncryptor(getModelObject().getPublicKey()));
-			}
-			else
-			{
-				// no hex public-key encrypt/decrypt demo for key-agreement/signature algorithms
-				getModelObject().setDecryptor(null);
-				getModelObject().setEncryptor(null);
 				getEnDecryptPanel().getTxtToEncrypt().setText("");
 				getEnDecryptPanel().getTxtEncrypted().setText("");
 			}
@@ -324,7 +325,7 @@ public class GenerateKeysPanel extends BasePanel<GenerateKeysModelBean>
 			getCryptographyPanel().getTxtPrivateKey().setText(privateKeyFormat);
 			getCryptographyPanel().getTxtPublicKey().setText(publicKeyFormat);
 			getCryptographyPanel().setCertificateAvailable(canCertify, ONLY_RSA_OR_EC_CAN_CERTIFY);
-			getEnDecryptPanel().setEnDecryptAvailable(rsa, ONLY_RSA_CAN_DO_THIS);
+			getEnDecryptPanel().setEnDecryptAvailable(canEnDecrypt, ONLY_RSA_OR_EC_CAN_DO_THIS);
 		}
 		catch (final NoSuchAlgorithmException | NoSuchProviderException | IOException e)
 		{

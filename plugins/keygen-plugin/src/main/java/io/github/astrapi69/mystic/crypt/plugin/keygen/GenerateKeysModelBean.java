@@ -29,8 +29,6 @@ import io.github.astrapi69.crypt.api.algorithm.key.KeyPairGeneratorAlgorithm;
 import io.github.astrapi69.crypt.api.key.KeyFileFormat;
 import io.github.astrapi69.crypt.api.key.KeyFormat;
 import io.github.astrapi69.crypt.api.key.KeySize;
-import io.github.astrapi69.mystic.crypt.key.PrivateKeyHexDecryptor;
-import io.github.astrapi69.mystic.crypt.key.PublicKeyHexEncryptor;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
@@ -62,9 +60,9 @@ public class GenerateKeysModelBean implements Serializable
 	/** The Constant serialVersionUID. */
 	private static final long serialVersionUID = 1L;
 
-	PrivateKeyHexDecryptor decryptor;
+	HexDecryptor decryptor;
 
-	PublicKeyHexEncryptor encryptor;
+	HexEncryptor encryptor;
 
 	/** The key size a size based algorithm generates its key pair with */
 	KeySize keySize;
