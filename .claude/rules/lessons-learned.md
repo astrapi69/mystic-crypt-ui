@@ -87,3 +87,14 @@ The full Swing e2e suite needs Xvfb + fluxbox + JDK 25 + `forkEvery=1`
 
 menu-action 5.1 pulls model-data up to 3.2.1 and breaks swing-tree-component 3.1.
 mystic-crypt 11 + BC jdk18on are in and green (commit 8959046).
+
+## XStream to JAXB migration: tried and abandoned (issue #18)
+
+JAXB was evaluated as XStream's replacement (motivation: XStream ships no Java module). Abandoned
+after a real attempt (`feature/replace-xstream-with-jaxb`, 2023) because JAXB provides no
+serialization interfaces - the whole model would have to be restructured and re-tested for it,
+more effort than the capacity available at the time (see issue #18's closing comment). Persistence
+stays XStream (`xstream`/`xstream-extensions` in the version catalog) until someone actually does
+that full migration - this is not a rejection of JAXB on technical merit, just an unfinished,
+larger-than-expected migration. Don't restart it without budgeting for a full model rewrite
+(architecture.md: XML persistence is a protected architectural decision, ask first).
