@@ -40,6 +40,7 @@ FIXED:
 - a self-signed certificate written by the key store tool used SHA256withRSA where RFC 4055 requires SHA256withRSAandMGF1
 - the sign-in dialog always rendered with Nimbus instead of the configured look and feel (not even the application's own FlatLaf Light default), because it applied a hardcoded choice before the persisted one was loaded
 - an invalid distinguished name when adding a key pair to a key store used to surface BouncyCastle's raw internal parsing error ("badly formatted directory string") - it now names the expected format instead
+- the console tool opened packed down to its content's tiny preferred size on its very first frame instead of the configured docked height - it self-healed a moment later on a lucky coincidental resize, which is why it looked fine in earlier testing despite never actually being fixed
 
 SECURITY:
 
