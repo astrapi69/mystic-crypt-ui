@@ -23,7 +23,7 @@ repositories {
 dependencies {
     compileOnly "io.github.astrapi69:mystic-crypt-ui:8.2-SNAPSHOT"
     // PasswordEncryptor / Argon2Support / Pbkdf2Support live in the mystic-crypt library
-    compileOnly "io.github.astrapi69:mystic-crypt:12.1"
+    compileOnly libs.mystic.crypt
     // ResourceBundleExtensions.getStringQuietly - tooltip/label text from password/messages.properties
     // falls back to a literal default rather than throwing when a key is missing, the same way the
     // host's own Messages class already behaves (.claude/rules/i18n.md)
@@ -46,7 +46,7 @@ dependencies {
 
     // the round-trip test drives the Argon2id / PBKDF2 hashing + verification headlessly
     testImplementation "org.junit.jupiter:junit-jupiter:5.11.4"
-    testImplementation "io.github.astrapi69:mystic-crypt:12.1"
+    testImplementation libs.mystic.crypt
     testRuntimeOnly "org.junit.platform:junit-platform-launcher"
     // the settings contribution implements the host's extension point and reads through the host's
     // settings store, so the host jar has to be on the test classpath to load it

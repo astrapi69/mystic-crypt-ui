@@ -22,7 +22,7 @@ repositories {
 // the PEM writers in crypt-data; everything else is the host plus the swing helpers
 dependencies {
     compileOnly "io.github.astrapi69:mystic-crypt-ui:8.2-SNAPSHOT"
-    compileOnly "io.github.astrapi69:mystic-crypt:12.1"
+    compileOnly libs.mystic.crypt
     // ResourceBundleExtensions.getStringQuietly - tooltip/label text from signature/messages.properties
     // falls back to a literal default rather than throwing when a key is missing, the same way the
     // host's own Messages class already behaves (.claude/rules/i18n.md)
@@ -46,7 +46,7 @@ dependencies {
     // the round-trip test signs and verifies with every offered algorithm headlessly; the
     // post-quantum algorithms resolve through Bouncy Castle, which the host registers at startup
     testImplementation "org.junit.jupiter:junit-jupiter:5.11.4"
-    testImplementation "io.github.astrapi69:mystic-crypt:12.1"
+    testImplementation libs.mystic.crypt
     // CertFactory declares OperatorCreationException from bcpkix in its throws clause, and X500Name
     // lives in bcutil - javac needs both to compile a call to it
     testImplementation "org.bouncycastle:bcpkix-jdk18on:1.85"
