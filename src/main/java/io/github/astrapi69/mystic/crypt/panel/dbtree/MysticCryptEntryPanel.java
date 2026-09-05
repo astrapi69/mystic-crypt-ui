@@ -70,10 +70,10 @@ public class MysticCryptEntryPanel extends BasePanel<MysticCryptEntryModelBean>
 	private JMPasswordField txtRepeat;
 	private JMTextField txtUrl;
 	private JMTextField txtUsername;
-	private JMTextField txtCreated;
-	private JMTextField txtLastAccessed;
-	private JMTextField txtLastModified;
-	private JMTextField txtPreciseExpiry;
+	private javax.swing.JTextField txtCreated;
+	private javax.swing.JTextField txtLastAccessed;
+	private javax.swing.JTextField txtLastModified;
+	private javax.swing.JTextField txtPreciseExpiry;
 	private JMCheckBox cbxExpirable;
 	private CalendarPanel txtExpires;
 
@@ -113,10 +113,10 @@ public class MysticCryptEntryPanel extends BasePanel<MysticCryptEntryModelBean>
 		lblLastAccessed = new JLabel();
 		lblLastModified = new JLabel();
 		lblPreciseExpiry = new JLabel();
-		txtCreated = new JMTextField();
-		txtLastAccessed = new JMTextField();
-		txtLastModified = new JMTextField();
-		txtPreciseExpiry = new JMTextField();
+		txtCreated = new javax.swing.JTextField();
+		txtLastAccessed = new javax.swing.JTextField();
+		txtLastModified = new javax.swing.JTextField();
+		txtPreciseExpiry = new javax.swing.JTextField();
 
 		btnShowPassword = new javax.swing.JButton();
 		btnGeneratePassword = new javax.swing.JButton();
@@ -188,18 +188,17 @@ public class MysticCryptEntryPanel extends BasePanel<MysticCryptEntryModelBean>
 		lblPreciseExpiry
 			.setText(Messages.getString("entry.label.precise.expiry", "Precise expiry"));
 
-		txtCreated.setPropertyModel(LambdaModel
-			.of(() -> EntryTimestampFormatter.format(modelObject.getCreationTime()), unused -> {
-			}));
-		txtLastAccessed.setPropertyModel(LambdaModel
-			.of(() -> EntryTimestampFormatter.format(modelObject.getLastAccessTime()), unused -> {
-			}));
-		txtLastModified.setPropertyModel(LambdaModel.of(
-			() -> EntryTimestampFormatter.format(modelObject.getLastModificationTime()), unused -> {
-			}));
-		txtPreciseExpiry.setPropertyModel(LambdaModel.of(
-			() -> EntryTimestampFormatter.format(modelObject.getPreciseExpiryTime()), unused -> {
-			}));
+		// these four are displays of imported facts, not fields the user fills: they are fed once
+		// from the model and never write back, so they are deliberately NOT model backed
+		// components.
+		// A JMTextField here would claim a binding it cannot honour - a property model whose setter
+		// does nothing - and ModelBinding rightly reports exactly that (see PanelsAreBoundTest)
+		txtCreated.setText(EntryTimestampFormatter.format(modelObject.getCreationTime()));
+		txtLastAccessed.setText(EntryTimestampFormatter.format(modelObject.getLastAccessTime()));
+		txtLastModified
+			.setText(EntryTimestampFormatter.format(modelObject.getLastModificationTime()));
+		txtPreciseExpiry
+			.setText(EntryTimestampFormatter.format(modelObject.getPreciseExpiryTime()));
 
 		txtCreated.setEditable(false);
 		txtLastAccessed.setEditable(false);
