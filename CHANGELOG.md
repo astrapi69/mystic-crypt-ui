@@ -38,6 +38,7 @@ CHANGED:
 
 FIXED:
 
+- the key generation window's encrypt and decrypt form no longer shifts when the reason for those buttons being unavailable is a long one. The reason label shared a layout column with the two buttons, and such a column is as wide as its widest member wants to be, so the longer wording that came with EC support pushed the right half of the form nearly four hundred pixels across. The label now takes its width from the buttons beside it rather than from its own text, and the full reason stays reachable from its tooltip as well as from the ones on both buttons
 - the key store command is taken from the library instead of being duplicated in the application
 - signing with an existing key file failed for keys on named elliptic curves, because the JDK provider refused what Bouncy Castle had generated; classical signing and key reading now go through Bouncy Castle throughout
 - a self-signed certificate written by the key store tool used SHA256withRSA where RFC 4055 requires SHA256withRSAandMGF1
