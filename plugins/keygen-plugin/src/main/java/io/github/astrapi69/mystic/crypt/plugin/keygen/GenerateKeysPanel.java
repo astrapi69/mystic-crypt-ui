@@ -116,9 +116,15 @@ public class GenerateKeysPanel extends BasePanel<GenerateKeysModelBean>
 	}
 
 	/**
-	 * PKCS#1 is a real, distinct encoding only for RSA and EC keys; for every other algorithm this
-	 * window offers, the writer silently falls back to PKCS#8 no matter what is chosen, so offering
-	 * the choice there would be misleading (issue #101)
+	 * PKCS#1 is a real, distinct encoding for RSA, DSA, EC and RSASSA-PSS - measured by writing one
+	 * of each. For every other algorithm the writer silently falls back to PKCS#8 no matter what is
+	 * chosen, so offering the choice there would be misleading (issue #101).
+	 * <p>
+	 * The condition below names RSA and EC rather than all four, and that is right for this window
+	 * rather than an oversight: {@code SUPPORTED_ALGORITHMS} offers RSA, EC, X25519, X448,
+	 * ML-KEM-768 and ML-DSA-65, so DSA and RSASSA-PSS can never be the selected algorithm. Naming
+	 * them here would be code no user can reach. If either is ever added to that array, this
+	 * condition has to grow with it (issue #218).
 	 *
 	 * @param algorithm
 	 *            the algorithm now selected
