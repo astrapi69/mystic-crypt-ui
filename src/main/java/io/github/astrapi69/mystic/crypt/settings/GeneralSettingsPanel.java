@@ -154,10 +154,7 @@ public class GeneralSettingsPanel extends JPanel
 				try
 				{
 					UIManager.setLookAndFeel(info.getClassName());
-					for (Window window : Window.getWindows())
-					{
-						SwingUtilities.updateComponentTreeUI(window);
-					}
+					updateEveryWindowOnTheEventDispatchThread();
 				}
 				catch (Exception exception)
 				{
@@ -178,5 +175,42 @@ public class GeneralSettingsPanel extends JPanel
 	public static void applyTooltipsEnabled(boolean enabled)
 	{
 		ToolTipManager.sharedInstance().setEnabled(enabled);
+	}
+
+	/**
+	 * Re-installs the look and feel on every open window, always on the event dispatch thread.
+	 * <p>
+	 * {@code updateComponentTreeUI} takes the AWT tree lock and then asks a text component for its
+	 * preferred size, which needs that component's document. Called from another thread while the
+	 * event dispatch thread is writing into such a document - the console tool does exactly that
+	 * with the output it captures - the two block each other and the application hangs at startup.
+	 * The application builds its frame outside the event dispatch thread
+	 * ({@code StartMysticCryptApplication}), so this cannot be left to the caller.
+	 */
+	private static void updateEveryWindowOnTheEventDispatchThread()
+	{
+		Runnable updateAll = () -> {
+			for (Window window : Window.getWindows())
+			{
+				SwingUtilities.updateComponentTreeUI(window);
+			}
+		};
+		if (SwingUtilities.isEventDispatchThread())
+		{
+			updateAll.run();
+			return;
+		}
+		try
+		{
+			SwingUtilities.invokeAndWait(updateAll);
+		}
+		catch (final InterruptedException interrupted)
+		{
+			Thread.currentThread().interrupt();
+		}
+		catch (final java.lang.reflect.InvocationTargetException failed)
+		{
+			// same as above: an unavailable look and feel is not worth failing the caller for
+		}
 	}
 }
