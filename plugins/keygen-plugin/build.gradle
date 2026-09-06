@@ -23,8 +23,16 @@ repositories {
 // host, shared with the private-key viewer) it reaches host-internal classes - the hex
 // key encryptor/decryptor and the whole certificate-wizard subsystem it can launch - all provided
 // by the host classloader at runtime through the host jar dependency.
+// the host version comes from the root gradle.properties, the one hand-edited version field in
+// this repository - never repeated as a literal here, so a release cannot leave it pointing at a
+// snapshot that no longer exists (#217)
+def hostVersion = new Properties().with { properties ->
+    file("../../gradle.properties").withInputStream { properties.load(it) }
+    properties.getProperty("projectVersion")
+}
+
 dependencies {
-    compileOnly "io.github.astrapi69:mystic-crypt-ui:8.2-SNAPSHOT"
+    compileOnly "io.github.astrapi69:mystic-crypt-ui:$hostVersion"
     // PrivateKeyHexDecryptor / PublicKeyHexEncryptor live in the mystic-crypt library, not the host
     compileOnly libs.mystic.crypt
     // random bytes for a nonce, an initialisation vector or a salt
@@ -55,7 +63,7 @@ dependencies {
     testRuntimeOnly "org.junit.platform:junit-platform-launcher"
     // the settings contribution implements the host's extension point and reads through the host's
     // settings store, so the host jar has to be on the test classpath to load it
-    testImplementation "io.github.astrapi69:mystic-crypt-ui:8.2-SNAPSHOT"
+    testImplementation "io.github.astrapi69:mystic-crypt-ui:$hostVersion"
     testImplementation "org.pf4j:pf4j:3.15.0"
     // the layout test builds the real panels, so their base classes have to be on the test
     // compile classpath as well (the host jar exposes them only at runtime)

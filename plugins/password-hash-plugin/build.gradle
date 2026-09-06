@@ -20,8 +20,16 @@ repositories {
 
 // compileOnly against the host jar and the mystic-crypt library that provides the Argon2id / PBKDF2
 // password hashing (PasswordEncryptor), plus the swing helpers the plugin uses to open its tool.
+// the host version comes from the root gradle.properties, the one hand-edited version field in
+// this repository - never repeated as a literal here, so a release cannot leave it pointing at a
+// snapshot that no longer exists (#217)
+def hostVersion = new Properties().with { properties ->
+    file("../../gradle.properties").withInputStream { properties.load(it) }
+    properties.getProperty("projectVersion")
+}
+
 dependencies {
-    compileOnly "io.github.astrapi69:mystic-crypt-ui:8.2-SNAPSHOT"
+    compileOnly "io.github.astrapi69:mystic-crypt-ui:$hostVersion"
     // PasswordEncryptor / Argon2Support / Pbkdf2Support live in the mystic-crypt library
     compileOnly libs.mystic.crypt
     // ResourceBundleExtensions.getStringQuietly - tooltip/label text from password/messages.properties
@@ -50,7 +58,7 @@ dependencies {
     testRuntimeOnly "org.junit.platform:junit-platform-launcher"
     // the settings contribution implements the host's extension point and reads through the host's
     // settings store, so the host jar has to be on the test classpath to load it
-    testImplementation "io.github.astrapi69:mystic-crypt-ui:8.2-SNAPSHOT"
+    testImplementation "io.github.astrapi69:mystic-crypt-ui:$hostVersion"
     testImplementation "com.miglayout:miglayout-swing:11.4.3"
     // the binding test builds the panel, so the model backed components and the models they bind
     // to have to be on the test classpath as well
