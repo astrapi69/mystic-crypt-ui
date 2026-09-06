@@ -21,8 +21,16 @@ repositories {
 // the key store handling comes from crypt-data (KeyStoreFactory, KeyStoreExtensions, the
 // certificate readers and writers) and crypt-api (KeystoreType, HashAlgorithm); the host and the
 // swing helpers are only needed to open the tool window
+// the host version comes from the root gradle.properties, the one hand-edited version field in
+// this repository - never repeated as a literal here, so a release cannot leave it pointing at a
+// snapshot that no longer exists (#217)
+def hostVersion = new Properties().with { properties ->
+    file("../../gradle.properties").withInputStream { properties.load(it) }
+    properties.getProperty("projectVersion")
+}
+
 dependencies {
-    compileOnly "io.github.astrapi69:mystic-crypt-ui:8.2-SNAPSHOT"
+    compileOnly "io.github.astrapi69:mystic-crypt-ui:$hostVersion"
     // KeystoreVerifier, to tell what kind of key store a file is
     compileOnly libs.mystic.crypt
     // ResourceBundleExtensions.getStringQuietly - tooltip/label text from keystore/messages.properties
@@ -65,7 +73,7 @@ dependencies {
     testImplementation "info.picocli:picocli:4.7.6"
     // the contribution class implements the host's extension point, so the host jar has to be on
     // the test classpath to load it - for the main sources it stays compileOnly like everything else
-    testImplementation "io.github.astrapi69:mystic-crypt-ui:8.2-SNAPSHOT"
+    testImplementation "io.github.astrapi69:mystic-crypt-ui:$hostVersion"
     testImplementation "com.miglayout:miglayout-swing:11.4.3"
     // the panel test constructs the panel, so the model backed components and the combo box models
     // it is built from have to be on the test classpath as well

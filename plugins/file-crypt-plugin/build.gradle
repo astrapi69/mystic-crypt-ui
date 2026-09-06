@@ -21,8 +21,16 @@ repositories {
 // the key store handling comes from crypt-data (KeyStoreFactory, KeyStoreExtensions, the
 // certificate readers and writers) and crypt-api (KeystoreType, HashAlgorithm); the host and the
 // swing helpers are only needed to open the tool window
+// the host version comes from the root gradle.properties, the one hand-edited version field in
+// this repository - never repeated as a literal here, so a release cannot leave it pointing at a
+// snapshot that no longer exists (#217)
+def hostVersion = new Properties().with { properties ->
+    file("../../gradle.properties").withInputStream { properties.load(it) }
+    properties.getProperty("projectVersion")
+}
+
 dependencies {
-    compileOnly "io.github.astrapi69:mystic-crypt-ui:8.2-SNAPSHOT"
+    compileOnly "io.github.astrapi69:mystic-crypt-ui:$hostVersion"
     compileOnly libs.mystic.crypt
     compileOnly "io.github.astrapi69:swing-base-components:5.1"
     compileOnly "io.github.astrapi69:swing-components:9"
@@ -44,7 +52,7 @@ dependencies {
     testImplementation "org.junit.jupiter:junit-jupiter:5.11.4"
     // the contribution class implements the host's extension point, so the host jar has to be on
     // the test classpath to load it - for the main sources it stays compileOnly like everything else
-    testImplementation "io.github.astrapi69:mystic-crypt-ui:8.2-SNAPSHOT"
+    testImplementation "io.github.astrapi69:mystic-crypt-ui:$hostVersion"
     testImplementation "org.pf4j:pf4j:3.15.0"
     // the panel test builds the panel, so the model backed components have to be there for real
     testImplementation "io.github.astrapi69:swing-model-components:1.2"
