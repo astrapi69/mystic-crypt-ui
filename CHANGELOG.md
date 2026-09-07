@@ -1,6 +1,29 @@
 ## Change log
 ----------------------
 
+Version 8.3
+-------------
+
+SECURITY:
+
+- locking the workspace left the decrypted vault on screen and fully operable. "Lock workspace" switched the frame into its neutral view and disabled the signed-in menus and the toolbar, which made the state look locked, but the vault window stayed on the desktop with the entry table in it - and the entry context menu is built on that table, so it was never covered by the menu bar walk. Executed on the released 8.2 after locking: title and user name readable, "Copy Password" put the entry's real password on the system clipboard, "Copy Username" the user name, "edit..." changed the entry and "delete" removed it, none of it asking for the master password. Locking now closes the vault window, decides what to show from the sign-in state instead of from whether a vault object exists, and clears the system clipboard, so a password copied before the lock does not survive it. 8.1.1 was affected as well, but only where the vault had been opened as the "Key database" window in the desktop view; in the panel view the vault was gone after locking. Versions before 8.1.1 have no working lock action at all and are not affected (#237, advisory GHSA-6c69-wmrw-76vg)
+- the security policy no longer sends a finder to the public issue tracker: vulnerabilities are reported through GitHub's private vulnerability reporting, and the policy now also states how a defect found by the maintainer is handled - public issue, advisory after the fixed release. The supported-versions table names minor lines rather than releases, so a patch release cannot make it stale again (#239)
+
+ADDED:
+
+- the checksum tool follows the algorithm: switching the algorithm looks for the checksum file that belongs to it next to the download, instead of keeping the one found for the previous algorithm (#233)
+
+FIXED:
+
+- comparing a checksum against a checksum file compared the whole line, so a file in the usual "<hash>  <name>" form never matched even when the hash did. The hash is now read out of the file, in the coreutils, BSD and bare-hash forms (#230)
+
+CHANGED:
+
+- every release now publishes a .sha256 and a .sha512 file next to the installer, so a download can be checked against something other than trust (#236)
+- releases are tagged with git itself instead of the grgit plugin, which wrote the tag from a task that had to run even when the build had failed (#235)
+- "make build-full" keeps the test report it produced instead of wiping it with the packaging step that runs afterwards (#234)
+- the lock regression test fires the entry action through the real context menu instead of asserting that the table is merely reachable, and a second test pins that locking clears the clipboard (#243)
+
 Version 8.2
 -------------
 
