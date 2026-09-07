@@ -31,10 +31,13 @@ PLUGIN_INSTALL_DIR := $(HOME)/.config/mystic-crypt-ui/plugins
 build:
 	JAVA_HOME=$(JAVA_HOME) ./gradlew createAllDependendiesJar
 
-# full build: clean, compile, test, spotless, license, then package the runnable jar
+# full build: package the runnable jar first, then compile, test, spotless and license.
+# The packaging task cleans - it has to, because the jar signing globs over build/libs and would
+# otherwise sign leftovers from an earlier build - so running it second wiped the test report the
+# first invocation had just written, and a green gate could not say what it had measured (#227).
 build-full:
-	JAVA_HOME=$(JAVA_HOME) ./gradlew clean build
 	JAVA_HOME=$(JAVA_HOME) ./gradlew createAllDependendiesJar
+	JAVA_HOME=$(JAVA_HOME) ./gradlew build
 
 # host jar plus every internal plugin, built and installed into the app's plugins directory -
 # root `build` alone never touches plugins/ (each is its own separate Gradle build), so this is
