@@ -99,6 +99,38 @@ public class OpenDatabaseTreeFrameAction extends AbstractAction
 		newDatabaseTreeFrame(instance, desktopPanePanel);
 	}
 
+	/**
+	 * Takes the database view off the desktop, so that locking removes it rather than leaving it
+	 * behind the desktop pane where it stays readable and operable (#237).
+	 * <p>
+	 * The panel itself is only detached from the internal frame, not discarded: unlocking builds
+	 * the view again from the same panel, which is what keeps a node added before locking there
+	 * afterwards.
+	 *
+	 * @param instance
+	 *            the application frame
+	 */
+	public static void closeDatabaseTreeFrame(final MysticCryptApplicationFrame instance)
+	{
+		JDesktopPanePanel<ApplicationModelBean> desktopPanePanel = instance.getDesktopPanePanel();
+		if (desktopPanePanel == null || desktopPanePanel.getDesktopPane() == null)
+		{
+			return;
+		}
+		for (JInternalFrame existing : desktopPanePanel.getDesktopPane().getAllFrames())
+		{
+			if (DATABASE_TREE_FRAME_TITLE.equals(existing.getTitle()))
+			{
+				existing.getContentPane().removeAll();
+				existing.setVisible(false);
+				existing.dispose();
+				desktopPanePanel.getDesktopPane().remove(existing);
+			}
+		}
+		desktopPanePanel.getDesktopPane().revalidate();
+		desktopPanePanel.getDesktopPane().repaint();
+	}
+
 	private static void newDatabaseTreeFrame(final MysticCryptApplicationFrame instance,
 		final JDesktopPanePanel<ApplicationModelBean> desktopPanePanel)
 	{

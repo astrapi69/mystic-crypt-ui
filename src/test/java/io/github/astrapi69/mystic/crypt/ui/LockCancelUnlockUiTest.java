@@ -56,5 +56,9 @@ class LockCancelUnlockUiTest extends AbstractUiTest
 
 		assertFalse(MysticCryptApplicationFrame.getInstance().getModelObject().isSignedIn(),
 			"cancelling the unlock dialog must keep the workspace locked");
+		// "locked" is more than the flag: cancelling used to leave the database view on screen
+		// (#237)
+		assertFalse(application.isInternalFrameShowing("Key database"),
+			"cancelling must leave the database view off the screen as well");
 	}
 }
