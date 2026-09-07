@@ -25,7 +25,10 @@
 
 package io.github.astrapi69.mystic.crypt.ui;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.awt.Component;
@@ -34,6 +37,7 @@ import java.io.File;
 import java.io.IOException;
 
 import org.assertj.swing.edt.GuiActionRunner;
+import org.assertj.swing.exception.ComponentLookupException;
 import org.assertj.swing.fixture.FrameFixture;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -56,6 +60,12 @@ class LockHidesVaultUiTest extends AbstractUiTest
 {
 
 	private static final String MASTER_PASSWORD = TestPasswords.throwaway();
+
+	private static final String ENTRY_TITLE = "Locked Entry";
+
+	private static final String ENTRY_USERNAME = "locked-user";
+
+	private static final String ENTRY_PASSWORD = TestPasswords.throwaway();
 
 	/**
 	 * Defect A: locking switches the frame mode but leaves the vault on screen, because
@@ -104,51 +114,72 @@ class LockHidesVaultUiTest extends AbstractUiTest
 	}
 
 	/**
-	 * Question 1: was the vault merely visible after locking, or operable? The entry table is what
-	 * carries the actions - a right click on it builds the context menu with "Copy Password"
+	 * Question 1: was the vault merely visible after locking, or operable? The entry table carries
+	 * the actions - a right click on it builds the context menu with "Copy Password"
 	 * (SecretKeyTreeWithContentPanel:1207-1218, shown on getTblTreeEntryTable() at :1265, copying
 	 * at :1360-1364). onEnableByPublic walks the menu bar and the toolbar
 	 * (DesktopMenu:633,649-650), so a JPopupMenu built on the table is never disabled by locking:
 	 * while that table is reachable, the action is triggerable.
 	 * <p>
-	 * The positive control in the same test is what makes the second assertion mean something: the
-	 * identical lookup finds the table while unlocked. A lookup that never worked, or one
-	 * swallowing an exception, fails there instead of passing silently.
-	 * <p>
-	 * What this test checks: that the component carrying the entry actions is reachable while
-	 * unlocked and gone while locked. What it deliberately does NOT check: that a right click
-	 * builds the menu and that "Copy Password" is actually fired - the entry table has no stable
-	 * component name (setName is used only for four menu items,
-	 * SecretKeyTreeWithContentPanel:470-513), the menu is rebuilt on every right click (:1265), and
-	 * ApplicationSteps has no popup helper, so executing the click would mean building test
-	 * infrastructure first. Tracked separately; do not read this test as proof that the action
-	 * itself was fired.
-	 * <p>
-	 * Not asserted through the model: {@code treeContainsNodeStartingWith} reads
-	 * {@code getApplicationPanel().getModelObject()}, a field that is never cleared, so it answers
-	 * a question about memory rather than about reachability - that belongs to the memory hygiene
-	 * issue, not here. The model may legitimately keep the content while locked, since unlocking
-	 * builds the view from it again.
+	 * The action is not reasoned about here, it is fired: the same context-menu path a user takes
+	 * ({@code ApplicationSteps.copyPasswordOfSelectedEntry} right-clicks the selected row and
+	 * chooses the item, :865/:881). While unlocked it must put the password on the clipboard - that
+	 * is the positive control, and without it the assertion after the lock could pass for the wrong
+	 * reason. While locked, driving the same path must fail because the table it needs is no longer
+	 * on screen.
 	 */
 	@Test
-	@DisplayName("the table that carries the entry actions is reachable unlocked and gone when locked")
+	@DisplayName("the entry actions can be fired while unlocked and not at all while locked")
 	void theEntryActionsAreNotTriggerableWhileLocked() throws IOException
 	{
 		File databaseFile = new File(tempHome, "lock-reachable-database.mcrdb");
 		createDatabaseFileHeadless(databaseFile, MASTER_PASSWORD);
 		ApplicationSteps application = signInWithExistingDatabase(databaseFile, MASTER_PASSWORD);
 		FrameFixture frame = application.showMainFrame();
-		application.addNodeToTreeRoot(frame, "SecretNodeC");
+		application.selectTreeRow(frame, 0);
+		application.addEntry(frame, ENTRY_TITLE, ENTRY_USERNAME, ENTRY_PASSWORD);
+		application.selectEntryRowByTitle(frame, ENTRY_TITLE);
 
-		assertTrue(entryTableIsReachable(),
-			"positive control: while unlocked the entry table must be reachable, otherwise the "
-				+ "assertion below would pass for the wrong reason");
+		application.copyPasswordOfSelectedEntry(frame);
+		assertEquals(ENTRY_PASSWORD, application.clipboardText(),
+			"positive control: while unlocked, Copy Password puts the password on the clipboard - "
+				+ "if this fails, the assertions below prove nothing");
+		assertTrue(entryTableIsReachable(), "positive control: the entry table is on screen");
 
 		application.lockWorkspace();
 
+		assertThrows(ComponentLookupException.class,
+			() -> application.selectEntryRowByTitle(frame, ENTRY_TITLE),
+			"while locked, the entry table must not be reachable at all - as long as it is, its "
+				+ "context menu builds and Copy Password stays triggerable");
 		assertFalse(entryTableIsReachable(),
-			"while locked the entry table must be gone - as long as it is reachable, its context "
-				+ "menu builds and Copy Password stays triggerable");
+			"while locked no entry table may be showing anywhere in the frame");
+	}
+
+	/**
+	 * A password copied before the lock outlives it on the system clipboard unless locking clears
+	 * it: the clipboard is not part of the frame and no view switch touches it. Pinned here because
+	 * the advisory for #237 states this property.
+	 */
+	@Test
+	@DisplayName("locking clears a password that was copied to the clipboard")
+	void lockingClearsTheClipboard() throws IOException
+	{
+		File databaseFile = new File(tempHome, "lock-clipboard-database.mcrdb");
+		createDatabaseFileHeadless(databaseFile, MASTER_PASSWORD);
+		ApplicationSteps application = signInWithExistingDatabase(databaseFile, MASTER_PASSWORD);
+		FrameFixture frame = application.showMainFrame();
+		application.selectTreeRow(frame, 0);
+		application.addEntry(frame, ENTRY_TITLE, ENTRY_USERNAME, ENTRY_PASSWORD);
+		application.selectEntryRowByTitle(frame, ENTRY_TITLE);
+		application.copyPasswordOfSelectedEntry(frame);
+		assertEquals(ENTRY_PASSWORD, application.clipboardText(),
+			"precondition: the password is on the clipboard when the lock happens");
+
+		application.lockWorkspace();
+
+		assertNotEquals(ENTRY_PASSWORD, application.clipboardText(),
+			"locking must not leave the password readable on the system clipboard");
 	}
 
 	/**
