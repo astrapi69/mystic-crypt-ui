@@ -56,6 +56,7 @@ class LockWorkspaceUiTest extends AbstractUiTest
 		ApplicationSteps application = signInWithExistingDatabase(databaseFile, MASTER_PASSWORD);
 		assertTrue(MysticCryptApplicationFrame.getInstance().getModelObject().isSignedIn(),
 			"precondition: signed in after opening the database");
+		application.addNodeToTreeRoot(application.showMainFrame(), "SurvivesLock");
 
 		application.lockWorkspace();
 		assertFalse(MysticCryptApplicationFrame.getInstance().getModelObject().isSignedIn(),
@@ -63,6 +64,10 @@ class LockWorkspaceUiTest extends AbstractUiTest
 		assertEquals(FrameMode.DESKTOP_PANE,
 			MysticCryptApplicationFrame.getInstance().getFrameMode(),
 			"locking must hide the content behind the desktop pane");
+		// the frame mode alone said nothing about what is on screen: it was already DESKTOP_PANE
+		// while the database view was sitting on that desktop, readable and operable (#237)
+		assertFalse(application.isInternalFrameShowing("Key database"),
+			"locking must take the database view off the screen, not just switch the mode");
 
 		application.unlockWorkspace(MASTER_PASSWORD);
 		assertTrue(MysticCryptApplicationFrame.getInstance().getModelObject().isSignedIn(),
@@ -70,6 +75,10 @@ class LockWorkspaceUiTest extends AbstractUiTest
 		assertEquals(FrameMode.APPLICATION_PANEL,
 			MysticCryptApplicationFrame.getInstance().getFrameMode(),
 			"unlocking must show the application content again");
+		// the mode alone would wave through an empty screen, which is exactly what the fix for
+		// #237 could have broken: the view is removed on locking and has to be built again here
+		assertTrue(application.treeContainsNodeStartingWith("SurvivesLock"),
+			"unlocking must bring the content back, not just the mode");
 	}
 
 	@Test
@@ -84,6 +93,8 @@ class LockWorkspaceUiTest extends AbstractUiTest
 		application.enterUnlockPasswordExpectingFailure("definitely-wrong");
 		assertFalse(MysticCryptApplicationFrame.getInstance().getModelObject().isSignedIn(),
 			"a wrong unlock password must keep the workspace locked");
+		assertFalse(application.isInternalFrameShowing("Key database"),
+			"and locked means the database view stays off the screen, not merely a false flag");
 
 		application.unlockWorkspace(MASTER_PASSWORD);
 		assertTrue(MysticCryptApplicationFrame.getInstance().getModelObject().isSignedIn(),

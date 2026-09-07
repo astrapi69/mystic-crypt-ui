@@ -1185,6 +1185,10 @@ final class ApplicationSteps
 				return !MysticCryptApplicationFrame.getInstance().getModelObject().isSignedIn();
 			}
 		}, 10000);
+		// locking sets the signed-in flag before taking the database view off the desktop, so this
+		// condition can be true while that is still pending - wait for the event dispatch thread to
+		// finish before callers assert on what is on screen, the same way unlockWorkspace does
+		robot.waitForIdle();
 		UiTestSpeed.step();
 		return this;
 	}

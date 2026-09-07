@@ -515,18 +515,30 @@ public class MysticCryptApplicationFrame extends ApplicationPanelFrame<Applicati
 	}
 
 	/**
-	 * Switches into Desktop mode and, once a database is open, makes sure the database view (tree
-	 * and content table alike) is showing as its own internal frame there - every plugin tool
-	 * switches into this mode to have somewhere to put its own window, and the database view must
-	 * not just vanish when that happens (#132)
+	 * Switches into Desktop mode and decides, from the signed-in state, what happens to the
+	 * database view there.
+	 * <p>
+	 * Signed in, the view has to keep showing as its own internal frame: every plugin tool switches
+	 * into this mode to have somewhere to put its own window, and the database must not vanish when
+	 * that happens (#132). Not signed in, the frame is being locked, and the view is taken off the
+	 * desktop rather than left behind it.
+	 * <p>
+	 * The condition used to be {@code getApplicationPanel() != null}, which is not a state: the
+	 * field is assigned once when a database is opened and never cleared, so it read true for both
+	 * callers and locking kept the vault on screen (#237). What tells the two apart is the reason
+	 * for the switch, and that is what {@code signedIn} carries.
 	 */
 	public void switchToDesktopPane()
 	{
 		replaceMainComponent(getDesktopPanePanel());
 		instance.frameMode = FrameMode.DESKTOP_PANE;
-		if (getApplicationPanel() != null)
+		if (getModelObject().isSignedIn())
 		{
 			OpenDatabaseTreeFrameAction.ensureDatabaseTreeFrameOpen(instance);
+		}
+		else
+		{
+			OpenDatabaseTreeFrameAction.closeDatabaseTreeFrame(instance);
 		}
 	}
 

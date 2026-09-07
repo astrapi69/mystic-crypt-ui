@@ -31,6 +31,7 @@ import java.util.Arrays;
 
 import javax.swing.*;
 
+import io.github.astrapi69.awt.extension.ClipboardExtensions;
 import io.github.astrapi69.mystic.crypt.DesktopMenu;
 import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
 import io.github.astrapi69.mystic.crypt.panel.signin.MasterPwFileModelBean;
@@ -64,17 +65,34 @@ public class LockWorkspaceAction extends AbstractAction
 		MysticCryptApplicationFrame frame = MysticCryptApplicationFrame.getInstance();
 		if (frame.getModelObject().isSignedIn())
 		{
-			// lock: hide the content and disable the signed-in menus/toolbar. The signed-in flag is
-			// flipped last so that a caller waiting for it observes the fully switched-away frame
+			// The flag goes first, where it used to go last. switchToDesktopPane reads it to tell
+			// locking apart from a plugin switching the view, so a frame that does not know yet
+			// that it is locked puts the database view back instead of taking it away (#237).
+			//
+			// What the old order bought, and what this costs: it was ordered the other way so that
+			// an observer would never see "still signed in" while the view was already gone. Now an
+			// observer could see "locked" while the view is still there. That window is between two
+			// statements of one dispatch on the event dispatch thread, so no reader on that thread
+			// can fall into it, and the only production reads off it - onEnableMenu from
+			// onAfterInitialize - happen while the frame is being constructed, before locking is
+			// reachable at all.
+			//
+			// One observer of the kind the old comment meant does exist, in the test harness:
+			// ApplicationSteps.lockWorkspace polls this flag from the test thread. It therefore
+			// waits for the event dispatch thread afterwards, the way unlockWorkspace already had
+			// to for the mirror image of this order.
+			frame.getModelObject().setSignedIn(false);
 			frame.switchToDesktopPane();
 			((DesktopMenu)frame.getMenu()).onEnableByPublic();
-			frame.getModelObject().setSignedIn(false);
+			// a password copied before locking would otherwise still be there to paste
+			ClipboardExtensions.copyToClipboard("");
 			// prompt asynchronously so the locked state is fully in effect before the modal blocks
 			SwingUtilities.invokeLater(() -> promptForUnlock(frame));
 		}
-		else if (frame.getModelObject().getMasterPwFileModelBean() != null)
+		else
 		{
-			// already locked (a database is open) - offer the unlock prompt again
+			// already locked - offer the unlock prompt again. Whether there is anything to unlock
+			// is promptForUnlock's own guard, not a second state carrier next to signedIn
 			promptForUnlock(frame);
 		}
 	}
