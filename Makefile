@@ -193,7 +193,7 @@ clean-build-installer: plugins
 	JAVA_HOME=$(JAVA_HOME) ./gradlew clean build izPackCreateInstaller
 
 izpack-installer: plugins
-	JAVA_HOME=$(JAVA_HOME) ./gradlew izPackCreateInstaller
+	JAVA_HOME=$(JAVA_HOME) ./gradlew checksumInstaller
 
 izpack-installer-signed: plugins
 	JAVA_HOME=$(JAVA_HOME) ./gradlew createIzPackInstallerFromSignedJar

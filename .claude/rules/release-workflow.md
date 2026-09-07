@@ -33,7 +33,9 @@ Prompt triggers: "release new version", "new release".
    - dependency currency check: `make dependency-updates` — routine patch/minor bumps as
      part of the release; major bumps get their own session, never bundled in.
 6. **Tag + push**: `make tag-release` (or the manual `git tag -a vX.Y.Z` + push).
-7. **GitHub release** from the CHANGELOG entry (`gh release create vX.Y.Z`).
+7. **GitHub release** from the CHANGELOG entry (`gh release create vX.Y.Z`), with the installer
+   AND the `.sha256`/`.sha512` files `make izpack-installer` writes next to it. A release without
+   them gives a downloader no way to tell a tampered file from the real one.
 8. **Post-release**: CHANGELOG link check, CLAUDE.md update if architecture changed,
    lessons-learned.md entry if anything noteworthy happened during the release.
 

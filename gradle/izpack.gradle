@@ -17,3 +17,41 @@ izpack {
                      "app.url": "$projectScmProviderUrl" + "$projectHolderUsername" + "$slash" + "$rootProject.name",
                      "app.subpath": "$rootProject.name-${projectVersion}"]
 }
+
+/**
+ * Writes a SHA-256 and a SHA-512 file next to the installer, in the format sha256sum and sha512sum
+ * read and write - "<hash>  <filename>" - so a user can verify a download with the tools they
+ * already have, and with this application's own checksum panel.
+ *
+ * A checksum computed on the machine that built the artifact says the download arrived intact. It
+ * does not say who built it, which is a separate question (#228).
+ */
+tasks.register('checksumInstaller') {
+    description = "Writes the SHA-256 and SHA-512 files that belong next to the installer."
+    DirectoryProperty buildDirectoryProperty = layout.buildDirectory
+    File installer = file("${buildDirectoryProperty.get()}/distributions/$rootProject.name-${projectVersion}-installer.jar")
+    Map<String, String> digests = ["SHA-256": "sha256", "SHA-512": "sha512"]
+    inputs.file(installer).withPropertyName("installer")
+    outputs.files(digests.values().collect { new File(installer.parentFile, "${installer.name}.$it") })
+    doLast {
+        digests.each { algorithm, extension ->
+            def digest = java.security.MessageDigest.getInstance(algorithm)
+            installer.withInputStream { stream ->
+                byte[] buffer = new byte[8192]
+                int read
+                while ((read = stream.read(buffer)) != -1) {
+                    digest.update(buffer, 0, read)
+                }
+            }
+            String hex = digest.digest().encodeHex().toString()
+            File checksumFile = new File(installer.parentFile, "${installer.name}.$extension")
+            checksumFile.setText("$hex  ${installer.name}\n", "US-ASCII")
+            logger.lifecycle("wrote ${checksumFile.name}")
+        }
+    }
+}
+
+// dependsOn, deliberately not finalizedBy: a finalizer also runs after its target FAILED, which
+// wrote checksums for an installer a failed build had not produced. Depending on it instead means
+// no checksum file exists unless the installer was built successfully (#228)
+checksumInstaller.dependsOn(izPackCreateInstaller)
