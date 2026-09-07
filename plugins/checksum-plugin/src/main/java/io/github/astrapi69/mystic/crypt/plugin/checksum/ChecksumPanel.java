@@ -36,7 +36,6 @@ import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.logging.Level;
@@ -443,9 +442,12 @@ public class ChecksumPanel extends BasePanel<ChecksumBean>
 
 	protected void onCompare(final ActionEvent actionEvent)
 	{
-		String ownersChecksumText = getModelObject().getOwnersChecksum();
+		// what the owner published is rarely a bare hash - a checksum file holds the hash followed
+		// by the file name - and the comparison itself belongs in the support class, which tolerates
+		// case and spacing and does not let its duration say how far it got (#229)
+		String ownersChecksumText = ChecksumSupport.hashFrom(getModelObject().getOwnersChecksum());
 		String generatedChecksumText = getModelObject().getGeneratedChecksum();
-		if (Objects.equals(ownersChecksumText, generatedChecksumText))
+		if (ChecksumSupport.matches(ownersChecksumText, generatedChecksumText))
 		{
 			showChecksumMatchResult("Match", MATCH_COLOR);
 		}

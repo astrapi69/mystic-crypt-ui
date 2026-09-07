@@ -209,6 +209,37 @@ public final class ChecksumSupport
 		}
 	}
 
+	/**
+	 * The hash out of what a checksum file holds.
+	 * <p>
+	 * A published checksum is rarely a bare hash: sha256sum and everything else following coreutils
+	 * write {@code <hash>  <filename>}, with a {@code *} before the name for binary mode, and the
+	 * BSD tools write {@code SHA256 (<filename>) = <hash>}. Comparing such a line as a whole
+	 * against a computed hash can never succeed, which is what made verifying an intact file report
+	 * no match (#229).
+	 *
+	 * @param checksumFileContent
+	 *            what was typed or loaded from a checksum file, may be {@code null}
+	 * @return the hash it holds, or {@code null} if there is none
+	 */
+	public static String hashFrom(final String checksumFileContent)
+	{
+		if (checksumFileContent == null || checksumFileContent.isBlank())
+		{
+			return null;
+		}
+		String line = checksumFileContent.strip().lines().findFirst().orElse("").strip();
+		int equals = line.lastIndexOf('=');
+		if (equals != -1)
+		{
+			// the bsd form names the algorithm and the file first: SHA256 (file) = <hash>
+			line = line.substring(equals + 1).strip();
+		}
+		// the coreutils form is the hash, whitespace, then the name, with a * for binary mode
+		String candidate = line.split("\\s+", 2)[0].strip();
+		return candidate.isEmpty() ? null : candidate;
+	}
+
 	private static String normalise(final String hex)
 	{
 		return hex.trim().replace(" ", "").replace(":", "").toLowerCase(java.util.Locale.ROOT);
