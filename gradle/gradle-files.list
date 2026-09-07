@@ -1,6 +1,6 @@
 gradle/dependencies.gradle
 gradle/formatting.gradle
-gradle/grgit.gradle
+gradle/tagging.gradle
 gradle/izpack.gradle
 gradle/licensing.gradle
 gradle/mutation-testing.gradle
