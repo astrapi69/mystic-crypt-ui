@@ -41,6 +41,7 @@ import java.util.Set;
 import java.util.logging.Level;
 
 import javax.swing.*;
+import javax.swing.event.DocumentEvent;
 import javax.swing.plaf.ColorUIResource;
 
 import io.github.astrapi69.awt.extension.ClipboardExtensions;
@@ -53,6 +54,7 @@ import io.github.astrapi69.model.BaseModel;
 import io.github.astrapi69.model.LambdaModel;
 import io.github.astrapi69.model.api.IModel;
 import io.github.astrapi69.swing.base.BasePanel;
+import io.github.astrapi69.swing.listener.document.DocumentListenerAdapter;
 import io.github.astrapi69.swing.listener.document.EnableButtonBehavior;
 import io.github.astrapi69.swing.model.combobox.EnumComboBoxModel;
 import io.github.astrapi69.swing.model.component.JMComboBox;
@@ -85,6 +87,16 @@ public class ChecksumPanel extends BasePanel<ChecksumBean>
 
 	/** The size a checksum file may have at most, in bytes */
 	private static final long MAXIMUM_CHECKSUM_FILE_LENGTH = 128;
+
+	/**
+	 * Whether what stands in "Checksum from owner" was put there by a probe rather than by the user.
+	 * Only a probe's own result may be replaced by the next one; a checksum somebody typed or opened
+	 * is theirs and stays
+	 */
+	private boolean probeFilledTheOwnersChecksum;
+
+	/** True while a probe is writing into the field, so its own change is not read as the user's */
+	private boolean loadingAProbedChecksum;
 
 	/**
 	 * The file extension conventionally produced for each algorithm this tool offers (the same
@@ -280,6 +292,19 @@ public class ChecksumPanel extends BasePanel<ChecksumBean>
 			modelObject::setSelectedChecksumFilename));
 		txtOwnersChecksum.setPropertyModel(
 			LambdaModel.of(modelObject::getOwnersChecksum, modelObject::setOwnersChecksum));
+		// whatever reaches this field from outside a probe belongs to the user, and a probe for
+		// another algorithm must not take it away again (#231)
+		txtOwnersChecksum.getDocument().addDocumentListener(new DocumentListenerAdapter()
+		{
+			@Override
+			public void onDocumentChanged(final DocumentEvent documentEvent)
+			{
+				if (!loadingAProbedChecksum)
+				{
+					probeFilledTheOwnersChecksum = false;
+				}
+			}
+		});
 		cbxChecksumAlgorithm.setPropertyModel(
 			LambdaModel.of(modelObject::getSelectedAlgorithm, modelObject::setSelectedAlgorithm));
 		txtChecksumMatchResult.setPropertyModel(LambdaModel.of(modelObject::getChecksumMatchResult,
@@ -292,6 +317,8 @@ public class ChecksumPanel extends BasePanel<ChecksumBean>
 		if (returnVal == JFileChooser.APPROVE_OPTION)
 		{
 			applyChecksumFile(fileChooser.getSelectedFile());
+			// chosen by hand, so no later probe may replace it
+			probeFilledTheOwnersChecksum = false;
 		}
 	}
 
@@ -331,6 +358,27 @@ public class ChecksumPanel extends BasePanel<ChecksumBean>
 	}
 
 	/**
+	 * Loads a checksum file a probe found, marked as the probe's own so that the next probe may
+	 * replace it while anything the user brings never is
+	 *
+	 * @param checksumFile
+	 *            the checksum file the probe found
+	 */
+	private void applyProbedChecksumFile(final File checksumFile)
+	{
+		loadingAProbedChecksum = true;
+		try
+		{
+			applyChecksumFile(checksumFile);
+		}
+		finally
+		{
+			loadingAProbedChecksum = false;
+		}
+		probeFilledTheOwnersChecksum = true;
+	}
+
+	/**
 	 * Looks for a same-named checksum file next to the one being checked, trying both naming
 	 * conventions tools actually use: appending the algorithm extension ({@code backup.alb} +
 	 * {@code backup.alb.sha256}) and replacing the original extension with it ({@code backup.alb}
@@ -358,13 +406,13 @@ public class ChecksumPanel extends BasePanel<ChecksumBean>
 			File appended = new File(parent, file.getName() + "." + extension);
 			if (appended.isFile())
 			{
-				applyChecksumFile(appended);
+				applyProbedChecksumFile(appended);
 				return;
 			}
 			File replaced = new File(parent, baseName + "." + extension);
 			if (replaced.isFile())
 			{
-				applyChecksumFile(replaced);
+				applyProbedChecksumFile(replaced);
 				return;
 			}
 		}
@@ -476,6 +524,45 @@ public class ChecksumPanel extends BasePanel<ChecksumBean>
 	{
 		// the combo box has already written the chosen algorithm into the model
 		calculateChecksum();
+		// the sibling loaded so far belongs to the algorithm chosen before, so the two would be
+		// compared across algorithms and report no match for a file that is intact (#231)
+		probeForSiblingOfSelectedAlgorithm();
+	}
+
+	/**
+	 * Loads the checksum file that belongs to the algorithm now selected, when the one loaded so far
+	 * was found by a probe rather than brought by the user.
+	 * <p>
+	 * What someone typed or opened by hand is never replaced - that is the checksum they obtained
+	 * from the author, and no dropdown may quietly swap it for a file found next to the download.
+	 */
+	private void probeForSiblingOfSelectedAlgorithm()
+	{
+		File file = getModelObject().getSelectedFile();
+		ChecksumAlgorithm algorithm = getModelObject().getSelectedAlgorithm();
+		if (file == null || algorithm == null || !probeFilledTheOwnersChecksum)
+		{
+			return;
+		}
+		String extension = CHECKSUM_FILE_EXTENSIONS.get(algorithm);
+		if (extension == null)
+		{
+			return;
+		}
+		File parent = file.getParentFile();
+		if (parent == null)
+		{
+			return;
+		}
+		for (File candidate : new File[] { new File(parent, file.getName() + "." + extension),
+				new File(parent, baseNameWithoutExtension(file.getName()) + "." + extension) })
+		{
+			if (candidate.isFile())
+			{
+				applyProbedChecksumFile(candidate);
+				return;
+			}
+		}
 	}
 
 	protected void onClearOpenFile(ActionEvent actionEvent)
