@@ -372,6 +372,56 @@ class ChecksumPanelBindingTest
 	 * @throws Exception
 	 *             is thrown when the file cannot be written
 	 */
+	/**
+	 * The sibling that was loaded belongs to the algorithm that was selected at the time. Choosing a
+	 * different one recomputes the checksum of the file but used to leave the owner's checksum where
+	 * it was, so the two then belonged to different algorithms and Compare said no match for a file
+	 * that was intact (#231).
+	 */
+	@Test
+	@DisplayName("choosing another algorithm loads the sibling checksum file that belongs to it")
+	void choosingAnotherAlgorithmLoadsTheSiblingThatBelongsToIt(@TempDir File directory)
+		throws Exception
+	{
+		File file = fileWithAbc(directory);
+		String sha256 = FileChecksumExtensions.getChecksum(file, ChecksumAlgorithm.SHA_256);
+		String sha512 = FileChecksumExtensions.getChecksum(file, ChecksumAlgorithm.SHA_512);
+		Files.write(new File(directory, file.getName() + ".sha256").toPath(),
+			sha256.getBytes(StandardCharsets.UTF_8));
+		Files.write(new File(directory, file.getName() + ".sha512").toPath(),
+			sha512.getBytes(StandardCharsets.UTF_8));
+		ChecksumPanel panel = new ChecksumPanel();
+		panel.applySelectedFile(file);
+
+		chooseAlgorithm(panel, ChecksumAlgorithm.SHA_512);
+
+		assertEquals(sha512, panel.getModelObject().getOwnersChecksum(),
+			"after choosing SHA-512 the owner's checksum must be the one from the .sha512 file, "
+				+ "not the .sha256 one loaded before");
+	}
+
+	/**
+	 * What the user brought is not ours to replace: a checksum pasted from a download page stays,
+	 * whatever the dropdown does afterwards
+	 */
+	@Test
+	@DisplayName("choosing another algorithm never overwrites a checksum the user entered")
+	void choosingAnotherAlgorithmKeepsWhatTheUserEntered(@TempDir File directory) throws Exception
+	{
+		File file = fileWithAbc(directory);
+		String sha512 = FileChecksumExtensions.getChecksum(file, ChecksumAlgorithm.SHA_512);
+		Files.write(new File(directory, file.getName() + ".sha512").toPath(),
+			sha512.getBytes(StandardCharsets.UTF_8));
+		ChecksumPanel panel = new ChecksumPanel();
+		panel.applySelectedFile(file);
+		panel.getTxtOwnersChecksum().setText("something the user pasted");
+
+		chooseAlgorithm(panel, ChecksumAlgorithm.SHA_512);
+
+		assertEquals("something the user pasted", panel.getModelObject().getOwnersChecksum(),
+			"a checksum the user brought must survive a change of algorithm");
+	}
+
 	private static File fileWithAbc(final File directory) throws Exception
 	{
 		File file = new File(directory, "abc.txt");
