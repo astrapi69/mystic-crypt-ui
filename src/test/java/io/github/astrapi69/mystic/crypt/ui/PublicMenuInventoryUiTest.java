@@ -65,11 +65,6 @@ import io.github.astrapi69.mystic.crypt.TestPasswords;
  * looks only for what it already knows cannot catch what nobody thought of, which is exactly the
  * class of defect this replaces.
  * <p>
- * SCOPE, and it is narrower than the name suggests: this covers MENU entries only. The toolbar in
- * the same method still decides by a blacklist, so its buttons are not checked here and the "new
- * database" button is active without a vault (#269). Until that is closed, a green run here does
- * not mean the public state is covered - only that no menu entry is offered unlisted.
- * <p>
  * Locked and public are the same menu state - {@code LockWorkspaceAction} calls the same
  * {@code onEnableByPublic} after clearing the signed-in flag (#237). That is asserted here rather
  * than written in a comment somewhere.
@@ -98,6 +93,14 @@ class PublicMenuInventoryUiTest extends AbstractUiTest
 	 */
 	private static final String ACTIVE_THEME_IS_NOT_OFFERED = "FlatLaf Light";
 
+	/**
+	 * The toolbar items that may be offered without a vault: none. "New database" works, but in the
+	 * locked state - the same state for this decision (#237) - creating a vault unlocks the screen
+	 * and shows the LOCKED vault's entries without its master password (#270), so nothing on the
+	 * toolbar is public until that is fixed
+	 */
+	private static final Set<String> ALLOWED_PUBLIC_TOOLBAR_IDS = Set.of();
+
 	@Test
 	@DisplayName("without a vault, nothing is offered that is not on the list")
 	void thePublicStateOffersNothingItIsNotAllowedTo() throws Exception
@@ -114,6 +117,7 @@ class PublicMenuInventoryUiTest extends AbstractUiTest
 				() -> !MysticCryptApplicationFrame.getInstance().getModelObject().isSignedIn()),
 			"precondition: this is the state without a vault");
 		assertOffersNothingUnlisted(enabled);
+		assertToolbarOffersNothingUnlisted();
 		assertTrue(enabled.contains("Verify Checksum"),
 			"the tool this whole issue was raised for has to be reachable without a vault, or the "
 				+ "list is right and useless");
@@ -137,6 +141,7 @@ class PublicMenuInventoryUiTest extends AbstractUiTest
 				() -> MysticCryptApplicationFrame.getInstance().getModelObject().isSignedIn()),
 			"precondition: the workspace is locked");
 		assertOffersNothingUnlisted(enabledEntryTexts());
+		assertToolbarOffersNothingUnlisted();
 	}
 
 	/**
@@ -196,6 +201,48 @@ class PublicMenuInventoryUiTest extends AbstractUiTest
 		{
 			collected.add(child);
 			collectElements(child, collected);
+		}
+	}
+
+
+	/**
+	 * The toolbar is the same decision on a second surface, and it is checked the same way:
+	 * whatever is enabled has to be named. It decided by a blacklist until #269, which is how the
+	 * "new database" button stayed public without anyone saying so - and how two ids that build no
+	 * button at all sat in that list
+	 */
+	private static void assertToolbarOffersNothingUnlisted()
+	{
+		Set<String> unlisted = GuiActionRunner.execute(() -> {
+			Set<String> offered = new LinkedHashSet<>();
+			java.awt.Container toolBar = (java.awt.Container)MysticCryptApplicationFrame
+				.getInstance().getToolBar();
+			if (toolBar != null)
+			{
+				collectEnabledToolbarItems(toolBar, offered);
+			}
+			offered.removeAll(ALLOWED_PUBLIC_TOOLBAR_IDS);
+			return offered;
+		});
+		assertTrue(unlisted.isEmpty(),
+			"toolbar items offered without a vault, but on no list: " + unlisted);
+	}
+
+	private static void collectEnabledToolbarItems(final java.awt.Container container,
+		final Set<String> offered)
+	{
+		for (Component child : container.getComponents())
+		{
+			boolean isAnItem = child instanceof javax.swing.AbstractButton
+				|| child instanceof javax.swing.text.JTextComponent;
+			if (isAnItem && child.isEnabled() && child.getName() != null)
+			{
+				offered.add(child.getName());
+			}
+			if (child instanceof java.awt.Container nested)
+			{
+				collectEnabledToolbarItems(nested, offered);
+			}
 		}
 	}
 
