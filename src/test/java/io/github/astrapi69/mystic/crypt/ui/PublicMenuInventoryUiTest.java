@@ -24,10 +24,11 @@
  */
 package io.github.astrapi69.mystic.crypt.ui;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.awt.Component;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -43,6 +44,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
+import io.github.astrapi69.mystic.crypt.TestPasswords;
 
 /**
  * The inventory of what the application offers while no vault is open, compared against the list
@@ -50,23 +52,35 @@ import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
  * <p>
  * This is the test the whole exercise was for. The public state used to be decided by a blacklist,
  * so every entry added since - both KeePass entries, every plugin item - became public without
- * anyone deciding it, and nothing said so. This test fails on any difference in either direction:
- * an entry that became public without being listed, and an entry that was listed but is not there.
- * A new menu item therefore has to be decided rather than inherited.
+ * anyone deciding it, and nothing said so.
  * <p>
- * It deliberately compares the WHOLE set rather than checking a few known entries: a test that
+ * It checks a SUBSET, not equality: every entry that is offered has to be on the list, and nothing
+ * else. That is the dangerous direction - something reachable that nobody allowed. The other
+ * direction is deliberately not asserted, because an entry may legitimately be missing from the
+ * offered set without anything being wrong: a FlatLaf theme item greys itself out while it is the
+ * active one, so equality would break whenever the default theme changes. A test that breaks for
+ * reasons nobody cares about gets loosened rather than investigated, and then it protects nothing.
+ * <p>
+ * It deliberately looks at the WHOLE offered set rather than at a few known entries: a test that
  * looks only for what it already knows cannot catch what nobody thought of, which is exactly the
  * class of defect this replaces.
+ * <p>
+ * Locked and public are the same menu state - {@code LockWorkspaceAction} calls the same
+ * {@code onEnableByPublic} after clearing the signed-in flag (#237). That is asserted here rather
+ * than written in a comment somewhere.
  */
 class PublicMenuInventoryUiTest extends AbstractUiTest
 {
 
 	/**
-	 * The entries expected to be enabled without a vault: the host list, plus the entries of the
-	 * one plugin that declares itself usable without one. The plugin's items are named by their
-	 * TEXT, since a plugin's menu items need not carry a component name
+	 * The entries that MAY be offered without a vault: the host list, plus the entries of the one
+	 * plugin that declares itself usable without one. Named by their TEXT, since a plugin's menu
+	 * items need not carry a component name. Anything offered that is not in here fails the test;
+	 * something in here that is not offered does not, see the class comment
 	 */
-	private static final Set<String> EXPECTED_PUBLIC_TEXTS = new LinkedHashSet<>(List.of("File",
+	private static final String MASTER_PASSWORD = TestPasswords.throwaway();
+
+	private static final Set<String> ALLOWED_PUBLIC_TEXTS = new LinkedHashSet<>(List.of("File",
 		"Settings...", "Exit", "View", "Look and Feel", "GTK", "Metal", "Ocean", "Motif", "Nimbus",
 		"System", "FlatLaf Dark", "FlatLaf IntelliJ", "FlatLaf Darcula", "Plugins", "Checksum",
 		"Verify Checksum", "Checksum and MAC", "Help", "Donate", "Licence", "Info"));
@@ -80,8 +94,8 @@ class PublicMenuInventoryUiTest extends AbstractUiTest
 	private static final String ACTIVE_THEME_IS_NOT_OFFERED = "FlatLaf Light";
 
 	@Test
-	@DisplayName("without a vault, exactly the entries on the list are offered - no more, no less")
-	void thePublicStateOffersExactlyWhatItIsAllowedTo() throws Exception
+	@DisplayName("without a vault, nothing is offered that is not on the list")
+	void thePublicStateOffersNothingItIsNotAllowedTo() throws Exception
 	{
 		installPluginRequiringItBuilt(CHECKSUM_ZIP);
 		SignInDialogSteps signIn = launchApplication();
@@ -94,10 +108,46 @@ class PublicMenuInventoryUiTest extends AbstractUiTest
 			GuiActionRunner.execute(
 				() -> !MysticCryptApplicationFrame.getInstance().getModelObject().isSignedIn()),
 			"precondition: this is the state without a vault");
-		assertEquals(EXPECTED_PUBLIC_TEXTS, enabled,
-			"the entries offered without a vault must be exactly the ones decided on. An entry on "
-				+ "the left that is not on the right became public without being listed; one on "
-				+ "the right that is not on the left was listed but is not there");
+		assertOffersNothingUnlisted(enabled);
+		assertTrue(enabled.contains("Verify Checksum"),
+			"the tool this whole issue was raised for has to be reachable without a vault, or the "
+				+ "list is right and useless");
+	}
+
+	@Test
+	@DisplayName("locked, nothing is offered that is not on the list either")
+	void theLockedStateOffersNothingItIsNotAllowedTo() throws Exception
+	{
+		installPluginRequiringItBuilt(CHECKSUM_ZIP);
+		File databaseFile = new File(tempHome, "inventory-locked-database.mcrdb");
+		createDatabaseFileHeadless(databaseFile, MASTER_PASSWORD);
+		ApplicationSteps application = signInWithExistingDatabase(databaseFile, MASTER_PASSWORD);
+		awaitApplicationInitialized();
+		application.showMainFrame();
+
+		application.lockWorkspace();
+
+		assertFalse(
+			GuiActionRunner.execute(
+				() -> MysticCryptApplicationFrame.getInstance().getModelObject().isSignedIn()),
+			"precondition: the workspace is locked");
+		assertOffersNothingUnlisted(enabledEntryTexts());
+	}
+
+	/**
+	 * Fails naming the entries that are offered although nothing allows them - the direction that
+	 * matters, and the message a future reader needs: which entry, not just that the sets differ
+	 *
+	 * @param offered
+	 *            the entries currently enabled
+	 */
+	private static void assertOffersNothingUnlisted(final Set<String> offered)
+	{
+		Set<String> unlisted = new LinkedHashSet<>(offered);
+		unlisted.removeAll(ALLOWED_PUBLIC_TEXTS);
+		assertTrue(unlisted.isEmpty(),
+			"offered without a vault, but on no list: " + unlisted + ". Either the entry belongs "
+				+ "in PublicAccess, decided and written down, or it must not be offered here");
 	}
 
 	/**
