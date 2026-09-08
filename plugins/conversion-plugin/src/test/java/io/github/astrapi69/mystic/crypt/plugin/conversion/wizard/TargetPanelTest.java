@@ -233,4 +233,38 @@ class TargetPanelTest
 		}
 		return null;
 	}
+	@Test
+	void theStepSaysWhatItIsForBeforeTheFirstField() throws Exception
+	{
+		TargetPanel panel = newPanel(new ConversionWizardModel());
+
+		java.awt.Component intro = introOf(panel);
+		org.junit.jupiter.api.Assertions.assertNotNull(intro,
+			"the Target step must carry an intro, so the window says what it is for instead of "
+				+ "showing bare fields");
+		org.junit.jupiter.api.Assertions.assertFalse(
+			((javax.swing.text.JTextComponent)intro).getText().isBlank(),
+			"and that intro must actually say something");
+	}
+
+	private static java.awt.Component introOf(final java.awt.Container container)
+	{
+		for (java.awt.Component child : container.getComponents())
+		{
+			if ("lblIntro".equals(child.getName()))
+			{
+				return child;
+			}
+			if (child instanceof java.awt.Container nested)
+			{
+				java.awt.Component found = introOf(nested);
+				if (found != null)
+				{
+					return found;
+				}
+			}
+		}
+		return null;
+	}
+
 }

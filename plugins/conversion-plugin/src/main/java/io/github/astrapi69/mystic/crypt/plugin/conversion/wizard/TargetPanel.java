@@ -36,6 +36,7 @@ import javax.swing.JRadioButton;
 
 import io.github.astrapi69.design.pattern.state.wizard.model.BaseWizardStateMachineModel;
 import io.github.astrapi69.model.api.IModel;
+import io.github.astrapi69.mystic.crypt.ui.form.ToolForm;
 import io.github.astrapi69.mystic.crypt.plugin.conversion.ConversionMessages;
 import io.github.astrapi69.mystic.crypt.plugin.conversion.ConversionSupport;
 import io.github.astrapi69.swing.base.BasePanel;
@@ -55,6 +56,7 @@ public class TargetPanel extends BasePanel<BaseWizardStateMachineModel<Conversio
 	private static final long serialVersionUID = 1L;
 
 	private JLabel lblHeader;
+	private javax.swing.text.JTextComponent lblIntro;
 	private JLabel lblWhatItHoldsCaption;
 	private JLabel lblWhatItHolds;
 
@@ -87,6 +89,11 @@ public class TargetPanel extends BasePanel<BaseWizardStateMachineModel<Conversio
 	private void initializeWhatItHoldsLabel()
 	{
 		lblHeader = new JLabel("Target");
+		lblIntro = ToolForm.intro(ConversionMessages.getString("conversion.target.intro",
+			"Choose what to convert the file into and where to write the result. A format the "
+				+ "source cannot produce is refused rather than written in another shape, and an "
+				+ "existing file is never overwritten."));
+		lblIntro.setName("lblIntro");
 		lblWhatItHoldsCaption = new JLabel("It holds:");
 		lblWhatItHolds = new JLabel(ConversionWizardModel.NOTHING_TO_SAY);
 		lblWhatItHolds.setName("lblTargetWhatItHolds");
@@ -175,6 +182,7 @@ public class TargetPanel extends BasePanel<BaseWizardStateMachineModel<Conversio
 		setLayout(migLayout);
 
 		add(lblHeader, "span, align center, gapbottom 10");
+		add(lblIntro, "span, growx, wmin 0, gapbottom 10");
 		add(lblWhatItHoldsCaption);
 		add(lblWhatItHolds, "span 2, growx");
 		for (JRadioButton radioButton : operationButtons.values())

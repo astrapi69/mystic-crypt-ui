@@ -29,6 +29,7 @@ import javax.swing.JScrollPane;
 
 import io.github.astrapi69.design.pattern.state.wizard.model.BaseWizardStateMachineModel;
 import io.github.astrapi69.model.api.IModel;
+import io.github.astrapi69.mystic.crypt.ui.form.ToolForm;
 import io.github.astrapi69.mystic.crypt.plugin.conversion.ConversionMessages;
 import io.github.astrapi69.swing.base.BasePanel;
 import io.github.astrapi69.swing.model.component.JMTextArea;
@@ -51,6 +52,7 @@ public class ConversionReviewPanel
 	private static final long serialVersionUID = 1L;
 
 	private JLabel lblHeader;
+	private javax.swing.text.JTextComponent lblIntro;
 	private JMTextArea txtSummary;
 	private JScrollPane scrSummary;
 
@@ -65,6 +67,10 @@ public class ConversionReviewPanel
 		super.onInitializeComponents();
 
 		lblHeader = new JLabel("Review");
+		lblIntro = ToolForm.intro(ConversionMessages.getString("conversion.review.intro",
+			"Nothing has been written yet. Check what the conversion will produce, then press "
+				+ "Finish to write it."));
+		lblIntro.setName("lblIntro");
 		txtSummary = new JMTextArea(10, 60);
 		txtSummary.setName("txtSummary");
 		txtSummary.setEditable(false);
@@ -81,6 +87,7 @@ public class ConversionReviewPanel
 		super.onInitializeLayout();
 		setLayout(new MigLayout("wrap 1", "[grow,fill]", "[][grow]"));
 		add(lblHeader, "align center, gapbottom 10");
+		add(lblIntro, "growx, wmin 0, gapbottom 10");
 		add(scrSummary, "grow");
 	}
 

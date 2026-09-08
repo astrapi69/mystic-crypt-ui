@@ -35,6 +35,7 @@ import javax.swing.event.DocumentListener;
 import io.github.astrapi69.design.pattern.state.wizard.model.BaseWizardStateMachineModel;
 import io.github.astrapi69.model.LambdaModel;
 import io.github.astrapi69.model.api.IModel;
+import io.github.astrapi69.mystic.crypt.ui.form.ToolForm;
 import io.github.astrapi69.mystic.crypt.plugin.conversion.ConversionMessages;
 import io.github.astrapi69.mystic.crypt.plugin.conversion.ConversionSupport;
 import io.github.astrapi69.swing.base.BasePanel;
@@ -53,6 +54,7 @@ public class SourcePanel extends BasePanel<BaseWizardStateMachineModel<Conversio
 	private static final long serialVersionUID = 1L;
 
 	private JLabel lblHeader;
+	private javax.swing.text.JTextComponent lblIntro;
 	private JLabel lblSourceFile;
 	private JMTextField txtSourceFile;
 	private JButton btnBrowseSource;
@@ -70,6 +72,10 @@ public class SourcePanel extends BasePanel<BaseWizardStateMachineModel<Conversio
 		super.onInitializeComponents();
 
 		lblHeader = new JLabel("Source");
+		lblIntro = ToolForm.intro(ConversionMessages.getString("conversion.source.intro",
+			"Pick the key or certificate file you want to convert. The wizard reads it, says what "
+				+ "it found, and offers only the conversions that make sense for that file."));
+		lblIntro.setName("lblIntro");
 		lblSourceFile = new JLabel("File:");
 		txtSourceFile = new JMTextField(38);
 		txtSourceFile.setName("txtSourceFile");
@@ -126,6 +132,7 @@ public class SourcePanel extends BasePanel<BaseWizardStateMachineModel<Conversio
 		setLayout(migLayout);
 
 		add(lblHeader, "span, align center, gapbottom 10");
+		add(lblIntro, "span, growx, wmin 0, gapbottom 10");
 		add(lblSourceFile);
 		add(txtSourceFile, "growx");
 		add(btnBrowseSource);
