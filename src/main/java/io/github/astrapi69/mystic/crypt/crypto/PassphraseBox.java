@@ -119,8 +119,29 @@ public final class PassphraseBox
 	public static SecretKey deriveKey(final String passphrase, final byte[] salt,
 		final int iterations) throws Exception
 	{
-		PBEKeySpec keySpec = new PBEKeySpec(passphrase.toCharArray(), salt, iterations,
-			KEY_LENGTH_BITS);
+		return deriveKey(passphrase.toCharArray(), salt, iterations);
+	}
+
+	/**
+	 * Derives the key something is encrypted with, from characters rather than from a
+	 * {@link String}. A String cannot be cleared and lives until the garbage collector gets to it,
+	 * so a caller that holds the passphrase as a char array should not have to make one to use this
+	 * (#242)
+	 *
+	 * @param passphrase
+	 *            the passphrase
+	 * @param salt
+	 *            the salt
+	 * @param iterations
+	 *            the iteration count
+	 * @return the derived key
+	 * @throws Exception
+	 *             if the key cannot be derived
+	 */
+	public static SecretKey deriveKey(final char[] passphrase, final byte[] salt,
+		final int iterations) throws Exception
+	{
+		PBEKeySpec keySpec = new PBEKeySpec(passphrase, salt, iterations, KEY_LENGTH_BITS);
 		try
 		{
 			byte[] keyBytes = SecretKeyFactory.getInstance(KEY_DERIVATION_ALGORITHM)

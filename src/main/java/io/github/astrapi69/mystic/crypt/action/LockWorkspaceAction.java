@@ -28,15 +28,18 @@ import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.io.Serial;
 import java.util.Arrays;
+import java.util.logging.Level;
 
 import javax.swing.*;
 
 import io.github.astrapi69.awt.extension.ClipboardExtensions;
 import io.github.astrapi69.mystic.crypt.DesktopMenu;
 import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
+import io.github.astrapi69.mystic.crypt.lock.MasterPasswordVerifier;
 import io.github.astrapi69.mystic.crypt.panel.signin.MasterPwFileModelBean;
 import io.github.astrapi69.mystic.crypt.settings.MysticCryptSettings;
 import io.github.astrapi69.swing.dialog.JOptionPaneExtensions;
+import lombok.extern.java.Log;
 
 /**
  * Locks the workspace: hides the open database behind the neutral desktop pane and disables the
@@ -44,6 +47,7 @@ import io.github.astrapi69.swing.dialog.JOptionPaneExtensions;
  * is shown again. The open database stays in memory, so unlocking restores it without reopening the
  * file. Clicking the action again while locked re-opens the unlock prompt.
  */
+@Log
 public class LockWorkspaceAction extends AbstractAction
 {
 
@@ -81,6 +85,7 @@ public class LockWorkspaceAction extends AbstractAction
 			// ApplicationSteps.lockWorkspace polls this flag from the test thread. It therefore
 			// waits for the event dispatch thread afterwards, the way unlockWorkspace already had
 			// to for the mirror image of this order.
+			forgetTheMasterPassword(frame.getModelObject().getMasterPwFileModelBean());
 			frame.getModelObject().setSignedIn(false);
 			frame.switchToDesktopPane();
 			((DesktopMenu)frame.getMenu()).onEnableByPublic();
@@ -118,8 +123,9 @@ public class LockWorkspaceAction extends AbstractAction
 			return;
 		}
 		char[] entered = passwordField.getPassword();
-		if (Arrays.equals(entered, credentials.getMasterPw()))
+		if (isTheMasterPassword(credentials, entered))
 		{
+			rememberTheMasterPassword(credentials, entered);
 			frame.getModelObject().setSignedIn(true);
 			// back into the view the user chose, not always into the panel view: locking switched
 			// to the desktop pane to hide the content, and unlocking has to undo exactly that
@@ -133,5 +139,81 @@ public class LockWorkspaceAction extends AbstractAction
 				JOptionPane.ERROR_MESSAGE);
 			SwingUtilities.invokeLater(() -> promptForUnlock(frame));
 		}
+		Arrays.fill(entered, '\0');
+	}
+
+	/**
+	 * Replaces the master password with something that can only recognise it, so that a locked
+	 * workspace does not carry the password that opens its database (#242).
+	 * <p>
+	 * If the verifier cannot be derived the password is left where it is: locking the workspace
+	 * still has to work, and a lock nobody can open is worse than a lock that keeps holding the
+	 * secret it used to hold.
+	 *
+	 * @param credentials
+	 *            the credentials of the open database, null when none is open
+	 */
+	private static void forgetTheMasterPassword(final MasterPwFileModelBean credentials)
+	{
+		if (credentials == null || credentials.getMasterPw() == null)
+		{
+			return;
+		}
+		try
+		{
+			credentials.setLockVerifier(MasterPasswordVerifier.of(credentials.getMasterPw()));
+		}
+		catch (Exception exception)
+		{
+			log.log(Level.WARNING,
+				"the master password stays in memory: its verifier could not be derived",
+				exception);
+			return;
+		}
+		Arrays.fill(credentials.getMasterPw(), '\0');
+		credentials.setMasterPw(null);
+	}
+
+	/**
+	 * Whether the typed characters open this database. Asks the verifier that locking left behind;
+	 * only where there is none - locking could not derive one - does it fall back to comparing
+	 * against the password itself
+	 *
+	 * @param credentials
+	 *            the credentials of the open database
+	 * @param entered
+	 *            what was typed into the unlock dialog
+	 * @return true if the workspace may be unlocked
+	 */
+	private static boolean isTheMasterPassword(final MasterPwFileModelBean credentials,
+		final char[] entered)
+	{
+		MasterPasswordVerifier verifier = credentials.getLockVerifier();
+		if (verifier != null)
+		{
+			return verifier.matches(entered);
+		}
+		return Arrays.equals(entered, credentials.getMasterPw());
+	}
+
+	/**
+	 * Puts the master password back where the rest of the application expects it. Saving the
+	 * database re-encrypts it with exactly this array (ApplicationXmlFileStoreWorker:145), so
+	 * unlocking has to restore what locking took away
+	 *
+	 * @param credentials
+	 *            the credentials of the open database
+	 * @param entered
+	 *            the password that was just accepted
+	 */
+	private static void rememberTheMasterPassword(final MasterPwFileModelBean credentials,
+		final char[] entered)
+	{
+		if (credentials.getLockVerifier() == null)
+		{
+			return;
+		}
+		credentials.setMasterPw(entered.clone());
+		credentials.setLockVerifier(null);
 	}
 }
