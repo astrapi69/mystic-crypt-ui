@@ -171,6 +171,36 @@ abstract class AbstractUiTest
 	 *
 	 * @return steps for the "Enter your credentials" sign-in dialog
 	 */
+	/**
+	 * Waits until the application has finished initializing.
+	 * <p>
+	 * The thread launched for the test runs exactly one thing - the frame's constructor - so it
+	 * ends when {@code onAfterInitialize} has run to its last statement. That last statement is
+	 * {@code onEnableMenu()}, which is what puts the menu into the state that belongs to the
+	 * signed-in or the public case.
+	 * <p>
+	 * Do NOT wait for the menu bar to exist instead: it exists long before any of that, and a test
+	 * that waits for it reads a menu which has not been reorganized, has no plugins menu, and has
+	 * never been enabled or disabled for the state it is in. Three separate measurements in the
+	 * #232 investigation reported findings that were nothing but this race.
+	 */
+	protected void awaitApplicationInitialized()
+	{
+		if (appThread == null)
+		{
+			return;
+		}
+		try
+		{
+			appThread.join(TimeUnit.SECONDS.toMillis(30));
+		}
+		catch (InterruptedException interrupted)
+		{
+			Thread.currentThread().interrupt();
+		}
+		robot.waitForIdle();
+	}
+
 	protected SignInDialogSteps launchApplication()
 	{
 		return new SignInDialogSteps(robot, launchApplicationAndFindSignInDialog());

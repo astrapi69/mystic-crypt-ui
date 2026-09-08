@@ -67,6 +67,7 @@ import io.github.astrapi69.mystic.crypt.action.SaveApplicationFileAction;
 import io.github.astrapi69.mystic.crypt.action.SaveAsApplicationFileAction;
 import io.github.astrapi69.mystic.crypt.action.SearchApplicationFileAction;
 import io.github.astrapi69.mystic.crypt.eventbus.ApplicationEventBus;
+import io.github.astrapi69.mystic.crypt.lock.PublicAccess;
 import io.github.astrapi69.mystic.crypt.menu.PluginMenuOrder;
 import io.github.astrapi69.mystic.crypt.panel.info.ApplicationInfo;
 import io.github.astrapi69.mystic.crypt.panel.info.ApplicationInfoPanel;
@@ -466,7 +467,7 @@ public class DesktopMenu extends BaseDesktopMenu implements EventListener<EventO
 				return super.isEnabled();
 			}
 		};
-		item.setName("mihLookAndFeel" + theme.name());
+		item.setName(theme.menuItemName());
 		item.addActionListener(event -> applyFlatLaf(theme));
 		return item;
 	}
@@ -500,7 +501,7 @@ public class DesktopMenu extends BaseDesktopMenu implements EventListener<EventO
 	public void reorganizeMenus()
 	{
 		JMenuBar menubar = getMenubar();
-		JMenu viewMenu = MenuItemInfo.builder().text("View").name("global.menu.view")
+		JMenu viewMenu = MenuItemInfo.builder().text("View").name(MenuId.VIEW.propertiesKey())
 			.mnemonic(MenuExtensions.toMnemonic('V')).build().toJMenu();
 
 		// move the top-level Look and Feel menu under View
@@ -536,9 +537,35 @@ public class DesktopMenu extends BaseDesktopMenu implements EventListener<EventO
 	 * @return the created "Plugins" {@link JMenu}, not attached to the menu bar if no items were
 	 *         contributed
 	 */
+	/**
+	 * The menu components of plugins that declared themselves usable without a vault. Rebuilt with
+	 * the plugins menu, and by identity rather than by name: a plugin's items need not have one
+	 */
+	private Set<Component> publicPluginComponents;
+
+	/**
+	 * The set, created on first use rather than in a field initializer. The base class calls into
+	 * this menu while it is still being constructed, so a subclass field is not assigned yet at
+	 * that point - the same reason getEnabledMenuIdsWithEmptyModel() below is lazy
+	 *
+	 * @return the menu components of plugins that declared themselves usable without a vault
+	 */
+	private Set<Component> publicPluginComponents()
+	{
+		if (publicPluginComponents == null)
+		{
+			publicPluginComponents = java.util.Collections
+				.newSetFromMap(new java.util.IdentityHashMap<>());
+		}
+		return publicPluginComponents;
+	}
+
 	public JMenu addPluginsMenu(@NonNull List<PluginMenuContribution> contributions)
 	{
 		JMenuBar menubar = getMenubar();
+		// a refresh rebuilds every item, so what was collected for the previous set of plugins
+		// would keep stale components public
+		publicPluginComponents().clear();
 		// remove a previously built plugins menu so a refresh replaces it instead of stacking a
 		// second "Plugins" menu onto the menu bar
 		for (int index = menubar.getMenuCount() - 1; index >= 0; index--)
@@ -583,6 +610,11 @@ public class DesktopMenu extends BaseDesktopMenu implements EventListener<EventO
 					JMenu pluginSubmenu = new JMenu(menuName);
 					pluginSubmenu.setName(menuName);
 					items.forEach(pluginSubmenu::add);
+					if (contribution.isUsableWithoutAVault())
+					{
+						publicPluginComponents().add(pluginSubmenu);
+						publicPluginComponents().addAll(items);
+					}
 					submenusByName.put(menuName, pluginSubmenu);
 					orderingEntries.add(new PluginMenuOrder.Entry(menuName, contribution.getAnchor(),
 						contribution.getRelativeToMenuId()));
@@ -593,6 +625,10 @@ public class DesktopMenu extends BaseDesktopMenu implements EventListener<EventO
 					// There is no stable name here for another plugin to anchor against, or for
 					// this one to anchor itself with, so it stays out of anchor ordering entirely
 					items.forEach(pluginsMenu::add);
+					if (contribution.isUsableWithoutAVault())
+					{
+						publicPluginComponents().addAll(items);
+					}
 				}
 			}
 			catch (RuntimeException runtimeException)
@@ -627,16 +663,26 @@ public class DesktopMenu extends BaseDesktopMenu implements EventListener<EventO
 		return pluginsMenu;
 	}
 
+	/**
+	 * Puts the menu into the state that belongs to no vault being open.
+	 * <p>
+	 * Every entry is asked, and only what is named public stays enabled - the host entries through
+	 * {@link PublicAccess#isPublicMenuId(String)}, a plugin's entries because the plugin declared
+	 * itself usable without a vault. What this replaced decided the other way round: everything was
+	 * enabled except a handful of named entries, so both KeePass entries, "Lock workspace" and every
+	 * plugin item ever added were public without anyone deciding so (#232).
+	 * <p>
+	 * Entries are enabled rather than left alone, so this also puts back what a previous signed-in
+	 * state had enabled. The FlatLaf theme items are unaffected by that: their own
+	 * {@code isEnabled()} keeps the active theme greyed out whatever is set here.
+	 */
 	public void onEnableByPublic()
 	{
 		JMenuBar menubar = getMenubar();
 		List<MenuElement> allMenuElements = ParentMenuResolver.getAllMenuElements(menubar, true);
 		allMenuElements.forEach(menuElement -> {
-			String name = menuElement.getComponent().getName();
-			if (getEnabledMenuIdsWithEmptyModel().containsKey(name))
-			{
-				menuElement.getComponent().setEnabled(enabledMenuIdsWithEmptyModel.get(name));
-			}
+			Component component = menuElement.getComponent();
+			component.setEnabled(PublicAccess.isOffered(false, isPublicEntry(component)));
 		});
 
 		final Set<String> disabledToolBarMenus = SetFactory.newHashSet(
@@ -675,6 +721,21 @@ public class DesktopMenu extends BaseDesktopMenu implements EventListener<EventO
 		ApplicationToolbar toolBar = (ApplicationToolbar) MysticCryptApplicationFrame.getInstance().getToolBar();
 		toolBar.getToolbarItems().forEach(toolbarItem -> toolbarItem
 			.setEnabled(!disabledToolBarMenus.contains(toolbarItem.getName())));
+	}
+
+	/**
+	 * Whether this menu component is offered while no vault is open: a host entry the whitelist
+	 * names, or an entry of a plugin that declared itself usable without one. Plugin items are
+	 * recognised by identity rather than by name, because a plugin's items need not carry one
+	 *
+	 * @param component
+	 *            the menu component
+	 * @return true if it stays enabled without a vault
+	 */
+	private boolean isPublicEntry(final Component component)
+	{
+		return PublicAccess.isPublicMenuId(component.getName())
+			|| publicPluginComponents().contains(component);
 	}
 
 	public Map<String, Boolean> getEnabledMenuIdsWithEmptyModel() {

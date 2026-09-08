@@ -312,7 +312,10 @@ public class MysticCryptApplicationFrame extends ApplicationPanelFrame<Applicati
 		super.onAfterInitialize();
 		desktopPanePanel = (JDesktopPanePanel<ApplicationModelBean>)getMainComponent();
 		frameMode = FrameMode.DESKTOP_PANE;
-		// best-practice menu layout: consolidate Look and Feel + View Mode under a "View" menu
+		// best-practice menu layout: move Look and Feel under a "View" menu and drop the empty
+		// Edit menu. The view MODE is not a menu entry - it is a combo box in the settings dialog
+		// (GeneralSettingsPanel), which this comment claimed otherwise until #232 went looking for
+		// menu entries that do not exist
 		((DesktopMenu)getMenu()).reorganizeMenus();
 		// start and load all plugins of application
 		pluginManager.loadPlugins();
