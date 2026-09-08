@@ -52,11 +52,18 @@ class LockPreservesContentUiTest extends AbstractUiTest
 		ApplicationSteps application = signInWithExistingDatabase(databaseFile, MASTER_PASSWORD);
 		FrameFixture frame = application.showMainFrame();
 		application.addNodeToTreeRoot(frame, "SurviveLockNode");
+		assertTrue(application.vaultIsOnScreen(),
+			"precondition: the vault is on screen before locking");
 
 		application.lockWorkspace();
 		application.unlockWorkspace(MASTER_PASSWORD);
 
+		// the test is named for what the user gets back, so it asserts that and not only the model
+		// it comes from (#250): the window, the row in the tree, and the node behind it
+		assertTrue(application.vaultIsOnScreen(), "unlocking must bring the vault back on screen");
+		assertTrue(application.treeShowsARowNamed("SurviveLockNode"),
+			"and the tree must show the node that was added before locking");
 		assertTrue(application.treeContainsNodeStartingWith("SurviveLockNode"),
-			"unlocking must restore the tree content that was there before locking");
+			"which is only possible because the model kept it across the lock");
 	}
 }
