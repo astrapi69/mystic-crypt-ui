@@ -26,6 +26,7 @@ package io.github.astrapi69.mystic.crypt.lock;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 
@@ -36,6 +37,22 @@ import org.junit.jupiter.params.provider.CsvSource;
  */
 class WorkspaceLockDecisionTest
 {
+
+	@ParameterizedTest(name = "signedIn={0}, aVaultIsOpen={1} -> mayCreate={2}")
+	@CsvSource({
+			// unlocked: creating another vault is the user's business, not the lock's
+			"true,  true,  true", "true,  false, true",
+			// LOCKED with a vault open: the case of #270. Creating one here signed the workspace
+			// back in without the locked vault's master password
+			"false, true,  false",
+			// nothing open at all: this is how a first vault is made, and it must stay possible
+			"false, false, true" })
+	@DisplayName("a vault may not be created while another one is locked")
+	void aVaultMayNotBeCreatedWhileAnotherIsLocked(final boolean signedIn,
+		final boolean aVaultIsOpen, final boolean expected)
+	{
+		assertEquals(expected, WorkspaceLockDecision.mayCreateAVault(signedIn, aVaultIsOpen));
+	}
 
 	@ParameterizedTest(name = "signedIn={0}, vaultViewBuilt={1} -> {2}")
 	@CsvSource({

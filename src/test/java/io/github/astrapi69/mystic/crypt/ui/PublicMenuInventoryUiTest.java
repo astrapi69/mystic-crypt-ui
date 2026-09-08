@@ -43,6 +43,7 @@ import org.assertj.swing.edt.GuiActionRunner;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import io.github.astrapi69.mystic.crypt.MenuId;
 import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
 import io.github.astrapi69.mystic.crypt.TestPasswords;
 
@@ -64,6 +65,12 @@ import io.github.astrapi69.mystic.crypt.TestPasswords;
  * It deliberately looks at the WHOLE offered set rather than at a few known entries: a test that
  * looks only for what it already knows cannot catch what nobody thought of, which is exactly the
  * class of defect this replaces.
+ * <p>
+ * WHAT A GREEN RUN DOES NOT SAY: for an entry whose admissibility depends on the state, this test
+ * checks only that it MAY be offered, never that it is offered at the right moment. The "new
+ * database" toolbar button is such an entry, and if it were wrongly enabled while the workspace is
+ * locked, this test would stay green in both states. That half belongs to the test of the action
+ * itself (LockRefusesANewVaultUiTest), and it is asserted there.
  * <p>
  * Locked and public are the same menu state - {@code LockWorkspaceAction} calls the same
  * {@code onEnableByPublic} after clearing the signed-in flag (#237). That is asserted here rather
@@ -94,12 +101,16 @@ class PublicMenuInventoryUiTest extends AbstractUiTest
 	private static final String ACTIVE_THEME_IS_NOT_OFFERED = "FlatLaf Light";
 
 	/**
-	 * The toolbar items that may be offered without a vault: none. "New database" works, but in the
-	 * locked state - the same state for this decision (#237) - creating a vault unlocks the screen
-	 * and shows the LOCKED vault's entries without its master password (#270), so nothing on the
-	 * toolbar is public until that is fixed
+	 * The toolbar items that MAY be offered without a vault. "New database" is one: with nothing
+	 * open it is the one way to a first vault.
+	 * <p>
+	 * "May", not "now". Whether it is actually offered in a given moment is a question of state -
+	 * while a vault is LOCKED it must be refused (#270) - and this test cannot answer that for such
+	 * an entry, by construction: a subset check over a list is blind to when the entry is enabled.
+	 * That half is asserted where the action is tested, in LockRefusesANewVaultUiTest.
 	 */
-	private static final Set<String> ALLOWED_PUBLIC_TOOLBAR_IDS = Set.of();
+	private static final Set<String> ALLOWED_PUBLIC_TOOLBAR_IDS = Set
+		.of(MenuId.NEW_DATABASE_TOOL_BAR.propertiesKey());
 
 	@Test
 	@DisplayName("without a vault, nothing is offered that is not on the list")
