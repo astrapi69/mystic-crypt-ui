@@ -24,8 +24,6 @@
  */
 package io.github.astrapi69.mystic.crypt;
 
-import java.util.LinkedHashMap;
-import java.util.Map;
 
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -38,20 +36,12 @@ import lombok.experimental.FieldDefaults;
 public enum MenuId
 {
 
-	/**
-	 * The id for create a new mystic crypt database menu
-	 */
-	NEW_DATABASE(MenuId.NEW_DATABASE_KEY),
 
 	/**
 	 * The id for open the mystic crypt database menu
 	 */
 	OPEN_DATABASE(MenuId.OPEN_DATABASE_KEY),
 
-	/**
-	 * The id for open the mystic crypt database toolbar menu
-	 */
-	OPEN_DATABASE_TOOL_BAR(MenuId.OPEN_DATABASE_TOOL_BAR_KEY),
 
 	/**
 	 * The id for create a new mystic crypt database toolbar menu
@@ -63,10 +53,6 @@ public enum MenuId
 	 */
 	SEARCH_TOOL_BAR(MenuId.SEARCH_TOOL_BAR_KEY),
 
-	/**
-	 * The id for 'lock' the workspace dialog menu
-	 */
-	LOCK_WORKSPACE_TOOL_BAR(MenuId.LOCK_WORKSPACE_TOOL_BAR_KEY),
 
 	/**
 	 * The id for 'lock' the workspace dialog menu
@@ -132,7 +118,6 @@ public enum MenuId
 	 */
 	VIEW(MenuId.VIEW_KEY);
 
-	public static final String NEW_DATABASE_KEY = "global.menu.file.new.database";
 	public static final String SAVE_APPLICATION_FILE_KEY = "global.menu.file.save";
 	public static final String SAVE_AS_APPLICATION_FILE_KEY = "global.menu.file.save.as";
 	public static final String OPEN_DATABASE_KEY = "global.menu.file.open.database";
@@ -150,9 +135,7 @@ public enum MenuId
 
 	public static final String NEW_DATABASE_TOOL_BAR_KEY = "global.toolbar.menu.file.new.database";
 	public static final String SAVE_APPLICATION_FILE_TOOL_BAR_KEY = "global.toolbar.menu.file.save";
-	public static final String OPEN_DATABASE_TOOL_BAR_KEY = "global.toolbar.menu.file.open.database";
 	public static final String SEARCH_TOOL_BAR_KEY = "global.toolbar.menu.file.search.database";
-	public static final String LOCK_WORKSPACE_TOOL_BAR_KEY = "global.toolbar.menu.file.lock.workspace";
 
 	public static final String PLUGINS_KEY = "global.menu.plugins";
 
@@ -165,13 +148,4 @@ public enum MenuId
 	}
 
 
-	public static Map<String, Boolean> getBaseMenuIdsAsMap()
-	{
-		Map<String, Boolean> menuIds = new LinkedHashMap<>();
-		menuIds.put(MenuId.OPEN_DATABASE.propertiesKey(), true);
-		menuIds.put(MenuId.OPEN_DATABASE_TOOL_BAR.propertiesKey(), true);
-		menuIds.put(MenuId.SECRET_KEY.propertiesKey(), true);
-		menuIds.put(MenuId.OPEN_PRIVATE_KEY.propertiesKey(), true);
-		return menuIds;
-	}
 }

@@ -87,6 +87,43 @@ public final class PublicAccess
 		BaseMenuId.HELP_DONATE.propertiesKey(), BaseMenuId.HELP_LICENSE.propertiesKey(),
 		BaseMenuId.HELP_INFO.propertiesKey());
 
+	/**
+	 * The toolbar items offered without a vault: none, today.
+	 * <p>
+	 * "New database" was going to be here - it works, and creating a vault is a way into one. It is
+	 * not, because of what it does in the state that shares this list. Public and LOCKED are the
+	 * same state for this decision (#237), and creating a new vault while another one is locked was
+	 * measured to do this:
+	 *
+	 * <pre>
+	 * signedIn                  : true
+	 * model points at           : vault-b.mcrdb
+	 * database view on screen   : true
+	 * vault A's node in the tree: YES
+	 * master password in memory : vault B's
+	 * </pre>
+	 *
+	 * The screen unlocks and shows the LOCKED vault's entries, without its master password ever
+	 * being typed. That is the #237 defect through another door, and it is older than this list -
+	 * the blacklist this replaces never disabled that button either. Listing it here would bless
+	 * it; leaving it out closes it (#270).
+	 * <p>
+	 * Save and the search field act on a vault that is not open, so they were never candidates.
+	 */
+	static final Set<String> PUBLIC_TOOLBAR_IDS = Set.of();
+
+	/**
+	 * Whether the toolbar item with the given component name is one of the public ones
+	 *
+	 * @param toolbarItemName
+	 *            the component name of the toolbar item
+	 * @return true if it is offered without a vault
+	 */
+	public static boolean isPublicToolbarId(final String toolbarItemName)
+	{
+		return toolbarItemName != null && PUBLIC_TOOLBAR_IDS.contains(toolbarItemName);
+	}
+
 	private PublicAccess()
 	{
 	}
