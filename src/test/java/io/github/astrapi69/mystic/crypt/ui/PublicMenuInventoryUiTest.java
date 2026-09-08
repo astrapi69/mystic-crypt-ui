@@ -65,6 +65,11 @@ import io.github.astrapi69.mystic.crypt.TestPasswords;
  * looks only for what it already knows cannot catch what nobody thought of, which is exactly the
  * class of defect this replaces.
  * <p>
+ * SCOPE, and it is narrower than the name suggests: this covers MENU entries only. The toolbar in
+ * the same method still decides by a blacklist, so its buttons are not checked here and the "new
+ * database" button is active without a vault (#269). Until that is closed, a green run here does
+ * not mean the public state is covered - only that no menu entry is offered unlisted.
+ * <p>
  * Locked and public are the same menu state - {@code LockWorkspaceAction} calls the same
  * {@code onEnableByPublic} after clearing the signed-in flag (#237). That is asserted here rather
  * than written in a comment somewhere.
