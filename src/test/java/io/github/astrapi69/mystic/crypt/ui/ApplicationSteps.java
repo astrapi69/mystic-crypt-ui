@@ -533,6 +533,26 @@ final class ApplicationSteps
 		return this;
 	}
 
+	/**
+	 * Whether the vault is in front of the user, in whichever view mode the application is in. The
+	 * panel that carries the tree and the entries is the same object in both: in panel mode it is
+	 * the frame's main component, in desktop mode it sits in the "Key database" internal frame.
+	 * {@link java.awt.Component#isShowing()} answers for both, because it is only true when every
+	 * ancestor up to a showing window is visible - which is the property "on screen", rather than a
+	 * mode-specific artefact like the internal frame's title (#250)
+	 *
+	 * @return true if the vault panel is on screen
+	 */
+	boolean vaultIsOnScreen()
+	{
+		return GuiActionRunner.execute(() -> {
+			MysticCryptApplicationFrame applicationFrame = MysticCryptApplicationFrame
+				.getInstance();
+			return applicationFrame != null && applicationFrame.getApplicationPanel() != null
+				&& applicationFrame.getApplicationPanel().isShowing();
+		});
+	}
+
 	/** Whether the tree shows a row with the given display name */
 	boolean treeShowsARowNamed(String name)
 	{

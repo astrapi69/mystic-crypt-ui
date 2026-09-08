@@ -57,6 +57,9 @@ class LockWorkspaceUiTest extends AbstractUiTest
 		assertTrue(MysticCryptApplicationFrame.getInstance().getModelObject().isSignedIn(),
 			"precondition: signed in after opening the database");
 		application.addNodeToTreeRoot(application.showMainFrame(), "SurvivesLock");
+		assertTrue(application.vaultIsOnScreen(),
+			"precondition: the vault is in front of the user before locking - without it the "
+				+ "assertions after unlocking would pass for the wrong reason");
 
 		application.lockWorkspace();
 		assertFalse(MysticCryptApplicationFrame.getInstance().getModelObject().isSignedIn(),
@@ -76,9 +79,15 @@ class LockWorkspaceUiTest extends AbstractUiTest
 			MysticCryptApplicationFrame.getInstance().getFrameMode(),
 			"unlocking must show the application content again");
 		// the mode alone would wave through an empty screen, which is exactly what the fix for
-		// #237 could have broken: the view is removed on locking and has to be built again here
+		// #237 could have broken: the view is removed on locking and has to be built again here.
+		// Three statements, and they are not the same one three times (#250): the window is back on
+		// screen, the tree in it carries the row again, and the model behind it kept the node
+		assertTrue(application.vaultIsOnScreen(),
+			"unlocking must put the vault back on the screen");
+		assertTrue(application.treeShowsARowNamed("SurvivesLock"),
+			"and the tree in it must show the node again, not merely hold it in the model");
 		assertTrue(application.treeContainsNodeStartingWith("SurvivesLock"),
-			"unlocking must bring the content back, not just the mode");
+			"and the model behind the view must still carry it");
 	}
 
 	@Test
@@ -88,8 +97,12 @@ class LockWorkspaceUiTest extends AbstractUiTest
 		createDatabaseFileHeadless(databaseFile, MASTER_PASSWORD);
 
 		ApplicationSteps application = signInWithExistingDatabase(databaseFile, MASTER_PASSWORD);
+		application.showMainFrame();
+		assertTrue(application.vaultIsOnScreen(),
+			"precondition: the vault is in front of the user before locking");
 
 		application.lockWorkspace();
+		assertFalse(application.vaultIsOnScreen(), "locking takes it off the screen");
 		application.enterUnlockPasswordExpectingFailure("definitely-wrong");
 		assertFalse(MysticCryptApplicationFrame.getInstance().getModelObject().isSignedIn(),
 			"a wrong unlock password must keep the workspace locked");
@@ -99,5 +112,10 @@ class LockWorkspaceUiTest extends AbstractUiTest
 		application.unlockWorkspace(MASTER_PASSWORD);
 		assertTrue(MysticCryptApplicationFrame.getInstance().getModelObject().isSignedIn(),
 			"the re-opened unlock dialog must accept the correct password");
+		// the flag is what the user does not see. "Unlocked" means the vault is back in front of
+		// them, and a fix that flips the flag without rebuilding the view would pass on the flag
+		// alone (#250)
+		assertTrue(application.vaultIsOnScreen(),
+			"and accepting it must put the vault back on the screen");
 	}
 }
