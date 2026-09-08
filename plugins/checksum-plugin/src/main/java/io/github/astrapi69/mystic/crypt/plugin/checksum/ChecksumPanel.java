@@ -187,6 +187,10 @@ public class ChecksumPanel extends BasePanel<ChecksumBean>
 		cbxChecksumAlgorithm.setName("cbxChecksumAlgorithm");
 		btnOpenFile.setName("btnOpenFile");
 		txtGeneratedChecksum.setName("txtGeneratedChecksum");
+		// named so a UI test can look at what the user sees: without names these two fields were
+		// unreachable from an end-to-end test, which is part of why #259 shipped unnoticed
+		txtChecksumFile.setName("txtChecksumFile");
+		txtOwnersChecksum.setName("txtOwnersChecksum");
 
 		btnOpenFile.addActionListener(this::onOpenFile);
 		btnClearOpenFile.addActionListener(this::onClearOpenFile);
@@ -524,23 +528,43 @@ public class ChecksumPanel extends BasePanel<ChecksumBean>
 	{
 		// the combo box has already written the chosen algorithm into the model
 		calculateChecksum();
-		// the sibling loaded so far belongs to the algorithm chosen before, so the two would be
-		// compared across algorithms and report no match for a file that is intact (#231)
+		// whatever was in "checksum from owner" was a checksum of the PREVIOUS algorithm, so it
+		// cannot be the right one now - no matter whether a probe found it or someone typed it.
+		// It goes, and what belongs to the algorithm now selected takes its place, if it exists
+		clearOwnersChecksumAndItsFile();
 		probeForSiblingOfSelectedAlgorithm();
 	}
 
 	/**
-	 * Loads the checksum file that belongs to the algorithm now selected, when the one loaded so far
-	 * was found by a probe rather than brought by the user.
+	 * Empties the owner's checksum and the file it came from. Changing the algorithm invalidates
+	 * both: a SHA-256 digest says nothing about a SHA-512 comparison, and leaving it standing is
+	 * what made the panel compare across algorithms and report "No Match" for an intact file
+	 */
+	private void clearOwnersChecksumAndItsFile()
+	{
+		getModelObject().setSelectedChecksumFile(null);
+		txtChecksumFile.setText("");
+		txtOwnersChecksum.setText("");
+		getModelObject().setChecksumMatchResult(NOTHING_COMPARED_YET);
+		probeFilledTheOwnersChecksum = false;
+	}
+
+	/**
+	 * Loads the checksum file that belongs to the algorithm now selected, if there is one next to
+	 * the file being checked.
 	 * <p>
-	 * What someone typed or opened by hand is never replaced - that is the checksum they obtained
-	 * from the author, and no dropdown may quietly swap it for a file found next to the download.
+	 * It used to do this only when a probe had filled the field, so that a checksum brought by the
+	 * user was never replaced. That protected the wrong thing: after the algorithm changes, the
+	 * checksum the user brought belongs to the algorithm they just left, and keeping it is what
+	 * produced "No Match" for an intact file. The caller clears the field first and this fills it
+	 * again only if a matching file is there - otherwise it stays empty, for the user to paste the
+	 * checksum that goes with the new algorithm.
 	 */
 	private void probeForSiblingOfSelectedAlgorithm()
 	{
 		File file = getModelObject().getSelectedFile();
 		ChecksumAlgorithm algorithm = getModelObject().getSelectedAlgorithm();
-		if (file == null || algorithm == null || !probeFilledTheOwnersChecksum)
+		if (file == null || algorithm == null)
 		{
 			return;
 		}

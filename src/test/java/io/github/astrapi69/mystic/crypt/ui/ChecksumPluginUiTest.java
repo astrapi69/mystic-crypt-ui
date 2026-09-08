@@ -25,6 +25,7 @@
 package io.github.astrapi69.mystic.crypt.ui;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.awt.Toolkit;
 import java.awt.datatransfer.Clipboard;
@@ -41,8 +42,10 @@ import javax.swing.SwingUtilities;
 import org.assertj.swing.edt.GuiActionRunner;
 import org.assertj.swing.finder.JFileChooserFinder;
 import org.assertj.swing.fixture.FrameFixture;
+import org.assertj.swing.fixture.JInternalFrameFixture;
 import org.assertj.swing.timing.Condition;
 import org.assertj.swing.timing.Pause;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import io.github.astrapi69.crypt.api.algorithm.ChecksumAlgorithm;
@@ -59,6 +62,81 @@ class ChecksumPluginUiTest extends AbstractUiTest
 
 	private static final String MASTER_PASSWORD = TestPasswords.throwaway();
 	private static final String SHA256_OF_ABC = "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad";
+
+	@Test
+	@DisplayName("changing the algorithm clears the loaded checksum file and loads the matching one")
+	void changingTheAlgorithmDoesNotKeepTheOldChecksumFile() throws Exception
+	{
+		installPluginRequiringItBuilt(CHECKSUM_ZIP);
+		File abcFile = new File(tempHome, "abc.txt");
+		Files.write(abcFile.toPath(), "abc".getBytes(StandardCharsets.UTF_8));
+		Files.write(new File(tempHome, "abc.txt.sha256").toPath(),
+			SHA256_OF_ABC.getBytes(StandardCharsets.UTF_8));
+
+		File databaseFile = new File(tempHome, "checksum-algorithm-switch.mcrdb");
+		createDatabaseFileHeadless(databaseFile, MASTER_PASSWORD);
+		ApplicationSteps application = signInWithExistingDatabase(databaseFile, MASTER_PASSWORD);
+		FrameFixture frame = application.showMainFrame();
+		application.openPluginTool("Verify Checksum", "Verify Checksum");
+		// the other test in this class opens the same tool, and forkEvery = 1 forks per CLASS, so
+		// a frame-wide lookup finds two panels of the same name - scope it to this tool's window
+		JInternalFrameFixture tool = new JInternalFrameFixture(robot,
+			application.internalFrame("Verify Checksum"));
+
+		chooseAlgorithm(tool, ChecksumAlgorithm.SHA_256);
+		chooseFileToCheck(tool, abcFile);
+		Pause.pause(new Condition("the sibling checksum file for SHA-256 is loaded")
+		{
+			@Override
+			public boolean test()
+			{
+				return SHA256_OF_ABC.equals(textOf(tool, "txtOwnersChecksum").trim());
+			}
+		}, 10000);
+		assertEquals("abc.txt.sha256", textOf(tool, "txtChecksumFile"),
+			"precondition: the checksum file that belongs to SHA-256 is the one loaded");
+
+		chooseAlgorithm(tool, ChecksumAlgorithm.SHA_512);
+
+		assertTrue(textOf(tool, "txtChecksumFile").isBlank(),
+			"the checksum file of the algorithm just left must not stay in the field - there is no "
+				+ "sha512 file next to abc.txt, so nothing takes its place");
+		assertTrue(textOf(tool, "txtOwnersChecksum").isBlank(),
+			"and neither may its checksum, or the comparison runs across two algorithms and calls "
+				+ "an intact file corrupt");
+	}
+
+	private static String textOf(final JInternalFrameFixture tool, final String componentName)
+	{
+		return GuiActionRunner.execute(() -> tool.textBox(componentName).target().getText());
+	}
+
+	private void chooseAlgorithm(final JInternalFrameFixture tool,
+		final ChecksumAlgorithm algorithm)
+	{
+		GuiActionRunner.execute(() -> {
+			@SuppressWarnings("unchecked")
+			JComboBox<ChecksumAlgorithm> combo = (JComboBox<ChecksumAlgorithm>)tool
+				.comboBox("cbxChecksumAlgorithm").target();
+			combo.setSelectedItem(algorithm);
+		});
+		robot.waitForIdle();
+		UiTestSpeed.step();
+	}
+
+	private void chooseFileToCheck(final JInternalFrameFixture tool, final File file)
+	{
+		SwingUtilities.invokeLater(() -> tool.button("btnOpenFile").target().doClick());
+		JFileChooser fileChooser = JFileChooserFinder.findFileChooser()
+			.withTimeout(10, TimeUnit.SECONDS).using(robot).target();
+		UiTestSpeed.step();
+		SwingUtilities.invokeLater(() -> {
+			fileChooser.setSelectedFile(file);
+			fileChooser.approveSelection();
+		});
+		robot.waitForIdle();
+		UiTestSpeed.step();
+	}
 
 	@Test
 	void verifyChecksumComputesTheFileChecksumThroughTheUi() throws Exception

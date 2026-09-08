@@ -265,6 +265,66 @@ class ChecksumPanelBindingTest
 			"and the field must say which file it came from");
 	}
 
+	@Test
+	@DisplayName("changing the algorithm drops a checksum that belongs to the algorithm left behind")
+	void changingTheAlgorithmClearsAChecksumThatNoLongerFits(@TempDir File directory)
+		throws Exception
+	{
+		File file = fileWithAbc(directory);
+		Files.write(new File(directory, file.getName() + ".sha256").toPath(),
+			SHA_256_OF_ABC.getBytes(StandardCharsets.UTF_8));
+		ChecksumPanel panel = new ChecksumPanel();
+		chooseAlgorithm(panel, ChecksumAlgorithm.SHA_256);
+		panel.applySelectedFile(file);
+		assertEquals(SHA_256_OF_ABC, panel.getModelObject().getOwnersChecksum(),
+			"precondition: the sibling for the selected algorithm is loaded");
+
+		chooseAlgorithm(panel, ChecksumAlgorithm.SHA_512);
+
+		assertTrue(panel.getModelObject().getOwnersChecksum().isBlank(),
+			"a SHA-256 checksum says nothing about a SHA-512 comparison - with no sibling for the "
+				+ "new algorithm the field has to be empty for the user to paste the right one");
+		assertNull(panel.getModelObject().getSelectedChecksumFile(),
+			"and the file it came from is no longer the file the panel works with");
+		assertTrue(panel.getTxtChecksumFile().getText().isBlank(),
+			"which is what the user sees, not only what the model holds");
+	}
+
+	@Test
+	@DisplayName("changing the algorithm drops a checksum the user typed, too")
+	void changingTheAlgorithmClearsATypedChecksum(@TempDir File directory) throws Exception
+	{
+		File file = fileWithAbc(directory);
+		ChecksumPanel panel = new ChecksumPanel();
+		chooseAlgorithm(panel, ChecksumAlgorithm.SHA_256);
+		panel.applySelectedFile(file);
+		panel.getTxtOwnersChecksum().setText(SHA_256_OF_ABC);
+
+		chooseAlgorithm(panel, ChecksumAlgorithm.SHA_512);
+
+		assertTrue(panel.getModelObject().getOwnersChecksum().isBlank(),
+			"a checksum typed for one algorithm cannot be right for another, so it goes as well");
+	}
+
+	@Test
+	@DisplayName("changing the algorithm loads the sibling that belongs to the new one")
+	void changingTheAlgorithmLoadsTheMatchingSibling(@TempDir File directory) throws Exception
+	{
+		File file = fileWithAbc(directory);
+		Files.write(new File(directory, file.getName() + ".sha256").toPath(),
+			SHA_256_OF_ABC.getBytes(StandardCharsets.UTF_8));
+		Files.write(new File(directory, file.getName() + ".md5").toPath(),
+			MD5_OF_ABC.getBytes(StandardCharsets.UTF_8));
+		ChecksumPanel panel = new ChecksumPanel();
+		chooseAlgorithm(panel, ChecksumAlgorithm.SHA_256);
+		panel.applySelectedFile(file);
+
+		chooseAlgorithm(panel, ChecksumAlgorithm.MD5);
+
+		assertEquals(MD5_OF_ABC, panel.getModelObject().getOwnersChecksum(),
+			"the sibling for the algorithm now selected replaces the one for the old algorithm");
+	}
+
 	@ParameterizedTest
 	@EnumSource(value = ChecksumAlgorithm.class, mode = EnumSource.Mode.EXCLUDE, names = "UNKNOWN")
 	@DisplayName("an appended sibling checksum file is found, loaded and correctly attributed for every algorithm")
@@ -401,12 +461,17 @@ class ChecksumPanelBindingTest
 	}
 
 	/**
-	 * What the user brought is not ours to replace: a checksum pasted from a download page stays,
-	 * whatever the dropdown does afterwards
+	 * This used to assert the opposite - that a pasted checksum survives a change of algorithm,
+	 * because "what the user brought is not ours to replace". That rule protected the wrong thing:
+	 * a checksum belongs to the algorithm it was computed with, so after the dropdown moves it is
+	 * not the user's checksum for this comparison any more, it is a leftover that makes an intact
+	 * file report "No Match". The field is cleared and, where a matching sibling exists, refilled
+	 * from it; where none exists it stays empty for the user to paste the right one.
 	 */
 	@Test
-	@DisplayName("choosing another algorithm never overwrites a checksum the user entered")
-	void choosingAnotherAlgorithmKeepsWhatTheUserEntered(@TempDir File directory) throws Exception
+	@DisplayName("choosing another algorithm replaces a pasted checksum with the one that fits")
+	void choosingAnotherAlgorithmReplacesWhatTheUserEntered(@TempDir File directory)
+		throws Exception
 	{
 		File file = fileWithAbc(directory);
 		String sha512 = FileChecksumExtensions.getChecksum(file, ChecksumAlgorithm.SHA_512);
@@ -418,8 +483,9 @@ class ChecksumPanelBindingTest
 
 		chooseAlgorithm(panel, ChecksumAlgorithm.SHA_512);
 
-		assertEquals("something the user pasted", panel.getModelObject().getOwnersChecksum(),
-			"a checksum the user brought must survive a change of algorithm");
+		assertEquals(sha512, panel.getModelObject().getOwnersChecksum(),
+			"the sibling for the algorithm now chosen takes the place of the pasted one, which "
+				+ "belonged to the algorithm before it");
 	}
 
 	private static File fileWithAbc(final File directory) throws Exception
