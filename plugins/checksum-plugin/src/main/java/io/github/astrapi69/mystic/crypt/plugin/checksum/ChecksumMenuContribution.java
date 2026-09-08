@@ -47,6 +47,19 @@ import io.github.astrapi69.swing.util.JInternalFrameExtensions;
 public class ChecksumMenuContribution implements PluginMenuContribution
 {
 
+	/**
+	 * Checking a checksum touches no vault - it reads a file the user points at and compares a
+	 * digest. That is the case #232 was raised for, so this plugin declares itself usable without
+	 * one
+	 *
+	 * @return always true
+	 */
+	@Override
+	public boolean isUsableWithoutAVault()
+	{
+		return true;
+	}
+
 	@Override
 	public List<JMenuItem> getMenuItems()
 	{

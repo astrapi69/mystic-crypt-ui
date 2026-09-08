@@ -68,6 +68,21 @@ public interface PluginMenuContribution extends ExtensionPoint
 	 *
 	 * @return the anchor, {@link Anchor#LAST} by default
 	 */
+	/**
+	 * Whether this plugin's menu entries may be used while no vault is open.
+	 * <p>
+	 * Opt-in, never a default: a plugin that does not answer this question stays private, like
+	 * every other entry nobody listed (#232). Declare it only for a tool that touches no vault at
+	 * all - a checksum, a key conversion, a hash. A tool that reads or writes entries has nothing
+	 * to do in a state where there are none.
+	 *
+	 * @return true if this plugin's entries are offered without a vault
+	 */
+	default boolean isUsableWithoutAVault()
+	{
+		return false;
+	}
+
 	default Anchor getAnchor()
 	{
 		return Anchor.LAST;
