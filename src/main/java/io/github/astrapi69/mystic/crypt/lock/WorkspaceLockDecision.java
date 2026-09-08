@@ -58,6 +58,29 @@ public enum WorkspaceLockDecision
 	 *            whether a vault view exists that could be shown
 	 * @return {@link #SHOW_VAULT} only when the workspace is unlocked and there is a view to show
 	 */
+	/**
+	 * Whether a new vault may be created right now.
+	 * <p>
+	 * Not while another one is locked. Creating a vault ends in a sign-in that sets the signed-in
+	 * flag and rebuilds the menu, which is how a locked workspace came back to life without its
+	 * master password: the lock was lifted by a door that never asked about it (#270).
+	 * <p>
+	 * This is asked in the ACTION, not only at the button that triggers it. The button is disabled
+	 * in the locked state (#269), and that is the first line - this is the second, and it holds for
+	 * every other way the action can be reached: a keyboard shortcut, a persisted menu layout that
+	 * carries the item, a caller added later. Without it, closing one door leaves the room open.
+	 *
+	 * @param signedIn
+	 *            whether the workspace is unlocked
+	 * @param aVaultIsOpen
+	 *            whether a vault is open at all, locked or not
+	 * @return false exactly when a vault is open and the workspace is locked
+	 */
+	public static boolean mayCreateAVault(final boolean signedIn, final boolean aVaultIsOpen)
+	{
+		return signedIn || !aVaultIsOpen;
+	}
+
 	public static WorkspaceLockDecision onSwitchToDesktopPane(final boolean signedIn,
 		final boolean vaultViewBuilt)
 	{
