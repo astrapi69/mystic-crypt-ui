@@ -85,7 +85,13 @@ public class MasterPwFileDialog extends PanelDialog<MasterPwFileModelBean>
 			protected void onOk(ActionEvent actionEvent)
 			{
 				super.onOk(actionEvent);
-				MasterPwFileDialog.this.dispose();
+				// only a successful sign-in closes this dialog. A failed one used to close it too,
+				// and since the application frame is shown only after signing in, the user was left
+				// with no window at all - the application looked gone after a typo (#251)
+				if (isSignInSuccessful())
+				{
+					MasterPwFileDialog.this.dispose();
+				}
 			}
 
 			@Override
