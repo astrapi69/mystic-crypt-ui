@@ -68,6 +68,7 @@ import io.github.astrapi69.mystic.crypt.action.SaveAsApplicationFileAction;
 import io.github.astrapi69.mystic.crypt.action.SearchApplicationFileAction;
 import io.github.astrapi69.mystic.crypt.eventbus.ApplicationEventBus;
 import io.github.astrapi69.mystic.crypt.lock.PublicAccess;
+import io.github.astrapi69.mystic.crypt.lock.WorkspaceLockDecision;
 import io.github.astrapi69.mystic.crypt.menu.PluginMenuOrder;
 import io.github.astrapi69.mystic.crypt.panel.info.ApplicationInfo;
 import io.github.astrapi69.mystic.crypt.panel.info.ApplicationInfoPanel;
@@ -692,9 +693,10 @@ public class DesktopMenu extends BaseDesktopMenu implements EventListener<EventO
 			.getToolBar();
 		if (toolBar != null)
 		{
-			toolBar.getToolbarItems()
-				.forEach(toolbarItem -> toolbarItem.setEnabled(PublicAccess.isOffered(false,
-					PublicAccess.isPublicToolbarId(toolbarItem.getName()))));
+			boolean aVaultIsOpen = MysticCryptApplicationFrame.getInstance().getModelObject()
+				.getMasterPwFileModelBean() != null;
+			toolBar.getToolbarItems().forEach(toolbarItem -> toolbarItem
+				.setEnabled(isToolbarItemOffered(toolbarItem.getName(), aVaultIsOpen)));
 		}
 	}
 	
@@ -722,6 +724,35 @@ public class DesktopMenu extends BaseDesktopMenu implements EventListener<EventO
 		ApplicationToolbar toolBar = (ApplicationToolbar) MysticCryptApplicationFrame.getInstance().getToolBar();
 		toolBar.getToolbarItems().forEach(toolbarItem -> toolbarItem
 			.setEnabled(!disabledToolBarMenus.contains(toolbarItem.getName())));
+	}
+
+	/**
+	 * Whether a toolbar item is offered while the workspace is not signed in.
+	 * <p>
+	 * Most items answer from the list: named, or private. "New database" cannot, because its
+	 * admissibility depends on the state rather than on its identity - with nothing open it is the
+	 * only way to a first vault, and with a vault LOCKED it must be refused, because creating one
+	 * there signed the workspace back in without the locked vault's master password (#270). One
+	 * identifier, two answers, which a list of names cannot express.
+	 * <p>
+	 * One such item is a branch; a second one would be a pattern. If another state-dependent item
+	 * appears, generalise this into an asking of the predicate per item rather than branching here
+	 * a second time - so that the next reader decides rather than copies.
+	 *
+	 * @param toolbarItemName
+	 *            the component name of the toolbar item
+	 * @param aVaultIsOpen
+	 *            whether a vault is open at all, locked or not
+	 * @return true if the item stays enabled
+	 */
+	private static boolean isToolbarItemOffered(final String toolbarItemName,
+		final boolean aVaultIsOpen)
+	{
+		if (MenuId.NEW_DATABASE_TOOL_BAR.propertiesKey().equals(toolbarItemName))
+		{
+			return WorkspaceLockDecision.mayCreateAVault(false, aVaultIsOpen);
+		}
+		return PublicAccess.isOffered(false, PublicAccess.isPublicToolbarId(toolbarItemName));
 	}
 
 	/**

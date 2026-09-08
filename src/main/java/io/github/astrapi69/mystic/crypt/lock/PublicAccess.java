@@ -41,6 +41,12 @@ import io.github.astrapi69.swing.menu.enumeration.BaseMenuId;
  * asks {@link #isOffered(boolean, boolean)} directly. A list of widgets could never be finished,
  * and the next dialog would tear a hole in it again (#232).
  * <p>
+ * WHAT A LIST CANNOT SAY: a set of identifiers answers "may this be offered" with one fixed answer
+ * per name. An entry whose admissibility depends on the STATE needs the predicate instead - the
+ * "new database" toolbar button is one, allowed with nothing open and refused while a vault is
+ * locked (#270). Such entries are deliberately absent from the sets below; they are decided where
+ * the state is known, and the inventory test knows them as a category of their own.
+ * <p>
  * What this replaces was a blacklist: everything was offered without a vault except a handful of
  * named entries. Nobody decided that; the list grew. It let both KeePass entries through, which
  * answer a click with an error dialog, "Lock workspace", which silently does nothing, three of four
