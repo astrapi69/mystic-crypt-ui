@@ -124,7 +124,13 @@ public enum MenuId
 	/**
 	 * The id for the settings menu
 	 */
-	SETTINGS(MenuId.SETTINGS_KEY);
+	SETTINGS(MenuId.SETTINGS_KEY),
+
+	/**
+	 * The id for the View menu, which reorganizeMenus builds and which held this key as a literal
+	 * until the public menu list needed to name it (#232)
+	 */
+	VIEW(MenuId.VIEW_KEY);
 
 	public static final String NEW_DATABASE_KEY = "global.menu.file.new.database";
 	public static final String SAVE_APPLICATION_FILE_KEY = "global.menu.file.save";
@@ -139,6 +145,7 @@ public enum MenuId
 	public static final String IMPORT_KEEPASS_KEY = "global.menu.file.import.keepass";
 	public static final String EXPORT_KEEPASS_KEY = "global.menu.file.export.keepass";
 	public static final String SETTINGS_KEY = "global.menu.file.settings";
+	public static final String VIEW_KEY = "global.menu.view";
 
 
 	public static final String NEW_DATABASE_TOOL_BAR_KEY = "global.toolbar.menu.file.new.database";

@@ -72,6 +72,18 @@ public enum FlatLafTheme
 	 * The default is inert under a non-FlatLaf look and feel (Nimbus and the other JDK-bundled ones
 	 * stay selectable in this application): nothing reads it, so nothing changes.
 	 */
+	/**
+	 * The name the menu item for this theme carries. It lives here, where the item is named, so
+	 * that the places deciding about that item - building it, and the list of what is offered
+	 * without a vault - cannot drift apart by copying the prefix (#232)
+	 *
+	 * @return the component name of this theme's menu item
+	 */
+	public String menuItemName()
+	{
+		return "mihLookAndFeel" + name();
+	}
+
 	public static void installAll()
 	{
 		for (final FlatLafTheme theme : values())
