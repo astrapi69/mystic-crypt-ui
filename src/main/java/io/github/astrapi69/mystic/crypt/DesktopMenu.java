@@ -685,15 +685,16 @@ public class DesktopMenu extends BaseDesktopMenu implements EventListener<EventO
 			component.setEnabled(PublicAccess.isOffered(false, isPublicEntry(component)));
 		});
 
-		final Set<String> disabledToolBarMenus = SetFactory.newHashSet(
-				MenuId.LOCK_WORKSPACE_TOOL_BAR.propertiesKey(),
-				MenuId.SAVE_APPLICATION_FILE_TOOL_BAR.propertiesKey(),
-				MenuId.SEARCH_TOOL_BAR.propertiesKey()
-		);
-		ApplicationToolbar toolBar = (ApplicationToolbar) MysticCryptApplicationFrame.getInstance().getToolBar();
-		if(toolBar != null) {
-			toolBar.getToolbarItems().forEach(toolbarItem -> toolbarItem
-				.setEnabled(!disabledToolBarMenus.contains(toolbarItem.getName())));
+		// the toolbar is the same decision on a second surface, so it asks the same predicate. It
+		// used to name what to disable, which meant a button added later was public by default -
+		// the defect this whole change is about, in second place (#269)
+		ApplicationToolbar toolBar = (ApplicationToolbar)MysticCryptApplicationFrame.getInstance()
+			.getToolBar();
+		if (toolBar != null)
+		{
+			toolBar.getToolbarItems()
+				.forEach(toolbarItem -> toolbarItem.setEnabled(PublicAccess.isOffered(false,
+					PublicAccess.isPublicToolbarId(toolbarItem.getName()))));
 		}
 	}
 	
