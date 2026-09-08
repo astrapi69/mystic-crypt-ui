@@ -52,6 +52,7 @@ import io.github.astrapi69.mystic.crypt.action.NewApplicationFileAction;
 import io.github.astrapi69.mystic.crypt.action.OpenDatabaseTreeFrameAction;
 import io.github.astrapi69.mystic.crypt.action.SaveApplicationFileAction;
 import io.github.astrapi69.mystic.crypt.app.file.xml.ApplicationXmlFileStoreWorker;
+import io.github.astrapi69.mystic.crypt.lock.WorkspaceLockDecision;
 import io.github.astrapi69.mystic.crypt.menu.MenuLayoutSupport;
 import io.github.astrapi69.mystic.crypt.panel.search.SearchToolbarPanel;
 import io.github.astrapi69.mystic.crypt.panel.signin.MasterPwFileDialog;
@@ -527,12 +528,20 @@ public class MysticCryptApplicationFrame extends ApplicationPanelFrame<Applicati
 	 * field is assigned once when a database is opened and never cleared, so it read true for both
 	 * callers and locking kept the vault on screen (#237). What tells the two apart is the reason
 	 * for the switch, and that is what {@code signedIn} carries.
+	 * <p>
+	 * The decision itself lives in {@link WorkspaceLockDecision}, where it can be unit tested and
+	 * mutated - this method only wires its answer to the desktop (#252). The panel field appears in
+	 * the call again, but not as the state it was mistaken for: it answers whether there is a view
+	 * to show at all, and the decision hides the vault whenever the workspace is locked regardless
+	 * of it.
 	 */
 	public void switchToDesktopPane()
 	{
 		replaceMainComponent(getDesktopPanePanel());
 		instance.frameMode = FrameMode.DESKTOP_PANE;
-		if (getModelObject().isSignedIn())
+		WorkspaceLockDecision decision = WorkspaceLockDecision
+			.onSwitchToDesktopPane(getModelObject().isSignedIn(), getApplicationPanel() != null);
+		if (WorkspaceLockDecision.SHOW_VAULT.equals(decision))
 		{
 			OpenDatabaseTreeFrameAction.ensureDatabaseTreeFrameOpen(instance);
 		}

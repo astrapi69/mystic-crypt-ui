@@ -6,8 +6,11 @@
 // against them would take hours. On top of that, mutations in layout and wiring code are usually
 // equivalent, so they produce noise instead of insight.
 //
-// What stays in scope are the headless, fast tests: the menu layout, the KeePass converters and the
-// settings, including the store behind the per-plugin configuration.
+// What stays in scope are the headless, fast tests: the menu layout, the KeePass converters, the
+// settings including the store behind the per-plugin configuration, and the workspace lock
+// decision. The last one is here on purpose: it decides whether a locked workspace shows its vault,
+// which is the defect #237 was, and it was extracted out of the Swing frame precisely so that this
+// exclusion stops applying to it (#252).
 //
 // Measured and left out again for the same reason the user interface is left out:
 // PluginSettingsPanel is a Swing panel - almost all of its mutations hit setName/add/setText calls
@@ -35,6 +38,7 @@ pitest {
     pitestVersion = libs.versions.pitest.version.get()
     targetClasses = [
             "io.github.astrapi69.mystic.crypt.menu.*",
+            "io.github.astrapi69.mystic.crypt.lock.*",
             "io.github.astrapi69.mystic.crypt.keepass.KeePassEntryConverter",
             "io.github.astrapi69.mystic.crypt.keepass.KeePassTreeConverter",
             "io.github.astrapi69.mystic.crypt.settings.MysticCryptSettings",
@@ -45,6 +49,7 @@ pitest {
     // wiring test rather than a test of PluginMenuOrder's own ordering decision
     targetTests = [
             "io.github.astrapi69.mystic.crypt.menu.*",
+            "io.github.astrapi69.mystic.crypt.lock.*",
             "io.github.astrapi69.mystic.crypt.keepass.KeePassEntryConverterTest",
             "io.github.astrapi69.mystic.crypt.keepass.KeePassTreeConverterTest",
             "io.github.astrapi69.mystic.crypt.settings.MysticCryptSettingsTest",
