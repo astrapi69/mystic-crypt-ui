@@ -1139,8 +1139,24 @@ final class ApplicationSteps
 	}
 
 	/** Saves the open database via the File menu and waits until the model is no longer dirty */
+	/**
+	 * Saves through the File menu and waits until the database file on disk has actually been
+	 * rewritten.
+	 * <p>
+	 * Waiting for the dirty flag alone is not enough and used to make every save-based test race
+	 * the writer: saving runs in a worker, and the flag flips before the bytes are on disk. A test
+	 * that then reads the file back saw the previous content - sometimes. Measured on a test that
+	 * failed and passed on identical code, with the file's size and modification time unchanged
+	 * right after the wait returned.
+	 * <p>
+	 * A test asserting only on the model in memory never noticed, which is why this stood for so
+	 * long.
+	 */
 	ApplicationSteps saveDatabase()
 	{
+		File databaseFile = applicationFileOnScreen();
+		long lengthBeforeSaving = databaseFile == null ? -1L : databaseFile.length();
+		long modifiedBeforeSaving = databaseFile == null ? -1L : databaseFile.lastModified();
 		clickMenuItem(MenuId.SAVE_APPLICATION_FILE.propertiesKey());
 		Pause.pause(new Condition("model is saved (no longer dirty)")
 		{
@@ -1150,6 +1166,18 @@ final class ApplicationSteps
 				return !MysticCryptApplicationFrame.getInstance().getModelObject().isDirty();
 			}
 		}, 15000);
+		if (databaseFile != null)
+		{
+			Pause.pause(new Condition("the database file was rewritten on disk")
+			{
+				@Override
+				public boolean test()
+				{
+					return databaseFile.lastModified() != modifiedBeforeSaving
+						|| databaseFile.length() != lengthBeforeSaving;
+				}
+			}, 15000);
+		}
 		UiTestSpeed.step();
 		return this;
 	}

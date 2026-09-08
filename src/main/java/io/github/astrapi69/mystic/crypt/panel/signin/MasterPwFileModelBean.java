@@ -33,6 +33,7 @@ import io.github.astrapi69.collection.list.ListFactory;
 import io.github.astrapi69.collection.set.SetFactory;
 import io.github.astrapi69.crypt.data.model.KeyModel;
 import io.github.astrapi69.file.create.model.FileInfo;
+import io.github.astrapi69.mystic.crypt.lock.MasterPasswordVerifier;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -106,6 +107,13 @@ public class MasterPwFileModelBean implements Serializable
 
 	/** The repeat of the master password char array, transient for the same reason as masterPw. */
 	transient char[] repeatPw;
+
+	/**
+	 * What is kept instead of {@link #masterPw} while the workspace is locked: enough to recognise
+	 * the password when it is typed again, not enough to be it (#242). Set when locking, dropped
+	 * when unlocking, and transient for the same reason as the password itself.
+	 */
+	transient MasterPasswordVerifier lockVerifier;
 
 	/** The minimum length for the password. */
 	int minPasswordLength;
