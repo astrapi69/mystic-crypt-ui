@@ -77,6 +77,10 @@ public class MasterPwWithApplicationFilePanel extends BasePanel<MasterPwFileMode
 {
 	@Serial
 	private static final long serialVersionUID = 1L;
+
+	/** Whether the last attempt through {@link #onOk(java.awt.event.ActionEvent)} signed in */
+	private boolean signInSuccessful;
+
 	private javax.swing.JButton btnApplicationFileChooser;
 	private javax.swing.JButton btnCancel;
 	private javax.swing.JButton btnHelp;
@@ -644,8 +648,17 @@ public class MasterPwWithApplicationFilePanel extends BasePanel<MasterPwFileMode
 		}
 	}
 
+	/**
+	 * Signs in with what the panel holds. The result is not thrown to the caller - a failed attempt
+	 * is shown to the user as a dialog here - so {@link #isSignInSuccessful()} is how the enclosing
+	 * dialog learns whether it may close (#251)
+	 *
+	 * @param actionEvent
+	 *            the event of the OK button
+	 */
 	protected void onOk(ActionEvent actionEvent)
 	{
+		signInSuccessful = false;
 		try
 		{
 			MysticCryptApplicationFrame applicationFrame = MysticCryptApplicationFrame
@@ -669,6 +682,7 @@ public class MasterPwWithApplicationFilePanel extends BasePanel<MasterPwFileMode
 				File memoizedSigninFile = new File(applicationFrame.getConfigurationDirectory(),
 					MysticCryptApplicationFrame.MEMOIZED_SIGNIN_JSON_FILENAME);
 				ObjectToJsonFileExtensions.toJsonFile(memoizedSigninModelBean, memoizedSigninFile);
+				signInSuccessful = true;
 			}
 		}
 		catch (Exception exception)
@@ -690,6 +704,18 @@ public class MasterPwWithApplicationFilePanel extends BasePanel<MasterPwFileMode
 				log.log(Level.SEVERE, exception.getMessage(), exception);
 			}
 		}
+	}
+
+	/**
+	 * Whether the last {@link #onOk(ActionEvent)} signed in. False after a wrong password, a wrong
+	 * key file, or a file that could not be read - in every one of those cases the user has been
+	 * shown why, and the dialog holding this panel has to stay open so the input can be corrected
+	 *
+	 * @return true if the last attempt signed in
+	 */
+	boolean isSignInSuccessful()
+	{
+		return signInSuccessful;
 	}
 
 	protected void onCancel(ActionEvent actionEvent)

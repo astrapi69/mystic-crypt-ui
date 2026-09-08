@@ -220,6 +220,12 @@ final class SignInDialogSteps
 		}, 15000);
 	}
 
+	/** Whether the sign-in dialog is still on screen */
+	boolean dialogIsShowing()
+	{
+		return GuiActionRunner.execute(() -> dialog.target().isShowing());
+	}
+
 	/** Clicks Cancel - the flow-ending button of an aborted sign-in */
 	void cancel()
 	{
