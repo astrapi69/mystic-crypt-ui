@@ -63,7 +63,8 @@ public class NewSettingsFrameAction extends AbstractAction
 		MysticCryptApplicationFrame frame = MysticCryptApplicationFrame.getInstance();
 		MysticCryptSettings settings = MysticCryptSettings.load(frame.getConfigurationDirectory());
 		SettingsPanel settingsPanel = new SettingsPanel(settings, frame.getPluginManager(),
-			frame::refreshPluginsMenu, frame.getConfigurationDirectory());
+			frame::refreshPluginsMenu, frame.getConfigurationDirectory(),
+			frame.getModelObject().isSignedIn());
 
 		JDialog dialog = new JDialog(frame, "Settings", true);
 		dialog.setName("dlgSettings");

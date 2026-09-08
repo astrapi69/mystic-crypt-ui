@@ -31,6 +31,7 @@ import javax.swing.*;
 
 import org.pf4j.PluginManager;
 
+import io.github.astrapi69.mystic.crypt.lock.PublicAccess;
 import io.github.astrapi69.mystic.crypt.plugin.api.PluginSettingsContribution;
 
 /**
@@ -47,7 +48,7 @@ public class SettingsPanel extends JPanel
 	private final transient MysticCryptSettings settings;
 
 	public SettingsPanel(MysticCryptSettings settings, PluginManager pluginManager,
-		Runnable onPluginsChanged, File configurationDirectory)
+		Runnable onPluginsChanged, File configurationDirectory, boolean signedIn)
 	{
 		super(new BorderLayout());
 		this.settings = settings;
@@ -55,6 +56,19 @@ public class SettingsPanel extends JPanel
 		JTabbedPane tabbedPane = new JTabbedPane();
 		tabbedPane.setName("tabSettings");
 		tabbedPane.addTab("Plugins", new PluginsSettingsPanel(pluginManager, onPluginsChanged));
+		// Installing and enabling a plugin loads code into the running process, right away and
+		// without a restart - so it is not something the application offers while no vault is
+		// open. The whole tab, not its buttons: a list of installed plugins without them is worth
+		// little, and picking widgets out of dialogs is a list that could never be finished (#232).
+		//
+		// Asked rather than listed: the menu whitelist covers menu entries, and everything else
+		// that offers a privileged capability asks the predicate directly
+		tabbedPane.setEnabledAt(0, PublicAccess.isOffered(signedIn, false));
+		if (!signedIn)
+		{
+			tabbedPane.setToolTipTextAt(0,
+				"Sign in first: installing or enabling a plugin runs its code in this application");
+		}
 		tabbedPane.addTab("Plugin settings",
 			new PluginSettingsPanel(configurationDirectory, PluginSettingsPanel
 				.usable(pluginManager.getExtensions(PluginSettingsContribution.class))));
