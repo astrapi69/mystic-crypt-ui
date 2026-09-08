@@ -51,6 +51,40 @@ tasks.register('checksumInstaller') {
     }
 }
 
+/**
+ * Deletes an installer that cannot be one. A failed izpack run leaves its output file behind, empty:
+ * measured at 0 bytes when the signed uber jar was missing. Nothing hashes it - checksumInstaller
+ * depends on the installer task and does not run after a failure (#228) - but an empty jar sitting
+ * in the distributions directory is one careless upload away from being released (#245).
+ *
+ * finalizedBy is the right shape here and the wrong shape for the checksums: a finalizer runs after
+ * a FAILED target, which is precisely what has to be cleaned up, while a checksum must never be
+ * written for a build that failed.
+ *
+ * The floor is a sanity floor, not the release policy floor. Anything below a megabyte cannot be
+ * this installer - it packs an 80 MB uber jar - while the "is this a plausible release artifact"
+ * question is a separate check with its own number in release-workflow.md, asked against the file
+ * the checksums describe.
+ */
+tasks.register('discardBrokenInstaller') {
+    description = "Removes an installer file that a failed build left behind."
+    DirectoryProperty buildDirectoryProperty = layout.buildDirectory
+    File installer = file("${buildDirectoryProperty.get()}/distributions/$rootProject.name-${projectVersion}-installer.jar")
+    long sanityFloorInBytes = 1024 * 1024
+    doLast {
+        if (installer.exists() && installer.length() < sanityFloorInBytes) {
+            long sizeInBytes = installer.length()
+            if (installer.delete()) {
+                logger.lifecycle("removed ${installer.name}: $sizeInBytes bytes cannot be an installer")
+            } else {
+                logger.warn("could not remove ${installer.name}, which is only $sizeInBytes bytes")
+            }
+        }
+    }
+}
+
+izPackCreateInstaller.finalizedBy(discardBrokenInstaller)
+
 // dependsOn, deliberately not finalizedBy: a finalizer also runs after its target FAILED, which
 // wrote checksums for an installer a failed build had not produced. Depending on it instead means
 // no checksum file exists unless the installer was built successfully (#228)
