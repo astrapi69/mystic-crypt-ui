@@ -665,6 +665,10 @@ public class MysticCryptApplicationFrame extends ApplicationPanelFrame<Applicati
 	 */
 	protected void onWindowClosing()
 	{
+		// Swing must not close this window on its own. The answer to the question below decides
+		// whether the application ends, and EXIT_ON_CLOSE would end it after the listener returns
+		// whatever that answer was - which is how Cancel came to mean the same as No (#288)
+		setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
 		MysticCryptApplicationFrame.this.addWindowListener(new CloseWindow()
 		{
 			@Override
@@ -673,8 +677,17 @@ public class MysticCryptApplicationFrame extends ApplicationPanelFrame<Applicati
 				// the question itself lives in SaveBeforeCloseConfirmation since #281: closing a
 				// vault, replacing it with another one and ending the application are three callers
 				// of one question, and it used to be reachable only through this listener
-				SaveBeforeCloseConfirmation.askAndApply(MysticCryptApplicationFrame.this,
+				SaveBeforeCloseConfirmation.Choice choice = SaveBeforeCloseConfirmation.askAndApply(
+					MysticCryptApplicationFrame.this,
 					MysticCryptApplicationFrame.this.getModelObject());
+				if (SaveBeforeCloseConfirmation.Choice.CANCELLED.equals(choice))
+				{
+					// the third answer is the only reason to offer three. Yes and No both end the
+					// application, and a Cancel that also ended it was a button reading as a way
+					// back while being none - it cost the user every change since the last save,
+					// and the window was gone before they could react (#288)
+					return;
+				}
 				stopTheIdleLockWatchdog();
 				stopPluginsQuietly();
 				super.windowClosing(windowEvent);
