@@ -42,6 +42,17 @@ public enum MenuId
 	 */
 	OPEN_DATABASE(MenuId.OPEN_DATABASE_KEY),
 
+	/**
+	 * The id for opening an existing database FILE - the way back into a vault from the state with
+	 * none open (#266). Not {@link #OPEN_DATABASE}, which re-shows a vault that is already open
+	 */
+	OPEN_DATABASE_FILE(MenuId.OPEN_DATABASE_FILE_KEY),
+
+	/**
+	 * The id for closing the open database (#281)
+	 */
+	CLOSE_DATABASE(MenuId.CLOSE_DATABASE_KEY),
+
 
 	/**
 	 * The id for create a new mystic crypt database toolbar menu
@@ -121,6 +132,8 @@ public enum MenuId
 	public static final String SAVE_APPLICATION_FILE_KEY = "global.menu.file.save";
 	public static final String SAVE_AS_APPLICATION_FILE_KEY = "global.menu.file.save.as";
 	public static final String OPEN_DATABASE_KEY = "global.menu.file.open.database";
+	public static final String OPEN_DATABASE_FILE_KEY = "global.menu.file.open.database.file";
+	public static final String CLOSE_DATABASE_KEY = "global.menu.file.close.database";
 	public static final String SECRET_KEY_KEY = "global.menu.file.secret.key";
 	public static final String OPEN_PRIVATE_KEY_KEY = "global.menu.file.secret.key.open.private.key";
 	public static final String TOGGLE_FULLSCREEN_KEY = "global.menu.file.toggle.fullscreen";

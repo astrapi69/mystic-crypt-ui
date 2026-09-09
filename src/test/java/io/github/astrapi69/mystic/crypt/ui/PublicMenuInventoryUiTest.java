@@ -92,10 +92,11 @@ class PublicMenuInventoryUiTest extends AbstractUiTest
 	 */
 	private static final String MASTER_PASSWORD = TestPasswords.throwaway();
 
-	private static final Set<String> ALLOWED_PUBLIC_TEXTS = new LinkedHashSet<>(List.of("File",
-		"Settings...", "Exit", "View", "Look and Feel", "GTK", "Metal", "Ocean", "Motif", "Nimbus",
-		"System", "FlatLaf Dark", "FlatLaf IntelliJ", "FlatLaf Darcula", "Plugins", "Checksum",
-		"Verify Checksum", "Checksum and MAC", "Help", "Donate", "Licence", "Info"));
+	private static final Set<String> ALLOWED_PUBLIC_TEXTS = new LinkedHashSet<>(
+		List.of("File", "Open Database...", "Settings...", "Exit", "View", "Look and Feel", "GTK",
+			"Metal", "Ocean", "Motif", "Nimbus", "System", "FlatLaf Dark", "FlatLaf IntelliJ",
+			"FlatLaf Darcula", "Plugins", "Checksum", "Verify Checksum", "Checksum and MAC", "Help",
+			"Donate", "Licence", "Info"));
 
 	/**
 	 * "FlatLaf Light" is public and still not in the list above: it is the theme the application

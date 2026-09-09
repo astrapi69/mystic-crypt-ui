@@ -51,7 +51,7 @@ import io.github.astrapi69.model.api.IModel;
 import io.github.astrapi69.mystic.crypt.action.NewApplicationFileAction;
 import io.github.astrapi69.mystic.crypt.action.OpenDatabaseTreeFrameAction;
 import io.github.astrapi69.mystic.crypt.action.SaveApplicationFileAction;
-import io.github.astrapi69.mystic.crypt.app.file.xml.ApplicationXmlFileStoreWorker;
+import io.github.astrapi69.mystic.crypt.action.SaveBeforeCloseConfirmation;
 import io.github.astrapi69.mystic.crypt.lock.WorkspaceLockDecision;
 import io.github.astrapi69.mystic.crypt.menu.MenuLayoutSupport;
 import io.github.astrapi69.mystic.crypt.panel.search.SearchToolbarPanel;
@@ -63,14 +63,13 @@ import io.github.astrapi69.mystic.crypt.settings.FlatLafTheme;
 import io.github.astrapi69.mystic.crypt.settings.GeneralSettingsPanel;
 import io.github.astrapi69.mystic.crypt.settings.MysticCryptSettings;
 import io.github.astrapi69.mystic.crypt.ui.screen.ScreenPlacement;
+import io.github.astrapi69.mystic.crypt.vault.VaultCloseSupport;
 import io.github.astrapi69.swing.base.ApplicationPanelFrame;
 import io.github.astrapi69.swing.base.BasePanel;
 import io.github.astrapi69.swing.button.builder.JButtonInfo;
-import io.github.astrapi69.swing.dialog.JOptionPaneExtensions;
 import io.github.astrapi69.swing.enumeration.FrameMode;
 import io.github.astrapi69.swing.model.component.JMTextField;
 import io.github.astrapi69.swing.panel.desktoppane.JDesktopPanePanel;
-import io.github.astrapi69.swing.panel.label.LabelPanel;
 import io.github.astrapi69.swing.plaf.LookAndFeels;
 import io.github.astrapi69.swing.splashscreen.ProgressBarSplashScreen;
 import io.github.astrapi69.swing.splashscreen.SplashScreenModelBean;
@@ -175,7 +174,7 @@ public class MysticCryptApplicationFrame extends ApplicationPanelFrame<Applicati
 	 */
 	private transient java.awt.GraphicsConfiguration signinScreen;
 
-	protected void showMasterPwDialog()
+	public void showMasterPwDialog()
 	{
 		File configurationDirectory = getConfigurationDirectory();
 		File memoizedSigninFile = new File(configurationDirectory, MEMOIZED_SIGNIN_JSON_FILENAME);
@@ -561,6 +560,31 @@ public class MysticCryptApplicationFrame extends ApplicationPanelFrame<Applicati
 	}
 
 	/**
+	 * Closes the open vault: the model is emptied, the view is taken off the desktop and dropped,
+	 * and the menu goes back to what is offered without a vault (#281).
+	 * <p>
+	 * Whether the pending changes were saved or discarded is decided BEFORE this is called - see
+	 * {@link io.github.astrapi69.mystic.crypt.action.SaveBeforeCloseConfirmation} - so nothing here
+	 * writes anything, and a caller whose user cancelled simply never gets this far.
+	 * <p>
+	 * The panel is dropped rather than kept, which is the difference between closing and locking:
+	 * locking keeps it so unlocking can rebuild the view from it without decrypting the file again
+	 * (#237). After closing there is nothing to rebuild, and a panel kept here is a decrypted vault
+	 * kept in memory with no way left to reach it (#242).
+	 */
+	public void closeOpenVault()
+	{
+		VaultCloseSupport.closeVault(getModelObject());
+		OpenDatabaseTreeFrameAction.closeDatabaseTreeFrame(this);
+		applicationPanel = null;
+		// the generator is seeded from the vault's last id, so one kept across a close would hand
+		// the next vault ids continuing the previous vault's sequence
+		idGenerator = null;
+		switchToDesktopPane();
+		((DesktopMenu)getMenu()).onEnableByPublic();
+	}
+
+	/**
 	 * Checks if all changes have been stored to the application file
 	 */
 	protected void onWindowClosing()
@@ -570,29 +594,11 @@ public class MysticCryptApplicationFrame extends ApplicationPanelFrame<Applicati
 			@Override
 			public void windowClosing(WindowEvent windowEvent)
 			{
-				ApplicationModelBean modelObject = MysticCryptApplicationFrame.this
-					.getModelObject();
-				boolean dirty = modelObject.isDirty();
-				if (dirty)
-				{
-					String defaultMessage = "<html><body>"
-						+ "<div>The current database file is modified.</div>"
-						+ "<div>Store your changes before finish application</div>"
-						+ "</body></html>";
-					String confirmMessage = Messages
-						.getString("dialog.confirm.save.before.close.message", defaultMessage);
-					LabelPanel panel = new LabelPanel(BaseModel.of(confirmMessage));
-					int option = JOptionPaneExtensions.getSelectedOption(panel,
-						JOptionPane.QUESTION_MESSAGE, JOptionPane.YES_NO_CANCEL_OPTION,
-						MysticCryptApplicationFrame.this,
-						Messages.getString("dialog.confirm.save.before.close.title",
-							"Save Database Before Close."),
-						null);
-					if (option == JOptionPane.YES_OPTION)
-					{
-						ApplicationXmlFileStoreWorker.storeApplicationFile(modelObject);
-					}
-				}
+				// the question itself lives in SaveBeforeCloseConfirmation since #281: closing a
+				// vault, replacing it with another one and ending the application are three callers
+				// of one question, and it used to be reachable only through this listener
+				SaveBeforeCloseConfirmation.askAndApply(MysticCryptApplicationFrame.this,
+					MysticCryptApplicationFrame.this.getModelObject());
 				stopPluginsQuietly();
 				super.windowClosing(windowEvent);
 			}

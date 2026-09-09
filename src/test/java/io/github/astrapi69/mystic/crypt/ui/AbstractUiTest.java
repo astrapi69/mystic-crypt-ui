@@ -206,24 +206,40 @@ abstract class AbstractUiTest
 		return new SignInDialogSteps(robot, launchApplicationAndFindSignInDialog());
 	}
 
+	/**
+	 * Waits for the sign-in dialog of an application that is ALREADY running and hands back the
+	 * steps for it - the case where "Open Database..." puts the dialog up a second time (#266),
+	 * rather than the launch below which starts the application to get one
+	 *
+	 * @return steps for the sign-in dialog
+	 */
+	protected SignInDialogSteps awaitSignInDialog()
+	{
+		return new SignInDialogSteps(robot, findSignInDialog());
+	}
+
+	private DialogFixture findSignInDialog()
+	{
+		return WindowFinder.findDialog(new GenericTypeMatcher<Dialog>(Dialog.class)
+		{
+			@Override
+			protected boolean isMatching(Dialog dialog)
+			{
+				// dialog.getTitle() is set by the JDialog constructor before the app thread
+				// finishes assembling and showing the content, so also require isShowing() -
+				// otherwise this can match a dialog whose content pane is still empty
+				return "Enter your credentials".equals(dialog.getTitle()) && dialog.isShowing();
+			}
+		}).withTimeout(15, TimeUnit.SECONDS).using(robot);
+	}
+
 	private DialogFixture launchApplicationAndFindSignInDialog()
 	{
 		appThread = new Thread(MysticCryptApplicationFrame::new, "mystic-crypt-app-under-test");
 		appThread.setDaemon(true);
 		appThread.start();
 
-		DialogFixture signInDialog = WindowFinder
-			.findDialog(new GenericTypeMatcher<Dialog>(Dialog.class)
-			{
-				@Override
-				protected boolean isMatching(Dialog dialog)
-				{
-					// dialog.getTitle() is set by the JDialog constructor before the app thread
-					// finishes assembling and showing the content, so also require isShowing() -
-					// otherwise this can match a dialog whose content pane is still empty
-					return "Enter your credentials".equals(dialog.getTitle()) && dialog.isShowing();
-				}
-			}).withTimeout(15, TimeUnit.SECONDS).using(robot);
+		DialogFixture signInDialog = findSignInDialog();
 		// the application frame is configured with EXIT_ON_CLOSE - defuse it for the test, so no
 		// window-closing during teardown can call System.exit and kill the test JVM
 		GuiActionRunner.execute(() -> {

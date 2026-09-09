@@ -56,12 +56,14 @@ import org.junit.jupiter.params.provider.MethodSource;
 import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
 import io.github.astrapi69.mystic.crypt.TestPasswords;
 import io.github.astrapi69.mystic.crypt.action.ApplicationToggleFullScreenAction;
+import io.github.astrapi69.mystic.crypt.action.CloseApplicationFileAction;
 import io.github.astrapi69.mystic.crypt.action.ExportKeePassDatabaseAction;
 import io.github.astrapi69.mystic.crypt.action.ImportKeePassDatabaseAction;
 import io.github.astrapi69.mystic.crypt.action.LockWorkspaceAction;
 import io.github.astrapi69.mystic.crypt.action.NewApplicationFileAction;
 import io.github.astrapi69.mystic.crypt.action.NewSettingsFrameAction;
 import io.github.astrapi69.mystic.crypt.action.OpenDatabaseTreeFrameAction;
+import io.github.astrapi69.mystic.crypt.action.OpenExistingDatabaseAction;
 import io.github.astrapi69.mystic.crypt.action.OpenPrivateKeyAction;
 import io.github.astrapi69.mystic.crypt.action.SaveApplicationFileAction;
 import io.github.astrapi69.mystic.crypt.action.SaveAsApplicationFileAction;
@@ -85,6 +87,11 @@ import io.github.astrapi69.mystic.crypt.action.SearchApplicationFileAction;
  * menu, because a disabled menu item is only the first line. The second line has to hold for a
  * keyboard shortcut, a persisted menu layout carrying the item, or a caller added later, which is
  * the same reason the #270 refusal sits in the action instead of at the button.
+ * <p>
+ * Closing a database and opening another one are in the list like everything else, and both refuse
+ * while locked: closing would have to discard unsaved changes, because saving them needs the master
+ * password that locking cleared from memory (#242), and opening another one closes the current one
+ * first. Neither is an exception - both are measured against the same three assertions.
  * <p>
  * THE ONE EXCEPTION is unlocking with the correct master password. {@link LockWorkspaceAction} is
  * fired here like every other action, and it is not treated as a special case: fired while locked
@@ -121,6 +128,9 @@ class LockedWorkspaceRefusesEveryActionUiTest extends AbstractUiTest
 		Map<String, Supplier<Action>> actions = new LinkedHashMap<>();
 		actions.put("New database", () -> new NewApplicationFileAction("New Application"));
 		actions.put("Open database view", () -> new OpenDatabaseTreeFrameAction("Open database"));
+		actions.put("Open database file",
+			() -> new OpenExistingDatabaseAction("Open Database File"));
+		actions.put("Close database", () -> new CloseApplicationFileAction("Close Database"));
 		actions.put("Save", () -> new SaveApplicationFileAction("Save"));
 		actions.put("Save as", () -> new SaveAsApplicationFileAction("Save As"));
 		actions.put("Search", () -> new SearchApplicationFileAction("Search"));
