@@ -63,16 +63,23 @@ public class NewApplicationFileAction extends AbstractAction
 		MysticCryptApplicationFrame mysticCryptApplicationFrame = MysticCryptApplicationFrame
 			.getInstance();
 		ApplicationModelBean applicationModelBean = mysticCryptApplicationFrame.getModelObject();
-		if (!WorkspaceLockDecision.mayCreateAVault(applicationModelBean.isSignedIn(),
-			applicationModelBean.getMasterPwFileModelBean() != null))
+		if (!WorkspaceLockDecision
+			.mayCreateAVault(applicationModelBean.getMasterPwFileModelBean() != null))
 		{
+			// TODO(#281): once a vault can be closed while the application runs, this refusal
+			// becomes "close the open one first" - ask, save if dirty, close, then create. The
+			// message deliberately does not promise that yet
+			//
 			// and it says so. A refusal nobody sees is the defect we found in "Lock workspace",
 			// which answered a click in the public state by doing nothing at all
 			JOptionPane.showMessageDialog(mysticCryptApplicationFrame,
-				Messages.getString("newdatabase.refused.while.locked",
-					"The workspace is locked. Unlock it before creating another database - "
-						+ "creating one here would put the locked database back on the screen."),
-				Messages.getString("newdatabase.refused.while.locked.title", "Workspace is locked"),
+				Messages.getString("newdatabase.refused.vault.open",
+					"A database is already open. Creating another one here would put its entries "
+						+ "into the new file and stop saving to the open one. Close the open "
+						+ "database first - today that means ending the application and starting "
+						+ "it again."),
+				Messages.getString("newdatabase.refused.vault.open.title",
+					"A database is already open"),
 				JOptionPane.WARNING_MESSAGE);
 			return;
 		}

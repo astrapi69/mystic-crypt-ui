@@ -59,26 +59,33 @@ public enum WorkspaceLockDecision
 	 * @return {@link #SHOW_VAULT} only when the workspace is unlocked and there is a view to show
 	 */
 	/**
-	 * Whether a new vault may be created right now.
+	 * Whether a new vault may be created right now: only when none is open.
 	 * <p>
-	 * Not while another one is locked. Creating a vault ends in a sign-in that sets the signed-in
-	 * flag and rebuilds the menu, which is how a locked workspace came back to life without its
-	 * master password: the lock was lifted by a door that never asked about it (#270).
+	 * Creating a vault does not open one. It replaces the file the application saves to and leaves
+	 * the model alone, so the open vault's entries end up inside the new file under the new master
+	 * password, and a change made to the open vault never reaches its own file (#279). Measured
+	 * through a restart, in both directions.
 	 * <p>
-	 * This is asked in the ACTION, not only at the button that triggers it. The button is disabled
-	 * in the locked state (#269), and that is the first line - this is the second, and it holds for
-	 * every other way the action can be reached: a keyboard shortcut, a persisted menu layout that
-	 * carries the item, a caller added later. Without it, closing one door leaves the room open.
+	 * The signed-in state is deliberately NOT part of this decision. It used to be: the refusal
+	 * only covered a LOCKED vault, because that was the lock bypass it was written for (#270).
+	 * Locked or not, the vault that is open is the one whose content would travel, so the question
+	 * is whether one is open at all - two cases instead of four.
+	 * <p>
+	 * This is the shape available today, not the intended end state. "Close the open one first" is
+	 * what a user expects, and this application cannot close a vault while running at all (#281).
+	 * Once that path exists, this refusal becomes the closing flow.
+	 * <p>
+	 * Asked in the ACTION, not only at the button. The button follows the same decision (#269),
+	 * which is the first line; this is the second, and it holds for a keyboard shortcut, a
+	 * persisted menu layout carrying the item, or a caller added later.
 	 *
-	 * @param signedIn
-	 *            whether the workspace is unlocked
 	 * @param aVaultIsOpen
 	 *            whether a vault is open at all, locked or not
-	 * @return false exactly when a vault is open and the workspace is locked
+	 * @return false exactly when a vault is open
 	 */
-	public static boolean mayCreateAVault(final boolean signedIn, final boolean aVaultIsOpen)
+	public static boolean mayCreateAVault(final boolean aVaultIsOpen)
 	{
-		return signedIn || !aVaultIsOpen;
+		return !aVaultIsOpen;
 	}
 
 	public static WorkspaceLockDecision onSwitchToDesktopPane(final boolean signedIn,

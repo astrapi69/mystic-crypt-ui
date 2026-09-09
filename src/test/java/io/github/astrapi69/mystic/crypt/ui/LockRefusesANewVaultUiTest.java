@@ -53,6 +53,10 @@ import io.github.astrapi69.mystic.crypt.action.NewApplicationFileAction;
  * setting the signed-in flag and rebuilding the menu, and nothing in it asked whether the workspace
  * it lands in was locked. The locked vault's master password was never entered (#270).
  * <p>
+ * The refusal has since widened to every open vault, locked or not (#279), so the decision no
+ * longer reads the signed-in state at all. This class keeps measuring the locked case, because that
+ * is the one where the refusal also protects a password nobody entered.
+ * <p>
  * The action is fired directly rather than through the toolbar button, on purpose. The button is
  * disabled in this state (#269), which is the first line; this test is about the second one, the
  * refusal in the action itself, which holds for every other way the action can be reached.
@@ -61,6 +65,12 @@ class LockRefusesANewVaultUiTest extends AbstractUiTest
 {
 
 	private static final String MASTER_PASSWORD = TestPasswords.throwaway();
+
+	/**
+	 * The refusal covers every open vault since #279, not only a locked one, so it names the open
+	 * database rather than the lock. The locked case is still the one measured here
+	 */
+	private static final String REFUSAL_TITLE = "A database is already open";
 
 	@Test
 	@DisplayName("a locked workspace refuses a new vault, and says why")
@@ -79,11 +89,11 @@ class LockRefusesANewVaultUiTest extends AbstractUiTest
 			@Override
 			public boolean test()
 			{
-				return dialogTitled("Workspace is locked") != null;
+				return dialogTitled(REFUSAL_TITLE) != null;
 			}
 		}, TimeUnit.SECONDS.toMillis(15));
 
-		assertTrue(dialogTitled("Workspace is locked") != null,
+		assertTrue(dialogTitled(REFUSAL_TITLE) != null,
 			"the refusal has to be visible - an action that silently does nothing is the defect "
 				+ "this application already had in Lock workspace");
 		assertFalse(

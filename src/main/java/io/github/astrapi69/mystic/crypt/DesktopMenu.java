@@ -750,7 +750,7 @@ public class DesktopMenu extends BaseDesktopMenu implements EventListener<EventO
 	{
 		if (MenuId.NEW_DATABASE_TOOL_BAR.propertiesKey().equals(toolbarItemName))
 		{
-			return WorkspaceLockDecision.mayCreateAVault(false, aVaultIsOpen);
+			return WorkspaceLockDecision.mayCreateAVault(aVaultIsOpen);
 		}
 		return PublicAccess.isOffered(false, PublicAccess.isPublicToolbarId(toolbarItemName));
 	}
