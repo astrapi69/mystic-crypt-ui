@@ -217,7 +217,7 @@ public class KeePassTreeConverterTest
 		GenericTreeElement<List<MysticCryptEntryModelBean>> element = new GenericTreeElement<>();
 		element.setName("Parent folder");
 		element.setDefaultContent(
-			List.of(MysticCryptEntryModelBean.builder().title("An entry").build()));
+			List.of(MysticCryptEntryModelBean.builder().title("An entry".toCharArray()).build()));
 		BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> node = BaseTreeNode
 			.<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> builder().id(1L)
 			.value(element).build();

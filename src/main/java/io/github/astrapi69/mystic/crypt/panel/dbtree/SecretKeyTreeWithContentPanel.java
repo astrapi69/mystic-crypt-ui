@@ -1201,7 +1201,7 @@ public class SecretKeyTreeWithContentPanel
 		if (singleSelectedRow)
 		{
 			selectedRow = allSelectedRowData.get(0);
-			String urlString = selectedRow.getUrl();
+			String urlString = EntryText.asText(selectedRow.getUrl());
 			validUrl = validateUrlString(urlString);
 		}
 
@@ -1282,13 +1282,14 @@ public class SecretKeyTreeWithContentPanel
 	protected void onOpenUrlAndAutotypeOfTableEntry()
 	{
 		getTblTreeEntryTable().getSingleSelectedRowData().ifPresent(selectedTableEntry -> {
-			String url = selectedTableEntry.getUrl();
+			String url = EntryText.asText(selectedTableEntry.getUrl());
 			try (ActionRunner actionRunner = new MyBasicActionRunner())
 			{
 				ActionComposer actionComposer = new ActionComposerBuilder().prepareActionSequence()
 					.getUrl(url)
 					.waitUntil(elementToBeClickable(By.xpath("//input[@id='UserName']")), 3000)
-					.sendKey(By.xpath("//input[@id='UserName']"), selectedTableEntry.getUserName())
+					.sendKey(By.xpath("//input[@id='UserName']"),
+						EntryText.asText(selectedTableEntry.getUserName()))
 					.waitUntil(elementToBeClickable(By.xpath("//input[@id='Password']")), 3000)
 					.sendKey(By.xpath("//input[@id='Password']"),
 						String.valueOf(selectedTableEntry.getPassword()))
@@ -1329,7 +1330,7 @@ public class SecretKeyTreeWithContentPanel
 				.id(null).resources(new ArrayList<>(selectedTableEntry.getResources()))
 				.properties(new ArrayList<>(selectedTableEntry.getProperties())).build();
 
-			String newName = clonedMysticCryptEntry.getTitle() + "-Copy";
+			String newName = EntryText.asText(clonedMysticCryptEntry.getTitle()) + "-Copy";
 			NewTableEntryModel newTableEntryModel = NewTableEntryModel.builder().name(newName)
 				.labelModelName(LabelModel.builder()
 					.text(Messages.getString("dialog.duplicate.crypt.entry.new.title.name",
@@ -1346,7 +1347,7 @@ public class SecretKeyTreeWithContentPanel
 			if (option == JOptionPane.OK_OPTION)
 			{
 				String name = panel.getModelObject().getName();
-				clonedMysticCryptEntry.setTitle(name);
+				clonedMysticCryptEntry.setTitle(EntryText.asCharacters(name));
 
 				addNewTableEntryToModel(clonedMysticCryptEntry);
 			}
@@ -1356,7 +1357,7 @@ public class SecretKeyTreeWithContentPanel
 	protected void onCopyUsernameTableEntry()
 	{
 		getTblTreeEntryTable().getSingleSelectedRowData().ifPresent(tableEntry -> {
-			String userName = tableEntry.getUserName();
+			String userName = EntryText.asText(tableEntry.getUserName());
 			ClipboardExtensions.copyToClipboard(userName);
 		});
 	}
@@ -1403,7 +1404,7 @@ public class SecretKeyTreeWithContentPanel
 	protected void onOpenUrlOfTableEntry()
 	{
 		getTblTreeEntryTable().getSingleSelectedRowData().ifPresent(tableEntry -> {
-			String urlString = tableEntry.getUrl();
+			String urlString = EntryText.asText(tableEntry.getUrl());
 			try
 			{
 				URL url = new URL(urlString);

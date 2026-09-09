@@ -26,6 +26,7 @@ package io.github.astrapi69.mystic.crypt.ui;
 
 import java.awt.Dialog;
 import java.io.File;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -923,7 +924,7 @@ final class ApplicationSteps
 		List<MysticCryptEntryModelBean> data = tableModel.getData();
 		for (int index = 0; index < data.size(); index++)
 		{
-			if (title.equals(data.get(index).getTitle()))
+			if (Arrays.equals(title.toCharArray(), data.get(index).getTitle()))
 			{
 				return table.convertRowIndexToView(index);
 			}
@@ -981,7 +982,7 @@ final class ApplicationSteps
 			return root.traverse().stream().anyMatch(
 				node -> node.getValue() != null && node.getValue().getDefaultContent() != null
 					&& node.getValue().getDefaultContent().stream()
-						.anyMatch(entry -> title.equals(entry.getTitle())));
+						.anyMatch(entry -> Arrays.equals(title.toCharArray(), entry.getTitle())));
 		});
 	}
 

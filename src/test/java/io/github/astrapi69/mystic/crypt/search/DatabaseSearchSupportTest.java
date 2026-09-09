@@ -48,12 +48,13 @@ class DatabaseSearchSupportTest
 
 	private static BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> aTree()
 	{
-		List<MysticCryptEntryModelBean> parentEntries = List.of(
-			MysticCryptEntryModelBean.builder().title("bank account").userName("alice@example.org")
-				.url("https://bank.example.org").notes("the shared notes").build());
+		List<MysticCryptEntryModelBean> parentEntries = List.of(MysticCryptEntryModelBean.builder()
+			.title("bank account".toCharArray()).userName("alice@example.org".toCharArray())
+			.url("https://bank.example.org".toCharArray()).notes("the shared notes".toCharArray())
+			.build());
 		List<MysticCryptEntryModelBean> childEntries = List
-			.of(MysticCryptEntryModelBean.builder().title("mail account").userName("bob")
-				.password("secret-not-found".toCharArray()).build());
+			.of(MysticCryptEntryModelBean.builder().title("mail account".toCharArray())
+				.userName("bob".toCharArray()).password("secret-not-found".toCharArray()).build());
 		return TestBaseTreeNodeFactory.initializeTestGenericTreeNodeElement(parentEntries,
 			childEntries, LongIdGenerator.of(0L));
 	}

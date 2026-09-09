@@ -56,7 +56,8 @@ class MysticCryptEntryTableModelTest
 	void theIconColumnShowsTheIconOfTheKeePassIndex()
 	{
 		MysticCryptEntryTableModel tableModel = modelWith(MysticCryptEntryModelBean.builder()
-			.title("Mail").userName("me").url("https://example.com").keePassIconIndex(19).build());
+			.title("Mail".toCharArray()).userName("me".toCharArray())
+			.url("https://example.com".toCharArray()).keePassIconIndex(19).build());
 
 		assertSame(KeePassIcons.of(19), tableModel.getValueAt(0, 0));
 		assertEquals(Icon.class, tableModel.getColumnClass(0));
@@ -67,7 +68,8 @@ class MysticCryptEntryTableModelTest
 	void theRemainingColumnsAreUnchanged()
 	{
 		MysticCryptEntryTableModel tableModel = modelWith(MysticCryptEntryModelBean.builder()
-			.title("Mail").userName("me").url("https://example.com").keePassIconIndex(19).build());
+			.title("Mail".toCharArray()).userName("me".toCharArray())
+			.url("https://example.com".toCharArray()).keePassIconIndex(19).build());
 
 		assertEquals("Mail", tableModel.getValueAt(0, 1));
 		assertEquals("me", tableModel.getValueAt(0, 2));
@@ -79,7 +81,7 @@ class MysticCryptEntryTableModelTest
 	void anEntryWithoutAKeePassIconHasNoIcon()
 	{
 		MysticCryptEntryTableModel tableModel = modelWith(
-			MysticCryptEntryModelBean.builder().title("Handmade").build());
+			MysticCryptEntryModelBean.builder().title("Handmade".toCharArray()).build());
 
 		assertNull(tableModel.getValueAt(0, 0));
 		assertEquals("Handmade", tableModel.getValueAt(0, 1));

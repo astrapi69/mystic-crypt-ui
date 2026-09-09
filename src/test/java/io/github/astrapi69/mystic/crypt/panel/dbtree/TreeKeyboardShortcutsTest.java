@@ -126,8 +126,9 @@ class TreeKeyboardShortcutsTest
 	{
 		CountingPanel panel = new CountingPanel(
 			TestBaseTreeNodeFactory.initializeTestGenericTreeNodeElement(
-				List.of(MysticCryptEntryModelBean.builder().title("an entry").build()),
-				List.of(MysticCryptEntryModelBean.builder().title("another").build()),
+				List.of(
+					MysticCryptEntryModelBean.builder().title("an entry".toCharArray()).build()),
+				List.of(MysticCryptEntryModelBean.builder().title("another".toCharArray()).build()),
 				LongIdGenerator.of(0L)));
 		DefaultMutableTreeNode root = (DefaultMutableTreeNode)panel.getTree().getModel().getRoot();
 		DefaultMutableTreeNode firstChild = (DefaultMutableTreeNode)root.getChildAt(0);

@@ -55,9 +55,9 @@ class EntryIdentitySupportTest
 	{
 		UUID existing = UUID.randomUUID();
 		MysticCryptEntryModelBean withIdentity = MysticCryptEntryModelBean.builder().id(existing)
-			.title("imported from KeePass").build();
+			.title("imported from KeePass".toCharArray()).build();
 		MysticCryptEntryModelBean withoutIdentity = MysticCryptEntryModelBean.builder()
-			.title("written before identifiers were maintained").build();
+			.title("written before identifiers were maintained".toCharArray()).build();
 		ApplicationModelBean applicationModelBean = ApplicationModelBean.builder()
 			.dataOfNodes(entriesByNodeId(withIdentity, withoutIdentity)).build();
 
@@ -77,8 +77,8 @@ class EntryIdentitySupportTest
 	@DisplayName("the entries hanging in the tree are reached too")
 	void assignMissingIdentifiers_reachesTheTree()
 	{
-		MysticCryptEntryModelBean entry = MysticCryptEntryModelBean.builder().title("in the tree")
-			.build();
+		MysticCryptEntryModelBean entry = MysticCryptEntryModelBean.builder()
+			.title("in the tree".toCharArray()).build();
 		ApplicationModelBean applicationModelBean = ApplicationModelBean.builder()
 			.rootTreeAsMap(treeHolding(entry)).build();
 
@@ -92,8 +92,8 @@ class EntryIdentitySupportTest
 	@DisplayName("assigning twice hands out the same identifiers, not new ones")
 	void assignMissingIdentifiers_isIdempotent()
 	{
-		MysticCryptEntryModelBean entry = MysticCryptEntryModelBean.builder().title("an entry")
-			.build();
+		MysticCryptEntryModelBean entry = MysticCryptEntryModelBean.builder()
+			.title("an entry".toCharArray()).build();
 		ApplicationModelBean applicationModelBean = ApplicationModelBean.builder()
 			.dataOfNodes(entriesByNodeId(entry)).build();
 
@@ -112,8 +112,8 @@ class EntryIdentitySupportTest
 	@DisplayName("a null among the entries does not stop the assignment")
 	void assignMissingIdentifiers_carriesOn_whenTheModelHoldsANull()
 	{
-		MysticCryptEntryModelBean entry = MysticCryptEntryModelBean.builder().title("a real one")
-			.build();
+		MysticCryptEntryModelBean entry = MysticCryptEntryModelBean.builder()
+			.title("a real one".toCharArray()).build();
 		Map<Long, List<MysticCryptEntryModelBean>> entriesByNodeId = new LinkedHashMap<>();
 		entriesByNodeId.put(1L, Arrays.asList(null, entry));
 		entriesByNodeId.put(2L, null);
@@ -134,11 +134,11 @@ class EntryIdentitySupportTest
 	@DisplayName("a duplicate gets its own identifier, it does not inherit one")
 	void assignIdentifierIfMissing_givesADuplicateItsOwnIdentity()
 	{
-		MysticCryptEntryModelBean original = MysticCryptEntryModelBean.builder().title("original")
-			.build();
+		MysticCryptEntryModelBean original = MysticCryptEntryModelBean.builder()
+			.title("original".toCharArray()).build();
 		EntryIdentitySupport.assignIdentifierIfMissing(original);
-		MysticCryptEntryModelBean duplicate = original.toBuilder().id(null).title("original-Copy")
-			.build();
+		MysticCryptEntryModelBean duplicate = original.toBuilder().id(null)
+			.title("original-Copy".toCharArray()).build();
 
 		EntryIdentitySupport.assignIdentifierIfMissing(duplicate);
 
@@ -163,10 +163,10 @@ class EntryIdentitySupportTest
 	@DisplayName("only an actual edit sets the modification time")
 	void markAsModified_setsTheTimestamp_onlyWhenCalled()
 	{
-		MysticCryptEntryModelBean untouched = MysticCryptEntryModelBean.builder().title("untouched")
-			.build();
-		MysticCryptEntryModelBean edited = MysticCryptEntryModelBean.builder().title("edited")
-			.build();
+		MysticCryptEntryModelBean untouched = MysticCryptEntryModelBean.builder()
+			.title("untouched".toCharArray()).build();
+		MysticCryptEntryModelBean edited = MysticCryptEntryModelBean.builder()
+			.title("edited".toCharArray()).build();
 		OffsetDateTime beforeTheEdit = OffsetDateTime.now();
 
 		EntryIdentitySupport.markAsModified(edited);

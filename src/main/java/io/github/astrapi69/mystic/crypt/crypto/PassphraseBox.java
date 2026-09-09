@@ -171,6 +171,28 @@ public final class PassphraseBox
 	public static byte[] encrypt(final byte[] magic, final byte[] plaintext,
 		final String passphrase) throws Exception
 	{
+		return withCharactersOf(passphrase, characters -> encrypt(magic, plaintext, characters));
+	}
+
+	/**
+	 * Encrypts the given bytes with a passphrase held as characters rather than as a
+	 * {@link String}, so that a caller that keeps it in a character array does not have to make an
+	 * unwipeable copy to use it (#294). The array is read, never modified: whoever owns it decides
+	 * when it is overwritten
+	 *
+	 * @param magic
+	 *            the marker to put in front
+	 * @param plaintext
+	 *            what to encrypt
+	 * @param passphrase
+	 *            the passphrase
+	 * @return the encrypted result, header included
+	 * @throws Exception
+	 *             if encrypting fails
+	 */
+	public static byte[] encrypt(final byte[] magic, final byte[] plaintext,
+		final char[] passphrase) throws Exception
+	{
 		byte[] salt = new byte[SALT_LENGTH];
 		// deliberately not SecureRandom.getInstanceStrong(): on Linux that can resolve to the
 		// blocking source, and encrypting must never hang waiting for entropy. The default instance
@@ -200,6 +222,27 @@ public final class PassphraseBox
 	public static byte[] decrypt(final byte[] magic, final byte[] content, final String passphrase)
 		throws Exception
 	{
+		return withCharactersOf(passphrase, characters -> decrypt(magic, content, characters));
+	}
+
+	/**
+	 * Decrypts what {@link #encrypt(byte[], byte[], char[])} produced, with a passphrase held as
+	 * characters rather than as a {@link String} (#294). The array is read, never modified
+	 *
+	 * @param magic
+	 *            the marker the content must start with
+	 * @param content
+	 *            the encrypted bytes
+	 * @param passphrase
+	 *            the passphrase
+	 * @return the decrypted bytes
+	 * @throws Exception
+	 *             if the passphrase is wrong, the content was tampered with, or it is not of this
+	 *             format at all
+	 */
+	public static byte[] decrypt(final byte[] magic, final byte[] content, final char[] passphrase)
+		throws Exception
+	{
 		if (!hasMagic(content, magic))
 		{
 			throw new IllegalArgumentException(
@@ -219,5 +262,43 @@ public final class PassphraseBox
 		// the header is the associated data, so a changed salt or iteration count breaks the tag
 		return new KeyCommittingAeadEncryptor(deriveKey(passphrase, salt, iterations))
 			.decrypt(payload, header);
+	}
+
+	/**
+	 * Runs the given operation on the characters of a {@link String} passphrase and overwrites the
+	 * array afterwards.
+	 * <p>
+	 * The String itself stays what it is - it cannot be overwritten, which is the whole reason the
+	 * character overloads exist. What this avoids is a SECOND unwipeable copy for callers that
+	 * still have to hand one over, and it keeps the two overloads on one implementation so they
+	 * cannot drift apart
+	 *
+	 * @param passphrase
+	 *            the passphrase
+	 * @param operation
+	 *            what to do with its characters
+	 * @return whatever the operation returned
+	 * @throws Exception
+	 *             if the operation fails
+	 */
+	private static byte[] withCharactersOf(final String passphrase,
+		final PassphraseOperation operation) throws Exception
+	{
+		char[] characters = passphrase.toCharArray();
+		try
+		{
+			return operation.apply(characters);
+		}
+		finally
+		{
+			Arrays.fill(characters, '\0');
+		}
+	}
+
+	/** What {@link #withCharactersOf(String, PassphraseOperation)} runs on the characters */
+	@FunctionalInterface
+	private interface PassphraseOperation
+	{
+		byte[] apply(char[] passphrase) throws Exception;
 	}
 }

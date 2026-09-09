@@ -77,12 +77,14 @@ public class MysticCryptEntryTableModel extends BaseTableModel<MysticCryptEntryM
 				// the icon an imported entry was given in KeePass; a table column of type Icon is
 				// drawn by Swing's own renderer, so no cell renderer is needed for it (#206)
 				return KeePassIcons.of(mysticCryptEntryModelBean.getKeePassIconIndex());
+			// a table cell is rendered through toString, and a character array's toString is its
+			// identity; the text has to become a String to be drawn at all (#294)
 			case 1 :
-				return mysticCryptEntryModelBean.getTitle();
+				return EntryText.asText(mysticCryptEntryModelBean.getTitle());
 			case 2 :
-				return mysticCryptEntryModelBean.getUserName();
+				return EntryText.asText(mysticCryptEntryModelBean.getUserName());
 			case 3 :
-				return mysticCryptEntryModelBean.getUrl();
+				return EntryText.asText(mysticCryptEntryModelBean.getUrl());
 			default :
 				return null;
 		}

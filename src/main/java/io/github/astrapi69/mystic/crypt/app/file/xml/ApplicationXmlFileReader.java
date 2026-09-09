@@ -47,6 +47,7 @@ import io.github.astrapi69.mystic.crypt.key.PrivateKeyGenericDecryptor;
 import io.github.astrapi69.mystic.crypt.panel.signin.MasterPwFileModelBean;
 import io.github.astrapi69.mystic.crypt.panel.signin.PasswordType;
 import io.github.astrapi69.mystic.crypt.pw.PasswordStringDecryptor;
+import io.github.astrapi69.mystic.crypt.vault.SecretBuffers;
 import io.github.astrapi69.xstream.XmlToObjectExtensions;
 import lombok.NonNull;
 import lombok.extern.java.Log;
@@ -189,8 +190,15 @@ public class ApplicationXmlFileReader
 	{
 		// PasswordVaultFormat decides by the marker in the file which of the two formats this is,
 		// and reads a database written before the marker existed just as well
-		return XmlToObjectExtensions
-			.toObject(PasswordVaultFormat.decrypt(applicationFile, new String(password)));
+		char[] xml = PasswordVaultFormat.decrypt(applicationFile, password);
+		try
+		{
+			return VaultXmlCodec.toModel(xml);
+		}
+		finally
+		{
+			SecretBuffers.wipe(xml);
+		}
 	}
 
 	public static ApplicationModelBean getApplicationModelBean(File applicationFile,
@@ -202,6 +210,9 @@ public class ApplicationXmlFileReader
 		PrivateKeyGenericDecryptor<String> genericDecryptor;
 		PrivateKey privateKey;
 		PasswordStringDecryptor passwordStringDecryptor;
+		// one unwipeable copy of the master password, and one of the xml below: this path decrypts
+		// through PasswordStringDecryptor, which takes a String and is a library class that is not
+		// changed from this repository (#294, architecture.md)
 		passwordStringDecryptor = new PasswordStringDecryptor(String.valueOf(password));
 		privateKey = PrivateKeyReader.readPemPrivateKey(keyFile);
 

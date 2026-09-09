@@ -56,7 +56,7 @@ class TreeLeavesHaveNoHandleTest
 	private static SecretKeyTreeWithContentPanel newPanel()
 	{
 		List<MysticCryptEntryModelBean> entries = new ArrayList<>();
-		entries.add(MysticCryptEntryModelBean.builder().userName("someone").build());
+		entries.add(MysticCryptEntryModelBean.builder().userName("someone".toCharArray()).build());
 		BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> root = TestBaseTreeNodeFactory
 			.initializeTestGenericTreeNodeElement(entries, entries, LongIdGenerator.of(0L));
 		return new SecretKeyTreeWithContentPanel(BaseModel.of(root));

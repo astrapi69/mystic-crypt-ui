@@ -29,6 +29,7 @@ import java.util.List;
 
 import io.github.astrapi69.gen.tree.BaseTreeNode;
 import io.github.astrapi69.mystic.crypt.panel.dbtree.MysticCryptEntryModelBean;
+import io.github.astrapi69.mystic.crypt.vault.SecretBuffers;
 import io.github.astrapi69.swing.renderer.tree.GenericTreeElement;
 
 /**
@@ -147,6 +148,71 @@ public final class DatabaseSearchSupport
 	private static boolean contains(final String value, final String lowerTerm)
 	{
 		return value != null && value.toLowerCase().contains(lowerTerm);
+	}
+
+	/**
+	 * Whether the given characters contain the given already-lowercased term.
+	 * <p>
+	 * Deliberately not {@code new String(value).toLowerCase().contains(term)}: an entry's title,
+	 * user name, url and notes are characters so that they can be overwritten (#294), and searching
+	 * runs over every entry on every keystroke - that version would leave an unwipeable copy of the
+	 * entire database behind for every search. The lowercased copy made here is overwritten before
+	 * it is dropped.
+	 * <p>
+	 * It lowercases character by character, where {@link String#toLowerCase()} lowercases by locale
+	 * rules. The two differ only where a character's lower case is longer than itself or depends on
+	 * the locale - the German sharp s and the Turkish dotless i are the usual examples - and
+	 * neither matched a search term reliably before either
+	 *
+	 * @param value
+	 *            the characters to search in, may be null
+	 * @param lowerTerm
+	 *            the search term, already lowercased
+	 * @return true if the term is in the characters
+	 */
+	private static boolean contains(final char[] value, final String lowerTerm)
+	{
+		if (value == null || value.length < lowerTerm.length())
+		{
+			return false;
+		}
+		char[] lowered = new char[value.length];
+		try
+		{
+			for (int i = 0; i < value.length; i++)
+			{
+				lowered[i] = Character.toLowerCase(value[i]);
+			}
+			return holds(lowered, lowerTerm);
+		}
+		finally
+		{
+			SecretBuffers.wipe(lowered);
+		}
+	}
+
+	private static boolean holds(final char[] lowered, final String lowerTerm)
+	{
+		for (int start = 0; start <= lowered.length - lowerTerm.length(); start++)
+		{
+			if (matchesAt(lowered, lowerTerm, start))
+			{
+				return true;
+			}
+		}
+		return false;
+	}
+
+	private static boolean matchesAt(final char[] lowered, final String lowerTerm, final int start)
+	{
+		for (int offset = 0; offset < lowerTerm.length(); offset++)
+		{
+			if (lowered[start + offset] != lowerTerm.charAt(offset))
+			{
+				return false;
+			}
+		}
+		return true;
 	}
 
 }

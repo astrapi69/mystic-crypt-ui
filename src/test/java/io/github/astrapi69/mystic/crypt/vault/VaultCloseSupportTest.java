@@ -81,8 +81,8 @@ class VaultCloseSupportTest
 		char[] entryPassword = ENTRY_PASSWORD.clone();
 		char[] entryRepeat = ENTRY_PASSWORD.clone();
 		char[] masterPassword = MASTER_PASSWORD.clone();
-		MysticCryptEntryModelBean entry = MysticCryptEntryModelBean.builder().title("an entry")
-			.password(entryPassword).repeat(entryRepeat).build();
+		MysticCryptEntryModelBean entry = MysticCryptEntryModelBean.builder()
+			.title("an entry".toCharArray()).password(entryPassword).repeat(entryRepeat).build();
 		ApplicationModelBean applicationModelBean = openVault();
 		MasterPwFileModelBean credentials = applicationModelBean.getMasterPwFileModelBean();
 		credentials.setMasterPw(masterPassword);
@@ -108,12 +108,55 @@ class VaultCloseSupportTest
 	}
 
 	@Test
+	@DisplayName("closeVault overwrites an entry's text, not only its password")
+	void closeVault_overwritesTheText_thatUsedToBeUnwipeable()
+	{
+		char[] title = "the bank".toCharArray();
+		char[] userName = "the account holder".toCharArray();
+		char[] url = "https://bank.example.org".toCharArray();
+		char[] notes = "the recovery codes".toCharArray();
+		MysticCryptEntryModelBean entry = MysticCryptEntryModelBean.builder().title(title)
+			.userName(userName).url(url).notes(notes).password(ENTRY_PASSWORD.clone()).build();
+		ApplicationModelBean applicationModelBean = openVault();
+		applicationModelBean.setDataOfNodes(entriesByNodeId(entry));
+
+		VaultCloseSupport.closeVault(applicationModelBean);
+
+		assertArrayEquals(new char[title.length], title,
+			"an entry's title says which service it belongs to, which is worth as much to whoever "
+				+ "reads the memory as the password next to it (#294)");
+		assertArrayEquals(new char[userName.length], userName);
+		assertArrayEquals(new char[url.length], url);
+		assertArrayEquals(new char[notes.length], notes,
+			"and notes are where people put the things that fit in no other field");
+		assertNull(entry.getTitle(), "the fields are cleared as well as the arrays");
+		assertNull(entry.getUserName());
+		assertNull(entry.getUrl());
+		assertNull(entry.getNotes());
+	}
+
+	@Test
+	@DisplayName("an entry with no text at all is closed without complaint")
+	void closeVault_wipesAnEmptyEntry_withoutFailing()
+	{
+		MysticCryptEntryModelBean entry = MysticCryptEntryModelBean.builder().build();
+		ApplicationModelBean applicationModelBean = openVault();
+		applicationModelBean.setDataOfNodes(entriesByNodeId(entry));
+
+		VaultCloseSupport.closeVault(applicationModelBean);
+
+		assertNull(entry.getTitle(),
+			"a half-filled entry is an ordinary state - the close path must not be the thing that "
+				+ "throws while a vault is being put away");
+	}
+
+	@Test
 	@DisplayName("closeVault also reaches the entries that hang in the tree")
 	void closeVault_overwritesTheSecrets_whenTheEntriesHangInTheTree()
 	{
 		char[] entryPassword = ENTRY_PASSWORD.clone();
-		MysticCryptEntryModelBean entry = MysticCryptEntryModelBean.builder().title("a tree entry")
-			.password(entryPassword).build();
+		MysticCryptEntryModelBean entry = MysticCryptEntryModelBean.builder()
+			.title("a tree entry".toCharArray()).password(entryPassword).build();
 		ApplicationModelBean applicationModelBean = openVault();
 		applicationModelBean.setRootTreeAsMap(treeHolding(entry));
 
@@ -130,8 +173,8 @@ class VaultCloseSupportTest
 	void closeVault_wipesTheRest_whenTheModelHoldsANull()
 	{
 		char[] entryPassword = ENTRY_PASSWORD.clone();
-		MysticCryptEntryModelBean entry = MysticCryptEntryModelBean.builder().title("a real one")
-			.password(entryPassword).build();
+		MysticCryptEntryModelBean entry = MysticCryptEntryModelBean.builder()
+			.title("a real one".toCharArray()).password(entryPassword).build();
 		Map<Long, List<MysticCryptEntryModelBean>> entriesByNodeId = new LinkedHashMap<>();
 		entriesByNodeId.put(1L, Arrays.asList(null, entry));
 		entriesByNodeId.put(2L, null);

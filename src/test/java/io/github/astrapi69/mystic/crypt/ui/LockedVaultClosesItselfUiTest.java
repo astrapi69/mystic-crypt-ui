@@ -27,6 +27,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.awt.event.ActionEvent;
 import java.io.File;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
@@ -188,8 +189,8 @@ class LockedVaultClosesItselfUiTest extends AbstractUiTest
 		return GuiActionRunner.execute(() -> {
 			var model = MysticCryptApplicationFrame.getInstance().getModelObject();
 			if (model.getDataOfNodes() != null && model.getDataOfNodes().values().stream()
-				.filter(entries -> entries != null).flatMap(List::stream)
-				.anyMatch(entry -> entry != null && title.equals(entry.getTitle())))
+				.filter(entries -> entries != null).flatMap(List::stream).anyMatch(
+					entry -> entry != null && Arrays.equals(title.toCharArray(), entry.getTitle())))
 			{
 				return true;
 			}
@@ -207,7 +208,7 @@ class LockedVaultClosesItselfUiTest extends AbstractUiTest
 				}
 				for (MysticCryptEntryModelBean entry : node.getValue().getDefaultContent())
 				{
-					if (entry != null && title.equals(entry.getTitle()))
+					if (entry != null && Arrays.equals(title.toCharArray(), entry.getTitle()))
 					{
 						return true;
 					}
