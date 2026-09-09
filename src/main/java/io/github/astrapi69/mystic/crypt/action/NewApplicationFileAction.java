@@ -34,7 +34,10 @@ import io.github.astrapi69.file.create.FileFactory;
 import io.github.astrapi69.file.create.model.FileInfo;
 import io.github.astrapi69.model.BaseModel;
 import io.github.astrapi69.model.api.IModel;
+import io.github.astrapi69.mystic.crypt.ApplicationModelBean;
+import io.github.astrapi69.mystic.crypt.Messages;
 import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
+import io.github.astrapi69.mystic.crypt.lock.WorkspaceLockDecision;
 import io.github.astrapi69.mystic.crypt.panel.signin.MasterPwFileModelBean;
 import io.github.astrapi69.mystic.crypt.panel.signin.NewMasterPwFileDialog;
 import io.github.astrapi69.swing.filechooser.JFileChooserExtensions;
@@ -59,6 +62,20 @@ public class NewApplicationFileAction extends AbstractAction
 	{
 		MysticCryptApplicationFrame mysticCryptApplicationFrame = MysticCryptApplicationFrame
 			.getInstance();
+		ApplicationModelBean applicationModelBean = mysticCryptApplicationFrame.getModelObject();
+		if (!WorkspaceLockDecision.mayCreateAVault(applicationModelBean.isSignedIn(),
+			applicationModelBean.getMasterPwFileModelBean() != null))
+		{
+			// and it says so. A refusal nobody sees is the defect we found in "Lock workspace",
+			// which answered a click in the public state by doing nothing at all
+			JOptionPane.showMessageDialog(mysticCryptApplicationFrame,
+				Messages.getString("newdatabase.refused.while.locked",
+					"The workspace is locked. Unlock it before creating another database - "
+						+ "creating one here would put the locked database back on the screen."),
+				Messages.getString("newdatabase.refused.while.locked.title", "Workspace is locked"),
+				JOptionPane.WARNING_MESSAGE);
+			return;
+		}
 		JFileChooser fileChooser = new JFileChooser(
 			mysticCryptApplicationFrame.getConfigurationDirectory());
 		fileChooser.setDialogTitle("Specify the database file to save");
