@@ -1,6 +1,32 @@
 ## Change log
 ----------------------
 
+Version 8.4
+-------------
+
+SECURITY:
+
+- creating a new database while the workspace was locked signed the application back in without the master password. The flow set the signed-in state and rebuilt the menu, and nothing in it asked whether the workspace it landed in was locked, so the application treated the workspace as signed in and offered the complete signed-in menu; what that made reachable differs between the affected versions and is described in the advisory. Executed on 8.1.1, 8.2 and 8.3 - 8.3 is affected although it carries the lock fix from GHSA-6c69-wmrw-76vg, so updating to 8.3 was not enough. Creating a vault is now refused while another one is locked, with a message that says so, and the refusal is asked in the action rather than only at the button, so a keyboard shortcut or a persisted menu layout cannot walk around it (#270, advisory GHSA-jjf2-7wrm-2gp5)
+- the master password is no longer kept while the workspace is locked: locking replaces it with a verifier - a salt of 16 bytes drawn fresh for it, and what PBKDF2-HMAC-SHA256 derives from the password over 600000 iterations - which can only answer whether an entered password matches, compared in constant time, and the entered characters are cleared after the comparison. This covers the master password only: the decrypted vault contents still stay in memory while the workspace is locked, which is the part of #242 that stays open (#242)
+
+ADDED:
+
+- what the application offers without a sign-in is decided by a list of what is public, not by a list of what is hidden - an entry is private until it is named. The plugins tab in the settings asks the same decision (#232)
+- the conversion wizard says what each step is for, before its first field (#261)
+
+FIXED:
+
+- changing the checksum algorithm kept the checksum file and the checksum that belonged to the algorithm just left (#259)
+- the sign-in dialog closed after a wrong password instead of letting the password be typed again (#251)
+- "make izpack-installer" failed confusingly when run on its own and left a 0-byte installer behind (#245)
+
+CHANGED:
+
+- the toolbar asks the same decision as the menu instead of carrying its own list, and the one item whose admissibility depends on the state asks a predicate rather than a list of names (#269)
+- the lock decision is a display-free predicate outside the Swing frame, so it can be mutation tested (#252)
+- the lock and sign-in tests assert the property their names claim - a real screen, a real file, the real clipboard - instead of a stand-in flag (#250, #263)
+- the repository opens the next development cycle right after a tag, so develop never carries a released version number (#247)
+
 Version 8.3
 -------------
 
