@@ -33,6 +33,12 @@ Prompt triggers: "release new version", "new release".
    - the gate reports what it measured: read the test XML afterwards — class count, test
      count, and that the UI e2e classes are among them. A `:test FROM-CACHE` restores
      results without running anything, and an empty result set is not a green gate.
+   - **package from the state that will be tagged.** The release PR is merged FIRST; the
+     installer and its checksums are built from the merged branch, and the tag names
+     exactly that commit. Building beforehand from the release branch ties the release to
+     a commit the tag never names — unless the merge happens to be a fast-forward, which
+     is luck, not a property (2026-09-09: it was, so 8.4 kept its installer; a squash or a
+     merge commit would have forced a rebuild and a second verification).
    - `make izpack-installer` (the plugin set in `install.xml` must match the Makefile
      `plugins:` list)
    - **verify the installer AFTER the checksums are written**, against the file the
