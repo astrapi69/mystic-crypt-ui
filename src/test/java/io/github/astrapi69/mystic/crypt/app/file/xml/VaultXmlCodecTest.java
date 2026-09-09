@@ -33,6 +33,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import io.github.astrapi69.mystic.crypt.ApplicationModelBean;
+import io.github.astrapi69.mystic.crypt.TestPasswords;
 import io.github.astrapi69.mystic.crypt.panel.dbtree.MysticCryptEntryModelBean;
 import io.github.astrapi69.xstream.ObjectToXmlExtensions;
 
@@ -47,6 +48,9 @@ class VaultXmlCodecTest
 {
 
 	private static final String ENTRY_TITLE = "an entry with & < > and Grüße";
+
+	/** Made up per run rather than written into the source, as every test password is */
+	private static final String ENTRY_PASSWORD = TestPasswords.throwaway();
 
 	@Test
 	@DisplayName("the xml is character for character what the extensions produced")
@@ -71,7 +75,7 @@ class VaultXmlCodecTest
 		assertNotNull(readBack);
 		assertArrayEquals(ENTRY_TITLE.toCharArray(),
 			readBack.getDataOfNodes().get(1L).get(0).getTitle());
-		assertArrayEquals("the entry's password".toCharArray(),
+		assertArrayEquals(ENTRY_PASSWORD.toCharArray(),
 			readBack.getDataOfNodes().get(1L).get(0).getPassword());
 	}
 
@@ -117,7 +121,7 @@ class VaultXmlCodecTest
 	{
 		MysticCryptEntryModelBean entry = MysticCryptEntryModelBean.builder()
 			.title(ENTRY_TITLE.toCharArray()).userName("someone".toCharArray())
-			.password("the entry's password".toCharArray()).build();
+			.password(ENTRY_PASSWORD.toCharArray()).build();
 		List<MysticCryptEntryModelBean> entries = new ArrayList<>();
 		entries.add(entry);
 		Map<Long, List<MysticCryptEntryModelBean>> dataOfNodes = new HashMap<>();

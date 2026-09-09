@@ -63,8 +63,20 @@ class VaultFormatIsUnchangedTest
 	private static final char[] MASTER_PASSWORD = TestPasswords.throwawayChars();
 
 	/**
+	 * The entry's password, made up per run.
+	 * <p>
+	 * Not a literal, although a literal would read more like the captured output this fixture is: a
+	 * password written into a source file looks exactly like one that guards something, to a reader
+	 * and to the secret scanner that reads every pull request (see {@link TestPasswords}). The
+	 * fixture below is a template for that reason, and it proves the same thing - what is being
+	 * pinned is the SHAPE of the xml, which does not depend on what the password happens to be
+	 */
+	private static final String ENTRY_PASSWORD = TestPasswords.throwaway();
+
+	/**
 	 * A database as a build before #294 wrote it, when the four text fields were {@link String}s.
-	 * Captured from that build's output, not written by hand
+	 * Captured from that build's output, not written by hand, with the password put back in at run
+	 * time
 	 */
 	private static final String XML_FROM_AN_OLDER_BUILD = """
 		<io.github.astrapi69.mystic.crypt.ApplicationModelBean>
@@ -75,7 +87,7 @@ class VaultFormatIsUnchangedTest
 		        <io.github.astrapi69.mystic.crypt.panel.dbtree.MysticCryptEntryModelBean>
 		          <title>the bank</title>
 		          <userName>account holder</userName>
-		          <password>s3cr3t</password>
+		          <password>%s</password>
 		          <url>https://bank.example.org</url>
 		          <notes>line one</notes>
 		          <expirable>false</expirable>
@@ -90,7 +102,7 @@ class VaultFormatIsUnchangedTest
 		  <showSplash>false</showSplash>
 		  <signedIn>true</signedIn>
 		  <dirty>false</dirty>
-		</io.github.astrapi69.mystic.crypt.ApplicationModelBean>""";
+		</io.github.astrapi69.mystic.crypt.ApplicationModelBean>""".formatted(ENTRY_PASSWORD);
 
 	@BeforeAll
 	static void registerBouncyCastle()
@@ -106,14 +118,14 @@ class VaultFormatIsUnchangedTest
 	{
 		String title = "my bank & <co>";
 		String userName = "someone";
-		char[] password = "s3cr3t".toCharArray();
+		char[] password = ENTRY_PASSWORD.toCharArray();
 	}
 
 	public static class WithCharacters
 	{
 		char[] title = "my bank & <co>".toCharArray();
 		char[] userName = "someone".toCharArray();
-		char[] password = "s3cr3t".toCharArray();
+		char[] password = ENTRY_PASSWORD.toCharArray();
 	}
 
 	@Test
@@ -139,7 +151,7 @@ class VaultFormatIsUnchangedTest
 		MysticCryptEntryModelBean entry = model.getDataOfNodes().get(1L).get(0);
 		assertArrayEquals("the bank".toCharArray(), entry.getTitle());
 		assertArrayEquals("account holder".toCharArray(), entry.getUserName());
-		assertArrayEquals("s3cr3t".toCharArray(), entry.getPassword());
+		assertArrayEquals(ENTRY_PASSWORD.toCharArray(), entry.getPassword());
 		assertArrayEquals("https://bank.example.org".toCharArray(), entry.getUrl());
 		assertArrayEquals("line one".toCharArray(), entry.getNotes());
 	}
@@ -175,7 +187,7 @@ class VaultFormatIsUnchangedTest
 			"a dirty flag says what the application believes; a file read back says what is on "
 				+ "disk");
 		assertArrayEquals("account holder".toCharArray(), entry.getUserName());
-		assertArrayEquals("s3cr3t".toCharArray(), entry.getPassword());
+		assertArrayEquals(ENTRY_PASSWORD.toCharArray(), entry.getPassword());
 		assertArrayEquals("https://bank.example.org".toCharArray(), entry.getUrl());
 		assertArrayEquals("line one".toCharArray(), entry.getNotes());
 	}
@@ -192,7 +204,7 @@ class VaultFormatIsUnchangedTest
 	{
 		MysticCryptEntryModelBean entry = MysticCryptEntryModelBean.builder()
 			.title("the bank".toCharArray()).userName("account holder".toCharArray())
-			.password("s3cr3t".toCharArray()).url("https://bank.example.org".toCharArray())
+			.password(ENTRY_PASSWORD.toCharArray()).url("https://bank.example.org".toCharArray())
 			.notes("line one".toCharArray()).build();
 		List<MysticCryptEntryModelBean> entries = new ArrayList<>();
 		entries.add(entry);
