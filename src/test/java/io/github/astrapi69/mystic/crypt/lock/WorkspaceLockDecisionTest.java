@@ -38,20 +38,18 @@ import org.junit.jupiter.params.provider.CsvSource;
 class WorkspaceLockDecisionTest
 {
 
-	@ParameterizedTest(name = "signedIn={0}, aVaultIsOpen={1} -> mayCreate={2}")
+	@ParameterizedTest(name = "aVaultIsOpen={0} -> mayCreate={1}")
 	@CsvSource({
-			// unlocked: creating another vault is the user's business, not the lock's
-			"true,  true,  true", "true,  false, true",
-			// LOCKED with a vault open: the case of #270. Creating one here signed the workspace
-			// back in without the locked vault's master password
-			"false, true,  false",
+			// a vault is open, locked or not: creating one here would write ITS entries into the
+			// new file and stop saving to it (#279), and while locked it also signed the
+			// workspace back in without the master password (#270)
+			"true,  false",
 			// nothing open at all: this is how a first vault is made, and it must stay possible
-			"false, false, true" })
-	@DisplayName("a vault may not be created while another one is locked")
-	void aVaultMayNotBeCreatedWhileAnotherIsLocked(final boolean signedIn,
-		final boolean aVaultIsOpen, final boolean expected)
+			"false, true" })
+	@DisplayName("a vault may not be created while another one is open")
+	void aVaultMayNotBeCreatedWhileAnotherIsOpen(final boolean aVaultIsOpen, final boolean expected)
 	{
-		assertEquals(expected, WorkspaceLockDecision.mayCreateAVault(signedIn, aVaultIsOpen));
+		assertEquals(expected, WorkspaceLockDecision.mayCreateAVault(aVaultIsOpen));
 	}
 
 	@ParameterizedTest(name = "signedIn={0}, vaultViewBuilt={1} -> {2}")
