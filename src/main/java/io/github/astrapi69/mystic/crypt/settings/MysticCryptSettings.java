@@ -29,6 +29,7 @@ import java.io.File;
 import io.github.astrapi69.file.read.ReadFileExtensions;
 import io.github.astrapi69.gson.JsonStringToObjectExtensions;
 import io.github.astrapi69.gson.ObjectToJsonFileExtensions;
+import io.github.astrapi69.mystic.crypt.lock.IdleLockDecision;
 import io.github.astrapi69.swing.enumeration.FrameMode;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -62,6 +63,15 @@ public class MysticCryptSettings
 
 	/** Whether tooltips are shown across the application; defaults to on */
 	private boolean tooltipsEnabled = true;
+
+	/**
+	 * After how many idle minutes the workspace locks itself; 0 turns it off (#241).
+	 * <p>
+	 * On by default, at {@link IdleLockDecision#DEFAULT_TIMEOUT_MINUTES}: an open vault used to
+	 * stay open for as long as the application ran, and the realistic case for a password manager
+	 * is the one where nobody remembers to lock it.
+	 */
+	private int autoLockMinutes = IdleLockDecision.DEFAULT_TIMEOUT_MINUTES;
 
 	/**
 	 * The view the application opens in.

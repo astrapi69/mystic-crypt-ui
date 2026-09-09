@@ -33,10 +33,12 @@ import javax.swing.*;
 
 import io.github.astrapi69.model.LambdaModel;
 import io.github.astrapi69.mystic.crypt.Messages;
+import io.github.astrapi69.mystic.crypt.lock.IdleLockDecision;
 import io.github.astrapi69.swing.enumeration.FrameMode;
 import io.github.astrapi69.swing.model.combobox.EnumComboBoxModel;
 import io.github.astrapi69.swing.model.component.JMCheckBox;
 import io.github.astrapi69.swing.model.component.JMComboBox;
+import io.github.astrapi69.swing.model.component.JMSpinner;
 
 /**
  * The "General" tab of the settings dialog: choose the Swing look and feel (applied live) and the
@@ -69,6 +71,13 @@ public class GeneralSettingsPanel extends JPanel
 	private final JMCheckBox chkTooltipsEnabled = new JMCheckBox("Show tooltips");
 
 	/**
+	 * The idle timeout in minutes, 0 meaning off. A spinner rather than a free text field so a
+	 * settings value that cannot lock at all - a negative one, a typo - cannot be entered here
+	 */
+	private final JMSpinner<Integer> spnAutoLockMinutes = new JMSpinner<>(new SpinnerNumberModel(
+		IdleLockDecision.DEFAULT_TIMEOUT_MINUTES, IdleLockDecision.OFF, 480, 1));
+
+	/**
 	 * Instantiates a new {@link GeneralSettingsPanel} over the settings it edits
 	 *
 	 * @param settings
@@ -85,6 +94,9 @@ public class GeneralSettingsPanel extends JPanel
 		cmbViewMode.setToolTipText(Messages.getString("settings.general.tooltip.view.mode",
 			"whether the application opens as a desktop-style window manager or a single panel"));
 		chkTooltipsEnabled.setName("chkTooltipsEnabled");
+		spnAutoLockMinutes.setName("spnAutoLockMinutes");
+		spnAutoLockMinutes.setToolTipText(Messages.getString("settings.general.tooltip.auto.lock",
+			"after how many idle minutes the workspace locks itself; 0 turns it off"));
 		bindComponents();
 		// added after the binding on purpose: binding selects what the settings already hold, and
 		// that must not switch the look and feel while the dialog is still being built
@@ -104,6 +116,8 @@ public class GeneralSettingsPanel extends JPanel
 		form.add(cmbViewMode);
 		form.add(new JLabel("Tooltips:"));
 		form.add(chkTooltipsEnabled);
+		form.add(new JLabel("Lock after idle minutes (0 = off):"));
+		form.add(spnAutoLockMinutes);
 		add(form, BorderLayout.NORTH);
 	}
 
@@ -119,6 +133,8 @@ public class GeneralSettingsPanel extends JPanel
 		cmbViewMode.setPropertyModel(LambdaModel.of(settings::getViewMode, settings::setViewMode));
 		chkTooltipsEnabled.setPropertyModel(
 			LambdaModel.of(settings::isTooltipsEnabled, settings::setTooltipsEnabled));
+		spnAutoLockMinutes.setPropertyModel(
+			LambdaModel.of(settings::getAutoLockMinutes, settings::setAutoLockMinutes));
 	}
 
 	/**

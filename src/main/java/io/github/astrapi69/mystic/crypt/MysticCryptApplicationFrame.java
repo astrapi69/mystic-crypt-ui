@@ -48,10 +48,13 @@ import io.github.astrapi69.icon.ImageIconFactory;
 import io.github.astrapi69.id.generate.LongIdGenerator;
 import io.github.astrapi69.model.BaseModel;
 import io.github.astrapi69.model.api.IModel;
+import io.github.astrapi69.mystic.crypt.action.LockWorkspaceAction;
 import io.github.astrapi69.mystic.crypt.action.NewApplicationFileAction;
 import io.github.astrapi69.mystic.crypt.action.OpenDatabaseTreeFrameAction;
 import io.github.astrapi69.mystic.crypt.action.SaveApplicationFileAction;
 import io.github.astrapi69.mystic.crypt.action.SaveBeforeCloseConfirmation;
+import io.github.astrapi69.mystic.crypt.lock.IdleLockDecision;
+import io.github.astrapi69.mystic.crypt.lock.IdleLockWatchdog;
 import io.github.astrapi69.mystic.crypt.lock.WorkspaceLockDecision;
 import io.github.astrapi69.mystic.crypt.menu.MenuLayoutSupport;
 import io.github.astrapi69.mystic.crypt.panel.search.SearchToolbarPanel;
@@ -121,6 +124,9 @@ public class MysticCryptApplicationFrame extends ApplicationPanelFrame<Applicati
 	FrameMode frameMode;
 
 	PluginManager pluginManager;
+
+	/** Locks the workspace when the user has been away long enough (#241) */
+	transient IdleLockWatchdog idleLockWatchdog;
 
 	/**
 	 * initial block
@@ -338,6 +344,24 @@ public class MysticCryptApplicationFrame extends ApplicationPanelFrame<Applicati
 		ScreenPlacement.fillScreen(this, signinScreen);
 		onEnableMenu();
 		onWindowClosing();
+		startTheIdleLockWatchdog();
+	}
+
+	/**
+	 * Starts watching for a user who walked away (#241).
+	 * <p>
+	 * The timeout is read from the settings on every check rather than captured here, so changing
+	 * it in the settings dialog takes effect at once instead of after a restart. Zero turns it off,
+	 * and it is honoured at the deciding end ({@link IdleLockDecision}) rather than only by the
+	 * dialog not offering it.
+	 */
+	private void startTheIdleLockWatchdog()
+	{
+		idleLockWatchdog = new IdleLockWatchdog(() -> getModelObject().isSignedIn(),
+			() -> MysticCryptSettings.load(getConfigurationDirectory()).getAutoLockMinutes(),
+			() -> new LockWorkspaceAction("Lock workspace")
+				.actionPerformed(new java.awt.event.ActionEvent(this, 0, "")));
+		idleLockWatchdog.start();
 	}
 
 	/**
@@ -599,10 +623,24 @@ public class MysticCryptApplicationFrame extends ApplicationPanelFrame<Applicati
 				// of one question, and it used to be reachable only through this listener
 				SaveBeforeCloseConfirmation.askAndApply(MysticCryptApplicationFrame.this,
 					MysticCryptApplicationFrame.this.getModelObject());
+				stopTheIdleLockWatchdog();
 				stopPluginsQuietly();
 				super.windowClosing(windowEvent);
 			}
 		});
+	}
+
+	/**
+	 * Stops the idle watchdog and takes its listener off the shared toolkit, so a closed window's
+	 * watchdog does not stay behind asking a disposed frame for its model
+	 */
+	private void stopTheIdleLockWatchdog()
+	{
+		if (idleLockWatchdog != null)
+		{
+			idleLockWatchdog.stop();
+			idleLockWatchdog = null;
+		}
 	}
 
 	/**
