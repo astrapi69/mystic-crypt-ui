@@ -74,6 +74,15 @@ public class MysticCryptSettings
 	private int autoLockMinutes = IdleLockDecision.DEFAULT_TIMEOUT_MINUTES;
 
 	/**
+	 * After how many further minutes a LOCKED vault is closed altogether, so its decrypted content
+	 * leaves memory; 0 turns it off (#242).
+	 * <p>
+	 * Locking keeps the vault decrypted so unlocking can rebuild the view without reading the file
+	 * again, and nothing bounded that. This is the bound.
+	 */
+	private int closeLockedAfterMinutes = IdleLockDecision.DEFAULT_CLOSE_LOCKED_MINUTES;
+
+	/**
 	 * The view the application opens in.
 	 * <p>
 	 * Written by hand rather than left to lombok because a settings file can say

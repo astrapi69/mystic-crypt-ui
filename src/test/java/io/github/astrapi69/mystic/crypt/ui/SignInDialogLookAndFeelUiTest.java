@@ -57,7 +57,8 @@ class SignInDialogLookAndFeelUiTest extends AbstractUiTest
 		File configurationDirectory = new File(tempHome, ".config/mystic-crypt-ui");
 		configurationDirectory.mkdirs();
 		new MysticCryptSettings("FlatLaf Dark", "en", FrameMode.APPLICATION_PANEL, true,
-			IdleLockDecision.DEFAULT_TIMEOUT_MINUTES).save(configurationDirectory);
+			IdleLockDecision.DEFAULT_TIMEOUT_MINUTES, IdleLockDecision.DEFAULT_CLOSE_LOCKED_MINUTES)
+				.save(configurationDirectory);
 
 		DialogFixture signInDialog = launchApplication().dialog();
 

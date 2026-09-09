@@ -78,6 +78,13 @@ public class GeneralSettingsPanel extends JPanel
 		IdleLockDecision.DEFAULT_TIMEOUT_MINUTES, IdleLockDecision.OFF, 480, 1));
 
 	/**
+	 * After how many further minutes a locked vault is closed, 0 meaning off. Same shape as the
+	 * spinner above and for the same reason: a value that cannot close at all must not be typeable
+	 */
+	private final JMSpinner<Integer> spnCloseLockedMinutes = new JMSpinner<>(new SpinnerNumberModel(
+		IdleLockDecision.DEFAULT_CLOSE_LOCKED_MINUTES, IdleLockDecision.OFF, 480, 1));
+
+	/**
 	 * Instantiates a new {@link GeneralSettingsPanel} over the settings it edits
 	 *
 	 * @param settings
@@ -95,6 +102,11 @@ public class GeneralSettingsPanel extends JPanel
 			"whether the application opens as a desktop-style window manager or a single panel"));
 		chkTooltipsEnabled.setName("chkTooltipsEnabled");
 		spnAutoLockMinutes.setName("spnAutoLockMinutes");
+		spnCloseLockedMinutes.setName("spnCloseLockedMinutes");
+		spnCloseLockedMinutes.setToolTipText(Messages.getString(
+			"settings.general.tooltip.close.locked",
+			"after how many further minutes a locked database is closed, so its decrypted content "
+				+ "leaves memory; 0 turns it off"));
 		spnAutoLockMinutes.setToolTipText(Messages.getString("settings.general.tooltip.auto.lock",
 			"after how many idle minutes the workspace locks itself; 0 turns it off"));
 		bindComponents();
@@ -118,6 +130,8 @@ public class GeneralSettingsPanel extends JPanel
 		form.add(chkTooltipsEnabled);
 		form.add(new JLabel("Lock after idle minutes (0 = off):"));
 		form.add(spnAutoLockMinutes);
+		form.add(new JLabel("Close a locked database after minutes (0 = off):"));
+		form.add(spnCloseLockedMinutes);
 		add(form, BorderLayout.NORTH);
 	}
 
@@ -135,6 +149,8 @@ public class GeneralSettingsPanel extends JPanel
 			LambdaModel.of(settings::isTooltipsEnabled, settings::setTooltipsEnabled));
 		spnAutoLockMinutes.setPropertyModel(
 			LambdaModel.of(settings::getAutoLockMinutes, settings::setAutoLockMinutes));
+		spnCloseLockedMinutes.setPropertyModel(LambdaModel.of(settings::getCloseLockedAfterMinutes,
+			settings::setCloseLockedAfterMinutes));
 	}
 
 	/**

@@ -135,14 +135,18 @@ class VaultCloseSupportTest
 		Map<Long, List<MysticCryptEntryModelBean>> entriesByNodeId = new LinkedHashMap<>();
 		entriesByNodeId.put(1L, Arrays.asList(null, entry));
 		entriesByNodeId.put(2L, null);
+		Map<Long, TreeIdNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long>> treeWithHoles = new LinkedHashMap<>();
+		treeWithHoles.put(1L, null);
 		ApplicationModelBean applicationModelBean = openVault();
 		applicationModelBean.setDataOfNodes(entriesByNodeId);
+		applicationModelBean.setRootTreeAsMap(treeWithHoles);
 
 		VaultCloseSupport.closeVault(applicationModelBean);
 
 		assertArrayEquals(new char[entryPassword.length], entryPassword,
 			"a null in the list comes out of a file this application did not write itself, and a "
-				+ "wipe that stops at the first one leaves every later secret in memory");
+				+ "wipe that stops at the first one leaves every later secret in memory. The tree "
+				+ "carries a null node here too - the same file can have holes in either place");
 	}
 
 	@Test
