@@ -40,6 +40,14 @@ public final class IdleLockDecision
 	/** The timeout a fresh installation gets, in minutes */
 	public static final int DEFAULT_TIMEOUT_MINUTES = 15;
 
+	/**
+	 * How long a fresh installation leaves a locked vault open before closing it, in minutes.
+	 * <p>
+	 * Fifteen again, so walking away costs at most half an hour of decrypted vault: fifteen minutes
+	 * until it locks, fifteen more until it is gone.
+	 */
+	public static final int DEFAULT_CLOSE_LOCKED_MINUTES = 15;
+
 	/** The value that turns the automatic lock off */
 	public static final int OFF = 0;
 
@@ -72,5 +80,44 @@ public final class IdleLockDecision
 			return false;
 		}
 		return TimeUnit.MINUTES.toMillis(timeoutMinutes) <= idleMillis;
+	}
+
+	/**
+	 * Whether a vault that has been locked for a while should now be closed altogether (#242).
+	 * <p>
+	 * WHY THIS EXISTS. Locking keeps the decrypted vault in memory so unlocking can rebuild the
+	 * view without reading and decrypting the file again (#237), and nothing bounded that: a vault
+	 * locked at five o'clock was still decrypted in the process the next morning. Wiping it in
+	 * place is not available - an entry's title, user name, URL and notes are {@code String}s, and
+	 * a String cannot be overwritten in Java - so the only way the plaintext leaves memory is for
+	 * the model to be dropped, which is what closing does. This turns an unbounded window into a
+	 * named one.
+	 * <p>
+	 * UNSAVED CHANGES REFUSE IT, and that is not a detail. A locked workspace has no master
+	 * password - locking replaced it with a verifier - so pending changes cannot be written, and a
+	 * close that discards them silently is worse than the memory it saves. Locking therefore saves
+	 * first, while the password is still there, and this guard is what happens when that save
+	 * failed: the vault stays open and decrypted rather than losing the work.
+	 *
+	 * @param aVaultIsOpen
+	 *            whether a vault is open at all
+	 * @param signedIn
+	 *            whether the workspace is unlocked; an unlocked one is in use, not waiting
+	 * @param unsavedChanges
+	 *            whether the model holds changes that are not in the file
+	 * @param lockedMillis
+	 *            how long the workspace has been locked
+	 * @param timeoutMinutes
+	 *            the configured timeout in minutes; {@link #OFF} or less turns it off
+	 * @return true when the locked vault should be closed now
+	 */
+	public static boolean shouldCloseLockedVault(final boolean aVaultIsOpen, final boolean signedIn,
+		final boolean unsavedChanges, final long lockedMillis, final int timeoutMinutes)
+	{
+		if (!aVaultIsOpen || signedIn || unsavedChanges || timeoutMinutes <= OFF)
+		{
+			return false;
+		}
+		return TimeUnit.MINUTES.toMillis(timeoutMinutes) <= lockedMillis;
 	}
 }

@@ -33,8 +33,10 @@ import java.util.logging.Level;
 import javax.swing.*;
 
 import io.github.astrapi69.awt.extension.ClipboardExtensions;
+import io.github.astrapi69.mystic.crypt.ApplicationModelBean;
 import io.github.astrapi69.mystic.crypt.DesktopMenu;
 import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
+import io.github.astrapi69.mystic.crypt.app.file.xml.ApplicationXmlFileStoreWorker;
 import io.github.astrapi69.mystic.crypt.lock.MasterPasswordVerifier;
 import io.github.astrapi69.mystic.crypt.panel.signin.MasterPwFileModelBean;
 import io.github.astrapi69.mystic.crypt.settings.MysticCryptSettings;
@@ -85,6 +87,11 @@ public class LockWorkspaceAction extends AbstractAction
 			// ApplicationSteps.lockWorkspace polls this flag from the test thread. It therefore
 			// waits for the event dispatch thread afterwards, the way unlockWorkspace already had
 			// to for the mirror image of this order.
+			// before the password goes, because afterwards there is nothing to encrypt with.
+			// A locked vault is closed again after a while so its decrypted content leaves memory
+			// (#242), and a close cannot ask about unsaved changes when it has no way to write
+			// them - so locking writes them here, while it still can
+			persistPendingChanges(frame.getModelObject());
 			forgetTheMasterPassword(frame.getModelObject().getMasterPwFileModelBean());
 			frame.getModelObject().setSignedIn(false);
 			frame.switchToDesktopPane();
@@ -102,6 +109,9 @@ public class LockWorkspaceAction extends AbstractAction
 		}
 	}
 
+	/** The title of the unlock prompt, also used to find it again when it has to be dismissed */
+	private static final String UNLOCK_PROMPT_TITLE = "Unlock workspace";
+
 	private void promptForUnlock(MysticCryptApplicationFrame frame)
 	{
 		MasterPwFileModelBean credentials = frame.getModelObject().getMasterPwFileModelBean();
@@ -116,10 +126,18 @@ public class LockWorkspaceAction extends AbstractAction
 		panel.add(passwordField);
 
 		int option = JOptionPaneExtensions.getSelectedOption(panel, JOptionPane.PLAIN_MESSAGE,
-			JOptionPane.OK_CANCEL_OPTION, frame, "Unlock workspace", passwordField);
+			JOptionPane.OK_CANCEL_OPTION, frame, UNLOCK_PROMPT_TITLE, passwordField);
 		if (option != JOptionPane.OK_OPTION)
 		{
 			// cancelled: stay locked
+			return;
+		}
+		if (frame.getModelObject().getMasterPwFileModelBean() != credentials)
+		{
+			// the vault this prompt belongs to was closed while the prompt was up - the timed close
+			// of #242 does that. Accepting the password now would sign the application in over an
+			// empty model, so it is refused here as well as dismissed there: the second line, for
+			// whatever closes a vault next
 			return;
 		}
 		char[] entered = passwordField.getPassword();
@@ -140,6 +158,65 @@ public class LockWorkspaceAction extends AbstractAction
 			SwingUtilities.invokeLater(() -> promptForUnlock(frame));
 		}
 		Arrays.fill(entered, '\0');
+	}
+
+	/**
+	 * Writes pending changes to the vault's file before locking takes the master password away.
+	 * <p>
+	 * Locking used to leave them pending, which was harmless while a locked vault stayed open
+	 * forever. It stopped being harmless when a locked vault started closing itself after a while
+	 * (#242): closing drops the model, and a locked workspace has no master password to write the
+	 * model with, so anything still pending at that moment would be lost. Saving here is the moment
+	 * where writing is still possible at all.
+	 * <p>
+	 * A failed write leaves the model marked as changed, which is what stops the timed close from
+	 * running later - the vault then stays open and decrypted rather than losing the work. That is
+	 * the trade this makes on purpose: memory hygiene never costs somebody their entries.
+	 *
+	 * @param applicationModelBean
+	 *            the model being locked
+	 */
+	private static void persistPendingChanges(final ApplicationModelBean applicationModelBean)
+	{
+		if (applicationModelBean == null || !applicationModelBean.isDirty()
+			|| applicationModelBean.getMasterPwFileModelBean() == null)
+		{
+			return;
+		}
+		try
+		{
+			ApplicationXmlFileStoreWorker.storeApplicationFile(applicationModelBean);
+		}
+		catch (RuntimeException exception)
+		{
+			// storeApplicationFile clears the flag before it writes, so a failed write has to put
+			// it back: it is what the timed close asks before dropping the model
+			applicationModelBean.setDirty(true);
+			log.log(Level.WARNING,
+				"the pending changes could not be written while locking, so the vault stays open",
+				exception);
+		}
+	}
+
+	/**
+	 * Takes the unlock prompt off the screen.
+	 * <p>
+	 * Called when the vault it belongs to is closed underneath it (#242). A prompt left standing
+	 * would ask for the master password of a database that is no longer open, and answering it
+	 * correctly would put the application into the signed-in state over an empty model - the
+	 * improvised state move #270 was
+	 */
+	public static void dismissUnlockPrompt()
+	{
+		for (java.awt.Window window : java.awt.Window.getWindows())
+		{
+			if (window instanceof java.awt.Dialog dialog && dialog.isShowing()
+				&& UNLOCK_PROMPT_TITLE.equals(dialog.getTitle()))
+			{
+				dialog.setVisible(false);
+				dialog.dispose();
+			}
+		}
 	}
 
 	/**

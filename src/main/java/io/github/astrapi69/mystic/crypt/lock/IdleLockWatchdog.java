@@ -25,7 +25,6 @@ import java.awt.Toolkit;
 import java.awt.event.AWTEventListener;
 import java.awt.event.ActionEvent;
 import java.util.concurrent.TimeUnit;
-import java.util.function.BooleanSupplier;
 import java.util.function.IntSupplier;
 import java.util.function.LongSupplier;
 
@@ -59,11 +58,11 @@ public final class IdleLockWatchdog
 		| AWTEvent.MOUSE_EVENT_MASK | AWTEvent.MOUSE_MOTION_EVENT_MASK
 		| AWTEvent.MOUSE_WHEEL_EVENT_MASK;
 
-	private final BooleanSupplier signedIn;
+	private final LockableWorkspace workspace;
 
-	private final IntSupplier timeoutMinutes;
+	private final IntSupplier idleTimeoutMinutes;
 
-	private final Runnable lockWorkspace;
+	private final IntSupplier closeLockedTimeoutMinutes;
 
 	private final Timer timer;
 
@@ -75,46 +74,58 @@ public final class IdleLockWatchdog
 
 	private volatile long lastActivityMillis;
 
+	/**
+	 * When the workspace was seen locked with a vault still open, or null while it is not in that
+	 * state. Measured here rather than by the lock action, so a workspace locked before this
+	 * watchdog existed - or locked by any path that does not report to it - still starts its clock
+	 * on the first check that sees it.
+	 * <p>
+	 * A {@code Long} rather than a {@code long} with 0 for "not locked": 0 is a perfectly good
+	 * instant, and a clock that starts there - a test's does - would read "locked since 0" as "not
+	 * locked" and never close anything
+	 */
+	private volatile Long lockedSinceMillis;
+
 	/** Kept so {@link #stop()} can take it off the shared toolkit again */
 	private AWTEventListener activityListener;
 
 	/**
-	 * Instantiates a watchdog over the state it needs, as suppliers rather than as values: the
-	 * timeout is read again on every check, so changing it in the settings takes effect without
-	 * restarting anything
+	 * Instantiates a watchdog over the workspace it guards. The timeouts are suppliers rather than
+	 * values, so changing either in the settings takes effect on the next check instead of after a
+	 * restart
 	 *
-	 * @param signedIn
-	 *            answers whether a vault is open and unlocked
-	 * @param timeoutMinutes
-	 *            answers the configured timeout in minutes
-	 * @param lockWorkspace
-	 *            what to run when the workspace should lock
+	 * @param workspace
+	 *            the workspace to watch and, when it comes to it, to lock and close
+	 * @param idleTimeoutMinutes
+	 *            after how many idle minutes an unlocked workspace locks itself
+	 * @param closeLockedTimeoutMinutes
+	 *            after how many further minutes a locked vault is closed altogether
 	 */
-	public IdleLockWatchdog(final BooleanSupplier signedIn, final IntSupplier timeoutMinutes,
-		final Runnable lockWorkspace)
+	public IdleLockWatchdog(final LockableWorkspace workspace, final IntSupplier idleTimeoutMinutes,
+		final IntSupplier closeLockedTimeoutMinutes)
 	{
-		this(signedIn, timeoutMinutes, lockWorkspace, System::currentTimeMillis);
+		this(workspace, idleTimeoutMinutes, closeLockedTimeoutMinutes, System::currentTimeMillis);
 	}
 
 	/**
 	 * Instantiates a watchdog over an explicit clock, so a test can measure what happens after
 	 * fifteen idle minutes without spending fifteen minutes
 	 *
-	 * @param signedIn
-	 *            answers whether a vault is open and unlocked
-	 * @param timeoutMinutes
-	 *            answers the configured timeout in minutes
-	 * @param lockWorkspace
-	 *            what to run when the workspace should lock
+	 * @param workspace
+	 *            the workspace to watch and, when it comes to it, to lock and close
+	 * @param idleTimeoutMinutes
+	 *            after how many idle minutes an unlocked workspace locks itself
+	 * @param closeLockedTimeoutMinutes
+	 *            after how many further minutes a locked vault is closed altogether
 	 * @param clock
 	 *            where "now" comes from, in milliseconds
 	 */
-	public IdleLockWatchdog(final BooleanSupplier signedIn, final IntSupplier timeoutMinutes,
-		final Runnable lockWorkspace, final LongSupplier clock)
+	public IdleLockWatchdog(final LockableWorkspace workspace, final IntSupplier idleTimeoutMinutes,
+		final IntSupplier closeLockedTimeoutMinutes, final LongSupplier clock)
 	{
-		this.signedIn = signedIn;
-		this.timeoutMinutes = timeoutMinutes;
-		this.lockWorkspace = lockWorkspace;
+		this.workspace = workspace;
+		this.idleTimeoutMinutes = idleTimeoutMinutes;
+		this.closeLockedTimeoutMinutes = closeLockedTimeoutMinutes;
 		this.clock = clock;
 		this.lastActivityMillis = clock.getAsLong();
 		this.timer = new Timer(CHECK_INTERVAL_MILLIS, this::onCheck);
@@ -176,23 +187,81 @@ public final class IdleLockWatchdog
 	}
 
 	/**
-	 * Asks the decision once and acts on the answer. This is what the timer's tick does; it is
-	 * visible to the test so the behaviour can be measured without waiting for a real timer
+	 * Asks both decisions once and acts on their answers. This is what the timer's tick does; it is
+	 * public so it can be asked outside the timer's rhythm - a test measures what happens after
+	 * fifteen idle minutes without spending fifteen of them.
+	 * <p>
+	 * Locking is asked first and closing second, deliberately: a workspace that has just locked
+	 * itself starts its locked clock on this same tick, so it cannot be locked and closed in one
+	 * breath
 	 *
-	 * @return true if the workspace was locked by this check
+	 * @return what this check did to the workspace
 	 */
-	boolean checkNow()
+	public Outcome checkNow()
 	{
-		if (IdleLockDecision.shouldLock(signedIn.getAsBoolean(), idleMillis(),
-			timeoutMinutes.getAsInt()))
+		if (IdleLockDecision.shouldLock(workspace.isSignedIn(), idleMillis(),
+			idleTimeoutMinutes.getAsInt()))
 		{
 			// the clock is reset here rather than by the lock itself: locking puts up the unlock
 			// prompt, and until somebody answers it the idle time keeps growing, so a second tick
 			// would ask to lock an already locked workspace over and over
 			noteActivity();
-			lockWorkspace.run();
-			return true;
+			lockedSinceMillis = clock.getAsLong();
+			workspace.lock();
+			return Outcome.LOCKED;
 		}
-		return false;
+		noteWhetherItIsLocked();
+		if (IdleLockDecision.shouldCloseLockedVault(workspace.aVaultIsOpen(),
+			workspace.isSignedIn(), workspace.hasUnsavedChanges(), lockedMillis(),
+			closeLockedTimeoutMinutes.getAsInt()))
+		{
+			lockedSinceMillis = null;
+			workspace.closeVault();
+			return Outcome.CLOSED;
+		}
+		return Outcome.NOTHING;
+	}
+
+	/**
+	 * Starts or clears the locked clock from what the workspace looks like now, so a workspace
+	 * locked by any path - the menu entry, a plugin, this watchdog - is measured from the first
+	 * check that sees it locked
+	 */
+	private void noteWhetherItIsLocked()
+	{
+		boolean locked = workspace.aVaultIsOpen() && !workspace.isSignedIn();
+		if (!locked)
+		{
+			lockedSinceMillis = null;
+			return;
+		}
+		if (lockedSinceMillis == null)
+		{
+			lockedSinceMillis = clock.getAsLong();
+		}
+	}
+
+	/**
+	 * How long the workspace has been locked with a vault open, in milliseconds; 0 when it is not
+	 * in that state
+	 *
+	 * @return the locked time
+	 */
+	public long lockedMillis()
+	{
+		return lockedSinceMillis == null ? 0L : clock.getAsLong() - lockedSinceMillis;
+	}
+
+	/** What one check did to the workspace */
+	public enum Outcome
+	{
+		/** the workspace was locked because its user had been away too long */
+		LOCKED,
+
+		/** the locked vault was closed, so its decrypted content left memory */
+		CLOSED,
+
+		/** nothing was due */
+		NOTHING
 	}
 }

@@ -117,13 +117,17 @@ class EntryIdentitySupportTest
 		Map<Long, List<MysticCryptEntryModelBean>> entriesByNodeId = new LinkedHashMap<>();
 		entriesByNodeId.put(1L, Arrays.asList(null, entry));
 		entriesByNodeId.put(2L, null);
+		Map<Long, TreeIdNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long>> treeWithHoles = new LinkedHashMap<>();
+		treeWithHoles.put(1L, null);
 		ApplicationModelBean applicationModelBean = ApplicationModelBean.builder()
-			.dataOfNodes(entriesByNodeId).build();
+			.dataOfNodes(entriesByNodeId).rootTreeAsMap(treeWithHoles).build();
 
 		assertEquals(1, EntryIdentitySupport.assignMissingIdentifiers(applicationModelBean));
 		assertNotNull(entry.getId(),
 			"a null in the list comes out of a file this application did not write itself, and a "
-				+ "pass that stops at the first one leaves every later entry without identity");
+				+ "pass that stops at the first one leaves every later entry without identity. The "
+				+ "tree carries a null node here too - the same file can have holes in either "
+				+ "place");
 	}
 
 	@Test

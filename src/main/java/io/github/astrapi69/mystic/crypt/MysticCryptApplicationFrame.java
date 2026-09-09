@@ -55,6 +55,7 @@ import io.github.astrapi69.mystic.crypt.action.SaveApplicationFileAction;
 import io.github.astrapi69.mystic.crypt.action.SaveBeforeCloseConfirmation;
 import io.github.astrapi69.mystic.crypt.lock.IdleLockDecision;
 import io.github.astrapi69.mystic.crypt.lock.IdleLockWatchdog;
+import io.github.astrapi69.mystic.crypt.lock.LockableWorkspace;
 import io.github.astrapi69.mystic.crypt.lock.WorkspaceLockDecision;
 import io.github.astrapi69.mystic.crypt.menu.MenuLayoutSupport;
 import io.github.astrapi69.mystic.crypt.panel.search.SearchToolbarPanel;
@@ -357,11 +358,62 @@ public class MysticCryptApplicationFrame extends ApplicationPanelFrame<Applicati
 	 */
 	private void startTheIdleLockWatchdog()
 	{
-		idleLockWatchdog = new IdleLockWatchdog(() -> getModelObject().isSignedIn(),
+		idleLockWatchdog = new IdleLockWatchdog(asLockableWorkspace(),
 			() -> MysticCryptSettings.load(getConfigurationDirectory()).getAutoLockMinutes(),
-			() -> new LockWorkspaceAction("Lock workspace")
-				.actionPerformed(new java.awt.event.ActionEvent(this, 0, "")));
+			() -> MysticCryptSettings.load(getConfigurationDirectory())
+				.getCloseLockedAfterMinutes());
 		idleLockWatchdog.start();
+	}
+
+	/**
+	 * This frame as the watchdog sees it: three questions about the workspace and the two things it
+	 * may do to it. Written here rather than implemented by the frame, so the watchdog's view stays
+	 * the small one it needs instead of the whole application window.
+	 * <p>
+	 * Public because it is the seam an end-to-end test needs: a watchdog built over this workspace
+	 * and a clock the test controls measures the real close against the real frame, without
+	 * spending the configured minutes waiting for it
+	 *
+	 * @return the adapter over this frame
+	 */
+	public LockableWorkspace asLockableWorkspace()
+	{
+		return new LockableWorkspace()
+		{
+			@Override
+			public boolean isSignedIn()
+			{
+				return getModelObject().isSignedIn();
+			}
+
+			@Override
+			public boolean aVaultIsOpen()
+			{
+				return VaultCloseSupport.aVaultIsOpen(getModelObject());
+			}
+
+			@Override
+			public boolean hasUnsavedChanges()
+			{
+				return getModelObject().isDirty();
+			}
+
+			@Override
+			public void lock()
+			{
+				new LockWorkspaceAction("Lock workspace").actionPerformed(
+					new java.awt.event.ActionEvent(MysticCryptApplicationFrame.this, 0, ""));
+			}
+
+			@Override
+			public void closeVault()
+			{
+				// the unlock prompt belongs to the vault that is going away, and a prompt left
+				// standing would ask for the master password of a database nobody has open (#242)
+				LockWorkspaceAction.dismissUnlockPrompt();
+				closeOpenVault();
+			}
+		};
 	}
 
 	/**

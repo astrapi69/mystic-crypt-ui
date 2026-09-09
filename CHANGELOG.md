@@ -6,6 +6,7 @@ Version 8.5 (unreleased)
 
 SECURITY:
 
+- a locked database does not stay decrypted for ever. Locking keeps the entries in memory so unlocking can rebuild the view without reading and decrypting the file again, and nothing bounded that: a database locked at five o'clock was still decrypted in the process the next morning. It is now closed after another 15 idle minutes, configurable and switchable off, which is the only way the plaintext can leave memory - an entry's title, user name, URL and notes are Java Strings and cannot be overwritten where they lie. Locking writes pending changes first, while the master password is still there, so the close can never cost anybody their entries (#242)
 - the action that puts the vault window back on screen asked nothing about the lock. Fired while the workspace was locked - through a keyboard shortcut, a persisted menu layout carrying the item, or any caller other than the menu item, which is disabled - it put the vault back on the desktop with its entries selectable while the workspace stayed locked. It now asks the same decision as the mode switch (#285)
 - the workspace locks itself after 15 idle minutes. Locking used to be a deliberate user action and nothing else, so an open vault stayed open for as long as the application ran; the timeout is configurable in the settings and 0 turns it off (#241)
 - closing a vault overwrites the entries' passwords and the master password in memory rather than dropping the objects for the collector to find later (#242, in part)

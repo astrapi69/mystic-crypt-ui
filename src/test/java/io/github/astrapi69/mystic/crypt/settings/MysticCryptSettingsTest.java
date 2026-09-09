@@ -56,6 +56,10 @@ class MysticCryptSettingsTest
 		assertEquals(FrameMode.APPLICATION_PANEL, settings.getViewMode(),
 			"the default view has to be the one the application always showed after signing in");
 		assertTrue(settings.isTooltipsEnabled(), "tooltips must be on by default");
+		assertEquals(IdleLockDecision.DEFAULT_CLOSE_LOCKED_MINUTES,
+			settings.getCloseLockedAfterMinutes(),
+			"and a locked vault is closed after another fifteen, so walking away costs at most "
+				+ "half an hour of decrypted vault rather than the rest of the day (#242)");
 		assertEquals(IdleLockDecision.DEFAULT_TIMEOUT_MINUTES, settings.getAutoLockMinutes(),
 			"the automatic lock is ON by default: an open vault used to stay open for as long as the "
 				+ "application ran, and the case a password manager has to survive is the one where "
@@ -67,7 +71,7 @@ class MysticCryptSettingsTest
 		@TempDir File configurationDirectory)
 	{
 		MysticCryptSettings settings = new MysticCryptSettings("Metal", "de",
-			FrameMode.DESKTOP_PANE, false, 30);
+			FrameMode.DESKTOP_PANE, false, 30, 45);
 		settings.save(configurationDirectory);
 		assertTrue(new File(configurationDirectory, MysticCryptSettings.JSON_FILENAME).exists(),
 			"saving must write the settings json");
@@ -77,6 +81,8 @@ class MysticCryptSettingsTest
 			"the chosen view did not survive the round trip");
 		assertEquals("Metal", loaded.getLookAndFeel());
 		assertEquals("de", loaded.getLanguage());
+		assertEquals(45, loaded.getCloseLockedAfterMinutes(),
+			"and so does the timeout that bounds how long a LOCKED vault stays decrypted (#242)");
 		assertEquals(30, loaded.getAutoLockMinutes(),
 			"a configured idle timeout has to survive the round trip, or the setting is a dialog "
 				+ "that changes nothing");
