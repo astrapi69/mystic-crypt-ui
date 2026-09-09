@@ -29,7 +29,18 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v6
       - name: Install Xvfb
-        run: sudo apt-get update && sudo apt-get install -y xvfb
+        # The refresh is the means, the install is the gate. apt-get update exits non-zero when ANY
+        # configured repository fails, and the runner image ships third-party repositories this
+        # build does not use - Google's served a Packages.gz whose hash did not match its own
+        # Release file and took every pull request red with it, on diffs that never reach the
+        # compiler. apt's own last word there is "They have been ignored, or old ones used
+        # instead", so the refresh must not be what fails the job (#293).
+        #
+        # Nothing is weakened: xvfb comes from Ubuntu's universe, and if it really cannot be
+        # resolved the install below fails and names that, rather than somebody else's mirror.
+        run: |
+          sudo apt-get update || echo "apt-get update reported errors; continuing to the install"
+          sudo apt-get install -y xvfb
       - name: Execute Gradle build
         # xvfb-run provides a virtual display so the AssertJ-Swing e2e UI tests really run
         # in CI (without it they would be skipped by their headless assumption)
