@@ -62,7 +62,7 @@ class SecretKeyTreeWithContentPanelBindingTest
 	private SecretKeyTreeWithContentPanel newPanel()
 	{
 		List<MysticCryptEntryModelBean> entries = new ArrayList<>();
-		entries.add(MysticCryptEntryModelBean.builder().userName("bound").build());
+		entries.add(MysticCryptEntryModelBean.builder().userName("bound".toCharArray()).build());
 		root = TestBaseTreeNodeFactory.initializeTestGenericTreeNodeElement(entries, entries,
 			LongIdGenerator.of(0L));
 		return new SecretKeyTreeWithContentPanel(BaseModel.of(root));

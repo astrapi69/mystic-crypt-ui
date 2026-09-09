@@ -20,7 +20,6 @@
  */
 package io.github.astrapi69.mystic.crypt.vault;
 
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -134,34 +133,36 @@ public final class VaultCloseSupport
 	}
 
 	/**
-	 * Overwrites the character arrays an entry carries. Setting them to null would leave the
-	 * password where it was until something else happens to reuse that memory, which is the whole
-	 * point of holding it in a char array rather than in a String
+	 * Overwrites the character arrays an entry carries - all six of them (#294). Setting them to
+	 * null would leave the content where it was until something else happens to reuse that memory,
+	 * which is the whole point of holding it in a character array rather than in a String
 	 *
 	 * @param entry
-	 *            the entry whose secrets are overwritten
+	 *            the entry whose content is overwritten
 	 */
 	private static void wipe(final MysticCryptEntryModelBean entry)
 	{
-		if (entry.getPassword() != null)
-		{
-			Arrays.fill(entry.getPassword(), '\0');
-			entry.setPassword(null);
-		}
-		if (entry.getRepeat() != null)
-		{
-			Arrays.fill(entry.getRepeat(), '\0');
-			entry.setRepeat(null);
-		}
+		SecretBuffers.wipe(entry.getPassword());
+		entry.setPassword(null);
+		SecretBuffers.wipe(entry.getRepeat());
+		entry.setRepeat(null);
+		SecretBuffers.wipe(entry.getTitle());
+		entry.setTitle(null);
+		SecretBuffers.wipe(entry.getUserName());
+		entry.setUserName(null);
+		SecretBuffers.wipe(entry.getUrl());
+		entry.setUrl(null);
+		SecretBuffers.wipe(entry.getNotes());
+		entry.setNotes(null);
 	}
 
 	private static void forgetTheMasterPassword(final MasterPwFileModelBean credentials)
 	{
-		if (credentials == null || credentials.getMasterPw() == null)
+		if (credentials == null)
 		{
 			return;
 		}
-		Arrays.fill(credentials.getMasterPw(), '\0');
+		SecretBuffers.wipe(credentials.getMasterPw());
 		credentials.setMasterPw(null);
 	}
 }

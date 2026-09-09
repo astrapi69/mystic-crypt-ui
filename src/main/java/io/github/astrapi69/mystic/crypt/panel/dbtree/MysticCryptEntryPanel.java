@@ -138,14 +138,15 @@ public class MysticCryptEntryPanel extends BasePanel<MysticCryptEntryModelBean>
 
 		MysticCryptEntryModelBean modelObject = getModelObject();
 		// bind with model
-		txtEntryName.setPropertyModel(LambdaModel.of(modelObject::getTitle, modelObject::setTitle));
-		txtUsername
-			.setPropertyModel(LambdaModel.of(modelObject::getUserName, modelObject::setUserName));
+		// the text fields read and write Strings and the entry holds characters (#294), so the
+		// conversion happens here, in the binding, rather than being spread over every caller
+		txtEntryName.setPropertyModel(LambdaModel.of(this::readTitle, this::writeTitle));
+		txtUsername.setPropertyModel(LambdaModel.of(this::readUserName, this::writeUserName));
 		txtPassword
 			.setPropertyModel(LambdaModel.of(modelObject::getPassword, modelObject::setPassword));
 		txtRepeat.setPropertyModel(LambdaModel.of(modelObject::getRepeat, modelObject::setRepeat));
-		txtUrl.setPropertyModel(LambdaModel.of(modelObject::getUrl, modelObject::setUrl));
-		txtNotes.setPropertyModel(LambdaModel.of(modelObject::getNotes, modelObject::setNotes));
+		txtUrl.setPropertyModel(LambdaModel.of(this::readUrl, this::writeUrl));
+		txtNotes.setPropertyModel(LambdaModel.of(this::readNotes, this::writeNotes));
 
 		lblEntryName.setText("Entry name");
 
@@ -413,5 +414,52 @@ public class MysticCryptEntryPanel extends BasePanel<MysticCryptEntryModelBean>
 							javax.swing.GroupLayout.DEFAULT_SIZE,
 							javax.swing.GroupLayout.PREFERRED_SIZE))
 					.addContainerGap(20, Short.MAX_VALUE)));
+	}
+
+	/**
+	 * The four pairs the text fields are bound through. They are methods rather than lambdas
+	 * because {@code LambdaModel.of} is overloaded and only an exact method reference tells its
+	 * two-argument forms apart
+	 *
+	 * @return the entry's title as text
+	 */
+	private String readTitle()
+	{
+		return EntryText.asText(getModelObject().getTitle());
+	}
+
+	private void writeTitle(final String title)
+	{
+		getModelObject().setTitle(EntryText.asCharacters(title));
+	}
+
+	private String readUserName()
+	{
+		return EntryText.asText(getModelObject().getUserName());
+	}
+
+	private void writeUserName(final String userName)
+	{
+		getModelObject().setUserName(EntryText.asCharacters(userName));
+	}
+
+	private String readUrl()
+	{
+		return EntryText.asText(getModelObject().getUrl());
+	}
+
+	private void writeUrl(final String url)
+	{
+		getModelObject().setUrl(EntryText.asCharacters(url));
+	}
+
+	private String readNotes()
+	{
+		return EntryText.asText(getModelObject().getNotes());
+	}
+
+	private void writeNotes(final String notes)
+	{
+		getModelObject().setNotes(EntryText.asCharacters(notes));
 	}
 }

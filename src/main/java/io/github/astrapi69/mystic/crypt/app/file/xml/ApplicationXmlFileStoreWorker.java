@@ -45,6 +45,7 @@ import io.github.astrapi69.mystic.crypt.key.PublicKeyGenericEncryptor;
 import io.github.astrapi69.mystic.crypt.panel.signin.MasterPwFileModelBean;
 import io.github.astrapi69.mystic.crypt.panel.signin.SignInType;
 import io.github.astrapi69.mystic.crypt.pw.PasswordStringEncryptor;
+import io.github.astrapi69.mystic.crypt.vault.SecretBuffers;
 import io.github.astrapi69.throwable.RuntimeExceptionDecorator;
 import io.github.astrapi69.xstream.ObjectToXmlExtensions;
 
@@ -138,6 +139,7 @@ public final class ApplicationXmlFileStoreWorker
 		File applicationFile;
 		CryptModel<Cipher, SecretKey, String> symmetricKeyModel;
 		MasterPwFileModelBean modelObject = applicationModelBean.getMasterPwFileModelBean();
+		refuseWithoutAMasterPassword(modelObject);
 		applicationFile = FileFactory.newFileQuietly(modelObject.getApplicationFileInfo());
 		privateKey = RuntimeExceptionDecorator.decorate(() -> PrivateKeyReader
 			.readPemPrivateKey(FileFactory.newFileQuietly(modelObject.getKeyFileInfo())));
@@ -162,6 +164,9 @@ public final class ApplicationXmlFileStoreWorker
 
 		genericEncryptor = new PublicKeyGenericEncryptor<>(encryptor);
 
+		// one unwipeable copy of the master password, and one of the xml below: this path encrypts
+		// through PasswordStringEncryptor, which takes a String and is a library class that is not
+		// changed from this repository (#294, architecture.md)
 		passwordStringEncryptor = new PasswordStringEncryptor(String.valueOf(masterPw));
 
 		xml = ObjectToXmlExtensions.toXml(applicationModelBean);
@@ -176,20 +181,64 @@ public final class ApplicationXmlFileStoreWorker
 		return applicationFile;
 	}
 
+	/**
+	 * Writes the database protected by the master password alone - the format this application
+	 * writes today, and the only one of the three save paths on which nothing has to become a
+	 * {@link String} (#294): the xml is characters and the master password is characters, and every
+	 * buffer allocated on the way is overwritten before it is dropped
+	 *
+	 * @param applicationModelBean
+	 *            the model to write
+	 * @return the file that was written
+	 */
 	public static File saveToFileWithPassword(ApplicationModelBean applicationModelBean)
 	{
 		MasterPwFileModelBean modelObject = applicationModelBean.getMasterPwFileModelBean();
+		refuseWithoutAMasterPassword(modelObject);
 		File applicationFile = FileFactory.newFileQuietly(modelObject.getApplicationFileInfo());
-		String password = String.valueOf(modelObject.getMasterPw());
-		String xml = ObjectToXmlExtensions.toXml(applicationModelBean);
-
-		// straight from memory into the encrypted file: the xml is never written anywhere in the
-		// clear, not even into a temporary file that is deleted afterwards - deleting is not
-		// wiping, and a temporary directory is a poor place for a decrypted password database
-		byte[] fileContent = RuntimeExceptionDecorator
-			.decorate(() -> PasswordVaultFormat.encrypt(xml, password));
-		RuntimeExceptionDecorator
-			.decorate(() -> VaultFileWriter.write(applicationFile, fileContent));
+		char[] xml = VaultXmlCodec.toXml(applicationModelBean);
+		try
+		{
+			// straight from memory into the encrypted file: the xml is never written anywhere in
+			// the clear, not even into a temporary file that is deleted afterwards - deleting is
+			// not wiping, and a temporary directory is a poor place for a decrypted password
+			// database
+			byte[] fileContent = RuntimeExceptionDecorator
+				.decorate(() -> PasswordVaultFormat.encrypt(xml, modelObject.getMasterPw()));
+			RuntimeExceptionDecorator
+				.decorate(() -> VaultFileWriter.write(applicationFile, fileContent));
+			SecretBuffers.wipe(fileContent);
+		}
+		finally
+		{
+			SecretBuffers.wipe(xml);
+		}
 		return applicationFile;
+	}
+
+	/**
+	 * Refuses to write anything when the credentials carry no master password.
+	 * <p>
+	 * A LOCKED workspace is exactly that state: locking replaces the master password with a
+	 * verifier and sets the field to null (#242). Until #294 this was caught by accident, because
+	 * {@code String.valueOf((char[])null)} throws - and the accident stopped being one the moment
+	 * the password stopped being turned into a String. {@link javax.crypto.spec.PBEKeySpec} reads a
+	 * null password as an EMPTY one, so without this guard a save while locked would write the
+	 * whole database encrypted with nothing, over the file that was properly encrypted before.
+	 * <p>
+	 * It is a guard rather than a silent return: a save that quietly does nothing tells the person
+	 * who pressed it that their changes are on disk
+	 *
+	 * @param credentials
+	 *            the credentials to write with
+	 */
+	private static void refuseWithoutAMasterPassword(final MasterPwFileModelBean credentials)
+	{
+		if (credentials.getMasterPw() == null || credentials.getMasterPw().length == 0)
+		{
+			throw new IllegalStateException(
+				"the database cannot be written without its master password. The workspace is "
+					+ "locked, and locking does not keep the password - unlock it first");
+		}
 	}
 }

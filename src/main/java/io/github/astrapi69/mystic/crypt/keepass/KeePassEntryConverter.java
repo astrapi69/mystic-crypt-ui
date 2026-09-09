@@ -36,6 +36,7 @@ import org.linguafranca.pwdb.kdbx.simple.SimpleEntry;
 import org.linguafranca.pwdb.kdbx.simple.SimpleIcon;
 
 import io.github.astrapi69.file.create.model.FileContentInfo;
+import io.github.astrapi69.mystic.crypt.panel.dbtree.EntryText;
 import io.github.astrapi69.mystic.crypt.panel.dbtree.MysticCryptEntryModelBean;
 
 /**
@@ -65,11 +66,12 @@ public final class KeePassEntryConverter
 			? toOffsetDateTime(entry.getExpiryTime())
 			: null;
 		MysticCryptEntryModelBean bean = MysticCryptEntryModelBean.builder().id(entry.getUuid())
-			.title(entry.getProperty(Entry.STANDARD_PROPERTY_NAME_TITLE))
-			.userName(entry.getProperty(Entry.STANDARD_PROPERTY_NAME_USER_NAME))
+			.title(EntryText.asCharacters(entry.getProperty(Entry.STANDARD_PROPERTY_NAME_TITLE)))
+			.userName(
+				EntryText.asCharacters(entry.getProperty(Entry.STANDARD_PROPERTY_NAME_USER_NAME)))
 			.password(toCharArray(entry.getProperty(Entry.STANDARD_PROPERTY_NAME_PASSWORD)))
-			.url(entry.getProperty(Entry.STANDARD_PROPERTY_NAME_URL))
-			.notes(entry.getProperty(Entry.STANDARD_PROPERTY_NAME_NOTES))
+			.url(EntryText.asCharacters(entry.getProperty(Entry.STANDARD_PROPERTY_NAME_URL)))
+			.notes(EntryText.asCharacters(entry.getProperty(Entry.STANDARD_PROPERTY_NAME_NOTES)))
 			.expirable(entry.getExpires())
 			.expires(preciseExpiryTime != null ? preciseExpiryTime.toLocalDate() : null)
 			.preciseExpiryTime(preciseExpiryTime)
@@ -110,11 +112,14 @@ public final class KeePassEntryConverter
 	public static SimpleEntry toSimpleEntry(SimpleDatabase database, MysticCryptEntryModelBean bean)
 	{
 		SimpleEntry entry = database.newEntry();
-		entry.setProperty(Entry.STANDARD_PROPERTY_NAME_TITLE, bean.getTitle());
-		entry.setProperty(Entry.STANDARD_PROPERTY_NAME_USER_NAME, bean.getUserName());
+		// the KeePass library takes and returns Strings for every property, so this boundary is
+		// where an entry's text becomes one; the entry's own fields stay characters (#294)
+		entry.setProperty(Entry.STANDARD_PROPERTY_NAME_TITLE, EntryText.asText(bean.getTitle()));
+		entry.setProperty(Entry.STANDARD_PROPERTY_NAME_USER_NAME,
+			EntryText.asText(bean.getUserName()));
 		entry.setProperty(Entry.STANDARD_PROPERTY_NAME_PASSWORD, toStringValue(bean.getPassword()));
-		entry.setProperty(Entry.STANDARD_PROPERTY_NAME_URL, bean.getUrl());
-		entry.setProperty(Entry.STANDARD_PROPERTY_NAME_NOTES, bean.getNotes());
+		entry.setProperty(Entry.STANDARD_PROPERTY_NAME_URL, EntryText.asText(bean.getUrl()));
+		entry.setProperty(Entry.STANDARD_PROPERTY_NAME_NOTES, EntryText.asText(bean.getNotes()));
 
 		entry.setExpires(bean.isExpirable());
 		entry.setExpiryTime(toDate(expiryTimeOf(bean)));

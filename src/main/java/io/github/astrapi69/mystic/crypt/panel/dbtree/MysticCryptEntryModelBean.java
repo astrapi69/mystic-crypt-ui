@@ -50,12 +50,27 @@ import lombok.experimental.SuperBuilder;
 public class MysticCryptEntryModelBean
 {
 	UUID id;
-	String title;
-	String userName;
+
+	/**
+	 * The entry's text, all four of it held as characters rather than as {@link String}s (#294).
+	 * <p>
+	 * A String cannot be overwritten, so as long as one of these was a String the only way its
+	 * content left memory was for the garbage collector to get to it and for something else to
+	 * happen to write over that memory - neither of which is a moment anybody controls. Closing a
+	 * vault could drop the entry; it could not empty it. As character arrays they are overwritten
+	 * by {@code VaultCloseSupport} together with the password, which is what makes "the vault is
+	 * closed" mean the vault is out of memory.
+	 * <p>
+	 * The vault format does not change with this: XStream writes a character array as the same text
+	 * a String is written as, byte for byte, so an older vault opens here and a vault written here
+	 * opens in an older build.
+	 */
+	char[] title;
+	char[] userName;
 	char[] password;
 	char[] repeat;
-	String url;
-	String notes;
+	char[] url;
+	char[] notes;
 	boolean expirable;
 	LocalDate expires;
 	String icon;

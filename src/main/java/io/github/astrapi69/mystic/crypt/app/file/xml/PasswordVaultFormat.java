@@ -38,6 +38,7 @@ import io.github.astrapi69.file.delete.DeleteFileExtensions;
 import io.github.astrapi69.file.read.ReadFileExtensions;
 import io.github.astrapi69.mystic.crypt.crypto.PassphraseBox;
 import io.github.astrapi69.mystic.crypt.file.PBEFileDecryptor;
+import io.github.astrapi69.mystic.crypt.vault.SecretBuffers;
 
 /**
  * The on-disk format of a database that is protected by a master password alone, without a key
@@ -138,6 +139,32 @@ public final class PasswordVaultFormat
 	}
 
 	/**
+	 * Encrypts the given xml with the master password, with neither of the two held as a
+	 * {@link String} (#294). Both arrays are read, not modified, and both stay the caller's to
+	 * overwrite; what this method allocates in between it overwrites itself
+	 *
+	 * @param xml
+	 *            the xml of the database
+	 * @param password
+	 *            the master password
+	 * @return the bytes to write, header included
+	 * @throws Exception
+	 *             if encrypting fails
+	 */
+	public static byte[] encrypt(final char[] xml, final char[] password) throws Exception
+	{
+		byte[] plaintext = SecretBuffers.toUtf8(xml);
+		try
+		{
+			return PassphraseBox.encrypt(MAGIC, plaintext, password);
+		}
+		finally
+		{
+			SecretBuffers.wipe(plaintext);
+		}
+	}
+
+	/**
 	 * Reads a database file that is protected by a master password, in whichever of the two formats
 	 * it happens to be in
 	 *
@@ -158,6 +185,60 @@ public final class PasswordVaultFormat
 		}
 		return new String(PassphraseBox.decrypt(MAGIC, fileContent, password),
 			StandardCharsets.UTF_8);
+	}
+
+	/**
+	 * Reads a database file that is protected by a master password, with neither the password nor
+	 * the xml held as a {@link String} (#294)
+	 *
+	 * @param applicationFile
+	 *            the database file
+	 * @param password
+	 *            the master password; read, not modified
+	 * @return the xml of the database, in an array the caller owns and is expected to overwrite
+	 * @throws Exception
+	 *             if the password is wrong, the file was tampered with, or it cannot be read
+	 */
+	public static char[] decrypt(final File applicationFile, final char[] password) throws Exception
+	{
+		byte[] fileContent = Files.readAllBytes(applicationFile.toPath());
+		if (!isCurrentFormat(fileContent))
+		{
+			return decryptLegacy(applicationFile, password);
+		}
+		byte[] plaintext = PassphraseBox.decrypt(MAGIC, fileContent, password);
+		try
+		{
+			return SecretBuffers.fromUtf8(plaintext);
+		}
+		finally
+		{
+			SecretBuffers.wipe(plaintext);
+		}
+	}
+
+	/**
+	 * Reads a file written before the format carried a marker, for a caller holding the password as
+	 * characters.
+	 * <p>
+	 * This path keeps one {@link String} of the password and one of the xml, and cannot do
+	 * otherwise from here: the decryptor is keyed by a {@code CryptModel<Cipher, String, String>}
+	 * and both it and the reader are library types (#294, architecture.md). It is walked at most
+	 * once per database - the next save writes the current format - which is the reason it is
+	 * accepted rather than worked around
+	 *
+	 * @param applicationFile
+	 *            the database file
+	 * @param password
+	 *            the master password; read, not modified
+	 * @return the xml of the database, in an array the caller owns and is expected to overwrite
+	 * @throws Exception
+	 *             if the file cannot be read
+	 */
+	public static char[] decryptLegacy(final File applicationFile, final char[] password)
+		throws Exception
+	{
+		return decryptLegacy(applicationFile, new String(password)).toCharArray();
 	}
 
 	/**

@@ -72,11 +72,11 @@ public class KeePassEntryConverterTest
 
 		MysticCryptEntryModelBean bean = KeePassEntryConverter.toEntryModelBean(entry);
 
-		assertEquals("My Title", bean.getTitle());
-		assertEquals("my-user", bean.getUserName());
+		assertArrayEquals("My Title".toCharArray(), bean.getTitle());
+		assertArrayEquals("my-user".toCharArray(), bean.getUserName());
 		assertArrayEquals("s3cr3t".toCharArray(), bean.getPassword());
-		assertEquals("https://example.com", bean.getUrl());
-		assertEquals("some notes", bean.getNotes());
+		assertArrayEquals("https://example.com".toCharArray(), bean.getUrl());
+		assertArrayEquals("some notes".toCharArray(), bean.getNotes());
 		assertEquals("custom-value", bean.getProperty("custom-field"));
 		assertTrue(bean.getResources().stream()
 			.anyMatch(resource -> "attachment.txt".equals(resource.getName())
@@ -112,9 +112,10 @@ public class KeePassEntryConverterTest
 	{
 		SimpleDatabase database = new SimpleDatabase();
 		Instant preciseExpiry = Instant.parse("2030-06-15T10:30:00Z");
-		MysticCryptEntryModelBean bean = MysticCryptEntryModelBean.builder().title("My Title")
-			.userName("my-user").password("s3cr3t".toCharArray()).url("https://example.com")
-			.notes("some notes").expirable(true)
+		MysticCryptEntryModelBean bean = MysticCryptEntryModelBean.builder()
+			.title("My Title".toCharArray()).userName("my-user".toCharArray())
+			.password("s3cr3t".toCharArray()).url("https://example.com".toCharArray())
+			.notes("some notes".toCharArray()).expirable(true)
 			.preciseExpiryTime(preciseExpiry.atOffset(ZoneOffset.UTC)).keePassIconIndex(9).build();
 		bean.setProperty("custom-field", "custom-value");
 
@@ -135,8 +136,8 @@ public class KeePassEntryConverterTest
 	public void testToSimpleEntryNotExpirableStillSetsANonNullExpiryTime()
 	{
 		SimpleDatabase database = new SimpleDatabase();
-		MysticCryptEntryModelBean bean = MysticCryptEntryModelBean.builder().title("My Title")
-			.build();
+		MysticCryptEntryModelBean bean = MysticCryptEntryModelBean.builder()
+			.title("My Title".toCharArray()).build();
 
 		SimpleEntry entry = KeePassEntryConverter.toSimpleEntry(database, bean);
 
@@ -176,8 +177,8 @@ public class KeePassEntryConverterTest
 		Consumer<MysticCryptEntryModelBean> prepare, Instant expected)
 	{
 		SimpleDatabase database = new SimpleDatabase();
-		MysticCryptEntryModelBean bean = MysticCryptEntryModelBean.builder().title("Expiry")
-			.build();
+		MysticCryptEntryModelBean bean = MysticCryptEntryModelBean.builder()
+			.title("Expiry".toCharArray()).build();
 		prepare.accept(bean);
 
 		SimpleEntry entry = KeePassEntryConverter.toSimpleEntry(database, bean);
@@ -197,7 +198,7 @@ public class KeePassEntryConverterTest
 		SimpleDatabase database = new SimpleDatabase();
 		byte[] content = "attached bytes".getBytes(java.nio.charset.StandardCharsets.UTF_8);
 		MysticCryptEntryModelBean bean = MysticCryptEntryModelBean.builder()
-			.title("With attachment")
+			.title("With attachment".toCharArray())
 			.resources(List.of(FileContentInfo.builder().name("note.txt").content(content).build()))
 			.build();
 

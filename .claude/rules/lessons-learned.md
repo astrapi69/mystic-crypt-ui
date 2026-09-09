@@ -27,6 +27,16 @@ the running test as SKIPPED, never ran the rest of the class, and printed BUILD 
 declared tests, `tests="1" skipped="1"`, green. Read the XML counts, not the build result: a class
 that reports fewer tests than it declares did not pass them, it never ran them.
 
+### A guard that works by accident stops guarding when the accident is removed
+
+Measured on #294: saving while the workspace was locked was "refused" only because
+`String.valueOf((char[])null)` throws, and the master password is null while locked. Removing that
+conversion for a memory fix removed the refusal with it - `PBEKeySpec` reads a null password as an
+EMPTY one, so the next save would have written the whole database encrypted with nothing, over the
+properly encrypted file. Nothing in the diff looked like it touched locking. Before deleting a
+conversion, a cast or a null check, ask what currently fails because of it; when a rule is real,
+write it as a guard clause that says the rule, so a later change fails the test instead of the user.
+
 ## Atomic commits are bounded by "green individually", not "one thing"
 
 Each commit is the smallest reversible unit that leaves the tree green. When splitting
