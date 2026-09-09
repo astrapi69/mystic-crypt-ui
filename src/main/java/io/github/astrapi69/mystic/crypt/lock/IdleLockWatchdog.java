@@ -27,6 +27,7 @@ import java.awt.event.ActionEvent;
 import java.util.concurrent.TimeUnit;
 import java.util.function.BooleanSupplier;
 import java.util.function.IntSupplier;
+import java.util.function.LongSupplier;
 
 import javax.swing.Timer;
 
@@ -66,7 +67,13 @@ public final class IdleLockWatchdog
 
 	private final Timer timer;
 
-	private volatile long lastActivityMillis = System.currentTimeMillis();
+	/**
+	 * Where "now" comes from. A parameter rather than a direct call to the system clock so a test
+	 * can place the last activity fifteen minutes in the past instead of waiting fifteen minutes
+	 */
+	private final LongSupplier clock;
+
+	private volatile long lastActivityMillis;
 
 	/** Kept so {@link #stop()} can take it off the shared toolkit again */
 	private AWTEventListener activityListener;
@@ -86,9 +93,30 @@ public final class IdleLockWatchdog
 	public IdleLockWatchdog(final BooleanSupplier signedIn, final IntSupplier timeoutMinutes,
 		final Runnable lockWorkspace)
 	{
+		this(signedIn, timeoutMinutes, lockWorkspace, System::currentTimeMillis);
+	}
+
+	/**
+	 * Instantiates a watchdog over an explicit clock, so a test can measure what happens after
+	 * fifteen idle minutes without spending fifteen minutes
+	 *
+	 * @param signedIn
+	 *            answers whether a vault is open and unlocked
+	 * @param timeoutMinutes
+	 *            answers the configured timeout in minutes
+	 * @param lockWorkspace
+	 *            what to run when the workspace should lock
+	 * @param clock
+	 *            where "now" comes from, in milliseconds
+	 */
+	public IdleLockWatchdog(final BooleanSupplier signedIn, final IntSupplier timeoutMinutes,
+		final Runnable lockWorkspace, final LongSupplier clock)
+	{
 		this.signedIn = signedIn;
 		this.timeoutMinutes = timeoutMinutes;
 		this.lockWorkspace = lockWorkspace;
+		this.clock = clock;
+		this.lastActivityMillis = clock.getAsLong();
 		this.timer = new Timer(CHECK_INTERVAL_MILLIS, this::onCheck);
 		this.timer.setRepeats(true);
 	}
@@ -129,7 +157,7 @@ public final class IdleLockWatchdog
 	/** Records that the user did something just now */
 	public void noteActivity()
 	{
-		lastActivityMillis = System.currentTimeMillis();
+		lastActivityMillis = clock.getAsLong();
 	}
 
 	/**
@@ -139,10 +167,21 @@ public final class IdleLockWatchdog
 	 */
 	public long idleMillis()
 	{
-		return System.currentTimeMillis() - lastActivityMillis;
+		return clock.getAsLong() - lastActivityMillis;
 	}
 
 	private void onCheck(final ActionEvent actionEvent)
+	{
+		checkNow();
+	}
+
+	/**
+	 * Asks the decision once and acts on the answer. This is what the timer's tick does; it is
+	 * visible to the test so the behaviour can be measured without waiting for a real timer
+	 *
+	 * @return true if the workspace was locked by this check
+	 */
+	boolean checkNow()
 	{
 		if (IdleLockDecision.shouldLock(signedIn.getAsBoolean(), idleMillis(),
 			timeoutMinutes.getAsInt()))
@@ -152,6 +191,8 @@ public final class IdleLockWatchdog
 			// would ask to lock an already locked workspace over and over
 			noteActivity();
 			lockWorkspace.run();
+			return true;
 		}
+		return false;
 	}
 }

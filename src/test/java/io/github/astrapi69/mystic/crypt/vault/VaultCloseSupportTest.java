@@ -26,6 +26,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -83,10 +84,15 @@ class VaultCloseSupportTest
 		MysticCryptEntryModelBean entry = MysticCryptEntryModelBean.builder().title("an entry")
 			.password(entryPassword).repeat(entryRepeat).build();
 		ApplicationModelBean applicationModelBean = openVault();
-		applicationModelBean.getMasterPwFileModelBean().setMasterPw(masterPassword);
+		MasterPwFileModelBean credentials = applicationModelBean.getMasterPwFileModelBean();
+		credentials.setMasterPw(masterPassword);
 		applicationModelBean.setDataOfNodes(entriesByNodeId(entry));
 
 		VaultCloseSupport.closeVault(applicationModelBean);
+
+		assertNull(credentials.getMasterPw(),
+			"the credentials object outlives this call - the caller may still hold it - so its "
+				+ "field is cleared and not only the array behind it");
 
 		assertArrayEquals(new char[entryPassword.length], entryPassword,
 			"the entry's password array is overwritten. Setting the field to null would leave the "
@@ -95,6 +101,10 @@ class VaultCloseSupportTest
 			"and so is the repeated one - a second copy of the same secret");
 		assertArrayEquals(new char[masterPassword.length], masterPassword,
 			"and the master password, which opens everything else");
+		assertNull(entry.getPassword(),
+			"the field is cleared as well as the array. An overwritten array still referenced by a "
+				+ "live entry is a secret this application is still holding on to");
+		assertNull(entry.getRepeat());
 	}
 
 	@Test
@@ -112,6 +122,27 @@ class VaultCloseSupportTest
 		assertArrayEquals(new char[entryPassword.length], entryPassword,
 			"the tree is the second place an entry lives in this model, and a secret left in the "
 				+ "one the loop forgot is a secret left in memory");
+		assertNull(entry.getPassword(), "and the field with it");
+	}
+
+	@Test
+	@DisplayName("a null among the entries does not stop the wipe")
+	void closeVault_wipesTheRest_whenTheModelHoldsANull()
+	{
+		char[] entryPassword = ENTRY_PASSWORD.clone();
+		MysticCryptEntryModelBean entry = MysticCryptEntryModelBean.builder().title("a real one")
+			.password(entryPassword).build();
+		Map<Long, List<MysticCryptEntryModelBean>> entriesByNodeId = new LinkedHashMap<>();
+		entriesByNodeId.put(1L, Arrays.asList(null, entry));
+		entriesByNodeId.put(2L, null);
+		ApplicationModelBean applicationModelBean = openVault();
+		applicationModelBean.setDataOfNodes(entriesByNodeId);
+
+		VaultCloseSupport.closeVault(applicationModelBean);
+
+		assertArrayEquals(new char[entryPassword.length], entryPassword,
+			"a null in the list comes out of a file this application did not write itself, and a "
+				+ "wipe that stops at the first one leaves every later secret in memory");
 	}
 
 	@Test

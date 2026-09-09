@@ -17,6 +17,12 @@ test {
     }
 }
 
+// pinned rather than left to whatever the Gradle version in use happens to bundle, so a coverage
+// report is produced by a version somebody chose (#277)
+jacoco {
+    toolVersion = libs.versions.jacoco.version.get()
+}
+
 jacocoTestReport {
     reports {
         xml.required.set(true)

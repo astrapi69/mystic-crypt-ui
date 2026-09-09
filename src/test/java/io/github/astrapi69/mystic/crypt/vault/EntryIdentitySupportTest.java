@@ -28,6 +28,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.time.OffsetDateTime;
+import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -105,6 +106,24 @@ class EntryIdentitySupportTest
 			"nothing was missing the second time, so nothing marks the model as changed either");
 		assertEquals(afterTheFirstPass, entry.getId(),
 			"an identifier that is regenerated per session is not an identifier");
+	}
+
+	@Test
+	@DisplayName("a null among the entries does not stop the assignment")
+	void assignMissingIdentifiers_carriesOn_whenTheModelHoldsANull()
+	{
+		MysticCryptEntryModelBean entry = MysticCryptEntryModelBean.builder().title("a real one")
+			.build();
+		Map<Long, List<MysticCryptEntryModelBean>> entriesByNodeId = new LinkedHashMap<>();
+		entriesByNodeId.put(1L, Arrays.asList(null, entry));
+		entriesByNodeId.put(2L, null);
+		ApplicationModelBean applicationModelBean = ApplicationModelBean.builder()
+			.dataOfNodes(entriesByNodeId).build();
+
+		assertEquals(1, EntryIdentitySupport.assignMissingIdentifiers(applicationModelBean));
+		assertNotNull(entry.getId(),
+			"a null in the list comes out of a file this application did not write itself, and a "
+				+ "pass that stops at the first one leaves every later entry without identity");
 	}
 
 	@Test

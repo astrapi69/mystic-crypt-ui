@@ -23,6 +23,7 @@ package io.github.astrapi69.mystic.crypt.action;
 import java.awt.event.ActionEvent;
 import java.beans.PropertyVetoException;
 import java.io.Serial;
+import java.util.logging.Level;
 
 import javax.swing.*;
 
@@ -34,10 +35,12 @@ import io.github.astrapi69.swing.component.factory.JComponentFactory;
 import io.github.astrapi69.swing.enumeration.FrameMode;
 import io.github.astrapi69.swing.panel.desktoppane.JDesktopPanePanel;
 import io.github.astrapi69.swing.util.JInternalFrameExtensions;
+import lombok.extern.java.Log;
 
 /**
  * The class {@link OpenDatabaseTreeFrameAction}.
  */
+@Log
 public class OpenDatabaseTreeFrameAction extends AbstractAction
 {
 
@@ -60,33 +63,28 @@ public class OpenDatabaseTreeFrameAction extends AbstractAction
 	}
 
 	/**
-	 * Puts the vault view back on screen - unless the workspace is locked, in which case it does
-	 * nothing.
+	 * Puts the vault view back on screen - unless the workspace is locked.
 	 * <p>
-	 * This is the second path to the same view. The #237 fix wired
-	 * {@link WorkspaceLockDecision#onSwitchToDesktopPane(boolean, boolean)} into
-	 * {@link MysticCryptApplicationFrame#switchToDesktopPane()}, which is the path a MODE SWITCH
-	 * takes; this one is the path the action takes, and it asked nothing at all. Fired while
-	 * locked, it put the vault back on the desktop with its entries selectable and the signed-in
-	 * state still false (#285).
-	 * <p>
-	 * From the user interface the action is not reachable while locked - the menu item is disabled
-	 * and clicking it does nothing. That is the first line. This is the second, and it holds for a
-	 * keyboard shortcut, a persisted menu layout carrying the item, or a caller added later, which
-	 * is the same argument as #269/#270.
-	 * <p>
-	 * The second argument answers whether there is a view to show at all, so the same question also
-	 * covers the case with nothing open: without a panel the decision is to show nothing, where
-	 * this method used to walk into the panel and throw
-	 * ({@code NullPointerException: Cannot read field 'parent' because 'comp' is null}).
+	 * The lock decision is asked HERE and not only where the menu item is enabled. The menu item is
+	 * disabled while locked, which is the first line; measured, clicking it then does nothing. This
+	 * is the second, and it holds for a keyboard shortcut, a persisted menu layout carrying the
+	 * item, or a caller added later (#285). {@code switchToDesktopPane()} has asked the same
+	 * decision since #237 - this is the other path to the same view, and it did not
 	 */
 	public static void openDatabaseTreeFrame()
 	{
 		MysticCryptApplicationFrame instance = MysticCryptApplicationFrame.getInstance();
 		WorkspaceLockDecision decision = WorkspaceLockDecision.onSwitchToDesktopPane(
 			instance.getModelObject().isSignedIn(), instance.getApplicationPanel() != null);
-		if (WorkspaceLockDecision.HIDE_VAULT.equals(decision))
+		if (!WorkspaceLockDecision.SHOW_VAULT.equals(decision))
 		{
+			// No dialog: the menu item is disabled while locked, so a user who did nothing gets no
+			// message. No silence either: this branch is only reached when the first line has
+			// failed, which is exactly when someone should learn of it. So it goes to the log at
+			// warning level, with what triggered the call as far as it is available (#285)
+			log.log(Level.WARNING,
+				"refused to open the vault view while the workspace is locked, triggered by: "
+					+ callerOf(new Throwable().getStackTrace()));
 			return;
 		}
 		if (FrameMode.DESKTOP_PANE.equals(instance.getFrameMode()))
@@ -195,6 +193,27 @@ public class OpenDatabaseTreeFrameAction extends AbstractAction
 	public void actionPerformed(final ActionEvent e)
 	{
 		openDatabaseTreeFrame();
+	}
+
+	/**
+	 * The first frame outside this class, as a hint at what asked for the vault view. Only ever
+	 * used for the refusal's log line - a caller reaching this branch bypassed the disabled menu
+	 * item, and the stack is the only thing that says which one
+	 *
+	 * @param stack
+	 *            the captured stack trace
+	 * @return a readable caller, or "unknown" when the stack holds nothing outside this class
+	 */
+	private static String callerOf(final StackTraceElement[] stack)
+	{
+		for (StackTraceElement frame : stack)
+		{
+			if (!OpenDatabaseTreeFrameAction.class.getName().equals(frame.getClassName()))
+			{
+				return frame.toString();
+			}
+		}
+		return "unknown";
 	}
 
 }
