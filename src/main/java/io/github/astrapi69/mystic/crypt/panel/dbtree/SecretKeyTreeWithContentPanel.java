@@ -74,6 +74,7 @@ import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
 import io.github.astrapi69.mystic.crypt.eventbus.ApplicationEventBus;
 import io.github.astrapi69.mystic.crypt.panel.table.NewTableEntryModel;
 import io.github.astrapi69.mystic.crypt.panel.table.NewTableEntryPanel;
+import io.github.astrapi69.mystic.crypt.vault.EntryIdentitySupport;
 import io.github.astrapi69.swing.dialog.DialogExtensions;
 import io.github.astrapi69.swing.dialog.JOptionPaneExtensions;
 import io.github.astrapi69.swing.listener.mouse.MouseDoubleClickListener;
@@ -1321,8 +1322,11 @@ public class SecretKeyTreeWithContentPanel
 		getTblTreeEntryTable().getSingleSelectedRowData().ifPresent(selectedTableEntry -> {
 			// NOT CloneQuietlyExtensions.clone(...): that resolves to a shallow copy, so original
 			// and duplicate would share the same resources/properties/modification lists
+			// id(null) on purpose: toBuilder copies the identifier, and a duplicate carrying the
+			// original's identity is exactly the reuse an identifier must never do. It gets its
+			// own in addNewTableEntryToModel, the one place that hands them out (#272)
 			MysticCryptEntryModelBean clonedMysticCryptEntry = selectedTableEntry.toBuilder()
-				.resources(new ArrayList<>(selectedTableEntry.getResources()))
+				.id(null).resources(new ArrayList<>(selectedTableEntry.getResources()))
 				.properties(new ArrayList<>(selectedTableEntry.getProperties())).build();
 
 			String newName = clonedMysticCryptEntry.getTitle() + "-Copy";
@@ -1436,6 +1440,9 @@ public class SecretKeyTreeWithContentPanel
 
 	private void addNewTableEntryToModel(MysticCryptEntryModelBean modelObject)
 	{
+		// an entry created here used to have no identifier at all - the field was filled only when
+		// importing from KeePass (#272)
+		EntryIdentitySupport.assignIdentifierIfMissing(modelObject);
 		BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> selectedBaseTreeNode = getSelectedBaseTreeNode();
 
 		GenericTreeElement<List<MysticCryptEntryModelBean>> value = selectedBaseTreeNode.getValue();
@@ -1520,6 +1527,10 @@ public class SecretKeyTreeWithContentPanel
 				modelObject
 					.setExpires(panel.getMysticCryptEntryPanel().getTxtExpires().getSelectedDate());
 			}
+			// an actual edit is the only thing that sets this. Filling it on load or on first save
+			// would invent a fact that reads later as measured, so empty stays empty until here
+			// (#273)
+			EntryIdentitySupport.markAsModified(modelObject);
 			data.add(index, modelObject);
 
 			getBaseTreeNodeModel();

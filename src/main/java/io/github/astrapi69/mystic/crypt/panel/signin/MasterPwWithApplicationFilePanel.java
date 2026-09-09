@@ -51,6 +51,7 @@ import io.github.astrapi69.mystic.crypt.app.file.xml.ApplicationXmlFileReader;
 import io.github.astrapi69.mystic.crypt.panel.signin.button.state.ok.BtnOkComponentStateEnum;
 import io.github.astrapi69.mystic.crypt.panel.signin.button.state.ok.BtnOkStateMachine;
 import io.github.astrapi69.mystic.crypt.panel.signin.button.state.ok.DocumentExtensions;
+import io.github.astrapi69.mystic.crypt.vault.EntryIdentitySupport;
 import io.github.astrapi69.net.url.URLExtensions;
 import io.github.astrapi69.swing.base.BasePanel;
 import io.github.astrapi69.swing.dialog.help.HelpDialog;
@@ -672,6 +673,15 @@ public class MasterPwWithApplicationFilePanel extends BasePanel<MasterPwFileMode
 				if (applicationModelBean.isDirty())
 				{
 					applicationModelBean.setDirty(false);
+				}
+				// entries written before identifiers were maintained have none, and only assigning
+				// them on load reaches the oldest data - the data most worth referencing. What is
+				// assigned has to be persisted, or the next session invents different identifiers
+				// and the field is not an identity at all, so the model is marked as changed here
+				// and the identifiers travel with the next save (#272)
+				if (0 < EntryIdentitySupport.assignMissingIdentifiers(applicationModelBean))
+				{
+					applicationModelBean.setDirty(true);
 				}
 				applicationModelBean.setSignedIn(true);
 				applicationFrame.setModelObject(applicationModelBean);
