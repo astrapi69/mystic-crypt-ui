@@ -50,7 +50,11 @@ Prompt triggers: "release new version", "new release".
    - dependency currency check: `make dependency-updates` — routine patch/minor bumps as
      part of the release; major bumps get their own session, never bundled in. A change
      to the build or the release path itself is NOT bundled into a security release.
-6. **Tag + push**: `make tag-release` (or the manual `git tag -a vX.Y.Z` + push).
+6. **Tag + push**: `make tag-release`, which is where the tag's SHAPE is decided -
+   `gradle/tagging.gradle` builds it as `RELEASE-${projectVersion}`, so a release is
+   `RELEASE-8.4` and never `v8.4`. Manually it is `git tag -a RELEASE-X.Y.Z` + push, but
+   prefer the target: a shape retyped from prose is a shape that drifts, and this line said
+   `vX.Y.Z` through three releases while every tag in the repository said otherwise (#291).
    **A pushed tag is never deleted or moved.** If the publishing workflow it triggers
    fails, the fix goes on the branch and the workflow is re-run on the SAME tag. A deleted
    or moved tag rewrites what a version means for everyone who already fetched it, to
@@ -64,7 +68,7 @@ Prompt triggers: "release new version", "new release".
    release branch, and a reader could not tell which release it corresponded to without checking
    the tags (#248). It is a numbered step here rather than a habit for exactly that reason. Never
    the other direction: master carries nothing develop does not.
-8. **GitHub release** from the CHANGELOG entry (`gh release create vX.Y.Z`), with the installer
+8. **GitHub release** from the CHANGELOG entry (`gh release create RELEASE-X.Y.Z`), with the installer
    AND the `.sha256`/`.sha512` files `make izpack-installer` writes next to it. A release without
    them gives a downloader no way to tell a tampered file from the real one.
 9. **Open the next cycle**: set `projectVersion` to the next version with a `-SNAPSHOT`

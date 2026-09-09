@@ -45,7 +45,7 @@ When unclear: ask rather than guess.
 - One commit per logical change. Atomic = smallest reversible unit that leaves the tree
   green individually — when a source edit and its test edit would break apart, they land
   in ONE commit (see lessons-learned.md).
-- Gitflow: `develop` is the active branch; `master` holds releases (tags vX.Y.Z).
+- Gitflow: `develop` is the active branch; `master` holds releases (tags `RELEASE-X.Y.Z`).
   Branch `feature/*` / `fix/*` / `chore/*` FROM `develop`, PRs AGAINST `develop`.
 - No `--amend` + force-push on an open PR — add a new commit instead (an amend can desync
   the PR head and silently drop the amended change on merge).
