@@ -51,6 +51,13 @@ Prompt triggers: "release new version", "new release".
      part of the release; major bumps get their own session, never bundled in. A change
      to the build or the release path itself is NOT bundled into a security release.
 6. **Tag + push**: `make tag-release` (or the manual `git tag -a vX.Y.Z` + push).
+   **A pushed tag is never deleted or moved.** If the publishing workflow it triggers
+   fails, the fix goes on the branch and the workflow is re-run on the SAME tag. A deleted
+   or moved tag rewrites what a version means for everyone who already fetched it, to
+   repair a run that can simply be repeated. Before a release depends on a publishing
+   workflow that has changed, run it once manually against a snapshot target: a workflow
+   that has never executed is a hypothesis (crypt-api lost a first tag run to exactly
+   this).
 7. **GitHub release** from the CHANGELOG entry (`gh release create vX.Y.Z`), with the installer
    AND the `.sha256`/`.sha512` files `make izpack-installer` writes next to it. A release without
    them gives a downloader no way to tell a tampered file from the real one.
