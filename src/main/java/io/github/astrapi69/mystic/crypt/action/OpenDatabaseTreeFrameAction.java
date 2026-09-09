@@ -29,6 +29,7 @@ import javax.swing.*;
 import io.github.astrapi69.mystic.crypt.ApplicationModelBean;
 import io.github.astrapi69.mystic.crypt.ApplicationPanel;
 import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
+import io.github.astrapi69.mystic.crypt.lock.WorkspaceLockDecision;
 import io.github.astrapi69.swing.component.factory.JComponentFactory;
 import io.github.astrapi69.swing.enumeration.FrameMode;
 import io.github.astrapi69.swing.panel.desktoppane.JDesktopPanePanel;
@@ -58,9 +59,36 @@ public class OpenDatabaseTreeFrameAction extends AbstractAction
 		super(name);
 	}
 
+	/**
+	 * Puts the vault view back on screen - unless the workspace is locked, in which case it does
+	 * nothing.
+	 * <p>
+	 * This is the second path to the same view. The #237 fix wired
+	 * {@link WorkspaceLockDecision#onSwitchToDesktopPane(boolean, boolean)} into
+	 * {@link MysticCryptApplicationFrame#switchToDesktopPane()}, which is the path a MODE SWITCH
+	 * takes; this one is the path the action takes, and it asked nothing at all. Fired while
+	 * locked, it put the vault back on the desktop with its entries selectable and the signed-in
+	 * state still false (#285).
+	 * <p>
+	 * From the user interface the action is not reachable while locked - the menu item is disabled
+	 * and clicking it does nothing. That is the first line. This is the second, and it holds for a
+	 * keyboard shortcut, a persisted menu layout carrying the item, or a caller added later, which
+	 * is the same argument as #269/#270.
+	 * <p>
+	 * The second argument answers whether there is a view to show at all, so the same question also
+	 * covers the case with nothing open: without a panel the decision is to show nothing, where
+	 * this method used to walk into the panel and throw
+	 * ({@code NullPointerException: Cannot read field 'parent' because 'comp' is null}).
+	 */
 	public static void openDatabaseTreeFrame()
 	{
 		MysticCryptApplicationFrame instance = MysticCryptApplicationFrame.getInstance();
+		WorkspaceLockDecision decision = WorkspaceLockDecision.onSwitchToDesktopPane(
+			instance.getModelObject().isSignedIn(), instance.getApplicationPanel() != null);
+		if (WorkspaceLockDecision.HIDE_VAULT.equals(decision))
+		{
+			return;
+		}
 		if (FrameMode.DESKTOP_PANE.equals(instance.getFrameMode()))
 		{
 			ensureDatabaseTreeFrameOpen(instance);

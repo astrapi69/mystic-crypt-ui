@@ -72,6 +72,11 @@ import io.github.astrapi69.mystic.crypt.TestPasswords;
  * locked, this test would stay green in both states. That half belongs to the test of the action
  * itself (LockRefusesANewVaultUiTest), and it is asserted there.
  * <p>
+ * The general form of that other half is {@link LockedWorkspaceRefusesEveryActionUiTest}: it fires
+ * every action through the action objects with a vault locked and asks whether it is REFUSED - the
+ * question a subset check over names cannot answer (#284). The two together: this one says what may
+ * be offered, that one says what must be refused.
+ * <p>
  * Locked and public are the same menu state - {@code LockWorkspaceAction} calls the same
  * {@code onEnableByPublic} after clearing the signed-in flag (#237). That is asserted here rather
  * than written in a comment somewhere.
