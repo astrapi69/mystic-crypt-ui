@@ -1,6 +1,33 @@
 ## Change log
 ----------------------
 
+Version 8.5 (unreleased)
+-------------
+
+SECURITY:
+
+- the action that puts the vault window back on screen asked nothing about the lock. Fired while the workspace was locked - through a keyboard shortcut, a persisted menu layout carrying the item, or any caller other than the menu item, which is disabled - it put the vault back on the desktop with its entries selectable while the workspace stayed locked. It now asks the same decision as the mode switch (#285)
+- the workspace locks itself after 15 idle minutes. Locking used to be a deliberate user action and nothing else, so an open vault stayed open for as long as the application ran; the timeout is configurable in the settings and 0 turns it off (#241)
+- closing a vault overwrites the entries' passwords and the master password in memory rather than dropping the objects for the collector to find later (#242, in part)
+
+ADDED:
+
+- a database can be closed while the application runs. "The vault is closed" was a state this application could not reach: the save-if-dirty question lived inside the window-closing listener, so ending the application was the only way to it (#281)
+- "Open Database..." opens an existing database file. After cancelling the sign-in there was no way into a vault at all, and Exit or a restart were the only moves left (#266)
+- entries created here get an identifier, and entries in existing vaults get one when the vault is opened, persisted with the next save. The field existed and was filled only when importing from a KeePass database (#272)
+- an entry's modification date is set when the entry is actually edited. It used to be filled only on import, so it stopped being true the moment somebody edited the entry here; an entry that was never edited still shows nothing rather than an invented date (#273)
+
+FIXED:
+
+- creating a new database while another one is open no longer refuses outright: the open one is closed first, asking about unsaved changes. A LOCKED vault is still refused, because its master password is not in memory (#279, #281)
+- "make license-format" stamped the project's licence header onto resources - help files, launchers, a third party's licence text and Spotless's own import-order configuration, after which the build could no longer configure itself. The header goes on Java sources and on nothing else (#282)
+- the "Open Database" entry, now labelled "Show Database View", does nothing instead of throwing when there is no vault open (#285)
+
+CHANGED:
+
+- dependency currency: Spotless 8.10.2, JaCoCo 0.8.15 (pinned rather than left to the Gradle default), pf4j 3.15.1, Lombok 1.18.48, PIT 1.30.0 (#277)
+- releases move `master` onto the tag as a numbered step of the release workflow, instead of leaving it at the 2024-06 release while claiming to be the release branch (#248)
+
 Version 8.4
 -------------
 

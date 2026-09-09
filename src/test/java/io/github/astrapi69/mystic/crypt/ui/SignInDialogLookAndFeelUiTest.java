@@ -36,6 +36,7 @@ import org.junit.jupiter.api.Test;
 
 import com.formdev.flatlaf.FlatDarkLaf;
 
+import io.github.astrapi69.mystic.crypt.lock.IdleLockDecision;
 import io.github.astrapi69.mystic.crypt.settings.MysticCryptSettings;
 import io.github.astrapi69.swing.enumeration.FrameMode;
 
@@ -55,8 +56,8 @@ class SignInDialogLookAndFeelUiTest extends AbstractUiTest
 	{
 		File configurationDirectory = new File(tempHome, ".config/mystic-crypt-ui");
 		configurationDirectory.mkdirs();
-		new MysticCryptSettings("FlatLaf Dark", "en", FrameMode.APPLICATION_PANEL, true)
-			.save(configurationDirectory);
+		new MysticCryptSettings("FlatLaf Dark", "en", FrameMode.APPLICATION_PANEL, true,
+			IdleLockDecision.DEFAULT_TIMEOUT_MINUTES).save(configurationDirectory);
 
 		DialogFixture signInDialog = launchApplication().dialog();
 

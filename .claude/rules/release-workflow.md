@@ -58,17 +58,23 @@ Prompt triggers: "release new version", "new release".
    workflow that has changed, run it once manually against a snapshot target: a workflow
    that has never executed is a hypothesis (crypt-api lost a first tag run to exactly
    this).
-7. **GitHub release** from the CHANGELOG entry (`gh release create vX.Y.Z`), with the installer
+7. **Move `master` onto the release.** Merge (or fast-forward) the tagged commit into `master`
+   and push it. `master` holds releases - that rule was written down and then not followed for
+   8.1.1, 8.2, 8.3 and 8.4, so master stood at the 2024-06 release while claiming to be the
+   release branch, and a reader could not tell which release it corresponded to without checking
+   the tags (#248). It is a numbered step here rather than a habit for exactly that reason. Never
+   the other direction: master carries nothing develop does not.
+8. **GitHub release** from the CHANGELOG entry (`gh release create vX.Y.Z`), with the installer
    AND the `.sha256`/`.sha512` files `make izpack-installer` writes next to it. A release without
    them gives a downloader no way to tell a tampered file from the real one.
-8. **Open the next cycle**: set `projectVersion` to the next version with a `-SNAPSHOT`
+9. **Open the next cycle**: set `projectVersion` to the next version with a `-SNAPSHOT`
    suffix (`8.3` released -> `8.4-SNAPSHOT`), in the same session as the tag. Without it
    the repository carries the released number while being something else, and every
    local build produces artifacts that name themselves after a release they are not.
    The `releaseVersion` flag in `gradle/packaging.gradle` reads exactly this suffix, so
    a develop that permanently looks like a release version also signs and packages in
    release mode on every developer build.
-9. **Post-release**: CHANGELOG link check, CLAUDE.md update if architecture changed,
+10. **Post-release**: CHANGELOG link check, CLAUDE.md update if architecture changed,
    lessons-learned.md entry if anything noteworthy happened during the release.
 
 ## Troubleshooting

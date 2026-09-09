@@ -57,12 +57,18 @@ class PublicAccessTest
 	}
 
 	@Test
-	@DisplayName("'Open Database' is private, because clicking it without a vault throws")
-	void openingADatabaseIsNotPublic()
+	@DisplayName("showing the database view is private, opening a database file is the public way in")
+	void showingTheViewIsNotPublicButOpeningAFileIs()
 	{
 		assertFalse(PublicAccess.isPublicMenuId(MenuId.OPEN_DATABASE.propertiesKey()),
-			"the action behind that label re-shows a vault that is already open; without one it "
-				+ "throws a NullPointerException. A way into a vault has to be built first (#266)");
+			"the action behind that label re-shows a vault that is already open, so it has nothing "
+				+ "to do without one. It used to throw here and now returns instead (#285), which "
+				+ "makes it harmless rather than worth offering");
+		assertTrue(PublicAccess.isPublicMenuId(MenuId.OPEN_DATABASE_FILE.propertiesKey()),
+			"and this is the way back IN that #266 asked for: without it, cancelling the sign-in "
+				+ "left Exit and a restart as the only moves");
+		assertFalse(PublicAccess.isPublicMenuId(MenuId.CLOSE_DATABASE.propertiesKey()),
+			"with nothing open there is nothing to close (#281)");
 	}
 
 	@Test

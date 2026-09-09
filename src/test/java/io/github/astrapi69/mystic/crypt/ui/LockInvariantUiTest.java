@@ -31,6 +31,7 @@ import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.io.File;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
 
@@ -47,12 +48,14 @@ import org.junit.jupiter.api.Test;
 import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
 import io.github.astrapi69.mystic.crypt.TestPasswords;
 import io.github.astrapi69.mystic.crypt.action.ApplicationToggleFullScreenAction;
+import io.github.astrapi69.mystic.crypt.action.CloseApplicationFileAction;
 import io.github.astrapi69.mystic.crypt.action.ExportKeePassDatabaseAction;
 import io.github.astrapi69.mystic.crypt.action.ImportKeePassDatabaseAction;
 import io.github.astrapi69.mystic.crypt.action.LockWorkspaceAction;
 import io.github.astrapi69.mystic.crypt.action.NewApplicationFileAction;
 import io.github.astrapi69.mystic.crypt.action.NewSettingsFrameAction;
 import io.github.astrapi69.mystic.crypt.action.OpenDatabaseTreeFrameAction;
+import io.github.astrapi69.mystic.crypt.action.OpenExistingDatabaseAction;
 import io.github.astrapi69.mystic.crypt.action.OpenPrivateKeyAction;
 import io.github.astrapi69.mystic.crypt.action.SaveApplicationFileAction;
 import io.github.astrapi69.mystic.crypt.action.SaveAsApplicationFileAction;
@@ -93,10 +96,14 @@ class LockInvariantUiTest extends AbstractUiTest
 	 * the invariant
 	 */
 	private static final Map<String, String> NOT_FIRED = Map.of("LockWorkspaceAction",
-		"it IS the exception: fired at the end of the invariant to bring the unlock prompt back");
-	// One entry today. This is the second exception list in this class, and it is treated like the
-	// first: every further entry needs a reason written here and the maintainer's agreement, not a
-	// quiet addition
+		"it IS the exception: fired at the end of the invariant to bring the unlock prompt back",
+		"SaveBeforeCloseConfirmation",
+		"not an action at all: the save-if-dirty question, asked BY the actions that close a vault "
+			+ "(#281). It has no actionPerformed to fire");
+	// Two entries today, and the second one is a class in the directory that is not an action.
+	// This is the second exception list in this class, and it is treated like the first: every
+	// further entry needs a reason written here and the maintainer's agreement, not a quiet
+	// addition
 
 	/**
 	 * Every action in the package, fired through its action object.
@@ -128,6 +135,14 @@ class LockInvariantUiTest extends AbstractUiTest
 		actions.put(ApplicationToggleFullScreenAction.class,
 			() -> new ApplicationToggleFullScreenAction("full screen",
 				MysticCryptApplicationFrame.getInstance()));
+		// closing a vault and opening another one, both added with the close path (#281, #266).
+		// Neither is an exception: closing a LOCKED vault is refused, because saving its pending
+		// changes needs the master password locking cleared, and opening another one closes the
+		// current one first, so it is refused for the same reason
+		actions.put(CloseApplicationFileAction.class,
+			() -> new CloseApplicationFileAction("close"));
+		actions.put(OpenExistingDatabaseAction.class,
+			() -> new OpenExistingDatabaseAction("open a database file"));
 		return actions;
 	}
 
@@ -166,6 +181,10 @@ class LockInvariantUiTest extends AbstractUiTest
 				lengthWhileLocked == databaseFile.length()
 					&& modifiedWhileLocked == databaseFile.lastModified(),
 				"'" + what + "' wrote the vault's file while the workspace is locked");
+			assertTrue(nothingOnScreenShows("TheSecret", "the-password"),
+				"'" + what + "' showed an entry of the locked vault. The vault panel being gone is "
+					+ "one way for the content to be out of reach; a dialog that lists it is a "
+					+ "second door to the same content");
 		}
 
 		// the one exception, and the reason the rest of this test is not "nothing works".
@@ -214,6 +233,75 @@ class LockInvariantUiTest extends AbstractUiTest
 			"these actions are neither fired by the invariant nor excluded by name: " + uncovered
 				+ ". An action added to the package joins this test by existing - either fire it "
 				+ "in actionsUnderTest(), or name it in NOT_FIRED with the reason");
+	}
+
+	/**
+	 * Whether none of the given secrets can be read anywhere on screen right now: the labels, text
+	 * fields, table cells and tree rows of every showing window.
+	 * <p>
+	 * The vault panel being off screen is one way for the content to be out of reach. It is not the
+	 * only one - a dialog that lists entries reaches the same content through another door - so the
+	 * invariant asks the question directly rather than through the panel
+	 *
+	 * @param secrets
+	 *            the entry's title and password, put into the vault before it was locked
+	 * @return true if none of them is readable
+	 */
+	private static boolean nothingOnScreenShows(final String... secrets)
+	{
+		List<String> onScreen = GuiActionRunner.execute(() -> {
+			List<String> texts = new java.util.ArrayList<>();
+			for (Window window : Window.getWindows())
+			{
+				if (window.isShowing())
+				{
+					collectText(window, texts);
+				}
+			}
+			return texts;
+		});
+		return java.util.Arrays.stream(secrets)
+			.noneMatch(secret -> onScreen.stream().anyMatch(text -> text.contains(secret)));
+	}
+
+	private static void collectText(final java.awt.Component component, final List<String> texts)
+	{
+		switch (component)
+		{
+			case javax.swing.JLabel label -> texts.add(String.valueOf(label.getText()));
+			case javax.swing.text.JTextComponent field -> texts.add(String.valueOf(field.getText()));
+			case javax.swing.JTable table -> collectTableText(table, texts);
+			case javax.swing.JTree tree -> collectTreeText(tree, texts);
+			default ->
+			{
+			}
+		}
+		if (component instanceof java.awt.Container container)
+		{
+			for (java.awt.Component child : container.getComponents())
+			{
+				collectText(child, texts);
+			}
+		}
+	}
+
+	private static void collectTableText(final javax.swing.JTable table, final List<String> texts)
+	{
+		for (int row = 0; row < table.getRowCount(); row++)
+		{
+			for (int column = 0; column < table.getColumnCount(); column++)
+			{
+				texts.add(String.valueOf(table.getValueAt(row, column)));
+			}
+		}
+	}
+
+	private static void collectTreeText(final javax.swing.JTree tree, final List<String> texts)
+	{
+		for (int row = 0; row < tree.getRowCount(); row++)
+		{
+			texts.add(String.valueOf(tree.getPathForRow(row).getLastPathComponent()));
+		}
 	}
 
 	private static boolean signedIn()

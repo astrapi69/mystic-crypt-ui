@@ -7,8 +7,8 @@
 // equivalent, so they produce noise instead of insight.
 //
 // What stays in scope are the headless, fast tests: the menu layout, the KeePass converters, the
-// settings including the store behind the per-plugin configuration, and the workspace lock
-// decision. The last one is here on purpose: it decides whether a locked workspace shows its vault,
+// settings including the store behind the per-plugin configuration, the workspace and idle
+// lock decisions, and what closing a vault does to the model. The last one is here on purpose: it decides whether a locked workspace shows its vault,
 // which is the defect #237 was, and it was extracted out of the Swing frame precisely so that this
 // exclusion stops applying to it (#252).
 //
@@ -25,6 +25,13 @@
 // when PIT runs them in its own forked JVM. That is a real coupling in those tests, not a PIT
 // problem - PIT just makes it visible.
 //
+// IdleLockWatchdog keeps a handful of surviving mutants in start() and stop(), and they stay:
+// what is left there is a javax.swing.Timer and a Toolkit listener registration, which is the
+// same Swing wiring this scope excludes everywhere else. Its DECISION is measured -
+// checkNow() is package visible and driven over an injected clock, so "locks after the
+// timeout", "does not lock twice" and "never locks when switched off" are real assertions
+// rather than a timer nobody waits for.
+//
 // Run it with `./gradlew pitest`; the report lands in build/reports/pitest. There is deliberately
 // One mutant in MenuLayoutSupport.harvestActions survives on purpose and cannot be killed: turning
 // `index < menuBar.getMenuCount()` into `<=` makes getMenu(count) return null, which the null guard
@@ -39,6 +46,7 @@ pitest {
     targetClasses = [
             "io.github.astrapi69.mystic.crypt.menu.*",
             "io.github.astrapi69.mystic.crypt.lock.*",
+            "io.github.astrapi69.mystic.crypt.vault.*",
             "io.github.astrapi69.mystic.crypt.keepass.KeePassEntryConverter",
             "io.github.astrapi69.mystic.crypt.keepass.KeePassTreeConverter",
             "io.github.astrapi69.mystic.crypt.settings.MysticCryptSettings",
@@ -50,6 +58,7 @@ pitest {
     targetTests = [
             "io.github.astrapi69.mystic.crypt.menu.*",
             "io.github.astrapi69.mystic.crypt.lock.*",
+            "io.github.astrapi69.mystic.crypt.vault.*",
             "io.github.astrapi69.mystic.crypt.keepass.KeePassEntryConverterTest",
             "io.github.astrapi69.mystic.crypt.keepass.KeePassTreeConverterTest",
             "io.github.astrapi69.mystic.crypt.settings.MysticCryptSettingsTest",

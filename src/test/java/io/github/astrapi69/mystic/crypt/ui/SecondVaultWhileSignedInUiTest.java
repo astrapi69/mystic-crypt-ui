@@ -48,18 +48,22 @@ import io.github.astrapi69.mystic.crypt.TestPasswords;
 import io.github.astrapi69.mystic.crypt.action.NewApplicationFileAction;
 
 /**
- * Creating a vault while another one is open is refused (#279).
+ * Creating a vault while another one is open closes the open one first (#279, #281).
  * <p>
- * Measured before the fix, through the running application including a restart: the new vault
+ * Measured before the #279 fix, through the running application including a restart: the new vault
  * received the open vault's entries under its own master password, and a change made to the open
  * vault never reached its file - the flow replaced the save target and left the model alone. Both
- * halves are pinned here as what must NOT happen again.
+ * halves are still pinned here as what must NOT happen again; what changed is how they are
+ * prevented.
  * <p>
- * The refusal is the shape this application can hold today. Closing a vault is a state it cannot
- * reach while running (#281), so "close the open one first" cannot be built inside this fix without
- * inventing that path here - which is the improvised state move that produced #270. When #281 is
- * done, these tests describe the closing flow instead of the refusal, and this class is rewritten
- * rather than replaced.
+ * The #279 fix refused outright, deliberately and temporarily, because closing a vault was a state
+ * this application could not reach while running - and inventing that path inside a single fix is
+ * the improvised state move that produced #270. #281 built it, so this class now describes the
+ * closing flow, as its previous version said it would.
+ * <p>
+ * A LOCKED vault is still refused rather than closed, and that is the #270 protection rather than
+ * an oversight: its master password is not in memory, so there is nothing to write its pending
+ * changes with. That case is measured in {@code LockRefusesANewVaultUiTest}.
  */
 class SecondVaultWhileSignedInUiTest extends AbstractUiTest
 {
@@ -68,11 +72,45 @@ class SecondVaultWhileSignedInUiTest extends AbstractUiTest
 
 	private static final String REFUSAL_TITLE = "A database is already open";
 
+	private static final String FILE_CHOOSER_TITLE = "Specify the database file to save";
+
 	@Test
-	@DisplayName("creating a vault while one is open is refused, and says what to do")
-	void creatingASecondVaultIsRefusedWhileOneIsOpen() throws Exception
+	@DisplayName("creating a vault while one is open closes it instead of refusing")
+	void creatingASecondVaultClosesTheOpenOne() throws Exception
 	{
 		File fileA = new File(tempHome, "vault-a.mcrdb");
+		createDatabaseFileHeadless(fileA, PW_A);
+
+		ApplicationSteps application = signInWithExistingDatabase(fileA, PW_A);
+		FrameFixture frame = application.showMainFrame();
+		application.selectTreeRow(frame, 0);
+		application.addEntry(frame, "EntryOfA", "user-a", "secret-of-a");
+		application.saveDatabase();
+
+		fireNewApplicationFileAction();
+		awaitDialogTitled(FILE_CHOOSER_TITLE);
+
+		assertTrue(dialogTitled(REFUSAL_TITLE) == null,
+			"an UNLOCKED vault is closed rather than refused since #281 - the refusal was the "
+				+ "shape available while this application could not close a vault at all");
+		assertTrue(
+			GuiActionRunner.execute(() -> MysticCryptApplicationFrame.getInstance().getModelObject()
+				.getMasterPwFileModelBean() == null),
+			"and it is closed BEFORE anything is created: the credentials of the vault that was "
+				+ "open are gone by the time the file chooser is up");
+		assertFalse(
+			GuiActionRunner.execute(
+				() -> MysticCryptApplicationFrame.getInstance().getModelObject().isSignedIn()),
+			"nothing may set the signed-in state along the way - that improvised move is #270");
+
+		dismissDialog(FILE_CHOOSER_TITLE);
+	}
+
+	@Test
+	@DisplayName("the vault that was closed keeps its content and its file")
+	void theClosedVaultIsUntouched() throws Exception
+	{
+		File fileA = new File(tempHome, "untouched-a.mcrdb");
 		File fileB = new File(tempHome, "vault-b.mcrdb");
 		createDatabaseFileHeadless(fileA, PW_A);
 
@@ -81,66 +119,42 @@ class SecondVaultWhileSignedInUiTest extends AbstractUiTest
 		application.selectTreeRow(frame, 0);
 		application.addEntry(frame, "EntryOfA", "user-a", "secret-of-a");
 		application.saveDatabase();
-
-		SwingUtilities.invokeLater(() -> new NewApplicationFileAction("New Application")
-			.actionPerformed(new ActionEvent(MysticCryptApplicationFrame.getInstance(), 0, "")));
-		Pause.pause(new Condition("the refusal is on screen")
-		{
-			@Override
-			public boolean test()
-			{
-				return dialogTitled(REFUSAL_TITLE) != null;
-			}
-		}, TimeUnit.SECONDS.toMillis(15));
-
-		assertTrue(dialogTitled(REFUSAL_TITLE) != null,
-			"the refusal has to be visible - a silent one repeats the defect this application "
-				+ "already had in Lock workspace");
-		assertTrue(dialogTitled("Specify the database file to save") == null,
-			"and it comes before the file chooser, so nothing reaches disk");
-		assertFalse(fileB.exists(), "no second vault file is created");
-	}
-
-	@Test
-	@DisplayName("the open vault keeps its content and its file after the refusal")
-	void theOpenVaultIsUntouchedByTheRefusal() throws Exception
-	{
-		File fileA = new File(tempHome, "untouched-a.mcrdb");
-		createDatabaseFileHeadless(fileA, PW_A);
-
-		ApplicationSteps application = signInWithExistingDatabase(fileA, PW_A);
-		FrameFixture frame = application.showMainFrame();
-		application.selectTreeRow(frame, 0);
-		application.addEntry(frame, "EntryOfA", "user-a", "secret-of-a");
-		application.saveDatabase();
 		long lengthAfterSaving = fileA.length();
-		File fileOnScreenBefore = application.applicationFileOnScreen();
 
-		SwingUtilities.invokeLater(() -> new NewApplicationFileAction("New Application")
-			.actionPerformed(new ActionEvent(MysticCryptApplicationFrame.getInstance(), 0, "")));
-		Pause.pause(new Condition("the refusal is on screen")
-		{
-			@Override
-			public boolean test()
-			{
-				return dialogTitled(REFUSAL_TITLE) != null;
-			}
-		}, TimeUnit.SECONDS.toMillis(15));
+		fireNewApplicationFileAction();
+		awaitDialogTitled(FILE_CHOOSER_TITLE);
+		dismissDialog(FILE_CHOOSER_TITLE);
 
-		assertEquals(fileOnScreenBefore, application.applicationFileOnScreen(),
-			"the save target must not move - that move is what wrote the open vault's entries "
-				+ "into a different file before this fix");
-		assertTrue(application.entryExistsWithTitle("EntryOfA"),
-			"and the open vault's content stays where it was");
-		assertEquals(lengthAfterSaving, fileA.length(), "its file is not rewritten either");
+		assertEquals(lengthAfterSaving, fileA.length(),
+			"closing writes nothing by itself - the question about unsaved changes was answered "
+				+ "before this, and there were none");
+		assertFalse(fileB.exists(), "and nothing was created either, the chooser was dismissed");
 
-		dismissDialog(REFUSAL_TITLE);
 		shutdownApplication();
 
 		ApplicationSteps reopened = signInWithExistingDatabase(fileA, PW_A);
 		assertTrue(reopened.entryExistsWithTitle("EntryOfA"),
-			"measured through a restart, not through a file timestamp: the vault still holds "
-				+ "its own entry");
+			"measured through a restart, not through a file timestamp: the vault that was closed "
+				+ "still holds its own entry. Writing one vault's entries into another vault's "
+				+ "file is what this whole issue was about");
+	}
+
+	private static void fireNewApplicationFileAction()
+	{
+		SwingUtilities.invokeLater(() -> new NewApplicationFileAction("New Application")
+			.actionPerformed(new ActionEvent(MysticCryptApplicationFrame.getInstance(), 0, "")));
+	}
+
+	private static void awaitDialogTitled(final String title)
+	{
+		Pause.pause(new Condition("the dialog '" + title + "' is on screen")
+		{
+			@Override
+			public boolean test()
+			{
+				return dialogTitled(title) != null;
+			}
+		}, TimeUnit.SECONDS.toMillis(15));
 	}
 
 	private static JDialog dialogTitled(final String title)

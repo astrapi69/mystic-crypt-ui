@@ -1,45 +1,24 @@
-
 license {
     ext.year="$projectInceptionYear"
     ext.owner="$projectLeaderName"
     ignoreFailures = true
     header = rootProject.file("src/main/resources/LICENSE.txt")
-    excludes(["**/README",
-              "**/README.md",
-              "**/LICENSE",
-              "**/NOTICE",
-              "**/*.xml",
-              "**/*.xsl",
-              "**/*.xsd",
-              "**/*.dtd",
-              "**/*.html",
-              "**/*.jsp",
-              "**/*.jpa",
-              "**/*.sql",
-              "**/*.properties",
-              "**/*.bat",
-              "**/*.gradle",
-              "**/*.MF",
-              "**/*.txt",
-              "**/*.vm",
-              "**/*.log",
-              "**/*.map",
-              "**/*.pem",
-              "**/*.ico",
-              "**/*.png",
-              "**/*.der",
-              "**/*.form",
-              "**/*.desktop",
-              "**/*.js.map",
-              "**/*.tmpl",
-              "**/*.mcrdb",
-              "**/*.js.tmpl",
-              "**/*.editorconfig",
-              "**/*.lombok.config",
-              "src/test/resources/**",
-              "src/main/resources/**",
-              "out/**",
-              "build/**"])
+}
+
+// The header belongs on this project's own Java sources and on nothing else.
+//
+// It is stated here rather than through the extension's excludes on purpose: those are wired into
+// the tasks through Gradle's conventionMapping, which does not reach SourceTask.getExcludes() - so
+// every pattern configured there was accepted and silently did nothing. licenseFormat therefore
+// stamped resources it was told to skip: help files, .bat launchers, a third party's licence text,
+// messages.properties, and src/test/resources/spotless/importorder.properties - the last of which
+// is Spotless's own configuration, after which the build could no longer configure itself at all
+// ("For input string: \"\"" out of :spotlessJava, naming neither the file nor licenseFormat) (#282).
+//
+// An include on the task's own pattern set is applied directly, which is the mechanism that works.
+// The tasks read allSource, so resources are in scope by default and have to be filtered out here.
+tasks.matching { it instanceof SourceTask && it.name.startsWith("license") }.configureEach {
+    include "**/*.java"
 }
 
 // workhack for license issue #76: the check tasks are permanently disabled (licenseFormat stays

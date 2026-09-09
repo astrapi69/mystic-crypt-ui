@@ -37,6 +37,7 @@ import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
+import io.github.astrapi69.mystic.crypt.lock.IdleLockDecision;
 import io.github.astrapi69.swing.enumeration.FrameMode;
 
 /**
@@ -55,6 +56,10 @@ class MysticCryptSettingsTest
 		assertEquals(FrameMode.APPLICATION_PANEL, settings.getViewMode(),
 			"the default view has to be the one the application always showed after signing in");
 		assertTrue(settings.isTooltipsEnabled(), "tooltips must be on by default");
+		assertEquals(IdleLockDecision.DEFAULT_TIMEOUT_MINUTES, settings.getAutoLockMinutes(),
+			"the automatic lock is ON by default: an open vault used to stay open for as long as the "
+				+ "application ran, and the case a password manager has to survive is the one where "
+				+ "nobody remembers to lock it (#241)");
 	}
 
 	@Test
@@ -62,7 +67,7 @@ class MysticCryptSettingsTest
 		@TempDir File configurationDirectory)
 	{
 		MysticCryptSettings settings = new MysticCryptSettings("Metal", "de",
-			FrameMode.DESKTOP_PANE, false);
+			FrameMode.DESKTOP_PANE, false, 30);
 		settings.save(configurationDirectory);
 		assertTrue(new File(configurationDirectory, MysticCryptSettings.JSON_FILENAME).exists(),
 			"saving must write the settings json");
@@ -72,6 +77,9 @@ class MysticCryptSettingsTest
 			"the chosen view did not survive the round trip");
 		assertEquals("Metal", loaded.getLookAndFeel());
 		assertEquals("de", loaded.getLanguage());
+		assertEquals(30, loaded.getAutoLockMinutes(),
+			"a configured idle timeout has to survive the round trip, or the setting is a dialog "
+				+ "that changes nothing");
 		assertFalse(loaded.isTooltipsEnabled(),
 			"the chosen tooltips preference did not survive the round trip");
 	}

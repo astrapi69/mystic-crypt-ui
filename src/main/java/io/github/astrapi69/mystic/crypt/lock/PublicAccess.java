@@ -68,12 +68,19 @@ public final class PublicAccess
 		BaseMenuId.FILE.propertiesKey(), BaseMenuId.HELP.propertiesKey(),
 		MenuId.VIEW.propertiesKey(), MenuId.PLUGINS.propertiesKey(),
 
-		// "Open Database" is NOT here, although it was going to be: the entry behind that label
-		// re-shows a vault that is already open (OpenDatabaseTreeFrameAction), it does not open a
-		// file. Clicked without one, it throws - measured: "NullPointerException: Cannot read
-		// field 'parent' because 'comp' is null", because the panel it would show does not exist.
-		// Listing it would have made a crashing entry public. There is therefore no menu path into
-		// a vault at all, and #266 is about building one, not about enabling this
+		// the way back INTO a vault, which is what #266 was about: pick a database file and sign
+		// in. Without it, cancelling the sign-in left Exit and a restart as the only moves.
+		//
+		// "Open Database" (MenuId.OPEN_DATABASE, now labelled "Show Database View") is a different
+		// entry and stays private: it re-shows a vault that is already open, so it has nothing to
+		// do without one. It used to throw when fired in this state and now returns instead
+		// (#285), which makes it harmless rather than public - an entry that reliably does nothing
+		// is not worth offering.
+		//
+		// "Close Database" stays private for the same shape of reason: with nothing open there is
+		// nothing to close
+		MenuId.OPEN_DATABASE_FILE.propertiesKey(),
+
 		// leaving, and the settings that are not about a vault. The Plugins TAB inside that
 		// dialog is NOT covered by this list and asks the predicate itself: installing and
 		// enabling a plugin loads code into the running process

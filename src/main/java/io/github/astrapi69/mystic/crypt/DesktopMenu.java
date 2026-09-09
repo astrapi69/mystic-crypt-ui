@@ -57,11 +57,13 @@ import io.github.astrapi69.design.pattern.observer.event.EventObject;
 import io.github.astrapi69.design.pattern.observer.event.EventSource;
 import io.github.astrapi69.lang.ClassExtensions;
 import io.github.astrapi69.mystic.crypt.action.ApplicationToggleFullScreenAction;
+import io.github.astrapi69.mystic.crypt.action.CloseApplicationFileAction;
 import io.github.astrapi69.mystic.crypt.action.ExportKeePassDatabaseAction;
 import io.github.astrapi69.mystic.crypt.action.ImportKeePassDatabaseAction;
 import io.github.astrapi69.mystic.crypt.action.LockWorkspaceAction;
 import io.github.astrapi69.mystic.crypt.action.NewSettingsFrameAction;
 import io.github.astrapi69.mystic.crypt.action.OpenDatabaseTreeFrameAction;
+import io.github.astrapi69.mystic.crypt.action.OpenExistingDatabaseAction;
 import io.github.astrapi69.mystic.crypt.action.OpenPrivateKeyAction;
 import io.github.astrapi69.mystic.crypt.action.SaveApplicationFileAction;
 import io.github.astrapi69.mystic.crypt.action.SaveAsApplicationFileAction;
@@ -161,12 +163,34 @@ public class DesktopMenu extends BaseDesktopMenu implements EventListener<EventO
 			.toJMenu();
 		// Open Database
 
-		JMenuItem openDatabaseMenuItem = MenuItemInfo.builder().text("Open Database")
+		// the way INTO a vault: pick a database file and sign in. Separate from the entry below,
+		// which only re-shows a vault that is already open - after cancelling the sign-in that one
+		// is disabled and there was nothing left but Exit and a restart (#266)
+		JMenuItem openDatabaseFileMenuItem = MenuItemInfo.builder().text("Open Database...")
+			.name(MenuId.OPEN_DATABASE_FILE.propertiesKey())
+			.mnemonic(MenuExtensions.toMnemonic('O'))
+			.keyStrokeInfo(
+				KeyStrokeInfo.toKeyStrokeInfo(KeyStrokeExtensions.getKeyStroke("ctrl pressed O")))
+			.actionListener(new OpenExistingDatabaseAction("Open Database File")).build()
+			.toJMenuItem();
+		fileMenu.add(openDatabaseFileMenuItem);
+
+		// re-shows the open vault's view. Its text says so since #266 added the entry above; the
+		// component name is unchanged, so a persisted menu arrangement still finds it
+		JMenuItem openDatabaseMenuItem = MenuItemInfo.builder().text("Show Database View")
 			.name(MenuId.OPEN_DATABASE.propertiesKey()).mnemonic(MenuExtensions.toMnemonic('D'))
 			.keyStrokeInfo(
 				KeyStrokeInfo.toKeyStrokeInfo(KeyStrokeExtensions.getKeyStroke("ctrl pressed D")))
 			.actionListener(new OpenDatabaseTreeFrameAction("Open Database")).build().toJMenuItem();
 		fileMenu.add(openDatabaseMenuItem);
+
+		// Close the open database
+		JMenuItem closeDatabaseMenuItem = MenuItemInfo.builder().text("Close Database")
+			.name(MenuId.CLOSE_DATABASE.propertiesKey()).mnemonic(MenuExtensions.toMnemonic('C'))
+			.keyStrokeInfo(
+				KeyStrokeInfo.toKeyStrokeInfo(KeyStrokeExtensions.getKeyStroke("ctrl pressed W")))
+			.actionListener(new CloseApplicationFileAction("Close Database")).build().toJMenuItem();
+		fileMenu.add(closeDatabaseMenuItem);
 
 		// Search the open database
 		JMenuItem searchMenuItem = MenuItemInfo.builder().text("Search...")

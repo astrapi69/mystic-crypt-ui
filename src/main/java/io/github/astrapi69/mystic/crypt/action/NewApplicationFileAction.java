@@ -40,6 +40,7 @@ import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
 import io.github.astrapi69.mystic.crypt.lock.WorkspaceLockDecision;
 import io.github.astrapi69.mystic.crypt.panel.signin.MasterPwFileModelBean;
 import io.github.astrapi69.mystic.crypt.panel.signin.NewMasterPwFileDialog;
+import io.github.astrapi69.mystic.crypt.vault.VaultCloseSupport;
 import io.github.astrapi69.swing.filechooser.JFileChooserExtensions;
 import io.github.astrapi69.throwable.RuntimeExceptionDecorator;
 
@@ -64,24 +65,32 @@ public class NewApplicationFileAction extends AbstractAction
 			.getInstance();
 		ApplicationModelBean applicationModelBean = mysticCryptApplicationFrame.getModelObject();
 		if (!WorkspaceLockDecision
-			.mayCreateAVault(applicationModelBean.getMasterPwFileModelBean() != null))
+			.mayCreateAVault(VaultCloseSupport.aVaultIsOpen(applicationModelBean)))
 		{
-			// TODO(#281): once a vault can be closed while the application runs, this refusal
-			// becomes "close the open one first" - ask, save if dirty, close, then create. The
-			// message deliberately does not promise that yet
+			// A LOCKED vault is refused outright, and that is the #270 protection: its master
+			// password is not in memory, so there is nothing to save its pending changes with, and
+			// carrying on would set the signed-in flag over a vault nobody unlocked.
 			//
-			// and it says so. A refusal nobody sees is the defect we found in "Lock workspace",
-			// which answered a click in the public state by doing nothing at all
-			JOptionPane.showMessageDialog(mysticCryptApplicationFrame,
-				Messages.getString("newdatabase.refused.vault.open",
-					"A database is already open. Creating another one here would put its entries "
-						+ "into the new file and stop saving to the open one. Close the open "
-						+ "database first - today that means ending the application and starting "
-						+ "it again."),
-				Messages.getString("newdatabase.refused.vault.open.title",
-					"A database is already open"),
-				JOptionPane.WARNING_MESSAGE);
-			return;
+			// An UNLOCKED one is closed first instead of refused, which is what #281 built the
+			// close path for. The refusal message stays for the locked case, and it is shown
+			// rather than silently doing nothing - that was the defect in "Lock workspace"
+			if (!applicationModelBean.isSignedIn())
+			{
+				JOptionPane.showMessageDialog(mysticCryptApplicationFrame,
+					Messages.getString("newdatabase.refused.vault.locked",
+						"A database is open and locked. Creating another one here would put its "
+							+ "entries into the new file without its master password ever being "
+							+ "entered. Unlock it first, then close it."),
+					Messages.getString("newdatabase.refused.vault.open.title",
+						"A database is already open"),
+					JOptionPane.WARNING_MESSAGE);
+				return;
+			}
+			if (!CloseApplicationFileAction.closeOpenVault(e))
+			{
+				// the user cancelled the question about the open vault's unsaved changes
+				return;
+			}
 		}
 		JFileChooser fileChooser = new JFileChooser(
 			mysticCryptApplicationFrame.getConfigurationDirectory());
