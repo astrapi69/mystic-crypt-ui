@@ -240,17 +240,14 @@ abstract class AbstractUiTest
 		appThread.start();
 
 		DialogFixture signInDialog = findSignInDialog();
-		// the application frame is configured with EXIT_ON_CLOSE - defuse it for the test, so no
-		// window-closing during teardown can call System.exit and kill the test JVM
-		GuiActionRunner.execute(() -> {
-			MysticCryptApplicationFrame applicationFrame = MysticCryptApplicationFrame
-				.getInstance();
-			if (applicationFrame != null)
-			{
-				applicationFrame
-					.setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
-			}
-		});
+		// The close operation used to be overridden here to DISPOSE_ON_CLOSE, to keep a
+		// window-closing during teardown from calling System.exit and killing the test JVM. It
+		// never did that: System.exit is called by the frame's own listener, whatever the close
+		// operation says, so the override protected nothing and only hid which setting was really
+		// in effect. What actually keeps the JVM alive is that teardown disposes windows directly
+		// instead of sending a closing event, and that the frame now refuses to close on a
+		// cancelled question (#288). The frame's own DO_NOTHING_ON_CLOSE is left in place, so a
+		// test that does send the event measures the application rather than the harness
 		raiseAndFocus(signInDialog);
 		return signInDialog;
 	}

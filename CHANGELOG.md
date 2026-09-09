@@ -20,6 +20,7 @@ ADDED:
 
 FIXED:
 
+- cancelling the "store your changes before finish application" question ended the application anyway and the changes were gone. Cancel and No did the same thing, so reaching for Cancel to get back to the work cost every change since the last save, and the window was gone before anyone could react. Cancel now means the application stays, and dismissing the question with its own window button counts as cancelling rather than as a no (#288)
 - creating a new database while another one is open no longer refuses outright: the open one is closed first, asking about unsaved changes. A LOCKED vault is still refused, because its master password is not in memory (#279, #281)
 - "make license-format" stamped the project's licence header onto resources - help files, launchers, a third party's licence text and Spotless's own import-order configuration, after which the build could no longer configure itself. The header goes on Java sources and on nothing else (#282)
 - the "Open Database" entry, now labelled "Show Database View", does nothing instead of throwing when there is no vault open (#285)

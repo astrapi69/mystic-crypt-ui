@@ -19,6 +19,14 @@ the branch CONTENT (`git log origin/develop -- <path>`, read the diff). A squash
 the branch at merge time — a push made after the merge is silently lost while everything
 reads as success. A guessed closing keyword can close a foreign issue.
 
+### A test JVM that calls System.exit(0) makes the suite report green
+
+Measured on #288: the application's window-closing listener called `System.exit(0)`, so the test
+that triggered it killed its own worker. Gradle read the zero exit code as a clean finish, recorded
+the running test as SKIPPED, never ran the rest of the class, and printed BUILD SUCCESSFUL. Two
+declared tests, `tests="1" skipped="1"`, green. Read the XML counts, not the build result: a class
+that reports fewer tests than it declares did not pass them, it never ran them.
+
 ## Atomic commits are bounded by "green individually", not "one thing"
 
 Each commit is the smallest reversible unit that leaves the tree green. When splitting
