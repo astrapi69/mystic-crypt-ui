@@ -37,6 +37,11 @@ When unclear: ask rather than guess.
 - No em-dash (Unicode U+2014) in code or docs; use hyphens or commas.
 - No emojis in code or comments.
 - German user-facing text uses real umlauts (ä/ö/ü/ß), never ae/oe/ue transliteration.
+- **Project language is English** for everything that lands in the repository: code,
+  Javadoc, commit messages, issues, pull requests, labels, CHANGELOG, rules and docs. Two
+  exceptions, both narrow: user-facing translations (a `messages_de.properties` is the
+  point of having one), and a verbatim quote - the chat journal records what was said in
+  the language it was said in, and a quoted issue title stays as written.
 
 ## Git
 

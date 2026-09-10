@@ -27,6 +27,29 @@ not advisory. Applies to ALL agents.
 - After a merge, verify BOTH: the issue is actually closed AND the expected files are on
   the target branch (see lessons-learned.md "After a merge").
 
+## Priority follows damage, not effort
+
+`P1` data loss, security, or a gate that cannot report. `P2` important, scheduled next.
+`P3` small or cosmetic: it confuses, it destroys nothing. A one-line fix for a defect that
+loses data is P1; a week of work on a confusing dialog is P3. Sorting by effort is what
+makes the colour a negotiation again at the next issue.
+
+Something that waits for a NAMED condition is not a stage: it gets `blocked` and the
+condition in writing (#301 waits for the second plugin that opts into the public state).
+A condition carried as P3 turns "not yet" into "some day".
+
+## A decision an issue reserves is taken in the issue
+
+When an issue names a question as open - "to be decided", "not to implement blindly", a
+choice listed for the maintainer - that decision is made in the issue, in writing, before
+the code that depends on it. It is not made inside the commit that implements it, however
+reasonable the choice is: an issue with zero comments and an answer buried in a commit
+body leaves nobody able to see that a question was ever asked (#272).
+
+If it was already decided in a commit: the commit stands, nothing is reverted. The
+decision is then made again, visibly, in the issue - what was built, what the
+alternatives were, and the question put to the maintainer.
+
 ## Issues as a work queue
 
 On "weiter" / "work through the bugs": treat `gh issue list --label bug --state open` as

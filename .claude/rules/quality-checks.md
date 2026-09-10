@@ -41,6 +41,16 @@ green unit tests and no working round-trip; synthetic fixtures miss schema drift
 serialization edge cases. Also verified locally here: the 2026-08-25 migration bug
 (reads legacy.mcrdb, saves source.mcrdb) survived green unit tests.
 
+## An assertion checks content, not absence
+
+`assertNull(...)` after a wipe proves a reference was dropped, not that a buffer was
+overwritten - and dropping is what a garbage collector may or may not get around to.
+Where the property is "this was erased", hold the buffer across the operation and assert
+it is zero-filled; where it is "this was written", read the file back. Measured twice in
+one week: the #237 lock tests asserted reachability instead of the screen, and #242 was
+closed on null checks while four of six fields were still plain Strings. A stand-in
+assertion is worse than no test, because it makes the gap look covered.
+
 ## Test naming
 
 `methodUnderTest_expectedOutcome_whenCondition` or JUnit 5 `@DisplayName` — the name
