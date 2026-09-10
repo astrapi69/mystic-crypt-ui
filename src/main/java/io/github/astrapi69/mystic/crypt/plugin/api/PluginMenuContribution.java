@@ -75,6 +75,19 @@ public interface PluginMenuContribution extends ExtensionPoint
 	 * every other entry nobody listed (#232). Declare it only for a tool that touches no vault at
 	 * all - a checksum, a key conversion, a hash. A tool that reads or writes entries has nothing
 	 * to do in a state where there are none.
+	 * <p>
+	 * <b>Returning true means the plugin is reachable while the workspace is LOCKED</b>, not only
+	 * before the first sign-in - measured on the enabling path, not assumed. The core lock
+	 * invariant ({@code LockInvariantUiTest}) cannot cover it: it fires action objects out of the
+	 * host's action package, and a plugin has no such classes and is not on the host's test
+	 * classpath.
+	 * <p>
+	 * So the second plugin that declares this brings the harness with it (#301): install, lock,
+	 * click what is offered, and assert that the locked state holds, the vault stays off screen and
+	 * the vault file is not written. It is deliberately not built for the first one - the checksum
+	 * plugin touches no vault, so it would assert nearly nothing - but from the second on, opting
+	 * in and building that harness are the same task. Declaring this without it leaves a hole
+	 * exactly where #232 started: a mechanism deciding on its own what it offers without a sign-in.
 	 *
 	 * @return true if this plugin's entries are offered without a vault
 	 */

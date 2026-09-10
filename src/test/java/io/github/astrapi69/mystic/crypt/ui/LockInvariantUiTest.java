@@ -201,13 +201,18 @@ class LockInvariantUiTest extends AbstractUiTest
 	 * The set comes from the package directory rather than from a list somebody maintains, so an
 	 * action added later joins the invariant by existing.
 	 * <p>
-	 * <b>Its limit: the directory holds the CORE actions only.</b> A plugin's actions live outside
-	 * it and are covered today by the opt-in default - {@code isUsableWithoutAVault()} returns
-	 * false, so no plugin is offered without a vault - together with
-	 * {@link PublicMenuInventoryUiTest}. The first plugin that opts in has to bring its actions
-	 * into this invariant with it; the checksum plugin is the candidate, since it needs no vault to
-	 * do its work. Without that step the invariant has a hole exactly where #232 started: a
-	 * mechanism that decides on its own what it offers without a sign-in.
+	 * <b>Its limit: the directory holds the CORE actions only, and that limit is no longer
+	 * theoretical.</b> The checksum plugin opts in ({@code isUsableWithoutAVault()} returns true,
+	 * the only one of thirteen), and its tool window is reachable while the workspace is LOCKED -
+	 * measured through the enabling path, not assumed. So the sentence that used to stand here, "no
+	 * plugin is offered without a vault", is false today.
+	 * <p>
+	 * Nothing here fires plugin code, and nothing can as written: a plugin's menu items and buttons
+	 * are inline listeners, there is no action class under {@code plugins/} to enumerate, and
+	 * plugin classes are never on this module's test classpath. A plugin-level equivalent has to be
+	 * robot-driven per plugin - install, lock, click what is offered, assert the same three
+	 * properties. That is #301, with the honest note that it would assert little for the checksum
+	 * plugin itself, which touches no vault, and matters for the next plugin that opts in.
 	 */
 	@Test
 	@DisplayName("every action in the package is either fired by the invariant or excluded by name")

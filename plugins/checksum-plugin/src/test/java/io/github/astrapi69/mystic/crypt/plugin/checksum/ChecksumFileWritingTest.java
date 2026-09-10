@@ -70,6 +70,27 @@ class ChecksumFileWritingTest
 	}
 
 	@Test
+	@DisplayName("writing again replaces the file: the support layer overwrites, the caller asks")
+	void writingTwiceReplacesTheContent(@TempDir final File directory) throws Exception
+	{
+		File described = new File(directory, "installer.jar");
+		Files.writeString(described.toPath(), "the first bytes");
+		File written = ChecksumSupport.writeChecksumFile(described, "SHA-256",
+			ChecksumSupport.checksumOfFile(described, "SHA-256"));
+		String first = Files.readString(written.toPath());
+
+		Files.writeString(described.toPath(), "the bytes after the file changed");
+		String second = ChecksumSupport.checksumOfFile(described, "SHA-256");
+		ChecksumSupport.writeChecksumFile(described, "SHA-256", second);
+
+		assertEquals(second + "  installer.jar\n", Files.readString(written.toPath()),
+			"recomputing the checksum of a file that changed is the ordinary case, so the layer "
+				+ "that writes does not refuse it - the caller is where the question is asked");
+		assertTrue(!first.equals(Files.readString(written.toPath())),
+			"and the old value is really gone, which is why the caller has to ask first");
+	}
+
+	@Test
 	@DisplayName("a checksum that is not one is refused instead of being written")
 	void anEmptyChecksumIsRefused(@TempDir final File directory) throws Exception
 	{
