@@ -56,6 +56,7 @@ import io.github.astrapi69.mystic.crypt.action.SaveBeforeCloseConfirmation;
 import io.github.astrapi69.mystic.crypt.lock.IdleLockDecision;
 import io.github.astrapi69.mystic.crypt.lock.IdleLockWatchdog;
 import io.github.astrapi69.mystic.crypt.lock.LockableWorkspace;
+import io.github.astrapi69.mystic.crypt.lock.OpenEditors;
 import io.github.astrapi69.mystic.crypt.lock.WorkspaceLockDecision;
 import io.github.astrapi69.mystic.crypt.menu.MenuLayoutSupport;
 import io.github.astrapi69.mystic.crypt.panel.search.SearchToolbarPanel;
@@ -395,7 +396,9 @@ public class MysticCryptApplicationFrame extends ApplicationPanelFrame<Applicati
 			@Override
 			public boolean hasUnsavedChanges()
 			{
-				return getModelObject().isDirty();
+				// an open editor holds what the user typed, the flag holds what the model
+				// committed. Both are the user's work, and only the flag was being asked (#303)
+				return getModelObject().isDirty() || OpenEditors.anyOpen();
 			}
 
 			@Override
