@@ -813,6 +813,30 @@ final class ApplicationSteps
 	 * Edits the selected entry through the real user flow: right-click the selected row, "edit...",
 	 * change the title in the "Edit Crypt Entry" dialog, OK
 	 */
+	/**
+	 * Opens the edit dialog on the selected entry, types a new title into it and LEAVES IT OPEN -
+	 * the state a user is in when they walk away mid-edit (#303)
+	 *
+	 * @param frame
+	 *            the application frame
+	 * @param newTitle
+	 *            the title to type
+	 * @return the still-open dialog, for the caller to confirm or cancel
+	 */
+	DialogFixture openTheEditDialogAndType(org.assertj.swing.fixture.FrameFixture frame,
+		String newTitle)
+	{
+		rightClickSelectedTableRow(frame);
+		chooseFromShowingPopup("edit...");
+
+		DialogFixture editDialog = findDialogWithTitle("Edit Crypt Entry");
+		GuiActionRunner
+			.execute(() -> editDialog.textBox("txtEntryName").target().setText(newTitle));
+		robot.waitForIdle();
+		UiTestSpeed.step();
+		return editDialog;
+	}
+
 	ApplicationSteps editSelectedEntryTitle(org.assertj.swing.fixture.FrameFixture frame,
 		String newTitle)
 	{

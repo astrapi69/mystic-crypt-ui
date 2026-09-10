@@ -72,6 +72,7 @@ import io.github.astrapi69.model.api.IModel;
 import io.github.astrapi69.mystic.crypt.Messages;
 import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
 import io.github.astrapi69.mystic.crypt.eventbus.ApplicationEventBus;
+import io.github.astrapi69.mystic.crypt.lock.OpenEditors;
 import io.github.astrapi69.mystic.crypt.panel.table.NewTableEntryModel;
 import io.github.astrapi69.mystic.crypt.panel.table.NewTableEntryPanel;
 import io.github.astrapi69.mystic.crypt.vault.EntryIdentitySupport;
@@ -1510,10 +1511,21 @@ public class SecretKeyTreeWithContentPanel
 	{
 		MysticCryptEntryTabbedPanel panel = new MysticCryptEntryTabbedPanel(
 			BaseModel.of(tableEntry));
-		int option = JOptionPaneExtensions.getSelectedOption(panel, JOptionPane.PLAIN_MESSAGE,
-			JOptionPane.OK_CANCEL_OPTION, null,
-			Messages.getString("dialog.edit.crypt.entry.title", "Edit Crypt Entry."),
-			panel.getMysticCryptEntryPanel().getTxtEntryName());
+		// counted while it is open, because what is typed here is already on the entry in the tree
+		// while the dirty flag knows nothing about it - and the automatic lock and close ask (#303)
+		OpenEditors.opened();
+		final int option;
+		try
+		{
+			option = JOptionPaneExtensions.getSelectedOption(panel, JOptionPane.PLAIN_MESSAGE,
+				JOptionPane.OK_CANCEL_OPTION, null,
+				Messages.getString("dialog.edit.crypt.entry.title", "Edit Crypt Entry."),
+				panel.getMysticCryptEntryPanel().getTxtEntryName());
+		}
+		finally
+		{
+			OpenEditors.closed();
+		}
 
 		if (option == JOptionPane.OK_OPTION)
 		{
