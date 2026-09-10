@@ -22,6 +22,18 @@ without a sync are how a merge silently loses a commit.
 The other half of the same rule is the maintainer's: say when a pull request is merged in
 the browser.
 
+**A merge goes through the pull request** - `gh pr merge` or the button - never by pushing
+the branch head onto `develop`. A pushed head puts the content there while the pull
+request stays open and unmerged: no CI run on the merged state, no record that the change
+arrived through review, and a comment afterwards rescues the trail but not the missing
+run. One way in also removes the collision above, because there is then only one place
+where `develop` moves.
+
+**Chain with `&&`, never `;`.** A merge that fails must stop the branch deletion behind
+it. `;` ran that deletion twice today and closed a pull request each time (#299, #312).
+This is `never mask exit codes` in the other direction: a failure that prevents the
+following steps is the wanted outcome, not an inconvenience.
+
 ## Order for new features
 
 1. Check whether the feature belongs in a plugin or in the core (architecture.md).
