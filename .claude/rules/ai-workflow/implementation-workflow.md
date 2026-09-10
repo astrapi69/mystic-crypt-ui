@@ -11,6 +11,17 @@ Fresh-worktree precondition: a new `git worktree add` has no build state; the fi
 every commit verify HEAD moved (`git log -1`) — a hook can roll a commit back while
 printing "Passed".
 
+## Two hands on the same branch
+
+`git pull --ff-only` before every merge and before every push. The maintainer also merges
+pull requests on GitHub, so `develop` can move while a local merge is being prepared - it
+did, and the push was rejected mid-merge. The repair is to reset onto the remote and
+verify the content arrived, never to force. Two hands on a branch are normal; two hands
+without a sync are how a merge silently loses a commit.
+
+The other half of the same rule is the maintainer's: say when a pull request is merged in
+the browser.
+
 ## Order for new features
 
 1. Check whether the feature belongs in a plugin or in the core (architecture.md).
