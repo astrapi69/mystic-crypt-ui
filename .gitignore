@@ -96,3 +96,7 @@ hs_err_pid*
 
 # Claude Code creates worktrees here; they are checkouts of this repository, not content of it
 .claude/worktrees/
+
+# the chat journal records the maintainer own messages verbatim and is written outside
+# this repository, never in it (#311)
+.claude/journal/
