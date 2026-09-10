@@ -27,6 +27,17 @@ not advisory. Applies to ALL agents.
 - After a merge, verify BOTH: the issue is actually closed AND the expected files are on
   the target branch (see lessons-learned.md "After a merge").
 
+## Priority follows damage, not effort
+
+`P1` data loss, security, or a gate that cannot report. `P2` important, scheduled next.
+`P3` small or cosmetic: it confuses, it destroys nothing. A one-line fix for a defect that
+loses data is P1; a week of work on a confusing dialog is P3. Sorting by effort is what
+makes the colour a negotiation again at the next issue.
+
+Something that waits for a NAMED condition is not a stage: it gets `blocked` and the
+condition in writing (#301 waits for the second plugin that opts into the public state).
+A condition carried as P3 turns "not yet" into "some day".
+
 ## A decision an issue reserves is taken in the issue
 
 When an issue names a question as open - "to be decided", "not to implement blindly", a
