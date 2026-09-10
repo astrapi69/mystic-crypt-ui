@@ -40,8 +40,14 @@ When unclear: ask rather than guess.
 - **Project language is English** for everything that lands in the repository: code,
   Javadoc, commit messages, issues, pull requests, labels, CHANGELOG, rules and docs. Two
   exceptions, both narrow: user-facing translations (a `messages_de.properties` is the
-  point of having one), and a verbatim quote - the chat journal records what was said in
-  the language it was said in, and a quoted issue title stays as written.
+  point of having one), and a verbatim quote - a chat journal records what was said in the
+  language it was said in, and a quoted issue title stays as written.
+- **The chat journal is written outside this repository, never inside it.** It records the
+  maintainer's own messages word for word, and this repository is public; that is a
+  decision about a person's words, not about a file (#311). If the place it belongs in is
+  not reachable, the entry FAILS with a message and is written nowhere - there is no
+  fallback into the repository, under any circumstance. A missing entry can be added
+  later; a published one cannot be taken back.
 
 ## Git
 
