@@ -35,6 +35,7 @@ import javax.swing.*;
 import io.github.astrapi69.awt.extension.ClipboardExtensions;
 import io.github.astrapi69.mystic.crypt.ApplicationModelBean;
 import io.github.astrapi69.mystic.crypt.DesktopMenu;
+import io.github.astrapi69.mystic.crypt.Messages;
 import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
 import io.github.astrapi69.mystic.crypt.app.file.xml.ApplicationXmlFileStoreWorker;
 import io.github.astrapi69.mystic.crypt.lock.MasterPasswordVerifier;
@@ -109,6 +110,23 @@ public class LockWorkspaceAction extends AbstractAction
 		}
 	}
 
+	/**
+	 * Whether the user asked for locking to write pending changes. Off by default (#304): read from
+	 * the settings on each lock rather than cached, so a change in the settings dialog takes effect
+	 * without a restart
+	 *
+	 * @return true if locking may write
+	 */
+	private static boolean savingWhenLockingIsAskedFor()
+	{
+		MysticCryptApplicationFrame frame = MysticCryptApplicationFrame.getInstance();
+		if (frame == null)
+		{
+			return false;
+		}
+		return MysticCryptSettings.load(frame.getConfigurationDirectory()).isSaveWhenLocking();
+	}
+
 	/** The title of the unlock prompt, also used to find it again when it has to be dismissed */
 	private static final String UNLOCK_PROMPT_TITLE = "Unlock workspace";
 
@@ -123,6 +141,17 @@ public class LockWorkspaceAction extends AbstractAction
 		passwordField.setName("txtUnlockPassword");
 		JPanel panel = new JPanel(new GridLayout(0, 1, 4, 4));
 		panel.add(new JLabel("Enter the master password to unlock the workspace:"));
+		if (frame.getModelObject().isDirty())
+		{
+			// says it rather than letting the save-before-close question be the first hint the
+			// user ever gets: locking kept the changes on purpose, and that is worth one line
+			// (#304). A line, not a dialog - nobody who just typed a master password needs
+			// something else to acknowledge
+			JLabel waiting = new JLabel(Messages.getString("unlock.unsaved.changes.waiting",
+				"Unsaved changes are waiting in this database."));
+			waiting.setName("lblUnsavedChangesWaiting");
+			panel.add(waiting);
+		}
 		panel.add(passwordField);
 
 		int option = JOptionPaneExtensions.getSelectedOption(panel, JOptionPane.PLAIN_MESSAGE,
@@ -181,6 +210,13 @@ public class LockWorkspaceAction extends AbstractAction
 		if (applicationModelBean == null || !applicationModelBean.isDirty()
 			|| applicationModelBean.getMasterPwFileModelBean() == null)
 		{
+			return;
+		}
+		if (!savingWhenLockingIsAskedFor())
+		{
+			// the default since #304: a timer does not commit a change the user has not decided
+			// about. The change stays in memory, the timed close leaves a dirty vault alone, and
+			// the unlock prompt says that something is waiting
 			return;
 		}
 		try

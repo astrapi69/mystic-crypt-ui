@@ -74,6 +74,15 @@ public class MysticCryptSettings
 	private int autoLockMinutes = IdleLockDecision.DEFAULT_TIMEOUT_MINUTES;
 
 	/**
+	 * Whether locking writes pending changes to the file; defaults to OFF (#304).
+	 * <p>
+	 * Locking used to save, and no user asked it to: a timer committed changes somebody had not
+	 * decided about yet. In a password manager writing is not a neutral act, so the lock keeps the
+	 * changes in memory instead and whoever wants the old behaviour asks for it once, here.
+	 */
+	private boolean saveWhenLocking = false;
+
+	/**
 	 * After how many further minutes a LOCKED vault is closed altogether, so its decrypted content
 	 * leaves memory; 0 turns it off (#242).
 	 * <p>
