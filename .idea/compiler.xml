@@ -5,7 +5,7 @@
       <profile name="Gradle Imported" enabled="true">
         <outputRelativeToContentRoot value="true" />
         <processorPath useClasspath="false">
-          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.projectlombok/lombok/1.18.46/a5cfe99fdf320e84955ef653f2ce1bf789d11385/lombok-1.18.46.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.projectlombok/lombok/1.18.48/6858f13541bab505384f07053c5a7b539bbfd3e3/lombok-1.18.48.jar" />
         </processorPath>
         <module name="mystic-crypt-ui.main" />
         <module name="mystic-crypt-ui.test" />
