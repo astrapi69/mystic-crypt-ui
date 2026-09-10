@@ -163,7 +163,10 @@ public class ChecksumAndMacPanel extends JPanel
 						"computes the checksum of the text or file above")),
 				button("btnCompare", "Compare", event -> onCompare(),
 					ChecksumMessages.getString("checksum.and.mac.tooltip.checksum.compare.button",
-						"computes the checksum and compares it with the value above"))),
+						"computes the checksum and compares it with the value above")),
+				button("btnSaveChecksum", "Save checksum", event -> onSaveChecksum(),
+					ChecksumMessages.getString("checksum.and.mac.tooltip.checksum.save.button",
+						"writes the computed checksum next to the file, in the form sha256sum -c reads"))),
 			ToolForm.BUTTON_ROW);
 		return panel;
 	}
@@ -266,6 +269,64 @@ public class ChecksumAndMacPanel extends JPanel
 			txtChecksum.setCaretPosition(0);
 			return digest + " over " + (modelObject.isChecksumOverFile() ? "the file" : "the text");
 		});
+	}
+
+	/**
+	 * Writes the computed checksum next to the file it belongs to.
+	 * <p>
+	 * Only for a checksum computed over a FILE: a checksum of typed text describes nothing that has
+	 * a name, and a checksum file whose second column names no file cannot be checked by anything.
+	 * That is a refusal with a reason rather than a disabled button, because the reason is what the
+	 * user needs - the checkbox above is the thing to change.
+	 */
+	private void onSaveChecksum()
+	{
+		if (!modelObject.isChecksumOverFile())
+		{
+			showResult(ChecksumMessages.getString("checksum.and.mac.save.needs.a.file",
+				"a checksum file names the file it belongs to, so tick 'use the file instead of "
+					+ "the text' and compute again"));
+			return;
+		}
+		if (modelObject.getChecksum() == null || modelObject.getChecksum().isBlank())
+		{
+			showResult(ChecksumMessages.getString("checksum.and.mac.save.needs.a.checksum",
+				"there is nothing to save yet - compute the checksum first"));
+			return;
+		}
+		File described = new File(modelObject.getChecksumFile().trim());
+		File target = ChecksumSupport.checksumFileFor(described, modelObject.getDigest());
+		if (target.exists() && !confirmOverwrite(target))
+		{
+			showResult(ChecksumMessages.getString("checksum.and.mac.save.cancelled",
+				"nothing written - the existing checksum file was kept"));
+			return;
+		}
+		run("written", () -> {
+			File written = ChecksumSupport.writeChecksumFile(described, modelObject.getDigest(),
+				modelObject.getChecksum());
+			return "written: " + written.getAbsolutePath();
+		});
+	}
+
+	/**
+	 * Asks before replacing a checksum file that is already there. Overwriting one silently would
+	 * replace what a download was published with, and the old value is not recoverable afterwards
+	 *
+	 * @param target
+	 *            the checksum file that already exists
+	 * @return whether the user agreed to replace it
+	 */
+	private boolean confirmOverwrite(final File target)
+	{
+		String template = ChecksumMessages.getString("checksum.and.mac.save.overwrite.message",
+			"''{0}'' already exists. Replace it?");
+		int choice = JOptionPane.showConfirmDialog(this,
+			java.text.MessageFormat.format(template, target.getName()),
+			ChecksumMessages.getString("checksum.and.mac.save.overwrite.title",
+				"Replace the checksum file?"),
+			JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
+		return choice == JOptionPane.YES_OPTION;
 	}
 
 	private void onCompare()

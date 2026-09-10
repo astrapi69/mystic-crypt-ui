@@ -210,6 +210,85 @@ public final class ChecksumSupport
 	}
 
 	/**
+	 * The extension the coreutils tools give a checksum file for this algorithm: {@code SHA-256}
+	 * becomes {@code sha256}, {@code MD5} becomes {@code md5}.
+	 * <p>
+	 * A rule rather than a table, because the table is what the rule produces - and a table would
+	 * be a second place to forget an algorithm in. It is the same convention the sibling detection
+	 * looks for next to a download (#123, #137), so what this tool writes is what it later finds.
+	 *
+	 * @param algorithm
+	 *            the digest algorithm, a JDK name
+	 * @return the extension, without the dot
+	 */
+	public static String checksumFileExtension(final String algorithm)
+	{
+		if (algorithm == null || algorithm.isBlank())
+		{
+			throw new IllegalArgumentException("an algorithm is needed to name a checksum file");
+		}
+		return algorithm.trim().replace("-", "").toLowerCase(java.util.Locale.ROOT);
+	}
+
+	/**
+	 * The checksum file that belongs next to the given file: its whole name plus the algorithm's
+	 * extension, in the same directory.
+	 * <p>
+	 * Appended, not replacing: {@code installer.jar.sha256} says which file it describes, while
+	 * {@code installer.sha256} leaves a reader guessing between {@code installer.jar} and
+	 * {@code installer.exe}.
+	 *
+	 * @param file
+	 *            the file the checksum describes
+	 * @param algorithm
+	 *            the digest algorithm, a JDK name
+	 * @return the file to write the checksum into
+	 */
+	public static File checksumFileFor(final File file, final String algorithm)
+	{
+		if (file == null)
+		{
+			throw new IllegalArgumentException("a file is needed to name its checksum file");
+		}
+		return new File(file.getParentFile(),
+			file.getName() + "." + checksumFileExtension(algorithm));
+	}
+
+	/**
+	 * Writes the checksum next to the file it describes, in the form {@code <hash>  <name>} that
+	 * {@code sha256sum -c} reads - two spaces, and the bare file name so the pair can be checked
+	 * wherever it is unpacked.
+	 * <p>
+	 * An existing file is overwritten: the caller asks, this writes. Whether the checksum is one is
+	 * checked here rather than trusted, because a checksum file holding nothing fails every later
+	 * verification with nothing saying why.
+	 *
+	 * @param file
+	 *            the file the checksum describes
+	 * @param algorithm
+	 *            the digest algorithm, a JDK name
+	 * @param checksum
+	 *            the computed checksum
+	 * @return the checksum file that was written
+	 * @throws java.io.IOException
+	 *             if writing fails
+	 */
+	public static File writeChecksumFile(final File file, final String algorithm,
+		final String checksum) throws java.io.IOException
+	{
+		requireFile(file);
+		if (checksum == null || checksum.isBlank())
+		{
+			throw new IllegalArgumentException(
+				"there is no checksum to write for '" + file.getName() + "' - compute one first");
+		}
+		File target = checksumFileFor(file, algorithm);
+		Files.writeString(target.toPath(), checksum.trim() + "  " + file.getName() + "\n",
+			StandardCharsets.UTF_8);
+		return target;
+	}
+
+	/**
 	 * The hash out of what a checksum file holds.
 	 * <p>
 	 * A published checksum is rarely a bare hash: sha256sum and everything else following coreutils
