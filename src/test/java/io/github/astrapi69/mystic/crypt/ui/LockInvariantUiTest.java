@@ -31,7 +31,6 @@ import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.io.File;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
 
@@ -82,6 +81,15 @@ import io.github.astrapi69.mystic.crypt.action.SearchApplicationFileAction;
  * This is the counterpart of {@link PublicMenuInventoryUiTest}, which answers what MAY be offered
  * without a sign-in. A subset check over names cannot say whether something is refused at the right
  * moment; that question is answered here.
+ * <p>
+ * <b>Two things this green run does not cover.</b> It enumerates
+ * {@code io.github.astrapi69.mystic.crypt.action}, so anything that acts on a locked workspace
+ * without being an action class in that package is outside it: a plugin's menu items and buttons,
+ * which are inline listeners in another module (#301, and see the note on the exclusion list), and
+ * the AUTOMATIC lock, which is {@code IdleLockWatchdog} in the {@code lock} package and no
+ * {@link AbstractAction} at all. The second has its own harness in
+ * {@link AutomaticLockHoldsTheInvariantUiTest}, asserting the same four properties against the idle
+ * timeout instead of against an action (#305).
  */
 class LockInvariantUiTest extends AbstractUiTest
 {
@@ -181,7 +189,7 @@ class LockInvariantUiTest extends AbstractUiTest
 				lengthWhileLocked == databaseFile.length()
 					&& modifiedWhileLocked == databaseFile.lastModified(),
 				"'" + what + "' wrote the vault's file while the workspace is locked");
-			assertTrue(nothingOnScreenShows("TheSecret", "the-password"),
+			assertTrue(ScreenText.nothingOnScreenShows("TheSecret", "the-password"),
 				"'" + what + "' showed an entry of the locked vault. The vault panel being gone is "
 					+ "one way for the content to be out of reach; a dialog that lists it is a "
 					+ "second door to the same content");
@@ -238,75 +246,6 @@ class LockInvariantUiTest extends AbstractUiTest
 			"these actions are neither fired by the invariant nor excluded by name: " + uncovered
 				+ ". An action added to the package joins this test by existing - either fire it "
 				+ "in actionsUnderTest(), or name it in NOT_FIRED with the reason");
-	}
-
-	/**
-	 * Whether none of the given secrets can be read anywhere on screen right now: the labels, text
-	 * fields, table cells and tree rows of every showing window.
-	 * <p>
-	 * The vault panel being off screen is one way for the content to be out of reach. It is not the
-	 * only one - a dialog that lists entries reaches the same content through another door - so the
-	 * invariant asks the question directly rather than through the panel
-	 *
-	 * @param secrets
-	 *            the entry's title and password, put into the vault before it was locked
-	 * @return true if none of them is readable
-	 */
-	private static boolean nothingOnScreenShows(final String... secrets)
-	{
-		List<String> onScreen = GuiActionRunner.execute(() -> {
-			List<String> texts = new java.util.ArrayList<>();
-			for (Window window : Window.getWindows())
-			{
-				if (window.isShowing())
-				{
-					collectText(window, texts);
-				}
-			}
-			return texts;
-		});
-		return java.util.Arrays.stream(secrets)
-			.noneMatch(secret -> onScreen.stream().anyMatch(text -> text.contains(secret)));
-	}
-
-	private static void collectText(final java.awt.Component component, final List<String> texts)
-	{
-		switch (component)
-		{
-			case javax.swing.JLabel label -> texts.add(String.valueOf(label.getText()));
-			case javax.swing.text.JTextComponent field -> texts.add(String.valueOf(field.getText()));
-			case javax.swing.JTable table -> collectTableText(table, texts);
-			case javax.swing.JTree tree -> collectTreeText(tree, texts);
-			default ->
-			{
-			}
-		}
-		if (component instanceof java.awt.Container container)
-		{
-			for (java.awt.Component child : container.getComponents())
-			{
-				collectText(child, texts);
-			}
-		}
-	}
-
-	private static void collectTableText(final javax.swing.JTable table, final List<String> texts)
-	{
-		for (int row = 0; row < table.getRowCount(); row++)
-		{
-			for (int column = 0; column < table.getColumnCount(); column++)
-			{
-				texts.add(String.valueOf(table.getValueAt(row, column)));
-			}
-		}
-	}
-
-	private static void collectTreeText(final javax.swing.JTree tree, final List<String> texts)
-	{
-		for (int row = 0; row < tree.getRowCount(); row++)
-		{
-			texts.add(String.valueOf(tree.getPathForRow(row).getLastPathComponent()));
-		}
 	}
 
 	private static boolean signedIn()
