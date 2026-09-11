@@ -85,7 +85,9 @@ the config schema changes — CI reads the example, developers read the real fil
 `test` compiles and runs tests; CI runs `build`, which also runs `spotlessJavaCheck` and the full
 e2e suite. A branch can be green locally through every test and still turn develop red on
 formatting alone - but chasing that by rerunning the full `build` locally (Xvfb + fluxbox, many
-minutes) burns local resources on verification GitHub Actions already does on every push. For
+minutes) burns local resources on verification GitHub Actions already does on every push. The
+release exception is the release CUT itself - the gate before the tag - and not the nervousness
+after a red run: six full local gates in one day cost an hour that CI was spending anyway (8.5). For
 everyday changes: run `spotlessApply` before committing (cheap, catches the most common CI-only
 failure), then push and let CI run the real gate - react to what it reports instead of blocking
 the push on a local rerun. Exception: a release cut, where `release-workflow.md`'s full local gate

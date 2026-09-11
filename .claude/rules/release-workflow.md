@@ -33,6 +33,12 @@ Prompt triggers: "release new version", "new release".
    - the gate reports what it measured: read the test XML afterwards — class count, test
      count, and that the UI e2e classes are among them. A `:test FROM-CACHE` restores
      results without running anything, and an empty result set is not a green gate.
+   - force the TEST task only: `./gradlew test --rerun`, then `./gradlew build`. Not
+     `--rerun-tasks`, which also throws away the compile, the jar, the javadoc, spotless
+     and the packaging - none of which has an input Gradle cannot see. The UI suite does:
+     a display and a window manager are in no cache key, and both produced a green-looking
+     result today that said nothing about this machine (8.5). That is the whole reason one
+     task is re-run, and the reason it is only that one.
    - **package from the state that will be tagged.** The release PR is merged FIRST; the
      installer and its checksums are built from the merged branch, and the tag names
      exactly that commit. Building beforehand from the release branch ties the release to
