@@ -1,21 +1,62 @@
+// The suites are split by what they need, not by what they are called (#319).
+//
+// Gradle's build cache key covers a whole test task, so one changed test file used to invalidate
+// all of them: 693 tests, of which 113 UI classes each fork their own JVM, for about ten minutes on
+// every change. Most changes touch one side only, and now each side has its own key.
+def uiSuitePattern = "io.github.astrapi69.mystic.crypt.ui.*"
 
 test {
     useJUnitPlatform()
-    // the AssertJ-Swing UI tests drive a process-wide singleton (MysticCryptApplicationFrame)
-    // and register listeners on the static ApplicationEventBus; run each test class in its own
-    // fresh JVM so that static/singleton state from one class cannot contaminate the next - this
-    // is what makes the full UI suite pass, not just each test in isolation
+    // everything that does not need a display. No per-class fork: these tests share no singleton,
+    // and a JVM start per class is most of their runtime
+    filter {
+        excludeTestsMatching uiSuitePattern
+        // a filter that matches nothing is an empty run reporting green, and an empty run is not a
+        // clean result (quality-checks.md). This is the one place it can happen silently
+        failOnNoMatchingTests = true
+    }
+    applyTestLogging(it)
+}
+
+// The end-to-end suite: the Swing tests, in their own task so a change in a unit test does not
+// invalidate them and a change here does not invalidate the fast ones.
+tasks.register('e2eTest', Test) {
+    description = 'Runs the Swing end-to-end tests. Needs Xvfb + fluxbox; see lessons-learned.md'
+    group = 'verification'
+    useJUnitPlatform()
+    testClassesDirs = sourceSets.test.output.classesDirs
+    classpath = sourceSets.test.runtimeClasspath
+    filter {
+        includeTestsMatching uiSuitePattern
+        failOnNoMatchingTests = true
+    }
+    // the AssertJ-Swing UI tests drive a process-wide singleton (MysticCryptApplicationFrame) and
+    // register listeners on the static ApplicationEventBus; run each test class in its own fresh
+    // JVM so that static/singleton state from one class cannot contaminate the next - this is what
+    // makes the full UI suite pass, not just each test in isolation
     forkEvery = 1
-    testLogging {
-        // print the whole stack trace of a failed test to the console. Without this Gradle shows
-        // only the top frame - on CI, where the html and xml reports are not at hand, a failure
-        // like "NullPointerException at Preconditions.java:82" carries no information about where
-        // it came from, which makes a rarely failing test impossible to diagnose after the fact
+    // a hang is a failure, not a wait. One focus race in AddEntryUiTest sat for 40 minutes with no
+    // output and nothing to end it (#322); on a hosted runner that is six hours of nothing. The
+    // limit is per test method and generous - the slowest of these drives a whole application
+    systemProperty 'junit.jupiter.execution.timeout.testable.method.default', '3m'
+    applyTestLogging(it)
+    // after the fast one, so a failure that both would catch is reported by the cheap suite first
+    shouldRunAfter test
+}
+
+// print the whole stack trace of a failed test to the console. Without this Gradle shows only the
+// top frame - on CI, where the html and xml reports are not at hand, a failure like
+// "NullPointerException at Preconditions.java:82" carries no information about where it came from,
+// which makes a rarely failing test impossible to diagnose after the fact
+def applyTestLogging(Test task) {
+    task.testLogging {
         exceptionFormat = 'full'
         showStackTraces = true
         events 'failed'
     }
 }
+
+check.dependsOn 'e2eTest'
 
 // pinned rather than left to whatever the Gradle version in use happens to bundle, so a coverage
 // report is produced by a version somebody chose (#277)
@@ -24,6 +65,10 @@ jacoco {
 }
 
 jacocoTestReport {
+    // both suites, or the report silently loses whatever only the UI tests reach (#319)
+    executionData.from files("$buildDir/jacoco/test.exec", "$buildDir/jacoco/e2eTest.exec")
+        .filter { it.exists() }
+    dependsOn test, 'e2eTest'
     reports {
         xml.required.set(true)
         html.required.set(true)

@@ -75,7 +75,7 @@ merge-pr:
 
 # end-to-end UI tests (AssertJ-Swing) - fast mode (default): as fast as possible
 test-e2e:
-	JAVA_HOME=$(JAVA_HOME) ./gradlew test --tests "io.github.astrapi69.mystic.crypt.ui.*" --rerun
+	JAVA_HOME=$(JAVA_HOME) ./gradlew e2eTest
 
 # end-to-end UI tests in demo mode: paced like a real user, watchable on screen
 test-e2e-demo:
