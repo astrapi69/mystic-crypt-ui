@@ -15,7 +15,6 @@ dependencies {
     implementation libs.commons.lang3
     implementation libs.bcprov.jdk18on
     implementation libs.bcpkix.jdk18on
-    implementation libs.auto.browser
     implementation libs.tango.icon.theme
     implementation libs.observer
     implementation libs.state.pattern
