@@ -80,16 +80,29 @@ tasks.register('testSummary') {
             }
             anyFound = true
             int classes = 0, tests = 0, failures = 0, errors = 0, skipped = 0
+            def ranNothing = []
             files.each { file ->
                 def suite = new groovy.xml.XmlSlurper().parse(file)
                 classes++
-                tests += (suite.@tests.text() ?: '0') as int
+                int suiteTests = (suite.@tests.text() ?: '0') as int
+                int suiteSkipped = (suite.@skipped.text() ?: '0') as int
+                tests += suiteTests
                 failures += (suite.@failures.text() ?: '0') as int
                 errors += (suite.@errors.text() ?: '0') as int
-                skipped += (suite.@skipped.text() ?: '0') as int
+                skipped += suiteSkipped
+                if (suiteTests > 0 && suiteTests == suiteSkipped) {
+                    ranNothing << suite.@name.text().tokenize('.').last()
+                }
             }
             logger.lifecycle("${dir.name}: ${classes} classes, ${tests} tests, " +
                 "${failures} failures, ${errors} errors, ${skipped} skipped")
+            // a class whose every test is skipped ran nothing at all, and inside one total it
+            // reads the same as a class that passed. That is how 43 plugin suites sat in a green
+            // run unnoticed (#333)
+            if (!ranNothing.isEmpty()) {
+                logger.lifecycle("${dir.name}: ${ranNothing.size()} classes ran NO test - " +
+                    "${ranNothing.sort().join(', ')}")
+            }
         }
         if (!anyFound) {
             // an empty result set is not a clean result, it is a suite that never ran
