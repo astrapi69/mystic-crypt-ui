@@ -61,6 +61,12 @@ public final class ConversionSupport
 	 * @param description
 	 *            what the file holds, in words
 	 */
+	/** The start of an OpenPGP armour header line, which PEM's header shape is identical to */
+	private static final String OPEN_PGP_ARMOUR_PREFIX = "-----BEGIN PGP ";
+
+	/** The end of any armour header line */
+	private static final String ARMOUR_SUFFIX = "-----";
+
 	public record FileKind(boolean pem, PemType pemType, String description)
 	{
 	}
@@ -109,6 +115,11 @@ public final class ConversionSupport
 		{
 			throw new IllegalArgumentException("'" + file + "' is not a file that could be read");
 		}
+		String openPgpBlock = openPgpBlockOf(file);
+		if (openPgpBlock != null)
+		{
+			return new FileKind(false, PemType.UNKNOWN, openPgpBlock);
+		}
 		if (PemObjectReader.isPemObject(file))
 		{
 			PemType pemType = PemObjectReader.getPemType(file);
@@ -141,6 +152,69 @@ public final class ConversionSupport
 		catch (Exception notAPublicKeyEither)
 		{
 			return new FileKind(false, PemType.UNKNOWN, "nothing this tool recognises");
+		}
+	}
+
+	/**
+	 * What an OpenPGP file says it is, read from its armour header, or null when the file carries
+	 * none.
+	 *
+	 * Asked BEFORE the PEM question on purpose. OpenPGP armour and PEM share the
+	 * {@code -----BEGIN ...-----} shape, so a reader that assumes PEM gets as far as base64-decoding
+	 * the body and fails there: a real key measured on 2026-09-11 came back as
+	 * "malformed PEM data: unable to decode base64 string", which tells the person holding an
+	 * ordinary GnuPG export nothing about what they are holding.
+	 *
+	 * This names the family and stops. OpenPGP is a different world from X.509 and PKCS - its own
+	 * packet format, its own library surface ({@code bcpg}, which this project does not depend on -
+	 * so the honest answer is what the file is and that this tool does not convert it, not a
+	 * failure that reads like the file is broken (#321).
+	 *
+	 * @param file
+	 *            the file to look at
+	 * @return the description, or null if this is not an OpenPGP armour block
+	 */
+	private static String openPgpBlockOf(final File file)
+	{
+		String firstLine = firstLineOf(file);
+		if (firstLine == null || !firstLine.startsWith(OPEN_PGP_ARMOUR_PREFIX)
+			|| !firstLine.endsWith(ARMOUR_SUFFIX))
+		{
+			return null;
+		}
+		String what = firstLine
+			.substring(OPEN_PGP_ARMOUR_PREFIX.length(), firstLine.length() - ARMOUR_SUFFIX.length())
+			.trim().toLowerCase(java.util.Locale.ROOT);
+		return "an OpenPGP " + (what.isEmpty() ? "block" : what)
+			+ ", which this tool does not convert";
+	}
+
+	/**
+	 * The first non-empty line of a file, or null when it has none or cannot be read
+	 *
+	 * @param file
+	 *            the file to read
+	 * @return the first non-empty line, trimmed
+	 */
+	private static String firstLineOf(final File file)
+	{
+		try (java.io.BufferedReader reader = java.nio.file.Files.newBufferedReader(file.toPath(),
+			java.nio.charset.StandardCharsets.UTF_8))
+		{
+			String line;
+			while ((line = reader.readLine()) != null)
+			{
+				if (!line.isBlank())
+				{
+					return line.trim();
+				}
+			}
+			return null;
+		}
+		catch (java.io.IOException notReadableAsText)
+		{
+			// a DER file is bytes, not text - that is not an error here, it is the answer "no"
+			return null;
 		}
 	}
 

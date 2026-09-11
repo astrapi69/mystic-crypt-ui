@@ -31,7 +31,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.io.File;
 import java.nio.file.Files;
 
-import javax.swing.JLabel;
 import javax.swing.JTextField;
 
 import org.assertj.swing.core.matcher.JButtonMatcher;
@@ -78,7 +77,8 @@ class ConversionInvalidDerUiTest extends AbstractUiTest
 		robot.waitForIdle();
 
 		assertEquals("nothing this tool recognises",
-			GuiActionRunner.execute(() -> ((JLabel)named(wizard, "lblWhatItHolds")).getText()),
+			GuiActionRunner.execute(
+				() -> ((javax.swing.text.JTextComponent)named(wizard, "lblWhatItHolds")).getText()),
 			"a file the tool does not recognise must be reported, not crash the wizard");
 
 		// fired without waiting for it to finish: the click itself blocks on the EDT until the

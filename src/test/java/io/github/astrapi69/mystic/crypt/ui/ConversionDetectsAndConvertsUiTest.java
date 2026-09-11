@@ -35,7 +35,6 @@ import java.security.Security;
 
 import javax.swing.AbstractButton;
 import javax.swing.JButton;
-import javax.swing.JLabel;
 import javax.swing.JTextField;
 
 import org.assertj.swing.core.matcher.JButtonMatcher;
@@ -89,7 +88,8 @@ class ConversionDetectsAndConvertsUiTest extends AbstractUiTest
 		robot.waitForIdle();
 
 		assertEquals("an RSA private key, PKCS#1",
-			GuiActionRunner.execute(() -> ((JLabel)named(wizard, "lblWhatItHolds")).getText()),
+			GuiActionRunner.execute(
+				() -> ((javax.swing.text.JTextComponent)named(wizard, "lblWhatItHolds")).getText()),
 			"the Source step has to say what the file holds rather than ask");
 
 		click(wizard, "Next");

@@ -29,6 +29,7 @@ import java.io.File;
 import javax.swing.JButton;
 import javax.swing.JFileChooser;
 import javax.swing.JLabel;
+import javax.swing.JTextField;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
@@ -58,8 +59,14 @@ public class SourcePanel extends BasePanel<BaseWizardStateMachineModel<Conversio
 	private JLabel lblSourceFile;
 	private JMTextField txtSourceFile;
 	private JButton btnBrowseSource;
+	/** What a failure is rendered in - the one thing on this panel that is not an answer */
+	private static final java.awt.Color FAILURE_COLOUR = new java.awt.Color(0xB0, 0x00, 0x20);
+
+	/** The look-and-feel's own text colour, kept so a later answer goes back to it */
+	private java.awt.Color readableColour;
+
 	private JLabel lblWhatItHoldsCaption;
-	private JLabel lblWhatItHolds;
+	private JTextField lblWhatItHolds;
 
 	public SourcePanel(IModel<BaseWizardStateMachineModel<ConversionWizardModel>> model)
 	{
@@ -84,8 +91,15 @@ public class SourcePanel extends BasePanel<BaseWizardStateMachineModel<Conversio
 		btnBrowseSource.addActionListener(event -> onBrowseSource());
 
 		lblWhatItHoldsCaption = new JLabel("It holds:");
-		lblWhatItHolds = new JLabel(ConversionWizardModel.NOTHING_TO_SAY);
+		// a text field that looks like a label: the answer here is the one line worth pasting into
+		// a bug report, and a JLabel cannot be selected, so it could be read and not copied (#321)
+		lblWhatItHolds = new JTextField(ConversionWizardModel.NOTHING_TO_SAY);
 		lblWhatItHolds.setName("lblWhatItHolds");
+		lblWhatItHolds.setEditable(false);
+		lblWhatItHolds.setBorder(null);
+		lblWhatItHolds.setOpaque(false);
+		lblWhatItHolds.setFont(lblWhatItHoldsCaption.getFont());
+		readableColour = lblWhatItHoldsCaption.getForeground();
 
 		ConversionWizardModel domainModel = getModelObject().getModelObject();
 		txtSourceFile.setPropertyModel(
@@ -164,26 +178,44 @@ public class SourcePanel extends BasePanel<BaseWizardStateMachineModel<Conversio
 			: domainModel.getSourceFilePath().trim();
 		if (path.isEmpty())
 		{
-			showWhatItHolds(domainModel, ConversionWizardModel.NOTHING_TO_SAY, null);
+			showWhatItHolds(domainModel, ConversionWizardModel.NOTHING_TO_SAY, null, false);
 			return;
 		}
 		try
 		{
 			ConversionSupport.FileKind kind = ConversionSupport.kindOf(new File(path));
-			showWhatItHolds(domainModel, kind.description(), kind);
+			showWhatItHolds(domainModel, kind.description(), kind, false);
 		}
 		catch (Exception exception)
 		{
-			showWhatItHolds(domainModel, "not read: " + message(exception), null);
+			showWhatItHolds(domainModel, "not read: " + message(exception), null, true);
 		}
 	}
 
+	/**
+	 * Puts the answer on screen, in red when the file could not be read at all.
+	 * <p>
+	 * A failure used to be rendered in the same colour as "this holds an RSA private key", so the
+	 * one line that says something went wrong looked exactly like the one that says everything is
+	 * fine (#321). The colour is the signal; the text field above is what makes it copyable.
+	 *
+	 * @param domainModel
+	 *            the wizard's domain model
+	 * @param description
+	 *            what to show
+	 * @param kind
+	 *            what the file was found to be, or null when it could not be read
+	 * @param failed
+	 *            whether this description is a failure rather than an answer
+	 */
 	private void showWhatItHolds(ConversionWizardModel domainModel, String description,
-		ConversionSupport.FileKind kind)
+		ConversionSupport.FileKind kind, boolean failed)
 	{
 		domainModel.setFileKind(kind);
 		domainModel.setWhatItHolds(description);
 		lblWhatItHolds.setText(description);
+		lblWhatItHolds.setForeground(failed ? FAILURE_COLOUR : readableColour);
+		lblWhatItHolds.setCaretPosition(0);
 	}
 
 	private void onBrowseSource()
