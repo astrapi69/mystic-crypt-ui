@@ -18,7 +18,7 @@ PLUGIN_FILE_CRYPT_DIR := plugins/file-crypt-plugin
 PLUGIN_SECRET_SHARING_DIR := plugins/secret-sharing-plugin
 PLUGIN_INSTALL_DIR := $(HOME)/.config/mystic-crypt-ui/plugins
 
-.PHONY: build build-full build-with-plugins bwp run all clean test test-e2e test-e2e-demo \
+.PHONY: merge-pr test-fast build build-full build-with-plugins bwp run all clean test test-e2e test-e2e-demo \
 	bootRun clean-build-installer izpack-installer izpack-installer-signed \
 	dependencies dependency-updates jacoco-coverage jacoco-report jar javadoc \
 	license-format publish publish-local spotless-java spotless-misc tag-release \
@@ -63,6 +63,15 @@ all: build-with-plugins run
 
 test:
 	JAVA_HOME=$(JAVA_HOME) ./gradlew test
+
+# the cheap local run: the unit suite only, no display needed (#319)
+test-fast:
+	JAVA_HOME=$(JAVA_HOME) ./gradlew test
+
+# merges a pull request the way the rules describe, stopping at the first step that fails (#324)
+merge-pr:
+	@test -n "$(PR)" || (echo "usage: make merge-pr PR=<number>" && false)
+	./scripts/merge-pr.sh $(PR)
 
 # end-to-end UI tests (AssertJ-Swing) - fast mode (default): as fast as possible
 test-e2e:
