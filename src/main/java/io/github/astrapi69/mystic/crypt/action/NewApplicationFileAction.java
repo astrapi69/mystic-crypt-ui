@@ -41,6 +41,8 @@ import io.github.astrapi69.mystic.crypt.lock.WorkspaceLockDecision;
 import io.github.astrapi69.mystic.crypt.panel.signin.MasterPwFileModelBean;
 import io.github.astrapi69.mystic.crypt.panel.signin.NewMasterPwFileDialog;
 import io.github.astrapi69.mystic.crypt.vault.VaultCloseSupport;
+import io.github.astrapi69.mystic.crypt.write.DataClass;
+import io.github.astrapi69.mystic.crypt.write.OverwriteConfirmation;
 import io.github.astrapi69.swing.filechooser.JFileChooserExtensions;
 import io.github.astrapi69.throwable.RuntimeExceptionDecorator;
 
@@ -104,6 +106,13 @@ public class NewApplicationFileAction extends AbstractAction
 		{
 			final File selectedApplicationFile = JFileChooserExtensions
 				.getSelectedFileWithFirstExtension(fileChooser);
+			if (!OverwriteConfirmation.allowsWriting(mysticCryptApplicationFrame,
+				selectedApplicationFile, DataClass.IRREPLACEABLE))
+			{
+				// the check below only decided whether to create an empty file first; it stopped
+				// nothing, so creating a database onto an existing one took it over (#300)
+				return;
+			}
 			if (!selectedApplicationFile.exists())
 			{
 				RuntimeExceptionDecorator

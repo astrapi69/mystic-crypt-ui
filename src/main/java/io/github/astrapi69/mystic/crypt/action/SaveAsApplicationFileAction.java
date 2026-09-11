@@ -38,6 +38,8 @@ import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
 import io.github.astrapi69.mystic.crypt.app.file.xml.ApplicationXmlFileStoreWorker;
 import io.github.astrapi69.mystic.crypt.eventbus.ApplicationEventBus;
 import io.github.astrapi69.mystic.crypt.panel.signin.MasterPwFileModelBean;
+import io.github.astrapi69.mystic.crypt.write.DataClass;
+import io.github.astrapi69.mystic.crypt.write.OverwriteConfirmation;
 import io.github.astrapi69.swing.filechooser.JFileChooserExtensions;
 
 /**
@@ -74,6 +76,12 @@ public class SaveAsApplicationFileAction extends AbstractAction
 			return;
 		}
 		File selectedFile = JFileChooserExtensions.getSelectedFileWithFirstExtension(fileChooser);
+		if (!OverwriteConfirmation.allowsWriting(frame, selectedFile, DataClass.IRREPLACEABLE))
+		{
+			// the chosen file is somebody's database, and the writer replaces. Picking it in this
+			// chooser used to destroy it without a word (#300)
+			return;
+		}
 		// retarget the open model to the chosen file, then store there with the current credentials
 		MasterPwFileModelBean masterPwFileModelBean = frame.getModelObject()
 			.getMasterPwFileModelBean();
