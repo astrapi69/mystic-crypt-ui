@@ -33,6 +33,12 @@ Prompt triggers: "release new version", "new release".
    - the gate reports what it measured: read the test XML afterwards — class count, test
      count, and that the UI e2e classes are among them. A `:test FROM-CACHE` restores
      results without running anything, and an empty result set is not a green gate.
+   - force the TEST task only: `./gradlew test --rerun`, then `./gradlew build`. Not
+     `--rerun-tasks`, which also throws away the compile, the jar, the javadoc, spotless
+     and the packaging - none of which has an input Gradle cannot see. The UI suite does:
+     a display and a window manager are in no cache key, and both produced a green-looking
+     result today that said nothing about this machine (8.5). That is the whole reason one
+     task is re-run, and the reason it is only that one.
    - **package from the state that will be tagged.** The release PR is merged FIRST; the
      installer and its checksums are built from the merged branch, and the tag names
      exactly that commit. Building beforehand from the release branch ties the release to
@@ -62,8 +68,11 @@ Prompt triggers: "release new version", "new release".
    workflow that has changed, run it once manually against a snapshot target: a workflow
    that has never executed is a hypothesis (crypt-api lost a first tag run to exactly
    this).
-7. **Move `master` onto the release.** Merge (or fast-forward) the tagged commit into `master`
-   and push it. `master` holds releases - that rule was written down and then not followed for
+7. **Move `master` onto the release.** Push the tagged COMMIT onto `master`:
+   `git push origin RELEASE-X.Y.Z^{}:master`. The `^{}` is not decoration - it dereferences the
+   annotated tag to the commit it points at, and without it the push is rejected, because a branch
+   must point at a commit and `RELEASE-X.Y.Z` is a tag object (measured at 8.5, where the rule said
+   "the tagged commit" and the hand typed the tag). `master` holds releases - that rule was written down and then not followed for
    8.1.1, 8.2, 8.3 and 8.4, so master stood at the 2024-06 release while claiming to be the
    release branch, and a reader could not tell which release it corresponded to without checking
    the tags (#248). It is a numbered step here rather than a habit for exactly that reason. Never
