@@ -41,7 +41,10 @@ When unclear: ask rather than guess.
   Javadoc, commit messages, issues, pull requests, labels, CHANGELOG, rules and docs. Two
   exceptions, both narrow: user-facing translations (a `messages_de.properties` is the
   point of having one), and a verbatim quote - a chat journal records what was said in the
-  language it was said in, and a quoted issue title stays as written.
+  language it was said in, and a quoted issue title stays as written. A document that
+  predates the rule carries a `Language:` line saying so, in English, rather than being
+  translated for its own sake: the marker is what a reader needs, and a translation with no
+  reader waiting is work on a document nobody asked for (#309).
 - **The chat journal is written outside this repository, never inside it.** It records the
   maintainer's own messages word for word, and this repository is public; that is a
   decision about a person's words, not about a file (#311). If the place it belongs in is

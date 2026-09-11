@@ -3,6 +3,10 @@
 Datum: 2026-08-25
 Quelle: `/home/astrapi69/dev/git/hub/astrapi69/adaptive-learner/.claude` (26 Dateien, ca. 5.100 Zeilen)
 Ziel: `mystic-crypt-ui/.claude/rules/` (vorher: kein `.claude`-Verzeichnis, kein `CLAUDE.md`)
+Language: German. This document is written in German and is complete as it stands - it is not
+a truncated English one. It predates the English-only rule in `coding-standards.md`, it records
+a decision already taken, and translating a finished record would change nothing anybody reads
+(#309).
 
 ## Zusammenfassung
 
