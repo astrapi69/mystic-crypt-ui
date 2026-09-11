@@ -41,6 +41,7 @@ import java.util.Date;
 import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -366,5 +367,50 @@ class ConversionSupportTest
 
 		assertEquals("-----BEGIN EC PRIVATE KEY-----", Files.readAllLines(pkcs1.toPath()).get(0),
 			"RFC 5915 is EC's traditional form and names the algorithm in its header");
+	}
+
+	@Test
+	@DisplayName("an OpenPGP armour block is named, not reported as unreadable")
+	void kindOf_namesAnOpenPgpBlock_ratherThanFailingOnItsBase64(@TempDir File directory)
+		throws Exception
+	{
+		// the armour of a real GnuPG export: the header shape is identical to PEM, and the body is
+		// not base64 a PEM reader can decode. A real key measured on 2026-09-11 came back as
+		// "malformed PEM data: unable to decode base64 string" (#321)
+		File publicKey = new File(directory, "public_key.asc");
+		Files.writeString(publicKey.toPath(), """
+			-----BEGIN PGP PUBLIC KEY BLOCK-----
+
+			mDMEZs9wLhYJKwYBBAHaRw8BAQdA0000000000000000000000000000000000000
+			=aB3d
+			-----END PGP PUBLIC KEY BLOCK-----
+			""");
+
+		ConversionSupport.FileKind kind = ConversionSupport.kindOf(publicKey);
+
+		assertEquals("an OpenPGP public key block, which this tool does not convert",
+			kind.description(),
+			"the family the file belongs to is the whole answer a reader needs - it stops them "
+				+ "looking for the mistake on their own side");
+		assertFalse(kind.pem(), "OpenPGP armour is not PEM, whatever the header line looks like");
+	}
+
+	@Test
+	@DisplayName("a private OpenPGP block is named too, not only a public one")
+	void kindOf_namesAnyOpenPgpArmour_notOnlyThePublicKeyBlock(@TempDir File directory)
+		throws Exception
+	{
+		File signature = new File(directory, "detached.asc");
+		Files.writeString(signature.toPath(), """
+			-----BEGIN PGP SIGNATURE-----
+
+			iHUEABYKAB0000000000000000000000000000000000000000000000000000000
+			-----END PGP SIGNATURE-----
+			""");
+
+		assertEquals("an OpenPGP signature, which this tool does not convert",
+			ConversionSupport.kindOf(signature).description(),
+			"the header names what it is, so the message says what it is rather than listing the "
+				+ "blocks somebody thought of");
 	}
 }

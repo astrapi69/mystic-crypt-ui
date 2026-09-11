@@ -24,7 +24,9 @@
  */
 package io.github.astrapi69.mystic.crypt.plugin.conversion.wizard;
 
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -86,7 +88,7 @@ class SourcePanelTest
 
 		assertEquals(source.getAbsolutePath(), model.getSourceFilePath(),
 			"what is typed into the field has to be in the model at once");
-		assertEquals("an RSA private key, PKCS#1", label(panel, "lblWhatItHolds").getText(),
+		assertEquals("an RSA private key, PKCS#1", textField(panel, "lblWhatItHolds").getText(),
 			"the file has to be looked at from the model, not from the widget");
 		assertNotNull(model.getFileKind(), "the detected kind belongs in the model too");
 	}
@@ -120,6 +122,33 @@ class SourcePanelTest
 		assertNull(model.getFileKind(), "a file that cannot be read has no detected kind");
 		assertTrue(model.getWhatItHolds().startsWith("not read:"),
 			"the model has to say why nothing was detected, it holds: " + model.getWhatItHolds());
+	}
+
+	@Test
+	void theAnswerCanBeSelectedAndAFailureIsRed(@TempDir File directory) throws Exception
+	{
+		ConversionWizardModel model = new ConversionWizardModel();
+		SourcePanel panel = newPanel(model);
+		JTextField whatItHolds = textField(panel, "lblWhatItHolds");
+		java.awt.Color readableColour = whatItHolds.getForeground();
+
+		textField(panel, "txtSourceFile")
+			.setText(new File(directory, "missing.pem").getAbsolutePath());
+
+		assertFalse(whatItHolds.isEditable(),
+			"it reads like a label and must not be typed into - selectable is the point, editable "
+				+ "is not");
+		assertNotEquals(readableColour, whatItHolds.getForeground(),
+			"a failure rendered in the same colour as 'this holds an RSA private key' looks "
+				+ "exactly like an answer (#321)");
+
+		File source = new File(directory, "key.pem");
+		PrivateKeyWriter.writeInPemFormat(KeyPairFactory.newKeyPair("RSA").getPrivate(), source);
+		textField(panel, "txtSourceFile").setText(source.getAbsolutePath());
+
+		assertEquals(readableColour, whatItHolds.getForeground(),
+			"and an answer after a failure goes back to the ordinary colour, or every later "
+				+ "answer would read as a failure");
 	}
 
 	@Test
