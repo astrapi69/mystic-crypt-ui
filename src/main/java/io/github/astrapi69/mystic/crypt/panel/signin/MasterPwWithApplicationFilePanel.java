@@ -675,14 +675,11 @@ public class MasterPwWithApplicationFilePanel extends BasePanel<MasterPwFileMode
 					applicationModelBean.setDirty(false);
 				}
 				// entries written before identifiers were maintained have none, and only assigning
-				// them on load reaches the oldest data - the data most worth referencing. What is
-				// assigned has to be persisted, or the next session invents different identifiers
-				// and the field is not an identity at all, so the model is marked as changed here
-				// and the identifiers travel with the next save (#272)
-				if (0 < EntryIdentitySupport.assignMissingIdentifiers(applicationModelBean))
-				{
-					applicationModelBean.setDirty(true);
-				}
+				// them on load reaches the oldest data - the data most worth referencing. What
+				// loading may and may not do to them is written on migrateOnLoad; notably it does
+				// not mark the model as changed, so opening a vault never asks about saving one
+				// (#272, decided in the issue)
+				EntryIdentitySupport.migrateOnLoad(applicationModelBean);
 				applicationModelBean.setSignedIn(true);
 				applicationFrame.setModelObject(applicationModelBean);
 				MasterPwFileModelBean masterPwFileModelBean = applicationModelBean

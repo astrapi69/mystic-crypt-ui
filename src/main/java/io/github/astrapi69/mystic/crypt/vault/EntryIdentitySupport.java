@@ -51,17 +51,41 @@ public final class EntryIdentitySupport
 	}
 
 	/**
+	 * The whole of what opening a vault does to entry identity: every entry without an identifier
+	 * gets one, and nothing else happens (#272).
+	 * <p>
+	 * In particular the model is NOT marked as changed. Opening a file is not an edit the person
+	 * made, and marking it would put an unsaved-changes question in front of somebody who only
+	 * looked at their vault - the same rule #304 settled for locking. The identifiers travel with
+	 * the next real save.
+	 * <p>
+	 * The price of that, decided in the issue and written here because it is the kind of limitation
+	 * a later reader would otherwise have to rediscover: <b>an identifier is stable only from the
+	 * first save after the migration onwards.</b> Before that save the same entry gets a fresh
+	 * identifier every time the file is opened, and the same old file opened on two machines yields
+	 * two different identifiers for the same entry. Nothing today reads an identifier across
+	 * sessions, so this costs nothing yet; whatever does first - a compare-two-vaults feature is
+	 * the obvious one - has to deal with it.
+	 *
+	 * @param applicationModelBean
+	 *            the freshly read model; null is accepted and changes nothing
+	 */
+	public static void migrateOnLoad(final ApplicationModelBean applicationModelBean)
+	{
+		assignMissingIdentifiers(applicationModelBean);
+	}
+
+	/**
 	 * Gives every entry without an identifier one, and reports how many needed it.
 	 * <p>
 	 * Done on LOAD rather than only for newly created entries (#272). Filling the field only for
 	 * new entries would leave the oldest data - the data most worth referencing - permanently
-	 * without identity, and the feature would quietly not apply where it matters most. The caller
-	 * marks the model as changed when the count is not zero, so what is assigned here is persisted
-	 * with the next save and is the same identifier the next time the file is opened; an identifier
-	 * that is regenerated per session is not an identifier.
+	 * without identity, and the feature would quietly not apply where it matters most.
 	 * <p>
 	 * An identifier that is already there is never replaced. Once assigned it does not change and
-	 * is not reused.
+	 * is not reused. Callers on the loading path use {@link #migrateOnLoad(ApplicationModelBean)},
+	 * which is where what loading may and may not do is written down; the count is here for tests
+	 * and for anything that wants to report how much an old file needed.
 	 *
 	 * @param applicationModelBean
 	 *            the freshly read model; null is accepted and changes nothing
