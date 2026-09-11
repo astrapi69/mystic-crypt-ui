@@ -167,6 +167,9 @@ To share your changes, [submit a pull request](https://github.com/astrapi69/myst
 
 Don't forget to add new unit tests for your changes.
 
+How issues are prioritised and how work is ordered here is written down in
+[docs/issue-workflow.md](docs/issue-workflow.md).
+
 ## Contacting the developer
 
 Do not hesitate to contact the mystic-crypt-ui developers with your questions, concerns,

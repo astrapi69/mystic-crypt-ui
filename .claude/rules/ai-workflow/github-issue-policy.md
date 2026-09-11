@@ -29,10 +29,24 @@ not advisory. Applies to ALL agents.
 
 ## Priority follows damage, not effort
 
-`P1` data loss, security, or a gate that cannot report. `P2` important, scheduled next.
-`P3` small or cosmetic: it confuses, it destroys nothing. A one-line fix for a defect that
-loses data is P1; a week of work on a confusing dialog is P3. Sorting by effort is what
-makes the colour a negotiation again at the next issue.
+`P0` a released version is losing or exposing data right now: fix and release today,
+everything else stops. `P1` data loss, security, or a gate that cannot report - the next
+release carries it. `P2` important, scheduled next. `P3` small or cosmetic: it confuses,
+it destroys nothing. `P4` worth doing and nobody is waiting: picked up when something else
+touches the area, not scheduled on its own. `P5` recorded so it is not rediscovered, and
+not planned - the honest form of `wontfix`, with the reason in the issue.
+
+A one-line fix for a defect that loses data is P1; a week of work on a confusing dialog is
+P3. Sorting by effort is what makes the colour a negotiation again at the next issue.
+
+The line that matters most is P0 against P1, because it is the only one that interrupts
+work in progress: P1 is "the next release does not go out without this", P0 is "a release
+goes out today because of this".
+
+The two at the bottom earn their place only by meaning something an empty label does not:
+P4 says somebody will do it while passing, P5 says nobody will and here is why. If either
+becomes a place things go to be forgotten quietly, it is doing `wontfix`'s job badly and
+should be dropped.
 
 Something that waits for a NAMED condition is not a stage: it gets `blocked` and the
 condition in writing (#301 waits for the second plugin that opts into the public state).
