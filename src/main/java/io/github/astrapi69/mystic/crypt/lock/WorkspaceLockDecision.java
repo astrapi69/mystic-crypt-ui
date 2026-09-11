@@ -43,22 +43,6 @@ public enum WorkspaceLockDecision
 	HIDE_VAULT;
 
 	/**
-	 * Decides what happens to the vault view when the frame switches to the desktop pane.
-	 * <p>
-	 * {@code signedIn} is the state, and it is asked first: locked means hidden, whatever else is
-	 * true. {@code vaultViewBuilt} is not a second state carrier - it answers a different question,
-	 * namely whether there is anything to show at all. The two are deliberately not
-	 * interchangeable: the view object is created when a database is opened and never discarded, so
-	 * it stays true across locking, which is exactly why a null check on it decided this wrongly
-	 * before (#237).
-	 *
-	 * @param signedIn
-	 *            whether the workspace is unlocked
-	 * @param vaultViewBuilt
-	 *            whether a vault view exists that could be shown
-	 * @return {@link #SHOW_VAULT} only when the workspace is unlocked and there is a view to show
-	 */
-	/**
 	 * Whether a new vault may be created right now: only when none is open.
 	 * <p>
 	 * Creating a vault does not open one. It replaces the file the application saves to and leaves
@@ -71,9 +55,13 @@ public enum WorkspaceLockDecision
 	 * Locked or not, the vault that is open is the one whose content would travel, so the question
 	 * is whether one is open at all - two cases instead of four.
 	 * <p>
-	 * This is the shape available today, not the intended end state. "Close the open one first" is
-	 * what a user expects, and this application cannot close a vault while running at all (#281).
-	 * Once that path exists, this refusal becomes the closing flow.
+	 * What the caller does with a "no" has moved on, and this only answers the question. Since the
+	 * close path was built (#281), {@code NewApplicationFileAction} closes an UNLOCKED vault and
+	 * carries on, and shows the refusal only for a LOCKED one - whose master password is not in
+	 * memory, so its pending changes could not be written even if somebody wanted to. This comment
+	 * said the application could not close a vault at all, which was true when it was written and
+	 * stopped being true with #287. A comment describing the application as it was is read as
+	 * current, which makes it worse than none (#307).
 	 * <p>
 	 * Asked in the ACTION, not only at the button. The button follows the same decision (#269),
 	 * which is the first line; this is the second, and it holds for a keyboard shortcut, a
@@ -88,6 +76,25 @@ public enum WorkspaceLockDecision
 		return !aVaultIsOpen;
 	}
 
+	/**
+	 * Decides what happens to the vault view when the frame switches to the desktop pane.
+	 * <p>
+	 * {@code signedIn} is the state, and it is asked first: locked means hidden, whatever else is
+	 * true. {@code vaultViewBuilt} is not a second state carrier - it answers a different question,
+	 * namely whether there is anything to show at all. The two are deliberately not
+	 * interchangeable: the view object is created when a database is opened and never discarded, so
+	 * it stays true across locking, which is exactly why a null check on it decided this wrongly
+	 * before (#237).
+	 * <p>
+	 * This comment and its parameters used to sit above {@code mayCreateAVault}, documenting
+	 * neither that method nor this one (#307).
+	 *
+	 * @param signedIn
+	 *            whether the workspace is unlocked
+	 * @param vaultViewBuilt
+	 *            whether a vault view exists that could be shown
+	 * @return {@link #SHOW_VAULT} only when the workspace is unlocked and there is a view to show
+	 */
 	public static WorkspaceLockDecision onSwitchToDesktopPane(final boolean signedIn,
 		final boolean vaultViewBuilt)
 	{
