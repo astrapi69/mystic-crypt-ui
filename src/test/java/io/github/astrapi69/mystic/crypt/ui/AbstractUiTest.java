@@ -151,6 +151,7 @@ abstract class AbstractUiTest
 				appThread.join(15000);
 			}
 			disposeAllWindows();
+			awaitApplicationThreadEnd();
 		}
 		finally
 		{
@@ -349,6 +350,47 @@ abstract class AbstractUiTest
 	}
 
 	/** Disposes every AWT window still alive, on the EDT, so nothing stays on screen */
+	/**
+	 * Waits for the application thread to end AFTER the windows are disposed, and fails the test if
+	 * it does not (#306).
+	 * <p>
+	 * The join above runs while the modal sign-in dialog is still up, so a constructor waiting on
+	 * that dialog cannot finish inside it - it finishes here, once disposing the windows has
+	 * released it. Without this second wait the thread keeps assembling the application with nobody
+	 * waiting, and what happens next is decided by timing: it runs into the next test in the same
+	 * JVM, or the JVM exits under it.
+	 * <p>
+	 * The second case is where the failure-level annotations in green CI jobs came from.
+	 * {@code ImageIO.read} registers a JVM shutdown hook for its stream cache, so a toolbar icon
+	 * loaded while the JVM is shutting down throws {@code IllegalStateException: Shutdown in
+	 * progress} out of a thread no test is watching: stderr gets a stack trace, the job stays
+	 * SUCCESS, and GitHub renders an error annotation nobody can act on. Measured in run
+	 * 34444294710 (twice) and 34399662684 (twice), always from
+	 * {@code MysticCryptApplicationFrame.newJToolBar}.
+	 * <p>
+	 * A surviving thread FAILS rather than warns: it is the same leak either way, and the version
+	 * that runs into the next test is the cross-test flakiness this teardown exists to prevent.
+	 */
+	private void awaitApplicationThreadEnd() throws InterruptedException
+	{
+		if (appThread == null)
+		{
+			return;
+		}
+		appThread.join(15000);
+		if (appThread.isAlive())
+		{
+			throw new IllegalStateException("the application thread was still building the "
+				+ "application 15 seconds after its windows were disposed. It now runs into the "
+				+ "next test, or into this JVM's shutdown - the second is what raises "
+				+ "\"Shutdown in progress\" out of a green job (#306). Thread state: "
+				+ appThread.getState() + ", top frame: "
+				+ (appThread.getStackTrace().length > 0
+					? appThread.getStackTrace()[0].toString()
+					: "none"));
+		}
+	}
+
 	private void disposeAllWindows()
 	{
 		GuiActionRunner.execute(() -> {
