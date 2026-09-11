@@ -20,6 +20,7 @@
  */
 package io.github.astrapi69.mystic.crypt.ui;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -103,34 +104,33 @@ class LockedVaultClosesItselfUiTest extends AbstractUiTest
 	}
 
 	@Test
-	@DisplayName("locking writes pending changes, so the close afterwards loses nothing")
-	void lockingSavesFirst_soTheTimedCloseCannotLoseChanges() throws IOException
+	@DisplayName("locking keeps pending changes instead of writing them, and the close waits")
+	void lockingKeepsPendingChanges_soTheTimedCloseLeavesThemAlone() throws IOException
 	{
-		File databaseFile = new File(tempHome, "locking-saves-first.mcrdb");
+		File databaseFile = new File(tempHome, "locking-keeps-changes.mcrdb");
 		createDatabaseFileHeadless(databaseFile, MASTER_PASSWORD);
 		ApplicationSteps application = signInWithExistingDatabase(databaseFile, MASTER_PASSWORD);
 		FrameFixture frame = application.showMainFrame();
 		application.selectTreeRow(frame, 0).addEntry(frame, ENTRY_TITLE, "someone",
 			TestPasswords.throwaway());
+		long lengthBeforeLocking = databaseFile.length();
 
-		// deliberately NOT saved here: locking has to do it, while the master password is still in
-		// memory. Afterwards there is nothing left to encrypt with
+		// deliberately NOT saved: what locking does with it is the question
 		application.lockWorkspace();
 		application.cancelUnlock();
 
-		assertFalse(
+		assertTrue(
 			GuiActionRunner.execute(
 				() -> MysticCryptApplicationFrame.getInstance().getModelObject().isDirty()),
-			"locking wrote the pending changes. Without that the timed close would have to choose "
-				+ "between dropping them and never running, and both are bad answers");
+			"locking keeps the change rather than committing it: a timer does not decide to write "
+				+ "in a password manager (#304)");
+		assertEquals(lengthBeforeLocking, databaseFile.length(), "and the file is untouched");
 
 		closeTheLockedVaultThroughTheWatchdog();
-		ApplicationSteps reopened = openADatabaseFileInTheRunningApplication(databaseFile);
-		reopened.showMainFrame();
 
-		assertTrue(reopened.entryExistsWithTitle(ENTRY_TITLE),
-			"and the entry added just before locking is in the file. A round trip, because a "
-				+ "dirty flag says what the application believes, not what is on disk");
+		assertTrue(theModelStillHolds(ENTRY_TITLE),
+			"the timed close leaves a dirty vault alone - it stays locked until somebody unlocks "
+				+ "it and decides, which is the other half of the same rule");
 	}
 
 	/**

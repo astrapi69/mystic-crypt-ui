@@ -67,11 +67,20 @@ class MysticCryptSettingsTest
 	}
 
 	@Test
+	@DisplayName("saving when locking is off until somebody asks for it")
+	void savingWhenLockingIsOffByDefault()
+	{
+		assertFalse(new MysticCryptSettings().isSaveWhenLocking(),
+			"a timer that commits a change the user has not decided about takes the choice away, "
+				+ "so the old behaviour is available but not the default (#304)");
+	}
+
+	@Test
 	void savedSettingsRoundTripThroughTheConfigurationDirectory(
 		@TempDir File configurationDirectory)
 	{
 		MysticCryptSettings settings = new MysticCryptSettings("Metal", "de",
-			FrameMode.DESKTOP_PANE, false, 30, 45);
+			FrameMode.DESKTOP_PANE, false, 30, true, 45);
 		settings.save(configurationDirectory);
 		assertTrue(new File(configurationDirectory, MysticCryptSettings.JSON_FILENAME).exists(),
 			"saving must write the settings json");

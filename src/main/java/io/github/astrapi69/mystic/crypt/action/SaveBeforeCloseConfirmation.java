@@ -77,12 +77,47 @@ public final class SaveBeforeCloseConfirmation
 	 *            the model whose changes are in question
 	 * @return what the user decided
 	 */
+	/**
+	 * Asks whether to discard, because from a LOCKED workspace there is nothing else to offer.
+	 * <p>
+	 * Locking stopped writing with #304, and the master password left memory with #242, so "save"
+	 * here is a button that cannot do what it says: it would reach a store with no password behind
+	 * it. The two things this must never do are ending silently and offering that save - so the
+	 * question names the loss and the way out of it, and cancelling stays in the application, where
+	 * unlocking is one click away.
+	 *
+	 * @param parent
+	 *            the component the dialog belongs to
+	 * @return {@link Choice#DISCARDED} when the user accepts the loss, {@link Choice#CANCELLED}
+	 *         otherwise
+	 */
+	private static Choice askWhetherToDiscardWhileLocked(final Component parent)
+	{
+		String defaultMessage = "<html><body>"
+			+ "<div>This database is locked and has unsaved changes.</div>"
+			+ "<div>They cannot be written while it is locked - the master password is not "
+			+ "held in memory.</div>"
+			+ "<div>Ending now discards them. Cancel, unlock and save to keep them.</div>"
+			+ "</body></html>";
+		LabelPanel panel = new LabelPanel(BaseModel
+			.of(Messages.getString("dialog.confirm.discard.while.locked.message", defaultMessage)));
+		int option = JOptionPaneExtensions.getSelectedOption(panel, JOptionPane.WARNING_MESSAGE,
+			JOptionPane.YES_NO_OPTION, parent, Messages.getString(
+				"dialog.confirm.discard.while.locked.title", "Discard the unsaved changes?"),
+			null);
+		return option == JOptionPane.YES_OPTION ? Choice.DISCARDED : Choice.CANCELLED;
+	}
+
 	public static Choice askAndApply(final Component parent,
 		final ApplicationModelBean applicationModelBean)
 	{
 		if (applicationModelBean == null || !applicationModelBean.isDirty())
 		{
 			return Choice.DISCARDED;
+		}
+		if (!applicationModelBean.isSignedIn())
+		{
+			return askWhetherToDiscardWhileLocked(parent);
 		}
 		String defaultMessage = "<html><body>" + "<div>The current database file is modified.</div>"
 			+ "<div>Store your changes before finish application</div>" + "</body></html>";

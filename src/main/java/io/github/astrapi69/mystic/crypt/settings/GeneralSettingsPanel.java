@@ -74,6 +74,8 @@ public class GeneralSettingsPanel extends JPanel
 	 * The idle timeout in minutes, 0 meaning off. A spinner rather than a free text field so a
 	 * settings value that cannot lock at all - a negative one, a typo - cannot be entered here
 	 */
+	private final JMCheckBox chkSaveWhenLocking = new JMCheckBox();
+
 	private final JMSpinner<Integer> spnAutoLockMinutes = new JMSpinner<>(new SpinnerNumberModel(
 		IdleLockDecision.DEFAULT_TIMEOUT_MINUTES, IdleLockDecision.OFF, 480, 1));
 
@@ -101,6 +103,11 @@ public class GeneralSettingsPanel extends JPanel
 		cmbViewMode.setToolTipText(Messages.getString("settings.general.tooltip.view.mode",
 			"whether the application opens as a desktop-style window manager or a single panel"));
 		chkTooltipsEnabled.setName("chkTooltipsEnabled");
+		chkSaveWhenLocking.setName("chkSaveWhenLocking");
+		chkSaveWhenLocking.setToolTipText(Messages.getString(
+			"settings.general.tooltip.save.on.lock",
+			"whether locking writes pending changes to the file; off by default, so a timer never "
+				+ "commits a change you had not decided about"));
 		spnAutoLockMinutes.setName("spnAutoLockMinutes");
 		spnCloseLockedMinutes.setName("spnCloseLockedMinutes");
 		spnCloseLockedMinutes.setToolTipText(Messages.getString(
@@ -128,6 +135,8 @@ public class GeneralSettingsPanel extends JPanel
 		form.add(cmbViewMode);
 		form.add(new JLabel("Tooltips:"));
 		form.add(chkTooltipsEnabled);
+		form.add(new JLabel("Save when locking:"));
+		form.add(chkSaveWhenLocking);
 		form.add(new JLabel("Lock after idle minutes (0 = off):"));
 		form.add(spnAutoLockMinutes);
 		form.add(new JLabel("Close a locked database after minutes (0 = off):"));
@@ -147,6 +156,8 @@ public class GeneralSettingsPanel extends JPanel
 		cmbViewMode.setPropertyModel(LambdaModel.of(settings::getViewMode, settings::setViewMode));
 		chkTooltipsEnabled.setPropertyModel(
 			LambdaModel.of(settings::isTooltipsEnabled, settings::setTooltipsEnabled));
+		chkSaveWhenLocking.setPropertyModel(
+			LambdaModel.of(settings::isSaveWhenLocking, settings::setSaveWhenLocking));
 		spnAutoLockMinutes.setPropertyModel(
 			LambdaModel.of(settings::getAutoLockMinutes, settings::setAutoLockMinutes));
 		spnCloseLockedMinutes.setPropertyModel(LambdaModel.of(settings::getCloseLockedAfterMinutes,
