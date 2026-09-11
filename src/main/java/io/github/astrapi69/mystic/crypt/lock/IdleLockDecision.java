@@ -87,11 +87,14 @@ public final class IdleLockDecision
 	 * <p>
 	 * WHY THIS EXISTS. Locking keeps the decrypted vault in memory so unlocking can rebuild the
 	 * view without reading and decrypting the file again (#237), and nothing bounded that: a vault
-	 * locked at five o'clock was still decrypted in the process the next morning. Wiping it in
-	 * place is not available - an entry's title, user name, URL and notes are {@code String}s, and
-	 * a String cannot be overwritten in Java - so the only way the plaintext leaves memory is for
-	 * the model to be dropped, which is what closing does. This turns an unbounded window into a
-	 * named one.
+	 * locked at five o'clock was still decrypted in the process the next morning. This turns an
+	 * unbounded window into a named one, and the name is the two settings above.
+	 * <p>
+	 * It keeps the CONTENT, not the key material - the master password, its repeat and the private
+	 * key are wiped by the lock itself, so what this bounds is the cost side rather than the attack
+	 * surface. That split is recorded in {@code docs/decisions/} (#242). This Javadoc used to say
+	 * wiping in place was unavailable because an entry's title, user name, URL and notes were
+	 * {@code String}s; they have been character arrays since #294, and closing overwrites all six.
 	 * <p>
 	 * UNSAVED CHANGES REFUSE IT, and that is not a detail. A locked workspace has no master
 	 * password - locking replaced it with a verifier - so pending changes cannot be written, and a
