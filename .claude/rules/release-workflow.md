@@ -68,8 +68,11 @@ Prompt triggers: "release new version", "new release".
    workflow that has changed, run it once manually against a snapshot target: a workflow
    that has never executed is a hypothesis (crypt-api lost a first tag run to exactly
    this).
-7. **Move `master` onto the release.** Merge (or fast-forward) the tagged commit into `master`
-   and push it. `master` holds releases - that rule was written down and then not followed for
+7. **Move `master` onto the release.** Push the tagged COMMIT onto `master`:
+   `git push origin RELEASE-X.Y.Z^{}:master`. The `^{}` is not decoration - it dereferences the
+   annotated tag to the commit it points at, and without it the push is rejected, because a branch
+   must point at a commit and `RELEASE-X.Y.Z` is a tag object (measured at 8.5, where the rule said
+   "the tagged commit" and the hand typed the tag). `master` holds releases - that rule was written down and then not followed for
    8.1.1, 8.2, 8.3 and 8.4, so master stood at the 2024-06 release while claiming to be the
    release branch, and a reader could not tell which release it corresponded to without checking
    the tags (#248). It is a numbered step here rather than a habit for exactly that reason. Never
