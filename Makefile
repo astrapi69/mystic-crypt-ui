@@ -39,7 +39,11 @@ build:
 # The packaging task cleans - it has to, because the jar signing globs over build/libs and would
 # otherwise sign leftovers from an earlier build - so running it second wiped the test report the
 # first invocation had just written, and a green gate could not say what it had measured (#227).
-build-full:
+# the release gate. It depends on plugins because `./gradlew build` does not build them and the
+# end-to-end suite needs their zips: until #333 the 54 tests that install a plugin SKIPPED here, so
+# a release could be cut with every plugin feature unverified and the gate still green. They fail
+# now, which is only useful if the gate builds what they need (#333)
+build-full: plugins
 	JAVA_HOME=$(JAVA_HOME) ./gradlew createAllDependendiesJar
 	JAVA_HOME=$(JAVA_HOME) ./gradlew build
 
@@ -79,12 +83,15 @@ merge-pr:
 
 # end-to-end UI tests (AssertJ-Swing) - fast mode (default): as fast as possible.
 # Both targets go through the harness script, which verifies that a window manager is actually
-# answering before a test starts: without one the suite does not fail, it hangs (#322)
-test-e2e:
+# answering before a test starts: without one the suite does not fail, it hangs (#322).
+# Both also build the plugins first, because a missing plugin zip now FAILS its tests instead of
+# skipping them (#333) - CI builds them before the suite for the same reason, and a target that
+# leaves 54 tests red by construction would only teach people to ignore them
+test-e2e: plugins
 	JAVA_HOME=$(JAVA_HOME) ./scripts/e2e-harness.sh e2eTest
 
 # end-to-end UI tests in demo mode: paced like a real user, watchable on screen
-test-e2e-demo:
+test-e2e-demo: plugins
 	JAVA_HOME=$(JAVA_HOME) ./scripts/e2e-harness.sh e2eTest --rerun -Dmystic.crypt.ui.test.mode=demo
 
 clean:

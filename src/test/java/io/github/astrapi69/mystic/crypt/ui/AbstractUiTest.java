@@ -25,7 +25,6 @@
 package io.github.astrapi69.mystic.crypt.ui;
 
 import java.awt.Dialog;
-import java.awt.GraphicsEnvironment;
 import java.awt.Window;
 import java.awt.event.WindowListener;
 import java.io.File;
@@ -43,7 +42,6 @@ import org.assertj.swing.edt.GuiActionRunner;
 import org.assertj.swing.finder.WindowFinder;
 import org.assertj.swing.fixture.DialogFixture;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.BeforeEach;
 
 import io.github.astrapi69.awt.window.adapter.CloseWindow;
@@ -119,9 +117,11 @@ abstract class AbstractUiTest
 	@BeforeEach
 	void setUpUiTest() throws IOException
 	{
-		// no display, no UI test: skips cleanly on headless CI runners instead of failing there
-		Assumptions.assumeFalse(GraphicsEnvironment.isHeadless(),
-			"UI tests need a graphical display and are skipped in headless environments");
+		// no display, no UI test - and that FAILS rather than skips (#333). This used to skip
+		// "cleanly on headless CI runners", which was written before CI ran the suite under
+		// xvfb-run at all; today the display is there, so the only thing this can still catch is
+		// the display going away, which would remove 149 tests from a green build
+		TestPrerequisites.requireADisplay();
 		originalUserHome = System.getProperty("user.home");
 		tempHome = Files.createTempDirectory("mystic-crypt-ui-test-home").toFile();
 		System.setProperty("user.home", tempHome.getAbsolutePath());
@@ -311,8 +311,7 @@ abstract class AbstractUiTest
 	 */
 	protected void installPluginRequiringItBuilt(Path pluginZip) throws IOException
 	{
-		Assumptions.assumeTrue(Files.exists(pluginZip),
-			"plugin zip " + pluginZip + " not built - run 'make plugins' first");
+		TestPrerequisites.requireBuiltPluginZip(pluginZip);
 		File pluginsDir = new File(tempHome, ".config/mystic-crypt-ui/plugins");
 		if (!pluginsDir.mkdirs() && !pluginsDir.isDirectory())
 		{
