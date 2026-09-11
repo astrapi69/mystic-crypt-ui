@@ -24,7 +24,6 @@
  */
 package io.github.astrapi69.mystic.crypt.panel.dbtree;
 
-import static org.openqa.selenium.support.ui.ExpectedConditions.elementToBeClickable;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.MouseEvent;
@@ -39,7 +38,6 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
@@ -48,11 +46,6 @@ import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreeModel;
 import javax.swing.tree.TreePath;
-
-import org.kquiet.browser.ActionComposer;
-import org.kquiet.browser.ActionComposerBuilder;
-import org.kquiet.browser.ActionRunner;
-import org.openqa.selenium.By;
 
 import io.github.astrapi69.awt.extension.ClipboardExtensions;
 import io.github.astrapi69.browser.BrowserControlExtensions;
@@ -1223,11 +1216,6 @@ public class SecretKeyTreeWithContentPanel
 		openUrl.setEnabled(validUrl);
 		popup.add(openUrl);
 
-		JMenuItem openUrlAndAutotype = JMenuItemFactory.newJMenuItem("Autotype",
-			actionEvent -> this.onOpenUrlAndAutotypeOfTableEntry());
-		openUrlAndAutotype.setEnabled(validUrl);
-		popup.add(openUrlAndAutotype);
-
 		// Separator
 		popup.addSeparator();
 
@@ -1278,35 +1266,6 @@ public class SecretKeyTreeWithContentPanel
 			return false;
 		}
 		return true;
-	}
-
-	protected void onOpenUrlAndAutotypeOfTableEntry()
-	{
-		getTblTreeEntryTable().getSingleSelectedRowData().ifPresent(selectedTableEntry -> {
-			String url = EntryText.asText(selectedTableEntry.getUrl());
-			try (ActionRunner actionRunner = new MyBasicActionRunner())
-			{
-				ActionComposer actionComposer = new ActionComposerBuilder().prepareActionSequence()
-					.getUrl(url)
-					.waitUntil(elementToBeClickable(By.xpath("//input[@id='UserName']")), 3000)
-					.sendKey(By.xpath("//input[@id='UserName']"),
-						EntryText.asText(selectedTableEntry.getUserName()))
-					.waitUntil(elementToBeClickable(By.xpath("//input[@id='Password']")), 3000)
-					.sendKey(By.xpath("//input[@id='Password']"),
-						String.valueOf(selectedTableEntry.getPassword()))
-					.waitUntil(elementToBeClickable(By.cssSelector("input[type='submit']")), 3000)
-					.prepareClick(By.cssSelector("input[type='submit']")).done()
-					.returnToComposerBuilder().buildBasic().setCloseWindow(false)
-					.onFail(
-						ac -> System.err.println("an exception is thrown or is marked as failed "
-							+ "when open and auto type the username and password"))
-					.onDone(ac -> System.out
-						.println("open and auto type the username and password done"));
-				CompletableFuture<Void> voidCompletableFuture = actionRunner
-					.executeComposer(actionComposer);
-				voidCompletableFuture.join();
-			}
-		});
 	}
 
 	protected void onSelectAllTableEntries()
