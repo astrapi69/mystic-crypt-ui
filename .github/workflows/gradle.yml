@@ -52,11 +52,18 @@ jobs:
         # a failing UI test prints only its top stack frame to the console; the full trace lives in
         # the xml reports, so keep them when something goes red - otherwise a flaky failure is
         # impossible to diagnose after the fact
-        if: failure()
+        #
+        # ALWAYS, not only on failure (#306): a green run whose evidence is discarded cannot be
+        # checked afterwards, and "how many tests were those" then has no answer but a local run.
+        # Both suites since the split (#319) - uploading only build/test-results/test would keep
+        # the fast half and drop the one that takes the time
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: test-reports
           path: |
             build/reports/tests/test
             build/test-results/test
+            build/reports/tests/e2eTest
+            build/test-results/e2eTest
           retention-days: 14

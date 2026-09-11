@@ -56,6 +56,61 @@ def applyTestLogging(Test task) {
     }
 }
 
+// What ran, printed on success as well as on failure (#306).
+//
+// testLogging prints nothing when everything passes, so a green CI run said "BUILD SUCCESSFUL" and
+// not how many tests produced it - every count in a pull request body came from a local run
+// instead. Reading the XML is what the gate itself is told to do in quality-checks.md; this does it
+// in the build rather than in somebody's terminal.
+//
+// A task rather than afterSuite: afterSuite is not compatible with the configuration cache, and
+// this build uses it.
+tasks.register('testSummary') {
+    description = 'Prints what the test suites actually ran, from their result XML'
+    group = 'verification'
+    def resultDirs = ['test', 'e2eTest'].collect { layout.buildDirectory.dir("test-results/$it") }
+    inputs.files(resultDirs.collect { it.map { dir -> dir.asFileTree.matching { include '**/TEST-*.xml' } } })
+    doLast {
+        def anyFound = false
+        resultDirs.each { provider ->
+            def dir = provider.get().asFile
+            def files = dir.exists() ? dir.listFiles({ f -> f.name.startsWith('TEST-') && f.name.endsWith('.xml') } as FileFilter) : null
+            if (files == null || files.length == 0) {
+                return
+            }
+            anyFound = true
+            int classes = 0, tests = 0, failures = 0, errors = 0, skipped = 0
+            files.each { file ->
+                def suite = new groovy.xml.XmlSlurper().parse(file)
+                classes++
+                tests += (suite.@tests.text() ?: '0') as int
+                failures += (suite.@failures.text() ?: '0') as int
+                errors += (suite.@errors.text() ?: '0') as int
+                skipped += (suite.@skipped.text() ?: '0') as int
+            }
+            logger.lifecycle("${dir.name}: ${classes} classes, ${tests} tests, " +
+                "${failures} failures, ${errors} errors, ${skipped} skipped")
+        }
+        if (!anyFound) {
+            // an empty result set is not a clean result, it is a suite that never ran
+            logger.lifecycle("test summary: no result files found - no suite wrote anything")
+        }
+    }
+}
+
+// A doLast line is the honest marker for "this suite ran in THIS build": an UP-TO-DATE or a
+// FROM-CACHE task restores its result XML without executing a single test, and the summary above
+// would then report the restored counts with nothing to say they are old (8.5's gate did exactly
+// that). No line here, counts below restored.
+tasks.named('test') {
+    finalizedBy 'testSummary'
+    doLast { logger.lifecycle('test: executed in this build') }
+}
+tasks.named('e2eTest') {
+    finalizedBy 'testSummary'
+    doLast { logger.lifecycle('e2eTest: executed in this build') }
+}
+
 check.dependsOn 'e2eTest'
 
 // pinned rather than left to whatever the Gradle version in use happens to bundle, so a coverage
