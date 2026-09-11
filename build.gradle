@@ -44,7 +44,11 @@ tasks.withType(JavaCompile).configureEach { javaCompiler ->
     // options.compilerArgs << "-Xlint:unchecked"
 }
 
-tasks.named("test") {
+// EVERY test task, not the one called "test": the suites were split in #319, and this block was
+// named-task configuration, so the new e2e task inherited none of it - the KeePass tests failed on
+// CI with "module java.base does not open java.util", which is exactly what the first line here
+// exists to prevent. A third suite added later would have lost it again
+tasks.withType(Test).configureEach {
     it.mustRunAfter(tasks.named("jar"))
     // KeePassJava2-simple's SimpleXML-based serialization reflects into java.util (e.g. UUID)
     // at runtime, which the JDK 9+ module system blocks without this on JDK 17+
