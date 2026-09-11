@@ -24,6 +24,8 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
+import io.github.astrapi69.crypt.data.model.KeyModel;
+import io.github.astrapi69.file.create.model.FileContentInfo;
 import io.github.astrapi69.gen.tree.TreeIdNode;
 import io.github.astrapi69.mystic.crypt.ApplicationModelBean;
 import io.github.astrapi69.mystic.crypt.panel.dbtree.MysticCryptEntryModelBean;
@@ -43,11 +45,31 @@ import io.github.astrapi69.swing.renderer.tree.GenericTreeElement;
  * desktop, putting the menu back into the public state - is the frame's job, and this half is
  * testable without a display.
  * <p>
- * Closing is also the moment the decrypted vault leaves memory (#242): the entries' passwords are
- * character arrays, they are overwritten here rather than dropped for the collector to find later,
- * and the master password goes the same way. That is the part of #242 a close path can answer; what
- * may stay in memory while a vault is LOCKED rather than closed is the other half and is decided
- * there.
+ * Closing is also the moment the decrypted vault leaves memory (#242). Everything that is held in a
+ * buffer is OVERWRITTEN here rather than dropped for the collector to find later: the entry's six
+ * character arrays, its attachments' bytes, the master password, and the private key's encoded
+ * bytes. Dropping is not erasing - a reference the collector may or may not get around to says
+ * nothing about the memory behind it, which is the whole reason these are buffers.
+ * <p>
+ * <b>What this cannot erase, and why.</b> Three surfaces are dropped and not overwritten, each for
+ * a reason that is not a decision taken here. They are listed rather than left silent, because a
+ * gap nobody wrote down reads as one nobody noticed:
+ * <ul>
+ * <li><b>an entry's custom properties</b> are {@code KeyValuePair<String, String>}, and a String
+ * cannot be overwritten. This is the same defect the six entry fields had before #294, and the same
+ * remedy applies - it is tracked separately rather than bundled into a close path, because it
+ * changes a data model every plugin and the KeePass import touch.
+ * <li><b>the text inside a Swing password field</b> lives in a {@code Document} the JDK gives no
+ * caller a way to overwrite. {@code getPassword()} hands out a copy; the original stays. Not
+ * solvable at this layer.
+ * <li><b>the whole-vault plaintext XML</b> on the key-file and legacy read paths, where the library
+ * decryptors return a String ({@code PrivateKeyGenericDecryptor<String>},
+ * {@code PasswordStringDecryptor}). The password path already avoids this - it works in
+ * {@code char[]} end to end and wipes it. Closing that gap means changing the libraries, not this
+ * method.
+ * </ul>
+ * What may stay in memory while a vault is LOCKED rather than closed is the other half of #242 and
+ * is decided there.
  */
 public final class VaultCloseSupport
 {
@@ -133,9 +155,13 @@ public final class VaultCloseSupport
 	}
 
 	/**
-	 * Overwrites the character arrays an entry carries - all six of them (#294). Setting them to
-	 * null would leave the content where it was until something else happens to reuse that memory,
-	 * which is the whole point of holding it in a character array rather than in a String
+	 * Overwrites everything an entry holds in a buffer: the six character arrays (#294) and the
+	 * bytes of every attachment (#242). Setting them to null would leave the content where it was
+	 * until something else happens to reuse that memory, which is the whole point of holding it in
+	 * an array rather than in a String.
+	 * <p>
+	 * The custom properties are cleared rather than overwritten - they are Strings, see the class
+	 * Javadoc.
 	 *
 	 * @param entry
 	 *            the entry whose content is overwritten
@@ -154,8 +180,61 @@ public final class VaultCloseSupport
 		entry.setUrl(null);
 		SecretBuffers.wipe(entry.getNotes());
 		entry.setNotes(null);
+		wipeAttachments(entry.getResources());
+		entry.setResources(null);
+		clearProperties(entry);
 	}
 
+	/**
+	 * Overwrites the bytes of every attachment the entry carries.
+	 * <p>
+	 * An attachment is a file somebody put INTO their password database, so it is the kind of thing
+	 * that is there precisely because it must not lie around elsewhere - a recovery code sheet, a
+	 * key, a scan. It was measured intact in memory after a close while the passwords beside it
+	 * were already gone (#242).
+	 *
+	 * @param attachments
+	 *            the entry's attachments; null is accepted
+	 */
+	private static void wipeAttachments(final List<FileContentInfo> attachments)
+	{
+		if (attachments == null)
+		{
+			return;
+		}
+		for (FileContentInfo attachment : attachments)
+		{
+			if (attachment == null)
+			{
+				continue;
+			}
+			SecretBuffers.wipe(attachment.getContent());
+			attachment.setContent(null);
+		}
+	}
+
+	/**
+	 * Drops the entry's custom properties. They cannot be overwritten - see the class Javadoc - so
+	 * this is a drop and is named as one rather than counted as a wipe
+	 *
+	 * @param entry
+	 *            the entry whose properties are dropped
+	 */
+	private static void clearProperties(final MysticCryptEntryModelBean entry)
+	{
+		entry.setProperties(null);
+	}
+
+	/**
+	 * Overwrites the master password and the encoded bytes of the private key.
+	 * <p>
+	 * The key was the other half: a vault opened with a key file keeps the decoded private key in
+	 * the credentials, and it decrypts the file. Forgetting the password while leaving the key is
+	 * forgetting one of two ways in (#242).
+	 *
+	 * @param credentials
+	 *            the credentials to empty; null is accepted
+	 */
 	private static void forgetTheMasterPassword(final MasterPwFileModelBean credentials)
 	{
 		if (credentials == null)
@@ -164,5 +243,17 @@ public final class VaultCloseSupport
 		}
 		SecretBuffers.wipe(credentials.getMasterPw());
 		credentials.setMasterPw(null);
+		SecretBuffers.wipe(credentials.getRepeatPw());
+		credentials.setRepeatPw(null);
+		KeyModel privateKeyInfo = credentials.getPrivateKeyInfo();
+		if (privateKeyInfo != null)
+		{
+			// the buffer is overwritten but the field cannot be cleared: KeyModel declares its
+			// fields final and @NonNull, so the array is the only thing reachable from here. That
+			// is enough for what this is about - the bytes are gone, and the empty holder goes
+			// with the credentials on the next line
+			SecretBuffers.wipe(privateKeyInfo.getEncoded());
+		}
+		credentials.setPrivateKeyInfo(null);
 	}
 }
