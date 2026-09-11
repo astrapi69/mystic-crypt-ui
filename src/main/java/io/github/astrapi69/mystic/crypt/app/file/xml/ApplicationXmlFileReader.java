@@ -223,6 +223,11 @@ public class ApplicationXmlFileReader
 		String encryptedXml = genericDecryptor.decrypt(encryptedBytes);
 		String xml = passwordStringDecryptor.decrypt(encryptedXml);
 		applicationModelBean = XmlToObjectExtensions.toObject(xml);
+		// the key is not in the file and must not be (#350): it comes from the key file whoever
+		// signed in just picked, and the model needs it for the next save and for the plugins that
+		// read it. The key-only path below does the same thing for the same reason
+		applicationModelBean.getMasterPwFileModelBean()
+			.setPrivateKeyInfo(KeyModelExtensions.toKeyModel(privateKey));
 		return applicationModelBean;
 	}
 
