@@ -25,6 +25,7 @@
 package io.github.astrapi69.mystic.crypt.ui;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.File;
@@ -91,7 +92,8 @@ class ChecksumFileWritingUiTest extends AbstractUiTest
 	}
 
 	@Test
-	@org.junit.jupiter.api.DisplayName("a checksum over typed text is refused, with the reason")
+	@org.junit.jupiter.api.DisplayName("a checksum over typed text cannot be saved, and the button "
+		+ "says so before it is pressed")
 	void refusesToSaveAChecksumThatNamesNoFile() throws Exception
 	{
 		installPluginRequiringItBuilt(CHECKSUM_ZIP);
@@ -107,12 +109,24 @@ class ChecksumFileWritingUiTest extends AbstractUiTest
 		robot.waitForIdle();
 		GuiActionRunner.execute(() -> frame.button("btnChecksum").target().doClick());
 		robot.waitForIdle();
-		GuiActionRunner.execute(() -> frame.button("btnSaveChecksum").target().doClick());
-		robot.waitForIdle();
 
-		assertTrue(result(frame).contains("use the file instead of the text"),
-			"the refusal has to say what to change - a checksum file names a file, and typed "
-				+ "text is not one. Read: " + result(frame));
+		assertFalse(
+			GuiActionRunner.execute(() -> frame.button("btnSaveChecksum").target().isEnabled()),
+			"a checksum of typed text names no file, so there is no second column to write. The "
+				+ "answer arrived after the button had been pressed, in a line the user had to "
+				+ "notice (#320)");
+		String tooltip = GuiActionRunner
+			.execute(() -> frame.button("btnSaveChecksum").target().getToolTipText());
+		assertTrue(tooltip.contains("use the file instead of the text"),
+			"the way out belongs in the tooltip of the button that is off. It says: " + tooltip);
+
+		GuiActionRunner
+			.execute(() -> frame.checkBox("chkChecksumUseFile").target().setSelected(true));
+		robot.waitForIdle();
+		assertTrue(
+			GuiActionRunner.execute(() -> frame.button("btnSaveChecksum").target().isEnabled()),
+			"and ticking the checkbox is what switches it on - in the running application, not "
+				+ "only in the panel's own test");
 
 		application.closeInternalFrame("Checksum and MAC");
 	}
