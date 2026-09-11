@@ -27,18 +27,24 @@ Prompt triggers: "release new version", "new release".
 5. **Full gate** (ALL mandatory; a red result aborts the release):
    - `make build-full`, under the Xvfb harness — it runs the packaging, EVERY test
      including the UI e2e suite, spotless and the license check. `make test` and
-     `make test-e2e` are not run beside it: the `test` task filters nothing
-     (`gradle/testing.gradle`), so `test-e2e` is a strict subset of `test` and both are
-     contained in `build-full`. Running the e2e suite three times measures nothing new.
-   - the gate reports what it measured: read the test XML afterwards — class count, test
-     count, and that the UI e2e classes are among them. A `:test FROM-CACHE` restores
-     results without running anything, and an empty result set is not a green gate.
-   - force the TEST task only: `./gradlew test --rerun`, then `./gradlew build`. Not
-     `--rerun-tasks`, which also throws away the compile, the jar, the javadoc, spotless
-     and the packaging - none of which has an input Gradle cannot see. The UI suite does:
-     a display and a window manager are in no cache key, and both produced a green-looking
-     result today that said nothing about this machine (8.5). That is the whole reason one
-     task is re-run, and the reason it is only that one.
+     `make test-e2e` are not run beside it, but not because one contains the other: since
+     #319 the two suites are DISJOINT - `test` excludes
+     `io.github.astrapi69.mystic.crypt.ui.*` and `e2eTest` is exactly that pattern. What
+     puts both inside `build-full` is `check.dependsOn 'e2eTest'`
+     (`gradle/testing.gradle`). Running the e2e suite three times measures nothing new.
+   - the gate reports what it measured: since #306 the build prints it itself, one line
+     per suite, plus an `executed in this build` line that is ABSENT when the task was
+     UP-TO-DATE or FROM-CACHE and only restored its results. Read it, and read the XML in
+     `build/test-results/test` and `build/test-results/e2eTest` when a number is in doubt.
+     An empty result set is not a green gate.
+   - force the TEST TASKS only: `./gradlew test e2eTest --rerun`, then `./gradlew build`.
+     Both names, not just `test`: the flag applies to the tasks it is given, and after the
+     split `test` is the half whose inputs Gradle sees completely. Re-running that one and
+     letting the UI suite come back from the cache inverts the whole reason for the step
+     (#330). Not `--rerun-tasks` either, which also throws away the compile, the jar, the
+     javadoc, spotless and the packaging - none of which has an input Gradle cannot see.
+     The UI suite does: a display and a window manager are in no cache key, and both
+     produced a green-looking result that said nothing about this machine (8.5).
    - **package from the state that will be tagged.** The release PR is merged FIRST; the
      installer and its checksums are built from the merged branch, and the tag names
      exactly that commit. Building beforehand from the release branch ties the release to
