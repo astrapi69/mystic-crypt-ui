@@ -2,6 +2,10 @@
 
 Stand: 2026-08-29
 Tester: Aster
+Language: German. This document is written in German and is complete as it stands - it is not
+a truncated English one. It predates the English-only rule in `coding-standards.md`. Unlike the
+adoption report beside it, this plan is read while testing, so it becomes English the next time
+somebody works through it rather than in a translation pass with no reader waiting (#309).
 
 Dieser Plan hat denselben Aufbau wie der von adaptive-learner:
 
