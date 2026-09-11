@@ -52,16 +52,14 @@ import io.github.astrapi69.swing.renderer.tree.GenericTreeElement;
 /**
  * A locked vault does not stay decrypted forever (#242).
  * <p>
- * Locking keeps the model and the panel so unlocking can rebuild the view without reading and
- * decrypting the file again (#237), and nothing bounded that: a vault locked at five was still
- * decrypted in the process the next morning. Wiping it where it lies is not available - an entry's
- * title, user name, URL and notes are {@code String}s, and a String cannot be overwritten in Java -
- * so the only way the plaintext leaves memory is for the model to be dropped, which is what closing
- * does.
+ * Locking keeps the decrypted content on purpose, so unlocking can rebuild the view without paying
+ * 600,000 PBKDF2 iterations again (#237), and for a long time nothing bounded that: a vault locked
+ * at five o'clock was still decrypted in the process the next morning. The idle watchdog is the
+ * bound, and this is the test of it.
  * <p>
- * This measures the MEMORY, not the screen. {@code LockHidesVaultUiTest} deliberately does not
- * assert the model, because after locking the entries are still there - that is the fact this test
- * is about, from the other side: after the close they are not.
+ * What locking DOES take away is the key material - the master password, its repeat, the private
+ * key. That half is {@link LockingErasesTheKeyMaterialUiTest}; the split between the two is
+ * recorded in {@code docs/decisions/}.
  */
 class LockedVaultClosesItselfUiTest extends AbstractUiTest
 {

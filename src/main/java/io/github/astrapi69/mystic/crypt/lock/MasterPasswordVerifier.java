@@ -86,6 +86,22 @@ public final class MasterPasswordVerifier
 	}
 
 	/**
+	 * Overwrites what this verifier holds, for the moment it stops being needed - unlocking, or the
+	 * close that follows a lock nobody came back to.
+	 * <p>
+	 * It is not the password and the password cannot be read back from it. It is still PBKDF2
+	 * output over that password at the same 600,000 iterations the database itself uses, which
+	 * makes it the one thing an offline guesser can test a candidate against without the file.
+	 * Dropping the reference leaves it in the heap for the collector to get to eventually; this
+	 * does not (#242).
+	 */
+	public void wipe()
+	{
+		Arrays.fill(salt, (byte)0);
+		Arrays.fill(derivedKey, (byte)0);
+	}
+
+	/**
 	 * Whether the given characters are the password this verifier was derived from. The comparison
 	 * is {@link MessageDigest#isEqual(byte[], byte[])}, which does not return early on the first
 	 * differing byte

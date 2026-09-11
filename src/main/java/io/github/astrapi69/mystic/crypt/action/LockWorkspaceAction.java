@@ -33,6 +33,7 @@ import java.util.logging.Level;
 import javax.swing.*;
 
 import io.github.astrapi69.awt.extension.ClipboardExtensions;
+import io.github.astrapi69.crypt.data.model.KeyModel;
 import io.github.astrapi69.mystic.crypt.ApplicationModelBean;
 import io.github.astrapi69.mystic.crypt.DesktopMenu;
 import io.github.astrapi69.mystic.crypt.Messages;
@@ -41,6 +42,7 @@ import io.github.astrapi69.mystic.crypt.app.file.xml.ApplicationXmlFileStoreWork
 import io.github.astrapi69.mystic.crypt.lock.MasterPasswordVerifier;
 import io.github.astrapi69.mystic.crypt.panel.signin.MasterPwFileModelBean;
 import io.github.astrapi69.mystic.crypt.settings.MysticCryptSettings;
+import io.github.astrapi69.mystic.crypt.vault.SecretBuffers;
 import io.github.astrapi69.swing.dialog.JOptionPaneExtensions;
 import lombok.extern.java.Log;
 
@@ -93,7 +95,7 @@ public class LockWorkspaceAction extends AbstractAction
 			// (#242), and a close cannot ask about unsaved changes when it has no way to write
 			// them - so locking writes them here, while it still can
 			persistPendingChanges(frame.getModelObject());
-			forgetTheMasterPassword(frame.getModelObject().getMasterPwFileModelBean());
+			forgetTheKeyMaterial(frame.getModelObject().getMasterPwFileModelBean());
 			frame.getModelObject().setSignedIn(false);
 			frame.switchToDesktopPane();
 			((DesktopMenu)frame.getMenu()).onEnableByPublic();
@@ -256,19 +258,32 @@ public class LockWorkspaceAction extends AbstractAction
 	}
 
 	/**
-	 * Replaces the master password with something that can only recognise it, so that a locked
-	 * workspace does not carry the password that opens its database (#242).
+	 * Takes the KEY MATERIAL out of memory: the master password, the repeat of it, and the private
+	 * key of a key-file vault. What stays behind is a verifier that can recognise the password and
+	 * cannot produce it (#242).
+	 * <p>
+	 * The decrypted content is deliberately NOT touched here - see {@code docs/decisions/} for why
+	 * the two halves are answered differently, and
+	 * {@link io.github.astrapi69.mystic.crypt.lock.IdleLockWatchdog} for what bounds how long the
+	 * content stays.
 	 * <p>
 	 * If the verifier cannot be derived the password is left where it is: locking the workspace
 	 * still has to work, and a lock nobody can open is worse than a lock that keeps holding the
-	 * secret it used to hold.
+	 * secret it used to hold. The other two are wiped in that case anyway - neither is needed to
+	 * unlock, so neither has a reason to survive the failure.
 	 *
 	 * @param credentials
 	 *            the credentials of the open database, null when none is open
 	 */
-	private static void forgetTheMasterPassword(final MasterPwFileModelBean credentials)
+	private static void forgetTheKeyMaterial(final MasterPwFileModelBean credentials)
 	{
-		if (credentials == null || credentials.getMasterPw() == null)
+		if (credentials == null)
+		{
+			return;
+		}
+		forgetTheRepeatedPassword(credentials);
+		forgetThePrivateKey(credentials);
+		if (credentials.getMasterPw() == null)
 		{
 			return;
 		}
@@ -285,6 +300,51 @@ public class LockWorkspaceAction extends AbstractAction
 		}
 		Arrays.fill(credentials.getMasterPw(), '\0');
 		credentials.setMasterPw(null);
+	}
+
+	/**
+	 * Overwrites the repeated master password, which is the same secret typed twice.
+	 * <p>
+	 * It is filled when a database is created or its password changed, and nothing reads it after
+	 * that - so a workspace locked in the session that created it carried the master password in a
+	 * second field while the first one was being carefully wiped (#242)
+	 *
+	 * @param credentials
+	 *            the credentials of the open database
+	 */
+	private static void forgetTheRepeatedPassword(final MasterPwFileModelBean credentials)
+	{
+		if (credentials.getRepeatPw() == null)
+		{
+			return;
+		}
+		Arrays.fill(credentials.getRepeatPw(), '\0');
+		credentials.setRepeatPw(null);
+	}
+
+	/**
+	 * Overwrites the encoded private key of a key-file vault.
+	 * <p>
+	 * This is the other way in, and for a key-only vault it is the ONLY way in - no password is
+	 * involved at all. Forgetting the password and keeping the key forgets one of two doors, and
+	 * for one kind of vault it forgets the wrong one. Unlocking does not need it: the file is read
+	 * again from the key file on the next open, and while the workspace is locked nothing decrypts.
+	 * <p>
+	 * {@code KeyModel} declares its fields final and {@code @NonNull}, so the array is overwritten
+	 * in place and the holder is dropped afterwards - the same shape the close path uses.
+	 *
+	 * @param credentials
+	 *            the credentials of the open database
+	 */
+	private static void forgetThePrivateKey(final MasterPwFileModelBean credentials)
+	{
+		KeyModel privateKeyInfo = credentials.getPrivateKeyInfo();
+		if (privateKeyInfo == null)
+		{
+			return;
+		}
+		SecretBuffers.wipe(privateKeyInfo.getEncoded());
+		credentials.setPrivateKeyInfo(null);
 	}
 
 	/**
@@ -327,6 +387,9 @@ public class LockWorkspaceAction extends AbstractAction
 			return;
 		}
 		credentials.setMasterPw(entered.clone());
+		// the verifier is PBKDF2 output over the master password; dropping the reference leaves it
+		// in the heap for the collector to get to eventually, which is not the same as erasing it
+		credentials.getLockVerifier().wipe();
 		credentials.setLockVerifier(null);
 	}
 }

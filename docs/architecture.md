@@ -361,6 +361,11 @@ the package before assuming which one an import means.
 
 ## 7. Changing an architectural decision
 
+Decisions taken this way are recorded under `docs/decisions/`, one file per decision,
+named after its subject and dated. The first of them is
+[what locking keeps in memory](decisions/locking-keeps-the-content-2026-09-11.md)
+(#242).
+
 Before implementing a larger architectural decision, check the open issues and the recent PRs
 for already-planned work in the area (`.claude/rules/architecture.md` also names a ROADMAP;
 there is no `ROADMAP.md` at the repository root at the time of writing). On a conflict between an instruction and

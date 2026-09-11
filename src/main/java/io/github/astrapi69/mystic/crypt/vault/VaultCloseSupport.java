@@ -249,6 +249,14 @@ public final class VaultCloseSupport
 		credentials.setMasterPw(null);
 		SecretBuffers.wipe(credentials.getRepeatPw());
 		credentials.setRepeatPw(null);
+		if (credentials.getLockVerifier() != null)
+		{
+			// a vault closed while LOCKED still carries what locking left behind. It is not the
+			// password, but it is PBKDF2 output over it at the same iteration count, which is
+			// exactly what an offline guesser tests a candidate against (#242)
+			credentials.getLockVerifier().wipe();
+			credentials.setLockVerifier(null);
+		}
 		KeyModel privateKeyInfo = credentials.getPrivateKeyInfo();
 		if (privateKeyInfo != null)
 		{
