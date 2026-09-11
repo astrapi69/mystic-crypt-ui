@@ -25,6 +25,7 @@
 package io.github.astrapi69.mystic.crypt.plugin.conversion.wizard;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -150,6 +151,13 @@ class TargetPanelTest
 
 		assertEquals(customTarget, targetField(panel).getText(),
 			"a target the user already typed must not be overwritten by the default");
+
+		radio(panel, "rdoToPkcs1").doClick();
+
+		assertEquals(customTarget, targetField(panel).getText(),
+			"and it survives a SECOND change of operation too. Re-deriving over somebody's own "
+				+ "choice would be worse than leaving a stale default: the stale one is visible "
+				+ "and wrong, the overwritten one is invisible and wrong (#297)");
 	}
 
 	@Test
@@ -172,6 +180,52 @@ class TargetPanelTest
 		assertFalse(radio(panel, "rdoToPkcs8").isSelected(),
 			"a selection that is no longer valid must be cleared");
 		assertNull(model.getOperation(), "the model must not still name an invalid conversion");
+	}
+
+	@Test
+	void theTargetStepNamesTheFileItIsConverting(@TempDir File directory) throws Exception
+	{
+		File source = writePrivateKeyPem(directory);
+		ConversionSupport.FileKind kind = ConversionSupport.kindOf(source);
+		ConversionWizardModel model = new ConversionWizardModel();
+		model.setSourceFilePath(source.getAbsolutePath());
+		TargetPanel panel = newPanel(model);
+
+		panel.refresh(kind, source);
+
+		javax.swing.text.JTextComponent shown = (javax.swing.text.JTextComponent)componentNamed(
+			panel, "txtSourceFileOnTarget");
+		assertEquals(source.getAbsolutePath(), shown.getText(),
+			"the step showed what the source holds and where to write to, and never which file it "
+				+ "was converting - and a target path can look exactly like a source path (#297)");
+		assertFalse(shown.isEditable(),
+			"the source is chosen in the previous step; a second place to change it would be a "
+				+ "second place for the two to disagree");
+	}
+
+	@Test
+	void changingTheOperationRederivesATargetThisPanelDerived(@TempDir File directory)
+		throws Exception
+	{
+		File source = writePrivateKeyPem(directory);
+		ConversionSupport.FileKind kind = ConversionSupport.kindOf(source);
+		ConversionWizardModel model = new ConversionWizardModel();
+		model.setSourceFilePath(source.getAbsolutePath());
+		TargetPanel panel = newPanel(model);
+		panel.refresh(kind, source);
+
+		radio(panel, "rdoPemToDer").doClick();
+		String derivedForDer = targetField(panel).getText();
+		radio(panel, "rdoToPkcs1").doClick();
+
+		assertEquals(ConversionOperation.TO_PKCS1.defaultTargetFile(source).getAbsolutePath(),
+			targetField(panel).getText(),
+			"a default left standing from the previous operation is a path that says .der while "
+				+ "the wizard converts to PKCS#1, which is the screen the report in #297 could not "
+				+ "read");
+		assertNotEquals(derivedForDer, targetField(panel).getText());
+		assertEquals(targetField(panel).getText(), model.getTargetFilePath(),
+			"and the model follows the field, as it does for every other edit");
 	}
 
 	@Test
