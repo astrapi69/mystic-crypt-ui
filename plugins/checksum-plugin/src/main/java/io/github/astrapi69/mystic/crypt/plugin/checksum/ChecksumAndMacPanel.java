@@ -80,6 +80,15 @@ public class ChecksumAndMacPanel extends JPanel
 	private final JMTextArea txtChecksum = new JMTextArea(2, 52);
 	private final JMTextField txtExpected = new JMTextField(52);
 
+	/**
+	 * Held as a field rather than built inline, because its enabled state follows the checkbox
+	 * above it (#320)
+	 */
+	private final JButton btnSaveChecksum = button("btnSaveChecksum", "Save checksum",
+		event -> onSaveChecksum(),
+		ChecksumMessages.getString("checksum.and.mac.tooltip.checksum.save.button",
+			"writes the computed checksum next to the file, in the form sha256sum -c reads"));
+
 	private final JMComboBox<String, ComboBoxModel<String>> cmbMac = new JMComboBox<>(
 		ChecksumSupport.MACS.toArray(new String[0]));
 	private final JMTextArea txtMacText = new JMTextArea(4, 52);
@@ -164,11 +173,37 @@ public class ChecksumAndMacPanel extends JPanel
 				button("btnCompare", "Compare", event -> onCompare(),
 					ChecksumMessages.getString("checksum.and.mac.tooltip.checksum.compare.button",
 						"computes the checksum and compares it with the value above")),
-				button("btnSaveChecksum", "Save checksum", event -> onSaveChecksum(),
-					ChecksumMessages.getString("checksum.and.mac.tooltip.checksum.save.button",
-						"writes the computed checksum next to the file, in the form sha256sum -c reads"))),
+				btnSaveChecksum),
 			ToolForm.BUTTON_ROW);
+		followTheUseFileCheckbox();
 		return panel;
+	}
+
+	/**
+	 * Switches "Save checksum" off while the panel is computing over typed text, and says in the
+	 * tooltip what to do about it (#320).
+	 * <p>
+	 * The refusal existed and was correct; it was in the wrong place. It arrived after the user had
+	 * pressed a button that was never going to work, in a result line they had to notice. A button
+	 * that cannot work is off, and the tooltip is where the way out belongs.
+	 */
+	private void followTheUseFileCheckbox()
+	{
+		chkChecksumUseFile.addItemListener(event -> updateSaveChecksumButton());
+		updateSaveChecksumButton();
+	}
+
+	private void updateSaveChecksumButton()
+	{
+		boolean impossible = ChecksumSaveDecision
+			.savingIsImpossible(chkChecksumUseFile.isSelected());
+		btnSaveChecksum.setEnabled(!impossible);
+		btnSaveChecksum.setToolTipText(impossible
+			? ChecksumMessages.getString("checksum.and.mac.tooltip.checksum.save.button.disabled",
+				"a checksum file names the file it belongs to - tick 'use the file instead of the "
+					+ "text' and compute, then this can be saved")
+			: ChecksumMessages.getString("checksum.and.mac.tooltip.checksum.save.button",
+				"writes the computed checksum next to the file, in the form sha256sum -c reads"));
 	}
 
 	private void bindChecksumComponents()
@@ -281,17 +316,13 @@ public class ChecksumAndMacPanel extends JPanel
 	 */
 	private void onSaveChecksum()
 	{
-		if (!modelObject.isChecksumOverFile())
+		// the button is off in the state this first refuses, so no user reaches it. It stays for
+		// the keyboard path and for a caller added later - the same argument as #269/#270
+		String refusal = ChecksumSaveDecision.refusalFor(modelObject.isChecksumOverFile(),
+			modelObject.getChecksum());
+		if (refusal != null)
 		{
-			showResult(ChecksumMessages.getString("checksum.and.mac.save.needs.a.file",
-				"a checksum file names the file it belongs to, so tick 'use the file instead of "
-					+ "the text' and compute again"));
-			return;
-		}
-		if (modelObject.getChecksum() == null || modelObject.getChecksum().isBlank())
-		{
-			showResult(ChecksumMessages.getString("checksum.and.mac.save.needs.a.checksum",
-				"there is nothing to save yet - compute the checksum first"));
+			showResult(refusal);
 			return;
 		}
 		File described = new File(modelObject.getChecksumFile().trim());

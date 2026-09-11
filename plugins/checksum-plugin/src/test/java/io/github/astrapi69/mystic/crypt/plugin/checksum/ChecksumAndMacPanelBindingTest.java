@@ -26,6 +26,8 @@ package io.github.astrapi69.mystic.crypt.plugin.checksum;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -187,6 +189,46 @@ class ChecksumAndMacPanelBindingTest
 		find(panel, "btnCompareMac", JButton.class).doClick();
 		assertEquals("the codes are the same", panel.getModelObject().getResultMessage(),
 			"the comparison reads both values from the model");
+	}
+
+	@Test
+	void saveChecksumIsOffWhileThePanelComputesOverTypedText()
+	{
+		ChecksumAndMacPanel panel = new ChecksumAndMacPanel();
+		JButton save = find(panel, "btnSaveChecksum", JButton.class);
+		JCheckBox useFile = find(panel, "chkChecksumUseFile", JCheckBox.class);
+
+		assertFalse(save.isEnabled(),
+			"a checksum of typed text names no file, so there is no second column to write. The "
+				+ "refusal for it was correct and arrived after the button had been pressed (#320)");
+		String offTooltip = save.getToolTipText();
+		assertTrue(offTooltip.contains("use the file instead of the text"),
+			"the tooltip has to say what to do about the state it is in, it says: " + offTooltip);
+
+		useFile.setSelected(true);
+
+		assertTrue(save.isEnabled(), "ticking the checkbox is exactly what makes saving possible");
+		assertNotEquals(offTooltip, save.getToolTipText(),
+			"and the tooltip stops telling the user to do what they have just done");
+
+		useFile.setSelected(false);
+
+		assertFalse(save.isEnabled(), "and it goes off again - the state follows the checkbox, it "
+			+ "is not set once at construction");
+	}
+
+	@Test
+	void pressingSaveWithNothingComputedStillRefusesInWords()
+	{
+		ChecksumAndMacPanel panel = new ChecksumAndMacPanel();
+		find(panel, "chkChecksumUseFile", JCheckBox.class).setSelected(true);
+
+		find(panel, "btnSaveChecksum", JButton.class).doClick();
+
+		assertTrue(panel.getResultText().contains("compute the checksum first"),
+			"nothing computed yet is fixed by pressing Compute, the button right beside it, so "
+				+ "that one stays an enabled button with an answer rather than a dead one (#320). "
+				+ "It said: " + panel.getResultText());
 	}
 
 	private static void assertHasTooltip(JComponent component, String fieldName)
