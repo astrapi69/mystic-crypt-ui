@@ -26,6 +26,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -34,6 +35,10 @@ import java.util.Map;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import io.github.astrapi69.collection.pair.KeyValuePair;
+import io.github.astrapi69.crypt.api.key.KeyType;
+import io.github.astrapi69.crypt.data.model.KeyModel;
+import io.github.astrapi69.file.create.model.FileContentInfo;
 import io.github.astrapi69.gen.tree.TreeIdNode;
 import io.github.astrapi69.mystic.crypt.ApplicationModelBean;
 import io.github.astrapi69.mystic.crypt.panel.dbtree.MysticCryptEntryModelBean;
@@ -190,6 +195,92 @@ class VaultCloseSupportTest
 			"a null in the list comes out of a file this application did not write itself, and a "
 				+ "wipe that stops at the first one leaves every later secret in memory. The tree "
 				+ "carries a null node here too - the same file can have holes in either place");
+	}
+
+	@Test
+	@DisplayName("closeVault overwrites an attachment's bytes, not only the entry's text")
+	void closeVault_overwritesAttachments_whichWereMeasuredIntactAfterAClose()
+	{
+		byte[] attached = "the recovery codes somebody put IN their vault".getBytes();
+		FileContentInfo attachment = FileContentInfo.builder().content(attached).build();
+		MysticCryptEntryModelBean entry = MysticCryptEntryModelBean.builder()
+			.password(ENTRY_PASSWORD.clone()).resources(new ArrayList<>(List.of(attachment)))
+			.build();
+		ApplicationModelBean applicationModelBean = openVault();
+		applicationModelBean.setDataOfNodes(entriesByNodeId(entry));
+
+		VaultCloseSupport.closeVault(applicationModelBean);
+
+		assertArrayEquals(new byte[attached.length], attached,
+			"an attachment is a file somebody put into their password database precisely so it "
+				+ "would not lie around elsewhere. It was measured still readable in memory after "
+				+ "a close while the passwords beside it were already gone (#242). The buffer is "
+				+ "held across the close here on purpose: asserting the FIELD is null would pass "
+				+ "on a plain dereference and prove nothing about the bytes");
+		assertNull(attachment.getContent(), "and the field is cleared as well as the buffer");
+		assertNull(entry.getResources());
+	}
+
+	@Test
+	@DisplayName("closeVault overwrites the private key a key-file vault was opened with")
+	void closeVault_overwritesThePrivateKey_whichIsTheOtherWayIn()
+	{
+		byte[] encoded = "the encoded private key bytes".getBytes();
+		KeyModel privateKeyInfo = KeyModel.builder().encoded(encoded).algorithm("RSA")
+			.keyType(KeyType.PRIVATE_KEY).build();
+		char[] repeatPassword = "master-password".toCharArray();
+		ApplicationModelBean applicationModelBean = openVault();
+		applicationModelBean.getMasterPwFileModelBean().setPrivateKeyInfo(privateKeyInfo);
+		applicationModelBean.getMasterPwFileModelBean().setRepeatPw(repeatPassword);
+
+		VaultCloseSupport.closeVault(applicationModelBean);
+
+		assertArrayEquals(new byte[encoded.length], encoded,
+			"a vault opened with a key file is decrypted by this key. Forgetting the master "
+				+ "password and keeping the key forgets one of the two ways in (#242)");
+		assertNull(applicationModelBean.getMasterPwFileModelBean(),
+			"the holder goes with the credentials; KeyModel declares its fields final, so the "
+				+ "overwritten buffer is all this layer can reach and all that matters");
+		assertArrayEquals(new char[repeatPassword.length], repeatPassword,
+			"the repeated password is the same secret typed twice, and it was left behind");
+	}
+
+	@Test
+	@DisplayName("an entry's custom properties are dropped - they cannot be overwritten")
+	void closeVault_dropsTheProperties_becauseAStringCannotBeWiped()
+	{
+		MysticCryptEntryModelBean entry = MysticCryptEntryModelBean.builder()
+			.password(ENTRY_PASSWORD.clone()).properties(new ArrayList<>(List.of(KeyValuePair
+				.<String, String> builder().key("TOTP seed").value("JBSWY3DPEHPK3PXP").build())))
+			.build();
+		ApplicationModelBean applicationModelBean = openVault();
+		applicationModelBean.setDataOfNodes(entriesByNodeId(entry));
+
+		VaultCloseSupport.closeVault(applicationModelBean);
+
+		assertNull(entry.getProperties(),
+			"this assertion is a null check on purpose, and it is the only one here that is. A "
+				+ "property value is a String, so dropping it is all this layer can do - the same "
+				+ "state the six entry fields were in before #294. It is asserted as a DROP and "
+				+ "written up as one rather than counted among the wipes");
+	}
+
+	@Test
+	@DisplayName("a null attachment does not stop the wipe of the ones behind it")
+	void closeVault_wipesEveryAttachment_whenTheListHasAHole()
+	{
+		byte[] attached = "the second one".getBytes();
+		FileContentInfo attachment = FileContentInfo.builder().content(attached).build();
+		MysticCryptEntryModelBean entry = MysticCryptEntryModelBean.builder()
+			.password(ENTRY_PASSWORD.clone())
+			.resources(new ArrayList<>(Arrays.asList(null, attachment))).build();
+		ApplicationModelBean applicationModelBean = openVault();
+		applicationModelBean.setDataOfNodes(entriesByNodeId(entry));
+
+		VaultCloseSupport.closeVault(applicationModelBean);
+
+		assertArrayEquals(new byte[attached.length], attached,
+			"a wipe that stops at the first hole leaves every attachment behind it in memory");
 	}
 
 	@Test

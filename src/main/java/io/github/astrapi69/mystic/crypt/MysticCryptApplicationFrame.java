@@ -40,6 +40,7 @@ import org.pf4j.DefaultPluginManager;
 import org.pf4j.PluginManager;
 import org.pf4j.PluginWrapper;
 
+import io.github.astrapi69.awt.extension.ClipboardExtensions;
 import io.github.astrapi69.awt.window.adapter.CloseWindow;
 import io.github.astrapi69.file.create.DirectoryFactory;
 import io.github.astrapi69.file.read.ReadFileExtensions;
@@ -654,6 +655,11 @@ public class MysticCryptApplicationFrame extends ApplicationPanelFrame<Applicati
 	public void closeOpenVault()
 	{
 		VaultCloseSupport.closeVault(getModelObject());
+		// a password copied out of the vault would otherwise still be pasteable after it is closed.
+		// Locking has cleared the clipboard since #237; closing, the stronger of the two, did not
+		// (#242). The clipboard is not part of the model, so it is cleared here rather than in
+		// VaultCloseSupport, which stays free of anything that needs a display
+		ClipboardExtensions.copyToClipboard("");
 		OpenDatabaseTreeFrameAction.closeDatabaseTreeFrame(this);
 		applicationPanel = null;
 		// the generator is seeded from the vault's last id, so one kept across a close would hand
