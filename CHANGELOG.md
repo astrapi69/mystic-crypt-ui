@@ -1,6 +1,40 @@
 ## Change log
 ----------------------
 
+Version 8.5
+-------------
+
+The bracket around this release: the application does not decide about the user's data. Three ways it did are closed, and all three were reachable without an attacker, in ordinary use.
+
+FIXED:
+
+- an edit typed into an entry dialog was lost to the automatic lock. The dialog writes onto the entry that lives in the tree, but nothing set the "unsaved" flag, and every decision downstream read that flag alone: the lock saved nothing and the close that follows fifteen minutes later wiped the model. A user who typed, left the dialog open and walked away came back to a vault without the change. An open editor now counts as work in flight, so the close leaves the vault alone (#303)
+- the automatic lock wrote to the file without being asked, and the automatic close could discard. Locking now keeps the changes in memory and writes nothing; "save when locking" is a setting, off by default, for whoever wants the old behaviour knowingly; the automatic close only closes a clean model, and a dirty one stays locked until somebody unlocks it and decides. Unlocking says in one line that unsaved changes are waiting, and ending the application from a locked workspace asks before discarding instead of offering a save it cannot honour - the master password is not in memory while locked (#304)
+- "Save As" and "New database" replaced an existing database without asking. Save As retargeted the open model to whatever the file chooser returned and stored it there, and the writer replaces: picking another vault in that chooser destroyed it, encrypted the open one over it with the open one's master password, and said nothing. "New database" onto an existing file had the same shape - its existence check only decided whether to create an empty file first. Both now ask, naming the file, and the question says that nothing can produce a database again (#300)
+- the action that puts the vault window back on screen asked nothing about the lock. Not reachable from the user interface, where the menu item is disabled, but it was the second line that was missing (#285)
+- cancelling the save-before-close question closed the application anyway, so Cancel meant the same as No and every change since the last save was gone before the user could react (#288)
+- creating a vault while one was already open kept the open vault's content and only changed where saving went: the new database received the other one's entries under its own master password, and a change made to the open one never reached its file (#279)
+- after cancelling the sign-in there was no way into a vault without restarting (#266)
+- the decrypted database lived in objects that cannot be overwritten, so locking could drop references but not erase (#294)
+
+ADDED:
+
+- a database can be closed while the application runs. That state did not exist: the save-if-dirty question lived inside the window-closing listener, so ending the application was the only way to reach it. Closing now empties the model and overwrites what it held, and three callers use the one path - a "Close Database" entry, opening another database, and creating one (#281)
+- the workspace locks itself after fifteen idle minutes, configurable, 0 turns it off; a locked vault is closed after another fifteen so its decrypted content leaves memory (#241, #242)
+- entries get an identifier when they are created, and entries in a vault written before identifiers existed get one when it is opened. Loading does not mark the vault as changed: nothing is written that the user did not ask to write. An identifier is stable once the vault has been saved after that migration (#272)
+- the modification timestamp is kept up to date when an entry is edited, and stays empty until a real edit - filling it on load would invent a fact that reads later as measured (#273)
+- the checksum tool writes the checksum file, not only reads one: the coreutils form that `sha256sum -c` reads, next to the file it describes. An existing one is replaced only after a question (#296)
+
+CHANGED:
+
+- the lock now has an invariant rather than one regression test per door: every action in the application's action package is fired with a vault locked, and three properties are asserted for each - the locked state holds, the vault stays off screen, the vault file is not written. Exactly one exception, unlocking with the master password. A new action joins it by existing (#284)
+- `master` carries the release again, as a numbered step in the release process rather than a habit (#248)
+
+KNOWN AND NOT FIXED IN THIS RELEASE:
+
+- thirteen places still write over an existing file without asking: exported PEM and signature files, generated keys, the persisted menu layout, plugin settings. None of them is a database. They are named one by one in `SilentOverwriteInventoryTest`, and a fourteenth arriving unnoticed fails that test (#300)
+- the decrypted vault does not leave memory completely while locked: entry custom properties, attachment bytes, private key bytes and the Swing password fields' copies are dropped rather than overwritten (#242)
+
 Version 8.5 (unreleased)
 -------------
 
