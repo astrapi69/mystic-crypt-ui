@@ -1,6 +1,10 @@
 # pinned on purpose with := (not ?=): the shell's JAVA_HOME (e.g. sdkman's "current") may point
-# at an older JDK, and running the JDK-25-built jar on it fails with UnsupportedClassVersionError
-JAVA_HOME := /home/astrapi69/.sdkman/candidates/java/25-tem
+# at an older JDK, and running the JDK-25-built jar on it fails with UnsupportedClassVersionError.
+# The fallback is for machines that are not this one - a CI runner gets its JDK from setup-java, and
+# pinning a path that does not exist there turns every target into "no such file or directory"
+# (#333). Where the pinned JDK is present it still wins, which is the whole point of the pin
+PINNED_JAVA_HOME := /home/astrapi69/.sdkman/candidates/java/25-tem
+JAVA_HOME := $(if $(wildcard $(PINNED_JAVA_HOME)),$(PINNED_JAVA_HOME),$(JAVA_HOME))
 JAR := $(shell find build/libs -maxdepth 1 -name '*-all.jar' 2>/dev/null | head -1)
 
 PLUGIN_OBFUSCATION_DIR := plugins/obfuscation-plugin

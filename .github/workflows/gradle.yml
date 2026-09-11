@@ -41,6 +41,20 @@ jobs:
         run: |
           sudo apt-get update || echo "apt-get update reported errors; continuing to the install"
           sudo apt-get install -y xvfb
+      - name: Build the internal plugins
+        # The plugins are NOT subprojects of this build - each is its own Gradle build that
+        # compiles against the host through mavenLocal(), so `./gradlew build` below never
+        # compiles one, never runs one's tests, and never produces a zip.
+        #
+        # That was measured, not assumed: the run that merged #306 reported
+        # "e2eTest: 113 classes, 199 tests, 56 skipped", and the 56 were 43 whole classes -
+        # every plugin's end-to-end test - skipping on `assumeTrue(Files.exists(<plugin>.zip))`.
+        # Eleven shipped features were verified only by whoever last ran `make plugins` locally.
+        #
+        # Under xvfb because several plugin unit tests construct Swing components. Measured at
+        # 1m24s locally for all thirteen, against a twelve-minute job (#333).
+        run: xvfb-run -a --server-args="-screen 0 1920x1080x24" make plugins
+
       - name: Execute Gradle build
         # xvfb-run provides a virtual display so the AssertJ-Swing e2e UI tests really run
         # in CI (without it they would be skipped by their headless assumption)
