@@ -29,6 +29,14 @@ arrived through review, and a comment afterwards rescues the trail but not the m
 run. One way in also removes the collision above, because there is then only one place
 where `develop` moves.
 
+**A merge does not move the branch somebody is standing on.** `scripts/merge-pr.sh` waits for CI,
+which can take as long as CI takes, and it used to end by checking out `develop` in whatever tree it
+was started from. Started in the background, it moved HEAD under work in progress and the next commit
+landed on `develop` (#340). It now updates the target with `git fetch origin develop:develop` and
+leaves HEAD alone. The general form: a long-running command that changes the checkout is a second
+pair of hands in the same tree, and the fix is to take the checkout out of it, not to remember not to
+work meanwhile.
+
 **Chain with `&&`, never `;`.** A merge that fails must stop the branch deletion behind
 it. `;` ran that deletion twice today and closed a pull request each time (#299, #312).
 This is `never mask exit codes` in the other direction: a failure that prevents the

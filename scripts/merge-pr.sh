@@ -18,6 +18,14 @@ POLL_SECONDS=20
 say() { printf '%s\n' "$*"; }
 die() { printf 'merge-pr: %s\n' "$*" >&2; exit 1; }
 
+# A dirty tree is somebody's work in progress, and this script used to be able to move the branch
+# under it. It no longer does, but a merge started from a tree with uncommitted changes is still a
+# sign that two things are happening at once, and the cost of saying so is one line (#340)
+if [ -n "$(git status --porcelain)" ]; then
+  say "note: this worktree has uncommitted changes. They are not touched - the merge no longer"
+  say "      changes the checked-out branch - but check that you meant to merge right now"
+fi
+
 state="$(gh pr view "$PR" --json state -q .state)"
 [ "$state" = "OPEN" ] || die "pull request #$PR is $state, not OPEN"
 
@@ -44,6 +52,21 @@ total="$(gh pr view "$PR" --json statusCheckRollup -q '.statusCheckRollup | leng
 say "all $total checks green"
 
 gh pr merge "$PR" --merge --delete-branch
-git checkout "$TARGET"
-git pull --ff-only
-say "merged #$PR - $TARGET is now $(git rev-parse --short HEAD): $(git log -1 --format=%s)"
+
+# The worktree is left exactly where it was (#340). This used to end with
+# 'git checkout develop && git pull --ff-only', which is the right sequence and the wrong place:
+# the script can run for as long as CI takes, and while it does, whoever is working in this
+# checkout is on their own branch. Changing HEAD under them puts their next commit on the target
+# branch - measured today, caught before a push, and the next time the caught step might be the
+# push.
+#
+# gh pr merge is server-side, so nothing here needs the target checked out. This fast-forwards the
+# local branch from the remote without touching HEAD; when the target IS checked out, that form is
+# refused by git, so the ordinary pull is used for that case alone.
+git fetch --quiet origin
+if [ "$(git rev-parse --abbrev-ref HEAD)" = "$TARGET" ]; then
+  git merge --ff-only "origin/$TARGET"
+else
+  git fetch --quiet origin "$TARGET:$TARGET"
+fi
+say "merged #$PR - $TARGET is now $(git rev-parse --short "$TARGET"): $(git log -1 --format=%s "$TARGET")"
