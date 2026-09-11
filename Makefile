@@ -73,13 +73,15 @@ merge-pr:
 	@test -n "$(PR)" || (echo "usage: make merge-pr PR=<number>" && false)
 	./scripts/merge-pr.sh $(PR)
 
-# end-to-end UI tests (AssertJ-Swing) - fast mode (default): as fast as possible
+# end-to-end UI tests (AssertJ-Swing) - fast mode (default): as fast as possible.
+# Both targets go through the harness script, which verifies that a window manager is actually
+# answering before a test starts: without one the suite does not fail, it hangs (#322)
 test-e2e:
-	JAVA_HOME=$(JAVA_HOME) ./gradlew e2eTest
+	JAVA_HOME=$(JAVA_HOME) ./scripts/e2e-harness.sh e2eTest
 
 # end-to-end UI tests in demo mode: paced like a real user, watchable on screen
 test-e2e-demo:
-	JAVA_HOME=$(JAVA_HOME) ./gradlew test --tests "io.github.astrapi69.mystic.crypt.ui.*" --rerun -Dmystic.crypt.ui.test.mode=demo
+	JAVA_HOME=$(JAVA_HOME) ./scripts/e2e-harness.sh e2eTest --rerun -Dmystic.crypt.ui.test.mode=demo
 
 clean:
 	JAVA_HOME=$(JAVA_HOME) ./gradlew clean

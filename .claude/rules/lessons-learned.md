@@ -96,7 +96,10 @@ stays mandatory (nothing to react to after tagging).
 ## Run UI e2e tests locally with the Xvfb harness
 
 The full Swing e2e suite needs Xvfb + fluxbox + JDK 25 + `forkEvery=1`
-(`make test-e2e`). Running against the live `:0` display hangs.
+(`make test-e2e`). Running against the live `:0` display hangs. Start it through the target, never
+by hand: `scripts/e2e-harness.sh` waits until `wmctrl` gets an answer and aborts with a message if
+it does not. Without a window manager the suite does not fail, it waits in `ComponentDriver.focus` -
+40 minutes, once, with no output (#322).
 
 ## mystic-crypt simple obfuscation: `disentangle` is broken upstream
 
