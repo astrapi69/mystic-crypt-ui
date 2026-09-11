@@ -64,6 +64,13 @@ tasks.withType(Test).configureEach {
     if (System.getProperty("mystic.crypt.ui.test.mode") != null) {
         it.systemProperty "mystic.crypt.ui.test.mode", System.getProperty("mystic.crypt.ui.test.mode")
     }
+    // the same forwarding for the one switch that turns a missing prerequisite back into a skip
+    // (TestPrerequisites, #333). Without this line the -D reaches the Gradle JVM and not the forked
+    // test JVM, so the switch reads as absent and the test fails anyway - measured, not assumed
+    if (System.getProperty("mystic.crypt.ui.test.skip.without.prerequisites") != null) {
+        it.systemProperty "mystic.crypt.ui.test.skip.without.prerequisites",
+            System.getProperty("mystic.crypt.ui.test.skip.without.prerequisites")
+    }
     // in a Wayland session java.awt.Robot (used by AssertJ-Swing) takes screenshots through the
     // XDG desktop portal, which pops up a "share your screen" permission dialog on every UI-test
     // run - force the X11 path instead (the Swing windows run on XWayland anyway); ignored on

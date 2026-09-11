@@ -25,9 +25,9 @@
 package io.github.astrapi69.mystic.crypt.ui;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.File;
-import java.nio.file.Files;
 import java.util.concurrent.TimeUnit;
 
 import javax.swing.JFileChooser;
@@ -39,7 +39,6 @@ import org.assertj.swing.finder.JFileChooserFinder;
 import org.assertj.swing.fixture.DialogFixture;
 import org.assertj.swing.timing.Condition;
 import org.assertj.swing.timing.Pause;
-import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.Test;
 
 import io.github.astrapi69.mystic.crypt.TestPasswords;
@@ -58,8 +57,7 @@ class SettingsInstallPluginUiTest extends AbstractUiTest
 	@Test
 	void installingAPluginFromZipListsItInThePluginsTable() throws Exception
 	{
-		Assumptions.assumeTrue(Files.exists(OBFUSCATION_ZIP),
-			"plugin zip " + OBFUSCATION_ZIP + " not built - run 'make plugins' first");
+		TestPrerequisites.requireBuiltPluginZip(OBFUSCATION_ZIP);
 
 		File databaseFile = new File(tempHome, "settings-install-database.mcrdb");
 		createDatabaseFileHeadless(databaseFile, MASTER_PASSWORD);
@@ -68,10 +66,14 @@ class SettingsInstallPluginUiTest extends AbstractUiTest
 		DialogFixture settings = application.openSettingsDialog();
 		JTable table = settings.table("tblPlugins").target();
 
-		// no plugins were pre-installed, so the obfuscation plugin must not be listed yet
-		Assumptions.assumeTrue(
-			GuiActionRunner.execute(() -> findPluginRow(table, "obfuscation")) < 0,
-			"test must start with no obfuscation plugin installed");
+		// no plugins were pre-installed, so the obfuscation plugin must not be listed yet. An
+		// ASSERTION, not an assumption (#333): every test gets a fresh temp user.home and this one
+		// installs nothing beforehand, so a row here means the application leaked a plugin into an
+		// isolated home - a real defect, which as an assumption was reported as a skip while the
+		// install assertion below never ran
+		assertTrue(GuiActionRunner.execute(() -> findPluginRow(table, "obfuscation")) < 0,
+			"the test must start with no obfuscation plugin installed - a row here means one "
+				+ "leaked into this test's isolated home");
 
 		// Install from Zip... -> approve the obfuscation plugin zip in the chooser
 		SwingUtilities.invokeLater(() -> settings.button("btnInstallPlugin").target().doClick());

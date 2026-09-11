@@ -39,7 +39,6 @@ import javax.swing.JMenuItem;
 import javax.swing.MenuElement;
 
 import org.assertj.swing.edt.GuiActionRunner;
-import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.Test;
 
 import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
@@ -76,14 +75,17 @@ class PluginLoadingUiTest extends AbstractUiTest
 	@Test
 	void internalPluginsLoadFromZipAndContributeTheirMenuItems() throws Exception
 	{
-		boolean obfuscationBuilt = Files.exists(OBFUSCATION_ZIP);
-		boolean checksumBuilt = Files.exists(CHECKSUM_ZIP);
-		boolean conversionBuilt = Files.exists(CONVERSION_ZIP);
-		boolean consoleBuilt = Files.exists(CONSOLE_ZIP);
-		boolean keygenBuilt = Files.exists(KEYGEN_ZIP);
-		Assumptions.assumeTrue(
-			obfuscationBuilt || checksumBuilt || conversionBuilt || consoleBuilt || keygenBuilt,
-			"no plugin zips built - run 'make plugins' first");
+		// every one of the five, not any of them (#333). The OR only skipped when NONE existed, and
+		// the guards below then installed whatever happened to be there and asserted about that -
+		// with four of five missing this test RAN, asserted almost nothing, and reported PASSED,
+		// which not even the skip counts could see
+		TestPrerequisites.requireBuiltPluginZips(OBFUSCATION_ZIP, CHECKSUM_ZIP, CONVERSION_ZIP,
+			CONSOLE_ZIP, KEYGEN_ZIP);
+		boolean obfuscationBuilt = true;
+		boolean checksumBuilt = true;
+		boolean conversionBuilt = true;
+		boolean consoleBuilt = true;
+		boolean keygenBuilt = true;
 
 		// place the plugins into the app's (isolated, per-test) config plugins directory before the
 		// app starts, so its DefaultPluginManager discovers and loads them during initialization

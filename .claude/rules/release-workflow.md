@@ -25,8 +25,11 @@ Prompt triggers: "release new version", "new release".
    summarized for humans. Commit `docs: changelog for vX.Y.Z`.
 4. **Bump** `projectVersion` in `gradle.properties`.
 5. **Full gate** (ALL mandatory; a red result aborts the release):
-   - `make build-full`, under the Xvfb harness — it runs the packaging, EVERY test
-     including the UI e2e suite, spotless and the license check. `make test` and
+   - `make build-full`, under the Xvfb harness — it runs the plugin builds, the packaging,
+     EVERY test including the UI e2e suite, spotless and the license check. The plugins are
+     part of it since #333: `./gradlew build` never built them, so the 54 end-to-end tests
+     that install one skipped, and a release could be cut with every plugin feature
+     unverified while the gate read green. `make test` and
      `make test-e2e` are not run beside it, but not because one contains the other: since
      #319 the two suites are DISJOINT - `test` excludes
      `io.github.astrapi69.mystic.crypt.ui.*` and `e2eTest` is exactly that pattern. What
