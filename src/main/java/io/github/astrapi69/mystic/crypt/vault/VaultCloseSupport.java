@@ -56,9 +56,13 @@ import io.github.astrapi69.swing.renderer.tree.GenericTreeElement;
  * gap nobody wrote down reads as one nobody noticed:
  * <ul>
  * <li><b>an entry's custom properties</b> are {@code KeyValuePair<String, String>}, and a String
- * cannot be overwritten. This is the same defect the six entry fields had before #294, and the same
- * remedy applies - it is tracked separately rather than bundled into a close path, because it
- * changes a data model every plugin and the KeePass import touch.
+ * cannot be overwritten. The remedy that worked for the six entry fields does NOT apply here, and
+ * that was measured rather than assumed: {@code KeyValuePair} declares its own type variables,
+ * which erase to {@code Object}, so XStream writes the runtime type beside the value and
+ * {@code <value class="string">} would become {@code <value class="char-array">} in every vault
+ * ever written. {@code EntryPropertiesTypeIsPartOfTheFormatTest} pins that, including the part that
+ * makes it dangerous - the document would still parse, and the failure would arrive at the first
+ * read (#335).
  * <li><b>the text inside a Swing password field</b> lives in a {@code Document} the JDK gives no
  * caller a way to overwrite. {@code getPassword()} hands out a copy; the original stays. Not
  * solvable at this layer.
