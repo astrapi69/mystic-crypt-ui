@@ -75,8 +75,20 @@ public class MasterPwFileModelBean implements Serializable
 	@EqualsAndHashCode.Exclude
 	List<String> applicationFilePaths = ListFactory.newArrayList("");
 
-	/** The model for the private key */
-	KeyModel privateKeyInfo;
+	/**
+	 * The model for the private key, transient for the same reason as the master password (#350).
+	 * <p>
+	 * It used to be serialized like any other property, so the encoded private key was written into
+	 * the vault payload on every save. A key file usually protects more than the one database, and
+	 * copying it inside spreads a credential the user keeps deliberately separate; a vault opened
+	 * with a key and later saved with a password put that key behind a passphrase it was chosen to
+	 * be independent of.
+	 * <p>
+	 * Nothing needs the stored copy: the key comes from the key file picked at sign-in, and
+	 * {@code ApplicationXmlFileReader} puts it on the model from there on both key paths. A
+	 * database written before this carries the element still, and XStream skips it on the way in.
+	 */
+	transient KeyModel privateKeyInfo;
 
 	/** The key file info for create the key file object */
 	FileInfo keyFileInfo;

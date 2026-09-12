@@ -1,6 +1,13 @@
 ## Change log
 ----------------------
 
+Version 8.6 (unreleased)
+-------------
+
+SECURITY:
+
+- the private key that opens a key-file database was written inside it. `masterPw`, `repeatPw` and `lockVerifier` are kept out of the payload deliberately; `privateKeyInfo` was not, so the encoded key was serialized into the vault on every save. For a key-only database that is not an escalation on its own - whoever decrypts the payload holds the key already - but a key file usually protects more than this one database, and copying it inside spreads a credential the user keeps deliberately separate into a file they may sync, back up or hand to someone for support. The sharper case is a database opened with a key and later saved with a password: the key then rested on the strength of a passphrase it was chosen to be independent of. The key is now left out of the file and taken from the key file picked at sign-in, on both key paths. A database written before this still opens, and the key stays in it until the next save overwrites the file (#350)
+
 Version 8.5
 -------------
 
