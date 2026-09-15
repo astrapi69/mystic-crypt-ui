@@ -121,6 +121,40 @@ public class MasterPwFileModelBean implements Serializable
 	transient char[] repeatPw;
 
 	/**
+	 * Replaces the master password, overwriting the array it replaces first.
+	 * <p>
+	 * Hand-written rather than left to {@code @Data}'s generated setter, because every one of the
+	 * three panels that bind a password field to this bean calls this on every keystroke -
+	 * {@link javax.swing.JPasswordField#getPassword()} hands out a fresh array each time - and the
+	 * plain replacement left every array before the last one on the heap, un-wiped, the longest
+	 * being the password minus its final character (#351). Centralizing the wipe here, rather than
+	 * repeating it at each of the three call sites, is what keeps a future caller from
+	 * reintroducing the same gap by hand.
+	 * <p>
+	 * The skip condition is CONTENT equality, not reference equality, and the difference is not
+	 * academic: {@code NewMasterPwFilePanel.onGeneratePassword} sets this directly with a local
+	 * array, then calls {@code txtMasterPw.setText(...)} with the same characters - which re-enters
+	 * through the field's own document listener, which reads a FRESH array back out of the field
+	 * (same characters, a different object) and calls this again before the method's local variable
+	 * is done being used for the repeat field and the clipboard. A reference check does not
+	 * recognise that second call as a no-op, wipes the first array while the caller still holds and
+	 * still needs it, and corrupted the repeat field in the running application (measured: it
+	 * blanked to spaces). Comparing content instead treats an equal-content replacement as nothing
+	 * to erase, which is what it actually is - the value did not change, only which array holds it.
+	 *
+	 * @param masterPw
+	 *            the new master password, or null to clear it
+	 */
+	public void setMasterPw(final char[] masterPw)
+	{
+		if (!java.util.Arrays.equals(this.masterPw, masterPw))
+		{
+			io.github.astrapi69.mystic.crypt.vault.SecretBuffers.wipe(this.masterPw);
+		}
+		this.masterPw = masterPw;
+	}
+
+	/**
 	 * What is kept instead of {@link #masterPw} while the workspace is locked: enough to recognise
 	 * the password when it is typed again, not enough to be it (#242). Set when locking, dropped
 	 * when unlocking, and transient for the same reason as the password itself.
