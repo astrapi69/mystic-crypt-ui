@@ -54,6 +54,7 @@ import io.github.astrapi69.mystic.crypt.action.NewApplicationFileAction;
 import io.github.astrapi69.mystic.crypt.action.OpenDatabaseTreeFrameAction;
 import io.github.astrapi69.mystic.crypt.action.SaveApplicationFileAction;
 import io.github.astrapi69.mystic.crypt.action.SaveBeforeCloseConfirmation;
+import io.github.astrapi69.mystic.crypt.clipboard.ClipboardClearWatchdog;
 import io.github.astrapi69.mystic.crypt.lock.IdleLockDecision;
 import io.github.astrapi69.mystic.crypt.lock.IdleLockWatchdog;
 import io.github.astrapi69.mystic.crypt.lock.LockableWorkspace;
@@ -130,6 +131,9 @@ public class MysticCryptApplicationFrame extends ApplicationPanelFrame<Applicati
 
 	/** Locks the workspace when the user has been away long enough (#241) */
 	transient IdleLockWatchdog idleLockWatchdog;
+
+	/** Clears a copied password or user name off the clipboard again after a while (#352) */
+	transient ClipboardClearWatchdog clipboardClearWatchdog;
 
 	/**
 	 * initial block
@@ -348,6 +352,7 @@ public class MysticCryptApplicationFrame extends ApplicationPanelFrame<Applicati
 		onEnableMenu();
 		onWindowClosing();
 		startTheIdleLockWatchdog();
+		startTheClipboardClearWatchdog();
 	}
 
 	/**
@@ -365,6 +370,21 @@ public class MysticCryptApplicationFrame extends ApplicationPanelFrame<Applicati
 			() -> MysticCryptSettings.load(getConfigurationDirectory())
 				.getCloseLockedAfterMinutes());
 		idleLockWatchdog.start();
+	}
+
+	/**
+	 * Starts watching for a copied secret to clear off the clipboard again (#352).
+	 * <p>
+	 * The interval is read from the settings on every check, the same as the two lock timeouts
+	 * above, so changing it in the settings dialog takes effect at once. Arming - remembering what
+	 * was actually copied - is the caller's job at the moment of copying; this only starts the
+	 * clock that eventually asks whether to clear it.
+	 */
+	private void startTheClipboardClearWatchdog()
+	{
+		clipboardClearWatchdog = new ClipboardClearWatchdog(
+			() -> MysticCryptSettings.load(getConfigurationDirectory()).getClipboardClearSeconds());
+		clipboardClearWatchdog.start();
 	}
 
 	/**
@@ -698,6 +718,7 @@ public class MysticCryptApplicationFrame extends ApplicationPanelFrame<Applicati
 					return;
 				}
 				stopTheIdleLockWatchdog();
+				stopTheClipboardClearWatchdog();
 				stopPluginsQuietly();
 				super.windowClosing(windowEvent);
 			}
@@ -714,6 +735,20 @@ public class MysticCryptApplicationFrame extends ApplicationPanelFrame<Applicati
 		{
 			idleLockWatchdog.stop();
 			idleLockWatchdog = null;
+		}
+	}
+
+	/**
+	 * Stops the clipboard-clear watchdog and wipes whatever it still had armed, so a closed
+	 * window's watchdog does not stay behind holding a copy of a password nobody can act on any
+	 * more
+	 */
+	private void stopTheClipboardClearWatchdog()
+	{
+		if (clipboardClearWatchdog != null)
+		{
+			clipboardClearWatchdog.stop();
+			clipboardClearWatchdog = null;
 		}
 	}
 

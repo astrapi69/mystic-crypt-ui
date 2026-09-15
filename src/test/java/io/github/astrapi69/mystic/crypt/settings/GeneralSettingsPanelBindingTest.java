@@ -35,6 +35,7 @@ import java.awt.Container;
 
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
+import javax.swing.JSpinner;
 import javax.swing.ToolTipManager;
 import javax.swing.UIManager;
 
@@ -285,6 +286,58 @@ class GeneralSettingsPanelBindingTest
 
 		String tooltip = named(panel, "cmbViewMode", JComboBox.class).getToolTipText();
 		assertTrue(tooltip != null && !tooltip.isBlank(), "cmbViewMode must have a tooltip");
+	}
+
+	@Test
+	@DisplayName("a chosen clipboard-clear interval lands in the settings")
+	void theChosenClipboardClearIntervalLandsInTheSettings()
+	{
+		MysticCryptSettings settings = new MysticCryptSettings();
+		GeneralSettingsPanel panel = new GeneralSettingsPanel(settings);
+
+		named(panel, "spnClipboardClearSeconds", JSpinner.class).setValue(10);
+
+		assertEquals(10, settings.getClipboardClearSeconds(),
+			"what was chosen in the spinner did not reach the settings (#352)");
+	}
+
+	@Test
+	@DisplayName("the clipboard-clear spinner starts on what the settings hold")
+	void theClipboardClearSpinnerStartsOnWhatTheSettingsHold()
+	{
+		MysticCryptSettings settings = new MysticCryptSettings();
+		settings.setClipboardClearSeconds(5);
+
+		GeneralSettingsPanel panel = new GeneralSettingsPanel(settings);
+
+		assertEquals(5, named(panel, "spnClipboardClearSeconds", JSpinner.class).getValue(),
+			"the spinner does not show the interval the settings already hold");
+	}
+
+	@Test
+	@DisplayName("0 is a settable value, and it is the documented off switch")
+	void theClipboardClearSpinnerCanBeSetToOff()
+	{
+		MysticCryptSettings settings = new MysticCryptSettings();
+		GeneralSettingsPanel panel = new GeneralSettingsPanel(settings);
+
+		named(panel, "spnClipboardClearSeconds", JSpinner.class).setValue(0);
+
+		assertEquals(0, settings.getClipboardClearSeconds(),
+			"0 has to be reachable through the spinner - it is the documented off switch, the "
+				+ "same as for the two lock timeouts beside it");
+	}
+
+	@Test
+	@DisplayName("the clipboard-clear spinner explains itself with a tooltip")
+	void theClipboardClearSpinnerExplainsItselfWithATooltip()
+	{
+		MysticCryptSettings settings = new MysticCryptSettings();
+		GeneralSettingsPanel panel = new GeneralSettingsPanel(settings);
+
+		String tooltip = named(panel, "spnClipboardClearSeconds", JSpinner.class).getToolTipText();
+		assertTrue(tooltip != null && !tooltip.isBlank(),
+			"spnClipboardClearSeconds must have a tooltip");
 	}
 
 }

@@ -33,6 +33,7 @@ import javax.swing.*;
 
 import io.github.astrapi69.model.LambdaModel;
 import io.github.astrapi69.mystic.crypt.Messages;
+import io.github.astrapi69.mystic.crypt.clipboard.ClipboardClearDecision;
 import io.github.astrapi69.mystic.crypt.lock.IdleLockDecision;
 import io.github.astrapi69.swing.enumeration.FrameMode;
 import io.github.astrapi69.swing.model.combobox.EnumComboBoxModel;
@@ -87,6 +88,14 @@ public class GeneralSettingsPanel extends JPanel
 		IdleLockDecision.DEFAULT_CLOSE_LOCKED_MINUTES, IdleLockDecision.OFF, 480, 1));
 
 	/**
+	 * How many seconds after a copy the clipboard clears itself, 0 meaning off. Same shape as the
+	 * two spinners above, for the same reason
+	 */
+	private final JMSpinner<Integer> spnClipboardClearSeconds = new JMSpinner<>(
+		new SpinnerNumberModel(ClipboardClearDecision.DEFAULT_CLEAR_AFTER_SECONDS,
+			ClipboardClearDecision.OFF, 300, 1));
+
+	/**
 	 * Instantiates a new {@link GeneralSettingsPanel} over the settings it edits
 	 *
 	 * @param settings
@@ -116,6 +125,11 @@ public class GeneralSettingsPanel extends JPanel
 				+ "leaves memory; 0 turns it off"));
 		spnAutoLockMinutes.setToolTipText(Messages.getString("settings.general.tooltip.auto.lock",
 			"after how many idle minutes the workspace locks itself; 0 turns it off"));
+		spnClipboardClearSeconds.setName("spnClipboardClearSeconds");
+		spnClipboardClearSeconds.setToolTipText(Messages.getString(
+			"settings.general.tooltip.clipboard.clear",
+			"after how many seconds a copied password or user name is cleared from the clipboard "
+				+ "again, if nothing else was copied meanwhile; 0 turns it off"));
 		bindComponents();
 		// added after the binding on purpose: binding selects what the settings already hold, and
 		// that must not switch the look and feel while the dialog is still being built
@@ -141,6 +155,8 @@ public class GeneralSettingsPanel extends JPanel
 		form.add(spnAutoLockMinutes);
 		form.add(new JLabel("Close a locked database after minutes (0 = off):"));
 		form.add(spnCloseLockedMinutes);
+		form.add(new JLabel("Clear a copied password after seconds (0 = off):"));
+		form.add(spnClipboardClearSeconds);
 		add(form, BorderLayout.NORTH);
 	}
 
@@ -162,6 +178,8 @@ public class GeneralSettingsPanel extends JPanel
 			LambdaModel.of(settings::getAutoLockMinutes, settings::setAutoLockMinutes));
 		spnCloseLockedMinutes.setPropertyModel(LambdaModel.of(settings::getCloseLockedAfterMinutes,
 			settings::setCloseLockedAfterMinutes));
+		spnClipboardClearSeconds.setPropertyModel(
+			LambdaModel.of(settings::getClipboardClearSeconds, settings::setClipboardClearSeconds));
 	}
 
 	/**

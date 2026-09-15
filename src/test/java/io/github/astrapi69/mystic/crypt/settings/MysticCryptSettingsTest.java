@@ -37,6 +37,7 @@ import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
+import io.github.astrapi69.mystic.crypt.clipboard.ClipboardClearDecision;
 import io.github.astrapi69.mystic.crypt.lock.IdleLockDecision;
 import io.github.astrapi69.swing.enumeration.FrameMode;
 
@@ -64,6 +65,10 @@ class MysticCryptSettingsTest
 			"the automatic lock is ON by default: an open vault used to stay open for as long as the "
 				+ "application ran, and the case a password manager has to survive is the one where "
 				+ "nobody remembers to lock it (#241)");
+		assertEquals(ClipboardClearDecision.DEFAULT_CLEAR_AFTER_SECONDS,
+			settings.getClipboardClearSeconds(),
+			"a copied secret is readable by every other process until something clears it, so this "
+				+ "is ON by default too (#352)");
 	}
 
 	@Test
@@ -80,7 +85,7 @@ class MysticCryptSettingsTest
 		@TempDir File configurationDirectory)
 	{
 		MysticCryptSettings settings = new MysticCryptSettings("Metal", "de",
-			FrameMode.DESKTOP_PANE, false, 30, true, 45);
+			FrameMode.DESKTOP_PANE, false, 30, true, 45, 10);
 		settings.save(configurationDirectory);
 		assertTrue(new File(configurationDirectory, MysticCryptSettings.JSON_FILENAME).exists(),
 			"saving must write the settings json");
@@ -95,6 +100,8 @@ class MysticCryptSettingsTest
 		assertEquals(30, loaded.getAutoLockMinutes(),
 			"a configured idle timeout has to survive the round trip, or the setting is a dialog "
 				+ "that changes nothing");
+		assertEquals(10, loaded.getClipboardClearSeconds(),
+			"and so does the clipboard-clear interval (#352)");
 		assertFalse(loaded.isTooltipsEnabled(),
 			"the chosen tooltips preference did not survive the round trip");
 	}
