@@ -22,7 +22,14 @@ Prompt triggers: "release new version", "new release".
    summary and wait for confirmation.
 2. **Pick the version** per SemVer, propose with rationale, wait for OK.
 3. **CHANGELOG.md**: grouped entry (Breaking / Added / Changed / Fixed / Security),
-   summarized for humans. Commit `docs: changelog for vX.Y.Z`.
+   summarized for humans. Commit `docs: changelog for vX.Y.Z`. **The release entry REPLACES
+   the unreleased draft, it is not written above it.** Both carried a `Version X.Y (unreleased)`
+   heading for the same cycle at 8.5 - the draft that had accumulated day by day, and the
+   release entry written at cut time - and neither was deleted, so the file carried the same
+   version twice with different wording until a later audit merged them by hand (#356). Fold
+   whatever the draft said that the release entry does not, keep the release entry's wording
+   where both describe the same change, and delete the draft heading in the same commit that
+   adds the release entry.
 4. **Bump** `projectVersion` in `gradle.properties`.
 5. **Full gate** (ALL mandatory; a red result aborts the release):
    - `make build-full`, under the Xvfb harness — it runs the plugin builds, the packaging,
