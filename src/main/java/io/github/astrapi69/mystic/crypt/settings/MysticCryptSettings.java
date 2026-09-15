@@ -29,6 +29,7 @@ import java.io.File;
 import io.github.astrapi69.file.read.ReadFileExtensions;
 import io.github.astrapi69.gson.JsonStringToObjectExtensions;
 import io.github.astrapi69.gson.ObjectToJsonFileExtensions;
+import io.github.astrapi69.mystic.crypt.clipboard.ClipboardClearDecision;
 import io.github.astrapi69.mystic.crypt.lock.IdleLockDecision;
 import io.github.astrapi69.swing.enumeration.FrameMode;
 import lombok.AllArgsConstructor;
@@ -90,6 +91,17 @@ public class MysticCryptSettings
 	 * again, and nothing bounded that. This is the bound.
 	 */
 	private int closeLockedAfterMinutes = IdleLockDecision.DEFAULT_CLOSE_LOCKED_MINUTES;
+
+	/**
+	 * How many seconds after "Copy Password" or "Copy Username" the clipboard is cleared again; 0
+	 * turns it off (#352).
+	 * <p>
+	 * On by default, at {@link ClipboardClearDecision#DEFAULT_CLEAR_AFTER_SECONDS}: without this, a
+	 * copied secret is readable by every other process on the machine, every clipboard manager, and
+	 * whatever the desktop environment syncs clipboards to, until the next lock or close -
+	 * unbounded if the user keeps working.
+	 */
+	private int clipboardClearSeconds = ClipboardClearDecision.DEFAULT_CLEAR_AFTER_SECONDS;
 
 	/**
 	 * The view the application opens in.

@@ -1314,20 +1314,59 @@ public class SecretKeyTreeWithContentPanel
 		});
 	}
 
+	/**
+	 * Copies the selected entry's user name to the clipboard and arms the clipboard-clear watchdog
+	 * (#352).
+	 * <p>
+	 * Not a secret by itself, but it sits next to the password half the time somebody copies it,
+	 * and clearing only one of the two after the same wait would read as an oversight to a user who
+	 * cannot see the reasoning behind it.
+	 */
 	protected void onCopyUsernameTableEntry()
 	{
 		getTblTreeEntryTable().getSingleSelectedRowData().ifPresent(tableEntry -> {
-			String userName = EntryText.asText(tableEntry.getUserName());
-			ClipboardExtensions.copyToClipboard(userName);
+			char[] userName = tableEntry.getUserName();
+			ClipboardExtensions.copyToClipboard(EntryText.asText(userName));
+			armTheClipboardClearWatchdog(userName);
 		});
 	}
 
+	/**
+	 * Copies the selected entry's password to the clipboard and arms the clipboard-clear watchdog,
+	 * so it does not sit there readable by every other process on the machine until the next lock
+	 * or close (#352)
+	 */
 	protected void onCopyPasswordTableEntry()
 	{
 		getTblTreeEntryTable().getSingleSelectedRowData().ifPresent(tableEntry -> {
 			char[] password = tableEntry.getPassword();
-			ClipboardExtensions.copyToClipboard(String.valueOf(password));
+			ClipboardExtensions.copyToClipboard(EntryText.asText(password));
+			armTheClipboardClearWatchdog(password);
 		});
+	}
+
+	/**
+	 * Tells the running application's clipboard-clear watchdog what was just copied, if there is
+	 * both a watchdog and something to arm it with - the watchdog does not exist in a headless
+	 * construction-only test, and an entry field can be null the same way {@link EntryText#asText}
+	 * already has to allow for
+	 *
+	 * @param copiedContent
+	 *            exactly what was put on the clipboard; read, not modified; null is accepted and
+	 *            arms nothing
+	 */
+	private static void armTheClipboardClearWatchdog(final char[] copiedContent)
+	{
+		if (copiedContent == null)
+		{
+			return;
+		}
+		io.github.astrapi69.mystic.crypt.clipboard.ClipboardClearWatchdog watchdog = MysticCryptApplicationFrame
+			.getInstance().getClipboardClearWatchdog();
+		if (watchdog != null)
+		{
+			watchdog.arm(copiedContent);
+		}
 	}
 
 	protected void onDeleteTableEntry()
