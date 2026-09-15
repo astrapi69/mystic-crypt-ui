@@ -6,7 +6,12 @@ Version 8.6 (unreleased)
 
 SECURITY:
 
+- a generated master password was put on the system clipboard without being asked for. Pressing Generate while creating a database filled both password fields and also copied the password - the credential that opens the whole database, in a surface every other program of the same user can read, before its owner had read it and before it protected anything. Nobody clears that clipboard either, because the reason it is there is that they are about to paste it. It is now shown and not copied: the two fields are filled, nothing touches the clipboard, and whoever wants it elsewhere copies it themselves - at which point the timer below applies and the path there was their own decision (#367)
 - the private key that opens a key-file database was written inside it. `masterPw`, `repeatPw` and `lockVerifier` are kept out of the payload deliberately; `privateKeyInfo` was not, so the encoded key was serialized into the vault on every save. For a key-only database that is not an escalation on its own - whoever decrypts the payload holds the key already - but a key file usually protects more than this one database, and copying it inside spreads a credential the user keeps deliberately separate into a file they may sync, back up or hand to someone for support. The sharper case is a database opened with a key and later saved with a password: the key then rested on the strength of a passphrase it was chosen to be independent of. The key is now left out of the file and taken from the key file picked at sign-in, on both key paths. A database written before this still opens, and the key stays in it until the next save overwrites the file (#350)
+
+ADDED:
+
+- a copied password clears itself again. "Copy Password" and "Copy Username" put a secret into a surface every other program of the same user can read, and until now only locking or closing the database took it out again - so on a machine left unlocked it stayed there for as long as the user kept working. It is now cleared after twenty seconds, configurable in the general settings, 0 turns it off. The clear looks before it writes: if the clipboard no longer holds what was copied, because the user copied something else in the meantime, it is left alone - a clear that eats the user's own copy is how a security feature gets switched off (#352)
 
 Version 8.5
 -------------
