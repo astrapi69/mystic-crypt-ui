@@ -33,7 +33,7 @@ Wiped when the workspace locks:
 | the master password | `MasterPwFileModelBean.masterPw` | replaced by a verifier that recognises it and cannot produce it |
 | the repeat of it | `MasterPwFileModelBean.repeatPw` | the same secret typed twice, read by nothing after the vault exists |
 | the private key of a key-file vault | `KeyModel.encoded` | for a key-only vault this is not the second way in, it is the only one |
-| the system clipboard | | already cleared on lock since #237 |
+| the system clipboard | | cleared on lock since #237 - and the one entry here with a clock of its own, below |
 
 The derived key needed no change: it is recomputed per operation inside `PassphraseBox.deriveKey` and
 is never held in a field. That was measured before the change, not assumed.
@@ -45,12 +45,52 @@ Wiped when the vault closes - by the idle watchdog, by the menu item, or at the 
 application: all of the above, plus everything the lock left in place, plus the verifier the lock
 created. Overwritten, not dropped, which is what `VaultCloseSupport` and its tests are for.
 
+## The clipboard is cleared three ways, and one of them looks first
+
+The clipboard is the only thing on that list which is not this process's memory. It is a system-wide
+surface: while a secret sits there, every other program the same user is running can read it, with
+no exploit and no privilege beyond being logged in. That is why it has a rule the fields do not, and
+why its clock is measured in seconds rather than minutes.
+
+| when | where | does it look first |
+|---|---|---|
+| the workspace locks | `LockWorkspaceAction.actionPerformed` | no, it is wiped (#237) |
+| the vault closes | `MysticCryptApplicationFrame.closeOpenVault` | no, it is wiped (#242) |
+| a copied secret has sat there long enough | `ClipboardClearWatchdog` | yes, only if it still holds what was copied (#352) |
+
+The third one is the odd one, deliberately. Lock and close happen because the user stepped away or
+finished, so there is nothing of theirs left to destroy. The timer fires while they are still
+working: twenty seconds after copying a password they may well have copied an address, a command, or
+a password from somewhere else, and a blind wipe would take that with it. So it compares before it
+writes and leaves a clipboard it does not recognise alone. A clear that eats the user's own copy is
+how a security feature gets switched off.
+
+The comparison goes through a `CharBuffer` view of the `char[]` the watchdog holds, not through
+`new String(armed)`: asking whether the secret is still there must not leave a second, unwipeable
+copy of it behind, which is the same reason the entry fields are `char[]` at all.
+
+What it does not cover: the generated master password. `NewMasterPwFilePanel` copies it to the
+clipboard the moment it is generated, and that is the one clipboard write in this application the
+watchdog is not armed for. The answer taken in #367 is not to arm it but to stop copying. A master
+password the user has not yet read does not belong in a surface every other process can see, and
+once they copy it themselves this same timer applies - because getting it there was then their own
+decision.
+
 ## The clock is the bound, and it is the user's
 
 `IdleLockDecision.DEFAULT_TIMEOUT_MINUTES` is 15 and `DEFAULT_CLOSE_LOCKED_MINUTES` is 15, both
 editable in the general settings. So on the defaults, walking away costs at most half an hour of
-decrypted vault: fifteen minutes to lock, fifteen more until it is gone. That number is the only
-thing about this decision a user can change, and it is the whole window.
+decrypted vault: fifteen minutes to lock, fifteen more until it is gone.
+
+Since #352 a third clock sits beside them, `ClipboardClearDecision.DEFAULT_CLEAR_AFTER_SECONDS`, at
+20 seconds - same settings panel, and 0 turns it off the way it does for the other two. It is
+shorter by two orders of magnitude because it bounds something else: not how long the vault stays
+decrypted inside this process, but how long one copied secret stays legible to every process beside
+it. Fifteen minutes bounds what somebody who gets to the machine later can reach; twenty seconds
+bounds what anything already running can read.
+
+Those three numbers are what a user can change about this decision, and together they are the whole
+window.
 
 One exception, deliberately: a vault with unsaved changes is not closed by the timer. A locked
 workspace has no master password to write them with, and a close that discards somebody's work
@@ -101,3 +141,10 @@ and asserts both halves: the key material zero-filled, the entries untouched.
 Every one of those asserts on the buffer rather than on the field, because a null check passes
 whether or not anything was overwritten - and half of what is asserted here is that something was
 deliberately *not* overwritten, which a null check cannot express at all.
+
+The clipboard's own clock is checked the same way, on the thing itself rather than on the timer:
+`ClipboardClearsItselfAfterACopyUiTest` copies an entry password in the running application and
+waits for the system clipboard to empty, and copies something else within the interval to prove the
+timer leaves that alone. `ClipboardClearWatchdogTest` drives the same watchdog against the real
+system clipboard with an injected clock, so "twenty seconds later" is asserted rather than waited
+for.
