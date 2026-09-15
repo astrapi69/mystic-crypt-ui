@@ -69,11 +69,13 @@ The comparison goes through a `CharBuffer` view of the `char[]` the watchdog hol
 `new String(armed)`: asking whether the secret is still there must not leave a second, unwipeable
 copy of it behind, which is the same reason the entry fields are `char[]` at all.
 
-What it does not cover: the generated master password. `NewMasterPwFilePanel` copies it to the
-clipboard the moment it is generated, and that is the one clipboard write in this application the
-watchdog is not armed for. The answer taken in #367 is not to arm it but to stop copying. A master
-password the user has not yet read does not belong in a surface every other process can see, and
-once they copy it themselves this same timer applies - because getting it there was then their own
+One clipboard write used to escape all three: `NewMasterPwFilePanel` put a generated master password
+there the moment it was generated, and the watchdog was never armed from that path. The answer taken
+in #367 was not to arm it but to stop copying. A master password the user has not yet read does not
+belong in a surface every other process can see, and there is no timer short enough to fix that,
+because the reason it is on the clipboard is that they are about to paste it. It is now filled into
+the two password fields and nowhere else; whoever wants it elsewhere copies it themselves, and that
+copy is covered by the row above like any other - because getting it there was then their own
 decision.
 
 ## The clock is the bound, and it is the user's
