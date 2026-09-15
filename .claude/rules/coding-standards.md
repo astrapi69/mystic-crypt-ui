@@ -25,8 +25,6 @@ When unclear: ask rather than guess.
 ## Naming
 
 - PascalCase classes, camelCase methods/fields, UPPER_SNAKE constants.
-- Plugin folders: `plugins/{name}-plugin/` (kebab-case), matching Makefile target
-  `plugin-{name}`.
 - No generic names: `data`, `info`, `result`, `temp`, `item`, `obj`, `val`, `tmp`, `x`
   are forbidden. Use `keyPairInfo`, `encryptionResult`, `vaultEntry`. Exception: loop
   indices and short lambdas.
@@ -51,6 +49,12 @@ When unclear: ask rather than guess.
   not reachable, the entry FAILS with a message and is written nowhere - there is no
   fallback into the repository, under any circumstance. A missing entry can be added
   later; a published one cannot be taken back.
+- **A decision record describes a state, not an intention.** Whoever changes the state
+  changes the record, in the same change. A record that points at an open issue has an
+  expiry condition written into it: the sentence is true until that issue closes and false
+  from the merge that closes it. So a change that closes an issue searches `docs/decisions/`
+  for the issue's number first. The #242 record named #367 as the open answer, and #367's
+  own fix would have made it false an hour after it was written (#371).
 
 ## Git
 
