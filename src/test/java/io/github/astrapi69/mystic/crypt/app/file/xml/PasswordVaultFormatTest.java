@@ -33,9 +33,15 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.File;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.FileSystems;
 import java.nio.file.Files;
+import java.nio.file.StandardWatchEventKinds;
+import java.nio.file.WatchKey;
+import java.nio.file.WatchService;
 import java.security.Security;
 import java.util.Arrays;
+import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import javax.crypto.Cipher;
 
@@ -106,6 +112,35 @@ class PasswordVaultFormatTest
 			"a file of the old format carries no marker");
 		assertEquals(XML, PasswordVaultFormat.decrypt(legacy, PASSWORD),
 			"a database from an older release must open, otherwise the update loses it");
+	}
+
+	/**
+	 * A directory listing before and after cannot distinguish "never written" from "written and
+	 * deleted" - the old implementation deleted its temporary file in a finally block, so it would
+	 * pass that comparison too, and deleting is not wiping: the blocks stay on the medium until
+	 * something else reuses them (#353). A {@link WatchService} catches the moment of creation
+	 * itself, whether or not the file is gone again by the time this asserts
+	 */
+	@Test
+	void decryptingALegacyFile_createsNoFileOnDisk(@TempDir File directory) throws Exception
+	{
+		File legacy = writeLegacyFile(directory, XML, PASSWORD);
+		WatchService watcher = FileSystems.getDefault().newWatchService();
+		directory.toPath().register(watcher, StandardWatchEventKinds.ENTRY_CREATE);
+
+		String decrypted = PasswordVaultFormat.decrypt(legacy, PASSWORD);
+
+		assertEquals(XML, decrypted, "the value read must still be correct - this is a memory "
+			+ "change, not a behaviour change");
+		WatchKey key = watcher.poll(500, TimeUnit.MILLISECONDS);
+		List<String> created = key == null
+			? List.of()
+			: key.pollEvents().stream().map(event -> String.valueOf(event.context())).toList();
+		assertTrue(created.isEmpty(),
+			"decrypting a legacy file used to write the whole decrypted vault next to it under a "
+				+ "'.decrypted' name and delete it right afterwards. Created during this call: "
+				+ created);
+		watcher.close();
 	}
 
 	@Test
