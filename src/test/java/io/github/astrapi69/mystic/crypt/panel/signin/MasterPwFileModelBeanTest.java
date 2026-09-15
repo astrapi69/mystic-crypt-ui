@@ -75,6 +75,28 @@ class MasterPwFileModelBeanTest
 	}
 
 	@Test
+	@DisplayName("a different array with the same content does not wipe the one still in use")
+	void setMasterPw_doesNotWipe_whenTheNewValueHasTheSameContentAsADifferentInstance()
+	{
+		// this is NewMasterPwFilePanel.onGeneratePassword, traced: it sets the model directly with
+		// a local array, then calls txtMasterPw.setText(String.valueOf(that array)) - which fires
+		// the field's OWN document listener, which reads a FRESH array back out of the field
+		// (same characters, a different object) and calls setMasterPw again before the method's
+		// local variable is done being used for the repeat field and the clipboard
+		MasterPwFileModelBean credentials = new MasterPwFileModelBean();
+		char[] generated = "generated-master-pw".toCharArray();
+		credentials.setMasterPw(generated);
+
+		char[] reReadFromTheField = "generated-master-pw".toCharArray();
+		credentials.setMasterPw(reReadFromTheField);
+
+		assertArrayEquals("generated-master-pw".toCharArray(), generated,
+			"the FIRST array is what the caller still holds and still needs - reference equality "
+				+ "alone does not see this as the same value, and wiping it here is exactly what "
+				+ "corrupted NewMasterPwFilePanel's repeat field in the running application");
+	}
+
+	@Test
 	@DisplayName("setting the same array back onto itself does not wipe it")
 	void setMasterPw_doesNotWipe_whenTheNewValueIsTheOldOne()
 	{

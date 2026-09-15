@@ -131,15 +131,23 @@ public class MasterPwFileModelBean implements Serializable
 	 * repeating it at each of the three call sites, is what keeps a future caller from
 	 * reintroducing the same gap by hand.
 	 * <p>
-	 * A self-assignment - the same array passed back in - is the one case that must NOT wipe: doing
-	 * so would erase the very value being kept, not a value being discarded.
+	 * The skip condition is CONTENT equality, not reference equality, and the difference is not
+	 * academic: {@code NewMasterPwFilePanel.onGeneratePassword} sets this directly with a local
+	 * array, then calls {@code txtMasterPw.setText(...)} with the same characters - which re-enters
+	 * through the field's own document listener, which reads a FRESH array back out of the field
+	 * (same characters, a different object) and calls this again before the method's local variable
+	 * is done being used for the repeat field and the clipboard. A reference check does not
+	 * recognise that second call as a no-op, wipes the first array while the caller still holds and
+	 * still needs it, and corrupted the repeat field in the running application (measured: it
+	 * blanked to spaces). Comparing content instead treats an equal-content replacement as nothing
+	 * to erase, which is what it actually is - the value did not change, only which array holds it.
 	 *
 	 * @param masterPw
 	 *            the new master password, or null to clear it
 	 */
 	public void setMasterPw(final char[] masterPw)
 	{
-		if (this.masterPw != masterPw)
+		if (!java.util.Arrays.equals(this.masterPw, masterPw))
 		{
 			io.github.astrapi69.mystic.crypt.vault.SecretBuffers.wipe(this.masterPw);
 		}
