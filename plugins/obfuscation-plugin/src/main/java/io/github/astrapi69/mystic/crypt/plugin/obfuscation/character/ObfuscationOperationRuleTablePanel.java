@@ -48,6 +48,7 @@ import io.github.astrapi69.mystic.crypt.ApplicationModelBean;
 import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
 import io.github.astrapi69.mystic.crypt.key.PrivateKeyStringDecryptor;
 import io.github.astrapi69.mystic.crypt.key.PublicKeyStringEncryptor;
+import io.github.astrapi69.mystic.crypt.plugin.obfuscation.ObfuscationKeyAvailability;
 import io.github.astrapi69.mystic.crypt.plugin.obfuscation.ObfuscationMessages;
 import io.github.astrapi69.mystic.crypt.ui.form.ToolForm;
 import io.github.astrapi69.swing.base.BasePanel;
@@ -110,8 +111,24 @@ public class ObfuscationOperationRuleTablePanel extends BasePanel<ObfuscationOpe
 	{
 	}
 
+	/**
+	 * Encrypts the rule table with the signed-in database's key pair and writes it to a file the
+	 * user chooses. Refuses first, before the file chooser even opens, when the database has no
+	 * key - see {@link ObfuscationKeyAvailability} (#357)
+	 *
+	 * @param actionEvent
+	 *            the click that triggered this
+	 */
 	protected void onExport(final ActionEvent actionEvent)
 	{
+		ApplicationModelBean modelObject = MysticCryptApplicationFrame.getInstance()
+			.getModelObject();
+		if (!ObfuscationKeyAvailability.keyIsAvailable(modelObject))
+		{
+			JOptionPane.showMessageDialog(this, ObfuscationKeyAvailability.refusalMessage(),
+				ObfuscationKeyAvailability.refusalTitle(), JOptionPane.WARNING_MESSAGE);
+			return;
+		}
 		fileChooser.setFileFilter(fileNameExtensionFilter);
 		final int returnVal = fileChooser.showSaveDialog(ObfuscationOperationRuleTablePanel.this);
 		if (returnVal == JFileChooser.APPROVE_OPTION)
@@ -120,8 +137,6 @@ public class ObfuscationOperationRuleTablePanel extends BasePanel<ObfuscationOpe
 				.getTableModel().getData();
 			final File selectedFile = fileChooser.getSelectedFile();
 
-			ApplicationModelBean modelObject = MysticCryptApplicationFrame.getInstance()
-				.getModelObject();
 			KeyModel privateKeyInfo = modelObject.getMasterPwFileModelBean().getPrivateKeyInfo();
 			PrivateKey privateKey = KeyModelExtensions.toPrivateKey(privateKeyInfo);
 			PublicKey publicKey = RuntimeExceptionDecorator
@@ -136,8 +151,24 @@ public class ObfuscationOperationRuleTablePanel extends BasePanel<ObfuscationOpe
 		}
 	}
 
+	/**
+	 * Reads a file the user chooses and decrypts it with the signed-in database's key pair.
+	 * Refuses first, before the file chooser even opens, when the database has no key - the same
+	 * guard as {@link #onExport(ActionEvent)} (#357)
+	 *
+	 * @param actionEvent
+	 *            the click that triggered this
+	 */
 	protected void onImport(final ActionEvent actionEvent)
 	{
+		ApplicationModelBean modelObject = MysticCryptApplicationFrame.getInstance()
+			.getModelObject();
+		if (!ObfuscationKeyAvailability.keyIsAvailable(modelObject))
+		{
+			JOptionPane.showMessageDialog(this, ObfuscationKeyAvailability.refusalMessage(),
+				ObfuscationKeyAvailability.refusalTitle(), JOptionPane.WARNING_MESSAGE);
+			return;
+		}
 		fileChooser.setFileFilter(fileNameExtensionFilter);
 		final int returnVal = fileChooser.showOpenDialog(ObfuscationOperationRuleTablePanel.this);
 		if (returnVal == JFileChooser.APPROVE_OPTION)
@@ -145,8 +176,8 @@ public class ObfuscationOperationRuleTablePanel extends BasePanel<ObfuscationOpe
 			final File selectedFile = fileChooser.getSelectedFile();
 			try
 			{
-				KeyModel privateKeyInfo = MysticCryptApplicationFrame.getInstance().getModelObject()
-					.getMasterPwFileModelBean().getPrivateKeyInfo();
+				KeyModel privateKeyInfo = modelObject.getMasterPwFileModelBean()
+					.getPrivateKeyInfo();
 				PrivateKey privateKey = KeyModelExtensions.toPrivateKey(privateKeyInfo);
 
 				byte[] encrypted = ReadFileExtensions.readFileToBytearray(selectedFile);
@@ -185,16 +216,28 @@ public class ObfuscationOperationRuleTablePanel extends BasePanel<ObfuscationOpe
 		scpKeyRules = ToolForm.scrolled(tblKeyRules);
 		btnImport = new javax.swing.JButton();
 		btnExport = new javax.swing.JButton();
+		btnImport.setName("btnImport");
+		btnExport.setName("btnExport");
 
 		lblKeyRules.setText("Table of key rules for obfuscate");
 
 		btnImport.setText("Import");
 		btnExport.setText("Export");
 
-		btnImport.setToolTipText(ObfuscationMessages.getString("obfuscation.rule.table.tooltip.import.button",
-			"loads rules from a file, decrypted with the signed-in database's key pair - only works while signed in"));
-		btnExport.setToolTipText(ObfuscationMessages.getString("obfuscation.rule.table.tooltip.export.button",
-			"saves the rules below to a file, encrypted with the signed-in database's key pair - only works while signed in"));
+		// disabled while the signed-in database has no key to encrypt or decrypt with, rather than
+		// enabled and throwing on the ordinary case of a master-password-only database (#357)
+		boolean keyAvailable = ObfuscationKeyAvailability
+			.keyIsAvailable(MysticCryptApplicationFrame.getInstance().getModelObject());
+		btnImport.setEnabled(keyAvailable);
+		btnExport.setEnabled(keyAvailable);
+		btnImport.setToolTipText(keyAvailable
+			? ObfuscationMessages.getString("obfuscation.rule.table.tooltip.import.button",
+				"loads rules from a file, decrypted with the signed-in database's key pair - only works while signed in")
+			: ObfuscationKeyAvailability.disabledTooltip());
+		btnExport.setToolTipText(keyAvailable
+			? ObfuscationMessages.getString("obfuscation.rule.table.tooltip.export.button",
+				"saves the rules below to a file, encrypted with the signed-in database's key pair - only works while signed in")
+			: ObfuscationKeyAvailability.disabledTooltip());
 
 		final TableColumn editValueColumn = tblKeyRules.getColumn(editText);
 
