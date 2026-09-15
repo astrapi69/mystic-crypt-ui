@@ -1590,22 +1590,38 @@ final class ApplicationSteps
 		return GuiActionRunner.execute(() -> findInternalFrameByTitle(title));
 	}
 
+	/**
+	 * Finds the internal frame with the given title, safely from any thread (#364).
+	 * <p>
+	 * {@link javax.swing.JDesktopPane#getAllFrames()} walks Swing's own component array with no
+	 * synchronization against the EDT mutating it while that happens - calling it off the EDT is
+	 * exactly what its own contract warns against. Three callers here are {@code Pause.pause(new
+	 * Condition() {...})} bodies, and AssertJ-Swing polls a
+	 * {@link org.assertj.swing.timing.Condition} on a background executor, not the EDT - measured
+	 * from a real failure: {@code ArrayIndexOutOfBoundsException: No such child: 1} inside
+	 * {@code getAllFrames()}, called from {@code ThreadPoolExecutor$Worker.run}. Wrapping it here,
+	 * once, covers every caller; {@link GuiActionRunner#execute} runs synchronously when already on
+	 * the EDT, so the two callers that already wrap this externally are unaffected by the nesting.
+	 */
 	private static javax.swing.JInternalFrame findInternalFrameByTitle(String title)
 	{
-		MysticCryptApplicationFrame applicationFrame = MysticCryptApplicationFrame.getInstance();
-		if (applicationFrame == null || applicationFrame.getDesktopPanePanel() == null)
-		{
-			return null;
-		}
-		for (javax.swing.JInternalFrame internalFrame : applicationFrame.getDesktopPanePanel()
-			.getDesktopPane().getAllFrames())
-		{
-			if (title.equals(internalFrame.getTitle()) && internalFrame.isVisible())
+		return GuiActionRunner.execute(() -> {
+			MysticCryptApplicationFrame applicationFrame = MysticCryptApplicationFrame
+				.getInstance();
+			if (applicationFrame == null || applicationFrame.getDesktopPanePanel() == null)
 			{
-				return internalFrame;
+				return null;
 			}
-		}
-		return null;
+			for (javax.swing.JInternalFrame internalFrame : applicationFrame.getDesktopPanePanel()
+				.getDesktopPane().getAllFrames())
+			{
+				if (title.equals(internalFrame.getTitle()) && internalFrame.isVisible())
+				{
+					return internalFrame;
+				}
+			}
+			return null;
+		});
 	}
 
 	/** Finds a menu item by its stable name and fires it (the menu bar is never shown in tests) */
