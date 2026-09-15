@@ -22,12 +22,14 @@ FIXED:
 - cancelling the save-before-close question closed the application anyway, so Cancel meant the same as No and every change since the last save was gone before the user could react (#288)
 - creating a vault while one was already open kept the open vault's content and only changed where saving went: the new database received the other one's entries under its own master password, and a change made to the open one never reached its file (#279)
 - after cancelling the sign-in there was no way into a vault without restarting (#266)
-- the decrypted database lived in objects that cannot be overwritten, so locking could drop references but not erase (#294)
+- the decrypted database lived in objects that cannot be overwritten, so locking could drop references but not erase. Measured on a heap dump taken after a save and a close: an entry's title was lying in the heap six times over and the master password three times, and what is left of either now is one copy of the database inside a library buffer this application cannot reach - nothing of it is referenced any more (#294)
+- the master password and the decrypted database no longer become Java Strings on the way to and from the file. The whole database was serialized into one String on every save and read back out of one on every load, and the master password was converted at the moment of use; none of the four could be overwritten. Every buffer on that path is characters or bytes now, and is overwritten once it has been used. Two paths keep one String each and say so: a database protected by a password AND a key file, and reading a database written before version 8.3, both of which go through library interfaces that take a String (#294)
+- "make license-format" stamped the project's licence header onto resources - help files, launchers, a third party's licence text and Spotless's own import-order configuration, after which the build could no longer configure itself. The header goes on Java sources and on nothing else (#282)
 
 ADDED:
 
 - a database can be closed while the application runs. That state did not exist: the save-if-dirty question lived inside the window-closing listener, so ending the application was the only way to reach it. Closing now empties the model and overwrites what it held, and three callers use the one path - a "Close Database" entry, opening another database, and creating one (#281)
-- the workspace locks itself after fifteen idle minutes, configurable, 0 turns it off; a locked vault is closed after another fifteen so its decrypted content leaves memory (#241, #242)
+- the workspace locks itself after fifteen idle minutes, configurable, 0 turns it off - locking used to be a deliberate user action and nothing else, so an open vault stayed open for as long as the application ran. A locked vault is closed after another fifteen so its decrypted content leaves memory (#241, #242)
 - entries get an identifier when they are created, and entries in a vault written before identifiers existed get one when it is opened. Loading does not mark the vault as changed: nothing is written that the user did not ask to write. An identifier is stable once the vault has been saved after that migration (#272)
 - the modification timestamp is kept up to date when an entry is edited, and stays empty until a real edit - filling it on load would invent a fact that reads later as measured (#273)
 - the checksum tool writes the checksum file, not only reads one: the coreutils form that `sha256sum -c` reads, next to the file it describes. An existing one is replaced only after a question (#296)
@@ -36,41 +38,12 @@ CHANGED:
 
 - the lock now has an invariant rather than one regression test per door: every action in the application's action package is fired with a vault locked, and three properties are asserted for each - the locked state holds, the vault stays off screen, the vault file is not written. Exactly one exception, unlocking with the master password. A new action joins it by existing (#284)
 - `master` carries the release again, as a numbered step in the release process rather than a habit (#248)
+- dependency currency: Spotless 8.10.2, JaCoCo 0.8.15 (pinned rather than left to the Gradle default), pf4j 3.15.1, Lombok 1.18.48, PIT 1.30.0 (#277)
 
 KNOWN AND NOT FIXED IN THIS RELEASE:
 
 - thirteen places still write over an existing file without asking: exported PEM and signature files, generated keys, the persisted menu layout, plugin settings. None of them is a database. They are named one by one in `SilentOverwriteInventoryTest`, and a fourteenth arriving unnoticed fails that test (#300)
 - the decrypted vault does not leave memory completely while locked: entry custom properties, attachment bytes, private key bytes and the Swing password fields' copies are dropped rather than overwritten (#242)
-
-Version 8.5 (unreleased)
--------------
-
-SECURITY:
-
-- a locked database does not stay decrypted for ever. Locking keeps the entries in memory so unlocking can rebuild the view without reading and decrypting the file again, and nothing bounded that: a database locked at five o'clock was still decrypted in the process the next morning. It is now closed after another 15 idle minutes, configurable and switchable off. Locking writes pending changes first, while the master password is still there, so the close can never cost anybody their entries (#242)
-- the action that puts the vault window back on screen asked nothing about the lock. Fired while the workspace was locked - through a keyboard shortcut, a persisted menu layout carrying the item, or any caller other than the menu item, which is disabled - it put the vault back on the desktop with its entries selectable while the workspace stayed locked. It now asks the same decision as the mode switch (#285)
-- the workspace locks itself after 15 idle minutes. Locking used to be a deliberate user action and nothing else, so an open vault stayed open for as long as the application ran; the timeout is configurable in the settings and 0 turns it off (#241)
-- closing a vault overwrites the entries and the master password in memory rather than dropping the objects for the collector to find later. An entry's title, user name, URL and notes were Java Strings, which cannot be overwritten where they lie, so closing could drop an entry but never empty it; they are character arrays now and are overwritten with the password. Measured on a heap dump taken after a save and a close: an entry's title was lying in the heap six times over and the master password three times, and what is left of either now is one copy of the database inside a library buffer this application cannot reach - nothing of it is referenced any more. The database file is not affected - the same characters are written as the same text, so a database from an older version opens here and a database written here opens in an older version (#294, #242)
-- the master password and the decrypted database no longer become Java Strings on the way to and from the file. The whole database was serialized into one String on every save and read back out of one on every load, and the master password was converted at the moment of use; none of the four could be overwritten. Every buffer on that path is characters or bytes now, and is overwritten once it has been used. Two paths keep one String each and say so: a database protected by a password AND a key file, and reading a database written before version 8.3, both of which go through library interfaces that take a String (#294)
-
-ADDED:
-
-- a database can be closed while the application runs. "The vault is closed" was a state this application could not reach: the save-if-dirty question lived inside the window-closing listener, so ending the application was the only way to it (#281)
-- "Open Database..." opens an existing database file. After cancelling the sign-in there was no way into a vault at all, and Exit or a restart were the only moves left (#266)
-- entries created here get an identifier, and entries in existing vaults get one when the vault is opened, persisted with the next save. The field existed and was filled only when importing from a KeePass database (#272)
-- an entry's modification date is set when the entry is actually edited. It used to be filled only on import, so it stopped being true the moment somebody edited the entry here; an entry that was never edited still shows nothing rather than an invented date (#273)
-
-FIXED:
-
-- cancelling the "store your changes before finish application" question ended the application anyway and the changes were gone. Cancel and No did the same thing, so reaching for Cancel to get back to the work cost every change since the last save, and the window was gone before anyone could react. Cancel now means the application stays, and dismissing the question with its own window button counts as cancelling rather than as a no (#288)
-- creating a new database while another one is open no longer refuses outright: the open one is closed first, asking about unsaved changes. A LOCKED vault is still refused, because its master password is not in memory (#279, #281)
-- "make license-format" stamped the project's licence header onto resources - help files, launchers, a third party's licence text and Spotless's own import-order configuration, after which the build could no longer configure itself. The header goes on Java sources and on nothing else (#282)
-- the "Open Database" entry, now labelled "Show Database View", does nothing instead of throwing when there is no vault open (#285)
-
-CHANGED:
-
-- dependency currency: Spotless 8.10.2, JaCoCo 0.8.15 (pinned rather than left to the Gradle default), pf4j 3.15.1, Lombok 1.18.48, PIT 1.30.0 (#277)
-- releases move `master` onto the tag as a numbered step of the release workflow, instead of leaving it at the 2024-06 release while claiming to be the release branch (#248)
 
 Version 8.4
 -------------
