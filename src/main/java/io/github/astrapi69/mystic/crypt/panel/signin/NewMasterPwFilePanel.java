@@ -38,7 +38,6 @@ import javax.swing.event.DocumentEvent;
 
 import org.apache.commons.lang3.StringUtils;
 
-import io.github.astrapi69.awt.extension.ClipboardExtensions;
 import io.github.astrapi69.browser.BrowserControlExtensions;
 import io.github.astrapi69.crypt.data.model.KeyModel;
 import io.github.astrapi69.file.create.FileFactory;
@@ -258,8 +257,9 @@ public class NewMasterPwFilePanel extends BasePanel<MasterPwFileModelBean>
 		btnMasterPw.setToolTipText(Messages.getString("signin.tooltip.show.hide.master.password",
 			"show or hide the typed password"));
 		btnGeneratePw.setToolTipText(Messages.getString("signin.tooltip.generate.password",
-			"generates a random password, fills both password fields and copies it to the "
-				+ "clipboard"));
+			"generates a random password and fills both password fields with it - nothing goes to "
+				+ "the clipboard, press *** to read it and copy it yourself if you need it "
+				+ "elsewhere"));
 		cmbKeyFile.setToolTipText(Messages.getString("signin.tooltip.key.file.combo",
 			"a previously chosen key file - use Browse to add another, or Create key file... to "
 				+ "generate one"));
@@ -348,7 +348,12 @@ public class NewMasterPwFilePanel extends BasePanel<MasterPwFileModelBean>
 				NewMasterPwFilePanel.this.getModelObject().setMasterPw(password);
 				txtMasterPw.setText(String.valueOf(password));
 				txtRepeatPw.setText(String.valueOf(password));
-				ClipboardExtensions.copyToClipboard(String.valueOf(password));
+				// deliberately nothing else: a generated master password is SHOWN, not copied.
+				// It used to go to the system clipboard from here - the credential that opens the
+				// whole database, in a surface every other program of the same user can read,
+				// before its owner had seen it and without anyone asking. Whoever wants it
+				// elsewhere copies it themselves, and that copy is then cleared by the same
+				// watchdog as any other, because getting it there was their decision (#367)
 				super.onOk();
 			}
 		};
