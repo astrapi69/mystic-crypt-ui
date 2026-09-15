@@ -34,8 +34,6 @@ import javax.crypto.SecretKey;
 import io.github.astrapi69.crypt.api.algorithm.SunJCEAlgorithm;
 import io.github.astrapi69.crypt.api.algorithm.compound.CompoundAlgorithm;
 import io.github.astrapi69.crypt.data.model.CryptModel;
-import io.github.astrapi69.file.delete.DeleteFileExtensions;
-import io.github.astrapi69.file.read.ReadFileExtensions;
 import io.github.astrapi69.mystic.crypt.crypto.PassphraseBox;
 import io.github.astrapi69.mystic.crypt.file.PBEFileDecryptor;
 import io.github.astrapi69.mystic.crypt.vault.SecretBuffers;
@@ -262,17 +260,17 @@ public final class PasswordVaultFormat
 			.<Cipher, String, String> builder().key(password)
 			.algorithm(SunJCEAlgorithm.PBEWithMD5AndDES).salt(CompoundAlgorithm.SALT)
 			.iterationCount(CompoundAlgorithm.ITERATIONCOUNT).build();
-		// this decryptor only works on files, so it puts the decrypted database next to the
-		// encrypted one for a moment; it is removed again right away, and a save afterwards writes
-		// the new format, so this path is walked at most once per database
-		File decrypted = new PBEFileDecryptor(legacyModel).decrypt(applicationFile);
-		try
-		{
-			return ReadFileExtensions.fromFile(decrypted);
-		}
-		finally
-		{
-			DeleteFileExtensions.delete(decrypted);
-		}
+		// PBEFileDecryptor is file-in/file-out by design - what is actually used here is its
+		// constructor's side effect: AbstractCryptor.onInitialize derives the key from the model
+		// above and calls newCipher(...), which sets a fully initialized, DECRYPT_MODE Cipher back
+		// onto legacyModel. This constructs it purely for that, and never calls decrypt(File) on
+		// it - the previous version did, and that call writes the WHOLE decrypted database next to
+		// the encrypted one under a ".decrypted" name before deleting it again. Deleting is not
+		// wiping: the blocks stay on the medium until something else reuses them, and a password
+		// database is not a file that should ever have touched the disk unencrypted (#353)
+		new PBEFileDecryptor(legacyModel);
+		byte[] encryptedBytes = Files.readAllBytes(applicationFile.toPath());
+		byte[] decryptedBytes = legacyModel.getCipher().doFinal(encryptedBytes);
+		return new String(decryptedBytes, StandardCharsets.UTF_8);
 	}
 }
