@@ -121,6 +121,32 @@ public class MasterPwFileModelBean implements Serializable
 	transient char[] repeatPw;
 
 	/**
+	 * Replaces the master password, overwriting the array it replaces first.
+	 * <p>
+	 * Hand-written rather than left to {@code @Data}'s generated setter, because every one of the
+	 * three panels that bind a password field to this bean calls this on every keystroke -
+	 * {@link javax.swing.JPasswordField#getPassword()} hands out a fresh array each time - and the
+	 * plain replacement left every array before the last one on the heap, un-wiped, the longest
+	 * being the password minus its final character (#351). Centralizing the wipe here, rather than
+	 * repeating it at each of the three call sites, is what keeps a future caller from
+	 * reintroducing the same gap by hand.
+	 * <p>
+	 * A self-assignment - the same array passed back in - is the one case that must NOT wipe: doing
+	 * so would erase the very value being kept, not a value being discarded.
+	 *
+	 * @param masterPw
+	 *            the new master password, or null to clear it
+	 */
+	public void setMasterPw(final char[] masterPw)
+	{
+		if (this.masterPw != masterPw)
+		{
+			io.github.astrapi69.mystic.crypt.vault.SecretBuffers.wipe(this.masterPw);
+		}
+		this.masterPw = masterPw;
+	}
+
+	/**
 	 * What is kept instead of {@link #masterPw} while the workspace is locked: enough to recognise
 	 * the password when it is typed again, not enough to be it (#242). Set when locking, dropped
 	 * when unlocking, and transient for the same reason as the password itself.
