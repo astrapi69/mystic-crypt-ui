@@ -119,6 +119,7 @@ junit-jupiter-extensions = { module = "io.github.astrapi69:junit-jupiter-extensi
 junit-platform-launcher = { module = "org.junit.platform:junit-platform-launcher", version.ref = "junit-platform-launcher-version" }
 jxlayer = { module = "org.swinglabs:jxlayer", version.ref = "jxlayer-version" }
 kee-pass-java2-simple = { module = "org.linguafranca.pwdb:KeePassJava2-simple", version.ref = "kee-pass-java2-version" }
+kee-pass-java2-jackson = { module = "org.linguafranca.pwdb:KeePassJava2-jackson", version.ref = "kee-pass-java2-version" }
 lgood-date-picker = { module = "com.github.lgooddatepicker:LGoodDatePicker", version.ref = "lgood-date-picker-version" }
 lombok = { module = "org.projectlombok:lombok", version.ref = "lombok-version" }
 meanbean = { module = "com.github.meanbeanlib:meanbean", version.ref = "meanbean-version" }
