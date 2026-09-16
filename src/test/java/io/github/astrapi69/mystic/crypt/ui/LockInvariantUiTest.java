@@ -99,11 +99,17 @@ class LockInvariantUiTest extends AbstractUiTest
 		"it IS the exception: fired at the end of the invariant to bring the unlock prompt back",
 		"SaveBeforeCloseConfirmation",
 		"not an action at all: the save-if-dirty question, asked BY the actions that close a vault "
-			+ "(#281). It has no actionPerformed to fire");
-	// Two entries today, and the second one is a class in the directory that is not an action.
-	// This is the second exception list in this class, and it is treated like the first: every
-	// further entry needs a reason written here and the maintainer's agreement, not a quiet
-	// addition
+			+ "(#281). It has no actionPerformed to fire",
+		"EndApplicationAction",
+		"it ends the JVM, so the invariant cannot fire it. What ending does to a LOCKED vault is "
+			+ "#304's rule, not a hole: a locked-and-dirty vault asks whether to discard, a "
+			+ "locked-and-clean one ends. Covered by EndingTheApplicationErasesTheVaultUiTest with "
+			+ "an injected exit and by ExitAsksBeforeDiscardingUiTest through the real menu item "
+			+ "(#386, #387). Agreed by the maintainer, 2026-09-16");
+	// Three entries: the lock itself, a class in the directory that is not an action, and the one
+	// action that ends the JVM. This is the second exception list in this class, and it is treated
+	// like the first: every further entry needs a reason written here and the maintainer's
+	// agreement, not a quiet addition
 
 	/**
 	 * Every action in the package, fired through its action object.
