@@ -67,6 +67,7 @@ dependencies {
     implementation libs.swing.model.components
     implementation libs.swing.wizard
     implementation libs.kee.pass.java2.simple
+    implementation libs.kee.pass.java2.jackson
 
     // Note: use of bundles...
     testImplementation libs.bundles.unit.testing
