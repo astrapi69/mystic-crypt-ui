@@ -32,6 +32,7 @@ import io.github.astrapi69.crypt.data.model.KeyInfo;
 import io.github.astrapi69.crypt.data.model.Validity;
 import lombok.AccessLevel;
 import lombok.Data;
+import lombok.ToString;
 import lombok.experimental.FieldDefaults;
 import lombok.experimental.SuperBuilder;
 
@@ -47,11 +48,13 @@ public class CertificateModel
 	/**
 	 * Information about the private key
 	 */
+	@ToString.Exclude
 	KeyInfo privateKeyInfo;
 
 	/**
 	 * Information about the public key
 	 */
+	@ToString.Exclude
 	KeyInfo publicKeyInfo;
 
 	/**

@@ -41,6 +41,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
+import lombok.ToString;
 import lombok.experimental.FieldDefaults;
 import lombok.experimental.SuperBuilder;
 import lombok.extern.java.Log;
@@ -76,6 +77,7 @@ public class MasterPwFileModelBean implements Serializable
 	List<String> applicationFilePaths = ListFactory.newArrayList("");
 
 	/** The model for the private key */
+	@ToString.Exclude
 	KeyModel privateKeyInfo;
 
 	/** The key file info for create the key file object */
@@ -103,9 +105,13 @@ public class MasterPwFileModelBean implements Serializable
 	 * credential along with the data. It is held for the length of the session and comes from the
 	 * sign-in dialog, not from the file.
 	 */
+	@ToString.Exclude
+	@EqualsAndHashCode.Exclude
 	transient char[] masterPw;
 
 	/** The repeat of the master password char array, transient for the same reason as masterPw. */
+	@ToString.Exclude
+	@EqualsAndHashCode.Exclude
 	transient char[] repeatPw;
 
 	/**
