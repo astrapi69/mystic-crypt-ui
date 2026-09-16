@@ -63,12 +63,19 @@ When unclear: ask rather than guess.
 - One commit per logical change. Atomic = smallest reversible unit that leaves the tree
   green individually — when a source edit and its test edit would break apart, they land
   in ONE commit (see lessons-learned.md).
-- Gitflow: `develop` is the active branch; `master` holds releases (tags `RELEASE-X.Y.Z`).
-  Branch `feature/*` / `fix/*` / `chore/*` FROM `develop`, PRs AGAINST `develop`.
+- Branch `feature/*` / `fix/*` / `chore/*` FROM `develop`, PRs AGAINST `develop`
+  (gitflow, see pr-policy.md).
 - No `--amend` + force-push on an open PR — add a new commit instead (an amend can desync
   the PR head and silently drop the amended change on merge).
-- Do not add `Co-Authored-By` trailers attributing non-human collaborators (AI tools,
-  bots). Exceptions require an explicit note in the commit body.
+- **No attribution to a non-human collaborator, in a commit or in a pull request body.**
+  No `Co-Authored-By` trailer for an AI tool or a bot, and no "generated with" line in a
+  pull request description. Provenance belongs in the maintainer's private journal, where
+  it is complete and checkable; a public line that says an AI was involved without saying
+  how gives a reader nothing and reads as the whole story. Complete provenance privately or
+  nothing publicly, not a remainder in between. An exception carries its reason in the
+  commit body as `Co-Author-Exception: <reason>`. Enforced by `make install-hooks` and by
+  CI on every pull request, because the prose version was broken by 112 of the 212 commits
+  that followed it (#373).
 
 ## Function design and cohesion
 

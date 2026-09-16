@@ -29,7 +29,18 @@ PLUGIN_INSTALL_DIR := $(HOME)/.config/mystic-crypt-ui/plugins
 	version-catalog-format version-catalog-update all-dependencies-jar \
 	build-stacktrace build-warning plugin-obfuscation plugin-checksum plugin-conversion \
 	plugin-console plugin-keygen plugin-certificate plugin-password-hash plugin-kem-demo \
-	plugin-menu-designer plugin-pqc-signature plugin-keystore plugin-file-crypt plugin-secret-sharing plugins plugins-install
+	plugin-menu-designer plugin-pqc-signature plugin-keystore plugin-file-crypt plugin-secret-sharing plugins plugins-install \
+	install-hooks check-commit-provenance
+
+# point git at the repository's own hooks, so the commit-msg check runs before a commit exists.
+# A hook is per working copy: run this once in every fresh clone and every new worktree (#373)
+install-hooks:
+	git config core.hooksPath .githooks
+	@printf 'hooks installed: core.hooksPath -> %s\n' "$$(git config core.hooksPath)"
+
+# the same check CI runs on a pull request, over the commits this branch adds to develop
+check-commit-provenance:
+	./scripts/check-commit-provenance.sh --range develop..HEAD
 
 # fast build: clean, compile, package the runnable jar - skips tests/spotless/license
 build:

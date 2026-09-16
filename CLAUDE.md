@@ -22,6 +22,7 @@ new CLI capability is built in the library first. Vault format: versioned
 - `make build-with-plugins` (alias `make bwp`) — `build` + `plugins-install` together
 - `make run` / `make bootRun` — run the app
 - `make spotless-java` — format before committing
+- `make install-hooks` — point git at `.githooks` (run once per clone/worktree)
 - `make izpack-installer` — installer
 - `make jacoco-report`, `./gradlew pitest` — coverage / mutation reports
 - `make dependency-updates` — dependency currency check
@@ -29,8 +30,9 @@ new CLI capability is built in the library first. Vault format: versioned
 ## Workflow
 
 Gitflow: `develop` active, `master` = releases. Issue before fix, PR for every pushed
-change (see `.claude/rules/ai-workflow/`). Conventional commits, no AI co-author
-trailers. TDD for logic changes (`.claude/rules/tdd.md`).
+change (see `.claude/rules/ai-workflow/`). Conventional commits, no AI attribution in
+commits or PR bodies (enforced by the hook and by CI). TDD for logic changes
+(`.claude/rules/tdd.md`).
 
 ## Rules
 
