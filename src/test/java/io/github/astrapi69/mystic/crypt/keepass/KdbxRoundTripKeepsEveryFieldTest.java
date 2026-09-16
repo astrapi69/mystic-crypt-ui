@@ -187,6 +187,26 @@ class KdbxRoundTripKeepsEveryFieldTest
 				+ "renames the root loses what the user called it");
 	}
 
+	/**
+	 * What the header SHOULD say is the converter's decision to make (#378). What it must not say
+	 * is the library's placeholder, which is what every export has carried so far: the name and
+	 * description a user sees in KeePass's database list before opening anything.
+	 * <p>
+	 * Deliberately not "the source's name survives": this application's model has no field for a
+	 * KeePass database name, and carrying one is not in the agreed scope.
+	 */
+	@Test
+	@DisplayName("the exported header does not carry the library's placeholder name")
+	void theExportedHeaderIsNotTheLibraryPlaceholder()
+	{
+		assertTrue(
+			!"New Database".equals(roundTripped.databaseName())
+				&& !String.valueOf(roundTripped.databaseDescription()).contains("KeePassJava2"),
+			"an exported database announces itself as '" + roundTripped.databaseName() + "', '"
+				+ roundTripped.databaseDescription()
+				+ "' - the defaults of a library the user has never heard of (#378)");
+	}
+
 	@Test
 	@DisplayName("title, user name, password, notes and url survive, umlauts included")
 	void theTextFieldsSurvive()

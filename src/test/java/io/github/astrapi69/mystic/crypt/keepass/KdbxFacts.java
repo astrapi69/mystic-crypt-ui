@@ -78,6 +78,8 @@ final class KdbxFacts
 
 	private final List<Group> groups = new ArrayList<>();
 	private final List<Entry> entries = new ArrayList<>();
+	private String databaseName;
+	private String databaseDescription;
 
 	private KdbxFacts()
 	{
@@ -101,6 +103,9 @@ final class KdbxFacts
 			Element root = builder
 				.parse(new ByteArrayInputStream(xml.getBytes(StandardCharsets.UTF_8)))
 				.getDocumentElement();
+			Element meta = firstChild(root, "Meta");
+			facts.databaseName = textOf(meta, "DatabaseName");
+			facts.databaseDescription = textOf(meta, "DatabaseDescription");
 			Element rootGroup = firstChild(firstChild(root, "Root"), "Group");
 			facts.readGroup(rootGroup, "");
 		}
@@ -114,6 +119,20 @@ final class KdbxFacts
 	List<Group> groups()
 	{
 		return groups;
+	}
+
+	/**
+	 * The name in the database header, read from the XML rather than from {@code keepassxc-cli
+	 * db-info}, whose labels are localised - "Beschreibung:" on a German machine
+	 */
+	String databaseName()
+	{
+		return databaseName;
+	}
+
+	String databaseDescription()
+	{
+		return databaseDescription;
 	}
 
 	List<Entry> entries()
