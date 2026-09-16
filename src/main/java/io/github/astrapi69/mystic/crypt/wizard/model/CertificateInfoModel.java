@@ -29,6 +29,7 @@ import java.math.BigInteger;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Data;
+import lombok.ToString;
 import lombok.experimental.FieldDefaults;
 import lombok.experimental.SuperBuilder;
 
@@ -43,11 +44,13 @@ public class CertificateInfoModel
 	/**
 	 * Information about the private key
 	 */
+	@ToString.Exclude
 	KeyInfoModel privateKeyInfo;
 
 	/**
 	 * Information about the public key
 	 */
+	@ToString.Exclude
 	KeyInfoModel publicKeyInfo;
 
 	/**

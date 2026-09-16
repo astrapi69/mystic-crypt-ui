@@ -38,7 +38,9 @@ import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 import lombok.experimental.FieldDefaults;
 import lombok.experimental.SuperBuilder;
 
@@ -65,11 +67,19 @@ public class MysticCryptEntryModelBean
 	 * a String is written as, byte for byte, so an older vault opens here and a vault written here
 	 * opens in an older build.
 	 */
+	@ToString.Exclude
 	char[] title;
+	@ToString.Exclude
 	char[] userName;
+	@ToString.Exclude
+	@EqualsAndHashCode.Exclude
 	char[] password;
+	@ToString.Exclude
+	@EqualsAndHashCode.Exclude
 	char[] repeat;
+	@ToString.Exclude
 	char[] url;
+	@ToString.Exclude
 	char[] notes;
 	boolean expirable;
 	LocalDate expires;

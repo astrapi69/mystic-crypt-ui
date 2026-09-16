@@ -27,7 +27,9 @@ package io.github.astrapi69.mystic.crypt.panel.pw;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 import lombok.experimental.FieldDefaults;
 import lombok.experimental.SuperBuilder;
 
@@ -43,6 +45,8 @@ public class GeneratePasswordModelBean
 {
 	int passwordLength;
 	/** The password char array. */
+	@ToString.Exclude
+	@EqualsAndHashCode.Exclude
 	char[] password;
 	boolean lowercase;
 	boolean uppercase;
