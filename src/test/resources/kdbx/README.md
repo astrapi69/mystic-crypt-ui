@@ -50,7 +50,7 @@ One group, one entry, one history version.
 | custom attributes | `foo=bar`, `key=value` |
 | attachment | `foo.txt` |
 | expiry | `2026-09-30T07:23:08Z`, `Expires=True` |
-| history | one previous version, differing in the notes |
+| history | one previous version, without the custom attributes and without the attachment - its title, user name, password, URL and notes are the same as the current entry's |
 | created / modified | `2026-09-16T07:21:23Z` / `2026-09-16T07:26:13Z` |
 
 One entry, not two: the inventory this file was requested with said two, and what arrived has one.
