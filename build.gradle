@@ -53,6 +53,13 @@ tasks.withType(Test).configureEach {
     // KeePassJava2-simple's SimpleXML-based serialization reflects into java.util (e.g. UUID)
     // at runtime, which the JDK 9+ module system blocks without this on JDK 17+
     it.jvmArgs "--add-opens", "java.base/java.util=ALL-UNNAMED"
+    // the KDBX round trip is measured with keepassxc-cli, and a system property given on the
+    // gradle command line reaches the DAEMON, not the forked test JVM - so it is forwarded here.
+    // Without it the test reports "keepassxc-cli is not on the PATH" on a machine that has one
+    // under another name or in an extracted package (#384)
+    if (System.getProperty("keepassxc.cli")) {
+        it.systemProperty "keepassxc.cli", System.getProperty("keepassxc.cli")
+    }
     // XStream asks once per JVM whether it may write fields through sun.misc.Unsafe, by trying it.
     // That method is deprecated for removal, so JDK 25 prints a five line warning for the attempt -
     // once per forked test JVM, and forkEvery is 1, so the suite drowns in them. The probe is
