@@ -51,6 +51,17 @@ one week: the #237 lock tests asserted reachability instead of the screen, and #
 closed on null checks while four of six fields were still plain Strings. A stand-in
 assertion is worse than no test, because it makes the gap look covered.
 
+## A statement in an evidence document carries the command that measured it
+
+Issues, commit messages, PR descriptions, fixture READMEs and decision records state what
+is, and each statement carries the command that showed it. One without is a presumption
+and says so. Three cases in two days, all caught, all believable: a card count in an
+adaptive-learner document written from memory; "6405 to 7123 bytes" in the #373 commit,
+measured 6938; the #380 fixture README describing a history version from a dump cut at 30
+characters, whose notes were in fact identical (#390). A document that reads as measured
+is believed, which is what makes a wrong one worse than none - the assertion rule above,
+applied to prose.
+
 ## Test naming
 
 `methodUnderTest_expectedOutcome_whenCondition` or JUnit 5 `@DisplayName` — the name
