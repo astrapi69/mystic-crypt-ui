@@ -23,6 +23,9 @@ advisory.
 
 ## Conventions
 
-- Against `develop` (gitflow; `master` holds releases only).
+- Against `develop` (gitflow; `master` holds releases only). The one exception is a hotfix
+  branch: a pull request that patches a release goes against `hotfix/X.Y.Z` and is merged with
+  `make merge-pr PR=n TARGET=hotfix/X.Y.Z` - the script refuses a pull request whose base is
+  not the target it was given. The form of a hotfix is in release-workflow.md (#395).
 - Body cites the issue with a closing keyword (GITHUB-ISSUE-PFLICHT).
 - One concern per PR; docs-only changesets get their own PR, not mixed into features.

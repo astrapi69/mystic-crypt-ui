@@ -88,9 +88,10 @@ test-fast:
 	JAVA_HOME=$(JAVA_HOME) ./gradlew test
 
 # merges a pull request the way the rules describe, stopping at the first step that fails (#324)
+# TARGET defaults to develop; a hotfix pull request names its branch, e.g. TARGET=hotfix/8.5.1 (#395)
 merge-pr:
-	@test -n "$(PR)" || (echo "usage: make merge-pr PR=<number>" && false)
-	./scripts/merge-pr.sh $(PR)
+	@test -n "$(PR)" || (echo "usage: make merge-pr PR=<number> [TARGET=<branch>]" && false)
+	./scripts/merge-pr.sh $(PR) $(or $(TARGET),develop)
 
 # end-to-end UI tests (AssertJ-Swing) - fast mode (default): as fast as possible.
 # Both targets go through the harness script, which verifies that a window manager is actually
