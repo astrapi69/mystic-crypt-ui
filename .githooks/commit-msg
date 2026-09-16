@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+#
+# Refuses a commit that credits a non-human collaborator as a co-author (#373).
+#
+# Thin on purpose: what counts as a violation lives in scripts/check-commit-provenance.sh, which CI
+# runs over a pull request's commits with --range. Two copies of that pattern would drift, and the
+# half that drifts is the one nobody runs by hand.
+#
+# Installed with: make install-hooks   (sets core.hooksPath to this directory)
+set -euo pipefail
+
+repository_root="$(git rev-parse --show-toplevel)"
+exec "$repository_root/scripts/check-commit-provenance.sh" --message-file "$1"
