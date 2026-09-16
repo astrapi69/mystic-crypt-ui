@@ -29,6 +29,14 @@ fi
 state="$(gh pr view "$PR" --json state -q .state)"
 [ "$state" = "OPEN" ] || die "pull request #$PR is $state, not OPEN"
 
+# The target is where this script updates the local branch afterwards, and 'gh pr merge' merges
+# into whatever the pull request's base is. When the two differ - a hotfix pull request opened
+# against develop by habit, or TARGET given for a pull request that targets develop - the merge
+# would land somewhere other than where the caller is looking. So the two have to agree (#395)
+base="$(gh pr view "$PR" --json baseRefName -q .baseRefName)"
+[ "$base" = "$TARGET" ] || die "pull request #$PR targets '$base', but the merge target given here is
+  '$TARGET' - one of the two is wrong, and merging would put the change where nobody is looking"
+
 say "waiting for the checks on #$PR (up to $((WAIT_SECONDS / 60)) minutes)"
 waited=0
 while :; do
