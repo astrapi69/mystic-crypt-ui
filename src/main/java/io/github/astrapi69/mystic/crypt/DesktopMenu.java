@@ -69,6 +69,7 @@ import io.github.astrapi69.mystic.crypt.action.OpenPrivateKeyAction;
 import io.github.astrapi69.mystic.crypt.action.SaveApplicationFileAction;
 import io.github.astrapi69.mystic.crypt.action.SaveAsApplicationFileAction;
 import io.github.astrapi69.mystic.crypt.action.SearchApplicationFileAction;
+import io.github.astrapi69.mystic.crypt.app.file.xml.VaultXmlCodec;
 import io.github.astrapi69.mystic.crypt.eventbus.ApplicationEventBus;
 import io.github.astrapi69.mystic.crypt.lock.PublicAccess;
 import io.github.astrapi69.mystic.crypt.lock.WorkspaceLockDecision;
@@ -748,6 +749,40 @@ public class DesktopMenu extends BaseDesktopMenu implements EventListener<EventO
 		ApplicationToolbar toolBar = (ApplicationToolbar) MysticCryptApplicationFrame.getInstance().getToolBar();
 		toolBar.getToolbarItems().forEach(toolbarItem -> toolbarItem
 			.setEnabled(!disabledToolBarMenus.contains(toolbarItem.getName())));
+		disableSavingOfAReadOnlyVault();
+	}
+
+	/**
+	 * Keeps Save, Save As and the toolbar's Save disabled while the open vault is in a newer format
+	 * than this build writes (#402): it was read with what this build does not know skipped, and a
+	 * write would drop that from the file. {@code VaultXmlCodec} refuses such a write as well; this
+	 * is the half the user sees
+	 */
+	private void disableSavingOfAReadOnlyVault()
+	{
+		if (!isTheOpenVaultReadOnly())
+		{
+			return;
+		}
+		Set<String> savingItems = SetFactory.newHashSet(
+			MenuId.SAVE_APPLICATION_FILE.propertiesKey(),
+			MenuId.SAVE_AS_APPLICATION_FILE.propertiesKey(),
+			MenuId.SAVE_APPLICATION_FILE_TOOL_BAR.propertiesKey());
+		ParentMenuResolver.getAllMenuElements(getMenubar(), true).stream()
+			.map(MenuElement::getComponent)
+			.filter(component -> savingItems.contains(component.getName()))
+			.forEach(component -> component.setEnabled(false));
+		ApplicationToolbar toolBar = (ApplicationToolbar)MysticCryptApplicationFrame.getInstance()
+			.getToolBar();
+		toolBar.getToolbarItems().stream()
+			.filter(toolbarItem -> savingItems.contains(toolbarItem.getName()))
+			.forEach(toolbarItem -> toolbarItem.setEnabled(false));
+	}
+
+	private static boolean isTheOpenVaultReadOnly()
+	{
+		return VaultXmlCodec
+			.isNewerThanThisBuild(MysticCryptApplicationFrame.getInstance().getModelObject());
 	}
 
 	/**
@@ -875,7 +910,7 @@ public class DesktopMenu extends BaseDesktopMenu implements EventListener<EventO
 		toolBar.getToolbarItems().forEach(toolbarItem -> {
 			if (saveToolBarMenus.contains(toolbarItem.getName()))
 			{
-				toolbarItem.setEnabled(RenderMode.EDITABLE.equals(renderMode));
+				toolbarItem.setEnabled(RenderMode.EDITABLE.equals(renderMode) && !isTheOpenVaultReadOnly());
 			}
 		});
 		JMenuBar menubar = getMenubar();
@@ -886,7 +921,7 @@ public class DesktopMenu extends BaseDesktopMenu implements EventListener<EventO
 			if (saveMenus.contains(name))
 			{
 				menuElement.getComponent()
-						.setEnabled(RenderMode.EDITABLE.equals(renderMode));
+						.setEnabled(RenderMode.EDITABLE.equals(renderMode) && !isTheOpenVaultReadOnly());
 			}
 		});
 	}

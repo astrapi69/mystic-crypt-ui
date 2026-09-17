@@ -24,6 +24,7 @@ import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.File;
@@ -105,6 +106,45 @@ class VaultFormatVersionTest
 			readBack.getDataOfNodes().get(1L).get(0).getTitle(),
 			"the entry is read as it was. Without this, the reader throws, and the sign-in says the "
 				+ "password is wrong to somebody who typed it correctly");
+	}
+
+	/**
+	 * The one place every write passes through refuses a vault from a newer format, whichever way
+	 * of saving got there - the menu items are disabled as well, but a guard that only exists in
+	 * the menu is one caller away from a silent loss (#402, the maintainer's Q1)
+	 */
+	@Test
+	@DisplayName("a vault in a newer format is not written, and the refusal names the version it needs")
+	void aVaultInANewerFormat_isNotWritten()
+	{
+		ApplicationModelBean fromANewerVersion = aModelWithOneEntry();
+		fromANewerVersion.setFormatVersion(VaultXmlCodec.FORMAT_VERSION + 1);
+
+		IllegalStateException refused = assertThrows(IllegalStateException.class,
+			() -> VaultXmlCodec.toXml(fromANewerVersion),
+			"the unknown elements were dropped while it was read; writing it drops them from the "
+				+ "file");
+		assertTrue(
+			refused.getMessage().contains("format version " + (VaultXmlCodec.FORMAT_VERSION + 1)),
+			"the refusal says which format the vault needs: " + refused.getMessage());
+		assertEquals(VaultXmlCodec.FORMAT_VERSION + 1, fromANewerVersion.getFormatVersion(),
+			"and the model keeps its version - stamping this build's over it would turn the next "
+				+ "attempt into a write");
+	}
+
+	@Test
+	@DisplayName("only a version above this build's makes a vault read-only")
+	void isNewerThanThisBuild_isTrue_onlyAboveTheCurrentVersion()
+	{
+		ApplicationModelBean model = aModelWithOneEntry();
+
+		assertFalse(VaultXmlCodec.isNewerThanThisBuild(model),
+			"no version: written before it existed");
+		model.setFormatVersion(VaultXmlCodec.FORMAT_VERSION);
+		assertFalse(VaultXmlCodec.isNewerThanThisBuild(model), "this build's own");
+		model.setFormatVersion(VaultXmlCodec.FORMAT_VERSION + 1);
+		assertTrue(VaultXmlCodec.isNewerThanThisBuild(model), "one above");
+		assertFalse(VaultXmlCodec.isNewerThanThisBuild(null), "no model, no vault");
 	}
 
 	@Test

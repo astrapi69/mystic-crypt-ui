@@ -89,6 +89,10 @@ public final class VaultXmlCodec
 	 */
 	public static char[] toXml(final ApplicationModelBean applicationModelBean)
 	{
+		if (isNewerThanThisBuild(applicationModelBean))
+		{
+			throw new IllegalStateException(whyItIsReadOnly(applicationModelBean));
+		}
 		applicationModelBean.setFormatVersion(FORMAT_VERSION);
 		WipingCharWriter writer = new WipingCharWriter(INITIAL_CAPACITY);
 		try
@@ -100,6 +104,37 @@ public final class VaultXmlCodec
 		{
 			writer.wipe();
 		}
+	}
+
+	/**
+	 * Whether the vault was written in a format newer than this build writes. Such a vault is read
+	 * with the elements this build does not know skipped, so it is shown and never written: a write
+	 * would drop from the file what was skipped while reading it (#402, decided by the maintainer)
+	 *
+	 * @param applicationModelBean
+	 *            the model; null is accepted and is not newer
+	 * @return true if the vault has to stay read-only
+	 */
+	public static boolean isNewerThanThisBuild(final ApplicationModelBean applicationModelBean)
+	{
+		return applicationModelBean != null && applicationModelBean.getFormatVersion() != null
+			&& FORMAT_VERSION < applicationModelBean.getFormatVersion();
+	}
+
+	/**
+	 * What the user is told when a vault opens read-only, and what a refused write says
+	 *
+	 * @param applicationModelBean
+	 *            the model of a vault in a newer format
+	 * @return the reason, naming the format version the vault needs
+	 */
+	public static String whyItIsReadOnly(final ApplicationModelBean applicationModelBean)
+	{
+		return "This database is in format version " + applicationModelBean.getFormatVersion()
+			+ ", and this version of the application reads format version " + FORMAT_VERSION
+			+ ". It is open read-only: saving would remove from the file what this version cannot "
+			+ "read. Open it with a version that reads format version "
+			+ applicationModelBean.getFormatVersion() + " to change it.";
 	}
 
 	/**
