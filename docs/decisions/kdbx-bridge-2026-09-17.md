@@ -1,6 +1,6 @@
 # How a KeePass file crosses into the vault and back
 
-A record of the decisions taken in the KDBX work between 2026-09-15 and 2026-09-17 (#384 and the
+A record of the decisions taken in the KDBX work on 2026-09-16 and 2026-09-17 (#384 and the
 issues it links), not a rule. The binding short form is in `KeePassEntryConverter`,
 `KeePassTreeConverter`, `KeePassLibraryFields` and the tests named at the end.
 
