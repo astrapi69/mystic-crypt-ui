@@ -35,6 +35,8 @@ import java.util.logging.Level;
 
 import javax.swing.*;
 import javax.swing.JMenuBar;
+import javax.swing.JOptionPane;
+import javax.swing.SwingUtilities;
 
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.pf4j.DefaultPluginManager;
@@ -54,6 +56,7 @@ import io.github.astrapi69.mystic.crypt.action.NewApplicationFileAction;
 import io.github.astrapi69.mystic.crypt.action.OpenDatabaseTreeFrameAction;
 import io.github.astrapi69.mystic.crypt.action.SaveApplicationFileAction;
 import io.github.astrapi69.mystic.crypt.action.SaveBeforeCloseConfirmation;
+import io.github.astrapi69.mystic.crypt.app.file.xml.VaultXmlCodec;
 import io.github.astrapi69.mystic.crypt.clipboard.ClipboardClearWatchdog;
 import io.github.astrapi69.mystic.crypt.lock.IdleLockDecision;
 import io.github.astrapi69.mystic.crypt.lock.IdleLockWatchdog;
@@ -536,6 +539,7 @@ public class MysticCryptApplicationFrame extends ApplicationPanelFrame<Applicati
 		if (getModelObject().isSignedIn())
 		{
 			menu.onEnableBySignin();
+			tellThatAReadOnlyVaultIsOpen();
 			applicationPanel = new ApplicationPanel(getModel());
 			FrameMode remembered = MysticCryptSettings.load(getConfigurationDirectory())
 				.getViewMode();
@@ -687,6 +691,46 @@ public class MysticCryptApplicationFrame extends ApplicationPanelFrame<Applicati
 		idGenerator = null;
 		switchToDesktopPane();
 		((DesktopMenu)getMenu()).onEnableByPublic();
+	}
+
+	/**
+	 * Says, once the vault is on screen, that it opened read-only and which format version it needs
+	 * (#402). Later, not now: the sign-in that led here is still finishing on this event, and a
+	 * modal dialog in the middle of it would hold that up
+	 */
+	private void tellThatAReadOnlyVaultIsOpen()
+	{
+		if (!VaultXmlCodec.isNewerThanThisBuild(getModelObject()))
+		{
+			return;
+		}
+		String reason = VaultXmlCodec.whyItIsReadOnly(getModelObject());
+		SwingUtilities.invokeLater(() -> showWhyItIsReadOnly(reason));
+	}
+
+	/**
+	 * Refuses a save of a vault in a newer format with the reason, before the save does anything
+	 * else (#402). Save As retargets the open vault before it writes, so a refusal from the writer
+	 * alone would leave it pointing at a file nothing was written to; and a disabled menu item is
+	 * one rebuilt menu bar away from being enabled again
+	 *
+	 * @return true if the open vault is read-only and the save has to stop
+	 */
+	public boolean refusesToSaveAReadOnlyVault()
+	{
+		if (!VaultXmlCodec.isNewerThanThisBuild(getModelObject()))
+		{
+			return false;
+		}
+		showWhyItIsReadOnly(VaultXmlCodec.whyItIsReadOnly(getModelObject()));
+		return true;
+	}
+
+	private void showWhyItIsReadOnly(final String reason)
+	{
+		JOptionPane.showMessageDialog(this, reason,
+			Messages.getString("dialog.read.only.newer.format.title", "Opened read-only"),
+			JOptionPane.WARNING_MESSAGE);
 	}
 
 	/**

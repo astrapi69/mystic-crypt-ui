@@ -52,16 +52,27 @@ class VaultXmlCodecTest
 	/** Made up per run rather than written into the source, as every test password is */
 	private static final String ENTRY_PASSWORD = TestPasswords.throwaway();
 
+	/**
+	 * The one difference is the format version, and it is deliberate (#402): an attribute on the
+	 * root element, which is the shape the 8.5 reader was measured to pass over. Everything else is
+	 * still character for character what the extensions wrote, so a vault 8.6 writes without
+	 * history or protected properties is the vault 8.5 wrote with one attribute more.
+	 */
 	@Test
-	@DisplayName("the xml is character for character what the extensions produced")
+	@DisplayName("the xml is character for character what the extensions produced, plus the format version on the root")
 	void theXml_isUnchanged_byBeingWrittenIntoAWriter()
 	{
 		ApplicationModelBean model = aModelWithOneEntry();
+		String byTheExtensions = ObjectToXmlExtensions.toXml(model);
 
 		char[] xml = VaultXmlCodec.toXml(model);
 
-		assertArrayEquals(ObjectToXmlExtensions.toXml(model).toCharArray(), xml,
-			"the format is the xml. If this differs, the vault format changed");
+		assertArrayEquals(
+			byTheExtensions.replaceFirst("^<([^\\s>]+)>",
+				"<$1 formatVersion=\"" + VaultXmlCodec.FORMAT_VERSION + "\">").toCharArray(),
+			xml,
+			"the format is the xml. If this differs by more than the version attribute, the vault "
+				+ "format changed");
 	}
 
 	@Test

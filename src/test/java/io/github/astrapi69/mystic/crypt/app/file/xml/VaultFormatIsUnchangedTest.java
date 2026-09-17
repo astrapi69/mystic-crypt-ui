@@ -156,15 +156,25 @@ class VaultFormatIsUnchangedTest
 		assertArrayEquals("line one".toCharArray(), entry.getNotes());
 	}
 
+	/**
+	 * One difference since #402, and only one: the format version, as an attribute of the root
+	 * element. That is the shape the 8.5 release jar was measured to pass over - it refuses a vault
+	 * for an unknown ELEMENT and reads one with an unknown attribute - so the document is still one
+	 * an older build reads
+	 */
 	@Test
-	@DisplayName("a database written today is still what an older build would read")
+	@DisplayName("a database written today is still what an older build would read, plus the format version on the root")
 	void aDatabaseWrittenToday_hasTheShape_anOlderBuildExpects()
 	{
 		char[] xml = VaultXmlCodec.toXml(aModelWithTheSameEntry());
 
-		assertEquals(XML_FROM_AN_OLDER_BUILD, new String(xml),
-			"character for character what the previous release wrote, so this change is readable "
-				+ "in both directions rather than only forwards");
+		assertEquals(
+			XML_FROM_AN_OLDER_BUILD.replaceFirst(
+				"^<([^\\s>]+)>", "<$1 formatVersion=\"" + VaultXmlCodec.FORMAT_VERSION + "\">"),
+			new String(xml),
+			"character for character what the previous release wrote, with the version attribute as "
+				+ "the one addition, so this change is readable in both directions rather than only "
+				+ "forwards");
 	}
 
 	@Test

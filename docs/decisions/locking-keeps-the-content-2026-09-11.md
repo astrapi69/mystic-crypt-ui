@@ -43,7 +43,10 @@ the custom properties, the attachment bytes. This is the promise from #237.
 
 Wiped when the vault closes - by the idle watchdog, by the menu item, or at the end of the
 application: all of the above, plus everything the lock left in place, plus the verifier the lock
-created. Overwritten, not dropped, which is what `VaultCloseSupport` and its tests are for.
+created. Overwritten, not dropped, which is what `VaultCloseSupport` and its tests are for. That
+includes every previous version an entry carries in its history, overwritten field by field like
+the entry itself: a previous version holds the password the user had before, which is often one
+they still use somewhere else (#402).
 
 The end of the application was named in that sentence from the start and was not true until 8.5.1.
 Neither way of ending went through the close: File > Exit was a library action whose whole body was

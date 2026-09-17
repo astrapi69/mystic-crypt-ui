@@ -66,4 +66,14 @@ public class ApplicationModelBean implements Serializable
 	/** The flag that indicated that the application model changed */
 	boolean dirty;
 	Long lastId;
+
+	/**
+	 * The format version the vault was written in, {@code null} for every vault written before the
+	 * version existed (up to and including 8.5.1).
+	 * <p>
+	 * Written as an ATTRIBUTE of the root element by {@code VaultXmlCodec}, never as an element:
+	 * the 8.5 reader was measured to pass over an unknown attribute and to refuse the whole vault
+	 * for an unknown element, reporting it as a wrong password (#402)
+	 */
+	Integer formatVersion;
 }

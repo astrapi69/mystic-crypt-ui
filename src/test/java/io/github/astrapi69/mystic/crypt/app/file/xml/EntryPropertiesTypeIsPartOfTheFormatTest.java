@@ -56,10 +56,11 @@ class EntryPropertiesTypeIsPartOfTheFormatTest
 
 	/**
 	 * An entry with a custom property, in the shape the application writes today. Captured from the
-	 * codec's own output rather than written by hand
+	 * codec's own output rather than written by hand, and since #402 with the format version as an
+	 * attribute of the root element, which an older build passes over
 	 */
 	private static final String XML_WITH_A_PROPERTY = """
-		<io.github.astrapi69.mystic.crypt.ApplicationModelBean>
+		<io.github.astrapi69.mystic.crypt.ApplicationModelBean formatVersion="2">
 		  <dataOfNodes class="linked-hash-map">
 		    <entry>
 		      <long>1</long>

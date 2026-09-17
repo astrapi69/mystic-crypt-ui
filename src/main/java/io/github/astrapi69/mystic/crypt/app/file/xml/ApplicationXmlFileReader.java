@@ -48,7 +48,6 @@ import io.github.astrapi69.mystic.crypt.panel.signin.MasterPwFileModelBean;
 import io.github.astrapi69.mystic.crypt.panel.signin.PasswordType;
 import io.github.astrapi69.mystic.crypt.pw.PasswordStringDecryptor;
 import io.github.astrapi69.mystic.crypt.vault.SecretBuffers;
-import io.github.astrapi69.xstream.XmlToObjectExtensions;
 import lombok.NonNull;
 import lombok.extern.java.Log;
 
@@ -222,7 +221,7 @@ public class ApplicationXmlFileReader
 		byte[] encryptedBytes = ReadFileExtensions.readFileToBytearray(applicationFile);
 		String encryptedXml = genericDecryptor.decrypt(encryptedBytes);
 		String xml = passwordStringDecryptor.decrypt(encryptedXml);
-		applicationModelBean = XmlToObjectExtensions.toObject(xml);
+		applicationModelBean = throughTheCodec(xml);
 		// the key is not in the file and must not be (#350): it comes from the key file whoever
 		// signed in just picked, and the model needs it for the next save and for the plugins that
 		// read it. The key-only path below does the same thing for the same reason
@@ -250,9 +249,31 @@ public class ApplicationXmlFileReader
 		genericDecryptor = new PrivateKeyGenericDecryptor<>(decryptor);
 		byte[] encryptedBytes = ReadFileExtensions.readFileToBytearray(applicationFile);
 		String xml = genericDecryptor.decrypt(encryptedBytes);
-		applicationModelBean = XmlToObjectExtensions.toObject(xml);
+		applicationModelBean = throughTheCodec(xml);
 		applicationModelBean.getMasterPwFileModelBean()
 			.setPrivateKeyInfo(KeyModelExtensions.toKeyModel(privateKey));
 		return applicationModelBean;
+	}
+
+	/**
+	 * Reads the model the way the password path does: through the codec, which skips an element it
+	 * does not know instead of failing into "Password is not valid" (#402). The characters handed
+	 * to it are overwritten; the String is the one copy these paths already kept (#294)
+	 *
+	 * @param xml
+	 *            the decrypted xml
+	 * @return the model
+	 */
+	private static ApplicationModelBean throughTheCodec(final String xml)
+	{
+		char[] characters = xml.toCharArray();
+		try
+		{
+			return VaultXmlCodec.toModel(characters);
+		}
+		finally
+		{
+			SecretBuffers.wipe(characters);
+		}
 	}
 }

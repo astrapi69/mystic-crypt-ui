@@ -13,6 +13,12 @@ ADDED:
 
 - a copied password clears itself again. "Copy Password" and "Copy Username" put a secret into a surface every other program of the same user can read, and until now only locking or closing the database took it out again - so on a machine left unlocked it stayed there for as long as the user kept working. It is now cleared after twenty seconds, configurable in the general settings, 0 turns it off. The clear looks before it writes: if the clipboard no longer holds what was copied, because the user copied something else in the meantime, it is left alone - a clear that eats the user's own copy is how a security feature gets switched off (#352)
 
+FORMAT:
+
+- a vault says which format wrote it: `formatVersion="2"`, an attribute of its root element. 8.5 and 8.5.1 pass over that attribute - measured with both release jars, each of which opens a vault carrying it and refuses one carrying an unknown element instead - so a vault 8.6 writes still opens in them as long as it holds nothing they have no field for. An entry's KeePass history and the names of its protected properties are such things. Nothing fills them yet: the import that does comes with the KeePass round trip, and from then on a vault that carries either needs 8.6 (#402)
+- an element a build does not know is skipped rather than refusing the vault. 8.5 refuses the whole vault for one and tells the user the password is wrong; this holds from 8.6 on, on all three ways a vault is protected - the two key-file paths read and wrote through a second serializer that knew neither the version nor how to skip, and now go through the same one as the password path (#402)
+- a vault in a newer format than the build knows opens read-only: the content is shown, opening it names the format version it needs, and Save, Save As and the save-before-close question cannot write it - reading it skipped what this build does not know, and a write would remove that from the file without anybody noticing (#402)
+
 Version 8.5.1
 -------------
 

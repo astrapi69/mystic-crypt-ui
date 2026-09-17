@@ -28,6 +28,7 @@ import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 import io.github.astrapi69.collection.list.ListExtensions;
@@ -113,12 +114,67 @@ public class MysticCryptEntryModelBean
 	List<FileContentInfo> resources = new ArrayList<>();
 
 	/** The properties for this entry */
+	/**
+	 * The custom properties. Excluded from {@code toString} as a whole: a custom property is where
+	 * a TOTP seed, a recovery code or a PIN is kept, and whether a value is a secret is the user's
+	 * knowledge, not the model's (#404)
+	 */
+	@ToString.Exclude
 	@Builder.Default
 	List<KeyValuePair<String, String>> properties = new ArrayList<>();
 
 	/** The set with the modification date times for this entry */
 	@Builder.Default
 	KeySetPair<String, OffsetDateTime> dateTimesOfModification = new KeySetPair<>();
+
+	/**
+	 * The previous versions of this entry as KeePass kept them, carried through unchanged rather
+	 * than maintained: filled by the import, written back by the export, never shown (#402).
+	 * <p>
+	 * {@code null} when there are none, and an empty list is stored as {@code null} too: XStream
+	 * writes no element for a null field, and 8.5 refuses a vault for any element it does not know,
+	 * an empty one included. Excluded from {@code equals}, {@code hashCode} and {@code toString}: a
+	 * history is what the entry was, not what it is, a version holds the passwords it had then, and
+	 * an entry reachable from its own history would recurse
+	 */
+	@ToString.Exclude
+	@EqualsAndHashCode.Exclude
+	List<MysticCryptEntryModelBean> history;
+
+	/**
+	 * The names of the custom properties the user marked as protected in KeePass, so that an export
+	 * does not hand them back unprotected (#389, #402).
+	 * <p>
+	 * A set of names beside the properties rather than a flag inside them, because the type of the
+	 * properties is part of the vault format ({@code EntryPropertiesTypeIsPartOfTheFormatTest},
+	 * #335). {@code null} when there are none, for the same reason as {@link #history}
+	 */
+	Set<String> protectedPropertyKeys;
+
+	/**
+	 * Sets the previous versions, keeping an empty list as {@code null} so the vault writes nothing
+	 * for it
+	 *
+	 * @param history
+	 *            the previous versions, or null
+	 */
+	public void setHistory(final List<MysticCryptEntryModelBean> history)
+	{
+		this.history = history == null || history.isEmpty() ? null : history;
+	}
+
+	/**
+	 * Sets the names of the protected properties, keeping an empty set as {@code null} so the vault
+	 * writes nothing for it
+	 *
+	 * @param protectedPropertyKeys
+	 *            the names, or null
+	 */
+	public void setProtectedPropertyKeys(final Set<String> protectedPropertyKeys)
+	{
+		this.protectedPropertyKeys = protectedPropertyKeys == null
+			|| protectedPropertyKeys.isEmpty() ? null : protectedPropertyKeys;
+	}
 
 	public String getProperty(String name)
 	{

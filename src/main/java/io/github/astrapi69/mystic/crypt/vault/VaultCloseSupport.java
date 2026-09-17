@@ -107,6 +107,9 @@ public final class VaultCloseSupport
 		applicationModelBean.setRootTreeAsMap(null);
 		applicationModelBean.setDataOfNodes(null);
 		applicationModelBean.setLastId(null);
+		// the frame keeps this model object: a vault created in it next must not inherit the format
+		// of the one closed, or a new vault would open read-only (#402)
+		applicationModelBean.setFormatVersion(null);
 		applicationModelBean.setSignedIn(false);
 		applicationModelBean.setDirty(false);
 	}
@@ -187,6 +190,26 @@ public final class VaultCloseSupport
 		wipeAttachments(entry.getResources());
 		entry.setResources(null);
 		clearProperties(entry);
+		wipeHistory(entry);
+	}
+
+	/**
+	 * Overwrites every previous version of the entry the way the entry itself is overwritten, and
+	 * the versions of those. A previous version holds the password the user had before, which is
+	 * often one they still use somewhere else (#402).
+	 * <p>
+	 * The history is taken off the entry BEFORE its versions are wiped, so a history that leads
+	 * back to its own entry finds it already emptied and the recursion ends there instead of in a
+	 * {@link StackOverflowError} that would leave everything after it unwiped
+	 *
+	 * @param entry
+	 *            the entry whose history is overwritten
+	 */
+	private static void wipeHistory(final MysticCryptEntryModelBean entry)
+	{
+		List<MysticCryptEntryModelBean> history = entry.getHistory();
+		entry.setHistory(null);
+		wipeAll(history);
 	}
 
 	/**
@@ -227,6 +250,7 @@ public final class VaultCloseSupport
 	private static void clearProperties(final MysticCryptEntryModelBean entry)
 	{
 		entry.setProperties(null);
+		entry.setProtectedPropertyKeys(null);
 	}
 
 	/**

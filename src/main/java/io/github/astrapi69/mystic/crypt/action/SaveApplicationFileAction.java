@@ -53,6 +53,10 @@ public class SaveApplicationFileAction extends AbstractAction
 	@Override
 	public void actionPerformed(final ActionEvent e)
 	{
+		if (MysticCryptApplicationFrame.getInstance().refusesToSaveAReadOnlyVault())
+		{
+			return;
+		}
 		ApplicationXmlFileStoreWorker
 			.storeApplicationFile(MysticCryptApplicationFrame.getInstance().getModelObject());
 		ApplicationEventBus.getSaveState().fireEvent(new EventObject<>(RenderMode.VIEWABLE));

@@ -28,6 +28,7 @@ import io.github.astrapi69.model.BaseModel;
 import io.github.astrapi69.mystic.crypt.ApplicationModelBean;
 import io.github.astrapi69.mystic.crypt.Messages;
 import io.github.astrapi69.mystic.crypt.app.file.xml.ApplicationXmlFileStoreWorker;
+import io.github.astrapi69.mystic.crypt.app.file.xml.VaultXmlCodec;
 import io.github.astrapi69.swing.dialog.JOptionPaneExtensions;
 import io.github.astrapi69.swing.panel.label.LabelPanel;
 
@@ -108,12 +109,43 @@ public final class SaveBeforeCloseConfirmation
 		return option == JOptionPane.YES_OPTION ? Choice.DISCARDED : Choice.CANCELLED;
 	}
 
+	/**
+	 * Asks whether to discard, because a vault in a newer format cannot be saved by this build
+	 * (#402): offering Save there would be the button #304 removed for a locked workspace, one that
+	 * cannot do what it says
+	 *
+	 * @param parent
+	 *            the component the dialog belongs to
+	 * @return {@link Choice#DISCARDED} when the user accepts the loss, {@link Choice#CANCELLED}
+	 *         otherwise
+	 */
+	private static Choice askWhetherToDiscardWhileReadOnly(final Component parent)
+	{
+		String defaultMessage = "<html><body>"
+			+ "<div>This database is open read-only and has unsaved changes.</div>"
+			+ "<div>It is in a newer format than this version of the application can write.</div>"
+			+ "<div>Ending now discards them. Cancel to keep reading it.</div>" + "</body></html>";
+		LabelPanel panel = new LabelPanel(BaseModel
+			.of(Messages.getString("dialog.confirm.discard.read.only.message", defaultMessage)));
+		int option = JOptionPaneExtensions.getSelectedOption(panel, JOptionPane.WARNING_MESSAGE,
+			JOptionPane.YES_NO_OPTION, parent, Messages.getString(
+				"dialog.confirm.discard.read.only.title", "Discard the unsaved changes?"),
+			null);
+		return option == JOptionPane.YES_OPTION ? Choice.DISCARDED : Choice.CANCELLED;
+	}
+
 	public static Choice askAndApply(final Component parent,
 		final ApplicationModelBean applicationModelBean)
 	{
 		if (applicationModelBean == null || !applicationModelBean.isDirty())
 		{
 			return Choice.DISCARDED;
+		}
+		// read-only before locked: a locked vault in a newer format cannot be saved after unlocking
+		// either, and the locked text tells the user to unlock and save (#402)
+		if (VaultXmlCodec.isNewerThanThisBuild(applicationModelBean))
+		{
+			return askWhetherToDiscardWhileReadOnly(parent);
 		}
 		if (!applicationModelBean.isSignedIn())
 		{

@@ -76,4 +76,18 @@ tasks.withType(Test).configureEach {
     // run - force the X11 path instead (the Swing windows run on XWayland anyway); ignored on
     // plain X11 and in headless environments
     it.systemProperty "awt.robot.screenshotMethod", "x11"
+    // where scripts/fetch-release-jar.sh caches the application jar of the release a vault has to
+    // stay readable in (#402). Computed here, in the Gradle JVM, because the UI suite points
+    // user.home at a temporary directory and the test must not look for the cache there
+    def releaseJarsRoot = System.getenv("MYSTIC_CRYPT_UI_RELEASE_JARS") ?:
+        "${System.getProperty('user.home')}/.cache/mystic-crypt-ui/release-jars"
+    it.systemProperty "mystic.crypt.ui.release.version", formatCompatibilityRelease
+    def releaseJar = "${releaseJarsRoot}/${formatCompatibilityRelease}/mystic-crypt-ui-${formatCompatibilityRelease}-app.jar"
+    it.systemProperty "mystic.crypt.ui.release.jar", releaseJar
+    // both decide whether VaultOpensInTheLastReleaseTest runs, skips or fails, so both are inputs:
+    // otherwise a skip recorded without the jar is restored from the build cache after the jar
+    // arrived, and reads as a result (measured: 3 skipped in 858ms right after 'make release-jar')
+    it.inputs.files(releaseJar).optional().withPropertyName('releaseJar')
+        .withPathSensitivity(PathSensitivity.NONE)
+    it.inputs.property('ranOnGitHubActions', System.getenv('GITHUB_ACTIONS') == 'true')
 }

@@ -47,13 +47,18 @@ import io.github.astrapi69.mystic.crypt.panel.signin.SignInType;
 import io.github.astrapi69.mystic.crypt.pw.PasswordStringEncryptor;
 import io.github.astrapi69.mystic.crypt.vault.SecretBuffers;
 import io.github.astrapi69.throwable.RuntimeExceptionDecorator;
-import io.github.astrapi69.xstream.ObjectToXmlExtensions;
 
 public final class ApplicationXmlFileStoreWorker
 {
 
 	public static void storeApplicationFile(ApplicationModelBean applicationModelBean)
 	{
+		// before the flag below is cleared: a vault in a newer format is not written (#402), and a
+		// refusal after that line would leave its unsaved changes looking saved
+		if (VaultXmlCodec.isNewerThanThisBuild(applicationModelBean))
+		{
+			throw new IllegalStateException(VaultXmlCodec.whyItIsReadOnly(applicationModelBean));
+		}
 		MasterPwFileModelBean modelObject = applicationModelBean.getMasterPwFileModelBean();
 		if (applicationModelBean.isDirty())
 		{
@@ -112,7 +117,7 @@ public final class ApplicationXmlFileStoreWorker
 			.decorate(() -> new PublicKeyEncryptor(encryptModel, symmetricKeyModel));
 		genericEncryptor = new PublicKeyGenericEncryptor<>(encryptor);
 
-		xml = ObjectToXmlExtensions.toXml(applicationModelBean);
+		xml = throughTheCodec(applicationModelBean);
 
 		// nothing readable goes to disk on the way: the xml is encrypted in memory and the file is
 		// written once, with the result. Writing the xml first and overwriting it afterwards left
@@ -169,7 +174,7 @@ public final class ApplicationXmlFileStoreWorker
 		// changed from this repository (#294, architecture.md)
 		passwordStringEncryptor = new PasswordStringEncryptor(String.valueOf(masterPw));
 
-		xml = ObjectToXmlExtensions.toXml(applicationModelBean);
+		xml = throughTheCodec(applicationModelBean);
 
 		encryptedJson = RuntimeExceptionDecorator
 			.decorate(() -> passwordStringEncryptor.encrypt(xml));
@@ -179,6 +184,29 @@ public final class ApplicationXmlFileStoreWorker
 
 		RuntimeExceptionDecorator.decorate(() -> VaultFileWriter.write(applicationFile, encrypt));
 		return applicationFile;
+	}
+
+	/**
+	 * The xml of the model as the two key-file paths need it: through the codec like the password
+	 * path, so all three write the same format (#402), and as a String because the library
+	 * encryptors on these paths take one. The characters the codec returned are overwritten; the
+	 * String is the one copy these paths already kept (#294)
+	 *
+	 * @param applicationModelBean
+	 *            the model to write
+	 * @return the xml
+	 */
+	private static String throughTheCodec(final ApplicationModelBean applicationModelBean)
+	{
+		char[] characters = VaultXmlCodec.toXml(applicationModelBean);
+		try
+		{
+			return new String(characters);
+		}
+		finally
+		{
+			SecretBuffers.wipe(characters);
+		}
 	}
 
 	/**

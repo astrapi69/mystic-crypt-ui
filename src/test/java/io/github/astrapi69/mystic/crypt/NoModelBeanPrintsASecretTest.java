@@ -74,7 +74,8 @@ class NoModelBeanPrintsASecretTest
 	 */
 	private static final Pattern KEY_MATERIAL_FIELD = Pattern
 		.compile("^\\t(?!\\t)(?:(?:private|protected|public|transient|final)[ \\t]+)*"
-			+ "(char\\[\\]|byte\\[\\]|KeyModel|KeyInfo|KeyInfoModel|PrivateKey|MasterPwFileModelBean)"
+			+ "(char\\[\\]|byte\\[\\]|KeyModel|KeyInfo|KeyInfoModel|PrivateKey|MasterPwFileModelBean"
+			+ "|List<MysticCryptEntryModelBean>)"
 			+ "[ \\t]+([A-Za-z_][A-Za-z0-9_]*)[ \\t]*(?:=[^;]*)?;", Pattern.MULTILINE);
 
 	@Test
@@ -86,6 +87,45 @@ class NoModelBeanPrintsASecretTest
 			.password(SENTINEL.toCharArray()).repeat(SENTINEL.toCharArray()).build();
 
 		assertDoesNotCarryTheSentinel(entry.toString(), "MysticCryptEntryModelBean");
+	}
+
+	/**
+	 * A custom property is where a KeePass user keeps a TOTP seed, a recovery code or a PIN, and
+	 * every one of them is excluded, not only the ones marked protected: whether a value is a
+	 * secret is the user's knowledge, not the model's (#404)
+	 */
+	@Test
+	@DisplayName("an entry's toString does not print the value of a custom property")
+	void anEntryDoesNotPrintItsCustomPropertyValues()
+	{
+		MysticCryptEntryModelBean entry = MysticCryptEntryModelBean.builder()
+			.title("a title".toCharArray()).build();
+		entry.setProperty("TOTP seed", SENTINEL);
+
+		assertDoesNotCarryTheSentinel(entry.toString(), "MysticCryptEntryModelBean");
+	}
+
+	/**
+	 * The sentinel sits in a custom property of the previous version, because every character field
+	 * of that version is excluded on its own already - a password there would pass this test with
+	 * the history printed in full, which is the stand-in this avoids
+	 */
+	@Test
+	@DisplayName("an entry's toString does not print its history, where the previous versions are")
+	void anEntryDoesNotPrintItsHistory()
+	{
+		MysticCryptEntryModelBean previous = MysticCryptEntryModelBean.builder()
+			.password("before".toCharArray()).build();
+		previous.setProperty("recovery code", SENTINEL);
+		MysticCryptEntryModelBean entry = MysticCryptEntryModelBean.builder()
+			.title("a title".toCharArray()).build();
+		entry.setHistory(new ArrayList<>(List.of(previous)));
+
+		String printed = entry.toString();
+
+		assertDoesNotCarryTheSentinel(printed, "MysticCryptEntryModelBean");
+		assertFalse(printed.contains("history="),
+			"the history is excluded as a whole, not version by version (#402): " + printed);
 	}
 
 	@Test

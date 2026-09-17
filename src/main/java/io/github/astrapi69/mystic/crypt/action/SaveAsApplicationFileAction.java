@@ -66,6 +66,10 @@ public class SaveAsApplicationFileAction extends AbstractAction
 	public void actionPerformed(final ActionEvent e)
 	{
 		MysticCryptApplicationFrame frame = MysticCryptApplicationFrame.getInstance();
+		if (frame.refusesToSaveAReadOnlyVault())
+		{
+			return;
+		}
 		JFileChooser fileChooser = new JFileChooser(frame.getConfigurationDirectory());
 		fileChooser.setDialogTitle("Save the database as");
 		fileChooser
