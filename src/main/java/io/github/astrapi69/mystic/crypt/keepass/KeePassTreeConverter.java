@@ -26,28 +26,33 @@ package io.github.astrapi69.mystic.crypt.keepass;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 import java.util.function.Supplier;
 
-import org.linguafranca.pwdb.kdbx.simple.SimpleDatabase;
-import org.linguafranca.pwdb.kdbx.simple.SimpleEntry;
-import org.linguafranca.pwdb.kdbx.simple.SimpleGroup;
-import org.linguafranca.pwdb.kdbx.simple.SimpleIcon;
+import org.linguafranca.pwdb.kdbx.jackson.JacksonDatabase;
+import org.linguafranca.pwdb.kdbx.jackson.JacksonEntry;
+import org.linguafranca.pwdb.kdbx.jackson.JacksonGroup;
 
 import io.github.astrapi69.gen.tree.BaseTreeNode;
 import io.github.astrapi69.mystic.crypt.panel.dbtree.MysticCryptEntryModelBean;
 import io.github.astrapi69.swing.renderer.tree.GenericTreeElement;
 
 /**
- * Converts the group/entry tree of a KeePassJava2 {@link SimpleDatabase} into/from this app's own
- * {@link BaseTreeNode} of {@link GenericTreeElement}s.
+ * Converts the group/entry tree of a KeePassJava2 {@link JacksonDatabase} into/from this
+ * application's {@link BaseTreeNode} of {@link GenericTreeElement}s.
  * <p>
- * {@link GenericTreeElement}/{@link BaseTreeNode} are library types this app doesn't own, so
- * group-level KeePass metadata that has no dedicated field there (uuid, icon index, recycle-bin
- * flag) is preserved in {@link GenericTreeElement}'s generic properties map instead, under the
- * {@code KEEPASS_*} keys below. KeePassJava2's {@code Group} type has no public setter for uuid or
- * recycle-bin status, so only the icon index can be fed back on {@link #toSimpleGroup} -
- * uuid/recycle-bin are preserved on import for completeness even though the library gives no way to
- * re-apply them on export
+ * {@link GenericTreeElement} is a library type this application does not own, so the KeePass
+ * metadata of a group that has no field there - identifier, icon index, recycle-bin flag - is kept
+ * in its generic properties map under the {@code KEEPASS_*} keys below, and written back from
+ * there.
+ * <p>
+ * <b>The database's root group is a group like any other.</b> A KeePass file has exactly one root,
+ * and this application's vault has one root node of its own. Importing hangs the KeePass root under
+ * the vault root as a node with its own name; exporting a vault whose root holds exactly one node
+ * makes that node the KeePass root again, with its name, identifier and icon. That is what makes
+ * import and export inverse: the round trip neither adds a level nor renames one (#377). A vault
+ * root with several nodes has no single root to give back, and its nodes go under the new
+ * database's root.
  */
 public final class KeePassTreeConverter
 {
@@ -73,15 +78,15 @@ public final class KeePassTreeConverter
 	 * @return the newly created tree node for the given group
 	 */
 	public static BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> toTreeNode(
-		SimpleGroup group,
-		BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> parent,
-		Supplier<Long> nextId)
+		final JacksonGroup group,
+		final BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> parent,
+		final Supplier<Long> nextId)
 	{
 		boolean leaf = group.getGroups().isEmpty();
 		String name = group.getName();
 
 		List<MysticCryptEntryModelBean> entries = new ArrayList<>();
-		for (SimpleEntry entry : group.getEntries())
+		for (JacksonEntry entry : group.getEntries())
 		{
 			entries.add(KeePassEntryConverter.toEntryModelBean(entry));
 		}
@@ -115,12 +120,38 @@ public final class KeePassTreeConverter
 			parent.addChild(treeNode);
 		}
 
-		for (SimpleGroup subGroup : group.getGroups())
+		for (JacksonGroup subGroup : group.getGroups())
 		{
 			toTreeNode(subGroup, treeNode, nextId);
 		}
 
 		return treeNode;
+	}
+
+	/**
+	 * Fills the given database from the given vault root: a single node becomes the database's root
+	 * group itself, several nodes go under it - see the class Javadoc
+	 *
+	 * @param database
+	 *            the database to fill, as created
+	 * @param vaultRoot
+	 *            the root node of the vault
+	 */
+	public static void fillDatabase(final JacksonDatabase database,
+		final BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> vaultRoot)
+	{
+		List<BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long>> nodes = vaultRoot
+			.getChildren() != null ? new ArrayList<>(vaultRoot.getChildren()) : List.of();
+		JacksonGroup rootGroup = database.getRootGroup();
+		if (nodes.size() == 1)
+		{
+			fillGroup(database, nodes.get(0), rootGroup);
+			return;
+		}
+		for (BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> node : nodes)
+		{
+			toJacksonGroup(database, node, rootGroup);
+		}
 	}
 
 	/**
@@ -135,18 +166,32 @@ public final class KeePassTreeConverter
 	 *            the KeePass group the new group becomes a child of
 	 * @return the newly created group
 	 */
-	public static SimpleGroup toSimpleGroup(SimpleDatabase database,
-		BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> treeNode,
-		SimpleGroup parent)
+	public static JacksonGroup toJacksonGroup(final JacksonDatabase database,
+		final BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> treeNode,
+		final JacksonGroup parent)
+	{
+		JacksonGroup group = database.newGroup();
+		parent.addGroup(group);
+		fillGroup(database, treeNode, group);
+		return group;
+	}
+
+	private static void fillGroup(final JacksonDatabase database,
+		final BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> treeNode,
+		final JacksonGroup group)
 	{
 		GenericTreeElement<List<MysticCryptEntryModelBean>> treeElement = treeNode.getValue();
-		SimpleGroup group = database.newGroup(treeElement.getName());
-		parent.addGroup(group);
+		group.setName(treeElement.getName());
 
 		Object iconIndex = treeElement.getProperties().get(KEEPASS_ICON_INDEX_PROPERTY);
-		if (iconIndex instanceof Integer)
+		if (iconIndex instanceof Integer index)
 		{
-			group.setIcon(new SimpleIcon((Integer)iconIndex));
+			group.setIcon(database.newIcon(index));
+		}
+		Object uuid = treeElement.getProperties().get(KEEPASS_UUID_PROPERTY);
+		if (uuid instanceof UUID identifier)
+		{
+			KeePassLibraryFields.setUuid(group, identifier);
 		}
 
 		List<MysticCryptEntryModelBean> entries = treeElement.getDefaultContent();
@@ -154,7 +199,7 @@ public final class KeePassTreeConverter
 		{
 			for (MysticCryptEntryModelBean bean : entries)
 			{
-				group.addEntry(KeePassEntryConverter.toSimpleEntry(database, bean));
+				group.addEntry(KeePassEntryConverter.toJacksonEntry(database, bean));
 			}
 		}
 
@@ -163,11 +208,9 @@ public final class KeePassTreeConverter
 			for (BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> child : treeNode
 				.getChildren())
 			{
-				toSimpleGroup(database, child, group);
+				toJacksonGroup(database, child, group);
 			}
 		}
-
-		return group;
 	}
 
 }

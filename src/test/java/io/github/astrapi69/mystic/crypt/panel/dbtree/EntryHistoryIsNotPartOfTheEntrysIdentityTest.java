@@ -22,6 +22,7 @@ package io.github.astrapi69.mystic.crypt.panel.dbtree;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotSame;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -53,6 +54,40 @@ class EntryHistoryIsNotPartOfTheEntrysIdentityTest
 
 		assertEquals(withoutHistory, withHistory);
 		assertEquals(withoutHistory.hashCode(), withHistory.hashCode());
+	}
+
+	/**
+	 * Decided by the maintainer for step 5 of the KDBX work (#384): a duplicate carries no history,
+	 * and its own copy of the protected property names. Before, "Duplicate entry" and "copy node"
+	 * both built the copy with {@code toBuilder()}, which handed it the original's history list and
+	 * protected-keys set by reference
+	 */
+	@Test
+	@DisplayName("a duplicate carries no history, and shares no list and no set with its original")
+	void aDuplicate_hasNoHistory_andSharesNothingMutable()
+	{
+		MysticCryptEntryModelBean original = MysticCryptEntryModelBean.builder()
+			.title("the bank".toCharArray()).build();
+		original.setHistory(new ArrayList<>(List.of(
+			MysticCryptEntryModelBean.builder().title("the bank, before".toCharArray()).build())));
+		original.setProtectedPropertyKeys(new java.util.LinkedHashSet<>(List.of("TOTP seed")));
+		original.setProperty("TOTP seed", "JBSWY3DPEHPK3PXP");
+
+		MysticCryptEntryModelBean duplicate = original.duplicate();
+
+		assertEquals(null, duplicate.getHistory(),
+			"no history - and null rather than an empty list, because an empty list is written as "
+				+ "<history/>, which 8.5 refuses a whole vault for (#402)");
+		assertEquals(original.getProtectedPropertyKeys(), duplicate.getProtectedPropertyKeys(),
+			"the protected names come along");
+		assertNotSame(original.getProtectedPropertyKeys(), duplicate.getProtectedPropertyKeys(),
+			"as a copy of their own");
+		assertNotSame(original.getProperties(), duplicate.getProperties(),
+			"and no list is shared: not the properties");
+		assertNotSame(original.getResources(), duplicate.getResources(), "nor the attachments");
+		duplicate.getProtectedPropertyKeys().add("a key only the duplicate has");
+		assertEquals(1, original.getProtectedPropertyKeys().size(),
+			"a change to the duplicate's set does not reach the original");
 	}
 
 	@Test

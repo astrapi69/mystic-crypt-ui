@@ -678,8 +678,7 @@ public class SecretKeyTreeWithContentPanel
 			List<MysticCryptEntryModelBean> copiedEntries = new ArrayList<>();
 			for (MysticCryptEntryModelBean entry : sourceEntries)
 			{
-				copiedEntries.add(entry.toBuilder().resources(new ArrayList<>(entry.getResources()))
-					.properties(new ArrayList<>(entry.getProperties())).build());
+				copiedEntries.add(entry.duplicate());
 			}
 			copiedValue.setDefaultContent(copiedEntries);
 		}
@@ -1318,9 +1317,8 @@ public class SecretKeyTreeWithContentPanel
 			// id(null) on purpose: toBuilder copies the identifier, and a duplicate carrying the
 			// original's identity is exactly the reuse an identifier must never do. It gets its
 			// own in addNewTableEntryToModel, the one place that hands them out (#272)
-			MysticCryptEntryModelBean clonedMysticCryptEntry = selectedTableEntry.toBuilder()
-				.id(null).resources(new ArrayList<>(selectedTableEntry.getResources()))
-				.properties(new ArrayList<>(selectedTableEntry.getProperties())).build();
+			MysticCryptEntryModelBean clonedMysticCryptEntry = selectedTableEntry.duplicate()
+				.toBuilder().id(null).build();
 
 			String newName = EntryText.asText(clonedMysticCryptEntry.getTitle()) + "-Copy";
 			NewTableEntryModel newTableEntryModel = NewTableEntryModel.builder().name(newName)

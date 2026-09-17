@@ -41,6 +41,15 @@ jobs:
         run: |
           sudo apt-get update || echo "apt-get update reported errors; continuing to the install"
           sudo apt-get install -y xvfb
+      - name: Install KeePassXC
+        # the KDBX round trip is measured with the program a user actually opens these files with,
+        # not with our own model - a field our model does not carry would otherwise compare equal to
+        # itself and the test would pass while the file lost it (#384). A missing keepassxc-cli fails
+        # that test rather than skipping it, so it is installed here rather than worked around there.
+        # The runner has no keepassxc-minimal, so the fallback installs Ubuntu's keepassxc, 2.7.6
+        # (CI run 35078636917) - older than the 2.7.10 that wrote the fixture. The test names the
+        # version it read with in every failure message
+        run: sudo apt-get install -y keepassxc-minimal || sudo apt-get install -y keepassxc
       - name: Build the internal plugins
         # The plugins are NOT subprojects of this build - each is its own Gradle build that
         # compiles against the host through mavenLocal(), so `./gradlew build` below never

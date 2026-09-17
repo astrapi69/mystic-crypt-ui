@@ -83,7 +83,7 @@ class KeePassImportKeyFileUiTest extends AbstractUiTest
 		application.showMainFrame();
 		application.importKeePassDatabaseWithKeyFile(keePassFile, KEEPASS_PASSWORD, keyFile);
 
-		assertTrue(application.treeContainsNodeStartingWith("Imported from keyfile-db.kdbx"),
-			"the tree must contain the 'Imported from ...' group after a key-file-protected import");
+		assertTrue(application.entryExistsWithTitle("KeyFileProtectedSecret"),
+			"the entry of the key-file-protected database is in the tree after the import");
 	}
 }

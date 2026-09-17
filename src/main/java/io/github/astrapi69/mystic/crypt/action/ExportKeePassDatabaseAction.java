@@ -37,11 +37,11 @@ import javax.swing.AbstractAction;
 import javax.swing.JOptionPane;
 
 import org.linguafranca.pwdb.kdbx.KdbxCreds;
-import org.linguafranca.pwdb.kdbx.simple.SimpleDatabase;
-import org.linguafranca.pwdb.kdbx.simple.SimpleGroup;
+import org.linguafranca.pwdb.kdbx.jackson.JacksonDatabase;
 
 import io.github.astrapi69.gen.tree.BaseTreeNode;
 import io.github.astrapi69.mystic.crypt.ApplicationPanel;
+import io.github.astrapi69.mystic.crypt.Messages;
 import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
 import io.github.astrapi69.mystic.crypt.keepass.KeePassTreeConverter;
 import io.github.astrapi69.mystic.crypt.keepass.MemoizedKeePassModelBean;
@@ -108,13 +108,14 @@ public class ExportKeePassDatabaseAction extends AbstractAction
 			BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> root = treePanel
 				.getModelObject();
 
-			SimpleDatabase database = new SimpleDatabase();
-			SimpleGroup rootGroup = database.getRootGroup();
-			for (BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> child : root
-				.getChildren())
-			{
-				KeePassTreeConverter.toSimpleGroup(database, child, rootGroup);
-			}
+			JacksonDatabase database = new JacksonDatabase();
+			// what KeePass shows in its database list before anything is opened - the library's
+			// own defaults, "New Database created by KeePassJava2", said nothing about where the
+			// file came from (#378)
+			database.setName(vaultNameOf(instance));
+			database.setDescription(Messages.getString("keepass.export.database.description",
+				"Exported from mystic-crypt-ui"));
+			KeePassTreeConverter.fillDatabase(database, root);
 
 			try (OutputStream outputStream = new FileOutputStream(file))
 			{
@@ -153,4 +154,31 @@ public class ExportKeePassDatabaseAction extends AbstractAction
 		return new KdbxCreds(new String(password).getBytes(StandardCharsets.UTF_8));
 	}
 
+
+	/**
+	 * The name the exported database carries: the vault's file name without its extension, so the
+	 * KeePass database list says which vault it came from
+	 *
+	 * @param instance
+	 *            the application frame
+	 * @return the name
+	 */
+	private static String vaultNameOf(final MysticCryptApplicationFrame instance)
+	{
+		String fallback = Messages.getString("keepass.export.database.name", "mystic-crypt-ui");
+		if (instance.getModelObject() == null
+			|| instance.getModelObject().getMasterPwFileModelBean() == null || instance
+				.getModelObject().getMasterPwFileModelBean().getApplicationFileInfo() == null)
+		{
+			return fallback;
+		}
+		String fileName = instance.getModelObject().getMasterPwFileModelBean()
+			.getApplicationFileInfo().getName();
+		if (fileName == null || fileName.isBlank())
+		{
+			return fallback;
+		}
+		int extension = fileName.lastIndexOf('.');
+		return extension > 0 ? fileName.substring(0, extension) : fileName;
+	}
 }

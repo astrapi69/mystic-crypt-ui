@@ -24,6 +24,7 @@
  */
 package io.github.astrapi69.mystic.crypt.ui;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 
 import java.io.File;
@@ -51,9 +52,10 @@ class KeePassImportCancelUiTest extends AbstractUiTest
 
 		ApplicationSteps application = signInWithExistingDatabase(databaseFile, MASTER_PASSWORD);
 
+		int before = application.treeNodeCount();
 		application.importKeePassCancel();
 
-		assertFalse(application.treeContainsNodeStartingWith("Imported from"),
+		assertEquals(before, application.treeNodeCount(),
 			"cancelling the import must not add any imported group");
 		assertFalse(MysticCryptApplicationFrame.getInstance().getModelObject().isDirty(),
 			"cancelling the import must not mark the model dirty");
