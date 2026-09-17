@@ -31,6 +31,9 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneOffset;
@@ -43,6 +46,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.linguafranca.pwdb.Entry;
+import org.linguafranca.pwdb.kdbx.KdbxCreds;
 import org.linguafranca.pwdb.kdbx.jackson.JacksonDatabase;
 import org.linguafranca.pwdb.kdbx.jackson.JacksonEntry;
 
@@ -90,6 +94,37 @@ public class KeePassEntryConverterTest
 		assertNotNull(bean.getCreationTime());
 		assertNotNull(bean.getLastAccessTime());
 		assertNotNull(bean.getLastModificationTime());
+	}
+
+	/**
+	 * Notes, URL and user name that a file does not set come into the vault as null, the way the
+	 * Simple reader delivered them and every existing vault carries them. Jackson reads an unset
+	 * standard field as an empty string - measured on a file written the way the 8.5 export writes,
+	 * where Simple read {@code Notes=null, URL=null, UserName=null} and Jackson {@code ""} - which
+	 * would turn into an empty character array here (#384, decided by the maintainer)
+	 */
+	@Test
+	public void testUnsetNotesUrlAndUserNameAreImportedAsNull() throws Exception
+	{
+		JacksonDatabase written = new JacksonDatabase();
+		JacksonEntry entry = written.newEntry();
+		entry.setProperty(Entry.STANDARD_PROPERTY_NAME_TITLE, "the bank");
+		entry.setProperty(Entry.STANDARD_PROPERTY_NAME_PASSWORD, "the password");
+		written.getRootGroup().addEntry(entry);
+		KdbxCreds credentials = new KdbxCreds("unset-fields".getBytes(StandardCharsets.UTF_8));
+		ByteArrayOutputStream file = new ByteArrayOutputStream();
+		written.save(credentials, file);
+
+		JacksonEntry read = JacksonDatabase
+			.load(credentials, new ByteArrayInputStream(file.toByteArray())).getRootGroup()
+			.getEntries().get(0);
+		MysticCryptEntryModelBean bean = KeePassEntryConverter.toEntryModelBean(read);
+
+		assertNull(bean.getNotes(), "unset notes");
+		assertNull(bean.getUrl(), "unset URL");
+		assertNull(bean.getUserName(), "unset user name");
+		assertArrayEquals("the bank".toCharArray(), bean.getTitle(), "a set field still arrives");
+		assertArrayEquals("the password".toCharArray(), bean.getPassword());
 	}
 
 	@Test

@@ -80,12 +80,11 @@ public final class KeePassEntryConverter
 			: null;
 		MysticCryptEntryModelBean bean = MysticCryptEntryModelBean.builder().id(entry.getUuid())
 			.title(EntryText.asCharacters(entry.getProperty(Entry.STANDARD_PROPERTY_NAME_TITLE)))
-			.userName(
-				EntryText.asCharacters(entry.getProperty(Entry.STANDARD_PROPERTY_NAME_USER_NAME)))
+			.userName(unlessUnset(entry.getProperty(Entry.STANDARD_PROPERTY_NAME_USER_NAME)))
 			.password(
 				EntryText.asCharacters(entry.getProperty(Entry.STANDARD_PROPERTY_NAME_PASSWORD)))
-			.url(EntryText.asCharacters(entry.getProperty(Entry.STANDARD_PROPERTY_NAME_URL)))
-			.notes(EntryText.asCharacters(entry.getProperty(Entry.STANDARD_PROPERTY_NAME_NOTES)))
+			.url(unlessUnset(entry.getProperty(Entry.STANDARD_PROPERTY_NAME_URL)))
+			.notes(unlessUnset(entry.getProperty(Entry.STANDARD_PROPERTY_NAME_NOTES)))
 			.expirable(entry.getExpires())
 			.expires(preciseExpiryTime != null ? preciseExpiryTime.toLocalDate() : null)
 			.preciseExpiryTime(preciseExpiryTime)
@@ -184,6 +183,16 @@ public final class KeePassEntryConverter
 		// last: every setter above stamped the modification time with now
 		KeePassLibraryFields.setTimes(entry, timesOf(bean, KeePassLibraryFields.getTimes(entry)));
 		return entry;
+	}
+
+	/**
+	 * User name, URL or notes as the vault has always carried them: null when the file does not set
+	 * the field. Jackson reads an unset standard field as an empty string where the Simple reader
+	 * read null, and every vault that exists holds null there (#384, decided by the maintainer)
+	 */
+	private static char[] unlessUnset(final String value)
+	{
+		return value == null || value.isEmpty() ? null : value.toCharArray();
 	}
 
 	private static List<MysticCryptEntryModelBean> historyOf(final JacksonEntry entry)

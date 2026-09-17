@@ -23,6 +23,7 @@ FORMAT:
 
 - a vault says which format wrote it: `formatVersion="2"`, an attribute of its root element. 8.5 and 8.5.1 pass over that attribute - measured with both release jars, each of which opens a vault carrying it and refuses one carrying an unknown element instead - so a vault 8.6 writes still opens in them as long as it holds nothing they have no field for. An entry's KeePass history and the names of its protected properties are such things. The KeePass import fills them since the converter moved to KeePassJava2's Jackson model (#384): a vault that carries an imported history or protected property names needs 8.6 (#402)
 - an element a build does not know is skipped rather than refusing the vault. 8.5 refuses the whole vault for one and tells the user the password is wrong; this holds from 8.6 on, on all three ways a vault is protected - the two key-file paths read and wrote through a second serializer that knew neither the version nor how to skip, and now go through the same one as the password path (#402)
+- 8.5.1 and older do not import a KDBX file exported by 8.6: their reader requires an empty `DefaultUserName` element the KDBX format does not call for, and the export no longer writes one. KeePass and KeePassXC read the file (#384)
 - a vault in a newer format than the build knows opens read-only: the content is shown, opening it names the format version it needs, and it takes no changes and no save - reading it skipped what this build does not know, and a write would remove that from the file without anybody noticing (#402)
 
 Version 8.5.1
