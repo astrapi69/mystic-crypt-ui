@@ -51,7 +51,8 @@ Read from the converters with `grep -n 'setTimes\|getTimes' KeePassTreeConverter
 (no match). None of them is asserted by the round trip test, whose group facts are path, name,
 icon index and identifier:
 
-- a group's times - not read on import, not written on export
+- a group's four times - not read on import, not written on export; measured lost on a round trip
+  of the fixture, every one of them becoming the moment of the export (#413)
 - a group's recycle-bin flag - kept in the vault, not written back
 - an entry's custom icon, tags, colours, auto-type settings and custom data
 - `UsageCount` and `LocationChanged`, outside the agreed scope from the start
