@@ -48,15 +48,15 @@ import org.w3c.dom.NodeList;
  * {@code UsageCount} and {@code LocationChanged} - are not read here either, so the test cannot
  * silently start asserting them.
  */
-final class KdbxFacts
+public final class KdbxFacts
 {
 
 	/** A group as it appears in the tree: its path, its name and its icon index */
-	record Group(String path, String name, String iconIndex, String identifier) {
+	public record Group(String path, String name, String iconIndex, String identifier) {
 	}
 
 	/** One entry with every field the scope names */
-	record Entry(String identifier, String iconIndex, String creationTime,
+	public record Entry(String identifier, String iconIndex, String creationTime,
 		String lastModificationTime, String lastAccessTime, String expiryTime, String expires,
 		String title, String userName, String password, String notes, String url,
 		Map<String, String> customProperties, Map<String, Boolean> customPropertyProtection,
@@ -68,7 +68,7 @@ final class KdbxFacts
 		 *
 		 * @return the path as the tool expects it
 		 */
-		String keePassXcPath()
+		public String keePassXcPath()
 		{
 			int firstSeparator = groupPath.indexOf('/');
 			String withoutRoot = firstSeparator < 0 ? "" : groupPath.substring(firstSeparator + 1);
@@ -92,7 +92,7 @@ final class KdbxFacts
 	 *            the exported XML
 	 * @return the facts
 	 */
-	static KdbxFacts of(final String xml)
+	public static KdbxFacts of(final String xml)
 	{
 		KdbxFacts facts = new KdbxFacts();
 		try
@@ -116,7 +116,7 @@ final class KdbxFacts
 		return facts;
 	}
 
-	List<Group> groups()
+	public List<Group> groups()
 	{
 		return groups;
 	}
@@ -125,17 +125,17 @@ final class KdbxFacts
 	 * The name in the database header, read from the XML rather than from {@code keepassxc-cli
 	 * db-info}, whose labels are localised - "Beschreibung:" on a German machine
 	 */
-	String databaseName()
+	public String databaseName()
 	{
 		return databaseName;
 	}
 
-	String databaseDescription()
+	public String databaseDescription()
 	{
 		return databaseDescription;
 	}
 
-	List<Entry> entries()
+	public List<Entry> entries()
 	{
 		return entries;
 	}
@@ -143,7 +143,7 @@ final class KdbxFacts
 	/**
 	 * The group paths in tree order, which is what an added level or a renamed group shows up in
 	 */
-	List<String> groupPaths()
+	public List<String> groupPaths()
 	{
 		return groups.stream().map(Group::path).toList();
 	}
@@ -153,7 +153,7 @@ final class KdbxFacts
 	 *
 	 * @return that entry
 	 */
-	Entry onlyEntry()
+	public Entry onlyEntry()
 	{
 		if (entries.size() != 1)
 		{

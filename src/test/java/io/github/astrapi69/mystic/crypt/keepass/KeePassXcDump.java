@@ -43,14 +43,46 @@ import java.util.concurrent.TimeUnit;
  * {@code keepassxc-cli} is therefore a prerequisite of the suite, and a missing one FAILS rather
  * than skips (#333): a gate that cannot check must never report green.
  */
-final class KeePassXcDump
+public final class KeePassXcDump
 {
 
 	/** Points the test at a keepassxc-cli that is not on the PATH, e.g. an extracted package */
-	static final String EXECUTABLE_PROPERTY = "keepassxc.cli";
+	public static final String EXECUTABLE_PROPERTY = "keepassxc.cli";
 
 	private KeePassXcDump()
 	{
+	}
+
+	/**
+	 * The version of the keepassxc-cli that reads both sides of the round trip. It belongs in every
+	 * failure message, because the one this suite runs against is not always the one the fixture
+	 * was written with: CI installs Ubuntu's package, which is older than the KeePassXC that wrote
+	 * the fixture
+	 *
+	 * @return the version as the tool prints it, e.g. {@code 2.7.10}
+	 */
+	public static String version()
+	{
+		String executable = executable();
+		try
+		{
+			Process process = new ProcessBuilder(executable, "--version").redirectErrorStream(true)
+				.start();
+			process.getOutputStream().close();
+			String printed = readFully(process.getInputStream()).strip();
+			if (!process.waitFor(30, TimeUnit.SECONDS))
+			{
+				process.destroyForcibly();
+				throw new IllegalStateException(
+					executable + " --version did not finish within half a minute");
+			}
+			return printed;
+		}
+		catch (IOException | InterruptedException exception)
+		{
+			throw new IllegalStateException("could not run " + executable + " --version",
+				exception);
+		}
 	}
 
 	/**
@@ -63,7 +95,7 @@ final class KeePassXcDump
 	 *            the password that opens it
 	 * @return the exported XML
 	 */
-	static String xmlOf(final File database, final String password)
+	public static String xmlOf(final File database, final String password)
 	{
 		return run(password, "export", "-f", "xml", "-q",
 			database.getAbsolutePath()).standardOutput;
@@ -85,7 +117,7 @@ final class KeePassXcDump
 	 *            the file to write it to
 	 * @return what the tool wrote to standard error, which carries its warnings
 	 */
-	static String exportAttachment(final File database, final String password,
+	public static String exportAttachment(final File database, final String password,
 		final String entryPath, final String attachmentName, final File target)
 	{
 		return run(password, "attachment-export", "-q", database.getAbsolutePath(), entryPath,
@@ -102,7 +134,7 @@ final class KeePassXcDump
 	 *            the password that opens it
 	 * @return the warnings, empty when there are none
 	 */
-	static String warningsWhileReading(final File database, final String password)
+	public static String warningsWhileReading(final File database, final String password)
 	{
 		return run(password, "export", "-f", "xml", "-q", database.getAbsolutePath()).errorOutput;
 	}

@@ -22,88 +22,106 @@
  * OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
  * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-package io.github.astrapi69.mystic.crypt.keepass;
+package io.github.astrapi69.mystic.crypt.ui;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
-import java.util.List;
-import java.util.concurrent.atomic.AtomicLong;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
-import org.linguafranca.pwdb.kdbx.KdbxCreds;
-import org.linguafranca.pwdb.kdbx.simple.SimpleDatabase;
-import org.linguafranca.pwdb.kdbx.simple.SimpleGroup;
 
-import io.github.astrapi69.gen.tree.BaseTreeNode;
-import io.github.astrapi69.mystic.crypt.panel.dbtree.MysticCryptEntryModelBean;
-import io.github.astrapi69.swing.renderer.tree.GenericTreeElement;
+import io.github.astrapi69.mystic.crypt.TestPasswords;
+import io.github.astrapi69.mystic.crypt.keepass.KdbxFacts;
+import io.github.astrapi69.mystic.crypt.keepass.KeePassXcDump;
 
 /**
- * A database written by KeePassXC, imported and exported by this application, has to come back the
- * same.
+ * A database written by KeePassXC, taken into this application and given back the way a user does
+ * it, has to come back the same.
+ * <p>
+ * "The way a user does it" is the whole path, and every step of it is here because leaving one out
+ * hid a real difference: File > Import from KeePass, which files the import under a node called
+ * "Imported from" and the file's name; File > Save; the application ended and the vault signed into
+ * again, so that only what the vault file stores reaches the export; File > Export to KeePass. An
+ * earlier version of this test called the converter directly and saw {@code Root/Root/Team} where
+ * the application writes {@code Root/Imported from keepassxc-2.7.10-kdbx4.kdbx/Team} - a red that
+ * existed and was not the red the test showed.
+ * <p>
+ * The vault holds the import and nothing else. A new vault comes with a starter node,
+ * {@code mykeys} ({@code ApplicationPanel:79}), and the test deletes it first, the way a user
+ * deletes a node. It is the vault's own content and exporting it is right, but left in, a KeePass
+ * file with two groups comes back with one more for a reason that has nothing to do with the round
+ * trip - measured: {@code Root/mykeys} in the export, with icon index 0.
  * <p>
  * The yardstick is KeePassXC, not this application's model. A field the model does not carry would
  * compare equal to itself and the test would pass while the file lost it - the circular measurement
  * the KDBX investigation was set up to avoid. So both files are read with {@code keepassxc-cli} and
  * the two exports are compared.
  * <p>
- * The fixture is real third-party material: KDBX 4.0, Argon2d, written with KeePassXC 2.7.10, with
- * its content and password recorded in {@code src/test/resources/kdbx/README.md} (#380).
+ * <b>Which KeePassXC reads them is part of every result.</b> The fixture was written with KeePassXC
+ * 2.7.10 and is read locally with 2.7.10. CI installs Ubuntu's package instead, because the runner
+ * has no {@code keepassxc-minimal} ({@code E: Unable to locate package keepassxc-minimal}, CI run
+ * 35078636917), and that package is 2.7.6. The two agreed on this fixture once, on the version of
+ * this test that called the converter directly - on the same file, not in general. So every failure
+ * message here names the version that read the files, and a case where the two ever read
+ * differently says which one it ran against.
+ * <p>
+ * The fixture is real third-party material: KDBX 4.0, Argon2d, with its content and password
+ * recorded in {@code src/test/resources/kdbx/README.md} (#380).
  * <p>
  * Deliberately outside the agreed scope, named here so nobody has to wonder: {@code UsageCount} and
  * {@code LocationChanged} are not asserted.
  */
-class KdbxRoundTripKeepsEveryFieldTest
+class KdbxRoundTripKeepsEveryFieldUiTest extends AbstractUiTest
 {
 
+	/** The KeePassXC version that wrote the fixture, as recorded in the README beside it */
+	private static final String FIXTURE_WRITTEN_WITH = "KeePassXC 2.7.10";
+
 	/**
-	 * Read off the classpath rather than as a relative path, so the test does not depend on the
-	 * directory the build happens to run from
+	 * The file name is kept as it is, because the import names its node after it and the exported
+	 * group structure shows that name
 	 */
-	private static final String FIXTURE_RESOURCE = "/kdbx/keepassxc-2.7.10-kdbx4.kdbx";
+	private static final String FIXTURE_NAME = "keepassxc-2.7.10-kdbx4.kdbx";
+
+	/** The node every new vault starts with, which is not part of what is being round-tripped */
+	private static final String STARTER_NODE = "mykeys";
 
 	/** Test material, written down on purpose - see the README beside the fixture */
 	private static final String PASSWORD = "fixture";
 
-	@TempDir
-	File workingDirectory;
+	private static final String MASTER_PASSWORD = TestPasswords.throwaway();
 
+	private File original;
+	private File exported;
 	private KdbxFacts source;
 	private KdbxFacts roundTripped;
-	private File exported;
+	private String readWith;
 
 	@BeforeEach
-	void importAndExportTheFixture() throws IOException
+	void importSaveReopenAndExportTheFixture() throws Exception
 	{
-		File original = new File(workingDirectory, "source.kdbx");
-		try (InputStream fixture = getClass().getResourceAsStream(FIXTURE_RESOURCE))
-		{
-			if (fixture == null)
-			{
-				throw new IllegalStateException(FIXTURE_RESOURCE
-					+ " is not on the test classpath - the round trip has nothing written by a "
-					+ "third party to measure against, and measuring our writer against our reader "
-					+ "is what this test exists to avoid (#380)");
-			}
-			Files.copy(fixture, original.toPath(), StandardCopyOption.REPLACE_EXISTING);
-		}
-		exported = new File(workingDirectory, "round-tripped.kdbx");
+		original = copyTheFixture();
+		File vault = new File(tempHome, "kdbx-round-trip.mcrdb");
+		exported = new File(tempHome, "round-tripped.kdbx");
+		createDatabaseFileHeadless(vault, MASTER_PASSWORD);
 
-		exportTree(importTree(original), exported);
+		ApplicationSteps application = signInWithExistingDatabase(vault, MASTER_PASSWORD);
+		application.deleteNode(application.showMainFrame(), STARTER_NODE)
+			.importKeePassDatabase(original, PASSWORD).saveDatabase();
+		shutdownApplication();
+		signInWithExistingDatabase(vault, MASTER_PASSWORD).exportKeePassDatabase(exported,
+			PASSWORD);
 
+		readWith = " [read with keepassxc-cli " + KeePassXcDump.version()
+			+ "; the fixture was written with " + FIXTURE_WRITTEN_WITH + "]";
 		source = KdbxFacts.of(KeePassXcDump.xmlOf(original, PASSWORD));
 		roundTripped = KdbxFacts.of(KeePassXcDump.xmlOf(exported, PASSWORD));
 	}
@@ -114,10 +132,10 @@ class KdbxRoundTripKeepsEveryFieldTest
 	{
 		assertEquals(source.onlyEntry().identifier(), roundTripped.onlyEntry().identifier(),
 			"the entry identifier is what a KeePass user's other tools recognise the entry by; a "
-				+ "new one on every export makes every export a different entry");
+				+ "new one on every export makes every export a different entry" + readWith);
 		assertEquals(source.groups().stream().map(KdbxFacts.Group::identifier).toList(),
 			roundTripped.groups().stream().map(KdbxFacts.Group::identifier).toList(),
-			"the group identifiers have to survive as well, and in the same order");
+			"the group identifiers have to survive as well, and in the same order" + readWith);
 	}
 
 	@Test
@@ -128,22 +146,26 @@ class KdbxRoundTripKeepsEveryFieldTest
 		KdbxFacts.Entry actual = roundTripped.onlyEntry();
 
 		assertEquals(expected.creationTime(), actual.creationTime(),
-			"the creation time is the user's fact about their entry, not ours about our export");
-		assertEquals(expected.lastModificationTime(), actual.lastModificationTime());
-		assertEquals(expected.lastAccessTime(), actual.lastAccessTime());
-		assertEquals(expected.expiryTime(), actual.expiryTime());
+			"the creation time is the user's fact about their entry, not ours about our export"
+				+ readWith);
+		assertEquals(expected.lastModificationTime(), actual.lastModificationTime(),
+			"the last modification time" + readWith);
+		assertEquals(expected.lastAccessTime(), actual.lastAccessTime(),
+			"the last access time" + readWith);
+		assertEquals(expected.expiryTime(), actual.expiryTime(), "the expiry time" + readWith);
 		assertEquals(expected.expires(), actual.expires(),
-			"an expiry time without its flag expires nothing");
+			"an expiry time without its flag expires nothing" + readWith);
 	}
 
 	@Test
 	@DisplayName("the icon index survives, on the entry and on the groups")
 	void iconIndicesSurvive()
 	{
-		assertEquals(source.onlyEntry().iconIndex(), roundTripped.onlyEntry().iconIndex());
+		assertEquals(source.onlyEntry().iconIndex(), roundTripped.onlyEntry().iconIndex(),
+			"the entry's icon" + readWith);
 		assertEquals(source.groups().stream().map(KdbxFacts.Group::iconIndex).toList(),
 			roundTripped.groups().stream().map(KdbxFacts.Group::iconIndex).toList(),
-			"a group's icon is as much the user's choice as an entry's");
+			"a group's icon is as much the user's choice as an entry's" + readWith);
 	}
 
 	@Test
@@ -151,11 +173,12 @@ class KdbxRoundTripKeepsEveryFieldTest
 	void customPropertiesSurviveIncludingTheProtectedOne()
 	{
 		assertEquals(source.onlyEntry().customProperties(),
-			roundTripped.onlyEntry().customProperties());
+			roundTripped.onlyEntry().customProperties(), "the custom properties" + readWith);
 		assertEquals(source.onlyEntry().customPropertyProtection(),
 			roundTripped.onlyEntry().customPropertyProtection(),
 			"a property the user marked protected must not come back unprotected - that is a "
-				+ "secret quietly downgraded, and the fixture's 'key' is exactly that case");
+				+ "secret quietly downgraded, and the fixture's 'key' is exactly that case (#389)"
+				+ readWith);
 	}
 
 	@Test
@@ -163,19 +186,20 @@ class KdbxRoundTripKeepsEveryFieldTest
 	void theAttachmentSurvivesWithItsContent() throws IOException
 	{
 		assertEquals(source.onlyEntry().attachmentNames(),
-			roundTripped.onlyEntry().attachmentNames());
+			roundTripped.onlyEntry().attachmentNames(), "the attachment names" + readWith);
 
-		File fromSource = new File(workingDirectory, "source-attachment");
-		File fromRoundTrip = new File(workingDirectory, "round-tripped-attachment");
+		File fromSource = new File(tempHome, "source-attachment");
+		File fromRoundTrip = new File(tempHome, "round-tripped-attachment");
 		String attachment = source.onlyEntry().attachmentNames().get(0);
-		KeePassXcDump.exportAttachment(new File(workingDirectory, "source.kdbx"), PASSWORD,
-			source.onlyEntry().keePassXcPath(), attachment, fromSource);
+		KeePassXcDump.exportAttachment(original, PASSWORD, source.onlyEntry().keePassXcPath(),
+			attachment, fromSource);
 		KeePassXcDump.exportAttachment(exported, PASSWORD, roundTripped.onlyEntry().keePassXcPath(),
 			attachment, fromRoundTrip);
 
 		assertEquals(Files.readString(fromSource.toPath(), StandardCharsets.UTF_8),
 			Files.readString(fromRoundTrip.toPath(), StandardCharsets.UTF_8),
-			"the name of an attachment without its bytes is a file the user cannot open");
+			"the name of an attachment without its bytes is a file the user cannot open"
+				+ readWith);
 	}
 
 	@Test
@@ -184,7 +208,7 @@ class KdbxRoundTripKeepsEveryFieldTest
 	{
 		assertEquals(source.groupPaths(), roundTripped.groupPaths(),
 			"a round trip that adds a level grows the tree on every export (#377), and one that "
-				+ "renames the root loses what the user called it");
+				+ "renames a group loses what the user called it" + readWith);
 	}
 
 	/**
@@ -204,18 +228,23 @@ class KdbxRoundTripKeepsEveryFieldTest
 				&& !String.valueOf(roundTripped.databaseDescription()).contains("KeePassJava2"),
 			"an exported database announces itself as '" + roundTripped.databaseName() + "', '"
 				+ roundTripped.databaseDescription()
-				+ "' - the defaults of a library the user has never heard of (#378)");
+				+ "' - the defaults of a library the user has never heard of (#378)" + readWith);
 	}
 
 	@Test
 	@DisplayName("title, user name, password, notes and url survive, umlauts included")
 	void theTextFieldsSurvive()
 	{
-		assertEquals(source.onlyEntry().title(), roundTripped.onlyEntry().title());
-		assertEquals(source.onlyEntry().userName(), roundTripped.onlyEntry().userName());
-		assertEquals(source.onlyEntry().password(), roundTripped.onlyEntry().password());
-		assertEquals(source.onlyEntry().notes(), roundTripped.onlyEntry().notes());
-		assertEquals(source.onlyEntry().url(), roundTripped.onlyEntry().url());
+		assertEquals(source.onlyEntry().title(), roundTripped.onlyEntry().title(),
+			"the title" + readWith);
+		assertEquals(source.onlyEntry().userName(), roundTripped.onlyEntry().userName(),
+			"the user name" + readWith);
+		assertEquals(source.onlyEntry().password(), roundTripped.onlyEntry().password(),
+			"the password" + readWith);
+		assertEquals(source.onlyEntry().notes(), roundTripped.onlyEntry().notes(),
+			"the notes, which carry umlauts on purpose" + readWith);
+		assertEquals(source.onlyEntry().url(), roundTripped.onlyEntry().url(),
+			"the url" + readWith);
 	}
 
 	@Test
@@ -225,7 +254,7 @@ class KdbxRoundTripKeepsEveryFieldTest
 		assertEquals(source.onlyEntry().historyVersions(),
 			roundTripped.onlyEntry().historyVersions(),
 			"history is carried through unchanged rather than maintained, but carried through it "
-				+ "must be - losing it silently discards versions the user kept");
+				+ "must be - losing it silently discards versions the user kept" + readWith);
 	}
 
 	/**
@@ -246,52 +275,27 @@ class KdbxRoundTripKeepsEveryFieldTest
 			"KeePassXC no longer warns about the duplicated binary pool. That is good news and this "
 				+ "test is how it gets noticed: check whether KeePassJava2 fixed "
 				+ "KdbxStreamFormat's TODO, then close #379 and delete this test. What it read was: "
-				+ warnings);
+				+ warnings + readWith);
 	}
 
 	/**
-	 * The two code paths the actions use, with nothing else around them:
-	 * {@code ImportKeePassDatabaseAction:117} and {@code :166}
+	 * Copies the fixture off the classpath under its own name, so the test does not depend on the
+	 * directory the build runs from and the import names its node the way it would for a user
 	 */
-	private BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> importTree(
-		final File database) throws IOException
+	private File copyTheFixture() throws IOException
 	{
-		AtomicLong identifiers = new AtomicLong(1);
-		try (InputStream in = new FileInputStream(database))
+		File copy = new File(tempHome, FIXTURE_NAME);
+		try (InputStream fixture = getClass().getResourceAsStream("/kdbx/" + FIXTURE_NAME))
 		{
-			SimpleDatabase loaded = SimpleDatabase.load(credentials(), in);
-			GenericTreeElement<List<MysticCryptEntryModelBean>> rootElement = new GenericTreeElement<>();
-			rootElement.setName("root");
-			BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> root = BaseTreeNode
-				.<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> builder()
-				.id(identifiers.getAndIncrement()).value(rootElement).displayValue("root")
-				.leaf(false).build();
-			KeePassTreeConverter.toTreeNode(loaded.getRootGroup(), root,
-				identifiers::getAndIncrement);
-			return root;
+			if (fixture == null)
+			{
+				throw new IllegalStateException("/kdbx/" + FIXTURE_NAME
+					+ " is not on the test classpath - the round trip has nothing written by a "
+					+ "third party to measure against, and measuring our writer against our reader "
+					+ "is what this test exists to avoid (#380)");
+			}
+			Files.copy(fixture, copy.toPath(), StandardCopyOption.REPLACE_EXISTING);
 		}
-	}
-
-	/** {@code ExportKeePassDatabaseAction:111-121} */
-	private void exportTree(
-		final BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> root,
-		final File target) throws IOException
-	{
-		SimpleDatabase database = new SimpleDatabase();
-		SimpleGroup rootGroup = database.getRootGroup();
-		for (BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> child : root
-			.getChildren())
-		{
-			KeePassTreeConverter.toSimpleGroup(database, child, rootGroup);
-		}
-		try (OutputStream out = new FileOutputStream(target))
-		{
-			database.save(credentials(), out);
-		}
-	}
-
-	private static KdbxCreds credentials()
-	{
-		return new KdbxCreds(PASSWORD.getBytes(StandardCharsets.UTF_8));
+		return copy;
 	}
 }
