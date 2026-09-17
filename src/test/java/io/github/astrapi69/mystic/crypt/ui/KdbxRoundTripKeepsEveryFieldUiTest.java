@@ -128,11 +128,20 @@ class KdbxRoundTripKeepsEveryFieldUiTest extends AbstractUiTest
 		createDatabaseFileHeadless(vault, MASTER_PASSWORD);
 
 		ApplicationSteps application = signInWithExistingDatabase(vault, MASTER_PASSWORD);
-		application.deleteNode(application.showMainFrame(), STARTER_NODE)
-			.importKeePassDatabase(original, PASSWORD).saveDatabase();
+		application.deleteNode(application.showMainFrame(), STARTER_NODE);
+		long importStarted = System.nanoTime();
+		application.importKeePassDatabase(original, PASSWORD);
+		long importMillis = (System.nanoTime() - importStarted) / 1_000_000;
+		application.saveDatabase();
 		shutdownApplication();
-		signInWithExistingDatabase(vault, MASTER_PASSWORD).exportKeePassDatabase(exported,
-			PASSWORD);
+		ApplicationSteps reopened = signInWithExistingDatabase(vault, MASTER_PASSWORD);
+		long exportStarted = System.nanoTime();
+		reopened.exportKeePassDatabase(exported, PASSWORD);
+		long exportMillis = (System.nanoTime() - exportStarted) / 1_000_000;
+		// the import and export wait on a key derivation; what they took is what a timeout here
+		// has to be measured against (#414)
+		System.out.println("KDBX round trip: import step " + importMillis + " ms, export step "
+			+ exportMillis + " ms");
 
 		readWith = " [read with keepassxc-cli " + KeePassXcDump.version()
 			+ "; the fixture was written with " + FIXTURE_WRITTEN_WITH + "]";
