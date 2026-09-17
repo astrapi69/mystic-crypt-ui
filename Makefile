@@ -6,6 +6,9 @@
 PINNED_JAVA_HOME := /home/astrapi69/.sdkman/candidates/java/25-tem
 JAVA_HOME := $(if $(wildcard $(PINNED_JAVA_HOME)),$(PINNED_JAVA_HOME),$(JAVA_HOME))
 JAR := $(shell find build/libs -maxdepth 1 -name '*-all.jar' 2>/dev/null | head -1)
+# the published release a vault this build writes has to stay readable in (#402); gradle.properties
+# is the one place the number lives
+RELEASE_JAR_VERSION := $(shell sed -n 's/^formatCompatibilityRelease=//p' gradle.properties)
 
 PLUGIN_OBFUSCATION_DIR := plugins/obfuscation-plugin
 PLUGIN_CHECKSUM_DIR := plugins/checksum-plugin
@@ -22,7 +25,7 @@ PLUGIN_FILE_CRYPT_DIR := plugins/file-crypt-plugin
 PLUGIN_SECRET_SHARING_DIR := plugins/secret-sharing-plugin
 PLUGIN_INSTALL_DIR := $(HOME)/.config/mystic-crypt-ui/plugins
 
-.PHONY: merge-pr test-fast build build-full build-with-plugins bwp run all clean test test-e2e test-e2e-demo \
+.PHONY: merge-pr test-fast release-jar release-jar-if-reachable build build-full build-with-plugins bwp run all clean test test-e2e test-e2e-demo \
 	bootRun clean-build-installer izpack-installer izpack-installer-signed \
 	dependencies dependency-updates jacoco-coverage jacoco-report jar javadoc \
 	license-format publish publish-local spotless-java spotless-misc tag-release \
@@ -54,7 +57,7 @@ build:
 # end-to-end suite needs their zips: until #333 the 54 tests that install a plugin SKIPPED here, so
 # a release could be cut with every plugin feature unverified and the gate still green. They fail
 # now, which is only useful if the gate builds what they need (#333)
-build-full: plugins
+build-full: plugins release-jar
 	JAVA_HOME=$(JAVA_HOME) ./gradlew createAllDependendiesJar
 	JAVA_HOME=$(JAVA_HOME) ./gradlew build
 
@@ -80,12 +83,23 @@ run:
 # plugins built and installed into the app's plugins directory beforehand
 all: build-with-plugins run
 
-test:
+test: release-jar-if-reachable
 	JAVA_HOME=$(JAVA_HOME) ./gradlew test
 
 # the cheap local run: the unit suite only, no display needed (#319)
-test-fast:
+test-fast: release-jar-if-reachable
 	JAVA_HOME=$(JAVA_HOME) ./gradlew test
+
+# the application jar of the last release, downloaded, checked against its published sha256 and
+# cached per version. A failure here fails the target: CI and the release gate must not run the
+# compatibility test without it (#402)
+release-jar:
+	./scripts/fetch-release-jar.sh $(RELEASE_JAR_VERSION)
+
+# the same for a local run, where no network is not an error: the compatibility test then skips and
+# says why (#402)
+release-jar-if-reachable:
+	@./scripts/fetch-release-jar.sh $(RELEASE_JAR_VERSION) || echo "==> release jar $(RELEASE_JAR_VERSION) not fetched; VaultOpensInTheLastReleaseTest will skip locally (in CI it fails)"
 
 # merges a pull request the way the rules describe, stopping at the first step that fails (#324)
 # TARGET defaults to develop; a hotfix pull request names its branch, e.g. TARGET=hotfix/8.5.1 (#395)

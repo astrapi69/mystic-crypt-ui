@@ -55,6 +55,20 @@ jobs:
         # 1m24s locally for all thirteen, against a twelve-minute job (#333).
         run: xvfb-run -a --server-args="-screen 0 1920x1080x24" make plugins
 
+      - name: Read the release a vault has to stay readable in
+        # gradle.properties is the one place the number lives; the cache key needs it here (#402)
+        id: compatibility
+        run: echo "version=$(sed -n 's/^formatCompatibilityRelease=//p' gradle.properties)" >> "$GITHUB_OUTPUT"
+      - name: Cache that release's application jar
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/mystic-crypt-ui/release-jars
+          key: release-jar-${{ steps.compatibility.outputs.version }}
+      - name: Fetch that release's application jar
+        # the installer as users downloaded it, checked against its published sha256, the jar taken
+        # out of its pack. VaultOpensInTheLastReleaseTest opens a vault this build writes with it,
+        # and fails here in CI when the jar is missing rather than skipping (#402)
+        run: make release-jar
       - name: Execute Gradle build
         # xvfb-run provides a virtual display so the AssertJ-Swing e2e UI tests really run
         # in CI (without it they would be skipped by their headless assumption)
