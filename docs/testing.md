@@ -128,14 +128,11 @@ test {
 is what keeps the singleton frame and the static event bus from leaking between classes.
 Removing it makes classes pass in isolation and fail in a suite run.
 
-`build.gradle` adds three more things to the test task:
+`build.gradle` adds more to the test task:
 
 ```groovy
 tasks.named("test") {
     it.mustRunAfter(tasks.named("jar"))
-    // KeePassJava2-simple's SimpleXML-based serialization reflects into java.util (e.g. UUID)
-    // at runtime, which the JDK 9+ module system blocks without this on JDK 17+
-    it.jvmArgs "--add-opens", "java.base/java.util=ALL-UNNAMED"
     if (System.getProperty("mystic.crypt.ui.test.mode") != null) {
         it.systemProperty "mystic.crypt.ui.test.mode", System.getProperty("mystic.crypt.ui.test.mode")
     }

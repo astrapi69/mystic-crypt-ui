@@ -50,9 +50,6 @@ tasks.withType(JavaCompile).configureEach { javaCompiler ->
 // exists to prevent. A third suite added later would have lost it again
 tasks.withType(Test).configureEach {
     it.mustRunAfter(tasks.named("jar"))
-    // KeePassJava2-simple's SimpleXML-based serialization reflects into java.util (e.g. UUID)
-    // at runtime, which the JDK 9+ module system blocks without this on JDK 17+
-    it.jvmArgs "--add-opens", "java.base/java.util=ALL-UNNAMED"
     // the KDBX round trip is measured with keepassxc-cli, and a system property given on the
     // gradle command line reaches the DAEMON, not the forked test JVM - so it is forwarded here.
     // Without it the test reports "keepassxc-cli is not on the PATH" on a machine that has one

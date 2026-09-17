@@ -39,7 +39,7 @@ import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.linguafranca.pwdb.kdbx.KdbxCreds;
-import org.linguafranca.pwdb.kdbx.simple.SimpleDatabase;
+import org.linguafranca.pwdb.kdbx.jackson.JacksonDatabase;
 
 public class KdbxCredsRoundTripTest
 {
@@ -65,7 +65,7 @@ public class KdbxCredsRoundTripTest
 		byte[] kdbxBytes = createDatabase(
 			new KdbxCreds("test-password".getBytes(StandardCharsets.UTF_8)));
 
-		SimpleDatabase reloaded = SimpleDatabase.load(
+		JacksonDatabase reloaded = JacksonDatabase.load(
 			new KdbxCreds("test-password".getBytes(StandardCharsets.UTF_8)),
 			new ByteArrayInputStream(kdbxBytes));
 
@@ -128,7 +128,7 @@ public class KdbxCredsRoundTripTest
 		{
 			KdbxCreds reloadCredentials = new KdbxCreds(
 				"test-password".getBytes(StandardCharsets.UTF_8), keyFileStream);
-			SimpleDatabase reloaded = SimpleDatabase.load(reloadCredentials,
+			JacksonDatabase reloaded = JacksonDatabase.load(reloadCredentials,
 				new ByteArrayInputStream(kdbxBytes));
 			assertEquals(1, reloaded.getRootGroup().getEntries().size());
 		}
@@ -136,7 +136,7 @@ public class KdbxCredsRoundTripTest
 
 	private byte[] createDatabase(KdbxCreds credentials) throws Exception
 	{
-		SimpleDatabase database = new SimpleDatabase();
+		JacksonDatabase database = new JacksonDatabase();
 		database.getRootGroup().addEntry(database.newEntry("test-entry"));
 		ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
 		database.save(credentials, outputStream);

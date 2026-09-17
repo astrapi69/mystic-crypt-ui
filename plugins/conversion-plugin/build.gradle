@@ -85,8 +85,6 @@ dependencies {
 
 test {
     useJUnitPlatform()
-    // crypt-data's key readers reflect into java.util at runtime on JDK 9+
-    jvmArgs "--add-opens", "java.base/java.util=ALL-UNNAMED"
 }
 
 // packages the plugin the way the host's DefaultPluginManager expects: plugin.properties at the

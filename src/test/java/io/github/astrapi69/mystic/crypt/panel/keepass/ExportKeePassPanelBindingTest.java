@@ -48,9 +48,9 @@ import javax.swing.JTextField;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.linguafranca.pwdb.kdbx.KdbxCreds;
-import org.linguafranca.pwdb.kdbx.simple.SimpleDatabase;
-import org.linguafranca.pwdb.kdbx.simple.SimpleEntry;
-import org.linguafranca.pwdb.kdbx.simple.SimpleGroup;
+import org.linguafranca.pwdb.kdbx.jackson.JacksonDatabase;
+import org.linguafranca.pwdb.kdbx.jackson.JacksonEntry;
+import org.linguafranca.pwdb.kdbx.jackson.JacksonGroup;
 
 import io.github.astrapi69.mystic.crypt.TestPasswords;
 
@@ -98,9 +98,9 @@ class ExportKeePassPanelBindingTest
 	 */
 	private static File exportWith(ExportKeePassPanel panel) throws Exception
 	{
-		SimpleDatabase database = new SimpleDatabase();
-		SimpleGroup rootGroup = database.getRootGroup();
-		SimpleEntry entry = database.newEntry();
+		JacksonDatabase database = new JacksonDatabase();
+		JacksonGroup rootGroup = database.getRootGroup();
+		JacksonEntry entry = database.newEntry();
 		entry.setTitle(ENTRY_TITLE);
 		entry.setUsername("bound-user");
 		rootGroup.addEntry(entry);
@@ -132,7 +132,7 @@ class ExportKeePassPanelBindingTest
 	{
 		try (InputStream inputStream = new FileInputStream(keePassFile))
 		{
-			return SimpleDatabase.load(credentials, inputStream).getRootGroup().getEntries().get(0)
+			return JacksonDatabase.load(credentials, inputStream).getRootGroup().getEntries().get(0)
 				.getTitle();
 		}
 	}
