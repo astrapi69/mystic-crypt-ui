@@ -52,7 +52,6 @@ import io.github.astrapi69.mystic.crypt.key.PrivateKeyDecryptor;
 import io.github.astrapi69.mystic.crypt.key.PrivateKeyGenericDecryptor;
 import io.github.astrapi69.mystic.crypt.panel.signin.MasterPwFileModelBean;
 import io.github.astrapi69.throwable.RuntimeExceptionDecorator;
-import io.github.astrapi69.xstream.XmlToObjectExtensions;
 
 public class ApplicationXmlFileWithKeyFactoryTest
 {
@@ -135,7 +134,9 @@ public class ApplicationXmlFileWithKeyFactoryTest
 		byte[] encryptedBytes = ReadFileExtensions.readFileToBytearray(actualEncryptedFile);
 		String xml = genericDecryptor.decrypt(encryptedBytes);
 
-		applicationModelBean = XmlToObjectExtensions.toObject(xml);
+		// read the way the application reads the format, which since #402 includes the version
+		// attribute on the root element
+		applicationModelBean = VaultXmlCodec.toModel(xml.toCharArray());
 		assertNotNull(applicationModelBean);
 		MasterPwFileModelBean masterPwFileModelBean = applicationModelBean
 			.getMasterPwFileModelBean();

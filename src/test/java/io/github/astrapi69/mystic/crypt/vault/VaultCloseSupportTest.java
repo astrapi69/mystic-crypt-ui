@@ -266,6 +266,62 @@ class VaultCloseSupportTest
 	}
 
 	@Test
+	@DisplayName("closeVault overwrites every version in an entry's history, and the versions of those")
+	void closeVault_overwritesTheHistory_versionByVersion()
+	{
+		char[] previousPassword = "the password before".toCharArray();
+		char[] previousTitle = "the bank, as it was called".toCharArray();
+		byte[] previousAttachment = "an older recovery sheet".getBytes();
+		char[] oldestPassword = "the very first password".toCharArray();
+		MysticCryptEntryModelBean oldest = MysticCryptEntryModelBean.builder()
+			.password(oldestPassword).build();
+		MysticCryptEntryModelBean previous = MysticCryptEntryModelBean.builder()
+			.title(previousTitle).password(previousPassword).resources(new ArrayList<>(
+				List.of(FileContentInfo.builder().content(previousAttachment).build())))
+			.build();
+		previous.setHistory(new ArrayList<>(List.of(oldest)));
+		MysticCryptEntryModelBean entry = MysticCryptEntryModelBean.builder()
+			.password(ENTRY_PASSWORD.clone()).build();
+		entry.setHistory(new ArrayList<>(List.of(previous)));
+		ApplicationModelBean applicationModelBean = openVault();
+		applicationModelBean.setDataOfNodes(entriesByNodeId(entry));
+
+		VaultCloseSupport.closeVault(applicationModelBean);
+
+		assertArrayEquals(new char[previousPassword.length], previousPassword,
+			"a previous version holds a password the user had, which is often one they still use "
+				+ "somewhere else. It is overwritten like the current one (#402)");
+		assertArrayEquals(new char[previousTitle.length], previousTitle,
+			"with every other field of that version");
+		assertArrayEquals(new byte[previousAttachment.length], previousAttachment,
+			"including the attachment it had then");
+		assertArrayEquals(new char[oldestPassword.length], oldestPassword,
+			"and a version's own history, however deep. KeePass writes none, and the wipe does "
+				+ "not rely on a file saying what KeePass would");
+		assertNull(entry.getHistory(), "the history is cleared as well as overwritten");
+	}
+
+	@Test
+	@DisplayName("an entry that appears in its own history is wiped once and the close ends")
+	void closeVault_ends_whenAHistoryLeadsBackToItsEntry()
+	{
+		char[] entryPassword = ENTRY_PASSWORD.clone();
+		MysticCryptEntryModelBean entry = MysticCryptEntryModelBean.builder()
+			.password(entryPassword).build();
+		MysticCryptEntryModelBean previous = MysticCryptEntryModelBean.builder()
+			.password("before".toCharArray()).build();
+		entry.setHistory(new ArrayList<>(List.of(previous)));
+		previous.setHistory(new ArrayList<>(List.of(entry)));
+		ApplicationModelBean applicationModelBean = openVault();
+		applicationModelBean.setDataOfNodes(entriesByNodeId(entry));
+
+		assertDoesNotThrow(() -> VaultCloseSupport.closeVault(applicationModelBean),
+			"a cycle is not a history anybody meant to write, and it must not turn the close into "
+				+ "a StackOverflowError that leaves everything after it unwiped");
+		assertArrayEquals(new char[entryPassword.length], entryPassword);
+	}
+
+	@Test
 	@DisplayName("a null attachment does not stop the wipe of the ones behind it")
 	void closeVault_wipesEveryAttachment_whenTheListHasAHole()
 	{
