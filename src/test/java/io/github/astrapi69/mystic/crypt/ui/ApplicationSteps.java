@@ -1481,6 +1481,19 @@ final class ApplicationSteps
 		});
 	}
 
+	/** How many nodes of the tree carry exactly the given name */
+	long treeNodesNamed(String name)
+	{
+		return GuiActionRunner.execute(() -> {
+			BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> root = MysticCryptApplicationFrame
+				.getInstance().getApplicationPanel().getSecretKeyTreeWithContentPanel()
+				.getModelObject();
+			return root.traverse().stream()
+				.filter(node -> node.getValue() != null && name.equals(node.getValue().getName()))
+				.count();
+		});
+	}
+
 	/**
 	 * Fires the menu item with the given stable name and waits for the internal frame with the
 	 * given title to appear on the desktop pane

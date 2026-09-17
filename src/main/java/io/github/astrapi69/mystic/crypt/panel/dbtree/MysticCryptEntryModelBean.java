@@ -27,6 +27,7 @@ package io.github.astrapi69.mystic.crypt.panel.dbtree;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -174,6 +175,25 @@ public class MysticCryptEntryModelBean
 	{
 		this.protectedPropertyKeys = protectedPropertyKeys == null
 			|| protectedPropertyKeys.isEmpty() ? null : protectedPropertyKeys;
+	}
+
+	/**
+	 * A copy of this entry for "Duplicate entry" and "copy node": no history, and no list or set
+	 * shared with this entry - its own attachments list, properties list and protected property
+	 * names. The history is left out because a duplicate is a new entry, not a later version of
+	 * this one, and it is null rather than empty so the vault writes no element for it (#402). The
+	 * identifier is copied; the caller decides whether the copy keeps it
+	 *
+	 * @return the copy
+	 */
+	public MysticCryptEntryModelBean duplicate()
+	{
+		return toBuilder().history(null)
+			.resources(resources != null ? new ArrayList<>(resources) : null)
+			.properties(properties != null ? new ArrayList<>(properties) : null)
+			.protectedPropertyKeys(
+				protectedPropertyKeys != null ? new LinkedHashSet<>(protectedPropertyKeys) : null)
+			.build();
 	}
 
 	public String getProperty(String name)

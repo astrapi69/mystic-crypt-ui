@@ -24,6 +24,7 @@
  */
 package io.github.astrapi69.mystic.crypt.ui;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.File;
@@ -37,8 +38,8 @@ import io.github.astrapi69.mystic.crypt.TestPasswords;
 /**
  * End-to-end use case "import a KeePass database": sign in to an existing database, open the File
  * menu's import action, choose the {@code .kdbx} file, enter its password, confirm - the entries
- * must appear in the tree under a new "Imported from ..." group and the model must be marked dirty
- * so the change gets saved
+ * must appear in the tree under the KeePass root's own name, "test-db", and the model must be
+ * marked dirty so the change gets saved
  */
 class KeePassImportUiTest extends AbstractUiTest
 {
@@ -59,8 +60,8 @@ class KeePassImportUiTest extends AbstractUiTest
 
 		application.importKeePassDatabase(keePassFile, KEEPASS_PASSWORD);
 
-		assertTrue(application.treeContainsNodeStartingWith("Imported from test-db.kdbx"),
-			"the tree must contain the new 'Imported from ...' group after the import");
+		assertEquals(1, application.treeNodesNamed("test-db"),
+			"the tree must contain the fixture's root group under its own name after the import (#377)");
 		assertTrue(MysticCryptApplicationFrame.getInstance().getModelObject().isDirty(),
 			"a successful import must mark the model dirty so it gets saved");
 	}

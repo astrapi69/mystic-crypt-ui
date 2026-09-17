@@ -43,9 +43,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.linguafranca.pwdb.Entry;
-import org.linguafranca.pwdb.kdbx.simple.SimpleDatabase;
-import org.linguafranca.pwdb.kdbx.simple.SimpleEntry;
-import org.linguafranca.pwdb.kdbx.simple.SimpleIcon;
+import org.linguafranca.pwdb.kdbx.jackson.JacksonDatabase;
+import org.linguafranca.pwdb.kdbx.jackson.JacksonEntry;
 
 import io.github.astrapi69.file.create.model.FileContentInfo;
 import io.github.astrapi69.mystic.crypt.panel.dbtree.MysticCryptEntryModelBean;
@@ -54,10 +53,10 @@ public class KeePassEntryConverterTest
 {
 
 	@Test
-	public void testToEntryModelBean()
+	public void testToEntryModelBean() throws Exception
 	{
-		SimpleDatabase database = new SimpleDatabase();
-		SimpleEntry entry = database.newEntry();
+		JacksonDatabase database = new JacksonDatabase();
+		JacksonEntry entry = database.newEntry();
 		entry.setProperty(Entry.STANDARD_PROPERTY_NAME_TITLE, "My Title");
 		entry.setProperty(Entry.STANDARD_PROPERTY_NAME_USER_NAME, "my-user");
 		entry.setProperty(Entry.STANDARD_PROPERTY_NAME_PASSWORD, "s3cr3t");
@@ -65,7 +64,7 @@ public class KeePassEntryConverterTest
 		entry.setProperty(Entry.STANDARD_PROPERTY_NAME_NOTES, "some notes");
 		entry.setProperty("custom-field", "custom-value");
 		entry.setBinaryProperty("attachment.txt", "hello".getBytes());
-		entry.setIcon(new SimpleIcon(7));
+		entry.setIcon(database.newIcon(7));
 		Date expiry = Date.from(Instant.parse("2030-06-15T10:30:00Z"));
 		entry.setExpires(true);
 		entry.setExpiryTime(expiry);
@@ -94,10 +93,10 @@ public class KeePassEntryConverterTest
 	}
 
 	@Test
-	public void testToEntryModelBeanNotExpirable()
+	public void testToEntryModelBeanNotExpirable() throws Exception
 	{
-		SimpleDatabase database = new SimpleDatabase();
-		SimpleEntry entry = database.newEntry();
+		JacksonDatabase database = new JacksonDatabase();
+		JacksonEntry entry = database.newEntry();
 		entry.setExpires(false);
 
 		MysticCryptEntryModelBean bean = KeePassEntryConverter.toEntryModelBean(entry);
@@ -108,9 +107,9 @@ public class KeePassEntryConverterTest
 	}
 
 	@Test
-	public void testToSimpleEntryRoundTrip()
+	public void testToJacksonEntryRoundTrip() throws Exception
 	{
-		SimpleDatabase database = new SimpleDatabase();
+		JacksonDatabase database = new JacksonDatabase();
 		Instant preciseExpiry = Instant.parse("2030-06-15T10:30:00Z");
 		MysticCryptEntryModelBean bean = MysticCryptEntryModelBean.builder()
 			.title("My Title".toCharArray()).userName("my-user".toCharArray())
@@ -119,7 +118,7 @@ public class KeePassEntryConverterTest
 			.preciseExpiryTime(preciseExpiry.atOffset(ZoneOffset.UTC)).keePassIconIndex(9).build();
 		bean.setProperty("custom-field", "custom-value");
 
-		SimpleEntry entry = KeePassEntryConverter.toSimpleEntry(database, bean);
+		JacksonEntry entry = KeePassEntryConverter.toJacksonEntry(database, bean);
 
 		assertEquals("My Title", entry.getProperty(Entry.STANDARD_PROPERTY_NAME_TITLE));
 		assertEquals("my-user", entry.getProperty(Entry.STANDARD_PROPERTY_NAME_USER_NAME));
@@ -133,13 +132,13 @@ public class KeePassEntryConverterTest
 	}
 
 	@Test
-	public void testToSimpleEntryNotExpirableStillSetsANonNullExpiryTime()
+	public void testToJacksonEntryNotExpirableStillSetsANonNullExpiryTime() throws Exception
 	{
-		SimpleDatabase database = new SimpleDatabase();
+		JacksonDatabase database = new JacksonDatabase();
 		MysticCryptEntryModelBean bean = MysticCryptEntryModelBean.builder()
 			.title("My Title".toCharArray()).build();
 
-		SimpleEntry entry = KeePassEntryConverter.toSimpleEntry(database, bean);
+		JacksonEntry entry = KeePassEntryConverter.toJacksonEntry(database, bean);
 
 		assertFalse(entry.getExpires());
 		// Entry.setExpiryTime(...) throws on null, so this must never be null even when
@@ -173,15 +172,15 @@ public class KeePassEntryConverterTest
 
 	@ParameterizedTest(name = "{0}")
 	@MethodSource("expiryCases")
-	public void testToSimpleEntryAlwaysSetsAnExpiryTime(String description,
-		Consumer<MysticCryptEntryModelBean> prepare, Instant expected)
+	public void testToJacksonEntryAlwaysSetsAnExpiryTime(String description,
+		Consumer<MysticCryptEntryModelBean> prepare, Instant expected) throws Exception
 	{
-		SimpleDatabase database = new SimpleDatabase();
+		JacksonDatabase database = new JacksonDatabase();
 		MysticCryptEntryModelBean bean = MysticCryptEntryModelBean.builder()
 			.title("Expiry".toCharArray()).build();
 		prepare.accept(bean);
 
-		SimpleEntry entry = KeePassEntryConverter.toSimpleEntry(database, bean);
+		JacksonEntry entry = KeePassEntryConverter.toJacksonEntry(database, bean);
 
 		assertNotNull(entry.getExpiryTime(),
 			"KeePass needs an expiry time even when none was given (" + description + ")");
@@ -193,16 +192,16 @@ public class KeePassEntryConverterTest
 	}
 
 	@Test
-	public void testToSimpleEntryCarriesAttachmentsOver()
+	public void testToJacksonEntryCarriesAttachmentsOver() throws Exception
 	{
-		SimpleDatabase database = new SimpleDatabase();
+		JacksonDatabase database = new JacksonDatabase();
 		byte[] content = "attached bytes".getBytes(java.nio.charset.StandardCharsets.UTF_8);
 		MysticCryptEntryModelBean bean = MysticCryptEntryModelBean.builder()
 			.title("With attachment".toCharArray())
 			.resources(List.of(FileContentInfo.builder().name("note.txt").content(content).build()))
 			.build();
 
-		SimpleEntry entry = KeePassEntryConverter.toSimpleEntry(database, bean);
+		JacksonEntry entry = KeePassEntryConverter.toJacksonEntry(database, bean);
 
 		assertArrayEquals(content, entry.getBinaryProperty("note.txt"),
 			"an attachment must be written as a binary property");

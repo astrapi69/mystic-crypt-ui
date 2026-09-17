@@ -28,23 +28,35 @@ import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.linguafranca.pwdb.Entry;
-import org.linguafranca.pwdb.kdbx.simple.SimpleDatabase;
-import org.linguafranca.pwdb.kdbx.simple.SimpleEntry;
-import org.linguafranca.pwdb.kdbx.simple.SimpleIcon;
+import org.linguafranca.pwdb.PropertyValue;
+import org.linguafranca.pwdb.kdbx.jackson.JacksonDatabase;
+import org.linguafranca.pwdb.kdbx.jackson.JacksonEntry;
+import org.linguafranca.pwdb.kdbx.jackson.JacksonHistory;
+import org.linguafranca.pwdb.kdbx.jackson.model.Times;
 
 import io.github.astrapi69.file.create.model.FileContentInfo;
 import io.github.astrapi69.mystic.crypt.panel.dbtree.EntryText;
 import io.github.astrapi69.mystic.crypt.panel.dbtree.MysticCryptEntryModelBean;
 
 /**
- * Converts entries between KeePassJava2's {@link SimpleEntry} and this app's own
- * {@link MysticCryptEntryModelBean}, preserving every field the KeePassJava2 {@link Entry} API
- * exposes (UUID, icon index, creation/access/modification/expiry timestamps) so importing and then
- * exporting again is lossless. The one exception is KeePass's entry version history, which
- * {@code SimpleEntry} does not expose through any public API and so cannot be read here
+ * Converts entries between KeePassJava2's {@link JacksonEntry} and this application's
+ * {@link MysticCryptEntryModelBean}, so that a KeePass entry taken in and given back out is the
+ * entry it was: identifier, all four timestamps with the expiry flag, icon index, custom properties
+ * with the protection the user gave them, attachments, and the version history (#384).
+ * <p>
+ * Jackson rather than Simple because Simple offers no way to read the history or to give an entry
+ * back its identifier and timestamps. Where Jackson has no public setter either, the values go
+ * through {@link KeePassLibraryFields}, the one class that reaches the library's fields by
+ * reflection.
+ * <p>
+ * Three things about Jackson's entry that the order below depends on: {@code setProperty} always
+ * stores a value unprotected, even the password; every property and binary setter stamps the
+ * modification time; and a new entry already carries the five standard properties, empty.
  */
 public final class KeePassEntryConverter
 {
@@ -54,13 +66,14 @@ public final class KeePassEntryConverter
 	}
 
 	/**
-	 * Converts the given KeePass entry into a {@link MysticCryptEntryModelBean}
+	 * Converts the given KeePass entry into a {@link MysticCryptEntryModelBean}, its history
+	 * included
 	 *
 	 * @param entry
 	 *            the KeePass entry to convert
 	 * @return the converted entry model bean
 	 */
-	public static MysticCryptEntryModelBean toEntryModelBean(SimpleEntry entry)
+	public static MysticCryptEntryModelBean toEntryModelBean(final JacksonEntry entry)
 	{
 		OffsetDateTime preciseExpiryTime = entry.getExpires()
 			? toOffsetDateTime(entry.getExpiryTime())
@@ -69,7 +82,8 @@ public final class KeePassEntryConverter
 			.title(EntryText.asCharacters(entry.getProperty(Entry.STANDARD_PROPERTY_NAME_TITLE)))
 			.userName(
 				EntryText.asCharacters(entry.getProperty(Entry.STANDARD_PROPERTY_NAME_USER_NAME)))
-			.password(toCharArray(entry.getProperty(Entry.STANDARD_PROPERTY_NAME_PASSWORD)))
+			.password(
+				EntryText.asCharacters(entry.getProperty(Entry.STANDARD_PROPERTY_NAME_PASSWORD)))
 			.url(EntryText.asCharacters(entry.getProperty(Entry.STANDARD_PROPERTY_NAME_URL)))
 			.notes(EntryText.asCharacters(entry.getProperty(Entry.STANDARD_PROPERTY_NAME_NOTES)))
 			.expirable(entry.getExpires())
@@ -80,13 +94,21 @@ public final class KeePassEntryConverter
 			.lastModificationTime(toOffsetDateTime(entry.getLastModificationTime()))
 			.keePassIconIndex(entry.getIcon() != null ? entry.getIcon().getIndex() : null).build();
 
+		Set<String> protectedKeys = new LinkedHashSet<>();
 		for (String propertyName : entry.getPropertyNames())
 		{
-			if (!Entry.STANDARD_PROPERTY_NAMES.contains(propertyName))
+			if (Entry.STANDARD_PROPERTY_NAMES.contains(propertyName))
 			{
-				bean.setProperty(propertyName, entry.getProperty(propertyName));
+				continue;
+			}
+			bean.setProperty(propertyName, entry.getProperty(propertyName));
+			PropertyValue value = entry.getPropertyValue(propertyName);
+			if (value != null && value.isProtected())
+			{
+				protectedKeys.add(propertyName);
 			}
 		}
+		bean.setProtectedPropertyKeys(protectedKeys);
 
 		List<FileContentInfo> resources = new ArrayList<>();
 		for (String binaryPropertyName : entry.getBinaryPropertyNames())
@@ -96,12 +118,13 @@ public final class KeePassEntryConverter
 		}
 		bean.setResources(resources);
 
+		bean.setHistory(historyOf(entry));
 		return bean;
 	}
 
 	/**
 	 * Converts the given {@link MysticCryptEntryModelBean} into a new KeePass entry of the given
-	 * database
+	 * database, carrying its identifier, timestamps, protection and history
 	 *
 	 * @param database
 	 *            the database the new entry belongs to
@@ -109,43 +132,125 @@ public final class KeePassEntryConverter
 	 *            the entry model bean to convert
 	 * @return the new KeePass entry, not yet added to any group
 	 */
-	public static SimpleEntry toSimpleEntry(SimpleDatabase database, MysticCryptEntryModelBean bean)
+	public static JacksonEntry toJacksonEntry(final JacksonDatabase database,
+		final MysticCryptEntryModelBean bean)
 	{
-		SimpleEntry entry = database.newEntry();
-		// the KeePass library takes and returns Strings for every property, so this boundary is
-		// where an entry's text becomes one; the entry's own fields stay characters (#294)
-		entry.setProperty(Entry.STANDARD_PROPERTY_NAME_TITLE, EntryText.asText(bean.getTitle()));
-		entry.setProperty(Entry.STANDARD_PROPERTY_NAME_USER_NAME,
-			EntryText.asText(bean.getUserName()));
-		entry.setProperty(Entry.STANDARD_PROPERTY_NAME_PASSWORD, toStringValue(bean.getPassword()));
-		entry.setProperty(Entry.STANDARD_PROPERTY_NAME_URL, EntryText.asText(bean.getUrl()));
-		entry.setProperty(Entry.STANDARD_PROPERTY_NAME_NOTES, EntryText.asText(bean.getNotes()));
+		JacksonEntry entry = database.newEntry();
+		// the KeePass library takes Strings for every property, so this boundary is where an
+		// entry's text becomes one; the entry's own fields stay characters (#294)
+		setStandardProperty(database, entry, Entry.STANDARD_PROPERTY_NAME_TITLE, bean.getTitle());
+		setStandardProperty(database, entry, Entry.STANDARD_PROPERTY_NAME_USER_NAME,
+			bean.getUserName());
+		setStandardProperty(database, entry, Entry.STANDARD_PROPERTY_NAME_PASSWORD,
+			bean.getPassword());
+		setStandardProperty(database, entry, Entry.STANDARD_PROPERTY_NAME_URL, bean.getUrl());
+		setStandardProperty(database, entry, Entry.STANDARD_PROPERTY_NAME_NOTES, bean.getNotes());
 
-		entry.setExpires(bean.isExpirable());
-		entry.setExpiryTime(toDate(expiryTimeOf(bean)));
-		if (bean.getKeePassIconIndex() != null)
-		{
-			entry.setIcon(new SimpleIcon(bean.getKeePassIconIndex()));
-		}
-		// note: Entry has no public setUuid()/setCreationTime()/setLastAccessTime()/
-		// setLastModificationTime() - those fields are managed internally by the library and
-		// cannot be forced on export, so a re-exported entry gets a fresh uuid/timestamps even
-		// though the original values were preserved above on import
-
+		Set<String> protectedKeys = bean.getProtectedPropertyKeys();
 		for (String propertyName : bean.getPropertyNames())
 		{
-			entry.setProperty(propertyName, bean.getProperty(propertyName));
+			String value = bean.getProperty(propertyName);
+			boolean isProtected = protectedKeys != null && protectedKeys.contains(propertyName);
+			entry.setPropertyValue(propertyName, valueOf(database, value, isProtected));
 		}
 
-		for (FileContentInfo resource : bean.getResources())
+		if (bean.getResources() != null)
 		{
-			entry.setBinaryProperty(resource.getName(), resource.getContent());
+			for (FileContentInfo resource : bean.getResources())
+			{
+				entry.setBinaryProperty(resource.getName(), resource.getContent());
+			}
 		}
 
+		if (bean.getKeePassIconIndex() != null)
+		{
+			entry.setIcon(database.newIcon(bean.getKeePassIconIndex()));
+		}
+		if (bean.getHistory() != null)
+		{
+			JacksonHistory history = new JacksonHistory();
+			List<JacksonEntry> versions = new ArrayList<>();
+			for (MysticCryptEntryModelBean version : bean.getHistory())
+			{
+				versions.add(toJacksonEntry(database, version));
+			}
+			history.setEntry(versions);
+			KeePassLibraryFields.setHistory(entry, history);
+		}
+		if (bean.getId() != null)
+		{
+			KeePassLibraryFields.setUuid(entry, bean.getId());
+		}
+		// last: every setter above stamped the modification time with now
+		KeePassLibraryFields.setTimes(entry, timesOf(bean, KeePassLibraryFields.getTimes(entry)));
 		return entry;
 	}
 
-	private static OffsetDateTime expiryTimeOf(MysticCryptEntryModelBean bean)
+	private static List<MysticCryptEntryModelBean> historyOf(final JacksonEntry entry)
+	{
+		JacksonHistory history = KeePassLibraryFields.getHistory(entry);
+		if (history == null || history.getEntry() == null)
+		{
+			return null;
+		}
+		List<MysticCryptEntryModelBean> versions = new ArrayList<>();
+		for (JacksonEntry version : history.getEntry())
+		{
+			versions.add(toEntryModelBean(version));
+		}
+		return versions;
+	}
+
+	/**
+	 * A standard property, protected when the database says that property is - which Jackson's own
+	 * {@code setProperty} never does. A field the entry does not have is left as the new entry
+	 * holds it, empty
+	 */
+	private static void setStandardProperty(final JacksonDatabase database,
+		final JacksonEntry entry, final String name, final char[] value)
+	{
+		if (value == null)
+		{
+			return;
+		}
+		entry.setPropertyValue(name,
+			valueOf(database, EntryText.asText(value), database.shouldProtect(name)));
+	}
+
+	private static PropertyValue valueOf(final JacksonDatabase database, final String value,
+		final boolean isProtected)
+	{
+		PropertyValue.Factory<? extends PropertyValue> factory = isProtected
+			? database.getPropertyValueStrategy().newProtected()
+			: database.getPropertyValueStrategy().newUnprotected();
+		return factory.of(value == null ? "" : value);
+	}
+
+	private static Times timesOf(final MysticCryptEntryModelBean bean, final Times fromTheLibrary)
+	{
+		Times times = fromTheLibrary != null ? fromTheLibrary : new Times(new Date());
+		if (bean.getCreationTime() != null)
+		{
+			times.setCreationTime(toDate(bean.getCreationTime()));
+		}
+		if (bean.getLastAccessTime() != null)
+		{
+			times.setLastAccessTime(toDate(bean.getLastAccessTime()));
+		}
+		if (bean.getLastModificationTime() != null)
+		{
+			times.setLastModificationTime(toDate(bean.getLastModificationTime()));
+		}
+		OffsetDateTime expiryTime = expiryTimeOf(bean);
+		if (expiryTime != null)
+		{
+			times.setExpiryTime(toDate(expiryTime));
+		}
+		times.setExpires(bean.isExpirable());
+		return times;
+	}
+
+	private static OffsetDateTime expiryTimeOf(final MysticCryptEntryModelBean bean)
 	{
 		if (bean.getPreciseExpiryTime() != null)
 		{
@@ -155,26 +260,15 @@ public final class KeePassEntryConverter
 		{
 			return bean.getExpires().atStartOfDay().atOffset(ZoneOffset.UTC);
 		}
-		// Entry.setExpiryTime(...) requires a non-null value even when expirable is false
-		return OffsetDateTime.now(ZoneOffset.UTC);
+		return null;
 	}
 
-	private static char[] toCharArray(String value)
-	{
-		return value == null ? null : value.toCharArray();
-	}
-
-	private static String toStringValue(char[] value)
-	{
-		return value == null ? null : String.valueOf(value);
-	}
-
-	private static OffsetDateTime toOffsetDateTime(Date date)
+	private static OffsetDateTime toOffsetDateTime(final Date date)
 	{
 		return date == null ? null : OffsetDateTime.ofInstant(date.toInstant(), ZoneOffset.UTC);
 	}
 
-	private static Date toDate(OffsetDateTime dateTime)
+	private static Date toDate(final OffsetDateTime dateTime)
 	{
 		return dateTime == null ? null : Date.from(dateTime.toInstant());
 	}

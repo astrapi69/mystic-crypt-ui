@@ -229,6 +229,12 @@ class KdbxRoundTripKeepsEveryFieldUiTest extends AbstractUiTest
 			"an exported database announces itself as '" + roundTripped.databaseName() + "', '"
 				+ roundTripped.databaseDescription()
 				+ "' - the defaults of a library the user has never heard of (#378)" + readWith);
+
+		assertEquals("kdbx-round-trip", roundTripped.databaseName(),
+			"what the converter decided: the database is named after the vault it came from"
+				+ readWith);
+		assertEquals("Exported from mystic-crypt-ui", roundTripped.databaseDescription(),
+			"and says where it was exported from" + readWith);
 	}
 
 	@Test
@@ -258,12 +264,18 @@ class KdbxRoundTripKeepsEveryFieldUiTest extends AbstractUiTest
 	}
 
 	/**
-	 * Not a defect of this application and not fixed here: the library duplicates every attachment
-	 * into the XML as well as the inner header when it writes KDBX 4, and says so itself in a TODO
-	 * at {@code KdbxStreamFormat.java:81-90}. KeePassXC reports it on every read.
+	 * Not a defect of this application and not fixed here: when it writes KDBX 4, the library puts
+	 * every attachment into the inner header AND leaves the binary pool in the XML, and says so
+	 * itself in a TODO at {@code KdbxStreamFormat.java:81-90} (#379). The TODO sits in the stream
+	 * format both of the library's serializers share.
+	 * <p>
+	 * What KeePassXC says about it depends on which serializer wrote the pool: the Simple one, used
+	 * up to 8.5.1, made it report {@code overwriting binary item "0"}; the Jackson one, used since
+	 * the converter moved to it (#384), makes it report {@code skip element "Binaries"} - measured
+	 * with keepassxc-cli 2.7.10 on the file this test exports. Same cause, different words.
 	 * <p>
 	 * It is pinned as PRESENT rather than ignored, so that the day the upstream fix lands this test
-	 * fails and says so, instead of a fixed defect going unnoticed (#379).
+	 * fails and says so, instead of a fixed defect going unnoticed.
 	 */
 	@Test
 	@DisplayName("the library's binary warning is still there - known, not green")
@@ -271,9 +283,9 @@ class KdbxRoundTripKeepsEveryFieldUiTest extends AbstractUiTest
 	{
 		String warnings = KeePassXcDump.warningsWhileReading(exported, PASSWORD);
 
-		assertTrue(warnings.contains("binary item"),
-			"KeePassXC no longer warns about the duplicated binary pool. That is good news and this "
-				+ "test is how it gets noticed: check whether KeePassJava2 fixed "
+		assertTrue(warnings.contains("skip element \"Binaries\""),
+			"KeePassXC no longer warns about the binary pool left in the XML. That is good news and "
+				+ "this test is how it gets noticed: check whether KeePassJava2 fixed "
 				+ "KdbxStreamFormat's TODO, then close #379 and delete this test. What it read was: "
 				+ warnings + readWith);
 	}

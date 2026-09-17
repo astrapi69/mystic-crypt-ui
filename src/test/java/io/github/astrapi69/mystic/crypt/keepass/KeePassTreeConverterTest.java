@@ -34,8 +34,8 @@ import java.util.concurrent.atomic.AtomicLong;
 import javax.swing.tree.DefaultMutableTreeNode;
 
 import org.junit.jupiter.api.Test;
-import org.linguafranca.pwdb.kdbx.simple.SimpleDatabase;
-import org.linguafranca.pwdb.kdbx.simple.SimpleGroup;
+import org.linguafranca.pwdb.kdbx.jackson.JacksonDatabase;
+import org.linguafranca.pwdb.kdbx.jackson.JacksonGroup;
 
 import io.github.astrapi69.gen.tree.BaseTreeNode;
 import io.github.astrapi69.mystic.crypt.panel.dbtree.MysticCryptEntryModelBean;
@@ -46,25 +46,25 @@ public class KeePassTreeConverterTest
 {
 
 	@Test
-	public void testToTreeNodeStructure()
+	public void testToTreeNodeStructure() throws Exception
 	{
 		// Root
 		// ├── General
 		// │ └── Internet
 		// ├── Communication
 		// └── Backup
-		SimpleDatabase database = new SimpleDatabase();
-		SimpleGroup root = database.getRootGroup();
+		JacksonDatabase database = new JacksonDatabase();
+		JacksonGroup root = database.getRootGroup();
 
-		SimpleGroup general = database.newGroup("General");
+		JacksonGroup general = newGroup(database, "General");
 		root.addGroup(general);
-		SimpleGroup internet = database.newGroup("Internet");
+		JacksonGroup internet = newGroup(database, "Internet");
 		general.addGroup(internet);
 
-		SimpleGroup communication = database.newGroup("Communication");
+		JacksonGroup communication = newGroup(database, "Communication");
 		root.addGroup(communication);
 
-		SimpleGroup backup = database.newGroup("Backup");
+		JacksonGroup backup = newGroup(database, "Backup");
 		root.addGroup(backup);
 
 
@@ -93,12 +93,12 @@ public class KeePassTreeConverterTest
 	}
 
 	@Test
-	public void testGroupMetadataIsPreservedOnImportAndIconOnExport()
+	public void testGroupMetadataIsPreservedOnImportAndIconOnExport() throws Exception
 	{
-		SimpleDatabase database = new SimpleDatabase();
-		SimpleGroup root = database.getRootGroup();
-		SimpleGroup general = database.newGroup("General");
-		general.setIcon(new org.linguafranca.pwdb.kdbx.simple.SimpleIcon(3));
+		JacksonDatabase database = new JacksonDatabase();
+		JacksonGroup root = database.getRootGroup();
+		JacksonGroup general = newGroup(database, "General");
+		general.setIcon(database.newIcon(3));
 		root.addGroup(general);
 
 		AtomicLong idCounter = new AtomicLong(0);
@@ -114,9 +114,9 @@ public class KeePassTreeConverterTest
 		assertEquals(false, generalNode.getValue().getProperties()
 			.get(KeePassTreeConverter.KEEPASS_RECYCLE_BIN_PROPERTY));
 
-		SimpleDatabase exportDatabase = new SimpleDatabase();
-		SimpleGroup exportedGroup = KeePassTreeConverter.toSimpleGroup(exportDatabase, generalNode,
-			exportDatabase.getRootGroup());
+		JacksonDatabase exportDatabase = new JacksonDatabase();
+		JacksonGroup exportedGroup = KeePassTreeConverter.toJacksonGroup(exportDatabase,
+			generalNode, exportDatabase.getRootGroup());
 		assertEquals(3, exportedGroup.getIcon().getIndex());
 	}
 
@@ -127,12 +127,12 @@ public class KeePassTreeConverterTest
 	 * blanks a node's name as soon as it has an icon and is not marked as carrying text.
 	 */
 	@Test
-	public void testGroupIconIndexBecomesTheIconTheRendererDraws()
+	public void testGroupIconIndexBecomesTheIconTheRendererDraws() throws Exception
 	{
-		SimpleDatabase database = new SimpleDatabase();
-		SimpleGroup root = database.getRootGroup();
-		SimpleGroup general = database.newGroup("General");
-		general.setIcon(new org.linguafranca.pwdb.kdbx.simple.SimpleIcon(48));
+		JacksonDatabase database = new JacksonDatabase();
+		JacksonGroup root = database.getRootGroup();
+		JacksonGroup general = newGroup(database, "General");
+		general.setIcon(database.newIcon(48));
 		root.addGroup(general);
 
 		AtomicLong idCounter = new AtomicLong(0);
@@ -153,12 +153,12 @@ public class KeePassTreeConverterTest
 	 * given a path to an image that is not there
 	 */
 	@Test
-	public void testAGroupWithAnIconOutsideTheShippedSetGetsNoIconPath()
+	public void testAGroupWithAnIconOutsideTheShippedSetGetsNoIconPath() throws Exception
 	{
-		SimpleDatabase database = new SimpleDatabase();
-		SimpleGroup root = database.getRootGroup();
-		SimpleGroup general = database.newGroup("General");
-		general.setIcon(new org.linguafranca.pwdb.kdbx.simple.SimpleIcon(200));
+		JacksonDatabase database = new JacksonDatabase();
+		JacksonGroup root = database.getRootGroup();
+		JacksonGroup general = newGroup(database, "General");
+		general.setIcon(database.newIcon(200));
 		root.addGroup(general);
 
 		AtomicLong idCounter = new AtomicLong(0);
@@ -182,13 +182,13 @@ public class KeePassTreeConverterTest
 
 	/**
 	 * A group node whose content list is null and which has no children at all - the two guards in
-	 * {@link KeePassTreeConverter#toSimpleGroup} that a tree built by hand can easily hit, for
+	 * {@link KeePassTreeConverter#toJacksonGroup} that a tree built by hand can easily hit, for
 	 * instance a freshly created empty folder.
 	 */
 	@Test
-	public void testToSimpleGroupWithoutEntriesAndWithoutChildren()
+	public void testToJacksonGroupWithoutEntriesAndWithoutChildren() throws Exception
 	{
-		SimpleDatabase database = new SimpleDatabase();
+		JacksonDatabase database = new JacksonDatabase();
 		GenericTreeElement<List<MysticCryptEntryModelBean>> element = new GenericTreeElement<>();
 		element.setName("Empty folder");
 		element.setDefaultContent(null);
@@ -196,7 +196,7 @@ public class KeePassTreeConverterTest
 			.<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> builder().id(1L)
 			.value(element).build();
 
-		SimpleGroup group = KeePassTreeConverter.toSimpleGroup(database, node,
+		JacksonGroup group = KeePassTreeConverter.toJacksonGroup(database, node,
 			database.getRootGroup());
 
 		assertEquals("Empty folder", group.getName());
@@ -205,9 +205,9 @@ public class KeePassTreeConverterTest
 	}
 
 	@Test
-	public void testToSimpleGroupWithEntriesAndAChild()
+	public void testToJacksonGroupWithEntriesAndAChild() throws Exception
 	{
-		SimpleDatabase database = new SimpleDatabase();
+		JacksonDatabase database = new JacksonDatabase();
 		GenericTreeElement<List<MysticCryptEntryModelBean>> childElement = new GenericTreeElement<>();
 		childElement.setName("Child folder");
 		BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> child = BaseTreeNode
@@ -223,7 +223,7 @@ public class KeePassTreeConverterTest
 			.value(element).build();
 		node.addChild(child);
 
-		SimpleGroup group = KeePassTreeConverter.toSimpleGroup(database, node,
+		JacksonGroup group = KeePassTreeConverter.toJacksonGroup(database, node,
 			database.getRootGroup());
 
 		assertEquals(1, group.getEntries().size(), "the content must become an entry");
@@ -232,4 +232,11 @@ public class KeePassTreeConverterTest
 		assertEquals("Child folder", group.getGroups().get(0).getName());
 	}
 
+
+	private static JacksonGroup newGroup(final JacksonDatabase database, final String name)
+	{
+		JacksonGroup group = database.newGroup();
+		group.setName(name);
+		return group;
+	}
 }

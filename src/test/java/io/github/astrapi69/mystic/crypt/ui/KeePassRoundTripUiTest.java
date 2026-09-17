@@ -24,6 +24,7 @@
  */
 package io.github.astrapi69.mystic.crypt.ui;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.File;
@@ -36,8 +37,9 @@ import io.github.astrapi69.mystic.crypt.TestPasswords;
 
 /**
  * End-to-end round-trip use case "export then re-import": exporting the open database to a
- * {@code .kdbx} file and importing that same file back in must produce its own "Imported from ..."
- * group in the tree - proof that the exporter writes a file the importer can read
+ * {@code .kdbx} file and importing that same file back in must add the exported root again - proof
+ * that the exporter writes a file the importer can read. A new vault's only node, "mykeys", is the
+ * exported database's root, so the import adds a second node of that name (#377)
  */
 class KeePassRoundTripUiTest extends AbstractUiTest
 {
@@ -54,14 +56,16 @@ class KeePassRoundTripUiTest extends AbstractUiTest
 
 		ApplicationSteps application = signInWithExistingDatabase(databaseFile, MASTER_PASSWORD);
 
+		long before = application.treeNodesNamed("mykeys");
 		application.exportKeePassDatabase(exportFile, KDBX_PASSWORD);
 		assertTrue(exportFile.exists() && exportFile.length() > 0,
 			"the export must produce a non-empty .kdbx file");
 
 		application.importKeePassDatabase(exportFile, KDBX_PASSWORD);
 
-		assertTrue(application.treeContainsNodeStartingWith("Imported from roundtrip-export.kdbx"),
-			"re-importing the exported file must add its own group to the tree");
+		assertEquals(before + 1, application.treeNodesNamed("mykeys"),
+			"re-importing the exported file adds the exported root to the tree under its own name, "
+				+ "with no \"Imported from\" level in between");
 		assertTrue(MysticCryptApplicationFrame.getInstance().getModelObject().isDirty(),
 			"a successful re-import must mark the model dirty so it gets saved");
 	}

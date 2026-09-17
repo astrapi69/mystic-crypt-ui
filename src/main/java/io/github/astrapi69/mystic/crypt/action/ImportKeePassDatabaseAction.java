@@ -38,8 +38,7 @@ import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 
 import org.linguafranca.pwdb.kdbx.KdbxCreds;
-import org.linguafranca.pwdb.kdbx.simple.SimpleDatabase;
-import org.linguafranca.pwdb.kdbx.simple.SimpleGroup;
+import org.linguafranca.pwdb.kdbx.jackson.JacksonDatabase;
 
 import io.github.astrapi69.component.model.enumeration.visibility.RenderMode;
 import io.github.astrapi69.design.pattern.observer.event.EventObject;
@@ -119,8 +118,8 @@ public class ImportKeePassDatabaseAction extends AbstractAction
 			KdbxCreds credentials = newCredentials(panel);
 			try (InputStream inputStream = new FileInputStream(file))
 			{
-				SimpleDatabase database = SimpleDatabase.load(credentials, inputStream);
-				importDatabase(instance, applicationPanel, database, file.getName());
+				JacksonDatabase database = JacksonDatabase.load(credentials, inputStream);
+				importDatabase(instance, applicationPanel, database);
 			}
 		}
 		catch (Exception exception)
@@ -154,7 +153,7 @@ public class ImportKeePassDatabaseAction extends AbstractAction
 	}
 
 	private void importDatabase(MysticCryptApplicationFrame instance,
-		ApplicationPanel applicationPanel, SimpleDatabase database, String sourceFileName)
+		ApplicationPanel applicationPanel, JacksonDatabase database)
 	{
 		ApplicationModelBean applicationModelBean = instance.getModelObject();
 		SecretKeyTreeWithContentPanel treePanel = applicationPanel
@@ -166,14 +165,15 @@ public class ImportKeePassDatabaseAction extends AbstractAction
 			.getModelObject();
 		LongIdGenerator idGenerator = instance.getIdGenerator();
 
-		SimpleGroup keePassRootGroup = database.getRootGroup();
-		BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> importedNode = KeePassTreeConverter
-			.toTreeNode(keePassRootGroup, root, () -> {
-				Long nextId = idGenerator.getNextId();
-				applicationModelBean.setLastId(nextId);
-				return nextId;
-			});
-		importedNode.getValue().setName("Imported from " + sourceFileName);
+		// the KeePass root goes in under its own name. It used to be renamed "Imported from" and
+		// the
+		// file's name, and the export then hung it under a new root of its own: every round trip
+		// added a level and lost the name (#377)
+		KeePassTreeConverter.toTreeNode(database.getRootGroup(), root, () -> {
+			Long nextId = idGenerator.getNextId();
+			applicationModelBean.setLastId(nextId);
+			return nextId;
+		});
 
 		DefaultMutableTreeNode newRootNode = BaseTreeNodeFactory.newDefaultMutableTreeNode(root);
 		// an imported tree is built by the same factory, so it needs the same correction

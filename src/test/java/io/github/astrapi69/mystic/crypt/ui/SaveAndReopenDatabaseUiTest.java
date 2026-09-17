@@ -54,14 +54,14 @@ class SaveAndReopenDatabaseUiTest extends AbstractUiTest
 
 		ApplicationSteps application = signInWithExistingDatabase(databaseFile, MASTER_PASSWORD);
 		application.importKeePassDatabase(keePassFile, KEEPASS_PASSWORD);
-		assertTrue(application.treeContainsNodeStartingWith("Imported from test-db.kdbx"),
+		assertTrue(application.treeContainsNodeStartingWith("test-db"),
 			"the imported group must be in the tree before saving");
 		application.saveDatabase();
 
 		shutdownApplication();
 
 		ApplicationSteps reopened = signInWithExistingDatabase(databaseFile, MASTER_PASSWORD);
-		assertTrue(reopened.treeContainsNodeStartingWith("Imported from test-db.kdbx"),
+		assertTrue(reopened.treeContainsNodeStartingWith("test-db"),
 			"the imported group must still be in the tree after save and reopen");
 	}
 }

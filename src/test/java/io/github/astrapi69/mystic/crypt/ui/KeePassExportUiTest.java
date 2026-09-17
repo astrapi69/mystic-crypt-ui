@@ -34,7 +34,7 @@ import java.nio.charset.StandardCharsets;
 
 import org.junit.jupiter.api.Test;
 import org.linguafranca.pwdb.kdbx.KdbxCreds;
-import org.linguafranca.pwdb.kdbx.simple.SimpleDatabase;
+import org.linguafranca.pwdb.kdbx.jackson.JacksonDatabase;
 
 import io.github.astrapi69.mystic.crypt.TestPasswords;
 
@@ -63,14 +63,16 @@ class KeePassExportUiTest extends AbstractUiTest
 		assertTrue(exportFile.exists(), "the exported .kdbx file must exist on disk");
 		assertTrue(exportFile.length() > 0, "the exported .kdbx file must not be empty");
 		assertTrue(loadableWithPassword(exportFile, EXPORT_PASSWORD),
-			"the exported file must be readable by KeePassJava2 with the chosen password");
+			"the exported file must be readable by the importer with the chosen password");
 	}
 
 	private boolean loadableWithPassword(File kdbxFile, String password) throws IOException
 	{
 		try (InputStream inputStream = new FileInputStream(kdbxFile))
 		{
-			SimpleDatabase database = SimpleDatabase
+			// read the way this application imports since #384. The Simple reader of 8.5.1 cannot
+			// read this file: it requires a DefaultUserName element the Jackson writer leaves out
+			JacksonDatabase database = JacksonDatabase
 				.load(new KdbxCreds(password.getBytes(StandardCharsets.UTF_8)), inputStream);
 			return database.getRootGroup() != null;
 		}
