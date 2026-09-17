@@ -61,6 +61,17 @@ import io.github.astrapi69.swing.renderer.tree.GenericTreeElement;
 final class ApplicationSteps
 {
 
+	/** How long a dialog gets to appear after the action that opens it */
+	private static final int DIALOG_TIMEOUT_SECONDS = 10;
+
+	/**
+	 * How long a KeePass import or export gets before its result dialog appears. The dialog follows
+	 * a key derivation: the KeePassXC fixture's Argon2d took 4.4 to 4.9 seconds per load on a
+	 * 16-core machine, and the 10 seconds any dialog gets timed out in CI, intermittently (#414)
+	 */
+	private static final int KEY_DERIVATION_TIMEOUT_SECONDS = 90;
+
+
 	private final Robot robot;
 
 	ApplicationSteps(Robot robot)
@@ -103,7 +114,7 @@ final class ApplicationSteps
 		UiTestSpeed.step();
 		clickDialogButton(importDialog, "OK");
 
-		dismissMessageDialog("Import successful");
+		dismissMessageDialog("Import successful", KEY_DERIVATION_TIMEOUT_SECONDS);
 		return this;
 	}
 
@@ -138,7 +149,7 @@ final class ApplicationSteps
 		UiTestSpeed.step();
 		clickDialogButton(importDialog, "OK");
 
-		dismissMessageDialog("Import successful");
+		dismissMessageDialog("Import successful", KEY_DERIVATION_TIMEOUT_SECONDS);
 		return this;
 	}
 
@@ -235,7 +246,7 @@ final class ApplicationSteps
 		UiTestSpeed.step();
 		clickDialogButton(exportDialog, "OK");
 
-		dismissMessageDialog("Export successful");
+		dismissMessageDialog("Export successful", KEY_DERIVATION_TIMEOUT_SECONDS);
 		return this;
 	}
 
@@ -1707,7 +1718,17 @@ final class ApplicationSteps
 	/** Waits for the modal message dialog with the given title and closes it via its OK button */
 	void dismissMessageDialog(String title)
 	{
-		DialogFixture messageDialog = findDialogWithTitle(title);
+		dismissMessageDialog(title, DIALOG_TIMEOUT_SECONDS);
+	}
+
+	/**
+	 * Waits as long as given for the modal message dialog with the given title and closes it via
+	 * its OK button - for a dialog that only appears once an operation with its own duration is
+	 * done
+	 */
+	void dismissMessageDialog(String title, int timeoutSeconds)
+	{
+		DialogFixture messageDialog = findDialogWithTitle(title, timeoutSeconds);
 		clickDialogButton(messageDialog, "OK");
 		Pause.pause(new Condition("message dialog '" + title + "' is closed")
 		{
@@ -1721,6 +1742,11 @@ final class ApplicationSteps
 
 	DialogFixture findDialogWithTitle(String title)
 	{
+		return findDialogWithTitle(title, DIALOG_TIMEOUT_SECONDS);
+	}
+
+	DialogFixture findDialogWithTitle(String title, int timeoutSeconds)
+	{
 		DialogFixture dialog = WindowFinder.findDialog(new GenericTypeMatcher<Dialog>(Dialog.class)
 		{
 			@Override
@@ -1728,7 +1754,7 @@ final class ApplicationSteps
 			{
 				return title.equals(candidate.getTitle()) && candidate.isShowing();
 			}
-		}).withTimeout(10, TimeUnit.SECONDS).using(robot);
+		}).withTimeout(timeoutSeconds, TimeUnit.SECONDS).using(robot);
 		UiTestSpeed.step();
 		return dialog;
 	}
