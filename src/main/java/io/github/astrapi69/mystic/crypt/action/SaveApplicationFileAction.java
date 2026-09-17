@@ -53,7 +53,7 @@ public class SaveApplicationFileAction extends AbstractAction
 	@Override
 	public void actionPerformed(final ActionEvent e)
 	{
-		if (MysticCryptApplicationFrame.getInstance().refusesToSaveAReadOnlyVault())
+		if (MysticCryptApplicationFrame.getInstance().refusesBecauseTheVaultIsReadOnly())
 		{
 			return;
 		}

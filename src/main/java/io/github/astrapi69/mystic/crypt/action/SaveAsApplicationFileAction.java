@@ -66,7 +66,7 @@ public class SaveAsApplicationFileAction extends AbstractAction
 	public void actionPerformed(final ActionEvent e)
 	{
 		MysticCryptApplicationFrame frame = MysticCryptApplicationFrame.getInstance();
-		if (frame.refusesToSaveAReadOnlyVault())
+		if (frame.refusesBecauseTheVaultIsReadOnly())
 		{
 			return;
 		}

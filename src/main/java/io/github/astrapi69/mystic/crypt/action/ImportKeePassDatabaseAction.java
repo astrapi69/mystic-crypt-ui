@@ -78,6 +78,11 @@ public class ImportKeePassDatabaseAction extends AbstractAction
 	public void actionPerformed(final ActionEvent e)
 	{
 		MysticCryptApplicationFrame instance = MysticCryptApplicationFrame.getInstance();
+		if (instance.refusesBecauseTheVaultIsReadOnly())
+		{
+			// an import is a change to the open vault, and a read-only one takes none (#405)
+			return;
+		}
 		ApplicationPanel applicationPanel = instance.getApplicationPanel();
 		if (applicationPanel == null)
 		{

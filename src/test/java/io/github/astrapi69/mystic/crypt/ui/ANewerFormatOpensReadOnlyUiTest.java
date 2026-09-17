@@ -30,12 +30,17 @@ import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.io.File;
 import java.nio.file.Files;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JMenuBar;
 import javax.swing.JOptionPane;
+import javax.swing.JTable;
+import javax.swing.JTree;
 import javax.swing.MenuElement;
 import javax.swing.SwingUtilities;
 
@@ -55,6 +60,7 @@ import io.github.astrapi69.mystic.crypt.action.SaveAsApplicationFileAction;
 import io.github.astrapi69.mystic.crypt.app.file.xml.PasswordVaultFormat;
 import io.github.astrapi69.mystic.crypt.app.file.xml.VaultXmlCodec;
 import io.github.astrapi69.mystic.crypt.eventbus.ApplicationEventBus;
+import io.github.astrapi69.xstream.ObjectToXmlExtensions;
 
 /**
  * A vault written in a format newer than this build knows opens read-only (#402, the maintainer's
@@ -75,6 +81,12 @@ class ANewerFormatOpensReadOnlyUiTest extends AbstractUiTest
 	private static final String READ_ONLY_TITLE = "Opened read-only";
 
 	private static final String ENTRY_TITLE = "written before the newer version saved it";
+
+	/** The node every new vault starts with, where the entry is put */
+	private static final String ENTRY_NODE = "mykeys";
+
+	/** A sibling, so moving a node has somewhere to go */
+	private static final String SECOND_NODE = "a second node";
 
 	@Test
 	@DisplayName("a newer vault opens readable, names the version it needs, and both ways of saving are disabled")
@@ -123,6 +135,92 @@ class ANewerFormatOpensReadOnlyUiTest extends AbstractUiTest
 			"and the file is as the newer version left it");
 	}
 
+	/**
+	 * Every way the tree and the table offer to change the vault, and the import into it, through
+	 * the binding a user reaches it by - popup item, key or menu item. Each is refused with the
+	 * read-only message, and afterwards the model is what it was and nothing marked it dirty
+	 * (#405). The keys go through the components' own action maps, fired later on the event thread,
+	 * because the refusal is a modal dialog the test has to close.
+	 */
+	@Test
+	@DisplayName("every way of changing a read-only vault is refused, and the model stays as it was")
+	void everyWayOfChanging_isRefused_andTheModelIsUnchanged() throws Exception
+	{
+		File vault = aVaultANewerVersionWrote();
+		ApplicationSteps application = signInWithExistingDatabase(vault, MASTER_PASSWORD);
+		application.dismissMessageDialog(READ_ONLY_TITLE);
+		FrameFixture frame = application.showMainFrame();
+		application.selectTreeRowByName(frame, SECOND_NODE).selectTreeRowByName(frame, ENTRY_NODE)
+			.selectEntryRowByTitle(frame, ENTRY_TITLE);
+		String modelBefore = modelAsXml();
+		JTree tree = frame.tree().target();
+		JTable table = frame.table().target();
+
+		Map<String, Runnable> waysOfChanging = new LinkedHashMap<>();
+		waysOfChanging.put("add node (root popup)",
+			() -> application.chooseFromTreeRootPopup(frame, "add node..."));
+		waysOfChanging.put("add node (node popup)",
+			() -> application.chooseFromTreeNodePopup(frame, ENTRY_NODE, "add node..."));
+		waysOfChanging.put("add node (INSERT)", () -> fire(tree, "addChildToSelectedNode"));
+		waysOfChanging.put("edit node (popup)",
+			() -> application.chooseFromTreeNodePopup(frame, ENTRY_NODE, "Edit node..."));
+		waysOfChanging.put("edit node (F2)", () -> fire(tree, "editSelectedNode"));
+		waysOfChanging.put("duplicate node (popup)",
+			() -> application.chooseFromTreeNodePopup(frame, ENTRY_NODE, "Duplicate node..."));
+		waysOfChanging.put("duplicate node (ctrl K)", () -> fire(tree, "duplicateSelectedNode"));
+		waysOfChanging.put("move node down (popup)",
+			() -> application.chooseFromTreeNodePopup(frame, ENTRY_NODE, "Move down"));
+		waysOfChanging.put("move node up (alt UP)", () -> fire(tree, "moveSelectedNodeUp"));
+		waysOfChanging.put("move node down (alt DOWN)", () -> fire(tree, "moveSelectedNodeDown"));
+		waysOfChanging.put("move to node (popup)",
+			() -> application.chooseFromTreeNodePopup(frame, ENTRY_NODE, "Move to node..."));
+		waysOfChanging.put("delete node (popup)",
+			() -> application.chooseFromTreeNodePopup(frame, ENTRY_NODE, "delete"));
+		waysOfChanging.put("delete node (DELETE)", () -> fire(tree, "deleteSelectedNode"));
+		waysOfChanging.put("add entry (popup)",
+			() -> application.chooseFromSelectedEntryPopup(frame, "add..."));
+		waysOfChanging.put("add entry (INSERT)", () -> fire(table, "addEntryUnderSelectedNode"));
+		waysOfChanging.put("edit entry (popup)",
+			() -> application.chooseFromSelectedEntryPopup(frame, "edit..."));
+		waysOfChanging.put("edit entry (ENTER)", () -> fire(table, "editSelectedEntry"));
+		waysOfChanging.put("duplicate entry (popup)",
+			() -> application.chooseFromSelectedEntryPopup(frame, "duplicate..."));
+		waysOfChanging.put("delete entry (popup)",
+			() -> application.chooseFromSelectedEntryPopup(frame, "delete"));
+		waysOfChanging.put("delete entry (DELETE)", () -> fire(table, "deleteSelectedEntries"));
+		waysOfChanging.put("import from KeePass (File menu)",
+			() -> application.fireMenuItem(MenuId.IMPORT_KEEPASS.propertiesKey()));
+
+		for (Map.Entry<String, Runnable> wayOfChanging : waysOfChanging.entrySet())
+		{
+			application.selectTreeRowByName(frame, ENTRY_NODE).selectEntryRowByTitle(frame,
+				ENTRY_TITLE);
+			wayOfChanging.getValue().run();
+			String refusal = messageOfTheDialogTitled(READ_ONLY_TITLE);
+			application.dismissMessageDialog(READ_ONLY_TITLE);
+			assertTrue(refusal.contains("format version " + NEWER),
+				wayOfChanging.getKey() + " is refused with the read-only message: " + refusal);
+			assertEquals(modelBefore, modelAsXml(),
+				wayOfChanging.getKey() + " left the model as it was");
+			assertFalse(
+				GuiActionRunner.execute(
+					() -> MysticCryptApplicationFrame.getInstance().getModelObject().isDirty()),
+				wayOfChanging.getKey() + " did not mark the vault as changed");
+		}
+	}
+
+	private static void fire(final JComponent component, final String actionKey)
+	{
+		SwingUtilities.invokeLater(() -> component.getActionMap().get(actionKey)
+			.actionPerformed(new ActionEvent(component, ActionEvent.ACTION_PERFORMED, actionKey)));
+	}
+
+	private static String modelAsXml()
+	{
+		return GuiActionRunner.execute(() -> ObjectToXmlExtensions
+			.toXml(MysticCryptApplicationFrame.getInstance().getModelObject()));
+	}
+
 	@Test
 	@DisplayName("ending with changes to a read-only vault asks to discard them and never writes")
 	void endingWithChanges_asksToDiscard_insteadOfOfferingASave() throws Exception
@@ -155,8 +253,9 @@ class ANewerFormatOpensReadOnlyUiTest extends AbstractUiTest
 		createDatabaseFileHeadless(vault, MASTER_PASSWORD);
 		ApplicationSteps application = signInWithExistingDatabase(vault, MASTER_PASSWORD);
 		FrameFixture frame = application.showMainFrame();
-		application.selectTreeRow(frame, 0).addEntry(frame, ENTRY_TITLE, "someone",
+		application.selectTreeRowByName(frame, ENTRY_NODE).addEntry(frame, ENTRY_TITLE, "someone",
 			TestPasswords.throwaway());
+		application.addNodeToTreeRoot(frame, SECOND_NODE);
 		application.saveDatabase();
 		shutdownApplication();
 
