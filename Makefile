@@ -114,11 +114,11 @@ merge-pr:
 # skipping them (#333) - CI builds them before the suite for the same reason, and a target that
 # leaves 54 tests red by construction would only teach people to ignore them
 test-e2e: plugins
-	JAVA_HOME=$(JAVA_HOME) ./scripts/e2e-harness.sh e2eTest
+	JAVA_HOME=$(JAVA_HOME) ./scripts/e2e-harness.sh e2eTest e2eLockTest e2eKdbxTest
 
 # end-to-end UI tests in demo mode: paced like a real user, watchable on screen
 test-e2e-demo: plugins
-	JAVA_HOME=$(JAVA_HOME) ./scripts/e2e-harness.sh e2eTest --rerun -Dmystic.crypt.ui.test.mode=demo
+	JAVA_HOME=$(JAVA_HOME) ./scripts/e2e-harness.sh e2eTest --rerun e2eLockTest --rerun e2eKdbxTest --rerun -Dmystic.crypt.ui.test.mode=demo
 
 clean:
 	JAVA_HOME=$(JAVA_HOME) ./gradlew clean

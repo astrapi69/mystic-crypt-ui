@@ -836,7 +836,7 @@ list, so these two are edited together.
 
 ### Test wiring in the host
 
-`src/test/java/io/github/astrapi69/mystic/crypt/ui/AbstractUiTest.java` holds one constant per plugin
+`src/e2eSupport/java/io/github/astrapi69/mystic/crypt/ui/AbstractUiTest.java` holds one constant per plugin
 zip, used by the end-to-end tests:
 
 ```java
@@ -881,7 +881,7 @@ Where the tests live:
 | What | Where | Run by |
 |---|---|---|
 | Support/logic, commands, settings, panel construction | `plugins/{name}-plugin/src/test/java` | `make plugin-{name}` |
-| End-to-end through the real UI | `src/test/java/io/github/astrapi69/mystic/crypt/ui/*UiTest.java` | `make test-e2e` |
+| End-to-end through the real UI | `src/e2e*/java/io/github/astrapi69/mystic/crypt/ui/*UiTest.java` | `make test-e2e` |
 
 ### Support tests: the round trip and the refusals
 
@@ -1091,7 +1091,7 @@ default:
 ### End-to-end: the plugin loaded from its zip, driven through the real UI
 
 Every user-visible change needs an e2e test in the host
-(`src/test/java/io/github/astrapi69/mystic/crypt/ui/`). The base class installs the built zip into a
+(`src/e2eTest/java/io/github/astrapi69/mystic/crypt/ui/` and the other `src/e2e*` source sets). The base class installs the built zip into a
 per-test isolated home directory before the application starts, and skips the test (a JUnit
 assumption, not a failure) when the zip was not built:
 
@@ -1270,4 +1270,4 @@ skips itself when the zip path does not exist, so the suite still reads green).
 | Example plugin, full set of contributions | `plugins/secret-sharing-plugin/` |
 | Example plugin with a panel test and a mixin command | `plugins/file-crypt-plugin/` |
 | Build, install and installer wiring | `Makefile`, `src/main/izpack/install.xml`, `gradle/izpack.gradle` |
-| E2e wiring | `src/test/java/io/github/astrapi69/mystic/crypt/ui/AbstractUiTest.java`, `PluginLoadingUiTest.java`, `SecretSharingUiTest.java` |
+| E2e wiring | `src/e2eSupport/java/io/github/astrapi69/mystic/crypt/ui/AbstractUiTest.java`, `PluginLoadingUiTest.java`, `SecretSharingUiTest.java` |

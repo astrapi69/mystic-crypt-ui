@@ -1,16 +1,75 @@
 // The suites are split by what they need, not by what they are called (#319).
 //
-// Gradle's build cache key covers a whole test task, so one changed test file used to invalidate
-// all of them: 693 tests, of which 113 UI classes each fork their own JVM, for about ten minutes on
-// every change. Most changes touch one side only, and now each side has its own key.
-def uiSuitePattern = "io.github.astrapi69.mystic.crypt.ui.*"
+// Gradle's build cache key covers a whole test task: its test classes and its whole runtime class
+// path. So a split only saves a run when the suites also have separate CLASSES. Until #319 was done
+// the end-to-end task read the same classes directory as the unit task, and one changed unit test
+// invalidated every UI test with it. Measured in CI (#319): a pull request that changed no test
+// input restored both suites FROM-CACHE in 3 seconds; the split below extends that to a change in a
+// unit test, and to a change in one UI area not invalidating the others.
+//
+// The source sets, each its own directory and its own classes:
+//   testSupport - what unit and UI tests share (TestPasswords, logging configuration)
+//   test        - the unit tests, no display
+//   e2eSupport  - the UI steps every end-to-end suite drives the application with
+//   e2eKdbx     - the KDBX round trip against the file KeePassXC wrote, and its fixture
+//   e2eLock     - locking, closing and ending the application
+//   e2eTest     - every other end-to-end test
+// A change to a support source set invalidates every suite that uses it, which is correct: the
+// suites run through it. A change to the application itself invalidates all of them, also
+// correctly - the end-to-end tests drive the whole application, so it is their input.
+sourceSets {
+    testSupport {
+        compileClasspath += sourceSets.main.output
+        runtimeClasspath += sourceSets.main.output
+    }
+    test {
+        compileClasspath += sourceSets.testSupport.output
+        runtimeClasspath += sourceSets.testSupport.output
+    }
+    e2eSupport {
+        compileClasspath += sourceSets.main.output + sourceSets.testSupport.output
+        runtimeClasspath += sourceSets.main.output + sourceSets.testSupport.output
+    }
+    ['e2eKdbx', 'e2eLock', 'e2eTest'].each { suite ->
+        create(suite) {
+            compileClasspath += sourceSets.main.output + sourceSets.testSupport.output + sourceSets.e2eSupport.output
+            runtimeClasspath += sourceSets.main.output + sourceSets.testSupport.output + sourceSets.e2eSupport.output
+        }
+    }
+}
+
+// every test source set gets the dependencies the unit tests have: the same libraries, the same
+// Lombok, the same JUnit launcher
+['testSupport', 'e2eSupport', 'e2eKdbx', 'e2eLock', 'e2eTest'].each { set ->
+    configurations.named("${set}Implementation") { extendsFrom configurations.testImplementation }
+    configurations.named("${set}RuntimeOnly") { extendsFrom configurations.testRuntimeOnly }
+    configurations.named("${set}CompileOnly") { extendsFrom configurations.testCompileOnly }
+    configurations.named("${set}AnnotationProcessor") { extendsFrom configurations.testAnnotationProcessor }
+}
+
+def e2eSuites = ['e2eTest', 'e2eLockTest', 'e2eKdbxTest']
+
+// One display, one window manager, one system clipboard - and since the suites are separate tasks,
+// Gradle runs them at the same time: the configuration cache lets tasks of one project execute in
+// parallel. Measured on the first run of the split (#319): e2eTest, e2eLockTest and e2eKdbxTest
+// interleaved in the log, and tests that pass alone failed, clicking into each other's windows and
+// reading each other's clipboard. Every test task holds this service while it runs, so no two run
+// at once. The unit suite holds it too: ClipboardClearWatchdogTest drives the real system clipboard.
+abstract class OneDisplay implements org.gradle.api.services.BuildService<org.gradle.api.services.BuildServiceParameters.None> {
+}
+def oneDisplay = gradle.sharedServices.registerIfAbsent('oneDisplay', OneDisplay) {
+    maxParallelUsages = 1
+}
+tasks.withType(Test).configureEach {
+    usesService(oneDisplay)
+}
 
 test {
     useJUnitPlatform()
     // everything that does not need a display. No per-class fork: these tests share no singleton,
     // and a JVM start per class is most of their runtime
     filter {
-        excludeTestsMatching uiSuitePattern
+        includeTestsMatching 'io.github.astrapi69.mystic.crypt.*'
         // a filter that matches nothing is an empty run reporting green, and an empty run is not a
         // clean result (quality-checks.md). This is the one place it can happen silently
         failOnNoMatchingTests = true
@@ -18,30 +77,35 @@ test {
     applyTestLogging(it)
 }
 
-// The end-to-end suite: the Swing tests, in their own task so a change in a unit test does not
-// invalidate them and a change here does not invalidate the fast ones.
-tasks.register('e2eTest', Test) {
-    description = 'Runs the Swing end-to-end tests. Needs Xvfb + fluxbox; see lessons-learned.md'
-    group = 'verification'
-    useJUnitPlatform()
-    testClassesDirs = sourceSets.test.output.classesDirs
-    classpath = sourceSets.test.runtimeClasspath
-    filter {
-        includeTestsMatching uiSuitePattern
-        failOnNoMatchingTests = true
+// The end-to-end suites: the Swing tests, one task per source set so each has its own cache key.
+[e2eTest: 'e2eTest', e2eLockTest: 'e2eLock', e2eKdbxTest: 'e2eKdbx'].each { taskName, setName ->
+    tasks.register(taskName, Test) {
+        description = "Runs the Swing end-to-end tests of src/${setName}. Needs Xvfb + fluxbox; see lessons-learned.md"
+        group = 'verification'
+        useJUnitPlatform()
+        testClassesDirs = sourceSets[setName].output.classesDirs
+        classpath = sourceSets[setName].runtimeClasspath
+        filter {
+            includeTestsMatching 'io.github.astrapi69.mystic.crypt.*'
+            failOnNoMatchingTests = true
+        }
+        // three of the tests open this fixture by its path rather than from the class path, so it
+        // is declared: an undeclared file is one the cache key would not see change
+        inputs.file('src/test/resources/test-db.kdbx').withPropertyName('keePassFixture')
+            .withPathSensitivity(PathSensitivity.NONE)
+        // the AssertJ-Swing UI tests drive a process-wide singleton (MysticCryptApplicationFrame) and
+        // register listeners on the static ApplicationEventBus; run each test class in its own fresh
+        // JVM so that static/singleton state from one class cannot contaminate the next - this is
+        // what makes the full UI suite pass, not just each test in isolation
+        forkEvery = 1
+        // a hang is a failure, not a wait. One focus race in AddEntryUiTest sat for 40 minutes with
+        // no output and nothing to end it (#322); on a hosted runner that is six hours of nothing.
+        // The limit is per test method and generous - the slowest of these drives a whole application
+        systemProperty 'junit.jupiter.execution.timeout.testable.method.default', '3m'
+        applyTestLogging(it)
+        // after the fast one, so a failure that both would catch is reported by the cheap suite first
+        shouldRunAfter test
     }
-    // the AssertJ-Swing UI tests drive a process-wide singleton (MysticCryptApplicationFrame) and
-    // register listeners on the static ApplicationEventBus; run each test class in its own fresh
-    // JVM so that static/singleton state from one class cannot contaminate the next - this is what
-    // makes the full UI suite pass, not just each test in isolation
-    forkEvery = 1
-    // a hang is a failure, not a wait. One focus race in AddEntryUiTest sat for 40 minutes with no
-    // output and nothing to end it (#322); on a hosted runner that is six hours of nothing. The
-    // limit is per test method and generous - the slowest of these drives a whole application
-    systemProperty 'junit.jupiter.execution.timeout.testable.method.default', '3m'
-    applyTestLogging(it)
-    // after the fast one, so a failure that both would catch is reported by the cheap suite first
-    shouldRunAfter test
 }
 
 // print the whole stack trace of a failed test to the console. Without this Gradle shows only the
@@ -68,7 +132,7 @@ def applyTestLogging(Test task) {
 tasks.register('testSummary') {
     description = 'Prints what the test suites actually ran, from their result XML'
     group = 'verification'
-    def resultDirs = ['test', 'e2eTest'].collect { layout.buildDirectory.dir("test-results/$it") }
+    def resultDirs = ['test', 'e2eTest', 'e2eLockTest', 'e2eKdbxTest'].collect { layout.buildDirectory.dir("test-results/$it") }
     inputs.files(resultDirs.collect { it.map { dir -> dir.asFileTree.matching { include '**/TEST-*.xml' } } })
     doLast {
         def anyFound = false
@@ -119,12 +183,13 @@ tasks.named('test') {
     finalizedBy 'testSummary'
     doLast { logger.lifecycle('test: executed in this build') }
 }
-tasks.named('e2eTest') {
-    finalizedBy 'testSummary'
-    doLast { logger.lifecycle('e2eTest: executed in this build') }
+e2eSuites.each { suite ->
+    tasks.named(suite) {
+        finalizedBy 'testSummary'
+        doLast { logger.lifecycle("${suite}: executed in this build") }
+    }
+    check.dependsOn suite
 }
-
-check.dependsOn 'e2eTest'
 
 // pinned rather than left to whatever the Gradle version in use happens to bundle, so a coverage
 // report is produced by a version somebody chose (#277)
@@ -133,10 +198,10 @@ jacoco {
 }
 
 jacocoTestReport {
-    // both suites, or the report silently loses whatever only the UI tests reach (#319)
-    executionData.from files("$buildDir/jacoco/test.exec", "$buildDir/jacoco/e2eTest.exec")
-        .filter { it.exists() }
-    dependsOn test, 'e2eTest'
+    // every suite, or the report silently loses whatever only the UI tests reach (#319)
+    executionData.from files("$buildDir/jacoco/test.exec", "$buildDir/jacoco/e2eTest.exec",
+        "$buildDir/jacoco/e2eLockTest.exec", "$buildDir/jacoco/e2eKdbxTest.exec").filter { it.exists() }
+    dependsOn test, 'e2eTest', 'e2eLockTest', 'e2eKdbxTest'
     reports {
         xml.required.set(true)
         html.required.set(true)

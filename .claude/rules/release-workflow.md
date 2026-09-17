@@ -48,20 +48,23 @@ Prompt triggers: "release new version", "new release".
      that install one skipped, and a release could be cut with every plugin feature
      unverified while the gate read green. `make test` and
      `make test-e2e` are not run beside it, but not because one contains the other: since
-     #319 the two suites are DISJOINT - `test` excludes
-     `io.github.astrapi69.mystic.crypt.ui.*` and `e2eTest` is exactly that pattern. What
-     puts both inside `build-full` is `check.dependsOn 'e2eTest'`
-     (`gradle/testing.gradle`). Running the e2e suite three times measures nothing new.
+     #319 the suites are DISJOINT source sets - `test` (unit), and the end-to-end tasks
+     `e2eTest`, `e2eLockTest` and `e2eKdbxTest`, each with its own classes and its own cache
+     key. What puts all of them inside `build-full` is `check.dependsOn` on each
+     (`gradle/testing.gradle`). Running the e2e suites three times measures nothing new.
    - the gate reports what it measured: since #306 the build prints it itself, one line
      per suite, plus an `executed in this build` line that is ABSENT when the task was
      UP-TO-DATE or FROM-CACHE and only restored its results. Read it, and read the XML in
-     `build/test-results/test` and `build/test-results/e2eTest` when a number is in doubt.
+     `build/test-results/test`, `e2eTest`, `e2eLockTest` and `e2eKdbxTest` when a number is in
+     doubt.
      An empty result set is not a green gate.
-   - force the TEST TASKS only: `./gradlew test e2eTest --rerun`, then `./gradlew build`.
-     Both names, not just `test`: the flag applies to the tasks it is given, and after the
-     split `test` is the half whose inputs Gradle sees completely. Re-running that one and
-     letting the UI suite come back from the cache inverts the whole reason for the step
-     (#330). Not `--rerun-tasks` either, which also throws away the compile, the jar, the
+   - force the TEST TASKS only, each one: `./gradlew test --rerun e2eTest --rerun
+     e2eLockTest --rerun e2eKdbxTest --rerun`, then `./gradlew build`. `--rerun` is a task
+     option and binds to the task named right before it - written once at the end it forced
+     only the last task, measured in the #409 gate as `> Task :test UP-TO-DATE` (#410).
+     Re-running the unit suite and letting the UI suites come back from the cache inverts the
+     whole reason for the step (#330). This is the release gate only: CI builds without
+     `--rerun`, so an unchanged suite comes back from the cache there (#319). Not `--rerun-tasks` either, which also throws away the compile, the jar, the
      javadoc, spotless and the packaging - none of which has an input Gradle cannot see.
      The UI suite does: a display and a window manager are in no cache key, and both
      produced a green-looking result that said nothing about this machine (8.5).

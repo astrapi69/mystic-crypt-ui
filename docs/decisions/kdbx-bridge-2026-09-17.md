@@ -29,7 +29,7 @@ issues it links), not a rule. The binding short form is in `KeePassEntryConverte
 ## What a round trip keeps
 
 Measured by `KdbxRoundTripKeepsEveryFieldUiTest` through the application's menus - import, save,
-end, sign in, export - against `src/test/resources/kdbx/keepassxc-2.7.10-kdbx4.kdbx`, both files
+end, sign in, export - against `src/e2eKdbx/resources/kdbx/keepassxc-2.7.10-kdbx4.kdbx`, both files
 read with `keepassxc-cli export -f xml`, 10 of 10 green locally with keepassxc-cli 2.7.10 and in CI
 with 2.7.6 (CI run 35205468621; the version is printed on every run since #407):
 

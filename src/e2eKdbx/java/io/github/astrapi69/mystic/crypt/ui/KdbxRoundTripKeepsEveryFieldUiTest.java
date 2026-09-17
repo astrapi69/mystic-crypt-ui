@@ -75,7 +75,7 @@ import io.github.astrapi69.mystic.crypt.keepass.KeePassXcDump;
  * differently says which one it ran against.
  * <p>
  * The fixture is real third-party material: KDBX 4.0, Argon2d, with its content and password
- * recorded in {@code src/test/resources/kdbx/README.md} (#380).
+ * recorded in {@code src/e2eKdbx/resources/kdbx/README.md} (#380).
  * <p>
  * Deliberately outside the agreed scope, named here so nobody has to wonder: {@code UsageCount} and
  * {@code LocationChanged} are not asserted.

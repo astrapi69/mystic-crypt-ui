@@ -103,4 +103,8 @@ jobs:
             build/test-results/test
             build/reports/tests/e2eTest
             build/test-results/e2eTest
+            build/reports/tests/e2eLockTest
+            build/test-results/e2eLockTest
+            build/reports/tests/e2eKdbxTest
+            build/test-results/e2eKdbxTest
           retention-days: 14
