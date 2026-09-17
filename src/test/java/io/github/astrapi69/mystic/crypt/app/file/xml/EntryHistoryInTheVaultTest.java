@@ -108,6 +108,29 @@ class EntryHistoryInTheVaultTest
 			"a property the user marked protected stays marked (#389)");
 	}
 
+	/**
+	 * Whatever collection a caller hands in, the vault gets a standard one. {@code Set.of} and
+	 * {@code List.of} are JDK-internal classes that XStream can only write by reflecting into
+	 * {@code java.util}: without {@code --add-opens} the write fails, and with it the vault would
+	 * carry {@code java.util.ImmutableCollections$Set12} as a type name (#408)
+	 */
+	@Test
+	@DisplayName("an immutable history or set of protected names is written as a standard collection")
+	void immutableCollections_areWrittenAsStandardOnes()
+	{
+		MysticCryptEntryModelBean entry = anEntry(CURRENT_TITLE);
+		entry.setHistory(List.of(anEntry(PREVIOUS_TITLE)));
+		entry.setProtectedPropertyKeys(Set.of("TOTP seed"));
+
+		String xml = new String(VaultXmlCodec.toXml(aModelWith(entry)));
+
+		assertFalse(xml.contains("ImmutableCollections"),
+			"a JDK-internal collection class is not part of the vault format: " + xml);
+		MysticCryptEntryModelBean readBack = onlyEntryOf(VaultXmlCodec.toModel(xml.toCharArray()));
+		assertEquals(Set.of("TOTP seed"), readBack.getProtectedPropertyKeys());
+		assertArrayEquals(PREVIOUS_TITLE.toCharArray(), readBack.getHistory().get(0).getTitle());
+	}
+
 	@Test
 	@DisplayName("a vault that never had either field reads both as null, and the entry accepts that")
 	void aVaultWithoutTheFields_readsThemAsNull()
