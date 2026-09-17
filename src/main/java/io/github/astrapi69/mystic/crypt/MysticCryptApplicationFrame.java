@@ -709,14 +709,15 @@ public class MysticCryptApplicationFrame extends ApplicationPanelFrame<Applicati
 	}
 
 	/**
-	 * Refuses a save of a vault in a newer format with the reason, before the save does anything
-	 * else (#402). Save As retargets the open vault before it writes, so a refusal from the writer
-	 * alone would leave it pointing at a file nothing was written to; and a disabled menu item is
-	 * one rebuilt menu bar away from being enabled again
+	 * Refuses a save of, or a change to, a vault in a newer format with the reason, before the
+	 * caller does anything else. A save would drop from the file what reading it skipped (#402); a
+	 * change could only ever be discarded (#405). Save As retargets the open vault before it
+	 * writes, and the tree's editors write into the model while they are open, so refusing any
+	 * later than the first line is too late
 	 *
-	 * @return true if the open vault is read-only and the save has to stop
+	 * @return true if the open vault is read-only and the caller has to stop
 	 */
-	public boolean refusesToSaveAReadOnlyVault()
+	public boolean refusesBecauseTheVaultIsReadOnly()
 	{
 		if (!VaultXmlCodec.isNewerThanThisBuild(getModelObject()))
 		{

@@ -11,9 +11,9 @@ A record of the decisions taken in [#402](https://github.com/astrapi69/mystic-cr
 - Reading skips an element the build does not know. All three ways a vault is protected read and
   write through `VaultXmlCodec`.
 - A vault whose version is higher than the build's **opens read-only**: it is shown, opening it
-  names the version it needs, Save and Save As are disabled, and the save-before-close question
-  offers only to discard. `VaultXmlCodec.toXml` and `ApplicationXmlFileStoreWorker.storeApplicationFile`
-  refuse to write it, so a caller the menu does not know about cannot either.
+  names the version it needs, and it takes no changes and no save - every way of changing it and
+  both save actions refuse with that message (#405), and `VaultXmlCodec.toXml` and
+  `ApplicationXmlFileStoreWorker.storeApplicationFile` refuse the write underneath.
 - An entry's history and the names of its protected properties are `null` when empty, so a vault
   without them writes no element for them.
 
@@ -41,15 +41,6 @@ and lose data on the next save. Read-only does neither (the maintainer's Q1).
   without network (the maintainer's Q2).
 - `VaultFormatVersionTest`: the attribute, the skipped element, all three protection paths, the
   refusal to write a newer vault and that the refusal leaves it dirty.
-- `ANewerFormatOpensReadOnlyUiTest`: a newer vault opens readable, names its version, and Save, Save
-  As and the toolbar's Save stay disabled before and after an edit; ending with changes asks to
-  discard and writes nothing.
-
-## Not covered
-
-A menu bar rebuilt by the menu designer or by enabling a plugin does not re-apply the read-only
-disabling, so Save or Save As can look available. Clicking either says why it is read-only and does
-nothing else - both actions check before they touch the model - and the writer refuses underneath.
-
-Locking a changed read-only vault with "save when locking" on writes nothing and says nothing: the
-refusal is logged and the vault stays dirty and locked until somebody unlocks it and decides.
+- `ANewerFormatOpensReadOnlyUiTest`: a newer vault opens readable and names its version; Save, Save
+  As and the toolbar's Save are disabled; every way of changing it is refused and leaves the model
+  unchanged and clean.

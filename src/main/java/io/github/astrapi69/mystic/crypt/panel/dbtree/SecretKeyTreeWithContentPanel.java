@@ -545,6 +545,10 @@ public class SecretKeyTreeWithContentPanel
 	protected void onDuplicateSelectedTreeNode(
 		final DefaultMutableTreeNode selectedDefaultMutableTreeNode)
 	{
+		if (refusesAChange())
+		{
+			return;
+		}
 		// get the selected tree node from the DefaultMutableTreeNode
 		BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> selectedTreeNode = (BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long>)selectedDefaultMutableTreeNode
 			.getUserObject();
@@ -781,6 +785,10 @@ public class SecretKeyTreeWithContentPanel
 	protected void onMoveSelectedTreeNode(
 		final DefaultMutableTreeNode selectedDefaultMutableTreeNode, final int offset)
 	{
+		if (refusesAChange())
+		{
+			return;
+		}
 		BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> selectedTreeNode = (BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long>)selectedDefaultMutableTreeNode
 			.getUserObject();
 		if (!canMove(selectedTreeNode, offset))
@@ -828,6 +836,10 @@ public class SecretKeyTreeWithContentPanel
 	@SuppressWarnings("unchecked")
 	protected void onMoveSelectedTreeNodeToAnotherParent(MouseEvent mouseEvent)
 	{
+		if (refusesAChange())
+		{
+			return;
+		}
 		JTreeExtensions.getSelectedDefaultMutableTreeNode(mouseEvent, tree)
 			.ifPresent(selectedDefaultMutableTreeNode -> {
 				BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> selectedTreeNode = (BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long>)selectedDefaultMutableTreeNode
@@ -1026,6 +1038,10 @@ public class SecretKeyTreeWithContentPanel
 	@SuppressWarnings("unchecked")
 	protected void addChildTreeNode(DefaultMutableTreeNode parentSwingNode)
 	{
+		if (refusesAChange())
+		{
+			return;
+		}
 		BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> parentTreeNode = (BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long>)parentSwingNode
 			.getUserObject();
 		NodePanel panel = new NodePanel();
@@ -1075,6 +1091,10 @@ public class SecretKeyTreeWithContentPanel
 	protected void onEditSelectedTreeNode(
 		final DefaultMutableTreeNode selectedDefaultMutableTreeNode)
 	{
+		if (refusesAChange())
+		{
+			return;
+		}
 		Object userObject = selectedDefaultMutableTreeNode.getUserObject();
 		BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> selectedTreeNode = (BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long>)userObject;
 		NodePanel panel = new NodePanel(
@@ -1126,6 +1146,10 @@ public class SecretKeyTreeWithContentPanel
 	 */
 	protected void onDeleteSelectedTreeNode(final DefaultMutableTreeNode selectedTreeNodeToDelete)
 	{
+		if (refusesAChange())
+		{
+			return;
+		}
 		{
 			int option = DialogExtensions.showConfirmDialog(null, "Confirm deletion",
 				"<div width='450'>Are you sure<br></div>"
@@ -1284,6 +1308,10 @@ public class SecretKeyTreeWithContentPanel
 
 	protected void onDuplicateTableEntry()
 	{
+		if (refusesAChange())
+		{
+			return;
+		}
 		getTblTreeEntryTable().getSingleSelectedRowData().ifPresent(selectedTableEntry -> {
 			// NOT CloneQuietlyExtensions.clone(...): that resolves to a shallow copy, so original
 			// and duplicate would share the same resources/properties/modification lists
@@ -1375,6 +1403,10 @@ public class SecretKeyTreeWithContentPanel
 
 	protected void onDeleteTableEntry()
 	{
+		if (refusesAChange())
+		{
+			return;
+		}
 		int option = DialogExtensions.showConfirmDialog(null, "Confirm deletion",
 			"<div width='450'>Are you sure<br></div>"
 				+ "<div>The delete action is not recoverable</div>",
@@ -1423,6 +1455,10 @@ public class SecretKeyTreeWithContentPanel
 
 	protected void onAddTableEntry()
 	{
+		if (refusesAChange())
+		{
+			return;
+		}
 		MysticCryptEntryTabbedPanel panel = new MysticCryptEntryTabbedPanel();
 
 		int option = JOptionPaneExtensions.getSelectedOption(panel, JOptionPane.PLAIN_MESSAGE,
@@ -1473,6 +1509,19 @@ public class SecretKeyTreeWithContentPanel
 		}
 	}
 
+	/**
+	 * Whether the open vault is read-only, saying why when it is. Every way the tree and the table
+	 * change the vault asks this first, because a vault in a newer format takes no changes (#405):
+	 * they could only ever be discarded, and the entry editor writes into the entry while it is
+	 * still open (#303), so refusing after it opened would be too late
+	 *
+	 * @return true if the change has to stop
+	 */
+	private static boolean refusesAChange()
+	{
+		return MysticCryptApplicationFrame.getInstance().refusesBecauseTheVaultIsReadOnly();
+	}
+
 	private void reloadApplicationTreeModel()
 	{
 		BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> rootTreeNode = getModelObject();
@@ -1511,6 +1560,10 @@ public class SecretKeyTreeWithContentPanel
 
 	private void showEditMysticCryptEntryDialog(MysticCryptEntryModelBean tableEntry)
 	{
+		if (refusesAChange())
+		{
+			return;
+		}
 		MysticCryptEntryTabbedPanel panel = new MysticCryptEntryTabbedPanel(
 			BaseModel.of(tableEntry));
 		// counted while it is open, because what is typed here is already on the entry in the tree

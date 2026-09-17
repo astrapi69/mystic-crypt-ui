@@ -1624,6 +1624,45 @@ final class ApplicationSteps
 		});
 	}
 
+	/**
+	 * Right-clicks the named tree node and chooses the given popup item, and nothing more: whatever
+	 * the item opens is the caller's to handle
+	 */
+	ApplicationSteps chooseFromTreeNodePopup(org.assertj.swing.fixture.FrameFixture frame,
+		String nodeName, String menuItemText)
+	{
+		rightClickTreeNodeByName(frame, nodeName);
+		chooseFromShowingPopup(menuItemText);
+		return this;
+	}
+
+	/**
+	 * Right-clicks below the tree nodes and chooses the given item of the root popup, nothing more
+	 */
+	ApplicationSteps chooseFromTreeRootPopup(org.assertj.swing.fixture.FrameFixture frame,
+		String menuItemText)
+	{
+		rightClickBelowTheTreeNodes(frame);
+		chooseFromShowingPopup(menuItemText);
+		return this;
+	}
+
+	/** Right-clicks the selected entry row and chooses the given popup item, nothing more */
+	ApplicationSteps chooseFromSelectedEntryPopup(org.assertj.swing.fixture.FrameFixture frame,
+		String menuItemText)
+	{
+		rightClickSelectedTableRow(frame);
+		chooseFromShowingPopup(menuItemText);
+		return this;
+	}
+
+	/** Fires the menu item with the given stable name, nothing more */
+	ApplicationSteps fireMenuItem(String menuItemName)
+	{
+		clickMenuItem(menuItemName);
+		return this;
+	}
+
 	/** Finds a menu item by its stable name and fires it (the menu bar is never shown in tests) */
 	private void clickMenuItem(String menuItemName)
 	{
