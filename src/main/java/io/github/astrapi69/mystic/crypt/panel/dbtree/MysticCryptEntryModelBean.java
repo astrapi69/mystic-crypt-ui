@@ -114,6 +114,12 @@ public class MysticCryptEntryModelBean
 	List<FileContentInfo> resources = new ArrayList<>();
 
 	/** The properties for this entry */
+	/**
+	 * The custom properties. Excluded from {@code toString} as a whole: a custom property is where
+	 * a TOTP seed, a recovery code or a PIN is kept, and whether a value is a secret is the user's
+	 * knowledge, not the model's (#404)
+	 */
+	@ToString.Exclude
 	@Builder.Default
 	List<KeyValuePair<String, String>> properties = new ArrayList<>();
 
