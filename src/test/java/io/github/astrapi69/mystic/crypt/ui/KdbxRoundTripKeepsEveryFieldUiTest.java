@@ -34,6 +34,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -104,6 +105,19 @@ class KdbxRoundTripKeepsEveryFieldUiTest extends AbstractUiTest
 	private KdbxFacts source;
 	private KdbxFacts roundTripped;
 	private String readWith;
+
+	/**
+	 * Names the instrument once per run, passed or failed: a green round trip that does not say
+	 * which KeePassXC it compared with is a measurement without its measuring device. The line goes
+	 * to standard output, which the test report keeps for passing tests too (the CI artifact
+	 * {@code test-reports})
+	 */
+	@BeforeAll
+	static void nameTheKeePassXcItIsMeasuredWith()
+	{
+		System.out.println("KDBX round trip measured with keepassxc-cli " + KeePassXcDump.version()
+			+ "; the fixture was written with " + FIXTURE_WRITTEN_WITH);
+	}
 
 	@BeforeEach
 	void importSaveReopenAndExportTheFixture() throws Exception
