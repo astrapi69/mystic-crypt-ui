@@ -14,6 +14,16 @@ Prompt triggers: "release new version", "new release".
   out prominently in the CHANGELOG).
 - Gitflow: release is prepared from `develop`, tagged, and `master` carries releases.
   Never hand-tag mid-state.
+- **A hotfix is a patch release built from the release it patches, not from `develop`.**
+  When `develop` already carries a `feat` since the last release, a release from it is a minor
+  by SemVer, and a patch that has to go out carries only fixes: branch `hotfix/X.Y.Z` from
+  `RELEASE-X.Y`, pull requests against that branch (`make merge-pr PR=n TARGET=hotfix/X.Y.Z`;
+  CI runs on `hotfix/**`), the steps below run on the branch, the tag names its head and
+  `master` moves onto the tag. Afterwards the WHOLE branch is merged into `develop` - never
+  cherry-picked - with the conflicts resolved there under the full gate, and the branch is
+  deleted. Nothing on a hotfix branch changes the build, the release path or a persisted
+  format: those go to `develop` and wait for the minor. First case: 8.5.1 (#395), where
+  `develop` held three `feat` commits and the three P1 fixes had to reach 8.5 users alone.
 
 ## Steps
 

@@ -33,6 +33,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 import lombok.experimental.FieldDefaults;
 import lombok.experimental.SuperBuilder;
 
@@ -52,6 +53,7 @@ public class NewPrivateKeyModelBean
 	KeySize keySize = KeySize.KEYSIZE_2048;
 
 	/** The model for the private key */
+	@ToString.Exclude
 	KeyModel privateKeyInfo;
 
 	/** The private key directory */

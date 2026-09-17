@@ -25,6 +25,7 @@
 package io.github.astrapi69.mystic.crypt;
 
 import java.awt.*;
+import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.File;
 import java.io.Serial;
@@ -41,7 +42,6 @@ import org.pf4j.PluginManager;
 import org.pf4j.PluginWrapper;
 
 import io.github.astrapi69.awt.extension.ClipboardExtensions;
-import io.github.astrapi69.awt.window.adapter.CloseWindow;
 import io.github.astrapi69.file.create.DirectoryFactory;
 import io.github.astrapi69.file.read.ReadFileExtensions;
 import io.github.astrapi69.gson.JsonStringToObjectExtensions;
@@ -690,39 +690,80 @@ public class MysticCryptApplicationFrame extends ApplicationPanelFrame<Applicati
 	}
 
 	/**
-	 * Checks if all changes have been stored to the application file
+	 * Routes the window's close button through the one ending path
 	 */
 	protected void onWindowClosing()
 	{
-		// Swing must not close this window on its own. The answer to the question below decides
-		// whether the application ends, and EXIT_ON_CLOSE would end it after the listener returns
-		// whatever that answer was - which is how Cancel came to mean the same as No (#288)
+		// Swing must not close this window on its own. The answer to the question decides whether
+		// the application ends, and EXIT_ON_CLOSE would end it after the listener returns whatever
+		// that answer was - which is how Cancel came to mean the same as No (#288)
 		setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
-		MysticCryptApplicationFrame.this.addWindowListener(new CloseWindow()
+		MysticCryptApplicationFrame.this.addWindowListener(new WindowAdapter()
 		{
 			@Override
 			public void windowClosing(WindowEvent windowEvent)
 			{
-				// the question itself lives in SaveBeforeCloseConfirmation since #281: closing a
-				// vault, replacing it with another one and ending the application are three callers
-				// of one question, and it used to be reachable only through this listener
-				SaveBeforeCloseConfirmation.Choice choice = SaveBeforeCloseConfirmation.askAndApply(
-					MysticCryptApplicationFrame.this,
-					MysticCryptApplicationFrame.this.getModelObject());
-				if (SaveBeforeCloseConfirmation.Choice.CANCELLED.equals(choice))
-				{
-					// the third answer is the only reason to offer three. Yes and No both end the
-					// application, and a Cancel that also ended it was a button reading as a way
-					// back while being none - it cost the user every change since the last save,
-					// and the window was gone before they could react (#288)
-					return;
-				}
-				stopTheIdleLockWatchdog();
-				stopTheClipboardClearWatchdog();
-				stopPluginsQuietly();
-				super.windowClosing(windowEvent);
+				endTheApplication();
 			}
 		});
+	}
+
+	/**
+	 * Ends the application for real: the ending path with the JVM's exit at its end. This is the
+	 * only place in the application that reaches {@link System#exit(int)}, and a wiring test pins
+	 * that the callers do not reach it any other way.
+	 *
+	 * @return {@code true} when the application is ending, {@code false} when the question was
+	 *         cancelled
+	 */
+	public boolean endTheApplication()
+	{
+		return endTheApplication(() -> System.exit(0));
+	}
+
+	/**
+	 * The one way the application ends: the save question, the vault closed and overwritten, then
+	 * the exit. Every caller goes through here - the window's close button and File > Exit - so a
+	 * third way of ending cannot skip a step the way File > Exit did.
+	 * <p>
+	 * File > Exit used to be a library action whose whole body was {@code System.exit(0)}: no
+	 * question, so unsaved changes were gone (#386); no close, so the decrypted vault was left in
+	 * memory for the JVM to release without overwriting (#387). The window button asked but did not
+	 * close either. Measured on both, in the running application, with the entry's password array
+	 * held across the ending: intact after each of them, zero-filled after this.
+	 * <p>
+	 * The exit is a parameter for one reason: a test cannot assert anything after
+	 * {@code System.exit}, and the property this method has to hold - overwritten BEFORE the exit -
+	 * is asserted by handing it an exit that does not end the JVM.
+	 *
+	 * @param exit
+	 *            what ends the JVM once the vault is gone; {@code System.exit(0)} in the
+	 *            application
+	 * @return {@code true} when the application is ending, {@code false} when the question was
+	 *         cancelled and nothing was touched
+	 */
+	public boolean endTheApplication(final Runnable exit)
+	{
+		// the question lives in SaveBeforeCloseConfirmation since #281: closing a vault, replacing
+		// it and ending the application are three callers of one question. Cancel is the third
+		// answer, and the only reason to offer three (#288)
+		SaveBeforeCloseConfirmation.Choice choice = SaveBeforeCloseConfirmation.askAndApply(this,
+			getModelObject());
+		if (SaveBeforeCloseConfirmation.Choice.CANCELLED.equals(choice))
+		{
+			return false;
+		}
+		stopTheIdleLockWatchdog();
+		stopTheClipboardClearWatchdog();
+		stopPluginsQuietly();
+		if (VaultCloseSupport.aVaultIsOpen(getModelObject()))
+		{
+			// the same close as the menu item's, not a wipe of its own: one path that overwrites,
+			// so that what closing erases and what ending erases cannot drift apart (#242)
+			closeOpenVault();
+		}
+		exit.run();
+		return true;
 	}
 
 	/**
