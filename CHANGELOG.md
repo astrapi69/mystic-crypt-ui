@@ -1,6 +1,24 @@
 ## Change log
 ----------------------
 
+Version 8.5.1
+-------------
+
+A patch for 8.5, built from the release it patches rather than from the development branch, so that it carries these three fixes and nothing else. All three were found by measurement in the running 8.5, not reported by a user, and all three concern what the application does with data the user has not asked it to touch.
+
+SECURITY:
+
+- Ctrl+C on a node of the database tree put every password of that node on the system clipboard. The tree copied the node's internal text representation, which listed each entry with its title, user name and password - 857 characters for a single entry, measured - and the clipboard is a surface every other program of the same user can read. The tree now copies the node's name and nothing else, and no model object of this application prints a password, a key or a master password in its text representation any more, which is checked for every such object by a test. A password leaves the vault through "Copy Password" and no other way (#388)
+
+FIXED:
+
+- "Exit" in the File menu ended the application without asking about unsaved changes. Every other way of ending asked; this one, wired since 2020 to a library action whose whole body ends the process, did not, and a user who chose it expecting the question lost every change since the last save. There is now one way to end - the question, the vault closed, then the exit - and both the menu item and the window's close button go through it (#386)
+- ending the application never overwrote the decrypted vault. Closing a vault erases its content from memory since 8.5; ending the application did not, on either path, so the one moment the vault's life in memory was supposed to end was the moment its content was left exactly as it was, for a core dump, a swap file or a hibernation image. Measured with the entry's password held across the ending: intact before, zero-filled now. Ending goes through the same close as the menu item, so what closing erases and what ending erases cannot drift apart (#387)
+
+FORMAT:
+
+- unchanged. A vault written by 8.5.1 opens in 8.5 and one written by 8.5 opens in 8.5.1; nothing the vault file stores was added, removed or renamed
+
 Version 8.5
 -------------
 
