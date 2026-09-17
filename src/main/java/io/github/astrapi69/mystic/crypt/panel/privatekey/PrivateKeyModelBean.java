@@ -33,6 +33,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 import lombok.experimental.FieldDefaults;
 
 /**
@@ -56,6 +57,7 @@ public class PrivateKeyModelBean implements Serializable
 
 	KeySize keySize;
 
+	@ToString.Exclude
 	PrivateKey privateKey;
 
 	/** The key file. */

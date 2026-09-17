@@ -45,6 +45,14 @@ Wiped when the vault closes - by the idle watchdog, by the menu item, or at the 
 application: all of the above, plus everything the lock left in place, plus the verifier the lock
 created. Overwritten, not dropped, which is what `VaultCloseSupport` and its tests are for.
 
+The end of the application was named in that sentence from the start and was not true until 8.5.1.
+Neither way of ending went through the close: File > Exit was a library action whose whole body was
+`System.exit(0)`, and the window's close button asked about unsaved changes and then exited. On both,
+the decrypted vault was left for the JVM to release exactly as it was (#387). Both now call
+`MysticCryptApplicationFrame.endTheApplication`, which runs the same `closeOpenVault` as the menu
+item before the exit - not a wipe of its own, so what closing erases and what ending erases cannot
+drift apart - and File > Exit asks the question it used to skip (#386).
+
 ## The clipboard is cleared three ways, and one of them looks first
 
 The clipboard is the only thing on that list which is not this process's memory. It is a system-wide
@@ -55,7 +63,7 @@ why its clock is measured in seconds rather than minutes.
 | when | where | does it look first |
 |---|---|---|
 | the workspace locks | `LockWorkspaceAction.actionPerformed` | no, it is wiped (#237) |
-| the vault closes | `MysticCryptApplicationFrame.closeOpenVault` | no, it is wiped (#242) |
+| the vault closes, including when the application ends | `MysticCryptApplicationFrame.closeOpenVault` | no, it is wiped (#242, #387) |
 | a copied secret has sat there long enough | `ClipboardClearWatchdog` | yes, only if it still holds what was copied (#352) |
 
 The third one is the odd one, deliberately. Lock and close happen because the user stepped away or
@@ -77,6 +85,13 @@ because the reason it is on the clipboard is that they are about to paste it. It
 the two password fields and nowhere else; whoever wants it elsewhere copies it themselves, and that
 copy is covered by the row above like any other - because getting it there was then their own
 decision.
+
+A second write escaped them too, and without anybody asking for it: Ctrl+C on a node of the database
+tree. Swing's default transfer handler exports the node's text, which was the model's Lombok
+`toString`, and that listed every entry of the node with its password (#388). The tree now hands the
+clipboard the node's name and nothing else (`TreeNodeNameTransferHandler`), and no model bean prints a
+password, a key or a master password in its `toString`. From the tree, a password reaches the
+clipboard through "Copy Password", which is the path that arms the watchdog.
 
 ## The clock is the bound, and it is the user's
 
@@ -127,6 +142,9 @@ None of these is a gap somebody forgot; each is a limit of the layer.
   caller a way to overwrite; `getPassword()` hands out a copy and the original stays.
 - **String copies of entry text.** `EntryText.asText` produces a `String` for every rendered or
   copied field, and a String cannot be overwritten.
+- **String copies of an attachment that was looked at.** `AttachmentContent.asText` decodes the bytes
+  into a `String` when `AttachmentPanel` shows the attachment, and the text area keeps it in its
+  document. Closing overwrites the bytes; the decoded text is the Swing limit above, once per viewing.
 - **Custom property values.** They are `KeyValuePair<String, String>`, and the conversion that worked
   for the entry's own six fields does not work here - it would change the vault format. Measured and
   pinned in `EntryPropertiesTypeIsPartOfTheFormatTest` (#335).
@@ -139,6 +157,10 @@ None of these is a gap somebody forgot; each is a limit of the layer.
 and asserts both halves: the key material zero-filled, the entries untouched.
 `ClosingAVaultErasesItFromMemoryUiTest` does the same across a close, and
 `AutomaticLockHoldsTheInvariantUiTest` drives the watchdog that connects the two.
+`EndingTheApplicationErasesTheVaultUiTest` holds an entry's password across the ending, with an exit
+handed in that does not end the JVM, and asserts it zero-filled - once after answering No to the save
+question, once for a clean vault that is not asked about. `ExitAsksBeforeDiscardingUiTest` clicks the
+real File > Exit item and cancels the question.
 
 Every one of those asserts on the buffer rather than on the field, because a null check passes
 whether or not anything was overwritten - and half of what is asserted here is that something was
@@ -150,3 +172,8 @@ waits for the system clipboard to empty, and copies something else within the in
 timer leaves that alone. `ClipboardClearWatchdogTest` drives the same watchdog against the real
 system clipboard with an injected clock, so "twenty seconds later" is asserted rather than waited
 for.
+
+What reaches the clipboard without being copied on purpose is checked where it happens:
+`TreeCopyGivesTheClipboardOnlyTheNodeNameUiTest` fires the tree's copy and reads the system
+clipboard, and `NoModelBeanPrintsASecretTest` puts a sentinel through the beans and scans every Lombok
+`toString` in the main sources for key material that is not excluded.

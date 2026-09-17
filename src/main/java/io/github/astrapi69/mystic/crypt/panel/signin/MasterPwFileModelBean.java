@@ -41,6 +41,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
+import lombok.ToString;
 import lombok.experimental.FieldDefaults;
 import lombok.experimental.SuperBuilder;
 import lombok.extern.java.Log;
@@ -88,6 +89,7 @@ public class MasterPwFileModelBean implements Serializable
 	 * {@code ApplicationXmlFileReader} puts it on the model from there on both key paths. A
 	 * database written before this carries the element still, and XStream skips it on the way in.
 	 */
+	@ToString.Exclude
 	transient KeyModel privateKeyInfo;
 
 	/** The key file info for create the key file object */
@@ -115,9 +117,13 @@ public class MasterPwFileModelBean implements Serializable
 	 * credential along with the data. It is held for the length of the session and comes from the
 	 * sign-in dialog, not from the file.
 	 */
+	@ToString.Exclude
+	@EqualsAndHashCode.Exclude
 	transient char[] masterPw;
 
 	/** The repeat of the master password char array, transient for the same reason as masterPw. */
+	@ToString.Exclude
+	@EqualsAndHashCode.Exclude
 	transient char[] repeatPw;
 
 	/**

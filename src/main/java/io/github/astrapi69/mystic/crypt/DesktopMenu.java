@@ -58,6 +58,7 @@ import io.github.astrapi69.design.pattern.observer.event.EventSource;
 import io.github.astrapi69.lang.ClassExtensions;
 import io.github.astrapi69.mystic.crypt.action.ApplicationToggleFullScreenAction;
 import io.github.astrapi69.mystic.crypt.action.CloseApplicationFileAction;
+import io.github.astrapi69.mystic.crypt.action.EndApplicationAction;
 import io.github.astrapi69.mystic.crypt.action.ExportKeePassDatabaseAction;
 import io.github.astrapi69.mystic.crypt.action.ImportKeePassDatabaseAction;
 import io.github.astrapi69.mystic.crypt.action.LockWorkspaceAction;
@@ -76,7 +77,6 @@ import io.github.astrapi69.mystic.crypt.panel.info.ApplicationInfo;
 import io.github.astrapi69.mystic.crypt.panel.info.ApplicationInfoPanel;
 import io.github.astrapi69.mystic.crypt.plugin.api.PluginMenuContribution;
 import io.github.astrapi69.mystic.crypt.settings.FlatLafTheme;
-import io.github.astrapi69.swing.action.ExitApplicationAction;
 import io.github.astrapi69.swing.action.OpenBrowserAction;
 import io.github.astrapi69.swing.action.ShowInfoDialogAction;
 import io.github.astrapi69.swing.base.BaseDesktopMenu;
@@ -308,7 +308,7 @@ public class DesktopMenu extends BaseDesktopMenu implements EventListener<EventO
 			.name(BaseMenuId.EXIT.propertiesKey()).mnemonic(MenuExtensions.toMnemonic('E'))
 			.keyStrokeInfo(
 				KeyStrokeInfo.toKeyStrokeInfo(KeyStrokeExtensions.getKeyStroke("alt pressed F4")))
-			.actionListener(new ExitApplicationAction("Exit")).build().toJMenuItem();
+			.actionListener(new EndApplicationAction("Exit")).build().toJMenuItem();
 		fileMenu.add(exitMenuItem);
 		// @formatter:off
 		return fileMenu;
