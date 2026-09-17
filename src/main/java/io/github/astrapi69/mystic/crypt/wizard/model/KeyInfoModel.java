@@ -29,6 +29,7 @@ import lombok.AccessLevel;
 import lombok.Data;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
+import lombok.ToString;
 import lombok.experimental.FieldDefaults;
 import lombok.experimental.SuperBuilder;
 
@@ -49,6 +50,7 @@ public class KeyInfoModel
 	/**
 	 * The encoded key
 	 */
+	@ToString.Exclude
 	byte[] encoded;
 
 	/**

@@ -53,6 +53,7 @@ public class ApplicationModelBean implements Serializable
 {
 	/** The Constant serialVersionUID. */
 	private static final long serialVersionUID = 1L;
+	@ToString.Exclude
 	MasterPwFileModelBean masterPwFileModelBean;
 	Map<Long, TreeIdNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long>> rootTreeAsMap;
 

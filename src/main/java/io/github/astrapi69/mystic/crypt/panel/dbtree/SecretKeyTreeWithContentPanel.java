@@ -135,6 +135,10 @@ public class SecretKeyTreeWithContentPanel
 		// without the root row there would be nothing to click to open the top level, so the
 		// handles have to be drawn for its children
 		tree.setShowsRootHandles(true);
+		// Ctrl+C copies the node's name, not the node's toString with every entry's password in it
+		// (#388). The renderer above decides what the tree shows; this decides what it copies, and
+		// the two have to be the same thing
+		tree.setTransferHandler(new TreeNodeNameTransferHandler());
 		return tree;
 	}
 

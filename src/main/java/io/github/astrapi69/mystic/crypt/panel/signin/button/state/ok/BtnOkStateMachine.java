@@ -48,6 +48,7 @@ public class BtnOkStateMachine extends AbstractJComponentStateMachine<JButton, B
 	implements
 		BtnOkComponentState
 {
+	@ToString.Exclude
 	MasterPwFileModelBean modelObject;
 
 	@Override
