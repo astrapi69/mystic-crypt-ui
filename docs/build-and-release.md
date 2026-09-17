@@ -134,8 +134,6 @@ Test configuration worth knowing (from `gradle/testing.gradle` and `build.gradle
   UI tests drive the process-wide `MysticCryptApplicationFrame` singleton and register
   listeners on the static `ApplicationEventBus`.
 - `test` is ordered with `mustRunAfter(tasks.named("jar"))`.
-- The test JVM gets `--add-opens java.base/java.util=ALL-UNNAMED` (KeePassJava2-simple's
-  SimpleXML serialization reflects into `java.util`).
 - `awt.robot.screenshotMethod` is set to `x11`, so a Wayland session does not raise the
   XDG portal "share your screen" dialog on every UI-test run.
 - `-Dmystic.crypt.ui.test.mode` is forwarded from the Gradle JVM into the forked test JVM
@@ -272,14 +270,8 @@ keeps another party's `META-INF` signatures fails verification at startup.
 The manifest is built in the `jar` block and carries, among others, `Main-Class` from the
 `mainClass` property in `gradle.properties`
 (`io.github.astrapi69.mystic.crypt.StartMysticCryptApplication`), `Implementation-Version`
-from `project.version`, build timestamp, JDK and OS, and:
-
-```gradle
-"Add-Opens"             : "java.base/java.util")
-```
-
-which is the packaged-jar counterpart of the test JVM's `--add-opens`, again for
-KeePassJava2-simple's reflective serialization.
+from `project.version`, build timestamp, JDK and OS. It declares no `Add-Opens`: the one it
+carried was for KeePassJava2's Simple model, which the application no longer uses (#408).
 
 The aggregate task fixes the order:
 

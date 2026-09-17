@@ -35,9 +35,9 @@ import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.linguafranca.pwdb.Entry;
 import org.linguafranca.pwdb.kdbx.KdbxCreds;
-import org.linguafranca.pwdb.kdbx.simple.SimpleDatabase;
-import org.linguafranca.pwdb.kdbx.simple.SimpleEntry;
-import org.linguafranca.pwdb.kdbx.simple.SimpleGroup;
+import org.linguafranca.pwdb.kdbx.jackson.JacksonDatabase;
+import org.linguafranca.pwdb.kdbx.jackson.JacksonEntry;
+import org.linguafranca.pwdb.kdbx.jackson.JacksonGroup;
 
 import io.github.astrapi69.mystic.crypt.TestPasswords;
 
@@ -55,16 +55,16 @@ public class KeePass2Test
 		KdbxCreds credentials = new KdbxCreds(TestPasswords.KEEPASS_FIXTURE.getBytes());
 		InputStream inputStream = getClass().getClassLoader().getResourceAsStream("test-db.kdbx");
 		assertNotNull(inputStream, "test fixture test-db.kdbx must be on the test classpath");
-		SimpleDatabase database = SimpleDatabase.load(credentials, inputStream);
-		SimpleGroup rootGroup = database.getRootGroup();
+		JacksonDatabase database = JacksonDatabase.load(credentials, inputStream);
+		JacksonGroup rootGroup = database.getRootGroup();
 		assertNotNull(rootGroup);
 
-		List<SimpleGroup> allGroups = getAllGroups(rootGroup);
+		List<JacksonGroup> allGroups = getAllGroups(rootGroup);
 		allGroups.add(rootGroup);
 		assertFalse(allGroups.isEmpty(), "the fixture must contain at least one group");
 
-		List<SimpleEntry> allEntries = new ArrayList<>();
-		for (SimpleGroup currentGroup : allGroups)
+		List<JacksonEntry> allEntries = new ArrayList<>();
+		for (JacksonGroup currentGroup : allGroups)
 		{
 			allEntries.addAll(currentGroup.getEntries());
 		}
@@ -75,10 +75,10 @@ public class KeePass2Test
 			"every entry in the fixture must have a readable title");
 	}
 
-	public static List<SimpleGroup> getAllGroups(SimpleGroup group)
+	public static List<JacksonGroup> getAllGroups(JacksonGroup group)
 	{
-		List<SimpleGroup> returnList = new ArrayList<>(group.getGroups());
-		for (SimpleGroup currentGroup : group.getGroups())
+		List<JacksonGroup> returnList = new ArrayList<>(group.getGroups());
+		for (JacksonGroup currentGroup : group.getGroups())
 		{
 			returnList.addAll(getAllGroups(currentGroup));
 		}

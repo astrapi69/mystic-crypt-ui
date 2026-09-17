@@ -53,9 +53,9 @@ import org.linguafranca.pwdb.kdbx.jackson.model.Times;
  * that reflects would be the one nobody remembers, and a test pins that there is none (#382).
  * <p>
  * No {@code --add-opens} is needed: the library is an ordinary jar on the class path, in the
- * unnamed module, where {@code setAccessible} on a {@code protected} field is allowed. The flag the
- * build carries today is for something else - SimpleXML reaching into {@link UUID}'s own private
- * fields - and goes when the last use of that serializer does.
+ * unnamed module, where {@code setAccessible} on a {@code protected} field is allowed. The build
+ * and the packaged jar carried one for KeePassJava2's Simple model, whose serializer reached into
+ * {@link UUID}'s private fields; it went with the last use of that model (#408).
  * <p>
  * This is a bridge, not a destination: the way out is upstream, a setter or a factory that takes
  * these values, at which point every method here becomes a one-line delegation and the reflection

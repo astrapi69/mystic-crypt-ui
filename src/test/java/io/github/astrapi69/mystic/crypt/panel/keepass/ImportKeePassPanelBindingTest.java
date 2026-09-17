@@ -49,9 +49,9 @@ import javax.swing.JTextField;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.linguafranca.pwdb.kdbx.KdbxCreds;
-import org.linguafranca.pwdb.kdbx.simple.SimpleDatabase;
-import org.linguafranca.pwdb.kdbx.simple.SimpleEntry;
-import org.linguafranca.pwdb.kdbx.simple.SimpleGroup;
+import org.linguafranca.pwdb.kdbx.jackson.JacksonDatabase;
+import org.linguafranca.pwdb.kdbx.jackson.JacksonEntry;
+import org.linguafranca.pwdb.kdbx.jackson.JacksonGroup;
 
 import io.github.astrapi69.mystic.crypt.TestPasswords;
 
@@ -98,9 +98,9 @@ class ImportKeePassPanelBindingTest
 	 */
 	private static void writeDatabase(File keePassFile, KdbxCreds credentials) throws Exception
 	{
-		SimpleDatabase database = new SimpleDatabase();
-		SimpleGroup rootGroup = database.getRootGroup();
-		SimpleEntry entry = database.newEntry();
+		JacksonDatabase database = new JacksonDatabase();
+		JacksonGroup rootGroup = database.getRootGroup();
+		JacksonEntry entry = database.newEntry();
 		entry.setTitle(ENTRY_TITLE);
 		entry.setUsername("bound-user");
 		rootGroup.addEntry(entry);
@@ -120,11 +120,11 @@ class ImportKeePassPanelBindingTest
 	 * @throws Exception
 	 *             is thrown if the database cannot be opened
 	 */
-	private static SimpleDatabase importWith(ImportKeePassPanel panel) throws Exception
+	private static JacksonDatabase importWith(ImportKeePassPanel panel) throws Exception
 	{
 		try (InputStream inputStream = new FileInputStream(panel.getSelectedFile()))
 		{
-			return SimpleDatabase.load(credentials(panel), inputStream);
+			return JacksonDatabase.load(credentials(panel), inputStream);
 		}
 	}
 
@@ -159,7 +159,7 @@ class ImportKeePassPanelBindingTest
 		named(panel, "txtFile", JTextField.class).setText(keePassFile.getAbsolutePath());
 		named(panel, "txtPassword", JPasswordField.class).setText(password);
 
-		SimpleDatabase imported = importWith(panel);
+		JacksonDatabase imported = importWith(panel);
 
 		assertEquals(keePassFile, panel.getSelectedFile());
 		assertEquals(ENTRY_TITLE, imported.getRootGroup().getEntries().get(0).getTitle());
@@ -187,7 +187,7 @@ class ImportKeePassPanelBindingTest
 		named(panel, "cbxKeyFile", JCheckBox.class).doClick();
 		named(panel, "txtKeyFile", JTextField.class).setText(keyFile.getAbsolutePath());
 
-		SimpleDatabase imported = importWith(panel);
+		JacksonDatabase imported = importWith(panel);
 
 		assertTrue(panel.getModelObject().isUseKeyFile());
 		assertEquals(keyFile, panel.getSelectedKeyFile());

@@ -154,19 +154,21 @@ public class MysticCryptEntryModelBean
 
 	/**
 	 * Sets the previous versions, keeping an empty list as {@code null} so the vault writes nothing
-	 * for it
+	 * for it, and any other list as an {@link ArrayList} of its own: a {@code List.of} is a
+	 * JDK-internal class XStream can only write by reflecting into {@code java.util} (#408)
 	 *
 	 * @param history
 	 *            the previous versions, or null
 	 */
 	public void setHistory(final List<MysticCryptEntryModelBean> history)
 	{
-		this.history = history == null || history.isEmpty() ? null : history;
+		this.history = history == null || history.isEmpty() ? null : new ArrayList<>(history);
 	}
 
 	/**
 	 * Sets the names of the protected properties, keeping an empty set as {@code null} so the vault
-	 * writes nothing for it
+	 * writes nothing for it, and any other set as a {@link LinkedHashSet} of its own, for the same
+	 * reason as {@link #setHistory} (#408)
 	 *
 	 * @param protectedPropertyKeys
 	 *            the names, or null
@@ -174,7 +176,7 @@ public class MysticCryptEntryModelBean
 	public void setProtectedPropertyKeys(final Set<String> protectedPropertyKeys)
 	{
 		this.protectedPropertyKeys = protectedPropertyKeys == null
-			|| protectedPropertyKeys.isEmpty() ? null : protectedPropertyKeys;
+			|| protectedPropertyKeys.isEmpty() ? null : new LinkedHashSet<>(protectedPropertyKeys);
 	}
 
 	/**
