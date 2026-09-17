@@ -107,6 +107,9 @@ public final class VaultCloseSupport
 		applicationModelBean.setRootTreeAsMap(null);
 		applicationModelBean.setDataOfNodes(null);
 		applicationModelBean.setLastId(null);
+		// the frame keeps this model object: a vault created in it next must not inherit the format
+		// of the one closed, or a new vault would open read-only (#402)
+		applicationModelBean.setFormatVersion(null);
 		applicationModelBean.setSignedIn(false);
 		applicationModelBean.setDirty(false);
 	}

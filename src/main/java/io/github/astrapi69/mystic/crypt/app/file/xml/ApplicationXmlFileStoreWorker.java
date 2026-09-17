@@ -53,6 +53,12 @@ public final class ApplicationXmlFileStoreWorker
 
 	public static void storeApplicationFile(ApplicationModelBean applicationModelBean)
 	{
+		// before the flag below is cleared: a vault in a newer format is not written (#402), and a
+		// refusal after that line would leave its unsaved changes looking saved
+		if (VaultXmlCodec.isNewerThanThisBuild(applicationModelBean))
+		{
+			throw new IllegalStateException(VaultXmlCodec.whyItIsReadOnly(applicationModelBean));
+		}
 		MasterPwFileModelBean modelObject = applicationModelBean.getMasterPwFileModelBean();
 		if (applicationModelBean.isDirty())
 		{

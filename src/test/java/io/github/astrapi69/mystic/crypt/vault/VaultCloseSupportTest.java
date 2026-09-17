@@ -69,6 +69,10 @@ class VaultCloseSupportTest
 		assertNull(applicationModelBean.getRootTreeAsMap(), "the tree is gone");
 		assertNull(applicationModelBean.getDataOfNodes(), "the entries are gone");
 		assertNull(applicationModelBean.getLastId(), "and the id counter with them");
+		assertNull(applicationModelBean.getFormatVersion(),
+			"and the format the closed vault was in: the frame keeps this model object, and a vault "
+				+ "created next in it would otherwise inherit a newer format and open read-only "
+				+ "(#402)");
 		assertFalse(applicationModelBean.isSignedIn(),
 			"closing must not leave the application pretending to be signed in - that is the "
 				+ "improvised state move #270 was");
@@ -371,7 +375,7 @@ class VaultCloseSupportTest
 			.masterPwFileModelBean(MasterPwFileModelBean.builder().masterPw(MASTER_PASSWORD.clone())
 				.withMasterPw(true).minPasswordLength(6).build())
 			.rootTreeAsMap(new LinkedHashMap<>()).dataOfNodes(new LinkedHashMap<>()).lastId(7L)
-			.signedIn(true).dirty(true).build();
+			.formatVersion(3).signedIn(true).dirty(true).build();
 	}
 
 	private static Map<Long, List<MysticCryptEntryModelBean>> entriesByNodeId(

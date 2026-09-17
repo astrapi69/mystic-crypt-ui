@@ -133,6 +133,28 @@ class VaultFormatVersionTest
 	}
 
 	@Test
+	@DisplayName("storing a vault in a newer format is refused before the unsaved changes are marked as saved")
+	void storing_aVaultInANewerFormat_leavesItDirty(@TempDir File directory)
+	{
+		File vault = new File(directory, "newer.mcrdb");
+		ApplicationModelBean fromANewerVersion = aModelWithOneEntry();
+		fromANewerVersion.setFormatVersion(VaultXmlCodec.FORMAT_VERSION + 1);
+		fromANewerVersion.setDirty(true);
+		fromANewerVersion.setMasterPwFileModelBean(
+			MasterPwFileModelBean.builder().applicationFileInfo(FileInfo.toFileInfo(vault))
+				.masterPw(TestPasswords.throwaway().toCharArray()).withMasterPw(true)
+				.withKeyFile(false).build());
+
+		assertThrows(IllegalStateException.class,
+			() -> ApplicationXmlFileStoreWorker.storeApplicationFile(fromANewerVersion));
+
+		assertTrue(fromANewerVersion.isDirty(),
+			"storeApplicationFile clears the flag before it writes; a refusal after that point "
+				+ "leaves unsaved changes looking saved, which is what the close question reads");
+		assertFalse(vault.exists(), "and nothing was written");
+	}
+
+	@Test
 	@DisplayName("only a version above this build's makes a vault read-only")
 	void isNewerThanThisBuild_isTrue_onlyAboveTheCurrentVersion()
 	{
