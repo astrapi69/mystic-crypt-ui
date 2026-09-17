@@ -141,13 +141,15 @@ public final class SaveBeforeCloseConfirmation
 		{
 			return Choice.DISCARDED;
 		}
-		if (!applicationModelBean.isSignedIn())
-		{
-			return askWhetherToDiscardWhileLocked(parent);
-		}
+		// read-only before locked: a locked vault in a newer format cannot be saved after unlocking
+		// either, and the locked text tells the user to unlock and save (#402)
 		if (VaultXmlCodec.isNewerThanThisBuild(applicationModelBean))
 		{
 			return askWhetherToDiscardWhileReadOnly(parent);
+		}
+		if (!applicationModelBean.isSignedIn())
+		{
+			return askWhetherToDiscardWhileLocked(parent);
 		}
 		String defaultMessage = "<html><body>" + "<div>The current database file is modified.</div>"
 			+ "<div>Store your changes before finish application</div>" + "</body></html>";

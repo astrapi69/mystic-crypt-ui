@@ -705,9 +705,32 @@ public class MysticCryptApplicationFrame extends ApplicationPanelFrame<Applicati
 			return;
 		}
 		String reason = VaultXmlCodec.whyItIsReadOnly(getModelObject());
-		SwingUtilities.invokeLater(() -> JOptionPane.showMessageDialog(this, reason,
+		SwingUtilities.invokeLater(() -> showWhyItIsReadOnly(reason));
+	}
+
+	/**
+	 * Refuses a save of a vault in a newer format with the reason, before the save does anything
+	 * else (#402). Save As retargets the open vault before it writes, so a refusal from the writer
+	 * alone would leave it pointing at a file nothing was written to; and a disabled menu item is
+	 * one rebuilt menu bar away from being enabled again
+	 *
+	 * @return true if the open vault is read-only and the save has to stop
+	 */
+	public boolean refusesToSaveAReadOnlyVault()
+	{
+		if (!VaultXmlCodec.isNewerThanThisBuild(getModelObject()))
+		{
+			return false;
+		}
+		showWhyItIsReadOnly(VaultXmlCodec.whyItIsReadOnly(getModelObject()));
+		return true;
+	}
+
+	private void showWhyItIsReadOnly(final String reason)
+	{
+		JOptionPane.showMessageDialog(this, reason,
 			Messages.getString("dialog.read.only.newer.format.title", "Opened read-only"),
-			JOptionPane.WARNING_MESSAGE));
+			JOptionPane.WARNING_MESSAGE);
 	}
 
 	/**

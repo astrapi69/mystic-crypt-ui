@@ -25,6 +25,7 @@ import java.io.CharArrayReader;
 import com.thoughtworks.xstream.XStream;
 
 import io.github.astrapi69.mystic.crypt.ApplicationModelBean;
+import io.github.astrapi69.mystic.crypt.Messages;
 import io.github.astrapi69.mystic.crypt.vault.WipingCharWriter;
 import io.github.astrapi69.xstream.factory.XStreamFactory;
 
@@ -130,11 +131,13 @@ public final class VaultXmlCodec
 	 */
 	public static String whyItIsReadOnly(final ApplicationModelBean applicationModelBean)
 	{
-		return "This database is in format version " + applicationModelBean.getFormatVersion()
-			+ ", and this version of the application reads format version " + FORMAT_VERSION
-			+ ". It is open read-only: saving would remove from the file what this version cannot "
-			+ "read. Open it with a version that reads format version "
-			+ applicationModelBean.getFormatVersion() + " to change it.";
+		// %1$s rather than {0}: the bundle lookup formats braces itself and fills them with null
+		return String.format(Messages.getString("dialog.read.only.newer.format.message",
+			"This database is in format version %1$s, and this version of the application reads "
+				+ "format version %2$s. It is open read-only: saving would remove from the file what "
+				+ "this version cannot read. Open it with a version that reads format version %1$s "
+				+ "to change it."),
+			applicationModelBean.getFormatVersion(), FORMAT_VERSION);
 	}
 
 	/**

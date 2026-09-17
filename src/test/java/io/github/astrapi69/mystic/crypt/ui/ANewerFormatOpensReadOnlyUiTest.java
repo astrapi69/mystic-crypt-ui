@@ -21,11 +21,13 @@
 package io.github.astrapi69.mystic.crypt.ui;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.awt.Component;
 import java.awt.Window;
+import java.awt.event.ActionEvent;
 import java.io.File;
 import java.nio.file.Files;
 import java.util.concurrent.TimeUnit;
@@ -49,6 +51,7 @@ import io.github.astrapi69.design.pattern.observer.event.EventObject;
 import io.github.astrapi69.mystic.crypt.MenuId;
 import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
 import io.github.astrapi69.mystic.crypt.TestPasswords;
+import io.github.astrapi69.mystic.crypt.action.SaveAsApplicationFileAction;
 import io.github.astrapi69.mystic.crypt.app.file.xml.PasswordVaultFormat;
 import io.github.astrapi69.mystic.crypt.app.file.xml.VaultXmlCodec;
 import io.github.astrapi69.mystic.crypt.eventbus.ApplicationEventBus;
@@ -95,6 +98,26 @@ class ANewerFormatOpensReadOnlyUiTest extends AbstractUiTest
 		robot.waitForIdle();
 		assertSavingIsDisabled(
 			"after an edit, which is what enables Save on a vault this build can write");
+
+		File target = GuiActionRunner.execute(() -> new File(
+			MysticCryptApplicationFrame.getInstance().getModelObject().getMasterPwFileModelBean()
+				.getApplicationFileInfo().getPath(),
+			MysticCryptApplicationFrame.getInstance().getModelObject().getMasterPwFileModelBean()
+				.getApplicationFileInfo().getName()));
+		SwingUtilities.invokeLater(() -> new SaveAsApplicationFileAction("Save As")
+			.actionPerformed(new ActionEvent(this, ActionEvent.ACTION_PERFORMED, "save as")));
+		String refusal = messageOfTheDialogTitled(READ_ONLY_TITLE);
+		application.dismissMessageDialog(READ_ONLY_TITLE);
+		assertTrue(refusal.contains("format version " + NEWER),
+			"Save As fired past its disabled menu item - a rebuilt menu bar can re-enable it - says "
+				+ "why instead of opening a file chooser: " + refusal);
+		assertEquals(target,
+			GuiActionRunner.execute(() -> new File(
+				MysticCryptApplicationFrame.getInstance().getModelObject()
+					.getMasterPwFileModelBean().getApplicationFileInfo().getPath(),
+				MysticCryptApplicationFrame.getInstance().getModelObject()
+					.getMasterPwFileModelBean().getApplicationFileInfo().getName())),
+			"and does not retarget the open vault before refusing");
 
 		assertArrayEquals(asTheNewerVersionLeftIt, Files.readAllBytes(vault.toPath()),
 			"and the file is as the newer version left it");

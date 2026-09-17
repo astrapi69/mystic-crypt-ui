@@ -48,4 +48,8 @@ and lose data on the next save. Read-only does neither (the maintainer's Q1).
 ## Not covered
 
 A menu bar rebuilt by the menu designer or by enabling a plugin does not re-apply the read-only
-disabling. The write is still refused underneath; the item would look available until clicked.
+disabling, so Save or Save As can look available. Clicking either says why it is read-only and does
+nothing else - both actions check before they touch the model - and the writer refuses underneath.
+
+Locking a changed read-only vault with "save when locking" on writes nothing and says nothing: the
+refusal is logged and the vault stays dirty and locked until somebody unlocks it and decides.
