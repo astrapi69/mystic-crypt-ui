@@ -25,10 +25,11 @@ In this repository the layers map onto directories as follows.
 
 | Layer | Where it lives | What belongs there |
 |---|---|---|
-| Unit / integration, host | `src/test/java/io/github/astrapi69/mystic/crypt/**` outside the `ui` package | Vault format and file factories (`app/file/xml/`), KeePass converters (`keepass/`), menu layout (`menu/`), settings (`settings/`), the CLI wiring (`cli/`), panel model checks (`panel/`) |
+| Unit / integration, host | `src/test/java/io/github/astrapi69/mystic/crypt/**` | Vault format and file factories (`app/file/xml/`), KeePass converters (`keepass/`), menu layout (`menu/`), settings (`settings/`), the CLI wiring (`cli/`), panel model checks (`panel/`) |
 | Unit / integration, plugin | `plugins/{name}-plugin/src/test/java/...` | The plugin's own support class, its settings contribution, its panel model binding, its picocli command |
-| Construction smoke | `src/test/java/.../ui/*ConstructionSmokeTest.java` | Panels must build on the EDT with a valid model and lay out at least one child; no application launch |
-| End-to-end (e2e) | `src/test/java/.../ui/*UiTest.java`, all extending `AbstractUiTest` | Complete user flows through the real application: sign in, tree editing, KeePass import/export, save and reopen, settings, plugin tools |
+| Construction smoke | `src/e2eTest/java/.../ui/*ConstructionSmokeTest.java` | Panels must build on the EDT with a valid model and lay out at least one child; no application launch |
+| End-to-end (e2e) | `src/e2eTest`, `src/e2eLock` (locking, closing, ending) and `src/e2eKdbx` (the KDBX round trip), each `.../ui/*UiTest.java` extending `AbstractUiTest` from `src/e2eSupport` | Complete user flows through the real application: sign in, tree editing, KeePass import/export, save and reopen, settings, plugin tools. One Gradle task per source set - `e2eTest`, `e2eLockTest`, `e2eKdbxTest` - so each has its own cache key (#319) |
+| Shared by unit and e2e | `src/testSupport` | `TestPasswords` and the logging configuration; a change here re-runs every suite |
 | Mutation | configured in `gradle/mutation-testing.gradle` | Reruns the headless tests against mutated logic classes; never the Swing UI |
 
 Two properties separate the bottom of the pyramid from the top:
@@ -425,7 +426,7 @@ or `make plugins`) is headless and covers the plugin in isolation:
 
 Rule of thumb: if it can be answered without the host, it belongs in the plugin's suite.
 If the question is "does the host really pick this up", it belongs in an e2e test in
-`src/test/java/.../ui/`.
+`src/e2eTest/java/.../ui/`.
 
 A new plugin wires its Makefile target, the izpack installer config and the test wiring in
 the same change (`.claude/rules/architecture.md`), and the `plugins:` target in the

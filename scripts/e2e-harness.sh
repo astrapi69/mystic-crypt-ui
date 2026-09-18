@@ -13,7 +13,7 @@
 # fails when none owns the selection, which 'pgrep fluxbox' cannot tell apart from a process that
 # started and died.
 #
-# Usage: scripts/e2e-harness.sh [gradle arguments...]   (default: e2eTest)
+# Usage: scripts/e2e-harness.sh [gradle arguments...]   (default: e2eTest e2eLockTest e2eKdbxTest)
 set -euo pipefail
 
 WM_WAIT_SECONDS="${E2E_WM_WAIT_SECONDS:-15}"
@@ -60,5 +60,6 @@ else
   say "window manager answering after ${waited}s: $wm"
 fi
 
-say "running: ./gradlew ${*:-e2eTest}"
-exec ./gradlew "${@:-e2eTest}"
+if [ "$#" -eq 0 ]; then set -- e2eTest e2eLockTest e2eKdbxTest; fi
+say "running: ./gradlew $*"
+exec ./gradlew "$@"

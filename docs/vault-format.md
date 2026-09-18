@@ -352,9 +352,9 @@ Where the two levels live:
 | Level | Test |
 |---|---|
 | Format, in isolation | `src/test/java/io/github/astrapi69/mystic/crypt/app/file/xml/PasswordVaultFormatTest.java` (round trip, legacy read, migration on save, fresh salt per save, wrong password, tampering, header authentication, truncation, recorded iteration count, marker recognition) |
-| Password round trip through the UI | `src/test/java/io/github/astrapi69/mystic/crypt/ui/SaveAndReopenDatabaseUiTest.java` |
-| Legacy migration through the UI | `src/test/java/io/github/astrapi69/mystic/crypt/ui/LegacyDatabaseMigrationUiTest.java` |
-| Key file variant through the UI | `src/test/java/io/github/astrapi69/mystic/crypt/ui/CreateDatabaseWithKeyFileUiTest.java` |
+| Password round trip through the UI | `src/e2eTest/java/io/github/astrapi69/mystic/crypt/ui/SaveAndReopenDatabaseUiTest.java` |
+| Legacy migration through the UI | `src/e2eTest/java/io/github/astrapi69/mystic/crypt/ui/LegacyDatabaseMigrationUiTest.java` |
+| Key file variant through the UI | `src/e2eTest/java/io/github/astrapi69/mystic/crypt/ui/CreateDatabaseWithKeyFileUiTest.java` |
 
 `LegacyDatabaseMigrationUiTest` is the shape to copy for a format change: it builds a fixture in the
 old format, asserts the fixture really is in the old format ("otherwise this test proves nothing"),
