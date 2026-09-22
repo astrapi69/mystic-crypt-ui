@@ -30,9 +30,9 @@ issues it links), not a rule. The binding short form is in `KeePassEntryConverte
 
 Measured by `KdbxRoundTripKeepsEveryFieldUiTest` through the application's menus - import, save,
 end, sign in, export - against `src/e2eKdbx/resources/kdbx/keepassxc-2.7.10-kdbx4.kdbx`, both files
-read with `keepassxc-cli export -f xml`, 11 of 11 green locally with keepassxc-cli 2.7.10 since
-the group times were added (#413); before that 10 of 10, also in CI with 2.7.6 (CI run 35205468621;
-the version is printed on every run since #407):
+read with `keepassxc-cli export -f xml`, 11 of 11 green since the group times were added (#413):
+locally with keepassxc-cli 2.7.10, and in CI with 2.7.6 (CI run 35726707643; the version is printed
+on every run since #407):
 
 - group structure with no added level and no renaming; group names, identifiers, icon indices, and
   every group's four times with its expiry flag, kept in the vault as ISO-8601 text in the group's
