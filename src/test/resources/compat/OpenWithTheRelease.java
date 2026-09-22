@@ -57,6 +57,13 @@ public class OpenWithTheRelease
 					+ " attachments=" + entry.getResources().size());
 			}
 		}
+		if (model.getRootTreeAsMap() != null)
+		{
+			model.getRootTreeAsMap().values().forEach(node -> System.out.println("GROUP name="
+				+ node.getValue().getName() + " keepass.creationTime="
+				+ node.getValue().getProperties().get("keepass.creationTime") + " keepass.expires="
+				+ node.getValue().getProperties().get("keepass.expires")));
+		}
 		System.out.println("OPENED");
 	}
 

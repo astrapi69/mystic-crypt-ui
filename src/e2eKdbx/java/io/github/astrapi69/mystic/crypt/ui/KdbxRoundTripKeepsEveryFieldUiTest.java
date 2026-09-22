@@ -33,6 +33,7 @@ import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
+import java.util.List;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -178,6 +179,28 @@ class KdbxRoundTripKeepsEveryFieldUiTest extends AbstractUiTest
 		assertEquals(expected.expiryTime(), actual.expiryTime(), "the expiry time" + readWith);
 		assertEquals(expected.expires(), actual.expires(),
 			"an expiry time without its flag expires nothing" + readWith);
+	}
+
+	/**
+	 * The milestone named timestamps without telling entries from groups, so a group's are asserted
+	 * as an entry's are (#413)
+	 */
+	@Test
+	@DisplayName("every group keeps its four timestamps and its expiry flag")
+	void groupTimesSurvive()
+	{
+		assertEquals(groupTimes(source), groupTimes(roundTripped),
+			"a group's creation, modification, access and expiry time are the user's facts about "
+				+ "it, like an entry's" + readWith);
+	}
+
+	private static List<String> groupTimes(final KdbxFacts facts)
+	{
+		return facts.groups().stream()
+			.map(group -> group.path() + " created=" + group.creationTime() + " modified="
+				+ group.lastModificationTime() + " accessed=" + group.lastAccessTime() + " expires="
+				+ group.expiryTime() + "/" + group.expires())
+			.toList();
 	}
 
 	@Test
