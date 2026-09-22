@@ -176,8 +176,9 @@ public class KeePassEntryConverterTest
 		JacksonEntry entry = KeePassEntryConverter.toJacksonEntry(database, bean);
 
 		assertFalse(entry.getExpires());
-		// Entry.setExpiryTime(...) throws on null, so this must never be null even when
-		// the entry isn't actually expirable
+		// KeePass writes an expiry time for every entry, expirable or not. The converter does not
+		// call setExpiryTime, which throws on null; it writes the entry's Times through
+		// KeePassLibraryFields, and Times(Date) starts the expiry time at that date (#384)
 		assertNotNull(entry.getExpiryTime());
 	}
 
