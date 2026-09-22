@@ -8,6 +8,31 @@ pull request where it was measured.
 **The work was done between 2026-09-16 and 2026-09-22 and completed before any funding
 commitment.**
 
+## The milestone as applied for
+
+This is milestone 1 of the FLOSS/fund application submitted on 2026-09-10:
+[`docs/funding/floss-fund-application.md`](https://github.com/astrapi69/mystic-crypt/blob/develop/docs/funding/floss-fund-application.md)
+and the plan `kdbx-lossless-round-trip` in
+[`funding.json`](https://github.com/astrapi69/mystic-crypt/blob/develop/funding.json), both in
+astrapi69/mystic-crypt.
+
+The applicant is the library, mystic-crypt. The milestone lands in this application,
+mystic-crypt-ui, because KDBX is implemented here, as the application announced ("Milestone 1 lands
+in `mystic-crypt-ui`, because KDBX handling lives there").
+
+Each of the four points the application names, with the evidence for it:
+
+| Applied for | Delivered | Evidence |
+|---|---|---|
+| Entry identity preserved across import and export, including entries created in the application | Kept for every entry and every group of a file KeePassXC wrote, and for an entry created here | `KdbxRoundTripKeepsEveryFieldUiTest` (identifiers of entry and groups, #385, #407); `AnEntryCreatedHereKeepsItsIdentifierUiTest` (#422, #423) |
+| Creation, modification and access timestamps preserved rather than regenerated | All four times with the expiry flag, of every entry and every group | `KdbxRoundTripKeepsEveryFieldUiTest`, entry times (#407) and group times (#413, #419) |
+| History entries preserved or refused with a message saying what would be lost | Preserved - carried through import, vault and export | `KdbxRoundTripKeepsEveryFieldUiTest`, history case (#402, #403, #407) |
+| A round-trip test with a real KDBX file that asserts identity and timestamps | A database written by KeePassXC 2.7.10, compared through `keepassxc-cli`, not through this application's own model | `KdbxRoundTripKeepsEveryFieldUiTest`, 11 of 11, CI run 35726707643 (#380, #384, #385) |
+
+The acceptance the application set - "A KDBX file imported and exported again compares equal on
+identity, timestamps and entry count. The test is in the repository and runs in CI." - is what that
+test asserts, in CI, on every pull request that can affect it.
+
 ## The scope
 
 Agreed by the maintainer on 2026-09-16, before the implementation started. A database written by
@@ -48,6 +73,7 @@ itself. Against the program a user opens these files with:
 | The converter on KeePassJava2's Jackson model, import and export | #377, #378, #384, #389 | #407 |
 | No `--add-opens`, and no second serializer | #408 | #409 |
 | Every group's timestamps | #413 | #419 |
+| Identity of an entry created in the application, measured | #422 | #423 |
 | Decision record `docs/decisions/kdbx-bridge-2026-09-17.md` | #411 | #412 |
 
 Found along the way and fixed, outside the milestone: three data paths in the released 8.5 (#386,
