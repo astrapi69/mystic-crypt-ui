@@ -51,8 +51,10 @@ import org.w3c.dom.NodeList;
 public final class KdbxFacts
 {
 
-	/** A group as it appears in the tree: its path, its name and its icon index */
-	public record Group(String path, String name, String iconIndex, String identifier) {
+	/** A group as it appears in the tree: path, name, icon index, identifier and its four times */
+	public record Group(String path, String name, String iconIndex, String identifier,
+		String creationTime, String lastModificationTime, String lastAccessTime, String expiryTime,
+		String expires) {
 	}
 
 	/** One entry with every field the scope names */
@@ -167,7 +169,12 @@ public final class KdbxFacts
 	{
 		String name = textOf(group, "Name");
 		String path = parentPath.isEmpty() ? name : parentPath + "/" + name;
-		groups.add(new Group(path, name, textOf(group, "IconID"), textOf(group, "UUID")));
+		Element times = firstChild(group, "Times");
+		groups.add(new Group(path, name, textOf(group, "IconID"), textOf(group, "UUID"),
+			asInstant(textOf(times, "CreationTime")),
+			asInstant(textOf(times, "LastModificationTime")),
+			asInstant(textOf(times, "LastAccessTime")), asInstant(textOf(times, "ExpiryTime")),
+			textOf(times, "Expires")));
 		for (Element child : childrenNamed(group, "Entry"))
 		{
 			entries.add(readEntry(child, path));

@@ -24,7 +24,9 @@
  */
 package io.github.astrapi69.mystic.crypt.keepass;
 
+import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 import java.util.function.Supplier;
@@ -32,6 +34,7 @@ import java.util.function.Supplier;
 import org.linguafranca.pwdb.kdbx.jackson.JacksonDatabase;
 import org.linguafranca.pwdb.kdbx.jackson.JacksonEntry;
 import org.linguafranca.pwdb.kdbx.jackson.JacksonGroup;
+import org.linguafranca.pwdb.kdbx.jackson.model.Times;
 
 import io.github.astrapi69.gen.tree.BaseTreeNode;
 import io.github.astrapi69.mystic.crypt.panel.dbtree.MysticCryptEntryModelBean;
@@ -60,6 +63,11 @@ public final class KeePassTreeConverter
 	public static final String KEEPASS_UUID_PROPERTY = "keepass.uuid";
 	public static final String KEEPASS_ICON_INDEX_PROPERTY = "keepass.iconIndex";
 	public static final String KEEPASS_RECYCLE_BIN_PROPERTY = "keepass.recycleBin";
+	public static final String KEEPASS_CREATION_TIME_PROPERTY = "keepass.creationTime";
+	public static final String KEEPASS_LAST_MODIFICATION_TIME_PROPERTY = "keepass.lastModificationTime";
+	public static final String KEEPASS_LAST_ACCESS_TIME_PROPERTY = "keepass.lastAccessTime";
+	public static final String KEEPASS_EXPIRY_TIME_PROPERTY = "keepass.expiryTime";
+	public static final String KEEPASS_EXPIRES_PROPERTY = "keepass.expires";
 
 	private KeePassTreeConverter()
 	{
@@ -110,6 +118,7 @@ public final class KeePassTreeConverter
 			}
 		}
 		treeElement.getProperties().put(KEEPASS_RECYCLE_BIN_PROPERTY, group.isRecycleBin());
+		keepTheTimes(KeePassLibraryFields.getTimes(group), treeElement);
 
 		BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> treeNode = BaseTreeNode
 			.<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> builder().id(nextId.get())
@@ -211,6 +220,90 @@ public final class KeePassTreeConverter
 				toJacksonGroup(database, child, group);
 			}
 		}
+		// last: setting the icon and adding entries or groups stamp the modification time
+		giveBackTheTimes(treeElement, group);
+	}
+
+	/**
+	 * Keeps a group's four times and its expiry flag in the element's properties, as ISO-8601
+	 * instants: text and a boolean are what the vault can carry without a new type in its format,
+	 * and a vault that holds them opens in 8.5.1 like one with the group identifier already did
+	 * (#413)
+	 */
+	private static void keepTheTimes(final Times times,
+		final GenericTreeElement<List<MysticCryptEntryModelBean>> treeElement)
+	{
+		if (times == null)
+		{
+			return;
+		}
+		putInstant(treeElement, KEEPASS_CREATION_TIME_PROPERTY, times.getCreationTime());
+		putInstant(treeElement, KEEPASS_LAST_MODIFICATION_TIME_PROPERTY,
+			times.getLastModificationTime());
+		putInstant(treeElement, KEEPASS_LAST_ACCESS_TIME_PROPERTY, times.getLastAccessTime());
+		putInstant(treeElement, KEEPASS_EXPIRY_TIME_PROPERTY, times.getExpiryTime());
+		if (times.getExpires() != null)
+		{
+			treeElement.getProperties().put(KEEPASS_EXPIRES_PROPERTY, times.getExpires());
+		}
+	}
+
+	/**
+	 * Writes a group's kept times back through the capsule; a time the element does not carry - a
+	 * group created in this application - keeps the one the library gave the new group
+	 */
+	private static void giveBackTheTimes(
+		final GenericTreeElement<List<MysticCryptEntryModelBean>> treeElement,
+		final JacksonGroup group)
+	{
+		Times times = KeePassLibraryFields.getTimes(group);
+		if (times == null)
+		{
+			times = new Times(new Date());
+		}
+		Date creation = dateOf(treeElement, KEEPASS_CREATION_TIME_PROPERTY);
+		if (creation != null)
+		{
+			times.setCreationTime(creation);
+		}
+		Date modification = dateOf(treeElement, KEEPASS_LAST_MODIFICATION_TIME_PROPERTY);
+		if (modification != null)
+		{
+			times.setLastModificationTime(modification);
+		}
+		Date access = dateOf(treeElement, KEEPASS_LAST_ACCESS_TIME_PROPERTY);
+		if (access != null)
+		{
+			times.setLastAccessTime(access);
+		}
+		Date expiry = dateOf(treeElement, KEEPASS_EXPIRY_TIME_PROPERTY);
+		if (expiry != null)
+		{
+			times.setExpiryTime(expiry);
+		}
+		if (treeElement.getProperties().get(KEEPASS_EXPIRES_PROPERTY)instanceof Boolean expires)
+		{
+			times.setExpires(expires);
+		}
+		KeePassLibraryFields.setTimes(group, times);
+	}
+
+	private static void putInstant(
+		final GenericTreeElement<List<MysticCryptEntryModelBean>> treeElement, final String key,
+		final Date date)
+	{
+		if (date != null)
+		{
+			treeElement.getProperties().put(key, date.toInstant().toString());
+		}
+	}
+
+	private static Date dateOf(
+		final GenericTreeElement<List<MysticCryptEntryModelBean>> treeElement, final String key)
+	{
+		return treeElement.getProperties().get(key)instanceof String text
+			? Date.from(Instant.parse(text))
+			: null;
 	}
 
 }

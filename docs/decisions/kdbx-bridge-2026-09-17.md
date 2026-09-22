@@ -30,10 +30,13 @@ issues it links), not a rule. The binding short form is in `KeePassEntryConverte
 
 Measured by `KdbxRoundTripKeepsEveryFieldUiTest` through the application's menus - import, save,
 end, sign in, export - against `src/e2eKdbx/resources/kdbx/keepassxc-2.7.10-kdbx4.kdbx`, both files
-read with `keepassxc-cli export -f xml`, 10 of 10 green locally with keepassxc-cli 2.7.10 and in CI
-with 2.7.6 (CI run 35205468621; the version is printed on every run since #407):
+read with `keepassxc-cli export -f xml`, 11 of 11 green locally with keepassxc-cli 2.7.10 since
+the group times were added (#413); before that 10 of 10, also in CI with 2.7.6 (CI run 35205468621;
+the version is printed on every run since #407):
 
-- group structure with no added level and no renaming; group names, identifiers and icon indices
+- group structure with no added level and no renaming; group names, identifiers, icon indices, and
+  every group's four times with its expiry flag, kept in the vault as ISO-8601 text in the group's
+  properties (#413)
 - per entry: identifier; creation, last modification, last access and expiry time with the expiry
   flag; icon index; title, user name, password, URL, notes, umlauts included; custom properties and
   which of them are protected (#389); attachments with their content; the history
@@ -45,14 +48,11 @@ carries no history and its own copies of every list and of the protected names (
 
 ## What a round trip does not carry
 
-Read from the converters with `grep -n 'setTimes\|getTimes' KeePassTreeConverter.java` (no match),
-`grep -n 'RECYCLE_BIN' KeePassTreeConverter.java` (written on import only) and
+Read from the converters with `grep -n 'RECYCLE_BIN' KeePassTreeConverter.java` (written on import
+only) and
 `grep -n 'customIcon\|Tags\|Color\|AutoType\|CustomData\|UsageCount\|LocationChanged' KeePassEntryConverter.java`
-(no match). None of them is asserted by the round trip test, whose group facts are path, name,
-icon index and identifier:
+(no match). None of them is asserted by the round trip test:
 
-- a group's four times - not read on import, not written on export; measured lost on a round trip
-  of the fixture, every one of them becoming the moment of the export (#413)
 - a group's recycle-bin flag - kept in the vault, not written back
 - an entry's custom icon, tags, colours, auto-type settings and custom data
 - `UsageCount` and `LocationChanged`, outside the agreed scope from the start
