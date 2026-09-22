@@ -865,6 +865,26 @@ final class ApplicationSteps
 	}
 
 	/**
+	 * Types the given text into the "Repeat" field of the selected entry through the real user
+	 * flow: right-click, "edit...", the "Edit Crypt Entry" dialog, OK. An imported entry has no
+	 * repeated password until somebody edits it; this is how it gets one
+	 */
+	ApplicationSteps editSelectedEntryRepeat(org.assertj.swing.fixture.FrameFixture frame,
+		String repeat)
+	{
+		rightClickSelectedTableRow(frame);
+		chooseFromShowingPopup("edit...");
+
+		DialogFixture editDialog = findDialogWithTitle("Edit Crypt Entry");
+		GuiActionRunner.execute(() -> editDialog.textBox("txtRepeat").target().setText(repeat));
+		robot.waitForIdle();
+		UiTestSpeed.step();
+		clickDialogButton(editDialog, "OK");
+		awaitDialogClosed(editDialog, "edit-crypt-entry dialog");
+		return this;
+	}
+
+	/**
 	 * Duplicates the selected entry through the real user flow: right-click, "duplicate...", type
 	 * the duplicate's title into the "New title for duplicate" dialog, OK
 	 */
