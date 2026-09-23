@@ -97,6 +97,7 @@ public class LockWorkspaceAction extends AbstractAction
 			persistPendingChanges(frame.getModelObject());
 			forgetTheKeyMaterial(frame.getModelObject().getMasterPwFileModelBean());
 			frame.getModelObject().setSignedIn(false);
+			closeTheWindowsOnTheDesktop(frame);
 			frame.switchToDesktopPane();
 			((DesktopMenu)frame.getMenu()).onEnableByPublic();
 			// a password copied before locking would otherwise still be there to paste
@@ -233,6 +234,33 @@ public class LockWorkspaceAction extends AbstractAction
 			log.log(Level.WARNING,
 				"the pending changes could not be written while locking, so the vault stays open",
 				exception);
+		}
+	}
+
+	/**
+	 * Closes every window standing on the desktop, because a locked workspace is one whose content
+	 * is off the screen.
+	 * <p>
+	 * A plugin window outlived the lock: the console was measured after locking with its whole
+	 * scrollback still on screen, vault paths in it, and its buffer was not reachable to be erased
+	 * either, because the streams still pointed into the text area of a window nobody could see
+	 * (#375). Closing is the host's half - what a window has to let go of when it closes is its
+	 * own, and the console erases its buffer on exactly this event.
+	 *
+	 * @param frame
+	 *            the application frame being locked
+	 */
+	private static void closeTheWindowsOnTheDesktop(final MysticCryptApplicationFrame frame)
+	{
+		if (frame.getDesktopPanePanel() == null
+			|| frame.getDesktopPanePanel().getDesktopPane() == null)
+		{
+			return;
+		}
+		for (javax.swing.JInternalFrame internalFrame : frame.getDesktopPanePanel().getDesktopPane()
+			.getAllFrames())
+		{
+			internalFrame.dispose();
 		}
 	}
 

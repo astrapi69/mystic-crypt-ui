@@ -50,8 +50,14 @@ public class ConsoleSettingsContribution implements PluginSettingsContribution
 	/** Whether the console frame can be resized and moved */
 	public static final String KEY_RESIZABLE = "dock.resizable";
 
+	/** How many lines the console keeps before the oldest are dropped */
+	public static final String KEY_MAX_LINES = "buffer.max.lines";
+
 	/** The fraction used when nothing else is configured */
 	public static final int DEFAULT_HEIGHT_DIVISOR = 4;
+
+	/** The number of lines the console keeps when nothing else is configured */
+	public static final int DEFAULT_MAX_LINES = 2000;
 
 	@Override
 	public String getPluginId()
@@ -71,6 +77,7 @@ public class ConsoleSettingsContribution implements PluginSettingsContribution
 		Map<String, String> defaults = new LinkedHashMap<>();
 		defaults.put(KEY_HEIGHT_DIVISOR, String.valueOf(DEFAULT_HEIGHT_DIVISOR));
 		defaults.put(KEY_RESIZABLE, "false");
+		defaults.put(KEY_MAX_LINES, String.valueOf(DEFAULT_MAX_LINES));
 		return defaults;
 	}
 
@@ -81,6 +88,7 @@ public class ConsoleSettingsContribution implements PluginSettingsContribution
 		{
 			case KEY_HEIGHT_DIVISOR -> "4 docks the console into the bottom quarter of the screen";
 			case KEY_RESIZABLE -> "true or false: whether the console frame can be resized and moved";
+			case KEY_MAX_LINES -> "how many lines the console keeps; the oldest are dropped above it";
 			default -> null;
 		};
 	}
@@ -101,6 +109,18 @@ public class ConsoleSettingsContribution implements PluginSettingsContribution
 	{
 		int divisor = PluginSettings.asInt(current(), KEY_HEIGHT_DIVISOR, DEFAULT_HEIGHT_DIVISOR);
 		return divisor < 2 ? DEFAULT_HEIGHT_DIVISOR : divisor;
+	}
+
+	/**
+	 * How many lines the console keeps; anything below one line would show nothing at all and is
+	 * refused
+	 *
+	 * @return the line limit
+	 */
+	public static int maxLines()
+	{
+		int lines = PluginSettings.asInt(current(), KEY_MAX_LINES, DEFAULT_MAX_LINES);
+		return lines < 1 ? DEFAULT_MAX_LINES : lines;
 	}
 
 	/**
