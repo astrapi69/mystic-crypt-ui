@@ -138,6 +138,32 @@ public class GenerateKeysPanel extends BasePanel<GenerateKeysModelBean>
 		{
 			cmbKeyFormat.setSelectedItem(KeyFormat.PKCS_8);
 		}
+		cmbKeyFormat.setToolTipText(
+			pkcs1Available ? WHAT_THE_KEY_FORMAT_BOX_OFFERS : whyPkcs1IsNotOffered(algorithm));
+	}
+
+	/** What the key format box offers, while both encodings are real for the chosen algorithm */
+	private static final String WHAT_THE_KEY_FORMAT_BOX_OFFERS = KeygenMessages.getString(
+		"keygen.tooltip.key.format",
+		"the private key encoding - PKCS#8 works for every algorithm, PKCS#1 is only available for RSA and EC");
+
+	/**
+	 * Why the box is closed, in the words the command line uses for the same request: since
+	 * mystic-crypt 13.0 {@code keygen --format pkcs1} on such an algorithm refuses with "PKCS#1 was
+	 * asked for, but a 'XDH' private key has no traditional form", instead of quietly writing
+	 * PKCS#8. A greyed-out box with the general text beside it left the user of the window asking
+	 * the question the command line answers (#435)
+	 *
+	 * @param algorithm
+	 *            the algorithm that has no traditional form
+	 * @return the reason, naming the algorithm
+	 */
+	private static String whyPkcs1IsNotOffered(final KeyPairGeneratorAlgorithm algorithm)
+	{
+		return String.format(
+			KeygenMessages.getString("keygen.keyformat.unavailable.reason",
+				"a %1$s private key has no traditional form - PKCS#8 is the only encoding it has"),
+			algorithm.getAlgorithm());
 	}
 
 	/**
@@ -359,8 +385,7 @@ public class GenerateKeysPanel extends BasePanel<GenerateKeysModelBean>
 		cmbSaveFormat.setToolTipText(KeygenMessages.getString("keygen.tooltip.save.format",
 			"the encoding every file this window saves is written in - PEM is text, DER is binary"));
 		cmbKeyFormat.setName("cmbKeyFormat");
-		cmbKeyFormat.setToolTipText(KeygenMessages.getString("keygen.tooltip.key.format",
-			"the private key encoding - PKCS#8 works for every algorithm, PKCS#1 is only available for RSA and EC"));
+		cmbKeyFormat.setToolTipText(WHAT_THE_KEY_FORMAT_BOX_OFFERS);
 		cmbKeyFormat.setRenderer(new javax.swing.DefaultListCellRenderer()
 		{
 			private static final long serialVersionUID = 1L;

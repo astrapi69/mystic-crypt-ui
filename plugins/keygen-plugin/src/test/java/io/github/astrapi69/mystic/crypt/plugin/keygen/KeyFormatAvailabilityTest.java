@@ -26,6 +26,7 @@ package io.github.astrapi69.mystic.crypt.plugin.keygen;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.params.ParameterizedTest;
@@ -79,6 +80,55 @@ class KeyFormatAvailabilityTest
 		assertEquals(KeyFormat.PKCS_8, panel.getModelObject().getKeyFormat(),
 			"switching to " + algorithm + " must not leave a PKCS#1 choice standing that the save "
 				+ "path would silently turn into PKCS#8 anyway");
+	}
+
+	/**
+	 * A box that closes itself says why it did. The command line answers the same request with a
+	 * sentence since mystic-crypt 13.0 - "PKCS#1 was asked for, but a 'XDH' private key has no
+	 * traditional form" - and a user who finds the box greyed out here is asking the same question
+	 * as the one who typed that command (#435)
+	 *
+	 * @param algorithm
+	 *            an algorithm whose private key has no traditional form
+	 */
+	@ParameterizedTest
+	@EnumSource(value = KeyPairGeneratorAlgorithm.class,
+		names = { "X25519", "X448", "ML_KEM_768", "ML_DSA_65" })
+	void theClosedBoxSaysWhyItIsClosed(KeyPairGeneratorAlgorithm algorithm)
+	{
+		GenerateKeysPanel panel = new GenerateKeysPanel();
+
+		panel.getCmbAlgorithm().setSelectedItem(algorithm);
+
+		String reason = panel.getCmbKeyFormat().getToolTipText();
+		assertNotNull(reason, algorithm + ": a disabled box with no explanation is a dead end");
+		assertTrue(reason.contains("PKCS#8"),
+			"the reason names the encoding the key does have: " + reason);
+		assertTrue(reason.contains(algorithm.getAlgorithm()),
+			"and the algorithm it is talking about: " + reason);
+	}
+
+	/**
+	 * The other half: where the choice is real, the box explains the choice rather than refusing
+	 * it, and switching back from an algorithm that has none restores that text
+	 *
+	 * @param algorithm
+	 *            an algorithm whose private key has a traditional form
+	 */
+	@ParameterizedTest
+	@EnumSource(value = KeyPairGeneratorAlgorithm.class, names = { "RSA", "EC" })
+	void anOpenBoxExplainsTheChoiceInsteadOfRefusingIt(KeyPairGeneratorAlgorithm algorithm)
+	{
+		GenerateKeysPanel panel = new GenerateKeysPanel();
+		panel.getCmbAlgorithm().setSelectedItem(KeyPairGeneratorAlgorithm.X25519);
+
+		panel.getCmbAlgorithm().setSelectedItem(algorithm);
+
+		String tooltip = panel.getCmbKeyFormat().getToolTipText();
+		assertNotNull(tooltip, algorithm + ": the box keeps explaining what it offers");
+		assertFalse(tooltip.contains("no traditional form"),
+			algorithm + " can be written both ways, so the refusal has to be gone again: "
+				+ tooltip);
 	}
 
 }
