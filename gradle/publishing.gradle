@@ -79,8 +79,30 @@ publishing {
     }
 }
 
+// Signing a release publication, without making every build that publishes LOCALLY need the key.
+//
+// The signing keys live in the maintainer's private gradle.properties and nowhere else. Since #333
+// the CI workflow builds the plugins, which needs the host in the local Maven repository, so every
+// CI build runs publishToMavenLocal - and on a release version that pulled in signMavenJavaPublication,
+// which failed with "No configured signatory" before a single test ran. A version bump could not
+// pass CI at all (#431).
+//
+// So: a LOCAL publish without a signatory signs nothing and says so, the way the jar signing next
+// door already behaves. A publish to the REMOTE repository without a signatory still fails - an
+// unsigned artifact on a public repository is not the smaller problem.
+def publishesToTheRemoteRepository = gradle.startParameter.taskNames.any { name ->
+    name.contains('publish') && !name.contains('ToMavenLocal')
+}
+def signatoryConfigured = ['signing.keyId', 'signing.password', 'signing.secretKeyRingFile']
+        .every { project.hasProperty(it) } || project.hasProperty('signing.gnupg.keyName')
+
 signing {
+    required = { releaseVersion && publishesToTheRemoteRepository }
     if (releaseVersion) {
         sign publishing.publications.mavenJava
+        if (!signatoryConfigured && !publishesToTheRemoteRepository) {
+            println('No signing key configured, the published artifacts are not signed.\n' +
+                    'Set the signing.* properties to sign them.')
+        }
     }
 }
