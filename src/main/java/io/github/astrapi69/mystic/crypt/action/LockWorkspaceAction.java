@@ -227,9 +227,9 @@ public class LockWorkspaceAction extends AbstractAction
 		}
 		catch (RuntimeException exception)
 		{
-			// storeApplicationFile clears the flag before it writes, so a failed write has to put
-			// it back: it is what the timed close asks before dropping the model
-			applicationModelBean.setDirty(true);
+			// the flag needs no repair since #424: storeApplicationFile clears it only after the
+			// write returned, so a failed write leaves the vault dirty by itself. The lock is
+			// silent about it on purpose - it runs on a timer, with nobody at the screen
 			log.log(Level.WARNING,
 				"the pending changes could not be written while locking, so the vault stays open",
 				exception);

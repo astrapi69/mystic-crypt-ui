@@ -51,19 +51,24 @@ import io.github.astrapi69.throwable.RuntimeExceptionDecorator;
 public final class ApplicationXmlFileStoreWorker
 {
 
+	/**
+	 * Writes the open vault to its file and marks its changes as saved - in that order, so a write
+	 * that fails leaves them unsaved (#424)
+	 *
+	 * @param applicationModelBean
+	 *            the open vault
+	 * @throws RuntimeException
+	 *             when the vault cannot be written; the caller tells the user and keeps the vault
+	 *             open
+	 */
 	public static void storeApplicationFile(ApplicationModelBean applicationModelBean)
 	{
-		// before the flag below is cleared: a vault in a newer format is not written (#402), and a
-		// refusal after that line would leave its unsaved changes looking saved
+		// a vault in a newer format is not written at all (#402)
 		if (VaultXmlCodec.isNewerThanThisBuild(applicationModelBean))
 		{
 			throw new IllegalStateException(VaultXmlCodec.whyItIsReadOnly(applicationModelBean));
 		}
 		MasterPwFileModelBean modelObject = applicationModelBean.getMasterPwFileModelBean();
-		if (applicationModelBean.isDirty())
-		{
-			applicationModelBean.setDirty(false);
-		}
 		SignInType signInType = SignInType.toSignInType(modelObject);
 		if (SignInType.PASSWORD_AND_PRIVATE_KEY.equals(signInType))
 		{
@@ -77,6 +82,11 @@ public final class ApplicationXmlFileStoreWorker
 		{
 			saveToFileWithPassword(applicationModelBean);
 		}
+		// last, and only when the write above returned: a write that throws leaves the changes
+		// unsaved, because that is what they are. Clearing it first made a full disk or a
+		// read-only directory look like a successful save, and the close question, which reads
+		// this flag, then ended the application without asking (#424)
+		applicationModelBean.setDirty(false);
 	}
 
 	public static File saveToFileWithPrivateKey(ApplicationModelBean applicationModelBean)
