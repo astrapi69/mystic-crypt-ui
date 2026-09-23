@@ -50,6 +50,13 @@ tasks.withType(JavaCompile).configureEach { javaCompiler ->
 // exists to prevent. A third suite added later would have lost it again
 tasks.withType(Test).configureEach {
     it.mustRunAfter(tasks.named("jar"))
+    // AssertJ-Swing's monitor reads the private state field of java.util.TimerTask by reflection
+    // (ProtectingTimerTask.isCanceled), which the module system blocks without this. The
+    // application does not need it and does not get it - #409 removed it from the packaged jar
+    // with KeePassJava2's Simple model, and measured after that: 8 of 124 end-to-end result files
+    // carried 1270 lines of InaccessibleObjectException, and a cancelled monitor task ran on
+    // anyway, because the failed read is reported as "not cancelled" (#425)
+    it.jvmArgs "--add-opens", "java.base/java.util=ALL-UNNAMED"
     // the KDBX round trip is measured with keepassxc-cli, and a system property given on the
     // gradle command line reaches the DAEMON, not the forked test JVM - so it is forwarded here.
     // Without it the test reports "keepassxc-cli is not on the PATH" on a machine that has one

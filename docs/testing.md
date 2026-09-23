@@ -134,6 +134,9 @@ Removing it makes classes pass in isolation and fail in a suite run.
 ```groovy
 tasks.named("test") {
     it.mustRunAfter(tasks.named("jar"))
+    // AssertJ-Swing's monitor reflects into java.util.TimerTask; the application itself does
+    // not need this and the packaged jar does not get it (#425)
+    it.jvmArgs "--add-opens", "java.base/java.util=ALL-UNNAMED"
     if (System.getProperty("mystic.crypt.ui.test.mode") != null) {
         it.systemProperty "mystic.crypt.ui.test.mode", System.getProperty("mystic.crypt.ui.test.mode")
     }
