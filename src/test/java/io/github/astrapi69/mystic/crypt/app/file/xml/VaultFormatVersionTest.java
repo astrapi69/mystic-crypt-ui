@@ -149,8 +149,8 @@ class VaultFormatVersionTest
 			() -> ApplicationXmlFileStoreWorker.storeApplicationFile(fromANewerVersion));
 
 		assertTrue(fromANewerVersion.isDirty(),
-			"storeApplicationFile clears the flag before it writes; a refusal after that point "
-				+ "leaves unsaved changes looking saved, which is what the close question reads");
+			"a refusal is not a save: the flag falls only behind a write that returned (#424), "
+				+ "and the close question reads exactly this flag");
 		assertFalse(vault.exists(), "and nothing was written");
 	}
 

@@ -27,8 +27,8 @@ import javax.swing.JOptionPane;
 import io.github.astrapi69.model.BaseModel;
 import io.github.astrapi69.mystic.crypt.ApplicationModelBean;
 import io.github.astrapi69.mystic.crypt.Messages;
-import io.github.astrapi69.mystic.crypt.app.file.xml.ApplicationXmlFileStoreWorker;
 import io.github.astrapi69.mystic.crypt.app.file.xml.VaultXmlCodec;
+import io.github.astrapi69.mystic.crypt.write.GuardedSave;
 import io.github.astrapi69.swing.dialog.JOptionPaneExtensions;
 import io.github.astrapi69.swing.panel.label.LabelPanel;
 
@@ -162,8 +162,11 @@ public final class SaveBeforeCloseConfirmation
 			null);
 		if (option == JOptionPane.YES_OPTION)
 		{
-			ApplicationXmlFileStoreWorker.storeApplicationFile(applicationModelBean);
-			return Choice.SAVED;
+			// a write that fails cancels the ending: the user asked to save before closing, and
+			// closing anyway would discard exactly what they asked to keep (#424)
+			return GuardedSave.writeOrTell(parent, applicationModelBean)
+				? Choice.SAVED
+				: Choice.CANCELLED;
 		}
 		if (option == JOptionPane.NO_OPTION)
 		{

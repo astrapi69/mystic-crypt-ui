@@ -35,10 +35,10 @@ import io.github.astrapi69.component.model.enumeration.visibility.RenderMode;
 import io.github.astrapi69.design.pattern.observer.event.EventObject;
 import io.github.astrapi69.file.create.model.FileInfo;
 import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
-import io.github.astrapi69.mystic.crypt.app.file.xml.ApplicationXmlFileStoreWorker;
 import io.github.astrapi69.mystic.crypt.eventbus.ApplicationEventBus;
 import io.github.astrapi69.mystic.crypt.panel.signin.MasterPwFileModelBean;
 import io.github.astrapi69.mystic.crypt.write.DataClass;
+import io.github.astrapi69.mystic.crypt.write.GuardedSave;
 import io.github.astrapi69.mystic.crypt.write.OverwriteConfirmation;
 import io.github.astrapi69.swing.filechooser.JFileChooserExtensions;
 
@@ -90,7 +90,10 @@ public class SaveAsApplicationFileAction extends AbstractAction
 		MasterPwFileModelBean masterPwFileModelBean = frame.getModelObject()
 			.getMasterPwFileModelBean();
 		masterPwFileModelBean.setApplicationFileInfo(FileInfo.toFileInfo(selectedFile));
-		ApplicationXmlFileStoreWorker.storeApplicationFile(frame.getModelObject());
+		if (!GuardedSave.writeOrTell(frame, frame.getModelObject()))
+		{
+			return;
+		}
 		ApplicationEventBus.getSaveState().fireEvent(new EventObject<>(RenderMode.VIEWABLE));
 	}
 }
