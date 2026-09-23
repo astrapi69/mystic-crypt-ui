@@ -50,6 +50,14 @@ That last line is worth internalising: **the string `SNAPSHOT` in `projectVersio
 switch** that decides whether jars get signed, whether the Maven publication is signed,
 and whether publishing goes to the Sonatype releases or the snapshots repository.
 
+The signing keys are on the maintainer's machine and nowhere else - not in the repository
+and not in the CI secrets, deliberately - so **a release is always cut locally**. What that
+costs the runner is covered since #431: on a release version, a publish to the LOCAL Maven
+repository without a signing key signs nothing and prints that it did not, while a publish
+to the REMOTE repository without one still fails. CI needs the local publish to build the
+plugins (#333), and before this a version bump could not pass CI at all - it died in
+`signMavenJavaPublication` with "No configured signatory" before a single test ran.
+
 `.claude/rules/release-workflow.md` states the rule directly: "Version source:
 `gradle.properties` (`projectVersion`), the ONLY hand-edited version field. Nothing else
 carries an independent version literal; if one appears, fix the derivation, not the
