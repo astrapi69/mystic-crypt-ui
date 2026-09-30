@@ -9,6 +9,17 @@
 3. **Libraries** — mystic-crypt, crypt-data, crypt-api, BouncyCastle. All crypto
    primitives come from here.
 
+**Search the family before writing anything, not only for crypto.** Algorithm names and key
+formats are in crypt-api (`KeyPairGeneratorAlgorithm`, `HashAlgorithm`, `KeyFormat`), key readers,
+PEM/DER and hex in crypt-data (`HexExtensions`), signing, Shamir and password hashing in
+mystic-crypt, checksums in checksum-up, trees in gen-tree, the model-backed Swing components in
+swing-model-components and its siblings. This application is a CONSUMER: here the family comes
+first and the JDK second, which is the opposite of `library-first.md` inside mystic-crypt, where
+the JDK comes first because a library cannot depend on itself. Confusing the two is how a consumer
+reinvents what it already ships with. Where a library almost fits, use it and report the gap there
+(`mystic-crypt#149`, `crypt-data#51` were both found this way); a workaround carries a comment
+naming the issue. A dependency used directly is declared directly.
+
 ## Plugin-first
 
 New features ALWAYS belong in an internal plugin under `plugins/{name}-plugin/`, unless
