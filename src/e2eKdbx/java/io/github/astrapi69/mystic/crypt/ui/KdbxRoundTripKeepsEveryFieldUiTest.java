@@ -32,9 +32,12 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.List;
+import java.util.stream.Stream;
 
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -108,6 +111,34 @@ class KdbxRoundTripKeepsEveryFieldUiTest extends AbstractUiTest
 	private String readWith;
 
 	/**
+	 * The round trip itself, run once for the whole class (#416).
+	 * <p>
+	 * Every test here checks a different field of the SAME result, so running the import, save,
+	 * restart, export and the two keepassxc-cli dumps per test measured the same round trip eleven
+	 * times: 104.8 s locally and 369.6 s in CI (run 35218649230), where the Argon2d import alone
+	 * takes around 30 s. Once per class is the same statement for a fraction of the time.
+	 * <p>
+	 * Static rather than a {@code @BeforeAll}: the UI harness this class needs is set up per test
+	 * by {@code AbstractUiTest}, and a class-level hook runs before it. So the first test does the
+	 * work and the rest read what it produced. {@code forkEvery = 1} gives every class its own JVM,
+	 * so these fields cannot leak into another class.
+	 */
+	private static KdbxFacts sourceFacts;
+
+	private static KdbxFacts roundTrippedFacts;
+
+	private static String readWithText;
+
+	/**
+	 * The two files, copied out of the per-test home directory, which is deleted with its test
+	 */
+	private static File keptOriginal;
+
+	private static File keptExported;
+
+	private static Path keptDirectory;
+
+	/**
 	 * Names the instrument once per run, passed or failed: a green round trip that does not say
 	 * which KeePassXC it compared with is a measurement without its measuring device. The line goes
 	 * to standard output, which the test report keeps for passing tests too (the CI artifact
@@ -121,7 +152,35 @@ class KdbxRoundTripKeepsEveryFieldUiTest extends AbstractUiTest
 	}
 
 	@BeforeEach
-	void importSaveReopenAndExportTheFixture() throws Exception
+	void takeTheRoundTripResult() throws Exception
+	{
+		if (roundTrippedFacts == null)
+		{
+			importSaveReopenAndExportTheFixture();
+		}
+		original = keptOriginal;
+		exported = keptExported;
+		source = sourceFacts;
+		roundTripped = roundTrippedFacts;
+		readWith = readWithText;
+	}
+
+	/** Deletes what {@link #importSaveReopenAndExportTheFixture()} kept for the whole class */
+	@AfterAll
+	static void dropTheKeptFiles() throws IOException
+	{
+		if (keptDirectory == null)
+		{
+			return;
+		}
+		try (Stream<Path> kept = Files.walk(keptDirectory))
+		{
+			kept.sorted(java.util.Comparator.reverseOrder()).map(Path::toFile)
+				.forEach(File::delete);
+		}
+	}
+
+	private void importSaveReopenAndExportTheFixture() throws Exception
 	{
 		original = copyTheFixture();
 		File vault = new File(tempHome, "kdbx-round-trip.mcrdb");
@@ -144,10 +203,22 @@ class KdbxRoundTripKeepsEveryFieldUiTest extends AbstractUiTest
 		System.out.println("KDBX round trip: import step " + importMillis + " ms, export step "
 			+ exportMillis + " ms");
 
-		readWith = " [read with keepassxc-cli " + KeePassXcDump.version()
+		readWithText = " [read with keepassxc-cli " + KeePassXcDump.version()
 			+ "; the fixture was written with " + FIXTURE_WRITTEN_WITH + "]";
-		source = KdbxFacts.of(KeePassXcDump.xmlOf(original, PASSWORD));
-		roundTripped = KdbxFacts.of(KeePassXcDump.xmlOf(exported, PASSWORD));
+		sourceFacts = KdbxFacts.of(KeePassXcDump.xmlOf(original, PASSWORD));
+		roundTrippedFacts = KdbxFacts.of(KeePassXcDump.xmlOf(exported, PASSWORD));
+		// out of the per-test home directory, which goes away with the test that created it - the
+		// tests that read the files themselves run after this one (#416)
+		keptDirectory = Files.createTempDirectory("kdbx-round-trip-result");
+		keptOriginal = keep(original);
+		keptExported = keep(exported);
+	}
+
+	private static File keep(final File file) throws IOException
+	{
+		Path copy = keptDirectory.resolve(file.getName());
+		Files.copy(file.toPath(), copy, StandardCopyOption.REPLACE_EXISTING);
+		return copy.toFile();
 	}
 
 	@Test
