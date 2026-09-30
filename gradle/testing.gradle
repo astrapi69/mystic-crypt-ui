@@ -180,6 +180,10 @@ tasks.register('testSummary') {
 // would then report the restored counts with nothing to say they are old (8.5's gate did exactly
 // that). No line here, counts below restored.
 tasks.named('test') {
+    // CommitProvenanceCheckTest runs scripts/check-commit-provenance.sh. Without this the script is
+    // no input of the task, and a change to it alone left the test UP-TO-DATE - the check reported
+    // green over a script it had not run (#444)
+    inputs.file('scripts/check-commit-provenance.sh').withPathSensitivity(PathSensitivity.RELATIVE)
     finalizedBy 'testSummary'
     doLast { logger.lifecycle('test: executed in this build') }
 }

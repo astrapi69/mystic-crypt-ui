@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 #
-# Refuses commit messages that credit a non-human collaborator as a co-author.
+# Refuses commits that credit a non-human collaborator: as a co-author trailer (#373), or as the
+# commit's author or committer (#444).
 #
 # coding-standards.md has forbidden this since 13444b67 (2026-08-25), and 112 of the 212 non-merge
 # commits on develop after that day carried the trailer anyway (measured 2026-09-15). Not one of
@@ -30,19 +31,32 @@ set -euo pipefail
 # or a bot without crediting one.
 NON_HUMAN_PATTERN='anthropic\.com|\bclaude\b|\[bot\]|\bcopilot\b|noreply@github\.com|\bchatgpt\b|\bopenai\b|\bcursor\b|\bdevin\b|\bcodex\b'
 
+# The same, for the author and committer of a commit (#444). Narrower on purpose: GitHub commits
+# every web merge as 'GitHub <noreply@github.com>', which is a machine recording a human's click,
+# not a collaborator. A commit authored under the AI tool's identity carries no trailer at all -
+# and GitHub turns exactly that author into a Co-authored-by trailer when it squash-merges.
+NON_HUMAN_IDENTITY_PATTERN='anthropic\.com|\bclaude\b|\bcopilot\b|\bchatgpt\b|\bopenai\b|\bcursor\b|\bdevin\b|\bcodex\b'
+
 say() { printf '%s\n' "$*"; }
 die() { printf 'check-commit-provenance: %s\n' "$*" >&2; exit 1; }
 
-# Prints the offending trailers of one commit message, empty when there are none
-offending_trailers()
+has_exception()
 {
-	local message="$1"
-	if printf '%s\n' "$message" | grep -qiE '^[[:space:]]*Co-Author-Exception:[[:space:]]*[^[:space:]]'; then
+	printf '%s\n' "$1" | grep -qiE '^[[:space:]]*Co-Author-Exception:[[:space:]]*[^[:space:]]'
+}
+
+# Prints the offending trailers and identities of one commit, empty when there are none. The
+# identities are given as lines "Author: name <email>" and "Committer: name <email>".
+offending_lines()
+{
+	local message="$1" identities="$2"
+	if has_exception "$message"; then
 		return 0
 	fi
 	printf '%s\n' "$message" \
 		| grep -iE '^[[:space:]]*Co-Authored-By:' \
 		| grep -iE "$NON_HUMAN_PATTERN" || true
+	printf '%s\n' "$identities" | grep -iE "$NON_HUMAN_IDENTITY_PATTERN" || true
 }
 
 refuse()
@@ -54,8 +68,12 @@ refuse()
 
 $(printf '%s\n' "$trailers" | sed 's/^/      /')
 
-  A commit here does not credit a non-human collaborator as a co-author
-  (.claude/rules/coding-standards.md, Git section; CLAUDE.md). Provenance is
+  A commit in this family of repositories does not credit a non-human
+  collaborator, as a co-author or as its author or committer (the Git rule in
+  mystic-crypt .claude/rules/workflow.md and mystic-crypt-ui
+  .claude/rules/coding-standards.md; this script is the same file in every
+  repository). An identity is fixed with git config user.name / user.email and
+  git commit --amend --reset-author on an unpushed commit. Provenance is
   recorded in the maintainer's private journal, where it is complete, and not
   as a signature line in a public repository - a line saying AI was involved
   without saying how tells a reader nothing and reads as the whole story.
@@ -85,13 +103,16 @@ done
 if [ "$MODE" = "--message-file" ]; then
 	[ -r "$ARGUMENT" ] || die "cannot read the commit message file: $ARGUMENT"
 	message="$(cat "$ARGUMENT")"
-	trailers="$(offending_trailers "$message")"
-	say "checked 1 commit message for non-human co-author trailers"
+	# the commit does not exist yet, so its identity is the one git is about to give it
+	identities="Author: $(git var GIT_AUTHOR_IDENT | sed 's/> .*/>/')
+Committer: $(git var GIT_COMMITTER_IDENT | sed 's/> .*/>/')"
+	trailers="$(offending_lines "$message" "$identities")"
+	say "checked 1 commit message and its author and committer for a non-human collaborator"
 	if [ -n "$trailers" ]; then
 		refuse "$(printf '%s\n' "$message" | head -1)" "$trailers"
 		exit 1
 	fi
-	say "no non-human co-author trailer"
+	say "no non-human collaborator"
 	exit 0
 fi
 
@@ -109,13 +130,14 @@ fi
 
 failed=0
 for commit in "${commits[@]}"; do
-	trailers="$(offending_trailers "$(git log -1 --format=%B "$commit")")"
+	trailers="$(offending_lines "$(git log -1 --format=%B "$commit")" \
+		"$(git log -1 --format='Author: %an <%ae>%nCommitter: %cn <%ce>' "$commit")")"
 	if [ -n "$trailers" ]; then
 		refuse "$(git log -1 --format='%h %s' "$commit")" "$trailers"
 		failed=1
 	fi
 done
 
-say "checked ${#commits[@]} commit message(s) in $ARGUMENT for non-human co-author trailers"
+say "checked ${#commits[@]} commit(s) in $ARGUMENT - trailers, author and committer - for a non-human collaborator"
 [ "$failed" -eq 0 ] || exit 1
-say "no non-human co-author trailer"
+say "no non-human collaborator"

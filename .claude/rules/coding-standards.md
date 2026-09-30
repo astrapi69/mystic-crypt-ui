@@ -68,8 +68,9 @@ When unclear: ask rather than guess.
 - No `--amend` + force-push on an open PR — add a new commit instead (an amend can desync
   the PR head and silently drop the amended change on merge).
 - **No attribution to a non-human collaborator, in a commit or in a pull request body.**
-  No `Co-Authored-By` trailer for an AI tool or a bot, and no "generated with" line in a
-  pull request description. Provenance belongs in the maintainer's private journal, where
+  No `Co-Authored-By` trailer for an AI tool or a bot, no commit authored or committed under
+  an AI tool's identity (GitHub turns such an author into the trailer on a squash merge, #444),
+  and no "generated with" line in a pull request description. Provenance belongs in the maintainer's private journal, where
   it is complete and checkable; a public line that says an AI was involved without saying
   how gives a reader nothing and reads as the whole story. Complete provenance privately or
   nothing publicly, not a remainder in between. An exception carries its reason in the
