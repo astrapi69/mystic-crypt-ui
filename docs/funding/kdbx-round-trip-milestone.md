@@ -116,3 +116,18 @@ requests before the maintainer of KeePassJava2 has answered.
 
 When #96 and #99 are resolved, the one class that reaches the library by reflection becomes plain
 delegation and the reflection goes.
+
+## How the work is produced
+
+Asterios Raptis designs the work, writes the specifications and the acceptance criteria, and
+reviews and measures every change; an AI coding assistant writes most of the implementation.
+Every commit is traceable to a reviewed issue. A complete log of the assistance is kept privately
+and is provided on request. The cryptographic decisions, the architecture and what counts as done
+are the maintainer's, and so is the responsibility for correctness.
+
+This paragraph replaces a pledge in the FLOSS/fund application that the milestones "will not be
+predominantly machine-generated". This milestone was delivered in the way described above, so the
+pledge said something the work does not support; the application says the same as this page now
+(`docs/funding/floss-fund-application.md` in astrapi69/mystic-crypt). Every number on this page
+still carries the command that produced it, which is what makes the delivery checkable regardless
+of who or what typed the implementation.
