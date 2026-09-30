@@ -68,9 +68,11 @@ refuse()
 
 $(printf '%s\n' "$trailers" | sed 's/^/      /')
 
-  A commit here does not credit a non-human collaborator, as a co-author or as
-  its author or committer (.claude/rules/coding-standards.md, Git section;
-  CLAUDE.md). An identity is fixed with git config user.name / user.email and
+  A commit in this family of repositories does not credit a non-human
+  collaborator, as a co-author or as its author or committer (the Git rule in
+  mystic-crypt .claude/rules/workflow.md and mystic-crypt-ui
+  .claude/rules/coding-standards.md; this script is the same file in every
+  repository). An identity is fixed with git config user.name / user.email and
   git commit --amend --reset-author on an unpushed commit. Provenance is
   recorded in the maintainer's private journal, where it is complete, and not
   as a signature line in a public repository - a line saying AI was involved
