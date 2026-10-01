@@ -68,7 +68,6 @@
 ################
 /build
 /.gradle
-/gradle
 /out
 # standalone example projects under examples/ (e.g. the hello-plugin template) have their own
 # independent Gradle builds - ignore their build output/cache too, only source should be tracked
