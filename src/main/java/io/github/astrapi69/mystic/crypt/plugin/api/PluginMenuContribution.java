@@ -59,16 +59,6 @@ public interface PluginMenuContribution extends ExtensionPoint
 	}
 
 	/**
-	 * Gets where this plugin's submenu belongs among its siblings.
-	 * <p>
-	 * The default, {@link Anchor#LAST}, means this plugin does not care: it takes the alphabetical
-	 * position every plugin has always had. {@link Anchor#FIRST} always wins over the alphabetical
-	 * order; {@link Anchor#BEFORE} and {@link Anchor#AFTER} place this submenu next to the one
-	 * named by {@link #getRelativeToMenuId()}.
-	 *
-	 * @return the anchor, {@link Anchor#LAST} by default
-	 */
-	/**
 	 * Whether this plugin's menu entries may be used while no vault is open.
 	 * <p>
 	 * Opt-in, never a default: a plugin that does not answer this question stays private, like
@@ -96,6 +86,16 @@ public interface PluginMenuContribution extends ExtensionPoint
 		return false;
 	}
 
+	/**
+	 * Gets where this plugin's submenu belongs among its siblings.
+	 * <p>
+	 * The default, {@link Anchor#LAST}, means this plugin does not care: it takes the alphabetical
+	 * position every plugin has always had. {@link Anchor#FIRST} always wins over the alphabetical
+	 * order; {@link Anchor#BEFORE} and {@link Anchor#AFTER} place this submenu next to the one
+	 * named by {@link #getRelativeToMenuId()}.
+	 *
+	 * @return the anchor, {@link Anchor#LAST} by default
+	 */
 	default Anchor getAnchor()
 	{
 		return Anchor.LAST;
