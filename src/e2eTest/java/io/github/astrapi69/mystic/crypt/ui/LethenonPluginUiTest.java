@@ -24,6 +24,7 @@
  */
 package io.github.astrapi69.mystic.crypt.ui;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -49,6 +50,7 @@ import io.github.astrapi69.lethenon.Blocks;
 import io.github.astrapi69.lethenon.Bytes;
 import io.github.astrapi69.lethenon.CanonicalEncoding;
 import io.github.astrapi69.lethenon.Chain;
+import io.github.astrapi69.lethenon.ChainFile;
 import io.github.astrapi69.lethenon.Destination;
 import io.github.astrapi69.lethenon.OneTimeAddresses;
 import io.github.astrapi69.lethenon.SignatureSuite;
@@ -62,7 +64,8 @@ import io.github.astrapi69.mystic.crypt.TestPasswords;
 /**
  * Milestone 5 of lethenon#2, the parts of it that are built: the plugin installs from its zip, its
  * submenu appears, the replay verifier behind its button reports what it verified in a chain file
- * written by the chain library itself, and the chain view lists that file's blocks.
+ * written by the chain library itself, the chain view lists that file's blocks, the balance window
+ * reads a wallet, and the send window signs a transfer that the chain library reads back.
  * <p>
  * The chain here is built with lethenon's own encoder rather than with a committed fixture, because
  * what a user's chain file looks like is whatever that encoder writes - a fixture would freeze one
@@ -198,6 +201,61 @@ class LethenonPluginUiTest extends AbstractUiTest
 			.execute(() -> tool.textBox("txtPassword").target().getText());
 		assertTrue(passwordLeft.isEmpty(), "the password field is cleared after one use");
 		assertTrue(frame.isEnabled(), "the application is still usable after a balance");
+	}
+
+	@Test
+	@DisplayName("the plugin signs a transfer with a memo and leaves it waiting next to the chain file")
+	void thePlugin_sendsATransferWithAMemo() throws Exception
+	{
+		installPluginRequiringItBuilt(LETHENON_ZIP);
+		String walletPassword = TestPasswords.throwaway();
+		Wallet wallet = Wallet.create();
+		File walletFile = new File(tempHome, "wallet.lethenon-wallet");
+		WalletFile.write(walletFile.toPath(), wallet, walletPassword.toCharArray());
+		File chainFile = aChainPayingTheWallet(wallet);
+		Bytes recipient = TransactionSigner
+			.asBytes(TransactionSigner.newKeyPair(SignatureSuite.ED25519).getPublic());
+		File databaseFile = new File(tempHome, "lethenon-send.mcrdb");
+		createDatabaseFileHeadless(databaseFile, MASTER_PASSWORD);
+		ApplicationSteps application = signInWithExistingDatabase(databaseFile, MASTER_PASSWORD);
+		FrameFixture frame = application.showMainFrame();
+
+		application.openPluginTool("Send LETH", "Send LETH");
+		JInternalFrameFixture tool = new JInternalFrameFixture(robot,
+			application.internalFrame("Send LETH"));
+		GuiActionRunner.execute(() -> {
+			tool.textBox("txtChainFile").target().setText(chainFile.getAbsolutePath());
+			tool.textBox("txtWalletFile").target().setText(walletFile.getAbsolutePath());
+			tool.textBox("txtPassword").target().setText(walletPassword);
+			tool.textBox("txtRecipient").target().setText(recipient.toString());
+			tool.textBox("txtAmount").target().setText("1.25");
+			tool.textBox("txtMemo").target().setText("watching is not protecting");
+		});
+		UiTestSpeed.step();
+		SwingUtilities.invokeLater(() -> tool.button("btnSend").target().doClick());
+
+		Pause.pause(new Condition("the transfer is signed")
+		{
+			@Override
+			public boolean test()
+			{
+				return textOf(tool, "txtReport").contains("waiting");
+			}
+		}, 30000);
+
+		String report = textOf(tool, "txtReport");
+		assertTrue(report.contains("1.25000000 LETH"), report);
+		assertTrue(report.contains("with nonce 0"), report);
+		assertFalse(report.contains(walletPassword), "the password is in no text on the screen");
+		List<SignedTransaction> pending = new ChainFile(chainFile.toPath()).readPending();
+		assertEquals(1, pending.size(), "the transfer waits in the chain library's pending file");
+		assertEquals("watching is not protecting", pending.getFirst().body().memo());
+		assertEquals(Destination.direct(recipient), pending.getFirst().body().recipient());
+		assertEquals(Amount.parseLeth("1.25"), pending.getFirst().body().amount());
+		String passwordLeft = GuiActionRunner
+			.execute(() -> tool.textBox("txtPassword").target().getText());
+		assertTrue(passwordLeft.isEmpty(), "the password field is cleared after one use");
+		assertTrue(frame.isEnabled(), "the application is still usable after a transfer");
 	}
 
 	private static String textOf(final JInternalFrameFixture tool, final String componentName)

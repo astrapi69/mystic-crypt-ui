@@ -25,7 +25,6 @@
 package io.github.astrapi69.mystic.crypt.plugin.lethenon;
 
 import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
@@ -34,17 +33,17 @@ import io.github.astrapi69.lethenon.Bytes;
 import io.github.astrapi69.lethenon.ChainState;
 import io.github.astrapi69.lethenon.SignatureSuite;
 import io.github.astrapi69.lethenon.Wallet;
-import io.github.astrapi69.lethenon.WalletFile;
 import io.github.astrapi69.lethenon.WalletScan;
 
 /**
  * What a wallet holds in a chain file, worked out by replaying the chain - never asked of anybody
  * (lethenon's NoBalanceQueryTest is the rule behind that, and this class names no networking type).
  * <p>
- * No chain logic of its own: {@link WalletFile#read} opens the wallet, the chain goes through the
- * same read-and-replay path as every other tool of this plugin, the direct accounts are read from
- * the replayed state, and {@link WalletScan#over} recognises the payments to one-time destinations
- * with the view key. Those are reported apart and never as spendable (lethenon#21).
+ * No chain logic of its own: {@link io.github.astrapi69.lethenon.WalletFile#read} opens the wallet,
+ * the chain goes through the same read-and-replay path as every other tool of this plugin, the
+ * direct accounts are read from the replayed state, and {@link WalletScan#over} recognises the
+ * payments to one-time destinations with the view key. Those are reported apart and never as
+ * spendable (lethenon#21).
  * <p>
  * The password is a {@code char[]} and is wiped before this method returns, whatever happens; it
  * appears in no message.
@@ -78,7 +77,7 @@ public final class WalletBalanceSupport
 	{
 		try
 		{
-			Wallet wallet = open(walletFile, password);
+			Wallet wallet = LethenonWallets.open(walletFile, password);
 			ChainReplaySupport.Replayed replayed = ChainReplaySupport.replayed(chainFile);
 			ChainState state = replayed.replay().finalState();
 			List<AccountBalance> accounts = Arrays.stream(SignatureSuite.values()).map(suite -> {
@@ -94,31 +93,6 @@ public final class WalletBalanceSupport
 		finally
 		{
 			Arrays.fill(password, '\0');
-		}
-	}
-
-	private static Wallet open(final Path walletFile, final char[] password) throws IOException
-	{
-		if (walletFile == null || walletFile.toString().isBlank())
-		{
-			throw new IllegalArgumentException("no wallet file was named: pick the file "
-				+ "lethenon's 'wallet create' or 'wallet restore' wrote");
-		}
-		if (!Files.isRegularFile(walletFile))
-		{
-			throw new IllegalArgumentException(
-				"there is no wallet file at " + walletFile.toAbsolutePath());
-		}
-		try
-		{
-			return WalletFile.read(walletFile, password);
-		}
-		catch (SecurityException refused)
-		{
-			throw new IllegalArgumentException(
-				walletFile.toAbsolutePath()
-					+ " does not open with this password, or it was changed after it was written",
-				refused);
 		}
 	}
 }
