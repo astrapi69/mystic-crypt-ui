@@ -1,4 +1,7 @@
 import java.io.File;
+import java.io.FileDescriptor;
+import java.io.FileOutputStream;
+import java.io.PrintStream;
 import java.nio.charset.StandardCharsets;
 import java.security.Security;
 import java.util.List;
@@ -20,6 +23,17 @@ import io.github.astrapi69.mystic.crypt.panel.signin.MasterPwFileModelBean;
  */
 public class OpenWithTheRelease
 {
+
+	/**
+	 * What this probe prints is compared character by character, so it says which encoding it
+	 * prints in rather than inheriting one: {@code System.out} follows this JVM's
+	 * {@code stdout.encoding}, which follows the locale, and on a machine with no {@code LANG} an
+	 * umlaut leaves as {@code ?} long before the test sees it (#456). The test reads this stream as
+	 * UTF-8, and this is the other half of that agreement.
+	 */
+	private static final PrintStream OUT = new PrintStream(
+		new FileOutputStream(FileDescriptor.out), true, StandardCharsets.UTF_8);
+
 	public static void main(String[] arguments) throws Exception
 	{
 		Security.addProvider(new org.bouncycastle.jce.provider.BouncyCastleProvider());
@@ -37,10 +51,10 @@ public class OpenWithTheRelease
 		}
 		catch (RuntimeException refused)
 		{
-			System.out.println("REFUSED " + refused.getMessage());
+			OUT.println("REFUSED " + refused.getMessage());
 			for (Throwable cause = refused.getCause(); cause != null; cause = cause.getCause())
 			{
-				System.out.println("CAUSE " + cause.getClass().getName() + ": "
+				OUT.println("CAUSE " + cause.getClass().getName() + ": "
 					+ String.valueOf(cause.getMessage()).lines().findFirst().orElse(""));
 			}
 			System.exit(2);
@@ -50,7 +64,7 @@ public class OpenWithTheRelease
 		{
 			for (MysticCryptEntryModelBean entry : node.getValue())
 			{
-				System.out.println("ENTRY node=" + node.getKey() + " title=" + text(entry.getTitle())
+				OUT.println("ENTRY node=" + node.getKey() + " title=" + text(entry.getTitle())
 					+ " userName=" + text(entry.getUserName()) + " password="
 					+ text(entry.getPassword()) + " url=" + text(entry.getUrl()) + " notes="
 					+ text(entry.getNotes()) + " properties=" + entry.getProperties().size()
@@ -59,12 +73,12 @@ public class OpenWithTheRelease
 		}
 		if (model.getRootTreeAsMap() != null)
 		{
-			model.getRootTreeAsMap().values().forEach(node -> System.out.println("GROUP name="
+			model.getRootTreeAsMap().values().forEach(node -> OUT.println("GROUP name="
 				+ node.getValue().getName() + " keepass.creationTime="
 				+ node.getValue().getProperties().get("keepass.creationTime") + " keepass.expires="
 				+ node.getValue().getProperties().get("keepass.expires")));
 		}
-		System.out.println("OPENED");
+		OUT.println("OPENED");
 	}
 
 	private static String text(final char[] characters)
