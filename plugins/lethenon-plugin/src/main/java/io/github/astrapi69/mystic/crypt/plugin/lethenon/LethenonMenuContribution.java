@@ -69,7 +69,10 @@ public class LethenonMenuContribution implements PluginMenuContribution
 		String sendTitle = LethenonMessages.getString("lethenon.menu.item.send", "Send LETH");
 		JMenuItem send = new JMenuItem(sendTitle);
 		send.addActionListener(event -> openInternalFrame(sendTitle, new LethenonSendPanel()));
-		return List.of(verifyAChain, showAChain, showABalance, send);
+		String mineTitle = LethenonMessages.getString("lethenon.menu.item.mine", "Mine a Pun");
+		JMenuItem mine = new JMenuItem(mineTitle);
+		mine.addActionListener(event -> openInternalFrame(mineTitle, new LethenonMinePanel()));
+		return List.of(verifyAChain, showAChain, showABalance, send, mine);
 	}
 
 	@Override
