@@ -26,7 +26,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.File;
 import java.nio.file.Files;
-import java.nio.file.attribute.PosixFilePermissions;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -58,32 +57,26 @@ class AFailedWriteKeepsTheVaultDirtyTest
 	private static final String ENTRY_TITLE = "survives-a-failed-write";
 
 	@Test
-	@DisplayName("a write into a directory that cannot be written leaves the changes unsaved")
+	@DisplayName("a write that cannot reach its file leaves the changes unsaved")
 	void aFailedWrite_leavesTheModelDirty(@TempDir File directory) throws Exception
 	{
-		File readOnlyDirectory = new File(directory, "read-only");
-		assertTrue(readOnlyDirectory.mkdir());
-		File vault = new File(readOnlyDirectory, "unwritable.mcrdb");
+		// the write is made impossible by the SHAPE of the path, not by permissions: root ignores
+		// permission bits, so "r-xr-xr-x" made this guard pass as a user and fail on its own
+		// precondition in a root container (#458). Nothing overrides a file not being a directory
+		File notADirectory = new File(directory, "not-a-directory");
+		Files.writeString(notADirectory.toPath(), "a file, so nothing can be written beneath it");
+		File vault = new File(notADirectory, "unwritable.mcrdb");
 		ApplicationModelBean applicationModelBean = aDirtyModelSavedTo(vault);
-		Files.setPosixFilePermissions(readOnlyDirectory.toPath(),
-			PosixFilePermissions.fromString("r-xr-xr-x"));
-		try
-		{
-			assertThrows(RuntimeException.class,
-				() -> ApplicationXmlFileStoreWorker.storeApplicationFile(applicationModelBean),
-				"the precondition: the write really fails");
 
-			assertTrue(applicationModelBean.isDirty(),
-				"the changes are still unsaved after a write that did not happen. The close "
-					+ "question reads this flag, so clearing it here ends the application without "
-					+ "asking and drops them (#424)");
-			assertFalse(vault.exists(), "and nothing was written");
-		}
-		finally
-		{
-			Files.setPosixFilePermissions(readOnlyDirectory.toPath(),
-				PosixFilePermissions.fromString("rwxr-xr-x"));
-		}
+		assertThrows(RuntimeException.class,
+			() -> ApplicationXmlFileStoreWorker.storeApplicationFile(applicationModelBean),
+			"the precondition: the write really fails");
+
+		assertTrue(applicationModelBean.isDirty(),
+			"the changes are still unsaved after a write that did not happen. The close "
+				+ "question reads this flag, so clearing it here ends the application without "
+				+ "asking and drops them (#424)");
+		assertFalse(vault.exists(), "and nothing was written");
 	}
 
 	@Test
