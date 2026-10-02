@@ -7,6 +7,7 @@ Version 8.7 (unreleased)
 ADDED:
 - a Lethenon plugin: the protest chain lethenon as a plugin with its own submenu and one setting, the chain file. Its first tool replays a chain file through the chain library and reports what it verified - every block hash, every signature, every state transition and the supply - or the reason it refused the chain (#450)
 - the Lethenon plugin shows the blocks of a chain: height, the pun each block was mined with, whom it paid, its transfers, its time and its difficulty. The whole chain is replayed before a single block is listed, so a refused chain shows no blocks, only the reason (#450)
+- the Lethenon plugin shows what a wallet holds in a chain: its two direct accounts, which it can spend from, and apart from them the payments to its one-time destinations, labelled as not spendable yet - nobody can move those until lethenon#21 is resolved, and they are never added to the spendable amount. The balance comes from replaying the chain file, never from a server. The wallet's password is used once, wiped and cleared from the field, and appears in no text the window shows (#450)
 
 Version 8.6
 -------------

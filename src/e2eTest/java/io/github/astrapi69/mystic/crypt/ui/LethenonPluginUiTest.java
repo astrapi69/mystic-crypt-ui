@@ -24,6 +24,7 @@
  */
 package io.github.astrapi69.mystic.crypt.ui;
 
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.File;
@@ -49,10 +50,13 @@ import io.github.astrapi69.lethenon.Bytes;
 import io.github.astrapi69.lethenon.CanonicalEncoding;
 import io.github.astrapi69.lethenon.Chain;
 import io.github.astrapi69.lethenon.Destination;
+import io.github.astrapi69.lethenon.OneTimeAddresses;
 import io.github.astrapi69.lethenon.SignatureSuite;
 import io.github.astrapi69.lethenon.SignedTransaction;
 import io.github.astrapi69.lethenon.TransactionBody;
 import io.github.astrapi69.lethenon.TransactionSigner;
+import io.github.astrapi69.lethenon.Wallet;
+import io.github.astrapi69.lethenon.WalletFile;
 import io.github.astrapi69.mystic.crypt.TestPasswords;
 
 /**
@@ -150,6 +154,52 @@ class LethenonPluginUiTest extends AbstractUiTest
 		assertTrue(frame.isEnabled(), "the application is still usable after listing a chain");
 	}
 
+	@Test
+	@DisplayName("the plugin shows a wallet's balance, the one-time payment apart and not spendable")
+	void thePlugin_showsTheBalanceOfAWallet() throws Exception
+	{
+		installPluginRequiringItBuilt(LETHENON_ZIP);
+		String walletPassword = TestPasswords.throwaway();
+		Wallet wallet = Wallet.create();
+		File walletFile = new File(tempHome, "wallet.lethenon-wallet");
+		WalletFile.write(walletFile.toPath(), wallet, walletPassword.toCharArray());
+		File chainFile = aChainPayingTheWallet(wallet);
+		File databaseFile = new File(tempHome, "lethenon-balance.mcrdb");
+		createDatabaseFileHeadless(databaseFile, MASTER_PASSWORD);
+		ApplicationSteps application = signInWithExistingDatabase(databaseFile, MASTER_PASSWORD);
+		FrameFixture frame = application.showMainFrame();
+
+		application.openPluginTool("Show a Balance", "Show a Balance");
+		JInternalFrameFixture tool = new JInternalFrameFixture(robot,
+			application.internalFrame("Show a Balance"));
+		GuiActionRunner.execute(() -> {
+			tool.textBox("txtChainFile").target().setText(chainFile.getAbsolutePath());
+			tool.textBox("txtWalletFile").target().setText(walletFile.getAbsolutePath());
+			tool.textBox("txtPassword").target().setText(walletPassword);
+		});
+		UiTestSpeed.step();
+		SwingUtilities.invokeLater(() -> tool.button("btnShowBalance").target().doClick());
+
+		Pause.pause(new Condition("the balance is shown")
+		{
+			@Override
+			public boolean test()
+			{
+				return textOf(tool, "txtReport").contains("LETH, spendable");
+			}
+		}, 30000);
+
+		String report = textOf(tool, "txtReport");
+		assertTrue(report.contains("3.00000000 LETH, spendable"), report);
+		assertTrue(report.contains("1 one-time payments holding 5.00000000 LETH"), report);
+		assertTrue(report.contains("not spendable yet"), report);
+		assertFalse(report.contains(walletPassword), "the password is in no text on the screen");
+		String passwordLeft = GuiActionRunner
+			.execute(() -> tool.textBox("txtPassword").target().getText());
+		assertTrue(passwordLeft.isEmpty(), "the password field is cleared after one use");
+		assertTrue(frame.isEnabled(), "the application is still usable after a balance");
+	}
+
 	private static String textOf(final JInternalFrameFixture tool, final String componentName)
 	{
 		return GuiActionRunner.execute(() -> tool.textBox(componentName).target().getText());
@@ -175,6 +225,41 @@ class LethenonPluginUiTest extends AbstractUiTest
 				List.of(transfer), 1_759_000_120_000L, 8, "the second pun"), 1_000_000L)
 			.orElseThrow();
 		File chainFile = new File(tempHome, "chain.lethenon");
+		Files.write(chainFile.toPath(), CanonicalEncoding.encodeChain(List.of(genesis, second)));
+		return chainFile;
+	}
+
+	/**
+	 * A genesis holder who pays the wallet 3 LETH to its Ed25519 account and 5 LETH to a one-time
+	 * destination of its published address, written the way a lethenon command line would write it
+	 */
+	private File aChainPayingTheWallet(final Wallet wallet) throws Exception
+	{
+		KeyPair payer = TransactionSigner.newKeyPair(SignatureSuite.ED25519);
+		Bytes payerKey = TransactionSigner.asBytes(payer.getPublic());
+		BlockBody genesis = Blocks
+			.mine(
+				new BlockBody(Chain.IDENTIFIER, 0L, Bytes.of(new byte[32]), payerKey,
+					new ArrayList<>(), 1_759_000_000_000L, 8, "in the beginning was the pun"),
+				1_000_000L)
+			.orElseThrow();
+		SignedTransaction direct = TransactionSigner
+			.sign(
+				new TransactionBody(Chain.IDENTIFIER, 0L, payerKey,
+					Destination.direct(wallet.spendKey(SignatureSuite.ED25519)), Amount.ofLeth(3L),
+					Amount.ZERO, "three, to the account"),
+				SignatureSuite.ED25519, payer.getPrivate());
+		SignedTransaction oneTime = TransactionSigner
+			.sign(new TransactionBody(Chain.IDENTIFIER, 1L, payerKey,
+				OneTimeAddresses.destinationFor(wallet.address(),
+					OneTimeAddresses.newEphemeralKeyPair()),
+				Amount.ofLeth(5L), Amount.ZERO, "five, to a one-time destination"),
+				SignatureSuite.ED25519, payer.getPrivate());
+		BlockBody second = Blocks
+			.mine(new BlockBody(Chain.IDENTIFIER, 1L, Blocks.hashOf(genesis), payerKey,
+				List.of(direct, oneTime), 1_759_000_120_000L, 8, "the second pun"), 1_000_000L)
+			.orElseThrow();
+		File chainFile = new File(tempHome, "paid.lethenon");
 		Files.write(chainFile.toPath(), CanonicalEncoding.encodeChain(List.of(genesis, second)));
 		return chainFile;
 	}
