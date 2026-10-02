@@ -9,6 +9,9 @@ ADDED:
 - the Lethenon plugin shows the blocks of a chain: height, the pun each block was mined with, whom it paid, its transfers, its time and its difficulty. The whole chain is replayed before a single block is listed, so a refused chain shows no blocks, only the reason (#450)
 - the Lethenon plugin shows what a wallet holds in a chain: its two direct accounts, which it can spend from, and apart from them the payments to its one-time destinations, labelled as not spendable yet - nobody can move those until lethenon#21 is resolved, and they are never added to the spendable amount. The balance comes from replaying the chain file, never from a server. The wallet's password is used once, wiped and cleared from the field, and appears in no text the window shows (#450)
 
+CHANGED:
+- build only: the remote publishing repository is gone. It named the shut-down OSSRH staging endpoint for a release, this application has never been on Maven Central (measured 404), and no release ever went there. The only publish left is `make publish-local`, which the plugin builds use; `make publish` and the OSSRH secrets in CI went with it. Snapshots of the libraries still resolve from the Central Portal snapshot repository (#453)
+
 Version 8.6
 -------------
 

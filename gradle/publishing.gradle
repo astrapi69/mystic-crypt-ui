@@ -61,22 +61,11 @@ publishing {
             }
         }
     }
-    repositories {
-        maven {
-            if (releaseVersion) {
-                // the credentials come from the environment or the developer's private
-                // gradle.properties; a build that only compiles and tests a release version - CI,
-                // a fresh clone - has neither, and must not fail at configuration time for that
-                credentials {
-                    username System.getenv("$projectRepositoriesUserNameKey") ?: project.findProperty("$projectRepositoriesUserNameKey")
-                    password System.getenv("$projectRepositoriesPasswordKey") ?: project.findProperty("$projectRepositoriesPasswordKey")
-                }
-            }
-            def releasesRepoUrl = "$projectRepositoriesReleasesRepoUrl" as Object
-            def snapshotsRepoUrl = "$projectRepositoriesSnapshotsRepoUrl" as Object
-            url = releaseVersion ? releasesRepoUrl : snapshotsRepoUrl
-        }
-    }
+    // no remote repository: this application is distributed as an installer and has never been
+    // on Maven Central. The only publish it performs is publishToMavenLocal, which the plugin
+    // builds compile against. The OSSRH staging URL that stood here could not have worked (#453);
+    // if the host is ever to be published, it gets the libraries' Central Portal shape (nmcp) and
+    // a snapshot run before anything depends on it
 }
 
 // Signing a release publication, without making every build that publishes LOCALLY need the key.
@@ -87,20 +76,17 @@ publishing {
 // which failed with "No configured signatory" before a single test ran. A version bump could not
 // pass CI at all (#431).
 //
-// So: a LOCAL publish without a signatory signs nothing and says so, the way the jar signing next
-// door already behaves. A publish to the REMOTE repository without a signatory still fails - an
-// unsigned artifact on a public repository is not the smaller problem.
-def publishesToTheRemoteRepository = gradle.startParameter.taskNames.any { name ->
-    name.contains('publish') && !name.contains('ToMavenLocal')
-}
+// So a publish without a signatory signs nothing and says so, the way the jar signing next door
+// already behaves. Until #453 a publish to the remote repository still required the signature;
+// there is no remote repository any more, so there is nothing for that rule to guard.
 def signatoryConfigured = ['signing.keyId', 'signing.password', 'signing.secretKeyRingFile']
         .every { project.hasProperty(it) } || project.hasProperty('signing.gnupg.keyName')
 
 signing {
-    required = { releaseVersion && publishesToTheRemoteRepository }
+    required = false
     if (releaseVersion) {
         sign publishing.publications.mavenJava
-        if (!signatoryConfigured && !publishesToTheRemoteRepository) {
+        if (!signatoryConfigured) {
             println('No signing key configured, the published artifacts are not signed.\n' +
                     'Set the signing.* properties to sign them.')
         }

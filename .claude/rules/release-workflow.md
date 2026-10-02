@@ -46,8 +46,8 @@ Prompt triggers: "release new version", "new release".
    on a release version that pulled in `signMavenJavaPublication`, which has no key on a runner
    (the signing keys are on the maintainer's machine by decision, which is why a release is cut
    locally). The 8.6 bump died there before the first test ran, and the repair had to go in
-   ahead of the release: a LOCAL publish without a key signs nothing and says so, a REMOTE one
-   still fails (#431). So a bump that reddens CI in a signing, publishing or packaging task is
+   ahead of the release: a LOCAL publish without a key signs nothing and says so (#431); there
+   is no remote publish since #453. So a bump that reddens CI in a signing, publishing or packaging task is
    this switch, not the release being wrong.
 5. **Full gate** (ALL mandatory; a red result aborts the release):
    - `make build-full`, under the Xvfb harness — it runs the plugin builds, the packaging,

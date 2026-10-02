@@ -53,8 +53,8 @@ and whether publishing goes to the Sonatype releases or the snapshots repository
 The signing keys are on the maintainer's machine and nowhere else - not in the repository
 and not in the CI secrets, deliberately - so **a release is always cut locally**. What that
 costs the runner is covered since #431: on a release version, a publish to the LOCAL Maven
-repository without a signing key signs nothing and prints that it did not, while a publish
-to the REMOTE repository without one still fails. CI needs the local publish to build the
+repository without a signing key signs nothing and prints that it did not. A publish to a
+remote repository without one used to fail; there is no remote repository since #453. CI needs the local publish to build the
 plugins (#333), and before this a version bump could not pass CI at all - it died in
 `signMavenJavaPublication` with "No configured signatory" before a single test ran.
 
@@ -246,7 +246,6 @@ built before izpack packs them, otherwise it fails on the missing files".
 
 | Target | Runs |
 |---|---|
-| `make publish` | `gradlew publish` |
 | `make publish-local` | `gradlew publishToMavenLocal -x test` |
 | `make tag-release` | `gradlew tagRelease` |
 
@@ -474,36 +473,20 @@ The result is `build/distributions/mystic-crypt-ui-<projectVersion>-installer.ja
 `DEPLOYMENT-INFO.md` points at the project wiki for the IzPack walkthrough:
 <https://github.com/astrapi69/mystic-crypt-ui/wiki/How-to-create-izpack-installer-with-gradle>
 
-## Publishing to Sonatype
+## Publishing
 
-`gradle/publishing.gradle` builds one publication, `mavenJava`, with `artifactId` set to
-the root project name, the main component plus a `sourcesJar` and a `javadocJar`, and a
-full POM (name, description, url, organization, issue management, license, developer,
-scm), all assembled from `gradle.properties` values.
+This application is not published to a remote repository. It is distributed as an installer,
+and it has never been on Maven Central. `gradle/publishing.gradle` builds one publication,
+`mavenJava`, with `artifactId` set to the root project name, the main component plus a
+`sourcesJar` and a `javadocJar`, and a full POM (name, description, url, organization, issue
+management, license, developer, scm), all assembled from `gradle.properties` values. Its only
+target is the local Maven repository, through `make publish-local`.
 
-The target repository is chosen by the same snapshot switch:
-
-```gradle
-def releasesRepoUrl = "$projectRepositoriesReleasesRepoUrl" as Object
-def snapshotsRepoUrl = "$projectRepositoriesSnapshotsRepoUrl" as Object
-url = releaseVersion ? releasesRepoUrl : snapshotsRepoUrl
-```
-
-Credentials are configured only for a release version, and are read from the environment
-first, from the private Gradle properties second:
-
-```gradle
-username System.getenv("$projectRepositoriesUserNameKey") ?: project.findProperty("$projectRepositoriesUserNameKey")
-password System.getenv("$projectRepositoriesPasswordKey") ?: project.findProperty("$projectRepositoriesPasswordKey")
-```
-
-The two key names come from `gradle.properties`: `ossrhUsername` and `ossrhPassword`.
-Their values, like the signing values, belong in the private Gradle properties file or in
-CI secrets, never in this repository and never in output. CI passes them as
-`secrets.OSSRHUSERNAME` and `secrets.OSSRHPASSWORD`. The comment in the file explains why
-the credentials block is conditional: a build that only compiles and tests a release
-version, on CI or from a fresh clone, has neither and must not fail at configuration time
-for that reason.
+Until #453 the file also declared a remote repository: the OSSRH staging endpoint for a release
+version, which was shut down, and the snapshot repository otherwise. No release ever went there.
+It was removed rather than moved, because nothing needs the host as a Maven artifact. If that
+changes, the host gets the libraries' Central Portal shape (`com.gradleup.nmcp`, `USER_MANAGED`)
+and a snapshot run before anything depends on it.
 
 Note also `gradle/repositories.gradle`, which resolves from `mavenLocal()` first. That is
 what makes `make publish-local` work as the handshake between the host and the plugin
@@ -566,7 +549,7 @@ Two workflows under `.github/workflows/`:
   `develop`. Temurin JDK 25, `gradle/actions/setup-gradle`, installs Xvfb and runs
   `xvfb-run -a --server-args="-screen 0 1920x1080x24" ./gradlew build` so the AssertJ-Swing
   end-to-end tests really run instead of being skipped by their headless assumption.
-  `ossrhUsername` and `ossrhPassword` are passed from repository secrets. On failure it
+  On failure it
   uploads `build/reports/tests/test` and `build/test-results/test` for 14 days, because a
   failing UI test prints only its top stack frame to the console.
 - **`mutation.yml`** ("Mutation testing"), on `workflow_dispatch`, on a weekly cron
