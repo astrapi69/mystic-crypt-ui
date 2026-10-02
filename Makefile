@@ -23,6 +23,7 @@ PLUGIN_PQC_SIGNATURE_DIR := plugins/pqc-signature-plugin
 PLUGIN_KEYSTORE_DIR := plugins/keystore-plugin
 PLUGIN_FILE_CRYPT_DIR := plugins/file-crypt-plugin
 PLUGIN_SECRET_SHARING_DIR := plugins/secret-sharing-plugin
+PLUGIN_LETHENON_DIR := plugins/lethenon-plugin
 PLUGIN_INSTALL_DIR := $(HOME)/.config/mystic-crypt-ui/plugins
 
 .PHONY: merge-pr test-fast release-jar release-jar-if-reachable build build-full build-with-plugins bwp run all clean test test-e2e test-e2e-demo \
@@ -32,7 +33,7 @@ PLUGIN_INSTALL_DIR := $(HOME)/.config/mystic-crypt-ui/plugins
 	version-catalog-format version-catalog-update all-dependencies-jar \
 	build-stacktrace build-warning plugin-obfuscation plugin-checksum plugin-conversion \
 	plugin-console plugin-keygen plugin-certificate plugin-password-hash plugin-kem-demo \
-	plugin-menu-designer plugin-pqc-signature plugin-keystore plugin-file-crypt plugin-secret-sharing plugins plugins-install \
+	plugin-menu-designer plugin-pqc-signature plugin-keystore plugin-file-crypt plugin-secret-sharing plugin-lethenon plugins plugins-install \
 	install-hooks check-commit-provenance
 
 # point git at the repository's own hooks, so the commit-msg check runs before a commit exists.
@@ -195,8 +196,14 @@ plugin-secret-sharing: publish-local
 	JAVA_HOME=$(JAVA_HOME) ./gradlew -p $(PLUGIN_SECRET_SHARING_DIR) test pluginZip
 	@echo "==> plugin zip: $$(find $(PLUGIN_SECRET_SHARING_DIR)/build/plugin-dist -name '*.zip')"
 
+# build the internal Lethenon chain plugin zip (needs the host published locally first). Unlike
+# the others this zip carries a library in lib/: the chain itself, which the host does not ship
+plugin-lethenon: publish-local
+	JAVA_HOME=$(JAVA_HOME) ./gradlew -p $(PLUGIN_LETHENON_DIR) test pluginZip
+	@echo "==> plugin zip: $$(find $(PLUGIN_LETHENON_DIR)/build/plugin-dist -name '*.zip')"
+
 # build every internal plugin
-plugins: plugin-obfuscation plugin-checksum plugin-conversion plugin-console plugin-keygen plugin-certificate plugin-password-hash plugin-kem-demo plugin-menu-designer plugin-pqc-signature plugin-keystore plugin-file-crypt plugin-secret-sharing
+plugins: plugin-obfuscation plugin-checksum plugin-conversion plugin-console plugin-keygen plugin-certificate plugin-password-hash plugin-kem-demo plugin-menu-designer plugin-pqc-signature plugin-keystore plugin-file-crypt plugin-secret-sharing plugin-lethenon
 
 # build all internal plugins and install them into the app's plugins directory
 plugins-install: plugins
@@ -214,6 +221,7 @@ plugins-install: plugins
 	cp $(PLUGIN_KEYSTORE_DIR)/build/plugin-dist/*.zip "$(PLUGIN_INSTALL_DIR)/"
 	cp $(PLUGIN_FILE_CRYPT_DIR)/build/plugin-dist/*.zip "$(PLUGIN_INSTALL_DIR)/"
 	cp $(PLUGIN_SECRET_SHARING_DIR)/build/plugin-dist/*.zip "$(PLUGIN_INSTALL_DIR)/"
+	cp $(PLUGIN_LETHENON_DIR)/build/plugin-dist/*.zip "$(PLUGIN_INSTALL_DIR)/"
 	@# pf4j loads an already extracted plugin directory in preference to the zip beside it, so a
 	@# directory left over from an earlier install keeps serving old code however often the zip is
 	@# replaced - the freshly installed zip has to be the only thing left to extract

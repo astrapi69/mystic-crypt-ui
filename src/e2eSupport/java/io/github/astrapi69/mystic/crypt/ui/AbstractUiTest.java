@@ -105,6 +105,9 @@ abstract class AbstractUiTest
 	protected static final Path SECRET_SHARING_ZIP = Path
 		.of("plugins/secret-sharing-plugin/build/plugin-dist/secret-sharing-plugin-1.0.0.zip");
 
+	protected static final Path LETHENON_ZIP = Path
+		.of("plugins/lethenon-plugin/build/plugin-dist/lethenon-plugin-1.0.0.zip");
+
 	private String originalUserHome;
 
 	/** Per-test isolated home directory that {@code user.home} points to during the test */
