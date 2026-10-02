@@ -47,6 +47,15 @@ sourceSets {
     configurations.named("${set}AnnotationProcessor") { extendsFrom configurations.testAnnotationProcessor }
 }
 
+// The chain library, on the end-to-end classpath ONLY: LethenonPluginUiTest writes a real chain
+// file with the chain's own encoder, which is what the plugin then replays through the user
+// interface. The application itself does not depend on it - the lethenon plugin carries the chain
+// in its own zip under lib/ (#450). It is declared here rather than in dependencies.gradle because
+// the e2eTest configuration does not exist until the source sets above are created
+dependencies {
+    e2eTestImplementation libs.lethenon
+}
+
 def e2eSuites = ['e2eTest', 'e2eLockTest', 'e2eKdbxTest']
 
 // One display, one window manager, one system clipboard - and since the suites are separate tasks,
