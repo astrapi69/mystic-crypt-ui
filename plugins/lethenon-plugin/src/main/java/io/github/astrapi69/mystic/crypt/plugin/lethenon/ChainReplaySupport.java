@@ -97,11 +97,22 @@ public final class ChainReplaySupport
 			.toList();
 	}
 
-	/** A chain read from its file, and the replay that accepted it */
-	private record Replayed(List<BlockBody> chain, Replay replay) {
+	/**
+	 * A chain read from its file, and the replay that accepted it
+	 *
+	 * @param chain
+	 *            the blocks, genesis first
+	 * @param replay
+	 *            what the replay verified, final state included
+	 */
+	record Replayed(List<BlockBody> chain, Replay replay) {
 	}
 
-	private static Replayed replayed(final Path chainFile) throws IOException
+	/**
+	 * Reads and replays a chain file: the one path every tool of this plugin reads a chain through,
+	 * so none of them can show anything from a chain the others would refuse
+	 */
+	static Replayed replayed(final Path chainFile) throws IOException
 	{
 		if (chainFile == null || chainFile.toString().isBlank())
 		{

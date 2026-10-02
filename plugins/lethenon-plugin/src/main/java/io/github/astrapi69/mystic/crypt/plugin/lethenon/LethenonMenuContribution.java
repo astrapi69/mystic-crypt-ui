@@ -61,7 +61,12 @@ public class LethenonMenuContribution implements PluginMenuContribution
 		JMenuItem showAChain = new JMenuItem(chainTitle);
 		showAChain.addActionListener(
 			event -> openInternalFrame(chainTitle, new LethenonChainViewPanel()));
-		return List.of(verifyAChain, showAChain);
+		String balanceTitle = LethenonMessages.getString("lethenon.menu.item.show.balance",
+			"Show a Balance");
+		JMenuItem showABalance = new JMenuItem(balanceTitle);
+		showABalance.addActionListener(
+			event -> openInternalFrame(balanceTitle, new LethenonBalancePanel()));
+		return List.of(verifyAChain, showAChain, showABalance);
 	}
 
 	@Override
