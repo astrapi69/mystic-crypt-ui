@@ -82,9 +82,6 @@ jobs:
         # xvfb-run provides a virtual display so the AssertJ-Swing e2e UI tests really run
         # in CI (without it they would be skipped by their headless assumption)
         run: xvfb-run -a --server-args="-screen 0 1920x1080x24" ./gradlew build
-        env:
-          ossrhUsername: ${{secrets.OSSRHUSERNAME}}
-          ossrhPassword: ${{secrets.OSSRHPASSWORD}}
       - name: Upload the test reports
         # a failing UI test prints only its top stack frame to the console; the full trace lives in
         # the xml reports, so keep them when something goes red - otherwise a flaky failure is
