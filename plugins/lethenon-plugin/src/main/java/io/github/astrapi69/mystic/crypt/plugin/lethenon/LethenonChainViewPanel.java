@@ -27,25 +27,27 @@ package io.github.astrapi69.mystic.crypt.plugin.lethenon;
 import java.awt.Font;
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.List;
 
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
 
 import io.github.astrapi69.lethenon.ChainRejected;
 import io.github.astrapi69.model.LambdaModel;
 import io.github.astrapi69.mystic.crypt.ui.form.ToolForm;
-import io.github.astrapi69.swing.model.component.JMTextArea;
 import io.github.astrapi69.swing.model.component.JMTextField;
 
 /**
- * Replays a chain file and shows what was verified.
+ * Shows the blocks of a chain file: their height, the pun each was mined with, whom each paid, how
+ * many transfers it carries, when it was made and how hard it was (lethenon#2, milestone 5).
  * <p>
- * The whole panel is UI over two library calls (architecture.md: no chain logic here);
- * {@link ChainReplaySupport} does the reading and the replaying and knows no Swing type. A refused
- * chain is shown with the reason the chain library gave, which is the only thing that makes a
- * report about it actionable - and the counts are shown only for a chain that was accepted.
+ * Read-only and without a wallet. The rows come from {@link ChainReplaySupport#blocks}, which
+ * replays the whole chain before it lists anything, so this panel shows no block of a chain that
+ * did not verify - a refused chain empties the table and the reason takes its place.
  */
-public class LethenonChainPanel extends JPanel
+public class LethenonChainViewPanel extends JPanel
 {
 
 	private static final long serialVersionUID = 1L;
@@ -56,36 +58,36 @@ public class LethenonChainPanel extends JPanel
 	/** Something that keeps its own width instead of growing with the cell */
 	private static final String OWN_WIDTH = "alignx left, width pref!";
 
-	private final LethenonChainPanelModel modelObject = new LethenonChainPanelModel();
+	private final LethenonChainViewPanelModel modelObject = new LethenonChainViewPanelModel();
+
+	private final ChainBlockTableModel tableModel = new ChainBlockTableModel();
 
 	private final JMTextField txtChainFile = new JMTextField(34);
 
-	private final JMTextArea txtReport = new JMTextArea(8, 62);
+	private final JTable tblBlocks = new JTable(tableModel);
 
 	private final JLabel lblResult = new JLabel(" ");
 
 	/**
-	 * Instantiates a new {@link LethenonChainPanel}, prefilled with the chain file from the
+	 * Instantiates a new {@link LethenonChainViewPanel}, prefilled with the chain file from the
 	 * plugin's settings
 	 */
-	public LethenonChainPanel()
+	public LethenonChainViewPanel()
 	{
 		super(ToolForm.newLayout());
 		txtChainFile.setName("txtChainFile");
-		txtReport.setName("txtReport");
-		txtReport.setEditable(false);
-		txtReport.setLineWrap(true);
-		txtReport.setWrapStyleWord(true);
-		txtReport.setFont(new Font("monospaced", Font.PLAIN, 12));
+		tblBlocks.setName("tblBlocks");
+		tblBlocks.setAutoCreateRowSorter(false);
+		tblBlocks.setFillsViewportHeight(true);
 		lblResult.setName("lblResult");
 		lblResult.setFont(lblResult.getFont().deriveFont(Font.BOLD));
 
 		txtChainFile.setToolTipText(LethenonMessages.getString("lethenon.tooltip.chain.file",
 			"the chain file to replay, written by lethenon's own command line"));
-		txtReport.setToolTipText(LethenonMessages.getString("lethenon.tooltip.report",
-			"what the replay checked, and what it refused"));
-
-		bindToTheModel();
+		tblBlocks.setToolTipText(LethenonMessages.getString("lethenon.tooltip.blocks",
+			"every block of the chain, genesis first, shown only after the whole chain verified"));
+		txtChainFile
+			.setPropertyModel(LambdaModel.of(modelObject::getChainFile, modelObject::setChainFile));
 
 		add(new JLabel(LethenonMessages.getString("lethenon.label.chain.file", "Chain file:")));
 		add(txtChainFile, WITH_BUTTON);
@@ -93,16 +95,12 @@ public class LethenonChainPanel extends JPanel
 			LethenonMessages.getString("lethenon.tooltip.browse.chain.file",
 				"pick the chain file")),
 			OWN_WIDTH);
-		add(ToolForm
-			.buttons(LethenonSwing.button("btnVerify",
-				LethenonMessages.getString("lethenon.button.verify", "Verify the chain"),
-				event -> onVerify(),
-				LethenonMessages.getString("lethenon.tooltip.verify", "replay the chain from its "
-					+ "genesis block: every signature, every state transition, every block hash"))),
+		add(ToolForm.buttons(LethenonSwing.button("btnShowBlocks",
+			LethenonMessages.getString("lethenon.button.show.blocks", "Show the blocks"),
+			event -> onShow(), LethenonMessages.getString("lethenon.tooltip.show.blocks",
+				"replay the chain and list its blocks"))),
 			ToolForm.BUTTON_ROW);
-		add(new JLabel(LethenonMessages.getString("lethenon.label.report", "Report:")),
-			"aligny top");
-		add(ToolForm.scrolled(txtReport), ToolForm.GROWING);
+		add(new JScrollPane(tblBlocks), ToolForm.GROWING);
 		add(lblResult, ToolForm.RESULT_LINE);
 
 		txtChainFile.setText(LethenonSettingsContribution.chainFile());
@@ -113,52 +111,56 @@ public class LethenonChainPanel extends JPanel
 	 *
 	 * @return the model object every component of this panel is bound to
 	 */
-	public LethenonChainPanelModel getModelObject()
+	public LethenonChainViewPanelModel getModelObject()
 	{
 		return modelObject;
 	}
 
 	/**
-	 * Replays the named file and shows what came back. A refused chain is not an error of this
-	 * panel: the reason goes into the result line, and the report area says nothing it cannot back
-	 * up.
+	 * Gets the model of the block table, which holds exactly the rows of {@link #getModelObject()}
+	 *
+	 * @return the table model
 	 */
-	void onVerify()
+	public ChainBlockTableModel getTableModel()
 	{
+		return tableModel;
+	}
+
+	/**
+	 * Replays the named file and lists its blocks. A refused chain is not an error of this panel:
+	 * the table is emptied, so no row of an earlier chain stays next to the refusal, and the reason
+	 * goes into the result line.
+	 */
+	void onShow()
+	{
+		String refusal = LethenonMessages.getString("lethenon.result.refused",
+			"the chain was refused");
 		try
 		{
-			ChainReplayReport report = ChainReplaySupport
-				.verify(Path.of(modelObject.getChainFile().trim()));
-			setReport(report.summary());
+			List<ChainBlockRow> rows = ChainReplaySupport
+				.blocks(Path.of(modelObject.getChainFile().trim()));
+			setRows(rows);
 			setResult(
-				LethenonMessages.getString("lethenon.result.accepted", "the chain was accepted"));
+				LethenonMessages.getString("lethenon.result.accepted", "the chain was accepted")
+					+ ": " + rows.size() + " blocks");
 		}
 		catch (ChainRejected | IllegalArgumentException refused)
 		{
-			setReport("");
-			setResult(LethenonMessages.getString("lethenon.result.refused", "the chain was refused")
-				+ ": " + refused.getMessage());
+			setRows(List.of());
+			setResult(refusal + ": " + refused.getMessage());
 		}
 		catch (IOException unreadable)
 		{
-			setReport("");
-			setResult(LethenonMessages.getString("lethenon.result.refused", "the chain was refused")
-				+ ": " + modelObject.getChainFile() + " cannot be read - "
+			setRows(List.of());
+			setResult(refusal + ": " + modelObject.getChainFile() + " cannot be read - "
 				+ unreadable.getMessage());
 		}
 	}
 
-	private void bindToTheModel()
+	private void setRows(final List<ChainBlockRow> rows)
 	{
-		txtChainFile
-			.setPropertyModel(LambdaModel.of(modelObject::getChainFile, modelObject::setChainFile));
-		txtReport.setPropertyModel(LambdaModel.of(modelObject::getReport, modelObject::setReport));
-	}
-
-	private void setReport(final String text)
-	{
-		modelObject.setReport(text);
-		txtReport.setText(text);
+		modelObject.setRows(rows);
+		tableModel.setData(modelObject.getRows());
 	}
 
 	private void setResult(final String text)

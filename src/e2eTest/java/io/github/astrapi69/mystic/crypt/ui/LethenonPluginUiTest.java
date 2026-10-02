@@ -56,9 +56,9 @@ import io.github.astrapi69.lethenon.TransactionSigner;
 import io.github.astrapi69.mystic.crypt.TestPasswords;
 
 /**
- * Milestone 5 of lethenon#2, the part of it that is in this change: the plugin installs from its
- * zip, its submenu appears, and the replay verifier behind its button reports what it verified in a
- * chain file written by the chain library itself.
+ * Milestone 5 of lethenon#2, the parts of it that are built: the plugin installs from its zip, its
+ * submenu appears, the replay verifier behind its button reports what it verified in a chain file
+ * written by the chain library itself, and the chain view lists that file's blocks.
  * <p>
  * The chain here is built with lethenon's own encoder rather than with a committed fixture, because
  * what a user's chain file looks like is whatever that encoder writes - a fixture would freeze one
@@ -104,6 +104,50 @@ class LethenonPluginUiTest extends AbstractUiTest
 		String result = GuiActionRunner.execute(() -> tool.label("lblResult").target().getText());
 		assertTrue(result.contains("accepted"), result);
 		assertTrue(frame.isEnabled(), "the application is still usable after a replay");
+	}
+
+	@Test
+	@DisplayName("the plugin lists the blocks of a chain file with their puns and whom they paid")
+	void thePlugin_showsTheBlocksOfAChain() throws Exception
+	{
+		installPluginRequiringItBuilt(LETHENON_ZIP);
+		File chainFile = aChainWithOneTransfer();
+		File databaseFile = new File(tempHome, "lethenon-chain-view.mcrdb");
+		createDatabaseFileHeadless(databaseFile, MASTER_PASSWORD);
+		ApplicationSteps application = signInWithExistingDatabase(databaseFile, MASTER_PASSWORD);
+		FrameFixture frame = application.showMainFrame();
+
+		application.openPluginTool("Show a Chain", "Show a Chain");
+		JInternalFrameFixture tool = new JInternalFrameFixture(robot,
+			application.internalFrame("Show a Chain"));
+		GuiActionRunner.execute(
+			() -> tool.textBox("txtChainFile").target().setText(chainFile.getAbsolutePath()));
+		UiTestSpeed.step();
+		SwingUtilities.invokeLater(() -> tool.button("btnShowBlocks").target().doClick());
+
+		Pause.pause(new Condition("the chain view lists the blocks")
+		{
+			@Override
+			public boolean test()
+			{
+				return GuiActionRunner
+					.execute(() -> tool.table("tblBlocks").target().getRowCount()) == 2;
+			}
+		}, 20000);
+
+		String genesisPun = GuiActionRunner
+			.execute(() -> String.valueOf(tool.table("tblBlocks").target().getValueAt(0, 1)));
+		String secondPun = GuiActionRunner
+			.execute(() -> String.valueOf(tool.table("tblBlocks").target().getValueAt(1, 1)));
+		String transfers = GuiActionRunner
+			.execute(() -> String.valueOf(tool.table("tblBlocks").target().getValueAt(1, 3)));
+		assertTrue(genesisPun.startsWith("in the beginning was the pun"), genesisPun);
+		assertTrue(secondPun.startsWith("the second pun"), secondPun);
+		assertTrue("1".equals(transfers),
+			"the second block carries the one transfer: " + transfers);
+		String result = GuiActionRunner.execute(() -> tool.label("lblResult").target().getText());
+		assertTrue(result.contains("accepted: 2 blocks"), result);
+		assertTrue(frame.isEnabled(), "the application is still usable after listing a chain");
 	}
 
 	private static String textOf(final JInternalFrameFixture tool, final String componentName)

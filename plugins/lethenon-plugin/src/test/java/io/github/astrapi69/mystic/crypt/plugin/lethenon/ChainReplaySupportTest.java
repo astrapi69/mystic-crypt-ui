@@ -75,7 +75,8 @@ class ChainReplaySupportTest
 	@DisplayName("an accepted chain is reported with what was verified in it")
 	void verify_reportsTheCounts_ofAnAcceptedChain() throws Exception
 	{
-		Path chainFile = write("chain.lethenon", CanonicalEncoding.encodeChain(aChainWithOneTransfer()));
+		Path chainFile = write("chain.lethenon",
+			CanonicalEncoding.encodeChain(aChainWithOneTransfer()));
 
 		ChainReplayReport report = ChainReplaySupport.verify(chainFile);
 
@@ -157,6 +158,66 @@ class ChainReplaySupportTest
 		assertTrue(refused.getMessage().contains("no chain file was named"), refused.getMessage());
 	}
 
+	@Test
+	@DisplayName("the chain view lists every block with its pun and whom it paid")
+	void blocks_listEveryBlock_withItsPunAndBeneficiary() throws Exception
+	{
+		List<BlockBody> mined = aChainWithOneTransfer();
+		Path chainFile = write("chain.lethenon", CanonicalEncoding.encodeChain(mined));
+
+		List<ChainBlockRow> rows = ChainReplaySupport.blocks(chainFile);
+
+		assertEquals(2, rows.size());
+		ChainBlockRow genesis = rows.get(0);
+		assertEquals(0L, genesis.height());
+		// mining varies the pun, so the row has to show the one the block was mined with
+		assertEquals(mined.get(0).pun(), genesis.pun());
+		assertTrue(genesis.pun().startsWith("in the beginning was the pun"), genesis.pun());
+		assertEquals(holderKey.toString(), genesis.paidTo());
+		assertEquals(0, genesis.transfers());
+		assertEquals(1_759_000_000_000L, genesis.timestamp());
+		assertEquals(8, genesis.difficulty());
+		ChainBlockRow second = rows.get(1);
+		assertEquals(1L, second.height());
+		assertEquals(mined.get(1).pun(), second.pun());
+		assertEquals(holderKey.toString(), second.paidTo());
+		assertEquals(1, second.transfers());
+		assertEquals(1_759_000_120_000L, second.timestamp());
+	}
+
+	@Test
+	@DisplayName("the chain view shows no block of a chain that does not verify")
+	void blocks_refuses_aChainThatDoesNotReplay() throws Exception
+	{
+		List<BlockBody> chain = new ArrayList<>(aChainWithOneTransfer());
+		BlockBody last = chain.getLast();
+		chain.set(chain.size() - 1,
+			new BlockBody(last.chainIdentifier(), last.height(), Bytes.of(new byte[32]),
+				last.beneficiary(), last.transactions(), last.timestamp(), last.difficulty(),
+				last.pun()));
+		Path chainFile = write("tampered.lethenon", CanonicalEncoding.encodeChain(chain));
+
+		// a wrong previous hash, not a changed pun: at difficulty 8 a changed pun still meets the
+		// difficulty once in 256 runs, which would make this test pass a chain it must refuse
+		ChainRejected refused = assertThrows(ChainRejected.class,
+			() -> ChainReplaySupport.blocks(chainFile));
+		assertTrue(refused.getMessage().contains("previous hash"), refused.getMessage());
+	}
+
+	@Test
+	@DisplayName("the chain view names a truncated file the same way the verifier does")
+	void blocks_refuses_aTruncatedFile() throws Exception
+	{
+		byte[] encoded = CanonicalEncoding.encodeChain(aChainWithOneTransfer());
+		Path chainFile = write("cut.lethenon",
+			java.util.Arrays.copyOf(encoded, encoded.length / 2));
+
+		IllegalArgumentException refused = assertThrows(IllegalArgumentException.class,
+			() -> ChainReplaySupport.blocks(chainFile));
+
+		assertTrue(refused.getMessage().contains("cut.lethenon"), refused.getMessage());
+	}
+
 	private Path write(final String name, final byte[] bytes) throws Exception
 	{
 		Path file = new File(directory, name).toPath();
@@ -170,16 +231,13 @@ class ChainReplaySupportTest
 	 */
 	private List<BlockBody> aChainWithOneTransfer()
 	{
-		BlockBody genesis = Blocks
-			.mine(new BlockBody(Chain.IDENTIFIER, 0L, Bytes.of(new byte[32]), holderKey,
+		BlockBody genesis = Blocks.mine(
+			new BlockBody(Chain.IDENTIFIER, 0L, Bytes.of(new byte[32]), holderKey,
 				new ArrayList<>(), 1_759_000_000_000L, 8, "in the beginning was the pun"),
-				1_000_000L)
-			.orElseThrow();
-		SignedTransaction transfer = TransactionSigner.sign(
-			new TransactionBody(Chain.IDENTIFIER, 0L, holderKey,
-				Destination.direct(Bytes.of(new byte[] { 7 })), Amount.ofLeth(3L), Amount.ZERO,
-				"a protest in three lethe"),
-			SignatureSuite.ED25519, holder.getPrivate());
+			1_000_000L).orElseThrow();
+		SignedTransaction transfer = TransactionSigner.sign(new TransactionBody(Chain.IDENTIFIER,
+			0L, holderKey, Destination.direct(Bytes.of(new byte[] { 7 })), Amount.ofLeth(3L),
+			Amount.ZERO, "a protest in three lethe"), SignatureSuite.ED25519, holder.getPrivate());
 		BlockBody second = Blocks
 			.mine(new BlockBody(Chain.IDENTIFIER, 1L, Blocks.hashOf(genesis), holderKey,
 				List.of(transfer), 1_759_000_120_000L, 8, "the second pun"), 1_000_000L)

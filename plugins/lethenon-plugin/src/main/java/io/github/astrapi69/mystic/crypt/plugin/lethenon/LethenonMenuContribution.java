@@ -55,9 +55,13 @@ public class LethenonMenuContribution implements PluginMenuContribution
 	{
 		String title = LethenonMessages.getString("lethenon.menu.item.verify", "Verify a Chain");
 		JMenuItem verifyAChain = new JMenuItem(title);
-		verifyAChain
-			.addActionListener(event -> openInternalFrame(title, new LethenonChainPanel()));
-		return List.of(verifyAChain);
+		verifyAChain.addActionListener(event -> openInternalFrame(title, new LethenonChainPanel()));
+		String chainTitle = LethenonMessages.getString("lethenon.menu.item.show.chain",
+			"Show a Chain");
+		JMenuItem showAChain = new JMenuItem(chainTitle);
+		showAChain.addActionListener(
+			event -> openInternalFrame(chainTitle, new LethenonChainViewPanel()));
+		return List.of(verifyAChain, showAChain);
 	}
 
 	@Override

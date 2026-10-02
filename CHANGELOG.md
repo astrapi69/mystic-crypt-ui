@@ -1,6 +1,13 @@
 ## Change log
 ----------------------
 
+Version 8.7 (unreleased)
+-------------
+
+ADDED:
+- a Lethenon plugin: the protest chain lethenon as a plugin with its own submenu and one setting, the chain file. Its first tool replays a chain file through the chain library and reports what it verified - every block hash, every signature, every state transition and the supply - or the reason it refused the chain (#450)
+- the Lethenon plugin shows the blocks of a chain: height, the pun each block was mined with, whom it paid, its transfers, its time and its difficulty. The whole chain is replayed before a single block is listed, so a refused chain shows no blocks, only the reason (#450)
+
 Version 8.6
 -------------
 
