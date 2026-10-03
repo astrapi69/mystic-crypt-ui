@@ -41,8 +41,8 @@ a queue; P0 empties it.
 
 Two labels carry a condition rather than a stage:
 
-- `blocked` waits for a **named** event, written in the issue. #301 waits for the second
-  plugin that opts into the public state. A condition carried as `P3` turns "not yet" into
+- `blocked` waits for a **named** event, written in the issue. #301 waited for the second
+  plugin that opts into the public state, and was built when password-hash became it. A condition carried as `P3` turns "not yet" into
   "some day", which is why it is not a stage.
 - `P5` is the honest form of `wontfix`: the issue stays, with the reason. If `P4` or `P5`
   becomes a place where things are forgotten quietly, it is doing `wontfix`'s job badly and
