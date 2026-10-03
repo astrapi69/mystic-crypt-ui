@@ -178,6 +178,7 @@ Gradle build against the host published to the local Maven repository.
 | Target | Runs |
 |---|---|
 | `make publish-local` | `gradlew publishToMavenLocal -x test` |
+| `make bump-check` | `gradlew test`, then `make plugins` - the pre-check for a crypt-data or mystic-crypt bump; takes `GRADLE_FLAGS=-PuseMavenLocal` for a candidate that is only published locally |
 | `make plugin-<name>` | `publish-local`, then `gradlew -p plugins/<name>-plugin test pluginZip`, then echoes the produced zip path |
 | `make plugins` | every `plugin-<name>` target |
 | `make plugins-install` | `plugins`, then copies every `build/plugin-dist/*.zip` into `$(HOME)/.config/mystic-crypt-ui/plugins` |
