@@ -350,8 +350,17 @@ class LethenonPluginUiTest extends AbstractUiTest
 			send.textBox("txtChainFile").target().setText(chainFile.getAbsolutePath());
 			send.textBox("txtWalletFile").target().setText(payerFile.getAbsolutePath());
 			send.textBox("txtPassword").target().setText(payerPassword);
-			// the second kind is "a published address"; the plugin's enum is not on this classpath
-			send.comboBox("cbxRecipientKind").target().setSelectedIndex(1);
+			// chosen by value, not by index: EnumComboBoxModel does not keep the declaration order
+			// (measured: PUBLISHED_ADDRESS first in one run, second in another), and the
+			// plugin's enum is not on this classpath, so its name is what is compared
+			javax.swing.JComboBox<?> kinds = send.comboBox("cbxRecipientKind").target();
+			for (int index = 0; index < kinds.getItemCount(); index++)
+			{
+				if ("PUBLISHED_ADDRESS".equals(String.valueOf(kinds.getItemAt(index))))
+				{
+					kinds.setSelectedIndex(index);
+				}
+			}
 			send.textBox("txtRecipient").target().setText(address);
 			send.textBox("txtAmount").target().setText("2");
 		});
@@ -426,17 +435,31 @@ class LethenonPluginUiTest extends AbstractUiTest
 		awaitReport(mine, "mined block", "the block is mined");
 	}
 
+	/**
+	 * Waits for the report to say what was expected, and when it never does, fails with the line
+	 * the window wrote instead - a timeout alone says that something went wrong, not what
+	 */
 	private static void awaitReport(final JInternalFrameFixture tool, final String expected,
 		final String description)
 	{
-		Pause.pause(new Condition(description)
+		try
 		{
-			@Override
-			public boolean test()
+			Pause.pause(new Condition(description)
 			{
-				return textOf(tool, "txtReport").contains(expected);
-			}
-		}, 30000);
+				@Override
+				public boolean test()
+				{
+					return textOf(tool, "txtReport").contains(expected);
+				}
+			}, 30000);
+		}
+		catch (org.assertj.swing.exception.WaitTimedOutError timedOut)
+		{
+			throw new AssertionError("timed out waiting until " + description
+				+ "; the window said: '"
+				+ GuiActionRunner.execute(() -> tool.label("lblResult").target().getText()) + "'",
+				timedOut);
+		}
 	}
 
 	private static String textOf(final JInternalFrameFixture tool, final String componentName)
