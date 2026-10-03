@@ -24,7 +24,7 @@
  */
 package io.github.astrapi69.mystic.crypt.plugin.lethenon;
 
-import io.github.astrapi69.mystic.crypt.vault.SecretBuffers;
+import io.github.astrapi69.mystic.crypt.secret.SecretBuffers;
 
 /**
  * The state of {@link LethenonMinePanel}, in one object rather than scattered across its widgets

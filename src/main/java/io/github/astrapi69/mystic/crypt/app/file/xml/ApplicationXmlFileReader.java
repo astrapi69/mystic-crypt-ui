@@ -47,7 +47,7 @@ import io.github.astrapi69.mystic.crypt.key.PrivateKeyGenericDecryptor;
 import io.github.astrapi69.mystic.crypt.panel.signin.MasterPwFileModelBean;
 import io.github.astrapi69.mystic.crypt.panel.signin.PasswordType;
 import io.github.astrapi69.mystic.crypt.pw.PasswordStringDecryptor;
-import io.github.astrapi69.mystic.crypt.vault.SecretBuffers;
+import io.github.astrapi69.mystic.crypt.secret.SecretBuffers;
 import lombok.NonNull;
 import lombok.extern.java.Log;
 

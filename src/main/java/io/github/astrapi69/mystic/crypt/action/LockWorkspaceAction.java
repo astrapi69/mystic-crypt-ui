@@ -41,8 +41,8 @@ import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
 import io.github.astrapi69.mystic.crypt.app.file.xml.ApplicationXmlFileStoreWorker;
 import io.github.astrapi69.mystic.crypt.lock.MasterPasswordVerifier;
 import io.github.astrapi69.mystic.crypt.panel.signin.MasterPwFileModelBean;
+import io.github.astrapi69.mystic.crypt.secret.SecretBuffers;
 import io.github.astrapi69.mystic.crypt.settings.MysticCryptSettings;
-import io.github.astrapi69.mystic.crypt.vault.SecretBuffers;
 import io.github.astrapi69.swing.dialog.JOptionPaneExtensions;
 import lombok.extern.java.Log;
 

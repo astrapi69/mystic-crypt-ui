@@ -155,7 +155,7 @@ public class MasterPwFileModelBean implements Serializable
 	{
 		if (!java.util.Arrays.equals(this.masterPw, masterPw))
 		{
-			io.github.astrapi69.mystic.crypt.vault.SecretBuffers.wipe(this.masterPw);
+			io.github.astrapi69.mystic.crypt.secret.SecretBuffers.wipe(this.masterPw);
 		}
 		this.masterPw = masterPw;
 	}

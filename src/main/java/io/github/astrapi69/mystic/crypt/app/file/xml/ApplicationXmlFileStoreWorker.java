@@ -45,7 +45,7 @@ import io.github.astrapi69.mystic.crypt.key.PublicKeyGenericEncryptor;
 import io.github.astrapi69.mystic.crypt.panel.signin.MasterPwFileModelBean;
 import io.github.astrapi69.mystic.crypt.panel.signin.SignInType;
 import io.github.astrapi69.mystic.crypt.pw.PasswordStringEncryptor;
-import io.github.astrapi69.mystic.crypt.vault.SecretBuffers;
+import io.github.astrapi69.mystic.crypt.secret.SecretBuffers;
 import io.github.astrapi69.throwable.RuntimeExceptionDecorator;
 
 public final class ApplicationXmlFileStoreWorker
