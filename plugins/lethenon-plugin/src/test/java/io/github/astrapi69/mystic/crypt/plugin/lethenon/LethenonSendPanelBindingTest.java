@@ -108,6 +108,7 @@ class LethenonSendPanelBindingTest
 
 		assertEquals("/tmp/configured.lethenon", panel.getModelObject().getChainFile());
 		assertEquals(SignatureSuite.ED25519, panel.getModelObject().getSuite());
+		assertEquals(RecipientKind.ACCOUNT_KEY, panel.getModelObject().getRecipientKind());
 		assertEquals("0", panel.getModelObject().getFee());
 	}
 
@@ -128,6 +129,26 @@ class LethenonSendPanelBindingTest
 		assertTrue(report.contains("1 waiting"), report);
 		assertEquals("the transfer was signed and waits for the next block",
 			panel.getModelObject().getResultText());
+	}
+
+	@Test
+	@DisplayName("sending to a published address reports the address, never the one-time destination it derived")
+	void sending_toAPublishedAddress_reportsTheAddressOnly() throws Exception
+	{
+		String address = Wallet.create().address().toText();
+		LethenonSendPanel panel = filledPanel(PASSWORD, "1");
+		panel.getModelObject().setRecipientKind(RecipientKind.PUBLISHED_ADDRESS);
+		panel.getModelObject().setRecipient(address);
+
+		panel.onSend();
+
+		String report = panel.getModelObject().getReport();
+		assertTrue(report.contains("a one-time destination of " + address), report);
+		Bytes oneTimeKey = new ChainFile(chainFile).readPending().getFirst().body().recipient()
+			.key();
+		assertFalse(report.contains(oneTimeKey.toString()),
+			"the sender's own screen is a place where that link would be written down");
+		assertFalse(panel.getModelObject().getResultText().contains(oneTimeKey.toString()));
 	}
 
 	@Test

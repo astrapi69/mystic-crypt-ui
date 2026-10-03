@@ -32,22 +32,25 @@ import io.github.astrapi69.lethenon.Amount;
  * What a wallet holds in a replayed chain, the spendable part and the part it cannot move yet kept
  * apart.
  * <p>
- * Funds at a one-time destination are counted and shown, but never as spendable: lethenon#21 is
- * open, and until it is closed nobody can move them - not the payee either. Adding them to a
- * spendable total would show money the wallet cannot use, which is the one thing a balance must not
- * do.
+ * Funds at a one-time destination are counted and shown, but never added to what the accounts can
+ * spend: each destination is an account of its own, and its money reaches the wallet's account only
+ * through a sweep (lethenon#37) - which also shows the destination and the account together on the
+ * chain. Adding them to a spendable total would hide that step and its cost.
  *
  * @param accounts
  *            the wallet's direct accounts, one per signature suite, which it can spend from
  * @param oneTimePayments
  *            how many payments arrived at one-time destinations of the wallet's address
  * @param oneTimeAmount
- *            what those payments hold together, NOT spendable until lethenon#21 is resolved
+ *            what those payments hold together, spendable after a sweep
+ * @param address
+ *            the wallet's published address as text, {@code <view key>:<spend key>} - what a payer
+ *            needs in order to pay a one-time destination of it
  * @param replaySummary
  *            the chain library's own sentence about the replay this balance comes from
  */
 public record WalletBalance(List<AccountBalance> accounts, int oneTimePayments,
-	Amount oneTimeAmount, String replaySummary) {
+	Amount oneTimeAmount, String address, String replaySummary) {
 
 	public WalletBalance {
 		accounts = List.copyOf(accounts);

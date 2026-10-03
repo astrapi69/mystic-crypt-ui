@@ -42,8 +42,8 @@ import io.github.astrapi69.lethenon.WalletScan;
  * No chain logic of its own: {@link io.github.astrapi69.lethenon.WalletFile#read} opens the wallet,
  * the chain goes through the same read-and-replay path as every other tool of this plugin, the
  * direct accounts are read from the replayed state, and {@link WalletScan#over} recognises the
- * payments to one-time destinations with the view key. Those are reported apart and never as
- * spendable (lethenon#21).
+ * payments to one-time destinations with the view key. Those are reported apart from the accounts:
+ * they are spent by sweeping them first (lethenon#37).
  * <p>
  * The password is a {@code char[]} and is wiped before this method returns, whatever happens; it
  * appears in no message.
@@ -88,7 +88,7 @@ public final class WalletBalanceSupport
 			WalletScan scan = WalletScan.over(replayed.chain(), wallet.address(),
 				wallet.viewKeyPair().getPrivate());
 			return new WalletBalance(accounts, scan.received().size(), scan.balance(),
-				replayed.replay().describe());
+				wallet.address().toText(), replayed.replay().describe());
 		}
 		finally
 		{

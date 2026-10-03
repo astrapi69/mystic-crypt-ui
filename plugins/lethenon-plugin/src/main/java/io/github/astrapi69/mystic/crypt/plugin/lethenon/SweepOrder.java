@@ -26,30 +26,19 @@ package io.github.astrapi69.mystic.crypt.plugin.lethenon;
 
 import java.nio.file.Path;
 
-import io.github.astrapi69.lethenon.SignatureSuite;
-
 /**
- * What a transfer is to be, as a person typed it into the send window: everything except the
- * wallet's password, which travels apart as a {@code char[]} so it can be wiped
+ * What a sweep is to be, as a person typed it into the sweep window: everything except the wallet's
+ * password, which travels apart as a {@code char[]} so it can be wiped
  *
  * @param chainFile
- *            the chain file; the transfer waits next to it, in {@code <chain>.pending}
+ *            the chain file; the sweeping transfers wait next to it, in {@code <chain>.pending}
  * @param walletFile
- *            the wallet file that signs
- * @param suite
- *            the signature suite of the sending account
- * @param recipientKind
- *            whether the recipient is an account key or a published address
- * @param recipient
- *            the recipient as typed: an account key in hexadecimal, as every lethenon tool prints
- *            it, or a published address in the form {@code <view key>:<spend key>}
- * @param amount
- *            the amount in LETH, up to eight decimals, e.g. {@code 12.5}
+ *            the wallet whose one-time payments are swept onto its Ed25519 account
  * @param fee
- *            the fee in LETH; blank means none
+ *            the fee of EACH transfer in LETH, taken out of what that destination holds; blank
+ *            means none
  * @param memo
- *            the text signed with the transfer; may be empty
+ *            the text signed with each transfer; may be empty
  */
-public record TransferOrder(Path chainFile, Path walletFile, SignatureSuite suite,
-	RecipientKind recipientKind, String recipient, String amount, String fee, String memo) {
+public record SweepOrder(Path chainFile, Path walletFile, String fee, String memo) {
 }

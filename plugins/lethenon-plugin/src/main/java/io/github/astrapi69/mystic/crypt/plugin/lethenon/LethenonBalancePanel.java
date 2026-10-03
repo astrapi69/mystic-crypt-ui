@@ -43,8 +43,9 @@ import io.github.astrapi69.swing.model.component.JMTextField;
  * <p>
  * The balance is computed by {@link WalletBalanceSupport} from the replayed chain - never asked of
  * anybody - and comes in two parts that this window keeps apart: the wallet's direct accounts,
- * which it can spend from, and the payments to its one-time destinations, which it cannot move
- * until lethenon#21 is resolved. The second part is labelled as such and never added to the first.
+ * which it can spend from, and the payments to its one-time destinations, which reach those
+ * accounts through a sweep. The second part is labelled as such and never added to the first. The
+ * wallet's published address is shown with them, because it is what a payer needs.
  * <p>
  * The password goes from the field into the model as a {@code char[]}, is handed to the support
  * class, which wipes it, and is cleared from the field afterwards. It appears in no text this
@@ -178,6 +179,9 @@ public class LethenonBalancePanel extends JPanel
 	private String describe(final WalletBalance balance)
 	{
 		StringBuilder text = new StringBuilder();
+		text.append(
+			LethenonMessages.getString("lethenon.balance.address", "address (publish this):"))
+			.append(' ').append(balance.address()).append('\n');
 		for (AccountBalance account : balance.accounts())
 		{
 			text.append(account.suite()).append(' ')
@@ -191,11 +195,9 @@ public class LethenonBalancePanel extends JPanel
 			.append(LethenonMessages.getString("lethenon.balance.one.time",
 				"one-time payments holding"))
 			.append(' ').append(balance.oneTimeAmount()).append(" LETH, ")
-			.append(
-				LethenonMessages
-					.getString("lethenon.balance.not.spendable",
-						"not spendable yet: funds at a one-time destination cannot be moved until "
-							+ "lethenon#21 is resolved"))
+			.append(LethenonMessages.getString("lethenon.balance.one.time.spendable",
+				"spendable after a sweep, which shows those destinations and the account together "
+					+ "on the chain"))
 			.append('\n').append(balance.replaySummary());
 		return text.toString();
 	}

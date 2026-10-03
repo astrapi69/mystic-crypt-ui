@@ -27,6 +27,7 @@ package io.github.astrapi69.mystic.crypt.plugin.lethenon;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -44,6 +45,7 @@ import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 
+import io.github.astrapi69.lethenon.AddressScheme;
 import io.github.astrapi69.lethenon.Amount;
 import io.github.astrapi69.lethenon.BlockBody;
 import io.github.astrapi69.lethenon.Blocks;
@@ -53,12 +55,14 @@ import io.github.astrapi69.lethenon.ChainFile;
 import io.github.astrapi69.lethenon.ChainState;
 import io.github.astrapi69.lethenon.Destination;
 import io.github.astrapi69.lethenon.Mining;
+import io.github.astrapi69.lethenon.OneTimeAddresses;
 import io.github.astrapi69.lethenon.Replay;
 import io.github.astrapi69.lethenon.SignatureSuite;
 import io.github.astrapi69.lethenon.SignedTransaction;
 import io.github.astrapi69.lethenon.TransactionSigner;
 import io.github.astrapi69.lethenon.Wallet;
 import io.github.astrapi69.lethenon.WalletFile;
+import io.github.astrapi69.lethenon.WalletScan;
 
 /**
  * Sending writes a transfer that waits next to the chain file, and the round trip is the proof: the
@@ -140,6 +144,84 @@ class TransferSupportTest
 	}
 
 	@Test
+	@DisplayName("a transfer to a published address lands on a one-time destination only its holder recognises")
+	void send_toAPublishedAddress_paysAOneTimeDestinationTheRecipientFinds() throws Exception
+	{
+		Wallet payee = Wallet.create();
+		String address = payee.address().toText();
+
+		SentTransfer sent = TransferSupport.send(toAnAddress(address, "2"), PASSWORD.toCharArray());
+
+		SignedTransaction transfer = new ChainFile(chainFile).readPending().getFirst();
+		Destination destination = transfer.body().recipient();
+		assertNotEquals(AddressScheme.DIRECT, destination.scheme(),
+			"a published address is paid at a one-time destination, not at its spend key");
+		assertNotEquals(payee.spendKey(SignatureSuite.ED25519), destination.key());
+		assertTrue(
+			OneTimeAddresses.belongsTo(destination, payee.address(),
+				payee.viewKeyPair().getPrivate()),
+			"the payee recognises the payment with its view key");
+		assertFalse(OneTimeAddresses.belongsTo(destination, wallet.address(),
+			wallet.viewKeyPair().getPrivate()), "and nobody else does");
+
+		WalletScan scan = WalletScan.over(mineTheNextBlock(List.of(transfer)), payee.address(),
+			payee.viewKeyPair().getPrivate());
+		assertEquals(Amount.ofLeth(2L), scan.balance(),
+			"after the next block the payee's own scan finds the two LETH");
+		assertEquals(RecipientKind.PUBLISHED_ADDRESS, sent.recipientKind());
+		assertEquals(address, sent.recipient());
+	}
+
+	@Test
+	@DisplayName("what a send to a published address reports never names the one-time destination it derived")
+	void send_toAPublishedAddress_reportsTheAddressAndNotTheDestination() throws Exception
+	{
+		Wallet payee = Wallet.create();
+
+		SentTransfer sent = TransferSupport.send(toAnAddress(payee.address().toText(), "1"),
+			PASSWORD.toCharArray());
+
+		Bytes oneTimeKey = new ChainFile(chainFile).readPending().getFirst().body().recipient()
+			.key();
+		assertFalse(sent.toString().contains(oneTimeKey.toString()),
+			"the sender's own screen is a place where that link would be written down: " + sent);
+	}
+
+	@Test
+	@DisplayName("two payments to the same published address land on two destinations with nothing in common")
+	void send_twiceToTheSameAddress_usesTwoDestinations() throws Exception
+	{
+		String address = Wallet.create().address().toText();
+
+		TransferSupport.send(toAnAddress(address, "1"), PASSWORD.toCharArray());
+		TransferSupport.send(toAnAddress(address, "1"), PASSWORD.toCharArray());
+
+		List<SignedTransaction> pending = new ChainFile(chainFile).readPending();
+		assertNotEquals(pending.get(0).body().recipient().key(),
+			pending.get(1).body().recipient().key());
+		Replay.verify(mineTheNextBlock(pending));
+	}
+
+	@ParameterizedTest(name = "{0}")
+	@CsvSource(delimiter = '|', value = { "no address at all||enter the published address",
+			"an account key where an address belongs|ACCOUNT|is not a published address",
+			"halves that are not hexadecimal|zz:yy|'zz:yy' is not a published address",
+			"halves that are hexadecimal but no keys|00ff:00ff|not an X25519 public key" })
+	void send_toAnAddressTheChainCannotTake_isRefusedBeforeAnythingIsWritten(final String name,
+		final String addressText, final String namedInTheMessage)
+	{
+		String address = "ACCOUNT".equals(addressText)
+			? recipient.toString()
+			: addressText == null ? "" : addressText;
+
+		IllegalArgumentException refused = assertThrows(IllegalArgumentException.class,
+			() -> TransferSupport.send(toAnAddress(address, "1"), PASSWORD.toCharArray()));
+
+		assertTrue(refused.getMessage().contains(namedInTheMessage), refused.getMessage());
+		assertFalse(Files.exists(pendingFile()));
+	}
+
+	@Test
 	@DisplayName("a transfer the account cannot cover is refused and nothing is written")
 	void send_moreThanTheAccountHolds_isRefused() throws Exception
 	{
@@ -155,7 +237,8 @@ class TransferSupportTest
 	void send_fromAnEmptyAccount_isRefused()
 	{
 		TransferOrder fromTheOtherAccount = new TransferOrder(chainFile, walletFile,
-			SignatureSuite.ML_DSA_65, recipient.toString(), "1", "0", "");
+			SignatureSuite.ML_DSA_65, RecipientKind.ACCOUNT_KEY, recipient.toString(), "1", "0",
+			"");
 
 		IllegalArgumentException refused = assertThrows(IllegalArgumentException.class,
 			() -> TransferSupport.send(fromTheOtherAccount, PASSWORD.toCharArray()));
@@ -177,8 +260,8 @@ class TransferSupportTest
 		String to = "RECIPIENT".equals(recipientText)
 			? recipient.toString()
 			: recipientText == null ? "" : recipientText;
-		TransferOrder order = new TransferOrder(chainFile, walletFile, SignatureSuite.ED25519, to,
-			amount, fee, "");
+		TransferOrder order = new TransferOrder(chainFile, walletFile, SignatureSuite.ED25519,
+			RecipientKind.ACCOUNT_KEY, to, amount, fee, "");
 
 		IllegalArgumentException refused = assertThrows(IllegalArgumentException.class,
 			() -> TransferSupport.send(order, PASSWORD.toCharArray()));
@@ -237,7 +320,13 @@ class TransferSupportTest
 	private TransferOrder order(final String amount, final String fee, final String memo)
 	{
 		return new TransferOrder(chainFile, walletFile, SignatureSuite.ED25519,
-			recipient.toString(), amount, fee, memo);
+			RecipientKind.ACCOUNT_KEY, recipient.toString(), amount, fee, memo);
+	}
+
+	private TransferOrder toAnAddress(final String address, final String amount)
+	{
+		return new TransferOrder(chainFile, walletFile, SignatureSuite.ED25519,
+			RecipientKind.PUBLISHED_ADDRESS, address, amount, "0", "to a published address");
 	}
 
 	private Path pendingFile()

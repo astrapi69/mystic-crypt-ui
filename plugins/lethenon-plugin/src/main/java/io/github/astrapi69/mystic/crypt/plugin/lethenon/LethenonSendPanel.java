@@ -47,8 +47,13 @@ import io.github.astrapi69.swing.model.component.JMTextArea;
 import io.github.astrapi69.swing.model.component.JMTextField;
 
 /**
- * Sends LETH with a memo to an account key (lethenon#2, milestone 5) - what lethenon's
- * {@code send --to} does on the command line.
+ * Sends LETH with a memo to an account key or to a published address (lethenon#2, milestone 5) -
+ * what lethenon's {@code send --to} and {@code send --to-address} do on the command line.
+ * <p>
+ * Which of the two the recipient is, the person sending says, rather than the window guessing it
+ * from the text. A published address is paid at a one-time destination, and the report names the
+ * ADDRESS it was derived from, never the destination: the sender's own screen is a place where that
+ * link would be written down.
  * <p>
  * The transfer is signed by {@link TransferSupport} and waits next to the chain file until the next
  * block carries it; this window writes no block. The password goes from the field into the model as
@@ -76,6 +81,9 @@ public class LethenonSendPanel extends JPanel
 
 	private final JMComboBox<SignatureSuite, ComboBoxModel<SignatureSuite>> cbxSuite = new JMComboBox<>(
 		new EnumComboBoxModel<>(SignatureSuite.class, SignatureSuite.ED25519, Set.of()));
+
+	private final JMComboBox<RecipientKind, ComboBoxModel<RecipientKind>> cbxRecipientKind = new JMComboBox<>(
+		new EnumComboBoxModel<>(RecipientKind.class, RecipientKind.ACCOUNT_KEY, Set.of()));
 
 	private final JMTextField txtRecipient = new JMTextField(34);
 
@@ -150,15 +158,15 @@ public class LethenonSendPanel extends JPanel
 	{
 		return new TransferOrder(Path.of(modelObject.getChainFile().trim()),
 			Path.of(modelObject.getWalletFile().trim()), modelObject.getSuite(),
-			modelObject.getRecipient(), modelObject.getAmount(), modelObject.getFee(),
-			modelObject.getMemo());
+			modelObject.getRecipientKind(), modelObject.getRecipient(), modelObject.getAmount(),
+			modelObject.getFee(), modelObject.getMemo());
 	}
 
 	private static String describe(final SentTransfer sent)
 	{
 		return LethenonMessages.getString("lethenon.send.signed", "signed a transfer of") + " "
 			+ sent.amount() + " LETH " + LethenonMessages.getString("lethenon.send.to", "to") + " "
-			+ sent.recipient() + " "
+			+ whomItNames(sent) + " "
 			+ LethenonMessages.getString("lethenon.send.with.nonce", "with nonce") + " "
 			+ sent.nonce() + "; "
 			+ LethenonMessages.getString("lethenon.send.waits",
@@ -167,12 +175,27 @@ public class LethenonSendPanel extends JPanel
 			+ LethenonMessages.getString("lethenon.send.waiting", "waiting") + ")";
 	}
 
+	/**
+	 * What the report says the money went to: the account key, or for a published address "a
+	 * one-time destination of" the address - never the destination itself
+	 */
+	private static String whomItNames(final SentTransfer sent)
+	{
+		return switch (sent.recipientKind())
+		{
+			case ACCOUNT_KEY -> sent.recipient();
+			case PUBLISHED_ADDRESS -> LethenonMessages.getString("lethenon.send.one.time.of",
+				"a one-time destination of") + " " + sent.recipient();
+		};
+	}
+
 	private void nameTheComponents()
 	{
 		txtChainFile.setName("txtChainFile");
 		txtWalletFile.setName("txtWalletFile");
 		txtPassword.setName("txtPassword");
 		cbxSuite.setName("cbxSuite");
+		cbxRecipientKind.setName("cbxRecipientKind");
 		txtRecipient.setName("txtRecipient");
 		txtAmount.setName("txtAmount");
 		txtFee.setName("txtFee");
@@ -196,6 +219,18 @@ public class LethenonSendPanel extends JPanel
 				return super.getListCellRendererComponent(list, shown, index, selected, focused);
 			}
 		});
+		cbxRecipientKind.setRenderer(new DefaultListCellRenderer()
+		{
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public Component getListCellRendererComponent(final JList<?> list, final Object value,
+				final int index, final boolean selected, final boolean focused)
+			{
+				Object shown = value instanceof RecipientKind kind ? kind.description() : value;
+				return super.getListCellRendererComponent(list, shown, index, selected, focused);
+			}
+		});
 	}
 
 	private void explainTheComponents()
@@ -208,8 +243,13 @@ public class LethenonSendPanel extends JPanel
 			"the wallet file's password; it is used once and then cleared"));
 		cbxSuite.setToolTipText(LethenonMessages.getString("lethenon.tooltip.send.suite",
 			"the account the transfer is paid from: the wallet has one per signature suite"));
+		cbxRecipientKind
+			.setToolTipText(LethenonMessages.getString("lethenon.tooltip.send.recipient.kind",
+				"an account key is named on the chain as it is; a published address is paid at a "
+					+ "one-time destination nobody but its holder can connect to it"));
 		txtRecipient.setToolTipText(LethenonMessages.getString("lethenon.tooltip.send.recipient",
-			"the recipient's account key in hexadecimal, as every lethenon tool prints it"));
+			"the recipient's account key in hexadecimal, or a published address: view key and "
+				+ "spend key in hexadecimal, separated by ':'"));
 		txtAmount.setToolTipText(LethenonMessages.getString("lethenon.tooltip.send.amount",
 			"the amount in LETH, up to eight decimals, e.g. 12.5"));
 		txtFee.setToolTipText(LethenonMessages.getString("lethenon.tooltip.send.fee",
@@ -241,6 +281,7 @@ public class LethenonSendPanel extends JPanel
 		add(new JLabel(LethenonMessages.getString("lethenon.label.send.suite", "From account:")));
 		add(cbxSuite, OWN_WIDTH);
 		add(new JLabel(LethenonMessages.getString("lethenon.label.send.recipient", "To:")));
+		add(cbxRecipientKind, "growx, split 2, width pref!");
 		add(txtRecipient, ToolForm.FIELD);
 		add(new JLabel(LethenonMessages.getString("lethenon.label.send.amount", "Amount (LETH):")));
 		add(txtAmount, OWN_WIDTH);
@@ -269,6 +310,8 @@ public class LethenonSendPanel extends JPanel
 		txtPassword
 			.setPropertyModel(LambdaModel.of(modelObject::getPassword, modelObject::setPassword));
 		cbxSuite.setPropertyModel(LambdaModel.of(modelObject::getSuite, modelObject::setSuite));
+		cbxRecipientKind.setPropertyModel(
+			LambdaModel.of(modelObject::getRecipientKind, modelObject::setRecipientKind));
 		txtRecipient
 			.setPropertyModel(LambdaModel.of(modelObject::getRecipient, modelObject::setRecipient));
 		txtAmount.setPropertyModel(LambdaModel.of(modelObject::getAmount, modelObject::setAmount));
