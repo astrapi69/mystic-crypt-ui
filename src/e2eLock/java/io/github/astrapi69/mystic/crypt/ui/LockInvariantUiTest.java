@@ -27,7 +27,6 @@ package io.github.astrapi69.mystic.crypt.ui;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.io.File;
 import java.util.LinkedHashMap;
@@ -35,8 +34,6 @@ import java.util.Map;
 import java.util.function.Supplier;
 
 import javax.swing.AbstractAction;
-import javax.swing.JDialog;
-import javax.swing.JFileChooser;
 import javax.swing.SwingUtilities;
 
 import org.assertj.swing.edt.GuiActionRunner;
@@ -85,11 +82,12 @@ import io.github.astrapi69.mystic.crypt.action.SearchApplicationFileAction;
  * <b>Two things this green run does not cover.</b> It enumerates
  * {@code io.github.astrapi69.mystic.crypt.action}, so anything that acts on a locked workspace
  * without being an action class in that package is outside it: a plugin's menu items and buttons,
- * which are inline listeners in another module (#301, and see the note on the exclusion list), and
- * the AUTOMATIC lock, which is {@code IdleLockWatchdog} in the {@code lock} package and no
- * {@link AbstractAction} at all. The second has its own harness in
- * {@link AutomaticLockHoldsTheInvariantUiTest}, asserting the same four properties against the idle
- * timeout instead of against an action (#305).
+ * which are inline listeners in another module, and the AUTOMATIC lock, which is
+ * {@code IdleLockWatchdog} in the {@code lock} package and no {@link AbstractAction} at all. The
+ * second has its own harness in {@link AutomaticLockHoldsTheInvariantUiTest}, asserting the same
+ * four properties against the idle timeout instead of against an action (#305). The first has its
+ * own harness in {@link PluginsUsableWhileLockedHoldTheLockUiTest}, which clicks what the plugins
+ * offer while locked and asserts the same four properties (#301).
  */
 class LockInvariantUiTest extends AbstractUiTest
 {
@@ -185,7 +183,7 @@ class LockInvariantUiTest extends AbstractUiTest
 		{
 			String what = underTest.getKey().getSimpleName();
 			fireOnTheEventThread(underTest.getValue().get());
-			dismissWhateverOpened();
+			OpenedWindows.dismissWhateverOpened();
 
 			assertFalse(signedIn(), "'" + what
 				+ "' lifted the locked state. Only entering the master password may do that");
@@ -215,18 +213,12 @@ class LockInvariantUiTest extends AbstractUiTest
 	 * The set comes from the package directory rather than from a list somebody maintains, so an
 	 * action added later joins the invariant by existing.
 	 * <p>
-	 * <b>Its limit: the directory holds the CORE actions only, and that limit is no longer
-	 * theoretical.</b> The checksum plugin opts in ({@code isUsableWithoutAVault()} returns true,
-	 * the only one of thirteen), and its tool window is reachable while the workspace is LOCKED -
-	 * measured through the enabling path, not assumed. So the sentence that used to stand here, "no
-	 * plugin is offered without a vault", is false today.
-	 * <p>
-	 * Nothing here fires plugin code, and nothing can as written: a plugin's menu items and buttons
-	 * are inline listeners, there is no action class under {@code plugins/} to enumerate, and
-	 * plugin classes are never on this module's test classpath. A plugin-level equivalent has to be
-	 * robot-driven per plugin - install, lock, click what is offered, assert the same three
-	 * properties. That is #301, with the honest note that it would assert little for the checksum
-	 * plugin itself, which touches no vault, and matters for the next plugin that opts in.
+	 * <b>Its limit: the directory holds the CORE actions only.</b> Plugins that declare
+	 * {@code isUsableWithoutAVault()} - checksum and password-hash - are reachable while the
+	 * workspace is LOCKED, and nothing here fires plugin code, nor can it: a plugin's menu items
+	 * and buttons are inline listeners, there is no action class under {@code plugins/} to
+	 * enumerate, and plugin classes are never on this module's test classpath. They are driven by
+	 * the robot instead, in {@link PluginsUsableWhileLockedHoldTheLockUiTest} (#301).
 	 */
 	@Test
 	@DisplayName("every action in the package is either fired by the invariant or excluded by name")
@@ -265,54 +257,5 @@ class LockInvariantUiTest extends AbstractUiTest
 		SwingUtilities.invokeLater(() -> action
 			.actionPerformed(new ActionEvent(MysticCryptApplicationFrame.getInstance(), 0, "")));
 		UiTestSpeed.windowManagerSettle();
-	}
-
-	/**
-	 * Closes whatever the action opened - a refusal, a file chooser, a dialog - so the next action
-	 * starts from the same state. Cancelling a chooser is deliberate: approving one would measure
-	 * what the following action does with a target file, which is a different question
-	 */
-	private void dismissWhateverOpened()
-	{
-		GuiActionRunner.execute(() -> {
-			for (Window window : Window.getWindows())
-			{
-				if (!window.isShowing())
-				{
-					continue;
-				}
-				JFileChooser fileChooser = fileChooserIn(window);
-				if (fileChooser != null)
-				{
-					fileChooser.cancelSelection();
-				}
-				if (window instanceof JDialog dialog)
-				{
-					dialog.setVisible(false);
-					dialog.dispose();
-				}
-			}
-		});
-		UiTestSpeed.windowManagerSettle();
-	}
-
-	private static JFileChooser fileChooserIn(final java.awt.Container container)
-	{
-		for (java.awt.Component component : container.getComponents())
-		{
-			if (component instanceof JFileChooser fileChooser)
-			{
-				return fileChooser;
-			}
-			if (component instanceof java.awt.Container nested)
-			{
-				JFileChooser found = fileChooserIn(nested);
-				if (found != null)
-				{
-					return found;
-				}
-			}
-		}
-		return null;
 	}
 }

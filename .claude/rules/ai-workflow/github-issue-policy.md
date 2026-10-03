@@ -49,7 +49,7 @@ becomes a place things go to be forgotten quietly, it is doing `wontfix`'s job b
 should be dropped.
 
 Something that waits for a NAMED condition is not a stage: it gets `blocked` and the
-condition in writing (#301 waits for the second plugin that opts into the public state).
+condition in writing (#301 waited for the second plugin that opts into the public state).
 A condition carried as P3 turns "not yet" into "some day".
 
 ## A decision an issue reserves is taken in the issue
