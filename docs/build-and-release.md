@@ -488,9 +488,23 @@ It was removed rather than moved, because nothing needs the host as a Maven arti
 changes, the host gets the libraries' Central Portal shape (`com.gradleup.nmcp`, `USER_MANAGED`)
 and a snapshot run before anything depends on it.
 
-Note also `gradle/repositories.gradle`, which resolves from `mavenLocal()` first. That is
-what makes `make publish-local` work as the handshake between the host and the plugin
-builds.
+Note also `gradle/repositories.gradle`, where `mavenLocal()` is **off unless asked for**:
+`./gradlew build -PuseMavenLocal`. Anything in the local repository otherwise wins over Maven
+Central, so a snapshot published hours ago becomes what the build compiles against - on that
+machine and nowhere else (#475). The handshake between the host and the plugin builds still
+works without the flag, because each plugin build keeps `mavenLocal()` scoped to the one module
+it needs from there:
+
+```groovy
+mavenLocal {
+    content {
+        includeModule('io.github.astrapi69', 'mystic-crypt-ui')
+    }
+}
+```
+
+So `make publish-local` is unchanged, and a locally published library or chain snapshot can no
+longer shadow Central for a plugin.
 
 ## The release sequence
 

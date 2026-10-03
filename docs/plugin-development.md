@@ -99,7 +99,13 @@ java {
 }
 
 repositories {
-    mavenLocal()
+    // scoped to the host: make publish-local puts it here, and nothing else from the local
+    // repository may shadow Central (#475)
+    mavenLocal {
+        content {
+            includeModule('io.github.astrapi69', 'mystic-crypt-ui')
+        }
+    }
     mavenCentral()
 }
 
@@ -168,10 +174,16 @@ That is why no plugin `build.gradle` in this repository has a single `implementa
 versions of the same class in two class loaders and the mismatch shows up as a `ClassCastException`
 or a `NoSuchMethodError` at runtime, not at build time.
 
-`mavenLocal()` is in the repository list because the host is a `-SNAPSHOT`
-(`projectVersion=8.2-SNAPSHOT` in `gradle.properties`), published to the local Maven cache by
-`make publish-local`. The version in the `compileOnly "io.github.astrapi69:mystic-crypt-ui:..."`
-line has to be exactly that `projectVersion`.
+`mavenLocal()` is in the repository list because the host is a `-SNAPSHOT` (`projectVersion` in
+`gradle.properties`), published to the local Maven cache by `make publish-local`. The version in
+the `compileOnly "io.github.astrapi69:mystic-crypt-ui:..."` line has to be exactly that
+`projectVersion`.
+
+It is **scoped to that one module**, and that is not decoration: an unscoped `mavenLocal()` lets
+any locally published artifact win over Maven Central. Measured on 2026-10-03 with a deliberately
+broken `lethenon:0.1.0-SNAPSHOT` in `~/.m2`: unscoped, the plugin build failed with
+`zip END header not found`; scoped, it compiled against the artifact from Central and never looked
+at the local one (#475).
 
 ### The annotationProcessor line and what breaks silently without it
 
