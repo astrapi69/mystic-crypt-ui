@@ -48,7 +48,7 @@ dependencies {
     // the panel keeps its state in a model and binds the model backed components to it
     compileOnly "io.github.astrapi69:swing-model-components:1.2"
     compileOnly "io.github.astrapi69:model-data:3.2.1"
-    compileOnly "io.github.astrapi69:swing-base-components:5.1"
+    compileOnly "io.github.astrapi69:swing-base-components:5.2"
     compileOnly "io.github.astrapi69:swing-components:9"
     // the shared tool window layout (ToolForm) is MigLayout based; the host brings the library at
     // runtime, the plugin only compiles against it

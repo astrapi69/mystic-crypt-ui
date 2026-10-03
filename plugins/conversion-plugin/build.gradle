@@ -46,7 +46,7 @@ dependencies {
     compileOnly "io.github.astrapi69:model-data:3.2.1"
     // the panels bind their components to one model object per panel (JMTextField and friends)
     compileOnly "io.github.astrapi69:swing-model-components:1.2"
-    compileOnly "io.github.astrapi69:swing-base-components:5.1"
+    compileOnly "io.github.astrapi69:swing-base-components:5.2"
     compileOnly "io.github.astrapi69:throwable:3"
     compileOnly "io.github.astrapi69:resourcebundle-core:6.0"
     // the conversion wizard's base classes: AbstractWizardPanel/BaseWizardContentPanel and the
@@ -79,7 +79,7 @@ dependencies {
     // BasePanel and its combo box an EnumComboBoxModel, both from swing-base-components
     testImplementation "io.github.astrapi69:model-data:3.2.1"
     testImplementation "io.github.astrapi69:swing-model-components:1.2"
-    testImplementation "io.github.astrapi69:swing-base-components:5.1"
+    testImplementation "io.github.astrapi69:swing-base-components:5.2"
     testImplementation "io.github.astrapi69:throwable:3"
     // the panels under test resolve their tooltip text through ConversionMessages at construction
     // time, so the resource bundle loader has to be on the test classpath too

@@ -76,7 +76,7 @@ dependencies {
     compileOnly "io.github.astrapi69:resourcebundle-core:6.0"
     // JComponentFactory, FrameMode and JInternalFrameExtensions open the tool window; the host
     // carries all three at runtime, like every other plugin here
-    compileOnly "io.github.astrapi69:swing-base-components:5.1"
+    compileOnly "io.github.astrapi69:swing-base-components:5.2"
     compileOnly "io.github.astrapi69:swing-components:9"
     // GenericTableModel under the chain view's block table; the host carries it at runtime
     compileOnly libs.swing.table.components
