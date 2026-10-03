@@ -36,8 +36,9 @@ repositories {
 // A snapshot is a changing module, and Gradle trusts its cached copy of one for 24 hours unless told
 // otherwise. CI restores the Gradle home from the Actions cache, so it built against a lethenon
 // snapshot from before the one on Central and could not find classes the code uses (#464). lethenon
-// is the only changing module this build fetches from a remote repository; the host snapshot comes
-// from mavenLocal, which Gradle does not cache.
+// WAS the only changing module this build fetched from a remote repository; since lethenon 0.1.0
+// it fetches a release, so this applies to nothing today and stays as the guard for the next
+// snapshot. The host snapshot comes from mavenLocal, which Gradle does not cache.
 configurations.configureEach {
     resolutionStrategy.cacheChangingModulesFor 0, 'seconds'
 }

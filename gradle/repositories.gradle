@@ -28,8 +28,11 @@ repositories {
 // A snapshot is a changing module, and Gradle trusts its cached copy of one for 24 hours unless told
 // otherwise. CI restores the Gradle home from the Actions cache, so it built against a lethenon
 // snapshot from before the one on Central and could not find classes the code uses (#464). The only
-// changing module in the version catalog is lethenon, which e2eTest compiles against, so this asks
-// the repository again for that one module and for nothing else.
+// changing module in the version catalog WAS lethenon, while the plugin consumed its snapshot.
+// Since lethenon 0.1.0 the catalog names no snapshot at all, so this setting currently applies to
+// nothing - it stays as the guard for the next consumer of one, because the defect it answers is
+// silent: Gradle trusts a cached snapshot for 24 hours and CI restores its Gradle home from the
+// actions cache, so a build compiles against yesterday's artifact and says nothing (#464).
 configurations.configureEach {
     resolutionStrategy.cacheChangingModulesFor 0, 'seconds'
 }
