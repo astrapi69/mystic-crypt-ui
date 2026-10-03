@@ -41,7 +41,7 @@ def hostVersion = new Properties().with { properties ->
 
 dependencies {
     compileOnly "io.github.astrapi69:mystic-crypt-ui:$hostVersion"
-    compileOnly "io.github.astrapi69:swing-base-components:5.1"
+    compileOnly "io.github.astrapi69:swing-base-components:5.2"
     compileOnly "io.github.astrapi69:swing-components:9"
 
     // the key exchange lives in the mystic-crypt library

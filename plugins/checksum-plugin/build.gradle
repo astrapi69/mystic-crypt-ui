@@ -48,7 +48,7 @@ dependencies {
     compileOnly libs.crypt.api
     compileOnly "io.github.astrapi69:file-worker:19.0"
     compileOnly "io.github.astrapi69:model-data:3.2.1"
-    compileOnly "io.github.astrapi69:swing-base-components:5.1"
+    compileOnly "io.github.astrapi69:swing-base-components:5.2"
     // the model backed components the ChecksumAndMacPanel binds to its model
     compileOnly "io.github.astrapi69:swing-model-components:1.2"
     // the layout every tool window shares, through the host's ToolForm; the host
@@ -83,7 +83,7 @@ dependencies {
     // the binding test of the ChecksumPanel builds a panel that extends the base panel, starts in
     // the user's downloads directory and enables its clear buttons from a document; the host brings
     // these three at runtime
-    testImplementation "io.github.astrapi69:swing-base-components:5.1"
+    testImplementation "io.github.astrapi69:swing-base-components:5.2"
     testImplementation "io.github.astrapi69:file-worker:19.0"
     testImplementation "io.github.astrapi69:menu-action:5.1"
     testImplementation "io.github.astrapi69:awt-extensions:2.0"
