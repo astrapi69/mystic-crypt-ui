@@ -53,10 +53,12 @@ import io.github.astrapi69.lethenon.Chain;
 import io.github.astrapi69.lethenon.ChainFile;
 import io.github.astrapi69.lethenon.Destination;
 import io.github.astrapi69.lethenon.OneTimeAddresses;
+import io.github.astrapi69.lethenon.Replay;
 import io.github.astrapi69.lethenon.SignatureSuite;
 import io.github.astrapi69.lethenon.SignedTransaction;
 import io.github.astrapi69.lethenon.TransactionBody;
 import io.github.astrapi69.lethenon.TransactionSigner;
+import io.github.astrapi69.lethenon.Transfers;
 import io.github.astrapi69.lethenon.Wallet;
 import io.github.astrapi69.lethenon.WalletFile;
 import io.github.astrapi69.mystic.crypt.TestPasswords;
@@ -65,7 +67,8 @@ import io.github.astrapi69.mystic.crypt.TestPasswords;
  * Milestone 5 of lethenon#2, the parts of it that are built: the plugin installs from its zip, its
  * submenu appears, the replay verifier behind its button reports what it verified in a chain file
  * written by the chain library itself, the chain view lists that file's blocks, the balance window
- * reads a wallet, and the send window signs a transfer that the chain library reads back.
+ * reads a wallet, the send window signs a transfer that the chain library reads back, and the
+ * mining window writes the next block, which the chain library reads back and replays.
  * <p>
  * The chain here is built with lethenon's own encoder rather than with a committed fixture, because
  * what a user's chain file looks like is whatever that encoder writes - a fixture would freeze one
@@ -256,6 +259,65 @@ class LethenonPluginUiTest extends AbstractUiTest
 			.execute(() -> tool.textBox("txtPassword").target().getText());
 		assertTrue(passwordLeft.isEmpty(), "the password field is cleared after one use");
 		assertTrue(frame.isEnabled(), "the application is still usable after a transfer");
+	}
+
+	@Test
+	@DisplayName("the plugin mines a pun into the next block, carrying the transfer that waited")
+	void thePlugin_minesAPunIntoTheNextBlock() throws Exception
+	{
+		installPluginRequiringItBuilt(LETHENON_ZIP);
+		String walletPassword = TestPasswords.throwaway();
+		Wallet wallet = Wallet.create();
+		File walletFile = new File(tempHome, "wallet.lethenon-wallet");
+		WalletFile.write(walletFile.toPath(), wallet, walletPassword.toCharArray());
+		File chainFile = aChainPayingTheWallet(wallet);
+		ChainFile chain = new ChainFile(chainFile.toPath());
+		Bytes recipient = TransactionSigner
+			.asBytes(TransactionSigner.newKeyPair(SignatureSuite.ED25519).getPublic());
+		chain.writePending(List.of(Transfers.prepare(wallet, SignatureSuite.ED25519,
+			chain.require(), List.of(), Destination.direct(recipient), Amount.parseLeth("2"),
+			Amount.ZERO, "waiting for a pun")));
+		File databaseFile = new File(tempHome, "lethenon-mine.mcrdb");
+		createDatabaseFileHeadless(databaseFile, MASTER_PASSWORD);
+		ApplicationSteps application = signInWithExistingDatabase(databaseFile, MASTER_PASSWORD);
+		FrameFixture frame = application.showMainFrame();
+
+		application.openPluginTool("Mine a Pun", "Mine a Pun");
+		JInternalFrameFixture tool = new JInternalFrameFixture(robot,
+			application.internalFrame("Mine a Pun"));
+		GuiActionRunner.execute(() -> {
+			tool.textBox("txtChainFile").target().setText(chainFile.getAbsolutePath());
+			tool.textBox("txtWalletFile").target().setText(walletFile.getAbsolutePath());
+			tool.textBox("txtPassword").target().setText(walletPassword);
+			tool.textBox("txtPun").target().setText("a pun against the cameras");
+		});
+		UiTestSpeed.step();
+		SwingUtilities.invokeLater(() -> tool.button("btnMine").target().doClick());
+
+		Pause.pause(new Condition("the block is mined")
+		{
+			@Override
+			public boolean test()
+			{
+				return textOf(tool, "txtReport").contains("mined block");
+			}
+		}, 30000);
+
+		String report = textOf(tool, "txtReport");
+		assertTrue(report.contains("mined block 2 with 1 transfer(s)"), report);
+		assertFalse(report.contains(walletPassword), "the password is in no text on the screen");
+		List<BlockBody> blocks = chain.require();
+		assertEquals(3, blocks.size(), "the block was written to the chain file");
+		assertTrue(blocks.getLast().pun().startsWith("a pun against the cameras"),
+			blocks.getLast().pun());
+		assertEquals(wallet.spendKey(SignatureSuite.ED25519), blocks.getLast().beneficiary());
+		assertEquals(Amount.parseLeth("2"),
+			Replay.verify(blocks).finalState().balanceOf(recipient));
+		assertTrue(chain.readPending().isEmpty(), "the waiting transfer went into the block");
+		String passwordLeft = GuiActionRunner
+			.execute(() -> tool.textBox("txtPassword").target().getText());
+		assertTrue(passwordLeft.isEmpty(), "the password field is cleared after one use");
+		assertTrue(frame.isEnabled(), "the application is still usable after mining");
 	}
 
 	private static String textOf(final JInternalFrameFixture tool, final String componentName)
