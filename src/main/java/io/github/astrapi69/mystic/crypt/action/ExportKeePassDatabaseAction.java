@@ -36,8 +36,8 @@ import java.util.List;
 import javax.swing.AbstractAction;
 import javax.swing.JOptionPane;
 
-import org.linguafranca.pwdb.kdbx.KdbxCreds;
-import org.linguafranca.pwdb.kdbx.jackson.JacksonDatabase;
+import org.linguafranca.pwdb.format.KdbxCredentials;
+import org.linguafranca.pwdb.kdbx.jackson.KdbxDatabase;
 
 import io.github.astrapi69.gen.tree.BaseTreeNode;
 import io.github.astrapi69.mystic.crypt.ApplicationPanel;
@@ -102,13 +102,13 @@ public class ExportKeePassDatabaseAction extends AbstractAction
 		memoized.save(instance.getConfigurationDirectory());
 		try
 		{
-			KdbxCreds credentials = newCredentials(panel);
+			KdbxCredentials credentials = newCredentials(panel);
 			SecretKeyTreeWithContentPanel treePanel = applicationPanel
 				.getSecretKeyTreeWithContentPanel();
 			BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> root = treePanel
 				.getModelObject();
 
-			JacksonDatabase database = new JacksonDatabase();
+			KdbxDatabase database = new KdbxDatabase();
 			// what KeePass shows in its database list before anything is opened - the library's
 			// own defaults, "New Database created by KeePassJava2", said nothing about where the
 			// file came from (#378)
@@ -132,7 +132,7 @@ public class ExportKeePassDatabaseAction extends AbstractAction
 		}
 	}
 
-	private KdbxCreds newCredentials(ExportKeePassPanel panel) throws Exception
+	private KdbxCredentials newCredentials(ExportKeePassPanel panel) throws Exception
 	{
 		char[] password = panel.getPassword();
 		File keyFile = panel.getSelectedKeyFile();
@@ -140,7 +140,7 @@ public class ExportKeePassDatabaseAction extends AbstractAction
 		{
 			try (InputStream keyFileStream = new FileInputStream(keyFile))
 			{
-				return new KdbxCreds(new String(password).getBytes(StandardCharsets.UTF_8),
+				return new KdbxCredentials(new String(password).getBytes(StandardCharsets.UTF_8),
 					keyFileStream);
 			}
 		}
@@ -148,10 +148,10 @@ public class ExportKeePassDatabaseAction extends AbstractAction
 		{
 			try (InputStream keyFileStream = new FileInputStream(keyFile))
 			{
-				return new KdbxCreds(keyFileStream);
+				return new KdbxCredentials(keyFileStream);
 			}
 		}
-		return new KdbxCreds(new String(password).getBytes(StandardCharsets.UTF_8));
+		return new KdbxCredentials(new String(password).getBytes(StandardCharsets.UTF_8));
 	}
 
 

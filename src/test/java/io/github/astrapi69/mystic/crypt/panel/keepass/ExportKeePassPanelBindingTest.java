@@ -47,10 +47,10 @@ import javax.swing.JTextField;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
-import org.linguafranca.pwdb.kdbx.KdbxCreds;
-import org.linguafranca.pwdb.kdbx.jackson.JacksonDatabase;
-import org.linguafranca.pwdb.kdbx.jackson.JacksonEntry;
-import org.linguafranca.pwdb.kdbx.jackson.JacksonGroup;
+import org.linguafranca.pwdb.format.KdbxCredentials;
+import org.linguafranca.pwdb.kdbx.jackson.KdbxDatabase;
+import org.linguafranca.pwdb.kdbx.jackson.KdbxEntry;
+import org.linguafranca.pwdb.kdbx.jackson.KdbxGroup;
 
 import io.github.astrapi69.mystic.crypt.TestPasswords;
 
@@ -98,9 +98,9 @@ class ExportKeePassPanelBindingTest
 	 */
 	private static File exportWith(ExportKeePassPanel panel) throws Exception
 	{
-		JacksonDatabase database = new JacksonDatabase();
-		JacksonGroup rootGroup = database.getRootGroup();
-		JacksonEntry entry = database.newEntry();
+		KdbxDatabase database = new KdbxDatabase();
+		KdbxGroup rootGroup = database.getRootGroup();
+		KdbxEntry entry = database.newEntry();
 		entry.setTitle(ENTRY_TITLE);
 		entry.setUsername("bound-user");
 		rootGroup.addEntry(entry);
@@ -112,27 +112,27 @@ class ExportKeePassPanelBindingTest
 		return destinationFile;
 	}
 
-	private static KdbxCreds credentials(ExportKeePassPanel panel) throws Exception
+	private static KdbxCredentials credentials(ExportKeePassPanel panel) throws Exception
 	{
 		char[] password = panel.getPassword();
 		File keyFile = panel.getSelectedKeyFile();
 		byte[] passwordBytes = new String(password).getBytes(StandardCharsets.UTF_8);
 		if (keyFile == null)
 		{
-			return new KdbxCreds(passwordBytes);
+			return new KdbxCredentials(passwordBytes);
 		}
 		try (InputStream keyFileStream = new FileInputStream(keyFile))
 		{
-			return new KdbxCreds(passwordBytes, keyFileStream);
+			return new KdbxCredentials(passwordBytes, keyFileStream);
 		}
 	}
 
-	private static String firstEntryTitleOf(File keePassFile, KdbxCreds credentials)
+	private static String firstEntryTitleOf(File keePassFile, KdbxCredentials credentials)
 		throws Exception
 	{
 		try (InputStream inputStream = new FileInputStream(keePassFile))
 		{
-			return JacksonDatabase.load(credentials, inputStream).getRootGroup().getEntries().get(0)
+			return KdbxDatabase.load(credentials, inputStream).getRootGroup().getEntries().get(0)
 				.getTitle();
 		}
 	}
@@ -157,7 +157,7 @@ class ExportKeePassPanelBindingTest
 		assertEquals(destinationFile, writtenFile);
 		assertTrue(destinationFile.exists(), "the export was not written where the field points");
 		assertEquals(ENTRY_TITLE, firstEntryTitleOf(destinationFile,
-			new KdbxCreds(password.getBytes(StandardCharsets.UTF_8))));
+			new KdbxCredentials(password.getBytes(StandardCharsets.UTF_8))));
 	}
 
 	/**
@@ -185,11 +185,11 @@ class ExportKeePassPanelBindingTest
 		assertEquals(keyFile, panel.getSelectedKeyFile());
 		assertEquals(ENTRY_TITLE,
 			firstEntryTitleOf(destinationFile,
-				new KdbxCreds(password.getBytes(StandardCharsets.UTF_8),
+				new KdbxCredentials(password.getBytes(StandardCharsets.UTF_8),
 					new ByteArrayInputStream(KEY_FILE_MATERIAL))));
 		assertThrows(Exception.class,
 			() -> firstEntryTitleOf(destinationFile,
-				new KdbxCreds(password.getBytes(StandardCharsets.UTF_8))),
+				new KdbxCredentials(password.getBytes(StandardCharsets.UTF_8))),
 			"the key file must be part of what protects the exported file");
 	}
 
@@ -218,7 +218,7 @@ class ExportKeePassPanelBindingTest
 
 		assertNull(panel.getSelectedKeyFile());
 		assertEquals(ENTRY_TITLE, firstEntryTitleOf(destinationFile,
-			new KdbxCreds(password.getBytes(StandardCharsets.UTF_8))));
+			new KdbxCredentials(password.getBytes(StandardCharsets.UTF_8))));
 	}
 
 	/**

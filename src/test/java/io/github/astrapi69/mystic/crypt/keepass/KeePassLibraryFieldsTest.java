@@ -41,10 +41,10 @@ import java.util.stream.Stream;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.linguafranca.pwdb.kdbx.jackson.JacksonDatabase;
-import org.linguafranca.pwdb.kdbx.jackson.JacksonEntry;
-import org.linguafranca.pwdb.kdbx.jackson.JacksonGroup;
-import org.linguafranca.pwdb.kdbx.jackson.JacksonHistory;
+import org.linguafranca.pwdb.kdbx.jackson.KdbxDatabase;
+import org.linguafranca.pwdb.kdbx.jackson.KdbxEntry;
+import org.linguafranca.pwdb.kdbx.jackson.KdbxGroup;
+import org.linguafranca.pwdb.kdbx.jackson.KdbxHistory;
 import org.linguafranca.pwdb.kdbx.jackson.model.Times;
 
 /**
@@ -75,11 +75,11 @@ class KeePassLibraryFieldsTest
 	void anUnknownFieldNameFailsWithTheNameInTheMessage()
 	{
 		IllegalStateException thrown = assertThrows(IllegalStateException.class,
-			() -> KeePassLibraryFields.field(JacksonEntry.class, "noSuchFieldHere"));
+			() -> KeePassLibraryFields.field(KdbxEntry.class, "noSuchFieldHere"));
 
 		assertTrue(thrown.getMessage().contains("noSuchFieldHere"),
 			"the message has to name the field, or a failing export says nothing about why");
-		assertTrue(thrown.getMessage().contains(JacksonEntry.class.getName()),
+		assertTrue(thrown.getMessage().contains(KdbxEntry.class.getName()),
 			"the message has to name the class the field was expected on");
 		assertTrue(thrown.getMessage().contains(KeePassLibraryFields.EXPECTED_LIBRARY_VERSION),
 			"the message has to name the library version the names were written against");
@@ -89,8 +89,8 @@ class KeePassLibraryFieldsTest
 	@DisplayName("the identifier written into an entry is the identifier read back")
 	void theEntryIdentifierIsWrittenThrough() throws IOException
 	{
-		JacksonDatabase database = new JacksonDatabase();
-		JacksonEntry entry = database.newEntry();
+		KdbxDatabase database = new KdbxDatabase();
+		KdbxEntry entry = database.newEntry();
 		UUID identifier = UUID.fromString("527a5f19-606f-4e3a-b5ca-4c8f31602502");
 
 		KeePassLibraryFields.setUuid(entry, identifier);
@@ -102,8 +102,8 @@ class KeePassLibraryFieldsTest
 	@DisplayName("the identifier written into a group is the identifier read back")
 	void theGroupIdentifierIsWrittenThrough() throws IOException
 	{
-		JacksonDatabase database = new JacksonDatabase();
-		JacksonGroup group = database.newGroup("Team");
+		KdbxDatabase database = new KdbxDatabase();
+		KdbxGroup group = (KdbxGroup)database.newGroup("Team");
 		UUID identifier = UUID.fromString("e39ac6c7-0d1a-4d2b-9f3e-1a2b3c4d5e6f");
 
 		KeePassLibraryFields.setUuid(group, identifier);
@@ -119,9 +119,9 @@ class KeePassLibraryFieldsTest
 	@DisplayName("all four times are written through, on an entry and on a group")
 	void allFourTimesAreWrittenThrough() throws IOException
 	{
-		JacksonDatabase database = new JacksonDatabase();
-		JacksonEntry entry = database.newEntry();
-		JacksonGroup group = database.newGroup("Team");
+		KdbxDatabase database = new KdbxDatabase();
+		KdbxEntry entry = database.newEntry();
+		KdbxGroup group = (KdbxGroup)database.newGroup("Team");
 		Date created = new Date(1_600_000_000_000L);
 		Date modified = new Date(1_700_000_000_000L);
 		Date accessed = new Date(1_750_000_000_000L);
@@ -142,7 +142,7 @@ class KeePassLibraryFieldsTest
 		assertEquals(accessed, entry.getLastAccessTime());
 		assertEquals(expires, entry.getExpiryTime());
 		assertTrue(entry.getExpires(), "the expiry flag travels with the times, not beside them");
-		// a group's times are read back through the capsule too: JacksonGroup exposes no getter for
+		// a group's times are read back through the capsule too: KdbxGroup exposes no getter for
 		// any of them, so they are unreachable in both directions without it
 		assertEquals(created, KeePassLibraryFields.getTimes(group).getCreationTime());
 		assertEquals(expires, KeePassLibraryFields.getTimes(group).getExpiryTime());
@@ -153,16 +153,16 @@ class KeePassLibraryFieldsTest
 	@DisplayName("history is written through and read back")
 	void historyIsWrittenThroughAndReadBack() throws IOException
 	{
-		JacksonDatabase database = new JacksonDatabase();
-		JacksonEntry entry = database.newEntry();
-		JacksonEntry previous = database.newEntry();
+		KdbxDatabase database = new KdbxDatabase();
+		KdbxEntry entry = database.newEntry();
+		KdbxEntry previous = database.newEntry();
 		previous.setTitle("the previous version");
-		JacksonHistory history = new JacksonHistory();
+		KdbxHistory history = new KdbxHistory();
 		history.setEntry(new ArrayList<>(List.of(previous)));
 
 		KeePassLibraryFields.setHistory(entry, history);
 
-		JacksonHistory readBack = KeePassLibraryFields.getHistory(entry);
+		KdbxHistory readBack = KeePassLibraryFields.getHistory(entry);
 		assertNotNull(readBack, "history has to come back out, or an export cannot write it");
 		assertEquals(1, readBack.getEntry().size());
 		assertEquals("the previous version", readBack.getEntry().get(0).getTitle());
@@ -172,7 +172,7 @@ class KeePassLibraryFieldsTest
 	@DisplayName("an entry with no history reads back as none, not as a crash")
 	void anEntryWithoutHistoryReadsBackAsNull() throws IOException
 	{
-		JacksonDatabase database = new JacksonDatabase();
+		KdbxDatabase database = new KdbxDatabase();
 
 		assertEquals(null, KeePassLibraryFields.getHistory(database.newEntry()),
 			"a fresh entry has no history, and asking has to be allowed");

@@ -4,6 +4,17 @@
 Version 8.7 (unreleased)
 -------------
 
+CHANGED:
+
+- KeePassJava2 moves from 2.2.6 to 3.0.0: one KDBX implementation instead of four, the Jackson
+  classes renamed (JacksonDatabase to KdbxDatabase and so on), no generics on Database, Group and
+  Entry, the credentials now org.linguafranca.pwdb.format.KdbxCredentials, and the artifact
+  org.linguafranca.pwdb:KeePassJava2.kdbx.database. 18 files, renames and two casts where the
+  de-generified containers hand back the interface type. The reflection capsule survives
+  unchanged: measured on the 3.0.0 jar, the field names uuid, times and history are the same on
+  KdbxEntry and KdbxGroup, and its guard test resolves all of them. Group times are now readable
+  through the Group interface (jorabin/KeePassJava2#99), which #473 harvests separately (#467)
+
 ADDED:
 - a Lethenon plugin: the protest chain lethenon as a plugin with its own submenu and one setting, the chain file. Its first tool replays a chain file through the chain library and reports what it verified - every block hash, every signature, every state transition and the supply - or the reason it refused the chain (#450)
 - the Lethenon plugin shows the blocks of a chain: height, the pun each block was mined with, whom it paid, its transfers, its time and its difficulty. The whole chain is replayed before a single block is listed, so a refused chain shows no blocks, only the reason (#450)

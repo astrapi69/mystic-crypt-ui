@@ -34,10 +34,10 @@ import java.util.List;
 
 import org.junit.jupiter.api.Test;
 import org.linguafranca.pwdb.Entry;
-import org.linguafranca.pwdb.kdbx.KdbxCreds;
-import org.linguafranca.pwdb.kdbx.jackson.JacksonDatabase;
-import org.linguafranca.pwdb.kdbx.jackson.JacksonEntry;
-import org.linguafranca.pwdb.kdbx.jackson.JacksonGroup;
+import org.linguafranca.pwdb.Group;
+import org.linguafranca.pwdb.format.KdbxCredentials;
+import org.linguafranca.pwdb.kdbx.jackson.KdbxDatabase;
+import org.linguafranca.pwdb.kdbx.jackson.KdbxGroup;
 
 import io.github.astrapi69.mystic.crypt.TestPasswords;
 
@@ -52,19 +52,20 @@ public class KeePass2Test
 	@Test
 	public void testKeePass2() throws Exception
 	{
-		KdbxCreds credentials = new KdbxCreds(TestPasswords.KEEPASS_FIXTURE.getBytes());
+		KdbxCredentials credentials = new KdbxCredentials(TestPasswords.KEEPASS_FIXTURE.getBytes());
 		InputStream inputStream = getClass().getClassLoader().getResourceAsStream("test-db.kdbx");
 		assertNotNull(inputStream, "test fixture test-db.kdbx must be on the test classpath");
-		JacksonDatabase database = JacksonDatabase.load(credentials, inputStream);
-		JacksonGroup rootGroup = database.getRootGroup();
+		KdbxDatabase database = KdbxDatabase.load(credentials, inputStream);
+		// 3.0.0 dropped the generics, so a database hands back the interface type (#467)
+		KdbxGroup rootGroup = (KdbxGroup)database.getRootGroup();
 		assertNotNull(rootGroup);
 
-		List<JacksonGroup> allGroups = getAllGroups(rootGroup);
+		List<KdbxGroup> allGroups = getAllGroups(rootGroup);
 		allGroups.add(rootGroup);
 		assertFalse(allGroups.isEmpty(), "the fixture must contain at least one group");
 
-		List<JacksonEntry> allEntries = new ArrayList<>();
-		for (JacksonGroup currentGroup : allGroups)
+		List<Entry> allEntries = new ArrayList<>();
+		for (KdbxGroup currentGroup : allGroups)
 		{
 			allEntries.addAll(currentGroup.getEntries());
 		}
@@ -75,11 +76,13 @@ public class KeePass2Test
 			"every entry in the fixture must have a readable title");
 	}
 
-	public static List<JacksonGroup> getAllGroups(JacksonGroup group)
+	public static List<KdbxGroup> getAllGroups(KdbxGroup group)
 	{
-		List<JacksonGroup> returnList = new ArrayList<>(group.getGroups());
-		for (JacksonGroup currentGroup : group.getGroups())
+		List<KdbxGroup> returnList = new ArrayList<>();
+		for (Group child : group.getGroups())
 		{
+			KdbxGroup currentGroup = (KdbxGroup)child;
+			returnList.add(currentGroup);
 			returnList.addAll(getAllGroups(currentGroup));
 		}
 		return returnList;

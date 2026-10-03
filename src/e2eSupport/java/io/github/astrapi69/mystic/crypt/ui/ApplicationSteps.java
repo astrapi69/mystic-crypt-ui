@@ -121,7 +121,7 @@ final class ApplicationSteps
 	/**
 	 * Drives the KeePass import dialog like {@link #importKeePassDatabase} but additionally
 	 * supplies a key file: it enables the "Key File" checkbox and browses to the given key file, so
-	 * the import builds a password + key-file {@code KdbxCreds}.
+	 * the import builds a password + key-file {@code KdbxCredentials}.
 	 *
 	 * @param keePassFile
 	 *            the {@code .kdbx} file to import

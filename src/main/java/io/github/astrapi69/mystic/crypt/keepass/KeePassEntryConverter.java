@@ -34,9 +34,9 @@ import java.util.Set;
 
 import org.linguafranca.pwdb.Entry;
 import org.linguafranca.pwdb.PropertyValue;
-import org.linguafranca.pwdb.kdbx.jackson.JacksonDatabase;
-import org.linguafranca.pwdb.kdbx.jackson.JacksonEntry;
-import org.linguafranca.pwdb.kdbx.jackson.JacksonHistory;
+import org.linguafranca.pwdb.kdbx.jackson.KdbxDatabase;
+import org.linguafranca.pwdb.kdbx.jackson.KdbxEntry;
+import org.linguafranca.pwdb.kdbx.jackson.KdbxHistory;
 import org.linguafranca.pwdb.kdbx.jackson.model.Times;
 
 import io.github.astrapi69.file.create.model.FileContentInfo;
@@ -44,7 +44,7 @@ import io.github.astrapi69.mystic.crypt.panel.dbtree.EntryText;
 import io.github.astrapi69.mystic.crypt.panel.dbtree.MysticCryptEntryModelBean;
 
 /**
- * Converts entries between KeePassJava2's {@link JacksonEntry} and this application's
+ * Converts entries between KeePassJava2's {@link KdbxEntry} and this application's
  * {@link MysticCryptEntryModelBean}, so that a KeePass entry taken in and given back out is the
  * entry it was: identifier, all four timestamps with the expiry flag, icon index, custom properties
  * with the protection the user gave them, attachments, and the version history (#384).
@@ -73,7 +73,7 @@ public final class KeePassEntryConverter
 	 *            the KeePass entry to convert
 	 * @return the converted entry model bean
 	 */
-	public static MysticCryptEntryModelBean toEntryModelBean(final JacksonEntry entry)
+	public static MysticCryptEntryModelBean toEntryModelBean(final KdbxEntry entry)
 	{
 		OffsetDateTime preciseExpiryTime = entry.getExpires()
 			? toOffsetDateTime(entry.getExpiryTime())
@@ -131,10 +131,10 @@ public final class KeePassEntryConverter
 	 *            the entry model bean to convert
 	 * @return the new KeePass entry, not yet added to any group
 	 */
-	public static JacksonEntry toJacksonEntry(final JacksonDatabase database,
+	public static KdbxEntry toJacksonEntry(final KdbxDatabase database,
 		final MysticCryptEntryModelBean bean)
 	{
-		JacksonEntry entry = database.newEntry();
+		KdbxEntry entry = database.newEntry();
 		// the KeePass library takes Strings for every property, so this boundary is where an
 		// entry's text becomes one; the entry's own fields stay characters (#294)
 		setStandardProperty(database, entry, Entry.STANDARD_PROPERTY_NAME_TITLE, bean.getTitle());
@@ -167,8 +167,8 @@ public final class KeePassEntryConverter
 		}
 		if (bean.getHistory() != null)
 		{
-			JacksonHistory history = new JacksonHistory();
-			List<JacksonEntry> versions = new ArrayList<>();
+			KdbxHistory history = new KdbxHistory();
+			List<KdbxEntry> versions = new ArrayList<>();
 			for (MysticCryptEntryModelBean version : bean.getHistory())
 			{
 				versions.add(toJacksonEntry(database, version));
@@ -195,15 +195,15 @@ public final class KeePassEntryConverter
 		return value == null || value.isEmpty() ? null : value.toCharArray();
 	}
 
-	private static List<MysticCryptEntryModelBean> historyOf(final JacksonEntry entry)
+	private static List<MysticCryptEntryModelBean> historyOf(final KdbxEntry entry)
 	{
-		JacksonHistory history = KeePassLibraryFields.getHistory(entry);
+		KdbxHistory history = KeePassLibraryFields.getHistory(entry);
 		if (history == null || history.getEntry() == null)
 		{
 			return null;
 		}
 		List<MysticCryptEntryModelBean> versions = new ArrayList<>();
-		for (JacksonEntry version : history.getEntry())
+		for (KdbxEntry version : history.getEntry())
 		{
 			versions.add(toEntryModelBean(version));
 		}
@@ -215,8 +215,8 @@ public final class KeePassEntryConverter
 	 * {@code setProperty} never does. A field the entry does not have is left as the new entry
 	 * holds it, empty
 	 */
-	private static void setStandardProperty(final JacksonDatabase database,
-		final JacksonEntry entry, final String name, final char[] value)
+	private static void setStandardProperty(final KdbxDatabase database, final KdbxEntry entry,
+		final String name, final char[] value)
 	{
 		if (value == null)
 		{
@@ -226,7 +226,7 @@ public final class KeePassEntryConverter
 			valueOf(database, EntryText.asText(value), database.shouldProtect(name)));
 	}
 
-	private static PropertyValue valueOf(final JacksonDatabase database, final String value,
+	private static PropertyValue valueOf(final KdbxDatabase database, final String value,
 		final boolean isProtected)
 	{
 		PropertyValue.Factory<? extends PropertyValue> factory = isProtected

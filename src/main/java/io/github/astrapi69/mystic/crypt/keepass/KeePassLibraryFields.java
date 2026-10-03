@@ -29,9 +29,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-import org.linguafranca.pwdb.kdbx.jackson.JacksonEntry;
-import org.linguafranca.pwdb.kdbx.jackson.JacksonGroup;
-import org.linguafranca.pwdb.kdbx.jackson.JacksonHistory;
+import org.linguafranca.pwdb.kdbx.jackson.KdbxEntry;
+import org.linguafranca.pwdb.kdbx.jackson.KdbxGroup;
+import org.linguafranca.pwdb.kdbx.jackson.KdbxHistory;
 import org.linguafranca.pwdb.kdbx.jackson.model.Times;
 
 /**
@@ -43,7 +43,7 @@ import org.linguafranca.pwdb.kdbx.jackson.model.Times;
  * implementations. A round trip that has to return a database unchanged - the identifier a KeePass
  * user sees, the creation date they wrote, the history they kept - cannot be built on the public
  * API alone. Measured, not assumed: a subclass is no way around it either, because
- * {@code JacksonEntry.database} is package private, so an entry built that way has no database and
+ * {@code KdbxEntry.database} is package private, so an entry built that way has no database and
  * every {@code setTitle}, {@code setBinaryProperty} and {@code addEntry} on it fails.
  * <p>
  * So the bridge is reflection, and this class is the whole of it. Every field name lives here as a
@@ -69,15 +69,15 @@ public final class KeePassLibraryFields
 	 * "NoSuchFieldException" without it leaves a reader guessing whether the name or the version is
 	 * wrong
 	 */
-	public static final String EXPECTED_LIBRARY_VERSION = "KeePassJava2 2.2.6";
+	public static final String EXPECTED_LIBRARY_VERSION = "KeePassJava2 3.0.0";
 
-	/** {@code JacksonEntry.uuid}, and {@code JacksonGroup.uuid}, both protected */
+	/** {@code KdbxEntry.uuid}, and {@code KdbxGroup.uuid}, both protected */
 	public static final String UUID_FIELD = "uuid";
 
-	/** {@code JacksonEntry.times} and {@code JacksonGroup.times}, both protected */
+	/** {@code KdbxEntry.times} and {@code KdbxGroup.times}, both protected */
 	public static final String TIMES_FIELD = "times";
 
-	/** {@code JacksonEntry.history}, protected */
+	/** {@code KdbxEntry.history}, protected */
 	public static final String HISTORY_FIELD = "history";
 
 	private KeePassLibraryFields()
@@ -123,11 +123,11 @@ public final class KeePassLibraryFields
 	public static List<String> unresolvedFieldNames()
 	{
 		List<String> unresolved = new ArrayList<>();
-		collectUnresolved(JacksonEntry.class, UUID_FIELD, unresolved);
-		collectUnresolved(JacksonEntry.class, TIMES_FIELD, unresolved);
-		collectUnresolved(JacksonEntry.class, HISTORY_FIELD, unresolved);
-		collectUnresolved(JacksonGroup.class, UUID_FIELD, unresolved);
-		collectUnresolved(JacksonGroup.class, TIMES_FIELD, unresolved);
+		collectUnresolved(KdbxEntry.class, UUID_FIELD, unresolved);
+		collectUnresolved(KdbxEntry.class, TIMES_FIELD, unresolved);
+		collectUnresolved(KdbxEntry.class, HISTORY_FIELD, unresolved);
+		collectUnresolved(KdbxGroup.class, UUID_FIELD, unresolved);
+		collectUnresolved(KdbxGroup.class, TIMES_FIELD, unresolved);
 		return unresolved;
 	}
 
@@ -139,9 +139,9 @@ public final class KeePassLibraryFields
 	 * @param identifier
 	 *            the identifier it has to carry
 	 */
-	public static void setUuid(final JacksonEntry entry, final UUID identifier)
+	public static void setUuid(final KdbxEntry entry, final UUID identifier)
 	{
-		write(JacksonEntry.class, UUID_FIELD, entry, identifier);
+		write(KdbxEntry.class, UUID_FIELD, entry, identifier);
 	}
 
 	/**
@@ -152,9 +152,9 @@ public final class KeePassLibraryFields
 	 * @param identifier
 	 *            the identifier it has to carry
 	 */
-	public static void setUuid(final JacksonGroup group, final UUID identifier)
+	public static void setUuid(final KdbxGroup group, final UUID identifier)
 	{
-		write(JacksonGroup.class, UUID_FIELD, group, identifier);
+		write(KdbxGroup.class, UUID_FIELD, group, identifier);
 	}
 
 	/**
@@ -166,9 +166,9 @@ public final class KeePassLibraryFields
 	 * @param times
 	 *            the timestamps, including the expiry flag
 	 */
-	public static void setTimes(final JacksonEntry entry, final Times times)
+	public static void setTimes(final KdbxEntry entry, final Times times)
 	{
-		write(JacksonEntry.class, TIMES_FIELD, entry, times);
+		write(KdbxEntry.class, TIMES_FIELD, entry, times);
 	}
 
 	/**
@@ -179,9 +179,9 @@ public final class KeePassLibraryFields
 	 * @param times
 	 *            the timestamps, including the expiry flag
 	 */
-	public static void setTimes(final JacksonGroup group, final Times times)
+	public static void setTimes(final KdbxGroup group, final Times times)
 	{
-		write(JacksonGroup.class, TIMES_FIELD, group, times);
+		write(KdbxGroup.class, TIMES_FIELD, group, times);
 	}
 
 	/**
@@ -191,15 +191,15 @@ public final class KeePassLibraryFields
 	 *            the entry
 	 * @return its timestamps
 	 */
-	public static Times getTimes(final JacksonEntry entry)
+	public static Times getTimes(final KdbxEntry entry)
 	{
-		return (Times)read(JacksonEntry.class, TIMES_FIELD, entry);
+		return (Times)read(KdbxEntry.class, TIMES_FIELD, entry);
 	}
 
 	/**
 	 * Reads all four timestamps of a group.
 	 * <p>
-	 * Through the capsule rather than through the library, because {@link JacksonGroup} exposes no
+	 * Through the capsule rather than through the library, because {@link KdbxGroup} exposes no
 	 * getter for any of them - measured on 2.2.4: an entry has {@code getCreationTime()} and its
 	 * siblings, a group has none at all. So a group's timestamps are unreachable in both directions
 	 * without this, not only unwritable.
@@ -208,9 +208,9 @@ public final class KeePassLibraryFields
 	 *            the group
 	 * @return its timestamps
 	 */
-	public static Times getTimes(final JacksonGroup group)
+	public static Times getTimes(final KdbxGroup group)
 	{
-		return (Times)read(JacksonGroup.class, TIMES_FIELD, group);
+		return (Times)read(KdbxGroup.class, TIMES_FIELD, group);
 	}
 
 	/**
@@ -222,9 +222,9 @@ public final class KeePassLibraryFields
 	 * @param history
 	 *            the previous versions
 	 */
-	public static void setHistory(final JacksonEntry entry, final JacksonHistory history)
+	public static void setHistory(final KdbxEntry entry, final KdbxHistory history)
 	{
-		write(JacksonEntry.class, HISTORY_FIELD, entry, history);
+		write(KdbxEntry.class, HISTORY_FIELD, entry, history);
 	}
 
 	/**
@@ -234,9 +234,9 @@ public final class KeePassLibraryFields
 	 *            the entry
 	 * @return the previous versions, or {@code null} when the entry has none
 	 */
-	public static JacksonHistory getHistory(final JacksonEntry entry)
+	public static KdbxHistory getHistory(final KdbxEntry entry)
 	{
-		return (JacksonHistory)read(JacksonEntry.class, HISTORY_FIELD, entry);
+		return (KdbxHistory)read(KdbxEntry.class, HISTORY_FIELD, entry);
 	}
 
 	private static void collectUnresolved(final Class<?> owner, final String fieldName,

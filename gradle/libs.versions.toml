@@ -42,7 +42,7 @@ junit-jupiter-extensions-version = "2"
 junit-jupiter-version = "6.1.3"
 junit-platform-launcher-version = "6.1.3"
 jxlayer-version = "3.0.4"
-kee-pass-java2-version = "2.2.6"
+kee-pass-java2-version = "3.0.0"
 lgood-date-picker-version = "11.2.1"
 lombok-version = "1.18.48"
 meanbean-version = "3.0.0-M9"
@@ -119,7 +119,7 @@ junit-jupiter = { module = "org.junit.jupiter:junit-jupiter", version.ref = "jun
 junit-jupiter-extensions = { module = "io.github.astrapi69:junit-jupiter-extensions", version.ref = "junit-jupiter-extensions-version" }
 junit-platform-launcher = { module = "org.junit.platform:junit-platform-launcher", version.ref = "junit-platform-launcher-version" }
 jxlayer = { module = "org.swinglabs:jxlayer", version.ref = "jxlayer-version" }
-kee-pass-java2-jackson = { module = "org.linguafranca.pwdb:KeePassJava2-jackson", version.ref = "kee-pass-java2-version" }
+kee-pass-java2-jackson = { module = "org.linguafranca.pwdb:KeePassJava2.kdbx.database", version.ref = "kee-pass-java2-version" }
 lgood-date-picker = { module = "com.github.lgooddatepicker:LGoodDatePicker", version.ref = "lgood-date-picker-version" }
 lombok = { module = "org.projectlombok:lombok", version.ref = "lombok-version" }
 meanbean = { module = "com.github.meanbeanlib:meanbean", version.ref = "meanbean-version" }

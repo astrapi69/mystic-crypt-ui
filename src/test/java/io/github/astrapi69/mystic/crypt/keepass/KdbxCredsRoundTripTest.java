@@ -38,8 +38,8 @@ import java.security.Security;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.linguafranca.pwdb.kdbx.KdbxCreds;
-import org.linguafranca.pwdb.kdbx.jackson.JacksonDatabase;
+import org.linguafranca.pwdb.format.KdbxCredentials;
+import org.linguafranca.pwdb.kdbx.jackson.KdbxDatabase;
 
 public class KdbxCredsRoundTripTest
 {
@@ -63,10 +63,10 @@ public class KdbxCredsRoundTripTest
 	public void testPasswordOnlyRoundTrip() throws Exception
 	{
 		byte[] kdbxBytes = createDatabase(
-			new KdbxCreds("test-password".getBytes(StandardCharsets.UTF_8)));
+			new KdbxCredentials("test-password".getBytes(StandardCharsets.UTF_8)));
 
-		JacksonDatabase reloaded = JacksonDatabase.load(
-			new KdbxCreds("test-password".getBytes(StandardCharsets.UTF_8)),
+		KdbxDatabase reloaded = KdbxDatabase.load(
+			new KdbxCredentials("test-password".getBytes(StandardCharsets.UTF_8)),
 			new ByteArrayInputStream(kdbxBytes));
 
 		assertEquals(1, reloaded.getRootGroup().getEntries().size());
@@ -119,24 +119,24 @@ public class KdbxCredsRoundTripTest
 		byte[] kdbxBytes;
 		try (InputStream keyFileStream = Files.newInputStream(keyFile.toPath()))
 		{
-			KdbxCreds credentials = new KdbxCreds("test-password".getBytes(StandardCharsets.UTF_8),
-				keyFileStream);
+			KdbxCredentials credentials = new KdbxCredentials(
+				"test-password".getBytes(StandardCharsets.UTF_8), keyFileStream);
 			kdbxBytes = createDatabase(credentials);
 		}
 
 		try (InputStream keyFileStream = Files.newInputStream(keyFile.toPath()))
 		{
-			KdbxCreds reloadCredentials = new KdbxCreds(
+			KdbxCredentials reloadCredentials = new KdbxCredentials(
 				"test-password".getBytes(StandardCharsets.UTF_8), keyFileStream);
-			JacksonDatabase reloaded = JacksonDatabase.load(reloadCredentials,
+			KdbxDatabase reloaded = KdbxDatabase.load(reloadCredentials,
 				new ByteArrayInputStream(kdbxBytes));
 			assertEquals(1, reloaded.getRootGroup().getEntries().size());
 		}
 	}
 
-	private byte[] createDatabase(KdbxCreds credentials) throws Exception
+	private byte[] createDatabase(KdbxCredentials credentials) throws Exception
 	{
-		JacksonDatabase database = new JacksonDatabase();
+		KdbxDatabase database = new KdbxDatabase();
 		database.getRootGroup().addEntry(database.newEntry("test-entry"));
 		ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
 		database.save(credentials, outputStream);

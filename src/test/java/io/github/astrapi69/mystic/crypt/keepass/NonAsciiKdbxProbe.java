@@ -29,9 +29,9 @@ import java.io.ByteArrayOutputStream;
 import java.nio.charset.StandardCharsets;
 
 import org.linguafranca.pwdb.Entry;
-import org.linguafranca.pwdb.kdbx.KdbxCreds;
-import org.linguafranca.pwdb.kdbx.jackson.JacksonDatabase;
-import org.linguafranca.pwdb.kdbx.jackson.JacksonEntry;
+import org.linguafranca.pwdb.format.KdbxCredentials;
+import org.linguafranca.pwdb.kdbx.jackson.KdbxDatabase;
+import org.linguafranca.pwdb.kdbx.jackson.KdbxEntry;
 
 /**
  * Writes a KDBX holding non-ASCII text and reads it back, in THIS process, and says what the
@@ -66,16 +66,16 @@ public final class NonAsciiKdbxProbe
 	public static void main(final String[] arguments) throws Exception
 	{
 		System.out.println("file.encoding=" + System.getProperty("file.encoding"));
-		JacksonDatabase database = new JacksonDatabase();
-		JacksonEntry entry = database.newEntry();
+		KdbxDatabase database = new KdbxDatabase();
+		KdbxEntry entry = database.newEntry();
 		entry.setProperty(Entry.STANDARD_PROPERTY_NAME_TITLE, TITLE);
 		entry.setProperty(Entry.STANDARD_PROPERTY_NAME_NOTES, NOTES);
 		database.getRootGroup().addEntry(entry);
-		KdbxCreds credentials = new KdbxCreds("probe".getBytes(StandardCharsets.UTF_8));
+		KdbxCredentials credentials = new KdbxCredentials("probe".getBytes(StandardCharsets.UTF_8));
 		ByteArrayOutputStream written = new ByteArrayOutputStream();
 		database.save(credentials, written);
 
-		JacksonEntry read = JacksonDatabase
+		KdbxEntry read = (KdbxEntry)KdbxDatabase
 			.load(credentials, new ByteArrayInputStream(written.toByteArray())).getRootGroup()
 			.getEntries().get(0);
 

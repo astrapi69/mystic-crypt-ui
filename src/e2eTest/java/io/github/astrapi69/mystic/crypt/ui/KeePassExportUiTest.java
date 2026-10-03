@@ -33,8 +33,8 @@ import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 
 import org.junit.jupiter.api.Test;
-import org.linguafranca.pwdb.kdbx.KdbxCreds;
-import org.linguafranca.pwdb.kdbx.jackson.JacksonDatabase;
+import org.linguafranca.pwdb.format.KdbxCredentials;
+import org.linguafranca.pwdb.kdbx.jackson.KdbxDatabase;
 
 import io.github.astrapi69.mystic.crypt.TestPasswords;
 
@@ -72,8 +72,8 @@ class KeePassExportUiTest extends AbstractUiTest
 		{
 			// read the way this application imports since #384. The Simple reader of 8.5.1 cannot
 			// read this file: it requires a DefaultUserName element the Jackson writer leaves out
-			JacksonDatabase database = JacksonDatabase
-				.load(new KdbxCreds(password.getBytes(StandardCharsets.UTF_8)), inputStream);
+			KdbxDatabase database = KdbxDatabase
+				.load(new KdbxCredentials(password.getBytes(StandardCharsets.UTF_8)), inputStream);
 			return database.getRootGroup() != null;
 		}
 		catch (Exception exception)
