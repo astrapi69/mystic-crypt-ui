@@ -1,12 +1,14 @@
 package io.github.astrapi69.mystic.crypt.plugin.keygen;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.File;
 import java.nio.file.Files;
 import java.security.KeyPairGenerator;
 import java.security.PrivateKey;
+import java.security.spec.InvalidKeySpecException;
 import java.security.Security;
 
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
@@ -24,15 +26,17 @@ import io.github.astrapi69.crypt.api.key.KeyFormat;
  * traditional form of its own, and where that answer comes from.
  * <p>
  * The PEM path hands the request to crypt-data's {@code PrivateKeyWriter.write(key, out, PEM,
- * format)}, which currently answers it with the PKCS#8 file - the caller gets a format it did not
- * ask for and is told nothing (crypt-data#42). That issue is about to make the writer throw
- * instead, so this pins the present answer: when the behaviour changes, this test fails and names
- * the decision, rather than the change arriving unannounced in a released version.
+ * format)}. Up to crypt-data 12.3 it answered with the PKCS#8 file - the caller got a format it had
+ * not asked for and was told nothing - and this test pinned that deliberately, so the change would
+ * be noticed rather than arrive unannounced. It was: crypt-data 13.0 refuses with an
+ * {@code InvalidKeySpecException} naming the algorithm, before anything is written (crypt-data#42),
+ * and this pin failed on the bump to mystic-crypt 13.3, which brings it. What is pinned now is the
+ * refusal.
  * <p>
  * Reaching this through the user interface is not possible - {@code GenerateKeysPanel} forces the
- * format box to PKCS#8 for exactly these algorithms - so the guard the application relies on is a
- * combo box rule. That is worth knowing when the writer starts throwing: the panel is protected,
- * direct callers of {@code writePrivateKey} are not.
+ * format box to PKCS#8 for exactly these algorithms - so no user meets the exception. A direct
+ * caller of {@code writePrivateKey} does, which is the better of the two outcomes: a refusal that
+ * names the algorithm beats a file in a format nobody asked for.
  */
 class WritePkcs1WithoutTraditionalFormTest
 {
@@ -55,7 +59,7 @@ class WritePkcs1WithoutTraditionalFormTest
 	}
 
 	/**
-	 * Today: the request is answered with PKCS#8 and nothing says so.
+	 * Since crypt-data 13.0: the request is refused, and the message names the algorithm.
 	 *
 	 * @param algorithm
 	 *            an algorithm whose private key has no traditional form
@@ -67,18 +71,20 @@ class WritePkcs1WithoutTraditionalFormTest
 	@ParameterizedTest(name = "{0} asked for PKCS#1 as PEM")
 	@EnumSource(value = KeyPairGeneratorAlgorithm.class,
 		names = { "ML_DSA_65", "ML_KEM_768", "X25519", "X448" })
-	void pkcs1AsPemIsAnsweredWithPkcs8ForNow(final KeyPairGeneratorAlgorithm algorithm,
+	void pkcs1AsPemIsRefusedWithTheAlgorithmNamed(final KeyPairGeneratorAlgorithm algorithm,
 		@TempDir File directory) throws Exception
 	{
+		PrivateKey privateKey = newPrivateKey(algorithm);
 		File file = new File(directory, "key.pem");
 
-		KeygenSupport.writePrivateKey(newPrivateKey(algorithm), file, KeyFormat.PKCS_1,
-			KeyFileFormat.PEM);
+		InvalidKeySpecException refused = assertThrows(InvalidKeySpecException.class,
+			() -> KeygenSupport.writePrivateKey(privateKey, file, KeyFormat.PKCS_1,
+				KeyFileFormat.PEM),
+			algorithm + " has no traditional form, so PKCS#1 cannot be written for it");
 
-		assertEquals("-----BEGIN PRIVATE KEY-----", Files.readAllLines(file.toPath()).get(0),
-			algorithm + " has no traditional form, so PKCS#8 is what lands - which is not what was "
-				+ "asked for. When crypt-data#42 makes the writer refuse, this line changes and "
-				+ "this test is the place that says so.");
+		assertTrue(refused.getMessage().contains(privateKey.getAlgorithm()),
+			"the refusal names the algorithm, which is what makes it actionable: "
+				+ refused.getMessage());
 	}
 
 	/**
