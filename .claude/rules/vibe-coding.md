@@ -18,7 +18,10 @@ on every prompt regardless of any scope hint — keep this corpus small.)
 
 - **DEPENDENCIES**: no new dependencies without asking first, and a manual check on
   maintenance status and security. Prefer existing dependencies (the astrapi69 library
-  family, BouncyCastle). Cryptographic dependencies get extra scrutiny.
+  family, BouncyCastle). Cryptographic dependencies get extra scrutiny. A bump of
+  crypt-data or mystic-crypt runs `make bump-check` - host suites AND every plugin, because
+  the plugins depend on crypt-data directly and a breaking change there leaves the host
+  green (#480).
 
 - **REFACTORING**: split god-classes instead of whitelisting them.
 
