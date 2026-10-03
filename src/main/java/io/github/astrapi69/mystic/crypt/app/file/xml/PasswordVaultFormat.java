@@ -36,7 +36,7 @@ import io.github.astrapi69.crypt.api.algorithm.compound.CompoundAlgorithm;
 import io.github.astrapi69.crypt.data.model.CryptModel;
 import io.github.astrapi69.mystic.crypt.crypto.PassphraseBox;
 import io.github.astrapi69.mystic.crypt.file.PBEFileDecryptor;
-import io.github.astrapi69.mystic.crypt.vault.SecretBuffers;
+import io.github.astrapi69.mystic.crypt.secret.SecretBuffers;
 
 /**
  * The on-disk format of a database that is protected by a master password alone, without a key

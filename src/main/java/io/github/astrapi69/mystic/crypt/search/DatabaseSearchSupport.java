@@ -29,7 +29,7 @@ import java.util.List;
 
 import io.github.astrapi69.gen.tree.BaseTreeNode;
 import io.github.astrapi69.mystic.crypt.panel.dbtree.MysticCryptEntryModelBean;
-import io.github.astrapi69.mystic.crypt.vault.SecretBuffers;
+import io.github.astrapi69.mystic.crypt.secret.SecretBuffers;
 import io.github.astrapi69.swing.renderer.tree.GenericTreeElement;
 
 /**

@@ -29,7 +29,7 @@ import java.util.function.LongSupplier;
 import javax.swing.Timer;
 
 import io.github.astrapi69.awt.extension.ClipboardExtensions;
-import io.github.astrapi69.mystic.crypt.vault.SecretBuffers;
+import io.github.astrapi69.mystic.crypt.secret.SecretBuffers;
 
 /**
  * Clears the system clipboard some time after this application put a secret on it (#352).

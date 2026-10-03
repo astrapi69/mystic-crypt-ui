@@ -26,7 +26,7 @@ import com.thoughtworks.xstream.XStream;
 
 import io.github.astrapi69.mystic.crypt.ApplicationModelBean;
 import io.github.astrapi69.mystic.crypt.Messages;
-import io.github.astrapi69.mystic.crypt.vault.WipingCharWriter;
+import io.github.astrapi69.mystic.crypt.secret.WipingCharWriter;
 import io.github.astrapi69.xstream.factory.XStreamFactory;
 
 /**
