@@ -24,32 +24,38 @@
  */
 package io.github.astrapi69.mystic.crypt.plugin.lethenon;
 
-import java.nio.file.Path;
-
-import io.github.astrapi69.lethenon.SignatureSuite;
-
 /**
- * What a transfer is to be, as a person typed it into the send window: everything except the
- * wallet's password, which travels apart as a {@code char[]} so it can be wiped
- *
- * @param chainFile
- *            the chain file; the transfer waits next to it, in {@code <chain>.pending}
- * @param walletFile
- *            the wallet file that signs
- * @param suite
- *            the signature suite of the sending account
- * @param recipientKind
- *            whether the recipient is an account key or a published address
- * @param recipient
- *            the recipient as typed: an account key in hexadecimal, as every lethenon tool prints
- *            it, or a published address in the form {@code <view key>:<spend key>}
- * @param amount
- *            the amount in LETH, up to eight decimals, e.g. {@code 12.5}
- * @param fee
- *            the fee in LETH; blank means none
- * @param memo
- *            the text signed with the transfer; may be empty
+ * What the recipient of a transfer was given as: an account key, which the chain shows as it is, or
+ * a published address, from which a one-time destination is derived for this payment alone. The two
+ * are told apart by the person sending rather than guessed from the text, the way lethenon's
+ * command line takes {@code --to} or {@code --to-address} and never both
  */
-public record TransferOrder(Path chainFile, Path walletFile, SignatureSuite suite,
-	RecipientKind recipientKind, String recipient, String amount, String fee, String memo) {
+public enum RecipientKind
+{
+
+	/** an account key in hexadecimal; the chain names it as the recipient */
+	ACCOUNT_KEY("an account key"),
+
+	/**
+	 * a published address, {@code <view key>:<spend key>} in hexadecimal; the chain names a
+	 * one-time destination nobody but the recipient can connect to it
+	 */
+	PUBLISHED_ADDRESS("a published address");
+
+	private final String description;
+
+	RecipientKind(final String description)
+	{
+		this.description = description;
+	}
+
+	/**
+	 * What this kind is called in the send window
+	 *
+	 * @return the description, e.g. "a published address"
+	 */
+	public String description()
+	{
+		return description;
+	}
 }

@@ -34,14 +34,22 @@ import io.github.astrapi69.lethenon.BlockBody;
 import io.github.astrapi69.lethenon.Bytes;
 import io.github.astrapi69.lethenon.ChainFile;
 import io.github.astrapi69.lethenon.Destination;
+import io.github.astrapi69.lethenon.OneTimeAddresses;
+import io.github.astrapi69.lethenon.PublishedAddress;
 import io.github.astrapi69.lethenon.SignedTransaction;
 import io.github.astrapi69.lethenon.Transfers;
 import io.github.astrapi69.lethenon.Wallet;
 
 /**
- * Signs a transfer to an account key and leaves it waiting for the next block, next to the chain
- * file in {@code <chain>.pending} - what lethenon's {@code send} does on the command line
- * (lethenon#2, milestone 5).
+ * Signs a transfer to an account key or to a published address and leaves it waiting for the next
+ * block, next to the chain file in {@code <chain>.pending} - what lethenon's {@code send --to} and
+ * {@code send --to-address} do on the command line (lethenon#2, milestone 5).
+ * <p>
+ * A published address is paid at a one-time destination: {@link OneTimeAddresses#destinationFor}
+ * derives it from the address and a key pair made for this payment alone, so two payments to one
+ * address land on keys with nothing visibly in common. The destination is never handed back to the
+ * caller: {@link SentTransfer} names the address the person typed, because the sender's own screen
+ * is a place where the link between the two would be written down.
  * <p>
  * No chain logic of its own: the chain is read and replayed the way every tool of this plugin reads
  * it, and {@link Transfers#prepare} takes the nonce and the balance from the replayed chain and the
@@ -81,7 +89,7 @@ public final class TransferSupport
 	{
 		try
 		{
-			Destination recipient = Destination.direct(recipientOf(order.recipient()));
+			Destination recipient = destinationOf(order.recipientKind(), order.recipient());
 			Amount amount = Amount.parseLeth(order.amount().trim());
 			Amount fee = order.fee().isBlank() ? Amount.ZERO : Amount.parseLeth(order.fee().trim());
 			Wallet sender = LethenonWallets.open(order.walletFile(), password);
@@ -92,12 +100,47 @@ public final class TransferSupport
 				recipient, amount, fee, order.memo());
 			waiting.add(signed);
 			chainFile.writePending(waiting);
-			return new SentTransfer(signed.body().nonce(), amount, recipient.key().toString(),
-				waiting.size());
+			return new SentTransfer(signed.body().nonce(), amount, order.recipientKind(),
+				order.recipient().trim(), waiting.size());
 		}
 		finally
 		{
 			Arrays.fill(password, '\0');
+		}
+	}
+
+	private static Destination destinationOf(final RecipientKind kind, final String recipient)
+	{
+		return switch (kind)
+		{
+			case ACCOUNT_KEY -> Destination.direct(recipientOf(recipient));
+			case PUBLISHED_ADDRESS -> oneTimeDestinationOf(recipient);
+		};
+	}
+
+	/**
+	 * Derives the one-time destination of a published address. Only the shape is checked by
+	 * {@link PublishedAddress#parse}; whether the halves are keys is answered by the derivation, so
+	 * both refusals are caught here and name what was typed
+	 */
+	private static Destination oneTimeDestinationOf(final String recipient)
+	{
+		if (recipient == null || recipient.isBlank())
+		{
+			throw new IllegalArgumentException("no recipient was named: enter the published "
+				+ "address, its view key and its spend key in hexadecimal separated by '"
+				+ PublishedAddress.SEPARATOR + "', as lethenon prints it after 'address (publish "
+				+ "this):'");
+		}
+		try
+		{
+			return OneTimeAddresses.destinationFor(PublishedAddress.parse(recipient.trim()),
+				OneTimeAddresses.newEphemeralKeyPair());
+		}
+		catch (IllegalArgumentException notAnAddress)
+		{
+			throw new IllegalArgumentException("the recipient '" + recipient.trim()
+				+ "' is not a published address: " + notAnAddress.getMessage(), notAnAddress);
 		}
 	}
 
