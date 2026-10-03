@@ -25,6 +25,7 @@
 package io.github.astrapi69.mystic.crypt.ui;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.File;
@@ -381,30 +382,29 @@ class KdbxRoundTripKeepsEveryFieldUiTest extends AbstractUiTest
 	}
 
 	/**
-	 * Not a defect of this application and not fixed here: when it writes KDBX 4, the library puts
-	 * every attachment into the inner header AND leaves the binary pool in the XML, and says so
-	 * itself in a TODO at {@code KdbxStreamFormat.java:81-90} (#379). The TODO sits in the stream
-	 * format both of the library's serializers share.
+	 * The upstream defect this used to pin as PRESENT is gone, and this is the guard against its
+	 * return. Up to KeePassJava2 2.2.4 the library wrote every attachment into the inner header AND
+	 * left the binary pool in the XML ({@code KdbxStreamFormat}'s own TODO), and KeePassXC said so
+	 * on every read: the Simple serializer made it report {@code overwriting binary item "0"}, the
+	 * Jackson one {@code skip element "Binaries"} - same cause, different words.
 	 * <p>
-	 * What KeePassXC says about it depends on which serializer wrote the pool: the Simple one, used
-	 * up to 8.5.1, made it report {@code overwriting binary item "0"}; the Jackson one, used since
-	 * the converter moved to it (#384), makes it report {@code skip element "Binaries"} - measured
-	 * with keepassxc-cli 2.7.10 on the file this test exports. Same cause, different words.
-	 * <p>
-	 * It is pinned as PRESENT rather than ignored, so that the day the upstream fix lands this test
-	 * fails and says so, instead of a fixed defect going unnoticed.
+	 * Filed as jorabin/KeePassJava2#97 and #98, fixed in 2.2.5, measured here on the file this test
+	 * exports: with 2.2.4 keepassxc-cli 2.7.10 printed {@code skip element "Binaries"} and the file
+	 * was 1457 bytes; with 2.2.5 it prints nothing and the same content is 1345 bytes, the
+	 * duplicated pool being what is missing. The attachment still comes back byte for byte (#379).
 	 */
 	@Test
-	@DisplayName("the library's binary warning is still there - known, not green")
-	void theKnownBinaryWarningIsStillReported()
+	@DisplayName("KeePassXC reads an exported file without complaining about its binaries")
+	void theBinaryPoolIsNoLongerWrittenTwice()
 	{
 		String warnings = KeePassXcDump.warningsWhileReading(exported, PASSWORD);
 
-		assertTrue(warnings.contains("skip element \"Binaries\""),
-			"KeePassXC no longer warns about the binary pool left in the XML. That is good news and "
-				+ "this test is how it gets noticed: check whether KeePassJava2 fixed "
-				+ "KdbxStreamFormat's TODO, then close #379 and delete this test. What it read was: "
-				+ warnings + readWith);
+		assertFalse(warnings.contains("skip element \"Binaries\""),
+			"the binary pool is in the XML again - the 2.2.5 fix for jorabin/KeePassJava2#98 is "
+				+ "not in the version this build binds. What it read was: " + warnings + readWith);
+		assertFalse(warnings.contains("overwriting binary item"),
+			"the inner header carries the pool twice again - jorabin/KeePassJava2#97. What it read "
+				+ "was: " + warnings + readWith);
 	}
 
 	/**

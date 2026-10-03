@@ -69,7 +69,7 @@ public final class KeePassLibraryFields
 	 * "NoSuchFieldException" without it leaves a reader guessing whether the name or the version is
 	 * wrong
 	 */
-	public static final String EXPECTED_LIBRARY_VERSION = "KeePassJava2 2.2.4";
+	public static final String EXPECTED_LIBRARY_VERSION = "KeePassJava2 2.2.6";
 
 	/** {@code JacksonEntry.uuid}, and {@code JacksonGroup.uuid}, both protected */
 	public static final String UUID_FIELD = "uuid";
