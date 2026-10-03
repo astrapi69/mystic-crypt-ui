@@ -45,6 +45,20 @@ import io.github.astrapi69.swing.util.JInternalFrameExtensions;
 public class PasswordHashMenuContribution implements PluginMenuContribution
 {
 
+	/**
+	 * Hashing and verifying a password touches no vault: the input is typed, the result stays in
+	 * the window, and nothing reaches the filesystem. It is the second plugin to declare this, and
+	 * it brings the harness that the second one owes (#301): what it offers while the workspace is
+	 * locked is clicked by {@code PluginsUsableWhileLockedHoldTheLockUiTest}
+	 *
+	 * @return always true
+	 */
+	@Override
+	public boolean isUsableWithoutAVault()
+	{
+		return true;
+	}
+
 	@Override
 	public List<JMenuItem> getMenuItems()
 	{
