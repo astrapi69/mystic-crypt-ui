@@ -43,6 +43,7 @@ import org.assertj.swing.finder.WindowFinder;
 import org.assertj.swing.fixture.DialogFixture;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 import io.github.astrapi69.awt.window.adapter.CloseWindow;
 import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
@@ -63,6 +64,7 @@ import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
  * Timing/pacing of all interactions goes through {@link UiTestSpeed} (fast mode default, demo mode
  * via {@code -Dmystic.crypt.ui.test.mode=demo})
  */
+@ExtendWith(WhatWasOnScreen.class)
 abstract class AbstractUiTest
 {
 
