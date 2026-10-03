@@ -14,7 +14,14 @@ java {
 }
 
 repositories {
-    mavenLocal()
+    // make publish-local puts the HOST here, and that is the only thing this build may take from
+    // the local repository: anything else - a library, a snapshot of the chain - would shadow
+    // Central silently and compile this plugin against what one machine happens to hold (#475)
+    mavenLocal {
+        content {
+            includeModule('io.github.astrapi69', 'mystic-crypt-ui')
+        }
+    }
     mavenCentral()
 }
 

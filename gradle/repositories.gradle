@@ -1,5 +1,16 @@
 repositories {
-    mavenLocal()
+    /**
+     * Only when asked for. Anything in the local repository wins over Maven Central, so a snapshot
+     * somebody published hours ago becomes what this build compiles against - on that machine, and
+     * nowhere else. It cost a develop that was red here and green in CI, with a lethenon snapshot
+     * from the morning shadowing the one on Central (#475). Checking a consumer against a
+     * candidate before it is published is a real job, and it names itself on the command line:
+     *   ./gradlew build -PuseMavenLocal
+     * The plugin builds are the one exception, and they scope it to the host artifact alone.
+     **/
+    if (providers.gradleProperty('useMavenLocal').isPresent()) {
+        mavenLocal()
+    }
     mavenCentral()
     /**
      * Snapshots of the family's libraries, lethenon among them. Releases come from mavenCentral();
