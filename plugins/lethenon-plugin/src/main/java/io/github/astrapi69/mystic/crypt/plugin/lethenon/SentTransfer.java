@@ -33,10 +33,16 @@ import io.github.astrapi69.lethenon.Amount;
  *            the nonce the sending account signed it with
  * @param amount
  *            what it carries
+ * @param recipientKind
+ *            whether the recipient was an account key or a published address
  * @param recipient
- *            the recipient's account key in hexadecimal
+ *            the recipient as it was typed: the account key, or the published address. For an
+ *            address this is deliberately NOT the one-time destination the transfer carries -
+ *            nobody but the recipient is to connect the two, and the sender's own screen is a place
+ *            where that link would be written down
  * @param waiting
  *            how many transfers wait for the next block now, this one included
  */
-public record SentTransfer(long nonce, Amount amount, String recipient, int waiting) {
+public record SentTransfer(long nonce, Amount amount, RecipientKind recipientKind, String recipient,
+	int waiting) {
 }

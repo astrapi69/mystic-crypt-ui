@@ -198,7 +198,8 @@ class LethenonPluginUiTest extends AbstractUiTest
 		String report = textOf(tool, "txtReport");
 		assertTrue(report.contains("3.00000000 LETH, spendable"), report);
 		assertTrue(report.contains("1 one-time payments holding 5.00000000 LETH"), report);
-		assertTrue(report.contains("not spendable yet"), report);
+		assertTrue(report.contains("spendable after a sweep"), report);
+		assertTrue(report.contains("address (publish this): " + wallet.address().toText()), report);
 		assertFalse(report.contains(walletPassword), "the password is in no text on the screen");
 		String passwordLeft = GuiActionRunner
 			.execute(() -> tool.textBox("txtPassword").target().getText());
@@ -318,6 +319,124 @@ class LethenonPluginUiTest extends AbstractUiTest
 			.execute(() -> tool.textBox("txtPassword").target().getText());
 		assertTrue(passwordLeft.isEmpty(), "the password field is cleared after one use");
 		assertTrue(frame.isEnabled(), "the application is still usable after mining");
+	}
+
+	@Test
+	@DisplayName("a published address is paid, the payment is mined, swept and mined again, and the account holds it")
+	void thePlugin_paysAPublishedAddressAndTheRecipientSweepsIt() throws Exception
+	{
+		installPluginRequiringItBuilt(LETHENON_ZIP);
+		String payerPassword = TestPasswords.throwaway();
+		Wallet payer = Wallet.create();
+		File payerFile = new File(tempHome, "payer.lethenon-wallet");
+		WalletFile.write(payerFile.toPath(), payer, payerPassword.toCharArray());
+		String payeePassword = TestPasswords.throwaway();
+		Wallet payee = Wallet.create();
+		File payeeFile = new File(tempHome, "payee.lethenon-wallet");
+		WalletFile.write(payeeFile.toPath(), payee, payeePassword.toCharArray());
+		File chainFile = aChainPayingTheWallet(payer);
+		ChainFile chain = new ChainFile(chainFile.toPath());
+		String address = payee.address().toText();
+		File databaseFile = new File(tempHome, "lethenon-stealth.mcrdb");
+		createDatabaseFileHeadless(databaseFile, MASTER_PASSWORD);
+		ApplicationSteps application = signInWithExistingDatabase(databaseFile, MASTER_PASSWORD);
+		FrameFixture frame = application.showMainFrame();
+
+		// the payer pays the payee's published address
+		application.openPluginTool("Send LETH", "Send LETH");
+		JInternalFrameFixture send = new JInternalFrameFixture(robot,
+			application.internalFrame("Send LETH"));
+		GuiActionRunner.execute(() -> {
+			send.textBox("txtChainFile").target().setText(chainFile.getAbsolutePath());
+			send.textBox("txtWalletFile").target().setText(payerFile.getAbsolutePath());
+			send.textBox("txtPassword").target().setText(payerPassword);
+			// the second kind is "a published address"; the plugin's enum is not on this classpath
+			send.comboBox("cbxRecipientKind").target().setSelectedIndex(1);
+			send.textBox("txtRecipient").target().setText(address);
+			send.textBox("txtAmount").target().setText("2");
+		});
+		UiTestSpeed.step();
+		SwingUtilities.invokeLater(() -> send.button("btnSend").target().doClick());
+		awaitReport(send, "waiting", "the payment is signed");
+		String sendReport = textOf(send, "txtReport");
+		Destination oneTime = chain.readPending().getFirst().body().recipient();
+		assertTrue(sendReport.contains("a one-time destination of " + address), sendReport);
+		assertFalse(sendReport.contains(oneTime.key().toString()),
+			"the sender's screen never shows the destination it derived");
+
+		mineThroughTheWindow(application, chainFile, payerFile, payerPassword, "a pun to carry it");
+		assertEquals(Amount.parseLeth("2"),
+			Replay.verify(chain.require()).finalState().balanceOf(oneTime.key()),
+			"the payment arrived at its one-time destination");
+
+		// the payee sweeps it, and is told what that costs before signing
+		application.openPluginTool("Sweep One-Time Payments", "Sweep One-Time Payments");
+		JInternalFrameFixture sweep = new JInternalFrameFixture(robot,
+			application.internalFrame("Sweep One-Time Payments"));
+		String cost = textOf(sweep, "txtCost");
+		assertTrue(cost.contains("Receiving is unlinkable; spending is the moment that ends"),
+			cost);
+		GuiActionRunner.execute(() -> {
+			sweep.textBox("txtChainFile").target().setText(chainFile.getAbsolutePath());
+			sweep.textBox("txtWalletFile").target().setText(payeeFile.getAbsolutePath());
+			sweep.textBox("txtPassword").target().setText(payeePassword);
+		});
+		UiTestSpeed.step();
+		SwingUtilities.invokeLater(() -> sweep.button("btnSweep").target().doClick());
+		awaitReport(sweep, "waiting", "the sweep is signed");
+		String sweepReport = textOf(sweep, "txtReport");
+		assertTrue(sweepReport.contains("signed 1 transfer sweeping 2.00000000 LETH"), sweepReport);
+		assertTrue(sweepReport.contains(cost), "the cost is repeated after signing");
+		assertFalse(sweepReport.contains(payeePassword), "the password is in no text");
+		List<SignedTransaction> swept = chain.readPending();
+		assertEquals(1, swept.size(), "the sweep waits in the chain library's pending file");
+		assertEquals(oneTime.key(), swept.getFirst().body().sender());
+
+		mineThroughTheWindow(application, chainFile, payerFile, payerPassword, "a pun to sweep it");
+		List<BlockBody> blocks = chain.require();
+		assertEquals(4, blocks.size(), "two blocks were mined through the window");
+		Bytes account = payee.spendKey(SignatureSuite.ED25519);
+		assertEquals(Amount.parseLeth("2"), Replay.verify(blocks).finalState().balanceOf(account),
+			"the payee's own account holds what was paid to its address");
+		assertEquals(Amount.ZERO, Replay.verify(blocks).finalState().balanceOf(oneTime.key()));
+		assertTrue(frame.isEnabled(), "the application is still usable after a sweep");
+	}
+
+	/**
+	 * Mines the next block through the "Mine a Pun" window, which is opened when it is not open yet
+	 */
+	private void mineThroughTheWindow(final ApplicationSteps application, final File chainFile,
+		final File walletFile, final String walletPassword, final String pun)
+	{
+		if (application.internalFrame("Mine a Pun") == null)
+		{
+			application.openPluginTool("Mine a Pun", "Mine a Pun");
+		}
+		JInternalFrameFixture mine = new JInternalFrameFixture(robot,
+			application.internalFrame("Mine a Pun"));
+		GuiActionRunner.execute(() -> {
+			mine.textBox("txtReport").target().setText("");
+			mine.textBox("txtChainFile").target().setText(chainFile.getAbsolutePath());
+			mine.textBox("txtWalletFile").target().setText(walletFile.getAbsolutePath());
+			mine.textBox("txtPassword").target().setText(walletPassword);
+			mine.textBox("txtPun").target().setText(pun);
+		});
+		UiTestSpeed.step();
+		SwingUtilities.invokeLater(() -> mine.button("btnMine").target().doClick());
+		awaitReport(mine, "mined block", "the block is mined");
+	}
+
+	private static void awaitReport(final JInternalFrameFixture tool, final String expected,
+		final String description)
+	{
+		Pause.pause(new Condition(description)
+		{
+			@Override
+			public boolean test()
+			{
+				return textOf(tool, "txtReport").contains(expected);
+			}
+		}, 30000);
 	}
 
 	private static String textOf(final JInternalFrameFixture tool, final String componentName)

@@ -24,19 +24,21 @@
  */
 package io.github.astrapi69.mystic.crypt.plugin.lethenon;
 
-import io.github.astrapi69.lethenon.SignatureSuite;
 import io.github.astrapi69.mystic.crypt.vault.SecretBuffers;
 
 /**
- * The state of {@link LethenonSendPanel}, in one object rather than scattered across its widgets
+ * The state of {@link LethenonSweepPanel}, in one object rather than scattered across its widgets
  * (architecture.md: every panel holds its state in a model).
  * <p>
  * The password is a {@code char[]}, never a String, and {@link #setPassword} overwrites the array
- * it replaces - the same rule as {@link LethenonBalancePanelModel} and the host's sign-in model
+ * it replaces - the same rule as {@link LethenonSendPanelModel} and the host's sign-in model
  * (#351).
  */
-public class LethenonSendPanelModel
+public class LethenonSweepPanelModel
 {
+
+	/** The memo lethenon's {@code sweep} signs when none is given, so both write the same */
+	public static final String DEFAULT_MEMO = "swept from a one-time destination";
 
 	private String chainFile = "";
 
@@ -44,17 +46,11 @@ public class LethenonSendPanelModel
 
 	private transient char[] password = new char[0];
 
-	private SignatureSuite suite = SignatureSuite.ED25519;
-
-	private RecipientKind recipientKind = RecipientKind.ACCOUNT_KEY;
-
-	private String recipient = "";
-
-	private String amount = "";
-
 	private String fee = "0";
 
-	private String memo = "";
+	private String memo = DEFAULT_MEMO;
+
+	private String costStatement = "";
 
 	private String report = "";
 
@@ -108,46 +104,6 @@ public class LethenonSendPanelModel
 		this.password = replacement;
 	}
 
-	public SignatureSuite getSuite()
-	{
-		return suite;
-	}
-
-	public void setSuite(SignatureSuite suite)
-	{
-		this.suite = suite;
-	}
-
-	public RecipientKind getRecipientKind()
-	{
-		return recipientKind;
-	}
-
-	public void setRecipientKind(RecipientKind recipientKind)
-	{
-		this.recipientKind = recipientKind;
-	}
-
-	public String getRecipient()
-	{
-		return recipient;
-	}
-
-	public void setRecipient(String recipient)
-	{
-		this.recipient = recipient;
-	}
-
-	public String getAmount()
-	{
-		return amount;
-	}
-
-	public void setAmount(String amount)
-	{
-		this.amount = amount;
-	}
-
 	public String getFee()
 	{
 		return fee;
@@ -166,6 +122,21 @@ public class LethenonSendPanelModel
 	public void setMemo(String memo)
 	{
 		this.memo = memo;
+	}
+
+	/**
+	 * What sweeping costs, as the window states it before anything is signed
+	 *
+	 * @return the statement
+	 */
+	public String getCostStatement()
+	{
+		return costStatement;
+	}
+
+	public void setCostStatement(String costStatement)
+	{
+		this.costStatement = costStatement;
 	}
 
 	public String getReport()

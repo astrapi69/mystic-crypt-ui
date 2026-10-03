@@ -100,8 +100,10 @@ class MiningSupportTest
 	void mine_writesTheNextBlockWithTheWaitingTransfer() throws Exception
 	{
 		Bytes recipient = aRecipient();
-		TransferSupport.send(new TransferOrder(chainFile, walletFile, SignatureSuite.ED25519,
-			recipient.toString(), "1", "0.5", "carried"), PASSWORD.toCharArray());
+		TransferSupport.send(
+			new TransferOrder(chainFile, walletFile, SignatureSuite.ED25519,
+				RecipientKind.ACCOUNT_KEY, recipient.toString(), "1", "0.5", "carried"),
+			PASSWORD.toCharArray());
 		Amount before = stateOf(new ChainFile(chainFile).require()).balanceOf(miner);
 
 		MinedBlock mined = MiningSupport.mine(order("watching is not protecting", 10_000_000L),
