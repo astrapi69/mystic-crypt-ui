@@ -34,8 +34,8 @@ import java.util.concurrent.atomic.AtomicLong;
 import javax.swing.tree.DefaultMutableTreeNode;
 
 import org.junit.jupiter.api.Test;
-import org.linguafranca.pwdb.kdbx.jackson.JacksonDatabase;
-import org.linguafranca.pwdb.kdbx.jackson.JacksonGroup;
+import org.linguafranca.pwdb.kdbx.jackson.KdbxDatabase;
+import org.linguafranca.pwdb.kdbx.jackson.KdbxGroup;
 
 import io.github.astrapi69.gen.tree.BaseTreeNode;
 import io.github.astrapi69.mystic.crypt.panel.dbtree.MysticCryptEntryModelBean;
@@ -53,18 +53,18 @@ public class KeePassTreeConverterTest
 		// │ └── Internet
 		// ├── Communication
 		// └── Backup
-		JacksonDatabase database = new JacksonDatabase();
-		JacksonGroup root = database.getRootGroup();
+		KdbxDatabase database = new KdbxDatabase();
+		KdbxGroup root = database.getRootGroup();
 
-		JacksonGroup general = newGroup(database, "General");
+		KdbxGroup general = newGroup(database, "General");
 		root.addGroup(general);
-		JacksonGroup internet = newGroup(database, "Internet");
+		KdbxGroup internet = newGroup(database, "Internet");
 		general.addGroup(internet);
 
-		JacksonGroup communication = newGroup(database, "Communication");
+		KdbxGroup communication = newGroup(database, "Communication");
 		root.addGroup(communication);
 
-		JacksonGroup backup = newGroup(database, "Backup");
+		KdbxGroup backup = newGroup(database, "Backup");
 		root.addGroup(backup);
 
 
@@ -95,9 +95,9 @@ public class KeePassTreeConverterTest
 	@Test
 	public void testGroupMetadataIsPreservedOnImportAndIconOnExport() throws Exception
 	{
-		JacksonDatabase database = new JacksonDatabase();
-		JacksonGroup root = database.getRootGroup();
-		JacksonGroup general = newGroup(database, "General");
+		KdbxDatabase database = new KdbxDatabase();
+		KdbxGroup root = database.getRootGroup();
+		KdbxGroup general = newGroup(database, "General");
 		general.setIcon(database.newIcon(3));
 		root.addGroup(general);
 
@@ -114,9 +114,9 @@ public class KeePassTreeConverterTest
 		assertEquals(false, generalNode.getValue().getProperties()
 			.get(KeePassTreeConverter.KEEPASS_RECYCLE_BIN_PROPERTY));
 
-		JacksonDatabase exportDatabase = new JacksonDatabase();
-		JacksonGroup exportedGroup = KeePassTreeConverter.toJacksonGroup(exportDatabase,
-			generalNode, exportDatabase.getRootGroup());
+		KdbxDatabase exportDatabase = new KdbxDatabase();
+		KdbxGroup exportedGroup = KeePassTreeConverter.toJacksonGroup(exportDatabase, generalNode,
+			exportDatabase.getRootGroup());
 		assertEquals(3, exportedGroup.getIcon().getIndex());
 	}
 
@@ -129,9 +129,9 @@ public class KeePassTreeConverterTest
 	@Test
 	public void testGroupIconIndexBecomesTheIconTheRendererDraws() throws Exception
 	{
-		JacksonDatabase database = new JacksonDatabase();
-		JacksonGroup root = database.getRootGroup();
-		JacksonGroup general = newGroup(database, "General");
+		KdbxDatabase database = new KdbxDatabase();
+		KdbxGroup root = database.getRootGroup();
+		KdbxGroup general = newGroup(database, "General");
 		general.setIcon(database.newIcon(48));
 		root.addGroup(general);
 
@@ -155,9 +155,9 @@ public class KeePassTreeConverterTest
 	@Test
 	public void testAGroupWithAnIconOutsideTheShippedSetGetsNoIconPath() throws Exception
 	{
-		JacksonDatabase database = new JacksonDatabase();
-		JacksonGroup root = database.getRootGroup();
-		JacksonGroup general = newGroup(database, "General");
+		KdbxDatabase database = new KdbxDatabase();
+		KdbxGroup root = database.getRootGroup();
+		KdbxGroup general = newGroup(database, "General");
 		general.setIcon(database.newIcon(200));
 		root.addGroup(general);
 
@@ -188,7 +188,7 @@ public class KeePassTreeConverterTest
 	@Test
 	public void testToJacksonGroupWithoutEntriesAndWithoutChildren() throws Exception
 	{
-		JacksonDatabase database = new JacksonDatabase();
+		KdbxDatabase database = new KdbxDatabase();
 		GenericTreeElement<List<MysticCryptEntryModelBean>> element = new GenericTreeElement<>();
 		element.setName("Empty folder");
 		element.setDefaultContent(null);
@@ -196,7 +196,7 @@ public class KeePassTreeConverterTest
 			.<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> builder().id(1L)
 			.value(element).build();
 
-		JacksonGroup group = KeePassTreeConverter.toJacksonGroup(database, node,
+		KdbxGroup group = KeePassTreeConverter.toJacksonGroup(database, node,
 			database.getRootGroup());
 
 		assertEquals("Empty folder", group.getName());
@@ -207,7 +207,7 @@ public class KeePassTreeConverterTest
 	@Test
 	public void testToJacksonGroupWithEntriesAndAChild() throws Exception
 	{
-		JacksonDatabase database = new JacksonDatabase();
+		KdbxDatabase database = new KdbxDatabase();
 		GenericTreeElement<List<MysticCryptEntryModelBean>> childElement = new GenericTreeElement<>();
 		childElement.setName("Child folder");
 		BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> child = BaseTreeNode
@@ -223,7 +223,7 @@ public class KeePassTreeConverterTest
 			.value(element).build();
 		node.addChild(child);
 
-		JacksonGroup group = KeePassTreeConverter.toJacksonGroup(database, node,
+		KdbxGroup group = KeePassTreeConverter.toJacksonGroup(database, node,
 			database.getRootGroup());
 
 		assertEquals(1, group.getEntries().size(), "the content must become an entry");
@@ -233,9 +233,9 @@ public class KeePassTreeConverterTest
 	}
 
 
-	private static JacksonGroup newGroup(final JacksonDatabase database, final String name)
+	private static KdbxGroup newGroup(final KdbxDatabase database, final String name)
 	{
-		JacksonGroup group = database.newGroup();
+		KdbxGroup group = database.newGroup();
 		group.setName(name);
 		return group;
 	}

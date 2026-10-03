@@ -31,9 +31,11 @@ import java.util.List;
 import java.util.UUID;
 import java.util.function.Supplier;
 
-import org.linguafranca.pwdb.kdbx.jackson.JacksonDatabase;
-import org.linguafranca.pwdb.kdbx.jackson.JacksonEntry;
-import org.linguafranca.pwdb.kdbx.jackson.JacksonGroup;
+import org.linguafranca.pwdb.Entry;
+import org.linguafranca.pwdb.Group;
+import org.linguafranca.pwdb.kdbx.jackson.KdbxDatabase;
+import org.linguafranca.pwdb.kdbx.jackson.KdbxEntry;
+import org.linguafranca.pwdb.kdbx.jackson.KdbxGroup;
 import org.linguafranca.pwdb.kdbx.jackson.model.Times;
 
 import io.github.astrapi69.gen.tree.BaseTreeNode;
@@ -41,8 +43,8 @@ import io.github.astrapi69.mystic.crypt.panel.dbtree.MysticCryptEntryModelBean;
 import io.github.astrapi69.swing.renderer.tree.GenericTreeElement;
 
 /**
- * Converts the group/entry tree of a KeePassJava2 {@link JacksonDatabase} into/from this
- * application's {@link BaseTreeNode} of {@link GenericTreeElement}s.
+ * Converts the group/entry tree of a KeePassJava2 {@link KdbxDatabase} into/from this application's
+ * {@link BaseTreeNode} of {@link GenericTreeElement}s.
  * <p>
  * {@link GenericTreeElement} is a library type this application does not own, so the KeePass
  * metadata of a group that has no field there - identifier, icon index, recycle-bin flag - is kept
@@ -86,7 +88,7 @@ public final class KeePassTreeConverter
 	 * @return the newly created tree node for the given group
 	 */
 	public static BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> toTreeNode(
-		final JacksonGroup group,
+		final KdbxGroup group,
 		final BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> parent,
 		final Supplier<Long> nextId)
 	{
@@ -94,9 +96,12 @@ public final class KeePassTreeConverter
 		String name = group.getName();
 
 		List<MysticCryptEntryModelBean> entries = new ArrayList<>();
-		for (JacksonEntry entry : group.getEntries())
+		// KeePassJava2 3.0.0 dropped the generics on Database, Group and Entry, so a group's
+		// children come back as the interface type and the cast is what names the implementation
+		// this application reads (#467)
+		for (Entry entry : group.getEntries())
 		{
-			entries.add(KeePassEntryConverter.toEntryModelBean(entry));
+			entries.add(KeePassEntryConverter.toEntryModelBean((KdbxEntry)entry));
 		}
 
 		GenericTreeElement<List<MysticCryptEntryModelBean>> treeElement = GenericTreeElement
@@ -129,9 +134,9 @@ public final class KeePassTreeConverter
 			parent.addChild(treeNode);
 		}
 
-		for (JacksonGroup subGroup : group.getGroups())
+		for (Group subGroup : group.getGroups())
 		{
-			toTreeNode(subGroup, treeNode, nextId);
+			toTreeNode((KdbxGroup)subGroup, treeNode, nextId);
 		}
 
 		return treeNode;
@@ -146,12 +151,12 @@ public final class KeePassTreeConverter
 	 * @param vaultRoot
 	 *            the root node of the vault
 	 */
-	public static void fillDatabase(final JacksonDatabase database,
+	public static void fillDatabase(final KdbxDatabase database,
 		final BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> vaultRoot)
 	{
 		List<BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long>> nodes = vaultRoot
 			.getChildren() != null ? new ArrayList<>(vaultRoot.getChildren()) : List.of();
-		JacksonGroup rootGroup = database.getRootGroup();
+		KdbxGroup rootGroup = database.getRootGroup();
 		if (nodes.size() == 1)
 		{
 			fillGroup(database, nodes.get(0), rootGroup);
@@ -175,19 +180,19 @@ public final class KeePassTreeConverter
 	 *            the KeePass group the new group becomes a child of
 	 * @return the newly created group
 	 */
-	public static JacksonGroup toJacksonGroup(final JacksonDatabase database,
+	public static KdbxGroup toJacksonGroup(final KdbxDatabase database,
 		final BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> treeNode,
-		final JacksonGroup parent)
+		final KdbxGroup parent)
 	{
-		JacksonGroup group = database.newGroup();
+		KdbxGroup group = database.newGroup();
 		parent.addGroup(group);
 		fillGroup(database, treeNode, group);
 		return group;
 	}
 
-	private static void fillGroup(final JacksonDatabase database,
+	private static void fillGroup(final KdbxDatabase database,
 		final BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> treeNode,
-		final JacksonGroup group)
+		final KdbxGroup group)
 	{
 		GenericTreeElement<List<MysticCryptEntryModelBean>> treeElement = treeNode.getValue();
 		group.setName(treeElement.getName());
@@ -254,7 +259,7 @@ public final class KeePassTreeConverter
 	 */
 	private static void giveBackTheTimes(
 		final GenericTreeElement<List<MysticCryptEntryModelBean>> treeElement,
-		final JacksonGroup group)
+		final KdbxGroup group)
 	{
 		Times times = KeePassLibraryFields.getTimes(group);
 		if (times == null)

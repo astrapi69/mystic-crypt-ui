@@ -37,8 +37,8 @@ import javax.swing.JOptionPane;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 
-import org.linguafranca.pwdb.kdbx.KdbxCreds;
-import org.linguafranca.pwdb.kdbx.jackson.JacksonDatabase;
+import org.linguafranca.pwdb.format.KdbxCredentials;
+import org.linguafranca.pwdb.kdbx.jackson.KdbxDatabase;
 
 import io.github.astrapi69.component.model.enumeration.visibility.RenderMode;
 import io.github.astrapi69.design.pattern.observer.event.EventObject;
@@ -115,10 +115,10 @@ public class ImportKeePassDatabaseAction extends AbstractAction
 		memoized.save(instance.getConfigurationDirectory());
 		try
 		{
-			KdbxCreds credentials = newCredentials(panel);
+			KdbxCredentials credentials = newCredentials(panel);
 			try (InputStream inputStream = new FileInputStream(file))
 			{
-				JacksonDatabase database = JacksonDatabase.load(credentials, inputStream);
+				KdbxDatabase database = KdbxDatabase.load(credentials, inputStream);
 				importDatabase(instance, applicationPanel, database);
 			}
 		}
@@ -130,7 +130,7 @@ public class ImportKeePassDatabaseAction extends AbstractAction
 		}
 	}
 
-	private KdbxCreds newCredentials(ImportKeePassPanel panel) throws Exception
+	private KdbxCredentials newCredentials(ImportKeePassPanel panel) throws Exception
 	{
 		char[] password = panel.getPassword();
 		File keyFile = panel.getSelectedKeyFile();
@@ -138,7 +138,7 @@ public class ImportKeePassDatabaseAction extends AbstractAction
 		{
 			try (InputStream keyFileStream = new FileInputStream(keyFile))
 			{
-				return new KdbxCreds(new String(password).getBytes(StandardCharsets.UTF_8),
+				return new KdbxCredentials(new String(password).getBytes(StandardCharsets.UTF_8),
 					keyFileStream);
 			}
 		}
@@ -146,14 +146,14 @@ public class ImportKeePassDatabaseAction extends AbstractAction
 		{
 			try (InputStream keyFileStream = new FileInputStream(keyFile))
 			{
-				return new KdbxCreds(keyFileStream);
+				return new KdbxCredentials(keyFileStream);
 			}
 		}
-		return new KdbxCreds(new String(password).getBytes(StandardCharsets.UTF_8));
+		return new KdbxCredentials(new String(password).getBytes(StandardCharsets.UTF_8));
 	}
 
 	private void importDatabase(MysticCryptApplicationFrame instance,
-		ApplicationPanel applicationPanel, JacksonDatabase database)
+		ApplicationPanel applicationPanel, KdbxDatabase database)
 	{
 		ApplicationModelBean applicationModelBean = instance.getModelObject();
 		SecretKeyTreeWithContentPanel treePanel = applicationPanel

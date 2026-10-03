@@ -34,10 +34,10 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 
 import org.junit.jupiter.api.Test;
-import org.linguafranca.pwdb.kdbx.KdbxCreds;
-import org.linguafranca.pwdb.kdbx.jackson.JacksonDatabase;
-import org.linguafranca.pwdb.kdbx.jackson.JacksonEntry;
-import org.linguafranca.pwdb.kdbx.jackson.JacksonGroup;
+import org.linguafranca.pwdb.format.KdbxCredentials;
+import org.linguafranca.pwdb.kdbx.jackson.KdbxDatabase;
+import org.linguafranca.pwdb.kdbx.jackson.KdbxEntry;
+import org.linguafranca.pwdb.kdbx.jackson.KdbxGroup;
 
 import io.github.astrapi69.mystic.crypt.TestPasswords;
 
@@ -63,17 +63,18 @@ class KeePassImportKeyFileUiTest extends AbstractUiTest
 		Files.write(keyFile.toPath(), keyFileBytes);
 
 		File keePassFile = new File(tempHome, "keyfile-db.kdbx");
-		JacksonDatabase keePassDatabase = new JacksonDatabase();
-		JacksonGroup rootGroup = keePassDatabase.getRootGroup();
-		JacksonEntry entry = keePassDatabase.newEntry();
+		KdbxDatabase keePassDatabase = new KdbxDatabase();
+		KdbxGroup rootGroup = keePassDatabase.getRootGroup();
+		KdbxEntry entry = keePassDatabase.newEntry();
 		entry.setTitle("KeyFileProtectedSecret");
 		entry.setUsername("kf-user");
 		entry.setPassword("kf-pass");
 		rootGroup.addEntry(entry);
 		try (OutputStream out = new FileOutputStream(keePassFile))
 		{
-			keePassDatabase.save(new KdbxCreds(KEEPASS_PASSWORD.getBytes(StandardCharsets.UTF_8),
-				new ByteArrayInputStream(keyFileBytes)), out);
+			keePassDatabase
+				.save(new KdbxCredentials(KEEPASS_PASSWORD.getBytes(StandardCharsets.UTF_8),
+					new ByteArrayInputStream(keyFileBytes)), out);
 		}
 
 		File databaseFile = new File(tempHome, "import-keyfile-target.mcrdb");

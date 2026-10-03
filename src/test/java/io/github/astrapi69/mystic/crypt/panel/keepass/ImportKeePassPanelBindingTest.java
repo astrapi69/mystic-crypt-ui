@@ -48,10 +48,10 @@ import javax.swing.JTextField;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
-import org.linguafranca.pwdb.kdbx.KdbxCreds;
-import org.linguafranca.pwdb.kdbx.jackson.JacksonDatabase;
-import org.linguafranca.pwdb.kdbx.jackson.JacksonEntry;
-import org.linguafranca.pwdb.kdbx.jackson.JacksonGroup;
+import org.linguafranca.pwdb.format.KdbxCredentials;
+import org.linguafranca.pwdb.kdbx.jackson.KdbxDatabase;
+import org.linguafranca.pwdb.kdbx.jackson.KdbxEntry;
+import org.linguafranca.pwdb.kdbx.jackson.KdbxGroup;
 
 import io.github.astrapi69.mystic.crypt.TestPasswords;
 
@@ -96,11 +96,12 @@ class ImportKeePassPanelBindingTest
 	 * @throws Exception
 	 *             is thrown if the database cannot be written
 	 */
-	private static void writeDatabase(File keePassFile, KdbxCreds credentials) throws Exception
+	private static void writeDatabase(File keePassFile, KdbxCredentials credentials)
+		throws Exception
 	{
-		JacksonDatabase database = new JacksonDatabase();
-		JacksonGroup rootGroup = database.getRootGroup();
-		JacksonEntry entry = database.newEntry();
+		KdbxDatabase database = new KdbxDatabase();
+		KdbxGroup rootGroup = database.getRootGroup();
+		KdbxEntry entry = database.newEntry();
 		entry.setTitle(ENTRY_TITLE);
 		entry.setUsername("bound-user");
 		rootGroup.addEntry(entry);
@@ -120,26 +121,26 @@ class ImportKeePassPanelBindingTest
 	 * @throws Exception
 	 *             is thrown if the database cannot be opened
 	 */
-	private static JacksonDatabase importWith(ImportKeePassPanel panel) throws Exception
+	private static KdbxDatabase importWith(ImportKeePassPanel panel) throws Exception
 	{
 		try (InputStream inputStream = new FileInputStream(panel.getSelectedFile()))
 		{
-			return JacksonDatabase.load(credentials(panel), inputStream);
+			return KdbxDatabase.load(credentials(panel), inputStream);
 		}
 	}
 
-	private static KdbxCreds credentials(ImportKeePassPanel panel) throws Exception
+	private static KdbxCredentials credentials(ImportKeePassPanel panel) throws Exception
 	{
 		char[] password = panel.getPassword();
 		File keyFile = panel.getSelectedKeyFile();
 		byte[] passwordBytes = new String(password).getBytes(StandardCharsets.UTF_8);
 		if (keyFile == null)
 		{
-			return new KdbxCreds(passwordBytes);
+			return new KdbxCredentials(passwordBytes);
 		}
 		try (InputStream keyFileStream = new FileInputStream(keyFile))
 		{
-			return new KdbxCreds(passwordBytes, keyFileStream);
+			return new KdbxCredentials(passwordBytes, keyFileStream);
 		}
 	}
 
@@ -153,13 +154,13 @@ class ImportKeePassPanelBindingTest
 	{
 		String password = TestPasswords.throwaway();
 		File keePassFile = new File(directory, "bound-import.kdbx");
-		writeDatabase(keePassFile, new KdbxCreds(password.getBytes(StandardCharsets.UTF_8)));
+		writeDatabase(keePassFile, new KdbxCredentials(password.getBytes(StandardCharsets.UTF_8)));
 
 		ImportKeePassPanel panel = new ImportKeePassPanel();
 		named(panel, "txtFile", JTextField.class).setText(keePassFile.getAbsolutePath());
 		named(panel, "txtPassword", JPasswordField.class).setText(password);
 
-		JacksonDatabase imported = importWith(panel);
+		KdbxDatabase imported = importWith(panel);
 
 		assertEquals(keePassFile, panel.getSelectedFile());
 		assertEquals(ENTRY_TITLE, imported.getRootGroup().getEntries().get(0).getTitle());
@@ -177,7 +178,7 @@ class ImportKeePassPanelBindingTest
 		File keyFile = new File(directory, "bound-import.keyx");
 		Files.write(keyFile.toPath(), KEY_FILE_MATERIAL);
 		File keePassFile = new File(directory, "bound-import-with-keyfile.kdbx");
-		writeDatabase(keePassFile, new KdbxCreds(password.getBytes(StandardCharsets.UTF_8),
+		writeDatabase(keePassFile, new KdbxCredentials(password.getBytes(StandardCharsets.UTF_8),
 			new ByteArrayInputStream(KEY_FILE_MATERIAL)));
 
 		ImportKeePassPanel panel = new ImportKeePassPanel();
@@ -187,7 +188,7 @@ class ImportKeePassPanelBindingTest
 		named(panel, "cbxKeyFile", JCheckBox.class).doClick();
 		named(panel, "txtKeyFile", JTextField.class).setText(keyFile.getAbsolutePath());
 
-		JacksonDatabase imported = importWith(panel);
+		KdbxDatabase imported = importWith(panel);
 
 		assertTrue(panel.getModelObject().isUseKeyFile());
 		assertEquals(keyFile, panel.getSelectedKeyFile());
@@ -206,7 +207,7 @@ class ImportKeePassPanelBindingTest
 		File keyFile = new File(directory, "bound-import-unused.keyx");
 		Files.write(keyFile.toPath(), KEY_FILE_MATERIAL);
 		File keePassFile = new File(directory, "bound-import-password-only.kdbx");
-		writeDatabase(keePassFile, new KdbxCreds(password.getBytes(StandardCharsets.UTF_8)));
+		writeDatabase(keePassFile, new KdbxCredentials(password.getBytes(StandardCharsets.UTF_8)));
 
 		ImportKeePassPanel panel = new ImportKeePassPanel();
 		named(panel, "txtFile", JTextField.class).setText(keePassFile.getAbsolutePath());
@@ -233,7 +234,7 @@ class ImportKeePassPanelBindingTest
 	void theRememberedPathsAreWhatThePanelHandsOut(@TempDir File directory) throws Exception
 	{
 		File keePassFile = new File(directory, "remembered.kdbx");
-		writeDatabase(keePassFile, new KdbxCreds(TestPasswords.throwaway().getBytes()));
+		writeDatabase(keePassFile, new KdbxCredentials(TestPasswords.throwaway().getBytes()));
 		File keyFile = new File(directory, "remembered.keyx");
 		Files.write(keyFile.toPath(), KEY_FILE_MATERIAL);
 
