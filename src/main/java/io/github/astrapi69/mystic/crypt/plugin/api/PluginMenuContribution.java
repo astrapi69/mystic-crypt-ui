@@ -72,12 +72,15 @@ public interface PluginMenuContribution extends ExtensionPoint
 	 * host's action package, and a plugin has no such classes and is not on the host's test
 	 * classpath.
 	 * <p>
-	 * So the second plugin that declares this brings the harness with it (#301): install, lock,
-	 * click what is offered, and assert that the locked state holds, the vault stays off screen and
-	 * the vault file is not written. It is deliberately not built for the first one - the checksum
-	 * plugin touches no vault, so it would assert nearly nothing - but from the second on, opting
-	 * in and building that harness are the same task. Declaring this without it leaves a hole
-	 * exactly where #232 started: a mechanism deciding on its own what it offers without a sign-in.
+	 * So a plugin that declares this is measured by a robot-driven harness instead (#301): it
+	 * installs every shipped plugin, locks a vault, clicks every plugin entry that is enabled in
+	 * that state and every named button in the windows they open, and asserts that the locked state
+	 * holds, the vault stays off screen, the vault file is not written and no entry is shown.
+	 * Opting in puts a plugin under it without further wiring. What it does NOT cover yet is a file
+	 * chooser that is approved: a chooser is cancelled. A plugin whose tools work on chosen files
+	 * extends the harness in the same change that opts it in - declaring this without that leaves a
+	 * hole exactly where #232 started: a mechanism deciding on its own what it offers without a
+	 * sign-in.
 	 *
 	 * @return true if this plugin's entries are offered without a vault
 	 */

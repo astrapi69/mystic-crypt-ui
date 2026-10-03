@@ -42,9 +42,10 @@ import io.github.astrapi69.swing.util.JInternalFrameExtensions;
  * Puts this plugin's tools under a "Lethenon" submenu of the host's "Plugins" menu.
  * <p>
  * {@link #isUsableWithoutAVault()} is deliberately NOT declared, although replaying a chain file
- * touches no vault: the extension point says the second plugin that opts in brings the locked-state
- * harness with it (#301), and building that harness is not this change. Until then the verifier is
- * reachable after a sign-in, like every other tool.
+ * touches no vault. Declaring it opens EVERY item of a contribution while locked, and this one also
+ * opens a wallet and spends from it. The read-only tools are to opt in through a contribution of
+ * their own, together with the harness extension for approved file choosers they need (#301,
+ * #450). Until then the verifier is reachable after a sign-in, like every other tool.
  */
 @Extension
 public class LethenonMenuContribution implements PluginMenuContribution

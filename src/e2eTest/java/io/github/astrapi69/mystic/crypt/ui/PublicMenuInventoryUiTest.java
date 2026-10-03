@@ -85,18 +85,19 @@ class PublicMenuInventoryUiTest extends AbstractUiTest
 {
 
 	/**
-	 * The entries that MAY be offered without a vault: the host list, plus the entries of the one
-	 * plugin that declares itself usable without one. Named by their TEXT, since a plugin's menu
-	 * items need not carry a component name. Anything offered that is not in here fails the test;
-	 * something in here that is not offered does not, see the class comment
+	 * The entries that MAY be offered without a vault: the host list, plus the entries of the two
+	 * plugins that declare themselves usable without one, checksum and password-hash (#301). Named
+	 * by their TEXT, since a plugin's menu items need not carry a component name. Anything offered
+	 * that is not in here fails the test; something in here that is not offered does not, see the
+	 * class comment
 	 */
 	private static final String MASTER_PASSWORD = TestPasswords.throwaway();
 
 	private static final Set<String> ALLOWED_PUBLIC_TEXTS = new LinkedHashSet<>(
 		List.of("File", "Open Database...", "Settings...", "Exit", "View", "Look and Feel", "GTK",
 			"Metal", "Ocean", "Motif", "Nimbus", "System", "FlatLaf Dark", "FlatLaf IntelliJ",
-			"FlatLaf Darcula", "Plugins", "Checksum", "Verify Checksum", "Checksum and MAC", "Help",
-			"Donate", "Licence", "Info"));
+			"FlatLaf Darcula", "Plugins", "Checksum", "Verify Checksum", "Checksum and MAC",
+			"Password Hashing", "Help", "Donate", "Licence", "Info"));
 
 	/**
 	 * "FlatLaf Light" is public and still not in the list above: it is the theme the application
@@ -123,6 +124,7 @@ class PublicMenuInventoryUiTest extends AbstractUiTest
 	void thePublicStateOffersNothingItIsNotAllowedTo() throws Exception
 	{
 		installPluginRequiringItBuilt(CHECKSUM_ZIP);
+		installPluginRequiringItBuilt(PASSWORD_HASH_ZIP);
 		SignInDialogSteps signIn = launchApplication();
 		signIn.requireOkDisabled().cancel();
 		awaitApplicationInitialized();
@@ -138,6 +140,8 @@ class PublicMenuInventoryUiTest extends AbstractUiTest
 		assertTrue(enabled.contains("Verify Checksum"),
 			"the tool this whole issue was raised for has to be reachable without a vault, or the "
 				+ "list is right and useless");
+		assertTrue(enabled.contains("Password Hashing"),
+			"the second plugin that opts in has to be reachable without a vault too (#301)");
 	}
 
 	@Test
@@ -145,6 +149,7 @@ class PublicMenuInventoryUiTest extends AbstractUiTest
 	void theLockedStateOffersNothingItIsNotAllowedTo() throws Exception
 	{
 		installPluginRequiringItBuilt(CHECKSUM_ZIP);
+		installPluginRequiringItBuilt(PASSWORD_HASH_ZIP);
 		File databaseFile = new File(tempHome, "inventory-locked-database.mcrdb");
 		createDatabaseFileHeadless(databaseFile, MASTER_PASSWORD);
 		ApplicationSteps application = signInWithExistingDatabase(databaseFile, MASTER_PASSWORD);
