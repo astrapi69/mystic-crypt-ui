@@ -78,10 +78,10 @@ class PublicPluginGrantTest
 		Map<String, String> allowed = new LinkedHashMap<>();
 		allowed.put("checksum-plugin", "computes checksums of files the user picks; it reads no "
 			+ "entry, writes no vault and needs no master password (#232)");
-		// #468 adds password-hash, with the locked-state harness the extension point asks of the
-		// second opt-in. Its line belongs in THAT change, with its own reason - which is this
-		// test's whole purpose: a grant arrives with a justification in the same diff, or the
-		// suite goes red
+		allowed.put("password-hash-plugin", "hashes and verifies a typed password; the input is "
+			+ "typed, the result stays in the window, nothing reaches the filesystem and no vault "
+			+ "is touched. It is the plugin that brought the locked-state harness the extension "
+			+ "point asks of the second opt-in, PluginsUsableWhileLockedHoldTheLockUiTest (#301)");
 		return allowed;
 	}
 
