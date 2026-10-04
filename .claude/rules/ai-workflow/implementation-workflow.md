@@ -27,7 +27,9 @@ the branch head onto `develop`. A pushed head puts the content there while the p
 request stays open and unmerged: no CI run on the merged state, no record that the change
 arrived through review, and a comment afterwards rescues the trail but not the missing
 run. One way in also removes the collision above, because there is then only one place
-where `develop` moves.
+where `develop` moves. It waits for every check develop's branch protection requires, including one that has
+not reported yet - a codecov status arriving after the merge is how mystic-crypt#183 reached develop
+unchecked; in the libraries `gh pr merge --auto --merge` lets GitHub do the same waiting (#493).
 
 **A merge does not move the branch somebody is standing on.** `scripts/merge-pr.sh` waits for CI,
 which can take as long as CI takes, and it used to end by checking out `develop` in whatever tree it
