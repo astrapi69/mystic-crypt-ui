@@ -27,10 +27,17 @@ dependencies {
     implementation libs.silly.bean
     implementation libs.commons.codec
     implementation libs.checksum.up
-    // the only version this project pins of the crypt family: mystic-crypt brings crypt-api,
-    // crypt-data, silly-bean and bouncycastle along as api dependencies, so pinning them here as
-    // well would only invite them to drift apart from what the library was built against
+    // mystic-crypt brings crypt-api, silly-bean and bouncycastle along as api dependencies, and
+    // they are not pinned again here
     implementation libs.mystic.crypt
+    // crypt-data is, although mystic-crypt brings it too: this application is what puts crypt-data
+    // on the plugins' class path at run time, and the plugins read key files through
+    // AnyKeyFileReader, which is newer (13.1) than the crypt-data mystic-crypt 13.4 was built
+    // against (13.0). Inherited quietly, the plugins would compile against one version and run
+    // against an older one - a NoClassDefFoundError the first time a key file is opened. One
+    // catalog entry for the host and every plugin, instead of the literals two plugins carried
+    // (#490)
+    implementation libs.crypt.data
     // the library brings picocli only at runtime scope; the command line entry point of this
     // application compiles against it, so it is declared here with the very same version
     implementation libs.picocli

@@ -54,21 +54,23 @@ without a display, which is also what makes it usable from the command line side
 > settings dialog uses it, and the command line uses it, and it stays testable without a
 > display.
 
-Two classes in `crypto/` carry the crypto construction that the rest of the application
-reuses:
+Two library classes carry the crypto construction that the rest of the application reuses.
+Both were this application's own `crypto/` package until #490, and moved into the libraries
+they compose (mystic-crypt#160):
 
-- `PassphraseBox` wraps one construction: PBKDF2-HMAC-SHA256 over a fresh salt, then
-  AES-GCM through the library's `KeyCommittingAeadEncryptor`, with magic, salt and
+- `PassphraseEnvelope` (mystic-crypt, `pw`) wraps one construction: PBKDF2-HMAC-SHA256 over a
+  fresh salt, then AES-GCM through `KeyCommittingAeadEncryptor`, with magic, salt and
   iteration count fed in as associated data. Its constants (`SALT_LENGTH`, `ITERATIONS`,
-  `KEY_LENGTH_BITS`) are the single place those values are defined.
-- `KeyFiles` reads private keys, public keys and certificates out of whatever shape a file
-  happens to be in (PKCS#8, the openssl PEM styles, raw DER, a public key inside a
-  certificate), decoding through BouncyCastle so that the keys this application generates
-  can be read back.
+  `KEY_LENGTH_BITS`) are the single place those values are defined. It reads the caller's
+  passphrase array and never modifies it; the caller wipes it.
+- `AnyKeyFileReader` (crypt-data, `key.reader`) reads private keys, public keys and
+  certificates out of whatever shape a file happens to be in (PKCS#8, the openssl PEM styles,
+  raw DER, a public key inside a certificate), decoding through BouncyCastle so that the keys
+  this application generates can be read back.
 
 `PasswordVaultFormat` and the file-crypt plugin's `FileCryptSupport` both sit on
-`PassphraseBox` and differ only in their magic bytes. That is the intended relationship, and
-the reason the construction is not copied into either of them.
+`PassphraseEnvelope` and differ only in their magic bytes. That is the intended relationship,
+and the reason the construction is not copied into either of them.
 
 ### Layer 3: Libraries
 
@@ -93,7 +95,7 @@ its crypto moved down into a support class in the same change.
 | `crypt-api` | algorithm and key enums and constants: `KeySize`, `KeyPairGeneratorAlgorithm`, `AesAlgorithm`, `SunJCEAlgorithm`, `CompoundAlgorithm` | any layer, including model beans and panels (these are value types, not behaviour) |
 | `crypt-data` | key and certificate factories, readers, writers, extensions and models: `KeyPairFactory`, `PrivateKeyReader`, `CertificateReader`, `KeyModel`, `X509CertificateV3Info` | support/worker layer and the `crypto/` package |
 | `mystic-crypt` | the encryptors, decryptors and the picocli CLI: `KeyCommittingAeadEncryptor`, `PBEFileDecryptor`, `PrivateKeyHexDecryptor`, `PublicKeyHexEncryptor`, `MysticCryptCli` | support/worker layer and `cli/` |
-| BouncyCastle (`bcprov-jdk18on`, `bcpkix-jdk18on`) | the provider and the PEM parsing under `KeyFiles` | the `crypto/` package; registered once as a JCE provider at startup |
+| BouncyCastle (`bcprov-jdk18on`, `bcpkix-jdk18on`) | the provider and the PEM parsing under crypt-data's `AnyKeyFileReader` | registered once as a JCE provider at startup |
 
 The "callable from" column is the layer rule applied to what each library actually holds,
 not a separately written rule: crypt-api is enums and constants, so it is a value type
@@ -335,7 +337,6 @@ Base package: `io.github.astrapi69.mystic.crypt`.
 | `app.file.xml` | Vault persistence: `PasswordVaultFormat` (the MCRDB2 on-disk format), `ApplicationXmlFileReader`, `ApplicationXmlFileStoreWorker` and `ApplicationXmlFileFactory`. |
 | `button.state` | Reusable state machines that tie a `JButton`'s enabled state to another component, for example a table selection. |
 | `cli` | `MysticCryptUiCli`: the headless entry point that assembles the library's root command with the plugins' contributed commands. |
-| `crypto` | `PassphraseBox` (the one passphrase-to-AEAD construction) and `KeyFiles` (reading keys and certificates in any of the shapes they arrive in). |
 | `eventbus` | `ApplicationEventBus`: the process-wide event sources for save state and navigation state. |
 | `keepass` | Conversion between a KeePassJava2 `SimpleDatabase` and this application's own tree model, including the KeePass metadata that has no dedicated field on the library's tree types. |
 | `menu` | `MenuLayoutSupport`: exports the menu bar to xml with an explicit action id per item and rebuilds it from such a layout, disabling items whose action id is unknown instead of failing the whole menu. |

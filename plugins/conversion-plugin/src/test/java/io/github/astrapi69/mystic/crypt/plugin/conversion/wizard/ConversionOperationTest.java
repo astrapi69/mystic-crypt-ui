@@ -41,7 +41,7 @@ import org.junit.jupiter.api.io.TempDir;
 import io.github.astrapi69.crypt.api.key.PemType;
 import io.github.astrapi69.crypt.data.factory.KeyPairFactory;
 import io.github.astrapi69.crypt.data.key.writer.PrivateKeyWriter;
-import io.github.astrapi69.mystic.crypt.crypto.KeyFiles;
+import io.github.astrapi69.crypt.data.key.reader.AnyKeyFileReader;
 import io.github.astrapi69.mystic.crypt.plugin.conversion.ConversionSupport;
 
 /**
@@ -174,7 +174,7 @@ class ConversionOperationTest
 
 		ConversionOperation.DER_TO_PEM.execute(derFile, pemFile);
 
-		assertEquals(original, KeyFiles.readPrivateKey(pemFile));
+		assertEquals(original, AnyKeyFileReader.readPrivateKey(pemFile));
 	}
 
 	@Test

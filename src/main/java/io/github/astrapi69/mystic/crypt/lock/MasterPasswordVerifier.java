@@ -29,7 +29,7 @@ import java.security.SecureRandom;
 import java.util.Arrays;
 import java.util.HexFormat;
 
-import io.github.astrapi69.mystic.crypt.crypto.PassphraseBox;
+import io.github.astrapi69.mystic.crypt.pw.PassphraseEnvelope;
 
 /**
  * Recognises the master password without being it.
@@ -40,8 +40,8 @@ import io.github.astrapi69.mystic.crypt.crypto.PassphraseBox;
  * of a workspace its owner had locked (#242).
  * <p>
  * What stays behind instead is a salt and what PBKDF2-HMAC-SHA256 derives from the password over
- * it, through {@link PassphraseBox}, the same derivation the database itself is protected with.
- * From those two the password cannot be read back; a candidate can only be derived again and
+ * it, through {@link PassphraseEnvelope}, the same derivation the database itself is protected
+ * with. From those two the password cannot be read back; a candidate can only be derived again and
  * compared, which is what {@link #matches(char[])} does.
  */
 public final class MasterPasswordVerifier
@@ -78,11 +78,11 @@ public final class MasterPasswordVerifier
 			throw new IllegalArgumentException(
 				"a master password verifier needs a password to derive from");
 		}
-		byte[] salt = new byte[PassphraseBox.SALT_LENGTH];
+		byte[] salt = new byte[PassphraseEnvelope.SALT_LENGTH];
 		SecureRandom.getInstanceStrong().nextBytes(salt);
-		return new MasterPasswordVerifier(salt,
-			PassphraseBox.deriveKey(masterPassword, salt, PassphraseBox.ITERATIONS).getEncoded(),
-			PassphraseBox.ITERATIONS);
+		return new MasterPasswordVerifier(salt, PassphraseEnvelope
+			.deriveKey(masterPassword, salt, PassphraseEnvelope.ITERATIONS).getEncoded(),
+			PassphraseEnvelope.ITERATIONS);
 	}
 
 	/**
@@ -119,7 +119,7 @@ public final class MasterPasswordVerifier
 		byte[] candidateKey;
 		try
 		{
-			candidateKey = PassphraseBox.deriveKey(candidate, salt, iterations).getEncoded();
+			candidateKey = PassphraseEnvelope.deriveKey(candidate, salt, iterations).getEncoded();
 		}
 		catch (Exception exception)
 		{

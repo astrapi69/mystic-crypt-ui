@@ -36,7 +36,7 @@ import org.bouncycastle.util.io.pem.PemWriter;
 import io.github.astrapi69.crypt.api.key.PemType;
 import io.github.astrapi69.crypt.data.key.reader.PemObjectReader;
 import io.github.astrapi69.crypt.data.key.reader.PrivateKeyReader;
-import io.github.astrapi69.mystic.crypt.crypto.KeyFiles;
+import io.github.astrapi69.crypt.data.key.reader.AnyKeyFileReader;
 
 /**
  * Converting a key or certificate file between the shapes it can have, without any user interface.
@@ -128,7 +128,7 @@ public final class ConversionSupport
 		// a DER file carries no header, so what it is shows in what can be read out of it
 		try
 		{
-			KeyFiles.readPrivateKey(file);
+			AnyKeyFileReader.readPrivateKey(file);
 			return new FileKind(false, PemType.UNKNOWN, "a private key in DER form");
 		}
 		catch (Exception notAPrivateKey)
@@ -137,7 +137,7 @@ public final class ConversionSupport
 		}
 		try
 		{
-			KeyFiles.readCertificate(file);
+			AnyKeyFileReader.readCertificate(file);
 			return new FileKind(false, PemType.UNKNOWN, "a certificate in DER form");
 		}
 		catch (Exception notACertificate)
@@ -146,7 +146,7 @@ public final class ConversionSupport
 		}
 		try
 		{
-			KeyFiles.readPublicKey(file);
+			AnyKeyFileReader.readPublicKey(file);
 			return new FileKind(false, PemType.UNKNOWN, "a public key in DER form");
 		}
 		catch (Exception notAPublicKeyEither)
@@ -307,7 +307,7 @@ public final class ConversionSupport
 	 */
 	public static void toPkcs8(final File source, final File target) throws Exception
 	{
-		PrivateKey privateKey = KeyFiles.readPrivateKey(source);
+		PrivateKey privateKey = AnyKeyFileReader.readPrivateKey(source);
 		writePem(target, "PRIVATE KEY", privateKey.getEncoded());
 	}
 
@@ -326,7 +326,7 @@ public final class ConversionSupport
 	 */
 	public static void toPkcs1(final File source, final File target) throws Exception
 	{
-		PrivateKey privateKey = KeyFiles.readPrivateKey(source);
+		PrivateKey privateKey = AnyKeyFileReader.readPrivateKey(source);
 		String pem = io.github.astrapi69.crypt.data.key.PrivateKeyExtensions
 			.toPemFormat(privateKey);
 		requirePkcs1WasProduced(pem, privateKey);
@@ -369,7 +369,7 @@ public final class ConversionSupport
 	{
 		try
 		{
-			return KeyFiles.readPrivateKey(file) != null;
+			return AnyKeyFileReader.readPrivateKey(file) != null;
 		}
 		catch (Exception notAPrivateKey)
 		{

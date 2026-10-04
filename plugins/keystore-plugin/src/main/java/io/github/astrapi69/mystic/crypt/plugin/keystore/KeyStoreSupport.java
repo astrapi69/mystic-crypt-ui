@@ -48,7 +48,7 @@ import io.github.astrapi69.crypt.data.key.CertificateExtensions;
 import io.github.astrapi69.crypt.data.key.KeyStoreExtensions;
 import io.github.astrapi69.crypt.data.key.reader.CertificateReader;
 import io.github.astrapi69.crypt.data.key.writer.CertificateWriter;
-import io.github.astrapi69.mystic.crypt.crypto.KeyFiles;
+import io.github.astrapi69.crypt.data.key.reader.AnyKeyFileReader;
 import io.github.astrapi69.mystic.crypt.ssl.KeystoreVerifier;
 
 /**
@@ -441,8 +441,8 @@ public final class KeyStoreSupport
 		final String storePassword, final String alias, final File privateKeyFile,
 		final File certificateFile) throws Exception
 	{
-		PrivateKey privateKey = KeyFiles.readPrivateKey(privateKeyFile);
-		X509Certificate certificate = KeyFiles.readCertificate(certificateFile);
+		PrivateKey privateKey = AnyKeyFileReader.readPrivateKey(privateKeyFile);
+		X509Certificate certificate = AnyKeyFileReader.readCertificate(certificateFile);
 		if (!belongTogether(privateKey, certificate))
 		{
 			throw new IllegalArgumentException("the private key and the certificate do not belong "

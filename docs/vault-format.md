@@ -8,7 +8,7 @@ The code this document describes:
 | What | Where |
 |---|---|
 | The format of a password-protected database | `src/main/java/io/github/astrapi69/mystic/crypt/app/file/xml/PasswordVaultFormat.java` |
-| The passphrase construction it is built on | `src/main/java/io/github/astrapi69/mystic/crypt/crypto/PassphraseBox.java` |
+| The passphrase construction it is built on | `PassphraseEnvelope` in mystic-crypt (`io.github.astrapi69.mystic.crypt.pw`), since #490; this application's `crypto/PassphraseBox` before it, byte for byte the same layout |
 | Reading a database (all sign-in variants) | `src/main/java/io/github/astrapi69/mystic/crypt/app/file/xml/ApplicationXmlFileReader.java` |
 | Writing a database (all sign-in variants) | `src/main/java/io/github/astrapi69/mystic/crypt/app/file/xml/ApplicationXmlFileStoreWorker.java` |
 | The AEAD primitive | `KeyCommittingAeadEncryptor` in the mystic-crypt library (version pinned in `gradle/libs.versions.toml`) |
@@ -40,7 +40,7 @@ and reading it through the password-only path will not yield the XML.
 ## MCRDB2: the byte layout
 
 `PasswordVaultFormat.encrypt` hands the UTF-8 bytes of the XML to
-`PassphraseBox.encrypt(MAGIC, plaintext, password)`. What lands on disk:
+`PassphraseEnvelope.encrypt(MAGIC, plaintext, password)`. What lands on disk:
 
 ```
 offset  length   field
@@ -58,7 +58,7 @@ offset  length   field
 Fixed overhead is therefore 86 bytes: 6 + 16 + 4 + 12 + 16 + 32. Encrypting an 8-byte plaintext
 produces a 94-byte file.
 
-The three header fields come from `PassphraseBox`:
+The three header fields come from `PassphraseEnvelope`:
 
 ```java
 public static final int SALT_LENGTH = 16;
@@ -107,7 +107,7 @@ properties follow, and each is pinned by a test in
 
 ### Reading it back
 
-`PassphraseBox.decrypt` slices the header back apart and, crucially, derives the key from the salt
+`PassphraseEnvelope.decrypt` slices the header back apart and, crucially, derives the key from the salt
 and the iteration count **found in the file**, not from today's constants:
 
 ```java
@@ -133,11 +133,11 @@ nonce + commitment tag + 1 byte.
 
 | Parameter | Value | Source |
 |---|---|---|
-| Algorithm | `PBKDF2WithHmacSHA256` | `PassphraseBox.KEY_DERIVATION_ALGORITHM` |
-| Derived key length | 256 bits, used as an AES key | `PassphraseBox.KEY_LENGTH_BITS` |
-| Salt | 16 bytes from `new SecureRandom()`, per save | `PassphraseBox.SALT_LENGTH` |
-| Iterations for a file written today | 600,000 | `PassphraseBox.ITERATIONS` |
-| Iterations used when reading | whatever the file records | `PassphraseBox.decrypt` |
+| Algorithm | `PBKDF2WithHmacSHA256` | `PassphraseEnvelope.KEY_DERIVATION_ALGORITHM` |
+| Derived key length | 256 bits, used as an AES key | `PassphraseEnvelope.KEY_LENGTH_BITS` |
+| Salt | 16 bytes from `new SecureRandom()`, per save | `PassphraseEnvelope.SALT_LENGTH` |
+| Iterations for a file written today | 600,000 | `PassphraseEnvelope.ITERATIONS` |
+| Iterations used when reading | whatever the file records | `PassphraseEnvelope.decrypt` |
 
 ```java
 public static SecretKey deriveKey(final String passphrase, final byte[] salt,
@@ -168,16 +168,17 @@ Two deliberate choices worth knowing before touching this method:
   spec does not outlive the derivation.
 
 Because the cost is written into every file, raising it is a one-line change to
-`PassphraseBox.ITERATIONS`: new saves get the higher cost, existing files keep opening with the cost
-they recorded. Both users of `PassphraseBox` inherit that change at once, so the file-crypt plugin's
-format is affected too (see below).
+`PassphraseEnvelope.ITERATIONS`: new saves get the higher cost, existing files keep opening with the
+cost they recorded. The constant lives in mystic-crypt since #490, so the change is a library release
+followed by a bump here. Both users of `PassphraseEnvelope` inherit it at once, so the file-crypt
+plugin's format is affected too (see below).
 
 ## Why there is a marker, and how a new version would be added
 
 The marker exists so that a file can say what it is. Two things depend on that:
 
 1. **Format detection.** `PasswordVaultFormat.isCurrentFormat(byte[])` delegates to
-   `PassphraseBox.hasMagic`, a prefix comparison: content that is non-null, at least as long as the
+   `PassphraseEnvelope.hasMagic`, a prefix comparison: content that is non-null, at least as long as the
    marker, and begins with those bytes. It is a prefix test, so `"MCRDB2andmore"` matches while
    `"MCRDB"` and `"MCRDB1xxxx"` do not. `decrypt` uses it as the only branch it takes:
 
@@ -187,7 +188,7 @@ The marker exists so that a file can say what it is. Two things depend on that:
    {
        return decryptLegacy(applicationFile, password);
    }
-   return new String(PassphraseBox.decrypt(MAGIC, fileContent, password), StandardCharsets.UTF_8);
+   return new String(PassphraseEnvelope.decrypt(MAGIC, fileContent, password), StandardCharsets.UTF_8);
    ```
 
 2. **Not confusing two formats.** The marker is part of the associated data, so a file cannot be
@@ -204,7 +205,7 @@ The `2` in `MCRDB2` is the version. What requires a new one and what does not:
 Adding one means, concretely:
 
 1. A new `MAGIC` constant. The header arithmetic follows automatically, because
-   `PassphraseBox.headerLength(magic)` is derived from `magic.length` rather than hard-coded, and
+   `PassphraseEnvelope.headerLength(magic)` is derived from `magic.length` rather than hard-coded, and
    both encrypt and decrypt take the marker as a parameter. A marker of a different length is
    therefore not a special case.
 2. Writing switches to the new marker only. `PasswordVaultFormat.encrypt` is the single write path;
@@ -276,7 +277,7 @@ the new file somewhere other than where the old one was read from.
 
 ## What the key file variants do differently
 
-Neither key file variant uses `PasswordVaultFormat`, `PassphraseBox`, PBKDF2 or a marker. They use
+Neither key file variant uses `PasswordVaultFormat`, `PassphraseEnvelope`, PBKDF2 or a marker. They use
 the mystic-crypt library's public-key encryptors, and the shape on disk is a Java-serialized
 `AesRsaCryptModel` produced by `SerializationUtils.serialize`, holding two fields:
 
@@ -321,13 +322,13 @@ Differences that matter when working on these paths:
 
 ## The same construction, one more user
 
-`PassphraseBox` is deliberately generic in its marker, and has a second user: the file-crypt plugin,
+`PassphraseEnvelope` is deliberately generic in its marker, and has a second user: the file-crypt plugin,
 `plugins/file-crypt-plugin/src/main/java/io/github/astrapi69/mystic/crypt/plugin/filecrypt/FileCryptSupport.java`,
 whose files start with the ASCII marker `MCFILE1` and otherwise have exactly the layout above (a
 7-byte marker instead of a 6-byte one, so its header is 27 bytes). Encrypted files get the extension
 `.mcenc` by default.
 
-Practical consequence: a change to `PassphraseBox` changes both formats at once. Anything done there
+Practical consequence: a change to `PassphraseEnvelope` changes both formats at once. Anything done there
 has to be proven for the database and for the plugin.
 
 ## Any change here is proven by a real round trip
@@ -366,6 +367,6 @@ Run them with `make test` (everything) or `make test-e2e` (the `io.github.astrap
 suites). The e2e suite needs the Xvfb harness described in `.claude/rules/lessons-learned.md`;
 running it against a live `:0` display hangs.
 
-`PassphraseBox` itself has no test class of its own. It is covered through `PasswordVaultFormatTest`
+`PassphraseEnvelope` itself has no test class of its own. It is covered through `PasswordVaultFormatTest`
 and through the file-crypt plugin's tests, which is worth remembering when changing it: neither
 suite is named after it.

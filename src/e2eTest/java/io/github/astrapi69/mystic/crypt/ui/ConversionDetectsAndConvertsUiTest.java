@@ -44,9 +44,9 @@ import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.junit.jupiter.api.Test;
 
 import io.github.astrapi69.crypt.data.factory.KeyPairFactory;
+import io.github.astrapi69.crypt.data.key.reader.AnyKeyFileReader;
 import io.github.astrapi69.crypt.data.key.writer.PrivateKeyWriter;
 import io.github.astrapi69.mystic.crypt.TestPasswords;
-import io.github.astrapi69.mystic.crypt.crypto.KeyFiles;
 
 /**
  * Functional end-to-end test of the conversion wizard's auto-detection and the PKCS#8 conversion:
@@ -104,7 +104,7 @@ class ConversionDetectsAndConvertsUiTest extends AbstractUiTest
 		assertTrue(target.exists(), "the converted key must be written");
 		assertTrue(Files.readString(target.toPath()).contains("BEGIN PRIVATE KEY"),
 			"PKCS#8 is what Java reads, and it says so in its header");
-		assertEquals(keyPair.getPrivate(), KeyFiles.readPrivateKey(target),
+		assertEquals(keyPair.getPrivate(), AnyKeyFileReader.readPrivateKey(target),
 			"the converted file has to hold the same key");
 	}
 
