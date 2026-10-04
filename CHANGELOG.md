@@ -6,6 +6,12 @@ Version 8.7 (unreleased)
 
 CHANGED:
 
+- the vault's passphrase construction and the key file reader come from the libraries now:
+  PassphraseEnvelope in mystic-crypt 13.4 and AnyKeyFileReader in crypt-data 13.1 replace this
+  application's own PassphraseBox and KeyFiles, which moved there. The file format does not change,
+  and that is measured rather than assumed: a vault the published 8.6 writes opens in this build,
+  and one this build writes opens in 8.6, each direction pinned by its own test against the release
+  jar. crypt-data is declared directly from now on, for the host and the plugins alike (#490)
 - KeePassJava2 moves from 2.2.6 to 3.0.0: one KDBX implementation instead of four, the Jackson
   classes renamed (JacksonDatabase to KdbxDatabase and so on), no generics on Database, Group and
   Entry, the credentials now org.linguafranca.pwdb.format.KdbxCredentials, and the artifact
