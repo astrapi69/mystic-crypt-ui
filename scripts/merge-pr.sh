@@ -37,27 +37,60 @@ base="$(gh pr view "$PR" --json baseRefName -q .baseRefName)"
 [ "$base" = "$TARGET" ] || die "pull request #$PR targets '$base', but the merge target given here is
   '$TARGET' - one of the two is wrong, and merging would put the change where nobody is looking"
 
+# What a merge into TARGET waits for: the required checks of its branch protection, each until it
+# has REPORTED. Waiting only for the checks already in the rollup missed the ones not created yet -
+# codecov posts after the build, and astrapi69/mystic-crypt#183 was merged before its codecov result
+# existed (#493). A target without required checks is refused: nothing then says what green means.
+required_checks() {
+  gh api "repos/{owner}/{repo}/branches/$1/protection/required_status_checks" \
+    -q '.contexts[]' 2>/dev/null || true
+}
+required="$(required_checks "$TARGET")"
+if [ -z "$required" ] && [[ "$TARGET" == hotfix/* ]]; then
+  required="$(required_checks develop)"
+  [ -n "$required" ] && say "note: $TARGET has no protection of its own - waiting for develop's required checks"
+fi
+[ -n "$required" ] || die "'$TARGET' has no required checks in its branch protection - nothing says
+  what green means for a merge there, so this does not merge (#493)"
+say "required on $TARGET: $(printf '%s\n' "$required" | paste -sd, - | sed 's/,/, /g')"
+
+# One line per check in the rollup: name, whether it is done, whether it succeeded. Check runs carry
+# name/status/conclusion, commit statuses context/state - both are read, or a status would look
+# pending forever
+rollup() {
+  gh pr view "$PR" --json statusCheckRollup -q '.statusCheckRollup[] |
+    [(.name // .context),
+     (if .status then (.status == "COMPLETED") else ((.state // "PENDING") | IN("PENDING", "EXPECTED") | not) end),
+     ((.conclusion // .state) == "SUCCESS")] | @tsv'
+}
+
 say "waiting for the checks on #$PR (up to $((WAIT_SECONDS / 60)) minutes)"
 waited=0
 while :; do
-  pending="$(gh pr view "$PR" --json statusCheckRollup \
-    -q '[.statusCheckRollup[] | select(.status != "COMPLETED")] | length')"
-  [ "$pending" = "0" ] && break
-  [ "$waited" -ge "$WAIT_SECONDS" ] && die "still $pending check(s) running after ${waited}s - not merging"
+  lines="$(rollup)"
+  running="$(printf '%s\n' "$lines" | awk -F'\t' '$1 != "" && $2 == "false" {print $1}' | paste -sd, -)"
+  unreported=""
+  while IFS= read -r check; do
+    [ -n "$check" ] || continue
+    printf '%s\n' "$lines" | awk -F'\t' -v c="$check" '$1 == c && $2 == "true" {found=1} END {exit !found}' \
+      || unreported="${unreported:+$unreported, }$check"
+  done <<< "$required"
+  [ -z "$running" ] && [ -z "$unreported" ] && break
+  [ "$waited" -ge "$WAIT_SECONDS" ] && die "after ${waited}s - still running: ${running:-none};
+  required but not reported: ${unreported:-none} - not merging"
   sleep "$POLL_SECONDS"
   waited=$((waited + POLL_SECONDS))
 done
 
-failed="$(gh pr view "$PR" --json statusCheckRollup \
-  -q '[.statusCheckRollup[] | select(.conclusion != "SUCCESS")] | map(.name) | join(", ")')"
+failed="$(printf '%s\n' "$lines" | awk -F'\t' '$1 != "" && $3 == "false" {print $1}' | paste -sd, -)"
 if [ -n "$failed" ]; then
   gh pr checks "$PR" || true
   die "these checks are not SUCCESS: $failed"
 fi
 
-total="$(gh pr view "$PR" --json statusCheckRollup -q '.statusCheckRollup | length')"
+total="$(printf '%s\n' "$lines" | awk -F'\t' '$1 != ""' | wc -l)"
 [ "$total" -gt 0 ] || die "#$PR reports no checks at all - a pull request nothing ran on is not green"
-say "all $total checks green"
+say "all $total checks green, the required ones among them"
 
 gh pr merge "$PR" --merge --delete-branch
 
