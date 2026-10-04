@@ -64,16 +64,20 @@ jobs:
         # 1m24s locally for all thirteen, against a twelve-minute job (#333).
         run: xvfb-run -a --server-args="-screen 0 1920x1080x24" make plugins
 
-      - name: Read the release a vault has to stay readable in
-        # gradle.properties is the one place the number lives; the cache key needs it here (#402)
+      - name: Read the releases a vault has to stay readable in
+        # gradle.properties is the one place the numbers live; the cache key needs them here: the
+        # format compatibility release (#402) and the last one with the application's own envelope
+        # (#490)
         id: compatibility
-        run: echo "version=$(sed -n 's/^formatCompatibilityRelease=//p' gradle.properties)" >> "$GITHUB_OUTPUT"
-      - name: Cache that release's application jar
+        run: |
+          echo "version=$(sed -n 's/^formatCompatibilityRelease=//p' gradle.properties)" >> "$GITHUB_OUTPUT"
+          echo "envelope=$(sed -n 's/^envelopeMoveRelease=//p' gradle.properties)" >> "$GITHUB_OUTPUT"
+      - name: Cache those releases' application jars
         uses: actions/cache@v4
         with:
           path: ~/.cache/mystic-crypt-ui/release-jars
-          key: release-jar-${{ steps.compatibility.outputs.version }}
-      - name: Fetch that release's application jar
+          key: release-jar-${{ steps.compatibility.outputs.version }}-${{ steps.compatibility.outputs.envelope }}
+      - name: Fetch those releases' application jars
         # the installer as users downloaded it, checked against its published sha256, the jar taken
         # out of its pack. VaultOpensInTheLastReleaseTest opens a vault this build writes with it,
         # and fails here in CI when the jar is missing rather than skipping (#402)
