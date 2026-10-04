@@ -87,6 +87,18 @@ public class PqcSignaturePanel extends JPanel
 	private final JMTextArea txtSignature = new JMTextArea(5, 60);
 	private final JLabel lblResult = new JLabel(NO_RESULT_YET);
 
+	/**
+	 * Held as a field because it is switched off while an algorithm is chosen that this tool cannot
+	 * generate a key for (#488)
+	 */
+	private final JButton btnGenerate = button("btnGenerate", "Generate key pair",
+		event -> onGenerate(), SignatureMessages.getString("signature.tooltip.generate",
+			"generates a throwaway key pair for the selected algorithm - only Ed25519, "
+				+ "ML-DSA and SLH-DSA can be generated here, RSA/ECDSA/DSA need a key file"));
+
+	/** Whether the result line currently holds the reason the generate button is off */
+	private boolean resultIsTheGenerateReason;
+
 	public PqcSignaturePanel()
 	{
 		// one layout for every tool window, so this one looks like the one next to it: labels in a
@@ -171,17 +183,43 @@ public class PqcSignaturePanel extends JPanel
 		txtSignature
 			.setPropertyModel(LambdaModel.of(modelObject::getSignature, modelObject::setSignature));
 		showResult(NO_RESULT_YET);
+		cmbAlgorithm.addActionListener(event -> showWhetherAKeyCanBeGenerated());
+		showWhetherAKeyCanBeGenerated();
+	}
+
+	/**
+	 * Keeps the generate button in step with the chosen algorithm.
+	 * <p>
+	 * The dropdown offers the classical algorithms deliberately - an RSA key that came from a key
+	 * store signs and verifies here - but this tool generates only the Ed25519, ML-DSA and SLH-DSA
+	 * families. Pressing generate with a classical one selected could answer nothing but a refusal,
+	 * so the offer is withdrawn where it cannot be met, and the reason is on screen before the
+	 * press rather than after it (#488)
+	 */
+	private void showWhetherAKeyCanBeGenerated()
+	{
+		String algorithm = (String)cmbAlgorithm.getSelectedItem();
+		boolean canBeGenerated = algorithm == null
+			|| SignatureSupport.canGenerateKeyPair(algorithm);
+		btnGenerate.setEnabled(canBeGenerated);
+		if (!canBeGenerated)
+		{
+			showResult(algorithm + ": " + SignatureMessages.getString("signature.result.key.file.needed",
+				"a key for this algorithm has to come from a file - this tool generates only the "
+					+ "Ed25519, ML-DSA and SLH-DSA families"));
+			resultIsTheGenerateReason = true;
+		}
+		else if (resultIsTheGenerateReason)
+		{
+			showResult(NO_RESULT_YET);
+		}
 	}
 
 	private void layoutComponents()
 	{
 		add(new JLabel("Algorithm:"));
 		add(cmbAlgorithm, ToolForm.FIELD);
-		add(ToolForm.buttons(button("btnGenerate", "Generate key pair", event -> onGenerate(),
-			SignatureMessages.getString("signature.tooltip.generate",
-				"generates a throwaway key pair for the selected algorithm - only Ed25519, "
-					+ "ML-DSA and SLH-DSA can be generated here, RSA/ECDSA/DSA need a key file"))),
-			ToolForm.BUTTON_ROW);
+		add(ToolForm.buttons(btnGenerate), ToolForm.BUTTON_ROW);
 
 		add(new JLabel("Private key file:"));
 		add(fileRow(txtPrivateKeyFile,
@@ -446,6 +484,7 @@ public class PqcSignaturePanel extends JPanel
 	{
 		modelObject.setResultText(resultText);
 		lblResult.setText(resultText);
+		resultIsTheGenerateReason = false;
 	}
 
 	private void onBrowse(JMTextField target)
