@@ -65,6 +65,7 @@ dependencies {
     // the round-trip test drives the key generation + hex encrypt/decrypt library calls headlessly
     testImplementation "org.junit.jupiter:junit-jupiter:5.11.4"
     testImplementation libs.mystic.crypt
+    testImplementation libs.crypt.data
     testImplementation "io.github.astrapi69:randomizer:10.4"
     testImplementation "org.bouncycastle:bcpkix-jdk18on:1.85"
     testRuntimeOnly "org.junit.platform:junit-platform-launcher"

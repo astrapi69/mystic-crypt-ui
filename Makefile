@@ -9,6 +9,7 @@ JAR := $(shell find build/libs -maxdepth 1 -name '*-all.jar' 2>/dev/null | head 
 # the published release a vault this build writes has to stay readable in (#402); gradle.properties
 # is the one place the number lives
 RELEASE_JAR_VERSION := $(shell sed -n 's/^formatCompatibilityRelease=//p' gradle.properties)
+ENVELOPE_RELEASE_JAR_VERSION := $(shell sed -n 's/^envelopeMoveRelease=//p' gradle.properties)
 
 PLUGIN_OBFUSCATION_DIR := plugins/obfuscation-plugin
 PLUGIN_CHECKSUM_DIR := plugins/checksum-plugin
@@ -95,12 +96,13 @@ test-fast: release-jar-if-reachable
 # cached per version. A failure here fails the target: CI and the release gate must not run the
 # compatibility test without it (#402)
 release-jar:
-	./scripts/fetch-release-jar.sh $(RELEASE_JAR_VERSION)
+	./scripts/fetch-release-jar.sh $(RELEASE_JAR_VERSION) && ./scripts/fetch-release-jar.sh $(ENVELOPE_RELEASE_JAR_VERSION)
 
 # the same for a local run, where no network is not an error: the compatibility test then skips and
 # says why (#402)
 release-jar-if-reachable:
 	@./scripts/fetch-release-jar.sh $(RELEASE_JAR_VERSION) || echo "==> release jar $(RELEASE_JAR_VERSION) not fetched; VaultOpensInTheLastReleaseTest will skip locally (in CI it fails)"
+	@./scripts/fetch-release-jar.sh $(ENVELOPE_RELEASE_JAR_VERSION) || echo "==> release jar $(ENVELOPE_RELEASE_JAR_VERSION) not fetched; TheEnvelopeMoveKeepsTheVaultFormatTest will skip locally (in CI it fails)"
 
 # merges a pull request the way the rules describe, stopping at the first step that fails (#324)
 # TARGET defaults to develop; a hotfix pull request names its branch, e.g. TARGET=hotfix/8.5.1 (#395)

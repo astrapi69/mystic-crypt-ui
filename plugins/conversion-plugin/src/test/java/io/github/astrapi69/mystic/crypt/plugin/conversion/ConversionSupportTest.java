@@ -56,7 +56,7 @@ import io.github.astrapi69.crypt.data.factory.KeyPairFactory;
 import io.github.astrapi69.crypt.data.key.writer.CertificateWriter;
 import io.github.astrapi69.crypt.data.key.writer.PrivateKeyWriter;
 import io.github.astrapi69.crypt.data.key.writer.PublicKeyWriter;
-import io.github.astrapi69.mystic.crypt.crypto.KeyFiles;
+import io.github.astrapi69.crypt.data.key.reader.AnyKeyFileReader;
 
 /**
  * Tests of working out what a key file holds rather than being told, and of converting it between
@@ -173,7 +173,7 @@ class ConversionSupportTest
 		ConversionSupport.derToPem(der, backToPem);
 
 		assertTrue(Files.readString(backToPem.toPath()).contains("BEGIN"));
-		assertEquals(original, KeyFiles.readPrivateKey(backToPem),
+		assertEquals(original, AnyKeyFileReader.readPrivateKey(backToPem),
 			"the key has to survive the way there and back");
 	}
 
@@ -191,7 +191,7 @@ class ConversionSupportTest
 
 		assertEquals(PemType.PRIVATE_KEY, ConversionSupport.kindOf(pkcs8).pemType(),
 			"PKCS#8 is what Java reads and writes, and it says so in its header");
-		assertEquals(original, KeyFiles.readPrivateKey(pkcs8), "it has to be the same key");
+		assertEquals(original, AnyKeyFileReader.readPrivateKey(pkcs8), "it has to be the same key");
 	}
 
 	@Test
@@ -208,7 +208,7 @@ class ConversionSupportTest
 
 		assertEquals(PemType.RSA_PRIVATE_KEY, ConversionSupport.kindOf(pkcs1).pemType(),
 			"PKCS#1 is what openssl and nginx expect, and it names the algorithm in its header");
-		assertEquals(original, KeyFiles.readPrivateKey(pkcs1),
+		assertEquals(original, AnyKeyFileReader.readPrivateKey(pkcs1),
 			"a key converted there and back has to stay the same key");
 	}
 
@@ -339,7 +339,7 @@ class ConversionSupportTest
 
 		assertFalse("-----BEGIN PRIVATE KEY-----".equals(Files.readAllLines(pkcs1.toPath()).get(0)),
 			algorithm + " has a traditional form, so the generic PKCS#8 label is the wrong answer");
-		assertEquals(original, KeyFiles.readPrivateKey(pkcs1), "it has to be the same key");
+		assertEquals(original, AnyKeyFileReader.readPrivateKey(pkcs1), "it has to be the same key");
 	}
 
 	/**

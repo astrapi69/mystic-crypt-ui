@@ -34,8 +34,8 @@ import javax.crypto.SecretKey;
 import io.github.astrapi69.crypt.api.algorithm.SunJCEAlgorithm;
 import io.github.astrapi69.crypt.api.algorithm.compound.CompoundAlgorithm;
 import io.github.astrapi69.crypt.data.model.CryptModel;
-import io.github.astrapi69.mystic.crypt.crypto.PassphraseBox;
 import io.github.astrapi69.mystic.crypt.file.PBEFileDecryptor;
+import io.github.astrapi69.mystic.crypt.pw.PassphraseEnvelope;
 import io.github.astrapi69.mystic.crypt.secret.SecretBuffers;
 
 /**
@@ -80,10 +80,10 @@ public final class PasswordVaultFormat
 	public static final byte[] MAGIC = "MCRDB2".getBytes(StandardCharsets.US_ASCII);
 
 	/** The length of the salt that goes into the key derivation */
-	public static final int SALT_LENGTH = PassphraseBox.SALT_LENGTH;
+	public static final int SALT_LENGTH = PassphraseEnvelope.SALT_LENGTH;
 
 	/** How many rounds the key derivation costs for a file written today */
-	public static final int ITERATIONS = PassphraseBox.ITERATIONS;
+	public static final int ITERATIONS = PassphraseEnvelope.ITERATIONS;
 
 	private PasswordVaultFormat()
 	{
@@ -98,7 +98,7 @@ public final class PasswordVaultFormat
 	 */
 	public static boolean isCurrentFormat(final byte[] fileContent)
 	{
-		return PassphraseBox.hasMagic(fileContent, MAGIC);
+		return PassphraseEnvelope.hasMagic(fileContent, MAGIC);
 	}
 
 	/**
@@ -117,7 +117,7 @@ public final class PasswordVaultFormat
 	public static SecretKey deriveKey(final String password, final byte[] salt,
 		final int iterations) throws Exception
 	{
-		return PassphraseBox.deriveKey(password, salt, iterations);
+		return PassphraseEnvelope.deriveKey(password, salt, iterations);
 	}
 
 	/**
@@ -133,7 +133,7 @@ public final class PasswordVaultFormat
 	 */
 	public static byte[] encrypt(final String xml, final String password) throws Exception
 	{
-		return PassphraseBox.encrypt(MAGIC, xml.getBytes(StandardCharsets.UTF_8), password);
+		return PassphraseEnvelope.encrypt(MAGIC, xml.getBytes(StandardCharsets.UTF_8), password);
 	}
 
 	/**
@@ -154,7 +154,7 @@ public final class PasswordVaultFormat
 		byte[] plaintext = SecretBuffers.toUtf8(xml);
 		try
 		{
-			return PassphraseBox.encrypt(MAGIC, plaintext, password);
+			return PassphraseEnvelope.encrypt(MAGIC, plaintext, password);
 		}
 		finally
 		{
@@ -181,7 +181,7 @@ public final class PasswordVaultFormat
 		{
 			return decryptLegacy(applicationFile, password);
 		}
-		return new String(PassphraseBox.decrypt(MAGIC, fileContent, password),
+		return new String(PassphraseEnvelope.decrypt(MAGIC, fileContent, password),
 			StandardCharsets.UTF_8);
 	}
 
@@ -204,7 +204,7 @@ public final class PasswordVaultFormat
 		{
 			return decryptLegacy(applicationFile, password);
 		}
-		byte[] plaintext = PassphraseBox.decrypt(MAGIC, fileContent, password);
+		byte[] plaintext = PassphraseEnvelope.decrypt(MAGIC, fileContent, password);
 		try
 		{
 			return SecretBuffers.fromUtf8(plaintext);

@@ -33,7 +33,7 @@ import java.util.List;
 
 import io.github.astrapi69.crypt.api.algorithm.key.KeyPairGeneratorAlgorithm;
 import io.github.astrapi69.crypt.data.factory.SignatureFactory;
-import io.github.astrapi69.mystic.crypt.crypto.KeyFiles;
+import io.github.astrapi69.crypt.data.key.reader.AnyKeyFileReader;
 import io.github.astrapi69.mystic.crypt.key.Ed25519Signer;
 import io.github.astrapi69.mystic.crypt.key.Ed25519Verifier;
 import io.github.astrapi69.mystic.crypt.key.MlDsaSigner;
@@ -152,7 +152,7 @@ public final class SignatureSupport
 	 */
 	public static PrivateKey readPrivateKey(final java.io.File file) throws Exception
 	{
-		return KeyFiles.readPrivateKey(file);
+		return AnyKeyFileReader.readPrivateKey(file);
 	}
 
 	/**
@@ -167,7 +167,7 @@ public final class SignatureSupport
 	 */
 	public static PublicKey readPublicKey(final java.io.File file) throws Exception
 	{
-		return KeyFiles.readPublicKey(file);
+		return AnyKeyFileReader.readPublicKey(file);
 	}
 
 	/** Whether the given name is a classical signature algorithm rather than one of the families */

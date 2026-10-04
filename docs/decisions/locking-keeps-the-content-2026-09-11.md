@@ -35,7 +35,8 @@ Wiped when the workspace locks:
 | the private key of a key-file vault | `KeyModel.encoded` | for a key-only vault this is not the second way in, it is the only one |
 | the system clipboard | | cleared on lock since #237 - and the one entry here with a clock of its own, below |
 
-The derived key needed no change: it is recomputed per operation inside `PassphraseBox.deriveKey` and
+The derived key needed no change: it is recomputed per operation inside `PassphraseEnvelope.deriveKey`
+(mystic-crypt; `PassphraseBox.deriveKey` in this application when this was written, #490) and
 is never held in a field. That was measured before the change, not assumed.
 
 Left in place when the workspace locks: the tree, the entries with all six of their character fields,

@@ -100,5 +100,12 @@ tasks.withType(Test).configureEach {
     // arrived, and reads as a result (measured: 3 skipped in 858ms right after 'make release-jar')
     it.inputs.files(releaseJar).optional().withPropertyName('releaseJar')
         .withPathSensitivity(PathSensitivity.NONE)
+    // the second release jar: the last release that sealed with the application's own envelope,
+    // which TheEnvelopeMoveKeepsTheVaultFormatTest writes and reads against (#490)
+    it.systemProperty "mystic.crypt.ui.envelope.release.version", envelopeMoveRelease
+    def envelopeReleaseJar = "${releaseJarsRoot}/${envelopeMoveRelease}/mystic-crypt-ui-${envelopeMoveRelease}-app.jar"
+    it.systemProperty "mystic.crypt.ui.envelope.release.jar", envelopeReleaseJar
+    it.inputs.files(envelopeReleaseJar).optional().withPropertyName('envelopeReleaseJar')
+        .withPathSensitivity(PathSensitivity.NONE)
     it.inputs.property('ranOnGitHubActions', System.getenv('GITHUB_ACTIONS') == 'true')
 }

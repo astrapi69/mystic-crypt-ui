@@ -55,7 +55,7 @@ import io.github.astrapi69.crypt.api.algorithm.key.KeyPairGeneratorAlgorithm;
 import io.github.astrapi69.crypt.api.key.KeyFileFormat;
 import io.github.astrapi69.crypt.api.key.KeyFormat;
 import io.github.astrapi69.crypt.data.factory.KeyPairFactory;
-import io.github.astrapi69.mystic.crypt.crypto.KeyFiles;
+import io.github.astrapi69.crypt.data.key.reader.AnyKeyFileReader;
 
 /**
  * Tests of what the key generation tool produces: a key on the curve that was asked for, a
@@ -206,7 +206,7 @@ class KeygenSupportTest
 				pem.lines().findFirst().orElse(""));
 			assertFalse(pem.contains("BEGIN RSA PRIVATE KEY"));
 		}
-		assertEquals(keyPair.getPrivate(), KeyFiles.readPrivateKey(file),
+		assertEquals(keyPair.getPrivate(), AnyKeyFileReader.readPrivateKey(file),
 			"whatever was written has to be readable again, and be the same key");
 	}
 
@@ -255,7 +255,7 @@ class KeygenSupportTest
 
 		KeygenSupport.writePrivateKey(keyPair.getPrivate(), file, KeyFormat.PKCS_8, saveFormat);
 
-		assertEquals(keyPair.getPrivate(), KeyFiles.readPrivateKey(file),
+		assertEquals(keyPair.getPrivate(), AnyKeyFileReader.readPrivateKey(file),
 			"the key written for " + algorithm + " as " + saveFormat
 				+ " must read back as the key that was generated");
 	}

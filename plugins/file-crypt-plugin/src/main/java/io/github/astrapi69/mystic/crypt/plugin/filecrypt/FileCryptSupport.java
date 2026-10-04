@@ -30,7 +30,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Base64;
 
-import io.github.astrapi69.mystic.crypt.crypto.PassphraseBox;
+import io.github.astrapi69.mystic.crypt.pw.PassphraseEnvelope;
 
 /**
  * Encrypting and decrypting a file or a piece of text with a passphrase, without any user
@@ -73,7 +73,7 @@ public final class FileCryptSupport
 		}
 		try (java.io.InputStream in = Files.newInputStream(file.toPath()))
 		{
-			return PassphraseBox.hasMagic(in.readNBytes(MAGIC.length), MAGIC);
+			return PassphraseEnvelope.hasMagic(in.readNBytes(MAGIC.length), MAGIC);
 		}
 	}
 
@@ -125,7 +125,7 @@ public final class FileCryptSupport
 	{
 		requireUsable(source, passphrase);
 		File encryptedFile = target != null ? target : defaultEncryptedFile(source);
-		byte[] encrypted = PassphraseBox.encrypt(MAGIC, Files.readAllBytes(source.toPath()),
+		byte[] encrypted = PassphraseEnvelope.encrypt(MAGIC, Files.readAllBytes(source.toPath()),
 			passphrase);
 		writeNewFile(encryptedFile.toPath(), encrypted);
 		return encryptedFile;
@@ -150,7 +150,7 @@ public final class FileCryptSupport
 	{
 		requireUsable(source, passphrase);
 		File decryptedFile = target != null ? target : defaultDecryptedFile(source);
-		byte[] decrypted = PassphraseBox.decrypt(MAGIC, Files.readAllBytes(source.toPath()),
+		byte[] decrypted = PassphraseEnvelope.decrypt(MAGIC, Files.readAllBytes(source.toPath()),
 			passphrase);
 		writeNewFile(decryptedFile.toPath(), decrypted);
 		return decryptedFile;
@@ -171,7 +171,7 @@ public final class FileCryptSupport
 	{
 		requirePassphrase(passphrase);
 		return Base64.getEncoder().encodeToString(
-			PassphraseBox.encrypt(MAGIC, text.getBytes(StandardCharsets.UTF_8), passphrase));
+			PassphraseEnvelope.encrypt(MAGIC, text.getBytes(StandardCharsets.UTF_8), passphrase));
 	}
 
 	/**
@@ -199,7 +199,7 @@ public final class FileCryptSupport
 			throw new IllegalArgumentException(
 				"this is not something this tool encrypted: it is not even Base64", exception);
 		}
-		return new String(PassphraseBox.decrypt(MAGIC, content, passphrase), StandardCharsets.UTF_8);
+		return new String(PassphraseEnvelope.decrypt(MAGIC, content, passphrase), StandardCharsets.UTF_8);
 	}
 
 	private static void requireUsable(final File source, final String passphrase)

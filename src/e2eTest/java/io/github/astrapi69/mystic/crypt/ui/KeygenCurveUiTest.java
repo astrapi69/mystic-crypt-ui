@@ -36,8 +36,8 @@ import org.assertj.swing.fixture.FrameFixture;
 import org.junit.jupiter.api.Test;
 
 import io.github.astrapi69.crypt.api.algorithm.key.KeyPairGeneratorAlgorithm;
+import io.github.astrapi69.crypt.data.key.reader.AnyKeyFileReader;
 import io.github.astrapi69.mystic.crypt.TestPasswords;
-import io.github.astrapi69.mystic.crypt.crypto.KeyFiles;
 
 /**
  * Functional end-to-end test of generating an EC key on a chosen curve: a certificate or a wallet
@@ -76,7 +76,7 @@ class KeygenCurveUiTest extends AbstractUiTest
 
 		File publicKeyFile = new File(tempHome, "generated-public.pem");
 		Files.writeString(publicKeyFile.toPath(), publicKeyPem);
-		PublicKey publicKey = KeyFiles.readPublicKey(publicKeyFile);
+		PublicKey publicKey = AnyKeyFileReader.readPublicKey(publicKeyFile);
 
 		assertEquals("EC", publicKey.getAlgorithm());
 		assertEquals("secp256k1", curveOf(publicKey),
