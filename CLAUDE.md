@@ -23,6 +23,8 @@ new CLI capability is built in the library first. Vault format: versioned
   plus every plugin (the plugins depend on crypt-data directly, #480)
 - `make build-with-plugins` (alias `make bwp`) — `build` + `plugins-install` together
 - `make run` / `make bootRun` — run the app
+- `make run-isolated` — the development build and its plugins in a profile of their own
+  (`ISOLATED_HOME`, default `~/mystic-crypt-ui-dev`), never touching the installed release (#498)
 - `make spotless-java` — format before committing
 - `make install-hooks` — point git at `.githooks` (run once per clone/worktree)
 - `make izpack-installer` — installer

@@ -27,7 +27,7 @@ PLUGIN_SECRET_SHARING_DIR := plugins/secret-sharing-plugin
 PLUGIN_LETHENON_DIR := plugins/lethenon-plugin
 PLUGIN_INSTALL_DIR := $(HOME)/.config/mystic-crypt-ui/plugins
 
-.PHONY: merge-pr test-fast release-jar release-jar-if-reachable build build-full build-with-plugins bwp run all clean test test-e2e test-e2e-demo \
+.PHONY: merge-pr test-fast release-jar release-jar-if-reachable build build-full build-with-plugins bwp run run-isolated all clean test test-e2e test-e2e-demo \
 	bootRun clean-build-installer izpack-installer izpack-installer-signed \
 	dependencies dependency-updates jacoco-coverage jacoco-report jar javadoc \
 	license-format publish-local spotless-java spotless-misc tag-release \
@@ -80,6 +80,15 @@ run:
 	fi; \
 	echo "==> Starting $$jar"; \
 	"$(JAVA_HOME)/bin/java" --sun-misc-unsafe-memory-access=allow -jar "$$jar"
+
+# the development build and the internal plugins built from this checkout, started in a profile of
+# its own: user.home points at ISOLATED_HOME, so its configuration and plugins directory is
+# ISOLATED_HOME/.config/mystic-crypt-ui and never the installed release's (#498). A vault is opened
+# where it lies; the profile holds settings, the sign-in memory and the plugins
+ISOLATED_HOME ?= $(HOME)/mystic-crypt-ui-dev
+run-isolated: plugins
+	JAVA_HOME=$(JAVA_HOME) ./gradlew withAllDependendiesJar $(GRADLE_FLAGS)
+	JAVA_HOME=$(JAVA_HOME) ./scripts/run-isolated.sh "$(ISOLATED_HOME)"
 
 # build then run - always launches exactly what was just built, with the standard internal
 # plugins built and installed into the app's plugins directory beforehand
