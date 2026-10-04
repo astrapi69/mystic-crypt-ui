@@ -34,6 +34,13 @@ ADDED:
 CHANGED:
 - build only: the remote publishing repository is gone. It named the shut-down OSSRH staging endpoint for a release, this application has never been on Maven Central (measured 404), and no release ever went there. The only publish left is `make publish-local`, which the plugin builds use; `make publish` and the OSSRH secrets in CI went with it. Snapshots of the libraries still resolve from the Central Portal snapshot repository (#453)
 
+FIXED:
+
+- the signature tool no longer offers to generate a key it cannot generate: with RSA, ECDSA or DSA
+  chosen, Generate key pair is off and the panel says why before it is pressed - the key has to
+  come from a file. Those algorithms stay in the list, because a key loaded from a file signs and
+  verifies with them; choosing Ed25519, ML-DSA or SLH-DSA turns the button back on (#488)
+
 Version 8.6
 -------------
 
