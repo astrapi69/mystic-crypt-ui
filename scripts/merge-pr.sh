@@ -92,9 +92,27 @@ total="$(printf '%s\n' "$lines" | awk -F'\t' '$1 != ""' | wc -l)"
 [ "$total" -gt 0 ] || die "#$PR reports no checks at all - a pull request nothing ran on is not green"
 say "all $total checks green, the required ones among them"
 
-gh pr merge "$PR" --merge --delete-branch
+# Merged without --delete-branch: when the local branch it deletes is the one checked out, gh switches
+# to the base branch and pulls it - HEAD moved, and the running script file was replaced under bash in
+# the middle of the run (#496). The remote head branch goes through the API instead, which touches no
+# checkout; the local branch is left alone, because deleting it is the person's decision and leaving
+# it costs nothing. This repository also deletes head branches on merge by itself, so the branch may
+# be gone already, or go while this runs - what is reported is what the API says afterwards.
+head="$(gh pr view "$PR" --json headRefName -q .headRefName)"
+cross="$(gh pr view "$PR" --json isCrossRepository -q .isCrossRepository)"
+gh pr merge "$PR" --merge
+if [ "$cross" = "true" ]; then
+  say "the head branch '$head' lives in a fork - not deleted from here"
+else
+  gh api -X DELETE "repos/{owner}/{repo}/git/refs/heads/$head" --silent 2>/dev/null || true
+  if gh api "repos/{owner}/{repo}/branches/$head" --silent 2>/dev/null; then
+    say "note: the remote branch '$head' is still there - delete it by hand if it is not needed"
+  else
+    say "the remote branch '$head' is gone; the local one is left as it is"
+  fi
+fi
 
-# The worktree is left exactly where it was (#340). This used to end with
+# The worktree is left exactly where it was (#340, #496: also when it stands on the merged branch). This used to end with
 # 'git checkout develop && git pull --ff-only', which is the right sequence and the wrong place:
 # the script can run for as long as CI takes, and while it does, whoever is working in this
 # checkout is on their own branch. Changing HEAD under them puts their next commit on the target
