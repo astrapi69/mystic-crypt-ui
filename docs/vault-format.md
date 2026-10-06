@@ -364,8 +364,8 @@ to carry the new marker, shuts the application down, signs in again and checks t
 there.
 
 Run them with `make test` (everything) or `make test-e2e` (the `io.github.astrapi69.mystic.crypt.ui.*`
-suites). The e2e suite needs the Xvfb harness described in `.claude/rules/lessons-learned.md`;
-running it against a live `:0` display hangs.
+suites). The e2e suite runs through the Xvfb harness described in
+`.claude/rules/lessons-learned.md`, which brings its own display (#504).
 
 `PassphraseEnvelope` itself has no test class of its own. It is covered through `PasswordVaultFormatTest`
 and through the file-crypt plugin's tests, which is worth remembering when changing it: neither

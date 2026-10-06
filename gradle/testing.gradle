@@ -83,6 +83,11 @@ test {
         // clean result (quality-checks.md). This is the one place it can happen silently
         failOnNoMatchingTests = true
     }
+    // the tooling tests run the shell scripts themselves (E2eHarnessDisplayTest,
+    // CommitProvenanceCheckTest). A script is no input Gradle would see otherwise, so a change to it
+    // alone came back FROM-CACHE: measured on #504, where the old harness passed a test the new one
+    // was written for until the run was forced
+    inputs.files(fileTree('scripts')).withPropertyName('scripts').withPathSensitivity(PathSensitivity.RELATIVE)
     applyTestLogging(it)
 }
 

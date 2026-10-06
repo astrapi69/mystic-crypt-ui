@@ -176,16 +176,17 @@ In CI a display is provided explicitly (`.github/workflows/gradle.yml`):
   run: xvfb-run -a --server-args="-screen 0 1920x1080x24" ./gradlew build
 ```
 
-**Locally**, `.claude/rules/quality-checks.md` and `.claude/rules/lessons-learned.md` state
-the rule plainly: the full Swing e2e suite needs Xvfb plus fluxbox plus JDK 25 plus
-`forkEvery=1`, and running it against a live `:0` display hangs. The `make test-e2e`
-target itself does **not** start a display, and this repository contains no harness script
-that does; the virtual display has to be put in front of the command, the way CI does it.
+**Locally**, `make test-e2e` runs the suite through `scripts/e2e-harness.sh`, which starts an
+Xvfb of its own, starts fluxbox on it, verifies with `wmctrl` that the window manager answers, and
+stops both when the run ends (#322, #504). It does not use the display of the shell it is started
+from: on a desktop that display is the person's real screen, and a run there does not hang, it
+finishes with the robot typing on that screen. Only `make test-e2e-demo` uses the current display,
+through `E2E_USE_CURRENT_DISPLAY=1`.
 
-The test sources carry the counter-evidence of what happens when that rule is ignored.
-`AbstractUiTest` and `UiTestSpeed` both describe their environment as "this shared, live
-desktop display (no isolated Xvfb in this environment)", and both contain code that exists
-only to survive it:
+The test sources still carry the evidence of what running on a shared display costs, from before
+the harness brought its own. `AbstractUiTest` and `UiTestSpeed` both describe their environment as
+"this shared, live desktop display (no isolated Xvfb in this environment)", and both contain code
+that exists only to survive it:
 
 ```java
 /**

@@ -95,11 +95,22 @@ stays mandatory (nothing to react to after tagging).
 
 ## Run UI e2e tests locally with the Xvfb harness
 
-The full Swing e2e suite needs Xvfb + fluxbox + JDK 25 + `forkEvery=1`
-(`make test-e2e`). Running against the live `:0` display hangs. Start it through the target, never
-by hand: `scripts/e2e-harness.sh` waits until `wmctrl` gets an answer and aborts with a message if
-it does not. Without a window manager the suite does not fail, it waits in `ComponentDriver.focus` -
-40 minutes, once, with no output (#322).
+The full Swing e2e suite needs Xvfb + fluxbox + JDK 25 + `forkEvery=1` (`make test-e2e`). Start it
+through the target, never by hand: `scripts/e2e-harness.sh` starts an Xvfb of its own, starts
+fluxbox on it, waits until `wmctrl` gets an answer, and stops both when the run ends. Without a
+window manager the suite does not fail, it waits in `ComponentDriver.focus` - 40 minutes, once, with
+no output (#322).
+
+The display is the harness's own, not the one the shell happens to carry (#504). On a Wayland
+desktop the shell has `DISPLAY=:0`, XWayland answers there, a window manager owns it, and a run on it
+does not hang - it finishes, with the robot clicking and typing on the person's real desktop. That is
+what happened before the harness started its own display, and why "running against `:0` hangs" was
+never a safeguard. Only `make test-e2e-demo` runs on the current display, by setting
+`E2E_USE_CURRENT_DISPLAY=1`, because a demo is meant to be watched.
+
+The harness is not the only way into the UI suites: `check` and `jacocoTestReport` depend on them
+too, so `./gradlew build` and the make targets on top of it run them on the inherited display. That
+gap is its own issue, not something this rule closes.
 
 ## mystic-crypt simple obfuscation: `disentangle` is broken upstream
 

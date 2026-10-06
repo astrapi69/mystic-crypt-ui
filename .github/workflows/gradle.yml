@@ -28,7 +28,7 @@ jobs:
           distribution: 'temurin'
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v6
-      - name: Install Xvfb
+      - name: Install Xvfb and the e2e harness's tools
         # The refresh is the means, the install is the gate. apt-get update exits non-zero when ANY
         # configured repository fails, and the runner image ships third-party repositories this
         # build does not use - Google's served a Packages.gz whose hash did not match its own
@@ -38,9 +38,13 @@ jobs:
         #
         # Nothing is weakened: xvfb comes from Ubuntu's universe, and if it really cannot be
         # resolved the install below fails and names that, rather than somebody else's mirror.
+        #
+        # fluxbox, wmctrl and x11-utils (xdpyinfo) are what scripts/e2e-harness.sh needs, and
+        # E2eHarnessDisplayTest runs that script in the unit suite (#504). The suite itself still
+        # runs under xvfb-run below, not through the harness.
         run: |
           sudo apt-get update || echo "apt-get update reported errors; continuing to the install"
-          sudo apt-get install -y xvfb
+          sudo apt-get install -y xvfb fluxbox wmctrl x11-utils
       - name: Install KeePassXC
         # the KDBX round trip is measured with the program a user actually opens these files with,
         # not with our own model - a field our model does not carry would otherwise compare equal to

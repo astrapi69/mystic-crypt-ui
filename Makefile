@@ -115,17 +115,20 @@ merge-pr:
 	./scripts/merge-pr.sh $(PR) $(or $(TARGET),develop)
 
 # end-to-end UI tests (AssertJ-Swing) - fast mode (default): as fast as possible.
-# Both targets go through the harness script, which verifies that a window manager is actually
-# answering before a test starts: without one the suite does not fail, it hangs (#322).
+# Both targets go through the harness script, which runs the suite on an Xvfb of its own, never on
+# the display of the shell it is started from (#504), and verifies that a window manager is
+# actually answering before a test starts: without one the suite does not fail, it hangs (#322).
 # Both also build the plugins first, because a missing plugin zip now FAILS its tests instead of
 # skipping them (#333) - CI builds them before the suite for the same reason, and a target that
 # leaves 54 tests red by construction would only teach people to ignore them
 test-e2e: plugins
 	JAVA_HOME=$(JAVA_HOME) ./scripts/e2e-harness.sh e2eTest e2eLockTest e2eKdbxTest
 
-# end-to-end UI tests in demo mode: paced like a real user, watchable on screen
+# end-to-end UI tests in demo mode: paced like a real user, watchable on screen. The one target that
+# runs on the current display, by setting E2E_USE_CURRENT_DISPLAY=1 - watching is its whole point
+# (#504). Every other way into the harness gets a display of its own
 test-e2e-demo: plugins
-	JAVA_HOME=$(JAVA_HOME) ./scripts/e2e-harness.sh e2eTest --rerun e2eLockTest --rerun e2eKdbxTest --rerun -Dmystic.crypt.ui.test.mode=demo
+	E2E_USE_CURRENT_DISPLAY=1 JAVA_HOME=$(JAVA_HOME) ./scripts/e2e-harness.sh e2eTest --rerun e2eLockTest --rerun e2eKdbxTest --rerun -Dmystic.crypt.ui.test.mode=demo
 
 clean:
 	JAVA_HOME=$(JAVA_HOME) ./gradlew clean
