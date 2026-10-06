@@ -22,9 +22,9 @@ new CLI capability is built in the library first. Vault format: versioned
 - `make bump-check` — the pre-check before any crypt-data or mystic-crypt bump: host suites
   plus every plugin (the plugins depend on crypt-data directly, #480)
 - `make build-with-plugins` (alias `make bwp`) — `build` + `plugins-install` together
-- `make run` / `make bootRun` — run the app
-- `make run-isolated` — the development build and its plugins in a profile of their own
-  (`ISOLATED_HOME`, default `~/mystic-crypt-ui-dev`), never touching the installed release (#498)
+- `make run` (= `make run-isolated`) — builds the internal plugins and the host jar and starts the
+  development build in a profile of its own (`ISOLATED_HOME`, default `~/mystic-crypt-ui-dev`), never
+  touching the installed release (#498, #501); `make bootRun` runs through Gradle with the real profile
 - `make spotless-java` — format before committing
 - `make install-hooks` — point git at `.githooks` (run once per clone/worktree)
 - `make izpack-installer` — installer

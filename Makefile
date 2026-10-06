@@ -71,15 +71,10 @@ build-with-plugins: build plugins-install
 # shortcut alias for build-with-plugins
 bwp: build-with-plugins
 
-# run the most recently built jar - fails loudly if none exists yet
-run:
-	@jar=$$(find build/libs -maxdepth 1 -name '*-all.jar' -print -quit); \
-	if [ -z "$$jar" ]; then \
-		echo "No *-all.jar in build/libs - run 'make build' first." >&2; \
-		exit 1; \
-	fi; \
-	echo "==> Starting $$jar"; \
-	"$(JAVA_HOME)/bin/java" --sun-misc-unsafe-memory-access=allow -jar "$$jar"
+# the development build with its internal plugins, in a profile of its own - the same as
+# run-isolated below: it never reads or writes the installed release's ~/.config/mystic-crypt-ui, so
+# develop's plugins (Lethenon among them) show up here and stay away from the release (#501)
+run: run-isolated
 
 # the development build and the internal plugins built from this checkout, started in a profile of
 # its own: user.home points at ISOLATED_HOME, so its configuration and plugins directory is
