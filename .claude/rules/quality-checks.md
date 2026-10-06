@@ -10,8 +10,8 @@
 ```
 
 - Everyday gate: `make test`. Must stay green after every change.
-- E2E: `make test-e2e` — needs Xvfb + fluxbox + JDK 25 + forkEvery=1; running against a
-  live `:0` display hangs (see lessons-learned.md).
+- E2E: `make test-e2e` — needs Xvfb + fluxbox + JDK 25 + forkEvery=1; the harness starts its own
+  Xvfb and never runs on the desktop's display unless asked to (see lessons-learned.md, #504).
 - Mutation testing: `./gradlew pitest` (report: `build/reports/pitest`), CI via
   `mutation.yml`. Run nightly/before release, not per commit.
   Surviving mutants in critical code (crypto, vault format, key handling): add tests
