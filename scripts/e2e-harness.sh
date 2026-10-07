@@ -21,11 +21,17 @@
 # The command runs as a child, not through exec, so that the trap below stops what this script
 # started even when the command fails; its exit code is passed through unchanged.
 #
+# Every Gradle build that runs tests comes here too (#505): gradle/own-display.gradle runs this
+# script with scripts/hold-display.sh as the command, takes the display it reports, and gives it to
+# every test task. So './gradlew build', 'check', 'jacocoTestReport' and each plugin build run their
+# tests on a display of their own as well, not only the targets that call this script by name.
+#
 # Usage: scripts/e2e-harness.sh [gradle arguments...]   (default: e2eTest e2eLockTest e2eKdbxTest)
 # Environment:
-#   E2E_USE_CURRENT_DISPLAY=1  run on the inherited DISPLAY instead of an own Xvfb
-#   E2E_RUN_COMMAND            the command to run, ./gradlew by default (the seam the harness's own
-#                              test uses to run a stub instead of the suite)
+#   E2E_USE_CURRENT_DISPLAY=1  run on the inherited DISPLAY instead of an own Xvfb. The harness sets
+#                              it for the command it runs, whose display is then settled
+#   E2E_RUN_COMMAND            the command to run, ./gradlew by default. The build runs
+#                              scripts/hold-display.sh through it, the harness's own test a stub
 #   E2E_SCREEN                 the own Xvfb's screen, 1920x1200x24 by default
 #   E2E_WM_WAIT_SECONDS        how long to wait for the window manager, 15 by default
 set -euo pipefail
@@ -125,6 +131,11 @@ else
 fi
 
 if [ "$#" -eq 0 ]; then set -- e2eTest e2eLockTest e2eKdbxTest; fi
+# The command runs on a display this harness chose and checked - its own, or the one it was told to
+# use. It is told so: a Gradle build under the harness asks the harness once more for a display for
+# its test tasks (gradle/own-display.gradle, #505), and without this it would start a second Xvfb
+# next to this one instead of using it
+export E2E_USE_CURRENT_DISPLAY=1
 say "running on $DISPLAY: $RUN_COMMAND $*"
 set +e
 "$RUN_COMMAND" "$@"

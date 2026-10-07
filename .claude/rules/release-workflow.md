@@ -50,7 +50,7 @@ Prompt triggers: "release new version", "new release".
    is no remote publish since #453. So a bump that reddens CI in a signing, publishing or packaging task is
    this switch, not the release being wrong.
 5. **Full gate** (ALL mandatory; a red result aborts the release):
-   - `make build-full`, under the Xvfb harness — it runs the plugin builds, the packaging,
+   - `make build-full`, whose test tasks bring their own Xvfb (#505) — it runs the plugin builds, the packaging,
      EVERY test including the UI e2e suite, spotless and the license check. The plugins are
      part of it since #333: `./gradlew build` never built them, so the 54 end-to-end tests
      that install one skipped, and a release could be cut with every plugin feature

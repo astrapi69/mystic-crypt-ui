@@ -92,7 +92,7 @@ all: build-with-plugins run
 test: release-jar-if-reachable
 	JAVA_HOME=$(JAVA_HOME) ./gradlew test
 
-# the cheap local run: the unit suite only, no display needed (#319)
+# the cheap local run: the unit suite only, on a display the build starts itself (#319, #505)
 test-fast: release-jar-if-reachable
 	JAVA_HOME=$(JAVA_HOME) ./gradlew test
 
@@ -118,6 +118,7 @@ merge-pr:
 # Both targets go through the harness script, which runs the suite on an Xvfb of its own, never on
 # the display of the shell it is started from (#504), and verifies that a window manager is
 # actually answering before a test starts: without one the suite does not fail, it hangs (#322).
+# Every other target that runs tests gets the same display through gradle/own-display.gradle (#505).
 # Both also build the plugins first, because a missing plugin zip now FAILS its tests instead of
 # skipping them (#333) - CI builds them before the suite for the same reason, and a target that
 # leaves 54 tests red by construction would only teach people to ignore them

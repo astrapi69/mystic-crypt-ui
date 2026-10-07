@@ -1150,7 +1150,9 @@ for the internal frame. `PluginLoadingUiTest` is the complementary test: it prov
 discovered and that their menu items are present.
 
 Run them with `make test-e2e`; the suite runs through the Xvfb harness (Xvfb, fluxbox, JDK 25,
-`forkEvery=1`), which starts a display of its own rather than using the desktop's (#504).
+`forkEvery=1`), which starts a display of its own rather than using the desktop's (#504). A plugin
+build's own unit tests get the same: its `build.gradle` applies `../../gradle/own-display.gradle`,
+and `EveryTestTaskRunsOnTheBuildsOwnDisplayTest` fails when a plugin build does not (#505).
 
 ---
 

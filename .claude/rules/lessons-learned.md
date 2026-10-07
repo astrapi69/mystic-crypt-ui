@@ -93,24 +93,20 @@ failure), then push and let CI run the real gate - react to what it reports inst
 the push on a local rerun. Exception: a release cut, where `release-workflow.md`'s full local gate
 stays mandatory (nothing to react to after tagging).
 
-## Run UI e2e tests locally with the Xvfb harness
+## UI tests run on the build's own display, never on the desktop's
 
-The full Swing e2e suite needs Xvfb + fluxbox + JDK 25 + `forkEvery=1` (`make test-e2e`). Start it
-through the target, never by hand: `scripts/e2e-harness.sh` starts an Xvfb of its own, starts
-fluxbox on it, waits until `wmctrl` gets an answer, and stops both when the run ends. Without a
-window manager the suite does not fail, it waits in `ComponentDriver.focus` - 40 minutes, once, with
-no output (#322).
+Every test task of every Gradle build here - host suites and each plugin build, whatever starts it
+(`make test`, `./gradlew build`, `make build-full`, `make plugins`) - borrows its display from
+`scripts/e2e-harness.sh` (`gradle/own-display.gradle`, #505). The harness starts an Xvfb of its own,
+starts fluxbox on it, waits until `wmctrl` answers, and stops both when the build ends: without a
+window manager the suite does not fail, it waits in `ComponentDriver.focus` - 40 minutes, once (#322).
+So the machine needs Xvfb, fluxbox, wmctrl and xdpyinfo for any test run.
 
-The display is the harness's own, not the one the shell happens to carry (#504). On a Wayland
-desktop the shell has `DISPLAY=:0`, XWayland answers there, a window manager owns it, and a run on it
-does not hang - it finishes, with the robot clicking and typing on the person's real desktop. That is
-what happened before the harness started its own display, and why "running against `:0` hangs" was
-never a safeguard. Only `make test-e2e-demo` runs on the current display, by setting
-`E2E_USE_CURRENT_DISPLAY=1`, because a demo is meant to be watched.
-
-The harness is not the only way into the UI suites: `check` and `jacocoTestReport` depend on them
-too, so `./gradlew build` and the make targets on top of it run them on the inherited display. That
-gap is its own issue, not something this rule closes.
+Never the display the shell carries. On a Wayland desktop that is `DISPLAY=:0`, XWayland answers, a
+window manager owns it, and a run there does not hang - it finishes, with the robot clicking and typing
+on the person's real screen. That happened (#504), and the paths around the harness kept doing it
+until #505. Only `make test-e2e-demo` runs on the current display, through `E2E_USE_CURRENT_DISPLAY=1`,
+because a demo is meant to be watched.
 
 ## mystic-crypt simple obfuscation: `disentangle` is broken upstream
 

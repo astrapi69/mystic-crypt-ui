@@ -29,8 +29,10 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.HashMap;
@@ -42,6 +44,7 @@ import java.util.regex.Pattern;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 import org.junit.jupiter.api.io.TempDir;
 
 /**
@@ -62,6 +65,12 @@ class E2eHarnessDisplayTest
 {
 
 	private static final File HARNESS = new File("scripts/e2e-harness.sh").getAbsoluteFile();
+
+	/** The command the build runs under the harness to borrow its display (#505) */
+	private static final File HOLD = new File("scripts/hold-display.sh").getAbsoluteFile();
+
+	/** The line the hold command reports the display on */
+	private static final String HANDED_OUT = "E2E_DISPLAY=";
 
 	/** What the harness prints for each process it starts, so the test can check they are gone */
 	private static final Pattern STARTED = Pattern
@@ -147,6 +156,60 @@ class E2eHarnessDisplayTest
 	}
 
 	@Test
+	@DisplayName("the command is told that its display is one it may use, so a build under the harness starts no second one")
+	void theCommandIsToldItsDisplayIsSettled(@TempDir File directory) throws Exception
+	{
+		Run run = runHarness(directory, Map.of("DISPLAY", ":0"), 0);
+
+		assertEquals(0, run.exit(), run.output());
+		assertEquals("1", run.optInSeen(), run.output());
+		assertEquals(ownDisplayOf(run), run.displaySeen(), run.output());
+	}
+
+	@Test
+	@DisplayName("the hold command hands the build the harness's display and keeps it until its input ends")
+	@Timeout(90)
+	void theHoldCommandHandsOutTheOwnDisplayUntilItsInputEnds(@TempDir File directory)
+		throws Exception
+	{
+		ProcessBuilder builder = new ProcessBuilder(HARNESS.getPath(), "hold").directory(directory)
+			.redirectErrorStream(true);
+		Map<String, String> processEnvironment = builder.environment();
+		processEnvironment.remove("E2E_USE_CURRENT_DISPLAY");
+		processEnvironment.put("DISPLAY", ":0");
+		processEnvironment.put("E2E_RUN_COMMAND", HOLD.getPath());
+		processEnvironment.put("TMPDIR", directory.getAbsolutePath());
+		Process harness = builder.start();
+		try
+		{
+			BufferedReader output = new BufferedReader(
+				new InputStreamReader(harness.getInputStream(), StandardCharsets.UTF_8));
+			StringBuilder transcript = new StringBuilder();
+			String handedOut = readUntilHandedOut(output, transcript);
+			Thread.sleep(1000);
+
+			assertTrue(harness.isAlive(),
+				"the display is held while the input is open: " + transcript);
+
+			harness.getOutputStream().close();
+			assertTrue(harness.waitFor(30, TimeUnit.SECONDS),
+				"the harness ends once the input ends: " + transcript);
+			transcript.append(
+				new String(harness.getInputStream().readAllBytes(), StandardCharsets.UTF_8));
+			Run run = new Run(harness.exitValue(), handedOut, "", transcript.toString());
+
+			assertEquals(0, run.exit(), run.output());
+			assertNotEquals(":0", handedOut, run.output());
+			assertEquals(ownDisplayOf(run), handedOut, run.output());
+			assertEverythingItStartedIsGone(run);
+		}
+		finally
+		{
+			harness.destroyForcibly();
+		}
+	}
+
+	@Test
 	@DisplayName("a failing command keeps its exit code, and the harness's Xvfb and window manager are gone afterwards")
 	void afterAFailingCommandEverythingItStartedIsGone(@TempDir File directory) throws Exception
 	{
@@ -176,9 +239,13 @@ class E2eHarnessDisplayTest
 		throws Exception
 	{
 		File seen = new File(directory, "display-seen");
+		File optInSeen = new File(directory, "opt-in-seen");
 		File stub = new File(directory, "stub-command.sh");
-		Files.writeString(stub.toPath(), "#!/usr/bin/env bash\nprintf '%s' \"${DISPLAY:-}\" > '"
-			+ seen.getAbsolutePath() + "'\nexit " + stubExit + "\n", StandardCharsets.UTF_8);
+		Files.writeString(stub.toPath(),
+			"#!/usr/bin/env bash\nprintf '%s' \"${DISPLAY:-}\" > '" + seen.getAbsolutePath()
+				+ "'\nprintf '%s' \"${E2E_USE_CURRENT_DISPLAY:-}\" > '"
+				+ optInSeen.getAbsolutePath() + "'\nexit " + stubExit + "\n",
+			StandardCharsets.UTF_8);
 		assertTrue(stub.setExecutable(true));
 
 		ProcessBuilder builder = new ProcessBuilder(HARNESS.getPath(), "e2eTest")
@@ -199,7 +266,27 @@ class E2eHarnessDisplayTest
 		String displaySeen = seen.exists()
 			? Files.readString(seen.toPath(), StandardCharsets.UTF_8)
 			: "<the command never ran>";
-		return new Run(process.exitValue(), displaySeen, output);
+		String optIn = optInSeen.exists()
+			? Files.readString(optInSeen.toPath(), StandardCharsets.UTF_8)
+			: "<the command never ran>";
+		return new Run(process.exitValue(), displaySeen, optIn, output);
+	}
+
+	/** Reads the harness's output until the hold command reports the display it was handed */
+	private static String readUntilHandedOut(BufferedReader output, StringBuilder transcript)
+		throws IOException
+	{
+		String line;
+		while ((line = output.readLine()) != null)
+		{
+			transcript.append(line).append('\n');
+			if (line.startsWith(HANDED_OUT))
+			{
+				return line.substring(HANDED_OUT.length());
+			}
+		}
+		throw new IllegalStateException(
+			"the harness ended without handing out a display: " + transcript);
 	}
 
 	/** An Xvfb the test owns, standing for a display the caller already has */
@@ -274,6 +361,6 @@ class E2eHarnessDisplayTest
 		throw new IllegalStateException("the test's own Xvfb reported no display number in 10s");
 	}
 
-	private record Run(int exit, String displaySeen, String output) {
+	private record Run(int exit, String displaySeen, String optInSeen, String output) {
 	}
 }
