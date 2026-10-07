@@ -1,0 +1,27 @@
+// The repositories of every internal plugin build, in one place (#508). Each plugin is a Gradle build
+// of its own, so each applies this file: apply from: '../../gradle/plugin-repositories.gradle'.
+//
+// The local repository is scoped. 'make publish-local' puts the HOST there, and by default that is
+// the only thing a plugin build may take from it: anything else - a library, a snapshot of the chain -
+// would shadow Central silently and compile the plugin against what one machine happens to hold
+// (#475).
+//
+// With -PuseMavenLocal the family's libraries come from there too. That is the pre-check before a
+// crypt-data or mystic-crypt release: the plugins depend on those libraries directly, so a breaking
+// change shows in them first (#480), and the check is only worth running while the candidate is
+// published locally and not yet on Central, where a version can never be replaced:
+//   make bump-check GRADLE_FLAGS=-PuseMavenLocal
+// The switch names itself on the command line, the same switch the host build takes, and it admits
+// the astrapi69 group and nothing else.
+repositories {
+    mavenLocal {
+        content {
+            if (providers.gradleProperty('useMavenLocal').isPresent()) {
+                includeGroup('io.github.astrapi69')
+            } else {
+                includeModule('io.github.astrapi69', 'mystic-crypt-ui')
+            }
+        }
+    }
+    mavenCentral()
+}

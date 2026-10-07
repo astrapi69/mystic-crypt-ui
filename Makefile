@@ -136,9 +136,11 @@ clean:
 
 # --- internal plugins ---
 
-# publish the host to the local Maven cache so the plugins can compile against the current API
+# publish the host to the local Maven cache so the plugins can compile against the current API.
+# GRADLE_FLAGS reach it like every plugin target: with -PuseMavenLocal the host has to resolve a
+# library candidate from the local repository as well, or it is built against Central's version (#508)
 publish-local:
-	JAVA_HOME=$(JAVA_HOME) ./gradlew publishToMavenLocal -x test
+	JAVA_HOME=$(JAVA_HOME) ./gradlew publishToMavenLocal -x test $(GRADLE_FLAGS)
 
 # build the internal obfuscation plugin zip (needs the host published locally first)
 plugin-obfuscation: publish-local
@@ -217,7 +219,9 @@ plugin-lethenon: publish-local
 # the host green and a plugin red - measured on the 13.3 bump (#480), where crypt-data 13.0's
 # refusal to write PKCS#1 for a key without a traditional form failed four cases in the keygen
 # plugin while the host's 570 unit tests passed. Pass -PuseMavenLocal through when the candidate is
-# only published locally:  make bump-check GRADLE_FLAGS=-PuseMavenLocal
+# only published locally:  make bump-check GRADLE_FLAGS=-PuseMavenLocal - the host and every plugin
+# build then take the family's libraries from the local repository (gradle/plugin-repositories.gradle,
+# #508), which is the point: the check runs before the candidate is on Central
 bump-check:
 	JAVA_HOME=$(JAVA_HOME) ./gradlew test $(GRADLE_FLAGS)
 	$(MAKE) plugins GRADLE_FLAGS="$(GRADLE_FLAGS)"

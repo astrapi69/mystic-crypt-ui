@@ -77,6 +77,11 @@ test {
     // alone came back FROM-CACHE: measured on #504, where the old harness passed a test the new one
     // was written for until the run was forced
     inputs.files(fileTree('scripts')).withPropertyName('scripts').withPathSensitivity(PathSensitivity.RELATIVE)
+    // and the plugin builds: EveryTestTaskRunsOnTheBuildsOwnDisplayTest reads their build files, and
+    // PluginBuildsTakeALibraryCandidateFromMavenLocalTest runs one against the repositories they
+    // share (#508). Neither is an input otherwise, so a change there alone would come back UP-TO-DATE
+    inputs.files(fileTree('plugins') { include '*/build.gradle', '*/settings.gradle' }, 'gradle/plugin-repositories.gradle')
+        .withPropertyName('pluginBuilds').withPathSensitivity(PathSensitivity.RELATIVE)
     applyTestLogging(it)
 }
 

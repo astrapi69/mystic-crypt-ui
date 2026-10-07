@@ -98,16 +98,10 @@ java {
     }
 }
 
-repositories {
-    // scoped to the host: make publish-local puts it here, and nothing else from the local
-    // repository may shadow Central (#475)
-    mavenLocal {
-        content {
-            includeModule('io.github.astrapi69', 'mystic-crypt-ui')
-        }
-    }
-    mavenCentral()
-}
+// Maven Central, and from the local repository the host - or, with -PuseMavenLocal, a family library
+// candidate too (#475, #508). Shared by every plugin build; PluginBuildsTakeALibraryCandidate-
+// FromMavenLocalTest fails for a plugin that declares its own
+apply from: '../../gradle/plugin-repositories.gradle'
 
 dependencies {
     compileOnly "io.github.astrapi69:mystic-crypt-ui:8.2-SNAPSHOT"
