@@ -167,6 +167,32 @@ abstract class AbstractUiTest
 			robot.cleanUpWithoutDisposingWindows();
 			resetApplicationFrameSingleton();
 			System.setProperty("user.home", originalUserHome);
+			if (tempHome != null && tempHome.exists())
+			{
+				try
+				{
+					java.nio.file.Files.walkFileTree(tempHome.toPath(), new java.nio.file.SimpleFileVisitor<java.nio.file.Path>()
+					{
+						@Override
+						public java.nio.file.FileVisitResult visitFile(java.nio.file.Path file, java.nio.file.attribute.BasicFileAttributes attrs) throws java.io.IOException
+						{
+							java.nio.file.Files.delete(file);
+							return java.nio.file.FileVisitResult.CONTINUE;
+						}
+
+						@Override
+						public java.nio.file.FileVisitResult postVisitDirectory(java.nio.file.Path dir, java.io.IOException exc) throws java.io.IOException
+						{
+							java.nio.file.Files.delete(dir);
+							return java.nio.file.FileVisitResult.CONTINUE;
+						}
+					});
+				}
+				catch (java.io.IOException e)
+				{
+					throw new java.io.UncheckedIOException("Failed to delete tempHome", e);
+				}
+			}
 		}
 	}
 
