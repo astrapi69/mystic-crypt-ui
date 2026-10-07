@@ -13,17 +13,9 @@ java {
     }
 }
 
-repositories {
-    // make publish-local puts the HOST here, and that is the only thing this build may take from
-    // the local repository: anything else - a library, a snapshot of the chain - would shadow
-    // Central silently and compile this plugin against what one machine happens to hold (#475)
-    mavenLocal {
-        content {
-            includeModule('io.github.astrapi69', 'mystic-crypt-ui')
-        }
-    }
-    mavenCentral()
-}
+// Maven Central, and from the local repository the host - or, with -PuseMavenLocal, a family library
+// candidate too (#475, #508)
+apply from: '../../gradle/plugin-repositories.gradle'
 
 // the signers and verifiers live in the mystic-crypt library, the algorithm enum in crypt-api and
 // the PEM writers in crypt-data; everything else is the host plus the swing helpers

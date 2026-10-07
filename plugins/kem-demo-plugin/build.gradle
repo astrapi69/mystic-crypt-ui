@@ -13,17 +13,9 @@ java {
     }
 }
 
-repositories {
-    // make publish-local puts the HOST here, and that is the only thing this build may take from
-    // the local repository: anything else - a library, a snapshot of the chain - would shadow
-    // Central silently and compile this plugin against what one machine happens to hold (#475)
-    mavenLocal {
-        content {
-            includeModule('io.github.astrapi69', 'mystic-crypt-ui')
-        }
-    }
-    mavenCentral()
-}
+// Maven Central, and from the local repository the host - or, with -PuseMavenLocal, a family library
+// candidate too (#475, #508)
+apply from: '../../gradle/plugin-repositories.gradle'
 
 // The key exchange itself uses only the JDK 25 native crypto providers (javax.crypto.KEM for
 // ML-KEM, KeyPairGenerator/KeyAgreement for X25519), so this plugin deliberately does NOT depend on

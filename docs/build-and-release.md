@@ -493,19 +493,25 @@ Note also `gradle/repositories.gradle`, where `mavenLocal()` is **off unless ask
 `./gradlew build -PuseMavenLocal`. Anything in the local repository otherwise wins over Maven
 Central, so a snapshot published hours ago becomes what the build compiles against - on that
 machine and nowhere else (#475). The handshake between the host and the plugin builds still
-works without the flag, because each plugin build keeps `mavenLocal()` scoped to the one module
-it needs from there:
+works without the flag, because every plugin build takes its repositories from
+`gradle/plugin-repositories.gradle`, which keeps `mavenLocal()` scoped to the one module it needs
+from there - and, with the same `-PuseMavenLocal`, admits the family's libraries as well (#508):
 
 ```groovy
 mavenLocal {
     content {
-        includeModule('io.github.astrapi69', 'mystic-crypt-ui')
+        if (providers.gradleProperty('useMavenLocal').isPresent()) {
+            includeGroup('io.github.astrapi69')
+        } else {
+            includeModule('io.github.astrapi69', 'mystic-crypt-ui')
+        }
     }
 }
 ```
 
-So `make publish-local` is unchanged, and a locally published library or chain snapshot can no
-longer shadow Central for a plugin.
+So without the flag a locally published library or chain snapshot cannot shadow Central for a
+plugin, and with it `make bump-check GRADLE_FLAGS=-PuseMavenLocal` checks a crypt-data or
+mystic-crypt candidate in the host and in every plugin before it is on Central.
 
 ## The release sequence
 

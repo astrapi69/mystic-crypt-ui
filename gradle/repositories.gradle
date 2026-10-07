@@ -6,7 +6,8 @@ repositories {
      * from the morning shadowing the one on Central (#475). Checking a consumer against a
      * candidate before it is published is a real job, and it names itself on the command line:
      *   ./gradlew build -PuseMavenLocal
-     * The plugin builds are the one exception, and they scope it to the host artifact alone.
+     * The plugin builds scope it (gradle/plugin-repositories.gradle): the host artifact alone by
+     * default, and with the same switch the family's libraries as well (#508).
      **/
     if (providers.gradleProperty('useMavenLocal').isPresent()) {
         mavenLocal()
