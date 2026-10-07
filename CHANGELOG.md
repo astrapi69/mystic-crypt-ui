@@ -40,6 +40,10 @@ FIXED:
   chosen, Generate key pair is off and the panel says why before it is pressed - the key has to
   come from a file. Those algorithms stay in the list, because a key loaded from a file signs and
   verifies with them; choosing Ed25519, ML-DSA or SLH-DSA turns the button back on (#488)
+- a save that failed because the vault's file could not be created - its folder gone or replaced, for
+  example - is reported again. Naming the file for the message created it, failed the same way as the
+  save, and no message appeared; the changes stayed unsaved and ending still asked. The message now
+  names the file without touching the disk (#512)
 
 Version 8.6
 -------------
