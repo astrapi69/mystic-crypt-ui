@@ -1,29 +1,10 @@
 ## Change log
 ----------------------
 
-Version 8.7 (unreleased)
+Version 8.7
 -------------
 
-CHANGED:
-
-- the vault's passphrase construction and the key file reader come from the libraries now:
-  PassphraseEnvelope in mystic-crypt 13.4 and AnyKeyFileReader in crypt-data 13.1 replace this
-  application's own PassphraseBox and KeyFiles, which moved there. The file format does not change,
-  and that is measured rather than assumed: a vault the published 8.6 writes opens in this build,
-  and one this build writes opens in 8.6, each direction pinned by its own test against the release
-  jar. crypt-data is declared directly from now on, for the host and the plugins alike (#490)
-- the Lethenon plugin builds on lethenon 0.2.0: it replays test chains (`lethenon-test-1`) the command
-  line starts with `mine --testnet`, which 0.1.0 refused at their genesis block, and opens wallets
-  the 0.2.0 command line creates in its new envelope as well as those 0.1.0 created. A chain started
-  from the plugin is still a main chain; choosing the test chain there is #518 (#517)
-- KeePassJava2 moves from 2.2.6 to 3.0.0: one KDBX implementation instead of four, the Jackson
-  classes renamed (JacksonDatabase to KdbxDatabase and so on), no generics on Database, Group and
-  Entry, the credentials now org.linguafranca.pwdb.format.KdbxCredentials, and the artifact
-  org.linguafranca.pwdb:KeePassJava2.kdbx.database. 18 files, renames and two casts where the
-  de-generified containers hand back the interface type. The reflection capsule survives
-  unchanged: measured on the 3.0.0 jar, the field names uuid, times and history are the same on
-  KdbxEntry and KdbxGroup, and its guard test resolves all of them. Group times are now readable
-  through the Group interface (jorabin/KeePassJava2#99), which #473 harvests separately (#467)
+The release the Lethenon plugin arrives in, the one in which the vault's envelope and the key file reader move into the libraries without the format moving, and the one after which no test run touches the desktop it is started from.
 
 ADDED:
 - a Lethenon plugin: the protest chain lethenon as a plugin with its own submenu and one setting, the chain file. Its first tool replays a chain file through the chain library and reports what it verified - every block hash, every signature, every state transition and the supply - or the reason it refused the chain (#450)
@@ -36,22 +17,29 @@ ADDED:
 - the password hashing tool can be used without a vault, and while the workspace is locked: it reads typed input, keeps its result in its own window and writes nothing. Everything a plugin offers while locked is now clicked by an end-to-end test, menu item by menu item and button by button, which fails if any of it lifts the lock, shows the vault or an entry of it, or writes the vault's file. A file chooser is cancelled in that test, never approved, and the test says so (#301)
 
 CHANGED:
-- build only: the remote publishing repository is gone. It named the shut-down OSSRH staging endpoint for a release, this application has never been on Maven Central (measured 404), and no release ever went there. The only publish left is `make publish-local`, which the plugin builds use; `make publish` and the OSSRH secrets in CI went with it. Snapshots of the libraries still resolve from the Central Portal snapshot repository (#453)
+- the vault's passphrase construction and the key file reader come from the libraries now: PassphraseEnvelope in mystic-crypt 13.4 and AnyKeyFileReader in crypt-data 13.1 replace this application's own PassphraseBox and KeyFiles, which moved there. The file format does not change, and that is measured rather than assumed: a vault the published 8.6 writes opens in this build, and one this build writes opens in 8.6, each direction pinned by its own test against the release jar. crypt-data is declared directly from now on, for the host and the plugins alike (#490)
+- the buffers that erase a decrypted vault, written here for #294, come from mystic-crypt 13.3 as SecretBuffers and WipingCharWriter, unchanged in behaviour; the tests that exist because of #294 still prove the erasing (#480)
+- generating a key in PKCS#1 for an algorithm without a traditional form - X25519, X448, ML-KEM, ML-DSA - is refused rather than answered with PKCS#8: the command line (`--cli keygen`, `convert`) ends with exit 2 and writes nothing, and the generate-keys window, which already closed its key format box to PKCS#8 for those algorithms, now says why, in the same words as the command line (#435, #480)
+- the Lethenon plugin builds on lethenon 0.2.0: it replays test chains (`lethenon-test-1`) the command line starts with `mine --testnet`, which 0.1.0 refused at their genesis block, and opens wallets the 0.2.0 command line creates in its new envelope as well as those 0.1.0 created. A chain started from the plugin is still a main chain; choosing the test chain there is #518 (#517)
+- KeePassJava2 moves from 2.2.6 to 3.0.0: one KDBX implementation instead of four, the Jackson classes renamed (JacksonDatabase to KdbxDatabase and so on), no generics on Database, Group and Entry, the credentials now org.linguafranca.pwdb.format.KdbxCredentials, and the artifact org.linguafranca.pwdb:KeePassJava2.kdbx.database. 18 files, renames and two casts where the de-generified containers hand back the interface type. The reflection capsule survives unchanged: measured on the 3.0.0 jar, the field names uuid, times and history are the same on KdbxEntry and KdbxGroup, and its guard test resolves all of them. Group times are now readable through the Group interface (jorabin/KeePassJava2#99), which #473 harvests separately (#467)
+- the libraries, against 8.6: mystic-crypt 12.2 to 13.4, crypt-data 13.1 (declared directly), Bouncy Castle 1.85.2/1.85 to 1.86 (#434), KeePassJava2 2.2.4 to 3.0.0, swing-base-components 5.1 to 5.2, and lethenon 0.2.0 for the new plugin
+- build and tests only: every test task of every build - the host's suites and each plugin build, whatever starts them - runs on an Xvfb the build starts itself, never on the display of the shell it was started from; on a desktop that display is the person's real screen, and the robot used to click and type there (#504, #505). `make run` starts the development build in a profile of its own and never touches the installed release (#498, #501). `make bump-check` checks a crypt-data or mystic-crypt bump in the host and every plugin, also against a candidate that is only published locally (#482, #508). `make merge-pr` waits for every required check, including those that have not reported yet, and leaves the checkout alone (#493, #496). A commit authored or committed as an AI tool is refused by the hook and by CI (#444). The build takes nothing from the local Maven repository unless asked with `-PuseMavenLocal`, and resolves snapshots from the Central Portal (#464, #475); the remote publishing repository is gone - it named the shut-down OSSRH staging endpoint, this application has never been on Maven Central (measured 404), and the only publish left is `make publish-local`, which the plugin builds use (#453). A failing UI test reports what was on screen (#484), and the tests provoke failed writes by the shape of the path rather than by permissions, which root ignores (#458, #506). The KDBX round trip runs once per class instead of once per test (#416); the release probe declares its own output encoding (#456); the locked-state tests assert the plugins granted, not only those offered (#469, #476); a new build script under `gradle/` is no longer ignored by git (#448). Documentation: the anchor javadoc of the plugin interface sits on its method (#376), and the funding milestone page says how the work is produced (#420)
 
 FIXED:
+- a remembered sign-in whose key file path is empty no longer ends the application before the sign-in dialog appears, on Java 24 and later: an empty path is no key file, and only a file is one. Before, the way out was deleting `memoizedSignin.json` by hand; the application does not write that value itself, a hand edit or another tool does (#499)
+- a save that failed because the vault's file could not be created - its folder gone or replaced, for example - is reported again. Naming the file for the message created it, failed the same way as the save, and no message appeared; the changes stayed unsaved and ending still asked. The message now names the file without touching the disk (#512)
+- the signature tool no longer offers to generate a key it cannot generate: with RSA, ECDSA or DSA chosen, Generate key pair is off and the panel says why before it is pressed - the key has to come from a file. Those algorithms stay in the list, because a key loaded from a file signs and verifies with them; choosing Ed25519, ML-DSA or SLH-DSA turns the button back on (#488)
+- a KeePass export with text outside ASCII - "ü", "é", "中文" - written by a Java whose default encoding is not UTF-8 produced a file that the library itself then refused to load. KeePassJava2 2.2.6 writes the XML in UTF-8 whatever the default, measured in a child JVM with `-Dfile.encoding=ISO-8859-1`, and a test guards it (jorabin/KeePassJava2#104)
+- an exported KeePass file carried its attachments twice, in the inner header and again in the XML, and KeePassXC warned about it on every read. KeePassJava2 2.2.5 writes them once; measured with keepassxc-cli 2.7.10, no warning, and the attachment reads back byte for byte (#379)
+- the combo boxes over a fixed list of choices - the key size of a new private key, the view mode in the settings, the checksum algorithm, the recipient kind of a Lethenon transfer - listed their values in an order that could change from one start to the next. They list them in their declared order now (swing-base-components 5.2), pinned by a test
+- the installer's plugin pack named the menu designer among what it installs. The menu designer is development tooling and is not shipped; nothing was installed wrongly, the sentence was, and a test now checks the sentence against what the pack installs (#436)
 
-- a remembered sign-in whose key file path is empty no longer ends the application before the sign-in
-  dialog appears, on Java 24 and later: an empty path is no key file, and only a file is one. Before,
-  the way out was deleting `memoizedSignin.json` by hand; the application does not write that value
-  itself, a hand edit or another tool does (#499)
-- the signature tool no longer offers to generate a key it cannot generate: with RSA, ECDSA or DSA
-  chosen, Generate key pair is off and the panel says why before it is pressed - the key has to
-  come from a file. Those algorithms stay in the list, because a key loaded from a file signs and
-  verifies with them; choosing Ed25519, ML-DSA or SLH-DSA turns the button back on (#488)
-- a save that failed because the vault's file could not be created - its folder gone or replaced, for
-  example - is reported again. Naming the file for the message created it, failed the same way as the
-  save, and no message appeared; the changes stayed unsaved and ending still asked. The message now
-  names the file without touching the disk (#512)
+FORMAT:
+- the vault format does not change: a vault the published 8.6 writes opens in 8.7, and one 8.7 writes opens in 8.6, each direction pinned by its own test against the release jar (#490)
+- the Lethenon plugin is new in 8.7; 8.6 has no part that reads anything of lethenon's. The plugin creates no wallet file: it opens the wallet files lethenon's command line writes with `wallet create` and `wallet restore` - those of lethenon 0.2.0, sealed in the envelope `LETHWF`, and those of 0.1.0, which keep opening and are never rewritten. lethenon 0.1.0 cannot open a `LETHWF` wallet. A chain the plugin starts is a main chain (`lethenon-1`), which lethenon 0.1.0 replays and mines on as well (#517)
+
+KNOWN AND NOT FIXED:
+- the Lethenon plugin cannot start a test chain: its mine window has no choice of chain, so a chain started there is always a main chain. A test chain started on the command line can be followed and extended in the plugin (#518)
 
 Version 8.6
 -------------
