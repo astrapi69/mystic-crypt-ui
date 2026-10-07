@@ -61,6 +61,12 @@ component's consumers (an element with no consumer never renders), and
 `git log <last-tag>..HEAD -- <spec>` (empty = pre-existing, not your diff). When a
 feature is removed by design, delete/update its tests in the SAME change.
 
+Before any of that reruns, copy `build/test-results` away: the XML holds the test JVM's own
+standard error, and a rerun overwrites it. At the 8.7 gate it did, and an hour of reproducing
+replaced what one file would have said (#522). The likely cause was the machine - the tests write
+to `/tmp`, a quota-bound tmpfs another program had filled - so a release gate gives its runs
+`TMPDIR` and `-Djava.io.tmpdir` on a disk with room.
+
 ## Proposed mass scripts are inspected, not executed
 
 A suggested global `sed`/regex sweep: read the matches, map each to its real target,
