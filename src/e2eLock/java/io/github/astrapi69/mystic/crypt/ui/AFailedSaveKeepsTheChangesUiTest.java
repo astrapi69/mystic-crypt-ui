@@ -32,7 +32,7 @@ import java.awt.Window;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
-import java.nio.file.attribute.PosixFilePermissions;
+import java.nio.file.Path;
 import java.util.concurrent.TimeUnit;
 
 import javax.swing.JDialog;
@@ -62,8 +62,11 @@ import io.github.astrapi69.mystic.crypt.TestPasswords;
  * were gone. Measured while investigating #375: {@code dirty before=true after=false},
  * {@code dialogs after failing save: (none)}.
  * <p>
- * The failure is real rather than simulated: the vault's directory is made read-only, which is what
- * a share that went away, a full disk or somebody else's directory look like to the writer.
+ * The failure is real rather than simulated: after sign-in the vault's directory is replaced by a
+ * regular file, which is what a share that went away looks like to the writer. Not by making the
+ * directory read-only: root ignores permission bits, so that save went through in a root container
+ * and the test waited for a failure that never came (#506, the class of #458). Nothing overrides a
+ * file not being a directory.
  */
 class AFailedSaveKeepsTheChangesUiTest extends AbstractUiTest
 {
@@ -75,6 +78,9 @@ class AFailedSaveKeepsTheChangesUiTest extends AbstractUiTest
 	private static final String FAILURE_TITLE = Messages.getString("dialog.save.failed.title",
 		"The database could not be saved");
 
+	/** What stands where the vault's directory was, so that nothing can be written beneath it */
+	private static final String BLOCKING_FILE_CONTENT = "a file, so nothing can be written beneath it";
+
 	private static final String CONFIRM_TITLE = Messages
 		.getString("dialog.confirm.save.before.close.title", "Save Database Before Close.");
 
@@ -82,7 +88,7 @@ class AFailedSaveKeepsTheChangesUiTest extends AbstractUiTest
 	@DisplayName("a save that fails is reported, the changes stay unsaved, and ending still asks")
 	void aFailedSaveIsReportedAndTheChangesStay() throws IOException
 	{
-		File vaultDirectory = new File(tempHome, "read-only-later");
+		File vaultDirectory = new File(tempHome, "replaced-by-a-file-later");
 		assertTrue(vaultDirectory.mkdirs());
 		File databaseFile = new File(vaultDirectory, "failed-save.mcrdb");
 		createDatabaseFileHeadless(databaseFile, MASTER_PASSWORD);
@@ -90,9 +96,9 @@ class AFailedSaveKeepsTheChangesUiTest extends AbstractUiTest
 		FrameFixture frame = application.showMainFrame();
 		application.selectTreeRow(frame, 0).addEntry(frame, ENTRY_TITLE, "someone",
 			TestPasswords.throwaway());
-		long lengthBeforeTheAttempt = databaseFile.length();
-		Files.setPosixFilePermissions(vaultDirectory.toPath(),
-			PosixFilePermissions.fromString("r-xr-xr-x"));
+		Path movedAside = tempHome.toPath().resolve("the-vault-directory-moved-aside");
+		Files.move(vaultDirectory.toPath(), movedAside);
+		Files.writeString(vaultDirectory.toPath(), BLOCKING_FILE_CONTENT);
 		try
 		{
 			application.fireMenuItem(MenuId.SAVE_APPLICATION_FILE.propertiesKey());
@@ -105,8 +111,9 @@ class AFailedSaveKeepsTheChangesUiTest extends AbstractUiTest
 				GuiActionRunner.execute(
 					() -> MysticCryptApplicationFrame.getInstance().getModelObject().isDirty()),
 				"the changes are still unsaved, because they were not saved");
-			assertEquals(lengthBeforeTheAttempt, databaseFile.length(),
-				"and the file on disk is the one from before the attempt");
+			assertEquals(BLOCKING_FILE_CONTENT, Files.readString(vaultDirectory.toPath()),
+				"and nothing was written where the vault was: the path is still the file that "
+					+ "blocked the save");
 
 			clickTheExitMenuItem();
 			JDialog question = awaitDialogTitled(CONFIRM_TITLE,
@@ -124,8 +131,8 @@ class AFailedSaveKeepsTheChangesUiTest extends AbstractUiTest
 		}
 		finally
 		{
-			Files.setPosixFilePermissions(vaultDirectory.toPath(),
-				PosixFilePermissions.fromString("rwxr-xr-x"));
+			Files.deleteIfExists(vaultDirectory.toPath());
+			Files.move(movedAside, vaultDirectory.toPath());
 		}
 	}
 
