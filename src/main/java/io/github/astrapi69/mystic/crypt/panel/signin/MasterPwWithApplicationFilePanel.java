@@ -247,13 +247,10 @@ public class MasterPwWithApplicationFilePanel extends BasePanel<MasterPwFileMode
 		cmbKeyFile = new JMComboBox<>(cmbKeyFileModel, selectedKeyFileItemModel);
 		cmbKeyFile.setName("cmbKeyFile");
 
-		if (selectedKeyFilePath != null && modelObject.getKeyFileInfo() == null)
+		if (modelObject.getKeyFileInfo() == null)
 		{
-			File kf = new File(selectedKeyFilePath);
-			if (kf.exists())
-			{
-				modelObject.setKeyFileInfo(FileInfo.toFileInfo(kf));
-			}
+			RememberedKeyFileSupport.keyFileOf(selectedKeyFilePath)
+				.ifPresent(modelObject::setKeyFileInfo);
 		}
 		cmbKeyFile.addActionListener(this::onChangeCmbKeyFile);
 		String selectedApplicationFilePath = modelObject.getSelectedApplicationFilePath();

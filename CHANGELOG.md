@@ -36,6 +36,10 @@ CHANGED:
 
 FIXED:
 
+- a remembered sign-in whose key file path is empty no longer ends the application before the sign-in
+  dialog appears, on Java 24 and later: an empty path is no key file, and only a file is one. Before,
+  the way out was deleting `memoizedSignin.json` by hand; the application does not write that value
+  itself, a hand edit or another tool does (#499)
 - the signature tool no longer offers to generate a key it cannot generate: with RSA, ECDSA or DSA
   chosen, Generate key pair is off and the panel says why before it is pressed - the key has to
   come from a file. Those algorithms stay in the list, because a key loaded from a file signs and
