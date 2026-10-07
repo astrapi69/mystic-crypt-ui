@@ -58,20 +58,9 @@ dependencies {
 
 def e2eSuites = ['e2eTest', 'e2eLockTest', 'e2eKdbxTest']
 
-// One display, one window manager, one system clipboard - and since the suites are separate tasks,
-// Gradle runs them at the same time: the configuration cache lets tasks of one project execute in
-// parallel. Measured on the first run of the split (#319): e2eTest, e2eLockTest and e2eKdbxTest
-// interleaved in the log, and tests that pass alone failed, clicking into each other's windows and
-// reading each other's clipboard. Every test task holds this service while it runs, so no two run
-// at once. The unit suite holds it too: ClipboardClearWatchdogTest drives the real system clipboard.
-abstract class OneDisplay implements org.gradle.api.services.BuildService<org.gradle.api.services.BuildServiceParameters.None> {
-}
-def oneDisplay = gradle.sharedServices.registerIfAbsent('oneDisplay', OneDisplay) {
-    maxParallelUsages = 1
-}
-tasks.withType(Test).configureEach {
-    usesService(oneDisplay)
-}
+// Every test task - the unit suite as well, ClipboardClearWatchdogTest drives the system clipboard -
+// runs on a display of the build's own, one task at a time (#505, #319)
+apply from: 'gradle/own-display.gradle'
 
 test {
     useJUnitPlatform()

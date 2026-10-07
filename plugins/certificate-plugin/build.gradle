@@ -79,6 +79,9 @@ test {
     useJUnitPlatform()
 }
 
+// the tests run on a display of the build's own, not on the one the build was started from (#505)
+apply from: '../../gradle/own-display.gradle'
+
 // packages the plugin the way the host's DefaultPluginManager expects: plugin.properties at the
 // root, compiled classes under classes/
 tasks.register('pluginZip', Zip) {

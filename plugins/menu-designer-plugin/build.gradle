@@ -90,3 +90,6 @@ tasks.register('pluginZip', Zip) {
 test {
     useJUnitPlatform()
 }
+
+// the tests run on a display of the build's own, not on the one the build was started from (#505)
+apply from: '../../gradle/own-display.gradle'

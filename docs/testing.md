@@ -165,23 +165,20 @@ So a headless run reports the e2e tests as skipped and stays green. This is conv
 also a trap: a suite that "passed" on a machine without a display has not exercised a
 single UI flow. Check the skip count, not just the exit code.
 
-In CI a display is provided explicitly (`.github/workflows/gradle.yml`):
+The build provides that display itself, the same way in CI and on a desktop (#505). Every test
+task of every Gradle build here - the host's `test`, `e2eTest`, `e2eLockTest` and `e2eKdbxTest`, and
+each plugin build's `test` - borrows it from `scripts/e2e-harness.sh` through
+`gradle/own-display.gradle`. The harness starts an Xvfb of its own, starts fluxbox on it, verifies
+with `wmctrl` that the window manager answers (#322), and a hold command hands that display to the
+build; when the build ends, the harness stops both. Each test task prints which display it ran on,
+and the harness's output lands in `build/own-display/harness.log`.
 
-```yaml
-- name: Install Xvfb
-  run: sudo apt-get update && sudo apt-get install -y xvfb
-- name: Execute Gradle build
-  # xvfb-run provides a virtual display so the AssertJ-Swing e2e UI tests really run
-  # in CI (without it they would be skipped by their headless assumption)
-  run: xvfb-run -a --server-args="-screen 0 1920x1080x24" ./gradlew build
-```
-
-**Locally**, `make test-e2e` runs the suite through `scripts/e2e-harness.sh`, which starts an
-Xvfb of its own, starts fluxbox on it, verifies with `wmctrl` that the window manager answers, and
-stops both when the run ends (#322, #504). It does not use the display of the shell it is started
-from: on a desktop that display is the person's real screen, and a run there does not hang, it
-finishes with the robot typing on that screen. Only `make test-e2e-demo` uses the current display,
-through `E2E_USE_CURRENT_DISPLAY=1`.
+It does not use the display of the shell it is started from, whatever path starts it: on a desktop
+that display is the person's real screen, and a run there does not hang, it finishes with the robot
+typing on that screen (#504). Only `make test-e2e-demo` uses the current display, through
+`E2E_USE_CURRENT_DISPLAY=1`. CI runs `./gradlew build` and `make plugins` without `xvfb-run`; the
+runner has no display at all, so a build that could not get its own fails instead of letting the UI
+tests skip on the assumption above.
 
 The test sources still carry the evidence of what running on a shared display costs, from before
 the harness brought its own. `AbstractUiTest` and `UiTestSpeed` both describe their environment as
@@ -501,7 +498,8 @@ Two workflows, both under `.github/workflows/`.
 Triggers: push to `master` or `develop`, and pull requests against `master` or `develop`.
 Runner: `ubuntu-latest`, Temurin JDK 25, `gradle/actions/setup-gradle@v3`.
 
-The gate is a single `./gradlew build` under `xvfb-run`. From `./gradlew build --dry-run`, the
+The gate is a single `./gradlew build`, whose test tasks bring their own display (section 3.2,
+#505). From `./gradlew build --dry-run`, the
 task graph is, in order:
 
 ```
@@ -518,8 +516,9 @@ task graph is, in order:
 So what this gate really checks is:
 
 * **compilation** of main and test sources on JDK 25;
-* **the full test suite**, e2e tests included, because `xvfb-run` gives them the display
-  their assumption requires. Without it they would silently skip;
+* **the full test suite**, e2e tests included, because every test task borrows the display
+  their assumption requires from the harness. A build that cannot get one fails rather than
+  letting them skip;
 * **`jacocoTestReport`**, wired in with `check.dependsOn jacocoTestReport` in
   `gradle/testing.gradle`. It produces XML and HTML reports. It is a report, not a
   threshold: no `violationRules` are configured anywhere in the Gradle files, so coverage

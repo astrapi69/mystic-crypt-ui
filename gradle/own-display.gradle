@@ -1,0 +1,109 @@
+// Every test task of a build runs on a display of the build's own, and no two at once (#505).
+//
+// Why a display of its own. The tests used to run on whatever DISPLAY the build was started with. A
+// shell started from a desktop session carries that session's DISPLAY - on a Wayland desktop it is
+// XWayland on :0 - so the Swing tests opened their windows on the person's real screen, the robot
+// clicked and typed there, and the clipboard tests overwrote the desktop's clipboard. #504 gave the
+// harness script an Xvfb of its own, but only 'make test-e2e' goes through the harness: './gradlew
+// build', 'check' and 'jacocoTestReport', 'make build-full' and every plugin build reached the tests
+// without it (#505).
+//
+// So the build asks the harness itself. The first test task that executes makes the service below
+// run scripts/e2e-harness.sh with scripts/hold-display.sh as its command: the harness starts its Xvfb
+// and a window manager it has seen answering (#322), the hold command reports that display and holds
+// it, and every test task of the build gets it as DISPLAY. When the build ends the service closes the
+// hold command's input, and the harness stops what it started. Which display that is stays the
+// harness's one decision: its own Xvfb, or the inherited display only with E2E_USE_CURRENT_DISPLAY=1.
+// A task restored FROM-CACHE or UP-TO-DATE runs no test and starts nothing.
+//
+// The test JVM also gets the display as E2E_HARNESS_DISPLAY, which is how
+// EveryTestTaskRunsOnTheBuildsOwnDisplayTest tells it apart from an inherited DISPLAY.
+//
+// Why one at a time. One display, one window manager, one system clipboard - and the configuration
+// cache lets tasks of one project execute in parallel. Measured on the first run of the suite split
+// (#319): e2eTest, e2eLockTest and e2eKdbxTest interleaved in the log, and tests that pass alone
+// failed, clicking into each other's windows and reading each other's clipboard. Every test task
+// holds this service while it runs, so no two run at once.
+//
+// Applied by gradle/testing.gradle and by each plugin build, which is a Gradle build of its own.
+
+import java.util.concurrent.TimeUnit
+
+interface OwnDisplayParameters extends org.gradle.api.services.BuildServiceParameters {
+    RegularFileProperty getHarness()
+    RegularFileProperty getHoldCommand()
+    RegularFileProperty getLog()
+}
+
+abstract class OwnDisplay implements org.gradle.api.services.BuildService<OwnDisplayParameters>, AutoCloseable {
+
+    private static final String HANDED_OUT = 'E2E_DISPLAY='
+    private static final long WAIT_SECONDS = 90
+
+    private Process harness
+    private String display
+
+    synchronized String display() {
+        if (display == null) {
+            display = borrow()
+        }
+        return display
+    }
+
+    private String borrow() {
+        File log = parameters.log.get().asFile
+        log.parentFile.mkdirs()
+        ProcessBuilder builder = new ProcessBuilder(parameters.harness.get().asFile.path, 'hold')
+            .redirectErrorStream(true)
+            .redirectOutput(log)
+        builder.environment().put('E2E_RUN_COMMAND', parameters.holdCommand.get().asFile.path)
+        harness = builder.start()
+        long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(WAIT_SECONDS)
+        while (System.nanoTime() < deadline) {
+            String line = log.readLines().find { it.startsWith(HANDED_OUT) }
+            if (line != null) {
+                return line.substring(HANDED_OUT.length())
+            }
+            if (!harness.alive) {
+                throw new GradleException("No display for the tests: scripts/e2e-harness.sh ended " +
+                    "with exit ${harness.exitValue()} before handing one out (#505). Its output, " +
+                    "from ${log}:\n${log.text}")
+            }
+            Thread.sleep(100)
+        }
+        close()
+        throw new GradleException("No display for the tests: scripts/e2e-harness.sh handed none out " +
+            "within ${WAIT_SECONDS}s (#505). Its output, from ${log}:\n${log.text}")
+    }
+
+    @Override
+    void close() {
+        if (harness == null) {
+            return
+        }
+        harness.outputStream.close()
+        if (!harness.waitFor(30, TimeUnit.SECONDS)) {
+            harness.destroy()
+            harness.waitFor(10, TimeUnit.SECONDS)
+        }
+    }
+}
+
+def ownDisplayScripts = new File(buildscript.sourceFile.parentFile.parentFile, 'scripts')
+def ownDisplay = gradle.sharedServices.registerIfAbsent('ownDisplay', OwnDisplay) {
+    maxParallelUsages = 1
+    parameters.harness.set(new File(ownDisplayScripts, 'e2e-harness.sh'))
+    parameters.holdCommand.set(new File(ownDisplayScripts, 'hold-display.sh'))
+    parameters.log.set(layout.buildDirectory.file('own-display/harness.log'))
+}
+
+tasks.withType(Test).configureEach {
+    usesService(ownDisplay)
+    doFirst { Test task ->
+        String display = ownDisplay.get().display()
+        task.environment('DISPLAY', display)
+        task.environment('E2E_HARNESS_DISPLAY', display)
+        task.logger.lifecycle("${task.name}: tests run on display ${display}, from scripts/e2e-harness.sh " +
+            "(its output: build/own-display/harness.log)")
+    }
+}

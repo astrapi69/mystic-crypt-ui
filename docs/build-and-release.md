@@ -22,9 +22,9 @@ and `DEPLOYMENT-INFO.md`.
   change.
 - **The Gradle wrapper.** `gradle/wrapper/gradle-wrapper.properties` pins
   `gradle-9.7.0-bin.zip`. Always call `./gradlew`, never a system Gradle.
-- **Xvfb for the end-to-end UI tests.** The AssertJ-Swing suite needs a virtual display;
-  see `.claude/rules/lessons-learned.md`. CI does the same with
-  `xvfb-run -a --server-args="-screen 0 1920x1080x24"`.
+- **Xvfb, fluxbox, wmctrl and xdpyinfo for any test run.** Every test task borrows a virtual
+  display from `scripts/e2e-harness.sh`, locally and in CI alike, and never uses the desktop's
+  (#505); see `.claude/rules/lessons-learned.md`.
 
 ## The version lives in exactly one place
 
@@ -561,9 +561,10 @@ Also check `DEPLOYMENT-INFO.md` for the info-dialog version literals described u
 Two workflows under `.github/workflows/`:
 
 - **`gradle.yml`** ("Java CI with Gradle"), on push and pull request against `master` and
-  `develop`. Temurin JDK 25, `gradle/actions/setup-gradle`, installs Xvfb and runs
-  `xvfb-run -a --server-args="-screen 0 1920x1080x24" ./gradlew build` so the AssertJ-Swing
-  end-to-end tests really run instead of being skipped by their headless assumption.
+  `develop`. Temurin JDK 25, `gradle/actions/setup-gradle`, installs Xvfb, fluxbox, wmctrl
+  and x11-utils and runs `./gradlew build`, whose test tasks bring their own display (#505), so
+  the AssertJ-Swing end-to-end tests really run instead of being skipped by their headless
+  assumption.
   On failure it
   uploads `build/reports/tests/test` and `build/test-results/test` for 14 days, because a
   failing UI test prints only its top stack frame to the console.

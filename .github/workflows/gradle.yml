@@ -39,9 +39,9 @@ jobs:
         # Nothing is weakened: xvfb comes from Ubuntu's universe, and if it really cannot be
         # resolved the install below fails and names that, rather than somebody else's mirror.
         #
-        # fluxbox, wmctrl and x11-utils (xdpyinfo) are what scripts/e2e-harness.sh needs, and
-        # E2eHarnessDisplayTest runs that script in the unit suite (#504). The suite itself still
-        # runs under xvfb-run below, not through the harness.
+        # fluxbox, wmctrl and x11-utils (xdpyinfo) are what scripts/e2e-harness.sh needs, and since
+        # #505 every test task of every build below borrows its display from that script
+        # (gradle/own-display.gradle), so nothing below runs under xvfb-run any more.
         run: |
           sudo apt-get update || echo "apt-get update reported errors; continuing to the install"
           sudo apt-get install -y xvfb fluxbox wmctrl x11-utils
@@ -64,9 +64,11 @@ jobs:
         # every plugin's end-to-end test - skipping on `assumeTrue(Files.exists(<plugin>.zip))`.
         # Eleven shipped features were verified only by whoever last ran `make plugins` locally.
         #
-        # Under xvfb because several plugin unit tests construct Swing components. Measured at
+        # Several plugin unit tests construct Swing components. Each plugin build gets its display
+        # from scripts/e2e-harness.sh through gradle/own-display.gradle, the way the host does - so
+        # no xvfb-run here: the step proves the plugin builds bring their own (#505). Measured at
         # 1m24s locally for all thirteen, against a twelve-minute job (#333).
-        run: xvfb-run -a --server-args="-screen 0 1920x1080x24" make plugins
+        run: make plugins
 
       - name: Read the releases a vault has to stay readable in
         # gradle.properties is the one place the numbers live; the cache key needs them here: the
@@ -87,9 +89,12 @@ jobs:
         # and fails here in CI when the jar is missing rather than skipping (#402)
         run: make release-jar
       - name: Execute Gradle build
-        # xvfb-run provides a virtual display so the AssertJ-Swing e2e UI tests really run
-        # in CI (without it they would be skipped by their headless assumption)
-        run: xvfb-run -a --server-args="-screen 0 1920x1080x24" ./gradlew build
+        # No xvfb-run (#505): every test task borrows its display from scripts/e2e-harness.sh
+        # (gradle/own-display.gradle), the same way it does on a desktop, where an inherited display
+        # is the person's screen. The runner has no DISPLAY at all, so a green run here is evidence
+        # that the build brings its own - and a build that could not get one fails, it does not let
+        # the AssertJ-Swing tests skip on their headless assumption
+        run: ./gradlew build
       - name: Upload the test reports
         # a failing UI test prints only its top stack frame to the console; the full trace lives in
         # the xml reports, so keep them when something goes red - otherwise a flaky failure is
@@ -112,4 +117,5 @@ jobs:
             build/test-results/e2eLockTest
             build/reports/tests/e2eKdbxTest
             build/test-results/e2eKdbxTest
+            build/own-display
           retention-days: 14
