@@ -95,8 +95,7 @@ public final class MiningSupport
 				Replay.verify(chain);
 			}
 			BlockBody mined = Blocks
-				.mine(Mining.nextBlock(chain, beneficiary, waiting, order.pun(), now),
-					order.attempts())
+				.mine(nextBlock(order, chain, beneficiary, waiting, now), order.attempts())
 				.orElseThrow(() -> new IllegalStateException("no variation of the pun reached "
 					+ "difficulty " + DifficultyRule.requiredFor(chain) + " within "
 					+ order.attempts() + " attempts; mine again, or with other words"));
@@ -105,12 +104,27 @@ public final class MiningSupport
 			Replay replay = Replay.verify(extended);
 			chainFile.write(extended);
 			chainFile.writePending(List.of());
-			return new MinedBlock(mined.height(), mined.pun(), waiting.size(),
-				beneficiary.toString(), replay.describe());
+			return new MinedBlock(mined.chainIdentifier(), mined.height(), mined.pun(),
+				waiting.size(), beneficiary.toString(), replay.describe());
 		}
 		finally
 		{
 			Arrays.fill(password, '\0');
 		}
+	}
+
+	/**
+	 * The block to mine: a genesis block of the chosen kind where there is no chain yet, otherwise
+	 * the next block of the chain its genesis block names, whatever kind was chosen - as lethenon's
+	 * command line does, except that it refuses {@code --testnet} on a main chain, while the mine
+	 * window only offers the choice where there is no chain
+	 */
+	private static BlockBody nextBlock(final MiningOrder order, final List<BlockBody> chain,
+		final Bytes beneficiary, final List<SignedTransaction> waiting, final long now)
+	{
+		return chain.isEmpty()
+			? Mining.nextBlock(order.newChain().identifier(), chain, beneficiary, waiting,
+				order.pun(), now)
+			: Mining.nextBlock(chain, beneficiary, waiting, order.pun(), now);
 	}
 }

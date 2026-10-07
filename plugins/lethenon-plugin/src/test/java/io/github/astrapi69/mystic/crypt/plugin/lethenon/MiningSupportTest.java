@@ -40,6 +40,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.EnumSource;
 
 import io.github.astrapi69.lethenon.Amount;
 import io.github.astrapi69.lethenon.BlockBody;
@@ -156,6 +159,37 @@ class MiningSupportTest
 		Replay.verify(chain);
 	}
 
+	@ParameterizedTest(name = "{0} starts a chain named {1}")
+	@CsvSource({ "TEST_NETWORK, lethenon-test-1", "MAIN_CHAIN, lethenon-1" })
+	@DisplayName("where there is no chain yet, the chosen kind names the genesis block")
+	void mine_withoutAChain_startsTheChosenChain(final ChainKind kind, final String identifier)
+		throws Exception
+	{
+		Files.delete(chainFile);
+
+		MinedBlock mined = MiningSupport.mine(order("in the beginning", 10_000_000L, kind),
+			PASSWORD.toCharArray(), NOW);
+
+		List<BlockBody> chain = new ChainFile(chainFile).require();
+		assertEquals(identifier, chain.getFirst().chainIdentifier());
+		assertEquals(identifier, mined.chainIdentifier());
+		Replay.verify(chain);
+	}
+
+	@ParameterizedTest(name = "choosing {0} on an existing main chain extends the main chain")
+	@EnumSource(ChainKind.class)
+	@DisplayName("on an existing chain its genesis block decides, whatever kind was chosen")
+	void mine_onAnExistingChain_followsItsGenesis(final ChainKind kind) throws Exception
+	{
+		MinedBlock mined = MiningSupport.mine(order("its genesis decides", 10_000_000L, kind),
+			PASSWORD.toCharArray(), NOW);
+
+		List<BlockBody> chain = new ChainFile(chainFile).require();
+		assertEquals(3, chain.size());
+		assertEquals(Chain.IDENTIFIER, chain.getLast().chainIdentifier());
+		assertEquals(Chain.IDENTIFIER, mined.chainIdentifier());
+	}
+
 	@Test
 	@DisplayName("a chain that does not verify is refused, and neither file changes")
 	void mine_onATamperedChain_writesNothing() throws Exception
@@ -253,7 +287,12 @@ class MiningSupportTest
 
 	private MiningOrder order(final String pun, final long attempts)
 	{
-		return new MiningOrder(chainFile, walletFile, pun, attempts);
+		return order(pun, attempts, ChainKind.TEST_NETWORK);
+	}
+
+	private MiningOrder order(final String pun, final long attempts, final ChainKind kind)
+	{
+		return new MiningOrder(chainFile, walletFile, kind, pun, attempts);
 	}
 
 	private Path pendingFile()

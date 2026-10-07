@@ -38,6 +38,7 @@ import javax.swing.SwingUtilities;
 
 import org.assertj.swing.edt.GuiActionRunner;
 import org.assertj.swing.fixture.FrameFixture;
+import org.assertj.swing.fixture.JComboBoxFixture;
 import org.assertj.swing.fixture.JInternalFrameFixture;
 import org.assertj.swing.timing.Condition;
 import org.assertj.swing.timing.Pause;
@@ -319,6 +320,48 @@ class LethenonPluginUiTest extends AbstractUiTest
 			.execute(() -> tool.textBox("txtPassword").target().getText());
 		assertTrue(passwordLeft.isEmpty(), "the password field is cleared after one use");
 		assertTrue(frame.isEnabled(), "the application is still usable after mining");
+	}
+
+	@Test
+	@DisplayName("the plugin starts a test chain where there is no chain file, and then closes the choice")
+	void thePlugin_startsATestChain() throws Exception
+	{
+		installPluginRequiringItBuilt(LETHENON_ZIP);
+		String walletPassword = TestPasswords.throwaway();
+		Wallet wallet = Wallet.create();
+		File walletFile = new File(tempHome, "wallet.lethenon-wallet");
+		WalletFile.write(walletFile.toPath(), wallet, walletPassword.toCharArray());
+		File chainFile = new File(tempHome, "new-test-chain.lethenon");
+		File databaseFile = new File(tempHome, "lethenon-test-chain.mcrdb");
+		createDatabaseFileHeadless(databaseFile, MASTER_PASSWORD);
+		ApplicationSteps application = signInWithExistingDatabase(databaseFile, MASTER_PASSWORD);
+		application.showMainFrame();
+
+		application.openPluginTool("Mine a Pun", "Mine a Pun");
+		JInternalFrameFixture tool = new JInternalFrameFixture(robot,
+			application.internalFrame("Mine a Pun"));
+		GuiActionRunner.execute(() -> {
+			tool.textBox("txtChainFile").target().setText(chainFile.getAbsolutePath());
+			tool.textBox("txtWalletFile").target().setText(walletFile.getAbsolutePath());
+			tool.textBox("txtPassword").target().setText(walletPassword);
+		});
+		JComboBoxFixture kinds = tool.comboBox("cbxChainKind");
+		assertTrue(GuiActionRunner.execute(() -> kinds.target().isEnabled()),
+			"where there is no chain file, the window asks which chain to start");
+		assertEquals("the test network", kinds.selectedItem(),
+			"a new chain is a test chain unless the main chain is chosen");
+		UiTestSpeed.step();
+		SwingUtilities.invokeLater(() -> tool.button("btnMine").target().doClick());
+		awaitReport(tool, "mined block 0", "the genesis block is mined");
+
+		String report = textOf(tool, "txtReport");
+		assertTrue(report.contains("chain lethenon-test-1"), report);
+		List<BlockBody> blocks = new ChainFile(chainFile.toPath()).require();
+		assertEquals(1, blocks.size());
+		assertEquals(Chain.TEST_IDENTIFIER, blocks.getFirst().chainIdentifier());
+		assertEquals(wallet.spendKey(SignatureSuite.ED25519), blocks.getFirst().beneficiary());
+		assertFalse(GuiActionRunner.execute(() -> kinds.target().isEnabled()),
+			"once the genesis block is written, it decides which chain this is");
 	}
 
 	@Test

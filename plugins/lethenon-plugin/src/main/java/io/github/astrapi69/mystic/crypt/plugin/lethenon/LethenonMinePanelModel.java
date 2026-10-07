@@ -46,6 +46,8 @@ public class LethenonMinePanelModel
 
 	private transient char[] password = new char[0];
 
+	private ChainKind chainKind = ChainKind.TEST_NETWORK;
+
 	private String pun = DEFAULT_PUN;
 
 	private String report = "";
@@ -98,6 +100,22 @@ public class LethenonMinePanelModel
 			SecretBuffers.wipe(this.password);
 		}
 		this.password = replacement;
+	}
+
+	/**
+	 * The chain a genesis block starts where the chain file does not exist yet; a test chain unless
+	 * the main chain is chosen
+	 *
+	 * @return the chosen kind
+	 */
+	public ChainKind getChainKind()
+	{
+		return chainKind;
+	}
+
+	public void setChainKind(ChainKind chainKind)
+	{
+		this.chainKind = chainKind;
 	}
 
 	public String getPun()
