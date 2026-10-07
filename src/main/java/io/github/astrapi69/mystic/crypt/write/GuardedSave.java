@@ -25,12 +25,10 @@
 package io.github.astrapi69.mystic.crypt.write;
 
 import java.awt.Component;
-import java.io.File;
 import java.util.logging.Level;
 
 import javax.swing.JOptionPane;
 
-import io.github.astrapi69.file.create.FileFactory;
 import io.github.astrapi69.mystic.crypt.ApplicationModelBean;
 import io.github.astrapi69.mystic.crypt.Messages;
 import io.github.astrapi69.mystic.crypt.app.file.xml.ApplicationXmlFileStoreWorker;
@@ -98,8 +96,12 @@ public final class GuardedSave
 			JOptionPane.ERROR_MESSAGE);
 	}
 
-	/** The file the write was aimed at, or a placeholder when the vault has no file yet */
-	private static String whereItWouldHaveGone(final ApplicationModelBean applicationModelBean)
+	/**
+	 * The file the write was aimed at, or a placeholder when the vault has no file yet. Named from
+	 * the path alone: creating the file to name it threw again when the save had failed because the
+	 * file could not be created, and the message never appeared (#512)
+	 */
+	static String whereItWouldHaveGone(final ApplicationModelBean applicationModelBean)
 	{
 		MasterPwFileModelBean masterPwFileModelBean = applicationModelBean == null
 			? null
@@ -108,11 +110,7 @@ public final class GuardedSave
 		{
 			return "no file is set for this database";
 		}
-		File applicationFile = FileFactory
-			.newFileQuietly(masterPwFileModelBean.getApplicationFileInfo());
-		return applicationFile == null
-			? "no file is set for this database"
-			: applicationFile.getAbsolutePath();
+		return masterPwFileModelBean.getApplicationFileInfo().toFile().getAbsolutePath();
 	}
 
 	/**
