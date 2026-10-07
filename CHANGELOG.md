@@ -12,6 +12,10 @@ CHANGED:
   and that is measured rather than assumed: a vault the published 8.6 writes opens in this build,
   and one this build writes opens in 8.6, each direction pinned by its own test against the release
   jar. crypt-data is declared directly from now on, for the host and the plugins alike (#490)
+- the Lethenon plugin builds on lethenon 0.2.0: it replays test chains (`lethenon-test-1`) the command
+  line starts with `mine --testnet`, which 0.1.0 refused at their genesis block, and opens wallets
+  the 0.2.0 command line creates in its new envelope as well as those 0.1.0 created. A chain started
+  from the plugin is still a main chain; choosing the test chain there is #518 (#517)
 - KeePassJava2 moves from 2.2.6 to 3.0.0: one KDBX implementation instead of four, the Jackson
   classes renamed (JacksonDatabase to KdbxDatabase and so on), no generics on Database, Group and
   Entry, the credentials now org.linguafranca.pwdb.format.KdbxCredentials, and the artifact
