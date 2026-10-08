@@ -29,12 +29,17 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.awt.Component;
+import java.awt.Container;
 import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.KeyPair;
 import java.util.List;
 import java.util.Map;
+
+import javax.swing.JComboBox;
+import javax.swing.JTextField;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -156,6 +161,62 @@ class LethenonMinePanelBindingTest
 	}
 
 	@Test
+	@DisplayName("a new chain is a test chain unless the main chain is chosen")
+	void thePanel_startsATestChainByDefault()
+	{
+		assertEquals(ChainKind.TEST_NETWORK,
+			new LethenonMinePanel().getModelObject().getChainKind());
+	}
+
+	@Test
+	@DisplayName("mining where there is no chain file starts a test chain, and the report names it")
+	void mining_withoutAChainFile_startsATestChain() throws Exception
+	{
+		Files.delete(chainFile);
+		LethenonMinePanel panel = filledPanel(PASSWORD);
+
+		panel.onMine();
+
+		List<BlockBody> chain = new ChainFile(chainFile).require();
+		assertEquals("lethenon-test-1", chain.getFirst().chainIdentifier());
+		String report = panel.getModelObject().getReport();
+		assertTrue(report.contains("mined block 0"), report);
+		assertTrue(report.contains("chain lethenon-test-1"), report);
+		assertFalse(componentNamed(panel, "cbxChainKind", JComboBox.class).isEnabled(),
+			"once the genesis block is written, it decides");
+	}
+
+	@Test
+	@DisplayName("choosing the main chain where there is no chain file starts a main chain")
+	void mining_withoutAChainFile_startsTheChosenMainChain() throws Exception
+	{
+		Files.delete(chainFile);
+		LethenonMinePanel panel = filledPanel(PASSWORD);
+		panel.getModelObject().setChainKind(ChainKind.MAIN_CHAIN);
+
+		panel.onMine();
+
+		assertEquals("lethenon-1", new ChainFile(chainFile).require().getFirst().chainIdentifier());
+		String report = panel.getModelObject().getReport();
+		assertTrue(report.contains("chain lethenon-1"), report);
+	}
+
+	@Test
+	@DisplayName("the kind of chain can be chosen only while the chain file does not exist")
+	void theChoice_isOpenOnlyWithoutAChainFile() throws Exception
+	{
+		LethenonMinePanel panel = new LethenonMinePanel();
+		JComboBox<?> kinds = componentNamed(panel, "cbxChainKind", JComboBox.class);
+		JTextField chainFileField = componentNamed(panel, "txtChainFile", JTextField.class);
+
+		chainFileField.setText(chainFile.toString());
+		assertFalse(kinds.isEnabled(), "an existing chain's genesis block decides");
+
+		chainFileField.setText(directory.toPath().resolve("new.lethenon").toString());
+		assertTrue(kinds.isEnabled(), "a chain file that does not exist yet is a new chain");
+	}
+
+	@Test
 	@DisplayName("replacing the password overwrites the array it replaces")
 	void setPassword_wipesTheReplacedArray()
 	{
@@ -166,6 +227,27 @@ class LethenonMinePanelBindingTest
 		model.setPassword("second".toCharArray());
 
 		assertArrayEquals(new char[5], first);
+	}
+
+	private static <T extends Component> T componentNamed(final Container container,
+		final String name, final Class<T> type)
+	{
+		for (Component component : container.getComponents())
+		{
+			if (type.isInstance(component) && name.equals(component.getName()))
+			{
+				return type.cast(component);
+			}
+			if (component instanceof Container nested)
+			{
+				T found = componentNamed(nested, name, type);
+				if (found != null)
+				{
+					return found;
+				}
+			}
+		}
+		return null;
 	}
 
 	private LethenonMinePanel filledPanel(final String password)

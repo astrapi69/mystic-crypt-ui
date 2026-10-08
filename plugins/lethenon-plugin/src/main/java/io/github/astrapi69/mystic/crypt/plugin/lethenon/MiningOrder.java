@@ -34,10 +34,14 @@ import java.nio.file.Path;
  *            the chain file; a file that does not exist yet gets its genesis block
  * @param walletFile
  *            the wallet whose Ed25519 account the block pays
+ * @param newChain
+ *            the chain a genesis block starts where the chain file does not exist yet; on an
+ *            existing chain its genesis block decides and this is not read
  * @param pun
  *            the words mining starts from; a counter is appended to them while it searches
  * @param attempts
  *            how many variations of the pun to try before giving up
  */
-public record MiningOrder(Path chainFile, Path walletFile, String pun, long attempts) {
+public record MiningOrder(Path chainFile, Path walletFile, ChainKind newChain, String pun,
+	long attempts) {
 }

@@ -1,6 +1,12 @@
 ## Change log
 ----------------------
 
+Version 8.8 (unreleased)
+-------------
+
+CHANGED:
+- the Lethenon plugin starts a test chain: where the chain file does not exist yet, the mine window asks which chain the genesis block starts, and the test network (`lethenon-test-1`) is the default. The main chain has to be chosen. Two reasons for that default, rather than the main chain the issue first proposed: lethenon puts every new scheme on the test chain first (its ADR 0001), and the main chain has no fixed genesis block yet (lethenon#104), so a main chain started from the window today is a private chain that only shares the name. Once the chain file exists its genesis block decides and the choice is closed; the report names the chain the block was written to (#518, step 1 of #530)
+
 Version 8.7
 -------------
 

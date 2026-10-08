@@ -24,16 +24,27 @@
  */
 package io.github.astrapi69.mystic.crypt.plugin.lethenon;
 
+import java.awt.Component;
 import java.awt.Font;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
+import java.util.Set;
 
+import javax.swing.ComboBoxModel;
+import javax.swing.DefaultListCellRenderer;
 import javax.swing.JLabel;
+import javax.swing.JList;
 import javax.swing.JPanel;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 
 import io.github.astrapi69.lethenon.ChainRejected;
 import io.github.astrapi69.model.LambdaModel;
 import io.github.astrapi69.mystic.crypt.ui.form.ToolForm;
+import io.github.astrapi69.swing.model.combobox.EnumComboBoxModel;
+import io.github.astrapi69.swing.model.component.JMComboBox;
 import io.github.astrapi69.swing.model.component.JMPasswordField;
 import io.github.astrapi69.swing.model.component.JMTextArea;
 import io.github.astrapi69.swing.model.component.JMTextField;
@@ -49,6 +60,10 @@ import io.github.astrapi69.swing.model.component.JMTextField;
  * difficulty doubles the expected attempts, and the attempts are capped at the command line's
  * default. The password is used once: wiped by the support class, cleared from the field
  * afterwards, whether a block was mined or not.
+ * <p>
+ * Where the chain file does not exist yet, the block is a genesis block, and the window asks which
+ * chain it starts: the test network unless the main chain is chosen (#518). Once the file exists
+ * its genesis block decides, and the choice is closed.
  */
 public class LethenonMinePanel extends JPanel
 {
@@ -72,6 +87,9 @@ public class LethenonMinePanel extends JPanel
 
 	private final JMPasswordField txtPassword = new JMPasswordField(34);
 
+	private final JMComboBox<ChainKind, ComboBoxModel<ChainKind>> cbxChainKind = new JMComboBox<>(
+		new EnumComboBoxModel<>(ChainKind.class, ChainKind.TEST_NETWORK, Set.of()));
+
 	private final JMTextField txtPun = new JMTextField(34);
 
 	private final JMTextArea txtReport = new JMTextArea(4, 62);
@@ -89,6 +107,7 @@ public class LethenonMinePanel extends JPanel
 		explainTheComponents();
 		bindToTheModel();
 		layOut();
+		followTheChainFile();
 		txtChainFile.setText(LethenonSettingsContribution.chainFile());
 		txtPun.setText(modelObject.getPun());
 	}
@@ -115,7 +134,8 @@ public class LethenonMinePanel extends JPanel
 		{
 			MinedBlock mined = MiningSupport.mine(
 				new MiningOrder(Path.of(modelObject.getChainFile().trim()),
-					Path.of(modelObject.getWalletFile().trim()), modelObject.getPun(), ATTEMPTS),
+					Path.of(modelObject.getWalletFile().trim()), modelObject.getChainKind(),
+					modelObject.getPun(), ATTEMPTS),
 				modelObject.getPassword(), System.currentTimeMillis());
 			setReport(describe(mined));
 			setResult(LethenonMessages.getString("lethenon.result.mine.written",
@@ -135,6 +155,7 @@ public class LethenonMinePanel extends JPanel
 		{
 			modelObject.setPassword(null);
 			txtPassword.setText("");
+			updateTheChoiceOfChain(modelObject.getChainFile());
 		}
 	}
 
@@ -144,7 +165,9 @@ public class LethenonMinePanel extends JPanel
 			+ mined.height() + " " + LethenonMessages.getString("lethenon.mine.with", "with") + " "
 			+ mined.transfers() + " "
 			+ LethenonMessages.getString("lethenon.mine.transfers", "transfer(s), paying") + " "
-			+ mined.beneficiary() + ": \"" + mined.pun() + "\"\n" + mined.replaySummary();
+			+ mined.beneficiary() + ": \"" + mined.pun() + "\"\n"
+			+ LethenonMessages.getString("lethenon.mine.chain", "chain") + " "
+			+ mined.chainIdentifier() + "\n" + mined.replaySummary();
 	}
 
 	private void nameTheComponents()
@@ -152,6 +175,22 @@ public class LethenonMinePanel extends JPanel
 		txtChainFile.setName("txtChainFile");
 		txtWalletFile.setName("txtWalletFile");
 		txtPassword.setName("txtPassword");
+		cbxChainKind.setName("cbxChainKind");
+		cbxChainKind.setRenderer(new DefaultListCellRenderer()
+		{
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public Component getListCellRendererComponent(final JList<?> list, final Object value,
+				final int index, final boolean selected, final boolean focused)
+			{
+				Object shown = value instanceof ChainKind kind
+					? LethenonMessages.getString("lethenon.chain.kind." + kind.name(),
+						kind.description())
+					: value;
+				return super.getListCellRendererComponent(list, shown, index, selected, focused);
+			}
+		});
 		txtPun.setName("txtPun");
 		txtReport.setName("txtReport");
 		txtReport.setEditable(false);
@@ -170,6 +209,9 @@ public class LethenonMinePanel extends JPanel
 			"the wallet whose Ed25519 account the block pays"));
 		txtPassword.setToolTipText(LethenonMessages.getString("lethenon.tooltip.wallet.password",
 			"the wallet file's password; it is used once and then cleared"));
+		cbxChainKind.setToolTipText(LethenonMessages.getString("lethenon.tooltip.mine.chain.kind",
+			"the chain a new chain file starts; offered only while the chain file does not exist, "
+				+ "since afterwards its genesis block decides"));
 		txtPun.setToolTipText(LethenonMessages.getString("lethenon.tooltip.mine.pun",
 			"the words mining starts from; a counter is appended until the block meets the difficulty"));
 	}
@@ -194,6 +236,8 @@ public class LethenonMinePanel extends JPanel
 			OWN_WIDTH);
 		add(new JLabel(LethenonMessages.getString("lethenon.label.wallet.password", "Password:")));
 		add(txtPassword, ToolForm.FIELD);
+		add(new JLabel(LethenonMessages.getString("lethenon.label.mine.chain.kind", "New chain:")));
+		add(cbxChainKind, OWN_WIDTH);
 		add(new JLabel(LethenonMessages.getString("lethenon.label.mine.pun", "Pun:")));
 		add(txtPun, ToolForm.FIELD);
 		add(ToolForm.buttons(LethenonSwing.button("btnMine",
@@ -215,8 +259,61 @@ public class LethenonMinePanel extends JPanel
 			LambdaModel.of(modelObject::getWalletFile, modelObject::setWalletFile));
 		txtPassword
 			.setPropertyModel(LambdaModel.of(modelObject::getPassword, modelObject::setPassword));
+		cbxChainKind.setPropertyModel(
+			LambdaModel.of(modelObject::getChainKind, modelObject::setChainKind));
 		txtPun.setPropertyModel(LambdaModel.of(modelObject::getPun, modelObject::setPun));
 		txtReport.setPropertyModel(LambdaModel.of(modelObject::getReport, modelObject::setReport));
+	}
+
+	/**
+	 * Opens the choice of chain while the chain file names no existing file, and closes it once it
+	 * does: an existing chain's genesis block decides which chain it is
+	 */
+	private void followTheChainFile()
+	{
+		txtChainFile.getDocument().addDocumentListener(new DocumentListener()
+		{
+			@Override
+			public void insertUpdate(final DocumentEvent event)
+			{
+				updateTheChoiceOfChain(txtChainFile.getText());
+			}
+
+			@Override
+			public void removeUpdate(final DocumentEvent event)
+			{
+				updateTheChoiceOfChain(txtChainFile.getText());
+			}
+
+			@Override
+			public void changedUpdate(final DocumentEvent event)
+			{
+				updateTheChoiceOfChain(txtChainFile.getText());
+			}
+		});
+		updateTheChoiceOfChain(txtChainFile.getText());
+	}
+
+	/**
+	 * Reads the path it is given rather than the model: the field's own listener, which updates the
+	 * model, is called after this one
+	 */
+	private void updateTheChoiceOfChain(final String chainFilePath)
+	{
+		cbxChainKind.setEnabled(!namesAnExistingFile(chainFilePath));
+	}
+
+	private static boolean namesAnExistingFile(final String text)
+	{
+		String trimmed = text.trim();
+		try
+		{
+			return !trimmed.isEmpty() && Files.exists(Path.of(trimmed));
+		}
+		catch (InvalidPathException notAPath)
+		{
+			return false;
+		}
 	}
 
 	private void setReport(final String text)
