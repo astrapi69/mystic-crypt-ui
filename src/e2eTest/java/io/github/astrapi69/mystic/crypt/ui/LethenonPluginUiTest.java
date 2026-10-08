@@ -511,8 +511,9 @@ class LethenonPluginUiTest extends AbstractUiTest
 	}
 
 	/**
-	 * A genesis block that allocates the supply, and a second block with one transfer out of it,
-	 * written to the test's own home directory the way a lethenon command line would write it
+	 * A genesis block that pays its holder the block reward, and a second block with one transfer
+	 * out of it, written to the test's own home directory the way a lethenon command line would
+	 * write it
 	 */
 	private File aChainWithOneTransfer() throws Exception
 	{

@@ -36,8 +36,8 @@ package io.github.astrapi69.mystic.crypt.plugin.lethenon;
  * @param pun
  *            the pun the block was mined with
  * @param paidTo
- *            the account the block paid, as hexadecimal: at height zero the genesis holder, at
- *            every later height the miner who got the reward (lethenon#23)
+ *            the account the block paid its reward to, as hexadecimal: at height zero the genesis
+ *            holder, at every later height the miner (lethenon#23, lethenon#111)
  * @param transfers
  *            how many signed transfers the block carries
  * @param timestamp

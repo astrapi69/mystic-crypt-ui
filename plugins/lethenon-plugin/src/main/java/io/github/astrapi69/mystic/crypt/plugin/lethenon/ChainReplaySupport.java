@@ -25,7 +25,6 @@
 package io.github.astrapi69.mystic.crypt.plugin.lethenon;
 
 import java.io.IOException;
-import java.nio.BufferUnderflowException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
@@ -39,9 +38,9 @@ import io.github.astrapi69.lethenon.Replay;
  * <p>
  * No chain logic of its own: {@link CanonicalEncoding#readChain} reads the bytes and
  * {@link Replay#verify} checks every signature, every state transition, every block hash and the
- * supply invariant. What this class adds is the two things a panel cannot do - naming the file in
- * the message, and turning a truncated file into a sentence instead of a
- * {@link BufferUnderflowException} out of a byte buffer.
+ * supply invariant. What this class adds is what a panel cannot do: naming the file in every
+ * refusal. The chain library says why bytes cannot be read; which file they came from, only the
+ * caller knows.
  * <p>
  * It takes a {@link Path} and returns a record, so it is testable without a display
  * (architecture.md layer 2: no Swing types in the support layer).
@@ -135,9 +134,11 @@ public final class ChainReplaySupport
 	}
 
 	/**
-	 * A file that stops in the middle of a block comes out of the buffer as a
-	 * {@link BufferUnderflowException}, whose message is null - useless in a dialog. The file is
-	 * named here instead, which is what makes a bug report about it actionable.
+	 * The chain library refuses bytes it cannot read - a file that stops in the middle of a block,
+	 * a length that runs past the end, an encoding version it does not know - with an
+	 * {@link IllegalArgumentException} that gives the reason but cannot name the file (lethenon#80).
+	 * The file and its size are put in front of that reason here, which is what makes a bug report
+	 * about it actionable (#532).
 	 */
 	private static List<BlockBody> readChain(final Path chainFile, final byte[] encoded)
 	{
@@ -145,11 +146,11 @@ public final class ChainReplaySupport
 		{
 			return CanonicalEncoding.readChain(encoded);
 		}
-		catch (BufferUnderflowException truncated)
+		catch (IllegalArgumentException unreadable)
 		{
 			throw new IllegalArgumentException(chainFile.toAbsolutePath() + " is " + encoded.length
-				+ " bytes and ends in the middle of a block: it is truncated, or it is not a "
-				+ "lethenon chain file", truncated);
+				+ " bytes and cannot be read as a lethenon chain file: " + unreadable.getMessage(),
+				unreadable);
 		}
 	}
 }

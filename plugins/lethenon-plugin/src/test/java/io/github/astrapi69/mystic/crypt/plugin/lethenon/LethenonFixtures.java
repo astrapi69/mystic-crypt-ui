@@ -53,8 +53,8 @@ final class LethenonFixtures
 	}
 
 	/**
-	 * The payer holds the genesis allocation and pays the wallet twice in the second block: 3 LETH
-	 * to its Ed25519 account, 5 LETH to a one-time destination of its published address
+	 * The payer is paid the genesis block's reward and pays the wallet twice in the second block:
+	 * 3 LETH to its Ed25519 account, 5 LETH to a one-time destination of its published address
 	 *
 	 * @param payer
 	 *            the genesis holder and miner, an Ed25519 key pair
