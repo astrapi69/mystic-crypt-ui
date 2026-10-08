@@ -31,8 +31,11 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.io.File;
 import java.nio.file.Files;
 import java.security.KeyPair;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.swing.SwingUtilities;
 
@@ -65,6 +68,8 @@ import io.github.astrapi69.lethenon.Transfers;
 import io.github.astrapi69.lethenon.Wallet;
 import io.github.astrapi69.lethenon.WalletFile;
 import io.github.astrapi69.lethenon.transport.Node;
+import io.github.astrapi69.lethenon.transport.PeerAddress;
+import io.github.astrapi69.lethenon.transport.Sync;
 import io.github.astrapi69.mystic.crypt.TestPasswords;
 
 /**
@@ -73,8 +78,8 @@ import io.github.astrapi69.mystic.crypt.TestPasswords;
  * written by the chain library itself, the chain view lists that file's blocks, the balance window
  * reads a wallet, the send window signs a transfer that the chain library reads back, the mining
  * window writes the next block, which the chain library reads back and replays, the sync window
- * brings a chain file up to the tip of a node running in this test, and the send window hands a
- * transfer to such a node (#530).
+ * brings a chain file up to the tip of a node running in this test, the send window hands a
+ * transfer to such a node, and the node window runs a mining node of its own (#530).
  * <p>
  * The chain here is built with lethenon's own encoder rather than with a committed fixture, because
  * what a user's chain file looks like is whatever that encoder writes - a fixture would freeze one
@@ -540,6 +545,87 @@ class LethenonPluginUiTest extends AbstractUiTest
 			assertEquals(pool, chain.readPending(),
 				"the node keeps its pool next to the chain file it serves");
 			assertTrue(frame.isEnabled(), "the application is still usable after a handover");
+		}
+	}
+
+	@Test
+	@DisplayName("the plugin runs a mining node that serves its chain file, and stops it")
+	void thePlugin_runsAMiningNode() throws Exception
+	{
+		installPluginRequiringItBuilt(LETHENON_ZIP);
+		String walletPassword = TestPasswords.throwaway();
+		Wallet wallet = Wallet.create();
+		File walletFile = new File(tempHome, "miner.lethenon-wallet");
+		WalletFile.write(walletFile.toPath(), wallet, walletPassword.toCharArray());
+		List<BlockBody> started = aTestChainOf(3, Bytes.of(new byte[] { 9 }));
+		File chainFile = new File(tempHome, "node.lethenon");
+		ChainFile chain = new ChainFile(chainFile.toPath());
+		chain.write(started);
+		File databaseFile = new File(tempHome, "lethenon-node.mcrdb");
+		createDatabaseFileHeadless(databaseFile, MASTER_PASSWORD);
+		ApplicationSteps application = signInWithExistingDatabase(databaseFile, MASTER_PASSWORD);
+		FrameFixture frame = application.showMainFrame();
+
+		application.openPluginTool("Run a Node", "Run a Node");
+		JInternalFrameFixture tool = new JInternalFrameFixture(robot,
+			application.internalFrame("Run a Node"));
+		GuiActionRunner.execute(() -> {
+			tool.textBox("txtChainFile").target().setText(chainFile.getAbsolutePath());
+			tool.textBox("txtPort").target().setText("0");
+			tool.checkBox("chkMine").target().doClick();
+			tool.textBox("txtWalletFile").target().setText(walletFile.getAbsolutePath());
+			tool.textBox("txtPassword").target().setText(walletPassword);
+		});
+		UiTestSpeed.step();
+		SwingUtilities.invokeLater(() -> tool.button("btnStartNode").target().doClick());
+		awaitStatus(tool, "mined [1-9]", "the node runs and has mined a block");
+
+		Matcher listening = Pattern.compile("listening on port (\\d+)")
+			.matcher(textOf(tool, "txtStatus"));
+		assertTrue(listening.find(), textOf(tool, "txtStatus"));
+		ChainFile copy = new ChainFile(new File(tempHome, "copy.lethenon").toPath());
+		Sync.once(copy, new PeerAddress("127.0.0.1", Integer.parseInt(listening.group(1))),
+			Duration.ofSeconds(30));
+		assertEquals(started, copy.require().subList(0, started.size()),
+			"another node takes the chain from the window's node, the mined blocks after it");
+		assertTrue(textOf(tool, "txtPassword").isEmpty(), "the password field is cleared");
+
+		SwingUtilities.invokeLater(() -> tool.button("btnStopNode").target().doClick());
+		awaitStatus(tool, "stopped at height", "the node has stopped");
+
+		List<BlockBody> written = chain.require();
+		assertTrue(written.size() > started.size(), "the node wrote what it mined");
+		assertEquals(wallet.spendKey(SignatureSuite.ED25519), written.getLast().beneficiary(),
+			"the mined blocks pay the wallet");
+		Replay.verify(written);
+		assertTrue(frame.isEnabled(), "the application is still usable after a node ran");
+	}
+
+	/**
+	 * Waits until the node window's status matches, and when it never does, fails with the line the
+	 * window wrote instead
+	 */
+	private static void awaitStatus(final JInternalFrameFixture tool, final String expected,
+		final String description)
+	{
+		Pattern pattern = Pattern.compile(expected);
+		try
+		{
+			Pause.pause(new Condition(description)
+			{
+				@Override
+				public boolean test()
+				{
+					return pattern.matcher(textOf(tool, "txtStatus")).find();
+				}
+			}, 30000);
+		}
+		catch (org.assertj.swing.exception.WaitTimedOutError timedOut)
+		{
+			throw new AssertionError("timed out waiting until " + description
+				+ "; the window said: '"
+				+ GuiActionRunner.execute(() -> tool.label("lblResult").target().getText()) + "'",
+				timedOut);
 		}
 	}
 
