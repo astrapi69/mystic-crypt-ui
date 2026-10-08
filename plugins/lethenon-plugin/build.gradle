@@ -68,7 +68,7 @@ dependencies {
     // ResourceBundleExtensions.getStringQuietly - label and tooltip text from
     // lethenon/messages.properties falls back to a literal default rather than throwing when a key
     // is missing, the same way the host's own Messages class behaves (.claude/rules/i18n.md)
-    compileOnly "io.github.astrapi69:resourcebundle-core:6.0"
+    compileOnly libs.resourcebundle.core
     // JComponentFactory, FrameMode and JInternalFrameExtensions open the tool window; the host
     // carries all three at runtime, like every other plugin here
     compileOnly "io.github.astrapi69:swing-base-components:5.2"
@@ -94,7 +94,7 @@ dependencies {
     testImplementation "io.github.astrapi69:mystic-crypt-ui:$hostVersion"
     testImplementation "com.miglayout:miglayout-swing:11.4.3"
     testImplementation "org.pf4j:pf4j:3.15.0"
-    testImplementation "io.github.astrapi69:resourcebundle-core:6.0"
+    testImplementation libs.resourcebundle.core
     testImplementation libs.swing.table.components
     testRuntimeOnly "org.junit.platform:junit-platform-launcher"
 }

@@ -36,7 +36,7 @@ dependencies {
     // ResourceBundleExtensions.getStringQuietly - tooltip/label text from signature/messages.properties
     // falls back to a literal default rather than throwing when a key is missing, the same way the
     // host's own Messages class already behaves (.claude/rules/i18n.md)
-    compileOnly "io.github.astrapi69:resourcebundle-core:6.0"
+    compileOnly libs.resourcebundle.core
     // the pem parser that knows every shape a key file comes in lives in bcpkix
     compileOnly "org.bouncycastle:bcpkix-jdk18on:1.85"
     compileOnly "org.bouncycastle:bcprov-jdk18on:1.85.2"
@@ -75,7 +75,7 @@ dependencies {
     // the panel needs the layout library too
     testImplementation "com.miglayout:miglayout-swing:11.4.3"
     testImplementation "org.pf4j:pf4j:3.15.0"
-    testImplementation "io.github.astrapi69:resourcebundle-core:6.0"
+    testImplementation libs.resourcebundle.core
 
 }
 
