@@ -38,7 +38,7 @@ dependencies {
     // ResourceBundleExtensions.getStringQuietly - tooltip/label text from keystore/messages.properties
     // falls back to a literal default rather than throwing when a key is missing, the same way the
     // host's own Messages class already behaves (.claude/rules/i18n.md)
-    compileOnly "io.github.astrapi69:resourcebundle-core:6.0"
+    compileOnly libs.resourcebundle.core
     compileOnly "io.github.astrapi69:swing-base-components:5.2"
     compileOnly "io.github.astrapi69:swing-components:9"
     // the model backed components the panel binds to its model; the host brings both jars at
@@ -89,7 +89,7 @@ dependencies {
     testImplementation "org.pf4j:pf4j:3.15.0"
     testImplementation "org.bouncycastle:bcprov-jdk18on:1.85.2"
     testImplementation "org.bouncycastle:bcpkix-jdk18on:1.85"
-    testImplementation "io.github.astrapi69:resourcebundle-core:6.0"
+    testImplementation libs.resourcebundle.core
     testRuntimeOnly "org.junit.platform:junit-platform-launcher"
 }
 

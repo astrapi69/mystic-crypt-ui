@@ -1,1 +1,11 @@
 rootProject.name = 'menu-designer-plugin'
+
+// shares the host's version catalog, as every other plugin build does: this plugin is its own
+// Gradle build, so the catalog is pointed at explicitly (#213, #533)
+dependencyResolutionManagement {
+    versionCatalogs {
+        libs {
+            from(files("../../gradle/libs.versions.toml"))
+        }
+    }
+}

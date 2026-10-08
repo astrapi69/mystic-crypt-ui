@@ -350,10 +350,8 @@ public class ChecksumAndMacPanel extends JPanel
 	 */
 	private boolean confirmOverwrite(final File target)
 	{
-		String template = ChecksumMessages.getString("checksum.and.mac.save.overwrite.message",
-			"''{0}'' already exists. Replace it?");
 		int choice = JOptionPane.showConfirmDialog(this,
-			java.text.MessageFormat.format(template, target.getName()),
+			ChecksumSaveDecision.overwriteQuestion(target.getName()),
 			ChecksumMessages.getString("checksum.and.mac.save.overwrite.title",
 				"Replace the checksum file?"),
 			JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
