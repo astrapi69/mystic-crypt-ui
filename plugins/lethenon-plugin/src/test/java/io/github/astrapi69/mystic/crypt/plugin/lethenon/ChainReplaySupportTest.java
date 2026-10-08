@@ -107,19 +107,22 @@ class ChainReplaySupportTest
 	}
 
 	@Test
-	@DisplayName("a file that stops in the middle of a block says so, and names the file")
+	@DisplayName("a truncated file is refused with its name and the chain library's reason")
 	void verify_refuses_aTruncatedFile() throws Exception
 	{
 		byte[] encoded = CanonicalEncoding.encodeChain(aChainWithOneTransfer());
-		Path chainFile = write("truncated.lethenon",
-			java.util.Arrays.copyOf(encoded, encoded.length / 2));
+		byte[] truncated = java.util.Arrays.copyOf(encoded, encoded.length / 2);
+		Path chainFile = write("truncated.lethenon", truncated);
+		String reason = assertThrows(IllegalArgumentException.class,
+			() -> CanonicalEncoding.readChain(truncated)).getMessage();
 
 		IllegalArgumentException refused = assertThrows(IllegalArgumentException.class,
 			() -> ChainReplaySupport.verify(chainFile));
 
 		assertTrue(refused.getMessage().contains("truncated.lethenon"), refused.getMessage());
-		assertTrue(refused.getMessage().contains("ends in the middle of a block"),
-			refused.getMessage());
+		assertTrue(refused.getMessage().contains(reason),
+			"the library says why the bytes cannot be read, the plugin which file they are: "
+				+ refused.getMessage());
 	}
 
 	@Test
@@ -226,7 +229,7 @@ class ChainReplaySupportTest
 	}
 
 	/**
-	 * A genesis block that allocates the supply to the holder, and a second block carrying one
+	 * A genesis block that pays the holder its block reward, and a second block carrying one
 	 * transfer out of it - mined at the minimum difficulty, which is what the chain's own tests use
 	 */
 	private List<BlockBody> aChainWithOneTransfer()
