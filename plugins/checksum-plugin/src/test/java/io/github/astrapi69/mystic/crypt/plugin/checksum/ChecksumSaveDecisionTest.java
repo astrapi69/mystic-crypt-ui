@@ -24,6 +24,7 @@
  */
 package io.github.astrapi69.mystic.crypt.plugin.checksum;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -64,6 +65,15 @@ class ChecksumSaveDecisionTest
 	void refusalFor_isNull_whenEverythingIsThere()
 	{
 		assertNull(ChecksumSaveDecision.refusalFor(true, "abc123"));
+	}
+
+	@Test
+	@DisplayName("the question before replacing a checksum file names the file in quotes")
+	void overwriteQuestion_namesTheFile()
+	{
+		assertEquals("'chain.sha256' already exists. Replace it?",
+			ChecksumSaveDecision.overwriteQuestion("chain.sha256"),
+			"the name is the one thing the user needs to answer the question (#533)");
 	}
 
 	@Test

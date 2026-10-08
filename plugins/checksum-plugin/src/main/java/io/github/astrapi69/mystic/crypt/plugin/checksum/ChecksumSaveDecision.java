@@ -24,6 +24,8 @@
  */
 package io.github.astrapi69.mystic.crypt.plugin.checksum;
 
+import java.text.MessageFormat;
+
 /**
  * Whether a computed checksum can be written to a checksum file, and what to say when it cannot
  * (#320).
@@ -84,5 +86,23 @@ public final class ChecksumSaveDecision
 	public static boolean savingIsImpossible(final boolean checksumOverFile)
 	{
 		return !checksumOverFile;
+	}
+
+	/**
+	 * The question asked before an existing checksum file is replaced. The message is a
+	 * {@link MessageFormat} pattern with the file name as its one parameter, read unformatted and
+	 * formatted here once - read through a lookup that formatted it already, the name came out as
+	 * "null" (#533).
+	 *
+	 * @param fileName
+	 *            the name of the checksum file that exists
+	 * @return the question, naming the file in quotes
+	 */
+	public static String overwriteQuestion(final String fileName)
+	{
+		return MessageFormat.format(
+			ChecksumMessages.getString("checksum.and.mac.save.overwrite.message",
+				"''{0}'' already exists. Replace it?"),
+			fileName);
 	}
 }
