@@ -29,6 +29,7 @@ import java.awt.Window;
 import java.awt.event.WindowListener;
 import java.io.File;
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.lang.reflect.Field;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -46,6 +47,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 import io.github.astrapi69.awt.window.adapter.CloseWindow;
+import io.github.astrapi69.file.delete.DeleteFileExtensions;
 import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
 
 /**
@@ -167,6 +169,22 @@ abstract class AbstractUiTest
 			robot.cleanUpWithoutDisposingWindows();
 			resetApplicationFrameSingleton();
 			System.setProperty("user.home", originalUserHome);
+		}
+		deleteTempHome();
+	}
+
+	private void deleteTempHome()
+	{
+		if (tempHome != null && tempHome.exists())
+		{
+			try
+			{
+				DeleteFileExtensions.delete(tempHome);
+			}
+			catch (IOException e)
+			{
+				throw new UncheckedIOException("could not delete the test home " + tempHome, e);
+			}
 		}
 	}
 
