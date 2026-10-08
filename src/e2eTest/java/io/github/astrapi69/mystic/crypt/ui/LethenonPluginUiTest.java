@@ -37,6 +37,7 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import javax.swing.JLabel;
 import javax.swing.SwingUtilities;
 
 import org.assertj.swing.edt.GuiActionRunner;
@@ -372,6 +373,48 @@ class LethenonPluginUiTest extends AbstractUiTest
 		assertEquals(wallet.spendKey(SignatureSuite.ED25519), blocks.getFirst().beneficiary());
 		assertFalse(GuiActionRunner.execute(() -> kinds.target().isEnabled()),
 			"once the genesis block is written, it decides which chain this is");
+	}
+
+	@Test
+	@DisplayName("the plugin shows \"Before you start\" with its notice, from the menu and before the choice of chain (#540)")
+	void thePlugin_showsBeforeYouStart() throws Exception
+	{
+		installPluginRequiringItBuilt(LETHENON_ZIP);
+		File databaseFile = new File(tempHome, "lethenon-before-you-start.mcrdb");
+		createDatabaseFileHeadless(databaseFile, MASTER_PASSWORD);
+		ApplicationSteps application = signInWithExistingDatabase(databaseFile, MASTER_PASSWORD);
+		application.showMainFrame();
+
+		application.openPluginTool("Before You Start", "Before You Start");
+		JInternalFrameFixture view = new JInternalFrameFixture(robot,
+			application.internalFrame("Before You Start"));
+		JLabel notice = view.label("lblNotLegalAdvice").target();
+		assertTrue(GuiActionRunner.execute(notice::isShowing), "the notice is on the screen");
+		String noticeText = GuiActionRunner.execute(notice::getText);
+		assertTrue(noticeText.startsWith("Not legal advice."), noticeText);
+		assertTrue(
+			GuiActionRunner.execute(() -> view.table("tblLaunchChecks").target().getRowCount()) > 0,
+			"the checklist has rows");
+		for (String document : List.of("btnOpenRegulatoryOverview", "btnOpenLaunchChecklist",
+			"btnOpenMessagingGuide", "btnOpenSpecification", "btnOpenInfrastructure"))
+		{
+			view.button(document).requireVisible();
+		}
+		UiTestSpeed.step();
+
+		application.openPluginTool("Mine a Pun", "Mine a Pun");
+		JInternalFrameFixture mine = new JInternalFrameFixture(robot,
+			application.internalFrame("Mine a Pun"));
+		GuiActionRunner.execute(() -> mine.textBox("txtChainFile").target()
+			.setText(new File(tempHome, "not-mined-yet.lethenon").getAbsolutePath()));
+		JLabel noticeBeforeTheChoice = mine.label("lblNotLegalAdvice").target();
+		assertTrue(GuiActionRunner.execute(noticeBeforeTheChoice::isShowing),
+			"a genesis block is about to be mined: the notice stands before the choice of chain");
+		GuiActionRunner.execute(
+			() -> mine.textBox("txtChainFile").target().setText(databaseFile.getAbsolutePath()));
+		robot.waitForIdle();
+		assertFalse(GuiActionRunner.execute(noticeBeforeTheChoice::isShowing),
+			"an existing file decides which chain it is: no choice, and the view goes with it");
 	}
 
 	@Test

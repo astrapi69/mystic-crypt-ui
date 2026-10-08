@@ -52,10 +52,15 @@ import io.github.astrapi69.swing.util.JInternalFrameExtensions;
 public class LethenonMenuContribution implements PluginMenuContribution
 {
 
+	/** The key of the menu item that opens "Before you start" (#540) */
+	public static final String BEFORE_YOU_START_KEY = "lethenon.menu.item.before.you.start";
+
 	@Override
 	public List<JMenuItem> getMenuItems()
 	{
-		return List.of(item("lethenon.menu.item.verify", "Verify a Chain", LethenonChainPanel::new),
+		return List.of(
+			item(BEFORE_YOU_START_KEY, "Before You Start", LethenonBeforeYouStartPanel::new),
+			item("lethenon.menu.item.verify", "Verify a Chain", LethenonChainPanel::new),
 			item("lethenon.menu.item.show.chain", "Show a Chain", LethenonChainViewPanel::new),
 			item("lethenon.menu.item.show.balance", "Show a Balance", LethenonBalancePanel::new),
 			item("lethenon.menu.item.send", "Send LETH", LethenonSendPanel::new),

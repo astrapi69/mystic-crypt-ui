@@ -75,6 +75,9 @@ dependencies {
     compileOnly "io.github.astrapi69:swing-components:9"
     // GenericTableModel under the chain view's block table; the host carries it at runtime
     compileOnly libs.swing.table.components
+    // BrowserControlExtensions opens a launch document of "Before you start" in the browser (#540);
+    // the host carries menu-action at runtime
+    compileOnly libs.menu.action
     // the tool window binds every component to its panel model, the host carries both at runtime
     compileOnly "io.github.astrapi69:swing-model-components:1.2"
     compileOnly "io.github.astrapi69:model-data:3.2.1"
@@ -96,6 +99,7 @@ dependencies {
     testImplementation "org.pf4j:pf4j:3.15.0"
     testImplementation libs.resourcebundle.core
     testImplementation libs.swing.table.components
+    testImplementation libs.menu.action
     testRuntimeOnly "org.junit.platform:junit-platform-launcher"
 }
 
