@@ -25,6 +25,7 @@
 package io.github.astrapi69.mystic.crypt.plugin.lethenon;
 
 import java.io.IOException;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -39,11 +40,14 @@ import io.github.astrapi69.lethenon.PublishedAddress;
 import io.github.astrapi69.lethenon.SignedTransaction;
 import io.github.astrapi69.lethenon.Transfers;
 import io.github.astrapi69.lethenon.Wallet;
+import io.github.astrapi69.lethenon.transport.Handover;
+import io.github.astrapi69.lethenon.transport.PeerAddress;
 
 /**
  * Signs a transfer to an account key or to a published address and leaves it waiting for the next
  * block, next to the chain file in {@code <chain>.pending} - what lethenon's {@code send --to} and
- * {@code send --to-address} do on the command line (lethenon#2, milestone 5).
+ * {@code send --to-address} do on the command line (lethenon#2, milestone 5) - or hands it to a
+ * running node that serves the chain file, as {@code send --node} does (#530 step 3).
  * <p>
  * A published address is paid at a one-time destination: {@link OneTimeAddresses#destinationFor}
  * derives it from the address and a key pair made for this payment alone, so two payments to one
@@ -77,10 +81,15 @@ public final class TransferSupport
 	 *            the wallet file's password; overwritten with zeros before this method returns
 	 * @return the signed transfer
 	 * @throws IOException
-	 *             when a file cannot be read or written
+	 *             when a file cannot be read or written, or the node cannot be reached or refuses
+	 *             the handshake; nothing then waits anywhere
 	 * @throws IllegalArgumentException
 	 *             when a file is missing, the password does not open the wallet, an input is not
-	 *             one the chain can take, or the account does not cover the amount and the fee
+	 *             one the chain can take, the node is not host:port, or the account does not cover
+	 *             the amount and the fee
+	 * @throws IllegalStateException
+	 *             when the node took the transfer and its pool next to the chain file does not
+	 *             carry it: the node serves another chain file, or refused the transfer
 	 * @throws io.github.astrapi69.lethenon.ChainRejected
 	 *             when the chain does not verify
 	 */
@@ -89,6 +98,7 @@ public final class TransferSupport
 	{
 		try
 		{
+			PeerAddress node = nodeOf(order.node());
 			Destination recipient = destinationOf(order.recipientKind(), order.recipient());
 			Amount amount = Amount.parseLeth(order.amount().trim());
 			Amount fee = order.fee().isBlank() ? Amount.ZERO : Amount.parseLeth(order.fee().trim());
@@ -98,15 +108,55 @@ public final class TransferSupport
 			List<SignedTransaction> waiting = new ArrayList<>(chainFile.readPending());
 			SignedTransaction signed = Transfers.prepare(sender, order.suite(), chain, waiting,
 				recipient, amount, fee, order.memo());
-			waiting.add(signed);
-			chainFile.writePending(waiting);
+			int nowWaiting = node == null ? waitNextToTheChain(chainFile, waiting, signed)
+				: handOver(node, chain, order.chainFile(), signed);
 			return new SentTransfer(signed.body().nonce(), amount, order.recipientKind(),
-				order.recipient().trim(), waiting.size());
+				order.recipient().trim(), nowWaiting, node == null ? "" : node.toString());
 		}
 		finally
 		{
 			Arrays.fill(password, '\0');
 		}
+	}
+
+	/**
+	 * The node a transfer is handed to, read before the wallet is opened, so that a mistyped
+	 * address costs no signature
+	 *
+	 * @return the node, or null when none was named
+	 */
+	private static PeerAddress nodeOf(final String node)
+	{
+		return node == null || node.isBlank() ? null : PeerAddress.parse(node.trim());
+	}
+
+	private static int waitNextToTheChain(final ChainFile chainFile,
+		final List<SignedTransaction> waiting, final SignedTransaction signed) throws IOException
+	{
+		List<SignedTransaction> nowWaiting = new ArrayList<>(waiting);
+		nowWaiting.add(signed);
+		chainFile.writePending(nowWaiting);
+		return nowWaiting.size();
+	}
+
+	/**
+	 * Hands the transfer to the node and reads its pool afterwards: {@link Handover#send} returns
+	 * once the node has handled the frame, and the pool next to the chain file then says whether it
+	 * was admitted - what lethenon's {@code send --node} does (ADR 0003)
+	 */
+	private static int handOver(final PeerAddress node, final List<BlockBody> chain,
+		final Path chainPath, final SignedTransaction signed) throws IOException
+	{
+		Handover.send(node, chain, signed);
+		List<SignedTransaction> pool = new ChainFile(chainPath).readPending();
+		if (!pool.contains(signed))
+		{
+			throw new IllegalStateException("the node at " + node + " took the transfer, and it is "
+				+ "not in " + chainPath + ".pending: a node that serves another chain file keeps its "
+				+ "pool next to that file, and a node that refused the transfer names the reason "
+				+ "among its refusals");
+		}
+		return pool.size();
 	}
 
 	private static Destination destinationOf(final RecipientKind kind, final String recipient)

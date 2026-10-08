@@ -72,8 +72,9 @@ import io.github.astrapi69.mystic.crypt.TestPasswords;
  * submenu appears, the replay verifier behind its button reports what it verified in a chain file
  * written by the chain library itself, the chain view lists that file's blocks, the balance window
  * reads a wallet, the send window signs a transfer that the chain library reads back, the mining
- * window writes the next block, which the chain library reads back and replays, and the sync window
- * brings a chain file up to the tip of a node running in this test (#530).
+ * window writes the next block, which the chain library reads back and replays, the sync window
+ * brings a chain file up to the tip of a node running in this test, and the send window hands a
+ * transfer to such a node (#530).
  * <p>
  * The chain here is built with lethenon's own encoder rather than with a committed fixture, because
  * what a user's chain file looks like is whatever that encoder writes - a fixture would freeze one
@@ -463,7 +464,7 @@ class LethenonPluginUiTest extends AbstractUiTest
 	void thePlugin_synchronisesAChainFileFromANode() throws Exception
 	{
 		installPluginRequiringItBuilt(LETHENON_ZIP);
-		List<BlockBody> served = aTestChainOf(3);
+		List<BlockBody> served = aTestChainOf(3, Bytes.of(new byte[] { 9 }));
 		File chainFile = new File(tempHome, "synced.lethenon");
 		File databaseFile = new File(tempHome, "lethenon-sync.mcrdb");
 		createDatabaseFileHeadless(databaseFile, MASTER_PASSWORD);
@@ -491,6 +492,54 @@ class LethenonPluginUiTest extends AbstractUiTest
 			assertEquals(served, new ChainFile(chainFile.toPath()).require(),
 				"the file holds the node's chain, read back with the chain library");
 			assertTrue(frame.isEnabled(), "the application is still usable after a sync");
+		}
+	}
+
+	@Test
+	@DisplayName("the plugin hands a signed transfer to a running node that serves the chain file")
+	void thePlugin_handsATransferToANode() throws Exception
+	{
+		installPluginRequiringItBuilt(LETHENON_ZIP);
+		String walletPassword = TestPasswords.throwaway();
+		Wallet wallet = Wallet.create();
+		File walletFile = new File(tempHome, "sender.lethenon-wallet");
+		WalletFile.write(walletFile.toPath(), wallet, walletPassword.toCharArray());
+		File chainFile = new File(tempHome, "served.lethenon");
+		ChainFile chain = new ChainFile(chainFile.toPath());
+		chain.write(aTestChainOf(2, wallet.spendKey(SignatureSuite.ED25519)));
+		Bytes recipient = TransactionSigner
+			.asBytes(TransactionSigner.newKeyPair(SignatureSuite.ED25519).getPublic());
+		File databaseFile = new File(tempHome, "lethenon-handover.mcrdb");
+		createDatabaseFileHeadless(databaseFile, MASTER_PASSWORD);
+		try (Node node = Node.serving(chain))
+		{
+			int port = node.listen(0);
+			ApplicationSteps application = signInWithExistingDatabase(databaseFile,
+				MASTER_PASSWORD);
+			FrameFixture frame = application.showMainFrame();
+
+			application.openPluginTool("Send LETH", "Send LETH");
+			JInternalFrameFixture send = new JInternalFrameFixture(robot,
+				application.internalFrame("Send LETH"));
+			GuiActionRunner.execute(() -> {
+				send.textBox("txtChainFile").target().setText(chainFile.getAbsolutePath());
+				send.textBox("txtWalletFile").target().setText(walletFile.getAbsolutePath());
+				send.textBox("txtPassword").target().setText(walletPassword);
+				send.textBox("txtRecipient").target().setText(recipient.toString());
+				send.textBox("txtAmount").target().setText("4");
+				send.textBox("txtNode").target().setText("127.0.0.1:" + port);
+			});
+			UiTestSpeed.step();
+			SwingUtilities.invokeLater(() -> send.button("btnSend").target().doClick());
+			awaitReport(send, "handed it to the node", "the transfer is handed to the node");
+
+			List<SignedTransaction> pool = node.pending();
+			assertEquals(1, pool.size(), "the node admitted the transfer");
+			assertEquals(Destination.direct(recipient), pool.getFirst().body().recipient());
+			assertEquals(Amount.parseLeth("4"), pool.getFirst().body().amount());
+			assertEquals(pool, chain.readPending(),
+				"the node keeps its pool next to the chain file it serves");
+			assertTrue(frame.isEnabled(), "the application is still usable after a handover");
 		}
 	}
 
@@ -578,12 +627,11 @@ class LethenonPluginUiTest extends AbstractUiTest
 	/**
 	 * A test chain mined the way a node mines it, every block from the chain library's own
 	 * {@link Mining#nextBlock}, one target block time after the one before, so that it keeps the
-	 * minimum difficulty
+	 * minimum difficulty; every block pays the given miner
 	 */
-	private static List<BlockBody> aTestChainOf(final int blocks)
+	private static List<BlockBody> aTestChainOf(final int blocks, final Bytes miner)
 	{
 		long start = 1_759_000_000_000L;
-		Bytes miner = Bytes.of(new byte[] { 9 });
 		List<BlockBody> chain = new ArrayList<>();
 		chain.add(Blocks.mine(Mining.nextBlock(Chain.TEST_IDENTIFIER, List.of(), miner, List.of(),
 			"in the beginning was the pun", start), 1_000_000L).orElseThrow());

@@ -44,12 +44,14 @@ import org.junit.jupiter.api.io.TempDir;
 
 import io.github.astrapi69.lethenon.Bytes;
 import io.github.astrapi69.lethenon.CanonicalEncoding;
+import io.github.astrapi69.lethenon.Chain;
 import io.github.astrapi69.lethenon.ChainFile;
 import io.github.astrapi69.lethenon.SignatureSuite;
 import io.github.astrapi69.lethenon.SignedTransaction;
 import io.github.astrapi69.lethenon.TransactionSigner;
 import io.github.astrapi69.lethenon.Wallet;
 import io.github.astrapi69.lethenon.WalletFile;
+import io.github.astrapi69.lethenon.transport.Node;
 import io.github.astrapi69.mystic.crypt.settings.PluginSettings;
 
 /**
@@ -74,12 +76,14 @@ class LethenonSendPanelBindingTest
 
 	private Bytes recipient;
 
+	private Wallet wallet;
+
 	@BeforeEach
 	void writeAChainAndAWallet() throws Exception
 	{
 		System.setProperty(PluginSettings.CONFIGURATION_DIRECTORY_PROPERTY,
 			configurationDirectory.getAbsolutePath());
-		Wallet wallet = Wallet.create();
+		wallet = Wallet.create();
 		walletFile = new File(directory, "wallet.lethenon-wallet").toPath();
 		WalletFile.write(walletFile, wallet, PASSWORD.toCharArray());
 		KeyPair payer = TransactionSigner.newKeyPair(SignatureSuite.ED25519);
@@ -129,6 +133,31 @@ class LethenonSendPanelBindingTest
 		assertTrue(report.contains("1 waiting"), report);
 		assertEquals("the transfer was signed and waits for the next block",
 			panel.getModelObject().getResultText());
+	}
+
+	@Test
+	@DisplayName("sending through a node reports the node, and the transfer waits in its pool")
+	void sending_throughANode_reportsTheNodeAndItsPool() throws Exception
+	{
+		Path testChain = new File(directory, "test-chain.lethenon").toPath();
+		new ChainFile(testChain).write(LethenonFixtures.aChainOf(Chain.TEST_IDENTIFIER, 2,
+			wallet.spendKey(SignatureSuite.ED25519)));
+		try (Node node = Node.serving(new ChainFile(testChain)))
+		{
+			String address = "127.0.0.1:" + node.listen(0);
+			LethenonSendPanel panel = filledPanel(PASSWORD, "2");
+			panel.getModelObject().setChainFile(testChain.toString());
+			panel.getModelObject().setNode(address);
+
+			panel.onSend();
+
+			assertEquals(1, node.pending().size(), panel.getModelObject().getResultText());
+			String report = panel.getModelObject().getReport();
+			assertTrue(report.contains("handed it to the node at " + address), report);
+			assertTrue(report.contains("1 waiting"), report);
+			assertEquals("the transfer was signed and handed to the node",
+				panel.getModelObject().getResultText());
+		}
 	}
 
 	@Test

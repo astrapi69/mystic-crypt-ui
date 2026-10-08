@@ -41,8 +41,12 @@ import io.github.astrapi69.lethenon.Amount;
  *            nobody but the recipient is to connect the two, and the sender's own screen is a place
  *            where that link would be written down
  * @param waiting
- *            how many transfers wait for the next block now, this one included
+ *            how many transfers wait for the next block now, this one included: next to the chain
+ *            file, or in the pool of the node it was handed to
+ * @param node
+ *            host:port of the node the transfer was handed to, empty when it waits next to the
+ *            chain file
  */
 public record SentTransfer(long nonce, Amount amount, RecipientKind recipientKind, String recipient,
-	int waiting) {
+	int waiting, String node) {
 }
