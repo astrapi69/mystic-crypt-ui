@@ -56,9 +56,11 @@ import io.github.astrapi69.swing.model.component.JMTextField;
  * link would be written down.
  * <p>
  * The transfer is signed by {@link TransferSupport} and waits next to the chain file until the next
- * block carries it; this window writes no block. The password goes from the field into the model as
- * a {@code char[]}, is wiped by the support class, and is cleared from the field afterwards,
- * whether the transfer was signed or refused.
+ * block carries it, or, with a node named, is handed to that running node, which serves the chain
+ * file and keeps it in its pool (#530 step 3); this window writes no block. A local node answers at
+ * once, so the handover runs in the window like the signing. The password goes from the field into
+ * the model as a {@code char[]}, is wiped by the support class, and is cleared from the field
+ * afterwards, whether the transfer was signed or refused.
  */
 public class LethenonSendPanel extends JPanel
 {
@@ -92,6 +94,8 @@ public class LethenonSendPanel extends JPanel
 	private final JMTextField txtFee = new JMTextField(12);
 
 	private final JMTextField txtMemo = new JMTextField(34);
+
+	private final JMTextField txtNode = new JMTextField(34);
 
 	private final JMTextArea txtReport = new JMTextArea(4, 62);
 
@@ -134,10 +138,13 @@ public class LethenonSendPanel extends JPanel
 			SentTransfer sent = TransferSupport.send(orderFromTheModel(),
 				modelObject.getPassword());
 			setReport(describe(sent));
-			setResult(LethenonMessages.getString("lethenon.result.send.signed",
-				"the transfer was signed and waits for the next block"));
+			setResult(sent.node().isEmpty()
+				? LethenonMessages.getString("lethenon.result.send.signed",
+					"the transfer was signed and waits for the next block")
+				: LethenonMessages.getString("lethenon.result.send.handed",
+					"the transfer was signed and handed to the node"));
 		}
-		catch (ChainRejected | IllegalArgumentException refused)
+		catch (ChainRejected | IllegalArgumentException | IllegalStateException refused)
 		{
 			setReport("");
 			setResult(failure + ": " + refused.getMessage());
@@ -159,7 +166,7 @@ public class LethenonSendPanel extends JPanel
 		return new TransferOrder(Path.of(modelObject.getChainFile().trim()),
 			Path.of(modelObject.getWalletFile().trim()), modelObject.getSuite(),
 			modelObject.getRecipientKind(), modelObject.getRecipient(), modelObject.getAmount(),
-			modelObject.getFee(), modelObject.getMemo());
+			modelObject.getFee(), modelObject.getMemo(), modelObject.getNode());
 	}
 
 	private static String describe(final SentTransfer sent)
@@ -168,11 +175,24 @@ public class LethenonSendPanel extends JPanel
 			+ sent.amount() + " LETH " + LethenonMessages.getString("lethenon.send.to", "to") + " "
 			+ whomItNames(sent) + " "
 			+ LethenonMessages.getString("lethenon.send.with.nonce", "with nonce") + " "
-			+ sent.nonce() + "; "
-			+ LethenonMessages.getString("lethenon.send.waits",
-				"it waits for the next block, which mining a pun writes")
-			+ " (" + sent.waiting() + " "
+			+ sent.nonce() + whereItWaits(sent) + " (" + sent.waiting() + " "
 			+ LethenonMessages.getString("lethenon.send.waiting", "waiting") + ")";
+	}
+
+	/**
+	 * Where the transfer waits now: next to the chain file, or in the pool of the node it was
+	 * handed to
+	 */
+	private static String whereItWaits(final SentTransfer sent)
+	{
+		if (sent.node().isEmpty())
+		{
+			return "; " + LethenonMessages.getString("lethenon.send.waits",
+				"it waits for the next block, which mining a pun writes");
+		}
+		return " " + LethenonMessages.getString("lethenon.send.handed", "and handed it to the node at")
+			+ " " + sent.node() + "; "
+			+ LethenonMessages.getString("lethenon.send.in.its.pool", "it waits in its pool");
 	}
 
 	/**
@@ -200,6 +220,7 @@ public class LethenonSendPanel extends JPanel
 		txtAmount.setName("txtAmount");
 		txtFee.setName("txtFee");
 		txtMemo.setName("txtMemo");
+		txtNode.setName("txtNode");
 		txtReport.setName("txtReport");
 		txtReport.setEditable(false);
 		txtReport.setLineWrap(true);
@@ -256,6 +277,9 @@ public class LethenonSendPanel extends JPanel
 			"the fee in LETH, paid to the pool; 0 is allowed"));
 		txtMemo.setToolTipText(LethenonMessages.getString("lethenon.tooltip.send.memo",
 			"text signed with the transfer; everyone who reads the chain reads it too"));
+		txtNode.setToolTipText(LethenonMessages.getString("lethenon.tooltip.send.node",
+			"host:port of a running node that serves this chain file: the transfer is handed to "
+				+ "it and waits in its pool; empty, it waits next to the chain file"));
 	}
 
 	private void layOut()
@@ -289,6 +313,8 @@ public class LethenonSendPanel extends JPanel
 		add(txtFee, OWN_WIDTH);
 		add(new JLabel(LethenonMessages.getString("lethenon.label.send.memo", "Memo:")));
 		add(txtMemo, ToolForm.FIELD);
+		add(new JLabel(LethenonMessages.getString("lethenon.label.node", "Node:")));
+		add(txtNode, ToolForm.FIELD);
 		add(ToolForm.buttons(LethenonSwing.button("btnSend",
 			LethenonMessages.getString("lethenon.button.send", "Sign the transfer"),
 			event -> onSend(),
@@ -318,6 +344,7 @@ public class LethenonSendPanel extends JPanel
 		txtFee.setPropertyModel(LambdaModel.of(modelObject::getFee, modelObject::setFee));
 		txtFee.setText(modelObject.getFee());
 		txtMemo.setPropertyModel(LambdaModel.of(modelObject::getMemo, modelObject::setMemo));
+		txtNode.setPropertyModel(LambdaModel.of(modelObject::getNode, modelObject::setNode));
 		txtReport.setPropertyModel(LambdaModel.of(modelObject::getReport, modelObject::setReport));
 	}
 

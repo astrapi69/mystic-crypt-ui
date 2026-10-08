@@ -56,6 +56,8 @@ public class LethenonSendPanelModel
 
 	private String memo = "";
 
+	private String node = "";
+
 	private String report = "";
 
 	private String resultText = " ";
@@ -166,6 +168,16 @@ public class LethenonSendPanelModel
 	public void setMemo(String memo)
 	{
 		this.memo = memo;
+	}
+
+	public String getNode()
+	{
+		return node;
+	}
+
+	public void setNode(String node)
+	{
+		this.node = node;
 	}
 
 	public String getReport()
