@@ -34,6 +34,8 @@ import io.github.astrapi69.lethenon.Blocks;
 import io.github.astrapi69.lethenon.Bytes;
 import io.github.astrapi69.lethenon.Chain;
 import io.github.astrapi69.lethenon.Destination;
+import io.github.astrapi69.lethenon.DifficultyRule;
+import io.github.astrapi69.lethenon.Mining;
 import io.github.astrapi69.lethenon.OneTimeAddresses;
 import io.github.astrapi69.lethenon.SignatureSuite;
 import io.github.astrapi69.lethenon.SignedTransaction;
@@ -48,8 +50,40 @@ import io.github.astrapi69.lethenon.Wallet;
 final class LethenonFixtures
 {
 
+	/** When the chains of {@link #aChainOf} begin: in the past, so that no block is from the future */
+	private static final long CHAIN_START = 1_759_000_000_000L;
+
 	private LethenonFixtures()
 	{
+	}
+
+	/**
+	 * A chain mined the way a node mines it, every block from the chain library's own
+	 * {@link Mining#nextBlock}, one target block time after the one before, so that the chain keeps
+	 * the minimum difficulty
+	 *
+	 * @param chainIdentifier
+	 *            the chain the genesis block starts, {@link Chain#TEST_IDENTIFIER} for one a node
+	 *            serves
+	 * @param blocks
+	 *            how many blocks, the genesis block included, at least one
+	 * @param miner
+	 *            the account every block pays
+	 * @return the blocks, genesis first
+	 */
+	static List<BlockBody> aChainOf(final String chainIdentifier, final int blocks,
+		final Bytes miner)
+	{
+		List<BlockBody> chain = new ArrayList<>();
+		chain.add(Blocks.mine(Mining.nextBlock(chainIdentifier, List.of(), miner, List.of(),
+			"in the beginning was the pun", CHAIN_START), 1_000_000L).orElseThrow());
+		while (chain.size() < blocks)
+		{
+			chain.add(Blocks.mine(Mining.nextBlock(chain, miner, List.of(), "pun " + chain.size(),
+				CHAIN_START + DifficultyRule.TARGET_BLOCK_MILLIS * chain.size()), 1_000_000L)
+				.orElseThrow());
+		}
+		return List.copyOf(chain);
 	}
 
 	/**

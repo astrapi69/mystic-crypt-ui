@@ -53,6 +53,8 @@ import io.github.astrapi69.lethenon.CanonicalEncoding;
 import io.github.astrapi69.lethenon.Chain;
 import io.github.astrapi69.lethenon.ChainFile;
 import io.github.astrapi69.lethenon.Destination;
+import io.github.astrapi69.lethenon.DifficultyRule;
+import io.github.astrapi69.lethenon.Mining;
 import io.github.astrapi69.lethenon.OneTimeAddresses;
 import io.github.astrapi69.lethenon.Replay;
 import io.github.astrapi69.lethenon.SignatureSuite;
@@ -62,14 +64,16 @@ import io.github.astrapi69.lethenon.TransactionSigner;
 import io.github.astrapi69.lethenon.Transfers;
 import io.github.astrapi69.lethenon.Wallet;
 import io.github.astrapi69.lethenon.WalletFile;
+import io.github.astrapi69.lethenon.transport.Node;
 import io.github.astrapi69.mystic.crypt.TestPasswords;
 
 /**
  * Milestone 5 of lethenon#2, the parts of it that are built: the plugin installs from its zip, its
  * submenu appears, the replay verifier behind its button reports what it verified in a chain file
  * written by the chain library itself, the chain view lists that file's blocks, the balance window
- * reads a wallet, the send window signs a transfer that the chain library reads back, and the
- * mining window writes the next block, which the chain library reads back and replays.
+ * reads a wallet, the send window signs a transfer that the chain library reads back, the mining
+ * window writes the next block, which the chain library reads back and replays, and the sync window
+ * brings a chain file up to the tip of a node running in this test (#530).
  * <p>
  * The chain here is built with lethenon's own encoder rather than with a committed fixture, because
  * what a user's chain file looks like is whatever that encoder writes - a fixture would freeze one
@@ -454,6 +458,42 @@ class LethenonPluginUiTest extends AbstractUiTest
 		assertTrue(frame.isEnabled(), "the application is still usable after a sweep");
 	}
 
+	@Test
+	@DisplayName("the plugin brings a new chain file up to a running node's tip, every block verified")
+	void thePlugin_synchronisesAChainFileFromANode() throws Exception
+	{
+		installPluginRequiringItBuilt(LETHENON_ZIP);
+		List<BlockBody> served = aTestChainOf(3);
+		File chainFile = new File(tempHome, "synced.lethenon");
+		File databaseFile = new File(tempHome, "lethenon-sync.mcrdb");
+		createDatabaseFileHeadless(databaseFile, MASTER_PASSWORD);
+		try (Node node = Node.on(served))
+		{
+			int port = node.listen(0);
+			ApplicationSteps application = signInWithExistingDatabase(databaseFile,
+				MASTER_PASSWORD);
+			FrameFixture frame = application.showMainFrame();
+
+			application.openPluginTool("Synchronise with a Node", "Synchronise with a Node");
+			JInternalFrameFixture tool = new JInternalFrameFixture(robot,
+				application.internalFrame("Synchronise with a Node"));
+			GuiActionRunner.execute(() -> {
+				tool.textBox("txtChainFile").target().setText(chainFile.getAbsolutePath());
+				tool.textBox("txtNode").target().setText("127.0.0.1:" + port);
+			});
+			UiTestSpeed.step();
+			SwingUtilities.invokeLater(() -> tool.button("btnSync").target().doClick());
+			awaitReport(tool, "took 3 block(s)", "the chain file is synchronised");
+
+			String report = textOf(tool, "txtReport");
+			assertTrue(report.contains("now at height 2"), report);
+			assertTrue(report.contains("taken on first use"), report);
+			assertEquals(served, new ChainFile(chainFile.toPath()).require(),
+				"the file holds the node's chain, read back with the chain library");
+			assertTrue(frame.isEnabled(), "the application is still usable after a sync");
+		}
+	}
+
 	/**
 	 * Mines the next block through the "Mine a Pun" window, which is opened when it is not open yet
 	 */
@@ -533,6 +573,28 @@ class LethenonPluginUiTest extends AbstractUiTest
 		File chainFile = new File(tempHome, "chain.lethenon");
 		Files.write(chainFile.toPath(), CanonicalEncoding.encodeChain(List.of(genesis, second)));
 		return chainFile;
+	}
+
+	/**
+	 * A test chain mined the way a node mines it, every block from the chain library's own
+	 * {@link Mining#nextBlock}, one target block time after the one before, so that it keeps the
+	 * minimum difficulty
+	 */
+	private static List<BlockBody> aTestChainOf(final int blocks)
+	{
+		long start = 1_759_000_000_000L;
+		Bytes miner = Bytes.of(new byte[] { 9 });
+		List<BlockBody> chain = new ArrayList<>();
+		chain.add(Blocks.mine(Mining.nextBlock(Chain.TEST_IDENTIFIER, List.of(), miner, List.of(),
+			"in the beginning was the pun", start), 1_000_000L).orElseThrow());
+		while (chain.size() < blocks)
+		{
+			chain.add(Blocks
+				.mine(Mining.nextBlock(chain, miner, List.of(), "pun " + chain.size(),
+					start + DifficultyRule.TARGET_BLOCK_MILLIS * chain.size()), 1_000_000L)
+				.orElseThrow());
+		}
+		return List.copyOf(chain);
 	}
 
 	/**
