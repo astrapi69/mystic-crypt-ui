@@ -32,6 +32,7 @@ import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.util.Set;
 
+import javax.swing.BorderFactory;
 import javax.swing.ComboBoxModel;
 import javax.swing.DefaultListCellRenderer;
 import javax.swing.JLabel;
@@ -62,8 +63,9 @@ import io.github.astrapi69.swing.model.component.JMTextField;
  * afterwards, whether a block was mined or not.
  * <p>
  * Where the chain file does not exist yet, the block is a genesis block, and the window asks which
- * chain it starts: the test network unless the main chain is chosen (#518). Once the file exists
- * its genesis block decides, and the choice is closed.
+ * chain it starts: the test network unless the main chain is chosen (#518). Before that choice it
+ * shows "Before you start" (#540), what a public start of the main chain runs into. Once the file
+ * exists its genesis block decides, and the choice is closed and the view hidden with it.
  */
 public class LethenonMinePanel extends JPanel
 {
@@ -79,6 +81,9 @@ public class LethenonMinePanel extends JPanel
 	/** Something that keeps its own width instead of growing with the cell */
 	private static final String OWN_WIDTH = "alignx left, width pref!";
 
+	/** Both columns, and no room kept for it while it is hidden */
+	private static final String WIDE_HIDDEN_WITHOUT_ROOM = ToolForm.WIDE + ", hidemode 3";
+
 	private final LethenonMinePanelModel modelObject = new LethenonMinePanelModel();
 
 	private final JMTextField txtChainFile = new JMTextField(34);
@@ -89,6 +94,8 @@ public class LethenonMinePanel extends JPanel
 
 	private final JMComboBox<ChainKind, ComboBoxModel<ChainKind>> cbxChainKind = new JMComboBox<>(
 		new EnumComboBoxModel<>(ChainKind.class, ChainKind.TEST_NETWORK, Set.of()));
+
+	private final LethenonBeforeYouStartPanel pnlBeforeYouStart = new LethenonBeforeYouStartPanel();
 
 	private final JMTextField txtPun = new JMTextField(34);
 
@@ -199,6 +206,8 @@ public class LethenonMinePanel extends JPanel
 		txtReport.setFont(new Font("monospaced", Font.PLAIN, 12));
 		lblResult.setName("lblResult");
 		lblResult.setFont(lblResult.getFont().deriveFont(Font.BOLD));
+		pnlBeforeYouStart.setBorder(BorderFactory.createTitledBorder(LethenonMessages
+			.getString(LaunchChecklist.KEY_PREFIX + "title", "Before you start")));
 	}
 
 	private void explainTheComponents()
@@ -236,6 +245,7 @@ public class LethenonMinePanel extends JPanel
 			OWN_WIDTH);
 		add(new JLabel(LethenonMessages.getString("lethenon.label.wallet.password", "Password:")));
 		add(txtPassword, ToolForm.FIELD);
+		add(pnlBeforeYouStart, WIDE_HIDDEN_WITHOUT_ROOM);
 		add(new JLabel(LethenonMessages.getString("lethenon.label.mine.chain.kind", "New chain:")));
 		add(cbxChainKind, OWN_WIDTH);
 		add(new JLabel(LethenonMessages.getString("lethenon.label.mine.pun", "Pun:")));
@@ -267,7 +277,8 @@ public class LethenonMinePanel extends JPanel
 
 	/**
 	 * Opens the choice of chain while the chain file names no existing file, and closes it once it
-	 * does: an existing chain's genesis block decides which chain it is
+	 * does: an existing chain's genesis block decides which chain it is. "Before you start" is
+	 * shown exactly while the choice is open.
 	 */
 	private void followTheChainFile()
 	{
@@ -300,7 +311,13 @@ public class LethenonMinePanel extends JPanel
 	 */
 	private void updateTheChoiceOfChain(final String chainFilePath)
 	{
-		cbxChainKind.setEnabled(!namesAnExistingFile(chainFilePath));
+		boolean open = !namesAnExistingFile(chainFilePath);
+		cbxChainKind.setEnabled(open);
+		if (pnlBeforeYouStart.isVisible() != open)
+		{
+			pnlBeforeYouStart.setVisible(open);
+			revalidate();
+		}
 	}
 
 	private static boolean namesAnExistingFile(final String text)

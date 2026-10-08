@@ -110,6 +110,10 @@ test {
         // no output and nothing to end it (#322); on a hosted runner that is six hours of nothing.
         // The limit is per test method and generous - the slowest of these drives a whole application
         systemProperty 'junit.jupiter.execution.timeout.testable.method.default', '3m'
+        // the suites find menu items and assert text in English. Since a plugin carries German text
+        // (lethenon's messages_de.properties, #540), a JVM that took its language from a German
+        // desktop would show that text instead, and the same suite would pass on CI and fail at home
+        systemProperty 'user.language', 'en'
         applyTestLogging(it)
         // after the fast one, so a failure that both would catch is reported by the cheap suite first
         shouldRunAfter test

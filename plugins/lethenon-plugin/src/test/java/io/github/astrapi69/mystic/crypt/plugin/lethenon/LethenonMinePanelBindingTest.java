@@ -217,6 +217,27 @@ class LethenonMinePanelBindingTest
 	}
 
 	@Test
+	@DisplayName("the view \"Before you start\" stands before the choice of chain, and shows while that choice is open")
+	void theStartView_standsBeforeTheChoice_whileItIsOpen() throws Exception
+	{
+		LethenonMinePanel panel = new LethenonMinePanel();
+		LethenonBeforeYouStartPanel view = componentNamed(panel, "pnlBeforeYouStart",
+			LethenonBeforeYouStartPanel.class);
+		JComboBox<?> kinds = componentNamed(panel, "cbxChainKind", JComboBox.class);
+		JTextField chainFileField = componentNamed(panel, "txtChainFile", JTextField.class);
+		List<Component> order = List.of(panel.getComponents());
+
+		assertTrue(order.contains(view), "the mining window carries the view itself");
+		assertTrue(order.indexOf(view) < order.indexOf(kinds), "the view comes before the choice");
+
+		chainFileField.setText(directory.toPath().resolve("new.lethenon").toString());
+		assertTrue(view.isVisible(), "a genesis block is about to be mined: the view is shown");
+
+		chainFileField.setText(chainFile.toString());
+		assertFalse(view.isVisible(), "an existing chain's genesis block decides: no choice, no view");
+	}
+
+	@Test
 	@DisplayName("replacing the password overwrites the array it replaces")
 	void setPassword_wipesTheReplacedArray()
 	{
