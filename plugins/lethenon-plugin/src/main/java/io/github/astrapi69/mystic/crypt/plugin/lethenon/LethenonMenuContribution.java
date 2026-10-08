@@ -61,7 +61,8 @@ public class LethenonMenuContribution implements PluginMenuContribution
 			item("lethenon.menu.item.send", "Send LETH", LethenonSendPanel::new),
 			item("lethenon.menu.item.mine", "Mine a Pun", LethenonMinePanel::new),
 			item("lethenon.menu.item.sweep", "Sweep One-Time Payments", LethenonSweepPanel::new),
-			item("lethenon.menu.item.sync", "Synchronise with a Node", LethenonSyncPanel::new));
+			item("lethenon.menu.item.sync", "Synchronise with a Node", LethenonSyncPanel::new),
+			item("lethenon.menu.item.node", "Run a Node", LethenonNodePanel::new));
 	}
 
 	/**
