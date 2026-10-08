@@ -29,6 +29,7 @@ import java.awt.Window;
 import java.awt.event.WindowListener;
 import java.io.File;
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.lang.reflect.Field;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -46,6 +47,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 import io.github.astrapi69.awt.window.adapter.CloseWindow;
+import io.github.astrapi69.file.delete.DeleteFileExtensions;
 import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
 
 /**
@@ -167,31 +169,21 @@ abstract class AbstractUiTest
 			robot.cleanUpWithoutDisposingWindows();
 			resetApplicationFrameSingleton();
 			System.setProperty("user.home", originalUserHome);
-			if (tempHome != null && tempHome.exists())
-			{
-				try
-				{
-					java.nio.file.Files.walkFileTree(tempHome.toPath(), new java.nio.file.SimpleFileVisitor<java.nio.file.Path>()
-					{
-						@Override
-						public java.nio.file.FileVisitResult visitFile(java.nio.file.Path file, java.nio.file.attribute.BasicFileAttributes attrs) throws java.io.IOException
-						{
-							java.nio.file.Files.delete(file);
-							return java.nio.file.FileVisitResult.CONTINUE;
-						}
+		}
+		deleteTempHome();
+	}
 
-						@Override
-						public java.nio.file.FileVisitResult postVisitDirectory(java.nio.file.Path dir, java.io.IOException exc) throws java.io.IOException
-						{
-							java.nio.file.Files.delete(dir);
-							return java.nio.file.FileVisitResult.CONTINUE;
-						}
-					});
-				}
-				catch (java.io.IOException e)
-				{
-					throw new java.io.UncheckedIOException("Failed to delete tempHome", e);
-				}
+	private void deleteTempHome()
+	{
+		if (tempHome != null && tempHome.exists())
+		{
+			try
+			{
+				DeleteFileExtensions.delete(tempHome);
+			}
+			catch (IOException e)
+			{
+				throw new UncheckedIOException("could not delete the test home " + tempHome, e);
 			}
 		}
 	}
