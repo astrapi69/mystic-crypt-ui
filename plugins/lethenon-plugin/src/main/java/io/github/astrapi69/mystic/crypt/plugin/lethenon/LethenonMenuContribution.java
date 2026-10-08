@@ -26,6 +26,7 @@ package io.github.astrapi69.mystic.crypt.plugin.lethenon;
 
 import java.awt.Component;
 import java.util.List;
+import java.util.function.Supplier;
 
 import javax.swing.JInternalFrame;
 import javax.swing.JMenuItem;
@@ -54,30 +55,33 @@ public class LethenonMenuContribution implements PluginMenuContribution
 	@Override
 	public List<JMenuItem> getMenuItems()
 	{
-		String title = LethenonMessages.getString("lethenon.menu.item.verify", "Verify a Chain");
-		JMenuItem verifyAChain = new JMenuItem(title);
-		verifyAChain.addActionListener(event -> openInternalFrame(title, new LethenonChainPanel()));
-		String chainTitle = LethenonMessages.getString("lethenon.menu.item.show.chain",
-			"Show a Chain");
-		JMenuItem showAChain = new JMenuItem(chainTitle);
-		showAChain.addActionListener(
-			event -> openInternalFrame(chainTitle, new LethenonChainViewPanel()));
-		String balanceTitle = LethenonMessages.getString("lethenon.menu.item.show.balance",
-			"Show a Balance");
-		JMenuItem showABalance = new JMenuItem(balanceTitle);
-		showABalance.addActionListener(
-			event -> openInternalFrame(balanceTitle, new LethenonBalancePanel()));
-		String sendTitle = LethenonMessages.getString("lethenon.menu.item.send", "Send LETH");
-		JMenuItem send = new JMenuItem(sendTitle);
-		send.addActionListener(event -> openInternalFrame(sendTitle, new LethenonSendPanel()));
-		String mineTitle = LethenonMessages.getString("lethenon.menu.item.mine", "Mine a Pun");
-		JMenuItem mine = new JMenuItem(mineTitle);
-		mine.addActionListener(event -> openInternalFrame(mineTitle, new LethenonMinePanel()));
-		String sweepTitle = LethenonMessages.getString("lethenon.menu.item.sweep",
-			"Sweep One-Time Payments");
-		JMenuItem sweep = new JMenuItem(sweepTitle);
-		sweep.addActionListener(event -> openInternalFrame(sweepTitle, new LethenonSweepPanel()));
-		return List.of(verifyAChain, showAChain, showABalance, send, mine, sweep);
+		return List.of(item("lethenon.menu.item.verify", "Verify a Chain", LethenonChainPanel::new),
+			item("lethenon.menu.item.show.chain", "Show a Chain", LethenonChainViewPanel::new),
+			item("lethenon.menu.item.show.balance", "Show a Balance", LethenonBalancePanel::new),
+			item("lethenon.menu.item.send", "Send LETH", LethenonSendPanel::new),
+			item("lethenon.menu.item.mine", "Mine a Pun", LethenonMinePanel::new),
+			item("lethenon.menu.item.sweep", "Sweep One-Time Payments", LethenonSweepPanel::new),
+			item("lethenon.menu.item.sync", "Synchronise with a Node", LethenonSyncPanel::new));
+	}
+
+	/**
+	 * A menu item that opens a new tool window, titled like the item, on every click
+	 *
+	 * @param key
+	 *            the key of the item's text in the plugin's messages
+	 * @param defaultTitle
+	 *            the text when the key is missing
+	 * @param panel
+	 *            makes the window's content, anew for every window
+	 * @return the menu item
+	 */
+	private JMenuItem item(final String key, final String defaultTitle,
+		final Supplier<Component> panel)
+	{
+		String title = LethenonMessages.getString(key, defaultTitle);
+		JMenuItem item = new JMenuItem(title);
+		item.addActionListener(event -> openInternalFrame(title, panel.get()));
+		return item;
 	}
 
 	@Override
