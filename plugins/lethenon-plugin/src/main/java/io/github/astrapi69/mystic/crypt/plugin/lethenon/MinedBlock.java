@@ -28,7 +28,7 @@ package io.github.astrapi69.mystic.crypt.plugin.lethenon;
  * A block that was mined and written to the chain file
  *
  * @param chainIdentifier
- *            the chain it belongs to, e.g. {@code lethenon-test-1}
+ *            the chain it belongs to, e.g. {@code lethenon-test-2}
  * @param height
  *            its height; 0 for a genesis block
  * @param pun
@@ -36,7 +36,8 @@ package io.github.astrapi69.mystic.crypt.plugin.lethenon;
  * @param transfers
  *            how many waiting transfers it carries
  * @param beneficiary
- *            whom it pays, the miner's account key in hexadecimal
+ *            whom it pays in hexadecimal: the miner's account key, and for a genesis block the
+ *            burn account (lethenon#148)
  * @param replaySummary
  *            the chain library's own sentence about the replay of the extended chain
  */

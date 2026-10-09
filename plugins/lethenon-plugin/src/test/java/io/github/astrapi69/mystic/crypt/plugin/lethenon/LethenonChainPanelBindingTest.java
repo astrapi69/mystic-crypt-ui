@@ -46,6 +46,7 @@ import io.github.astrapi69.lethenon.Blocks;
 import io.github.astrapi69.lethenon.Bytes;
 import io.github.astrapi69.lethenon.CanonicalEncoding;
 import io.github.astrapi69.lethenon.Chain;
+import io.github.astrapi69.lethenon.Genesis;
 import io.github.astrapi69.lethenon.SignatureSuite;
 import io.github.astrapi69.lethenon.TransactionSigner;
 import io.github.astrapi69.mystic.crypt.settings.PluginSettings;
@@ -127,10 +128,8 @@ class LethenonChainPanelBindingTest
 
 	private Path aGenesisOnlyChain() throws Exception
 	{
-		KeyPair holder = TransactionSigner.newKeyPair(SignatureSuite.ED25519);
-		BlockBody genesis = Blocks.mine(new BlockBody(Chain.IDENTIFIER, 0L, Bytes.of(new byte[32]),
-			TransactionSigner.asBytes(holder.getPublic()), new ArrayList<>(), 1_759_000_000_000L, 8,
-			"only the genesis"), 1_000_000L).orElseThrow();
+		BlockBody genesis = Genesis.candidate(Chain.TEST_IDENTIFIER, "only the genesis",
+			1_759_000_000_000L);
 		Path chainFile = new File(chainDirectory, "chain.lethenon").toPath();
 		Files.write(chainFile, CanonicalEncoding.encodeChain(List.of(genesis)));
 		return chainFile;

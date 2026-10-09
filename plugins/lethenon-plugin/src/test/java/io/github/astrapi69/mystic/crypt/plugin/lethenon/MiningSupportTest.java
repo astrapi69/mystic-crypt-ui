@@ -41,7 +41,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.EnumSource;
 
 import io.github.astrapi69.lethenon.Amount;
@@ -54,6 +53,7 @@ import io.github.astrapi69.lethenon.ChainFile;
 import io.github.astrapi69.lethenon.ChainRejected;
 import io.github.astrapi69.lethenon.ChainState;
 import io.github.astrapi69.lethenon.Destination;
+import io.github.astrapi69.lethenon.Genesis;
 import io.github.astrapi69.lethenon.Replay;
 import io.github.astrapi69.lethenon.SignatureSuite;
 import io.github.astrapi69.lethenon.TransactionBody;
@@ -112,12 +112,12 @@ class MiningSupportTest
 		MinedBlock mined = MiningSupport.mine(order("watching is not protecting", 10_000_000L),
 			PASSWORD.toCharArray(), NOW);
 
-		assertEquals(2L, mined.height());
+		assertEquals(3L, mined.height());
 		assertEquals(1, mined.transfers());
 		assertEquals(miner.toString(), mined.beneficiary());
 		assertTrue(mined.pun().startsWith("watching is not protecting"), mined.pun());
 		List<BlockBody> chain = new ChainFile(chainFile).require();
-		assertEquals(3, chain.size(), "the block was written to the chain file");
+		assertEquals(4, chain.size(), "the block was written to the chain file");
 		assertEquals(mined.pun(), chain.getLast().pun());
 		ChainState state = stateOf(chain);
 		assertEquals(Amount.parseLeth("1"), state.balanceOf(recipient));
@@ -144,39 +144,60 @@ class MiningSupportTest
 	}
 
 	@Test
-	@DisplayName("mining where there is no chain yet writes its genesis block, paying the miner")
-	void mine_withoutAChain_writesTheGenesisBlock() throws Exception
+	@DisplayName("mining where there is no chain yet writes its genesis block for the burn account, and the next block pays the miner (lethenon#148)")
+	void mine_withoutAChain_writesTheGenesisBlockForTheBurnAccount() throws Exception
 	{
 		Files.delete(chainFile);
 
-		MinedBlock mined = MiningSupport.mine(order("in the beginning", 10_000_000L),
+		MinedBlock genesis = MiningSupport.mine(order("in the beginning", 10_000_000L),
 			PASSWORD.toCharArray(), NOW);
+		MinedBlock first = MiningSupport.mine(order("block one", 10_000_000L),
+			PASSWORD.toCharArray(), NOW + 120_000L);
 
-		assertEquals(0L, mined.height());
+		assertEquals(0L, genesis.height());
+		assertEquals(Genesis.NOBODY.toString(), genesis.beneficiary());
+		assertEquals(1L, first.height());
+		assertEquals(miner.toString(), first.beneficiary());
 		List<BlockBody> chain = new ChainFile(chainFile).require();
-		assertEquals(1, chain.size());
-		assertEquals(miner, chain.getFirst().beneficiary());
+		assertEquals(Genesis.NOBODY, chain.getFirst().beneficiary());
+		assertEquals(miner, chain.getLast().beneficiary());
 		Replay.verify(chain);
 	}
 
-	@ParameterizedTest(name = "{0} starts a chain named {1}")
-	@CsvSource({ "TEST_NETWORK, lethenon-test-1", "MAIN_CHAIN, lethenon-1" })
-	@DisplayName("where there is no chain yet, the chosen kind names the genesis block")
-	void mine_withoutAChain_startsTheChosenChain(final ChainKind kind, final String identifier)
-		throws Exception
+	@Test
+	@DisplayName("where there is no chain yet, the test network starts a chain under the library's test identifier")
+	void mine_withoutAChain_startsTheTestNetwork() throws Exception
 	{
 		Files.delete(chainFile);
 
-		MinedBlock mined = MiningSupport.mine(order("in the beginning", 10_000_000L, kind),
-			PASSWORD.toCharArray(), NOW);
+		MinedBlock mined = MiningSupport.mine(
+			order("in the beginning", 10_000_000L, ChainKind.TEST_NETWORK), PASSWORD.toCharArray(),
+			NOW);
 
 		List<BlockBody> chain = new ChainFile(chainFile).require();
-		assertEquals(identifier, chain.getFirst().chainIdentifier());
-		assertEquals(identifier, mined.chainIdentifier());
+		assertEquals(Chain.TEST_IDENTIFIER, chain.getFirst().chainIdentifier());
+		assertEquals(Chain.TEST_IDENTIFIER, mined.chainIdentifier());
 		Replay.verify(chain);
 	}
 
-	@ParameterizedTest(name = "choosing {0} on an existing main chain extends the main chain")
+	@Test
+	@DisplayName("a new main chain is refused with the library's reason, which names 1.0.0, and nothing is written (#535)")
+	void mine_withoutAChain_refusesTheMainChain_untilItHasItsAnchor() throws Exception
+	{
+		Files.delete(chainFile);
+		char[] password = PASSWORD.toCharArray();
+
+		IllegalStateException refused = assertThrows(IllegalStateException.class,
+			() -> MiningSupport.mine(order("in the beginning", 10_000_000L, ChainKind.MAIN_CHAIN),
+				password, NOW));
+
+		assertTrue(refused.getMessage().contains(Genesis.NO_MAIN_CHAIN_WITHOUT_ITS_ANCHOR),
+			refused.getMessage());
+		assertFalse(Files.exists(chainFile), "no main chain file is written");
+		assertArrayEquals(new char[password.length], password, "the password is wiped");
+	}
+
+	@ParameterizedTest(name = "choosing {0} on an existing test chain extends the test chain")
 	@EnumSource(ChainKind.class)
 	@DisplayName("on an existing chain its genesis block decides, whatever kind was chosen")
 	void mine_onAnExistingChain_followsItsGenesis(final ChainKind kind) throws Exception
@@ -185,9 +206,28 @@ class MiningSupportTest
 			PASSWORD.toCharArray(), NOW);
 
 		List<BlockBody> chain = new ChainFile(chainFile).require();
-		assertEquals(3, chain.size());
-		assertEquals(Chain.IDENTIFIER, chain.getLast().chainIdentifier());
-		assertEquals(Chain.IDENTIFIER, mined.chainIdentifier());
+		assertEquals(4, chain.size());
+		assertEquals(Chain.TEST_IDENTIFIER, chain.getLast().chainIdentifier());
+		assertEquals(Chain.TEST_IDENTIFIER, mined.chainIdentifier());
+	}
+
+	@Test
+	@DisplayName("mining on a chain an earlier lethenon wrote is refused with the file's name, and the file stays as it was (#535)")
+	void mine_onARetiredChain_isRefused_namingTheFile() throws Exception
+	{
+		Files.write(chainFile,
+			CanonicalEncoding.encodeChain(LethenonFixtures.aChainUnderLethenonOne()));
+		byte[] before = Files.readAllBytes(chainFile);
+
+		ChainRejected refused = assertThrows(ChainRejected.class,
+			() -> MiningSupport.mine(order("on an old chain", 10_000_000L), PASSWORD.toCharArray(),
+				NOW));
+
+		assertTrue(refused.getMessage().startsWith(chainFile.toAbsolutePath().toString()),
+			refused.getMessage());
+		assertTrue(refused.getMessage().contains("was started under the rules before lethenon 0.4.0"),
+			refused.getMessage());
+		assertArrayEquals(before, Files.readAllBytes(chainFile));
 	}
 
 	@Test

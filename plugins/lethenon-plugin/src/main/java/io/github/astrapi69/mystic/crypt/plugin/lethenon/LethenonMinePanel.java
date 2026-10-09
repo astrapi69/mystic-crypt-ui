@@ -166,8 +166,30 @@ public class LethenonMinePanel extends JPanel
 		}
 	}
 
+	/**
+	 * What the choice of chain shows: the main chain, as long as the library carries no genesis
+	 * block for it, as starting with lethenon 1.0.0 (#535)
+	 */
+	private static String describe(final ChainKind kind)
+	{
+		String name = LethenonMessages.getString("lethenon.chain.kind." + kind.name(),
+			kind.description());
+		return kind.canStart() ? name
+			: name + " - " + LethenonMessages.getString("lethenon.chain.kind.later",
+				"it starts with lethenon 1.0.0");
+	}
+
 	private static String describe(final MinedBlock mined)
 	{
+		if (mined.height() == 0L)
+		{
+			return LethenonMessages.getString("lethenon.mine.genesis",
+				"mined block 0, paying its reward to the burn account, which nobody can spend "
+					+ "(lethenon#148); the next block pays this wallet")
+				+ ": \"" + mined.pun() + "\"\n"
+				+ LethenonMessages.getString("lethenon.mine.chain", "chain") + " "
+				+ mined.chainIdentifier() + "\n" + mined.replaySummary();
+		}
 		return LethenonMessages.getString("lethenon.mine.mined", "mined block") + " "
 			+ mined.height() + " " + LethenonMessages.getString("lethenon.mine.with", "with") + " "
 			+ mined.transfers() + " "
@@ -191,10 +213,7 @@ public class LethenonMinePanel extends JPanel
 			public Component getListCellRendererComponent(final JList<?> list, final Object value,
 				final int index, final boolean selected, final boolean focused)
 			{
-				Object shown = value instanceof ChainKind kind
-					? LethenonMessages.getString("lethenon.chain.kind." + kind.name(),
-						kind.description())
-					: value;
+				Object shown = value instanceof ChainKind kind ? describe(kind) : value;
 				return super.getListCellRendererComponent(list, shown, index, selected, focused);
 			}
 		});

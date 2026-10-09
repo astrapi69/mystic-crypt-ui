@@ -25,6 +25,7 @@
 package io.github.astrapi69.mystic.crypt.plugin.lethenon;
 
 import io.github.astrapi69.lethenon.Chain;
+import io.github.astrapi69.lethenon.ConsensusRules;
 
 /**
  * Which chain a genesis block starts: the test network or the main chain. It matters only where
@@ -37,10 +38,13 @@ import io.github.astrapi69.lethenon.Chain;
 public enum ChainKind
 {
 
-	/** the test network, {@code lethenon-test-1}: where every new scheme runs first */
+	/** the test network, {@code lethenon-test-2} since lethenon 0.4.0: where every new scheme runs first */
 	TEST_NETWORK(Chain.TEST_IDENTIFIER, "the test network"),
 
-	/** the main chain, {@code lethenon-1} */
+	/**
+	 * the main chain, {@code lethenon-2} since lethenon 0.4.0: started only from the genesis block
+	 * fixed in the library's code, which lethenon carries from 1.0.0 on (lethenon ADR 0005)
+	 */
 	MAIN_CHAIN(Chain.IDENTIFIER, "the main chain");
 
 	private final String identifier;
@@ -56,11 +60,21 @@ public enum ChainKind
 	/**
 	 * The chain identifier a genesis block of this kind carries
 	 *
-	 * @return e.g. {@code lethenon-test-1}
+	 * @return e.g. {@code lethenon-test-2}
 	 */
 	public String identifier()
 	{
 		return identifier;
+	}
+
+	/**
+	 * Whether a chain of this kind can be started with this build of the library: a test network
+	 * always, the main chain only once the library fixes its genesis block in the code (#535)
+	 * @return true where a new chain of this kind can be started
+	 */
+	public boolean canStart()
+	{
+		return this != MAIN_CHAIN || ConsensusRules.LETHENON.anchorFor(identifier).isPresent();
 	}
 
 	/**

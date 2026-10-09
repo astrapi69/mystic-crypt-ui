@@ -35,6 +35,7 @@ import io.github.astrapi69.lethenon.Bytes;
 import io.github.astrapi69.lethenon.Chain;
 import io.github.astrapi69.lethenon.Destination;
 import io.github.astrapi69.lethenon.DifficultyRule;
+import io.github.astrapi69.lethenon.Genesis;
 import io.github.astrapi69.lethenon.Mining;
 import io.github.astrapi69.lethenon.OneTimeAddresses;
 import io.github.astrapi69.lethenon.SignatureSuite;
@@ -63,8 +64,9 @@ final class LethenonFixtures
 	 * the minimum difficulty
 	 *
 	 * @param chainIdentifier
-	 *            the chain the genesis block starts, {@link Chain#TEST_IDENTIFIER} for one a node
-	 *            serves
+	 *            the chain the genesis block starts; since lethenon 0.4.0 a chain under
+	 *            {@link Chain#IDENTIFIER} is refused while the main chain has no anchor
+	 *            (lethenon#161), so the tests that replay it use {@link Chain#TEST_IDENTIFIER}
 	 * @param blocks
 	 *            how many blocks, the genesis block included, at least one
 	 * @param miner
@@ -87,40 +89,51 @@ final class LethenonFixtures
 	}
 
 	/**
-	 * The payer is paid the genesis block's reward and pays the wallet twice in the second block:
-	 * 3 LETH to its Ed25519 account, 5 LETH to a one-time destination of its published address
-	 *
+	 * A test chain in the shape lethenon 0.4.0 accepts: block 0 pays the burn account
+	 * (lethenon#148), block 1 pays the payer its reward, and block 2 carries the payer's two
+	 * payments to the wallet: 3 LETH to its Ed25519 account and 5 LETH to a one-time destination of
+	 * its published address
 	 * @param payer
-	 *            the genesis holder and miner, an Ed25519 key pair
+	 *            the miner of block 1 and the sender, an Ed25519 key pair
 	 * @param wallet
 	 *            the wallet that is paid
-	 * @return the two blocks, genesis first
+	 * @return the three blocks, genesis first
 	 */
 	static List<BlockBody> aChainPayingTheWallet(final KeyPair payer, final Wallet wallet)
 	{
 		Bytes payerKey = TransactionSigner.asBytes(payer.getPublic());
-		BlockBody genesis = Blocks
-			.mine(
-				new BlockBody(Chain.IDENTIFIER, 0L, Bytes.of(new byte[32]), payerKey,
-					new ArrayList<>(), 1_759_000_000_000L, 8, "in the beginning was the pun"),
-				1_000_000L)
-			.orElseThrow();
-		SignedTransaction direct = TransactionSigner
-			.sign(
-				new TransactionBody(Chain.IDENTIFIER, 0L, payerKey,
-					Destination.direct(wallet.spendKey(SignatureSuite.ED25519)), Amount.ofLeth(3L),
-					Amount.ZERO, "three, to the account"),
-				SignatureSuite.ED25519, payer.getPrivate());
-		SignedTransaction oneTime = TransactionSigner
-			.sign(new TransactionBody(Chain.IDENTIFIER, 1L, payerKey,
+		List<BlockBody> chain = new ArrayList<>(List.of(Genesis.candidate(Chain.TEST_IDENTIFIER,
+			"in the beginning was the pun", CHAIN_START)));
+		chain.add(Blocks.mine(Mining.nextBlock(chain, payerKey, List.of(), "the payer's block",
+			CHAIN_START + DifficultyRule.TARGET_BLOCK_MILLIS), 1_000_000L).orElseThrow());
+		SignedTransaction direct = TransactionSigner.sign(
+			new TransactionBody(Chain.TEST_IDENTIFIER, 0L, payerKey,
+				Destination.direct(wallet.spendKey(SignatureSuite.ED25519)), Amount.ofLeth(3L),
+				Amount.ZERO, "three, to the account"),
+			SignatureSuite.ED25519, payer.getPrivate());
+		SignedTransaction oneTime = TransactionSigner.sign(
+			new TransactionBody(Chain.TEST_IDENTIFIER, 1L, payerKey,
 				OneTimeAddresses.destinationFor(wallet.address(),
 					OneTimeAddresses.newEphemeralKeyPair()),
 				Amount.ofLeth(5L), Amount.ZERO, "five, to a one-time destination"),
-				SignatureSuite.ED25519, payer.getPrivate());
-		BlockBody second = Blocks
-			.mine(new BlockBody(Chain.IDENTIFIER, 1L, Blocks.hashOf(genesis), payerKey,
-				List.of(direct, oneTime), 1_759_000_120_000L, 8, "the second pun"), 1_000_000L)
-			.orElseThrow();
-		return List.of(genesis, second);
+			SignatureSuite.ED25519, payer.getPrivate());
+		chain.add(Blocks.mine(Mining.nextBlock(chain, payerKey, List.of(direct, oneTime),
+			"the third pun", CHAIN_START + 2 * DifficultyRule.TARGET_BLOCK_MILLIS), 1_000_000L)
+			.orElseThrow());
+		return List.copyOf(chain);
+	}
+
+	/**
+	 * A chain under {@code lethenon-1}, the main chain identifier every version before lethenon
+	 * 0.4.0 wrote, which 0.4.0 refuses by name (lethenon#137). Its library mines no block under that
+	 * identifier any more, so the genesis block is built by hand.
+	 *
+	 * @return the one genesis block, mined
+	 */
+	static List<BlockBody> aChainUnderLethenonOne()
+	{
+		return List.of(Blocks.mine(new BlockBody("lethenon-1", 0L, Bytes.of(new byte[32]),
+			Bytes.of(new byte[] { 3 }), new ArrayList<>(), CHAIN_START, 8, "an old chain"),
+			1_000_000L).orElseThrow());
 	}
 }

@@ -100,7 +100,7 @@ class WalletBalanceSupportTest
 		assertEquals(1, balance.oneTimePayments());
 		assertEquals(Amount.ofLeth(5L), balance.oneTimeAmount(),
 			"the one-time payment is reported, and reported apart from what can be spent");
-		assertTrue(balance.replaySummary().contains("replayed 2 blocks"), balance.replaySummary());
+		assertTrue(balance.replaySummary().contains("replayed 3 blocks"), balance.replaySummary());
 	}
 
 	@Test

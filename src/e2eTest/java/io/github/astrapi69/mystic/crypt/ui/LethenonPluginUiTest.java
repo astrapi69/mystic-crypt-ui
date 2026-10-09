@@ -58,6 +58,7 @@ import io.github.astrapi69.lethenon.Chain;
 import io.github.astrapi69.lethenon.ChainFile;
 import io.github.astrapi69.lethenon.Destination;
 import io.github.astrapi69.lethenon.DifficultyRule;
+import io.github.astrapi69.lethenon.Genesis;
 import io.github.astrapi69.lethenon.Mining;
 import io.github.astrapi69.lethenon.OneTimeAddresses;
 import io.github.astrapi69.lethenon.Replay;
@@ -115,7 +116,7 @@ class LethenonPluginUiTest extends AbstractUiTest
 			@Override
 			public boolean test()
 			{
-				return textOf(tool, "txtReport").contains("replayed 2 blocks");
+				return textOf(tool, "txtReport").contains("replayed 3 blocks");
 			}
 		}, 20000);
 
@@ -153,22 +154,25 @@ class LethenonPluginUiTest extends AbstractUiTest
 			public boolean test()
 			{
 				return GuiActionRunner
-					.execute(() -> tool.table("tblBlocks").target().getRowCount()) == 2;
+					.execute(() -> tool.table("tblBlocks").target().getRowCount()) == 3;
 			}
 		}, 20000);
 
 		String genesisPun = GuiActionRunner
 			.execute(() -> String.valueOf(tool.table("tblBlocks").target().getValueAt(0, 1)));
-		String secondPun = GuiActionRunner
-			.execute(() -> String.valueOf(tool.table("tblBlocks").target().getValueAt(1, 1)));
+		String transferPun = GuiActionRunner
+			.execute(() -> String.valueOf(tool.table("tblBlocks").target().getValueAt(2, 1)));
 		String transfers = GuiActionRunner
-			.execute(() -> String.valueOf(tool.table("tblBlocks").target().getValueAt(1, 3)));
+			.execute(() -> String.valueOf(tool.table("tblBlocks").target().getValueAt(2, 3)));
+		String genesisPaidTo = GuiActionRunner
+			.execute(() -> String.valueOf(tool.table("tblBlocks").target().getValueAt(0, 2)));
 		assertTrue(genesisPun.startsWith("in the beginning was the pun"), genesisPun);
-		assertTrue(secondPun.startsWith("the second pun"), secondPun);
-		assertTrue("1".equals(transfers),
-			"the second block carries the one transfer: " + transfers);
+		assertEquals(Genesis.NOBODY.toString(), genesisPaidTo,
+			"the genesis block paid the burn account (lethenon#148)");
+		assertTrue(transferPun.startsWith("the block with the transfer"), transferPun);
+		assertTrue("1".equals(transfers), "the third block carries the one transfer: " + transfers);
 		String result = GuiActionRunner.execute(() -> tool.label("lblResult").target().getText());
-		assertTrue(result.contains("accepted: 2 blocks"), result);
+		assertTrue(result.contains("accepted: 3 blocks"), result);
 		assertTrue(frame.isEnabled(), "the application is still usable after listing a chain");
 	}
 
@@ -317,10 +321,10 @@ class LethenonPluginUiTest extends AbstractUiTest
 		}, 30000);
 
 		String report = textOf(tool, "txtReport");
-		assertTrue(report.contains("mined block 2 with 1 transfer(s)"), report);
+		assertTrue(report.contains("mined block 3 with 1 transfer(s)"), report);
 		assertFalse(report.contains(walletPassword), "the password is in no text on the screen");
 		List<BlockBody> blocks = chain.require();
-		assertEquals(3, blocks.size(), "the block was written to the chain file");
+		assertEquals(4, blocks.size(), "the block was written to the chain file");
 		assertTrue(blocks.getLast().pun().startsWith("a pun against the cameras"),
 			blocks.getLast().pun());
 		assertEquals(wallet.spendKey(SignatureSuite.ED25519), blocks.getLast().beneficiary());
@@ -366,13 +370,61 @@ class LethenonPluginUiTest extends AbstractUiTest
 		awaitReport(tool, "mined block 0", "the genesis block is mined");
 
 		String report = textOf(tool, "txtReport");
-		assertTrue(report.contains("chain lethenon-test-1"), report);
+		assertTrue(report.contains("chain " + Chain.TEST_IDENTIFIER), report);
+		assertTrue(report.contains("burn account"), report);
 		List<BlockBody> blocks = new ChainFile(chainFile.toPath()).require();
 		assertEquals(1, blocks.size());
 		assertEquals(Chain.TEST_IDENTIFIER, blocks.getFirst().chainIdentifier());
-		assertEquals(wallet.spendKey(SignatureSuite.ED25519), blocks.getFirst().beneficiary());
+		assertEquals(Genesis.NOBODY, blocks.getFirst().beneficiary(),
+			"a genesis block pays the burn account (lethenon#148)");
 		assertFalse(GuiActionRunner.execute(() -> kinds.target().isEnabled()),
 			"once the genesis block is written, it decides which chain this is");
+	}
+
+	@Test
+	@DisplayName("the mine window offers the main chain as starting with lethenon 1.0.0, and refuses to start it (#535, #544)")
+	void thePlugin_refusesToStartTheMainChain() throws Exception
+	{
+		installPluginRequiringItBuilt(LETHENON_ZIP);
+		String walletPassword = TestPasswords.throwaway();
+		File walletFile = new File(tempHome, "wallet.lethenon-wallet");
+		WalletFile.write(walletFile.toPath(), Wallet.create(), walletPassword.toCharArray());
+		File chainFile = new File(tempHome, "main.lethenon");
+		File databaseFile = new File(tempHome, "lethenon-main-chain.mcrdb");
+		createDatabaseFileHeadless(databaseFile, MASTER_PASSWORD);
+		ApplicationSteps application = signInWithExistingDatabase(databaseFile, MASTER_PASSWORD);
+		application.showMainFrame();
+
+		application.openPluginTool("Mine a Pun", "Mine a Pun");
+		JInternalFrameFixture tool = new JInternalFrameFixture(robot,
+			application.internalFrame("Mine a Pun"));
+		GuiActionRunner.execute(() -> {
+			tool.textBox("txtChainFile").target().setText(chainFile.getAbsolutePath());
+			tool.textBox("txtWalletFile").target().setText(walletFile.getAbsolutePath());
+			tool.textBox("txtPassword").target().setText(walletPassword);
+		});
+		JComboBoxFixture kinds = tool.comboBox("cbxChainKind");
+		String[] offered = kinds.contents();
+		assertTrue(java.util.Arrays.stream(offered).anyMatch(each -> each.contains("1.0.0")),
+			"the main chain is offered as starting with lethenon 1.0.0: "
+				+ String.join(" / ", offered));
+		UiTestSpeed.step();
+		kinds.selectItem(1);
+		SwingUtilities.invokeLater(() -> tool.button("btnMine").target().doClick());
+		Pause.pause(new Condition("the window reports why nothing was mined")
+		{
+			@Override
+			public boolean test()
+			{
+				return GuiActionRunner.execute(() -> tool.label("lblResult").target().getText())
+					.startsWith("no block was mined");
+			}
+		}, 20000);
+
+		String result = GuiActionRunner.execute(() -> tool.label("lblResult").target().getText());
+		assertTrue(result.contains("lethenon 1.0.0"), result);
+		assertFalse(result.contains(walletPassword), "the password is in no text on the screen");
+		assertFalse(chainFile.exists(), "no main chain file is written");
 	}
 
 	@Test
@@ -499,7 +551,7 @@ class LethenonPluginUiTest extends AbstractUiTest
 
 		mineThroughTheWindow(application, chainFile, payerFile, payerPassword, "a pun to sweep it");
 		List<BlockBody> blocks = chain.require();
-		assertEquals(4, blocks.size(), "two blocks were mined through the window");
+		assertEquals(5, blocks.size(), "two blocks were mined through the window");
 		Bytes account = payee.spendKey(SignatureSuite.ED25519);
 		assertEquals(Amount.parseLeth("2"), Replay.verify(blocks).finalState().balanceOf(account),
 			"the payee's own account holds what was paid to its address");
@@ -729,27 +781,31 @@ class LethenonPluginUiTest extends AbstractUiTest
 	}
 
 	/**
-	 * A genesis block that pays its holder the block reward, and a second block with one transfer
-	 * out of it, written to the test's own home directory the way a lethenon command line would
-	 * write it
+	 * A test chain in the shape lethenon 0.4.0 accepts: a genesis block for the burn account
+	 * (lethenon#148), a block paying the holder its reward, and a third with one transfer out of
+	 * it, written to the test's own home directory the way a lethenon command line would write it
 	 */
 	private File aChainWithOneTransfer() throws Exception
 	{
 		KeyPair holder = TransactionSigner.newKeyPair(SignatureSuite.ED25519);
 		Bytes holderKey = TransactionSigner.asBytes(holder.getPublic());
-		BlockBody genesis = Blocks.mine(
-			new BlockBody(Chain.IDENTIFIER, 0L, Bytes.of(new byte[32]), holderKey,
-				new ArrayList<>(), 1_759_000_000_000L, 8, "in the beginning was the pun"),
-			1_000_000L).orElseThrow();
-		SignedTransaction transfer = TransactionSigner.sign(new TransactionBody(Chain.IDENTIFIER,
-			0L, holderKey, Destination.direct(Bytes.of(new byte[] { 7 })), Amount.ofLeth(3L),
-			Amount.ZERO, "a protest in three lethe"), SignatureSuite.ED25519, holder.getPrivate());
-		BlockBody second = Blocks
-			.mine(new BlockBody(Chain.IDENTIFIER, 1L, Blocks.hashOf(genesis), holderKey,
-				List.of(transfer), 1_759_000_120_000L, 8, "the second pun"), 1_000_000L)
-			.orElseThrow();
+		List<BlockBody> chain = new ArrayList<>(List.of(Genesis.candidate(Chain.TEST_IDENTIFIER,
+			"in the beginning was the pun", 1_759_000_000_000L)));
+		chain.add(Blocks.mine(
+			Mining.nextBlock(chain, holderKey, List.of(), "the holder's block", 1_759_000_120_000L),
+			1_000_000L).orElseThrow());
+		SignedTransaction transfer = TransactionSigner
+			.sign(new TransactionBody(Chain.TEST_IDENTIFIER, 0L, holderKey,
+				Destination.direct(Bytes.of(new byte[] { 7 })), Amount.ofLeth(3L), Amount.ZERO,
+				"a protest in three lethe"), SignatureSuite.ED25519, holder.getPrivate());
+		chain
+			.add(
+				Blocks
+					.mine(Mining.nextBlock(chain, holderKey, List.of(transfer),
+						"the block with the transfer", 1_759_000_240_000L), 1_000_000L)
+					.orElseThrow());
 		File chainFile = new File(tempHome, "chain.lethenon");
-		Files.write(chainFile.toPath(), CanonicalEncoding.encodeChain(List.of(genesis, second)));
+		Files.write(chainFile.toPath(), CanonicalEncoding.encodeChain(chain));
 		return chainFile;
 	}
 
@@ -775,37 +831,35 @@ class LethenonPluginUiTest extends AbstractUiTest
 	}
 
 	/**
-	 * A genesis holder who pays the wallet 3 LETH to its Ed25519 account and 5 LETH to a one-time
-	 * destination of its published address, written the way a lethenon command line would write it
+	 * A test chain in the shape lethenon 0.4.0 accepts, on which a payer mines block 1 and then
+	 * pays the wallet 3 LETH to its Ed25519 account and 5 LETH to a one-time destination of its
+	 * published address in block 2, written the way a lethenon command line would write it
 	 */
 	private File aChainPayingTheWallet(final Wallet wallet) throws Exception
 	{
 		KeyPair payer = TransactionSigner.newKeyPair(SignatureSuite.ED25519);
 		Bytes payerKey = TransactionSigner.asBytes(payer.getPublic());
-		BlockBody genesis = Blocks
-			.mine(
-				new BlockBody(Chain.IDENTIFIER, 0L, Bytes.of(new byte[32]), payerKey,
-					new ArrayList<>(), 1_759_000_000_000L, 8, "in the beginning was the pun"),
-				1_000_000L)
-			.orElseThrow();
+		List<BlockBody> chain = new ArrayList<>(List.of(Genesis.candidate(Chain.TEST_IDENTIFIER,
+			"in the beginning was the pun", 1_759_000_000_000L)));
+		chain.add(Blocks.mine(
+			Mining.nextBlock(chain, payerKey, List.of(), "the payer's block", 1_759_000_120_000L),
+			1_000_000L).orElseThrow());
 		SignedTransaction direct = TransactionSigner
 			.sign(
-				new TransactionBody(Chain.IDENTIFIER, 0L, payerKey,
+				new TransactionBody(Chain.TEST_IDENTIFIER, 0L, payerKey,
 					Destination.direct(wallet.spendKey(SignatureSuite.ED25519)), Amount.ofLeth(3L),
 					Amount.ZERO, "three, to the account"),
 				SignatureSuite.ED25519, payer.getPrivate());
 		SignedTransaction oneTime = TransactionSigner
-			.sign(new TransactionBody(Chain.IDENTIFIER, 1L, payerKey,
+			.sign(new TransactionBody(Chain.TEST_IDENTIFIER, 1L, payerKey,
 				OneTimeAddresses.destinationFor(wallet.address(),
 					OneTimeAddresses.newEphemeralKeyPair()),
 				Amount.ofLeth(5L), Amount.ZERO, "five, to a one-time destination"),
 				SignatureSuite.ED25519, payer.getPrivate());
-		BlockBody second = Blocks
-			.mine(new BlockBody(Chain.IDENTIFIER, 1L, Blocks.hashOf(genesis), payerKey,
-				List.of(direct, oneTime), 1_759_000_120_000L, 8, "the second pun"), 1_000_000L)
-			.orElseThrow();
+		chain.add(Blocks.mine(Mining.nextBlock(chain, payerKey, List.of(direct, oneTime),
+			"the second pun", 1_759_000_240_000L), 1_000_000L).orElseThrow());
 		File chainFile = new File(tempHome, "paid.lethenon");
-		Files.write(chainFile.toPath(), CanonicalEncoding.encodeChain(List.of(genesis, second)));
+		Files.write(chainFile.toPath(), CanonicalEncoding.encodeChain(chain));
 		return chainFile;
 	}
 }
