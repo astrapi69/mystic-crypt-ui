@@ -49,7 +49,9 @@ import org.junit.jupiter.api.io.TempDir;
 
 import io.github.astrapi69.lethenon.BlockBody;
 import io.github.astrapi69.lethenon.CanonicalEncoding;
+import io.github.astrapi69.lethenon.Chain;
 import io.github.astrapi69.lethenon.ChainFile;
+import io.github.astrapi69.lethenon.Genesis;
 import io.github.astrapi69.lethenon.SignatureSuite;
 import io.github.astrapi69.lethenon.TransactionSigner;
 import io.github.astrapi69.lethenon.Wallet;
@@ -120,11 +122,11 @@ class LethenonMinePanelBindingTest
 		panel.onMine();
 
 		List<BlockBody> chain = new ChainFile(chainFile).require();
-		assertEquals(3, chain.size());
+		assertEquals(4, chain.size());
 		String report = panel.getModelObject().getReport();
-		assertTrue(report.contains("mined block 2"), report);
+		assertTrue(report.contains("mined block 3"), report);
 		assertTrue(report.contains(chain.getLast().pun()), report);
-		assertTrue(report.contains("replayed 3 blocks"), report);
+		assertTrue(report.contains("replayed 4 blocks"), report);
 		assertEquals("the block was mined and written to the chain file",
 			panel.getModelObject().getResultText());
 	}
@@ -169,7 +171,7 @@ class LethenonMinePanelBindingTest
 	}
 
 	@Test
-	@DisplayName("mining where there is no chain file starts a test chain, and the report names it")
+	@DisplayName("mining where there is no chain file starts a test chain, and the report names it and the burn account")
 	void mining_withoutAChainFile_startsATestChain() throws Exception
 	{
 		Files.delete(chainFile);
@@ -178,17 +180,18 @@ class LethenonMinePanelBindingTest
 		panel.onMine();
 
 		List<BlockBody> chain = new ChainFile(chainFile).require();
-		assertEquals("lethenon-test-1", chain.getFirst().chainIdentifier());
+		assertEquals(Chain.TEST_IDENTIFIER, chain.getFirst().chainIdentifier());
 		String report = panel.getModelObject().getReport();
 		assertTrue(report.contains("mined block 0"), report);
-		assertTrue(report.contains("chain lethenon-test-1"), report);
+		assertTrue(report.contains("burn account"), report);
+		assertTrue(report.contains("chain " + Chain.TEST_IDENTIFIER), report);
 		assertFalse(componentNamed(panel, "cbxChainKind", JComboBox.class).isEnabled(),
 			"once the genesis block is written, it decides");
 	}
 
 	@Test
-	@DisplayName("choosing the main chain where there is no chain file starts a main chain")
-	void mining_withoutAChainFile_startsTheChosenMainChain() throws Exception
+	@DisplayName("choosing the main chain where there is no chain file is refused with the library's reason, and no file is written (#535)")
+	void mining_withoutAChainFile_refusesTheMainChain() throws Exception
 	{
 		Files.delete(chainFile);
 		LethenonMinePanel panel = filledPanel(PASSWORD);
@@ -196,9 +199,32 @@ class LethenonMinePanelBindingTest
 
 		panel.onMine();
 
-		assertEquals("lethenon-1", new ChainFile(chainFile).require().getFirst().chainIdentifier());
-		String report = panel.getModelObject().getReport();
-		assertTrue(report.contains("chain lethenon-1"), report);
+		assertFalse(Files.exists(chainFile), "no main chain file is written");
+		String result = panel.getModelObject().getResultText();
+		assertTrue(result.startsWith("no block was mined"), result);
+		assertTrue(result.contains(Genesis.NO_MAIN_CHAIN_WITHOUT_ITS_ANCHOR), result);
+		assertEquals("", panel.getModelObject().getReport());
+	}
+
+	@Test
+	@DisplayName("while the library has no anchor for it, the main chain is offered as starting with lethenon 1.0.0 (#535)")
+	void theMainChain_isOfferedAsStartingWithOnePointZero() throws Exception
+	{
+		LethenonMinePanel panel = new LethenonMinePanel();
+		JComboBox<?> kinds = componentNamed(panel, "cbxChainKind", JComboBox.class);
+		@SuppressWarnings("unchecked")
+		javax.swing.ListCellRenderer<Object> renderer = (javax.swing.ListCellRenderer<Object>)kinds
+			.getRenderer();
+
+		String main = ((javax.swing.JLabel)renderer.getListCellRendererComponent(new javax.swing.JList<>(),
+			ChainKind.MAIN_CHAIN, 1, false, false)).getText();
+		String test = ((javax.swing.JLabel)renderer.getListCellRendererComponent(new javax.swing.JList<>(),
+			ChainKind.TEST_NETWORK, 0, false, false)).getText();
+
+		assertFalse(ChainKind.MAIN_CHAIN.canStart(), "lethenon 0.4.0 has no anchor for the main chain");
+		assertTrue(main.contains("1.0.0"), main);
+		assertTrue(ChainKind.TEST_NETWORK.canStart());
+		assertFalse(test.contains("1.0.0"), test);
 	}
 
 	@Test

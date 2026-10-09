@@ -34,6 +34,7 @@ import io.github.astrapi69.lethenon.Blocks;
 import io.github.astrapi69.lethenon.Bytes;
 import io.github.astrapi69.lethenon.ChainFile;
 import io.github.astrapi69.lethenon.DifficultyRule;
+import io.github.astrapi69.lethenon.Genesis;
 import io.github.astrapi69.lethenon.Mining;
 import io.github.astrapi69.lethenon.Replay;
 import io.github.astrapi69.lethenon.SignatureSuite;
@@ -48,7 +49,10 @@ import io.github.astrapi69.lethenon.SignedTransaction;
  * the difficulty, and the extended chain is replayed with {@link Replay#verify} BEFORE anything is
  * written. A chain that does not verify, a waiting transfer the chain would refuse, or a pun that
  * runs out of attempts leaves both files exactly as they were. Where there is no chain file yet,
- * the block mined is its genesis block, and it pays the miner.
+ * the block is its genesis block from {@link Genesis#start}, as on the command line: for the test
+ * network a mined block paying the burn account (lethenon#148), the next block paying the miner;
+ * for the main chain the block fixed in the library's code, which lethenon carries from 1.0.0 on -
+ * until then the main chain is refused with the library's reason, and nothing is written (#535).
  * <p>
  * The block pays the wallet's Ed25519 account, as on the command line. The password is a
  * {@code char[]} and is wiped before this method returns, whatever happens; it appears in no
@@ -94,37 +98,24 @@ public final class MiningSupport
 			{
 				Replay.verify(chain);
 			}
-			BlockBody mined = Blocks
-				.mine(nextBlock(order, chain, beneficiary, waiting, now), order.attempts())
-				.orElseThrow(() -> new IllegalStateException("no variation of the pun reached "
-					+ "difficulty " + DifficultyRule.requiredFor(chain) + " within "
-					+ order.attempts() + " attempts; mine again, or with other words"));
+			BlockBody mined = chain.isEmpty()
+				? Genesis.start(order.newChain().identifier(), order.pun(), now)
+				: Blocks.mine(Mining.nextBlock(chain, beneficiary, waiting, order.pun(), now),
+					order.attempts())
+					.orElseThrow(() -> new IllegalStateException("no variation of the pun reached "
+						+ "difficulty " + DifficultyRule.requiredFor(chain) + " within "
+						+ order.attempts() + " attempts; mine again, or with other words"));
 			List<BlockBody> extended = new ArrayList<>(chain);
 			extended.add(mined);
 			Replay replay = Replay.verify(extended);
 			chainFile.write(extended);
 			chainFile.writePending(List.of());
 			return new MinedBlock(mined.chainIdentifier(), mined.height(), mined.pun(),
-				waiting.size(), beneficiary.toString(), replay.describe());
+				mined.transactions().size(), mined.beneficiary().toString(), replay.describe());
 		}
 		finally
 		{
 			Arrays.fill(password, '\0');
 		}
-	}
-
-	/**
-	 * The block to mine: a genesis block of the chosen kind where there is no chain yet, otherwise
-	 * the next block of the chain its genesis block names, whatever kind was chosen - as lethenon's
-	 * command line does, except that it refuses {@code --testnet} on a main chain, while the mine
-	 * window only offers the choice where there is no chain
-	 */
-	private static BlockBody nextBlock(final MiningOrder order, final List<BlockBody> chain,
-		final Bytes beneficiary, final List<SignedTransaction> waiting, final long now)
-	{
-		return chain.isEmpty()
-			? Mining.nextBlock(order.newChain().identifier(), chain, beneficiary, waiting,
-				order.pun(), now)
-			: Mining.nextBlock(chain, beneficiary, waiting, order.pun(), now);
 	}
 }

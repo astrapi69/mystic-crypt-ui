@@ -51,6 +51,8 @@ import io.github.astrapi69.lethenon.BlockBody;
 import io.github.astrapi69.lethenon.Bytes;
 import io.github.astrapi69.lethenon.Chain;
 import io.github.astrapi69.lethenon.ChainFile;
+import io.github.astrapi69.lethenon.ChainRejected;
+import io.github.astrapi69.lethenon.Genesis;
 import io.github.astrapi69.lethenon.SignatureSuite;
 import io.github.astrapi69.lethenon.Wallet;
 import io.github.astrapi69.lethenon.WalletFile;
@@ -174,16 +176,17 @@ class NodeSupportTest
 	}
 
 	@Test
-	@DisplayName("a main chain file is refused: nodes run on the test network only")
+	@DisplayName("a main chain file is refused before a node starts: since lethenon 0.4.0 already for its missing anchor (lethenon#161)")
 	void start_refuses_aMainChainFile() throws Exception
 	{
 		new ChainFile(chainFile)
 			.write(LethenonFixtures.aChainOf(Chain.IDENTIFIER, 2, Bytes.of(new byte[] { 9 })));
 
-		IllegalArgumentException refused = assertThrows(IllegalArgumentException.class,
+		ChainRejected refused = assertThrows(ChainRejected.class,
 			() -> NodeSupport.start(order("0", ""), null));
 
-		assertTrue(refused.getMessage().contains(Chain.TEST_IDENTIFIER), refused.getMessage());
+		assertTrue(refused.getMessage().contains(Genesis.NO_MAIN_CHAIN_WITHOUT_ITS_ANCHOR),
+			refused.getMessage());
 	}
 
 	@Test
