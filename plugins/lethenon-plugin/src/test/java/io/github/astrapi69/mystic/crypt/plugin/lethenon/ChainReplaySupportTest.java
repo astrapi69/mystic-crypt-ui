@@ -91,6 +91,22 @@ class ChainReplaySupportTest
 	}
 
 	@Test
+	@DisplayName("a chain an earlier lethenon wrote is refused with the file's name and the library's reason (#535)")
+	void verify_refuses_aRetiredChain_namingTheFile() throws Exception
+	{
+		Path chainFile = write("old.lethenon",
+			CanonicalEncoding.encodeChain(LethenonFixtures.aChainUnderLethenonOne()));
+
+		ChainRejected refused = assertThrows(ChainRejected.class,
+			() -> ChainReplaySupport.verify(chainFile));
+
+		assertTrue(refused.getMessage().startsWith(chainFile.toAbsolutePath().toString()),
+			refused.getMessage());
+		assertTrue(refused.getMessage().contains("was started under the rules before lethenon 0.4.0"),
+			refused.getMessage());
+	}
+
+	@Test
 	@DisplayName("a chain whose blocks do not line up is refused with the reason")
 	void verify_refuses_aChainThatDoesNotReplay() throws Exception
 	{

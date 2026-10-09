@@ -212,6 +212,25 @@ class MiningSupportTest
 	}
 
 	@Test
+	@DisplayName("mining on a chain an earlier lethenon wrote is refused with the file's name, and the file stays as it was (#535)")
+	void mine_onARetiredChain_isRefused_namingTheFile() throws Exception
+	{
+		Files.write(chainFile,
+			CanonicalEncoding.encodeChain(LethenonFixtures.aChainUnderLethenonOne()));
+		byte[] before = Files.readAllBytes(chainFile);
+
+		ChainRejected refused = assertThrows(ChainRejected.class,
+			() -> MiningSupport.mine(order("on an old chain", 10_000_000L), PASSWORD.toCharArray(),
+				NOW));
+
+		assertTrue(refused.getMessage().startsWith(chainFile.toAbsolutePath().toString()),
+			refused.getMessage());
+		assertTrue(refused.getMessage().contains("was started under the rules before lethenon 0.4.0"),
+			refused.getMessage());
+		assertArrayEquals(before, Files.readAllBytes(chainFile));
+	}
+
+	@Test
 	@DisplayName("a chain that does not verify is refused, and neither file changes")
 	void mine_onATamperedChain_writesNothing() throws Exception
 	{

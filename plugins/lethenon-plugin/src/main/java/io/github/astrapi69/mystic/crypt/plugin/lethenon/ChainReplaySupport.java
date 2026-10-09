@@ -31,6 +31,7 @@ import java.util.List;
 
 import io.github.astrapi69.lethenon.BlockBody;
 import io.github.astrapi69.lethenon.CanonicalEncoding;
+import io.github.astrapi69.lethenon.ChainRejected;
 import io.github.astrapi69.lethenon.Replay;
 
 /**
@@ -130,7 +131,33 @@ public final class ChainReplaySupport
 				+ " is empty, so it holds no genesis block to replay from");
 		}
 		List<BlockBody> chain = readChain(chainFile, encoded);
-		return new Replayed(chain, Replay.verify(chain));
+		return new Replayed(chain, replay(chainFile, chain));
+	}
+
+	/**
+	 * Replays a chain read from a file, and puts the file in front of a refusal, as
+	 * {@code readChain} does for bytes it cannot read (#532): the library's reason cannot name the
+	 * file, and a refusal without it leaves open which file was meant - a chain an earlier lethenon
+	 * wrote, refused by name since lethenon 0.4.0, among them (#535)
+	 *
+	 * @param chainFile
+	 *            the file the chain was read from
+	 * @param chain
+	 *            the blocks, genesis first
+	 * @return what the replay verified
+	 * @throws ChainRejected
+	 *             with the file's absolute path in front of the library's reason
+	 */
+	static Replay replay(final Path chainFile, final List<BlockBody> chain)
+	{
+		try
+		{
+			return Replay.verify(chain);
+		}
+		catch (ChainRejected refused)
+		{
+			throw new ChainRejected(chainFile.toAbsolutePath() + ": " + refused.getMessage());
+		}
 	}
 
 	/**

@@ -122,4 +122,18 @@ final class LethenonFixtures
 			.orElseThrow());
 		return List.copyOf(chain);
 	}
+
+	/**
+	 * A chain under {@code lethenon-1}, the main chain identifier every version before lethenon
+	 * 0.4.0 wrote, which 0.4.0 refuses by name (lethenon#137). Its library mines no block under that
+	 * identifier any more, so the genesis block is built by hand.
+	 *
+	 * @return the one genesis block, mined
+	 */
+	static List<BlockBody> aChainUnderLethenonOne()
+	{
+		return List.of(Blocks.mine(new BlockBody("lethenon-1", 0L, Bytes.of(new byte[32]),
+			Bytes.of(new byte[] { 3 }), new ArrayList<>(), CHAIN_START, 8, "an old chain"),
+			1_000_000L).orElseThrow());
+	}
 }

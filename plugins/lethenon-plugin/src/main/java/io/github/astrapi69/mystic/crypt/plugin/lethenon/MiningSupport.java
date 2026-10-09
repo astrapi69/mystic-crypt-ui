@@ -96,7 +96,7 @@ public final class MiningSupport
 			List<SignedTransaction> waiting = chain.isEmpty() ? List.of() : chainFile.readPending();
 			if (!chain.isEmpty())
 			{
-				Replay.verify(chain);
+				ChainReplaySupport.replay(order.chainFile(), chain);
 			}
 			BlockBody mined = chain.isEmpty()
 				? Genesis.start(order.newChain().identifier(), order.pun(), now)
@@ -107,7 +107,7 @@ public final class MiningSupport
 						+ order.attempts() + " attempts; mine again, or with other words"));
 			List<BlockBody> extended = new ArrayList<>(chain);
 			extended.add(mined);
-			Replay replay = Replay.verify(extended);
+			Replay replay = ChainReplaySupport.replay(order.chainFile(), extended);
 			chainFile.write(extended);
 			chainFile.writePending(List.of());
 			return new MinedBlock(mined.chainIdentifier(), mined.height(), mined.pun(),
