@@ -31,35 +31,35 @@ def hostVersion = new Properties().with { properties ->
 dependencies {
     compileOnly "io.github.astrapi69:mystic-crypt-ui:$hostVersion"
     compileOnly libs.mystic.crypt
-    compileOnly "io.github.astrapi69:swing-base-components:5.2"
-    compileOnly "io.github.astrapi69:swing-components:9"
+    compileOnly libs.swing.base.components
+    compileOnly libs.swing.components
     // the panel holds its state in a model object and binds the JM* components to it
-    compileOnly "io.github.astrapi69:swing-model-components:1.2"
-    compileOnly "io.github.astrapi69:model-data:3.2.1"
+    compileOnly libs.swing.model.components
+    compileOnly libs.model.data
     // the passphrase construction lives in the host and uses Bouncy Castle underneath
-    compileOnly "org.bouncycastle:bcprov-jdk18on:1.85.2"
+    compileOnly libs.bcprov.jdk18on
     // the shared tool window layout comes from the host, which brings MigLayout with it
-    compileOnly "com.miglayout:miglayout-swing:11.4.3"
+    compileOnly libs.miglayout.swing
     compileOnly libs.resourcebundle.core
 
-    compileOnly "org.pf4j:pf4j:3.15.0"
+    compileOnly libs.pf4j
     // required so the @Extension annotation processor runs and writes META-INF/extensions.idx
-    annotationProcessor "org.pf4j:pf4j:3.15.0"
+    annotationProcessor libs.pf4j
 
     // the tests encrypt real files on disk; the AES-GCM construction goes through Bouncy Castle,
     // which the host registers at startup
-    testImplementation "org.junit.jupiter:junit-jupiter:5.11.4"
+    testImplementation libs.junit.jupiter
     // the contribution class implements the host's extension point, so the host jar has to be on
     // the test classpath to load it - for the main sources it stays compileOnly like everything else
     testImplementation "io.github.astrapi69:mystic-crypt-ui:$hostVersion"
-    testImplementation "org.pf4j:pf4j:3.15.0"
+    testImplementation libs.pf4j
     // the panel test builds the panel, so the model backed components have to be there for real
-    testImplementation "io.github.astrapi69:swing-model-components:1.2"
-    testImplementation "io.github.astrapi69:model-data:3.2.1"
+    testImplementation libs.swing.model.components
+    testImplementation libs.model.data
     // the panel test lays the shared tool window form out for real
-    testImplementation "com.miglayout:miglayout-swing:11.4.3"
-    testImplementation "org.bouncycastle:bcprov-jdk18on:1.85.2"
-    testRuntimeOnly "org.junit.platform:junit-platform-launcher"
+    testImplementation libs.miglayout.swing
+    testImplementation libs.bcprov.jdk18on
+    testRuntimeOnly libs.junit.platform.launcher
     // the panel under test resolves its tooltip text through FileCryptMessages at construction
     // time, so the resource bundle loader has to be on the test classpath too
     testImplementation libs.resourcebundle.core

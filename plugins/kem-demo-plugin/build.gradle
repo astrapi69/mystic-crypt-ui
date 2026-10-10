@@ -33,8 +33,8 @@ def hostVersion = new Properties().with { properties ->
 
 dependencies {
     compileOnly "io.github.astrapi69:mystic-crypt-ui:$hostVersion"
-    compileOnly "io.github.astrapi69:swing-base-components:5.2"
-    compileOnly "io.github.astrapi69:swing-components:9"
+    compileOnly libs.swing.base.components
+    compileOnly libs.swing.components
 
     // the key exchange lives in the mystic-crypt library
     compileOnly libs.mystic.crypt
@@ -42,34 +42,34 @@ dependencies {
 
     // the model backed components the exchange panel binds to its model; the host brings both
     // jars at runtime, so they stay compileOnly here like everything else
-    compileOnly "io.github.astrapi69:swing-model-components:1.2"
-    compileOnly "io.github.astrapi69:model-data:3.2.1"
+    compileOnly libs.swing.model.components
+    compileOnly libs.model.data
 
     // the shared tool window layout (ToolForm in the host) is a MigLayout; the host brings the jar
     // at runtime, so the plugin only needs it to compile against
-    compileOnly "com.miglayout:miglayout-swing:11.4.3"
+    compileOnly libs.miglayout.swing
     compileOnly libs.resourcebundle.core
 
-    compileOnly "org.pf4j:pf4j:3.15.0"
+    compileOnly libs.pf4j
     // required so the @Extension annotation processor runs and writes META-INF/extensions.idx
-    annotationProcessor "org.pf4j:pf4j:3.15.0"
+    annotationProcessor libs.pf4j
 
     // the round-trip test drives the ML-KEM / hybrid encapsulate + decapsulate headlessly, against
     // the same JDK 25 native providers the panel uses - no external crypto dependency needed
-    testImplementation "org.junit.jupiter:junit-jupiter:5.11.4"
+    testImplementation libs.junit.jupiter
     testImplementation libs.mystic.crypt
-    testImplementation "org.bouncycastle:bcprov-jdk18on:1.85.2"
+    testImplementation libs.bcprov.jdk18on
     // the panel test constructs the panel, so the model backed components have to be on the test
     // classpath as well
-    testImplementation "io.github.astrapi69:swing-model-components:1.2"
-    testImplementation "io.github.astrapi69:model-data:3.2.1"
+    testImplementation libs.swing.model.components
+    testImplementation libs.model.data
     // the panel test lays the panel out, so the layout manager has to be there as well
-    testImplementation "com.miglayout:miglayout-swing:11.4.3"
-    testRuntimeOnly "org.junit.platform:junit-platform-launcher"
+    testImplementation libs.miglayout.swing
+    testRuntimeOnly libs.junit.platform.launcher
     // the settings contribution implements the host's extension point and reads through the host's
     // settings store, so the host jar has to be on the test classpath to load it
     testImplementation "io.github.astrapi69:mystic-crypt-ui:$hostVersion"
-    testImplementation "org.pf4j:pf4j:3.15.0"
+    testImplementation libs.pf4j
     // the panels under test resolve their tooltip text through KemDemoMessages at construction
     // time, so the resource bundle loader has to be on the test classpath too
     testImplementation libs.resourcebundle.core
