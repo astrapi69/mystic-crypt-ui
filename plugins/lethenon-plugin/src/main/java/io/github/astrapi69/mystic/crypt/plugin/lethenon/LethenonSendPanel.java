@@ -267,7 +267,9 @@ public class LethenonSendPanel extends JPanel
 		cbxRecipientKind
 			.setToolTipText(LethenonMessages.getString("lethenon.tooltip.send.recipient.kind",
 				"an account key is named on the chain as it is; a published address is paid at a "
-					+ "one-time destination nobody but its holder can connect to it"));
+					+ "one-time destination that a reader of the chain cannot connect to the address, "
+					+ "while its holder and the sender can; the sender and the amount are on the chain "
+					+ "either way"));
 		txtRecipient.setToolTipText(LethenonMessages.getString("lethenon.tooltip.send.recipient",
 			"the recipient's account key in hexadecimal, or a published address: view key and "
 				+ "spend key in hexadecimal, separated by ':'"));
