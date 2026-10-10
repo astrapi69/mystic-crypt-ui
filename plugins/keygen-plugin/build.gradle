@@ -35,45 +35,45 @@ dependencies {
     // PrivateKeyHexDecryptor / PublicKeyHexEncryptor live in the mystic-crypt library, not the host
     compileOnly libs.mystic.crypt
     // random bytes for a nonce, an initialisation vector or a salt
-    compileOnly "io.github.astrapi69:randomizer:10.4"
+    compileOnly libs.randomizer
     // the model backed components the panels bind to their model; the host brings both jars at
     // runtime, so they stay compileOnly here like everything else
-    compileOnly "io.github.astrapi69:swing-model-components:1.2"
-    compileOnly "io.github.astrapi69:model-data:3.2.1"
-    compileOnly "io.github.astrapi69:swing-base-components:5.2"
-    compileOnly "io.github.astrapi69:swing-components:9"
+    compileOnly libs.swing.model.components
+    compileOnly libs.model.data
+    compileOnly libs.swing.base.components
+    compileOnly libs.swing.components
     // Pair (used by the host EnDecryptPanel this plugin's GenerateKeysPanel embeds)
-    compileOnly "io.github.astrapi69:silly-bean:3.0"
-    compileOnly "io.github.astrapi69:menu-action:5.1"
+    compileOnly libs.silly.bean
+    compileOnly libs.menu.action
     compileOnly libs.resourcebundle.core
-    compileOnly "com.miglayout:miglayout-swing:11.4.3"
-    compileOnly "org.projectlombok:lombok:1.18.46"
-    annotationProcessor "org.projectlombok:lombok:1.18.46"
+    compileOnly libs.miglayout.swing
+    compileOnly libs.lombok
+    annotationProcessor libs.lombok
 
-    compileOnly "org.pf4j:pf4j:3.15.0"
+    compileOnly libs.pf4j
     // required so the @Extension annotation processor runs and writes META-INF/extensions.idx
-    annotationProcessor "org.pf4j:pf4j:3.15.0"
+    annotationProcessor libs.pf4j
 
     // the round-trip test drives the key generation + hex encrypt/decrypt library calls headlessly
-    testImplementation "org.junit.jupiter:junit-jupiter:5.11.4"
+    testImplementation libs.junit.jupiter
     testImplementation libs.mystic.crypt
     testImplementation libs.crypt.data
-    testImplementation "io.github.astrapi69:randomizer:10.4"
-    testImplementation "org.bouncycastle:bcpkix-jdk18on:1.85"
-    testRuntimeOnly "org.junit.platform:junit-platform-launcher"
+    testImplementation libs.randomizer
+    testImplementation libs.bcpkix.jdk18on
+    testRuntimeOnly libs.junit.platform.launcher
     // the settings contribution implements the host's extension point and reads through the host's
     // settings store, so the host jar has to be on the test classpath to load it
     testImplementation "io.github.astrapi69:mystic-crypt-ui:$hostVersion"
-    testImplementation "org.pf4j:pf4j:3.15.0"
+    testImplementation libs.pf4j
     // the layout test builds the real panels, so their base classes have to be on the test
     // compile classpath as well (the host jar exposes them only at runtime)
-    testImplementation "io.github.astrapi69:swing-base-components:5.2"
+    testImplementation libs.swing.base.components
     // the binding tests build the real panels, so the model backed components have to be on the
     // test classpath as well
-    testImplementation "io.github.astrapi69:swing-model-components:1.2"
-    testImplementation "io.github.astrapi69:model-data:3.2.1"
+    testImplementation libs.swing.model.components
+    testImplementation libs.model.data
     // the panels lay themselves out with the host's ToolForm, which returns a MigLayout
-    testImplementation "com.miglayout:miglayout-swing:11.4.3"
+    testImplementation libs.miglayout.swing
     // the panels under test resolve their tooltip text through KeygenMessages at construction
     // time, so the resource bundle loader has to be on the test classpath too
     testImplementation libs.resourcebundle.core

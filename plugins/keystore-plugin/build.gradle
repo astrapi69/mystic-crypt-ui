@@ -39,58 +39,58 @@ dependencies {
     // falls back to a literal default rather than throwing when a key is missing, the same way the
     // host's own Messages class already behaves (.claude/rules/i18n.md)
     compileOnly libs.resourcebundle.core
-    compileOnly "io.github.astrapi69:swing-base-components:5.2"
-    compileOnly "io.github.astrapi69:swing-components:9"
+    compileOnly libs.swing.base.components
+    compileOnly libs.swing.components
     // the model backed components the panel binds to its model; the host brings both jars at
     // runtime, so they stay compileOnly here like everything else
-    compileOnly "io.github.astrapi69:swing-model-components:1.2"
-    compileOnly "io.github.astrapi69:model-data:3.2.1"
+    compileOnly libs.swing.model.components
+    compileOnly libs.model.data
     // the "Create Key Store..." wizard's base classes: AbstractWizardPanel/BaseWizardContentPanel
     // and the BaseWizardState/BaseWizardStateMachineModel state machine it runs on
-    compileOnly "io.github.astrapi69:swing-wizard:2.1"
-    compileOnly "io.github.astrapi69:state-pattern:7.1"
+    compileOnly libs.swing.wizard
+    compileOnly libs.state.pattern
     // X500Name, used to build the subject of a self-signed certificate, lives in bcutil; the host
     // brings both jars at runtime, so they stay compileOnly here like everything else
-    compileOnly "org.bouncycastle:bcprov-jdk18on:1.85.2"
-    compileOnly "org.bouncycastle:bcutil-jdk18on:1.85"
+    compileOnly libs.bcprov.jdk18on
+    compileOnly libs.bcutil.jdk18on
     // CertFactory declares OperatorCreationException from bcpkix in its throws clause, so javac
     // needs that jar on the compile classpath even though this code never names the type
-    compileOnly "org.bouncycastle:bcpkix-jdk18on:1.85"
+    compileOnly libs.bcpkix.jdk18on
 
     // the command line side: the host puts picocli on the classpath, so like everything else it
     // is only needed to compile against here
-    compileOnly "info.picocli:picocli:4.7.6"
+    compileOnly libs.picocli
 
     // the shared tool window layout comes from the host, which brings MigLayout with it
-    compileOnly "com.miglayout:miglayout-swing:11.4.3"
+    compileOnly libs.miglayout.swing
 
-    compileOnly "org.pf4j:pf4j:3.15.0"
+    compileOnly libs.pf4j
     // required so the @Extension annotation processor runs and writes META-INF/extensions.idx
-    annotationProcessor "org.pf4j:pf4j:3.15.0"
+    annotationProcessor libs.pf4j
 
     // the tests drive real key stores on disk; certificate creation and the PKCS12 handling go
     // through Bouncy Castle, which the host registers at startup
-    testImplementation "org.junit.jupiter:junit-jupiter:5.11.4"
+    testImplementation libs.junit.jupiter
     testImplementation libs.mystic.crypt
     testImplementation libs.crypt.data
-    testImplementation "info.picocli:picocli:4.7.6"
+    testImplementation libs.picocli
     // the contribution class implements the host's extension point, so the host jar has to be on
     // the test classpath to load it - for the main sources it stays compileOnly like everything else
     testImplementation "io.github.astrapi69:mystic-crypt-ui:$hostVersion"
-    testImplementation "com.miglayout:miglayout-swing:11.4.3"
+    testImplementation libs.miglayout.swing
     // the panel test constructs the panel, so the model backed components and the combo box models
     // it is built from have to be on the test classpath as well
-    testImplementation "io.github.astrapi69:swing-model-components:1.2"
-    testImplementation "io.github.astrapi69:model-data:3.2.1"
-    testImplementation "io.github.astrapi69:swing-base-components:5.2"
+    testImplementation libs.swing.model.components
+    testImplementation libs.model.data
+    testImplementation libs.swing.base.components
     // the wizard state/panel tests build the real state machine and the real panels
-    testImplementation "io.github.astrapi69:swing-wizard:2.1"
-    testImplementation "io.github.astrapi69:state-pattern:7.1"
-    testImplementation "org.pf4j:pf4j:3.15.0"
-    testImplementation "org.bouncycastle:bcprov-jdk18on:1.85.2"
-    testImplementation "org.bouncycastle:bcpkix-jdk18on:1.85"
+    testImplementation libs.swing.wizard
+    testImplementation libs.state.pattern
+    testImplementation libs.pf4j
+    testImplementation libs.bcprov.jdk18on
+    testImplementation libs.bcpkix.jdk18on
     testImplementation libs.resourcebundle.core
-    testRuntimeOnly "org.junit.platform:junit-platform-launcher"
+    testRuntimeOnly libs.junit.platform.launcher
 }
 
 test {

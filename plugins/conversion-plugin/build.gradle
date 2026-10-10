@@ -34,51 +34,51 @@ dependencies {
     compileOnly libs.crypt.api
     compileOnly libs.crypt.data
     // PemObject and PemWriter, to write a pem file under the right header
-    compileOnly "org.bouncycastle:bcprov-jdk18on:1.85.2"
-    compileOnly "io.github.astrapi69:model-data:3.2.1"
+    compileOnly libs.bcprov.jdk18on
+    compileOnly libs.model.data
     // the panels bind their components to one model object per panel (JMTextField and friends)
-    compileOnly "io.github.astrapi69:swing-model-components:1.2"
-    compileOnly "io.github.astrapi69:swing-base-components:5.2"
-    compileOnly "io.github.astrapi69:throwable:3"
+    compileOnly libs.swing.model.components
+    compileOnly libs.swing.base.components
+    compileOnly libs.throwable
     compileOnly libs.resourcebundle.core
     // the conversion wizard's base classes: AbstractWizardPanel/BaseWizardContentPanel and the
     // BaseWizardState/BaseWizardStateMachineModel state machine it runs on
-    compileOnly "io.github.astrapi69:swing-wizard:2.1"
-    compileOnly "io.github.astrapi69:state-pattern:7.1"
-    compileOnly "org.projectlombok:lombok:1.18.46"
-    annotationProcessor "org.projectlombok:lombok:1.18.46"
+    compileOnly libs.swing.wizard
+    compileOnly libs.state.pattern
+    compileOnly libs.lombok
+    annotationProcessor libs.lombok
 
     // the shared tool window layout comes from the host, which brings MigLayout with it
-    compileOnly "com.miglayout:miglayout-swing:11.4.3"
+    compileOnly libs.miglayout.swing
 
-    compileOnly "org.pf4j:pf4j:3.15.0"
+    compileOnly libs.pf4j
     // required so the @Extension annotation processor runs and writes META-INF/extensions.idx
-    annotationProcessor "org.pf4j:pf4j:3.15.0"
+    annotationProcessor libs.pf4j
 
     // the round-trip test drives the key reader/writer library directly (headless)
-    testImplementation "org.junit.jupiter:junit-jupiter:5.11.4"
+    testImplementation libs.junit.jupiter
     testImplementation libs.crypt.api
     testImplementation libs.crypt.data
-    testImplementation "org.bouncycastle:bcprov-jdk18on:1.85.2"
-    testImplementation "org.bouncycastle:bcpkix-jdk18on:1.85"
-    testRuntimeOnly "org.junit.platform:junit-platform-launcher"
+    testImplementation libs.bcprov.jdk18on
+    testImplementation libs.bcpkix.jdk18on
+    testRuntimeOnly libs.junit.platform.launcher
     // the settings contribution implements the host's extension point and reads through the host's
     // settings store, so the host jar has to be on the test classpath to load it
     testImplementation "io.github.astrapi69:mystic-crypt-ui:$hostVersion"
-    testImplementation "com.miglayout:miglayout-swing:11.4.3"
-    testImplementation "org.pf4j:pf4j:3.15.0"
+    testImplementation libs.miglayout.swing
+    testImplementation libs.pf4j
     // the binding test builds the panel, whose components are bound to its model; the panel is a
     // BasePanel and its combo box an EnumComboBoxModel, both from swing-base-components
-    testImplementation "io.github.astrapi69:model-data:3.2.1"
-    testImplementation "io.github.astrapi69:swing-model-components:1.2"
-    testImplementation "io.github.astrapi69:swing-base-components:5.2"
-    testImplementation "io.github.astrapi69:throwable:3"
+    testImplementation libs.model.data
+    testImplementation libs.swing.model.components
+    testImplementation libs.swing.base.components
+    testImplementation libs.throwable
     // the panels under test resolve their tooltip text through ConversionMessages at construction
     // time, so the resource bundle loader has to be on the test classpath too
     testImplementation libs.resourcebundle.core
     // the wizard state/panel tests build the real state machine and the real panels
-    testImplementation "io.github.astrapi69:swing-wizard:2.1"
-    testImplementation "io.github.astrapi69:state-pattern:7.1"
+    testImplementation libs.swing.wizard
+    testImplementation libs.state.pattern
 
 }
 
