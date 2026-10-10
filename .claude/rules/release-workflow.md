@@ -51,7 +51,11 @@ Prompt triggers: "release new version", "new release".
    this switch, not the release being wrong.
 5. **Full gate** (ALL mandatory; a red result aborts the release):
    - `make build-full`, whose test tasks bring their own Xvfb (#505) — it runs the plugin builds, the packaging,
-     EVERY test including the UI e2e suite, spotless and the license check. The plugins are
+     EVERY test including the UI e2e suite, and spotless - but no license check: `licenseMain` and
+     `licenseTest` are disabled because of hierynomus/license-gradle-plugin#76. Until it is fixed the gate
+     checks the headers itself, over the Java files changed since the last tag (#553):
+     `git diff --name-only --diff-filter=AM <last tag>..HEAD -- "*.java" | while read -r f; do head -5 "$f" |
+     grep -q "The MIT License" || echo "NO HEADER: $f"; done` must print nothing. The plugins are
      part of it since #333: `./gradlew build` never built them, so the 54 end-to-end tests
      that install one skipped, and a release could be cut with every plugin feature
      unverified while the gate read green. `make test` and
