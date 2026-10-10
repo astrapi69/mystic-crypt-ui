@@ -203,7 +203,9 @@ class TransferSupportTest
 	}
 
 	@ParameterizedTest(name = "{0}")
-	@CsvSource(delimiter = '|', value = { "no address at all||enter the published address",
+	// the quote character is '"' so that 'zz:yy' below is taken as written: JUnit 6 refuses a field
+	// that goes on after a closing quote, which JUnit 5 let through (#547)
+	@CsvSource(delimiter = '|', quoteCharacter = '"', value = { "no address at all||enter the published address",
 			"an account key where an address belongs|ACCOUNT|is not a published address",
 			"halves that are not hexadecimal|zz:yy|'zz:yy' is not a published address",
 			"halves that are hexadecimal but no keys|00ff:00ff|not an X25519 public key" })

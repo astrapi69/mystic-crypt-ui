@@ -32,41 +32,41 @@ def hostVersion = new Properties().with { properties ->
 dependencies {
     compileOnly "io.github.astrapi69:mystic-crypt-ui:$hostVersion"
     compileOnly libs.mystic.crypt
-    compileOnly "io.github.astrapi69:swing-base-components:5.2"
-    compileOnly "io.github.astrapi69:swing-table-components:3.1"
-    compileOnly "io.github.astrapi69:swing-model-components:1.2"
-    compileOnly "io.github.astrapi69:model-data:3.2.1"
-    compileOnly "io.github.astrapi69:silly-bean:3.0"
-    compileOnly "io.github.astrapi69:silly-collection:28.1"
-    compileOnly "io.github.astrapi69:file-worker:19.0"
-    compileOnly "io.github.astrapi69:xstream-extensions:1.1"
-    compileOnly "io.github.astrapi69:throwable:3"
+    compileOnly libs.swing.base.components
+    compileOnly libs.swing.table.components
+    compileOnly libs.swing.model.components
+    compileOnly libs.model.data
+    compileOnly libs.silly.bean
+    compileOnly libs.silly.collection
+    compileOnly libs.file.worker
+    compileOnly libs.xstream.extensions
+    compileOnly libs.throwable
     compileOnly libs.resourcebundle.core
-    compileOnly "com.google.guava:guava:33.7.1-jre"
-    compileOnly "com.miglayout:miglayout-swing:11.4.3"
-    compileOnly "org.projectlombok:lombok:1.18.46"
-    annotationProcessor "org.projectlombok:lombok:1.18.46"
+    compileOnly libs.guava
+    compileOnly libs.miglayout.swing
+    compileOnly libs.lombok
+    annotationProcessor libs.lombok
 
-    compileOnly "org.pf4j:pf4j:3.15.0"
+    compileOnly libs.pf4j
     // required so the @Extension annotation processor runs and writes META-INF/extensions.idx
-    annotationProcessor "org.pf4j:pf4j:3.15.0"
+    annotationProcessor libs.pf4j
 
     // the round-trip test drives the obfuscation library directly (headless)
-    testImplementation "org.junit.jupiter:junit-jupiter:5.11.4"
+    testImplementation libs.junit.jupiter
     testImplementation libs.mystic.crypt
-    testImplementation "com.google.guava:guava:33.7.1-jre"
-    testRuntimeOnly "org.junit.platform:junit-platform-launcher"
+    testImplementation libs.guava
+    testRuntimeOnly libs.junit.platform.launcher
     // the settings contribution implements the host's extension point and reads through the host's
     // settings store, so the host jar has to be on the test classpath to load it
     testImplementation "io.github.astrapi69:mystic-crypt-ui:$hostVersion"
-    testImplementation "org.pf4j:pf4j:3.15.0"
+    testImplementation libs.pf4j
     // the layout test builds the real panels, so their base classes and the shared tool window
     // layout have to be on the test compile classpath as well (the host jar exposes them only at
     // runtime)
-    testImplementation "io.github.astrapi69:swing-base-components:5.2"
-    testImplementation "io.github.astrapi69:swing-model-components:1.2"
-    testImplementation "io.github.astrapi69:model-data:3.2.1"
-    testImplementation "com.miglayout:miglayout-swing:11.4.3"
+    testImplementation libs.swing.base.components
+    testImplementation libs.swing.model.components
+    testImplementation libs.model.data
+    testImplementation libs.miglayout.swing
     // the panels under test resolve their tooltip text through ObfuscationMessages at
     // construction time, so the resource bundle loader has to be on the test classpath too
     testImplementation libs.resourcebundle.core

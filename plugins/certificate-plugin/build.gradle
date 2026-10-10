@@ -34,36 +34,36 @@ dependencies {
     compileOnly "io.github.astrapi69:mystic-crypt-ui:$hostVersion"
     compileOnly libs.crypt.api
     compileOnly libs.crypt.data
-    compileOnly "io.github.astrapi69:model-data:3.2.1"
-    compileOnly "io.github.astrapi69:swing-base-components:5.2"
-    compileOnly "io.github.astrapi69:swing-components:9"
+    compileOnly libs.model.data
+    compileOnly libs.swing.base.components
+    compileOnly libs.swing.components
     // the JMTextArea the in-app certificate editor binds to its model
-    compileOnly "io.github.astrapi69:swing-model-components:1.2"
-    compileOnly "io.github.astrapi69:swing-wizard:2.1"
-    compileOnly "io.github.astrapi69:state-pattern:7.1"
+    compileOnly libs.swing.model.components
+    compileOnly libs.swing.wizard
+    compileOnly libs.state.pattern
     // AbstractWizardPanel (swing-wizard) implements the observer EventListener/EventObject
-    compileOnly "io.github.astrapi69:observer:6"
-    compileOnly "org.projectlombok:lombok:1.18.46"
-    annotationProcessor "org.projectlombok:lombok:1.18.46"
+    compileOnly libs.observer
+    compileOnly libs.lombok
+    annotationProcessor libs.lombok
 
-    compileOnly "org.pf4j:pf4j:3.15.0"
+    compileOnly libs.pf4j
     // required so the @Extension annotation processor runs and writes META-INF/extensions.idx
-    annotationProcessor "org.pf4j:pf4j:3.15.0"
+    annotationProcessor libs.pf4j
 
-    testImplementation "org.junit.jupiter:junit-jupiter:5.11.4"
+    testImplementation libs.junit.jupiter
     testImplementation libs.crypt.api
     testImplementation libs.crypt.data
-    testImplementation "org.bouncycastle:bcpkix-jdk18on:1.85"
-    testRuntimeOnly "org.junit.platform:junit-platform-launcher"
+    testImplementation libs.bcpkix.jdk18on
+    testRuntimeOnly libs.junit.platform.launcher
     // the settings contribution implements the host's extension point and reads through the host's
     // settings store, so the host jar has to be on the test classpath to load it
     testImplementation "io.github.astrapi69:mystic-crypt-ui:$hostVersion"
-    testImplementation "org.pf4j:pf4j:3.15.0"
+    testImplementation libs.pf4j
     // the editor panel test builds the real panel, so its base classes have to be on the test
     // compile classpath as well (the host jar exposes them only at runtime)
-    testImplementation "io.github.astrapi69:swing-base-components:5.2"
-    testImplementation "io.github.astrapi69:swing-model-components:1.2"
-    testImplementation "io.github.astrapi69:model-data:3.2.1"
+    testImplementation libs.swing.base.components
+    testImplementation libs.swing.model.components
+    testImplementation libs.model.data
 
 }
 

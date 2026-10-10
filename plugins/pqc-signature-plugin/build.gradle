@@ -38,43 +38,43 @@ dependencies {
     // host's own Messages class already behaves (.claude/rules/i18n.md)
     compileOnly libs.resourcebundle.core
     // the pem parser that knows every shape a key file comes in lives in bcpkix
-    compileOnly "org.bouncycastle:bcpkix-jdk18on:1.85"
-    compileOnly "org.bouncycastle:bcprov-jdk18on:1.85.2"
+    compileOnly libs.bcpkix.jdk18on
+    compileOnly libs.bcprov.jdk18on
     // the panel keeps its state in a model and binds the model backed components to it
-    compileOnly "io.github.astrapi69:swing-model-components:1.2"
-    compileOnly "io.github.astrapi69:model-data:3.2.1"
-    compileOnly "io.github.astrapi69:swing-base-components:5.2"
-    compileOnly "io.github.astrapi69:swing-components:9"
+    compileOnly libs.swing.model.components
+    compileOnly libs.model.data
+    compileOnly libs.swing.base.components
+    compileOnly libs.swing.components
     // the shared tool window layout (ToolForm) is MigLayout based; the host brings the library at
     // runtime, the plugin only compiles against it
-    compileOnly "com.miglayout:miglayout-swing:11.4.3"
+    compileOnly libs.miglayout.swing
 
-    compileOnly "org.pf4j:pf4j:3.15.0"
+    compileOnly libs.pf4j
     // required so the @Extension annotation processor runs and writes META-INF/extensions.idx
-    annotationProcessor "org.pf4j:pf4j:3.15.0"
+    annotationProcessor libs.pf4j
 
     // the round-trip test signs and verifies with every offered algorithm headlessly; the
     // post-quantum algorithms resolve through Bouncy Castle, which the host registers at startup
-    testImplementation "org.junit.jupiter:junit-jupiter:5.11.4"
+    testImplementation libs.junit.jupiter
     testImplementation libs.mystic.crypt
     testImplementation libs.crypt.data
     // CertFactory declares OperatorCreationException from bcpkix in its throws clause, and X500Name
     // lives in bcutil - javac needs both to compile a call to it
-    testImplementation "org.bouncycastle:bcpkix-jdk18on:1.85"
-    testImplementation "org.bouncycastle:bcutil-jdk18on:1.85"
-    testImplementation "org.bouncycastle:bcprov-jdk18on:1.85.2"
-    testRuntimeOnly "org.junit.platform:junit-platform-launcher"
+    testImplementation libs.bcpkix.jdk18on
+    testImplementation libs.bcutil.jdk18on
+    testImplementation libs.bcprov.jdk18on
+    testRuntimeOnly libs.junit.platform.launcher
     // the settings contribution implements the host's extension point and reads through the host's
     // settings store, so the host jar has to be on the test classpath to load it
     testImplementation "io.github.astrapi69:mystic-crypt-ui:$hostVersion"
     // the panel binding test constructs the panel, so the model backed components have to be
     // on the test classpath too
-    testImplementation "io.github.astrapi69:swing-model-components:1.2"
-    testImplementation "io.github.astrapi69:model-data:3.2.1"
+    testImplementation libs.swing.model.components
+    testImplementation libs.model.data
     // the panel is laid out with the host's MigLayout based ToolForm, so a test that constructs
     // the panel needs the layout library too
-    testImplementation "com.miglayout:miglayout-swing:11.4.3"
-    testImplementation "org.pf4j:pf4j:3.15.0"
+    testImplementation libs.miglayout.swing
+    testImplementation libs.pf4j
     testImplementation libs.resourcebundle.core
 
 }

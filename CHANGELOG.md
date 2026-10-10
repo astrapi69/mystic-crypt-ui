@@ -5,6 +5,7 @@ Version 8.9 (unreleased)
 -------------
 
 CHANGED:
+- build and tests only: the plugin builds take every dependency version from the application's version catalog, as the application does, instead of 228 versions written into their own build files. Nine of those had drifted from the catalog, so the plugins were tested against other libraries than the application ships: Bouncy Castle 1.85.2 and 1.85 instead of 1.86, JUnit 5.11.4 instead of 6.1.3, pf4j 3.15.0 instead of 3.15.1, and six more. Moving them showed one test that JUnit 6 reads differently: a CSV source in the Lethenon plugin that JUnit 5 let through and JUnit 6 refuses, now written so that both read it the same. A test in the build now fails as soon as a plugin build names a version of its own, or does not read the catalog at all, as the console plugin did not (#547)
 - build and tests only: two checks that develop's branch protection requires. `release-freeze` is red on every other pull request into develop while a pull request from a `release/*` branch is open, so a merge during a freeze is refused in the browser and through auto-merge too; the release pull request itself and one labelled `release-content` pass (#516). `closing-references` is red on a pull request that would close an issue no line names on its own as `Closes #NN`, so a release pull request listing "KNOWN AND NOT FIXED: #NN" no longer closes that issue, as 8.7 and 8.8 did (#555)
 
 Version 8.8
