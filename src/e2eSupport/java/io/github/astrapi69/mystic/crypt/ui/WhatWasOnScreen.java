@@ -29,12 +29,20 @@ import java.awt.Container;
 import java.awt.Dialog;
 import java.awt.Frame;
 import java.awt.Window;
+import java.lang.management.ManagementFactory;
+import java.lang.management.ThreadInfo;
+import java.lang.management.ThreadMXBean;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 import javax.swing.JInternalFrame;
 
 import org.junit.jupiter.api.extension.ExtensionContext;
+import org.junit.jupiter.api.extension.TestExecutionExceptionHandler;
 import org.junit.jupiter.api.extension.TestWatcher;
 
 /**
@@ -52,9 +60,33 @@ import org.junit.jupiter.api.extension.TestWatcher;
  * their titles and, inside each, every component that carries a name - because a lookup names what
  * it wants, and "what was there" is the other half of the answer. When the throwable is that NPE it
  * says so, so the next red run is read rather than restarted.
+ * <p>
+ * The report is taken when the test method fails, not when JUnit tells a {@link TestWatcher} about
+ * it: a watcher is called after the teardown, and the teardown disposes every window. A report read
+ * then said "4 windows existed and NONE was showing" whatever had been on screen at the failure
+ * (#522). The watcher stays for failures outside the test method - in a setup or a teardown - and
+ * reports a failure only once.
+ * <p>
+ * And it carries the threads (#522): the start thread, the event threads, and every thread that is
+ * blocked or deadlocked, each with its stack - because a test that times out waiting for the start
+ * to finish says that it waited, not where the start stood. A start thread that died says what it
+ * died of: a start that ends with an exception opens no window and no dialog, and the exception is
+ * the only trace it leaves.
  */
-class WhatWasOnScreen implements TestWatcher
+class WhatWasOnScreen implements TestExecutionExceptionHandler, TestWatcher
 {
+
+	/** The name of the thread the end-to-end tests start the application on */
+	static final String START_THREAD = "mystic-crypt-app-under-test";
+
+	/** How many frames of one thread's stack the report prints */
+	private static final int FRAMES_PER_THREAD = 60;
+
+	/** What the current start thread died of, or {@code null} while it has not died */
+	private static volatile Throwable startThreadDeath;
+
+	/** The failures already reported, by the unique id of the test that failed */
+	private final Set<String> reported = ConcurrentHashMap.newKeySet();
 
 	/**
 	 * Every line of the report carries this, so the build can forward exactly these lines to the
@@ -66,9 +98,49 @@ class WhatWasOnScreen implements TestWatcher
 	static final String MARKER = TAG + "=== what was on screen when the test failed ===";
 
 	@Override
+	public void handleTestExecutionException(final ExtensionContext context,
+		final Throwable throwable) throws Throwable
+	{
+		reported.add(context.getUniqueId());
+		print(report(context.getDisplayName(), throwable));
+		throw throwable;
+	}
+
+	@Override
 	public void testFailed(final ExtensionContext context, final Throwable cause)
 	{
-		for (String line : report(context.getDisplayName(), cause).split("\n"))
+		if (reported.remove(context.getUniqueId()))
+		{
+			return;
+		}
+		print(report(context.getDisplayName(), cause));
+	}
+
+	/**
+	 * Keeps what the start thread died of for the report, and prints it to standard error as the
+	 * default handler would have
+	 *
+	 * @param thread
+	 *            the start thread
+	 * @param death
+	 *            what it died of
+	 */
+	static void startThreadDied(final Thread thread, final Throwable death)
+	{
+		startThreadDeath = death;
+		System.err.print("Exception in thread \"" + thread.getName() + "\" ");
+		death.printStackTrace(System.err);
+	}
+
+	/** Forgets the death of an earlier start thread, when a new one is launched */
+	static void startThreadLaunched()
+	{
+		startThreadDeath = null;
+	}
+
+	private static void print(final String report)
+	{
+		for (String line : report.split("\n"))
 		{
 			System.out.println(line.startsWith(TAG) ? line : TAG + line);
 		}
@@ -107,8 +179,7 @@ class WhatWasOnScreen implements TestWatcher
 				report.append("    ").append(named).append('\n');
 			}
 		}
-		long showing = java.util.Arrays.stream(Window.getWindows()).filter(Window::isShowing)
-			.count();
+		long showing = Arrays.stream(Window.getWindows()).filter(Window::isShowing).count();
 		if (showing == 0)
 		{
 			report.append(Window.getWindows().length == 0
@@ -117,7 +188,84 @@ class WhatWasOnScreen implements TestWatcher
 				: Window.getWindows().length + " windows existed and NONE was showing - which is "
 					+ "itself the answer when a lookup could not find anything\n");
 		}
+		report.append(threads());
 		return report.toString();
+	}
+
+	/**
+	 * The start thread, the event threads, and every blocked or deadlocked thread, each with its
+	 * stack; and what the start thread died of when it is not running
+	 */
+	static String threads()
+	{
+		ThreadMXBean threadBean = ManagementFactory.getThreadMXBean();
+		Set<Long> deadlocked = new HashSet<>();
+		long[] deadlockedIds = threadBean.findDeadlockedThreads();
+		if (deadlockedIds != null)
+		{
+			Arrays.stream(deadlockedIds).forEach(deadlocked::add);
+		}
+		StringBuilder threads = new StringBuilder("threads at the failure (#522):\n");
+		boolean startThreadRunning = false;
+		for (ThreadInfo thread : threadBean.dumpAllThreads(true, true))
+		{
+			boolean start = START_THREAD.equals(thread.getThreadName());
+			startThreadRunning |= start;
+			if (start || thread.getThreadName().startsWith("AWT-EventQueue")
+				|| thread.getThreadState() == Thread.State.BLOCKED
+				|| deadlocked.contains(thread.getThreadId()))
+			{
+				threads.append(describe(thread, deadlocked.contains(thread.getThreadId())));
+			}
+		}
+		if (!startThreadRunning)
+		{
+			threads.append("the start thread is not running (\"").append(START_THREAD)
+				.append("\": it ended, or it was never started)\n");
+		}
+		Throwable death = startThreadDeath;
+		if (death != null)
+		{
+			threads.append("the start thread died of: ").append(death).append('\n');
+			for (StackTraceElement frame : death.getStackTrace())
+			{
+				threads.append("    at ").append(frame).append('\n');
+			}
+		}
+		threads.append(deadlocked.isEmpty()
+			? "no deadlocked threads\n"
+			: deadlocked.size() + " deadlocked threads, marked above\n");
+		return threads.toString();
+	}
+
+	private static String describe(final ThreadInfo thread, final boolean deadlocked)
+	{
+		StringBuilder described = new StringBuilder("thread \"").append(thread.getThreadName())
+			.append("\" ").append(thread.getThreadState());
+		if (thread.getLockName() != null)
+		{
+			described.append(" on ").append(thread.getLockName());
+		}
+		if (thread.getLockOwnerName() != null)
+		{
+			described.append(" held by \"").append(thread.getLockOwnerName()).append('"');
+		}
+		if (deadlocked)
+		{
+			described.append(" DEADLOCKED");
+		}
+		described.append('\n');
+		StackTraceElement[] frames = thread.getStackTrace();
+		for (int index = 0; index < Math.min(frames.length, FRAMES_PER_THREAD); index++)
+		{
+			described.append("    at ").append(frames[index]).append('\n');
+		}
+		if (frames.length > FRAMES_PER_THREAD)
+		{
+			described.append("    ... ").append(frames.length - FRAMES_PER_THREAD)
+				.append(" more\n");
+		}
+		return described.toString();
 	}
 
 	private static boolean isTheLibrarysOwnPrinterFailing(final Throwable cause)
