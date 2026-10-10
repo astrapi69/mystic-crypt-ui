@@ -112,20 +112,10 @@ else
   fi
 fi
 
-# The worktree is left exactly where it was (#340, #496: also when it stands on the merged branch). This used to end with
-# 'git checkout develop && git pull --ff-only', which is the right sequence and the wrong place:
-# the script can run for as long as CI takes, and while it does, whoever is working in this
-# checkout is on their own branch. Changing HEAD under them puts their next commit on the target
-# branch - measured today, caught before a push, and the next time the caught step might be the
-# push.
-#
-# gh pr merge is server-side, so nothing here needs the target checked out. This fast-forwards the
-# local branch from the remote without touching HEAD; when the target IS checked out, that form is
-# refused by git, so the ordinary pull is used for that case alone.
+# The local copy of the target follows the merge without moving HEAD and without touching
+# uncommitted work, wherever the target is checked out (#340, #496, #543). It is a script of its own
+# so that it can be tested against real repositories; its exit status is 0 also when it leaves the
+# branch as it was, because the merge above happened either way.
 git fetch --quiet origin
-if [ "$(git rev-parse --abbrev-ref HEAD)" = "$TARGET" ]; then
-  git merge --ff-only "origin/$TARGET"
-else
-  git fetch --quiet origin "$TARGET:$TARGET"
-fi
-say "merged #$PR - $TARGET is now $(git rev-parse --short "$TARGET"): $(git log -1 --format=%s "$TARGET")"
+say "merged #$PR - origin/$TARGET is now $(git rev-parse --short "origin/$TARGET"): $(git log -1 --format=%s "origin/$TARGET")"
+"${BASH_SOURCE[0]%/*}/update-local-branch.sh" "$TARGET"
