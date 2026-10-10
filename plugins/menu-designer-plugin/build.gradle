@@ -29,36 +29,36 @@ def hostVersion = new Properties().with { properties ->
 
 dependencies {
     compileOnly "io.github.astrapi69:mystic-crypt-ui:$hostVersion"
-    compileOnly "io.github.astrapi69:swing-base-components:5.2"
-    compileOnly "io.github.astrapi69:swing-components:9"
+    compileOnly libs.swing.base.components
+    compileOnly libs.swing.components
     // the model backed components the editor binds to its model; the host brings both jars at
     // runtime, so they stay compileOnly here like everything else
-    compileOnly "io.github.astrapi69:swing-model-components:1.2"
-    compileOnly "io.github.astrapi69:model-data:3.2.1"
+    compileOnly libs.swing.model.components
+    compileOnly libs.model.data
 
     // the shared tool window layout comes from the host, which brings MigLayout with it
-    compileOnly "com.miglayout:miglayout-swing:11.4.3"
+    compileOnly libs.miglayout.swing
     compileOnly libs.resourcebundle.core
 
-    compileOnly "org.pf4j:pf4j:3.15.0"
+    compileOnly libs.pf4j
     // required so the @Extension annotation processor runs and writes META-INF/extensions.idx
-    annotationProcessor "org.pf4j:pf4j:3.15.0"
+    annotationProcessor libs.pf4j
     // the settings contribution implements the host's extension point and reads through the host's
     // settings store, so the host jar has to be on the test classpath to load it
     testImplementation "io.github.astrapi69:mystic-crypt-ui:$hostVersion"
     // the layout measurement constructs the panel, so the layout manager has to be there too
-    testImplementation "com.miglayout:miglayout-swing:11.4.3"
+    testImplementation libs.miglayout.swing
     // the panel tests construct the panel, so the model backed components it is built from have to
     // be on the test classpath as well
-    testImplementation "io.github.astrapi69:swing-model-components:1.2"
-    testImplementation "io.github.astrapi69:model-data:3.2.1"
-    testImplementation "org.pf4j:pf4j:3.15.0"
+    testImplementation libs.swing.model.components
+    testImplementation libs.model.data
+    testImplementation libs.pf4j
     // the panel under test resolves its tooltip text through MenuDesignerMessages at construction
     // time, so the resource bundle loader has to be on the test classpath too
     testImplementation libs.resourcebundle.core
 
-    testImplementation "org.junit.jupiter:junit-jupiter:5.11.4"
-    testRuntimeOnly "org.junit.platform:junit-platform-launcher"
+    testImplementation libs.junit.jupiter
+    testRuntimeOnly libs.junit.platform.launcher
 
 }
 

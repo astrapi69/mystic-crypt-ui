@@ -31,54 +31,54 @@ def hostVersion = new Properties().with { properties ->
 dependencies {
     compileOnly "io.github.astrapi69:mystic-crypt-ui:$hostVersion"
     // ClipboardExtensions for the checksum copy buttons
-    compileOnly "io.github.astrapi69:awt-extensions:2.0"
+    compileOnly libs.awt.extensions
     // ResourceBundleExtensions.getStringQuietly - the tooltip/label text this plugin loads from
     // checksum/messages.properties falls back to a literal default rather than throwing when a key
     // is missing, the same way the host's own Messages class already behaves
     compileOnly libs.resourcebundle.core
-    compileOnly "io.github.astrapi69:checksum-up:3.1"
+    compileOnly libs.checksum.up
     compileOnly libs.crypt.api
-    compileOnly "io.github.astrapi69:file-worker:19.0"
-    compileOnly "io.github.astrapi69:model-data:3.2.1"
-    compileOnly "io.github.astrapi69:swing-base-components:5.2"
+    compileOnly libs.file.worker
+    compileOnly libs.model.data
+    compileOnly libs.swing.base.components
     // the model backed components the ChecksumAndMacPanel binds to its model
-    compileOnly "io.github.astrapi69:swing-model-components:1.2"
+    compileOnly libs.swing.model.components
     // the layout every tool window shares, through the host's ToolForm; the host
     // brings it at runtime
-    compileOnly "com.miglayout:miglayout-swing:11.4.3"
+    compileOnly libs.miglayout.swing
     // EnableButtonBehavior lives here
-    compileOnly "io.github.astrapi69:menu-action:5.1"
-    compileOnly "org.projectlombok:lombok:1.18.46"
-    annotationProcessor "org.projectlombok:lombok:1.18.46"
+    compileOnly libs.menu.action
+    compileOnly libs.lombok
+    annotationProcessor libs.lombok
 
-    compileOnly "org.pf4j:pf4j:3.15.0"
+    compileOnly libs.pf4j
     // required so the @Extension annotation processor runs and writes META-INF/extensions.idx
-    annotationProcessor "org.pf4j:pf4j:3.15.0"
+    annotationProcessor libs.pf4j
 
     // the checksum test drives the checksum library directly (headless)
-    testImplementation "org.junit.jupiter:junit-jupiter:5.11.4"
+    testImplementation libs.junit.jupiter
     // SHA-3 and BLAKE2 come from Bouncy Castle, which the host registers at startup
-    testImplementation "org.bouncycastle:bcprov-jdk18on:1.85.2"
-    testImplementation "io.github.astrapi69:checksum-up:3.1"
+    testImplementation libs.bcprov.jdk18on
+    testImplementation libs.checksum.up
     testImplementation libs.crypt.api
-    testRuntimeOnly "org.junit.platform:junit-platform-launcher"
+    testRuntimeOnly libs.junit.platform.launcher
     // the settings contribution implements the host's extension point and reads through the host's
     // settings store, so the host jar has to be on the test classpath to load it
     // the binding test builds the ChecksumAndMacPanel, so its model backed components have to
     // be on the test classpath the way the host provides them at runtime
-    testImplementation "io.github.astrapi69:swing-model-components:1.2"
-    testImplementation "io.github.astrapi69:model-data:3.2.1"
+    testImplementation libs.swing.model.components
+    testImplementation libs.model.data
     testImplementation "io.github.astrapi69:mystic-crypt-ui:$hostVersion"
     // the panel tests lay the panel out, so the shared layout has to be on the test classpath too
-    testImplementation "com.miglayout:miglayout-swing:11.4.3"
-    testImplementation "org.pf4j:pf4j:3.15.0"
+    testImplementation libs.miglayout.swing
+    testImplementation libs.pf4j
     // the binding test of the ChecksumPanel builds a panel that extends the base panel, starts in
     // the user's downloads directory and enables its clear buttons from a document; the host brings
     // these three at runtime
-    testImplementation "io.github.astrapi69:swing-base-components:5.2"
-    testImplementation "io.github.astrapi69:file-worker:19.0"
-    testImplementation "io.github.astrapi69:menu-action:5.1"
-    testImplementation "io.github.astrapi69:awt-extensions:2.0"
+    testImplementation libs.swing.base.components
+    testImplementation libs.file.worker
+    testImplementation libs.menu.action
+    testImplementation libs.awt.extensions
     testImplementation libs.resourcebundle.core
 
 }
