@@ -46,6 +46,7 @@ import org.junit.jupiter.params.provider.MethodSource;
 
 import io.github.astrapi69.lethenon.BlockBody;
 import io.github.astrapi69.lethenon.Bytes;
+import io.github.astrapi69.lethenon.CanonicalEncoding;
 import io.github.astrapi69.lethenon.Chain;
 import io.github.astrapi69.lethenon.ChainFile;
 import io.github.astrapi69.lethenon.transport.Node;
@@ -150,7 +151,7 @@ class SyncSupportTest
 	}
 
 	@Test
-	@DisplayName("a main chain file is refused: nodes run on the test network only")
+	@DisplayName("a main chain file is refused with its name: nodes run on the test network only")
 	void sync_refuses_aMainChainFile() throws Exception
 	{
 		Path chainFile = directory.resolve("main.lethenon");
@@ -160,7 +161,28 @@ class SyncSupportTest
 		IllegalArgumentException refused = assertThrows(IllegalArgumentException.class,
 			() -> SyncSupport.sync(chainFile, local(aPortNobodyListensOn()), ""));
 
+		assertTrue(refused.getMessage().startsWith(chainFile.toAbsolutePath().toString()),
+			refused.getMessage());
 		assertTrue(refused.getMessage().contains(Chain.TEST_IDENTIFIER), refused.getMessage());
+		assertArrayEquals(before, Files.readAllBytes(chainFile));
+	}
+
+	@Test
+	@DisplayName("a chain file an earlier lethenon wrote is refused with the file's name, before anything is sent, and stays as it was (#535)")
+	void sync_refuses_aRetiredChain_namingTheFile() throws Exception
+	{
+		Path chainFile = directory.resolve("old.lethenon");
+		Files.write(chainFile,
+			CanonicalEncoding.encodeChain(LethenonFixtures.aChainUnderLethenonOne()));
+		byte[] before = Files.readAllBytes(chainFile);
+
+		IllegalArgumentException refused = assertThrows(IllegalArgumentException.class,
+			() -> SyncSupport.sync(chainFile, local(aPortNobodyListensOn()), ""));
+
+		assertTrue(refused.getMessage().startsWith(chainFile.toAbsolutePath().toString()),
+			refused.getMessage());
+		assertTrue(refused.getMessage().contains("was started under the rules before lethenon 0.4.0"),
+			refused.getMessage());
 		assertArrayEquals(before, Files.readAllBytes(chainFile));
 	}
 
