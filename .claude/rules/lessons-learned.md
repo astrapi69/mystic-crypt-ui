@@ -123,10 +123,12 @@ because a demo is meant to be watched.
 `SimpleObfuscatorExtensions.disentangle` is broken in the library; use
 `disentangleBiMap(toCharacterBiMap(rules), text)` instead.
 
-## Dependency bumps: menu-action 5.1 is blocked
+## A transitive bump is judged by the e2e suite, not by compilation
 
-menu-action 5.1 pulls model-data up to 3.2.1 and breaks swing-tree-component 3.1.
-mystic-crypt 11 + BC jdk18on are in and green (commit 8959046).
+Gradle resolves a version conflict to the higher version, whatever the consumer pins, so a bump can
+break a third library at runtime while everything compiles. menu-action 5.1 once pulled model-data
+up to 3.2.1, which swing-tree-component 3.1 could not run against; it went in when the cluster moved
+to its new releases together (`bc5df75d`).
 
 ## XStream to JAXB migration: tried and abandoned (issue #18)
 
