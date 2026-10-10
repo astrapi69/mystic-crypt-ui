@@ -1,6 +1,12 @@
 ## Change log
 ----------------------
 
+Version 8.9 (unreleased)
+-------------
+
+CHANGED:
+- build and tests only: two checks that develop's branch protection requires. `release-freeze` is red on every other pull request into develop while a pull request from a `release/*` branch is open, so a merge during a freeze is refused in the browser and through auto-merge too; the release pull request itself and one labelled `release-content` pass (#516). `closing-references` is red on a pull request that would close an issue no line names on its own as `Closes #NN`, so a release pull request listing "KNOWN AND NOT FIXED: #NN" no longer closes that issue, as 8.7 and 8.8 did (#555)
+
 Version 8.8
 -------------
 
