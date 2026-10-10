@@ -5,6 +5,7 @@ batik-codec-version = "1.19"
 batik-transcoder-version = "1.19"
 bcpkix-jdk18on-version = "1.86"
 bcprov-jdk18on-version = "1.86"
+bcutil-jdk18on-version = "1.86"
 checksum-up-version = "3.2"
 commons-codec-version = "1.22.1"
 commons-lang3-version = "3.21.0"
@@ -93,6 +94,7 @@ batik-codec = { module = "org.apache.xmlgraphics:batik-codec", version.ref = "ba
 batik-transcoder = { module = "org.apache.xmlgraphics:batik-transcoder", version.ref = "batik-transcoder-version" }
 bcpkix-jdk18on = { module = "org.bouncycastle:bcpkix-jdk18on", version.ref = "bcpkix-jdk18on-version" }
 bcprov-jdk18on = { module = "org.bouncycastle:bcprov-jdk18on", version.ref = "bcprov-jdk18on-version" }
+bcutil-jdk18on = { module = "org.bouncycastle:bcutil-jdk18on", version.ref = "bcutil-jdk18on-version" }
 checksum-up = { module = "io.github.astrapi69:checksum-up", version.ref = "checksum-up-version" }
 commons-codec = { module = "commons-codec:commons-codec", version.ref = "commons-codec-version" }
 commons-lang3 = { module = "org.apache.commons:commons-lang3", version.ref = "commons-lang3-version" }

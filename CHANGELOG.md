@@ -1,6 +1,12 @@
 ## Change log
 ----------------------
 
+Version 8.9 (unreleased)
+-------------
+
+CHANGED:
+- build and tests only: the plugin builds take every dependency version from the application's version catalog, as the application does, instead of 228 versions written into their own build files. Nine of those had drifted from the catalog, so the plugins were tested against other libraries than the application ships: Bouncy Castle 1.85.2 and 1.85 instead of 1.86, JUnit 5.11.4 instead of 6.1.3, pf4j 3.15.0 instead of 3.15.1, and six more. Moving them showed one test that JUnit 6 reads differently: a CSV source in the Lethenon plugin that JUnit 5 let through and JUnit 6 refuses, now written so that both read it the same. A test in the build now fails as soon as a plugin build names a version of its own, or does not read the catalog at all, as the console plugin did not (#547)
+
 Version 8.8
 -------------
 

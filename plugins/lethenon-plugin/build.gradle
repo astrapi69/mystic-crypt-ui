@@ -71,36 +71,36 @@ dependencies {
     compileOnly libs.resourcebundle.core
     // JComponentFactory, FrameMode and JInternalFrameExtensions open the tool window; the host
     // carries all three at runtime, like every other plugin here
-    compileOnly "io.github.astrapi69:swing-base-components:5.2"
-    compileOnly "io.github.astrapi69:swing-components:9"
+    compileOnly libs.swing.base.components
+    compileOnly libs.swing.components
     // GenericTableModel under the chain view's block table; the host carries it at runtime
     compileOnly libs.swing.table.components
     // BrowserControlExtensions opens a launch document of "Before you start" in the browser (#540);
     // the host carries menu-action at runtime
     compileOnly libs.menu.action
     // the tool window binds every component to its panel model, the host carries both at runtime
-    compileOnly "io.github.astrapi69:swing-model-components:1.2"
-    compileOnly "io.github.astrapi69:model-data:3.2.1"
+    compileOnly libs.swing.model.components
+    compileOnly libs.model.data
     // the shared tool window layout comes from the host, which brings MigLayout with it
-    compileOnly "com.miglayout:miglayout-swing:11.4.3"
+    compileOnly libs.miglayout.swing
 
-    compileOnly "org.pf4j:pf4j:3.15.0"
+    compileOnly libs.pf4j
     // required so the @Extension annotation processor runs and writes META-INF/extensions.idx
-    annotationProcessor "org.pf4j:pf4j:3.15.0"
+    annotationProcessor libs.pf4j
 
-    testImplementation "org.junit.jupiter:junit-jupiter:5.11.4"
+    testImplementation libs.junit.jupiter
     // the tests replay real chains, so the chain library is a test dependency rather than only a
     // compile-time one
     testImplementation libs.lethenon
     // the contribution classes implement the host's extension points, so the host jar has to be on
     // the test classpath to load them - for the main sources they stay compileOnly
     testImplementation "io.github.astrapi69:mystic-crypt-ui:$hostVersion"
-    testImplementation "com.miglayout:miglayout-swing:11.4.3"
-    testImplementation "org.pf4j:pf4j:3.15.0"
+    testImplementation libs.miglayout.swing
+    testImplementation libs.pf4j
     testImplementation libs.resourcebundle.core
     testImplementation libs.swing.table.components
     testImplementation libs.menu.action
-    testRuntimeOnly "org.junit.platform:junit-platform-launcher"
+    testRuntimeOnly libs.junit.platform.launcher
 }
 
 test {
