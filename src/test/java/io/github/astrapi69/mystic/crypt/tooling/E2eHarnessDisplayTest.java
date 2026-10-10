@@ -231,6 +231,78 @@ class E2eHarnessDisplayTest
 		assertEverythingItStartedIsGone(run);
 	}
 
+	@Test
+	@DisplayName("a window manager that cannot reach the new display makes the harness start again on another one, and the first Xvfb is gone (#528)")
+	void aDisplayTheWindowManagerCannotReach_isReplacedByAnother(@TempDir File directory)
+		throws Exception
+	{
+		File bin = new File(directory, "bin");
+		assertTrue(bin.mkdir());
+		File refusedOnce = new File(directory, "fluxbox-refused-once");
+		File stub = new File(bin, "fluxbox");
+		// what CI saw three times (#528): fluxbox could not connect to the display the harness had
+		// just started; the stub says so on its first call and is the real fluxbox afterwards
+		Files.writeString(stub.toPath(),
+			"#!/usr/bin/env bash\nif [ ! -e '" + refusedOnce.getAbsolutePath() + "' ]; then touch '"
+				+ refusedOnce.getAbsolutePath()
+				+ "'; echo \"Error: Couldn't connect to XServer$DISPLAY\" >&2; exit 1; fi\nexec '"
+				+ realFluxbox() + "' \"$@\"\n",
+			StandardCharsets.UTF_8);
+		assertTrue(stub.setExecutable(true));
+
+		Run run = runHarness(directory,
+			Map.of("DISPLAY", ":0", "PATH", bin.getAbsolutePath() + ":" + System.getenv("PATH")),
+			0);
+
+		assertEquals(0, run.exit(), "the command ran after all: " + run.output());
+		List<String> displays = OWN_DISPLAY.matcher(run.output()).results()
+			.map(started -> started.group(1)).toList();
+		assertEquals(2, displays.size(),
+			"two displays started, one after the other: " + run.output());
+		assertNotEquals(displays.get(0), displays.get(1), run.output());
+		assertEquals(displays.get(1), run.displaySeen(), "the command runs on the second one");
+		assertTrue(run.output().contains("Couldn't connect to XServer"),
+			"the reason of the failed start is in the output: " + run.output());
+		assertEverythingItStartedIsGone(run);
+	}
+
+	@Test
+	@DisplayName("the harness's display number comes from 100 to 999, not the lowest free one another build has just given up (#528)")
+	void theDisplayNumber_isNotTheLowestFreeOne(@TempDir File directory) throws Exception
+	{
+		Run run = runHarness(directory, Map.of("DISPLAY", ":0"), 0);
+
+		assertEquals(0, run.exit(), run.output());
+		int number = Integer.parseInt(ownDisplayOf(run).substring(1));
+		assertTrue(number >= 100 && number <= 999, "display :" + number + ": " + run.output());
+	}
+
+	@Test
+	@DisplayName("when the harness ends, its display's lock file and socket are gone, so the number is free again (#528)")
+	void afterTheHarness_theDisplaysLockAndSocketAreGone(@TempDir File directory) throws Exception
+	{
+		Run run = runHarness(directory, Map.of("DISPLAY", ":0"), 0);
+
+		assertEquals(0, run.exit(), run.output());
+		String number = ownDisplayOf(run).substring(1);
+		assertFalse(new File("/tmp/.X" + number + "-lock").exists(), "lock file of :" + number);
+		assertFalse(new File("/tmp/.X11-unix/X" + number).exists(), "socket of :" + number);
+	}
+
+	/** The fluxbox on the PATH, which the stub hands over to after its one refusal */
+	private static String realFluxbox()
+	{
+		for (String directory : System.getenv("PATH").split(":"))
+		{
+			File candidate = new File(directory, "fluxbox");
+			if (candidate.canExecute())
+			{
+				return candidate.getAbsolutePath();
+			}
+		}
+		throw new IllegalStateException("fluxbox is not installed; the harness needs it anyway");
+	}
+
 	/**
 	 * Runs the harness against a stub that records its {@code DISPLAY} and exits with the given
 	 * code, in a directory without {@code ./gradlew}
