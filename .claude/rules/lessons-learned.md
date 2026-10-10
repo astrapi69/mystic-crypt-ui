@@ -18,6 +18,10 @@ A merged PR proves a merge happened, not that the work arrived. Check the issue 
 the branch CONTENT (`git log origin/develop -- <path>`, read the diff). A squash freezes
 the branch at merge time — a push made after the merge is silently lost while everything
 reads as success. A guessed closing keyword can close a foreign issue.
+A negated one closes too: GitHub reads `fixed: #NN` whatever stands before it, so
+"KNOWN AND NOT FIXED: #518" in the 8.7 release pull request and the same line for #535 in 8.8's closed
+both on merge (#555). In a pull request body or commit message an open issue is written `(#NN)` or
+"#NN stays open", never directly after fix, close or resolve.
 
 ### A test JVM that calls System.exit(0) makes the suite report green
 
