@@ -29,6 +29,7 @@ import java.nio.file.Path;
 import java.time.Duration;
 
 import io.github.astrapi69.lethenon.ChainFile;
+import io.github.astrapi69.lethenon.ChainRejected;
 import io.github.astrapi69.lethenon.transport.Outbound;
 import io.github.astrapi69.lethenon.transport.PeerAddress;
 import io.github.astrapi69.lethenon.transport.Sync;
@@ -74,9 +75,11 @@ public final class SyncSupport
 	 *             breaks off or does not hand over its tip in time; the file is then as it was
 	 * @throws IllegalArgumentException
 	 *             when no file or no node was named, an address is not host:port, an onion address
-	 *             has no proxy, or the chain file is not on the test network
-	 * @throws io.github.astrapi69.lethenon.ChainRejected
-	 *             when the chain file does not verify
+	 *             has no proxy, or the chain file is not on the test network - then with the file's
+	 *             absolute path in front of the library's reason
+	 * @throws ChainRejected
+	 *             when the chain file does not verify, with the file's absolute path in front of the
+	 *             library's reason
 	 */
 	public static Sync.Synced sync(final Path chainFile, final String node, final String proxy)
 		throws IOException
@@ -94,7 +97,42 @@ public final class SyncSupport
 		}
 		PeerAddress address = PeerAddress.parse(node.trim());
 		Outbound outbound = outbound(address, proxy);
-		return Sync.once(new ChainFile(chainFile), address, WITHIN, outbound);
+		return once(chainFile, address, outbound);
+	}
+
+	/**
+	 * {@link Sync#once}, with the file's absolute path in front of a refusal of the chain file, as
+	 * {@link ChainReplaySupport#replay} does for the other tools of the plugin: the library's reason
+	 * cannot name the file it read, and since lethenon 0.4.0 refuses every chain an earlier version
+	 * wrote, the file is what the reader needs to know (#535)
+	 *
+	 * @param chainFile
+	 *            the chain file
+	 * @param address
+	 *            the node
+	 * @param outbound
+	 *            how the connections leave this machine
+	 * @return what the sync did
+	 * @throws IOException
+	 *             as {@link Sync#once}
+	 */
+	private static Sync.Synced once(final Path chainFile, final PeerAddress address,
+		final Outbound outbound) throws IOException
+	{
+		try
+		{
+			return Sync.once(new ChainFile(chainFile), address, WITHIN, outbound);
+		}
+		catch (ChainRejected refused)
+		{
+			throw new ChainRejected(chainFile.toAbsolutePath() + ": " + refused.getMessage());
+		}
+		catch (IllegalArgumentException notOnTheTestNetwork)
+		{
+			throw new IllegalArgumentException(
+				chainFile.toAbsolutePath() + ": " + notOnTheTestNetwork.getMessage(),
+				notOnTheTestNetwork);
+		}
 	}
 
 	/**
