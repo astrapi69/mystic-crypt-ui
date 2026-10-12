@@ -34,8 +34,9 @@ unchecked; in the libraries `gh pr merge --auto --merge` lets GitHub do the same
 **A merge does not move the branch somebody is standing on.** `scripts/merge-pr.sh` waits for CI,
 which can take as long as CI takes, and it used to end by checking out `develop` in whatever tree it
 was started from. Started in the background, it moved HEAD under work in progress and the next commit
-landed on `develop` (#340). It now updates the target with `git fetch origin develop:develop` and
-leaves HEAD alone. The general form: a long-running command that changes the checkout is a second
+landed on `develop` (#340). It now leaves HEAD alone, and `scripts/update-local-branch.sh` brings
+the local target up wherever it is checked out, except in a worktree with uncommitted changes, which
+it leaves as it is and names (#543). The general form: a long-running command that changes the checkout is a second
 pair of hands in the same tree, and the fix is to take the checkout out of it, not to remember not to
 work meanwhile.
 

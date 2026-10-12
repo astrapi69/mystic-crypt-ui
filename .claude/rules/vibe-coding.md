@@ -46,3 +46,6 @@ Foundation before features.
 When a release is being cut (release branch exists or tagging is in progress), until the
 tag is pushed and published: no new PRs against develop, no merges to develop, no new
 code — only release workflow. Exception: a P0 hotfix that blocks the release itself.
+Enforced, not remembered: the required status `release-freeze` is red on every other pull
+request into develop while a `release/*` pull request is open; a change that belongs to the
+release carries the label `release-content` (#516).
