@@ -21,7 +21,8 @@ reads as success. A guessed closing keyword can close a foreign issue.
 A negated one closes too: GitHub reads `fixed: #NN` whatever stands before it, so
 "KNOWN AND NOT FIXED: #518" in the 8.7 release pull request and the same line for #535 in 8.8's closed
 both on merge (#555). In a pull request body or commit message an open issue is written `(#NN)` or
-"#NN stays open", never directly after fix, close or resolve.
+"#NN stays open", never directly after fix, close or resolve. The required check
+`closing-references` refuses a pull request that would close an issue no closing line names.
 
 ### A test JVM that calls System.exit(0) makes the suite report green
 
