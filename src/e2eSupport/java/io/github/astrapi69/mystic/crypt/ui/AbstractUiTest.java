@@ -259,7 +259,9 @@ abstract class AbstractUiTest
 
 	private DialogFixture launchApplicationAndFindSignInDialog()
 	{
-		appThread = new Thread(MysticCryptApplicationFrame::new, "mystic-crypt-app-under-test");
+		WhatWasOnScreen.startThreadLaunched();
+		appThread = new Thread(MysticCryptApplicationFrame::new, WhatWasOnScreen.START_THREAD);
+		appThread.setUncaughtExceptionHandler(WhatWasOnScreen::startThreadDied);
 		appThread.setDaemon(true);
 		appThread.start();
 
