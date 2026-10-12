@@ -29,12 +29,16 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.awt.Component;
+import java.awt.Container;
 import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.KeyPair;
 import java.util.List;
 import java.util.Map;
+
+import javax.swing.JComponent;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -98,6 +102,51 @@ class LethenonSendPanelBindingTest
 	void releaseTheConfigurationDirectory()
 	{
 		System.clearProperty(PluginSettings.CONFIGURATION_DIRECTORY_PROPERTY);
+	}
+
+	@Test
+	@DisplayName("the choice of recipient says what a one-time destination hides and what stays on the chain")
+	void theRecipientKind_saysWhatStaysOnTheChain()
+	{
+		LethenonSendPanel panel = new LethenonSendPanel();
+
+		String tooltip = namedIn(panel, "cbxRecipientKind").getToolTipText();
+
+		assertTrue(tooltip.contains("the sender and the amount are on the chain"),
+			"no text of the plugin may let a payment to a published address look hidden as a "
+				+ "whole (lethenon#167, #550): " + tooltip);
+		assertFalse(tooltip.contains("nobody but its holder"),
+			"the sender derived the one-time destination and knows it: " + tooltip);
+	}
+
+	private static JComponent namedIn(Container container, String name)
+	{
+		JComponent found = searchIn(container, name);
+		if (found == null)
+		{
+			throw new IllegalStateException("no component named " + name);
+		}
+		return found;
+	}
+
+	private static JComponent searchIn(Container container, String name)
+	{
+		for (Component component : container.getComponents())
+		{
+			if (name.equals(component.getName()) && component instanceof JComponent named)
+			{
+				return named;
+			}
+			if (component instanceof Container child)
+			{
+				JComponent found = searchIn(child, name);
+				if (found != null)
+				{
+					return found;
+				}
+			}
+		}
+		return null;
 	}
 
 	@Test

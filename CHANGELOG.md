@@ -9,6 +9,9 @@ CHANGED:
 - build and tests only: the display a test run gets is no longer the lowest free one, which a build that had just ended was still giving up - builds that followed each other, such as the fourteen plugin builds, failed at random with "Couldn't connect to XServer". The harness takes a random free number from 100 to 999, accepts the display only when it is its own, starts again on another number when it does not come up, and on the way out waits until the number is free again (#528)
 - build and tests only: two checks that develop's branch protection requires. `release-freeze` is red on every other pull request into develop while a pull request from a `release/*` branch is open, so a merge during a freeze is refused in the browser and through auto-merge too; the release pull request itself and one labelled `release-content` pass (#516). `closing-references` is red on a pull request that would close an issue no line names on its own as `Closes #NN`, so a release pull request listing "KNOWN AND NOT FIXED: #NN" no longer closes that issue, as 8.7 and 8.8 did (#555)
 
+FIXED:
+- the Lethenon plugin's send window said that a payment to a published address goes to a one-time destination "nobody but its holder can connect to it". The sender, who derives that destination, can as well, and the sender and the amount are on the chain whichever recipient is chosen; the tooltip now says both. Every other statement of the plugin's texts about privacy was checked against what lethenon does and holds (#550, lethenon#167)
+
 Version 8.8
 -------------
 
