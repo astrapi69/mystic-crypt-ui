@@ -33,8 +33,8 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Stream;
@@ -122,10 +122,10 @@ class KeePassLibraryFieldsTest
 		KdbxDatabase database = new KdbxDatabase();
 		KdbxEntry entry = database.newEntry();
 		KdbxGroup group = (KdbxGroup)database.newGroup("Team");
-		Date created = new Date(1_600_000_000_000L);
-		Date modified = new Date(1_700_000_000_000L);
-		Date accessed = new Date(1_750_000_000_000L);
-		Date expires = new Date(1_800_000_000_000L);
+		Instant created = Instant.ofEpochMilli(1_600_000_000_000L);
+		Instant modified = Instant.ofEpochMilli(1_700_000_000_000L);
+		Instant accessed = Instant.ofEpochMilli(1_750_000_000_000L);
+		Instant expires = Instant.ofEpochMilli(1_800_000_000_000L);
 
 		Times times = new Times();
 		times.setCreationTime(created);
@@ -142,8 +142,13 @@ class KeePassLibraryFieldsTest
 		assertEquals(accessed, entry.getLastAccessTime());
 		assertEquals(expires, entry.getExpiryTime());
 		assertTrue(entry.getExpires(), "the expiry flag travels with the times, not beside them");
-		// a group's times are read back through the capsule too: KdbxGroup exposes no getter for
-		// any of them, so they are unreachable in both directions without it
+		// a group's times read through the Group interface since KeePassJava2 3.0.0, which is how
+		// the
+		// import takes them (#473); the export still reads the Times object through the capsule to
+		// change it and set it back, which the interface cannot (jorabin/KeePassJava2#96)
+		assertEquals(created, group.getCreationTime());
+		assertEquals(expires, group.getExpiryTime());
+		assertTrue(group.getExpires());
 		assertEquals(created, KeePassLibraryFields.getTimes(group).getCreationTime());
 		assertEquals(expires, KeePassLibraryFields.getTimes(group).getExpiryTime());
 		assertEquals(accessed, KeePassLibraryFields.getTimes(entry).getLastAccessTime());

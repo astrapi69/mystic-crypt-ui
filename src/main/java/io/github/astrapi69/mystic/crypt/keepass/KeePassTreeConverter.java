@@ -26,7 +26,6 @@ package io.github.astrapi69.mystic.crypt.keepass;
 
 import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 import java.util.function.Supplier;
@@ -123,7 +122,7 @@ public final class KeePassTreeConverter
 			}
 		}
 		treeElement.getProperties().put(KEEPASS_RECYCLE_BIN_PROPERTY, group.isRecycleBin());
-		keepTheTimes(KeePassLibraryFields.getTimes(group), treeElement);
+		keepTheTimes(group, treeElement);
 
 		BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> treeNode = BaseTreeNode
 			.<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> builder().id(nextId.get())
@@ -233,24 +232,18 @@ public final class KeePassTreeConverter
 	 * Keeps a group's four times and its expiry flag in the element's properties, as ISO-8601
 	 * instants: text and a boolean are what the vault can carry without a new type in its format,
 	 * and a vault that holds them opens in 8.5.1 like one with the group identifier already did
-	 * (#413)
+	 * (#413). Read through the {@link Group} interface, which declares the times since KeePassJava2
+	 * 3.0.0 (jorabin/KeePassJava2#99); only writing them back still needs the capsule (#473)
 	 */
-	private static void keepTheTimes(final Times times,
+	private static void keepTheTimes(final Group group,
 		final GenericTreeElement<List<MysticCryptEntryModelBean>> treeElement)
 	{
-		if (times == null)
-		{
-			return;
-		}
-		putInstant(treeElement, KEEPASS_CREATION_TIME_PROPERTY, times.getCreationTime());
+		putInstant(treeElement, KEEPASS_CREATION_TIME_PROPERTY, group.getCreationTime());
 		putInstant(treeElement, KEEPASS_LAST_MODIFICATION_TIME_PROPERTY,
-			times.getLastModificationTime());
-		putInstant(treeElement, KEEPASS_LAST_ACCESS_TIME_PROPERTY, times.getLastAccessTime());
-		putInstant(treeElement, KEEPASS_EXPIRY_TIME_PROPERTY, times.getExpiryTime());
-		if (times.getExpires() != null)
-		{
-			treeElement.getProperties().put(KEEPASS_EXPIRES_PROPERTY, times.getExpires());
-		}
+			group.getLastModificationTime());
+		putInstant(treeElement, KEEPASS_LAST_ACCESS_TIME_PROPERTY, group.getLastAccessTime());
+		putInstant(treeElement, KEEPASS_EXPIRY_TIME_PROPERTY, group.getExpiryTime());
+		treeElement.getProperties().put(KEEPASS_EXPIRES_PROPERTY, group.getExpires());
 	}
 
 	/**
@@ -264,24 +257,24 @@ public final class KeePassTreeConverter
 		Times times = KeePassLibraryFields.getTimes(group);
 		if (times == null)
 		{
-			times = new Times(new Date());
+			times = new Times(Instant.now());
 		}
-		Date creation = dateOf(treeElement, KEEPASS_CREATION_TIME_PROPERTY);
+		Instant creation = instantOf(treeElement, KEEPASS_CREATION_TIME_PROPERTY);
 		if (creation != null)
 		{
 			times.setCreationTime(creation);
 		}
-		Date modification = dateOf(treeElement, KEEPASS_LAST_MODIFICATION_TIME_PROPERTY);
+		Instant modification = instantOf(treeElement, KEEPASS_LAST_MODIFICATION_TIME_PROPERTY);
 		if (modification != null)
 		{
 			times.setLastModificationTime(modification);
 		}
-		Date access = dateOf(treeElement, KEEPASS_LAST_ACCESS_TIME_PROPERTY);
+		Instant access = instantOf(treeElement, KEEPASS_LAST_ACCESS_TIME_PROPERTY);
 		if (access != null)
 		{
 			times.setLastAccessTime(access);
 		}
-		Date expiry = dateOf(treeElement, KEEPASS_EXPIRY_TIME_PROPERTY);
+		Instant expiry = instantOf(treeElement, KEEPASS_EXPIRY_TIME_PROPERTY);
 		if (expiry != null)
 		{
 			times.setExpiryTime(expiry);
@@ -295,19 +288,19 @@ public final class KeePassTreeConverter
 
 	private static void putInstant(
 		final GenericTreeElement<List<MysticCryptEntryModelBean>> treeElement, final String key,
-		final Date date)
+		final Instant instant)
 	{
-		if (date != null)
+		if (instant != null)
 		{
-			treeElement.getProperties().put(key, date.toInstant().toString());
+			treeElement.getProperties().put(key, instant.toString());
 		}
 	}
 
-	private static Date dateOf(
+	private static Instant instantOf(
 		final GenericTreeElement<List<MysticCryptEntryModelBean>> treeElement, final String key)
 	{
 		return treeElement.getProperties().get(key)instanceof String text
-			? Date.from(Instant.parse(text))
+			? Instant.parse(text)
 			: null;
 	}
 

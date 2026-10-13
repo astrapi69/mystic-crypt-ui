@@ -53,9 +53,15 @@ public class KeePass2Test
 	public void testKeePass2() throws Exception
 	{
 		KdbxCredentials credentials = new KdbxCredentials(TestPasswords.KEEPASS_FIXTURE.getBytes());
-		InputStream inputStream = getClass().getClassLoader().getResourceAsStream("test-db.kdbx");
-		assertNotNull(inputStream, "test fixture test-db.kdbx must be on the test classpath");
-		KdbxDatabase database = KdbxDatabase.load(credentials, inputStream);
+		KdbxDatabase database;
+		// read leaves the stream open since KeePassJava2 3.1.0 (jorabin/KeePassJava2#109): whoever
+		// opens it closes it
+		try (InputStream inputStream = getClass().getClassLoader()
+			.getResourceAsStream("test-db.kdbx"))
+		{
+			assertNotNull(inputStream, "test fixture test-db.kdbx must be on the test classpath");
+			database = KdbxDatabase.read(credentials, inputStream);
+		}
 		// 3.0.0 dropped the generics, so a database hands back the interface type (#467)
 		KdbxGroup rootGroup = (KdbxGroup)database.getRootGroup();
 		assertNotNull(rootGroup);

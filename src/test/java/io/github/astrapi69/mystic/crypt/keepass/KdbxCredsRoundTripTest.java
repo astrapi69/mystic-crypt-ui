@@ -65,7 +65,7 @@ public class KdbxCredsRoundTripTest
 		byte[] kdbxBytes = createDatabase(
 			new KdbxCredentials("test-password".getBytes(StandardCharsets.UTF_8)));
 
-		KdbxDatabase reloaded = KdbxDatabase.load(
+		KdbxDatabase reloaded = KdbxDatabase.read(
 			new KdbxCredentials("test-password".getBytes(StandardCharsets.UTF_8)),
 			new ByteArrayInputStream(kdbxBytes));
 
@@ -128,7 +128,7 @@ public class KdbxCredsRoundTripTest
 		{
 			KdbxCredentials reloadCredentials = new KdbxCredentials(
 				"test-password".getBytes(StandardCharsets.UTF_8), keyFileStream);
-			KdbxDatabase reloaded = KdbxDatabase.load(reloadCredentials,
+			KdbxDatabase reloaded = KdbxDatabase.read(reloadCredentials,
 				new ByteArrayInputStream(kdbxBytes));
 			assertEquals(1, reloaded.getRootGroup().getEntries().size());
 		}
@@ -139,7 +139,7 @@ public class KdbxCredsRoundTripTest
 		KdbxDatabase database = new KdbxDatabase();
 		database.getRootGroup().addEntry(database.newEntry("test-entry"));
 		ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-		database.save(credentials, outputStream);
+		database.write(credentials, outputStream);
 		return outputStream.toByteArray();
 	}
 

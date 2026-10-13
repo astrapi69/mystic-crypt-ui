@@ -73,10 +73,10 @@ public final class NonAsciiKdbxProbe
 		database.getRootGroup().addEntry(entry);
 		KdbxCredentials credentials = new KdbxCredentials("probe".getBytes(StandardCharsets.UTF_8));
 		ByteArrayOutputStream written = new ByteArrayOutputStream();
-		database.save(credentials, written);
+		database.write(credentials, written);
 
 		KdbxEntry read = (KdbxEntry)KdbxDatabase
-			.load(credentials, new ByteArrayInputStream(written.toByteArray())).getRootGroup()
+			.read(credentials, new ByteArrayInputStream(written.toByteArray())).getRootGroup()
 			.getEntries().get(0);
 
 		if (!TITLE.equals(read.getTitle()) || !NOTES.equals(read.getNotes()))

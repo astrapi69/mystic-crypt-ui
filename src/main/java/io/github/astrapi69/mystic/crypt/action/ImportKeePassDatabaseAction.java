@@ -118,7 +118,7 @@ public class ImportKeePassDatabaseAction extends AbstractAction
 			KdbxCredentials credentials = newCredentials(panel);
 			try (InputStream inputStream = new FileInputStream(file))
 			{
-				KdbxDatabase database = KdbxDatabase.load(credentials, inputStream);
+				KdbxDatabase database = KdbxDatabase.read(credentials, inputStream);
 				importDatabase(instance, applicationPanel, database);
 			}
 		}

@@ -6,8 +6,11 @@ issues it links), not a rule. The binding short form is in `KeePassEntryConverte
 
 ## The state
 
-- **One serializer: KeePassJava2 3.0.0, its KDBX model.** Import reads with `KdbxDatabase.load`,
-  export writes a new `KdbxDatabase` (#407). Version 3 removed the Simple, JAXB and DOM
+- **One serializer: KeePassJava2 3.1.0, its KDBX model.** Import reads with `KdbxDatabase.read`,
+  export writes a new `KdbxDatabase` with `write` (#407, #510). 3.1.0 made every time a
+  `java.time.Instant` and replaced `load` and `save`, which closed the stream they were given, with
+  `read` and `write`, which leave it open; both actions open and close their own streams (#510).
+  Version 3 removed the Simple, JAXB and DOM
   implementations, renamed the Jackson classes (`JacksonDatabase` to `KdbxDatabase`, and so on),
   dropped the generics from `Database`, `Group` and `Entry`, and moved the credentials to
   `org.linguafranca.pwdb.format.KdbxCredentials`; the artifact is
@@ -27,19 +30,23 @@ issues it links), not a rule. The binding short form is in `KeePassEntryConverte
   path by `KeePassLibraryFieldsTest`, and a test pins that no other main source reflects on a
   library type (#382). No `--add-opens` is needed for it: the library is in the unnamed module.
 - **Its way out is upstream, and half of it has arrived.** jorabin/KeePassJava2#99 landed in 3.0.0:
-  `Group` now has `getCreationTime`, `getLastModificationTime`, `getLastAccessTime`, `getExpires`
-  and `getExpiryTime`, so a group's times can be READ through the API - moving the read path off
-  the capsule is #473. #96, setters or a factory for UUID, times and history, is still open, so the
-  writing stays reflective and the capsule stays. Measured on the 3.0.0 jar: the field names
-  `uuid`, `times` and `history` are unchanged on `KdbxEntry` and `KdbxGroup`, which is why the
-  migration did not touch the capsule beyond its version constant.
+  `Group` has `getCreationTime`, `getLastModificationTime`, `getLastAccessTime`, `getExpires` and
+  `getExpiryTime`, and the import reads a group's times through them since #473 - the capsule is no
+  longer on the read path. #96, setters or a factory for UUID, times and history, is still open, so
+  the writing stays reflective and the capsule stays. Measured on the 3.1.0 jar
+  (`KeePassLibraryFieldsTest`): the field names `uuid`, `times` and `history` are unchanged on
+  `KdbxEntry` and `KdbxGroup`. The SPI planned for 3.2.0 (jorabin/KeePassJava2#110) is the way
+  out for the writing as well.
 - **The KeePass root is a group like any other.** Import hangs it under the vault root with its own
   name; export makes a vault root's only node the database root again. A vault root with several
   nodes exports them under the database's root (#377).
 - **The exported header names the vault**: database name = the vault's file name without extension,
   description "Exported from mystic-crypt-ui" (#378).
-- **Export writes KDBX 4.** `KdbxDatabase.save` without a stream format uses `new KdbxHeader(4)`
-  (library source, `KdbxDatabase.save(Credentials, OutputStream)`).
+- **Export writes KDBX 4.0.** `KdbxDatabase.write` without a stream format uses `new KdbxHeader(4)`
+  (library source, 3.1.0, `KdbxDatabase.write(Credentials, OutputStream)`), and 3.1.0 labels every
+  KDBX 4 file it writes 4.0 (jorabin/KeePassJava2#114). That label is right for what this
+  application exports: the converters set none of the 4.1 elements (tags, `PreviousParentGroup`,
+  `QualityCheck`).
 
 ## What a round trip keeps
 
@@ -79,6 +86,9 @@ only) and
   the file; accepted by the maintainer, and said in the CHANGELOG format section.
 - **UUID, times and history still travel by reflection** on the way out, because
   jorabin/KeePassJava2#96 is open. Everything else on that list is closed.
+- **A KDBX 3.1 file with protected attachments cannot be read** by 3.1.0, as the library's author
+  states in jorabin/KeePassJava2#114 (comment of 2026-10-10); 3.1.2 is to fix it. Not measured
+  here: no fixture of that kind exists.
 
 ## Fixed since this record was written
 
