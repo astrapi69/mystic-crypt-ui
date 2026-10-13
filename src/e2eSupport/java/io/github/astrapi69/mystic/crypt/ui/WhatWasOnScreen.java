@@ -32,10 +32,14 @@ import java.awt.Window;
 import java.lang.management.ManagementFactory;
 import java.lang.management.ThreadInfo;
 import java.lang.management.ThreadMXBean;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Deque;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -69,9 +73,11 @@ import org.junit.jupiter.api.extension.TestWatcher;
  * <p>
  * And it carries the threads (#522): the start thread, the event threads, and every thread that is
  * blocked or deadlocked, each with its stack - because a test that times out waiting for the start
- * to finish says that it waited, not where the start stood. A start thread that died says what it
- * died of: a start that ends with an exception opens no window and no dialog, and the exception is
- * the only trace it leaves.
+ * to finish says that it waited, not where the start stood. Every lock one of them waits on is
+ * followed to the thread that holds it, which is printed too: on CI the event thread waited for a
+ * lock held by {@code AWT-XAWT}, which the report did not show. A start thread that died says what
+ * it died of: a start that ends with an exception opens no window and no dialog, and the exception
+ * is the only trace it leaves.
  */
 class WhatWasOnScreen implements TestExecutionExceptionHandler, TestWatcher
 {
@@ -205,24 +211,72 @@ class WhatWasOnScreen implements TestExecutionExceptionHandler, TestWatcher
 		{
 			Arrays.stream(deadlockedIds).forEach(deadlocked::add);
 		}
+		ThreadInfo[] all = threadBean.dumpAllThreads(true, true);
+		Set<Long> printed = threadsToPrint(all, deadlocked);
+		Set<Long> holders = lockHoldersOf(all, printed);
 		StringBuilder threads = new StringBuilder("threads at the failure (#522):\n");
-		boolean startThreadRunning = false;
-		for (ThreadInfo thread : threadBean.dumpAllThreads(true, true))
+		for (ThreadInfo thread : all)
 		{
-			boolean start = START_THREAD.equals(thread.getThreadName());
-			startThreadRunning |= start;
-			if (start || thread.getThreadName().startsWith("AWT-EventQueue")
-				|| thread.getThreadState() == Thread.State.BLOCKED
-				|| deadlocked.contains(thread.getThreadId()))
+			if (printed.contains(thread.getThreadId()) || holders.contains(thread.getThreadId()))
 			{
-				threads.append(describe(thread, deadlocked.contains(thread.getThreadId())));
+				threads.append(describe(thread, deadlocked.contains(thread.getThreadId()),
+					holders.contains(thread.getThreadId())));
 			}
 		}
-		if (!startThreadRunning)
+		if (Arrays.stream(all).noneMatch(thread -> START_THREAD.equals(thread.getThreadName())))
 		{
 			threads.append("the start thread is not running (\"").append(START_THREAD)
 				.append("\": it ended, or it was never started)\n");
 		}
+		appendStartThreadDeath(threads);
+		threads.append(deadlocked.isEmpty()
+			? "no deadlocked threads\n"
+			: deadlocked.size() + " deadlocked threads, marked above\n");
+		return threads.toString();
+	}
+
+	/** The start thread, the event threads, and every blocked or deadlocked thread */
+	private static Set<Long> threadsToPrint(final ThreadInfo[] all, final Set<Long> deadlocked)
+	{
+		Set<Long> printed = new HashSet<>();
+		for (ThreadInfo thread : all)
+		{
+			if (START_THREAD.equals(thread.getThreadName())
+				|| thread.getThreadName().startsWith("AWT-EventQueue")
+				|| thread.getThreadState() == Thread.State.BLOCKED
+				|| deadlocked.contains(thread.getThreadId()))
+			{
+				printed.add(thread.getThreadId());
+			}
+		}
+		return printed;
+	}
+
+	/**
+	 * The threads that hold a lock a printed thread waits on, followed until no new one turns up: a
+	 * thread that waits is only half the answer, and the holder may be none of the threads the
+	 * report prints anyway - on CI it was {@code AWT-XAWT}, which talks to the X server (#522)
+	 */
+	private static Set<Long> lockHoldersOf(final ThreadInfo[] all, final Set<Long> printed)
+	{
+		Map<Long, ThreadInfo> byId = new HashMap<>();
+		Arrays.stream(all).forEach(thread -> byId.put(thread.getThreadId(), thread));
+		Set<Long> holders = new HashSet<>();
+		Deque<Long> waiting = new ArrayDeque<>(printed);
+		while (!waiting.isEmpty())
+		{
+			ThreadInfo thread = byId.get(waiting.poll());
+			long owner = thread == null ? -1 : thread.getLockOwnerId();
+			if (owner != -1 && !printed.contains(owner) && holders.add(owner))
+			{
+				waiting.add(owner);
+			}
+		}
+		return holders;
+	}
+
+	private static void appendStartThreadDeath(final StringBuilder threads)
+	{
 		Throwable death = startThreadDeath;
 		if (death != null)
 		{
@@ -232,13 +286,10 @@ class WhatWasOnScreen implements TestExecutionExceptionHandler, TestWatcher
 				threads.append("    at ").append(frame).append('\n');
 			}
 		}
-		threads.append(deadlocked.isEmpty()
-			? "no deadlocked threads\n"
-			: deadlocked.size() + " deadlocked threads, marked above\n");
-		return threads.toString();
 	}
 
-	private static String describe(final ThreadInfo thread, final boolean deadlocked)
+	private static String describe(final ThreadInfo thread, final boolean deadlocked,
+		final boolean holdsAWaitedLock)
 	{
 		StringBuilder described = new StringBuilder("thread \"").append(thread.getThreadName())
 			.append("\" ").append(thread.getThreadState());
@@ -253,6 +304,10 @@ class WhatWasOnScreen implements TestExecutionExceptionHandler, TestWatcher
 		if (deadlocked)
 		{
 			described.append(" DEADLOCKED");
+		}
+		if (holdsAWaitedLock)
+		{
+			described.append(" - holds a lock a thread above waits on");
 		}
 		described.append('\n');
 		StackTraceElement[] frames = thread.getStackTrace();
