@@ -86,9 +86,13 @@ only) and
   the file; accepted by the maintainer, and said in the CHANGELOG format section.
 - **UUID, times and history still travel by reflection** on the way out, because
   jorabin/KeePassJava2#96 is open. Everything else on that list is closed.
-- **A KDBX 3.1 file with protected attachments cannot be read** by 3.1.0, as the library's author
-  states in jorabin/KeePassJava2#114 (comment of 2026-10-10); 3.1.2 is to fix it. Not measured
-  here: no fixture of that kind exists.
+- **A KDBX 3.1 file with a protected attachment is refused**, measured on 3.1.0 (#568): the import
+  shows "Import failed" with the library's `UnrecognizedPropertyException` for the `Protected`
+  attribute of `Meta/Binaries/Binary`, and adds nothing to the vault. The library's model has no such
+  attribute and fails on attributes it does not know; its author has a fix for 3.1.2
+  (jorabin/KeePassJava2#114). Refusing is the safe outcome: the attachment does not silently go
+  missing. KeePassXC cannot write such a file, so the fixture is built from a KeePass 2 file, see
+  `src/e2eKdbx/resources/kdbx/README.md`.
 
 ## Fixed since this record was written
 
@@ -124,6 +128,8 @@ were rejected. What had been measured in phase B beforehand:
 ## What checks it
 
 - `KdbxRoundTripKeepsEveryFieldUiTest` - the round trip above, through the menus, against KeePassXC.
+- `AKdbx31FileWithAProtectedAttachmentIsRefusedUiTest` - the refusal above, through the menus. It
+  fails, with a note saying so, on the day the library reads such a file (#568).
 - `KeePassLibraryFieldsTest` - every field name resolves; nothing else reflects on library types.
 - `KeePassEntryConverterTest`, `KeePassTreeConverterTest` - both directions, including unset fields
   importing as null.

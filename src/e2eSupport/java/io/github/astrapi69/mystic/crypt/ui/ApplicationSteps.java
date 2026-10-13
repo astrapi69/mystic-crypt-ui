@@ -159,18 +159,39 @@ final class ApplicationSteps
 	 */
 	ApplicationSteps importKeePassDatabaseExpectingFailure(File keePassFile, String wrongPassword)
 	{
+		importKeePassDatabaseReadingTheRefusal(keePassFile, wrongPassword);
+		return this;
+	}
+
+	/**
+	 * Imports a KeePass file through the File menu, expects the "Import failed" dialog, and returns
+	 * what it said before closing it - so that a test can tell one reason for a refusal from
+	 * another, a wrong password from a file the library cannot read (#568)
+	 *
+	 * @param keePassFile
+	 *            the KeePass file to import
+	 * @param password
+	 *            the password typed into the import dialog
+	 * @return the message of the "Import failed" dialog
+	 */
+	String importKeePassDatabaseReadingTheRefusal(File keePassFile, String password)
+	{
 		clickMenuItem(MenuId.IMPORT_KEEPASS.propertiesKey());
 
 		DialogFixture importDialog = findDialogWithTitle("Import from KeePass");
 		browseAndPickFile(importDialog, "btnFile", keePassFile);
 		GuiActionRunner
-			.execute(() -> importDialog.textBox("txtPassword").target().setText(wrongPassword));
+			.execute(() -> importDialog.textBox("txtPassword").target().setText(password));
 		robot.waitForIdle();
 		UiTestSpeed.step();
 		clickDialogButton(importDialog, "OK");
 
+		DialogFixture refusal = findDialogWithTitle("Import failed");
+		javax.swing.JOptionPane optionPane = (javax.swing.JOptionPane)robot.finder()
+			.findByType(refusal.target(), javax.swing.JOptionPane.class);
+		String message = GuiActionRunner.execute(() -> String.valueOf(optionPane.getMessage()));
 		dismissMessageDialog("Import failed");
-		return this;
+		return message;
 	}
 
 	/** Opens the KeePass import dialog via the File menu and cancels it - nothing is imported */

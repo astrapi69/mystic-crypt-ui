@@ -67,3 +67,60 @@ sha256  5425536d78bdb1abf56b8a5ab51b4e80289909effdce3996c651f61c0953e947
 If the file is ever replaced, this line and the table above are replaced with it, measured again -
 a fixture description that drifts from the fixture is worse than none, because tests that fail
 against it look like product defects.
+
+# A KDBX 3.1 database with a protected attachment
+
+`keepass2-kdbx31-protected-attachment.kdbx`, used by `AKdbx31FileWithAProtectedAttachmentIsRefusedUiTest`
+(#568).
+
+## The password is `foo-secret-bar-1969-?`, and it is test material
+
+The same as `src/test/resources/test-db.kdbx`, which this file is built from
+(`TestPasswords.KEEPASS_FIXTURE`).
+
+## Why this file exists
+
+KeePassJava2's author states that the library cannot read a KDBX 3.1 file with a protected attachment
+(jorabin/KeePassJava2#114, comment of 2026-10-10). This file measures what the import does with one:
+on KeePassJava2 3.1.0 it refuses it, with a message, and nothing reaches the vault.
+
+## How it was built
+
+KeePassXC cannot write this case. `keepassxc-cli db-create` has no choice of format, and
+`keepassxc-cli attachment-import` on a KDBX 3.1 file keeps the file at 3.1 but writes the attachment
+as `<Binary ID="0" Compressed="True">`, without `Protected="True"` (read from the decrypted XML,
+2026-10-13). So the protection is added by `scripts/fixtures/BuildProtectedAttachment31.java`, the
+way KeePass 2 writes a protected binary: `Protected="True"`, not compressed, XORed with the file's
+inner Salsa20 stream in document order. Every protected value after it is encrypted again, because
+the stream position moves; `HeaderHash` is dropped, because the header is written anew.
+
+1. Copy `src/test/resources/test-db.kdbx` (written by KeePass 2: `Generator` reads `KeePass`; KDBX 3.1,
+   AES-KDF).
+2. `keepassxc-cli attachment-import <copy> "Sample Entry" protected.txt <file>`, with KeePassXC 2.7.10.
+   The file holds the 38 bytes `secret attachment content, 2026-10-13` and a line break.
+3. `java -cp <classpath> scripts/fixtures/BuildProtectedAttachment31.java <copy> <password> <out>`. The
+   class path is the KeePassJava2 3.1.0 jars (`KeePassJava2.kdbx.database`, `KeePassJava2.kdbx.io`,
+   `database`), `bcprov-jdk18on` 1.86, commons-codec and Guava from the Gradle cache.
+
+## What it is, measured
+
+With keepassxc-cli 2.7.10, against the built file:
+
+```
+db-info:                 AES 256-Bit, KDF: AES (60000 Runden), 7 groups, 2 entries
+file header:             version 3.1
+show -s -a Password:     both entries' passwords identical to the base file (compared as SHA-256)
+attachment-export:       protected.txt identical to the input, 38 bytes (cmp)
+raw XML:                 <Binary ID="0" Protected="True">
+```
+
+So a second, independent implementation reads the file as a valid KDBX 3.1 database with a protected
+attachment. SHA-256 of the file: `4c0a979083ee1d1c2f0ba927eed5fc2ba085e7b8e361820c34f01c9351e37b9c`,
+2362 bytes.
+
+## What KeePassJava2 3.1.0 does with it
+
+`KdbxDatabase.read` throws `UnrecognizedPropertyException: Unrecognized field "Protected" (class
+org.linguafranca.pwdb.kdbx.jackson.model.KeePassFile$Binary), not marked as ignorable (3 known
+properties: "", "Compressed", "ID")`. The same file without the protection reads both entries and the
+attachment.
