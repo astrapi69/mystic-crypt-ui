@@ -26,13 +26,9 @@ package io.github.astrapi69.mystic.crypt.ui;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.File;
-import java.io.InputStream;
-import java.nio.file.Files;
-import java.nio.file.StandardCopyOption;
 
 import org.assertj.swing.exception.WaitTimedOutError;
 import org.junit.jupiter.api.DisplayName;
@@ -53,6 +49,11 @@ import io.github.astrapi69.mystic.crypt.TestPasswords;
  * it arrives this test fails, which is its purpose: the import must then carry the attachment byte
  * for byte, and this test is turned around to say so.
  * <p>
+ * The refusal says so in words a person can act on, not in the library's: the file is KDBX 3.1 with
+ * protected attachments, and saved as KDBX 4 in KeePassXC it can be imported - which
+ * {@code AKdbx31FileSavedAsKdbx4InKeePassXcIsImportedUiTest} measures, and which is why the message
+ * may name it.
+ * <p>
  * The fixture and how it was built: {@code src/e2eKdbx/resources/kdbx/README.md}.
  */
 class AKdbx31FileWithAProtectedAttachmentIsRefusedUiTest extends AbstractUiTest
@@ -63,7 +64,7 @@ class AKdbx31FileWithAProtectedAttachmentIsRefusedUiTest extends AbstractUiTest
 	private static final String FIXTURE = "keepass2-kdbx31-protected-attachment.kdbx";
 
 	@Test
-	@DisplayName("the import refuses it with the reason, and adds nothing to the vault")
+	@DisplayName("the import refuses it in words a person can act on, and adds nothing to the vault")
 	void theImport_refusesItWithTheReason_andAddsNothing() throws Exception
 	{
 		File vault = new File(tempHome, "refuses-a-protected-attachment.mcrdb");
@@ -74,8 +75,8 @@ class AKdbx31FileWithAProtectedAttachmentIsRefusedUiTest extends AbstractUiTest
 		String refusal;
 		try
 		{
-			refusal = application.importKeePassDatabaseReadingTheRefusal(copyTheFixture(),
-				TestPasswords.KEEPASS_FIXTURE);
+			refusal = application.importKeePassDatabaseReadingTheRefusal(
+				KdbxFixtures.copy(FIXTURE, tempHome), TestPasswords.KEEPASS_FIXTURE);
 		}
 		catch (WaitTimedOutError noRefusal)
 		{
@@ -84,25 +85,19 @@ class AKdbx31FileWithAProtectedAttachmentIsRefusedUiTest extends AbstractUiTest
 				+ "arrives byte for byte and turn this test around (#568)", noRefusal);
 		}
 
-		assertTrue(refusal.contains("Could not import the KeePass file"), refusal);
-		assertTrue(refusal.contains("\"Protected\"") && refusal.contains("Binary"),
-			"the refusal names what the library could not read, the protection of an attachment, "
-				+ "not some other reason such as the password: " + refusal);
+		assertTrue(refusal.contains("KDBX 3.1") && refusal.contains("protected attachments"),
+			"the refusal says what the file is and what the import cannot read: " + refusal);
+		assertTrue(refusal.contains("KeePassXC") && refusal.contains("KDBX 4 (recommended)"),
+			"and the way out that was measured to work: " + refusal);
+		for (String libraryText : new String[] { "Unrecognized", "Exception", "fasterxml",
+				"KeePassFile$Binary" })
+		{
+			assertFalse(refusal.contains(libraryText),
+				"the library's own message is not for a person: " + refusal);
+		}
 		assertEquals(before, application.treeNodeCount(),
 			"a refused import must not add any group to the tree");
 		assertFalse(MysticCryptApplicationFrame.getInstance().getModelObject().isDirty(),
 			"a refused import must not mark the vault dirty");
-	}
-
-	private File copyTheFixture() throws Exception
-	{
-		File copy = new File(tempHome, FIXTURE);
-		try (InputStream fixture = getClass().getResourceAsStream("/kdbx/" + FIXTURE))
-		{
-			assertNotNull(fixture, "the fixture is on the e2eKdbx class path");
-			Files.copy(fixture, copy.toPath(), StandardCopyOption.REPLACE_EXISTING);
-		}
-		assertTrue(copy.length() > 0, "the fixture was copied");
-		return copy;
 	}
 }

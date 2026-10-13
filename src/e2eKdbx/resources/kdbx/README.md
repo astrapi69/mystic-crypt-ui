@@ -124,3 +124,38 @@ attachment. SHA-256 of the file: `4c0a979083ee1d1c2f0ba927eed5fc2ba085e7b8e36182
 org.linguafranca.pwdb.kdbx.jackson.model.KeePassFile$Binary), not marked as ignorable (3 known
 properties: "", "Compressed", "ID")`. The same file without the protection reads both entries and the
 attachment.
+
+# The same file, saved as KDBX 4 by KeePassXC
+
+`keepassxc-2.7.10-kdbx4-saved-from-kdbx31-protected-attachment.kdbx`, used by
+`AKdbx31FileSavedAsKdbx4InKeePassXcIsImportedUiTest` (#568). The password is the same,
+`foo-secret-bar-1969-?`.
+
+## Why this file exists
+
+The import refuses `keepass2-kdbx31-protected-attachment.kdbx` and tells the person how to get the
+file in: save it as KDBX 4 in KeePassXC. The message names that way only because this file shows
+that it works - its test imports it through the menus and finds the attachment byte for byte.
+
+## How it was made, measured
+
+On 2026-10-13, in KeePassXC 2.7.10's window, on an Xvfb of its own and with a configuration of its
+own: `keepass2-kdbx31-protected-attachment.kdbx` opened, then
+
+| | English | German |
+|---|---|---|
+| menu | Database > Database Settings... | Datenbank > Datenbankeinstellungen... |
+| page | Security | Sicherheit |
+| tab | Encryption Settings | Verschlüsselungs-Einstellungen |
+| choice | Database format: KDBX 4 (recommended) | Datenbankformat: KDBX 4 (empfohlen) |
+
+then OK and Ctrl+S. The labels were read off screenshots of both languages.
+
+- file header version **4.0**; the key derivation changed with the format, from AES-KDF (KDBX 3) to
+  Argon2d (KDBX 4)
+- KeePassJava2 3.1.0 reads both entries, and `protected.txt` with 38 bytes, `secret attachment
+  content, 2026-10-13`
+- SHA-256 `67d4d22526446ae35561160ad488130510e022752b53964ef74d80ae2a00b09e`, 2949 bytes
+
+Not a way: KeePassXC's command line. `keepassxc-cli db-create` and `keepassxc-cli import` both write
+KDBX 3.1 with AES-KDF (measured the same day), and the command line has no setting for the format.

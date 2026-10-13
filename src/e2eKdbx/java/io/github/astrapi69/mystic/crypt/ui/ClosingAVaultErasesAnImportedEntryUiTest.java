@@ -25,15 +25,11 @@
 package io.github.astrapi69.mystic.crypt.ui;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.awt.event.ActionEvent;
 import java.io.File;
-import java.io.InputStream;
-import java.nio.file.Files;
-import java.nio.file.StandardCopyOption;
 import java.util.List;
 
 import org.assertj.swing.edt.GuiActionRunner;
@@ -41,12 +37,10 @@ import org.assertj.swing.fixture.FrameFixture;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import io.github.astrapi69.gen.tree.BaseTreeNode;
 import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
 import io.github.astrapi69.mystic.crypt.TestPasswords;
 import io.github.astrapi69.mystic.crypt.action.CloseApplicationFileAction;
 import io.github.astrapi69.mystic.crypt.panel.dbtree.MysticCryptEntryModelBean;
-import io.github.astrapi69.swing.renderer.tree.GenericTreeElement;
 
 /**
  * Closing a vault overwrites every buffer of an entry, in the running application, for an entry
@@ -84,12 +78,12 @@ class ClosingAVaultErasesAnImportedEntryUiTest extends AbstractUiTest
 		createDatabaseFileHeadless(vault, MASTER_PASSWORD);
 		ApplicationSteps application = signInWithExistingDatabase(vault, MASTER_PASSWORD);
 		FrameFixture frame = application.showMainFrame();
-		application.importKeePassDatabase(copyTheFixture(), FIXTURE_PASSWORD);
+		application.importKeePassDatabase(KdbxFixtures.copy(FIXTURE, tempHome), FIXTURE_PASSWORD);
 		application.selectTreeRowByName(frame, GROUP).selectEntryRowByTitle(frame, TITLE)
 			.editSelectedEntryRepeat(frame, "the repeated password");
 		application.saveDatabase();
 
-		MysticCryptEntryModelBean entry = liveEntryTitled(TITLE);
+		MysticCryptEntryModelBean entry = KdbxFixtures.liveEntryTitled(TITLE);
 		assertTrue(entry.getHistory() != null && !entry.getHistory().isEmpty(),
 			"the precondition: the imported entry carries a history version");
 		char[] title = entry.getTitle();
@@ -132,33 +126,5 @@ class ClosingAVaultErasesAnImportedEntryUiTest extends AbstractUiTest
 		assertArrayEquals(new char[buffer.length], buffer,
 			what + " of the nested, imported entry is overwritten by the close, in the running "
 				+ "application");
-	}
-
-	private static MysticCryptEntryModelBean liveEntryTitled(final String title)
-	{
-		return GuiActionRunner.execute(() -> {
-			BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> root = MysticCryptApplicationFrame
-				.getInstance().getApplicationPanel().getSecretKeyTreeWithContentPanel()
-				.getModelObject();
-			return root.traverse().stream()
-				.filter(
-					node -> node.getValue() != null && node.getValue().getDefaultContent() != null)
-				.flatMap(node -> node.getValue().getDefaultContent().stream())
-				.filter(
-					entry -> entry.getTitle() != null && title.equals(new String(entry.getTitle())))
-				.findFirst().orElseThrow();
-		});
-	}
-
-	private File copyTheFixture() throws Exception
-	{
-		File copy = new File(tempHome, FIXTURE);
-		try (InputStream fixture = getClass().getResourceAsStream("/kdbx/" + FIXTURE))
-		{
-			assertNotNull(fixture, "the fixture is on the e2eKdbx class path");
-			Files.copy(fixture, copy.toPath(), StandardCopyOption.REPLACE_EXISTING);
-		}
-		assertEquals(true, copy.length() > 0);
-		return copy;
 	}
 }

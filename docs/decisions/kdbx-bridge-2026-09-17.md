@@ -91,8 +91,12 @@ only) and
   attribute of `Meta/Binaries/Binary`, and adds nothing to the vault. The library's model has no such
   attribute and fails on attributes it does not know; its author has a fix for 3.1.2
   (jorabin/KeePassJava2#114). Refusing is the safe outcome: the attachment does not silently go
-  missing. KeePassXC cannot write such a file, so the fixture is built from a KeePass 2 file, see
-  `src/e2eKdbx/resources/kdbx/README.md`.
+  missing. The refusal says so in words a person can act on, in English and German, and names the
+  way out that was measured to work: saved as KDBX 4 in KeePassXC (Database Settings, Security,
+  Encryption Settings, Database format), the file is imported with its attachments byte for byte.
+  `Kdbx31ProtectedAttachments` recognizes the case from the file itself, not from the library's
+  exception text. KeePassXC cannot write such a file, so the fixture is built from a KeePass 2 file,
+  see `src/e2eKdbx/resources/kdbx/README.md`.
 
 ## Fixed since this record was written
 
@@ -128,8 +132,10 @@ were rejected. What had been measured in phase B beforehand:
 ## What checks it
 
 - `KdbxRoundTripKeepsEveryFieldUiTest` - the round trip above, through the menus, against KeePassXC.
-- `AKdbx31FileWithAProtectedAttachmentIsRefusedUiTest` - the refusal above, through the menus. It
-  fails, with a note saying so, on the day the library reads such a file (#568).
+- `AKdbx31FileWithAProtectedAttachmentIsRefusedUiTest` - the refusal above, through the menus, in
+  readable words. It fails, with a note saying so, on the day the library reads such a file (#568).
+- `AKdbx31FileSavedAsKdbx4InKeePassXcIsImportedUiTest` - the way out the refusal names: the same file
+  saved as KDBX 4 by KeePassXC is imported with its attachment byte for byte (#568).
 - `KeePassLibraryFieldsTest` - every field name resolves; nothing else reflects on library types.
 - `KeePassEntryConverterTest`, `KeePassTreeConverterTest` - both directions, including unset fields
   importing as null.
