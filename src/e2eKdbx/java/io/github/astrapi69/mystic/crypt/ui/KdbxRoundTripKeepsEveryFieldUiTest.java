@@ -30,7 +30,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -409,22 +408,12 @@ class KdbxRoundTripKeepsEveryFieldUiTest extends AbstractUiTest
 
 	/**
 	 * Copies the fixture off the classpath under its own name, so the test does not depend on the
-	 * directory the build runs from and the import names its node the way it would for a user
+	 * directory the build runs from and the import names its node the way it would for a user. A
+	 * missing fixture fails: the round trip would have nothing written by a third party to measure
+	 * against, and measuring our writer against our reader is what this test exists to avoid (#380)
 	 */
 	private File copyTheFixture() throws IOException
 	{
-		File copy = new File(tempHome, FIXTURE_NAME);
-		try (InputStream fixture = getClass().getResourceAsStream("/kdbx/" + FIXTURE_NAME))
-		{
-			if (fixture == null)
-			{
-				throw new IllegalStateException("/kdbx/" + FIXTURE_NAME
-					+ " is not on the test classpath - the round trip has nothing written by a "
-					+ "third party to measure against, and measuring our writer against our reader "
-					+ "is what this test exists to avoid (#380)");
-			}
-			Files.copy(fixture, copy.toPath(), StandardCopyOption.REPLACE_EXISTING);
-		}
-		return copy;
+		return KdbxFixtures.copy(FIXTURE_NAME, tempHome);
 	}
 }

@@ -50,6 +50,7 @@ import io.github.astrapi69.mystic.crypt.ApplicationModelBean;
 import io.github.astrapi69.mystic.crypt.ApplicationPanel;
 import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
 import io.github.astrapi69.mystic.crypt.eventbus.ApplicationEventBus;
+import io.github.astrapi69.mystic.crypt.keepass.KeePassImportRefusal;
 import io.github.astrapi69.mystic.crypt.keepass.KeePassTreeConverter;
 import io.github.astrapi69.mystic.crypt.keepass.MemoizedKeePassModelBean;
 import io.github.astrapi69.mystic.crypt.panel.dbtree.MysticCryptEntryModelBean;
@@ -113,9 +114,10 @@ public class ImportKeePassDatabaseAction extends AbstractAction
 			? panel.getSelectedKeyFile().getAbsolutePath()
 			: null);
 		memoized.save(instance.getConfigurationDirectory());
+		KdbxCredentials credentials = null;
 		try
 		{
-			KdbxCredentials credentials = newCredentials(panel);
+			credentials = newCredentials(panel);
 			try (InputStream inputStream = new FileInputStream(file))
 			{
 				KdbxDatabase database = KdbxDatabase.read(credentials, inputStream);
@@ -125,8 +127,8 @@ public class ImportKeePassDatabaseAction extends AbstractAction
 		catch (Exception exception)
 		{
 			JOptionPane.showMessageDialog(instance,
-				"Could not import the KeePass file: " + exception.getMessage(), "Import failed",
-				JOptionPane.ERROR_MESSAGE);
+				KeePassImportRefusal.messageFor(file, credentials, exception),
+				KeePassImportRefusal.title(), JOptionPane.ERROR_MESSAGE);
 		}
 	}
 
