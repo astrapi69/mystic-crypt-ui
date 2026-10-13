@@ -36,6 +36,7 @@ import java.lang.reflect.Proxy;
 import java.nio.charset.StandardCharsets;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.ReentrantLock;
 
 import javax.swing.JButton;
 import javax.swing.JFrame;
@@ -239,6 +240,64 @@ class WhatWasOnScreenTest
 			release.countDown();
 			holder.join(5000);
 			blocked.join(5000);
+		}
+	}
+
+	@Test
+	@DisplayName("a lock a printed thread waits on is followed to the thread that holds it, with its stack")
+	void theReport_followsALockToTheThreadThatHoldsIt() throws Exception
+	{
+		ReentrantLock lock = new ReentrantLock();
+		CountDownLatch held = new CountDownLatch(1);
+		CountDownLatch release = new CountDownLatch(1);
+		Thread holder = new Thread(() -> holdTheLockUntilReleased(lock, held, release),
+			"a thread that is neither start, event nor blocked");
+		Thread start = new Thread(() -> {
+			lock.lock();
+			lock.unlock();
+		}, WhatWasOnScreen.START_THREAD);
+		holder.setDaemon(true);
+		start.setDaemon(true);
+		holder.start();
+		try
+		{
+			assertTrue(held.await(5, TimeUnit.SECONDS));
+			start.start();
+			awaitState(start, Thread.State.WAITING);
+
+			String report = WhatWasOnScreen.report("a test that failed",
+				new IllegalStateException("timed out"));
+
+			assertTrue(
+				report.contains("held by \"a thread that is neither start, event nor blocked\""),
+				report);
+			assertTrue(
+				report.contains("thread \"a thread that is neither start, event nor blocked\""),
+				"the holder is printed although it is none of the threads the report prints "
+					+ "anyway - in the CI case of #522 it was AWT-XAWT: " + report);
+			assertTrue(report.contains("holdTheLockUntilReleased"),
+				"with its stack, which says what it was doing while it held the lock: " + report);
+		}
+		finally
+		{
+			release.countDown();
+			holder.join(5000);
+			start.join(5000);
+		}
+	}
+
+	private static void holdTheLockUntilReleased(ReentrantLock lock, CountDownLatch held,
+		CountDownLatch release)
+	{
+		lock.lock();
+		try
+		{
+			held.countDown();
+			awaitQuietly(release);
+		}
+		finally
+		{
+			lock.unlock();
 		}
 	}
 
