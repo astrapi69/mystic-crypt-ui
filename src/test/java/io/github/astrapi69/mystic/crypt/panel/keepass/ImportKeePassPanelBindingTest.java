@@ -107,7 +107,7 @@ class ImportKeePassPanelBindingTest
 		rootGroup.addEntry(entry);
 		try (OutputStream outputStream = new FileOutputStream(keePassFile))
 		{
-			database.save(credentials, outputStream);
+			database.write(credentials, outputStream);
 		}
 	}
 
@@ -125,7 +125,7 @@ class ImportKeePassPanelBindingTest
 	{
 		try (InputStream inputStream = new FileInputStream(panel.getSelectedFile()))
 		{
-			return KdbxDatabase.load(credentials(panel), inputStream);
+			return KdbxDatabase.read(credentials(panel), inputStream);
 		}
 	}
 

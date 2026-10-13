@@ -37,7 +37,6 @@ import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneOffset;
-import java.util.Date;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
@@ -69,7 +68,7 @@ public class KeePassEntryConverterTest
 		entry.setProperty("custom-field", "custom-value");
 		entry.setBinaryProperty("attachment.txt", "hello".getBytes());
 		entry.setIcon(database.newIcon(7));
-		Date expiry = Date.from(Instant.parse("2030-06-15T10:30:00Z"));
+		Instant expiry = Instant.parse("2030-06-15T10:30:00Z");
 		entry.setExpires(true);
 		entry.setExpiryTime(expiry);
 
@@ -89,8 +88,8 @@ public class KeePassEntryConverterTest
 		assertEquals(entry.getUuid(), bean.getId());
 		assertEquals(Integer.valueOf(7), bean.getKeePassIconIndex());
 		assertTrue(bean.isExpirable());
-		assertEquals(expiry.toInstant(), bean.getPreciseExpiryTime().toInstant());
-		assertEquals(expiry.toInstant().atZone(ZoneOffset.UTC).toLocalDate(), bean.getExpires());
+		assertEquals(expiry, bean.getPreciseExpiryTime().toInstant());
+		assertEquals(expiry.atZone(ZoneOffset.UTC).toLocalDate(), bean.getExpires());
 		assertNotNull(bean.getCreationTime());
 		assertNotNull(bean.getLastAccessTime());
 		assertNotNull(bean.getLastModificationTime());
@@ -114,10 +113,10 @@ public class KeePassEntryConverterTest
 		KdbxCredentials credentials = new KdbxCredentials(
 			"unset-fields".getBytes(StandardCharsets.UTF_8));
 		ByteArrayOutputStream file = new ByteArrayOutputStream();
-		written.save(credentials, file);
+		written.write(credentials, file);
 
 		KdbxEntry read = (KdbxEntry)KdbxDatabase
-			.load(credentials, new ByteArrayInputStream(file.toByteArray())).getRootGroup()
+			.read(credentials, new ByteArrayInputStream(file.toByteArray())).getRootGroup()
 			.getEntries().get(0);
 		MysticCryptEntryModelBean bean = KeePassEntryConverter.toEntryModelBean(read);
 
@@ -163,7 +162,7 @@ public class KeePassEntryConverterTest
 		assertEquals("some notes", entry.getProperty(Entry.STANDARD_PROPERTY_NAME_NOTES));
 		assertEquals("custom-value", entry.getProperty("custom-field"));
 		assertTrue(entry.getExpires());
-		assertEquals(preciseExpiry, entry.getExpiryTime().toInstant());
+		assertEquals(preciseExpiry, entry.getExpiryTime());
 		assertEquals(9, entry.getIcon().getIndex());
 	}
 
@@ -179,7 +178,7 @@ public class KeePassEntryConverterTest
 		assertFalse(entry.getExpires());
 		// KeePass writes an expiry time for every entry, expirable or not. The converter does not
 		// call setExpiryTime, which throws on null; it writes the entry's Times through
-		// KeePassLibraryFields, and Times(Date) starts the expiry time at that date (#384)
+		// KeePassLibraryFields, and Times(Instant) starts the expiry time at that instant (#384)
 		assertNotNull(entry.getExpiryTime());
 	}
 
@@ -223,7 +222,7 @@ public class KeePassEntryConverterTest
 			"KeePass needs an expiry time even when none was given (" + description + ")");
 		if (expected != null)
 		{
-			assertEquals(expected, entry.getExpiryTime().toInstant(),
+			assertEquals(expected, entry.getExpiryTime(),
 				"the expiry time must come from the " + description);
 		}
 	}

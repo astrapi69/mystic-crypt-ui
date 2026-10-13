@@ -24,10 +24,10 @@
  */
 package io.github.astrapi69.mystic.crypt.keepass;
 
+import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -237,23 +237,23 @@ public final class KeePassEntryConverter
 
 	private static Times timesOf(final MysticCryptEntryModelBean bean, final Times fromTheLibrary)
 	{
-		Times times = fromTheLibrary != null ? fromTheLibrary : new Times(new Date());
+		Times times = fromTheLibrary != null ? fromTheLibrary : new Times(Instant.now());
 		if (bean.getCreationTime() != null)
 		{
-			times.setCreationTime(toDate(bean.getCreationTime()));
+			times.setCreationTime(bean.getCreationTime().toInstant());
 		}
 		if (bean.getLastAccessTime() != null)
 		{
-			times.setLastAccessTime(toDate(bean.getLastAccessTime()));
+			times.setLastAccessTime(bean.getLastAccessTime().toInstant());
 		}
 		if (bean.getLastModificationTime() != null)
 		{
-			times.setLastModificationTime(toDate(bean.getLastModificationTime()));
+			times.setLastModificationTime(bean.getLastModificationTime().toInstant());
 		}
 		OffsetDateTime expiryTime = expiryTimeOf(bean);
 		if (expiryTime != null)
 		{
-			times.setExpiryTime(toDate(expiryTime));
+			times.setExpiryTime(expiryTime.toInstant());
 		}
 		times.setExpires(bean.isExpirable());
 		return times;
@@ -272,14 +272,9 @@ public final class KeePassEntryConverter
 		return null;
 	}
 
-	private static OffsetDateTime toOffsetDateTime(final Date date)
+	private static OffsetDateTime toOffsetDateTime(final Instant instant)
 	{
-		return date == null ? null : OffsetDateTime.ofInstant(date.toInstant(), ZoneOffset.UTC);
-	}
-
-	private static Date toDate(final OffsetDateTime dateTime)
-	{
-		return dateTime == null ? null : Date.from(dateTime.toInstant());
+		return instant == null ? null : OffsetDateTime.ofInstant(instant, ZoneOffset.UTC);
 	}
 
 }

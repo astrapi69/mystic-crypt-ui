@@ -107,7 +107,7 @@ class ExportKeePassPanelBindingTest
 		File destinationFile = panel.getSelectedFile();
 		try (OutputStream outputStream = new FileOutputStream(destinationFile))
 		{
-			database.save(credentials(panel), outputStream);
+			database.write(credentials(panel), outputStream);
 		}
 		return destinationFile;
 	}
@@ -132,7 +132,7 @@ class ExportKeePassPanelBindingTest
 	{
 		try (InputStream inputStream = new FileInputStream(keePassFile))
 		{
-			return KdbxDatabase.load(credentials, inputStream).getRootGroup().getEntries().get(0)
+			return KdbxDatabase.read(credentials, inputStream).getRootGroup().getEntries().get(0)
 				.getTitle();
 		}
 	}

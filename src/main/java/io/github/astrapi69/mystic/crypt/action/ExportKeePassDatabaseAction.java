@@ -119,7 +119,7 @@ public class ExportKeePassDatabaseAction extends AbstractAction
 
 			try (OutputStream outputStream = new FileOutputStream(file))
 			{
-				database.save(credentials, outputStream);
+				database.write(credentials, outputStream);
 			}
 			JOptionPane.showMessageDialog(instance, "KeePass database exported successfully.",
 				"Export successful", JOptionPane.INFORMATION_MESSAGE);
