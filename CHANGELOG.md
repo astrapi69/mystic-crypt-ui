@@ -1,8 +1,23 @@
 ## Change log
 ----------------------
 
-Version 8.9 (unreleased)
+Version 8.9
 -------------
+
+The release in which the Lethenon plugin finds the test network by itself: "Synchronise with a Node" needs no
+address any more, because lethenon 0.5.0 knows the network's seed nodes (#573, #572). It also refuses a KDBX 3.1
+file with protected attachments in words a person can act on (#568), runs the KeePass import and export on
+KeePassJava2 3.1.0 (#510, #473), and brings two checks that develop's branch protection requires: a release freeze
+and closing references (#516, #555).
+
+ADDED:
+- the Lethenon plugin's "Synchronise with a Node" works without a typed address (#573): with the node
+  field left empty, it takes the chain from the test network's seed nodes, which lethenon 0.5.0 names
+  (`TestNetworkSeeds`, lethenon#197). Through a SOCKS proxy it asks their onion addresses, so that a
+  sync through Tor stays inside Tor; otherwise their IP addresses, each in turn until one answers.
+  The report names the node the chain came from, "a seed node of the test network". A chain of one's
+  own is refused before any seed node is dialled, with the reason; the seed nodes would refuse it
+  anyway. The field's tooltip says what empty means, in English and German
 
 CHANGED:
 - build and tests only: the plugin builds take every dependency version from the application's version catalog, as the application does, instead of 228 versions written into their own build files. Nine of those had drifted from the catalog, so the plugins were tested against other libraries than the application ships: Bouncy Castle 1.85.2 and 1.85 instead of 1.86, JUnit 5.11.4 instead of 6.1.3, pf4j 3.15.0 instead of 3.15.1, and six more. Moving them showed one test that JUnit 6 reads differently: a CSV source in the Lethenon plugin that JUnit 5 let through and JUnit 6 refuses, now written so that both read it the same. A test in the build now fails as soon as a plugin build names a version of its own, or does not read the catalog at all, as the console plugin did not (#547)
@@ -18,18 +33,32 @@ CHANGED:
   (lethenon#197), learns and passes on no loopback or private address (lethenon#194), dials a
   configured peer again (lethenon#128) and changes no format: chain files and wallets of 0.4.0 and
   0.5.0 are the same
-
-ADDED:
-- the Lethenon plugin's "Synchronise with a Node" works without a typed address (#573): with the node
-  field left empty, it takes the chain from the test network's seed nodes, which lethenon 0.5.0 names
-  (`TestNetworkSeeds`, lethenon#197). Through a SOCKS proxy it asks their onion addresses, so that a
-  sync through Tor stays inside Tor; otherwise their IP addresses, each in turn until one answers.
-  The report names the node the chain came from, "a seed node of the test network". A chain of one's
-  own is refused before any seed node is dialled, with the reason; the seed nodes would refuse it
-  anyway. The field's tooltip says what empty means, in English and German
+- development only: `make merge-pr` reports the merge correctly when the target branch is checked out in another worktree (#543); the rules say that menu-action 5.1 is not blocked (#542) and that the release gate checks the license headers itself, since the license plugin's check is disabled (#553)
 
 FIXED:
 - the Lethenon plugin's send window said that a payment to a published address goes to a one-time destination "nobody but its holder can connect to it". The sender, who derives that destination, can as well, and the sender and the amount are on the chain whichever recipient is chosen; the tooltip now says both. Every other statement of the plugin's texts about privacy was checked against what lethenon does and holds (#550, lethenon#167)
+
+FORMAT:
+- the vault format does not change: a vault 8.8 wrote opens in 8.9 with every entry as written, and a vault 8.9
+  writes opens in 8.8, with and without an entry's history and the names of protected properties, and with a
+  group's KeePass times. Measured with the published 8.8 application jar, taken from its installer and checked
+  against the release's sha256 (`scripts/fetch-release-jar.sh 8.8`), through the tests that pin a release in both
+  directions (`./gradlew test --rerun --tests '*TheEnvelopeMoveKeepsTheVaultFormatTest' --tests
+  '*VaultOpensInTheLastReleaseTest' -PformatCompatibilityRelease=8.8 -PenvelopeMoveRelease=8.8`): the five that
+  apply to 8.8 pass. The other two assert that the release refuses an entry's history and protected property
+  names, which holds for 8.5.1, the release the build pins (#402), and not for 8.8, which reads both. No commit
+  since 8.8 touches the vault's classes (`git log RELEASE-8.8..HEAD -- src/main/java/io/github/astrapi69/mystic/crypt/app/file`
+  is empty)
+- Lethenon chain files and wallets do not change: lethenon 0.4.0 and 0.5.0 read each other's chains and wallets,
+  measured in both directions in lethenon's release entry for 0.5.0 (astrapi69/lethenon#204)
+
+KNOWN AND NOT FIXED:
+- the Lethenon plugin cannot start the main chain: lethenon 0.5.0 still carries no genesis block for it, which
+  comes with lethenon 1.0.0 (#535 stays open)
+- build and tests only: two rare failures of UI tests on CI, each with an issue of its own that stays open - the
+  start after sign-in that does not finish (#522), whose report now names the thread holding the lock, and a
+  NullPointerException inside AssertJ Swing's finder in the checksum plugin's test (#575), green three times in a
+  row locally
 
 Version 8.8
 -------------
