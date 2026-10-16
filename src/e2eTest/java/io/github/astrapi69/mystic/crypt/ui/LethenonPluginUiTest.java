@@ -24,6 +24,7 @@
  */
 package io.github.astrapi69.mystic.crypt.ui;
 
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -593,6 +594,49 @@ class LethenonPluginUiTest extends AbstractUiTest
 				"the file holds the node's chain, read back with the chain library");
 			assertTrue(frame.isEnabled(), "the application is still usable after a sync");
 		}
+	}
+
+	@Test
+	@DisplayName("with the node field left empty, a chain of its own is refused with the reason before any seed node is dialled, and the field says what empty means (#573)")
+	void thePlugin_withoutANode_refusesAChainOfItsOwn_beforeDialling() throws Exception
+	{
+		installPluginRequiringItBuilt(LETHENON_ZIP);
+		File chainFile = new File(tempHome, "own.lethenon");
+		new ChainFile(chainFile.toPath()).write(aTestChainOf(2, Bytes.of(new byte[] { 9 })));
+		byte[] before = Files.readAllBytes(chainFile.toPath());
+		File databaseFile = new File(tempHome, "lethenon-sync-seeds.mcrdb");
+		createDatabaseFileHeadless(databaseFile, MASTER_PASSWORD);
+		ApplicationSteps application = signInWithExistingDatabase(databaseFile, MASTER_PASSWORD);
+		FrameFixture frame = application.showMainFrame();
+
+		application.openPluginTool("Synchronise with a Node", "Synchronise with a Node");
+		JInternalFrameFixture tool = new JInternalFrameFixture(robot,
+			application.internalFrame("Synchronise with a Node"));
+		String tooltip = GuiActionRunner
+			.execute(() -> tool.textBox("txtNode").target().getToolTipText());
+		assertTrue(tooltip.contains("seed nodes"), tooltip);
+		GuiActionRunner.execute(() -> {
+			tool.textBox("txtChainFile").target().setText(chainFile.getAbsolutePath());
+			tool.textBox("txtNode").target().setText("");
+		});
+		UiTestSpeed.step();
+		SwingUtilities.invokeLater(() -> tool.button("btnSync").target().doClick());
+		Pause.pause(new Condition("the window reports why nothing was synchronised")
+		{
+			@Override
+			public boolean test()
+			{
+				return GuiActionRunner.execute(() -> tool.label("lblResult").target().getText())
+					.contains("seed nodes serve another chain");
+			}
+		}, 20000);
+
+		String result = GuiActionRunner.execute(() -> tool.label("lblResult").target().getText());
+		assertTrue(result.contains("no node was named"), result);
+		assertTrue(result.contains(chainFile.getAbsolutePath()), result);
+		assertArrayEquals(before, Files.readAllBytes(chainFile.toPath()),
+			"the chain file is as it was");
+		assertTrue(frame.isEnabled(), "the application is still usable after a refusal");
 	}
 
 	@Test

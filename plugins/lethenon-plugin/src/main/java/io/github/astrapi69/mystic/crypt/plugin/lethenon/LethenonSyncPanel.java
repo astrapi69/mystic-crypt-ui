@@ -133,10 +133,10 @@ public class LethenonSyncPanel extends JPanel
 		setReport("");
 		setResult(LethenonMessages.getString("lethenon.result.sync.running",
 			"synchronising with the node; every block is verified here"));
-		new SwingWorker<Sync.Synced, Void>()
+		new SwingWorker<SyncSupport.SyncedFrom, Void>()
 		{
 			@Override
-			protected Sync.Synced doInBackground() throws IOException
+			protected SyncSupport.SyncedFrom doInBackground() throws IOException
 			{
 				return SyncSupport.sync(chainFile, node, proxy);
 			}
@@ -144,17 +144,18 @@ public class LethenonSyncPanel extends JPanel
 			@Override
 			protected void done()
 			{
-				showTheOutcome(this, node);
+				showTheOutcome(this);
 			}
 		}.execute();
 	}
 
-	private void showTheOutcome(final SwingWorker<Sync.Synced, Void> worker, final String node)
+	private void showTheOutcome(final SwingWorker<SyncSupport.SyncedFrom, Void> worker)
 	{
 		try
 		{
-			Sync.Synced synced = worker.get();
-			setReport(describe(synced, node.trim()));
+			SyncSupport.SyncedFrom syncedFrom = worker.get();
+			Sync.Synced synced = syncedFrom.synced();
+			setReport(describe(syncedFrom));
 			setResult(synced.taken() > 0
 				? LethenonMessages.getString("lethenon.result.sync.written",
 					"the chain file is at the tip of the node now")
@@ -194,8 +195,15 @@ public class LethenonSyncPanel extends JPanel
 		return String.valueOf(cause);
 	}
 
-	private static String describe(final Sync.Synced synced, final String node)
+	private static String describe(final SyncSupport.SyncedFrom syncedFrom)
 	{
+		Sync.Synced synced = syncedFrom.synced();
+		String node = syncedFrom.node().toString();
+		if (syncedFrom.seedNode())
+		{
+			node += " (" + LethenonMessages.getString("lethenon.sync.seed",
+				"a seed node of the test network") + ")";
+		}
 		String report = LethenonMessages.getString("lethenon.sync.chain", "chain") + " "
 			+ synced.chainIdentifier() + " "
 			+ LethenonMessages.getString("lethenon.sync.from", "from the node at") + " " + node

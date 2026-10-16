@@ -19,6 +19,15 @@ CHANGED:
   configured peer again (lethenon#128) and changes no format: chain files and wallets of 0.4.0 and
   0.5.0 are the same
 
+ADDED:
+- the Lethenon plugin's "Synchronise with a Node" works without a typed address (#573): with the node
+  field left empty, it takes the chain from the test network's seed nodes, which lethenon 0.5.0 names
+  (`TestNetworkSeeds`, lethenon#197). Through a SOCKS proxy it asks their onion addresses, so that a
+  sync through Tor stays inside Tor; otherwise their IP addresses, each in turn until one answers.
+  The report names the node the chain came from, "a seed node of the test network". A chain of one's
+  own is refused before any seed node is dialled, with the reason; the seed nodes would refuse it
+  anyway. The field's tooltip says what empty means, in English and German
+
 FIXED:
 - the Lethenon plugin's send window said that a payment to a published address goes to a one-time destination "nobody but its holder can connect to it". The sender, who derives that destination, can as well, and the sender and the amount are on the chain whichever recipient is chosen; the tooltip now says both. Every other statement of the plugin's texts about privacy was checked against what lethenon does and holds (#550, lethenon#167)
 

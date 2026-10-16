@@ -27,12 +27,16 @@ package io.github.astrapi69.mystic.crypt.plugin.lethenon;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.time.Duration;
+import java.util.ArrayList;
+import java.util.List;
 
+import io.github.astrapi69.lethenon.BlockBody;
 import io.github.astrapi69.lethenon.ChainFile;
 import io.github.astrapi69.lethenon.ChainRejected;
 import io.github.astrapi69.lethenon.transport.Outbound;
 import io.github.astrapi69.lethenon.transport.PeerAddress;
 import io.github.astrapi69.lethenon.transport.Sync;
+import io.github.astrapi69.lethenon.transport.TestNetworkSeeds;
 
 /**
  * Brings a chain file up to one node's tip through the chain library's {@link Sync#once}, and stops
@@ -42,8 +46,8 @@ import io.github.astrapi69.lethenon.transport.Sync;
  * discovers peers, takes from the one node only blocks its own replay verified, and writes the file
  * once, at the end, only when the chain grew. A file that does not exist yet starts from the node's
  * genesis block - trust on first use, which the window says. What this class adds is what has to
- * be decided before anything is sent: that a file and a node were named, and how the connection
- * leaves this machine.
+ * be decided before anything is sent: that a file was named, which node to ask - the one named, or
+ * the test network's seed nodes when none is (#573) - and how the connection leaves this machine.
  * <p>
  * It takes a {@link Path} and text and returns the library's record, so it is testable without a
  * display (architecture.md layer 2: no Swing types in the support layer).
@@ -54,35 +58,96 @@ public final class SyncSupport
 	/** How long a whole sync may take: the command line's default for {@code sync --within} */
 	static final Duration WITHIN = Duration.ofSeconds(300);
 
+	/** The test network's seed nodes, as the library names them (lethenon#197) */
+	static final SeedNodes TEST_NETWORK_SEEDS = new SeedNodes()
+	{
+		@Override
+		public boolean serve(final List<BlockBody> chain)
+		{
+			return TestNetworkSeeds.serve(chain);
+		}
+
+		@Override
+		public List<PeerAddress> reachedThrough(final boolean tor)
+		{
+			return TestNetworkSeeds.reachedThrough(tor);
+		}
+	};
+
 	private SyncSupport()
 	{
 	}
 
 	/**
-	 * Brings the chain file up to the tip of the node at the given address
+	 * A sync and the node it came from
+	 *
+	 * @param synced
+	 *            what the sync did
+	 * @param node
+	 *            the node the blocks came from
+	 * @param seedNode
+	 *            whether no node was named and it was one of the test network's seed nodes (#573)
+	 */
+	public record SyncedFrom(Sync.Synced synced, PeerAddress node, boolean seedNode)
+	{
+	}
+
+	/**
+	 * The nodes a sync asks when none is named: the test network's seed nodes, here so that a test
+	 * can stand in for them and never reach the real ones (#573)
+	 */
+	interface SeedNodes
+	{
+		/**
+		 * @param chain
+		 *            the chain file's blocks, empty for a new file
+		 * @return whether these nodes serve that chain
+		 */
+		boolean serve(List<BlockBody> chain);
+
+		/**
+		 * @param tor
+		 *            whether the connections go through a SOCKS proxy
+		 * @return the addresses to ask, in order
+		 */
+		List<PeerAddress> reachedThrough(boolean tor);
+	}
+
+	/**
+	 * Brings the chain file up to the tip of the node at the given address, or of the test
+	 * network's seed nodes when none is given (#573)
 	 *
 	 * @param chainFile
 	 *            the chain file, on the test network; one that does not exist yet starts from the
 	 *            node's genesis block
 	 * @param node
-	 *            host:port of a running lethenon node
+	 *            host:port of a running lethenon node; blank for the test network's seed nodes,
+	 *            through Tor their onion addresses
 	 * @param proxy
 	 *            host:port of a SOCKS proxy the connections go through, for Tor usually
 	 *            127.0.0.1:9050; blank for a direct connection
-	 * @return what the sync did
+	 * @return what the sync did, and the node it came from
 	 * @throws IOException
-	 *             when the file cannot be read or written, or the node cannot be reached, refuses,
-	 *             breaks off or does not hand over its tip in time; the file is then as it was
+	 *             when the file cannot be read or written, or the node - with none named, every
+	 *             seed node - cannot be reached, refuses, breaks off or does not hand over its tip
+	 *             in time; the file is then as it was
 	 * @throws IllegalArgumentException
-	 *             when no file or no node was named, an address is not host:port, an onion address
-	 *             has no proxy, or the chain file is not on the test network - then with the file's
-	 *             absolute path in front of the library's reason
+	 *             when no file was named, no node was named for a chain the seed nodes do not
+	 *             serve, an address is not host:port, an onion address has no proxy, or the chain
+	 *             file is not on the test network - then with the file's absolute path in front of
+	 *             the reason
 	 * @throws ChainRejected
 	 *             when the chain file does not verify, with the file's absolute path in front of the
 	 *             library's reason
 	 */
-	public static Sync.Synced sync(final Path chainFile, final String node, final String proxy)
+	public static SyncedFrom sync(final Path chainFile, final String node, final String proxy)
 		throws IOException
+	{
+		return sync(chainFile, node, proxy, TEST_NETWORK_SEEDS);
+	}
+
+	static SyncedFrom sync(final Path chainFile, final String node, final String proxy,
+		final SeedNodes seeds) throws IOException
 	{
 		if (chainFile == null || chainFile.toString().isBlank())
 		{
@@ -92,12 +157,42 @@ public final class SyncSupport
 		}
 		if (node == null || node.isBlank())
 		{
-			throw new IllegalArgumentException("no node was named: give its host and port, for "
-				+ "example 127.0.0.1:18480");
+			return fromTheSeedNodes(chainFile, proxy, seeds);
 		}
 		PeerAddress address = PeerAddress.parse(node.trim());
 		Outbound outbound = outbound(address, proxy);
-		return once(chainFile, address, outbound);
+		return new SyncedFrom(once(chainFile, address, outbound), address, false);
+	}
+
+	/**
+	 * No node was named: the seed nodes, for a chain they serve, each in turn until one answers.
+	 * A chain of its own is refused before any of them is dialled - they would refuse it, and the
+	 * dial would tell them it exists.
+	 */
+	private static SyncedFrom fromTheSeedNodes(final Path chainFile, final String proxy,
+		final SeedNodes seeds) throws IOException
+	{
+		if (!seeds.serve(new ChainFile(chainFile).read()))
+		{
+			throw new IllegalArgumentException(chainFile.toAbsolutePath() + ": no node was named, "
+				+ "and the test network's seed nodes serve another chain than this file's: give the "
+				+ "host and port of a node on this chain, for example 127.0.0.1:18480");
+		}
+		boolean tor = proxy != null && !proxy.isBlank();
+		List<String> reasons = new ArrayList<>();
+		for (PeerAddress seed : seeds.reachedThrough(tor))
+		{
+			try
+			{
+				return new SyncedFrom(once(chainFile, seed, outbound(seed, proxy)), seed, true);
+			}
+			catch (IOException unanswered)
+			{
+				reasons.add(unanswered.getMessage());
+			}
+		}
+		throw new IOException("no seed node of the test network answered: "
+			+ String.join("; ", reasons));
 	}
 
 	/**
