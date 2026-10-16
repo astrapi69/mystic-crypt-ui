@@ -24,11 +24,13 @@
  */
 package io.github.astrapi69.mystic.crypt.plugin.lethenon;
 
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.File;
+import java.nio.file.Files;
 import java.time.Duration;
 import java.util.List;
 import java.util.Map;
@@ -115,11 +117,16 @@ class LethenonSyncPanelBindingTest
 
 	@Test
 	@DisplayName("a refused sync leaves no report behind, only the reason, and can be started again")
-	void syncing_withoutANode_reportsTheReasonAndNothingElse() throws Exception
+	void syncing_withoutANode_onAChainOfItsOwn_reportsTheReasonAndNothingElse() throws Exception
 	{
+		// a chain of its own: with no node named, the seed nodes are not asked for it (#573), so
+		// the refusal comes before anything is sent - an empty file would reach the real seed node
+		File chainFile = new File(chainDirectory, "own.lethenon");
+		new ChainFile(chainFile.toPath()).write(
+			LethenonFixtures.aChainOf(Chain.TEST_IDENTIFIER, 2, Bytes.of(new byte[] { 9 })));
+		byte[] before = Files.readAllBytes(chainFile.toPath());
 		LethenonSyncPanel panel = new LethenonSyncPanel();
-		panel.getModelObject()
-			.setChainFile(new File(chainDirectory, "never.lethenon").getAbsolutePath());
+		panel.getModelObject().setChainFile(chainFile.getAbsolutePath());
 		panel.getModelObject().setNode(" ");
 
 		panel.onSync();
@@ -127,9 +134,10 @@ class LethenonSyncPanelBindingTest
 
 		assertEquals("", panel.getModelObject().getReport());
 		assertTrue(panel.getModelObject().getResultText()
-			.startsWith("the chain file was not synchronised: no node was named"),
+			.startsWith("the chain file was not synchronised: " + chainFile.getAbsolutePath()
+				+ ": no node was named"),
 			panel.getModelObject().getResultText());
-		assertFalse(new File(chainDirectory, "never.lethenon").exists());
+		assertArrayEquals(before, Files.readAllBytes(chainFile.toPath()));
 	}
 
 	/**
