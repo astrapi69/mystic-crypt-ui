@@ -24,16 +24,23 @@
  */
 package io.github.astrapi69.mystic.crypt.plugin.lethenon;
 
+import static io.github.astrapi69.mystic.crypt.plugin.lethenon.Windows.component;
+import static io.github.astrapi69.mystic.crypt.plugin.lethenon.Windows.textOf;
+import static io.github.astrapi69.mystic.crypt.plugin.lethenon.Windows.textsOf;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.File;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.KeyPair;
 import java.util.List;
 import java.util.Map;
+
+import javax.swing.JButton;
+import javax.swing.JComponent;
+import javax.swing.JPanel;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -115,6 +122,11 @@ class LethenonSweepPanelBindingTest
 		assertTrue(cost.contains("together"), cost);
 		assertTrue(cost.contains("Receiving is unlinkable; spending is the moment that ends"),
 			cost);
+		assertEquals("Careful: after a sweep, anyone who reads the chain can see that these "
+			+ "payments belong to you.", textOf(panel, "txtCost"),
+			"the cost stays on the screen before signing, in plain words (#604)");
+		assertEquals(cost, component(panel, "txtCost", JComponent.class).getToolTipText(),
+			"the whole statement is one look away");
 	}
 
 	@Test
@@ -128,11 +140,17 @@ class LethenonSweepPanelBindingTest
 		List<SignedTransaction> pending = new ChainFile(chainFile).readPending();
 		assertEquals(1, pending.size());
 		assertEquals("swept from a one-time destination", pending.getFirst().body().memo());
-		String report = panel.getModelObject().getReport();
-		assertTrue(report.contains("1 transfer"), report);
-		assertTrue(report.contains("4.90000000 LETH"), report);
-		assertTrue(report.contains(wallet.spendKey(SignatureSuite.ED25519).toString()), report);
-		assertTrue(report.contains(panel.getModelObject().getCostStatement()), report);
+		assertEquals("Swept: 4.90000000 LETH from 1 payment onto your account. It counts once the "
+			+ "next block is mined.", textOf(panel, "txtAnswer"));
+		assertEquals("4.90000000 LETH", textOf(panel, "txtSwept"));
+		assertEquals("1 payment", textOf(panel, "txtPayments"));
+		assertEquals(wallet.spendKey(SignatureSuite.ED25519).toString(),
+			textOf(panel, "txtOntoAccount"));
+		assertEquals("next to the chain file, until the next block is mined",
+			textOf(panel, "txtWhereItWaits"));
+		assertEquals("1 transfer", textOf(panel, "txtWaiting"));
+		assertEquals(panel.getModelObject().getCostStatement(), textOf(panel, "txtCostDetail"),
+			"what it cost, repeated behind the details");
 		assertEquals("the sweep was signed and waits for the next block",
 			panel.getModelObject().getResultText());
 		assertEquals(0, panel.getModelObject().getPassword().length);
@@ -146,23 +164,61 @@ class LethenonSweepPanelBindingTest
 
 		panel.onSweep();
 
+		assertEquals("There was nothing to sweep: no payment to your address holds more than the "
+			+ "fee of 5.00000000 LETH.", textOf(panel, "txtAnswer"));
+		assertEquals("", textOf(panel, "txtSwept"));
 		assertTrue(panel.getModelObject().getResultText().startsWith("nothing to sweep"),
 			panel.getModelObject().getResultText());
-		assertFalse(Files.exists(Path.of(chainFile + ".pending")));
+		assertEquals(List.of(), new ChainFile(chainFile).readPending(), "nothing waits");
 	}
 
 	@Test
-	@DisplayName("a wrong password leaves no report and does not repeat the password")
-	void sweeping_withAWrongPassword_reportsTheReasonOnly() throws Exception
+	@DisplayName("what only a specialist reads - what waits and what a sweep shows the chain - is behind \"Show details\", closed at first (#604)")
+	void theDetails_areClosedAtFirst_andOpenOnAClick() throws Exception
 	{
-		LethenonSweepPanel panel = filledPanel("not the password at all", "0");
+		LethenonSweepPanel panel = filledPanel(PASSWORD, "0.1");
+		panel.onSweep();
+		JPanel details = component(panel, "pnlDetails", JPanel.class);
+
+		assertFalse(details.isVisible(), "the details are closed at first");
+
+		panel.onDetails();
+
+		assertTrue(details.isVisible());
+		assertEquals("Hide details", component(panel, "btnDetails", JButton.class).getText());
+	}
+
+	@Test
+	@DisplayName("every field and button of the window has a tooltip in plain words (#604)")
+	void everyFieldAndButton_hasATooltip() throws Exception
+	{
+		LethenonSweepPanel panel = filledPanel(PASSWORD, "0.1");
+		panel.onSweep();
+
+		assertEquals(List.of(), Windows.withoutATooltip(panel),
+			"fields and buttons without a tooltip");
+	}
+
+	@Test
+	@DisplayName("a wrong password after a sweep empties every field, says what to do and does not repeat the password")
+	void sweeping_withAWrongPassword_saysWhatToDo() throws Exception
+	{
+		LethenonSweepPanel panel = filledPanel(PASSWORD, "0.1");
+		panel.onSweep();
+		panel.getModelObject().setPassword("not the password at all".toCharArray());
 
 		panel.onSweep();
 
-		assertEquals("", panel.getModelObject().getReport());
+		for (String field : List.of("txtAnswer", "txtSwept", "txtPayments", "txtOntoAccount",
+			"txtWhereItWaits", "txtWaiting", "txtCostDetail"))
+		{
+			assertEquals("", textOf(panel, field), field + " keeps nothing of the sweep before");
+		}
+		assertFalse(textsOf(panel).stream().anyMatch(text -> text.contains(PASSWORD)));
 		String result = panel.getModelObject().getResultText();
 		assertTrue(result.startsWith("nothing was swept"), result);
-		assertTrue(result.contains("wallet.lethenon-wallet"), result);
+		assertTrue(result.contains("this password does not open wallet.lethenon-wallet; type it again"),
+			result);
 		assertFalse(result.contains("not the password at all"), result);
 		assertEquals(0, panel.getModelObject().getPassword().length);
 	}

@@ -30,6 +30,12 @@ import io.github.astrapi69.mystic.crypt.secret.SecretBuffers;
  * The state of {@link LethenonSweepPanel}, in one object rather than scattered across its widgets
  * (architecture.md: every panel holds its state in a model).
  * <p>
+ * The answer is kept as the window shows it, one value per field (#604): the sentence that says
+ * what was swept, what moved onto the account, how many payments, the account and where the
+ * transfers wait, and behind "Show details" how many transfers wait and what the sweep showed the
+ * chain. The warning before signing is a sentence in plain words; the whole cost statement is
+ * kept apart and shown as its explanation and again behind the details.
+ * <p>
  * The password is a {@code char[]}, never a String, and {@link #setPassword} overwrites the array
  * it replaces - the same rule as {@link LethenonSendPanelModel} and the host's sign-in model
  * (#351).
@@ -52,7 +58,21 @@ public class LethenonSweepPanelModel
 
 	private String costStatement = "";
 
-	private String report = "";
+	private String answer = "";
+
+	private String swept = "";
+
+	private String payments = "";
+
+	private String ontoAccount = "";
+
+	private String whereItWaits = "";
+
+	private String waiting = "";
+
+	private String costDetail = "";
+
+	private boolean detailsShown;
 
 	private String resultText = " ";
 
@@ -139,14 +159,96 @@ public class LethenonSweepPanelModel
 		this.costStatement = costStatement;
 	}
 
-	public String getReport()
+	/** Empties every value of the answer, so a failure leaves nothing of an earlier one */
+	public void clearAnswer()
 	{
-		return report;
+		answer = "";
+		swept = "";
+		payments = "";
+		ontoAccount = "";
+		whereItWaits = "";
+		waiting = "";
+		costDetail = "";
 	}
 
-	public void setReport(String report)
+	public String getAnswer()
 	{
-		this.report = report;
+		return answer;
+	}
+
+	public void setAnswer(String answer)
+	{
+		this.answer = answer;
+	}
+
+	public String getSwept()
+	{
+		return swept;
+	}
+
+	public void setSwept(String swept)
+	{
+		this.swept = swept;
+	}
+
+	public String getPayments()
+	{
+		return payments;
+	}
+
+	public void setPayments(String payments)
+	{
+		this.payments = payments;
+	}
+
+	public String getOntoAccount()
+	{
+		return ontoAccount;
+	}
+
+	public void setOntoAccount(String ontoAccount)
+	{
+		this.ontoAccount = ontoAccount;
+	}
+
+	public String getWhereItWaits()
+	{
+		return whereItWaits;
+	}
+
+	public void setWhereItWaits(String whereItWaits)
+	{
+		this.whereItWaits = whereItWaits;
+	}
+
+	public String getWaiting()
+	{
+		return waiting;
+	}
+
+	public void setWaiting(String waiting)
+	{
+		this.waiting = waiting;
+	}
+
+	public String getCostDetail()
+	{
+		return costDetail;
+	}
+
+	public void setCostDetail(String costDetail)
+	{
+		this.costDetail = costDetail;
+	}
+
+	public boolean isDetailsShown()
+	{
+		return detailsShown;
+	}
+
+	public void setDetailsShown(boolean detailsShown)
+	{
+		this.detailsShown = detailsShown;
 	}
 
 	public String getResultText()

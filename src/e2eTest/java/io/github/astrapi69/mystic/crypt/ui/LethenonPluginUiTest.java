@@ -648,8 +648,12 @@ class LethenonPluginUiTest extends AbstractUiTest
 		JInternalFrameFixture sweep = new JInternalFrameFixture(robot,
 			application.internalFrame("Sweep One-Time Payments"));
 		String cost = textOf(sweep, "txtCost");
-		assertTrue(cost.contains("Receiving is unlinkable; spending is the moment that ends"),
+		assertTrue(cost.contains("anyone who reads the chain can see that these payments belong"),
 			cost);
+		String whole = GuiActionRunner
+			.execute(() -> sweep.textBox("txtCost").target().getToolTipText());
+		assertTrue(whole.contains("Receiving is unlinkable; spending is the moment that ends"),
+			whole);
 		GuiActionRunner.execute(() -> {
 			sweep.textBox("txtChainFile").target().setText(chainFile.getAbsolutePath());
 			sweep.textBox("txtWalletFile").target().setText(payeeFile.getAbsolutePath());
@@ -657,11 +661,18 @@ class LethenonPluginUiTest extends AbstractUiTest
 		});
 		UiTestSpeed.step();
 		SwingUtilities.invokeLater(() -> sweep.button("btnSweep").target().doClick());
-		awaitReport(sweep, "waiting", "the sweep is signed");
-		String sweepReport = textOf(sweep, "txtReport");
-		assertTrue(sweepReport.contains("signed 1 transfer sweeping 2.00000000 LETH"), sweepReport);
-		assertTrue(sweepReport.contains(cost), "the cost is repeated after signing");
-		assertFalse(sweepReport.contains(payeePassword), "the password is in no text");
+		awaitText(sweep, "txtAnswer", "Swept:", "the sweep is signed");
+		assertEquals("Swept: 2.00000000 LETH from 1 payment onto your account. It counts once the "
+			+ "next block is mined.", textOf(sweep, "txtAnswer"));
+		sweep.button("btnDetails").click();
+		String costDetail = textOf(sweep, "txtCostDetail");
+		assertTrue(costDetail.contains("together"),
+			"the cost is repeated after signing: " + costDetail);
+		for (String field : List.of("txtAnswer", "txtSwept", "txtPayments", "txtOntoAccount",
+			"txtWhereItWaits", "txtWaiting", "txtCostDetail"))
+		{
+			assertFalse(textOf(sweep, field).contains(payeePassword), "the password is in no text");
+		}
 		List<SignedTransaction> swept = chain.readPending();
 		assertEquals(1, swept.size(), "the sweep waits in the chain library's pending file");
 		assertEquals(oneTime.key(), swept.getFirst().body().sender());
