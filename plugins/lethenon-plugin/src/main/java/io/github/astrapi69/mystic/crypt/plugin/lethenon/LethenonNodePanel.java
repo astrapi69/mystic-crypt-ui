@@ -28,6 +28,7 @@ import java.awt.Font;
 import java.io.IOException;
 import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
+import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.logging.Level;
@@ -62,6 +63,12 @@ import io.github.astrapi69.swing.model.component.JMTextField;
  * node stops with its window as well: closing the window is no way to leave a node listening in
  * the background. The wallet's password is used once and cleared from the field and the model when
  * the node is started, whether it started or not.
+ * <p>
+ * It answers in fields a child can read (#604), every second while the node runs: first one
+ * sentence in a larger font, "Your node runs on port 18480: its chain ends at block 1,200. It has
+ * found 3 blocks for you so far.", then the port, the last block, the other nodes connected, the
+ * transfers waiting and the blocks found. Why connections were refused is behind "Show details",
+ * closed at first.
  */
 public class LethenonNodePanel extends JPanel
 {
@@ -90,8 +97,10 @@ public class LethenonNodePanel extends JPanel
 
 	private final JMTextField txtPeers = new JMTextField(34);
 
+	private final Locale locale = Locale.getDefault();
+
 	private final JMCheckBox chkMine = new JMCheckBox(
-		LethenonMessages.getString("lethenon.node.mine", "mine, paying this wallet"));
+		text("lethenon.node.check.mine", "find blocks too, paid to my wallet"));
 
 	private final JMTextField txtWalletFile = new JMTextField(34);
 
@@ -99,19 +108,48 @@ public class LethenonNodePanel extends JPanel
 
 	private final JMTextField txtPun = new JMTextField(34);
 
-	private final JMTextArea txtStatus = new JMTextArea(6, 62);
+	private final JMTextArea txtAnswer = AnswerFields.answerArea(text("lethenon.node.tooltip.answer",
+		"what your node does, in one sentence, read again every second"));
+
+	private final JMTextField txtListening = AnswerFields.readOnly("txtListening",
+		text("lethenon.node.tooltip.listening",
+			"the port other nodes reach yours on; give it with your address to whoever should "
+				+ "connect"));
+
+	private final JMTextField txtLastBlock = AnswerFields.readOnly("txtLastBlock",
+		text("lethenon.node.tooltip.last.block",
+			"the number of the last block in your node's chain; it grows as new blocks arrive"));
+
+	private final JMTextField txtConnected = AnswerFields.readOnly("txtConnected",
+		text("lethenon.node.tooltip.connected",
+			"how many other nodes your node talks to now; they pass blocks and transfers along"));
+
+	private final JMTextField txtWaiting = AnswerFields.readOnly("txtWaiting",
+		text("lethenon.node.tooltip.waiting",
+			"how many transfers wait in your node for the next block"));
+
+	private final JMTextField txtMined = AnswerFields.readOnly("txtMined",
+		text("lethenon.node.tooltip.mined",
+			"how many blocks your node found and kept; each one pays your wallet"));
+
+	private final JButton btnDetails;
+
+	private final JPanel pnlDetails = new JPanel(ToolForm.newLayout());
+
+	private final JMTextArea txtRefusals = new JMTextArea(3, 40);
 
 	private final JLabel lblResult = new JLabel(" ");
 
 	private final JButton btnStart = LethenonSwing.button("btnStartNode",
-		LethenonMessages.getString("lethenon.button.node.start", "Start the node"),
-		event -> onStart(), LethenonMessages.getString("lethenon.tooltip.node.start",
-			"serve the chain file, connect the peers, and mine when that is ticked"));
+		text("lethenon.node.button.start", "Start my node"), event -> onStart(),
+		text("lethenon.node.tooltip.start",
+			"share your chain file with other nodes, connect to the ones listed, and find blocks "
+				+ "when that is ticked"));
 
 	private final JButton btnStop = LethenonSwing.button("btnStopNode",
-		LethenonMessages.getString("lethenon.button.node.stop", "Stop the node"),
-		event -> onStop(), LethenonMessages.getString("lethenon.tooltip.node.stop",
-			"stop mining after the round in progress, then the node"));
+		text("lethenon.node.button.stop", "Stop my node"), event -> onStop(),
+		text("lethenon.node.tooltip.stop",
+			"stop finding blocks once the search in progress ends, then stop the node"));
 
 	private final Timer refresh = new Timer(REFRESH_MILLIS, event -> showTheStatus());
 
@@ -143,10 +181,16 @@ public class LethenonNodePanel extends JPanel
 	{
 		super(ToolForm.newLayout());
 		this.consent = consent;
+		btnDetails = LethenonSwing.button("btnDetails",
+			AnswerFields.detailsButtonText(false, locale), event -> onDetails(),
+			text("lethenon.node.tooltip.details", "show why connections to your node were refused"));
 		nameTheComponents();
 		explainTheComponents();
 		bindToTheModel();
-		layOut();
+		layOutTheInputs();
+		layOutTheAnswer();
+		add(lblResult, ToolForm.RESULT_LINE);
+		pnlDetails.setVisible(false);
 		txtChainFile.setText(LethenonSettingsContribution.chainFile());
 		txtWalletFile.setText(LethenonSettingsContribution.walletFile());
 		txtPort.setText(modelObject.getPort());
@@ -205,7 +249,7 @@ public class LethenonNodePanel extends JPanel
 		catch (InvalidPathException notAPath)
 		{
 			NodeSupport.wipe(password);
-			setResult(notStarted() + ": " + notAPath.getMessage());
+			showNothing(notStarted() + ": " + notAPath.getMessage());
 			return;
 		}
 		if (!convertedIfAgreed(order.chainFile()))
@@ -214,8 +258,8 @@ public class LethenonNodePanel extends JPanel
 			return;
 		}
 		setStarting(true);
-		setResult(LethenonMessages.getString("lethenon.result.node.starting",
-			"starting the node; every peer is dialled"));
+		showNothing(text("lethenon.node.result.starting",
+			"starting your node; every node listed is called"));
 		new SwingWorker<RunningNode, Void>()
 		{
 			@Override
@@ -246,11 +290,11 @@ public class LethenonNodePanel extends JPanel
 			{
 				return true;
 			}
-			setResult(notStarted() + ": " + ChainConversion.notConverted());
+			showNothing(notStarted() + ": " + ChainConversion.notConverted());
 		}
 		catch (ChainRejected | IllegalArgumentException | IOException refused)
 		{
-			setResult(notStarted() + ": " + refused.getMessage());
+			showNothing(notStarted() + ": " + refused.getMessage());
 		}
 		return false;
 	}
@@ -268,8 +312,8 @@ public class LethenonNodePanel extends JPanel
 		node = null;
 		refresh.stop();
 		btnStop.setEnabled(false);
-		setResult(LethenonMessages.getString("lethenon.result.node.stopping",
-			"stopping the node after the mining round in progress"));
+		setResult(text("lethenon.node.result.stopping",
+			"stopping your node once the search for a block in progress ends"));
 		new SwingWorker<NodeStatus, Void>()
 		{
 			@Override
@@ -304,20 +348,19 @@ public class LethenonNodePanel extends JPanel
 			node = started;
 			modelObject.setListeningPort(started.port());
 			setRunning(true);
-			setResult(LethenonMessages.getString("lethenon.result.node.running",
-				"the node runs and serves the chain file"));
+			setResult(text("lethenon.node.result.running", "the node runs and serves the chain file"));
 			showTheStatus();
 			refresh.start();
 		}
 		catch (ExecutionException failed)
 		{
-			setResult(notStarted() + ": " + reasonOf(failed.getCause()));
+			showNothing(notStarted() + ": " + reasonOf(failed.getCause()));
 		}
 		catch (InterruptedException interrupted)
 		{
 			Thread.currentThread().interrupt();
-			setResult(notStarted() + ": " + LethenonMessages
-				.getString("lethenon.result.node.interrupted", "the start was interrupted"));
+			showNothing(notStarted() + ": " + text("lethenon.node.result.interrupted",
+				"the start was interrupted; start it again"));
 		}
 		finally
 		{
@@ -329,20 +372,17 @@ public class LethenonNodePanel extends JPanel
 	{
 		try
 		{
-			setStatus(describeTheStop(worker.get()));
-			setResult(LethenonMessages.getString("lethenon.result.node.stopped",
-				"the node was stopped"));
+			showTheAnswer(worker.get(), false);
+			setResult(text("lethenon.node.result.stopped", "the node was stopped"));
 		}
 		catch (ExecutionException failed)
 		{
-			setResult(LethenonMessages.getString("lethenon.result.node.stop.failed",
-				"the node did not stop cleanly") + ": " + reasonOf(failed.getCause()));
+			setResult(stopFailed() + ": " + reasonOf(failed.getCause()));
 		}
 		catch (InterruptedException interrupted)
 		{
 			Thread.currentThread().interrupt();
-			setResult(LethenonMessages.getString("lethenon.result.node.stop.failed",
-				"the node did not stop cleanly"));
+			setResult(stopFailed());
 		}
 		finally
 		{
@@ -356,7 +396,7 @@ public class LethenonNodePanel extends JPanel
 		RunningNode running = node;
 		if (running != null)
 		{
-			setStatus(describe(running.status()));
+			showTheAnswer(running.status(), true);
 		}
 	}
 
@@ -381,39 +421,97 @@ public class LethenonNodePanel extends JPanel
 			Path.of(modelObject.getWalletFile().trim()), modelObject.getPun());
 	}
 
-	private static String describe(final NodeStatus status)
+	/** Opens or closes "Show details" */
+	void onDetails()
 	{
-		return LethenonMessages.getString("lethenon.node.listening", "listening on port") + " "
-			+ status.port() + ", "
-			+ LethenonMessages.getString("lethenon.node.height", "height") + " "
-			+ status.height() + ", " + status.peers() + " "
-			+ LethenonMessages.getString("lethenon.node.peers", "peer(s) connected") + ", "
-			+ status.waiting() + " "
-			+ LethenonMessages.getString("lethenon.node.waiting", "transfer(s) waiting") + ", "
-			+ LethenonMessages.getString("lethenon.node.mined", "mined") + " "
-			+ status.minedBlocks() + " "
-			+ LethenonMessages.getString("lethenon.node.blocks", "block(s)") + refusals(status);
+		modelObject.setDetailsShown(!modelObject.isDetailsShown());
+		pnlDetails.setVisible(modelObject.isDetailsShown());
+		btnDetails.setText(AnswerFields.detailsButtonText(modelObject.isDetailsShown(), locale));
+		revalidate();
+		repaint();
 	}
 
-	private static String describeTheStop(final NodeStatus status)
+	/**
+	 * The sentence that answers what the window was opened for (#604, rule 1): whether the node
+	 * runs, where its chain ends, and for a node that mines how many blocks it found
+	 *
+	 * @param status
+	 *            what the node holds
+	 * @param mining
+	 *            whether it mines
+	 * @param running
+	 *            whether it runs, or has stopped
+	 * @param locale
+	 *            the language of the window
+	 * @return the sentence
+	 */
+	static String answerFor(final NodeStatus status, final boolean mining, final boolean running,
+		final Locale locale)
 	{
-		return LethenonMessages.getString("lethenon.node.stopped.at", "stopped at height") + " "
-			+ status.height() + ", " + LethenonMessages.getString("lethenon.node.mined", "mined")
-			+ " " + status.minedBlocks() + " "
-			+ LethenonMessages.getString("lethenon.node.blocks", "block(s)") + ", "
-			+ status.waiting() + " "
-			+ LethenonMessages.getString("lethenon.node.waiting", "transfer(s) waiting")
-			+ refusals(status);
-	}
-
-	private static String refusals(final NodeStatus status)
-	{
-		if (status.refusals().isEmpty())
+		String where = running
+			? LethenonMessages.format("lethenon.node.answer.running",
+				"Your node runs on port {0,number,#}: its chain ends at block {1,number,integer}.",
+				locale, status.port(), status.height())
+			: LethenonMessages.format("lethenon.node.answer.stopped",
+				"Your node has stopped: its chain ends at block {0,number,integer}.", locale,
+				status.height());
+		if (!mining)
 		{
-			return "";
+			return where;
 		}
-		return "\n" + LethenonMessages.getString("lethenon.node.refusals", "refused:") + "\n"
-			+ String.join("\n", status.refusals());
+		String found = running
+			? LethenonMessages.format("lethenon.node.answer.found.so.far",
+				"It has found {0,choice,0#no block|1#1 block|1<{0,number,integer} blocks} for you "
+					+ "so far.",
+				locale, status.minedBlocks())
+			: LethenonMessages.format("lethenon.node.answer.found",
+				"It found {0,choice,0#no block|1#1 block|1<{0,number,integer} blocks} for you.",
+				locale, status.minedBlocks());
+		return where + " " + found;
+	}
+
+	private void showTheAnswer(final NodeStatus status, final boolean running)
+	{
+		boolean mining = modelObject.isMine();
+		modelObject.clearAnswer();
+		modelObject.setAnswer(answerFor(status, mining, running, locale));
+		modelObject.setListening(LethenonMessages.format("lethenon.node.listening",
+			"{0,number,#}", locale, status.port()));
+		modelObject.setLastBlock(LethenonMessages.format("lethenon.node.last.block",
+			"{0,number,integer}", locale, status.height()));
+		modelObject.setConnected(LethenonMessages.format("lethenon.node.connected",
+			"{0,choice,0#none|1#1 node|1<{0,number,integer} nodes}", locale, status.peers()));
+		modelObject.setWaiting(LethenonMessages.format("lethenon.node.waiting",
+			"{0,choice,0#none|1#1 transfer|1<{0,number,integer} transfers}", locale,
+			status.waiting()));
+		modelObject.setMined(mining
+			? LethenonMessages.format("lethenon.node.mined",
+				"{0,choice,0#none yet|1#1 block|1<{0,number,integer} blocks}", locale,
+				status.minedBlocks())
+			: text("lethenon.node.not.mining", "not mining"));
+		modelObject.setRefusals(status.refusals().isEmpty()
+			? text("lethenon.node.refusals.none", "none")
+			: String.join("\n", status.refusals()));
+		showTheModel();
+	}
+
+	private void showNothing(final String result)
+	{
+		modelObject.clearAnswer();
+		showTheModel();
+		setResult(result);
+	}
+
+	/** Puts what the model holds into the read-only fields */
+	private void showTheModel()
+	{
+		txtAnswer.setText(modelObject.getAnswer());
+		AnswerFields.setText(txtListening, modelObject.getListening());
+		AnswerFields.setText(txtLastBlock, modelObject.getLastBlock());
+		AnswerFields.setText(txtConnected, modelObject.getConnected());
+		AnswerFields.setText(txtWaiting, modelObject.getWaiting());
+		AnswerFields.setText(txtMined, modelObject.getMined());
+		txtRefusals.setText(modelObject.getRefusals());
 	}
 
 	/**
@@ -431,9 +529,20 @@ public class LethenonNodePanel extends JPanel
 		return String.valueOf(cause);
 	}
 
-	private static String notStarted()
+	private String notStarted()
 	{
-		return LethenonMessages.getString("lethenon.result.node.failed", "the node was not started");
+		return text("lethenon.node.result.failed", "the node was not started");
+	}
+
+	private String stopFailed()
+	{
+		return text("lethenon.node.result.stop.failed",
+			"the node did not stop cleanly; close the window to make sure it is stopped");
+	}
+
+	private String text(final String key, final String defaultValue)
+	{
+		return LethenonMessages.getString(key, defaultValue, locale);
 	}
 
 	private void dropThePassword()
@@ -451,34 +560,35 @@ public class LethenonNodePanel extends JPanel
 		txtWalletFile.setName("txtWalletFile");
 		txtPassword.setName("txtPassword");
 		txtPun.setName("txtPun");
-		txtStatus.setName("txtStatus");
+		pnlDetails.setName("pnlDetails");
+		txtRefusals.setName("txtRefusals");
 		lblResult.setName("lblResult");
 	}
 
 	private void explainTheComponents()
 	{
-		txtChainFile.setToolTipText(LethenonMessages.getString("lethenon.tooltip.node.chain.file",
-			"the chain file the node serves, on the test network; it keeps its pool next to it"));
-		txtPort.setToolTipText(LethenonMessages.getString("lethenon.tooltip.node.port",
-			"the TCP port the node listens on; 0 for any free one"));
-		txtPeers.setToolTipText(LethenonMessages.getString("lethenon.tooltip.node.peers",
-			"host:port of the nodes to connect to, separated by spaces or commas; may be empty"));
-		chkMine.setToolTipText(LethenonMessages.getString("lethenon.tooltip.node.mine",
-			"mine on the tip and the pool of the node; every block pays the Ed25519 account of "
-				+ "the wallet"));
-		txtWalletFile.setToolTipText(LethenonMessages.getString("lethenon.tooltip.wallet.file",
-			"the wallet file lethenon's 'wallet create' or 'wallet restore' wrote"));
-		txtPassword.setToolTipText(LethenonMessages.getString("lethenon.tooltip.wallet.password",
-			"the wallet file's password; it is used once and then cleared"));
-		txtPun.setToolTipText(LethenonMessages.getString("lethenon.tooltip.mine.pun",
-			"the words mining starts from; a counter is appended until the block meets the "
-				+ "difficulty"));
-		txtStatus.setToolTipText(LethenonMessages.getString("lethenon.tooltip.node.status",
-			"what the node holds, read every second while it runs"));
-		txtStatus.setEditable(false);
-		txtStatus.setLineWrap(true);
-		txtStatus.setWrapStyleWord(true);
-		txtStatus.setFont(new Font("monospaced", Font.PLAIN, 12));
+		txtChainFile.setToolTipText(text("lethenon.node.tooltip.chain.file",
+			"your chain file on the test network; your node shares it and adds every new block "
+				+ "to it"));
+		txtPort.setToolTipText(text("lethenon.node.tooltip.port",
+			"the number other nodes reach yours on; 0 lets the computer pick a free one"));
+		txtPeers.setToolTipText(text("lethenon.node.tooltip.peers",
+			"other nodes to connect to, as host:port, separated by spaces or commas; may be empty"));
+		chkMine.setToolTipText(text("lethenon.node.tooltip.mine",
+			"also look for new blocks; every block your node finds pays the Ed25519 account of "
+				+ "your wallet"));
+		txtWalletFile.setToolTipText(text("lethenon.node.tooltip.wallet.file",
+			"your wallet file; only needed when your node finds blocks"));
+		txtPassword.setToolTipText(text("lethenon.input.tooltip.password",
+			"the password of your wallet file; it is used once and then forgotten"));
+		txtPun.setToolTipText(text("lethenon.node.tooltip.pun",
+			"any words you like; they go into every block your node finds"));
+		txtRefusals.setToolTipText(text("lethenon.node.tooltip.refusals",
+			"connections your node turned away, and why, oldest first"));
+		txtRefusals.setEditable(false);
+		txtRefusals.setLineWrap(true);
+		txtRefusals.setWrapStyleWord(true);
+		txtRefusals.setOpaque(false);
 		lblResult.setFont(lblResult.getFont().deriveFont(Font.BOLD));
 		chkMine.addActionListener(event -> updateTheControls());
 	}
@@ -495,41 +605,62 @@ public class LethenonNodePanel extends JPanel
 		txtPassword
 			.setPropertyModel(LambdaModel.of(modelObject::getPassword, modelObject::setPassword));
 		txtPun.setPropertyModel(LambdaModel.of(modelObject::getPun, modelObject::setPun));
-		txtStatus.setPropertyModel(LambdaModel.of(modelObject::getStatus, modelObject::setStatus));
+		AnswerFields.show(txtAnswer, modelObject::getAnswer);
+		AnswerFields.show(txtListening, modelObject::getListening);
+		AnswerFields.show(txtLastBlock, modelObject::getLastBlock);
+		AnswerFields.show(txtConnected, modelObject::getConnected);
+		AnswerFields.show(txtWaiting, modelObject::getWaiting);
+		AnswerFields.show(txtMined, modelObject::getMined);
+		AnswerFields.show(txtRefusals, modelObject::getRefusals);
 	}
 
-	private void layOut()
+	private void layOutTheInputs()
 	{
-		add(new JLabel(LethenonMessages.getString("lethenon.label.chain.file", "Chain file:")));
+		add(new JLabel(text("lethenon.input.label.chain.file", "Chain file:")));
 		add(txtChainFile, WITH_BUTTON);
 		add(LethenonSwing.button("btnBrowseChainFile", "...",
 			event -> LethenonSwing.chooseFile(this, modelObject.getChainFile())
 				.ifPresent(txtChainFile::setText),
-			LethenonMessages.getString("lethenon.tooltip.browse.chain.file", "pick the chain file")),
+			text("lethenon.input.tooltip.browse.chain.file", "pick the chain file on your disk")),
 			OWN_WIDTH);
-		add(new JLabel(LethenonMessages.getString("lethenon.label.node.port", "Port:")));
+		add(new JLabel(text("lethenon.node.label.port", "Port:")));
 		add(txtPort, OWN_WIDTH);
-		add(new JLabel(LethenonMessages.getString("lethenon.label.node.peers", "Peers:")));
+		add(new JLabel(text("lethenon.node.label.peers", "Other nodes (optional):")));
 		add(txtPeers, ToolForm.FIELD);
-		add(new JLabel(LethenonMessages.getString("lethenon.label.node.mining", "Mining:")));
+		add(new JLabel(text("lethenon.node.label.mining", "Blocks:")));
 		add(chkMine, OWN_WIDTH);
-		add(new JLabel(LethenonMessages.getString("lethenon.label.wallet.file", "Wallet file:")));
+		add(new JLabel(text("lethenon.input.label.wallet.file", "Wallet file:")));
 		add(txtWalletFile, WITH_BUTTON);
 		add(LethenonSwing.button("btnBrowseWalletFile", "...",
 			event -> LethenonSwing.chooseFile(this, modelObject.getWalletFile())
 				.ifPresent(txtWalletFile::setText),
-			LethenonMessages.getString("lethenon.tooltip.browse.wallet.file",
-				"pick the wallet file")),
+			text("lethenon.input.tooltip.browse.wallet.file", "pick your wallet file on your disk")),
 			OWN_WIDTH);
-		add(new JLabel(LethenonMessages.getString("lethenon.label.wallet.password", "Password:")));
+		add(new JLabel(text("lethenon.input.label.password", "Password:")));
 		add(txtPassword, ToolForm.FIELD);
-		add(new JLabel(LethenonMessages.getString("lethenon.label.mine.pun", "Pun:")));
+		add(new JLabel(text("lethenon.node.label.pun", "Your pun:")));
 		add(txtPun, ToolForm.FIELD);
 		add(ToolForm.buttons(btnStart, btnStop), ToolForm.BUTTON_ROW);
-		add(new JLabel(LethenonMessages.getString("lethenon.label.node.status", "Status:")),
+	}
+
+	private void layOutTheAnswer()
+	{
+		add(txtAnswer, ToolForm.WIDE + ", wmin 0");
+		add(new JLabel(text("lethenon.node.label.listening", "Reachable on port:")));
+		add(txtListening, ToolForm.FIELD);
+		add(new JLabel(text("lethenon.node.label.last.block", "Last block:")));
+		add(txtLastBlock, ToolForm.FIELD);
+		add(new JLabel(text("lethenon.node.label.connected", "Other nodes connected:")));
+		add(txtConnected, ToolForm.FIELD);
+		add(new JLabel(text("lethenon.node.label.waiting", "Transfers waiting:")));
+		add(txtWaiting, ToolForm.FIELD);
+		add(new JLabel(text("lethenon.node.label.mined", "Blocks found for you:")));
+		add(txtMined, ToolForm.FIELD);
+		add(ToolForm.buttons(btnDetails), ToolForm.BUTTON_ROW);
+		pnlDetails.add(new JLabel(text("lethenon.node.label.refusals", "Refused connections:")),
 			"aligny top");
-		add(ToolForm.scrolled(txtStatus), ToolForm.GROWING);
-		add(lblResult, ToolForm.RESULT_LINE);
+		pnlDetails.add(txtRefusals, ToolForm.FIELD + ", wmin 0");
+		add(pnlDetails, ToolForm.WIDE + ", hidemode 3");
 	}
 
 	/**
@@ -560,12 +691,6 @@ public class LethenonNodePanel extends JPanel
 	{
 		modelObject.setRunning(running);
 		updateTheControls();
-	}
-
-	private void setStatus(final String text)
-	{
-		modelObject.setStatus(text);
-		txtStatus.setText(text);
 	}
 
 	private void setResult(final String text)

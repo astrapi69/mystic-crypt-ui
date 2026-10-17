@@ -39,7 +39,6 @@ import java.security.KeyPair;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
@@ -855,20 +854,20 @@ class LethenonPluginUiTest extends AbstractUiTest
 		});
 		UiTestSpeed.step();
 		SwingUtilities.invokeLater(() -> tool.button("btnStartNode").target().doClick());
-		awaitStatus(tool, "mined [1-9]", "the node runs and has mined a block");
+		awaitStatus(tool, "has found [1-9]", "the node runs and has found a block");
 
-		Matcher listening = Pattern.compile("listening on port (\\d+)")
-			.matcher(textOf(tool, "txtStatus"));
-		assertTrue(listening.find(), textOf(tool, "txtStatus"));
+		String port = textOf(tool, "txtListening");
+		assertTrue(textOf(tool, "txtAnswer").startsWith("Your node runs on port " + port + ":"),
+			textOf(tool, "txtAnswer"));
 		ChainFile copy = new ChainFile(new File(tempHome, "copy.lethenon").toPath());
-		Sync.once(copy, new PeerAddress("127.0.0.1", Integer.parseInt(listening.group(1))),
+		Sync.once(copy, new PeerAddress("127.0.0.1", Integer.parseInt(port)),
 			Duration.ofSeconds(30));
 		assertEquals(started, copy.require().subList(0, started.size()),
 			"another node takes the chain from the window's node, the mined blocks after it");
 		assertTrue(textOf(tool, "txtPassword").isEmpty(), "the password field is cleared");
 
 		SwingUtilities.invokeLater(() -> tool.button("btnStopNode").target().doClick());
-		awaitStatus(tool, "stopped at height", "the node has stopped");
+		awaitStatus(tool, "has stopped", "the node has stopped");
 
 		List<BlockBody> written = chain.require();
 		assertTrue(written.size() > started.size(), "the node wrote what it mined");
@@ -893,7 +892,7 @@ class LethenonPluginUiTest extends AbstractUiTest
 				@Override
 				public boolean test()
 				{
-					return pattern.matcher(textOf(tool, "txtStatus")).find();
+					return pattern.matcher(textOf(tool, "txtAnswer")).find();
 				}
 			}, 30000);
 		}

@@ -105,6 +105,7 @@ class LethenonGermanTextTest
 			Arguments.of("Sweep", List.of("lethenon.sweep.")),
 			Arguments.of("Synchronise with a Node", List.of("lethenon.sync.")),
 			Arguments.of("Verify a Chain", List.of("lethenon.verify.")),
+			Arguments.of("Run a Node", List.of("lethenon.node.")),
 			Arguments.of("what every window answers with",
 				List.of("lethenon.answer.", "lethenon.input.", "lethenon.wallet.",
 					"lethenon.value.")));

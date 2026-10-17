@@ -24,6 +24,9 @@
  */
 package io.github.astrapi69.mystic.crypt.plugin.lethenon;
 
+import static io.github.astrapi69.mystic.crypt.plugin.lethenon.Windows.component;
+import static io.github.astrapi69.mystic.crypt.plugin.lethenon.Windows.textOf;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -33,8 +36,12 @@ import java.io.File;
 import java.nio.file.Path;
 import java.time.Duration;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.function.BooleanSupplier;
+
+import javax.swing.JButton;
+import javax.swing.JPanel;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -108,20 +115,55 @@ class LethenonNodePanelBindingTest
 		panel.onStart();
 		await("the node runs", () -> panel.getModelObject().isRunning());
 		int port = panel.getModelObject().getListeningPort();
-		await("the status is shown",
-			() -> panel.getModelObject().getStatus().contains("listening on port " + port));
+		await("the answer is shown", () -> textOf(panel, "txtAnswer").startsWith("Your node runs"));
 
-		assertTrue(panel.getModelObject().getStatus().contains("height 2"),
-			panel.getModelObject().getStatus());
+		assertEquals("Your node runs on port " + port + ": its chain ends at block 2.",
+			textOf(panel, "txtAnswer"));
+		assertEquals(String.valueOf(port), textOf(panel, "txtListening"));
+		assertEquals("2", textOf(panel, "txtLastBlock"));
+		assertEquals("none", textOf(panel, "txtConnected"));
+		assertEquals("none", textOf(panel, "txtWaiting"));
+		assertEquals("not mining", textOf(panel, "txtMined"));
+		assertEquals("none", textOf(panel, "txtRefusals"));
 		Path copy = directory.resolve("copy.lethenon");
 		Sync.once(new ChainFile(copy), new PeerAddress("127.0.0.1", port), Duration.ofSeconds(20));
 		assertEquals(chain, new ChainFile(copy).require(), "the window's node serves the chain");
 
 		panel.onStop();
 		await("the node has stopped", () -> !panel.getModelObject().isRunning()
-			&& panel.getModelObject().getResultText().startsWith("the node was stopped"));
-		assertTrue(panel.getModelObject().getStatus().contains("stopped at height 2"),
-			panel.getModelObject().getStatus());
+			&& panel.getModelObject().getResultText().startsWith("the node was stopped")
+			&& textOf(panel, "txtAnswer").startsWith("Your node has stopped"));
+		assertEquals("Your node has stopped: its chain ends at block 2.",
+			textOf(panel, "txtAnswer"));
+	}
+
+	@Test
+	@DisplayName("why connections were refused is behind \"Show details\", closed at first, and every field, button and choice has a tooltip (#604)")
+	void theDetails_areClosedAtFirst_andEveryFieldExplainsItself()
+	{
+		LethenonNodePanel panel = new LethenonNodePanel();
+		JPanel details = component(panel, "pnlDetails", JPanel.class);
+
+		assertFalse(details.isVisible(), "the details are closed at first");
+		assertEquals(List.of(), Windows.withoutATooltip(panel),
+			"fields, buttons and choices without a tooltip");
+
+		panel.onDetails();
+
+		assertTrue(details.isVisible());
+		assertEquals("Hide details", component(panel, "btnDetails", JButton.class).getText());
+	}
+
+	@Test
+	@DisplayName("the answer of a mining node counts the blocks it found, in words (#604)")
+	void theAnswer_ofAMiningNode_countsTheBlocksFound()
+	{
+		NodeStatus status = new NodeStatus(18480, 1200, 2, 1, 3, List.of());
+
+		assertEquals("Your node runs on port 18480: its chain ends at block 1,200. It has found 3 "
+			+ "blocks for you so far.", LethenonNodePanel.answerFor(status, true, true, Locale.ENGLISH));
+		assertEquals("Your node has stopped: its chain ends at block 1,200. It found 3 blocks for "
+			+ "you.", LethenonNodePanel.answerFor(status, true, false, Locale.ENGLISH));
 	}
 
 	@Test
