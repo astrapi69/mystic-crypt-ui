@@ -31,6 +31,11 @@ CHANGED:
   checked and all the money there is are behind "Show details". What a block paid is read from the replay - what
   left the mining pool, what the tail minted and the fees it carries - and a test holds it to what the miner's
   account grew by. Every field, button and choice has a tooltip in plain words, English and German
+- "Send" answers in fields the same way (#604): "Sent: 12.50000000 LETH to the account you named. It counts once the
+  next block is mined.", or that the named node puts it into one of its next blocks; then the amount, the fee, the
+  recipient as it was typed and where the transfer waits. The transfer's number and how many transfers wait are
+  behind "Show details". A published address is still named as typed, never the one-time destination it gave. The
+  inputs speak plainly ("Pay from: your Ed25519 account", "Note", "Node (optional)"), in English and German
 
 Version 8.10
 -------------

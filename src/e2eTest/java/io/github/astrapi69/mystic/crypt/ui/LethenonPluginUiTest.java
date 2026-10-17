@@ -344,14 +344,24 @@ class LethenonPluginUiTest extends AbstractUiTest
 			@Override
 			public boolean test()
 			{
-				return textOf(tool, "txtReport").contains("waiting");
+				return textOf(tool, "txtAnswer").startsWith("Sent:");
 			}
 		}, 30000);
 
-		String report = textOf(tool, "txtReport");
-		assertTrue(report.contains("1.25000000 LETH"), report);
-		assertTrue(report.contains("with nonce 0"), report);
-		assertFalse(report.contains(walletPassword), "the password is in no text on the screen");
+		assertEquals("Sent: 1.25000000 LETH to the account you named. It counts once the next "
+			+ "block is mined.", textOf(tool, "txtAnswer"));
+		assertEquals("1.25000000 LETH", textOf(tool, "txtSentAmount"));
+		assertEquals(recipient.toString(), textOf(tool, "txtSentTo"));
+		assertEquals("next to the chain file, until the next block is mined",
+			textOf(tool, "txtWhereItWaits"));
+		tool.button("btnDetails").click();
+		assertEquals("0", textOf(tool, "txtNonce"));
+		for (String field : List.of("txtAnswer", "txtSentAmount", "txtSentFee", "txtSentTo",
+			"txtWhereItWaits", "txtNonce", "txtWaiting"))
+		{
+			assertFalse(textOf(tool, field).contains(walletPassword),
+				"the password is in no text on the screen");
+		}
 		List<SignedTransaction> pending = new ChainFile(chainFile.toPath()).readPending();
 		assertEquals(1, pending.size(), "the transfer waits in the chain library's pending file");
 		assertEquals("watching is not protecting", pending.getFirst().body().memo());
@@ -619,10 +629,12 @@ class LethenonPluginUiTest extends AbstractUiTest
 		});
 		UiTestSpeed.step();
 		SwingUtilities.invokeLater(() -> send.button("btnSend").target().doClick());
-		awaitReport(send, "waiting", "the payment is signed");
-		String sendReport = textOf(send, "txtReport");
+		awaitText(send, "txtAnswer", "Sent:", "the payment is signed");
+		String sendReport = textOf(send, "txtAnswer") + " " + textOf(send, "txtSentTo");
 		Destination oneTime = chain.readPending().getFirst().body().recipient();
-		assertTrue(sendReport.contains("a one-time destination of " + address), sendReport);
+		assertTrue(sendReport.contains("to the address you named"), sendReport);
+		assertTrue(textOf(send, "txtSentTo").startsWith(address.substring(0, 12)),
+			"the window names the address that was typed: " + textOf(send, "txtSentTo"));
 		assertFalse(sendReport.contains(oneTime.key().toString()),
 			"the sender's screen never shows the destination it derived");
 
@@ -779,7 +791,10 @@ class LethenonPluginUiTest extends AbstractUiTest
 			});
 			UiTestSpeed.step();
 			SwingUtilities.invokeLater(() -> send.button("btnSend").target().doClick());
-			awaitReport(send, "handed it to the node", "the transfer is handed to the node");
+			awaitText(send, "txtAnswer", "The node at 127.0.0.1:" + port,
+				"the transfer is handed to the node");
+			assertEquals("in the pool of the node at 127.0.0.1:" + port,
+				textOf(send, "txtWhereItWaits"));
 
 			List<SignedTransaction> pool = node.pending();
 			assertEquals(1, pool.size(), "the node admitted the transfer");
