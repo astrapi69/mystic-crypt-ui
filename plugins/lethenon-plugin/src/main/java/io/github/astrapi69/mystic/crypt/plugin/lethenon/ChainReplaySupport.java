@@ -68,9 +68,20 @@ public final class ChainReplaySupport
 	 */
 	public static ChainReplayReport verify(final Path chainFile) throws IOException
 	{
-		Replay replay = replayed(chainFile).replay();
+		return report(replayed(chainFile).replay());
+	}
+
+	/**
+	 * What a replay verified, its numbers apart and its sentence beside them (#604)
+	 *
+	 * @param replay
+	 *            an accepted replay
+	 * @return the report
+	 */
+	static ChainReplayReport report(final Replay replay)
+	{
 		return new ChainReplayReport(replay.blocks(), replay.transactions(), replay.signatures(),
-			replay.describe());
+			replay.finalState().supply(), replay.finalState().minted(), replay.describe());
 	}
 
 	/**

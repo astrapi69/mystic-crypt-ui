@@ -29,6 +29,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.awt.Toolkit;
+import java.awt.datatransfer.DataFlavor;
 import java.io.File;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -42,6 +44,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 import javax.swing.JLabel;
+import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 
 import org.assertj.swing.edt.GuiActionRunner;
@@ -210,16 +213,41 @@ class LethenonPluginUiTest extends AbstractUiTest
 			@Override
 			public boolean test()
 			{
-				return textOf(tool, "txtReport").contains("LETH, spendable");
+				return textOf(tool, "txtAnswer").startsWith("You hold");
 			}
 		}, 30000);
 
-		String report = textOf(tool, "txtReport");
-		assertTrue(report.contains("3.00000000 LETH, spendable"), report);
-		assertTrue(report.contains("1 one-time payments holding 5.00000000 LETH"), report);
-		assertTrue(report.contains("spendable after a sweep"), report);
-		assertTrue(report.contains("address (publish this): " + wallet.address().toText()), report);
-		assertFalse(report.contains(walletPassword), "the password is in no text on the screen");
+		assertEquals(
+			"You hold 3.00000000 LETH, and 5.00000000 LETH came to your address and "
+				+ "waits for a sweep.",
+			textOf(tool, "txtAnswer"),
+			"the answer comes first, the one-time payment named apart and not added (#604)");
+		assertEquals("3.00000000 LETH", textOf(tool, "txtHolds_ed25519"));
+		assertEquals("0.00000000 LETH", textOf(tool, "txtHolds_ml-dsa-65"));
+		assertEquals("1 payment, 5.00000000 LETH", textOf(tool, "txtWaitingForSweep"));
+		String address = wallet.address().toText();
+		String shownAddress = textOf(tool, "txtAddress");
+		assertTrue(shownAddress.startsWith(address.substring(0, 12)), shownAddress);
+		assertTrue(shownAddress.endsWith("(" + address.length() + " characters)"), shownAddress);
+		GuiActionRunner.execute(() -> tool.button("btnCopyAddress").target().doClick());
+		assertEquals(address,
+			GuiActionRunner.execute(() -> (String)Toolkit.getDefaultToolkit().getSystemClipboard()
+				.getData(DataFlavor.stringFlavor)),
+			"Copy copies the whole address, not what the field shows");
+		assertFalse(
+			GuiActionRunner.execute(() -> robot.finder()
+				.findByName(tool.target(), "pnlDetails", JPanel.class, false).isShowing()),
+			"the details are closed at first");
+		GuiActionRunner.execute(() -> tool.button("btnDetails").target().doClick());
+		assertEquals("3 blocks, 2 transfers, 2 signatures", textOf(tool, "txtChainChecked"));
+		assertEquals("1,984,000,000.00000000 LETH", textOf(tool, "txtSupply"));
+		for (String field : new String[] { "txtAddress", "txtAccount_ed25519",
+				"txtAccount_ml-dsa-65", "txtHolds_ed25519", "txtWaitingForSweep", "txtChainChecked",
+				"txtSupply" })
+		{
+			assertFalse(textOf(tool, field).contains(walletPassword),
+				"the password is in no text on the screen");
+		}
 		String passwordLeft = GuiActionRunner
 			.execute(() -> tool.textBox("txtPassword").target().getText());
 		assertTrue(passwordLeft.isEmpty(), "the password field is cleared after one use");

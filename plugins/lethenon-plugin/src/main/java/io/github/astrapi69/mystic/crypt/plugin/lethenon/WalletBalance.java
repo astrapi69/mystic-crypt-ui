@@ -46,11 +46,11 @@ import io.github.astrapi69.lethenon.Amount;
  * @param address
  *            the wallet's published address as text, {@code <view key>:<spend key>} - what a payer
  *            needs in order to pay a one-time destination of it
- * @param replaySummary
- *            the chain library's own sentence about the replay this balance comes from
+ * @param replay
+ *            the replay this balance comes from, its numbers and its sentence
  */
 public record WalletBalance(List<AccountBalance> accounts, int oneTimePayments,
-	Amount oneTimeAmount, String address, String replaySummary) {
+	Amount oneTimeAmount, String address, ChainReplayReport replay) {
 
 	public WalletBalance {
 		accounts = List.copyOf(accounts);

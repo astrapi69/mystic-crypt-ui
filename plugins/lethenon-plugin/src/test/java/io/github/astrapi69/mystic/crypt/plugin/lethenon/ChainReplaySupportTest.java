@@ -45,10 +45,14 @@ import io.github.astrapi69.lethenon.Blocks;
 import io.github.astrapi69.lethenon.Bytes;
 import io.github.astrapi69.lethenon.CanonicalEncoding;
 import io.github.astrapi69.lethenon.Chain;
+import io.github.astrapi69.lethenon.ChainFile;
 import io.github.astrapi69.lethenon.ChainRejected;
+import io.github.astrapi69.lethenon.ChainState;
+import io.github.astrapi69.lethenon.Emission;
 import io.github.astrapi69.lethenon.Destination;
 import io.github.astrapi69.lethenon.Genesis;
 import io.github.astrapi69.lethenon.Mining;
+import io.github.astrapi69.lethenon.Replay;
 import io.github.astrapi69.lethenon.SignatureSuite;
 import io.github.astrapi69.lethenon.SignedTransaction;
 import io.github.astrapi69.lethenon.TransactionBody;
@@ -88,6 +92,22 @@ class ChainReplaySupportTest
 		assertTrue(report.summary().contains("replayed 3 blocks"), report.summary());
 		assertTrue(report.summary().contains("which is the supply"),
 			"the chain's own summary carries the supply invariant: " + report.summary());
+	}
+
+	@Test
+	@DisplayName("the report carries the supply and what was minted as amounts, not only in its sentence")
+	void verify_reportsTheSupply_asAmounts() throws Exception
+	{
+		Path chainFile = LethenonFixtures.written(new File(directory, "chain.lethenon").toPath(),
+			aChainWithOneTransfer());
+		ChainState state = Replay.verify(new ChainFile(chainFile).read()).finalState();
+
+		ChainReplayReport report = ChainReplaySupport.verify(chainFile);
+
+		assertEquals(state.supply(), report.supply());
+		assertEquals(state.minted(), report.minted());
+		assertEquals(Emission.GENESIS_SUPPLY.plus(report.minted()), report.supply(),
+			"the supply is what genesis put in plus what the tail minted");
 	}
 
 	@Test

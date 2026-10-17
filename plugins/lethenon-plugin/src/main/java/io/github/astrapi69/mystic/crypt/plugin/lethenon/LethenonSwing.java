@@ -25,6 +25,8 @@
 package io.github.astrapi69.mystic.crypt.plugin.lethenon;
 
 import java.awt.Component;
+import java.awt.Toolkit;
+import java.awt.datatransfer.StringSelection;
 import java.awt.event.ActionListener;
 import java.io.File;
 import java.util.Optional;
@@ -89,5 +91,18 @@ final class LethenonSwing
 			return Optional.empty();
 		}
 		return Optional.of(chooser.getSelectedFile().getAbsolutePath());
+	}
+
+	/**
+	 * Puts a value on the system clipboard, whole: a Copy button copies what the model holds, never
+	 * the shortened text a field shows (#604, rule 3)
+	 *
+	 * @param value
+	 *            the value
+	 */
+	static void copy(final String value)
+	{
+		Toolkit.getDefaultToolkit().getSystemClipboard().setContents(new StringSelection(value),
+			null);
 	}
 }

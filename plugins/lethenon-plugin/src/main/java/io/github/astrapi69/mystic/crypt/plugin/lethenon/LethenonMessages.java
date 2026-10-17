@@ -24,6 +24,8 @@
  */
 package io.github.astrapi69.mystic.crypt.plugin.lethenon;
 
+import java.text.MessageFormat;
+import java.util.Locale;
 import java.util.ResourceBundle;
 
 import io.github.astrapi69.resourcebundle.locale.ResourceBundleExtensions;
@@ -58,5 +60,44 @@ public final class LethenonMessages
 	public static String getString(final String key, final String defaultValue)
 	{
 		return ResourceBundleExtensions.getStringQuietly(RESOURCE_BUNDLE, key, defaultValue);
+	}
+
+	/**
+	 * Gets a text in the given language, for what a test or a window renders in a language other
+	 * than the one the application started in
+	 *
+	 * @param key
+	 *            the key
+	 * @param defaultValue
+	 *            the text when the key is missing
+	 * @param locale
+	 *            the language
+	 * @return the text
+	 */
+	public static String getString(final String key, final String defaultValue,
+		final Locale locale)
+	{
+		return ResourceBundleExtensions.getStringQuietly(ResourceBundle.getBundle(BUNDLE_NAME,
+			locale), key, defaultValue);
+	}
+
+	/**
+	 * Fills a text's placeholders the way {@link MessageFormat} does, numbers grouped as the
+	 * language groups them (#604)
+	 *
+	 * @param key
+	 *            the key of the pattern
+	 * @param defaultPattern
+	 *            the pattern when the key is missing
+	 * @param locale
+	 *            the language of the pattern and of the numbers in it
+	 * @param arguments
+	 *            the values for {0}, {1}, ...
+	 * @return the filled text
+	 */
+	public static String format(final String key, final String defaultPattern, final Locale locale,
+		final Object... arguments)
+	{
+		return new MessageFormat(getString(key, defaultPattern, locale), locale).format(arguments);
 	}
 }

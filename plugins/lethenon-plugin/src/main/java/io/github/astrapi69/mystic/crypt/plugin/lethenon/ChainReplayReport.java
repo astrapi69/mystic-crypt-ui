@@ -24,6 +24,8 @@
  */
 package io.github.astrapi69.mystic.crypt.plugin.lethenon;
 
+import io.github.astrapi69.lethenon.Amount;
+
 /**
  * What a replay of a chain file verified: the counts and the chain's own one-line summary.
  * <p>
@@ -38,9 +40,15 @@ package io.github.astrapi69.mystic.crypt.plugin.lethenon;
  *            how many transfers were applied
  * @param signatures
  *            how many signatures were checked
+ * @param supply
+ *            all the money there is on the chain: the genesis supply plus what was minted, which
+ *            the sum of every balance equals
+ * @param minted
+ *            what the tail emission has minted beyond the genesis supply
  * @param summary
  *            the chain library's own sentence about this replay, counts and supply included
  */
-public record ChainReplayReport(long blocks, long transactions, long signatures, String summary)
+public record ChainReplayReport(long blocks, long transactions, long signatures, Amount supply,
+	Amount minted, String summary)
 {
 }
