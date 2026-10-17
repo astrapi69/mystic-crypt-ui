@@ -37,7 +37,8 @@ CHANGED:
   leaves no daemon behind. Measured over the whole gate: the Java peak went from 3,613 MB at 8.9 to 2,736 MB (#580)
 - development only: the release signature's two passwords come from the desktop's keyring, handed only to the one
   command that signs, through `scripts/with-signing-passwords.sh`, and no longer from a plain-text file. An installer
-  build without them stops with "not signed" instead of continuing (#579)
+  build without them stops with "not signed" instead of continuing (#579). The lookup reads the GNOME keyring also when
+  make runs from a snap such as VS Code, whose variables made libsecret read a file store of its own (#595)
 - build and tests only: mutation testing names its mutator set instead of leaving it to PIT - the eleven mutators every
   run so far measured, which is not PIT's group `DEFAULTS` - and every run writes `mutation-context.json` next to its report - tool and version, mutators, scope, the breakdown, score and
   test strength, commit and date - in the form awesome-well-tested specifies, checked against its JSON Schema (#589)
