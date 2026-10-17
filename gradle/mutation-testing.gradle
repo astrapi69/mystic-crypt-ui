@@ -65,6 +65,40 @@ pitest {
             "io.github.astrapi69.mystic.crypt.settings.PluginSettingsTest"
     ]
     threads = 4
+    // the set is named, not left to PIT's default: DEFAULTS is what every run so far measured, and a
+    // run that does not say which set it used cannot be compared with another one (#589). STRONGER is
+    // a later step of its own, with a new baseline
+    mutators = ["DEFAULTS"]
     outputFormats = ["HTML", "XML"]
     timestampedReports = false
+}
+
+// mutation-context.json next to the report (#589): what a run measured - tool and version, mutators,
+// scope, the breakdown, score and test strength, commit and date - in the form awesome-well-tested
+// specifies (docs/mutation-context.md and its JSON Schema there), so that runs and repositories can be
+// compared. awesome-well-tested's converter writes it; mutation.yml fetches the converter pinned to a
+// commit and names it with -PmutationContextConverter. Version, mutators and targets come from the
+// pitest block above, so nothing here repeats them. The scope is an allow list: nothing is excluded
+// from within the targets, so no --exclude is passed.
+tasks.register('mutationContext', Exec) {
+    description = 'Writes build/reports/pitest/mutation-context.json from the last pitest run (#589)'
+    def converter = providers.gradleProperty('mutationContextConverter')
+    def report = layout.buildDirectory.file('reports/pitest/mutations.xml')
+    def context = layout.buildDirectory.file('reports/pitest/mutation-context.json')
+    def mutatorSet = pitest.mutators
+    def targets = pitest.targetClasses
+    def toolVersion = libs.versions.pitest.version.get()
+    executable = 'python3'
+    argumentProviders.add({
+        if (!converter.isPresent()) {
+            throw new GradleException('mutationContext needs awesome-well-tested\'s converter: ' +
+                    '-PmutationContextConverter=<path to scripts/mutation_context.py> (#589)')
+        }
+        List<String> arguments = [converter.get(), '--pit', report.get().asFile.path,
+                                  '--tool-version', toolVersion, '--out', context.get().asFile.path]
+        mutatorSet.get().each { arguments.addAll(['--mutators', it]) }
+        targets.get().each { arguments.addAll(['--target', it]) }
+        return arguments
+    } as CommandLineArgumentProvider)
+    mustRunAfter 'pitest'
 }
