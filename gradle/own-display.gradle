@@ -25,6 +25,12 @@
 // failed, clicking into each other's windows and reading each other's clipboard. Every test task
 // holds this service while it runs, so no two run at once.
 //
+// A test task that sets the system property java.awt.headless to true gets no display at all: its
+// JVM cannot open a window, and DISPLAY is removed from its environment, so it reaches no screen
+// either. It needs neither Xvfb nor the harness's tools, which is what lets it run on macOS and
+// Windows. The lethenon plugin's zipTest is one: it starts the plugin from its zip on every platform
+// the installer serves (#581).
+//
 // Applied by gradle/testing.gradle and by each plugin build, which is a Gradle build of its own.
 
 import java.util.concurrent.TimeUnit
@@ -100,6 +106,11 @@ def ownDisplay = gradle.sharedServices.registerIfAbsent('ownDisplay', OwnDisplay
 tasks.withType(Test).configureEach {
     usesService(ownDisplay)
     doFirst { Test task ->
+        if (task.systemProperties['java.awt.headless'] == 'true') {
+            task.environment.remove('DISPLAY')
+            task.logger.lifecycle("${task.name}: tests run headless, on no display")
+            return
+        }
         String display = ownDisplay.get().display()
         task.environment('DISPLAY', display)
         task.environment('E2E_HARNESS_DISPLAY', display)

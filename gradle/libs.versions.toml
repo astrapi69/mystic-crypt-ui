@@ -52,7 +52,7 @@ menu-action-version = "5.1"
 miglayout-swing-version = "11.5.1"
 mockito-core-version = "5.24.0"
 model-data-version = "3.2.1"
-lethenon-version = "0.5.0"
+lethenon-version = "0.6.0"
 mystic-crypt-version = "13.6"
 picocli-version = "4.7.7"
 net-extensions-version = "6.1"
@@ -65,7 +65,6 @@ silk-icon-theme-version = "1"
 silly-bean-version = "3.0"
 silly-collection-version = "28.2"
 silly-io-version = "3.6"
-sqlite-jdbc-version = "3.53.2.1"
 state-pattern-version = "7.1"
 swing-base-components-version = "5.2"
 swing-components-version = "9"
@@ -144,7 +143,6 @@ silk-icon-theme = { module = "io.github.astrapi69:silk-icon-theme", version.ref 
 silly-bean = { module = "io.github.astrapi69:silly-bean", version.ref = "silly-bean-version" }
 silly-collection = { module = "io.github.astrapi69:silly-collection", version.ref = "silly-collection-version" }
 silly-io = { module = "io.github.astrapi69:silly-io", version.ref = "silly-io-version" }
-sqlite-jdbc = { module = "org.xerial:sqlite-jdbc", version.ref = "sqlite-jdbc-version" }
 state-pattern = { module = "io.github.astrapi69:state-pattern", version.ref = "state-pattern-version" }
 swing-base-components = { module = "io.github.astrapi69:swing-base-components", version.ref = "swing-base-components-version" }
 swing-components = { module = "io.github.astrapi69:swing-components", version.ref = "swing-components-version" }

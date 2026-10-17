@@ -1,0 +1,73 @@
+name: Lethenon plugin on every platform
+
+# The lethenon plugin carries sqlite-jdbc in its zip, and with it a native library for each platform
+# the installer serves (#581). Linux x64 is measured by every build, through `make plugins`; this
+# workflow starts the plugin from its zip on the others, wherever the plugin, its build or the
+# library versions change. zipTest runs headless, on no display (gradle/own-display.gradle), which
+# is what lets it run where there is no Xvfb.
+
+on:
+  pull_request:
+    branches: [ master, develop, 'hotfix/**' ]
+    paths:
+      - 'plugins/lethenon-plugin/**'
+      - 'gradle/libs.versions.toml'
+      - 'gradle/own-display.gradle'
+      - '.github/workflows/lethenon-plugin-platforms.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  zip:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ ubuntu-24.04-arm, macos-latest, macos-15-intel, windows-latest ]
+        java-distribution: [ temurin ]
+        include:
+          # Temurin has no JDK 25 for Windows on aarch64: setup-java offered 21 and 23 there
+          # (2026-10-17). Microsoft's build of OpenJDK has one
+          - os: windows-11-arm
+            java-distribution: microsoft
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: Keep the line endings of the checkout
+        # without it Windows checks out gradlew with CRLF, which bash cannot run
+        if: runner.os == 'Windows'
+        run: git config --global core.autocrlf false
+      - name: Checkout sources
+        uses: actions/checkout@v7
+      - name: Setup Java
+        uses: actions/setup-java@v5
+        with:
+          java-version: '25'
+          distribution: ${{ matrix.java-distribution }}
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v6
+      - name: Publish the host locally
+        # the plugin is a Gradle build of its own and compiles against the host through mavenLocal()
+        shell: bash
+        run: ./gradlew publishToMavenLocal -x test
+      - name: Start the plugin from its zip
+        shell: bash
+        run: ./gradlew -p plugins/lethenon-plugin zipTest
+      - name: Keep the test results
+        # the XML carries what the summary does not, such as the files a failed cleanup could not delete
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: zipTest-${{ matrix.os }}
+          path: plugins/lethenon-plugin/build/test-results/zipTest/
+          if-no-files-found: ignore
+      - name: Report what was measured
+        # a run that wrote no result measured nothing, and says so instead of passing
+        if: always()
+        shell: bash
+        run: |
+          java -XshowSettings:properties -version 2>&1 | grep -E "^ +(os\.name|os\.arch|java\.version) ="
+          results=(plugins/lethenon-plugin/build/test-results/zipTest/*.xml)
+          [ -f "${results[0]}" ] || { echo "no zipTest result was written"; exit 1; }
+          grep -ho '<testsuite [^>]*' "${results[@]}" | grep -o 'tests="[0-9]*" skipped="[0-9]*" failures="[0-9]*" errors="[0-9]*"'

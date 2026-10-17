@@ -45,18 +45,25 @@ def hostVersion = new Properties().with { properties ->
     properties.getProperty("projectVersion")
 }
 
-// The one library the host does NOT carry. Every other plugin here is compileOnly against
-// libraries the application already ships; the chain is not one of them, so this plugin brings it
-// in its own zip under lib/, which is where pf4j's DefaultPluginClasspath looks for jars. Only
-// lethenon itself: its own dependencies - mystic-crypt, crypt-api, crypt-data, picocli - are on the
-// host's runtime classpath already, and shipping a second copy of those is how two versions of one
-// class end up in one JVM
+// The libraries the host does NOT carry. Every other plugin here is compileOnly against libraries
+// the application already ships; the chain is not one of them, so this plugin brings it in its own
+// zip under lib/, which is where pf4j's DefaultPluginClasspath looks for jars. Only lethenon and the
+// SQLite driver it keeps the chain in since 0.6.0 (#581): its other dependencies - mystic-crypt,
+// crypt-api, crypt-data, picocli - are on the host's runtime classpath already, and shipping a
+// second copy of those is how two versions of one class end up in one JVM. The driver is resolved
+// as lethenon's own dependency, so its version is the one lethenon declares and no second literal
+// here can drift from it. Its jar holds the native library for Linux, macOS and Windows, each on
+// x86_64 and aarch64
 configurations {
     bundled {
-        transitive = false
         canBeResolved = true
     }
 }
+
+def bundledModules = ['lethenon', 'sqlite-jdbc']
+def bundledJars = configurations.bundled.incoming.artifactView {
+    componentFilter { id -> id instanceof ModuleComponentIdentifier && id.module in bundledModules }
+}.files
 
 dependencies {
     compileOnly "io.github.astrapi69:mystic-crypt-ui:$hostVersion"
@@ -107,11 +114,12 @@ test {
     useJUnitPlatform()
 }
 
+
 // the tests run on a display of the build's own, not on the one the build was started from (#505)
 apply from: '../../gradle/own-display.gradle'
 
 // packages the plugin the way the host's DefaultPluginManager expects: plugin.properties at the
-// root, compiled classes under classes/, and the one library the host does not carry under lib/
+// root, compiled classes under classes/, and the libraries the host does not carry under lib/
 tasks.register('pluginZip', Zip) {
     archiveFileName = "lethenon-plugin-${version}.zip"
     destinationDirectory = layout.buildDirectory.dir("plugin-dist")
@@ -125,7 +133,52 @@ tasks.register('pluginZip', Zip) {
         }
     }
     into("lib") {
-        from configurations.bundled
+        from bundledJars
     }
     dependsOn classes
+}
+
+// the plugin started from its zip, the way the installed application starts it (#581): a class path
+// with the host and nothing of the plugin's own, so that a library the zip does not carry fails here
+// instead of being found on the build's class path, as it is in the end-to-end suite
+sourceSets {
+    zipTest {
+        java.srcDir 'src/zipTest/java'
+    }
+}
+
+dependencies {
+    zipTestImplementation "io.github.astrapi69:mystic-crypt-ui:$hostVersion"
+    zipTestImplementation libs.pf4j
+    zipTestImplementation libs.junit.jupiter
+    zipTestRuntimeOnly libs.junit.platform.launcher
+}
+
+configurations.zipTestRuntimeClasspath {
+    // the host does not depend on either today; should it ever, this test must still not see them
+    exclude group: 'io.github.astrapi69', module: 'lethenon'
+    exclude group: 'org.xerial', module: 'sqlite-jdbc'
+}
+
+def pluginZipFile = tasks.named('pluginZip').flatMap { it.archiveFile }
+
+tasks.register('zipTest', Test) {
+    description = 'Starts the plugin from its zip in a JVM without lethenon and sqlite-jdbc (#581).'
+    group = 'verification'
+    testClassesDirs = sourceSets.zipTest.output.classesDirs
+    classpath = sourceSets.zipTest.runtimeClasspath
+    useJUnitPlatform()
+    // sqlite-jdbc loads its native library with System::load; the host jar's manifest enables native
+    // access for the installed application (gradle/packaging.gradle), this flag does it for the test
+    jvmArgs '--enable-native-access=ALL-UNNAMED'
+    // no window is opened here, so the test runs on no display and needs no Xvfb, which is what lets
+    // it run on macOS and Windows as well (gradle/own-display.gradle)
+    systemProperty 'java.awt.headless', 'true'
+    inputs.file(pluginZipFile).withPropertyName('pluginZip')
+    systemProperty 'lethenon.plugin.zip', pluginZipFile.get().asFile.absolutePath
+    dependsOn 'pluginZip'
+}
+
+tasks.named('check') {
+    dependsOn 'zipTest'
 }

@@ -56,6 +56,7 @@ import io.github.astrapi69.lethenon.Destination;
 import io.github.astrapi69.lethenon.Genesis;
 import io.github.astrapi69.lethenon.Replay;
 import io.github.astrapi69.lethenon.SignatureSuite;
+import io.github.astrapi69.lethenon.SignedTransaction;
 import io.github.astrapi69.lethenon.TransactionBody;
 import io.github.astrapi69.lethenon.TransactionSigner;
 import io.github.astrapi69.lethenon.Wallet;
@@ -93,8 +94,8 @@ class MiningSupportTest
 		WalletFile.write(walletFile, wallet, PASSWORD.toCharArray());
 		KeyPair payer = TransactionSigner.newKeyPair(SignatureSuite.ED25519);
 		chainFile = new File(directory, "chain.lethenon").toPath();
-		Files.write(chainFile,
-			CanonicalEncoding.encodeChain(LethenonFixtures.aChainPayingTheWallet(payer, wallet)));
+		// a database, as lethenon 0.6.0 keeps a chain; the old format has tests of its own below
+		new ChainFile(chainFile).write(LethenonFixtures.aChainPayingTheWallet(payer, wallet));
 		miner = wallet.spendKey(SignatureSuite.ED25519);
 	}
 
@@ -125,7 +126,8 @@ class MiningSupportTest
 			"the miner pays 1 LETH out and is paid the reward and the fee back: " + before + " -> "
 				+ state.balanceOf(miner));
 		assertTrue(new ChainFile(chainFile).readPending().isEmpty());
-		assertFalse(Files.exists(pendingFile()), "the waiting transfers went into the block");
+		assertEquals(List.of(), new ChainFile(chainFile).readPending(),
+			"the waiting transfers went into the block");
 	}
 
 	@Test
@@ -264,14 +266,33 @@ class MiningSupportTest
 			new TransactionBody(Chain.IDENTIFIER, 7L, miner, Destination.direct(aRecipient()),
 				Amount.parseLeth("1"), Amount.ZERO, "a nonce from nowhere"),
 			SignatureSuite.ED25519)));
-		byte[] chainBefore = Files.readAllBytes(chainFile);
-		byte[] pendingBefore = Files.readAllBytes(pendingFile());
+		List<BlockBody> chainBefore = new ChainFile(chainFile).read();
+		List<SignedTransaction> pendingBefore = new ChainFile(chainFile).readPending();
 
 		assertThrows(ChainRejected.class, () -> MiningSupport
 			.mine(order("never written", 10_000_000L), PASSWORD.toCharArray(), NOW));
 
-		assertArrayEquals(chainBefore, Files.readAllBytes(chainFile));
-		assertArrayEquals(pendingBefore, Files.readAllBytes(pendingFile()));
+		// since lethenon 0.6.0 the pool is in the chain's database, not in a file beside it
+		assertEquals(chainBefore, new ChainFile(chainFile).read());
+		assertEquals(pendingBefore, new ChainFile(chainFile).readPending());
+	}
+
+	@Test
+	@DisplayName("a chain file of lethenon 0.5.0 is migrated once it verified, and the block is mined on it (#581)")
+	void mine_onAChainFileOfTheOldFormat_migratesItAndMines() throws Exception
+	{
+		List<BlockBody> chain = new ChainFile(chainFile).read();
+		Path old = directory.toPath().resolve("old.lethenon");
+		byte[] oldBytes = CanonicalEncoding.encodeChain(chain);
+		Files.write(old, oldBytes);
+
+		MinedBlock mined = MiningSupport.mine(new MiningOrder(old, walletFile,
+			ChainKind.TEST_NETWORK, "on the old file", 10_000_000L), PASSWORD.toCharArray(), NOW);
+
+		assertEquals(chain.size(), mined.height());
+		assertEquals(chain.size() + 1, new ChainFile(old).read().size());
+		assertArrayEquals(oldBytes, Files.readAllBytes(directory.toPath().resolve("old.lethenon.legacy")),
+			"the old file stays beside the database, byte for byte");
 	}
 
 	@Test

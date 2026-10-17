@@ -6,6 +6,10 @@ def createIzPackInstaller = project.property('createIzPackInstaller').toBoolean(
 jar {
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
     manifest {
+        // the lethenon plugin's sqlite-jdbc loads its native library with System::load, which JDK 25
+        // allows with a warning and a future release blocks unless native access is enabled; the
+        // launchers start this jar with java -jar, where this attribute is the switch (#581)
+        attributes("Enable-Native-Access": "ALL-UNNAMED")
         attributes(
                 "Name"                  : project.name,
                 "Manifest-Version"      : project.version,

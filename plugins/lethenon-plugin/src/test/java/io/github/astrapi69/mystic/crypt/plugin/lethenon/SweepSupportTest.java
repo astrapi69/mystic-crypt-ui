@@ -31,6 +31,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.File;
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.attribute.FileTime;
@@ -97,8 +98,8 @@ class SweepSupportTest
 		WalletFile.write(walletFile, wallet, PASSWORD.toCharArray());
 		payer = TransactionSigner.newKeyPair(SignatureSuite.ED25519);
 		chainFile = new File(directory, "chain.lethenon").toPath();
-		Files.write(chainFile,
-			CanonicalEncoding.encodeChain(LethenonFixtures.aChainPayingTheWallet(payer, wallet)));
+		// a database, as lethenon 0.6.0 keeps a chain (#581)
+		new ChainFile(chainFile).write(LethenonFixtures.aChainPayingTheWallet(payer, wallet));
 		account = wallet.spendKey(SignatureSuite.ED25519);
 	}
 
@@ -167,14 +168,23 @@ class SweepSupportTest
 	void sweep_findingNothing_leavesThePendingFileAlone() throws Exception
 	{
 		SweepSupport.sweep(order("0", ""), PASSWORD.toCharArray());
+		List<SignedTransaction> waiting = new ChainFile(chainFile).readPending();
 		FileTime before = FileTime.fromMillis(1_000_000_000_000L);
-		Files.setLastModifiedTime(pendingFile(), before);
+		for (Path written : databaseFiles())
+		{
+			Files.setLastModifiedTime(written, before);
+		}
 
 		SweepSupport.sweep(order("0", ""), PASSWORD.toCharArray());
 
-		assertEquals(before, Files.getLastModifiedTime(pendingFile()),
-			"nothing to sweep is nothing to write: the file the command line may be appending to "
-				+ "is left as it was");
+		// since lethenon 0.6.0 the pool is in the chain's database: nothing to sweep is nothing to
+		// write there, neither in the database nor in its write-ahead log (#581)
+		for (Path written : databaseFiles())
+		{
+			assertEquals(before, Files.getLastModifiedTime(written),
+				"nothing to sweep is nothing to write: " + written.getFileName());
+		}
+		assertEquals(waiting, new ChainFile(chainFile).readPending());
 	}
 
 	@Test
@@ -184,7 +194,7 @@ class SweepSupportTest
 		SweptPayments swept = SweepSupport.sweep(order("5", ""), PASSWORD.toCharArray());
 
 		assertEquals(0, swept.transfers());
-		assertFalse(Files.exists(pendingFile()),
+		assertEquals(List.of(), new ChainFile(chainFile).readPending(),
 			"moving a destination for exactly its fee gains nothing and publishes the link");
 	}
 
@@ -198,7 +208,7 @@ class SweepSupportTest
 			() -> SweepSupport.sweep(order(fee, ""), PASSWORD.toCharArray()));
 
 		assertTrue(refused.getMessage().contains(namedInTheMessage), refused.getMessage());
-		assertFalse(Files.exists(pendingFile()));
+		assertNothingWaiting();
 	}
 
 	@Test
@@ -210,7 +220,7 @@ class SweepSupportTest
 
 		assertTrue(refused.getMessage().contains("wallet.lethenon-wallet"), refused.getMessage());
 		assertFalse(refused.getMessage().contains("not the password"), refused.getMessage());
-		assertFalse(Files.exists(pendingFile()));
+		assertNothingWaiting();
 	}
 
 	@Test
@@ -253,9 +263,23 @@ class SweepSupportTest
 		return new SweepOrder(chainFile, walletFile, fee, memo);
 	}
 
-	private Path pendingFile()
+	/** The chain's database and, while it exists, its write-ahead log; not the shared-memory index */
+	private List<Path> databaseFiles()
 	{
-		return Path.of(chainFile + ".pending");
+		Path log = Path.of(chainFile + "-wal");
+		return Files.exists(log) ? List.of(chainFile, log) : List.of(chainFile);
+	}
+
+	private void assertNothingWaiting()
+	{
+		try
+		{
+			assertEquals(List.of(), new ChainFile(chainFile).readPending());
+		}
+		catch (IOException unreadable)
+		{
+			throw new AssertionError(unreadable);
+		}
 	}
 
 	private Destination oneTimeDestinationOfTheFixture() throws Exception

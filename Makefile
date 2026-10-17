@@ -211,7 +211,7 @@ plugin-secret-sharing: publish-local
 # build the internal Lethenon chain plugin zip (needs the host published locally first). Unlike
 # the others this zip carries a library in lib/: the chain itself, which the host does not ship
 plugin-lethenon: publish-local
-	JAVA_HOME=$(JAVA_HOME) ./gradlew -p $(PLUGIN_LETHENON_DIR) test pluginZip $(GRADLE_FLAGS)
+	JAVA_HOME=$(JAVA_HOME) ./gradlew -p $(PLUGIN_LETHENON_DIR) test zipTest pluginZip $(GRADLE_FLAGS)
 	@echo "==> plugin zip: $$(find $(PLUGIN_LETHENON_DIR)/build/plugin-dist -name '*.zip')"
 
 # the pre-check for ANY bump of crypt-data or mystic-crypt: the host's own suites AND every

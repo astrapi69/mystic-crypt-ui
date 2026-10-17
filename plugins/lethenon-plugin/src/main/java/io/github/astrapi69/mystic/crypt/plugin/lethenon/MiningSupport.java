@@ -25,6 +25,7 @@
 package io.github.astrapi69.mystic.crypt.plugin.lethenon;
 
 import java.io.IOException;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -92,7 +93,11 @@ public final class MiningSupport
 			Bytes beneficiary = LethenonWallets.open(order.walletFile(), password)
 				.spendKey(SignatureSuite.ED25519);
 			ChainFile chainFile = new ChainFile(order.chainFile());
-			List<BlockBody> chain = chainFile.read();
+			// an existing file goes through the plugin's one way in: a chain of the old format is
+			// verified before it is migrated, and never migrated when it does not verify (#581)
+			List<BlockBody> chain = Files.isRegularFile(order.chainFile())
+				&& Files.size(order.chainFile()) > 0 ? ChainFiles.read(order.chainFile())
+					: chainFile.read();
 			List<SignedTransaction> waiting = chain.isEmpty() ? List.of() : chainFile.readPending();
 			if (!chain.isEmpty())
 			{
