@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+#
+# Refuses a commit whose files Spotless would format (#592).
+#
+# Thin on purpose: which files count and what is run lives in scripts/check-formatting.sh, which a
+# test drives directly.
+#
+# Installed with: make install-hooks   (sets core.hooksPath to this directory)
+set -euo pipefail
+repository_root="$(git rev-parse --show-toplevel)"
+exec "$repository_root/scripts/check-formatting.sh"
