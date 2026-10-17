@@ -38,6 +38,9 @@ CHANGED:
 - development only: the release signature's two passwords come from the desktop's keyring, handed only to the one
   command that signs, through `scripts/with-signing-passwords.sh`, and no longer from a plain-text file. An installer
   build without them stops with "not signed" instead of continuing (#579)
+- build and tests only: mutation testing names its mutator set instead of leaving it to PIT - the eleven mutators every
+  run so far measured, which is not PIT's group `DEFAULTS` - and every run writes `mutation-context.json` next to its report - tool and version, mutators, scope, the breakdown, score and
+  test strength, commit and date - in the form awesome-well-tested specifies, checked against its JSON Schema (#589)
 
 FORMAT:
 - Lethenon chain files change: lethenon 0.6.0 keeps the chain in an SQLite database, and a chain file of 0.5.0 is

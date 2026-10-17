@@ -28,6 +28,7 @@ on:
       - 'src/test/java/io/github/astrapi69/mystic/crypt/settings/**'
       - 'src/test/java/io/github/astrapi69/mystic/crypt/cli/**'
       - 'gradle/mutation-testing.gradle'
+      - '.github/workflows/mutation.yml'
 
 jobs:
   pitest:
@@ -46,6 +47,35 @@ jobs:
         uses: gradle/actions/setup-gradle@v6
       - name: Run mutation testing
         run: ./gradlew pitest
+      - name: Fetch awesome-well-tested's context converter and schema
+        # mutation-context.json is specified in awesome-well-tested (docs/mutation-context.md); the
+        # converter that writes it and the schema it is checked against are pinned to a commit there,
+        # so that they change only when this file does (#589)
+        if: always()
+        env:
+          AWESOME_WELL_TESTED: https://raw.githubusercontent.com/awesome-references/awesome-well-tested/3858f7dac9d302fd5877197dc12518fd7b4b701f
+        run: |
+          mkdir -p "$RUNNER_TEMP/awesome-well-tested"
+          curl -fsSL --retry 3 -o "$RUNNER_TEMP/awesome-well-tested/mutation_context.py" "$AWESOME_WELL_TESTED/scripts/mutation_context.py"
+          curl -fsSL --retry 3 -o "$RUNNER_TEMP/awesome-well-tested/mutation-context.schema.json" "$AWESOME_WELL_TESTED/docs/mutation-context.schema.json"
+      - name: Write mutation-context.json next to the report
+        if: always()
+        run: ./gradlew mutationContext -PmutationContextConverter="$RUNNER_TEMP/awesome-well-tested/mutation_context.py"
+      - name: Check mutation-context.json against the schema
+        # a file that does not match the specification fails the run, rather than being kept as an
+        # artifact nobody can read; the validator runs in a virtual environment of its own
+        if: always()
+        run: |
+          python3 -m venv "$RUNNER_TEMP/schema-check"
+          "$RUNNER_TEMP/schema-check/bin/pip" install --quiet jsonschema==4.23.0
+          "$RUNNER_TEMP/schema-check/bin/python" - "$RUNNER_TEMP/awesome-well-tested/mutation-context.schema.json" build/reports/pitest/mutation-context.json <<'CHECK'
+          import json, sys
+          import jsonschema
+          schema = json.load(open(sys.argv[1], encoding="utf-8"))
+          context = json.load(open(sys.argv[2], encoding="utf-8"))
+          jsonschema.Draft202012Validator(schema).validate(context)
+          print(f"mutation-context.json matches schema_version {context['schema_version']}")
+          CHECK
       - name: Report the result in the job summary
         # the numbers belong in the summary, so a run can be judged without downloading anything
         if: always()
@@ -68,6 +98,11 @@ jobs:
             echo "| survived | $survived |"
             echo "| not covered | $uncovered |"
             echo "| total | $total |"
+            context="build/reports/pitest/mutation-context.json"
+            if [ -f "$context" ]; then
+              echo ""
+              python3 -c 'import json, sys; m = json.load(open(sys.argv[1]))["metrics"]; print("score as PIT counts it {tool_score:.1%}, strict {strict_score:.1%}, test strength {test_strength:.1%}, timeouts {timeout_ratio:.1%} (mutation-context.json, #589)".format(**m))' "$context"
+            fi
           } >> "$GITHUB_STEP_SUMMARY"
       - name: Upload the html report
         if: always()
