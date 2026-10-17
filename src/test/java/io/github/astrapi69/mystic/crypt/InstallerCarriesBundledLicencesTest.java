@@ -41,8 +41,9 @@ import org.junit.jupiter.api.Test;
 
 /**
  * A plugin whose zip bundles a library brings that library's licence, and the installer installs it
- * where a person finds it, not only inside the zip in the plugin directory (#581). The Zentus licence
- * sqlite-jdbc carries asks for its notice in every binary distribution, and the installer is one.
+ * where a person finds it, not only inside the zip in the plugin directory (#581). The Zentus
+ * licence sqlite-jdbc carries asks for its notice in every binary distribution, and the installer
+ * is one.
  * <p>
  * Checked mechanically: every plugin build that collects licences in a {@code pluginLegal} task has
  * its {@code build/legal} directory installed by the installer, under {@code legal/<plugin>}.
@@ -62,8 +63,8 @@ class InstallerCarriesBundledLicencesTest
 
 		for (String plugin : bundling)
 		{
-			String installed = "<fileset dir=\"../plugins/" + plugin + "/build/legal\" targetdir=\"${INSTALL_PATH}/legal/"
-				+ plugin + "\"";
+			String installed = "<fileset dir=\"../plugins/" + plugin
+				+ "/build/legal\" targetdir=\"${INSTALL_PATH}/legal/" + plugin + "\"";
 			if (!installer.contains(installed))
 			{
 				missing.add(plugin);
