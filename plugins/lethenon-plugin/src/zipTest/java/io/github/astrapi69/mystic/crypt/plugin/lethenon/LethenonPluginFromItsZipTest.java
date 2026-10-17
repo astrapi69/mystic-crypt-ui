@@ -41,6 +41,7 @@ import java.util.List;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import org.junit.jupiter.api.io.TempDirDeletionStrategy;
 import org.pf4j.DefaultPluginManager;
 import org.pf4j.PluginManager;
 import org.pf4j.PluginState;
@@ -60,7 +61,11 @@ class LethenonPluginFromItsZipTest
 
 	private static final String PLUGIN_ID = "lethenon-plugin";
 
-	@TempDir
+	/**
+	 * On Windows the plugin's sqlite-jdbc jar stays open after the plugin was unloaded, and its
+	 * deletion fails while everything else goes (#583); the failure is ignored, not the test
+	 */
+	@TempDir(deletionStrategy = TempDirDeletionStrategy.IgnoreFailures.class)
 	Path directory;
 
 	@Test
