@@ -100,7 +100,7 @@ minutes) burns local resources on verification GitHub Actions already does on ev
 release exception is the release CUT itself - the gate before the tag - and not the nervousness
 after a red run: six full local gates in one day cost an hour that CI was spending anyway (8.5). For
 everyday changes: run `spotlessApply` before committing (cheap, catches the most common CI-only
-failure), then push and let CI run the real gate - react to what it reports instead of blocking
+failure; since #592 the pre-commit hook refuses a commit Spotless would format, after `make install-hooks`), then push and let CI run the real gate - react to what it reports instead of blocking
 the push on a local rerun. Exception: a release cut, where `release-workflow.md`'s full local gate
 stays mandatory (nothing to react to after tagging).
 

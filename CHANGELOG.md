@@ -45,6 +45,8 @@ CHANGED:
   shell to and the Makefile pins, instead of the Makefile's own pin on JDK 25 as released in 2025. A newer patch
   release is taken on deliberately, in a pull request of its own with the gate, and the release text names the JDK
   a release was built with (#586)
+- development only: a pre-commit hook refuses a commit whose files Spotless would format, names them and the command
+  that formats them; a commit that touches nothing Spotless checks costs no Gradle run (#592)
 
 FORMAT:
 - Lethenon chain files change: lethenon 0.6.0 keeps the chain in an SQLite database, and a chain file of 0.5.0 is
