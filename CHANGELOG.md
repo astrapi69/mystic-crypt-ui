@@ -36,6 +36,11 @@ CHANGED:
   recipient as it was typed and where the transfer waits. The transfer's number and how many transfers wait are
   behind "Show details". A published address is still named as typed, never the one-time destination it gave. The
   inputs speak plainly ("Pay from: your Ed25519 account", "Note", "Node (optional)"), in English and German
+- "Sweep One-Time Payments" answers in fields the same way (#604): "Swept: 4.90000000 LETH from 1 payment onto your
+  account. It counts once the next block is mined.", or that there was nothing to sweep and why; then what moved,
+  how many payments, the account and where the transfers wait. What a sweep costs stays on the screen before
+  signing, now as one plain sentence ("Careful: after a sweep, anyone who reads the chain can see that these
+  payments belong to you."), with the whole statement as its tooltip and again behind "Show details"
 
 Version 8.10
 -------------
