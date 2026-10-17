@@ -24,7 +24,13 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ ubuntu-24.04-arm, macos-latest, macos-15-intel, windows-latest, windows-11-arm ]
+        os: [ ubuntu-24.04-arm, macos-latest, macos-15-intel, windows-latest ]
+        java-distribution: [ temurin ]
+        include:
+          # Temurin has no JDK 25 for Windows on aarch64: setup-java offered 21 and 23 there
+          # (2026-10-17). Microsoft's build of OpenJDK has one
+          - os: windows-11-arm
+            java-distribution: microsoft
     runs-on: ${{ matrix.os }}
 
     steps:
@@ -38,7 +44,7 @@ jobs:
         uses: actions/setup-java@v5
         with:
           java-version: '25'
-          distribution: 'temurin'
+          distribution: ${{ matrix.java-distribution }}
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v6
       - name: Publish the host locally
