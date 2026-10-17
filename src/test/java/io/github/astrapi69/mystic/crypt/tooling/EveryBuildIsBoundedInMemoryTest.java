@@ -119,6 +119,23 @@ class EveryBuildIsBoundedInMemoryTest
 			.contains("\norg.gradle.jvmargs="), "gradle.properties names the daemon arguments");
 	}
 
+	@Test
+	@DisplayName("every Gradle call of the Makefile takes GRADLE_FLAGS, so that one daemon serves all calls of a target")
+	void everyGradleCallInTheMakefile_takesTheFlags() throws IOException
+	{
+		List<String> calls = Files.readAllLines(Path.of("Makefile"), StandardCharsets.UTF_8)
+			.stream().filter(line -> line.startsWith("\t") && line.contains("./gradlew")).toList();
+		List<String> without = calls.stream().filter(line -> !line.contains("$(GRADLE_FLAGS)"))
+			.toList();
+
+		// a flag such as -Djava.io.tmpdir is a daemon option to Gradle: a call without it needs a
+		// daemon of its own next to the calls with it - measured in the #580 gate, where
+		// build-full's
+		// own two calls lacked the flags and the gate ran two daemons side by side
+		assertTrue(calls.size() > 10, "the Makefile calls Gradle: " + calls.size());
+		assertEquals(List.of(), without, "Gradle calls without $(GRADLE_FLAGS)");
+	}
+
 	private static File[] plugins()
 	{
 		File[] plugins = new File("plugins").listFiles(File::isDirectory);

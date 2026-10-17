@@ -53,7 +53,7 @@ check-commit-provenance:
 
 # fast build: clean, compile, package the runnable jar - skips tests/spotless/license
 build:
-	JAVA_HOME=$(JAVA_HOME) ./gradlew createAllDependendiesJar
+	JAVA_HOME=$(JAVA_HOME) ./gradlew createAllDependendiesJar $(GRADLE_FLAGS)
 
 # full build: package the runnable jar first, then compile, test, spotless and license.
 # The packaging task cleans - it has to, because the jar signing globs over build/libs and would
@@ -64,8 +64,8 @@ build:
 # a release could be cut with every plugin feature unverified and the gate still green. They fail
 # now, which is only useful if the gate builds what they need (#333)
 build-full: plugins release-jar
-	JAVA_HOME=$(JAVA_HOME) ./gradlew createAllDependendiesJar
-	JAVA_HOME=$(JAVA_HOME) ./gradlew build
+	JAVA_HOME=$(JAVA_HOME) ./gradlew createAllDependendiesJar $(GRADLE_FLAGS)
+	JAVA_HOME=$(JAVA_HOME) ./gradlew build $(GRADLE_FLAGS)
 
 # host jar plus every internal plugin, built and installed into the app's plugins directory -
 # root `build` alone never touches plugins/ (each is its own separate Gradle build), so this is
@@ -94,11 +94,11 @@ run-isolated: plugins
 all: build-with-plugins run
 
 test: release-jar-if-reachable
-	JAVA_HOME=$(JAVA_HOME) ./gradlew test
+	JAVA_HOME=$(JAVA_HOME) ./gradlew test $(GRADLE_FLAGS)
 
 # the cheap local run: the unit suite only, on a display the build starts itself (#319, #505)
 test-fast: release-jar-if-reachable
-	JAVA_HOME=$(JAVA_HOME) ./gradlew test
+	JAVA_HOME=$(JAVA_HOME) ./gradlew test $(GRADLE_FLAGS)
 
 # the application jar of the last release, downloaded, checked against its published sha256 and
 # cached per version. A failure here fails the target: CI and the release gate must not run the
@@ -136,7 +136,7 @@ test-e2e-demo: plugins
 	E2E_USE_CURRENT_DISPLAY=1 JAVA_HOME=$(JAVA_HOME) ./scripts/e2e-harness.sh e2eTest --rerun e2eLockTest --rerun e2eKdbxTest --rerun -Dmystic.crypt.ui.test.mode=demo
 
 clean:
-	JAVA_HOME=$(JAVA_HOME) ./gradlew clean
+	JAVA_HOME=$(JAVA_HOME) ./gradlew clean $(GRADLE_FLAGS)
 
 # --- internal plugins ---
 
@@ -263,20 +263,20 @@ plugins-install: plugins
 # --- mirrors Gradle "Run Configurations" panel ---
 
 bootRun: plugins-install
-	JAVA_HOME=$(JAVA_HOME) ./gradlew bootRun
+	JAVA_HOME=$(JAVA_HOME) ./gradlew bootRun $(GRADLE_FLAGS)
 
 build-stacktrace:
-	JAVA_HOME=$(JAVA_HOME) ./gradlew build --stacktrace --warning-mode all
+	JAVA_HOME=$(JAVA_HOME) ./gradlew build --stacktrace --warning-mode all $(GRADLE_FLAGS)
 
 build-warning:
-	JAVA_HOME=$(JAVA_HOME) ./gradlew build --warning-mode all
+	JAVA_HOME=$(JAVA_HOME) ./gradlew build --warning-mode all $(GRADLE_FLAGS)
 
 # the installer ships the internal plugin zips (pack "plugins" in src/main/izpack/install.xml)
 # except menu-designer, which edits the application's own menu bar and is for development only,
 # so they have to be built before izpack packs them - otherwise it fails on the missing files
 clean-build-installer: plugins
-	JAVA_HOME=$(JAVA_HOME) ./gradlew createAllDependendiesJar -PcreateIzPackInstaller=true
-	JAVA_HOME=$(JAVA_HOME) ./gradlew build izPackCreateInstaller
+	JAVA_HOME=$(JAVA_HOME) ./gradlew createAllDependendiesJar -PcreateIzPackInstaller=true $(GRADLE_FLAGS)
+	JAVA_HOME=$(JAVA_HOME) ./gradlew build izPackCreateInstaller $(GRADLE_FLAGS)
 
 # The installer packs the SIGNED uber jar (src/main/izpack/install.xml references
 # signed/<name>-<version>-all.jar), and only createAllDependendiesJar produces it. Two things were
@@ -299,47 +299,47 @@ release-gate:
 	JAVA_HOME=$(JAVA_HOME) ./gradlew build $(GRADLE_FLAGS)
 
 izpack-installer: plugins
-	JAVA_HOME=$(JAVA_HOME) ./gradlew createAllDependendiesJar -PcreateIzPackInstaller=true
-	JAVA_HOME=$(JAVA_HOME) ./gradlew checksumInstaller
+	JAVA_HOME=$(JAVA_HOME) ./gradlew createAllDependendiesJar -PcreateIzPackInstaller=true $(GRADLE_FLAGS)
+	JAVA_HOME=$(JAVA_HOME) ./gradlew checksumInstaller $(GRADLE_FLAGS)
 
 izpack-installer-signed: plugins
-	JAVA_HOME=$(JAVA_HOME) ./gradlew createIzPackInstallerFromSignedJar
+	JAVA_HOME=$(JAVA_HOME) ./gradlew createIzPackInstallerFromSignedJar $(GRADLE_FLAGS)
 
 dependencies:
-	JAVA_HOME=$(JAVA_HOME) ./gradlew dependencies
+	JAVA_HOME=$(JAVA_HOME) ./gradlew dependencies $(GRADLE_FLAGS)
 
 dependency-updates:
-	JAVA_HOME=$(JAVA_HOME) ./gradlew dependencyUpdates
+	JAVA_HOME=$(JAVA_HOME) ./gradlew dependencyUpdates $(GRADLE_FLAGS)
 
 jacoco-coverage:
-	JAVA_HOME=$(JAVA_HOME) ./gradlew jacocoTestCoverageVerification
+	JAVA_HOME=$(JAVA_HOME) ./gradlew jacocoTestCoverageVerification $(GRADLE_FLAGS)
 
 jacoco-report:
-	JAVA_HOME=$(JAVA_HOME) ./gradlew jacocoTestReport
+	JAVA_HOME=$(JAVA_HOME) ./gradlew jacocoTestReport $(GRADLE_FLAGS)
 
 jar:
-	JAVA_HOME=$(JAVA_HOME) ./gradlew jar
+	JAVA_HOME=$(JAVA_HOME) ./gradlew jar $(GRADLE_FLAGS)
 
 javadoc:
-	JAVA_HOME=$(JAVA_HOME) ./gradlew javadoc
+	JAVA_HOME=$(JAVA_HOME) ./gradlew javadoc $(GRADLE_FLAGS)
 
 license-format:
-	JAVA_HOME=$(JAVA_HOME) ./gradlew licenseFormat
+	JAVA_HOME=$(JAVA_HOME) ./gradlew licenseFormat $(GRADLE_FLAGS)
 
 spotless-java:
-	JAVA_HOME=$(JAVA_HOME) ./gradlew spotlessJavaApply
+	JAVA_HOME=$(JAVA_HOME) ./gradlew spotlessJavaApply $(GRADLE_FLAGS)
 
 spotless-misc:
-	JAVA_HOME=$(JAVA_HOME) ./gradlew spotlessMiscApply
+	JAVA_HOME=$(JAVA_HOME) ./gradlew spotlessMiscApply $(GRADLE_FLAGS)
 
 tag-release:
-	JAVA_HOME=$(JAVA_HOME) ./gradlew tagRelease
+	JAVA_HOME=$(JAVA_HOME) ./gradlew tagRelease $(GRADLE_FLAGS)
 
 version-catalog-format:
-	JAVA_HOME=$(JAVA_HOME) ./gradlew versionCatalogFormat
+	JAVA_HOME=$(JAVA_HOME) ./gradlew versionCatalogFormat $(GRADLE_FLAGS)
 
 version-catalog-update:
-	JAVA_HOME=$(JAVA_HOME) ./gradlew versionCatalogUpdate
+	JAVA_HOME=$(JAVA_HOME) ./gradlew versionCatalogUpdate $(GRADLE_FLAGS)
 
 all-dependencies-jar:
-	JAVA_HOME=$(JAVA_HOME) ./gradlew withAllDependendiesJar
+	JAVA_HOME=$(JAVA_HOME) ./gradlew withAllDependendiesJar $(GRADLE_FLAGS)
