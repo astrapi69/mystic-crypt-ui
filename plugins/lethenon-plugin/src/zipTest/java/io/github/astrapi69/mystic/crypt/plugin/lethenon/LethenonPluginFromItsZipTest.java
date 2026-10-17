@@ -26,9 +26,11 @@ package io.github.astrapi69.mystic.crypt.plugin.lethenon;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.awt.GraphicsEnvironment;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -60,6 +62,15 @@ class LethenonPluginFromItsZipTest
 
 	@TempDir
 	Path directory;
+
+	@Test
+	@DisplayName("the test runs headless and on no display, so it needs no Xvfb and reaches no screen (#581, #505)")
+	void theTest_runsHeadlessOnNoDisplay()
+	{
+		assertTrue(GraphicsEnvironment.isHeadless(), "java.awt.headless is set for this task");
+		assertNull(System.getenv("DISPLAY"),
+			"the build removes the display a headless task would otherwise inherit");
+	}
 
 	@Test
 	@DisplayName("the plugin started from its zip keeps a chain in SQLite with the sqlite-jdbc it carries itself (#581)")

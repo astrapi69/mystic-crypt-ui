@@ -171,6 +171,9 @@ tasks.register('zipTest', Test) {
     // sqlite-jdbc loads its native library with System::load; the host jar's manifest enables native
     // access for the installed application (gradle/packaging.gradle), this flag does it for the test
     jvmArgs '--enable-native-access=ALL-UNNAMED'
+    // no window is opened here, so the test runs on no display and needs no Xvfb, which is what lets
+    // it run on macOS and Windows as well (gradle/own-display.gradle)
+    systemProperty 'java.awt.headless', 'true'
     inputs.file(pluginZipFile).withPropertyName('pluginZip')
     systemProperty 'lethenon.plugin.zip', pluginZipFile.get().asFile.absolutePath
     dependsOn 'pluginZip'
