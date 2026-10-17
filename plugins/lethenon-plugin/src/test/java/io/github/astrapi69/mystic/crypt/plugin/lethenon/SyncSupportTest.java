@@ -50,6 +50,7 @@ import io.github.astrapi69.lethenon.Bytes;
 import io.github.astrapi69.lethenon.CanonicalEncoding;
 import io.github.astrapi69.lethenon.Chain;
 import io.github.astrapi69.lethenon.ChainFile;
+import io.github.astrapi69.lethenon.ChainRejected;
 import io.github.astrapi69.lethenon.transport.Node;
 import io.github.astrapi69.lethenon.transport.PeerAddress;
 import io.github.astrapi69.lethenon.transport.Sync;
@@ -178,7 +179,9 @@ class SyncSupportTest
 			CanonicalEncoding.encodeChain(LethenonFixtures.aChainUnderLethenonOne()));
 		byte[] before = Files.readAllBytes(chainFile);
 
-		IllegalArgumentException refused = assertThrows(IllegalArgumentException.class,
+		// refused as every tool of the plugin refuses a chain that does not verify, since the file is
+		// read as it is before lethenon 0.6.0 would migrate it (#581)
+		ChainRejected refused = assertThrows(ChainRejected.class,
 			() -> SyncSupport.sync(chainFile, local(aPortNobodyListensOn()), ""));
 
 		assertTrue(refused.getMessage().startsWith(chainFile.toAbsolutePath().toString()),
@@ -186,6 +189,7 @@ class SyncSupportTest
 		assertTrue(refused.getMessage().contains("was started under the rules before lethenon 0.4.0"),
 			refused.getMessage());
 		assertArrayEquals(before, Files.readAllBytes(chainFile));
+		assertFalse(Files.exists(directory.resolve("old.lethenon.legacy")), "it was not migrated");
 	}
 
 	@Test

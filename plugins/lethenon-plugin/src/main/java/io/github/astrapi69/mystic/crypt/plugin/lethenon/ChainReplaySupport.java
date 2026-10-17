@@ -30,14 +30,14 @@ import java.nio.file.Path;
 import java.util.List;
 
 import io.github.astrapi69.lethenon.BlockBody;
-import io.github.astrapi69.lethenon.CanonicalEncoding;
 import io.github.astrapi69.lethenon.ChainRejected;
 import io.github.astrapi69.lethenon.Replay;
 
 /**
  * Replays a chain file through the chain library and hands back what was verified.
  * <p>
- * No chain logic of its own: {@link CanonicalEncoding#readChain} reads the bytes and
+ * No chain logic of its own: {@link ChainFiles#read} reads the file - since lethenon 0.6.0 a
+ * database, which a file of 0.5.0 is migrated into once it verified (#581) - and
  * {@link Replay#verify} checks every signature, every state transition, every block hash and the
  * supply invariant. What this class adds is what a panel cannot do: naming the file in every
  * refusal. The chain library says why bytes cannot be read; which file they came from, only the
@@ -124,13 +124,12 @@ public final class ChainReplaySupport
 			throw new IllegalArgumentException("there is no chain file at "
 				+ chainFile.toAbsolutePath() + "; a chain starts when its genesis block is mined");
 		}
-		byte[] encoded = Files.readAllBytes(chainFile);
-		if (encoded.length == 0)
+		if (Files.size(chainFile) == 0)
 		{
 			throw new IllegalArgumentException(chainFile.toAbsolutePath()
 				+ " is empty, so it holds no genesis block to replay from");
 		}
-		List<BlockBody> chain = readChain(chainFile, encoded);
+		List<BlockBody> chain = ChainFiles.read(chainFile);
 		return new Replayed(chain, replay(chainFile, chain));
 	}
 
@@ -157,27 +156,6 @@ public final class ChainReplaySupport
 		catch (ChainRejected refused)
 		{
 			throw new ChainRejected(chainFile.toAbsolutePath() + ": " + refused.getMessage());
-		}
-	}
-
-	/**
-	 * The chain library refuses bytes it cannot read - a file that stops in the middle of a block,
-	 * a length that runs past the end, an encoding version it does not know - with an
-	 * {@link IllegalArgumentException} that gives the reason but cannot name the file (lethenon#80).
-	 * The file and its size are put in front of that reason here, which is what makes a bug report
-	 * about it actionable (#532).
-	 */
-	private static List<BlockBody> readChain(final Path chainFile, final byte[] encoded)
-	{
-		try
-		{
-			return CanonicalEncoding.readChain(encoded);
-		}
-		catch (IllegalArgumentException unreadable)
-		{
-			throw new IllegalArgumentException(chainFile.toAbsolutePath() + " is " + encoded.length
-				+ " bytes and cannot be read as a lethenon chain file: " + unreadable.getMessage(),
-				unreadable);
 		}
 	}
 }

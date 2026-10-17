@@ -155,6 +155,12 @@ public final class SyncSupport
 				+ "to the node's tip - one that does not exist yet starts from the node's genesis "
 				+ "block");
 		}
+		if (ChainFiles.isLegacy(chainFile))
+		{
+			// a chain file of lethenon 0.5.0 or earlier is verified as it is before the library
+			// migrates it on the sync's first read, and is not migrated when it does not verify (#581)
+			ChainFiles.read(chainFile);
+		}
 		if (node == null || node.isBlank())
 		{
 			return fromTheSeedNodes(chainFile, proxy, seeds);
