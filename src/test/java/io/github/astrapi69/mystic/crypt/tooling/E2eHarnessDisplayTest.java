@@ -479,10 +479,7 @@ class E2eHarnessDisplayTest
 				new InputStreamReader(harness.getInputStream(), StandardCharsets.UTF_8));
 			StringBuilder transcript = new StringBuilder();
 			readUntilHandedOut(output, transcript);
-			ProcessBuilder fake = new ProcessBuilder("sh", "-c", "sleep 30; true", TEST_JVM)
-				.redirectErrorStream(true).redirectOutput(ProcessBuilder.Redirect.DISCARD);
-			fake.environment().put("DISPLAY", ":0");
-			testJvm = fake.start();
+			testJvm = startTestJvmOnTheDesktopDisplay();
 
 			assertTrue(harness.waitFor(30, TimeUnit.SECONDS),
 				"the harness stops the run: " + transcript);
@@ -507,6 +504,70 @@ class E2eHarnessDisplayTest
 		}
 	}
 
+	@Test
+	@DisplayName("the reason a run was stopped is in the harness's output before the test JVM is gone, so the build's next test task finds it (#600)")
+	@Timeout(90)
+	void theStopReason_isInTheOutputBeforeTheTestJvmIsGone(@TempDir File directory) throws Exception
+	{
+		// the build reads the harness's output from a file, as own-display.gradle does, and asks
+		// for
+		// the display again the moment it sees its test JVM end
+		File log = new File(directory, "harness.log");
+		Process harness = holdingHarness(directory).redirectErrorStream(true).redirectOutput(log)
+			.start();
+		Process testJvm = null;
+		try
+		{
+			awaitHandedOut(log, harness);
+			testJvm = startTestJvmOnTheDesktopDisplay();
+			assertTrue(testJvm.waitFor(30, TimeUnit.SECONDS),
+				"the test JVM on :0 was stopped: " + Files.readString(log.toPath()));
+			String atThatMoment = Files.readString(log.toPath(), StandardCharsets.UTF_8);
+
+			assertTrue(atThatMoment.contains("stopped the run: test JVM pid " + testJvm.pid()),
+				"the reason is there when the test JVM is gone: " + atThatMoment);
+			assertTrue(harness.waitFor(30, TimeUnit.SECONDS), atThatMoment);
+			assertEquals(STOPPED, harness.exitValue(), Files.readString(log.toPath()));
+		}
+		finally
+		{
+			harness.destroyForcibly();
+			if (testJvm != null)
+			{
+				testJvm.destroyForcibly();
+			}
+		}
+	}
+
+	/** A test JVM that only sleeps, started by this JVM, which plays the build, on :0 */
+	private static Process startTestJvmOnTheDesktopDisplay() throws IOException
+	{
+		ProcessBuilder fake = new ProcessBuilder("sh", "-c", "sleep 30; true", TEST_JVM)
+			.redirectErrorStream(true).redirectOutput(ProcessBuilder.Redirect.DISCARD);
+		fake.environment().put("DISPLAY", ":0");
+		return fake.start();
+	}
+
+	/** Waits until the harness's output file names the display it handed out */
+	private static void awaitHandedOut(File log, Process harness) throws Exception
+	{
+		for (int attempt = 0; attempt < 600; attempt++)
+		{
+			if (log.exists()
+				&& Files.readString(log.toPath(), StandardCharsets.UTF_8).contains(HANDED_OUT))
+			{
+				return;
+			}
+			if (!harness.isAlive())
+			{
+				throw new IllegalStateException("the harness ended without handing out a display: "
+					+ Files.readString(log.toPath(), StandardCharsets.UTF_8));
+			}
+			Thread.sleep(100);
+		}
+		throw new IllegalStateException("the harness handed out no display within 60s");
+	}
+
 	/**
 	 * A stand-in for {@code ./gradlew}: it starts one test JVM, which only sleeps and never opens a
 	 * window, with the environment and the options the case gives it, and leaves a file behind when
@@ -528,15 +589,20 @@ class E2eHarnessDisplayTest
 	/** The harness the way own-display.gradle starts it: holding its display for a build */
 	private static Process startHoldingHarness(File directory) throws IOException
 	{
-		ProcessBuilder builder = new ProcessBuilder(HARNESS.getPath(), "hold").directory(directory)
-			.redirectErrorStream(true);
+		return holdingHarness(directory).redirectErrorStream(true).start();
+	}
+
+	/** The harness in hold mode, started from a shell whose DISPLAY is the desktop's */
+	private static ProcessBuilder holdingHarness(File directory)
+	{
+		ProcessBuilder builder = new ProcessBuilder(HARNESS.getPath(), "hold").directory(directory);
 		Map<String, String> processEnvironment = builder.environment();
 		processEnvironment.remove("E2E_USE_CURRENT_DISPLAY");
 		processEnvironment.remove("E2E_HARNESS_XVFB_PID");
 		processEnvironment.put("DISPLAY", ":0");
 		processEnvironment.put("E2E_RUN_COMMAND", HOLD.getPath());
 		processEnvironment.put("TMPDIR", directory.getAbsolutePath());
-		return builder.start();
+		return builder;
 	}
 
 	private static void stop(Process process) throws InterruptedException

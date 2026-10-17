@@ -58,13 +58,20 @@ abstract class OwnDisplay implements org.gradle.api.services.BuildService<OwnDis
     synchronized String display() {
         if (display == null) {
             display = borrow()
-        } else if (!harness.alive) {
+        } else if (!harness.alive || stoppedLine() != null) {
+            // not only once the harness has ended: it says why it stops a run before it stops
+            // anything, and is still alive for a moment while it takes the display down (#600)
             File log = parameters.log.get().asFile
-            throw new GradleException("No display for the tests: scripts/e2e-harness.sh has ended, " +
-                "with exit ${harness.exitValue()}, and its display with it (#597). Its output, " +
-                "from ${log}:\n${log.text}")
+            String state = harness.alive ? 'is taking its display down' : "has ended, with exit ${harness.exitValue()}"
+            throw new GradleException("No display for the tests: scripts/e2e-harness.sh ${state} " +
+                "(#597, #600). Its output, from ${log}:\n${log.text}")
         }
         return display
+    }
+
+    private String stoppedLine() {
+        File log = parameters.log.get().asFile
+        return log.exists() ? log.readLines().find { it.contains('stopped the run') } : null
     }
 
     private String borrow() {
@@ -104,11 +111,9 @@ abstract class OwnDisplay implements org.gradle.api.services.BuildService<OwnDis
             harness.waitFor(10, TimeUnit.SECONDS)
         }
         if (!harness.alive && harness.exitValue() == STOPPED) {
-            File log = parameters.log.get().asFile
-            String stopped = log.readLines().find { it.contains('stopped the run') }
             Logging.getLogger(OwnDisplay).error("scripts/e2e-harness.sh " +
-                (stopped?.replaceFirst(/^e2e-harness: /, '') ?: "stopped the run, exit ${STOPPED}") +
-                " - its output: ${log}")
+                (stoppedLine()?.replaceFirst(/^e2e-harness: /, '') ?: "stopped the run, exit ${STOPPED}") +
+                " - its output: ${parameters.log.get().asFile}")
         }
     }
 }
