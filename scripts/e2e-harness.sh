@@ -248,6 +248,18 @@ is_headless() {
   [ "$value" = "true" ]
 }
 
+# Stops the run for the given reason: the command, and the test JVM when one is named. The reason is
+# said first, in the harness's output as well as for its exit: a build that sees its test JVM end asks
+# for the display again at once, while this harness is still alive taking the display down, and must
+# find the reason already there (#600). Then the command, so that it does not go on for the moment
+# between the two, then the JVM
+stop_the_run() {
+  printf '%s' "$1" >"$STOPPED_FILE"
+  printf 'e2e-harness: %s\n' "$1" >&2
+  stop_tree "$2"
+  if [ -n "${3:-}" ]; then stop_tree "$3" KILL; fi
+}
+
 # Watches the test JVMs of this run until the command ends (#597): each 'Gradle Test Executor' among
 # the children of the process that started this harness - the build, when own-display.gradle borrows
 # a display for its test tasks (#505) - and among the children of the command. Its DISPLAY is read
@@ -260,7 +272,7 @@ is_headless() {
 watch_test_jvms() {
   local command_pid="$1" display="$2" parents="$1" seen=" " watched=0 pid jvm_display finished=""
   set +e
-  trap '[ -n "$finished" ] || { printf "%s" "the watcher of the test JVMs ended early, so nothing guarded the run any more (#597)" >"$STOPPED_FILE"; stop_tree "$command_pid"; }' EXIT
+  trap '[ -n "$finished" ] || stop_the_run "the watcher of the test JVMs ended early, so nothing guarded the run any more (#597)" "$command_pid"' EXIT
   [ "$HARNESS_PARENT" -gt 1 ] && parents="$HARNESS_PARENT,$command_pid"
   while kill -0 "$command_pid" 2>/dev/null; do
     for pid in $(ps -o pid= --ppid "$parents" 2>/dev/null); do
@@ -272,11 +284,8 @@ watch_test_jvms() {
       elif [ -z "$jvm_display" ] && is_headless "$pid"; then
         say "test JVM pid $pid runs headless, without DISPLAY"
       elif is_test_jvm "$pid"; then
-        printf 'stopped the run: test JVM pid %s had DISPLAY=%s, not %s, the display of this harness (#597)' \
-          "$pid" "${jvm_display:-<none, and it is not headless>}" "$display" >"$STOPPED_FILE"
-        # the command first, so that it does not go on for the moment between the two
-        stop_tree "$command_pid"
-        stop_tree "$pid" KILL
+        stop_the_run "stopped the run: test JVM pid $pid had DISPLAY=${jvm_display:-<none, and it is not headless>}, not $display, the display of this harness (#597)" \
+          "$command_pid" "$pid"
         finished=1
         return 0
       else
@@ -387,8 +396,8 @@ wait "$watcher_pid"
 set -e
 command_pid=""
 watcher_pid=""
+# the reason is in the output already, said before anything was stopped (#600)
 if [ -s "$STOPPED_FILE" ]; then
-  printf 'e2e-harness: %s\n' "$(cat "$STOPPED_FILE")" >&2
   exit 96
 fi
 exit "$status"
