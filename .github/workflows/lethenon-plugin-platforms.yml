@@ -54,6 +54,14 @@ jobs:
       - name: Start the plugin from its zip
         shell: bash
         run: ./gradlew -p plugins/lethenon-plugin zipTest
+      - name: Keep the test results
+        # the XML carries what the summary does not, such as the files a failed cleanup could not delete
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: zipTest-${{ matrix.os }}
+          path: plugins/lethenon-plugin/build/test-results/zipTest/
+          if-no-files-found: ignore
       - name: Report what was measured
         # a run that wrote no result measured nothing, and says so instead of passing
         if: always()
