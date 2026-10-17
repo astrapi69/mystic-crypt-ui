@@ -66,6 +66,9 @@ public class LethenonSweepPanel extends JPanel
 
 	private final LethenonSweepPanelModel modelObject = new LethenonSweepPanelModel();
 
+	/** Whom to ask before a chain file of lethenon 0.5.0 or earlier is converted (#581) */
+	private final ChainConversionConsent consent;
+
 	private final JMTextField txtChainFile = new JMTextField(34);
 
 	private final JMTextField txtWalletFile = new JMTextField(34);
@@ -88,7 +91,20 @@ public class LethenonSweepPanel extends JPanel
 	 */
 	public LethenonSweepPanel()
 	{
+		this(ChainConversionConsent.ASK);
+	}
+
+	/**
+	 * Instantiates a new {@link LethenonSweepPanel} that asks through the given consent before it
+	 * converts a chain file of lethenon 0.5.0 or earlier (#581)
+	 *
+	 * @param consent
+	 *            whom to ask
+	 */
+	LethenonSweepPanel(final ChainConversionConsent consent)
+	{
 		super(ToolForm.newLayout());
+		this.consent = consent;
 		modelObject.setCostStatement(LethenonMessages.getString("lethenon.sweep.cost",
 			"Sweeping signs one transfer per one-time destination, from that destination to this "
 				+ "wallet's account, so the chain then shows those destinations and the account "
@@ -120,8 +136,14 @@ public class LethenonSweepPanel extends JPanel
 			"nothing was swept");
 		try
 		{
-			SweptPayments swept = SweepSupport.sweep(orderFromTheModel(),
-				modelObject.getPassword());
+			SweepOrder order = orderFromTheModel();
+			if (!ChainConversion.convertedIfAgreed(this, consent, order.chainFile()))
+			{
+				setReport("");
+				setResult(failure + ": " + ChainConversion.notConverted());
+				return;
+			}
+			SweptPayments swept = SweepSupport.sweep(order, modelObject.getPassword());
 			if (swept.transfers() == 0)
 			{
 				setReport("");

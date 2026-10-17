@@ -88,8 +88,7 @@ class LethenonMinePanelBindingTest
 		WalletFile.write(walletFile, wallet, PASSWORD.toCharArray());
 		KeyPair payer = TransactionSigner.newKeyPair(SignatureSuite.ED25519);
 		chainFile = new File(directory, "chain.lethenon").toPath();
-		Files.write(chainFile,
-			CanonicalEncoding.encodeChain(LethenonFixtures.aChainPayingTheWallet(payer, wallet)));
+		LethenonFixtures.written(chainFile, LethenonFixtures.aChainPayingTheWallet(payer, wallet));
 	}
 
 	@AfterEach
@@ -295,6 +294,28 @@ class LethenonMinePanelBindingTest
 			}
 		}
 		return null;
+	}
+
+	@Test
+	@DisplayName("declining to convert a chain file of 0.5.0 mines nothing, leaves the file as it was and wipes the password all the same (#581)")
+	void mining_onAnOldChainFile_thePersonDeclines_minesNothing() throws Exception
+	{
+		Path old = new File(directory, "old.lethenon").toPath();
+		byte[] before = CanonicalEncoding.encodeChain(new ChainFile(chainFile).read());
+		Files.write(old, before);
+		LethenonMinePanel panel = new LethenonMinePanel((parent, file) -> false);
+		panel.getModelObject().setChainFile(old.toString());
+		panel.getModelObject().setWalletFile(walletFile.toString());
+		char[] password = PASSWORD.toCharArray();
+		panel.getModelObject().setPassword(password);
+
+		panel.onMine();
+
+		assertEquals("no block was mined: " + ChainConversion.notConverted(),
+			panel.getModelObject().getResultText());
+		assertArrayEquals(before, Files.readAllBytes(old), "the file stays as it was");
+		assertFalse(Files.exists(ChainFiles.legacyOf(old)), "nothing was converted");
+		assertArrayEquals(new char[password.length], password, "the password is overwritten, not only dropped");
 	}
 
 	private LethenonMinePanel filledPanel(final String password)

@@ -80,6 +80,9 @@ public class LethenonNodePanel extends JPanel
 
 	private final LethenonNodePanelModel modelObject = new LethenonNodePanelModel();
 
+	/** Whom to ask before a chain file of lethenon 0.5.0 or earlier is converted (#581) */
+	private final ChainConversionConsent consent;
+
 	private final JMTextField txtChainFile = new JMTextField(34);
 
 	private final JMTextField txtPort = new JMTextField(8);
@@ -125,7 +128,20 @@ public class LethenonNodePanel extends JPanel
 	 */
 	public LethenonNodePanel()
 	{
+		this(ChainConversionConsent.ASK);
+	}
+
+	/**
+	 * Instantiates a new {@link LethenonNodePanel} that asks through the given consent before it
+	 * converts a chain file of lethenon 0.5.0 or earlier (#581)
+	 *
+	 * @param consent
+	 *            whom to ask
+	 */
+	LethenonNodePanel(final ChainConversionConsent consent)
+	{
 		super(ToolForm.newLayout());
+		this.consent = consent;
 		nameTheComponents();
 		explainTheComponents();
 		bindToTheModel();
@@ -190,6 +206,11 @@ public class LethenonNodePanel extends JPanel
 			setResult(notStarted() + ": " + notAPath.getMessage());
 			return;
 		}
+		if (!convertedIfAgreed(order.chainFile()))
+		{
+			NodeSupport.wipe(password);
+			return;
+		}
 		setStarting(true);
 		setResult(LethenonMessages.getString("lethenon.result.node.starting",
 			"starting the node; every peer is dialled"));
@@ -207,6 +228,29 @@ public class LethenonNodePanel extends JPanel
 				showTheStart(this);
 			}
 		}.execute();
+	}
+
+	/**
+	 * Converts a chain file of lethenon 0.5.0 or earlier once the person agreed, before the node is
+	 * started on a worker thread: the question belongs on this one (#581)
+	 *
+	 * @return whether the node may start; otherwise the result line says why not
+	 */
+	private boolean convertedIfAgreed(final Path chainFile)
+	{
+		try
+		{
+			if (ChainConversion.convertedIfAgreed(this, consent, chainFile))
+			{
+				return true;
+			}
+			setResult(notStarted() + ": " + ChainConversion.notConverted());
+		}
+		catch (ChainRejected | IllegalArgumentException | IOException refused)
+		{
+			setResult(notStarted() + ": " + refused.getMessage());
+		}
+		return false;
 	}
 
 	/**

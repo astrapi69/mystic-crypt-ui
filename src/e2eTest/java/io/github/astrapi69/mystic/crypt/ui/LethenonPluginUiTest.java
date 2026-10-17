@@ -54,7 +54,6 @@ import io.github.astrapi69.lethenon.Amount;
 import io.github.astrapi69.lethenon.BlockBody;
 import io.github.astrapi69.lethenon.Blocks;
 import io.github.astrapi69.lethenon.Bytes;
-import io.github.astrapi69.lethenon.CanonicalEncoding;
 import io.github.astrapi69.lethenon.Chain;
 import io.github.astrapi69.lethenon.ChainFile;
 import io.github.astrapi69.lethenon.Destination;
@@ -827,7 +826,8 @@ class LethenonPluginUiTest extends AbstractUiTest
 	/**
 	 * A test chain in the shape lethenon 0.4.0 accepts: a genesis block for the burn account
 	 * (lethenon#148), a block paying the holder its reward, and a third with one transfer out of
-	 * it, written to the test's own home directory the way a lethenon command line would write it
+	 * it, written to the test's own home directory as lethenon 0.6.0 keeps a chain, in a database;
+	 * a chain file of the old format is LethenonChainFileOf88UiTest's (#581)
 	 */
 	private File aChainWithOneTransfer() throws Exception
 	{
@@ -849,7 +849,7 @@ class LethenonPluginUiTest extends AbstractUiTest
 						"the block with the transfer", 1_759_000_240_000L), 1_000_000L)
 					.orElseThrow());
 		File chainFile = new File(tempHome, "chain.lethenon");
-		Files.write(chainFile.toPath(), CanonicalEncoding.encodeChain(chain));
+		new ChainFile(chainFile.toPath()).write(chain);
 		return chainFile;
 	}
 
@@ -877,7 +877,7 @@ class LethenonPluginUiTest extends AbstractUiTest
 	/**
 	 * A test chain in the shape lethenon 0.4.0 accepts, on which a payer mines block 1 and then
 	 * pays the wallet 3 LETH to its Ed25519 account and 5 LETH to a one-time destination of its
-	 * published address in block 2, written the way a lethenon command line would write it
+	 * published address in block 2, written as lethenon 0.6.0 keeps a chain, in a database
 	 */
 	private File aChainPayingTheWallet(final Wallet wallet) throws Exception
 	{
@@ -903,7 +903,7 @@ class LethenonPluginUiTest extends AbstractUiTest
 		chain.add(Blocks.mine(Mining.nextBlock(chain, payerKey, List.of(direct, oneTime),
 			"the second pun", 1_759_000_240_000L), 1_000_000L).orElseThrow());
 		File chainFile = new File(tempHome, "paid.lethenon");
-		Files.write(chainFile.toPath(), CanonicalEncoding.encodeChain(chain));
+		new ChainFile(chainFile.toPath()).write(chain);
 		return chainFile;
 	}
 }

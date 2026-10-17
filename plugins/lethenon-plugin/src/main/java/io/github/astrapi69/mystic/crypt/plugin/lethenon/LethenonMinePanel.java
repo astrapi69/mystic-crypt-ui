@@ -86,6 +86,9 @@ public class LethenonMinePanel extends JPanel
 
 	private final LethenonMinePanelModel modelObject = new LethenonMinePanelModel();
 
+	/** Whom to ask before a chain file of lethenon 0.5.0 or earlier is converted (#581) */
+	private final ChainConversionConsent consent;
+
 	private final JMTextField txtChainFile = new JMTextField(34);
 
 	private final JMTextField txtWalletFile = new JMTextField(34);
@@ -109,7 +112,20 @@ public class LethenonMinePanel extends JPanel
 	 */
 	public LethenonMinePanel()
 	{
+		this(ChainConversionConsent.ASK);
+	}
+
+	/**
+	 * Instantiates a new {@link LethenonMinePanel} that asks through the given consent before it
+	 * converts a chain file of lethenon 0.5.0 or earlier (#581)
+	 *
+	 * @param consent
+	 *            whom to ask
+	 */
+	LethenonMinePanel(final ChainConversionConsent consent)
+	{
 		super(ToolForm.newLayout());
+		this.consent = consent;
 		nameTheComponents();
 		explainTheComponents();
 		bindToTheModel();
@@ -139,8 +155,15 @@ public class LethenonMinePanel extends JPanel
 			"no block was mined");
 		try
 		{
+			Path chainFile = Path.of(modelObject.getChainFile().trim());
+			if (!ChainConversion.convertedIfAgreed(this, consent, chainFile))
+			{
+				setReport("");
+				setResult(failure + ": " + ChainConversion.notConverted());
+				return;
+			}
 			MinedBlock mined = MiningSupport.mine(
-				new MiningOrder(Path.of(modelObject.getChainFile().trim()),
+				new MiningOrder(chainFile,
 					Path.of(modelObject.getWalletFile().trim()), modelObject.getChainKind(),
 					modelObject.getPun(), ATTEMPTS),
 				modelObject.getPassword(), System.currentTimeMillis());

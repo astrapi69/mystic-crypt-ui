@@ -30,7 +30,6 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.File;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.KeyPair;
 import java.util.Map;
@@ -41,7 +40,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-import io.github.astrapi69.lethenon.CanonicalEncoding;
 import io.github.astrapi69.lethenon.SignatureSuite;
 import io.github.astrapi69.lethenon.TransactionSigner;
 import io.github.astrapi69.lethenon.Wallet;
@@ -80,8 +78,7 @@ class LethenonBalancePanelBindingTest
 		WalletFile.write(walletFile, wallet, PASSWORD.toCharArray());
 		KeyPair payer = TransactionSigner.newKeyPair(SignatureSuite.ED25519);
 		chainFile = new File(directory, "chain.lethenon").toPath();
-		Files.write(chainFile,
-			CanonicalEncoding.encodeChain(LethenonFixtures.aChainPayingTheWallet(payer, wallet)));
+		LethenonFixtures.written(chainFile, LethenonFixtures.aChainPayingTheWallet(payer, wallet));
 	}
 
 	@AfterEach

@@ -60,6 +60,9 @@ public class LethenonChainViewPanel extends JPanel
 
 	private final LethenonChainViewPanelModel modelObject = new LethenonChainViewPanelModel();
 
+	/** Whom to ask before a chain file of lethenon 0.5.0 or earlier is converted (#581) */
+	private final ChainConversionConsent consent;
+
 	private final ChainBlockTableModel tableModel = new ChainBlockTableModel();
 
 	private final JMTextField txtChainFile = new JMTextField(34);
@@ -74,7 +77,20 @@ public class LethenonChainViewPanel extends JPanel
 	 */
 	public LethenonChainViewPanel()
 	{
+		this(ChainConversionConsent.ASK);
+	}
+
+	/**
+	 * Instantiates a new {@link LethenonChainViewPanel} that asks through the given consent before it
+	 * converts a chain file of lethenon 0.5.0 or earlier (#581)
+	 *
+	 * @param consent
+	 *            whom to ask
+	 */
+	LethenonChainViewPanel(final ChainConversionConsent consent)
+	{
 		super(ToolForm.newLayout());
+		this.consent = consent;
 		txtChainFile.setName("txtChainFile");
 		tblBlocks.setName("tblBlocks");
 		tblBlocks.setAutoCreateRowSorter(false);
@@ -137,8 +153,14 @@ public class LethenonChainViewPanel extends JPanel
 			"the chain was refused");
 		try
 		{
-			List<ChainBlockRow> rows = ChainReplaySupport
-				.blocks(Path.of(modelObject.getChainFile().trim()));
+			Path chainFile = Path.of(modelObject.getChainFile().trim());
+			if (!ChainConversion.convertedIfAgreed(this, consent, chainFile))
+			{
+				setRows(List.of());
+				setResult(ChainConversion.notConverted());
+				return;
+			}
+			List<ChainBlockRow> rows = ChainReplaySupport.blocks(chainFile);
 			setRows(rows);
 			setResult(
 				LethenonMessages.getString("lethenon.result.accepted", "the chain was accepted")

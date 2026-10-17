@@ -50,8 +50,9 @@ import io.github.astrapi69.lethenon.ChainRejected;
 
 /**
  * The one way the plugin reads a chain file since lethenon 0.6.0 keeps the chain in a database
- * (#581, lethenon#202): a file in the format of 0.5.0 or earlier is read and verified as it is
- * before the library migrates it, so a chain the plugin refuses is never migrated
+ * (#581, lethenon#202): a file in the format of 0.5.0 or earlier is read and verified as it is, and
+ * converted into a database only when asked to, so a chain the plugin refuses is never converted and
+ * no chain is converted without the person agreeing to it
  */
 class ChainFilesTest
 {
@@ -79,35 +80,89 @@ class ChainFilesTest
 	}
 
 	@Test
-	@DisplayName("a chain file of 0.5.0 that verifies is read, migrated into a database, and keeps its blocks")
-	void read_migratesAVerifiedChainOfTheOldFormat() throws IOException
+	@DisplayName("a chain file of 0.5.0 that verifies is not read until it is converted, and is left as it was")
+	void read_refusesAVerifiedChainOfTheOldFormat_untilItIsConverted() throws IOException
+	{
+		Path old = directory.resolve("old.lethenon");
+		byte[] before = CanonicalEncoding.encodeChain(LethenonFixtures.aChainOf(Chain.TEST_IDENTIFIER, 3, miner));
+		Files.write(old, before);
+
+		UnconvertedChainFile refused = assertThrows(UnconvertedChainFile.class, () -> ChainFiles.read(old));
+
+		assertTrue(refused.getMessage().startsWith(old.toAbsolutePath().toString()), refused.getMessage());
+		assertArrayEquals(before, Files.readAllBytes(old), "the file stays as it was");
+		assertFalse(Files.exists(directory.resolve("old.lethenon.legacy")), "nothing was converted");
+	}
+
+	@Test
+	@DisplayName("a chain file of 0.5.0 that verifies is converted into a database, keeps its blocks, and stays beside it as .legacy")
+	void convert_turnsAVerifiedChainOfTheOldFormatIntoADatabase() throws IOException
 	{
 		List<BlockBody> chain = LethenonFixtures.aChainOf(Chain.TEST_IDENTIFIER, 3, miner);
 		Path old = directory.resolve("old.lethenon");
 		byte[] before = CanonicalEncoding.encodeChain(chain);
 		Files.write(old, before);
 
-		assertEquals(chain, ChainFiles.read(old));
+		Path legacy = ChainFiles.convert(old);
 
+		assertEquals(directory.resolve("old.lethenon.legacy"), legacy);
+		assertArrayEquals(before, Files.readAllBytes(legacy), "the old file stays beside it, byte for byte");
 		assertFalse(ChainFiles.isLegacy(old), "the file is a database now");
-		assertArrayEquals(before, Files.readAllBytes(directory.resolve("old.lethenon.legacy")),
-			"the old file stays beside it, byte for byte");
+		assertEquals(chain, ChainFiles.read(old));
 	}
 
 	@Test
-	@DisplayName("a chain file of 0.5.0 that does not verify is refused with the file's name, and is not migrated")
-	void read_refusesAnOldChainThatDoesNotVerify_beforeTheMigration() throws IOException
+	@DisplayName("only a chain file of 0.5.0 that verifies needs converting; a database and a missing file do not")
+	void needsConversion_onlyForAVerifiedChainOfTheOldFormat() throws IOException
+	{
+		Path old = directory.resolve("old.lethenon");
+		Files.write(old, CanonicalEncoding.encodeChain(LethenonFixtures.aChainOf(Chain.TEST_IDENTIFIER, 2, miner)));
+		Path database = directory.resolve("new.lethenon");
+		new ChainFile(database).write(LethenonFixtures.aChainOf(Chain.TEST_IDENTIFIER, 2, miner));
+
+		assertTrue(ChainFiles.needsConversion(old));
+		assertFalse(ChainFiles.needsConversion(database));
+		assertFalse(ChainFiles.needsConversion(directory.resolve("missing.lethenon")));
+	}
+
+	@Test
+	@DisplayName("a database is not converted again: there is nothing to convert, and the file stays as it was")
+	void convert_refusesADatabase() throws IOException
+	{
+		Path database = directory.resolve("new.lethenon");
+		new ChainFile(database).write(LethenonFixtures.aChainOf(Chain.TEST_IDENTIFIER, 2, miner));
+		byte[] before = Files.readAllBytes(database);
+
+		IllegalArgumentException refused = assertThrows(IllegalArgumentException.class,
+			() -> ChainFiles.convert(database));
+
+		assertTrue(refused.getMessage().startsWith(database.toAbsolutePath().toString()), refused.getMessage());
+		assertArrayEquals(before, Files.readAllBytes(database));
+	}
+
+	@Test
+	@DisplayName("a chain file of 0.5.0 that does not verify is refused with the file's name by every way in, and is not converted")
+	void readNeedsConversionAndConvert_refuseAnOldChainThatDoesNotVerify() throws IOException
 	{
 		Path retired = directory.resolve("retired.lethenon");
 		byte[] before = CanonicalEncoding.encodeChain(LethenonFixtures.aChainUnderLethenonOne());
 		Files.write(retired, before);
 
-		ChainRejected refused = assertThrows(ChainRejected.class, () -> ChainFiles.read(retired));
-
-		assertTrue(refused.getMessage().startsWith(retired.toAbsolutePath().toString()), refused.getMessage());
+		for (ChainFileCall call : List.<ChainFileCall> of(ChainFiles::read, ChainFiles::needsConversion,
+			ChainFiles::convert))
+		{
+			ChainRejected refused = assertThrows(ChainRejected.class, () -> call.on(retired));
+			assertTrue(refused.getMessage().startsWith(retired.toAbsolutePath().toString()), refused.getMessage());
+		}
 		assertArrayEquals(before, Files.readAllBytes(retired), "the file stays as it was");
-		assertFalse(Files.exists(directory.resolve("retired.lethenon.legacy")), "nothing was migrated");
-		assertFalse(Files.exists(directory.resolve("retired.lethenon.migrating")), "nothing was migrated");
+		assertFalse(Files.exists(directory.resolve("retired.lethenon.legacy")), "nothing was converted");
+		assertFalse(Files.exists(directory.resolve("retired.lethenon.migrating")), "nothing was converted");
+	}
+
+	/** One of the ways into a chain file, each of which must refuse a chain that does not verify */
+	private interface ChainFileCall
+	{
+		Object on(Path chainFile) throws IOException;
 	}
 
 	@Test

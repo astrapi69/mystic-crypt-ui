@@ -94,7 +94,7 @@ public final class MiningSupport
 				.spendKey(SignatureSuite.ED25519);
 			ChainFile chainFile = new ChainFile(order.chainFile());
 			// an existing file goes through the plugin's one way in: a chain of the old format is
-			// verified before it is migrated, and never migrated when it does not verify (#581)
+			// refused until the person agreed to convert it, and for good when it does not verify (#581)
 			List<BlockBody> chain = Files.isRegularFile(order.chainFile())
 				&& Files.size(order.chainFile()) > 0 ? ChainFiles.read(order.chainFile())
 					: chainFile.read();
