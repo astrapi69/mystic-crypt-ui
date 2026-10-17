@@ -1,6 +1,39 @@
 ## Change log
 ----------------------
 
+Version 8.10 (unreleased)
+-------------
+
+CHANGED:
+- the libraries: lethenon 0.5.0 to 0.6.0 (#581), which keeps the chain in an SQLite database instead of one
+  encoded file (lethenon ADR 0006). The Lethenon plugin carries the SQLite driver in its zip, sqlite-jdbc
+  3.53.4.0 - the version lethenon declares - with its native library for Linux, macOS and Windows, each on x86_64
+  and aarch64. The application does not carry it. A test starts the plugin from its zip in a JVM that has neither
+  lethenon nor sqlite-jdbc on its class path, the way the installed application runs it, and writes and reads a
+  chain there; a workflow runs it on every platform the installer serves
+- the Lethenon plugin opens a chain file of lethenon 0.5.0 and earlier - every chain file 8.8 and 8.9 wrote - by
+  verifying it as it is first, and only a chain that verifies is moved into the database. The old file stays next to
+  it as `<file>.legacy`. A chain that does not verify, such as one of a retired test network, is refused with the
+  file's path and the reason, and is left as it was, with no `.legacy` beside it (#581)
+- the plugin registers the SQLite driver itself when it starts: lethenon asks `DriverManager` for its database
+  connection, and `DriverManager` does not see a driver inside a plugin's zip (lethenon#223)
+- the application jar enables native access (`Enable-Native-Access: ALL-UNNAMED`), so that JDK 25 loads the SQLite
+  driver's native library without a warning and a later JDK still loads it (#581)
+- build and tests only: a test task that runs headless gets no display at all - no Xvfb, and no `DISPLAY` from the
+  shell either - so it reaches no screen and runs where there is no X server, on macOS and Windows (#581, #505)
+
+FORMAT:
+- Lethenon chain files change: lethenon 0.6.0 keeps the chain in an SQLite database, and a chain file of 0.5.0 is
+  moved into one the first time the plugin opens it. 8.9 and earlier cannot read a chain file after that: lethenon
+  0.5.0 refuses it with "this build reads block encoding version 2 and the bytes carry version 83", measured in
+  lethenon's compatibility run for 0.6.0 (`docs/launch/compatibility-0.6.0/measure.sh` in lethenon). The old file,
+  kept as `<file>.legacy`, is what 8.9 still reads. Wallets do not change
+- the vault format does not change
+
+KNOWN AND NOT FIXED:
+- the plugin moves a chain file of 8.8 or 8.9 into the database without asking first; saying what happens before it
+  does is the next step of #581, which stays open
+
 Version 8.9
 -------------
 
