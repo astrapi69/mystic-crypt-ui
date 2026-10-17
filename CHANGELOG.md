@@ -41,6 +41,10 @@ CHANGED:
 - build and tests only: mutation testing names its mutator set instead of leaving it to PIT - the eleven mutators every
   run so far measured, which is not PIT's group `DEFAULTS` - and every run writes `mutation-context.json` next to its report - tool and version, mutators, scope, the breakdown, score and
   test strength, commit and date - in the form awesome-well-tested specifies, checked against its JSON Schema (#589)
+- development only: the JDK a build runs on is named once, in `.sdkmanrc` - Temurin 25.0.4 - which `sdk env` sets the
+  shell to and the Makefile pins, instead of the Makefile's own pin on JDK 25 as released in 2025. A newer patch
+  release is taken on deliberately, in a pull request of its own with the gate, and the release text names the JDK
+  a release was built with (#586)
 
 FORMAT:
 - Lethenon chain files change: lethenon 0.6.0 keeps the chain in an SQLite database, and a chain file of 0.5.0 is

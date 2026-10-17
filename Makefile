@@ -2,8 +2,10 @@
 # at an older JDK, and running the JDK-25-built jar on it fails with UnsupportedClassVersionError.
 # The fallback is for machines that are not this one - a CI runner gets its JDK from setup-java, and
 # pinning a path that does not exist there turns every target into "no such file or directory"
-# (#333). Where the pinned JDK is present it still wins, which is the whole point of the pin
-PINNED_JAVA_HOME := /home/astrapi69/.sdkman/candidates/java/25-tem
+# (#333). Where the pinned JDK is present it still wins, which is the whole point of the pin.
+# Which JDK that is, .sdkmanrc says - the same one `sdk env` sets the shell to, so that make and
+# ./gradlew share a daemon - and nothing here repeats its version (#586)
+PINNED_JAVA_HOME := $(HOME)/.sdkman/candidates/java/$(shell sed -n 's/^java=//p' .sdkmanrc)
 JAVA_HOME := $(if $(wildcard $(PINNED_JAVA_HOME)),$(PINNED_JAVA_HOME),$(JAVA_HOME))
 # the daemon arguments of gradle.properties, for the plugin builds: they are builds of their own
 # without a gradle.properties, and with these they share the host's daemon instead of starting one of
