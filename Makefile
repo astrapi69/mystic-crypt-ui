@@ -271,7 +271,7 @@ build-warning:
 # except menu-designer, which edits the application's own menu bar and is for development only,
 # so they have to be built before izpack packs them - otherwise it fails on the missing files
 clean-build-installer: plugins
-	JAVA_HOME=$(JAVA_HOME) ./gradlew createAllDependendiesJar -PcreateIzPackInstaller=true
+	JAVA_HOME=$(JAVA_HOME) $(SIGNING) ./gradlew --no-daemon createAllDependendiesJar -PcreateIzPackInstaller=true
 	JAVA_HOME=$(JAVA_HOME) ./gradlew build izPackCreateInstaller
 
 # The installer packs the SIGNED uber jar (src/main/izpack/install.xml references
@@ -280,14 +280,19 @@ clean-build-installer: plugins
 # (#245): the packaging step itself, and -PcreateIzPackInstaller=true. Signing runs when the
 # version is a release version OR that flag is set (gradle/packaging.gradle), so between releases -
 # when the version carries -SNAPSHOT, which since #247 is the normal state of develop - the flag is
-# what makes the target work at all. A machine without the release.mystic-crypt.* keystore
-# properties cannot build an installer either way; the build says so before izpack does.
+# what makes the target work at all. A machine without the release keystore cannot build an
+# installer either way; the build refuses before izpack does (#579).
+#
+# The signing command gets the keystore's two passwords from the desktop's keyring, in its own
+# environment and no other process's (scripts/with-signing-passwords.sh, #579). It runs without a
+# daemon: a daemon started from it would keep that environment for hours after the build.
+SIGNING := scripts/with-signing-passwords.sh
 izpack-installer: plugins
-	JAVA_HOME=$(JAVA_HOME) ./gradlew createAllDependendiesJar -PcreateIzPackInstaller=true
+	JAVA_HOME=$(JAVA_HOME) $(SIGNING) ./gradlew --no-daemon createAllDependendiesJar -PcreateIzPackInstaller=true
 	JAVA_HOME=$(JAVA_HOME) ./gradlew checksumInstaller
 
 izpack-installer-signed: plugins
-	JAVA_HOME=$(JAVA_HOME) ./gradlew createIzPackInstallerFromSignedJar
+	JAVA_HOME=$(JAVA_HOME) $(SIGNING) ./gradlew --no-daemon createIzPackInstallerFromSignedJar
 
 dependencies:
 	JAVA_HOME=$(JAVA_HOME) ./gradlew dependencies
