@@ -19,6 +19,11 @@
 // The test JVM also gets the display as E2E_HARNESS_DISPLAY, which is how
 // EveryTestTaskRunsOnTheBuildsOwnDisplayTest tells it apart from an inherited DISPLAY.
 //
+// The harness watches the test JVMs while it holds the display (#597): one that started on another
+// display, or on none without being headless, is killed, and the harness ends with exit 96. Every
+// test task after that refuses to start, because the display it would be handed is gone, and the
+// build's end names the reason from the harness's output.
+//
 // Why one at a time. One display, one window manager, one system clipboard - and the configuration
 // cache lets tasks of one project execute in parallel. Measured on the first run of the suite split
 // (#319): e2eTest, e2eLockTest and e2eKdbxTest interleaved in the log, and tests that pass alone
@@ -45,6 +50,7 @@ abstract class OwnDisplay implements org.gradle.api.services.BuildService<OwnDis
 
     private static final String HANDED_OUT = 'E2E_DISPLAY='
     private static final long WAIT_SECONDS = 90
+    private static final int STOPPED = 96
 
     private Process harness
     private String display
@@ -52,6 +58,11 @@ abstract class OwnDisplay implements org.gradle.api.services.BuildService<OwnDis
     synchronized String display() {
         if (display == null) {
             display = borrow()
+        } else if (!harness.alive) {
+            File log = parameters.log.get().asFile
+            throw new GradleException("No display for the tests: scripts/e2e-harness.sh has ended, " +
+                "with exit ${harness.exitValue()}, and its display with it (#597). Its output, " +
+                "from ${log}:\n${log.text}")
         }
         return display
     }
@@ -91,6 +102,13 @@ abstract class OwnDisplay implements org.gradle.api.services.BuildService<OwnDis
         if (!harness.waitFor(30, TimeUnit.SECONDS)) {
             harness.destroy()
             harness.waitFor(10, TimeUnit.SECONDS)
+        }
+        if (!harness.alive && harness.exitValue() == STOPPED) {
+            File log = parameters.log.get().asFile
+            String stopped = log.readLines().find { it.contains('stopped the run') }
+            Logging.getLogger(OwnDisplay).error("scripts/e2e-harness.sh " +
+                (stopped?.replaceFirst(/^e2e-harness: /, '') ?: "stopped the run, exit ${STOPPED}") +
+                " - its output: ${log}")
         }
     }
 }

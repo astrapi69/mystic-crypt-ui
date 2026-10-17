@@ -116,7 +116,8 @@ So the machine needs Xvfb, fluxbox, wmctrl and xdpyinfo for any test run.
 Never the display the shell carries. On a Wayland desktop that is `DISPLAY=:0`, XWayland answers, a
 window manager owns it, and a run there does not hang - it finishes, with the robot clicking and typing
 on the person's real screen. That happened (#504), and the paths around the harness kept doing it
-until #505. Only `make test-e2e-demo` runs on the current display, through `E2E_USE_CURRENT_DISPLAY=1`,
+until #505. Refusing `:0` is not enough, XWayland serves `:1` too: since #597 the harness takes a
+display only when the socket's listener is its own Xvfb, and reads every test JVM's `DISPLAY` from `/proc`. Only `make test-e2e-demo` runs on the current display, through `E2E_USE_CURRENT_DISPLAY=1`,
 because a demo is meant to be watched.
 
 ## mystic-crypt simple obfuscation: `disentangle` is broken upstream

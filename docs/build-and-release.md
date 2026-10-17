@@ -22,9 +22,10 @@ and `DEPLOYMENT-INFO.md`.
   change.
 - **The Gradle wrapper.** `gradle/wrapper/gradle-wrapper.properties` pins
   `gradle-9.7.0-bin.zip`. Always call `./gradlew`, never a system Gradle.
-- **Xvfb, fluxbox, wmctrl and xdpyinfo for any test run.** Every test task borrows a virtual
+- **Xvfb, fluxbox, wmctrl, xdpyinfo and ss for any test run.** Every test task borrows a virtual
   display from `scripts/e2e-harness.sh`, locally and in CI alike, and never uses the desktop's
-  (#505); see `.claude/rules/lessons-learned.md`.
+  (#505); `ss` (iproute2) names the listener on the display's socket (#597). See
+  `.claude/rules/lessons-learned.md`.
 
 ## The version lives in exactly one place
 
@@ -567,8 +568,8 @@ Also check `DEPLOYMENT-INFO.md` for the info-dialog version literals described u
 Two workflows under `.github/workflows/`:
 
 - **`gradle.yml`** ("Java CI with Gradle"), on push and pull request against `master` and
-  `develop`. Temurin JDK 25, `gradle/actions/setup-gradle`, installs Xvfb, fluxbox, wmctrl
-  and x11-utils and runs `./gradlew build`, whose test tasks bring their own display (#505), so
+  `develop`. Temurin JDK 25, `gradle/actions/setup-gradle`, installs Xvfb, fluxbox, wmctrl,
+  x11-utils and iproute2 and runs `./gradlew build`, whose test tasks bring their own display (#505), so
   the AssertJ-Swing end-to-end tests really run instead of being skipped by their headless
   assumption.
   On failure it
