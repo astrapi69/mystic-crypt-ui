@@ -31,6 +31,9 @@ CHANGED:
   driver's native library without a warning and a later JDK still loads it (#581)
 - build and tests only: a test task that runs headless gets no display at all - no Xvfb, and no `DISPLAY` from the
   shell either - so it reaches no screen and runs where there is no X server, on macOS and Windows (#581, #505)
+- development only: the release signature's two passwords come from the desktop's keyring, handed only to the one
+  command that signs, through `scripts/with-signing-passwords.sh`, and no longer from a plain-text file. An installer
+  build without them stops with "not signed" instead of continuing (#579)
 
 FORMAT:
 - Lethenon chain files change: lethenon 0.6.0 keeps the chain in an SQLite database, and a chain file of 0.5.0 is
