@@ -30,6 +30,10 @@ package io.github.astrapi69.mystic.crypt.plugin.lethenon;
  * Every component of the panel is bound to a property here (architecture.md: every panel holds its
  * state in a model), and so is whether a sync is running: it runs off the event dispatch thread,
  * and a test or a second panel can tell from here when it has ended.
+ * <p>
+ * The answer is kept as the window shows it, one value per field (#604): the sentence that says
+ * whether the chain file is up to date, how many blocks were taken, the last block and the node,
+ * and behind "Show details" the chain and whether its first block was taken on first use.
  */
 public class LethenonSyncPanelModel
 {
@@ -40,7 +44,19 @@ public class LethenonSyncPanelModel
 
 	private String proxy = "";
 
-	private String report = "";
+	private String answer = "";
+
+	private String taken = "";
+
+	private String lastBlock = "";
+
+	private String from = "";
+
+	private String chain = "";
+
+	private String firstUse = "";
+
+	private boolean detailsShown;
 
 	private String resultText = " ";
 
@@ -76,14 +92,85 @@ public class LethenonSyncPanelModel
 		this.proxy = proxy;
 	}
 
-	public String getReport()
+	/** Empties every value of the answer, so a failure leaves nothing of an earlier one */
+	public void clearAnswer()
 	{
-		return report;
+		answer = "";
+		taken = "";
+		lastBlock = "";
+		from = "";
+		chain = "";
+		firstUse = "";
 	}
 
-	public void setReport(String report)
+	public String getAnswer()
 	{
-		this.report = report;
+		return answer;
+	}
+
+	public void setAnswer(String answer)
+	{
+		this.answer = answer;
+	}
+
+	public String getTaken()
+	{
+		return taken;
+	}
+
+	public void setTaken(String taken)
+	{
+		this.taken = taken;
+	}
+
+	public String getLastBlock()
+	{
+		return lastBlock;
+	}
+
+	public void setLastBlock(String lastBlock)
+	{
+		this.lastBlock = lastBlock;
+	}
+
+	public String getFrom()
+	{
+		return from;
+	}
+
+	public void setFrom(String from)
+	{
+		this.from = from;
+	}
+
+	public String getChain()
+	{
+		return chain;
+	}
+
+	public void setChain(String chain)
+	{
+		this.chain = chain;
+	}
+
+	public String getFirstUse()
+	{
+		return firstUse;
+	}
+
+	public void setFirstUse(String firstUse)
+	{
+		this.firstUse = firstUse;
+	}
+
+	public boolean isDetailsShown()
+	{
+		return detailsShown;
+	}
+
+	public void setDetailsShown(boolean detailsShown)
+	{
+		this.detailsShown = detailsShown;
 	}
 
 	public String getResultText()

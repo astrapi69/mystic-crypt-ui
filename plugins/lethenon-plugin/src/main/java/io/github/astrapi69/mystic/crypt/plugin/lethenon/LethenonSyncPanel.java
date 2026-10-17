@@ -28,6 +28,7 @@ import java.awt.Font;
 import java.io.IOException;
 import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
+import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.logging.Level;
@@ -54,6 +55,11 @@ import io.github.astrapi69.swing.model.component.JMTextField;
  * replay checks every block, and the file is written only when the whole result verifies. A sync
  * can take minutes through Tor, so it runs off the event dispatch thread, with the button off until
  * it has ended.
+ * <p>
+ * It answers in fields a child can read (#604): first one sentence in a larger font, "Your chain
+ * file is up to date now: it took 3 new blocks and ends at block 2.", then the new blocks, the last
+ * block and the node they came from. The chain and whether its first block was taken on first use
+ * are behind "Show details", closed at first.
  */
 public class LethenonSyncPanel extends JPanel
 {
@@ -79,15 +85,44 @@ public class LethenonSyncPanel extends JPanel
 
 	private final JMTextField txtProxy = new JMTextField(34);
 
-	private final JMTextArea txtReport = new JMTextArea(5, 62);
+	private final Locale locale = Locale.getDefault();
+
+	private final JMTextArea txtAnswer = AnswerFields.answerArea(text("lethenon.sync.tooltip.answer",
+		"whether your chain file is up to date, in one sentence; the details are below"));
+
+	private final JMTextField txtTaken = AnswerFields.readOnly("txtTaken",
+		text("lethenon.sync.tooltip.taken",
+			"how many blocks the node had that your chain file did not; each was checked here "
+				+ "before it was written"));
+
+	private final JMTextField txtLastBlock = AnswerFields.readOnly("txtLastBlock",
+		text("lethenon.sync.tooltip.last.block",
+			"the number of the last block in your chain file now; the first block is block 0"));
+
+	private final JMTextField txtFrom = AnswerFields.readOnly("txtFrom",
+		text("lethenon.sync.tooltip.from",
+			"the node the blocks came from; it was asked for blocks only, nothing about you"));
+
+	private final JButton btnDetails;
+
+	private final JPanel pnlDetails = new JPanel(ToolForm.newLayout());
+
+	private final JMTextField txtChain = AnswerFields.readOnly("txtChain",
+		text("lethenon.sync.tooltip.chain",
+			"the name of the chain in your file; a test chain and the main chain never mix"));
+
+	private final JMTextField txtFirstUse = AnswerFields.readOnly("txtFirstUse",
+		text("lethenon.sync.tooltip.first.use",
+			"an empty file has nothing to check the first block against, so it is taken from the "
+				+ "node as it is; every later sync checks against it"));
 
 	private final JLabel lblResult = new JLabel(" ");
 
 	private final JButton btnSync = LethenonSwing.button("btnSync",
-		LethenonMessages.getString("lethenon.button.sync", "Synchronise"), event -> onSync(),
-		LethenonMessages.getString("lethenon.tooltip.sync",
-			"bring the chain file up to the tip of the node; every block is verified here, and "
-				+ "the node is asked for blocks only"));
+		text("lethenon.sync.button.sync", "Bring my chain up to date"), event -> onSync(),
+		text("lethenon.sync.tooltip.sync",
+			"get the blocks your chain file is missing from the node; every block is checked "
+				+ "here, and the node is asked for blocks only"));
 
 	/**
 	 * Instantiates a new {@link LethenonSyncPanel}, prefilled with the chain file from the plugin's
@@ -109,10 +144,17 @@ public class LethenonSyncPanel extends JPanel
 	{
 		super(ToolForm.newLayout());
 		this.consent = consent;
+		btnDetails = LethenonSwing.button("btnDetails",
+			AnswerFields.detailsButtonText(false, locale), event -> onDetails(),
+			text("lethenon.sync.tooltip.details",
+				"show the chain's name and where its first block came from"));
 		nameTheComponents();
 		explainTheComponents();
 		bindToTheModel();
-		layOut();
+		layOutTheInputs();
+		layOutTheAnswer();
+		add(lblResult, ToolForm.RESULT_LINE);
+		pnlDetails.setVisible(false);
 		txtChainFile.setText(LethenonSettingsContribution.chainFile());
 		txtNode.setText(LethenonSettingsContribution.node());
 		txtProxy.setText(LethenonSettingsContribution.proxy());
@@ -142,8 +184,7 @@ public class LethenonSyncPanel extends JPanel
 		}
 		catch (InvalidPathException notAPath)
 		{
-			setReport("");
-			setResult(failure() + ": " + notAPath.getMessage());
+			showFailure(failure() + ": " + notAPath.getMessage());
 			return;
 		}
 		if (!convertedIfAgreed(chainFile))
@@ -153,9 +194,8 @@ public class LethenonSyncPanel extends JPanel
 		String node = modelObject.getNode();
 		String proxy = modelObject.getProxy();
 		setSynchronising(true);
-		setReport("");
-		setResult(LethenonMessages.getString("lethenon.result.sync.running",
-			"synchronising with the node; every block is verified here"));
+		showFailure(text("lethenon.sync.result.running",
+			"getting the blocks from the node; every block is checked here"));
 		new SwingWorker<SyncSupport.SyncedFrom, Void>()
 		{
 			@Override
@@ -187,13 +227,11 @@ public class LethenonSyncPanel extends JPanel
 			{
 				return true;
 			}
-			setReport("");
-			setResult(failure() + ": " + ChainConversion.notConverted());
+			showFailure(failure() + ": " + ChainConversion.notConverted());
 		}
 		catch (ChainRejected | IllegalArgumentException | IOException refused)
 		{
-			setReport("");
-			setResult(failure() + ": " + refused.getMessage());
+			showFailure(failure() + ": " + refused.getMessage());
 		}
 		return false;
 	}
@@ -205,25 +243,21 @@ public class LethenonSyncPanel extends JPanel
 		{
 			SyncSupport.SyncedFrom syncedFrom = worker.get();
 			rememberWhatWorked(chainFile, node, proxy);
-			Sync.Synced synced = syncedFrom.synced();
-			setReport(describe(syncedFrom));
-			setResult(synced.taken() > 0
-				? LethenonMessages.getString("lethenon.result.sync.written",
-					"the chain file is at the tip of the node now")
-				: LethenonMessages.getString("lethenon.result.sync.unchanged",
+			showTheAnswer(syncedFrom);
+			setResult(syncedFrom.synced().taken() > 0
+				? text("lethenon.sync.result.written", "the chain file is at the tip of the node now")
+				: text("lethenon.sync.result.unchanged",
 					"the chain file holds at least what the node has: nothing was written"));
 		}
 		catch (ExecutionException failed)
 		{
-			setReport("");
-			setResult(failure() + ": " + reasonOf(failed.getCause()));
+			showFailure(failure() + ": " + reasonOf(failed.getCause()));
 		}
 		catch (InterruptedException interrupted)
 		{
 			Thread.currentThread().interrupt();
-			setReport("");
-			setResult(failure() + ": " + LethenonMessages
-				.getString("lethenon.result.sync.interrupted", "the sync was interrupted"));
+			showFailure(failure() + ": " + text("lethenon.sync.result.interrupted",
+				"the sync was interrupted; start it again"));
 		}
 		finally
 		{
@@ -263,34 +297,88 @@ public class LethenonSyncPanel extends JPanel
 		return String.valueOf(cause);
 	}
 
-	private static String describe(final SyncSupport.SyncedFrom syncedFrom)
+	/** Opens or closes "Show details" */
+	void onDetails()
 	{
-		Sync.Synced synced = syncedFrom.synced();
-		String node = syncedFrom.node().toString();
-		if (syncedFrom.seedNode())
-		{
-			node += " (" + LethenonMessages.getString("lethenon.sync.seed",
-				"a seed node of the test network") + ")";
-		}
-		String report = LethenonMessages.getString("lethenon.sync.chain", "chain") + " "
-			+ synced.chainIdentifier() + " "
-			+ LethenonMessages.getString("lethenon.sync.from", "from the node at") + " " + node
-			+ ": " + LethenonMessages.getString("lethenon.sync.took", "took") + " "
-			+ synced.taken() + " "
-			+ LethenonMessages.getString("lethenon.sync.height", "block(s), now at height") + " "
-			+ (synced.blocksAfter() - 1);
-		if (synced.blocksBefore() == 0)
-		{
-			report += "\n" + LethenonMessages.getString("lethenon.sync.first.use",
-				"the file was empty: its genesis block came from the node, taken on first use");
-		}
-		return report;
+		modelObject.setDetailsShown(!modelObject.isDetailsShown());
+		pnlDetails.setVisible(modelObject.isDetailsShown());
+		btnDetails.setText(AnswerFields.detailsButtonText(modelObject.isDetailsShown(), locale));
+		revalidate();
+		repaint();
 	}
 
-	private static String failure()
+	/**
+	 * The sentence that answers what the window was opened for (#604, rule 1): whether the chain
+	 * file is up to date now, and where it ends
+	 *
+	 * @param synced
+	 *            what the sync did
+	 * @param locale
+	 *            the language of the window
+	 * @return the sentence
+	 */
+	static String answerFor(final Sync.Synced synced, final Locale locale)
 	{
-		return LethenonMessages.getString("lethenon.result.sync.failed",
-			"the chain file was not synchronised");
+		long lastBlock = synced.blocksAfter() - 1;
+		if (synced.taken() == 0)
+		{
+			return LethenonMessages.format("lethenon.sync.answer.unchanged",
+				"Your chain file was already up to date: it ends at block {0,number,integer}.",
+				locale, lastBlock);
+		}
+		return LethenonMessages.format("lethenon.sync.answer",
+			"Your chain file is up to date now: it took {0,choice,1#1 new block|1<{0,number,integer} "
+				+ "new blocks} and ends at block {1,number,integer}.",
+			locale, synced.taken(), lastBlock);
+	}
+
+	private void showTheAnswer(final SyncSupport.SyncedFrom syncedFrom)
+	{
+		Sync.Synced synced = syncedFrom.synced();
+		modelObject.clearAnswer();
+		modelObject.setAnswer(answerFor(synced, locale));
+		modelObject.setTaken(LethenonMessages.format("lethenon.sync.taken",
+			"{0,choice,0#none|1#1 block|1<{0,number,integer} blocks}", locale, synced.taken()));
+		modelObject.setLastBlock(LethenonMessages.format("lethenon.sync.last.block",
+			"{0,number,integer}", locale, synced.blocksAfter() - 1));
+		modelObject.setFrom(syncedFrom.seedNode()
+			? LethenonMessages.format("lethenon.sync.from.seed",
+				"{0} (a seed node of the test network)", locale, syncedFrom.node().toString())
+			: syncedFrom.node().toString());
+		modelObject.setChain(synced.chainIdentifier());
+		modelObject.setFirstUse(synced.blocksBefore() == 0 && synced.taken() > 0
+			? text("lethenon.sync.first.use.yes",
+				"yes: the file was empty, so its first block was taken from this node as it is")
+			: text("lethenon.sync.first.use.no", "no"));
+		showTheModel();
+	}
+
+	private void showFailure(final String result)
+	{
+		modelObject.clearAnswer();
+		showTheModel();
+		setResult(result);
+	}
+
+	/** Puts what the model holds into the read-only fields */
+	private void showTheModel()
+	{
+		txtAnswer.setText(modelObject.getAnswer());
+		AnswerFields.setText(txtTaken, modelObject.getTaken());
+		AnswerFields.setText(txtLastBlock, modelObject.getLastBlock());
+		AnswerFields.setText(txtFrom, modelObject.getFrom());
+		AnswerFields.setText(txtChain, modelObject.getChain());
+		AnswerFields.setText(txtFirstUse, modelObject.getFirstUse());
+	}
+
+	private String failure()
+	{
+		return text("lethenon.sync.result.failed", "the chain file was not synchronised");
+	}
+
+	private String text(final String key, final String defaultValue)
+	{
+		return LethenonMessages.getString(key, defaultValue, locale);
 	}
 
 	private void nameTheComponents()
@@ -298,26 +386,21 @@ public class LethenonSyncPanel extends JPanel
 		txtChainFile.setName("txtChainFile");
 		txtNode.setName("txtNode");
 		txtProxy.setName("txtProxy");
-		txtReport.setName("txtReport");
+		pnlDetails.setName("pnlDetails");
 		lblResult.setName("lblResult");
 	}
 
 	private void explainTheComponents()
 	{
-		txtChainFile.setToolTipText(LethenonMessages.getString("lethenon.tooltip.sync.chain.file",
-			"the chain file on the test network; one that does not exist yet starts from the "
-				+ "genesis block of the node"));
-		txtNode.setToolTipText(LethenonMessages.getString("lethenon.tooltip.sync.node",
-			"host:port of a running lethenon node, for example 127.0.0.1:18480"));
-		txtProxy.setToolTipText(LethenonMessages.getString("lethenon.tooltip.sync.proxy",
-			"only for Tor: its SOCKS proxy, usually 127.0.0.1:9050; empty for a direct "
-				+ "connection; an onion address needs it"));
-		txtReport.setToolTipText(LethenonMessages.getString("lethenon.tooltip.sync.report",
-			"what the sync took from the node"));
-		txtReport.setEditable(false);
-		txtReport.setLineWrap(true);
-		txtReport.setWrapStyleWord(true);
-		txtReport.setFont(new Font("monospaced", Font.PLAIN, 12));
+		txtChainFile.setToolTipText(text("lethenon.sync.tooltip.chain.file",
+			"your chain file on the test network; one that does not exist yet starts with the "
+				+ "node's first block"));
+		txtNode.setToolTipText(text("lethenon.sync.tooltip.node",
+			"leave it empty to ask the seed nodes of the test network, through Tor at their onion "
+				+ "addresses; or type the host:port of a node you trust, for example 127.0.0.1:18480"));
+		txtProxy.setToolTipText(text("lethenon.sync.tooltip.proxy",
+			"only for Tor: its SOCKS proxy, usually 127.0.0.1:9050; leave it empty to connect "
+				+ "directly. An onion address needs it"));
 		lblResult.setFont(lblResult.getFont().deriveFont(Font.BOLD));
 	}
 
@@ -327,37 +410,49 @@ public class LethenonSyncPanel extends JPanel
 			.setPropertyModel(LambdaModel.of(modelObject::getChainFile, modelObject::setChainFile));
 		txtNode.setPropertyModel(LambdaModel.of(modelObject::getNode, modelObject::setNode));
 		txtProxy.setPropertyModel(LambdaModel.of(modelObject::getProxy, modelObject::setProxy));
-		txtReport.setPropertyModel(LambdaModel.of(modelObject::getReport, modelObject::setReport));
+		AnswerFields.show(txtAnswer, modelObject::getAnswer);
+		AnswerFields.show(txtTaken, modelObject::getTaken);
+		AnswerFields.show(txtLastBlock, modelObject::getLastBlock);
+		AnswerFields.show(txtFrom, modelObject::getFrom);
+		AnswerFields.show(txtChain, modelObject::getChain);
+		AnswerFields.show(txtFirstUse, modelObject::getFirstUse);
 	}
 
-	private void layOut()
+	private void layOutTheInputs()
 	{
-		add(new JLabel(LethenonMessages.getString("lethenon.label.chain.file", "Chain file:")));
+		add(new JLabel(text("lethenon.input.label.chain.file", "Chain file:")));
 		add(txtChainFile, WITH_BUTTON);
 		add(LethenonSwing.button("btnBrowseChainFile", "...", event -> onBrowseChainFile(),
-			LethenonMessages.getString("lethenon.tooltip.browse.chain.file", "pick the chain file")),
+			text("lethenon.input.tooltip.browse.chain.file", "pick the chain file on your disk")),
 			OWN_WIDTH);
-		add(new JLabel(LethenonMessages.getString("lethenon.label.node", "Node:")));
+		add(new JLabel(text("lethenon.sync.label.node", "Node (optional):")));
 		add(txtNode, ToolForm.FIELD);
-		add(new JLabel(LethenonMessages.getString("lethenon.label.proxy", "SOCKS proxy:")));
+		add(new JLabel(text("lethenon.sync.label.proxy", "Tor proxy (optional):")));
 		add(txtProxy, ToolForm.FIELD);
 		add(ToolForm.buttons(btnSync), ToolForm.BUTTON_ROW);
-		add(new JLabel(LethenonMessages.getString("lethenon.label.report", "Report:")),
-			"aligny top");
-		add(ToolForm.scrolled(txtReport), ToolForm.GROWING);
-		add(lblResult, ToolForm.RESULT_LINE);
+	}
+
+	private void layOutTheAnswer()
+	{
+		add(txtAnswer, ToolForm.WIDE + ", wmin 0");
+		add(new JLabel(text("lethenon.sync.label.taken", "New blocks:")));
+		add(txtTaken, ToolForm.FIELD);
+		add(new JLabel(text("lethenon.sync.label.last.block", "Last block now:")));
+		add(txtLastBlock, ToolForm.FIELD);
+		add(new JLabel(text("lethenon.sync.label.from", "From the node:")));
+		add(txtFrom, ToolForm.FIELD);
+		add(ToolForm.buttons(btnDetails), ToolForm.BUTTON_ROW);
+		pnlDetails.add(new JLabel(text("lethenon.sync.label.chain", "Chain:")));
+		pnlDetails.add(txtChain, ToolForm.FIELD);
+		pnlDetails.add(new JLabel(text("lethenon.sync.label.first.use", "First block taken as is:")));
+		pnlDetails.add(txtFirstUse, ToolForm.FIELD);
+		add(pnlDetails, ToolForm.WIDE + ", hidemode 3");
 	}
 
 	private void setSynchronising(final boolean running)
 	{
 		btnSync.setEnabled(!running);
 		modelObject.setSynchronising(running);
-	}
-
-	private void setReport(final String text)
-	{
-		modelObject.setReport(text);
-		txtReport.setText(text);
 	}
 
 	private void setResult(final String text)

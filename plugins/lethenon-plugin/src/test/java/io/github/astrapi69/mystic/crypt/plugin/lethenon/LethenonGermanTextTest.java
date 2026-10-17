@@ -103,6 +103,7 @@ class LethenonGermanTextTest
 			Arguments.of("Mine a Pun", List.of("lethenon.mine.", "lethenon.chain.kind.")),
 			Arguments.of("Send", List.of("lethenon.send.", "lethenon.recipient.kind.")),
 			Arguments.of("Sweep", List.of("lethenon.sweep.")),
+			Arguments.of("Synchronise with a Node", List.of("lethenon.sync.")),
 			Arguments.of("what every window answers with",
 				List.of("lethenon.answer.", "lethenon.input.", "lethenon.wallet.",
 					"lethenon.value.")));

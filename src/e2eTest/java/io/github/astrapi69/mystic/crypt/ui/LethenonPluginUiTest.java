@@ -712,11 +712,15 @@ class LethenonPluginUiTest extends AbstractUiTest
 			});
 			UiTestSpeed.step();
 			SwingUtilities.invokeLater(() -> tool.button("btnSync").target().doClick());
-			awaitReport(tool, "took 3 block(s)", "the chain file is synchronised");
+			awaitText(tool, "txtAnswer", "up to date", "the chain file is synchronised");
 
-			String report = textOf(tool, "txtReport");
-			assertTrue(report.contains("now at height 2"), report);
-			assertTrue(report.contains("taken on first use"), report);
+			assertEquals(
+				"Your chain file is up to date now: it took 3 new blocks and ends at " + "block 2.",
+				textOf(tool, "txtAnswer"));
+			assertEquals("3 blocks", textOf(tool, "txtTaken"));
+			assertEquals("127.0.0.1:" + port, textOf(tool, "txtFrom"));
+			tool.button("btnDetails").click();
+			assertTrue(textOf(tool, "txtFirstUse").startsWith("yes"), textOf(tool, "txtFirstUse"));
 			assertEquals(served, new ChainFile(chainFile.toPath()).require(),
 				"the file holds the node's chain, read back with the chain library");
 			assertTrue(frame.isEnabled(), "the application is still usable after a sync");
