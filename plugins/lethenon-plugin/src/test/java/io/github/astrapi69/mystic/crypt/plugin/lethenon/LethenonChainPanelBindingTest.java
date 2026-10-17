@@ -24,6 +24,7 @@
  */
 package io.github.astrapi69.mystic.crypt.plugin.lethenon;
 
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -126,12 +127,50 @@ class LethenonChainPanelBindingTest
 				+ panel.getModelObject().getResultText());
 	}
 
+	@Test
+	@DisplayName("a chain file of 0.5.0 is verified only once the person agreed to convert it, and stays as it was when not (#581)")
+	void verifying_anOldChainFile_asksFirst_andGoesOnOnlyWhenThePersonAgrees() throws Exception
+	{
+		Path old = new File(chainDirectory, "old.lethenon").toPath();
+		byte[] before = CanonicalEncoding.encodeChain(List.of(Genesis.candidate(Chain.TEST_IDENTIFIER,
+			"written by 0.5.0", 1_759_000_000_000L)));
+		Files.write(old, before);
+		List<Path> asked = new ArrayList<>();
+		boolean[] answer = { false };
+		LethenonChainPanel panel = new LethenonChainPanel((parent, chainFile) -> {
+			asked.add(chainFile);
+			return answer[0];
+		});
+		panel.getModelObject().setChainFile(old.toString());
+
+		panel.onVerify();
+
+		assertEquals(List.of(old), asked);
+		assertEquals("", panel.getModelObject().getReport());
+		assertEquals(ChainConversion.notConverted(), panel.getModelObject().getResultText());
+		assertArrayEquals(before, Files.readAllBytes(old), "declined: the file stays as it was");
+
+		answer[0] = true;
+		panel.onVerify();
+
+		assertEquals(List.of(old, old), asked);
+		assertEquals("the chain was accepted", panel.getModelObject().getResultText());
+		assertTrue(panel.getModelObject().getReport().contains("replayed 1 blocks"),
+			panel.getModelObject().getReport());
+		assertArrayEquals(before, Files.readAllBytes(ChainFiles.legacyOf(old)),
+			"agreed: the old file stays beside the database, byte for byte");
+
+		panel.onVerify();
+
+		assertEquals(List.of(old, old), asked, "a converted file is not asked about again");
+	}
+
 	private Path aGenesisOnlyChain() throws Exception
 	{
 		BlockBody genesis = Genesis.candidate(Chain.TEST_IDENTIFIER, "only the genesis",
 			1_759_000_000_000L);
 		Path chainFile = new File(chainDirectory, "chain.lethenon").toPath();
-		Files.write(chainFile, CanonicalEncoding.encodeChain(List.of(genesis)));
+		LethenonFixtures.written(chainFile, List.of(genesis));
 		return chainFile;
 	}
 }

@@ -75,6 +75,9 @@ public class LethenonSendPanel extends JPanel
 
 	private final LethenonSendPanelModel modelObject = new LethenonSendPanelModel();
 
+	/** Whom to ask before a chain file of lethenon 0.5.0 or earlier is converted (#581) */
+	private final ChainConversionConsent consent;
+
 	private final JMTextField txtChainFile = new JMTextField(34);
 
 	private final JMTextField txtWalletFile = new JMTextField(34);
@@ -107,7 +110,20 @@ public class LethenonSendPanel extends JPanel
 	 */
 	public LethenonSendPanel()
 	{
+		this(ChainConversionConsent.ASK);
+	}
+
+	/**
+	 * Instantiates a new {@link LethenonSendPanel} that asks through the given consent before it
+	 * converts a chain file of lethenon 0.5.0 or earlier (#581)
+	 *
+	 * @param consent
+	 *            whom to ask
+	 */
+	LethenonSendPanel(final ChainConversionConsent consent)
+	{
 		super(ToolForm.newLayout());
+		this.consent = consent;
 		nameTheComponents();
 		explainTheComponents();
 		bindToTheModel();
@@ -135,8 +151,14 @@ public class LethenonSendPanel extends JPanel
 			"the transfer was not signed");
 		try
 		{
-			SentTransfer sent = TransferSupport.send(orderFromTheModel(),
-				modelObject.getPassword());
+			TransferOrder order = orderFromTheModel();
+			if (!ChainConversion.convertedIfAgreed(this, consent, order.chainFile()))
+			{
+				setReport("");
+				setResult(failure + ": " + ChainConversion.notConverted());
+				return;
+			}
+			SentTransfer sent = TransferSupport.send(order, modelObject.getPassword());
 			setReport(describe(sent));
 			setResult(sent.node().isEmpty()
 				? LethenonMessages.getString("lethenon.result.send.signed",

@@ -278,21 +278,22 @@ class MiningSupportTest
 	}
 
 	@Test
-	@DisplayName("a chain file of lethenon 0.5.0 is migrated once it verified, and the block is mined on it (#581)")
-	void mine_onAChainFileOfTheOldFormat_migratesItAndMines() throws Exception
+	@DisplayName("a chain file of lethenon 0.5.0 is not mined on before it is converted, and is left as it was (#581)")
+	void mine_onAChainFileOfTheOldFormat_refusesItUntilItIsConverted() throws Exception
 	{
-		List<BlockBody> chain = new ChainFile(chainFile).read();
 		Path old = directory.toPath().resolve("old.lethenon");
-		byte[] oldBytes = CanonicalEncoding.encodeChain(chain);
+		byte[] oldBytes = CanonicalEncoding.encodeChain(new ChainFile(chainFile).read());
 		Files.write(old, oldBytes);
+		char[] password = PASSWORD.toCharArray();
 
-		MinedBlock mined = MiningSupport.mine(new MiningOrder(old, walletFile,
-			ChainKind.TEST_NETWORK, "on the old file", 10_000_000L), PASSWORD.toCharArray(), NOW);
+		UnconvertedChainFile refused = assertThrows(UnconvertedChainFile.class,
+			() -> MiningSupport.mine(new MiningOrder(old, walletFile, ChainKind.TEST_NETWORK,
+				"on the old file", 10_000_000L), password, NOW));
 
-		assertEquals(chain.size(), mined.height());
-		assertEquals(chain.size() + 1, new ChainFile(old).read().size());
-		assertArrayEquals(oldBytes, Files.readAllBytes(directory.toPath().resolve("old.lethenon.legacy")),
-			"the old file stays beside the database, byte for byte");
+		assertTrue(refused.getMessage().startsWith(old.toAbsolutePath().toString()), refused.getMessage());
+		assertArrayEquals(oldBytes, Files.readAllBytes(old), "the file stays as it was");
+		assertFalse(Files.exists(directory.toPath().resolve("old.lethenon.legacy")), "nothing was converted");
+		assertArrayEquals(new char[password.length], password, "the password is wiped all the same");
 	}
 
 	@Test

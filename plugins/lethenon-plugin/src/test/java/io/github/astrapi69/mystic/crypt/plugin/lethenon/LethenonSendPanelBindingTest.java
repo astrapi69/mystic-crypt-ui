@@ -47,7 +47,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import io.github.astrapi69.lethenon.Bytes;
-import io.github.astrapi69.lethenon.CanonicalEncoding;
 import io.github.astrapi69.lethenon.Chain;
 import io.github.astrapi69.lethenon.ChainFile;
 import io.github.astrapi69.lethenon.SignatureSuite;
@@ -92,8 +91,7 @@ class LethenonSendPanelBindingTest
 		WalletFile.write(walletFile, wallet, PASSWORD.toCharArray());
 		KeyPair payer = TransactionSigner.newKeyPair(SignatureSuite.ED25519);
 		chainFile = new File(directory, "chain.lethenon").toPath();
-		Files.write(chainFile,
-			CanonicalEncoding.encodeChain(LethenonFixtures.aChainPayingTheWallet(payer, wallet)));
+		LethenonFixtures.written(chainFile, LethenonFixtures.aChainPayingTheWallet(payer, wallet));
 		recipient = TransactionSigner
 			.asBytes(TransactionSigner.newKeyPair(SignatureSuite.ED25519).getPublic());
 	}

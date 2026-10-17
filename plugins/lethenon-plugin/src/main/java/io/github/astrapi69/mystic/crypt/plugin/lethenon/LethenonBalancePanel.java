@@ -64,6 +64,9 @@ public class LethenonBalancePanel extends JPanel
 
 	private final LethenonBalancePanelModel modelObject = new LethenonBalancePanelModel();
 
+	/** Whom to ask before a chain file of lethenon 0.5.0 or earlier is converted (#581) */
+	private final ChainConversionConsent consent;
+
 	private final JMTextField txtChainFile = new JMTextField(34);
 
 	private final JMTextField txtWalletFile = new JMTextField(34);
@@ -80,7 +83,20 @@ public class LethenonBalancePanel extends JPanel
 	 */
 	public LethenonBalancePanel()
 	{
+		this(ChainConversionConsent.ASK);
+	}
+
+	/**
+	 * Instantiates a new {@link LethenonBalancePanel} that asks through the given consent before it
+	 * converts a chain file of lethenon 0.5.0 or earlier (#581)
+	 *
+	 * @param consent
+	 *            whom to ask
+	 */
+	LethenonBalancePanel(final ChainConversionConsent consent)
+	{
 		super(ToolForm.newLayout());
+		this.consent = consent;
 		txtChainFile.setName("txtChainFile");
 		txtWalletFile.setName("txtWalletFile");
 		txtPassword.setName("txtPassword");
@@ -152,8 +168,14 @@ public class LethenonBalancePanel extends JPanel
 			"the balance could not be read");
 		try
 		{
-			WalletBalance balance = WalletBalanceSupport.balance(
-				Path.of(modelObject.getChainFile().trim()),
+			Path chainFile = Path.of(modelObject.getChainFile().trim());
+			if (!ChainConversion.convertedIfAgreed(this, consent, chainFile))
+			{
+				setReport("");
+				setResult(failure + ": " + ChainConversion.notConverted());
+				return;
+			}
+			WalletBalance balance = WalletBalanceSupport.balance(chainFile,
 				Path.of(modelObject.getWalletFile().trim()), modelObject.getPassword());
 			setReport(describe(balance));
 			setResult(LethenonMessages.getString("lethenon.result.balance.read",

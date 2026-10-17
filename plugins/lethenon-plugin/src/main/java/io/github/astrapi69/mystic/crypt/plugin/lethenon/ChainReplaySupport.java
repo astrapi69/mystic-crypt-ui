@@ -37,7 +37,7 @@ import io.github.astrapi69.lethenon.Replay;
  * Replays a chain file through the chain library and hands back what was verified.
  * <p>
  * No chain logic of its own: {@link ChainFiles#read} reads the file - since lethenon 0.6.0 a
- * database, which a file of 0.5.0 is migrated into once it verified (#581) - and
+ * database, which a file of 0.5.0 becomes once the person agreed to convert it (#581) - and
  * {@link Replay#verify} checks every signature, every state transition, every block hash and the
  * supply invariant. What this class adds is what a panel cannot do: naming the file in every
  * refusal. The chain library says why bytes cannot be read; which file they came from, only the

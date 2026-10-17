@@ -58,6 +58,9 @@ public class LethenonChainPanel extends JPanel
 
 	private final LethenonChainPanelModel modelObject = new LethenonChainPanelModel();
 
+	/** Whom to ask before a chain file of lethenon 0.5.0 or earlier is converted (#581) */
+	private final ChainConversionConsent consent;
+
 	private final JMTextField txtChainFile = new JMTextField(34);
 
 	private final JMTextArea txtReport = new JMTextArea(8, 62);
@@ -70,7 +73,20 @@ public class LethenonChainPanel extends JPanel
 	 */
 	public LethenonChainPanel()
 	{
+		this(ChainConversionConsent.ASK);
+	}
+
+	/**
+	 * Instantiates a new {@link LethenonChainPanel} that asks through the given consent before it
+	 * converts a chain file of lethenon 0.5.0 or earlier (#581)
+	 *
+	 * @param consent
+	 *            whom to ask
+	 */
+	LethenonChainPanel(final ChainConversionConsent consent)
+	{
 		super(ToolForm.newLayout());
+		this.consent = consent;
 		txtChainFile.setName("txtChainFile");
 		txtReport.setName("txtReport");
 		txtReport.setEditable(false);
@@ -127,8 +143,14 @@ public class LethenonChainPanel extends JPanel
 	{
 		try
 		{
-			ChainReplayReport report = ChainReplaySupport
-				.verify(Path.of(modelObject.getChainFile().trim()));
+			Path chainFile = Path.of(modelObject.getChainFile().trim());
+			if (!ChainConversion.convertedIfAgreed(this, consent, chainFile))
+			{
+				setReport("");
+				setResult(ChainConversion.notConverted());
+				return;
+			}
+			ChainReplayReport report = ChainReplaySupport.verify(chainFile);
 			setReport(report.summary());
 			setResult(
 				LethenonMessages.getString("lethenon.result.accepted", "the chain was accepted"));

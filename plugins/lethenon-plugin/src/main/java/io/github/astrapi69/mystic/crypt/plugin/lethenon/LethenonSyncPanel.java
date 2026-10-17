@@ -69,6 +69,9 @@ public class LethenonSyncPanel extends JPanel
 
 	private final LethenonSyncPanelModel modelObject = new LethenonSyncPanelModel();
 
+	/** Whom to ask before a chain file of lethenon 0.5.0 or earlier is converted (#581) */
+	private final ChainConversionConsent consent;
+
 	private final JMTextField txtChainFile = new JMTextField(34);
 
 	private final JMTextField txtNode = new JMTextField(34);
@@ -91,7 +94,20 @@ public class LethenonSyncPanel extends JPanel
 	 */
 	public LethenonSyncPanel()
 	{
+		this(ChainConversionConsent.ASK);
+	}
+
+	/**
+	 * Instantiates a new {@link LethenonSyncPanel} that asks through the given consent before it
+	 * converts a chain file of lethenon 0.5.0 or earlier (#581)
+	 *
+	 * @param consent
+	 *            whom to ask
+	 */
+	LethenonSyncPanel(final ChainConversionConsent consent)
+	{
 		super(ToolForm.newLayout());
+		this.consent = consent;
 		nameTheComponents();
 		explainTheComponents();
 		bindToTheModel();
@@ -127,6 +143,10 @@ public class LethenonSyncPanel extends JPanel
 			setResult(failure() + ": " + notAPath.getMessage());
 			return;
 		}
+		if (!convertedIfAgreed(chainFile))
+		{
+			return;
+		}
 		String node = modelObject.getNode();
 		String proxy = modelObject.getProxy();
 		setSynchronising(true);
@@ -147,6 +167,32 @@ public class LethenonSyncPanel extends JPanel
 				showTheOutcome(this);
 			}
 		}.execute();
+	}
+
+	/**
+	 * Converts a chain file of lethenon 0.5.0 or earlier once the person agreed, before the sync
+	 * runs on a worker thread: the question belongs on this one, and the sync's first read would
+	 * convert the file without it (#581)
+	 *
+	 * @return whether the sync may run; otherwise the result line says why not
+	 */
+	private boolean convertedIfAgreed(final Path chainFile)
+	{
+		try
+		{
+			if (ChainConversion.convertedIfAgreed(this, consent, chainFile))
+			{
+				return true;
+			}
+			setReport("");
+			setResult(failure() + ": " + ChainConversion.notConverted());
+		}
+		catch (ChainRejected | IllegalArgumentException | IOException refused)
+		{
+			setReport("");
+			setResult(failure() + ": " + refused.getMessage());
+		}
+		return false;
 	}
 
 	private void showTheOutcome(final SwingWorker<SyncSupport.SyncedFrom, Void> worker)

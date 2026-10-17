@@ -50,7 +50,6 @@ import io.github.astrapi69.lethenon.Amount;
 import io.github.astrapi69.lethenon.BlockBody;
 import io.github.astrapi69.lethenon.Blocks;
 import io.github.astrapi69.lethenon.Bytes;
-import io.github.astrapi69.lethenon.CanonicalEncoding;
 import io.github.astrapi69.lethenon.ChainFile;
 import io.github.astrapi69.lethenon.ChainState;
 import io.github.astrapi69.lethenon.Destination;
@@ -96,8 +95,7 @@ class TransferSupportTest
 		WalletFile.write(walletFile, wallet, PASSWORD.toCharArray());
 		payer = TransactionSigner.newKeyPair(SignatureSuite.ED25519);
 		chainFile = new File(directory, "chain.lethenon").toPath();
-		Files.write(chainFile,
-			CanonicalEncoding.encodeChain(LethenonFixtures.aChainPayingTheWallet(payer, wallet)));
+		LethenonFixtures.written(chainFile, LethenonFixtures.aChainPayingTheWallet(payer, wallet));
 		recipient = TransactionSigner
 			.asBytes(TransactionSigner.newKeyPair(SignatureSuite.ED25519).getPublic());
 	}

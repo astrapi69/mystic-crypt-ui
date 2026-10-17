@@ -77,8 +77,8 @@ class ChainReplaySupportTest
 	@DisplayName("an accepted chain is reported with what was verified in it")
 	void verify_reportsTheCounts_ofAnAcceptedChain() throws Exception
 	{
-		Path chainFile = write("chain.lethenon",
-			CanonicalEncoding.encodeChain(aChainWithOneTransfer()));
+		Path chainFile = LethenonFixtures.written(new File(directory, "chain.lethenon").toPath(),
+			aChainWithOneTransfer());
 
 		ChainReplayReport report = ChainReplaySupport.verify(chainFile);
 
@@ -184,7 +184,7 @@ class ChainReplaySupportTest
 	void blocks_listEveryBlock_withItsPunAndBeneficiary() throws Exception
 	{
 		List<BlockBody> mined = aChainWithOneTransfer();
-		Path chainFile = write("chain.lethenon", CanonicalEncoding.encodeChain(mined));
+		Path chainFile = LethenonFixtures.written(new File(directory, "chain.lethenon").toPath(), mined);
 
 		List<ChainBlockRow> rows = ChainReplaySupport.blocks(chainFile);
 
