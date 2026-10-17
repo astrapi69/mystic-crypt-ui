@@ -136,6 +136,45 @@ class EveryBuildIsBoundedInMemoryTest
 		assertEquals(List.of(), without, "Gradle calls without $(GRADLE_FLAGS)");
 	}
 
+	@Test
+	@DisplayName("a test that starts a Gradle build of its own starts it without a daemon that outlives it")
+	void aTestThatStartsGradle_leavesNoDaemonBehind() throws IOException
+	{
+		List<String> starting = new ArrayList<>();
+		List<String> withADaemon = new ArrayList<>();
+		for (String sourceSet : List.of("src/test/java", "src/e2eTest/java", "src/e2eLockTest/java",
+			"src/e2eKdbxTest/java", "src/e2eSupport/java", "src/testSupport/java"))
+		{
+			Path root = Path.of(sourceSet);
+			if (!Files.isDirectory(root))
+			{
+				continue;
+			}
+			try (var files = Files.walk(root))
+			{
+				for (Path source : files.filter(file -> file.toString().endsWith(".java")).toList())
+				{
+					String text = Files.readString(source, StandardCharsets.UTF_8);
+					if (text.contains("new File(\"gradlew\")"))
+					{
+						starting.add(source.getFileName().toString());
+						if (!text.contains("\"--no-daemon\""))
+						{
+							withADaemon.add(source.getFileName().toString());
+						}
+					}
+				}
+			}
+		}
+
+		// the outer build's daemon is busy running the test, so the inner build cannot share it; a
+		// daemon of its own stayed idle for hours after every test run - measured in the #580 gate,
+		// where each phase held a second daemon of 500 to 600 MB
+		assertTrue(!starting.isEmpty(),
+			"no test starts gradlew - then this guard measures nothing");
+		assertEquals(List.of(), withADaemon, "tests that start Gradle with a daemon");
+	}
+
 	private static File[] plugins()
 	{
 		File[] plugins = new File("plugins").listFiles(File::isDirectory);
