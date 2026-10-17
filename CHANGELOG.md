@@ -20,6 +20,11 @@ CHANGED:
   refused with the file's path and the reason before anyone is asked, and is left as it was. Measured with a chain
   file 8.8's own code wrote, taken from the 8.8 installer (`src/e2eTest/resources/lethenon/README.md`): after
   "Convert" the database holds its three blocks and the `.legacy` file is the one 8.8 wrote, byte for byte (#581)
+- the Lethenon plugin's zip carries the licences of the libraries it bundles under `legal/`, and the installer installs
+  them to `legal/lethenon-plugin` in the installation directory: sqlite-jdbc's Apache License 2.0 and the Zentus
+  licence of the code it contains, which asks for its notice in every binary distribution, and lethenon's MIT
+  License, each taken unchanged from its jar, with a `NOTICE.txt` that names every library and says that SQLite
+  itself is in the public domain. A test fails when the zip bundles a library its notice does not name (#581)
 - the plugin registers the SQLite driver itself when it starts: lethenon asks `DriverManager` for its database
   connection, and `DriverManager` does not see a driver inside a plugin's zip (lethenon#223)
 - the application jar enables native access (`Enable-Native-Access: ALL-UNNAMED`), so that JDK 25 loads the SQLite

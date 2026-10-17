@@ -134,6 +134,13 @@
 						target="${USER_HOME}/.config/mystic-crypt-ui/plugins/secret-sharing-plugin-1.0.0.zip" />
 			<singlefile src="../plugins/lethenon-plugin/build/plugin-dist/lethenon-plugin-1.0.0.zip"
 						target="${USER_HOME}/.config/mystic-crypt-ui/plugins/lethenon-plugin-1.0.0.zip" />
+			<!--
+				The licences of the libraries the lethenon plugin's zip bundles, sqlite-jdbc and lethenon,
+				with NOTICE.txt naming each: the Zentus licence sqlite-jdbc carries asks for its notice in
+				every binary distribution, so it is installed where a person finds it, not only inside the
+				zip (#581)
+			-->
+			<fileset dir="../plugins/lethenon-plugin/build/legal" targetdir="${INSTALL_PATH}/legal/lethenon-plugin" />
 		</pack>
 	</packs>
 

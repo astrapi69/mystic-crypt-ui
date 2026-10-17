@@ -1,0 +1,20 @@
+The Lethenon plugin of mystic-crypt-ui, and what its zip carries besides its own classes
+=====================================================================================
+
+The plugin's own classes are under the MIT License of mystic-crypt-ui. Its zip also carries two
+libraries under lib/, which are not covered by that licence. Their licence texts are in this
+directory, taken unchanged from the jars they belong to.
+
+lib/lethenon-<version>.jar
+    lethenon, the chain library: https://github.com/astrapi69/lethenon
+    MIT License, Copyright (c) 2021 Asterios Raptis
+    The licence: lethenon/LICENSE.txt
+
+lib/sqlite-jdbc-<version>.jar
+    SQLite JDBC by Xerial: https://github.com/xerial/sqlite-jdbc
+    Apache License, Version 2.0. The licence: sqlite-jdbc/LICENSE
+    It contains code of the Zentus SQLiteJDBC driver, Copyright (c) 2006, David Crawshaw, under
+    the licence in sqlite-jdbc/LICENSE.zentus, which asks for its notice in every binary
+    distribution - this is that notice.
+    It carries a native build of SQLite for each platform it supports. SQLite is in the public
+    domain: https://sqlite.org/copyright.html
