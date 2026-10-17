@@ -30,6 +30,11 @@ import io.github.astrapi69.mystic.crypt.secret.SecretBuffers;
  * The state of {@link LethenonMinePanel}, in one object rather than scattered across its widgets
  * (architecture.md: every panel holds its state in a model).
  * <p>
+ * The answer is kept as the window shows it, one value per field (#604): the sentence that answers
+ * what the window was opened for, the block's number, what it paid, the transfers it carries and
+ * the pun as it went into the block, and behind "Show details" the chain, the account paid, what
+ * the replay checked and all the money there is.
+ * <p>
  * The password is a {@code char[]}, never a String, and {@link #setPassword} overwrites the array
  * it replaces - the same rule as the other windows of this plugin and the host's sign-in model
  * (#351).
@@ -50,9 +55,41 @@ public class LethenonMinePanelModel
 
 	private String pun = DEFAULT_PUN;
 
-	private String report = "";
+	private String answer = "";
+
+	private String block = "";
+
+	private String minedPun = "";
+
+	private String paid = "";
+
+	private String carried = "";
+
+	private String chain = "";
+
+	private String paidTo = "";
+
+	private String chainChecked = "";
+
+	private String supply = "";
+
+	private boolean detailsShown;
 
 	private String resultText = " ";
+
+	/** Empties every value of the answer, so a failure leaves nothing of an earlier block */
+	public void clearAnswer()
+	{
+		answer = "";
+		block = "";
+		minedPun = "";
+		paid = "";
+		carried = "";
+		chain = "";
+		paidTo = "";
+		chainChecked = "";
+		supply = "";
+	}
 
 	public String getChainFile()
 	{
@@ -74,24 +111,11 @@ public class LethenonMinePanelModel
 		this.walletFile = walletFile;
 	}
 
-	/**
-	 * The password typed so far
-	 *
-	 * @return the array itself, not a copy; never null
-	 */
 	public char[] getPassword()
 	{
 		return password;
 	}
 
-	/**
-	 * Replaces the password, overwriting the array it replaces unless both hold the same characters
-	 * (#351: an equal-content replacement re-enters from the field's own document listener while
-	 * its caller still holds the first array)
-	 *
-	 * @param password
-	 *            the new password; null clears it
-	 */
 	public void setPassword(char[] password)
 	{
 		char[] replacement = password == null ? new char[0] : password;
@@ -102,12 +126,6 @@ public class LethenonMinePanelModel
 		this.password = replacement;
 	}
 
-	/**
-	 * The chain a genesis block starts where the chain file does not exist yet; a test chain unless
-	 * the main chain is chosen
-	 *
-	 * @return the chosen kind
-	 */
 	public ChainKind getChainKind()
 	{
 		return chainKind;
@@ -128,14 +146,104 @@ public class LethenonMinePanelModel
 		this.pun = pun;
 	}
 
-	public String getReport()
+	public String getAnswer()
 	{
-		return report;
+		return answer;
 	}
 
-	public void setReport(String report)
+	public void setAnswer(String answer)
 	{
-		this.report = report;
+		this.answer = answer;
+	}
+
+	public String getBlock()
+	{
+		return block;
+	}
+
+	public void setBlock(String block)
+	{
+		this.block = block;
+	}
+
+	public String getMinedPun()
+	{
+		return minedPun;
+	}
+
+	public void setMinedPun(String minedPun)
+	{
+		this.minedPun = minedPun;
+	}
+
+	public String getPaid()
+	{
+		return paid;
+	}
+
+	public void setPaid(String paid)
+	{
+		this.paid = paid;
+	}
+
+	public String getCarried()
+	{
+		return carried;
+	}
+
+	public void setCarried(String carried)
+	{
+		this.carried = carried;
+	}
+
+	public String getChain()
+	{
+		return chain;
+	}
+
+	public void setChain(String chain)
+	{
+		this.chain = chain;
+	}
+
+	public String getPaidTo()
+	{
+		return paidTo;
+	}
+
+	public void setPaidTo(String paidTo)
+	{
+		this.paidTo = paidTo;
+	}
+
+	public String getChainChecked()
+	{
+		return chainChecked;
+	}
+
+	public void setChainChecked(String chainChecked)
+	{
+		this.chainChecked = chainChecked;
+	}
+
+	public String getSupply()
+	{
+		return supply;
+	}
+
+	public void setSupply(String supply)
+	{
+		this.supply = supply;
+	}
+
+	public boolean isDetailsShown()
+	{
+		return detailsShown;
+	}
+
+	public void setDetailsShown(boolean detailsShown)
+	{
+		this.detailsShown = detailsShown;
 	}
 
 	public String getResultText()

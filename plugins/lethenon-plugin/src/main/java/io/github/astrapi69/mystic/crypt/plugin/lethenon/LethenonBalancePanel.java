@@ -31,7 +31,6 @@ import java.util.LinkedHashMap;
 import java.util.Locale;
 import java.util.Map;
 
-import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -76,9 +75,6 @@ public class LethenonBalancePanel extends JPanel
 	/** Something that keeps its own width instead of growing with the cell */
 	private static final String OWN_WIDTH = "alignx left, width pref!";
 
-	/** How much larger the answer is than the text around it */
-	private static final float ANSWER_SCALE = 1.5f;
-
 	private final LethenonBalancePanelModel modelObject = new LethenonBalancePanelModel();
 
 	/** Whom to ask before a chain file of lethenon 0.5.0 or earlier is converted (#581) */
@@ -92,23 +88,32 @@ public class LethenonBalancePanel extends JPanel
 
 	private final JMPasswordField txtPassword = new JMPasswordField(34);
 
-	private final JMTextArea txtAnswer = new JMTextArea(2, 40);
+	private final JMTextArea txtAnswer = AnswerFields.answerArea(
+		text("lethenon.balance.tooltip.answer", "what your wallet holds, read from the chain just now"));
 
-	private final JMTextField txtAddress = readOnly("txtAddress");
+	private final JMTextField txtAddress = AnswerFields.readOnly("txtAddress",
+		text("lethenon.balance.tooltip.address",
+			"give this address to anyone who wants to pay you; it never changes, and the chain "
+				+ "does not show who paid it"));
 
 	private final Map<String, JMTextField> txtAccounts = new LinkedHashMap<>();
 
 	private final Map<String, JMTextField> txtHolds = new LinkedHashMap<>();
 
-	private final JMTextField txtWaitingForSweep = readOnly("txtWaitingForSweep");
+	private final JMTextField txtWaitingForSweep = AnswerFields.readOnly("txtWaitingForSweep",
+		text("lethenon.balance.tooltip.waiting",
+			"payments that came to your address; to spend them, sweep them onto your account in "
+				+ "the window Sweep"));
 
 	private final JButton btnDetails;
 
 	private final JPanel pnlDetails = new JPanel(ToolForm.newLayout());
 
-	private final JMTextField txtChainChecked = readOnly("txtChainChecked");
+	private final JMTextField txtChainChecked = AnswerFields.readOnly("txtChainChecked",
+		AnswerFields.chainCheckedTooltip(locale));
 
-	private final JMTextField txtSupply = readOnly("txtSupply");
+	private final JMTextField txtSupply = AnswerFields.readOnly("txtSupply",
+		AnswerFields.supplyTooltip(locale));
 
 	private final JLabel lblResult = new JLabel(" ");
 
@@ -132,10 +137,17 @@ public class LethenonBalancePanel extends JPanel
 	{
 		super(ToolForm.newLayout());
 		this.consent = consent;
+		String account = text("lethenon.balance.tooltip.account",
+			"one of your accounts; somebody can pay you here directly, but your address keeps "
+				+ "payments private, so give the address");
+		String holds = text("lethenon.balance.tooltip.holds",
+			"what this account holds; you can spend it");
 		for (SignatureSuite suite : SignatureSuite.values())
 		{
-			txtAccounts.put(suite.identifier(), readOnly("txtAccount_" + suite.identifier()));
-			txtHolds.put(suite.identifier(), readOnly("txtHolds_" + suite.identifier()));
+			txtAccounts.put(suite.identifier(),
+				AnswerFields.readOnly("txtAccount_" + suite.identifier(), account));
+			txtHolds.put(suite.identifier(),
+				AnswerFields.readOnly("txtHolds_" + suite.identifier(), holds));
 		}
 		btnDetails = LethenonSwing.button("btnDetails", detailsButtonText(), event -> onDetails(),
 			text("lethenon.balance.tooltip.details",
@@ -253,12 +265,7 @@ public class LethenonBalancePanel extends JPanel
 			: LethenonMessages.format("lethenon.balance.waiting",
 				"{0,choice,1#1 payment|1<{0,number,integer} payments}, {1}", locale,
 				balance.oneTimePayments(), LethAmounts.format(balance.oneTimeAmount(), locale)));
-		modelObject.setChainChecked(LethenonMessages.format("lethenon.balance.chain.checked",
-			"{0,choice,0#no blocks|1#1 block|1<{0,number,integer} blocks}, "
-				+ "{1,choice,0#no transfers|1#1 transfer|1<{1,number,integer} transfers}, "
-				+ "{2,choice,0#no signatures|1#1 signature|1<{2,number,integer} signatures}",
-			locale, balance.replay().blocks(), balance.replay().transactions(),
-			balance.replay().signatures()));
+		modelObject.setChainChecked(AnswerFields.chainChecked(balance.replay(), locale));
 		modelObject.setSupply(LethAmounts.format(balance.replay().supply(), locale));
 		showTheModel();
 	}
@@ -274,30 +281,13 @@ public class LethenonBalancePanel extends JPanel
 	private void showTheModel()
 	{
 		txtAnswer.setText(modelObject.getAnswer());
-		txtAddress.setText(LongValues.shortened(modelObject.getAddress(), locale));
-		txtAccounts.forEach((suite, field) -> field
-			.setText(LongValues.shortened(modelObject.getAccount(suite), locale)));
-		txtHolds.forEach((suite, field) -> field.setText(modelObject.getHolds(suite)));
-		txtWaitingForSweep.setText(modelObject.getWaitingForSweep());
-		txtChainChecked.setText(modelObject.getChainChecked());
-		txtSupply.setText(modelObject.getSupply());
-		for (JMTextField field : resultFields())
-		{
-			field.setCaretPosition(0);
-		}
-	}
-
-	/** @return the read-only fields of the answer, which show their values from the beginning */
-	private java.util.List<JMTextField> resultFields()
-	{
-		java.util.List<JMTextField> fields = new java.util.ArrayList<>();
-		fields.add(txtAddress);
-		fields.addAll(txtAccounts.values());
-		fields.addAll(txtHolds.values());
-		fields.add(txtWaitingForSweep);
-		fields.add(txtChainChecked);
-		fields.add(txtSupply);
-		return fields;
+		AnswerFields.setText(txtAddress, LongValues.shortened(modelObject.getAddress(), locale));
+		txtAccounts.forEach((suite, field) -> AnswerFields.setText(field,
+			LongValues.shortened(modelObject.getAccount(suite), locale)));
+		txtHolds.forEach((suite, field) -> AnswerFields.setText(field, modelObject.getHolds(suite)));
+		AnswerFields.setText(txtWaitingForSweep, modelObject.getWaitingForSweep());
+		AnswerFields.setText(txtChainChecked, modelObject.getChainChecked());
+		AnswerFields.setText(txtSupply, modelObject.getSupply());
 	}
 
 	private void nameAndExplainTheInputs()
@@ -305,65 +295,36 @@ public class LethenonBalancePanel extends JPanel
 		txtChainFile.setName("txtChainFile");
 		txtWalletFile.setName("txtWalletFile");
 		txtPassword.setName("txtPassword");
-		txtAnswer.setName("txtAnswer");
-		txtAnswer.setEditable(false);
-		txtAnswer.setLineWrap(true);
-		txtAnswer.setWrapStyleWord(true);
-		txtAnswer.setOpaque(false);
-		txtAnswer.setBorder(BorderFactory.createEmptyBorder());
 		lblResult.setName("lblResult");
 		pnlDetails.setName("pnlDetails");
-		txtAnswer.setFont(lblResult.getFont().deriveFont(Font.BOLD,
-			lblResult.getFont().getSize2D() * ANSWER_SCALE));
 		lblResult.setFont(lblResult.getFont().deriveFont(Font.BOLD));
 		txtChainFile.setToolTipText(text("lethenon.balance.tooltip.chain.file",
 			"the file that holds the chain; what your wallet holds is read from it here, without "
 				+ "asking anybody"));
 		txtWalletFile.setToolTipText(text("lethenon.balance.tooltip.wallet.file",
 			"the file with your keys, made when you created your wallet"));
-		txtPassword.setToolTipText(text("lethenon.balance.tooltip.password",
+		txtPassword.setToolTipText(text("lethenon.input.tooltip.password",
 			"the password of your wallet file; it is used once and then forgotten"));
-		txtAnswer.setToolTipText(text("lethenon.balance.tooltip.answer",
-			"what your wallet holds, read from the chain just now"));
-		txtAddress.setToolTipText(text("lethenon.balance.tooltip.address",
-			"give this address to anyone who wants to pay you; it never changes, and the chain "
-				+ "does not show who paid it"));
-		txtWaitingForSweep.setToolTipText(text("lethenon.balance.tooltip.waiting",
-			"payments that came to your address; to spend them, sweep them onto your account in "
-				+ "the window Sweep"));
-		txtChainChecked.setToolTipText(text("lethenon.balance.tooltip.chain.checked",
-			"every block, transfer and signature of the chain was checked here before the balance "
-				+ "was read"));
-		txtSupply.setToolTipText(text("lethenon.balance.tooltip.supply",
-			"all the LETH on this chain, everybody's together; it grows only by the small reward "
-				+ "each new block adds"));
-		String account = text("lethenon.balance.tooltip.account",
-			"one of your accounts; somebody can pay you here directly, but your address keeps "
-				+ "payments private, so give the address");
-		String holds = text("lethenon.balance.tooltip.holds",
-			"what this account holds; you can spend it");
-		txtAccounts.values().forEach(field -> field.setToolTipText(account));
-		txtHolds.values().forEach(field -> field.setToolTipText(holds));
 	}
 
 	private void layOutTheInputs()
 	{
-		add(new JLabel(text("lethenon.balance.label.chain.file", "Chain file:")));
+		add(new JLabel(text("lethenon.input.label.chain.file", "Chain file:")));
 		add(txtChainFile, WITH_BUTTON);
 		add(LethenonSwing.button("btnBrowseChainFile", "...",
 			event -> LethenonSwing.chooseFile(this, modelObject.getChainFile())
 				.ifPresent(txtChainFile::setText),
-			text("lethenon.balance.tooltip.browse.chain.file", "pick the chain file on your disk")),
+			text("lethenon.input.tooltip.browse.chain.file", "pick the chain file on your disk")),
 			OWN_WIDTH);
-		add(new JLabel(text("lethenon.balance.label.wallet.file", "Wallet file:")));
+		add(new JLabel(text("lethenon.input.label.wallet.file", "Wallet file:")));
 		add(txtWalletFile, WITH_BUTTON);
 		add(LethenonSwing.button("btnBrowseWalletFile", "...",
 			event -> LethenonSwing.chooseFile(this, modelObject.getWalletFile())
 				.ifPresent(txtWalletFile::setText),
-			text("lethenon.balance.tooltip.browse.wallet.file",
+			text("lethenon.input.tooltip.browse.wallet.file",
 				"pick your wallet file on your disk")),
 			OWN_WIDTH);
-		add(new JLabel(text("lethenon.balance.label.password", "Password:")));
+		add(new JLabel(text("lethenon.input.label.password", "Password:")));
 		add(txtPassword, ToolForm.FIELD);
 		add(ToolForm.buttons(LethenonSwing.button("btnShowBalance",
 			text("lethenon.balance.button.show", "Show my balance"), event -> onShow(),
@@ -378,45 +339,36 @@ public class LethenonBalancePanel extends JPanel
 		add(txtAnswer, ToolForm.WIDE + ", wmin 0");
 		add(new JLabel(text("lethenon.balance.label.address", "Your address:")));
 		add(txtAddress, WITH_BUTTON);
-		add(copyButton("btnCopyAddress", modelObject::getAddress,
+		add(AnswerFields.copyButton("btnCopyAddress", modelObject::getAddress,
 			text("lethenon.balance.tooltip.copy.address",
-				"copy your whole address, to paste it into a message")),
-			OWN_WIDTH);
+				"copy your whole address, to paste it into a message"),
+			locale), OWN_WIDTH);
 		String copyAccount = text("lethenon.balance.tooltip.copy.account",
 			"copy the whole account, the part that is not shown included");
 		for (SignatureSuite suite : SignatureSuite.values())
 		{
 			String id = suite.identifier();
 			add(new JLabel(LethenonMessages.format("lethenon.balance.label.account",
-				"Your {0} account:", locale, suiteName(suite))));
+				"Your {0} account:", locale, AnswerFields.suiteName(suite))));
 			add(txtAccounts.get(id), WITH_BUTTON);
-			add(copyButton("btnCopyAccount_" + id, () -> modelObject.getAccount(id), copyAccount),
-				OWN_WIDTH);
+			add(AnswerFields.copyButton("btnCopyAccount_" + id, () -> modelObject.getAccount(id),
+				copyAccount, locale), OWN_WIDTH);
 			add(new JLabel(text("lethenon.balance.label.holds", "It holds:")));
 			add(txtHolds.get(id), ToolForm.FIELD);
 		}
 		add(new JLabel(text("lethenon.balance.label.waiting", "Waiting for a sweep:")));
 		add(txtWaitingForSweep, ToolForm.FIELD);
 		add(ToolForm.buttons(btnDetails), ToolForm.BUTTON_ROW);
-		pnlDetails.add(new JLabel(text("lethenon.balance.label.chain.checked", "Chain checked:")));
+		pnlDetails.add(AnswerFields.chainCheckedLabel(locale));
 		pnlDetails.add(txtChainChecked, ToolForm.FIELD);
-		pnlDetails.add(new JLabel(text("lethenon.balance.label.supply", "All the money there is:")));
+		pnlDetails.add(AnswerFields.supplyLabel(locale));
 		pnlDetails.add(txtSupply, ToolForm.FIELD);
 		add(pnlDetails, ToolForm.WIDE + ", hidemode 3");
 	}
 
-	private JButton copyButton(final String name, final java.util.function.Supplier<String> value,
-		final String tooltip)
-	{
-		return LethenonSwing.button(name, text("lethenon.balance.button.copy", "Copy"),
-			event -> LethenonSwing.copy(value.get()), tooltip);
-	}
-
 	private String detailsButtonText()
 	{
-		return modelObject.isDetailsShown()
-			? text("lethenon.balance.button.details.hide", "Hide details")
-			: text("lethenon.balance.button.details.show", "Show details");
+		return AnswerFields.detailsButtonText(modelObject.isDetailsShown(), locale);
 	}
 
 	private void bindToTheModel()
@@ -427,48 +379,15 @@ public class LethenonBalancePanel extends JPanel
 			LambdaModel.of(modelObject::getWalletFile, modelObject::setWalletFile));
 		txtPassword
 			.setPropertyModel(LambdaModel.of(modelObject::getPassword, modelObject::setPassword));
-		txtAddress.setPropertyModel(
-			LambdaModel.of(() -> LongValues.shortened(modelObject.getAddress(), locale),
-				LethenonBalancePanel::shownOnly));
-		txtAccounts.forEach((suite, field) -> field.setPropertyModel(LambdaModel.of(
-			() -> LongValues.shortened(modelObject.getAccount(suite), locale),
-			LethenonBalancePanel::shownOnly)));
-		txtHolds.forEach((suite, field) -> field.setPropertyModel(
-			LambdaModel.of(() -> modelObject.getHolds(suite), LethenonBalancePanel::shownOnly)));
-		txtWaitingForSweep.setPropertyModel(
-			LambdaModel.of(modelObject::getWaitingForSweep, LethenonBalancePanel::shownOnly));
-		txtChainChecked.setPropertyModel(
-			LambdaModel.of(modelObject::getChainChecked, LethenonBalancePanel::shownOnly));
-		txtAnswer.setPropertyModel(
-			LambdaModel.of(modelObject::getAnswer, LethenonBalancePanel::shownOnly));
-		txtSupply.setPropertyModel(
-			LambdaModel.of(modelObject::getSupply, LethenonBalancePanel::shownOnly));
-	}
-
-	/**
-	 * What a read-only field writes back into the model: nothing. The field shows the model and
-	 * never writes into it, so a shortened address cannot replace the whole one Copy copies
-	 *
-	 * @param shown
-	 *            the text the field shows
-	 */
-	private static void shownOnly(final String shown)
-	{
-		// a read-only field's text is derived from the model, never the other way round
-	}
-
-	private static JMTextField readOnly(final String name)
-	{
-		JMTextField field = new JMTextField(34);
-		field.setName(name);
-		field.setEditable(false);
-		return field;
-	}
-
-	private static String suiteName(final SignatureSuite suite)
-	{
-		return suite == SignatureSuite.ED25519 ? "Ed25519"
-			: suite.identifier().toUpperCase(Locale.ROOT);
+		AnswerFields.show(txtAddress, () -> LongValues.shortened(modelObject.getAddress(), locale));
+		txtAccounts.forEach((suite, field) -> AnswerFields.show(field,
+			() -> LongValues.shortened(modelObject.getAccount(suite), locale)));
+		txtHolds.forEach(
+			(suite, field) -> AnswerFields.show(field, () -> modelObject.getHolds(suite)));
+		AnswerFields.show(txtWaitingForSweep, modelObject::getWaitingForSweep);
+		AnswerFields.show(txtChainChecked, modelObject::getChainChecked);
+		AnswerFields.show(txtAnswer, modelObject::getAnswer);
+		AnswerFields.show(txtSupply, modelObject::getSupply);
 	}
 
 	private String text(final String key, final String defaultValue)

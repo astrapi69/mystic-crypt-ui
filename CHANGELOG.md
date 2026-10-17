@@ -25,6 +25,12 @@ CHANGED:
 - the password messages of every Lethenon window say what to do: an empty password is asked for instead of tried
   ("type the password of home.wallet first"), and a wrong one reads "this password does not open home.wallet; type
   it again, and check that it is the wallet you meant (<path>)", in English and German, never repeating the password
+- "Mine a Pun" answers in fields the same way (#604): "Block 3 is yours: it paid you 1,000.00000000 LETH.", or for the
+  first block of a new chain that the next block is the first that pays; then the block's number, what it paid,
+  the transfers it carries and the pun as it went into the block. The chain, the account paid, what the replay
+  checked and all the money there is are behind "Show details". What a block paid is read from the replay - what
+  left the mining pool, what the tail minted and the fees it carries - and a test holds it to what the miner's
+  account grew by. Every field, button and choice has a tooltip in plain words, English and German
 
 Version 8.10
 -------------

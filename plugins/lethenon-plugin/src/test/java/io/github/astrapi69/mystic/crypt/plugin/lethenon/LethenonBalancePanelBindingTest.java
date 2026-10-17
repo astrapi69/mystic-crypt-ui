@@ -24,28 +24,27 @@
  */
 package io.github.astrapi69.mystic.crypt.plugin.lethenon;
 
+import static io.github.astrapi69.mystic.crypt.plugin.lethenon.Windows.component;
+import static io.github.astrapi69.mystic.crypt.plugin.lethenon.Windows.textOf;
+import static io.github.astrapi69.mystic.crypt.plugin.lethenon.Windows.textsOf;
+
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.awt.Component;
-import java.awt.Container;
 import java.awt.Toolkit;
 import java.awt.datatransfer.DataFlavor;
 import java.io.File;
 import java.nio.file.Path;
 import java.security.KeyPair;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.stream.Stream;
 
 import javax.swing.AbstractButton;
 import javax.swing.JComponent;
-import javax.swing.text.JTextComponent;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -225,19 +224,9 @@ class LethenonBalancePanelBindingTest
 	{
 		LethenonBalancePanel panel = filledPanel(PASSWORD);
 		panel.onShow();
-		List<String> silent = new ArrayList<>();
-		for (JComponent component : named(panel))
-		{
-			boolean interactive = component instanceof JTextComponent
-				|| component instanceof AbstractButton;
-			String tooltip = component.getToolTipText();
-			if (interactive && (tooltip == null || tooltip.isBlank()))
-			{
-				silent.add(component.getName());
-			}
-		}
 
-		assertEquals(List.of(), silent, "fields and buttons without a tooltip");
+		assertEquals(List.of(), Windows.withoutATooltip(panel),
+			"fields and buttons without a tooltip");
 	}
 
 	@Test
@@ -308,47 +297,5 @@ class LethenonBalancePanelBindingTest
 		panel.getModelObject().setWalletFile(walletFile.toString());
 		panel.getModelObject().setPassword(password.toCharArray());
 		return panel;
-	}
-
-	private static String textOf(final Container panel, final String name)
-	{
-		Component found = component(panel, name, Component.class);
-		return found instanceof JTextComponent text ? text.getText()
-			: ((javax.swing.JLabel)found).getText();
-	}
-
-	private static List<String> textsOf(final Container panel)
-	{
-		return named(panel).stream()
-			.flatMap(component -> component instanceof JTextComponent text
-				? Stream.of(text.getText())
-				: component instanceof javax.swing.JLabel label ? Stream.of(label.getText())
-					: Stream.empty())
-			.toList();
-	}
-
-	private static <T> T component(final Container panel, final String name, final Class<T> type)
-	{
-		T found = named(panel).stream().filter(component -> name.equals(component.getName()))
-			.map(type::cast).findFirst().orElse(null);
-		assertNotNull(found, "the window has no component named " + name);
-		return found;
-	}
-
-	private static List<JComponent> named(final Container container)
-	{
-		List<JComponent> found = new ArrayList<>();
-		for (Component child : container.getComponents())
-		{
-			if (child instanceof JComponent component && component.getName() != null)
-			{
-				found.add(component);
-			}
-			if (child instanceof Container nested)
-			{
-				found.addAll(named(nested));
-			}
-		}
-		return found;
 	}
 }
