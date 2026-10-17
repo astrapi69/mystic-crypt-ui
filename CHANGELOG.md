@@ -35,6 +35,9 @@ CHANGED:
   phase only once none of them is building. Every Gradle call of the Makefile takes `GRADLE_FLAGS`, the plugin builds
   ask for the host's daemon, an idle daemon ends after 30 minutes, and a test that starts a Gradle build of its own
   leaves no daemon behind. Measured over the whole gate: the Java peak went from 3,613 MB at 8.9 to 2,736 MB (#580)
+- development only: the release signature's two passwords come from the desktop's keyring, handed only to the one
+  command that signs, through `scripts/with-signing-passwords.sh`, and no longer from a plain-text file. An installer
+  build without them stops with "not signed" instead of continuing (#579)
 
 FORMAT:
 - Lethenon chain files change: lethenon 0.6.0 keeps the chain in an SQLite database, and a chain file of 0.5.0 is
