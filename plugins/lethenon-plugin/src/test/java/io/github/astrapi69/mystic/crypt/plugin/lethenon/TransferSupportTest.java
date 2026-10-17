@@ -110,6 +110,7 @@ class TransferSupportTest
 		assertEquals(0L, sent.nonce());
 		assertEquals(1, sent.waiting());
 		assertEquals(Amount.parseLeth("1.5"), sent.amount());
+		assertEquals(Amount.parseLeth("0.1"), sent.fee(), "the window shows the fee it signed (#604)");
 		List<SignedTransaction> pending = new ChainFile(chainFile).readPending();
 		assertEquals(1, pending.size());
 		SignedTransaction transfer = pending.getFirst();

@@ -31,6 +31,11 @@ import io.github.astrapi69.mystic.crypt.secret.SecretBuffers;
  * The state of {@link LethenonSendPanel}, in one object rather than scattered across its widgets
  * (architecture.md: every panel holds its state in a model).
  * <p>
+ * The answer is kept as the window shows it, one value per field (#604): the sentence that says
+ * what was sent and where it waits, the amount, the fee, the recipient and where the transfer
+ * waits, and behind "Show details" the number of the transfer from the account and how many
+ * transfers wait. A published address is kept as typed, never the one-time destination it gave.
+ * <p>
  * The password is a {@code char[]}, never a String, and {@link #setPassword} overwrites the array
  * it replaces - the same rule as {@link LethenonBalancePanelModel} and the host's sign-in model
  * (#351).
@@ -58,7 +63,21 @@ public class LethenonSendPanelModel
 
 	private String node = "";
 
-	private String report = "";
+	private String answer = "";
+
+	private String sentAmount = "";
+
+	private String sentFee = "";
+
+	private String sentTo = "";
+
+	private String whereItWaits = "";
+
+	private String nonce = "";
+
+	private String waiting = "";
+
+	private boolean detailsShown;
 
 	private String resultText = " ";
 
@@ -180,14 +199,96 @@ public class LethenonSendPanelModel
 		this.node = node;
 	}
 
-	public String getReport()
+	/** Empties every value of the answer, so a failure leaves nothing of an earlier one */
+	public void clearAnswer()
 	{
-		return report;
+		answer = "";
+		sentAmount = "";
+		sentFee = "";
+		sentTo = "";
+		whereItWaits = "";
+		nonce = "";
+		waiting = "";
 	}
 
-	public void setReport(String report)
+	public String getAnswer()
 	{
-		this.report = report;
+		return answer;
+	}
+
+	public void setAnswer(String answer)
+	{
+		this.answer = answer;
+	}
+
+	public String getSentAmount()
+	{
+		return sentAmount;
+	}
+
+	public void setSentAmount(String sentAmount)
+	{
+		this.sentAmount = sentAmount;
+	}
+
+	public String getSentFee()
+	{
+		return sentFee;
+	}
+
+	public void setSentFee(String sentFee)
+	{
+		this.sentFee = sentFee;
+	}
+
+	public String getSentTo()
+	{
+		return sentTo;
+	}
+
+	public void setSentTo(String sentTo)
+	{
+		this.sentTo = sentTo;
+	}
+
+	public String getWhereItWaits()
+	{
+		return whereItWaits;
+	}
+
+	public void setWhereItWaits(String whereItWaits)
+	{
+		this.whereItWaits = whereItWaits;
+	}
+
+	public String getNonce()
+	{
+		return nonce;
+	}
+
+	public void setNonce(String nonce)
+	{
+		this.nonce = nonce;
+	}
+
+	public String getWaiting()
+	{
+		return waiting;
+	}
+
+	public void setWaiting(String waiting)
+	{
+		this.waiting = waiting;
+	}
+
+	public boolean isDetailsShown()
+	{
+		return detailsShown;
+	}
+
+	public void setDetailsShown(boolean detailsShown)
+	{
+		this.detailsShown = detailsShown;
 	}
 
 	public String getResultText()

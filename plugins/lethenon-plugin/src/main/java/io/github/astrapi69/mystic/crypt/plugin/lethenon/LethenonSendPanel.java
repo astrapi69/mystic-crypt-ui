@@ -28,11 +28,13 @@ import java.awt.Component;
 import java.awt.Font;
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
 import javax.swing.ComboBoxModel;
 import javax.swing.DefaultListCellRenderer;
+import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JPanel;
@@ -62,6 +64,11 @@ import io.github.astrapi69.swing.model.component.JMTextField;
  * once, so the handover runs in the window like the signing. The password goes from the field into
  * the model as a {@code char[]}, is wiped by the support class, and is cleared from the field
  * afterwards, whether the transfer was signed or refused.
+ * <p>
+ * It answers in fields a child can read (#604): first one sentence in a larger font, "Sent:
+ * 12.50000000 LETH to the account you named. It counts once the next block is mined.", then the
+ * amount, the fee, the recipient and where the transfer waits. The transfer's number from the
+ * account and how many transfers wait are behind "Show details", closed at first.
  */
 public class LethenonSendPanel extends JPanel
 {
@@ -101,7 +108,39 @@ public class LethenonSendPanel extends JPanel
 
 	private final JMTextField txtNode = new JMTextField(34);
 
-	private final JMTextArea txtReport = new JMTextArea(4, 62);
+	private final Locale locale = Locale.getDefault();
+
+	private final JMTextArea txtAnswer = AnswerFields.answerArea(text("lethenon.send.tooltip.answer",
+		"what happened to your transfer, in one sentence; the details are below"));
+
+	private final JMTextField txtSentAmount = AnswerFields.readOnly("txtSentAmount",
+		text("lethenon.send.tooltip.sent.amount", "what the recipient gets"));
+
+	private final JMTextField txtSentFee = AnswerFields.readOnly("txtSentFee",
+		text("lethenon.send.tooltip.sent.fee",
+			"what you pay on top, to whoever mines the block that carries your transfer"));
+
+	private final JMTextField txtSentTo = AnswerFields.readOnly("txtSentTo",
+		text("lethenon.send.tooltip.sent.to",
+			"whom you paid, as you typed it; for an address the chain shows a one-time "
+				+ "destination instead, which only you and the recipient can connect to it"));
+
+	private final JMTextField txtWhereItWaits = AnswerFields.readOnly("txtWhereItWaits",
+		text("lethenon.send.tooltip.where.it.waits",
+			"a transfer counts once a block carries it; until then it waits here"));
+
+	private final JButton btnDetails;
+
+	private final JPanel pnlDetails = new JPanel(ToolForm.newLayout());
+
+	private final JMTextField txtNonce = AnswerFields.readOnly("txtNonce",
+		text("lethenon.send.tooltip.nonce",
+			"your account numbers its transfers 0, 1, 2 and so on; the chain takes them in this "
+				+ "order and never one number twice"));
+
+	private final JMTextField txtWaiting = AnswerFields.readOnly("txtWaiting",
+		text("lethenon.send.tooltip.waiting",
+			"how many transfers wait for the next block now, yours included"));
 
 	private final JLabel lblResult = new JLabel(" ");
 
@@ -125,10 +164,17 @@ public class LethenonSendPanel extends JPanel
 	{
 		super(ToolForm.newLayout());
 		this.consent = consent;
+		btnDetails = LethenonSwing.button("btnDetails",
+			AnswerFields.detailsButtonText(false, locale), event -> onDetails(),
+			text("lethenon.send.tooltip.details",
+				"show the number of your transfer and how many transfers wait"));
 		nameTheComponents();
 		explainTheComponents();
 		bindToTheModel();
-		layOut();
+		layOutTheInputs();
+		layOutTheAnswer();
+		add(lblResult, ToolForm.RESULT_LINE);
+		pnlDetails.setVisible(false);
 		txtChainFile.setText(LethenonSettingsContribution.chainFile());
 		txtWalletFile.setText(LethenonSettingsContribution.walletFile());
 		txtNode.setText(LethenonSettingsContribution.node());
@@ -146,45 +192,118 @@ public class LethenonSendPanel extends JPanel
 
 	/**
 	 * Signs the transfer. The password is used once: the support class wipes the array it gets, and
-	 * the field and the model are cleared afterwards, whether the transfer was signed or not.
+	 * the field and the model are cleared afterwards, whether the transfer was signed or not. A
+	 * failure leaves no value of an earlier transfer on the screen.
 	 */
 	void onSend()
 	{
-		String failure = LethenonMessages.getString("lethenon.result.send.failed",
-			"the transfer was not signed");
+		String failure = text("lethenon.send.result.failed", "the transfer was not signed");
 		try
 		{
 			TransferOrder order = orderFromTheModel();
 			if (!ChainConversion.convertedIfAgreed(this, consent, order.chainFile()))
 			{
-				setReport("");
-				setResult(failure + ": " + ChainConversion.notConverted());
+				showFailure(failure + ": " + ChainConversion.notConverted());
 				return;
 			}
 			SentTransfer sent = TransferSupport.send(order, modelObject.getPassword());
 			rememberWhatWorked(order);
-			setReport(describe(sent));
+			showTheAnswer(sent);
 			setResult(sent.node().isEmpty()
-				? LethenonMessages.getString("lethenon.result.send.signed",
+				? text("lethenon.send.result.signed",
 					"the transfer was signed and waits for the next block")
-				: LethenonMessages.getString("lethenon.result.send.handed",
-					"the transfer was signed and handed to the node"));
+				: text("lethenon.send.result.handed", "the transfer was signed and handed to the node"));
 		}
 		catch (ChainRejected | IllegalArgumentException | IllegalStateException refused)
 		{
-			setReport("");
-			setResult(failure + ": " + refused.getMessage());
+			showFailure(failure + ": " + refused.getMessage());
 		}
 		catch (IOException unwritable)
 		{
-			setReport("");
-			setResult(failure + ": " + unwritable.getMessage());
+			showFailure(failure + ": " + unwritable.getMessage());
 		}
 		finally
 		{
 			modelObject.setPassword(null);
 			txtPassword.setText("");
 		}
+	}
+
+	/** Opens or closes "Show details" */
+	void onDetails()
+	{
+		modelObject.setDetailsShown(!modelObject.isDetailsShown());
+		pnlDetails.setVisible(modelObject.isDetailsShown());
+		btnDetails.setText(AnswerFields.detailsButtonText(modelObject.isDetailsShown(), locale));
+		revalidate();
+		repaint();
+	}
+
+	/**
+	 * The sentence that answers what the window was opened for (#604, rule 1): what was sent, to
+	 * which kind of recipient, and when it counts. It names neither the recipient nor, for a
+	 * published address, the one-time destination: the recipient is in its own field, and the
+	 * destination nowhere on this screen
+	 *
+	 * @param sent
+	 *            the transfer
+	 * @param locale
+	 *            the language of the window
+	 * @return the sentence
+	 */
+	static String answerFor(final SentTransfer sent, final Locale locale)
+	{
+		String amount = LethAmounts.format(sent.amount(), locale);
+		String key = sent.recipientKind() == RecipientKind.PUBLISHED_ADDRESS
+			? "lethenon.send.answer.address"
+			: "lethenon.send.answer.account";
+		String defaultValue = sent.recipientKind() == RecipientKind.PUBLISHED_ADDRESS
+			? "Sent: {0} to the address you named."
+			: "Sent: {0} to the account you named.";
+		String what = LethenonMessages.format(key, defaultValue, locale, amount);
+		String when = sent.node().isEmpty()
+			? LethenonMessages.getString("lethenon.send.answer.waits",
+				"It counts once the next block is mined.", locale)
+			: LethenonMessages.format("lethenon.send.answer.handed",
+				"The node at {0} puts it into one of its next blocks.", locale, sent.node());
+		return what + " " + when;
+	}
+
+	private void showTheAnswer(final SentTransfer sent)
+	{
+		modelObject.clearAnswer();
+		modelObject.setAnswer(answerFor(sent, locale));
+		modelObject.setSentAmount(LethAmounts.format(sent.amount(), locale));
+		modelObject.setSentFee(LethAmounts.format(sent.fee(), locale));
+		modelObject.setSentTo(sent.recipient());
+		modelObject.setWhereItWaits(sent.node().isEmpty()
+			? text("lethenon.send.waits.here", "next to the chain file, until the next block is mined")
+			: LethenonMessages.format("lethenon.send.waits.node", "in the pool of the node at {0}",
+				locale, sent.node()));
+		modelObject.setNonce(
+			LethenonMessages.format("lethenon.send.nonce", "{0,number,integer}", locale, sent.nonce()));
+		modelObject.setWaiting(LethenonMessages.format("lethenon.send.waiting.count",
+			"{0,choice,0#none|1#1 transfer|1<{0,number,integer} transfers}", locale, sent.waiting()));
+		showTheModel();
+	}
+
+	private void showFailure(final String result)
+	{
+		modelObject.clearAnswer();
+		showTheModel();
+		setResult(result);
+	}
+
+	/** Puts what the model holds into the read-only fields, shortening what is too long to read */
+	private void showTheModel()
+	{
+		txtAnswer.setText(modelObject.getAnswer());
+		AnswerFields.setText(txtSentAmount, modelObject.getSentAmount());
+		AnswerFields.setText(txtSentFee, modelObject.getSentFee());
+		AnswerFields.setText(txtSentTo, LongValues.shortened(modelObject.getSentTo(), locale));
+		AnswerFields.setText(txtWhereItWaits, modelObject.getWhereItWaits());
+		AnswerFields.setText(txtNonce, modelObject.getNonce());
+		AnswerFields.setText(txtWaiting, modelObject.getWaiting());
 	}
 
 	/**
@@ -211,46 +330,6 @@ public class LethenonSendPanel extends JPanel
 			modelObject.getFee(), modelObject.getMemo(), modelObject.getNode());
 	}
 
-	private static String describe(final SentTransfer sent)
-	{
-		return LethenonMessages.getString("lethenon.send.signed", "signed a transfer of") + " "
-			+ sent.amount() + " LETH " + LethenonMessages.getString("lethenon.send.to", "to") + " "
-			+ whomItNames(sent) + " "
-			+ LethenonMessages.getString("lethenon.send.with.nonce", "with nonce") + " "
-			+ sent.nonce() + whereItWaits(sent) + " (" + sent.waiting() + " "
-			+ LethenonMessages.getString("lethenon.send.waiting", "waiting") + ")";
-	}
-
-	/**
-	 * Where the transfer waits now: next to the chain file, or in the pool of the node it was
-	 * handed to
-	 */
-	private static String whereItWaits(final SentTransfer sent)
-	{
-		if (sent.node().isEmpty())
-		{
-			return "; " + LethenonMessages.getString("lethenon.send.waits",
-				"it waits for the next block, which mining a pun writes");
-		}
-		return " " + LethenonMessages.getString("lethenon.send.handed", "and handed it to the node at")
-			+ " " + sent.node() + "; "
-			+ LethenonMessages.getString("lethenon.send.in.its.pool", "it waits in its pool");
-	}
-
-	/**
-	 * What the report says the money went to: the account key, or for a published address "a
-	 * one-time destination of" the address - never the destination itself
-	 */
-	private static String whomItNames(final SentTransfer sent)
-	{
-		return switch (sent.recipientKind())
-		{
-			case ACCOUNT_KEY -> sent.recipient();
-			case PUBLISHED_ADDRESS -> LethenonMessages.getString("lethenon.send.one.time.of",
-				"a one-time destination of") + " " + sent.recipient();
-		};
-	}
-
 	private void nameTheComponents()
 	{
 		txtChainFile.setName("txtChainFile");
@@ -263,11 +342,7 @@ public class LethenonSendPanel extends JPanel
 		txtFee.setName("txtFee");
 		txtMemo.setName("txtMemo");
 		txtNode.setName("txtNode");
-		txtReport.setName("txtReport");
-		txtReport.setEditable(false);
-		txtReport.setLineWrap(true);
-		txtReport.setWrapStyleWord(true);
-		txtReport.setFont(new Font("monospaced", Font.PLAIN, 12));
+		pnlDetails.setName("pnlDetails");
 		lblResult.setName("lblResult");
 		lblResult.setFont(lblResult.getFont().deriveFont(Font.BOLD));
 		cbxSuite.setRenderer(new DefaultListCellRenderer()
@@ -278,7 +353,10 @@ public class LethenonSendPanel extends JPanel
 			public Component getListCellRendererComponent(final JList<?> list, final Object value,
 				final int index, final boolean selected, final boolean focused)
 			{
-				Object shown = value instanceof SignatureSuite suite ? suite.identifier() : value;
+				Object shown = value instanceof SignatureSuite suite
+					? LethenonMessages.format("lethenon.send.suite", "your {0} account", locale,
+						AnswerFields.suiteName(suite))
+					: value;
 				return super.getListCellRendererComponent(list, shown, index, selected, focused);
 			}
 		});
@@ -290,7 +368,10 @@ public class LethenonSendPanel extends JPanel
 			public Component getListCellRendererComponent(final JList<?> list, final Object value,
 				final int index, final boolean selected, final boolean focused)
 			{
-				Object shown = value instanceof RecipientKind kind ? kind.description() : value;
+				Object shown = value instanceof RecipientKind kind
+					? LethenonMessages.getString("lethenon.recipient.kind." + kind.name(),
+						kind.description(), locale)
+					: value;
 				return super.getListCellRendererComponent(list, shown, index, selected, focused);
 			}
 		});
@@ -298,77 +379,92 @@ public class LethenonSendPanel extends JPanel
 
 	private void explainTheComponents()
 	{
-		txtChainFile.setToolTipText(LethenonMessages.getString("lethenon.tooltip.send.chain.file",
-			"the chain file; the transfer waits next to it until the next block"));
-		txtWalletFile.setToolTipText(LethenonMessages.getString("lethenon.tooltip.wallet.file",
-			"the wallet file lethenon's 'wallet create' or 'wallet restore' wrote"));
-		txtPassword.setToolTipText(LethenonMessages.getString("lethenon.tooltip.wallet.password",
-			"the wallet file's password; it is used once and then cleared"));
-		cbxSuite.setToolTipText(LethenonMessages.getString("lethenon.tooltip.send.suite",
-			"the account the transfer is paid from: the wallet has one per signature suite"));
-		cbxRecipientKind
-			.setToolTipText(LethenonMessages.getString("lethenon.tooltip.send.recipient.kind",
-				"an account key is named on the chain as it is; a published address is paid at a "
-					+ "one-time destination that a reader of the chain cannot connect to the address, "
-					+ "while its holder and the sender can; the sender and the amount are on the chain "
-					+ "either way"));
-		txtRecipient.setToolTipText(LethenonMessages.getString("lethenon.tooltip.send.recipient",
-			"the recipient's account key in hexadecimal, or a published address: view key and "
-				+ "spend key in hexadecimal, separated by ':'"));
-		txtAmount.setToolTipText(LethenonMessages.getString("lethenon.tooltip.send.amount",
-			"the amount in LETH, up to eight decimals, e.g. 12.5"));
-		txtFee.setToolTipText(LethenonMessages.getString("lethenon.tooltip.send.fee",
-			"the fee in LETH, paid to the pool; 0 is allowed"));
-		txtMemo.setToolTipText(LethenonMessages.getString("lethenon.tooltip.send.memo",
-			"text signed with the transfer; everyone who reads the chain reads it too"));
-		txtNode.setToolTipText(LethenonMessages.getString("lethenon.tooltip.send.node",
-			"host:port of a running node that serves this chain file: the transfer is handed to "
-				+ "it and waits in its pool; empty, it waits next to the chain file"));
+		txtChainFile.setToolTipText(text("lethenon.send.tooltip.chain.file",
+			"the file that holds the chain; your transfer waits next to it until the next block "
+				+ "carries it"));
+		txtWalletFile.setToolTipText(text("lethenon.send.tooltip.wallet.file",
+			"your wallet file; the money is paid from one of its accounts"));
+		txtPassword.setToolTipText(text("lethenon.input.tooltip.password",
+			"the password of your wallet file; it is used once and then forgotten"));
+		cbxSuite.setToolTipText(text("lethenon.send.tooltip.suite",
+			"which of your accounts pays: your wallet has one for each kind of signature"));
+		cbxRecipientKind.setToolTipText(text("lethenon.send.tooltip.recipient.kind",
+			"an account key is named on the chain as it is; a published address is paid at a "
+				+ "one-time destination that a reader of the chain cannot connect to the address, "
+				+ "while its holder and the sender can; the sender and the amount are on the chain "
+				+ "either way"));
+		txtRecipient.setToolTipText(text("lethenon.send.tooltip.recipient",
+			"paste what the recipient gave you: an account, or an address with a ':' in the "
+				+ "middle"));
+		txtAmount.setToolTipText(text("lethenon.send.tooltip.amount",
+			"how much the recipient gets, in LETH, for example 12.5"));
+		txtFee.setToolTipText(text("lethenon.send.tooltip.fee",
+			"what you pay on top to whoever mines the block that carries your transfer; 0 is "
+				+ "allowed"));
+		txtMemo.setToolTipText(text("lethenon.send.tooltip.memo",
+			"a note that goes with the transfer; everyone who reads the chain can read it too, so "
+				+ "write nothing private"));
+		txtNode.setToolTipText(text("lethenon.send.tooltip.node",
+			"leave it empty to keep the transfer next to your chain file; or type the host:port of "
+				+ "a running node, which then puts it into one of its next blocks"));
 	}
 
-	private void layOut()
+	private void layOutTheInputs()
 	{
-		add(new JLabel(LethenonMessages.getString("lethenon.label.chain.file", "Chain file:")));
+		add(new JLabel(text("lethenon.input.label.chain.file", "Chain file:")));
 		add(txtChainFile, WITH_BUTTON);
 		add(LethenonSwing.button("btnBrowseChainFile", "...",
 			event -> LethenonSwing.chooseFile(this, modelObject.getChainFile())
 				.ifPresent(txtChainFile::setText),
-			LethenonMessages.getString("lethenon.tooltip.browse.chain.file",
-				"pick the chain file")),
+			text("lethenon.input.tooltip.browse.chain.file", "pick the chain file on your disk")),
 			OWN_WIDTH);
-		add(new JLabel(LethenonMessages.getString("lethenon.label.wallet.file", "Wallet file:")));
+		add(new JLabel(text("lethenon.input.label.wallet.file", "Wallet file:")));
 		add(txtWalletFile, WITH_BUTTON);
 		add(LethenonSwing.button("btnBrowseWalletFile", "...",
 			event -> LethenonSwing.chooseFile(this, modelObject.getWalletFile())
 				.ifPresent(txtWalletFile::setText),
-			LethenonMessages.getString("lethenon.tooltip.browse.wallet.file",
-				"pick the wallet file")),
+			text("lethenon.input.tooltip.browse.wallet.file", "pick your wallet file on your disk")),
 			OWN_WIDTH);
-		add(new JLabel(LethenonMessages.getString("lethenon.label.wallet.password", "Password:")));
+		add(new JLabel(text("lethenon.input.label.password", "Password:")));
 		add(txtPassword, ToolForm.FIELD);
-		add(new JLabel(LethenonMessages.getString("lethenon.label.send.suite", "From account:")));
+		add(new JLabel(text("lethenon.send.label.suite", "Pay from:")));
 		add(cbxSuite, OWN_WIDTH);
-		add(new JLabel(LethenonMessages.getString("lethenon.label.send.recipient", "To:")));
+		add(new JLabel(text("lethenon.send.label.recipient", "To:")));
 		add(cbxRecipientKind, "growx, split 2, width pref!");
 		add(txtRecipient, ToolForm.FIELD);
-		add(new JLabel(LethenonMessages.getString("lethenon.label.send.amount", "Amount (LETH):")));
+		add(new JLabel(text("lethenon.send.label.amount", "Amount (LETH):")));
 		add(txtAmount, OWN_WIDTH);
-		add(new JLabel(LethenonMessages.getString("lethenon.label.send.fee", "Fee (LETH):")));
+		add(new JLabel(text("lethenon.send.label.fee", "Fee (LETH):")));
 		add(txtFee, OWN_WIDTH);
-		add(new JLabel(LethenonMessages.getString("lethenon.label.send.memo", "Memo:")));
+		add(new JLabel(text("lethenon.send.label.memo", "Note:")));
 		add(txtMemo, ToolForm.FIELD);
-		add(new JLabel(LethenonMessages.getString("lethenon.label.node", "Node:")));
+		add(new JLabel(text("lethenon.send.label.node", "Node (optional):")));
 		add(txtNode, ToolForm.FIELD);
 		add(ToolForm.buttons(LethenonSwing.button("btnSend",
-			LethenonMessages.getString("lethenon.button.send", "Sign the transfer"),
-			event -> onSend(),
-			LethenonMessages.getString("lethenon.tooltip.send",
-				"sign the transfer and leave it waiting for the next block"))),
+			text("lethenon.send.button.send", "Send"), event -> onSend(),
+			text("lethenon.send.tooltip.send",
+				"sign the transfer with your password and leave it for the next block; nothing "
+					+ "is sent anywhere unless you named a node"))),
 			ToolForm.BUTTON_ROW);
-		add(new JLabel(LethenonMessages.getString("lethenon.label.report", "Report:")),
-			"aligny top");
-		add(ToolForm.scrolled(txtReport), ToolForm.GROWING);
-		add(lblResult, ToolForm.RESULT_LINE);
+	}
+
+	private void layOutTheAnswer()
+	{
+		add(txtAnswer, ToolForm.WIDE + ", wmin 0");
+		add(new JLabel(text("lethenon.send.label.sent.amount", "Amount:")));
+		add(txtSentAmount, ToolForm.FIELD);
+		add(new JLabel(text("lethenon.send.label.sent.fee", "Fee:")));
+		add(txtSentFee, ToolForm.FIELD);
+		add(new JLabel(text("lethenon.send.label.sent.to", "Paid to:")));
+		add(txtSentTo, ToolForm.FIELD);
+		add(new JLabel(text("lethenon.send.label.where.it.waits", "Waits:")));
+		add(txtWhereItWaits, ToolForm.FIELD);
+		add(ToolForm.buttons(btnDetails), ToolForm.BUTTON_ROW);
+		pnlDetails.add(new JLabel(text("lethenon.send.label.nonce", "Number of this transfer:")));
+		pnlDetails.add(txtNonce, ToolForm.FIELD);
+		pnlDetails.add(new JLabel(text("lethenon.send.label.waiting", "Waiting now:")));
+		pnlDetails.add(txtWaiting, ToolForm.FIELD);
+		add(pnlDetails, ToolForm.WIDE + ", hidemode 3");
 	}
 
 	private void bindToTheModel()
@@ -389,13 +485,18 @@ public class LethenonSendPanel extends JPanel
 		txtFee.setText(modelObject.getFee());
 		txtMemo.setPropertyModel(LambdaModel.of(modelObject::getMemo, modelObject::setMemo));
 		txtNode.setPropertyModel(LambdaModel.of(modelObject::getNode, modelObject::setNode));
-		txtReport.setPropertyModel(LambdaModel.of(modelObject::getReport, modelObject::setReport));
+		AnswerFields.show(txtAnswer, modelObject::getAnswer);
+		AnswerFields.show(txtSentAmount, modelObject::getSentAmount);
+		AnswerFields.show(txtSentFee, modelObject::getSentFee);
+		AnswerFields.show(txtSentTo, () -> LongValues.shortened(modelObject.getSentTo(), locale));
+		AnswerFields.show(txtWhereItWaits, modelObject::getWhereItWaits);
+		AnswerFields.show(txtNonce, modelObject::getNonce);
+		AnswerFields.show(txtWaiting, modelObject::getWaiting);
 	}
 
-	private void setReport(final String text)
+	private String text(final String key, final String defaultValue)
 	{
-		modelObject.setReport(text);
-		txtReport.setText(text);
+		return LethenonMessages.getString(key, defaultValue, locale);
 	}
 
 	private void setResult(final String text)

@@ -24,6 +24,10 @@
  */
 package io.github.astrapi69.mystic.crypt.plugin.lethenon;
 
+import static io.github.astrapi69.mystic.crypt.plugin.lethenon.Windows.component;
+import static io.github.astrapi69.mystic.crypt.plugin.lethenon.Windows.textOf;
+import static io.github.astrapi69.mystic.crypt.plugin.lethenon.Windows.textsOf;
+
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -36,9 +40,12 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.KeyPair;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
+import javax.swing.JButton;
 import javax.swing.JComponent;
+import javax.swing.JPanel;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -174,12 +181,44 @@ class LethenonSendPanelBindingTest
 		List<SignedTransaction> pending = new ChainFile(chainFile).readPending();
 		assertEquals(1, pending.size());
 		assertEquals("watching is not protecting", pending.getFirst().body().memo());
-		String report = panel.getModelObject().getReport();
-		assertTrue(report.contains("1.25000000 LETH"), report);
-		assertTrue(report.contains("nonce 0"), report);
-		assertTrue(report.contains("1 waiting"), report);
+		assertEquals("Sent: 1.25000000 LETH to the account you named. It counts once the next "
+			+ "block is mined.", textOf(panel, "txtAnswer"));
+		assertEquals("1.25000000 LETH", textOf(panel, "txtSentAmount"));
+		assertEquals("0.00000000 LETH", textOf(panel, "txtSentFee"));
+		assertEquals(recipient.toString(), textOf(panel, "txtSentTo"));
+		assertEquals("next to the chain file, until the next block is mined",
+			textOf(panel, "txtWhereItWaits"));
+		assertEquals("0", textOf(panel, "txtNonce"));
+		assertEquals("1 transfer", textOf(panel, "txtWaiting"));
 		assertEquals("the transfer was signed and waits for the next block",
 			panel.getModelObject().getResultText());
+	}
+
+	@Test
+	@DisplayName("what only a specialist reads - the transfer's number and what else waits - is behind \"Show details\", closed at first (#604)")
+	void theDetails_areClosedAtFirst_andOpenOnAClick() throws Exception
+	{
+		LethenonSendPanel panel = filledPanel(PASSWORD, "1");
+		panel.onSend();
+		JPanel details = component(panel, "pnlDetails", JPanel.class);
+
+		assertFalse(details.isVisible(), "the details are closed at first");
+
+		panel.onDetails();
+
+		assertTrue(details.isVisible());
+		assertEquals("Hide details", component(panel, "btnDetails", JButton.class).getText());
+	}
+
+	@Test
+	@DisplayName("every field, button and choice of the window has a tooltip in plain words (#604)")
+	void everyFieldAndButton_hasATooltip() throws Exception
+	{
+		LethenonSendPanel panel = filledPanel(PASSWORD, "1");
+		panel.onSend();
+
+		assertEquals(List.of(), Windows.withoutATooltip(panel),
+			"fields, buttons and choices without a tooltip");
 	}
 
 	@Test
@@ -199,9 +238,10 @@ class LethenonSendPanelBindingTest
 			panel.onSend();
 
 			assertEquals(1, node.pending().size(), panel.getModelObject().getResultText());
-			String report = panel.getModelObject().getReport();
-			assertTrue(report.contains("handed it to the node at " + address), report);
-			assertTrue(report.contains("1 waiting"), report);
+			assertEquals("Sent: 2.00000000 LETH to the account you named. The node at " + address
+				+ " puts it into one of its next blocks.", textOf(panel, "txtAnswer"));
+			assertEquals("in the pool of the node at " + address, textOf(panel, "txtWhereItWaits"));
+			assertEquals("1 transfer", textOf(panel, "txtWaiting"));
 			assertEquals("the transfer was signed and handed to the node",
 				panel.getModelObject().getResultText());
 		}
@@ -218,11 +258,13 @@ class LethenonSendPanelBindingTest
 
 		panel.onSend();
 
-		String report = panel.getModelObject().getReport();
-		assertTrue(report.contains("a one-time destination of " + address), report);
+		assertTrue(textOf(panel, "txtAnswer").contains("to the address you named"),
+			textOf(panel, "txtAnswer"));
+		assertEquals(LongValues.shortened(address, Locale.ENGLISH), textOf(panel, "txtSentTo"));
+		assertEquals(address, panel.getModelObject().getSentTo(), "the model keeps it whole");
 		Bytes oneTimeKey = new ChainFile(chainFile).readPending().getFirst().body().recipient()
 			.key();
-		assertFalse(report.contains(oneTimeKey.toString()),
+		assertFalse(textsOf(panel).stream().anyMatch(text -> text.contains(oneTimeKey.toString())),
 			"the sender's own screen is a place where that link would be written down");
 		assertFalse(panel.getModelObject().getResultText().contains(oneTimeKey.toString()));
 	}
@@ -236,37 +278,46 @@ class LethenonSendPanelBindingTest
 		panel.onSend();
 
 		assertEquals(0, panel.getModelObject().getPassword().length);
-		assertFalse(panel.getModelObject().getReport().contains(PASSWORD));
+		assertFalse(textsOf(panel).stream().anyMatch(text -> text.contains(PASSWORD)));
 		assertFalse(panel.getModelObject().getResultText().contains(PASSWORD));
 	}
 
 	@Test
-	@DisplayName("a transfer the account cannot cover leaves no report and no pending file")
+	@DisplayName("a transfer the account cannot cover after one that was signed empties every field and leaves no further transfer")
 	void sending_tooMuch_reportsTheReasonOnly() throws Exception
 	{
-		LethenonSendPanel panel = filledPanel(PASSWORD, "300");
+		LethenonSendPanel panel = filledPanel(PASSWORD, "1");
+		panel.onSend();
+		new ChainFile(chainFile).writePending(List.of());
+		panel.getModelObject().setAmount("300");
+		panel.getModelObject().setPassword(PASSWORD.toCharArray());
 
 		panel.onSend();
 
-		assertEquals("", panel.getModelObject().getReport());
+		for (String field : List.of("txtAnswer", "txtSentAmount", "txtSentFee", "txtSentTo",
+			"txtWhereItWaits", "txtNonce", "txtWaiting"))
+		{
+			assertEquals("", textOf(panel, field), field + " keeps nothing of the transfer before");
+		}
 		String result = panel.getModelObject().getResultText();
 		assertTrue(result.startsWith("the transfer was not signed"), result);
 		assertTrue(result.contains("holds 3.00000000"), result);
-		assertFalse(Files.exists(Path.of(chainFile + ".pending")));
+		assertEquals(List.of(), new ChainFile(chainFile).readPending(), "no transfer waits");
 		assertEquals(0, panel.getModelObject().getPassword().length);
 	}
 
 	@Test
-	@DisplayName("a wrong password leaves no report and does not repeat the password")
+	@DisplayName("a wrong password says what to do, leaves no answer and does not repeat the password")
 	void sending_withAWrongPassword_reportsTheReasonOnly() throws Exception
 	{
 		LethenonSendPanel panel = filledPanel("not the password at all", "1");
 
 		panel.onSend();
 
-		assertEquals("", panel.getModelObject().getReport());
+		assertEquals("", textOf(panel, "txtAnswer"));
 		String result = panel.getModelObject().getResultText();
-		assertTrue(result.contains("wallet.lethenon-wallet"), result);
+		assertTrue(result.contains("this password does not open wallet.lethenon-wallet; type it again"),
+			result);
 		assertFalse(result.contains("not the password at all"), result);
 		assertEquals(0, panel.getModelObject().getPassword().length);
 	}

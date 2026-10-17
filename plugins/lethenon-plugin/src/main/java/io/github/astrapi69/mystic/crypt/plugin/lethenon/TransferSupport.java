@@ -110,7 +110,7 @@ public final class TransferSupport
 				recipient, amount, fee, order.memo());
 			int nowWaiting = node == null ? waitNextToTheChain(chainFile, waiting, signed)
 				: handOver(node, chain, order.chainFile(), signed);
-			return new SentTransfer(signed.body().nonce(), amount, order.recipientKind(),
+			return new SentTransfer(signed.body().nonce(), amount, fee, order.recipientKind(),
 				order.recipient().trim(), nowWaiting, node == null ? "" : node.toString());
 		}
 		finally

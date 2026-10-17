@@ -33,6 +33,8 @@ import io.github.astrapi69.lethenon.Amount;
  *            the nonce the sending account signed it with
  * @param amount
  *            what it carries
+ * @param fee
+ *            the fee it pays whoever mines the block that carries it
  * @param recipientKind
  *            whether the recipient was an account key or a published address
  * @param recipient
@@ -47,6 +49,6 @@ import io.github.astrapi69.lethenon.Amount;
  *            host:port of the node the transfer was handed to, empty when it waits next to the
  *            chain file
  */
-public record SentTransfer(long nonce, Amount amount, RecipientKind recipientKind, String recipient,
+public record SentTransfer(long nonce, Amount amount, Amount fee, RecipientKind recipientKind, String recipient,
 	int waiting, String node) {
 }

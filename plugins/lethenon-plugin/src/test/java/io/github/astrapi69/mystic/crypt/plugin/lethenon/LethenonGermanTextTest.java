@@ -101,6 +101,7 @@ class LethenonGermanTextTest
 	{
 		return Stream.of(Arguments.of("Show a Balance", List.of("lethenon.balance.")),
 			Arguments.of("Mine a Pun", List.of("lethenon.mine.", "lethenon.chain.kind.")),
+			Arguments.of("Send", List.of("lethenon.send.", "lethenon.recipient.kind.")),
 			Arguments.of("what every window answers with",
 				List.of("lethenon.answer.", "lethenon.input.", "lethenon.wallet.",
 					"lethenon.value.")));
