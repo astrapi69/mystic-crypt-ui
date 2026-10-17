@@ -148,6 +148,7 @@ public class LethenonBalancePanel extends JPanel
 		add(lblResult, ToolForm.RESULT_LINE);
 		pnlDetails.setVisible(false);
 		txtChainFile.setText(LethenonSettingsContribution.chainFile());
+		txtWalletFile.setText(LethenonSettingsContribution.walletFile());
 	}
 
 	/**
@@ -206,6 +207,9 @@ public class LethenonBalancePanel extends JPanel
 			WalletBalance balance = WalletBalanceSupport.balance(chainFile,
 				Path.of(modelObject.getWalletFile().trim()), modelObject.getPassword());
 			showTheAnswer(balance);
+			LethenonSettingsContribution.remember(Map.of(LethenonSettingsContribution.KEY_CHAIN_FILE,
+				chainFile.toString(), LethenonSettingsContribution.KEY_WALLET_FILE,
+				modelObject.getWalletFile().trim()));
 			setResult(text("lethenon.balance.result.read",
 				"the balance was read from the replayed chain"));
 		}

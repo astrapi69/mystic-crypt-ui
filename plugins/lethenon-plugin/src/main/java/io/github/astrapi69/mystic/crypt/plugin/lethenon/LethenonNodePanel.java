@@ -28,6 +28,7 @@ import java.awt.Font;
 import java.io.IOException;
 import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
+import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -147,6 +148,7 @@ public class LethenonNodePanel extends JPanel
 		bindToTheModel();
 		layOut();
 		txtChainFile.setText(LethenonSettingsContribution.chainFile());
+		txtWalletFile.setText(LethenonSettingsContribution.walletFile());
 		txtPort.setText(modelObject.getPort());
 		txtPun.setText(modelObject.getPun());
 		updateTheControls();
@@ -225,7 +227,7 @@ public class LethenonNodePanel extends JPanel
 			@Override
 			protected void done()
 			{
-				showTheStart(this);
+				showTheStart(this, order);
 			}
 		}.execute();
 	}
@@ -285,7 +287,7 @@ public class LethenonNodePanel extends JPanel
 		}.execute();
 	}
 
-	private void showTheStart(final SwingWorker<RunningNode, Void> worker)
+	private void showTheStart(final SwingWorker<RunningNode, Void> worker, final NodeOrder order)
 	{
 		try
 		{
@@ -295,6 +297,10 @@ public class LethenonNodePanel extends JPanel
 				started.close();
 				return;
 			}
+			LethenonSettingsContribution.remember(order.mine()
+				? Map.of(LethenonSettingsContribution.KEY_CHAIN_FILE, order.chainFile().toString(),
+					LethenonSettingsContribution.KEY_WALLET_FILE, order.walletFile().toString())
+				: Map.of(LethenonSettingsContribution.KEY_CHAIN_FILE, order.chainFile().toString()));
 			node = started;
 			modelObject.setListeningPort(started.port());
 			setRunning(true);

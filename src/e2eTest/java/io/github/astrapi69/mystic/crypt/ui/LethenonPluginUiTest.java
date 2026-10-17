@@ -32,13 +32,16 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.awt.Toolkit;
 import java.awt.datatransfer.DataFlavor;
 import java.io.File;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.security.KeyPair;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Stream;
 
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -249,6 +252,60 @@ class LethenonPluginUiTest extends AbstractUiTest
 			.execute(() -> tool.textBox("txtPassword").target().getText());
 		assertTrue(passwordLeft.isEmpty(), "the password field is cleared after one use");
 		assertTrue(frame.isEnabled(), "the application is still usable after a balance");
+	}
+
+	@Test
+	@DisplayName("a balance once read is remembered: the next \"Show a Balance\" starts with its chain and wallet, never the password (#605)")
+	void thePlugin_remembersTheChainAndTheWalletThatWorked() throws Exception
+	{
+		installPluginRequiringItBuilt(LETHENON_ZIP);
+		String walletPassword = TestPasswords.throwaway();
+		Wallet wallet = Wallet.create();
+		File walletFile = new File(tempHome, "remembered.lethenon-wallet");
+		WalletFile.write(walletFile.toPath(), wallet, walletPassword.toCharArray());
+		File chainFile = aChainPayingTheWallet(wallet);
+		File databaseFile = new File(tempHome, "lethenon-remembered.mcrdb");
+		createDatabaseFileHeadless(databaseFile, MASTER_PASSWORD);
+		ApplicationSteps application = signInWithExistingDatabase(databaseFile, MASTER_PASSWORD);
+		application.showMainFrame();
+		application.openPluginTool("Show a Balance", "Show a Balance");
+		JInternalFrameFixture first = new JInternalFrameFixture(robot,
+			application.internalFrame("Show a Balance"));
+		GuiActionRunner.execute(() -> {
+			first.textBox("txtChainFile").target().setText(chainFile.getAbsolutePath());
+			first.textBox("txtWalletFile").target().setText(walletFile.getAbsolutePath());
+			first.textBox("txtPassword").target().setText(walletPassword);
+		});
+		SwingUtilities.invokeLater(() -> first.button("btnShowBalance").target().doClick());
+		Pause.pause(new Condition("the balance is read")
+		{
+			@Override
+			public boolean test()
+			{
+				return GuiActionRunner.execute(() -> first.label("lblResult").target().getText())
+					.startsWith("the balance was read");
+			}
+		}, 30000);
+		first.close();
+
+		application.openPluginTool("Show a Balance", "Show a Balance");
+		JInternalFrameFixture second = new JInternalFrameFixture(robot,
+			application.internalFrame("Show a Balance"));
+
+		assertEquals(chainFile.getAbsolutePath(), textOf(second, "txtChainFile"),
+			"the chain that worked is what the next window starts with");
+		assertEquals(walletFile.getAbsolutePath(), textOf(second, "txtWalletFile"),
+			"so is the wallet that opened");
+		assertTrue(textOf(second, "txtPassword").isEmpty(), "the password is never remembered");
+		try (Stream<Path> files = Files.walk(tempHome.toPath().resolve(".config")))
+		{
+			for (Path file : files.filter(Files::isRegularFile).toList())
+			{
+				assertFalse(
+					Files.readString(file, StandardCharsets.ISO_8859_1).contains(walletPassword),
+					file + " holds the wallet's password");
+			}
+		}
 	}
 
 	@Test

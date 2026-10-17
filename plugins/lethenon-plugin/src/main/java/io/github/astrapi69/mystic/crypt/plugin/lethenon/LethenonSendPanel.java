@@ -28,6 +28,7 @@ import java.awt.Component;
 import java.awt.Font;
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.Map;
 import java.util.Set;
 
 import javax.swing.ComboBoxModel;
@@ -129,6 +130,8 @@ public class LethenonSendPanel extends JPanel
 		bindToTheModel();
 		layOut();
 		txtChainFile.setText(LethenonSettingsContribution.chainFile());
+		txtWalletFile.setText(LethenonSettingsContribution.walletFile());
+		txtNode.setText(LethenonSettingsContribution.node());
 	}
 
 	/**
@@ -159,6 +162,7 @@ public class LethenonSendPanel extends JPanel
 				return;
 			}
 			SentTransfer sent = TransferSupport.send(order, modelObject.getPassword());
+			rememberWhatWorked(order);
 			setReport(describe(sent));
 			setResult(sent.node().isEmpty()
 				? LethenonMessages.getString("lethenon.result.send.signed",
@@ -181,6 +185,22 @@ public class LethenonSendPanel extends JPanel
 			modelObject.setPassword(null);
 			txtPassword.setText("");
 		}
+	}
+
+	/**
+	 * Remembers what a signed transfer used (#605): the chain file, the wallet, and the node it was
+	 * handed to; a transfer left waiting beside the chain names no node, so none is remembered
+	 */
+	private static void rememberWhatWorked(final TransferOrder order)
+	{
+		Map<String, String> worked = new java.util.LinkedHashMap<>();
+		worked.put(LethenonSettingsContribution.KEY_CHAIN_FILE, order.chainFile().toString());
+		worked.put(LethenonSettingsContribution.KEY_WALLET_FILE, order.walletFile().toString());
+		if (order.node() != null && !order.node().isBlank())
+		{
+			worked.put(LethenonSettingsContribution.KEY_NODE, order.node().trim());
+		}
+		LethenonSettingsContribution.remember(worked);
 	}
 
 	private TransferOrder orderFromTheModel()

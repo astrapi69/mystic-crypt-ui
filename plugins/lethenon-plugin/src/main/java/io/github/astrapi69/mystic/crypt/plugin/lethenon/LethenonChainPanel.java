@@ -27,6 +27,7 @@ package io.github.astrapi69.mystic.crypt.plugin.lethenon;
 import java.awt.Font;
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.Map;
 
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -151,6 +152,8 @@ public class LethenonChainPanel extends JPanel
 				return;
 			}
 			ChainReplayReport report = ChainReplaySupport.verify(chainFile);
+			LethenonSettingsContribution.remember(
+				Map.of(LethenonSettingsContribution.KEY_CHAIN_FILE, chainFile.toString()));
 			setReport(report.summary());
 			setResult(
 				LethenonMessages.getString("lethenon.result.accepted", "the chain was accepted"));
