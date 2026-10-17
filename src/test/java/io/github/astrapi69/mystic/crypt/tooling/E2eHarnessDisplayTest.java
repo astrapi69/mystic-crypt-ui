@@ -41,11 +41,15 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Stream;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
 import org.junit.jupiter.api.io.TempDir;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 /**
  * Drives {@code scripts/e2e-harness.sh} through its own command line and asks one question: which
@@ -79,6 +83,23 @@ class E2eHarnessDisplayTest
 	/** The display the harness reports for the Xvfb it started */
 	private static final Pattern OWN_DISPLAY = Pattern
 		.compile("started Xvfb \\(pid \\d+\\) on (:\\d+)");
+
+	/** The pid and the display of the Xvfb the harness started */
+	private static final Pattern OWN_XVFB = Pattern
+		.compile("started Xvfb \\(pid (\\d+)\\) on (:\\d+)");
+
+	/** What the harness prints once the kernel has named the listener on a display's socket */
+	private static final Pattern SOCKET_OWNER = Pattern
+		.compile("the socket of (:\\d+) belongs to pid (\\d+)");
+
+	/** The test JVM the harness names when it stops a run */
+	private static final Pattern STOPPED_JVM = Pattern.compile("test JVM pid (\\d+)");
+
+	/** The process name a Gradle test JVM carries on its command line */
+	private static final String TEST_JVM = "Gradle Test Executor 1";
+
+	/** The exit code of a run the harness stopped because a test JVM was on another display */
+	private static final int STOPPED = 96;
 
 	@Test
 	@DisplayName("with DISPLAY=:0 and no opt-in, the command runs on the harness's own display, not on :0")
@@ -172,14 +193,7 @@ class E2eHarnessDisplayTest
 	void theHoldCommandHandsOutTheOwnDisplayUntilItsInputEnds(@TempDir File directory)
 		throws Exception
 	{
-		ProcessBuilder builder = new ProcessBuilder(HARNESS.getPath(), "hold").directory(directory)
-			.redirectErrorStream(true);
-		Map<String, String> processEnvironment = builder.environment();
-		processEnvironment.remove("E2E_USE_CURRENT_DISPLAY");
-		processEnvironment.put("DISPLAY", ":0");
-		processEnvironment.put("E2E_RUN_COMMAND", HOLD.getPath());
-		processEnvironment.put("TMPDIR", directory.getAbsolutePath());
-		Process harness = builder.start();
+		Process harness = startHoldingHarness(directory);
 		try
 		{
 			BufferedReader output = new BufferedReader(
@@ -289,6 +303,248 @@ class E2eHarnessDisplayTest
 		assertFalse(new File("/tmp/.X11-unix/X" + number).exists(), "socket of :" + number);
 	}
 
+	@Test
+	@DisplayName("the harness's display is its own by the kernel's account: the socket's listener is the Xvfb it started (#597)")
+	void theOwnDisplaysSocket_belongsToTheXvfbTheHarnessStarted(@TempDir File directory)
+		throws Exception
+	{
+		Run run = runHarness(directory, Map.of("DISPLAY", ":0"), 0);
+
+		assertEquals(0, run.exit(), run.output());
+		Matcher started = OWN_XVFB.matcher(run.output());
+		assertTrue(started.find(), "the harness reports the Xvfb it started: " + run.output());
+		Matcher owner = SOCKET_OWNER.matcher(run.output());
+		assertTrue(owner.find(), "the harness names the socket's listener: " + run.output());
+		assertEquals(started.group(2), owner.group(1), run.output());
+		assertEquals(started.group(1), owner.group(2), run.output());
+	}
+
+	@Test
+	@DisplayName("a display whose socket another server listens on is refused, whatever its lock file says, and nothing runs (#597)")
+	void aDisplayWhoseSocketAnotherServerListensOn_isRefused(@TempDir File directory)
+		throws Exception
+	{
+		File bin = new File(directory, "bin");
+		assertTrue(bin.mkdir());
+		File ss = new File(bin, "ss");
+		// what the kernel says about :0 and :1 on a Wayland desktop (#597), said here about every
+		// display: Xwayland listens on its socket
+		Files.writeString(ss.toPath(),
+			"""
+				#!/usr/bin/env bash
+				for socket in /tmp/.X11-unix/X*; do
+				  printf 'u_str LISTEN 0 1 %s 1 * 0 users:(("Xwayland",pid=%s,fd=5))\\n' "$socket" "$FOREIGN_LISTENER"
+				done
+				""",
+			StandardCharsets.UTF_8);
+		assertTrue(ss.setExecutable(true));
+		String foreign = String.valueOf(ProcessHandle.current().pid());
+
+		Run run = runHarness(directory, Map.of("DISPLAY", ":0", "FOREIGN_LISTENER", foreign, "PATH",
+			bin.getAbsolutePath() + ":" + System.getenv("PATH")), 0);
+
+		assertNotEquals(0, run.exit(), run.output());
+		assertEquals("<the command never ran>", run.displaySeen(), run.output());
+		assertTrue(run.output().contains("belongs to pid " + foreign), run.output());
+		assertEverythingItStartedIsGone(run);
+	}
+
+	@Test
+	@DisplayName("under another harness, an inherited display that is not that harness's Xvfb is refused, as Xwayland's :1 would be (#597)")
+	void underAnotherHarness_aDisplayThatIsNotItsXvfb_isRefused(@TempDir File directory)
+		throws Exception
+	{
+		File outerDirectory = new File(directory, "outer");
+		File otherDirectory = new File(directory, "other");
+		assertTrue(outerDirectory.mkdir() && otherDirectory.mkdir());
+		Process outer = startXvfb(outerDirectory);
+		Process other = startXvfb(otherDirectory);
+		try
+		{
+			awaitDisplayNumber(new File(outerDirectory, "test-display-number"), outer);
+			String otherDisplay = ":"
+				+ awaitDisplayNumber(new File(otherDirectory, "test-display-number"), other);
+
+			Run run = runHarness(directory,
+				Map.of("DISPLAY", otherDisplay, "E2E_USE_CURRENT_DISPLAY", "1",
+					"E2E_HARNESS_XVFB_PID", String.valueOf(outer.pid())),
+				0);
+
+			assertNotEquals(0, run.exit(), run.output());
+			assertEquals("<the command never ran>", run.displaySeen(), run.output());
+			assertTrue(run.output().contains("belongs to pid " + other.pid()), run.output());
+		}
+		finally
+		{
+			stop(outer);
+			stop(other);
+		}
+	}
+
+	@Test
+	@DisplayName("under another harness, that harness's own Xvfb is used, once its socket says so (#597)")
+	void underAnotherHarness_itsXvfbIsUsed(@TempDir File directory) throws Exception
+	{
+		Process outer = startXvfb(directory);
+		try
+		{
+			String display = ":"
+				+ awaitDisplayNumber(new File(directory, "test-display-number"), outer);
+
+			Run run = runHarness(directory, Map.of("DISPLAY", display, "E2E_USE_CURRENT_DISPLAY",
+				"1", "E2E_HARNESS_XVFB_PID", String.valueOf(outer.pid())), 0);
+
+			assertEquals(0, run.exit(), run.output());
+			assertEquals(display, run.displaySeen(), run.output());
+			assertTrue(run.output().contains(
+				"the socket of " + display + " belongs to pid " + outer.pid()), run.output());
+			assertFalse(run.output().contains("started Xvfb"), run.output());
+		}
+		finally
+		{
+			stop(outer);
+		}
+	}
+
+	/** Test JVMs the harness has to stop: each would reach a display that is not the harness's */
+	static Stream<Arguments> testJvmsOffTheHarnessDisplay()
+	{
+		return Stream.of(Arguments.argumentSet("on the desktop's display", "DISPLAY=:0", ""),
+			Arguments.argumentSet("on a display other than the harness's", "DISPLAY=:1", ""),
+			Arguments.argumentSet("without DISPLAY and not headless, so AWT falls back to :0",
+				"-u DISPLAY", ""),
+			Arguments.argumentSet("without DISPLAY, headless on the command line but overridden",
+				"-u DISPLAY _JAVA_OPTIONS=-Djava.awt.headless=false", "-Djava.awt.headless=true"));
+	}
+
+	@ParameterizedTest
+	@MethodSource("testJvmsOffTheHarnessDisplay")
+	@DisplayName("a test JVM off the harness's display is stopped, and the run with it (#597)")
+	void aTestJvmOffTheHarnessDisplay_stopsTheRun(String environment, String options,
+		@TempDir File directory) throws Exception
+	{
+		Run run = runHarness(directory,
+			Map.of("FAKE_JVM_ENVIRONMENT", environment, "FAKE_JVM_OPTIONS", options),
+			fakeGradlew(directory));
+
+		assertEquals(STOPPED, run.exit(), run.output());
+		assertFalse(new File(directory, "finished").exists(),
+			"the build was stopped before its test JVM finished: " + run.output());
+		Matcher stopped = STOPPED_JVM.matcher(run.output());
+		assertTrue(stopped.find(), "the harness names the test JVM it stopped: " + run.output());
+		assertFalse(processIsAlive(Long.parseLong(stopped.group(1))), run.output());
+		assertEverythingItStartedIsGone(run);
+	}
+
+	@Test
+	@DisplayName("a test JVM on the harness's display runs to its end, and the harness says it watched it (#597)")
+	void aTestJvmOnTheHarnessDisplay_runsToItsEnd(@TempDir File directory) throws Exception
+	{
+		Run run = runHarness(directory, Map.of("FAKE_JVM_ENVIRONMENT", "", "FAKE_JVM_OPTIONS", ""),
+			fakeGradlew(directory));
+
+		assertEquals(0, run.exit(), run.output());
+		assertTrue(new File(directory, "finished").exists(), run.output());
+		assertTrue(
+			run.output().matches("(?s).*test JVM pid \\d+ runs on " + ownDisplayOf(run) + "\\b.*"),
+			run.output());
+	}
+
+	@Test
+	@DisplayName("a test JVM that is headless on its command line runs without DISPLAY (#597)")
+	void aHeadlessTestJvm_runsWithoutDisplay(@TempDir File directory) throws Exception
+	{
+		Run run = runHarness(directory, Map.of("FAKE_JVM_ENVIRONMENT", "-u DISPLAY",
+			"FAKE_JVM_OPTIONS", "-Djava.awt.headless=true"), fakeGradlew(directory));
+
+		assertEquals(0, run.exit(), run.output());
+		assertTrue(new File(directory, "finished").exists(), run.output());
+		assertTrue(run.output().matches("(?s).*test JVM pid \\d+ runs headless.*"), run.output());
+	}
+
+	@Test
+	@DisplayName("in a build, a test JVM the Gradle process starts beside the harness is watched as well, and one on :0 stops the run (#597)")
+	@Timeout(90)
+	void inABuild_aTestJvmBesideTheHarnessOnTheDesktopDisplay_stopsTheRun(@TempDir File directory)
+		throws Exception
+	{
+		// this JVM plays the Gradle process: own-display.gradle starts the harness as a child of
+		// the
+		// build, and the build starts its test JVMs beside it
+		Process harness = startHoldingHarness(directory);
+		Process testJvm = null;
+		try
+		{
+			BufferedReader output = new BufferedReader(
+				new InputStreamReader(harness.getInputStream(), StandardCharsets.UTF_8));
+			StringBuilder transcript = new StringBuilder();
+			readUntilHandedOut(output, transcript);
+			ProcessBuilder fake = new ProcessBuilder("sh", "-c", "sleep 30; true", TEST_JVM)
+				.redirectErrorStream(true).redirectOutput(ProcessBuilder.Redirect.DISCARD);
+			fake.environment().put("DISPLAY", ":0");
+			testJvm = fake.start();
+
+			assertTrue(harness.waitFor(30, TimeUnit.SECONDS),
+				"the harness stops the run: " + transcript);
+			transcript.append(
+				new String(harness.getInputStream().readAllBytes(), StandardCharsets.UTF_8));
+			Run run = new Run(harness.exitValue(), "", "", transcript.toString());
+
+			assertEquals(STOPPED, run.exit(), run.output());
+			assertTrue(testJvm.waitFor(10, TimeUnit.SECONDS),
+				"the test JVM on :0 was stopped: " + run.output());
+			assertTrue(run.output().contains("test JVM pid " + testJvm.pid()), run.output());
+			assertTrue(run.output().contains("DISPLAY=:0"), run.output());
+			assertEverythingItStartedIsGone(run);
+		}
+		finally
+		{
+			harness.destroyForcibly();
+			if (testJvm != null)
+			{
+				testJvm.destroyForcibly();
+			}
+		}
+	}
+
+	/**
+	 * A stand-in for {@code ./gradlew}: it starts one test JVM, which only sleeps and never opens a
+	 * window, with the environment and the options the case gives it, and leaves a file behind when
+	 * that JVM has finished on its own
+	 */
+	private static File fakeGradlew(File directory) throws IOException
+	{
+		File fake = new File(directory, "fake-gradlew");
+		Files.writeString(fake.toPath(), """
+			#!/usr/bin/env bash
+			env $FAKE_JVM_ENVIRONMENT sh -c 'sleep 3; true' $FAKE_JVM_OPTIONS '%s'
+			touch '%s'
+			""".formatted(TEST_JVM, new File(directory, "finished").getAbsolutePath()),
+			StandardCharsets.UTF_8);
+		assertTrue(fake.setExecutable(true));
+		return fake;
+	}
+
+	/** The harness the way own-display.gradle starts it: holding its display for a build */
+	private static Process startHoldingHarness(File directory) throws IOException
+	{
+		ProcessBuilder builder = new ProcessBuilder(HARNESS.getPath(), "hold").directory(directory)
+			.redirectErrorStream(true);
+		Map<String, String> processEnvironment = builder.environment();
+		processEnvironment.remove("E2E_USE_CURRENT_DISPLAY");
+		processEnvironment.remove("E2E_HARNESS_XVFB_PID");
+		processEnvironment.put("DISPLAY", ":0");
+		processEnvironment.put("E2E_RUN_COMMAND", HOLD.getPath());
+		processEnvironment.put("TMPDIR", directory.getAbsolutePath());
+		return builder.start();
+	}
+
+	private static void stop(Process process) throws InterruptedException
+	{
+		process.destroy();
+		process.waitFor(10, TimeUnit.SECONDS);
+	}
+
 	/** The fluxbox on the PATH, which the stub hands over to after its one refusal */
 	private static String realFluxbox()
 	{
@@ -319,13 +575,22 @@ class E2eHarnessDisplayTest
 				+ optInSeen.getAbsolutePath() + "'\nexit " + stubExit + "\n",
 			StandardCharsets.UTF_8);
 		assertTrue(stub.setExecutable(true));
+		return runHarness(directory, environment, stub);
+	}
 
+	/** Runs the harness with the given command, in a directory without {@code ./gradlew} */
+	private static Run runHarness(File directory, Map<String, String> environment, File command)
+		throws Exception
+	{
+		File seen = new File(directory, "display-seen");
+		File optInSeen = new File(directory, "opt-in-seen");
 		ProcessBuilder builder = new ProcessBuilder(HARNESS.getPath(), "e2eTest")
 			.directory(directory).redirectErrorStream(true);
 		Map<String, String> processEnvironment = builder.environment();
 		processEnvironment.remove("DISPLAY");
 		processEnvironment.remove("E2E_USE_CURRENT_DISPLAY");
-		processEnvironment.put("E2E_RUN_COMMAND", stub.getAbsolutePath());
+		processEnvironment.remove("E2E_HARNESS_XVFB_PID");
+		processEnvironment.put("E2E_RUN_COMMAND", command.getAbsolutePath());
 		processEnvironment.put("TMPDIR", directory.getAbsolutePath());
 		processEnvironment.putAll(new HashMap<>(environment));
 		Process process = builder.start();

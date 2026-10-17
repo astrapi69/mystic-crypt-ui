@@ -48,6 +48,12 @@ CHANGED:
   a release was built with (#586)
 - development only: a pre-commit hook refuses a commit whose files Spotless would format, names them and the command
   that formats them; a commit that touches nothing Spotless checks costs no Gradle run (#592)
+- build and tests only: the display a test run gets is measured instead of assumed. The harness accepts a display only
+  when the kernel names its own Xvfb as the listener on the display's socket - on a Wayland desktop Xwayland serves
+  `:1` as well as `:0` - and a harness under another one, as in `make test-e2e`, checks the display it inherits
+  against that harness's Xvfb. While the tests run, it reads the `DISPLAY` every test JVM was started with from
+  `/proc`: a JVM on another display, or on none without being headless, is killed, the run stops, and every later
+  test task of the build refuses to start, naming the reason (#597)
 
 FORMAT:
 - Lethenon chain files change: lethenon 0.6.0 keeps the chain in an SQLite database, and a chain file of 0.5.0 is

@@ -173,6 +173,14 @@ with `wmctrl` that the window manager answers (#322), and a hold command hands t
 build; when the build ends, the harness stops both. Each test task prints which display it ran on,
 and the harness's output lands in `build/own-display/harness.log`.
 
+The harness measures that display rather than assuming it (#597). It takes it only when `ss` names
+its own Xvfb as the listener on the display's socket - on a Wayland desktop XWayland serves `:1` as
+well as `:0` - and a harness under another one, as in `make test-e2e`, checks the display it inherits
+against that harness's Xvfb. While the tests run, it reads the `DISPLAY` every test JVM was started
+with from `/proc`. A JVM on another display, or on none without `-Djava.awt.headless=true`, is
+killed, the harness ends with exit 96, and every later test task of the build refuses to start. The
+log names each test JVM it saw and the display it was on.
+
 It does not use the display of the shell it is started from, whatever path starts it: on a desktop
 that display is the person's real screen, and a run there does not hang, it finishes with the robot
 typing on that screen (#504). Only `make test-e2e-demo` uses the current display, through
