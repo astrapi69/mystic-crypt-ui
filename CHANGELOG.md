@@ -1,8 +1,35 @@
 ## Change log
 ----------------------
 
-Version 8.10 (unreleased)
+Version 8.10
 -------------
+
+The release in which the Lethenon plugin moves to lethenon 0.6.0, which keeps the chain in an SQLite database. A
+chain file of 8.9 and earlier is converted the first time a window reads it, and only once the person agreed; 8.9
+cannot read it afterwards, and the file as it was stays beside it (FORMAT, below). Before the release, a round trip
+chain file -> database -> chain file -> database was measured on four chains without a deviation. The vault format
+does not change. Built with Temurin 25.0.4, which the repository now names once, in `.sdkmanrc` (#586).
+
+FORMAT:
+- Lethenon chain files change: lethenon 0.6.0 keeps the chain in an SQLite database, and a chain file of 0.5.0 is
+  converted into one once the person agreed to it. 8.9 and earlier cannot read a chain file after that: lethenon
+  0.5.0 refuses it with "this build reads block encoding version 2 and the bytes carry version 83", measured in
+  lethenon's compatibility run for 0.6.0 (`docs/launch/compatibility-0.6.0/measure.sh` in lethenon). The old file,
+  kept as `<file>.legacy`, is what 8.9 still reads. Wallets do not change
+- measured before this release, a round trip chain file -> database -> chain file -> database: lethenon 0.6.0
+  migrated the chain, lethenon 0.5.0's own chain writer, from the jar published on Maven Central, wrote the database's
+  blocks and waiting transfers back as a chain file, since 0.6.0 has no export into the old format, and 0.6.0
+  migrated that file again. Four chains: the test network's chain as 0.5.0 left it (733 blocks), a synthetic one with
+  transfers, ML-DSA-65 accounts and a payment to a published address with its sweep, one with three transfers
+  waiting, and a chain file 8.9's own plugin code wrote, with a transfer waiting, converted in this release's plugin
+  after "Convert". In all four, the file written back is the original byte for byte, and so is its pending file; the
+  second database is the first row for row; every account has the same balance and next nonce, and the supply is the
+  same, in all four stages; and the waiting transfers are there at every step. The way back exists only for this
+  measurement; nothing of it is in the release
+- the vault format does not change: a vault 8.9 wrote opens in 8.10 with every entry as written, and a vault 8.10
+  writes opens in 8.9, with and without an entry's history and the names of protected properties, and with a group's
+  KeePass times. Measured with the published 8.9 application jar, taken from its installer and checked against the
+  release's sha256
 
 CHANGED:
 - the libraries: lethenon 0.5.0 to 0.6.0 (#581), which keeps the chain in an SQLite database instead of one
@@ -55,14 +82,6 @@ CHANGED:
   `/proc`: a JVM on another display, or on none without being headless, is killed, the run stops, and every later
   test task of the build refuses to start, naming the reason, also while the harness is still taking the display
   down (#597, #600)
-
-FORMAT:
-- Lethenon chain files change: lethenon 0.6.0 keeps the chain in an SQLite database, and a chain file of 0.5.0 is
-  converted into one once the person agreed to it. 8.9 and earlier cannot read a chain file after that: lethenon
-  0.5.0 refuses it with "this build reads block encoding version 2 and the bytes carry version 83", measured in
-  lethenon's compatibility run for 0.6.0 (`docs/launch/compatibility-0.6.0/measure.sh` in lethenon). The old file,
-  kept as `<file>.legacy`, is what 8.9 still reads. Wallets do not change
-- the vault format does not change
 
 Version 8.9
 -------------
