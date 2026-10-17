@@ -50,6 +50,10 @@ CHANGED:
   signature in it checked out.", or that it is not and nothing in it can be trusted, with the reason below; then
   the blocks, transfers and signatures checked and all the money there is. The chain library's own sentence is
   behind "Show details"
+- "Run a Node" answers in fields the same way (#604), every second while the node runs: "Your node runs on port
+  18480: its chain ends at block 1,200. It has found 3 blocks for you so far."; then the port, the last block, the
+  other nodes connected, the transfers waiting and the blocks found. Why connections were refused is behind "Show
+  details". With this, every Lethenon window that answered in a text block answers in fields, in English and German
 
 Version 8.10
 -------------

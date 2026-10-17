@@ -29,9 +29,14 @@ package io.github.astrapi69.mystic.crypt.plugin.lethenon;
  * <p>
  * Every component of the panel is bound to a property here (architecture.md: every panel holds its
  * state in a model), and so is what the node does: whether it is starting or running, the port it
- * listens on, and the status the window shows every second. Starting and stopping run off the event
- * dispatch thread and the status changes while the node runs, so these and the result line are
+ * listens on, and what the window shows every second. Starting and stopping run off the event
+ * dispatch thread and that answer changes while the node runs, so these and the result line are
  * volatile, and a test or a second panel can tell from here when something has ended.
+ * <p>
+ * The answer is kept as the window shows it, one value per field (#604): the sentence that says
+ * whether the node runs and where its chain ends, the port, the last block, the other nodes
+ * connected, the transfers waiting and the blocks found, and behind "Show details" why connections
+ * were refused.
  */
 public class LethenonNodePanelModel
 {
@@ -53,7 +58,21 @@ public class LethenonNodePanelModel
 
 	private String pun = LethenonMinePanelModel.DEFAULT_PUN;
 
-	private volatile String status = "";
+	private volatile String answer = "";
+
+	private volatile String listening = "";
+
+	private volatile String lastBlock = "";
+
+	private volatile String connected = "";
+
+	private volatile String waiting = "";
+
+	private volatile String mined = "";
+
+	private volatile String refusals = "";
+
+	private boolean detailsShown;
 
 	private volatile String resultText = " ";
 
@@ -133,14 +152,96 @@ public class LethenonNodePanelModel
 		this.pun = pun;
 	}
 
-	public String getStatus()
+	/** Empties every value of the answer, so a node that did not start shows nothing of one that ran */
+	public void clearAnswer()
 	{
-		return status;
+		answer = "";
+		listening = "";
+		lastBlock = "";
+		connected = "";
+		waiting = "";
+		mined = "";
+		refusals = "";
 	}
 
-	public void setStatus(String status)
+	public String getAnswer()
 	{
-		this.status = status;
+		return answer;
+	}
+
+	public void setAnswer(String answer)
+	{
+		this.answer = answer;
+	}
+
+	public String getListening()
+	{
+		return listening;
+	}
+
+	public void setListening(String listening)
+	{
+		this.listening = listening;
+	}
+
+	public String getLastBlock()
+	{
+		return lastBlock;
+	}
+
+	public void setLastBlock(String lastBlock)
+	{
+		this.lastBlock = lastBlock;
+	}
+
+	public String getConnected()
+	{
+		return connected;
+	}
+
+	public void setConnected(String connected)
+	{
+		this.connected = connected;
+	}
+
+	public String getWaiting()
+	{
+		return waiting;
+	}
+
+	public void setWaiting(String waiting)
+	{
+		this.waiting = waiting;
+	}
+
+	public String getMined()
+	{
+		return mined;
+	}
+
+	public void setMined(String mined)
+	{
+		this.mined = mined;
+	}
+
+	public String getRefusals()
+	{
+		return refusals;
+	}
+
+	public void setRefusals(String refusals)
+	{
+		this.refusals = refusals;
+	}
+
+	public boolean isDetailsShown()
+	{
+		return detailsShown;
+	}
+
+	public void setDetailsShown(boolean detailsShown)
+	{
+		this.detailsShown = detailsShown;
 	}
 
 	public String getResultText()
