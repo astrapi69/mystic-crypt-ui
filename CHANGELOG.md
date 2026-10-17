@@ -35,6 +35,10 @@ CHANGED:
   phase only once none of them is building. Every Gradle call of the Makefile takes `GRADLE_FLAGS`, the plugin builds
   ask for the host's daemon, an idle daemon ends after 30 minutes, and a test that starts a Gradle build of its own
   leaves no daemon behind. Measured over the whole gate: the Java peak went from 3,613 MB at 8.9 to 2,736 MB (#580)
+- development only: the JDK a build runs on is named once, in `.sdkmanrc` - Temurin 25.0.4 - which `sdk env` sets the
+  shell to and the Makefile pins, instead of the Makefile's own pin on JDK 25 as released in 2025. A newer patch
+  release is taken on deliberately, in a pull request of its own with the gate, and the release text names the JDK
+  a release was built with (#586)
 
 FORMAT:
 - Lethenon chain files change: lethenon 0.6.0 keeps the chain in an SQLite database, and a chain file of 0.5.0 is

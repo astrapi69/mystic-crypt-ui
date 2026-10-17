@@ -4,6 +4,9 @@ Prompt triggers: "release new version", "new release".
 
 ## Ground rules
 
+- A release is built with the JDK `.sdkmanrc` names, which the Makefile pins and `sdk env` sets the
+  shell to. A newer patch release of it is taken on deliberately, in a small pull request of its own
+  that passes the gate, never automatically (#586).
 - Version source: `gradle.properties` (`projectVersion`) — the ONLY hand-edited version
   field. Nothing else carries an independent version literal; if one appears, fix the
   derivation, not the literal.
@@ -127,7 +130,8 @@ Prompt triggers: "release new version", "new release".
    the other direction: master carries nothing develop does not.
 8. **GitHub release** from the CHANGELOG entry (`gh release create RELEASE-X.Y.Z`), with the installer
    AND the `.sha256`/`.sha512` files `make izpack-installer` writes next to it. A release without
-   them gives a downloader no way to tell a tampered file from the real one.
+   them gives a downloader no way to tell a tampered file from the real one. The release text names
+   the JDK it was built with, as `java -version` of the Makefile's JAVA_HOME prints it (#586).
 9. **Open the next cycle**: set `projectVersion` to the next version with a `-SNAPSHOT`
    suffix (`8.3` released -> `8.4-SNAPSHOT`), in the same session as the tag. Without it
    the repository carries the released number while being something else, and every
