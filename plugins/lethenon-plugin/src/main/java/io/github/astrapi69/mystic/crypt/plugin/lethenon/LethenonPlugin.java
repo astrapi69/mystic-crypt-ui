@@ -24,6 +24,7 @@
  */
 package io.github.astrapi69.mystic.crypt.plugin.lethenon;
 
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.pf4j.Plugin;
@@ -35,12 +36,16 @@ import org.pf4j.PluginWrapper;
  * Unlike every other plugin here, this one brings a library the application does not carry - the
  * chain itself, {@code io.github.astrapi69:lethenon}, packaged into this plugin's zip under
  * {@code lib/}. Everything the chain needs underneath (mystic-crypt, crypt-api, crypt-data) the
- * host already has.
+ * host already has, except the SQLite driver the chain is kept in since lethenon 0.6.0, which comes
+ * in the same zip (#581).
  */
 public class LethenonPlugin extends Plugin
 {
 
 	private static final Logger LOGGER = Logger.getLogger(LethenonPlugin.class.getName());
+
+	/** The SQLite driver lethenon opens its chain database with */
+	private static final String SQLITE_DRIVER = "org.sqlite.JDBC";
 
 	/**
 	 * Instantiates a new {@link LethenonPlugin}
@@ -56,7 +61,28 @@ public class LethenonPlugin extends Plugin
 	@Override
 	public void start()
 	{
+		registerSqliteDriver();
 		LOGGER.info("Lethenon plugin started");
+	}
+
+	/**
+	 * Initialises the SQLite driver through this plugin's class loader, which registers it with
+	 * {@link java.sql.DriverManager}. lethenon asks {@code DriverManager} for its connection, and
+	 * {@code DriverManager} looks for drivers only through the application's class loader, which
+	 * does not see the driver in this plugin's zip. Workaround for lethenon#223, removed once a
+	 * lethenon release opens the connection through the driver itself.
+	 */
+	private static void registerSqliteDriver()
+	{
+		try
+		{
+			Class.forName(SQLITE_DRIVER);
+		}
+		catch (ClassNotFoundException missing)
+		{
+			LOGGER.log(Level.SEVERE, SQLITE_DRIVER + " is not in this plugin's zip, so no chain "
+				+ "file can be opened: reinstall the lethenon plugin", missing);
+		}
 	}
 
 	@Override
