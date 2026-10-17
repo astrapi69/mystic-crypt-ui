@@ -31,23 +31,48 @@ jar {
 jar.notCompatibleWithConfigurationCache(
         "jar signing doLast uses script objects at execution time")
 
+// The keystore's two passwords: from the environment of the one command that signs, which
+// scripts/with-signing-passwords.sh fills from the desktop's keyring (#579), else from the
+// release.mystic-crypt.* properties in ~/.gradle/gradle.properties, where they were before. The
+// build says which source it used, never the value.
+def signingPassword = { String variable, String property ->
+    String fromEnvironment = System.getenv(variable)
+    if (fromEnvironment != null && !fromEnvironment.isEmpty()) {
+        println("signing: the ${property} comes from the environment variable ${variable}")
+        return fromEnvironment
+    }
+    if (project.hasProperty(property)) {
+        println("signing: the ${property} comes from the property ${property}")
+        return project.property(property)
+    }
+    return null
+}
+
 jar.doLast {
     DirectoryProperty buildDirectoryProperty = layout.buildDirectory
     String buildDirectory = buildDirectoryProperty.get()
-    // the keystore properties live in the developer's private gradle.properties, never in the
-    // repository - so a build that wants signing but has no keystore configured (CI, a fresh
-    // clone, a contributor's machine) says so and produces an unsigned jar instead of failing
-    def signingConfigured = [mysticCryptKeyAlias, mysticCryptStoreFile, mysticCryptStorePassword,
-                             mysticCryptKeyPassword, mysticCryptStoreType].every { project.hasProperty(it) }
-    if ((releaseVersion || createIzPackInstaller) && !signingConfigured) {
+    // the keystore lives on the developer's machine, never in the repository - so a release
+    // version built without it (CI, a fresh clone, a contributor's machine) says so and produces an
+    // unsigned jar. An installer build does not: it packs the signed jar, and an installer without
+    // a signature is refused here instead of being written (#579)
+    def wantsSigning = releaseVersion || createIzPackInstaller
+    def storePassword = wantsSigning ? signingPassword('MYSTIC_CRYPT_STORE_PASSWORD', "$mysticCryptStorePassword") : null
+    def keyPassword = wantsSigning ? signingPassword('MYSTIC_CRYPT_KEY_PASSWORD', "$mysticCryptKeyPassword") : null
+    def signingConfigured = storePassword != null && keyPassword != null &&
+            [mysticCryptKeyAlias, mysticCryptStoreFile, mysticCryptStoreType].every { project.hasProperty(it) }
+    if (createIzPackInstaller && !signingConfigured) {
+        throw new GradleException('not signed: an installer build needs the release keystore - the ' +
+                'release.mystic-crypt.* properties for its file, type and alias, and its two passwords ' +
+                'from the keyring through scripts/with-signing-passwords.sh (make izpack-installer ' +
+                'does that) or from the properties (#579)')
+    }
+    if (wantsSigning && !signingConfigured) {
         println('No signing configuration found, the created jar file is not signed.\n' +
                 'Set the release.mystic-crypt.* properties to sign it.')
     }
-    if ((releaseVersion || createIzPackInstaller) && signingConfigured) {
+    if (wantsSigning && signingConfigured) {
         def pkAlias = project.property("$mysticCryptKeyAlias")
         def keystoreFileName = project.property("$mysticCryptStoreFile")
-        def storePassword = project.property("$mysticCryptStorePassword")
-        def keyPassword = project.property("$mysticCryptKeyPassword")
         def keystoreType = project.property("$mysticCryptStoreType")
         def libsFilePath = "$buildDirectory/libs"
         def libFiles = files { file(libsFilePath).listFiles() }

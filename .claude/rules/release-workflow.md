@@ -50,6 +50,13 @@ Prompt triggers: "release new version", "new release".
    is no remote publish since #453. So a bump that reddens CI in a signing, publishing or packaging task is
    this switch, not the release being wrong.
 5. **Full gate** (ALL mandatory; a red result aborts the release):
+   - **`make release-gate`** runs the three phases below - `make build-full`, the forced test tasks,
+     `./gradlew build` - with one JAVA_HOME, so one daemon serves them all (#580), and before each one
+     `scripts/stop-idle-daemons.sh`: it reads `./gradlew --status`,
+     waits while a daemon is BUSY and asks again, and runs `--stop` only once every daemon is IDLE -
+     never in the middle of another worktree's or the IDE's build. Still busy after 30 minutes, it
+     stops nothing and the gate does not start. The 8.9 gate died of memory next to daemons left over
+     from earlier builds (#580).
    - `make build-full`, whose test tasks bring their own Xvfb (#505) — it runs the plugin builds, the packaging,
      EVERY test including the UI e2e suite, and spotless - but no license check: `licenseMain` and
      `licenseTest` are disabled because of hierynomus/license-gradle-plugin#76. Until it is fixed the gate

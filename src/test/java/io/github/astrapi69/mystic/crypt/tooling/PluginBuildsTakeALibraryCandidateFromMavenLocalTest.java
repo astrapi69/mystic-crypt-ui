@@ -172,7 +172,9 @@ class PluginBuildsTakeALibraryCandidateFromMavenLocalTest
 			+ "        doLast { println '" + RESOLVED + "' + candidate.singleFile }\n" + "    }\n"
 			+ "}\n", StandardCharsets.UTF_8);
 		List<String> command = new ArrayList<>(
-			List.of(new File("gradlew").getAbsolutePath(), "-p", PLUGIN, "--offline",
+			// --no-daemon: the outer build's daemon is busy running this test, and a daemon of the
+			// plugin build's own would stay idle for hours after it (#580)
+			List.of(new File("gradlew").getAbsolutePath(), "--no-daemon", "-p", PLUGIN, "--offline",
 				"--no-configuration-cache", "--console=plain", "-I", initScript.getAbsolutePath(),
 				"-Dmaven.repo.local=" + localRepository.getAbsolutePath()));
 		if (useMavenLocal)
