@@ -85,8 +85,8 @@ class WalletBalanceSupportTest
 	@DisplayName("the direct accounts are spendable, the one-time payment is counted apart")
 	void balance_separatesSpendableFromOneTimePayments() throws Exception
 	{
-		Path chainFile = write("chain.lethenon",
-			CanonicalEncoding.encodeChain(aChainPayingTheWallet()));
+		Path chainFile = LethenonFixtures.written(new File(directory, "chain.lethenon").toPath(),
+			aChainPayingTheWallet());
 
 		WalletBalance balance = WalletBalanceSupport.balance(chainFile, walletFile,
 			PASSWORD.clone());
@@ -107,8 +107,8 @@ class WalletBalanceSupportTest
 	@DisplayName("a wrong password names the file and never the password")
 	void balance_refusesAWrongPassword_withoutRepeatingIt() throws Exception
 	{
-		Path chainFile = write("chain.lethenon",
-			CanonicalEncoding.encodeChain(aChainPayingTheWallet()));
+		Path chainFile = LethenonFixtures.written(new File(directory, "chain.lethenon").toPath(),
+			aChainPayingTheWallet());
 		char[] wrong = "not the password at all".toCharArray();
 
 		IllegalArgumentException refused = assertThrows(IllegalArgumentException.class,
@@ -139,8 +139,8 @@ class WalletBalanceSupportTest
 	@DisplayName("a wallet file that is not there is named, not replayed against")
 	void balance_refusesAMissingWalletFile() throws Exception
 	{
-		Path chainFile = write("chain.lethenon",
-			CanonicalEncoding.encodeChain(aChainPayingTheWallet()));
+		Path chainFile = LethenonFixtures.written(new File(directory, "chain.lethenon").toPath(),
+			aChainPayingTheWallet());
 		Path missing = new File(directory, "no-wallet-here").toPath();
 
 		IllegalArgumentException refused = assertThrows(IllegalArgumentException.class,
@@ -153,8 +153,8 @@ class WalletBalanceSupportTest
 	@DisplayName("the password array is wiped once the wallet is open")
 	void balance_wipesThePasswordItWasGiven() throws Exception
 	{
-		Path chainFile = write("chain.lethenon",
-			CanonicalEncoding.encodeChain(aChainPayingTheWallet()));
+		Path chainFile = LethenonFixtures.written(new File(directory, "chain.lethenon").toPath(),
+			aChainPayingTheWallet());
 		char[] handedOver = PASSWORD.clone();
 
 		WalletBalanceSupport.balance(chainFile, walletFile, handedOver);

@@ -157,8 +157,8 @@ public final class SyncSupport
 		}
 		if (ChainFiles.isLegacy(chainFile))
 		{
-			// a chain file of lethenon 0.5.0 or earlier is verified as it is before the library
-			// migrates it on the sync's first read, and is not migrated when it does not verify (#581)
+			// the sync's first read would migrate a chain file of lethenon 0.5.0 or earlier: it is
+			// refused until the person agreed to convert it, and for good when it does not verify (#581)
 			ChainFiles.read(chainFile);
 		}
 		if (node == null || node.isBlank())

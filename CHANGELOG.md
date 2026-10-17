@@ -11,10 +11,15 @@ CHANGED:
   and aarch64. The application does not carry it. A test starts the plugin from its zip in a JVM that has neither
   lethenon nor sqlite-jdbc on its class path, the way the installed application runs it, and writes and reads a
   chain there; a workflow runs it on every platform the installer serves
-- the Lethenon plugin opens a chain file of lethenon 0.5.0 and earlier - every chain file 8.8 and 8.9 wrote - by
-  verifying it as it is first, and only a chain that verifies is moved into the database. The old file stays next to
-  it as `<file>.legacy`. A chain that does not verify, such as one of a retired test network, is refused with the
-  file's path and the reason, and is left as it was, with no `.legacy` beside it (#581)
+- the Lethenon plugin converts a chain file of lethenon 0.5.0 and earlier - every chain file 8.8 and 8.9 wrote - into
+  the database only once the person agreed to it. Every window that reads a chain file verifies such a file as it is
+  first, then asks: the question names the file, says that it is converted once, that the file as it is stays beside
+  it as `<file>.legacy`, and that 8.9 and earlier cannot read the converted file but can read the `.legacy` one, in
+  English and German. "Cancel", the default, leaves the file as it was and the window does nothing; "Convert"
+  converts it and the window goes on. A chain that does not verify, such as one of a retired test network, is
+  refused with the file's path and the reason before anyone is asked, and is left as it was. Measured with a chain
+  file 8.8's own code wrote, taken from the 8.8 installer (`src/e2eTest/resources/lethenon/README.md`): after
+  "Convert" the database holds its three blocks and the `.legacy` file is the one 8.8 wrote, byte for byte (#581)
 - the plugin registers the SQLite driver itself when it starts: lethenon asks `DriverManager` for its database
   connection, and `DriverManager` does not see a driver inside a plugin's zip (lethenon#223)
 - the application jar enables native access (`Enable-Native-Access: ALL-UNNAMED`), so that JDK 25 loads the SQLite
@@ -24,15 +29,11 @@ CHANGED:
 
 FORMAT:
 - Lethenon chain files change: lethenon 0.6.0 keeps the chain in an SQLite database, and a chain file of 0.5.0 is
-  moved into one the first time the plugin opens it. 8.9 and earlier cannot read a chain file after that: lethenon
+  converted into one once the person agreed to it. 8.9 and earlier cannot read a chain file after that: lethenon
   0.5.0 refuses it with "this build reads block encoding version 2 and the bytes carry version 83", measured in
   lethenon's compatibility run for 0.6.0 (`docs/launch/compatibility-0.6.0/measure.sh` in lethenon). The old file,
   kept as `<file>.legacy`, is what 8.9 still reads. Wallets do not change
 - the vault format does not change
-
-KNOWN AND NOT FIXED:
-- the plugin moves a chain file of 8.8 or 8.9 into the database without asking first; saying what happens before it
-  does is the next step of #581, which stays open
 
 Version 8.9
 -------------

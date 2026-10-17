@@ -44,9 +44,10 @@ import io.github.astrapi69.lethenon.Replay;
  * Since lethenon 0.6.0 the chain is an SQLite database, and the library migrates a chain file of
  * 0.5.0 or earlier the first time it reads one; lethenon 0.5.0 - the library of mystic-crypt-ui 8.8
  * and 8.9 - cannot read the chain after that (lethenon ADR 0006). So a file in the old format is
- * read and verified as it is first, with the old encoding, and handed to the library only when it
- * verifies: a chain the plugin would refuse - one an earlier lethenon wrote (#535), one that does not
- * verify - is refused as before, with the file's name, and is never migrated.
+ * read and verified as it is first, with the old encoding, and a chain the plugin would refuse - one
+ * an earlier lethenon wrote (#535), one that does not verify - is refused as before, with the file's
+ * name, and is never converted. A chain that verifies is converted only by {@link #convert}, which a
+ * window calls once the person agreed to it; {@link #read} refuses it until then.
  * <p>
  * No chain logic of its own: {@link CanonicalEncoding#readChain} and {@link Replay#verify} decide,
  * {@link ChainFile} migrates and reads. It takes a {@link Path} and is testable without a display
@@ -90,12 +91,86 @@ final class ChainFiles
 	}
 
 	/**
-	 * Reads a chain file: a file in the old format is verified as it is before the library migrates
-	 * it; a database is read by the library
+	 * Whether the file is a chain file of the old format whose chain verifies, which is read only
+	 * once {@link #convert} has turned it into a database
+	 *
+	 * @param chainFile
+	 *            the file
+	 * @return true for a verified chain of the old format; false for a database, an empty or a
+	 *         missing file
+	 * @throws IOException
+	 *             when the file cannot be read
+	 * @throws IllegalArgumentException
+	 *             when the bytes are no chain file, with the file and its size in front of the reason
+	 * @throws ChainRejected
+	 *             when a chain in the old format does not verify, with the file in front of the reason
+	 */
+	static boolean needsConversion(final Path chainFile) throws IOException
+	{
+		if (!isLegacy(chainFile))
+		{
+			return false;
+		}
+		ChainReplaySupport.replay(chainFile, decode(chainFile, Files.readAllBytes(chainFile)));
+		return true;
+	}
+
+	/**
+	 * Converts a verified chain file of the old format into a database, through the library's
+	 * migration, which keeps the file as it was beside it as {@code <file>.legacy}. Called once the
+	 * person agreed to it: lethenon 0.5.0 and earlier cannot read the file afterwards.
+	 *
+	 * @param chainFile
+	 *            the file
+	 * @return the old file, kept as {@code <file>.legacy}
+	 * @throws IOException
+	 *             when the file cannot be read or converted, or the library kept no
+	 *             {@code <file>.legacy}, with the file's absolute path in front of the reason
+	 * @throws IllegalArgumentException
+	 *             when the file is no chain file of the old format: a database, a missing file, bytes
+	 *             that are no chain file
+	 * @throws ChainRejected
+	 *             when the chain does not verify; it is then not converted
+	 */
+	static Path convert(final Path chainFile) throws IOException
+	{
+		if (!needsConversion(chainFile))
+		{
+			throw new IllegalArgumentException(chainFile.toAbsolutePath() + " is no chain file of "
+				+ "lethenon 0.5.0 or earlier, so there is nothing to convert");
+		}
+		fromTheLibrary(chainFile);
+		Path legacy = legacyOf(chainFile);
+		if (!Files.isRegularFile(legacy))
+		{
+			throw new IOException(chainFile.toAbsolutePath() + " was converted, and the library "
+				+ "kept no " + legacy.getFileName() + " beside it");
+		}
+		return legacy;
+	}
+
+	/**
+	 * Where the library keeps a chain file of the old format once it converted it
+	 *
+	 * @param chainFile
+	 *            the chain file
+	 * @return {@code <file>.legacy} beside it
+	 */
+	static Path legacyOf(final Path chainFile)
+	{
+		return chainFile.resolveSibling(chainFile.getFileName() + ".legacy");
+	}
+
+	/**
+	 * Reads a chain file: a database through the library; a verified file of the old format is
+	 * refused until it is converted, a file of the old format that does not verify is refused for
+	 * that
 	 *
 	 * @param chainFile
 	 *            the file, which exists
 	 * @return the blocks, genesis first
+	 * @throws UnconvertedChainFile
+	 *             when the file is a verified chain of the old format, which is then left as it was
 	 * @throws IOException
 	 *             when the file cannot be read, or the library refuses the database, with the file's
 	 *             absolute path in front of its reason
@@ -103,15 +178,19 @@ final class ChainFiles
 	 *             when the bytes are no chain file, with the file and its size in front of the reason
 	 * @throws ChainRejected
 	 *             when a chain in the old format does not verify, with the file in front of the reason;
-	 *             it is then not migrated
+	 *             it is then not converted
 	 */
 	static List<BlockBody> read(final Path chainFile) throws IOException
 	{
-		if (isLegacy(chainFile))
+		if (needsConversion(chainFile))
 		{
-			byte[] encoded = Files.readAllBytes(chainFile);
-			ChainReplaySupport.replay(chainFile, decode(chainFile, encoded));
+			throw new UnconvertedChainFile(chainFile);
 		}
+		return fromTheLibrary(chainFile);
+	}
+
+	private static List<BlockBody> fromTheLibrary(final Path chainFile) throws IOException
+	{
 		try
 		{
 			return new ChainFile(chainFile).read();

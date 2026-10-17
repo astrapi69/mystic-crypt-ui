@@ -24,6 +24,8 @@
  */
 package io.github.astrapi69.mystic.crypt.plugin.lethenon;
 
+import java.io.IOException;
+import java.nio.file.Path;
 import java.security.KeyPair;
 import java.util.ArrayList;
 import java.util.List;
@@ -33,6 +35,7 @@ import io.github.astrapi69.lethenon.BlockBody;
 import io.github.astrapi69.lethenon.Blocks;
 import io.github.astrapi69.lethenon.Bytes;
 import io.github.astrapi69.lethenon.Chain;
+import io.github.astrapi69.lethenon.ChainFile;
 import io.github.astrapi69.lethenon.Destination;
 import io.github.astrapi69.lethenon.DifficultyRule;
 import io.github.astrapi69.lethenon.Genesis;
@@ -56,6 +59,24 @@ final class LethenonFixtures
 
 	private LethenonFixtures()
 	{
+	}
+
+	/**
+	 * Writes a chain the way lethenon 0.6.0 keeps it, as a database. A test that means a chain file of
+	 * 0.5.0 or earlier writes {@code CanonicalEncoding.encodeChain} itself (#581).
+	 *
+	 * @param chainFile
+	 *            the file
+	 * @param chain
+	 *            the blocks, genesis first
+	 * @return the file
+	 * @throws IOException
+	 *             when the database cannot be written
+	 */
+	static Path written(final Path chainFile, final List<BlockBody> chain) throws IOException
+	{
+		new ChainFile(chainFile).write(chain);
+		return chainFile;
 	}
 
 	/**
