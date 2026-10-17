@@ -112,8 +112,8 @@ class LethenonChainFileOf88UiTest extends AbstractUiTest
 		verifyAndAwaitTheQuestion(tool).buttonWithText("Convert").click();
 		awaitResult(tool, "accepted");
 
-		String report = GuiActionRunner.execute(() -> tool.textBox("txtReport").target().getText());
-		assertTrue(report.contains("replayed 3 blocks"), report);
+		String blocks = GuiActionRunner.execute(() -> tool.textBox("txtBlocks").target().getText());
+		assertEquals("3 blocks", blocks);
 		assertArrayEquals(writtenBy88, Files.readAllBytes(legacy),
 			"the file 8.8 wrote stays beside the database, byte for byte");
 		assertArrayEquals(SQLITE_HEADER, Arrays.copyOf(Files.readAllBytes(chainFile), 16),

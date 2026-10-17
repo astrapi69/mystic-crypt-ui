@@ -27,8 +27,10 @@ package io.github.astrapi69.mystic.crypt.plugin.lethenon;
 import java.awt.Font;
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.Locale;
 import java.util.Map;
 
+import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
@@ -45,6 +47,11 @@ import io.github.astrapi69.swing.model.component.JMTextField;
  * {@link ChainReplaySupport} does the reading and the replaying and knows no Swing type. A refused
  * chain is shown with the reason the chain library gave, which is the only thing that makes a
  * report about it actionable - and the counts are shown only for a chain that was accepted.
+ * <p>
+ * It answers in fields a child can read (#604): first one sentence in a larger font, "Your chain is
+ * in order: every block, transfer and signature in it checked out.", then the blocks, transfers and
+ * signatures checked and all the money there is. The chain library's own sentence about the replay
+ * is behind "Show details", closed at first.
  */
 public class LethenonChainPanel extends JPanel
 {
@@ -57,14 +64,43 @@ public class LethenonChainPanel extends JPanel
 	/** Something that keeps its own width instead of growing with the cell */
 	private static final String OWN_WIDTH = "alignx left, width pref!";
 
+	/** What a count reads as: "none", "1 block", "3 blocks" */
+	private static final String COUNT = "{0,choice,0#none|1#1 {1}|1<{0,number,integer} {2}}";
+
 	private final LethenonChainPanelModel modelObject = new LethenonChainPanelModel();
 
 	/** Whom to ask before a chain file of lethenon 0.5.0 or earlier is converted (#581) */
 	private final ChainConversionConsent consent;
 
+	private final Locale locale = Locale.getDefault();
+
 	private final JMTextField txtChainFile = new JMTextField(34);
 
-	private final JMTextArea txtReport = new JMTextArea(8, 62);
+	private final JMTextArea txtAnswer = AnswerFields.answerArea(text("lethenon.verify.tooltip.answer",
+		"whether the chain is in order, in one sentence; the details are below"));
+
+	private final JMTextField txtBlocks = AnswerFields.readOnly("txtBlocks",
+		text("lethenon.verify.tooltip.blocks",
+			"how many blocks the chain has, the first included; each was checked, and so was the "
+				+ "way each one follows the one before"));
+
+	private final JMTextField txtTransfers = AnswerFields.readOnly("txtTransfers",
+		text("lethenon.verify.tooltip.transfers",
+			"how many transfers the blocks carry; each was applied, and none spends more than its "
+				+ "account holds"));
+
+	private final JMTextField txtSignatures = AnswerFields.readOnly("txtSignatures",
+		text("lethenon.verify.tooltip.signatures",
+			"how many signatures were checked; a transfer counts only when its owner signed it"));
+
+	private final JMTextField txtSupply = AnswerFields.readOnly("txtSupply",
+		AnswerFields.supplyTooltip(locale));
+
+	private final JButton btnDetails;
+
+	private final JPanel pnlDetails = new JPanel(ToolForm.newLayout());
+
+	private final JMTextArea txtSummary = new JMTextArea(3, 40);
 
 	private final JLabel lblResult = new JLabel(" ");
 
@@ -88,40 +124,16 @@ public class LethenonChainPanel extends JPanel
 	{
 		super(ToolForm.newLayout());
 		this.consent = consent;
-		txtChainFile.setName("txtChainFile");
-		txtReport.setName("txtReport");
-		txtReport.setEditable(false);
-		txtReport.setLineWrap(true);
-		txtReport.setWrapStyleWord(true);
-		txtReport.setFont(new Font("monospaced", Font.PLAIN, 12));
-		lblResult.setName("lblResult");
-		lblResult.setFont(lblResult.getFont().deriveFont(Font.BOLD));
-
-		txtChainFile.setToolTipText(LethenonMessages.getString("lethenon.tooltip.chain.file",
-			"the chain file to replay, written by lethenon's own command line"));
-		txtReport.setToolTipText(LethenonMessages.getString("lethenon.tooltip.report",
-			"what the replay checked, and what it refused"));
-
+		btnDetails = LethenonSwing.button("btnDetails",
+			AnswerFields.detailsButtonText(false, locale), event -> onDetails(),
+			text("lethenon.verify.tooltip.details",
+				"show the chain library's own sentence about what it checked"));
+		nameAndExplainTheComponents();
 		bindToTheModel();
-
-		add(new JLabel(LethenonMessages.getString("lethenon.label.chain.file", "Chain file:")));
-		add(txtChainFile, WITH_BUTTON);
-		add(LethenonSwing.button("btnBrowseChainFile", "...", event -> onBrowseChainFile(),
-			LethenonMessages.getString("lethenon.tooltip.browse.chain.file",
-				"pick the chain file")),
-			OWN_WIDTH);
-		add(ToolForm
-			.buttons(LethenonSwing.button("btnVerify",
-				LethenonMessages.getString("lethenon.button.verify", "Verify the chain"),
-				event -> onVerify(),
-				LethenonMessages.getString("lethenon.tooltip.verify", "replay the chain from its "
-					+ "genesis block: every signature, every state transition, every block hash"))),
-			ToolForm.BUTTON_ROW);
-		add(new JLabel(LethenonMessages.getString("lethenon.label.report", "Report:")),
-			"aligny top");
-		add(ToolForm.scrolled(txtReport), ToolForm.GROWING);
+		layOutTheInputs();
+		layOutTheAnswer();
 		add(lblResult, ToolForm.RESULT_LINE);
-
+		pnlDetails.setVisible(false);
 		txtChainFile.setText(LethenonSettingsContribution.chainFile());
 	}
 
@@ -137,53 +149,159 @@ public class LethenonChainPanel extends JPanel
 
 	/**
 	 * Replays the named file and shows what came back. A refused chain is not an error of this
-	 * panel: the reason goes into the result line, and the report area says nothing it cannot back
-	 * up.
+	 * panel: the reason goes into the result line, the answer says the chain is not in order, and
+	 * no field shows a count it cannot back up.
 	 */
 	void onVerify()
 	{
+		String refused = text("lethenon.verify.result.refused", "the chain was refused");
 		try
 		{
 			Path chainFile = Path.of(modelObject.getChainFile().trim());
 			if (!ChainConversion.convertedIfAgreed(this, consent, chainFile))
 			{
-				setReport("");
-				setResult(ChainConversion.notConverted());
+				showNothing(ChainConversion.notConverted(), "");
 				return;
 			}
 			ChainReplayReport report = ChainReplaySupport.verify(chainFile);
 			LethenonSettingsContribution.remember(
 				Map.of(LethenonSettingsContribution.KEY_CHAIN_FILE, chainFile.toString()));
-			setReport(report.summary());
-			setResult(
-				LethenonMessages.getString("lethenon.result.accepted", "the chain was accepted"));
+			showTheAnswer(report);
+			setResult(text("lethenon.verify.result.accepted", "the chain was accepted"));
 		}
-		catch (ChainRejected | IllegalArgumentException refused)
+		catch (ChainRejected | IllegalArgumentException rejected)
 		{
-			setReport("");
-			setResult(LethenonMessages.getString("lethenon.result.refused", "the chain was refused")
-				+ ": " + refused.getMessage());
+			showNothing(refused + ": " + rejected.getMessage(), notInOrder());
 		}
 		catch (IOException unreadable)
 		{
-			setReport("");
-			setResult(LethenonMessages.getString("lethenon.result.refused", "the chain was refused")
-				+ ": " + modelObject.getChainFile() + " cannot be read - "
-				+ unreadable.getMessage());
+			showNothing(refused + ": " + LethenonMessages.format("lethenon.verify.unreadable",
+				"{0} cannot be read - {1}", locale, modelObject.getChainFile(),
+				unreadable.getMessage()), notInOrder());
 		}
+	}
+
+	/** Opens or closes "Show details" */
+	void onDetails()
+	{
+		modelObject.setDetailsShown(!modelObject.isDetailsShown());
+		pnlDetails.setVisible(modelObject.isDetailsShown());
+		btnDetails.setText(AnswerFields.detailsButtonText(modelObject.isDetailsShown(), locale));
+		revalidate();
+		repaint();
+	}
+
+	private void showTheAnswer(final ChainReplayReport report)
+	{
+		modelObject.clearAnswer();
+		modelObject.setAnswer(text("lethenon.verify.answer",
+			"Your chain is in order: every block, transfer and signature in it checked out."));
+		modelObject.setBlocks(count(report.blocks(), "lethenon.verify.blocks", "block", "blocks"));
+		modelObject.setTransfers(
+			count(report.transactions(), "lethenon.verify.transfers", "transfer", "transfers"));
+		modelObject.setSignatures(
+			count(report.signatures(), "lethenon.verify.signatures", "signature", "signatures"));
+		modelObject.setSupply(LethAmounts.format(report.supply(), locale));
+		modelObject.setSummary(report.summary());
+		showTheModel();
+	}
+
+	private String count(final long count, final String key, final String one, final String many)
+	{
+		return LethenonMessages.format(key, COUNT.replace("{1}", one).replace("{2}", many), locale,
+			count);
+	}
+
+	private String notInOrder()
+	{
+		return text("lethenon.verify.answer.refused",
+			"This chain is not in order, so nothing in it can be trusted. The line below says why.");
+	}
+
+	private void showNothing(final String result, final String answer)
+	{
+		modelObject.clearAnswer();
+		modelObject.setAnswer(answer);
+		showTheModel();
+		setResult(result);
+	}
+
+	/** Puts what the model holds into the read-only fields */
+	private void showTheModel()
+	{
+		txtAnswer.setText(modelObject.getAnswer());
+		AnswerFields.setText(txtBlocks, modelObject.getBlocks());
+		AnswerFields.setText(txtTransfers, modelObject.getTransfers());
+		AnswerFields.setText(txtSignatures, modelObject.getSignatures());
+		AnswerFields.setText(txtSupply, modelObject.getSupply());
+		txtSummary.setText(modelObject.getSummary());
+	}
+
+	private void nameAndExplainTheComponents()
+	{
+		txtChainFile.setName("txtChainFile");
+		pnlDetails.setName("pnlDetails");
+		txtSummary.setName("txtSummary");
+		txtSummary.setEditable(false);
+		txtSummary.setLineWrap(true);
+		txtSummary.setWrapStyleWord(true);
+		txtSummary.setOpaque(false);
+		lblResult.setName("lblResult");
+		lblResult.setFont(lblResult.getFont().deriveFont(Font.BOLD));
+		txtChainFile.setToolTipText(text("lethenon.verify.tooltip.chain.file",
+			"the file that holds the chain; it is checked here from its first block to its last, "
+				+ "without asking anybody"));
+		txtSummary.setToolTipText(text("lethenon.verify.tooltip.summary",
+			"what the chain library says it checked, in its own words"));
+	}
+
+	private void layOutTheInputs()
+	{
+		add(new JLabel(text("lethenon.input.label.chain.file", "Chain file:")));
+		add(txtChainFile, WITH_BUTTON);
+		add(LethenonSwing.button("btnBrowseChainFile", "...", event -> onBrowseChainFile(),
+			text("lethenon.input.tooltip.browse.chain.file", "pick the chain file on your disk")),
+			OWN_WIDTH);
+		add(ToolForm.buttons(LethenonSwing.button("btnVerify",
+			text("lethenon.verify.button.verify", "Check my chain"), event -> onVerify(),
+			text("lethenon.verify.tooltip.verify",
+				"check every block, transfer and signature of the chain, from the first block on"))),
+			ToolForm.BUTTON_ROW);
+	}
+
+	private void layOutTheAnswer()
+	{
+		add(txtAnswer, ToolForm.WIDE + ", wmin 0");
+		add(new JLabel(text("lethenon.verify.label.blocks", "Blocks checked:")));
+		add(txtBlocks, ToolForm.FIELD);
+		add(new JLabel(text("lethenon.verify.label.transfers", "Transfers checked:")));
+		add(txtTransfers, ToolForm.FIELD);
+		add(new JLabel(text("lethenon.verify.label.signatures", "Signatures checked:")));
+		add(txtSignatures, ToolForm.FIELD);
+		add(AnswerFields.supplyLabel(locale));
+		add(txtSupply, ToolForm.FIELD);
+		add(ToolForm.buttons(btnDetails), ToolForm.BUTTON_ROW);
+		pnlDetails.add(new JLabel(text("lethenon.verify.label.summary", "In the chain's words:")),
+			"aligny top");
+		pnlDetails.add(txtSummary, ToolForm.FIELD + ", wmin 0");
+		add(pnlDetails, ToolForm.WIDE + ", hidemode 3");
 	}
 
 	private void bindToTheModel()
 	{
 		txtChainFile
 			.setPropertyModel(LambdaModel.of(modelObject::getChainFile, modelObject::setChainFile));
-		txtReport.setPropertyModel(LambdaModel.of(modelObject::getReport, modelObject::setReport));
+		AnswerFields.show(txtAnswer, modelObject::getAnswer);
+		AnswerFields.show(txtBlocks, modelObject::getBlocks);
+		AnswerFields.show(txtTransfers, modelObject::getTransfers);
+		AnswerFields.show(txtSignatures, modelObject::getSignatures);
+		AnswerFields.show(txtSupply, modelObject::getSupply);
+		AnswerFields.show(txtSummary, modelObject::getSummary);
 	}
 
-	private void setReport(final String text)
+	private String text(final String key, final String defaultValue)
 	{
-		modelObject.setReport(text);
-		txtReport.setText(text);
+		return LethenonMessages.getString(key, defaultValue, locale);
 	}
 
 	private void setResult(final String text)

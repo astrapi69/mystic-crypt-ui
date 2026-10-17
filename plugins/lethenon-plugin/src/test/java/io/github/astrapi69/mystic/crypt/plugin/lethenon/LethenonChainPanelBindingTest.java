@@ -24,8 +24,12 @@
  */
 package io.github.astrapi69.mystic.crypt.plugin.lethenon;
 
+import static io.github.astrapi69.mystic.crypt.plugin.lethenon.Windows.component;
+import static io.github.astrapi69.mystic.crypt.plugin.lethenon.Windows.textOf;
+
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.File;
@@ -35,6 +39,9 @@ import java.security.KeyPair;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+
+import javax.swing.JButton;
+import javax.swing.JPanel;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -95,31 +102,63 @@ class LethenonChainPanelBindingTest
 	}
 
 	@Test
-	@DisplayName("verifying an accepted chain puts the chain's own summary in the model")
-	void verifying_anAcceptedChain_fillsTheReport() throws Exception
+	@DisplayName("verifying an accepted chain answers first, in words, then one field per count (#604)")
+	void verifying_anAcceptedChain_answersInFields() throws Exception
 	{
 		LethenonChainPanel panel = new LethenonChainPanel();
 		panel.getModelObject().setChainFile(aGenesisOnlyChain().toString());
 
 		panel.onVerify();
 
-		assertTrue(panel.getModelObject().getReport().contains("replayed 1 blocks"),
-			panel.getModelObject().getReport());
+		assertEquals("Your chain is in order: every block, transfer and signature in it checked out.",
+			textOf(panel, "txtAnswer"));
+		assertEquals("1 block", textOf(panel, "txtBlocks"));
+		assertEquals("none", textOf(panel, "txtTransfers"));
+		assertEquals("none", textOf(panel, "txtSignatures"));
+		assertTrue(textOf(panel, "txtSupply").endsWith(" LETH"), textOf(panel, "txtSupply"));
+		assertTrue(textOf(panel, "txtSummary").contains("replayed 1 blocks"),
+			"the chain library's own sentence is behind the details: " + textOf(panel, "txtSummary"));
 		assertEquals("the chain was accepted", panel.getModelObject().getResultText());
 	}
 
 	@Test
-	@DisplayName("a refused chain leaves no report behind, only the reason")
-	void verifying_aMissingChain_reportsTheReasonAndNothingElse()
+	@DisplayName("the chain library's own sentence is behind \"Show details\", closed at first, and every field and button has a tooltip (#604)")
+	void theDetails_areClosedAtFirst_andEveryFieldExplainsItself() throws Exception
 	{
 		LethenonChainPanel panel = new LethenonChainPanel();
+		panel.getModelObject().setChainFile(aGenesisOnlyChain().toString());
+		panel.onVerify();
+		JPanel details = component(panel, "pnlDetails", JPanel.class);
+
+		assertFalse(details.isVisible(), "the details are closed at first");
+		assertEquals(List.of(), Windows.withoutATooltip(panel),
+			"fields and buttons without a tooltip");
+
+		panel.onDetails();
+
+		assertTrue(details.isVisible());
+		assertEquals("Hide details", component(panel, "btnDetails", JButton.class).getText());
+	}
+
+	@Test
+	@DisplayName("a refused chain after an accepted one says so in words, keeps no count, and the reason")
+	void verifying_aMissingChain_reportsTheReasonAndNothingElse() throws Exception
+	{
+		LethenonChainPanel panel = new LethenonChainPanel();
+		panel.getModelObject().setChainFile(aGenesisOnlyChain().toString());
+		panel.onVerify();
 		panel.getModelObject()
 			.setChainFile(new File(chainDirectory, "not-written-yet.lethenon").getAbsolutePath());
 
 		panel.onVerify();
 
-		assertEquals("", panel.getModelObject().getReport(),
-			"a chain that was not verified has no counts to show");
+		assertEquals("This chain is not in order, so nothing in it can be trusted. The line below "
+			+ "says why.", textOf(panel, "txtAnswer"));
+		for (String field : List.of("txtBlocks", "txtTransfers", "txtSignatures", "txtSupply",
+			"txtSummary"))
+		{
+			assertEquals("", textOf(panel, field), "a chain that was not verified has no " + field);
+		}
 		assertTrue(panel.getModelObject().getResultText().startsWith("the chain was refused"),
 			panel.getModelObject().getResultText());
 		assertTrue(panel.getModelObject().getResultText().contains("not-written-yet.lethenon"),
@@ -146,7 +185,7 @@ class LethenonChainPanelBindingTest
 		panel.onVerify();
 
 		assertEquals(List.of(old), asked);
-		assertEquals("", panel.getModelObject().getReport());
+		assertEquals("", textOf(panel, "txtBlocks"));
 		assertEquals(ChainConversion.notConverted(), panel.getModelObject().getResultText());
 		assertArrayEquals(before, Files.readAllBytes(old), "declined: the file stays as it was");
 
@@ -155,8 +194,7 @@ class LethenonChainPanelBindingTest
 
 		assertEquals(List.of(old, old), asked);
 		assertEquals("the chain was accepted", panel.getModelObject().getResultText());
-		assertTrue(panel.getModelObject().getReport().contains("replayed 1 blocks"),
-			panel.getModelObject().getReport());
+		assertEquals("1 block", textOf(panel, "txtBlocks"));
 		assertArrayEquals(before, Files.readAllBytes(ChainFiles.legacyOf(old)),
 			"agreed: the old file stays beside the database, byte for byte");
 
