@@ -117,6 +117,22 @@ class SigningPasswordsFromTheKeyringTest
 		assertEquals(3, run(bin, "exit 3").exit());
 	}
 
+	@Test
+	@DisplayName("with the snap's SNAP variables the command gets the GNOME keyring's passwords, as without them (#595)")
+	void withAndWithoutSnapVariables_theKeyringIsRead() throws Exception
+	{
+		Path bin = fakeSecretTool(true);
+
+		Run withoutSnap = run(bin, BOTH_HANDED_OVER, Map.of());
+		Run withSnap = run(bin, BOTH_HANDED_OVER + " && test \"$SNAP_NAME\" = code",
+			Map.of("SNAP", "/snap/code/208", "SNAP_NAME", "code"));
+
+		assertEquals(0, withoutSnap.exit(), withoutSnap.output());
+		assertEquals(0, withSnap.exit(),
+			"the lookup reads the GNOME keyring, and the command keeps its environment: "
+				+ withSnap.output());
+	}
+
 	/**
 	 * A directory that is the whole PATH the script gets: bash and sh, and nothing else - a real
 	 * secret-tool in /usr/bin must not stand in for the fake one, or for its absence
@@ -133,14 +149,16 @@ class SigningPasswordsFromTheKeyringTest
 
 	/**
 	 * A secret-tool that answers lookups of service mystic-crypt-ui, or finds nothing, next to the
-	 * shells
+	 * shells. Like libsecret, it reads another store when it runs with the snap's SNAP variables
+	 * (#595): there it answers with a value the GNOME keyring does not hold.
 	 */
 	private Path fakeSecretTool(final boolean holdsThePasswords) throws IOException
 	{
 		Path bin = shellOnly();
 		Path tool = bin.resolve("secret-tool");
 		String answers = holdsThePasswords
-			? "case \"$*\" in\n"
+			? "if [ -n \"${SNAP:-}\" ]; then printf '%s' 'from-the-file-store'; exit 0; fi\n"
+				+ "case \"$*\" in\n"
 				+ "  'lookup service mystic-crypt-ui purpose store-password') printf '%s' '"
 				+ STORE_PASSWORD + "' ;;\n"
 				+ "  'lookup service mystic-crypt-ui purpose key-password') printf '%s' '"
@@ -153,11 +171,23 @@ class SigningPasswordsFromTheKeyringTest
 
 	private Run run(final Path bin, final String command) throws Exception
 	{
+		return run(bin, command, Map.of());
+	}
+
+	/**
+	 * Runs the script with exactly the given SNAP variables: none come from the JVM running the
+	 * test, which may itself have been started from a snap
+	 */
+	private Run run(final Path bin, final String command, final Map<String, String> snapVariables)
+		throws Exception
+	{
 		List<String> arguments = new ArrayList<>(List.of(SCRIPT.getPath(), "sh", "-c", command));
 		ProcessBuilder builder = new ProcessBuilder(arguments).redirectErrorStream(true);
 		Map<String, String> environment = builder.environment();
 		environment.remove("MYSTIC_CRYPT_STORE_PASSWORD");
 		environment.remove("MYSTIC_CRYPT_KEY_PASSWORD");
+		environment.keySet().removeIf(name -> name.startsWith("SNAP"));
+		environment.putAll(snapVariables);
 		environment.put("PATH", bin.toString());
 		Process process = builder.start();
 		assertTrue(process.waitFor(30, TimeUnit.SECONDS), "the script ended");

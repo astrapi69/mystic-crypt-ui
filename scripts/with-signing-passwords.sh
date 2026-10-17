@@ -20,7 +20,18 @@ set -euo pipefail
 [ "$#" -gt 0 ] || { echo "usage: scripts/with-signing-passwords.sh <command> [arguments...]" >&2; exit 2; }
 
 say() { printf '==> %s\n' "$*"; }
-lookup() { secret-tool lookup service mystic-crypt-ui purpose "$1" 2>/dev/null; }
+# The lookup always reads the GNOME keyring (#595). A process started from a snap - VS Code is one -
+# carries the snap's SNAP* variables, and libsecret then takes it for sandboxed and reads its own file
+# store, ~/.local/share/keyrings/default.keyring, which Seahorse does not show and a terminal does not
+# read. So the lookup runs in a subshell without them; the command keeps its environment.
+lookup() {
+  (
+    for name in $(compgen -e); do
+      [[ "$name" == SNAP* ]] && unset "$name"
+    done
+    secret-tool lookup service mystic-crypt-ui purpose "$1" 2>/dev/null
+  )
+}
 
 if ! command -v secret-tool >/dev/null 2>&1; then
   say "secret-tool is not installed (package libsecret-tools): the signing passwords are not read from the keyring"
