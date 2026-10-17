@@ -30,12 +30,14 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
 import javax.swing.BorderFactory;
 import javax.swing.ComboBoxModel;
 import javax.swing.DefaultListCellRenderer;
+import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JPanel;
@@ -43,6 +45,7 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
 import io.github.astrapi69.lethenon.ChainRejected;
+import io.github.astrapi69.lethenon.Genesis;
 import io.github.astrapi69.model.LambdaModel;
 import io.github.astrapi69.mystic.crypt.ui.form.ToolForm;
 import io.github.astrapi69.swing.model.combobox.EnumComboBoxModel;
@@ -67,6 +70,11 @@ import io.github.astrapi69.swing.model.component.JMTextField;
  * chain it starts: the test network unless the main chain is chosen (#518). Before that choice it
  * shows "Before you start" (#540), what a public start of the main chain runs into. Once the file
  * exists its genesis block decides, and the choice is closed and the view hidden with it.
+ * <p>
+ * It answers in fields a child can read (#604): first one sentence in a larger font, "Block 3 is
+ * yours: it paid you 1,000.00000000 LETH.", then the block's number, what it paid, the transfers
+ * it carries and the pun as it went into the block. The chain, the account paid, what the replay
+ * checked and all the money there is are behind "Show details", closed at first.
  */
 public class LethenonMinePanel extends JPanel
 {
@@ -103,7 +111,48 @@ public class LethenonMinePanel extends JPanel
 
 	private final JMTextField txtPun = new JMTextField(34);
 
-	private final JMTextArea txtReport = new JMTextArea(4, 62);
+	private final Locale locale = Locale.getDefault();
+
+	private final JMTextArea txtAnswer = AnswerFields.answerArea(text("lethenon.mine.tooltip.answer",
+		"what your block did, in one sentence; the details are below"));
+
+	private final JMTextField txtBlock = AnswerFields.readOnly("txtBlock",
+		text("lethenon.mine.tooltip.block",
+			"the place of your block in the chain; the first block of a chain is block 0"));
+
+	private final JMTextField txtPaid = AnswerFields.readOnly("txtPaid",
+		text("lethenon.mine.tooltip.paid",
+			"what your block added to your Ed25519 account: the reward for finding it and the fees "
+				+ "of the transfers it carries; see it in the window Show a Balance"));
+
+	private final JMTextField txtCarried = AnswerFields.readOnly("txtCarried",
+		text("lethenon.mine.tooltip.carried",
+			"transfers that were waiting next to the chain file; they are in your block now, so "
+				+ "they count"));
+
+	private final JMTextField txtMinedPun = AnswerFields.readOnly("txtMinedPun",
+		text("lethenon.mine.tooltip.mined.pun",
+			"your words as they went into the block; the number at the end was counted up until "
+				+ "the block was hard enough to find"));
+
+	private final JButton btnDetails;
+
+	private final JPanel pnlDetails = new JPanel(ToolForm.newLayout());
+
+	private final JMTextField txtChain = AnswerFields.readOnly("txtChain",
+		text("lethenon.mine.tooltip.chain",
+			"the name of the chain your block belongs to; a test chain and the main chain never mix"));
+
+	private final JMTextField txtPaidTo = AnswerFields.readOnly("txtPaidTo",
+		text("lethenon.mine.tooltip.paid.to",
+			"the account your block pays: your Ed25519 account, or nobody for the first block of "
+				+ "a chain"));
+
+	private final JMTextField txtChainChecked = AnswerFields.readOnly("txtChainChecked",
+		AnswerFields.chainCheckedTooltip(locale));
+
+	private final JMTextField txtSupply = AnswerFields.readOnly("txtSupply",
+		AnswerFields.supplyTooltip(locale));
 
 	private final JLabel lblResult = new JLabel(" ");
 
@@ -127,10 +176,18 @@ public class LethenonMinePanel extends JPanel
 	{
 		super(ToolForm.newLayout());
 		this.consent = consent;
+		btnDetails = LethenonSwing.button("btnDetails",
+			AnswerFields.detailsButtonText(false, locale), event -> onDetails(),
+			text("lethenon.mine.tooltip.details",
+				"show the chain, the account your block pays, what was checked and all the money "
+					+ "there is"));
 		nameTheComponents();
 		explainTheComponents();
 		bindToTheModel();
-		layOut();
+		layOutTheInputs();
+		layOutTheAnswer();
+		add(lblResult, ToolForm.RESULT_LINE);
+		pnlDetails.setVisible(false);
 		followTheChainFile();
 		txtChainFile.setText(LethenonSettingsContribution.chainFile());
 		txtWalletFile.setText(LethenonSettingsContribution.walletFile());
@@ -149,19 +206,18 @@ public class LethenonMinePanel extends JPanel
 
 	/**
 	 * Mines the next block. The password is used once: the support class wipes the array it gets,
-	 * and the field and the model are cleared afterwards, whether a block was mined or not.
+	 * and the field and the model are cleared afterwards, whether a block was mined or not. A
+	 * failure leaves no value of an earlier block on the screen.
 	 */
 	void onMine()
 	{
-		String failure = LethenonMessages.getString("lethenon.result.mine.failed",
-			"no block was mined");
+		String failure = text("lethenon.mine.result.failed", "no block was mined");
 		try
 		{
 			Path chainFile = Path.of(modelObject.getChainFile().trim());
 			if (!ChainConversion.convertedIfAgreed(this, consent, chainFile))
 			{
-				setReport("");
-				setResult(failure + ": " + ChainConversion.notConverted());
+				showFailure(failure + ": " + ChainConversion.notConverted());
 				return;
 			}
 			MinedBlock mined = MiningSupport.mine(
@@ -172,19 +228,17 @@ public class LethenonMinePanel extends JPanel
 			LethenonSettingsContribution.remember(Map.of(LethenonSettingsContribution.KEY_CHAIN_FILE,
 				chainFile.toString(), LethenonSettingsContribution.KEY_WALLET_FILE,
 				modelObject.getWalletFile().trim()));
-			setReport(describe(mined));
-			setResult(LethenonMessages.getString("lethenon.result.mine.written",
+			showTheAnswer(mined);
+			setResult(text("lethenon.mine.result.written",
 				"the block was mined and written to the chain file"));
 		}
 		catch (ChainRejected | IllegalArgumentException | IllegalStateException refused)
 		{
-			setReport("");
-			setResult(failure + ": " + refused.getMessage());
+			showFailure(failure + ": " + refused.getMessage());
 		}
 		catch (IOException unwritable)
 		{
-			setReport("");
-			setResult(failure + ": " + unwritable.getMessage());
+			showFailure(failure + ": " + unwritable.getMessage());
 		}
 		finally
 		{
@@ -194,6 +248,82 @@ public class LethenonMinePanel extends JPanel
 		}
 	}
 
+	/** Opens or closes "Show details" */
+	void onDetails()
+	{
+		modelObject.setDetailsShown(!modelObject.isDetailsShown());
+		pnlDetails.setVisible(modelObject.isDetailsShown());
+		btnDetails.setText(AnswerFields.detailsButtonText(modelObject.isDetailsShown(), locale));
+		revalidate();
+		repaint();
+	}
+
+	/**
+	 * The sentence that answers what the window was opened for (#604, rule 1): the block is yours
+	 * and what it paid you, or, for the first block of a chain, that the next one is the first that
+	 * pays
+	 *
+	 * @param mined
+	 *            the block
+	 * @param locale
+	 *            the language of the window
+	 * @return the sentence
+	 */
+	static String answerFor(final MinedBlock mined, final Locale locale)
+	{
+		if (mined.height() == 0L)
+		{
+			return LethenonMessages.getString("lethenon.mine.answer.genesis",
+				"You started a new chain. Its first block belongs to nobody, so the next block you "
+					+ "mine is the first that pays you.",
+				locale);
+		}
+		return LethenonMessages.format("lethenon.mine.answer",
+			"Block {0,number,integer} is yours: it paid you {1}.", locale, mined.height(),
+			LethAmounts.format(mined.reward(), locale));
+	}
+
+	private void showTheAnswer(final MinedBlock mined)
+	{
+		modelObject.clearAnswer();
+		modelObject.setAnswer(answerFor(mined, locale));
+		modelObject.setBlock(LethenonMessages.format("lethenon.mine.block", "{0,number,integer}",
+			locale, mined.height()));
+		modelObject.setPaid(mined.beneficiary().equals(Genesis.NOBODY.toString())
+			? text("lethenon.mine.paid.nobody", "nothing - the first block of a chain pays nobody")
+			: LethAmounts.format(mined.reward(), locale));
+		modelObject.setCarried(LethenonMessages.format("lethenon.mine.carried",
+			"{0,choice,0#none|1#1 transfer|1<{0,number,integer} transfers}", locale,
+			mined.transfers()));
+		modelObject.setMinedPun(mined.pun());
+		modelObject.setChain(mined.chainIdentifier());
+		modelObject.setPaidTo(mined.beneficiary());
+		modelObject.setChainChecked(AnswerFields.chainChecked(mined.replay(), locale));
+		modelObject.setSupply(LethAmounts.format(mined.replay().supply(), locale));
+		showTheModel();
+	}
+
+	private void showFailure(final String result)
+	{
+		modelObject.clearAnswer();
+		showTheModel();
+		setResult(result);
+	}
+
+	/** Puts what the model holds into the read-only fields */
+	private void showTheModel()
+	{
+		txtAnswer.setText(modelObject.getAnswer());
+		AnswerFields.setText(txtBlock, modelObject.getBlock());
+		AnswerFields.setText(txtPaid, modelObject.getPaid());
+		AnswerFields.setText(txtCarried, modelObject.getCarried());
+		AnswerFields.setText(txtMinedPun, modelObject.getMinedPun());
+		AnswerFields.setText(txtChain, modelObject.getChain());
+		AnswerFields.setText(txtPaidTo, LongValues.shortened(modelObject.getPaidTo(), locale));
+		AnswerFields.setText(txtChainChecked, modelObject.getChainChecked());
+		AnswerFields.setText(txtSupply, modelObject.getSupply());
+	}
+
 	/**
 	 * What the choice of chain shows: the main chain, as long as the library carries no genesis
 	 * block for it, as starting with lethenon 1.0.0 (#535)
@@ -201,30 +331,10 @@ public class LethenonMinePanel extends JPanel
 	private static String describe(final ChainKind kind)
 	{
 		String name = LethenonMessages.getString("lethenon.chain.kind." + kind.name(),
-			kind.description());
+			kind.description(), Locale.getDefault());
 		return kind.canStart() ? name
 			: name + " - " + LethenonMessages.getString("lethenon.chain.kind.later",
-				"it starts with lethenon 1.0.0");
-	}
-
-	private static String describe(final MinedBlock mined)
-	{
-		if (mined.height() == 0L)
-		{
-			return LethenonMessages.getString("lethenon.mine.genesis",
-				"mined block 0, paying its reward to the burn account, which nobody can spend "
-					+ "(lethenon#148); the next block pays this wallet")
-				+ ": \"" + mined.pun() + "\"\n"
-				+ LethenonMessages.getString("lethenon.mine.chain", "chain") + " "
-				+ mined.chainIdentifier() + "\n" + mined.replaySummary();
-		}
-		return LethenonMessages.getString("lethenon.mine.mined", "mined block") + " "
-			+ mined.height() + " " + LethenonMessages.getString("lethenon.mine.with", "with") + " "
-			+ mined.transfers() + " "
-			+ LethenonMessages.getString("lethenon.mine.transfers", "transfer(s), paying") + " "
-			+ mined.beneficiary() + ": \"" + mined.pun() + "\"\n"
-			+ LethenonMessages.getString("lethenon.mine.chain", "chain") + " "
-			+ mined.chainIdentifier() + "\n" + mined.replaySummary();
+				"it starts with lethenon 1.0.0", Locale.getDefault());
 	}
 
 	private void nameTheComponents()
@@ -246,11 +356,7 @@ public class LethenonMinePanel extends JPanel
 			}
 		});
 		txtPun.setName("txtPun");
-		txtReport.setName("txtReport");
-		txtReport.setEditable(false);
-		txtReport.setLineWrap(true);
-		txtReport.setWrapStyleWord(true);
-		txtReport.setFont(new Font("monospaced", Font.PLAIN, 12));
+		pnlDetails.setName("pnlDetails");
 		lblResult.setName("lblResult");
 		lblResult.setFont(lblResult.getFont().deriveFont(Font.BOLD));
 		pnlBeforeYouStart.setBorder(BorderFactory.createTitledBorder(LethenonMessages
@@ -259,53 +365,73 @@ public class LethenonMinePanel extends JPanel
 
 	private void explainTheComponents()
 	{
-		txtChainFile.setToolTipText(LethenonMessages.getString("lethenon.tooltip.mine.chain.file",
-			"the chain file the block is added to; where there is none yet, the block is its genesis"));
-		txtWalletFile.setToolTipText(LethenonMessages.getString("lethenon.tooltip.mine.wallet.file",
-			"the wallet whose Ed25519 account the block pays"));
-		txtPassword.setToolTipText(LethenonMessages.getString("lethenon.tooltip.wallet.password",
-			"the wallet file's password; it is used once and then cleared"));
-		cbxChainKind.setToolTipText(LethenonMessages.getString("lethenon.tooltip.mine.chain.kind",
-			"the chain a new chain file starts; offered only while the chain file does not exist, "
-				+ "since afterwards its genesis block decides"));
-		txtPun.setToolTipText(LethenonMessages.getString("lethenon.tooltip.mine.pun",
-			"the words mining starts from; a counter is appended until the block meets the difficulty"));
+		txtChainFile.setToolTipText(text("lethenon.mine.tooltip.chain.file",
+			"the file that holds the chain; your block is added to it, and where there is no such "
+				+ "file yet, your block starts a new chain"));
+		txtWalletFile.setToolTipText(text("lethenon.mine.tooltip.wallet.file",
+			"your wallet file; the block pays its Ed25519 account"));
+		txtPassword.setToolTipText(text("lethenon.input.tooltip.password",
+			"the password of your wallet file; it is used once and then forgotten"));
+		cbxChainKind.setToolTipText(text("lethenon.mine.tooltip.chain.kind",
+			"which chain a new chain file starts; choose the test network to try things out. Once "
+				+ "the file exists, its first block decides, and this choice is closed"));
+		txtPun.setToolTipText(text("lethenon.mine.tooltip.pun",
+			"any words you like; they go into your block, with a number counted up at the end "
+				+ "until the block is hard enough to find"));
 	}
 
-	private void layOut()
+	private void layOutTheInputs()
 	{
-		add(new JLabel(LethenonMessages.getString("lethenon.label.chain.file", "Chain file:")));
+		add(new JLabel(text("lethenon.input.label.chain.file", "Chain file:")));
 		add(txtChainFile, WITH_BUTTON);
 		add(LethenonSwing.button("btnBrowseChainFile", "...",
 			event -> LethenonSwing.chooseFile(this, modelObject.getChainFile())
 				.ifPresent(txtChainFile::setText),
-			LethenonMessages.getString("lethenon.tooltip.browse.chain.file",
-				"pick the chain file")),
+			text("lethenon.input.tooltip.browse.chain.file", "pick the chain file on your disk")),
 			OWN_WIDTH);
-		add(new JLabel(LethenonMessages.getString("lethenon.label.wallet.file", "Wallet file:")));
+		add(new JLabel(text("lethenon.input.label.wallet.file", "Wallet file:")));
 		add(txtWalletFile, WITH_BUTTON);
 		add(LethenonSwing.button("btnBrowseWalletFile", "...",
 			event -> LethenonSwing.chooseFile(this, modelObject.getWalletFile())
 				.ifPresent(txtWalletFile::setText),
-			LethenonMessages.getString("lethenon.tooltip.browse.wallet.file",
-				"pick the wallet file")),
+			text("lethenon.input.tooltip.browse.wallet.file", "pick your wallet file on your disk")),
 			OWN_WIDTH);
-		add(new JLabel(LethenonMessages.getString("lethenon.label.wallet.password", "Password:")));
+		add(new JLabel(text("lethenon.input.label.password", "Password:")));
 		add(txtPassword, ToolForm.FIELD);
 		add(pnlBeforeYouStart, WIDE_HIDDEN_WITHOUT_ROOM);
-		add(new JLabel(LethenonMessages.getString("lethenon.label.mine.chain.kind", "New chain:")));
+		add(new JLabel(text("lethenon.mine.label.chain.kind", "New chain:")));
 		add(cbxChainKind, OWN_WIDTH);
-		add(new JLabel(LethenonMessages.getString("lethenon.label.mine.pun", "Pun:")));
+		add(new JLabel(text("lethenon.mine.label.pun", "Your pun:")));
 		add(txtPun, ToolForm.FIELD);
 		add(ToolForm.buttons(LethenonSwing.button("btnMine",
-			LethenonMessages.getString("lethenon.button.mine", "Mine the pun"), event -> onMine(),
-			LethenonMessages.getString("lethenon.tooltip.mine",
-				"mine the next block with this pun and write it to the chain file"))),
+			text("lethenon.mine.button.mine", "Mine the pun"), event -> onMine(),
+			text("lethenon.mine.tooltip.mine",
+				"look for a block with your words and add it to the chain file; the window waits "
+					+ "until it is found, usually a few seconds"))),
 			ToolForm.BUTTON_ROW);
-		add(new JLabel(LethenonMessages.getString("lethenon.label.report", "Report:")),
-			"aligny top");
-		add(ToolForm.scrolled(txtReport), ToolForm.GROWING);
-		add(lblResult, ToolForm.RESULT_LINE);
+	}
+
+	private void layOutTheAnswer()
+	{
+		add(txtAnswer, ToolForm.WIDE + ", wmin 0");
+		add(new JLabel(text("lethenon.mine.label.block", "Block number:")));
+		add(txtBlock, ToolForm.FIELD);
+		add(new JLabel(text("lethenon.mine.label.paid", "Paid to you:")));
+		add(txtPaid, ToolForm.FIELD);
+		add(new JLabel(text("lethenon.mine.label.carried", "Transfers it carries:")));
+		add(txtCarried, ToolForm.FIELD);
+		add(new JLabel(text("lethenon.mine.label.mined.pun", "Your pun in the block:")));
+		add(txtMinedPun, ToolForm.FIELD);
+		add(ToolForm.buttons(btnDetails), ToolForm.BUTTON_ROW);
+		pnlDetails.add(new JLabel(text("lethenon.mine.label.chain", "Chain:")));
+		pnlDetails.add(txtChain, ToolForm.FIELD);
+		pnlDetails.add(new JLabel(text("lethenon.mine.label.paid.to", "Paid to the account:")));
+		pnlDetails.add(txtPaidTo, ToolForm.FIELD);
+		pnlDetails.add(AnswerFields.chainCheckedLabel(locale));
+		pnlDetails.add(txtChainChecked, ToolForm.FIELD);
+		pnlDetails.add(AnswerFields.supplyLabel(locale));
+		pnlDetails.add(txtSupply, ToolForm.FIELD);
+		add(pnlDetails, WIDE_HIDDEN_WITHOUT_ROOM);
 	}
 
 	private void bindToTheModel()
@@ -319,7 +445,15 @@ public class LethenonMinePanel extends JPanel
 		cbxChainKind.setPropertyModel(
 			LambdaModel.of(modelObject::getChainKind, modelObject::setChainKind));
 		txtPun.setPropertyModel(LambdaModel.of(modelObject::getPun, modelObject::setPun));
-		txtReport.setPropertyModel(LambdaModel.of(modelObject::getReport, modelObject::setReport));
+		AnswerFields.show(txtAnswer, modelObject::getAnswer);
+		AnswerFields.show(txtBlock, modelObject::getBlock);
+		AnswerFields.show(txtPaid, modelObject::getPaid);
+		AnswerFields.show(txtCarried, modelObject::getCarried);
+		AnswerFields.show(txtMinedPun, modelObject::getMinedPun);
+		AnswerFields.show(txtChain, modelObject::getChain);
+		AnswerFields.show(txtPaidTo, () -> LongValues.shortened(modelObject.getPaidTo(), locale));
+		AnswerFields.show(txtChainChecked, modelObject::getChainChecked);
+		AnswerFields.show(txtSupply, modelObject::getSupply);
 	}
 
 	/**
@@ -380,10 +514,9 @@ public class LethenonMinePanel extends JPanel
 		}
 	}
 
-	private void setReport(final String text)
+	private String text(final String key, final String defaultValue)
 	{
-		modelObject.setReport(text);
-		txtReport.setText(text);
+		return LethenonMessages.getString(key, defaultValue, locale);
 	}
 
 	private void setResult(final String text)

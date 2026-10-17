@@ -30,10 +30,12 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import io.github.astrapi69.lethenon.Amount;
 import io.github.astrapi69.lethenon.BlockBody;
 import io.github.astrapi69.lethenon.Blocks;
 import io.github.astrapi69.lethenon.Bytes;
 import io.github.astrapi69.lethenon.ChainFile;
+import io.github.astrapi69.lethenon.ChainState;
 import io.github.astrapi69.lethenon.DifficultyRule;
 import io.github.astrapi69.lethenon.Genesis;
 import io.github.astrapi69.lethenon.Mining;
@@ -99,10 +101,7 @@ public final class MiningSupport
 				&& Files.size(order.chainFile()) > 0 ? ChainFiles.read(order.chainFile())
 					: chainFile.read();
 			List<SignedTransaction> waiting = chain.isEmpty() ? List.of() : chainFile.readPending();
-			if (!chain.isEmpty())
-			{
-				ChainReplaySupport.replay(order.chainFile(), chain);
-			}
+			Replay before = chain.isEmpty() ? null : ChainReplaySupport.replay(order.chainFile(), chain);
 			BlockBody mined = chain.isEmpty()
 				? Genesis.start(order.newChain().identifier(), order.pun(), now)
 				: Blocks.mine(Mining.nextBlock(chain, beneficiary, waiting, order.pun(), now),
@@ -116,11 +115,44 @@ public final class MiningSupport
 			chainFile.write(extended);
 			chainFile.writePending(List.of());
 			return new MinedBlock(mined.chainIdentifier(), mined.height(), mined.pun(),
-				mined.transactions().size(), mined.beneficiary().toString(), replay.describe());
+				mined.transactions().size(), mined.beneficiary().toString(),
+				rewardOf(mined, before, replay), ChainReplaySupport.report(replay));
 		}
 		finally
 		{
 			Arrays.fill(password, '\0');
 		}
+	}
+
+	/**
+	 * What a block paid whom it pays, read from the two replays rather than from the emission rule:
+	 * what left the mining pool, what the tail emission minted, and the fees of the transfers it
+	 * carries. A genesis block has no chain before it, and what it paid is what its beneficiary
+	 * holds after it.
+	 *
+	 * @param mined
+	 *            the block
+	 * @param before
+	 *            the replay of the chain without it, or null where it is a genesis block
+	 * @param after
+	 *            the replay of the chain with it
+	 * @return what it paid
+	 */
+	static Amount rewardOf(final BlockBody mined, final Replay before, final Replay after)
+	{
+		ChainState afterwards = after.finalState();
+		if (before == null)
+		{
+			return afterwards.balanceOf(mined.beneficiary());
+		}
+		ChainState previously = before.finalState();
+		Amount paid = previously.balanceOf(ChainState.POOL)
+			.minus(afterwards.balanceOf(ChainState.POOL))
+			.plus(afterwards.minted().minus(previously.minted()));
+		for (SignedTransaction transfer : mined.transactions())
+		{
+			paid = paid.plus(transfer.body().fee());
+		}
+		return paid;
 	}
 }

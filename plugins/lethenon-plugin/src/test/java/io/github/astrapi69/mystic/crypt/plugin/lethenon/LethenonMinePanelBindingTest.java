@@ -24,21 +24,27 @@
  */
 package io.github.astrapi69.mystic.crypt.plugin.lethenon;
 
+import static io.github.astrapi69.mystic.crypt.plugin.lethenon.Windows.component;
+import static io.github.astrapi69.mystic.crypt.plugin.lethenon.Windows.textOf;
+import static io.github.astrapi69.mystic.crypt.plugin.lethenon.Windows.textsOf;
+
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.awt.Component;
-import java.awt.Container;
 import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.KeyPair;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
+import javax.swing.JButton;
 import javax.swing.JComboBox;
+import javax.swing.JPanel;
 import javax.swing.JTextField;
 
 import org.junit.jupiter.api.AfterEach;
@@ -47,11 +53,14 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
+import io.github.astrapi69.lethenon.Amount;
 import io.github.astrapi69.lethenon.BlockBody;
 import io.github.astrapi69.lethenon.CanonicalEncoding;
 import io.github.astrapi69.lethenon.Chain;
 import io.github.astrapi69.lethenon.ChainFile;
+import io.github.astrapi69.lethenon.ChainState;
 import io.github.astrapi69.lethenon.Genesis;
+import io.github.astrapi69.lethenon.Replay;
 import io.github.astrapi69.lethenon.SignatureSuite;
 import io.github.astrapi69.lethenon.TransactionSigner;
 import io.github.astrapi69.lethenon.Wallet;
@@ -78,12 +87,14 @@ class LethenonMinePanelBindingTest
 
 	private Path walletFile;
 
+	private Wallet wallet;
+
 	@BeforeEach
 	void writeAChainAndAWallet() throws Exception
 	{
 		System.setProperty(PluginSettings.CONFIGURATION_DIRECTORY_PROPERTY,
 			configurationDirectory.getAbsolutePath());
-		Wallet wallet = Wallet.create();
+		wallet = Wallet.create();
 		walletFile = new File(directory, "wallet.lethenon-wallet").toPath();
 		WalletFile.write(walletFile, wallet, PASSWORD.toCharArray());
 		KeyPair payer = TransactionSigner.newKeyPair(SignatureSuite.ED25519);
@@ -112,22 +123,79 @@ class LethenonMinePanelBindingTest
 	}
 
 	@Test
-	@DisplayName("mining writes the next block to the chain file and reports its pun")
-	void mining_writesTheNextBlock() throws Exception
+	@DisplayName("mining answers first, in words, with the block and what it paid, then one field per value (#604)")
+	void mining_answersInFields() throws Exception
 	{
 		LethenonMinePanel panel = filledPanel(PASSWORD);
 		panel.getModelObject().setPun("a pun against the cameras");
+		Amount before = stateOf(chainFile).balanceOf(wallet.spendKey(SignatureSuite.ED25519));
 
 		panel.onMine();
 
 		List<BlockBody> chain = new ChainFile(chainFile).require();
 		assertEquals(4, chain.size());
-		String report = panel.getModelObject().getReport();
-		assertTrue(report.contains("mined block 3"), report);
-		assertTrue(report.contains(chain.getLast().pun()), report);
-		assertTrue(report.contains("replayed 4 blocks"), report);
+		Amount paid = stateOf(chainFile).balanceOf(wallet.spendKey(SignatureSuite.ED25519))
+			.minus(before);
+		String paidText = LethAmounts.format(paid, Locale.ENGLISH);
+		assertEquals("Block 3 is yours: it paid you " + paidText + ".", textOf(panel, "txtAnswer"));
+		assertEquals("3", textOf(panel, "txtBlock"));
+		assertEquals(paidText, textOf(panel, "txtPaid"));
+		assertEquals("none", textOf(panel, "txtCarried"));
+		assertEquals(chain.getLast().pun(), textOf(panel, "txtMinedPun"));
+		assertEquals(Chain.TEST_IDENTIFIER, textOf(panel, "txtChain"));
+		assertEquals(wallet.spendKey(SignatureSuite.ED25519).toString(),
+			textOf(panel, "txtPaidTo"));
+		assertEquals("4 blocks, 2 transfers, 2 signatures", textOf(panel, "txtChainChecked"));
+		assertEquals(LethAmounts.format(stateOf(chainFile).supply(), Locale.ENGLISH),
+			textOf(panel, "txtSupply"));
 		assertEquals("the block was mined and written to the chain file",
 			panel.getModelObject().getResultText());
+	}
+
+	@Test
+	@DisplayName("what only a specialist reads - the chain, the account paid, what was checked - is behind \"Show details\", closed at first (#604)")
+	void theDetails_areClosedAtFirst_andOpenOnAClick() throws Exception
+	{
+		LethenonMinePanel panel = filledPanel(PASSWORD);
+		panel.onMine();
+		JPanel details = component(panel, "pnlDetails", JPanel.class);
+		JButton toggle = component(panel, "btnDetails", JButton.class);
+
+		assertFalse(details.isVisible(), "the details are closed at first");
+		assertEquals("Show details", toggle.getText());
+
+		panel.onDetails();
+
+		assertTrue(details.isVisible());
+		assertEquals("Hide details", toggle.getText());
+		assertTrue(panel.getModelObject().isDetailsShown());
+	}
+
+	@Test
+	@DisplayName("a block that carries transfers says how many (#604)")
+	void mining_aBlockWithATransfer_saysSo() throws Exception
+	{
+		TransferSupport.send(new TransferOrder(chainFile, walletFile, SignatureSuite.ED25519,
+			RecipientKind.ACCOUNT_KEY,
+			TransactionSigner.asBytes(TransactionSigner.newKeyPair(SignatureSuite.ED25519).getPublic())
+				.toString(),
+			"1", "0", "carried"), PASSWORD.toCharArray());
+		LethenonMinePanel panel = filledPanel(PASSWORD);
+
+		panel.onMine();
+
+		assertEquals("1 transfer", textOf(panel, "txtCarried"));
+	}
+
+	@Test
+	@DisplayName("every field, button and choice of the window has a tooltip in plain words (#604)")
+	void everyFieldAndButton_hasATooltip() throws Exception
+	{
+		LethenonMinePanel panel = filledPanel(PASSWORD);
+		panel.onMine();
+
+		assertEquals(List.of(), Windows.withoutATooltip(panel),
+			"fields, buttons and choices without a tooltip");
 	}
 
 	@Test
@@ -139,23 +207,30 @@ class LethenonMinePanelBindingTest
 		panel.onMine();
 
 		assertEquals(0, panel.getModelObject().getPassword().length);
-		assertFalse(panel.getModelObject().getReport().contains(PASSWORD));
+		assertFalse(textsOf(panel).stream().anyMatch(text -> text.contains(PASSWORD)));
 		assertFalse(panel.getModelObject().getResultText().contains(PASSWORD));
 	}
 
 	@Test
-	@DisplayName("a wrong password leaves no report, writes no block and does not repeat the password")
-	void mining_withAWrongPassword_reportsTheReasonOnly() throws Exception
+	@DisplayName("a wrong password after a mined block empties every field, says what to do, writes no block and does not repeat the password")
+	void mining_withAWrongPassword_saysWhatToDo() throws Exception
 	{
+		LethenonMinePanel panel = filledPanel(PASSWORD);
+		panel.onMine();
 		byte[] chainBefore = Files.readAllBytes(chainFile);
-		LethenonMinePanel panel = filledPanel("not the password at all");
+		panel.getModelObject().setPassword("not the password at all".toCharArray());
 
 		panel.onMine();
 
-		assertEquals("", panel.getModelObject().getReport());
+		for (String field : List.of("txtAnswer", "txtBlock", "txtPaid", "txtCarried", "txtMinedPun",
+			"txtChain", "txtPaidTo", "txtChainChecked", "txtSupply"))
+		{
+			assertEquals("", textOf(panel, field), field + " keeps nothing of the block before");
+		}
 		String result = panel.getModelObject().getResultText();
 		assertTrue(result.startsWith("no block was mined"), result);
-		assertTrue(result.contains("wallet.lethenon-wallet"), result);
+		assertTrue(result.contains("this password does not open wallet.lethenon-wallet; type it again"),
+			result);
 		assertFalse(result.contains("not the password at all"), result);
 		assertArrayEquals(chainBefore, Files.readAllBytes(chainFile));
 		assertEquals(0, panel.getModelObject().getPassword().length);
@@ -170,7 +245,7 @@ class LethenonMinePanelBindingTest
 	}
 
 	@Test
-	@DisplayName("mining where there is no chain file starts a test chain, and the report names it and the burn account")
+	@DisplayName("mining where there is no chain file starts a test chain, and the answer says the next block is the first that pays")
 	void mining_withoutAChainFile_startsATestChain() throws Exception
 	{
 		Files.delete(chainFile);
@@ -180,11 +255,13 @@ class LethenonMinePanelBindingTest
 
 		List<BlockBody> chain = new ChainFile(chainFile).require();
 		assertEquals(Chain.TEST_IDENTIFIER, chain.getFirst().chainIdentifier());
-		String report = panel.getModelObject().getReport();
-		assertTrue(report.contains("mined block 0"), report);
-		assertTrue(report.contains("burn account"), report);
-		assertTrue(report.contains("chain " + Chain.TEST_IDENTIFIER), report);
-		assertFalse(componentNamed(panel, "cbxChainKind", JComboBox.class).isEnabled(),
+		assertEquals("You started a new chain. Its first block belongs to nobody, so the next block "
+			+ "you mine is the first that pays you.", textOf(panel, "txtAnswer"));
+		assertEquals("0", textOf(panel, "txtBlock"));
+		assertEquals("nothing - the first block of a chain pays nobody", textOf(panel, "txtPaid"));
+		assertEquals(Chain.TEST_IDENTIFIER, textOf(panel, "txtChain"));
+		assertEquals(Genesis.NOBODY.toString(), textOf(panel, "txtPaidTo"));
+		assertFalse(component(panel, "cbxChainKind", JComboBox.class).isEnabled(),
 			"once the genesis block is written, it decides");
 	}
 
@@ -202,7 +279,7 @@ class LethenonMinePanelBindingTest
 		String result = panel.getModelObject().getResultText();
 		assertTrue(result.startsWith("no block was mined"), result);
 		assertTrue(result.contains(Genesis.NO_MAIN_CHAIN_WITHOUT_ITS_ANCHOR), result);
-		assertEquals("", panel.getModelObject().getReport());
+		assertEquals("", textOf(panel, "txtAnswer"));
 	}
 
 	@Test
@@ -210,7 +287,7 @@ class LethenonMinePanelBindingTest
 	void theMainChain_isOfferedAsStartingWithOnePointZero() throws Exception
 	{
 		LethenonMinePanel panel = new LethenonMinePanel();
-		JComboBox<?> kinds = componentNamed(panel, "cbxChainKind", JComboBox.class);
+		JComboBox<?> kinds = component(panel, "cbxChainKind", JComboBox.class);
 		@SuppressWarnings("unchecked")
 		javax.swing.ListCellRenderer<Object> renderer = (javax.swing.ListCellRenderer<Object>)kinds
 			.getRenderer();
@@ -231,8 +308,8 @@ class LethenonMinePanelBindingTest
 	void theChoice_isOpenOnlyWithoutAChainFile() throws Exception
 	{
 		LethenonMinePanel panel = new LethenonMinePanel();
-		JComboBox<?> kinds = componentNamed(panel, "cbxChainKind", JComboBox.class);
-		JTextField chainFileField = componentNamed(panel, "txtChainFile", JTextField.class);
+		JComboBox<?> kinds = component(panel, "cbxChainKind", JComboBox.class);
+		JTextField chainFileField = component(panel, "txtChainFile", JTextField.class);
 
 		chainFileField.setText(chainFile.toString());
 		assertFalse(kinds.isEnabled(), "an existing chain's genesis block decides");
@@ -246,10 +323,10 @@ class LethenonMinePanelBindingTest
 	void theStartView_standsBeforeTheChoice_whileItIsOpen() throws Exception
 	{
 		LethenonMinePanel panel = new LethenonMinePanel();
-		LethenonBeforeYouStartPanel view = componentNamed(panel, "pnlBeforeYouStart",
+		LethenonBeforeYouStartPanel view = component(panel, "pnlBeforeYouStart",
 			LethenonBeforeYouStartPanel.class);
-		JComboBox<?> kinds = componentNamed(panel, "cbxChainKind", JComboBox.class);
-		JTextField chainFileField = componentNamed(panel, "txtChainFile", JTextField.class);
+		JComboBox<?> kinds = component(panel, "cbxChainKind", JComboBox.class);
+		JTextField chainFileField = component(panel, "txtChainFile", JTextField.class);
 		List<Component> order = List.of(panel.getComponents());
 
 		assertTrue(order.contains(view), "the mining window carries the view itself");
@@ -275,27 +352,6 @@ class LethenonMinePanelBindingTest
 		assertArrayEquals(new char[5], first);
 	}
 
-	private static <T extends Component> T componentNamed(final Container container,
-		final String name, final Class<T> type)
-	{
-		for (Component component : container.getComponents())
-		{
-			if (type.isInstance(component) && name.equals(component.getName()))
-			{
-				return type.cast(component);
-			}
-			if (component instanceof Container nested)
-			{
-				T found = componentNamed(nested, name, type);
-				if (found != null)
-				{
-					return found;
-				}
-			}
-		}
-		return null;
-	}
-
 	@Test
 	@DisplayName("declining to convert a chain file of 0.5.0 mines nothing, leaves the file as it was and wipes the password all the same (#581)")
 	void mining_onAnOldChainFile_thePersonDeclines_minesNothing() throws Exception
@@ -316,6 +372,11 @@ class LethenonMinePanelBindingTest
 		assertArrayEquals(before, Files.readAllBytes(old), "the file stays as it was");
 		assertFalse(Files.exists(ChainFiles.legacyOf(old)), "nothing was converted");
 		assertArrayEquals(new char[password.length], password, "the password is overwritten, not only dropped");
+	}
+
+	private static ChainState stateOf(final Path file) throws Exception
+	{
+		return Replay.verify(new ChainFile(file).require()).finalState();
 	}
 
 	private LethenonMinePanel filledPanel(final String password)

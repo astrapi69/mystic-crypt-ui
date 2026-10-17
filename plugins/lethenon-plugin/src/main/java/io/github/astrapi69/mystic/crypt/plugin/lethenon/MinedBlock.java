@@ -24,6 +24,8 @@
  */
 package io.github.astrapi69.mystic.crypt.plugin.lethenon;
 
+import io.github.astrapi69.lethenon.Amount;
+
 /**
  * A block that was mined and written to the chain file
  *
@@ -38,9 +40,12 @@ package io.github.astrapi69.mystic.crypt.plugin.lethenon;
  * @param beneficiary
  *            whom it pays in hexadecimal: the miner's account key, and for a genesis block the
  *            burn account (lethenon#148)
- * @param replaySummary
- *            the chain library's own sentence about the replay of the extended chain
+ * @param reward
+ *            what the block paid whom it pays: the block reward and the fees of the transfers it
+ *            carries
+ * @param replay
+ *            what the replay of the extended chain checked
  */
 public record MinedBlock(String chainIdentifier, long height, String pun, int transfers,
-	String beneficiary, String replaySummary) {
+	String beneficiary, Amount reward, ChainReplayReport replay) {
 }

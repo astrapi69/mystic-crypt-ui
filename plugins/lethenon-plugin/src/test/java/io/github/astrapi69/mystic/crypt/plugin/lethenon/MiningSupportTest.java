@@ -143,6 +143,40 @@ class MiningSupportTest
 		ChainState state = stateOf(new ChainFile(chainFile).require());
 		assertTrue(state.balanceOf(miner).compareTo(before) > 0,
 			"the block reward goes to the miner: " + before + " -> " + state.balanceOf(miner));
+		assertEquals(state.balanceOf(miner).minus(before), mined.reward(),
+			"what the block says it paid is what the miner's account grew by (#604)");
+	}
+
+	@Test
+	@DisplayName("what a block paid counts the fees of the transfers it carries, the miner's own included (#604)")
+	void mine_reward_includesTheFeesOfTheTransfersItCarries() throws Exception
+	{
+		Bytes recipient = aRecipient();
+		TransferSupport.send(
+			new TransferOrder(chainFile, walletFile, SignatureSuite.ED25519,
+				RecipientKind.ACCOUNT_KEY, recipient.toString(), "1", "0.5", "a fee"),
+			PASSWORD.toCharArray());
+		Amount before = stateOf(new ChainFile(chainFile).require()).balanceOf(miner);
+
+		MinedBlock mined = MiningSupport.mine(order("fees count", 10_000_000L),
+			PASSWORD.toCharArray(), NOW);
+
+		Amount after = stateOf(new ChainFile(chainFile).require()).balanceOf(miner);
+		assertEquals(after.minus(before).plus(Amount.parseLeth("1.5")), mined.reward(),
+			"the miner paid 1 LETH and a fee of 0.5 LETH, and the block paid the reward and the fee");
+	}
+
+	@Test
+	@DisplayName("a mined block carries what the replay of the extended chain checked, as numbers (#604)")
+	void mine_carriesTheReplayOfTheExtendedChain() throws Exception
+	{
+		MinedBlock mined = MiningSupport.mine(order("counted", 10_000_000L),
+			PASSWORD.toCharArray(), NOW);
+
+		ChainReplayReport replay = mined.replay();
+		assertEquals(4L, replay.blocks(), "the three blocks before and the mined one");
+		assertEquals(stateOf(new ChainFile(chainFile).require()).supply(), replay.supply());
+		assertTrue(replay.summary().contains("replayed 4 blocks"), replay.summary());
 	}
 
 	@Test

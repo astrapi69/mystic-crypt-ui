@@ -401,13 +401,31 @@ class LethenonPluginUiTest extends AbstractUiTest
 			@Override
 			public boolean test()
 			{
-				return textOf(tool, "txtReport").contains("mined block");
+				return textOf(tool, "txtAnswer").contains("is yours");
 			}
 		}, 30000);
 
-		String report = textOf(tool, "txtReport");
-		assertTrue(report.contains("mined block 3 with 1 transfer(s)"), report);
-		assertFalse(report.contains(walletPassword), "the password is in no text on the screen");
+		String answer = textOf(tool, "txtAnswer");
+		assertTrue(answer.startsWith("Block 3 is yours: it paid you "), answer);
+		assertTrue(answer.endsWith(" LETH."), answer);
+		assertEquals("3", textOf(tool, "txtBlock"));
+		assertEquals("1 transfer", textOf(tool, "txtCarried"));
+		assertTrue(textOf(tool, "txtMinedPun").startsWith("a pun against the cameras"),
+			textOf(tool, "txtMinedPun"));
+		assertFalse(
+			robot.finder().findByName(tool.target(), "pnlDetails", JPanel.class, false).isVisible(),
+			"what only a specialist reads is closed at first");
+		tool.button("btnDetails").click();
+		assertEquals(Chain.TEST_IDENTIFIER, textOf(tool, "txtChain"));
+		assertEquals(wallet.spendKey(SignatureSuite.ED25519).toString(), textOf(tool, "txtPaidTo"));
+		assertTrue(textOf(tool, "txtChainChecked").startsWith("4 blocks"),
+			textOf(tool, "txtChainChecked"));
+		for (String field : List.of("txtAnswer", "txtBlock", "txtPaid", "txtCarried", "txtMinedPun",
+			"txtChain", "txtPaidTo", "txtChainChecked", "txtSupply"))
+		{
+			assertFalse(textOf(tool, field).contains(walletPassword),
+				"the password is in no text on the screen");
+		}
 		List<BlockBody> blocks = chain.require();
 		assertEquals(4, blocks.size(), "the block was written to the chain file");
 		assertTrue(blocks.getLast().pun().startsWith("a pun against the cameras"),
@@ -452,11 +470,13 @@ class LethenonPluginUiTest extends AbstractUiTest
 			"a new chain is a test chain unless the main chain is chosen");
 		UiTestSpeed.step();
 		SwingUtilities.invokeLater(() -> tool.button("btnMine").target().doClick());
-		awaitReport(tool, "mined block 0", "the genesis block is mined");
+		awaitText(tool, "txtAnswer", "You started a new chain", "the genesis block is mined");
 
-		String report = textOf(tool, "txtReport");
-		assertTrue(report.contains("chain " + Chain.TEST_IDENTIFIER), report);
-		assertTrue(report.contains("burn account"), report);
+		assertEquals("0", textOf(tool, "txtBlock"));
+		assertEquals("nothing - the first block of a chain pays nobody", textOf(tool, "txtPaid"));
+		tool.button("btnDetails").click();
+		assertEquals(Chain.TEST_IDENTIFIER, textOf(tool, "txtChain"));
+		assertEquals(Genesis.NOBODY.toString(), textOf(tool, "txtPaidTo"));
 		List<BlockBody> blocks = new ChainFile(chainFile.toPath()).require();
 		assertEquals(1, blocks.size());
 		assertEquals(Chain.TEST_IDENTIFIER, blocks.getFirst().chainIdentifier());
@@ -865,7 +885,7 @@ class LethenonPluginUiTest extends AbstractUiTest
 		JInternalFrameFixture mine = new JInternalFrameFixture(robot,
 			application.internalFrame("Mine a Pun"));
 		GuiActionRunner.execute(() -> {
-			mine.textBox("txtReport").target().setText("");
+			mine.textBox("txtAnswer").target().setText("");
 			mine.textBox("txtChainFile").target().setText(chainFile.getAbsolutePath());
 			mine.textBox("txtWalletFile").target().setText(walletFile.getAbsolutePath());
 			mine.textBox("txtPassword").target().setText(walletPassword);
@@ -873,7 +893,7 @@ class LethenonPluginUiTest extends AbstractUiTest
 		});
 		UiTestSpeed.step();
 		SwingUtilities.invokeLater(() -> mine.button("btnMine").target().doClick());
-		awaitReport(mine, "mined block", "the block is mined");
+		awaitText(mine, "txtAnswer", "is yours", "the block is mined");
 	}
 
 	/**
@@ -883,6 +903,16 @@ class LethenonPluginUiTest extends AbstractUiTest
 	private static void awaitReport(final JInternalFrameFixture tool, final String expected,
 		final String description)
 	{
+		awaitText(tool, "txtReport", expected, description);
+	}
+
+	/**
+	 * Waits for a field to say what was expected, and when it never does, fails with the line the
+	 * window wrote instead
+	 */
+	private static void awaitText(final JInternalFrameFixture tool, final String field,
+		final String expected, final String description)
+	{
 		try
 		{
 			Pause.pause(new Condition(description)
@@ -890,7 +920,7 @@ class LethenonPluginUiTest extends AbstractUiTest
 				@Override
 				public boolean test()
 				{
-					return textOf(tool, "txtReport").contains(expected);
+					return textOf(tool, field).contains(expected);
 				}
 			}, 30000);
 		}
