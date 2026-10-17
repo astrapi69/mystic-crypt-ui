@@ -102,7 +102,9 @@ class LethenonPluginFromItsZipTest
 				Arrays.copyOf(Files.readAllBytes(chainFile), 16), "the chain is an SQLite database");
 			URL from = plugin.loadClass("org.sqlite.JDBC").getProtectionDomain().getCodeSource()
 				.getLocation();
-			assertTrue(Path.of(from.toURI()).startsWith(plugins),
+			// real paths: macOS reaches its temporary directory through a symbolic link, Windows
+			// through a short name, and the class loader names the jar by the other one
+			assertTrue(Path.of(from.toURI()).toRealPath().startsWith(plugins.toRealPath()),
 				"sqlite-jdbc came from the plugin, from " + from);
 		}
 		finally
