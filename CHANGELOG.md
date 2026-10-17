@@ -31,6 +31,10 @@ CHANGED:
   driver's native library without a warning and a later JDK still loads it (#581)
 - build and tests only: a test task that runs headless gets no display at all - no Xvfb, and no `DISPLAY` from the
   shell either - so it reaches no screen and runs where there is no X server, on macOS and Windows (#581, #505)
+- build and tests only: the release gate is `make release-gate`, on one JDK, and it stops the Gradle daemons before each
+  phase only once none of them is building. Every Gradle call of the Makefile takes `GRADLE_FLAGS`, the plugin builds
+  ask for the host's daemon, an idle daemon ends after 30 minutes, and a test that starts a Gradle build of its own
+  leaves no daemon behind. Measured over the whole gate: the Java peak went from 3,613 MB at 8.9 to 2,736 MB (#580)
 - development only: the release signature's two passwords come from the desktop's keyring, handed only to the one
   command that signs, through `scripts/with-signing-passwords.sh`, and no longer from a plain-text file. An installer
   build without them stops with "not signed" instead of continuing (#579)

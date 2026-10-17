@@ -117,6 +117,8 @@ test {
 
 // the tests run on a display of the build's own, not on the one the build was started from (#505)
 apply from: '../../gradle/own-display.gradle'
+// the bounds of every test JVM, the same as the host's (#580)
+apply from: '../../gradle/test-jvms.gradle'
 
 // The licences of the libraries this zip bundles, taken out of the very jars it bundles so that they
 // cannot drift from them, next to NOTICE.txt, which names each library and where its licence is:

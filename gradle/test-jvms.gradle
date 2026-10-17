@@ -1,0 +1,17 @@
+// What every test JVM of a build may take, the same for the host and every plugin build (#580).
+//
+// 512 MB of heap is what Gradle gives a test JVM by default; it is written down so that it holds
+// whatever a Gradle upgrade changes. Measured on 2026-10-17 with a GC log of every test JVM, every
+// test task forced: the most any of them used was 290 MB (the host's e2e suite; its unit suite 288 MB,
+// the password-hash plugin's 246 MB, every other plugin at most 212 MB), so 512 MB leaves 75 % above
+// the largest need.
+//
+// One JVM at a time per test task, Gradle's default too: the UI suites need it, since they share one
+// display (gradle/own-display.gradle), and each further fork of the unit suite would hold another
+// 512 MB next to the daemon's.
+//
+// Applied by gradle/testing.gradle and by each plugin build, which is a Gradle build of its own.
+tasks.withType(Test).configureEach {
+    maxHeapSize = '512m'
+    maxParallelForks = 1
+}
