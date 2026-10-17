@@ -46,6 +46,10 @@ CHANGED:
   they came from. The chain and whether its first block was taken as it is, which an empty file cannot check, are
   behind "Show details". The button says what it does ("Bring my chain up to date"), and node and proxy are marked
   optional, in English and German
+- "Verify a Chain" answers in fields the same way (#604): "Your chain is in order: every block, transfer and
+  signature in it checked out.", or that it is not and nothing in it can be trusted, with the reason below; then
+  the blocks, transfers and signatures checked and all the money there is. The chain library's own sentence is
+  behind "Show details"
 
 Version 8.10
 -------------

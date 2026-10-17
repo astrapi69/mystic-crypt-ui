@@ -122,14 +122,18 @@ class LethenonPluginUiTest extends AbstractUiTest
 			@Override
 			public boolean test()
 			{
-				return textOf(tool, "txtReport").contains("replayed 3 blocks");
+				return textOf(tool, "txtBlocks").equals("3 blocks");
 			}
 		}, 20000);
 
-		String report = textOf(tool, "txtReport");
-		assertTrue(report.contains("applied 1 transfers"), report);
-		assertTrue(report.contains("which is the supply"),
-			"the chain's own summary carries the supply invariant: " + report);
+		assertEquals(
+			"Your chain is in order: every block, transfer and signature in it checked out.",
+			textOf(tool, "txtAnswer"));
+		assertEquals("1 transfer", textOf(tool, "txtTransfers"));
+		tool.button("btnDetails").click();
+		String summary = textOf(tool, "txtSummary");
+		assertTrue(summary.contains("which is the supply"),
+			"the chain's own summary carries the supply invariant: " + summary);
 		String result = GuiActionRunner.execute(() -> tool.label("lblResult").target().getText());
 		assertTrue(result.contains("accepted"), result);
 		assertTrue(frame.isEnabled(), "the application is still usable after a replay");
@@ -924,16 +928,6 @@ class LethenonPluginUiTest extends AbstractUiTest
 		UiTestSpeed.step();
 		SwingUtilities.invokeLater(() -> mine.button("btnMine").target().doClick());
 		awaitText(mine, "txtAnswer", "is yours", "the block is mined");
-	}
-
-	/**
-	 * Waits for the report to say what was expected, and when it never does, fails with the line
-	 * the window wrote instead - a timeout alone says that something went wrong, not what
-	 */
-	private static void awaitReport(final JInternalFrameFixture tool, final String expected,
-		final String description)
-	{
-		awaitText(tool, "txtReport", expected, description);
 	}
 
 	/**
