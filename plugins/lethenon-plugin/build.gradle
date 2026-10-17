@@ -118,8 +118,31 @@ test {
 // the tests run on a display of the build's own, not on the one the build was started from (#505)
 apply from: '../../gradle/own-display.gradle'
 
+// The licences of the libraries this zip bundles, taken out of the very jars it bundles so that they
+// cannot drift from them, next to NOTICE.txt, which names each library and where its licence is:
+// sqlite-jdbc is under the Apache License 2.0 and contains code under the Zentus licence, which asks
+// for its notice in every binary distribution; lethenon is under the MIT License; SQLite itself is
+// in the public domain. The zip carries them under legal/, and the installer installs the same
+// directory (#581)
+def bundledJar = { String module -> bundledJars.filter { it.name.startsWith("${module}-") } }
+tasks.register('pluginLegal', Sync) {
+    into layout.buildDirectory.dir('legal')
+    from('src/main/legal')
+    from({ zipTree(bundledJar('sqlite-jdbc').singleFile) }) {
+        include 'META-INF/maven/org.xerial/sqlite-jdbc/LICENSE*'
+        eachFile { it.path = "sqlite-jdbc/${it.name}" }
+        includeEmptyDirs = false
+    }
+    from({ zipTree(bundledJar('lethenon').singleFile) }) {
+        include 'LICENSE.txt'
+        eachFile { it.path = "lethenon/${it.name}" }
+        includeEmptyDirs = false
+    }
+}
+
 // packages the plugin the way the host's DefaultPluginManager expects: plugin.properties at the
-// root, compiled classes under classes/, and the libraries the host does not carry under lib/
+// root, compiled classes under classes/, the libraries the host does not carry under lib/, and
+// their licences under legal/
 tasks.register('pluginZip', Zip) {
     archiveFileName = "lethenon-plugin-${version}.zip"
     destinationDirectory = layout.buildDirectory.dir("plugin-dist")
@@ -134,6 +157,9 @@ tasks.register('pluginZip', Zip) {
     }
     into("lib") {
         from bundledJars
+    }
+    into("legal") {
+        from tasks.named('pluginLegal')
     }
     dependsOn classes
 }

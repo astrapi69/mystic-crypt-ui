@@ -26,17 +26,24 @@ package io.github.astrapi69.mystic.crypt.plugin.lethenon;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.awt.GraphicsEnvironment;
+import java.io.IOException;
+import java.io.InputStream;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
+import java.util.zip.ZipInputStream;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -117,6 +124,67 @@ class LethenonPluginFromItsZipTest
 			manager.stopPlugins();
 			manager.unloadPlugins();
 		}
+	}
+
+	@Test
+	@DisplayName("the zip carries the licence of every library it bundles, unchanged from that library's jar (#581)")
+	void theZip_carriesTheLicencesOfWhatItBundles() throws Exception
+	{
+		try (ZipFile zip = new ZipFile(System.getProperty("lethenon.plugin.zip")))
+		{
+			String notice = new String(entry(zip, "legal/NOTICE.txt"), StandardCharsets.UTF_8);
+			List<String> libraries = zip.stream().map(ZipEntry::getName)
+				.filter(name -> name.startsWith("lib/") && name.endsWith(".jar")).toList();
+			assertFalse(libraries.isEmpty(), "the zip bundles libraries, or this test measures nothing");
+			for (String library : libraries)
+			{
+				String artifact = library.substring("lib/".length(), library.lastIndexOf('-'));
+				assertTrue(notice.contains("lib/" + artifact + "-<version>.jar"),
+					"NOTICE.txt names " + library);
+				assertTrue(zip.stream().anyMatch(each -> each.getName().startsWith("legal/" + artifact + "/")
+					&& !each.isDirectory()), "legal/" + artifact + "/ holds the licence of " + library);
+			}
+			String sqliteJdbc = library(libraries, "sqlite-jdbc");
+			assertArrayEquals(entryOfJar(zip, sqliteJdbc, "META-INF/maven/org.xerial/sqlite-jdbc/LICENSE"),
+				entry(zip, "legal/sqlite-jdbc/LICENSE"));
+			assertArrayEquals(entryOfJar(zip, sqliteJdbc, "META-INF/maven/org.xerial/sqlite-jdbc/LICENSE.zentus"),
+				entry(zip, "legal/sqlite-jdbc/LICENSE.zentus"));
+			assertArrayEquals(entryOfJar(zip, library(libraries, "lethenon"), "LICENSE.txt"),
+				entry(zip, "legal/lethenon/LICENSE.txt"));
+		}
+	}
+
+	private static String library(final List<String> libraries, final String artifact)
+	{
+		return libraries.stream().filter(name -> name.startsWith("lib/" + artifact + "-")).findFirst()
+			.orElseThrow(() -> new AssertionError("no lib/" + artifact + "-*.jar in " + libraries));
+	}
+
+	private static byte[] entry(final ZipFile zip, final String name) throws IOException
+	{
+		ZipEntry found = zip.getEntry(name);
+		assertNotNull(found, name + " is in the zip");
+		try (InputStream in = zip.getInputStream(found))
+		{
+			return in.readAllBytes();
+		}
+	}
+
+	/** An entry of a jar that is itself an entry of the zip */
+	private static byte[] entryOfJar(final ZipFile zip, final String jar, final String name)
+		throws IOException
+	{
+		try (ZipInputStream in = new ZipInputStream(zip.getInputStream(zip.getEntry(jar))))
+		{
+			for (ZipEntry each = in.getNextEntry(); each != null; each = in.getNextEntry())
+			{
+				if (each.getName().equals(name))
+				{
+					return in.readAllBytes();
+				}
+			}
+		}
+		throw new AssertionError(name + " is not in " + jar);
 	}
 
 	/** A test chain's genesis block, written by the plugin's lethenon and read back by it */
