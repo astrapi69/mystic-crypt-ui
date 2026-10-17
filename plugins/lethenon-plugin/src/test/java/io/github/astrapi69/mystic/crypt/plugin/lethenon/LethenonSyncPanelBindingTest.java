@@ -24,6 +24,9 @@
  */
 package io.github.astrapi69.mystic.crypt.plugin.lethenon;
 
+import static io.github.astrapi69.mystic.crypt.plugin.lethenon.Windows.component;
+import static io.github.astrapi69.mystic.crypt.plugin.lethenon.Windows.textOf;
+
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -34,6 +37,9 @@ import java.nio.file.Files;
 import java.time.Duration;
 import java.util.List;
 import java.util.Map;
+
+import javax.swing.JButton;
+import javax.swing.JPanel;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -97,22 +103,52 @@ class LethenonSyncPanelBindingTest
 		File chainFile = new File(chainDirectory, "synced.lethenon");
 		try (Node node = Node.on(served))
 		{
+			String address = "127.0.0.1:" + node.listen(0);
 			LethenonSyncPanel panel = new LethenonSyncPanel();
 			panel.getModelObject().setChainFile(chainFile.getAbsolutePath());
-			panel.getModelObject().setNode("127.0.0.1:" + node.listen(0));
+			panel.getModelObject().setNode(address);
 
 			panel.onSync();
 			awaitTheEnd(panel);
 
-			String report = panel.getModelObject().getReport();
-			assertTrue(report.contains("chain " + Chain.TEST_IDENTIFIER), report);
-			assertTrue(report.contains("took 3 block(s), now at height 2"), report);
-			assertTrue(report.contains("taken on first use"),
-				"a new file trusts the node's genesis block, and the window says so: " + report);
+			assertEquals("Your chain file is up to date now: it took 3 new blocks and ends at "
+				+ "block 2.", textOf(panel, "txtAnswer"));
+			assertEquals("3 blocks", textOf(panel, "txtTaken"));
+			assertEquals("2", textOf(panel, "txtLastBlock"));
+			assertEquals(address, textOf(panel, "txtFrom"));
+			assertEquals(Chain.TEST_IDENTIFIER, textOf(panel, "txtChain"));
+			assertTrue(textOf(panel, "txtFirstUse").startsWith("yes"),
+				"a new file trusts the node's first block, and the window says so: "
+					+ textOf(panel, "txtFirstUse"));
 			assertEquals("the chain file is at the tip of the node now",
 				panel.getModelObject().getResultText());
 			assertEquals(served, new ChainFile(chainFile.toPath()).require());
+
+			panel.onSync();
+			awaitTheEnd(panel);
+
+			assertEquals("Your chain file was already up to date: it ends at block 2.",
+				textOf(panel, "txtAnswer"));
+			assertEquals("none", textOf(panel, "txtTaken"));
+			assertEquals("no", textOf(panel, "txtFirstUse"));
 		}
+	}
+
+	@Test
+	@DisplayName("what only a specialist reads - the chain and where its first block came from - is behind \"Show details\", closed at first, and every field and button has a tooltip (#604)")
+	void theDetails_areClosedAtFirst_andEveryFieldExplainsItself() throws Exception
+	{
+		LethenonSyncPanel panel = new LethenonSyncPanel();
+		JPanel details = component(panel, "pnlDetails", JPanel.class);
+
+		assertFalse(details.isVisible(), "the details are closed at first");
+		assertEquals(List.of(), Windows.withoutATooltip(panel),
+			"fields and buttons without a tooltip");
+
+		panel.onDetails();
+
+		assertTrue(details.isVisible());
+		assertEquals("Hide details", component(panel, "btnDetails", JButton.class).getText());
 	}
 
 	@Test
@@ -132,7 +168,7 @@ class LethenonSyncPanelBindingTest
 		panel.onSync();
 		awaitTheEnd(panel);
 
-		assertEquals("", panel.getModelObject().getReport());
+		assertEquals("", textOf(panel, "txtAnswer"));
 		assertTrue(panel.getModelObject().getResultText()
 			.startsWith("the chain file was not synchronised: " + chainFile.getAbsolutePath()
 				+ ": no node was named"),

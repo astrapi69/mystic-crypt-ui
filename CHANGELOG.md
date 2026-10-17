@@ -41,6 +41,11 @@ CHANGED:
   how many payments, the account and where the transfers wait. What a sweep costs stays on the screen before
   signing, now as one plain sentence ("Careful: after a sweep, anyone who reads the chain can see that these
   payments belong to you."), with the whole statement as its tooltip and again behind "Show details"
+- "Synchronise with a Node" answers in fields the same way (#604): "Your chain file is up to date now: it took 3 new
+  blocks and ends at block 2.", or that it was already up to date; then the new blocks, the last block and the node
+  they came from. The chain and whether its first block was taken as it is, which an empty file cannot check, are
+  behind "Show details". The button says what it does ("Bring my chain up to date"), and node and proxy are marked
+  optional, in English and German
 
 Version 8.10
 -------------
