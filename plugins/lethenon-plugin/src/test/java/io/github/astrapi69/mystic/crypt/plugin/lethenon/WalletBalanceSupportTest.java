@@ -42,6 +42,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import io.github.astrapi69.lethenon.Amount;
+import io.github.astrapi69.lethenon.Emission;
 import io.github.astrapi69.lethenon.BlockBody;
 import io.github.astrapi69.lethenon.Bytes;
 import io.github.astrapi69.lethenon.CanonicalEncoding;
@@ -100,7 +101,12 @@ class WalletBalanceSupportTest
 		assertEquals(1, balance.oneTimePayments());
 		assertEquals(Amount.ofLeth(5L), balance.oneTimeAmount(),
 			"the one-time payment is reported, and reported apart from what can be spent");
-		assertTrue(balance.replaySummary().contains("replayed 3 blocks"), balance.replaySummary());
+		assertEquals(3L, balance.replay().blocks(), "the balance carries the replay it comes from");
+		assertEquals(2L, balance.replay().transactions());
+		assertEquals(Emission.GENESIS_SUPPLY, balance.replay().supply(),
+			"nothing was minted on a chain of three blocks, so the supply is the genesis supply");
+		assertTrue(balance.replay().summary().contains("replayed 3 blocks"),
+			balance.replay().summary());
 	}
 
 	@Test

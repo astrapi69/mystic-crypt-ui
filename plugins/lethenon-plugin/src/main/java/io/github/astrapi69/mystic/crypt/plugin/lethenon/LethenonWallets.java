@@ -27,6 +27,7 @@ package io.github.astrapi69.mystic.crypt.plugin.lethenon;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Locale;
 
 import io.github.astrapi69.lethenon.Wallet;
 import io.github.astrapi69.lethenon.WalletFile;
@@ -53,7 +54,8 @@ final class LethenonWallets
 	 * @throws IOException
 	 *             when the file cannot be read
 	 * @throws IllegalArgumentException
-	 *             when no file is named, there is none, or the password does not open it
+	 *             when no file is named, there is none, no password was typed, or the password
+	 *             does not open it
 	 */
 	static Wallet open(final Path walletFile, final char[] password) throws IOException
 	{
@@ -67,16 +69,24 @@ final class LethenonWallets
 			throw new IllegalArgumentException(
 				"there is no wallet file at " + walletFile.toAbsolutePath());
 		}
+		if (password == null || password.length == 0)
+		{
+			throw new IllegalArgumentException(LethenonMessages.format(
+				"lethenon.wallet.password.empty", "type the password of {0} first",
+				Locale.getDefault(), walletFile.getFileName().toString()));
+		}
 		try
 		{
 			return WalletFile.read(walletFile, password);
 		}
 		catch (SecurityException refused)
 		{
-			throw new IllegalArgumentException(
-				walletFile.toAbsolutePath()
-					+ " does not open with this password, or it was changed after it was written",
-				refused);
+			throw new IllegalArgumentException(LethenonMessages.format(
+				"lethenon.wallet.password.wrong",
+				"this password does not open {0}; type it again, and check that it is the wallet "
+					+ "you meant ({1})",
+				Locale.getDefault(), walletFile.getFileName().toString(),
+				walletFile.toAbsolutePath().toString()), refused);
 		}
 	}
 }

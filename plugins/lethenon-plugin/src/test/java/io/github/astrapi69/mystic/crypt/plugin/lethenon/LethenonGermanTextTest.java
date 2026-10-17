@@ -88,4 +88,21 @@ class LethenonGermanTextTest
 		missing.removeAll(german);
 		assertEquals(Set.of(), missing, "view keys without a German text");
 	}
+
+	@Test
+	@DisplayName("every text of \"Show a Balance\" and every password message is in the German file (#604)")
+	void everyKeyOfTheBalanceWindow_isTranslated() throws IOException
+	{
+		Properties english = read("/lethenon/messages.properties");
+		Set<String> german = read("/lethenon/messages_de.properties").stringPropertyNames();
+		List<String> windowKeys = english.stringPropertyNames().stream()
+			.filter(key -> key.startsWith("lethenon.balance.") || key.startsWith("lethenon.wallet.")
+				|| key.startsWith("lethenon.value."))
+			.sorted().toList();
+
+		assertFalse(windowKeys.isEmpty(), "the English file has the window's text");
+		Set<String> missing = new TreeSet<>(windowKeys);
+		missing.removeAll(german);
+		assertEquals(Set.of(), missing, "keys of the balance window without a German text");
+	}
 }

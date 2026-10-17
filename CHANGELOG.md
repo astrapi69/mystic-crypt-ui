@@ -1,6 +1,23 @@
 ## Change log
 ----------------------
 
+Version 8.11 (unreleased)
+-------------
+
+CHANGED:
+- "Show a Balance" in the Lethenon plugin answers in fields a child can read (#604, the pilot for the other six
+  windows): first one sentence in a larger font, "You hold 3.00000000 LETH, and 5.00000000 LETH came to your address
+  and waits for a sweep."; then one labelled, read-only field per value - the address, every account and what it
+  holds, what waits for a sweep - with a Copy button for the address and the accounts. A value too long to read is
+  shown by its beginning, its end and its length ("308207b2300b...bfb098ae (3,904 characters)"), and Copy copies
+  all of it. What the replay checked and all the money on the chain are behind "Show details", closed at first.
+  Amounts read in the language of the window, thousands grouped and every decimal kept: `2,369,457.85346351 LETH`,
+  `2.369.457,85346351 LETH`. Every field and button has a tooltip in plain words, and the window is in English and
+  German
+- the password messages of every Lethenon window say what to do: an empty password is asked for instead of tried
+  ("type the password of home.wallet first"), and a wrong one reads "this password does not open home.wallet; type
+  it again, and check that it is the wallet you meant (<path>)", in English and German, never repeating the password
+
 Version 8.10
 -------------
 
