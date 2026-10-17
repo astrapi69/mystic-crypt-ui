@@ -30,6 +30,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
+import java.util.Map;
 import java.util.Set;
 
 import javax.swing.BorderFactory;
@@ -132,6 +133,7 @@ public class LethenonMinePanel extends JPanel
 		layOut();
 		followTheChainFile();
 		txtChainFile.setText(LethenonSettingsContribution.chainFile());
+		txtWalletFile.setText(LethenonSettingsContribution.walletFile());
 		txtPun.setText(modelObject.getPun());
 	}
 
@@ -167,6 +169,9 @@ public class LethenonMinePanel extends JPanel
 					Path.of(modelObject.getWalletFile().trim()), modelObject.getChainKind(),
 					modelObject.getPun(), ATTEMPTS),
 				modelObject.getPassword(), System.currentTimeMillis());
+			LethenonSettingsContribution.remember(Map.of(LethenonSettingsContribution.KEY_CHAIN_FILE,
+				chainFile.toString(), LethenonSettingsContribution.KEY_WALLET_FILE,
+				modelObject.getWalletFile().trim()));
 			setReport(describe(mined));
 			setResult(LethenonMessages.getString("lethenon.result.mine.written",
 				"the block was mined and written to the chain file"));

@@ -28,6 +28,7 @@ import java.awt.Font;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Map;
 
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -161,6 +162,8 @@ public class LethenonChainViewPanel extends JPanel
 				return;
 			}
 			List<ChainBlockRow> rows = ChainReplaySupport.blocks(chainFile);
+			LethenonSettingsContribution.remember(
+				Map.of(LethenonSettingsContribution.KEY_CHAIN_FILE, chainFile.toString()));
 			setRows(rows);
 			setResult(
 				LethenonMessages.getString("lethenon.result.accepted", "the chain was accepted")

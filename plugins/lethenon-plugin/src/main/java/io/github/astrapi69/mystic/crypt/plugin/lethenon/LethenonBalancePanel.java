@@ -27,6 +27,7 @@ package io.github.astrapi69.mystic.crypt.plugin.lethenon;
 import java.awt.Font;
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.Map;
 
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -146,6 +147,7 @@ public class LethenonBalancePanel extends JPanel
 		add(lblResult, ToolForm.RESULT_LINE);
 
 		txtChainFile.setText(LethenonSettingsContribution.chainFile());
+		txtWalletFile.setText(LethenonSettingsContribution.walletFile());
 	}
 
 	/**
@@ -178,6 +180,9 @@ public class LethenonBalancePanel extends JPanel
 			WalletBalance balance = WalletBalanceSupport.balance(chainFile,
 				Path.of(modelObject.getWalletFile().trim()), modelObject.getPassword());
 			setReport(describe(balance));
+			LethenonSettingsContribution.remember(Map.of(LethenonSettingsContribution.KEY_CHAIN_FILE,
+				chainFile.toString(), LethenonSettingsContribution.KEY_WALLET_FILE,
+				modelObject.getWalletFile().trim()));
 			setResult(LethenonMessages.getString("lethenon.result.balance.read",
 				"the balance was read from the replayed chain"));
 		}

@@ -1,6 +1,17 @@
 ## Change log
 ----------------------
 
+Version 8.11 (unreleased)
+-------------
+
+ADDED:
+- the Lethenon plugin remembers the chain file, the wallet file, the node and the SOCKS proxy once they have worked,
+  so they are typed once (#605): a window that read or wrote the chain remembers the chain file, one that opened the
+  wallet with its password remembers the wallet file, a sync remembers the node it took the chain from and the proxy
+  it went through, and a transfer handed to a node remembers that node. A failure leaves what worked before. Every
+  window starts with these values, and Settings -> Lethenon shows all four, where clearing one forgets it. A password
+  is never remembered: only these four keys can be written, and a test reads every file the settings write
+
 Version 8.10
 -------------
 
