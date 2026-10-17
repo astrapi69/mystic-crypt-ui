@@ -31,8 +31,8 @@ CHANGED:
   driver's native library without a warning and a later JDK still loads it (#581)
 - build and tests only: a test task that runs headless gets no display at all - no Xvfb, and no `DISPLAY` from the
   shell either - so it reaches no screen and runs where there is no X server, on macOS and Windows (#581, #505)
-- build and tests only: mutation testing names its mutator set, `DEFAULTS`, instead of leaving it to PIT, and every run
-  writes `mutation-context.json` next to its report - tool and version, mutators, scope, the breakdown, score and
+- build and tests only: mutation testing names its mutator set instead of leaving it to PIT - the eleven mutators every
+  run so far measured, which is not PIT's group `DEFAULTS` - and every run writes `mutation-context.json` next to its report - tool and version, mutators, scope, the breakdown, score and
   test strength, commit and date - in the form awesome-well-tested specifies, checked against its JSON Schema (#589)
 
 FORMAT:

@@ -65,10 +65,15 @@ pitest {
             "io.github.astrapi69.mystic.crypt.settings.PluginSettingsTest"
     ]
     threads = 4
-    // the set is named, not left to PIT's default: DEFAULTS is what every run so far measured, and a
-    // run that does not say which set it used cannot be compared with another one (#589). STRONGER is
-    // a later step of its own, with a new baseline
-    mutators = ["DEFAULTS"]
+    // the set is named, not left to PIT, because a run that does not say which set it used cannot be
+    // compared with another one (#589). These eleven are what every run so far measured: the set PIT
+    // 1.30.0 takes when none is named (Mutator.newDefaults()). It is not the group DEFAULTS, which has
+    // REMOVE_CONDITIONALS_ORDER_ELSE and REMOVE_CONDITIONALS_EQUAL_ELSE where this has
+    // NEGATE_CONDITIONALS - measured: naming DEFAULTS turned 15 killed mutants into survivors. Moving
+    // to DEFAULTS or STRONGER is a step of its own, with a new baseline
+    mutators = ["INVERT_NEGS", "MATH", "VOID_METHOD_CALLS", "NEGATE_CONDITIONALS", "CONDITIONALS_BOUNDARY",
+                "INCREMENTS", "TRUE_RETURNS", "FALSE_RETURNS", "PRIMITIVE_RETURNS", "EMPTY_RETURNS",
+                "NULL_RETURNS"]
     outputFormats = ["HTML", "XML"]
     timestampedReports = false
 }
