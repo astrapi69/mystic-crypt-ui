@@ -28,6 +28,7 @@ import java.awt.Font;
 import java.io.IOException;
 import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
+import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -113,6 +114,8 @@ public class LethenonSyncPanel extends JPanel
 		bindToTheModel();
 		layOut();
 		txtChainFile.setText(LethenonSettingsContribution.chainFile());
+		txtNode.setText(LethenonSettingsContribution.node());
+		txtProxy.setText(LethenonSettingsContribution.proxy());
 	}
 
 	/**
@@ -164,7 +167,7 @@ public class LethenonSyncPanel extends JPanel
 			@Override
 			protected void done()
 			{
-				showTheOutcome(this);
+				showTheOutcome(this, chainFile, node, proxy);
 			}
 		}.execute();
 	}
@@ -195,11 +198,13 @@ public class LethenonSyncPanel extends JPanel
 		return false;
 	}
 
-	private void showTheOutcome(final SwingWorker<SyncSupport.SyncedFrom, Void> worker)
+	private void showTheOutcome(final SwingWorker<SyncSupport.SyncedFrom, Void> worker,
+		final Path chainFile, final String node, final String proxy)
 	{
 		try
 		{
 			SyncSupport.SyncedFrom syncedFrom = worker.get();
+			rememberWhatWorked(chainFile, node, proxy);
 			Sync.Synced synced = syncedFrom.synced();
 			setReport(describe(syncedFrom));
 			setResult(synced.taken() > 0
@@ -224,6 +229,23 @@ public class LethenonSyncPanel extends JPanel
 		{
 			setSynchronising(false);
 		}
+	}
+
+	/**
+	 * Remembers what a sync that worked used (#605): the chain file, the node (empty for the seed
+	 * nodes) and the SOCKS proxy it went through; no proxy used is no proxy remembered
+	 */
+	private static void rememberWhatWorked(final Path chainFile, final String node,
+		final String proxy)
+	{
+		Map<String, String> worked = new java.util.LinkedHashMap<>();
+		worked.put(LethenonSettingsContribution.KEY_CHAIN_FILE, chainFile.toString());
+		worked.put(LethenonSettingsContribution.KEY_NODE, node == null ? "" : node.trim());
+		if (proxy != null && !proxy.isBlank())
+		{
+			worked.put(LethenonSettingsContribution.KEY_PROXY, proxy.trim());
+		}
+		LethenonSettingsContribution.remember(worked);
 	}
 
 	/**

@@ -42,9 +42,11 @@ import org.junit.jupiter.params.provider.ValueSource;
 
 import io.github.astrapi69.mystic.crypt.plugin.api.PluginSettingsContribution;
 import io.github.astrapi69.mystic.crypt.settings.PluginSettings;
+import io.github.astrapi69.mystic.crypt.settings.PluginSettingsPanel;
 
 /**
- * The plugin's one setting: visible in the settings page, read by the panel, and described well
+ * The plugin's settings: the chain file, the wallet file, the node and the proxy that worked last
+ * (#605), visible and editable in the settings page, read by the windows, and described well
  * enough to be edited. Both halves are rules rather than taste - a setting that changes behaviour
  * without being editable, and a setting nobody reads, are each forbidden (architecture.md).
  */
@@ -114,5 +116,94 @@ class LethenonSettingsContributionTest
 		assertEquals("/tmp/chain.lethenon", LethenonSettingsContribution.chainFile(),
 			"what the settings page wrote is what the panel starts with - otherwise the setting "
 				+ "is dead");
+	}
+
+	@ParameterizedTest(name = "\"{0}\" is a setting with an empty default and a description")
+	@ValueSource(strings = { LethenonSettingsContribution.KEY_CHAIN_FILE,
+			LethenonSettingsContribution.KEY_WALLET_FILE, LethenonSettingsContribution.KEY_NODE,
+			LethenonSettingsContribution.KEY_PROXY })
+	@DisplayName("the chain, the wallet, the node and the proxy are settings (#605)")
+	void everyRememberedValue_isASetting(final String key)
+	{
+		Map<String, String> defaults = CONTRIBUTION.getDefaults();
+
+		assertEquals("", defaults.get(key), "nothing is remembered until something worked");
+		assertNotNull(CONTRIBUTION.getDescription(key));
+	}
+
+	@Test
+	@DisplayName("the settings page shows all four values and saves what is typed there; a cleared field forgets (#605)")
+	void theSettingsPage_showsAndSavesAllFour() throws Exception
+	{
+		LethenonSettingsContribution.remember(Map.of(LethenonSettingsContribution.KEY_PROXY,
+			"127.0.0.1:9050"));
+		PluginSettingsPanel page = new PluginSettingsPanel(configurationDirectory,
+			java.util.List.of(CONTRIBUTION));
+
+		assertEquals(java.util.List.of(LethenonSettingsContribution.KEY_CHAIN_FILE,
+			LethenonSettingsContribution.KEY_WALLET_FILE, LethenonSettingsContribution.KEY_NODE,
+			LethenonSettingsContribution.KEY_PROXY), java.util.List.copyOf(page.getShownValues().keySet()));
+		assertEquals("127.0.0.1:9050", page.getShownValues().get(LethenonSettingsContribution.KEY_PROXY));
+
+		page.setShownValue(LethenonSettingsContribution.KEY_CHAIN_FILE, "/tmp/a.lethenon");
+		page.setShownValue(LethenonSettingsContribution.KEY_WALLET_FILE, "/tmp/home.wallet");
+		page.setShownValue(LethenonSettingsContribution.KEY_NODE, "198.51.100.7:18480");
+		page.setShownValue(LethenonSettingsContribution.KEY_PROXY, "");
+		applyButtonOf(page).doClick();
+
+		assertEquals("/tmp/a.lethenon", LethenonSettingsContribution.chainFile());
+		assertEquals("/tmp/home.wallet", LethenonSettingsContribution.walletFile());
+		assertEquals("198.51.100.7:18480", LethenonSettingsContribution.node());
+		assertEquals("", LethenonSettingsContribution.proxy(), "a cleared field forgets the proxy");
+	}
+
+	@Test
+	@DisplayName("remembering one value keeps the others as they were")
+	void remember_keepsTheOtherValues()
+	{
+		LethenonSettingsContribution.remember(Map.of(LethenonSettingsContribution.KEY_CHAIN_FILE,
+			"/tmp/chain.lethenon", LethenonSettingsContribution.KEY_NODE, "203.0.113.5:18480"));
+
+		LethenonSettingsContribution.remember(Map.of(LethenonSettingsContribution.KEY_WALLET_FILE,
+			"/tmp/home.wallet"));
+
+		assertEquals("/tmp/chain.lethenon", LethenonSettingsContribution.chainFile());
+		assertEquals("/tmp/home.wallet", LethenonSettingsContribution.walletFile());
+		assertEquals("203.0.113.5:18480", LethenonSettingsContribution.node());
+	}
+
+	@ParameterizedTest(name = "\"{0}\" is refused")
+	@ValueSource(strings = { "password", "wallet.password", "chain.files" })
+	@DisplayName("only the four values can be remembered: no password, in any form")
+	void remember_refusesAnyOtherKey(final String key)
+	{
+		IllegalArgumentException refused = org.junit.jupiter.api.Assertions.assertThrows(
+			IllegalArgumentException.class,
+			() -> LethenonSettingsContribution.remember(Map.of(key, "secret")));
+
+		assertTrue(refused.getMessage().contains(key), refused.getMessage());
+		assertTrue(PluginSettings.load(LethenonSettingsContribution.PLUGIN_ID,
+			CONTRIBUTION.getDefaults()).values().stream().noneMatch("secret"::equals));
+	}
+
+	private static javax.swing.AbstractButton applyButtonOf(final java.awt.Container container)
+	{
+		for (java.awt.Component child : container.getComponents())
+		{
+			if (child instanceof javax.swing.AbstractButton button
+				&& "btnApplyPluginSettings".equals(button.getName()))
+			{
+				return button;
+			}
+			if (child instanceof java.awt.Container nested)
+			{
+				javax.swing.AbstractButton found = applyButtonOf(nested);
+				if (found != null)
+				{
+					return found;
+				}
+			}
+		}
+		return null;
 	}
 }

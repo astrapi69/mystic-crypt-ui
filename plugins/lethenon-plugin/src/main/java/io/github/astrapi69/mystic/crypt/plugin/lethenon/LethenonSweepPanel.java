@@ -27,6 +27,7 @@ package io.github.astrapi69.mystic.crypt.plugin.lethenon;
 import java.awt.Font;
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.Map;
 
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -114,6 +115,7 @@ public class LethenonSweepPanel extends JPanel
 		bindToTheModel();
 		layOut();
 		txtChainFile.setText(LethenonSettingsContribution.chainFile());
+		txtWalletFile.setText(LethenonSettingsContribution.walletFile());
 	}
 
 	/**
@@ -144,6 +146,9 @@ public class LethenonSweepPanel extends JPanel
 				return;
 			}
 			SweptPayments swept = SweepSupport.sweep(order, modelObject.getPassword());
+			LethenonSettingsContribution.remember(Map.of(LethenonSettingsContribution.KEY_CHAIN_FILE,
+				order.chainFile().toString(), LethenonSettingsContribution.KEY_WALLET_FILE,
+				order.walletFile().toString()));
 			if (swept.transfers() == 0)
 			{
 				setReport("");
