@@ -45,8 +45,8 @@ import org.junit.jupiter.api.io.TempDir;
 /**
  * Drives {@code scripts/stop-idle-daemons.sh} the way the release gate does (#580): the Gradle
  * daemons are stopped only once none of them is building, so that a build of another worktree or
- * the IDE is never killed in the middle. A fake {@code gradlew} answers {@code --status} from a list
- * of answers, one per call, and records every {@code --stop}.
+ * the IDE is never killed in the middle. A fake {@code gradlew} answers {@code --status} from a
+ * list of answers, one per call, and records every {@code --stop}.
  */
 class StopIdleDaemonsTest
 {
@@ -83,7 +83,8 @@ class StopIdleDaemonsTest
 		assertEquals(0, run.exit(), run.output());
 		assertEquals(3, run.statusCalls(), "asked again after each wait");
 		assertEquals(1, run.stops(), run.output());
-		assertTrue(run.output().contains("161386 BUSY"), "names what it waits for: " + run.output());
+		assertTrue(run.output().contains("161386 BUSY"),
+			"names what it waits for: " + run.output());
 	}
 
 	@Test
@@ -108,8 +109,8 @@ class StopIdleDaemonsTest
 	}
 
 	/**
-	 * Runs the script against a fake gradlew whose n-th --status prints the n-th answer, the last one
-	 * from then on
+	 * Runs the script against a fake gradlew whose n-th --status prints the n-th answer, the last
+	 * one from then on
 	 */
 	private Run run(final List<String> answers, final int waitSeconds) throws Exception
 	{
@@ -119,11 +120,12 @@ class StopIdleDaemonsTest
 				StandardCharsets.UTF_8);
 		}
 		Path gradlew = directory.resolve("gradlew");
-		Files.writeString(gradlew, "#!/bin/sh\n" + "cd \"$(dirname \"$0\")\"\n"
-			+ "case \"$1\" in\n" + "  --status)\n" + "    echo x >> status-calls\n"
-			+ "    n=$(wc -l < status-calls)\n" + "    [ -f answer-$n ] || n=" + answers.size() + "\n"
-			+ "    cat answer-$n ;;\n" + "  --stop) echo x >> stops ;;\n" + "  *) exit 9 ;;\n"
-			+ "esac\n", StandardCharsets.UTF_8);
+		Files.writeString(gradlew,
+			"#!/bin/sh\n" + "cd \"$(dirname \"$0\")\"\n" + "case \"$1\" in\n" + "  --status)\n"
+				+ "    echo x >> status-calls\n" + "    n=$(wc -l < status-calls)\n"
+				+ "    [ -f answer-$n ] || n=" + answers.size() + "\n" + "    cat answer-$n ;;\n"
+				+ "  --stop) echo x >> stops ;;\n" + "  *) exit 9 ;;\n" + "esac\n",
+			StandardCharsets.UTF_8);
 		Files.setPosixFilePermissions(gradlew, PosixFilePermissions.fromString("rwxr-xr-x"));
 		ProcessBuilder builder = new ProcessBuilder(SCRIPT.getPath()).redirectErrorStream(true);
 		Map<String, String> environment = builder.environment();
@@ -142,7 +144,6 @@ class StopIdleDaemonsTest
 		return Files.exists(file) ? Files.readAllLines(file).size() : 0;
 	}
 
-	private record Run(int exit, String output, int statusCalls, int stops)
-	{
+	private record Run(int exit, String output, int statusCalls, int stops) {
 	}
 }

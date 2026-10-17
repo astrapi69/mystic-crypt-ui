@@ -5,6 +5,10 @@
 # (#333). Where the pinned JDK is present it still wins, which is the whole point of the pin
 PINNED_JAVA_HOME := /home/astrapi69/.sdkman/candidates/java/25-tem
 JAVA_HOME := $(if $(wildcard $(PINNED_JAVA_HOME)),$(PINNED_JAVA_HOME),$(JAVA_HOME))
+# the daemon arguments of gradle.properties, for the plugin builds: they are builds of their own
+# without a gradle.properties, and with these they share the host's daemon instead of starting one of
+# their own (#580)
+PLUGIN_DAEMON := "-Dorg.gradle.jvmargs=$(shell sed -n 's/^org.gradle.jvmargs=//p' gradle.properties)" -Dorg.gradle.daemon.idletimeout=$(shell sed -n 's/^org.gradle.daemon.idletimeout=//p' gradle.properties)
 JAR := $(shell find build/libs -maxdepth 1 -name '*-all.jar' 2>/dev/null | head -1)
 # the published release a vault this build writes has to stay readable in (#402); gradle.properties
 # is the one place the number lives
@@ -28,7 +32,7 @@ PLUGIN_LETHENON_DIR := plugins/lethenon-plugin
 PLUGIN_INSTALL_DIR := $(HOME)/.config/mystic-crypt-ui/plugins
 
 .PHONY: merge-pr test-fast release-jar release-jar-if-reachable build build-full build-with-plugins bwp run run-isolated all clean test test-e2e test-e2e-demo \
-	bootRun clean-build-installer izpack-installer izpack-installer-signed \
+	bootRun clean-build-installer izpack-installer izpack-installer-signed release-gate \
 	dependencies dependency-updates jacoco-coverage jacoco-report jar javadoc \
 	license-format publish-local spotless-java spotless-misc tag-release \
 	version-catalog-format version-catalog-update all-dependencies-jar \
@@ -144,74 +148,74 @@ publish-local:
 
 # build the internal obfuscation plugin zip (needs the host published locally first)
 plugin-obfuscation: publish-local
-	JAVA_HOME=$(JAVA_HOME) ./gradlew -p $(PLUGIN_OBFUSCATION_DIR) test pluginZip $(GRADLE_FLAGS)
+	JAVA_HOME=$(JAVA_HOME) ./gradlew $(PLUGIN_DAEMON) -p $(PLUGIN_OBFUSCATION_DIR) test pluginZip $(GRADLE_FLAGS)
 	@echo "==> plugin zip: $$(find $(PLUGIN_OBFUSCATION_DIR)/build/plugin-dist -name '*.zip')"
 
 # build the internal checksum plugin zip (needs the host published locally first)
 plugin-checksum: publish-local
-	JAVA_HOME=$(JAVA_HOME) ./gradlew -p $(PLUGIN_CHECKSUM_DIR) test pluginZip $(GRADLE_FLAGS)
+	JAVA_HOME=$(JAVA_HOME) ./gradlew $(PLUGIN_DAEMON) -p $(PLUGIN_CHECKSUM_DIR) test pluginZip $(GRADLE_FLAGS)
 	@echo "==> plugin zip: $$(find $(PLUGIN_CHECKSUM_DIR)/build/plugin-dist -name '*.zip')"
 
 # build the internal der-to-pem conversion plugin zip (needs the host published locally first)
 plugin-conversion: publish-local
-	JAVA_HOME=$(JAVA_HOME) ./gradlew -p $(PLUGIN_CONVERSION_DIR) test pluginZip $(GRADLE_FLAGS)
+	JAVA_HOME=$(JAVA_HOME) ./gradlew $(PLUGIN_DAEMON) -p $(PLUGIN_CONVERSION_DIR) test pluginZip $(GRADLE_FLAGS)
 	@echo "==> plugin zip: $$(find $(PLUGIN_CONVERSION_DIR)/build/plugin-dist -name '*.zip')"
 
 # build the internal console plugin zip (needs the host published locally first)
 plugin-console: publish-local
-	JAVA_HOME=$(JAVA_HOME) ./gradlew -p $(PLUGIN_CONSOLE_DIR) test pluginZip $(GRADLE_FLAGS)
+	JAVA_HOME=$(JAVA_HOME) ./gradlew $(PLUGIN_DAEMON) -p $(PLUGIN_CONSOLE_DIR) test pluginZip $(GRADLE_FLAGS)
 	@echo "==> plugin zip: $$(find $(PLUGIN_CONSOLE_DIR)/build/plugin-dist -name '*.zip')"
 
 # build the internal keygen plugin zip (needs the host published locally first)
 plugin-keygen: publish-local
-	JAVA_HOME=$(JAVA_HOME) ./gradlew -p $(PLUGIN_KEYGEN_DIR) test pluginZip $(GRADLE_FLAGS)
+	JAVA_HOME=$(JAVA_HOME) ./gradlew $(PLUGIN_DAEMON) -p $(PLUGIN_KEYGEN_DIR) test pluginZip $(GRADLE_FLAGS)
 	@echo "==> plugin zip: $$(find $(PLUGIN_KEYGEN_DIR)/build/plugin-dist -name '*.zip')"
 
 # build the internal certificate plugin zip (needs the host published locally first)
 plugin-certificate: publish-local
-	JAVA_HOME=$(JAVA_HOME) ./gradlew -p $(PLUGIN_CERTIFICATE_DIR) test pluginZip $(GRADLE_FLAGS)
+	JAVA_HOME=$(JAVA_HOME) ./gradlew $(PLUGIN_DAEMON) -p $(PLUGIN_CERTIFICATE_DIR) test pluginZip $(GRADLE_FLAGS)
 	@echo "==> plugin zip: $$(find $(PLUGIN_CERTIFICATE_DIR)/build/plugin-dist -name '*.zip')"
 
 # build the internal password-hash plugin zip (needs the host published locally first)
 plugin-password-hash: publish-local
-	JAVA_HOME=$(JAVA_HOME) ./gradlew -p $(PLUGIN_PASSWORD_HASH_DIR) test pluginZip $(GRADLE_FLAGS)
+	JAVA_HOME=$(JAVA_HOME) ./gradlew $(PLUGIN_DAEMON) -p $(PLUGIN_PASSWORD_HASH_DIR) test pluginZip $(GRADLE_FLAGS)
 	@echo "==> plugin zip: $$(find $(PLUGIN_PASSWORD_HASH_DIR)/build/plugin-dist -name '*.zip')"
 
 # build the internal ML-KEM / hybrid key-encapsulation demo plugin zip (needs the host published
 # locally first)
 plugin-kem-demo: publish-local
-	JAVA_HOME=$(JAVA_HOME) ./gradlew -p $(PLUGIN_KEM_DEMO_DIR) test pluginZip $(GRADLE_FLAGS)
+	JAVA_HOME=$(JAVA_HOME) ./gradlew $(PLUGIN_DAEMON) -p $(PLUGIN_KEM_DEMO_DIR) test pluginZip $(GRADLE_FLAGS)
 	@echo "==> plugin zip: $$(find $(PLUGIN_KEM_DEMO_DIR)/build/plugin-dist -name '*.zip')"
 
 # build the internal menu-designer plugin zip (needs the host published locally first)
 plugin-menu-designer: publish-local
-	JAVA_HOME=$(JAVA_HOME) ./gradlew -p $(PLUGIN_MENU_DESIGNER_DIR) test pluginZip $(GRADLE_FLAGS)
+	JAVA_HOME=$(JAVA_HOME) ./gradlew $(PLUGIN_DAEMON) -p $(PLUGIN_MENU_DESIGNER_DIR) test pluginZip $(GRADLE_FLAGS)
 	@echo "==> plugin zip: $$(find $(PLUGIN_MENU_DESIGNER_DIR)/build/plugin-dist -name '*.zip')"
 
 # build the internal post-quantum signature plugin zip (needs the host published locally first)
 plugin-pqc-signature: publish-local
-	JAVA_HOME=$(JAVA_HOME) ./gradlew -p $(PLUGIN_PQC_SIGNATURE_DIR) test pluginZip $(GRADLE_FLAGS)
+	JAVA_HOME=$(JAVA_HOME) ./gradlew $(PLUGIN_DAEMON) -p $(PLUGIN_PQC_SIGNATURE_DIR) test pluginZip $(GRADLE_FLAGS)
 	@echo "==> plugin zip: $$(find $(PLUGIN_PQC_SIGNATURE_DIR)/build/plugin-dist -name '*.zip')"
 
 # build the internal key store plugin zip (needs the host published locally first)
 plugin-keystore: publish-local
-	JAVA_HOME=$(JAVA_HOME) ./gradlew -p $(PLUGIN_KEYSTORE_DIR) test pluginZip $(GRADLE_FLAGS)
+	JAVA_HOME=$(JAVA_HOME) ./gradlew $(PLUGIN_DAEMON) -p $(PLUGIN_KEYSTORE_DIR) test pluginZip $(GRADLE_FLAGS)
 	@echo "==> plugin zip: $$(find $(PLUGIN_KEYSTORE_DIR)/build/plugin-dist -name '*.zip')"
 
 # build the internal file encryption plugin zip (needs the host published locally first)
 plugin-file-crypt: publish-local
-	JAVA_HOME=$(JAVA_HOME) ./gradlew -p $(PLUGIN_FILE_CRYPT_DIR) test pluginZip $(GRADLE_FLAGS)
+	JAVA_HOME=$(JAVA_HOME) ./gradlew $(PLUGIN_DAEMON) -p $(PLUGIN_FILE_CRYPT_DIR) test pluginZip $(GRADLE_FLAGS)
 	@echo "==> plugin zip: $$(find $(PLUGIN_FILE_CRYPT_DIR)/build/plugin-dist -name '*.zip')"
 
 # build the internal secret sharing plugin zip (needs the host published locally first)
 plugin-secret-sharing: publish-local
-	JAVA_HOME=$(JAVA_HOME) ./gradlew -p $(PLUGIN_SECRET_SHARING_DIR) test pluginZip $(GRADLE_FLAGS)
+	JAVA_HOME=$(JAVA_HOME) ./gradlew $(PLUGIN_DAEMON) -p $(PLUGIN_SECRET_SHARING_DIR) test pluginZip $(GRADLE_FLAGS)
 	@echo "==> plugin zip: $$(find $(PLUGIN_SECRET_SHARING_DIR)/build/plugin-dist -name '*.zip')"
 
 # build the internal Lethenon chain plugin zip (needs the host published locally first). Unlike
 # the others this zip carries a library in lib/: the chain itself, which the host does not ship
 plugin-lethenon: publish-local
-	JAVA_HOME=$(JAVA_HOME) ./gradlew -p $(PLUGIN_LETHENON_DIR) test zipTest pluginZip $(GRADLE_FLAGS)
+	JAVA_HOME=$(JAVA_HOME) ./gradlew $(PLUGIN_DAEMON) -p $(PLUGIN_LETHENON_DIR) test zipTest pluginZip $(GRADLE_FLAGS)
 	@echo "==> plugin zip: $$(find $(PLUGIN_LETHENON_DIR)/build/plugin-dist -name '*.zip')"
 
 # the pre-check for ANY bump of crypt-data or mystic-crypt: the host's own suites AND every
@@ -282,6 +286,18 @@ clean-build-installer: plugins
 # when the version carries -SNAPSHOT, which since #247 is the normal state of develop - the flag is
 # what makes the target work at all. A machine without the release.mystic-crypt.* keystore
 # properties cannot build an installer either way; the build says so before izpack does.
+# The full release gate of release-workflow.md step 5, every phase with this Makefile's JAVA_HOME,
+# so that one daemon serves all of them instead of one per JDK, and before each phase the daemons
+# stopped once none of them is building (#580). Each phase overwrites build/test-results; copy them
+# away between phases when a number is in doubt (lessons-learned.md).
+release-gate:
+	scripts/stop-idle-daemons.sh
+	$(MAKE) build-full
+	scripts/stop-idle-daemons.sh
+	JAVA_HOME=$(JAVA_HOME) ./gradlew test --rerun e2eTest --rerun e2eLockTest --rerun e2eKdbxTest --rerun $(GRADLE_FLAGS)
+	scripts/stop-idle-daemons.sh
+	JAVA_HOME=$(JAVA_HOME) ./gradlew build $(GRADLE_FLAGS)
+
 izpack-installer: plugins
 	JAVA_HOME=$(JAVA_HOME) ./gradlew createAllDependendiesJar -PcreateIzPackInstaller=true
 	JAVA_HOME=$(JAVA_HOME) ./gradlew checksumInstaller
