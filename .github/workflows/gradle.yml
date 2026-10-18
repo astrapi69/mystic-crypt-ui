@@ -96,6 +96,17 @@ jobs:
         # that the build brings its own - and a build that could not get one fails, it does not let
         # the AssertJ-Swing tests skip on their headless assumption
         run: ./gradlew build
+      - name: Print what was on screen when a UI test failed
+        # WhatWasOnScreen writes its report to the test JVM's standard output, which Gradle keeps
+        # in the result XML and does not print: a red run's log showed the stack trace and nothing
+        # of what was on screen, and #575 took that for a report that never ran. This puts every
+        # "[on-screen]" line of the e2e suites into the log, where a failure is read first.
+        # Always, not only on failure: a green run prints "0 of N result files carried a report",
+        # which is the evidence that the step reads what the suites wrote
+        if: always()
+        run: >-
+          scripts/print-on-screen-reports.sh build/test-results/e2eTest
+          build/test-results/e2eLockTest build/test-results/e2eKdbxTest
       - name: Upload the test reports
         # a failing UI test prints only its top stack frame to the console; the full trace lives in
         # the xml reports, so keep them when something goes red - otherwise a flaky failure is
