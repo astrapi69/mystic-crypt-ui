@@ -54,6 +54,8 @@ CHANGED:
   18480: its chain ends at block 1,200. It has found 3 blocks for you so far."; then the port, the last block, the
   other nodes connected, the transfers waiting and the blocks found. Why connections were refused is behind "Show
   details". With this, every Lethenon window that answered in a text block answers in fields, in English and German
+- build and tests only: a red CI run prints the report of what was on screen when a UI test failed into its log
+  (#575). The report was written all along, but into the result XML, where a reader of the log did not find it
 
 Version 8.10
 -------------
