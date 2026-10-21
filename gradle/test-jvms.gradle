@@ -11,7 +11,16 @@
 // 512 MB next to the daemon's.
 //
 // Applied by gradle/testing.gradle and by each plugin build, which is a Gradle build of its own.
+//
+// English, in the United States form, whatever the desktop speaks. The suites assert English text and
+// English numbers; since a plugin carries German text (lethenon's messages_de.properties, #540), a JVM
+// that took its language from a German desktop showed that text instead, and the same suite passed on
+// CI and failed at home: 44 of the lethenon plugin's 241 tests under de_DE (#615). The language alone
+// is not enough - with the desktop's country it becomes en_DE, which writes 1,25 for 1.25. A test that
+// checks the German text sets its locale itself.
 tasks.withType(Test).configureEach {
     maxHeapSize = '512m'
     maxParallelForks = 1
+    systemProperty 'user.language', 'en'
+    systemProperty 'user.country', 'US'
 }
