@@ -4,6 +4,13 @@
 Version 8.11 (unreleased)
 -------------
 
+SECURITY:
+- the installer no longer ships commons-beanutils 1.9.4 (CVE-2025-48734), which every published installer from 7 to
+  8.10 carries inside the application jar; 8.11 ships 1.11.0 (#617). It came with mystic-crypt 13.6 and earlier, which
+  13.7 replaces; lethenon 0.7.0 for the Lethenon plugin is built on 13.7 as well. jackson moves to 2.22.4 with it.
+  `RuntimeDependenciesTest` fails when the class path carries commons-beanutils below 1.11.0 or jackson below 2.22.4,
+  and with `-PinstallerUnderTest=<installer.jar>` it reads the same versions out of an installer archive itself
+
 ADDED:
 - the Lethenon plugin remembers the chain file, the wallet file, the node and the SOCKS proxy once they have worked,
   so they are typed once (#605): a window that read or wrote the chain remembers the chain file, one that opened the

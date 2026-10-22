@@ -88,6 +88,14 @@ test {
     // suite's resources (#568), so a changed fixture alone would come back UP-TO-DATE otherwise
     inputs.files(fileTree('src/e2eKdbx/resources/kdbx') { include '*.kdbx' })
         .withPropertyName('kdbxFixtures').withPathSensitivity(PathSensitivity.RELATIVE)
+    // the installer RuntimeDependenciesTest reads with -PinstallerUnderTest=<path>, the published one
+    // after a release (#617); its content is an input, so another installer is checked again
+    def installerUnderTest = findProperty('installerUnderTest')
+    if (installerUnderTest) {
+        systemProperty 'mystic.crypt.ui.installer', file(installerUnderTest).absolutePath
+        inputs.file(installerUnderTest).withPropertyName('installerUnderTest')
+            .withPathSensitivity(PathSensitivity.NONE)
+    }
     applyTestLogging(it)
 }
 
