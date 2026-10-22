@@ -88,6 +88,15 @@ test {
     // suite's resources (#568), so a changed fixture alone would come back UP-TO-DATE otherwise
     inputs.files(fileTree('src/e2eKdbx/resources/kdbx') { include '*.kdbx' })
         .withPropertyName('kdbxFixtures').withPathSensitivity(PathSensitivity.RELATIVE)
+    // the application jar RuntimeDependenciesTest reads with -PapplicationJarUnderTest=<path>, the one
+    // scripts/fetch-release-jar.sh takes out of a published installer (#617); its content is an
+    // input, so another jar is checked again
+    def applicationJarUnderTest = findProperty('applicationJarUnderTest')
+    if (applicationJarUnderTest) {
+        systemProperty 'mystic.crypt.ui.application.jar', file(applicationJarUnderTest).absolutePath
+        inputs.file(applicationJarUnderTest).withPropertyName('applicationJarUnderTest')
+            .withPathSensitivity(PathSensitivity.NONE)
+    }
     applyTestLogging(it)
 }
 
