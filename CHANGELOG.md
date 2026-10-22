@@ -1,16 +1,39 @@
 ## Change log
 ----------------------
 
-Version 8.11 (unreleased)
+Version 8.11
 -------------
 
+The release that takes commons-beanutils 1.9.4 out of the installer: every installer from 7 to 8.10 carries it, and it
+is affected by CVE-2025-48734 (#617). **Update to 8.11.** Also in it: the windows of the Lethenon plugin answer in
+fields a child can read and remember what worked (#604, #605), on lethenon 0.7.0 and mystic-crypt 13.7. The vault
+format does not change. Built with Temurin 25.0.4 (`.sdkmanrc`).
+
 SECURITY:
-- the installer no longer ships commons-beanutils 1.9.4 (CVE-2025-48734), which every published installer from 7 to
-  8.10 carries inside the application jar; 8.11 ships 1.11.0 (#617). It came with mystic-crypt 13.6 and earlier, which
-  13.7 replaces; lethenon 0.7.0 for the Lethenon plugin is built on 13.7 as well. jackson moves to 2.22.4 with it.
-  `RuntimeDependenciesTest` fails when the class path carries commons-beanutils below 1.11.0 or jackson below 2.22.4,
-  and with `-PapplicationJarUnderTest=<jar>` it reads them out of the application jar `scripts/fetch-release-jar.sh`
-  takes from a published installer
+- **Update to 8.11.** Every published installer from 7 to 8.10 carries commons-beanutils 1.9.4 inside the
+  application jar, measured on each installer downloaded from its GitHub release (#617). That version is affected
+  by CVE-2025-48734, fixed in 1.11.0. 8.11 ships commons-beanutils 1.11.0 and jackson 2.22.4,
+  through mystic-crypt 13.7; lethenon 0.7.0 for the Lethenon plugin is built on 13.7 as well. The installers of 8.6
+  and earlier also carry jackson versions with published advisories (8.6: 2.18.2; 8.1.1 to 8.5.1: 2.16.0-rc1; 8:
+  2.17.1; 7 to 7.3: 2.14.2 to 2.15.2); 8.7 to 8.10 carry 2.22.3, which has none
+- mystic-crypt-ui calls commons-beanutils nowhere itself, and no code of the application or its plugins calls the
+  two classes of jobj-compare that do. That a property path from a vault or from an obfuscation rule table the user
+  opens reaches it through the XML reader could not be ruled out; a security advisory with the details follows this
+  release. Until the update: open only vaults you created yourself, and import rule tables only from a source you
+  trust
+- `RuntimeDependenciesTest` fails a build whose class path carries commons-beanutils below 1.11.0 or jackson below
+  2.22.4, and with `-PapplicationJarUnderTest=<jar>` it reads the same versions out of the application jar
+  `scripts/fetch-release-jar.sh` takes from a published installer
+
+FORMAT:
+- the Lethenon plugin moves to lethenon 0.7.0, whose chain database is the one of 0.6.x that 8.10 writes: 0.6.1 and
+  0.7.0 read each other's chains, measured in both directions in lethenon's release run for 0.7.0
+  (`docs/launch/compatibility-0.7.0/` in lethenon). Wallets do not change
+- the vault format does not change: a vault the published 8.10 wrote, through its own save path, opens in 8.11 with
+  every entry as written, and a vault 8.11 writes opens in 8.10, with and without an entry's history and the names of
+  protected properties, and with a group's KeePass times. Measured with the application jar taken from the published
+  8.10 installer and checked against its sha256 (`TheEnvelopeMoveKeepsTheVaultFormatTest` and
+  `VaultOpensInTheLastReleaseTest`, with `-PenvelopeMoveRelease=8.10` and `-PformatCompatibilityRelease=8.10`)
 
 ADDED:
 - the Lethenon plugin remembers the chain file, the wallet file, the node and the SOCKS proxy once they have worked,
