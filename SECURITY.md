@@ -76,6 +76,10 @@ advisory follows the release, never precedes it.
 The first defect handled this way is
 [#237](https://github.com/astrapi69/mystic-crypt-ui/issues/237) (locking the
 workspace left the decrypted vault on screen), found internally on 2026-09-07.
+The second is [#617](https://github.com/astrapi69/mystic-crypt-ui/issues/617):
+every installer from 7 to 8.10 carried commons-beanutils 1.9.4 (CVE-2025-48734),
+fixed in 8.11, advisory
+[GHSA-9m97-3xjj-4gwm](https://github.com/astrapi69/mystic-crypt-ui/security/advisories/GHSA-9m97-3xjj-4gwm).
 
 ## Two things specific to this application
 
@@ -105,6 +109,10 @@ A flaw in *how this application uses* one of them - a vault written with weaker
 parameters than configured, a secret left readable after locking, a password
 reaching a log file or an error dialog - is squarely in scope here.
 
+So is a library the installer ships in a version with a published vulnerability,
+even one this application never declares itself: which version ends up in the
+installer is this project's choice, and a user can only update the application.
+
 ## What this project already does
 
 So that a report can start from what is known rather than from zero:
@@ -119,3 +127,7 @@ So that a report can start from what is known rather than from zero:
   application, not with unit tests alone (`.claude/rules/quality-checks.md`).
 - Test key material and test vaults are generated at test runtime and never
   committed, so nothing in this repository is a real secret.
+- Libraries that arrive only through others, which Dependabot does not see, are
+  held to a floor by `RuntimeDependenciesTest` (commons-beanutils 1.11.0, jackson
+  2.22.4), and every release runs it against the application jar taken from the
+  published installer itself (#617).
