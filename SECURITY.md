@@ -69,6 +69,12 @@ other bug, because that is where its fix, its regression test and its discussion
 already live. What the private path exists for is a report from outside, which
 must not be public before a fix exists.
 
+One internal finding takes the private path as well: one whose details would
+describe a path that is still open in every published release. A public issue
+would hand that path to anyone before a single user could update. Such a finding
+is tracked in a draft advisory, fixed in the advisory's private fork, and becomes
+public with the release that carries the fix.
+
 Both paths end in the same place: once the fixed release is out, the defect gets
 a published advisory naming the affected versions and the fixed one. The
 advisory follows the release, never precedes it.
@@ -80,6 +86,11 @@ The second is [#617](https://github.com/astrapi69/mystic-crypt-ui/issues/617):
 every installer from 7 to 8.10 carried commons-beanutils 1.9.4 (CVE-2025-48734),
 fixed in 8.11, advisory
 [GHSA-9m97-3xjj-4gwm](https://github.com/astrapi69/mystic-crypt-ui/security/advisories/GHSA-9m97-3xjj-4gwm).
+The first internal finding kept private is
+[GHSA-w87j-p568-fr6v](https://github.com/astrapi69/mystic-crypt-ui/security/advisories/GHSA-w87j-p568-fr6v):
+up to 8.11, opening a vault and importing an obfuscation rule table built every
+type of this project's libraries that the file named. It was found on
+2026-10-22 while #617 was examined, and fixed in 8.12.
 
 ## Two things specific to this application
 
