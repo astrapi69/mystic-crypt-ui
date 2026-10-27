@@ -1,16 +1,38 @@
 ## Change log
 ----------------------
 
-Version 8.12 (unreleased)
+Version 8.12
 -------------
 
+The release that narrows what opening a vault and importing an obfuscation rule table build from their files: each
+reader builds only the types its file holds (GHSA-w87j-p568-fr6v, the advisory the notes of 8.11 announced).
+**Update to 8.12.** Also in it: the dependency updates 8.11 did not take (#622). The vault format does not change.
+Built with Temurin 25.0.4 (`.sdkmanrc`).
+
 SECURITY:
-- opening a vault and importing an obfuscation rule table build exactly the types those files hold, and refuse every
-  other type before it is built, also one of this project's own libraries (GHSA-w87j-p568-fr6v). The vault's types
-  were measured over every vault the test suites write and read, with every plugin and the KeePass import, and over
-  the vaults published releases wrote; a rule table holds its rules and their pairs. A vault that names another type is
-  not opened, and the sign-in says so and names the type instead of calling the password wrong; a rule file that names
-  one is not imported, and a dialog says why. Every vault this application wrote keeps opening
+- **Update to 8.12.** Opening a vault and importing an obfuscation rule table read XML with XStream, which up to 8.11
+  built every type of this project's libraries, not only the few a vault or a rule table holds
+  (GHSA-w87j-p568-fr6v). Each reader now builds exactly the types its file holds, besides XStream's own standard
+  types, and refuses every other type before it is built: for a vault six types, measured by recording every type
+  the reader resolves over all test suites, with every plugin installed and the KeePass import; for a rule table its
+  rules and their pairs. A vault that names another type is not opened, and the sign-in says "Database not opened"
+  and names the type instead of calling the password wrong; a rule file that names one is not imported, and a
+  dialog says why
+
+FORMAT:
+- the vault format does not change: a vault that opens in 8.11 opens in 8.12 with the same content. Measured with the
+  application jars of the published installers, for 8.2 and later checked against their published sha256 (8.1.1
+  publishes none): vaults 8.1.1, 8.2, 8.3, 8.4, 8.5 and 8.5.1 wrote through their own save path open in 8.12 with the
+  same entries and groups as in 8.11, and 8.6, 8.7, 8.8, 8.9, 8.10 and 8.11 each write a vault 8.12 opens and open the
+  vaults 8.12 writes (`TheEnvelopeMoveKeepsTheVaultFormatTest` with `-PenvelopeMoveRelease=` each of them). A vault
+  7.x wrote opens in neither 8.11 nor 8.12: a class name changed in 8.1.1 (#624, planned for 8.13)
+
+CHANGED:
+- the dependency updates 8.11 did not take (#622): miglayout-swing 11.5.2, pf4j 3.16.0, izpack-ant 5.2.7, pitest
+  1.30.1, the Gradle plugins io.freefair.lombok 9.8.2 and io.github.ben-manes.versions 0.66.0, and file-worker 19.1,
+  jobj-copy 4.3 and randomizer 10.6 declared as what already ran through mystic-crypt 13.7
+- SECURITY.md: a library the installer ships is in scope, the dependency guard is described, and #617 is the second
+  defect found internally
 
 Version 8.11
 -------------
