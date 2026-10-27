@@ -41,6 +41,7 @@ import io.github.astrapi69.file.create.FileFactory;
 import io.github.astrapi69.file.create.model.FileInfo;
 import io.github.astrapi69.file.read.ReadFileExtensions;
 import io.github.astrapi69.mystic.crypt.ApplicationModelBean;
+import io.github.astrapi69.mystic.crypt.Messages;
 import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
 import io.github.astrapi69.mystic.crypt.key.PrivateKeyDecryptor;
 import io.github.astrapi69.mystic.crypt.key.PrivateKeyGenericDecryptor;
@@ -116,10 +117,8 @@ public class ApplicationXmlFileReader
 		catch (Exception exception)
 		{
 			log.log(Level.SEVERE, exception.getLocalizedMessage(), exception);
-			String title = "Authentication with Password or key file";
-			String htmlMessage = "<html><body width='350'>" + "<h2>" + title + "</h2>"
-				+ "<p> Password or key file or both are not valid" + "<p>" + exception.getMessage();
-			throw new RuntimeException(title + "::" + htmlMessage, exception);
+			throw notOpened("Authentication with Password or key file",
+				"Password or key file or both are not valid", exception);
 		}
 	}
 
@@ -157,10 +156,7 @@ public class ApplicationXmlFileReader
 		}
 		catch (Exception exception)
 		{
-			String title = "Authentication with key file";
-			String htmlMessage = "<html><body width='350'>" + "<h2>" + title + "</h2>"
-				+ "<p> Key file is not valid" + "<p>" + exception.getMessage();
-			throw new RuntimeException(title + "::" + htmlMessage, exception);
+			throw notOpened("Authentication with key file", "Key file is not valid", exception);
 		}
 		return applicationModelBean;
 	}
@@ -177,11 +173,57 @@ public class ApplicationXmlFileReader
 		}
 		catch (Exception exception)
 		{
-			String title = "Authentication with Password";
-			String htmlMessage = "<html><body width='350'>" + "<h2>" + title + "</h2>"
-				+ "<p> Password is not valid" + "<p>" + exception.getMessage();
-			throw new RuntimeException(title + "::" + htmlMessage, exception);
+			throw notOpened("Authentication with Password", "Password is not valid", exception);
 		}
+	}
+
+	/**
+	 * What the sign-in shows when a database could not be opened, as {@code title::html}. A file
+	 * that names a type no database holds says so and names the type, rather than being taken for a
+	 * wrong password or key file; every other failure keeps the given title and reason.
+	 *
+	 * @param title
+	 *            the title of the failure as the sign-in path names it
+	 * @param reason
+	 *            what the sign-in path takes to be wrong
+	 * @param exception
+	 *            what opening threw
+	 * @return the exception to throw
+	 */
+	private static RuntimeException notOpened(final String title, final String reason,
+		final Exception exception)
+	{
+		VaultHoldsAForeignTypeException foreign = foreignTypeIn(exception);
+		if (foreign != null)
+		{
+			log.log(Level.SEVERE, foreign.getMessage(), foreign);
+			String foreignTitle = Messages.getString("dialog.vault.foreign.type.title",
+				"Database not opened");
+			// %1$s rather than {0}: the bundle lookup formats braces itself and fills them with
+			// null
+			String foreignReason = String.format(Messages.getString(
+				"dialog.vault.foreign.type.message",
+				"This file names the type %1$s, which no database of this application holds. It "
+					+ "was not opened."),
+				foreign.getTypeName());
+			return new RuntimeException(foreignTitle + "::" + "<html><body width='350'>" + "<h2>"
+				+ foreignTitle + "</h2>" + "<p>" + foreignReason, exception);
+		}
+		String htmlMessage = "<html><body width='350'>" + "<h2>" + title + "</h2>" + "<p> " + reason
+			+ "<p>" + exception.getMessage();
+		return new RuntimeException(title + "::" + htmlMessage, exception);
+	}
+
+	private static VaultHoldsAForeignTypeException foreignTypeIn(final Throwable failure)
+	{
+		for (Throwable cause = failure; cause != null; cause = cause.getCause())
+		{
+			if (cause instanceof VaultHoldsAForeignTypeException foreign)
+			{
+				return foreign;
+			}
+		}
+		return null;
 	}
 
 	public static ApplicationModelBean getApplicationModelBean(File applicationFile,
