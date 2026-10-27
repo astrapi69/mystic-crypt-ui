@@ -49,6 +49,8 @@ import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
 import io.github.astrapi69.mystic.crypt.key.PrivateKeyStringDecryptor;
 import io.github.astrapi69.mystic.crypt.key.PublicKeyStringEncryptor;
 import io.github.astrapi69.mystic.crypt.plugin.obfuscation.ObfuscationKeyAvailability;
+import io.github.astrapi69.mystic.crypt.plugin.obfuscation.ObfuscationRuleTableXml;
+import io.github.astrapi69.mystic.crypt.plugin.obfuscation.RuleTableHoldsAForeignTypeException;
 import io.github.astrapi69.mystic.crypt.plugin.obfuscation.ObfuscationMessages;
 import io.github.astrapi69.mystic.crypt.ui.form.ToolForm;
 import io.github.astrapi69.swing.base.BasePanel;
@@ -58,7 +60,6 @@ import io.github.astrapi69.swing.table.editor.TableCellButtonEditor;
 import io.github.astrapi69.swing.table.renderer.TableCellButtonRendererFactory;
 import io.github.astrapi69.throwable.RuntimeExceptionDecorator;
 import io.github.astrapi69.xstream.ObjectToXmlExtensions;
-import io.github.astrapi69.xstream.XmlToObjectExtensions;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.extern.java.Log;
@@ -205,12 +206,17 @@ public class ObfuscationRuleTablePanel extends BasePanel<ObfuscationModelBean>
 
 				String xml = RuntimeExceptionDecorator.decorate(() -> decryptor.decrypt(encrypted));
 
-				List<KeyValuePair<Character, ObfuscationRule<Character, Character>>> data = XmlToObjectExtensions
-					.toObject(xml);
+				List<KeyValuePair<Character, ObfuscationRule<Character, Character>>> data = ObfuscationRuleTableXml.toSimpleRules(xml);
 
 				getModelObject().getTableModel().setData(data);
 				getModelObject().getTableModel().fireTableDataChanged();
 
+			}
+			catch (final RuleTableHoldsAForeignTypeException refused)
+			{
+				log.log(Level.SEVERE, refused.getMessage(), refused);
+				JOptionPane.showMessageDialog(this, ObfuscationRuleTableXml.refusalMessage(refused),
+					ObfuscationRuleTableXml.refusalTitle(), JOptionPane.ERROR_MESSAGE);
 			}
 			catch (final IOException e)
 			{
@@ -229,6 +235,7 @@ public class ObfuscationRuleTablePanel extends BasePanel<ObfuscationModelBean>
 
 		lblKeyRules = new javax.swing.JLabel();
 		tblKeyRules = new GenericJTable<>(getModelObject().getTableModel());
+		tblKeyRules.setName("tblKeyRules");
 		// the table opens showing ten rows and takes every further row from the height the window
 		// is given, instead of the fixed 217 px the hand written GroupLayout pinned it to
 		tblKeyRules.setPreferredScrollableViewportSize(new Dimension(

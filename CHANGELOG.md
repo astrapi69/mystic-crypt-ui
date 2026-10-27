@@ -1,6 +1,17 @@
 ## Change log
 ----------------------
 
+Version 8.12 (unreleased)
+-------------
+
+SECURITY:
+- opening a vault and importing an obfuscation rule table build exactly the types those files hold, and refuse every
+  other type before it is built, also one of this project's own libraries (GHSA-w87j-p568-fr6v). The vault's types
+  were measured over every vault the test suites write and read, with every plugin and the KeePass import, and over
+  the vaults published releases wrote; a rule table holds its rules and their pairs. A vault that names another type is
+  not opened, and the sign-in says so and names the type instead of calling the password wrong; a rule file that names
+  one is not imported, and a dialog says why. Every vault this application wrote keeps opening
+
 Version 8.11
 -------------
 

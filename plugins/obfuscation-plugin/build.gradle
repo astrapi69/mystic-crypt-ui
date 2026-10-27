@@ -40,6 +40,11 @@ dependencies {
     compileOnly libs.silly.collection
     compileOnly libs.file.worker
     compileOnly libs.xstream.extensions
+    // the import reads a rule table with an XStream of its own that allows only the rule table's
+    // types, and those types come from crypt-data and crypt-api
+    compileOnly libs.xstream
+    compileOnly libs.crypt.data
+    compileOnly libs.crypt.api
     compileOnly libs.throwable
     compileOnly libs.resourcebundle.core
     compileOnly libs.guava
@@ -70,6 +75,12 @@ dependencies {
     // the panels under test resolve their tooltip text through ObfuscationMessages at
     // construction time, so the resource bundle loader has to be on the test classpath too
     testImplementation libs.resourcebundle.core
+    // the rule table reader is tested against what the export writes
+    testImplementation libs.xstream
+    testImplementation libs.xstream.extensions
+    testImplementation libs.silly.bean
+    testImplementation libs.crypt.data
+    testImplementation libs.crypt.api
 
 }
 

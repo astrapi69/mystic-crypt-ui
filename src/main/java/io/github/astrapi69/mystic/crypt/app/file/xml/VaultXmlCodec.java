@@ -23,10 +23,16 @@ package io.github.astrapi69.mystic.crypt.app.file.xml;
 import java.io.CharArrayReader;
 
 import com.thoughtworks.xstream.XStream;
+import com.thoughtworks.xstream.security.ForbiddenClassException;
 
+import io.github.astrapi69.collection.pair.KeyValuePair;
+import io.github.astrapi69.file.create.model.FileContentInfo;
+import io.github.astrapi69.gen.tree.TreeIdNode;
 import io.github.astrapi69.mystic.crypt.ApplicationModelBean;
 import io.github.astrapi69.mystic.crypt.Messages;
+import io.github.astrapi69.mystic.crypt.panel.dbtree.MysticCryptEntryModelBean;
 import io.github.astrapi69.mystic.crypt.secret.WipingCharWriter;
+import io.github.astrapi69.swing.renderer.tree.GenericTreeElement;
 import io.github.astrapi69.xstream.factory.XStreamFactory;
 
 /**
@@ -75,6 +81,16 @@ public final class VaultXmlCodec
 
 	/** The field of the root element that is written as an attribute */
 	private static final String FORMAT_VERSION_FIELD = "formatVersion";
+
+	/**
+	 * The types of this project's namespace that a vault holds, and the only ones the reader builds
+	 * besides XStream's own standard types. Measured over every vault the test suites write and
+	 * read, the end-to-end suites with every plugin and the KeePass import among them, and the
+	 * vaults the published releases wrote. A type that is not here is refused before it is built.
+	 */
+	private static final Class<?>[] VAULT_TYPES = { ApplicationModelBean.class,
+			MysticCryptEntryModelBean.class, TreeIdNode.class, GenericTreeElement.class,
+			KeyValuePair.class, FileContentInfo.class };
 
 	private VaultXmlCodec()
 	{
@@ -146,23 +162,56 @@ public final class VaultXmlCodec
 	 * @param xml
 	 *            the xml; it is read, not modified, and stays the caller's to overwrite
 	 * @return the model
+	 * @throws VaultHoldsAForeignTypeException
+	 *             when the xml names a type no vault holds; that type is not built
 	 */
 	public static ApplicationModelBean toModel(final char[] xml)
 	{
-		return (ApplicationModelBean)newXStream().fromXML(new CharArrayReader(xml));
+		try
+		{
+			return (ApplicationModelBean)newXStream().fromXML(new CharArrayReader(xml));
+		}
+		catch (RuntimeException failure)
+		{
+			ForbiddenClassException refused = refusalIn(failure);
+			if (refused == null)
+			{
+				throw failure;
+			}
+			throw new VaultHoldsAForeignTypeException(refused.getMessage(), refused);
+		}
 	}
 
 	/**
-	 * The same instance the xstream extensions build: a plain one, with this project's own types
-	 * allowed. Reading uses that permission, writing does not, and both use the same instance so
-	 * the two cannot drift apart. On top of it the format version as an attribute and the skipping
-	 * of unknown elements - see the class Javadoc
+	 * The reader's refusal of a type, wherever XStream wrapped it
+	 *
+	 * @param failure
+	 *            what reading threw
+	 * @return the refusal, or null when the failure is another one
+	 */
+	private static ForbiddenClassException refusalIn(final Throwable failure)
+	{
+		for (Throwable cause = failure; cause != null; cause = cause.getCause())
+		{
+			if (cause instanceof ForbiddenClassException refused)
+			{
+				return refused;
+			}
+		}
+		return null;
+	}
+
+	/**
+	 * One instance for reading and writing, so the two cannot drift apart: XStream with its own
+	 * standard types and {@link #VAULT_TYPES}, nothing else. On top of it the format version as an
+	 * attribute and the skipping of unknown elements - see the class Javadoc
 	 *
 	 * @return the configured instance
 	 */
 	private static XStream newXStream()
 	{
-		XStream xStream = XStreamFactory.initializeXStream(null, null);
+		XStream xStream = XStreamFactory.newXStream();
+		xStream.allowTypes(VAULT_TYPES);
 		xStream.useAttributeFor(ApplicationModelBean.class, FORMAT_VERSION_FIELD);
 		xStream.ignoreUnknownElements();
 		return xStream;
