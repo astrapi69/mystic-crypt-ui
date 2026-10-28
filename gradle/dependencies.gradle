@@ -67,13 +67,17 @@ dependencies {
     implementation libs.gson.extensions
     implementation libs.xstream.extensions
     implementation libs.resourcebundle.core
-    implementation libs.resource.viewmodels
     implementation libs.tree.api
     implementation libs.jobj.cloner
     implementation libs.awt.extensions
     implementation libs.swing.model.components
     implementation libs.swing.wizard
     implementation libs.kee.pass.java2.jackson
+    // Libraries log through the Log4j API and commons-logging; this keeps both routed to SLF4J, as
+    // they were while resource-viewmodels brought this bridge with Spring Boot. Without it, the
+    // Log4j API falls back to its SimpleLogger and commons-logging follows it: library errors and a
+    // StatusLogger complaint on stderr, where there was nothing before (measured, #639)
+    runtimeOnly libs.log4j.to.slf4j
 
     // Note: use of bundles...
     testImplementation libs.bundles.unit.testing

@@ -43,6 +43,7 @@ import java.util.zip.ZipFile;
 
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.ValueSource;
 
 /**
  * What the installer carries must not be what an advisory names (#617).
@@ -63,6 +64,11 @@ import org.junit.jupiter.params.provider.CsvSource;
  * {@code ./scripts/fetch-release-jar.sh 8.11 && ./gradlew test --tests '*.RuntimeDependenciesTest'
  * -PapplicationJarUnderTest=$HOME/.cache/mystic-crypt-ui/release-jars/8.11/mystic-crypt-ui-8.11-app.jar}.
  * Without a jar named, that check is skipped and says so.
+ * <p>
+ * <b>What must not come back (#639).</b> resource-viewmodels, declared from 2022 and used by
+ * nothing, brought Spring Boot Web along: Spring, an embedded Tomcat 9.0.63 and logback 1.2.11 sat
+ * in the application jar, never started, and carried 87 of Dependabot's runtime alerts. The class
+ * path and an application jar under test are held free of that stack.
  */
 class RuntimeDependenciesTest
 {
@@ -98,6 +104,32 @@ class RuntimeDependenciesTest
 
 		assertTrue(compare(version, floor) >= 0,
 			artifact + " " + version + " in " + APPLICATION_JAR + " is below " + floor);
+	}
+
+	@ParameterizedTest(name = "{0} is not on the class path")
+	@ValueSource(strings = { "resource-viewmodels", "spring-boot", "spring-webmvc",
+			"tomcat-embed-core" })
+	void unusedWebStack_isNotOnTheClassPath(final String artifact)
+	{
+		assertEquals(List.of(), versionsOnTheClassPath(artifact),
+			artifact + " is on the class path again (#639)");
+	}
+
+	@ParameterizedTest(name = "the application jar carries nothing under {0}")
+	@ValueSource(strings = { "org/apache/catalina/", "org/springframework/boot/" })
+	void applicationJar_carriesNoUnusedWebStack(final String packagePath) throws IOException
+	{
+		assumeFalse(APPLICATION_JAR.isBlank(),
+			"no application jar named; -PapplicationJarUnderTest=<jar> names one");
+
+		try (ZipFile archive = new ZipFile(APPLICATION_JAR))
+		{
+			long entries = archive.stream().filter(entry -> entry.getName().startsWith(packagePath))
+				.count();
+
+			assertEquals(0, entries, APPLICATION_JAR + " carries " + entries + " entries under "
+				+ packagePath + " (#639)");
+		}
 	}
 
 	private static String versionInTheJar(final Path jar, final String group, final String artifact)
