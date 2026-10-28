@@ -6,7 +6,8 @@
 # The host and every plugin build are submitted, each under a snapshot name of its own. 'runtime'
 # marks what ships: the host's runtimeClasspath, which the installer packages, and the jars a plugin
 # bundles into its zip; everything else - tests, the installer compiler, the build tool - is
-# 'development'.
+# 'development'. A plugin build reports only those bundled jars: what it compiles against is the
+# host's, which the host's manifest reports once instead of 14 times over (#637).
 
 name: Dependency submission
 
@@ -50,6 +51,8 @@ jobs:
         # no graph for this run: it resolves the host a second time
         run: GITHUB_DEPENDENCY_GRAPH_ENABLED=false ./gradlew publishToMavenLocal -x test
       - name: Resolve every plugin build
+        env:
+          DEPENDENCY_GRAPH_INCLUDE_CONFIGURATIONS: '^bundled$'
         run: |
           for build in plugins/*/build.gradle; do
             plugin="$(basename "$(dirname "$build")")"
