@@ -303,14 +303,19 @@ izpack-installer-signed: plugins
 # The full release gate of release-workflow.md step 5, every phase with this Makefile's JAVA_HOME,
 # so that one daemon serves all of them instead of one per JDK, and before each phase the daemons
 # stopped once none of them is building (#580). Each phase overwrites build/test-results; copy them
-# away between phases when a number is in doubt (lessons-learned.md).
+# away between phases when a number is in doubt (lessons-learned.md). The gate ends by checking
+# that the results it leaves are those of the forced phase, not an older run's from the cache (#630).
 release-gate:
 	scripts/stop-idle-daemons.sh
 	$(MAKE) build-full
 	scripts/stop-idle-daemons.sh
+	mkdir -p build && date -u +%s > build/release-gate-forced-run-started
 	JAVA_HOME=$(JAVA_HOME) ./gradlew test --rerun e2eTest --rerun e2eLockTest --rerun e2eKdbxTest --rerun $(GRADLE_FLAGS)
 	scripts/stop-idle-daemons.sh
 	JAVA_HOME=$(JAVA_HOME) ./gradlew build $(GRADLE_FLAGS)
+	scripts/check-forced-run-results.sh "$$(cat build/release-gate-forced-run-started)" \
+		build/test-results/test build/test-results/e2eTest build/test-results/e2eLockTest \
+		build/test-results/e2eKdbxTest
 
 dependencies:
 	JAVA_HOME=$(JAVA_HOME) ./gradlew dependencies $(GRADLE_FLAGS)

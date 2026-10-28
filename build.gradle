@@ -93,7 +93,10 @@ tasks.withType(Test).configureEach {
     def releaseJarsRoot = System.getenv("MYSTIC_CRYPT_UI_RELEASE_JARS") ?:
         "${System.getProperty('user.home')}/.cache/mystic-crypt-ui/release-jars"
     it.systemProperty "mystic.crypt.ui.release.version", formatCompatibilityRelease
-    def releaseJar = "${releaseJarsRoot}/${formatCompatibilityRelease}/mystic-crypt-ui-${formatCompatibilityRelease}-app.jar"
+    // a String, not a GString: Gradle fingerprints a GString by serializing it, and GStringImpl
+    // keeps its first toString() in a field it serializes, so the cache key followed whatever had
+    // printed the value before - `build` and `test` got different keys for the same task (#630)
+    def releaseJar = "${releaseJarsRoot}/${formatCompatibilityRelease}/mystic-crypt-ui-${formatCompatibilityRelease}-app.jar".toString()
     it.systemProperty "mystic.crypt.ui.release.jar", releaseJar
     // both decide whether VaultOpensInTheLastReleaseTest runs, skips or fails, so both are inputs:
     // otherwise a skip recorded without the jar is restored from the build cache after the jar
@@ -103,7 +106,7 @@ tasks.withType(Test).configureEach {
     // the second release jar: the last release that sealed with the application's own envelope,
     // which TheEnvelopeMoveKeepsTheVaultFormatTest writes and reads against (#490)
     it.systemProperty "mystic.crypt.ui.envelope.release.version", envelopeMoveRelease
-    def envelopeReleaseJar = "${releaseJarsRoot}/${envelopeMoveRelease}/mystic-crypt-ui-${envelopeMoveRelease}-app.jar"
+    def envelopeReleaseJar = "${releaseJarsRoot}/${envelopeMoveRelease}/mystic-crypt-ui-${envelopeMoveRelease}-app.jar".toString()
     it.systemProperty "mystic.crypt.ui.envelope.release.jar", envelopeReleaseJar
     it.inputs.files(envelopeReleaseJar).optional().withPropertyName('envelopeReleaseJar')
         .withPathSensitivity(PathSensitivity.NONE)
