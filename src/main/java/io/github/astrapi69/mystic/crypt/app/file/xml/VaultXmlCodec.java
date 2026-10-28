@@ -204,10 +204,9 @@ public final class VaultXmlCodec
 	/**
 	 * One instance for reading and writing, so the two cannot drift apart: XStream with its own
 	 * standard types and {@link #VAULT_TYPES}, nothing else. On top of it the format version as an
-	 * attribute and the skipping of unknown elements - see the class Javadoc. Read with XStream
-	 * itself, never through {@code XmlToObjectExtensions.toObject(XStream, ...)} or
-	 * {@code XStreamFactory.initializeXStream}: both add {@code io.github.astrapi69.**} to the
-	 * instance they are given, which would undo this restriction (xstream-extensions#1)
+	 * attribute and the skipping of unknown elements - see the class Javadoc. The instance comes
+	 * from {@link XStreamFactory} of xstream-extensions, a dependency; reading and writing call
+	 * XStream on it directly
 	 *
 	 * @return the configured instance
 	 */
