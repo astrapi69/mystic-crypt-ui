@@ -108,10 +108,8 @@ public final class ObfuscationRuleTableXml
 	}
 
 	/**
-	 * Reads with XStream itself, never through {@code XmlToObjectExtensions.toObject(XStream, ...)}
-	 * or {@code XStreamFactory.initializeXStream}: both add {@code io.github.astrapi69.**} to the
-	 * instance they are given, which would undo the restriction to the table's types
-	 * (xstream-extensions#1)
+	 * Reads the table with XStream, on an instance from {@code XStreamFactory} of
+	 * xstream-extensions, a dependency, that is allowed the table's types
 	 *
 	 * @param xml
 	 *            the decrypted rule table
