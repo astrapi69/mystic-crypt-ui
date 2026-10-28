@@ -78,7 +78,8 @@ Prompt triggers: "release new version", "new release".
      per suite, plus an `executed in this build` line that is ABSENT when the task was
      UP-TO-DATE or FROM-CACHE and only restored its results. Read it, and read the XML in
      `build/test-results/test`, `e2eTest`, `e2eLockTest` and `e2eKdbxTest` when a number is in
-     doubt.
+     doubt. Since #630 the gate ends by checking that those files are the forced phase's: the
+     final `build` once restored an older run's results over them while the gate read green.
      An empty result set is not a green gate.
    - force the TEST TASKS only, each one: `./gradlew test --rerun e2eTest --rerun
      e2eLockTest --rerun e2eKdbxTest --rerun`, then `./gradlew build`. `--rerun` is a task
