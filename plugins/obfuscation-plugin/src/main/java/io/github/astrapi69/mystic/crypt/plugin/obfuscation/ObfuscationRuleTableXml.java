@@ -107,6 +107,20 @@ public final class ObfuscationRuleTableXml
 			refusal.getTypeName());
 	}
 
+	/**
+	 * Reads with XStream itself, never through {@code XmlToObjectExtensions.toObject(XStream, ...)}
+	 * or {@code XStreamFactory.initializeXStream}: both add {@code io.github.astrapi69.**} to the
+	 * instance they are given, which would undo the restriction to the table's types
+	 * (xstream-extensions#1)
+	 *
+	 * @param xml
+	 *            the decrypted rule table
+	 * @param types
+	 *            the types the table holds, besides XStream's own standard types
+	 * @return the rule table
+	 * @throws RuleTableHoldsAForeignTypeException
+	 *             when the xml names another type; that type is not built
+	 */
 	@SuppressWarnings("unchecked")
 	private static <T> T read(final String xml, final Class<?>[] types)
 	{
