@@ -1,6 +1,17 @@
 ## Change log
 ----------------------
 
+Version 8.13 (unreleased)
+-------------
+
+CHANGED:
+- resource-viewmodels is gone (#639). Declared since 2022 and used by nothing, it brought Spring Boot Web along: Spring,
+  an embedded Tomcat 9.0.63 and logback 1.2.11 sat in the application, never started, and carried 87 of the open
+  Dependabot alerts on what the application ships. The runtime class path holds 145 libraries instead of 171. Logging
+  does not change: the application logs through java.util.logging as before, and the libraries' Log4j API and
+  commons-logging calls take the route they took, now through log4j-to-slf4j 2.26.1, declared on its own (log4j-api
+  2.18.0 to 2.26.1, slf4j-api 2.0.6 to 2.0.17)
+
 Version 8.12
 -------------
 

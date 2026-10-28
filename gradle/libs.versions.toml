@@ -20,6 +20,7 @@ gen-tree-version = "11.1.2"
 gradle-izpack-plugin-version = "3.2"
 jacoco-version = "0.8.15"
 gradle-plugin-pitest-version = "1.19.0"
+log4j-version = "2.26.1"
 pitest-junit5-plugin-version = "1.2.3"
 pitest-version = "1.30.1"
 gradle-plugin-license-version = "0.16.1"
@@ -59,7 +60,6 @@ net-extensions-version = "6.1"
 observer-version = "6"
 pf4j-version = "3.16.0"
 randomizer-version = "10.6"
-resource-viewmodels-version = "6"
 resourcebundle-core-version = "6.1"
 silk-icon-theme-version = "1"
 silly-bean-version = "3.0"
@@ -124,6 +124,7 @@ junit-platform-launcher = { module = "org.junit.platform:junit-platform-launcher
 jxlayer = { module = "org.swinglabs:jxlayer", version.ref = "jxlayer-version" }
 kee-pass-java2-jackson = { module = "org.linguafranca.pwdb:KeePassJava2.kdbx.database", version.ref = "kee-pass-java2-version" }
 lgood-date-picker = { module = "com.github.lgooddatepicker:LGoodDatePicker", version.ref = "lgood-date-picker-version" }
+log4j-to-slf4j = { module = "org.apache.logging.log4j:log4j-to-slf4j", version.ref = "log4j-version" }
 lombok = { module = "org.projectlombok:lombok", version.ref = "lombok-version" }
 meanbean = { module = "com.github.meanbeanlib:meanbean", version.ref = "meanbean-version" }
 menu-action = { module = "io.github.astrapi69:menu-action", version.ref = "menu-action-version" }
@@ -137,7 +138,6 @@ net-extensions = { module = "io.github.astrapi69:net-extensions", version.ref = 
 observer = { module = "io.github.astrapi69:observer", version.ref = "observer-version" }
 pf4j = { module = "org.pf4j:pf4j", version.ref = "pf4j-version" }
 randomizer = { module = "io.github.astrapi69:randomizer", version.ref = "randomizer-version" }
-resource-viewmodels = { module = "io.github.astrapi69:resource-viewmodels", version.ref = "resource-viewmodels-version" }
 resourcebundle-core = { module = "io.github.astrapi69:resourcebundle-core", version.ref = "resourcebundle-core-version" }
 silk-icon-theme = { module = "io.github.astrapi69:silk-icon-theme", version.ref = "silk-icon-theme-version" }
 silly-bean = { module = "io.github.astrapi69:silly-bean", version.ref = "silly-bean-version" }
