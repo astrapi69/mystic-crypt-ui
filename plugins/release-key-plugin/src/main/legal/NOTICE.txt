@@ -1,0 +1,12 @@
+The release key plugin of mystic-crypt-ui, and what its zip carries besides its own classes
+==========================================================================================
+
+The plugin's own classes are under the MIT License of mystic-crypt-ui. Its zip also carries one
+library under lib/, which is not covered by that licence. Its licence text is in this directory,
+taken unchanged from the jar it belongs to.
+
+lib/bcpg-jdk18on-<version>.jar
+    The Bouncy Castle OpenPGP API: https://www.bouncycastle.org/
+    Copyright (c) 2000-2026 The Legion of the Bouncy Castle Inc.
+    The jar carries the MIT License as its licence; its Maven POM names the Bouncy Castle Licence
+    and the Apache License 2.0. The licence: bcpg-jdk18on/LICENSE.md

@@ -31,6 +31,7 @@ PLUGIN_KEYSTORE_DIR := plugins/keystore-plugin
 PLUGIN_FILE_CRYPT_DIR := plugins/file-crypt-plugin
 PLUGIN_SECRET_SHARING_DIR := plugins/secret-sharing-plugin
 PLUGIN_LETHENON_DIR := plugins/lethenon-plugin
+PLUGIN_RELEASE_KEY_DIR := plugins/release-key-plugin
 PLUGIN_INSTALL_DIR := $(HOME)/.config/mystic-crypt-ui/plugins
 
 .PHONY: merge-pr test-fast release-jar release-jar-if-reachable build build-full build-with-plugins bwp run run-isolated all clean test test-e2e test-e2e-demo \
@@ -40,7 +41,7 @@ PLUGIN_INSTALL_DIR := $(HOME)/.config/mystic-crypt-ui/plugins
 	version-catalog-format version-catalog-update all-dependencies-jar \
 	build-stacktrace build-warning bump-check plugin-obfuscation plugin-checksum plugin-conversion \
 	plugin-console plugin-keygen plugin-certificate plugin-password-hash plugin-kem-demo \
-	plugin-menu-designer plugin-pqc-signature plugin-keystore plugin-file-crypt plugin-secret-sharing plugin-lethenon plugins plugins-install \
+	plugin-menu-designer plugin-pqc-signature plugin-keystore plugin-file-crypt plugin-secret-sharing plugin-lethenon plugin-release-key plugins plugins-install \
 	install-hooks check-commit-provenance
 
 # point git at the repository's own hooks, so the commit-msg check runs before a commit exists.
@@ -220,6 +221,13 @@ plugin-lethenon: publish-local
 	JAVA_HOME=$(JAVA_HOME) ./gradlew $(PLUGIN_DAEMON) -p $(PLUGIN_LETHENON_DIR) test zipTest pluginZip $(GRADLE_FLAGS)
 	@echo "==> plugin zip: $$(find $(PLUGIN_LETHENON_DIR)/build/plugin-dist -name '*.zip')"
 
+# build the internal release key plugin zip (needs the host published locally first). Like the
+# Lethenon plugin's, this zip carries a library in lib/: Bouncy Castle's OpenPGP module, which the
+# host does not ship (#644). Its tests run gpg, in temporary homes of their own
+plugin-release-key: publish-local
+	JAVA_HOME=$(JAVA_HOME) ./gradlew $(PLUGIN_DAEMON) -p $(PLUGIN_RELEASE_KEY_DIR) test zipTest pluginZip $(GRADLE_FLAGS)
+	@echo "==> plugin zip: $$(find $(PLUGIN_RELEASE_KEY_DIR)/build/plugin-dist -name '*.zip')"
+
 # the pre-check for ANY bump of crypt-data or mystic-crypt: the host's own suites AND every
 # internal plugin. The plugins depend on crypt-data DIRECTLY, so a breaking change there can leave
 # the host green and a plugin red - measured on the 13.3 bump (#480), where crypt-data 13.0's
@@ -234,7 +242,7 @@ bump-check:
 	@echo "==> bump-check: the host suites and all internal plugins are green"
 
 # build every internal plugin
-plugins: plugin-obfuscation plugin-checksum plugin-conversion plugin-console plugin-keygen plugin-certificate plugin-password-hash plugin-kem-demo plugin-menu-designer plugin-pqc-signature plugin-keystore plugin-file-crypt plugin-secret-sharing plugin-lethenon
+plugins: plugin-obfuscation plugin-checksum plugin-conversion plugin-console plugin-keygen plugin-certificate plugin-password-hash plugin-kem-demo plugin-menu-designer plugin-pqc-signature plugin-keystore plugin-file-crypt plugin-secret-sharing plugin-lethenon plugin-release-key
 
 # build all internal plugins and install them into the app's plugins directory
 plugins-install: plugins
@@ -253,6 +261,7 @@ plugins-install: plugins
 	cp $(PLUGIN_FILE_CRYPT_DIR)/build/plugin-dist/*.zip "$(PLUGIN_INSTALL_DIR)/"
 	cp $(PLUGIN_SECRET_SHARING_DIR)/build/plugin-dist/*.zip "$(PLUGIN_INSTALL_DIR)/"
 	cp $(PLUGIN_LETHENON_DIR)/build/plugin-dist/*.zip "$(PLUGIN_INSTALL_DIR)/"
+	cp $(PLUGIN_RELEASE_KEY_DIR)/build/plugin-dist/*.zip "$(PLUGIN_INSTALL_DIR)/"
 	@# pf4j loads an already extracted plugin directory in preference to the zip beside it, so a
 	@# directory left over from an earlier install keeps serving old code however often the zip is
 	@# replaced - the freshly installed zip has to be the only thing left to extract

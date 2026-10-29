@@ -4,6 +4,15 @@
 Version 8.13 (unreleased)
 -------------
 
+ADDED:
+- a release key plugin (#644, the first stage of #642): with a vault open, "Plugins > Release Key > Key Status" shows
+  what a GnuPG home holds - every key with its use, algorithm, creation and expiry, whether its secret part is in the
+  home or offline, and whether gpg keeps a revocation certificate that really revokes the primary key. It reads
+  `~/.gnupg` (or `GNUPGHOME`, or the home named in its settings) with Bouncy Castle's OpenPGP readers, never runs gpg
+  and never writes a byte there. Set the release key's fingerprint in its settings and it shows that certificate
+  alone. Its zip brings Bouncy Castle's OpenPGP module (bcpg 1.86) with its licence, which the installer installs
+  under `legal/release-key-plugin`
+
 CHANGED:
 - resource-viewmodels is gone (#639). Declared since 2022 and used by nothing, it brought Spring Boot Web along: Spring,
   an embedded Tomcat 9.0.63 and logback 1.2.11 sat in the application, never started, and carried 87 of the open

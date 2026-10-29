@@ -1,8 +1,9 @@
 # Release keys in mystic-crypt-ui: OpenPGP through Bouncy Castle, the primary key in the vault
 
 A record of the decision taken in [#642](https://github.com/astrapi69/mystic-crypt-ui/issues/642) on
-2026-10-29, not a rule. It describes the decision and what was measured for it; the plugin that
-follows from it does not exist yet.
+2026-10-29, not a rule. It describes the decision and what was measured for it. Of the plugin that
+follows from it, the status view of a GnuPG home exists (`plugins/release-key-plugin`, #644); the rest
+of stage 1 and stages 2 and 3 do not.
 
 ## The decision
 
@@ -82,8 +83,9 @@ A throwaway GnuPG 2.4.8 home in the state of the real key:
 - in both, the primary key's secret removed and the subkeys imported again;
 - gpg's own revocation certificates in `openpgp-revocs.d`.
 
-It was read with `bcpg`, `bcprov` and `bcutil` 1.86 only. The probe sources become the plugin's tests
-in stage 1.
+It was read with `bcpg`, `bcprov` and `bcutil` 1.86 only. The probes became the plugin's tests (#644):
+`GnuPgHomeSupportTest` lets gpg write such a home in a temporary directory and measures every answer
+of the reader against what `gpg --with-colons` says about the same home.
 
 - `BcKeyBox` reads `pubring.kbx`: both keys, every subkey with its expiry.
 - The revocation certificates in `openpgp-revocs.d` parse as signatures of type 0x20 (key revocation)
@@ -99,6 +101,21 @@ in stage 1.
   six keys: the primary keys offline, the subkeys present, each found under the file name `gpg` shows
   as its keygrip.
 
+Two more findings from building the reader on it (#644):
+
+- `SExpression.hasLabel` casts the expression's first value without looking, and throws a
+  `ClassCastException` for an expression that starts with another expression, which gpg's protected
+  keys contain. The reader checks the value's type first.
+- gpg writes the explanation above the armor of a revocation certificate in the user's language. On
+  the maintainer's keyring, in German, the umlauts made a reader that expected ASCII call both
+  certificates unreadable. It reads the file byte for byte now, and a test pins the German first line.
+
+Run against the maintainer's keyring on 2026-10-29, the reader gives gpg's answer for every key of the
+release key: use, creation, expiry and where the secret part is. Measured by calling
+`GnuPgHomeSupport.read` on `~/.gnupg` from a probe outside the repository and comparing it line by line
+with `gpg --with-colons --with-subkey-fingerprint --list-secret-keys <fingerprint>`; the same probe
+showed the two unreadable revocation certificates, and after the fix both valid.
+
 The keygrip difference is worth a report to Bouncy Castle. Posting there is the maintainer's call.
 
 ## Where the code goes
@@ -106,7 +123,9 @@ The keygrip difference is worth a report to Bouncy Castle. Posting there is the 
 This is a proposal, open for the maintainer:
 
 - **Stage 1, read only:** the plugin's support layer reads with `bcpg` directly, for display. It
-  writes nothing, so no building block is shared beyond the plugin.
+  writes nothing, so no building block is shared beyond the plugin. Built this way for the GnuPG home
+  (#644); `bcpg` comes with the plugin's zip, which carries it under `lib/` with its licence, since
+  the host does not ship it.
 - **Stage 2:** the steps that create or change key material go into the mystic-crypt library first and
   are consumed from there, as architecture.md asks of every cryptographic building block and of new
   command-line capability:
@@ -127,6 +146,7 @@ OpenPGP signatures instead: the `.asc` beside a file, the form Maven Central req
 
 ## What is still open
 
+- **The rest of stage 1:** the offline media and the CI working folder, and the CI secrets' dates.
 - **Stage 1 needs a source for the CI secrets' dates.** The read-only GitHub token gets 403 on
   `repos/.../actions/secrets` and on `orgs/.../actions/secrets` (measured 2026-10-29, #642). It needs
   read access to secrets (metadata only; GitHub never returns a value), or the dates come from
