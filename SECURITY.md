@@ -91,6 +91,13 @@ The first internal finding kept private is
 up to 8.11, opening a vault and importing an obfuscation rule table built every
 type of this project's libraries that the file named. It was found on
 2026-10-22 while #617 was examined, and fixed in 8.12.
+The second is
+[GHSA-xp4c-rpcx-hw5c](https://github.com/astrapi69/mystic-crypt-ui/security/advisories/GHSA-xp4c-rpcx-hw5c):
+up to 8.12, opening a vault with a key file read the vault file with Java
+serialization, without a filter, in the library mystic-crypt
+([GHSA-87j9-xjf5-f387](https://github.com/astrapi69/mystic-crypt/security/advisories/GHSA-87j9-xjf5-f387)).
+Both drafts were opened on 2026-10-29, and the fix shipped the same day in
+mystic-crypt 13.8 and in 8.13.
 
 ## Two things specific to this application
 
