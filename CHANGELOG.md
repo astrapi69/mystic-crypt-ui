@@ -1,8 +1,12 @@
 ## Change log
 ----------------------
 
-Version 8.13 (unreleased)
+Version 8.13
 -------------
+
+The release that reads a vault opened with a key file only as the types such a file holds (GHSA-xp4c-rpcx-hw5c), through
+mystic-crypt 13.8 (GHSA-87j9-xjf5-f387). **Update to 8.13.** It also removes resource-viewmodels and the Spring Boot Web stack
+that came with it (#639). The vault format does not change. Built with Temurin 25.0.4 (`.sdkmanrc`).
 
 SECURITY:
 - **Update to 8.13.** Opening a vault with a key file read the file with Java serialization, without a filter, before
@@ -11,18 +15,27 @@ SECURITY:
   - 8.13 ships mystic-crypt 13.8, which reads such a file through an allow-list of exactly the types it holds, with
     limits for depth, references, array length and size. A file that names any other type is refused before that type
     is built.
-  - Vaults that 8.1.1 to 8.12 wrote with a key file still open. This was measured with a vault written by the
-    application jars of 8.1.1, 8.5, 8.10 and 8.12, taken from their installers.
-  - The fix adds no new incompatibility: a vault that 8 wrote with a key file does not open in 8.12 either, because
-    8.1.1 changed how the content is encrypted, and it does not open in 8.13.
+  - There is no separate fix for 6.x or 7.x; users of these versions update to 8.13, which requires JDK 25.
 
 CHANGED:
+- mystic-crypt 13.8 (GHSA-87j9-xjf5-f387). It brings Bouncy Castle's OpenPGP module, bcpg 1.86, for the GnuPG home
+  reader that the release key plugin will use (#642). Bouncy Castle itself stays at 1.86.
 - resource-viewmodels is gone (#639). Declared since 2022 and used by nothing, it brought Spring Boot Web along: Spring,
   an embedded Tomcat 9.0.63 and logback 1.2.11 sat in the application, never started, and carried 87 of the open
-  Dependabot alerts on what the application ships. The runtime class path holds 145 libraries instead of 171. Logging
-  does not change: the application logs through java.util.logging as before, and the libraries' Log4j API and
-  commons-logging calls take the route they took, now through log4j-to-slf4j 2.26.1, declared on its own (log4j-api
-  2.18.0 to 2.26.1, slf4j-api 2.0.6 to 2.0.17)
+  Dependabot alerts on what the application ships. It took the runtime class path from 171 libraries to 145; with bcpg,
+  8.13 ships 146. Logging does not change: the application logs through java.util.logging as before, and the
+  libraries' Log4j API and commons-logging calls take the route they took, now through log4j-to-slf4j 2.26.1, declared
+  on its own (log4j-api 2.18.0 to 2.26.1, slf4j-api 2.0.6 to 2.0.17).
+- jackson-databind stays at 2.22.4, as in 8.11 and 8.12. The catalog's own entry moved from 2.22.2 to 2.22.3, below
+  what the Jackson BOM resolves, so the shipped version does not change.
+
+FORMAT:
+- The vault format does not change. Vaults that 8.1.1 to 8.12 wrote with a key file open in 8.13. This was measured with
+  a vault written by the application jars of 8.1.1, 8.5, 8.10 and 8.12, taken from their installers.
+- Two older kinds of vault open neither in 8.12 nor in 8.13, for reasons that predate this release:
+  - a vault that 8 wrote with a key file, because 8.1.1 changed the encryption of the content; it gets an issue of its
+    own after this release;
+  - a vault that 7.x wrote (#624, which moves to the next release).
 
 Version 8.12
 -------------
