@@ -1,12 +1,14 @@
 # Release keys in mystic-crypt-ui: OpenPGP through Bouncy Castle, the primary key in the vault
 
 A record of the decision taken in [#642](https://github.com/astrapi69/mystic-crypt-ui/issues/642) on
-2026-10-29, not a rule. It describes the decision and what was measured for it; the plugin that
-follows from it does not exist yet.
+2026-10-29, not a rule. It describes the decision and what was measured for it. Of what follows
+from it, the reader of stage 1a goes into the mystic-crypt library
+(astrapi69/mystic-crypt#211). The plugin's view waits in pull request #645 for a mystic-crypt
+release that carries it.
 
 ## The decision
 
-Taken by the maintainer on 2026-10-29 (his words are quoted in #642):
+Taken by the maintainer on 2026-10-29 (the words are quoted in #642):
 
 - OpenPGP is done through Bouncy Castle's `bcpg`, not by driving the `gpg` command line.
 - The primary key lives in the vault.
@@ -14,6 +16,20 @@ Taken by the maintainer on 2026-10-29 (his words are quoted in #642):
   gpg's store itself.
 - Reading `pubring.kbx` and `private-keys-v1.d` with Bouncy Castle's readers is allowed, for display.
 - Signing and verifying files is rebuilt with OpenPGP signatures (see "The predecessor").
+
+Taken the same day after this record and stage 1a (comment in #642):
+
+- `bcpg` directly, not PGPainless, as recommended below. Stages 2 and 3 are approved.
+- **Library first.** What a user triggers is built in the mystic-crypt library, with a command of its
+  own, and the plugin uses only the library. The reader of stage 1a is
+  `io.github.astrapi69.mystic.crypt.gnupg` there, with `release-key status` and `--json` on its
+  command line. mystic-crypt's `.claude/rules/library-first.md` carries the rule. Passphrases come
+  only from standard input or a hidden prompt, never from an argument.
+- **Stage 1c stays in the plugin.** The dates of the CI secrets are GitHub's, not OpenPGP's, and
+  `gh secret list` is already the command line for them: names and dates, never a value. No library
+  command is built for it. The read-only token gets read access to secrets for astrapi69. A second
+  token follows for lightblueseas, and until it exists the view shows a note for organization
+  secrets instead of an error.
 
 ## What was weighed
 
@@ -72,7 +88,7 @@ keyrings and gpg's files, generating and editing keys, changing a protection, an
 The Argon2 flaw in Bouncy Castle's OpenPGP (CVE-2026-59648) is fixed from 1.85 on.
 
 **Recommendation:** `bcpg` directly, through its high-level API. PGPainless only if a needed function
-turns out to be missing there. The decision is the maintainer's.
+turns out to be missing there. Decided so by the maintainer on 2026-10-29.
 
 ## What was measured for the readers
 
@@ -103,10 +119,10 @@ The keygrip difference is worth a report to Bouncy Castle. Posting there is the 
 
 ## Where the code goes
 
-This is a proposal, open for the maintainer:
+Decided on 2026-10-29: library first.
 
-- **Stage 1, read only:** the plugin's support layer reads with `bcpg` directly, for display. It
-  writes nothing, so no building block is shared beyond the plugin.
+- **Stage 1, read only:** the reader is in mystic-crypt and reads with `bcpg` directly; the plugin
+  shows what it returns. Stage 1c, the dates of the CI secrets, stays in the plugin (see above).
 - **Stage 2:** the steps that create or change key material go into the mystic-crypt library first and
   are consumed from there, as architecture.md asks of every cryptographic building block and of new
   command-line capability:
@@ -114,7 +130,8 @@ This is a proposal, open for the maintainer:
   - protecting it again with the CI passphrase;
   - signing and verifying files with detached OpenPGP signatures;
   - the sealed-box encryption GitHub requires for secret values.
-- `bcpg-jdk18on` comes in as a dependency, in the version of the other Bouncy Castle modules (1.86).
+- `bcpg-jdk18on` comes into mystic-crypt as a dependency, in the version of the other Bouncy Castle
+  modules (1.86), and reaches the plugin through the library.
 
 ## The predecessor
 
@@ -127,10 +144,9 @@ OpenPGP signatures instead: the `.asc` beside a file, the form Maven Central req
 
 ## What is still open
 
-- **Stage 1 needs a source for the CI secrets' dates.** The read-only GitHub token gets 403 on
-  `repos/.../actions/secrets` and on `orgs/.../actions/secrets` (measured 2026-10-29, #642). It needs
-  read access to secrets (metadata only; GitHub never returns a value), or the dates come from
-  somewhere else.
-- **Stages 2 and 3 wait** for the decision on the open points above.
+- **The dates of the CI secrets need the token's new right.** The read-only GitHub token got 403 on
+  `repos/.../actions/secrets` and on `orgs/.../actions/secrets` (measured 2026-10-29, #642). Read
+  access to secrets is metadata only; GitHub never returns a value.
+- **Stage 1b comes next:** the offline media and the CI working folder.
 - **Acceptance stays as #642 states it:** every step the maintainer has done by hand, from
   `release-key.md` and from the status file, works in the plugin without a terminal.
