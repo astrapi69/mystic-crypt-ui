@@ -115,7 +115,16 @@ in stage 1.
   six keys: the primary keys offline, the subkeys present, each found under the file name `gpg` shows
   as its keygrip.
 
-The keygrip difference is worth a report to Bouncy Castle. Posting there is the maintainer's call.
+Two findings from building the reader were reported to Bouncy Castle by the maintainer on 2026-10-29,
+each with a minimal reproduction:
+
+- the keygrip of RSA keys, which is computed without the leading zero byte of `n` that gpg hashes:
+  [bcgit/bc-java#2534](https://github.com/bcgit/bc-java/issues/2534);
+- `SExpression.hasLabel`, which throws a `ClassCastException` for an expression that starts with
+  another expression, as gpg's protected keys contain:
+  [bcgit/bc-java#2535](https://github.com/bcgit/bc-java/issues/2535).
+
+The reader works around both, so it does not depend on how they are resolved.
 
 ## Where the code goes
 
