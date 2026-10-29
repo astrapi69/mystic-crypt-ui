@@ -4,6 +4,18 @@
 Version 8.13 (unreleased)
 -------------
 
+SECURITY:
+- **Update to 8.13.** Opening a vault with a key file read the file with Java serialization, without a filter, before
+  anything was decrypted. A crafted or replaced vault file chose which classes of the application were built while it
+  was opened (GHSA-xp4c-rpcx-hw5c).
+  - 8.13 ships mystic-crypt 13.8, which reads such a file through an allow-list of exactly the types it holds, with
+    limits for depth, references, array length and size. A file that names any other type is refused before that type
+    is built.
+  - Vaults that 8.1.1 to 8.12 wrote with a key file still open. This was measured with a vault written by the
+    application jars of 8.1.1, 8.5, 8.10 and 8.12, taken from their installers.
+  - The fix adds no new incompatibility: a vault that 8 wrote with a key file does not open in 8.12 either, because
+    8.1.1 changed how the content is encrypted, and it does not open in 8.13.
+
 CHANGED:
 - resource-viewmodels is gone (#639). Declared since 2022 and used by nothing, it brought Spring Boot Web along: Spring,
   an embedded Tomcat 9.0.63 and logback 1.2.11 sat in the application, never started, and carried 87 of the open
