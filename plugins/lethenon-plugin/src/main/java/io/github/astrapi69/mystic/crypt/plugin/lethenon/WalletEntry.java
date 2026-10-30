@@ -37,6 +37,24 @@ final class WalletEntry
 		return entry;
 	}
 
+	/** An entry with no properties, for a host entry that has none yet */
+	static WalletEntry empty()
+	{
+		return new WalletEntry();
+	}
+
+	/** The names of the properties, in the order they were set */
+	java.util.Set<String> propertyNames()
+	{
+		return properties.keySet();
+	}
+
+	/** The value of a property as text, for the host's model, which holds text */
+	String textOf(final String name)
+	{
+		return new String(properties.get(name).value);
+	}
+
 	boolean hasProperty(final String name)
 	{
 		return properties.containsKey(name);
