@@ -29,12 +29,14 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import io.github.astrapi69.lethenon.Wallet;
+
 
 /**
  * The wallet in the vault: the words are stored only on the user's explicit choice, read back only
@@ -99,6 +101,21 @@ class WalletInVaultTest
 
 		assertTrue(question.answer(WORDS.get(3), WORDS.get(10), WORDS.get(18)).correct());
 		assertFalse(question.answer(WORDS.get(3), "wrong", WORDS.get(18)).correct());
+	}
+
+	@Test
+	@DisplayName("the right 24 words give the wallet's address, and a wrong word does not")
+	void theRightWordsGiveTheWalletsAddress()
+	{
+		Wallet wallet = Wallet.fromPhrase(String.join(" ", WORDS));
+		WalletEntry entry = WalletEntry.newEntry("testnet");
+		entry.setProperty(WalletEntry.ADDRESS, wallet.address().toText().toCharArray(), false);
+
+		assertTrue(BackupCheck.run(WORDS, entry), "the right words must give the same address");
+
+		List<String> wrong = new ArrayList<>(WORDS);
+		wrong.set(0, WORDS.get(0).equals("abandon") ? "zoo" : "abandon");
+		assertFalse(BackupCheck.run(wrong, entry), "a wrong word must not give the address");
 	}
 
 	@Test

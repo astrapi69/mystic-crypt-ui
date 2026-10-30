@@ -2,6 +2,7 @@ package io.github.astrapi69.mystic.crypt.plugin.lethenon;
 
 import java.util.List;
 
+import io.github.astrapi69.lethenon.PublishedAddress;
 import io.github.astrapi69.lethenon.Wallet;
 
 /**
@@ -36,7 +37,17 @@ final class BackupCheck
 			throw new IllegalArgumentException("a backup has " + WORDS + " words, and this list has "
 				+ typed.size());
 		}
-		Wallet derived = Wallet.fromPhrase(String.join(" ", typed));
-		return derived.address().toString().equals(entry.addressForCheck());
+		Wallet derived;
+		try
+		{
+			derived = Wallet.fromPhrase(String.join(" ", typed));
+		}
+		catch (IllegalArgumentException notAPhrase)
+		{
+			// an unknown word or a failed checksum is a backup that does not match, not an error
+			return false;
+		}
+		// compared by value: the address's own text form is documented (lethenon#37), its toString is not
+		return PublishedAddress.parse(entry.addressForCheck()).equals(derived.address());
 	}
 }
