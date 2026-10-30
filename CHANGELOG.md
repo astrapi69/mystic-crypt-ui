@@ -26,8 +26,7 @@ CHANGED:
   8.13 ships 146. Logging does not change: the application logs through java.util.logging as before, and the
   libraries' Log4j API and commons-logging calls take the route they took, now through log4j-to-slf4j 2.26.1, declared
   on its own (log4j-api 2.18.0 to 2.26.1, slf4j-api 2.0.6 to 2.0.17).
-- jackson-databind stays at 2.22.4, as in 8.11 and 8.12. The catalog's own entry moved from 2.22.2 to 2.22.3, below
-  what the Jackson BOM resolves, so the shipped version does not change.
+- jackson-databind stays at 2.22.4, as in 8.11 and 8.12.
 
 FORMAT:
 - The vault format does not change. Vaults that 8.1.1 to 8.12 wrote with a key file open in 8.13. This was measured with
