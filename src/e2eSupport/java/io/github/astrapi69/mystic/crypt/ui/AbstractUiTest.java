@@ -36,7 +36,6 @@ import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.concurrent.TimeUnit;
 
-import org.assertj.swing.core.BasicRobot;
 import org.assertj.swing.core.GenericTypeMatcher;
 import org.assertj.swing.core.Robot;
 import org.assertj.swing.edt.GuiActionRunner;
@@ -124,6 +123,9 @@ abstract class AbstractUiTest
 
 	private Thread appThread;
 
+	/** How many sign-in dialogs this test has already found, through {@link AwaitStartup} */
+	private int signInDialogsSeen;
+
 	@BeforeEach
 	void setUpUiTest() throws IOException
 	{
@@ -136,10 +138,12 @@ abstract class AbstractUiTest
 		tempHome = Files.createTempDirectory("mystic-crypt-ui-test-home").toFile();
 		System.setProperty("user.home", tempHome.getAbsolutePath());
 		resetApplicationFrameSingleton();
+		AwaitStartup.switchOn();
+		signInDialogsSeen = 0;
 		// no FailOnThreadViolationRepaintManager: StartMysticCryptApplication constructs the frame
 		// off the EDT (tests mirror that), so enforcing EDT-only construction would fail every test
 		// for a pre-existing app characteristic unrelated to what the tests check
-		robot = BasicRobot.robotWithNewAwtHierarchy();
+		robot = UiTestRobots.withNewAwtHierarchy();
 	}
 
 	@AfterEach
@@ -171,6 +175,7 @@ abstract class AbstractUiTest
 			// already disposed above, with the close operation defused in launch
 			robot.cleanUpWithoutDisposingWindows();
 			resetApplicationFrameSingleton();
+			AwaitStartup.switchOff();
 			System.setProperty("user.home", originalUserHome);
 		}
 		deleteTempHome();
@@ -201,10 +206,10 @@ abstract class AbstractUiTest
 	/**
 	 * Waits until the application has finished initializing.
 	 * <p>
-	 * The thread launched for the test runs exactly one thing - the frame's constructor - so it
-	 * ends when {@code onAfterInitialize} has run to its last statement. That last statement is
-	 * {@code onEnableMenu()}, which is what puts the menu into the state that belongs to the
-	 * signed-in or the public case.
+	 * The application reports it: the last statement of {@code onAfterInitialize} is
+	 * {@link io.github.astrapi69.mystic.crypt.StartupSignal#startCompleted()}, after
+	 * {@code onEnableMenu()} has put the menu into the state that belongs to the signed-in or the
+	 * public case (#522).
 	 * <p>
 	 * Do NOT wait for the menu bar to exist instead: it exists long before any of that, and a test
 	 * that waits for it reads a menu which has not been reorganized, has no plugins menu, and has
@@ -217,14 +222,7 @@ abstract class AbstractUiTest
 		{
 			return;
 		}
-		try
-		{
-			appThread.join(TimeUnit.SECONDS.toMillis(30));
-		}
-		catch (InterruptedException interrupted)
-		{
-			Thread.currentThread().interrupt();
-		}
+		AwaitStartup.startCompleted();
 		robot.waitForIdle();
 	}
 
@@ -242,6 +240,7 @@ abstract class AbstractUiTest
 	 */
 	protected SignInDialogSteps awaitSignInDialog()
 	{
+		signInDialogsSeen = AwaitStartup.signInDialogOpened(signInDialogsSeen, null);
 		return new SignInDialogSteps(robot, findSignInDialog());
 	}
 
@@ -268,6 +267,7 @@ abstract class AbstractUiTest
 		appThread.setDaemon(true);
 		appThread.start();
 
+		signInDialogsSeen = AwaitStartup.signInDialogOpened(signInDialogsSeen, appThread);
 		DialogFixture signInDialog = findSignInDialog();
 		// The close operation used to be overridden here to DISPOSE_ON_CLOSE, to keep a
 		// window-closing during teardown from calling System.exit and killing the test JVM. It

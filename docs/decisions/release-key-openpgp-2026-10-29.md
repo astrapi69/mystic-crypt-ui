@@ -1,13 +1,15 @@
 # Release keys in mystic-crypt-ui: OpenPGP through Bouncy Castle, the primary key in the vault
 
 A record of the decision taken in [#642](https://github.com/astrapi69/mystic-crypt-ui/issues/642) on
-2026-10-29, not a rule. It describes the decision and what was measured for it. Of the plugin that
-follows from it, the status view of a GnuPG home exists (`plugins/release-key-plugin`, #644); the rest
-of stage 1 and stages 2 and 3 do not.
+2026-10-29, not a rule. It describes the decision and what was measured for it. Of what follows
+from it, stage 1a exists: the reader is `io.github.astrapi69.mystic.crypt.gnupg.GnuPgHome` in the
+mystic-crypt library since 13.8 (astrapi69/mystic-crypt#211), and the release key plugin
+(`plugins/release-key-plugin`, #644) shows what it returns. The rest of stage 1 and stages 2 and 3
+do not exist yet.
 
 ## The decision
 
-Taken by the maintainer on 2026-10-29 (his words are quoted in #642):
+Taken by the maintainer on 2026-10-29 (the words are quoted in #642):
 
 - OpenPGP is done through Bouncy Castle's `bcpg`, not by driving the `gpg` command line.
 - The primary key lives in the vault.
@@ -15,6 +17,20 @@ Taken by the maintainer on 2026-10-29 (his words are quoted in #642):
   gpg's store itself.
 - Reading `pubring.kbx` and `private-keys-v1.d` with Bouncy Castle's readers is allowed, for display.
 - Signing and verifying files is rebuilt with OpenPGP signatures (see "The predecessor").
+
+Taken the same day after this record and stage 1a (comment in #642):
+
+- `bcpg` directly, not PGPainless, as recommended below. Stages 2 and 3 are approved.
+- **Library first.** What a user triggers is built in the mystic-crypt library, with a command of its
+  own, and the plugin uses only the library. The reader of stage 1a is
+  `io.github.astrapi69.mystic.crypt.gnupg` there, with `release-key status` and `--json` on its
+  command line. mystic-crypt's `.claude/rules/library-first.md` carries the rule. Passphrases come
+  only from standard input or a hidden prompt, never from an argument.
+- **Stage 1c stays in the plugin.** The dates of the CI secrets are GitHub's, not OpenPGP's, and
+  `gh secret list` is already the command line for them: names and dates, never a value. No library
+  command is built for it. The read-only token gets read access to secrets for astrapi69. A second
+  token follows for lightblueseas, and until it exists the view shows a note for organization
+  secrets instead of an error.
 
 ## What was weighed
 
@@ -73,7 +89,7 @@ keyrings and gpg's files, generating and editing keys, changing a protection, an
 The Argon2 flaw in Bouncy Castle's OpenPGP (CVE-2026-59648) is fixed from 1.85 on.
 
 **Recommendation:** `bcpg` directly, through its high-level API. PGPainless only if a needed function
-turns out to be missing there. The decision is the maintainer's.
+turns out to be missing there. Decided so by the maintainer on 2026-10-29.
 
 ## What was measured for the readers
 
@@ -83,9 +99,9 @@ A throwaway GnuPG 2.4.8 home in the state of the real key:
 - in both, the primary key's secret removed and the subkeys imported again;
 - gpg's own revocation certificates in `openpgp-revocs.d`.
 
-It was read with `bcpg`, `bcprov` and `bcutil` 1.86 only. The probes became the plugin's tests (#644):
-`GnuPgHomeSupportTest` lets gpg write such a home in a temporary directory and measures every answer
-of the reader against what `gpg --with-colons` says about the same home.
+It was read with `bcpg`, `bcprov` and `bcutil` 1.86 only. The probes became the reader's tests in the
+library: `GnuPgHomeTest` lets gpg write such a home in a temporary directory and measures the reader's
+answers against what gpg says about the same home.
 
 - `BcKeyBox` reads `pubring.kbx`: both keys, every subkey with its expiry.
 - The revocation certificates in `openpgp-revocs.d` parse as signatures of type 0x20 (key revocation)
@@ -101,31 +117,23 @@ of the reader against what `gpg --with-colons` says about the same home.
   six keys: the primary keys offline, the subkeys present, each found under the file name `gpg` shows
   as its keygrip.
 
-Two more findings from building the reader on it (#644):
+Two findings from building the reader were reported to Bouncy Castle by the maintainer on 2026-10-29,
+each with a minimal reproduction:
 
-- `SExpression.hasLabel` casts the expression's first value without looking, and throws a
-  `ClassCastException` for an expression that starts with another expression, which gpg's protected
-  keys contain. The reader checks the value's type first.
-- gpg writes the explanation above the armor of a revocation certificate in the user's language. On
-  the maintainer's keyring, in German, the umlauts made a reader that expected ASCII call both
-  certificates unreadable. It reads the file byte for byte now, and a test pins the German first line.
+- the keygrip of RSA keys, which is computed without the leading zero byte of `n` that gpg hashes:
+  [bcgit/bc-java#2534](https://github.com/bcgit/bc-java/issues/2534);
+- `SExpression.hasLabel`, which throws a `ClassCastException` for an expression that starts with
+  another expression, as gpg's protected keys contain:
+  [bcgit/bc-java#2535](https://github.com/bcgit/bc-java/issues/2535).
 
-Run against the maintainer's keyring on 2026-10-29, the reader gives gpg's answer for every key of the
-release key: use, creation, expiry and where the secret part is. Measured by calling
-`GnuPgHomeSupport.read` on `~/.gnupg` from a probe outside the repository and comparing it line by line
-with `gpg --with-colons --with-subkey-fingerprint --list-secret-keys <fingerprint>`; the same probe
-showed the two unreadable revocation certificates, and after the fix both valid.
-
-The keygrip difference is worth a report to Bouncy Castle. Posting there is the maintainer's call.
+The reader works around both, so it does not depend on how they are resolved.
 
 ## Where the code goes
 
-This is a proposal, open for the maintainer:
+Decided on 2026-10-29: library first.
 
-- **Stage 1, read only:** the plugin's support layer reads with `bcpg` directly, for display. It
-  writes nothing, so no building block is shared beyond the plugin. Built this way for the GnuPG home
-  (#644); `bcpg` comes with the plugin's zip, which carries it under `lib/` with its licence, since
-  the host does not ship it.
+- **Stage 1, read only:** the reader is in mystic-crypt and reads with `bcpg` directly; the plugin
+  shows what it returns. Stage 1c, the dates of the CI secrets, stays in the plugin (see above).
 - **Stage 2:** the steps that create or change key material go into the mystic-crypt library first and
   are consumed from there, as architecture.md asks of every cryptographic building block and of new
   command-line capability:
@@ -133,7 +141,8 @@ This is a proposal, open for the maintainer:
   - protecting it again with the CI passphrase;
   - signing and verifying files with detached OpenPGP signatures;
   - the sealed-box encryption GitHub requires for secret values.
-- `bcpg-jdk18on` comes in as a dependency, in the version of the other Bouncy Castle modules (1.86).
+- `bcpg-jdk18on` comes into mystic-crypt as a dependency, in the version of the other Bouncy Castle
+  modules (1.86), and reaches the plugin through the library.
 
 ## The predecessor
 
@@ -146,11 +155,9 @@ OpenPGP signatures instead: the `.asc` beside a file, the form Maven Central req
 
 ## What is still open
 
-- **The rest of stage 1:** the offline media and the CI working folder, and the CI secrets' dates.
-- **Stage 1 needs a source for the CI secrets' dates.** The read-only GitHub token gets 403 on
-  `repos/.../actions/secrets` and on `orgs/.../actions/secrets` (measured 2026-10-29, #642). It needs
-  read access to secrets (metadata only; GitHub never returns a value), or the dates come from
-  somewhere else.
-- **Stages 2 and 3 wait** for the decision on the open points above.
+- **The dates of the CI secrets need the token's new right.** The read-only GitHub token got 403 on
+  `repos/.../actions/secrets` and on `orgs/.../actions/secrets` (measured 2026-10-29, #642). Read
+  access to secrets is metadata only; GitHub never returns a value.
+- **Stage 1b comes next:** the offline media and the CI working folder.
 - **Acceptance stays as #642 states it:** every step the maintainer has done by hand, from
   `release-key.md` and from the status file, works in the plugin without a terminal.
