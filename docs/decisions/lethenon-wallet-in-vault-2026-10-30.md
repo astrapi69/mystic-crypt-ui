@@ -38,7 +38,9 @@ recommended the first. The code this describes is built after the tests for it a
 6. **Wiping.** Until mystic-crypt 13.9 is released, the unsealed secret is held as character arrays and
    zeroed when the vault locks or closes, the pattern of #294. After that release the same secrets move
    to `SecretCopies` (mystic-crypt#227).
-7. **Locking.** The lock invariant stays. With no open vault no wallet action is offered; locking clears
+7. **The words in the vault are the user's choice.** Off by default. Option 2 is allowed as an explicit
+   user choice, with the risk named (section "The words in the vault, as the user's choice").
+8. **Locking.** The lock invariant stays. With no open vault no wallet action is offered; locking clears
    every buffer that holds an unsealed wallet.
 
 ## What lethenon needs (library first)
@@ -126,10 +128,30 @@ vault and a lost computer, and tells the user whether it has checked that they d
   the printed checksum equals the SHA-256 of the file
 - the export shows the sealed file only; no decrypted copy is written in between
 
+## The words in the vault, as the user's choice (option 2, added 30 October 2026)
+
+The default stays option 1: the words are not in the vault. The user may choose otherwise, deliberately:
+
+- Off by default. At creation and in the backup assistant the plugin offers "Store the words in the
+  vault as well", with the plain warning: whoever can open the vault then has the whole wallet, also
+  without the wallet password. For wallets of real value, an offline paper copy is recommended in
+  addition.
+- Stored as a protected custom property `lethenon.mnemonic` on the wallet entry. It is written only
+  after that explicit choice.
+- Exported to KDBX with the protection flag, like every protected property. The export warning from
+  decision 4 applies, and it names the words.
+- Still checked: a user who stores the words goes through the three-word question and the backup check
+  as well, the same as everyone.
+- Removable at any time. Removing deletes the property and overwrites the buffers that held the words.
+
+Risk, named: a stolen unlocked or opened vault, or a vault file copied and opened with the master
+password, gives the attacker the full wallet with no second factor. This is the reason for the default.
+
+Tests (red first): storing happens only after an explicit choice; a KDBX round trip keeps the property
+protected; after removal the property is gone and no buffer the test holds contains the words.
+
 ## Rejected
 
-- **The 24 words in the vault** (option 2): a reader of the open vault gets the whole wallet, with no
-  second factor.
 - **Both** (option 3): two copies of the same full key, and no gain in recovery.
 - **A new entry type**: a format change to the vault, which needs its own decision.
 - **The URL field as marker** (first draft of this record): visible and editable as an address; the
