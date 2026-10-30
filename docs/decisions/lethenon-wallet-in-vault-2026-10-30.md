@@ -113,7 +113,7 @@ vault and a lost computer, and tells the user whether it has checked that they d
 ### Tests (before the code, red first)
 
 - asking the three words: a wrong word is refused; the right three pass; the positions are random per
-  request (two requests in a row do not ask the same positions in the same order, measured over 50 runs)
+  request (two requests in a row do not ask the same positions in the same order, to be checked over 50 runs in the test; not measured yet)
 - the check: the right 24 words match the vault's wallet; one word wrong does not match; a shorter or
   unknown list is refused with a reason that names the count or the word
 - the property: after a successful check `lethenon.backupVerified` holds today's date; after a failed
