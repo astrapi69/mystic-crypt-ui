@@ -36,7 +36,6 @@ import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.concurrent.TimeUnit;
 
-import org.assertj.swing.core.BasicRobot;
 import org.assertj.swing.core.GenericTypeMatcher;
 import org.assertj.swing.core.Robot;
 import org.assertj.swing.edt.GuiActionRunner;
@@ -141,7 +140,7 @@ abstract class AbstractUiTest
 		// no FailOnThreadViolationRepaintManager: StartMysticCryptApplication constructs the frame
 		// off the EDT (tests mirror that), so enforcing EDT-only construction would fail every test
 		// for a pre-existing app characteristic unrelated to what the tests check
-		robot = BasicRobot.robotWithNewAwtHierarchy();
+		robot = UiTestRobots.withNewAwtHierarchy();
 	}
 
 	@AfterEach
