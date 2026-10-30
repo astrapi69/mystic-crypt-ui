@@ -98,6 +98,14 @@ serialization, without a filter, in the library mystic-crypt
 ([GHSA-87j9-xjf5-f387](https://github.com/astrapi69/mystic-crypt/security/advisories/GHSA-87j9-xjf5-f387)).
 Both drafts were opened on 2026-10-29, and the fix shipped the same day in
 mystic-crypt 13.8 and in 8.13.
+The third is
+[GHSA-qxx5-r8qx-vj98](https://github.com/astrapi69/mystic-crypt-ui/security/advisories/GHSA-qxx5-r8qx-vj98):
+before 8.11, "Generate password" drew its characters from randomizer, whose default
+generator was seeded with the current time in milliseconds before randomizer 10.5
+([GHSA-395w-fmf5-xfj3](https://github.com/astrapi69/randomizer/security/advisories/GHSA-395w-fmf5-xfj3);
+in the library, [GHSA-rmpr-hqmh-r8gp](https://github.com/astrapi69/mystic-crypt/security/advisories/GHSA-rmpr-hqmh-r8gp)).
+It was found on 2026-10-30, after 8.11 had already shipped randomizer 10.6, so the
+advisory was published the same day; it says which passwords to replace.
 
 ## Two things specific to this application
 
@@ -122,6 +130,11 @@ derivation, signing and random generation all come from the JDK, from Bouncy
 Castle, or from the libraries underneath - `mystic-crypt`, `crypt-data` and
 `crypt-api`, each with its own reporting path in its own repository. A flaw in a
 primitive belongs to whoever implements it.
+
+One exception, until #658 is released: the password generator and the serial
+numbers of new certificates still draw through randomizer rather than straight
+from `java.security.SecureRandom` (GHSA-qxx5-r8qx-vj98 above). Keys never did:
+key pairs and symmetric keys come from the JDK's `SecureRandom`.
 
 A flaw in *how this application uses* one of them - a vault written with weaker
 parameters than configured, a secret left readable after locking, a password
