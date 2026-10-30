@@ -13,13 +13,22 @@ recommended the first. The code this describes is built after the tests for it a
 2. **The wallet format has no network field.** A wallet is the 32 bytes of entropy and nothing else, as
    lethenon has always written it. The network (testnet or mainnet) is a hint on the vault entry, not
    part of the wallet.
-3. **No new entry type and no change to the vault format.** A wallet is an ordinary entry, marked by two
-   fixed values:
-   - the entry's URL field is exactly `lethenon:wallet`;
-   - the attachment is named `wallet.lethwf`.
-   An entry with the URL is a wallet only when the attachment is there as well; the plugin treats any
-   other shape as an ordinary entry. The title reads `lethenon wallet (testnet)` or `lethenon wallet
-   (mainnet)`, and the network is taken from the title's hint, not from anything secret.
+3. **No new entry type and no change to the vault format.** A wallet is an ordinary entry, marked by its
+   own custom properties, which the vault model carries per entry (`MysticCryptEntryModelBean`,
+   `properties` and `protectedPropertyKeys`):
+   - `lethenon.wallet` = `1`, the wallet format version. This is the marker. An entry is a wallet only
+     when this property is present and the attachment `wallet.lethwf` is there as well; any other shape
+     is an ordinary entry.
+   - `lethenon.network` = `testnet` or `mainnet`, optional, a hint for the user. It is not part of the
+     wallet and carries no secret.
+   The title reads `lethenon wallet (testnet)` or `lethenon wallet (mainnet)` for people; the plugin
+   reads the property, not the title.
+
+   Why a property and not the URL field: the vault model carries custom properties with their protection
+   flag, and they survive a KDBX round trip through KeePassXC 2.7.6 (`KdbxRoundTripKeepsEveryFieldUiTest`,
+   11 tests, all green, including "custom properties survive, including the protected one"). The URL is
+   a field the user sees and edits as an address, so a marker there is one accidental edit away from
+   gone.
 4. **Export.** Wallet attachments are exported like every other attachment, still sealed. The export
    dialog shows one short line before the export starts: the file contains sealed lethenon wallets; the
    wallet password is needed to use them; the 24 words are not in the file.
@@ -68,5 +77,7 @@ In mystic-crypt-ui, the lethenon plugin:
   second factor.
 - **Both** (option 3): two copies of the same full key, and no gain in recovery.
 - **A new entry type**: a format change to the vault, which needs its own decision.
+- **The URL field as marker** (first draft of this record): visible and editable as an address; the
+  property above survives the same round trip and is not shown as one.
 - **A network field in the wallet format**: a change to lethenon's format, for a fact the title already
   carries.
