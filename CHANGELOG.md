@@ -1,6 +1,15 @@
 ## Change log
 ----------------------
 
+Version 8.14 (unreleased)
+-------------
+
+CHANGED:
+- mystic-crypt 13.9 (#664). Its salts, GCM nonces, IVs and generated passwords come from `SecureRandom` directly, and it
+  no longer brings randomizer along at runtime. It overwrites every working copy of secret material it makes, among
+  them the ones the vault, lock and sign-in paths go through. A secret passed to `--cli` as an argument now prints a
+  warning; the `-stdin` option beside each one is the way to pass it. The vault format does not change
+
 Version 8.13
 -------------
 
