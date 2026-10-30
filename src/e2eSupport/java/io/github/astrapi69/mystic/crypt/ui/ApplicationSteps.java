@@ -79,9 +79,15 @@ final class ApplicationSteps
 		this.robot = robot;
 	}
 
-	/** Waits until the application model reports a completed sign-in */
+	/**
+	 * Waits until the application model reports a completed sign-in. A start that is still running
+	 * is waited for first, through the signal the application gives when it has completed (#522);
+	 * after a sign-in that is not a start, such as opening another database, nothing is running and
+	 * only the model is checked.
+	 */
 	ApplicationSteps awaitSignedIn()
 	{
+		AwaitStartup.startCompleted();
 		Pause.pause(new Condition("application model is signed in")
 		{
 			@Override

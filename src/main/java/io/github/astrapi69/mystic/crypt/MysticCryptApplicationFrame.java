@@ -220,6 +220,14 @@ public class MysticCryptApplicationFrame extends ApplicationPanelFrame<Applicati
 		MysticCryptSettings persistedSettings = MysticCryptSettings.load(configurationDirectory);
 		GeneralSettingsPanel.applyLookAndFeel(persistedSettings.getLookAndFeel());
 		dialog.setSize(920, 380);
+		dialog.addWindowListener(new WindowAdapter()
+		{
+			@Override
+			public void windowOpened(final WindowEvent event)
+			{
+				StartupSignal.signInDialogShown();
+			}
+		});
 		dialog.setVisible(true);
 		signinScreen = dialog.getGraphicsConfiguration();
 	}
@@ -257,6 +265,7 @@ public class MysticCryptApplicationFrame extends ApplicationPanelFrame<Applicati
 	@Override
 	protected void onBeforeInitialize()
 	{
+		StartupSignal.startBegun();
 		if (instance == null)
 		{
 			instance = this;
@@ -356,6 +365,7 @@ public class MysticCryptApplicationFrame extends ApplicationPanelFrame<Applicati
 		onWindowClosing();
 		startTheIdleLockWatchdog();
 		startTheClipboardClearWatchdog();
+		StartupSignal.startCompleted();
 	}
 
 	/**
