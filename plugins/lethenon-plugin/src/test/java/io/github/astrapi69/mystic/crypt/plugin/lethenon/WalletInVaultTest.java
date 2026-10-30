@@ -80,17 +80,14 @@ class WalletInVaultTest
 	{
 		WalletEntry entry = WalletEntry.newEntry("testnet");
 		WalletInVault.store(entry, WORDS, WordsChoice.STORE_IN_VAULT);
-		char[][] held = WalletInVault.lastBuffersHeldForTest();
+		char[] held = entry.protectedBuffer("lethenon.mnemonic");
 
 		WalletInVault.remove(entry);
 
 		assertFalse(entry.hasProperty("lethenon.mnemonic"));
-		for (char[] buffer : held)
+		for (char c : held)
 		{
-			for (char c : buffer)
-			{
-				assertEquals('\0', c, "a buffer still holds a character of a word");
-			}
+			assertEquals('\0', c, "the buffer still holds a character of a word");
 		}
 	}
 
