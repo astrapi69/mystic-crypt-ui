@@ -24,28 +24,24 @@
  */
 package io.github.astrapi69.mystic.crypt.plugin.releasekey;
 
-import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.awt.GraphicsEnvironment;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.OutputStream;
-import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.attribute.PosixFilePermissions;
 import java.util.List;
 import java.util.UUID;
+import java.lang.reflect.Method;
 import java.util.concurrent.TimeUnit;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
-import java.util.zip.ZipInputStream;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -56,11 +52,11 @@ import org.pf4j.PluginState;
 
 /**
  * The plugin as the installed application runs it (#644): started by pf4j from its zip, in a JVM
- * whose class path carries the host and not Bouncy Castle's OpenPGP module. In the end-to-end suite
- * that module is on the application's class path, where pf4j's plugin class loader would fall back
- * to it, so a zip without it would pass there and fail for every user. Here it cannot.
+ * whose class path is the host's and nothing else. The GnuPG home is read by mystic-crypt's
+ * {@code GnuPgHome}, which the host ships together with Bouncy Castle's OpenPGP module, so the zip
+ * carries no library of its own (docs/decisions/release-key-openpgp-2026-10-29.md, library first).
  * <p>
- * The plugin's reader is called by reflection, since this class path has no plugin class to
+ * The plugin's status reading is called by reflection, since this class path has no plugin class to
  * compile against.
  */
 class ReleaseKeyPluginFromItsZipTest
@@ -68,7 +64,9 @@ class ReleaseKeyPluginFromItsZipTest
 
 	private static final String PLUGIN_ID = "release-key-plugin";
 
-	private static final String READER = "io.github.astrapi69.mystic.crypt.plugin.releasekey.GnuPgHomeSupport";
+	private static final String STATUS = "io.github.astrapi69.mystic.crypt.plugin.releasekey.ReleaseKeyStatus";
+
+	private static final String LIBRARY_READER = "io.github.astrapi69.mystic.crypt.gnupg.GnuPgHome";
 
 	@TempDir
 	Path directory;
@@ -83,13 +81,9 @@ class ReleaseKeyPluginFromItsZipTest
 	}
 
 	@Test
-	@DisplayName("the plugin started from its zip reads a keybox gpg wrote, with the bcpg it carries itself")
-	void thePluginFromItsZip_readsAKeyboxWithItsOwnBcpg() throws Exception
+	@DisplayName("the plugin started from its zip reads a keybox gpg wrote, through the host's mystic-crypt")
+	void thePluginFromItsZip_readsAKeyboxThroughTheLibrary() throws Exception
 	{
-		assertThrows(ClassNotFoundException.class,
-			() -> Class.forName("org.bouncycastle.gpg.keybox.bc.BcKeyBox", false,
-				getClass().getClassLoader()),
-			"precondition: bcpg is not on the application's class path");
 		Path home = homeWithOneKey();
 		Path plugins = Files.createDirectories(directory.resolve("plugins"));
 		Path zip = Path.of(System.getProperty("release.key.plugin.zip"));
@@ -101,16 +95,17 @@ class ReleaseKeyPluginFromItsZipTest
 			manager.startPlugins();
 			assertEquals(PluginState.STARTED, manager.getPlugin(PLUGIN_ID).getPluginState());
 			ClassLoader plugin = manager.getPluginClassLoader(PLUGIN_ID);
+			Method read = plugin.loadClass(STATUS).getDeclaredMethod("read", Path.class,
+				String.class);
+			read.setAccessible(true);
 
-			List<?> certificates = (List<?>)plugin.loadClass(READER).getMethod("read", Path.class)
-				.invoke(null, home);
+			Object report = read.invoke(null, home, "");
 
-			assertEquals(1, certificates.size(), "the one certificate gpg wrote: " + certificates);
-			URL from = plugin.loadClass("org.bouncycastle.gpg.keybox.bc.BcKeyBox")
-				.getProtectionDomain().getCodeSource().getLocation();
-			// real paths: macOS reaches its temporary directory through a symbolic link
-			assertTrue(Path.of(from.toURI()).toRealPath().startsWith(plugins.toRealPath()),
-				"bcpg came from the plugin, from " + from);
+			List<?> certificates = (List<?>)report.getClass().getMethod("certificates")
+				.invoke(report);
+			assertEquals(1, certificates.size(), "the one certificate gpg wrote: " + report);
+			assertEquals(getClass().getClassLoader().loadClass(LIBRARY_READER),
+				plugin.loadClass(LIBRARY_READER), "the reader is the host's, from mystic-crypt");
 		}
 		finally
 		{
@@ -121,20 +116,23 @@ class ReleaseKeyPluginFromItsZipTest
 	}
 
 	@Test
-	@DisplayName("the zip carries the licence of the library it bundles, unchanged from that library's jar")
-	void theZip_carriesTheLicenceOfWhatItBundles() throws Exception
+	@DisplayName("the zip carries the plugin's classes and resources, and no library or licence of its own")
+	void theZip_carriesNoLibraryOfItsOwn() throws Exception
 	{
 		try (ZipFile zip = new ZipFile(System.getProperty("release.key.plugin.zip")))
 		{
-			String notice = new String(entry(zip, "legal/NOTICE.txt"), StandardCharsets.UTF_8);
-			List<String> libraries = zip.stream().map(ZipEntry::getName)
-				.filter(name -> name.startsWith("lib/") && name.endsWith(".jar")).toList();
-			assertEquals(1, libraries.size(), "the zip bundles bcpg and nothing else: " + libraries);
-			String bcpg = libraries.get(0);
-			assertTrue(bcpg.startsWith("lib/bcpg-jdk18on-"), bcpg);
-			assertTrue(notice.contains("lib/bcpg-jdk18on-<version>.jar"), "NOTICE.txt names it");
-			assertArrayEquals(entryOfJar(zip, bcpg, "META-INF/LICENSE.md"),
-				entry(zip, "legal/bcpg-jdk18on/LICENSE.md"));
+			List<String> names = zip.stream().map(ZipEntry::getName).toList();
+
+			assertTrue(names.contains("plugin.properties"), "plugin.properties: " + names);
+			assertFalse(names.stream().anyMatch(name -> name.startsWith("lib/")),
+				"no library under lib/: " + names);
+			assertFalse(names.stream().anyMatch(name -> name.startsWith("legal/")),
+				"no licence under legal/: " + names);
+			assertFalse(
+				names.stream()
+					.anyMatch(name -> name.startsWith("classes/io/github/astrapi69/mystic/crypt/gnupg/")
+						|| name.endsWith("/GnuPgHomeSupport.class")),
+				"no reader of its own: " + names);
 		}
 	}
 
@@ -168,32 +166,5 @@ class ReleaseKeyPluginFromItsZipTest
 		assertTrue(process.waitFor(120, TimeUnit.SECONDS), "gpg finished: " + List.of(command));
 		assertEquals(0, process.exitValue(),
 			"gpg succeeded, see " + directory.resolve("gpg.log") + ": " + List.of(command));
-	}
-
-	private static byte[] entry(final ZipFile zip, final String name) throws IOException
-	{
-		ZipEntry found = zip.getEntry(name);
-		assertNotNull(found, name + " is in the zip");
-		try (InputStream in = zip.getInputStream(found))
-		{
-			return in.readAllBytes();
-		}
-	}
-
-	/** An entry of a jar that is itself an entry of the zip */
-	private static byte[] entryOfJar(final ZipFile zip, final String jar, final String name)
-		throws IOException
-	{
-		try (ZipInputStream in = new ZipInputStream(zip.getInputStream(zip.getEntry(jar))))
-		{
-			for (ZipEntry each = in.getNextEntry(); each != null; each = in.getNextEntry())
-			{
-				if (each.getName().equals(name))
-				{
-					return in.readAllBytes();
-				}
-			}
-		}
-		throw new AssertionError(name + " is not in " + jar);
 	}
 }

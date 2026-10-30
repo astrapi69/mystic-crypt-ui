@@ -26,6 +26,8 @@ package io.github.astrapi69.mystic.crypt.plugin.releasekey;
 
 import java.util.List;
 
+import io.github.astrapi69.mystic.crypt.gnupg.KeyRingState;
+
 /**
  * What one reading of a GnuPG home gives the view: the certificates to show and the line that says
  * what was read

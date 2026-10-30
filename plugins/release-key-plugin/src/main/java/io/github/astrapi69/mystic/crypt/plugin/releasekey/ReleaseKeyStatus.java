@@ -29,6 +29,9 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.Optional;
 
+import io.github.astrapi69.mystic.crypt.gnupg.GnuPgHome;
+import io.github.astrapi69.mystic.crypt.gnupg.KeyRingState;
+
 /**
  * One reading of a GnuPG home for the status view: every certificate, or only the release key when
  * one is named, and a line that says what was read - or why nothing could be, so that an empty
@@ -55,7 +58,7 @@ final class ReleaseKeyStatus
 		List<KeyRingState> rings;
 		try
 		{
-			rings = GnuPgHomeSupport.read(home);
+			rings = GnuPgHome.read(home);
 		}
 		catch (IOException exception)
 		{
@@ -76,7 +79,7 @@ final class ReleaseKeyStatus
 	private static StatusReport releaseKeyOf(final List<KeyRingState> rings, final Path home,
 		final String releaseKey)
 	{
-		Optional<KeyRingState> found = GnuPgHomeSupport.find(rings, releaseKey);
+		Optional<KeyRingState> found = GnuPgHome.find(rings, releaseKey);
 		if (found.isEmpty())
 		{
 			return new StatusReport(List.of(), String.format(

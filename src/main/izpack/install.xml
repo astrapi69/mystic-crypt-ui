@@ -143,8 +143,6 @@
 				zip (#581)
 			-->
 			<fileset dir="../plugins/lethenon-plugin/build/legal" targetdir="${INSTALL_PATH}/legal/lethenon-plugin" />
-			<!-- the licence of Bouncy Castle's OpenPGP module, which the release key plugin's zip bundles (#644) -->
-			<fileset dir="../plugins/release-key-plugin/build/legal" targetdir="${INSTALL_PATH}/legal/release-key-plugin" />
 		</pack>
 	</packs>
 

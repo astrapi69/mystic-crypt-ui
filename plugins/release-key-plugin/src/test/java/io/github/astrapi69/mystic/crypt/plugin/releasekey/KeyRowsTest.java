@@ -35,6 +35,11 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 
+import io.github.astrapi69.mystic.crypt.gnupg.KeyRingState;
+import io.github.astrapi69.mystic.crypt.gnupg.KeyState;
+import io.github.astrapi69.mystic.crypt.gnupg.RevocationCertificate;
+import io.github.astrapi69.mystic.crypt.gnupg.SecretPart;
+
 /**
  * {@link KeyRows} turns certificates into the rows of the status table. The certificate here has
  * the release key's shape and its dates.

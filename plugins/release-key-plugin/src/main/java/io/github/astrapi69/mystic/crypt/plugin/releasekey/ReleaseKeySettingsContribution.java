@@ -33,6 +33,8 @@ import org.pf4j.Extension;
 import io.github.astrapi69.mystic.crypt.plugin.api.PluginSettingsContribution;
 import io.github.astrapi69.mystic.crypt.settings.PluginSettings;
 
+import io.github.astrapi69.mystic.crypt.gnupg.GnuPgHome;
+
 /**
  * The configuration of this plugin: which GnuPG home the status view reads, and which certificate
  * in it is the release key. Both start blank, which means the home gpg itself uses and every
@@ -128,7 +130,7 @@ public class ReleaseKeySettingsContribution implements PluginSettingsContributio
 	static Path homeOf(final String configured)
 	{
 		return configured == null || configured.isBlank()
-			? GnuPgHomeSupport.defaultHome(System.getenv(), System.getProperty("user.home"))
+			? GnuPgHome.defaultHome(System.getenv(), System.getProperty("user.home"))
 			: Path.of(configured.trim());
 	}
 }

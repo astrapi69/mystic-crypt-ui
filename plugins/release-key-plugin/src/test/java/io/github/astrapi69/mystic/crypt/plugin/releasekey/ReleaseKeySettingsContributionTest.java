@@ -42,6 +42,8 @@ import org.junit.jupiter.params.provider.CsvSource;
 import io.github.astrapi69.mystic.crypt.plugin.api.PluginSettingsContribution;
 import io.github.astrapi69.mystic.crypt.settings.PluginSettings;
 
+import io.github.astrapi69.mystic.crypt.gnupg.GnuPgHome;
+
 /**
  * The plugin's two settings, the GnuPG home and the release key, are declared, described and read
  * back from the configuration directory
@@ -90,7 +92,7 @@ class ReleaseKeySettingsContributionTest
 	@DisplayName("without a stored home the plugin reads the home gpg itself uses")
 	void gnuPgHome_isTheDefaultHome_whenNoneIsStored()
 	{
-		assertEquals(GnuPgHomeSupport.defaultHome(System.getenv(), System.getProperty("user.home")),
+		assertEquals(GnuPgHome.defaultHome(System.getenv(), System.getProperty("user.home")),
 			ReleaseKeySettingsContribution.gnuPgHome());
 	}
 

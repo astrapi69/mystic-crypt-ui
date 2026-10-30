@@ -221,9 +221,9 @@ plugin-lethenon: publish-local
 	JAVA_HOME=$(JAVA_HOME) ./gradlew $(PLUGIN_DAEMON) -p $(PLUGIN_LETHENON_DIR) test zipTest pluginZip $(GRADLE_FLAGS)
 	@echo "==> plugin zip: $$(find $(PLUGIN_LETHENON_DIR)/build/plugin-dist -name '*.zip')"
 
-# build the internal release key plugin zip (needs the host published locally first). Like the
-# Lethenon plugin's, this zip carries a library in lib/: Bouncy Castle's OpenPGP module, which the
-# host does not ship (#644). Its tests run gpg, in temporary homes of their own
+# build the internal release key plugin zip (needs the host published locally first). It reads the
+# GnuPG home through mystic-crypt, which the host ships, so the zip carries no library (#644). Its
+# tests run gpg, in temporary homes of their own
 plugin-release-key: publish-local
 	JAVA_HOME=$(JAVA_HOME) ./gradlew $(PLUGIN_DAEMON) -p $(PLUGIN_RELEASE_KEY_DIR) test zipTest pluginZip $(GRADLE_FLAGS)
 	@echo "==> plugin zip: $$(find $(PLUGIN_RELEASE_KEY_DIR)/build/plugin-dist -name '*.zip')"

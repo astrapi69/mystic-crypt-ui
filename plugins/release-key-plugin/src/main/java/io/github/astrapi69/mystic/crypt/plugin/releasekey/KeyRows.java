@@ -30,6 +30,11 @@ import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.List;
 
+import io.github.astrapi69.mystic.crypt.gnupg.KeyRingState;
+import io.github.astrapi69.mystic.crypt.gnupg.KeyState;
+import io.github.astrapi69.mystic.crypt.gnupg.RevocationCertificate;
+import io.github.astrapi69.mystic.crypt.gnupg.SecretPart;
+
 /**
  * The rows of the status table: one per key, the primary key of each certificate first. What
  * belongs to the certificate as a whole - its revocation certificate and its user ID - stands on

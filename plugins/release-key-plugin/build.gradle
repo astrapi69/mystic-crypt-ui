@@ -25,28 +25,12 @@ def hostVersion = new Properties().with { properties ->
     properties.getProperty("projectVersion")
 }
 
-// Bouncy Castle's OpenPGP module is the one library this plugin needs that the host does not carry,
-// so the zip brings it under lib/ (the lethenon plugin's pattern, #581); bcprov and bcutil, which
-// it builds on, come from the host in the same version (#642)
-configurations {
-    bundled {
-        canBeResolved = true
-    }
-}
-
-def bundledModules = ['bcpg-jdk18on']
-def bundledJars = configurations.bundled.incoming.artifactView {
-    componentFilter { id -> id instanceof ModuleComponentIdentifier && id.module in bundledModules }
-}.files
-
 dependencies {
     compileOnly "io.github.astrapi69:mystic-crypt-ui:$hostVersion"
-    // the GnuPG home is read with Bouncy Castle's OpenPGP readers, never through the gpg command
-    // line (docs/decisions/release-key-openpgp-2026-10-29.md)
-    compileOnly libs.bcpg.jdk18on
-    bundled libs.bcpg.jdk18on
-    compileOnly libs.bcprov.jdk18on
-    compileOnly libs.bcutil.jdk18on
+    // the GnuPG home is read by mystic-crypt's GnuPgHome, with Bouncy Castle's OpenPGP readers and
+    // never through the gpg command line; the host ships the library and the module it reads with,
+    // so the zip carries neither (docs/decisions/release-key-openpgp-2026-10-29.md, library first)
+    compileOnly libs.mystic.crypt
     // ResourceBundleExtensions.getStringQuietly - label and tooltip text from
     // releasekey/messages.properties falls back to a literal default rather than throwing when a key
     // is missing, the same way the host's own Messages class behaves (.claude/rules/i18n.md)
@@ -67,9 +51,7 @@ dependencies {
 
     // the tests read GnuPG homes that gpg itself wrote, in temporary directories
     testImplementation libs.junit.jupiter
-    testImplementation libs.bcpg.jdk18on
-    testImplementation libs.bcprov.jdk18on
-    testImplementation libs.bcutil.jdk18on
+    testImplementation libs.mystic.crypt
     // the contribution classes implement the host's extension points, so the host jar has to be on
     // the test classpath to load them - for the main sources they stay compileOnly
     testImplementation "io.github.astrapi69:mystic-crypt-ui:$hostVersion"
@@ -91,23 +73,8 @@ apply from: '../../gradle/own-display.gradle'
 // the bounds of every test JVM, the same as the host's (#580)
 apply from: '../../gradle/test-jvms.gradle'
 
-// The licence of the library this zip bundles, taken out of the very jar it bundles so that it cannot
-// drift from it, next to NOTICE.txt, which names the library and where its licence is. The zip
-// carries them under legal/, and the installer installs the same directory (#581)
-def bundledJar = { String module -> bundledJars.filter { it.name.startsWith("${module}-") } }
-tasks.register('pluginLegal', Sync) {
-    into layout.buildDirectory.dir('legal')
-    from('src/main/legal')
-    from({ zipTree(bundledJar('bcpg-jdk18on').singleFile) }) {
-        include 'META-INF/LICENSE.md'
-        eachFile { it.path = "bcpg-jdk18on/${it.name}" }
-        includeEmptyDirs = false
-    }
-}
-
 // packages the plugin the way the host's DefaultPluginManager expects: plugin.properties at the
-// root, compiled classes under classes/, the library the host does not carry under lib/, and its
-// licence under legal/
+// root, compiled classes under classes/
 tasks.register('pluginZip', Zip) {
     archiveFileName = "release-key-plugin-${version}.zip"
     destinationDirectory = layout.buildDirectory.dir("plugin-dist")
@@ -120,18 +87,12 @@ tasks.register('pluginZip', Zip) {
             exclude "plugin.properties"
         }
     }
-    into("lib") {
-        from bundledJars
-    }
-    into("legal") {
-        from tasks.named('pluginLegal')
-    }
     dependsOn classes
 }
 
 // the plugin started from its zip, the way the installed application starts it (#581): a class path
-// with the host and nothing of the plugin's own, so that a library the zip does not carry fails here
-// instead of being found on the build's class path, as it is in the end-to-end suite
+// with the host and nothing of the plugin's own, so that a library neither the host nor the zip
+// carries fails here instead of being found on the build's class path, as it is in the end-to-end suite
 sourceSets {
     zipTest {
         java.srcDir 'src/zipTest/java'
@@ -145,15 +106,10 @@ dependencies {
     zipTestRuntimeOnly libs.junit.platform.launcher
 }
 
-configurations.zipTestRuntimeClasspath {
-    // the host does not depend on it today; should it ever, this test must still not see it
-    exclude group: 'org.bouncycastle', module: 'bcpg-jdk18on'
-}
-
 def pluginZipFile = tasks.named('pluginZip').flatMap { it.archiveFile }
 
 tasks.register('zipTest', Test) {
-    description = 'Starts the plugin from its zip in a JVM without bcpg (#644).'
+    description = 'Starts the plugin from its zip in a JVM with the host class path only (#644).'
     group = 'verification'
     testClassesDirs = sourceSets.zipTest.output.classesDirs
     classpath = sourceSets.zipTest.runtimeClasspath
