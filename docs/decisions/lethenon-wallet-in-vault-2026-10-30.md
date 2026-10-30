@@ -71,6 +71,61 @@ In mystic-crypt-ui, the lethenon plugin:
 - a locked vault offers no wallet action;
 - a KDBX export carries the sealed attachment and not the words.
 
+## Backup assistant (added 30 October 2026)
+
+Part of "wallet in the vault". The assistant makes the 24 words and the wallet file survive a lost
+vault and a lost computer, and tells the user whether it has checked that they do.
+
+### What it does
+
+1. **Words, once.** At creation, and later on request, the plugin shows the 24 words once, with the
+   request to write them down on paper or on an offline medium. It then asks for three words chosen at
+   random, for example the 4th, the 11th and the 19th, to confirm they were written down. A wrong answer
+   is refused and the question repeats. The words are never stored: not in the vault, not on disk.
+   After they are shown, the buffers holding them are overwritten.
+2. **Wallet file, to a place the user picks.** The sealed `LETHWF` file is written to a location the
+   user chooses, for example a USB stick. After writing, the plugin reads the file back and shows its
+   SHA-256 checksum, so the user can compare it with the copy on the stick.
+3. **Backup check.** The user types the 24 words. The plugin derives the address from them and compares
+   it with the address of the wallet in the vault. The result is one clear line: matches, or does not
+   match. No file is written by this step.
+4. **State shown.** After a successful check, the vault entry gets the property `lethenon.backupVerified`
+   with the date of the check (ISO 8601). The wallet overview shows a clear notice while the property is
+   absent, and a gentle reminder once the last check is older than the interval set below.
+5. **Plain explanations.** The texts say, in simple words: the 24 words restore the wallet on any
+   computer; the wallet file is the wallet's data, sealed; the wallet password opens the file. The words
+   are not put into the vault, because a vault that holds them is a vault that gives the whole wallet
+   to whoever opens it.
+
+### Limits, stated
+
+- Java strings cannot be overwritten. The words are handled as character arrays, as in #294. The string
+  copies that Swing components hold, as recorded in `locking-keeps-the-content`, cannot be cleared from
+  here; the words are not put into text components where avoidable.
+- The check compares addresses, so it proves that the typed words produce the wallet's address. It does
+  not prove that the words are the only copy written down.
+
+### Open decision
+
+- **The interval for the reminder.** Not decided here. Proposal to be confirmed: 180 days. Until it is
+  decided, the reminder is not built.
+
+### Tests (before the code, red first)
+
+- asking the three words: a wrong word is refused; the right three pass; the positions are random per
+  request (two requests in a row do not ask the same positions in the same order, measured over 50 runs)
+- the check: the right 24 words match the vault's wallet; one word wrong does not match; a shorter or
+  unknown list is refused with a reason that names the count or the word
+- the property: after a successful check `lethenon.backupVerified` holds today's date; after a failed
+  check it does not change
+- no words on disk: the test directory is listed before and after the show, the ask and the check, and
+  no file holds a word of the phrase
+- no decrypted wallet on disk: the same directory test, for each step
+- after each step, every buffer the test holds that was filled with words or entropy is zeroed
+- the export: the sealed file is written to the chosen location, reads back with the same checksum, and
+  the printed checksum equals the SHA-256 of the file
+- the export shows the sealed file only; no decrypted copy is written in between
+
 ## Rejected
 
 - **The 24 words in the vault** (option 2): a reader of the open vault gets the whole wallet, with no
