@@ -43,9 +43,9 @@ import io.github.astrapi69.mystic.crypt.panel.dbtree.VaultEntryProperties;
 
 /**
  * The wallet's words, as the lethenon wallet tools store them in a vault entry (decision
- * docs/decisions/lethenon-wallet-in-vault-2026-10-30.md, option 2 as the user's choice): a protected
- * custom property {@code lethenon.mnemonic} keeps its protection flag through the KDBX entry and back,
- * and removing it leaves no trace in the entry.
+ * docs/decisions/lethenon-wallet-in-vault-2026-10-30.md, option 2 as the user's choice): a
+ * protected custom property {@code lethenon.mnemonic} keeps its protection flag through the KDBX
+ * entry and back, and removing it leaves no trace in the entry.
  */
 class LethenonMnemonicKeePassTest
 {
@@ -59,8 +59,8 @@ class LethenonMnemonicKeePassTest
 	@DisplayName("the words keep their protection flag through the KDBX entry and back")
 	void theWordsKeepTheirProtectionThroughTheKeePassEntry()
 	{
-		MysticCryptEntryModelBean bean = MysticCryptEntryModelBean.builder().title("lethenon wallet".toCharArray())
-			.build();
+		MysticCryptEntryModelBean bean = MysticCryptEntryModelBean.builder()
+			.title("lethenon wallet".toCharArray()).build();
 		VaultEntryProperties.replace(bean, Map.of(MNEMONIC, WORDS), Set.of(MNEMONIC));
 
 		KdbxEntry written = KeePassEntryConverter.toJacksonEntry(new KdbxDatabase(), bean);
@@ -77,8 +77,8 @@ class LethenonMnemonicKeePassTest
 	@DisplayName("after removing the words no trace of them is left in the KDBX entry")
 	void removingTheWordsLeavesNoTraceInTheKeePassEntry()
 	{
-		MysticCryptEntryModelBean bean = MysticCryptEntryModelBean.builder().title("lethenon wallet".toCharArray())
-			.build();
+		MysticCryptEntryModelBean bean = MysticCryptEntryModelBean.builder()
+			.title("lethenon wallet".toCharArray()).build();
 		VaultEntryProperties.replace(bean, Map.of(MNEMONIC, WORDS), Set.of(MNEMONIC));
 		VaultEntryProperties.replace(bean, Map.of(), Set.of());
 

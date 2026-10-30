@@ -34,8 +34,8 @@ import io.github.astrapi69.collection.pair.KeyValuePair;
 
 /**
  * The custom properties of a vault entry as plain maps, for a feature that does not know the entry
- * model. The values are text, as the model holds them; the protected names are the model's own
- * set, so an export keeps the protection flag. Used by the lethenon wallet tools, which carry the
+ * model. The values are text, as the model holds them; the protected names are the model's own set,
+ * so an export keeps the protection flag. Used by the lethenon wallet tools, which carry the
  * wallet's words as a protected property (docs/decisions/lethenon-wallet-in-vault-2026-10-30.md).
  */
 public final class VaultEntryProperties
@@ -85,8 +85,8 @@ public final class VaultEntryProperties
 	 * @param protectedNames
 	 *            the names among them that are protected
 	 */
-	public static void replace(final MysticCryptEntryModelBean entry, final Map<String, String> values,
-		final Set<String> protectedNames)
+	public static void replace(final MysticCryptEntryModelBean entry,
+		final Map<String, String> values, final Set<String> protectedNames)
 	{
 		List<KeyValuePair<String, String>> properties = entry.getProperties();
 		properties.clear();

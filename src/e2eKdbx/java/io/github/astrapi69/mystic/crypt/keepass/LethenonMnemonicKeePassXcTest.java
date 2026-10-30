@@ -47,8 +47,8 @@ import io.github.astrapi69.mystic.crypt.panel.dbtree.VaultEntryProperties;
 
 /**
  * The wallet's words, through a real KDBX file that keepassxc-cli reads: the host writes the entry
- * with {@code lethenon.mnemonic} as a protected property, keepassxc-cli reports the protection flag,
- * and after the words are removed the file holds no trace of them. Decision:
+ * with {@code lethenon.mnemonic} as a protected property, keepassxc-cli reports the protection
+ * flag, and after the words are removed the file holds no trace of them. Decision:
  * docs/decisions/lethenon-wallet-in-vault-2026-10-30.md.
  */
 class LethenonMnemonicKeePassXcTest
@@ -111,7 +111,8 @@ class LethenonMnemonicKeePassXcTest
 		File file = directory.resolve(name).toFile();
 		try (OutputStream out = new FileOutputStream(file))
 		{
-			database.write(new KdbxCredentials(PASSWORD.getBytes(java.nio.charset.StandardCharsets.UTF_8)),
+			database.write(
+				new KdbxCredentials(PASSWORD.getBytes(java.nio.charset.StandardCharsets.UTF_8)),
 				out);
 		}
 		return KdbxFacts.of(KeePassXcDump.xmlOf(file, PASSWORD));
