@@ -92,36 +92,55 @@ public final class MiningSupport
 	{
 		try
 		{
-			Bytes beneficiary = LethenonWallets.open(order.walletFile(), password)
-				.spendKey(SignatureSuite.ED25519);
-			ChainFile chainFile = new ChainFile(order.chainFile());
-			// an existing file goes through the plugin's one way in: a chain of the old format is
-			// refused until the person agreed to convert it, and for good when it does not verify (#581)
-			List<BlockBody> chain = Files.isRegularFile(order.chainFile())
-				&& Files.size(order.chainFile()) > 0 ? ChainFiles.read(order.chainFile())
-					: chainFile.read();
-			List<SignedTransaction> waiting = chain.isEmpty() ? List.of() : chainFile.readPending();
-			Replay before = chain.isEmpty() ? null : ChainReplaySupport.replay(order.chainFile(), chain);
-			BlockBody mined = chain.isEmpty()
-				? Genesis.start(order.newChain().identifier(), order.pun(), now)
-				: Blocks.mine(Mining.nextBlock(chain, beneficiary, waiting, order.pun(), now),
-					order.attempts())
-					.orElseThrow(() -> new IllegalStateException("no variation of the pun reached "
-						+ "difficulty " + DifficultyRule.requiredFor(chain) + " within "
-						+ order.attempts() + " attempts; mine again, or with other words"));
-			List<BlockBody> extended = new ArrayList<>(chain);
-			extended.add(mined);
-			Replay replay = ChainReplaySupport.replay(order.chainFile(), extended);
-			chainFile.write(extended);
-			chainFile.writePending(List.of());
-			return new MinedBlock(mined.chainIdentifier(), mined.height(), mined.pun(),
-				mined.transactions().size(), mined.beneficiary().toString(),
-				rewardOf(mined, before, replay), ChainReplaySupport.report(replay));
+			return mine(order, () -> LethenonWallets.open(order.walletFile(), password), now);
 		}
 		finally
 		{
 			Arrays.fill(password, '\0');
 		}
+	}
+
+	/**
+	 * Mines with the wallet a source opens, for the reward (#706)
+	 *
+	 * @param order
+	 *            what to mine; its wallet file is not read
+	 * @param source
+	 *            where the wallet that gets the reward comes from
+	 * @param now
+	 *            the time of the block
+	 * @return the mined block
+	 * @throws IOException
+	 *             if the chain or the wallet cannot be read
+	 */
+	static MinedBlock mine(final MiningOrder order, final WalletSource source, final long now)
+		throws IOException
+	{
+		Bytes beneficiary = source.open()
+			.spendKey(SignatureSuite.ED25519);
+		ChainFile chainFile = new ChainFile(order.chainFile());
+		// an existing file goes through the plugin's one way in: a chain of the old format is
+		// refused until the person agreed to convert it, and for good when it does not verify (#581)
+		List<BlockBody> chain = Files.isRegularFile(order.chainFile())
+			&& Files.size(order.chainFile()) > 0 ? ChainFiles.read(order.chainFile())
+				: chainFile.read();
+		List<SignedTransaction> waiting = chain.isEmpty() ? List.of() : chainFile.readPending();
+		Replay before = chain.isEmpty() ? null : ChainReplaySupport.replay(order.chainFile(), chain);
+		BlockBody mined = chain.isEmpty()
+			? Genesis.start(order.newChain().identifier(), order.pun(), now)
+			: Blocks.mine(Mining.nextBlock(chain, beneficiary, waiting, order.pun(), now),
+				order.attempts())
+				.orElseThrow(() -> new IllegalStateException("no variation of the pun reached "
+					+ "difficulty " + DifficultyRule.requiredFor(chain) + " within "
+					+ order.attempts() + " attempts; mine again, or with other words"));
+		List<BlockBody> extended = new ArrayList<>(chain);
+		extended.add(mined);
+		Replay replay = ChainReplaySupport.replay(order.chainFile(), extended);
+		chainFile.write(extended);
+		chainFile.writePending(List.of());
+		return new MinedBlock(mined.chainIdentifier(), mined.height(), mined.pun(),
+			mined.transactions().size(), mined.beneficiary().toString(),
+			rewardOf(mined, before, replay), ChainReplaySupport.report(replay));
 	}
 
 	/**
