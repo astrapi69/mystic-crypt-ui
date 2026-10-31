@@ -102,13 +102,13 @@ final class LethenonVault
 	 *            the wallet password
 	 * @return the created wallet, whose words the caller shows once and then closes
 	 */
-	CreatedWallet create(final String network, final char[] password)
+	NewWallet create(final String network, final char[] password)
 	{
 		VaultAccess target = requireAccess();
 		CreatedWallet created = WalletVault.create(network, password);
 		try
 		{
-			store(target, created.entry());
+			return new NewWallet(store(target, created.entry()), created.words());
 		}
 		catch (final RuntimeException refused)
 		{
@@ -117,7 +117,21 @@ final class LethenonVault
 			created.close();
 			throw refused;
 		}
-		return created;
+	}
+
+	/**
+	 * Takes back a creation the user cancelled while the words were shown: the entry leaves the
+	 * vault and the words are overwritten
+	 *
+	 * @param created
+	 *            the wallet {@link #create} returned
+	 */
+	void discard(final NewWallet created)
+	{
+		try (created)
+		{
+			requireAccess().remove(created.id());
+		}
 	}
 
 	/**
@@ -129,14 +143,15 @@ final class LethenonVault
 	 *            its password
 	 * @param network
 	 *            "testnet" or "mainnet"
+	 * @return the identifier of the wallet's new entry
 	 * @throws IOException
 	 *             if the file cannot be read
 	 */
-	void takeOver(final Path walletFile, final char[] password, final String network)
+	UUID takeOver(final Path walletFile, final char[] password, final String network)
 		throws IOException
 	{
 		VaultAccess target = requireAccess();
-		store(target, WalletVault.takeOver(walletFile, password, network));
+		return store(target, WalletVault.takeOver(walletFile, password, network));
 	}
 
 	/**
@@ -148,11 +163,12 @@ final class LethenonVault
 	 *            the new wallet password
 	 * @param network
 	 *            "testnet" or "mainnet"
+	 * @return the identifier of the wallet's new entry
 	 */
-	void restore(final char[] words, final char[] password, final String network)
+	UUID restore(final char[] words, final char[] password, final String network)
 	{
 		VaultAccess target = requireAccess();
-		store(target, WalletVault.restore(words, password, network));
+		return store(target, WalletVault.restore(words, password, network));
 	}
 
 	/**
@@ -202,11 +218,13 @@ final class LethenonVault
 		return current;
 	}
 
-	private static void store(final VaultAccess target, final WalletEntry wallet)
+	private static UUID store(final VaultAccess target, final WalletEntry wallet)
 	{
-		MysticCryptEntryModelBean entry = MysticCryptEntryModelBean.builder().build();
+		MysticCryptEntryModelBean entry = MysticCryptEntryModelBean.builder().id(UUID.randomUUID())
+			.build();
 		VaultWalletEntry.write(wallet, entry);
 		target.add(entry);
+		return entry.getId();
 	}
 
 	private static VaultWallet listed(final MysticCryptEntryModelBean entry)

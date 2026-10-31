@@ -24,6 +24,7 @@
  */
 package io.github.astrapi69.mystic.crypt.plugin.lethenon;
 
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -84,14 +85,16 @@ class LethenonVaultTest
 	@DisplayName("a created wallet is stored in the vault and listed with its network and address; its words are not stored")
 	void aCreatedWalletIsListed()
 	{
-		try (CreatedWallet created = vault.create("testnet", PASSWORD))
+		try (NewWallet created = vault.create("testnet", PASSWORD))
 		{
 			List<VaultWallet> wallets = vault.wallets();
 
 			assertEquals(1, wallets.size());
+			assertEquals(created.id(), wallets.get(0).id());
 			assertEquals("testnet", wallets.get(0).network());
 			assertEquals("lethenon wallet (testnet)", wallets.get(0).title());
-			assertEquals(created.entry().addressForCheck(), wallets.get(0).address());
+			assertEquals(Wallet.fromPhrase(new String(created.words())).address().toText(),
+				wallets.get(0).address(), "the listed address is the address of the shown words");
 			String words = new String(created.words());
 			assertTrue(access.stored.stream().noneMatch(entry -> VaultEntryProperties
 				.valuesOf(entry).values().stream().anyMatch(words::contains)),
@@ -120,16 +123,30 @@ class LethenonVaultTest
 	@DisplayName("an opened wallet unseals with its password and reports a recorded address that does not fit")
 	void opensAWalletWithItsPassword()
 	{
-		try (CreatedWallet created = vault.create("testnet", PASSWORD))
+		try (NewWallet created = vault.create("testnet", PASSWORD))
 		{
-			UUID id = vault.wallets().get(0).id();
+			UUID id = created.id();
 
 			UnsealedWallet opened = vault.open(id, PASSWORD);
 
-			assertEquals(created.entry().addressForCheck(), opened.wallet().address().toText());
+			assertEquals(vault.wallets().get(0).address(), opened.wallet().address().toText());
 			assertTrue(opened.addressWarning().isEmpty());
 			assertThrows(SecurityException.class, () -> vault.open(id, ThrowawayPasswords.next()));
 		}
+	}
+
+	@Test
+	@DisplayName("a creation cancelled while the words are shown leaves no wallet in the vault and no word in the buffer")
+	void aCancelledCreationLeavesNothing()
+	{
+		NewWallet created = vault.create("testnet", PASSWORD);
+		char[] shown = created.words();
+
+		vault.discard(created);
+
+		assertEquals(List.of(), vault.wallets());
+		assertTrue(access.stored.isEmpty(), "the entry is gone from the vault");
+		assertArrayEquals(new char[shown.length], shown, "the buffer that held the words is zeroed");
 	}
 
 	@Test
