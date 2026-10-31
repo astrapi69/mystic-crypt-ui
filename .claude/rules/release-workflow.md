@@ -61,11 +61,10 @@ Prompt triggers: "release new version", "new release".
      stops nothing and the gate does not start. The 8.9 gate died of memory next to daemons left over
      from earlier builds (#580).
    - `make build-full`, whose test tasks bring their own Xvfb (#505) — it runs the plugin builds, the packaging,
-     EVERY test including the UI e2e suite, and spotless - but no license check: `licenseMain` and
-     `licenseTest` are disabled because of hierynomus/license-gradle-plugin#76. Until it is fixed the gate
-     checks the headers itself, over the Java files changed since the last tag (#553):
-     `git diff --name-only --diff-filter=AM <last tag>..HEAD -- "*.java" | while read -r f; do head -5 "$f" |
-     grep -q "The MIT License" || echo "NO HEADER: $f"; done` must print nothing. The plugins are
+     EVERY test including the UI e2e suite, and spotless - which since #686 also checks the license header
+     on every Java source of the host build (`licenseHeaderFile`, `src/test/resources/spotless/license-header.txt`).
+     The license plugin and the shell check over changed files that stood in for its disabled checks (#553)
+     are gone; the plugin builds have no Spotless yet (#666). The plugins are
      part of it since #333: `./gradlew build` never built them, so the 54 end-to-end tests
      that install one skipped, and a release could be cut with every plugin feature
      unverified while the gate read green. `make test` and

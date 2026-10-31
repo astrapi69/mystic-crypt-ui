@@ -345,7 +345,7 @@ javadoc:
 	JAVA_HOME=$(JAVA_HOME) ./gradlew javadoc $(GRADLE_FLAGS)
 
 license-format:
-	JAVA_HOME=$(JAVA_HOME) ./gradlew licenseFormat $(GRADLE_FLAGS)
+	JAVA_HOME=$(JAVA_HOME) ./gradlew spotlessJavaApply $(GRADLE_FLAGS)
 
 spotless-java:
 	JAVA_HOME=$(JAVA_HOME) ./gradlew spotlessJavaApply $(GRADLE_FLAGS)

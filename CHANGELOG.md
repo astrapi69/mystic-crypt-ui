@@ -28,6 +28,10 @@ ADDED:
   certificate alone. The plugin brings no library of its own: Bouncy Castle's OpenPGP module comes with mystic-crypt
 
 CHANGED:
+- Spotless writes and checks the license header on every Java source of the build, instead of the license plugin,
+  whose checks were disabled and which brought plexus-utils 2.0.6 and spring-core 3.1.3 into the build classpath, the
+  source of 11 Dependabot alerts (#686). 18 sources get the header they lacked; headers in another wrapping, and
+  NetBeans template remarks below them, take the one form
 - mystic-crypt 13.9 (#664). Its salts, GCM nonces, IVs and generated passwords come from `SecureRandom` directly, and it
   no longer brings randomizer along at runtime. It overwrites every working copy of secret material it makes, among
   them the ones the vault, lock and sign-in paths go through. A secret passed to `--cli` as an argument now prints a

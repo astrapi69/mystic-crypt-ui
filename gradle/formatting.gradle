@@ -17,5 +17,8 @@ spotless {
         removeUnusedImports()
         // import order file as exported from eclipse
         eclipse("4.21").configFile("src/test/resources/spotless/alpharo-formatter.xml")
+        // the MIT header on every Java source of the build, written and checked here since #686 (the license
+        // plugin it replaces had its checks disabled and brought plexus-utils and spring-core 3.1.3 along)
+        licenseHeaderFile(rootProject.file("src/test/resources/spotless/license-header.txt"))
     }
 }
