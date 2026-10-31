@@ -58,7 +58,7 @@ import io.github.astrapi69.mystic.crypt.wizard.model.CertificateInfoModel;
 import io.github.astrapi69.mystic.crypt.wizard.model.DistinguishedNameInfoModel;
 import io.github.astrapi69.mystic.crypt.wizard.model.KeyInfoModel;
 import io.github.astrapi69.mystic.crypt.wizard.model.ValidityModel;
-import io.github.astrapi69.random.number.RandomByteFactory;
+import io.github.astrapi69.mystic.crypt.secret.SecretRandom;
 
 /**
  * What the key generation tool does beyond producing a key pair of a fixed kind: choosing the curve
@@ -217,7 +217,7 @@ public final class KeygenSupport
 		{
 			throw new IllegalArgumentException("ask for at least one byte");
 		}
-		return RandomByteFactory.randomByteArray(length);
+		return SecretRandom.bytes(length);
 	}
 
 	/**

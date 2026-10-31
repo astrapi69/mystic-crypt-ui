@@ -1,5 +1,6 @@
-# GitHub Sponsor button configuration.
-# See DONATE.md for human-readable descriptions of each channel.
+# GitHub Sponsor button configuration, with the channels astrapi69/adaptive-learner uses (its DONATE.md
+# describes each). No cryptocurrency address: an address in a repository is a payment channel nobody can
+# revoke, and it cannot be corrected once it is wrong or compromised.
 
 github: astrapi69
 liberapay: astrapi69

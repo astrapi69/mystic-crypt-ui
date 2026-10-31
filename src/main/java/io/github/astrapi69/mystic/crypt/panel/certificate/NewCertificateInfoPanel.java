@@ -37,11 +37,11 @@ import io.github.astrapi69.model.LambdaModel;
 import io.github.astrapi69.model.api.IModel;
 import io.github.astrapi69.mystic.crypt.Messages;
 import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
+import io.github.astrapi69.mystic.crypt.random.SecureRandomValues;
 import io.github.astrapi69.mystic.crypt.ui.screen.ScreenPlacement;
 import io.github.astrapi69.mystic.crypt.wizard.model.CertificateInfoModel;
 import io.github.astrapi69.mystic.crypt.wizard.model.DistinguishedNameInfoModel;
 import io.github.astrapi69.mystic.crypt.wizard.model.ValidityModel;
-import io.github.astrapi69.random.number.RandomBigIntegerFactory;
 import io.github.astrapi69.swing.base.BasePanel;
 import io.github.astrapi69.swing.dialog.factory.JDialogFactory;
 import io.github.astrapi69.swing.listener.RequestFocusListener;
@@ -564,7 +564,7 @@ public class NewCertificateInfoPanel extends BasePanel<CertificateInfoModel>
 
 	protected void onGenerateSerialNumber(java.awt.event.ActionEvent evt)
 	{
-		BigInteger serialNumber = RandomBigIntegerFactory.randomSerialNumber();
+		BigInteger serialNumber = SecureRandomValues.serialNumber();
 		CertificateInfoModel modelObject = getModelObject();
 		modelObject.setSerial(serialNumber);
 		getTxtSerialNumber().setText(serialNumber.toString());

@@ -2,9 +2,10 @@
 
 A record of the decision taken in [#642](https://github.com/astrapi69/mystic-crypt-ui/issues/642) on
 2026-10-29, not a rule. It describes the decision and what was measured for it. Of what follows
-from it, the reader of stage 1a goes into the mystic-crypt library
-(astrapi69/mystic-crypt#211). The plugin's view waits in pull request #645 for a mystic-crypt
-release that carries it.
+from it, stage 1a exists: the reader is `io.github.astrapi69.mystic.crypt.gnupg.GnuPgHome` in the
+mystic-crypt library since 13.8 (astrapi69/mystic-crypt#211), and the release key plugin
+(`plugins/release-key-plugin`, #644) shows what it returns. The rest of stage 1 and stages 2 and 3
+do not exist yet.
 
 ## The decision
 
@@ -98,8 +99,9 @@ A throwaway GnuPG 2.4.8 home in the state of the real key:
 - in both, the primary key's secret removed and the subkeys imported again;
 - gpg's own revocation certificates in `openpgp-revocs.d`.
 
-It was read with `bcpg`, `bcprov` and `bcutil` 1.86 only. The probe sources become the plugin's tests
-in stage 1.
+It was read with `bcpg`, `bcprov` and `bcutil` 1.86 only. The probes became the reader's tests in the
+library: `GnuPgHomeTest` lets gpg write such a home in a temporary directory and measures the reader's
+answers against what gpg says about the same home.
 
 - `BcKeyBox` reads `pubring.kbx`: both keys, every subkey with its expiry.
 - The revocation certificates in `openpgp-revocs.d` parse as signatures of type 0x20 (key revocation)

@@ -131,10 +131,13 @@ Castle, or from the libraries underneath - `mystic-crypt`, `crypt-data` and
 `crypt-api`, each with its own reporting path in its own repository. A flaw in a
 primitive belongs to whoever implements it.
 
-One exception, until #658 is released: the password generator and the serial
-numbers of new certificates still draw through randomizer rather than straight
-from `java.security.SecureRandom` (GHSA-qxx5-r8qx-vj98 above). Keys never did:
-key pairs and symmetric keys come from the JDK's `SecureRandom`.
+Two random values are drawn by the application itself: the characters of a
+generated password and the serial number of a new certificate. Up to 8.13 both came
+from randomizer, a library for test data (GHSA-qxx5-r8qx-vj98 above). Since 8.14
+they come from `java.security.SecureRandom` (#658). The code lives in
+`SecureRandomValues` until mystic-crypt ships the same building blocks
+(astrapi69/mystic-crypt#252, #253). Keys never came from randomizer: key pairs and
+symmetric keys come from the JDK's `SecureRandom`.
 
 A flaw in *how this application uses* one of them - a vault written with weaker
 parameters than configured, a secret left readable after locking, a password

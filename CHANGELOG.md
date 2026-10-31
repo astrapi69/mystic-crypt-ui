@@ -1,6 +1,31 @@
 ## Change log
 ----------------------
 
+Version 8.14 (unreleased)
+-------------
+
+SECURITY:
+- "Generate password" and the serial number of a new certificate draw from `SecureRandom` directly instead of through
+  randomizer, a library for test data (#658, GHSA-qxx5-r8qx-vj98). The password keeps its character sets and its length.
+  A serial number now has 159 random bits, positive and at most 20 octets, as RFC 5280 asks. randomizer is no longer a
+  dependency of the application. A constraint holds the copy that roboter and swing-components still bring at 10.6
+  instead of their 10.1, whose generator is seeded with the current time, and a test holds that floor
+
+ADDED:
+- a release key plugin (#644, the first stage of #642): with a vault open, "Plugins > Release Key > Key Status" shows
+  what a GnuPG home holds - every key with its use, algorithm, creation and expiry, whether its secret part is in the
+  home or offline, and whether gpg keeps a revocation certificate that really revokes the primary key. It reads
+  `~/.gnupg` (or `GNUPGHOME`, or the home named in its settings) through mystic-crypt's `GnuPgHome`, which reads with
+  Bouncy Castle's OpenPGP readers, never runs gpg and never writes a byte there; the command line's
+  `release-key status` reads the same way. Set the release key's fingerprint in its settings and it shows that
+  certificate alone. The plugin brings no library of its own: Bouncy Castle's OpenPGP module comes with mystic-crypt
+
+CHANGED:
+- mystic-crypt 13.9 (#664). Its salts, GCM nonces, IVs and generated passwords come from `SecureRandom` directly, and it
+  no longer brings randomizer along at runtime. It overwrites every working copy of secret material it makes, among
+  them the ones the vault, lock and sign-in paths go through. A secret passed to `--cli` as an argument now prints a
+  warning; the `-stdin` option beside each one is the way to pass it. The vault format does not change
+
 Version 8.13
 -------------
 
