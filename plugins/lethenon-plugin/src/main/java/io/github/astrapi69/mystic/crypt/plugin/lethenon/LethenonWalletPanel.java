@@ -123,6 +123,9 @@ public class LethenonWalletPanel extends JPanel
 	/** Where the window shows a result, the event dispatch thread in the application */
 	private final transient Executor ui;
 
+	/** Stops following the vault's wallet, when the window closes */
+	private final transient Runnable unfollow;
+
 	/** The balance of the wallet shown, null until it is read */
 	private transient AccountsBalance balance;
 
@@ -197,6 +200,8 @@ public class LethenonWalletPanel extends JPanel
 		add(pnlViews, "wmin 0");
 		add(messages(), "wmin 0");
 		vault.whenClosing(this::onVaultClosing);
+		unfollow = vault.whenTheWalletChanges(
+			wallet -> wallet.ifPresent(changed -> ui.execute(() -> followTheEntry(changed))));
 		refresh(null);
 	}
 
@@ -353,6 +358,27 @@ public class LethenonWalletPanel extends JPanel
 		vault.choose(wallet);
 		walletChoices.setSelectedItem(wallet);
 		showChosen();
+	}
+
+	@Override
+	public void removeNotify()
+	{
+		unfollow.run();
+		super.removeNotify();
+	}
+
+	/**
+	 * Shows the wallet again when its entry changed elsewhere, as after "Use the wallet's address"
+	 * in the warning of #716, which can come from any window that unsealed it
+	 */
+	private void followTheEntry(final VaultWallet changed)
+	{
+		VaultWallet shown = modelObject.getChosen();
+		if (shown != null && shown.id().equals(changed.id())
+			&& !shown.address().equals(changed.address()))
+		{
+			refresh(changed.id());
+		}
 	}
 
 	/** Reads the wallets of the vault again, after the vault was unlocked */

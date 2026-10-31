@@ -28,7 +28,10 @@ recommended the first. The code this describes is built after the tests for it a
      a copy, so it can disagree with the attachment: every time the attachment is unsealed, the plugin
      derives the address from the unsealed wallet and compares it with this property. When they differ,
      the plugin shows a clear warning that names both addresses and says that the entry's address does
-     not belong to its wallet, and it does not silently overwrite either one.
+     not belong to its wallet, and it does not silently overwrite either one. The warning (text T6) is
+     asked on every unseal through the vault, with "Close" as the default; "Use the wallet's address"
+     replaces the recorded address only after a second question that names the old and the new one
+     (T6a), and only while the entry still records the address that was shown (#716).
    - `lethenon.account.ml-dsa-65` = the public key of the wallet's ML-DSA-65 account, in the text form
      of lethenon's `Bytes`, **not protected** (decided by the maintainer on 31 October 2026, #700). The
      balance of a wallet is the sum of its two accounts and of the one-time payments to its address.
