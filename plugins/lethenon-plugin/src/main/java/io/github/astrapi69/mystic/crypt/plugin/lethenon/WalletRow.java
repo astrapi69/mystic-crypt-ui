@@ -31,6 +31,7 @@ import java.util.Optional;
 import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JTextArea;
 
 import io.github.astrapi69.mystic.crypt.ui.form.ToolForm;
 import io.github.astrapi69.swing.model.component.JMTextField;
@@ -55,6 +56,13 @@ final class WalletRow
 	private final JLabel lblFromWallet = new JLabel();
 
 	private final JLabel lblWalletFile = new JLabel();
+
+	/**
+	 * Why the file field is there: no wallet of the vault is chosen (#718, the maintainer's
+	 * decision A of 31 October 2026); it goes with the field
+	 */
+	private final JTextArea txtWalletFileNote = LethenonWalletPanel.message("txtWalletFileNote",
+		false);
 
 	private final JButton btnBrowseWalletFile;
 
@@ -84,6 +92,10 @@ final class WalletRow
 			"the wallet in the vault the overview shows; its password is asked for this action only"));
 		lblFromWallet.setText(text("lethenon.send.label.from.wallet", "Wallet:"));
 		lblWalletFile.setText(text("lethenon.input.label.wallet.file", "Wallet file:"));
+		txtWalletFileNote.setText(text("lethenon.input.wallet.file.note",
+			"No wallet of the vault is chosen in \"Wallet\", so the wallet comes from this file."));
+		txtWalletFileNote.setToolTipText(text("lethenon.input.tooltip.wallet.file.note",
+			"choose a wallet in \"Wallet\" to use the one in the vault instead"));
 		btnBrowseWalletFile = LethenonSwing.button("btnBrowseWalletFile", "...",
 			event -> browse.run(),
 			text("lethenon.input.tooltip.browse.wallet.file", "pick your wallet file on your disk"));
@@ -102,6 +114,7 @@ final class WalletRow
 		form.add(lblWalletFile, "hidemode 3");
 		form.add(txtWalletFile, "growx, split 2, hidemode 3");
 		form.add(btnBrowseWalletFile, "alignx left, width pref!, hidemode 3");
+		form.add(txtWalletFileNote, "skip, growx, wmin 0, hidemode 3");
 		unfollow = vault.whenTheWalletChanges(wallet -> show());
 		show();
 	}
@@ -153,6 +166,7 @@ final class WalletRow
 		lblWalletFile.setVisible(!fromTheVault);
 		txtWalletFile.setVisible(!fromTheVault);
 		btnBrowseWalletFile.setVisible(!fromTheVault);
+		txtWalletFileNote.setVisible(!fromTheVault);
 		if (txtWalletFile.getParent() != null)
 		{
 			txtWalletFile.getParent().revalidate();

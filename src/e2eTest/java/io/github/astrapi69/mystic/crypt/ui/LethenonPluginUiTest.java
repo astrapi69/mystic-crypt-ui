@@ -516,6 +516,10 @@ class LethenonPluginUiTest extends AbstractUiTest
 		application.openPluginTool("Mine a Pun", "Mine a Pun");
 		JInternalFrameFixture tool = new JInternalFrameFixture(robot,
 			application.internalFrame("Mine a Pun"));
+		assertEquals(
+			"No wallet of the vault is chosen in \"Wallet\", so the wallet comes from this file.",
+			textOf(tool, "txtWalletFileNote"),
+			"without a vault wallet the window says why it asks for a file (#718)");
 		GuiActionRunner.execute(() -> {
 			tool.textBox("txtChainFile").target().setText(chainFile.getAbsolutePath());
 			tool.textBox("txtWalletFile").target().setText(walletFile.getAbsolutePath());

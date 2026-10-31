@@ -25,6 +25,7 @@
 package io.github.astrapi69.mystic.crypt.ui;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.File;
@@ -116,6 +117,14 @@ class LethenonWalletUiTest extends AbstractUiTest
 			"a tool window shows the network of the wallet the overview shows (#697)");
 		assertEquals("lethenon wallet (testnet), from the vault", textOf(send, "txtFromWallet"),
 			"the send window sends from the wallet in the vault, not from a file (#704)");
+		assertFalse(
+			GuiActionRunner
+				.execute(
+					() -> robot.finder()
+						.findByName(send.target(), "txtWalletFileNote", java.awt.Component.class,
+							false)
+						.isVisible()),
+			"no note about a file while the vault's wallet is used (#718)");
 	}
 
 	@Test
