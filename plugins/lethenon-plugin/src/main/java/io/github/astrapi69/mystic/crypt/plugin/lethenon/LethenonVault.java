@@ -28,6 +28,7 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.Consumer;
@@ -47,6 +48,11 @@ final class LethenonVault
 	private static final LethenonVault CURRENT = new LethenonVault();
 
 	private final List<Runnable> closingListeners = new CopyOnWriteArrayList<>();
+
+	private final List<Consumer<Optional<VaultWallet>>> walletListeners = new CopyOnWriteArrayList<>();
+
+	/** The wallet the overview shows: the session's wallet, which every window follows (#697) */
+	private volatile VaultWallet chosen;
 
 	private volatile VaultAccess access;
 
@@ -283,6 +289,39 @@ final class LethenonVault
 	}
 
 	/**
+	 * Makes a wallet the session's wallet and tells every window
+	 *
+	 * @param wallet
+	 *            the wallet the overview shows
+	 */
+	void choose(final VaultWallet wallet)
+	{
+		chosen = wallet;
+		walletListeners.forEach(listener -> listener.accept(Optional.ofNullable(wallet)));
+	}
+
+	/**
+	 * @return the session's wallet, empty while the overview shows none
+	 */
+	Optional<VaultWallet> chosen()
+	{
+		return Optional.ofNullable(chosen);
+	}
+
+	/**
+	 * Registers what a window does when the session's wallet changes
+	 *
+	 * @param listener
+	 *            told the new wallet, or empty when there is none
+	 * @return what takes the listener away again, for a window that closes
+	 */
+	Runnable whenTheWalletChanges(final Consumer<Optional<VaultWallet>> listener)
+	{
+		walletListeners.add(listener);
+		return () -> walletListeners.remove(listener);
+	}
+
+	/**
 	 * Registers what a window does when the vault is about to lock or close
 	 *
 	 * @param listener
@@ -297,6 +336,7 @@ final class LethenonVault
 	void vaultClosing()
 	{
 		closingListeners.forEach(Runnable::run);
+		choose(null);
 	}
 
 	private VaultAccess requireAccess()

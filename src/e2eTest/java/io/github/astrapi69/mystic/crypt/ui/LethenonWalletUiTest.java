@@ -63,7 +63,7 @@ class LethenonWalletUiTest extends AbstractUiTest
 	private static final String WALLET_MARKER = "lethenon.wallet";
 
 	@Test
-	@DisplayName("a wallet created in the wallet window goes through the three backup steps and is an entry of the vault, shown with its address")
+	@DisplayName("a wallet created in the wallet window goes through the three backup steps, is an entry of the vault shown with its address, and every window shows its network")
 	void aCreatedWallet_isAnEntryOfTheVault() throws Exception
 	{
 		JInternalFrameFixture tool = openTheWalletWindow("lethenon-wallet.mcrdb");
@@ -98,6 +98,13 @@ class LethenonWalletUiTest extends AbstractUiTest
 			"the new entry is a change of the vault, to be saved");
 		assertTrue(textOf(tool, "txtBackupNotice").startsWith("Your backup is not checked yet"),
 			"the overview says the backup is not checked: " + textOf(tool, "txtBackupNotice"));
+		assertEquals("TESTNET", labelOf(tool, "lblNetworkBadge"));
+
+		application.openPluginTool("Send LETH", "Send LETH");
+		JInternalFrameFixture send = new JInternalFrameFixture(robot,
+			application.internalFrame("Send LETH"));
+		assertEquals("TESTNET", labelOf(send, "lblNetworkBadge"),
+			"a tool window shows the network of the wallet the overview shows (#697)");
 	}
 
 	/** Types the words step 2 asks for, read from the positions its labels name */

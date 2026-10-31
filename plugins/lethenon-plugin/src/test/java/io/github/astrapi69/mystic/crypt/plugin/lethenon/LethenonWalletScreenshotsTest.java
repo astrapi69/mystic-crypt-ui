@@ -39,6 +39,7 @@ import java.util.function.Consumer;
 import java.util.stream.Stream;
 
 import javax.imageio.ImageIO;
+import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
@@ -46,10 +47,12 @@ import javax.swing.UnsupportedLookAndFeelException;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 
 import io.github.astrapi69.lethenon.Wallet;
+import io.github.astrapi69.mystic.crypt.settings.PluginSettings;
 
 /**
  * Pictures of the wallet window in English and German (#680), one per state, written to
@@ -145,6 +148,8 @@ class LethenonWalletScreenshotsTest
 				panel.getBackupPanel().getModelObject().setCheckWords(Wallet.create().phrase());
 				panel.getBackupPanel().onCheckConfirmed();
 			}),
+			new State("13-overview-main-network", 2, false,
+				panel -> panel.choose(panel.getModelObject().getWallets().get(1))),
 			new State("08-restore-unknown-word", 0, false, panel -> {
 				panel.onRestore();
 				List<String> words = new ArrayList<>(List.of(Wallet.create().phrase().split(" ")));
@@ -201,6 +206,46 @@ class LethenonWalletScreenshotsTest
 	/** The password of every wallet a picture starts with, made up for this run */
 	private static final char[] PASSWORD = ThrowawayPasswords.next();
 
+	@ParameterizedTest(name = "the send window, {0}")
+	@MethodSource("languages")
+	@DisplayName("a tool window is pictured with the badge of the session's wallet above it, the main network in red")
+	void aToolWindow_isPicturedWithItsBadge(final Locale locale, @TempDir final Path settings)
+		throws Exception
+	{
+		System.setProperty(PluginSettings.CONFIGURATION_DIRECTORY_PROPERTY, settings.toString());
+		try
+		{
+			LethenonVault vault = new LethenonVault();
+			vault.connect(new InMemoryVaultAccess());
+			vault.restore(Wallet.create().phrase().toCharArray(), PASSWORD.clone(),
+				WalletNetwork.MAINNET);
+			vault.choose(vault.wallets().get(0));
+			BufferedImage[] picture = new BufferedImage[1];
+			SwingUtilities.invokeAndWait(() -> {
+				NetworkHeader header = NetworkHeader.around(new LethenonSendPanel(), vault, locale);
+				JFrame frame = new JFrame("lethenon send");
+				frame.setContentPane(header);
+				frame.pack();
+				frame.setVisible(true);
+				frame.validate();
+				picture[0] = paintComponent(header);
+				frame.dispose();
+			});
+			Path file = DIRECTORY.resolve("14-send-window-badge-" + locale.getLanguage() + ".png");
+			write(picture[0], file);
+			assertTrue(hasContent(picture[0]), file + " is empty");
+		}
+		finally
+		{
+			System.clearProperty(PluginSettings.CONFIGURATION_DIRECTORY_PROPERTY);
+		}
+	}
+
+	static Stream<Locale> languages()
+	{
+		return Stream.of(Locale.ENGLISH, Locale.GERMAN);
+	}
+
 	private static LethenonVault vaultFor(final State state)
 	{
 		InMemoryVaultAccess access = new InMemoryVaultAccess();
@@ -216,6 +261,11 @@ class LethenonWalletScreenshotsTest
 	}
 
 	private static BufferedImage paint(final LethenonWalletPanel panel)
+	{
+		return paintComponent(panel);
+	}
+
+	private static BufferedImage paintComponent(final JComponent panel)
 	{
 		BufferedImage image = new BufferedImage(panel.getWidth(), panel.getHeight(),
 			BufferedImage.TYPE_INT_RGB);
