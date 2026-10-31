@@ -107,6 +107,10 @@ public class LethenonWalletPanel extends JPanel
 
 	private final JTextArea txtBackupNotice = message("txtBackupNotice", true);
 
+	private final JLabel lblNetworkBadge = NetworkHeader.badgeLabel();
+
+	private final JTextArea txtRiskNote = message("txtRiskNote", false);
+
 	private final LethenonBackupPanel backup;
 
 	/**
@@ -299,6 +303,7 @@ public class LethenonWalletPanel extends JPanel
 	void choose(final VaultWallet wallet)
 	{
 		modelObject.setChosen(wallet);
+		vault.choose(wallet);
 		walletChoices.setSelectedItem(wallet);
 		showChosen();
 	}
@@ -329,6 +334,7 @@ public class LethenonWalletPanel extends JPanel
 	{
 		if (!vault.isAvailable())
 		{
+			vault.choose(null);
 			show(WalletView.NO_VAULT);
 			return;
 		}
@@ -338,6 +344,7 @@ public class LethenonWalletPanel extends JPanel
 		walletChoices.addAll(wallets);
 		if (wallets.isEmpty())
 		{
+			vault.choose(null);
 			show(WalletView.EMPTY);
 			return;
 		}
@@ -353,6 +360,9 @@ public class LethenonWalletPanel extends JPanel
 		AnswerFields.setText(txtNetwork,
 			chosen == null ? "" : WalletNetwork.nameOf(chosen.network(), locale));
 		txtAddress.setText(chosen == null ? "" : chosen.address());
+		NetworkKind network = NetworkKind.of(chosen == null ? "" : chosen.network());
+		network.paint(lblNetworkBadge, locale);
+		txtRiskNote.setText(network.riskNote(locale));
 		showTheBackupNotice(chosen);
 	}
 
@@ -474,6 +484,12 @@ public class LethenonWalletPanel extends JPanel
 	private JPanel overviewView()
 	{
 		JPanel view = new JPanel(ToolForm.newLayout());
+		lblNetworkBadge.setToolTipText(text("lethenon.network.tooltip.badge",
+			"the network of this wallet, from its vault entry"));
+		txtRiskNote.setToolTipText(text("lethenon.network.tooltip.risk",
+			"what this network means for your LETH"));
+		view.add(lblNetworkBadge, "span 2, split 2, alignx left");
+		view.add(txtRiskNote, "growx, wmin 0, gapleft 12");
 		cbxWallet.setName("cbxWallet");
 		cbxWallet.setToolTipText(text("lethenon.wallet.tooltip.choose",
 			"the wallets of this vault; choose the one to show"));

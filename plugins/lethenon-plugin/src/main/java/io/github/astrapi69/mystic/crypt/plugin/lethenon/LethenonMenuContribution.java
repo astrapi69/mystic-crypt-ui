@@ -26,6 +26,7 @@ package io.github.astrapi69.mystic.crypt.plugin.lethenon;
 
 import java.awt.Component;
 import java.util.List;
+import java.util.Locale;
 import java.util.function.Supplier;
 
 import javax.swing.JInternalFrame;
@@ -61,16 +62,16 @@ public class LethenonMenuContribution implements PluginMenuContribution
 	@Override
 	public List<JMenuItem> getMenuItems()
 	{
-		return List.of(item(WALLET_KEY, "Wallet", LethenonWalletPanel::new),
-			item(BEFORE_YOU_START_KEY, "Before You Start", LethenonBeforeYouStartPanel::new),
-			item("lethenon.menu.item.verify", "Verify a Chain", LethenonChainPanel::new),
-			item("lethenon.menu.item.show.chain", "Show a Chain", LethenonChainViewPanel::new),
-			item("lethenon.menu.item.show.balance", "Show a Balance", LethenonBalancePanel::new),
-			item("lethenon.menu.item.send", "Send LETH", LethenonSendPanel::new),
-			item("lethenon.menu.item.mine", "Mine a Pun", LethenonMinePanel::new),
-			item("lethenon.menu.item.sweep", "Sweep One-Time Payments", LethenonSweepPanel::new),
-			item("lethenon.menu.item.sync", "Synchronise with a Node", LethenonSyncPanel::new),
-			item("lethenon.menu.item.node", "Run a Node", LethenonNodePanel::new));
+		return List.of(item(WALLET_KEY, "Wallet", LethenonWalletPanel::new, false),
+			item(BEFORE_YOU_START_KEY, "Before You Start", LethenonBeforeYouStartPanel::new, true),
+			item("lethenon.menu.item.verify", "Verify a Chain", LethenonChainPanel::new, true),
+			item("lethenon.menu.item.show.chain", "Show a Chain", LethenonChainViewPanel::new, true),
+			item("lethenon.menu.item.show.balance", "Show a Balance", LethenonBalancePanel::new, true),
+			item("lethenon.menu.item.send", "Send LETH", LethenonSendPanel::new, true),
+			item("lethenon.menu.item.mine", "Mine a Pun", LethenonMinePanel::new, true),
+			item("lethenon.menu.item.sweep", "Sweep One-Time Payments", LethenonSweepPanel::new, true),
+			item("lethenon.menu.item.sync", "Synchronise with a Node", LethenonSyncPanel::new, true),
+			item("lethenon.menu.item.node", "Run a Node", LethenonNodePanel::new, true));
 	}
 
 	/**
@@ -82,14 +83,17 @@ public class LethenonMenuContribution implements PluginMenuContribution
 	 *            the text when the key is missing
 	 * @param panel
 	 *            makes the window's content, anew for every window
+	 * @param withBadge
+	 *            whether the window gets the network badge above its content; the wallet window
+	 *            shows its own in the overview
 	 * @return the menu item
 	 */
 	private JMenuItem item(final String key, final String defaultTitle,
-		final Supplier<Component> panel)
+		final Supplier<Component> panel, final boolean withBadge)
 	{
 		String title = LethenonMessages.getString(key, defaultTitle);
 		JMenuItem item = new JMenuItem(title);
-		item.addActionListener(event -> openInternalFrame(title, panel.get()));
+		item.addActionListener(event -> openInternalFrame(title, panel.get(), withBadge));
 		return item;
 	}
 
@@ -99,7 +103,7 @@ public class LethenonMenuContribution implements PluginMenuContribution
 		return LethenonMessages.getString("lethenon.menu.name", "Lethenon");
 	}
 
-	private void openInternalFrame(String title, Component panel)
+	private void openInternalFrame(String title, Component panel, boolean withBadge)
 	{
 		MysticCryptApplicationFrame instance = MysticCryptApplicationFrame.getInstance();
 		if (!FrameMode.DESKTOP_PANE.equals(instance.getFrameMode()))
@@ -108,6 +112,9 @@ public class LethenonMenuContribution implements PluginMenuContribution
 		}
 		JInternalFrame internalFrame = JComponentFactory.newInternalFrame(title, true, true, true,
 			true);
-		JInternalFrameExtensions.addInternalFrameToMainFrame(panel, internalFrame, instance);
+		Component content = withBadge
+			? NetworkHeader.around(panel, LethenonVault.current(), Locale.getDefault())
+			: panel;
+		JInternalFrameExtensions.addInternalFrameToMainFrame(content, internalFrame, instance);
 	}
 }
