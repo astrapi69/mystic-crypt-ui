@@ -27,6 +27,7 @@ package io.github.astrapi69.mystic.crypt.plugin.lethenon;
 import java.awt.Font;
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.Arrays;
 import java.util.Locale;
 import java.util.Map;
 
@@ -90,7 +91,14 @@ public class LethenonSweepPanel extends JPanel
 
 	private final JMTextField txtMemo = new JMTextField(34);
 
-	private final Locale locale = Locale.getDefault();
+	/**
+	 * The language of the window; the field initializers below read it, so it has its value before
+	 * the constructor sets the one it was given
+	 */
+	private Locale locale = Locale.getDefault();
+
+	/** The wallet the window signs with: the vault's, or a wallet file (#706) */
+	private final transient WalletRow walletRow;
 
 	private final JMTextArea txtCost = new JMTextArea(2, 62);
 
@@ -144,8 +152,28 @@ public class LethenonSweepPanel extends JPanel
 	 */
 	LethenonSweepPanel(final ChainConversionConsent consent)
 	{
+		this(consent, LethenonVault.current(), Locale.getDefault());
+	}
+
+	/**
+	 * Instantiates a new {@link LethenonSweepPanel} over the given vault
+	 *
+	 * @param consent
+	 *            whom to ask before a chain file is converted
+	 * @param vault
+	 *            the plugin's view of the vault; its wallet is the one signed with
+	 * @param locale
+	 *            the language of the window
+	 */
+	LethenonSweepPanel(final ChainConversionConsent consent, final LethenonVault vault,
+		final Locale locale)
+	{
 		super(ToolForm.newLayout());
 		this.consent = consent;
+		this.locale = locale;
+		walletRow = new WalletRow(vault, locale, txtWalletFile,
+			() -> LethenonSwing.chooseFile(this, modelObject.getWalletFile())
+				.ifPresent(txtWalletFile::setText));
 		modelObject.setCostStatement(text("lethenon.sweep.cost",
 			"Sweeping signs one transfer per one-time destination, from that destination to this "
 				+ "wallet's account, so the chain then shows those destinations and the account "
@@ -191,7 +219,16 @@ public class LethenonSweepPanel extends JPanel
 				showFailure(failure + ": " + ChainConversion.notConverted());
 				return;
 			}
-			SweptPayments swept = SweepSupport.sweep(order, modelObject.getPassword());
+			char[] password = modelObject.getPassword();
+			SweptPayments swept;
+			try
+			{
+				swept = SweepSupport.sweep(order, walletRow.source(password, order.walletFile()));
+			}
+			finally
+			{
+				Arrays.fill(password, '\0');
+			}
 			LethenonSettingsContribution.remember(Map.of(LethenonSettingsContribution.KEY_CHAIN_FILE,
 				order.chainFile().toString(), LethenonSettingsContribution.KEY_WALLET_FILE,
 				order.walletFile().toString()));
@@ -355,13 +392,7 @@ public class LethenonSweepPanel extends JPanel
 				.ifPresent(txtChainFile::setText),
 			text("lethenon.input.tooltip.browse.chain.file", "pick the chain file on your disk")),
 			OWN_WIDTH);
-		add(new JLabel(text("lethenon.input.label.wallet.file", "Wallet file:")));
-		add(txtWalletFile, WITH_BUTTON);
-		add(LethenonSwing.button("btnBrowseWalletFile", "...",
-			event -> LethenonSwing.chooseFile(this, modelObject.getWalletFile())
-				.ifPresent(txtWalletFile::setText),
-			text("lethenon.input.tooltip.browse.wallet.file", "pick your wallet file on your disk")),
-			OWN_WIDTH);
+		walletRow.addTo(this);
 		add(new JLabel(text("lethenon.input.label.password", "Password:")));
 		add(txtPassword, ToolForm.FIELD);
 		add(new JLabel(text("lethenon.sweep.label.fee", "Fee per payment (LETH):")));
@@ -431,5 +462,12 @@ public class LethenonSweepPanel extends JPanel
 	{
 		modelObject.setResultText(text);
 		lblResult.setText(text);
+	}
+
+	@Override
+	public void removeNotify()
+	{
+		walletRow.stop();
+		super.removeNotify();
 	}
 }

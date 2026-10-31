@@ -123,15 +123,8 @@ public class LethenonSendPanel extends JPanel
 	/** Whom to ask before a send on the main network or on an unknown network (#704) */
 	private final transient SendConfirmation confirmation;
 
-	private final JMTextField txtFromWallet;
-
-	private final JLabel lblFromWallet = new JLabel();
-
-	private final JLabel lblWalletFile = new JLabel();
-
-	private JButton btnBrowseWalletFile;
-
-	private final transient Runnable unfollow;
+	/** The wallet the window signs with: the vault's, or a wallet file (#706) */
+	private final transient WalletRow walletRow;
 
 	private final JMTextArea txtAnswer = AnswerFields.answerArea(text("lethenon.send.tooltip.answer",
 		"what happened to your transfer, in one sentence; the details are below"));
@@ -208,8 +201,9 @@ public class LethenonSendPanel extends JPanel
 		this.vault = vault;
 		this.confirmation = confirmation;
 		this.locale = locale;
-		txtFromWallet = AnswerFields.readOnly("txtFromWallet", text("lethenon.send.tooltip.from.wallet",
-			"the wallet in the vault the overview shows; its password is asked for this send only"));
+		walletRow = new WalletRow(vault, locale, txtWalletFile,
+			() -> LethenonSwing.chooseFile(this, modelObject.getWalletFile())
+				.ifPresent(txtWalletFile::setText));
 		btnDetails = LethenonSwing.button("btnDetails",
 			AnswerFields.detailsButtonText(false, locale), event -> onDetails(),
 			text("lethenon.send.tooltip.details",
@@ -224,32 +218,12 @@ public class LethenonSendPanel extends JPanel
 		txtChainFile.setText(LethenonSettingsContribution.chainFile());
 		txtWalletFile.setText(LethenonSettingsContribution.walletFile());
 		txtNode.setText(LethenonSettingsContribution.node());
-		unfollow = vault.whenTheWalletChanges(wallet -> showTheSource());
-		showTheSource();
-	}
-
-	/**
-	 * Shows where the wallet comes from: the vault's wallet when the overview shows one, otherwise
-	 * a wallet file, which works until it is taken over into the vault
-	 */
-	private void showTheSource()
-	{
-		Optional<VaultWallet> chosen = vault.chosen();
-		boolean fromTheVault = chosen.isPresent();
-		chosen.ifPresent(wallet -> AnswerFields.setText(txtFromWallet, LethenonMessages.format(
-			"lethenon.send.from.wallet", "{0}, from the vault", locale, wallet.title())));
-		lblFromWallet.setVisible(fromTheVault);
-		txtFromWallet.setVisible(fromTheVault);
-		lblWalletFile.setVisible(!fromTheVault);
-		txtWalletFile.setVisible(!fromTheVault);
-		btnBrowseWalletFile.setVisible(!fromTheVault);
-		revalidate();
 	}
 
 	@Override
 	public void removeNotify()
 	{
-		unfollow.run();
+		walletRow.stop();
 		super.removeNotify();
 	}
 
@@ -347,16 +321,10 @@ public class LethenonSendPanel extends JPanel
 	/** Signs with the vault's wallet, unsealed for this send only, or with the wallet file */
 	private SentTransfer sendFromTheSource(final TransferOrder order) throws IOException
 	{
-		Optional<VaultWallet> chosen = vault.chosen();
-		if (chosen.isEmpty())
-		{
-			return TransferSupport.send(order, modelObject.getPassword());
-		}
 		char[] password = modelObject.getPassword();
 		try
 		{
-			return TransferSupport.send(order,
-				() -> vault.open(chosen.get().id(), password).wallet());
+			return TransferSupport.send(order, walletRow.source(password, order.walletFile()));
 		}
 		finally
 		{
@@ -554,17 +522,7 @@ public class LethenonSendPanel extends JPanel
 				.ifPresent(txtChainFile::setText),
 			text("lethenon.input.tooltip.browse.chain.file", "pick the chain file on your disk")),
 			OWN_WIDTH);
-		lblFromWallet.setText(text("lethenon.send.label.from.wallet", "Wallet:"));
-		add(lblFromWallet, "hidemode 3");
-		add(txtFromWallet, ToolForm.FIELD + ", hidemode 3");
-		lblWalletFile.setText(text("lethenon.input.label.wallet.file", "Wallet file:"));
-		add(lblWalletFile, "hidemode 3");
-		add(txtWalletFile, WITH_BUTTON + ", hidemode 3");
-		btnBrowseWalletFile = LethenonSwing.button("btnBrowseWalletFile", "...",
-			event -> LethenonSwing.chooseFile(this, modelObject.getWalletFile())
-				.ifPresent(txtWalletFile::setText),
-			text("lethenon.input.tooltip.browse.wallet.file", "pick your wallet file on your disk"));
-		add(btnBrowseWalletFile, OWN_WIDTH + ", hidemode 3");
+		walletRow.addTo(this);
 		add(new JLabel(text("lethenon.input.label.password", "Password:")));
 		add(txtPassword, ToolForm.FIELD);
 		add(new JLabel(text("lethenon.send.label.suite", "Pay from:")));

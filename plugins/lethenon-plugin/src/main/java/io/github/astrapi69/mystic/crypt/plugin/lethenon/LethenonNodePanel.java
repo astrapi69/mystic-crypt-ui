@@ -97,7 +97,14 @@ public class LethenonNodePanel extends JPanel
 
 	private final JMTextField txtPeers = new JMTextField(34);
 
-	private final Locale locale = Locale.getDefault();
+	/**
+	 * The language of the window; the field initializers below read it, so it has its value before
+	 * the constructor sets the one it was given
+	 */
+	private Locale locale = Locale.getDefault();
+
+	/** The wallet the window signs with: the vault's, or a wallet file (#706) */
+	private final transient WalletRow walletRow;
 
 	private final JMCheckBox chkMine = new JMCheckBox(
 		text("lethenon.node.check.mine", "find blocks too, paid to my wallet"));
@@ -179,8 +186,28 @@ public class LethenonNodePanel extends JPanel
 	 */
 	LethenonNodePanel(final ChainConversionConsent consent)
 	{
+		this(consent, LethenonVault.current(), Locale.getDefault());
+	}
+
+	/**
+	 * Instantiates a new {@link LethenonNodePanel} over the given vault
+	 *
+	 * @param consent
+	 *            whom to ask before a chain file is converted
+	 * @param vault
+	 *            the plugin's view of the vault; its wallet is the one signed with
+	 * @param locale
+	 *            the language of the window
+	 */
+	LethenonNodePanel(final ChainConversionConsent consent, final LethenonVault vault,
+		final Locale locale)
+	{
 		super(ToolForm.newLayout());
 		this.consent = consent;
+		this.locale = locale;
+		walletRow = new WalletRow(vault, locale, txtWalletFile,
+			() -> LethenonSwing.chooseFile(this, modelObject.getWalletFile())
+				.ifPresent(txtWalletFile::setText));
 		btnDetails = LethenonSwing.button("btnDetails",
 			AnswerFields.detailsButtonText(false, locale), event -> onDetails(),
 			text("lethenon.node.tooltip.details", "show why connections to your node were refused"));
@@ -265,7 +292,15 @@ public class LethenonNodePanel extends JPanel
 			@Override
 			protected RunningNode doInBackground() throws IOException
 			{
-				return NodeSupport.start(order, password);
+				try
+				{
+					return NodeSupport.startWith(order,
+						walletRow.source(password, order.walletFile()));
+				}
+				finally
+				{
+					NodeSupport.wipe(password);
+				}
 			}
 
 			@Override
@@ -629,13 +664,7 @@ public class LethenonNodePanel extends JPanel
 		add(txtPeers, ToolForm.FIELD);
 		add(new JLabel(text("lethenon.node.label.mining", "Blocks:")));
 		add(chkMine, OWN_WIDTH);
-		add(new JLabel(text("lethenon.input.label.wallet.file", "Wallet file:")));
-		add(txtWalletFile, WITH_BUTTON);
-		add(LethenonSwing.button("btnBrowseWalletFile", "...",
-			event -> LethenonSwing.chooseFile(this, modelObject.getWalletFile())
-				.ifPresent(txtWalletFile::setText),
-			text("lethenon.input.tooltip.browse.wallet.file", "pick your wallet file on your disk")),
-			OWN_WIDTH);
+		walletRow.addTo(this);
 		add(new JLabel(text("lethenon.input.label.password", "Password:")));
 		add(txtPassword, ToolForm.FIELD);
 		add(new JLabel(text("lethenon.node.label.pun", "Your pun:")));
@@ -672,7 +701,7 @@ public class LethenonNodePanel extends JPanel
 		btnStart.setEnabled(idle);
 		btnStop.setEnabled(modelObject.isRunning());
 		boolean mining = idle && modelObject.isMine();
-		txtWalletFile.setEnabled(mining);
+		walletRow.setEnabled(mining);
 		txtPassword.setEnabled(mining);
 		txtPun.setEnabled(mining);
 		txtChainFile.setEnabled(idle);
@@ -697,5 +726,12 @@ public class LethenonNodePanel extends JPanel
 	{
 		modelObject.setResultText(text);
 		lblResult.setText(text);
+	}
+
+	@Override
+	public void removeNotify()
+	{
+		walletRow.stop();
+		super.removeNotify();
 	}
 }
