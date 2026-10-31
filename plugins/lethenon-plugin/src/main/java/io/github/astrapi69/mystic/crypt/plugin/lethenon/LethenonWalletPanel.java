@@ -29,6 +29,7 @@ import java.awt.Component;
 import java.awt.Font;
 import java.io.IOException;
 import java.nio.file.Path;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -73,9 +74,6 @@ public class LethenonWalletPanel extends JPanel
 
 	private static final long serialVersionUID = 1L;
 
-	/** The number of columns the 24 words are shown in */
-	private static final int WORD_COLUMNS = 4;
-
 	private final transient LethenonVault vault;
 
 	private final Locale locale;
@@ -85,8 +83,6 @@ public class LethenonWalletPanel extends JPanel
 	private final CardLayout cards = new CardLayout();
 
 	private final JPanel pnlViews = new JPanel(cards);
-
-	private final List<JLabel> wordLabels = new ArrayList<>();
 
 	private final List<JMPasswordField> passwordFields = new ArrayList<>();
 
@@ -109,8 +105,9 @@ public class LethenonWalletPanel extends JPanel
 
 	private final JTextArea txtNotice = message("txtNotice", false);
 
-	/** The wallet just created, held until its words are confirmed or the creation is cancelled */
-	private transient NewWallet pending;
+	private final JTextArea txtBackupNotice = message("txtBackupNotice", true);
+
+	private final LethenonBackupPanel backup;
 
 	/**
 	 * Instantiates a new {@link LethenonWalletPanel} over the vault the host connected, in the
@@ -135,6 +132,7 @@ public class LethenonWalletPanel extends JPanel
 			"[][]push"));
 		this.vault = vault;
 		this.locale = locale;
+		backup = new LethenonBackupPanel(vault, locale, this::refresh);
 		txtWalletTitle = AnswerFields.readOnly("txtWalletTitle", text("lethenon.wallet.tooltip.title",
 			"the name of this wallet's entry in the vault"));
 		txtNetwork = AnswerFields.readOnly("txtNetwork", text("lethenon.wallet.tooltip.network",
@@ -146,7 +144,7 @@ public class LethenonWalletPanel extends JPanel
 		pnlViews.add(emptyView(), WalletView.EMPTY.name());
 		pnlViews.add(overviewView(), WalletView.OVERVIEW.name());
 		pnlViews.add(createView(), WalletView.CREATE.name());
-		pnlViews.add(wordsView(), WalletView.WORDS.name());
+		pnlViews.add(backup, WalletView.BACKUP.name());
 		pnlViews.add(takeOverView(), WalletView.TAKE_OVER.name());
 		pnlViews.add(restoreView(), WalletView.RESTORE.name());
 		add(pnlViews, "wmin 0");
@@ -202,9 +200,10 @@ public class LethenonWalletPanel extends JPanel
 			refuse(refused.get().text(locale));
 			return;
 		}
+		NewWallet created;
 		try
 		{
-			pending = vault.create(modelObject.getNetwork(), modelObject.getPassword());
+			created = vault.create(modelObject.getNetwork(), modelObject.getPassword());
 		}
 		catch (final VaultAccessRefusedException notWritable)
 		{
@@ -215,25 +214,8 @@ public class LethenonWalletPanel extends JPanel
 		{
 			clearPasswordFields();
 		}
-		modelObject.setShownWords(pending.words());
-		showWords(pending.words());
-		show(WalletView.WORDS);
-	}
-
-	/** The person wrote the words down: they are overwritten and the new wallet is shown */
-	void onWordsWrittenDown()
-	{
-		UUID created = pending.id();
-		forgetTheWords();
-		refresh(created);
-	}
-
-	/** The person cancelled while the words were shown: the wallet leaves the vault again */
-	void onWordsCancelled()
-	{
-		vault.discard(pending);
-		forgetTheWords();
-		refresh(null);
+		backup.startWithNewWallet(created);
+		show(WalletView.BACKUP);
 	}
 
 	/** Takes the named wallet file over into the vault; the file is only read */
@@ -334,11 +316,7 @@ public class LethenonWalletPanel extends JPanel
 	 */
 	void onVaultClosing()
 	{
-		if (pending != null && vault.isAvailable())
-		{
-			vault.discard(pending);
-		}
-		forgetTheWords();
+		backup.forget();
 		clearPasswordFields();
 		clearWords();
 		modelObject.setWallets(List.of());
@@ -375,6 +353,54 @@ public class LethenonWalletPanel extends JPanel
 		AnswerFields.setText(txtNetwork,
 			chosen == null ? "" : WalletNetwork.nameOf(chosen.network(), locale));
 		txtAddress.setText(chosen == null ? "" : chosen.address());
+		showTheBackupNotice(chosen);
+	}
+
+	/**
+	 * The notice of the decision record: clear while no check is recorded, a gentle reminder once
+	 * the last one is older than the interval, nothing in between
+	 */
+	private void showTheBackupNotice(final VaultWallet chosen)
+	{
+		BackupState state = chosen == null ? BackupState.CURRENT
+			: vault.backupStateOf(chosen.id(), LocalDate.now());
+		String notice = switch (state)
+		{
+			case NOT_CHECKED -> text("lethenon.wallet.backup.not.checked",
+				"Your backup is not checked yet. Check your 24 words once, then you know you can "
+					+ "restore the wallet.");
+			case DUE -> LethenonMessages.format("lethenon.wallet.backup.due",
+				"Your last backup check is more than {0} days ago. Check your 24 words again.",
+				locale, BackupReminder.INTERVAL_DAYS);
+			case CURRENT -> "";
+		};
+		modelObject.setBackupNotice(notice);
+		txtBackupNotice.setText(notice);
+		txtBackupNotice.setVisible(!notice.isEmpty());
+	}
+
+	/** Starts the backup assistant for the chosen wallet: its password, then steps 1 to 3 */
+	void onBackup()
+	{
+		backup.startOnRequest(modelObject.getChosen().id());
+		show(WalletView.BACKUP);
+	}
+
+	/** Starts the check of all 24 words for the chosen wallet */
+	void onBackupCheck()
+	{
+		backup.startCheck(modelObject.getChosen().id());
+		show(WalletView.BACKUP);
+	}
+
+	/**
+	 * Gets the backup assistant, which a test drives through its own model
+	 *
+	 * @return the assistant shown in {@link WalletView#BACKUP}
+	 */
+	LethenonBackupPanel getBackupPanel()
+	{
+		return backup;
 	}
 
 	private void show(final WalletView view)
@@ -399,27 +425,6 @@ public class LethenonWalletPanel extends JPanel
 		txtNotice.setText(text);
 		txtNotice.setVisible(!text.isEmpty());
 		revalidate();
-	}
-
-	private void showWords(final char[] words)
-	{
-		String[] split = new String(words).split(" ");
-		for (int position = 1; position <= wordLabels.size(); position++)
-		{
-			String word = position <= split.length ? split[position - 1] : "";
-			wordLabels.get(position - 1).setText(position + ". " + word);
-		}
-	}
-
-	private void forgetTheWords()
-	{
-		if (pending != null)
-		{
-			pending.close();
-			pending = null;
-		}
-		modelObject.setShownWords(new char[0]);
-		wordLabels.forEach(label -> label.setText(""));
 	}
 
 	private void clearPasswordFields()
@@ -487,6 +492,20 @@ public class LethenonWalletPanel extends JPanel
 			text("lethenon.wallet.tooltip.copy.address",
 				"copy the whole address, to give it to whoever pays you"),
 			locale)), ToolForm.BUTTON_ROW);
+		txtBackupNotice.setToolTipText(text("lethenon.wallet.tooltip.backup.notice",
+			"whether your 24 words were checked, and when"));
+		view.add(txtBackupNotice, ToolForm.WIDE + ", wmin 0, gaptop 8, hidemode 3");
+		view.add(ToolForm.buttons(
+			LethenonSwing.button("btnBackupCheck",
+				text("lethenon.wallet.button.backup.check", "Check my backup"),
+				event -> onBackupCheck(),
+				text("lethenon.wallet.tooltip.backup.check",
+					"type the 24 words from your note and see whether they are this wallet's")),
+			LethenonSwing.button("btnBackup", text("lethenon.wallet.button.backup", "Back up"),
+				event -> onBackup(),
+				text("lethenon.wallet.tooltip.backup",
+					"show the 24 words once more, ask three of them, write the sealed file"))),
+			ToolForm.BUTTON_ROW);
 		view.add(new JLabel(text("lethenon.wallet.label.another", "Another wallet:")),
 			"newline, gaptop 12");
 		view.add(ToolForm.buttons(createButton("btnAnotherCreate"),
@@ -514,63 +533,6 @@ public class LethenonWalletPanel extends JPanel
 					"create the wallet in the vault and show its 24 words")),
 			cancelButton("btnCreateCancelled")), ToolForm.BUTTON_ROW);
 		return view;
-	}
-
-	private JPanel wordsView()
-	{
-		JPanel view = new JPanel(ToolForm.newLayout());
-		view.add(title("lblWordsTitle", "lethenon.backup.words.title",
-			"Backup, step 1 of 3: your 24 words"), ToolForm.WIDE);
-		JLabel heading = new JLabel(
-			text("lethenon.backup.words.heading", "Write these 24 words down on paper."));
-		heading.setFont(heading.getFont().deriveFont(Font.BOLD));
-		view.add(heading, ToolForm.WIDE);
-		view.add(ToolForm.intro(text("lethenon.backup.words.explanation",
-			"With them you restore the wallet on any computer, even if the vault and the computer "
-				+ "are lost. They are shown only now and stored nowhere.")),
-			ToolForm.INTRO_ROW);
-		view.add(wordGrid(), ToolForm.WIDE);
-		JTextArea warning = message("txtWordsWarning", true);
-		warning.setText(text("lethenon.backup.words.warning",
-			"No photo, no file, not to the clipboard. Whoever has the words has the wallet."));
-		warning.setToolTipText(warning.getText());
-		view.add(warning, ToolForm.WIDE + ", wmin 0");
-		view.add(ToolForm.buttons(
-			LethenonSwing.button("btnWrittenDown",
-				text("lethenon.backup.words.button.next", "I have written them down"),
-				event -> onWordsWrittenDown(),
-				text("lethenon.wallet.tooltip.written.down",
-					"the words are taken off the screen and overwritten")),
-			LethenonSwing.button("btnWordsCancelled",
-				text("lethenon.backup.words.button.back", "Cancel"), event -> onWordsCancelled(),
-				text("lethenon.wallet.tooltip.words.cancelled",
-					"the new wallet is taken out of the vault again; nothing is kept"))),
-			ToolForm.BUTTON_ROW);
-		return view;
-	}
-
-	private JPanel wordGrid()
-	{
-		JPanel grid = new JPanel(new MigLayout(
-			"insets 8, gap 24 4, wrap " + WORD_COLUMNS, "[150!]".repeat(WORD_COLUMNS)));
-		grid.setBorder(BorderFactory.createLineBorder(UIManager.getColor("Separator.foreground")));
-		Font wordFont = new JLabel().getFont().deriveFont(Font.BOLD);
-		for (int position = 1; position <= BackupCheck.WORDS; position++)
-		{
-			JLabel word = new JLabel("");
-			word.setName("lblWord" + position);
-			word.setFont(wordFont);
-			wordLabels.add(word);
-		}
-		int rows = BackupCheck.WORDS / WORD_COLUMNS;
-		for (int row = 0; row < rows; row++)
-		{
-			for (int column = 0; column < WORD_COLUMNS; column++)
-			{
-				grid.add(wordLabels.get(column * rows + row));
-			}
-		}
-		return grid;
 	}
 
 	private JPanel takeOverView()
@@ -729,7 +691,21 @@ public class LethenonWalletPanel extends JPanel
 
 	private JLabel title(final String name, final String key, final String defaultText)
 	{
-		JLabel title = new JLabel(text(key, defaultText));
+		return title(name, text(key, defaultText));
+	}
+
+	/**
+	 * The title of a view: larger and bold
+	 *
+	 * @param name
+	 *            the component name
+	 * @param text
+	 *            the title
+	 * @return the label
+	 */
+	static JLabel title(final String name, final String text)
+	{
+		JLabel title = new JLabel(text);
 		title.setName(name);
 		Font base = title.getFont();
 		title.setFont(base.deriveFont(Font.BOLD, base.getSize2D() * 1.4f));
@@ -753,7 +729,17 @@ public class LethenonWalletPanel extends JPanel
 		};
 	}
 
-	private static JTextArea message(final String name, final boolean bold)
+	/**
+	 * A text that wraps instead of widening the window, read-only, for refusals, notices and
+	 * values a person copies by eye
+	 *
+	 * @param name
+	 *            the component name
+	 * @param bold
+	 *            whether it is set in bold
+	 * @return the text area
+	 */
+	static JTextArea message(final String name, final boolean bold)
 	{
 		JTextArea message = new JTextArea();
 		message.setName(name);

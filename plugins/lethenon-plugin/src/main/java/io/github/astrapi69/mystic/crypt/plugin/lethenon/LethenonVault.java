@@ -26,9 +26,11 @@ package io.github.astrapi69.mystic.crypt.plugin.lethenon;
 
 import java.io.IOException;
 import java.nio.file.Path;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.function.Consumer;
 
 import io.github.astrapi69.mystic.crypt.panel.dbtree.MysticCryptEntryModelBean;
 import io.github.astrapi69.mystic.crypt.plugin.api.VaultAccess;
@@ -182,12 +184,102 @@ final class LethenonVault
 	 */
 	UnsealedWallet open(final UUID id, final char[] password)
 	{
-		VaultAccess source = requireAccess();
-		MysticCryptEntryModelBean entry = source.entries().stream()
-			.filter(candidate -> id.equals(candidate.getId())).findFirst()
-			.orElseThrow(() -> new IllegalArgumentException(
-				"the vault has no lethenon wallet with the identifier " + id));
-		return WalletVault.unseal(VaultWalletEntry.read(entry), password);
+		return WalletVault.unseal(VaultWalletEntry.read(entryOf(requireAccess(), id)), password);
+	}
+
+	/**
+	 * The 24 words of a wallet again, for the backup on request: the wallet is unsealed in memory
+	 * with its password and nothing is written
+	 *
+	 * @param id
+	 *            the wallet's entry identifier
+	 * @param password
+	 *            the wallet password
+	 * @return the words, separated by spaces; the caller overwrites them
+	 */
+	char[] wordsOf(final UUID id, final char[] password)
+	{
+		return open(id, password).wallet().phrase().toCharArray();
+	}
+
+	/**
+	 * Stores the words as a protected field of the wallet's entry, only when the person chose to
+	 *
+	 * @param id
+	 *            the wallet's entry identifier
+	 * @param words
+	 *            the 24 words, separated by spaces
+	 * @param choice
+	 *            the person's choice; keeping them out changes nothing
+	 */
+	void storeWords(final UUID id, final char[] words, final WordsChoice choice)
+	{
+		if (choice != WordsChoice.STORE_IN_VAULT)
+		{
+			return;
+		}
+		change(id, wallet -> WalletInVault.store(wallet, List.of(new String(words).split(" ")),
+			choice));
+	}
+
+	/**
+	 * Checks typed words against the wallet's address; a match records today in
+	 * {@code lethenon.backupVerified}, a mismatch changes nothing
+	 *
+	 * @param id
+	 *            the wallet's entry identifier
+	 * @param typed
+	 *            the words as typed
+	 * @param today
+	 *            the day of the check
+	 * @return whether the words give the wallet's address
+	 * @throws IllegalArgumentException
+	 *             when the words are not 24 or one is not in the word list, naming it
+	 */
+	boolean checkBackup(final UUID id, final List<String> typed, final LocalDate today)
+	{
+		WalletEntry wallet = VaultWalletEntry.read(entryOf(requireAccess(), id));
+		boolean matches = BackupCheck.checkAndRecord(typed, wallet, today);
+		if (matches)
+		{
+			change(id, entry -> entry.setProperty(BackupReminder.VERIFIED,
+				today.toString().toCharArray(), false));
+		}
+		return matches;
+	}
+
+	/**
+	 * What the overview says about the wallet's backup
+	 *
+	 * @param id
+	 *            the wallet's entry identifier
+	 * @param today
+	 *            the day to compare the last check with
+	 * @return not checked, current or due
+	 */
+	BackupState backupStateOf(final UUID id, final LocalDate today)
+	{
+		return BackupReminder.stateOf(VaultWalletEntry.read(entryOf(requireAccess(), id)), today);
+	}
+
+	/**
+	 * Writes the sealed wallet file to a place the person picked
+	 *
+	 * @param id
+	 *            the wallet's entry identifier
+	 * @param target
+	 *            the file to write; an existing one is never overwritten
+	 * @param consent
+	 *            whether the person confirmed the warning
+	 * @return the SHA-256 of the file as read back, in hexadecimal
+	 * @throws IOException
+	 *             if the file exists or cannot be written or read back
+	 */
+	String export(final UUID id, final Path target, final ExportConsent consent)
+		throws IOException
+	{
+		return WalletVault.export(VaultWalletEntry.read(entryOf(requireAccess(), id)), target,
+			consent);
 	}
 
 	/**
@@ -216,6 +308,24 @@ final class LethenonVault
 				"no vault access: the host has not connected the lethenon plugin");
 		}
 		return current;
+	}
+
+	private static MysticCryptEntryModelBean entryOf(final VaultAccess source, final UUID id)
+	{
+		return source.entries().stream().filter(candidate -> id.equals(candidate.getId()))
+			.findFirst().orElseThrow(() -> new IllegalArgumentException(
+				"the vault has no lethenon wallet with the identifier " + id));
+	}
+
+	/** Reads the wallet's entry, lets the change work on it, and hands it back to the vault */
+	private void change(final UUID id, final Consumer<WalletEntry> change)
+	{
+		VaultAccess target = requireAccess();
+		MysticCryptEntryModelBean entry = entryOf(target, id);
+		WalletEntry wallet = VaultWalletEntry.read(entry);
+		change.accept(wallet);
+		VaultWalletEntry.write(wallet, entry);
+		target.change(entry);
 	}
 
 	private static UUID store(final VaultAccess target, final WalletEntry wallet)

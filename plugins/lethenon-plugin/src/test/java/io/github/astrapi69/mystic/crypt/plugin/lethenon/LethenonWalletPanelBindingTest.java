@@ -99,7 +99,7 @@ class LethenonWalletPanelBindingTest
 	}
 
 	@Test
-	@DisplayName("creating shows the 24 words once; after \"I have written them down\" the overview shows the wallet and the words are gone")
+	@DisplayName("creating shows the 24 words once in the backup assistant; after its three steps the overview shows the wallet with the notice that the backup is not checked")
 	void creating_showsTheWordsOnce_thenTheOverview()
 	{
 		LethenonWalletPanel panel = window();
@@ -112,9 +112,10 @@ class LethenonWalletPanelBindingTest
 
 		panel.onCreateConfirmed();
 
-		assertEquals(WalletView.WORDS, panel.getModelObject().getView());
+		assertEquals(WalletView.BACKUP, panel.getModelObject().getView());
+		assertEquals(BackupStep.WORDS, panel.getBackupPanel().getModelObject().getStep());
 		assertArrayEquals(new char[typed.length], typed, "the typed password is overwritten");
-		char[] words = panel.getModelObject().getShownWords();
+		char[] words = panel.getBackupPanel().getModelObject().getShownWords();
 		List<String> shown = new ArrayList<>();
 		for (int position = 1; position <= 24; position++)
 		{
@@ -123,10 +124,20 @@ class LethenonWalletPanelBindingTest
 		assertEquals(new String(words), String.join(" ", shown));
 		String address = Wallet.fromPhrase(new String(words)).address().toText();
 
-		panel.onWordsWrittenDown();
+		List<String> phrase = List.of(new String(words).split(" "));
+		LethenonBackupPanel backup = panel.getBackupPanel();
+		backup.onWrittenDown();
+		int[] positions = backup.getModelObject().getPositions();
+		backup.getModelObject().setAnswer1(phrase.get(positions[0] - 1));
+		backup.getModelObject().setAnswer2(phrase.get(positions[1] - 1));
+		backup.getModelObject().setAnswer3(phrase.get(positions[2] - 1));
+		backup.onQuestionConfirmed();
+		backup.onDone();
 
 		assertEquals(WalletView.OVERVIEW, panel.getModelObject().getView());
 		assertArrayEquals(new char[words.length], words, "the words are overwritten");
+		assertEquals("Your backup is not checked yet. Check your 24 words once, then you know "
+			+ "you can restore the wallet.", textOf(panel, "txtBackupNotice"));
 		assertTrue(textOf(panel, "lblWord1").isEmpty(), "no word is left on the screen");
 		assertEquals(address, textOf(panel, "txtAddress"));
 		assertEquals("Test network", textOf(panel, "txtNetwork"));
@@ -143,9 +154,9 @@ class LethenonWalletPanelBindingTest
 		panel.getModelObject().setPassword(password.clone());
 		panel.getModelObject().setPasswordRepeated(password.clone());
 		panel.onCreateConfirmed();
-		char[] words = panel.getModelObject().getShownWords();
+		char[] words = panel.getBackupPanel().getModelObject().getShownWords();
 
-		panel.onWordsCancelled();
+		panel.getBackupPanel().onWordsCancelled();
 
 		assertEquals(WalletView.EMPTY, panel.getModelObject().getView());
 		assertEquals(List.of(), vault.wallets());
@@ -247,7 +258,7 @@ class LethenonWalletPanelBindingTest
 		panel.getModelObject().setPassword(password.clone());
 		panel.getModelObject().setPasswordRepeated(password.clone());
 		panel.onCreateConfirmed();
-		char[] words = panel.getModelObject().getShownWords();
+		char[] words = panel.getBackupPanel().getModelObject().getShownWords();
 
 		access.available = false;
 		vault.vaultClosing();
@@ -273,5 +284,25 @@ class LethenonWalletPanelBindingTest
 		assertEquals(second.address().toText(), textOf(panel, "txtAddress"));
 		assertEquals("Main network", textOf(panel, "txtNetwork"));
 		assertFalse(textOf(panel, "txtWalletTitle").isEmpty());
+	}
+
+	@Test
+	@DisplayName("\"Check my backup\" with the right 24 words takes the notice away, and the overview shows the wallet again")
+	void aMatchingCheck_takesTheNoticeAway()
+	{
+		Wallet restored = Wallet.create();
+		vault.restore(restored.phrase().toCharArray(), ThrowawayPasswords.next(),
+			WalletNetwork.TESTNET);
+		LethenonWalletPanel panel = window();
+		assertFalse(textOf(panel, "txtBackupNotice").isEmpty(), "the notice shows before a check");
+
+		panel.onBackupCheck();
+		assertEquals(WalletView.BACKUP, panel.getModelObject().getView());
+		panel.getBackupPanel().getModelObject().setCheckWords(restored.phrase());
+		panel.getBackupPanel().onCheckConfirmed();
+		panel.getBackupPanel().onDone();
+
+		assertEquals(WalletView.OVERVIEW, panel.getModelObject().getView());
+		assertEquals("", textOf(panel, "txtBackupNotice"));
 	}
 }

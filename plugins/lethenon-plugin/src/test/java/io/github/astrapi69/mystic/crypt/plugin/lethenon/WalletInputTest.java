@@ -145,6 +145,43 @@ class WalletInputTest
 		assertTrue(WalletInput.walletFile("/home/me/my.lethwf").isEmpty());
 	}
 
+	@Test
+	@DisplayName("the three words from the note are accepted, whatever the case and the spaces around them")
+	void theThreeRightWords_areAccepted()
+	{
+		List<String> words = List.of(Wallet.create().phrase().split(" "));
+		int[] positions = { 4, 11, 19 };
+
+		assertEquals(Optional.empty(), WalletInput.answers(words, positions,
+			new String[] { " " + words.get(3).toUpperCase(Locale.ROOT), words.get(10),
+				words.get(18) + " " }));
+	}
+
+	static Stream<Arguments> refusedAnswers()
+	{
+		List<String> words = new ArrayList<>(List.of(Wallet.create().phrase().split(" ")));
+		String wrongButKnown = words.get(10).equals("abandon") ? "ability" : "abandon";
+		return Stream.of(
+			Arguments.of("a known word at the wrong position", words,
+				new String[] { words.get(3), wrongButKnown, words.get(18) },
+				"Word 11 is not right. Look at your note and try again."),
+			Arguments.of("a word that is not in the list", words,
+				new String[] { "qqq", words.get(10), words.get(18) },
+				"Word 4, \"qqq\", is not in the word list. Check your note for a typing error."),
+			Arguments.of("an empty answer", words, new String[] { words.get(3), "", words.get(18) },
+				"Word 11 is not right. Look at your note and try again."));
+	}
+
+	@ParameterizedTest(name = "{0} is refused")
+	@MethodSource("refusedAnswers")
+	@DisplayName("a wrong answer names its position, an unknown word names itself and its position (T2)")
+	void wrongAnswers_areNamed(final String caseName, final List<String> words,
+		final String[] answers, final String expected)
+	{
+		assertEquals(expected,
+			WalletInput.answers(words, new int[] { 4, 11, 19 }, answers).orElseThrow().text(ENGLISH));
+	}
+
 	/**
 	 * Swaps neighbouring words until the phrase's checksum fails; a swap can keep it valid by
 	 * chance, one in 256, so the test does not depend on the first one

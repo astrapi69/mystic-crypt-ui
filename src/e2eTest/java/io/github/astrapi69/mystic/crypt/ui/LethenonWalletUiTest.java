@@ -28,6 +28,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.swing.JLabel;
@@ -62,14 +63,31 @@ class LethenonWalletUiTest extends AbstractUiTest
 	private static final String WALLET_MARKER = "lethenon.wallet";
 
 	@Test
-	@DisplayName("a wallet created in the wallet window is an entry of the vault, shown with its address")
+	@DisplayName("a wallet created in the wallet window goes through the three backup steps and is an entry of the vault, shown with its address")
 	void aCreatedWallet_isAnEntryOfTheVault() throws Exception
 	{
 		JInternalFrameFixture tool = openTheWalletWindow("lethenon-wallet.mcrdb");
 		assertEquals("No wallet in the vault yet", labelOf(tool, "lblEmptyTitle"));
 
 		createAWalletUpToTheWords(tool);
+		List<String> words = new ArrayList<>();
+		for (int position = 1; position <= 24; position++)
+		{
+			words.add(labelOf(tool, "lblWord" + position).replaceFirst("^\\d+\\. ", ""));
+		}
 		click(tool, "btnWrittenDown");
+		answerTheThreeWords(tool, words);
+		click(tool, "btnQuestionConfirmed");
+		Pause.pause(new Condition("step 3, the export, is shown")
+		{
+			@Override
+			public boolean test()
+			{
+				return GuiActionRunner.execute(() -> tool.button("btnDone").target().isShowing());
+			}
+		}, 10000);
+		assertTrue(labelOf(tool, "lblWord1").isEmpty(), "no word is left in the window");
+		click(tool, "btnDone");
 		Pause.pause(shown(tool, "txtAddress"), 10000);
 
 		List<MysticCryptEntryModelBean> wallets = walletsOfTheVault();
@@ -78,7 +96,22 @@ class LethenonWalletUiTest extends AbstractUiTest
 			textOf(tool, "txtAddress"), "the overview shows the address the entry records");
 		assertTrue(MysticCryptApplicationFrame.getInstance().getModelObject().isDirty(),
 			"the new entry is a change of the vault, to be saved");
-		assertTrue(labelOf(tool, "lblWord1").isEmpty(), "no word is left in the window");
+		assertTrue(textOf(tool, "txtBackupNotice").startsWith("Your backup is not checked yet"),
+			"the overview says the backup is not checked: " + textOf(tool, "txtBackupNotice"));
+	}
+
+	/** Types the words step 2 asks for, read from the positions its labels name */
+	private void answerTheThreeWords(final JInternalFrameFixture tool, final List<String> words)
+	{
+		for (int answer = 1; answer <= 3; answer++)
+		{
+			int position = Integer
+				.parseInt(labelOf(tool, "lblAnswer" + answer).replaceAll("\\D", ""));
+			String field = "txtAnswer" + answer;
+			String word = words.get(position - 1);
+			GuiActionRunner.execute(() -> tool.textBox(field).target().setText(word));
+		}
+		UiTestSpeed.step();
 	}
 
 	@Test

@@ -43,8 +43,8 @@ public enum WalletView
 	/** the form for a new wallet */
 	CREATE,
 
-	/** the 24 words of a new wallet, shown once */
-	WORDS,
+	/** the backup assistant: the 24 words, three of them asked, the sealed file, or the check */
+	BACKUP,
 
 	/** the form for taking a wallet file over */
 	TAKE_OVER,
