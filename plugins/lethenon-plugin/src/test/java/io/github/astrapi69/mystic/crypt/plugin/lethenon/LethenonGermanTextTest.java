@@ -109,7 +109,7 @@ class LethenonGermanTextTest
 			Arguments.of("Wallet", List.of("lethenon.wallet.", "lethenon.backup.", "lethenon.network.", LethenonMenuContribution.WALLET_KEY)),
 			Arguments.of("the menu", List.of("lethenon.menu.")),
 			Arguments.of("what every window answers with",
-				List.of("lethenon.answer.", "lethenon.input.", "lethenon.wallet.",
+				List.of("lethenon.answer.", "lethenon.input.", "lethenon.wallet.", "lethenon.failure.",
 					"lethenon.value.")));
 	}
 

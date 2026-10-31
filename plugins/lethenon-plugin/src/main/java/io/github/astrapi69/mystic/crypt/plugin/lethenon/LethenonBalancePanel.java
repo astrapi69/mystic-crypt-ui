@@ -28,6 +28,7 @@ import java.awt.Font;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
@@ -117,6 +118,9 @@ public class LethenonBalancePanel extends JPanel
 
 	private final JLabel lblResult = new JLabel(" ");
 
+	/** Where a failure shows, in the pattern of draft 07 (#710) */
+	private final transient FailureView failureView;
+
 	/**
 	 * Instantiates a new {@link LethenonBalancePanel}, prefilled with the chain file from the
 	 * plugin's settings
@@ -156,7 +160,10 @@ public class LethenonBalancePanel extends JPanel
 		nameAndExplainTheInputs();
 		bindToTheModel();
 		layOutTheInputs();
+		int answerStarts = getComponentCount();
 		layOutTheAnswer();
+		failureView = FailureView.below(this,
+			List.of(getComponents()).subList(answerStarts, getComponentCount()), locale);
 		add(lblResult, ToolForm.RESULT_LINE);
 		pnlDetails.setVisible(false);
 		txtChainFile.setText(LethenonSettingsContribution.chainFile());
@@ -213,7 +220,8 @@ public class LethenonBalancePanel extends JPanel
 			Path chainFile = Path.of(modelObject.getChainFile().trim());
 			if (!ChainConversion.convertedIfAgreed(this, consent, chainFile))
 			{
-				showFailure(failure + ": " + ChainConversion.notConverted());
+				showFailure(failure + ": " + ChainConversion.notConverted(),
+					new IllegalStateException(ChainConversion.notConverted()));
 				return;
 			}
 			WalletBalance balance = WalletBalanceSupport.balance(chainFile,
@@ -227,11 +235,11 @@ public class LethenonBalancePanel extends JPanel
 		}
 		catch (ChainRejected | IllegalArgumentException refused)
 		{
-			showFailure(failure + ": " + refused.getMessage());
+			showFailure(failure + ": " + refused.getMessage(), refused);
 		}
 		catch (IOException unreadable)
 		{
-			showFailure(failure + ": " + unreadable.getMessage());
+			showFailure(failure + ": " + unreadable.getMessage(), unreadable);
 		}
 		finally
 		{
@@ -270,11 +278,18 @@ public class LethenonBalancePanel extends JPanel
 		showTheModel();
 	}
 
-	private void showFailure(final String result)
+	/**
+	 * Shows a failure in the pattern of draft 07 (#710): the cause and what to do, the reason under
+	 * the details, the answer hidden; the status line does not repeat it, the model keeps the whole
+	 * line for whoever reads the state
+	 */
+	private void showFailure(final String result, final Throwable thrown)
 	{
 		modelObject.clearAnswer();
 		showTheModel();
-		setResult(result);
+		modelObject.setResultText(result);
+		lblResult.setText(" ");
+		failureView.show(Failures.of(thrown, new Refusal("lethenon.balance.failure", "The balance was not read."), locale));
 	}
 
 	/** Puts what the model holds into the read-only fields, shortening what is too long to read */
@@ -397,6 +412,7 @@ public class LethenonBalancePanel extends JPanel
 
 	private void setResult(final String text)
 	{
+		failureView.clear();
 		modelObject.setResultText(text);
 		lblResult.setText(text);
 	}
