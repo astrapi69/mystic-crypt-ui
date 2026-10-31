@@ -73,10 +73,11 @@ dependencies {
     implementation libs.swing.wizard
     implementation libs.kee.pass.java2.jackson
     // randomizer is no dependency of this application since #658: its random values come from
-    // SecureRandom. roboter and swing-components still bring randomizer 10.1, whose default
-    // generator is seeded with the current time (GHSA-395w-fmf5-xfj3). The constraint holds what the
-    // installer ships at a version that seeds itself from the operating system, and
-    // RuntimeDependenciesTest proves the floor
+    // SecureRandom. Before 10.5 its default generator is seeded with the current time
+    // (GHSA-395w-fmf5-xfj3). Since #682 nothing here asks for such a version any more: roboter 3,
+    // through swing-tree-component 3.3, brings 10.7, and swing-components 10 brings none. The
+    // constraint stays as a second guard, so that a library which brought an old version back would
+    // still ship a safe one, and RuntimeDependenciesTest proves the floor
     constraints {
         implementation(libs.randomizer) {
             because 'randomizer before 10.5 seeds its default generator with the current time'
