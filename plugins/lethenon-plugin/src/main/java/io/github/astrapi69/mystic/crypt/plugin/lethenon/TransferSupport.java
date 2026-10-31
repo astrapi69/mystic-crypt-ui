@@ -98,25 +98,43 @@ public final class TransferSupport
 	{
 		try
 		{
-			PeerAddress node = nodeOf(order.node());
-			Destination recipient = destinationOf(order.recipientKind(), order.recipient());
-			Amount amount = Amount.parseLeth(order.amount().trim());
-			Amount fee = order.fee().isBlank() ? Amount.ZERO : Amount.parseLeth(order.fee().trim());
-			Wallet sender = LethenonWallets.open(order.walletFile(), password);
-			List<BlockBody> chain = ChainReplaySupport.replayed(order.chainFile()).chain();
-			ChainFile chainFile = new ChainFile(order.chainFile());
-			List<SignedTransaction> waiting = new ArrayList<>(chainFile.readPending());
-			SignedTransaction signed = Transfers.prepare(sender, order.suite(), chain, waiting,
-				recipient, amount, fee, order.memo());
-			int nowWaiting = node == null ? waitNextToTheChain(chainFile, waiting, signed)
-				: handOver(node, chain, order.chainFile(), signed);
-			return new SentTransfer(signed.body().nonce(), amount, fee, order.recipientKind(),
-				order.recipient().trim(), nowWaiting, node == null ? "" : node.toString());
+			return send(order, () -> LethenonWallets.open(order.walletFile(), password));
 		}
 		finally
 		{
 			Arrays.fill(password, '\0');
 		}
+	}
+
+	/**
+	 * Signs a transfer with the wallet a source opens, after everything that can be checked
+	 * without it was checked, so a mistyped address or amount costs no unsealing (#704)
+	 *
+	 * @param order
+	 *            the transfer; its wallet file is not read
+	 * @param source
+	 *            where the sending wallet comes from
+	 * @return what was signed and where it waits
+	 * @throws IOException
+	 *             if the chain or the wallet cannot be read
+	 */
+	static SentTransfer send(final TransferOrder order, final WalletSource source)
+		throws IOException
+	{
+		PeerAddress node = nodeOf(order.node());
+		Destination recipient = destinationOf(order.recipientKind(), order.recipient());
+		Amount amount = Amount.parseLeth(order.amount().trim());
+		Amount fee = order.fee().isBlank() ? Amount.ZERO : Amount.parseLeth(order.fee().trim());
+		Wallet sender = source.open();
+		List<BlockBody> chain = ChainReplaySupport.replayed(order.chainFile()).chain();
+		ChainFile chainFile = new ChainFile(order.chainFile());
+		List<SignedTransaction> waiting = new ArrayList<>(chainFile.readPending());
+		SignedTransaction signed = Transfers.prepare(sender, order.suite(), chain, waiting,
+			recipient, amount, fee, order.memo());
+		int nowWaiting = node == null ? waitNextToTheChain(chainFile, waiting, signed)
+			: handOver(node, chain, order.chainFile(), signed);
+		return new SentTransfer(signed.body().nonce(), amount, fee, order.recipientKind(),
+			order.recipient().trim(), nowWaiting, node == null ? "" : node.toString());
 	}
 
 	/**
