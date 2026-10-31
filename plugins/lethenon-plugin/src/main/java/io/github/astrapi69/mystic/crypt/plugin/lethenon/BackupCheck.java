@@ -24,6 +24,7 @@
  */
 package io.github.astrapi69.mystic.crypt.plugin.lethenon;
 
+import java.time.LocalDate;
 import java.util.List;
 
 import io.github.astrapi69.lethenon.PublishedAddress;
@@ -73,5 +74,28 @@ final class BackupCheck
 		}
 		// compared by value: the address's own text form is documented (lethenon#37), its toString is not
 		return PublishedAddress.parse(entry.addressForCheck()).equals(derived.address());
+	}
+
+	/**
+	 * Runs the check and, when it matches, records the day in {@code lethenon.backupVerified}; a
+	 * check that does not match leaves the recorded day as it was
+	 *
+	 * @param typed
+	 *            the words the user typed, in order
+	 * @param entry
+	 *            the wallet's entry, changed only by a successful check
+	 * @param today
+	 *            the day of the check
+	 * @return whether the typed words give the wallet in the vault
+	 */
+	static boolean checkAndRecord(final List<String> typed, final WalletEntry entry,
+		final LocalDate today)
+	{
+		boolean matches = run(typed, entry);
+		if (matches)
+		{
+			entry.setProperty(BackupReminder.VERIFIED, today.toString().toCharArray(), false);
+		}
+		return matches;
 	}
 }
