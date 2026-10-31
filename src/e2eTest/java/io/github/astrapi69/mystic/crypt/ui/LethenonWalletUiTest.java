@@ -30,6 +30,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.io.File;
 import java.util.List;
 
+import javax.swing.JLabel;
 import javax.swing.SwingUtilities;
 
 import org.assertj.swing.edt.GuiActionRunner;
@@ -160,8 +161,13 @@ class LethenonWalletUiTest extends AbstractUiTest
 		return GuiActionRunner.execute(() -> tool.textBox(componentName).target().getText());
 	}
 
-	private static String labelOf(final JInternalFrameFixture tool, final String componentName)
+	/**
+	 * What a label shows, also while its view is not on screen: the words' labels are read after
+	 * the window has left the view that shows them
+	 */
+	private String labelOf(final JInternalFrameFixture tool, final String componentName)
 	{
-		return GuiActionRunner.execute(() -> tool.label(componentName).target().getText());
+		return GuiActionRunner.execute(() -> robot.finder()
+			.findByName(tool.target(), componentName, JLabel.class, false).getText());
 	}
 }
