@@ -80,6 +80,7 @@ class LethenonWalletScreenshotsTest
 			}
 		});
 		Files.createDirectories(DIRECTORY);
+		Files.createDirectories(EXPORTS);
 	}
 
 	/**
@@ -122,6 +123,28 @@ class LethenonWalletScreenshotsTest
 				panel.onCreateConfirmed();
 			}), new State("06-overview", 2, false, panel -> {}),
 			new State("07-take-over", 0, false, LethenonWalletPanel::onTakeOver),
+			new State("09-backup-unseal", 1, false, LethenonWalletPanel::onBackup),
+			new State("10-backup-question-wrong-word", 1, false, panel -> {
+				LethenonBackupPanel backup = atStepTwo(panel);
+				backup.getModelObject().setAnswer1("abandon");
+				backup.onQuestionConfirmed();
+			}), new State("11-backup-export-written", 1, false, panel -> {
+				LethenonBackupPanel backup = atStepTwo(panel);
+				int[] positions = backup.getModelObject().getPositions();
+				List<String> words = List.of(new String(backup.getModelObject().getShownWords())
+					.split(" "));
+				backup.getModelObject().setAnswer1(words.get(positions[0] - 1));
+				backup.getModelObject().setAnswer2(words.get(positions[1] - 1));
+				backup.getModelObject().setAnswer3(words.get(positions[2] - 1));
+				backup.onQuestionConfirmed();
+				backup.getModelObject().setExportFile(EXPORTS.resolve(
+					"wallet-" + System.nanoTime() + ".lethwf").toString());
+				backup.onExportConfirmed();
+			}), new State("12-backup-check-mismatch", 1, false, panel -> {
+				panel.onBackupCheck();
+				panel.getBackupPanel().getModelObject().setCheckWords(Wallet.create().phrase());
+				panel.getBackupPanel().onCheckConfirmed();
+			}),
 			new State("08-restore-unknown-word", 0, false, panel -> {
 				panel.onRestore();
 				List<String> words = new ArrayList<>(List.of(Wallet.create().phrase().split(" ")));
@@ -161,6 +184,23 @@ class LethenonWalletScreenshotsTest
 		assertTrue(hasContent(picture[0]), file + " is empty");
 	}
 
+	/** Where the export of the pictured step 3 writes, inside the build directory */
+	private static final Path EXPORTS = Path.of("build", "screenshots-exports");
+
+	/** Opens the backup on request and passes step 1, with the password every pictured wallet has */
+	private static LethenonBackupPanel atStepTwo(final LethenonWalletPanel panel)
+	{
+		panel.onBackup();
+		LethenonBackupPanel backup = panel.getBackupPanel();
+		backup.getModelObject().setPassword(PASSWORD.clone());
+		backup.onUnsealConfirmed();
+		backup.onWrittenDown();
+		return backup;
+	}
+
+	/** The password of every wallet a picture starts with, made up for this run */
+	private static final char[] PASSWORD = ThrowawayPasswords.next();
+
 	private static LethenonVault vaultFor(final State state)
 	{
 		InMemoryVaultAccess access = new InMemoryVaultAccess();
@@ -168,7 +208,7 @@ class LethenonWalletScreenshotsTest
 		vault.connect(access);
 		for (int count = 0; count < state.withWallets(); count++)
 		{
-			vault.restore(Wallet.create().phrase().toCharArray(), ThrowawayPasswords.next(),
+			vault.restore(Wallet.create().phrase().toCharArray(), PASSWORD.clone(),
 				count == 0 ? WalletNetwork.TESTNET : WalletNetwork.MAINNET);
 		}
 		access.available = !state.locked();

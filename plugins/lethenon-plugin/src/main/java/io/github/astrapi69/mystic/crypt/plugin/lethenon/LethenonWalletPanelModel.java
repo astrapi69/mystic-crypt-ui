@@ -24,17 +24,14 @@
  */
 package io.github.astrapi69.mystic.crypt.plugin.lethenon;
 
-import java.util.Arrays;
 import java.util.List;
-
-import io.github.astrapi69.mystic.crypt.secret.SecretBuffers;
 
 /**
  * The state of {@link LethenonWalletPanel}, in one object rather than scattered across its widgets
  * (architecture.md): which view is shown, the wallets of the vault and the one chosen, what the
  * forms hold and why the last action was refused.
  * <p>
- * Passwords and the shown words are {@code char[]}, never Strings, and are overwritten when they
+ * Passwords are {@code char[]}, never Strings, and are overwritten when they
  * are replaced or cleared. The words typed for a restore are a String, because a text area holds
  * one; it is emptied after every restore, and the decision record names that limit.
  */
@@ -57,7 +54,7 @@ public class LethenonWalletPanelModel
 
 	private String words = "";
 
-	private char[] shownWords = new char[0];
+	private String backupNotice = "";
 
 	private String refusal = "";
 
@@ -110,7 +107,7 @@ public class LethenonWalletPanelModel
 
 	public void setPassword(char[] password)
 	{
-		this.password = replaced(this.password, password);
+		this.password = SecretFields.replaced(this.password, password);
 	}
 
 	public char[] getPasswordRepeated()
@@ -120,7 +117,7 @@ public class LethenonWalletPanelModel
 
 	public void setPasswordRepeated(char[] passwordRepeated)
 	{
-		this.passwordRepeated = replaced(this.passwordRepeated, passwordRepeated);
+		this.passwordRepeated = SecretFields.replaced(this.passwordRepeated, passwordRepeated);
 	}
 
 	public String getWalletFile()
@@ -143,14 +140,14 @@ public class LethenonWalletPanelModel
 		this.words = words == null ? "" : words;
 	}
 
-	public char[] getShownWords()
+	public String getBackupNotice()
 	{
-		return shownWords;
+		return backupNotice;
 	}
 
-	public void setShownWords(char[] shownWords)
+	public void setBackupNotice(String backupNotice)
 	{
-		this.shownWords = replaced(this.shownWords, shownWords);
+		this.backupNotice = backupNotice == null ? "" : backupNotice;
 	}
 
 	public String getRefusal()
@@ -181,21 +178,6 @@ public class LethenonWalletPanelModel
 	{
 		setPassword(new char[0]);
 		setPasswordRepeated(new char[0]);
-		setShownWords(new char[0]);
 		words = "";
-	}
-
-	/**
-	 * The new buffer in place of the old one, the old one overwritten unless it is the same content
-	 * handed back by a bound field
-	 */
-	private static char[] replaced(final char[] old, final char[] replacement)
-	{
-		char[] kept = replacement == null ? new char[0] : replacement;
-		if (old != kept && !Arrays.equals(old, kept))
-		{
-			SecretBuffers.wipe(old);
-		}
-		return kept;
 	}
 }

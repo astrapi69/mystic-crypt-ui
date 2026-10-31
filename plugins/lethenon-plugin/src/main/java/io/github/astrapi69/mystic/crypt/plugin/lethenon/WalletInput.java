@@ -26,6 +26,7 @@ package io.github.astrapi69.mystic.crypt.plugin.lethenon;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
 
 import io.github.astrapi69.lethenon.SeedPhrase;
@@ -76,23 +77,78 @@ final class WalletInput
 	 */
 	static Optional<Refusal> words(final String typed)
 	{
+		return wordsToCheck(typed).or(() -> givesAWallet(SeedPhrase.parse(typed))
+			? Optional.empty()
+			: Optional.of(new Refusal("lethenon.wallet.form.refused.words.checksum",
+				"These 24 words do not give a wallet: a word may be in the wrong place. Compare "
+					+ "them with your note, in order.")));
+	}
+
+	/**
+	 * Checks the words of a backup check before they are compared with the wallet: 24 of them,
+	 * each in the word list. A failed checksum is not refused here: for a check it is the answer
+	 * "does not match", not a typing error (decision record, backup assistant 3)
+	 *
+	 * @param typed
+	 *            the words as typed, separated by any spaces or line breaks
+	 * @return the refusal, or empty when there are 24 known words
+	 */
+	static Optional<Refusal> wordsToCheck(final String typed)
+	{
 		List<String> words = SeedPhrase.parse(typed == null ? "" : typed);
 		if (words.size() != BackupCheck.WORDS)
 		{
 			return Optional.of(new Refusal("lethenon.wallet.form.refused.words.count",
 				"A wallet is restored from its 24 words, and you typed {0}.", words.size()));
 		}
-		Optional<BackupCheck.UnknownWord> unknown = BackupCheck.firstUnknownWord(words);
-		if (unknown.isPresent())
+		return BackupCheck.firstUnknownWord(words)
+			.map(unknown -> unknownWord(unknown.position(), unknown.word()));
+	}
+
+	/**
+	 * Checks the answers of step 2 of the backup: the words at the asked positions, compared as
+	 * lethenon reads a phrase, lower case and without the spaces around them (T2)
+	 *
+	 * @param words
+	 *            the wallet's 24 words
+	 * @param positions
+	 *            the asked positions, counted from 1, in the order of the answers
+	 * @param answers
+	 *            what was typed, one answer per position
+	 * @return the refusal for the first answer that is not a word of the list or not the right
+	 *         word, or empty when all three are right
+	 */
+	static Optional<Refusal> answers(final List<String> words, final int[] positions,
+		final String[] answers)
+	{
+		for (int index = 0; index < positions.length; index++)
 		{
-			return Optional.of(new Refusal("lethenon.backup.question.unknown",
-				"Word {0}, \"{1}\", is not in the word list. Check your note for a typing error.",
-				unknown.get().position(), unknown.get().word()));
+			int position = positions[index];
+			String answer = normalised(answers[index]);
+			if (!answer.isEmpty() && !SeedPhrase.isKnownWord(answer))
+			{
+				return Optional.of(unknownWord(position, answer));
+			}
+			if (!words.get(position - 1).equals(answer))
+			{
+				return Optional.of(new Refusal("lethenon.backup.question.wrong",
+					"Word {0} is not right. Look at your note and try again.", position));
+			}
 		}
-		return givesAWallet(words) ? Optional.empty()
-			: Optional.of(new Refusal("lethenon.wallet.form.refused.words.checksum",
-				"These 24 words do not give a wallet: a word may be in the wrong place. Compare "
-					+ "them with your note, in order."));
+		return Optional.empty();
+	}
+
+	/** A word that is not in the word list, named with its position (T2) */
+	private static Refusal unknownWord(final int position, final String word)
+	{
+		return new Refusal("lethenon.backup.question.unknown",
+			"Word {0}, \"{1}\", is not in the word list. Check your note for a typing error.",
+			position, word);
+	}
+
+	private static String normalised(final String answer)
+	{
+		return answer == null ? "" : answer.strip().toLowerCase(Locale.ROOT);
 	}
 
 	/**
