@@ -26,6 +26,7 @@ package io.github.astrapi69.mystic.crypt.plugin.lethenon;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import io.github.astrapi69.lethenon.PublishedAddress;
 import io.github.astrapi69.lethenon.SeedPhrase;
@@ -60,16 +61,17 @@ final class BackupCheck
 	 */
 	static boolean run(final List<String> typed, final WalletEntry entry)
 	{
-		if (typed.size() != WORDS)
+		List<String> words = wordsOf(typed);
+		if (words.size() != WORDS)
 		{
 			throw new IllegalArgumentException("a backup has " + WORDS + " words, and this list has "
-				+ typed.size());
+				+ words.size());
 		}
-		requireKnownWords(typed);
+		requireKnownWords(words);
 		Wallet derived;
 		try
 		{
-			derived = Wallet.fromPhrase(String.join(" ", typed));
+			derived = Wallet.fromPhrase(String.join(" ", words));
 		}
 		catch (IllegalArgumentException notAPhrase)
 		{
@@ -101,6 +103,16 @@ final class BackupCheck
 			entry.setProperty(BackupReminder.VERIFIED, today.toString().toCharArray(), false);
 		}
 		return matches;
+	}
+
+	/**
+	 * The words as lethenon reads a phrase: lower case, split at any space, empty and missing fields
+	 * dropped. Only these go to {@link SeedPhrase#isKnownWord}, which does not take null
+	 */
+	private static List<String> wordsOf(final List<String> typed)
+	{
+		return SeedPhrase.parse(typed.stream().map(field -> field == null ? "" : field)
+			.collect(Collectors.joining(" ")));
 	}
 
 	private static void requireKnownWords(final List<String> typed)
