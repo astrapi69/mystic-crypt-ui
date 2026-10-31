@@ -85,13 +85,13 @@ class LethenonVaultTest
 	@DisplayName("a created wallet is stored in the vault and listed with its network and address; its words are not stored")
 	void aCreatedWalletIsListed()
 	{
-		try (NewWallet created = vault.create("testnet", PASSWORD))
+		try (NewWallet created = vault.create(WalletNetwork.TESTNET, PASSWORD))
 		{
 			List<VaultWallet> wallets = vault.wallets();
 
 			assertEquals(1, wallets.size());
 			assertEquals(created.id(), wallets.get(0).id());
-			assertEquals("testnet", wallets.get(0).network());
+			assertEquals(WalletNetwork.TESTNET.hint(), wallets.get(0).network());
 			assertEquals("lethenon wallet (testnet)", wallets.get(0).title());
 			assertEquals(Wallet.fromPhrase(new String(created.words())).address().toText(),
 				wallets.get(0).address(), "the listed address is the address of the shown words");
@@ -111,8 +111,8 @@ class LethenonVaultTest
 		WalletFile.write(file, existing, PASSWORD);
 		Wallet lost = Wallet.create();
 
-		vault.takeOver(file, PASSWORD, "testnet");
-		vault.restore(lost.phrase().toCharArray(), ThrowawayPasswords.next(), "mainnet");
+		vault.takeOver(file, PASSWORD, WalletNetwork.TESTNET);
+		vault.restore(lost.phrase().toCharArray(), ThrowawayPasswords.next(), WalletNetwork.MAINNET);
 
 		List<String> addresses = vault.wallets().stream().map(VaultWallet::address).toList();
 		assertEquals(List.of(existing.address().toText(), lost.address().toText()), addresses);
@@ -123,7 +123,7 @@ class LethenonVaultTest
 	@DisplayName("an opened wallet unseals with its password and reports a recorded address that does not fit")
 	void opensAWalletWithItsPassword()
 	{
-		try (NewWallet created = vault.create("testnet", PASSWORD))
+		try (NewWallet created = vault.create(WalletNetwork.TESTNET, PASSWORD))
 		{
 			UUID id = created.id();
 
@@ -139,7 +139,7 @@ class LethenonVaultTest
 	@DisplayName("a creation cancelled while the words are shown leaves no wallet in the vault and no word in the buffer")
 	void aCancelledCreationLeavesNothing()
 	{
-		NewWallet created = vault.create("testnet", PASSWORD);
+		NewWallet created = vault.create(WalletNetwork.TESTNET, PASSWORD);
 		char[] shown = created.words();
 
 		vault.discard(created);
@@ -165,7 +165,7 @@ class LethenonVaultTest
 	@DisplayName("when the vault locks the windows are told once, and the vault then lists nothing")
 	void lockingTellsTheWindowsAndEmptiesTheList()
 	{
-		vault.create("testnet", PASSWORD).close();
+		vault.create(WalletNetwork.TESTNET, PASSWORD).close();
 		int[] told = { 0 };
 		vault.whenClosing(() -> told[0]++);
 
@@ -186,7 +186,7 @@ class LethenonVaultTest
 		assertFalse(unconnected.isAvailable());
 		assertEquals(List.of(), unconnected.wallets());
 		VaultAccessRefusedException refused = assertThrows(VaultAccessRefusedException.class,
-			() -> unconnected.create("testnet", PASSWORD));
+			() -> unconnected.create(WalletNetwork.TESTNET, PASSWORD));
 		assertTrue(refused.getMessage().contains("no vault"), refused.getMessage());
 	}
 }

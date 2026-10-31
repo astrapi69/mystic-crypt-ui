@@ -97,15 +97,15 @@ final class LethenonVault
 	 * Creates a new wallet in the vault
 	 *
 	 * @param network
-	 *            "testnet" or "mainnet"
+	 *            the network the wallet is meant for
 	 * @param password
 	 *            the wallet password
 	 * @return the created wallet, whose words the caller shows once and then closes
 	 */
-	NewWallet create(final String network, final char[] password)
+	NewWallet create(final WalletNetwork network, final char[] password)
 	{
 		VaultAccess target = requireAccess();
-		CreatedWallet created = WalletVault.create(network, password);
+		CreatedWallet created = WalletVault.create(network.hint(), password);
 		try
 		{
 			return new NewWallet(store(target, created.entry()), created.words());
@@ -142,16 +142,16 @@ final class LethenonVault
 	 * @param password
 	 *            its password
 	 * @param network
-	 *            "testnet" or "mainnet"
+	 *            the network the wallet is meant for
 	 * @return the identifier of the wallet's new entry
 	 * @throws IOException
 	 *             if the file cannot be read
 	 */
-	UUID takeOver(final Path walletFile, final char[] password, final String network)
+	UUID takeOver(final Path walletFile, final char[] password, final WalletNetwork network)
 		throws IOException
 	{
 		VaultAccess target = requireAccess();
-		return store(target, WalletVault.takeOver(walletFile, password, network));
+		return store(target, WalletVault.takeOver(walletFile, password, network.hint()));
 	}
 
 	/**
@@ -162,13 +162,13 @@ final class LethenonVault
 	 * @param password
 	 *            the new wallet password
 	 * @param network
-	 *            "testnet" or "mainnet"
+	 *            the network the wallet is meant for
 	 * @return the identifier of the wallet's new entry
 	 */
-	UUID restore(final char[] words, final char[] password, final String network)
+	UUID restore(final char[] words, final char[] password, final WalletNetwork network)
 	{
 		VaultAccess target = requireAccess();
-		return store(target, WalletVault.restore(words, password, network));
+		return store(target, WalletVault.restore(words, password, network.hint()));
 	}
 
 	/**

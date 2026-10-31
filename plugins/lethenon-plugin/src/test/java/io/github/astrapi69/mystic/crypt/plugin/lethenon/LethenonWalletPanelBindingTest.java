@@ -261,9 +261,9 @@ class LethenonWalletPanelBindingTest
 	@DisplayName("a vault with wallets opens on the overview of the first, and another one can be chosen")
 	void aVaultWithWallets_showsTheOverview()
 	{
-		vault.restore(Wallet.create().phrase().toCharArray(), ThrowawayPasswords.next(), "testnet");
+		vault.restore(Wallet.create().phrase().toCharArray(), ThrowawayPasswords.next(), WalletNetwork.TESTNET);
 		Wallet second = Wallet.create();
-		vault.restore(second.phrase().toCharArray(), ThrowawayPasswords.next(), "mainnet");
+		vault.restore(second.phrase().toCharArray(), ThrowawayPasswords.next(), WalletNetwork.MAINNET);
 
 		LethenonWalletPanel panel = window();
 

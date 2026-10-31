@@ -204,7 +204,7 @@ public class LethenonWalletPanel extends JPanel
 		}
 		try
 		{
-			pending = vault.create(modelObject.getNetwork().hint(), modelObject.getPassword());
+			pending = vault.create(modelObject.getNetwork(), modelObject.getPassword());
 		}
 		catch (final VaultAccessRefusedException notWritable)
 		{
@@ -250,7 +250,7 @@ public class LethenonWalletPanel extends JPanel
 		{
 			Path walletFile = Path.of(fileName);
 			UUID taken = vault.takeOver(walletFile, modelObject.getPassword(),
-				modelObject.getNetwork().hint());
+				modelObject.getNetwork());
 			refresh(taken);
 			notice(LethenonMessages.format("lethenon.wallet.notice.taken.over",
 				"The wallet from {0} is in the vault now. The file was only read and is still "
@@ -293,7 +293,7 @@ public class LethenonWalletPanel extends JPanel
 		try
 		{
 			UUID restored = vault.restore(modelObject.getWords().toCharArray(),
-				modelObject.getPassword(), modelObject.getNetwork().hint());
+				modelObject.getPassword(), modelObject.getNetwork());
 			clearWords();
 			refresh(restored);
 			notice(text("lethenon.wallet.notice.restored", "The wallet is restored into the vault."));

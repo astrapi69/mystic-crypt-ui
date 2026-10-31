@@ -169,7 +169,7 @@ class LethenonWalletScreenshotsTest
 		for (int count = 0; count < state.withWallets(); count++)
 		{
 			vault.restore(Wallet.create().phrase().toCharArray(), ThrowawayPasswords.next(),
-				count == 0 ? "testnet" : "mainnet");
+				count == 0 ? WalletNetwork.TESTNET : WalletNetwork.MAINNET);
 		}
 		access.available = !state.locked();
 		return vault;
