@@ -56,6 +56,10 @@ public class LethenonWalletPanelModel
 
 	private String backupNotice = "";
 
+	private String balance = "";
+
+	private String balanceExact = "";
+
 	private String refusal = "";
 
 	private String notice = "";
@@ -138,6 +142,26 @@ public class LethenonWalletPanelModel
 	public void setWords(String words)
 	{
 		this.words = words == null ? "" : words;
+	}
+
+	public String getBalance()
+	{
+		return balance;
+	}
+
+	public void setBalance(String balance)
+	{
+		this.balance = balance == null ? "" : balance;
+	}
+
+	public String getBalanceExact()
+	{
+		return balanceExact;
+	}
+
+	public void setBalanceExact(String balanceExact)
+	{
+		this.balanceExact = balanceExact == null ? "" : balanceExact;
 	}
 
 	public String getBackupNotice()

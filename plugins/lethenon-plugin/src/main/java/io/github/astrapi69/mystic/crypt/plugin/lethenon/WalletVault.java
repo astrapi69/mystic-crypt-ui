@@ -36,6 +36,7 @@ import java.util.Set;
 import io.github.astrapi69.crypt.api.algorithm.HashAlgorithm;
 import io.github.astrapi69.crypt.data.hash.HashExtensions;
 import io.github.astrapi69.lethenon.PublishedAddress;
+import io.github.astrapi69.lethenon.SignatureSuite;
 import io.github.astrapi69.lethenon.Wallet;
 import io.github.astrapi69.lethenon.WalletFile;
 
@@ -164,7 +165,39 @@ final class WalletVault
 	{
 		requireWallet(entry);
 		Wallet wallet = WalletFile.read(entry.sealed(), password);
-		return new UnsealedWallet(wallet, addressWarning(entry.addressForCheck(), wallet.address()));
+		Optional<String> warning = addressWarning(entry.addressForCheck(), wallet.address());
+		Optional<String> accountWarning = accountWarning(entry, wallet);
+		return new UnsealedWallet(wallet, warning.isPresent() && accountWarning.isPresent()
+			? Optional.of(warning.get() + " " + accountWarning.get())
+			: warning.or(() -> accountWarning));
+	}
+
+	/**
+	 * The public key of a wallet's ML-DSA-65 account, as the entry records it
+	 *
+	 * @param wallet
+	 *            the wallet
+	 * @return the key in lethenon's text form
+	 */
+	static String mlDsaAccountOf(final Wallet wallet)
+	{
+		return wallet.spendKey(SignatureSuite.ML_DSA_65).toString();
+	}
+
+	/**
+	 * Compares the recorded ML-DSA-65 account key with the wallet's, like the address: a missing
+	 * key is no warning, an older entry simply has none yet (#700)
+	 */
+	private static Optional<String> accountWarning(final WalletEntry entry, final Wallet wallet)
+	{
+		if (!entry.hasProperty(WalletEntry.ACCOUNT_ML_DSA))
+		{
+			return Optional.empty();
+		}
+		return entry.textOf(WalletEntry.ACCOUNT_ML_DSA).equals(mlDsaAccountOf(wallet))
+			? Optional.empty()
+			: Optional.of("The ML-DSA-65 account key recorded on this entry is not the key of the "
+				+ "wallet in its attachment. Neither was changed.");
 	}
 
 	/**
@@ -186,6 +219,7 @@ final class WalletVault
 		WalletEntry entry = WalletEntry.newEntry(network);
 		entry.setProperty(WALLET, FORMAT_VERSION.toCharArray(), false);
 		entry.setProperty(WalletEntry.ADDRESS, wallet.address().toText().toCharArray(), false);
+		entry.setProperty(WalletEntry.ACCOUNT_ML_DSA, mlDsaAccountOf(wallet).toCharArray(), false);
 		entry.setSealed(sealed);
 		return entry;
 	}

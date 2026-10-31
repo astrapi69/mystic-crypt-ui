@@ -29,6 +29,7 @@ import java.awt.Component;
 import java.awt.Font;
 import java.io.IOException;
 import java.nio.file.Path;
+import java.nio.file.Files;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -36,6 +37,8 @@ import java.util.Locale;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
 
 import javax.swing.BorderFactory;
 import javax.swing.ComboBoxModel;
@@ -46,6 +49,7 @@ import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JTextArea;
+import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 
 import io.github.astrapi69.model.LambdaModel;
@@ -109,6 +113,22 @@ public class LethenonWalletPanel extends JPanel
 
 	private final JLabel lblNetworkBadge = NetworkHeader.badgeLabel();
 
+	private final JLabel lblBalance = new JLabel("");
+
+	private final JTextArea txtBalanceExact = message("txtBalanceExact", false);
+
+	/** Where the chain is replayed and scanned, off the event dispatch thread in the application */
+	private final transient Executor background;
+
+	/** Where the window shows a result, the event dispatch thread in the application */
+	private final transient Executor ui;
+
+	/** The balance of the wallet shown, null until it is read */
+	private transient AccountsBalance balance;
+
+	/** The one-time payments of the wallet shown, null until they are checked with the password */
+	private transient IncomingPayments incoming;
+
 	private final JTextArea txtRiskNote = message("txtRiskNote", false);
 
 	private final LethenonBackupPanel backup;
@@ -119,7 +139,9 @@ public class LethenonWalletPanel extends JPanel
 	 */
 	public LethenonWalletPanel()
 	{
-		this(LethenonVault.current(), Locale.getDefault());
+		this(LethenonVault.current(), Locale.getDefault(),
+			Executors.newSingleThreadExecutor(Thread.ofVirtual().factory()),
+			SwingUtilities::invokeLater);
 	}
 
 	/**
@@ -132,9 +154,29 @@ public class LethenonWalletPanel extends JPanel
 	 */
 	LethenonWalletPanel(final LethenonVault vault, final Locale locale)
 	{
+		this(vault, locale, Runnable::run, Runnable::run);
+	}
+
+	/**
+	 * Instantiates a new {@link LethenonWalletPanel} that reads the chain where it is told to
+	 *
+	 * @param vault
+	 *            the plugin's view of the vault
+	 * @param locale
+	 *            the language of the window
+	 * @param background
+	 *            where the chain is replayed and scanned
+	 * @param ui
+	 *            where a result is shown
+	 */
+	LethenonWalletPanel(final LethenonVault vault, final Locale locale, final Executor background,
+		final Executor ui)
+	{
 		super(new MigLayout("fillx, insets 0, gap 0, wrap 1", "[grow,fill]",
 			"[][]push"));
 		this.vault = vault;
+		this.background = background;
+		this.ui = ui;
 		this.locale = locale;
 		backup = new LethenonBackupPanel(vault, locale, this::refresh);
 		txtWalletTitle = AnswerFields.readOnly("txtWalletTitle", text("lethenon.wallet.tooltip.title",
@@ -151,6 +193,7 @@ public class LethenonWalletPanel extends JPanel
 		pnlViews.add(backup, WalletView.BACKUP.name());
 		pnlViews.add(takeOverView(), WalletView.TAKE_OVER.name());
 		pnlViews.add(restoreView(), WalletView.RESTORE.name());
+		pnlViews.add(incomingView(), WalletView.INCOMING.name());
 		add(pnlViews, "wmin 0");
 		add(messages(), "wmin 0");
 		vault.whenClosing(this::onVaultClosing);
@@ -302,6 +345,10 @@ public class LethenonWalletPanel extends JPanel
 	 */
 	void choose(final VaultWallet wallet)
 	{
+		if (wallet != modelObject.getChosen())
+		{
+			incoming = null;
+		}
 		modelObject.setChosen(wallet);
 		vault.choose(wallet);
 		walletChoices.setSelectedItem(wallet);
@@ -364,6 +411,7 @@ public class LethenonWalletPanel extends JPanel
 		network.paint(lblNetworkBadge, locale);
 		txtRiskNote.setText(network.riskNote(locale));
 		showTheBackupNotice(chosen);
+		readTheBalance(chosen);
 	}
 
 	/**
@@ -387,6 +435,122 @@ public class LethenonWalletPanel extends JPanel
 		modelObject.setBackupNotice(notice);
 		txtBackupNotice.setText(notice);
 		txtBackupNotice.setVisible(!notice.isEmpty());
+	}
+
+	/**
+	 * Reads both accounts' balances from the configured chain, without the wallet password; without
+	 * a chain the window says so
+	 */
+	private void readTheBalance(final VaultWallet chosen)
+	{
+		balance = null;
+		Optional<Path> chainFile = configuredChain();
+		if (chosen == null || chainFile.isEmpty())
+		{
+			showTheBalance(chosen == null ? "" : text("lethenon.wallet.balance.no.chain",
+				"No chain yet: the balance is read from your chain file. Fetch it with "
+					+ "\"Synchronise with a Node\", then it shows here."));
+			return;
+		}
+		background.execute(() -> {
+			try
+			{
+				AccountsBalance read = OverviewBalance.of(chainFile.get(), chosen);
+				ui.execute(() -> {
+					balance = read;
+					showTheBalance(exactBalance());
+				});
+			}
+			catch (final IOException | RuntimeException unreadable)
+			{
+				ui.execute(() -> showTheBalance(LethenonMessages.format(
+					"lethenon.wallet.balance.unreadable",
+					"The chain file {0} could not be read: {1}", locale,
+					chainFile.get().toString(), unreadable.getMessage())));
+			}
+		});
+	}
+
+	private Optional<Path> configuredChain()
+	{
+		String configured = LethenonSettingsContribution.chainFile();
+		if (configured == null || configured.isBlank())
+		{
+			return Optional.empty();
+		}
+		Path chainFile = Path.of(configured.trim());
+		return Files.isRegularFile(chainFile) ? Optional.of(chainFile) : Optional.empty();
+	}
+
+	private String exactBalance()
+	{
+		String exact = LethAmounts.format(balance.total(), locale);
+		if (incoming == null)
+		{
+			return LethenonMessages.format("lethenon.wallet.balance.unchecked",
+				"exactly {0}, without unchecked incoming payments", locale, exact);
+		}
+		return LethenonMessages.format("lethenon.wallet.balance.incoming",
+			"exactly {0}; besides, {1} came to your address in {2,choice,0#no payment|1#1 payment|"
+				+ "1<{2,number,integer} payments} and is not yet taken over",
+			locale, exact, LethAmounts.rounded(incoming.total(), locale), incoming.count());
+	}
+
+	private void showTheBalance(final String exact)
+	{
+		String rounded = balance == null ? "" : LethAmounts.rounded(balance.total(), locale);
+		modelObject.setBalance(rounded);
+		modelObject.setBalanceExact(exact);
+		lblBalance.setText(rounded);
+		txtBalanceExact.setText(exact);
+	}
+
+	/** Opens the wallet password for the check of the one-time payments */
+	void onCheckIncoming()
+	{
+		show(WalletView.INCOMING);
+	}
+
+	/**
+	 * Scans the chain for the one-time payments with the typed password; the wallet is unsealed for
+	 * this scan only and the password is overwritten
+	 */
+	void onCheckIncomingConfirmed()
+	{
+		Optional<Path> chainFile = configuredChain();
+		VaultWallet chosen = modelObject.getChosen();
+		if (chainFile.isEmpty() || chosen == null)
+		{
+			refuse(text("lethenon.wallet.balance.no.chain",
+				"No chain yet: the balance is read from your chain file. Fetch it with "
+					+ "\"Synchronise with a Node\", then it shows here."));
+			return;
+		}
+		char[] password = modelObject.getPassword().clone();
+		clearPasswordFields();
+		background.execute(() -> {
+			try
+			{
+				IncomingPayments found = vault.incomingPayments(chosen.id(), password,
+					chainFile.get());
+				ui.execute(() -> {
+					incoming = found;
+					show(WalletView.OVERVIEW);
+					showTheBalance(balance == null ? "" : exactBalance());
+				});
+			}
+			catch (final SecurityException wrongPassword)
+			{
+				ui.execute(() -> refuse(text("lethenon.backup.unseal.refused",
+					"This password does not open the wallet. Type the wallet password again.")));
+			}
+			catch (final IOException | RuntimeException unreadable)
+			{
+				ui.execute(() -> refuse(LethenonMessages.format("lethenon.wallet.balance.unreadable",
+					"The chain file {0} could not be read: {1}", locale,
+					chainFile.get().toString(), unreadable.getMessage())));
+			}
+		});
 	}
 
 	/** Starts the backup assistant for the chosen wallet: its password, then steps 1 to 3 */
@@ -490,6 +654,21 @@ public class LethenonWalletPanel extends JPanel
 			"what this network means for your LETH"));
 		view.add(lblNetworkBadge, "span 2, split 2, alignx left");
 		view.add(txtRiskNote, "growx, wmin 0, gapleft 12");
+		lblBalance.setName("lblBalance");
+		Font base = lblBalance.getFont();
+		lblBalance.setFont(base.deriveFont(Font.BOLD, base.getSize2D() * 2.2f));
+		lblBalance.setToolTipText(text("lethenon.wallet.tooltip.balance",
+			"what both accounts of this wallet hold, rounded to two decimals"));
+		txtBalanceExact.setToolTipText(text("lethenon.wallet.tooltip.balance.exact",
+			"the exact balance, and whether payments to your address were checked"));
+		view.add(lblBalance, ToolForm.WIDE + ", gaptop 6");
+		view.add(txtBalanceExact, ToolForm.WIDE + ", wmin 0");
+		view.add(ToolForm.buttons(LethenonSwing.button("btnCheckIncoming",
+			text("lethenon.wallet.button.check.incoming", "Check incoming payments"),
+			event -> onCheckIncoming(),
+			text("lethenon.wallet.tooltip.check.incoming",
+				"the wallet password finds payments to your address; nothing is kept"))),
+			ToolForm.BUTTON_ROW);
 		cbxWallet.setName("cbxWallet");
 		cbxWallet.setToolTipText(text("lethenon.wallet.tooltip.choose",
 			"the wallets of this vault; choose the one to show"));
@@ -585,6 +764,30 @@ public class LethenonWalletPanel extends JPanel
 				text("lethenon.wallet.tooltip.take.over.confirmed",
 					"open the file with its password and copy it, sealed, into the vault")),
 			cancelButton("btnTakeOverCancelled")), ToolForm.BUTTON_ROW);
+		return view;
+	}
+
+	private JPanel incomingView()
+	{
+		JPanel view = new JPanel(ToolForm.newLayout());
+		view.add(title("lblIncomingTitle", "lethenon.wallet.incoming.title",
+			"Check incoming payments"), ToolForm.WIDE);
+		view.add(ToolForm.intro(text("lethenon.wallet.incoming.text",
+			"Payments to your address can only be found with the wallet's private view key. The "
+				+ "wallet password opens the wallet in memory for this check; nothing is kept.")),
+			ToolForm.INTRO_ROW);
+		view.add(new JLabel(text("lethenon.wallet.label.password", "Wallet password:")));
+		view.add(passwordField("txtIncomingPassword", false,
+			text("lethenon.backup.tooltip.unseal.password",
+				"the password this wallet is sealed with in the vault")),
+			ToolForm.FIELD);
+		view.add(ToolForm.buttons(
+			LethenonSwing.button("btnCheckIncomingConfirmed",
+				text("lethenon.wallet.button.check.incoming.confirmed", "Check"),
+				event -> onCheckIncomingConfirmed(),
+				text("lethenon.wallet.tooltip.check.incoming.confirmed",
+					"scan the chain for payments to your address")),
+			cancelButton("btnCheckIncomingCancelled")), ToolForm.BUTTON_ROW);
 		return view;
 	}
 

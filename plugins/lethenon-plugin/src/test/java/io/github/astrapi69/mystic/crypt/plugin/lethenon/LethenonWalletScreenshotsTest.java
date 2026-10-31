@@ -241,6 +241,58 @@ class LethenonWalletScreenshotsTest
 		}
 	}
 
+	@ParameterizedTest(name = "the overview with its balance, {0}")
+	@MethodSource("languages")
+	@DisplayName("the overview is pictured with a balance read from a chain, before and after the check of incoming payments")
+	void theOverview_isPicturedWithItsBalance(final Locale locale, @TempDir final Path settings)
+		throws Exception
+	{
+		System.setProperty(PluginSettings.CONFIGURATION_DIRECTORY_PROPERTY, settings.toString());
+		try
+		{
+			Wallet wallet = Wallet.create();
+			Path chain = LethenonFixtures.written(settings.resolve("chain.lethenon"),
+				LethenonFixtures.aChainPayingTheWallet(
+					io.github.astrapi69.lethenon.TransactionSigner
+						.newKeyPair(io.github.astrapi69.lethenon.SignatureSuite.ED25519),
+					wallet));
+			PluginSettings.save(settings.toFile(), LethenonSettingsContribution.PLUGIN_ID,
+				new LethenonSettingsContribution().getDefaults(),
+				java.util.Map.of(LethenonSettingsContribution.KEY_CHAIN_FILE, chain.toString()));
+			LethenonVault vault = new LethenonVault();
+			vault.connect(new InMemoryVaultAccess());
+			vault.restore(wallet.phrase().toCharArray(), PASSWORD.clone(), WalletNetwork.TESTNET);
+			for (String stage : List.of("15-overview-balance", "16-overview-incoming-checked"))
+			{
+				BufferedImage[] picture = new BufferedImage[1];
+				SwingUtilities.invokeAndWait(() -> {
+					LethenonWalletPanel panel = new LethenonWalletPanel(vault, locale);
+					if (stage.startsWith("16"))
+					{
+						panel.onCheckIncoming();
+						panel.getModelObject().setPassword(PASSWORD.clone());
+						panel.onCheckIncomingConfirmed();
+					}
+					JFrame frame = new JFrame("lethenon wallet");
+					frame.setContentPane(panel);
+					frame.pack();
+					frame.setSize(Math.max(frame.getWidth(), 760), Math.max(frame.getHeight(), 420));
+					frame.setVisible(true);
+					frame.validate();
+					picture[0] = paintComponent(panel);
+					frame.dispose();
+				});
+				Path file = DIRECTORY.resolve(stage + "-" + locale.getLanguage() + ".png");
+				write(picture[0], file);
+				assertTrue(hasContent(picture[0]), file + " is empty");
+			}
+		}
+		finally
+		{
+			System.clearProperty(PluginSettings.CONFIGURATION_DIRECTORY_PROPERTY);
+		}
+	}
+
 	static Stream<Locale> languages()
 	{
 		return Stream.of(Locale.ENGLISH, Locale.GERMAN);

@@ -27,12 +27,15 @@ package io.github.astrapi69.mystic.crypt.plugin.lethenon;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.time.LocalDate;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.Consumer;
 
+import io.github.astrapi69.lethenon.Wallet;
+import io.github.astrapi69.lethenon.WalletScan;
 import io.github.astrapi69.mystic.crypt.panel.dbtree.MysticCryptEntryModelBean;
 import io.github.astrapi69.mystic.crypt.plugin.api.VaultAccess;
 import io.github.astrapi69.mystic.crypt.plugin.api.VaultAccessRefusedException;
@@ -190,7 +193,47 @@ final class LethenonVault
 	 */
 	UnsealedWallet open(final UUID id, final char[] password)
 	{
-		return WalletVault.unseal(VaultWalletEntry.read(entryOf(requireAccess(), id)), password);
+		WalletEntry entry = VaultWalletEntry.read(entryOf(requireAccess(), id));
+		UnsealedWallet unsealed = WalletVault.unseal(entry, password);
+		if (!entry.hasProperty(WalletEntry.ACCOUNT_ML_DSA))
+		{
+			// an entry from before #700: the public key it lacks is added now that the wallet is open
+			String key = WalletVault.mlDsaAccountOf(unsealed.wallet());
+			change(id, wallet -> wallet.setProperty(WalletEntry.ACCOUNT_ML_DSA, key.toCharArray(),
+				false));
+		}
+		return unsealed;
+	}
+
+	/**
+	 * The one-time payments to the wallet's address, found with its private view key: the wallet is
+	 * unsealed in memory for this scan only and nothing of it is kept
+	 *
+	 * @param id
+	 *            the wallet's entry identifier
+	 * @param password
+	 *            the wallet password; overwritten when the scan is done
+	 * @param chainFile
+	 *            the chain to scan
+	 * @return how many payments came and what they add up to
+	 * @throws IOException
+	 *             if the chain cannot be read
+	 */
+	IncomingPayments incomingPayments(final UUID id, final char[] password, final Path chainFile)
+		throws IOException
+	{
+		try
+		{
+			Wallet wallet = open(id, password).wallet();
+			ChainReplaySupport.Replayed replayed = ChainReplaySupport.replayed(chainFile);
+			WalletScan scan = WalletScan.over(replayed.chain(), wallet.address(),
+				wallet.viewKeyPair().getPrivate());
+			return new IncomingPayments(scan.received().size(), scan.balance());
+		}
+		finally
+		{
+			Arrays.fill(password, '\0');
+		}
 	}
 
 	/**
@@ -384,6 +427,10 @@ final class LethenonVault
 			? wallet.textOf(WalletEntry.NETWORK)
 			: "";
 		String title = entry.getTitle() == null ? "" : new String(entry.getTitle());
-		return new VaultWallet(entry.getId(), title, network, wallet.addressForCheck());
+		String mlDsaAccount = wallet.hasProperty(WalletEntry.ACCOUNT_ML_DSA)
+			? wallet.textOf(WalletEntry.ACCOUNT_ML_DSA)
+			: "";
+		return new VaultWallet(entry.getId(), title, network, wallet.addressForCheck(),
+			mlDsaAccount);
 	}
 }
