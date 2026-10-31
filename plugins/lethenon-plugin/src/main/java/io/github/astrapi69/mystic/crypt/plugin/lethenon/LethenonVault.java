@@ -50,6 +50,8 @@ final class LethenonVault
 
 	private static final LethenonVault CURRENT = new LethenonVault();
 
+	private volatile AddressMismatchQuestion addressQuestion = AddressMismatchQuestion.NOBODY;
+
 	private final List<Runnable> closingListeners = new CopyOnWriteArrayList<>();
 
 	private final List<Consumer<Optional<VaultWallet>>> walletListeners = new CopyOnWriteArrayList<>();
@@ -195,6 +197,7 @@ final class LethenonVault
 	{
 		WalletEntry entry = VaultWalletEntry.read(entryOf(requireAccess(), id));
 		UnsealedWallet unsealed = WalletVault.unseal(entry, password);
+		unsealed.addressMismatch().ifPresent(mismatch -> answer(id, mismatch));
 		if (!entry.hasProperty(WalletEntry.ACCOUNT_ML_DSA))
 		{
 			// an entry from before #700: the public key it lacks is added now that the wallet is open
@@ -203,6 +206,53 @@ final class LethenonVault
 				false));
 		}
 		return unsealed;
+	}
+
+	/**
+	 * Replaces the address an entry records with the address of the wallet in its attachment, after
+	 * the person confirmed it (#716, T6a), and tells the windows when it is the session's wallet
+	 *
+	 * @param id
+	 *            the wallet's entry identifier
+	 * @param mismatch
+	 *            the two addresses the person was shown
+	 * @throws IllegalStateException
+	 *             when the entry no longer records the address that was shown; nothing is replaced
+	 */
+	void useTheWalletsAddress(final UUID id, final AddressMismatch mismatch)
+	{
+		change(id, wallet -> {
+			if (!mismatch.recorded().equals(wallet.addressForCheck()))
+			{
+				throw new IllegalStateException("the entry no longer records " + mismatch.recorded()
+					+ " but " + wallet.addressForCheck() + "; nothing was replaced");
+			}
+			wallet.setProperty(WalletEntry.ADDRESS, mismatch.actual().toCharArray(), false);
+		});
+		if (chosen().filter(wallet -> wallet.id().equals(id)).isPresent())
+		{
+			choose(listed(entryOf(requireAccess(), id)));
+		}
+	}
+
+	/**
+	 * Sets who is asked when an entry's address is not its wallet's (#716); without it nothing is
+	 * changed
+	 *
+	 * @param question
+	 *            the question, with the dialogs of T6 and T6a in the application
+	 */
+	void askWhenTheAddressDiffers(final AddressMismatchQuestion question)
+	{
+		addressQuestion = question;
+	}
+
+	private void answer(final UUID id, final AddressMismatch mismatch)
+	{
+		if (addressQuestion.ask(mismatch) == AddressMismatchQuestion.Answer.REPLACE)
+		{
+			useTheWalletsAddress(id, mismatch);
+		}
 	}
 
 	/**

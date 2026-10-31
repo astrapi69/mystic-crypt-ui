@@ -36,7 +36,10 @@ import io.github.astrapi69.lethenon.Wallet;
  *            the unsealed wallet; it is not kept beyond the action
  * @param addressWarning
  *            the warning, naming both addresses, or empty when they agree
+ * @param addressMismatch
+ *            both addresses when the recorded one is not the wallet's, for the question of #716
  */
-record UnsealedWallet(Wallet wallet, Optional<String> addressWarning)
+record UnsealedWallet(Wallet wallet, Optional<String> addressWarning,
+	Optional<AddressMismatch> addressMismatch)
 {
 }
