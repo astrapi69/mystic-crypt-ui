@@ -62,7 +62,7 @@ import io.github.astrapi69.lethenon.WalletFile;
 class WalletVaultTest
 {
 
-	private static final char[] PASSWORD = "wallet password".toCharArray();
+	private static final char[] PASSWORD = ThrowawayPasswords.next();
 
 	@TempDir
 	Path directory;
@@ -136,7 +136,7 @@ class WalletVaultTest
 		byte[] original = Files.readAllBytes(file);
 
 		SecurityException refused = assertThrows(SecurityException.class,
-			() -> WalletVault.takeOver(file, "wrong".toCharArray(), "testnet"));
+			() -> WalletVault.takeOver(file, ThrowawayPasswords.next(), "testnet"));
 
 		assertTrue(refused.getMessage().contains("does not open"), refused.getMessage());
 		assertArrayEquals(original, Files.readAllBytes(file));
@@ -147,7 +147,7 @@ class WalletVaultTest
 	void restoringFromTheWordsGivesTheSameWallet()
 	{
 		Wallet wallet = Wallet.create();
-		char[] newPassword = "new password".toCharArray();
+		char[] newPassword = ThrowawayPasswords.next();
 		Set<Path> before = filesIn(directory);
 
 		WalletEntry entry = WalletVault.restore(wallet.phrase().toCharArray(), newPassword,

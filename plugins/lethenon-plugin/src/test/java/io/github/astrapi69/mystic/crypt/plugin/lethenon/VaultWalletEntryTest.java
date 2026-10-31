@@ -68,7 +68,7 @@ class VaultWalletEntryTest
 	@DisplayName("the sealed wallet travels as the attachment wallet.lethwf, beside the entry's other attachments")
 	void theSealedWalletTravelsAsItsOwnAttachment()
 	{
-		char[] password = "wallet password".toCharArray();
+		char[] password = ThrowawayPasswords.next();
 		try (CreatedWallet created = WalletVault.create("testnet", password))
 		{
 			MysticCryptEntryModelBean entry = MysticCryptEntryModelBean.builder().build();
