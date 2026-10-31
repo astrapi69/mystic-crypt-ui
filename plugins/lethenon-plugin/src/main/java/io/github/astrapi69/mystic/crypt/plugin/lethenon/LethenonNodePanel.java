@@ -28,6 +28,7 @@ import java.awt.Font;
 import java.io.IOException;
 import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
@@ -147,6 +148,9 @@ public class LethenonNodePanel extends JPanel
 
 	private final JLabel lblResult = new JLabel(" ");
 
+	/** Where a failure shows, in the pattern of draft 07 (#710, #712) */
+	private final transient FailureView failureView;
+
 	private final JButton btnStart = LethenonSwing.button("btnStartNode",
 		text("lethenon.node.button.start", "Start my node"), event -> onStart(),
 		text("lethenon.node.tooltip.start",
@@ -215,7 +219,10 @@ public class LethenonNodePanel extends JPanel
 		explainTheComponents();
 		bindToTheModel();
 		layOutTheInputs();
+		int answerStarts = getComponentCount();
 		layOutTheAnswer();
+		failureView = FailureView.below(this,
+			List.of(getComponents()).subList(answerStarts, getComponentCount()), locale);
 		add(lblResult, ToolForm.RESULT_LINE);
 		pnlDetails.setVisible(false);
 		txtChainFile.setText(LethenonSettingsContribution.chainFile());
@@ -276,7 +283,7 @@ public class LethenonNodePanel extends JPanel
 		catch (InvalidPathException notAPath)
 		{
 			NodeSupport.wipe(password);
-			showNothing(notStarted() + ": " + notAPath.getMessage());
+			showFailure(notStarted() + ": " + notAPath.getMessage(), notAPath, notStartedCause());
 			return;
 		}
 		if (!convertedIfAgreed(order.chainFile()))
@@ -285,7 +292,7 @@ public class LethenonNodePanel extends JPanel
 			return;
 		}
 		setStarting(true);
-		showNothing(text("lethenon.node.result.starting",
+		showStatus(text("lethenon.node.result.starting",
 			"starting your node; every node listed is called"));
 		new SwingWorker<RunningNode, Void>()
 		{
@@ -325,11 +332,11 @@ public class LethenonNodePanel extends JPanel
 			{
 				return true;
 			}
-			showNothing(notStarted() + ": " + ChainConversion.notConverted());
+			showStatus(notStarted() + ": " + ChainConversion.notConverted());
 		}
 		catch (ChainRejected | IllegalArgumentException | IOException refused)
 		{
-			showNothing(notStarted() + ": " + refused.getMessage());
+			showFailure(notStarted() + ": " + refused.getMessage(), refused, notStartedCause());
 		}
 		return false;
 	}
@@ -389,13 +396,16 @@ public class LethenonNodePanel extends JPanel
 		}
 		catch (ExecutionException failed)
 		{
-			showNothing(notStarted() + ": " + reasonOf(failed.getCause()));
+			showFailure(notStarted() + ": " + reasonOf(failed.getCause()), failed.getCause(),
+				notStartedCause());
 		}
 		catch (InterruptedException interrupted)
 		{
 			Thread.currentThread().interrupt();
-			showNothing(notStarted() + ": " + text("lethenon.node.result.interrupted",
-				"the start was interrupted; start it again"));
+			String reason = text("lethenon.node.result.interrupted",
+				"the start was interrupted; start it again");
+			showFailure(notStarted() + ": " + reason, new IllegalStateException(reason),
+				notStartedCause());
 		}
 		finally
 		{
@@ -412,7 +422,8 @@ public class LethenonNodePanel extends JPanel
 		}
 		catch (ExecutionException failed)
 		{
-			setResult(stopFailed() + ": " + reasonOf(failed.getCause()));
+			showFailure(stopFailed() + ": " + reasonOf(failed.getCause()), failed.getCause(),
+				new Refusal("lethenon.node.failure.stop", "The node did not stop."));
 		}
 		catch (InterruptedException interrupted)
 		{
@@ -530,7 +541,29 @@ public class LethenonNodePanel extends JPanel
 		showTheModel();
 	}
 
-	private void showNothing(final String result)
+	/**
+	 * Shows a failure in the pattern of draft 07 (#712): the cause and what to do, the reason under
+	 * the details, the answer hidden; the status line does not repeat it, the model keeps the whole
+	 * line for whoever reads the state
+	 */
+	private void showFailure(final String result, final Throwable thrown, final Refusal windowCause)
+	{
+		modelObject.clearAnswer();
+		showTheModel();
+		modelObject.setResultText(result);
+		lblResult.setText(" ");
+		failureView.show(Failures.of(thrown, windowCause, locale));
+	}
+
+	private static Refusal notStartedCause()
+	{
+		return new Refusal("lethenon.node.failure", "The node did not start.");
+	}
+
+	/**
+	 * Shows what the person decided or what is under way: no failure, so the status line says it
+	 */
+	private void showStatus(final String result)
 	{
 		modelObject.clearAnswer();
 		showTheModel();
@@ -724,6 +757,7 @@ public class LethenonNodePanel extends JPanel
 
 	private void setResult(final String text)
 	{
+		failureView.clear();
 		modelObject.setResultText(text);
 		lblResult.setText(text);
 	}

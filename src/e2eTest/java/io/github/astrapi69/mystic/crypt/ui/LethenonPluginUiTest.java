@@ -764,12 +764,17 @@ class LethenonPluginUiTest extends AbstractUiTest
 			@Override
 			public boolean test()
 			{
-				return GuiActionRunner.execute(() -> tool.label("lblResult").target().getText())
-					.contains("seed nodes serve another chain");
+				return "The chain was not synchronised.".equals(GuiActionRunner
+					.execute(() -> tool.textBox("txtFailureCause").target().getText()));
 			}
 		}, 20000);
 
-		String result = GuiActionRunner.execute(() -> tool.label("lblResult").target().getText());
+		// the reason is under "Show details", in the pattern of draft 07 (#712)
+		SwingUtilities.invokeLater(() -> tool.button("btnFailureDetails").target().doClick());
+		robot.waitForIdle();
+		String result = GuiActionRunner
+			.execute(() -> tool.textBox("txtFailureDetails").target().getText());
+		assertTrue(result.contains("seed nodes serve another chain"), result);
 		assertTrue(result.contains("no node was named"), result);
 		assertTrue(result.contains(chainFile.getAbsolutePath()), result);
 		assertArrayEquals(before, Files.readAllBytes(chainFile.toPath()),

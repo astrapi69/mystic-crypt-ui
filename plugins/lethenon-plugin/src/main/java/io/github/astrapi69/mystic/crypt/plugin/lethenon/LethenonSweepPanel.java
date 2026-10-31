@@ -28,6 +28,7 @@ import java.awt.Font;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
@@ -134,6 +135,9 @@ public class LethenonSweepPanel extends JPanel
 
 	private final JLabel lblResult = new JLabel(" ");
 
+	/** Where a failure shows, in the pattern of draft 07 (#710, #712) */
+	private final transient FailureView failureView;
+
 	/**
 	 * Instantiates a new {@link LethenonSweepPanel}, prefilled with the chain file from the
 	 * plugin's settings
@@ -186,7 +190,10 @@ public class LethenonSweepPanel extends JPanel
 		explainTheComponents();
 		bindToTheModel();
 		layOutTheInputs();
+		int answerStarts = getComponentCount();
 		layOutTheAnswer();
+		failureView = FailureView.below(this,
+			List.of(getComponents()).subList(answerStarts, getComponentCount()), locale);
 		add(lblResult, ToolForm.RESULT_LINE);
 		pnlDetails.setVisible(false);
 		txtChainFile.setText(LethenonSettingsContribution.chainFile());
@@ -216,7 +223,7 @@ public class LethenonSweepPanel extends JPanel
 			SweepOrder order = orderFromTheModel();
 			if (!ChainConversion.convertedIfAgreed(this, consent, order.chainFile()))
 			{
-				showFailure(failure + ": " + ChainConversion.notConverted());
+				showStatus(failure + ": " + ChainConversion.notConverted());
 				return;
 			}
 			char[] password = modelObject.getPassword();
@@ -240,11 +247,11 @@ public class LethenonSweepPanel extends JPanel
 		}
 		catch (ChainRejected | IllegalArgumentException refused)
 		{
-			showFailure(failure + ": " + refused.getMessage());
+			showFailure(failure + ": " + refused.getMessage(), refused);
 		}
 		catch (IOException unwritable)
 		{
-			showFailure(failure + ": " + unwritable.getMessage());
+			showFailure(failure + ": " + unwritable.getMessage(), unwritable);
 		}
 		finally
 		{
@@ -315,7 +322,24 @@ public class LethenonSweepPanel extends JPanel
 		showTheModel();
 	}
 
-	private void showFailure(final String result)
+	/**
+	 * Shows a failure in the pattern of draft 07 (#712): the cause and what to do, the reason under
+	 * the details, the answer hidden; the status line does not repeat it, the model keeps the whole
+	 * line for whoever reads the state
+	 */
+	private void showFailure(final String result, final Throwable thrown)
+	{
+		modelObject.clearAnswer();
+		showTheModel();
+		modelObject.setResultText(result);
+		lblResult.setText(" ");
+		failureView.show(Failures.of(thrown, new Refusal("lethenon.sweep.failure", "Nothing was swept."), locale));
+	}
+
+	/**
+	 * Shows what the person decided or what is under way: no failure, so the status line says it
+	 */
+	private void showStatus(final String result)
 	{
 		modelObject.clearAnswer();
 		showTheModel();
@@ -460,6 +484,7 @@ public class LethenonSweepPanel extends JPanel
 
 	private void setResult(final String text)
 	{
+		failureView.clear();
 		modelObject.setResultText(text);
 		lblResult.setText(text);
 	}
