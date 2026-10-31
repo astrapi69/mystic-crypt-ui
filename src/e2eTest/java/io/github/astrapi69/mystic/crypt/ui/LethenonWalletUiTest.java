@@ -108,6 +108,8 @@ class LethenonWalletUiTest extends AbstractUiTest
 			application.internalFrame("Send LETH"));
 		assertEquals("TESTNET", labelOf(send, "lblNetworkBadge"),
 			"a tool window shows the network of the wallet the overview shows (#697)");
+		assertEquals("lethenon wallet (testnet), from the vault", textOf(send, "txtFromWallet"),
+			"the send window sends from the wallet in the vault, not from a file (#704)");
 	}
 
 	/** Types the words step 2 asks for, read from the positions its labels name */
