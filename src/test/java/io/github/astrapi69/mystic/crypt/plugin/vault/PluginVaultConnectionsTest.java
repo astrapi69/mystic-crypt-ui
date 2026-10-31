@@ -47,11 +47,11 @@ class PluginVaultConnectionsTest
 {
 
 	@ParameterizedTest(name = "{0} marking {1}: connected {2}")
-	@CsvSource(delimiter = '|', nullValues = "null", value = { "lethenon-plugin|lethenon.wallet|true",
-			"lethenon|lethenon.wallet|true", "lethenon-plugin|keystore.alias|false",
-			"lethenon-plugin|lethenon|false", "lethenon-plugin|lethenonx.wallet|false",
-			"lethenon-plugin|''|false", "lethenon-plugin|null|false",
-			"lethenon-plugin|lethenon.|false" })
+	@CsvSource(delimiter = '|', nullValues = "null", value = {
+			"lethenon-plugin|lethenon.wallet|true", "lethenon|lethenon.wallet|true",
+			"lethenon-plugin|keystore.alias|false", "lethenon-plugin|lethenon|false",
+			"lethenon-plugin|lethenonx.wallet|false", "lethenon-plugin|''|false",
+			"lethenon-plugin|null|false", "lethenon-plugin|lethenon.|false" })
 	@DisplayName("a plugin is connected only for a marker in its own namespace")
 	void connectsOnlyForAMarkerInTheOwnNamespace(final String pluginId, final String marker,
 		final boolean connected)
@@ -73,8 +73,8 @@ class PluginVaultConnectionsTest
 		HandheldVaultState vault = new HandheldVaultState();
 		vault.root.add(io.github.astrapi69.mystic.crypt.panel.dbtree.MysticCryptEntryModelBean
 			.builder().id(java.util.UUID.randomUUID()).build());
-		io.github.astrapi69.mystic.crypt.panel.dbtree.VaultEntryProperties.replace(vault.root.get(0),
-			java.util.Map.of("lethenon.wallet", "1"), java.util.Set.of());
+		io.github.astrapi69.mystic.crypt.panel.dbtree.VaultEntryProperties.replace(
+			vault.root.get(0), java.util.Map.of("lethenon.wallet", "1"), java.util.Set.of());
 		PluginVaultConnections connections = new PluginVaultConnections(vault);
 		RecordingContribution lethenon = new RecordingContribution("lethenon.wallet");
 		RecordingContribution refused = new RecordingContribution("keystore.alias");

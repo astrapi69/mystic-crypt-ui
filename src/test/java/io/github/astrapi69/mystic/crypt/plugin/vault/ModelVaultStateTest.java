@@ -78,9 +78,8 @@ class ModelVaultStateTest
 		assertEquals(1, rootEntries.size());
 		assertEquals("lethenon wallet (testnet)", new String(rootEntries.get(0).getTitle()));
 		assertEquals("1", VaultEntryProperties.valuesOf(rootEntries.get(0)).get("lethenon.wallet"));
-		assertEquals(1,
-			new MarkedEntryAccess("lethenon.wallet", new ModelVaultState(reopened)).entries().size(),
-			"the reopened vault shows the plugin its entry");
+		assertEquals(1, new MarkedEntryAccess("lethenon.wallet", new ModelVaultState(reopened))
+			.entries().size(), "the reopened vault shows the plugin its entry");
 	}
 
 	@Test
@@ -102,7 +101,8 @@ class ModelVaultStateTest
 		assertEquals(moved.getId(), seen.get(0).getId());
 	}
 
-	private static List<MysticCryptEntryModelBean> childGroupEntries(final ApplicationModelBean model)
+	private static List<MysticCryptEntryModelBean> childGroupEntries(
+		final ApplicationModelBean model)
 	{
 		for (TreeIdNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> node : model
 			.getRootTreeAsMap().values())
@@ -117,7 +117,7 @@ class ModelVaultStateTest
 
 	private static ApplicationModelBean anOpenVault()
 	{
-		LongIdGenerator ids = new LongIdGenerator();
+		LongIdGenerator ids = LongIdGenerator.of(0L);
 		GenericTreeElement<List<MysticCryptEntryModelBean>> root = GenericTreeElement
 			.<List<MysticCryptEntryModelBean>> builder().name("root").build()
 			.setDefaultContent(new ArrayList<>());

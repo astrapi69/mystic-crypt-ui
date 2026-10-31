@@ -30,8 +30,8 @@ import java.util.List;
 import io.github.astrapi69.mystic.crypt.panel.dbtree.MysticCryptEntryModelBean;
 
 /**
- * A vault state the tests set by hand: open or not, locked or not, read-only with a reason or
- * not, two groups of entries, and a count of the times the vault was marked changed.
+ * A vault state the tests set by hand: open or not, locked or not, read-only with a reason or not,
+ * two groups of entries, and a count of the times the vault was marked changed.
  */
 final class HandheldVaultState implements VaultState
 {

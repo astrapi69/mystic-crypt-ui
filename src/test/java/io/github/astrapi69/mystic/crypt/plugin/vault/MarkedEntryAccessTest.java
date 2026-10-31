@@ -50,8 +50,8 @@ import io.github.astrapi69.mystic.crypt.plugin.api.VaultAccessRefusedException;
 
 /**
  * A plugin's access to the open vault, after the principle of least privilege
- * (docs/decisions/plugin-vault-access-2026-10-31.md): it sees and changes only the entries with
- * its own marker, and the access refuses on its own when the vault is closed, locked or read-only.
+ * (docs/decisions/plugin-vault-access-2026-10-31.md): it sees and changes only the entries with its
+ * own marker, and the access refuses on its own when the vault is closed, locked or read-only.
  */
 class MarkedEntryAccessTest
 {
@@ -128,7 +128,10 @@ class MarkedEntryAccessTest
 
 		access.change(changed);
 
-		assertEquals("lethenon wallet (testnet)", new String(marked.getTitle()));
+		MysticCryptEntryModelBean stored = vault.group.get(0);
+		assertEquals("lethenon wallet (testnet)", new String(stored.getTitle()));
+		assertEquals(marked.getId(), stored.getId(), "the same entry, in the same place");
+		assertTrue(stored != changed, "the vault keeps a copy, not the plugin's object");
 		assertEquals(1, vault.changes);
 	}
 
