@@ -546,7 +546,7 @@ class LethenonPluginUiTest extends AbstractUiTest
 	}
 
 	@Test
-	@DisplayName("the plugin shows \"Before you start\" with its notice, from the menu and before the choice of chain (#540)")
+	@DisplayName("the plugin shows \"Before you start\" with its notice, from \"More ... / For Operators\" and before the choice of chain (#540, #708)")
 	void thePlugin_showsBeforeYouStart() throws Exception
 	{
 		installPluginRequiringItBuilt(LETHENON_ZIP);
@@ -555,9 +555,9 @@ class LethenonPluginUiTest extends AbstractUiTest
 		ApplicationSteps application = signInWithExistingDatabase(databaseFile, MASTER_PASSWORD);
 		application.showMainFrame();
 
-		application.openPluginTool("Before You Start", "Before You Start");
+		application.openPluginTool("For Operators", "For Operators");
 		JInternalFrameFixture view = new JInternalFrameFixture(robot,
-			application.internalFrame("Before You Start"));
+			application.internalFrame("For Operators"));
 		JLabel notice = view.label("lblNotLegalAdvice").target();
 		assertTrue(GuiActionRunner.execute(notice::isShowing), "the notice is on the screen");
 		String noticeText = GuiActionRunner.execute(notice::getText);

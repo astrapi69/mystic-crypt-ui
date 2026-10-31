@@ -30,6 +30,7 @@ import java.util.Locale;
 import java.util.function.Supplier;
 
 import javax.swing.JInternalFrame;
+import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 
 import org.pf4j.Extension;
@@ -53,8 +54,14 @@ import io.github.astrapi69.swing.util.JInternalFrameExtensions;
 public class LethenonMenuContribution implements PluginMenuContribution
 {
 
-	/** The key of the menu item that opens "Before you start" (#540) */
-	public static final String BEFORE_YOU_START_KEY = "lethenon.menu.item.before.you.start";
+	/**
+	 * The key of the menu item that opens the launch checklist "Before you start" (#540), under
+	 * "More ..." since #708: it is for the operator of a public launch, not for a wallet's user
+	 */
+	public static final String FOR_OPERATORS_KEY = "lethenon.menu.item.for.operators";
+
+	/** The key of the submenu that holds what a wallet's user does not need every day (#708) */
+	public static final String MORE_KEY = "lethenon.menu.more";
 
 	/** The key of the menu item that opens the wallet window, the way into the plugin (#680) */
 	public static final String WALLET_KEY = "lethenon.menu.item.wallet";
@@ -63,7 +70,6 @@ public class LethenonMenuContribution implements PluginMenuContribution
 	public List<JMenuItem> getMenuItems()
 	{
 		return List.of(item(WALLET_KEY, "Wallet", LethenonWalletPanel::new, false),
-			item(BEFORE_YOU_START_KEY, "Before You Start", LethenonBeforeYouStartPanel::new, true),
 			item("lethenon.menu.item.verify", "Verify a Chain", LethenonChainPanel::new, true),
 			item("lethenon.menu.item.show.chain", "Show a Chain", LethenonChainViewPanel::new, true),
 			item("lethenon.menu.item.show.balance", "Show a Balance", LethenonBalancePanel::new, true),
@@ -71,7 +77,20 @@ public class LethenonMenuContribution implements PluginMenuContribution
 			item("lethenon.menu.item.mine", "Mine a Pun", LethenonMinePanel::new, true),
 			item("lethenon.menu.item.sweep", "Sweep One-Time Payments", LethenonSweepPanel::new, true),
 			item("lethenon.menu.item.sync", "Synchronise with a Node", LethenonSyncPanel::new, true),
-			item("lethenon.menu.item.node", "Run a Node", LethenonNodePanel::new, true));
+			item("lethenon.menu.item.node", "Run a Node", LethenonNodePanel::new, true), more());
+	}
+
+	/**
+	 * "More ...": what a wallet's user does not need every day, today the launch checklist for
+	 * operators (README decision 3, #708)
+	 *
+	 * @return the submenu
+	 */
+	private JMenuItem more()
+	{
+		JMenu more = new JMenu(LethenonMessages.getString(MORE_KEY, "More ..."));
+		more.add(item(FOR_OPERATORS_KEY, "For Operators", LethenonBeforeYouStartPanel::new, true));
+		return more;
 	}
 
 	/**

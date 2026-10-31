@@ -84,7 +84,7 @@ class LethenonGermanTextTest
 		Set<String> german = read("/lethenon/messages_de.properties").stringPropertyNames();
 		List<String> viewKeys = english.stringPropertyNames().stream()
 			.filter(key -> key.startsWith(LaunchChecklist.KEY_PREFIX)
-				|| key.equals(LethenonMenuContribution.BEFORE_YOU_START_KEY))
+				|| key.equals(LethenonMenuContribution.FOR_OPERATORS_KEY))
 			.sorted().toList();
 
 		assertFalse(viewKeys.isEmpty(), "the English file has the view's text");
@@ -107,6 +107,7 @@ class LethenonGermanTextTest
 			Arguments.of("Verify a Chain", List.of("lethenon.verify.")),
 			Arguments.of("Run a Node", List.of("lethenon.node.")),
 			Arguments.of("Wallet", List.of("lethenon.wallet.", "lethenon.backup.", "lethenon.network.", LethenonMenuContribution.WALLET_KEY)),
+			Arguments.of("the menu", List.of("lethenon.menu.")),
 			Arguments.of("what every window answers with",
 				List.of("lethenon.answer.", "lethenon.input.", "lethenon.wallet.",
 					"lethenon.value.")));
