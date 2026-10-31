@@ -107,6 +107,7 @@ dependencies {
     testImplementation libs.resourcebundle.core
     testImplementation libs.swing.table.components
     testImplementation libs.menu.action
+    testImplementation libs.file.worker
     testRuntimeOnly libs.junit.platform.launcher
 }
 
