@@ -31,6 +31,7 @@ import java.nio.file.Files;
 import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
@@ -164,6 +165,9 @@ public class LethenonMinePanel extends JPanel
 
 	private final JLabel lblResult = new JLabel(" ");
 
+	/** Where a failure shows, in the pattern of draft 07 (#710) */
+	private final transient FailureView failureView;
+
 	/**
 	 * Instantiates a new {@link LethenonMinePanel}, prefilled with the chain file from the plugin's
 	 * settings and lethenon's default pun
@@ -213,7 +217,10 @@ public class LethenonMinePanel extends JPanel
 		explainTheComponents();
 		bindToTheModel();
 		layOutTheInputs();
+		int answerStarts = getComponentCount();
 		layOutTheAnswer();
+		failureView = FailureView.below(this,
+			List.of(getComponents()).subList(answerStarts, getComponentCount()), locale);
 		add(lblResult, ToolForm.RESULT_LINE);
 		pnlDetails.setVisible(false);
 		followTheChainFile();
@@ -245,7 +252,8 @@ public class LethenonMinePanel extends JPanel
 			Path chainFile = Path.of(modelObject.getChainFile().trim());
 			if (!ChainConversion.convertedIfAgreed(this, consent, chainFile))
 			{
-				showFailure(failure + ": " + ChainConversion.notConverted());
+				showFailure(failure + ": " + ChainConversion.notConverted(),
+					new IllegalStateException(ChainConversion.notConverted()));
 				return;
 			}
 			char[] password = modelObject.getPassword();
@@ -270,11 +278,11 @@ public class LethenonMinePanel extends JPanel
 		}
 		catch (ChainRejected | IllegalArgumentException | IllegalStateException refused)
 		{
-			showFailure(failure + ": " + refused.getMessage());
+			showFailure(failure + ": " + refused.getMessage(), refused);
 		}
 		catch (IOException unwritable)
 		{
-			showFailure(failure + ": " + unwritable.getMessage());
+			showFailure(failure + ": " + unwritable.getMessage(), unwritable);
 		}
 		finally
 		{
@@ -339,11 +347,18 @@ public class LethenonMinePanel extends JPanel
 		showTheModel();
 	}
 
-	private void showFailure(final String result)
+	/**
+	 * Shows a failure in the pattern of draft 07 (#710): the cause and what to do, the reason under
+	 * the details, the answer hidden; the status line does not repeat it, the model keeps the whole
+	 * line for whoever reads the state
+	 */
+	private void showFailure(final String result, final Throwable thrown)
 	{
 		modelObject.clearAnswer();
 		showTheModel();
-		setResult(result);
+		modelObject.setResultText(result);
+		lblResult.setText(" ");
+		failureView.show(Failures.of(thrown, new Refusal("lethenon.mine.failure", "No block was mined."), locale));
 	}
 
 	/** Puts what the model holds into the read-only fields */
@@ -551,6 +566,7 @@ public class LethenonMinePanel extends JPanel
 
 	private void setResult(final String text)
 	{
+		failureView.clear();
 		modelObject.setResultText(text);
 		lblResult.setText(text);
 	}

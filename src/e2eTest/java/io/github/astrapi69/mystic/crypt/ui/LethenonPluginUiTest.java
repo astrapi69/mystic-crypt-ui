@@ -534,12 +534,16 @@ class LethenonPluginUiTest extends AbstractUiTest
 			@Override
 			public boolean test()
 			{
-				return GuiActionRunner.execute(() -> tool.label("lblResult").target().getText())
-					.startsWith("no block was mined");
+				return "No block was mined.".equals(GuiActionRunner
+					.execute(() -> tool.textBox("txtFailureCause").target().getText()));
 			}
 		}, 20000);
 
-		String result = GuiActionRunner.execute(() -> tool.label("lblResult").target().getText());
+		// the reason is under "Show details", in the pattern of draft 07 (#710)
+		SwingUtilities.invokeLater(() -> tool.button("btnFailureDetails").target().doClick());
+		robot.waitForIdle();
+		String result = GuiActionRunner
+			.execute(() -> tool.textBox("txtFailureDetails").target().getText());
 		assertTrue(result.contains("lethenon 1.0.0"), result);
 		assertFalse(result.contains(walletPassword), "the password is in no text on the screen");
 		assertFalse(chainFile.exists(), "no main chain file is written");
