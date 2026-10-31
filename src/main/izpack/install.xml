@@ -106,7 +106,7 @@
 			adds them by hand through Settings > Plugins > "Install from Zip...".
 		-->
 		<pack name="plugins" required="no" preselected="yes">
-			<description>The internal plugins: obfuscation, checksums, der to pem, console, key generation, certificates, password hashing, key encapsulation demo, post-quantum signatures, key store management, file encryption, secret sharing and the Lethenon chain</description>
+			<description>The internal plugins: obfuscation, checksums, der to pem, console, key generation, certificates, password hashing, key encapsulation demo, post-quantum signatures, key store management, file encryption, secret sharing, the Lethenon chain and the release key status</description>
 			<depends packname="executables" />
 			<singlefile src="../plugins/obfuscation-plugin/build/plugin-dist/obfuscation-plugin-1.0.0.zip"
 						target="${USER_HOME}/.config/mystic-crypt-ui/plugins/obfuscation-plugin-1.0.0.zip" />
@@ -134,6 +134,8 @@
 						target="${USER_HOME}/.config/mystic-crypt-ui/plugins/secret-sharing-plugin-1.0.0.zip" />
 			<singlefile src="../plugins/lethenon-plugin/build/plugin-dist/lethenon-plugin-1.0.0.zip"
 						target="${USER_HOME}/.config/mystic-crypt-ui/plugins/lethenon-plugin-1.0.0.zip" />
+			<singlefile src="../plugins/release-key-plugin/build/plugin-dist/release-key-plugin-1.0.0.zip"
+						target="${USER_HOME}/.config/mystic-crypt-ui/plugins/release-key-plugin-1.0.0.zip" />
 			<!--
 				The licences of the libraries the lethenon plugin's zip bundles, sqlite-jdbc and lethenon,
 				with NOTICE.txt naming each: the Zentus licence sqlite-jdbc carries asks for its notice in

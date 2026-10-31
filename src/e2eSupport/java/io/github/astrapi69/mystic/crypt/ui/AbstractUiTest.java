@@ -108,6 +108,9 @@ abstract class AbstractUiTest
 	protected static final Path SECRET_SHARING_ZIP = Path
 		.of("plugins/secret-sharing-plugin/build/plugin-dist/secret-sharing-plugin-1.0.0.zip");
 
+	protected static final Path RELEASE_KEY_ZIP = Path
+		.of("plugins/release-key-plugin/build/plugin-dist/release-key-plugin-1.0.0.zip");
+
 	protected static final Path LETHENON_ZIP = Path
 		.of("plugins/lethenon-plugin/build/plugin-dist/lethenon-plugin-1.0.0.zip");
 
