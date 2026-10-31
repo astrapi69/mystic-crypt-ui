@@ -213,4 +213,37 @@ class BackupAssistantTest
 
 		assertTrue(BackupCheck.checkAndRecord(typed, entry, TODAY));
 	}
+
+	@Test
+	@DisplayName("an empty field or one never filled in is a missing word, counted, not an unknown one")
+	void anEmptyOrMissingFieldIsCountedAsAMissingWord()
+	{
+		WalletEntry entry = WalletEntry.newEntry("testnet");
+		entry.setProperty(WalletEntry.ADDRESS, WALLET.address().toText().toCharArray(), false);
+		List<String> empty = new ArrayList<>(WORDS);
+		empty.set(5, "  ");
+		List<String> missing = new ArrayList<>(WORDS);
+		missing.set(5, null);
+
+		IllegalArgumentException emptyRefused = assertThrows(IllegalArgumentException.class,
+			() -> BackupCheck.checkAndRecord(empty, entry, TODAY));
+		IllegalArgumentException missingRefused = assertThrows(IllegalArgumentException.class,
+			() -> BackupCheck.checkAndRecord(missing, entry, TODAY));
+
+		assertTrue(emptyRefused.getMessage().contains("this list has 23"), emptyRefused.getMessage());
+		assertTrue(missingRefused.getMessage().contains("this list has 23"),
+			missingRefused.getMessage());
+	}
+
+	@Test
+	@DisplayName("a word typed with spaces around it counts as the word")
+	void aWordWithSpacesAroundItIsTheWord()
+	{
+		WalletEntry entry = WalletEntry.newEntry("testnet");
+		entry.setProperty(WalletEntry.ADDRESS, WALLET.address().toText().toCharArray(), false);
+		List<String> typed = new ArrayList<>(WORDS);
+		typed.set(0, "  " + WORDS.get(0) + "\t");
+
+		assertTrue(BackupCheck.checkAndRecord(typed, entry, TODAY));
+	}
 }
