@@ -61,6 +61,8 @@ class SilentOverwriteInventoryTest
 		Map.entry("PqcSignaturePanel.java", "derived: writes a signature, silent today"),
 		Map.entry("MenuLayoutSupport.java", "internal state: the persisted menu layout"),
 		Map.entry("SecretSharingPanel.java", "key material: refuses on its own, twice"),
+		Map.entry("WalletVault.java",
+			"key material, sealed: the wallet export refuses on its own (CREATE_NEW)"),
 		Map.entry("ExportKeePassDatabaseAction.java", "derived from the vault: silent today"),
 		Map.entry("ApplicationXmlFileStoreWorker.java",
 			"the vault itself, writing to its OWN file"),
