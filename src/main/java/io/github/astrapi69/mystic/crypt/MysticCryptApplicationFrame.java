@@ -44,6 +44,8 @@ import org.pf4j.PluginManager;
 import org.pf4j.PluginWrapper;
 
 import io.github.astrapi69.awt.extension.ClipboardExtensions;
+import io.github.astrapi69.component.model.enumeration.visibility.RenderMode;
+import io.github.astrapi69.design.pattern.observer.event.EventObject;
 import io.github.astrapi69.file.create.DirectoryFactory;
 import io.github.astrapi69.file.read.ReadFileExtensions;
 import io.github.astrapi69.gson.JsonStringToObjectExtensions;
@@ -58,6 +60,7 @@ import io.github.astrapi69.mystic.crypt.action.SaveApplicationFileAction;
 import io.github.astrapi69.mystic.crypt.action.SaveBeforeCloseConfirmation;
 import io.github.astrapi69.mystic.crypt.app.file.xml.VaultXmlCodec;
 import io.github.astrapi69.mystic.crypt.clipboard.ClipboardClearWatchdog;
+import io.github.astrapi69.mystic.crypt.eventbus.ApplicationEventBus;
 import io.github.astrapi69.mystic.crypt.lock.IdleLockDecision;
 import io.github.astrapi69.mystic.crypt.lock.IdleLockWatchdog;
 import io.github.astrapi69.mystic.crypt.lock.LockableWorkspace;
@@ -69,6 +72,9 @@ import io.github.astrapi69.mystic.crypt.panel.signin.MasterPwFileDialog;
 import io.github.astrapi69.mystic.crypt.panel.signin.MasterPwFileModelBean;
 import io.github.astrapi69.mystic.crypt.panel.signin.MemoizedSigninModelBean;
 import io.github.astrapi69.mystic.crypt.plugin.api.PluginMenuContribution;
+import io.github.astrapi69.mystic.crypt.plugin.api.VaultAccessContribution;
+import io.github.astrapi69.mystic.crypt.plugin.vault.ModelVaultState;
+import io.github.astrapi69.mystic.crypt.plugin.vault.PluginVaultConnections;
 import io.github.astrapi69.mystic.crypt.settings.FlatLafTheme;
 import io.github.astrapi69.mystic.crypt.settings.GeneralSettingsPanel;
 import io.github.astrapi69.mystic.crypt.settings.MysticCryptSettings;
@@ -131,6 +137,9 @@ public class MysticCryptApplicationFrame extends ApplicationPanelFrame<Applicati
 	FrameMode frameMode;
 
 	PluginManager pluginManager;
+
+	/** The plugins that keep entries in the vault, each bound to its own marker (#675) */
+	PluginVaultConnections pluginVaultConnections;
 
 	/** Locks the workspace when the user has been away long enough (#241) */
 	transient IdleLockWatchdog idleLockWatchdog;
@@ -344,6 +353,7 @@ public class MysticCryptApplicationFrame extends ApplicationPanelFrame<Applicati
 		// start and load all plugins of application
 		pluginManager.loadPlugins();
 		pluginManager.startPlugins();
+		connectVaultPlugins();
 		((DesktopMenu)getMenu())
 			.addPluginsMenu(pluginManager.getExtensions(PluginMenuContribution.class));
 		// a user defined menu layout, if there is one, wins over the programmatic menu - applied
@@ -688,6 +698,7 @@ public class MysticCryptApplicationFrame extends ApplicationPanelFrame<Applicati
 	 */
 	public void closeOpenVault()
 	{
+		announceVaultClosing();
 		VaultCloseSupport.closeVault(getModelObject());
 		// a password copied out of the vault would otherwise still be pasteable after it is closed.
 		// Locking has cleared the clipboard since #237; closing, the stronger of the two, did not
@@ -742,6 +753,42 @@ public class MysticCryptApplicationFrame extends ApplicationPanelFrame<Applicati
 		JOptionPane.showMessageDialog(this, reason,
 			Messages.getString("dialog.read.only.newer.format.title", "Opened read-only"),
 			JOptionPane.WARNING_MESSAGE);
+	}
+
+	/**
+	 * Tells the plugins that keep entries in the vault that it is about to be locked or closed,
+	 * while their entries are still there (#675)
+	 */
+	public void announceVaultClosing()
+	{
+		if (pluginVaultConnections != null)
+		{
+			pluginVaultConnections.vaultClosing();
+		}
+	}
+
+	/**
+	 * Connects every started plugin that declares a {@link VaultAccessContribution}, each with an
+	 * access bound to the marker in its own namespace (#675,
+	 * docs/decisions/plugin-vault-access-2026-10-31.md)
+	 */
+	private void connectVaultPlugins()
+	{
+		pluginVaultConnections = new PluginVaultConnections(new ModelVaultState(
+			this::getModelObject, MysticCryptApplicationFrame::announceVaultChanged));
+		for (PluginWrapper plugin : pluginManager.getStartedPlugins())
+		{
+			for (VaultAccessContribution contribution : pluginManager
+				.getExtensions(VaultAccessContribution.class, plugin.getPluginId()))
+			{
+				pluginVaultConnections.connect(plugin.getPluginId(), contribution);
+			}
+		}
+	}
+
+	private static void announceVaultChanged()
+	{
+		ApplicationEventBus.getSaveState().fireEvent(new EventObject<>(RenderMode.EDITABLE));
 	}
 
 	/**

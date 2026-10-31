@@ -94,6 +94,9 @@ public class LockWorkspaceAction extends AbstractAction
 			// A locked vault is closed again after a while so its decrypted content leaves memory
 			// (#242), and a close cannot ask about unsaved changes when it has no way to write
 			// them - so locking writes them here, while it still can
+			// the plugins that keep entries in the vault drop what they hold first, while the
+			// vault is still unlocked (#675)
+			frame.announceVaultClosing();
 			persistPendingChanges(frame.getModelObject());
 			forgetTheKeyMaterial(frame.getModelObject().getMasterPwFileModelBean());
 			frame.getModelObject().setSignedIn(false);
