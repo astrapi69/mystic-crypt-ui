@@ -2,7 +2,6 @@ gradle/dependencies.gradle
 gradle/formatting.gradle
 gradle/tagging.gradle
 gradle/izpack.gradle
-gradle/licensing.gradle
 gradle/mutation-testing.gradle
 gradle/packaging.gradle
 gradle/publishing.gradle

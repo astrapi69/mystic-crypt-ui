@@ -23,7 +23,6 @@ gradle-plugin-pitest-version = "1.19.0"
 log4j-version = "2.26.1"
 pitest-junit5-plugin-version = "1.2.3"
 pitest-version = "1.30.1"
-gradle-plugin-license-version = "0.16.1"
 gradle-plugin-lombok-version = "9.8.2"
 gradle-plugin-spotless-version = "8.10.4"
 gradle-plugin-version-catalog-update-version = "1.1.1"
@@ -179,7 +178,6 @@ unit-testing = [
 [plugins]
 gradle-izpack-plugin = { id = "com.bmuschko.izpack", version.ref = "gradle-izpack-plugin-version" }
 gradle-versions-plugin = { id = "io.github.ben-manes.versions", version.ref = "gradle-plugin-versions-version" }
-license-gradle-plugin = { id = "com.github.hierynomus.license", version.ref = "gradle-plugin-license-version" }
 lombok-plugin = { id = "io.freefair.lombok", version.ref = "gradle-plugin-lombok-version" }
 pitest-gradle-plugin = { id = "info.solidsoft.pitest", version.ref = "gradle-plugin-pitest-version" }
 spotless-plugin-gradle = { id = "com.diffplug.spotless", version.ref = "gradle-plugin-spotless-version" }
