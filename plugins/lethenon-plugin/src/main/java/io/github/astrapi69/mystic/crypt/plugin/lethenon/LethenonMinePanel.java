@@ -252,8 +252,7 @@ public class LethenonMinePanel extends JPanel
 			Path chainFile = Path.of(modelObject.getChainFile().trim());
 			if (!ChainConversion.convertedIfAgreed(this, consent, chainFile))
 			{
-				showFailure(failure + ": " + ChainConversion.notConverted(),
-					new IllegalStateException(ChainConversion.notConverted()));
+				showStatus(failure + ": " + ChainConversion.notConverted());
 				return;
 			}
 			char[] password = modelObject.getPassword();
@@ -345,6 +344,16 @@ public class LethenonMinePanel extends JPanel
 		modelObject.setChainChecked(AnswerFields.chainChecked(mined.replay(), locale));
 		modelObject.setSupply(LethAmounts.format(mined.replay().supply(), locale));
 		showTheModel();
+	}
+
+	/**
+	 * Shows what the person decided or what is under way: no failure, so the status line says it
+	 */
+	private void showStatus(final String result)
+	{
+		modelObject.clearAnswer();
+		showTheModel();
+		setResult(result);
 	}
 
 	/**
