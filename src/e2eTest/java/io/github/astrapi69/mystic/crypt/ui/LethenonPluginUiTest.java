@@ -764,8 +764,10 @@ class LethenonPluginUiTest extends AbstractUiTest
 			@Override
 			public boolean test()
 			{
+				// the sync ends on a worker thread: until then the failure is not showing
 				return "The chain was not synchronised.".equals(GuiActionRunner
-					.execute(() -> tool.textBox("txtFailureCause").target().getText()));
+					.execute(() -> robot.finder().findByName(tool.target(), "txtFailureCause",
+						javax.swing.text.JTextComponent.class, false).getText()));
 			}
 		}, 20000);
 
