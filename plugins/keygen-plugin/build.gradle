@@ -34,8 +34,6 @@ dependencies {
     compileOnly "io.github.astrapi69:mystic-crypt-ui:$hostVersion"
     // PrivateKeyHexDecryptor / PublicKeyHexEncryptor live in the mystic-crypt library, not the host
     compileOnly libs.mystic.crypt
-    // random bytes for a nonce, an initialisation vector or a salt
-    compileOnly libs.randomizer
     // the model backed components the panels bind to their model; the host brings both jars at
     // runtime, so they stay compileOnly here like everything else
     compileOnly libs.swing.model.components
@@ -58,7 +56,6 @@ dependencies {
     testImplementation libs.junit.jupiter
     testImplementation libs.mystic.crypt
     testImplementation libs.crypt.data
-    testImplementation libs.randomizer
     testImplementation libs.bcpkix.jdk18on
     testRuntimeOnly libs.junit.platform.launcher
     // the settings contribution implements the host's extension point and reads through the host's

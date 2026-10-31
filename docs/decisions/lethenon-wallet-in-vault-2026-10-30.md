@@ -21,6 +21,14 @@ recommended the first. The code this describes is built after the tests for it a
      is an ordinary entry.
    - `lethenon.network` = `testnet` or `mainnet`, optional, a hint for the user. It is not part of the
      wallet and carries no secret.
+   - `lethenon.address` = the wallet's published address, in the text form of `PublishedAddress.toText()`,
+     **not protected** (decided by the maintainer on 31 October 2026). The address is public: it is what
+     the user hands out to be paid. Keeping it on the entry lets the wallet overview and the backup check
+     work without the wallet password; without it, both would have to unseal the attachment first. It is
+     a copy, so it can disagree with the attachment: every time the attachment is unsealed, the plugin
+     derives the address from the unsealed wallet and compares it with this property. When they differ,
+     the plugin shows a clear warning that names both addresses and says that the entry's address does
+     not belong to its wallet, and it does not silently overwrite either one.
    The title reads `lethenon wallet (testnet)` or `lethenon wallet (mainnet)` for people; the plugin
    reads the property, not the title.
 
@@ -71,7 +79,10 @@ In mystic-crypt-ui, the lethenon plugin:
 - no decrypted wallet on disk: the test directory is listed before and after each action;
 - after lock, no buffer the test holds still contains secret bytes;
 - a locked vault offers no wallet action;
-- a KDBX export carries the sealed attachment and not the words.
+- a KDBX export carries the sealed attachment and not the words;
+- unsealing checks the address: when `lethenon.address` equals the address of the unsealed wallet, no
+  warning; when it differs, a warning that names both addresses, and neither the property nor the
+  attachment is changed.
 
 ## Backup assistant (added 30 October 2026)
 
@@ -107,10 +118,10 @@ vault and a lost computer, and tells the user whether it has checked that they d
 - The check compares addresses, so it proves that the typed words produce the wallet's address. It does
   not prove that the words are the only copy written down.
 
-### Open decision
+### The interval for the reminder
 
-- **The interval for the reminder.** Not decided here. Proposal to be confirmed: 180 days. Until it is
-  decided, the reminder is not built.
+- **180 days**, decided by the maintainer on 31 October 2026. The reminder appears once the date in
+  `lethenon.backupVerified` is more than 180 days before today; a successful check resets it.
 
 ### Tests (before the code, red first)
 
@@ -127,6 +138,8 @@ vault and a lost computer, and tells the user whether it has checked that they d
 - the export: the sealed file is written to the chosen location, reads back with the same checksum, and
   the printed checksum equals the SHA-256 of the file
 - the export shows the sealed file only; no decrypted copy is written in between
+- the reminder: none on day 180 after the last check, one on day 181; none while the property is absent
+  (that case shows the notice instead); none again after a new successful check
 
 ## The words in the vault, as the user's choice (option 2, added 30 October 2026)
 

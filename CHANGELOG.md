@@ -4,6 +4,13 @@
 Version 8.14 (unreleased)
 -------------
 
+SECURITY:
+- "Generate password" and the serial number of a new certificate draw from `SecureRandom` directly instead of through
+  randomizer, a library for test data (#658, GHSA-qxx5-r8qx-vj98). The password keeps its character sets and its length.
+  A serial number now has 159 random bits, positive and at most 20 octets, as RFC 5280 asks. randomizer is no longer a
+  dependency of the application. A constraint holds the copy that roboter and swing-components still bring at 10.6
+  instead of their 10.1, whose generator is seeded with the current time, and a test holds that floor
+
 ADDED:
 - a release key plugin (#644, the first stage of #642): with a vault open, "Plugins > Release Key > Key Status" shows
   what a GnuPG home holds - every key with its use, algorithm, creation and expiry, whether its secret part is in the
