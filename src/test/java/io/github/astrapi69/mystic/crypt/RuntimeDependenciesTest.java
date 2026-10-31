@@ -84,7 +84,7 @@ class RuntimeDependenciesTest
 
 	@ParameterizedTest(name = "{0} is at least {1}")
 	@CsvSource({ "jackson-core, 2.22.4", "jackson-databind, 2.22.4", "jackson-annotations, 2.22",
-			"commons-beanutils, 1.11.0", "randomizer, 10.5" })
+			"commons-beanutils, 1.11.0", "randomizer, 10.5", "jettison, 1.5.4" })
 	void transitiveDependency_isAtLeastItsPatchedRelease(final String artifact, final String floor)
 	{
 		List<String> versions = versionsOnTheClassPath(artifact);
@@ -99,8 +99,8 @@ class RuntimeDependenciesTest
 	@CsvSource({ "com.fasterxml.jackson.core, jackson-core, 2.22.4",
 			"com.fasterxml.jackson.core, jackson-databind, 2.22.4",
 			"com.fasterxml.jackson.core, jackson-annotations, 2.22",
-			"commons-beanutils, commons-beanutils, 1.11.0",
-			"io.github.astrapi69, randomizer, 10.5" })
+			"commons-beanutils, commons-beanutils, 1.11.0", "io.github.astrapi69, randomizer, 10.5",
+			"org.codehaus.jettison, jettison, 1.5.4" })
 	void applicationJar_carriesAtLeastThePatchedRelease(final String group, final String artifact,
 		final String floor) throws IOException
 	{

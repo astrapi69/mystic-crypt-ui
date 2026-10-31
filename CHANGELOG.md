@@ -13,6 +13,10 @@ SECURITY:
 - randomizer 10.1 is asked for by nothing any more (#682): swing-components 10 brings no randomizer, and
   swing-tree-component 3.3 brings roboter 3 with randomizer 10.7. The application ships 10.7; the constraint and the
   floor stay as a second guard
+- jettison 1.5.7 instead of 1.5.1 in the installer (#684): xml-extensions 8.2 brings it through xstream-extensions 1.1,
+  and 1.5.1 has four high advisories (GHSA-x27m-9w8j-5vcw, GHSA-grr4-wv38-f68w, GHSA-7rf3-mqpx-h7xg,
+  GHSA-q6g2-g7f3-rr83). No code of the application reaches jettison; a constraint holds it until xstream-extensions
+  brings a fixed version (astrapi69/xstream-extensions#15), and a test holds the floor 1.5.4
 
 ADDED:
 - a release key plugin (#644, the first stage of #642): with a vault open, "Plugins > Release Key > Key Status" shows
