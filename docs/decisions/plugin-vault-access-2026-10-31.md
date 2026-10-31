@@ -33,8 +33,10 @@ privilege, instead of access through `MysticCryptApplicationFrame.getInstance()`
 6. **Copies out, checked changes in.** What the plugin reads are copies of its entries; a change goes
    back through the interface, which checks the marker on the stored entry and on the changed one,
    then marks the vault changed and refreshes the tree, as the host's own edits do
-   (`SecretKeyTreeWithContentPanel.reloadApplicationTreeModel`). A new entry goes into the group
-   selected in the tree, or into the root group when none is selected.
+   (`SecretKeyTreeWithContentPanel.reloadApplicationTreeModel`). A new entry goes into the root
+   group. The group selected in the tree is known only to the tree panel; handing it to the
+   interface would tie the interface to the window, and a plugin finds its entries by its marker
+   wherever the user moves them.
 
 ## Why not `getInstance()`
 
@@ -54,8 +56,8 @@ here.
 - a marker outside the plugin's namespace is refused at connection, and the plugin gets no access;
 - adding and changing are refused with no vault open, with a locked vault and with a read-only one,
   and the vault is unchanged;
-- an added entry is in the selected group (or the root), the vault is marked changed, and the entry
-  survives a save and a reopen;
+- an added entry is in the root group, gets an identifier, the vault is marked changed, and the
+  entry survives a save and a reopen;
 - the event reaches each connected plugin before the entries are wiped, once per lock or close, and
   the access reads as "no vault open" afterwards.
 
