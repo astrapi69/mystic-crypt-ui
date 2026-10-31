@@ -70,6 +70,15 @@ describes the behavior, not the implementation. Test through the real interface:
 real temp files/keystores in `@TempDir`, invoke tools the way the app invokes them;
 mocks only for genuinely external things.
 
+## Passwords in tests are made up, never literals
+
+A test password guards only what the test builds, but a literal reads as a credential to readers and
+to the secret scanner, which also reports a removed literal line (#671). Make it per run:
+`TestPasswords.throwaway()` in the host, a small helper of the plugin's own in a plugin. The one
+exception is a checked-in fixture's password, kept in `TestPasswords` with its reason.
+`PasswordLiteralInventoryTest` fails on a new literal; the existing ones are listed there and
+replaced when their file is touched.
+
 ## Gate principles (adopted, tooling not yet ported)
 
 1. **A gate that cannot check must never report green** (fail closed): missing config,
