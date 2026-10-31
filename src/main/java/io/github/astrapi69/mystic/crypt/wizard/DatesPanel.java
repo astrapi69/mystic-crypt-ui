@@ -44,8 +44,8 @@ import io.github.astrapi69.model.LambdaModel;
 import io.github.astrapi69.model.api.IModel;
 import io.github.astrapi69.mystic.crypt.Messages;
 import io.github.astrapi69.mystic.crypt.eventbus.ApplicationEventBus;
+import io.github.astrapi69.mystic.crypt.random.SecureRandomValues;
 import io.github.astrapi69.mystic.crypt.wizard.model.CertificateInfoModel;
-import io.github.astrapi69.random.number.RandomBigIntegerFactory;
 import io.github.astrapi69.swing.base.BasePanel;
 import io.github.astrapi69.swing.model.combobox.GenericComboBoxModel;
 import io.github.astrapi69.swing.model.combobox.GenericMutableComboBoxModel;
@@ -201,7 +201,7 @@ public class DatesPanel extends BasePanel<BaseWizardStateMachineModel<Certificat
 
 	protected void onGenerateSerialNumber(java.awt.event.ActionEvent evt)
 	{
-		BigInteger serialNumber = RandomBigIntegerFactory.randomSerialNumber();
+		BigInteger serialNumber = SecureRandomValues.serialNumber();
 		CertificateInfoModel modelObject = getModelObject().getModelObject();
 		modelObject.setSerial(serialNumber);
 		getTxtSerialNumber().setText(serialNumber.toString());
