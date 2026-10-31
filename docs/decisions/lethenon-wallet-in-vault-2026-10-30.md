@@ -73,6 +73,15 @@ and keeps nothing. Until they are checked, the overview says under the balance t
 without unchecked incoming payments, so it is not read as the whole sum. Holding the view key for the
 session was rejected: it would keep a part of the unsealed wallet in memory, against decision 5.
 
+## The windows and the wallet file (added 31 October 2026, #718)
+
+The tool windows that sign (Send, Mine, Sweep, Run a Node) take the wallet the overview shows, from the
+vault, whenever one is chosen; their wallet file field is then hidden. The field stays for use without
+a vault wallet, which the tools allow since #232, and while it shows, a sentence under it says that the
+wallet comes from the file because no wallet of the vault is chosen in "Wallet". Decided by the
+maintainer on 31 October 2026 (option A); the rejected options were removing the field, with wallet
+files left to the command line, and keeping it only in "Show a Balance".
+
 ## What lethenon needs (library first)
 
 `WalletFile` gets a byte API next to the path API, with the same format and the same checks:
