@@ -131,3 +131,14 @@ jobs:
             build/test-results/e2eKdbxTest
             build/own-display
           retention-days: 14
+      - name: Upload the pictures of the plugin windows
+        # The plugin tests picture their windows on the build's own display, in English and German
+        # (#680), so a change to a window can be looked at from the pull request without a local
+        # run. Always: a green run's pictures are what a reviewer compares against the drafts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: plugin-screenshots
+          path: plugins/*/build/screenshots
+          if-no-files-found: error
+          retention-days: 14

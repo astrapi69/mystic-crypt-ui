@@ -26,6 +26,7 @@ package io.github.astrapi69.mystic.crypt.plugin.lethenon;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import io.github.astrapi69.lethenon.PublishedAddress;
@@ -115,16 +116,44 @@ final class BackupCheck
 			.collect(Collectors.joining(" ")));
 	}
 
-	private static void requireKnownWords(final List<String> typed)
+	private static void requireKnownWords(final List<String> words)
 	{
-		for (int position = 1; position <= typed.size(); position++)
+		firstUnknownWord(words).ifPresent(unknown -> {
+			throw new IllegalArgumentException("word " + unknown.position() + ", '" + unknown.word()
+				+ "', is not a word of the BIP-39 list; check it in your note");
+		});
+	}
+
+	/**
+	 * The first word that is not in the BIP-39 list, asked of lethenon's {@link SeedPhrase} and
+	 * never read from the text of an exception (A59)
+	 *
+	 * @param words
+	 *            the words as {@link SeedPhrase#parse} returns them
+	 * @return the word and its position, counted from 1, or empty when every word is known
+	 */
+	static Optional<UnknownWord> firstUnknownWord(final List<String> words)
+	{
+		for (int position = 1; position <= words.size(); position++)
 		{
-			String word = typed.get(position - 1);
+			String word = words.get(position - 1);
 			if (!SeedPhrase.isKnownWord(word))
 			{
-				throw new IllegalArgumentException("word " + position + ", '" + word
-					+ "', is not a word of the BIP-39 list; check it in your note");
+				return Optional.of(new UnknownWord(position, word));
 			}
 		}
+		return Optional.empty();
+	}
+
+	/**
+	 * A typed word that is not in the BIP-39 list
+	 *
+	 * @param position
+	 *            its position in the phrase, counted from 1
+	 * @param word
+	 *            the word as typed, in lower case
+	 */
+	record UnknownWord(int position, String word)
+	{
 	}
 }

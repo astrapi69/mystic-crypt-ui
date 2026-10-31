@@ -55,10 +55,13 @@ public class LethenonMenuContribution implements PluginMenuContribution
 	/** The key of the menu item that opens "Before you start" (#540) */
 	public static final String BEFORE_YOU_START_KEY = "lethenon.menu.item.before.you.start";
 
+	/** The key of the menu item that opens the wallet window, the way into the plugin (#680) */
+	public static final String WALLET_KEY = "lethenon.menu.item.wallet";
+
 	@Override
 	public List<JMenuItem> getMenuItems()
 	{
-		return List.of(
+		return List.of(item(WALLET_KEY, "Wallet", LethenonWalletPanel::new),
 			item(BEFORE_YOU_START_KEY, "Before You Start", LethenonBeforeYouStartPanel::new),
 			item("lethenon.menu.item.verify", "Verify a Chain", LethenonChainPanel::new),
 			item("lethenon.menu.item.show.chain", "Show a Chain", LethenonChainViewPanel::new),
