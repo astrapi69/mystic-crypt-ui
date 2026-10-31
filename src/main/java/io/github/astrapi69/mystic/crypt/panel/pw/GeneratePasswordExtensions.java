@@ -24,27 +24,50 @@
  */
 package io.github.astrapi69.mystic.crypt.panel.pw;
 
-import io.github.astrapi69.random.RandomCharacters;
-import io.github.astrapi69.random.object.RandomStringFactory;
+import io.github.astrapi69.mystic.crypt.random.SecureRandomValues;
 
+/**
+ * Generates a password from the character sets the user chose, drawn from
+ * {@link java.security.SecureRandom} (#658). The sets are the ones the generator has always
+ * offered.
+ */
 public class GeneratePasswordExtensions
 {
 
+	private static final String LOWERCASE = "abcdefghijklmnopqrstuvwxyz";
+
+	private static final String DIGITS = "0123456789";
+
+	private static final String UNDERSCORE = "_";
+
+	private static final String SPECIAL = "#@$%^&*?!";
+
+	private static final String MORE_SPECIAL = "\u00b0\u00a7=~.:,;\u00b5|\u20ac\u00b2\u00b3^";
+
+	private static final String BRACKETS = "(){}[]<>";
+
+	private static final String WHITESPACE = " ";
+
+	/**
+	 * Generates a password
+	 *
+	 * @param modelObject
+	 *            the chosen character sets and the length
+	 * @return the password, for the caller to overwrite when it is done with it
+	 */
 	public static char[] generatePassword(GeneratePasswordModelBean modelObject)
 	{
 		StringBuilder stringBuilder = new StringBuilder();
-		stringBuilder.append(modelObject.isLowercase() ? RandomCharacters.LOWCASECHARS : "")
-			.append(modelObject.isUppercase() ? RandomCharacters.LOWCASECHARS.toUpperCase() : "")
-			.append(modelObject.isDigits() ? RandomCharacters.NUMBERS : "")
-			.append(modelObject.isUnderscore() ? RandomCharacters.UNDERSCORE_CHAR : "")
-			.append(modelObject.isSpecial() ? RandomCharacters.SPECIALCHARS : "")
-			.append(modelObject.isMoreSpecial() ? RandomCharacters.OTHER_SPECIALCHARS : "")
-			.append(modelObject.isBrackets() ? RandomCharacters.BRACKETS_CHAR : "")
-			.append(modelObject.isWhitespace() ? RandomCharacters.WHITE_SPACE_CHAR : "")
+		stringBuilder.append(modelObject.isLowercase() ? LOWERCASE : "")
+			.append(modelObject.isUppercase() ? LOWERCASE.toUpperCase() : "")
+			.append(modelObject.isDigits() ? DIGITS : "")
+			.append(modelObject.isUnderscore() ? UNDERSCORE : "")
+			.append(modelObject.isSpecial() ? SPECIAL : "")
+			.append(modelObject.isMoreSpecial() ? MORE_SPECIAL : "")
+			.append(modelObject.isBrackets() ? BRACKETS : "")
+			.append(modelObject.isWhitespace() ? WHITESPACE : "")
 			.append(modelObject.isMinus() ? "-" : "").append(modelObject.isPlus() ? "+" : "");
 		String chars = stringBuilder.toString().trim();
-		String randomPassword = RandomStringFactory.newRandomLongString(chars,
-			modelObject.getPasswordLength());
-		return randomPassword.toCharArray();
+		return SecureRandomValues.characters(modelObject.getPasswordLength(), chars);
 	}
 }

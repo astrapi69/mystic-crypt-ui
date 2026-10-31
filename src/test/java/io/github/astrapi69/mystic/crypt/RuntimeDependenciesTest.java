@@ -57,6 +57,11 @@ import org.junit.jupiter.params.provider.ValueSource;
  * same resolved versions as the runtime one: a library that brought a lower version back fails it.
  * The same guard stands in lethenon (astrapi69/lethenon#231).
  * <p>
+ * randomizer is not a dependency of this application either since #658, which draws its random
+ * values from {@code SecureRandom}. roboter and swing-components still bring randomizer 10.1, whose
+ * default generator is seeded with the current time (GHSA-395w-fmf5-xfj3); a constraint holds it at
+ * a version that seeds itself from the operating system, and the floor here proves it.
+ * <p>
  * The same floors are held against what an installer ships: the application jar of a published
  * installer, which {@code scripts/fetch-release-jar.sh} takes out of it after checking the
  * installer against its published sha256, read through the
@@ -78,7 +83,7 @@ class RuntimeDependenciesTest
 
 	@ParameterizedTest(name = "{0} is at least {1}")
 	@CsvSource({ "jackson-core, 2.22.4", "jackson-databind, 2.22.4", "jackson-annotations, 2.22",
-			"commons-beanutils, 1.11.0" })
+			"commons-beanutils, 1.11.0", "randomizer, 10.5" })
 	void transitiveDependency_isAtLeastItsPatchedRelease(final String artifact, final String floor)
 	{
 		List<String> versions = versionsOnTheClassPath(artifact);
@@ -93,7 +98,8 @@ class RuntimeDependenciesTest
 	@CsvSource({ "com.fasterxml.jackson.core, jackson-core, 2.22.4",
 			"com.fasterxml.jackson.core, jackson-databind, 2.22.4",
 			"com.fasterxml.jackson.core, jackson-annotations, 2.22",
-			"commons-beanutils, commons-beanutils, 1.11.0" })
+			"commons-beanutils, commons-beanutils, 1.11.0",
+			"io.github.astrapi69, randomizer, 10.5" })
 	void applicationJar_carriesAtLeastThePatchedRelease(final String group, final String artifact,
 		final String floor) throws IOException
 	{

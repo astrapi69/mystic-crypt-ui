@@ -4,6 +4,13 @@
 Version 8.14 (unreleased)
 -------------
 
+SECURITY:
+- "Generate password" and the serial number of a new certificate draw from `SecureRandom` directly instead of through
+  randomizer, a library for test data (#658, GHSA-qxx5-r8qx-vj98). The password keeps its character sets and its length.
+  A serial number now has 159 random bits, positive and at most 20 octets, as RFC 5280 asks. randomizer is no longer a
+  dependency of the application. A constraint holds the copy that roboter and swing-components still bring at 10.6
+  instead of their 10.1, whose generator is seeded with the current time, and a test holds that floor
+
 CHANGED:
 - mystic-crypt 13.9 (#664). Its salts, GCM nonces, IVs and generated passwords come from `SecureRandom` directly, and it
   no longer brings randomizer along at runtime. It overwrites every working copy of secret material it makes, among

@@ -31,12 +31,17 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.security.KeyPair;
 import java.security.Security;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
+import java.util.stream.Stream;
 
 import javax.crypto.SecretKey;
 
@@ -151,6 +156,34 @@ class KeygenSupportTest
 	void askingForNoBytesIsRefused(int length)
 	{
 		assertThrows(IllegalArgumentException.class, () -> KeygenSupport.randomBytes(length));
+	}
+
+	@Test
+	@DisplayName("no class of the plugin refers to randomizer, a library for test data (#658)")
+	void noPluginClass_refersToRandomizer() throws Exception
+	{
+		Path classes = Path
+			.of(KeygenSupport.class.getProtectionDomain().getCodeSource().getLocation().toURI());
+		List<Path> refersToIt;
+		try (Stream<Path> files = Files.walk(classes))
+		{
+			refersToIt = files.filter(file -> file.toString().endsWith(".class"))
+				.filter(file -> contentOf(file).contains("io/github/astrapi69/random/")).toList();
+		}
+
+		assertTrue(refersToIt.isEmpty(), "these classes still use randomizer: " + refersToIt);
+	}
+
+	private static String contentOf(final Path classFile)
+	{
+		try
+		{
+			return new String(Files.readAllBytes(classFile), StandardCharsets.ISO_8859_1);
+		}
+		catch (IOException unreadable)
+		{
+			throw new IllegalStateException("cannot read " + classFile, unreadable);
+		}
 	}
 
 	@Test
