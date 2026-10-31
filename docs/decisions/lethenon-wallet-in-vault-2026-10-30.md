@@ -101,7 +101,11 @@ vault and a lost computer, and tells the user whether it has checked that they d
    SHA-256 checksum, so the user can compare it with the copy on the stick.
 3. **Backup check.** The user types the 24 words. The plugin derives the address from them and compares
    it with the address of the wallet in the vault. The result is one clear line: matches, or does not
-   match. No file is written by this step.
+   match. No file is written by this step. A word that is not in the BIP-39 list is not a mismatch but a
+   typing error: the check refuses it and names the word and its position, asking lethenon's
+   `SeedPhrase.isKnownWord` rather than reading the text of an exception (decided by the maintainer on
+   31 October 2026; the method comes with lethenon 0.8.0, lethenon#261). A word of the list in the wrong
+   place, or two swapped, fail the phrase's checksum or give another address: that is the mismatch.
 4. **State shown.** After a successful check, the vault entry gets the property `lethenon.backupVerified`
    with the date of the check (ISO 8601). The wallet overview shows a clear notice while the property is
    absent, and a gentle reminder once the last check is older than the interval set below.

@@ -26,8 +26,10 @@ package io.github.astrapi69.mystic.crypt.plugin.lethenon;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import io.github.astrapi69.lethenon.PublishedAddress;
+import io.github.astrapi69.lethenon.SeedPhrase;
 import io.github.astrapi69.lethenon.Wallet;
 
 /**
@@ -53,23 +55,27 @@ final class BackupCheck
 	 *            the wallet's entry
 	 * @return whether the typed words give the wallet in the vault
 	 * @throws IllegalArgumentException
-	 *             when the list does not have 24 words; the message names the count
+	 *             when the list does not have 24 words, naming the count, or holds a word that is
+	 *             not in the BIP-39 list, naming the word and its position: a typing error, not a
+	 *             backup that does not match
 	 */
 	static boolean run(final List<String> typed, final WalletEntry entry)
 	{
-		if (typed.size() != WORDS)
+		List<String> words = wordsOf(typed);
+		if (words.size() != WORDS)
 		{
 			throw new IllegalArgumentException("a backup has " + WORDS + " words, and this list has "
-				+ typed.size());
+				+ words.size());
 		}
+		requireKnownWords(words);
 		Wallet derived;
 		try
 		{
-			derived = Wallet.fromPhrase(String.join(" ", typed));
+			derived = Wallet.fromPhrase(String.join(" ", words));
 		}
 		catch (IllegalArgumentException notAPhrase)
 		{
-			// an unknown word or a failed checksum is a backup that does not match, not an error
+			// every word is known here: a failed checksum is a backup that does not match, not an error
 			return false;
 		}
 		// compared by value: the address's own text form is documented (lethenon#37), its toString is not
@@ -97,5 +103,28 @@ final class BackupCheck
 			entry.setProperty(BackupReminder.VERIFIED, today.toString().toCharArray(), false);
 		}
 		return matches;
+	}
+
+	/**
+	 * The words as lethenon reads a phrase: lower case, split at any space, empty and missing fields
+	 * dropped. Only these go to {@link SeedPhrase#isKnownWord}, which does not take null
+	 */
+	private static List<String> wordsOf(final List<String> typed)
+	{
+		return SeedPhrase.parse(typed.stream().map(field -> field == null ? "" : field)
+			.collect(Collectors.joining(" ")));
+	}
+
+	private static void requireKnownWords(final List<String> typed)
+	{
+		for (int position = 1; position <= typed.size(); position++)
+		{
+			String word = typed.get(position - 1);
+			if (!SeedPhrase.isKnownWord(word))
+			{
+				throw new IllegalArgumentException("word " + position + ", '" + word
+					+ "', is not a word of the BIP-39 list; check it in your note");
+			}
+		}
 	}
 }

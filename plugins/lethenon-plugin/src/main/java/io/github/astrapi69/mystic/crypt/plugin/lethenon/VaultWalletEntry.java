@@ -30,13 +30,17 @@ import java.util.Map;
 import java.util.Set;
 
 import io.github.astrapi69.mystic.crypt.panel.dbtree.MysticCryptEntryModelBean;
+import io.github.astrapi69.mystic.crypt.panel.dbtree.VaultEntryAttachments;
 import io.github.astrapi69.mystic.crypt.panel.dbtree.VaultEntryProperties;
 
 /**
  * Moves a wallet's properties between a vault entry and the wallet tools' view of it. The host's
  * model holds property values as text, and the wallet tools keep them in buffers of their own where
  * they can (see {@link WalletEntry}). The protection flag travels with the names, so the KDBX export
- * keeps it. The host's {@link VaultEntryProperties} does the reading and the writing.
+ * keeps it. The sealed wallet travels as the attachment {@code wallet.lethwf}, and a wallet entry
+ * gets the title people read, {@code lethenon wallet (testnet)} or {@code (mainnet)}; the plugin
+ * itself reads the marker, never the title. The host's {@link VaultEntryProperties} and
+ * {@link VaultEntryAttachments} do the reading and the writing.
  */
 final class VaultWalletEntry
 {
@@ -62,6 +66,7 @@ final class VaultWalletEntry
 			wallet.setProperty(value.getKey(), value.getValue().toCharArray(),
 				protectedNames.contains(value.getKey()));
 		}
+		wallet.setSealed(VaultEntryAttachments.contentOf(entry, WalletVault.ATTACHMENT).orElse(null));
 		return wallet;
 	}
 
@@ -86,5 +91,20 @@ final class VaultWalletEntry
 			}
 		}
 		VaultEntryProperties.replace(entry, values, protectedNames);
+		if (wallet.sealed() != null)
+		{
+			VaultEntryAttachments.put(entry, WalletVault.ATTACHMENT, wallet.sealed());
+		}
+		if (WalletVault.isWallet(wallet))
+		{
+			entry.setTitle(titleOf(wallet).toCharArray());
+		}
+	}
+
+	private static String titleOf(final WalletEntry wallet)
+	{
+		return wallet.hasProperty(WalletEntry.NETWORK)
+			? "lethenon wallet (" + wallet.textOf(WalletEntry.NETWORK) + ")"
+			: "lethenon wallet";
 	}
 }

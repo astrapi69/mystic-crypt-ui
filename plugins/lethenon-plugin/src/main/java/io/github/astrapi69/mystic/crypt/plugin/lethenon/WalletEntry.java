@@ -43,6 +43,8 @@ final class WalletEntry
 
 	private final Map<String, Property> properties = new LinkedHashMap<>();
 
+	private byte[] sealed;
+
 	private WalletEntry()
 	{
 	}
@@ -101,6 +103,17 @@ final class WalletEntry
 	char[] protectedBuffer(final String name)
 	{
 		return properties.get(name).value;
+	}
+
+	/** The sealed wallet, the entry's attachment {@code wallet.lethwf}, or null when it has none */
+	byte[] sealed()
+	{
+		return sealed;
+	}
+
+	void setSealed(final byte[] sealed)
+	{
+		this.sealed = sealed;
 	}
 
 	void setProperty(final String name, final char[] value, final boolean protectedValue)
