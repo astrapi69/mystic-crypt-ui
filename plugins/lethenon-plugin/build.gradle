@@ -68,6 +68,8 @@ def bundledJars = configurations.bundled.incoming.artifactView {
 dependencies {
     compileOnly "io.github.astrapi69:mystic-crypt-ui:$hostVersion"
     compileOnly libs.mystic.crypt
+    compileOnly libs.crypt.api
+    compileOnly libs.crypt.data
     // Replay.verify, CanonicalEncoding.readChain, ChainRejected - the chain logic itself, never
     // reimplemented here (architecture.md: the plugin is UI over library calls)
     compileOnly libs.lethenon
@@ -107,6 +109,7 @@ dependencies {
     testImplementation libs.resourcebundle.core
     testImplementation libs.swing.table.components
     testImplementation libs.menu.action
+    testImplementation libs.file.worker
     testRuntimeOnly libs.junit.platform.launcher
 }
 
