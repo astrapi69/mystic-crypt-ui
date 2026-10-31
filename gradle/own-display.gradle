@@ -126,6 +126,11 @@ def ownDisplay = gradle.sharedServices.registerIfAbsent('ownDisplay', OwnDisplay
     parameters.log.set(layout.buildDirectory.file('own-display/harness.log'))
 }
 
+// Every test class leaves a result (#699): applied here because the host build and every plugin build apply this
+// file, so each of their test tasks fails when a compiled test class wrote no result - the System.exit of #288 can
+// no longer let a task report green over classes that never ran
+apply from: new File(buildscript.sourceFile.parentFile, 'test-results-complete.gradle')
+
 tasks.withType(Test).configureEach {
     usesService(ownDisplay)
     // A desktop session sets GTK_MODULES=gail:atk-bridge, so every test JVM that loads GTK connects to the
