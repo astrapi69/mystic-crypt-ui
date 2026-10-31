@@ -10,6 +10,9 @@ SECURITY:
   A serial number now has 159 random bits, positive and at most 20 octets, as RFC 5280 asks. randomizer is no longer a
   dependency of the application. A constraint holds the copy that roboter and swing-components still bring at 10.6
   instead of their 10.1, whose generator is seeded with the current time, and a test holds that floor
+- randomizer 10.1 is asked for by nothing any more (#682): swing-components 10 brings no randomizer, and
+  swing-tree-component 3.3 brings roboter 3 with randomizer 10.7. The application ships 10.7; the constraint and the
+  floor stay as a second guard
 
 ADDED:
 - a release key plugin (#644, the first stage of #642): with a vault open, "Plugins > Release Key > Key Status" shows

@@ -58,9 +58,10 @@ import org.junit.jupiter.params.provider.ValueSource;
  * The same guard stands in lethenon (astrapi69/lethenon#231).
  * <p>
  * randomizer is not a dependency of this application either since #658, which draws its random
- * values from {@code SecureRandom}. roboter and swing-components still bring randomizer 10.1, whose
- * default generator is seeded with the current time (GHSA-395w-fmf5-xfj3); a constraint holds it at
- * a version that seeds itself from the operating system, and the floor here proves it.
+ * values from {@code SecureRandom}. Before 10.5 its default generator is seeded with the current
+ * time (GHSA-395w-fmf5-xfj3). Since #682 no library asks for such a version: roboter 3, through
+ * swing-tree-component 3.3, brings 10.7, and swing-components 10 brings none. The constraint and
+ * the floor here stay as a second guard, against a library that would bring an old version back.
  * <p>
  * The same floors are held against what an installer ships: the application jar of a published
  * installer, which {@code scripts/fetch-release-jar.sh} takes out of it after checking the
