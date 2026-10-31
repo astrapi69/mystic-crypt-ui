@@ -88,8 +88,8 @@ class WalletVaultTest
 			assertFalse(entry.hasProperty(WalletInVault.MNEMONIC), "the default keeps the words out");
 			for (String name : entry.propertyNames())
 			{
-				assertFalse(words.stream().anyMatch(entry.textOf(name)::contains),
-					"no property may hold a word: " + name);
+				assertFalse(holdsTheWords(entry.textOf(name), words),
+					"no property may hold the words: " + name);
 			}
 		}
 		assertEquals(before, filesIn(directory), "creating writes nothing to disk");
@@ -333,6 +333,47 @@ class WalletVaultTest
 				.restore(phrase.replaceFirst("^\\S+", "lethenonx").toCharArray(), PASSWORD,
 					"testnet"),
 				"lethenonx"));
+	}
+
+	static Stream<Arguments> whatHoldsTheWords()
+	{
+		List<String> words = List.of("abandon", "add", "zoo");
+		return Stream.of(Arguments.of("a hex key with 'add' inside is not a word", "3f0add9e", words, false),
+			Arguments.of("an address is not a word", "lethenon1qadd0zoo", words, false),
+			Arguments.of("the whole phrase", "abandon add zoo", words, true),
+			Arguments.of("two words in their order", "x add zoo y", words, true),
+			Arguments.of("one word alone", "zoo", words, true),
+			Arguments.of("an empty property", "", words, false));
+	}
+
+	@ParameterizedTest(name = "{0}")
+	@MethodSource("whatHoldsTheWords")
+	@DisplayName("a property holds the words when it holds the phrase, two of them in order, or one alone - not when hex happens to contain one (#714)")
+	void holdsTheWords_findsWrittenWordsOnly(final String caseName, final String text,
+		final List<String> words, final boolean expected)
+	{
+		assertEquals(expected, holdsTheWords(text, words));
+	}
+
+	/**
+	 * Whether a property's text holds the wallet's words as someone would write them down: the
+	 * phrase, two of its words in their order, or one word alone. A substring is no finding: the
+	 * hex of a public key contains "add" or "fee" by chance (#714)
+	 */
+	private static boolean holdsTheWords(final String text, final List<String> words)
+	{
+		if (words.contains(text) || text.contains(String.join(" ", words)))
+		{
+			return true;
+		}
+		for (int i = 0; i + 1 < words.size(); i++)
+		{
+			if (text.contains(words.get(i) + " " + words.get(i + 1)))
+			{
+				return true;
+			}
+		}
+		return false;
 	}
 
 	private static Consumer<WalletEntry> noChange()
