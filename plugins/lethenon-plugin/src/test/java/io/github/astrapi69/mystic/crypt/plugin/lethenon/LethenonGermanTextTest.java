@@ -105,6 +105,7 @@ class LethenonGermanTextTest
 			Arguments.of("Sweep", List.of("lethenon.sweep.")),
 			Arguments.of("Synchronise with a Node", List.of("lethenon.sync.")),
 			Arguments.of("Verify a Chain", List.of("lethenon.verify.")),
+			Arguments.of("Show the Chain, where it fails (#712)", List.of("lethenon.show.chain.")),
 			Arguments.of("Run a Node", List.of("lethenon.node.")),
 			Arguments.of("Wallet", List.of("lethenon.wallet.", "lethenon.backup.", "lethenon.network.", LethenonMenuContribution.WALLET_KEY)),
 			Arguments.of("the menu", List.of("lethenon.menu.")),
