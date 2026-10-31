@@ -128,6 +128,12 @@ def ownDisplay = gradle.sharedServices.registerIfAbsent('ownDisplay', OwnDisplay
 
 tasks.withType(Test).configureEach {
     usesService(ownDisplay)
+    // A desktop session sets GTK_MODULES=gail:atk-bridge, so every test JVM that loads GTK connects to the
+    // accessibility bus and, where that bus is not there, prints an AT-SPI dbind-WARNING on its native
+    // stderr, past the test results (#695). The tests drive the UI through AssertJ-Swing and the AWT
+    // robot, not through that bus; NO_AT_BRIDGE keeps the bridge from connecting. Measured: no time
+    // difference either way, only the noise goes
+    environment('NO_AT_BRIDGE', '1')
     doFirst { Test task ->
         if (task.systemProperties['java.awt.headless'] == 'true') {
             task.environment.remove('DISPLAY')
