@@ -28,6 +28,7 @@ import java.time.LocalDate;
 import java.util.List;
 
 import io.github.astrapi69.lethenon.PublishedAddress;
+import io.github.astrapi69.lethenon.SeedPhrase;
 import io.github.astrapi69.lethenon.Wallet;
 
 /**
@@ -53,7 +54,9 @@ final class BackupCheck
 	 *            the wallet's entry
 	 * @return whether the typed words give the wallet in the vault
 	 * @throws IllegalArgumentException
-	 *             when the list does not have 24 words; the message names the count
+	 *             when the list does not have 24 words, naming the count, or holds a word that is
+	 *             not in the BIP-39 list, naming the word and its position: a typing error, not a
+	 *             backup that does not match
 	 */
 	static boolean run(final List<String> typed, final WalletEntry entry)
 	{
@@ -62,6 +65,7 @@ final class BackupCheck
 			throw new IllegalArgumentException("a backup has " + WORDS + " words, and this list has "
 				+ typed.size());
 		}
+		requireKnownWords(typed);
 		Wallet derived;
 		try
 		{
@@ -69,7 +73,7 @@ final class BackupCheck
 		}
 		catch (IllegalArgumentException notAPhrase)
 		{
-			// an unknown word or a failed checksum is a backup that does not match, not an error
+			// every word is known here: a failed checksum is a backup that does not match, not an error
 			return false;
 		}
 		// compared by value: the address's own text form is documented (lethenon#37), its toString is not
@@ -97,5 +101,18 @@ final class BackupCheck
 			entry.setProperty(BackupReminder.VERIFIED, today.toString().toCharArray(), false);
 		}
 		return matches;
+	}
+
+	private static void requireKnownWords(final List<String> typed)
+	{
+		for (int position = 1; position <= typed.size(); position++)
+		{
+			String word = typed.get(position - 1);
+			if (!SeedPhrase.isKnownWord(word))
+			{
+				throw new IllegalArgumentException("word " + position + ", '" + word
+					+ "', is not a word of the BIP-39 list; check it in your note");
+			}
+		}
 	}
 }
