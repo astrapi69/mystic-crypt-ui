@@ -43,7 +43,7 @@
 	</guiprefs>
 
 	<resources>
-		<res src="../README.md" id="HTMLInfoPanel.info" />
+		<res src="../src/main/izpack/installation.html" id="HTMLInfoPanel.info" />
 		<res src="../LICENSE" id="LicencePanel.licence" />
 		<res src="resources/main/img/icon.png" id="installer.langsel.img" />
 	</resources>
@@ -64,7 +64,7 @@
 			<file src="../CHANGELOG.md" targetdir="${INSTALL_PATH}" />
 			<file src="../LICENSE" targetdir="${INSTALL_PATH}" />
 			<singlefile src="signed/@{app.name}-@{app.version}-all.jar" target="${INSTALL_PATH}/@{app.name}.jar" />
-			<file src="../README.md" targetdir="${INSTALL_PATH}" />
+			<file src="../src/main/izpack/installation.html" targetdir="${INSTALL_PATH}" />
 			<file src="resources/main/doc/@{app.name}.desktop" targetdir="${INSTALL_PATH}" />
 			<!--
 				Register the application with the desktop environment. A desktop entry is only picked up

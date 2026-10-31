@@ -1,0 +1,49 @@
+<html>
+<head>
+<title>Installing mystic-crypt-ui</title>
+</head>
+<body>
+
+<h2>Requirement</h2>
+<p><b>Java 25 or later.</b> The installer checks the Java it runs on and does not continue with an older one.</p>
+
+<h2>What is installed, and where</h2>
+<ul>
+<li>In the installation directory chosen on a later page (on Linux the installer suggests
+<code>app/mystic-crypt-ui</code> in your home directory): the application <code>mystic-crypt-ui.jar</code>,
+the start scripts <code>start.sh</code> and <code>start.bat</code>, its icon, this page as
+<code>installation.html</code>, <code>CHANGELOG.md</code>, <code>LICENSE</code>, and an uninstaller in
+<code>Uninstaller</code>.</li>
+<li>A desktop entry, <code>~/.local/share/applications/mystic-crypt-ui.desktop</code>, through which the
+application appears in the desktop's menu on Linux.</li>
+<li>Optional, selected by default: the command-line tool, <code>mystic-crypt</code> and
+<code>mystic-crypt.bat</code> in the installation directory.</li>
+<li>Optional, selected by default: the internal plugins, as zip files in
+<code>~/.config/mystic-crypt-ui/plugins</code>. They add the tools of the Plugins menu: obfuscation,
+checksums, DER to PEM conversion, a console, key generation, certificates, password hashing, a key
+encapsulation demo, post-quantum signatures, key store management, file encryption, secret sharing,
+the Lethenon chain and the release key status. The licences of the libraries the Lethenon plugin
+bundles go to <code>legal/lethenon-plugin</code> in the installation directory.</li>
+</ul>
+
+<h2>Updating an earlier version</h2>
+<ul>
+<li>Back up your vault files before the update. The installer does not touch them: it writes only
+the files listed above.</li>
+<li>The release notes say when the vault format changes, and which earlier versions read what this
+one writes.</li>
+<li>The plugin zips of this version are written into <code>~/.config/mystic-crypt-ui/plugins</code>;
+zip files you added there yourself stay.</li>
+</ul>
+
+<h2>Where to read more</h2>
+<ul>
+<li><code>CHANGELOG.md</code> in the installation directory, and the release notes:
+https://github.com/astrapi69/mystic-crypt-ui/releases</li>
+<li>The project's README: https://github.com/astrapi69/mystic-crypt-ui</li>
+<li>To report a vulnerability, follow <code>SECURITY.md</code>:
+https://github.com/astrapi69/mystic-crypt-ui/security/policy</li>
+</ul>
+
+</body>
+</html>

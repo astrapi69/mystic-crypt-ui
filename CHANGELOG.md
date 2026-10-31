@@ -32,6 +32,10 @@ ADDED:
   certificate alone. The plugin brings no library of its own: Bouncy Castle's OpenPGP module comes with mystic-crypt
 
 CHANGED:
+- the installer's information page is a page of its own, written for installing (#640): the Java it needs, what is
+  installed where (the application, the desktop entry, the command-line tool, the plugins), what to do before an
+  update, and where to read more. It used to show the project's README as raw Markdown. The page is also what goes
+  into the installation directory, as `installation.html`, in place of `README.md`
 - Spotless writes and checks the license header on every Java source of the build, instead of the license plugin,
   whose checks were disabled and which brought plexus-utils 2.0.6 and spring-core 3.1.3 into the build classpath, the
   source of 11 Dependabot alerts (#686). 18 sources get the header they lacked; headers in another wrapping, and
