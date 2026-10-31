@@ -167,9 +167,11 @@ final class WalletVault
 		Wallet wallet = WalletFile.read(entry.sealed(), password);
 		Optional<String> warning = addressWarning(entry.addressForCheck(), wallet.address());
 		Optional<String> accountWarning = accountWarning(entry, wallet);
+		Optional<AddressMismatch> mismatch = warning
+			.map(differs -> new AddressMismatch(entry.addressForCheck(), wallet.address().toText()));
 		return new UnsealedWallet(wallet, warning.isPresent() && accountWarning.isPresent()
 			? Optional.of(warning.get() + " " + accountWarning.get())
-			: warning.or(() -> accountWarning));
+			: warning.or(() -> accountWarning), mismatch);
 	}
 
 	/**
