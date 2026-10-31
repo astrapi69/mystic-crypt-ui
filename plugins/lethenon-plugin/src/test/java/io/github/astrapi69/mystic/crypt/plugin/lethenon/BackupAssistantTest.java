@@ -27,6 +27,7 @@ package io.github.astrapi69.mystic.crypt.plugin.lethenon;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.security.SecureRandom;
@@ -174,5 +175,42 @@ class BackupAssistantTest
 		String[] right = IntStream.of(drawn).mapToObj(position -> WORDS.get(position - 1))
 			.toArray(String[]::new);
 		assertTrue(question.answer(right).correct());
+	}
+
+	@ParameterizedTest(name = "{0}")
+	@MethodSource("misspelledWords")
+	@DisplayName("a word that is not in the list is refused, named with its position")
+	void anUnknownWordIsRefusedWithItsPosition(final String where, final int position,
+		final String misspelled)
+	{
+		WalletEntry entry = WalletEntry.newEntry("testnet");
+		entry.setProperty(WalletEntry.ADDRESS, WALLET.address().toText().toCharArray(), false);
+		List<String> typed = new ArrayList<>(WORDS);
+		typed.set(position - 1, misspelled);
+
+		IllegalArgumentException refused = assertThrows(IllegalArgumentException.class,
+			() -> BackupCheck.checkAndRecord(typed, entry, TODAY));
+
+		assertTrue(refused.getMessage().contains("word " + position), refused.getMessage());
+		assertTrue(refused.getMessage().contains("'" + misspelled + "'"), refused.getMessage());
+		assertFalse(entry.hasProperty(BackupReminder.VERIFIED), "a refused check records nothing");
+	}
+
+	static Stream<Arguments> misspelledWords()
+	{
+		return Stream.of(Arguments.of("the first word", 1, "abandn"),
+			Arguments.of("a word in the middle", 12, "lethenon"),
+			Arguments.of("the last word", 24, "zooo"));
+	}
+
+	@Test
+	@DisplayName("words typed in capitals count as the words they are")
+	void wordsInCapitalsAreTheSameWords()
+	{
+		WalletEntry entry = WalletEntry.newEntry("testnet");
+		entry.setProperty(WalletEntry.ADDRESS, WALLET.address().toText().toCharArray(), false);
+		List<String> typed = WORDS.stream().map(String::toUpperCase).toList();
+
+		assertTrue(BackupCheck.checkAndRecord(typed, entry, TODAY));
 	}
 }
