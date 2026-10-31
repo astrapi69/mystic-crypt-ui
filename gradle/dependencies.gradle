@@ -96,6 +96,12 @@ dependencies {
     // constraint stays as a second guard, so that a library which brought an old version back would
     // still ship a safe one, and RuntimeDependenciesTest proves the floor
     constraints {
+        // assertj-swing 3.17.1, its last release, brings assertj-core 3.17.2 onto every test class path
+        // (the end-to-end source sets extend testImplementation), which has the XXE of
+        // GHSA-rqfh-9r24-8c9r; 3.27.7 is the release that fixes it (#692). Tests only, nothing ships
+        testImplementation(libs.assertj.core) {
+            because 'assertj-core before 3.27.7 has an XXE in isXmlEqualTo'
+        }
         implementation(libs.randomizer) {
             because 'randomizer before 10.5 seeds its default generator with the current time'
         }
