@@ -82,6 +82,14 @@ dependencies {
         implementation(libs.randomizer) {
             because 'randomizer before 10.5 seeds its default generator with the current time'
         }
+        // jettison is no dependency of this application either: xml-extensions 8.2 brings it through
+        // xstream-extensions 1.1 at 1.5.1, which has four high advisories (GHSA-x27m-9w8j-5vcw,
+        // GHSA-grr4-wv38-f68w, GHSA-7rf3-mqpx-h7xg, GHSA-q6g2-g7f3-rr83). No code here reaches it, the
+        // installer ships it all the same (#684). Goes when xstream-extensions brings a fixed version
+        // (astrapi69/xstream-extensions#15); RuntimeDependenciesTest proves the floor
+        implementation(libs.jettison) {
+            because 'jettison before 1.5.4 has four high advisories'
+        }
     }
     // Libraries log through the Log4j API and commons-logging; this keeps both routed to SLF4J, as
     // they were while resource-viewmodels brought this bridge with Spring Boot. Without it, the

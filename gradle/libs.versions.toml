@@ -35,6 +35,7 @@ icon-img-extensions-version = "4.2"
 id-generate-version = "1.1"
 imgscalr-lib-version = "4.2"
 izpack-ant-version = "5.2.7"
+jettison-version = "1.5.7"
 jackson-databind-version = "2.22.3"
 javahelp-version = "2.0.05"
 jobj-cloner-version = "2.1"
@@ -112,6 +113,7 @@ icon-img-extensions = { module = "io.github.astrapi69:icon-img-extensions", vers
 id-generate = { module = "io.github.astrapi69:id-generate", version.ref = "id-generate-version" }
 imgscalr-lib = { module = "org.imgscalr:imgscalr-lib", version.ref = "imgscalr-lib-version" }
 izpack-ant = { module = "org.codehaus.izpack:izpack-ant", version.ref = "izpack-ant-version" }
+jettison = { module = "org.codehaus.jettison:jettison", version.ref = "jettison-version" }
 jackson-databind = { module = "com.fasterxml.jackson.core:jackson-databind", version.ref = "jackson-databind-version" }
 javahelp = { module = "javax.help:javahelp", version.ref = "javahelp-version" }
 jobj-cloner = { module = "io.github.astrapi69:jobj-cloner", version.ref = "jobj-cloner-version" }
