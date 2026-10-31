@@ -1,6 +1,23 @@
 dependencies {
 
+    // The tool that builds the installer. IzPack 5.2.7, its newest release, pins tika-parsers 1.28.5,
+    // tika-core 2.9.3 and jsoup 1.22.2, and through them 61 Dependabot alerts, 2 critical (#688). Only
+    // jsoup ships, inside the installer; the rest stays in this configuration. tika-parsers is not
+    // needed to build the installer, and bouncycastle only for IzPack's PDF licence panel, which
+    // install.xml does not use - without either the installer comes out the same. These lines go when
+    // an IzPack release brings the versions its main line already has (izpack/izpack#1209, #1244)
     izpack libs.izpack.ant
+    constraints {
+        izpack(libs.jsoup) {
+            because 'jsoup before 1.23.2 has two advisories, and it ships inside the installer'
+        }
+        izpack(libs.commons.lang3) {
+            because 'commons-lang3 before 3.18.0 has an advisory'
+        }
+        izpack(libs.tika.core) {
+            because 'tika-core before 3.2.2 has an advisory'
+        }
+    }
 
     compileOnly libs.lombok
     annotationProcessor libs.lombok
@@ -103,4 +120,9 @@ dependencies {
 
     // mutation testing (see gradle/mutation-testing.gradle)
     pitest libs.pitest.junit5.plugin
+}
+
+configurations.named("izpack") {
+    exclude group: "org.apache.tika", module: "tika-parsers"
+    exclude group: "org.bouncycastle"
 }

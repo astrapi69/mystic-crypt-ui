@@ -41,6 +41,7 @@ jobj-cloner-version = "2.1"
 jobj-copy-version = "4.3"
 jobj-core-version = "9.1"
 jremix-icon-version = "1.1"
+jsoup-version = "1.23.2"
 junit-jupiter-extensions-version = "2"
 junit-jupiter-version = "6.1.3"
 junit-platform-launcher-version = "6.1.3"
@@ -80,6 +81,7 @@ swingx-all-version = "1.6.5-1"
 tango-icon-theme-version = "0.8.90"
 test-object-version = "9.1"
 throwable-version = "3"
+tika-core-version = "3.3.3"
 tree-api-version = "2.2.1"
 visitor-version = "6"
 xml-extensions-version = "8.2"
@@ -119,6 +121,7 @@ jobj-cloner = { module = "io.github.astrapi69:jobj-cloner", version.ref = "jobj-
 jobj-copy = { module = "io.github.astrapi69:jobj-copy", version.ref = "jobj-copy-version" }
 jobj-core = { module = "io.github.astrapi69:jobj-core", version.ref = "jobj-core-version" }
 jremix-icon = { module = "io.github.astrapi69:jremix-icon", version.ref = "jremix-icon-version" }
+jsoup = { module = "org.jsoup:jsoup", version.ref = "jsoup-version" }
 junit-jupiter = { module = "org.junit.jupiter:junit-jupiter", version.ref = "junit-jupiter-version" }
 junit-jupiter-extensions = { module = "io.github.astrapi69:junit-jupiter-extensions", version.ref = "junit-jupiter-extensions-version" }
 junit-platform-launcher = { module = "org.junit.platform:junit-platform-launcher", version.ref = "junit-platform-launcher-version" }
@@ -159,6 +162,7 @@ swingx-all = { module = "org.swinglabs.swingx:swingx-all", version.ref = "swingx
 tango-icon-theme = { module = "org.freedesktop.tango:tango-icon-theme", version.ref = "tango-icon-theme-version" }
 test-object = { module = "io.github.astrapi69:test-object", version.ref = "test-object-version" }
 throwable = { module = "io.github.astrapi69:throwable", version.ref = "throwable-version" }
+tika-core = { module = "org.apache.tika:tika-core", version.ref = "tika-core-version" }
 tree-api = { module = "io.github.astrapi69:tree-api", version.ref = "tree-api-version" }
 visitor = { module = "io.github.astrapi69:visitor", version.ref = "visitor-version" }
 xml-extensions = { module = "io.github.astrapi69:xml-extensions", version.ref = "xml-extensions-version" }
