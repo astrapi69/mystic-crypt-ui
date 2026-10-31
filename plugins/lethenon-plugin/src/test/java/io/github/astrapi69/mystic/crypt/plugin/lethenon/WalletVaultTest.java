@@ -250,6 +250,32 @@ class WalletVaultTest
 	}
 
 	@ParameterizedTest(name = "{0}")
+	@MethodSource("recordedAddresses")
+	@DisplayName("only a recorded address that is not the wallet's warns; no recorded address does not")
+	void theRecordedAddressDecidesTheWarning(final String recorded,
+		final Consumer<WalletEntry> change, final boolean warned)
+	{
+		try (CreatedWallet created = WalletVault.create("testnet", PASSWORD))
+		{
+			change.accept(created.entry());
+
+			assertEquals(warned,
+				WalletVault.unseal(created.entry(), PASSWORD).addressWarning().isPresent());
+		}
+	}
+
+	static Stream<Arguments> recordedAddresses()
+	{
+		return Stream.of(Arguments.of("the wallet's own address", noChange(), false),
+			Arguments.of("no recorded address",
+				(Consumer<WalletEntry>)entry -> entry.removeProperty(WalletEntry.ADDRESS), false),
+			Arguments.of("text that is no address",
+				(Consumer<WalletEntry>)entry -> entry.setProperty(WalletEntry.ADDRESS,
+					"not an address".toCharArray(), false),
+				true));
+	}
+
+	@ParameterizedTest(name = "{0}")
 	@MethodSource("entryShapes")
 	@DisplayName("an entry is a wallet only with both the marker and the attachment")
 	void anEntryIsAWalletOnlyWithMarkerAndAttachment(final String shape,
@@ -300,6 +326,9 @@ class WalletVaultTest
 			Arguments.of("23 words",
 				(Runnable)() -> WalletVault.restore(twentyThree.toCharArray(), PASSWORD, "testnet"),
 				"23"),
+			Arguments.of("unsealing an entry that is no wallet",
+				(Runnable)() -> WalletVault.unseal(WalletEntry.newEntry("testnet"), PASSWORD),
+				"not a lethenon wallet"),
 			Arguments.of("an unknown word", (Runnable)() -> WalletVault
 				.restore(phrase.replaceFirst("^\\S+", "lethenonx").toCharArray(), PASSWORD,
 					"testnet"),
