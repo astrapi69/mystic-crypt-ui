@@ -29,6 +29,17 @@ recommended the first. The code this describes is built after the tests for it a
      derives the address from the unsealed wallet and compares it with this property. When they differ,
      the plugin shows a clear warning that names both addresses and says that the entry's address does
      not belong to its wallet, and it does not silently overwrite either one.
+   - `lethenon.account.ml-dsa-65` = the public key of the wallet's ML-DSA-65 account, in the text form
+     of lethenon's `Bytes`, **not protected** (decided by the maintainer on 31 October 2026, #700). The
+     balance of a wallet is the sum of its two accounts and of the one-time payments to its address.
+     The Ed25519 account's key is the address's spend key (`PublishedAddress.spendKey()`, measured
+     against lethenon 0.8.0), so the address already gives it; the ML-DSA-65 account's key is not in
+     the address. With this property the overview reads both accounts' balances from the chain without
+     the wallet password. It is public data of the same kind as the address: whoever opens the vault
+     can follow both accounts in the chain, as the address already lets them follow the first. It is
+     written when a wallet is created, taken over or restored, and added to an older entry the next
+     time its attachment is unsealed. Like the address it is a copy: every unseal derives the key from
+     the wallet and compares it with the property, names a difference, and overwrites neither.
    The title reads `lethenon wallet (testnet)` or `lethenon wallet (mainnet)` for people; the plugin
    reads the property, not the title.
 
@@ -50,6 +61,17 @@ recommended the first. The code this describes is built after the tests for it a
    user choice, with the risk named (section "The words in the vault, as the user's choice").
 8. **Locking.** The lock invariant stays. With no open vault no wallet action is offered; locking clears
    every buffer that holds an unsealed wallet.
+
+## The balance in the overview (added 31 October 2026, #700)
+
+The overview shows the balance without asking for the wallet password (draft 01): the two accounts'
+balances, read from the configured chain with the keys the entry carries (the address and
+`lethenon.account.ml-dsa-65`). One-time payments to the address can only be found with the private
+view key, which is sealed in the attachment. They are therefore checked on request: "Check incoming
+payments" asks the wallet password, unseals the wallet in memory, scans the chain, shows the result,
+and keeps nothing. Until they are checked, the overview says under the balance that the number is
+without unchecked incoming payments, so it is not read as the whole sum. Holding the view key for the
+session was rejected: it would keep a part of the unsealed wallet in memory, against decision 5.
 
 ## What lethenon needs (library first)
 
