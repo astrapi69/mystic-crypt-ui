@@ -63,6 +63,11 @@ import org.junit.jupiter.params.provider.ValueSource;
  * swing-tree-component 3.3, brings 10.7, and swing-components 10 brings none. The constraint and
  * the floor here stay as a second guard, against a library that would bring an old version back.
  * <p>
+ * silly-io and file-worker are direct dependencies, and their floors hold the data-loss fixes the
+ * application ships with (#720): silly-io 4.0 takes the extension from the file name only
+ * (astrapi69/silly-io#9, behind astrapi69/file-worker#37), file-worker 20.0 copies binary files
+ * byte for byte (#45) and refuses a copy onto the file itself (#73).
+ * <p>
  * The same floors are held against what an installer ships: the application jar of a published
  * installer, which {@code scripts/fetch-release-jar.sh} takes out of it after checking the
  * installer against its published sha256, read through the
@@ -84,7 +89,8 @@ class RuntimeDependenciesTest
 
 	@ParameterizedTest(name = "{0} is at least {1}")
 	@CsvSource({ "jackson-core, 2.22.4", "jackson-databind, 2.22.4", "jackson-annotations, 2.22",
-			"commons-beanutils, 1.11.0", "randomizer, 10.5", "jettison, 1.5.4" })
+			"commons-beanutils, 1.11.0", "randomizer, 10.5", "jettison, 1.5.4", "silly-io, 4.0",
+			"file-worker, 20.0" })
 	void transitiveDependency_isAtLeastItsPatchedRelease(final String artifact, final String floor)
 	{
 		List<String> versions = versionsOnTheClassPath(artifact);
@@ -100,7 +106,8 @@ class RuntimeDependenciesTest
 			"com.fasterxml.jackson.core, jackson-databind, 2.22.4",
 			"com.fasterxml.jackson.core, jackson-annotations, 2.22",
 			"commons-beanutils, commons-beanutils, 1.11.0", "io.github.astrapi69, randomizer, 10.5",
-			"org.codehaus.jettison, jettison, 1.5.4" })
+			"org.codehaus.jettison, jettison, 1.5.4", "io.github.astrapi69, silly-io, 4.0",
+			"io.github.astrapi69, file-worker, 20.0" })
 	void applicationJar_carriesAtLeastThePatchedRelease(final String group, final String artifact,
 		final String floor) throws IOException
 	{
