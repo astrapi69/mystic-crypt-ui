@@ -25,6 +25,7 @@
 package io.github.astrapi69.mystic.crypt.plugin.lethenon;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.text.NumberFormat;
 import java.util.Locale;
 
@@ -61,6 +62,26 @@ final class LethAmounts
 		number.setGroupingUsed(true);
 		number.setMinimumFractionDigits(DECIMALS);
 		number.setMaximumFractionDigits(DECIMALS);
+		return number.format(BigDecimal.valueOf(amount.lethe(), DECIMALS)) + " LETH";
+	}
+
+	/**
+	 * An amount as the overview shows it in large type: two decimals, rounded half up, the exact
+	 * value stays beside it (draft 01, README defect G8)
+	 *
+	 * @param amount
+	 *            the amount
+	 * @param locale
+	 *            the language of the window
+	 * @return e.g. "12,345.68 LETH"
+	 */
+	static String rounded(final Amount amount, final Locale locale)
+	{
+		NumberFormat number = NumberFormat.getNumberInstance(locale);
+		number.setGroupingUsed(true);
+		number.setMinimumFractionDigits(2);
+		number.setMaximumFractionDigits(2);
+		number.setRoundingMode(RoundingMode.HALF_UP);
 		return number.format(BigDecimal.valueOf(amount.lethe(), DECIMALS)) + " LETH";
 	}
 }

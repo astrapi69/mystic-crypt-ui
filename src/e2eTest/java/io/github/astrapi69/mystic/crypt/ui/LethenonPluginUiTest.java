@@ -516,6 +516,10 @@ class LethenonPluginUiTest extends AbstractUiTest
 		application.openPluginTool("Mine a Pun", "Mine a Pun");
 		JInternalFrameFixture tool = new JInternalFrameFixture(robot,
 			application.internalFrame("Mine a Pun"));
+		assertEquals(
+			"No wallet of the vault is chosen in \"Wallet\", so the wallet comes from this file.",
+			textOf(tool, "txtWalletFileNote"),
+			"without a vault wallet the window says why it asks for a file (#718)");
 		GuiActionRunner.execute(() -> {
 			tool.textBox("txtChainFile").target().setText(chainFile.getAbsolutePath());
 			tool.textBox("txtWalletFile").target().setText(walletFile.getAbsolutePath());
@@ -534,19 +538,23 @@ class LethenonPluginUiTest extends AbstractUiTest
 			@Override
 			public boolean test()
 			{
-				return GuiActionRunner.execute(() -> tool.label("lblResult").target().getText())
-					.startsWith("no block was mined");
+				return "No block was mined.".equals(GuiActionRunner
+					.execute(() -> tool.textBox("txtFailureCause").target().getText()));
 			}
 		}, 20000);
 
-		String result = GuiActionRunner.execute(() -> tool.label("lblResult").target().getText());
+		// the reason is under "Show details", in the pattern of draft 07 (#710)
+		SwingUtilities.invokeLater(() -> tool.button("btnFailureDetails").target().doClick());
+		robot.waitForIdle();
+		String result = GuiActionRunner
+			.execute(() -> tool.textBox("txtFailureDetails").target().getText());
 		assertTrue(result.contains("lethenon 1.0.0"), result);
 		assertFalse(result.contains(walletPassword), "the password is in no text on the screen");
 		assertFalse(chainFile.exists(), "no main chain file is written");
 	}
 
 	@Test
-	@DisplayName("the plugin shows \"Before you start\" with its notice, from the menu and before the choice of chain (#540)")
+	@DisplayName("the plugin shows \"Before you start\" with its notice, from \"More ... / For Operators\" and before the choice of chain (#540, #708)")
 	void thePlugin_showsBeforeYouStart() throws Exception
 	{
 		installPluginRequiringItBuilt(LETHENON_ZIP);
@@ -555,9 +563,9 @@ class LethenonPluginUiTest extends AbstractUiTest
 		ApplicationSteps application = signInWithExistingDatabase(databaseFile, MASTER_PASSWORD);
 		application.showMainFrame();
 
-		application.openPluginTool("Before You Start", "Before You Start");
+		application.openPluginTool("For Operators", "For Operators");
 		JInternalFrameFixture view = new JInternalFrameFixture(robot,
-			application.internalFrame("Before You Start"));
+			application.internalFrame("For Operators"));
 		JLabel notice = view.label("lblNotLegalAdvice").target();
 		assertTrue(GuiActionRunner.execute(notice::isShowing), "the notice is on the screen");
 		String noticeText = GuiActionRunner.execute(notice::getText);
@@ -760,12 +768,19 @@ class LethenonPluginUiTest extends AbstractUiTest
 			@Override
 			public boolean test()
 			{
-				return GuiActionRunner.execute(() -> tool.label("lblResult").target().getText())
-					.contains("seed nodes serve another chain");
+				// the sync ends on a worker thread: until then the failure is not showing
+				return "The chain was not synchronised.".equals(GuiActionRunner
+					.execute(() -> robot.finder().findByName(tool.target(), "txtFailureCause",
+						javax.swing.text.JTextComponent.class, false).getText()));
 			}
 		}, 20000);
 
-		String result = GuiActionRunner.execute(() -> tool.label("lblResult").target().getText());
+		// the reason is under "Show details", in the pattern of draft 07 (#712)
+		SwingUtilities.invokeLater(() -> tool.button("btnFailureDetails").target().doClick());
+		robot.waitForIdle();
+		String result = GuiActionRunner
+			.execute(() -> tool.textBox("txtFailureDetails").target().getText());
+		assertTrue(result.contains("seed nodes serve another chain"), result);
 		assertTrue(result.contains("no node was named"), result);
 		assertTrue(result.contains(chainFile.getAbsolutePath()), result);
 		assertArrayEquals(before, Files.readAllBytes(chainFile.toPath()),

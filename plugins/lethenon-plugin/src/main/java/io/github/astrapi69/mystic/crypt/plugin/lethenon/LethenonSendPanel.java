@@ -28,8 +28,11 @@ import java.awt.Component;
 import java.awt.Font;
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 import javax.swing.ComboBoxModel;
@@ -39,6 +42,7 @@ import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JPanel;
 
+import io.github.astrapi69.lethenon.Amount;
 import io.github.astrapi69.lethenon.ChainRejected;
 import io.github.astrapi69.lethenon.SignatureSuite;
 import io.github.astrapi69.model.LambdaModel;
@@ -108,7 +112,20 @@ public class LethenonSendPanel extends JPanel
 
 	private final JMTextField txtNode = new JMTextField(34);
 
-	private final Locale locale = Locale.getDefault();
+	/**
+	 * The language of the window; the field initializers below read it, so it has its value before
+	 * the constructor sets the one it was given
+	 */
+	private Locale locale = Locale.getDefault();
+
+	/** The plugin's view of the vault, whose wallet the window sends from when there is one (#704) */
+	private final transient LethenonVault vault;
+
+	/** Whom to ask before a send on the main network or on an unknown network (#704) */
+	private final transient SendConfirmation confirmation;
+
+	/** The wallet the window signs with: the vault's, or a wallet file (#706) */
+	private final transient WalletRow walletRow;
 
 	private final JMTextArea txtAnswer = AnswerFields.answerArea(text("lethenon.send.tooltip.answer",
 		"what happened to your transfer, in one sentence; the details are below"));
@@ -144,6 +161,9 @@ public class LethenonSendPanel extends JPanel
 
 	private final JLabel lblResult = new JLabel(" ");
 
+	/** Where a failure shows, in the pattern of draft 07 (#710, #712) */
+	private final transient FailureView failureView;
+
 	/**
 	 * Instantiates a new {@link LethenonSendPanel}, prefilled with the chain file from the plugin's
 	 * settings
@@ -162,8 +182,32 @@ public class LethenonSendPanel extends JPanel
 	 */
 	LethenonSendPanel(final ChainConversionConsent consent)
 	{
+		this(consent, LethenonVault.current(), SendConfirmation.ASK, Locale.getDefault());
+	}
+
+	/**
+	 * Instantiates a new {@link LethenonSendPanel} over the given vault
+	 *
+	 * @param consent
+	 *            whom to ask before a chain file is converted
+	 * @param vault
+	 *            the plugin's view of the vault; its wallet is the one sent from
+	 * @param confirmation
+	 *            whom to ask before a send on the main network or an unknown one
+	 * @param locale
+	 *            the language of the window
+	 */
+	LethenonSendPanel(final ChainConversionConsent consent, final LethenonVault vault,
+		final SendConfirmation confirmation, final Locale locale)
+	{
 		super(ToolForm.newLayout());
 		this.consent = consent;
+		this.vault = vault;
+		this.confirmation = confirmation;
+		this.locale = locale;
+		walletRow = new WalletRow(vault, locale, txtWalletFile,
+			() -> LethenonSwing.chooseFile(this, modelObject.getWalletFile())
+				.ifPresent(txtWalletFile::setText));
 		btnDetails = LethenonSwing.button("btnDetails",
 			AnswerFields.detailsButtonText(false, locale), event -> onDetails(),
 			text("lethenon.send.tooltip.details",
@@ -172,12 +216,22 @@ public class LethenonSendPanel extends JPanel
 		explainTheComponents();
 		bindToTheModel();
 		layOutTheInputs();
+		int answerStarts = getComponentCount();
 		layOutTheAnswer();
+		failureView = FailureView.below(this,
+			List.of(getComponents()).subList(answerStarts, getComponentCount()), locale);
 		add(lblResult, ToolForm.RESULT_LINE);
 		pnlDetails.setVisible(false);
 		txtChainFile.setText(LethenonSettingsContribution.chainFile());
 		txtWalletFile.setText(LethenonSettingsContribution.walletFile());
 		txtNode.setText(LethenonSettingsContribution.node());
+	}
+
+	@Override
+	public void removeNotify()
+	{
+		walletRow.stop();
+		super.removeNotify();
 	}
 
 	/**
@@ -203,10 +257,16 @@ public class LethenonSendPanel extends JPanel
 			TransferOrder order = orderFromTheModel();
 			if (!ChainConversion.convertedIfAgreed(this, consent, order.chainFile()))
 			{
-				showFailure(failure + ": " + ChainConversion.notConverted());
+				showStatus(failure + ": " + ChainConversion.notConverted());
 				return;
 			}
-			SentTransfer sent = TransferSupport.send(order, modelObject.getPassword());
+			if (!confirmedForItsNetwork(order))
+			{
+				showStatus(failure + ": " + text("lethenon.send.result.cancelled",
+					"you cancelled before anything was signed"));
+				return;
+			}
+			SentTransfer sent = sendFromTheSource(order);
 			rememberWhatWorked(order);
 			showTheAnswer(sent);
 			setResult(sent.node().isEmpty()
@@ -216,16 +276,66 @@ public class LethenonSendPanel extends JPanel
 		}
 		catch (ChainRejected | IllegalArgumentException | IllegalStateException refused)
 		{
-			showFailure(failure + ": " + refused.getMessage());
+			showFailure(failure + ": " + refused.getMessage(), refused);
 		}
 		catch (IOException unwritable)
 		{
-			showFailure(failure + ": " + unwritable.getMessage());
+			showFailure(failure + ": " + unwritable.getMessage(), unwritable);
 		}
 		finally
 		{
 			modelObject.setPassword(null);
 			txtPassword.setText("");
+		}
+	}
+
+	/**
+	 * The question before a send from the vault's wallet: none on the test network, T5 on the main
+	 * network, and on an unknown network first which network it is (draft 02)
+	 *
+	 * @return whether the send may go on
+	 */
+	private boolean confirmedForItsNetwork(final TransferOrder order)
+	{
+		Optional<VaultWallet> chosen = vault.chosen();
+		if (chosen.isEmpty())
+		{
+			return true;
+		}
+		NetworkKind network = NetworkKind.of(chosen.get().network());
+		if (network == NetworkKind.UNKNOWN)
+		{
+			Optional<NetworkKind> answered = confirmation.askNetwork(this);
+			if (answered.isEmpty())
+			{
+				return false;
+			}
+			network = answered.get();
+		}
+		return network != NetworkKind.MAIN
+			|| confirmation.confirmMainNetwork(this, mainNetworkTransfer(order));
+	}
+
+	private MainNetworkTransfer mainNetworkTransfer(final TransferOrder order)
+	{
+		Amount amount = Amount.parseLeth(order.amount().trim());
+		Amount fee = order.fee().isBlank() ? Amount.ZERO : Amount.parseLeth(order.fee().trim());
+		return new MainNetworkTransfer(LethAmounts.format(amount, locale),
+			LethAmounts.format(fee, locale), LethAmounts.format(amount.plus(fee), locale),
+			order.recipient().trim());
+	}
+
+	/** Signs with the vault's wallet, unsealed for this send only, or with the wallet file */
+	private SentTransfer sendFromTheSource(final TransferOrder order) throws IOException
+	{
+		char[] password = modelObject.getPassword();
+		try
+		{
+			return TransferSupport.send(order, walletRow.source(password, order.walletFile()));
+		}
+		finally
+		{
+			Arrays.fill(password, '\0');
 		}
 	}
 
@@ -287,7 +397,24 @@ public class LethenonSendPanel extends JPanel
 		showTheModel();
 	}
 
-	private void showFailure(final String result)
+	/**
+	 * Shows a failure in the pattern of draft 07 (#712): the cause and what to do, the reason under
+	 * the details, the answer hidden; the status line does not repeat it, the model keeps the whole
+	 * line for whoever reads the state
+	 */
+	private void showFailure(final String result, final Throwable thrown)
+	{
+		modelObject.clearAnswer();
+		showTheModel();
+		modelObject.setResultText(result);
+		lblResult.setText(" ");
+		failureView.show(Failures.of(thrown, new Refusal("lethenon.send.failure", "Nothing was sent."), locale));
+	}
+
+	/**
+	 * Shows what the person decided or what is under way: no failure, so the status line says it
+	 */
+	private void showStatus(final String result)
 	{
 		modelObject.clearAnswer();
 		showTheModel();
@@ -325,7 +452,8 @@ public class LethenonSendPanel extends JPanel
 	private TransferOrder orderFromTheModel()
 	{
 		return new TransferOrder(Path.of(modelObject.getChainFile().trim()),
-			Path.of(modelObject.getWalletFile().trim()), modelObject.getSuite(),
+			Path.of(modelObject.getWalletFile() == null ? "" : modelObject.getWalletFile().trim()),
+			modelObject.getSuite(),
 			modelObject.getRecipientKind(), modelObject.getRecipient(), modelObject.getAmount(),
 			modelObject.getFee(), modelObject.getMemo(), modelObject.getNode());
 	}
@@ -418,13 +546,7 @@ public class LethenonSendPanel extends JPanel
 				.ifPresent(txtChainFile::setText),
 			text("lethenon.input.tooltip.browse.chain.file", "pick the chain file on your disk")),
 			OWN_WIDTH);
-		add(new JLabel(text("lethenon.input.label.wallet.file", "Wallet file:")));
-		add(txtWalletFile, WITH_BUTTON);
-		add(LethenonSwing.button("btnBrowseWalletFile", "...",
-			event -> LethenonSwing.chooseFile(this, modelObject.getWalletFile())
-				.ifPresent(txtWalletFile::setText),
-			text("lethenon.input.tooltip.browse.wallet.file", "pick your wallet file on your disk")),
-			OWN_WIDTH);
+		walletRow.addTo(this);
 		add(new JLabel(text("lethenon.input.label.password", "Password:")));
 		add(txtPassword, ToolForm.FIELD);
 		add(new JLabel(text("lethenon.send.label.suite", "Pay from:")));
@@ -501,6 +623,7 @@ public class LethenonSendPanel extends JPanel
 
 	private void setResult(final String text)
 	{
+		failureView.clear();
 		modelObject.setResultText(text);
 		lblResult.setText(text);
 	}

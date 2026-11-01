@@ -28,6 +28,7 @@ import java.awt.Font;
 import java.io.IOException;
 import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
@@ -118,6 +119,9 @@ public class LethenonSyncPanel extends JPanel
 
 	private final JLabel lblResult = new JLabel(" ");
 
+	/** Where a failure shows, in the pattern of draft 07 (#710, #712) */
+	private final transient FailureView failureView;
+
 	private final JButton btnSync = LethenonSwing.button("btnSync",
 		text("lethenon.sync.button.sync", "Bring my chain up to date"), event -> onSync(),
 		text("lethenon.sync.tooltip.sync",
@@ -152,7 +156,10 @@ public class LethenonSyncPanel extends JPanel
 		explainTheComponents();
 		bindToTheModel();
 		layOutTheInputs();
+		int answerStarts = getComponentCount();
 		layOutTheAnswer();
+		failureView = FailureView.below(this,
+			List.of(getComponents()).subList(answerStarts, getComponentCount()), locale);
 		add(lblResult, ToolForm.RESULT_LINE);
 		pnlDetails.setVisible(false);
 		txtChainFile.setText(LethenonSettingsContribution.chainFile());
@@ -184,7 +191,7 @@ public class LethenonSyncPanel extends JPanel
 		}
 		catch (InvalidPathException notAPath)
 		{
-			showFailure(failure() + ": " + notAPath.getMessage());
+			showFailure(failure() + ": " + notAPath.getMessage(), notAPath);
 			return;
 		}
 		if (!convertedIfAgreed(chainFile))
@@ -194,7 +201,7 @@ public class LethenonSyncPanel extends JPanel
 		String node = modelObject.getNode();
 		String proxy = modelObject.getProxy();
 		setSynchronising(true);
-		showFailure(text("lethenon.sync.result.running",
+		showStatus(text("lethenon.sync.result.running",
 			"getting the blocks from the node; every block is checked here"));
 		new SwingWorker<SyncSupport.SyncedFrom, Void>()
 		{
@@ -227,11 +234,11 @@ public class LethenonSyncPanel extends JPanel
 			{
 				return true;
 			}
-			showFailure(failure() + ": " + ChainConversion.notConverted());
+			showStatus(failure() + ": " + ChainConversion.notConverted());
 		}
 		catch (ChainRejected | IllegalArgumentException | IOException refused)
 		{
-			showFailure(failure() + ": " + refused.getMessage());
+			showFailure(failure() + ": " + refused.getMessage(), refused);
 		}
 		return false;
 	}
@@ -251,13 +258,14 @@ public class LethenonSyncPanel extends JPanel
 		}
 		catch (ExecutionException failed)
 		{
-			showFailure(failure() + ": " + reasonOf(failed.getCause()));
+			showFailure(failure() + ": " + reasonOf(failed.getCause()), failed.getCause());
 		}
 		catch (InterruptedException interrupted)
 		{
 			Thread.currentThread().interrupt();
-			showFailure(failure() + ": " + text("lethenon.sync.result.interrupted",
-				"the sync was interrupted; start it again"));
+			String reason = text("lethenon.sync.result.interrupted",
+				"the sync was interrupted; start it again");
+			showFailure(failure() + ": " + reason, new IllegalStateException(reason));
 		}
 		finally
 		{
@@ -353,7 +361,24 @@ public class LethenonSyncPanel extends JPanel
 		showTheModel();
 	}
 
-	private void showFailure(final String result)
+	/**
+	 * Shows a failure in the pattern of draft 07 (#712): the cause and what to do, the reason under
+	 * the details, the answer hidden; the status line does not repeat it, the model keeps the whole
+	 * line for whoever reads the state
+	 */
+	private void showFailure(final String result, final Throwable thrown)
+	{
+		modelObject.clearAnswer();
+		showTheModel();
+		modelObject.setResultText(result);
+		lblResult.setText(" ");
+		failureView.show(Failures.of(thrown, new Refusal("lethenon.sync.failure", "The chain was not synchronised."), locale));
+	}
+
+	/**
+	 * Shows what the person decided or what is under way: no failure, so the status line says it
+	 */
+	private void showStatus(final String result)
 	{
 		modelObject.clearAnswer();
 		showTheModel();
@@ -457,6 +482,7 @@ public class LethenonSyncPanel extends JPanel
 
 	private void setResult(final String text)
 	{
+		failureView.clear();
 		modelObject.setResultText(text);
 		lblResult.setText(text);
 	}

@@ -132,8 +132,7 @@ public final class ChainReplaySupport
 		}
 		if (!Files.isRegularFile(chainFile))
 		{
-			throw new IllegalArgumentException("there is no chain file at "
-				+ chainFile.toAbsolutePath() + "; a chain starts when its genesis block is mined");
+			throw new NoChainFile(chainFile);
 		}
 		if (Files.size(chainFile) == 0)
 		{

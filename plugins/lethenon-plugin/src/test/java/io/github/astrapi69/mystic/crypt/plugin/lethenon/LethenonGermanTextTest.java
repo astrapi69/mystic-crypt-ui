@@ -84,7 +84,7 @@ class LethenonGermanTextTest
 		Set<String> german = read("/lethenon/messages_de.properties").stringPropertyNames();
 		List<String> viewKeys = english.stringPropertyNames().stream()
 			.filter(key -> key.startsWith(LaunchChecklist.KEY_PREFIX)
-				|| key.equals(LethenonMenuContribution.BEFORE_YOU_START_KEY))
+				|| key.equals(LethenonMenuContribution.FOR_OPERATORS_KEY))
 			.sorted().toList();
 
 		assertFalse(viewKeys.isEmpty(), "the English file has the view's text");
@@ -105,10 +105,13 @@ class LethenonGermanTextTest
 			Arguments.of("Sweep", List.of("lethenon.sweep.")),
 			Arguments.of("Synchronise with a Node", List.of("lethenon.sync.")),
 			Arguments.of("Verify a Chain", List.of("lethenon.verify.")),
+			Arguments.of("Show the Chain, where it fails (#712)", List.of("lethenon.show.chain.")),
 			Arguments.of("Run a Node", List.of("lethenon.node.")),
-			Arguments.of("Wallet", List.of("lethenon.wallet.", "lethenon.backup.", LethenonMenuContribution.WALLET_KEY)),
+			Arguments.of("Wallet", List.of("lethenon.wallet.", "lethenon.backup.", "lethenon.network.", LethenonMenuContribution.WALLET_KEY)),
+			Arguments.of("the menu", List.of("lethenon.menu.")),
+			Arguments.of("the address warning (#716)", List.of("lethenon.address.mismatch.")),
 			Arguments.of("what every window answers with",
-				List.of("lethenon.answer.", "lethenon.input.", "lethenon.wallet.",
+				List.of("lethenon.answer.", "lethenon.input.", "lethenon.wallet.", "lethenon.failure.",
 					"lethenon.value.")));
 	}
 

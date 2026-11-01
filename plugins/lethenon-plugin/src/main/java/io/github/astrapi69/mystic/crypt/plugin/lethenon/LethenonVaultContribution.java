@@ -55,6 +55,7 @@ public class LethenonVaultContribution implements VaultAccessContribution
 	public void connect(final VaultAccess access)
 	{
 		LethenonVault.current().connect(access);
+		LethenonVault.current().askWhenTheAddressDiffers(AddressMismatchQuestion.ASK);
 	}
 
 	@Override

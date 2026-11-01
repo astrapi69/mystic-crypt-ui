@@ -86,26 +86,43 @@ public final class SweepSupport
 	{
 		try
 		{
-			Amount fee = order.fee().isBlank() ? Amount.ZERO : Amount.parseLeth(order.fee().trim());
-			Wallet wallet = LethenonWallets.open(order.walletFile(), password);
-			List<BlockBody> chain = ChainReplaySupport.replayed(order.chainFile()).chain();
-			ChainFile chainFile = new ChainFile(order.chainFile());
-			List<SignedTransaction> waiting = new ArrayList<>(chainFile.readPending());
-			List<SignedTransaction> sweep = Sweeps.prepare(wallet, chain, waiting, fee,
-				order.memo());
-			String account = wallet.spendKey(SignatureSuite.ED25519).toString();
-			if (sweep.isEmpty())
-			{
-				return new SweptPayments(0, Amount.ZERO, account, waiting.size());
-			}
-			waiting.addAll(sweep);
-			chainFile.writePending(waiting);
-			return new SweptPayments(sweep.size(), totalOf(sweep), account, waiting.size());
+			return sweep(order, () -> LethenonWallets.open(order.walletFile(), password));
 		}
 		finally
 		{
 			Arrays.fill(password, '\0');
 		}
+	}
+
+	/**
+	 * Sweeps with the wallet a source opens, after the fee was read (#706)
+	 *
+	 * @param order
+	 *            what to sweep; its wallet file is not read
+	 * @param source
+	 *            where the wallet comes from
+	 * @return what was swept
+	 * @throws IOException
+	 *             if the chain or the wallet cannot be read
+	 */
+	static SweptPayments sweep(final SweepOrder order, final WalletSource source)
+		throws IOException
+	{
+		Amount fee = order.fee().isBlank() ? Amount.ZERO : Amount.parseLeth(order.fee().trim());
+		Wallet wallet = source.open();
+		List<BlockBody> chain = ChainReplaySupport.replayed(order.chainFile()).chain();
+		ChainFile chainFile = new ChainFile(order.chainFile());
+		List<SignedTransaction> waiting = new ArrayList<>(chainFile.readPending());
+		List<SignedTransaction> sweep = Sweeps.prepare(wallet, chain, waiting, fee,
+			order.memo());
+		String account = wallet.spendKey(SignatureSuite.ED25519).toString();
+		if (sweep.isEmpty())
+		{
+			return new SweptPayments(0, Amount.ZERO, account, waiting.size());
+		}
+		waiting.addAll(sweep);
+		chainFile.writePending(waiting);
+		return new SweptPayments(sweep.size(), totalOf(sweep), account, waiting.size());
 	}
 
 	private static Amount totalOf(final List<SignedTransaction> sweep)

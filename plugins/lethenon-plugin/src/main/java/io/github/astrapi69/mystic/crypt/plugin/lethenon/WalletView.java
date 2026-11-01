@@ -50,5 +50,8 @@ public enum WalletView
 	TAKE_OVER,
 
 	/** the form for restoring a wallet from its 24 words */
-	RESTORE
+	RESTORE,
+
+	/** the wallet password for the check of the one-time payments to the address */
+	INCOMING
 }

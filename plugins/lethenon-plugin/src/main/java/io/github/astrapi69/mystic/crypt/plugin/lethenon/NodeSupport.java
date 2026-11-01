@@ -77,20 +77,38 @@ public final class NodeSupport
 	{
 		try
 		{
-			ChainReplaySupport.replayed(order.chainFile());
-			int port = portOf(order.port());
-			List<PeerAddress> peers = peersOf(order.peers());
-			Bytes beneficiary = order.mine()
-				? LethenonWallets.open(order.walletFile(), password)
-					.spendKey(SignatureSuite.ED25519)
-				: null;
-			return started(new ChainFile(order.chainFile()), port, peers, beneficiary,
-				order.pun());
+			return startWith(order, () -> LethenonWallets.open(order.walletFile(), password));
 		}
 		finally
 		{
 			wipe(password);
 		}
+	}
+
+	/**
+	 * Starts the node; when it mines, its reward goes to the wallet a source opens, opened only
+	 * after the chain, the port and the peers were checked (#706)
+	 *
+	 * @param order
+	 *            what to run; its wallet file is not read
+	 * @param source
+	 *            where the wallet for the reward comes from, opened only when the node mines
+	 * @return the running node
+	 * @throws IOException
+	 *             if the chain or the wallet cannot be read
+	 */
+	static RunningNode startWith(final NodeOrder order, final WalletSource source)
+		throws IOException
+	{
+		ChainReplaySupport.replayed(order.chainFile());
+		int port = portOf(order.port());
+		List<PeerAddress> peers = peersOf(order.peers());
+		Bytes beneficiary = order.mine()
+			? source.open()
+				.spendKey(SignatureSuite.ED25519)
+			: null;
+		return started(new ChainFile(order.chainFile()), port, peers, beneficiary,
+			order.pun());
 	}
 
 	/**

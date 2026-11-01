@@ -41,6 +41,12 @@ final class WalletEntry
 	/** The address the wallet had when the entry was made, a plain property, for the backup check */
 	static final String ADDRESS = "lethenon.address";
 
+	/**
+	 * The public key of the wallet's ML-DSA-65 account, a plain property: with the address it gives
+	 * the balance of both accounts without the wallet password (#700)
+	 */
+	static final String ACCOUNT_ML_DSA = "lethenon.account.ml-dsa-65";
+
 	private final Map<String, Property> properties = new LinkedHashMap<>();
 
 	private byte[] sealed;

@@ -30,6 +30,8 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
@@ -111,7 +113,14 @@ public class LethenonMinePanel extends JPanel
 
 	private final JMTextField txtPun = new JMTextField(34);
 
-	private final Locale locale = Locale.getDefault();
+	/**
+	 * The language of the window; the field initializers below read it, so it has its value before
+	 * the constructor sets the one it was given
+	 */
+	private Locale locale = Locale.getDefault();
+
+	/** The wallet the window signs with: the vault's, or a wallet file (#706) */
+	private final transient WalletRow walletRow;
 
 	private final JMTextArea txtAnswer = AnswerFields.answerArea(text("lethenon.mine.tooltip.answer",
 		"what your block did, in one sentence; the details are below"));
@@ -156,6 +165,9 @@ public class LethenonMinePanel extends JPanel
 
 	private final JLabel lblResult = new JLabel(" ");
 
+	/** Where a failure shows, in the pattern of draft 07 (#710) */
+	private final transient FailureView failureView;
+
 	/**
 	 * Instantiates a new {@link LethenonMinePanel}, prefilled with the chain file from the plugin's
 	 * settings and lethenon's default pun
@@ -174,8 +186,28 @@ public class LethenonMinePanel extends JPanel
 	 */
 	LethenonMinePanel(final ChainConversionConsent consent)
 	{
+		this(consent, LethenonVault.current(), Locale.getDefault());
+	}
+
+	/**
+	 * Instantiates a new {@link LethenonMinePanel} over the given vault
+	 *
+	 * @param consent
+	 *            whom to ask before a chain file is converted
+	 * @param vault
+	 *            the plugin's view of the vault; its wallet is the one signed with
+	 * @param locale
+	 *            the language of the window
+	 */
+	LethenonMinePanel(final ChainConversionConsent consent, final LethenonVault vault,
+		final Locale locale)
+	{
 		super(ToolForm.newLayout());
 		this.consent = consent;
+		this.locale = locale;
+		walletRow = new WalletRow(vault, locale, txtWalletFile,
+			() -> LethenonSwing.chooseFile(this, modelObject.getWalletFile())
+				.ifPresent(txtWalletFile::setText));
 		btnDetails = LethenonSwing.button("btnDetails",
 			AnswerFields.detailsButtonText(false, locale), event -> onDetails(),
 			text("lethenon.mine.tooltip.details",
@@ -185,7 +217,10 @@ public class LethenonMinePanel extends JPanel
 		explainTheComponents();
 		bindToTheModel();
 		layOutTheInputs();
+		int answerStarts = getComponentCount();
 		layOutTheAnswer();
+		failureView = FailureView.below(this,
+			List.of(getComponents()).subList(answerStarts, getComponentCount()), locale);
 		add(lblResult, ToolForm.RESULT_LINE);
 		pnlDetails.setVisible(false);
 		followTheChainFile();
@@ -217,14 +252,22 @@ public class LethenonMinePanel extends JPanel
 			Path chainFile = Path.of(modelObject.getChainFile().trim());
 			if (!ChainConversion.convertedIfAgreed(this, consent, chainFile))
 			{
-				showFailure(failure + ": " + ChainConversion.notConverted());
+				showStatus(failure + ": " + ChainConversion.notConverted());
 				return;
 			}
-			MinedBlock mined = MiningSupport.mine(
-				new MiningOrder(chainFile,
-					Path.of(modelObject.getWalletFile().trim()), modelObject.getChainKind(),
-					modelObject.getPun(), ATTEMPTS),
-				modelObject.getPassword(), System.currentTimeMillis());
+			char[] password = modelObject.getPassword();
+			Path walletFile = Path.of(modelObject.getWalletFile().trim());
+			MinedBlock mined;
+			try
+			{
+				mined = MiningSupport.mine(new MiningOrder(chainFile, walletFile,
+					modelObject.getChainKind(), modelObject.getPun(), ATTEMPTS),
+					walletRow.source(password, walletFile), System.currentTimeMillis());
+			}
+			finally
+			{
+				Arrays.fill(password, '\0');
+			}
 			LethenonSettingsContribution.remember(Map.of(LethenonSettingsContribution.KEY_CHAIN_FILE,
 				chainFile.toString(), LethenonSettingsContribution.KEY_WALLET_FILE,
 				modelObject.getWalletFile().trim()));
@@ -234,11 +277,11 @@ public class LethenonMinePanel extends JPanel
 		}
 		catch (ChainRejected | IllegalArgumentException | IllegalStateException refused)
 		{
-			showFailure(failure + ": " + refused.getMessage());
+			showFailure(failure + ": " + refused.getMessage(), refused);
 		}
 		catch (IOException unwritable)
 		{
-			showFailure(failure + ": " + unwritable.getMessage());
+			showFailure(failure + ": " + unwritable.getMessage(), unwritable);
 		}
 		finally
 		{
@@ -303,11 +346,28 @@ public class LethenonMinePanel extends JPanel
 		showTheModel();
 	}
 
-	private void showFailure(final String result)
+	/**
+	 * Shows what the person decided or what is under way: no failure, so the status line says it
+	 */
+	private void showStatus(final String result)
 	{
 		modelObject.clearAnswer();
 		showTheModel();
 		setResult(result);
+	}
+
+	/**
+	 * Shows a failure in the pattern of draft 07 (#710): the cause and what to do, the reason under
+	 * the details, the answer hidden; the status line does not repeat it, the model keeps the whole
+	 * line for whoever reads the state
+	 */
+	private void showFailure(final String result, final Throwable thrown)
+	{
+		modelObject.clearAnswer();
+		showTheModel();
+		modelObject.setResultText(result);
+		lblResult.setText(" ");
+		failureView.show(Failures.of(thrown, new Refusal("lethenon.mine.failure", "No block was mined."), locale));
 	}
 
 	/** Puts what the model holds into the read-only fields */
@@ -389,13 +449,7 @@ public class LethenonMinePanel extends JPanel
 				.ifPresent(txtChainFile::setText),
 			text("lethenon.input.tooltip.browse.chain.file", "pick the chain file on your disk")),
 			OWN_WIDTH);
-		add(new JLabel(text("lethenon.input.label.wallet.file", "Wallet file:")));
-		add(txtWalletFile, WITH_BUTTON);
-		add(LethenonSwing.button("btnBrowseWalletFile", "...",
-			event -> LethenonSwing.chooseFile(this, modelObject.getWalletFile())
-				.ifPresent(txtWalletFile::setText),
-			text("lethenon.input.tooltip.browse.wallet.file", "pick your wallet file on your disk")),
-			OWN_WIDTH);
+		walletRow.addTo(this);
 		add(new JLabel(text("lethenon.input.label.password", "Password:")));
 		add(txtPassword, ToolForm.FIELD);
 		add(pnlBeforeYouStart, WIDE_HIDDEN_WITHOUT_ROOM);
@@ -521,7 +575,15 @@ public class LethenonMinePanel extends JPanel
 
 	private void setResult(final String text)
 	{
+		failureView.clear();
 		modelObject.setResultText(text);
 		lblResult.setText(text);
+	}
+
+	@Override
+	public void removeNotify()
+	{
+		walletRow.stop();
+		super.removeNotify();
 	}
 }

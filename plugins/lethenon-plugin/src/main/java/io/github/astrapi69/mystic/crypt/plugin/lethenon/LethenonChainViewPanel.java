@@ -28,6 +28,7 @@ import java.awt.Font;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 import javax.swing.JLabel;
@@ -71,6 +72,9 @@ public class LethenonChainViewPanel extends JPanel
 	private final JTable tblBlocks = new JTable(tableModel);
 
 	private final JLabel lblResult = new JLabel(" ");
+
+	/** Where a failure shows, in the pattern of draft 07 (#710, #712) */
+	private final transient FailureView failureView;
 
 	/**
 	 * Instantiates a new {@link LethenonChainViewPanel}, prefilled with the chain file from the
@@ -117,7 +121,9 @@ public class LethenonChainViewPanel extends JPanel
 			event -> onShow(), LethenonMessages.getString("lethenon.tooltip.show.blocks",
 				"replay the chain and list its blocks"))),
 			ToolForm.BUTTON_ROW);
-		add(new JScrollPane(tblBlocks), ToolForm.GROWING);
+		JScrollPane blocks = new JScrollPane(tblBlocks);
+		add(blocks, ToolForm.GROWING);
+		failureView = FailureView.below(this, List.of(blocks), Locale.getDefault());
 		add(lblResult, ToolForm.RESULT_LINE);
 
 		txtChainFile.setText(LethenonSettingsContribution.chainFile());
@@ -171,14 +177,12 @@ public class LethenonChainViewPanel extends JPanel
 		}
 		catch (ChainRejected | IllegalArgumentException refused)
 		{
-			setRows(List.of());
-			setResult(refusal + ": " + refused.getMessage());
+			showFailure(refusal + ": " + refused.getMessage(), refused);
 		}
 		catch (IOException unreadable)
 		{
-			setRows(List.of());
-			setResult(refusal + ": " + modelObject.getChainFile() + " cannot be read - "
-				+ unreadable.getMessage());
+			showFailure(refusal + ": " + modelObject.getChainFile() + " cannot be read - "
+				+ unreadable.getMessage(), unreadable);
 		}
 	}
 
@@ -188,8 +192,23 @@ public class LethenonChainViewPanel extends JPanel
 		tableModel.setData(modelObject.getRows());
 	}
 
+	/**
+	 * Shows a failure in the pattern of draft 07 (#712): no rows of an earlier chain, the cause and
+	 * what to do, the reason under the details; the model keeps the whole line
+	 */
+	private void showFailure(final String result, final Throwable thrown)
+	{
+		setRows(List.of());
+		modelObject.setResultText(result);
+		lblResult.setText(" ");
+		failureView.show(Failures.of(thrown,
+			new Refusal("lethenon.show.chain.failure", "The blocks were not listed."),
+			Locale.getDefault()));
+	}
+
 	private void setResult(final String text)
 	{
+		failureView.clear();
 		modelObject.setResultText(text);
 		lblResult.setText(text);
 	}

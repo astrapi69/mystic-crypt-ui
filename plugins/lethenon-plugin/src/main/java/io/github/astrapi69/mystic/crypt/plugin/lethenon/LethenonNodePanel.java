@@ -28,6 +28,7 @@ import java.awt.Font;
 import java.io.IOException;
 import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
@@ -97,7 +98,14 @@ public class LethenonNodePanel extends JPanel
 
 	private final JMTextField txtPeers = new JMTextField(34);
 
-	private final Locale locale = Locale.getDefault();
+	/**
+	 * The language of the window; the field initializers below read it, so it has its value before
+	 * the constructor sets the one it was given
+	 */
+	private Locale locale = Locale.getDefault();
+
+	/** The wallet the window signs with: the vault's, or a wallet file (#706) */
+	private final transient WalletRow walletRow;
 
 	private final JMCheckBox chkMine = new JMCheckBox(
 		text("lethenon.node.check.mine", "find blocks too, paid to my wallet"));
@@ -140,6 +148,9 @@ public class LethenonNodePanel extends JPanel
 
 	private final JLabel lblResult = new JLabel(" ");
 
+	/** Where a failure shows, in the pattern of draft 07 (#710, #712) */
+	private final transient FailureView failureView;
+
 	private final JButton btnStart = LethenonSwing.button("btnStartNode",
 		text("lethenon.node.button.start", "Start my node"), event -> onStart(),
 		text("lethenon.node.tooltip.start",
@@ -179,8 +190,28 @@ public class LethenonNodePanel extends JPanel
 	 */
 	LethenonNodePanel(final ChainConversionConsent consent)
 	{
+		this(consent, LethenonVault.current(), Locale.getDefault());
+	}
+
+	/**
+	 * Instantiates a new {@link LethenonNodePanel} over the given vault
+	 *
+	 * @param consent
+	 *            whom to ask before a chain file is converted
+	 * @param vault
+	 *            the plugin's view of the vault; its wallet is the one signed with
+	 * @param locale
+	 *            the language of the window
+	 */
+	LethenonNodePanel(final ChainConversionConsent consent, final LethenonVault vault,
+		final Locale locale)
+	{
 		super(ToolForm.newLayout());
 		this.consent = consent;
+		this.locale = locale;
+		walletRow = new WalletRow(vault, locale, txtWalletFile,
+			() -> LethenonSwing.chooseFile(this, modelObject.getWalletFile())
+				.ifPresent(txtWalletFile::setText));
 		btnDetails = LethenonSwing.button("btnDetails",
 			AnswerFields.detailsButtonText(false, locale), event -> onDetails(),
 			text("lethenon.node.tooltip.details", "show why connections to your node were refused"));
@@ -188,7 +219,10 @@ public class LethenonNodePanel extends JPanel
 		explainTheComponents();
 		bindToTheModel();
 		layOutTheInputs();
+		int answerStarts = getComponentCount();
 		layOutTheAnswer();
+		failureView = FailureView.below(this,
+			List.of(getComponents()).subList(answerStarts, getComponentCount()), locale);
 		add(lblResult, ToolForm.RESULT_LINE);
 		pnlDetails.setVisible(false);
 		txtChainFile.setText(LethenonSettingsContribution.chainFile());
@@ -249,7 +283,7 @@ public class LethenonNodePanel extends JPanel
 		catch (InvalidPathException notAPath)
 		{
 			NodeSupport.wipe(password);
-			showNothing(notStarted() + ": " + notAPath.getMessage());
+			showFailure(notStarted() + ": " + notAPath.getMessage(), notAPath, notStartedCause());
 			return;
 		}
 		if (!convertedIfAgreed(order.chainFile()))
@@ -258,14 +292,22 @@ public class LethenonNodePanel extends JPanel
 			return;
 		}
 		setStarting(true);
-		showNothing(text("lethenon.node.result.starting",
+		showStatus(text("lethenon.node.result.starting",
 			"starting your node; every node listed is called"));
 		new SwingWorker<RunningNode, Void>()
 		{
 			@Override
 			protected RunningNode doInBackground() throws IOException
 			{
-				return NodeSupport.start(order, password);
+				try
+				{
+					return NodeSupport.startWith(order,
+						walletRow.source(password, order.walletFile()));
+				}
+				finally
+				{
+					NodeSupport.wipe(password);
+				}
 			}
 
 			@Override
@@ -290,11 +332,11 @@ public class LethenonNodePanel extends JPanel
 			{
 				return true;
 			}
-			showNothing(notStarted() + ": " + ChainConversion.notConverted());
+			showStatus(notStarted() + ": " + ChainConversion.notConverted());
 		}
 		catch (ChainRejected | IllegalArgumentException | IOException refused)
 		{
-			showNothing(notStarted() + ": " + refused.getMessage());
+			showFailure(notStarted() + ": " + refused.getMessage(), refused, notStartedCause());
 		}
 		return false;
 	}
@@ -354,13 +396,16 @@ public class LethenonNodePanel extends JPanel
 		}
 		catch (ExecutionException failed)
 		{
-			showNothing(notStarted() + ": " + reasonOf(failed.getCause()));
+			showFailure(notStarted() + ": " + reasonOf(failed.getCause()), failed.getCause(),
+				notStartedCause());
 		}
 		catch (InterruptedException interrupted)
 		{
 			Thread.currentThread().interrupt();
-			showNothing(notStarted() + ": " + text("lethenon.node.result.interrupted",
-				"the start was interrupted; start it again"));
+			String reason = text("lethenon.node.result.interrupted",
+				"the start was interrupted; start it again");
+			showFailure(notStarted() + ": " + reason, new IllegalStateException(reason),
+				notStartedCause());
 		}
 		finally
 		{
@@ -377,7 +422,8 @@ public class LethenonNodePanel extends JPanel
 		}
 		catch (ExecutionException failed)
 		{
-			setResult(stopFailed() + ": " + reasonOf(failed.getCause()));
+			showFailure(stopFailed() + ": " + reasonOf(failed.getCause()), failed.getCause(),
+				new Refusal("lethenon.node.failure.stop", "The node did not stop."));
 		}
 		catch (InterruptedException interrupted)
 		{
@@ -495,7 +541,29 @@ public class LethenonNodePanel extends JPanel
 		showTheModel();
 	}
 
-	private void showNothing(final String result)
+	/**
+	 * Shows a failure in the pattern of draft 07 (#712): the cause and what to do, the reason under
+	 * the details, the answer hidden; the status line does not repeat it, the model keeps the whole
+	 * line for whoever reads the state
+	 */
+	private void showFailure(final String result, final Throwable thrown, final Refusal windowCause)
+	{
+		modelObject.clearAnswer();
+		showTheModel();
+		modelObject.setResultText(result);
+		lblResult.setText(" ");
+		failureView.show(Failures.of(thrown, windowCause, locale));
+	}
+
+	private static Refusal notStartedCause()
+	{
+		return new Refusal("lethenon.node.failure", "The node did not start.");
+	}
+
+	/**
+	 * Shows what the person decided or what is under way: no failure, so the status line says it
+	 */
+	private void showStatus(final String result)
 	{
 		modelObject.clearAnswer();
 		showTheModel();
@@ -629,13 +697,7 @@ public class LethenonNodePanel extends JPanel
 		add(txtPeers, ToolForm.FIELD);
 		add(new JLabel(text("lethenon.node.label.mining", "Blocks:")));
 		add(chkMine, OWN_WIDTH);
-		add(new JLabel(text("lethenon.input.label.wallet.file", "Wallet file:")));
-		add(txtWalletFile, WITH_BUTTON);
-		add(LethenonSwing.button("btnBrowseWalletFile", "...",
-			event -> LethenonSwing.chooseFile(this, modelObject.getWalletFile())
-				.ifPresent(txtWalletFile::setText),
-			text("lethenon.input.tooltip.browse.wallet.file", "pick your wallet file on your disk")),
-			OWN_WIDTH);
+		walletRow.addTo(this);
 		add(new JLabel(text("lethenon.input.label.password", "Password:")));
 		add(txtPassword, ToolForm.FIELD);
 		add(new JLabel(text("lethenon.node.label.pun", "Your pun:")));
@@ -672,7 +734,7 @@ public class LethenonNodePanel extends JPanel
 		btnStart.setEnabled(idle);
 		btnStop.setEnabled(modelObject.isRunning());
 		boolean mining = idle && modelObject.isMine();
-		txtWalletFile.setEnabled(mining);
+		walletRow.setEnabled(mining);
 		txtPassword.setEnabled(mining);
 		txtPun.setEnabled(mining);
 		txtChainFile.setEnabled(idle);
@@ -695,7 +757,15 @@ public class LethenonNodePanel extends JPanel
 
 	private void setResult(final String text)
 	{
+		failureView.clear();
 		modelObject.setResultText(text);
 		lblResult.setText(text);
+	}
+
+	@Override
+	public void removeNotify()
+	{
+		walletRow.stop();
+		super.removeNotify();
 	}
 }

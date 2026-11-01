@@ -27,6 +27,7 @@ package io.github.astrapi69.mystic.crypt.plugin.lethenon;
 import java.awt.Font;
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
@@ -104,6 +105,9 @@ public class LethenonChainPanel extends JPanel
 
 	private final JLabel lblResult = new JLabel(" ");
 
+	/** Where a failure shows, in the pattern of draft 07 (#710, #712) */
+	private final transient FailureView failureView;
+
 	/**
 	 * Instantiates a new {@link LethenonChainPanel}, prefilled with the chain file from the
 	 * plugin's settings
@@ -131,7 +135,10 @@ public class LethenonChainPanel extends JPanel
 		nameAndExplainTheComponents();
 		bindToTheModel();
 		layOutTheInputs();
+		int answerStarts = getComponentCount();
 		layOutTheAnswer();
+		failureView = FailureView.below(this,
+			List.of(getComponents()).subList(answerStarts, getComponentCount()), locale);
 		add(lblResult, ToolForm.RESULT_LINE);
 		pnlDetails.setVisible(false);
 		txtChainFile.setText(LethenonSettingsContribution.chainFile());
@@ -171,13 +178,13 @@ public class LethenonChainPanel extends JPanel
 		}
 		catch (ChainRejected | IllegalArgumentException rejected)
 		{
-			showNothing(refused + ": " + rejected.getMessage(), notInOrder());
+			showFailure(refused + ": " + rejected.getMessage(), rejected);
 		}
 		catch (IOException unreadable)
 		{
-			showNothing(refused + ": " + LethenonMessages.format("lethenon.verify.unreadable",
+			showFailure(refused + ": " + LethenonMessages.format("lethenon.verify.unreadable",
 				"{0} cannot be read - {1}", locale, modelObject.getChainFile(),
-				unreadable.getMessage()), notInOrder());
+				unreadable.getMessage()), unreadable);
 		}
 	}
 
@@ -216,6 +223,22 @@ public class LethenonChainPanel extends JPanel
 	{
 		return text("lethenon.verify.answer.refused",
 			"This chain is not in order, so nothing in it can be trusted. The line below says why.");
+	}
+
+	/**
+	 * Shows a failure in the pattern of draft 07 (#712): the cause and what to do, the reason under
+	 * the details, the answer hidden; the model still says the chain is not in order, and keeps the
+	 * whole line for whoever reads the state
+	 */
+	private void showFailure(final String result, final Throwable thrown)
+	{
+		modelObject.clearAnswer();
+		modelObject.setAnswer(notInOrder());
+		showTheModel();
+		modelObject.setResultText(result);
+		lblResult.setText(" ");
+		failureView.show(Failures.of(thrown,
+			new Refusal("lethenon.verify.failure", "The chain was not checked."), locale));
 	}
 
 	private void showNothing(final String result, final String answer)
@@ -306,6 +329,7 @@ public class LethenonChainPanel extends JPanel
 
 	private void setResult(final String text)
 	{
+		failureView.clear();
 		modelObject.setResultText(text);
 		lblResult.setText(text);
 	}

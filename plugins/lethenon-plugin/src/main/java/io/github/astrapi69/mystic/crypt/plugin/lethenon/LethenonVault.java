@@ -27,11 +27,15 @@ package io.github.astrapi69.mystic.crypt.plugin.lethenon;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.time.LocalDate;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.Consumer;
 
+import io.github.astrapi69.lethenon.Wallet;
+import io.github.astrapi69.lethenon.WalletScan;
 import io.github.astrapi69.mystic.crypt.panel.dbtree.MysticCryptEntryModelBean;
 import io.github.astrapi69.mystic.crypt.plugin.api.VaultAccess;
 import io.github.astrapi69.mystic.crypt.plugin.api.VaultAccessRefusedException;
@@ -46,7 +50,14 @@ final class LethenonVault
 
 	private static final LethenonVault CURRENT = new LethenonVault();
 
+	private volatile AddressMismatchQuestion addressQuestion = AddressMismatchQuestion.NOBODY;
+
 	private final List<Runnable> closingListeners = new CopyOnWriteArrayList<>();
+
+	private final List<Consumer<Optional<VaultWallet>>> walletListeners = new CopyOnWriteArrayList<>();
+
+	/** The wallet the overview shows: the session's wallet, which every window follows (#697) */
+	private volatile VaultWallet chosen;
 
 	private volatile VaultAccess access;
 
@@ -184,7 +195,95 @@ final class LethenonVault
 	 */
 	UnsealedWallet open(final UUID id, final char[] password)
 	{
-		return WalletVault.unseal(VaultWalletEntry.read(entryOf(requireAccess(), id)), password);
+		WalletEntry entry = VaultWalletEntry.read(entryOf(requireAccess(), id));
+		UnsealedWallet unsealed = WalletVault.unseal(entry, password);
+		unsealed.addressMismatch().ifPresent(mismatch -> answer(id, mismatch));
+		if (!entry.hasProperty(WalletEntry.ACCOUNT_ML_DSA))
+		{
+			// an entry from before #700: the public key it lacks is added now that the wallet is open
+			String key = WalletVault.mlDsaAccountOf(unsealed.wallet());
+			change(id, wallet -> wallet.setProperty(WalletEntry.ACCOUNT_ML_DSA, key.toCharArray(),
+				false));
+		}
+		return unsealed;
+	}
+
+	/**
+	 * Replaces the address an entry records with the address of the wallet in its attachment, after
+	 * the person confirmed it (#716, T6a), and tells the windows when it is the session's wallet
+	 *
+	 * @param id
+	 *            the wallet's entry identifier
+	 * @param mismatch
+	 *            the two addresses the person was shown
+	 * @throws IllegalStateException
+	 *             when the entry no longer records the address that was shown; nothing is replaced
+	 */
+	void useTheWalletsAddress(final UUID id, final AddressMismatch mismatch)
+	{
+		change(id, wallet -> {
+			if (!mismatch.recorded().equals(wallet.addressForCheck()))
+			{
+				throw new IllegalStateException("the entry no longer records " + mismatch.recorded()
+					+ " but " + wallet.addressForCheck() + "; nothing was replaced");
+			}
+			wallet.setProperty(WalletEntry.ADDRESS, mismatch.actual().toCharArray(), false);
+		});
+		if (chosen().filter(wallet -> wallet.id().equals(id)).isPresent())
+		{
+			choose(listed(entryOf(requireAccess(), id)));
+		}
+	}
+
+	/**
+	 * Sets who is asked when an entry's address is not its wallet's (#716); without it nothing is
+	 * changed
+	 *
+	 * @param question
+	 *            the question, with the dialogs of T6 and T6a in the application
+	 */
+	void askWhenTheAddressDiffers(final AddressMismatchQuestion question)
+	{
+		addressQuestion = question;
+	}
+
+	private void answer(final UUID id, final AddressMismatch mismatch)
+	{
+		if (addressQuestion.ask(mismatch) == AddressMismatchQuestion.Answer.REPLACE)
+		{
+			useTheWalletsAddress(id, mismatch);
+		}
+	}
+
+	/**
+	 * The one-time payments to the wallet's address, found with its private view key: the wallet is
+	 * unsealed in memory for this scan only and nothing of it is kept
+	 *
+	 * @param id
+	 *            the wallet's entry identifier
+	 * @param password
+	 *            the wallet password; overwritten when the scan is done
+	 * @param chainFile
+	 *            the chain to scan
+	 * @return how many payments came and what they add up to
+	 * @throws IOException
+	 *             if the chain cannot be read
+	 */
+	IncomingPayments incomingPayments(final UUID id, final char[] password, final Path chainFile)
+		throws IOException
+	{
+		try
+		{
+			Wallet wallet = open(id, password).wallet();
+			ChainReplaySupport.Replayed replayed = ChainReplaySupport.replayed(chainFile);
+			WalletScan scan = WalletScan.over(replayed.chain(), wallet.address(),
+				wallet.viewKeyPair().getPrivate());
+			return new IncomingPayments(scan.received().size(), scan.balance());
+		}
+		finally
+		{
+			Arrays.fill(password, '\0');
+		}
 	}
 
 	/**
@@ -283,6 +382,39 @@ final class LethenonVault
 	}
 
 	/**
+	 * Makes a wallet the session's wallet and tells every window
+	 *
+	 * @param wallet
+	 *            the wallet the overview shows
+	 */
+	void choose(final VaultWallet wallet)
+	{
+		chosen = wallet;
+		walletListeners.forEach(listener -> listener.accept(Optional.ofNullable(wallet)));
+	}
+
+	/**
+	 * @return the session's wallet, empty while the overview shows none
+	 */
+	Optional<VaultWallet> chosen()
+	{
+		return Optional.ofNullable(chosen);
+	}
+
+	/**
+	 * Registers what a window does when the session's wallet changes
+	 *
+	 * @param listener
+	 *            told the new wallet, or empty when there is none
+	 * @return what takes the listener away again, for a window that closes
+	 */
+	Runnable whenTheWalletChanges(final Consumer<Optional<VaultWallet>> listener)
+	{
+		walletListeners.add(listener);
+		return () -> walletListeners.remove(listener);
+	}
+
+	/**
 	 * Registers what a window does when the vault is about to lock or close
 	 *
 	 * @param listener
@@ -297,6 +429,7 @@ final class LethenonVault
 	void vaultClosing()
 	{
 		closingListeners.forEach(Runnable::run);
+		choose(null);
 	}
 
 	private VaultAccess requireAccess()
@@ -344,6 +477,10 @@ final class LethenonVault
 			? wallet.textOf(WalletEntry.NETWORK)
 			: "";
 		String title = entry.getTitle() == null ? "" : new String(entry.getTitle());
-		return new VaultWallet(entry.getId(), title, network, wallet.addressForCheck());
+		String mlDsaAccount = wallet.hasProperty(WalletEntry.ACCOUNT_ML_DSA)
+			? wallet.textOf(WalletEntry.ACCOUNT_ML_DSA)
+			: "";
+		return new VaultWallet(entry.getId(), title, network, wallet.addressForCheck(),
+			mlDsaAccount);
 	}
 }
