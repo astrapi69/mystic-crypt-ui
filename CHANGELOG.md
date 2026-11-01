@@ -34,6 +34,12 @@ ADDED:
   certificate alone. The plugin brings no library of its own: Bouncy Castle's OpenPGP module comes with mystic-crypt
 
 CHANGED:
+- the application ships silly-io 4.0 and file-worker 20.0 (#720), with their data-loss fixes: a dot in a directory name
+  such as `~/.cache` or `~/.config` is no longer taken for an extension, so a renamed file keeps its directory
+  (astrapi69/silly-io#9, astrapi69/file-worker#37), binary files are copied byte for byte, and a copy onto the file
+  itself is refused (astrapi69/file-worker#45, #73). The application calls none of these methods itself; floors in
+  `RuntimeDependenciesTest` hold the versions, and tests run the vault and the configuration directory below a
+  directory with a dot in its name
 - the installer's information page is a page of its own, written for installing (#640): the Java it needs, what is
   installed where (the application, the desktop entry, the command-line tool, the plugins), what to do before an
   update, and where to read more. It used to show the project's README as raw Markdown. The page is also what goes
