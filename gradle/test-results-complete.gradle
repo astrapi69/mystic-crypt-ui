@@ -14,15 +14,25 @@
 //
 //     ext.testClassesWithoutResult = ['org.example.SomeTest': 'every test has enabled = false (#12)']
 //
-// set before this file is applied.
+// set anywhere in the build script.
 //
-// The logic stays inside doLast, without a reference to this script, so that the configuration cache can store it.
-def declaredWithoutResult = (project.findProperty('testClassesWithoutResult') ?: [:]) as Map<String, String>
+// The logic stays inside doLast, without a reference to this script or to the project, so that the configuration
+// cache can store it. What the build may still change after this file is applied - the classes directories (a task
+// registered with its own source set sets them in its register block, after configureEach ran), the declared
+// classes - reaches doLast as a lazy file collection and a provider, resolved when the task graph is complete.
 tasks.withType(Test).configureEach { Test testTask ->
-    def candidates = testTask.candidateClassFiles
+    def classesDirs = project.files({ testTask.testClassesDirs })
     def resultsDir = testTask.reports.junitXml.outputLocation
-    def declared = new TreeMap<String, String>(declaredWithoutResult)
+    def declaredProvider = project.provider {
+        new TreeMap<String, String>((project.findProperty('testClassesWithoutResult') ?: [:]) as Map<String, String>)
+    }
     testTask.doLast { Test task ->
+        def declared = declaredProvider.get()
+        // the classes the task itself would run: its classes directories, narrowed by its include and exclude patterns
+        def candidates = classesDirs.asFileTree.matching { PatternFilterable patterns ->
+            patterns.include(task.includes)
+            patterns.exclude(task.excludes)
+        }
         // a run narrowed on the command line, or by a pattern that names a method, is not checked; a class pattern
         // the build sets (a guard such as includeTestsMatching 'org.example.*') narrows the expected classes instead
         def filter = task.filter
