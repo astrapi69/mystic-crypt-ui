@@ -77,6 +77,8 @@ When unclear: ask rather than guess.
   commit body as `Co-Author-Exception: <reason>`. Enforced by `make install-hooks` and by
   CI on every pull request, because the prose version was broken by 112 of the 212 commits
   that followed it (#373).
+  One project-wide statement, `AI_USAGE.md` in the profile repository, describes how the
+  projects are made; single commits and pull requests still carry no attribution line (#726).
 
 ## Function design and cohesion
 
