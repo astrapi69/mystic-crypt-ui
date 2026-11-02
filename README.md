@@ -15,6 +15,7 @@ export data to and from real KeePass `.kdbx` databases — extensible through a 
 - [Plugins](#plugins)
 - [KeePass import/export](#keepass-importexport)
 - [Installer tool](#installer-tool)
+- [How this project is made](#how-this-project-is-made)
 - [License](#license)
 - [Want to help and improve it?](#want-to-help-and-improve-it)
 - [Contacting the developer](#contacting-the-developer)
@@ -151,6 +152,13 @@ Here is the installer tool used to package the final application:
 
 For more information on creating the izpack installer, see the
 [wiki izpack section](https://github.com/astrapi69/mystic-crypt-ui/wiki/How-to-create-izpack-installer-with-gradle).
+
+## How this project is made
+
+Most of mystic-crypt-ui was written by its maintainer over many years, before there were AI tools;
+since 2026 AI agents are used as a tool to modernize, maintain and secure it, and to build new
+parts such as the wallet. What was added that way, and what the maintainer decides:
+[How my projects are made](https://github.com/astrapi69/astrapi69/blob/main/AI_USAGE.md).
 
 ## License
 
