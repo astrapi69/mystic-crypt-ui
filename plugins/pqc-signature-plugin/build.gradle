@@ -1,5 +1,9 @@
 plugins {
     id 'java'
+    // the tests run on a display of the build's own, not on the one the build was started from (#505),
+    // and a test class that leaves no result fails the build (#699): astrapi69/own-display-gradle-plugin
+    alias(libs.plugins.own.display)
+    alias(libs.plugins.test.results.complete)
 }
 
 group = 'io.github.astrapi69'
@@ -83,8 +87,6 @@ test {
     useJUnitPlatform()
 }
 
-// the tests run on a display of the build's own, not on the one the build was started from (#505)
-apply from: '../../gradle/own-display.gradle'
 // the bounds of every test JVM, the same as the host's (#580)
 apply from: '../../gradle/test-jvms.gradle'
 

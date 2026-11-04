@@ -3,7 +3,7 @@ name: Lethenon plugin on every platform
 # The lethenon plugin carries sqlite-jdbc in its zip, and with it a native library for each platform
 # the installer serves (#581). Linux x64 is measured by every build, through `make plugins`; this
 # workflow starts the plugin from its zip on the others, wherever the plugin, its build or the
-# library versions change. zipTest runs headless, on no display (gradle/own-display.gradle), which
+# library versions change. zipTest runs headless, on no display (the own-display plugin, #741), which
 # is what lets it run where there is no Xvfb.
 
 on:
@@ -11,8 +11,8 @@ on:
     branches: [ master, develop, 'hotfix/**' ]
     paths:
       - 'plugins/lethenon-plugin/**'
+      # the library versions, and the version of the own-display plugin (#741)
       - 'gradle/libs.versions.toml'
-      - 'gradle/own-display.gradle'
       - '.github/workflows/lethenon-plugin-platforms.yml'
   workflow_dispatch:
 

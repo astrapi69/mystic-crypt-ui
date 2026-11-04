@@ -40,9 +40,9 @@ jobs:
         # resolved the install below fails and names that, rather than somebody else's mirror.
         #
         # fluxbox, wmctrl, x11-utils (xdpyinfo) and iproute2 (ss, which names the listener on a
-        # display's socket, #597) are what scripts/e2e-harness.sh needs, and since #505 every test
-        # task of every build below borrows its display from that script (gradle/own-display.gradle),
-        # so nothing below runs under xvfb-run any more.
+        # display's socket, #597) are what the own-display plugin's harness needs, and since #505 every
+        # test task of every build below gets its display from it (astrapi69/own-display-gradle-plugin,
+        # #741), so nothing below runs under xvfb-run any more.
         run: |
           sudo apt-get update || echo "apt-get update reported errors; continuing to the install"
           sudo apt-get install -y xvfb fluxbox wmctrl x11-utils iproute2
@@ -66,8 +66,8 @@ jobs:
         # Eleven shipped features were verified only by whoever last ran `make plugins` locally.
         #
         # Several plugin unit tests construct Swing components. Each plugin build gets its display
-        # from scripts/e2e-harness.sh through gradle/own-display.gradle, the way the host does - so
-        # no xvfb-run here: the step proves the plugin builds bring their own (#505). Measured at
+        # from the own-display plugin, the way the host does - so no xvfb-run here: the step proves
+        # the plugin builds bring their own (#505, #741). Measured at
         # 1m24s locally for all thirteen, against a twelve-minute job (#333).
         run: make plugins
 
@@ -90,8 +90,8 @@ jobs:
         # and fails here in CI when the jar is missing rather than skipping (#402)
         run: make release-jar
       - name: Execute Gradle build
-        # No xvfb-run (#505): every test task borrows its display from scripts/e2e-harness.sh
-        # (gradle/own-display.gradle), the same way it does on a desktop, where an inherited display
+        # No xvfb-run (#505): every test task gets its display from the own-display plugin (#741),
+        # the same way it does on a desktop, where an inherited display
         # is the person's screen. The runner has no DISPLAY at all, so a green run here is evidence
         # that the build brings its own - and a build that could not get one fails, it does not let
         # the AssertJ-Swing tests skip on their headless assumption

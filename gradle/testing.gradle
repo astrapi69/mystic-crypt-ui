@@ -58,9 +58,8 @@ dependencies {
 
 def e2eSuites = ['e2eTest', 'e2eLockTest', 'e2eKdbxTest']
 
-// Every test task - the unit suite as well, ClipboardClearWatchdogTest drives the system clipboard -
-// runs on a display of the build's own, one task at a time (#505, #319)
-apply from: 'gradle/own-display.gradle'
+// Every test task runs on a display of the build's own and fails when a test class left no result: the
+// own-display and test-results-complete plugins, applied in build.gradle (#505, #699, #741)
 // the bounds of every test JVM, the same as each plugin build's (#580)
 apply from: 'gradle/test-jvms.gradle'
 
@@ -74,8 +73,8 @@ test {
         // clean result (quality-checks.md). This is the one place it can happen silently
         failOnNoMatchingTests = true
     }
-    // the tooling tests run the shell scripts themselves (E2eHarnessDisplayTest,
-    // CommitProvenanceCheckTest). A script is no input Gradle would see otherwise, so a change to it
+    // the tooling tests run the shell scripts themselves (CommitProvenanceCheckTest,
+    // ForcedRunResultsCheckTest). A script is no input Gradle would see otherwise, so a change to it
     // alone came back FROM-CACHE: measured on #504, where the old harness passed a test the new one
     // was written for until the run was forced
     inputs.files(fileTree('scripts')).withPropertyName('scripts').withPathSensitivity(PathSensitivity.RELATIVE)

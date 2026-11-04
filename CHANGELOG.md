@@ -57,6 +57,12 @@ CHANGED:
   lists, until the maintainer has set the label `read-by-maintainer` himself: a label set through a GitHub App or from
   another account does not count, and every new push removes it, so what was read is what is merged. It runs from the
   base branch like `release-freeze`, so a pull request cannot change the check that judges it
+- build and tests only: every test task of the host and of each plugin build gets its display, and the check that every
+  test class left a result, from the Gradle plugins `io.github.astrapi69.own-display` and
+  `io.github.astrapi69.test-results-complete` 1.0 (astrapi69/own-display-gradle-plugin, on Maven Central) instead of
+  from this repository's copies, which are gone: `gradle/own-display.gradle`, `gradle/test-results-complete.gradle`,
+  `scripts/e2e-harness.sh` and `scripts/hold-display.sh` (#741, #599). `make test-e2e` and `make test-e2e-demo` call
+  Gradle directly; the demo still runs on the current display, through `E2E_USE_CURRENT_DISPLAY=1`
 
 Version 8.13
 -------------

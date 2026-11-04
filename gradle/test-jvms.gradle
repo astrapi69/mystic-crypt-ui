@@ -7,7 +7,7 @@
 // the largest need.
 //
 // One JVM at a time per test task, Gradle's default too: the UI suites need it, since they share one
-// display (gradle/own-display.gradle), and each further fork of the unit suite would hold another
+// display (the own-display plugin), and each further fork of the unit suite would hold another
 // 512 MB next to the daemon's.
 //
 // Applied by gradle/testing.gradle and by each plugin build, which is a Gradle build of its own.

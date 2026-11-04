@@ -167,16 +167,18 @@ single UI flow. Check the skip count, not just the exit code.
 
 The build provides that display itself, the same way in CI and on a desktop (#505). Every test
 task of every Gradle build here - the host's `test`, `e2eTest`, `e2eLockTest` and `e2eKdbxTest`, and
-each plugin build's `test` - borrows it from `scripts/e2e-harness.sh` through
-`gradle/own-display.gradle`. The harness starts an Xvfb of its own, starts fluxbox on it, verifies
-with `wmctrl` that the window manager answers (#322), and a hold command hands that display to the
-build; when the build ends, the harness stops both. Each test task prints which display it ran on,
-and the harness's output lands in `build/own-display/harness.log`.
+each plugin build's `test` - gets it from the Gradle plugin `io.github.astrapi69.own-display`
+(astrapi69/own-display-gradle-plugin, #741), applied in the host's `build.gradle` and in each plugin
+build's. Its harness starts an Xvfb of its own, starts fluxbox on it, verifies with `wmctrl` that the
+window manager answers (#322), and a hold command hands that display to the build; when the build
+ends, the harness stops both. Each test task prints which display it ran on, and the harness's
+output lands in `build/own-display/harness.log`. The plugin `io.github.astrapi69.test-results-complete`
+beside it fails a test task in which a test class left no result (#699).
 
 The harness measures that display rather than assuming it (#597). It takes it only when `ss` names
 its own Xvfb as the listener on the display's socket - on a Wayland desktop XWayland serves `:1` as
-well as `:0` - and a harness under another one, as in `make test-e2e`, checks the display it inherits
-against that harness's Xvfb. While the tests run, it reads the `DISPLAY` every test JVM was started
+well as `:0` - and a harness under another one checks the display it inherits against that
+harness's Xvfb. While the tests run, it reads the `DISPLAY` every test JVM was started
 with from `/proc`. A JVM on another display, or on none without `-Djava.awt.headless=true`, is
 killed, the harness ends with exit 96, and every later test task of the build refuses to start. The
 log names each test JVM it saw and the display it was on.
