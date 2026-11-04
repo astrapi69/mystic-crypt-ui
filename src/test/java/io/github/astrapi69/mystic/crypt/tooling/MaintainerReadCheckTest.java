@@ -70,10 +70,12 @@ class MaintainerReadCheckTest
 
 	/**
 	 * The paths #732 names: the vault format, and the check's own files, so that a change to the
-	 * check needs the label as well
+	 * check needs the label as well; since #737 also the hook that keeps a session from setting the
+	 * label, and the project settings that run it
 	 */
 	private static final List<String> LISTED = List.of(VAULT_FORMAT, "/.github/CODEOWNERS",
-		"/.github/workflows/maintainer-read.yml", "/scripts/maintainer-read.py");
+		"/.github/workflows/maintainer-read.yml", "/scripts/maintainer-read.py",
+		"/scripts/no-maintainer-read-label.py", "/.claude/settings.json");
 
 	private static final String CODEOWNERS = "# the paths of #732\n\n"
 		+ LISTED.stream().map(path -> path + " @" + MAINTAINER + "\n").collect(joining());
@@ -134,7 +136,7 @@ class MaintainerReadCheckTest
 		return Stream.of(
 			new Case("nothing on a listed path changed: success, saying what it compared",
 				CODEOWNERS, List.of("README.md", "src/main/java/Other.java"), List.of(), List.of(),
-				"success", "none of the 2 changed files is on one of the 4 listed paths"),
+				"success", "none of the 2 changed files is on one of the 6 listed paths"),
 			new Case("a changed vault format file without the label fails and names the file",
 				CODEOWNERS, List.of("README.md", VAULT_FILE), List.of(), List.of(), "failure",
 				"no " + LABEL + " label: " + VAULT_FILE),
