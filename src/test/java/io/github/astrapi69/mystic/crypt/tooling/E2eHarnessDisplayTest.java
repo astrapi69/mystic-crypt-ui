@@ -193,34 +193,28 @@ class E2eHarnessDisplayTest
 	void theHoldCommandHandsOutTheOwnDisplayUntilItsInputEnds(@TempDir File directory)
 		throws Exception
 	{
-		Process harness = startHoldingHarness(directory);
-		try
-		{
-			BufferedReader output = new BufferedReader(
-				new InputStreamReader(harness.getInputStream(), StandardCharsets.UTF_8));
-			StringBuilder transcript = new StringBuilder();
-			String handedOut = readUntilHandedOut(output, transcript);
-			Thread.sleep(1000);
+		Run run = holdUntilTheInputEnds(directory, Map.of());
 
-			assertTrue(harness.isAlive(),
-				"the display is held while the input is open: " + transcript);
+		assertEquals(0, run.exit(), run.output());
+		assertNotEquals(":0", run.displaySeen(), run.output());
+		assertEquals(ownDisplayOf(run), run.displaySeen(), run.output());
+		assertEverythingItStartedIsGone(run);
+	}
 
-			harness.getOutputStream().close();
-			assertTrue(harness.waitFor(30, TimeUnit.SECONDS),
-				"the harness ends once the input ends: " + transcript);
-			transcript.append(
-				new String(harness.getInputStream().readAllBytes(), StandardCharsets.UTF_8));
-			Run run = new Run(harness.exitValue(), handedOut, "", transcript.toString());
+	@Test
+	@DisplayName("after a first attempt the window manager could not reach, the hold command hands out the display of the attempt that succeeded (#731)")
+	@Timeout(90)
+	void theHoldCommandAfterARetry_handsOutTheDisplayOfTheLastAttempt(@TempDir File directory)
+		throws Exception
+	{
+		Run run = holdUntilTheInputEnds(directory,
+			Map.of("PATH", fluxboxRefusedOnce(directory) + ":" + System.getenv("PATH")));
 
-			assertEquals(0, run.exit(), run.output());
-			assertNotEquals(":0", handedOut, run.output());
-			assertEquals(ownDisplayOf(run), handedOut, run.output());
-			assertEverythingItStartedIsGone(run);
-		}
-		finally
-		{
-			harness.destroyForcibly();
-		}
+		assertEquals(0, run.exit(), run.output());
+		assertEquals(2, OWN_DISPLAY.matcher(run.output()).results().count(),
+			"the first attempt failed and a second one started: " + run.output());
+		assertEquals(ownDisplayOf(run), run.displaySeen(), run.output());
+		assertEverythingItStartedIsGone(run);
 	}
 
 	@Test
@@ -250,23 +244,8 @@ class E2eHarnessDisplayTest
 	void aDisplayTheWindowManagerCannotReach_isReplacedByAnother(@TempDir File directory)
 		throws Exception
 	{
-		File bin = new File(directory, "bin");
-		assertTrue(bin.mkdir());
-		File refusedOnce = new File(directory, "fluxbox-refused-once");
-		File stub = new File(bin, "fluxbox");
-		// what CI saw three times (#528): fluxbox could not connect to the display the harness had
-		// just started; the stub says so on its first call and is the real fluxbox afterwards
-		Files.writeString(stub.toPath(),
-			"#!/usr/bin/env bash\nif [ ! -e '" + refusedOnce.getAbsolutePath() + "' ]; then touch '"
-				+ refusedOnce.getAbsolutePath()
-				+ "'; echo \"Error: Couldn't connect to XServer$DISPLAY\" >&2; exit 1; fi\nexec '"
-				+ realFluxbox() + "' \"$@\"\n",
-			StandardCharsets.UTF_8);
-		assertTrue(stub.setExecutable(true));
-
-		Run run = runHarness(directory,
-			Map.of("DISPLAY", ":0", "PATH", bin.getAbsolutePath() + ":" + System.getenv("PATH")),
-			0);
+		Run run = runHarness(directory, Map.of("DISPLAY", ":0", "PATH",
+			fluxboxRefusedOnce(directory) + ":" + System.getenv("PATH")), 0);
 
 		assertEquals(0, run.exit(), "the command ran after all: " + run.output());
 		List<String> displays = OWN_DISPLAY.matcher(run.output()).results()
@@ -589,7 +568,69 @@ class E2eHarnessDisplayTest
 	/** The harness the way own-display.gradle starts it: holding its display for a build */
 	private static Process startHoldingHarness(File directory) throws IOException
 	{
-		return holdingHarness(directory).redirectErrorStream(true).start();
+		return startHoldingHarness(directory, Map.of());
+	}
+
+	private static Process startHoldingHarness(File directory, Map<String, String> environment)
+		throws IOException
+	{
+		ProcessBuilder builder = holdingHarness(directory);
+		builder.environment().putAll(environment);
+		return builder.redirectErrorStream(true).start();
+	}
+
+	/**
+	 * Starts the harness in hold mode, reads the display it hands out, checks that the display is
+	 * held while the input is open, ends the input and returns the run, the handed-out display as
+	 * the display seen
+	 */
+	private static Run holdUntilTheInputEnds(File directory, Map<String, String> environment)
+		throws Exception
+	{
+		Process harness = startHoldingHarness(directory, environment);
+		try
+		{
+			BufferedReader output = new BufferedReader(
+				new InputStreamReader(harness.getInputStream(), StandardCharsets.UTF_8));
+			StringBuilder transcript = new StringBuilder();
+			String handedOut = readUntilHandedOut(output, transcript);
+			Thread.sleep(1000);
+
+			assertTrue(harness.isAlive(),
+				"the display is held while the input is open: " + transcript);
+
+			harness.getOutputStream().close();
+			assertTrue(harness.waitFor(30, TimeUnit.SECONDS),
+				"the harness ends once the input ends: " + transcript);
+			transcript.append(
+				new String(harness.getInputStream().readAllBytes(), StandardCharsets.UTF_8));
+			return new Run(harness.exitValue(), handedOut, "", transcript.toString());
+		}
+		finally
+		{
+			harness.destroyForcibly();
+		}
+	}
+
+	/**
+	 * A directory to put first on the PATH, holding a fluxbox that says what CI saw three times
+	 * (#528), that it cannot connect to the display the harness has just started, on its first
+	 * call, and is the real fluxbox afterwards
+	 */
+	private static String fluxboxRefusedOnce(File directory) throws IOException
+	{
+		File bin = new File(directory, "bin");
+		assertTrue(bin.mkdir());
+		File refusedOnce = new File(directory, "fluxbox-refused-once");
+		File stub = new File(bin, "fluxbox");
+		Files.writeString(stub.toPath(),
+			"#!/usr/bin/env bash\nif [ ! -e '" + refusedOnce.getAbsolutePath() + "' ]; then touch '"
+				+ refusedOnce.getAbsolutePath()
+				+ "'; echo \"Error: Couldn't connect to XServer$DISPLAY\" >&2; exit 1; fi\nexec '"
+				+ realFluxbox() + "' \"$@\"\n",
+			StandardCharsets.UTF_8);
+		assertTrue(stub.setExecutable(true));
+		return bin.getAbsolutePath();
 	}
 
 	/** The harness in hold mode, started from a shell whose DISPLAY is the desktop's */
@@ -702,11 +743,16 @@ class E2eHarnessDisplayTest
 				.redirectOutput(ProcessBuilder.Redirect.DISCARD).start();
 	}
 
+	/**
+	 * The display of the last Xvfb the harness started: when a first attempt fails, the harness
+	 * starts again on another display, and that one is the run's (#731)
+	 */
 	private static String ownDisplayOf(Run run)
 	{
-		Matcher own = OWN_DISPLAY.matcher(run.output());
-		assertTrue(own.find(), "the harness reports the Xvfb it started: " + run.output());
-		return own.group(1);
+		List<String> displays = OWN_DISPLAY.matcher(run.output()).results()
+			.map(started -> started.group(1)).toList();
+		assertFalse(displays.isEmpty(), "the harness reports the Xvfb it started: " + run.output());
+		return displays.getLast();
 	}
 
 	private static void assertEverythingItStartedIsGone(Run run) throws InterruptedException
