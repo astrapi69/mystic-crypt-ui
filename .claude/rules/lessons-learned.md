@@ -107,8 +107,8 @@ stays mandatory (nothing to react to after tagging).
 ## UI tests run on the build's own display, never on the desktop's
 
 Every test task of every Gradle build here - host suites and each plugin build, whatever starts it
-(`make test`, `./gradlew build`, `make build-full`, `make plugins`) - borrows its display from
-`scripts/e2e-harness.sh` (`gradle/own-display.gradle`, #505). The harness starts an Xvfb of its own,
+(`make test`, `./gradlew build`, `make build-full`, `make plugins`) - gets its display from the
+own-display Gradle plugin (#505, #741). Its harness starts an Xvfb of its own,
 starts fluxbox on it, waits until `wmctrl` answers, and stops both when the build ends: without a
 window manager the suite does not fail, it waits in `ComponentDriver.focus` - 40 minutes, once (#322).
 So the machine needs Xvfb, fluxbox, wmctrl and xdpyinfo for any test run.

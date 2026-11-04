@@ -22,10 +22,10 @@ and `DEPLOYMENT-INFO.md`.
   change.
 - **The Gradle wrapper.** `gradle/wrapper/gradle-wrapper.properties` pins
   `gradle-9.7.0-bin.zip`. Always call `./gradlew`, never a system Gradle.
-- **Xvfb, fluxbox, wmctrl, xdpyinfo and ss for any test run.** Every test task borrows a virtual
-  display from `scripts/e2e-harness.sh`, locally and in CI alike, and never uses the desktop's
-  (#505); `ss` (iproute2) names the listener on the display's socket (#597). See
-  `.claude/rules/lessons-learned.md`.
+- **Xvfb, fluxbox, wmctrl, xdpyinfo and ss for any test run.** Every test task gets a virtual
+  display from the own-display Gradle plugin (astrapi69/own-display-gradle-plugin, #741), locally and
+  in CI alike, and never uses the desktop's (#505); `ss` (iproute2) names the listener on the
+  display's socket (#597). See `.claude/rules/lessons-learned.md`.
 
 ## The version lives in exactly one place
 
