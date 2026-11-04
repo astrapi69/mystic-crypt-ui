@@ -56,7 +56,7 @@ import io.github.astrapi69.mystic.crypt.settings.PluginSettings;
 
 /**
  * Pictures of the wallet window in English and German (#680), one per state, written to
- * {@code build/screenshots/lethenon-wallet} on the build's own display (gradle/own-display.gradle)
+ * {@code build/screenshots/lethenon-wallet} on the build's own display (the own-display plugin)
  * and kept by CI as an artifact. Each picture also checks what a picture can: the window has
  * content, and a refusal wraps instead of widening the window (README defect G4).
  */
