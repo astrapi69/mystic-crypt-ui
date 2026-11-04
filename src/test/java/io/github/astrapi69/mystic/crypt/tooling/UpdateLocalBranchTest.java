@@ -175,6 +175,29 @@ class UpdateLocalBranchTest
 		assertTrue(run.output().contains("not updated"), run.output());
 	}
 
+	/**
+	 * The worktree list was piped into an awk that stopped at the first match, so with the target
+	 * in the first of many worktrees git was still writing when the pipe closed, died of SIGPIPE,
+	 * and {@code pipefail} ended the script with 141 before the update (#733): 49 of 50 runs with
+	 * 60 worktrees. Every run has to finish, so it is repeated.
+	 */
+	@Test
+	@DisplayName("the target in the first of many worktrees is brought up to the merge, and every run exits 0")
+	void theTargetInTheFirstOfManyWorktrees_isFastForwardedEveryTime() throws Exception
+	{
+		for (int i = 0; i < 60; i++)
+		{
+			git(main, "worktree", "add", "-q", "--detach", new File(root, "more-" + i).getPath());
+		}
+
+		for (int attempt = 1; attempt <= 20; attempt++)
+		{
+			Run run = run(work, "develop");
+			assertEquals(0, run.exit(), "run " + attempt + ": " + run.output());
+		}
+		assertEquals(merged, output(main, "git", "rev-parse", "develop"));
+	}
+
 	private record Run(int exit, String output) {
 	}
 
