@@ -105,18 +105,36 @@ class MaintainerReadLabelHookTest
 		assertEquals(refused, run.output().contains(DENY), caseName + ": " + run.output());
 	}
 
-	@Test
-	@DisplayName("a script the command runs is read, and a line in it that sets the label is refused")
-	void aScriptThatSetsTheLabel_isRefused(@TempDir File directory) throws Exception
+	static Stream<Arguments> waysOfNamingAScript()
+	{
+		return Stream.of(//
+			Arguments.of("run by bash is refused", "bash %s", true),
+			Arguments.of("run as the command itself is refused", "%s", true),
+			Arguments.of("run after another command is refused", "cd /tmp && %s", true),
+			Arguments.of("sourced is refused", "source %s", true),
+			Arguments.of("read by grep passes", "grep -n label %s", false),
+			Arguments.of("shown by cat passes", "cat %s", false),
+			Arguments.of("copied passes", "cp %s /tmp/copy.sh", false));
+	}
+
+	/**
+	 * A script that sets the label counts when the command runs it, not when it only reads, shows
+	 * or copies it
+	 */
+	@ParameterizedTest(name = "a script that sets the label, {0}")
+	@MethodSource("waysOfNamingAScript")
+	void aScriptThatSetsTheLabel(String caseName, String form, boolean refused,
+		@TempDir File directory) throws Exception
 	{
 		File script = new File(directory, "set.sh");
 		Files.writeString(script.toPath(),
 			"#!/bin/bash\nset -e\ngh pr edit 5 --add-label " + LABEL + "\n",
 			StandardCharsets.UTF_8);
+		assertTrue(script.setExecutable(true));
 
-		Run run = hook(bash("bash " + script.getAbsolutePath()));
+		Run run = hook(bash(form.formatted(script.getAbsolutePath())));
 
-		assertTrue(run.output().contains(DENY), run.output());
+		assertEquals(refused, run.output().contains(DENY), caseName + ": " + run.output());
 	}
 
 	@Test

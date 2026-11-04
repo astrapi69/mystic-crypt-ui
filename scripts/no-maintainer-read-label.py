@@ -37,7 +37,10 @@ GH_WRITE = re.compile(r"\bgh\s+(?:pr|issue)\s+(?:edit|create)\b"
                       r"|\bgh\s+api\b[^\n]*(?:\s-X\s*(?:POST|PUT|PATCH|DELETE)|--method\s+(?:POST|PUT|PATCH|DELETE)"
                       r"|\s-[fF]\s|--(?:raw-)?field\b|--input\b|\sgraphql\b)"
                       + MUTATIONS)
-SCRIPT = re.compile(r"[~\w./-]+\.(?:sh|bash|zsh|py)\b")
+# a script the command runs: after an interpreter, source or ".", or as a command of its own; a script the command
+# only reads, shows or copies is not run
+EXECUTED = re.compile(r"(?:^|[;&|(]\s*|\b(?:bash|sh|zsh|python3?|source|exec)\s+(?:-\S+\s+)*|(?:^|\s)\.\s+)"
+                      r"([~\w./-]+\.(?:sh|bash|zsh|py))\b", re.MULTILINE)
 INPUT = re.compile(r"[~\w./-]+\.(?:json|md|txt|sh|bash|zsh|py)\b")
 MCP_GITHUB = re.compile(r"^mcp__[^_]*github[^_]*__(?P<tool>.+)$", re.IGNORECASE)
 MCP_READ = re.compile(r"(?:^|_)(?:get|list|search|read|view|query|fetch)(?:_|$)", re.IGNORECASE)
@@ -59,7 +62,7 @@ def bash_verdict(command):
     """None when allowed, otherwise the reason. A line has to write to GitHub and set a label at once."""
     inputs = [text for text in (read(token) for token in INPUT.findall(command)) if text is not None]
     label_in_inputs = any(LABEL in text for text in inputs)
-    texts = [("the command", command)] + [(token, read(token)) for token in SCRIPT.findall(command)]
+    texts = [("the command", command)] + [(token, read(token)) for token in EXECUTED.findall(command)]
     for where, text in texts:
         if not text or not (LABEL in text or label_in_inputs):
             continue
