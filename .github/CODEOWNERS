@@ -1,0 +1,16 @@
+# The paths a pull request needs the maintainer's label read-by-maintainer to change (#732): the
+# required status maintainer-read is red on a pull request that changes one of them until the
+# maintainer has set the label himself, and every new push removes it. scripts/maintainer-read.py
+# reads this file from the base branch, and only the forms it documents.
+#
+# "Require review from Code Owners" is deliberately not enabled: every pull request comes from the
+# account astrapi69, which is the owner named here, and GitHub does not let an author approve his
+# own pull request. This file is the marking and the single list of the paths, nothing more.
+
+# the vault format: PasswordVaultFormat, VaultXmlCodec, VaultFileWriter and their readers
+/src/main/java/io/github/astrapi69/mystic/crypt/app/file/xml/ @astrapi69
+
+# the check itself, so that a pull request cannot loosen it without the label
+/.github/CODEOWNERS @astrapi69
+/.github/workflows/maintainer-read.yml @astrapi69
+/scripts/maintainer-read.py @astrapi69
