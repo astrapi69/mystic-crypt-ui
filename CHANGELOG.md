@@ -52,6 +52,11 @@ CHANGED:
   no longer brings randomizer along at runtime. It overwrites every working copy of secret material it makes, among
   them the ones the vault, lock and sign-in paths go through. A secret passed to `--cli` as an argument now prints a
   warning; the `-stdin` option beside each one is the way to pass it. The vault format does not change
+- build and tests only: a status `maintainer-read` for the branch protection to require (#732). It is red on a pull
+  request that changes the vault format (`app/file/xml/`) or the check's own files, the paths `.github/CODEOWNERS`
+  lists, until the maintainer has set the label `read-by-maintainer` himself: a label set through a GitHub App or from
+  another account does not count, and every new push removes it, so what was read is what is merged. It runs from the
+  base branch like `release-freeze`, so a pull request cannot change the check that judges it
 
 Version 8.13
 -------------
