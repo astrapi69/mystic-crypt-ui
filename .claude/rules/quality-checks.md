@@ -91,15 +91,6 @@ replaced when their file is touched.
    least once end-to-end in the same session it is wired, and the first run's result is
    recorded. Untriggered infrastructure is a hypothesis, not a feature.
 
-## Until #599 is done: a host change to the display or result check names its plugin issue
-
-The display check and the check "every test class leaves a result" live twice until the family uses the
-own-display Gradle plugin: here (`gradle/own-display.gradle`, `gradle/test-results-complete.gradle`,
-`scripts/e2e-harness.sh`, `scripts/hold-display.sh`) and in astrapi69/own-display-gradle-plugin. A pull
-request that changes one of these files names the plugin issue in which the same change follows, so the
-two do not drift (they did with #695 and #699). Transitional (#724): removed in the change that
-finishes step 6 of #599.
-
 ## Rule corpus has a cost
 
 Every file under `.claude/rules/` is injected into every prompt of every session. A new
