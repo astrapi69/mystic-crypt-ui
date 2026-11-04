@@ -27,11 +27,15 @@ BRANCH="${1:?usage: scripts/update-local-branch.sh <branch>}"
 
 say() { printf '%s\n' "$*"; }
 
-# the worktree the branch is checked out in, or nothing
+# the worktree the branch is checked out in, or nothing. The list is read whole first: an awk that
+# stopped reading at the match closed the pipe while git was still writing, git died of SIGPIPE and
+# pipefail ended the script with 141 before the update (#733).
 checked_out_in() {
-  git worktree list --porcelain | awk -v ref="refs/heads/$1" '
+  local worktrees
+  worktrees="$(git worktree list --porcelain)"
+  awk -v ref="refs/heads/$1" '
     /^worktree / { tree = substr($0, 10) }
-    $0 == "branch " ref { print tree; exit }'
+    $0 == "branch " ref && !found { print tree; found = 1 }' <<< "$worktrees"
 }
 
 git fetch --quiet origin
