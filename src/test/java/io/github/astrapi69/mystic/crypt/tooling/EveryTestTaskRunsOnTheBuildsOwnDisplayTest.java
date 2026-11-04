@@ -41,22 +41,28 @@ import org.junit.jupiter.api.Test;
 
 /**
  * Every test JVM of a Gradle build runs on the display the build itself provides, not on the one
- * the build was started from (#505).
+ * the build was started from (#505), and every test task fails when a test class left no result
+ * (#699).
  * <p>
- * The harness alone did not close this: {@code ./gradlew build}, {@code check} and
+ * A harness called by name did not close this: {@code ./gradlew build}, {@code check} and
  * {@code jacocoTestReport}, and every plugin build behind {@code make plugins}, reached the UI
  * tests without it, on whatever {@code DISPLAY} the shell carried - on a desktop the person's real
- * screen. So the build now borrows a display from the harness for every test task, and hands it to
- * the test JVM as {@code DISPLAY} and, so that this test can tell the two apart from an inherited
- * one, as {@code E2E_HARNESS_DISPLAY}. Which display the harness picks - its own Xvfb, or the
- * inherited one only with {@code E2E_USE_CURRENT_DISPLAY=1} - is {@link E2eHarnessDisplayTest}'s
- * question; this one asks whether every build that runs tests asks the harness at all.
+ * screen. So every build that runs tests applies the own-display plugin of
+ * astrapi69/own-display-gradle-plugin (#741), which hands each test JVM its display as
+ * {@code DISPLAY} and, so that this test can tell the two apart from an inherited one, as
+ * {@code E2E_HARNESS_DISPLAY}, and the test-results-complete plugin beside it. Which display the
+ * harness picks - its own Xvfb, or the inherited one only with {@code E2E_USE_CURRENT_DISPLAY=1} -
+ * is the question of the plugin's own tests; this one asks whether every build here applies both.
  */
 class EveryTestTaskRunsOnTheBuildsOwnDisplayTest
 {
 
-	/** The line every build that runs tests carries, from the plugins' directory */
-	private static final String PLUGIN_APPLIES_OWN_DISPLAY = "apply from: '../../gradle/own-display.gradle'";
+	/**
+	 * The lines every plugin build carries in its plugins block, through the version catalog the
+	 * plugin builds share with the host
+	 */
+	private static final List<String> PLUGIN_BUILD_APPLIES = List
+		.of("alias(libs.plugins.own.display)", "alias(libs.plugins.test.results.complete)");
 
 	@Test
 	@DisplayName("this suite's JVM runs on the display the build handed out")
@@ -74,8 +80,8 @@ class EveryTestTaskRunsOnTheBuildsOwnDisplayTest
 	}
 
 	@Test
-	@DisplayName("every plugin build asks for the display as well - they are separate Gradle builds, make plugins runs them")
-	void everyPluginBuildAppliesTheOwnDisplay() throws IOException
+	@DisplayName("every plugin build applies the own-display and the test-results-complete plugin - they are separate Gradle builds, make plugins runs them")
+	void everyPluginBuildAppliesTheOwnDisplayAndTheResultCheck() throws IOException
 	{
 		File[] plugins = new File("plugins").listFiles(File::isDirectory);
 		assertNotNull(plugins, "the plugins directory is where it was");
@@ -89,14 +95,12 @@ class EveryTestTaskRunsOnTheBuildsOwnDisplayTest
 				continue;
 			}
 			builds++;
-			if (!Files.readString(buildFile.toPath(), StandardCharsets.UTF_8)
-				.contains(PLUGIN_APPLIES_OWN_DISPLAY))
-			{
-				missing.add(plugin.getName());
-			}
+			String buildScript = Files.readString(buildFile.toPath(), StandardCharsets.UTF_8);
+			PLUGIN_BUILD_APPLIES.stream().filter(line -> !buildScript.contains(line))
+				.forEach(line -> missing.add(plugin.getName() + " without " + line));
 		}
 
 		assertTrue(builds > 0, "no plugin build found - an empty set is not a clean result");
-		assertTrue(missing.isEmpty(), builds + " plugin builds, without the display: " + missing);
+		assertTrue(missing.isEmpty(), builds + " plugin builds: " + missing);
 	}
 }

@@ -1,3 +1,12 @@
+// The own-display and test-results-complete plugins are published to Maven Central, so Gradle looks for
+// plugins there as well as in the Gradle Plugin Portal (#741)
+pluginManagement {
+    repositories {
+        gradlePluginPortal()
+        mavenCentral()
+    }
+}
+
 rootProject.name = 'pqc-signature-plugin'
 
 // shares the host's version catalog instead of hardcoding a second copy of the mystic-crypt

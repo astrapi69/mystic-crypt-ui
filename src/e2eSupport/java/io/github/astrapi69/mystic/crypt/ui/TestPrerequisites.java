@@ -70,16 +70,16 @@ final class TestPrerequisites
 	 * Requires a graphical display, because without one an end-to-end test measures nothing.
 	 * <p>
 	 * This used to be an assumption in the setup of every UI test, so losing the display quietly
-	 * removed 149 tests while the build stayed green. CI runs the suite under
-	 * {@code xvfb-run -a --server-args="-screen 0 1920x1080x24"} and {@code scripts/e2e-harness.sh}
-	 * refuses to start without one, so by the time this is reached a display is supposed to exist.
+	 * removed 149 tests while the build stayed green. Every test task gets a display of the build's
+	 * own from the own-display Gradle plugin, which refuses to start a test task without one (#505,
+	 * #741), so by the time this is reached a display is supposed to exist.
 	 */
 	static void requireADisplay()
 	{
 		refuse(!GraphicsEnvironment.isHeadless(),
 			"no graphical display. The end-to-end suite cannot measure anything without one, and "
-				+ "skipping 149 tests is not a green result. Run it through 'make test-e2e', which "
-				+ "goes via scripts/e2e-harness.sh and starts a display and a window manager");
+				+ "skipping 149 tests is not a green result. Run it through 'make test-e2e' or "
+				+ "Gradle, whose own-display plugin starts a display and a window manager");
 	}
 
 	/**
