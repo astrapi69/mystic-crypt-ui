@@ -80,6 +80,13 @@ CHANGED:
   from this repository's copies, which are gone: `gradle/own-display.gradle`, `gradle/test-results-complete.gradle`,
   `scripts/e2e-harness.sh` and `scripts/hold-display.sh` (#741, #599). `make test-e2e` and `make test-e2e-demo` call
   Gradle directly; the demo still runs on the current display, through `E2E_USE_CURRENT_DISPLAY=1`
+- build and tests only: every UI test waits until the application's start has reached a step - begun, sign-in dialog
+  shown, completed - instead of for a window to appear within some seconds (#522), and a component lookup that finds
+  nothing says so instead of failing inside AssertJ Swing's printer (#484). The steps are counted by `StartupSignal`,
+  the one part of this in the application: in memory, and only while the system property
+  `mystic.crypt.ui.startup.signal` is `true`, which only the test support sets. In normal operation it counts nothing,
+  and it opens no port, writes no file and reads no environment variable: its class calls nothing but
+  `Boolean.getBoolean` and `AtomicInteger` (`javap -c -p`)
 
 FIXED:
 - an entry's `toString` no longer prints its attachments (#740). It carried the content of every attached file byte for
