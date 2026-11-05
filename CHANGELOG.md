@@ -8,8 +8,8 @@ SECURITY:
 - "Generate password" and the serial number of a new certificate draw from `SecureRandom` directly instead of through
   randomizer, a library for test data (#658, GHSA-qxx5-r8qx-vj98). The password keeps its character sets and its length.
   A serial number now has 159 random bits, positive and at most 20 octets, as RFC 5280 asks. randomizer is no longer a
-  dependency of the application. A constraint holds the copy that roboter and swing-components still bring at 10.6
-  instead of their 10.1, whose generator is seeded with the current time, and a test holds that floor
+  dependency of the application. A constraint holds the copy that roboter and swing-components still bring at 10.7
+  (#755) instead of their 10.1, whose generator is seeded with the current time, and a test holds that floor
 - the tests run with assertj-core 3.27.7 instead of the 3.17.2 that assertj-swing brings, which has an XXE
   (GHSA-rqfh-9r24-8c9r, #692); nothing of it ships
 - the installer carries jsoup 1.23.2 instead of 1.22.2 (#688, two advisories), which IzPack 5.2.7 puts into it. The tool
@@ -34,6 +34,9 @@ ADDED:
   certificate alone. The plugin brings no library of its own: Bouncy Castle's OpenPGP module comes with mystic-crypt
 
 CHANGED:
+- the runtime dependencies at their newest patch and minor release (#755): pf4j 3.16.1, flatlaf 3.8, gson 2.15.0 and guava
+  33.8.0-jre. The catalog now also names what the application already shipped through other libraries: crypt-api 10.3,
+  crypt-data 13.2, jackson-databind 2.22.4, randomizer 10.7 (the constraint of #658) and batik 1.20
 - the application ships commons-collections4 4.6.0 instead of 4.5.0-M2, a milestone, which 8.12 and 8.13 carry (#751):
   silly-collection 28.3 and swing-base-components 5.2.1 bring the release, and a floor in `RuntimeDependenciesTest`
   holds it, on the class path and in an application jar under test
