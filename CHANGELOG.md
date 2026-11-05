@@ -66,6 +66,9 @@ FIXED:
 - an entry's `toString` no longer prints its attachments (#740). It carried the content of every attached file byte for
   byte, since 6.1, against the rule that no model bean prints a secret (#388). No path is known that hands it outside the
   application; a test now holds the rule for attachments too
+- "Generate password" draws spaces when "White space" is chosen (#670). The space was dropped whenever neither "Minus"
+  nor "Plus" was chosen too, and "White space" alone failed. With no set chosen at all, the generator now says so and
+  stays open
 - a vault that 7.x wrote opens again (#624). Since 8.1.1 it did not: it names the class of its groups and the class of its
   attachments by the packages they had before, and the sign-in said "Password is not valid". Both names are read as
   today's classes - a name each, no new type, the types a vault may hold stay those of 8.12 (GHSA-w87j-p568-fr6v) - and

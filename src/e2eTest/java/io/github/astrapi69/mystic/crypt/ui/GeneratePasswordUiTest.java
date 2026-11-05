@@ -25,19 +25,25 @@
 package io.github.astrapi69.mystic.crypt.ui;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.awt.Dialog;
 import java.io.File;
+import java.util.Collection;
 import java.util.concurrent.TimeUnit;
 
+import javax.swing.JCheckBox;
 import javax.swing.SwingUtilities;
 
 import org.assertj.swing.core.GenericTypeMatcher;
 import org.assertj.swing.core.matcher.JButtonMatcher;
 import org.assertj.swing.edt.GuiActionRunner;
+import org.assertj.swing.finder.JOptionPaneFinder;
 import org.assertj.swing.finder.WindowFinder;
 import org.assertj.swing.fixture.DialogFixture;
+import org.assertj.swing.fixture.JCheckBoxFixture;
+import org.assertj.swing.fixture.JOptionPaneFixture;
 import org.assertj.swing.timing.Condition;
 import org.assertj.swing.timing.Pause;
 import org.junit.jupiter.api.DisplayName;
@@ -109,8 +115,43 @@ class GeneratePasswordUiTest extends AbstractUiTest
 		signIn.cancel();
 	}
 
-	/** Opens the generator from the Generate button, confirms it, and waits for it to close */
-	private void generateAMasterPassword(final CreateMasterKeySteps createMasterKey)
+	/**
+	 * With every character set unchecked there is nothing to draw a password from. The generator
+	 * says so and stays open, instead of failing on an empty alphabet (#670)
+	 */
+	@Test
+	@DisplayName("with no character set chosen the generator says so and stays open")
+	void noCharacterSetChosen_isReported_andTheGeneratorStaysOpen()
+	{
+		File newDatabaseFile = new File(tempHome, "no-character-set-database.mcrdb");
+
+		SignInDialogSteps signIn = launchApplication();
+		CreateMasterKeySteps createMasterKey = signIn.startNewDatabase(newDatabaseFile);
+		createMasterKey.requireOkDisabled().checkMasterPassword();
+		DialogFixture generatorDialog = openTheGenerator(createMasterKey);
+		uncheckEveryCharacterSet(generatorDialog);
+
+		SwingUtilities.invokeLater(() -> generatorDialog
+			.button(JButtonMatcher.withText("Generate Password")).target().doClick());
+		JOptionPaneFixture noSetChosen = JOptionPaneFinder.findOptionPane()
+			.withTimeout(10, TimeUnit.SECONDS).using(robot);
+		noSetChosen.requireTitle("No characters chosen");
+		noSetChosen.requireMessage("Choose at least one set of characters for the password.");
+		UiTestSpeed.step();
+		noSetChosen.okButton().click();
+
+		assertTrue(GuiActionRunner.execute(() -> generatorDialog.target().isShowing()),
+			"the generator stays open, so that a set can be chosen");
+		assertEquals(0, passwordFieldContent(createMasterKey, "txtMasterPw").length,
+			"no password was generated, so none is filled in");
+
+		generatorDialog.button(JButtonMatcher.withText("Cancel")).click();
+		createMasterKey.cancelAndAwaitClose();
+		signIn.cancel();
+	}
+
+	/** Opens the generator from the Generate button and waits for it to show */
+	private DialogFixture openTheGenerator(final CreateMasterKeySteps createMasterKey)
 	{
 		// Generate opens the modal password-generator dialog
 		SwingUtilities
@@ -126,6 +167,30 @@ class GeneratePasswordUiTest extends AbstractUiTest
 				}
 			}).withTimeout(10, TimeUnit.SECONDS).using(robot);
 		UiTestSpeed.step();
+		return generatorDialog;
+	}
+
+	/** Unchecks every character set the generator opened with */
+	private void uncheckEveryCharacterSet(final DialogFixture generatorDialog)
+	{
+		Collection<JCheckBox> chosen = robot.finder().findAll(generatorDialog.target(),
+			new GenericTypeMatcher<JCheckBox>(JCheckBox.class)
+			{
+				@Override
+				protected boolean isMatching(JCheckBox candidate)
+				{
+					return candidate.isSelected();
+				}
+			});
+		assertFalse(chosen.isEmpty(), "the precondition: the generator opens with sets chosen");
+		chosen.forEach(checkBox -> new JCheckBoxFixture(robot, checkBox).uncheck());
+		UiTestSpeed.step();
+	}
+
+	/** Opens the generator from the Generate button, confirms it, and waits for it to close */
+	private void generateAMasterPassword(final CreateMasterKeySteps createMasterKey)
+	{
+		DialogFixture generatorDialog = openTheGenerator(createMasterKey);
 
 		SwingUtilities.invokeLater(() -> generatorDialog
 			.button(JButtonMatcher.withText("Generate Password")).target().doClick());

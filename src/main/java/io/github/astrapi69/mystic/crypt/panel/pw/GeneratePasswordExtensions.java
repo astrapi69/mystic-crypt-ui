@@ -54,8 +54,39 @@ public class GeneratePasswordExtensions
 	 * @param modelObject
 	 *            the chosen character sets and the length
 	 * @return the password, for the caller to overwrite when it is done with it
+	 * @throws IllegalArgumentException
+	 *             if no character set is chosen, see {@link #isAnySetChosen}
 	 */
 	public static char[] generatePassword(GeneratePasswordModelBean modelObject)
+	{
+		String alphabet = alphabet(modelObject);
+		if (alphabet.isEmpty())
+		{
+			throw new IllegalArgumentException(
+				"no character set is chosen to generate a password from");
+		}
+		return SecureRandomValues.characters(modelObject.getPasswordLength(), alphabet);
+	}
+
+	/**
+	 * Tells whether at least one character set is chosen, the whitespace option counted like every
+	 * other one
+	 *
+	 * @param modelObject
+	 *            the chosen character sets
+	 * @return true if a password can be drawn from the chosen sets
+	 */
+	public static boolean isAnySetChosen(GeneratePasswordModelBean modelObject)
+	{
+		return !alphabet(modelObject).isEmpty();
+	}
+
+	/**
+	 * The characters of every chosen set, in a fixed order. Never trimmed: every character in it is
+	 * one the user chose, the space of the whitespace option included, which a trim used to drop
+	 * whenever it stood first or last (#670)
+	 */
+	private static String alphabet(GeneratePasswordModelBean modelObject)
 	{
 		StringBuilder stringBuilder = new StringBuilder();
 		stringBuilder.append(modelObject.isLowercase() ? LOWERCASE : "")
@@ -67,7 +98,6 @@ public class GeneratePasswordExtensions
 			.append(modelObject.isBrackets() ? BRACKETS : "")
 			.append(modelObject.isWhitespace() ? WHITESPACE : "")
 			.append(modelObject.isMinus() ? "-" : "").append(modelObject.isPlus() ? "+" : "");
-		String chars = stringBuilder.toString().trim();
-		return SecureRandomValues.characters(modelObject.getPasswordLength(), chars);
+		return stringBuilder.toString();
 	}
 }
