@@ -49,8 +49,10 @@ public class GeneratePasswordDialog extends PanelDialog<GeneratePasswordModelBea
 			@Override
 			protected void onOk(ActionEvent actionEvent)
 			{
-				super.onOk(actionEvent);
-				GeneratePasswordDialog.this.onOk();
+				if (generate())
+				{
+					GeneratePasswordDialog.this.onOk();
+				}
 			}
 
 			@Override

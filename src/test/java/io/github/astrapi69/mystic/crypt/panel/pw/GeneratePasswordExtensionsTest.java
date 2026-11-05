@@ -25,6 +25,8 @@
 package io.github.astrapi69.mystic.crypt.panel.pw;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.stream.Stream;
@@ -61,8 +63,70 @@ class GeneratePasswordExtensionsTest
 				GeneratePasswordModelBean.builder().moreSpecial(true).build(), "°§=~.:,;µ|€²³^"),
 			Arguments.of("brackets", GeneratePasswordModelBean.builder().brackets(true).build(),
 				"(){}[]<>"),
+			Arguments.of("whitespace", GeneratePasswordModelBean.builder().whitespace(true).build(),
+				" "),
 			Arguments.of("minus", GeneratePasswordModelBean.builder().minus(true).build(), "-"),
 			Arguments.of("plus", GeneratePasswordModelBean.builder().plus(true).build(), "+"));
+	}
+
+	/**
+	 * Every other set beside the whitespace option. The space used to be lost whenever it was the
+	 * last character of the alphabet, that is whenever neither minus nor plus was chosen, because
+	 * the alphabet was trimmed (#670)
+	 */
+	static Stream<Arguments> setsBesideWhitespace()
+	{
+		return Stream.of(
+			Arguments.of("lowercase", GeneratePasswordModelBean.builder().lowercase(true).build()),
+			Arguments.of("uppercase", GeneratePasswordModelBean.builder().uppercase(true).build()),
+			Arguments.of("digits", GeneratePasswordModelBean.builder().digits(true).build()),
+			Arguments.of("underscore",
+				GeneratePasswordModelBean.builder().underscore(true).build()),
+			Arguments.of("special", GeneratePasswordModelBean.builder().special(true).build()),
+			Arguments.of("more special",
+				GeneratePasswordModelBean.builder().moreSpecial(true).build()),
+			Arguments.of("brackets", GeneratePasswordModelBean.builder().brackets(true).build()),
+			Arguments.of("minus", GeneratePasswordModelBean.builder().minus(true).build()),
+			Arguments.of("plus", GeneratePasswordModelBean.builder().plus(true).build()));
+	}
+
+	@ParameterizedTest(name = "whitespace with {0} draws spaces")
+	@MethodSource("setsBesideWhitespace")
+	@DisplayName("the whitespace option draws spaces together with any other set")
+	void generatePassword_drawsSpaces_whenWhitespaceIsChosenWithAnotherSet(final String option,
+		final GeneratePasswordModelBean chosen)
+	{
+		GeneratePasswordModelBean model = chosen.toBuilder().whitespace(true).passwordLength(DRAWS)
+			.build();
+
+		String password = new String(GeneratePasswordExtensions.generatePassword(model));
+
+		assertEquals(DRAWS, password.length());
+		assertTrue(password.indexOf(' ') >= 0, "whitespace with " + option + ": " + DRAWS
+			+ " draws without a single space: " + password);
+	}
+
+	@Test
+	@DisplayName("no set chosen is reported as such, not as an empty alphabet deep in the draw")
+	void generatePassword_refuses_whenNoSetIsChosen()
+	{
+		GeneratePasswordModelBean model = GeneratePasswordModelBean.builder().passwordLength(16)
+			.build();
+
+		assertFalse(GeneratePasswordExtensions.isAnySetChosen(model));
+		IllegalArgumentException refused = assertThrows(IllegalArgumentException.class,
+			() -> GeneratePasswordExtensions.generatePassword(model));
+		assertEquals("no character set is chosen to generate a password from",
+			refused.getMessage());
+	}
+
+	@ParameterizedTest(name = "{0} alone is a chosen set")
+	@MethodSource("options")
+	@DisplayName("each option alone counts as a chosen set, the whitespace option included")
+	void isAnySetChosen_isTrue_forEachOptionAlone(final String option,
+		final GeneratePasswordModelBean chosen, final String expected)
+	{
+		assertTrue(GeneratePasswordExtensions.isAnySetChosen(chosen), option);
 	}
 
 	@ParameterizedTest(name = "{0} alone draws from \"{2}\"")

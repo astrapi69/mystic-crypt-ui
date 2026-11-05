@@ -59,6 +59,11 @@ CHANGED:
   `scripts/e2e-harness.sh` and `scripts/hold-display.sh` (#741, #599). `make test-e2e` and `make test-e2e-demo` call
   Gradle directly; the demo still runs on the current display, through `E2E_USE_CURRENT_DISPLAY=1`
 
+FIXED:
+- "Generate password" draws spaces when "White space" is chosen (#670). The space was dropped whenever neither "Minus"
+  nor "Plus" was chosen too, and "White space" alone failed. With no set chosen at all, the generator now says so and
+  stays open
+
 Version 8.13
 -------------
 

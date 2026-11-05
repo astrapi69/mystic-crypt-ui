@@ -26,9 +26,12 @@ package io.github.astrapi69.mystic.crypt.panel.pw;
 
 import java.awt.event.ActionEvent;
 
+import javax.swing.JOptionPane;
+
 import io.github.astrapi69.model.BaseModel;
 import io.github.astrapi69.model.LambdaModel;
 import io.github.astrapi69.model.api.IModel;
+import io.github.astrapi69.mystic.crypt.Messages;
 import io.github.astrapi69.swing.base.BasePanel;
 import io.github.astrapi69.swing.model.component.JMCheckBox;
 import io.github.astrapi69.swing.model.component.JMSpinner;
@@ -176,8 +179,30 @@ public class GeneratePasswordPanel extends BasePanel<GeneratePasswordModelBean>
 
 	protected void onOk(ActionEvent actionEvent)
 	{
+		generate();
+	}
+
+	/**
+	 * Generates the password into the model, or tells the user that no character set is chosen
+	 * (#670)
+	 *
+	 * @return true if a password was generated
+	 */
+	protected boolean generate()
+	{
 		GeneratePasswordModelBean modelObject = getModelObject();
+		if (!GeneratePasswordExtensions.isAnySetChosen(modelObject))
+		{
+			JOptionPane.showMessageDialog(this,
+				Messages.getString("dialog.generate.password.no.character.set.message",
+					"Choose at least one set of characters for the password."),
+				Messages.getString("dialog.generate.password.no.character.set.title",
+					"No characters chosen"),
+				JOptionPane.INFORMATION_MESSAGE);
+			return false;
+		}
 		modelObject.setPassword(GeneratePasswordExtensions.generatePassword(modelObject));
+		return true;
 	}
 
 	protected void onCancel(ActionEvent actionEvent)
