@@ -32,6 +32,15 @@ ADDED:
   Bouncy Castle's OpenPGP readers, never runs gpg and never writes a byte there; the command line's
   `release-key status` reads the same way. Set the release key's fingerprint in its settings and it shows that
   certificate alone. The plugin brings no library of its own: Bouncy Castle's OpenPGP module comes with mystic-crypt
+- plugins reach the open vault through a narrow access of their own (#675). A plugin that declares a
+  `VaultAccessContribution` gets a `VaultAccess` bound to a marker in its own namespace: it reads only the entries that
+  carry that marker, as copies that share no array or attachment with the vault, adds, changes and removes only such
+  entries, and refuses by itself while no vault is open, while it is locked and while it is read-only. Plugins hear that
+  the vault is closing before it is locked or closed. The Lethenon plugin's wallets are the first to use it (#680)
+- the host hands a plugin an entry's custom properties together with the names of the protected ones
+  (`VaultEntryProperties`, `bf90dd46`), so a plugin can keep a value protected as a KeePass import keeps one (#389). The
+  Lethenon plugin keeps a wallet's words in such a property, and a test holds that they stay protected through a KDBX
+  export and back
 
 CHANGED:
 - the runtime dependencies at their newest patch and minor release (#755): pf4j 3.16.1, flatlaf 3.8, gson 2.15.0 and guava
@@ -58,6 +67,9 @@ CHANGED:
   no longer brings randomizer along at runtime. It overwrites every working copy of secret material it makes, among
   them the ones the vault, lock and sign-in paths go through. A secret passed to `--cli` as an argument now prints a
   warning; the `-stdin` option beside each one is the way to pass it. The vault format does not change
+- build only: Gradle 9.8.2 (#722), its wrapper jar checked against the published `gradle-9.8.2-wrapper.jar.sha256`.
+  `--warning-mode all` names one deprecation, `Configuration.setVisible(boolean)` from the IzPack plugin 3.2, its latest
+  release, which stays until a release of it fixes that
 - build only: IzPack builds the installer with tika-core 4.2.0 and puts jsoup 1.24.1 into it (#756, both held by the
   constraints of #688); the build plugins Spotless 8.11.0, versions 0.67.0, Lombok 9.8.3 and version-catalog-update
   1.1.2. Spotless formats nothing differently, and the installer carries the same files as before apart from jsoup's
