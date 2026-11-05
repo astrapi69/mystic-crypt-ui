@@ -38,7 +38,8 @@ import java.util.Map;
  * <p>
  * Usage: {@code java -cp <release app jar> OpenWithAnOldRelease.java <vault file>}, the password on
  * standard input; with {@code --key-file <PEM file>} after the vault file, through the release's
- * key-file reader. It prints OPENED and one line per entry ({@code EntryLines}), or REFUSED with the
+ * key-file reader; with {@code --password-and-key-file <PEM file>}, through its reader for both
+ * (#650). It prints OPENED and one line per entry ({@code EntryLines}), or REFUSED with the
  * root cause and exits 2. Nothing of this checkout is on the class path.
  */
 public class OpenWithAnOldRelease
@@ -52,7 +53,20 @@ public class OpenWithAnOldRelease
 		Object model = null;
 		try
 		{
-			if (arguments.length >= 3 && "--key-file".equals(arguments[1]))
+			if (arguments.length >= 3 && "--password-and-key-file".equals(arguments[1]))
+			{
+				for (Method method : reader.getMethods())
+				{
+					if (method.getName().equals("getApplicationModelBean") && method.getParameterCount() == 3
+						&& method.getParameterTypes()[2] == File.class)
+					{
+						Class<?> second = method.getParameterTypes()[1];
+						Object secret = second == String.class ? password : password.toCharArray();
+						model = method.invoke(null, vault, secret, new File(arguments[2]));
+					}
+				}
+			}
+			else if (arguments.length >= 3 && "--key-file".equals(arguments[1]))
 			{
 				Object privateKey = Class.forName("io.github.astrapi69.crypt.data.key.reader.PrivateKeyReader")
 					.getMethod("readPemPrivateKey", File.class).invoke(null, new File(arguments[2]));

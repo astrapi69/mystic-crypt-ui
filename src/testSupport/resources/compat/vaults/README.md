@@ -1,4 +1,4 @@
-# Vaults written by 7.2 and 7.3
+# Vaults written by 7.2, 7.3 and 8
 
 `vault-7.2.mcrdb` and `vault-7.3.mcrdb` were written by the application jars of the published 7.2 and 7.3 releases,
 through each release's own password save path (`ApplicationXmlFileStoreWorker.saveToFileWithPassword`), for #624.
@@ -43,3 +43,45 @@ printf '%s' <the password> | java -cp mystic-crypt-ui-7.3-app.jar scripts/fixtur
 
 prints `OPENED groups=2`, `ENTRY group=mykeys title=the mail` and `ENTRY group=root title=the bank`, for 7.2 and for 7.3
 with their own jars.
+
+# Vaults written by 8 with a key file
+
+`vault-8-key-file.mcrdb` and `vault-8-password-and-key-file.mcrdb` were written by the application jar of the
+published 8 release, for #650: the first through its key-file save path
+(`ApplicationXmlFileStoreWorker.saveToFileWithPrivateKey`), the second through its save path for a password and a key
+file together (`saveToFileWithPasswordAndPrivateKey`). Both hold the two groups and entries of the 7.x vaults above.
+
+The key is `src/test/resources/pem/private.pem`, the RSA test key that has been in this repository for years; no new
+key was made for them. The password of the second is `TestPasswords.VAULT_OF_8_FIXTURE`. Neither guards anything.
+
+8 encrypted the content behind the key with plain AES, and the password layer of the second with `PBEWithMD5AndDES`
+and the fixed salt (both mystic-crypt 9). 8.1.1 and later read only AES-GCM and a salted PBE, which is why both were
+refused, and the sign-in called the right key file not valid.
+
+## How they were written
+
+On 2026-11-05, with OpenJDK 25.0.4.1, the jar taken out of the installer on the release page with
+`scripts/fetch-release-jar.sh 8 --without-published-checksum`, so it was not checked against a published checksum:
+
+```
+printf '%s' <the password> | java -cp mystic-crypt-ui-8-app.jar scripts/fixtures/WriteWithAnOldRelease.java vault-8-key-file.mcrdb --key-file private.pem
+printf '%s' <the password> | java -cp mystic-crypt-ui-8-app.jar scripts/fixtures/WriteWithAnOldRelease.java vault-8-password-and-key-file.mcrdb --password-and-key-file private.pem
+```
+
+| | sha256 |
+|---|---|
+| installer of 8 | `31275e12a3473340aeca8d98a12615b6f5b6ba2e281a7e12c00763a5f52c3c13` |
+| application jar of 8 | `f093d7261faf5bd8ae5aa2fe717fa5025ce089c264debdef06cdf01b91881985` |
+| `vault-8-key-file.mcrdb` | `d91359936762c132e3dab96004cfbf3b1a38711eaf5288ce32c155da44fd60e7` |
+| `vault-8-password-and-key-file.mcrdb` | `83a4ea5b96f9d9007322a44975a467a84f7435269a1a5e447d66a294a3730bf4` |
+
+## That 8 opens them and 8.1.1 does not
+
+```
+java -cp mystic-crypt-ui-8-app.jar scripts/fixtures/OpenWithAnOldRelease.java vault-8-key-file.mcrdb --key-file private.pem < /dev/null
+printf '%s' <the password> | java -cp mystic-crypt-ui-8-app.jar scripts/fixtures/OpenWithAnOldRelease.java vault-8-password-and-key-file.mcrdb --password-and-key-file private.pem
+```
+
+print `OPENED groups=2` and the two entries with 8's jar, and `REFUSED AEADBadTagException: Tag mismatch` for both
+with the jar of 8.1.1 (installer sha256 `1f9df0fac7dcc513995da5d8c5de011542fdc91bb09f1bf58fdee0df213e551f`, application
+jar sha256 `112869045778e3cc90c7688112f35d93111e684ba9d133bb262b0c645dce6f4b`), measured on 2026-11-05.

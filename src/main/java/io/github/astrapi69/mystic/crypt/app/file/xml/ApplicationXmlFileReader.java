@@ -25,14 +25,20 @@
 package io.github.astrapi69.mystic.crypt.app.file.xml;
 
 import java.io.File;
+import java.io.IOException;
+import java.security.GeneralSecurityException;
 import java.security.PrivateKey;
 import java.security.Security;
+import java.util.Base64;
 import java.util.logging.Level;
 
+import javax.crypto.AEADBadTagException;
 import javax.crypto.Cipher;
 
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 
+import io.github.astrapi69.crypt.api.algorithm.AesAlgorithm;
+import io.github.astrapi69.crypt.api.algorithm.Algorithm;
 import io.github.astrapi69.crypt.data.key.KeyModelExtensions;
 import io.github.astrapi69.crypt.data.key.reader.PemObjectReader;
 import io.github.astrapi69.crypt.data.key.reader.PrivateKeyReader;
@@ -43,6 +49,7 @@ import io.github.astrapi69.file.read.ReadFileExtensions;
 import io.github.astrapi69.mystic.crypt.ApplicationModelBean;
 import io.github.astrapi69.mystic.crypt.Messages;
 import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
+import io.github.astrapi69.mystic.crypt.algorithm.MysticSymmetricAlgorithm;
 import io.github.astrapi69.mystic.crypt.key.PrivateKeyDecryptor;
 import io.github.astrapi69.mystic.crypt.key.PrivateKeyGenericDecryptor;
 import io.github.astrapi69.mystic.crypt.panel.signin.MasterPwFileModelBean;
@@ -179,9 +186,11 @@ public class ApplicationXmlFileReader
 
 	/**
 	 * What the sign-in shows when a database could not be opened, as {@code title::html}. A file
-	 * that names a type no database holds says so and names the type, and a file that decrypted but
-	 * whose content cannot be read says so and names the reason (#624), rather than either being
-	 * taken for a wrong password or key file; every other failure keeps the given title and reason.
+	 * that names a type no database holds says so and names the type, a file that decrypted but
+	 * whose content cannot be read says so and names the reason (#624), and a file whose key the
+	 * key file opened but whose content is in no known format says that (#650), rather than any of
+	 * them being taken for a wrong password or key file; every other failure keeps the given title
+	 * and reason.
 	 *
 	 * @param title
 	 *            the title of the failure as the sign-in path names it
@@ -194,60 +203,74 @@ public class ApplicationXmlFileReader
 	private static RuntimeException notOpened(final String title, final String reason,
 		final Exception exception)
 	{
-		VaultHoldsAForeignTypeException foreign = foreignTypeIn(exception);
+		VaultHoldsAForeignTypeException foreign = causeOf(exception,
+			VaultHoldsAForeignTypeException.class);
 		if (foreign != null)
 		{
-			log.log(Level.SEVERE, foreign.getMessage(), foreign);
-			String foreignTitle = Messages.getString("dialog.vault.foreign.type.title",
-				"Database not opened");
-			// %1$s rather than {0}: the bundle lookup formats braces itself and fills them with
-			// null
-			String foreignReason = String.format(Messages.getString(
-				"dialog.vault.foreign.type.message",
+			return databaseNotOpened("dialog.vault.foreign.type",
 				"This file names the type %1$s, which no database of this application holds. It "
-					+ "was not opened."),
-				foreign.getTypeName());
-			return new RuntimeException(foreignTitle + "::" + "<html><body width='350'>" + "<h2>"
-				+ foreignTitle + "</h2>" + "<p>" + foreignReason, exception);
+					+ "was not opened.",
+				foreign.getTypeName(), foreign, exception);
 		}
-		VaultContentUnreadableException unreadable = unreadableIn(exception);
+		VaultContentUnreadableException unreadable = causeOf(exception,
+			VaultContentUnreadableException.class);
 		if (unreadable != null)
 		{
-			log.log(Level.SEVERE, unreadable.getMessage(), unreadable);
-			String unreadableTitle = Messages.getString("dialog.vault.unreadable.title",
-				"Database not opened");
-			String unreadableReason = String.format(Messages.getString(
-				"dialog.vault.unreadable.message",
+			return databaseNotOpened("dialog.vault.unreadable",
 				"This database was decrypted, but its content could not be read: %1$s. It was not "
-					+ "opened, and the file is unchanged."),
-				unreadable.getReason());
-			return new RuntimeException(unreadableTitle + "::" + "<html><body width='350'>" + "<h2>"
-				+ unreadableTitle + "</h2>" + "<p>" + unreadableReason, exception);
+					+ "opened, and the file is unchanged.",
+				unreadable.getReason(), unreadable, exception);
+		}
+		VaultFormatUnknownException unknownFormat = causeOf(exception,
+			VaultFormatUnknownException.class);
+		if (unknownFormat != null)
+		{
+			return databaseNotOpened("dialog.vault.format.unknown",
+				"The key file opened the key of this database, but its content is in no format "
+					+ "this version reads (%1$s). It was not opened, and the file is unchanged.",
+				unknownFormat.getReason(), unknownFormat, exception);
 		}
 		String htmlMessage = "<html><body width='350'>" + "<h2>" + title + "</h2>" + "<p> " + reason
 			+ "<p>" + exception.getMessage();
 		return new RuntimeException(title + "::" + htmlMessage, exception);
 	}
 
-	private static VaultContentUnreadableException unreadableIn(final Throwable failure)
+	/**
+	 * A "Database not opened" failure from the bundle keys {@code <keyPrefix>.title} and
+	 * {@code <keyPrefix>.message}, whose message names the given detail
+	 *
+	 * @param keyPrefix
+	 *            the bundle key without {@code .title} or {@code .message}
+	 * @param defaultMessage
+	 *            the message when the bundle has none, with {@code %1$s} for the detail
+	 * @param detail
+	 *            what the message names, never any of the content
+	 * @param cause
+	 *            the failure that decides the message, logged
+	 * @param exception
+	 *            what opening threw
+	 * @return the exception to throw
+	 */
+	private static RuntimeException databaseNotOpened(final String keyPrefix,
+		final String defaultMessage, final String detail, final Exception cause,
+		final Exception exception)
 	{
-		for (Throwable cause = failure; cause != null; cause = cause.getCause())
-		{
-			if (cause instanceof VaultContentUnreadableException unreadable)
-			{
-				return unreadable;
-			}
-		}
-		return null;
+		log.log(Level.SEVERE, cause.getMessage(), cause);
+		String notOpenedTitle = Messages.getString(keyPrefix + ".title", "Database not opened");
+		// %1$s rather than {0}: the bundle lookup formats braces itself and fills them with null
+		String notOpenedReason = String
+			.format(Messages.getString(keyPrefix + ".message", defaultMessage), detail);
+		return new RuntimeException(notOpenedTitle + "::" + "<html><body width='350'>" + "<h2>"
+			+ notOpenedTitle + "</h2>" + "<p>" + notOpenedReason, exception);
 	}
 
-	private static VaultHoldsAForeignTypeException foreignTypeIn(final Throwable failure)
+	private static <T extends Throwable> T causeOf(final Throwable failure, final Class<T> type)
 	{
 		for (Throwable cause = failure; cause != null; cause = cause.getCause())
 		{
-			if (cause instanceof VaultHoldsAForeignTypeException foreign)
+			if (type.isInstance(cause))
 			{
-				return foreign;
+				return type.cast(cause);
 			}
 		}
 		return null;
@@ -273,23 +296,12 @@ public class ApplicationXmlFileReader
 		char[] password, File keyFile) throws Exception
 	{
 		ApplicationModelBean applicationModelBean;
-		CryptModel<Cipher, PrivateKey, byte[]> decryptModel;
-		PrivateKeyDecryptor decryptor;
-		PrivateKeyGenericDecryptor<String> genericDecryptor;
 		PrivateKey privateKey;
-		PasswordStringDecryptor passwordStringDecryptor;
-		// one unwipeable copy of the master password, and one of the xml below: this path decrypts
-		// through PasswordStringDecryptor, which takes a String and is a library class that is not
-		// changed from this repository (#294, architecture.md)
-		passwordStringDecryptor = new PasswordStringDecryptor(String.valueOf(password));
 		privateKey = PrivateKeyReader.readPemPrivateKey(keyFile);
 
-		decryptModel = CryptModel.<Cipher, PrivateKey, byte[]> builder().key(privateKey).build();
-		decryptor = new PrivateKeyDecryptor(decryptModel);
-		genericDecryptor = new PrivateKeyGenericDecryptor<>(decryptor);
 		byte[] encryptedBytes = ReadFileExtensions.readFileToBytearray(applicationFile);
-		String encryptedXml = genericDecryptor.decrypt(encryptedBytes);
-		String xml = passwordStringDecryptor.decrypt(encryptedXml);
+		String encryptedXml = decryptedWithKeyFile(privateKey, encryptedBytes);
+		String xml = decryptedWithPassword(encryptedXml, password);
 		applicationModelBean = throughTheCodec(xml);
 		// the key is not in the file and must not be (#350): it comes from the key file whoever
 		// signed in just picked, and the model needs it for the next save and for the plugins that
@@ -309,19 +321,102 @@ public class ApplicationXmlFileReader
 	public static ApplicationModelBean getApplicationModelBean(File applicationFile,
 		PrivateKey privateKey) throws Exception
 	{
-		CryptModel<Cipher, PrivateKey, byte[]> decryptModel;
-		PrivateKeyDecryptor decryptor;
-		PrivateKeyGenericDecryptor<String> genericDecryptor;
 		ApplicationModelBean applicationModelBean;
-		decryptModel = CryptModel.<Cipher, PrivateKey, byte[]> builder().key(privateKey).build();
-		decryptor = new PrivateKeyDecryptor(decryptModel);
-		genericDecryptor = new PrivateKeyGenericDecryptor<>(decryptor);
 		byte[] encryptedBytes = ReadFileExtensions.readFileToBytearray(applicationFile);
-		String xml = genericDecryptor.decrypt(encryptedBytes);
+		String xml = decryptedWithKeyFile(privateKey, encryptedBytes);
 		applicationModelBean = throughTheCodec(xml);
 		applicationModelBean.getMasterPwFileModelBean()
 			.setPrivateKeyInfo(KeyModelExtensions.toKeyModel(privateKey));
 		return applicationModelBean;
+	}
+
+	/**
+	 * The password layer of a database with a password and a key file, in the format this version
+	 * writes or in the one 8 wrote: {@code PBEWithMD5AndDES} with the fixed salt (mystic-crypt 9),
+	 * which the next save replaces (#650). Neither layer authenticates, so when both fail the
+	 * failure stays the current format's, and the password is called not valid as before
+	 *
+	 * @param encryptedXml
+	 *            the password layer, in Base64
+	 * @param password
+	 *            the master password
+	 * @return the xml
+	 * @throws Exception
+	 *             when the password does not decrypt it in either format
+	 */
+	private static String decryptedWithPassword(final String encryptedXml, final char[] password)
+		throws Exception
+	{
+		// one unwipeable copy of the master password, and one of the xml: this path decrypts
+		// through PasswordStringDecryptor, which takes a String and is a library class that is not
+		// changed from this repository (#294, architecture.md)
+		String passwordText = String.valueOf(password);
+		try
+		{
+			return new PasswordStringDecryptor(passwordText).decrypt(encryptedXml);
+		}
+		catch (GeneralSecurityException notTheCurrentFormat)
+		{
+			try
+			{
+				return PasswordVaultFormat.decryptLegacy(Base64.getDecoder().decode(encryptedXml),
+					passwordText);
+			}
+			catch (GeneralSecurityException notTheFormatOfEight)
+			{
+				notTheCurrentFormat.addSuppressed(notTheFormatOfEight);
+				throw notTheCurrentFormat;
+			}
+		}
+	}
+
+	/**
+	 * The content behind the key that the key file opens, in the format this version writes or in
+	 * the one 8 wrote. 8 encrypted the content with plain AES (mystic-crypt 9), and everything
+	 * since 8.1.1 with AES-GCM, and both wrap the key the same way. A wrong key file fails at that
+	 * key and stays a wrong key file; a failed GCM tag means the key was right and the content
+	 * older, so the content is read the way 8 wrote it, and the next save writes the current format
+	 * (#650). Content that neither reads is reported as an unknown format, never as a wrong key
+	 * file.
+	 *
+	 * @param privateKey
+	 *            the key from the key file
+	 * @param encryptedBytes
+	 *            the file's bytes
+	 * @return the content
+	 * @throws Exception
+	 *             when the key file does not open the key, or the content cannot be read
+	 */
+	private static String decryptedWithKeyFile(final PrivateKey privateKey,
+		final byte[] encryptedBytes) throws Exception
+	{
+		try
+		{
+			return decryptedWith(privateKey, MysticSymmetricAlgorithm.AES_GCM_NO_PADDING,
+				encryptedBytes);
+		}
+		catch (AEADBadTagException notTheCurrentFormat)
+		{
+			try
+			{
+				return decryptedWith(privateKey, AesAlgorithm.AES, encryptedBytes);
+			}
+			catch (GeneralSecurityException | IOException notTheFormatOfEight)
+			{
+				notTheFormatOfEight.addSuppressed(notTheCurrentFormat);
+				throw new VaultFormatUnknownException(notTheFormatOfEight);
+			}
+		}
+	}
+
+	private static String decryptedWith(final PrivateKey privateKey,
+		final Algorithm symmetricAlgorithm, final byte[] encryptedBytes) throws Exception
+	{
+		CryptModel<Cipher, PrivateKey, byte[]> decryptModel = CryptModel
+			.<Cipher, PrivateKey, byte[]> builder().key(privateKey).build();
+		PrivateKeyGenericDecryptor<String> genericDecryptor = new PrivateKeyGenericDecryptor<>(
+			new PrivateKeyDecryptor(decryptModel, symmetricAlgorithm));
+		return genericDecryptor.decrypt(encryptedBytes);
 	}
 
 	/**

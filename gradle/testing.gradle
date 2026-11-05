@@ -115,6 +115,9 @@ test {
         // is declared: an undeclared file is one the cache key would not see change
         inputs.file('src/test/resources/test-db.kdbx').withPropertyName('keePassFixture')
             .withPathSensitivity(PathSensitivity.NONE)
+        // and the test key VaultsOfEightWithAKeyFileSignInUiTest signs in with, by its path (#650)
+        inputs.file('src/test/resources/pem/private.pem').withPropertyName('testKeyFile')
+            .withPathSensitivity(PathSensitivity.NONE)
         // the AssertJ-Swing UI tests drive a process-wide singleton (MysticCryptApplicationFrame) and
         // register listeners on the static ApplicationEventBus; run each test class in its own fresh
         // JVM so that static/singleton state from one class cannot contaminate the next - this is

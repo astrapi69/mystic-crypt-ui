@@ -58,6 +58,17 @@ public final class TestPasswords
 	 */
 	public static final String VAULTS_OF_7X_FIXTURE = "written-by-seven-x-for-624";
 
+	/**
+	 * The password of the checked-in vault that 8 wrote with a password and a key file together,
+	 * {@code vault-8-password-and-key-file.mcrdb} in
+	 * {@code src/testSupport/resources/compat/vaults} (#650).
+	 * <p>
+	 * It cannot be made up either: 8 wrote the file with it, through its own save path for both
+	 * ({@code scripts/fixtures/WriteWithAnOldRelease.java}). The vault holds invented entries and
+	 * guards nothing else.
+	 */
+	public static final String VAULT_OF_8_FIXTURE = "written-by-eight-for-650";
+
 	private TestPasswords()
 	{
 	}
