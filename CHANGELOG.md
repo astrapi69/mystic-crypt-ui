@@ -95,6 +95,27 @@ FIXED:
   save path, opened through the sign-in with every group, entry, attachment and property, and saved again
 - a database that decrypts but whose content cannot be read is no longer reported as a wrong password or a wrong key file
   (#624): the sign-in says "Database not opened" and names the reason, such as a type this version does not know
+- the checks of the vault format across releases compare the entries where the application keeps them, in their groups
+  (#757). They kept the entries in a field no code of the application fills, so a version that lost a user's entries
+  while opening another release's vault would have passed them. Measured by a counter-run: with this build made to drop
+  every group's entries on opening, the old checks stayed green and the new ones failed
+
+FORMAT:
+- the vault format does not change. Every vault that 8.1.1 to 8.13 wrote, with a password or with a key file, opens in
+  8.14 with every group and entry as written, and a vault 8.14 writes, either way, opens in 8.12 and in 8.13 the same.
+  Each vault was written by that release's own save path, with its entries in their groups, and what was read was
+  compared field by field with what was written: the text fields, the expiry date, the custom property with its value,
+  the attachment by the sha256 of its content (`scripts/compat/measure-vault-format.sh <empty directory>`, #757; the
+  jars from the installers on the release pages, checked against their published sha256, 8.1.1 without one)
+- the FORMAT statements of 8.12 and 8.13 hold, now measured with the entries: they had been measured with the entries in
+  a field the application does not read (#757). Measured again by the same script: the vaults of 8.1.1 to 8.11 open in
+  8.12 with every entry as written, the vault 8.12 writes opens in 8.6 to 8.11, and the vaults 8.1.1 to 8.12 wrote with
+  a key file open in 8.13 with every entry as written
+- a vault that 7.2 or 7.3 wrote with a password opens (#624), and is refused by 8.12 and 8.13; one they wrote with a key
+  file opens in none of 8.12, 8.13 and 8.14 ("AEADBadTagException: Tag mismatch"), as a vault 8 wrote with a key file
+  (#650). 7.2 and 7.3 publish no checksum; their jars were taken from the installers unchecked
+- `./gradlew test --tests '*TheEnvelopeMoveKeepsTheVaultFormatTest'` with `-PenvelopeMoveRelease=8.12` and `=8.13`: in
+  both directions every entry as written, in the groups
 
 Version 8.13
 -------------

@@ -95,7 +95,7 @@ class TheEnvelopeMoveKeepsTheVaultFormatTest
 
 		assertEquals(written.entryLines(), SampleVaults.entryLines(opened),
 			"this build reads every entry as " + RELEASE.name() + " wrote it");
-		MysticCryptEntryModelBean bank = opened.getDataOfNodes().get(1L).get(0);
+		MysticCryptEntryModelBean bank = SampleVaults.entriesOf(opened, "root").get(0);
 		assertEquals(1, bank.getHistory().size(), "the history the release wrote comes back");
 		assertEquals("the bank, before", new String(bank.getHistory().get(0).getTitle()));
 		assertEquals(Set.of("TOTP seed"), bank.getProtectedPropertyKeys(),

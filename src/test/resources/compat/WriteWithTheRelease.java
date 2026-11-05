@@ -5,7 +5,6 @@ import java.io.PrintStream;
 import java.nio.charset.StandardCharsets;
 import java.security.Security;
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -13,10 +12,14 @@ import java.util.Set;
 import io.github.astrapi69.collection.pair.KeyValuePair;
 import io.github.astrapi69.file.create.model.FileContentInfo;
 import io.github.astrapi69.file.create.model.FileInfo;
+import io.github.astrapi69.gen.tree.BaseTreeNode;
+import io.github.astrapi69.gen.tree.TreeIdNode;
+import io.github.astrapi69.gen.tree.convert.BaseTreeNodeTransformer;
 import io.github.astrapi69.mystic.crypt.ApplicationModelBean;
 import io.github.astrapi69.mystic.crypt.app.file.xml.ApplicationXmlFileStoreWorker;
 import io.github.astrapi69.mystic.crypt.panel.dbtree.MysticCryptEntryModelBean;
 import io.github.astrapi69.mystic.crypt.panel.signin.MasterPwFileModelBean;
+import io.github.astrapi69.swing.renderer.tree.GenericTreeElement;
 
 /**
  * Runs inside a child JVM with nothing but a published release's application jar on its class
@@ -24,9 +27,10 @@ import io.github.astrapi69.mystic.crypt.panel.signin.MasterPwFileModelBean;
  * OpenWithTheRelease, for the other direction (#490).
  * <p>
  * The vault carries what the release can write: every field of the sample vault the tests use,
- * plus an entry's history and the names of its protected properties, which 8.6 introduced. What
- * it wrote is printed one line per entry, in the shape SampleVaults prints, so the test compares
- * the same text on both sides.
+ * plus an entry's history and the names of its protected properties, which 8.6 introduced, in a
+ * root group and a group "mykeys" with each entry in its group's element, where the application
+ * keeps entries (#757). What it wrote is printed one line per entry, sorted, in the shape
+ * SampleVaults prints, so the test compares the same text on both sides.
  * <p>
  * Usage: {@code java -cp <release jar> WriteWithTheRelease.java <vault file>}, the master password
  * on standard input. Exits 0 and prints WRITTEN when the vault is on disk.
@@ -61,11 +65,18 @@ public class WriteWithTheRelease
 		MysticCryptEntryModelBean second = MysticCryptEntryModelBean.builder()
 			.title("the mail".toCharArray()).password("also written by the release".toCharArray())
 			.build();
-		Map<Long, List<MysticCryptEntryModelBean>> dataOfNodes = new LinkedHashMap<>();
-		dataOfNodes.put(1L, new ArrayList<>(List.of(entry)));
-		dataOfNodes.put(2L, new ArrayList<>(List.of(second)));
-		ApplicationModelBean model = ApplicationModelBean.builder().dataOfNodes(dataOfNodes)
-			.lastId(2L).build();
+		// the entries live in their group's element, where the release's tree panel reads them;
+		// dataOfNodes is a field no code of the application fills (#757)
+		BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> root = BaseTreeNode
+			.<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> builder().id(1L)
+			.value(group("root", entry)).leaf(false).build();
+		root.addChild(BaseTreeNode
+			.<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> builder().id(2L)
+			.value(group("mykeys", second)).parent(root).leaf(false).build());
+		Map<Long, TreeIdNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long>> tree = BaseTreeNodeTransformer
+			.toKeyMap(root);
+		ApplicationModelBean model = ApplicationModelBean.builder().rootTreeAsMap(tree).lastId(2L)
+			.build();
 		model.setMasterPwFileModelBean(MasterPwFileModelBean.builder()
 			.applicationFileInfo(FileInfo.toFileInfo(vault))
 			.selectedApplicationFilePath(vault.getAbsolutePath()).masterPw(password)
@@ -73,18 +84,30 @@ public class WriteWithTheRelease
 
 		ApplicationXmlFileStoreWorker.saveToFileWithPassword(model);
 
-		for (Map.Entry<Long, List<MysticCryptEntryModelBean>> node : dataOfNodes.entrySet())
+		List<String> lines = new ArrayList<>();
+		for (TreeIdNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> node : tree.values())
 		{
-			for (MysticCryptEntryModelBean written : node.getValue())
+			for (MysticCryptEntryModelBean written : node.getValue().getDefaultContent())
 			{
-				OUT.println("ENTRY node=" + node.getKey() + " title=" + text(written.getTitle())
-					+ " userName=" + text(written.getUserName()) + " password="
-					+ text(written.getPassword()) + " url=" + text(written.getUrl()) + " notes="
-					+ text(written.getNotes()) + " properties=" + written.getProperties().size()
-					+ " attachments=" + written.getResources().size());
+				lines.add("ENTRY group=" + node.getValue().getName() + " title="
+					+ text(written.getTitle()) + " userName=" + text(written.getUserName())
+					+ " password=" + text(written.getPassword()) + " url=" + text(written.getUrl())
+					+ " notes=" + text(written.getNotes()) + " properties="
+					+ written.getProperties().size() + " attachments="
+					+ written.getResources().size());
 			}
 		}
+		lines.stream().sorted().forEach(OUT::println);
 		OUT.println("WRITTEN");
+	}
+
+	private static GenericTreeElement<List<MysticCryptEntryModelBean>> group(final String name,
+		final MysticCryptEntryModelBean entry)
+	{
+		GenericTreeElement<List<MysticCryptEntryModelBean>> element = GenericTreeElement
+			.<List<MysticCryptEntryModelBean>> builder().name(name).build();
+		element.setDefaultContent(new ArrayList<>(List.of(entry)));
+		return element;
 	}
 
 	private static String text(final char[] characters)

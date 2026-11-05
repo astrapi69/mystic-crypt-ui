@@ -4,8 +4,8 @@ import java.io.FileOutputStream;
 import java.io.PrintStream;
 import java.nio.charset.StandardCharsets;
 import java.security.Security;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 import io.github.astrapi69.file.create.model.FileInfo;
 import io.github.astrapi69.mystic.crypt.ApplicationModelBean;
@@ -16,7 +16,9 @@ import io.github.astrapi69.mystic.crypt.panel.signin.MasterPwFileModelBean;
 /**
  * Run with a RELEASE's application jar on the class path, never this build's: opens the vault named
  * in the first argument through the password sign-in path of that release, the master password
- * arriving on standard input, and prints what it read in a form the test compares (#402).
+ * arriving on standard input, and prints what it read in a form the test compares (#402): one line
+ * per entry, sorted, read from the groups' elements where the release keeps its entries (#757),
+ * and one line per group.
  * <p>
  * Only APIs that exist in that release may be used here. Exit 0 and "OPENED" when the release opens
  * the vault; exit 2 and "REFUSED" with the release's own message when it does not.
@@ -60,17 +62,25 @@ public class OpenWithTheRelease
 			System.exit(2);
 			return;
 		}
-		for (Map.Entry<Long, List<MysticCryptEntryModelBean>> node : model.getDataOfNodes().entrySet())
+		List<String> lines = new ArrayList<>();
+		if (model.getRootTreeAsMap() != null)
 		{
-			for (MysticCryptEntryModelBean entry : node.getValue())
-			{
-				OUT.println("ENTRY node=" + node.getKey() + " title=" + text(entry.getTitle())
-					+ " userName=" + text(entry.getUserName()) + " password="
-					+ text(entry.getPassword()) + " url=" + text(entry.getUrl()) + " notes="
-					+ text(entry.getNotes()) + " properties=" + entry.getProperties().size()
-					+ " attachments=" + entry.getResources().size());
-			}
+			model.getRootTreeAsMap().values().forEach(node -> {
+				List<MysticCryptEntryModelBean> entries = node.getValue().getDefaultContent();
+				for (MysticCryptEntryModelBean entry : entries == null
+					? List.<MysticCryptEntryModelBean> of()
+					: entries)
+				{
+					lines.add("ENTRY group=" + node.getValue().getName() + " title="
+						+ text(entry.getTitle()) + " userName=" + text(entry.getUserName())
+						+ " password=" + text(entry.getPassword()) + " url=" + text(entry.getUrl())
+						+ " notes=" + text(entry.getNotes()) + " properties="
+						+ entry.getProperties().size() + " attachments="
+						+ entry.getResources().size());
+				}
+			});
 		}
+		lines.stream().sorted().forEach(OUT::println);
 		if (model.getRootTreeAsMap() != null)
 		{
 			model.getRootTreeAsMap().values().forEach(node -> OUT.println("GROUP name="
