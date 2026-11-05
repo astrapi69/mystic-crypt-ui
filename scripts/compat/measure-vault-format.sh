@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 #
 # Measures the vault format across releases with real entries (#757): every release from 7.2 on, and this
-# build, writes a vault through its own save path - once protected by a password, once by a key file alone -
+# build, writes a vault through its own save path - protected by a password, by a key file alone, and by both -
 # with a root group and a group "mykeys" and one entry in each, kept in the group's element as the application
 # keeps them; then readers open those vaults and their entries are compared with what was written, line by line
 # (scripts/fixtures/EntryLines.java: every text field, the expiry date, the custom property with its value, the
@@ -11,7 +11,7 @@
 #
 # Readers: 8.12, 8.13 and this build for every vault; besides, 8.6 to 8.11 for the password vault 8.12 wrote,
 # which is what the FORMAT section of 8.12 states. The application jars come from the installers on the
-# release pages, checked against their published sha256 (scripts/fetch-release-jar.sh); 7.2, 7.3 and 8.1.1
+# release pages, checked against their published sha256 (scripts/fetch-release-jar.sh); 7.2, 7.3, 8 and 8.1.1
 # publish none and are taken without a check, which the table says. Without a jar named for this build, it is
 # built here (./gradlew withAllDependendiesJar). The key is an RSA key made for the run; nothing of a real
 # vault or key is read. Prints one table row per writer, protection and reader, and writes the lines to the
@@ -24,8 +24,8 @@ fixtures="$repository/scripts/fixtures"
 java="${JAVA_HOME:-$HOME/.sdkman/candidates/java/current}/bin/java"
 checked="${MYSTIC_CRYPT_UI_RELEASE_JARS:-$HOME/.cache/mystic-crypt-ui/release-jars}"
 unchecked="${MYSTIC_CRYPT_UI_RELEASE_JARS_UNVERIFIED:-$HOME/.cache/mystic-crypt-ui/release-jars-unverified}"
-without_checksum="7.2 7.3 8.1.1"
-writers="7.2 7.3 8.1.1 8.2 8.3 8.4 8.5 8.5.1 8.6 8.7 8.8 8.9 8.10 8.11 8.12 8.13 this"
+without_checksum="7.2 7.3 8 8.1.1"
+writers="7.2 7.3 8 8.1.1 8.2 8.3 8.4 8.5 8.5.1 8.6 8.7 8.8 8.9 8.10 8.11 8.12 8.13 this"
 readers="8.12 8.13 this"
 readers_of_812="8.6 8.7 8.8 8.9 8.10 8.11"
 
@@ -60,7 +60,12 @@ openssl genpkey -algorithm RSA -pkeyopt rsa_keygen_bits:2048 -out "$work/key.pem
 password="measure-$(od -An -N8 -tx1 /dev/urandom | tr -d ' \n')"
 
 jar() { if [ "$1" = this ]; then printf '%s' "$this_jar"; else jar_of "$1"; fi; }
-options() { if [ "$1" = key ]; then printf -- '--key-file\n%s\n' "$work/key.pem"; fi; }
+options() {
+  case "$1" in
+    key) printf -- '--key-file\n%s\n' "$work/key.pem" ;;
+    both) printf -- '--password-and-key-file\n%s\n' "$work/key.pem" ;;
+  esac
+}
 
 write() {
   local release=$1 protection=$2 vault="$work/vault-$1-$2.mcrdb"
@@ -89,7 +94,7 @@ note() { case " $without_checksum " in *" $1 "*) printf ' (no published checksum
 
 printf '| written by | protection | read by | result |\n|---|---|---|---|\n'
 for writer in $writers; do
-  for protection in password key; do
+  for protection in password key both; do
     if ! write "$writer" "$protection" || ! grep -q '^WRITTEN' "$work/written-$writer-$protection.txt"; then
       printf '| %s%s | %s | - | not written: %s |\n' "$writer" "$(note "$writer")" "$protection" \
         "$(grep -vE '^WARNING|^\s+at ' "$work/written-$writer-$protection.err" | tail -1 | cut -c1-110)"

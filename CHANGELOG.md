@@ -152,15 +152,17 @@ FIXED:
   called not valid; a key file that opens the key of a database whose content is in no known format no longer is: the
   sign-in says "Database not opened" and names the reason. Measured with vaults the application jar of 8 wrote through
   its own save paths, opened through the sign-in with every group, entry, attachment and property, and saved again; the
-  same holds for vaults that 7.2 and 7.3 wrote with a key file, measured once and not kept as fixtures
+  same holds for vaults that 7.2 and 7.3 wrote with a key file, measured by `scripts/compat/measure-vault-format.sh`
+  and not kept as fixtures
 - the checks of the vault format across releases compare the entries where the application keeps them, in their groups
   (#757). They kept the entries in a field no code of the application fills, so a version that lost a user's entries
   while opening another release's vault would have passed them. Measured by a counter-run: with this build made to drop
   every group's entries on opening, the old checks stayed green and the new ones failed
 
 FORMAT:
-- the vault format does not change. Every vault that 8.1.1 to 8.13 wrote, with a password or with a key file, opens in
-  8.14 with every group and entry as written, and a vault 8.14 writes, either way, opens in 8.12 and in 8.13 the same.
+- the vault format does not change. Every vault that 8.1.1 to 8.13 wrote, with a password, with a key file or with both,
+  opens in 8.14 with every group and entry as written, and a vault 8.14 writes, any of the three ways, opens in 8.12 and
+  in 8.13 the same.
   Each vault was written by that release's own save path, with its entries in their groups, and what was read was
   compared field by field with what was written: the text fields, the expiry date, the custom property with its value,
   the attachment by the sha256 of its content (`scripts/compat/measure-vault-format.sh <empty directory>`, #757; the
