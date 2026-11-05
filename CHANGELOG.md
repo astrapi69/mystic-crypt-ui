@@ -59,6 +59,11 @@ CHANGED:
   `scripts/e2e-harness.sh` and `scripts/hold-display.sh` (#741, #599). `make test-e2e` and `make test-e2e-demo` call
   Gradle directly; the demo still runs on the current display, through `E2E_USE_CURRENT_DISPLAY=1`
 
+FIXED:
+- an entry's `toString` no longer prints its attachments (#740). It carried the content of every attached file byte for
+  byte, since 6.1, against the rule that no model bean prints a secret (#388). No path is known that hands it outside the
+  application; a test now holds the rule for attachments too
+
 Version 8.13
 -------------
 
