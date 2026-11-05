@@ -27,23 +27,29 @@ package io.github.astrapi69.mystic.crypt.app.file.xml;
 import java.io.File;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.function.Consumer;
 
 import io.github.astrapi69.collection.pair.KeyValuePair;
 import io.github.astrapi69.file.create.model.FileContentInfo;
 import io.github.astrapi69.file.create.model.FileInfo;
+import io.github.astrapi69.gen.tree.BaseTreeNode;
+import io.github.astrapi69.gen.tree.convert.BaseTreeNodeTransformer;
 import io.github.astrapi69.mystic.crypt.ApplicationModelBean;
 import io.github.astrapi69.mystic.crypt.TestPasswords;
 import io.github.astrapi69.mystic.crypt.panel.dbtree.MysticCryptEntryModelBean;
 import io.github.astrapi69.mystic.crypt.panel.signin.MasterPwFileModelBean;
+import io.github.astrapi69.swing.renderer.tree.GenericTreeElement;
 
 /**
  * The vault the release probes write and read, and the one line per entry both sides print, so a
  * comparison is a comparison of the same text (#402, #490). The probes in
- * {@code src/test/resources/compat} print the same line shape from inside a release
+ * {@code src/test/resources/compat} print the same line shape from inside a release.
+ * <p>
+ * The entries live where the application keeps them: in their group's element, the default content
+ * of a {@link GenericTreeElement} in {@code rootTreeAsMap}, a root group and a group "mykeys" below
+ * it. Up to #757 they were put into {@code dataOfNodes}, a field no code of the application fills,
+ * so a comparison proved that field's round trip and not the entries'.
  */
 final class SampleVaults
 {
@@ -74,10 +80,40 @@ final class SampleVaults
 		addition.accept(entry);
 		MysticCryptEntryModelBean second = MysticCryptEntryModelBean.builder()
 			.title("the mail".toCharArray()).password(TestPasswords.throwawayChars()).build();
-		Map<Long, List<MysticCryptEntryModelBean>> dataOfNodes = new LinkedHashMap<>();
-		dataOfNodes.put(1L, new ArrayList<>(List.of(entry)));
-		dataOfNodes.put(2L, new ArrayList<>(List.of(second)));
-		return ApplicationModelBean.builder().dataOfNodes(dataOfNodes).lastId(2L).build();
+		BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> root = BaseTreeNode
+			.<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> builder().id(1L)
+			.value(group("root", entry)).leaf(false).build();
+		root.addChild(
+			BaseTreeNode.<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> builder()
+				.id(2L).value(group("mykeys", second)).parent(root).leaf(false).build());
+		return ApplicationModelBean.builder().rootTreeAsMap(BaseTreeNodeTransformer.toKeyMap(root))
+			.lastId(2L).build();
+	}
+
+	private static GenericTreeElement<List<MysticCryptEntryModelBean>> group(final String name,
+		final MysticCryptEntryModelBean entry)
+	{
+		GenericTreeElement<List<MysticCryptEntryModelBean>> element = GenericTreeElement
+			.<List<MysticCryptEntryModelBean>> builder().name(name).build();
+		element.setDefaultContent(new ArrayList<>(List.of(entry)));
+		return element;
+	}
+
+	/**
+	 * The entries of the given group, as the tree panel reads them
+	 *
+	 * @param model
+	 *            the vault
+	 * @param group
+	 *            the group's name
+	 * @return its entries
+	 */
+	static List<MysticCryptEntryModelBean> entriesOf(final ApplicationModelBean model,
+		final String group)
+	{
+		return model.getRootTreeAsMap().values().stream()
+			.filter(node -> group.equals(node.getValue().getName()))
+			.map(node -> contentOf(node.getValue())).findFirst().orElseThrow();
 	}
 
 	/**
@@ -114,22 +150,29 @@ final class SampleVaults
 	}
 
 	/**
-	 * One line per entry, in the shape the probes print
+	 * One line per entry, in the shape the probes print, taken from the groups as the tree panel
+	 * reads them
 	 *
 	 * @param model
 	 *            the vault
-	 * @return the lines, in node order
+	 * @return the lines, sorted
 	 */
 	static List<String> entryLines(final ApplicationModelBean model)
 	{
-		List<String> lines = new ArrayList<>();
-		model.getDataOfNodes()
-			.forEach((node, entries) -> entries.forEach(entry -> lines.add("ENTRY node=" + node
-				+ " title=" + text(entry.getTitle()) + " userName=" + text(entry.getUserName())
-				+ " password=" + text(entry.getPassword()) + " url=" + text(entry.getUrl())
-				+ " notes=" + text(entry.getNotes()) + " properties=" + entry.getProperties().size()
-				+ " attachments=" + entry.getResources().size())));
-		return lines;
+		return model.getRootTreeAsMap().values().stream()
+			.flatMap(node -> contentOf(node.getValue()).stream()
+				.map(entry -> "ENTRY group=" + node.getValue().getName() + " title="
+					+ text(entry.getTitle()) + " userName=" + text(entry.getUserName())
+					+ " password=" + text(entry.getPassword()) + " url=" + text(entry.getUrl())
+					+ " notes=" + text(entry.getNotes()) + " properties="
+					+ entry.getProperties().size() + " attachments=" + entry.getResources().size()))
+			.sorted().toList();
+	}
+
+	private static List<MysticCryptEntryModelBean> contentOf(
+		final GenericTreeElement<List<MysticCryptEntryModelBean>> element)
+	{
+		return element.getDefaultContent() == null ? List.of() : element.getDefaultContent();
 	}
 
 	private static MasterPwFileModelBean credentialsFor(final File vault, final char[] password)

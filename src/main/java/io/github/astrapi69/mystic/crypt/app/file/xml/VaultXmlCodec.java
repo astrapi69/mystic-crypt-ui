@@ -25,8 +25,10 @@
 package io.github.astrapi69.mystic.crypt.app.file.xml;
 
 import java.io.CharArrayReader;
+import java.util.Map;
 
 import com.thoughtworks.xstream.XStream;
+import com.thoughtworks.xstream.XStreamException;
 import com.thoughtworks.xstream.security.ForbiddenClassException;
 
 import io.github.astrapi69.collection.pair.KeyValuePair;
@@ -62,6 +64,9 @@ import io.github.astrapi69.xstream.factory.XStreamFactory;
  * a wrong password again. This is the one place the vault is converted, on all three ways a vault
  * is protected.
  * <p>
+ * <b>A vault of 7.x</b> names some classes by the package they had before 8.1.1; the reader takes
+ * those names as today's classes (#624).
+ * <p>
  * <b>What is still out of reach.</b> XStream's own writer buffers a chunk of what it writes, and
  * the pull parser reading the xml back buffers the document it is parsing. Neither is reachable
  * from here to be overwritten. What this removes is the full copy that was retained for the whole
@@ -85,6 +90,15 @@ public final class VaultXmlCodec
 
 	/** The field of the root element that is written as an attribute */
 	private static final String FORMAT_VERSION_FIELD = "formatVersion";
+
+	/**
+	 * The names 7.x wrote for classes that have moved since, each with the class it is read as
+	 * (#624). A vault of 7.x did not open in 8.1.1 or later because of them. Each is a name, not a
+	 * type: the allowed types stay {@link #VAULT_TYPES}
+	 */
+	private static final Map<String, Class<?>> NAMES_OF_SEVEN_X = Map.of(
+		"io.github.astrapi69.swing.tree.GenericTreeElement", GenericTreeElement.class,
+		"io.github.astrapi69.file.create.FileContentInfo", FileContentInfo.class);
 
 	/**
 	 * The types of this project's namespace that a vault holds, and the only ones the reader builds
@@ -168,6 +182,9 @@ public final class VaultXmlCodec
 	 * @return the model
 	 * @throws VaultHoldsAForeignTypeException
 	 *             when the xml names a type no vault holds; that type is not built
+	 * @throws VaultContentUnreadableException
+	 *             when the xml cannot be read for another reason, a type this version does not know
+	 *             among them (#624)
 	 */
 	public static ApplicationModelBean toModel(final char[] xml)
 	{
@@ -178,11 +195,15 @@ public final class VaultXmlCodec
 		catch (RuntimeException failure)
 		{
 			ForbiddenClassException refused = refusalIn(failure);
-			if (refused == null)
+			if (refused != null)
 			{
-				throw failure;
+				throw new VaultHoldsAForeignTypeException(refused.getMessage(), refused);
 			}
-			throw new VaultHoldsAForeignTypeException(refused.getMessage(), refused);
+			if (failure instanceof XStreamException unreadable)
+			{
+				throw new VaultContentUnreadableException(unreadable);
+			}
+			throw failure;
 		}
 	}
 
@@ -220,6 +241,24 @@ public final class VaultXmlCodec
 		xStream.allowTypes(VAULT_TYPES);
 		xStream.useAttributeFor(ApplicationModelBean.class, FORMAT_VERSION_FIELD);
 		xStream.ignoreUnknownElements();
+		readTheNamesOfSevenX(xStream);
 		return xStream;
+	}
+
+	/**
+	 * Reads the names 7.x wrote for classes that have moved as today's classes (#624). XStream
+	 * writes a class under the alias given last, so each class's own name is given after its old
+	 * one: reading takes both, writing names each class exactly as it did before, which
+	 * {@code VaultsOfSevenXOpenTest} holds
+	 *
+	 * @param xStream
+	 *            the instance to configure
+	 */
+	private static void readTheNamesOfSevenX(final XStream xStream)
+	{
+		NAMES_OF_SEVEN_X.forEach((oldName, type) -> {
+			xStream.alias(oldName, type);
+			xStream.alias(type.getName(), type);
+		});
 	}
 }
