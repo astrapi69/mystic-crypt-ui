@@ -111,6 +111,14 @@ public class MysticCryptEntryModelBean
 
 	/** The flag if the password is displayed in plain text */
 	boolean showPassword;
+
+	/**
+	 * The attachments. Excluded from {@code toString} as a whole: an attachment is where a user
+	 * keeps what does not fit a field - recovery codes, a key file, a scan of a document - and
+	 * {@code FileContentInfo.toString} prints its content byte for byte (#740,
+	 * astrapi69/file-worker#114)
+	 */
+	@ToString.Exclude
 	@Builder.Default
 	List<FileContentInfo> resources = new ArrayList<>();
 

@@ -41,6 +41,7 @@ import java.util.stream.Stream;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import io.github.astrapi69.file.create.model.FileContentInfo;
 import io.github.astrapi69.mystic.crypt.panel.dbtree.MysticCryptEntryModelBean;
 import io.github.astrapi69.mystic.crypt.panel.pw.GeneratePasswordModelBean;
 import io.github.astrapi69.mystic.crypt.panel.signin.MasterPwFileModelBean;
@@ -75,7 +76,7 @@ class NoModelBeanPrintsASecretTest
 	private static final Pattern KEY_MATERIAL_FIELD = Pattern
 		.compile("^\\t(?!\\t)(?:(?:private|protected|public|transient|final)[ \\t]+)*"
 			+ "(char\\[\\]|byte\\[\\]|KeyModel|KeyInfo|KeyInfoModel|PrivateKey|MasterPwFileModelBean"
-			+ "|List<MysticCryptEntryModelBean>)"
+			+ "|List<MysticCryptEntryModelBean>|List<FileContentInfo>)"
 			+ "[ \\t]+([A-Za-z_][A-Za-z0-9_]*)[ \\t]*(?:=[^;]*)?;", Pattern.MULTILINE);
 
 	@Test
@@ -126,6 +127,31 @@ class NoModelBeanPrintsASecretTest
 		assertDoesNotCarryTheSentinel(printed, "MysticCryptEntryModelBean");
 		assertFalse(printed.contains("history="),
 			"the history is excluded as a whole, not version by version (#402): " + printed);
+	}
+
+	/**
+	 * An attachment is where a user keeps what does not fit a field - recovery codes, a key file, a
+	 * scan of a document - and file-worker's {@code FileContentInfo.toString} prints its content
+	 * byte for byte (#740, astrapi69/file-worker#114)
+	 */
+	@Test
+	@DisplayName("an entry's toString does not print its attachments, where the bytes of a file are")
+	void anEntryDoesNotPrintItsAttachments()
+	{
+		byte[] content = SENTINEL.getBytes(StandardCharsets.UTF_8);
+		MysticCryptEntryModelBean entry = MysticCryptEntryModelBean.builder()
+			.title("a title".toCharArray())
+			.resources(new ArrayList<>(
+				List.of(FileContentInfo.builder().name("codes.txt").content(content).build())))
+			.build();
+
+		String printed = entry.toString();
+
+		assertDoesNotCarryTheSentinel(printed, "MysticCryptEntryModelBean");
+		assertFalse(printed.contains(Arrays.toString(content)),
+			"MysticCryptEntryModelBean.toString() prints an attachment's bytes: " + printed);
+		assertFalse(printed.contains("resources="),
+			"the attachments are excluded as a whole (#740): " + printed);
 	}
 
 	@Test
