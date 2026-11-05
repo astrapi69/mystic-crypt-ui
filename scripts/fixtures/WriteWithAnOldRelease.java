@@ -51,7 +51,9 @@ import java.util.UUID;
  * <p>
  * Usage: {@code java -cp <release app jar> WriteWithAnOldRelease.java <vault file>}, the password
  * on standard input; with {@code --key-file <PEM file>} after the vault file, the vault is protected
- * by that key alone, through the release's key-file save path. It prints what it wrote, one line
+ * by that key alone, through the release's key-file save path; with
+ * {@code --password-and-key-file <PEM file>}, by the password and that key together, through the
+ * release's save path for both (#650). It prints what it wrote, one line
  * per entry ({@code EntryLines}), then WRITTEN. Nothing of this checkout is on the class path.
  */
 public class WriteWithAnOldRelease
@@ -111,7 +113,18 @@ public class WriteWithAnOldRelease
 			fileInfoType.getMethod("toFileInfo", File.class).invoke(null, vault));
 		set(credentials, "selectedApplicationFilePath", vault.getAbsolutePath());
 		boolean withKeyFile = arguments.length >= 3 && "--key-file".equals(arguments[1]);
-		if (withKeyFile)
+		boolean withBoth = arguments.length >= 3 && "--password-and-key-file".equals(arguments[1]);
+		if (withBoth)
+		{
+			// the release's save path for both reads the key from the key file itself
+			set(credentials, "keyFileInfo", fileInfoType.getMethod("toFileInfo", File.class)
+				.invoke(null, new File(arguments[2]).getAbsoluteFile()));
+			set(credentials, "privateKeyInfo", keyModelOf(new File(arguments[2])));
+			set(credentials, "masterPw", password);
+			set(credentials, "withMasterPw", true);
+			set(credentials, "withKeyFile", true);
+		}
+		else if (withKeyFile)
 		{
 			set(credentials, "privateKeyInfo", keyModelOf(new File(arguments[2])));
 			set(credentials, "withMasterPw", false);
@@ -130,7 +143,9 @@ public class WriteWithAnOldRelease
 		set(model, "masterPwFileModelBean", credentials);
 
 		Class.forName("io.github.astrapi69.mystic.crypt.app.file.xml.ApplicationXmlFileStoreWorker")
-			.getMethod(withKeyFile ? "saveToFileWithPrivateKey" : "saveToFileWithPassword", modelType)
+			.getMethod(withBoth
+				? "saveToFileWithPasswordAndPrivateKey"
+				: withKeyFile ? "saveToFileWithPrivateKey" : "saveToFileWithPassword", modelType)
 			.invoke(null, model);
 		OUT.println("GROUPS " + treeAsMap.size() + " ENTRIES 2 FIELDS " + fieldsOf(entryType));
 		EntryLines.of(model).forEach(OUT::println);

@@ -145,6 +145,14 @@ FIXED:
   save path, opened through the sign-in with every group, entry, attachment and property, and saved again
 - a database that decrypts but whose content cannot be read is no longer reported as a wrong password or a wrong key file
   (#624): the sign-in says "Database not opened" and names the reason, such as a type this version does not know
+- a vault that 8 wrote with a key file opens again (#650), with the key file alone and with a password and the key file.
+  Since 8.1.1 it did not, and the sign-in called the right key file not valid: 8 encrypted the content behind the key
+  with plain AES and the password layer with `PBEWithMD5AndDES` and a fixed salt (mystic-crypt 9), and 8.1.1 read only
+  AES-GCM and a salted PBE. Both are read again, and the next save writes the current format. A wrong key file is still
+  called not valid; a key file that opens the key of a database whose content is in no known format no longer is: the
+  sign-in says "Database not opened" and names the reason. Measured with vaults the application jar of 8 wrote through
+  its own save paths, opened through the sign-in with every group, entry, attachment and property, and saved again; the
+  same holds for vaults that 7.2 and 7.3 wrote with a key file, measured once and not kept as fixtures
 - the checks of the vault format across releases compare the entries where the application keeps them, in their groups
   (#757). They kept the entries in a field no code of the application fills, so a version that lost a user's entries
   while opening another release's vault would have passed them. Measured by a counter-run: with this build made to drop
@@ -162,8 +170,8 @@ FORMAT:
   8.12 with every entry as written, the vault 8.12 writes opens in 8.6 to 8.11, and the vaults 8.1.1 to 8.12 wrote with
   a key file open in 8.13 with every entry as written
 - a vault that 7.2 or 7.3 wrote with a password opens (#624), and is refused by 8.12 and 8.13; one they wrote with a key
-  file opens in none of 8.12, 8.13 and 8.14 ("AEADBadTagException: Tag mismatch"), as a vault 8 wrote with a key file
-  (#650). 7.2 and 7.3 publish no checksum; their jars were taken from the installers unchecked
+  file, and one 8 wrote with a key file, opens in 8.14 (#650) and is refused by 8.12 and 8.13 ("AEADBadTagException: Tag
+  mismatch"). 7.2 and 7.3 publish no checksum; their jars were taken from the installers unchecked, as the jar of 8
 - `./gradlew test --tests '*TheEnvelopeMoveKeepsTheVaultFormatTest'` with `-PenvelopeMoveRelease=8.12` and `=8.13`: in
   both directions every entry as written, in the groups
 

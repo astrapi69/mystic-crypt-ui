@@ -254,6 +254,25 @@ public final class PasswordVaultFormat
 	public static String decryptLegacy(final File applicationFile, final String password)
 		throws Exception
 	{
+		return decryptLegacy(Files.readAllBytes(applicationFile.toPath()), password);
+	}
+
+	/**
+	 * Decrypts bytes in the format before the marker: {@code PBEWithMD5AndDES} with the fixed salt
+	 * and iteration count that every installation shared. Besides the files of that time, 8 wrote
+	 * the password layer of a database with a password and a key file this way (#650)
+	 *
+	 * @param encryptedBytes
+	 *            the encrypted bytes
+	 * @param password
+	 *            the master password
+	 * @return the decrypted text
+	 * @throws Exception
+	 *             if the bytes cannot be decrypted
+	 */
+	public static String decryptLegacy(final byte[] encryptedBytes, final String password)
+		throws Exception
+	{
 		// salt and iteration count MUST be pinned exactly as they were when the file was written:
 		// without them the decryptor draws its own random salt, which can never match
 		CryptModel<Cipher, String, String> legacyModel = CryptModel
@@ -269,7 +288,6 @@ public final class PasswordVaultFormat
 		// wiping: the blocks stay on the medium until something else reuses them, and a password
 		// database is not a file that should ever have touched the disk unencrypted (#353)
 		new PBEFileDecryptor(legacyModel);
-		byte[] encryptedBytes = Files.readAllBytes(applicationFile.toPath());
 		byte[] decryptedBytes = legacyModel.getCipher().doFinal(encryptedBytes);
 		return new String(decryptedBytes, StandardCharsets.UTF_8);
 	}
