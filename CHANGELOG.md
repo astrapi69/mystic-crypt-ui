@@ -55,6 +55,10 @@ CHANGED:
   no longer brings randomizer along at runtime. It overwrites every working copy of secret material it makes, among
   them the ones the vault, lock and sign-in paths go through. A secret passed to `--cli` as an argument now prints a
   warning; the `-stdin` option beside each one is the way to pass it. The vault format does not change
+- build only: IzPack builds the installer with tika-core 4.2.0 and puts jsoup 1.24.1 into it (#756, both held by the
+  constraints of #688); the build plugins Spotless 8.11.0, versions 0.67.0, Lombok 9.8.3 and version-catalog-update
+  1.1.2. Spotless formats nothing differently, and the installer carries the same files as before apart from jsoup's
+  classes
 - build and tests only: every test task of the host and of each plugin build gets its display, and the check that every
   test class left a result, from the Gradle plugins `io.github.astrapi69.own-display` and
   `io.github.astrapi69.test-results-complete` 1.0 (astrapi69/own-display-gradle-plugin, on Maven Central) instead of
