@@ -50,7 +50,9 @@ import java.util.UUID;
  * {@code src/testSupport/resources/compat/vaults} (#624), through {@code write-vaults-of-7x.sh}.
  * <p>
  * Usage: {@code java -cp <release app jar> WriteWithAnOldRelease.java <vault file>}, the password
- * on standard input. Nothing of this checkout is on the class path.
+ * on standard input; with {@code --key-file <PEM file>} after the vault file, the vault is protected
+ * by that key alone, through the release's key-file save path. It prints what it wrote, one line
+ * per entry ({@code EntryLines}), then WRITTEN. Nothing of this checkout is on the class path.
  */
 public class WriteWithAnOldRelease
 {
@@ -66,7 +68,7 @@ public class WriteWithAnOldRelease
 		Security.addProvider((Provider)Class
 			.forName("org.bouncycastle.jce.provider.BouncyCastleProvider").getDeclaredConstructor()
 			.newInstance());
-		File vault = new File(arguments[0]);
+		File vault = new File(arguments[0]).getAbsoluteFile();
 		char[] password = new String(System.in.readAllBytes(), StandardCharsets.UTF_8).strip()
 			.toCharArray();
 
@@ -108,9 +110,19 @@ public class WriteWithAnOldRelease
 		set(credentials, "applicationFileInfo",
 			fileInfoType.getMethod("toFileInfo", File.class).invoke(null, vault));
 		set(credentials, "selectedApplicationFilePath", vault.getAbsolutePath());
-		set(credentials, "masterPw", password);
-		set(credentials, "withMasterPw", true);
-		set(credentials, "withKeyFile", false);
+		boolean withKeyFile = arguments.length >= 3 && "--key-file".equals(arguments[1]);
+		if (withKeyFile)
+		{
+			set(credentials, "privateKeyInfo", keyModelOf(new File(arguments[2])));
+			set(credentials, "withMasterPw", false);
+			set(credentials, "withKeyFile", true);
+		}
+		else
+		{
+			set(credentials, "masterPw", password);
+			set(credentials, "withMasterPw", true);
+			set(credentials, "withKeyFile", false);
+		}
 
 		Object model = modelType.getDeclaredConstructor().newInstance();
 		set(model, "rootTreeAsMap", treeAsMap);
@@ -118,9 +130,23 @@ public class WriteWithAnOldRelease
 		set(model, "masterPwFileModelBean", credentials);
 
 		Class.forName("io.github.astrapi69.mystic.crypt.app.file.xml.ApplicationXmlFileStoreWorker")
-			.getMethod("saveToFileWithPassword", modelType).invoke(null, model);
+			.getMethod(withKeyFile ? "saveToFileWithPrivateKey" : "saveToFileWithPassword", modelType)
+			.invoke(null, model);
 		OUT.println("GROUPS " + treeAsMap.size() + " ENTRIES 2 FIELDS " + fieldsOf(entryType));
+		EntryLines.of(model).forEach(OUT::println);
 		OUT.println("WRITTEN");
+	}
+
+	/**
+	 * The release's own key model of the private key in the given PEM file, read with the release's
+	 * own reader, the way its sign-in reads a key file
+	 */
+	private static Object keyModelOf(final File keyFile) throws Exception
+	{
+		Object privateKey = Class.forName("io.github.astrapi69.crypt.data.key.reader.PrivateKeyReader")
+			.getMethod("readPemPrivateKey", File.class).invoke(null, keyFile);
+		return Class.forName("io.github.astrapi69.crypt.data.key.KeyModelExtensions")
+			.getMethod("toKeyModel", java.security.PrivateKey.class).invoke(null, privateKey);
 	}
 
 	private static Object treeElement(final Class<?> elementType, final String name,

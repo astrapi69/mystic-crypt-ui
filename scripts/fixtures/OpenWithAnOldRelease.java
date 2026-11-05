@@ -37,7 +37,9 @@ import java.util.Map;
  * in {@code src/testSupport/resources/compat/vaults} opens in the release that wrote it (#624).
  * <p>
  * Usage: {@code java -cp <release app jar> OpenWithAnOldRelease.java <vault file>}, the password on
- * standard input. Nothing of this checkout is on the class path.
+ * standard input; with {@code --key-file <PEM file>} after the vault file, through the release's
+ * key-file reader. It prints OPENED and one line per entry ({@code EntryLines}), or REFUSED with the
+ * root cause and exits 2. Nothing of this checkout is on the class path.
  */
 public class OpenWithAnOldRelease
 {
@@ -46,30 +48,41 @@ public class OpenWithAnOldRelease
 		Security.addProvider((Provider)Class.forName("org.bouncycastle.jce.provider.BouncyCastleProvider").getDeclaredConstructor().newInstance());
 		String password = new String(System.in.readAllBytes(), StandardCharsets.UTF_8).strip();
 		Class<?> reader = Class.forName("io.github.astrapi69.mystic.crypt.app.file.xml.ApplicationXmlFileReader");
+		File vault = new File(arguments[0]).getAbsoluteFile();
 		Object model = null;
-		for (Method method : reader.getMethods())
+		try
 		{
-			if (method.getName().equals("getApplicationModelBean") && method.getParameterCount() == 2
-				&& method.getParameterTypes()[0] == File.class)
+			if (arguments.length >= 3 && "--key-file".equals(arguments[1]))
 			{
-				Class<?> second = method.getParameterTypes()[1];
-				if (second == String.class) model = method.invoke(null, new File(arguments[0]), password);
-				else if (second == char[].class) model = method.invoke(null, new File(arguments[0]), password.toCharArray());
+				Object privateKey = Class.forName("io.github.astrapi69.crypt.data.key.reader.PrivateKeyReader")
+					.getMethod("readPemPrivateKey", File.class).invoke(null, new File(arguments[2]));
+				model = reader.getMethod("getApplicationModelBean", File.class, java.security.PrivateKey.class)
+					.invoke(null, vault, privateKey);
 			}
+			else
+			{
+				for (Method method : reader.getMethods())
+				{
+					if (method.getName().equals("getApplicationModelBean") && method.getParameterCount() == 2
+						&& method.getParameterTypes()[0] == File.class)
+					{
+						Class<?> second = method.getParameterTypes()[1];
+						if (second == String.class) model = method.invoke(null, vault, password);
+						else if (second == char[].class) model = method.invoke(null, vault, password.toCharArray());
+					}
+				}
+			}
+		}
+		catch (java.lang.reflect.InvocationTargetException refused)
+		{
+			Throwable cause = refused;
+			while (cause.getCause() != null) cause = cause.getCause();
+			System.out.println("REFUSED " + cause.getClass().getSimpleName() + ": "
+				+ String.valueOf(cause.getMessage()).lines().findFirst().orElse(""));
+			System.exit(2);
 		}
 		Map<?, ?> tree = (Map<?, ?>)model.getClass().getMethod("getRootTreeAsMap").invoke(model);
-		System.out.println("OPENED groups=" + tree.size());
-		for (Map.Entry<?, ?> node : tree.entrySet())
-		{
-			Object element = node.getValue().getClass().getMethod("getValue").invoke(node.getValue());
-			Object name = element.getClass().getMethod("getName").invoke(element);
-			Object content = element.getClass().getMethod("getDefaultContent").invoke(element);
-			for (Object entry : content == null ? List.of() : (List<?>)content)
-			{
-				Object title = entry.getClass().getMethod("getTitle").invoke(entry);
-				System.out.println("ENTRY group=" + name + " title="
-					+ (title instanceof char[] characters ? new String(characters) : title));
-			}
-		}
+		System.out.println("OPENED groups=" + (tree == null ? 0 : tree.size()));
+		EntryLines.of(model).forEach(System.out::println);
 	}
 }
