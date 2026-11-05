@@ -66,6 +66,13 @@ FIXED:
 - an entry's `toString` no longer prints its attachments (#740). It carried the content of every attached file byte for
   byte, since 6.1, against the rule that no model bean prints a secret (#388). No path is known that hands it outside the
   application; a test now holds the rule for attachments too
+- a vault that 7.x wrote opens again (#624). Since 8.1.1 it did not: it names the class of its groups and the class of its
+  attachments by the packages they had before, and the sign-in said "Password is not valid". Both names are read as
+  today's classes - a name each, no new type, the types a vault may hold stay those of 8.12 (GHSA-w87j-p568-fr6v) - and
+  the next save writes today's names. Measured with vaults that the 7.2 and 7.3 application jars wrote through their own
+  save path, opened through the sign-in with every group, entry, attachment and property, and saved again
+- a database that decrypts but whose content cannot be read is no longer reported as a wrong password or a wrong key file
+  (#624): the sign-in says "Database not opened" and names the reason, such as a type this version does not know
 
 Version 8.13
 -------------
