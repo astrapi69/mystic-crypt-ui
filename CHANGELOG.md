@@ -67,7 +67,7 @@ ADDED:
   the whole recipient and that the transfer cannot be taken back, with "Cancel" as the default; for an entry that names
   no network it asks which network the wallet is on
 - "Mine a Pun", "Sweep One-Time Payments" and "Run a Node" take the wallet in the vault as well (#706),
-  through one shared wallet row; "Before You Start" moved under "More ... / For Operators", and the plugin's menu has
+  through one shared wallet row; "Before you start" moved under "More ... / For Operators", and the plugin's menu has
   German names (#708)
 - one way to show a failure in every Lethenon window (#710, #712): the cause in one sentence, what to do in one
   sentence, and the technical reason under "Show details", closed at first; the answer is hidden while a failure shows,
