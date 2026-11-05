@@ -32,6 +32,46 @@ ADDED:
   Bouncy Castle's OpenPGP readers, never runs gpg and never writes a byte there; the command line's
   `release-key status` reads the same way. Set the release key's fingerprint in its settings and it shows that
   certificate alone. The plugin brings no library of its own: Bouncy Castle's OpenPGP module comes with mystic-crypt
+- a Lethenon wallet lives in the vault (#671, `docs/decisions/lethenon-wallet-in-vault-2026-10-30.md`): the wallet,
+  sealed with its own wallet password, is an attachment of a vault entry, marked `lethenon.wallet`, with its network
+  and its public address beside it. The plugin creates one, takes over a wallet file (the file is only read, deleting
+  it is left to you), restores one from its 24 words, exports the sealed file to a place you pick (never over an
+  existing file, with its SHA-256) and unseals it in memory for one action at a time; nothing of an unsealed wallet is
+  kept. The 24 words are shown once and never stored, unless you choose to keep them in the vault as a protected field.
+  A plugin reaches only the entries marked as its own (#675), and a KDBX export keeps the attachment byte for byte
+- the wallet window, the way into the Lethenon plugin (#680): "Plugins > Lethenon > Wallet" shows the wallets of the
+  open vault; with none yet, the three ways in - create, take over a wallet file, restore from 24 words, where a word
+  that is not in the list is named with its position. The overview shows the wallet's network and its whole address,
+  with a button that copies it. When the vault locks or closes, the window overwrites the words and passwords it shows
+- a backup assistant in the wallet window (#690): the 24 words once, then three of them asked at random positions, then
+  the sealed wallet file to a place you pick. "Check my backup" takes all 24 words from your note and says whether they
+  are this wallet's; the day of a check that passed is recorded, and the overview reminds you while no check is
+  recorded or the last one is older than 180 days
+- a network badge in every Lethenon window (#697): TESTNET, MAIN NETWORK or NETWORK UNKNOWN, top right, for the wallet
+  the overview shows, and in the overview a note on what the network means: on the main network LETH has real value and
+  a transfer cannot be taken back
+- the balance in the wallet overview (#700), read from the chain file without the wallet password: the entry carries
+  the public key of the wallet's ML-DSA-65 account beside its address, so both accounts are read; an older entry gets
+  it the next time it is unsealed. Payments to the wallet's one-time destinations need the password to be found:
+  "Check incoming payments" asks for it, keeps nothing, and until then the balance says it is without them
+- "Send LETH" sends from the wallet in the vault (#704). On the main network it first asks, naming the amount, the fee,
+  the whole recipient and that the transfer cannot be taken back, with "Cancel" as the default; for an entry that names
+  no network it asks which network the wallet is on
+- "Mine a Pun", "Sweep One-Time Payments" and "Run a Node" take the wallet in the vault as well (#706),
+  through one shared wallet row; "Before You Start" moved under "More ... / For Operators", and the plugin's menu has
+  German names (#708)
+- one way to show a failure in every Lethenon window (#710, #712): the cause in one sentence, what to do in one
+  sentence, and the technical reason under "Show details", closed at first; the answer is hidden while a failure shows,
+  and the window wraps instead of widening. A wrong wallet password, a chain that is not in order and a missing chain
+  file have their own sentences. A declined chain conversion or a transfer cancelled before signing is your decision,
+  not a failure, and stays in the status line
+- a warning when a wallet entry's address is not the address of the wallet in its attachment (#716), on every unseal:
+  both addresses, what a payment to the recorded one means, and that nothing was changed, with "Close" as the default;
+  "Use the wallet's address" replaces it only after a second question that names the old and the new address. The
+  action goes on with the wallet the password opened
+- the wallet file field of the signing windows stays for use without a vault wallet and says so (#718): while no
+  wallet of the vault is chosen in "Wallet", a note under it says the wallet comes from this file; with one chosen,
+  both are gone
 
 CHANGED:
 - the runtime dependencies at their newest patch and minor release (#755): pf4j 3.16.1, flatlaf 3.8, gson 2.15.0 and guava
@@ -54,6 +94,9 @@ CHANGED:
   whose checks were disabled and which brought plexus-utils 2.0.6 and spring-core 3.1.3 into the build classpath, the
   source of 11 Dependabot alerts (#686). 18 sources get the header they lacked; headers in another wrapping, and
   NetBeans template remarks below them, take the one form
+- lethenon 0.8.0 (#671), for the wallet in the vault: a wallet as bytes, which the vault entry's attachment holds
+  (astrapi69/lethenon#258), and the check whether a word is in the BIP-39 list (astrapi69/lethenon#261), which names an
+  unknown word with its position when you restore or check a backup
 - mystic-crypt 13.9 (#664). Its salts, GCM nonces, IVs and generated passwords come from `SecureRandom` directly, and it
   no longer brings randomizer along at runtime. It overwrites every working copy of secret material it makes, among
   them the ones the vault, lock and sign-in paths go through. A secret passed to `--cli` as an argument now prints a
