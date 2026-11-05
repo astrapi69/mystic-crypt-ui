@@ -104,9 +104,10 @@ Prompt triggers: "release new version", "new release".
      Verifying before the checksums verifies a file that is then replaced:
      `checksumInstaller` depends on `izPackCreateInstaller`, which re-runs and rewrites
      the jar (measured 2026-09-07: 81743356 bytes verified, 81743359 bytes shipped).
-   - dependency currency check: `make dependency-updates` — routine patch/minor bumps as
-     part of the release; major bumps get their own session, never bundled in. A change
-     to the build or the release path itself is NOT bundled into a security release.
+   - dependency currency check: `make dependency-updates` - patch and minor bumps go into the
+     release, and so do major bumps of test and build dependencies, which reach no consumer and no
+     published POM; a major bump of a runtime dependency gets its own session, never bundled in
+     (#749). A change to the build or the release path itself is NOT bundled into a security release.
 6. **Tag + push**: `make tag-release`, which is where the tag's SHAPE is decided -
    `gradle/tagging.gradle` builds it as `RELEASE-${projectVersion}`, so a release is
    `RELEASE-8.4` and never `v8.4`. Manually it is `git tag -a RELEASE-X.Y.Z` + push, but
