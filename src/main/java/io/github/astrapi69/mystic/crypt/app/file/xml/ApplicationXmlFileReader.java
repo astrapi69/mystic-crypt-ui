@@ -179,8 +179,9 @@ public class ApplicationXmlFileReader
 
 	/**
 	 * What the sign-in shows when a database could not be opened, as {@code title::html}. A file
-	 * that names a type no database holds says so and names the type, rather than being taken for a
-	 * wrong password or key file; every other failure keeps the given title and reason.
+	 * that names a type no database holds says so and names the type, and a file that decrypted but
+	 * whose content cannot be read says so and names the reason (#624), rather than either being
+	 * taken for a wrong password or key file; every other failure keeps the given title and reason.
 	 *
 	 * @param title
 	 *            the title of the failure as the sign-in path names it
@@ -209,9 +210,35 @@ public class ApplicationXmlFileReader
 			return new RuntimeException(foreignTitle + "::" + "<html><body width='350'>" + "<h2>"
 				+ foreignTitle + "</h2>" + "<p>" + foreignReason, exception);
 		}
+		VaultContentUnreadableException unreadable = unreadableIn(exception);
+		if (unreadable != null)
+		{
+			log.log(Level.SEVERE, unreadable.getMessage(), unreadable);
+			String unreadableTitle = Messages.getString("dialog.vault.unreadable.title",
+				"Database not opened");
+			String unreadableReason = String.format(Messages.getString(
+				"dialog.vault.unreadable.message",
+				"This database was decrypted, but its content could not be read: %1$s. It was not "
+					+ "opened, and the file is unchanged."),
+				unreadable.getReason());
+			return new RuntimeException(unreadableTitle + "::" + "<html><body width='350'>" + "<h2>"
+				+ unreadableTitle + "</h2>" + "<p>" + unreadableReason, exception);
+		}
 		String htmlMessage = "<html><body width='350'>" + "<h2>" + title + "</h2>" + "<p> " + reason
 			+ "<p>" + exception.getMessage();
 		return new RuntimeException(title + "::" + htmlMessage, exception);
+	}
+
+	private static VaultContentUnreadableException unreadableIn(final Throwable failure)
+	{
+		for (Throwable cause = failure; cause != null; cause = cause.getCause())
+		{
+			if (cause instanceof VaultContentUnreadableException unreadable)
+			{
+				return unreadable;
+			}
+		}
+		return null;
 	}
 
 	private static VaultHoldsAForeignTypeException foreignTypeIn(final Throwable failure)

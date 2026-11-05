@@ -18,13 +18,29 @@
 # written.
 #
 # Usage: scripts/fetch-release-jar.sh <version>        e.g. 8.5.1
+#        scripts/fetch-release-jar.sh <version> --without-published-checksum
 # Exits non-zero with the reason when anything cannot be done - no network, a checksum that does not
 # match, an installer without the jar. Whether that fails a build is the caller's decision.
+#
+# --without-published-checksum is for the releases before 8.2, which publish no checksum file (7.x,
+# 8.1.1). Nothing can be checked then: the installer's sha256 is printed, so that whoever uses the
+# jar can record it, and the jar is cached apart, under $MYSTIC_CRYPT_UI_RELEASE_JARS_UNVERIFIED
+# (default ~/.cache/mystic-crypt-ui/release-jars-unverified), never next to the checked ones (#624).
 
 set -euo pipefail
 
-version="${1:?usage: scripts/fetch-release-jar.sh <version>, e.g. 8.5.1}"
-cache_root="${MYSTIC_CRYPT_UI_RELEASE_JARS:-$HOME/.cache/mystic-crypt-ui/release-jars}"
+version="${1:?usage: scripts/fetch-release-jar.sh <version> [--without-published-checksum], e.g. 8.5.1}"
+unverified=false
+case "${2:-}" in
+  "") ;;
+  --without-published-checksum) unverified=true ;;
+  *) printf 'fetch-release-jar: unknown option %s\n' "$2" >&2; exit 2 ;;
+esac
+if [ "$unverified" = true ]; then
+  cache_root="${MYSTIC_CRYPT_UI_RELEASE_JARS_UNVERIFIED:-$HOME/.cache/mystic-crypt-ui/release-jars-unverified}"
+else
+  cache_root="${MYSTIC_CRYPT_UI_RELEASE_JARS:-$HOME/.cache/mystic-crypt-ui/release-jars}"
+fi
 target_dir="$cache_root/$version"
 target="$target_dir/mystic-crypt-ui-$version-app.jar"
 installer_name="mystic-crypt-ui-$version-installer.jar"
@@ -45,14 +61,18 @@ command -v sha256sum >/dev/null 2>&1 || die "sha256sum is not installed"
 work="$(mktemp -d)"
 trap 'rm -rf "$work"' EXIT
 
-say "downloading $installer_name and its published checksum from RELEASE-$version"
+say "downloading $installer_name from RELEASE-$version"
 curl -fsSL --retry 3 -o "$work/$installer_name" "$base_url/$installer_name" \
   || die "could not download $base_url/$installer_name (no network, or no such release)"
-curl -fsSL --retry 3 -o "$work/$installer_name.sha256" "$base_url/$installer_name.sha256" \
-  || die "could not download the published checksum $base_url/$installer_name.sha256"
-
-(cd "$work" && sha256sum -c "$installer_name.sha256") \
-  || die "the installer does not match the checksum published with RELEASE-$version - not using it"
+if [ "$unverified" = true ]; then
+  say "RELEASE-$version publishes no checksum, nothing is checked; the installer's sha256:"
+  (cd "$work" && sha256sum "$installer_name")
+else
+  curl -fsSL --retry 3 -o "$work/$installer_name.sha256" "$base_url/$installer_name.sha256" \
+    || die "could not download the published checksum $base_url/$installer_name.sha256"
+  (cd "$work" && sha256sum -c "$installer_name.sha256") \
+    || die "the installer does not match the checksum published with RELEASE-$version - not using it"
+fi
 
 mkdir -p "$target_dir"
 python3 - "$work/$installer_name" "$target.partial" "$version" <<'PY'
