@@ -68,6 +68,10 @@ import org.junit.jupiter.params.provider.ValueSource;
  * (astrapi69/silly-io#9, behind astrapi69/file-worker#37), file-worker 20.0 copies binary files
  * byte for byte (#45) and refuses a copy onto the file itself (#73).
  * <p>
+ * commons-collections4 is no dependency of this application either: silly-collection brings it, up
+ * to 28.2 as 4.5.0-M2, a milestone, which 8.12 and 8.13 shipped (#751). A milestone at runtime is
+ * no release; the floor holds 4.6.0, the release after it, which silly-collection 28.3 declares.
+ * <p>
  * The same floors are held against what an installer ships: the application jar of a published
  * installer, which {@code scripts/fetch-release-jar.sh} takes out of it after checking the
  * installer against its published sha256, read through the
@@ -90,7 +94,7 @@ class RuntimeDependenciesTest
 	@ParameterizedTest(name = "{0} is at least {1}")
 	@CsvSource({ "jackson-core, 2.22.4", "jackson-databind, 2.22.4", "jackson-annotations, 2.22",
 			"commons-beanutils, 1.11.0", "randomizer, 10.5", "jettison, 1.5.4", "silly-io, 4.0",
-			"file-worker, 20.0" })
+			"file-worker, 20.0", "commons-collections4, 4.6.0" })
 	void transitiveDependency_isAtLeastItsPatchedRelease(final String artifact, final String floor)
 	{
 		List<String> versions = versionsOnTheClassPath(artifact);
@@ -107,7 +111,8 @@ class RuntimeDependenciesTest
 			"com.fasterxml.jackson.core, jackson-annotations, 2.22",
 			"commons-beanutils, commons-beanutils, 1.11.0", "io.github.astrapi69, randomizer, 10.5",
 			"org.codehaus.jettison, jettison, 1.5.4", "io.github.astrapi69, silly-io, 4.0",
-			"io.github.astrapi69, file-worker, 20.0" })
+			"io.github.astrapi69, file-worker, 20.0",
+			"org.apache.commons, commons-collections4, 4.6.0" })
 	void applicationJar_carriesAtLeastThePatchedRelease(final String group, final String artifact,
 		final String floor) throws IOException
 	{

@@ -34,6 +34,9 @@ ADDED:
   certificate alone. The plugin brings no library of its own: Bouncy Castle's OpenPGP module comes with mystic-crypt
 
 CHANGED:
+- the application ships commons-collections4 4.6.0 instead of 4.5.0-M2, a milestone, which 8.12 and 8.13 carry (#751):
+  silly-collection 28.3 and swing-base-components 5.2.1 bring the release, and a floor in `RuntimeDependenciesTest`
+  holds it, on the class path and in an application jar under test
 - the application ships silly-io 4.0 and file-worker 20.0 (#720), with their data-loss fixes: a dot in a directory name
   such as `~/.cache` or `~/.config` is no longer taken for an extension, so a renamed file keeps its directory
   (astrapi69/silly-io#9, astrapi69/file-worker#37), binary files are copied byte for byte, and a copy onto the file
