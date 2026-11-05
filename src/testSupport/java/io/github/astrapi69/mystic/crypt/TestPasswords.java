@@ -48,6 +48,16 @@ public final class TestPasswords
 	 */
 	public static final String KEEPASS_FIXTURE = "foo-secret-bar-1969-?";
 
+	/**
+	 * The password of the checked-in vaults of 7.2 and 7.3 in
+	 * {@code src/testSupport/resources/compat/vaults} (#624).
+	 * <p>
+	 * It cannot be made up either: those releases wrote the files with it, through their own save
+	 * path ({@code scripts/fixtures/write-vaults-of-7x.sh}). They hold invented entries and guard
+	 * nothing else.
+	 */
+	public static final String VAULTS_OF_7X_FIXTURE = "written-by-seven-x-for-624";
+
 	private TestPasswords()
 	{
 	}
