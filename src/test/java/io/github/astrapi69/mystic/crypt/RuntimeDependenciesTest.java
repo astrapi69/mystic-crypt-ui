@@ -27,6 +27,7 @@ package io.github.astrapi69.mystic.crypt;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assumptions.assumeFalse;
 
@@ -34,6 +35,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -203,6 +205,49 @@ class RuntimeDependenciesTest
 		{
 			assertFalse(runtimeVersionsIn(archive, Path.of(APPLICATION_JAR)).containsKey(module),
 				APPLICATION_JAR + " is packed from " + module + " (#774)");
+		}
+	}
+
+	/**
+	 * The licence in the application jar is the application's: the libraries are packed first, and
+	 * swing-components' LICENSE.txt, an unfilled template ("Copyright (C) ${year} ${owner}"), used
+	 * to be the one that stayed (#773)
+	 */
+	@Test
+	@DisplayName("the application jar's LICENSE.txt is the application's own")
+	void applicationJar_carriesTheApplicationsLicence() throws IOException
+	{
+		assumeFalse(APPLICATION_JAR.isBlank(),
+			"no application jar named; -PapplicationJarUnderTest=<jar> names one");
+
+		try (ZipFile archive = new ZipFile(APPLICATION_JAR))
+		{
+			ZipEntry licence = archive.getEntry("LICENSE.txt");
+			assertNotNull(licence, APPLICATION_JAR + " carries no LICENSE.txt");
+			try (InputStream in = archive.getInputStream(licence))
+			{
+				assertEquals(Files.readString(Path.of("src", "main", "resources", "LICENSE.txt")),
+					new String(in.readAllBytes(), StandardCharsets.UTF_8),
+					APPLICATION_JAR + " carries another LICENSE.txt than the application's (#773)");
+			}
+		}
+	}
+
+	/**
+	 * license-header.txt is a build file of the family's libraries, a template for source headers
+	 * and the licence of nothing in the jar (#777)
+	 */
+	@Test
+	@DisplayName("the application jar carries no license-header.txt")
+	void applicationJar_carriesNoLicenseHeaderTemplate() throws IOException
+	{
+		assumeFalse(APPLICATION_JAR.isBlank(),
+			"no application jar named; -PapplicationJarUnderTest=<jar> names one");
+
+		try (ZipFile archive = new ZipFile(APPLICATION_JAR))
+		{
+			assertNull(archive.getEntry("license-header.txt"),
+				APPLICATION_JAR + " carries license-header.txt (#777)");
 		}
 	}
 

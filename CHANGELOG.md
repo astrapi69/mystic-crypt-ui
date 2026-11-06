@@ -132,6 +132,10 @@ CHANGED:
   (astrapi69/gen-tree#22), and leaves out state 6, which swing-components 10 still asks for
   (astrapi69/swing-components#50). Nothing calls a member only the dropped copies had, measured in the bytecode of the
   application, its plugins and every library
+- the `LICENSE.txt` in the application jar is the application's own again (#773). The libraries are packed first and
+  the first copy of a path stays, so the one that stood there was swing-components', its template with the year and
+  the name still unfilled. The jar also no longer carries `license-header.txt` (#777), a build file of the family's
+  libraries
 - build only: Gradle 9.8.2 (#722), its wrapper jar checked against the published `gradle-9.8.2-wrapper.jar.sha256`.
   `--warning-mode all` names one deprecation, `Configuration.setVisible(boolean)` from the IzPack plugin 3.2, its latest
   release, which stays until a release of it fixes that
