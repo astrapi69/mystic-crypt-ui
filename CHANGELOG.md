@@ -147,7 +147,10 @@ FIXED:
   its attachments by the packages they had before, and the sign-in said "Password is not valid". Both names are read as
   today's classes - a name each, no new type, the types a vault may hold stay those of 8.12 (GHSA-w87j-p568-fr6v) - and
   the next save writes today's names. Measured with vaults that the 7.2 and 7.3 application jars wrote through their own
-  save path, opened through the sign-in with every group, entry, attachment and property, and saved again
+  save path, opened through the sign-in with every group, entry, attachment and property, and saved again. The same
+  mapping opens a vault that 8 wrote with a password and an attachment, which 8.12 and 8.13 refuse for the class of the
+  attachment ("CannotResolveClassException: io.github.astrapi69.file.create.FileContentInfo", measured by
+  `scripts/compat/measure-vault-format.sh`)
 - a database that decrypts but whose content cannot be read is no longer reported as a wrong password or a wrong key
   file (#624): the sign-in says "Database not opened" and names the reason, such as a type this version does not know
 - a vault that 8 wrote with a key file opens again (#650), with the key file alone and with a password and the key file.
@@ -165,19 +168,22 @@ FIXED:
   every group's entries on opening, the old checks stayed green and the new ones failed
 
 FORMAT:
-- the vault format does not change. Every vault that 8.1.1 to 8.13 wrote, with a password, with a key file or with both,
-  opens in 8.14 with every group and entry as written, and a vault 8.14 writes, any of the three ways, opens in 8.12 and
-  in 8.13 the same. Each vault was written by that release's own save path, with its entries in their groups, and what
-  was read was compared field by field with what was written: the text fields, the expiry date, the custom property with
-  its value, the attachment by the sha256 of its content (`scripts/compat/measure-vault-format.sh <empty directory>`,
-  #757; the jars from the installers on the release pages, checked against their published sha256, 8.1.1 without one)
+- the vault format does not change. Every vault that 7.2, 7.3, 8 and 8.1.1 to 8.13 wrote, with a password, with a key
+  file or with both, opens in 8.14 with every group and entry as written, 60 of 60, and a vault 8.14 writes, any of the
+  three ways, opens in 8.12 and in 8.13 the same. Each vault was written by that release's own save path, with its
+  entries in their groups, and what was read was compared field by field with what was written: the text fields, the
+  expiry date, the custom property with its value, the attachment by the sha256 of its content
+  (`scripts/compat/measure-vault-format.sh <empty directory>`, #757, run on the release commit with its
+  `withAllDependendiesJar`; the jars from the installers on the release pages, checked against their published sha256;
+  7.2, 7.3, 8 and 8.1.1 publish none and were taken unchecked)
 - the FORMAT statements of 8.12 and 8.13 hold, now measured with the entries: they had been measured with the entries in
   a field the application does not read (#757). Measured again by the same script: the vaults of 8.1.1 to 8.11 open in
   8.12 with every entry as written, the vault 8.12 writes opens in 8.6 to 8.11, and the vaults 8.1.1 to 8.12 wrote with
   a key file open in 8.13 with every entry as written
-- a vault that 7.2 or 7.3 wrote with a password opens (#624), and is refused by 8.12 and 8.13; one they wrote with a key
-  file, and one 8 wrote with a key file, opens in 8.14 (#650) and is refused by 8.12 and 8.13 ("AEADBadTagException: Tag
-  mismatch"). 7.2 and 7.3 publish no checksum; their jars were taken from the installers unchecked, as the jar of 8
+- what 8.12 and 8.13 refuse and 8.14 opens: a vault that 7.2 or 7.3 wrote with a password, for the class of its groups,
+  and one that 8 wrote with a password and an attachment, for the class of the attachment (CannotResolveClassException,
+  #624); every vault that 7.2, 7.3 or 8 wrote with a key file, alone or with a password, for its content
+  ("AEADBadTagException: Tag mismatch", #650)
 - `./gradlew test --tests '*TheEnvelopeMoveKeepsTheVaultFormatTest'` with `-PenvelopeMoveRelease=8.12` and `=8.13`: in
   both directions every entry as written, in the groups
 
