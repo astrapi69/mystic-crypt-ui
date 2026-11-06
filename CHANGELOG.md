@@ -1,8 +1,13 @@
 ## Change log
 ----------------------
 
-Version 8.14 (unreleased)
+Version 8.14
 -------------
+
+The release that opens again what 7.x wrote and what 8 wrote with a key file (#624, #650), keeps a Lethenon wallet in
+the vault (#671), gives plugins a narrow access to the open vault (#675), and measures the vault format across every
+release since 7.2 with the entries where the application keeps them (#757). The vault format does not change. Built with
+Temurin 25.0.4 (`.sdkmanrc`).
 
 SECURITY:
 - "Generate password" and the serial number of a new certificate draw from `SecureRandom` directly instead of through
@@ -13,8 +18,8 @@ SECURITY:
 - the tests run with assertj-core 3.27.7 instead of the 3.17.2 that assertj-swing brings, which has an XXE
   (GHSA-rqfh-9r24-8c9r, #692); nothing of it ships
 - the installer carries jsoup 1.23.2 instead of 1.22.2 (#688, two advisories), which IzPack 5.2.7 puts into it. The tool
-  that builds the installer no longer pulls tika-parsers and bouncycastle, which it does not need for this installer, and
-  takes fixed versions of tika-core and commons-lang3: 61 Dependabot alerts on the build's side gone, the installer
+  that builds the installer no longer pulls tika-parsers and bouncycastle, which it does not need for this installer,
+  and takes fixed versions of tika-core and commons-lang3: 61 Dependabot alerts on the build's side gone, the installer
   otherwise the same
 - randomizer 10.1 is asked for by nothing any more (#682): swing-components 10 brings no randomizer, and
   swing-tree-component 3.3 brings roboter 3 with randomizer 10.7. The application ships 10.7; the constraint and the
@@ -29,9 +34,9 @@ ADDED:
   what a GnuPG home holds - every key with its use, algorithm, creation and expiry, whether its secret part is in the
   home or offline, and whether gpg keeps a revocation certificate that really revokes the primary key. It reads
   `~/.gnupg` (or `GNUPGHOME`, or the home named in its settings) through mystic-crypt's `GnuPgHome`, which reads with
-  Bouncy Castle's OpenPGP readers, never runs gpg and never writes a byte there; the command line's
-  `release-key status` reads the same way. Set the release key's fingerprint in its settings and it shows that
-  certificate alone. The plugin brings no library of its own: Bouncy Castle's OpenPGP module comes with mystic-crypt
+  Bouncy Castle's OpenPGP readers, never runs gpg and never writes a byte there; the command line's `release-key status`
+  reads the same way. Set the release key's fingerprint in its settings and it shows that certificate alone. The plugin
+  brings no library of its own: Bouncy Castle's OpenPGP module comes with mystic-crypt
 - plugins reach the open vault through a narrow access of their own (#675). A plugin that declares a
   `VaultAccessContribution` gets a `VaultAccess` bound to a marker in its own namespace: it reads only the entries that
   carry that marker, as copies that share no array or attachment with the vault, adds, changes and removes only such
@@ -42,33 +47,33 @@ ADDED:
   Lethenon plugin keeps a wallet's words in such a property, and a test holds that they stay protected through a KDBX
   export and back
 - a Lethenon wallet lives in the vault (#671, `docs/decisions/lethenon-wallet-in-vault-2026-10-30.md`): the wallet,
-  sealed with its own wallet password, is an attachment of a vault entry, marked `lethenon.wallet`, with its network
-  and its public address beside it. The plugin creates one, takes over a wallet file (the file is only read, deleting
-  it is left to you), restores one from its 24 words, exports the sealed file to a place you pick (never over an
-  existing file, with its SHA-256) and unseals it in memory for one action at a time; nothing of an unsealed wallet is
-  kept. The 24 words are shown once and never stored, unless you choose to keep them in the vault as a protected field.
-  A plugin reaches only the entries marked as its own (#675), and a KDBX export keeps the attachment byte for byte
+  sealed with its own wallet password, is an attachment of a vault entry, marked `lethenon.wallet`, with its network and
+  its public address beside it. The plugin creates one, takes over a wallet file (the file is only read, deleting it is
+  left to you), restores one from its 24 words, exports the sealed file to a place you pick (never over an existing
+  file, with its SHA-256) and unseals it in memory for one action at a time; nothing of an unsealed wallet is kept. The
+  24 words are shown once and never stored, unless you choose to keep them in the vault as a protected field. A plugin
+  reaches only the entries marked as its own (#675), and a KDBX export keeps the attachment byte for byte
 - the wallet window, the way into the Lethenon plugin (#680): "Plugins > Lethenon > Wallet" shows the wallets of the
   open vault; with none yet, the three ways in - create, take over a wallet file, restore from 24 words, where a word
   that is not in the list is named with its position. The overview shows the wallet's network and its whole address,
   with a button that copies it. When the vault locks or closes, the window overwrites the words and passwords it shows
 - a backup assistant in the wallet window (#690): the 24 words once, then three of them asked at random positions, then
   the sealed wallet file to a place you pick. "Check my backup" takes all 24 words from your note and says whether they
-  are this wallet's; the day of a check that passed is recorded, and the overview reminds you while no check is
-  recorded or the last one is older than 180 days
+  are this wallet's; the day of a check that passed is recorded, and the overview reminds you while no check is recorded
+  or the last one is older than 180 days
 - a network badge in every Lethenon window (#697): TESTNET, MAIN NETWORK or NETWORK UNKNOWN, top right, for the wallet
   the overview shows, and in the overview a note on what the network means: on the main network LETH has real value and
   a transfer cannot be taken back
-- the balance in the wallet overview (#700), read from the chain file without the wallet password: the entry carries
-  the public key of the wallet's ML-DSA-65 account beside its address, so both accounts are read; an older entry gets
-  it the next time it is unsealed. Payments to the wallet's one-time destinations need the password to be found:
-  "Check incoming payments" asks for it, keeps nothing, and until then the balance says it is without them
+- the balance in the wallet overview (#700), read from the chain file without the wallet password: the entry carries the
+  public key of the wallet's ML-DSA-65 account beside its address, so both accounts are read; an older entry gets it the
+  next time it is unsealed. Payments to the wallet's one-time destinations need the password to be found: "Check
+  incoming payments" asks for it, keeps nothing, and until then the balance says it is without them
 - "Send LETH" sends from the wallet in the vault (#704). On the main network it first asks, naming the amount, the fee,
   the whole recipient and that the transfer cannot be taken back, with "Cancel" as the default; for an entry that names
   no network it asks which network the wallet is on
-- "Mine a Pun", "Sweep One-Time Payments" and "Run a Node" take the wallet in the vault as well (#706),
-  through one shared wallet row; "Before you start" moved under "More ... / For Operators", and the plugin's menu has
-  German names (#708)
+- "Mine a Pun", "Sweep One-Time Payments" and "Run a Node" take the wallet in the vault as well (#706), through one
+  shared wallet row; "Before you start" moved under "More ... / For Operators", and the plugin's menu has German names
+  (#708)
 - one way to show a failure in every Lethenon window (#710, #712): the cause in one sentence, what to do in one
   sentence, and the technical reason under "Show details", closed at first; the answer is hidden while a failure shows,
   and the window wraps instead of widening. A wrong wallet password, a chain that is not in order and a missing chain
@@ -76,16 +81,16 @@ ADDED:
   not a failure, and stays in the status line
 - a warning when a wallet entry's address is not the address of the wallet in its attachment (#716), on every unseal:
   both addresses, what a payment to the recorded one means, and that nothing was changed, with "Close" as the default;
-  "Use the wallet's address" replaces it only after a second question that names the old and the new address. The
-  action goes on with the wallet the password opened
-- the wallet file field of the signing windows stays for use without a vault wallet and says so (#718): while no
-  wallet of the vault is chosen in "Wallet", a note under it says the wallet comes from this file; with one chosen,
-  both are gone
+  "Use the wallet's address" replaces it only after a second question that names the old and the new address. The action
+  goes on with the wallet the password opened
+- the wallet file field of the signing windows stays for use without a vault wallet and says so (#718): while no wallet
+  of the vault is chosen in "Wallet", a note under it says the wallet comes from this file; with one chosen, both are
+  gone
 
 CHANGED:
-- the runtime dependencies at their newest patch and minor release (#755): pf4j 3.16.1, flatlaf 3.8, gson 2.15.0 and guava
-  33.8.0-jre. The catalog now also names what the application already shipped through other libraries: crypt-api 10.3,
-  crypt-data 13.2, jackson-databind 2.22.4, randomizer 10.7 (the constraint of #658) and batik 1.20
+- the runtime dependencies at their newest patch and minor release (#755): pf4j 3.16.1, flatlaf 3.8, gson 2.15.0 and
+  guava 33.8.0-jre. The catalog now also names what the application already shipped through other libraries: crypt-api
+  10.3, crypt-data 13.2, jackson-databind 2.22.4, randomizer 10.7 (the constraint of #658) and batik 1.20
 - the application ships commons-collections4 4.6.0 instead of 4.5.0-M2, a milestone, which 8.12 and 8.13 carry (#751):
   silly-collection 28.3 and swing-base-components 5.2.1 bring the release, and a floor in `RuntimeDependenciesTest`
   holds it, on the class path and in an application jar under test
@@ -93,23 +98,23 @@ CHANGED:
   such as `~/.cache` or `~/.config` is no longer taken for an extension, so a renamed file keeps its directory
   (astrapi69/silly-io#9, astrapi69/file-worker#37), binary files are copied byte for byte, and a copy onto the file
   itself is refused (astrapi69/file-worker#45, #73). The application calls none of these methods itself; floors in
-  `RuntimeDependenciesTest` hold the versions, and tests run the vault and the configuration directory below a
-  directory with a dot in its name
+  `RuntimeDependenciesTest` hold the versions, and tests run the vault and the configuration directory below a directory
+  with a dot in its name
 - the installer's information page is a page of its own, written for installing (#640): the Java it needs, what is
-  installed where (the application, the desktop entry, the command-line tool, the plugins), what to do before an
-  update, and where to read more. It used to show the project's README as raw Markdown. The page is also what goes
-  into the installation directory, as `installation.html`, in place of `README.md`
-- Spotless writes and checks the license header on every Java source of the build, instead of the license plugin,
-  whose checks were disabled and which brought plexus-utils 2.0.6 and spring-core 3.1.3 into the build classpath, the
-  source of 11 Dependabot alerts (#686). 18 sources get the header they lacked; headers in another wrapping, and
-  NetBeans template remarks below them, take the one form
+  installed where (the application, the desktop entry, the command-line tool, the plugins), what to do before an update,
+  and where to read more. It used to show the project's README as raw Markdown. The page is also what goes into the
+  installation directory, as `installation.html`, in place of `README.md`
+- Spotless writes and checks the license header on every Java source of the build, instead of the license plugin, whose
+  checks were disabled and which brought plexus-utils 2.0.6 and spring-core 3.1.3 into the build classpath, the source
+  of 11 Dependabot alerts (#686). 18 sources get the header they lacked; headers in another wrapping, and NetBeans
+  template remarks below them, take the one form
 - lethenon 0.8.0 (#671), for the wallet in the vault: a wallet as bytes, which the vault entry's attachment holds
   (astrapi69/lethenon#258), and the check whether a word is in the BIP-39 list (astrapi69/lethenon#261), which names an
   unknown word with its position when you restore or check a backup
 - mystic-crypt 13.9 (#664). Its salts, GCM nonces, IVs and generated passwords come from `SecureRandom` directly, and it
-  no longer brings randomizer along at runtime. It overwrites every working copy of secret material it makes, among
-  them the ones the vault, lock and sign-in paths go through. A secret passed to `--cli` as an argument now prints a
-  warning; the `-stdin` option beside each one is the way to pass it. The vault format does not change
+  no longer brings randomizer along at runtime. It overwrites every working copy of secret material it makes, among them
+  the ones the vault, lock and sign-in paths go through. A secret passed to `--cli` as an argument now prints a warning;
+  the `-stdin` option beside each one is the way to pass it. The vault format does not change
 - build only: Gradle 9.8.2 (#722), its wrapper jar checked against the published `gradle-9.8.2-wrapper.jar.sha256`.
   `--warning-mode all` names one deprecation, `Configuration.setVisible(boolean)` from the IzPack plugin 3.2, its latest
   release, which stays until a release of it fixes that
@@ -133,18 +138,21 @@ CHANGED:
 
 FIXED:
 - an entry's `toString` no longer prints its attachments (#740). It carried the content of every attached file byte for
-  byte, since 6.1, against the rule that no model bean prints a secret (#388). No path is known that hands it outside the
-  application; a test now holds the rule for attachments too
+  byte, since 6.1, against the rule that no model bean prints a secret (#388). No path is known that hands it outside
+  the application; a test now holds the rule for attachments too
 - "Generate password" draws spaces when "White space" is chosen (#670). The space was dropped whenever neither "Minus"
   nor "Plus" was chosen too, and "White space" alone failed. With no set chosen at all, the generator now says so and
   stays open
-- a vault that 7.x wrote opens again (#624). Since 8.1.1 it did not: it names the class of its groups and the class of its
-  attachments by the packages they had before, and the sign-in said "Password is not valid". Both names are read as
+- a vault that 7.x wrote opens again (#624). Since 8.1.1 it did not: it names the class of its groups and the class of
+  its attachments by the packages they had before, and the sign-in said "Password is not valid". Both names are read as
   today's classes - a name each, no new type, the types a vault may hold stay those of 8.12 (GHSA-w87j-p568-fr6v) - and
   the next save writes today's names. Measured with vaults that the 7.2 and 7.3 application jars wrote through their own
-  save path, opened through the sign-in with every group, entry, attachment and property, and saved again
-- a database that decrypts but whose content cannot be read is no longer reported as a wrong password or a wrong key file
-  (#624): the sign-in says "Database not opened" and names the reason, such as a type this version does not know
+  save path, opened through the sign-in with every group, entry, attachment and property, and saved again. The same
+  mapping opens a vault that 8 wrote with a password and an attachment, which 8.12 and 8.13 refuse for the class of the
+  attachment ("CannotResolveClassException: io.github.astrapi69.file.create.FileContentInfo", measured by
+  `scripts/compat/measure-vault-format.sh`)
+- a database that decrypts but whose content cannot be read is no longer reported as a wrong password or a wrong key
+  file (#624): the sign-in says "Database not opened" and names the reason, such as a type this version does not know
 - a vault that 8 wrote with a key file opens again (#650), with the key file alone and with a password and the key file.
   Since 8.1.1 it did not, and the sign-in called the right key file not valid: 8 encrypted the content behind the key
   with plain AES and the password layer with `PBEWithMD5AndDES` and a fixed salt (mystic-crypt 9), and 8.1.1 read only
@@ -152,28 +160,30 @@ FIXED:
   called not valid; a key file that opens the key of a database whose content is in no known format no longer is: the
   sign-in says "Database not opened" and names the reason. Measured with vaults the application jar of 8 wrote through
   its own save paths, opened through the sign-in with every group, entry, attachment and property, and saved again; the
-  same holds for vaults that 7.2 and 7.3 wrote with a key file, measured by `scripts/compat/measure-vault-format.sh`
-  and not kept as fixtures
+  same holds for vaults that 7.2 and 7.3 wrote with a key file, measured by `scripts/compat/measure-vault-format.sh` and
+  not kept as fixtures
 - the checks of the vault format across releases compare the entries where the application keeps them, in their groups
   (#757). They kept the entries in a field no code of the application fills, so a version that lost a user's entries
   while opening another release's vault would have passed them. Measured by a counter-run: with this build made to drop
   every group's entries on opening, the old checks stayed green and the new ones failed
 
 FORMAT:
-- the vault format does not change. Every vault that 8.1.1 to 8.13 wrote, with a password, with a key file or with both,
-  opens in 8.14 with every group and entry as written, and a vault 8.14 writes, any of the three ways, opens in 8.12 and
-  in 8.13 the same.
-  Each vault was written by that release's own save path, with its entries in their groups, and what was read was
-  compared field by field with what was written: the text fields, the expiry date, the custom property with its value,
-  the attachment by the sha256 of its content (`scripts/compat/measure-vault-format.sh <empty directory>`, #757; the
-  jars from the installers on the release pages, checked against their published sha256, 8.1.1 without one)
+- the vault format does not change. Every vault that 7.2, 7.3, 8 and 8.1.1 to 8.13 wrote, with a password, with a key
+  file or with both, opens in 8.14 with every group and entry as written, 60 of 60, and a vault 8.14 writes, any of the
+  three ways, opens in 8.12 and in 8.13 the same. Each vault was written by that release's own save path, with its
+  entries in their groups, and what was read was compared field by field with what was written: the text fields, the
+  expiry date, the custom property with its value, the attachment by the sha256 of its content
+  (`scripts/compat/measure-vault-format.sh <empty directory>`, #757, run on the release commit with its
+  `withAllDependendiesJar`; the jars from the installers on the release pages, checked against their published sha256;
+  7.2, 7.3, 8 and 8.1.1 publish none and were taken unchecked)
 - the FORMAT statements of 8.12 and 8.13 hold, now measured with the entries: they had been measured with the entries in
   a field the application does not read (#757). Measured again by the same script: the vaults of 8.1.1 to 8.11 open in
   8.12 with every entry as written, the vault 8.12 writes opens in 8.6 to 8.11, and the vaults 8.1.1 to 8.12 wrote with
   a key file open in 8.13 with every entry as written
-- a vault that 7.2 or 7.3 wrote with a password opens (#624), and is refused by 8.12 and 8.13; one they wrote with a key
-  file, and one 8 wrote with a key file, opens in 8.14 (#650) and is refused by 8.12 and 8.13 ("AEADBadTagException: Tag
-  mismatch"). 7.2 and 7.3 publish no checksum; their jars were taken from the installers unchecked, as the jar of 8
+- what 8.12 and 8.13 refuse and 8.14 opens: a vault that 7.2 or 7.3 wrote with a password, for the class of its groups,
+  and one that 8 wrote with a password and an attachment, for the class of the attachment (CannotResolveClassException,
+  #624); every vault that 7.2, 7.3 or 8 wrote with a key file, alone or with a password, for its content
+  ("AEADBadTagException: Tag mismatch", #650)
 - `./gradlew test --tests '*TheEnvelopeMoveKeepsTheVaultFormatTest'` with `-PenvelopeMoveRelease=8.12` and `=8.13`: in
   both directions every entry as written, in the groups
 
