@@ -36,8 +36,11 @@ dependencies {
     implementation libs.observer
     implementation libs.state.pattern
     implementation libs.eventbus
-    implementation libs.visitor
     implementation libs.icon.img.extensions
+    // the visitor types of gen-tree's API (ITreeNode.accept), which this application compiles against;
+    // gen-tree declares visitor-pattern only for runtime (astrapi69/gen-tree#22). visitor-pattern
+    // is the artifact visitor 6 was renamed to, and only one of the two belongs on the class path (#774)
+    implementation libs.visitor.pattern
     implementation libs.jremix.icon
     implementation libs.silk.icon.theme
     implementation libs.silly.collection
@@ -126,6 +129,14 @@ dependencies {
 
     // mutation testing (see gradle/mutation-testing.gradle)
     pitest libs.pitest.junit5.plugin
+}
+
+// state 6 is the artifact state-pattern was renamed from: both carry the same 17 classes with other bytes,
+// and the class path order alone decided which ran. The application, its plugins and swing-wizard are built
+// against state-pattern 7.1; swing-components 10 still asks for state 6 (astrapi69/swing-components#50),
+// so it is excluded everywhere until a release of swing-components moves (#774)
+configurations.configureEach {
+    exclude group: "io.github.astrapi69", module: "state"
 }
 
 configurations.named("izpack") {

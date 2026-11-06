@@ -125,6 +125,13 @@ CHANGED:
   `module-info.class`, it kept the first one, swing-tree-component's, and said it was the module
   `swing.tree.component.main`, and pf4j's under `META-INF/versions/9`. It is started with `-jar` and `-cp`, where a
   descriptor is ignored, so nothing changes when it runs
+- one copy of every class of the family's libraries (#774): visitor 6 and state 6, the artifacts visitor-pattern and
+  state-pattern were renamed from, are no longer on the class path beside them. Both pairs carried the same classes with
+  other bytes, and the class path order decided which ran: visitor 6's four, older than what gen-tree is built against,
+  and state-pattern 7.1's seventeen. The application declares visitor-pattern 7, which gen-tree's API needs
+  (astrapi69/gen-tree#22), and leaves out state 6, which swing-components 10 still asks for
+  (astrapi69/swing-components#50). Nothing calls a member only the dropped copies had, measured in the bytecode of the
+  application, its plugins and every library
 - build only: Gradle 9.8.2 (#722), its wrapper jar checked against the published `gradle-9.8.2-wrapper.jar.sha256`.
   `--warning-mode all` names one deprecation, `Configuration.setVisible(boolean)` from the IzPack plugin 3.2, its latest
   release, which stays until a release of it fixes that
