@@ -98,10 +98,43 @@ jar.doLast {
     }
 }
 
+/**
+ * Names the version of every module the all-dependencies jar is packed from, one line
+ * group:artifact=version, in META-INF/mystic-crypt-ui/runtime-versions.txt inside that jar
+ * (#769). The family's libraries are built with Gradle and carry no pom.properties, and the jar keeps
+ * no library's own manifest, so without this list the version of a shipped library could not be
+ * read from the jar at all. It is taken from the same resolved artifacts the jar is packed from, so
+ * it names exactly what is in it; RuntimeDependenciesTest reads it with -PapplicationJarUnderTest. A text
+ * file and not a .properties one: a colon would end a properties key
+ */
+def runtimeVersionsDirectory = layout.buildDirectory.dir('generated/runtime-versions')
+tasks.register('runtimeVersions') {
+    description = 'Writes the version of every module of the runtime class path, for the all-dependencies jar.'
+    def versions = configurations.runtimeClasspath.incoming.artifacts.resolvedArtifacts.map { artifacts ->
+        artifacts.collect { it.id.componentIdentifier }
+                .findAll { it instanceof org.gradle.api.artifacts.component.ModuleComponentIdentifier }
+                .collect { "${it.group}:${it.module}=${it.version}".toString() }
+                .unique()
+                .sort()
+    }
+    inputs.property('versions', versions)
+    outputs.dir(runtimeVersionsDirectory)
+    doLast {
+        // the directory holds this list and nothing else: whatever an earlier run left there would be
+        // packed into the jar with it
+        runtimeVersionsDirectory.get().asFile.deleteDir()
+        File list = runtimeVersionsDirectory.get().file('META-INF/mystic-crypt-ui/runtime-versions.txt').asFile
+        list.parentFile.mkdirs()
+        list.setText(versions.get().join('\n') + '\n', 'UTF-8')
+    }
+}
+
 task withAllDependendiesJar(type: Jar) {
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
     manifest.from jar.manifest
     archiveClassifier = "all"
+    dependsOn 'runtimeVersions'
+    from(runtimeVersionsDirectory)
     from {
         configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
     } {

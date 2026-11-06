@@ -115,6 +115,12 @@ CHANGED:
   no longer brings randomizer along at runtime. It overwrites every working copy of secret material it makes, among them
   the ones the vault, lock and sign-in paths go through. A secret passed to `--cli` as an argument now prints a warning;
   the `-stdin` option beside each one is the way to pass it. The vault format does not change
+- the application jar names the version of every library it carries, one line `group:artifact=version` in
+  `META-INF/mystic-crypt-ui/runtime-versions.txt` (#769), written from the same resolved artifacts the jar is packed
+  from. The check of what an installer ships reads a library's version there, and where the jar also holds the library's
+  `pom.properties`, both must agree. The family's libraries carry no `pom.properties`, so on the first 8.14 installer
+  the check could not read randomizer, silly-io and file-worker at all; compared class by class with Maven Central, they
+  were 10.7, 4.0 and 20.0
 - build only: Gradle 9.8.2 (#722), its wrapper jar checked against the published `gradle-9.8.2-wrapper.jar.sha256`.
   `--warning-mode all` names one deprecation, `Configuration.setVisible(boolean)` from the IzPack plugin 3.2, its latest
   release, which stays until a release of it fixes that

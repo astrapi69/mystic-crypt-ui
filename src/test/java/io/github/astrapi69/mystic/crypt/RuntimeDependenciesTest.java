@@ -32,9 +32,12 @@ import static org.junit.jupiter.api.Assumptions.assumeFalse;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -90,6 +93,11 @@ class RuntimeDependenciesTest
 
 	private static final String APPLICATION_JAR = System
 		.getProperty("mystic.crypt.ui.application.jar", "");
+
+	/**
+	 * Where the build names the version of every module the application jar is packed from (#769)
+	 */
+	private static final String RUNTIME_VERSIONS = "META-INF/mystic-crypt-ui/runtime-versions.txt";
 
 	@ParameterizedTest(name = "{0} is at least {1}")
 	@CsvSource({ "jackson-core, 2.22.4", "jackson-databind, 2.22.4", "jackson-annotations, 2.22",
@@ -151,21 +159,64 @@ class RuntimeDependenciesTest
 		}
 	}
 
+	/**
+	 * The version of a library in the application jar, from the list the build writes into it
+	 * ({@value #RUNTIME_VERSIONS}): one line {@code group:artifact=version} per module the jar is
+	 * packed from. The family's libraries are built with Gradle and carry no
+	 * {@code pom.properties}, and the all-dependencies jar keeps no library's own manifest, so
+	 * without the list their version could not be read at all (#769). Where the library's
+	 * {@code pom.properties} is in the jar too, both must name the same version
+	 */
 	private static String versionInTheJar(final Path jar, final String group, final String artifact)
 		throws IOException
 	{
-		String properties = "META-INF/maven/" + group + "/" + artifact + "/pom.properties";
 		try (ZipFile archive = new ZipFile(jar.toFile()))
 		{
-			ZipEntry entry = archive.getEntry(properties);
-			assertNotNull(entry, jar + " carries no " + properties);
-			Properties pom = new Properties();
-			try (InputStream in = archive.getInputStream(entry))
+			String version = runtimeVersionsIn(archive, jar).get(group + ":" + artifact);
+			assertNotNull(version,
+				jar + " names no version of " + group + ":" + artifact + " in " + RUNTIME_VERSIONS);
+			String pomProperties = "META-INF/maven/" + group + "/" + artifact + "/pom.properties";
+			if (archive.getEntry(pomProperties) != null)
 			{
-				pom.load(in);
+				assertEquals(version,
+					propertiesIn(archive, pomProperties, jar).getProperty("version"),
+					jar + ": " + RUNTIME_VERSIONS + " and " + pomProperties + " disagree");
 			}
-			return pom.getProperty("version");
+			return version;
 		}
+	}
+
+	/**
+	 * The lines {@code group:artifact=version} of {@value #RUNTIME_VERSIONS}, as a map from
+	 * {@code group:artifact} to the version
+	 */
+	private static Map<String, String> runtimeVersionsIn(final ZipFile archive, final Path jar)
+		throws IOException
+	{
+		ZipEntry entry = archive.getEntry(RUNTIME_VERSIONS);
+		assertNotNull(entry, jar + " carries no " + RUNTIME_VERSIONS);
+		Map<String, String> versions = new HashMap<>();
+		try (InputStream in = archive.getInputStream(entry))
+		{
+			new String(in.readAllBytes(), StandardCharsets.UTF_8).lines()
+				.filter(line -> line.contains("="))
+				.forEach(line -> versions.put(line.substring(0, line.indexOf('=')),
+					line.substring(line.indexOf('=') + 1)));
+		}
+		return versions;
+	}
+
+	private static Properties propertiesIn(final ZipFile archive, final String name, final Path jar)
+		throws IOException
+	{
+		ZipEntry entry = archive.getEntry(name);
+		assertNotNull(entry, jar + " carries no " + name);
+		Properties properties = new Properties();
+		try (InputStream in = archive.getInputStream(entry))
+		{
+			properties.load(in);
+		}
+		return properties;
 	}
 
 	private static List<String> versionsOnTheClassPath(final String artifact)
