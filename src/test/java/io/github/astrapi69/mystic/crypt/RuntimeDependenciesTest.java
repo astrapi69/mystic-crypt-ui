@@ -43,6 +43,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.TreeMap;
+import java.util.jar.Attributes;
+import java.util.jar.JarFile;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
@@ -281,6 +283,31 @@ class RuntimeDependenciesTest
 
 			assertEquals(List.of(), descriptors,
 				APPLICATION_JAR + " carries module descriptors (#771)");
+		}
+	}
+
+	/**
+	 * The manifest is version 1.0 of the format, the only one the JAR File Specification defines,
+	 * and its main section names no entry: the build wrote the project version as
+	 * {@code Manifest-Version} and a {@code Name}, which belongs to a per-entry section (#783). The
+	 * application's own version stands in {@code Implementation-Version}
+	 */
+	@Test
+	@DisplayName("the application jar's manifest is version 1.0 and its main section names no entry")
+	void applicationJar_manifestIsOfTheSpecifiedVersion() throws IOException
+	{
+		ApplicationJarUnderTest.assumeNamed();
+
+		try (JarFile archive = new JarFile(APPLICATION_JAR))
+		{
+			Attributes main = archive.getManifest().getMainAttributes();
+
+			assertEquals("1.0", main.getValue(Attributes.Name.MANIFEST_VERSION),
+				APPLICATION_JAR + ": the version of the manifest format (#783)");
+			assertNull(main.getValue("Name"),
+				APPLICATION_JAR + ": a Name in the main section (#783)");
+			assertNotNull(main.getValue(Attributes.Name.IMPLEMENTATION_VERSION),
+				APPLICATION_JAR + " names no Implementation-Version");
 		}
 	}
 
