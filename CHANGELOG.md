@@ -140,6 +140,11 @@ CHANGED:
   `META-INF/third-party/<group>/<artifact>/` as the library carries it: 161 files of 134 libraries. The libraries share
   these paths, 27 of them carry a `META-INF/NOTICE` in eight different texts, and the jar kept one copy of each path,
   the first library's, so the notices of Jackson, Batik, Apache Commons and others were not in what the installer ships
+- the service files in the application jar name the providers of every library (#776), merged one file per service.
+  The jar kept the first library's copy, so a `ServiceLoader` on it found jackson-dataformat-xml's `XmlFactory` as the
+  only `JsonFactory` and `XmlMapper` as the only `ObjectCodec`; now it finds jackson-core's, jackson-dataformat-yaml's
+  and jackson-dataformat-xml's of both. Nothing of the application or its libraries loads either service today, so
+  nothing changes when it runs
 - build only: Gradle 9.8.2 (#722), its wrapper jar checked against the published `gradle-9.8.2-wrapper.jar.sha256`.
   `--warning-mode all` names one deprecation, `Configuration.setVisible(boolean)` from the IzPack plugin 3.2, its latest
   release, which stays until a release of it fixes that

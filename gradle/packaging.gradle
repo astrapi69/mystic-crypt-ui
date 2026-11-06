@@ -143,7 +143,7 @@ def thirdPartyLegalFiles = ['LICENSE*', 'NOTICE*', 'META-INF/*LICENSE*', 'META-I
  * these paths - 27 carry a META-INF/NOTICE, in eight different texts - and the all-dependencies jar
  * keeps one copy of each path, so it kept the first library's and dropped Jackson's, Batik's and
  * Apache Commons' notices, which the Apache License 2.0 asks a redistribution to carry. The
- * installer ships nothing else but that jar; ThirdPartyLegalFilesTest checks it
+ * installer ships nothing else but that jar; SharedLibraryFilesTest checks it
  */
 abstract class ThirdPartyLegalFiles extends DefaultTask {
     /** group/artifact of each library, and its file */
@@ -193,13 +193,76 @@ tasks.register('thirdPartyLegalFiles', ThirdPartyLegalFiles) {
     destination = thirdPartyLegalFilesDirectory
 }
 
+/**
+ * Merges the service files of every library of the runtime class path and of the application into
+ * META-INF/services/, every provider once, in class path order (#776). The all-dependencies jar keeps
+ * one copy of each path, so of a service several libraries provide it kept the first library's
+ * providers: of com.fasterxml.jackson.core.JsonFactory only jackson-dataformat-xml's XmlFactory,
+ * without jackson-core's JsonFactory and jackson-dataformat-yaml's YAMLFactory. Comments and blank
+ * lines are left out, as ServiceLoader reads them; SharedLibraryFilesTest checks the jar
+ */
+abstract class MergedServiceFiles extends DefaultTask {
+    /** the libraries, then the application's own output, in that order */
+    @InputFiles
+    @Classpath
+    abstract ConfigurableFileCollection getSources()
+
+    @OutputDirectory
+    abstract DirectoryProperty getDestination()
+
+    @TaskAction
+    void merge() {
+        Map<String, Set<String>> providers = new TreeMap<>()
+        sources.files.each { File source ->
+            if (source.isDirectory()) {
+                File services = new File(source, 'META-INF/services')
+                services.listFiles()?.findAll { it.isFile() }?.sort { it.name }?.each { File file ->
+                    add(providers, file.name, file.getText('UTF-8'))
+                }
+            } else if (source.isFile()) {
+                new java.util.zip.ZipFile(source).withCloseable { archive ->
+                    archive.entries().toList().findAll { entry ->
+                        !entry.directory && entry.name ==~ /META-INF\/services\/[^\/]+/
+                    }.each { entry ->
+                        add(providers, entry.name.substring('META-INF/services/'.length()),
+                                archive.getInputStream(entry).getText('UTF-8'))
+                    }
+                }
+            }
+        }
+        File directory = destination.get().asFile
+        directory.deleteDir()
+        File services = new File(directory, 'META-INF/services')
+        services.mkdirs()
+        providers.each { String service, Set<String> names ->
+            new File(services, service).setText(names.join('\n') + '\n', 'UTF-8')
+        }
+    }
+
+    static void add(Map<String, Set<String>> providers, String service, String text) {
+        Set<String> names = providers.computeIfAbsent(service) { new LinkedHashSet<String>() }
+        text.readLines().collect { (it.contains('#') ? it.substring(0, it.indexOf('#')) : it).strip() }
+                .findAll { !it.isEmpty() }
+                .each { names.add(it) }
+    }
+}
+
+def mergedServiceFilesDirectory = layout.buildDirectory.dir('generated/merged-service-files')
+tasks.register('mergedServiceFiles', MergedServiceFiles) {
+    description = 'Merges the service files of every runtime library and of the application, for the all-dependencies jar.'
+    sources.from(configurations.runtimeClasspath, sourceSets.main.output)
+    destination = mergedServiceFilesDirectory
+}
+
 task withAllDependendiesJar(type: Jar) {
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
     manifest.from jar.manifest
     archiveClassifier = "all"
-    dependsOn 'runtimeVersions', 'thirdPartyLegalFiles'
+    dependsOn 'runtimeVersions', 'thirdPartyLegalFiles', 'mergedServiceFiles'
     from(runtimeVersionsDirectory)
     from(thirdPartyLegalFilesDirectory)
+    // before the application's own jar, whose service files are merged into these (#776)
+    from(mergedServiceFilesDirectory)
     from {
         configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
     } {
@@ -216,6 +279,8 @@ task withAllDependendiesJar(type: Jar) {
         // is a build file of the family's libraries, the licence of nothing in the jar (#777)
         exclude thirdPartyLegalFiles
         exclude "license-header.txt"
+        // merged into one file per service, above (#776)
+        exclude "META-INF/services/*"
     }
     with jar
 }

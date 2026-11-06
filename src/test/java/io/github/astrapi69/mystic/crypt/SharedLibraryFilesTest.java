@@ -31,11 +31,14 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.SequencedSet;
 import java.util.TreeMap;
 import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
@@ -45,27 +48,36 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 /**
- * The application jar carries the licence and notice files of every library it is packed from, each
- * under {@value #THIRD_PARTY}{@code <group>/<artifact>/} as the library carries it (#779).
+ * The application jar carries what each library it is packed from carries at a path the libraries
+ * share. The all-dependencies jar keeps one copy of each path, the first library's, so whatever a
+ * second library had there was gone without a word.
  * <p>
- * The all-dependencies jar keeps one copy of each path, the first library's, and the libraries
- * share their paths: 27 of them carry a {@code META-INF/NOTICE}, in eight different texts, and the
- * jar kept log4j-to-slf4j's. Jackson's, Batik's and Apache Commons' notices were not in it, and the
- * installer ships nothing else - the Apache License 2.0 asks that a redistribution carries the
- * notices of a NOTICE file (section 4 (d)).
+ * <b>Licence and notice files (#779)</b> stand under
+ * {@value #THIRD_PARTY}{@code <group>/<artifact>/}, as the library carries them. 27 libraries carry
+ * a {@code META-INF/NOTICE}, in eight different texts, and the jar kept log4j-to-slf4j's:
+ * Jackson's, Batik's and Apache Commons' notices were not in it, and the installer ships nothing
+ * else - the Apache License 2.0 asks that a redistribution carries the notices of a NOTICE file
+ * (section 4 (d)). A licence or notice file is one at the root of a library, at the top of its
+ * {@code META-INF} or under its {@code license} directory, named as {@link #LEGAL_FILE} says. A
+ * file of that name in a package is a resource of the library's code and stays where the code looks
+ * for it.
  * <p>
- * A licence or notice file is one at the root of a library, at the top of its {@code META-INF} or
- * under its {@code license} directory, named as {@link #LEGAL_FILE} says. A file of that name in a
- * package is a resource of the library's code and stays where the code looks for it.
+ * <b>Service files (#776)</b> name every provider of every library, each once, in class path order.
+ * Of {@code META-INF/services/com.fasterxml.jackson.core.JsonFactory} the jar kept
+ * jackson-dataformat-xml's {@code XmlFactory}, without jackson-core's {@code JsonFactory} and
+ * jackson-dataformat-yaml's {@code YAMLFactory}, the same for {@code ObjectCodec}; a
+ * {@link java.util.ServiceLoader} reading the jar finds only what the file names.
  * <p>
- * Checked against the libraries of this build's runtime class path, which the build names in
- * {@code mystic.crypt.ui.runtime.libraries}; the jar under test is named with
+ * Checked against the libraries of this build's runtime class path, see
+ * {@link ApplicationJarUnderTest#runtimeLibraries()}; the jar under test is named with
  * {@code -PapplicationJarUnderTest=<jar>}, see {@link ApplicationJarUnderTest}.
  */
-class ThirdPartyLegalFilesTest
+class SharedLibraryFilesTest
 {
 
 	private static final String THIRD_PARTY = "META-INF/third-party/";
+
+	private static final String SERVICES = "META-INF/services/";
 
 	/** The application's own licence, which stands at the root of the jar (#773) */
 	private static final String APPLICATIONS_LICENCE = "LICENSE.txt";
@@ -73,9 +85,6 @@ class ThirdPartyLegalFilesTest
 	private static final Pattern LEGAL_FILE = Pattern
 		.compile("(LICENSE|NOTICE)[^/]*" + "|META-INF/[^/]*(LICENSE|NOTICE)[^/]*"
 			+ "|META-INF/(COPYING|DEPENDENCIES|AUTHORS)[^/]*" + "|license/.+");
-
-	private static final String RUNTIME_LIBRARIES = System
-		.getProperty("mystic.crypt.ui.runtime.libraries", "");
 
 	/**
 	 * Holds the wiring the jar checks depend on, and runs without a jar named: the build passes the
@@ -85,7 +94,7 @@ class ThirdPartyLegalFilesTest
 	@DisplayName("the build names the runtime libraries the jar is compared with")
 	void runtimeLibraries_areNamedByTheBuild()
 	{
-		List<File> libraries = runtimeLibraries();
+		List<File> libraries = ApplicationJarUnderTest.runtimeLibraries();
 
 		assertFalse(libraries.isEmpty(), "no runtime library named");
 		assertEquals(
@@ -157,7 +166,7 @@ class ThirdPartyLegalFilesTest
 	 */
 	private static Map<String, File> librariesOf(final Map<String, String> runtimeVersions)
 	{
-		List<File> classPath = runtimeLibraries();
+		List<File> classPath = ApplicationJarUnderTest.runtimeLibraries();
 		Map<String, File> libraries = new TreeMap<>();
 		List<String> unmatched = new ArrayList<>();
 		runtimeVersions.forEach((module, version) -> {
@@ -178,13 +187,6 @@ class ThirdPartyLegalFilesTest
 		return libraries;
 	}
 
-	private static List<File> runtimeLibraries()
-	{
-		assertFalse(RUNTIME_LIBRARIES.isBlank(), "the build names no runtime libraries in "
-			+ "mystic.crypt.ui.runtime.libraries; without them nothing can be compared");
-		return Arrays.stream(RUNTIME_LIBRARIES.split(File.pathSeparator)).map(File::new).toList();
-	}
-
 	private static List<? extends ZipEntry> legalFilesIn(final ZipFile archive)
 	{
 		return archive.stream().filter(entry -> !entry.isDirectory())
@@ -196,6 +198,89 @@ class ThirdPartyLegalFilesTest
 		try (InputStream in = archive.getInputStream(entry))
 		{
 			return in.readAllBytes();
+		}
+	}
+
+	@Test
+	@DisplayName("every service file names every provider of every library, each once, in class path order")
+	void applicationJar_namesEveryProviderOfEveryLibrary() throws IOException
+	{
+		ApplicationJarUnderTest.assumeNamed();
+		Map<String, SequencedSet<String>> expected = providersOf(
+			ApplicationJarUnderTest.runtimeLibraries());
+		Map<String, String> differing = new TreeMap<>();
+
+		try (ZipFile archive = new ZipFile(ApplicationJarUnderTest.PATH))
+		{
+			expected.forEach((service, providers) -> {
+				List<String> packed = providersIn(archive, archive.getEntry(service));
+				if (!packed.equals(List.copyOf(providers)))
+				{
+					differing.put(service,
+						"the jar names " + packed + ", the libraries " + providers);
+				}
+			});
+		}
+
+		assertTrue(expected.size() > 0,
+			"no library carries a service file - an empty set is not a clean result");
+		assertEquals(Map.of(), differing,
+			"of " + expected.size() + " service files of the libraries, these do not name their "
+				+ "providers in " + ApplicationJarUnderTest.PATH + " (#776)");
+	}
+
+	/**
+	 * The providers each service file of the libraries names, merged in class path order, every one
+	 * once
+	 */
+	private static Map<String, SequencedSet<String>> providersOf(final List<File> libraries)
+		throws IOException
+	{
+		Map<String, SequencedSet<String>> providers = new TreeMap<>();
+		for (File library : libraries)
+		{
+			try (ZipFile archive = new ZipFile(library))
+			{
+				for (ZipEntry entry : serviceFilesIn(archive))
+				{
+					providers.computeIfAbsent(entry.getName(), name -> new LinkedHashSet<>())
+						.addAll(providersIn(archive, entry));
+				}
+			}
+		}
+		return providers;
+	}
+
+	private static List<? extends ZipEntry> serviceFilesIn(final ZipFile archive)
+	{
+		return archive.stream().filter(entry -> !entry.isDirectory())
+			.filter(entry -> entry.getName().startsWith(SERVICES)
+				&& entry.getName().indexOf('/', SERVICES.length()) < 0)
+			.toList();
+	}
+
+	/**
+	 * The provider names of a service file: one per line, a {@code #} starting a comment, blank
+	 * lines ignored, as {@link java.util.ServiceLoader} reads it; none if the file is missing
+	 */
+	private static List<String> providersIn(final ZipFile archive, final ZipEntry entry)
+	{
+		if (entry == null)
+		{
+			return List.of();
+		}
+		try (InputStream in = archive.getInputStream(entry))
+		{
+			List<String> providers = new ArrayList<>();
+			new String(in.readAllBytes(), StandardCharsets.UTF_8).lines()
+				.map(line -> line.contains("#") ? line.substring(0, line.indexOf('#')) : line)
+				.map(String::strip).filter(line -> !line.isEmpty()).forEach(providers::add);
+			return providers;
+		}
+		catch (IOException exception)
+		{
+			throw new IllegalStateException(
+				"cannot read " + entry.getName() + " of " + archive.getName(), exception);
 		}
 	}
 }

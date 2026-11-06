@@ -24,14 +24,18 @@
  */
 package io.github.astrapi69.mystic.crypt;
 
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assumptions.assumeFalse;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
@@ -53,6 +57,9 @@ final class ApplicationJarUnderTest
 	 */
 	static final String RUNTIME_VERSIONS = "META-INF/mystic-crypt-ui/runtime-versions.txt";
 
+	private static final String RUNTIME_LIBRARIES = System
+		.getProperty("mystic.crypt.ui.runtime.libraries", "");
+
 	private ApplicationJarUnderTest()
 	{
 	}
@@ -62,6 +69,20 @@ final class ApplicationJarUnderTest
 	{
 		assumeFalse(PATH.isBlank(),
 			"no application jar named; -PapplicationJarUnderTest=<jar> names one");
+	}
+
+	/**
+	 * The libraries of this build's runtime class path, in class path order, which the build passes
+	 * to the test JVM in {@code mystic.crypt.ui.runtime.libraries} (#779): what the application jar
+	 * of this build is packed from. The test class path holds other versions of some of them
+	 *
+	 * @return the library jars
+	 */
+	static List<File> runtimeLibraries()
+	{
+		assertFalse(RUNTIME_LIBRARIES.isBlank(), "the build names no runtime libraries in "
+			+ "mystic.crypt.ui.runtime.libraries; without them nothing can be compared");
+		return Arrays.stream(RUNTIME_LIBRARIES.split(File.pathSeparator)).map(File::new).toList();
 	}
 
 	/**
