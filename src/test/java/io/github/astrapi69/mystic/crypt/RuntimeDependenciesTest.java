@@ -44,6 +44,8 @@ import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -156,6 +158,31 @@ class RuntimeDependenciesTest
 
 			assertEquals(0, entries, APPLICATION_JAR + " carries " + entries + " entries under "
 				+ packagePath + " (#639)");
+		}
+	}
+
+	/**
+	 * The application jar is no module, and must not say it is one: started with {@code -jar} or
+	 * {@code -cp}, it ignores a module descriptor, and packed from 145 jars it used to keep the
+	 * first library's - {@code swing.tree.component.main} - at its root and pf4j's under
+	 * {@code META-INF/versions/9} (#771)
+	 */
+	@Test
+	@DisplayName("the application jar carries no module descriptor of another library")
+	void applicationJar_carriesNoModuleDescriptor() throws IOException
+	{
+		assumeFalse(APPLICATION_JAR.isBlank(),
+			"no application jar named; -PapplicationJarUnderTest=<jar> names one");
+
+		try (ZipFile archive = new ZipFile(APPLICATION_JAR))
+		{
+			List<String> descriptors = archive.stream().map(ZipEntry::getName)
+				.filter(name -> name.equals("module-info.class")
+					|| name.matches("META-INF/versions/\\d+/module-info\\.class"))
+				.toList();
+
+			assertEquals(List.of(), descriptors,
+				APPLICATION_JAR + " carries module descriptors (#771)");
 		}
 	}
 
