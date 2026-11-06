@@ -29,7 +29,6 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.junit.jupiter.api.Assumptions.assumeFalse;
 
 import java.io.File;
 import java.io.IOException;
@@ -98,13 +97,9 @@ import org.junit.jupiter.params.provider.ValueSource;
 class RuntimeDependenciesTest
 {
 
-	private static final String APPLICATION_JAR = System
-		.getProperty("mystic.crypt.ui.application.jar", "");
+	private static final String APPLICATION_JAR = ApplicationJarUnderTest.PATH;
 
-	/**
-	 * Where the build names the version of every module the application jar is packed from (#769)
-	 */
-	private static final String RUNTIME_VERSIONS = "META-INF/mystic-crypt-ui/runtime-versions.txt";
+	private static final String RUNTIME_VERSIONS = ApplicationJarUnderTest.RUNTIME_VERSIONS;
 
 	@ParameterizedTest(name = "{0} is at least {1}")
 	@CsvSource({ "jackson-core, 2.22.4", "jackson-databind, 2.22.4", "jackson-annotations, 2.22",
@@ -131,8 +126,7 @@ class RuntimeDependenciesTest
 	void applicationJar_carriesAtLeastThePatchedRelease(final String group, final String artifact,
 		final String floor) throws IOException
 	{
-		assumeFalse(APPLICATION_JAR.isBlank(),
-			"no application jar named; -PapplicationJarUnderTest=<jar> names one");
+		ApplicationJarUnderTest.assumeNamed();
 
 		String version = versionInTheJar(Path.of(APPLICATION_JAR), group, artifact);
 
@@ -198,12 +192,13 @@ class RuntimeDependenciesTest
 	@ValueSource(strings = { "io.github.astrapi69:visitor", "io.github.astrapi69:state" })
 	void applicationJar_namesNoSupersededArtifact(final String module) throws IOException
 	{
-		assumeFalse(APPLICATION_JAR.isBlank(),
-			"no application jar named; -PapplicationJarUnderTest=<jar> names one");
+		ApplicationJarUnderTest.assumeNamed();
 
 		try (ZipFile archive = new ZipFile(APPLICATION_JAR))
 		{
-			assertFalse(runtimeVersionsIn(archive, Path.of(APPLICATION_JAR)).containsKey(module),
+			assertFalse(
+				ApplicationJarUnderTest.runtimeVersionsIn(archive, Path.of(APPLICATION_JAR))
+					.containsKey(module),
 				APPLICATION_JAR + " is packed from " + module + " (#774)");
 		}
 	}
@@ -217,8 +212,7 @@ class RuntimeDependenciesTest
 	@DisplayName("the application jar's LICENSE.txt is the application's own")
 	void applicationJar_carriesTheApplicationsLicence() throws IOException
 	{
-		assumeFalse(APPLICATION_JAR.isBlank(),
-			"no application jar named; -PapplicationJarUnderTest=<jar> names one");
+		ApplicationJarUnderTest.assumeNamed();
 
 		try (ZipFile archive = new ZipFile(APPLICATION_JAR))
 		{
@@ -241,8 +235,7 @@ class RuntimeDependenciesTest
 	@DisplayName("the application jar carries no license-header.txt")
 	void applicationJar_carriesNoLicenseHeaderTemplate() throws IOException
 	{
-		assumeFalse(APPLICATION_JAR.isBlank(),
-			"no application jar named; -PapplicationJarUnderTest=<jar> names one");
+		ApplicationJarUnderTest.assumeNamed();
 
 		try (ZipFile archive = new ZipFile(APPLICATION_JAR))
 		{
@@ -255,8 +248,7 @@ class RuntimeDependenciesTest
 	@ValueSource(strings = { "org/apache/catalina/", "org/springframework/boot/" })
 	void applicationJar_carriesNoUnusedWebStack(final String packagePath) throws IOException
 	{
-		assumeFalse(APPLICATION_JAR.isBlank(),
-			"no application jar named; -PapplicationJarUnderTest=<jar> names one");
+		ApplicationJarUnderTest.assumeNamed();
 
 		try (ZipFile archive = new ZipFile(APPLICATION_JAR))
 		{
@@ -278,8 +270,7 @@ class RuntimeDependenciesTest
 	@DisplayName("the application jar carries no module descriptor of another library")
 	void applicationJar_carriesNoModuleDescriptor() throws IOException
 	{
-		assumeFalse(APPLICATION_JAR.isBlank(),
-			"no application jar named; -PapplicationJarUnderTest=<jar> names one");
+		ApplicationJarUnderTest.assumeNamed();
 
 		try (ZipFile archive = new ZipFile(APPLICATION_JAR))
 		{
@@ -306,7 +297,8 @@ class RuntimeDependenciesTest
 	{
 		try (ZipFile archive = new ZipFile(jar.toFile()))
 		{
-			String version = runtimeVersionsIn(archive, jar).get(group + ":" + artifact);
+			String version = ApplicationJarUnderTest.runtimeVersionsIn(archive, jar)
+				.get(group + ":" + artifact);
 			assertNotNull(version,
 				jar + " names no version of " + group + ":" + artifact + " in " + RUNTIME_VERSIONS);
 			String pomProperties = "META-INF/maven/" + group + "/" + artifact + "/pom.properties";
@@ -318,26 +310,6 @@ class RuntimeDependenciesTest
 			}
 			return version;
 		}
-	}
-
-	/**
-	 * The lines {@code group:artifact=version} of {@value #RUNTIME_VERSIONS}, as a map from
-	 * {@code group:artifact} to the version
-	 */
-	private static Map<String, String> runtimeVersionsIn(final ZipFile archive, final Path jar)
-		throws IOException
-	{
-		ZipEntry entry = archive.getEntry(RUNTIME_VERSIONS);
-		assertNotNull(entry, jar + " carries no " + RUNTIME_VERSIONS);
-		Map<String, String> versions = new HashMap<>();
-		try (InputStream in = archive.getInputStream(entry))
-		{
-			new String(in.readAllBytes(), StandardCharsets.UTF_8).lines()
-				.filter(line -> line.contains("="))
-				.forEach(line -> versions.put(line.substring(0, line.indexOf('=')),
-					line.substring(line.indexOf('=') + 1)));
-		}
-		return versions;
 	}
 
 	private static Properties propertiesIn(final ZipFile archive, final String name, final Path jar)

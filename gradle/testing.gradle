@@ -96,6 +96,11 @@ test {
         inputs.file(applicationJarUnderTest).withPropertyName('applicationJarUnderTest')
             .withPathSensitivity(PathSensitivity.NONE)
     }
+    // the libraries the application jar is packed from, which ThirdPartyLegalFilesTest compares the
+    // jar's licence and notice files with (#779); the test class path holds other versions of some
+    def runtimeLibraries = configurations.runtimeClasspath
+    inputs.files(runtimeLibraries).withPropertyName('runtimeLibraries').withNormalizer(ClasspathNormalizer)
+    jvmArgumentProviders.add({ ["-Dmystic.crypt.ui.runtime.libraries=${runtimeLibraries.asPath}".toString()] } as CommandLineArgumentProvider)
     applyTestLogging(it)
 }
 
