@@ -10,9 +10,10 @@ jar {
         // allows with a warning and a future release blocks unless native access is enabled; the
         // launchers start this jar with java -jar, where this attribute is the switch (#581)
         attributes("Enable-Native-Access": "ALL-UNNAMED")
+        // Manifest-Version is the version of the manifest format, 1.0, which Gradle writes; the
+        // application's version is Implementation-Version, and a Name belongs to a per-entry section
+        // (#783)
         attributes(
-                "Name"                  : project.name,
-                "Manifest-Version"      : project.version,
                 "Main-Class"            : mainClassName,
                 "Implementation-Title"  : "$groupPackage" + "." + "$rootProject.name",
                 "Implementation-Version": project.version,
