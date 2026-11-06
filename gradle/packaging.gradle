@@ -145,6 +145,11 @@ task withAllDependendiesJar(type: Jar) {
         // libraries it packs it would keep whichever came first, and say it is that module (#771)
         exclude "module-info.class"
         exclude "META-INF/versions/*/module-info.class"
+        // the libraries come first, so their LICENSE.txt would stand for the application's - the one
+        // that stayed was swing-components', an unfilled template (#773); license-header.txt is a build
+        // file of the family's libraries, the licence of nothing in the jar (#777)
+        exclude "LICENSE.txt"
+        exclude "license-header.txt"
     }
     with jar
 }
