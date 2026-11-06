@@ -121,6 +121,10 @@ CHANGED:
   `pom.properties`, both must agree. The family's libraries carry no `pom.properties`, so on the first 8.14 installer
   the check could not read randomizer, silly-io and file-worker at all; compared class by class with Maven Central, they
   were 10.7, 4.0 and 20.0
+- the application jar carries no module descriptor any more (#771). Packed from 145 jars, 69 of them with a
+  `module-info.class`, it kept the first one, swing-tree-component's, and said it was the module
+  `swing.tree.component.main`, and pf4j's under `META-INF/versions/9`. It is started with `-jar` and `-cp`, where a
+  descriptor is ignored, so nothing changes when it runs
 - build only: Gradle 9.8.2 (#722), its wrapper jar checked against the published `gradle-9.8.2-wrapper.jar.sha256`.
   `--warning-mode all` names one deprecation, `Configuration.setVisible(boolean)` from the IzPack plugin 3.2, its latest
   release, which stays until a release of it fixes that

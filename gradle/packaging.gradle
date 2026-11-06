@@ -141,6 +141,10 @@ task withAllDependendiesJar(type: Jar) {
         exclude "META-INF/*.SF"
         exclude "META-INF/*.DSA"
         exclude "META-INF/*.RSA"
+        // the jar is no module: it is started with -jar or -cp, and of the module descriptors of the
+        // libraries it packs it would keep whichever came first, and say it is that module (#771)
+        exclude "module-info.class"
+        exclude "META-INF/versions/*/module-info.class"
     }
     with jar
 }
