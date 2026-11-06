@@ -85,7 +85,7 @@ test-object-version = "9.1"
 throwable-version = "3"
 tika-core-version = "4.2.0"
 tree-api-version = "2.2.1"
-visitor-version = "6"
+visitor-pattern-version = "7"
 xml-extensions-version = "8.2"
 xstream-extensions-version = "1.1"
 xstream-version = "1.4.21"
@@ -167,7 +167,7 @@ test-object = { module = "io.github.astrapi69:test-object", version.ref = "test-
 throwable = { module = "io.github.astrapi69:throwable", version.ref = "throwable-version" }
 tika-core = { module = "org.apache.tika:tika-core", version.ref = "tika-core-version" }
 tree-api = { module = "io.github.astrapi69:tree-api", version.ref = "tree-api-version" }
-visitor = { module = "io.github.astrapi69:visitor", version.ref = "visitor-version" }
+visitor-pattern = { module = "io.github.astrapi69:visitor-pattern", version.ref = "visitor-pattern-version" }
 xml-extensions = { module = "io.github.astrapi69:xml-extensions", version.ref = "xml-extensions-version" }
 xstream = { module = "com.thoughtworks.xstream:xstream", version.ref = "xstream-version" }
 xstream-extensions = { module = "io.github.astrapi69:xstream-extensions", version.ref = "xstream-extensions-version" }

@@ -25,6 +25,7 @@
 package io.github.astrapi69.mystic.crypt;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assumptions.assumeFalse;
@@ -34,11 +35,13 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.TreeMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
@@ -142,6 +145,65 @@ class RuntimeDependenciesTest
 	{
 		assertEquals(List.of(), versionsOnTheClassPath(artifact),
 			artifact + " is on the class path again (#639)");
+	}
+
+	/**
+	 * An artifact the family renamed is not on the class path beside its successor: visitor 6 (now
+	 * visitor-pattern) and state 6 (now state-pattern) carry the same classes under the same names
+	 * with other bytes, and the class path order alone decided which ran (#774)
+	 */
+	@ParameterizedTest(name = "{0}, the artifact before its rename, is not on the class path")
+	@ValueSource(strings = { "visitor", "state" })
+	void supersededArtifact_isNotOnTheClassPath(final String artifact)
+	{
+		assertEquals(List.of(), versionsOnTheClassPath(artifact),
+			artifact + " is on the class path beside its renamed successor (#774)");
+	}
+
+	@Test
+	@DisplayName("no class of the family comes from two jars on the class path")
+	void noClassOfTheFamily_comesFromTwoJars() throws IOException
+	{
+		Map<String, List<String>> jarsOfEachClass = new HashMap<>();
+		for (String entry : System.getProperty("java.class.path").split(File.pathSeparator))
+		{
+			if (!entry.endsWith(".jar"))
+			{
+				continue;
+			}
+			try (ZipFile archive = new ZipFile(entry))
+			{
+				String jar = new File(entry).getName();
+				archive.stream().map(ZipEntry::getName)
+					.filter(
+						name -> name.startsWith("io/github/astrapi69/") && name.endsWith(".class"))
+					.forEach(name -> jarsOfEachClass.computeIfAbsent(name, key -> new ArrayList<>())
+						.add(jar));
+			}
+		}
+		Map<String, List<String>> twice = new TreeMap<>();
+		jarsOfEachClass.forEach((name, jars) -> {
+			if (jars.size() > 1)
+			{
+				twice.put(name, jars);
+			}
+		});
+
+		assertEquals(Map.of(), twice, "classes carried by more than one jar (#774)");
+	}
+
+	@ParameterizedTest(name = "the application jar names no {0}")
+	@ValueSource(strings = { "io.github.astrapi69:visitor", "io.github.astrapi69:state" })
+	void applicationJar_namesNoSupersededArtifact(final String module) throws IOException
+	{
+		assumeFalse(APPLICATION_JAR.isBlank(),
+			"no application jar named; -PapplicationJarUnderTest=<jar> names one");
+
+		try (ZipFile archive = new ZipFile(APPLICATION_JAR))
+		{
+			assertFalse(runtimeVersionsIn(archive, Path.of(APPLICATION_JAR)).containsKey(module),
+				APPLICATION_JAR + " is packed from " + module + " (#774)");
+		}
 	}
 
 	@ParameterizedTest(name = "the application jar carries nothing under {0}")
