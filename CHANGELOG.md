@@ -136,6 +136,10 @@ CHANGED:
   the first copy of a path stays, so the one that stood there was swing-components', its template with the year and
   the name still unfilled. The jar also no longer carries `license-header.txt` (#777), a build file of the family's
   libraries
+- the application jar carries the licence and notice files of every library it is packed from (#779), each under
+  `META-INF/third-party/<group>/<artifact>/` as the library carries it: 161 files of 134 libraries. The libraries share
+  these paths, 27 of them carry a `META-INF/NOTICE` in eight different texts, and the jar kept one copy of each path,
+  the first library's, so the notices of Jackson, Batik, Apache Commons and others were not in what the installer ships
 - build only: Gradle 9.8.2 (#722), its wrapper jar checked against the published `gradle-9.8.2-wrapper.jar.sha256`.
   `--warning-mode all` names one deprecation, `Configuration.setVisible(boolean)` from the IzPack plugin 3.2, its latest
   release, which stays until a release of it fixes that

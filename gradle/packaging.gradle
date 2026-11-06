@@ -129,12 +129,77 @@ tasks.register('runtimeVersions') {
     }
 }
 
+/**
+ * The licence and notice files of a library: at its root, at the top of its META-INF and under its
+ * license directory. A file of such a name inside a package is a resource of the library's code and
+ * stays where the code looks for it
+ */
+def thirdPartyLegalFiles = ['LICENSE*', 'NOTICE*', 'META-INF/*LICENSE*', 'META-INF/*NOTICE*',
+                            'META-INF/COPYING*', 'META-INF/DEPENDENCIES*', 'META-INF/AUTHORS*', 'license/**']
+
+/**
+ * Copies the licence and notice files of every library of the runtime class path to
+ * META-INF/third-party/<group>/<artifact>/, as the library carries them (#779). The libraries share
+ * these paths - 27 carry a META-INF/NOTICE, in eight different texts - and the all-dependencies jar
+ * keeps one copy of each path, so it kept the first library's and dropped Jackson's, Batik's and
+ * Apache Commons' notices, which the Apache License 2.0 asks a redistribution to carry. The
+ * installer ships nothing else but that jar; ThirdPartyLegalFilesTest checks it
+ */
+abstract class ThirdPartyLegalFiles extends DefaultTask {
+    /** group/artifact of each library, and its file */
+    @Input
+    abstract MapProperty<String, String> getLibraries()
+
+    @InputFiles
+    @PathSensitive(PathSensitivity.NONE)
+    abstract ConfigurableFileCollection getLibraryFiles()
+
+    @Input
+    abstract ListProperty<String> getLegalFiles()
+
+    @OutputDirectory
+    abstract DirectoryProperty getDestination()
+
+    @Inject
+    abstract ArchiveOperations getArchives()
+
+    @Inject
+    abstract FileSystemOperations getFileSystem()
+
+    @TaskAction
+    void copy() {
+        File directory = destination.get().asFile
+        fileSystem.delete { it.delete(directory) }
+        libraries.get().each { String module, String library ->
+            fileSystem.copy {
+                it.from(archives.zipTree(library)) { it.include(legalFiles.get()) }
+                it.into(new File(directory, "META-INF/third-party/${module}"))
+                it.includeEmptyDirs = false
+            }
+        }
+    }
+}
+
+def thirdPartyLegalFilesDirectory = layout.buildDirectory.dir('generated/third-party-legal-files')
+tasks.register('thirdPartyLegalFiles', ThirdPartyLegalFiles) {
+    description = 'Copies the licence and notice files of every runtime library, for the all-dependencies jar.'
+    libraries = configurations.runtimeClasspath.incoming.artifacts.resolvedArtifacts.map { artifacts ->
+        artifacts.findAll { it.id.componentIdentifier instanceof org.gradle.api.artifacts.component.ModuleComponentIdentifier }
+                .collectEntries { ["${it.id.componentIdentifier.group}/${it.id.componentIdentifier.module}".toString(),
+                                   it.file.absolutePath] }
+    }
+    libraryFiles.from(configurations.runtimeClasspath)
+    legalFiles = thirdPartyLegalFiles
+    destination = thirdPartyLegalFilesDirectory
+}
+
 task withAllDependendiesJar(type: Jar) {
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
     manifest.from jar.manifest
     archiveClassifier = "all"
-    dependsOn 'runtimeVersions'
+    dependsOn 'runtimeVersions', 'thirdPartyLegalFiles'
     from(runtimeVersionsDirectory)
+    from(thirdPartyLegalFilesDirectory)
     from {
         configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
     } {
@@ -145,10 +210,11 @@ task withAllDependendiesJar(type: Jar) {
         // libraries it packs it would keep whichever came first, and say it is that module (#771)
         exclude "module-info.class"
         exclude "META-INF/versions/*/module-info.class"
-        // the libraries come first, so their LICENSE.txt would stand for the application's - the one
-        // that stayed was swing-components', an unfilled template (#773); license-header.txt is a build
-        // file of the family's libraries, the licence of nothing in the jar (#777)
-        exclude "LICENSE.txt"
+        // the libraries' licence and notice files stand under META-INF/third-party (#779), not where
+        // the first library's would stand for all of them - at the root that was swing-components'
+        // LICENSE.txt, an unfilled template, in place of the application's (#773); license-header.txt
+        // is a build file of the family's libraries, the licence of nothing in the jar (#777)
+        exclude thirdPartyLegalFiles
         exclude "license-header.txt"
     }
     with jar
