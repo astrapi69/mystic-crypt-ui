@@ -258,6 +258,10 @@ tasks.register('mergedServiceFiles', MergedServiceFiles) {
 task withAllDependendiesJar(type: Jar) {
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
     manifest.from jar.manifest
+    // the jar carries the META-INF/versions classes of its multi-release libraries, BouncyCastle's
+    // and FlatLaf's among them; without this attribute the JVM never reads them, and the libraries
+    // run their Java 8 code where the tests, with each library a jar of its own, run the other (#785)
+    manifest.attributes("Multi-Release": "true")
     archiveClassifier = "all"
     dependsOn 'runtimeVersions', 'thirdPartyLegalFiles', 'mergedServiceFiles'
     from(runtimeVersionsDirectory)

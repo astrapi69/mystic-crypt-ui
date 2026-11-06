@@ -312,6 +312,34 @@ class RuntimeDependenciesTest
 	}
 
 	/**
+	 * A jar that carries the {@code META-INF/versions/<n>/} classes of its multi-release libraries
+	 * says {@code Multi-Release: true}, or the JVM never reads them and the libraries run the code
+	 * they carry for Java 8: 107 of the jar's versioned classes had no class of their name outside
+	 * {@code META-INF/versions}, BouncyCastle's KEM and KDF SPIs among them, and FlatLaf's
+	 * multi-resolution images were not available (#785). The tests run with the libraries as
+	 * separate jars, each with its own {@code Multi-Release: true}
+	 */
+	@Test
+	@DisplayName("the application jar says Multi-Release when it carries versioned classes")
+	void applicationJar_isMultiRelease_whenItCarriesVersionedClasses() throws IOException
+	{
+		ApplicationJarUnderTest.assumeNamed();
+
+		try (JarFile archive = new JarFile(APPLICATION_JAR))
+		{
+			long versioned = archive.stream().map(ZipEntry::getName)
+				.filter(name -> name.matches("META-INF/versions/\\d+/.+\\.class")).count();
+
+			assertTrue(versioned > 0, APPLICATION_JAR + " carries no versioned class - "
+				+ "an empty set is not a clean result");
+			assertEquals("true",
+				archive.getManifest().getMainAttributes().getValue(Attributes.Name.MULTI_RELEASE),
+				APPLICATION_JAR + " carries " + versioned
+					+ " versioned classes and does not say Multi-Release (#785)");
+		}
+	}
+
+	/**
 	 * The version of a library in the application jar, from the list the build writes into it
 	 * ({@value #RUNTIME_VERSIONS}): one line {@code group:artifact=version} per module the jar is
 	 * packed from. The family's libraries are built with Gradle and carry no

@@ -148,6 +148,12 @@ CHANGED:
 - the manifest of the application jar says `Manifest-Version: 1.0`, the version of the manifest format, where it gave the
   application's version, and no longer carries a `Name` in its main section, where it belongs to no entry (#783). The
   application's version stays in `Implementation-Version`, which the info dialog reads
+- the application jar says `Multi-Release: true` (#785). It carries the `META-INF/versions` classes of its libraries, 107
+  of them with no class of their name outside it, and without the attribute the JVM never read them: the libraries ran
+  their Java 8 code, where the tests, with each library a jar of its own, run the other. In the installed application
+  FlatLaf had no multi-resolution images, and BouncyCastle offered no `javax.crypto.KEM` or `javax.crypto.KDF` and
+  made Ed25519 keys that are no `EdECPublicKey`. The application asks the JDK's own providers first for ML-KEM,
+  Ed25519 and X25519, so none of its functions failed
 - build only: Gradle 9.8.2 (#722), its wrapper jar checked against the published `gradle-9.8.2-wrapper.jar.sha256`.
   `--warning-mode all` names one deprecation, `Configuration.setVisible(boolean)` from the IzPack plugin 3.2, its latest
   release, which stays until a release of it fixes that
