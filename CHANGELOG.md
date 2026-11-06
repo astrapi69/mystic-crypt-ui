@@ -115,45 +115,6 @@ CHANGED:
   no longer brings randomizer along at runtime. It overwrites every working copy of secret material it makes, among them
   the ones the vault, lock and sign-in paths go through. A secret passed to `--cli` as an argument now prints a warning;
   the `-stdin` option beside each one is the way to pass it. The vault format does not change
-- the application jar names the version of every library it carries, one line `group:artifact=version` in
-  `META-INF/mystic-crypt-ui/runtime-versions.txt` (#769), written from the same resolved artifacts the jar is packed
-  from. The check of what an installer ships reads a library's version there, and where the jar also holds the library's
-  `pom.properties`, both must agree. The family's libraries carry no `pom.properties`, so on the first 8.14 installer
-  the check could not read randomizer, silly-io and file-worker at all; compared class by class with Maven Central, they
-  were 10.7, 4.0 and 20.0
-- the application jar carries no module descriptor any more (#771). Packed from 145 jars, 69 of them with a
-  `module-info.class`, it kept the first one, swing-tree-component's, and said it was the module
-  `swing.tree.component.main`, and pf4j's under `META-INF/versions/9`. It is started with `-jar` and `-cp`, where a
-  descriptor is ignored, so nothing changes when it runs
-- one copy of every class of the family's libraries (#774): visitor 6 and state 6, the artifacts visitor-pattern and
-  state-pattern were renamed from, are no longer on the class path beside them. Both pairs carried the same classes with
-  other bytes, and the class path order decided which ran: visitor 6's four, older than what gen-tree is built against,
-  and state-pattern 7.1's seventeen. The application declares visitor-pattern 7, which gen-tree's API needs
-  (astrapi69/gen-tree#22), and leaves out state 6, which swing-components 10 still asks for
-  (astrapi69/swing-components#50). Nothing calls a member only the dropped copies had, measured in the bytecode of the
-  application, its plugins and every library
-- the `LICENSE.txt` in the application jar is the application's own again (#773). The libraries are packed first and
-  the first copy of a path stays, so the one that stood there was swing-components', its template with the year and
-  the name still unfilled. The jar also no longer carries `license-header.txt` (#777), a build file of the family's
-  libraries
-- the application jar carries the licence and notice files of every library it is packed from (#779), each under
-  `META-INF/third-party/<group>/<artifact>/` as the library carries it: 161 files of 134 libraries. The libraries share
-  these paths, 27 of them carry a `META-INF/NOTICE` in eight different texts, and the jar kept one copy of each path,
-  the first library's, so the notices of Jackson, Batik, Apache Commons and others were not in what the installer ships
-- the service files in the application jar name the providers of every library (#776), merged one file per service.
-  The jar kept the first library's copy, so a `ServiceLoader` on it found jackson-dataformat-xml's `XmlFactory` as the
-  only `JsonFactory` and `XmlMapper` as the only `ObjectCodec`; now it finds jackson-core's, jackson-dataformat-yaml's
-  and jackson-dataformat-xml's of both. Nothing of the application or its libraries loads either service today, so
-  nothing changes when it runs
-- the manifest of the application jar says `Manifest-Version: 1.0`, the version of the manifest format, where it gave the
-  application's version, and no longer carries a `Name` in its main section, where it belongs to no entry (#783). The
-  application's version stays in `Implementation-Version`, which the info dialog reads
-- the application jar says `Multi-Release: true` (#785). It carries the `META-INF/versions` classes of its libraries, 107
-  of them with no class of their name outside it, and without the attribute the JVM never read them: the libraries ran
-  their Java 8 code, where the tests, with each library a jar of its own, run the other. In the installed application
-  FlatLaf had no multi-resolution images, and BouncyCastle offered no `javax.crypto.KEM` or `javax.crypto.KDF` and
-  made Ed25519 keys that are no `EdECPublicKey`. The application asks the JDK's own providers first for ML-KEM,
-  Ed25519 and X25519, so none of its functions failed
 - build only: Gradle 9.8.2 (#722), its wrapper jar checked against the published `gradle-9.8.2-wrapper.jar.sha256`.
   `--warning-mode all` names one deprecation, `Configuration.setVisible(boolean)` from the IzPack plugin 3.2, its latest
   release, which stays until a release of it fixes that
@@ -205,6 +166,57 @@ FIXED:
   (#757). They kept the entries in a field no code of the application fills, so a version that lost a user's entries
   while opening another release's vault would have passed them. Measured by a counter-run: with this build made to drop
   every group's entries on opening, the old checks stayed green and the new ones failed
+- the application jar names the version of every library it carries, one line `group:artifact=version` in
+  `META-INF/mystic-crypt-ui/runtime-versions.txt` (#769), written from the same resolved artifacts the jar is packed
+  from. The check of what an installer ships reads a library's version there, and where the jar also holds the library's
+  `pom.properties`, both must agree. The family's libraries carry no `pom.properties`, so on the first 8.14 installer
+  the check could not read randomizer, silly-io and file-worker at all; compared class by class with Maven Central, they
+  were 10.7, 4.0 and 20.0
+- the application jar carries no module descriptor any more (#771). Packed from 145 jars, 69 of them with a
+  `module-info.class`, it kept the first one, swing-tree-component's, and said it was the module
+  `swing.tree.component.main`, and pf4j's under `META-INF/versions/9`. It is started with `-jar` and `-cp`, where a
+  descriptor is ignored, so nothing changes when it runs
+- one copy of every class of the family's libraries (#774): visitor 6 and state 6, the artifacts visitor-pattern and
+  state-pattern were renamed from, are no longer on the class path beside them. Both pairs carried the same classes with
+  other bytes, and the class path order decided which ran: visitor 6's four, older than what gen-tree is built against,
+  and state-pattern 7.1's seventeen. The application declares visitor-pattern 7, which gen-tree's API needs
+  (astrapi69/gen-tree#22), and leaves out state 6, which swing-components 10 still asks for
+  (astrapi69/swing-components#50). Nothing calls a member only the dropped copies had, measured in the bytecode of the
+  application, its plugins and every library
+- the `LICENSE.txt` in the application jar is the application's own again (#773). The libraries are packed first and
+  the first copy of a path stays, so the one that stood there was swing-components', its template with the year and
+  the name still unfilled. The jar also no longer carries `license-header.txt` (#777), a build file of the family's
+  libraries
+- the application jar carries the licence and notice files of every library it is packed from (#779), each under
+  `META-INF/third-party/<group>/<artifact>/` as the library carries it: 161 files of 134 libraries. The libraries share
+  these paths, 27 of them carry a `META-INF/NOTICE` in eight different texts, and the jar kept one copy of each path,
+  the first library's, so the notices of Jackson, Batik, Apache Commons and others were not in what the installer ships
+- the service files in the application jar name the providers of every library (#776), merged one file per service.
+  The jar kept the first library's copy, so a `ServiceLoader` on it found jackson-dataformat-xml's `XmlFactory` as the
+  only `JsonFactory` and `XmlMapper` as the only `ObjectCodec`; now it finds jackson-core's, jackson-dataformat-yaml's
+  and jackson-dataformat-xml's of both. Nothing of the application or its libraries loads either service today, so
+  nothing changes when it runs
+- the manifest of the application jar says `Manifest-Version: 1.0`, the version of the manifest format, where it gave
+  the application's version, and no longer carries a `Name` in its main section, where it belongs to no entry (#783).
+  The application's version stays in `Implementation-Version`, which the info dialog reads
+- the application jar says `Multi-Release: true` (#785). No installer had it since 7.2, the first that ships the
+  all-dependencies jar (`1dd5b9c1`), measured in the application jars of 7.2 to 8.13. So the JVM never read the
+  `META-INF/versions` classes of its libraries: 107 of them since 8.7, with no class of their name outside it. The
+  libraries ran their Java 8 code, where the tests, with each library a jar of its own, run the other. BouncyCastle
+  offered no `javax.crypto.KEM` or `javax.crypto.KDF` and made Ed25519 keys that are no `EdECPublicKey`, and FlatLaf had
+  no multi-resolution images. No function of the application failed:
+  - no code of the application, its plugins or its libraries names a provider for these or calls `javax.crypto.KDF`
+    (their bytecode); BouncyCastle is added after the JDK's providers, and with the jar with or without the attribute
+    the JDK serves ML-KEM (SunJCE) and Ed25519, Ed448 and X25519 (SunEC)
+  - with the 8.14 jar without the attribute as the whole class path, the end-to-end suites passed, 221, 38 and 17
+    tests, the same as with it: among them the ML-KEM and hybrid exchanges (`KemDemoPluginUiTest`,
+    `KemHybridPluginUiTest`), the certificate wizard, whose Ed25519 branch asks for an `EdECKey`
+    (`CertificateWizardUiTest`), and lethenon's one-time addresses, which blind an `EdECPublicKey`
+    (`LethenonPluginUiTest`). Of the unit suite 821 of 830 passed both ways; the nine others look for each library as a
+    jar of its own
+  - no test covers FlatLaf's images on a HiDPI screen. At a UI scale of 2 the sign-in dialog is the same to the pixel
+    with or without the attribute; the icons FlatLaf scales, of disabled components and of its own title bar, are not
+    in it
 
 FORMAT:
 - the vault format does not change. Every vault that 7.2, 7.3, 8 and 8.1.1 to 8.13 wrote, with a password, with a key
