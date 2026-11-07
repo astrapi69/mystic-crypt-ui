@@ -37,6 +37,8 @@ import java.util.regex.Pattern;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 
 /**
  * The JDK a build runs on is named once, in .sdkmanrc, which `sdk env` reads to set the shell, and
@@ -48,9 +50,13 @@ class TheBuildJdkIsNamedOnceTest
 {
 
 	/**
-	 * An sdkman Temurin JDK with its full version, which a deliberate pull request raises (#586)
+	 * An sdkman Temurin JDK with its full version, which a deliberate pull request raises (#586):
+	 * {@code 25.0.4-tem}, or with the build number in the form sdkman names Temurin by since
+	 * 25.0.5, {@code 25.0.5.0+8-tem} (#764). Not the feature release alone, {@code 25-tem}, on
+	 * which the Makefile once stayed (#580)
 	 */
-	private static final Pattern PINNED_JDK = Pattern.compile("java=\\d+\\.\\d+\\.\\d+-tem");
+	private static final Pattern PINNED_JDK = Pattern
+		.compile("java=\\d+\\.\\d+\\.\\d+(\\.\\d+\\+\\d+)?-tem");
 
 	@Test
 	@DisplayName(".sdkmanrc names one Temurin JDK with its full version")
@@ -61,6 +67,16 @@ class TheBuildJdkIsNamedOnceTest
 
 		assertEquals(1, lines.size(), ".sdkmanrc names the JDK once: " + lines);
 		assertTrue(PINNED_JDK.matcher(lines.getFirst()).matches(), lines.getFirst());
+	}
+
+	@ParameterizedTest(name = "{0}: {1}")
+	@CsvSource({ "java=25.0.4-tem, true", "java=25.0.5.0+8-tem, true", "java=25-tem, false",
+			"java=25.0-tem, false", "java=25.0.5-zulu, false", "java=25.0.5.0-tem, false",
+			"java=25.0.5+8-tem, false" })
+	@DisplayName("a pin is a Temurin JDK with its full version, in either of the forms sdkman names")
+	void pinnedJdk_isAFullTemurinVersion(final String line, final boolean pinned)
+	{
+		assertEquals(pinned, PINNED_JDK.matcher(line).matches(), line);
 	}
 
 	@Test
