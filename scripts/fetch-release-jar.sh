@@ -10,7 +10,8 @@
 #
 # The installer packs its files as zlib streams one after another in
 # resources/packs/pack-executables; the application jar is the stream that is a zip holding
-# StartMysticCryptApplication, and its manifest has to name the version asked for.
+# StartMysticCryptApplication, and its manifest has to name the version asked for. scripts/installer-pack.py
+# reads it, the same that scripts/verify-installer.sh uses (#793).
 #
 # The result is cached per version under $MYSTIC_CRYPT_UI_RELEASE_JARS (default
 # ~/.cache/mystic-crypt-ui/release-jars), which is also where CI's cache step points. A cached jar is
@@ -75,41 +76,6 @@ else
 fi
 
 mkdir -p "$target_dir"
-python3 - "$work/$installer_name" "$target.partial" "$version" <<'PY'
-import io, sys, zipfile, zlib
-
-installer, target, version = sys.argv[1], sys.argv[2], sys.argv[3]
-with zipfile.ZipFile(installer) as outer:
-    pack = outer.read("resources/packs/pack-executables")
-
-position = 0
-while position < len(pack):
-    stream = zlib.decompressobj()
-    try:
-        chunk = stream.decompress(pack[position:])
-    except zlib.error:
-        position += 1
-        continue
-    if not stream.eof:
-        break
-    position = len(pack) - len(stream.unused_data)
-    if chunk[:2] != b"PK":
-        continue
-    with zipfile.ZipFile(io.BytesIO(chunk)) as candidate:
-        names = set(candidate.namelist())
-        if "io/github/astrapi69/mystic/crypt/StartMysticCryptApplication.class" not in names:
-            continue
-        manifest = candidate.read("META-INF/MANIFEST.MF").decode("utf-8", "replace")
-    declared = [line.split(":", 1)[1].strip() for line in manifest.splitlines()
-                if line.startswith("Implementation-Version:")]
-    if declared != [version]:
-        sys.exit(f"the application jar in the installer declares Implementation-Version {declared}, not {version}")
-    with open(target, "wb") as out:
-        out.write(chunk)
-    print(f"==> extracted the application jar, {len(chunk)} bytes, Implementation-Version {version}")
-    sys.exit(0)
-
-sys.exit("no application jar (a zip holding StartMysticCryptApplication) in resources/packs/pack-executables")
-PY
+python3 -I "${BASH_SOURCE[0]%/*}/installer-pack.py" application-jar "$work/$installer_name" "$target.partial" "$version"
 mv "$target.partial" "$target"
 say "cached: $target"

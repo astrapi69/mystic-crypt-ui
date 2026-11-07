@@ -34,7 +34,7 @@ PLUGIN_LETHENON_DIR := plugins/lethenon-plugin
 PLUGIN_RELEASE_KEY_DIR := plugins/release-key-plugin
 PLUGIN_INSTALL_DIR := $(HOME)/.config/mystic-crypt-ui/plugins
 
-.PHONY: merge-pr test-fast release-jar release-jar-if-reachable build build-full build-with-plugins bwp run run-isolated all clean test test-e2e test-e2e-demo \
+.PHONY: verify-installer merge-pr test-fast release-jar release-jar-if-reachable build build-full build-with-plugins bwp run run-isolated all clean test test-e2e test-e2e-demo \
 	bootRun clean-build-installer izpack-installer izpack-installer-signed release-gate \
 	dependencies dependency-updates jacoco-coverage jacoco-report jar javadoc \
 	license-format publish-local spotless-java spotless-misc tag-release \
@@ -305,6 +305,13 @@ SIGNING := scripts/with-signing-passwords.sh
 izpack-installer: plugins
 	JAVA_HOME=$(JAVA_HOME) $(SIGNING) ./gradlew --no-daemon createAllDependendiesJar -PcreateIzPackInstaller=true $(GRADLE_FLAGS)
 	JAVA_HOME=$(JAVA_HOME) ./gradlew checksumInstaller $(GRADLE_FLAGS)
+
+# checks the installer after its checksums were written, release-workflow.md step 5 (#793): VERSION is the
+# version gradle.properties names, PREVIOUS a published release whose signer certificate it must equal, INSTALLER
+# another installer file, for the one downloaded from the release
+verify-installer:
+	JAVA_HOME=$(JAVA_HOME) scripts/verify-installer.sh $(or $(VERSION),$(shell sed -n 's/^projectVersion=//p' gradle.properties)) \
+		$(if $(PREVIOUS),--previous $(PREVIOUS)) $(if $(INSTALLER),--installer $(INSTALLER))
 
 izpack-installer-signed: plugins
 	JAVA_HOME=$(JAVA_HOME) $(SIGNING) ./gradlew --no-daemon createIzPackInstallerFromSignedJar $(GRADLE_FLAGS)
