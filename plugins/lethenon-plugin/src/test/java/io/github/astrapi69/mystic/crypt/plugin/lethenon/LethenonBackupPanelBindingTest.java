@@ -29,11 +29,11 @@ import static io.github.astrapi69.mystic.crypt.plugin.lethenon.Windows.textOf;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.awt.Component;
 import java.awt.Container;
+import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.LocalDate;
@@ -41,6 +41,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 
 import javax.swing.JPanel;
@@ -278,6 +279,7 @@ class LethenonBackupPanelBindingTest
 		answerRight(panel);
 		panel.onQuestionConfirmed();
 		Path target = directory.resolve("stick.lethwf");
+		panel.getModelObject().setExportUnderstood(true);
 		panel.getModelObject().setExportFile(target.toString());
 		JPanel result = Windows.component(panel, "pnlExportResult", JPanel.class);
 		assertFalse(result.isVisible(), "no result area before there is a result (G3)");
@@ -296,30 +298,120 @@ class LethenonBackupPanelBindingTest
 			+ "choose another name or place.", textOf(panel, "txtBackupRefusal"));
 	}
 
-	@Test
-	@DisplayName("step 3 writes the file at the press of its button, with no box to tick first (pinned, #812)")
-	void stepThree_writesTheFileWithNoBoxToTick()
+	private LethenonBackupPanel atStepThree()
 	{
 		LethenonBackupPanel panel = atStepTwo();
 		answerRight(panel);
 		panel.onQuestionConfirmed();
+		return panel;
+	}
+
+	/** An assistant whose save dialog answers with the given file, null for Cancel */
+	private LethenonBackupPanel atStepThreeSavingTo(final Path target, final List<File> asked)
+	{
+		LethenonBackupPanel panel = new LethenonBackupPanel(vault, Locale.ENGLISH, finished::add)
+		{
+			@Override
+			Optional<File> chooseExportTarget()
+			{
+				asked.add(proposedExportFile());
+				return Optional.ofNullable(target).map(Path::toFile);
+			}
+		};
+		panel.startOnRequest(id);
+		panel.getModelObject().setPassword(password.clone());
+		panel.onUnsealConfirmed();
+		panel.onWrittenDown();
+		answerRight(panel);
+		panel.onQuestionConfirmed();
+		return panel;
+	}
+
+	@Test
+	@DisplayName("step 3 writes nothing before the box \"Understood, write the file\" is ticked, and says so (#812)")
+	void stepThree_writesNothingBeforeTheBoxIsTicked()
+	{
+		LethenonBackupPanel panel = atStepThree();
 		Path target = directory.resolve("stick.lethwf");
 		panel.getModelObject().setExportFile(target.toString());
 
 		panel.onExportConfirmed();
 
-		assertTrue(Files.exists(target), "the file was not written without a box ticked");
+		assertFalse(Files.exists(target), "the file was written with the box not ticked");
+		assertEquals("Tick \"Understood, write the file\" first: the file will then be outside "
+			+ "the vault.", textOf(panel, "txtBackupRefusal"));
 	}
 
 	@Test
-	@DisplayName("the save dialog of step 3 proposes no file name (pinned, #812)")
-	void stepThree_proposesNoFileName()
+	@DisplayName("the save dialog of step 3 proposes lethenon-<network>.lethwf in the home folder (#812)")
+	void stepThree_proposesTheNetworkInTheName()
 	{
-		LethenonBackupPanel panel = atStepTwo();
-		answerRight(panel);
-		panel.onQuestionConfirmed();
+		LethenonBackupPanel panel = atStepThree();
 
-		assertNull(panel.proposedExportFile());
+		assertEquals(new File(System.getProperty("user.home"), "lethenon-testnet.lethwf"),
+			panel.proposedExportFile());
+	}
+
+	@Test
+	@DisplayName("\"Choose location ...\" with the box ticked writes the file where it is put, and shows its SHA-256")
+	void chooseLocation_writesTheFileWhereItIsPut()
+	{
+		Path target = directory.resolve("lethenon-testnet.lethwf");
+		List<File> asked = new ArrayList<>();
+		LethenonBackupPanel panel = atStepThreeSavingTo(target, asked);
+		panel.getModelObject().setExportUnderstood(true);
+
+		panel.onChooseExportFile();
+
+		assertEquals(List.of(panel.proposedExportFile()), asked,
+			"the save dialog did not open with the proposed name");
+		assertTrue(Files.exists(target));
+		assertEquals(target.toString(), panel.getModelObject().getExportFile());
+		assertEquals(64, panel.getModelObject().getChecksum().length());
+	}
+
+	@Test
+	@DisplayName("\"Choose location ...\" without the box ticked opens no save dialog and says why")
+	void chooseLocation_withoutTheBox_opensNoDialog()
+	{
+		List<File> asked = new ArrayList<>();
+		LethenonBackupPanel panel = atStepThreeSavingTo(directory.resolve("x.lethwf"), asked);
+
+		panel.onChooseExportFile();
+
+		assertEquals(List.of(), asked, "the save dialog opened with the box not ticked");
+		assertEquals("Tick \"Understood, write the file\" first: the file will then be outside "
+			+ "the vault.", textOf(panel, "txtBackupRefusal"));
+	}
+
+	@Test
+	@DisplayName("Cancel in the save dialog of step 3 writes nothing")
+	void cancelInTheSaveDialog_writesNothing() throws Exception
+	{
+		LethenonBackupPanel panel = atStepThreeSavingTo(null, new ArrayList<>());
+		panel.getModelObject().setExportUnderstood(true);
+
+		panel.onChooseExportFile();
+
+		try (var written = Files.list(directory))
+		{
+			assertEquals(0, written.count(), "a file was written after Cancel");
+		}
+		assertEquals("", panel.getModelObject().getChecksum());
+	}
+
+	@Test
+	@DisplayName("the box of step 3 is unticked again when the assistant starts over")
+	void theBoxIsUntickedWhenTheAssistantStartsOver()
+	{
+		LethenonBackupPanel panel = atStepThree();
+		panel.getModelObject().setExportUnderstood(true);
+
+		panel.onDone();
+
+		assertFalse(panel.getModelObject().isExportUnderstood());
+		assertFalse(Windows.component(panel, "chkExportUnderstood", javax.swing.JCheckBox.class)
+			.isSelected());
 	}
 
 	@Test
