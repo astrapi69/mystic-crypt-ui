@@ -178,8 +178,8 @@ class LethenonBackupPanelBindingTest
 	}
 
 	@Test
-	@DisplayName("today the words shown again on request say \"shown only now and stored nowhere\" (#803)")
-	void theWordsShownAgainOnRequest_sayShownOnlyNow()
+	@DisplayName("the words shown again on request say that the password shows them again, not \"shown only now and stored nowhere\" (#803)")
+	void theWordsShownAgainOnRequest_sayThePasswordShowsThemAgain()
 	{
 		LethenonBackupPanel panel = assistant();
 		panel.startOnRequest(id);
@@ -187,18 +187,37 @@ class LethenonBackupPanelBindingTest
 
 		panel.onUnsealConfirmed();
 
-		assertTrue(textsAnywhereIn(panel).stream()
-			.anyMatch(text -> text.contains("They are shown only now and stored nowhere.")));
+		List<String> texts = textsAnywhereIn(panel);
+		assertTrue(texts.stream().anyMatch(
+			text -> text.contains("The wallet password shows them again at any time")), texts.toString());
+		assertFalse(texts.stream().anyMatch(text -> text.contains("shown only now")
+			|| text.contains("stored nowhere")), texts.toString());
 	}
 
 	@Test
-	@DisplayName("today step 2 says the words can be removed from the vault at any time (#803)")
-	void stepTwo_saysTheWordsCanBeRemoved()
+	@DisplayName("the words of a new wallet say they are not stored as words unless step 2 says so, and nothing claims \"only now\" (#803)")
+	void theWordsOfANewWallet_sayTheyAreNotStoredUnlessChosen()
+	{
+		LethenonBackupPanel panel = assistant();
+
+		panel.startWithNewWallet(vault.create(WalletNetwork.TESTNET, ThrowawayPasswords.next()));
+
+		List<String> texts = textsAnywhereIn(panel);
+		assertTrue(texts.stream().anyMatch(
+			text -> text.contains("They are not stored as words, unless you choose so in step 2.")),
+			texts.toString());
+		assertFalse(texts.stream().anyMatch(text -> text.contains("shown only now")
+			|| text.contains("stored nowhere")), texts.toString());
+	}
+
+	@Test
+	@DisplayName("step 2 promises no removal of the words while nothing can remove them (#803)")
+	void stepTwo_promisesNoRemoval()
 	{
 		LethenonBackupPanel panel = atStepTwo();
 
-		assertTrue(textsAnywhereIn(panel).stream()
-			.anyMatch(text -> text.contains("You can remove the words from the vault at any time.")));
+		assertFalse(textsAnywhereIn(panel).stream()
+			.anyMatch(text -> text.contains("remove the words from the vault")));
 	}
 
 	/** The text of every text component of the assistant, named or not, shown or not */

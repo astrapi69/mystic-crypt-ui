@@ -45,6 +45,7 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextArea;
 import javax.swing.UIManager;
+import javax.swing.text.JTextComponent;
 
 import org.danekja.java.util.function.serializable.SerializableConsumer;
 import org.danekja.java.util.function.serializable.SerializableSupplier;
@@ -121,6 +122,9 @@ public class LethenonBackupPanel extends JPanel
 	/** A wallet just created, taken back when its creation is cancelled while the words show */
 	private transient NewWallet pending;
 
+	/** The explanation of step 1, set each time the words are shown */
+	private JTextComponent wordsExplanation;
+
 	/**
 	 * Instantiates a new {@link LethenonBackupPanel}
 	 *
@@ -174,7 +178,7 @@ public class LethenonBackupPanel extends JPanel
 	{
 		walletId = created.id();
 		pending = created;
-		showTheWords(created.words());
+		showTheWords(created.words(), true);
 	}
 
 	/**
@@ -206,7 +210,7 @@ public class LethenonBackupPanel extends JPanel
 	{
 		try
 		{
-			showTheWords(vault.wordsOf(walletId, modelObject.getPassword()));
+			showTheWords(vault.wordsOf(walletId, modelObject.getPassword()), false);
 		}
 		catch (final SecurityException wrongPassword)
 		{
@@ -375,8 +379,21 @@ public class LethenonBackupPanel extends JPanel
 		refuse("");
 	}
 
-	private void showTheWords(final char[] words)
+	/**
+	 * Shows the words in step 1, with the explanation that is true for how they came: a wallet just
+	 * created, or one whose words its password shows again (#803)
+	 */
+	private void showTheWords(final char[] words, final boolean ofANewWallet)
 	{
+		wordsExplanation.setText(ofANewWallet
+			? text("lethenon.backup.words.explanation",
+				"With them you restore the wallet on any computer, even if the vault and the "
+					+ "computer are lost. They are not stored as words, unless you choose so in "
+					+ "step 2.")
+			: text("lethenon.backup.words.explanation.again",
+				"With them you restore the wallet on any computer, even if the vault and the "
+					+ "computer are lost. The wallet password shows them again at any time; as "
+					+ "words they are stored only if you chose so in step 2."));
 		modelObject.setShownWords(words);
 		fillTheBoard(words);
 		show(BackupStep.WORDS);
@@ -455,10 +472,8 @@ public class LethenonBackupPanel extends JPanel
 			text("lethenon.backup.words.heading", "Write these 24 words down on paper."));
 		heading.setFont(heading.getFont().deriveFont(Font.BOLD));
 		step.add(heading, ToolForm.WIDE);
-		step.add(ToolForm.intro(text("lethenon.backup.words.explanation",
-			"With them you restore the wallet on any computer, even if the vault and the computer "
-				+ "are lost. They are shown only now and stored nowhere.")),
-			ToolForm.INTRO_ROW);
+		wordsExplanation = ToolForm.intro("");
+		step.add(wordsExplanation, ToolForm.INTRO_ROW);
 		step.add(wordBoard(), ToolForm.WIDE);
 		JTextArea warning = LethenonWalletPanel.message("txtWordsWarning", true);
 		warning.setText(text("lethenon.backup.words.warning",
@@ -564,9 +579,7 @@ public class LethenonBackupPanel extends JPanel
 			"Then anyone who can open your vault has the whole wallet, even without the wallet "
 				+ "password. If the vault is stolen while open, or together with its master "
 				+ "password, the money is gone. For a wallet of real value: keep the paper note as "
-				+ "well.")
-			+ " " + text("lethenon.backup.store.removal",
-				"You can remove the words from the vault at any time."));
+				+ "well."));
 		risk.setToolTipText(text("lethenon.backup.tooltip.store.risk",
 			"what storing the words in the vault means"));
 		step.add(risk, ToolForm.WIDE + ", wmin 0");
