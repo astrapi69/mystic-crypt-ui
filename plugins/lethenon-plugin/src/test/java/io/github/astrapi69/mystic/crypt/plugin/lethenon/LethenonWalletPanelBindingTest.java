@@ -214,11 +214,12 @@ class LethenonWalletPanelBindingTest
 	}
 
 	/**
-	 * Today Cancel leaves a form's typed password as it was, in every form that has one (#801)
+	 * Cancel overwrites a form's typed password, in every form that has one: the buffer it was typed
+	 * into is zero-filled, not only dropped (#801)
 	 */
 	@ParameterizedTest(name = "{argumentSetName}")
 	@MethodSource("formsWithAPassword")
-	void cancellingAForm_leavesItsPassword(final Consumer<LethenonWalletPanel> open)
+	void cancellingAForm_overwritesItsPassword(final Consumer<LethenonWalletPanel> open)
 	{
 		vault.restore(Wallet.create().phrase().toCharArray(), ThrowawayPasswords.next(),
 			WalletNetwork.TESTNET);
@@ -230,7 +231,8 @@ class LethenonWalletPanelBindingTest
 
 		panel.onFormCancelled();
 
-		assertArrayEquals(asTyped, typed, "the typed password is still in its buffer");
+		assertArrayEquals(new char[asTyped.length], typed, "the typed password is overwritten");
+		assertEquals(0, panel.getModelObject().getPassword().length);
 	}
 
 	/** The four forms of the wallet window that ask for a password (#801) */
@@ -248,8 +250,8 @@ class LethenonWalletPanelBindingTest
 	}
 
 	@Test
-	@DisplayName("today Cancel in \"Restore from 24 words\" leaves the typed words in the form")
-	void cancellingTheRestore_leavesTheWords()
+	@DisplayName("Cancel in \"Restore from 24 words\" empties the typed words, and the form opens again empty")
+	void cancellingTheRestore_emptiesTheWords()
 	{
 		String phrase = Wallet.create().phrase();
 		LethenonWalletPanel panel = window();
@@ -259,7 +261,8 @@ class LethenonWalletPanelBindingTest
 		panel.onFormCancelled();
 		panel.onRestore();
 
-		assertEquals(phrase, panel.getModelObject().getWords(), "the words are still there (#801)");
+		assertEquals("", panel.getModelObject().getWords(), "the words leave with the form (#801)");
+		assertEquals("", textOf(panel, "txtWords"));
 	}
 
 	@Test
