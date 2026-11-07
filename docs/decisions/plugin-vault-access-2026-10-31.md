@@ -37,6 +37,14 @@ privilege, instead of access through `MysticCryptApplicationFrame.getInstance()`
    group. The group selected in the tree is known only to the tree panel; handing it to the
    interface would tie the interface to the window, and a plugin finds its entries by its marker
    wherever the user moves them.
+7. **A line before something leaves the vault (added 7 November 2026, #810).** A plugin may give the
+   host one line for a KDBX export of the vault and one for saving an attachment of an entry it
+   marks (`VaultAccessContribution.exportNotice`, default: none). The host shows the lines of the
+   connected plugins in the export dialog, and before "Save to" the line of the plugin that marks the
+   entry, then the SHA-256 of the written file. A plugin that fails or gives a blank line gives none,
+   and the export goes on. Option 1 of three, decided by the maintainer; the others were the host
+   knowing the lethenon marker itself, which ties the host to one plugin, and a generic warning on
+   every "Save to" with no plugin line in the KDBX export.
 
 ## Why not `getInstance()`
 
