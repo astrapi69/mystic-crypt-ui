@@ -225,7 +225,7 @@ FIXED:
 
 FORMAT:
 - the vault format does not change. Every vault that 7.2, 7.3, 8 and 8.1.1 to 8.13 wrote, with a password, with a key
-  file or with both, opens in 8.14 with every group and entry as written, 60 of 60, and a vault 8.14 writes, any of the
+  file or with both, opens in 8.14 with every group and entry as written, 51 of 51, and a vault 8.14 writes, any of the
   three ways, opens in 8.12 and in 8.13 the same. Each vault was written by that release's own save path, with its
   entries in their groups, and what was read was compared field by field with what was written: the text fields, the
   expiry date, the custom property with its value, the attachment by the sha256 of its content
