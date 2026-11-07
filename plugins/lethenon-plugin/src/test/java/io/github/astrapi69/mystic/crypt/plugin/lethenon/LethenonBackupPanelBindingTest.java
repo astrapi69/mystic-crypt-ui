@@ -31,6 +31,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.awt.Component;
+import java.awt.Container;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.LocalDate;
@@ -41,6 +43,7 @@ import java.util.Map;
 import java.util.UUID;
 
 import javax.swing.JPanel;
+import javax.swing.text.JTextComponent;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -172,6 +175,48 @@ class LethenonBackupPanelBindingTest
 		assertEquals(BackupStep.QUESTION, panel.getModelObject().getStep());
 		assertEquals("Word " + second + " is not right. Look at your note and try again.",
 			textOf(panel, "txtBackupRefusal"));
+	}
+
+	@Test
+	@DisplayName("today the words shown again on request say \"shown only now and stored nowhere\" (#803)")
+	void theWordsShownAgainOnRequest_sayShownOnlyNow()
+	{
+		LethenonBackupPanel panel = assistant();
+		panel.startOnRequest(id);
+		panel.getModelObject().setPassword(password.clone());
+
+		panel.onUnsealConfirmed();
+
+		assertTrue(textsAnywhereIn(panel).stream()
+			.anyMatch(text -> text.contains("They are shown only now and stored nowhere.")));
+	}
+
+	@Test
+	@DisplayName("today step 2 says the words can be removed from the vault at any time (#803)")
+	void stepTwo_saysTheWordsCanBeRemoved()
+	{
+		LethenonBackupPanel panel = atStepTwo();
+
+		assertTrue(textsAnywhereIn(panel).stream()
+			.anyMatch(text -> text.contains("You can remove the words from the vault at any time.")));
+	}
+
+	/** The text of every text component of the assistant, named or not, shown or not */
+	private static List<String> textsAnywhereIn(final Container container)
+	{
+		List<String> texts = new ArrayList<>();
+		for (Component component : container.getComponents())
+		{
+			if (component instanceof JTextComponent text)
+			{
+				texts.add(text.getText());
+			}
+			if (component instanceof Container inner)
+			{
+				texts.addAll(textsAnywhereIn(inner));
+			}
+		}
+		return texts;
 	}
 
 	@Test
