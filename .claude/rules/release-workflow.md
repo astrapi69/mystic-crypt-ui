@@ -104,6 +104,9 @@ Prompt triggers: "release new version", "new release".
      Verifying before the checksums verifies a file that is then replaced:
      `checksumInstaller` depends on `izPackCreateInstaller`, which re-runs and rewrites
      the jar (measured 2026-09-07: 81743356 bytes verified, 81743359 bytes shipped).
+     `make verify-installer PREVIOUS=<last release>` runs these checks and the ones 8.14 added (signer as the
+     previous release's, class major, mystic-crypt against Central, plugins, the jar tests, a start); run it again
+     with `INSTALLER=<the downloaded file>` after the upload (#793).
    - dependency currency check: `make dependency-updates` - patch and minor bumps go into the
      release, and so do major bumps of test and build dependencies, which reach no consumer and no
      published POM; a major bump of a runtime dependency gets its own session, never bundled in
