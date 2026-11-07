@@ -31,6 +31,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.awt.Component;
+import java.awt.Container;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.LocalDate;
@@ -41,6 +43,7 @@ import java.util.Map;
 import java.util.UUID;
 
 import javax.swing.JPanel;
+import javax.swing.text.JTextComponent;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -172,6 +175,67 @@ class LethenonBackupPanelBindingTest
 		assertEquals(BackupStep.QUESTION, panel.getModelObject().getStep());
 		assertEquals("Word " + second + " is not right. Look at your note and try again.",
 			textOf(panel, "txtBackupRefusal"));
+	}
+
+	@Test
+	@DisplayName("the words shown again on request say that the password shows them again, not \"shown only now and stored nowhere\" (#803)")
+	void theWordsShownAgainOnRequest_sayThePasswordShowsThemAgain()
+	{
+		LethenonBackupPanel panel = assistant();
+		panel.startOnRequest(id);
+		panel.getModelObject().setPassword(password.clone());
+
+		panel.onUnsealConfirmed();
+
+		List<String> texts = textsAnywhereIn(panel);
+		assertTrue(texts.stream().anyMatch(
+			text -> text.contains("The wallet password shows them again at any time")), texts.toString());
+		assertFalse(texts.stream().anyMatch(text -> text.contains("shown only now")
+			|| text.contains("stored nowhere")), texts.toString());
+	}
+
+	@Test
+	@DisplayName("the words of a new wallet say they are not stored as words unless step 2 says so, and nothing claims \"only now\" (#803)")
+	void theWordsOfANewWallet_sayTheyAreNotStoredUnlessChosen()
+	{
+		LethenonBackupPanel panel = assistant();
+
+		panel.startWithNewWallet(vault.create(WalletNetwork.TESTNET, ThrowawayPasswords.next()));
+
+		List<String> texts = textsAnywhereIn(panel);
+		assertTrue(texts.stream().anyMatch(
+			text -> text.contains("They are not stored as words, unless you choose so in step 2.")),
+			texts.toString());
+		assertFalse(texts.stream().anyMatch(text -> text.contains("shown only now")
+			|| text.contains("stored nowhere")), texts.toString());
+	}
+
+	@Test
+	@DisplayName("step 2 promises no removal of the words while nothing can remove them (#803)")
+	void stepTwo_promisesNoRemoval()
+	{
+		LethenonBackupPanel panel = atStepTwo();
+
+		assertFalse(textsAnywhereIn(panel).stream()
+			.anyMatch(text -> text.contains("remove the words from the vault")));
+	}
+
+	/** The text of every text component of the assistant, named or not, shown or not */
+	private static List<String> textsAnywhereIn(final Container container)
+	{
+		List<String> texts = new ArrayList<>();
+		for (Component component : container.getComponents())
+		{
+			if (component instanceof JTextComponent text)
+			{
+				texts.add(text.getText());
+			}
+			if (component instanceof Container inner)
+			{
+				texts.addAll(textsAnywhereIn(inner));
+			}
+		}
+		return texts;
 	}
 
 	@Test
