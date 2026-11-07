@@ -25,11 +25,13 @@
 package io.github.astrapi69.mystic.crypt.panel.keepass;
 
 import java.io.File;
+import java.util.List;
 
 import javax.swing.JButton;
 import javax.swing.JFileChooser;
 import javax.swing.JLabel;
 import javax.swing.filechooser.FileNameExtensionFilter;
+import javax.swing.text.JTextComponent;
 
 import io.github.astrapi69.model.BaseModel;
 import io.github.astrapi69.model.LambdaModel;
@@ -47,7 +49,8 @@ import lombok.Getter;
  * to.
  * <p>
  * Everything the user picks or types lives in a {@link KeePassPanelModel}; the components are bound
- * to it and the export reads it there.
+ * to it and the export reads it there. Above the fields the dialog shows what plugins say about the
+ * file, such as the sealed lethenon wallets in it (#810).
  */
 @Getter
 public class ExportKeePassPanel extends BasePanel<KeePassPanelModel>
@@ -67,6 +70,8 @@ public class ExportKeePassPanel extends BasePanel<KeePassPanelModel>
 
 	private JButton btnKeyFile;
 
+	private JTextComponent txtExportNotices;
+
 	public ExportKeePassPanel()
 	{
 		this(null, null);
@@ -83,7 +88,26 @@ public class ExportKeePassPanel extends BasePanel<KeePassPanelModel>
 	 */
 	public ExportKeePassPanel(final String lastFilePath, final String lastKeyFilePath)
 	{
-		this(BaseModel.of(KeePassPanelModel.rememberingDestination(lastFilePath, lastKeyFilePath)));
+		this(lastFilePath, lastKeyFilePath, List.of());
+	}
+
+	/**
+	 * Instantiates a new {@link ExportKeePassPanel}, pre-filled with the given, previously used
+	 * file paths, and with what plugins say about the file
+	 *
+	 * @param lastFilePath
+	 *            the last used destination file path, or {@code null}
+	 * @param lastKeyFilePath
+	 *            the last used key file path, or {@code null}
+	 * @param exportNotices
+	 *            one line per plugin that has something to say about the file, empty for none
+	 */
+	public ExportKeePassPanel(final String lastFilePath, final String lastKeyFilePath,
+		final List<String> exportNotices)
+	{
+		this(BaseModel
+			.of(withNotices(KeePassPanelModel.rememberingDestination(lastFilePath, lastKeyFilePath),
+				exportNotices)));
 	}
 
 	/**
@@ -107,6 +131,8 @@ public class ExportKeePassPanel extends BasePanel<KeePassPanelModel>
 		txtKeyFile = new JMTextField(24);
 		btnFile = new JButton("Browse...");
 		btnKeyFile = new JButton("Browse...");
+		txtExportNotices = ToolForm.intro(String.join("\n", getModelObject().getExportNotices()));
+		txtExportNotices.setName("txtExportNotices");
 
 		bindComponents();
 
@@ -179,6 +205,10 @@ public class ExportKeePassPanel extends BasePanel<KeePassPanelModel>
 		ToolForm.sized(txtPassword);
 		ToolForm.sized(txtKeyFile);
 
+		if (!getModelObject().getExportNotices().isEmpty())
+		{
+			add(txtExportNotices, ToolForm.INTRO_ROW);
+		}
 		add(new JLabel("KeePass file:"));
 		add(txtFile, ToolForm.FIELD + ", split 2");
 		add(btnFile);
@@ -189,6 +219,13 @@ public class ExportKeePassPanel extends BasePanel<KeePassPanelModel>
 		add(cbxKeyFile);
 		add(txtKeyFile, ToolForm.FIELD + ", split 2");
 		add(btnKeyFile);
+	}
+
+	private static KeePassPanelModel withNotices(final KeePassPanelModel model,
+		final List<String> exportNotices)
+	{
+		model.setExportNotices(exportNotices);
+		return model;
 	}
 
 	/**

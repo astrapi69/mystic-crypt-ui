@@ -79,7 +79,7 @@ public class ExportKeePassDatabaseAction extends AbstractAction
 		MemoizedKeePassModelBean memoized = MemoizedKeePassModelBean
 			.load(instance.getConfigurationDirectory());
 		ExportKeePassPanel panel = new ExportKeePassPanel(memoized.getLastExportFilePath(),
-			memoized.getLastExportKeyFilePath());
+			memoized.getLastExportKeyFilePath(), databaseExportNoticesOf(instance));
 		int option = JOptionPaneExtensions.getSelectedOption(panel, JOptionPane.PLAIN_MESSAGE,
 			JOptionPane.OK_CANCEL_OPTION, instance, "Export to KeePass", panel.getTxtFile());
 		if (option != JOptionPane.OK_OPTION)
@@ -130,6 +130,17 @@ public class ExportKeePassDatabaseAction extends AbstractAction
 				"Could not export the KeePass file: " + exception.getMessage(), "Export failed",
 				JOptionPane.ERROR_MESSAGE);
 		}
+	}
+
+	/**
+	 * What the connected plugins say about the file before the export, such as the sealed lethenon
+	 * wallets in it (#810)
+	 */
+	private static List<String> databaseExportNoticesOf(final MysticCryptApplicationFrame instance)
+	{
+		return instance.getPluginVaultConnections() == null
+			? List.of()
+			: instance.getPluginVaultConnections().databaseExportNotices();
 	}
 
 	private KdbxCredentials newCredentials(ExportKeePassPanel panel) throws Exception

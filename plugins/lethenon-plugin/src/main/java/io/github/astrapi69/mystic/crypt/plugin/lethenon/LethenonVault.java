@@ -29,6 +29,7 @@ import java.nio.file.Path;
 import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -39,6 +40,7 @@ import io.github.astrapi69.lethenon.WalletScan;
 import io.github.astrapi69.mystic.crypt.panel.dbtree.MysticCryptEntryModelBean;
 import io.github.astrapi69.mystic.crypt.plugin.api.VaultAccess;
 import io.github.astrapi69.mystic.crypt.plugin.api.VaultAccessRefusedException;
+import io.github.astrapi69.mystic.crypt.plugin.api.VaultExport;
 
 /**
  * The lethenon wallets of the open vault, reached through the access the host hands this plugin
@@ -104,6 +106,50 @@ final class LethenonVault
 		}
 		return access.entries().stream().filter(entry -> WalletVault.isWallet(VaultWalletEntry.read(entry)))
 			.map(LethenonVault::listed).toList();
+	}
+
+	/**
+	 * The line the host shows before something leaves the vault (#810, decision 4 of
+	 * docs/decisions/lethenon-wallet-in-vault-2026-10-30.md). A KDBX export holds the sealed
+	 * wallets, and the line names the words when a wallet keeps them in the vault; a saved
+	 * attachment is one sealed wallet. The words are counted from the property names only, no value
+	 * is read
+	 *
+	 * @param export
+	 *            what leaves the vault
+	 * @param locale
+	 *            the language of the line
+	 * @return the line, or empty for an export of a vault without wallets
+	 */
+	Optional<String> exportNotice(final VaultExport export, final Locale locale)
+	{
+		if (export == VaultExport.ATTACHMENT)
+		{
+			return Optional.of(LethenonMessages.getString("lethenon.export.attachment",
+				"This file is a sealed lethenon wallet. The wallet password is needed to use it; the 24 words are not in it.",
+				locale));
+		}
+		List<MysticCryptEntryModelBean> walletEntries = isAvailable() ? access.entries() : List.of();
+		if (walletEntries.isEmpty())
+		{
+			return Optional.empty();
+		}
+		long keepingTheirWords = walletEntries.stream().filter(LethenonVault::keepsItsWords).count();
+		if (keepingTheirWords == 0)
+		{
+			return Optional.of(LethenonMessages.getString("lethenon.export.database",
+				"The file contains sealed lethenon wallets. The wallet password is needed to use them; the 24 words are not in the file.",
+				locale));
+		}
+		return Optional.of(LethenonMessages.format("lethenon.export.database.words",
+			"The file contains sealed lethenon wallets, and the 24 words of {0,number,integer} of them in a protected field: whoever can open the file has these wallets, also without the wallet password.",
+			locale, keepingTheirWords));
+	}
+
+	private static boolean keepsItsWords(final MysticCryptEntryModelBean entry)
+	{
+		return entry.getProperties().stream()
+			.anyMatch(property -> WalletInVault.MNEMONIC.equals(property.getKey()));
 	}
 
 	/**

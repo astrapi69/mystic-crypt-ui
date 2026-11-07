@@ -26,9 +26,14 @@ package io.github.astrapi69.mystic.crypt.plugin.vault;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 import java.util.logging.Level;
 
+import io.github.astrapi69.mystic.crypt.panel.dbtree.MysticCryptEntryModelBean;
+import io.github.astrapi69.mystic.crypt.panel.dbtree.VaultEntryProperties;
 import io.github.astrapi69.mystic.crypt.plugin.api.VaultAccessContribution;
+import io.github.astrapi69.mystic.crypt.plugin.api.VaultExport;
 import lombok.extern.java.Log;
 
 /**
@@ -101,6 +106,63 @@ public final class PluginVaultConnections
 				// the lock must happen whatever a plugin does; its failure is recorded, not obeyed
 				log.log(Level.SEVERE, "a plugin failed while the vault was closing", failed);
 			}
+		}
+	}
+
+	/**
+	 * The lines the connected plugins give before the whole vault is exported to a KeePass file
+	 * (#810)
+	 *
+	 * @return the lines, in the order the plugins were connected; empty when none gives one
+	 */
+	public List<String> databaseExportNotices()
+	{
+		List<String> notices = new ArrayList<>();
+		for (VaultAccessContribution contribution : connected)
+		{
+			noticeOf(contribution, VaultExport.DATABASE).ifPresent(notices::add);
+		}
+		return notices;
+	}
+
+	/**
+	 * The line of the plugin that marks an entry, before one of the entry's attachments is saved to
+	 * a file (#810)
+	 *
+	 * @param entry
+	 *            the entry whose attachment is about to leave the vault
+	 * @return the line, or empty when no connected plugin marks the entry or the plugin gives none
+	 */
+	public Optional<String> attachmentExportNotice(final MysticCryptEntryModelBean entry)
+	{
+		Set<String> names = VaultEntryProperties.valuesOf(entry).keySet();
+		for (VaultAccessContribution contribution : connected)
+		{
+			if (names.contains(contribution.getEntryMarker()))
+			{
+				return noticeOf(contribution, VaultExport.ATTACHMENT);
+			}
+		}
+		return Optional.empty();
+	}
+
+	/**
+	 * A plugin's line, or none when it gives a blank one or fails: the line informs the user, and a
+	 * plugin that cannot give it does not stop the export
+	 */
+	private static Optional<String> noticeOf(final VaultAccessContribution contribution,
+		final VaultExport export)
+	{
+		try
+		{
+			Optional<String> notice = contribution.exportNotice(export);
+			return notice == null ? Optional.empty() : notice.filter(line -> !line.isBlank());
+		}
+		catch (RuntimeException failed)
+		{
+			log.log(Level.SEVERE, "a plugin failed to give its line for the export of " + export,
+				failed);
+			return Optional.empty();
 		}
 	}
 
