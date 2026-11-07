@@ -62,6 +62,8 @@ class ChecksumPluginUiTest extends AbstractUiTest
 
 	private static final String MASTER_PASSWORD = TestPasswords.throwaway();
 	private static final String SHA256_OF_ABC = "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad";
+	private static final String SHA512_OF_ABC = "ddaf35a193617abacc417349ae20413112e6fa4e89a97ea20a9eeee64b55d39a"
+		+ "2192992a274fc1a836ba3c23a3feebbd454d4423643ce80e2a9ac94fa54ca49f";
 
 	@Test
 	@DisplayName("changing the algorithm clears the loaded checksum file and loads the matching one")
@@ -104,6 +106,48 @@ class ChecksumPluginUiTest extends AbstractUiTest
 		assertTrue(textOf(tool, "txtOwnersChecksum").isBlank(),
 			"and neither may its checksum, or the comparison runs across two algorithms and calls "
 				+ "an intact file corrupt");
+	}
+
+	/**
+	 * A {@code .sha512} file as {@code sha512sum abc.txt} writes it, 138 bytes, is loaded next to
+	 * the file in the running application. Checksum files above 128 bytes were refused, so none
+	 * that a tool writes for SHA-512 ever was (#796)
+	 */
+	@Test
+	@DisplayName("a .sha512 file as sha512sum writes it is loaded next to the file")
+	void aSha512FileAsTheToolWritesIt_isLoaded() throws Exception
+	{
+		installPluginRequiringItBuilt(CHECKSUM_ZIP);
+		File abcFile = new File(tempHome, "abc.txt");
+		Files.write(abcFile.toPath(), "abc".getBytes(StandardCharsets.UTF_8));
+		File checksumFile = new File(tempHome, "abc.txt.sha512");
+		Files.write(checksumFile.toPath(),
+			(SHA512_OF_ABC + "  abc.txt\n").getBytes(StandardCharsets.UTF_8));
+		assertEquals(138, checksumFile.length(), "precondition: the file sha512sum writes");
+
+		File databaseFile = new File(tempHome, "checksum-sha512-file.mcrdb");
+		createDatabaseFileHeadless(databaseFile, MASTER_PASSWORD);
+		ApplicationSteps application = signInWithExistingDatabase(databaseFile, MASTER_PASSWORD);
+		application.showMainFrame();
+		application.openPluginTool("Verify Checksum", "Verify Checksum");
+		JInternalFrameFixture tool = new JInternalFrameFixture(robot,
+			application.internalFrame("Verify Checksum"));
+
+		chooseAlgorithm(tool, ChecksumAlgorithm.SHA_512);
+		chooseFileToCheck(tool, abcFile);
+		Pause.pause(new Condition("the sibling checksum file for SHA-512 is loaded")
+		{
+			@Override
+			public boolean test()
+			{
+				return textOf(tool, "txtOwnersChecksum").trim().startsWith(SHA512_OF_ABC);
+			}
+		}, 10000);
+
+		assertEquals("abc.txt.sha512", textOf(tool, "txtChecksumFile"),
+			"the .sha512 file next to abc.txt is the one loaded");
+		assertEquals(SHA512_OF_ABC, textOf(tool, "txtGeneratedChecksum").trim(),
+			"and the checksum computed for abc.txt is the one in it");
 	}
 
 	private static String textOf(final JInternalFrameFixture tool, final String componentName)
