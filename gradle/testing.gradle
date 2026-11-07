@@ -78,6 +78,15 @@ test {
     // alone came back FROM-CACHE: measured on #504, where the old harness passed a test the new one
     // was written for until the run was forced
     inputs.files(fileTree('scripts')).withPropertyName('scripts').withPathSensitivity(PathSensitivity.RELATIVE)
+    // and the files of the working tree the tests read that no class path carries: .sdkmanrc and the
+    // Makefile (TheBuildJdkIsNamedOnceTest), src/main/izpack and README.md (the installer tests),
+    // gradle.properties, build.gradle, gradle/*.gradle and gradlew (the build tests), and the sources
+    // of the end-to-end suites (PasswordLiteralInventoryTest). A change to .sdkmanrc alone came back
+    // FROM-CACHE green on CI and in the gate's first phase, and only the forced run failed (#797)
+    inputs.files('.sdkmanrc', 'Makefile', 'README.md', 'gradle.properties', 'build.gradle', 'gradlew',
+            fileTree('gradle') { include '*.gradle', '*.toml' }, fileTree('src/main/izpack'),
+            fileTree('src') { include 'e2e*/**', 'testSupport/**' })
+        .withPropertyName('workingTreeFiles').withPathSensitivity(PathSensitivity.RELATIVE)
     // and the plugin builds: EveryTestTaskRunsOnTheBuildsOwnDisplayTest reads their build files, and
     // PluginBuildsTakeALibraryCandidateFromMavenLocalTest runs one against the repositories they
     // share (#508). Neither is an input otherwise, so a change there alone would come back UP-TO-DATE
