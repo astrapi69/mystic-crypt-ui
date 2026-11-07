@@ -26,6 +26,7 @@ package io.github.astrapi69.mystic.crypt.plugin.lethenon;
 
 import java.awt.CardLayout;
 import java.awt.Font;
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Path;
@@ -669,10 +670,25 @@ public class LethenonBackupPanel extends JPanel
 	private void onBrowseExportFile()
 	{
 		JFileChooser chooser = new JFileChooser();
+		File proposed = proposedExportFile();
+		if (proposed != null)
+		{
+			chooser.setSelectedFile(proposed);
+		}
 		if (chooser.showSaveDialog(this) == JFileChooser.APPROVE_OPTION)
 		{
 			txtExportFile.setText(chooser.getSelectedFile().getAbsolutePath());
 		}
+	}
+
+	/**
+	 * The file the save dialog of step 3 opens with
+	 *
+	 * @return the proposed file, or null for none
+	 */
+	File proposedExportFile()
+	{
+		return null;
 	}
 
 	private String text(final String key, final String defaultValue)

@@ -29,6 +29,7 @@ import static io.github.astrapi69.mystic.crypt.plugin.lethenon.Windows.textOf;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.awt.Component;
@@ -293,6 +294,32 @@ class LethenonBackupPanelBindingTest
 
 		assertEquals("There is already a file stick.lethwf at this place. It is not overwritten; "
 			+ "choose another name or place.", textOf(panel, "txtBackupRefusal"));
+	}
+
+	@Test
+	@DisplayName("step 3 writes the file at the press of its button, with no box to tick first (pinned, #812)")
+	void stepThree_writesTheFileWithNoBoxToTick()
+	{
+		LethenonBackupPanel panel = atStepTwo();
+		answerRight(panel);
+		panel.onQuestionConfirmed();
+		Path target = directory.resolve("stick.lethwf");
+		panel.getModelObject().setExportFile(target.toString());
+
+		panel.onExportConfirmed();
+
+		assertTrue(Files.exists(target), "the file was not written without a box ticked");
+	}
+
+	@Test
+	@DisplayName("the save dialog of step 3 proposes no file name (pinned, #812)")
+	void stepThree_proposesNoFileName()
+	{
+		LethenonBackupPanel panel = atStepTwo();
+		answerRight(panel);
+		panel.onQuestionConfirmed();
+
+		assertNull(panel.proposedExportFile());
 	}
 
 	@Test
