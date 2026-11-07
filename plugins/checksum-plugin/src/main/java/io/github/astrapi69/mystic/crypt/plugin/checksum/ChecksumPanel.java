@@ -85,8 +85,16 @@ public class ChecksumPanel extends BasePanel<ChecksumBean>
 	/** The colour the result field takes when they are not, or when the file cannot be used */
 	private static final Color NO_MATCH_COLOR = new Color(255, 0, 0);
 
-	/** The size a checksum file may have at most, in bytes */
-	private static final long MAXIMUM_CHECKSUM_FILE_LENGTH = 128;
+	/**
+	 * The size a checksum file may have at most, in bytes: one line in each form
+	 * {@link ChecksumSupport#hashFrom(String)} reads, the coreutils one ({@code <hash>  <name>}) and
+	 * the BSD one ({@code SHA512 (<name>) = <hash>}), with the longest hash, a SHA-512 one of 128
+	 * characters, and a name as long as a path may be (4096 bytes). It was 128, the hash alone,
+	 * which refused every {@code .sha512} file the tools write (#796). The limit keeps a large
+	 * file chosen by mistake out of the text field
+	 */
+	// package-private (not private): the tests check the edges of this same limit
+	static final long MAXIMUM_CHECKSUM_FILE_LENGTH = 8192;
 
 	/**
 	 * Whether what stands in "Checksum from owner" was put there by a probe rather than by the user.

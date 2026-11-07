@@ -32,6 +32,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.io.File;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.util.stream.Stream;
 
 import javax.swing.JComboBox;
 
@@ -41,7 +42,9 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.EnumSource;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import io.github.astrapi69.checksum.FileChecksumExtensions;
 import io.github.astrapi69.crypt.api.algorithm.ChecksumAlgorithm;
@@ -486,6 +489,95 @@ class ChecksumPanelBindingTest
 		assertEquals(sha512, panel.getModelObject().getOwnersChecksum(),
 			"the sibling for the algorithm now chosen takes the place of the pasted one, which "
 				+ "belonged to the algorithm before it");
+	}
+
+	/**
+	 * A checksum file as {@code sha256sum}, {@code sha512sum} and their siblings write it - the
+	 * hash, two spaces, the file name and a line break - is loaded for every algorithm the panel
+	 * offers, and the comparison matches. A file was refused above 128 bytes, the length of a
+	 * SHA-512 hash alone, so no {@code .sha512} file such a tool writes was ever loaded, the one
+	 * published with every release of this application among them
+	 */
+	@ParameterizedTest(name = "a .{1} file as the tools write it")
+	@MethodSource("algorithmsAndTheirExtensions")
+	@DisplayName("a checksum file in the coreutils form is loaded and matches, for every algorithm")
+	void aChecksumFileAsTheToolsWriteIt_isLoadedAndMatches(final ChecksumAlgorithm algorithm,
+		final String extension, @TempDir File directory) throws Exception
+	{
+		File file = fileWithAbc(directory);
+		String checksum = FileChecksumExtensions.getChecksum(file, algorithm);
+		File checksumFile = new File(directory, file.getName() + "." + extension);
+		Files.write(checksumFile.toPath(),
+			(checksum + "  " + file.getName() + "\n").getBytes(StandardCharsets.UTF_8));
+		ChecksumPanel panel = new ChecksumPanel();
+		chooseAlgorithm(panel, algorithm);
+
+		panel.applySelectedFile(file);
+		panel.getBtnCompare().doClick();
+
+		assertEquals(checksumFile.getName(), panel.getModelObject().getSelectedChecksumFilename(),
+			"the checksum file next to the file is the one loaded");
+		assertEquals("Match", panel.getModelObject().getChecksumMatchResult(),
+			"the hash in the file is the file's own");
+	}
+
+	/**
+	 * A checksum file of exactly {@link ChecksumPanel#MAXIMUM_CHECKSUM_FILE_LENGTH} bytes, the
+	 * hash behind a long name, is loaded (#796)
+	 */
+	@Test
+	@DisplayName("a checksum file of exactly the limit is loaded and matches")
+	void aChecksumFileOfTheLimit_isLoaded(@TempDir File directory) throws Exception
+	{
+		File file = fileWithAbc(directory);
+		File checksumFile = sha512FileOf(file, ChecksumPanel.MAXIMUM_CHECKSUM_FILE_LENGTH);
+		ChecksumPanel panel = new ChecksumPanel();
+		chooseAlgorithm(panel, ChecksumAlgorithm.SHA_512);
+
+		panel.applySelectedFile(file);
+		panel.getBtnCompare().doClick();
+
+		assertEquals(checksumFile.getName(), panel.getModelObject().getSelectedChecksumFilename());
+		assertEquals("Match", panel.getModelObject().getChecksumMatchResult());
+	}
+
+	/** One byte over the limit, a checksum file is refused as before (#796) */
+	@Test
+	@DisplayName("a checksum file one byte over the limit is refused")
+	void aChecksumFileOneByteOverTheLimit_isRefused(@TempDir File directory) throws Exception
+	{
+		File file = fileWithAbc(directory);
+		sha512FileOf(file, ChecksumPanel.MAXIMUM_CHECKSUM_FILE_LENGTH + 1);
+		ChecksumPanel panel = new ChecksumPanel();
+		chooseAlgorithm(panel, ChecksumAlgorithm.SHA_512);
+
+		panel.applySelectedFile(file);
+
+		assertTrue(panel.getModelObject().getOwnersChecksum().isBlank(),
+			"nothing of the file is loaded");
+		assertEquals("Given checksum file is invalid",
+			panel.getModelObject().getChecksumMatchResult());
+	}
+
+	/**
+	 * Writes the SHA-512 file of the given file in the coreutils form with a name that makes it the
+	 * given number of bytes long
+	 */
+	private static File sha512FileOf(final File file, final long length) throws Exception
+	{
+		String checksum = FileChecksumExtensions.getChecksum(file, ChecksumAlgorithm.SHA_512);
+		File checksumFile = new File(file.getParentFile(), file.getName() + ".sha512");
+		String name = "n".repeat((int)length - checksum.length() - 3);
+		Files.write(checksumFile.toPath(),
+			(checksum + "  " + name + "\n").getBytes(StandardCharsets.UTF_8));
+		assertEquals(length, checksumFile.length(), "precondition: the file has the length tested");
+		return checksumFile;
+	}
+
+	static Stream<Arguments> algorithmsAndTheirExtensions()
+	{
+		return ChecksumPanel.CHECKSUM_FILE_EXTENSIONS.entrySet().stream()
+			.map(entry -> Arguments.of(entry.getKey(), entry.getValue()));
 	}
 
 	private static File fileWithAbc(final File directory) throws Exception
