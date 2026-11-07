@@ -233,9 +233,13 @@ public class LethenonWalletPanel extends JPanel
 		show(WalletView.RESTORE);
 	}
 
-	/** Leaves a form without doing anything */
+	/**
+	 * Leaves a form without doing anything; what was typed into it, a password or the 24 words,
+	 * leaves with it (#801)
+	 */
 	void onFormCancelled()
 	{
+		clearSecrets();
 		refresh(null);
 	}
 
@@ -395,8 +399,7 @@ public class LethenonWalletPanel extends JPanel
 	void onVaultClosing()
 	{
 		backup.forget();
-		clearPasswordFields();
-		clearWords();
+		clearSecrets();
 		modelObject.setWallets(List.of());
 		modelObject.setChosen(null);
 		walletChoices.removeAllElements();
@@ -625,6 +628,13 @@ public class LethenonWalletPanel extends JPanel
 		txtNotice.setText(text);
 		txtNotice.setVisible(!text.isEmpty());
 		revalidate();
+	}
+
+	/** Overwrites every typed password and empties the typed words, in the fields and the model */
+	private void clearSecrets()
+	{
+		clearPasswordFields();
+		clearWords();
 	}
 
 	private void clearPasswordFields()

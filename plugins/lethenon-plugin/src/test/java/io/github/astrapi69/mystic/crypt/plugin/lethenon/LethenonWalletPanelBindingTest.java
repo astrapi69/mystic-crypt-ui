@@ -36,11 +36,16 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.function.Consumer;
+import java.util.stream.Stream;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import io.github.astrapi69.lethenon.Wallet;
 import io.github.astrapi69.lethenon.WalletFile;
@@ -206,6 +211,58 @@ class LethenonWalletPanelBindingTest
 		assertEquals(WalletView.OVERVIEW, panel.getModelObject().getView());
 		assertEquals(lost.address().toText(), textOf(panel, "txtAddress"));
 		assertEquals("", panel.getModelObject().getWords(), "the typed words are cleared");
+	}
+
+	/**
+	 * Cancel overwrites a form's typed password, in every form that has one: the buffer it was typed
+	 * into is zero-filled, not only dropped (#801)
+	 */
+	@ParameterizedTest(name = "{argumentSetName}")
+	@MethodSource("formsWithAPassword")
+	void cancellingAForm_overwritesItsPassword(final Consumer<LethenonWalletPanel> open)
+	{
+		vault.restore(Wallet.create().phrase().toCharArray(), ThrowawayPasswords.next(),
+			WalletNetwork.TESTNET);
+		LethenonWalletPanel panel = window();
+		open.accept(panel);
+		char[] typed = ThrowawayPasswords.next();
+		char[] asTyped = typed.clone();
+		panel.getModelObject().setPassword(typed);
+
+		panel.onFormCancelled();
+
+		assertArrayEquals(new char[asTyped.length], typed, "the typed password is overwritten");
+		assertEquals(0, panel.getModelObject().getPassword().length);
+	}
+
+	/** The four forms of the wallet window that ask for a password (#801) */
+	static Stream<Arguments> formsWithAPassword()
+	{
+		return Stream.of(
+			Arguments.argumentSet("Create a wallet",
+				(Consumer<LethenonWalletPanel>)LethenonWalletPanel::onCreate),
+			Arguments.argumentSet("Take a wallet file over",
+				(Consumer<LethenonWalletPanel>)LethenonWalletPanel::onTakeOver),
+			Arguments.argumentSet("Restore from 24 words",
+				(Consumer<LethenonWalletPanel>)LethenonWalletPanel::onRestore),
+			Arguments.argumentSet("Check incoming payments",
+				(Consumer<LethenonWalletPanel>)LethenonWalletPanel::onCheckIncoming));
+	}
+
+	@Test
+	@DisplayName("Cancel in \"Restore from 24 words\" empties the typed words, and the form opens again empty")
+	void cancellingTheRestore_emptiesTheWords()
+	{
+		String phrase = Wallet.create().phrase();
+		LethenonWalletPanel panel = window();
+		panel.onRestore();
+		panel.getModelObject().setWords(phrase);
+
+		panel.onFormCancelled();
+		panel.onRestore();
+
+		assertEquals("", panel.getModelObject().getWords(), "the words leave with the form (#801)");
+		assertEquals("", textOf(panel, "txtWords"));
 	}
 
 	@Test

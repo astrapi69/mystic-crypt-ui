@@ -194,14 +194,4 @@ public class LethenonWalletPanelModel
 		this.notice = notice == null ? "" : notice;
 	}
 
-	/**
-	 * Overwrites every secret the forms hold and empties the typed words, as after an action and
-	 * when the vault locks
-	 */
-	public void clearSecrets()
-	{
-		setPassword(new char[0]);
-		setPasswordRepeated(new char[0]);
-		words = "";
-	}
 }
