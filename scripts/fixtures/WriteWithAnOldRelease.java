@@ -101,10 +101,12 @@ public class WriteWithAnOldRelease
 			first);
 		Object keysElement = treeElement(elementType, "mykeys",
 			"io/github/astrapi69/silk/icons/folder.png", second);
-		Method initialize = method(factoryType, "initializeTreeNodeWithTreeElement", 3);
+		Method initialize = Overloads.method(factoryType, "initializeTreeNodeWithTreeElement",
+			rootElement, null, idGenerator);
 		Object rootNode = initialize.invoke(null, rootElement, null, idGenerator);
 		Object keysNode = initialize.invoke(null, keysElement, rootNode, idGenerator);
-		Map<?, ?> treeAsMap = (Map<?, ?>)method(transformerType, "toKeyMap", 1).invoke(null, rootNode);
+		Map<?, ?> treeAsMap = (Map<?, ?>)Overloads.method(transformerType, "toKeyMap", rootNode)
+			.invoke(null, rootNode);
 		Long keysId = (Long)keysNode.getClass().getMethod("getId").invoke(keysNode);
 
 		Object credentials = credentialsType.getDeclaredConstructor().newInstance();
@@ -172,7 +174,8 @@ public class WriteWithAnOldRelease
 		builder.getClass().getMethod("iconPath", String.class).invoke(builder, iconPath);
 		builder.getClass().getMethod("withText", boolean.class).invoke(builder, true);
 		Object element = builder.getClass().getMethod("build").invoke(builder);
-		method(elementType, "setDefaultContent", 1).invoke(element, new ArrayList<>(List.of(entry)));
+		List<Object> content = new ArrayList<>(List.of(entry));
+		Overloads.method(elementType, "setDefaultContent", content).invoke(element, content);
 		return element;
 	}
 
@@ -244,19 +247,6 @@ public class WriteWithAnOldRelease
 			}
 		}
 		throw new ClassNotFoundException(String.join(" or ", names));
-	}
-
-	private static Method method(final Class<?> type, final String name, final int parameters)
-		throws NoSuchMethodException
-	{
-		for (Method candidate : type.getMethods())
-		{
-			if (candidate.getName().equals(name) && candidate.getParameterCount() == parameters)
-			{
-				return candidate;
-			}
-		}
-		throw new NoSuchMethodException(type.getName() + "." + name + "/" + parameters);
 	}
 
 	private static Field fieldOrNull(final Class<?> type, final String name)

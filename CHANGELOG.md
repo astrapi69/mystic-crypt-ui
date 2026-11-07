@@ -135,6 +135,11 @@ CHANGED:
   `mystic.crypt.ui.startup.signal` is `true`, which only the test support sets. In normal operation it counts nothing,
   and it opens no port, writes no file and reads no environment variable: its class calls nothing but
   `Boolean.getBoolean` and `AtomicInteger` (`javap -c -p`)
+- build and tests only: the format measurement's writer calls an old release through the overload its arguments fit
+  (#788). It took the first method of the name and the parameter count, in the order `Class.getMethods()` does not
+  promise, and the application jar of 8 has three of `initializeTreeNodeWithTreeElement` with three parameters: the
+  vault 8 writes with a password was "not written" in 3 of 12 runs on JDK 25.0.4, and so in one run of the
+  measurement of 8.14. With the fix, 24 of 24
 
 FIXED:
 - an entry's `toString` no longer prints its attachments (#740). It carried the content of every attached file byte for
