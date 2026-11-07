@@ -24,6 +24,8 @@
  */
 package io.github.astrapi69.mystic.crypt.plugin.api;
 
+import java.util.Optional;
+
 import org.pf4j.ExtensionPoint;
 
 /**
@@ -57,5 +59,21 @@ public interface VaultAccessContribution extends ExtensionPoint
 	 */
 	default void vaultClosing()
 	{
+	}
+
+	/**
+	 * The line the host shows before something leaves the vault: in the dialog of a KDBX export,
+	 * and before an attachment of an entry this plugin marks is saved to a file. One or two short
+	 * sentences on what the file holds and what is needed to use it, in the user's language. Asked
+	 * anew each time, so the line can say what the plugin finds in the vault at that moment. The
+	 * default says nothing (#810)
+	 *
+	 * @param export
+	 *            what leaves the vault
+	 * @return the line, or empty when there is nothing to say
+	 */
+	default Optional<String> exportNotice(final VaultExport export)
+	{
+		return Optional.empty();
 	}
 }

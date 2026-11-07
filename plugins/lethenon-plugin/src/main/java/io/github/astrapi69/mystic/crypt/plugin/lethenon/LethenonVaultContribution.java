@@ -24,10 +24,14 @@
  */
 package io.github.astrapi69.mystic.crypt.plugin.lethenon;
 
+import java.util.Locale;
+import java.util.Optional;
+
 import org.pf4j.Extension;
 
 import io.github.astrapi69.mystic.crypt.plugin.api.VaultAccess;
 import io.github.astrapi69.mystic.crypt.plugin.api.VaultAccessContribution;
+import io.github.astrapi69.mystic.crypt.plugin.api.VaultExport;
 
 /**
  * Declares that the lethenon plugin keeps wallets in the vault, marked {@code lethenon.wallet}
@@ -62,5 +66,11 @@ public class LethenonVaultContribution implements VaultAccessContribution
 	public void vaultClosing()
 	{
 		LethenonVault.current().vaultClosing();
+	}
+
+	@Override
+	public Optional<String> exportNotice(final VaultExport export)
+	{
+		return LethenonVault.current().exportNotice(export, Locale.getDefault());
 	}
 }

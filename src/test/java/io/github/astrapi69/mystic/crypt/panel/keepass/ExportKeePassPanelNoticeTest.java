@@ -24,10 +24,17 @@
  */
 package io.github.astrapi69.mystic.crypt.panel.keepass;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.awt.Component;
 import java.awt.Container;
+import java.util.List;
+
+import javax.swing.text.JTextComponent;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -57,9 +64,26 @@ class ExportKeePassPanelNoticeTest
 	}
 
 	@Test
-	@DisplayName("the export dialog has no place for a plugin's line (pinned, #810)")
-	void theExportDialogHasNoPlaceForAPluginsLine()
+	@DisplayName("the export dialog shows the lines the plugins give, above the fields")
+	void theExportDialogShowsThePluginsLinesAboveTheFields()
+	{
+		ExportKeePassPanel panel = new ExportKeePassPanel(null, null,
+			List.of("The file contains sealed lethenon wallets.", "A second plugin's line."));
+
+		JTextComponent notices = (JTextComponent)named(panel, "txtExportNotices");
+
+		assertEquals("The file contains sealed lethenon wallets.\nA second plugin's line.",
+			notices.getText());
+		assertTrue(notices.isVisible());
+		assertFalse(notices.isEditable(), "the line can be changed in the dialog");
+		assertSame(notices, panel.getComponent(0), "the line is not the first thing in the dialog");
+	}
+
+	@Test
+	@DisplayName("without a plugin's line the export dialog has no place for one")
+	void withoutAPluginsLine_theDialogHasNoPlaceForOne()
 	{
 		assertNull(named(new ExportKeePassPanel(), "txtExportNotices"));
+		assertNull(named(new ExportKeePassPanel(null, null, List.of()), "txtExportNotices"));
 	}
 }

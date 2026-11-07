@@ -25,6 +25,7 @@
 package io.github.astrapi69.mystic.crypt.panel.keepass;
 
 import java.io.File;
+import java.util.List;
 
 /**
  * Everything a KeePass credentials form holds: the path of the {@code .kdbx} file, the password
@@ -48,6 +49,12 @@ public class KeePassPanelModel
 
 	/** The path of the key file, empty as long as none takes part */
 	private String keyFilePath = "";
+
+	/**
+	 * What the export dialog says about the file before it is written, one line per plugin that has
+	 * something to say (#810); the import shows none
+	 */
+	private List<String> exportNotices = List.of();
 
 	/**
 	 * Gets the path of the KeePass file
@@ -131,6 +138,27 @@ public class KeePassPanelModel
 	public void setKeyFilePath(final String keyFilePath)
 	{
 		this.keyFilePath = keyFilePath;
+	}
+
+	/**
+	 * Gets what the export dialog says about the file before it is written
+	 *
+	 * @return the lines, empty when there are none
+	 */
+	public List<String> getExportNotices()
+	{
+		return exportNotices;
+	}
+
+	/**
+	 * Sets what the export dialog says about the file before it is written
+	 *
+	 * @param exportNotices
+	 *            the lines, or null for none
+	 */
+	public void setExportNotices(final List<String> exportNotices)
+	{
+		this.exportNotices = exportNotices == null ? List.of() : List.copyOf(exportNotices);
 	}
 
 	/**

@@ -28,15 +28,22 @@ import java.awt.event.ActionEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.File;
+import java.io.IOException;
+import java.io.UncheckedIOException;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Optional;
 
 import javax.swing.*;
 
+import io.github.astrapi69.checksum.FileChecksumExtensions;
+import io.github.astrapi69.crypt.api.algorithm.HashAlgorithm;
 import io.github.astrapi69.file.create.model.FileContentInfo;
 import io.github.astrapi69.file.write.WriteFileExtensions;
 import io.github.astrapi69.model.BaseModel;
 import io.github.astrapi69.model.api.IModel;
+import io.github.astrapi69.mystic.crypt.Messages;
+import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
 import io.github.astrapi69.mystic.crypt.button.state.GenericButtonGenericJXTableStateMachine;
 import io.github.astrapi69.mystic.crypt.ui.attachment.AttachmentContent;
 import io.github.astrapi69.swing.base.BasePanel;
@@ -195,15 +202,111 @@ public class AttachmentPanel extends BasePanel<MysticCryptEntryModelBean>
 	protected void onSaveTo(final ActionEvent actionEvent)
 	{
 		Optional<FileContentInfo> singleSelectedRowData = tblFiles.getSingleSelectedRowData();
-		if (singleSelectedRowData.isPresent())
+		singleSelectedRowData.ifPresent(this::saveToAFile);
+	}
+
+	/**
+	 * Saves an attachment to a file the user chooses. For an attachment of an entry a plugin marks,
+	 * such as a sealed lethenon wallet, the plugin's line comes first and can be declined, and the
+	 * SHA-256 of the written file comes after, to compare a copy with (#810)
+	 *
+	 * @param fileContentInfo
+	 *            the attachment
+	 */
+	private void saveToAFile(final FileContentInfo fileContentInfo)
+	{
+		Optional<String> notice = attachmentExportNotice();
+		if (notice.isPresent() && !confirmLeavingTheVault(notice.get()))
 		{
-			FileContentInfo fileContentInfo = singleSelectedRowData.get();
-			File fileToSave = chooseTargetFor(fileContentInfo);
-			if (fileToSave != null)
-			{
-				RuntimeExceptionDecorator.decorate(() -> WriteFileExtensions
-					.writeByteArrayToFile(fileToSave, fileContentInfo.getContent()));
-			}
+			return;
+		}
+		File fileToSave = chooseTargetFor(fileContentInfo);
+		if (fileToSave == null)
+		{
+			return;
+		}
+		RuntimeExceptionDecorator.decorate(() -> WriteFileExtensions
+			.writeByteArrayToFile(fileToSave, fileContentInfo.getContent()));
+		if (notice.isPresent())
+		{
+			showWrittenFile(fileToSave, sha256Of(fileToSave));
+		}
+	}
+
+	/**
+	 * The line of the plugin that marks this entry, from the plugins the application connected
+	 *
+	 * @return the line, or empty when no plugin marks the entry or no application runs
+	 */
+	protected Optional<String> attachmentExportNotice()
+	{
+		MysticCryptApplicationFrame frame = MysticCryptApplicationFrame.getInstance();
+		if (frame == null || frame.getPluginVaultConnections() == null)
+		{
+			return Optional.empty();
+		}
+		return frame.getPluginVaultConnections().attachmentExportNotice(getModelObject());
+	}
+
+	/**
+	 * Shows the plugin's line and asks whether the attachment is to leave the vault
+	 *
+	 * @param notice
+	 *            the plugin's line
+	 * @return true when the user goes on, false when the user cancels
+	 */
+	protected boolean confirmLeavingTheVault(final String notice)
+	{
+		String message = notice + "\n\n" + Messages.getString("attachment.save.outside.vault",
+			"Saved to a file, the attachment is outside the vault and its master password.");
+		return JOptionPane.showConfirmDialog(this, message,
+			Messages.getString("attachment.save.outside.vault.title", "Save outside the vault?"),
+			JOptionPane.OK_CANCEL_OPTION, JOptionPane.WARNING_MESSAGE) == JOptionPane.OK_OPTION;
+	}
+
+	/**
+	 * Tells where the attachment was written and its SHA-256, in a field the checksum can be copied
+	 * from
+	 *
+	 * @param writtenFile
+	 *            the file that was written
+	 * @param sha256
+	 *            the SHA-256 of the file as it is on disk, in hex
+	 */
+	protected void showWrittenFile(final File writtenFile, final String sha256)
+	{
+		JTextArea written = new JTextArea(String.format(
+			Messages.getString("attachment.save.written", "Saved to %1$s%nSHA-256: %2$s"),
+			writtenFile.getAbsolutePath(), sha256));
+		written.setName("txtWrittenAttachment");
+		written.setEditable(false);
+		JOptionPane.showMessageDialog(this, written,
+			Messages.getString("attachment.save.written.title", "Attachment saved"),
+			JOptionPane.INFORMATION_MESSAGE);
+	}
+
+	/**
+	 * The SHA-256 of a file, read back from the disk
+	 *
+	 * @param file
+	 *            the file
+	 * @return the checksum in hex
+	 */
+	static String sha256Of(final File file)
+	{
+		try
+		{
+			return FileChecksumExtensions.getChecksum(file, HashAlgorithm.SHA_256);
+		}
+		catch (IOException failed)
+		{
+			throw new UncheckedIOException("the written attachment " + file.getAbsolutePath()
+				+ " could not be read back for its SHA-256", failed);
+		}
+		catch (NoSuchAlgorithmException missing)
+		{
+			throw new IllegalStateException(
+				"this Java runtime has no SHA-256, which every Java runtime must have", missing);
 		}
 	}
 
