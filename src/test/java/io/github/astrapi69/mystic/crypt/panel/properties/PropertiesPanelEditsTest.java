@@ -89,8 +89,8 @@ class PropertiesPanelEditsTest
 	}
 
 	@Test
-	@DisplayName("Cancel in the property dialog keeps what was typed (pinned, #807)")
-	void cancelInThePropertyDialog_keepsWhatWasTyped()
+	@DisplayName("Cancel in the property dialog leaves the entry and the table as they were (#807)")
+	void cancelInThePropertyDialog_leavesTheEntryAsItWas()
 	{
 		MysticCryptEntryModelBean entry = anEntryWithTwoProperties();
 		PropertiesPanel panel = answering(entry, "renamed", "typed", JOptionPane.CANCEL_OPTION);
@@ -98,7 +98,8 @@ class PropertiesPanelEditsTest
 
 		panel.onEditSelected();
 
-		assertEquals(List.of("renamed=typed", "second=two"), inTheEntry(entry));
+		assertEquals(List.of("first=one", "second=two"), inTheEntry(entry));
+		assertEquals(List.of("first=one", "second=two"), inTheTable(panel));
 	}
 
 	@Test
@@ -116,8 +117,8 @@ class PropertiesPanelEditsTest
 	}
 
 	@Test
-	@DisplayName("Remove takes the row out of the table and leaves the entry as it was (pinned, #808)")
-	void remove_takesTheRowOutOfTheTableOnly()
+	@DisplayName("Remove takes the property out of the table and out of the entry (#808)")
+	void remove_takesThePropertyOutOfTheEntry()
 	{
 		MysticCryptEntryModelBean entry = anEntryWithTwoProperties();
 		PropertiesPanel panel = answering(entry, "", "", JOptionPane.CANCEL_OPTION);
@@ -126,7 +127,7 @@ class PropertiesPanelEditsTest
 		panel.onRemove(null);
 
 		assertEquals(List.of("first=one"), inTheTable(panel));
-		assertEquals(List.of("first=one", "second=two"), inTheEntry(entry));
+		assertEquals(List.of("first=one"), inTheEntry(entry));
 	}
 
 	@Test

@@ -145,12 +145,17 @@ public class PropertiesPanel extends BasePanel<MysticCryptEntryModelBean>
 
 	protected void onRemove(final ActionEvent actionEvent)
 	{
-		// Get selected property and remove it from table
-		if (0 < tblProperties.getSelectedRows().length)
-		{
-			// confirm delete
-			tblProperties.getGenericTableModel().removeAt(tblProperties.getSelectedRow());
-		}
+		getTblProperties().getSingleSelectedRowData().ifPresent(this::removeProperty);
+	}
+
+	/**
+	 * Takes a property out of the table and out of the entry: the table holds a list of its own,
+	 * and nothing reads it back into the entry (#808)
+	 */
+	private void removeProperty(final KeyValuePair<String, String> property)
+	{
+		getTblProperties().getGenericTableModel().remove(property);
+		getModelObject().getProperties().remove(property);
 	}
 
 	protected void onEdit(final ActionEvent actionEvent)
@@ -167,19 +172,23 @@ public class PropertiesPanel extends BasePanel<MysticCryptEntryModelBean>
 		getTblProperties().getSingleSelectedRowData().ifPresent(this::showEditPropertyDialog);
 	}
 
-	private void showEditPropertyDialog(KeyValuePair<String, String> tableEntry)
+	/**
+	 * Lets the user change a property in a dialog that edits a copy of it, so that Cancel leaves
+	 * the entry as it was: the fields write on every keystroke (#807). OK writes the copy into the
+	 * row, and the row is the entry's own pair - the table copies the entry's list, not its
+	 * elements
+	 */
+	private void showEditPropertyDialog(final KeyValuePair<String, String> tableEntry)
 	{
-		PropertiesNewEntryPanel panel = new PropertiesNewEntryPanel(BaseModel.of(tableEntry));
+		KeyValuePair<String, String> edited = new KeyValuePair<>(tableEntry.getKey(),
+			tableEntry.getValue());
+		PropertiesNewEntryPanel panel = new PropertiesNewEntryPanel(BaseModel.of(edited));
 		int option = askForProperty(panel,
 			Messages.getString("dialog.edit.crypt.properties.title", "Edit Property Value."));
 		if (option == JOptionPane.OK_OPTION)
 		{
-			List<KeyValuePair<String, String>> data = getTblProperties().getGenericTableModel()
-				.getData();
-			int index = data.indexOf(tableEntry);
-			data.remove(tableEntry);
-			KeyValuePair<String, String> newProperty = panel.getModelObject();
-			data.add(index, newProperty);
+			tableEntry.setKey(edited.getKey());
+			tableEntry.setValue(edited.getValue());
 			getTblProperties().getGenericTableModel().fireTableDataChanged();
 		}
 	}
