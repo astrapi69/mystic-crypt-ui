@@ -39,6 +39,13 @@ change (see `.claude/rules/ai-workflow/`). Conventional commits, no AI attributi
 commits or PR bodies (enforced by the hook and by CI). TDD for logic changes
 (`.claude/rules/tdd.md`).
 
+## Family rules
+
+The rules every agent session in this family follows are public at
+<https://github.com/astrapi69/astrapi69/tree/main/rules>. Read them before any work: the entry point
+`rules/index.md` and the core under `rules/core/`, which `index.md` loads into every session. The
+rules in this repository add only what is specific to it.
+
 ## Rules
 
 Binding rules live in `.claude/rules/`: vibe-coding (priorities, freeze),
