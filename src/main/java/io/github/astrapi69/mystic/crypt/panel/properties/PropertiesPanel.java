@@ -133,10 +133,8 @@ public class PropertiesPanel extends BasePanel<MysticCryptEntryModelBean>
 	protected void onAdd(final ActionEvent actionEvent)
 	{
 		PropertiesNewEntryPanel panel = new PropertiesNewEntryPanel();
-		int option = JOptionPaneExtensions.getSelectedOption(panel, JOptionPane.PLAIN_MESSAGE,
-			JOptionPane.OK_CANCEL_OPTION, null,
-			Messages.getString("dialog.new.crypt.properties.title", "New Property Value."),
-			panel.getTxtKey());
+		int option = askForProperty(panel,
+			Messages.getString("dialog.new.crypt.properties.title", "New Property Value."));
 		if (option == JOptionPane.OK_OPTION)
 		{
 			KeyValuePair<String, String> newProperty = panel.getModelObject();
@@ -172,10 +170,8 @@ public class PropertiesPanel extends BasePanel<MysticCryptEntryModelBean>
 	private void showEditPropertyDialog(KeyValuePair<String, String> tableEntry)
 	{
 		PropertiesNewEntryPanel panel = new PropertiesNewEntryPanel(BaseModel.of(tableEntry));
-		int option = JOptionPaneExtensions.getSelectedOption(panel, JOptionPane.PLAIN_MESSAGE,
-			JOptionPane.OK_CANCEL_OPTION, null,
-			Messages.getString("dialog.edit.crypt.properties.title", "Edit Property Value."),
-			panel.getTxtKey());
+		int option = askForProperty(panel,
+			Messages.getString("dialog.edit.crypt.properties.title", "Edit Property Value."));
 		if (option == JOptionPane.OK_OPTION)
 		{
 			List<KeyValuePair<String, String>> data = getTblProperties().getGenericTableModel()
@@ -186,6 +182,22 @@ public class PropertiesPanel extends BasePanel<MysticCryptEntryModelBean>
 			data.add(index, newProperty);
 			getTblProperties().getGenericTableModel().fireTableDataChanged();
 		}
+	}
+
+	/**
+	 * Shows the property dialog and waits for the answer: the one place the panel asks the user,
+	 * for adding and for editing alike
+	 *
+	 * @param panel
+	 *            the dialog's content
+	 * @param title
+	 *            the dialog's title
+	 * @return {@link JOptionPane#OK_OPTION} or what else the dialog answered
+	 */
+	protected int askForProperty(final PropertiesNewEntryPanel panel, final String title)
+	{
+		return JOptionPaneExtensions.getSelectedOption(panel, JOptionPane.PLAIN_MESSAGE,
+			JOptionPane.OK_CANCEL_OPTION, null, title, panel.getTxtKey());
 	}
 
 	@Override
