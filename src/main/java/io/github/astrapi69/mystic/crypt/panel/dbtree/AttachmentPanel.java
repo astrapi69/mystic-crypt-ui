@@ -198,18 +198,31 @@ public class AttachmentPanel extends BasePanel<MysticCryptEntryModelBean>
 		if (singleSelectedRowData.isPresent())
 		{
 			FileContentInfo fileContentInfo = singleSelectedRowData.get();
-			JFileChooser fileChooser = new JFileChooser();
-			fileChooser.setDialogTitle("Specify a file to save");
-			fileChooser.setSelectedFile(proposedTargetFor(fileContentInfo));
-			int userSelection = fileChooser.showSaveDialog(this);
-
-			if (userSelection == JFileChooser.APPROVE_OPTION)
+			File fileToSave = chooseTargetFor(fileContentInfo);
+			if (fileToSave != null)
 			{
-				File fileToSave = fileChooser.getSelectedFile();
 				RuntimeExceptionDecorator.decorate(() -> WriteFileExtensions
 					.writeByteArrayToFile(fileToSave, fileContentInfo.getContent()));
 			}
 		}
+	}
+
+	/**
+	 * Asks where an attachment is to be saved, in a save dialog that opens with the attachment's
+	 * own name
+	 *
+	 * @param fileContentInfo
+	 *            the attachment about to be saved
+	 * @return the chosen file, or null when the user cancelled
+	 */
+	protected File chooseTargetFor(final FileContentInfo fileContentInfo)
+	{
+		JFileChooser saveChooser = new JFileChooser();
+		saveChooser.setDialogTitle("Specify a file to save");
+		saveChooser.setSelectedFile(proposedTargetFor(fileContentInfo));
+		return saveChooser.showSaveDialog(this) == JFileChooser.APPROVE_OPTION
+			? saveChooser.getSelectedFile()
+			: null;
 	}
 
 	@Override
