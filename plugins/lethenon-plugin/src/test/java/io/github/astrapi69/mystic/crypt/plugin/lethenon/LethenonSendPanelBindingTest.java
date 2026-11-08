@@ -282,6 +282,76 @@ class LethenonSendPanelBindingTest
 		assertFalse(panel.getModelObject().getResultText().contains(PASSWORD));
 	}
 
+	/** The components of the answer, which show only once a transfer was signed (G3, #816) */
+	private static final List<String> ANSWER = List.of("txtAnswer", "txtSentAmount", "txtSentFee",
+		"txtSentTo", "txtWhereItWaits", "btnDetails");
+
+	private static boolean anyAnswerShows(final LethenonSendPanel panel)
+	{
+		return ANSWER.stream().anyMatch(name -> component(panel, name, Component.class).isVisible()
+			&& component(panel, name, Component.class).getParent().isVisible());
+	}
+
+	private static boolean theAnswerToComeShows(final LethenonSendPanel panel)
+	{
+		return component(panel, "txtAnswerToCome", Component.class).isVisible();
+	}
+
+	@Test
+	@DisplayName("before the first send no answer shows, and a sentence says what will show there (#816, draft 06)")
+	void beforeTheFirstSend_noAnswerShows()
+	{
+		LethenonSendPanel panel = new LethenonSendPanel();
+
+		assertFalse(anyAnswerShows(panel), "empty answer fields show before the first send");
+		assertTrue(theAnswerToComeShows(panel), "nothing says what will show");
+		assertEquals("After sending, this shows what went out and what still waits.",
+			textOf(panel, "txtAnswerToCome"));
+	}
+
+	@Test
+	@DisplayName("a failure, then a signed transfer: the answer shows (#816)")
+	void aFailureThenASignedTransfer_showsTheAnswer() throws Exception
+	{
+		LethenonSendPanel panel = filledPanel("not the password at all", "1");
+		panel.onSend();
+		assertFalse(anyAnswerShows(panel), "an answer shows after the failure");
+		panel.getModelObject().setPassword(PASSWORD.toCharArray());
+
+		panel.onSend();
+
+		assertTrue(anyAnswerShows(panel), "the signed transfer shows no answer after a failure");
+		assertFalse(component(panel, "pnlDetails", JPanel.class).isVisible(),
+			"the details opened on their own");
+	}
+
+	@Test
+	@DisplayName("a signed transfer, then a failure: no answer shows (#816)")
+	void aSignedTransferThenAFailure_showsNoAnswer() throws Exception
+	{
+		LethenonSendPanel panel = filledPanel(PASSWORD, "1");
+		panel.onSend();
+		panel.getModelObject().setAmount("300");
+		panel.getModelObject().setPassword(PASSWORD.toCharArray());
+
+		panel.onSend();
+
+		assertFalse(anyAnswerShows(panel), "the earlier answer shows next to the failure");
+		assertFalse(theAnswerToComeShows(panel), "the sentence shows next to the failure");
+	}
+
+	@Test
+	@DisplayName("after a transfer was signed the answer shows")
+	void afterASignedTransfer_theAnswerShows() throws Exception
+	{
+		LethenonSendPanel panel = filledPanel(PASSWORD, "1");
+
+		panel.onSend();
+
+		assertTrue(anyAnswerShows(panel), "a signed transfer shows no answer");
+		assertFalse(theAnswerToComeShows(panel), "the sentence stays next to the answer");
+	}
+
 	@Test
 	@DisplayName("a transfer the account cannot cover after one that was signed empties every field and leaves no further transfer")
 	void sending_tooMuch_reportsTheReasonOnly() throws Exception
