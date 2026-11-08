@@ -103,6 +103,67 @@ class RuntimeDependenciesTest
 
 	private static final String RUNTIME_VERSIONS = ApplicationJarUnderTest.RUNTIME_VERSIONS;
 
+	/**
+	 * A pre-release, read from a jar's name: a milestone, a release candidate, an alpha, a beta, a
+	 * preview, an early access build, a numbered build such as {@code -b180830.0359} or a snapshot.
+	 * The {@code -jre} flavour of a release and Guava's {@code 9999.0-empty...} placeholder are
+	 * releases
+	 */
+	private static final Pattern PRE_RELEASE = Pattern.compile(
+		".*-\\d[^/]*[-.](M\\d+|[Rr][Cc]\\d*|alpha\\d*|beta\\d*|preview\\d*|ea|SNAPSHOT|b\\d+(?:\\.\\d+)?)\\.jar");
+
+	/**
+	 * The pre-releases this build's runtime class path still carries, each with what removes it:
+	 * jaxb-api 2.4.0-b180830.0359, a numbered build of a 2.4.0 that was never released, which
+	 * crypt-data 13.2 brings for one Base64 call (crypt-data#133, #841). A release carries none;
+	 * the set is matched exactly, so a new pre-release and the disappearance of this one both fail
+	 * the test, and the entry cannot outlive its cause. The test class path is not checked: it
+	 * carries test-only pre-releases that never ship, such as meanbean 3.0.0-M9
+	 */
+	private static final List<String> KNOWN_PRE_RELEASES = List
+		.of("jaxb-api-2.4.0-b180830.0359.jar");
+
+	/**
+	 * What the pattern reads as a pre-release, from the jar's name
+	 *
+	 * @param jar
+	 *            the name of a jar
+	 * @param preRelease
+	 *            whether the pattern reads it as a pre-release
+	 */
+	@ParameterizedTest(name = "{0}: pre-release {1}")
+	@CsvSource({ "commons-collections4-4.5.0-M2.jar, true", "jackson-core-2.16.0-rc1.jar, true",
+			"jaxb-api-2.4.0-b180830.0359.jar, true", "jaxb-api-2.2.12-b141001.1542.jar, true",
+			"example-3.0.0-beta.jar, true", "example-2.0.0-alpha2.jar, true",
+			"mystic-crypt-ui-8.15-SNAPSHOT.jar, true", "guava-33.8.0-jre.jar, false",
+			"listenablefuture-9999.0-empty-to-avoid-conflict-with-guava.jar, false",
+			"swingx-all-1.6.5-1.jar, false", "commons-collections4-4.6.0.jar, false",
+			"jaxb-api-2.3.1.jar, false", "bcprov-jdk18on-1.86.jar, false",
+			"commons-beanutils-1.11.0.jar, false" })
+	void aJarName_isAPreRelease_asThePatternReadsIt(final String jar, final boolean preRelease)
+	{
+		assertEquals(preRelease, PRE_RELEASE.matcher(jar).matches(), jar);
+	}
+
+	/**
+	 * This build's runtime class path carries no pre-release but the ones
+	 * {@link #KNOWN_PRE_RELEASES} names with their issue. The libraries come from
+	 * {@code mystic.crypt.ui.runtime.libraries}, which the build fills from
+	 * {@code configurations.runtimeClasspath}: what the application jar is packed from, and so what
+	 * ships, which the test class path is not (#841)
+	 */
+	@Test
+	@DisplayName("the runtime class path carries only the known pre-releases, jaxb-api 2.4.0-b180830.0359 among them (#841)")
+	void theRuntimeClassPath_carriesOnlyTheKnownPreReleases()
+	{
+		List<String> preReleases = ApplicationJarUnderTest.runtimeLibraries().stream()
+			.map(File::getName).filter(name -> PRE_RELEASE.matcher(name).matches()).sorted()
+			.toList();
+
+		assertEquals(KNOWN_PRE_RELEASES, preReleases,
+			"the runtime class path carries other pre-releases than the known ones (#841)");
+	}
+
 	@ParameterizedTest(name = "{0} is at least {1}")
 	@CsvSource({ "jackson-core, 2.22.4", "jackson-databind, 2.22.4", "jackson-annotations, 2.22",
 			"commons-beanutils, 1.11.0", "randomizer, 10.5", "jettison, 1.5.4", "silly-io, 4.0",
