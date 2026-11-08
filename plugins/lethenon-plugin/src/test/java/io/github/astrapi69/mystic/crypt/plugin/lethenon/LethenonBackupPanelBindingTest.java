@@ -45,6 +45,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 import javax.swing.JPanel;
+import javax.swing.JTextArea;
 import javax.swing.text.JTextComponent;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -210,6 +211,53 @@ class LethenonBackupPanelBindingTest
 			texts.toString());
 		assertFalse(texts.stream().anyMatch(text -> text.contains("shown only now")
 			|| text.contains("stored nowhere")), texts.toString());
+	}
+
+	@Test
+	@DisplayName("after \"Create the wallet\" step 1 says which entry the wallet is, that wallet.lethwf is attached and that the vault has to be saved (#818)")
+	void afterCreate_stepOneSaysWhereTheWalletIs()
+	{
+		LethenonBackupPanel panel = assistant();
+
+		panel.startWithNewWallet(vault.create(WalletNetwork.TESTNET, ThrowawayPasswords.next()));
+
+		JTextArea place = Windows.component(panel, "txtWalletPlace", JTextArea.class);
+		String title = vault.wallets().stream().filter(listed -> !listed.id().equals(id))
+			.map(VaultWallet::title).findFirst().orElseThrow();
+		assertTrue(place.isVisible(), "the hint does not show");
+		assertEquals("The wallet is now the entry \"" + title + "\" of the vault, with the sealed "
+			+ "file wallet.lethwf attached. Save the vault to keep it: until then it exists only in "
+			+ "the vault that is open.", place.getText());
+	}
+
+	@Test
+	@DisplayName("the hint after \"Create the wallet\" is German for a German user (#818)")
+	void afterCreate_theHintIsGerman()
+	{
+		LethenonBackupPanel panel = new LethenonBackupPanel(vault, Locale.GERMAN, finished::add);
+
+		panel.startWithNewWallet(vault.create(WalletNetwork.TESTNET, ThrowawayPasswords.next()));
+
+		String text = Windows.component(panel, "txtWalletPlace", JTextArea.class).getText();
+		assertTrue(text.startsWith("Die Wallet ist jetzt der Eintrag \""), text);
+		assertTrue(text.contains("Speichere den Tresor, um sie zu behalten"), text);
+	}
+
+	@Test
+	@DisplayName("a backup on request does not say where the wallet is, also after a created one was cancelled (#818)")
+	void aBackupOnRequest_doesNotShowTheHint()
+	{
+		LethenonBackupPanel panel = assistant();
+		panel.startWithNewWallet(vault.create(WalletNetwork.TESTNET, ThrowawayPasswords.next()));
+		panel.onWordsCancelled();
+
+		panel.startOnRequest(id);
+		panel.getModelObject().setPassword(password.clone());
+		panel.onUnsealConfirmed();
+
+		JTextArea place = Windows.component(panel, "txtWalletPlace", JTextArea.class);
+		assertFalse(place.isVisible(), "the hint of a new wallet shows for an existing one");
+		assertEquals("", place.getText());
 	}
 
 	@Test
