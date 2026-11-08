@@ -182,6 +182,82 @@ class WalletInputTest
 			WalletInput.answers(words, new int[] { 4, 11, 19 }, answers).orElseThrow().text(ENGLISH));
 	}
 
+	static Stream<Arguments> numberedPhrases()
+	{
+		List<String> words = List.of(Wallet.create().phrase().split(" "));
+		return Stream.of(
+			Arguments.of("numbered with a dot, as the backup sheet shows them",
+				numbered(words, "%d. ")),
+			Arguments.of("numbered with a bracket", numbered(words, "%d) ")),
+			Arguments.of("numbered bare and zero-padded", numbered(words, "%02d ")),
+			Arguments.of("numbered with a colon", numbered(words, "%d: ")));
+	}
+
+	/**
+	 * Pins what the words of a restore do with a phrase pasted as people paste it from the backup
+	 * sheet (#802), with lethenon 0.8.0: a number in front of every word is read as a word of its
+	 * own, so the 24 words count as 48. The next commit bumps lethenon to 0.8.1, whose
+	 * {@code SeedPhrase.parse} drops the numbering (lethenon#286), and turns this test
+	 */
+	@ParameterizedTest(name = "{0}")
+	@MethodSource("numberedPhrases")
+	@DisplayName("a phrase pasted with the numbers of a backup sheet is refused as 48 words (#802, pins 0.8.0)")
+	void aNumberedPhrase_isRefusedAsFortyEightWords(final String caseName, final String typed)
+	{
+		assertEquals("A wallet is restored from its 24 words, and you typed 48.",
+			WalletInput.words(typed).orElseThrow().text(ENGLISH));
+	}
+
+	/** Pins 0.8.0 (#802): the comma stays on the word, which is then no word of the list */
+	@Test
+	@DisplayName("a phrase pasted with commas is refused as an unknown word (#802, pins 0.8.0)")
+	void aCommaSeparatedPhrase_isRefusedAsAnUnknownWord()
+	{
+		List<String> words = List.of(Wallet.create().phrase().split(" "));
+
+		assertEquals(
+			"Word 1, \"" + words.get(0) + ",\", is not in the word list. Check your note for a "
+				+ "typing error.",
+			WalletInput.words(String.join(", ", words)).orElseThrow().text(ENGLISH));
+	}
+
+	/** Pins 0.8.0 (#802): the non-breaking space is no space for {@code split("\\s+")} */
+	@Test
+	@DisplayName("a phrase pasted with non-breaking spaces is refused as one word (#802, pins 0.8.0)")
+	void aNonBreakingSpacePhrase_isRefusedAsOneWord()
+	{
+		String phrase = Wallet.create().phrase();
+
+		assertEquals("A wallet is restored from its 24 words, and you typed 1.",
+			WalletInput.words(phrase.replace(' ', ' ')).orElseThrow().text(ENGLISH));
+	}
+
+	/** Pins 0.8.0 (#802): an answer with its number in front is no word of the list */
+	@Test
+	@DisplayName("an answer pasted with its number is refused as unknown (#802, pins 0.8.0)")
+	void anAnswerPastedWithItsNumber_isRefusedAsUnknown()
+	{
+		List<String> words = List.of(Wallet.create().phrase().split(" "));
+
+		assertEquals(
+			"Word 7, \"7. " + words.get(6) + "\", is not in the word list. Check your note for a "
+				+ "typing error.",
+			WalletInput.answers(words, new int[] { 7 }, new String[] { "7. " + words.get(6) })
+				.orElseThrow().text(ENGLISH));
+	}
+
+	/** The words with a number in front of each, as the backup sheet shows them */
+	private static String numbered(final List<String> words, final String format)
+	{
+		StringBuilder phrase = new StringBuilder();
+		for (int position = 1; position <= words.size(); position++)
+		{
+			phrase.append(String.format(Locale.ROOT, format, position))
+				.append(words.get(position - 1)).append(' ');
+		}
+		return phrase.toString().strip();
+	}
+
 	/**
 	 * Swaps neighbouring words until the phrase's checksum fails; a swap can keep it valid by
 	 * chance, one in 256, so the test does not depend on the first one
