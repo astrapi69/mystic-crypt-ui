@@ -27,6 +27,7 @@ package io.github.astrapi69.mystic.crypt.app.file.xml;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -160,5 +161,52 @@ class VaultFileWriterTest
 			"the database was destroyed by a save that could not be written");
 		assertFalse(PasswordVaultFormat.decrypt(vault, MASTER_PASSWORD).isEmpty(),
 			"the database no longer opens after a failed save");
+	}
+
+	/**
+	 * Pins today's behaviour (#847): the move replaces the previous database with nothing kept. The
+	 * fix turns this: the previous bytes stay as a sibling backup until the new file was read back
+	 * once
+	 */
+	@Test
+	@DisplayName("a replaced database leaves no backup behind (pins today, #847)")
+	void aReplacedDatabaseLeavesNoBackup(@TempDir File directory) throws Exception
+	{
+		File vault = new File(directory, "no-backup.mcrdb");
+		Files.write(vault.toPath(), "the previous database".getBytes(StandardCharsets.UTF_8));
+
+		VaultFileWriter.write(vault, "the new database".getBytes(StandardCharsets.UTF_8));
+
+		assertFalse(new File(directory, "no-backup.mcrdb.bak").exists(),
+			"no backup exists today; the #847 fix turns this assertion");
+		assertEquals(1, directory.list().length,
+			"nothing but the database itself: " + String.join(", ", directory.list()));
+	}
+
+	/**
+	 * Pins today's behaviour (#847): a successful open leaves a sibling backup file as it is,
+	 * because nothing knows backups yet. The fix turns this: the first successful read removes it,
+	 * since a read is the proof the new file is good
+	 */
+	@Test
+	@DisplayName("a successful open leaves a sibling backup file as it is (pins today, #847)")
+	void aSuccessfulOpenLeavesABackupFile(@TempDir File directory) throws Exception
+	{
+		File vault = new File(directory, "opened.mcrdb");
+		MasterPwFileModelBean credentials = MasterPwFileModelBean.builder()
+			.applicationFileInfo(FileInfo.toFileInfo(vault))
+			.selectedApplicationFilePath(vault.getAbsolutePath())
+			.masterPw(MASTER_PASSWORD.toCharArray()).withMasterPw(true).withKeyFile(false)
+			.minPasswordLength(6).build();
+		ApplicationXmlFileFactory.newApplicationFileWithPassword(credentials);
+		File backup = new File(directory, "opened.mcrdb.bak");
+		byte[] previous = "the previous database, kept as the backup"
+			.getBytes(StandardCharsets.UTF_8);
+		Files.write(backup.toPath(), previous);
+
+		assertNotNull(ApplicationXmlFileReader.read(credentials));
+
+		assertTrue(backup.exists(), "the backup stays today; the #847 fix turns this assertion");
+		assertArrayEquals(previous, Files.readAllBytes(backup.toPath()));
 	}
 }
