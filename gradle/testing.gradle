@@ -133,6 +133,12 @@ test {
         // and the test key VaultsOfEightWithAKeyFileSignInUiTest signs in with, by its path (#650)
         inputs.file('src/test/resources/pem/private.pem').withPropertyName('testKeyFile')
             .withPathSensitivity(PathSensitivity.NONE)
+        // and the internal plugins' zips, which the suites install by their path
+        // (plugins/<name>/build/plugin-dist): undeclared, a pull request that changed only a plugin
+        // got the suites' earlier results back from the cache, green, and the plugin was never run
+        // end to end (#836). Read as archives, so a zip rebuilt with the same content keeps the key
+        inputs.files(fileTree('plugins') { include '*/build/plugin-dist/*.zip' })
+            .withPropertyName('pluginZips').withNormalizer(ClasspathNormalizer)
         // the AssertJ-Swing UI tests drive a process-wide singleton (MysticCryptApplicationFrame) and
         // register listeners on the static ApplicationEventBus; run each test class in its own fresh
         // JVM so that static/singleton state from one class cannot contaminate the next - this is
