@@ -27,6 +27,7 @@ package io.github.astrapi69.mystic.crypt.app.file.xml;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -160,5 +161,86 @@ class VaultFileWriterTest
 			"the database was destroyed by a save that could not be written");
 		assertFalse(PasswordVaultFormat.decrypt(vault, MASTER_PASSWORD).isEmpty(),
 			"the database no longer opens after a failed save");
+	}
+
+	/**
+	 * The previous database survives its replacement as the sibling backup (#847): when the new
+	 * file turns out unreadable later, the previous state is still there
+	 */
+	@Test
+	@DisplayName("a replaced database keeps its previous bytes as the sibling backup (#847)")
+	void aReplacedDatabaseKeepsItsBackup(@TempDir File directory) throws Exception
+	{
+		File vault = new File(directory, "no-backup.mcrdb");
+		byte[] previous = "the previous database".getBytes(StandardCharsets.UTF_8);
+		Files.write(vault.toPath(), previous);
+		byte[] fresh = "the new database".getBytes(StandardCharsets.UTF_8);
+
+		VaultFileWriter.write(vault, fresh);
+
+		assertArrayEquals(fresh, Files.readAllBytes(vault.toPath()));
+		assertArrayEquals(previous,
+			Files.readAllBytes(new File(directory, "no-backup.mcrdb.bak").toPath()),
+			"the backup holds exactly the previous bytes (#847)");
+		assertEquals(2, directory.list().length,
+			"the database and its backup, nothing else: " + String.join(", ", directory.list()));
+	}
+
+	/**
+	 * The first successful read removes the backup, since a read is the proof the new file is good,
+	 * and a second copy of the encrypted data does not stay longer than needed (#847); a read
+	 * without a backup has nothing to do and does not fail
+	 */
+	@Test
+	@DisplayName("the first successful open removes the backup (#847)")
+	void aSuccessfulOpenRemovesTheBackup(@TempDir File directory) throws Exception
+	{
+		File vault = new File(directory, "opened.mcrdb");
+		MasterPwFileModelBean credentials = MasterPwFileModelBean.builder()
+			.applicationFileInfo(FileInfo.toFileInfo(vault))
+			.selectedApplicationFilePath(vault.getAbsolutePath())
+			.masterPw(MASTER_PASSWORD.toCharArray()).withMasterPw(true).withKeyFile(false)
+			.minPasswordLength(6).build();
+		ApplicationXmlFileFactory.newApplicationFileWithPassword(credentials);
+		File backup = new File(directory, "opened.mcrdb.bak");
+		Files.write(backup.toPath(),
+			"the previous database, kept as the backup".getBytes(StandardCharsets.UTF_8));
+
+		assertNotNull(ApplicationXmlFileReader.read(credentials));
+
+		assertFalse(backup.exists(), "the first successful read removes the backup (#847)");
+		assertNotNull(ApplicationXmlFileReader.read(credentials),
+			"a read without a backup has nothing to do and does not fail");
+	}
+
+	/**
+	 * A failed open never reaches the point that removes the backup, so the backup stays as the way
+	 * back (#847)
+	 */
+	@Test
+	@DisplayName("a failed open leaves the backup as the way back (#847)")
+	void aFailedOpenLeavesTheBackup(@TempDir File directory) throws Exception
+	{
+		File vault = new File(directory, "failed-open.mcrdb");
+		MasterPwFileModelBean credentials = MasterPwFileModelBean.builder()
+			.applicationFileInfo(FileInfo.toFileInfo(vault))
+			.selectedApplicationFilePath(vault.getAbsolutePath())
+			.masterPw(MASTER_PASSWORD.toCharArray()).withMasterPw(true).withKeyFile(false)
+			.minPasswordLength(6).build();
+		ApplicationXmlFileFactory.newApplicationFileWithPassword(credentials);
+		File backup = new File(directory, "failed-open.mcrdb.bak");
+		byte[] previous = "the previous database, kept as the backup"
+			.getBytes(StandardCharsets.UTF_8);
+		Files.write(backup.toPath(), previous);
+		MasterPwFileModelBean wrong = MasterPwFileModelBean.builder()
+			.applicationFileInfo(FileInfo.toFileInfo(vault))
+			.selectedApplicationFilePath(vault.getAbsolutePath())
+			.masterPw(("not-" + MASTER_PASSWORD).toCharArray()).withMasterPw(true)
+			.withKeyFile(false).minPasswordLength(6).build();
+
+		assertThrows(Exception.class, () -> ApplicationXmlFileReader.read(wrong));
+
+		assertArrayEquals(previous, Files.readAllBytes(backup.toPath()),
+			"a failed open must leave the backup as the way back (#847)");
 	}
 }

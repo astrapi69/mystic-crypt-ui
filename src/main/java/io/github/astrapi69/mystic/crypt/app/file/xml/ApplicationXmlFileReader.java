@@ -67,15 +67,48 @@ public class ApplicationXmlFileReader
 	{
 		PasswordType passwordType = PasswordType.resolve(modelObject.isWithMasterPw(),
 			modelObject.isWithKeyFile());
+		ApplicationModelBean applicationModelBean;
 		if (passwordType.equals(PasswordType.PASSWORD_WITH_PRIVATE_KEY))
 		{
-			return readApplicationFileWithPasswordAndPrivateKey(modelObject);
+			applicationModelBean = readApplicationFileWithPasswordAndPrivateKey(modelObject);
 		}
 		else if (passwordType.equals(PasswordType.PASSWORD))
 		{
-			return readApplicationFileWithPassword(modelObject);
+			applicationModelBean = readApplicationFileWithPassword(modelObject);
 		}
-		return readApplicationFileWithPrivateKey(modelObject);
+		else
+		{
+			applicationModelBean = readApplicationFileWithPrivateKey(modelObject);
+		}
+		discardTheBackup(modelObject);
+		return applicationModelBean;
+	}
+
+	/**
+	 * Removes the backup a save kept, now that the file it guards was read back successfully: the
+	 * read is the proof the new file is good (#847). A failed open never reaches this, so its
+	 * backup stays as the way back. A backup that cannot be removed is logged and does not fail the
+	 * open
+	 *
+	 * @param modelObject
+	 *            the credentials the file was opened with
+	 */
+	private static void discardTheBackup(final MasterPwFileModelBean modelObject)
+	{
+		File applicationFile = FileFactory.newFileQuietly(modelObject.getApplicationFileInfo());
+		if (applicationFile == null)
+		{
+			return;
+		}
+		try
+		{
+			VaultFileWriter.discardBackup(applicationFile);
+		}
+		catch (IOException couldNotRemove)
+		{
+			log.log(Level.WARNING, "the backup of " + applicationFile + " stays: "
+				+ couldNotRemove.getLocalizedMessage(), couldNotRemove);
+		}
 	}
 
 	/**

@@ -28,6 +28,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.io.File;
+import java.nio.file.Files;
 import java.security.PrivateKey;
 import java.security.Security;
 
@@ -106,6 +107,10 @@ class ApplicationXmlFileWithPasswordAndKeyFactoryTest
 	void tearDown()
 	{
 		RuntimeExceptionDecorator.decorate(() -> DeleteFileExtensions.delete(applicationFile));
+		// the backup a save keeps beside the file it replaced (#847): these tests work in
+		// src/test/resources, so what a save leaves there has to go with the file
+		RuntimeExceptionDecorator.decorate(
+			() -> Files.deleteIfExists(VaultFileWriter.backupOf(applicationFile.toPath())));
 		RuntimeExceptionDecorator
 			.decorate(() -> DeleteFileExtensions.delete(decryptedApplicationFile));
 		selectedApplicationFilePath = null;
