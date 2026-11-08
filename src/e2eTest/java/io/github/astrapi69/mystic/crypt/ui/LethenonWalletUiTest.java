@@ -106,9 +106,10 @@ class LethenonWalletUiTest extends AbstractUiTest
 		assertTrue(textOf(tool, "txtBackupNotice").startsWith("Your backup is not checked yet"),
 			"the overview says the backup is not checked: " + textOf(tool, "txtBackupNotice"));
 		assertEquals("TESTNET", labelOf(tool, "lblNetworkBadge"));
-		assertTrue(textOf(tool, "txtBalanceExact").startsWith("No chain yet"),
-			"without a chain file the overview says so instead of a balance (#700): "
-				+ textOf(tool, "txtBalanceExact"));
+		assertEquals("No chain yet", labelOf(tool, "lblNoChainTitle"),
+			"without a chain file the overview says so instead of a balance (#700, #827)");
+		assertTrue(tool.button("btnFetchChain").target().isShowing(),
+			"the overview offers to fetch the chain (#827)");
 
 		application.openPluginTool("Send LETH", "Send LETH");
 		JInternalFrameFixture send = new JInternalFrameFixture(robot,

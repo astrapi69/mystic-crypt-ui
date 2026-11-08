@@ -167,6 +167,7 @@ final class FailureView extends JPanel
 			getParent().revalidate();
 			getParent().repaint();
 		}
+		WindowFit.growToShow(this);
 	}
 
 	private String text(final String key, final String defaultValue)
