@@ -41,6 +41,7 @@ import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JPanel;
+import javax.swing.JTextArea;
 
 import io.github.astrapi69.lethenon.Amount;
 import io.github.astrapi69.lethenon.ChainRejected;
@@ -162,6 +163,9 @@ public class LethenonSendPanel extends JPanel
 			"how many transfers wait for the next block now, yours included"));
 
 	private final JLabel lblResult = new JLabel(" ");
+
+	/** What the answer will show, in its place until there is one (draft 06, #816) */
+	private final JTextArea txtAnswerToCome = LethenonWalletPanel.message("txtAnswerToCome", false);
 
 	/** Where a failure shows, in the pattern of draft 07 (#710, #712) */
 	private final transient FailureView failureView;
@@ -579,6 +583,11 @@ public class LethenonSendPanel extends JPanel
 
 	private void layOutTheAnswer()
 	{
+		txtAnswerToCome.setText(text("lethenon.send.answer.to.come",
+			"After sending, this shows what went out and what still waits."));
+		txtAnswerToCome.setToolTipText(text("lethenon.send.tooltip.answer.to.come",
+			"the answer appears here once a transfer was signed"));
+		add(txtAnswerToCome, ToolForm.WIDE + ", wmin 0");
 		add(txtAnswer, ToolForm.WIDE + ", wmin 0");
 		add(new JLabel(text("lethenon.send.label.sent.amount", "Amount:")));
 		add(txtSentAmount, ToolForm.FIELD);
@@ -637,17 +646,19 @@ public class LethenonSendPanel extends JPanel
 	}
 
 	/**
-	 * Shows the answer only while the window holds one, a transfer that was signed: before the first
-	 * send and after a status without a transfer there is nothing to show (G3, draft 06, #816). The
-	 * details stay as they were opened or closed. Runs after the failure view gave the answer back,
-	 * which restores what showed before the failure
+	 * Shows the answer only while the window holds one, a transfer that was signed; before the first
+	 * send and after a status without a transfer a sentence says what will show there instead of
+	 * empty fields (G3, draft 06, #816). The details stay as they were opened or closed. Runs after
+	 * the failure view gave the answer back, which restores what showed before the failure
 	 */
 	private void showTheAnswerOnlyWithAnAnswer()
 	{
 		boolean answered = !modelObject.getAnswer().isBlank();
 		for (Component component : answerComponents)
 		{
-			component.setVisible(answered && (component != pnlDetails || modelObject.isDetailsShown()));
+			component.setVisible(component == txtAnswerToCome
+				? !answered
+				: answered && (component != pnlDetails || modelObject.isDetailsShown()));
 		}
 		revalidate();
 	}

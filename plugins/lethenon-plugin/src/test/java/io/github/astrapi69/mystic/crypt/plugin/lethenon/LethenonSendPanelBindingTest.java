@@ -292,13 +292,21 @@ class LethenonSendPanelBindingTest
 			&& component(panel, name, Component.class).getParent().isVisible());
 	}
 
+	private static boolean theAnswerToComeShows(final LethenonSendPanel panel)
+	{
+		return component(panel, "txtAnswerToCome", Component.class).isVisible();
+	}
+
 	@Test
-	@DisplayName("before the first send no answer shows (#816)")
+	@DisplayName("before the first send no answer shows, and a sentence says what will show there (#816, draft 06)")
 	void beforeTheFirstSend_noAnswerShows()
 	{
 		LethenonSendPanel panel = new LethenonSendPanel();
 
 		assertFalse(anyAnswerShows(panel), "empty answer fields show before the first send");
+		assertTrue(theAnswerToComeShows(panel), "nothing says what will show");
+		assertEquals("After sending, this shows what went out and what still waits.",
+			textOf(panel, "txtAnswerToCome"));
 	}
 
 	@Test
@@ -329,6 +337,7 @@ class LethenonSendPanelBindingTest
 		panel.onSend();
 
 		assertFalse(anyAnswerShows(panel), "the earlier answer shows next to the failure");
+		assertFalse(theAnswerToComeShows(panel), "the sentence shows next to the failure");
 	}
 
 	@Test
@@ -340,6 +349,7 @@ class LethenonSendPanelBindingTest
 		panel.onSend();
 
 		assertTrue(anyAnswerShows(panel), "a signed transfer shows no answer");
+		assertFalse(theAnswerToComeShows(panel), "the sentence stays next to the answer");
 	}
 
 	@Test
