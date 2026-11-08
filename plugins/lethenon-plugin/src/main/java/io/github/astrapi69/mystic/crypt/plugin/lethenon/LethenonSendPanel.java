@@ -72,7 +72,9 @@ import io.github.astrapi69.swing.model.component.JMTextField;
  * It answers in fields a child can read (#604): first one sentence in a larger font, "Sent:
  * 12.50000000 LETH to the account you named. It counts once the next block is mined.", then the
  * amount, the fee, the recipient and where the transfer waits. The transfer's number from the
- * account and how many transfers wait are behind "Show details", closed at first.
+ * account and how many transfers wait are behind "Show details", closed at first. The answer shows
+ * only once a transfer was signed: before the first send, after a failure and after a status
+ * without a transfer the window shows no empty answer fields (#816).
  */
 public class LethenonSendPanel extends JPanel
 {
@@ -164,6 +166,9 @@ public class LethenonSendPanel extends JPanel
 	/** Where a failure shows, in the pattern of draft 07 (#710, #712) */
 	private final transient FailureView failureView;
 
+	/** The components of the answer, shown only once a transfer was signed (G3, #816) */
+	private final transient List<Component> answerComponents;
+
 	/**
 	 * Instantiates a new {@link LethenonSendPanel}, prefilled with the chain file from the plugin's
 	 * settings
@@ -218,10 +223,12 @@ public class LethenonSendPanel extends JPanel
 		layOutTheInputs();
 		int answerStarts = getComponentCount();
 		layOutTheAnswer();
-		failureView = FailureView.below(this,
-			List.of(getComponents()).subList(answerStarts, getComponentCount()), locale);
+		answerComponents = List
+			.copyOf(List.of(getComponents()).subList(answerStarts, getComponentCount()));
+		failureView = FailureView.below(this, answerComponents, locale);
 		add(lblResult, ToolForm.RESULT_LINE);
 		pnlDetails.setVisible(false);
+		showTheAnswerOnlyWithAnAnswer();
 		txtChainFile.setText(LethenonSettingsContribution.chainFile());
 		txtWalletFile.setText(LethenonSettingsContribution.walletFile());
 		txtNode.setText(LethenonSettingsContribution.node());
@@ -626,5 +633,22 @@ public class LethenonSendPanel extends JPanel
 		failureView.clear();
 		modelObject.setResultText(text);
 		lblResult.setText(text);
+		showTheAnswerOnlyWithAnAnswer();
+	}
+
+	/**
+	 * Shows the answer only while the window holds one, a transfer that was signed: before the first
+	 * send and after a status without a transfer there is nothing to show (G3, draft 06, #816). The
+	 * details stay as they were opened or closed. Runs after the failure view gave the answer back,
+	 * which restores what showed before the failure
+	 */
+	private void showTheAnswerOnlyWithAnAnswer()
+	{
+		boolean answered = !modelObject.getAnswer().isBlank();
+		for (Component component : answerComponents)
+		{
+			component.setVisible(answered && (component != pnlDetails || modelObject.isDetailsShown()));
+		}
+		revalidate();
 	}
 }

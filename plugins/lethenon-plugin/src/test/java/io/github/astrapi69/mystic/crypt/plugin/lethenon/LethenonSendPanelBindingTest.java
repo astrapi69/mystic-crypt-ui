@@ -293,13 +293,42 @@ class LethenonSendPanelBindingTest
 	}
 
 	@Test
-	@DisplayName("before the first send the answer fields show, empty (pinned, #816)")
-	void beforeTheFirstSend_theAnswerFieldsShowEmpty()
+	@DisplayName("before the first send no answer shows (#816)")
+	void beforeTheFirstSend_noAnswerShows()
 	{
 		LethenonSendPanel panel = new LethenonSendPanel();
 
-		assertTrue(anyAnswerShows(panel), "the answer is hidden before the first send");
-		assertEquals("", textOf(panel, "txtSentAmount"));
+		assertFalse(anyAnswerShows(panel), "empty answer fields show before the first send");
+	}
+
+	@Test
+	@DisplayName("a failure, then a signed transfer: the answer shows (#816)")
+	void aFailureThenASignedTransfer_showsTheAnswer() throws Exception
+	{
+		LethenonSendPanel panel = filledPanel("not the password at all", "1");
+		panel.onSend();
+		assertFalse(anyAnswerShows(panel), "an answer shows after the failure");
+		panel.getModelObject().setPassword(PASSWORD.toCharArray());
+
+		panel.onSend();
+
+		assertTrue(anyAnswerShows(panel), "the signed transfer shows no answer after a failure");
+		assertFalse(component(panel, "pnlDetails", JPanel.class).isVisible(),
+			"the details opened on their own");
+	}
+
+	@Test
+	@DisplayName("a signed transfer, then a failure: no answer shows (#816)")
+	void aSignedTransferThenAFailure_showsNoAnswer() throws Exception
+	{
+		LethenonSendPanel panel = filledPanel(PASSWORD, "1");
+		panel.onSend();
+		panel.getModelObject().setAmount("300");
+		panel.getModelObject().setPassword(PASSWORD.toCharArray());
+
+		panel.onSend();
+
+		assertFalse(anyAnswerShows(panel), "the earlier answer shows next to the failure");
 	}
 
 	@Test
