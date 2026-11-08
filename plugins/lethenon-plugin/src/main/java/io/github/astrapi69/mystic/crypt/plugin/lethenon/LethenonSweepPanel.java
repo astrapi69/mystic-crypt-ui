@@ -185,10 +185,7 @@ public class LethenonSweepPanel extends JPanel
 		walletRow = new WalletRow(vault, locale, txtWalletFile,
 			() -> LethenonSwing.chooseFile(this, modelObject.getWalletFile())
 				.ifPresent(txtWalletFile::setText));
-		modelObject.setCostStatement(text("lethenon.sweep.cost",
-			"Sweeping signs one transfer per one-time destination, from that destination to this "
-				+ "wallet's account, so the chain then shows those destinations and the account "
-				+ "together. Receiving is unlinkable; spending is the moment that ends."));
+		modelObject.setCostStatement(costStatement(locale));
 		btnDetails = LethenonSwing.button("btnDetails",
 			AnswerFields.detailsButtonText(false, locale), event -> onDetails(),
 			text("lethenon.sweep.tooltip.details",
@@ -319,6 +316,38 @@ public class LethenonSweepPanel extends JPanel
 			? text("lethenon.sweep.result.signed",
 				"the sweep was signed and waits next to the chain file")
 			: text("lethenon.sweep.result.handed", "the sweep was signed and handed to the node");
+	}
+
+	/**
+	 * What a sweep costs, in one short sentence on the screen before anything is signed (#604); the
+	 * overview's "Take over" shows it too (#831)
+	 *
+	 * @param locale
+	 *            the language of the window
+	 * @return the sentence
+	 */
+	static String warning(final Locale locale)
+	{
+		return LethenonMessages.getString("lethenon.sweep.warning",
+			"Careful: after a sweep, anyone who reads the chain can see that these payments belong "
+				+ "to you.",
+			locale);
+	}
+
+	/**
+	 * Why a sweep costs what {@link #warning(Locale)} says, the whole statement behind it
+	 *
+	 * @param locale
+	 *            the language of the window
+	 * @return the statement
+	 */
+	static String costStatement(final Locale locale)
+	{
+		return LethenonMessages.getString("lethenon.sweep.cost",
+			"Sweeping signs one transfer per one-time destination, from that destination to this "
+				+ "wallet's account, so the chain then shows those destinations and the account "
+				+ "together. Receiving is unlinkable; spending is the moment that ends.",
+			locale);
 	}
 
 	private static Amount feeOf(final String fee)
@@ -504,9 +533,7 @@ public class LethenonSweepPanel extends JPanel
 		txtFee.setText(modelObject.getFee());
 		txtMemo.setPropertyModel(LambdaModel.of(modelObject::getMemo, modelObject::setMemo));
 		txtMemo.setText(modelObject.getMemo());
-		txtCost.setText(text("lethenon.sweep.warning",
-			"Careful: after a sweep, anyone who reads the chain can see that these payments belong "
-				+ "to you."));
+		txtCost.setText(warning(locale));
 		AnswerFields.show(txtAnswer, modelObject::getAnswer);
 		AnswerFields.show(txtSwept, modelObject::getSwept);
 		AnswerFields.show(txtPayments, modelObject::getPayments);

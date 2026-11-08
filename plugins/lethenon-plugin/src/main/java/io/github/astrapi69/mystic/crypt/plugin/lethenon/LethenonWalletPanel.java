@@ -33,6 +33,7 @@ import java.nio.file.Path;
 import java.nio.file.Files;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
@@ -54,6 +55,7 @@ import javax.swing.JTextArea;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 
+import io.github.astrapi69.lethenon.Amount;
 import io.github.astrapi69.model.LambdaModel;
 import io.github.astrapi69.mystic.crypt.plugin.api.VaultAccessRefusedException;
 import io.github.astrapi69.mystic.crypt.ui.form.ToolForm;
@@ -130,6 +132,9 @@ public class LethenonWalletPanel extends JPanel
 
 	/** "Check incoming payments", shown only while there is a chain to check */
 	private JPanel pnlCheckIncoming;
+
+	/** "Take over", shown only while the check found payments not yet taken over (#831) */
+	private JPanel pnlTakeOver;
 
 	/** Where the chain is replayed and scanned, off the event dispatch thread in the application */
 	private final transient Executor background;
@@ -211,6 +216,7 @@ public class LethenonWalletPanel extends JPanel
 		pnlViews.add(takeOverView(), WalletView.TAKE_OVER.name());
 		pnlViews.add(restoreView(), WalletView.RESTORE.name());
 		pnlViews.add(incomingView(), WalletView.INCOMING.name());
+		pnlViews.add(sweepIncomingView(), WalletView.SWEEP_INCOMING.name());
 		add(pnlViews, "wmin 0");
 		add(messages(), "wmin 0");
 		vault.whenClosing(this::onVaultClosing);
@@ -545,6 +551,75 @@ public class LethenonWalletPanel extends JPanel
 		modelObject.setBalanceExact(exact);
 		lblBalance.setText(rounded);
 		txtBalanceExact.setText(exact);
+		pnlTakeOver.setVisible(paymentsToTakeOver());
+	}
+
+	/**
+	 * Whether the check found payments to the address that are not yet taken over, on a chain
+	 * whose balance could be read
+	 */
+	private boolean paymentsToTakeOver()
+	{
+		return balance != null && incoming != null && incoming.total().compareTo(Amount.ZERO) > 0;
+	}
+
+	/** Opens the wallet password for taking the incoming payments over (#831) */
+	void onTakeOverIncoming()
+	{
+		show(WalletView.SWEEP_INCOMING);
+	}
+
+	/**
+	 * Takes the incoming payments over (#831): sweeps them onto the wallet's account with the
+	 * wallet of the vault, as the sweep window does, without a fee and with its memo. The wallet is
+	 * unsealed for this sweep only and the password is overwritten; the overview then says where
+	 * the sweep waits, and reads the balance again
+	 */
+	void onTakeOverIncomingConfirmed()
+	{
+		Optional<Path> chainFile = configuredChain();
+		VaultWallet chosen = modelObject.getChosen();
+		if (chainFile.isEmpty() || chosen == null)
+		{
+			refuse(text("lethenon.wallet.balance.no.chain",
+				"No chain yet: the balance is read from your chain file. Fetch it with "
+					+ "\"Synchronise with a Node\", then it shows here."));
+			return;
+		}
+		char[] password = modelObject.getPassword().clone();
+		clearPasswordFields();
+		SweepOrder order = new SweepOrder(chainFile.get(), null, "",
+			LethenonSweepPanelModel.DEFAULT_MEMO);
+		background.execute(() -> {
+			try
+			{
+				SweptPayments swept = SweepSupport.sweep(order,
+					() -> vault.open(chosen.id(), password).wallet());
+				ui.execute(() -> tookOver(swept, chosen));
+			}
+			catch (final SecurityException wrongPassword)
+			{
+				ui.execute(() -> refuse(text("lethenon.backup.unseal.refused",
+					"This password does not open the wallet. Type the wallet password again.")));
+			}
+			catch (final IOException | RuntimeException refused)
+			{
+				ui.execute(() -> refuse(LethenonMessages.format("lethenon.wallet.take.over.failed",
+					"Nothing was taken over: {0}", locale, refused.getMessage())));
+			}
+			finally
+			{
+				Arrays.fill(password, '\0');
+			}
+		});
+	}
+
+	private void tookOver(final SweptPayments swept, final VaultWallet chosen)
+	{
+		incoming = null;
+		show(WalletView.OVERVIEW);
+		readTheBalance(chosen);
+		notice(LethenonSweepPanel.answerFor(swept, "", locale));
 	}
 
 	/** Opens the wallet password for the check of the one-time payments */
@@ -712,6 +787,14 @@ public class LethenonWalletPanel extends JPanel
 			"the exact balance, and whether payments to your address were checked"));
 		view.add(lblBalance, ToolForm.WIDE + ", gaptop 6, hidemode 3");
 		view.add(txtBalanceExact, ToolForm.WIDE + ", wmin 0, hidemode 3");
+		pnlTakeOver = ToolForm.buttons(LethenonSwing.button("btnTakeOverIncoming",
+			text("lethenon.wallet.button.take.over.incoming", "Take over"),
+			event -> onTakeOverIncoming(),
+			text("lethenon.wallet.tooltip.take.over.incoming",
+				"move the payments to your address onto your account; the wallet password signs "
+					+ "the transfers")));
+		pnlTakeOver.setVisible(false);
+		view.add(pnlTakeOver, ToolForm.BUTTON_ROW + ", hidemode 3");
 		pnlNoChain = noChainBlock();
 		view.add(pnlNoChain, ToolForm.WIDE + ", wmin 0, gaptop 6, hidemode 3");
 		pnlCheckIncoming = ToolForm.buttons(LethenonSwing.button("btnCheckIncoming",
@@ -794,6 +877,7 @@ public class LethenonWalletPanel extends JPanel
 	{
 		lblBalance.setVisible(thereIsAChain);
 		txtBalanceExact.setVisible(thereIsAChain);
+		pnlTakeOver.setVisible(thereIsAChain && paymentsToTakeOver());
 		pnlCheckIncoming.setVisible(thereIsAChain);
 		pnlNoChain.setVisible(!thereIsAChain);
 		txtFetchNode.setText(thereIsAChain ? "" : nodeOfTheSettings());
@@ -953,6 +1037,38 @@ public class LethenonWalletPanel extends JPanel
 				text("lethenon.wallet.tooltip.take.over.confirmed",
 					"open the file with its password and copy it, sealed, into the vault")),
 			cancelButton("btnTakeOverCancelled")), ToolForm.BUTTON_ROW);
+		return view;
+	}
+
+	/**
+	 * The wallet password for taking the incoming payments over, with what a sweep costs before
+	 * anything is signed, as in the sweep window (#604, #831)
+	 */
+	private JPanel sweepIncomingView()
+	{
+		JPanel view = new JPanel(ToolForm.newLayout());
+		view.add(title("lblSweepIncomingTitle", "lethenon.wallet.take.over.incoming.title",
+			"Take the incoming payments over"), ToolForm.WIDE);
+		view.add(ToolForm.intro(text("lethenon.wallet.take.over.incoming.text",
+			"Each payment to your address moves onto your account with a transfer of its own, "
+				+ "without a fee. The wallet password signs them; nothing of it is kept.")),
+			ToolForm.INTRO_ROW);
+		JTextArea warning = message("txtSweepIncomingWarning", true);
+		warning.setText(LethenonSweepPanel.warning(locale));
+		warning.setToolTipText(LethenonSweepPanel.costStatement(locale));
+		view.add(warning, ToolForm.WIDE + ", wmin 0");
+		view.add(new JLabel(text("lethenon.wallet.label.password", "Wallet password:")));
+		view.add(passwordField("txtSweepIncomingPassword", false,
+			text("lethenon.backup.tooltip.unseal.password",
+				"the password this wallet is sealed with in the vault")),
+			ToolForm.FIELD);
+		view.add(ToolForm.buttons(
+			LethenonSwing.button("btnTakeOverIncomingConfirmed",
+				text("lethenon.wallet.button.take.over.incoming.confirmed", "Take over"),
+				event -> onTakeOverIncomingConfirmed(),
+				text("lethenon.wallet.tooltip.take.over.incoming.confirmed",
+					"sign one transfer for each payment to your address, onto your account")),
+			cancelButton("btnTakeOverIncomingCancelled")), ToolForm.BUTTON_ROW);
 		return view;
 	}
 
