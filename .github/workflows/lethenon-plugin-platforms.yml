@@ -13,6 +13,8 @@ on:
       - 'plugins/lethenon-plugin/**'
       # the library versions, and the version of the own-display plugin (#741)
       - 'gradle/libs.versions.toml'
+      # the wrapper, which downloads Gradle in every job of this workflow (#825)
+      - 'gradle/wrapper/**'
       - '.github/workflows/lethenon-plugin-platforms.yml'
   workflow_dispatch:
 
