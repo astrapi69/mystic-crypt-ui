@@ -37,6 +37,7 @@ import java.util.concurrent.TimeUnit;
 
 import javax.swing.JLabel;
 import javax.swing.SwingUtilities;
+import javax.swing.text.JTextComponent;
 
 import org.assertj.swing.edt.GuiActionRunner;
 import org.assertj.swing.finder.JOptionPaneFinder;
@@ -47,7 +48,10 @@ import org.assertj.swing.timing.Pause;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import io.github.astrapi69.lethenon.BlockBody;
+import io.github.astrapi69.lethenon.ChainFile;
 import io.github.astrapi69.lethenon.Wallet;
+import io.github.astrapi69.lethenon.transport.Node;
 import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
 import io.github.astrapi69.mystic.crypt.TestPasswords;
 import io.github.astrapi69.mystic.crypt.panel.dbtree.MysticCryptEntryModelBean;
@@ -161,6 +165,106 @@ class LethenonWalletUiTest extends AbstractUiTest
 		assertEquals(wallet.address().toText(), textOf(tool, "txtAddress"),
 			"the overview shows the restored wallet's address");
 		assertEquals(1, walletsOfTheVault().size(), "the restored wallet is an entry of the vault");
+	}
+
+	/**
+	 * A5 of #804 through the installed plugin (#845): a sync through the plugin is what the
+	 * overview's line names, with the age of the chain's last block beside it (#840), and the
+	 * payment that came to the published address is taken over from the overview with the wallet of
+	 * the vault (#834). No node of this program serves the chain file, so the sweep waits next to
+	 * it
+	 */
+	@Test
+	@DisplayName("after a sync through the plugin the overview says when it was synced and how old the last block is, and \"Take over\" sweeps what came to the published address (#831)")
+	void afterASync_theOverviewSaysHowCurrentItIs_andTakesTheIncomingPaymentOver() throws Exception
+	{
+		installPluginRequiringItBuilt(LETHENON_ZIP);
+		Wallet wallet = Wallet.create();
+		List<BlockBody> served = new ChainFile(
+			LethenonTestChains.payingTheWallet(wallet, tempHome).toPath()).require();
+		File chainFile = new File(tempHome, "synced.lethenon");
+		File databaseFile = new File(tempHome, "lethenon-wallet-take-over.mcrdb");
+		createDatabaseFileHeadless(databaseFile, MASTER_PASSWORD);
+		try (Node node = Node.on(served))
+		{
+			int port = node.listen(0);
+			application = signInWithExistingDatabase(databaseFile, MASTER_PASSWORD);
+			application.showMainFrame();
+			syncThroughThePlugin(chainFile, port);
+			application.openPluginTool("Wallet", "Wallet");
+			JInternalFrameFixture tool = new JInternalFrameFixture(robot,
+				application.internalFrame("Wallet"));
+			String walletPassword = restore(tool, wallet);
+
+			Pause.pause(shown(tool, "txtChainState"), 20000);
+			assertTrue(
+				textOf(tool, "txtChainState")
+					.matches("Synced: today \\d\\d:\\d\\d, last block: \\d+ days ago"),
+				"the line names the sync this program did and the age of the last block: "
+					+ textOf(tool, "txtChainState"));
+
+			click(tool, "btnCheckIncoming");
+			GuiActionRunner.execute(
+				() -> tool.textBox("txtIncomingPassword").target().setText(walletPassword));
+			click(tool, "btnCheckIncomingConfirmed");
+			Pause.pause(containing(tool, "txtBalanceExact", "is not yet taken over"), 20000);
+			assertTrue(
+				GuiActionRunner
+					.execute(() -> tool.button("btnTakeOverIncoming").target().isShowing()),
+				"the payment to the published address can be taken over from the overview");
+
+			click(tool, "btnTakeOverIncoming");
+			GuiActionRunner.execute(
+				() -> tool.textBox("txtSweepIncomingPassword").target().setText(walletPassword));
+			click(tool, "btnTakeOverIncomingConfirmed");
+			Pause.pause(containing(tool, "txtNotice", "Swept:"), 20000);
+
+			assertEquals(
+				"Swept: 5.00000000 LETH from 1 payment onto your account. It waits next "
+					+ "to the chain file until a miner that reads this file mines a block.",
+				textOf(tool, "txtNotice"));
+			assertEquals(1, new ChainFile(chainFile.toPath()).readPending().size(),
+				"the sweep waits in the synced chain file");
+			Pause.pause(containing(tool, "txtBalanceExact", "without unchecked incoming payments"),
+				20000);
+			assertEquals("exactly 3.00000000 LETH, without unchecked incoming payments",
+				textOf(tool, "txtBalanceExact"));
+		}
+	}
+
+	/** Brings a new chain file up to the node's tip through the plugin's sync window */
+	private void syncThroughThePlugin(final File chainFile, final int port)
+	{
+		application.openPluginTool("Synchronise with a Node", "Synchronise with a Node");
+		JInternalFrameFixture sync = new JInternalFrameFixture(robot,
+			application.internalFrame("Synchronise with a Node"));
+		GuiActionRunner.execute(() -> {
+			sync.textBox("txtChainFile").target().setText(chainFile.getAbsolutePath());
+			sync.textBox("txtNode").target().setText("127.0.0.1:" + port);
+		});
+		UiTestSpeed.step();
+		click(sync, "btnSync");
+		Pause.pause(containing(sync, "txtAnswer", "up to date"), 20000);
+	}
+
+	/**
+	 * Restores the wallet from its 24 words into the vault
+	 *
+	 * @return the password the wallet is sealed with
+	 */
+	private String restore(final JInternalFrameFixture tool, final Wallet wallet)
+	{
+		String walletPassword = TestPasswords.throwaway();
+		click(tool, "btnRestore");
+		GuiActionRunner.execute(() -> {
+			tool.textBox("txtWords").target().setText(wallet.phrase());
+			tool.textBox("txtRestorePassword").target().setText(walletPassword);
+			tool.textBox("txtRestorePasswordRepeated").target().setText(walletPassword);
+		});
+		UiTestSpeed.step();
+		click(tool, "btnRestoreConfirmed");
+		Pause.pause(shown(tool, "txtAddress"), 10000);
+		return walletPassword;
 	}
 
 	@Test
@@ -372,9 +476,27 @@ class LethenonWalletUiTest extends AbstractUiTest
 		};
 	}
 
+	private static Condition containing(final JInternalFrameFixture tool, final String field,
+		final String expected)
+	{
+		return new Condition(field + " contains \"" + expected + "\"")
+		{
+			@Override
+			public boolean test()
+			{
+				return textOf(tool, field).contains(expected);
+			}
+		};
+	}
+
+	/**
+	 * What a text field holds, also while it is not on screen, so a condition can wait on a field
+	 * that shows only once its answer is there
+	 */
 	private static String textOf(final JInternalFrameFixture tool, final String componentName)
 	{
-		return GuiActionRunner.execute(() -> tool.textBox(componentName).target().getText());
+		return GuiActionRunner.execute(() -> tool.robot().finder()
+			.findByName(tool.target(), componentName, JTextComponent.class, false).getText());
 	}
 
 	/**
