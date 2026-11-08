@@ -47,7 +47,9 @@ import io.github.astrapi69.lethenon.transport.PeerAddress;
  * Signs a transfer to an account key or to a published address and leaves it waiting for the next
  * block, next to the chain file in {@code <chain>.pending} - what lethenon's {@code send --to} and
  * {@code send --to-address} do on the command line (lethenon#2, milestone 5) - or hands it to a
- * running node that serves the chain file, as {@code send --node} does (#530 step 3).
+ * running node that serves the chain file, as {@code send --node} does (#530 step 3): the node
+ * named, or, when none is, the node started in this program that serves the file. A node does not
+ * see a transfer written into the file it serves, and deletes it at its next block (#814).
  * <p>
  * A published address is paid at a one-time destination: {@link OneTimeAddresses#destinationFor}
  * derives it from the address and a key pair made for this payment alone, so two payments to one
@@ -121,7 +123,7 @@ public final class TransferSupport
 	static SentTransfer send(final TransferOrder order, final WalletSource source)
 		throws IOException
 	{
-		PeerAddress node = nodeOf(order.node());
+		PeerAddress node = nodeOf(order.node(), order.chainFile());
 		Destination recipient = destinationOf(order.recipientKind(), order.recipient());
 		Amount amount = Amount.parseLeth(order.amount().trim());
 		Amount fee = order.fee().isBlank() ? Amount.ZERO : Amount.parseLeth(order.fee().trim());
@@ -139,13 +141,18 @@ public final class TransferSupport
 
 	/**
 	 * The node a transfer is handed to, read before the wallet is opened, so that a mistyped
-	 * address costs no signature
+	 * address costs no signature: the node named, or the node of this program that serves the
+	 * chain file (#814)
 	 *
-	 * @return the node, or null when none was named
+	 * @return the node, or null when none was named and no node of this program serves the file
 	 */
-	private static PeerAddress nodeOf(final String node)
+	private static PeerAddress nodeOf(final String node, final Path chainFile)
 	{
-		return node == null || node.isBlank() ? null : PeerAddress.parse(node.trim());
+		if (node != null && !node.isBlank())
+		{
+			return PeerAddress.parse(node.trim());
+		}
+		return ServedChainFiles.nodeFor(chainFile).orElse(null);
 	}
 
 	private static int waitNextToTheChain(final ChainFile chainFile,

@@ -40,6 +40,7 @@ import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JPanel;
+import javax.swing.JTextArea;
 
 import io.github.astrapi69.lethenon.Amount;
 import io.github.astrapi69.lethenon.ChainRejected;
@@ -61,19 +62,23 @@ import io.github.astrapi69.swing.model.component.JMTextField;
  * ADDRESS it was derived from, never the destination: the sender's own screen is a place where that
  * link would be written down.
  * <p>
- * The transfer is signed by {@link TransferSupport} and waits next to the chain file until the next
- * block carries it, or, with a node named, is handed to that running node, which serves the chain
- * file and keeps it in its pool (#530 step 3); this window writes no block. A local node answers at
- * once, so the handover runs in the window like the signing. The password goes from the field into
- * the model as a {@code char[]}, is wiped by the support class, and is cleared from the field
- * afterwards, whether the transfer was signed or refused.
+ * The transfer is signed by {@link TransferSupport} and waits next to the chain file until a miner
+ * that reads this file mines a block, or is handed to a running node that serves the chain file and
+ * keeps it in its pool (#530 step 3): the node named, or, when none is, the node started in this
+ * program for that file. A node outside this program that serves the file does not see a transfer
+ * written into it and deletes it at its next block, which the window says next to the node field
+ * before anything is sent (#814); this window writes no block. A local node answers at once, so the
+ * handover runs in the window like the signing. The password goes from the field into the model as
+ * a {@code char[]}, is wiped by the support class, and is cleared from the field afterwards, whether
+ * the transfer was signed or refused.
  * <p>
  * It answers in fields a child can read (#604): first one sentence in a larger font, "Sent:
- * 12.50000000 LETH to the account you named. It counts once the next block is mined.", then the
- * amount, the fee, the recipient and where the transfer waits. The transfer's number from the
- * account and how many transfers wait are behind "Show details", closed at first. The answer shows
- * only once a transfer was signed: before the first send, after a failure and after a status
- * without a transfer the window shows no empty answer fields (#816).
+ * 12.50000000 LETH to the account you named. It waits next to the chain file until a miner that
+ * reads this file mines a block.", then the amount, the fee, the recipient and where the transfer
+ * waits. The transfer's number from the account and how many transfers wait are behind "Show
+ * details", closed at first. The answer shows only once a transfer was signed: before the first
+ * send, after a failure and after a status without a transfer the window shows no empty answer
+ * fields (#816).
  */
 public class LethenonSendPanel extends JPanel
 {
@@ -158,7 +163,10 @@ public class LethenonSendPanel extends JPanel
 
 	private final JMTextField txtWaiting = AnswerFields.readOnly("txtWaiting",
 		text("lethenon.send.tooltip.waiting",
-			"how many transfers wait for the next block now, yours included"));
+			"how many transfers wait now where yours waits, yours included"));
+
+	/** What happens to a transfer without a node, before anything is sent (#814) */
+	private final JTextArea txtNodeNotice = LethenonWalletPanel.message("txtNodeNotice", false);
 
 	private final JLabel lblResult = new JLabel(" ");
 
@@ -276,7 +284,7 @@ public class LethenonSendPanel extends JPanel
 			showTheAnswer(sent);
 			setResult(sent.node().isEmpty()
 				? text("lethenon.send.result.signed",
-					"the transfer was signed and waits for the next block")
+					"the transfer was signed and waits next to the chain file")
 				: text("lethenon.send.result.handed", "the transfer was signed and handed to the node"));
 		}
 		catch (ChainRejected | IllegalArgumentException | IllegalStateException refused)
@@ -378,7 +386,8 @@ public class LethenonSendPanel extends JPanel
 		String what = LethenonMessages.format(key, defaultValue, locale, amount);
 		String when = sent.node().isEmpty()
 			? LethenonMessages.getString("lethenon.send.answer.waits",
-				"It counts once the next block is mined.", locale)
+				"It waits next to the chain file until a miner that reads this file mines a block.",
+				locale)
 			: LethenonMessages.format("lethenon.send.answer.handed",
 				"The node at {0} puts it into one of its next blocks.", locale, sent.node());
 		return what + " " + when;
@@ -392,7 +401,8 @@ public class LethenonSendPanel extends JPanel
 		modelObject.setSentFee(LethAmounts.format(sent.fee(), locale));
 		modelObject.setSentTo(sent.recipient());
 		modelObject.setWhereItWaits(sent.node().isEmpty()
-			? text("lethenon.send.waits.here", "next to the chain file, until the next block is mined")
+			? text("lethenon.send.waits.here",
+				"next to the chain file, until a miner that reads this file mines a block")
 			: LethenonMessages.format("lethenon.send.waits.node", "in the pool of the node at {0}",
 				locale, sent.node()));
 		modelObject.setNonce(
@@ -513,8 +523,8 @@ public class LethenonSendPanel extends JPanel
 	private void explainTheComponents()
 	{
 		txtChainFile.setToolTipText(text("lethenon.send.tooltip.chain.file",
-			"the file that holds the chain; your transfer waits next to it until the next block "
-				+ "carries it"));
+			"the file that holds the chain; your transfer waits next to it until a miner that "
+				+ "reads this file mines a block"));
 		txtWalletFile.setToolTipText(text("lethenon.send.tooltip.wallet.file",
 			"your wallet file; the money is paid from one of its accounts"));
 		txtPassword.setToolTipText(text("lethenon.input.tooltip.password",
@@ -538,8 +548,14 @@ public class LethenonSendPanel extends JPanel
 			"a note that goes with the transfer; everyone who reads the chain can read it too, so "
 				+ "write nothing private"));
 		txtNode.setToolTipText(text("lethenon.send.tooltip.node",
-			"leave it empty to keep the transfer next to your chain file; or type the host:port of "
-				+ "a running node, which then puts it into one of its next blocks"));
+			"leave it empty to keep the transfer next to your chain file, or to hand it to the node "
+				+ "you started in this program for that file; or type the host:port of a running "
+				+ "node, which then puts it into one of its next blocks"));
+		txtNodeNotice.setText(text("lethenon.send.node.notice",
+			"A node outside this program that serves this chain file does not see a transfer "
+				+ "written into the file, and removes it at its next block: name that node here."));
+		txtNodeNotice.setToolTipText(text("lethenon.send.tooltip.node.notice",
+			"why a node that serves your chain file has to be named"));
 	}
 
 	private void layOutTheInputs()
@@ -567,11 +583,13 @@ public class LethenonSendPanel extends JPanel
 		add(txtMemo, ToolForm.FIELD);
 		add(new JLabel(text("lethenon.send.label.node", "Node (optional):")));
 		add(txtNode, ToolForm.FIELD);
+		add(txtNodeNotice, ToolForm.WIDE + ", wmin 0");
 		add(ToolForm.buttons(LethenonSwing.button("btnSend",
 			text("lethenon.send.button.send", "Send"), event -> onSend(),
 			text("lethenon.send.tooltip.send",
-				"sign the transfer with your password and leave it for the next block; nothing "
-					+ "is sent anywhere unless you named a node"))),
+				"sign the transfer with your password and leave it next to the chain file; "
+					+ "nothing is sent anywhere unless you named a node or started one in this "
+					+ "program for that file"))),
 			ToolForm.BUTTON_ROW);
 	}
 

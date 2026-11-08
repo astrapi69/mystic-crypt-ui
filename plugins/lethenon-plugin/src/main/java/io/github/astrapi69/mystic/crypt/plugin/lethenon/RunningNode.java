@@ -24,13 +24,17 @@
  */
 package io.github.astrapi69.mystic.crypt.plugin.lethenon;
 
+import java.nio.file.Path;
+
 import io.github.astrapi69.lethenon.transport.Miner;
 import io.github.astrapi69.lethenon.transport.Node;
 
 /**
  * A node of the chain library that {@link NodeSupport} started, with its miner when it mines.
  * Closing it stops the miner after the round in progress, then the node, which stops listening and
- * closes its connections; the chain file and the pool next to it hold what the node adopted.
+ * closes its connections; the chain file and the pool next to it hold what the node adopted. While
+ * it runs, {@link ServedChainFiles} names it as the node of its chain file, so that a transfer for
+ * that file is handed to it instead of being written where the node does not see it (#814).
  */
 public final class RunningNode implements AutoCloseable
 {
@@ -42,11 +46,15 @@ public final class RunningNode implements AutoCloseable
 
 	private final int port;
 
-	RunningNode(final Node node, final Miner miner, final int port)
+	/** The chain file the node serves */
+	private final Path chainFile;
+
+	RunningNode(final Node node, final Miner miner, final int port, final Path chainFile)
 	{
 		this.node = node;
 		this.miner = miner;
 		this.port = port;
+		this.chainFile = chainFile;
 	}
 
 	/**
@@ -74,6 +82,7 @@ public final class RunningNode implements AutoCloseable
 	@Override
 	public void close()
 	{
+		ServedChainFiles.release(chainFile, port);
 		try
 		{
 			if (miner != null)

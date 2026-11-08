@@ -25,6 +25,7 @@
 package io.github.astrapi69.mystic.crypt.plugin.lethenon;
 
 import java.io.IOException;
+import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
 
@@ -107,8 +108,7 @@ public final class NodeSupport
 			? source.open()
 				.spendKey(SignatureSuite.ED25519)
 			: null;
-		return started(new ChainFile(order.chainFile()), port, peers, beneficiary,
-			order.pun());
+		return started(order.chainFile(), port, peers, beneficiary, order.pun());
 	}
 
 	/**
@@ -127,18 +127,21 @@ public final class NodeSupport
 
 	/**
 	 * Serves the file, listens, connects and mines; a node that fails on the way is closed again,
-	 * so that nothing is left listening
+	 * so that nothing is left listening. A node that runs is noted as the node of its chain file
+	 * (#814)
 	 */
-	private static RunningNode started(final ChainFile chainFile, final int port,
+	private static RunningNode started(final Path chainFile, final int port,
 		final List<PeerAddress> peers, final Bytes beneficiary, final String pun) throws IOException
 	{
-		Node node = Node.serving(chainFile);
+		Node node = Node.serving(new ChainFile(chainFile));
 		try
 		{
 			int listening = listen(node, port);
 			node.connectAll(peers);
 			Miner miner = beneficiary == null ? null : Miner.start(node, beneficiary, pun);
-			return new RunningNode(node, miner, listening);
+			RunningNode running = new RunningNode(node, miner, listening, chainFile);
+			ServedChainFiles.serve(chainFile, listening);
+			return running;
 		}
 		catch (IOException | RuntimeException failed)
 		{
