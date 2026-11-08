@@ -27,6 +27,7 @@ package io.github.astrapi69.mystic.crypt.plugin.lethenon;
 import java.awt.CardLayout;
 import java.awt.Component;
 import java.awt.Font;
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Files;
@@ -45,6 +46,7 @@ import javax.swing.ComboBoxModel;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.DefaultListCellRenderer;
 import javax.swing.JButton;
+import javax.swing.JFileChooser;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JPanel;
@@ -116,6 +118,18 @@ public class LethenonWalletPanel extends JPanel
 	private final JLabel lblBalance = new JLabel("");
 
 	private final JTextArea txtBalanceExact = message("txtBalanceExact", false);
+
+	/** Which node "Fetch the chain" asks, from the settings (#827) */
+	private final JTextArea txtFetchNode = message("txtFetchNode", false);
+
+	/** The empty state "No chain yet" of draft 06, in the place of the balance (#827) */
+	private JPanel pnlNoChain;
+
+	/** "Fetch the chain", disabled while a fetch runs */
+	private JButton btnFetchChain;
+
+	/** "Check incoming payments", shown only while there is a chain to check */
+	private JPanel pnlCheckIncoming;
 
 	/** Where the chain is replayed and scanned, off the event dispatch thread in the application */
 	private final transient Executor background;
@@ -468,17 +482,16 @@ public class LethenonWalletPanel extends JPanel
 
 	/**
 	 * Reads both accounts' balances from the configured chain, without the wallet password; without
-	 * a chain the window says so
+	 * a chain the empty state of draft 06 stands in the place of the balance (#827)
 	 */
 	private void readTheBalance(final VaultWallet chosen)
 	{
 		balance = null;
 		Optional<Path> chainFile = configuredChain();
+		showWhetherThereIsAChain(chosen == null || chainFile.isPresent());
 		if (chosen == null || chainFile.isEmpty())
 		{
-			showTheBalance(chosen == null ? "" : text("lethenon.wallet.balance.no.chain",
-				"No chain yet: the balance is read from your chain file. Fetch it with "
-					+ "\"Synchronise with a Node\", then it shows here."));
+			showTheBalance("");
 			return;
 		}
 		background.execute(() -> {
@@ -697,14 +710,16 @@ public class LethenonWalletPanel extends JPanel
 			"what both accounts of this wallet hold, rounded to two decimals"));
 		txtBalanceExact.setToolTipText(text("lethenon.wallet.tooltip.balance.exact",
 			"the exact balance, and whether payments to your address were checked"));
-		view.add(lblBalance, ToolForm.WIDE + ", gaptop 6");
-		view.add(txtBalanceExact, ToolForm.WIDE + ", wmin 0");
-		view.add(ToolForm.buttons(LethenonSwing.button("btnCheckIncoming",
+		view.add(lblBalance, ToolForm.WIDE + ", gaptop 6, hidemode 3");
+		view.add(txtBalanceExact, ToolForm.WIDE + ", wmin 0, hidemode 3");
+		pnlNoChain = noChainBlock();
+		view.add(pnlNoChain, ToolForm.WIDE + ", wmin 0, gaptop 6, hidemode 3");
+		pnlCheckIncoming = ToolForm.buttons(LethenonSwing.button("btnCheckIncoming",
 			text("lethenon.wallet.button.check.incoming", "Check incoming payments"),
 			event -> onCheckIncoming(),
 			text("lethenon.wallet.tooltip.check.incoming",
-				"the wallet password finds payments to your address; nothing is kept"))),
-			ToolForm.BUTTON_ROW);
+				"the wallet password finds payments to your address; nothing is kept")));
+		view.add(pnlCheckIncoming, ToolForm.BUTTON_ROW + ", hidemode 3");
 		cbxWallet.setName("cbxWallet");
 		cbxWallet.setToolTipText(text("lethenon.wallet.tooltip.choose",
 			"the wallets of this vault; choose the one to show"));
@@ -743,6 +758,144 @@ public class LethenonWalletPanel extends JPanel
 			takeOverButton("btnAnotherTakeOver"), restoreButton("btnAnotherRestore")),
 			"gaptop 12");
 		return view;
+	}
+
+	/**
+	 * The empty state "No chain yet" of draft 06 (#827): what is missing, a button that fetches
+	 * it, and which node it asks
+	 */
+	private JPanel noChainBlock()
+	{
+		JPanel block = new JPanel(
+			new MigLayout("fillx, insets 0, gap 8 6, wrap 2", ToolForm.COLUMNS));
+		block.setName("pnlNoChain");
+		block.add(title("lblNoChainTitle", "lethenon.wallet.no.chain.title", "No chain yet"),
+			ToolForm.WIDE);
+		block.add(ToolForm.intro(text("lethenon.wallet.no.chain.text",
+			"To see your balance, the wallet needs a copy of the chain. Fetch it from a node.")),
+			ToolForm.INTRO_ROW);
+		btnFetchChain = LethenonSwing.button("btnFetchChain",
+			text("lethenon.wallet.button.fetch.chain", "Fetch the chain"), event -> onFetchChain(),
+			text("lethenon.wallet.tooltip.fetch.chain",
+				"copy the chain from the node of the settings into your chain file; nothing of "
+					+ "your wallet is sent"));
+		block.add(ToolForm.buttons(btnFetchChain), ToolForm.BUTTON_ROW);
+		txtFetchNode.setToolTipText(text("lethenon.wallet.tooltip.fetch.node",
+			"the node the chain is fetched from, as the plugin's settings name it"));
+		block.add(txtFetchNode, ToolForm.WIDE + ", wmin 0");
+		return block;
+	}
+
+	/**
+	 * Shows the balance while there is a chain, and the empty state of draft 06 while there is
+	 * none, with the node it would be fetched from
+	 */
+	private void showWhetherThereIsAChain(final boolean thereIsAChain)
+	{
+		lblBalance.setVisible(thereIsAChain);
+		txtBalanceExact.setVisible(thereIsAChain);
+		pnlCheckIncoming.setVisible(thereIsAChain);
+		pnlNoChain.setVisible(!thereIsAChain);
+		txtFetchNode.setText(thereIsAChain ? "" : nodeOfTheSettings());
+		revalidate();
+	}
+
+	private String nodeOfTheSettings()
+	{
+		String node = LethenonSettingsContribution.node();
+		return node == null || node.isBlank()
+			? text("lethenon.wallet.fetch.seeds",
+				"No node in the settings: the seed nodes of the test network are asked.")
+			: LethenonMessages.format("lethenon.wallet.fetch.node", "Node from the settings: {0}",
+				locale, node.trim());
+	}
+
+	/**
+	 * Fetches the chain (#827): from the node of the settings, or the seed nodes of the test
+	 * network when none is set, through the proxy of the settings, into the configured chain file
+	 * or, when none is configured, the one the person picks. What worked is remembered as the sync
+	 * window remembers it (#605), and the balance is read; a failure says why in the refusal line
+	 */
+	void onFetchChain()
+	{
+		Optional<Path> target = chainTarget();
+		if (target.isEmpty())
+		{
+			return;
+		}
+		String node = LethenonSettingsContribution.node();
+		String proxy = LethenonSettingsContribution.proxy();
+		refuse("");
+		btnFetchChain.setEnabled(false);
+		background.execute(() -> {
+			try
+			{
+				SyncSupport.sync(target.get(), node, proxy);
+				ui.execute(() -> fetched(target.get(), node, proxy));
+			}
+			catch (final IOException | RuntimeException failed)
+			{
+				ui.execute(() -> notFetched(failed));
+			}
+		});
+	}
+
+	private void fetched(final Path chainFile, final String node, final String proxy)
+	{
+		LethenonSettingsContribution.rememberASync(chainFile, node, proxy);
+		btnFetchChain.setEnabled(true);
+		readTheBalance(modelObject.getChosen());
+	}
+
+	private void notFetched(final Throwable failed)
+	{
+		btnFetchChain.setEnabled(true);
+		refuse(LethenonMessages.format("lethenon.wallet.fetch.failed",
+			"The chain was not fetched: {0}", locale, SyncSupport.reasonOf(failed)));
+	}
+
+	/**
+	 * The chain file a fetch writes: the configured one, which need not exist yet, or the one the
+	 * person picks when none is configured
+	 */
+	private Optional<Path> chainTarget()
+	{
+		String configured = LethenonSettingsContribution.chainFile();
+		if (configured != null && !configured.isBlank())
+		{
+			return Optional.of(Path.of(configured.trim()));
+		}
+		return chooseChainTarget().map(File::toPath);
+	}
+
+	/**
+	 * Asks where the chain is kept, with the proposed file selected
+	 *
+	 * @return the chosen file, or empty when the person cancelled
+	 */
+	Optional<File> chooseChainTarget()
+	{
+		JFileChooser chooser = new JFileChooser();
+		chooser.setDialogTitle(text("lethenon.wallet.fetch.choose",
+			"Where your copy of the chain is kept"));
+		chooser.setSelectedFile(proposedChainFile());
+		return chooser.showSaveDialog(this) == JFileChooser.APPROVE_OPTION
+			? Optional.of(chooser.getSelectedFile())
+			: Optional.empty();
+	}
+
+	/**
+	 * The file the chooser of "Fetch the chain" opens with: {@code lethenon-<network>.lethenon} in
+	 * the home folder, the network of the wallet in the name, as step 3 of the backup proposes its
+	 * file (#812)
+	 *
+	 * @return the proposed file
+	 */
+	File proposedChainFile()
+	{
+		VaultWallet chosen = modelObject.getChosen();
+		String network = chosen == null || chosen.network().isBlank() ? "chain" : chosen.network();
+		return new File(System.getProperty("user.home"), "lethenon-" + network + ".lethenon");
 	}
 
 	private JPanel createView()
