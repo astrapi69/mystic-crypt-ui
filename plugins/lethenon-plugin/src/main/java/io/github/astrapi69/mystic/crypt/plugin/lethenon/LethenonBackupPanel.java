@@ -26,6 +26,7 @@ package io.github.astrapi69.mystic.crypt.plugin.lethenon;
 
 import java.awt.CardLayout;
 import java.awt.Font;
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Path;
@@ -104,6 +105,8 @@ public class LethenonBackupPanel extends JPanel
 	private final JMCheckBox chkStoreWords = new JMCheckBox();
 
 	private final JMTextField txtExportFile = new JMTextField(34);
+
+	private final JMCheckBox chkExportUnderstood = new JMCheckBox();
 
 	private final JTextArea txtChecksum = LethenonWalletPanel.message("txtChecksum", false);
 
@@ -277,9 +280,18 @@ public class LethenonBackupPanel extends JPanel
 		show(BackupStep.EXPORT);
 	}
 
-	/** Step 3: writes the sealed file after the warning the button itself confirms */
+	/**
+	 * Step 3: writes the sealed file, once the box "Understood, write the file" is ticked (draft
+	 * 05, #812)
+	 */
 	void onExportConfirmed()
 	{
+		if (!modelObject.isExportUnderstood())
+		{
+			refuse(text("lethenon.backup.export.understood.first",
+				"Tick \"Understood, write the file\" first: the file will then be outside the vault."));
+			return;
+		}
 		Optional<Refusal> refused = WalletInput.walletFile(modelObject.getExportFile());
 		if (refused.isPresent())
 		{
@@ -372,6 +384,7 @@ public class LethenonBackupPanel extends JPanel
 		txtUnsealPassword.setText("");
 		txtCheckWords.setText("");
 		txtExportFile.setText("");
+		chkExportUnderstood.setSelected(false);
 		txtChecksum.setText("");
 		pnlExportResult.setVisible(false);
 		txtCheckResult.setText("");
@@ -597,23 +610,29 @@ public class LethenonBackupPanel extends JPanel
 				+ "wallet."));
 		warning.setToolTipText(warning.getText());
 		step.add(warning, ToolForm.WIDE + ", wmin 0");
+		chkExportUnderstood.setName("chkExportUnderstood");
+		chkExportUnderstood
+			.setText(text("lethenon.backup.export.confirm", "Understood, write the file"));
+		chkExportUnderstood.setToolTipText(text("lethenon.backup.tooltip.export.understood",
+			"agree that the sealed file will then be outside the vault"));
+		chkExportUnderstood.setPropertyModel(LambdaModel.of(modelObject::isExportUnderstood,
+			modelObject::setExportUnderstood));
+		step.add(chkExportUnderstood, ToolForm.WIDE);
 		txtExportFile.setName("txtExportFile");
+		txtExportFile.setEditable(false);
 		txtExportFile.setToolTipText(text("lethenon.backup.tooltip.export.file",
 			"where the sealed file goes, for example a USB stick; an existing file is never "
 				+ "overwritten"));
 		txtExportFile.setPropertyModel(
 			LambdaModel.of(modelObject::getExportFile, modelObject::setExportFile));
-		step.add(new JLabel(text("lethenon.backup.label.export.file", "File:")));
-		step.add(txtExportFile, "growx, split 2");
-		step.add(LethenonSwing.button("btnBrowseExportFile", "...", event -> onBrowseExportFile(),
-			text("lethenon.backup.tooltip.browse.export.file", "pick the place and the name")),
-			"alignx left, width pref!");
-		step.add(ToolForm.buttons(LethenonSwing.button("btnExportConfirmed",
-			text("lethenon.backup.export.confirm", "Understood, write the file"),
-			event -> onExportConfirmed(),
-			text("lethenon.backup.tooltip.export.confirm",
-				"write the sealed file, read it back and show its SHA-256"))),
-			ToolForm.BUTTON_ROW);
+		step.add(ToolForm.buttons(LethenonSwing.button("btnChooseExportFile",
+			text("lethenon.backup.export.choose", "Choose location ..."),
+			event -> onChooseExportFile(),
+			text("lethenon.backup.tooltip.export.choose",
+				"pick the place, the name is proposed; then the file is written, read back and "
+					+ "its SHA-256 shown"))),
+			ToolForm.BUTTON_ROW + ", split 2");
+		step.add(txtExportFile, "growx");
 		pnlExportResult.setName("pnlExportResult");
 		pnlExportResult.add(new JLabel(text("lethenon.backup.export.result",
 			"Written and read back. SHA-256 of the file:")), ToolForm.WIDE);
@@ -666,13 +685,49 @@ public class LethenonBackupPanel extends JPanel
 			text("lethenon.backup.tooltip.done", "back to the wallet; nothing typed is kept"));
 	}
 
-	private void onBrowseExportFile()
+	/**
+	 * Step 3: asks for the place, with the name proposed, and writes the file there; nothing is
+	 * asked before the box "Understood, write the file" is ticked
+	 */
+	void onChooseExportFile()
+	{
+		if (!modelObject.isExportUnderstood())
+		{
+			onExportConfirmed();
+			return;
+		}
+		chooseExportTarget().ifPresent(target -> {
+			txtExportFile.setText(target.getAbsolutePath());
+			onExportConfirmed();
+		});
+	}
+
+	/**
+	 * Shows the save dialog of step 3
+	 *
+	 * @return the chosen file, or empty when the person cancelled
+	 */
+	Optional<File> chooseExportTarget()
 	{
 		JFileChooser chooser = new JFileChooser();
-		if (chooser.showSaveDialog(this) == JFileChooser.APPROVE_OPTION)
-		{
-			txtExportFile.setText(chooser.getSelectedFile().getAbsolutePath());
-		}
+		chooser.setSelectedFile(proposedExportFile());
+		return chooser.showSaveDialog(this) == JFileChooser.APPROVE_OPTION
+			? Optional.of(chooser.getSelectedFile())
+			: Optional.empty();
+	}
+
+	/**
+	 * The file the save dialog of step 3 opens with: {@code lethenon-<network>.lethwf} in the home
+	 * folder, the network of the wallet in the name (draft 05, #812)
+	 *
+	 * @return the proposed file
+	 */
+	File proposedExportFile()
+	{
+		String network = vault.wallets().stream().filter(listed -> listed.id().equals(walletId))
+			.map(VaultWallet::network).filter(name -> !name.isBlank()).findFirst()
+			.orElse("wallet");
+		return new File(System.getProperty("user.home"), "lethenon-" + network + ".lethwf");
 	}
 
 	private String text(final String key, final String defaultValue)

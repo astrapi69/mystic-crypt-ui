@@ -140,6 +140,7 @@ class LethenonWalletScreenshotsTest
 				backup.getModelObject().setAnswer2(words.get(positions[1] - 1));
 				backup.getModelObject().setAnswer3(words.get(positions[2] - 1));
 				backup.onQuestionConfirmed();
+				backup.getModelObject().setExportUnderstood(true);
 				backup.getModelObject().setExportFile(EXPORTS.resolve(
 					"wallet-" + System.nanoTime() + ".lethwf").toString());
 				backup.onExportConfirmed();

@@ -54,6 +54,9 @@ public class LethenonBackupPanelModel
 
 	private String exportFile = "";
 
+	/** Whether the box "Understood, write the file" of step 3 is ticked (draft 05, #812) */
+	private boolean exportUnderstood;
+
 	private String checksum = "";
 
 	private String checkWords = "";
@@ -204,6 +207,27 @@ public class LethenonBackupPanelModel
 	 * Overwrites the password and the words and empties everything typed, as when the assistant
 	 * ends or the vault locks
 	 */
+	/**
+	 * Gets whether the box "Understood, write the file" of step 3 is ticked
+	 *
+	 * @return true when the person agreed that the file will be outside the vault
+	 */
+	public boolean isExportUnderstood()
+	{
+		return exportUnderstood;
+	}
+
+	/**
+	 * Sets whether the box "Understood, write the file" of step 3 is ticked
+	 *
+	 * @param exportUnderstood
+	 *            true when the person agreed that the file will be outside the vault
+	 */
+	public void setExportUnderstood(final boolean exportUnderstood)
+	{
+		this.exportUnderstood = exportUnderstood;
+	}
+
 	public void clear()
 	{
 		setPassword(new char[0]);
@@ -214,6 +238,7 @@ public class LethenonBackupPanelModel
 		answer3 = "";
 		storeWords = false;
 		exportFile = "";
+		exportUnderstood = false;
 		checksum = "";
 		checkWords = "";
 		checkResult = "";
