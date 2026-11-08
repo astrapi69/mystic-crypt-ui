@@ -181,17 +181,58 @@ class LethenonSendPanelBindingTest
 		List<SignedTransaction> pending = new ChainFile(chainFile).readPending();
 		assertEquals(1, pending.size());
 		assertEquals("watching is not protecting", pending.getFirst().body().memo());
-		assertEquals("Sent: 1.25000000 LETH to the account you named. It counts once the next "
-			+ "block is mined.", textOf(panel, "txtAnswer"));
+		assertEquals("Sent: 1.25000000 LETH to the account you named. It waits next to the chain "
+			+ "file until a miner that reads this file mines a block.", textOf(panel, "txtAnswer"));
 		assertEquals("1.25000000 LETH", textOf(panel, "txtSentAmount"));
 		assertEquals("0.00000000 LETH", textOf(panel, "txtSentFee"));
 		assertEquals(recipient.toString(), textOf(panel, "txtSentTo"));
-		assertEquals("next to the chain file, until the next block is mined",
+		assertEquals("next to the chain file, until a miner that reads this file mines a block",
 			textOf(panel, "txtWhereItWaits"));
 		assertEquals("0", textOf(panel, "txtNonce"));
 		assertEquals("1 transfer", textOf(panel, "txtWaiting"));
-		assertEquals("the transfer was signed and waits for the next block",
+		assertEquals("the transfer was signed and waits next to the chain file",
 			panel.getModelObject().getResultText());
+	}
+
+	@Test
+	@DisplayName("before sending, the window says that a node outside this program that serves the chain file removes the transfer (#814)")
+	void beforeSending_theWindowWarnsOfANodeThatServesTheFile()
+	{
+		LethenonSendPanel panel = new LethenonSendPanel();
+
+		assertTrue(Windows.shows(panel, "txtNodeNotice"), "the notice shows before the first send");
+		assertEquals("A node outside this program that serves this chain file does not see a "
+			+ "transfer written into the file, and removes it at its next block: name that node "
+			+ "here.", textOf(panel, "txtNodeNotice"));
+	}
+
+	@Test
+	@DisplayName("without a node named, a node started in this program for the chain file gets the transfer, and is not remembered as the node (#814)")
+	void sending_withoutANode_handsTheTransferToTheNodeOfThisProgram() throws Exception
+	{
+		Path testChain = new File(directory, "served.lethenon").toPath();
+		new ChainFile(testChain).write(LethenonFixtures.aChainOf(Chain.TEST_IDENTIFIER, 2,
+			wallet.spendKey(SignatureSuite.ED25519)));
+		try (RunningNode running = NodeSupport.startWith(
+			new NodeOrder(testChain, "0", "", false, walletFile, ""), () -> {
+				throw new AssertionError("a node that does not mine opens no wallet");
+			}))
+		{
+			String address = "127.0.0.1:" + running.port();
+			LethenonSendPanel panel = filledPanel(PASSWORD, "2");
+			panel.getModelObject().setChainFile(testChain.toString());
+			panel.getModelObject().setNode("");
+
+			panel.onSend();
+
+			assertEquals(1, running.status().waiting(), panel.getModelObject().getResultText());
+			assertEquals("Sent: 2.00000000 LETH to the account you named. The node at " + address
+				+ " puts it into one of its next blocks.", textOf(panel, "txtAnswer"));
+			assertEquals("the transfer was signed and handed to the node",
+				panel.getModelObject().getResultText());
+			assertEquals("", LethenonSettingsContribution.node(),
+				"the node of this program is found at each send, not remembered");
+		}
 	}
 
 	@Test
