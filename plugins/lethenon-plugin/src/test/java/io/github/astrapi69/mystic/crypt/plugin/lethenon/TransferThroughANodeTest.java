@@ -105,6 +105,25 @@ class TransferThroughANodeTest
 	}
 
 	@Test
+	@DisplayName("a send that names no node, into a chain file a node of this program serves, is written next to the file, where that node does not see it (pinned, #814)")
+	void send_namingNoNode_intoAFileANodeOfThisProgramServes() throws Exception
+	{
+		try (RunningNode running = NodeSupport.startWith(
+			new NodeOrder(chainFile, "0", "", false, walletFile, ""), () -> {
+				throw new AssertionError("a node that does not mine opens no wallet");
+			}))
+		{
+			SentTransfer sent = TransferSupport.send(order(""), PASSWORD.toCharArray());
+
+			assertEquals("", sent.node(), "the transfer was handed to no node (pinned, #814)");
+			assertEquals(0, running.status().waiting(),
+				"the node of this program does not see the transfer (pinned, #814)");
+			assertEquals(1, new ChainFile(chainFile).readPending().size(),
+				"the transfer was written next to the chain file (pinned, #814)");
+		}
+	}
+
+	@Test
 	@DisplayName("a node that cannot be reached is named, and nothing is left waiting")
 	void send_throughANodeThatCannotBeReached_leavesNothingWaiting() throws Exception
 	{

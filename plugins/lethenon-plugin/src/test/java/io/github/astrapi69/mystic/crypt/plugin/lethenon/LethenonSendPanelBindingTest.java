@@ -195,6 +195,17 @@ class LethenonSendPanelBindingTest
 	}
 
 	@Test
+	@DisplayName("before sending, nothing says that a node outside this program that serves the chain file removes the transfer (pinned, #814)")
+	void beforeSending_nothingWarnsOfANodeThatServesTheFile()
+	{
+		LethenonSendPanel panel = new LethenonSendPanel();
+
+		assertTrue(Windows.named(panel).stream()
+			.noneMatch(component -> "txtNodeNotice".equals(component.getName())),
+			"a notice next to the node field (pinned, #814)");
+	}
+
+	@Test
 	@DisplayName("what only a specialist reads - the transfer's number and what else waits - is behind \"Show details\", closed at first (#604)")
 	void theDetails_areClosedAtFirst_andOpenOnAClick() throws Exception
 	{
