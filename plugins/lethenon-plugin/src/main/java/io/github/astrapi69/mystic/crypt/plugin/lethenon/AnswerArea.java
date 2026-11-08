@@ -36,7 +36,8 @@ import javax.swing.JTextArea;
  * instead of empty fields. The details stay as they were opened or closed.
  * <p>
  * A failure view hides the whole area and gives it back as it was; the window calls
- * {@link #show(boolean, boolean)} after every result, so what comes back is put right.
+ * {@link #show(boolean, boolean)} after every result, so what comes back is put right. The window
+ * grows to what it then shows (#835): it was packed while only the sentence stood here.
  */
 final class AnswerArea
 {
@@ -125,5 +126,6 @@ final class AnswerArea
 				? !answered
 				: answered && (component != details || detailsShown));
 		}
+		WindowFit.growToShow(toCome);
 	}
 }
