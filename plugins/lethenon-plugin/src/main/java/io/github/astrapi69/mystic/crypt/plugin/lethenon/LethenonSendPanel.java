@@ -29,7 +29,6 @@ import java.awt.Font;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Arrays;
-import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
@@ -41,7 +40,6 @@ import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JPanel;
-import javax.swing.JTextArea;
 
 import io.github.astrapi69.lethenon.Amount;
 import io.github.astrapi69.lethenon.ChainRejected;
@@ -164,14 +162,11 @@ public class LethenonSendPanel extends JPanel
 
 	private final JLabel lblResult = new JLabel(" ");
 
-	/** What the answer will show, in its place until there is one (draft 06, #816) */
-	private final JTextArea txtAnswerToCome = LethenonWalletPanel.message("txtAnswerToCome", false);
-
 	/** Where a failure shows, in the pattern of draft 07 (#710, #712) */
 	private final transient FailureView failureView;
 
-	/** The components of the answer, shown only once a transfer was signed (G3, #816) */
-	private final transient List<Component> answerComponents;
+	/** The answer and the sentence in its place, shown only once a transfer was signed (#816) */
+	private final transient AnswerArea answerArea;
 
 	/**
 	 * Instantiates a new {@link LethenonSendPanel}, prefilled with the chain file from the plugin's
@@ -227,9 +222,8 @@ public class LethenonSendPanel extends JPanel
 		layOutTheInputs();
 		int answerStarts = getComponentCount();
 		layOutTheAnswer();
-		answerComponents = List
-			.copyOf(List.of(getComponents()).subList(answerStarts, getComponentCount()));
-		failureView = FailureView.below(this, answerComponents, locale);
+		answerArea = AnswerArea.of(this, answerStarts, pnlDetails);
+		failureView = FailureView.below(this, answerArea.components(), locale);
 		add(lblResult, ToolForm.RESULT_LINE);
 		pnlDetails.setVisible(false);
 		showTheAnswerOnlyWithAnAnswer();
@@ -583,11 +577,11 @@ public class LethenonSendPanel extends JPanel
 
 	private void layOutTheAnswer()
 	{
-		txtAnswerToCome.setText(text("lethenon.send.answer.to.come",
-			"After sending, this shows what went out and what still waits."));
-		txtAnswerToCome.setToolTipText(text("lethenon.send.tooltip.answer.to.come",
-			"the answer appears here once a transfer was signed"));
-		add(txtAnswerToCome, ToolForm.WIDE + ", wmin 0");
+		add(AnswerArea.toCome(text("lethenon.send.answer.to.come",
+			"After sending, this shows what went out and what still waits."),
+			text("lethenon.send.tooltip.answer.to.come",
+				"the answer appears here once a transfer was signed")),
+			ToolForm.WIDE + ", wmin 0");
 		add(txtAnswer, ToolForm.WIDE + ", wmin 0");
 		add(new JLabel(text("lethenon.send.label.sent.amount", "Amount:")));
 		add(txtSentAmount, ToolForm.FIELD);
@@ -653,13 +647,7 @@ public class LethenonSendPanel extends JPanel
 	 */
 	private void showTheAnswerOnlyWithAnAnswer()
 	{
-		boolean answered = !modelObject.getAnswer().isBlank();
-		for (Component component : answerComponents)
-		{
-			component.setVisible(component == txtAnswerToCome
-				? !answered
-				: answered && (component != pnlDetails || modelObject.isDetailsShown()));
-		}
+		answerArea.show(!modelObject.getAnswer().isBlank(), modelObject.isDetailsShown());
 		revalidate();
 	}
 }

@@ -135,6 +135,8 @@ class LethenonBalancePanelBindingTest
 			+ "waits for a sweep.", textOf(panel, "txtAnswer"));
 		assertEquals("the balance was read from the replayed chain",
 			panel.getModelObject().getResultText());
+		assertTrue(Windows.showsItsAnswer(panel),
+			"the answer stays hidden behind the sentence in its place (#820)");
 	}
 
 	@Test
@@ -263,6 +265,21 @@ class LethenonBalancePanelBindingTest
 			+ "wallet.lethenon-wallet; type it again, and check that it is the wallet you meant ("
 			+ walletFile.toAbsolutePath() + ")", model.getResultText());
 		assertEquals(0, model.getPassword().length);
+	}
+
+	@Test
+	@DisplayName("a failure, then a balance read: the answer shows, not the sentence in its place (#820)")
+	void aFailureThenARead_showsTheAnswer() throws Exception
+	{
+		LethenonBalancePanel panel = filledPanel("not the password at all");
+		panel.onShow();
+		assertFalse(Windows.shows(panel, "txtAnswer"), "an answer shows after the failure");
+		panel.getModelObject().setPassword(PASSWORD.toCharArray());
+
+		panel.onShow();
+
+		assertTrue(Windows.showsItsAnswer(panel),
+			"the failure view gave back the sentence instead of the answer");
 	}
 
 	@Test

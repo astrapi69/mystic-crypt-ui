@@ -150,6 +150,8 @@ class LethenonMinePanelBindingTest
 			textOf(panel, "txtSupply"));
 		assertEquals("the block was mined and written to the chain file",
 			panel.getModelObject().getResultText());
+		assertTrue(Windows.showsItsAnswer(panel),
+			"the answer stays hidden behind the sentence in its place (#820)");
 	}
 
 	@Test

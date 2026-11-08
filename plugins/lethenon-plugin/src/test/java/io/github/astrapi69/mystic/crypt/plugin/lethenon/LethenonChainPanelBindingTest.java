@@ -119,6 +119,8 @@ class LethenonChainPanelBindingTest
 		assertTrue(textOf(panel, "txtSummary").contains("replayed 1 blocks"),
 			"the chain library's own sentence is behind the details: " + textOf(panel, "txtSummary"));
 		assertEquals("the chain was accepted", panel.getModelObject().getResultText());
+		assertTrue(Windows.showsItsAnswer(panel),
+			"the answer stays hidden behind the sentence in its place (#820)");
 	}
 
 	@Test

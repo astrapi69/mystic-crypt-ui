@@ -28,7 +28,6 @@ import java.awt.Font;
 import java.io.IOException;
 import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
-import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
@@ -122,6 +121,9 @@ public class LethenonSyncPanel extends JPanel
 	/** Where a failure shows, in the pattern of draft 07 (#710, #712) */
 	private final transient FailureView failureView;
 
+	/** The answer and the sentence in its place (#820) */
+	private final transient AnswerArea answerArea;
+
 	private final JButton btnSync = LethenonSwing.button("btnSync",
 		text("lethenon.sync.button.sync", "Bring my chain up to date"), event -> onSync(),
 		text("lethenon.sync.tooltip.sync",
@@ -158,10 +160,11 @@ public class LethenonSyncPanel extends JPanel
 		layOutTheInputs();
 		int answerStarts = getComponentCount();
 		layOutTheAnswer();
-		failureView = FailureView.below(this,
-			List.of(getComponents()).subList(answerStarts, getComponentCount()), locale);
+		answerArea = AnswerArea.of(this, answerStarts, pnlDetails);
+		failureView = FailureView.below(this, answerArea.components(), locale);
 		add(lblResult, ToolForm.RESULT_LINE);
 		pnlDetails.setVisible(false);
+		showTheAnswerOnlyWithAnAnswer();
 		txtChainFile.setText(LethenonSettingsContribution.chainFile());
 		txtNode.setText(LethenonSettingsContribution.node());
 		txtProxy.setText(LethenonSettingsContribution.proxy());
@@ -459,6 +462,11 @@ public class LethenonSyncPanel extends JPanel
 
 	private void layOutTheAnswer()
 	{
+		add(AnswerArea.toCome(text("lethenon.sync.answer.to.come",
+			"After the update, this shows up to which block your chain reaches."),
+			text("lethenon.sync.tooltip.answer.to.come",
+				"the answer appears here once the chain was brought up to date")),
+			ToolForm.WIDE + ", wmin 0");
 		add(txtAnswer, ToolForm.WIDE + ", wmin 0");
 		add(new JLabel(text("lethenon.sync.label.taken", "New blocks:")));
 		add(txtTaken, ToolForm.FIELD);
@@ -485,6 +493,17 @@ public class LethenonSyncPanel extends JPanel
 		failureView.clear();
 		modelObject.setResultText(text);
 		lblResult.setText(text);
+		showTheAnswerOnlyWithAnAnswer();
+	}
+
+	/**
+	 * Shows the answer only while the window holds one, and until then the sentence in its place
+	 * (rule G3, draft 06, #820). Runs after the failure view gave back what showed before a failure
+	 */
+	private void showTheAnswerOnlyWithAnAnswer()
+	{
+		answerArea.show(!modelObject.getAnswer().isBlank(), modelObject.isDetailsShown());
+		revalidate();
 	}
 
 	private void onBrowseChainFile()

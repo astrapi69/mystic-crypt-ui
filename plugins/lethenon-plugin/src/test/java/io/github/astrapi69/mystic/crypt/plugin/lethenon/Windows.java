@@ -101,6 +101,33 @@ final class Windows
 	}
 
 	/**
+	 * @return whether the window shows its answer, and no longer the sentence that stands in its
+	 *         place until there is one (rule G3, draft 06, #820)
+	 */
+	static boolean showsItsAnswer(final Container window)
+	{
+		return shows(window, "txtAnswer") && !shows(window, AnswerArea.TO_COME);
+	}
+
+	/**
+	 * @return whether the named component would show once the window does: it and every container
+	 *         between it and the window are visible
+	 */
+	static boolean shows(final Container window, final String name)
+	{
+		Component shown = component(window, name, Component.class);
+		while (shown != window)
+		{
+			if (!shown.isVisible())
+			{
+				return false;
+			}
+			shown = shown.getParent();
+		}
+		return true;
+	}
+
+	/**
 	 * @return every component of the window that has a name, nested ones included
 	 */
 	static List<JComponent> named(final Container window)

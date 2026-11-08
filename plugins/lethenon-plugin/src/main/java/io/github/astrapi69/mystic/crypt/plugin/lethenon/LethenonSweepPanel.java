@@ -138,6 +138,9 @@ public class LethenonSweepPanel extends JPanel
 	/** Where a failure shows, in the pattern of draft 07 (#710, #712) */
 	private final transient FailureView failureView;
 
+	/** The answer and the sentence in its place (#820) */
+	private final transient AnswerArea answerArea;
+
 	/**
 	 * Instantiates a new {@link LethenonSweepPanel}, prefilled with the chain file from the
 	 * plugin's settings
@@ -192,10 +195,11 @@ public class LethenonSweepPanel extends JPanel
 		layOutTheInputs();
 		int answerStarts = getComponentCount();
 		layOutTheAnswer();
-		failureView = FailureView.below(this,
-			List.of(getComponents()).subList(answerStarts, getComponentCount()), locale);
+		answerArea = AnswerArea.of(this, answerStarts, pnlDetails);
+		failureView = FailureView.below(this, answerArea.components(), locale);
 		add(lblResult, ToolForm.RESULT_LINE);
 		pnlDetails.setVisible(false);
+		showTheAnswerOnlyWithAnAnswer();
 		txtChainFile.setText(LethenonSettingsContribution.chainFile());
 		txtWalletFile.setText(LethenonSettingsContribution.walletFile());
 	}
@@ -373,7 +377,7 @@ public class LethenonSweepPanel extends JPanel
 		txtPassword.setName("txtPassword");
 		txtFee.setName("txtFee");
 		txtMemo.setName("txtMemo");
-		for (JMTextArea statement : java.util.List.of(txtCost, txtCostDetail))
+		for (JMTextArea statement : List.of(txtCost, txtCostDetail))
 		{
 			statement.setEditable(false);
 			statement.setLineWrap(true);
@@ -434,6 +438,11 @@ public class LethenonSweepPanel extends JPanel
 
 	private void layOutTheAnswer()
 	{
+		add(AnswerArea.toCome(text("lethenon.sweep.answer.to.come",
+			"After sweeping, this shows what went to your account and what still waits."),
+			text("lethenon.sweep.tooltip.answer.to.come",
+				"the answer appears here once payments were swept")),
+			ToolForm.WIDE + ", wmin 0");
 		add(txtAnswer, ToolForm.WIDE + ", wmin 0");
 		add(new JLabel(text("lethenon.sweep.label.swept", "Moved onto your account:")));
 		add(txtSwept, ToolForm.FIELD);
@@ -487,6 +496,17 @@ public class LethenonSweepPanel extends JPanel
 		failureView.clear();
 		modelObject.setResultText(text);
 		lblResult.setText(text);
+		showTheAnswerOnlyWithAnAnswer();
+	}
+
+	/**
+	 * Shows the answer only while the window holds one, and until then the sentence in its place
+	 * (rule G3, draft 06, #820). Runs after the failure view gave back what showed before a failure
+	 */
+	private void showTheAnswerOnlyWithAnAnswer()
+	{
+		answerArea.show(!modelObject.getAnswer().isBlank(), modelObject.isDetailsShown());
+		revalidate();
 	}
 
 	@Override
