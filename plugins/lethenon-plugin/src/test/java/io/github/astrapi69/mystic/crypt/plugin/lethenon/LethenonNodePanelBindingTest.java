@@ -125,6 +125,8 @@ class LethenonNodePanelBindingTest
 		assertEquals("none", textOf(panel, "txtWaiting"));
 		assertEquals("not mining", textOf(panel, "txtMined"));
 		assertEquals("none", textOf(panel, "txtRefusals"));
+		assertTrue(Windows.showsItsAnswer(panel),
+			"the answer stays hidden behind the sentence in its place (#820)");
 		Path copy = directory.resolve("copy.lethenon");
 		Sync.once(new ChainFile(copy), new PeerAddress("127.0.0.1", port), Duration.ofSeconds(20));
 		assertEquals(chain, new ChainFile(copy).require(), "the window's node serves the chain");

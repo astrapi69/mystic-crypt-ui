@@ -123,6 +123,8 @@ class LethenonSyncPanelBindingTest
 			assertEquals("the chain file is at the tip of the node now",
 				panel.getModelObject().getResultText());
 			assertEquals(served, new ChainFile(chainFile.toPath()).require());
+			assertTrue(Windows.showsItsAnswer(panel),
+				"the answer stays hidden behind the sentence in its place (#820)");
 
 			panel.onSync();
 			awaitTheEnd(panel);

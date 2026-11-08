@@ -31,7 +31,6 @@ import java.nio.file.Files;
 import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.util.Arrays;
-import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
@@ -168,6 +167,9 @@ public class LethenonMinePanel extends JPanel
 	/** Where a failure shows, in the pattern of draft 07 (#710) */
 	private final transient FailureView failureView;
 
+	/** The answer and the sentence in its place (#820) */
+	private final transient AnswerArea answerArea;
+
 	/**
 	 * Instantiates a new {@link LethenonMinePanel}, prefilled with the chain file from the plugin's
 	 * settings and lethenon's default pun
@@ -219,10 +221,11 @@ public class LethenonMinePanel extends JPanel
 		layOutTheInputs();
 		int answerStarts = getComponentCount();
 		layOutTheAnswer();
-		failureView = FailureView.below(this,
-			List.of(getComponents()).subList(answerStarts, getComponentCount()), locale);
+		answerArea = AnswerArea.of(this, answerStarts, pnlDetails);
+		failureView = FailureView.below(this, answerArea.components(), locale);
 		add(lblResult, ToolForm.RESULT_LINE);
 		pnlDetails.setVisible(false);
+		showTheAnswerOnlyWithAnAnswer();
 		followTheChainFile();
 		txtChainFile.setText(LethenonSettingsContribution.chainFile());
 		txtWalletFile.setText(LethenonSettingsContribution.walletFile());
@@ -467,6 +470,11 @@ public class LethenonMinePanel extends JPanel
 
 	private void layOutTheAnswer()
 	{
+		add(AnswerArea.toCome(text("lethenon.mine.answer.to.come",
+			"After mining, this shows the new block and what it brought."),
+			text("lethenon.mine.tooltip.answer.to.come",
+				"the answer appears here once a block was mined")),
+			ToolForm.WIDE + ", wmin 0");
 		add(txtAnswer, ToolForm.WIDE + ", wmin 0");
 		add(new JLabel(text("lethenon.mine.label.block", "Block number:")));
 		add(txtBlock, ToolForm.FIELD);
@@ -578,6 +586,17 @@ public class LethenonMinePanel extends JPanel
 		failureView.clear();
 		modelObject.setResultText(text);
 		lblResult.setText(text);
+		showTheAnswerOnlyWithAnAnswer();
+	}
+
+	/**
+	 * Shows the answer only while the window holds one, and until then the sentence in its place
+	 * (rule G3, draft 06, #820). Runs after the failure view gave back what showed before a failure
+	 */
+	private void showTheAnswerOnlyWithAnAnswer()
+	{
+		answerArea.show(!modelObject.getAnswer().isBlank(), modelObject.isDetailsShown());
+		revalidate();
 	}
 
 	@Override

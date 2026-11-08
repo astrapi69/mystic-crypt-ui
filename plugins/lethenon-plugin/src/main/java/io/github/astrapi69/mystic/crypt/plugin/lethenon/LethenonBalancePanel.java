@@ -28,7 +28,6 @@ import java.awt.Font;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
@@ -121,6 +120,9 @@ public class LethenonBalancePanel extends JPanel
 	/** Where a failure shows, in the pattern of draft 07 (#710) */
 	private final transient FailureView failureView;
 
+	/** The answer and the sentence in its place (#820) */
+	private final transient AnswerArea answerArea;
+
 	/**
 	 * Instantiates a new {@link LethenonBalancePanel}, prefilled with the chain file from the
 	 * plugin's settings
@@ -162,10 +164,11 @@ public class LethenonBalancePanel extends JPanel
 		layOutTheInputs();
 		int answerStarts = getComponentCount();
 		layOutTheAnswer();
-		failureView = FailureView.below(this,
-			List.of(getComponents()).subList(answerStarts, getComponentCount()), locale);
+		answerArea = AnswerArea.of(this, answerStarts, pnlDetails);
+		failureView = FailureView.below(this, answerArea.components(), locale);
 		add(lblResult, ToolForm.RESULT_LINE);
 		pnlDetails.setVisible(false);
+		showTheAnswerOnlyWithAnAnswer();
 		txtChainFile.setText(LethenonSettingsContribution.chainFile());
 		txtWalletFile.setText(LethenonSettingsContribution.walletFile());
 	}
@@ -360,6 +363,11 @@ public class LethenonBalancePanel extends JPanel
 
 	private void layOutTheAnswer()
 	{
+		add(AnswerArea.toCome(text("lethenon.balance.answer.to.come",
+			"Your balance shows here once you ask for it."),
+			text("lethenon.balance.tooltip.answer.to.come",
+				"the answer appears here once the balance was read")),
+			ToolForm.WIDE + ", wmin 0");
 		add(txtAnswer, ToolForm.WIDE + ", wmin 0");
 		add(new JLabel(text("lethenon.balance.label.address", "Your address:")));
 		add(txtAddress, WITH_BUTTON);
@@ -424,5 +432,16 @@ public class LethenonBalancePanel extends JPanel
 		failureView.clear();
 		modelObject.setResultText(text);
 		lblResult.setText(text);
+		showTheAnswerOnlyWithAnAnswer();
+	}
+
+	/**
+	 * Shows the answer only while the window holds one, and until then the sentence in its place
+	 * (rule G3, draft 06, #820). Runs after the failure view gave back what showed before a failure
+	 */
+	private void showTheAnswerOnlyWithAnAnswer()
+	{
+		answerArea.show(!modelObject.getAnswer().isBlank(), modelObject.isDetailsShown());
+		revalidate();
 	}
 }

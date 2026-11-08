@@ -154,6 +154,8 @@ class LethenonSweepPanelBindingTest
 		assertEquals("the sweep was signed and waits for the next block",
 			panel.getModelObject().getResultText());
 		assertEquals(0, panel.getModelObject().getPassword().length);
+		assertTrue(Windows.showsItsAnswer(panel),
+			"the answer stays hidden behind the sentence in its place (#820)");
 	}
 
 	@Test
