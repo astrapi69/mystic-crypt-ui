@@ -92,6 +92,12 @@ test {
     // share (#508). Neither is an input otherwise, so a change there alone would come back UP-TO-DATE
     inputs.files(fileTree('plugins') { include '*/build.gradle', '*/settings.gradle' }, 'gradle/plugin-repositories.gradle')
         .withPropertyName('pluginBuilds').withPathSensitivity(PathSensitivity.RELATIVE)
+    // and the plugin sources: PublicPluginGrantTest reads every plugin's main sources for a grant to
+    // be used without a vault, PasswordLiteralInventoryTest every plugin's test sources for a
+    // password literal. A plugin is a build of its own, so neither is on this class path, and a
+    // plugin change that added a grant or a literal came back UP-TO-DATE green (#842)
+    inputs.files(fileTree('plugins') { include '*/src/main/java/**/*.java', '*/src/test/**/*.java' })
+        .withPropertyName('pluginSources').withPathSensitivity(PathSensitivity.RELATIVE)
     // and the KDBX fixtures: Kdbx31ProtectedAttachmentsTest reads them by path, from the end-to-end
     // suite's resources (#568), so a changed fixture alone would come back UP-TO-DATE otherwise
     inputs.files(fileTree('src/e2eKdbx/resources/kdbx') { include '*.kdbx' })
