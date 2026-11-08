@@ -129,6 +129,12 @@ public class LethenonBackupPanel extends JPanel
 	private JTextComponent wordsExplanation;
 
 	/**
+	 * Where a wallet just created is and that the vault has to be saved, shown in step 1 for a new
+	 * wallet only (#818)
+	 */
+	private final JTextArea txtWalletPlace = LethenonWalletPanel.message("txtWalletPlace", true);
+
+	/**
 	 * Instantiates a new {@link LethenonBackupPanel}
 	 *
 	 * @param vault
@@ -398,6 +404,8 @@ public class LethenonBackupPanel extends JPanel
 	 */
 	private void showTheWords(final char[] words, final boolean ofANewWallet)
 	{
+		txtWalletPlace.setText(ofANewWallet ? whereTheWalletIs() : "");
+		txtWalletPlace.setVisible(ofANewWallet);
 		wordsExplanation.setText(ofANewWallet
 			? text("lethenon.backup.words.explanation",
 				"With them you restore the wallet on any computer, even if the vault and the "
@@ -410,6 +418,20 @@ public class LethenonBackupPanel extends JPanel
 		modelObject.setShownWords(words);
 		fillTheBoard(words);
 		show(BackupStep.WORDS);
+	}
+
+	/**
+	 * The entry the new wallet is, its sealed attachment, and that the vault has to be saved: the
+	 * wallet reaches the disk only with the vault (#818)
+	 */
+	private String whereTheWalletIs()
+	{
+		String title = vault.wallets().stream().filter(listed -> listed.id().equals(walletId))
+			.map(VaultWallet::title).findFirst().orElse("");
+		return LethenonMessages.format("lethenon.backup.words.created",
+			"The wallet is now the entry \"{0}\" of the vault, with the sealed file {1} attached. "
+				+ "Save the vault to keep it: until then it exists only in the vault that is open.",
+			locale, title, WalletVault.ATTACHMENT);
 	}
 
 	private void fillTheBoard(final char[] words)
@@ -484,6 +506,10 @@ public class LethenonBackupPanel extends JPanel
 		JLabel heading = new JLabel(
 			text("lethenon.backup.words.heading", "Write these 24 words down on paper."));
 		heading.setFont(heading.getFont().deriveFont(Font.BOLD));
+		txtWalletPlace.setToolTipText(text("lethenon.backup.tooltip.words.created",
+			"where the new wallet is kept, and what keeps it"));
+		txtWalletPlace.setVisible(false);
+		step.add(txtWalletPlace, ToolForm.WIDE + ", wmin 0, hidemode 3");
 		step.add(heading, ToolForm.WIDE);
 		wordsExplanation = ToolForm.intro("");
 		step.add(wordsExplanation, ToolForm.INTRO_ROW);
