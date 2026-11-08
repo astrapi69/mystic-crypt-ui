@@ -255,6 +255,7 @@ public class LethenonBalancePanel extends JPanel
 	{
 		modelObject.setDetailsShown(!modelObject.isDetailsShown());
 		pnlDetails.setVisible(modelObject.isDetailsShown());
+		WindowFit.growToShow(this);
 		btnDetails.setText(detailsButtonText());
 		revalidate();
 		repaint();

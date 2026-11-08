@@ -45,6 +45,7 @@ import java.util.stream.Stream;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
+import javax.swing.text.JTextComponent;
 
 import org.assertj.swing.edt.GuiActionRunner;
 import org.assertj.swing.fixture.FrameFixture;
@@ -351,11 +352,13 @@ class LethenonPluginUiTest extends AbstractUiTest
 			}
 		}, 30000);
 
-		assertEquals("Sent: 1.25000000 LETH to the account you named. It counts once the next "
-			+ "block is mined.", textOf(tool, "txtAnswer"));
+		assertEquals(
+			"Sent: 1.25000000 LETH to the account you named. It waits next to the chain "
+				+ "file until a miner that reads this file mines a block.",
+			textOf(tool, "txtAnswer"));
 		assertEquals("1.25000000 LETH", textOf(tool, "txtSentAmount"));
 		assertEquals(recipient.toString(), textOf(tool, "txtSentTo"));
-		assertEquals("next to the chain file, until the next block is mined",
+		assertEquals("next to the chain file, until a miner that reads this file mines a block",
 			textOf(tool, "txtWhereItWaits"));
 		tool.button("btnDetails").click();
 		assertEquals("0", textOf(tool, "txtNonce"));
@@ -673,8 +676,10 @@ class LethenonPluginUiTest extends AbstractUiTest
 		UiTestSpeed.step();
 		SwingUtilities.invokeLater(() -> sweep.button("btnSweep").target().doClick());
 		awaitText(sweep, "txtAnswer", "Swept:", "the sweep is signed");
-		assertEquals("Swept: 2.00000000 LETH from 1 payment onto your account. It counts once the "
-			+ "next block is mined.", textOf(sweep, "txtAnswer"));
+		assertEquals(
+			"Swept: 2.00000000 LETH from 1 payment onto your account. It waits next to "
+				+ "the chain file until a miner that reads this file mines a block.",
+			textOf(sweep, "txtAnswer"));
 		sweep.button("btnDetails").click();
 		String costDetail = textOf(sweep, "txtCostDetail");
 		assertTrue(costDetail.contains("together"),
@@ -933,7 +938,7 @@ class LethenonPluginUiTest extends AbstractUiTest
 		JInternalFrameFixture mine = new JInternalFrameFixture(robot,
 			application.internalFrame("Mine a Pun"));
 		GuiActionRunner.execute(() -> {
-			mine.textBox("txtAnswer").target().setText("");
+			field(mine, "txtAnswer").setText("");
 			mine.textBox("txtChainFile").target().setText(chainFile.getAbsolutePath());
 			mine.textBox("txtWalletFile").target().setText(walletFile.getAbsolutePath());
 			mine.textBox("txtPassword").target().setText(walletPassword);
@@ -971,9 +976,23 @@ class LethenonPluginUiTest extends AbstractUiTest
 		}
 	}
 
+	/**
+	 * What a text field of the window holds, whether it shows or not: since #820 the answer fields
+	 * of a lethenon window are hidden until there is an answer, and a wait reads them before (#835)
+	 */
 	private static String textOf(final JInternalFrameFixture tool, final String componentName)
 	{
-		return GuiActionRunner.execute(() -> tool.textBox(componentName).target().getText());
+		return GuiActionRunner.execute(() -> field(tool, componentName).getText());
+	}
+
+	/**
+	 * A text field of the window by its name, shown or hidden; read on the event dispatch thread
+	 */
+	private static JTextComponent field(final JInternalFrameFixture tool,
+		final String componentName)
+	{
+		return tool.robot().finder().findByName(tool.target(), componentName, JTextComponent.class,
+			false);
 	}
 
 	/**

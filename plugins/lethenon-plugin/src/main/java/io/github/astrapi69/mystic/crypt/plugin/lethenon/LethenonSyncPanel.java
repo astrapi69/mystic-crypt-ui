@@ -277,6 +277,7 @@ public class LethenonSyncPanel extends JPanel
 	{
 		modelObject.setDetailsShown(!modelObject.isDetailsShown());
 		pnlDetails.setVisible(modelObject.isDetailsShown());
+		WindowFit.growToShow(this);
 		btnDetails.setText(AnswerFields.detailsButtonText(modelObject.isDetailsShown(), locale));
 		revalidate();
 		repaint();
