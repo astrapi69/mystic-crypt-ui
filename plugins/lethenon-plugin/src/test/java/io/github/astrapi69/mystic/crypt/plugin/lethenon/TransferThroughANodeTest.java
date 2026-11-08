@@ -105,6 +105,40 @@ class TransferThroughANodeTest
 	}
 
 	@Test
+	@DisplayName("a send that names no node, into a chain file a node of this program serves, is handed to that node, which would delete it from the file otherwise (#814)")
+	void send_namingNoNode_intoAFileANodeOfThisProgramServes_goesToThatNode() throws Exception
+	{
+		try (RunningNode running = aNodeOfThisProgram())
+		{
+			SentTransfer sent = TransferSupport.send(order(""), PASSWORD.toCharArray());
+
+			assertEquals("127.0.0.1:" + running.port(), sent.node());
+			assertEquals(1, running.status().waiting(), "the node admitted the transfer");
+			assertEquals(1, sent.waiting());
+		}
+	}
+
+	@Test
+	@DisplayName("once the node of this program stopped, a send that names no node waits next to the chain file again (#814)")
+	void send_namingNoNode_afterTheNodeOfThisProgramStopped_waitsNextToTheFile() throws Exception
+	{
+		aNodeOfThisProgram().close();
+
+		SentTransfer sent = TransferSupport.send(order(""), PASSWORD.toCharArray());
+
+		assertEquals("", sent.node(), "a stopped node is not handed anything");
+		assertEquals(1, new ChainFile(chainFile).readPending().size());
+	}
+
+	private RunningNode aNodeOfThisProgram() throws IOException
+	{
+		return NodeSupport.startWith(new NodeOrder(chainFile, "0", "", false, walletFile, ""),
+			() -> {
+				throw new AssertionError("a node that does not mine opens no wallet");
+			});
+	}
+
+	@Test
 	@DisplayName("a node that cannot be reached is named, and nothing is left waiting")
 	void send_throughANodeThatCannotBeReached_leavesNothingWaiting() throws Exception
 	{

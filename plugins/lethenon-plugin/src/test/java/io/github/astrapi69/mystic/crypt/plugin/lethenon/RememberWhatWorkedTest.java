@@ -165,7 +165,7 @@ class RememberWhatWorkedTest
 
 		panel.onSend();
 
-		assertEquals("the transfer was signed and waits for the next block",
+		assertEquals("the transfer was signed and waits next to the chain file",
 			panel.getModelObject().getResultText());
 		assertEquals(chainFile.toString(), LethenonSettingsContribution.chainFile());
 		assertEquals(walletFile.toString(), LethenonSettingsContribution.walletFile());
