@@ -26,6 +26,7 @@ package io.github.astrapi69.mystic.crypt.plugin.lethenon;
 
 import java.io.IOException;
 import java.nio.file.Path;
+import java.time.Instant;
 
 import io.github.astrapi69.lethenon.Amount;
 import io.github.astrapi69.lethenon.Bytes;
@@ -57,11 +58,13 @@ final class OverviewBalance
 	 */
 	static AccountsBalance of(final Path chainFile, final VaultWallet wallet) throws IOException
 	{
-		ChainState state = ChainReplaySupport.replayed(chainFile).replay().finalState();
+		ChainReplaySupport.Replayed replayed = ChainReplaySupport.replayed(chainFile);
+		ChainState state = replayed.replay().finalState();
 		Amount ed25519 = state.balanceOf(PublishedAddress.parse(wallet.address()).spendKey());
 		Amount mlDsa = wallet.mlDsaAccount().isEmpty()
 			? Amount.ZERO
 			: state.balanceOf(Bytes.ofHex(wallet.mlDsaAccount()));
-		return new AccountsBalance(ed25519, mlDsa);
+		return new AccountsBalance(ed25519, mlDsa,
+			Instant.ofEpochMilli(replayed.chain().getLast().timestamp()));
 	}
 }
