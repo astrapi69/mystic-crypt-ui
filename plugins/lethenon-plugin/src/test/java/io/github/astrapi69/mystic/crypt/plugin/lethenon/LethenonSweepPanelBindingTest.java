@@ -130,6 +130,17 @@ class LethenonSweepPanelBindingTest
 	}
 
 	@Test
+	@DisplayName("before sweeping, nothing says that a node outside this program that serves the chain file removes the sweep (pinned, #823)")
+	void beforeSweeping_nothingWarnsOfANodeThatServesTheFile()
+	{
+		LethenonSweepPanel panel = new LethenonSweepPanel();
+
+		assertTrue(Windows.named(panel).stream()
+			.noneMatch(component -> "txtNodeNotice".equals(component.getName())),
+			"a notice before sweeping (pinned, #823)");
+	}
+
+	@Test
 	@DisplayName("sweeping leaves one transfer per destination waiting, and repeats what it costs")
 	void sweeping_writesTheTransfersAndRepeatsTheCost() throws Exception
 	{

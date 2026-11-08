@@ -129,6 +129,24 @@ class SweepSupportTest
 	}
 
 	@Test
+	@DisplayName("a sweep into a chain file a node of this program serves is written next to the file, where that node does not see it (pinned, #823)")
+	void sweep_intoAFileANodeOfThisProgramServes() throws Exception
+	{
+		try (RunningNode running = NodeSupport.startWith(
+			new NodeOrder(chainFile, "0", "", false, walletFile, ""), () -> {
+				throw new AssertionError("a node that does not mine opens no wallet");
+			}))
+		{
+			SweepSupport.sweep(order("0.1", "swept"), PASSWORD.toCharArray());
+
+			assertEquals(0, running.status().waiting(),
+				"the node of this program does not see the sweep (pinned, #823)");
+			assertEquals(1, new ChainFile(chainFile).readPending().size(),
+				"the sweep was written next to the chain file (pinned, #823)");
+		}
+	}
+
+	@Test
 	@DisplayName("every one-time destination gets its own transfer, signed with its own nonce")
 	void sweep_twoMoreDestinations_signsOneTransferEach() throws Exception
 	{
