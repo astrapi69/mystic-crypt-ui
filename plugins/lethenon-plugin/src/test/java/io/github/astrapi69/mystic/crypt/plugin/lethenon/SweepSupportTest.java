@@ -129,21 +129,38 @@ class SweepSupportTest
 	}
 
 	@Test
-	@DisplayName("a sweep into a chain file a node of this program serves is written next to the file, where that node does not see it (pinned, #823)")
-	void sweep_intoAFileANodeOfThisProgramServes() throws Exception
+	@DisplayName("a sweep into a chain file a node of this program serves is handed to that node, which would delete it from the file otherwise (#823)")
+	void sweep_intoAFileANodeOfThisProgramServes_goesToThatNode() throws Exception
 	{
-		try (RunningNode running = NodeSupport.startWith(
-			new NodeOrder(chainFile, "0", "", false, walletFile, ""), () -> {
-				throw new AssertionError("a node that does not mine opens no wallet");
-			}))
+		try (RunningNode running = aNodeOfThisProgram())
 		{
-			SweepSupport.sweep(order("0.1", "swept"), PASSWORD.toCharArray());
+			SweptPayments swept = SweepSupport.sweep(order("0.1", "swept"),
+				PASSWORD.toCharArray());
 
-			assertEquals(0, running.status().waiting(),
-				"the node of this program does not see the sweep (pinned, #823)");
-			assertEquals(1, new ChainFile(chainFile).readPending().size(),
-				"the sweep was written next to the chain file (pinned, #823)");
+			assertEquals("127.0.0.1:" + running.port(), swept.node());
+			assertEquals(1, running.status().waiting(), "the node admitted the sweep");
+			assertEquals(1, swept.waiting());
 		}
+	}
+
+	@Test
+	@DisplayName("once the node of this program stopped, a sweep waits next to the chain file again (#823)")
+	void sweep_afterTheNodeOfThisProgramStopped_waitsNextToTheFile() throws Exception
+	{
+		aNodeOfThisProgram().close();
+
+		SweptPayments swept = SweepSupport.sweep(order("0.1", "swept"), PASSWORD.toCharArray());
+
+		assertEquals("", swept.node(), "a stopped node is not handed anything");
+		assertEquals(1, new ChainFile(chainFile).readPending().size());
+	}
+
+	private RunningNode aNodeOfThisProgram() throws IOException
+	{
+		return NodeSupport.startWith(new NodeOrder(chainFile, "0", "", false, walletFile, ""),
+			() -> {
+				throw new AssertionError("a node that does not mine opens no wallet");
+			});
 	}
 
 	@Test
