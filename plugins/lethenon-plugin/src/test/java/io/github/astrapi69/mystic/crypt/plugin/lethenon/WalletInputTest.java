@@ -182,6 +182,79 @@ class WalletInputTest
 			WalletInput.answers(words, new int[] { 4, 11, 19 }, answers).orElseThrow().text(ENGLISH));
 	}
 
+	static Stream<Arguments> numberedPhrases()
+	{
+		List<String> words = List.of(Wallet.create().phrase().split(" "));
+		return Stream.of(
+			Arguments.of("numbered with a dot, as the backup sheet shows them",
+				numbered(words, "%d. ")),
+			Arguments.of("numbered with a bracket", numbered(words, "%d) ")),
+			Arguments.of("numbered bare and zero-padded", numbered(words, "%02d ")),
+			Arguments.of("numbered with a colon", numbered(words, "%d: ")));
+	}
+
+	/**
+	 * A phrase pasted as people paste it from the backup sheet is accepted (#802): lethenon 0.8.1's
+	 * {@code SeedPhrase.parse} drops a number in front of every word (lethenon#286). With 0.8.0 the
+	 * numbers counted as words of their own, and the restore refused the 24 words as 48
+	 */
+	@ParameterizedTest(name = "{0}")
+	@MethodSource("numberedPhrases")
+	@DisplayName("a phrase pasted with the numbers of a backup sheet is accepted (#802)")
+	void aNumberedPhrase_isAccepted(final String caseName, final String typed)
+	{
+		assertEquals(Optional.empty(), WalletInput.words(typed));
+	}
+
+	/** Commas separate words since lethenon 0.8.1 (#802); 0.8.0 left them on the words */
+	@Test
+	@DisplayName("a phrase pasted with commas is accepted (#802)")
+	void aCommaSeparatedPhrase_isAccepted()
+	{
+		List<String> words = List.of(Wallet.create().phrase().split(" "));
+
+		assertEquals(Optional.empty(), WalletInput.words(String.join(", ", words)));
+	}
+
+	/**
+	 * Non-breaking spaces separate words since lethenon 0.8.1 (#802); for 0.8.0 they were no
+	 * spaces, and the whole phrase counted as one word
+	 */
+	@Test
+	@DisplayName("a phrase pasted with non-breaking spaces is accepted (#802)")
+	void aNonBreakingSpacePhrase_isAccepted()
+	{
+		String phrase = Wallet.create().phrase();
+
+		assertEquals(Optional.empty(), WalletInput.words(phrase.replace(' ', ' ')));
+	}
+
+	/**
+	 * An answer of the backup check pasted with its number in front, as a note copied from the
+	 * backup sheet carries one, is the word it names (#802); 0.8.0 refused it as unknown
+	 */
+	@Test
+	@DisplayName("an answer pasted with its number is the right word (#802)")
+	void anAnswerPastedWithItsNumber_isAccepted()
+	{
+		List<String> words = List.of(Wallet.create().phrase().split(" "));
+
+		assertEquals(Optional.empty(),
+			WalletInput.answers(words, new int[] { 7 }, new String[] { "7. " + words.get(6) }));
+	}
+
+	/** The words with a number in front of each, as the backup sheet shows them */
+	private static String numbered(final List<String> words, final String format)
+	{
+		StringBuilder phrase = new StringBuilder();
+		for (int position = 1; position <= words.size(); position++)
+		{
+			phrase.append(String.format(Locale.ROOT, format, position))
+				.append(words.get(position - 1)).append(' ');
+		}
+		return phrase.toString().strip();
+	}
+
 	/**
 	 * Swaps neighbouring words until the phrase's checksum fails; a swap can keep it valid by
 	 * chance, one in 256, so the test does not depend on the first one

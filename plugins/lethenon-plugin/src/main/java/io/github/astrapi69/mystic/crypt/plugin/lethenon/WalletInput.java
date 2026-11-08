@@ -107,7 +107,8 @@ final class WalletInput
 
 	/**
 	 * Checks the answers of step 2 of the backup: the words at the asked positions, compared as
-	 * lethenon reads a phrase, lower case and without the spaces around them (T2)
+	 * lethenon reads a phrase, lower case, without the spaces around them and without a number in
+	 * front, as a note copied from the backup sheet carries one (T2, #802)
 	 *
 	 * @param words
 	 *            the wallet's 24 words
@@ -146,9 +147,18 @@ final class WalletInput
 			position, word);
 	}
 
+	/**
+	 * The answer as lethenon reads a word: parsed as a phrase, so the case, the spaces and a number
+	 * in front of it, as a note copied from the backup sheet carries one, fall away (#802,
+	 * lethenon#286). What does not parse to exactly one word keeps its typed form, so the refusal
+	 * names what was typed
+	 */
 	private static String normalised(final String answer)
 	{
-		return answer == null ? "" : answer.strip().toLowerCase(Locale.ROOT);
+		List<String> parsed = SeedPhrase.parse(answer == null ? "" : answer);
+		return parsed.size() == 1
+			? parsed.getFirst()
+			: (answer == null ? "" : answer.strip().toLowerCase(Locale.ROOT));
 	}
 
 	/**
