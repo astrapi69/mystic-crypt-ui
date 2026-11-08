@@ -24,3 +24,18 @@ tasks.withType(Test).configureEach {
     systemProperty 'user.language', 'en'
     systemProperty 'user.country', 'US'
 }
+
+// A failed test prints its whole message and stack trace to the console. Without this Gradle shows
+// only the exception class and the top frame - on CI, where the html and xml reports are not at hand,
+// a failure like "NullPointerException at Preconditions.java:82" carries no information about where it
+// came from, which makes a rarely failing test impossible to diagnose after the fact. The host's suites
+// had it in testing.gradle; the plugin builds did not, so a failed assertEquals in a plugin test showed
+// "AssertionFailedError at LethenonNodePanelBindingTest.java:127" without what the field held (#667).
+// Here it reaches the host and every plugin build alike.
+tasks.withType(Test).configureEach {
+    testLogging {
+        exceptionFormat = 'full'
+        showStackTraces = true
+        events 'failed'
+    }
+}
