@@ -130,6 +130,43 @@ class LethenonSweepPanelBindingTest
 	}
 
 	@Test
+	@DisplayName("before sweeping, the window says that a node outside this program that serves the chain file removes the sweep, and what to do (#823)")
+	void beforeSweeping_theWindowWarnsOfANodeThatServesTheFile()
+	{
+		LethenonSweepPanel panel = new LethenonSweepPanel();
+
+		assertTrue(Windows.shows(panel, "txtNodeNotice"), "the notice shows before sweeping");
+		assertEquals("A node outside this program that serves this chain file does not see a sweep "
+			+ "written into the file, and removes it at its next block: stop that node before "
+			+ "sweeping and start it again afterwards, so that it reads the sweep at its start.",
+			textOf(panel, "txtNodeNotice"));
+	}
+
+	@Test
+	@DisplayName("a node started in this program for the chain file gets the sweep, and the window says so (#823)")
+	void sweeping_handsTheSweepToTheNodeOfThisProgram() throws Exception
+	{
+		try (RunningNode running = NodeSupport.startWith(
+			new NodeOrder(chainFile, "0", "", false, walletFile, ""), () -> {
+				throw new AssertionError("a node that does not mine opens no wallet");
+			}))
+		{
+			String address = "127.0.0.1:" + running.port();
+			LethenonSweepPanel panel = filledPanel(PASSWORD, "0.1");
+
+			panel.onSweep();
+
+			assertEquals(1, running.status().waiting(), panel.getModelObject().getResultText());
+			assertEquals("Swept: 4.90000000 LETH from 1 payment onto your account. The node at "
+				+ address + " puts the sweep into one of its next blocks.",
+				textOf(panel, "txtAnswer"));
+			assertEquals("in the pool of the node at " + address, textOf(panel, "txtWhereItWaits"));
+			assertEquals("the sweep was signed and handed to the node",
+				panel.getModelObject().getResultText());
+		}
+	}
+
+	@Test
 	@DisplayName("sweeping leaves one transfer per destination waiting, and repeats what it costs")
 	void sweeping_writesTheTransfersAndRepeatsTheCost() throws Exception
 	{
@@ -140,18 +177,19 @@ class LethenonSweepPanelBindingTest
 		List<SignedTransaction> pending = new ChainFile(chainFile).readPending();
 		assertEquals(1, pending.size());
 		assertEquals("swept from a one-time destination", pending.getFirst().body().memo());
-		assertEquals("Swept: 4.90000000 LETH from 1 payment onto your account. It counts once the "
-			+ "next block is mined.", textOf(panel, "txtAnswer"));
+		assertEquals("Swept: 4.90000000 LETH from 1 payment onto your account. It waits next to "
+			+ "the chain file until a miner that reads this file mines a block.",
+			textOf(panel, "txtAnswer"));
 		assertEquals("4.90000000 LETH", textOf(panel, "txtSwept"));
 		assertEquals("1 payment", textOf(panel, "txtPayments"));
 		assertEquals(wallet.spendKey(SignatureSuite.ED25519).toString(),
 			textOf(panel, "txtOntoAccount"));
-		assertEquals("next to the chain file, until the next block is mined",
+		assertEquals("next to the chain file, until a miner that reads this file mines a block",
 			textOf(panel, "txtWhereItWaits"));
 		assertEquals("1 transfer", textOf(panel, "txtWaiting"));
 		assertEquals(panel.getModelObject().getCostStatement(), textOf(panel, "txtCostDetail"),
 			"what it cost, repeated behind the details");
-		assertEquals("the sweep was signed and waits for the next block",
+		assertEquals("the sweep was signed and waits next to the chain file",
 			panel.getModelObject().getResultText());
 		assertEquals(0, panel.getModelObject().getPassword().length);
 		assertTrue(Windows.showsItsAnswer(panel),

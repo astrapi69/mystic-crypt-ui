@@ -40,7 +40,6 @@ import io.github.astrapi69.lethenon.PublishedAddress;
 import io.github.astrapi69.lethenon.SignedTransaction;
 import io.github.astrapi69.lethenon.Transfers;
 import io.github.astrapi69.lethenon.Wallet;
-import io.github.astrapi69.lethenon.transport.Handover;
 import io.github.astrapi69.lethenon.transport.PeerAddress;
 
 /**
@@ -134,7 +133,7 @@ public final class TransferSupport
 		SignedTransaction signed = Transfers.prepare(sender, order.suite(), chain, waiting,
 			recipient, amount, fee, order.memo());
 		int nowWaiting = node == null ? waitNextToTheChain(chainFile, waiting, signed)
-			: handOver(node, chain, order.chainFile(), signed);
+			: NodeHandover.handOver(node, chain, order.chainFile(), List.of(signed));
 		return new SentTransfer(signed.body().nonce(), amount, fee, order.recipientKind(),
 			order.recipient().trim(), nowWaiting, node == null ? "" : node.toString());
 	}
@@ -162,26 +161,6 @@ public final class TransferSupport
 		nowWaiting.add(signed);
 		chainFile.writePending(nowWaiting);
 		return nowWaiting.size();
-	}
-
-	/**
-	 * Hands the transfer to the node and reads its pool afterwards: {@link Handover#send} returns
-	 * once the node has handled the frame, and the pool next to the chain file then says whether it
-	 * was admitted - what lethenon's {@code send --node} does (ADR 0003)
-	 */
-	private static int handOver(final PeerAddress node, final List<BlockBody> chain,
-		final Path chainPath, final SignedTransaction signed) throws IOException
-	{
-		Handover.send(node, chain, signed);
-		List<SignedTransaction> pool = new ChainFile(chainPath).readPending();
-		if (!pool.contains(signed))
-		{
-			throw new IllegalStateException("the node at " + node + " took the transfer, and it is "
-				+ "not in " + chainPath + ".pending: a node that serves another chain file keeps its "
-				+ "pool next to that file, and a node that refused the transfer names the reason "
-				+ "among its refusals");
-		}
-		return pool.size();
 	}
 
 	private static Destination destinationOf(final RecipientKind kind, final String recipient)
