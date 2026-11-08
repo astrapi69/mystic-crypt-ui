@@ -29,10 +29,7 @@ import java.io.IOException;
 import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.util.Locale;
-import java.util.Map;
 import java.util.concurrent.ExecutionException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import javax.swing.JButton;
 import javax.swing.JLabel;
@@ -65,8 +62,6 @@ public class LethenonSyncPanel extends JPanel
 {
 
 	private static final long serialVersionUID = 1L;
-
-	private static final Logger LOGGER = Logger.getLogger(LethenonSyncPanel.class.getName());
 
 	/** A field that shares its cell with the button that fills it from a file chooser */
 	private static final String WITH_BUTTON = "growx, split 2";
@@ -252,7 +247,7 @@ public class LethenonSyncPanel extends JPanel
 		try
 		{
 			SyncSupport.SyncedFrom syncedFrom = worker.get();
-			rememberWhatWorked(chainFile, node, proxy);
+			LethenonSettingsContribution.rememberASync(chainFile, node, proxy);
 			showTheAnswer(syncedFrom);
 			setResult(syncedFrom.synced().taken() > 0
 				? text("lethenon.sync.result.written", "the chain file is at the tip of the node now")
@@ -261,7 +256,8 @@ public class LethenonSyncPanel extends JPanel
 		}
 		catch (ExecutionException failed)
 		{
-			showFailure(failure() + ": " + reasonOf(failed.getCause()), failed.getCause());
+			showFailure(failure() + ": " + SyncSupport.reasonOf(failed.getCause()),
+				failed.getCause());
 		}
 		catch (InterruptedException interrupted)
 		{
@@ -274,38 +270,6 @@ public class LethenonSyncPanel extends JPanel
 		{
 			setSynchronising(false);
 		}
-	}
-
-	/**
-	 * Remembers what a sync that worked used (#605): the chain file, the node (empty for the seed
-	 * nodes) and the SOCKS proxy it went through; no proxy used is no proxy remembered
-	 */
-	private static void rememberWhatWorked(final Path chainFile, final String node,
-		final String proxy)
-	{
-		Map<String, String> worked = new java.util.LinkedHashMap<>();
-		worked.put(LethenonSettingsContribution.KEY_CHAIN_FILE, chainFile.toString());
-		worked.put(LethenonSettingsContribution.KEY_NODE, node == null ? "" : node.trim());
-		if (proxy != null && !proxy.isBlank())
-		{
-			worked.put(LethenonSettingsContribution.KEY_PROXY, proxy.trim());
-		}
-		LethenonSettingsContribution.remember(worked);
-	}
-
-	/**
-	 * What the user reads about a failed sync: the library's own sentence for what it refuses, and
-	 * for anything else the exception itself, which is also logged, because it is a defect
-	 */
-	private static String reasonOf(final Throwable cause)
-	{
-		if (cause instanceof IOException || cause instanceof IllegalArgumentException
-			|| cause instanceof ChainRejected)
-		{
-			return cause.getMessage();
-		}
-		LOGGER.log(Level.WARNING, "a sync failed unexpectedly", cause);
-		return String.valueOf(cause);
 	}
 
 	/** Opens or closes "Show details" */

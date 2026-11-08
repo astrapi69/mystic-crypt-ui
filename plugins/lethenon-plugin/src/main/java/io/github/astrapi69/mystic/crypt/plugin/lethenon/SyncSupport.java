@@ -29,6 +29,8 @@ import java.nio.file.Path;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import io.github.astrapi69.lethenon.BlockBody;
 import io.github.astrapi69.lethenon.ChainFile;
@@ -54,6 +56,8 @@ import io.github.astrapi69.lethenon.transport.TestNetworkSeeds;
  */
 public final class SyncSupport
 {
+
+	private static final Logger LOGGER = Logger.getLogger(SyncSupport.class.getName());
 
 	/** How long a whole sync may take: the command line's default for {@code sync --within} */
 	static final Duration WITHIN = Duration.ofSeconds(300);
@@ -144,6 +148,25 @@ public final class SyncSupport
 		throws IOException
 	{
 		return sync(chainFile, node, proxy, TEST_NETWORK_SEEDS);
+	}
+
+	/**
+	 * What the user reads about a failed sync: the library's own sentence for what it refuses, and
+	 * for anything else the exception itself, which is also logged, because it is a defect
+	 *
+	 * @param cause
+	 *            why the sync failed
+	 * @return the reason, in the words of the library where it has them
+	 */
+	static String reasonOf(final Throwable cause)
+	{
+		if (cause instanceof IOException || cause instanceof IllegalArgumentException
+			|| cause instanceof ChainRejected)
+		{
+			return cause.getMessage();
+		}
+		LOGGER.log(Level.WARNING, "a sync failed unexpectedly", cause);
+		return String.valueOf(cause);
 	}
 
 	static SyncedFrom sync(final Path chainFile, final String node, final String proxy,
