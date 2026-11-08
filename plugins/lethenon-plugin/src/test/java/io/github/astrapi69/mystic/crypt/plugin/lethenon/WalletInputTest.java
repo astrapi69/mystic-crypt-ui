@@ -194,56 +194,53 @@ class WalletInputTest
 	}
 
 	/**
-	 * Pins what the words of a restore do with a phrase pasted as people paste it from the backup
-	 * sheet (#802), with lethenon 0.8.0: a number in front of every word is read as a word of its
-	 * own, so the 24 words count as 48. The next commit bumps lethenon to 0.8.1, whose
-	 * {@code SeedPhrase.parse} drops the numbering (lethenon#286), and turns this test
+	 * A phrase pasted as people paste it from the backup sheet is accepted (#802): lethenon 0.8.1's
+	 * {@code SeedPhrase.parse} drops a number in front of every word (lethenon#286). With 0.8.0 the
+	 * numbers counted as words of their own, and the restore refused the 24 words as 48
 	 */
 	@ParameterizedTest(name = "{0}")
 	@MethodSource("numberedPhrases")
-	@DisplayName("a phrase pasted with the numbers of a backup sheet is refused as 48 words (#802, pins 0.8.0)")
-	void aNumberedPhrase_isRefusedAsFortyEightWords(final String caseName, final String typed)
+	@DisplayName("a phrase pasted with the numbers of a backup sheet is accepted (#802)")
+	void aNumberedPhrase_isAccepted(final String caseName, final String typed)
 	{
-		assertEquals("A wallet is restored from its 24 words, and you typed 48.",
-			WalletInput.words(typed).orElseThrow().text(ENGLISH));
+		assertEquals(Optional.empty(), WalletInput.words(typed));
 	}
 
-	/** Pins 0.8.0 (#802): the comma stays on the word, which is then no word of the list */
+	/** Commas separate words since lethenon 0.8.1 (#802); 0.8.0 left them on the words */
 	@Test
-	@DisplayName("a phrase pasted with commas is refused as an unknown word (#802, pins 0.8.0)")
-	void aCommaSeparatedPhrase_isRefusedAsAnUnknownWord()
+	@DisplayName("a phrase pasted with commas is accepted (#802)")
+	void aCommaSeparatedPhrase_isAccepted()
 	{
 		List<String> words = List.of(Wallet.create().phrase().split(" "));
 
-		assertEquals(
-			"Word 1, \"" + words.get(0) + ",\", is not in the word list. Check your note for a "
-				+ "typing error.",
-			WalletInput.words(String.join(", ", words)).orElseThrow().text(ENGLISH));
+		assertEquals(Optional.empty(), WalletInput.words(String.join(", ", words)));
 	}
 
-	/** Pins 0.8.0 (#802): the non-breaking space is no space for {@code split("\\s+")} */
+	/**
+	 * Non-breaking spaces separate words since lethenon 0.8.1 (#802); for 0.8.0 they were no
+	 * spaces, and the whole phrase counted as one word
+	 */
 	@Test
-	@DisplayName("a phrase pasted with non-breaking spaces is refused as one word (#802, pins 0.8.0)")
-	void aNonBreakingSpacePhrase_isRefusedAsOneWord()
+	@DisplayName("a phrase pasted with non-breaking spaces is accepted (#802)")
+	void aNonBreakingSpacePhrase_isAccepted()
 	{
 		String phrase = Wallet.create().phrase();
 
-		assertEquals("A wallet is restored from its 24 words, and you typed 1.",
-			WalletInput.words(phrase.replace(' ', ' ')).orElseThrow().text(ENGLISH));
+		assertEquals(Optional.empty(), WalletInput.words(phrase.replace(' ', ' ')));
 	}
 
-	/** Pins 0.8.0 (#802): an answer with its number in front is no word of the list */
+	/**
+	 * An answer of the backup check pasted with its number in front, as a note copied from the
+	 * backup sheet carries one, is the word it names (#802); 0.8.0 refused it as unknown
+	 */
 	@Test
-	@DisplayName("an answer pasted with its number is refused as unknown (#802, pins 0.8.0)")
-	void anAnswerPastedWithItsNumber_isRefusedAsUnknown()
+	@DisplayName("an answer pasted with its number is the right word (#802)")
+	void anAnswerPastedWithItsNumber_isAccepted()
 	{
 		List<String> words = List.of(Wallet.create().phrase().split(" "));
 
-		assertEquals(
-			"Word 7, \"7. " + words.get(6) + "\", is not in the word list. Check your note for a "
-				+ "typing error.",
-			WalletInput.answers(words, new int[] { 7 }, new String[] { "7. " + words.get(6) })
-				.orElseThrow().text(ENGLISH));
+		assertEquals(Optional.empty(),
+			WalletInput.answers(words, new int[] { 7 }, new String[] { "7. " + words.get(6) }));
 	}
 
 	/** The words with a number in front of each, as the backup sheet shows them */

@@ -128,6 +128,41 @@ class LethenonWalletUiTest extends AbstractUiTest
 			"no note about a file while the vault's wallet is used (#718)");
 	}
 
+	/**
+	 * The words pasted as people paste them from the backup sheet, numbered "1. word 2. word ...",
+	 * restore the wallet (#802): lethenon 0.8.1 reads the numbering away (lethenon#286). 8.14
+	 * refused this paste as "you typed 48"
+	 */
+	@Test
+	@DisplayName("a wallet is restored from the 24 words pasted with the numbers of the backup sheet (#802)")
+	void aPhrasePastedWithNumbers_restoresTheWallet() throws Exception
+	{
+		JInternalFrameFixture tool = openTheWalletWindow("lethenon-wallet-restore.mcrdb");
+		assertEquals("No wallet in the vault yet", labelOf(tool, "lblEmptyTitle"));
+
+		Wallet wallet = Wallet.create();
+		List<String> words = List.of(wallet.phrase().split(" "));
+		StringBuilder numbered = new StringBuilder();
+		for (int position = 1; position <= words.size(); position++)
+		{
+			numbered.append(position).append(". ").append(words.get(position - 1)).append(' ');
+		}
+		String walletPassword = TestPasswords.throwaway();
+		click(tool, "btnRestore");
+		GuiActionRunner.execute(() -> {
+			tool.textBox("txtWords").target().setText(numbered.toString().strip());
+			tool.textBox("txtRestorePassword").target().setText(walletPassword);
+			tool.textBox("txtRestorePasswordRepeated").target().setText(walletPassword);
+		});
+		UiTestSpeed.step();
+		click(tool, "btnRestoreConfirmed");
+		Pause.pause(shown(tool, "txtAddress"), 10000);
+
+		assertEquals(wallet.address().toText(), textOf(tool, "txtAddress"),
+			"the overview shows the restored wallet's address");
+		assertEquals(1, walletsOfTheVault().size(), "the restored wallet is an entry of the vault");
+	}
+
 	@Test
 	@DisplayName("an entry whose address is not its wallet's warns with both addresses when the wallet is opened; Close changes nothing, a confirmed replacement writes the wallet's address (#716)")
 	void anEntryWithAForeignAddress_warnsAndReplacesOnlyWhenConfirmed() throws Exception
