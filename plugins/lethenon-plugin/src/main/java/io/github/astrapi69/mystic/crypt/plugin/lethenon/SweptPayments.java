@@ -27,7 +27,8 @@ package io.github.astrapi69.mystic.crypt.plugin.lethenon;
 import io.github.astrapi69.lethenon.Amount;
 
 /**
- * The transfers a sweep signed, which now wait for the next block
+ * The transfers a sweep signed, which now wait next to the chain file or in the pool of the node of
+ * this program that serves it (#823)
  *
  * @param transfers
  *            how many transfers were signed, one per one-time destination; zero when there was
@@ -37,7 +38,11 @@ import io.github.astrapi69.lethenon.Amount;
  * @param account
  *            the account they pay, the wallet's Ed25519 spend key in hexadecimal
  * @param waiting
- *            how many transfers wait for the next block now, these included
+ *            how many transfers wait now where these wait, these included
+ * @param node
+ *            host:port of the node they were handed to, empty when they wait next to the chain
+ *            file
  */
-public record SweptPayments(int transfers, Amount total, String account, int waiting) {
+public record SweptPayments(int transfers, Amount total, String account, int waiting,
+	String node) {
 }

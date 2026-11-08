@@ -36,11 +36,14 @@ import io.github.astrapi69.lethenon.SignatureSuite;
 import io.github.astrapi69.lethenon.SignedTransaction;
 import io.github.astrapi69.lethenon.Sweeps;
 import io.github.astrapi69.lethenon.Wallet;
+import io.github.astrapi69.lethenon.transport.PeerAddress;
 
 /**
  * Moves what was paid to a wallet's one-time destinations onto its own Ed25519 account and leaves
- * the transfers waiting for the next block, next to the chain file in {@code <chain>.pending} -
- * what lethenon's {@code sweep} does on the command line (lethenon#37).
+ * the transfers waiting next to the chain file in {@code <chain>.pending} - what lethenon's
+ * {@code sweep} does on the command line (lethenon#37) - or, when a node started in this program
+ * serves the chain file, hands them to that node (#823): a node does not see transfers written into
+ * the file it serves, and deletes them at its next block.
  * <p>
  * No sweeping loop of its own: {@link Sweeps#prepare} recognises the destinations, leaves out the
  * ones already emptied by a waiting transfer and the ones that hold no more than the fee, and signs
@@ -66,7 +69,7 @@ public final class SweepSupport
 
 	/**
 	 * Signs one transfer per one-time destination worth sweeping and appends them to the transfers
-	 * waiting for the next block
+	 * waiting next to the chain file, or hands them to the node of this program that serves it
 	 *
 	 * @param order
 	 *            what the sweep is to be
@@ -109,6 +112,7 @@ public final class SweepSupport
 		throws IOException
 	{
 		Amount fee = order.fee().isBlank() ? Amount.ZERO : Amount.parseLeth(order.fee().trim());
+		PeerAddress node = ServedChainFiles.nodeFor(order.chainFile()).orElse(null);
 		Wallet wallet = source.open();
 		List<BlockBody> chain = ChainReplaySupport.replayed(order.chainFile()).chain();
 		ChainFile chainFile = new ChainFile(order.chainFile());
@@ -118,11 +122,22 @@ public final class SweepSupport
 		String account = wallet.spendKey(SignatureSuite.ED25519).toString();
 		if (sweep.isEmpty())
 		{
-			return new SweptPayments(0, Amount.ZERO, account, waiting.size());
+			return new SweptPayments(0, Amount.ZERO, account, waiting.size(), "");
 		}
-		waiting.addAll(sweep);
-		chainFile.writePending(waiting);
-		return new SweptPayments(sweep.size(), totalOf(sweep), account, waiting.size());
+		int nowWaiting = node == null ? waitNextToTheChain(chainFile, waiting, sweep)
+			: NodeHandover.handOver(node, chain, order.chainFile(), sweep);
+		return new SweptPayments(sweep.size(), totalOf(sweep), account, nowWaiting,
+			node == null ? "" : node.toString());
+	}
+
+	private static int waitNextToTheChain(final ChainFile chainFile,
+		final List<SignedTransaction> waiting, final List<SignedTransaction> sweep)
+		throws IOException
+	{
+		List<SignedTransaction> nowWaiting = new ArrayList<>(waiting);
+		nowWaiting.addAll(sweep);
+		chainFile.writePending(nowWaiting);
+		return nowWaiting.size();
 	}
 
 	private static Amount totalOf(final List<SignedTransaction> sweep)

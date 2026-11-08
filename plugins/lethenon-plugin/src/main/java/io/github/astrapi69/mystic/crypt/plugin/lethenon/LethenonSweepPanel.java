@@ -35,6 +35,7 @@ import java.util.Map;
 import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JTextArea;
 
 import io.github.astrapi69.lethenon.Amount;
 import io.github.astrapi69.lethenon.ChainRejected;
@@ -108,8 +109,8 @@ public class LethenonSweepPanel extends JPanel
 
 	private final JMTextField txtSwept = AnswerFields.readOnly("txtSwept",
 		text("lethenon.sweep.tooltip.swept",
-			"what moves onto your account, the fees already taken out; you can spend it once the "
-				+ "next block is mined"));
+			"what moves onto your account, the fees already taken out; you can spend it once a "
+				+ "block carries the sweep"));
 
 	private final JMTextField txtPayments = AnswerFields.readOnly("txtPayments",
 		text("lethenon.sweep.tooltip.payments",
@@ -123,13 +124,16 @@ public class LethenonSweepPanel extends JPanel
 		text("lethenon.sweep.tooltip.where.it.waits",
 			"a transfer counts once a block carries it; until then it waits here"));
 
+	/** What happens to a sweep in a file a node outside this program serves (#823) */
+	private final JTextArea txtNodeNotice = LethenonWalletPanel.message("txtNodeNotice", false);
+
 	private final JButton btnDetails;
 
 	private final JPanel pnlDetails = new JPanel(ToolForm.newLayout());
 
 	private final JMTextField txtWaiting = AnswerFields.readOnly("txtWaiting",
 		text("lethenon.sweep.tooltip.waiting",
-			"how many transfers wait for the next block now, these included"));
+			"how many transfers wait now where these wait, these included"));
 
 	private final JMTextArea txtCostDetail = new JMTextArea(3, 40);
 
@@ -246,8 +250,7 @@ public class LethenonSweepPanel extends JPanel
 			showTheAnswer(swept);
 			setResult(swept.transfers() == 0
 				? text("lethenon.sweep.result.nothing", "nothing to sweep")
-				: text("lethenon.sweep.result.signed",
-					"the sweep was signed and waits for the next block"));
+				: resultOf(swept));
 		}
 		catch (ChainRejected | IllegalArgumentException refused)
 		{
@@ -269,6 +272,7 @@ public class LethenonSweepPanel extends JPanel
 	{
 		modelObject.setDetailsShown(!modelObject.isDetailsShown());
 		pnlDetails.setVisible(modelObject.isDetailsShown());
+		WindowFit.growToShow(this);
 		btnDetails.setText(AnswerFields.detailsButtonText(modelObject.isDetailsShown(), locale));
 		revalidate();
 		repaint();
@@ -295,10 +299,26 @@ public class LethenonSweepPanel extends JPanel
 					+ "of {0}.",
 				locale, LethAmounts.format(feeOf(fee), locale));
 		}
+		if (!swept.node().isEmpty())
+		{
+			return LethenonMessages.format("lethenon.sweep.answer.handed",
+				"Swept: {0} from {1,choice,1#1 payment|1<{1,number,integer} payments} onto your "
+					+ "account. The node at {2} puts the sweep into one of its next blocks.",
+				locale, LethAmounts.format(swept.total(), locale), swept.transfers(), swept.node());
+		}
 		return LethenonMessages.format("lethenon.sweep.answer",
 			"Swept: {0} from {1,choice,1#1 payment|1<{1,number,integer} payments} onto your "
-				+ "account. It counts once the next block is mined.",
+				+ "account. It waits next to the chain file until a miner that reads this file "
+				+ "mines a block.",
 			locale, LethAmounts.format(swept.total(), locale), swept.transfers());
+	}
+
+	private String resultOf(final SweptPayments swept)
+	{
+		return swept.node().isEmpty()
+			? text("lethenon.sweep.result.signed",
+				"the sweep was signed and waits next to the chain file")
+			: text("lethenon.sweep.result.handed", "the sweep was signed and handed to the node");
 	}
 
 	private static Amount feeOf(final String fee)
@@ -316,8 +336,11 @@ public class LethenonSweepPanel extends JPanel
 			modelObject.setPayments(LethenonMessages.format("lethenon.sweep.payments",
 				"{0,choice,1#1 payment|1<{0,number,integer} payments}", locale, swept.transfers()));
 			modelObject.setOntoAccount(swept.account());
-			modelObject.setWhereItWaits(text("lethenon.sweep.waits.here",
-				"next to the chain file, until the next block is mined"));
+			modelObject.setWhereItWaits(swept.node().isEmpty()
+				? text("lethenon.sweep.waits.here",
+					"next to the chain file, until a miner that reads this file mines a block")
+				: LethenonMessages.format("lethenon.sweep.waits.node",
+					"in the pool of the node at {0}", locale, swept.node()));
 			modelObject.setWaiting(LethenonMessages.format("lethenon.sweep.waiting",
 				"{0,choice,0#none|1#1 transfer|1<{0,number,integer} transfers}", locale,
 				swept.waiting()));
@@ -396,7 +419,13 @@ public class LethenonSweepPanel extends JPanel
 	{
 		txtChainFile.setToolTipText(text("lethenon.sweep.tooltip.chain.file",
 			"the file that holds the chain; the payments to your address are found in it, and the "
-				+ "sweep waits next to it until the next block"));
+				+ "sweep waits next to it until a miner that reads this file mines a block"));
+		txtNodeNotice.setText(text("lethenon.sweep.node.notice",
+			"A node outside this program that serves this chain file does not see a sweep written "
+				+ "into the file, and removes it at its next block: stop that node before sweeping "
+				+ "and start it again afterwards, so that it reads the sweep at its start."));
+		txtNodeNotice.setToolTipText(text("lethenon.sweep.tooltip.node.notice",
+			"why a node that serves your chain file has to be stopped while you sweep"));
 		txtWalletFile.setToolTipText(text("lethenon.sweep.tooltip.wallet.file",
 			"your wallet file; payments to its address are moved onto its Ed25519 account"));
 		txtPassword.setToolTipText(text("lethenon.input.tooltip.password",
@@ -428,11 +457,13 @@ public class LethenonSweepPanel extends JPanel
 		add(new JLabel(text("lethenon.sweep.label.memo", "Note:")));
 		add(txtMemo, ToolForm.FIELD);
 		add(txtCost, ToolForm.WIDE + ", wmin 0");
+		add(txtNodeNotice, ToolForm.WIDE + ", wmin 0");
 		add(ToolForm.buttons(LethenonSwing.button("btnSweep",
 			text("lethenon.sweep.button.sweep", "Sweep onto my account"), event -> onSweep(),
 			text("lethenon.sweep.tooltip.sweep",
 				"sign one transfer for each payment to your address, onto your account, and leave "
-					+ "them for the next block"))),
+					+ "them next to the chain file, or hand them to the node you started in this "
+					+ "program for that file"))),
 			ToolForm.BUTTON_ROW);
 	}
 

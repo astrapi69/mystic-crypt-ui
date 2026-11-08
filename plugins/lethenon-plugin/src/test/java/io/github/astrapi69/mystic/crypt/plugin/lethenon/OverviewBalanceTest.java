@@ -215,7 +215,7 @@ class OverviewBalanceTest
 	}
 
 	@Test
-	@DisplayName("without a chain file the overview says so instead of a balance")
+	@DisplayName("without a chain file the overview says so instead of a balance (#827: in the empty state of draft 06)")
 	void withoutAChain_theOverviewSaysSo()
 	{
 		restored();
@@ -223,8 +223,8 @@ class OverviewBalanceTest
 		LethenonWalletPanel panel = new LethenonWalletPanel(vault, Locale.ENGLISH);
 
 		assertEquals("", textOf(panel, "lblBalance"));
-		assertTrue(textOf(panel, "txtBalanceExact").startsWith("No chain yet"),
-			textOf(panel, "txtBalanceExact"));
+		assertFalse(Windows.shows(panel, "lblBalance"), "an empty balance shows");
+		assertEquals("No chain yet", textOf(panel, "lblNoChainTitle"));
 	}
 
 	@Test
