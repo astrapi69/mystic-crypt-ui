@@ -111,7 +111,6 @@ test {
     def runtimeLibraries = configurations.runtimeClasspath
     inputs.files(runtimeLibraries).withPropertyName('runtimeLibraries').withNormalizer(ClasspathNormalizer)
     jvmArgumentProviders.add({ ["-Dmystic.crypt.ui.runtime.libraries=${runtimeLibraries.asPath}".toString()] } as CommandLineArgumentProvider)
-    applyTestLogging(it)
 }
 
 // The end-to-end suites: the Swing tests, one task per source set so each has its own cache key.
@@ -148,21 +147,8 @@ test {
         // no output and nothing to end it (#322); on a hosted runner that is six hours of nothing.
         // The limit is per test method and generous - the slowest of these drives a whole application
         systemProperty 'junit.jupiter.execution.timeout.testable.method.default', '3m'
-        applyTestLogging(it)
         // after the fast one, so a failure that both would catch is reported by the cheap suite first
         shouldRunAfter test
-    }
-}
-
-// print the whole stack trace of a failed test to the console. Without this Gradle shows only the
-// top frame - on CI, where the html and xml reports are not at hand, a failure like
-// "NullPointerException at Preconditions.java:82" carries no information about where it came from,
-// which makes a rarely failing test impossible to diagnose after the fact
-def applyTestLogging(Test task) {
-    task.testLogging {
-        exceptionFormat = 'full'
-        showStackTraces = true
-        events 'failed'
     }
 }
 
