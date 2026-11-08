@@ -26,6 +26,7 @@ package io.github.astrapi69.mystic.crypt.plugin.lethenon;
 
 import java.io.IOException;
 import java.nio.file.Path;
+import java.time.Instant;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -172,7 +173,8 @@ public class LethenonSettingsContribution implements PluginSettingsContribution
 	/**
 	 * Remembers what a sync that worked used (#605): the chain file, the node (empty for the seed
 	 * nodes) and the SOCKS proxy it went through; no proxy used is no proxy remembered. The sync
-	 * window and the overview's "Fetch the chain" (#827) remember the same
+	 * window and the overview's "Fetch the chain" (#827) remember the same, and the time of the
+	 * sync is recorded for the overview (#831)
 	 *
 	 * @param chainFile
 	 *            the chain file the sync wrote
@@ -191,6 +193,7 @@ public class LethenonSettingsContribution implements PluginSettingsContribution
 			worked.put(KEY_PROXY, proxy.trim());
 		}
 		remember(worked);
+		ChainSync.record(chainFile, Instant.now());
 	}
 
 	/**

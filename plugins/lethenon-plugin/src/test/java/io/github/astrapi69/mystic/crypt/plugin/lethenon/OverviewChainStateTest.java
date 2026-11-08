@@ -24,6 +24,8 @@
  */
 package io.github.astrapi69.mystic.crypt.plugin.lethenon;
 
+import static io.github.astrapi69.mystic.crypt.plugin.lethenon.Windows.textOf;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.nio.file.Path;
@@ -57,6 +59,8 @@ class OverviewChainStateTest
 
 	private LethenonVault vault;
 
+	private Path chainFile;
+
 	private final Wallet wallet = Wallet.create();
 
 	private final KeyPair payer = TransactionSigner.newKeyPair(SignatureSuite.ED25519);
@@ -70,7 +74,7 @@ class OverviewChainStateTest
 		vault.connect(new InMemoryVaultAccess());
 		vault.restore(wallet.phrase().toCharArray(), ThrowawayPasswords.next(),
 			WalletNetwork.TESTNET);
-		Path chainFile = LethenonFixtures.written(directory.resolve("chain.lethenon"),
+		chainFile = LethenonFixtures.written(directory.resolve("chain.lethenon"),
 			LethenonFixtures.aChainPayingTheWallet(payer, wallet));
 		LethenonSettingsContribution.remember(
 			Map.of(LethenonSettingsContribution.KEY_CHAIN_FILE, chainFile.toString()));
@@ -83,13 +87,39 @@ class OverviewChainStateTest
 	}
 
 	@Test
-	@DisplayName("with a chain the overview says neither when it was synced nor how old its last block is (pinned, #831)")
-	void withAChain_theOverviewSaysNothingOfHowCurrentItIs()
+	@DisplayName("a chain this program never synced: the overview says so, and how old the last block is (#831)")
+	void aChainNeverSynced_theOverviewSaysSoAndTheAgeOfTheLastBlock()
 	{
 		LethenonWalletPanel panel = new LethenonWalletPanel(vault, Locale.ENGLISH);
 
-		assertTrue(Windows.named(panel).stream()
-			.noneMatch(component -> "txtChainState".equals(component.getName())),
-			"a line that says how current the chain is (pinned, #831)");
+		assertTrue(Windows.shows(panel, "txtChainState"), "no line says how current the chain is");
+		assertTrue(textOf(panel, "txtChainState")
+			.matches("Synced: not by this program, last block: \\d+ days ago"),
+			textOf(panel, "txtChainState"));
+	}
+
+	@Test
+	@DisplayName("after a sync by this program the overview says when, today (#831)")
+	void afterASync_theOverviewSaysWhen()
+	{
+		LethenonSettingsContribution.rememberASync(chainFile, "", "");
+
+		LethenonWalletPanel panel = new LethenonWalletPanel(vault, Locale.ENGLISH);
+
+		assertTrue(textOf(panel, "txtChainState")
+			.matches("Synced: today \\d\\d:\\d\\d, last block: \\d+ days ago"),
+			textOf(panel, "txtChainState"));
+	}
+
+	@Test
+	@DisplayName("without a chain the line is not shown (#831)")
+	void withoutAChain_theLineIsNotShown()
+	{
+		LethenonSettingsContribution.remember(
+			Map.of(LethenonSettingsContribution.KEY_CHAIN_FILE, ""));
+
+		LethenonWalletPanel panel = new LethenonWalletPanel(vault, Locale.ENGLISH);
+
+		assertFalse(Windows.shows(panel, "txtChainState"), "a line about a chain there is not");
 	}
 }

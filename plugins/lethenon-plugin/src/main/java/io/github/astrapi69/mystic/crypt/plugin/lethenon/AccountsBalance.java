@@ -24,6 +24,8 @@
  */
 package io.github.astrapi69.mystic.crypt.plugin.lethenon;
 
+import java.time.Instant;
+
 import io.github.astrapi69.lethenon.Amount;
 
 /**
@@ -34,8 +36,11 @@ import io.github.astrapi69.lethenon.Amount;
  *            the balance of the Ed25519 account, whose key is the address's spend key
  * @param mlDsa
  *            the balance of the ML-DSA-65 account, zero while the entry records no key for it
+ * @param lastBlock
+ *            when the last block of the chain the balance was read from was mined: the balance is
+ *            as of then (#831)
  */
-record AccountsBalance(Amount ed25519, Amount mlDsa)
+record AccountsBalance(Amount ed25519, Amount mlDsa, Instant lastBlock)
 {
 
 	/**

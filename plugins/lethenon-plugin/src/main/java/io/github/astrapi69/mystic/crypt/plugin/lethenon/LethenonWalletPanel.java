@@ -31,7 +31,9 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Files;
+import java.time.Instant;
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -120,6 +122,9 @@ public class LethenonWalletPanel extends JPanel
 	private final JLabel lblBalance = new JLabel("");
 
 	private final JTextArea txtBalanceExact = message("txtBalanceExact", false);
+
+	/** When this program last synced the chain and how old its last block is (#831) */
+	private final JTextArea txtChainState = message("txtChainState", false);
 
 	/** Which node "Fetch the chain" asks, from the settings (#827) */
 	private final JTextArea txtFetchNode = message("txtFetchNode", false);
@@ -493,6 +498,7 @@ public class LethenonWalletPanel extends JPanel
 	private void readTheBalance(final VaultWallet chosen)
 	{
 		balance = null;
+		txtChainState.setText("");
 		Optional<Path> chainFile = configuredChain();
 		showWhetherThereIsAChain(chosen == null || chainFile.isPresent());
 		if (chosen == null || chainFile.isEmpty())
@@ -504,8 +510,11 @@ public class LethenonWalletPanel extends JPanel
 			try
 			{
 				AccountsBalance read = OverviewBalance.of(chainFile.get(), chosen);
+				Optional<Instant> synced = ChainSync.lastOf(chainFile.get());
 				ui.execute(() -> {
 					balance = read;
+					txtChainState.setText(ChainCurrency.line(synced, read.lastBlock(),
+						Instant.now(), ZoneId.systemDefault(), locale));
 					showTheBalance(exactBalance());
 				});
 			}
@@ -778,6 +787,10 @@ public class LethenonWalletPanel extends JPanel
 			"what this network means for your LETH"));
 		view.add(lblNetworkBadge, "span 2, split 2, alignx left");
 		view.add(txtRiskNote, "growx, wmin 0, gapleft 12");
+		txtChainState.setToolTipText(text("lethenon.wallet.tooltip.chain.state",
+			"when this program last brought the chain up to date, and how long ago its last block "
+				+ "was mined; the balance is as of that block"));
+		view.add(txtChainState, ToolForm.WIDE + ", wmin 0, hidemode 3");
 		lblBalance.setName("lblBalance");
 		Font base = lblBalance.getFont();
 		lblBalance.setFont(base.deriveFont(Font.BOLD, base.getSize2D() * 2.2f));
@@ -875,6 +888,7 @@ public class LethenonWalletPanel extends JPanel
 	 */
 	private void showWhetherThereIsAChain(final boolean thereIsAChain)
 	{
+		txtChainState.setVisible(thereIsAChain);
 		lblBalance.setVisible(thereIsAChain);
 		txtBalanceExact.setVisible(thereIsAChain);
 		pnlTakeOver.setVisible(thereIsAChain && paymentsToTakeOver());
