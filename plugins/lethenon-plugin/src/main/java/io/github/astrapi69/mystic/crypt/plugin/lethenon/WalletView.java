@@ -53,5 +53,8 @@ public enum WalletView
 	RESTORE,
 
 	/** the wallet password for the check of the one-time payments to the address */
-	INCOMING
+	INCOMING,
+
+	/** the wallet password for taking the one-time payments over onto the account (#831) */
+	SWEEP_INCOMING
 }
