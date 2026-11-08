@@ -164,33 +164,36 @@ class VaultFileWriterTest
 	}
 
 	/**
-	 * Pins today's behaviour (#847): the move replaces the previous database with nothing kept. The
-	 * fix turns this: the previous bytes stay as a sibling backup until the new file was read back
-	 * once
+	 * The previous database survives its replacement as the sibling backup (#847): when the new
+	 * file turns out unreadable later, the previous state is still there
 	 */
 	@Test
-	@DisplayName("a replaced database leaves no backup behind (pins today, #847)")
-	void aReplacedDatabaseLeavesNoBackup(@TempDir File directory) throws Exception
+	@DisplayName("a replaced database keeps its previous bytes as the sibling backup (#847)")
+	void aReplacedDatabaseKeepsItsBackup(@TempDir File directory) throws Exception
 	{
 		File vault = new File(directory, "no-backup.mcrdb");
-		Files.write(vault.toPath(), "the previous database".getBytes(StandardCharsets.UTF_8));
+		byte[] previous = "the previous database".getBytes(StandardCharsets.UTF_8);
+		Files.write(vault.toPath(), previous);
+		byte[] fresh = "the new database".getBytes(StandardCharsets.UTF_8);
 
-		VaultFileWriter.write(vault, "the new database".getBytes(StandardCharsets.UTF_8));
+		VaultFileWriter.write(vault, fresh);
 
-		assertFalse(new File(directory, "no-backup.mcrdb.bak").exists(),
-			"no backup exists today; the #847 fix turns this assertion");
-		assertEquals(1, directory.list().length,
-			"nothing but the database itself: " + String.join(", ", directory.list()));
+		assertArrayEquals(fresh, Files.readAllBytes(vault.toPath()));
+		assertArrayEquals(previous,
+			Files.readAllBytes(new File(directory, "no-backup.mcrdb.bak").toPath()),
+			"the backup holds exactly the previous bytes (#847)");
+		assertEquals(2, directory.list().length,
+			"the database and its backup, nothing else: " + String.join(", ", directory.list()));
 	}
 
 	/**
-	 * Pins today's behaviour (#847): a successful open leaves a sibling backup file as it is,
-	 * because nothing knows backups yet. The fix turns this: the first successful read removes it,
-	 * since a read is the proof the new file is good
+	 * The first successful read removes the backup, since a read is the proof the new file is good,
+	 * and a second copy of the encrypted data does not stay longer than needed (#847); a read
+	 * without a backup has nothing to do and does not fail
 	 */
 	@Test
-	@DisplayName("a successful open leaves a sibling backup file as it is (pins today, #847)")
-	void aSuccessfulOpenLeavesABackupFile(@TempDir File directory) throws Exception
+	@DisplayName("the first successful open removes the backup (#847)")
+	void aSuccessfulOpenRemovesTheBackup(@TempDir File directory) throws Exception
 	{
 		File vault = new File(directory, "opened.mcrdb");
 		MasterPwFileModelBean credentials = MasterPwFileModelBean.builder()
@@ -200,13 +203,44 @@ class VaultFileWriterTest
 			.minPasswordLength(6).build();
 		ApplicationXmlFileFactory.newApplicationFileWithPassword(credentials);
 		File backup = new File(directory, "opened.mcrdb.bak");
-		byte[] previous = "the previous database, kept as the backup"
-			.getBytes(StandardCharsets.UTF_8);
-		Files.write(backup.toPath(), previous);
+		Files.write(backup.toPath(),
+			"the previous database, kept as the backup".getBytes(StandardCharsets.UTF_8));
 
 		assertNotNull(ApplicationXmlFileReader.read(credentials));
 
-		assertTrue(backup.exists(), "the backup stays today; the #847 fix turns this assertion");
-		assertArrayEquals(previous, Files.readAllBytes(backup.toPath()));
+		assertFalse(backup.exists(), "the first successful read removes the backup (#847)");
+		assertNotNull(ApplicationXmlFileReader.read(credentials),
+			"a read without a backup has nothing to do and does not fail");
+	}
+
+	/**
+	 * A failed open never reaches the point that removes the backup, so the backup stays as the way
+	 * back (#847)
+	 */
+	@Test
+	@DisplayName("a failed open leaves the backup as the way back (#847)")
+	void aFailedOpenLeavesTheBackup(@TempDir File directory) throws Exception
+	{
+		File vault = new File(directory, "failed-open.mcrdb");
+		MasterPwFileModelBean credentials = MasterPwFileModelBean.builder()
+			.applicationFileInfo(FileInfo.toFileInfo(vault))
+			.selectedApplicationFilePath(vault.getAbsolutePath())
+			.masterPw(MASTER_PASSWORD.toCharArray()).withMasterPw(true).withKeyFile(false)
+			.minPasswordLength(6).build();
+		ApplicationXmlFileFactory.newApplicationFileWithPassword(credentials);
+		File backup = new File(directory, "failed-open.mcrdb.bak");
+		byte[] previous = "the previous database, kept as the backup"
+			.getBytes(StandardCharsets.UTF_8);
+		Files.write(backup.toPath(), previous);
+		MasterPwFileModelBean wrong = MasterPwFileModelBean.builder()
+			.applicationFileInfo(FileInfo.toFileInfo(vault))
+			.selectedApplicationFilePath(vault.getAbsolutePath())
+			.masterPw(("not-" + MASTER_PASSWORD).toCharArray()).withMasterPw(true)
+			.withKeyFile(false).minPasswordLength(6).build();
+
+		assertThrows(Exception.class, () -> ApplicationXmlFileReader.read(wrong));
+
+		assertArrayEquals(previous, Files.readAllBytes(backup.toPath()),
+			"a failed open must leave the backup as the way back (#847)");
 	}
 }

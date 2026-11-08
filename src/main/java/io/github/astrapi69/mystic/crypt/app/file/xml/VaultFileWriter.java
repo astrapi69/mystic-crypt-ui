@@ -51,6 +51,9 @@ public final class VaultFileWriter
 	/** What the half written file is called while it is being written */
 	static final String WORK_IN_PROGRESS_SUFFIX = ".part";
 
+	/** What the kept previous database is called after a save (#847) */
+	static final String BACKUP_SUFFIX = ".bak";
+
 	private VaultFileWriter()
 	{
 	}
@@ -75,6 +78,7 @@ public final class VaultFileWriter
 		try
 		{
 			toDisk(workInProgress, content);
+			keepThePrevious(target);
 			moveOntoTheDatabase(workInProgress, target);
 		}
 		catch (IOException | RuntimeException failed)
@@ -82,6 +86,42 @@ public final class VaultFileWriter
 			discard(workInProgress, failed);
 			throw failed;
 		}
+	}
+
+	/**
+	 * Keeps the previous database as the sibling backup before the move replaces it (#847): when
+	 * the new file turns out unreadable later, the previous state is still there. A copy rather
+	 * than a move, so the database itself stays in place until the one atomic replacement; the
+	 * backup stays until the new file was read back successfully once, which is when
+	 * {@link #discardBackup(File)} removes it
+	 */
+	private static void keepThePrevious(final Path target) throws IOException
+	{
+		if (Files.exists(target))
+		{
+			Files.copy(target, backupOf(target), StandardCopyOption.REPLACE_EXISTING);
+		}
+	}
+
+	/** The sibling file that keeps the previous database after a save (#847) */
+	static Path backupOf(final Path target)
+	{
+		return target.resolveSibling(target.getFileName() + BACKUP_SUFFIX);
+	}
+
+	/**
+	 * Removes the backup a save kept, once the database it belongs to was read back successfully: a
+	 * read is the proof the new file is good, and a password manager keeps no second copy of the
+	 * encrypted data longer than needed (#847). Without a backup there is nothing to do
+	 *
+	 * @param database
+	 *            the database file whose backup is no longer needed
+	 * @throws IOException
+	 *             if the backup exists and could not be removed
+	 */
+	static void discardBackup(final File database) throws IOException
+	{
+		Files.deleteIfExists(backupOf(database.toPath()));
 	}
 
 	/**

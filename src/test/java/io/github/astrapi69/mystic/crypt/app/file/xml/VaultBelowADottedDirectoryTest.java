@@ -97,7 +97,10 @@ class VaultBelowADottedDirectoryTest
 		assertTrue(applicationFile.length() > 0, "the vault was written in its own directory");
 		assertEquals(applicationFile.getAbsolutePath(),
 			readBack.getMasterPwFileModelBean().getSelectedApplicationFilePath());
-		assertEquals(List.of(name), namesIn(parent.toPath()), "nothing else in its directory");
+		// the save replaced the empty file the test created, so its backup lies beside the vault
+		// (#847) - and belongs in the same dotted directory, which is this test's property
+		assertEquals(List.of(name, name + VaultFileWriter.BACKUP_SUFFIX), namesIn(parent.toPath()),
+			"nothing else in its directory");
 		assertEquals(List.of(directory.substring(0, directory.indexOf('/'))),
 			namesIn(tempDir.toPath()), "nothing written above it");
 	}
