@@ -213,6 +213,19 @@ class LethenonBackupPanelBindingTest
 	}
 
 	@Test
+	@DisplayName("after \"Create the wallet\" nothing says where the wallet is or that the vault has to be saved (pinned, #818)")
+	void afterCreate_nothingSaysWhereTheWalletIs()
+	{
+		LethenonBackupPanel panel = assistant();
+
+		panel.startWithNewWallet(vault.create(WalletNetwork.TESTNET, ThrowawayPasswords.next()));
+
+		List<String> texts = textsAnywhereIn(panel);
+		assertFalse(texts.stream().anyMatch(text -> text.contains("wallet.lethwf")),
+			texts.toString());
+	}
+
+	@Test
 	@DisplayName("step 2 promises no removal of the words while nothing can remove them (#803)")
 	void stepTwo_promisesNoRemoval()
 	{
