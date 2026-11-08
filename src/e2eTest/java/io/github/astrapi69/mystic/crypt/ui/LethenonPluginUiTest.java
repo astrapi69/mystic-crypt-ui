@@ -66,7 +66,6 @@ import io.github.astrapi69.lethenon.Destination;
 import io.github.astrapi69.lethenon.DifficultyRule;
 import io.github.astrapi69.lethenon.Genesis;
 import io.github.astrapi69.lethenon.Mining;
-import io.github.astrapi69.lethenon.OneTimeAddresses;
 import io.github.astrapi69.lethenon.Replay;
 import io.github.astrapi69.lethenon.SignatureSuite;
 import io.github.astrapi69.lethenon.SignedTransaction;
@@ -195,7 +194,7 @@ class LethenonPluginUiTest extends AbstractUiTest
 		Wallet wallet = Wallet.create();
 		File walletFile = new File(tempHome, "wallet.lethenon-wallet");
 		WalletFile.write(walletFile.toPath(), wallet, walletPassword.toCharArray());
-		File chainFile = aChainPayingTheWallet(wallet);
+		File chainFile = LethenonTestChains.payingTheWallet(wallet, tempHome);
 		File databaseFile = new File(tempHome, "lethenon-balance.mcrdb");
 		createDatabaseFileHeadless(databaseFile, MASTER_PASSWORD);
 		ApplicationSteps application = signInWithExistingDatabase(databaseFile, MASTER_PASSWORD);
@@ -267,7 +266,7 @@ class LethenonPluginUiTest extends AbstractUiTest
 		Wallet wallet = Wallet.create();
 		File walletFile = new File(tempHome, "remembered.lethenon-wallet");
 		WalletFile.write(walletFile.toPath(), wallet, walletPassword.toCharArray());
-		File chainFile = aChainPayingTheWallet(wallet);
+		File chainFile = LethenonTestChains.payingTheWallet(wallet, tempHome);
 		File databaseFile = new File(tempHome, "lethenon-remembered.mcrdb");
 		createDatabaseFileHeadless(databaseFile, MASTER_PASSWORD);
 		ApplicationSteps application = signInWithExistingDatabase(databaseFile, MASTER_PASSWORD);
@@ -321,7 +320,7 @@ class LethenonPluginUiTest extends AbstractUiTest
 		Wallet wallet = Wallet.create();
 		File walletFile = new File(tempHome, "wallet.lethenon-wallet");
 		WalletFile.write(walletFile.toPath(), wallet, walletPassword.toCharArray());
-		File chainFile = aChainPayingTheWallet(wallet);
+		File chainFile = LethenonTestChains.payingTheWallet(wallet, tempHome);
 		Bytes recipient = TransactionSigner
 			.asBytes(TransactionSigner.newKeyPair(SignatureSuite.ED25519).getPublic());
 		File databaseFile = new File(tempHome, "lethenon-send.mcrdb");
@@ -388,7 +387,7 @@ class LethenonPluginUiTest extends AbstractUiTest
 		Wallet wallet = Wallet.create();
 		File walletFile = new File(tempHome, "wallet.lethenon-wallet");
 		WalletFile.write(walletFile.toPath(), wallet, walletPassword.toCharArray());
-		File chainFile = aChainPayingTheWallet(wallet);
+		File chainFile = LethenonTestChains.payingTheWallet(wallet, tempHome);
 		ChainFile chain = new ChainFile(chainFile.toPath());
 		Bytes recipient = TransactionSigner
 			.asBytes(TransactionSigner.newKeyPair(SignatureSuite.ED25519).getPublic());
@@ -611,7 +610,7 @@ class LethenonPluginUiTest extends AbstractUiTest
 		Wallet payee = Wallet.create();
 		File payeeFile = new File(tempHome, "payee.lethenon-wallet");
 		WalletFile.write(payeeFile.toPath(), payee, payeePassword.toCharArray());
-		File chainFile = aChainPayingTheWallet(payer);
+		File chainFile = LethenonTestChains.payingTheWallet(payer, tempHome);
 		ChainFile chain = new ChainFile(chainFile.toPath());
 		String address = payee.address().toText();
 		File databaseFile = new File(tempHome, "lethenon-stealth.mcrdb");
@@ -1044,38 +1043,5 @@ class LethenonPluginUiTest extends AbstractUiTest
 				.orElseThrow());
 		}
 		return List.copyOf(chain);
-	}
-
-	/**
-	 * A test chain in the shape lethenon 0.4.0 accepts, on which a payer mines block 1 and then
-	 * pays the wallet 3 LETH to its Ed25519 account and 5 LETH to a one-time destination of its
-	 * published address in block 2, written as lethenon 0.6.0 keeps a chain, in a database
-	 */
-	private File aChainPayingTheWallet(final Wallet wallet) throws Exception
-	{
-		KeyPair payer = TransactionSigner.newKeyPair(SignatureSuite.ED25519);
-		Bytes payerKey = TransactionSigner.asBytes(payer.getPublic());
-		List<BlockBody> chain = new ArrayList<>(List.of(Genesis.candidate(Chain.TEST_IDENTIFIER,
-			"in the beginning was the pun", 1_759_000_000_000L)));
-		chain.add(Blocks.mine(
-			Mining.nextBlock(chain, payerKey, List.of(), "the payer's block", 1_759_000_120_000L),
-			1_000_000L).orElseThrow());
-		SignedTransaction direct = TransactionSigner
-			.sign(
-				new TransactionBody(Chain.TEST_IDENTIFIER, 0L, payerKey,
-					Destination.direct(wallet.spendKey(SignatureSuite.ED25519)), Amount.ofLeth(3L),
-					Amount.ZERO, "three, to the account"),
-				SignatureSuite.ED25519, payer.getPrivate());
-		SignedTransaction oneTime = TransactionSigner
-			.sign(new TransactionBody(Chain.TEST_IDENTIFIER, 1L, payerKey,
-				OneTimeAddresses.destinationFor(wallet.address(),
-					OneTimeAddresses.newEphemeralKeyPair()),
-				Amount.ofLeth(5L), Amount.ZERO, "five, to a one-time destination"),
-				SignatureSuite.ED25519, payer.getPrivate());
-		chain.add(Blocks.mine(Mining.nextBlock(chain, payerKey, List.of(direct, oneTime),
-			"the second pun", 1_759_000_240_000L), 1_000_000L).orElseThrow());
-		File chainFile = new File(tempHome, "paid.lethenon");
-		new ChainFile(chainFile.toPath()).write(chain);
-		return chainFile;
 	}
 }
