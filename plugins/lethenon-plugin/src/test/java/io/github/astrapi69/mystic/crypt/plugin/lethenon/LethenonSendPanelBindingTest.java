@@ -282,6 +282,37 @@ class LethenonSendPanelBindingTest
 		assertFalse(panel.getModelObject().getResultText().contains(PASSWORD));
 	}
 
+	/** The components of the answer, which show only once a transfer was signed (G3, #816) */
+	private static final List<String> ANSWER = List.of("txtAnswer", "txtSentAmount", "txtSentFee",
+		"txtSentTo", "txtWhereItWaits", "btnDetails");
+
+	private static boolean anyAnswerShows(final LethenonSendPanel panel)
+	{
+		return ANSWER.stream().anyMatch(name -> component(panel, name, Component.class).isVisible()
+			&& component(panel, name, Component.class).getParent().isVisible());
+	}
+
+	@Test
+	@DisplayName("before the first send the answer fields show, empty (pinned, #816)")
+	void beforeTheFirstSend_theAnswerFieldsShowEmpty()
+	{
+		LethenonSendPanel panel = new LethenonSendPanel();
+
+		assertTrue(anyAnswerShows(panel), "the answer is hidden before the first send");
+		assertEquals("", textOf(panel, "txtSentAmount"));
+	}
+
+	@Test
+	@DisplayName("after a transfer was signed the answer shows")
+	void afterASignedTransfer_theAnswerShows() throws Exception
+	{
+		LethenonSendPanel panel = filledPanel(PASSWORD, "1");
+
+		panel.onSend();
+
+		assertTrue(anyAnswerShows(panel), "a signed transfer shows no answer");
+	}
+
 	@Test
 	@DisplayName("a transfer the account cannot cover after one that was signed empties every field and leaves no further transfer")
 	void sending_tooMuch_reportsTheReasonOnly() throws Exception
