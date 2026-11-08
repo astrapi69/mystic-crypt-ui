@@ -115,7 +115,9 @@ jobs:
         # ALWAYS, not only on failure (#306): a green run whose evidence is discarded cannot be
         # checked afterwards, and "how many tests were those" then has no answer but a local run.
         # Both suites since the split (#319) - uploading only build/test-results/test would keep
-        # the fast half and drop the one that takes the time
+        # the fast half and drop the one that takes the time. The plugin builds' results too, which
+        # `make plugins` writes into each plugin's own build directory: a plugin test that failed
+        # once on CI had nothing left to read (#667)
         if: always()
         uses: actions/upload-artifact@v4
         with:
@@ -130,6 +132,8 @@ jobs:
             build/reports/tests/e2eKdbxTest
             build/test-results/e2eKdbxTest
             build/own-display
+            plugins/*/build/test-results
+            plugins/*/build/reports/tests
           retention-days: 14
       - name: Upload the pictures of the plugin windows
         # The plugin tests picture their windows on the build's own display, in English and German
