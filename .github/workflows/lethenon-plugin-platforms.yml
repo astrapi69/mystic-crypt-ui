@@ -16,6 +16,17 @@ on:
       # the wrapper, which downloads Gradle in every job of this workflow (#825)
       - 'gradle/wrapper/**'
       - '.github/workflows/lethenon-plugin-platforms.yml'
+  # setup-gradle writes its cache only on the default branch and reads it on pull requests. With
+  # pull requests alone no run ever wrote one, every job started from an empty Gradle User Home and
+  # downloaded Gradle, and failed whenever services.gradle.org did not answer (#832). A push to
+  # develop with the same paths writes the entry the pull request jobs then restore
+  push:
+    branches: [ develop ]
+    paths:
+      - 'plugins/lethenon-plugin/**'
+      - 'gradle/libs.versions.toml'
+      - 'gradle/wrapper/**'
+      - '.github/workflows/lethenon-plugin-platforms.yml'
   workflow_dispatch:
 
 permissions:
