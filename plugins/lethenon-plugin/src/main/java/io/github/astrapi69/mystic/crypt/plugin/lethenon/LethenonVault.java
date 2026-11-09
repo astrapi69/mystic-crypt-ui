@@ -368,6 +368,32 @@ final class LethenonVault
 	}
 
 	/**
+	 * Whether the wallet's entry keeps the 24 words, read from the name of the property and never
+	 * from its value (#821)
+	 *
+	 * @param id
+	 *            the wallet's entry identifier
+	 * @return whether {@code lethenon.mnemonic} is on the entry
+	 */
+	boolean keepsWords(final UUID id)
+	{
+		return keepsItsWords(entryOf(requireAccess(), id));
+	}
+
+	/**
+	 * Removes the 24 words from the wallet's entry through {@link WalletInVault#remove}, which
+	 * overwrites the plugin's copy of them; the vault's own copy is text, which is dropped and not
+	 * overwritten (#821, #852)
+	 *
+	 * @param id
+	 *            the wallet's entry identifier
+	 */
+	void removeWords(final UUID id)
+	{
+		change(id, WalletInVault::remove);
+	}
+
+	/**
 	 * Checks typed words against the wallet's address; a match records today in
 	 * {@code lethenon.backupVerified}, a mismatch changes nothing
 	 *

@@ -56,5 +56,8 @@ public enum WalletView
 	INCOMING,
 
 	/** the wallet password for taking the one-time payments over onto the account (#831) */
-	SWEEP_INCOMING
+	SWEEP_INCOMING,
+
+	/** the confirmation that removes the 24 words from the vault (#821) */
+	REMOVE_WORDS
 }

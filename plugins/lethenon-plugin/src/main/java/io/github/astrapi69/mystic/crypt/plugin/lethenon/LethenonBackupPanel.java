@@ -41,6 +41,7 @@ import java.util.function.Consumer;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
+import javax.swing.JComponent;
 import javax.swing.JFileChooser;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -103,6 +104,12 @@ public class LethenonBackupPanel extends JPanel
 	private final JMPasswordField txtUnsealPassword = new JMPasswordField(34);
 
 	private final JMCheckBox chkStoreWords = new JMCheckBox();
+
+	/** The question, the box and its risk: what step 2 offers while the words are not kept */
+	private final List<JComponent> storeTheWords = new ArrayList<>();
+
+	/** What stands in their place once the entry keeps the words already (#821) */
+	private JTextArea txtWordsKept;
 
 	private final JMTextField txtExportFile = new JMTextField(34);
 
@@ -245,6 +252,7 @@ public class LethenonBackupPanel extends JPanel
 				"Word {0}", locale, positions[index]));
 			answerFields.get(index).setText("");
 		}
+		offerToStoreTheWords();
 		show(BackupStep.QUESTION);
 	}
 
@@ -603,8 +611,9 @@ public class LethenonBackupPanel extends JPanel
 	{
 		JLabel question = new JLabel(text("lethenon.backup.store.question",
 			"Also store the words in the vault? Default: no."));
+		question.setName("lblStoreQuestion");
 		question.setFont(question.getFont().deriveFont(Font.BOLD));
-		step.add(question, ToolForm.WIDE + ", gaptop 12");
+		step.add(question, ToolForm.WIDE + ", gaptop 12, hidemode 3");
 		chkStoreWords.setName("chkStoreWords");
 		chkStoreWords.setText(text("lethenon.backup.store.checkbox",
 			"Yes, also store the 24 words in the vault, as a protected field."));
@@ -612,7 +621,7 @@ public class LethenonBackupPanel extends JPanel
 			"off by default; read the risk below before you tick it"));
 		chkStoreWords.setPropertyModel(
 			LambdaModel.of(modelObject::isStoreWords, modelObject::setStoreWords));
-		step.add(chkStoreWords, ToolForm.WIDE);
+		step.add(chkStoreWords, ToolForm.WIDE + ", hidemode 3");
 		JTextArea risk = LethenonWalletPanel.message("txtStoreRisk", false);
 		risk.setText(text("lethenon.backup.store.risk",
 			"Then anyone who can open your vault has the whole wallet, even without the wallet "
@@ -621,7 +630,30 @@ public class LethenonBackupPanel extends JPanel
 				+ "well."));
 		risk.setToolTipText(text("lethenon.backup.tooltip.store.risk",
 			"what storing the words in the vault means"));
-		step.add(risk, ToolForm.WIDE + ", wmin 0");
+		step.add(risk, ToolForm.WIDE + ", wmin 0, hidemode 3");
+		storeTheWords.addAll(List.of(question, chkStoreWords, risk));
+		txtWordsKept = LethenonWalletPanel.message("txtWordsKept", true);
+		txtWordsKept.setText(text("lethenon.backup.words.kept",
+			"Words are kept in the vault. Use \"Remove words from vault\" to delete them."));
+		txtWordsKept.setToolTipText(text("lethenon.backup.tooltip.words.kept",
+			"the box to store the words is not offered: they are stored already"));
+		txtWordsKept.setVisible(false);
+		step.add(txtWordsKept, ToolForm.WIDE + ", wmin 0, gaptop 12, hidemode 3");
+	}
+
+	/**
+	 * Step 2 offers to store the words only while the entry does not keep them; once it does, a
+	 * note says so, and the box is never a way to delete them (#821)
+	 */
+	private void offerToStoreTheWords()
+	{
+		boolean kept = vault.keepsWords(walletId);
+		storeTheWords.forEach(component -> component.setVisible(!kept));
+		txtWordsKept.setVisible(kept);
+		if (kept)
+		{
+			modelObject.setStoreWords(false);
+		}
 	}
 
 	private JPanel exportStep()
