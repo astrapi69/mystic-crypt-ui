@@ -232,6 +232,59 @@ class LethenonWalletUiTest extends AbstractUiTest
 		}
 	}
 
+	/**
+	 * A9 of #804 through the installed plugin (#821): words stored in step 2 of the backup are
+	 * removed again from the overview, after a confirmation, and only the property goes
+	 */
+	@Test
+	@DisplayName("words stored in step 2 of the backup are removed from the overview after a confirmation, and nothing else of the entry goes (#821)")
+	void wordsStoredInTheBackup_areRemovedFromTheOverview() throws Exception
+	{
+		JInternalFrameFixture tool = openTheWalletWindow("lethenon-wallet-remove-words.mcrdb");
+		createAWalletUpToTheWords(tool);
+		List<String> words = new ArrayList<>();
+		for (int position = 1; position <= 24; position++)
+		{
+			words.add(labelOf(tool, "lblWord" + position).replaceFirst("^\\d+\\. ", ""));
+		}
+		click(tool, "btnWrittenDown");
+		answerTheThreeWords(tool, words);
+		SwingUtilities.invokeLater(() -> tool.checkBox("chkStoreWords").target().doClick());
+		robot.waitForIdle();
+		click(tool, "btnQuestionConfirmed");
+		Pause.pause(new Condition("step 3, the export, is shown")
+		{
+			@Override
+			public boolean test()
+			{
+				return GuiActionRunner.execute(() -> tool.button("btnDone").target().isShowing());
+			}
+		}, 10000);
+		click(tool, "btnDone");
+		Pause.pause(shown(tool, "txtAddress"), 10000);
+		assertEquals(String.join(" ", words),
+			VaultEntryProperties.valuesOf(walletsOfTheVault().get(0)).get("lethenon.mnemonic"),
+			"the words are stored, as ticked in step 2");
+		Map<String, String> before = new LinkedHashMap<>(
+			VaultEntryProperties.valuesOf(walletsOfTheVault().get(0)));
+
+		click(tool, "btnRemoveWords");
+		assertTrue(textOf(tool, "txtRemoveWordsEffect").contains("This cannot be undone"),
+			textOf(tool, "txtRemoveWordsEffect"));
+		click(tool, "btnRemoveWordsConfirmed");
+		Pause.pause(containing(tool, "txtNotice", "Save the vault"), 10000);
+
+		Map<String, String> expected = new LinkedHashMap<>(before);
+		expected.remove("lethenon.mnemonic");
+		assertEquals(expected, VaultEntryProperties.valuesOf(walletsOfTheVault().get(0)),
+			"the entry lost more or less than the words");
+		assertFalse(GuiActionRunner.execute(() -> robot.finder()
+			.findByName(tool.target(), "btnRemoveWords", java.awt.Component.class, false)
+			.isVisible()), "the action stays after the words are gone");
+		assertTrue(MysticCryptApplicationFrame.getInstance().getModelObject().isDirty(),
+			"the removal is a change of the vault, to be saved");
+	}
+
 	/** Brings a new chain file up to the node's tip through the plugin's sync window */
 	private void syncThroughThePlugin(final File chainFile, final int port)
 	{
