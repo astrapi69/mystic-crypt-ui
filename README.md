@@ -15,6 +15,7 @@ export data to and from real KeePass `.kdbx` databases — extensible through a 
 - [Plugins](#plugins)
 - [KeePass import/export](#keepass-importexport)
 - [Installer tool](#installer-tool)
+- [User documentation](#user-documentation)
 - [How this project is made](#how-this-project-is-made)
 - [License](#license)
 - [Want to help and improve it?](#want-to-help-and-improve-it)
@@ -152,6 +153,15 @@ Here is the installer tool used to package the final application:
 
 For more information on creating the izpack installer, see the
 [wiki izpack section](https://github.com/astrapi69/mystic-crypt-ui/wiki/How-to-create-izpack-installer-with-gradle).
+
+## User documentation
+
+The user documentation is the [project wiki](https://github.com/astrapi69/mystic-crypt-ui/wiki). Its
+pages are written in this repository, in [docs/wiki/](docs/wiki/), and the workflow
+`.github/workflows/wiki-mirror.yml` mirrors them into the wiki when `master` moves; a page is
+changed with a pull request against `develop`, and an edit made in the wiki itself is overwritten
+by the next mirror. A test (`WikiLinksTest`) fails when the application links to a wiki page that
+`docs/wiki/` does not have.
 
 ## How this project is made
 
