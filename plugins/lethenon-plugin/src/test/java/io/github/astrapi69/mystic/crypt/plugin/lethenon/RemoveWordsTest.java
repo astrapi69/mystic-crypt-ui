@@ -100,7 +100,7 @@ class RemoveWordsTest
 	}
 
 	@Test
-	@DisplayName("the confirmation says what removing does and what it cannot do, before anything is removed (#821, #852)")
+	@DisplayName("the confirmation asks and says what removing does and what stays in memory, before anything is removed (#821, #852)")
 	void theConfirmation_saysWhatRemovingDoes()
 	{
 		LethenonWalletPanel panel = new LethenonWalletPanel(vault, Locale.ENGLISH);
@@ -108,11 +108,13 @@ class RemoveWordsTest
 		panel.onRemoveWords();
 
 		assertEquals(WalletView.REMOVE_WORDS, panel.getModelObject().getView());
-		assertEquals("The 24 words are removed from this wallet's entry in the vault: the property "
-			+ "lethenon.mnemonic is deleted, and the copies this plugin holds are overwritten. Save "
-			+ "the vault, then they are gone from the file as well. The opened vault still holds "
-			+ "them as text until the program ends; Java cannot overwrite that. This cannot be "
-			+ "undone, so keep your written note.", textOf(panel, "txtRemoveWordsEffect"));
+		assertEquals("Remove the words from the vault?",
+			Windows.component(panel, "lblRemoveWordsTitle", javax.swing.JLabel.class).getText());
+		assertEquals("The property lethenon.mnemonic is removed from the entry. The internal buffers "
+			+ "owned by the plugin are overwritten. The opened vault may keep an immutable String "
+			+ "copy in memory until it is garbage collected or the program exits. After the vault "
+			+ "is saved, the words are not written to the vault file.",
+			textOf(panel, "txtRemoveWordsEffect"));
 		assertTrue(vault.keepsWords(id), "the words went before the confirmation");
 	}
 

@@ -1132,21 +1132,20 @@ public class LethenonWalletPanel extends JPanel
 	}
 
 	/**
-	 * The confirmation that removes the 24 words, saying exactly what it does and what it cannot do
-	 * (#821; the wording of what stays in memory is #852)
+	 * The confirmation that removes the 24 words, saying exactly what it does and what stays in
+	 * memory, in the maintainer's words (#821, #852)
 	 */
 	private JPanel removeWordsView()
 	{
 		JPanel view = new JPanel(ToolForm.newLayout());
 		view.add(title("lblRemoveWordsTitle", "lethenon.wallet.remove.words.title",
-			"Remove the words from the vault"), ToolForm.WIDE);
+			"Remove the words from the vault?"), ToolForm.WIDE);
 		JTextArea effect = message("txtRemoveWordsEffect", true);
 		effect.setText(text("lethenon.wallet.remove.words.effect",
-			"The 24 words are removed from this wallet's entry in the vault: the property "
-				+ "lethenon.mnemonic is deleted, and the copies this plugin holds are overwritten. "
-				+ "Save the vault, then they are gone from the file as well. The opened vault "
-				+ "still holds them as text until the program ends; Java cannot overwrite that. "
-				+ "This cannot be undone, so keep your written note."));
+			"The property lethenon.mnemonic is removed from the entry. The internal buffers owned by "
+				+ "the plugin are overwritten. The opened vault may keep an immutable String copy in "
+				+ "memory until it is garbage collected or the program exits. After the vault is "
+				+ "saved, the words are not written to the vault file."));
 		effect.setToolTipText(text("lethenon.wallet.tooltip.remove.words.effect",
 			"what removing the words does, and what it cannot do"));
 		view.add(effect, ToolForm.WIDE + ", wmin 0");

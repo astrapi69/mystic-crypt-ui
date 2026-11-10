@@ -269,7 +269,9 @@ class LethenonWalletUiTest extends AbstractUiTest
 			VaultEntryProperties.valuesOf(walletsOfTheVault().get(0)));
 
 		click(tool, "btnRemoveWords");
-		assertTrue(textOf(tool, "txtRemoveWordsEffect").contains("This cannot be undone"),
+		assertTrue(
+			textOf(tool, "txtRemoveWordsEffect")
+				.contains("After the vault is saved, the words are not written to the vault file."),
 			textOf(tool, "txtRemoveWordsEffect"));
 		click(tool, "btnRemoveWordsConfirmed");
 		Pause.pause(containing(tool, "txtNotice", "Save the vault"), 10000);
