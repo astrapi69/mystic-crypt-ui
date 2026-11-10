@@ -116,6 +116,30 @@ class WalletInputTest
 					+ "with your note, in order."));
 	}
 
+	/**
+	 * Words of the list in an order the checksum refuses are refused with a sentence that says what
+	 * to look for, in both languages of the window (#804, draft 05)
+	 */
+	@ParameterizedTest(name = "{0}")
+	@MethodSource("theChecksumSentence")
+	void aFailedChecksum_saysWhatToLookFor(final Locale locale, final String expected)
+	{
+		List<String> swapped = swappedUntilTheChecksumFails(
+			List.of(Wallet.create().phrase().split(" ")));
+
+		assertEquals(expected, WalletInput.words(String.join(" ", swapped)).orElseThrow().text(locale));
+	}
+
+	static Stream<Arguments> theChecksumSentence()
+	{
+		return Stream.of(Arguments.of(Locale.ENGLISH,
+			"These 24 words do not give a wallet: a word may be in the wrong place. Compare them "
+				+ "with your note, in order."),
+			Arguments.of(Locale.GERMAN,
+				"Diese 24 Wörter ergeben keine Wallet: vielleicht steht ein Wort an der falschen "
+					+ "Stelle. Vergleiche sie der Reihe nach mit deiner Notiz."));
+	}
+
 	@ParameterizedTest(name = "{0} is refused")
 	@MethodSource("refusedWords")
 	@DisplayName("words that give no wallet are refused with a sentence that says what to check")
