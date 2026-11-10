@@ -2,9 +2,14 @@
 
 Status: **accepted**. A record of the decisions the maintainer took on 2026-11-08 and 2026-11-10, after an
 options document (A to F), an external review and a fact-checked measurement pass over the code; not a
-rule. Nothing of it is built yet: the binding short form will be the code of the 9.0 initiative, whose
+rule. Revised on 2026-11-10, the day it was merged: the acceptance's own wording replaces the first
+version's choices - preservation of `extensions` moved from raw byte-equal fragments to canonical JSON
+(RFC 8785), the vault UUID and the RFC 3339 timestamp rule were added, three sync tickets were added
+(#858, #859, #860) with #855 narrowed to the rules for merging groups, and the legacy-id measurement was
+taken. Nothing of it is built yet: the binding short form will be the code of the 9.0 initiative, whose
 issues the last section names. The measured figures below are of 2026-11-08, against `develop` at
-`1eca866f`, and were checked by a second pass against the same commit.
+`1eca866f`, and were checked by a second pass against the same commit; the legacy-id measurement of
+section 6 is of 2026-11-10, against `c1b930c`, checked the same way.
 
 ## 1. What is decided, in one paragraph
 
@@ -17,8 +22,10 @@ carries no Java type identity, and an explicit, hand-written mapper connects the
 application's objects - no reflective binding, no polymorphic typing. The target is version **9.0**, a
 deliberate major break: released 7.x and 8.x cannot read the new format.
 
-Encodings, fixed: the JSON metadata is **UTF-8 without a BOM**; attachment checksums are **SHA-256**,
-written as lowercase hex. 9.0 holds attachments **in memory, with a size limit** whose number is set at
+Every 9.0 vault carries a **random vault UUID in its header**. Encodings, the maintainer's wording:
+"Attachment checksums use SHA-256. Metadata JSON is UTF-8 without BOM. Timestamps are stored as RFC 3339
+strings in UTC with millisecond precision, for example 2026-11-10T14:02:00.000Z. No other representation
+is allowed. Other 64-bit integers are stored as strings."  9.0 holds attachments **in memory, with a size limit** whose number is set at
 implementation time and refused with a message that names it; the container is laid out so streaming can
 come later without a format break - every blob is length-prefixed, and the JSON carries an index with each
 blob's offset into the blob area, so a later reader can seek to one attachment without parsing the others.
@@ -48,28 +55,29 @@ times ride as ISO text in string properties. The 9.0 model instead:
 
 - **flat entries with a group reference** (the entry names its group's id), **groups with a parent
   reference**; no map level, no tree-node wrapper types, no `dataOfNodes`;
-- **real fields where the type is known**: times as UTC ISO-8601 instants, never stringly-typed
-  properties for values the host understands;
+- **real fields where the type is known**: times as RFC 3339 strings per the rule in section 1, never
+  stringly-typed properties for values the host understands;
 - one hand-written **mapper class** between the JSON tree and the objects, the only place that knows both
   sides, as `VaultXmlCodec` is that one place today.
 
-**#757 and #775 are solved by this as a side effect**: `dataOfNodes` does not exist in the format, and no
-silly-bean type is part of it.
+**The format part of #775 is solved by this as a side effect**: no silly-bean type is part of the 9.0
+format. #775 keeps its other parts - the frozen legacy reader still resolves `KeyValuePair` and
+`KeySetPair`, and the obfuscation plugin's rule tables and the panels are its own chapters. The vestigial
+`dataOfNodes` that #757 found (closed by #763 before this record) does not exist in the format.
 
-## 4. Unknown fields and plugin data: raw fragments
+## 4. Unknown fields and plugin data: canonical JSON
 
 Every entity (vault, group, entry, attachment metadata) carries one optional **`extensions` object the
 host never interprets**. Plugin data lives in namespaced keys inside it (the lethenon wallet stays an
 attachment plus marker values, under the plugin's namespace).
 
-Preservation is specified at the byte level: the mapper keeps each `extensions` object as the **raw JSON
-fragment it was read as, and writes those bytes back unchanged**. A parsed-and-reserialized tree may
-change key order, whitespace, number formatting or Unicode escaping, so parsing is not the preservation
-mechanism; the fragment is. The round-trip test asserts byte equality of every `extensions` fragment
-after read-and-write. The parts the host itself writes carry no byte-stability promise (the host may
-normalize its own output), only the UTF-8 rule above. Canonical JSON (RFC 8785) was considered and
-rejected: it buys a canonical equality the raw fragment already gives, at the price of a canonicalization
-implementation.
+Preservation is specified in the maintainer's wording: "Preservation means semantic equality of JSON
+values, not byte equality. The writer emits canonical JSON according to RFC 8785. Round-trip tests
+compare parsed JSON values and verify that repeated writes produce identical canonical output. Because
+RFC 8785 serializes numbers as IEEE 754 doubles, the format admits JSON numbers only within the safe
+integer range (|n| <= 2^53 - 1); any larger integer, anywhere in the document including extensions, is
+written as a string. Plugins that need byte-exact data use attachments, not extensions." The first merged
+version of this record chose raw byte-equal fragments instead; the acceptance replaced that.
 
 A newer minor version's additions land in `extensions` or in new optional fields, which an older 9.x
 reader keeps through the same mechanism - that is what makes the minor rule below safe.
@@ -95,9 +103,25 @@ admits) applies to the legacy path and is wanted independently of 9.0.
 so** - in addition to the general save backup of #847, because this one crosses a format boundary the old
 release could still read.
 
-Migration identity: entries and groups of old vaults get **new UUIDs**, and the **migration time as their
-modification time unless a better value exists** (an entry's history, or the KDBX times where present).
-The consequence for syncing and its limit are in section 8 and #856.
+Migration identity, the maintainer's wording: "Every 9.0 vault carries a random vault UUID in its
+header. Sync merges only copies of the same 9.0 vault. Legacy copies migrated independently are distinct
+vaults: merging them is refused and import is offered instead. If a legacy object already carries a
+stable unique id, migration reuses it; otherwise it receives a new random UUID." The modification time is
+the migration time unless a better value exists (an entry's history, or the KDBX times where present).
+
+Measured for that rule on 2026-11-10 (develop at `c1b930c`): **an entry's id is already a random UUID** -
+`MysticCryptEntryModelBean.id` is `java.util.UUID`, given by `EntryIdentitySupport` to every entry that
+lacks one when a vault is opened (#287, #272), in every release since 8.5 (8.5 marked the vault changed
+for it; since 8.6 the ids travel with the next real save). It is **not guaranteed unique inside a vault**:
+"Duplicate node" copies every entry of the group with its id unchanged, so migration **reuses an entry id
+only where it is unique in the vault** and mints new ones for duplicates. **A group made in this
+application has no UUID**: the tree key is a per-vault sequential `Long` (`rootTreeAsMap`, `lastId` with
+`LongIdGenerator`), so groups **receive new random UUIDs**. A group imported from KDBX carries its KeePass
+group UUID in `properties["keepass.uuid"]` (since 8.1.1), which stays a property but is no stable unique
+id either - "Duplicate node" and a second import repeat it - so it does not take part in the reuse rule.
+An entry of a vault never saved by 8.5 or later gets its UUID at open, before any migration, so two
+devices opening the same old file independently still mint different entry ids. The limits and what could
+soften them are #856.
 
 The key-file envelope is its own piece: #849 replaces the Java-serialized `AesRsaCryptModel` with a fixed
 binary header, versioned and refusable, independent of the content format; the 9.0 container goes inside
@@ -113,9 +137,11 @@ though all 12 were measured open:
   published release jars through their own save paths, as `scripts/fixtures/WriteWithAnOldRelease.java`
   does it;
 - the release jars come **from the GitHub release pages, checked against fixed sha256 sums** recorded in
-  the fixtures' README; for 7.x and 8.1.1, which publish no checksum file, the sums measured on
-  2026-11-05 and recorded in `src/testSupport/resources/compat/vaults/README.md` are the pin; **no
-  Docker**, plain `java -cp` as `scripts/fetch-release-jar.sh` does it;
+  the fixtures' README; none of 7.2, 7.3, 8 and 8.1.1 publishes a checksum file (8.2 is the first that
+  does), so for all four the sums measured on 2026-11-05 and recorded in
+  `src/testSupport/resources/compat/vaults/README.md` are the pin; **no Docker**:
+  `scripts/fetch-release-jar.sh` fetches and unpacks the jar, and the fixture writers run it with plain
+  `java -cp` (`scripts/fixtures/WriteWithAnOldRelease.java`);
 - the migration proof is the round-trip rule of `quality-checks.md` per fixture: open in 9.0, save,
   reopen, compare content, attachments by their SHA-256, through the running application for the critical
   paths, as `LegacyDatabaseMigrationUiTest` does now.
@@ -131,11 +157,12 @@ alike** (groups are renamed, moved and deleted too):
 - a **list of deleted objects with their deletion time** (tombstones), covering entries and groups;
 - the **time of the last move** per entry and per group.
 
-**Limit, decided:** the merge's base is a **shared 9.0 vault** - one migration, then the copies. Two
-independent migrations of the same legacy vault create different UUIDs and are different objects to the
-merge; whether deterministic ids can soften that is #856. The merge rules themselves (who wins, conflict
-copies, tombstone lifetime, move against edit) are #855 and are designed before the merge function is
-built.
+**Limit, decided:** the merge's base is a **shared 9.0 vault**, recognised by the vault UUID of section
+1 - one migration, then the copies. Legacy copies migrated independently are distinct vaults: merging
+them is refused and import is offered instead (#856). The open design questions each have their ticket
+and are designed before the merge function is built: tombstone retention #858, clock skew between devices
+#859, merge granularity #860 (which can still touch the 9.0 format, as a last-save field out of #859
+could), the rules for merging groups #855, and migration identity #856.
 
 ## 9. Attachments
 
@@ -159,14 +186,19 @@ present.
 
 ## 11. Open points, each with its ticket
 
-1. **The merge rules** for the two-file synchronization: #855. Until designed, 9.0 carries the fields and
-   no merge exists.
-2. **Migration identity**: #856. Until decided otherwise, the shared-vault limit of section 8 is the
-   answer.
+1. **Tombstone retention** - when a deleted object's record may be discarded: #858.
+2. **Clock skew between devices**: #859.
+3. **Merge granularity**, per entry or per field - it can still touch the 9.0 format (as a last-save
+   field out of #859 could), so it is decided before 9.0 ships: #860.
+4. **The rules for merging groups**: #855.
+5. **Migration identity**, with the measurement of section 6: #856. Until decided otherwise, the
+   shared-vault limit of section 8 is the answer.
+
+Until these are designed, 9.0 carries the fields and no merge exists.
 
 ## Issues of this initiative
 
-#757 and #775 (solved by the model), #847 (save backup, merged), #848 (legacy reader's admitted types),
-#849 (key-file envelope), #855 (merge rules), #856 (migration identity), and the implementation issues to
+#775 (its format part solved by the model; #757's dataOfNodes question answered), #847 (save backup, merged), #848 (legacy reader's admitted types),
+#849 (key-file envelope), #855, #856, #858, #859, #860 (the sync design tickets of section 11), and the implementation issues to
 be cut from this record. The options document this record replaces, with the full comparison and its
 evidence, is in the maintainer's private notes.
