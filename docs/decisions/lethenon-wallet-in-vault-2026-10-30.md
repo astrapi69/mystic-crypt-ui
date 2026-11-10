@@ -152,7 +152,10 @@ vault and a lost computer, and tells the user whether it has checked that they d
 
 - Java strings cannot be overwritten. The words are handled as character arrays, as in #294. The string
   copies that Swing components hold, as recorded in `locking-keeps-the-content`, cannot be cleared from
-  here; the words are not put into text components where avoidable.
+  here; the words are not put into text components where avoidable. The host keeps every custom property
+  of an entry as a String (`MysticCryptEntryModelBean.properties`, part of the vault format), so the
+  stored words are a String in the opened vault as well; making them `char[]` would be a change of the
+  format and a decision of its own (#852).
 - The check compares addresses, so it proves that the typed words produce the wallet's address. It does
   not prove that the words are the only copy written down.
 
@@ -193,7 +196,10 @@ The default stays option 1: the words are not in the vault. The user may choose 
   decision 4 applies, and it names the words.
 - Still checked: a user who stores the words goes through the three-word question and the backup check
   as well, the same as everyone.
-- Removable at any time. Removing deletes the property and overwrites the buffers that held the words.
+- Removable at any time, with "Remove words from vault" in the overview and a confirmation of its own
+  (#821, #854). Removing deletes the property from the entry and overwrites the buffers the plugin owns.
+  The opened vault may keep an immutable String copy in memory until it is garbage collected or the
+  program exits; after the vault is saved, the words are not written to the vault file (#852).
 
 Risk, named: a stolen unlocked or opened vault, or a vault file copied and opened with the master
 password, gives the attacker the full wallet with no second factor. This is the reason for the default.

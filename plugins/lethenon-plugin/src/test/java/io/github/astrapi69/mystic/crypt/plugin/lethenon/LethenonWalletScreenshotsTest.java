@@ -33,8 +33,11 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
+import java.util.UUID;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 
@@ -284,6 +287,51 @@ class LethenonWalletScreenshotsTest
 					frame.dispose();
 				});
 				Path file = DIRECTORY.resolve(stage + "-" + locale.getLanguage() + ".png");
+				write(picture[0], file);
+				assertTrue(hasContent(picture[0]), file + " is empty");
+			}
+		}
+		finally
+		{
+			System.clearProperty(PluginSettings.CONFIGURATION_DIRECTORY_PROPERTY);
+		}
+	}
+
+	@ParameterizedTest(name = "removing the words, {0}")
+	@MethodSource("languages")
+	@DisplayName("a wallet that keeps its words is pictured with \"Remove words from vault\", the confirmation and the note in step 2 (#821)")
+	void removingTheWords_isPictured(final Locale locale, @TempDir final Path settings)
+		throws Exception
+	{
+		System.setProperty(PluginSettings.CONFIGURATION_DIRECTORY_PROPERTY, settings.toString());
+		try
+		{
+			Wallet wallet = Wallet.create();
+			LethenonVault vault = new LethenonVault();
+			vault.connect(new InMemoryVaultAccess());
+			UUID id = vault.restore(wallet.phrase().toCharArray(), PASSWORD.clone(),
+				WalletNetwork.TESTNET);
+			vault.storeWords(id, wallet.phrase().toCharArray(), WordsChoice.STORE_IN_VAULT);
+			Map<String, Consumer<LethenonWalletPanel>> stages = new LinkedHashMap<>();
+			stages.put("17-overview-words-kept", panel -> {});
+			stages.put("18-remove-words-confirmation", LethenonWalletPanel::onRemoveWords);
+			stages.put("19-backup-step-two-words-kept", LethenonWalletScreenshotsTest::atStepTwo);
+			for (Map.Entry<String, Consumer<LethenonWalletPanel>> stage : stages.entrySet())
+			{
+				BufferedImage[] picture = new BufferedImage[1];
+				SwingUtilities.invokeAndWait(() -> {
+					LethenonWalletPanel panel = new LethenonWalletPanel(vault, locale);
+					stage.getValue().accept(panel);
+					JFrame frame = new JFrame("lethenon wallet");
+					frame.setContentPane(panel);
+					frame.pack();
+					frame.setSize(Math.max(frame.getWidth(), 760), Math.max(frame.getHeight(), 420));
+					frame.setVisible(true);
+					frame.validate();
+					picture[0] = paintComponent(panel);
+					frame.dispose();
+				});
+				Path file = DIRECTORY.resolve(stage.getKey() + "-" + locale.getLanguage() + ".png");
 				write(picture[0], file);
 				assertTrue(hasContent(picture[0]), file + " is empty");
 			}

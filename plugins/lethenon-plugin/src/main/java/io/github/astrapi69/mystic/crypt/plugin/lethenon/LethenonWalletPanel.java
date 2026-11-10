@@ -135,6 +135,9 @@ public class LethenonWalletPanel extends JPanel
 	/** "Fetch the chain", disabled while a fetch runs */
 	private JButton btnFetchChain;
 
+	/** "Remove words from vault", shown only for a wallet whose entry keeps the words (#821) */
+	private JButton btnRemoveWords;
+
 	/** "Check incoming payments", shown only while there is a chain to check */
 	private JPanel pnlCheckIncoming;
 
@@ -222,6 +225,7 @@ public class LethenonWalletPanel extends JPanel
 		pnlViews.add(restoreView(), WalletView.RESTORE.name());
 		pnlViews.add(incomingView(), WalletView.INCOMING.name());
 		pnlViews.add(sweepIncomingView(), WalletView.SWEEP_INCOMING.name());
+		pnlViews.add(removeWordsView(), WalletView.REMOVE_WORDS.name());
 		add(pnlViews, "wmin 0");
 		add(messages(), "wmin 0");
 		vault.whenClosing(this::onVaultClosing);
@@ -465,6 +469,7 @@ public class LethenonWalletPanel extends JPanel
 		network.paint(lblNetworkBadge, locale);
 		txtRiskNote.setText(network.riskNote(locale));
 		showTheBackupNotice(chosen);
+		btnRemoveWords.setVisible(chosen != null && vault.keepsWords(chosen.id()));
 		readTheBalance(chosen);
 	}
 
@@ -686,6 +691,35 @@ public class LethenonWalletPanel extends JPanel
 		show(WalletView.BACKUP);
 	}
 
+	/** Opens the confirmation that removes the 24 words from the vault (#821) */
+	void onRemoveWords()
+	{
+		show(WalletView.REMOVE_WORDS);
+	}
+
+	/**
+	 * Removes the 24 words from the chosen wallet's entry (#821): the property goes, the plugin's
+	 * copy is overwritten, and the overview says that the vault is to be saved for the words to
+	 * leave the file as well
+	 */
+	void onRemoveWordsConfirmed()
+	{
+		VaultWallet chosen = modelObject.getChosen();
+		try
+		{
+			vault.removeWords(chosen.id());
+		}
+		catch (final VaultAccessRefusedException notWritable)
+		{
+			refuse(notWritable.getMessage());
+			return;
+		}
+		refresh(chosen.id());
+		notice(text("lethenon.wallet.remove.words.done",
+			"The 24 words are removed from this wallet's entry. Save the vault, then they are "
+				+ "gone from the file as well."));
+	}
+
 	/** Starts the check of all 24 words for the chosen wallet */
 	void onBackupCheck()
 	{
@@ -846,8 +880,8 @@ public class LethenonWalletPanel extends JPanel
 			LethenonSwing.button("btnBackup", text("lethenon.wallet.button.backup", "Back up"),
 				event -> onBackup(),
 				text("lethenon.wallet.tooltip.backup",
-					"show the 24 words once more, ask three of them, write the sealed file"))),
-			ToolForm.BUTTON_ROW);
+					"show the 24 words once more, ask three of them, write the sealed file")),
+			removeWordsButton()), ToolForm.BUTTON_ROW);
 		view.add(new JLabel(text("lethenon.wallet.label.another", "Another wallet:")),
 			"newline, gaptop 12");
 		view.add(ToolForm.buttons(createButton("btnAnotherCreate"),
@@ -1083,6 +1117,45 @@ public class LethenonWalletPanel extends JPanel
 				text("lethenon.wallet.tooltip.take.over.incoming.confirmed",
 					"sign one transfer for each payment to your address, onto your account")),
 			cancelButton("btnTakeOverIncomingCancelled")), ToolForm.BUTTON_ROW);
+		return view;
+	}
+
+	private JButton removeWordsButton()
+	{
+		btnRemoveWords = LethenonSwing.button("btnRemoveWords",
+			text("lethenon.wallet.button.remove.words", "Remove words from vault"),
+			event -> onRemoveWords(),
+			text("lethenon.wallet.tooltip.remove.words",
+				"delete the 24 words this wallet keeps in the vault; your written note stays"));
+		btnRemoveWords.setVisible(false);
+		return btnRemoveWords;
+	}
+
+	/**
+	 * The confirmation that removes the 24 words, saying exactly what it does and what stays in
+	 * memory, in the maintainer's words (#821, #852)
+	 */
+	private JPanel removeWordsView()
+	{
+		JPanel view = new JPanel(ToolForm.newLayout());
+		view.add(title("lblRemoveWordsTitle", "lethenon.wallet.remove.words.title",
+			"Remove the words from the vault?"), ToolForm.WIDE);
+		JTextArea effect = message("txtRemoveWordsEffect", true);
+		effect.setText(text("lethenon.wallet.remove.words.effect",
+			"The property lethenon.mnemonic is removed from the entry. The internal buffers owned by "
+				+ "the plugin are overwritten. The opened vault may keep an immutable String copy in "
+				+ "memory until it is garbage collected or the program exits. After the vault is "
+				+ "saved, the words are not written to the vault file."));
+		effect.setToolTipText(text("lethenon.wallet.tooltip.remove.words.effect",
+			"what removing the words does, and what it cannot do"));
+		view.add(effect, ToolForm.WIDE + ", wmin 0");
+		view.add(ToolForm.buttons(
+			LethenonSwing.button("btnRemoveWordsConfirmed",
+				text("lethenon.wallet.button.remove.words.confirmed", "Remove the words"),
+				event -> onRemoveWordsConfirmed(),
+				text("lethenon.wallet.tooltip.remove.words.confirmed",
+					"delete the 24 words from this wallet's entry; this cannot be undone")),
+			cancelButton("btnRemoveWordsCancelled")), ToolForm.BUTTON_ROW);
 		return view;
 	}
 
