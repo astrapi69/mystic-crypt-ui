@@ -32,6 +32,7 @@ import java.awt.event.FocusEvent;
 import java.awt.event.InputEvent;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
@@ -51,6 +52,7 @@ import org.danekja.java.util.function.serializable.SerializableConsumer;
 import org.danekja.java.util.function.serializable.SerializableSupplier;
 
 import io.github.astrapi69.lethenon.SeedPhrase;
+import io.github.astrapi69.mystic.crypt.clipboard.ClipboardClearWatchdog;
 import io.github.astrapi69.model.LambdaModel;
 import io.github.astrapi69.swing.model.component.JMTextField;
 import net.miginfocom.swing.MigLayout;
@@ -317,12 +319,37 @@ final class WordGrid extends JPanel
 			{
 				return false;
 			}
-			if (words.size() == 1)
+			if (words.size() == 1 && !standard.importData(support))
 			{
-				return standard.importData(support);
+				return false;
 			}
-			spread(words);
+			if (words.size() > 1)
+			{
+				spread(words);
+			}
+			if (!support.isDrop())
+			{
+				emptyTheClipboardOf(pasted.get());
+			}
 			return true;
+		}
+
+		/**
+		 * Empties the system clipboard if it still holds what was just pasted, the host's
+		 * conditional clear: something copied there since is left alone. A drop does not come
+		 * from the clipboard and does not reach here
+		 */
+		private static void emptyTheClipboardOf(final String pasted)
+		{
+			char[] expected = pasted.toCharArray();
+			try
+			{
+				ClipboardClearWatchdog.clearNowIfStillHolding(expected);
+			}
+			finally
+			{
+				Arrays.fill(expected, '\0');
+			}
 		}
 
 		@Override
