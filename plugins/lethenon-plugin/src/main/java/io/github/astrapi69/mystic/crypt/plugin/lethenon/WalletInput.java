@@ -80,7 +80,7 @@ final class WalletInput
 		return wordsToCheck(typed).or(() -> givesAWallet(SeedPhrase.parse(typed))
 			? Optional.empty()
 			: Optional.of(new Refusal("lethenon.wallet.form.refused.words.checksum",
-				"These 24 words do not give a wallet: a word may be in the wrong place. Compare "
+				"These 24 words do not give a wallet: one is wrong or two are swapped. Compare "
 					+ "them with your note, in order.")));
 	}
 

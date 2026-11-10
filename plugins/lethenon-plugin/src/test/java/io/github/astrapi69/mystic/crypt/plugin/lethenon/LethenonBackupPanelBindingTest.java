@@ -491,7 +491,7 @@ class LethenonBackupPanelBindingTest
 
 		panel.getModelObject().setCheckWords(Wallet.create().phrase());
 		panel.onCheckConfirmed();
-		assertTrue(textOf(panel, "txtCheckResult").startsWith("These words do not match"),
+		assertTrue(textOf(panel, "txtCheckResult").startsWith("The words do not match this wallet"),
 			textOf(panel, "txtCheckResult"));
 		assertEquals(BackupState.NOT_CHECKED, vault.backupStateOf(id, LocalDate.now()));
 
@@ -524,11 +524,11 @@ class LethenonBackupPanelBindingTest
 	static Stream<Arguments> theMismatchSentence()
 	{
 		return Stream.of(Arguments.of(Locale.ENGLISH,
-			"These words do not match the wallet in the vault. Compare them with your note, in order, "
-				+ "and check again."),
+			"The words do not match this wallet. One is wrong or two are swapped. The date of the "
+				+ "last successful check stays."),
 			Arguments.of(Locale.GERMAN,
-				"Diese Wörter gehören nicht zur Wallet im Tresor. Vergleiche sie der Reihe nach mit "
-					+ "deiner Notiz und prüf noch einmal."));
+				"Die Wörter passen nicht zu dieser Wallet. Eines ist falsch oder zwei sind vertauscht. "
+					+ "Das Datum der letzten erfolgreichen Prüfung bleibt."));
 	}
 
 	@Test

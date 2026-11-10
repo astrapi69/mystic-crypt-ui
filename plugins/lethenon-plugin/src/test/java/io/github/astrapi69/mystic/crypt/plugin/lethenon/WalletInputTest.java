@@ -112,7 +112,7 @@ class WalletInputTest
 			Arguments.of("a typing error in word 7", String.join(" ", typo),
 				"Word 7, \"abandonn\", is not in the word list. Check your note for a typing error."),
 			Arguments.of("two words swapped", String.join(" ", swapped),
-				"These 24 words do not give a wallet: a word may be in the wrong place. Compare them "
+				"These 24 words do not give a wallet: one is wrong or two are swapped. Compare them "
 					+ "with your note, in order."));
 	}
 
@@ -133,11 +133,11 @@ class WalletInputTest
 	static Stream<Arguments> theChecksumSentence()
 	{
 		return Stream.of(Arguments.of(Locale.ENGLISH,
-			"These 24 words do not give a wallet: a word may be in the wrong place. Compare them "
+			"These 24 words do not give a wallet: one is wrong or two are swapped. Compare them "
 				+ "with your note, in order."),
 			Arguments.of(Locale.GERMAN,
-				"Diese 24 Wörter ergeben keine Wallet: vielleicht steht ein Wort an der falschen "
-					+ "Stelle. Vergleiche sie der Reihe nach mit deiner Notiz."));
+				"Diese 24 Wörter ergeben keine Wallet: eines ist falsch oder zwei sind vertauscht. "
+					+ "Vergleiche sie der Reihe nach mit deiner Notiz."));
 	}
 
 	@ParameterizedTest(name = "{0} is refused")
