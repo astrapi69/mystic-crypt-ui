@@ -22,7 +22,11 @@ carries no Java type identity, and an explicit, hand-written mapper connects the
 application's objects - no reflective binding, no polymorphic typing. The target is version **9.0**, a
 deliberate major break: released 7.x and 8.x cannot read the new format.
 
-Every 9.0 vault carries a **random vault UUID in its header**. Encodings, the maintainer's wording:
+Every 9.0 vault carries a **random vault UUID, stored as the field `vaultId` in the JSON root** - the
+binary header carries only the magic and the version, so no binary encoding or position is needed for the
+id. The remaining byte-level choices (the magic bytes, byte order, the width of version and length
+fields, what the index's offsets refer to) are fixed with test vectors in **#862** before the first byte
+is written. Encodings, the maintainer's wording:
 "Attachment checksums use SHA-256. Metadata JSON is UTF-8 without BOM. Timestamps are stored as RFC 3339
 strings in UTC with millisecond precision, for example 2026-11-10T14:02:00.000Z. No other representation
 is allowed. Other 64-bit integers are stored as strings."  9.0 holds attachments **in memory, with a size limit** whose number is set at
@@ -56,7 +60,8 @@ times ride as ISO text in string properties. The 9.0 model instead:
 - **flat entries with a group reference** (the entry names its group's id), **groups with a parent
   reference**; no map level, no tree-node wrapper types, no `dataOfNodes`;
 - **real fields where the type is known**: times as RFC 3339 strings per the rule in section 1, never
-  stringly-typed properties for values the host understands;
+  stringly-typed properties for values the host understands; **groups carry a modification time and a
+  last-move time exactly as entries do**, and deletions of both land in the tombstone list (section 8);
 - one hand-written **mapper class** between the JSON tree and the objects, the only place that knows both
   sides, as `VaultXmlCodec` is that one place today.
 
@@ -103,7 +108,8 @@ admits) applies to the legacy path and is wanted independently of 9.0.
 so** - in addition to the general save backup of #847, because this one crosses a format boundary the old
 release could still read.
 
-Migration identity, the maintainer's wording: "Every 9.0 vault carries a random vault UUID in its
+Migration identity, the maintainer's wording ("its header" is the `vaultId` field of the JSON root,
+section 1): "Every 9.0 vault carries a random vault UUID in its
 header. Sync merges only copies of the same 9.0 vault. Legacy copies migrated independently are distinct
 vaults: merging them is refused and import is offered instead. If a legacy object already carries a
 stable unique id, migration reuses it; otherwise it receives a new random UUID." The modification time is
@@ -154,7 +160,8 @@ alike** (groups are renamed, moved and deleted too):
 
 - a **random stable id (UUID)** per entry and per group;
 - a **modification time** per entry and per group, UTC with millisecond precision;
-- a **list of deleted objects with their deletion time** (tombstones), covering entries and groups;
+- a **list of deleted objects** (tombstones), covering entries and groups; a tombstone holds the
+  **object type, the object id and the deletion time**;
 - the **time of the last move** per entry and per group.
 
 **Limit, decided:** the merge's base is a **shared 9.0 vault**, recognised by the vault UUID of section
@@ -196,9 +203,17 @@ present.
 
 Until these are designed, 9.0 carries the fields and no merge exists.
 
+## Standards referenced
+
+- Canonical JSON: RFC 8785 (JSON Canonicalization Scheme), https://www.rfc-editor.org/rfc/rfc8785
+- Timestamps: RFC 3339 (Date and Time on the Internet), https://www.rfc-editor.org/rfc/rfc3339
+- Checksums: SHA-256 per FIPS 180-4 (Secure Hash Standard), https://csrc.nist.gov/pubs/fips/180-4/upd1/final
+- The safe integer range: |n| <= 2^53 - 1, IEEE 754 double precision as ECMA-262 defines it for JSON
+  numbers (`Number.MAX_SAFE_INTEGER`), https://tc39.es/ecma262/#sec-number.max_safe_integer
+
 ## Issues of this initiative
 
-#775 (its format part solved by the model; #757's dataOfNodes question answered), #847 (save backup, merged), #848 (legacy reader's admitted types),
-#849 (key-file envelope), #855, #856, #858, #859, #860 (the sync design tickets of section 11), and the implementation issues to
+#775 (its format part solved by the model; #757's dataOfNodes question answered), #847 (save backup, merged), #848 (the legacy reader's admitted types - an independent hardening, wanted with or without 9.0 and outside its scope),
+#849 (key-file envelope), #855, #856, #858, #859, #860 (the sync design tickets of section 11), #862 (the binary layout, with test vectors), and the implementation issues to
 be cut from this record. The options document this record replaces, with the full comparison and its
 evidence, is in the maintainer's private notes.
