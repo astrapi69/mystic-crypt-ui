@@ -58,7 +58,6 @@ import io.github.astrapi69.mystic.crypt.plugin.api.VaultAccessRefusedException;
 import io.github.astrapi69.mystic.crypt.ui.form.ToolForm;
 import io.github.astrapi69.swing.model.component.JMCheckBox;
 import io.github.astrapi69.swing.model.component.JMPasswordField;
-import io.github.astrapi69.swing.model.component.JMTextArea;
 import io.github.astrapi69.swing.model.component.JMTextField;
 import net.miginfocom.swing.MigLayout;
 
@@ -120,7 +119,8 @@ public class LethenonBackupPanel extends JPanel
 	/** The result of step 3, shown only once there is one (README defect G3) */
 	private final JPanel pnlExportResult = new JPanel(ToolForm.newLayout());
 
-	private final JMTextArea txtCheckWords = new JMTextArea(4, 40);
+	/** The 24 fields of the check, one per word (#804); built with the check step */
+	private WordGrid checkWords;
 
 	private final JTextArea txtCheckResult = LethenonWalletPanel.message("txtCheckResult", true);
 
@@ -363,8 +363,7 @@ public class LethenonBackupPanel extends JPanel
 			return;
 		}
 		boolean matches = vault.checkBackup(walletId, SeedPhrase.parse(typed), LocalDate.now());
-		txtCheckWords.setText("");
-		modelObject.setCheckWords("");
+		checkWords.clear();
 		String result = matches
 			? LethenonMessages.format("lethenon.backup.check.match",
 				"These words match your wallet. The check is recorded; the next reminder comes in "
@@ -396,7 +395,7 @@ public class LethenonBackupPanel extends JPanel
 		clearTheBoard();
 		clearTheAnswers();
 		txtUnsealPassword.setText("");
-		txtCheckWords.setText("");
+		checkWords.clear();
 		txtExportFile.setText("");
 		chkExportUnderstood.setSelected(false);
 		txtChecksum.setText("");
@@ -479,6 +478,7 @@ public class LethenonBackupPanel extends JPanel
 		txtBackupRefusal.setVisible(!reason.isEmpty());
 		revalidate();
 	}
+
 
 	private JPanel unsealStep()
 	{
@@ -715,15 +715,10 @@ public class LethenonBackupPanel extends JPanel
 			"Type the 24 words from your note. They are compared with the address of the wallet "
 				+ "in the vault; nothing is written but the day of a check that matches.")),
 			ToolForm.INTRO_ROW);
-		txtCheckWords.setName("txtCheckWords");
-		txtCheckWords.setLineWrap(true);
-		txtCheckWords.setWrapStyleWord(true);
-		txtCheckWords.setToolTipText(text("lethenon.wallet.tooltip.words",
-			"the 24 words from your note, in order, separated by spaces"));
-		txtCheckWords.setPropertyModel(
-			LambdaModel.of(modelObject::getCheckWords, modelObject::setCheckWords));
-		step.add(new JLabel(text("lethenon.wallet.label.words", "The 24 words:")));
-		step.add(ToolForm.scrolled(txtCheckWords), ToolForm.FIELD);
+		checkWords = new WordGrid("CheckWords", modelObject.getTypedCheckWords(), locale,
+			WordGrid.sayingIn(this::refuse, modelObject::getRefusal));
+		step.add(new JLabel(text("lethenon.wallet.label.words", "The 24 words:")), "aligny top");
+		step.add(checkWords, ToolForm.FIELD);
 		step.add(ToolForm.buttons(
 			LethenonSwing.button("btnCheckConfirmed",
 				text("lethenon.backup.check.button", "Check"), event -> onCheckConfirmed(),

@@ -28,6 +28,9 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.awt.Component;
 import java.awt.Container;
+import java.awt.datatransfer.StringSelection;
+import java.awt.event.FocusEvent;
+import java.awt.event.FocusListener;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
@@ -36,6 +39,7 @@ import javax.swing.AbstractButton;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
+import javax.swing.TransferHandler;
 import javax.swing.text.JTextComponent;
 
 /**
@@ -79,6 +83,31 @@ final class Windows
 			.map(type::cast).findFirst().orElse(null);
 		assertNotNull(found, "the window has no component named " + name);
 		return found;
+	}
+
+	/**
+	 * Pastes into the named field as Ctrl+V does: through the field's transfer handler, from a
+	 * clipboard selection, without touching the system clipboard of the machine the test runs on
+	 */
+	static void paste(final Container window, final String name, final String text)
+	{
+		JTextComponent target = component(window, name, JTextComponent.class);
+		target.getTransferHandler()
+			.importData(new TransferHandler.TransferSupport(target, new StringSelection(text)));
+	}
+
+	/**
+	 * Tells the named field's focus listeners that the focus went elsewhere, as moving on to the
+	 * next field does
+	 */
+	static void leave(final Container window, final String name)
+	{
+		Component field = component(window, name, Component.class);
+		FocusEvent lost = new FocusEvent(field, FocusEvent.FOCUS_LOST);
+		for (FocusListener listener : field.getFocusListeners())
+		{
+			listener.focusLost(lost);
+		}
 	}
 
 	/**

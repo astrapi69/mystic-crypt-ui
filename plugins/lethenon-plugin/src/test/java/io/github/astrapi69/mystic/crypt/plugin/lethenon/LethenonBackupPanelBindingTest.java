@@ -46,6 +46,7 @@ import java.util.UUID;
 
 import javax.swing.JPanel;
 import javax.swing.JTextArea;
+import javax.swing.JTextField;
 import javax.swing.text.JTextComponent;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -498,6 +499,41 @@ class LethenonBackupPanelBindingTest
 			textOf(panel, "txtCheckResult"));
 		assertEquals(BackupState.CURRENT, vault.backupStateOf(id, LocalDate.now()));
 		assertEquals("", panel.getModelObject().getCheckWords(), "the typed words are cleared");
+	}
+
+	@Test
+	@DisplayName("a phrase pasted into any of the 24 fields of the check fills them all, and the check matches")
+	void aPastedPhrase_isChecked()
+	{
+		LethenonBackupPanel panel = assistant();
+		panel.startCheck(id);
+
+		Windows.paste(panel, "txtCheckWords17", wallet.phrase());
+
+		assertEquals(wordAt(1), textOf(panel, "txtCheckWords1"));
+		panel.onCheckConfirmed();
+
+		assertTrue(textOf(panel, "txtCheckResult").startsWith("These words match your wallet"),
+			textOf(panel, "txtCheckResult"));
+		for (int position = 1; position <= 24; position++)
+		{
+			assertEquals("", textOf(panel, "txtCheckWords" + position), "field " + position);
+		}
+	}
+
+	@Test
+	@DisplayName("the check names a word that is not in the word list as soon as its field is left")
+	void theCheck_namesAnUnknownWord_whenItsFieldIsLeft()
+	{
+		LethenonBackupPanel panel = assistant();
+		panel.startCheck(id);
+		Windows.component(panel, "txtCheckWords3", JTextField.class).setText("zzz");
+
+		Windows.leave(panel, "txtCheckWords3");
+
+		assertEquals("Word 3, \"zzz\", is not in the word list. Check your note for a typing error.",
+			textOf(panel, "txtBackupRefusal"));
+		assertEquals(BackupState.NOT_CHECKED, vault.backupStateOf(id, LocalDate.now()));
 	}
 
 	@Test
