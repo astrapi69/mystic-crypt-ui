@@ -30,6 +30,7 @@ import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -243,6 +244,19 @@ public class LethenonNodePanel extends JPanel
 	public LethenonNodePanelModel getModelObject()
 	{
 		return modelObject;
+	}
+
+	/**
+	 * What the node this window started holds right now, read from the node itself rather than from
+	 * the model the fields show; a test compares the two when a field shows what it should not
+	 * (#667)
+	 *
+	 * @return the node's status, empty while none runs
+	 */
+	Optional<NodeStatus> nodeStatus()
+	{
+		RunningNode running = node;
+		return running == null ? Optional.empty() : Optional.of(running.status());
 	}
 
 	@Override

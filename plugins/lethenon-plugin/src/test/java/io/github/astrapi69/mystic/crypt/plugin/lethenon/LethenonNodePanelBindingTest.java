@@ -38,6 +38,7 @@ import java.time.Duration;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.BooleanSupplier;
 
 import javax.swing.JButton;
@@ -124,7 +125,10 @@ class LethenonNodePanelBindingTest
 		assertEquals("none", textOf(panel, "txtConnected"));
 		assertEquals("none", textOf(panel, "txtWaiting"));
 		assertEquals("not mining", textOf(panel, "txtMined"));
-		assertEquals("none", textOf(panel, "txtRefusals"));
+		String refusals = textOf(panel, "txtRefusals");
+		Optional<NodeStatus> status = panel.nodeStatus();
+		assertEquals("none", refusals,
+			() -> refusalsReport(port, refusals, status, textOf(panel, "txtConnected")));
 		assertTrue(Windows.showsItsAnswer(panel),
 			"the answer stays hidden behind the sentence in its place (#820)");
 		Path copy = directory.resolve("copy.lethenon");
@@ -185,6 +189,23 @@ class LethenonNodePanelBindingTest
 			.startsWith("the node was not started: there is no chain file at"),
 			panel.getModelObject().getResultText());
 		assertNull(panel.getModelObject().getPassword());
+	}
+
+	/**
+	 * What a failure of the refusals line needs to say to be diagnosed after the fact (#667): the
+	 * text the window shows, the node's own status read at the same moment, and the port, before
+	 * the test dials the node itself. A refusal the node lists means something reached the fresh
+	 * node from outside the test; a list the node holds empty while the window shows text means the
+	 * window shows a state the node does not have
+	 */
+	private static String refusalsReport(final int port, final String refusals,
+		final Optional<NodeStatus> status, final String connected)
+	{
+		return "the window shows refusals before this test dialled its node (#667): port " + port
+			+ ", window text '" + refusals + "', window's connected field '" + connected
+			+ "', the node's own status at that moment "
+			+ status.map(String::valueOf).orElse("(no node runs)") + ", refusals counted by the node "
+			+ status.map(running -> running.refusals().size()).map(String::valueOf).orElse("-");
 	}
 
 	private static void await(final String what, final BooleanSupplier condition)
