@@ -24,7 +24,9 @@
  */
 package io.github.astrapi69.mystic.crypt.ui;
 
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.awt.Window;
@@ -32,6 +34,7 @@ import java.io.File;
 import java.nio.file.Files;
 import java.util.concurrent.TimeUnit;
 
+import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JFileChooser;
 import javax.swing.SwingUtilities;
@@ -65,6 +68,9 @@ class NoSilentVaultOverwriteUiTest extends AbstractUiTest
 	private static final String MASTER_PASSWORD = TestPasswords.throwaway();
 
 	private static final String OTHER_PASSWORD = TestPasswords.throwaway() + "-other";
+
+	/** The title of the dialog in which a new database gets its master key */
+	private static final String CREATE_MASTER_KEY = "Create your master key";
 
 	@Test
 	@DisplayName("Save As onto an existing vault asks, and cancelling leaves that vault alone")
@@ -131,6 +137,86 @@ class NoSilentVaultOverwriteUiTest extends AbstractUiTest
 
 		assertEquals(before.length, Files.readAllBytes(existing.toPath()).length,
 			"and the file that was already there is untouched");
+	}
+
+	@Test
+	@DisplayName("New... in the sign-in dialog onto an existing vault: pinned as it is, nothing asks (#878)")
+	void newInTheSignInDialogOntoAnExistingVault() throws Exception
+	{
+		File existing = new File(tempHome, "already-there.mcrdb");
+		createDatabaseFileHeadless(existing, OTHER_PASSWORD);
+		byte[] before = Files.readAllBytes(existing.toPath());
+
+		SignInDialogSteps signIn = launchApplication();
+		signIn.chooseFileForNewDatabase(existing);
+
+		assertFalse(aDialogAsksAboutReplacing(),
+			"pinned: the sign-in dialog's New... goes past an existing vault without a question");
+		assertTrue(aDialogIsShowing(CREATE_MASTER_KEY),
+			"pinned: the new master key dialog comes at once, and its OK writes an empty "
+				+ "database over the vault");
+		cancelTheDialog(CREATE_MASTER_KEY);
+
+		assertArrayEquals(before, Files.readAllBytes(existing.toPath()),
+			"nothing was written yet: only OK in the new master key dialog writes");
+	}
+
+	@Test
+	@DisplayName("Browse... in Create your master key onto an existing vault: pinned as it is, nothing asks (#878)")
+	void browseInCreateYourMasterKeyOntoAnExistingVault() throws Exception
+	{
+		File existing = new File(tempHome, "already-there.mcrdb");
+		createDatabaseFileHeadless(existing, OTHER_PASSWORD);
+		byte[] before = Files.readAllBytes(existing.toPath());
+		File fresh = new File(tempHome, "a-new-one.mcrdb");
+
+		SignInDialogSteps signIn = launchApplication();
+		CreateMasterKeySteps createMasterKey = signIn.startNewDatabase(fresh);
+		createMasterKey.browseApplicationFile(existing);
+
+		assertFalse(aDialogAsksAboutReplacing(),
+			"pinned: Browse... in the new master key dialog takes an existing vault without a "
+				+ "question");
+		createMasterKey.requireApplicationFile(existing.getAbsolutePath());
+		createMasterKey.cancelAndAwaitClose();
+
+		assertArrayEquals(before, Files.readAllBytes(existing.toPath()),
+			"nothing was written yet: only OK in the new master key dialog writes");
+	}
+
+	/** Whether a dialog with this title is on screen */
+	private boolean aDialogIsShowing(final String title)
+	{
+		return GuiActionRunner.execute(() -> {
+			for (Window window : Window.getWindows())
+			{
+				if (window instanceof JDialog dialog && dialog.isShowing()
+					&& title.equals(dialog.getTitle()))
+				{
+					return true;
+				}
+			}
+			return false;
+		});
+	}
+
+	/** Presses Cancel in the dialog with this title */
+	private void cancelTheDialog(final String title)
+	{
+		GuiActionRunner.execute(() -> {
+			for (Window window : Window.getWindows())
+			{
+				if (window instanceof JDialog dialog && dialog.isShowing()
+					&& title.equals(dialog.getTitle()))
+				{
+					robot.finder().findByName(dialog, "btnCancel", JButton.class).doClick();
+					return null;
+				}
+			}
+			return null;
+		});
+		UiTestSpeed.windowManagerSettle();
+		robot.waitForIdle();
 	}
 
 	/** Whether a dialog on screen asks about replacing, naming the file */
