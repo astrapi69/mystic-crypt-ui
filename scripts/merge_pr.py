@@ -173,12 +173,16 @@ def conventional_title_error(title):
     """The pull request title becomes the squash commit subject, so it has to
     be a Conventional Commit (squash pilot, decided by the maintainer on
     2026-11-11); returns why it is not, or None."""
-    if TITLE_PATTERN.match(title or ""):
-        return None
-    return ("the pull request title is not a Conventional Commit, and under the squash"
-            " pilot it becomes the commit subject on develop - rename the pull request"
-            " (feat|fix|refactor|docs|test|chore|build|perf|ci|style|revert, optional"
-            " (scope), then ': ' and the sentence), then merge again")
+    if not TITLE_PATTERN.match(title or ""):
+        return ("the pull request title is not a Conventional Commit, and under the squash"
+                " pilot it becomes the commit subject on develop - rename the pull request"
+                " (feat|fix|refactor|docs|test|chore|build|perf|ci|style|revert, optional"
+                " (scope), then ': ' and the sentence), then merge again")
+    if "(#" in title:
+        return ("the pull request title carries an issue number - the merge appends the pull"
+                " request number itself, and the issue belongs in the pull request text as"
+                " Closes #<n>: rename the pull request, then merge again")
+    return None
 
 
 FRAGMENT_SECTIONS = ("security", "added", "changed", "fixed", "deprecated", "removed")
