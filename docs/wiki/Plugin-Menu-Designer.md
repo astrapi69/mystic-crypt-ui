@@ -4,18 +4,39 @@
 
 The Menu Designer shows the application's own menu bar as xml and lets you rearrange it:
 reorder the menus, rename entries, group items into a submenu of your own, drop the ones you
-never use. It is the tool to reach for once the menu bar has grown, because every installed
-plugin adds its own submenu under **Plugins** and the entries you actually use every day end up
-buried. It is not the tool for changing what an entry does: the designer only moves, renames
-and hides commands that already exist, it never creates a new one.
+never use. It is development tooling, a tool for working on the application rather than in it:
+it is built and tested with the other internal plugins, but the installer does not ship it, and
+even where its plugin is installed it stays out of the menu unless the application is started
+with a switch that asks for it (see below). It is not the tool for changing what an entry does:
+the designer only moves, renames and hides commands that already exist, it never creates a new
+one.
 
 ## Where to find it
 
-**Plugins** menu, submenu **Menu Designer**, item **Menu Designer**.
+**Plugins** menu, submenu **Menu Designer**, item **Menu Designer**, and only when both of these
+hold:
 
-The tool opens as a window inside the main window. If the application is currently showing the
-database panel it switches into the desktop view to do so; you get back to the database with
-**View** > **View mode** > **Switch to panel mode** (Alt+F7).
+- The plugin is installed. The installer does not install it. A development build does:
+  `make plugins-install` builds every internal plugin and copies it into
+  `~/.config/mystic-crypt-ui/plugins`, and `make run` builds them and starts the development
+  build in a profile of its own, with every internal plugin in it.
+- The application was started with the system property `-Dmystic.crypt.ui.menu.designer=true`.
+  Only the value `true`, in any letter case, counts. Without it the plugin loads and contributes
+  nothing to the menu. For the development profile of `make run`, which passes no options,
+  start the script it calls yourself once `make run` has built everything:
+
+  ```console
+  $ ./scripts/run-isolated.sh ~/mystic-crypt-ui-dev -Dmystic.crypt.ui.menu.designer=true
+  ```
+
+  For a jar started by hand: `java -Dmystic.crypt.ui.menu.designer=true -jar mystic-crypt-ui.jar`.
+
+Like every tool that does not declare otherwise, the item can be used while a database is open
+and unlocked, and is greyed out before you sign in and while the workspace is locked.
+
+The tool opens as a window titled *Menu Designer* inside the main window. If the application is
+currently showing the database panel it switches into the desktop view to do so; your database
+then stays reachable in a window of its own, titled *Key database*.
 
 ## Using it
 
@@ -26,15 +47,15 @@ database panel it switches into the desktop view to do so; you get back to the d
 
 2. Edit the xml in the text area. The layout is one `<menubar>` element with `<menu>` children,
    which in turn hold `<item>`, `<checkbox>`, `<radio>`, `<separator>` and nested `<menu>`
-   entries:
+   entries. A shortened export looks like this:
 
    ```xml
    <menubar id="global.menu.bar">
-     <menu id="global.menu.file" text="File">
-       <item id="global.menu.file.save" text="Save" action="global.menu.file.save"/>
-       <separator/>
-       <item id="global.menu.file.exit" text="Exit" action="global.menu.file.exit"/>
-     </menu>
+       <menu action="global.menu.file" id="global.menu.file" text="File">
+           <item action="global.menu.file.save" id="global.menu.file.save" text="Save"/>
+           <separator/>
+           <item action="global.menu.file.exit" id="global.menu.file.exit" text="Exit"/>
+       </menu>
    </menubar>
    ```
 
@@ -47,8 +68,9 @@ database panel it switches into the desktop view to do so; you get back to the d
    had them.
 
    Entries contributed by a plugin have no id of their own in the application, so they are
-   exported with an action of the form `action="text:Console"`, built from the label the plugin
-   gives the item.
+   exported with an action built from the label the plugin gives the item, for example
+   `<item action="text:Encrypt and Decrypt" id="Files.encrypt.and.decrypt" text="Encrypt and Decrypt"/>`
+   under the **Files** submenu of the file encryption plugin.
 
    Every menu, entry and the `<menubar>` itself needs an `id`; the schema requires it, so an
    entry you add by hand without one is rejected by **Validate**. An ampersand inside a `text`
@@ -82,7 +104,8 @@ database panel it switches into the desktop view to do so; you get back to the d
 | `export.on.open` | `true` | Whether the editor is filled with the current menu the moment the tool opens. Leave it on for normal use. Turn it off if you keep your layout in an external editor and only paste it in, so the tool stops overwriting what you paste. |
 
 Edited under **File** > **Settings...**, tab **Plugin settings**, entry **Menu Designer** in the
-list on the left. Change the value in the table and press **Apply**; nothing is stored until you
+list on the left. The entry is there whenever the plugin is installed and enabled, with or
+without the system property. Change the value in the table and press **Apply**; nothing is stored until you
 do. **Reset to defaults** removes the stored file and shows the declared default again.
 
 Only the literal value `false`, in any capitalisation, switches the export off. Every other
@@ -90,16 +113,14 @@ value, a typo included, counts as `true`.
 
 ## On the command line
 
-This tool has no command line side yet. It contributes no command to `--cli`, and none of the
-commands the mystic-crypt library brings along come close: they are about hashing, keys, key
-exchange, checksums, certificates, key conversion and obfuscation, not about the user interface.
+This tool has no command line side. It contributes no command to `--cli`, and none of the
+commands of the mystic-crypt library is about the user interface.
 
 What the command line is good for here is the layout file itself, which is plain xml in the
 configuration directory:
 
 ```console
 $ ls -l ~/.config/mystic-crypt-ui/menubar.xml
--rw-r--r-- 1 you you 4821 Aug 26 10:12 /home/you/.config/mystic-crypt-ui/menubar.xml
 $ rm ~/.config/mystic-crypt-ui/menubar.xml
 ```
 
@@ -109,6 +130,10 @@ labels and command ids only, nothing about your database or your keys.
 
 ## Limits and pitfalls
 
+- **A saved layout applies without the tool.** The application reads `menubar.xml` on every
+  start, whether the Menu Designer is installed or offered or not. Taking the plugin away, or
+  starting without the system property, leaves a saved layout in force; only **Reset to
+  standard** or deleting the file removes it.
 - **It arranges commands, it does not write them.** An entry whose `action` names something the
   running menu does not offer is still built, but it stays greyed out instead of breaking the
   menu. An item that is greyed out after applying a layout is nearly always a mistyped or
@@ -124,7 +149,8 @@ labels and command ids only, nothing about your database or your keys.
   next start, and that includes the **Plugins** menu that holds the Menu Designer itself. If you
   lock yourself out this way, delete `~/.config/mystic-crypt-ui/menubar.xml` and start again.
 - **A saved layout does not grow with your plugins.** A plugin you install or enable later
-  contributes entries that your saved layout does not mention, so they do not appear at all.
+  contributes entries that your saved layout does not mention, so they do not appear at all:
+  the application applies the saved layout again every time the **Plugins** menu is rebuilt.
   After installing or enabling a plugin, open the tool, export and save again.
 - **Plugin entries are matched by their label.** Because their action reads `text:<label>`, a
   plugin version that renames its menu item breaks the link, and the entry returns greyed out.

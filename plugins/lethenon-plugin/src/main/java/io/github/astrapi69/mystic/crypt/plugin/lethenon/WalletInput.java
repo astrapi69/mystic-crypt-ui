@@ -80,7 +80,7 @@ final class WalletInput
 		return wordsToCheck(typed).or(() -> givesAWallet(SeedPhrase.parse(typed))
 			? Optional.empty()
 			: Optional.of(new Refusal("lethenon.wallet.form.refused.words.checksum",
-				"These 24 words do not give a wallet: a word may be in the wrong place. Compare "
+				"These 24 words do not give a wallet: one is wrong or two are swapped. Compare "
 					+ "them with your note, in order.")));
 	}
 
@@ -139,8 +139,17 @@ final class WalletInput
 		return Optional.empty();
 	}
 
-	/** A word that is not in the word list, named with its position (T2) */
-	private static Refusal unknownWord(final int position, final String word)
+	/**
+	 * A word that is not in the word list, named with its position (T2); also what the grid of 24
+	 * fields says the moment such a word is left in a field (#804)
+	 *
+	 * @param position
+	 *            the position, counted from 1
+	 * @param word
+	 *            the word as read
+	 * @return the refusal
+	 */
+	static Refusal unknownWord(final int position, final String word)
 	{
 		return new Refusal("lethenon.backup.question.unknown",
 			"Word {0}, \"{1}\", is not in the word list. Check your note for a typing error.",

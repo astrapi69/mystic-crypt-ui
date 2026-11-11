@@ -22,6 +22,10 @@ no **Password Hashing** submenu, the plugin is not installed or has been disable
 **File** > **Settings...**, tab **Plugins**, and install or enable it there (see
 [[install-a-plugin]]).
 
+The tool needs no database: it works without an open database, and while the workspace is locked,
+because it reads only what you type and writes nothing anywhere. Locking the workspace closes a window that
+is open at that moment, as it closes every window on the desktop.
+
 ## 3. Using it
 
 1. Open the tool. The **Algorithm:** box starts on whatever the settings say, Argon2id unless
@@ -54,7 +58,7 @@ no **Password Hashing** submenu, the plugin is not installed or has been disable
 
 | Key | Default | What it changes |
 |---|---|---|
-| `default.algorithm` | `Argon2id` | Which algorithm the **Algorithm:** box starts on. Accepted values are the four the tool offers: `Argon2id`, `PBKDF2`, `bcrypt`, `scrypt`. Anything else falls back to `Argon2id`. |
+| `default.algorithm` | `Argon2id` | Which algorithm the **Algorithm:** box starts on. Accepted values are the four the tool offers, spelled exactly like this: `Argon2id`, `PBKDF2`, `bcrypt`, `scrypt`. Anything else, `pbkdf2` in lower case included, falls back to `Argon2id`. |
 
 Edited under **File** > **Settings...**, tab **Plugin settings**, entry **Password Hash**: change
 the value cell and press **Apply**, or press **Reset to defaults** to get the declared default
@@ -65,29 +69,40 @@ that is already on screen.
 ## 5. On the command line
 
 This plugin contributes no commands of its own, and no plugin in this application does: everything
-on the command line comes from the mystic-crypt library, reachable through `--cli`. For hashing
-that is the library's `hash` and `verify` commands, and they cover all four algorithms the window
-offers: `argon2id`, `pbkdf2`, `bcrypt` and `scrypt`.
+on the command line comes from the mystic-crypt library, reachable through `--cli` (see
+[[The-Command-Line]]). For hashing that is the library's `hash` and `verify` commands, and they
+cover all four algorithms the window offers: `argon2id`, `pbkdf2`, `bcrypt` and `scrypt`.
 
-Hash a password (the jar name carries the version of your installation):
-
-```
-$ java -jar mystic-crypt-ui-8.2-SNAPSHOT-all.jar --cli hash --password "correct horse battery staple"
-$argon2id$v=19$m=65536,t=3,p=1$g/KAgjvZMzj3dRKZnzvFmw$DQJEHtn7FgUqM3FYLmQPJ8zqxi4I71e8nYpVP+kUpO8
-```
-
-A password given as an argument is visible in the process list of the machine. `--password-stdin`
-reads it from the first line of standard input instead, and `--algorithm`, short `-a`, picks the
-algorithm (`argon2id`, the default, `pbkdf2`, `bcrypt` or `scrypt`):
+Hash a password. Leave the password out of the command, and it asks for it without showing what
+you type:
 
 ```
-$ printf 'correct horse battery staple\n' | java -jar mystic-crypt-ui-8.2-SNAPSHOT-all.jar --cli hash --algorithm pbkdf2 --password-stdin
-$pbkdf2-sha256$i=600000$csj4mUh03+IGUHJxemHR3w$qNiO3GUJYFD5ROiDwA05Fv2z2bQHO8FC6uiOjbIz5TE
-$ printf 'correct horse battery staple\n' | java -jar mystic-crypt-ui-8.2-SNAPSHOT-all.jar --cli hash -a bcrypt --password-stdin
-$2y$10$XMZJnxdM95bQLym9vkB9ZOTVDgcR45FQOiHg8TdMLqh6cPh7Zr7cq
-$ printf 'correct horse battery staple\n' | java -jar mystic-crypt-ui-8.2-SNAPSHOT-all.jar --cli hash -a scrypt --password-stdin
-$scrypt$ln=15,r=8,p=1$1zG29TsNWMKpUncVYPbVow$KfcjeX3OXTYV8jDlFTeNZgYDhy6W2g9HOFk139yF2RM
+$ java -jar mystic-crypt-ui.jar --cli hash
+password:
+$argon2id$v=19$m=65536,t=3,p=1$p6mYmXxuA0xndrp97niMEA$qsK7vV6sDSFtZNs7DHyn+1I0VE9dmBpmlCqaXBq21Ws
 ```
+
+`--algorithm`, short `-a`, picks the algorithm (`argon2id`, the default, `pbkdf2`, `bcrypt` or
+`scrypt`):
+
+```
+$ java -jar mystic-crypt-ui.jar --cli hash --algorithm pbkdf2
+password:
+$pbkdf2-sha256$i=600000$as4rKeL+G5fLthQfkHt9Hw$hK4je0cOc5F0ne0xRbNHJMnLtq6DDftK0RLzGN5dhCQ
+$ java -jar mystic-crypt-ui.jar --cli hash -a bcrypt
+password:
+$2y$10$DY49RN9EgbDAsBTDOcfH5etNVTgP7QS8OT/zganBsw0l2iyVWS99W
+$ java -jar mystic-crypt-ui.jar --cli hash -a scrypt
+password:
+$scrypt$ln=15,r=8,p=1$nX97LcDhLO2zI+pO1PLOhw$EO6vJ5RGd0eS3XewIaXRTEeKG410tn2Zq4rVWIKdB8o
+```
+
+The prompt only appears in a terminal. In a script, or with the output redirected, add
+`--password-stdin`, which reads the password from the first line of standard input; the page on
+[[The-Command-Line]] shows how to fill that line without the password ever appearing in a
+command. `--password` with the password as its value still works in this release, prints a
+warning, because every process on the machine can read an argument, and goes away with
+mystic-crypt 14.0.
 
 Check a password against a hash. There is no algorithm option on `verify`, and there is nothing to
 select: which algorithm made a hash is read out of the hash itself, and the name in brackets after
@@ -95,17 +110,18 @@ the answer is the one it found. Put the hash in single quotes, otherwise the she
 signs:
 
 ```
-$ java -jar mystic-crypt-ui-8.2-SNAPSHOT-all.jar --cli verify --hash '$argon2id$v=19$m=65536,t=3,p=1$g/KAgjvZMzj3dRKZnzvFmw$DQJEHtn7FgUqM3FYLmQPJ8zqxi4I71e8nYpVP+kUpO8' --password "correct horse battery staple"
+$ java -jar mystic-crypt-ui.jar --cli verify --hash '$argon2id$v=19$m=65536,t=3,p=1$p6mYmXxuA0xndrp97niMEA$qsK7vV6sDSFtZNs7DHyn+1I0VE9dmBpmlCqaXBq21Ws'
+password:
 matches (ARGON2ID)
 $ echo $?
 0
 ```
 
-A bcrypt or scrypt hash is checked the same way and answers `matches (BCRYPT)` or
-`matches (SCRYPT)`. A wrong password prints `does not match` with the same algorithm in brackets
-and exits with 1, which is what makes the command usable in a script. A value it does not
-recognise as a hash at all is the third case: it prints an error naming the prefixes it knows and
-exits with 2.
+A PBKDF2, bcrypt or scrypt hash is checked the same way and answers `matches (PBKDF2)`,
+`matches (BCRYPT)` or `matches (SCRYPT)`. A wrong password prints `does not match` with the same
+algorithm in brackets and exits with 1, which is what makes the command usable in a script. A value
+it does not recognise as a hash at all is the third case: it prints an error naming the prefixes it
+knows and exits with 2.
 
 ## 6. Limits and pitfalls
 
@@ -118,8 +134,11 @@ exits with 2.
   ```
 
   The **Hash:** area is emptied at the same time, so no half-valid value stays on screen. Note
-  that 72 is bytes, not characters: umlauts, accents and emoji count for more than one each. Argon2id, PBKDF2 and scrypt take a long passphrase in full,
-  and every character of it counts.
+  that 72 is bytes, not characters: umlauts, accents and emoji count for more than one each.
+  Argon2id, PBKDF2 and scrypt take a long passphrase in full, and every character of it counts.
+  The command line does not refuse: `--cli hash -a bcrypt` hashes a longer password without a word,
+  and `--cli verify` then accepts any password that shares its first 72 bytes. Use Argon2id or
+  scrypt there for anything that long.
 - **The same password hashed twice gives two different hashes.** That is the point: every hash
   gets a fresh random salt, so two accounts with the same password do not look the same in your
   database. Never compare two hashes for equality to decide whether two passwords are equal, use
@@ -141,18 +160,21 @@ exits with 2.
   scrypt hash to claim a cheaper cost than the one that made it, produces `does not match`. There
   is no way to make an existing hash cheaper to check.
 - **The scrypt form is this application's own.** A scrypt hash from this tool looks like
-  `scrypt$16384$8$1$` followed by Base64, a form built here because the underlying library hands
-  out raw bytes and takes the parameters separately. Other systems will generally not accept it
-  as it stands. The Argon2id, PBKDF2 and bcrypt values are in their usual encoded forms and
+  `scrypt$16384$8$1$` followed by Base64, a form built here because the scrypt hasher it uses
+  hands out raw bytes and takes the parameters separately. Other systems will generally not accept
+  it as it stands. The Argon2id, PBKDF2 and bcrypt values are in their usual encoded forms and
   travel fine.
 - **The command line takes all four algorithms, but not the window's scrypt form.** An Argon2id,
   PBKDF2 or bcrypt hash made in the window is checked by `--cli verify` as it stands. A scrypt
-  hash is not: the command line writes and reads the library's `$scrypt$ln=15,r=8,p=1$` form,
-  while the window writes the `scrypt$16384$8$1$` form described above. Handed the window's value,
-  `--cli verify` answers `error: ... is not an encoded hash of a known algorithm: it starts with
-  none of $argon2id$, $pbkdf2-sha256$, $scrypt$, $2a$, $2b$ or $2y$` and exits with 2.
+  hash is not: the command line writes and reads the library's `$scrypt$ln=15,r=8,p=1$` form, at
+  N=32768, while the window writes the `scrypt$16384$8$1$` form described above, at N=16384.
+  Handed the window's value, `--cli verify` answers `error: ... is not an encoded hash of a known
+  algorithm: it starts with none of $argon2id$, $pbkdf2-sha256$, $scrypt$, $2a$, $2b$ or $2y$` and
+  exits with 2. The other way round, the window does not recognise the command line's `$scrypt$`
+  value as scrypt and answers `this does not look like a hash any of these algorithms made`.
 - **Nothing is stored.** The hash is not written into your database, no history is kept, and the
-  window starts empty every time. Copy what you need out before closing it.
+  window starts empty every time. Copy what you need out before closing it, or before locking the
+  workspace, which closes it.
 - **Hashing is meant to be slow.** A few tenths of a second per hash is normal and desirable; the
   memory hard algorithms also want real memory while they run (Argon2id here takes 64 MB per
   hash). This is a tool for hashing one password at a time, not for processing a list.
@@ -161,10 +183,12 @@ exits with 2.
 
 The hashing and the checking are done by the mystic-crypt library and BouncyCastle, nothing is
 implemented in the tool itself except the way an scrypt result is written down. With the library
-version this ships with (mystic-crypt 12.0.0) the parameters are: Argon2id with 3 passes over 64 MB
+version this ships with (mystic-crypt 13.9) the parameters are: Argon2id with 3 passes over 64 MB
 at parallelism 1, a 16 byte random salt and a 32 byte hash; PBKDF2 with HMAC-SHA256 over 600000
-iterations and a 256 bit result; bcrypt at 2^10 rounds; scrypt at N=16384, r=8, p=1. None of them
-is configurable from the window, the cost that was used travels inside the hash. That is also why
+iterations, a 16 byte salt and a 256 bit result; bcrypt at 2^10 rounds; scrypt at N=16384, r=8,
+p=1 with a 16 byte salt and a 32 byte hash. The command line uses the same values, except for
+scrypt, where it takes N=32768. None of them is configurable from the window, the cost that was
+used travels inside the hash. That is also why
 verification needs nothing remembered alongside the hash: the salt, the cost and the algorithm
 marker are all part of the stored string, which is what lets the tool answer `matches (bcrypt)`
 for a value it has never seen before. The password itself stays in the window's fields for as
@@ -174,4 +198,5 @@ long as the window is open, so close the tool when you are done with it.
 
 - [[Getting-Started]]
 - [[install-a-plugin]]
+- [[The-Command-Line]]
 - [[Secure-your-passwords-with-obfuscation]]

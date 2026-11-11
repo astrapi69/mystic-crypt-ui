@@ -18,6 +18,8 @@ tells you how long a key pair or a signature took and how large the signature ca
 The "Plugins" menu appears once at least one plugin is installed and enabled, see
 [[install-a-plugin]]. The tool opens as a window inside the main window, titled "Sign and
 Verify"; if the application is currently not showing the desktop view, it switches to it first.
+The item is greyed out until you have signed in to a database, and again while the workspace is
+locked.
 
 ## Using it
 
@@ -33,9 +35,10 @@ matters in practice.
    `SHA512withECDSA`, `SHA256withDSA`).
 2. Press **Generate key pair**. The result line at the bottom reads for example
    `generated a ML-DSA-65 key pair in 8 ms`, and **Public key:** shows the new public key in
-   PEM form. With one of the classical algorithms selected nothing is generated and the line
-   reads `not generated: a key for 'SHA256withRSA' has to come from a file - this tool
-   generates only the Ed25519, ML-DSA and SLH-DSA families`.
+   PEM form. With one of the classical algorithms selected the button is disabled, and the
+   result line says why before you press anything: `SHA256withRSA: a key for this algorithm has
+   to come from a file - this tool generates only the Ed25519, ML-DSA and SLH-DSA families`.
+   Choosing a generatable algorithm again enables the button and clears the line.
 3. Decide what gets signed: either type into **Message:** (it starts with the text from the
    settings), or fill **File to sign:** with the **...** button and tick
    **sign the file instead of the text**. The checkbox decides; an unticked box means the file
@@ -66,7 +69,7 @@ Every failure appears on the same result line, prefixed with what did not happen
 by the reason: `not signed: choose a private key file, or generate a key pair first`,
 `not saved: there is no signature to save`, `not saved: choose a signature file`,
 `not signed: choose a file to sign`, `not loaded: ...`. An empty signature field answers Verify
-with `there is no signature to check`.
+with `there is no signature to check`. Every field and button explains itself in a tooltip.
 
 ## Settings
 
@@ -93,30 +96,32 @@ underscores accepted.
 
 ```
 # a post-quantum key pair on disk
-java -jar mystic-crypt-ui-all.jar --cli keygen -a ML-DSA-65 \
+java -jar mystic-crypt-ui.jar --cli keygen -a ML-DSA-65 \
     --out-private mldsa-private.pem --out-public mldsa-public.pem
 
 # sign a file with the private key
-java -jar mystic-crypt-ui-all.jar --cli sign -a ML-DSA-65 \
+java -jar mystic-crypt-ui.jar --cli sign -a ML-DSA-65 \
     --key mldsa-private.pem --in doc.txt --signature doc.sig
 wrote signature to doc.sig
 
 # check it with the public key
-java -jar mystic-crypt-ui-all.jar --cli verify-signature -a ML-DSA-65 \
+java -jar mystic-crypt-ui.jar --cli verify-signature -a ML-DSA-65 \
     --key mldsa-public.pem --in doc.txt --signature doc.sig
 signature is valid
 
-# the same with a classical key, here an RSA private key in DER form
-java -jar mystic-crypt-ui-all.jar --cli sign -a RSA \
+# the same with a classical key, here an RSA key pair in DER form
+java -jar mystic-crypt-ui.jar --cli sign -a RSA \
     --key rsa-private.der --in contract.txt --signature contract.sig
 wrote signature to contract.sig
-java -jar mystic-crypt-ui-all.jar --cli verify-signature -a RSA \
+java -jar mystic-crypt-ui.jar --cli verify-signature -a RSA \
     --key rsa-public.der --in contract.txt --signature contract.sig
 signature is valid
 ```
 
-The one-line summary that `--cli --help` prints for `verify-signature` still names only Ed25519,
-ML-DSA and SLH-DSA; `--cli verify-signature --help` lists what the command really accepts.
+The description of `verify-signature`, in `--cli --help` and in its own help alike, names only
+Ed25519, ML-DSA and SLH-DSA; the `-a` option in `--cli verify-signature --help` lists what the
+command really accepts. A key pair in DER form, as the RSA example uses, comes out of
+`--cli convert --to der`, see [[Plugin-Key-Conversion]].
 
 The exit code carries the verdict, so a script can branch on it: `0` valid, `1` invalid
 (`signature is invalid` on standard output), `2` an error before the check could happen, such
@@ -137,12 +142,13 @@ one side and checked on the other as long as the key and the algorithm match.
   signature. A public key file that does not exist, cannot be read, or holds something other
   than a key produces the same sentence as a forged signature. When a verdict surprises you,
   check the key path first.
-- **A post-quantum public key file cannot be read back in this panel.** Signing with an ML-DSA
-  or SLH-DSA private key from a file works, but pointing **Public key or certificate:** at the
-  matching public key PEM makes Verify answer `signature is not valid` even though the
-  signature is perfectly good. For post-quantum keys either keep the generated pair in the open
-  window and verify there, or verify with `--cli verify-signature`, which reads those keys
-  correctly.
+- **Most post-quantum public keys in PEM form cannot be read back in this panel.** Signing with
+  an ML-DSA or SLH-DSA private key from a file works, PEM or DER. On the verifying side, an
+  ML-DSA-65 public key is read in both forms, but a PEM public key of ML-DSA-44, ML-DSA-87 or any
+  SLH-DSA set is not, and Verify then answers `signature is not valid` even though the signature
+  is perfectly good. The same key in DER form is read: convert it with **to DER** in
+  [[Plugin-Key-Conversion]], keep the generated pair in the open window and verify there, or
+  verify with `--cli verify-signature`, which reads those keys in either form.
 - **A generated key pair cannot be saved from this panel and does not survive the window.**
   Close the Sign and Verify window and the private key is gone, which makes every signature
   made with it unverifiable for good. Only generate keys here for experiments; for keys you
@@ -158,8 +164,8 @@ one side and checked on the other as long as the key and the algorithm match.
   so whoever should check the signature needs three things from you: the data, the signature
   file, and the public key or certificate.
 - **The SLH-DSA sets are slow and their signatures are large.** On one test machine
-  `SLH-DSA-SHA2-128S` needed about 850 ms for a single signature and `SLH-DSA-SHAKE-256F`
-  produced a signature of about 49 KB, against 64 bytes for Ed25519. The work happens while the
+  `SLH-DSA-SHA2-128S` needed about 850 ms for a single signature, and a `SLH-DSA-SHAKE-256F`
+  signature is 49856 bytes, against 64 bytes for Ed25519. The work happens while the
   window waits, so the panel does not react during it. The result line reports both numbers,
   which is exactly what makes the comparison worth doing.
 - **A setting the tool cannot honour is dropped in silence.** Putting `RSA` into
@@ -167,17 +173,19 @@ one side and checked on the other as long as the key and the algorithm match.
 
 ## Under the hood
 
-The signing and verifying is done by the mystic-crypt library family on top of BouncyCastle;
-nothing cryptographic is implemented in the tool itself. Three families are covered: the
-classical Edwards-curve Ed25519, and the NIST post-quantum standards ML-DSA (FIPS 204, three
-parameter sets) and SLH-DSA (FIPS 205, twelve parameter sets). The classical RSA, ECDSA and DSA
-algorithms are offered for keys that come from a key store, a certificate authority or another
-tool, and they deliberately run through BouncyCastle rather than through the provider the
-platform would pick, because a key generated inside this application can otherwise fail to load
-with an error nobody can act on. Two properties are worth keeping in mind: a signature protects
-origin and integrity but not confidentiality, so the signed text stays readable to everyone; and
-a key pair generated in the panel lives only in the memory of that open window, which is why it
-is meant for experiments and not for anything you have to verify tomorrow.
+The signing and verifying is done by the mystic-crypt library family on top of the JDK and
+BouncyCastle: Ed25519 and ML-DSA come from the JDK, SLH-DSA, which the JDK lacks, from
+BouncyCastle; nothing cryptographic is implemented in the tool itself. Three families are
+covered: the classical Edwards-curve Ed25519, and the NIST post-quantum standards ML-DSA (FIPS
+204, three parameter sets) and SLH-DSA (FIPS 205, twelve parameter sets). The classical RSA,
+ECDSA and DSA algorithms are offered for keys that come from a key store, a certificate
+authority or another tool, and they deliberately run through BouncyCastle rather than through
+the provider the platform would pick, because a key generated inside this application can
+otherwise fail to load with an error nobody can act on. Two properties are worth keeping in
+mind: a signature protects origin and integrity but not confidentiality, so the signed text
+stays readable to everyone; and a key pair generated in the panel lives only in the memory of
+that open window, which is why it is meant for experiments and not for anything you have to
+verify tomorrow.
 
 ## See also
 

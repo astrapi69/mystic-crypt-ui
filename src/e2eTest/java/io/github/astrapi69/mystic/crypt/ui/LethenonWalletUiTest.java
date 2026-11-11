@@ -28,6 +28,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.awt.Toolkit;
+import java.awt.datatransfer.StringSelection;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -37,6 +39,7 @@ import java.util.concurrent.TimeUnit;
 
 import javax.swing.JLabel;
 import javax.swing.SwingUtilities;
+import javax.swing.TransferHandler;
 import javax.swing.text.JTextComponent;
 
 import org.assertj.swing.edt.GuiActionRunner;
@@ -135,10 +138,14 @@ class LethenonWalletUiTest extends AbstractUiTest
 	/**
 	 * The words pasted as people paste them from the backup sheet, numbered "1. word 2. word ...",
 	 * restore the wallet (#802): lethenon 0.8.1 reads the numbering away (lethenon#286). 8.14
-	 * refused this paste as "you typed 48"
+	 * refused this paste as "you typed 48". Since #804 the restore has 24 fields, and the paste
+	 * goes through the system clipboard into field 13, not the first: a phrase fills all 24
+	 * whichever field it lands in. The paste is the field's own paste action, the one Ctrl+V runs,
+	 * started on the event thread the way this class presses its buttons rather than through the
+	 * robot
 	 */
 	@Test
-	@DisplayName("a wallet is restored from the 24 words pasted with the numbers of the backup sheet (#802)")
+	@DisplayName("a wallet is restored from the 24 words pasted from the clipboard into any of its 24 fields, with the numbers of the backup sheet (#802, #804)")
 	void aPhrasePastedWithNumbers_restoresTheWallet() throws Exception
 	{
 		JInternalFrameFixture tool = openTheWalletWindow("lethenon-wallet-restore.mcrdb");
@@ -154,11 +161,15 @@ class LethenonWalletUiTest extends AbstractUiTest
 		String walletPassword = TestPasswords.throwaway();
 		click(tool, "btnRestore");
 		GuiActionRunner.execute(() -> {
-			tool.textBox("txtWords").target().setText(numbered.toString().strip());
+			Toolkit.getDefaultToolkit().getSystemClipboard()
+				.setContents(new StringSelection(numbered.toString().strip()), null);
 			tool.textBox("txtRestorePassword").target().setText(walletPassword);
 			tool.textBox("txtRestorePasswordRepeated").target().setText(walletPassword);
 		});
+		GuiActionRunner.execute(() -> tool.textBox("txtWords13").target().paste());
 		UiTestSpeed.step();
+		assertEquals(words.getFirst(), textOf(tool, "txtWords1"), "the paste starts at field 1");
+		assertEquals(words.getLast(), textOf(tool, "txtWords24"), "and fills all 24");
 		click(tool, "btnRestoreConfirmed");
 		Pause.pause(shown(tool, "txtAddress"), 10000);
 
@@ -312,7 +323,9 @@ class LethenonWalletUiTest extends AbstractUiTest
 		String walletPassword = TestPasswords.throwaway();
 		click(tool, "btnRestore");
 		GuiActionRunner.execute(() -> {
-			tool.textBox("txtWords").target().setText(wallet.phrase());
+			JTextComponent first = tool.textBox("txtWords1").target();
+			first.getTransferHandler().importData(
+				new TransferHandler.TransferSupport(first, new StringSelection(wallet.phrase())));
 			tool.textBox("txtRestorePassword").target().setText(walletPassword);
 			tool.textBox("txtRestorePasswordRepeated").target().setText(walletPassword);
 		});

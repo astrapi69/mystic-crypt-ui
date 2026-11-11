@@ -15,14 +15,19 @@ it nowhere.
 Menu bar: **Plugins** > **Files** > **Encrypt and Decrypt**.
 
 The tool opens as a window inside the main window, titled `Encrypt and Decrypt`. If the main
-window is not showing its desktop view yet, it switches to it first. The **Plugins** menu only
-appears once at least one plugin is installed; the installer puts this one in place, see
-[[install-a-plugin]].
+window is not showing its desktop view yet, it switches to it first; your database then stays
+reachable in a window of its own, titled `Key database`. The **Plugins** menu only appears once
+at least one plugin is installed; the installer puts this one in place, see [[install-a-plugin]].
+
+The item can be used while a database is open and unlocked. Before you sign in, and while the
+workspace is locked, it is greyed out.
 
 ## Using it
 
-The window has two tabs, **File** and **Text**, and one message line underneath them that
-reports what happened. Which tab is in front when the window opens is a setting, see below.
+At the top of the window a short note says what the tool does, and that nothing can recover the
+content once the passphrase is lost. Below it are two tabs, **File** and **Text**, and one
+message line underneath them that reports what happened. Which tab is in front when the window
+opens is a setting, see below.
 
 ### Encrypting a file
 
@@ -55,9 +60,10 @@ In that case nothing was written and the original is untouched.
 4. Press **Decrypt**.
 
 It worked when the message line reads `decrypted to recovered.txt`. It did not work when it
-starts with `not decrypted: `; a wrong passphrase is reported as a key mismatch, a file this
-tool did not write as `this is not something this application encrypted: the marker is
-missing`. No file is written in either case.
+starts with `not decrypted: `. A wrong passphrase, or a file that was changed afterwards, reads
+`not decrypted: could not decrypt: the passphrase is wrong or the data was altered`; a file this
+tool did not write reads `not decrypted: this is not something this envelope sealed: the marker
+is missing`. No file is written in either case.
 
 ### Encrypting a text
 
@@ -65,8 +71,9 @@ missing`. No file is written in either case.
 2. **Text:** type or paste what should be encrypted.
 3. **Passphrase:** and **Repeat (to encrypt):** the same passphrase twice.
 4. Press **Encrypt**. The **Encrypted (Base64):** field fills with a block of letters, digits,
-   `+`, `/` and `=`, and the message line reads `encrypted 16 characters`. Copy that block
-   wherever it has to go; it is plain text and survives mail, chat and text files.
+   `+`, `/` and `=`, and the message line reads `encrypted 16 characters`, with the length of
+   your text. Copy that block wherever it has to go; it is plain text and survives mail, chat
+   and text files.
 
 To read it back, paste the block into **Encrypted (Base64):**, type the passphrase into
 **Passphrase:** (again the repetition is not used), and press **Decrypt**. The **Text:** field
@@ -80,22 +87,27 @@ the list on the left. Change the value in the right-hand column and press **Appl
 
 | Key | Default | What it changes |
 |---|---|---|
-| `delete.source.after.encrypt` | `false` | Removes the original file once it has been encrypted successfully. Only the exact value `true` turns this on; anything else, `yes` included, counts as off. Deleting is not wiping: the content can still be recoverable from the disk. Applies to the **File** tab only. |
+| `delete.source.after.encrypt` | `false` | Removes the original file once it has been encrypted successfully. Only the value `true`, in any letter case, turns this on; anything else, `yes` included, counts as off. Deleting is not wiping: the content can still be recoverable from the disk. Applies to the **File** tab only. |
 | `default.tab` | `file` | Which tab is in front when the tool window opens: `file` or `text`. Upper and lower case are both understood, any other value falls back to `file`. Takes effect the next time the window is opened. |
 
 ## On the command line
 
 The same job is done by two commands of the mystic-crypt library, `encrypt` and `decrypt`. They
 are not contributed by this plugin, they belong to the application itself, so they are there
-whether the plugin is installed or not. Both take the same options:
+whether the plugin is installed or not. Start them through the application jar with `--cli` as
+the first argument (`java -jar mystic-crypt-ui.jar --cli ...`, from the installation
+directory), or through the `mystic-crypt` launcher the installer's *Command-line interface* pack
+puts next to it; see [[The-Command-Line]]. Both commands take the same options:
 
 ```
   -i, --in=<in>            The file to encrypt, or '-' for standard input.
   -o, --out=<out>          The file to write. Without it the result is printed
                              as base64.
   -p, --passphrase=<passphrase>
-                           The passphrase. Prefer --passphrase-stdin to keep it
-                             out of the process arguments.
+                           The passphrase. Deprecated, it puts the secret into
+                             the process arguments and goes away in 14.0: use
+                             --passphrase-stdin, or leave both out to be asked
+                             in a terminal.
       --passphrase-stdin   Read the passphrase from the first line of standard
                              input.
   -t, --text=<text>        The text to encrypt instead of a file.
@@ -105,55 +117,69 @@ whether the plugin is installed or not. Both take the same options:
 `decrypt` has the same list with the wording turned around: `-i` is the file to decrypt, `-t` is
 the Base64 text to decrypt, and without `-o` the result is printed as text.
 
-Encrypting a file, then decrypting it to a new name. Unlike the window, the command line invents
-no name of its own: it is `-o` that decides where the result goes, and without `-o` nothing is
-written at all.
+Encrypting a file, then decrypting it to a new name. Leave the passphrase options out and the
+command asks for it in the terminal, without showing what you type. Unlike the window, the
+command line invents no name of its own: it is `-o` that decides where the result goes, and
+without `-o` the result is printed instead of written. The line that reports what was written
+goes to standard error.
 
 ```console
-$ java -jar mystic-crypt-ui-all.jar --cli encrypt -i notes.txt -o notes.txt.enc -p demo-passphrase
+$ java -jar mystic-crypt-ui.jar --cli encrypt -i notes.txt -o notes.txt.enc
+passphrase:
 encrypted 12 bytes to notes.txt.enc
 
-$ java -jar mystic-crypt-ui-all.jar --cli decrypt -i notes.txt.enc -o recovered.txt -p demo-passphrase
+$ java -jar mystic-crypt-ui.jar --cli decrypt -i notes.txt.enc -o recovered.txt
+passphrase:
 decrypted 12 bytes to recovered.txt
+```
+
+In a script, where there is no terminal to ask in, `--passphrase-stdin` reads the passphrase from
+the first line of standard input, here from a file only you can read:
+
+```console
+$ java -jar mystic-crypt-ui.jar --cli encrypt -i notes.txt -o notes.txt.enc --passphrase-stdin < passphrase.txt
+encrypted 12 bytes to notes.txt.enc
 ```
 
 Encrypting a text with `-t`; the result is one line of Base64 on standard output, so it can be
 redirected into a file or piped onward, and `decrypt -t` takes it back:
 
 ```console
-$ java -jar mystic-crypt-ui-all.jar --cli encrypt -t "a short note" -p demo-passphrase
-TUNSWVBUAQAJJ8DVLLSoG7Ndpe3nI5MUpjxiC3VdQa2BRhZMf/ZbtooHJIJsWa0Y/GTo+Sm7VV+t9W83jnkYKLJYXPfcUQxZtNW6zgFG3Nbg9dDCJcSB+u9r/Ui10nGsCm4M
+$ java -jar mystic-crypt-ui.jar --cli encrypt -t "a short note"
+passphrase:
+TUNGSUxFVoJ/pOjfIk6qt3SGl4dDpAAJJ8C1EJ9n/Jopl4LLCh3XdHNI/FjzDSGqGfvfw759xuQoWRNfk6Ddv6CzjvoLT4X8/+8isk5uqLziC7m/NAdIp+SVeUqEQVxkgyY=
 
-$ java -jar mystic-crypt-ui-all.jar --cli decrypt -t "TUNSWVBUAQAJJ8DVLLSoG7Ndpe3nI5MUpjxiC3VdQa2BRhZMf/ZbtooHJIJsWa0Y/GTo+Sm7VV+t9W83jnkYKLJYXPfcUQxZtNW6zgFG3Nbg9dDCJcSB+u9r/Ui10nGsCm4M" -p demo-passphrase
+$ java -jar mystic-crypt-ui.jar --cli decrypt -t "TUNGSUxFVoJ/pOjfIk6qt3SGl4dDpAAJJ8C1EJ9n/Jopl4LLCh3XdHNI/FjzDSGqGfvfw759xuQoWRNfk6Ddv6CzjvoLT4X8/+8isk5uqLziC7m/NAdIp+SVeUqEQVxkgyY="
+passphrase:
 a short note
 ```
 
-A passphrase given as `-p` stands in the shell history and in the process list of every user on
-the machine, which is why the help text of both commands recommends against it.
-`--passphrase-stdin` is the better habit: it reads the passphrase from the first line of standard
-input, where nothing else can read it along.
+A text given as `-t` stands in the shell history and in the process list just like a passphrase
+would; for a text that is itself secret, write it into a file and encrypt that with `-i`.
+`--text-stdin` and `--passphrase-stdin` cannot be combined, because both want standard input.
 
-```console
-$ printf 'demo-passphrase\n' | java -jar mystic-crypt-ui-all.jar --cli encrypt -i notes.txt -o notes.txt.enc --passphrase-stdin
-encrypted 12 bytes to notes.txt.enc
-```
+The `-p` option still works in this release, but it prints a warning on standard error, because
+a passphrase given as an argument stands in the shell history and in the process list of every
+user on the machine; it goes away in mystic-crypt 14.0.
 
 `encrypt` ends with exit code 0 when it encrypted and 2 on an error. `decrypt` ends with 0 when
 it decrypted, 1 when the passphrase was wrong or the data was altered, and 2 on an error before
 that. The reason is one line on standard error beginning with `error: `, for example
 `error: could not decrypt: the passphrase is wrong or the data was altered` or
-`error: a passphrase is required: pass --passphrase or --passphrase-stdin`. Scripts should check
-the exit code, not the output.
+`error: a passphrase is required: pass --passphrase-stdin, or run in a terminal to be asked for it`.
+Scripts should check the exit code, not the output.
 
-Two differences from the window are worth knowing. The command line writes over an existing
-output file without asking. And it writes a different format: files from this window start with
-the marker `MCFILE1` and are named `.mcenc`, while `encrypt` writes files that start with
-`MCRYPT`, and `decrypt` refuses everything else, ending with exit code 2 and the message
-`not a mystic-crypt encrypted input: it does not start with the marker 'MCRYPT' and format
-version 1`. What was encrypted in this window is opened in this window, what was encrypted on
-the command line is decrypted on the command line.
+Three differences from the window are worth knowing:
 
-The jar carries the version in its file name; substitute the one you actually installed.
+- **The command line asks for the passphrase once.** There is no second field to catch a typo,
+  so an encryption with a mistyped passphrase succeeds and cannot be opened again.
+- **It writes over an existing output file without asking.** The window refuses instead.
+- **It writes a different format.** Files from this window start with the marker `MCFILE1` and
+  are named `.mcenc`; `encrypt` writes files that start with `MCFILE`, and `decrypt` also reads
+  the older `MCRYPT` layout. What was encrypted in this window is opened in this window, what was
+  encrypted on the command line is decrypted on the command line. The window refuses a file from
+  the command line with `the marker is missing`, and `decrypt` cannot open a file from the window
+  either: do not give it a `.mcenc` file.
 
 ## Limits and pitfalls
 
@@ -171,8 +197,8 @@ The jar carries the version in its file name; substitute the one you actually in
   a file changed by so much as one bit afterwards, is refused and no output file is written.
   That also means this tool cannot repair a damaged encrypted file, not even partially.
 - **Only files this tool wrote can be read back.** Every result carries a marker; anything else,
-  including files encrypted by other programs, is refused with `the marker is missing`. Files
-  written here are equally useless to other tools.
+  including files encrypted by other programs and by the `encrypt` command, is refused with
+  `the marker is missing`. Files written here are equally useless to other tools.
 - **Decrypting next to the original does not work by default.** With **Write to:** empty,
   `report.pdf.mcenc` wants to be written as `report.pdf`; if the original is still lying there,
   you get `already exists`. Give another target name, or move the original away.
@@ -209,9 +235,10 @@ password: AES-GCM in a key-committing form, over a 256-bit key derived from the 
 PBKDF2-HMAC-SHA256 and 600,000 rounds over a 16-byte salt drawn fresh for every single
 operation. The marker, the salt and the round count sit in front of the encrypted payload and
 are covered by the cipher's authentication tag, so none of them can be edited without the file
-refusing to open, and the round count travels with each file so it can be raised in a later
-release without making today's files unreadable. All primitives come from the mystic-crypt
-library and BouncyCastle; nothing is hand-rolled here.
+refusing to open, and the round count travels with each file so it can be raised later without
+making today's files unreadable. The construction is the mystic-crypt library's passphrase
+envelope, and all primitives come from that library and Bouncy Castle; nothing is hand-rolled
+here.
 
 Three practical consequences: a wrong passphrase fails immediately and as a wrong passphrase
 instead of producing plausible rubbish; the same file encrypted twice yields two entirely
@@ -223,5 +250,6 @@ against guessing and is also why a click is not instant.
 
 - [[Getting-Started]]
 - [[install-a-plugin]]
+- [[The-Command-Line]]
 - [[Secure-your-passwords-with-obfuscation]]
 - [[how-to-create-a-plugin]]

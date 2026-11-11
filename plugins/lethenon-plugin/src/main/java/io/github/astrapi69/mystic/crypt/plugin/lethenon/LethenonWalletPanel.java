@@ -64,7 +64,6 @@ import io.github.astrapi69.mystic.crypt.ui.form.ToolForm;
 import io.github.astrapi69.swing.model.combobox.EnumComboBoxModel;
 import io.github.astrapi69.swing.model.component.JMComboBox;
 import io.github.astrapi69.swing.model.component.JMPasswordField;
-import io.github.astrapi69.swing.model.component.JMTextArea;
 import io.github.astrapi69.swing.model.component.JMTextField;
 import net.miginfocom.swing.MigLayout;
 
@@ -109,7 +108,8 @@ public class LethenonWalletPanel extends JPanel
 
 	private final JMTextField txtWalletFile = new JMTextField(34);
 
-	private final JMTextArea txtWords = new JMTextArea(4, 40);
+	/** The 24 fields of the restore, one per word (#804); built with the restore form */
+	private WordGrid restoreWords;
 
 	private final JTextArea txtRefusal = message("txtRefusal", true);
 
@@ -777,9 +777,9 @@ public class LethenonWalletPanel extends JPanel
 
 	private void clearWords()
 	{
-		txtWords.setText("");
-		modelObject.setWords("");
+		restoreWords.clear();
 	}
+
 
 	private JPanel noVaultView()
 	{
@@ -1188,14 +1188,10 @@ public class LethenonWalletPanel extends JPanel
 		JPanel view = new JPanel(ToolForm.newLayout());
 		view.add(title("lblRestoreTitle", "lethenon.wallet.restore.title",
 			"Restore a wallet from its 24 words"), ToolForm.WIDE);
-		txtWords.setName("txtWords");
-		txtWords.setLineWrap(true);
-		txtWords.setWrapStyleWord(true);
-		txtWords.setToolTipText(text("lethenon.wallet.tooltip.words",
-			"the 24 words from your note, in order, separated by spaces"));
-		txtWords.setPropertyModel(LambdaModel.of(modelObject::getWords, modelObject::setWords));
-		view.add(new JLabel(text("lethenon.wallet.label.words", "The 24 words:")));
-		view.add(ToolForm.scrolled(txtWords), ToolForm.FIELD);
+		restoreWords = new WordGrid("Words", modelObject.getTypedWords(), locale,
+			WordGrid.sayingIn(this::refuse, modelObject::getRefusal));
+		view.add(new JLabel(text("lethenon.wallet.label.words", "The 24 words:")), "aligny top");
+		view.add(restoreWords, ToolForm.FIELD);
 		addNetworkChoice(view, "cbxRestoreNetwork");
 		addPasswordTwice(view, "txtRestorePassword", "txtRestorePasswordRepeated");
 		view.add(ToolForm.buttons(

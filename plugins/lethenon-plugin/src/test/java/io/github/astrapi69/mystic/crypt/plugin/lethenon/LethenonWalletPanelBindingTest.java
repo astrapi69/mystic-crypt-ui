@@ -39,6 +39,8 @@ import java.util.Locale;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 
+import javax.swing.JTextField;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -256,13 +258,57 @@ class LethenonWalletPanelBindingTest
 		String phrase = Wallet.create().phrase();
 		LethenonWalletPanel panel = window();
 		panel.onRestore();
-		panel.getModelObject().setWords(phrase);
+		Windows.paste(panel, "txtWords1", phrase);
 
 		panel.onFormCancelled();
 		panel.onRestore();
 
 		assertEquals("", panel.getModelObject().getWords(), "the words leave with the form (#801)");
-		assertEquals("", textOf(panel, "txtWords"));
+		for (int position = 1; position <= 24; position++)
+		{
+			assertEquals("", textOf(panel, "txtWords" + position), "field " + position);
+		}
+	}
+
+	@Test
+	@DisplayName("a phrase pasted into any of the 24 fields of the restore fills them all and restores the wallet")
+	void restoring_fromAPastedPhrase_restoresTheWallet()
+	{
+		Wallet lost = Wallet.create();
+		LethenonWalletPanel panel = window();
+		panel.onRestore();
+		char[] password = ThrowawayPasswords.next();
+		panel.getModelObject().setPassword(password.clone());
+		panel.getModelObject().setPasswordRepeated(password.clone());
+
+		Windows.paste(panel, "txtWords9", lost.phrase());
+
+		assertEquals(lost.phrase().split(" ")[23], textOf(panel, "txtWords24"));
+		panel.onRestoreConfirmed();
+
+		assertEquals(WalletView.OVERVIEW, panel.getModelObject().getView());
+		assertEquals(lost.address().toText(), textOf(panel, "txtAddress"));
+		assertEquals("", textOf(panel, "txtWords1"), "the typed words are cleared");
+	}
+
+	@Test
+	@DisplayName("the restore names a word that is not in the word list as soon as its field is left, before Restore is pressed")
+	void theRestore_namesAnUnknownWord_whenItsFieldIsLeft()
+	{
+		LethenonWalletPanel panel = window();
+		panel.onRestore();
+		Windows.component(panel, "txtWords12", JTextField.class).setText("qqq");
+
+		Windows.leave(panel, "txtWords12");
+
+		assertEquals(WalletView.RESTORE, panel.getModelObject().getView());
+		assertTrue(Windows.shows(panel, "txtRefusal"));
+		assertEquals("Word 12, \"qqq\", is not in the word list. Check your note for a typing error.",
+			textOf(panel, "txtRefusal"));
+
+		Windows.component(panel, "txtWords12", JTextField.class).setText("abandon");
+
+		assertEquals("", textOf(panel, "txtRefusal"), "the sentence goes with the mistake");
 	}
 
 	@Test

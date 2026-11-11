@@ -43,7 +43,20 @@ still expand everything without a visible root row.
 
 ## 3. Working with nodes
 
-All node operations live in the tree's right-click menu.
+All node operations live in the tree's right-click menu. The most frequent ones also have a key,
+which works while the tree has the focus and a node is selected:
+
+| Key | Does |
+|---|---|
+| `Insert` | add a node under the selected one |
+| `F2` | edit (rename) the selected node |
+| `Ctrl+K` | duplicate the selected node |
+| `Delete` | delete the selected node, after the confirmation |
+| `Alt+Up`, `Alt+Down` | move the selected node up or down among its siblings |
+| `Ctrl+C` | copy the node's name to the clipboard - only the name, never what is inside |
+
+A database that opened read-only, because a newer version wrote it, takes none of the changes on
+this page: each of them answers with the dialog **Opened read-only** (see [[The-Database-File]]).
 
 ### Add a node
 
@@ -129,8 +142,9 @@ tree. With nothing selected, a new entry lands on the hidden root instead, where
 tree will show it, so make the selection before you add anything. All entry operations live in the
 right-click menu of the entries table.
 
-The table has three columns, `Title`, `Username` and `Url`. They are display only, you cannot type
-into a cell.
+The table has four columns: an unnamed first one with the icon an entry imported from KeePass was
+given there, then `Title`, `Username` and `Url`. They are display only, you cannot type into a
+cell.
 
 - **`add...`** opens the **New Crypt Entry** dialog (see section 6) and adds the finished entry to
   the selected node.
@@ -138,7 +152,7 @@ into a cell.
   click on a row does exactly the same thing.
 - **`duplicate...`** asks for a new title in the **New title for duplicate** dialog, prefilled with
   the original title plus `-Copy`. The duplicate is a deep copy, with its own attachment and
-  property lists.
+  property lists and an identifier of its own.
 - **`delete`** removes every selected row after the **Confirm deletion** dialog. This is the one
   entry action that works on more than one row at a time.
 - **`select all`** and **`clear selection`** do what they say.
@@ -148,7 +162,7 @@ Some items are only active in certain situations, which is why they may look gre
 | Menu item | Active when |
 |---|---|
 | `Copy Username`, `Copy Password`, `edit...`, `duplicate...` | exactly one row is selected |
-| `Open url`, `Autotype` | exactly one row is selected and its URL is a well-formed URL |
+| `Open url` | exactly one row is selected and its URL is a well-formed URL |
 | `delete`, `clear selection` | at least one row is selected |
 | `select all` | the table has at least one row |
 | `add...` | always |
@@ -156,21 +170,41 @@ Some items are only active in certain situations, which is why they may look gre
 Note that a right-click by itself does not select a row. Left-click the row first, then right-click
 it, otherwise the actions that need a selection stay disabled.
 
+The table has keys as well. They work while the table has the focus, a node is selected in the
+tree and at least one row is selected:
+
+| Key | Does |
+|---|---|
+| `Enter` | edit the selected entry |
+| `Insert` | add an entry to the selected node |
+| `Delete` | delete the selected entries, after the confirmation |
+| `Ctrl+B` | copy the user name of the selected entry |
+| `Ctrl+C` | copy the password of the selected entry |
+
 ## 6. Everything an entry holds
 
 The entry dialog has three tabs: **Main**, **Attachments** and **Properties**.
 
+**Cancel** in **New Crypt Entry** adds nothing. In **Edit Crypt Entry** it does not undo what you
+changed: the dialog works on the stored entry itself, so what you type on **Main** and the files you
+add or remove on **Attachments** reach the entry as you go, and stay there after **Cancel** until
+you change them back. The next save writes them. Only the property dialog of the **Properties** tab
+(below) has a **Cancel** that leaves the property as it was.
+
 ### Main
 
-- **Entry name** - the title, and the first column of the table.
-- **Username** - the second column of the table.
+- **Entry name** - the title, and the `Title` column of the table.
+- **Username** - the `Username` column of the table.
 - **Password** and **Repeat** - two masked fields. The `***` button next to them toggles between
   masked and plain text. The `Generate` button opens the password generator; accepting a generated
   password fills both the password and the repeat field.
-- **Url** - the third column of the table, and the address used by `Open url` and `Autotype`.
+- **Url** - the `Url` column of the table, and the address used by `Open url`.
 - **Notes** - a free-text area.
 - **Expires** - a checkbox. While it is unchecked the date picker below it is disabled; check it and
   pick the expiry date.
+- **Precise expiry**, **Created**, **Last accessed** and **Last modified** - four read-only fields
+  that show what an import from KeePass brought along, with date, time and offset. For an entry
+  made in this application they stay empty.
 
 ### Attachments
 
@@ -179,31 +213,39 @@ buttons:
 
 - `Add File` opens a file chooser and takes the chosen file into the entry.
 - `Remove` drops the selected row.
-- `Save to` writes the selected attachment's content back out to a file you choose.
+- `Save to` writes the selected attachment's content back out to a file you choose. The save dialog
+  ("Specify a file to save") opens with the attachment's own name. When the entry belongs to a
+  plugin - a Lethenon wallet, for example - the plugin first says in one line what the file is,
+  and you confirm **Save outside the vault?**; after writing, **Attachment saved** shows where the
+  file went and its SHA-256, to compare a copy with.
 
-Only one attachment can be selected at a time, and `Remove` and `Save to` stay disabled until a row
-is selected.
+A double click on a row shows the attachment's content in a window of its own: as text when it is
+text, as a description when it is not. Only one attachment can be selected at a time, and `Remove`
+and `Save to` stay disabled until a row is selected.
 
 ### Properties
 
 Free key/value pairs of your own, shown in a table with the columns `Key` and `Value`:
 
 - `Add Property` opens the **New Property Value** dialog with a `Key` and a `Value` field.
-- `Edit` opens the same form as **Edit Property Value** for the selected pair.
+- `Edit` opens the same form as **Edit Property Value** for the selected pair. A double click on a
+  row does the same.
 - `Remove` drops the selected pair.
 
 As with attachments, only one row can be selected at a time.
 
 ### Fields you never see in the dialog
 
-An entry also carries a few values that no field edits. They exist so that an entry imported from a
-KeePass database can be written back without losing information: the exact expiry timestamp
-including time of day and offset (the dialog's expiry date only has day precision), the creation
-time, the last access time, the last modification time, and the KeePass icon index. Custom
+An entry also carries a few values that no field shows. They exist so that an entry imported from a
+KeePass database can be written back without losing information: the KeePass icon index (shown as
+the icon in the table), the earlier versions of the entry that KeePass kept, and which of its custom
+properties KeePass marked as protected. Every entry also has an identifier of its own. Custom
 properties and attachments survive the same round trip, attachments as KeePass binary properties.
 See [[import-export-keepass-database]] for the import and export flows themselves.
 
 ## 7. Searching
+
+There are two ways to search, and both decide a match the same way.
 
 **File > Search...**, or `Ctrl+F`, opens the **Search** dialog. Its prompt says exactly what it
 looks at: "Search for a node name or an entry's title, user name, URL or notes:".
@@ -211,54 +253,67 @@ looks at: "Search for a node name or an entry's title, user name, URL or notes:"
 - The term is matched case-insensitively, as a substring.
 - A node matches if its own name contains the term, or if any of the entries inside it has the term
   in its **title**, **user name**, **URL** or **notes**.
-- The first match found while walking the tree wins. The tree is fully expanded, then that node is
-  selected and scrolled into view.
+- The first match in the order the tree shows its nodes, top down, wins. That node is selected and
+  scrolled into view, with the nodes above it opened.
+
+The **search field in the toolbar** works the way KeePass users expect: typing jumps to the first
+match at every keystroke, and Enter jumps to the next one, starting over after the last. It only
+jumps; it never hides nodes from the tree. Locking the workspace empties it.
 
 Two things worth knowing about the result: search selects the **node**, not the individual entry
-row, so after a hit you look at the table on the right to find the entry itself. And the fields it
-does not look at are the password, the custom properties and the attachment names.
+row, so the entry itself is one of the entries of that node. And the fields it does not look at
+are the password, the custom properties and the attachment names.
 
-If nothing matches, a **No match** dialog names the term you searched for. An empty term does
-nothing at all, and searching before signing in tells you "Please sign in first."
+If nothing matches, the dialog shows **No match** and names the term you searched for. An empty
+term does nothing at all. Without an open database both ways are disabled.
 
 ## 8. Copying credentials
 
 This is the daily use of a password manager, and it is two menu items on a selected entry row:
 
-- `Copy Username` puts the entry's user name on the system clipboard.
-- `Copy Password` puts the entry's password on the system clipboard.
+- `Copy Username` (`Ctrl+B`) puts the entry's user name on the system clipboard.
+- `Copy Password` (`Ctrl+C`) puts the entry's password on the system clipboard.
 
 Both need exactly one selected row. Both write to the real system clipboard, replacing whatever was
 on it.
 
-Two neighbouring items use the entry's URL and are only enabled when that URL is well formed:
+What you copied does not stay there: 20 seconds later the clipboard is cleared again, but only if
+it still holds what was copied, so something you copied yourself in the meantime is left alone.
+The time is **Clear a copied password after seconds** in the general settings, and `0` turns it
+off ([[Settings-And-Plugins]]). Locking the workspace and closing the database clear the clipboard
+straight away.
 
-- `Open url` opens the address in your standard browser.
-- `Autotype` drives a browser to the address and fills in the credentials. It looks for input fields
-  with the ids `UserName` and `Password` and then clicks the form's submit button, so it only works
-  on login pages that happen to use exactly those ids.
+`Open url` uses the entry's URL and is only enabled when that URL is well formed. It opens the
+address in your standard browser.
 
 ## 9. View modes
 
-The window can present itself in two ways, and the **View > View mode** submenu switches between
-them:
+The window can present itself in two ways, chosen with **View:** in **File > Settings... >
+General**:
 
-- **Switch to panel mode** (`Alt+F7`) shows the tree and the entries table filling the window. This
-  is the mode you land in right after signing in.
-- **Switch to desktop mode** (`Alt+F6`) replaces that with a desktop pane, the multi-window surface
-  the application starts in before you sign in.
+- `APPLICATION_PANEL` shows the tree and the entries table filling the window. This is the
+  default.
+- `DESKTOP_PANE` shows a desktop pane, a multi-window surface, where the tree and its table sit in
+  a resizable internal window titled "Key database", next to the windows of the tools.
 
-The two modes change how you reach your database. In panel mode, **File > Open Database**
-(`Ctrl+D`) simply brings the tree panel back to the front. In desktop mode, the same command puts
-the tree and its table into a resizable internal window titled "Key database" inside the desktop
-pane, so it can sit next to other windows.
+The choice is applied when you close the settings dialog, and again after every sign-in and
+unlock. A tool from the **Plugins** menu switches the window to the desktop pane to have
+somewhere to put its own window; closing the settings dialog puts back the view you chose.
+
+**File > Show Database View** (`Ctrl+D`) brings the database back into view in either mode: in the
+panel view it brings the tree panel back to the front, on the desktop pane it opens the "Key
+database" window or brings it to the front.
 
 ## 10. Saving your changes
 
 Every change described on this page - adding, renaming, duplicating, deleting or moving a node,
 adding, editing, duplicating or deleting an entry - happens in memory first and marks the database
-as modified. Use **File > Save** (`Ctrl+S`) to write it to disk. If you close the application with
-unsaved changes, it asks before quitting.
+as modified. Use **File > Save** (`Ctrl+S`) or the toolbar's Save button to write it to disk;
+**File > Save As...** (`Ctrl+Shift+S`) writes it to another file, asking before it replaces one,
+and continues with that file. How a save writes the file is in [[The-Database-File]].
+
+**File > Close Database** (`Ctrl+W`) and **File > Exit** ask before unsaved changes are lost, and
+so does the window's close button.
 
 ## See also
 
