@@ -22,10 +22,11 @@ your database can be exported back to a `.kdbx` that real KeePass opens. See
 
 ## What protects it
 
-One file, encrypted whole, opened by a master password, by a key file, or by both together. The
-password is turned into a key with 600,000 rounds of PBKDF2 and a random salt for every save, and
-the file is sealed with AES-GCM, so a changed byte is refused rather than quietly decrypted into
-something wrong.
+One file, encrypted whole, opened by a master password, by a key file, or by both together. A
+master password alone is turned into a key with 600,000 rounds of PBKDF2 and a random salt for
+every save, and the file is sealed with AES-GCM, so a changed byte is refused rather than quietly
+decrypted into something wrong. With a key file the file is written differently: it is encrypted to
+the key in your key file, and with both, first with the password and then to the key.
 
 There is no recovery. Nobody can open your database without what you chose to protect it with,
 which is the point, and which is also why a forgotten master password means the data is gone.
@@ -34,8 +35,8 @@ do, and what happens to databases written by older versions.
 
 ## The tools
 
-Thirteen tools come with the application, each in its own window under the **Plugins** menu, each
-with its own settings:
+The tools come with the application, each in its own window under the **Plugins** menu, and most
+with settings of their own in the settings dialog:
 
 | | |
 |---|---|
@@ -43,7 +44,11 @@ with its own settings:
 | **Protecting things** | [[Plugin-File-Encryption]], [[Plugin-Secret-Sharing]], [[Plugin-Password-Hashing]] |
 | **Proving things** | [[Plugin-Signatures]], [[Plugin-Checksum-And-Mac]] |
 | **Exchanging a key** | [[Plugin-Key-Exchange]] |
-| **The rest** | [[Plugin-Obfuscation]], [[Plugin-Menu-Designer]], [[Plugin-Console]] |
+| **The rest** | [[Plugin-Obfuscation]], [[Plugin-Console]] |
+
+One more, [[Plugin-Menu-Designer]], is a tool for working on the application itself: it is built
+with it but not installed, and shows up only when the application is started with
+`-Dmystic.crypt.ui.menu.designer=true`.
 
 Post-quantum algorithms are not an afterthought here: ML-KEM and ML-DSA sit next to RSA and the
 elliptic curves, and the key exchange offers a hybrid that stays safe as long as either half does.
