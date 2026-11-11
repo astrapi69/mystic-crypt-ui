@@ -1,0 +1,1 @@
+This wiki is generated from [docs/wiki/](https://github.com/astrapi69/mystic-crypt-ui/tree/develop/docs/wiki) in the repository. Change a page with a pull request there; an edit made here in the wiki is overwritten by the next mirror.
