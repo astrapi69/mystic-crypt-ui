@@ -75,7 +75,8 @@ def judge(entries, required_contexts, allow_optional_failure=False):
     does not block. A red non-required entry blocks by default, because
     GitGuardian is not a required check here and a red GitGuardian can mean a
     secret in the commits (AG-090); allow_optional_failure downgrades those to
-    a loud warning (MERGE_PR_ALLOW_OPTIONAL_FAILURE=1).
+    a loud warning (MERGE_PR_ALLOW_OPTIONAL_FAILURE=1 - the maintainer sets
+    it, never an agent; decided 2026-11-11, written into AG-077).
     """
     messages = []
     if not entries:
@@ -128,7 +129,8 @@ def judge(entries, required_contexts, allow_optional_failure=False):
             messages.append(
                 "non-required checks failed: " + ", ".join(failed_optional)
                 + " - a red GitGuardian can mean a secret (AG-090);"
-                " MERGE_PR_ALLOW_OPTIONAL_FAILURE=1 overrides deliberately")
+                " MERGE_PR_ALLOW_OPTIONAL_FAILURE=1 overrides deliberately,"
+                " and only the maintainer sets it, never an agent")
             return Verdict(False, tuple(messages))
 
     messages.append("every required check is SUCCESS (" + ", ".join(required) + ")")
