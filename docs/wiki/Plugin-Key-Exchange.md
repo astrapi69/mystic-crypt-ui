@@ -11,34 +11,41 @@ which can then encrypt a message.
 Reach for it when the recipient and the sender are two different people on two different
 machines. If you only want to see what a key encapsulation does, the neighbouring
 **Key Encapsulation Demo** plays both roles at once in a single window and is the better
-choice; if you want to encrypt a file with a passphrase you already share, that is the
-file and text encryptor, not this tool.
+choice (see [The Key Encapsulation Demo](#the-key-encapsulation-demo) below); if you want to
+encrypt a file with a passphrase you already share, that is the file and text encryptor, not
+this tool.
 
 ## 2. Where to find it
 
-**Plugins** menu, **Key Encapsulation** submenu, item **Key Exchange**.
+**Plugins** menu, **Key Encapsulation** submenu, item **Key Exchange**. It opens a window
+titled "Key Exchange" inside the main window, switching it to its desktop view first if needed.
 
 The same submenu also holds **Key Encapsulation Demo**. The Plugins menu only appears
-once the plugin is installed, see [[install-a-plugin]].
+once the plugin is installed, see [[install-a-plugin]]. Both items are greyed out until you have
+signed in to a database, and again while the workspace is locked.
 
 ## 3. Using it
 
-The window has one **Algorithm:** box at the top, two tabs, **Receive** and **Send**, and
-a bold result line along the bottom that reports what each button did. Normally the two
-tabs are two people on two machines, and only the text in between travels.
+The window starts with a short note on what it does, then has one **Algorithm:** box, two
+tabs, **Receive** and **Send**, and a bold result line along the bottom that reports what each
+button did. Normally the two tabs are two people on two machines, and only the text in between
+travels. Every text box has a **Copy** button next to it that puts its content on the
+clipboard.
 
 **On the receiving side (the Receive tab):**
 
 1. Choose the algorithm in the **Algorithm:** box. The offered ones are, in this order,
-   `ML-KEM-768`, `ML-KEM-512`, `ML-KEM-1024`, `X25519` and `Hybrid X25519 + ML-KEM-768`.
+   `ML-KEM-768`, `ML-KEM-512`, `ML-KEM-1024`, `X25519` and `Hybrid X25519 + ML-KEM-768`, and
+   starts on the one from the settings.
 2. Press **New key pair**. The public half appears under *1. Hand this public key to the
    other side*, and the result line says `made a ML-KEM-768 key pair` (with whichever
    algorithm you chose). Every text this tool produces starts with `MCKX1$`.
 3. Give that public key to the other side: copy it out of the box, or press
    **Save public key...** and send the file. **Save my key...** writes the private half
-   instead, and asks for confirmation first with a warning that whoever holds that file
-   can read everything ever sent to this key. **Load my key...** takes such a file back
-   up later and sets the Algorithm box to whatever the stored key was made for.
+   instead, and asks for confirmation first, in a dialog titled **Save the private key**, with
+   the warning that whoever has that file can read everything that is ever sent to this key.
+   **Load my key...** takes such a file back up later and sets the Algorithm box to whatever
+   the stored key was made for.
 4. When the handshake comes back, paste it under *2. Paste the handshake that came back*
    (or press **Load...**) and press **Derive the secret**. The result line says
    `derived the shared secret` and **My secret:** shows an eight character fingerprint.
@@ -65,6 +72,25 @@ When something did not work, the result line starts with `not` and names the rea
 `not saved: make a key pair first`. Nothing is silently skipped, and the fingerprint
 stays at `-` when a step failed.
 
+### The Key Encapsulation Demo
+
+**Plugins** menu, **Key Encapsulation** submenu, item **Key Encapsulation Demo** opens a window
+of the same name that plays the sender and the recipient at once. It is there to show what an
+encapsulation does, not to exchange anything with anybody.
+
+1. Pick the algorithm in **Algorithm:**: `ML-KEM-768`, `ML-KEM-512`, `ML-KEM-1024` or
+   `Hybrid X25519 + ML-KEM-768`. It starts on the one from the settings.
+2. Press **Run key exchange**. The window makes a key pair, encapsulates a secret against its
+   public key and decapsulates it again, and shows the three results in hex:
+   **Ciphertext (sender to recipient):**, **Sender shared secret:** and
+   **Recipient shared secret:**, each with a **Copy** button.
+3. The result line reads `shared secrets match` when both sides arrived at the same secret,
+   `shared secrets do not match` when they did not, and `error:` with the reason when the
+   platform could not run the algorithm.
+
+Unlike the Key Exchange window, the demo shows the shared secrets themselves: they belong to a
+throwaway key pair that never leaves the window, and every press makes a new one.
+
 ## 4. Settings
 
 Edited under **File** menu, **Settings...**, tab **Plugin settings**, entry
@@ -83,9 +109,10 @@ opened, so a window that is already open keeps whatever is selected in it.
 ## 5. On the command line
 
 The three steps are also three subcommands of `keyx`, so the two sides can be two
-machines. Since mystic-crypt 12.0.0 `keyx` comes from the library and not from this
-plugin, so it is there whether or not the plugin is installed. `keyx` on its own prints
-the usage, and each subcommand answers `--help`:
+machines. `keyx` comes from the mystic-crypt library, not from this plugin, so it is there
+whether or not the plugin is installed. Its texts are the same as the window's, so one side
+can use the window and the other the command line. `keyx` on its own prints the usage, and each
+subcommand answers `--help`:
 
 ```
 Usage: mystic-crypt keyx [-hV] [COMMAND]
@@ -125,7 +152,9 @@ public key: MCKX1$PUB$ML-KEM-768$MIIEsjALBglghkgBZQMEBAIDggShAOLWX0tVWu58c8rQbi0
 The sender encapsulates against that public key, and can encrypt a message in the same
 run. `-r, --recipient` is the file holding the recipient's public key and is required,
 `-o, --out` writes the handshake to a file instead of printing it, `-m, --message` is the
-message and `-e, --encrypted` the file its encrypted form goes to:
+message and `-e, --encrypted` the file its encrypted form goes to. The message is an argument,
+which every process on the machine can see and the shell keeps in its history, so keep
+confidential text to the window, or send it through the file encryption instead:
 
 ```
 java -jar mystic-crypt-ui.jar --cli keyx send -r recipient.pub -m "meet at eight" -o handshake.txt -e message.txt
@@ -134,7 +163,7 @@ java -jar mystic-crypt-ui.jar --cli keyx send -r recipient.pub -m "meet at eight
 ```
 algorithm: ML-KEM-768
 handshake written to handshake.txt
-shared secret fingerprint: ec6b859c - read it out to the other side to check that both match
+shared secret fingerprint: b4ad9ea5 - read it out to the other side to check that both match
 encrypted message written to message.txt
 ```
 
@@ -148,7 +177,7 @@ java -jar mystic-crypt-ui.jar --cli keyx receive -k recipient.key -s handshake.t
 
 ```
 algorithm: ML-KEM-768
-shared secret fingerprint: ec6b859c - it must match the one the other side read out
+shared secret fingerprint: b4ad9ea5 - it must match the one the other side read out
 message: meet at eight
 ```
 
@@ -161,6 +190,11 @@ algorithm name contains spaces and a plus sign, so it needs quoting:
 `-a "Hybrid X25519 + ML-KEM-768"`. A name that is not offered is refused by listing all
 of them: `'bogus' is not one of ML-KEM-768, ML-KEM-512, ML-KEM-1024, X25519, Hybrid
 X25519 + ML-KEM-768`.
+
+The demo has its counterpart in `kem`, which runs both sides at once like the demo window:
+`-a` takes `ML-KEM-512`, `ML-KEM-768` (the default), `ML-KEM-1024` or `hybrid`, and the command
+prints the algorithm, the ciphertext, both secrets in hex and `shared secrets match`. It exits 0
+when the secrets match and 1 when they do not.
 
 ## 6. Limits and pitfalls
 
@@ -212,21 +246,20 @@ X25519 + ML-KEM-768`.
 ## 7. Under the hood
 
 The exchange itself comes from the mystic-crypt library. `ML-KEM-512`, `ML-KEM-768` and
-`ML-KEM-1024` are the NIST post-quantum mechanism from FIPS 203 and run through Bouncy
-Castle; `X25519` is the classical elliptic curve agreement from the JDK, where
+`ML-KEM-1024` are the NIST post-quantum mechanism from FIPS 203 and run on the JDK's own
+implementation; `X25519` is the classical elliptic curve agreement from the JDK, where
 "encapsulating" means making a throwaway key pair and sending its public half, with the
 raw agreement result passed through HKDF; the hybrid runs both and derives one key from
 the two results, so it stays safe as long as either half does. In every case the shared
 secret is 32 bytes.
 
-The message is encrypted with a key-committing authenticated scheme, AES-GCM with an
-additional commitment tag bound to the key, which is why a wrong secret or a modified
-message fails outright instead of yielding garbage. The secret itself is never written to
-the screen or to any file: what you see is the first eight hex characters of its SHA-256
-digest, which is enough to compare two secrets and not enough to reconstruct one.
+The message is encrypted with a key-committing authenticated scheme, AES-GCM with an additional
+commitment tag (a BLAKE2b digest over the key and the nonce) bound to the key, which is why a
+wrong secret or a modified message fails outright instead of yielding garbage. The secret itself
+is never written to the screen or to any file: what you see is the first eight hex characters of
+its SHA-256 digest, which is enough to compare two secrets and not enough to reconstruct one.
 
 ## 8. See also
 
-- [[Plugin-Key-Encapsulation-Demo]] - the other tool in the same submenu, both sides at once
 - [[install-a-plugin]] - how the plugin gets into the Plugins menu
 - [[Getting-Started]] - first launch, database and sign-in

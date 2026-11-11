@@ -12,7 +12,10 @@ file encryption tools instead when you want to protect a secret you will keep us
 **Plugins** menu, submenu **Secret Sharing**, item **Split and Combine**.
 
 The item only appears once the secret sharing plugin is installed and enabled. If the **Plugins**
-menu is missing entirely, no plugin is installed yet; see [[install-a-plugin]].
+menu is missing entirely, no plugin is installed yet; see [[install-a-plugin]]. The item is enabled
+while a database is open; before you sign in, and while the workspace is locked, it is greyed out.
+Locking the workspace also closes an open **Split and Combine** window, shares and rebuilt secret
+with it.
 
 ## Using it
 
@@ -87,7 +90,7 @@ given explicitly.
 Splitting and combining are commands of the mystic-crypt library, not of this plugin: `share`,
 with the subcommands `split` and `combine`. They are there whether or not the secret sharing
 plugin is installed. Reach them through the application jar with the `--cli` switch, from the
-directory the application was installed into:
+directory the application was installed into (see [[The-Command-Line]]):
 
 ```
 java -jar mystic-crypt-ui.jar --cli share
@@ -107,9 +110,9 @@ Commands:
              shares do not reconstruct a secret, 2 = error.
 ```
 
-`--help` works on the command and on both subcommands. Because `share` comes from the library and
-no longer from a plugin, the separate `mystic-crypt` launcher script reaches it as well, there
-without the `--cli` switch and without loading any plugin.
+`--help` works on the command and on both subcommands. Because `share` comes from the library, the
+separate `mystic-crypt` launcher script reaches it as well, there without the `--cli` switch and
+without loading any plugin.
 
 **The shares of the command line and the shares of the window are not the same shares.** The
 window writes `MCSS1$...` lines, the library writes `mcs1:...` lines, and neither side reads the
@@ -134,8 +137,10 @@ Split a secret into shares, one per line. Exit code 0 = split, 2 = error.
   -n, --shares=<shares>   How many shares to produce.
   -o, --out=<out>         Write the shares to this file instead of printing
                             them.
-      --secret=<secret>   The secret to split. Prefer --secret-stdin to keep it
-                            out of the process arguments.
+      --secret=<secret>   The secret to split. Deprecated, it puts the secret
+                            into the process arguments and goes away in 14.0:
+                            use --secret-stdin, or leave both out to be asked
+                            in a terminal.
       --secret-stdin      Read the secret from the first line of standard input.
   -t, --threshold=<threshold>
                           How many shares are needed to reconstruct the secret.
@@ -145,27 +150,24 @@ Split a secret into shares, one per line. Exit code 0 = split, 2 = error.
 `-t` and `-n` are both required, which is the reason neither of the plugin settings above reaches
 the command line.
 
-```
-java -jar mystic-crypt-ui.jar --cli share split --secret 'the master password of this database' -t 3 -n 5
-```
-
-prints one share per line:
+Leave the secret out, and the command asks for it in the terminal without showing what you type,
+then prints one share per line:
 
 ```
-mcs1:1c5cbaeb037aa8db:3:5:1:9R6MU7AUqSifdMc-q7MR_epZTzujfMFrWovGPyFa8N4VLHkU:2c9e2c8d
-mcs1:1c5cbaeb037aa8db:3:5:2:Oq9oPmIs93Mm4wg_WBQsjoorxFGHBJ0RtgskraMLTXtHKeXp:8ce54032
-mcs1:1c5cbaeb037aa8db:3:5:3:u9mBTb9ZLS_c5e9xktROBA8A70pLHnwOhOmRsuYwycQwZO-Y:9fc0081c
-mcs1:1c5cbaeb037aa8db:3:5:4:r1FC0f1RzLBlCamP_WCXa0P8ysUT4crJEW9F297FrrIplHrF:19758bf8
-mcs1:1c5cbaeb037aa8db:3:5:5:LieroiAkFuyfD07BN6D14cbX4d7f-yvWI43wxJv-Kg1e2XC0:8a688bdb
+$ java -jar mystic-crypt-ui.jar --cli share split -t 3 -n 5
+secret:
+mcs1:45cae493ecc3f0f2:3:5:1:Z0GiMVnUOgJgDnWVN3cZNww:d0806efc
+mcs1:45cae493ecc3f0f2:3:5:2:vZgxd_DEAeUYvRkEnpvQoPY:0ce48cd3
+mcs1:45cae493ecc3f0f2:3:5:3:u7ezI9FxVpcU1kzizI-78o4:66870e4d
+mcs1:45cae493ecc3f0f2:3:5:4:rw86n3ZNkJ4v9igr7-Xma7g:ef6e613c
+mcs1:45cae493ecc3f0f2:3:5:5:qSC4y1f4x-wjnX3NvfGNOcA:b94c15f8
 ```
 
-`--secret` puts the secret into the process arguments, where anyone listing processes can read it.
-`--secret-stdin` takes it from the first line of standard input instead, which keeps it out of
-both the argument list and your shell history:
-
-```
-printf 'the master password of this database\n' | java -jar mystic-crypt-ui.jar --cli share split --secret-stdin -t 3 -n 5
-```
+The prompt only comes up in a terminal. In a script, `--secret-stdin` takes the secret from the
+first line of standard input; [[The-Command-Line]] shows how to fill that line without the secret
+appearing in any command. `--secret` with the secret as its value still works in this release,
+prints a warning, because every process on the machine can read an argument, and goes away with
+mystic-crypt 14.0.
 
 Split a file rather than a typed secret with `--file`, and write the shares straight to a file
 with `-o`:
@@ -178,11 +180,13 @@ java -jar mystic-crypt-ui.jar --cli share split --file ~/keys/master.key -t 3 -n
 wrote 5 shares to /home/you/shares.txt; any 3 of them reconstruct the secret
 ```
 
-One of `--secret`, `--secret-stdin` and `--file` is required; with none of them the command says
-`error: a secret is required: pass --secret, --secret-stdin or --file` and exits with 2. They are
-not refused as a combination: given more than one, `--file` wins over `--secret-stdin`, which wins
-over `--secret`. An existing `-o` target is **overwritten without asking**, unlike **Save shares**
-in the window, so point `-o` at a name that is still free.
+Without a terminal and without any of `--secret-stdin`, `--file` and `--secret`, the command says
+`error: a secret is required: pass --secret-stdin, or run in a terminal to be asked for it` and
+exits with 2. They are not refused as a combination: given more than one, `--file` wins over
+`--secret-stdin`, which wins over `--secret`. An existing `-o` target is **overwritten without
+asking**, unlike **Save shares** in the window, so point `-o` at a name that is still free. The
+command line also refuses more shares than the secret has bytes, in its own words:
+`error: totalShares (10) must not exceed the secret length in bytes (4)`.
 
 ### share combine
 
@@ -203,13 +207,13 @@ Give `--share` once per share, each one quoted so the shell hands it over untouc
 
 ```
 java -jar mystic-crypt-ui.jar --cli share combine \
-  --share 'mcs1:1c5cbaeb037aa8db:3:5:1:9R6MU7AUqSifdMc-q7MR_epZTzujfMFrWovGPyFa8N4VLHkU:2c9e2c8d' \
-  --share 'mcs1:1c5cbaeb037aa8db:3:5:3:u9mBTb9ZLS_c5e9xktROBA8A70pLHnwOhOmRsuYwycQwZO-Y:9fc0081c' \
-  --share 'mcs1:1c5cbaeb037aa8db:3:5:5:LieroiAkFuyfD07BN6D14cbX4d7f-yvWI43wxJv-Kg1e2XC0:8a688bdb'
+  --share 'mcs1:45cae493ecc3f0f2:3:5:1:Z0GiMVnUOgJgDnWVN3cZNww:d0806efc' \
+  --share 'mcs1:45cae493ecc3f0f2:3:5:3:u7ezI9FxVpcU1kzizI-78o4:66870e4d' \
+  --share 'mcs1:45cae493ecc3f0f2:3:5:5:qSC4y1f4x-wjnX3NvfGNOcA:b94c15f8'
 ```
 
 ```
-the master password of this database
+an example secret
 ```
 
 Or read them from a file, one share per line, and write the result to a file:

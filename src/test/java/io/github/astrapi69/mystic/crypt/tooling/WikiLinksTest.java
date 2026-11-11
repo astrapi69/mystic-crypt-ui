@@ -56,7 +56,10 @@ import org.junit.jupiter.params.provider.MethodSource;
  * DEPLOYMENT-INFO.md and the documents directly in {@code docs/}. A help button that opens a page
  * nobody can find is what this keeps from happening again: the sign-in dialogs' two help buttons
  * open pages that were renamed in 2023 (#868), which is why they stand in {@link #KNOWN_MISSING}
- * until #868 is decided
+ * until #868 is decided.
+ * <p>
+ * The pages link to each other as well, and those links land on a page of {@code docs/wiki/} too:
+ * two of them pointed at pages the wiki never had when its source moved into the repository.
  */
 class WikiLinksTest
 {
@@ -65,6 +68,16 @@ class WikiLinksTest
 	private static final Pattern WIKI_LINK = Pattern.compile(
 		"https://github\\.com/astrapi69/mystic-crypt-ui/wiki(?:/(?<page>[^\\s\"')>#\\]]*))?"
 			+ "(?:\"\\s*\\+\\s*\"(?<continued>[^\"#]*))?");
+
+	/**
+	 * A link from one wiki page to another in the wiki's own form, {@code [[Page]]} or
+	 * {@code [[text|Page]]}; the wiki writes a space in the page's name as a hyphen
+	 */
+	private static final Pattern PAGE_LINK = Pattern
+		.compile("\\[\\[(?:[^\\]|]*\\|)?(?<page>[^\\]|#]+)(?:#[^\\]]*)?\\]\\]");
+
+	/** A link relative to the wiki, the form the sidebar used: {@code ](./Page)} */
+	private static final Pattern RELATIVE_LINK = Pattern.compile("\\]\\(\\./(?<page>[^)#\\s]+)");
 
 	/** The wiki's source in this repository */
 	private static final Path WIKI_SOURCE = Path.of("docs", "wiki");
@@ -109,6 +122,57 @@ class WikiLinksTest
 			assertFalse(Files.exists(sourceOf(page)),
 				page + " is in the wiki source now: take it out of KNOWN_MISSING (" + issue + ")");
 		});
+	}
+
+	@Test
+	@DisplayName("every link from one wiki page to another lands on a page of docs/wiki/")
+	void everyLinkBetweenWikiPages_landsOnAPage()
+	{
+		List<Path> pages = filesUnder(WIKI_SOURCE, ".md", 1);
+		Map<String, Set<Path>> linked = new TreeMap<>();
+		for (Path page : pages)
+		{
+			for (String target : pagesLinkedFromAWikiPage(read(page)))
+			{
+				linked.computeIfAbsent(target, key -> new TreeSet<>()).add(page.getFileName());
+			}
+		}
+
+		assertFalse(linked.isEmpty(), "no link between wiki pages found in " + pages.size()
+			+ " pages: a scan that finds nothing has checked nothing");
+		List<String> missing = new ArrayList<>();
+		linked.forEach((target, where) -> {
+			if (!Files.isRegularFile(sourceOf(target)))
+			{
+				missing.add(target + " (linked from " + where + ")");
+			}
+		});
+		assertEquals(List.of(), missing,
+			"links between wiki pages that land on no page of " + WIKI_SOURCE + ", out of "
+				+ linked.size() + " linked pages in " + pages.size() + " pages");
+	}
+
+	@ParameterizedTest(name = "{argumentSetName}")
+	@MethodSource("pageLinkForms")
+	@DisplayName("a link between wiki pages is read in each form the pages write it")
+	void aLinkBetweenWikiPages_isReadInEachForm(final String text, final String page)
+	{
+		assertEquals(Set.of(page), pagesLinkedFromAWikiPage(text));
+	}
+
+	static Stream<Arguments> pageLinkForms()
+	{
+		return Stream.of(
+			Arguments.argumentSet("the wiki's own form", "see [[Plugin-Key-Store]].",
+				"Plugin-Key-Store"),
+			Arguments.argumentSet("the wiki's own form with a text of its own",
+				"the [[key store|Plugin-Key-Store]] window", "Plugin-Key-Store"),
+			Arguments.argumentSet("the wiki's own form with spaces in the name",
+				"[[The Entry Tree]]", "The-Entry-Tree"),
+			Arguments.argumentSet("a link relative to the wiki", "* [Help](./Help)", "Help"),
+			Arguments.argumentSet("the wiki's address",
+				"* [Signing in](https://github.com/astrapi69/mystic-crypt-ui/wiki/Signing-In)",
+				"Signing-In"));
 	}
 
 	@ParameterizedTest(name = "{argumentSetName}")
@@ -163,6 +227,21 @@ class WikiLinksTest
 			String page = (link.group("page") == null ? "" : link.group("page"))
 				+ (link.group("continued") == null ? "" : link.group("continued"));
 			pages.add(page.isEmpty() ? "Home" : page);
+		}
+		return pages;
+	}
+
+	/** The pages a wiki page links to, in any of the forms it writes a link */
+	static Set<String> pagesLinkedFromAWikiPage(final String text)
+	{
+		Set<String> pages = new TreeSet<>(pagesIn(text));
+		for (Pattern form : List.of(PAGE_LINK, RELATIVE_LINK))
+		{
+			Matcher link = form.matcher(text);
+			while (link.find())
+			{
+				pages.add(link.group("page").strip().replace(' ', '-'));
+			}
 		}
 		return pages;
 	}
