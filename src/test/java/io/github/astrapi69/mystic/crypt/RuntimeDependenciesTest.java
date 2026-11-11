@@ -113,15 +113,13 @@ class RuntimeDependenciesTest
 		".*-\\d[^/]*[-.](M\\d+|[Rr][Cc]\\d*|alpha\\d*|beta\\d*|preview\\d*|ea|SNAPSHOT|b\\d+(?:\\.\\d+)?)\\.jar");
 
 	/**
-	 * The pre-releases this build's runtime class path still carries, each with what removes it:
-	 * jaxb-api 2.4.0-b180830.0359, a numbered build of a 2.4.0 that was never released, which
-	 * crypt-data 13.2 brings for one Base64 call (crypt-data#133, #841). A release carries none;
-	 * the set is matched exactly, so a new pre-release and the disappearance of this one both fail
-	 * the test, and the entry cannot outlive its cause. The test class path is not checked: it
-	 * carries test-only pre-releases that never ship, such as meanbean 3.0.0-M9
+	 * The pre-releases this build's runtime class path still carries, each with what removes it.
+	 * Empty since crypt-data 13.3: jaxb-api 2.4.0-b180830.0359, a numbered build of a 2.4.0 that
+	 * was never released, left with crypt-data#133 (#841). The set is matched exactly, so a new
+	 * pre-release fails the test and an entry cannot outlive its cause. The test class path is not
+	 * checked: it carries test-only pre-releases that never ship, such as meanbean 3.0.0-M9
 	 */
-	private static final List<String> KNOWN_PRE_RELEASES = List
-		.of("jaxb-api-2.4.0-b180830.0359.jar");
+	private static final List<String> KNOWN_PRE_RELEASES = List.of();
 
 	/**
 	 * What the pattern reads as a pre-release, from the jar's name
@@ -153,7 +151,7 @@ class RuntimeDependenciesTest
 	 * ships, which the test class path is not (#841)
 	 */
 	@Test
-	@DisplayName("the runtime class path carries only the known pre-releases, jaxb-api 2.4.0-b180830.0359 among them (#841)")
+	@DisplayName("the runtime class path carries no pre-release (#841)")
 	void theRuntimeClassPath_carriesOnlyTheKnownPreReleases()
 	{
 		List<String> preReleases = ApplicationJarUnderTest.runtimeLibraries().stream()
