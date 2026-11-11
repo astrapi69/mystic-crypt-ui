@@ -34,15 +34,16 @@ Prompt triggers: "release new version", "new release".
    (`git log $(git describe --tags --abbrev=0)..HEAD --oneline --no-merges`). Show the
    summary and wait for confirmation.
 2. **Pick the version** per SemVer, propose with rationale, wait for OK.
-3. **CHANGELOG.md**: grouped entry (Breaking / Added / Changed / Fixed / Security),
-   summarized for humans. Commit `docs: changelog for vX.Y.Z`. **The release entry REPLACES
-   the unreleased draft, it is not written above it.** Both carried a `Version X.Y (unreleased)`
-   heading for the same cycle at 8.5 - the draft that had accumulated day by day, and the
-   release entry written at cut time - and neither was deleted, so the file carried the same
-   version twice with different wording until a later audit merged them by hand (#356). Fold
-   whatever the draft said that the release entry does not, keep the release entry's wording
-   where both describe the same change, and delete the draft heading in the same commit that
-   adds the release entry.
+3. **CHANGELOG.md**: since the squash pilot (2026-11-11) the entries live as fragments in
+   `changelog.d/`, one per pull request, brought along by the change itself (see
+   `changelog.d/README.md`). The release pull request runs
+   `python3 scripts/assemble_changelog.py X.Y.Z`, which inserts the grouped version block in
+   the file's own shape and deletes the fragments; commit both as `docs: changelog for vX.Y.Z`,
+   write the intro sentence under the version heading by hand, and add the fragment of an
+   advisory published with this release (AG-032). Nothing is collected privately for this
+   repository any more, and CHANGELOG.md is still never edited outside the release pull
+   request. The old failure this replaces: a hand-kept draft and the cut-time entry carried
+   the same version twice (#356).
 4. **Bump** `projectVersion` in `gradle.properties`.
    **The bump is a CI-visible change, not a local one.** Dropping `-SNAPSHOT` flips every
    release switch at once, and since #333 CI publishes the host locally to build the plugins:
