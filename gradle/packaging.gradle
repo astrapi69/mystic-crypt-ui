@@ -20,9 +20,14 @@ jar {
                 "Implementation-Vendor" : "$projectLeaderName",
                 "Created-By"            : "Gradle ${gradle.gradleVersion}",
                 "Built-By"              : "$projectLeaderName",
-                "Build-Timestamp"       : new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ").format(new Date()),
                 "Build-Jdk"             : "${System.properties['java.version']} (${System.properties['java.vendor']} ${System.properties['java.vm.version']})",
                 "Build-OS"              : "${System.properties['os.name']} ${System.properties['os.arch']} ${System.properties['os.version']}")
+        // only a release jar carries the moment it was built. In a SNAPSHOT the attribute changed the
+        // manifest on every build, so the jar was never up to date, the host published for the plugins
+        // changed with it, and every plugin's tests ran again on each make run (#909)
+        if (releaseVersion) {
+            attributes("Build-Timestamp": new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ").format(new Date()))
+        }
     }
 }
 
