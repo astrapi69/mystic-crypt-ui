@@ -1340,6 +1340,41 @@ final class ApplicationSteps
 	}
 
 	/**
+	 * The File menu entry that locks the workspace, as the user finds it: whether it can be
+	 * pressed, and what it says
+	 *
+	 * @return the entry
+	 */
+	JMenuItem lockEntry()
+	{
+		return robot.finder().findByName(MenuId.LOCK_WORKSPACE.propertiesKey(), JMenuItem.class,
+			false);
+	}
+
+	/**
+	 * Whether the lock entry can be pressed right now, read on the event thread
+	 *
+	 * @return true if it is enabled
+	 */
+	boolean lockEntryIsOffered()
+	{
+		JMenuItem entry = lockEntry();
+		return GuiActionRunner.execute(entry::isEnabled);
+	}
+
+	/**
+	 * Presses the lock entry while the workspace is locked, which brings the unlock prompt back;
+	 * the caller answers it
+	 */
+	ApplicationSteps pressTheLockEntryAgain()
+	{
+		clickMenuItem(MenuId.LOCK_WORKSPACE.propertiesKey());
+		robot.waitForIdle();
+		UiTestSpeed.step();
+		return this;
+	}
+
+	/**
 	 * Enters the given password into the "Unlock workspace" dialog, confirms and waits until the
 	 * model is signed in again
 	 */

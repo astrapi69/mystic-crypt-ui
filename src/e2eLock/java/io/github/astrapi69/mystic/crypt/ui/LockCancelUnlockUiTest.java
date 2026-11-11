@@ -24,11 +24,14 @@
  */
 package io.github.astrapi69.mystic.crypt.ui;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 
 import java.io.File;
 import java.io.IOException;
 
+import org.assertj.swing.edt.GuiActionRunner;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
@@ -36,7 +39,11 @@ import io.github.astrapi69.mystic.crypt.TestPasswords;
 
 /**
  * Negative end-to-end case: cancelling the unlock dialog after locking the workspace must keep the
- * workspace locked
+ * workspace locked - and leave a way back to the dialog (#889).
+ * <p>
+ * Pinned as the program behaves today for the way back: after Cancel the lock entry, the one entry
+ * that brings the prompt back, is disabled, because the locked menu offers only the public entries
+ * and the lock entry is not one of them.
  */
 class LockCancelUnlockUiTest extends AbstractUiTest
 {
@@ -60,5 +67,23 @@ class LockCancelUnlockUiTest extends AbstractUiTest
 		// (#237)
 		assertFalse(application.isInternalFrameShowing("Key database"),
 			"cancelling must leave the database view off the screen as well");
+	}
+
+	@Test
+	@DisplayName("after Cancel the lock entry is disabled today, so nothing brings the unlock prompt back")
+	void afterCancel_theLockEntryIsDisabled_today() throws IOException
+	{
+		File databaseFile = new File(tempHome, "lock-cancel-way-back.mcrdb");
+		createDatabaseFileHeadless(databaseFile, MASTER_PASSWORD);
+		ApplicationSteps application = signInWithExistingDatabase(databaseFile, MASTER_PASSWORD);
+		application.showMainFrame();
+
+		application.lockWorkspace();
+		application.cancelUnlock();
+
+		assertFalse(application.lockEntryIsOffered(),
+			"today the lock entry is disabled while the workspace is locked");
+		assertEquals("Lock workspace",
+			GuiActionRunner.execute(() -> application.lockEntry().getText()));
 	}
 }
