@@ -162,12 +162,27 @@ public final class ClipboardClearWatchdog
 		{
 			return Outcome.NOTHING;
 		}
-		Outcome outcome = clipboardStillHolds(expected) ? clear() : Outcome.SKIPPED;
+		Outcome outcome = clearNowIfStillHolding(expected);
 		forget();
 		return outcome;
 	}
 
-	private Outcome clear()
+	/**
+	 * Clears the system clipboard now, without a timer, if it still holds exactly this content: the
+	 * same conditional clear as the timer's, for a caller that knows the moment itself, such as a
+	 * field that has just taken a secret out of the clipboard by a paste (lethenon plugin, #804). A
+	 * clipboard that holds something else, or cannot be read, is left alone
+	 *
+	 * @param expected
+	 *            what the clipboard is expected to hold; read, not modified, and not kept
+	 * @return {@link Outcome#CLEARED} or {@link Outcome#SKIPPED}
+	 */
+	public static Outcome clearNowIfStillHolding(final char[] expected)
+	{
+		return clipboardStillHolds(expected) ? clear() : Outcome.SKIPPED;
+	}
+
+	private static Outcome clear()
 	{
 		ClipboardExtensions.copyToClipboard("");
 		return Outcome.CLEARED;

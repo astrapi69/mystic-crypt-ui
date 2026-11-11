@@ -29,6 +29,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.awt.Toolkit;
+import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.StringSelection;
 import java.io.File;
 import java.util.ArrayList;
@@ -170,6 +171,10 @@ class LethenonWalletUiTest extends AbstractUiTest
 		UiTestSpeed.step();
 		assertEquals(words.getFirst(), textOf(tool, "txtWords1"), "the paste starts at field 1");
 		assertEquals(words.getLast(), textOf(tool, "txtWords24"), "and fills all 24");
+		assertEquals("",
+			GuiActionRunner.execute(() -> (String)Toolkit.getDefaultToolkit().getSystemClipboard()
+				.getData(DataFlavor.stringFlavor)),
+			"the pasted words are no longer on the clipboard (#804)");
 		click(tool, "btnRestoreConfirmed");
 		Pause.pause(shown(tool, "txtAddress"), 10000);
 

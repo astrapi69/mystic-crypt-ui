@@ -148,6 +148,35 @@ class ClipboardClearWatchdogTest
 		assertEquals("", readClipboard());
 	}
 
+	@Test
+	@DisplayName("cleared at once, without a timer, when the clipboard still holds exactly the content (#804)")
+	void clearNowIfStillHolding_clears_whenTheClipboardHoldsTheContent()
+	{
+		copyToClipboard("the-pasted-words");
+		char[] pasted = "the-pasted-words".toCharArray();
+
+		ClipboardClearWatchdog.Outcome outcome = ClipboardClearWatchdog
+			.clearNowIfStillHolding(pasted);
+
+		assertEquals(ClipboardClearWatchdog.Outcome.CLEARED, outcome);
+		assertEquals("", readClipboard());
+		assertEquals("the-pasted-words", new String(pasted),
+			"the caller's content is read, not changed");
+	}
+
+	@Test
+	@DisplayName("at once or not, a clipboard that holds something else is left alone (#804)")
+	void clearNowIfStillHolding_leavesTheClipboard_whenItHoldsSomethingElse()
+	{
+		copyToClipboard("something-else");
+
+		ClipboardClearWatchdog.Outcome outcome = ClipboardClearWatchdog
+			.clearNowIfStillHolding("the-pasted-words".toCharArray());
+
+		assertEquals(ClipboardClearWatchdog.Outcome.SKIPPED, outcome);
+		assertEquals("something-else", readClipboard());
+	}
+
 	private static void copyToClipboard(final String text)
 	{
 		Toolkit.getDefaultToolkit().getSystemClipboard().setContents(new StringSelection(text),
