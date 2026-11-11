@@ -47,9 +47,9 @@ pages of the two dialogs on this page.
 
 1. Click **New...**. A save dialog titled "Specify the database file to save" opens, filtered to
    `Mystic crypt files (*.mcrdb)`. Type a name and confirm, the extension comes from that
-   filter if you do not type one. The file is created on disk immediately, still empty. Choose a
-   name that does not exist yet: this dialog does not ask before it takes an existing file, and
-   the next step then writes the new database over it.
+   filter if you do not type one. The file is created on disk immediately, still empty. If a
+   file of that name exists, the question **Replace this database?** comes first, and **No**
+   leaves it as it is: the next step would write the new database over it.
 2. The dialog **Create your master key** opens with the **Application File** field already
    filled in with the path you just chose (the field is read-only, the `Browse...` next to it
    lets you point somewhere else).

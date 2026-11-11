@@ -23,8 +23,8 @@ The dialog has three areas:
 1. Click **New...** next to Application File.
 2. In the file chooser, pick a location and type a filename (no extension needed - `.mcrdb` is
    added automatically) and click **Save**. This creates the empty database file on disk and
-   selects it in the Application File dropdown. Use a name that does not exist yet: an existing
-   file of that name is overwritten in the next step.
+   selects it in the Application File dropdown. If a file of that name exists, you are asked
+   whether to replace it first; **No** leaves it as it is.
 3. A second dialog, **Create your master key**, opens. This is where you actually define how the
    database will be protected - decide *now*, since this choice cannot be changed later without
    creating a new database:

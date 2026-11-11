@@ -24,10 +24,12 @@ A save dialog titled "Specify the database file to save" opens, filtered to
 `Mystic crypt files (*.mcrdb)`. Type a name and confirm; without an extension the file gets
 `.mcrdb`. The file is created on disk right away, still empty.
 
-Choose a name that does not exist yet. The toolbar's **New application** asks before it takes an
-existing file, but `New...` in the sign-in dialog does not: clicking **OK** in the next dialog then
-writes the new, empty database over that file. The previous content is kept beside it as
-`<name>.mcrdb.bak` only until you sign in to the new database.
+If a file of that name already exists, a question titled **Replace this database?** comes first:
+"'<name>' already exists. Replacing it destroys what it holds, and nothing can produce it again.
+Replace it?". **No** ends it, and the file stays as it was. **Yes** goes on, and clicking **OK** in
+the next dialog writes the new, empty database over that file; its previous content is kept beside
+it as `<name>.mcrdb.bak` only until you sign in to the new database. The toolbar's
+**New application** asks the same question.
 
 ## 2. The dialog "Create your master key"
 
@@ -35,7 +37,7 @@ Under the heading "Create Master Key" the dialog shows:
 
 | Row | What it offers |
 |---|---|
-| **Application File** | The path you just chose, read-only. `Browse...` creates the file somewhere else instead. |
+| **Application File** | The path you just chose, read-only. `Browse...` creates the file somewhere else instead, and asks the same question first when the file it is given exists. |
 | **Master Password:** | A checkbox, the password field, `***` to show or hide what you typed, and `Generate`. |
 | **Repeat Password:** | The second password field. |
 | **Key File:** | A checkbox, a dropdown of key files, `Browse..` to select a private key file you already have, and `Create key file...` to make a new one. |
