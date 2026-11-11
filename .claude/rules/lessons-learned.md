@@ -17,7 +17,12 @@ not the narrative: `git status`, `git log -1` (did HEAD move?), the gate's own e
 A merged PR proves a merge happened, not that the work arrived. Check the issue state and
 the branch CONTENT (`git log origin/develop -- <path>`, read the diff). A squash freezes
 the branch at merge time — a push made after the merge is silently lost while everything
-reads as success. A guessed closing keyword can close a foreign issue.
+reads as success; since the squash pilot (2026-11-11) every PR lands this way, so checking
+that the PR is still open before a follow-up push (AG-061) carries the weight it was written
+for. The trailer half of the old #444 lesson (GitHub turning an AI author into a co-author
+trailer on squash) stopped being a reason to avoid squashing when AG-070 was withdrawn
+(astrapi69/astrapi69#14): commits may credit the agent. A guessed closing keyword can close
+a foreign issue.
 A negated one closes too: GitHub reads `fixed: #NN` whatever stands before it, so
 "KNOWN AND NOT FIXED: #518" in the 8.7 release pull request and the same line for #535 in 8.8's closed
 both on merge (#555). In a pull request body or commit message an open issue is written `(#NN)` or
