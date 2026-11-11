@@ -70,35 +70,19 @@ Older versions are also on
 
 ## Build from source
 
-Clone the repository. It's a Gradle project, so you'll need a JDK 25 installation (the project
-targets Java 25) — the bundled Gradle wrapper takes care of the rest.
-
-The fastest way to build and launch the app in one step is the bundled `Makefile`:
+Clone the repository. You need the JDK that `.sdkmanrc` names (Java 25); the bundled Gradle wrapper
+takes care of the rest, and a test run needs `Xvfb`, `fluxbox`, `wmctrl` and `xdpyinfo`.
 
 ```bash
-make          # or: make all
+make run      # build the plugin zips (without their tests) and the jar, then start the application
+make start    # start the last build again, without building anything
+make test     # the unit tests
+make          # every target, with what it does
 ```
 
-This runs a fast build (compile + package, tests skipped) and then launches the freshly built
-jar directly — no separate IDE run configuration needed, and no risk of running against stale
-compiled classes.
-
-Other useful targets:
-
-```bash
-make build        # fast build only (skips tests, spotless, license checks)
-make build-full   # full build: tests, spotless, license checks, then package
-make start        # start the last build again, in a profile of its own; nothing is built
-make run          # build the plugin zips (without their tests) and the jar, then start as make start does
-make test         # run the test suite only
-make clean        # clean build outputs
-```
-
-Prefer plain Gradle? That works too:
-
-```bash
-./gradlew build
-```
+The development build starts in a profile of its own, `~/mystic-crypt-ui-dev`, never in the one of an
+installed release. [docs/development.md](docs/development.md) says which target to run for what, with
+or without tests, and how the plugins, the Lethenon plugin among them, are built and tested.
 
 The runnable jar (with all dependencies bundled) is generated at
 `build/libs/mystic-crypt-ui-<version>-all.jar`.

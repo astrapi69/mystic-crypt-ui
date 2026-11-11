@@ -48,7 +48,7 @@ Everything else derives from it:
 | Fat jar file name | `mystic-crypt-ui-<projectVersion>-all.jar` (classifier `all`) |
 | IzPack installer (`gradle/izpack.gradle`) | `app.version` and `app.subpath` from `${projectVersion}`; output file `build/distributions/mystic-crypt-ui-<projectVersion>-installer.jar` |
 | `install.xml` | reads `@{app.version}` for `<appversion>` and for the jar it packs |
-| Release tag (`gradle/grgit.gradle`) | `RELEASE-${project.version}` |
+| Release tag (`gradle/tagging.gradle`) | `RELEASE-${project.version}` |
 | Release-vs-snapshot switches | `def releaseVersion = !version.endsWith("SNAPSHOT")` in `gradle/packaging.gradle` and `gradle/publishing.gradle` |
 
 That last line is worth internalising: **the string `SNAPSHOT` in `projectVersion` is the
@@ -84,57 +84,26 @@ happens, treat `DEPLOYMENT-INFO.md` as the checklist for them.
 
 ## Make targets by purpose
 
-Every target runs `JAVA_HOME=$(JAVA_HOME) ./gradlew <task>`. The table gives the task, the
-prose below adds what is not obvious.
+Every target is described on its own rule line in the `Makefile`, after `##`, with the group it
+belongs to: `make` or `make help` prints them all, grouped into start, build, test, plugins,
+quality and release. That list is the reference; this section does not repeat it, because a copy
+of it here drifted from the Makefile within weeks (#911). `MakefileTargetsAreDescribedTest` fails
+on a target without a description and on a target this page, the README, `docs/development.md` or
+`CLAUDE.md` names that the Makefile does not have. Which target to run for what, with or without
+tests, is in [development.md](development.md).
 
-### Build and run
+Every target runs `./gradlew` with the Makefile's `JAVA_HOME` and appends `GRADLE_FLAGS`. What the
+one-line descriptions cannot say:
 
-| Target | Runs |
-|---|---|
-| `make build` | `gradlew createAllDependendiesJar` |
-| `make build-full` | `gradlew clean build`, then `gradlew createAllDependendiesJar` |
-| `make build-stacktrace` | `gradlew build --stacktrace --warning-mode all` |
-| `make build-warning` | `gradlew build --warning-mode all` |
-| `make jar` | `gradlew jar` (the thin jar only) |
-| `make all-dependencies-jar` | `gradlew withAllDependendiesJar` (the fat jar task alone, no clean, no signing) |
-| `make clean` | `gradlew clean` |
-| `make start` | `scripts/run-isolated.sh "$(ISOLATED_HOME)"` alone: starts the jar and the plugin zips that are built, nothing is built or tested |
-| `make run` | `run-isolated`: `make plugins` without the plugin and script tests, `gradlew withAllDependendiesJar`, then the same start as `make start` |
-| `make all` | `build`, then `plugins-install`, then `run` |
-| `make bootRun` | `plugins-install`, then `gradlew bootRun` |
+- `make build` cleans, because `createAllDependendiesJar` declares `dependsOn: [clean, ...]`;
+  `make all-dependencies-jar` builds the same jar without the clean and without signing, and is
+  what `make run` uses.
+- `make build-full` is the local equivalent of CI: every plugin with its tests, the release jars
+  the compatibility tests read, the runnable jar, then `./gradlew build`.
+- `make bootRun` is broken: it installs the plugins into the real profile and then calls a Gradle
+  task this build does not have (#918). `make run` is the path that is wired end to end.
 
-Notes:
-
-- `make build` is the fast path. The Makefile comment describes it as "clean, compile,
-  package the runnable jar, skips tests/spotless/license". It still cleans, because
-  `createAllDependendiesJar` declares `dependsOn: [clean, ...]`.
-- `make build-full` is described in the Makefile as "clean, compile, test, spotless,
-  license, then package the runnable jar".
-- `make start` and `make run` start the application with `user.home` pointed at `ISOLATED_HOME`
-  (default `~/mystic-crypt-ui-dev`), never in the installed release's profile (#498, #501), and
-  copy the plugin zips of this checkout into it on every start. Without a jar in `build/libs` or
-  without plugin zips, `scripts/run-isolated.sh` refuses with a message that names `make run`.
-- `make run` builds the plugins without their tests (`PLUGIN_TESTS`, `PLUGIN_ZIP_TESTS` and
-  `SCRIPT_TESTS` empty): a start needs the zips, `make plugins` and the gates still run the tests.
-  A SNAPSHOT jar carries no `Build-Timestamp`, so a build without a change is up to date and the
-  plugin tests of a later `make plugins` come from the cache (#909).
-- `make all` is the target that guarantees you run exactly what you just built, with the
-  internal plugins built and installed beforehand.
-- `make bootRun` installs the plugins and then calls `./gradlew bootRun`. The Makefile
-  groups it under "mirrors Gradle Run Configurations panel", but no `bootRun` task is
-  defined in this repository's Gradle files, so check that the task resolves before
-  relying on it. `make all` is the path that is wired end to end.
-
-### Test and quality
-
-| Target | Runs |
-|---|---|
-| `make test` | `gradlew test` |
-| `make test-e2e` | `gradlew test --tests "io.github.astrapi69.mystic.crypt.ui.*" --rerun` |
-| `make test-e2e-demo` | the same plus `-Dmystic.crypt.ui.test.mode=demo` |
-| `make jacoco-report` | `gradlew jacocoTestReport` |
-| `make jacoco-coverage` | `gradlew jacocoTestCoverageVerification` |
-| `make javadoc` | `gradlew javadoc` |
+### Tests
 
 Mutation testing has no Make target: run `./gradlew pitest`, report in
 `build/reports/pitest`. Its scope is configured in `gradle/mutation-testing.gradle` and is
@@ -154,39 +123,20 @@ Test configuration worth knowing (from `gradle/testing.gradle` and `build.gradle
 - `check.dependsOn jacocoTestReport`, so any `build`/`check` run also produces the
   coverage report.
 
-### Formatting, licensing, dependency hygiene
-
-| Target | Runs |
-|---|---|
-| `make spotless-java` | `gradlew spotlessJavaApply` |
-| `make spotless-misc` | `gradlew spotlessMiscApply` |
-| `make license-format` | `gradlew licenseFormat` |
-| `make dependencies` | `gradlew dependencies` |
-| `make dependency-updates` | `gradlew dependencyUpdates` |
-| `make version-catalog-format` | `gradlew versionCatalogFormat` |
-| `make version-catalog-update` | `gradlew versionCatalogUpdate` |
+### Formatting and license headers
 
 The Spotless Java step uses `src/test/resources/spotless/importorder.properties` and the
-Eclipse 4.21 config `src/test/resources/spotless/alpharo-formatter.xml`; the `misc` format
-covers `*.gradle`, `*.md` and `.gitignore`. Never hand-format against the formatter.
-
-In `gradle/licensing.gradle` the check tasks `licenseMain` and `licenseTest` are
-permanently disabled (a workaround for license plugin issue #76, and it also keeps the
-configuration cache happy). `licenseFormat` stays available and is the way headers get
-applied; the header template is `src/main/resources/LICENSE.txt`.
+Eclipse config `src/test/resources/spotless/alpharo-formatter.xml`; the `misc` format
+covers `*.gradle`, `*.md` and `.gitignore`. Never hand-format against the formatter. Since #686
+Spotless also writes and checks the license header of every Java source of the host build, from
+`src/test/resources/spotless/license-header.txt`; `make license-format` is the same as
+`make spotless-java`.
 
 ### Internal plugins
 
 Each feature plugin lives under `plugins/{name}-plugin/` and is built as a standalone
-Gradle build against the host published to the local Maven repository.
-
-| Target | Runs |
-|---|---|
-| `make publish-local` | `gradlew publishToMavenLocal -x test` |
-| `make bump-check` | `gradlew test`, then `make plugins` - the pre-check for a crypt-data or mystic-crypt bump; takes `GRADLE_FLAGS=-PuseMavenLocal` for a candidate that is only published locally |
-| `make plugin-<name>` | `publish-local`, then `gradlew -p plugins/<name>-plugin test pluginZip`, then echoes the produced zip path |
-| `make plugins` | every `plugin-<name>` target |
-| `make plugins-install` | `plugins`, then copies every `build/plugin-dist/*.zip` into `$(HOME)/.config/mystic-crypt-ui/plugins` |
+Gradle build against the host published to the local Maven repository: every
+`make plugin-<name>` runs `make publish-local` first, then the plugin's tests and `pluginZip`.
 
 The Makefile `plugins:` target is the canonical inventory of internal plugins; do not
 count them from any document, read that target. Each plugin directory is bound to a
@@ -195,20 +145,24 @@ count them from any document, read that target. Each plugin directory is bound t
 
 The host must be published locally first because the plugins compile `compileOnly`
 against `io.github.astrapi69:mystic-crypt-ui:<projectVersion>` plus each library the moved
-panels use directly. From `plugins/obfuscation-plugin/build.gradle`:
+panels use directly. The plugin reads that version from the root `gradle.properties` and never
+repeats it as a literal (#217). From `plugins/obfuscation-plugin/build.gradle`:
 
 ```gradle
+def hostVersion = new Properties().with { properties ->
+    file("../../gradle.properties").withInputStream { properties.load(it) }
+    properties.getProperty("projectVersion")
+}
+
 dependencies {
-    compileOnly "io.github.astrapi69:mystic-crypt-ui:8.2-SNAPSHOT"
+    compileOnly "io.github.astrapi69:mystic-crypt-ui:$hostVersion"
     ...
-    compileOnly "org.pf4j:pf4j:3.15.0"
-    // required so the @Extension annotation processor runs and writes META-INF/extensions.idx
-    annotationProcessor "org.pf4j:pf4j:3.15.0"
+    compileOnly libs.pf4j
+    annotationProcessor libs.pf4j
 }
 ```
 
-Two consequences: the plugin's host coordinate must be bumped in lockstep with
-`projectVersion`, and its Java toolchain must stay at the host's level (the plugin sets
+The plugin's Java toolchain must stay at the host's level (the plugin sets
 `JavaLanguageVersion.of(25)` with the comment that a lower toolchain's javac cannot read
 JDK 25 class files from the compile classpath).
 
@@ -238,22 +192,10 @@ plugin version bump therefore has to be mirrored in `install.xml`.
 
 ### Packaging and installer
 
-| Target | Runs |
-|---|---|
-| `make izpack-installer` | `plugins`, then `gradlew izPackCreateInstaller` |
-| `make clean-build-installer` | `plugins`, then `gradlew clean build izPackCreateInstaller` |
-| `make izpack-installer-signed` | `plugins`, then `gradlew createIzPackInstallerFromSignedJar` |
-
-All three depend on `plugins` first. The Makefile explains why: "the installer ships the
-internal plugin zips (pack `plugins` in `src/main/izpack/install.xml`), so they have to be
-built before izpack packs them, otherwise it fails on the missing files".
-
-### Publishing and release
-
-| Target | Runs |
-|---|---|
-| `make publish-local` | `gradlew publishToMavenLocal -x test` |
-| `make tag-release` | `gradlew tagRelease` |
+Every installer target depends on `plugins` first: the installer ships the internal plugin zips
+(pack `plugins` in `src/main/izpack/install.xml`), except the menu designer, so they have to be
+built before izpack packs them, otherwise it fails on the missing files. They also need the release
+keystore; see [Building the installer](#building-the-installer).
 
 ## The fat jar
 
@@ -520,49 +462,25 @@ mystic-crypt candidate in the host and in every plugin before it is on Central.
 
 ## The release sequence
 
-From `.claude/rules/release-workflow.md`. Gitflow applies: the release is prepared from
-`develop`, tagged, and `master` carries releases. Red tests block the release, with no
-exceptions and no "disable the test for this release". Do not release mid-feature.
+The binding sequence is `.claude/rules/release-workflow.md`; this page does not copy its steps,
+because a copy here kept naming `vX.Y.Z` tags and a `make test` plus `make test-e2e` gate long
+after the rules had moved on (#911). In short: capture the state and wait for confirmation, pick
+the version per SemVer, assemble the changelog from `changelog.d/`, bump `projectVersion`, run
+`make release-gate`, merge the release pull request, build `make izpack-installer` from the merged
+state and check it with `make verify-installer`, then `make tag-release`, push the tag, move
+`master` onto it and write the GitHub release with the installer and its checksums.
 
-1. **Capture state.** `git tag --sort=-creatordate | head -5` and
-   `git log $(git describe --tags --abbrev=0)..HEAD --oneline --no-merges`. Show the
-   summary and wait for confirmation.
-2. **Pick the version** per SemVer (`feat:` minor, `fix:`/`refactor:` patch, breaking
-   change major), propose it with a rationale, wait for an OK.
-3. **CHANGELOG.md**, a grouped entry (Breaking / Added / Changed / Fixed / Security),
-   summarised for humans. Commit as `docs: changelog for vX.Y.Z`.
-4. **Bump `projectVersion`** in `gradle.properties`. This is the one edit.
-5. **The full gate. Every item is mandatory and a red result aborts the release:**
-   - `make test`
-   - `make test-e2e` (Xvfb harness)
-   - `make build-full`
-   - `make izpack-installer`, the installer smoke test; the plugin set in `install.xml`
-     must match the Makefile `plugins:` list
-   - `make dependency-updates`, the dependency currency check. Routine patch and minor
-     bumps belong to the release; major bumps get their own session and are never bundled
-     in.
-6. **Tag and push:** `make tag-release`, or the manual `git tag -a vX.Y.Z` plus push.
-7. **GitHub release** from the CHANGELOG entry, `gh release create vX.Y.Z`.
-8. **Post-release:** CHANGELOG link check, update `CLAUDE.md` if the architecture changed,
-   add a `.claude/rules/lessons-learned.md` entry if anything noteworthy happened.
+### Two things to know before you tag
 
-If tests fail right before the release: abort, fix in its own commit, restart from step 1.
-Checklist items that touch safety (tests green, build successful, correct version) are
-never skipped, not even on instruction. Postpone rather than ship broken.
-
-### Two things to decide before you tag
-
-- **Tag name.** `make tag-release` runs the grgit task in `gradle/grgit.gradle`, which
-  creates the tag `RELEASE-${project.version}` with the message `New release in version
-  ${version}`. The rules file also offers the manual alternative `git tag -a vX.Y.Z`.
-  Those two produce different tag names, so pick one deliberately and stay consistent with
-  what `git tag` already shows for this repository.
+- **Tag name.** `make tag-release` runs the `tagRelease` task in `gradle/tagging.gradle`, which
+  creates the annotated tag `RELEASE-${project.version}` with the message `New release in version
+  ${project.version}` locally; pushing it is a step of its own. Every release tag of this
+  repository has that shape (#291).
 - **Signing and the installer.** As soon as `projectVersion` no longer ends in `SNAPSHOT`,
-  the `jar` task starts signing and the publication gets signed. Make sure the five
-  `release.mystic-crypt.*` properties are in place before the gate reaches
-  `make izpack-installer`, otherwise the build prints "IzPackInstaller can not be created
-  because it depends on signed jar" and the installer step fails on the missing
-  `build/signed/...-all.jar`.
+  the `jar` task wants to sign; without the keystore it says so and leaves the jar unsigned. An
+  installer build refuses instead: it needs the `release.mystic-crypt.*` properties for the
+  keystore's file, type and alias, and its two passwords, which `make izpack-installer` takes from
+  the keyring through `scripts/with-signing-passwords.sh` (#579).
 
 Also check `DEPLOYMENT-INFO.md` for the info-dialog version literals described under
 "Known drift" above.
@@ -602,9 +520,7 @@ apply from: "gradle/apply-gradle-files.gradle"
 
 which reads `gradle/gradle-files.list` line by line and applies each file. To add a new
 build concern, add the file **and** its line in `gradle-files.list`, otherwise it is
-silently not applied. The current list: `dependencies`, `formatting`, `grgit`, `izpack`,
-`licensing`, `mutation-testing`, `packaging`, `publishing`, `repositories`, `testing`,
-`version-catalog-update`.
+silently not applied. The file itself is the current list; this page does not repeat it.
 
 Dependency versions live in the version catalog `gradle/libs.versions.toml` and are
 referenced as `libs.*` (libraries) and `libs.plugins.*` (plugins). `make
@@ -626,9 +542,8 @@ org.gradle.configuration-cache=true
 org.gradle.configuration-cache.problems=warn
 ```
 
-The reason for the last line is in the comment above it: the grgit plugin starts git
-processes at configuration time, which the configuration cache treats as an error by
-default; degrading it to a warning keeps the build passing, and the cache entry for
-affected runs is simply discarded. The two other configuration-cache accommodations are
-the `jar.notCompatibleWithConfigurationCache(...)` call for signing and the disabled
-license check tasks.
+The comment above the last line gives the grgit plugin as its reason, which started git processes
+at configuration time; the build no longer applies grgit (the tag task is a plain `Exec` in
+`gradle/tagging.gradle`), and whether anything else still needs the setting has not been measured.
+The other configuration-cache accommodation is the `jar.notCompatibleWithConfigurationCache(...)`
+call for signing.
