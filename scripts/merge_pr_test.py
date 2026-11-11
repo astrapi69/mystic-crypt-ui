@@ -13,6 +13,7 @@ run stands in the pull request.
 import unittest
 
 from merge_pr import (RollupEntry, all_reported, base_mismatch, conventional_title_error,
+                      fragment_error,
                       dirty_tree_note, judge, merge_command, parse_rollup, resolve_required,
                       squash_subject)
 
@@ -182,6 +183,28 @@ class GuardTest(unittest.TestCase):
     def test_squash_subject_appends_the_number_once(self):
         self.assertEqual("feat: x (#9)", squash_subject("feat: x", "9"))
         self.assertEqual("feat: x (#9)", squash_subject("feat: x (#9)", "9"))
+
+    def test_feat_fix_perf_and_breaking_need_a_fragment(self):
+        for title in ("feat: a", "fix(vault): b", "perf: c", "feat!: d", "refactor!: e"):
+            message = fragment_error(title, "899", ["src/main/java/X.java"])
+            self.assertIsNotNone(message, title)
+            self.assertIn("changelog.d/899.", message)
+
+    def test_a_present_fragment_satisfies_the_requirement(self):
+        self.assertIsNone(fragment_error("feat: a", "899",
+                                         ["changelog.d/899.added.md", "src/X.java"]))
+        self.assertIsNone(fragment_error("fix: b", "899", ["changelog.d/899.fixed.md"]))
+        self.assertIsNone(fragment_error("fix: b", "899", ["changelog.d/899.security.md"]))
+
+    def test_mechanical_types_need_no_fragment(self):
+        for title in ("chore: a", "test: b", "refactor: c", "ci: d", "build: e", "docs: f"):
+            self.assertIsNone(fragment_error(title, "899", []), title)
+
+    def test_another_pulls_fragment_does_not_count(self):
+        self.assertIsNotNone(fragment_error("feat: a", "899", ["changelog.d/898.added.md"]))
+
+    def test_a_wrong_section_does_not_count(self):
+        self.assertIsNotNone(fragment_error("feat: a", "899", ["changelog.d/899.misc.md"]))
 
     def test_conventional_titles_pass(self):
         for title in ("feat: a", "fix(vault): b", "feat!: breaking", "chore(deps): c",

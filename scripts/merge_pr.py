@@ -181,6 +181,35 @@ def conventional_title_error(title):
             " (scope), then ': ' and the sentence), then merge again")
 
 
+FRAGMENT_SECTIONS = ("security", "added", "changed", "fixed", "deprecated", "removed")
+FRAGMENT_REQUIRED_TYPES = ("feat", "fix", "perf")
+FRAGMENT_SECTION_OF_TYPE = {"feat": "added", "fix": "fixed", "perf": "changed"}
+
+
+def fragment_error(title, pr, changed_paths):
+    """A user-visible change brings its CHANGELOG entry along as a fragment in
+    the same pull request, so it lands in the same squash commit: feat, fix,
+    perf and every breaking change need one, chore, test, refactor, ci, build
+    and docs do not (changelog.d/README.md). Returns why the merge is refused,
+    or None."""
+    match = TITLE_PATTERN.match(title or "")
+    if not match:
+        return None
+    change_type = match.group(1)
+    breaking = "!" in (title or "").split(":", 1)[0]
+    if change_type not in FRAGMENT_REQUIRED_TYPES and not breaking:
+        return None
+    prefix = f"changelog.d/{pr}."
+    for path in changed_paths:
+        if path.startswith(prefix) and path.endswith(".md") \
+                and path[len(prefix):-3] in FRAGMENT_SECTIONS:
+            return None
+    section = "changed" if breaking else FRAGMENT_SECTION_OF_TYPE[change_type]
+    return (f"a {change_type}{'!' if breaking else ''} pull request brings its CHANGELOG entry"
+            f" along as a fragment, and this one has none: add changelog.d/{pr}.{section}.md"
+            " (one human-written bullet, see changelog.d/README.md), push, and merge again")
+
+
 def squash_subject(title, pr):
     """The squash commit subject: the pull request title, with the pull
     request number appended when the title does not carry it already."""
@@ -241,6 +270,10 @@ def run(argv):
     title_error = conventional_title_error(view.get("title") or "")
     if title_error:
         die(title_error)
+    changed_paths = [entry["path"] for entry in gh_json("pr", "view", pr, "--json", "files")["files"]]
+    missing_fragment = fragment_error(view.get("title") or "", pr, changed_paths)
+    if missing_fragment:
+        die(missing_fragment)
 
     def fetch_contexts(branch):
         result = subprocess.run(
