@@ -34,7 +34,6 @@ import java.io.File;
 import java.nio.file.Files;
 import java.util.concurrent.TimeUnit;
 
-import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JFileChooser;
 import javax.swing.SwingUtilities;
@@ -140,7 +139,7 @@ class NoSilentVaultOverwriteUiTest extends AbstractUiTest
 	}
 
 	@Test
-	@DisplayName("New... in the sign-in dialog onto an existing vault: pinned as it is, nothing asks (#878)")
+	@DisplayName("New... in the sign-in dialog onto an existing vault asks, and no stops before anything is written (#878)")
 	void newInTheSignInDialogOntoAnExistingVault() throws Exception
 	{
 		File existing = new File(tempHome, "already-there.mcrdb");
@@ -150,19 +149,19 @@ class NoSilentVaultOverwriteUiTest extends AbstractUiTest
 		SignInDialogSteps signIn = launchApplication();
 		signIn.chooseFileForNewDatabase(existing);
 
-		assertFalse(aDialogAsksAboutReplacing(),
-			"pinned: the sign-in dialog's New... goes past an existing vault without a question");
-		assertTrue(aDialogIsShowing(CREATE_MASTER_KEY),
-			"pinned: the new master key dialog comes at once, and its OK writes an empty "
-				+ "database over the vault");
-		cancelTheDialog(CREATE_MASTER_KEY);
+		assertTrue(aDialogAsksAboutReplacing(),
+			"the vault has to be named and its replacement asked for before the new master key "
+				+ "dialog, whose OK writes an empty database over it");
+		answerWithNo();
 
+		assertFalse(aDialogIsShowing(CREATE_MASTER_KEY),
+			"answering no ends it: no dialog is left whose OK would write over the vault");
 		assertArrayEquals(before, Files.readAllBytes(existing.toPath()),
-			"nothing was written yet: only OK in the new master key dialog writes");
+			"and the vault is exactly as it was");
 	}
 
 	@Test
-	@DisplayName("Browse... in Create your master key onto an existing vault: pinned as it is, nothing asks (#878)")
+	@DisplayName("Browse... in Create your master key onto an existing vault asks, and no keeps the file chosen before (#878)")
 	void browseInCreateYourMasterKeyOntoAnExistingVault() throws Exception
 	{
 		File existing = new File(tempHome, "already-there.mcrdb");
@@ -174,10 +173,12 @@ class NoSilentVaultOverwriteUiTest extends AbstractUiTest
 		CreateMasterKeySteps createMasterKey = signIn.startNewDatabase(fresh);
 		createMasterKey.browseApplicationFile(existing);
 
-		assertFalse(aDialogAsksAboutReplacing(),
-			"pinned: Browse... in the new master key dialog takes an existing vault without a "
-				+ "question");
-		createMasterKey.requireApplicationFile(existing.getAbsolutePath());
+		assertTrue(aDialogAsksAboutReplacing(),
+			"Browse... in the new master key dialog has to ask before it takes a vault that is "
+				+ "already there: this dialog's OK writes an empty database to the file it holds");
+		answerWithNo();
+
+		createMasterKey.requireApplicationFile(fresh.getAbsolutePath());
 		createMasterKey.cancelAndAwaitClose();
 
 		assertArrayEquals(before, Files.readAllBytes(existing.toPath()),
@@ -198,25 +199,6 @@ class NoSilentVaultOverwriteUiTest extends AbstractUiTest
 			}
 			return false;
 		});
-	}
-
-	/** Presses Cancel in the dialog with this title */
-	private void cancelTheDialog(final String title)
-	{
-		GuiActionRunner.execute(() -> {
-			for (Window window : Window.getWindows())
-			{
-				if (window instanceof JDialog dialog && dialog.isShowing()
-					&& title.equals(dialog.getTitle()))
-				{
-					robot.finder().findByName(dialog, "btnCancel", JButton.class).doClick();
-					return null;
-				}
-			}
-			return null;
-		});
-		UiTestSpeed.windowManagerSettle();
-		robot.waitForIdle();
 	}
 
 	/** Whether a dialog on screen asks about replacing, naming the file */
