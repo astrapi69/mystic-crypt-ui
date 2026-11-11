@@ -43,6 +43,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Stream;
 
 import javax.swing.JPanel;
 import javax.swing.JTextArea;
@@ -53,6 +54,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import io.github.astrapi69.lethenon.Wallet;
 import io.github.astrapi69.mystic.crypt.panel.dbtree.VaultEntryProperties;
@@ -488,7 +492,7 @@ class LethenonBackupPanelBindingTest
 
 		panel.getModelObject().setCheckWords(Wallet.create().phrase());
 		panel.onCheckConfirmed();
-		assertTrue(textOf(panel, "txtCheckResult").startsWith("These words do not match"),
+		assertTrue(textOf(panel, "txtCheckResult").startsWith("The words do not match this wallet"),
 			textOf(panel, "txtCheckResult"));
 		assertEquals(BackupState.NOT_CHECKED, vault.backupStateOf(id, LocalDate.now()));
 
@@ -499,6 +503,33 @@ class LethenonBackupPanelBindingTest
 			textOf(panel, "txtCheckResult"));
 		assertEquals(BackupState.CURRENT, vault.backupStateOf(id, LocalDate.now()));
 		assertEquals("", panel.getModelObject().getCheckWords(), "the typed words are cleared");
+	}
+
+	/**
+	 * A check whose words are not this wallet's says so, says what to look for and that the day of
+	 * the last check that matched stays, in both languages of the window (#804, draft 05)
+	 */
+	@ParameterizedTest(name = "{0}")
+	@MethodSource("theMismatchSentence")
+	void aCheckThatDoesNotMatch_saysWhatToLookFor(final Locale locale, final String expected)
+	{
+		LethenonBackupPanel panel = new LethenonBackupPanel(vault, locale, finished::add);
+		panel.startCheck(id);
+		panel.getModelObject().setCheckWords(Wallet.create().phrase());
+
+		panel.onCheckConfirmed();
+
+		assertEquals(expected, textOf(panel, "txtCheckResult"));
+	}
+
+	static Stream<Arguments> theMismatchSentence()
+	{
+		return Stream.of(Arguments.of(Locale.ENGLISH,
+			"The words do not match this wallet. One is wrong or two are swapped. The date of the "
+				+ "last successful check stays."),
+			Arguments.of(Locale.GERMAN,
+				"Die Wörter passen nicht zu dieser Wallet. Eines ist falsch oder zwei sind vertauscht. "
+					+ "Das Datum der letzten erfolgreichen Prüfung bleibt."));
 	}
 
 	@Test

@@ -370,8 +370,8 @@ public class LethenonBackupPanel extends JPanel
 					+ "{0} days.",
 				locale, BackupReminder.INTERVAL_DAYS)
 			: text("lethenon.backup.check.mismatch",
-				"These words do not match the wallet in the vault. Compare them with your note, in "
-					+ "order, and check again.");
+				"The words do not match this wallet. One is wrong or two are swapped. The date of "
+					+ "the last successful check stays.");
 		modelObject.setCheckResult(result);
 		txtCheckResult.setText(result);
 		refuse("");
