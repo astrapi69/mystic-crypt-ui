@@ -22,6 +22,10 @@ and `DEPLOYMENT-INFO.md`.
   change.
 - **The Gradle wrapper.** `gradle/wrapper/gradle-wrapper.properties` pins
   `gradle-9.7.0-bin.zip`. Always call `./gradlew`, never a system Gradle.
+- **Python 3.9 or newer** for `scripts/merge_pr.py` and its test suite
+  `scripts/merge_pr_test.py` (standard library only, no packages). `make merge-pr` runs the
+  script, `make plugins` runs the suite, so the CI build job needs it too (the GitHub runner
+  ships it).
 - **Xvfb, fluxbox, wmctrl, xdpyinfo and ss for any test run.** Every test task gets a virtual
   display from the own-display Gradle plugin (astrapi69/own-display-gradle-plugin, #741), locally and
   in CI alike, and never uses the desktop's (#505); `ss` (iproute2) names the listener on the
