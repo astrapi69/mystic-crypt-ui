@@ -50,9 +50,10 @@ import io.github.astrapi69.swing.renderer.tree.GenericTreeElement;
  * What the dialog "Edit Crypt Entry" leaves on the entry: OK takes what was typed, Cancel what was
  * there (#881).
  * <p>
- * Pinned as the program behaves today: the dialog is bound to the entry that lives in the tree, and
- * its fields write on every keystroke, so Cancel keeps what was typed - in the tree and the table,
- * and in the file at the next save of anything else, while the changed flag knows nothing about it.
+ * The dialog's fields write on every keystroke. Bound to the entry that lives in the tree, they
+ * changed it while the user typed, and Cancel kept what was typed - in the tree and the table, and
+ * in the file at the next save of anything else, while the changed flag knew nothing about it. The
+ * dialog now works on a copy of the entry, property pairs included.
  */
 class EditEntryCancelUiTest extends AbstractUiTest
 {
@@ -70,8 +71,8 @@ class EditEntryCancelUiTest extends AbstractUiTest
 	private static final String TYPED_PROPERTY_VALUE = "0815";
 
 	@Test
-	@DisplayName("Cancel today keeps the typed title, password and property, and the changed flag stays clear")
-	void cancel_keepsWhatWasTyped_today() throws Exception
+	@DisplayName("Cancel leaves title, password and properties as they were, and the changed flag clear")
+	void cancel_leavesTheEntryAsItWas() throws Exception
 	{
 		String password = TestPasswords.throwaway();
 		String typedPassword = TestPasswords.throwaway();
@@ -82,18 +83,14 @@ class EditEntryCancelUiTest extends AbstractUiTest
 		application.openTheEditDialog(frame).typeTitle(TYPED_TITLE).typePassword(typedPassword)
 			.addProperty(PROPERTY, PROPERTY_VALUE).cancel();
 
-		EntrySnapshot entry = theOnlyEntry();
-		assertEquals(TYPED_TITLE, entry.title(), "today the typed title stays on the entry");
-		assertEquals(typedPassword, entry.password(),
-			"today the typed password stays on the entry");
-		assertEquals(Map.of(PROPERTY, PROPERTY_VALUE), entry.properties(),
-			"today the added property stays on the entry");
+		assertEquals(new EntrySnapshot(TITLE, password, password, Map.of()), theOnlyEntry(),
+			"Cancel leaves the entry as it was");
 		assertFalse(databaseIsMarkedChanged(), "Cancel does not mark the database as changed");
 	}
 
 	@Test
-	@DisplayName("Cancel today keeps a property value changed in the dialog")
-	void cancel_keepsAChangedPropertyValue_today() throws Exception
+	@DisplayName("Cancel leaves a property's value as it was when the dialog changed it")
+	void cancel_leavesAPropertyValueAsItWas() throws Exception
 	{
 		ApplicationSteps application = signInWithASavedEntry("edit-cancel-property.mcrdb",
 			TestPasswords.throwaway());
@@ -106,8 +103,8 @@ class EditEntryCancelUiTest extends AbstractUiTest
 		application.openTheEditDialog(frame).changeProperty(PROPERTY, TYPED_PROPERTY_VALUE)
 			.cancel();
 
-		assertEquals(Map.of(PROPERTY, TYPED_PROPERTY_VALUE), theOnlyEntry().properties(),
-			"today the changed value stays on the entry");
+		assertEquals(Map.of(PROPERTY, PROPERTY_VALUE), theOnlyEntry().properties(),
+			"the property keeps its value");
 		assertFalse(databaseIsMarkedChanged(), "Cancel does not mark the database as changed");
 	}
 
