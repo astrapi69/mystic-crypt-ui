@@ -67,18 +67,10 @@ When unclear: ask rather than guess.
   (gitflow, see pr-policy.md).
 - No `--amend` + force-push on an open PR — add a new commit instead (an amend can desync
   the PR head and silently drop the amended change on merge).
-- **No attribution to a non-human collaborator, in a commit or in a pull request body.**
-  No `Co-Authored-By` trailer for an AI tool or a bot, no commit authored or committed under
-  an AI tool's identity (GitHub turns such an author into the trailer on a squash merge, #444),
-  and no "generated with" line in a pull request description. Provenance belongs in the maintainer's private journal, where
-  it is complete and checkable; a public line that says an AI was involved without saying
-  how gives a reader nothing and reads as the whole story. Complete provenance privately or
-  nothing publicly, not a remainder in between. An exception carries its reason in the
-  commit body as `Co-Author-Exception: <reason>`. Enforced by `make install-hooks` and by
-  CI on every pull request, because the prose version was broken by 112 of the 212 commits
-  that followed it (#373).
-  One project-wide statement, `AI_USAGE.md` in the profile repository, describes how the
-  projects are made; single commits and pull requests still carry no attribution line (#726).
+- Commits and pull requests made with an AI agent may name it (a `Co-Authored-By` trailer, a
+  session link, a "Generated with" line): `AI_USAGE.md` in the profile repository says for every
+  repository how the projects are made (#726). The rule that kept such lines out, and its check,
+  were withdrawn by the maintainer on 2026-11-10 (astrapi69/astrapi69#14).
 
 ## Function design and cohesion
 

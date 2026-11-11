@@ -149,6 +149,20 @@ final class SignInDialogSteps
 	}
 
 	/**
+	 * Clicks "New..." and selects the given file in the save chooser that opens, without waiting
+	 * for anything that follows: a question about a file that is already there, or the "Create your
+	 * master key" dialog, is the caller's to look for (#878)
+	 */
+	SignInDialogSteps chooseFileForNewDatabase(File databaseFile)
+	{
+		SwingUtilities.invokeLater(() -> dialog.button("btnNewApplicationFile").target().doClick());
+		approveInFileChooser(databaseFile);
+		UiTestSpeed.windowManagerSettle();
+		robot.waitForIdle();
+		return this;
+	}
+
+	/**
 	 * Clicks "New..." and selects the new database file in the save chooser that opens; the "Create
 	 * your master key" dialog that follows is returned as its own steps object
 	 */
@@ -233,6 +247,20 @@ final class SignInDialogSteps
 	}
 
 	private void approveInFileChooser(File file)
+	{
+		approveInFileChooser(robot, file);
+	}
+
+	/**
+	 * Selects the given file in the file chooser that is opening and approves it, for every steps
+	 * object whose button opens one
+	 *
+	 * @param robot
+	 *            the robot that finds the chooser
+	 * @param file
+	 *            the file to select
+	 */
+	static void approveInFileChooser(Robot robot, File file)
 	{
 		JFileChooserFixture fileChooser = JFileChooserFinder.findFileChooser()
 			.withTimeout(10, TimeUnit.SECONDS).using(robot);

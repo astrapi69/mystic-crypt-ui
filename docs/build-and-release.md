@@ -22,6 +22,10 @@ and `DEPLOYMENT-INFO.md`.
   change.
 - **The Gradle wrapper.** `gradle/wrapper/gradle-wrapper.properties` pins
   `gradle-9.7.0-bin.zip`. Always call `./gradlew`, never a system Gradle.
+- **Python 3.9 or newer** for `scripts/merge_pr.py` and its test suite
+  `scripts/merge_pr_test.py` (standard library only, no packages). `make merge-pr` runs the
+  script, `make plugins` runs the suite, so the CI build job needs it too (the GitHub runner
+  ships it).
 - **Xvfb, fluxbox, wmctrl, xdpyinfo and ss for any test run.** Every test task gets a virtual
   display from the own-display Gradle plugin (astrapi69/own-display-gradle-plugin, #741), locally and
   in CI alike, and never uses the desktop's (#505); `ss` (iproute2) names the listener on the
@@ -565,7 +569,7 @@ Also check `DEPLOYMENT-INFO.md` for the info-dialog version literals described u
 
 ## Continuous integration
 
-Two workflows under `.github/workflows/`:
+Among the workflows under `.github/workflows/`:
 
 - **`gradle.yml`** ("Java CI with Gradle"), on push and pull request against `master` and
   `develop`. Temurin JDK 25, `gradle/actions/setup-gradle`, installs Xvfb, fluxbox, wmctrl,
@@ -581,6 +585,12 @@ Two workflows under `.github/workflows/`:
   not covered / total into the job summary from `build/reports/pitest/mutations.xml`, and
   uploads the HTML report. It is kept off the push path on purpose: PIT reruns the
   covering tests for every mutation, so it is far slower than a normal build.
+- **`wiki-mirror.yml`** ("Wiki mirror"), on push to `master` that changes `docs/wiki/**`, and on
+  `workflow_dispatch`, never on a pull request. It runs `scripts/mirror-wiki.sh`, which clones the
+  GitHub wiki with plain git, writes and deletes pages until the wiki holds exactly the pages of
+  `docs/wiki/`, names every page written or deleted, and pushes; the list goes into the job
+  summary. It needs `contents: write` and nothing else. A `docs/wiki/` without a page, a wiki it
+  cannot clone and a refused push each fail the run (#869).
 
 ## Gradle build layout
 

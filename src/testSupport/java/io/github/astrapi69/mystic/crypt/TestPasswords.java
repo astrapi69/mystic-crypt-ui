@@ -69,6 +69,17 @@ public final class TestPasswords
 	 */
 	public static final String VAULT_OF_8_FIXTURE = "written-by-eight-for-650";
 
+	/**
+	 * The password of the checked-in vault the published 8.14 wrote through its password save path,
+	 * {@code vault-8.14.mcrdb} in {@code src/testSupport/resources/compat/vaults} (#864).
+	 * <p>
+	 * It cannot be made up either: 8.14 wrote the file with it
+	 * ({@code scripts/fixtures/WriteWithAnOldRelease.java}). The vault holds invented entries and
+	 * guards nothing else; it pins that an entry property, a {@code KeyValuePair} in the stored
+	 * XML, reads the same across silly-bean versions.
+	 */
+	public static final String VAULT_OF_8_14_FIXTURE = "written-by-eight-fourteen-for-864";
+
 	private TestPasswords()
 	{
 	}

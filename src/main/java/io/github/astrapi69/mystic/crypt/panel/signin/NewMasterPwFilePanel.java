@@ -50,6 +50,8 @@ import io.github.astrapi69.mystic.crypt.panel.pw.GeneratePasswordDialog;
 import io.github.astrapi69.mystic.crypt.panel.pw.GeneratePasswordModelBean;
 import io.github.astrapi69.mystic.crypt.panel.signin.button.state.ok.BtnOkComponentStateEnum;
 import io.github.astrapi69.mystic.crypt.panel.signin.button.state.ok.BtnOkStateMachine;
+import io.github.astrapi69.mystic.crypt.write.DataClass;
+import io.github.astrapi69.mystic.crypt.write.OverwriteConfirmation;
 import io.github.astrapi69.net.url.URLExtensions;
 import io.github.astrapi69.swing.base.BasePanel;
 import io.github.astrapi69.swing.dialog.help.HelpDialog;
@@ -636,6 +638,13 @@ public class NewMasterPwFilePanel extends BasePanel<MasterPwFileModelBean>
 		if (returnVal == JFileChooser.APPROVE_OPTION)
 		{
 			final File selectedApplicationFile = fileChooser.getSelectedFile();
+			if (!OverwriteConfirmation.allowsWriting(this, selectedApplicationFile,
+				DataClass.IRREPLACEABLE))
+			{
+				// OK writes the new, empty database to the file chosen here: one that is already
+				// there is asked about first, whichever way this dialog was opened (#878)
+				return;
+			}
 			FileCreationState fileCreationState = RuntimeExceptionDecorator
 				.decorate(() -> FileFactory.newFile(selectedApplicationFile));
 			String absolutePath = selectedApplicationFile.getAbsolutePath();
