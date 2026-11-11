@@ -73,8 +73,8 @@ test {
         // clean result (quality-checks.md). This is the one place it can happen silently
         failOnNoMatchingTests = true
     }
-    // the tooling tests run the shell scripts themselves (CommitProvenanceCheckTest,
-    // ForcedRunResultsCheckTest). A script is no input Gradle would see otherwise, so a change to it
+    // the tooling tests run the shell scripts themselves (ForcedRunResultsCheckTest and the
+    // others in the tooling package). A script is no input Gradle would see otherwise, so a change to it
     // alone came back FROM-CACHE: measured on #504, where the old harness passed a test the new one
     // was written for until the run was forced
     inputs.files(fileTree('scripts')).withPropertyName('scripts').withPathSensitivity(PathSensitivity.RELATIVE)
@@ -221,10 +221,6 @@ tasks.register('testSummary') {
 // would then report the restored counts with nothing to say they are old (8.5's gate did exactly
 // that). No line here, counts below restored.
 tasks.named('test') {
-    // CommitProvenanceCheckTest runs scripts/check-commit-provenance.sh. Without this the script is
-    // no input of the task, and a change to it alone left the test UP-TO-DATE - the check reported
-    // green over a script it had not run (#444)
-    inputs.file('scripts/check-commit-provenance.sh').withPathSensitivity(PathSensitivity.RELATIVE)
     finalizedBy 'testSummary'
     doLast { logger.lifecycle('test: executed in this build') }
 }
