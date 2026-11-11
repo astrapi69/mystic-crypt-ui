@@ -240,6 +240,7 @@ bump-check:
 # build every internal plugin
 plugins: plugin-obfuscation plugin-checksum plugin-conversion plugin-console plugin-keygen plugin-certificate plugin-password-hash plugin-kem-demo plugin-menu-designer plugin-pqc-signature plugin-keystore plugin-file-crypt plugin-secret-sharing plugin-lethenon plugin-release-key
 	python3 scripts/merge_pr_test.py
+	python3 scripts/assemble_changelog_test.py
 
 # build all internal plugins and install them into the app's plugins directory
 plugins-install: plugins
