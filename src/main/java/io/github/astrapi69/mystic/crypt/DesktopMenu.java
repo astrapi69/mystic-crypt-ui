@@ -784,7 +784,46 @@ public class DesktopMenu extends BaseDesktopMenu implements EventListener<EventO
 		ApplicationToolbar toolBar = (ApplicationToolbar) MysticCryptApplicationFrame.getInstance().getToolBar();
 		toolBar.getToolbarItems().forEach(toolbarItem -> toolbarItem
 			.setEnabled(!disabledToolBarMenus.contains(toolbarItem.getName())));
+		offerSavingOfPendingChanges();
 		disableSavingOfAReadOnlyVault();
+	}
+
+	/**
+	 * Offers Save when the vault comes back with changes that are not saved yet. Signing in through
+	 * here leaves Save disabled, which is right for a vault just opened, where nothing has changed;
+	 * the unlock signs in through here as well, and a vault locked with unsaved changes keeps them
+	 * on purpose (#304), so it has to be able to save them right away rather than after the next
+	 * edit (#913)
+	 */
+	private void offerSavingOfPendingChanges()
+	{
+		if (MysticCryptApplicationFrame.getInstance().getModelObject().isDirty())
+		{
+			offerSaving(true);
+		}
+	}
+
+	/**
+	 * Enables or disables the Save entry and the toolbar's Save button, never for a vault this
+	 * build may not write (#402)
+	 *
+	 * @param offered
+	 *            whether saving is to be offered
+	 */
+	private void offerSaving(final boolean offered)
+	{
+		boolean enabled = offered && !isTheOpenVaultReadOnly();
+		ApplicationToolbar toolBar = (ApplicationToolbar)MysticCryptApplicationFrame.getInstance()
+			.getToolBar();
+		toolBar.getToolbarItems().stream()
+			.filter(toolbarItem -> MenuId.SAVE_APPLICATION_FILE_TOOL_BAR.propertiesKey()
+				.equals(toolbarItem.getName()))
+			.forEach(toolbarItem -> toolbarItem.setEnabled(enabled));
+		ParentMenuResolver.getAllMenuElements(getMenubar(), true).stream()
+			.map(MenuElement::getComponent)
+			.filter(component -> MenuId.SAVE_APPLICATION_FILE.propertiesKey()
+				.equals(component.getName()))
+			.forEach(component -> component.setEnabled(enabled));
 	}
 
 	/**
@@ -902,33 +941,8 @@ public class DesktopMenu extends BaseDesktopMenu implements EventListener<EventO
 
 
 	@Override
-	public void onEvent(EventObject<RenderMode> event) {
-		RenderMode renderMode = event.getSource();
-		final Set<String> saveToolBarMenus = SetFactory.newHashSet(
-				MenuId.SAVE_APPLICATION_FILE_TOOL_BAR.propertiesKey()
-		);
-		Set<String> saveMenus = SetFactory.newHashSet(
-				MenuId.SAVE_APPLICATION_FILE.propertiesKey()
-		);
-
-		ApplicationToolbar toolBar = (ApplicationToolbar) MysticCryptApplicationFrame.getInstance().getToolBar();
-
-		toolBar.getToolbarItems().forEach(toolbarItem -> {
-			if (saveToolBarMenus.contains(toolbarItem.getName()))
-			{
-				toolbarItem.setEnabled(RenderMode.EDITABLE.equals(renderMode) && !isTheOpenVaultReadOnly());
-			}
-		});
-		JMenuBar menubar = getMenubar();
-		List<MenuElement> allMenuElements = ParentMenuResolver.getAllMenuElements(menubar,
-				true);
-		allMenuElements.forEach(menuElement -> {
-			String name = menuElement.getComponent().getName();
-			if (saveMenus.contains(name))
-			{
-				menuElement.getComponent()
-						.setEnabled(RenderMode.EDITABLE.equals(renderMode) && !isTheOpenVaultReadOnly());
-			}
-		});
+	public void onEvent(EventObject<RenderMode> event)
+	{
+		offerSaving(RenderMode.EDITABLE.equals(event.getSource()));
 	}
 }
