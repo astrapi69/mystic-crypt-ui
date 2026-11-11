@@ -103,3 +103,4 @@ hs_err_pid*
 # the logs and drafts an agent session keeps next to its checkout (family rule AG-064); they are
 # notes about the work, not content of this repository
 /_work/
+__pycache__/

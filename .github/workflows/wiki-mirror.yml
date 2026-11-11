@@ -1,0 +1,64 @@
+# Mirrors docs/wiki/, the wiki's source in this repository, into the GitHub wiki (#869). The wiki is
+# generated from that directory: a page is changed by a pull request, not in the wiki, and an edit
+# made in the wiki is overwritten by the next run. It writes what master holds, the released state,
+# when master moves with a change under docs/wiki/, and when it is started by hand. It never runs on
+# a pull request, so nothing unmerged reaches the wiki.
+#
+# Plain git, no action of a third party: scripts/mirror-wiki.sh clones the wiki, writes and deletes
+# pages until the wiki holds exactly the pages of docs/wiki/, names each one, and pushes
+# (WikiMirrorTest drives it against a real repository). A source without a page, a wiki it cannot
+# clone and a push the wiki refuses each fail the run.
+name: Wiki mirror
+
+on:
+  push:
+    branches: [ master ]
+    paths: [ 'docs/wiki/**' ]
+  workflow_dispatch:
+
+# writing the wiki, which is a repository of its own (<repository>.wiki.git), is all this needs
+permissions:
+  contents: write
+
+concurrency:
+  group: wiki-mirror
+  cancel-in-progress: false
+
+jobs:
+  mirror:
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - name: Mirror docs/wiki/ into the wiki
+        # bash as named here runs with -eo pipefail, so a failed mirror is not hidden behind tee
+        shell: bash
+        env:
+          WIKI_TOKEN: ${{ github.token }}
+          # the wiki's commit is the person's who pushed or started the run, not a bot's
+          GIT_AUTHOR_NAME: ${{ github.actor }}
+          GIT_AUTHOR_EMAIL: ${{ github.actor_id }}+${{ github.actor }}@users.noreply.github.com
+          GIT_COMMITTER_NAME: ${{ github.actor }}
+          GIT_COMMITTER_EMAIL: ${{ github.actor_id }}+${{ github.actor }}@users.noreply.github.com
+        run: |
+          # the token goes into a header the way actions/checkout passes it, never into the URL,
+          # so no message of git or of the script can print it
+          export GIT_CONFIG_COUNT=1
+          export GIT_CONFIG_KEY_0="http.https://github.com/.extraheader"
+          export GIT_CONFIG_VALUE_0="AUTHORIZATION: basic $(printf 'x-access-token:%s' "$WIKI_TOKEN" | base64 -w0)"
+          scripts/mirror-wiki.sh docs/wiki "https://github.com/${GITHUB_REPOSITORY}.wiki.git" 2>&1 | tee mirror.log
+      - name: Report what was written and deleted
+        if: always()
+        shell: bash
+        run: |
+          {
+            echo '## Wiki mirror'
+            echo
+            echo '```'
+            cat mirror.log 2>/dev/null || echo 'the mirror step left no output'
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"

@@ -35,8 +35,7 @@ new CLI capability is built in the library first. Vault format: versioned
 ## Workflow
 
 Gitflow: `develop` active, `master` = releases. Issue before fix, PR for every pushed
-change (see `.claude/rules/ai-workflow/`). Conventional commits, no AI attribution in
-commits or PR bodies (enforced by the hook and by CI). TDD for logic changes
+change (see `.claude/rules/ai-workflow/`). Conventional commits. TDD for logic changes
 (`.claude/rules/tdd.md`).
 
 ## Family rules

@@ -85,3 +85,24 @@ printf '%s' <the password> | java -cp mystic-crypt-ui-8-app.jar scripts/fixtures
 print `OPENED groups=2` and the two entries with 8's jar, and `REFUSED AEADBadTagException: Tag mismatch` for both
 with the jar of 8.1.1 (installer sha256 `1f9df0fac7dcc513995da5d8c5de011542fdc91bb09f1bf58fdee0df213e551f`, application
 jar sha256 `112869045778e3cc90c7688112f35d93111e684ba9d133bb262b0c645dce6f4b`), measured on 2026-11-05.
+
+# A vault written by 8.14
+
+`vault-8.14.mcrdb` was written by the application jar of the published 8.14 release through its
+password save path, for #864 and mystic-crypt#278: it pins that an entry property, stored as
+`io.github.astrapi69.collection.pair.KeyValuePair` in the vault XML, reads back identically
+whatever silly-bean version the class path carries (3.0 and 4.0 ship the identical class: same
+fields, same `serialVersionUID`, measured with `javap -p -constants` on both jars on 2026-11-11).
+It holds the two groups and entries of the fixtures above; the password is
+`TestPasswords.VAULT_OF_8_14_FIXTURE`, and nothing in it guards anything.
+
+Written on 2026-11-11 with Temurin 25, the jar taken out of the installer on the release page with
+`scripts/fetch-release-jar.sh 8.14` (checked against the published checksum; jar sha256
+`e6602c1ade2511b2f82020c8467d2760f98cdd946afeeaa3058e85098dcc5d02`):
+
+```
+printf %s <the password> | java -cp mystic-crypt-ui-8.14-app.jar scripts/fixtures/WriteWithAnOldRelease.java vault-8.14.mcrdb
+```
+
+vault sha256: `2c2f1a380c0557606ba9315e2df1d5767ec86c495d4c627d1ef8ddd4159b59eb`. The 9.0 fixtures
+(#864) reuse these vaults instead of writing doubles.
