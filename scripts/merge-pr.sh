@@ -54,14 +54,15 @@ fi
   what green means for a merge there, so this does not merge (#493)"
 say "required on $TARGET: $(printf '%s\n' "$required" | paste -sd, - | sed 's/,/, /g')"
 
-# One line per check in the rollup: name, whether it is done, whether it succeeded. Check runs carry
+# One line per check in the rollup: name, whether it is done, its raw conclusion. Check runs carry
 # name/status/conclusion, commit statuses context/state - both are read, or a status would look
-# pending forever
+# pending forever. The raw conclusion goes to merge-pr-judge.sh, which tells SUCCESS, NEUTRAL and
+# FAILURE apart instead of collapsing them into one boolean (#867)
 rollup() {
   gh pr view "$PR" --json statusCheckRollup -q '.statusCheckRollup[] |
     [(.name // .context),
      (if .status then (.status == "COMPLETED") else ((.state // "PENDING") | IN("PENDING", "EXPECTED") | not) end),
-     ((.conclusion // .state) == "SUCCESS")] | @tsv'
+     (.conclusion // .state // "PENDING")] | @tsv'
 }
 
 say "waiting for the checks on #$PR (up to $((WAIT_SECONDS / 60)) minutes)"
@@ -82,15 +83,11 @@ while :; do
   waited=$((waited + POLL_SECONDS))
 done
 
-failed="$(printf '%s\n' "$lines" | awk -F'\t' '$1 != "" && $3 == "false" {print $1}' | paste -sd, -)"
-if [ -n "$failed" ]; then
+# The judgement lives in its own script so it can be tested against fixtures (#867)
+if ! printf '%s\n' "$lines" | "${BASH_SOURCE[0]%/*}/merge-pr-judge.sh" "$(printf '%s\n' "$required" | paste -sd, -)"; then
   gh pr checks "$PR" || true
-  die "these checks are not SUCCESS: $failed"
+  die "not merging #$PR"
 fi
-
-total="$(printf '%s\n' "$lines" | awk -F'\t' '$1 != ""' | wc -l)"
-[ "$total" -gt 0 ] || die "#$PR reports no checks at all - a pull request nothing ran on is not green"
-say "all $total checks green, the required ones among them"
 
 # Merged without --delete-branch: when the local branch it deletes is the one checked out, gh switches
 # to the base branch and pulls it - HEAD moved, and the running script file was replaced under bash in
