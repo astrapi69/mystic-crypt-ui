@@ -40,13 +40,12 @@ import io.github.astrapi69.crypt.api.key.KeySize;
 import io.github.astrapi69.crypt.data.factory.KeyPairFactory;
 import io.github.astrapi69.crypt.data.key.PrivateKeyExtensions;
 import io.github.astrapi69.crypt.data.key.PublicKeyExtensions;
-import io.github.astrapi69.crypt.data.key.writer.EncryptedPrivateKeyWriter;
-import io.github.astrapi69.crypt.data.key.writer.PrivateKeyWriter;
-import io.github.astrapi69.crypt.data.key.writer.PublicKeyWriter;
 import io.github.astrapi69.model.BaseModel;
 import io.github.astrapi69.model.LambdaModel;
 import io.github.astrapi69.model.api.IModel;
 import io.github.astrapi69.mystic.crypt.ui.form.ToolForm;
+import io.github.astrapi69.mystic.crypt.write.DataClass;
+import io.github.astrapi69.mystic.crypt.write.OverwriteConfirmation;
 import io.github.astrapi69.swing.base.BasePanel;
 import io.github.astrapi69.swing.model.component.JMComboBox;
 import lombok.Getter;
@@ -210,6 +209,17 @@ public class GenerateKeysPanel extends BasePanel<GenerateKeysModelBean>
 		getModelObject().setPrivateKey(null);
 		getModelObject().setPublicKey(null);
 		getEnDecryptPanel().setEnDecryptAvailable(false, ONLY_RSA_OR_EC_CAN_DO_THIS);
+		offerSavingWhatWasGenerated();
+	}
+
+	/**
+	 * Lets the save buttons be pressed only while there is a key pair to save: pressed before
+	 * Generate, they emptied the chosen file (#882)
+	 */
+	private void offerSavingWhatWasGenerated()
+	{
+		getCryptographyPanel().setKeySaveAvailable(getModelObject().getPrivateKey() != null,
+			CryptographyPanel.NOTHING_TO_SAVE_YET);
 	}
 
 	/**
@@ -365,7 +375,7 @@ public class GenerateKeysPanel extends BasePanel<GenerateKeysModelBean>
 			getCryptographyPanel().getTxtPrivateKey().setText("");
 			getCryptographyPanel().getTxtPublicKey().setText("");
 		}
-
+		offerSavingWhatWasGenerated();
 	}
 
 	@Override
@@ -440,7 +450,7 @@ public class GenerateKeysPanel extends BasePanel<GenerateKeysModelBean>
 			}
 
 			@Override
-				protected void onSavePrivateKeyWithPassword(final ActionEvent actionEvent)
+			protected void onSavePrivateKeyWithPassword(final ActionEvent actionEvent)
 			{
 				GenerateKeysPanel.this.onSavePrivateKeyWithPassword(actionEvent);
 			}
@@ -449,6 +459,12 @@ public class GenerateKeysPanel extends BasePanel<GenerateKeysModelBean>
 			protected void onSavePublicKey(final ActionEvent actionEvent)
 			{
 				GenerateKeysPanel.this.onSavePublicKey(actionEvent);
+			}
+
+			@Override
+			protected boolean allowsReplacing(final File file, final DataClass dataClass)
+			{
+				return GenerateKeysPanel.this.allowsReplacing(file, dataClass);
 			}
 		};
 		enDecryptPanel = new EnDecryptPanel()
@@ -542,28 +558,33 @@ public class GenerateKeysPanel extends BasePanel<GenerateKeysModelBean>
 	}
 
 	/**
-	 * Writes the generated private key to the given file, in the key file format the model holds
+	 * Writes the generated private key to the given file, in the key file format the model holds,
+	 * after asking when a file is there already, and tells the user when that fails (#882)
 	 *
 	 * @param file
 	 *            the file the private key is written to
 	 */
 	protected void savePrivateKeyTo(final File file)
 	{
+		if (!allowsReplacing(file, DataClass.PRIVATE_KEY))
+		{
+			return;
+		}
 		try
 		{
 			KeygenSupport.writePrivateKey(getModelObject().getPrivateKey(), file,
 				getModelObject().getKeyFormat(), getModelObject().getSaveFormat());
 		}
-		catch (final Exception e)
+		catch (final Exception couldNotWriteTheKey)
 		{
-			log.log(Level.SEVERE, e.getLocalizedMessage(), e);
+			tellNotWritten("The private key was not written", "Saving the private key failed",
+				couldNotWriteTheKey);
 		}
 	}
 
-
-/**
-	 * Writes the generated private key to the given file, encrypted with the given password, and
-	 * tells the user when that fails
+	/**
+	 * Writes the generated private key to the given file, encrypted with the given password, after
+	 * asking when a file is there already, and tells the user when that fails
 	 *
 	 * @param file
 	 *            the file the encrypted private key is written to
@@ -572,18 +593,53 @@ public class GenerateKeysPanel extends BasePanel<GenerateKeysModelBean>
 	 */
 	protected void savePrivateKeyWithPasswordTo(final File file, final String password)
 	{
+		if (!allowsReplacing(file, DataClass.PRIVATE_KEY))
+		{
+			return;
+		}
 		try
 		{
-			EncryptedPrivateKeyWriter.encryptPrivateKeyWithPassword(getModelObject().getPrivateKey(),
-				file, password);
+			KeygenSupport.writeEncryptedPrivateKey(getModelObject().getPrivateKey(), file,
+				password);
 		}
 		catch (final Exception couldNotWriteTheKey)
 		{
-			log.log(Level.SEVERE, couldNotWriteTheKey.getLocalizedMessage(), couldNotWriteTheKey);
-			JOptionPane.showMessageDialog(this,
-				"The private key was not written: " + couldNotWriteTheKey.getMessage(),
-				"Saving the private key failed", JOptionPane.ERROR_MESSAGE);
+			tellNotWritten("The private key was not written", "Saving the private key failed",
+				couldNotWriteTheKey);
 		}
+	}
+
+	/**
+	 * Whether the given file may be written, asking first when something is there already: a
+	 * private key is the one thing nobody can make again (#882)
+	 *
+	 * @param file
+	 *            the file about to be written
+	 * @param dataClass
+	 *            what the file is going to hold
+	 * @return true when writing may go ahead
+	 */
+	protected boolean allowsReplacing(final File file, final DataClass dataClass)
+	{
+		return OverwriteConfirmation.allowsWriting(this, file, dataClass);
+	}
+
+	/**
+	 * Tells the user that a file was not written, and why
+	 *
+	 * @param whatFailed
+	 *            what was not written
+	 * @param title
+	 *            the title of the message
+	 * @param reason
+	 *            why not
+	 */
+	protected void tellNotWritten(final String whatFailed, final String title,
+		final Exception reason)
+	{
+		log.log(Level.SEVERE, reason.getLocalizedMessage(), reason);
+		JOptionPane.showMessageDialog(this, whatFailed + ": " + reason.getMessage(), title,
+			JOptionPane.ERROR_MESSAGE);
 	}
 
 	protected void onSavePrivateKeyWithPassword(final ActionEvent actionEvent)
@@ -619,53 +675,45 @@ public class GenerateKeysPanel extends BasePanel<GenerateKeysModelBean>
 
 
 	/**
-	 * Callback method that can be overwritten to provide specific action for the on save public
-	 * key.
-	 *
-	 * @param actionEvent
-	 *            the action event
-	 */
-	/**
-	 * Writes the generated public key to the given file, in the encoding the window is set to
+	 * Writes the generated public key to the given file, in the encoding the window is set to,
+	 * after asking when a file is there already, and tells the user when that fails
 	 *
 	 * @param file
 	 *            the file to write to
 	 */
 	protected void savePublicKeyTo(final File file)
 	{
+		if (!allowsReplacing(file, DataClass.DERIVED))
+		{
+			return;
+		}
 		try
 		{
-			if (KeyFileFormat.DER.equals(getModelObject().getSaveFormat()))
-			{
-				PublicKeyWriter.write(getModelObject().getPublicKey(), file);
-				return;
-			}
-			PublicKeyWriter.writeInPemFormat(getModelObject().getPublicKey(), file);
+			KeygenSupport.writePublicKey(getModelObject().getPublicKey(), file,
+				getModelObject().getSaveFormat());
 		}
 		catch (final Exception couldNotWriteTheKey)
 		{
-			log.log(Level.SEVERE, couldNotWriteTheKey.getLocalizedMessage(), couldNotWriteTheKey);
-			JOptionPane.showMessageDialog(this,
-				"The public key was not written: " + couldNotWriteTheKey.getMessage(),
-				"Saving the public key failed", JOptionPane.ERROR_MESSAGE);
+			tellNotWritten("The public key was not written", "Saving the public key failed",
+				couldNotWriteTheKey);
 		}
 	}
 
+	/**
+	 * Callback method that can be overwritten to provide specific action for the on save public
+	 * key.
+	 *
+	 * @param actionEvent
+	 *            the action event
+	 */
 	protected void onSavePublicKey(final ActionEvent actionEvent)
 	{
 		final JFileChooser fileChooser = new JFileChooser();
 		final int state = fileChooser.showSaveDialog(this);
 		if (state == JFileChooser.APPROVE_OPTION)
 		{
-			try
-			{
-				savePublicKeyTo(KeygenSupport.withEnding(fileChooser.getSelectedFile(),
-					KeygenSupport.endingFor(getModelObject().getSaveFormat())));
-			}
-			catch (final Exception ex)
-			{
-				log.log(Level.SEVERE, ex.getLocalizedMessage(), ex);
-			}
+			savePublicKeyTo(KeygenSupport.withEnding(fileChooser.getSelectedFile(),
+				KeygenSupport.endingFor(getModelObject().getSaveFormat())));
 		}
 	}
 }

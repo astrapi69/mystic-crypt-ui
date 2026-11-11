@@ -24,15 +24,22 @@
  */
 package io.github.astrapi69.mystic.crypt.plugin.keygen;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.IOException;
 import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
 import java.math.BigInteger;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.security.KeyPair;
 import java.security.PrivateKey;
 import java.security.PublicKey;
+import java.security.cert.X509Certificate;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Base64;
 import java.util.HexFormat;
 import java.util.List;
@@ -41,6 +48,8 @@ import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;
 
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
+import org.bouncycastle.util.io.pem.PemObject;
+import org.bouncycastle.util.io.pem.PemWriter;
 
 import io.github.astrapi69.crypt.api.key.KeyFileFormat;
 import io.github.astrapi69.crypt.api.key.KeyFormat;
@@ -48,7 +57,9 @@ import io.github.astrapi69.crypt.data.factory.KeyPairFactory;
 import io.github.astrapi69.crypt.data.key.KeyInfoExtensions;
 import io.github.astrapi69.crypt.api.algorithm.key.KeyPairGeneratorAlgorithm;
 import io.github.astrapi69.crypt.data.key.writer.CertificateWriter;
+import io.github.astrapi69.crypt.data.key.writer.EncryptedPrivateKeyWriter;
 import io.github.astrapi69.crypt.data.key.writer.PrivateKeyWriter;
+import io.github.astrapi69.crypt.data.key.writer.PublicKeyWriter;
 import io.github.astrapi69.mystic.crypt.key.EcPrivateKeyHexDecryptor;
 import io.github.astrapi69.mystic.crypt.key.EcPublicKeyHexEncryptor;
 import io.github.astrapi69.mystic.crypt.key.PrivateKeyHexDecryptor;
@@ -310,7 +321,8 @@ public final class KeygenSupport
 	}
 
 	/**
-	 * Writes the certificate the given description asks for, in PEM form
+	 * Writes the certificate the given description asks for, in PEM form, encoded in full before the
+	 * file is opened (#882)
 	 *
 	 * @param certificateInfo
 	 *            what the certificate is to contain
@@ -323,26 +335,10 @@ public final class KeygenSupport
 	public static void writeCertificate(final CertificateInfoModel certificateInfo, final File file)
 		throws Exception
 	{
-		CertificateWriter.writeInPemFormat(
-			CertificateInfoModelToX509.toX509Certificate(certificateInfo), file);
+		X509Certificate certificate = CertificateInfoModelToX509.toX509Certificate(certificateInfo);
+		writeOnceEncoded(file, encoded -> CertificateWriter.writeInPemFormat(certificate, encoded));
 	}
 
-	/**
-	 * Writes a private key as PEM, in the format that was asked for.
-	 * <p>
-	 * PKCS#8 - "BEGIN PRIVATE KEY" - is what Java writes and reads. PKCS#1 - "BEGIN RSA PRIVATE
-	 * KEY" - is what openssl, nginx and a good deal of the rest of the world expect, and being
-	 * unable to produce it is the usual reason a key from a Java tool is rejected elsewhere.
-	 *
-	 * @param privateKey
-	 *            the key to write
-	 * @param file
-	 *            the file to write it to
-	 * @param format
-	 *            PKCS#1 or PKCS#8
-	 * @throws Exception
-	 *             if the key cannot be written in that format
-	 */
 	/**
 	 * The file ending that belongs to the given encoding
 	 *
@@ -356,7 +352,9 @@ public final class KeygenSupport
 	}
 
 	/**
-	 * Writes a private key in the given encoding, in the given structure
+	 * Writes a private key in the given encoding, in the given structure. The key is encoded in
+	 * full before the file is opened, so a key that cannot be written - none generated yet, a
+	 * structure it has no form in - leaves the file that was there as it was (#882)
 	 *
 	 * @param privateKey
 	 *            the key to write
@@ -376,15 +374,30 @@ public final class KeygenSupport
 		{
 			// the binary encoding is the structure itself, so PKCS#8 or PKCS#1 is all there is to
 			// say about it
-			try (OutputStream out = Files.newOutputStream(file.toPath()))
-			{
-				PrivateKeyWriter.write(privateKey, out, KeyFileFormat.DER, format);
-			}
+			writeOnceEncoded(file,
+				encoded -> PrivateKeyWriter.write(privateKey, encoded, KeyFileFormat.DER, format));
 			return;
 		}
 		writePrivateKey(privateKey, file, format);
 	}
 
+	/**
+	 * Writes a private key as PEM, in the format that was asked for, encoded in full before the
+	 * file is opened (#882).
+	 * <p>
+	 * PKCS#8 - "BEGIN PRIVATE KEY" - is what Java writes and reads. PKCS#1 - "BEGIN RSA PRIVATE
+	 * KEY" - is what openssl, nginx and a good deal of the rest of the world expect, and being
+	 * unable to produce it is the usual reason a key from a Java tool is rejected elsewhere.
+	 *
+	 * @param privateKey
+	 *            the key to write
+	 * @param file
+	 *            the file to write it to
+	 * @param format
+	 *            PKCS#1 or PKCS#8
+	 * @throws Exception
+	 *             if the key cannot be written in that format
+	 */
 	public static void writePrivateKey(final PrivateKey privateKey, final File file,
 		final KeyFormat format) throws Exception
 	{
@@ -394,18 +407,105 @@ public final class KeygenSupport
 			// PrivateKeyExtensions.toPemFormat, which writes PKCS#1 content under an algorithm
 			// specific header whatever it was asked for - so both formats would come out the same.
 			// What getEncoded() returns already is PKCS#8, it only needs the right wrapper
-			try (java.io.Writer writer = Files.newBufferedWriter(file.toPath());
-				org.bouncycastle.util.io.pem.PemWriter pemWriter = new org.bouncycastle.util.io.pem.PemWriter(
-					writer))
-			{
-				pemWriter.writeObject(new org.bouncycastle.util.io.pem.PemObject("PRIVATE KEY",
-					privateKey.getEncoded()));
-			}
+			writeOnceEncoded(file, encoded -> writePkcs8Pem(privateKey, encoded));
 			return;
 		}
-		try (OutputStream out = Files.newOutputStream(file.toPath()))
+		writeOnceEncoded(file,
+			encoded -> PrivateKeyWriter.write(privateKey, encoded, KeyFileFormat.PEM, format));
+	}
+
+	/**
+	 * Writes a public key in the given encoding. Neither branch opens the file before the key is
+	 * encoded: the binary one is encoded here first, the PEM one builds its text in the library
+	 * before it writes (#882)
+	 *
+	 * @param publicKey
+	 *            the key to write
+	 * @param file
+	 *            the file to write it to
+	 * @param saveFormat
+	 *            PEM text or the binary encoding
+	 * @throws Exception
+	 *             if the key cannot be written
+	 */
+	public static void writePublicKey(final PublicKey publicKey, final File file,
+		final KeyFileFormat saveFormat) throws Exception
+	{
+		if (KeyFileFormat.DER.equals(saveFormat))
 		{
-			PrivateKeyWriter.write(privateKey, out, KeyFileFormat.PEM, format);
+			writeOnceEncoded(file, encoded -> PublicKeyWriter.write(publicKey, encoded));
+			return;
+		}
+		PublicKeyWriter.writeInPemFormat(publicKey, file);
+	}
+
+	/**
+	 * Writes a private key encrypted with the given password, encrypted in full before the file is
+	 * opened: the library's own file variant opens the file first (#882)
+	 *
+	 * @param privateKey
+	 *            the key to write
+	 * @param file
+	 *            the file to write it to
+	 * @param password
+	 *            the password that protects it
+	 * @throws Exception
+	 *             if the key cannot be encrypted or written
+	 */
+	public static void writeEncryptedPrivateKey(final PrivateKey privateKey, final File file,
+		final String password) throws Exception
+	{
+		writeOnceEncoded(file, encoded -> EncryptedPrivateKeyWriter
+			.encryptPrivateKeyWithPassword(privateKey, encoded, password));
+	}
+
+	/** What puts a key's bytes into a stream, and may fail before it has put any */
+	@FunctionalInterface
+	private interface KeyEncoding
+	{
+		void writeTo(OutputStream encoded) throws Exception;
+	}
+
+	/**
+	 * Encodes into memory first and writes the file only once the encoding is complete, so that a
+	 * failure leaves the file that was there untouched; the buffer is overwritten afterwards, as
+	 * it holds the key
+	 */
+	private static void writeOnceEncoded(final File file, final KeyEncoding encoding)
+		throws Exception
+	{
+		WipeableBuffer encoded = new WipeableBuffer();
+		try
+		{
+			encoding.writeTo(encoded);
+			try (OutputStream out = Files.newOutputStream(file.toPath()))
+			{
+				encoded.writeTo(out);
+			}
+		}
+		finally
+		{
+			encoded.wipe();
+		}
+	}
+
+	private static void writePkcs8Pem(final PrivateKey privateKey, final OutputStream encoded)
+		throws IOException
+	{
+		try (Writer writer = new OutputStreamWriter(encoded, StandardCharsets.US_ASCII);
+			PemWriter pemWriter = new PemWriter(writer))
+		{
+			pemWriter.writeObject(new PemObject("PRIVATE KEY", privateKey.getEncoded()));
+		}
+	}
+
+	/** A byte buffer whose content can be overwritten, which a plain one does not offer */
+	private static final class WipeableBuffer extends ByteArrayOutputStream
+	{
+		void wipe()
+		{
+			Arrays.fill(buf, (byte)0);
+			count = 0;
 		}
 	}
 

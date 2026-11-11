@@ -92,6 +92,21 @@ class OverwriteDecisionTest
 	void theTitleDistinguishesTheTwoCases()
 	{
 		assertEquals("Replace this database?", OverwriteDecision.titleFor(DataClass.IRREPLACEABLE));
+		assertEquals("Replace this key file?", OverwriteDecision.titleFor(DataClass.PRIVATE_KEY));
 		assertEquals("Replace the existing file?", OverwriteDecision.titleFor(DataClass.DERIVED));
+	}
+
+	@Test
+	@DisplayName("a private key is asked about as irreplaceable, as a key file and not as a database")
+	void aPrivateKeyIsIrreplaceable()
+	{
+		String key = OverwriteDecision.messageFor(DataClass.PRIVATE_KEY, "id_ed25519.pem");
+
+		assertTrue(key.contains("id_ed25519.pem"), "the file is named");
+		assertTrue(key.contains("nothing can produce it again"),
+			"a private key cannot be made again, any more than a vault (#882)");
+		assertTrue(DataClass.PRIVATE_KEY.isIrreplaceable());
+		assertTrue(DataClass.IRREPLACEABLE.isIrreplaceable());
+		assertFalse(DataClass.DERIVED.isIrreplaceable());
 	}
 }

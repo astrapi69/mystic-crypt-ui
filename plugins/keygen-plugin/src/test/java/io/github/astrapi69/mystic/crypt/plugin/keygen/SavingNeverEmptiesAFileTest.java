@@ -36,6 +36,9 @@ import java.nio.file.Files;
 import java.security.KeyPairGenerator;
 import java.security.PrivateKey;
 import java.security.Security;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
 import java.util.stream.Stream;
 
 import javax.swing.JButton;
@@ -52,14 +55,20 @@ import io.github.astrapi69.crypt.api.algorithm.key.KeyPairGeneratorAlgorithm;
 import io.github.astrapi69.crypt.api.key.KeyFileFormat;
 import io.github.astrapi69.crypt.api.key.KeyFormat;
 import io.github.astrapi69.crypt.api.key.KeySize;
+import io.github.astrapi69.crypt.data.key.reader.PrivateKeyReader;
+import io.github.astrapi69.mystic.crypt.wizard.model.CertificateInfoModel;
+import io.github.astrapi69.mystic.crypt.wizard.model.DistinguishedNameInfoModel;
+import io.github.astrapi69.mystic.crypt.write.DataClass;
 
 /**
  * Saving a key never costs the user the file that was there (#882).
  * <p>
- * Pinned as the window behaves today: the writer opens the target before it has anything to write,
- * which empties it, so a write that fails - no key generated yet, a format the key has no form in -
- * leaves a file of 0 bytes where a private key may have been. The save buttons can be pressed
- * before Generate, and a save after Generate replaces a file that is there without asking.
+ * The writer used to open the target before it had anything to write, which empties it, so a write
+ * that failed - no key generated yet, a format the key has no form in - left a file of 0 bytes
+ * where a private key may have been. The save buttons could be pressed before Generate, and a save
+ * after Generate replaced a file that was there without asking. Now every key is encoded before
+ * its file is opened, the save buttons wait for a key pair, and a file that is there is replaced
+ * only after the question, which names a private key as irreplaceable.
  */
 class SavingNeverEmptiesAFileTest
 {
@@ -76,9 +85,15 @@ class SavingNeverEmptiesAFileTest
 		}
 	}
 
-	/** A private key write that fails, with the reason it fails */
-	record FailingWrite(String name, PrivateKey privateKey, KeyFormat format,
-		KeyFileFormat saveFormat)
+	/** A write into a file that cannot succeed */
+	@FunctionalInterface
+	interface WriteInto
+	{
+		void file(File file) throws Exception;
+	}
+
+	/** A key write that fails, with the reason it fails */
+	record FailingWrite(String name, WriteInto write)
 	{
 		@Override
 		public String toString()
@@ -93,59 +108,177 @@ class SavingNeverEmptiesAFileTest
 			.getInstance(KeyPairGeneratorAlgorithm.X25519.getAlgorithm(),
 				BouncyCastleProvider.PROVIDER_NAME)
 			.generateKeyPair().getPrivate();
+		String protection = UUID.randomUUID().toString();
 		return Stream.of(
-			new FailingWrite("no key generated yet, PEM PKCS#8", null, KeyFormat.PKCS_8,
-				KeyFileFormat.PEM),
-			new FailingWrite("no key generated yet, PEM PKCS#1", null, KeyFormat.PKCS_1,
-				KeyFileFormat.PEM),
-			new FailingWrite("no key generated yet, DER", null, KeyFormat.PKCS_8,
-				KeyFileFormat.DER),
-			new FailingWrite("an X25519 key asked for PKCS#1 as PEM", x25519, KeyFormat.PKCS_1,
-				KeyFileFormat.PEM));
+			new FailingWrite("no private key generated yet, PEM PKCS#8",
+				file -> KeygenSupport.writePrivateKey(null, file, KeyFormat.PKCS_8,
+					KeyFileFormat.PEM)),
+			new FailingWrite("no private key generated yet, PEM PKCS#1",
+				file -> KeygenSupport.writePrivateKey(null, file, KeyFormat.PKCS_1,
+					KeyFileFormat.PEM)),
+			new FailingWrite("no private key generated yet, DER",
+				file -> KeygenSupport.writePrivateKey(null, file, KeyFormat.PKCS_8,
+					KeyFileFormat.DER)),
+			new FailingWrite("an X25519 key asked for PKCS#1 as PEM",
+				file -> KeygenSupport.writePrivateKey(x25519, file, KeyFormat.PKCS_1,
+					KeyFileFormat.PEM)),
+			new FailingWrite("no private key generated yet, with a password",
+				file -> KeygenSupport.writeEncryptedPrivateKey(null, file, protection)),
+			new FailingWrite("no public key generated yet, PEM",
+				file -> KeygenSupport.writePublicKey(null, file, KeyFileFormat.PEM)),
+			new FailingWrite("no public key generated yet, DER",
+				file -> KeygenSupport.writePublicKey(null, file, KeyFileFormat.DER)),
+			new FailingWrite("a certificate without the keys it needs",
+				file -> KeygenSupport.writeCertificate(CertificateInfoModel.builder().build(),
+					file)));
 	}
 
 	@ParameterizedTest(name = "{0}")
 	@MethodSource("failingWrites")
-	@DisplayName("a private key write that fails empties the file that was there, today")
-	void aFailingWriteEmptiesTheFile_today(final FailingWrite write, @TempDir File directory)
+	@DisplayName("a key write that fails leaves the file that was there as it was")
+	void aFailingWriteLeavesTheFileAsItWas(final FailingWrite write, @TempDir File directory)
 		throws Exception
 	{
 		File existing = anExistingFile(directory);
 
-		assertThrows(Exception.class, () -> KeygenSupport.writePrivateKey(write.privateKey(),
-			existing, write.format(), write.saveFormat()));
+		assertThrows(Exception.class, () -> write.write().file(existing));
 
-		assertEquals(0, existing.length(), "today the file that was there is empty");
+		assertArrayEquals(WHAT_WAS_THERE, Files.readAllBytes(existing.toPath()),
+			"the file that was there keeps its bytes");
 	}
 
 	@Test
-	@DisplayName("the three save buttons can be pressed before Generate, today")
-	void theSaveButtonsCanBePressedBeforeGenerate_today()
+	@DisplayName("the three save buttons wait for Generate, say why, and wait again after Clear")
+	void theSaveButtonsWaitForAKeyPair()
 	{
-		CryptographyPanel cryptography = new GenerateKeysPanel().getCryptographyPanel();
+		GenerateKeysPanel panel = new GenerateKeysPanel();
+		CryptographyPanel cryptography = panel.getCryptographyPanel();
+		List<JButton> saveButtons = List.of(cryptography.getBtnSavePrivateKey(),
+			cryptography.getBtnSavePrivKeyWithPw(), cryptography.getBtnSavePublicKey());
 
-		Stream.of(cryptography.getBtnSavePrivateKey(), cryptography.getBtnSavePrivKeyWithPw(),
-			cryptography.getBtnSavePublicKey()).map(JButton::isEnabled)
-			.forEach(enabled -> assertTrue(enabled, "today the button is enabled"));
+		saveButtons.forEach(button -> {
+			assertFalse(button.isEnabled(), button.getText() + " waits for a key pair");
+			assertEquals(CryptographyPanel.NOTHING_TO_SAVE_YET, button.getToolTipText(),
+				button.getText() + " says why");
+		});
+
+		panel.getCmbAlgorithm().setSelectedItem(KeyPairGeneratorAlgorithm.RSA);
+		cryptography.getCmbKeySize().setSelectedItem(KeySize.KEYSIZE_1024);
+		cryptography.getBtnGenerate().doClick();
+		saveButtons.forEach(button -> {
+			assertTrue(button.isEnabled(), button.getText() + " can be pressed after Generate");
+			assertTrue(button.getToolTipText().startsWith("writes the generated"),
+				button.getText() + " has its own tooltip back: " + button.getToolTipText());
+		});
+
+		cryptography.getBtnClear().doClick();
+		saveButtons.forEach(button -> assertFalse(button.isEnabled(),
+			button.getText() + " waits again after Clear"));
 	}
 
 	@Test
-	@DisplayName("saving the private key over a file that is there replaces it without asking, today")
-	void savingReplacesAFileWithoutAsking_today(@TempDir File directory) throws Exception
+	@DisplayName("saving over a file that is there asks first, as about a private key, and No keeps the file")
+	void savingOverAFileAsksFirst(@TempDir File directory) throws Exception
 	{
-		GenerateKeysPanel panel = panelWithAnRsaKeyPair();
+		AnsweringPanel panel = panelWithAnRsaKeyPair(false);
+		File existing = anExistingFile(directory);
+
+		panel.savePrivateKeyTo(existing);
+		panel.savePrivateKeyWithPasswordTo(existing, UUID.randomUUID().toString());
+		panel.savePublicKeyTo(existing);
+
+		assertEquals(List.of(DataClass.PRIVATE_KEY, DataClass.PRIVATE_KEY, DataClass.DERIVED),
+			panel.asked, "each save asks, a private key as irreplaceable");
+		assertArrayEquals(WHAT_WAS_THERE, Files.readAllBytes(existing.toPath()),
+			"No keeps the file");
+		assertTrue(panel.told.isEmpty(), "No is not a failure: " + panel.told);
+	}
+
+	@Test
+	@DisplayName("Yes replaces the file with the generated private key")
+	void yesReplacesTheFile(@TempDir File directory) throws Exception
+	{
+		AnsweringPanel panel = panelWithAnRsaKeyPair(true);
 		File existing = anExistingFile(directory);
 
 		panel.savePrivateKeyTo(existing);
 
-		assertFalse(java.util.Arrays.equals(WHAT_WAS_THERE, Files.readAllBytes(existing.toPath())),
-			"today the file is replaced");
-		assertTrue(Files.readString(existing.toPath()).contains("PRIVATE KEY"));
+		assertEquals(List.of(DataClass.PRIVATE_KEY), panel.asked);
+		assertArrayEquals(panel.getModelObject().getPrivateKey().getEncoded(),
+			PrivateKeyReader.readPemPrivateKey(existing).getEncoded(),
+			"the file holds the key that was generated");
 	}
 
-	private static GenerateKeysPanel panelWithAnRsaKeyPair()
+	@Test
+	@DisplayName("the certificate asks the same question, as about a file that can be made again")
+	void theCertificateAsksFirst(@TempDir File directory) throws Exception
 	{
-		GenerateKeysPanel panel = new GenerateKeysPanel();
+		AnsweringPanel panel = panelWithAnRsaKeyPair(false);
+		File existing = anExistingFile(directory);
+		CertificateInfoModel certificateInfo = KeygenSupport.newCertificateInfo(
+			panel.getModelObject().getPublicKey(), panel.getModelObject().getPrivateKey());
+		certificateInfo.setIssuer(DistinguishedNameInfoModel.builder().commonName("CN=a").build());
+		certificateInfo
+			.setSubject(DistinguishedNameInfoModel.builder().commonName("CN=a").build());
+
+		panel.getCryptographyPanel().writeCertificateTo(existing, certificateInfo);
+
+		assertEquals(List.of(DataClass.DERIVED), panel.asked);
+		assertArrayEquals(WHAT_WAS_THERE, Files.readAllBytes(existing.toPath()));
+	}
+
+	@Test
+	@DisplayName("a save that fails says so and leaves the file")
+	void aFailingSaveSaysSo(@TempDir File directory) throws Exception
+	{
+		AnsweringPanel panel = panelWithAnRsaKeyPair(true);
+		panel.getModelObject().setPrivateKey(null);
+		File existing = anExistingFile(directory);
+
+		panel.savePrivateKeyTo(existing);
+
+		assertEquals(List.of("Saving the private key failed"), panel.told);
+		assertArrayEquals(WHAT_WAS_THERE, Files.readAllBytes(existing.toPath()));
+	}
+
+	/** The window with the question and the failure message answered by the test */
+	static final class AnsweringPanel extends GenerateKeysPanel
+	{
+		private static final long serialVersionUID = 1L;
+
+		private final boolean answer;
+
+		final List<DataClass> asked = new ArrayList<>();
+
+		final List<String> told = new ArrayList<>();
+
+		AnsweringPanel(final boolean answer)
+		{
+			this.answer = answer;
+		}
+
+		@Override
+		protected boolean allowsReplacing(final File file, final DataClass dataClass)
+		{
+			if (file.isFile())
+			{
+				asked.add(dataClass);
+				return answer;
+			}
+			return true;
+		}
+
+		@Override
+		protected void tellNotWritten(final String whatFailed, final String title,
+			final Exception reason)
+		{
+			told.add(title);
+		}
+	}
+
+	private static AnsweringPanel panelWithAnRsaKeyPair(final boolean answer)
+	{
+		AnsweringPanel panel = new AnsweringPanel(answer);
 		panel.getCmbAlgorithm().setSelectedItem(KeyPairGeneratorAlgorithm.RSA);
 		panel.getCryptographyPanel().getCmbKeySize().setSelectedItem(KeySize.KEYSIZE_1024);
 		panel.getCryptographyPanel().getBtnGenerate().doClick();

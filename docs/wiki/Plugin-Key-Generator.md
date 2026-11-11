@@ -138,10 +138,15 @@ saved in the other format. Both come back into this application unchanged. The f
 **Save private key** only: the PEM shown in the panel does not change when you switch it, and the
 password protected file ignores it.
 
-**Pressing Save private key before Generate keys empties the file you pick.** The save dialog opens
-as usual, the file you name is created empty, or emptied if it already held something, and there
-is no error dialog. Nothing warns you about an existing file in any of the save buttons either, it
-is simply overwritten. Generate first, and pick a name that does not exist yet.
+**The save buttons wait for a key pair, and an existing file is replaced only after a question.**
+**Save private key**, **Save private key with password** and **Save public key** are disabled until
+**Generate keys** has made a pair, and again after **Clear keys**; their tooltip says "There is no
+key pair to save yet. Press Generate first." When the file you pick already exists, every save
+button asks before it writes: for a private key the question is titled **Replace this key file?**
+and says that replacing destroys what the file holds; for a public key or a certificate it is
+**Replace the existing file?**. **No** leaves the file as it was. A save that fails says so in a
+message and leaves the existing file untouched, because the key is encoded completely before the
+file is opened.
 
 **The Keysize list has a trap entry.** Besides the real lengths it contains an entry shown as
 `-1`, a placeholder for "unknown". Generating with it produces no key at all: the boxes are left

@@ -63,7 +63,7 @@ public final class OverwriteDecision
 	 */
 	public static String messageFor(final DataClass dataClass, final String fileName)
 	{
-		if (DataClass.IRREPLACEABLE.equals(dataClass))
+		if (dataClass.isIrreplaceable())
 		{
 			return "<html><body>" + "<div>'" + fileName + "' already exists.</div>"
 				+ "<div>Replacing it destroys what it holds, and nothing can produce it again.</div>"
@@ -83,8 +83,11 @@ public final class OverwriteDecision
 	 */
 	public static String titleFor(final DataClass dataClass)
 	{
-		return DataClass.IRREPLACEABLE.equals(dataClass)
-			? "Replace this database?"
-			: "Replace the existing file?";
+		return switch (dataClass)
+		{
+			case IRREPLACEABLE -> "Replace this database?";
+			case PRIVATE_KEY -> "Replace this key file?";
+			case DERIVED -> "Replace the existing file?";
+		};
 	}
 }

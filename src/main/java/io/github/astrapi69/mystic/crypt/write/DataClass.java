@@ -43,9 +43,25 @@ public enum DataClass
 	DERIVED,
 
 	/**
-	 * A vault or key material: the original may be the only copy, and replacing it has no undo. The
-	 * question names the file and says what is lost, and a mis-click on the wrong button costs
-	 * somebody their database.
+	 * A vault: the original may be the only copy, and replacing it has no undo. The question names
+	 * the file and says what is lost, and a mis-click on the wrong button costs somebody their
+	 * database.
 	 */
-	IRREPLACEABLE
+	IRREPLACEABLE,
+
+	/**
+	 * A private key: as irreplaceable as a vault, and asked about as a key file rather than as a
+	 * database, since that is what the user is about to replace (#882)
+	 */
+	PRIVATE_KEY;
+
+	/**
+	 * Whether replacing a file of this class destroys something that nothing can produce again
+	 *
+	 * @return true for a vault and a private key
+	 */
+	public boolean isIrreplaceable()
+	{
+		return this != DERIVED;
+	}
 }
