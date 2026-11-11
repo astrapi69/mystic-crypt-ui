@@ -24,6 +24,8 @@
  */
 package io.github.astrapi69.mystic.crypt.ui;
 
+import java.io.File;
+
 import javax.swing.SwingUtilities;
 
 import org.assertj.swing.core.Robot;
@@ -56,6 +58,21 @@ final class CreateMasterKeySteps
 	CreateMasterKeySteps requireApplicationFile(String expectedAbsolutePath)
 	{
 		dialog.textBox("txtApplicationFile").requireText(expectedAbsolutePath);
+		return this;
+	}
+
+	/**
+	 * Clicks "Browse..." for the application file and selects the given file in the save chooser
+	 * that opens, without waiting for anything that follows: a question about a file that is
+	 * already there is the caller's to look for (#878)
+	 */
+	CreateMasterKeySteps browseApplicationFile(File applicationFile)
+	{
+		SwingUtilities
+			.invokeLater(() -> dialog.button("btnApplicationFileChooser").target().doClick());
+		SignInDialogSteps.approveInFileChooser(robot, applicationFile);
+		UiTestSpeed.windowManagerSettle();
+		robot.waitForIdle();
 		return this;
 	}
 

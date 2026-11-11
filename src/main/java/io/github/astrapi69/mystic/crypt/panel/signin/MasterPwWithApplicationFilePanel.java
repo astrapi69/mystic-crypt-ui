@@ -52,6 +52,8 @@ import io.github.astrapi69.mystic.crypt.panel.signin.button.state.ok.BtnOkCompon
 import io.github.astrapi69.mystic.crypt.panel.signin.button.state.ok.BtnOkStateMachine;
 import io.github.astrapi69.mystic.crypt.panel.signin.button.state.ok.DocumentExtensions;
 import io.github.astrapi69.mystic.crypt.vault.EntryIdentitySupport;
+import io.github.astrapi69.mystic.crypt.write.DataClass;
+import io.github.astrapi69.mystic.crypt.write.OverwriteConfirmation;
 import io.github.astrapi69.net.url.URLExtensions;
 import io.github.astrapi69.swing.base.BasePanel;
 import io.github.astrapi69.swing.dialog.help.HelpDialog;
@@ -336,6 +338,14 @@ public class MasterPwWithApplicationFilePanel extends BasePanel<MasterPwFileMode
 		{
 			final File selectedApplicationFile = JFileChooserExtensions
 				.getSelectedFileWithFirstExtension(fileChooser);
+			if (!OverwriteConfirmation.allowsWriting(this, selectedApplicationFile,
+				DataClass.IRREPLACEABLE))
+			{
+				// OK in "Create your master key" writes an empty database to this file, so one that
+				// is already there is asked about first, as the toolbar's New application does
+				// (#300, #878)
+				return;
+			}
 			if (!selectedApplicationFile.exists())
 			{
 				RuntimeExceptionDecorator
