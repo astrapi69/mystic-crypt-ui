@@ -163,6 +163,14 @@ class GuardTest(unittest.TestCase):
     def test_clean_tree_gets_no_note(self):
         self.assertIsNone(dirty_tree_note(""))
 
+    def test_merge_today_creates_a_merge_commit_not_a_squash(self):
+        # pins today's behaviour before the squash pilot turns it: the merge is a merge
+        # commit, no squash, no subject of its own, and any pull request title is accepted
+        command = merge_command("876", "a" * 40)
+        self.assertIn("--merge", command)
+        self.assertNotIn("--squash", command)
+        self.assertNotIn("--subject", command)
+
     def test_merge_pins_the_judged_head_and_never_deletes_the_branch(self):
         command = merge_command("876", "a" * 40)
         self.assertIn("--match-head-commit", command)
