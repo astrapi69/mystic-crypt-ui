@@ -98,7 +98,8 @@ prose below adds what is not obvious.
 | `make jar` | `gradlew jar` (the thin jar only) |
 | `make all-dependencies-jar` | `gradlew withAllDependendiesJar` (the fat jar task alone, no clean, no signing) |
 | `make clean` | `gradlew clean` |
-| `make run` | finds the first `build/libs/*-all.jar` and runs `"$(JAVA_HOME)/bin/java" -jar` on it |
+| `make start` | `scripts/run-isolated.sh "$(ISOLATED_HOME)"` alone: starts the jar and the plugin zips that are built, nothing is built or tested |
+| `make run` | `run-isolated`: `make plugins` without the plugin and script tests, `gradlew withAllDependendiesJar`, then the same start as `make start` |
 | `make all` | `build`, then `plugins-install`, then `run` |
 | `make bootRun` | `plugins-install`, then `gradlew bootRun` |
 
@@ -109,15 +110,14 @@ Notes:
   `createAllDependendiesJar` declares `dependsOn: [clean, ...]`.
 - `make build-full` is described in the Makefile as "clean, compile, test, spotless,
   license, then package the runnable jar".
-- `make run` fails loudly rather than silently doing nothing:
-
-  ```make
-  @jar=$$(find build/libs -maxdepth 1 -name '*-all.jar' -print -quit); \
-  if [ -z "$$jar" ]; then \
-      echo "No *-all.jar in build/libs - run 'make build' first." >&2; \
-      exit 1; \
-  fi; \
-  ```
+- `make start` and `make run` start the application with `user.home` pointed at `ISOLATED_HOME`
+  (default `~/mystic-crypt-ui-dev`), never in the installed release's profile (#498, #501), and
+  copy the plugin zips of this checkout into it on every start. Without a jar in `build/libs` or
+  without plugin zips, `scripts/run-isolated.sh` refuses with a message that names `make run`.
+- `make run` builds the plugins without their tests (`PLUGIN_TESTS`, `PLUGIN_ZIP_TESTS` and
+  `SCRIPT_TESTS` empty): a start needs the zips, `make plugins` and the gates still run the tests.
+  A SNAPSHOT jar carries no `Build-Timestamp`, so a build without a change is up to date and the
+  plugin tests of a later `make plugins` come from the cache (#909).
 - `make all` is the target that guarantees you run exactly what you just built, with the
   internal plugins built and installed beforehand.
 - `make bootRun` installs the plugins and then calls `./gradlew bootRun`. The Makefile

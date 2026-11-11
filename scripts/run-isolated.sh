@@ -34,8 +34,10 @@ case "$isolated/" in
 esac
 
 mkdir -p "$isolated"
-jar="$(find build/libs -maxdepth 1 -name '*-all.jar' -print -quit)"
-[ -n "$jar" ] || die "no *-all.jar in build/libs - 'make run-isolated' builds it first"
+# a checkout that was never built has no build/libs at all, and find failing there must end in the
+# message below rather than in set -e's silent exit (#909)
+jar="$(find build/libs -maxdepth 1 -name '*-all.jar' -print -quit 2>/dev/null || true)"
+[ -n "$jar" ] || die "no *-all.jar in build/libs - 'make run' builds it first"
 
 plugins="$isolated/.config/mystic-crypt-ui/plugins"
 mkdir -p "$plugins"
@@ -49,7 +51,7 @@ for zip in plugins/*/build/plugin-dist/*.zip; do
   cp "$zip" "$plugins/"
   count=$((count + 1))
 done
-[ "$count" -gt 0 ] || die "no plugin zips under plugins/*/build/plugin-dist - 'make run-isolated' builds them first"
+[ "$count" -gt 0 ] || die "no plugin zips under plugins/*/build/plugin-dist - 'make run' builds them first"
 
 say "==> $count plugins into $plugins"
 say "==> starting $jar with user.home=$isolated"

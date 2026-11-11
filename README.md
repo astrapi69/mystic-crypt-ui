@@ -88,7 +88,8 @@ Other useful targets:
 ```bash
 make build        # fast build only (skips tests, spotless, license checks)
 make build-full   # full build: tests, spotless, license checks, then package
-make run          # (re-)launch the most recently built jar
+make start        # start the last build again, in a profile of its own; nothing is built
+make run          # build the plugin zips (without their tests) and the jar, then start as make start does
 make test         # run the test suite only
 make clean        # clean build outputs
 ```
