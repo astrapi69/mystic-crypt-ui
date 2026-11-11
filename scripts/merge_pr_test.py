@@ -12,8 +12,9 @@ run stands in the pull request.
 
 import unittest
 
-from merge_pr import (RollupEntry, all_reported, base_mismatch, dirty_tree_note,
-                      judge, merge_command, parse_rollup, resolve_required)
+from merge_pr import (RollupEntry, all_reported, base_mismatch, conventional_title_error,
+                      dirty_tree_note, judge, merge_command, parse_rollup, resolve_required,
+                      squash_subject)
 
 REQUIRED = ["build", "closing-references", "release-freeze"]
 
@@ -163,20 +164,34 @@ class GuardTest(unittest.TestCase):
     def test_clean_tree_gets_no_note(self):
         self.assertIsNone(dirty_tree_note(""))
 
-    def test_merge_today_creates_a_merge_commit_not_a_squash(self):
-        # pins today's behaviour before the squash pilot turns it: the merge is a merge
-        # commit, no squash, no subject of its own, and any pull request title is accepted
-        command = merge_command("876", "a" * 40)
-        self.assertIn("--merge", command)
-        self.assertNotIn("--squash", command)
-        self.assertNotIn("--subject", command)
+    def test_merge_squashes_with_the_title_as_subject(self):
+        # turned pin (squash pilot): one change, one commit on develop
+        command = merge_command("876", "a" * 40, "feat(x): a thing (#876)", "why")
+        self.assertIn("--squash", command)
+        self.assertNotIn("--merge", command)
+        self.assertIn("--subject", command)
+        self.assertIn("feat(x): a thing (#876)", command)
+        self.assertIn("why", command)
 
     def test_merge_pins_the_judged_head_and_never_deletes_the_branch(self):
-        command = merge_command("876", "a" * 40)
+        command = merge_command("876", "a" * 40, "feat: x (#876)", "")
         self.assertIn("--match-head-commit", command)
         self.assertIn("a" * 40, command)
         self.assertNotIn("--delete-branch", command)
-        self.assertIn("--merge", command)
+
+    def test_squash_subject_appends_the_number_once(self):
+        self.assertEqual("feat: x (#9)", squash_subject("feat: x", "9"))
+        self.assertEqual("feat: x (#9)", squash_subject("feat: x (#9)", "9"))
+
+    def test_conventional_titles_pass(self):
+        for title in ("feat: a", "fix(vault): b", "feat!: breaking", "chore(deps): c",
+                      "docs: d", "refactor(x): e"):
+            self.assertIsNone(conventional_title_error(title), title)
+
+    def test_non_conventional_titles_are_refused(self):
+        for title in ("Update README", "Feat: capital", "feat:missing space", "", None,
+                      "feature: wrong type"):
+            self.assertIsNotNone(conventional_title_error(title), str(title))
 
     def test_hotfix_without_protection_borrows_develops_checks(self):
         def fetch(branch):

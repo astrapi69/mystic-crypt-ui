@@ -16,6 +16,7 @@ Usage: scripts/merge_pr.py <pr-number> [target-branch]
 
 import json
 import os
+import re
 import subprocess
 import sys
 import time
@@ -164,12 +165,39 @@ def dirty_tree_note(porcelain_output):
             " change the checked-out branch - but check that you meant to merge right now")
 
 
-def merge_command(pr, head_sha):
-    """The merge pins the judged head: a push between judgement and merge must
-    fail the merge, not slip through (--match-head-commit needs the full sha).
+TITLE_PATTERN = re.compile(
+    r"^(feat|fix|refactor|docs|test|chore|build|perf|ci|style|revert)(\([^)]+\))?!?: \S")
+
+
+def conventional_title_error(title):
+    """The pull request title becomes the squash commit subject, so it has to
+    be a Conventional Commit (squash pilot, decided by the maintainer on
+    2026-11-11); returns why it is not, or None."""
+    if TITLE_PATTERN.match(title or ""):
+        return None
+    return ("the pull request title is not a Conventional Commit, and under the squash"
+            " pilot it becomes the commit subject on develop - rename the pull request"
+            " (feat|fix|refactor|docs|test|chore|build|perf|ci|style|revert, optional"
+            " (scope), then ': ' and the sentence), then merge again")
+
+
+def squash_subject(title, pr):
+    """The squash commit subject: the pull request title, with the pull
+    request number appended when the title does not carry it already."""
+    marker = f"(#{pr})"
+    return title if marker in title else f"{title} {marker}"
+
+
+def merge_command(pr, head_sha, subject, body):
+    """The merge squashes to one commit on develop (the squash pilot: one
+    change, one commit) and pins the judged head: a push between judgement
+    and merge must fail the merge, not slip through (--match-head-commit
+    needs the full sha). The subject is the pull request title with its
+    number, the body the pull request body, which carries the why (AG-067).
     Never --delete-branch: with the head branch checked out locally, gh
     switches branches and pulls under the running script (#496)."""
-    return ["gh", "pr", "merge", str(pr), "--merge", "--match-head-commit", head_sha]
+    return ["gh", "pr", "merge", str(pr), "--squash", "--match-head-commit", head_sha,
+            "--subject", subject, "--body", body]
 
 
 def resolve_required(target, fetch):
@@ -203,12 +231,16 @@ def run(argv):
     if note:
         print(note)
 
-    view = gh_json("pr", "view", pr, "--json", "state,baseRefName,headRefName,headRefOid,isCrossRepository")
+    view = gh_json("pr", "view", pr, "--json",
+                   "state,baseRefName,headRefName,headRefOid,isCrossRepository,title,body")
     if view["state"] != "OPEN":
         die(f"pull request #{pr} is {view['state']}, not OPEN")
     mismatch = base_mismatch(view["baseRefName"], target)
     if mismatch:
         die(mismatch)
+    title_error = conventional_title_error(view.get("title") or "")
+    if title_error:
+        die(title_error)
 
     def fetch_contexts(branch):
         result = subprocess.run(
@@ -250,7 +282,8 @@ def run(argv):
         die(f"not merging #{pr}")
 
     head_sha = view["headRefOid"]
-    subprocess.run(merge_command(pr, head_sha), check=True)
+    subject = squash_subject(view.get("title") or "", pr)
+    subprocess.run(merge_command(pr, head_sha, subject, view.get("body") or ""), check=True)
 
     head = view["headRefName"]
     if view["isCrossRepository"]:
