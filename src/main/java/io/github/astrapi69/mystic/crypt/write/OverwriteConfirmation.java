@@ -69,7 +69,7 @@ public final class OverwriteConfirmation
 		int option = JOptionPane.showConfirmDialog(parent,
 			OverwriteDecision.messageFor(dataClass, target.getName()),
 			OverwriteDecision.titleFor(dataClass), JOptionPane.YES_NO_OPTION,
-			DataClass.IRREPLACEABLE.equals(dataClass)
+			dataClass.isIrreplaceable()
 				? JOptionPane.WARNING_MESSAGE
 				: JOptionPane.QUESTION_MESSAGE);
 		return option == JOptionPane.YES_OPTION;

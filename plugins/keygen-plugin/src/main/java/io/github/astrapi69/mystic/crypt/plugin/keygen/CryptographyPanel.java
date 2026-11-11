@@ -36,6 +36,8 @@ import io.github.astrapi69.mystic.crypt.ui.screen.ScreenPlacement;
 import io.github.astrapi69.mystic.crypt.panel.certificate.NewCertificateInfoPanel;
 import io.github.astrapi69.mystic.crypt.ui.form.ToolForm;
 import io.github.astrapi69.mystic.crypt.wizard.model.CertificateInfoModel;
+import io.github.astrapi69.mystic.crypt.write.DataClass;
+import io.github.astrapi69.mystic.crypt.write.OverwriteConfirmation;
 import io.github.astrapi69.swing.base.BasePanel;
 import io.github.astrapi69.swing.dialog.factory.JDialogFactory;
 import io.github.astrapi69.swing.listener.RequestFocusListener;
@@ -79,6 +81,20 @@ public class CryptographyPanel extends BasePanel<GenerateKeysModelBean>
 
 	/** The number of key lines a key area shows before it scrolls */
 	private static final int KEY_AREA_ROWS = 5;
+
+	/**
+	 * What the three key save buttons say while there is no key pair: pressed before Generate,
+	 * they emptied the file chosen for them (#882)
+	 */
+	static final String NOTHING_TO_SAVE_YET = KeygenMessages.getString(
+		"keygen.save.unavailable.reason", "There is no key pair to save yet. Press Generate first.");
+
+	/** What the save buttons say while they can be used, kept to give it back after the reason */
+	private String savePrivateKeyTooltip;
+
+	private String savePrivateKeyWithPasswordTooltip;
+
+	private String savePublicKeyTooltip;
 
 	/**
 	 * The btn clear.
@@ -291,6 +307,30 @@ public class CryptographyPanel extends BasePanel<GenerateKeysModelBean>
 		btnSaveCertificate.setText("Save certificate...");
 		setCertificateAvailable(false, KeygenMessages.getString("keygen.certificate.unavailable.reason",
 			"Only RSA and EC keys can be used for a self-signed certificate. Choose one of them and press Generate."));
+		savePrivateKeyTooltip = btnSavePrivateKey.getToolTipText();
+		savePrivateKeyWithPasswordTooltip = btnSavePrivKeyWithPw.getToolTipText();
+		savePublicKeyTooltip = btnSavePublicKey.getToolTipText();
+		setKeySaveAvailable(false, NOTHING_TO_SAVE_YET);
+	}
+
+	/**
+	 * Says whether the three key save buttons can be used right now, and why not when they cannot:
+	 * the reason takes the place of the button's own tooltip, the way the encrypt and decrypt
+	 * buttons show theirs (#882)
+	 *
+	 * @param available
+	 *            true if there is a key pair to save
+	 * @param reason
+	 *            what the buttons say while they are out of reach, ignored when available
+	 */
+	public void setKeySaveAvailable(final boolean available, final String reason)
+	{
+		btnSavePrivateKey.setEnabled(available);
+		btnSavePrivKeyWithPw.setEnabled(available);
+		btnSavePublicKey.setEnabled(available);
+		btnSavePrivateKey.setToolTipText(available ? savePrivateKeyTooltip : reason);
+		btnSavePrivKeyWithPw.setToolTipText(available ? savePrivateKeyWithPasswordTooltip : reason);
+		btnSavePublicKey.setToolTipText(available ? savePublicKeyTooltip : reason);
 	}
 
 	/**
@@ -392,6 +432,10 @@ public class CryptographyPanel extends BasePanel<GenerateKeysModelBean>
 	protected void writeCertificateTo(final File file,
 		final CertificateInfoModel certificateInfo)
 	{
+		if (!allowsReplacing(file, DataClass.DERIVED))
+		{
+			return;
+		}
 		try
 		{
 			KeygenSupport.writeCertificate(certificateInfo, file);
@@ -404,6 +448,20 @@ public class CryptographyPanel extends BasePanel<GenerateKeysModelBean>
 				"The certificate was not written: " + couldNotWriteTheCertificate.getMessage(),
 				"Creation of certificate failed", JOptionPane.ERROR_MESSAGE);
 		}
+	}
+
+	/**
+	 * Whether the given file may be written, asking first when something is there already (#882)
+	 *
+	 * @param file
+	 *            the file about to be written
+	 * @param dataClass
+	 *            what the file is going to hold
+	 * @return true when writing may go ahead
+	 */
+	protected boolean allowsReplacing(final File file, final DataClass dataClass)
+	{
+		return OverwriteConfirmation.allowsWriting(this, file, dataClass);
 	}
 
 	/**
