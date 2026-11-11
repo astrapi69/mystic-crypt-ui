@@ -28,6 +28,7 @@ import javax.swing.*;
 
 import io.github.astrapi69.design.pattern.state.component.AbstractJComponentStateMachine;
 import io.github.astrapi69.file.create.model.FileInfo;
+import io.github.astrapi69.mystic.crypt.lock.SecretComparison;
 import io.github.astrapi69.mystic.crypt.panel.signin.MasterPwFileModelBean;
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
@@ -77,8 +78,8 @@ public class BtnOkStateMachine extends AbstractJComponentStateMachine<JButton, B
 			keyFilePresent = FileInfo.toFile(modelObject.getKeyFileInfo()).exists();
 		}
 		boolean withMasterPw = modelObject.isWithMasterPw();
-		boolean passwordConfirmed = !repeatRequired
-			|| java.util.Arrays.equals(modelObject.getMasterPw(), modelObject.getRepeatPw());
+		boolean passwordConfirmed = !repeatRequired || SecretComparison
+			.sameCharacters(modelObject.getMasterPw(), modelObject.getRepeatPw());
 		if (applicationFilePresent && withMasterPw && minPasswordLength <= passwordLength
 			&& passwordConfirmed && withKeyFile && keyFilePresent)
 		{

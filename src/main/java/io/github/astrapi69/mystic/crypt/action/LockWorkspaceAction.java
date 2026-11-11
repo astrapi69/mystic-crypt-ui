@@ -40,6 +40,7 @@ import io.github.astrapi69.mystic.crypt.Messages;
 import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
 import io.github.astrapi69.mystic.crypt.app.file.xml.ApplicationXmlFileStoreWorker;
 import io.github.astrapi69.mystic.crypt.lock.MasterPasswordVerifier;
+import io.github.astrapi69.mystic.crypt.lock.SecretComparison;
 import io.github.astrapi69.mystic.crypt.panel.signin.MasterPwFileModelBean;
 import io.github.astrapi69.mystic.crypt.secret.SecretBuffers;
 import io.github.astrapi69.mystic.crypt.settings.MysticCryptSettings;
@@ -397,7 +398,7 @@ public class LockWorkspaceAction extends AbstractAction
 		{
 			return verifier.matches(entered);
 		}
-		return Arrays.equals(entered, credentials.getMasterPw());
+		return SecretComparison.sameCharacters(entered, credentials.getMasterPw());
 	}
 
 	/**
