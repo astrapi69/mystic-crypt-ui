@@ -24,8 +24,12 @@
  */
 package io.github.astrapi69.mystic.crypt.ui;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+
 import java.io.File;
 
+import org.assertj.swing.edt.GuiActionRunner;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -40,16 +44,28 @@ class RepeatedMasterPasswordUiTest extends AbstractUiTest
 {
 
 	@Test
-	@DisplayName("pinned: a repeat that differs from the password leaves OK enabled (#879)")
+	@DisplayName("a repeat that differs keeps OK disabled and marks the field, the same repeat enables OK (#879)")
 	void aRepeatThatDiffers() throws Exception
 	{
 		File fresh = new File(tempHome, "a-new-one.mcrdb");
+		String password = TestPasswords.throwaway();
 
 		SignInDialogSteps signIn = launchApplication();
 		CreateMasterKeySteps createMasterKey = signIn.startNewDatabase(fresh);
 		createMasterKey.checkMasterPassword()
-			.typeMasterPassword(TestPasswords.throwaway(), TestPasswords.throwaway())
-			.requireOkEnabled();
+			.typeMasterPassword(password, TestPasswords.throwaway()).requireOkDisabled();
+		assertEquals("error", repeatFieldOutline(createMasterKey),
+			"the repeat field is marked once it is as long as the password and differs");
+
+		createMasterKey.typeMasterPassword(password, password).requireOkEnabled();
+		assertNull(repeatFieldOutline(createMasterKey), "the same repeat takes the mark away");
 		createMasterKey.cancelAndAwaitClose();
+	}
+
+	/** The outline FlatLaf draws the repeat field with, null when it is not marked */
+	private static Object repeatFieldOutline(final CreateMasterKeySteps createMasterKey)
+	{
+		return GuiActionRunner.execute(() -> createMasterKey.dialog().textBox("txtRepeatPw")
+			.target().getClientProperty("JComponent.outline"));
 	}
 }

@@ -25,8 +25,11 @@
 package io.github.astrapi69.mystic.crypt.panel.signin;
 
 import java.awt.event.ActionEvent;
+import java.awt.event.FocusAdapter;
+import java.awt.event.FocusEvent;
 import java.io.File;
 import java.net.URL;
+import java.util.Arrays;
 
 import javax.swing.*;
 import javax.swing.event.DocumentEvent;
@@ -92,6 +95,11 @@ public class NewMasterPwFilePanel extends BasePanel<MasterPwFileModelBean>
 	JFileChooser fileChooser;
 	GenericMutableComboBoxModel<String> cmbKeyFileModel;
 	BtnOkStateMachine btnOkStateMachine;
+
+	/** The client property FlatLaf draws a field's outline from, and its value for a mistake */
+	static final String OUTLINE = "JComponent.outline";
+
+	private static final String OUTLINE_ERROR = "error";
 	IModel<GeneratePasswordModelBean> passwordModel;
 	NewPrivateKeyModelBean privateKeyModelBean;
 
@@ -201,7 +209,7 @@ public class NewMasterPwFilePanel extends BasePanel<MasterPwFileModelBean>
 		btnCancel.addActionListener(this::onCancel);
 		final MasterPwFileModelBean modelObject = getModelObject();
 		btnOkStateMachine = BtnOkStateMachine.builder().component(btnOk).modelObject(modelObject)
-			.currentState(BtnOkComponentStateEnum.DISABLED).build();
+			.repeatRequired(true).currentState(BtnOkComponentStateEnum.DISABLED).build();
 		txtMasterPw.setEnabled(false);
 		txtMasterPw.getDocument().addDocumentListener(new DocumentListenerAdapter()
 		{
@@ -211,6 +219,25 @@ public class NewMasterPwFilePanel extends BasePanel<MasterPwFileModelBean>
 				char[] password = txtMasterPw.getPassword();
 				modelObject.setMasterPw(password);
 				btnOkStateMachine.onChangeMasterPasswordLength(btnOkStateMachine);
+				showWhetherTheRepeatMatches(false);
+			}
+		});
+		txtRepeatPw.getDocument().addDocumentListener(new DocumentListenerAdapter()
+		{
+			@Override
+			public void onDocumentChanged(DocumentEvent documentEvent)
+			{
+				modelObject.setRepeatPw(txtRepeatPw.getPassword());
+				btnOkStateMachine.onChangeMasterPasswordLength(btnOkStateMachine);
+				showWhetherTheRepeatMatches(false);
+			}
+		});
+		txtRepeatPw.addFocusListener(new FocusAdapter()
+		{
+			@Override
+			public void focusLost(final FocusEvent focusEvent)
+			{
+				showWhetherTheRepeatMatches(true);
 			}
 		});
 		btnMasterPw.addActionListener(this::onShowMasterPw);
@@ -581,6 +608,33 @@ public class NewMasterPwFilePanel extends BasePanel<MasterPwFileModelBean>
 		{
 			ApplicationXmlFileFactory.newApplicationFileWithPassword(modelObject);
 		}
+		// the repeat has done its work once the database is written with the password it confirmed
+		modelObject.setRepeatPw(null);
+	}
+
+	/**
+	 * Marks the repeat field when it differs from the master password, and says so in its tooltip
+	 * (#879). A repeat still being typed is not called wrong: the mark comes once it is as long as
+	 * the password, or when the field is left, and goes as soon as the two are the same
+	 *
+	 * @param leavingTheField
+	 *            whether the focus is leaving the repeat field
+	 */
+	private void showWhetherTheRepeatMatches(final boolean leavingTheField)
+	{
+		char[] password = getModelObject().getMasterPw();
+		char[] repeat = getModelObject().getRepeatPw();
+		boolean typed = repeat != null && repeat.length > 0;
+		boolean differs = typed && !Arrays.equals(password, repeat);
+		boolean asLongAsThePassword = typed && password != null && repeat.length >= password.length;
+		boolean alreadyMarked = OUTLINE_ERROR.equals(txtRepeatPw.getClientProperty(OUTLINE));
+		boolean mark = differs && (leavingTheField || asLongAsThePassword || alreadyMarked);
+		txtRepeatPw.putClientProperty(OUTLINE, mark ? OUTLINE_ERROR : null);
+		txtRepeatPw.setToolTipText(mark
+			? Messages.getString("signin.repeat.password.differs",
+				"The two passwords differ: type the same password in both fields.")
+			: Messages.getString("signin.tooltip.repeat.password",
+				"repeat the master password, to catch a typo"));
 	}
 
 	protected void onCancel(ActionEvent actionEvent)
