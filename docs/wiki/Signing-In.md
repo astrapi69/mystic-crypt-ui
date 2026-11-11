@@ -164,7 +164,8 @@ and the tools that declare that they work without a database (Checksum and Passw
 - The clipboard is cleared, so a password copied before the lock cannot be pasted afterwards.
 - The menus and toolbar buttons that belong to a signed-in session are disabled, the
   application behaves as if nobody were signed in: what stays enabled is the same short list as
-  after a cancelled sign-in (section 6), without the toolbar's **New application**. **File > Open
+  after a cancelled sign-in (section 6), without the toolbar's **New application**, and with
+  **File > Unlock workspace...** in the place of **Lock workspace**. **File > Open
   Database...** refuses while the workspace is locked and says why: the locked database would
   have to be closed first, and that needs it unlocked.
 - The **Unlock workspace** prompt appears right away, with the label "Enter the master password
@@ -172,16 +173,14 @@ and the tools that declare that they work without a database (Checksum and Passw
   prompt says "Unsaved changes are waiting in this database."
 
 Entering the correct master password brings the content and the menus back, in the view you chose
-in the settings. A wrong password produces an error dialog "Unlock failed" with the message "Wrong
-master password.", after which the unlock prompt opens again, the workspace stays locked in the
-meantime.
+in the settings. Changes that were not saved before the lock are still there, and **Save** is
+offered for them right away. A wrong password produces an error dialog "Unlock failed" with the
+message "Wrong master password.", after which the unlock prompt opens again, the workspace stays
+locked in the meantime.
 
-Do not cancel the prompt unless you mean to leave the database locked. Cancelling keeps the
-workspace locked, and the prompt does not come back: **File > Lock workspace** is one of the items
-that are disabled while locked. The database then stays locked until the timed close below closes
-it, after which **File > Open Database...** works again, or until you end the application. A
-database with unsaved changes is not closed by the timer, so for it only ending the application
-is left, which asks whether to discard the changes.
+Cancelling the prompt keeps the workspace locked. **File > Unlock workspace...** opens
+the prompt again whenever you want to come back; until then the database stays locked, and the
+timed close below closes it unless it has unsaved changes.
 
 ### Locking by itself
 
