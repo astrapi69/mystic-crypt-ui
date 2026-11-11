@@ -43,9 +43,9 @@ import io.github.astrapi69.mystic.crypt.TestPasswords;
 /**
  * A workspace that comes back from the lock with unsaved changes can save them (#913).
  * <p>
- * Pinned as the program behaves today: the unlock puts the menu into the state of a freshly opened,
- * unchanged vault, so Save is disabled while the changes from before the lock are still unsaved,
- * until something is edited again.
+ * The unlock put the menu into the state of a freshly opened, unchanged vault, so Save was disabled
+ * while the changes from before the lock were still unsaved, until something was edited again. Now
+ * the unlock offers Save when there is something to save, and only then.
  */
 class SaveAfterUnlockUiTest extends AbstractUiTest
 {
@@ -55,8 +55,8 @@ class SaveAfterUnlockUiTest extends AbstractUiTest
 	private static final String UNSAVED_TITLE = "Added before the lock";
 
 	@Test
-	@DisplayName("after lock and unlock, Save is disabled today although the change is unsaved")
-	void afterTheUnlock_saveIsDisabled_today() throws Exception
+	@DisplayName("after lock and unlock, Save is offered for the change from before the lock, and it lands in the file")
+	void afterTheUnlock_theUnsavedChangeCanBeSaved() throws Exception
 	{
 		File databaseFile = new File(tempHome, "save-after-unlock.mcrdb");
 		createDatabaseFileHeadless(databaseFile, MASTER_PASSWORD);
@@ -70,7 +70,29 @@ class SaveAfterUnlockUiTest extends AbstractUiTest
 		application.unlockWorkspace(MASTER_PASSWORD);
 
 		assertTrue(theDatabaseIsMarkedChanged(), "the change is still unsaved after the unlock");
-		assertFalse(saveIsOffered(), "today Save is disabled after the unlock");
+		assertTrue(saveIsOffered(), "Save is offered for it");
+
+		application.saveDatabase();
+		shutdownApplication();
+		ApplicationSteps reopened = signInWithExistingDatabase(databaseFile, MASTER_PASSWORD);
+		assertTrue(reopened.entryExistsWithTitle(UNSAVED_TITLE),
+			"the change made before the lock is in the file");
+	}
+
+	@Test
+	@DisplayName("after lock and unlock without a change, Save stays disabled as after opening")
+	void afterTheUnlock_withoutAChange_saveStaysDisabled() throws Exception
+	{
+		File databaseFile = new File(tempHome, "nothing-to-save-after-unlock.mcrdb");
+		createDatabaseFileHeadless(databaseFile, MASTER_PASSWORD);
+		ApplicationSteps application = signInWithExistingDatabase(databaseFile, MASTER_PASSWORD);
+		application.showMainFrame();
+
+		application.lockWorkspace();
+		application.unlockWorkspace(MASTER_PASSWORD);
+
+		assertFalse(theDatabaseIsMarkedChanged(), "precondition: nothing to save");
+		assertFalse(saveIsOffered(), "with nothing changed there is nothing to save");
 	}
 
 	private boolean saveIsOffered()
