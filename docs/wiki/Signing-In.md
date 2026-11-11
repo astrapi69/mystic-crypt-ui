@@ -58,9 +58,10 @@ pages of the two dialogs on this page.
    - **Master Password:** checked - type the password into **Master Password:** and into
      **Repeat Password:**. **Generate** opens the password generator, with 20 characters from
      lower case, upper case, digits and special characters preselected, and fills both fields
-     with the result. Nothing is copied to the clipboard; press `***` to read the password. The
-     two fields are not compared, the database is encrypted with what **Master Password:** holds,
-     so check both with `***` before you click **OK**.
+     with the result. Nothing is copied to the clipboard; press `***` to read the password.
+     **OK** stays disabled while the two fields differ, and **Repeat Password:** is outlined in
+     red with the tooltip "The two passwords differ" once it is as long as the password or you
+     leave it.
    - **Key File:** checked - **Create key file...** opens the **Create new private key** dialog,
      which generates an RSA key pair (default key size 2048) and writes the private key in PEM
      format, by default into the application configuration directory. **Browse..** selects a
@@ -125,7 +126,8 @@ enables OK only when all of the following hold:
 
 So a checked but empty password field, a checked key file box with nothing selected, a password
 of five characters, or an application file entry that no longer exists all keep OK disabled.
-**Repeat Password:** in the create dialog plays no part in it.
+In the create dialog, with **Master Password:** checked, **Repeat Password:** has to hold the same
+characters as well.
 
 ## 6. When the credentials are wrong
 

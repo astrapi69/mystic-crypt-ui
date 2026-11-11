@@ -54,9 +54,11 @@ digits and special characters chosen; change what you like there. Its `Generate 
 fills both fields with the result. Nothing goes to the clipboard: press `***` to read the password
 and note it down, or copy it yourself.
 
-The two fields are not compared. **OK** is enabled as soon as **Master Password:** holds 6
-characters, and the database is encrypted with what that field holds. Before you click **OK**,
-press `***` and check that both fields say what you meant.
+**OK** is enabled once **Master Password:** holds at least 6 characters and **Repeat Password:**
+holds the same ones. While they differ, OK stays disabled, and **Repeat Password:** is outlined in
+red, with the tooltip "The two passwords differ: type the same password in both fields.", as soon
+as it is as long as the password or you leave it. A typo in a new master password is caught here,
+before the database is written with it.
 
 ### A key file
 
