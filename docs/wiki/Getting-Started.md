@@ -29,8 +29,8 @@ The dialog has three areas:
    database will be protected - decide *now*, since this choice cannot be changed later without
    creating a new database:
    - **Password only** - check the password checkbox, leave the key file checkbox unchecked, and
-     enter (or generate) a password, twice. The application does not compare the two fields, so
-     check them with `***` before you go on.
+     enter (or generate) a password, twice. **OK** stays disabled until both fields hold the
+     same password.
    - **Key file only** - check the key file checkbox, leave the password checkbox unchecked, and
      select or create a key file.
    - **Both** - check both checkboxes and set both. This is the strongest option: an attacker

@@ -51,6 +51,13 @@ public class BtnOkStateMachine extends AbstractJComponentStateMachine<JButton, B
 	@ToString.Exclude
 	MasterPwFileModelBean modelObject;
 
+	/**
+	 * Whether the master password counts only once its repeat is the same: true in "Create your
+	 * master key", which asks for the password twice so that a typo is caught before the database
+	 * is written with it (#879); false in the sign-in dialog, which has no repeat
+	 */
+	boolean repeatRequired;
+
 	@Override
 	protected void updateComponentState()
 	{
@@ -70,8 +77,10 @@ public class BtnOkStateMachine extends AbstractJComponentStateMachine<JButton, B
 			keyFilePresent = FileInfo.toFile(modelObject.getKeyFileInfo()).exists();
 		}
 		boolean withMasterPw = modelObject.isWithMasterPw();
+		boolean passwordConfirmed = !repeatRequired
+			|| java.util.Arrays.equals(modelObject.getMasterPw(), modelObject.getRepeatPw());
 		if (applicationFilePresent && withMasterPw && minPasswordLength <= passwordLength
-			&& withKeyFile && keyFilePresent)
+			&& passwordConfirmed && withKeyFile && keyFilePresent)
 		{
 			setCurrentState(BtnOkComponentStateEnum.ENABLED);
 			setEnabled(true);
@@ -84,7 +93,7 @@ public class BtnOkStateMachine extends AbstractJComponentStateMachine<JButton, B
 			return;
 		}
 		else if (applicationFilePresent && !withKeyFile && withMasterPw
-			&& minPasswordLength <= passwordLength)
+			&& minPasswordLength <= passwordLength && passwordConfirmed)
 		{
 			setCurrentState(BtnOkComponentStateEnum.ENABLED);
 			setEnabled(true);

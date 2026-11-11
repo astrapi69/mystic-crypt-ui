@@ -161,6 +161,23 @@ public class MasterPwFileModelBean implements Serializable
 	}
 
 	/**
+	 * Replaces the repeat of the master password, overwriting the array it replaces first, for the
+	 * same reason and on the same condition as {@link #setMasterPw(char[])}: "Create your master
+	 * key" binds its repeat field here on every keystroke (#879)
+	 *
+	 * @param repeatPw
+	 *            the new repeat, or null to clear it
+	 */
+	public void setRepeatPw(final char[] repeatPw)
+	{
+		if (!java.util.Arrays.equals(this.repeatPw, repeatPw))
+		{
+			io.github.astrapi69.mystic.crypt.secret.SecretBuffers.wipe(this.repeatPw);
+		}
+		this.repeatPw = repeatPw;
+	}
+
+	/**
 	 * What is kept instead of {@link #masterPw} while the workspace is locked: enough to recognise
 	 * the password when it is typed again, not enough to be it (#242). Set when locking, dropped
 	 * when unlocking, and transient for the same reason as the password itself.
