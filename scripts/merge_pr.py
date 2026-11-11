@@ -186,14 +186,12 @@ FRAGMENT_REQUIRED_TYPES = ("feat", "fix", "perf")
 FRAGMENT_SECTION_OF_TYPE = {"feat": "added", "fix": "fixed", "perf": "changed"}
 
 
-def fragment_error(title, pr, changed_paths, existing_fragments=()):
+def fragment_error(title, pr, changed_paths):
     """A user-visible change brings its CHANGELOG entry along as a fragment in
     the same pull request, so it lands in the same squash commit: feat, fix,
     perf and every breaking change need one, chore, test, refactor, ci, build
-    and docs do not (changelog.d/README.md). A fragment that already sits on
-    the target branch counts too: the pilot transition carried the fragments
-    of the pull requests that were open when it landed. Returns why the merge
-    is refused, or None."""
+    and docs do not (changelog.d/README.md). Returns why the merge is refused,
+    or None."""
     match = TITLE_PATTERN.match(title or "")
     if not match:
         return None
@@ -202,7 +200,7 @@ def fragment_error(title, pr, changed_paths, existing_fragments=()):
     if change_type not in FRAGMENT_REQUIRED_TYPES and not breaking:
         return None
     prefix = f"changelog.d/{pr}."
-    for path in list(changed_paths) + [f"changelog.d/{name}" for name in existing_fragments]:
+    for path in changed_paths:
         if path.startswith(prefix) and path.endswith(".md") \
                 and path[len(prefix):-3] in FRAGMENT_SECTIONS:
             return None
@@ -273,15 +271,7 @@ def run(argv):
     if title_error:
         die(title_error)
     changed_paths = [entry["path"] for entry in gh_json("pr", "view", pr, "--json", "files")["files"]]
-
-    def existing_fragments():
-        result = subprocess.run(
-            ["gh", "api", f"repos/{{owner}}/{{repo}}/contents/changelog.d?ref={target}",
-             "-q", "[.[].name]"], capture_output=True, text=True)
-        return json.loads(result.stdout) if result.returncode == 0 else []
-
-    missing_fragment = fragment_error(view.get("title") or "", pr, changed_paths,
-                                      existing_fragments())
+    missing_fragment = fragment_error(view.get("title") or "", pr, changed_paths)
     if missing_fragment:
         die(missing_fragment)
 

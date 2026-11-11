@@ -5,7 +5,7 @@ import unittest
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
-from assemble_changelog import assemble, insert, parse_name
+from assemble_changelog import assemble, insert, parse_name, unmerged_fragments
 
 
 def fragment(directory, name, text):
@@ -55,6 +55,19 @@ FIXED:
             with TemporaryDirectory() as directory:
                 with self.assertRaises(SystemExit):
                     parse_name(fragment(directory, name, "- a"))
+
+    def test_a_fragment_of_an_unmerged_pull_request_is_named(self):
+        with TemporaryDirectory() as directory:
+            fragments = [fragment(directory, "900.fixed.md", "- merged"),
+                         fragment(directory, "901.added.md", "- open")]
+            strays = unmerged_fragments(fragments,
+                                        lambda number: "MERGED" if number == "900" else "OPEN")
+        self.assertEqual(["901.added.md"], [path.name for path in strays])
+
+    def test_every_fragment_merged_means_no_strays(self):
+        with TemporaryDirectory() as directory:
+            fragments = [fragment(directory, "900.fixed.md", "- merged")]
+            self.assertEqual([], unmerged_fragments(fragments, lambda number: "MERGED"))
 
     def test_insert_puts_the_block_above_the_previous_version(self):
         changelog = ("## Change log\n----------------------\n\n"

@@ -11,6 +11,8 @@ Usage: scripts/assemble_changelog.py <version> [--dry-run]
   --dry-run prints the assembled block and deletes nothing.
 """
 
+import json
+import subprocess
 import sys
 from pathlib import Path
 
@@ -30,6 +32,23 @@ def parse_name(path):
         raise SystemExit(f"assemble-changelog: {path} is not <pull request number>.<section>.md"
                          f" with a section of {', '.join(SECTION_ORDER)}")
     return parts[0], parts[1]
+
+
+def unmerged_fragments(fragments, state_of):
+    """The fragments whose pull request is not merged: a fragment travels in its pull
+    request, so one lying here while the pull request is open (or closed unmerged) is a
+    mistake the release must not swallow (decided 2026-11-11). ``state_of`` maps a pull
+    request number to its state."""
+    return [path for path in fragments if state_of(parse_name(path)[0]) != "MERGED"]
+
+
+def pull_request_state(number):
+    """The state gh reports for the pull request, or UNKNOWN when gh cannot say."""
+    completed = subprocess.run(["gh", "pr", "view", number, "--json", "state"],
+                               capture_output=True, text=True)
+    if completed.returncode != 0:
+        return "UNKNOWN"
+    return json.loads(completed.stdout).get("state", "UNKNOWN")
 
 
 def assemble(version, fragments):
@@ -71,6 +90,11 @@ def main(argv):
     if not fragments:
         raise SystemExit("assemble-changelog: no fragments in changelog.d/ - a release without"
                          " user-visible changes states that by hand, this script has nothing to do")
+    strays = unmerged_fragments(fragments, pull_request_state)
+    if strays:
+        raise SystemExit("assemble-changelog: fragments of unmerged pull requests - a fragment"
+                         " travels in its pull request, move these back or merge first: "
+                         + ", ".join(path.name for path in strays))
     block = assemble(version, fragments)
     if dry_run:
         print(block)
