@@ -77,6 +77,24 @@ public enum WorkspaceLockDecision
 	}
 
 	/**
+	 * Whether the lock entry is offered while nobody is signed in.
+	 * <p>
+	 * With a vault open and locked it is the way back to the unlock prompt: the lock action offers
+	 * the prompt again when the workspace is already locked, and after Cancel in that prompt
+	 * nothing else brings it back, so unsaved changes could only be discarded (#889). With nothing
+	 * open there is nothing to unlock and nothing to lock, and the entry stays out of reach as
+	 * before
+	 *
+	 * @param aVaultIsOpen
+	 *            whether a vault is open at all, locked or not
+	 * @return true exactly when a vault is open
+	 */
+	public static boolean mayOfferTheUnlock(final boolean aVaultIsOpen)
+	{
+		return aVaultIsOpen;
+	}
+
+	/**
 	 * Decides what happens to the vault view when the frame switches to the desktop pane.
 	 * <p>
 	 * {@code signedIn} is the state, and it is asked first: locked means hidden, whatever else is

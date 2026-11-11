@@ -52,6 +52,19 @@ class WorkspaceLockDecisionTest
 		assertEquals(expected, WorkspaceLockDecision.mayCreateAVault(aVaultIsOpen));
 	}
 
+	@ParameterizedTest(name = "aVaultIsOpen={0} -> mayOfferTheUnlock={1}")
+	@CsvSource({
+			// a vault is open and nobody is signed in, so it is locked: the lock entry is the way
+			// back to the unlock prompt after Cancel (#889)
+			"true,  true",
+			// nothing open: nothing to unlock and nothing to lock
+			"false, false" })
+	@DisplayName("the lock entry is offered without a sign-in exactly while a vault is locked")
+	void theUnlockIsOfferedWhileAVaultIsLocked(final boolean aVaultIsOpen, final boolean expected)
+	{
+		assertEquals(expected, WorkspaceLockDecision.mayOfferTheUnlock(aVaultIsOpen));
+	}
+
 	@ParameterizedTest(name = "signedIn={0}, vaultViewBuilt={1} -> {2}")
 	@CsvSource({
 			// unlocked and there is a view to show: the one case that shows it

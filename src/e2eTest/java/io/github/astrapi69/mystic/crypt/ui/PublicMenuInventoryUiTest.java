@@ -78,8 +78,9 @@ import io.github.astrapi69.mystic.crypt.TestPasswords;
  * be offered, that one says what must be refused.
  * <p>
  * Locked and public are the same menu state - {@code LockWorkspaceAction} calls the same
- * {@code onEnableByPublic} after clearing the signed-in flag (#237). That is asserted here rather
- * than written in a comment somewhere.
+ * {@code onEnableByPublic} after clearing the signed-in flag (#237) - except for the
+ * state-dependent entries: locked, the lock entry is offered as "Unlock workspace..." to bring the
+ * unlock prompt back (#889). That is asserted here rather than written in a comment somewhere.
  */
 class PublicMenuInventoryUiTest extends AbstractUiTest
 {
@@ -98,6 +99,14 @@ class PublicMenuInventoryUiTest extends AbstractUiTest
 			"Metal", "Ocean", "Motif", "Nimbus", "System", "FlatLaf Dark", "FlatLaf IntelliJ",
 			"FlatLaf Darcula", "Plugins", "Checksum", "Verify Checksum", "Checksum and MAC",
 			"Password Hashing", "Help", "Donate", "Licence", "Info"));
+
+	/**
+	 * What the locked state may offer beyond the public list: the lock entry, which brings the
+	 * unlock prompt back after Cancel (#889). It is state-dependent - with nothing open it stays
+	 * out of reach - so it is allowed in the locked test only, and the test of the state without a
+	 * vault fails if it is offered there
+	 */
+	private static final Set<String> ALLOWED_ONLY_WHILE_LOCKED = Set.of("Unlock workspace...");
 
 	/**
 	 * "FlatLaf Light" is public and still not in the list above: it is the theme the application
@@ -135,7 +144,7 @@ class PublicMenuInventoryUiTest extends AbstractUiTest
 			GuiActionRunner.execute(
 				() -> !MysticCryptApplicationFrame.getInstance().getModelObject().isSignedIn()),
 			"precondition: this is the state without a vault");
-		assertOffersNothingUnlisted(enabled);
+		assertOffersNothingUnlisted(enabled, ALLOWED_PUBLIC_TEXTS);
 		assertToolbarOffersNothingUnlisted();
 		assertTrue(enabled.contains("Verify Checksum"),
 			"the tool this whole issue was raised for has to be reachable without a vault, or the "
@@ -162,8 +171,13 @@ class PublicMenuInventoryUiTest extends AbstractUiTest
 			GuiActionRunner.execute(
 				() -> MysticCryptApplicationFrame.getInstance().getModelObject().isSignedIn()),
 			"precondition: the workspace is locked");
-		assertOffersNothingUnlisted(enabledEntryTexts());
+		Set<String> allowedWhileLocked = new LinkedHashSet<>(ALLOWED_PUBLIC_TEXTS);
+		allowedWhileLocked.addAll(ALLOWED_ONLY_WHILE_LOCKED);
+		Set<String> enabled = enabledEntryTexts();
+		assertOffersNothingUnlisted(enabled, allowedWhileLocked);
 		assertToolbarOffersNothingUnlisted();
+		assertTrue(enabled.containsAll(ALLOWED_ONLY_WHILE_LOCKED),
+			"locked, the way back to the unlock prompt is offered (#889)");
 	}
 
 	/**
@@ -172,11 +186,14 @@ class PublicMenuInventoryUiTest extends AbstractUiTest
 	 *
 	 * @param offered
 	 *            the entries currently enabled
+	 * @param allowed
+	 *            the entries this state may offer
 	 */
-	private static void assertOffersNothingUnlisted(final Set<String> offered)
+	private static void assertOffersNothingUnlisted(final Set<String> offered,
+		final Set<String> allowed)
 	{
 		Set<String> unlisted = new LinkedHashSet<>(offered);
-		unlisted.removeAll(ALLOWED_PUBLIC_TEXTS);
+		unlisted.removeAll(allowed);
 		assertTrue(unlisted.isEmpty(),
 			"offered without a vault, but on no list: " + unlisted + ". Either the entry belongs "
 				+ "in PublicAccess, decided and written down, or it must not be offered here");

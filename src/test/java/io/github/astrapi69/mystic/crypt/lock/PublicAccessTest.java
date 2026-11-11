@@ -29,6 +29,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Arrays;
+import java.util.Set;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -84,6 +85,44 @@ class PublicAccessTest
 		assertFalse(PublicAccess.isPublicMenuId(MenuId.SAVE_APPLICATION_FILE.propertiesKey()));
 		assertFalse(PublicAccess.isPublicMenuId(MenuId.SEARCH.propertiesKey()));
 		assertFalse(PublicAccess.isPublicMenuId(MenuId.SECRET_KEY.propertiesKey()));
+	}
+
+	@ParameterizedTest(name = "{0}, aVaultIsOpen={1}, declaredPublic={2} -> {3}")
+	@CsvSource({
+			// the lock entry: the way back to the unlock prompt while a vault is locked (#889),
+			// whatever the lists say, and nothing to do without a vault
+			"global.menu.file.lock.workspace,  true,  false, true",
+			"global.menu.file.lock.workspace,  false, false, false",
+			"global.menu.file.lock.workspace,  false, true,  false",
+			// the new database button: refused while a vault is locked, the way to a first one
+			// with nothing open (#270)
+			"global.toolbar.menu.file.new.database, true,  true,  false",
+			"global.toolbar.menu.file.new.database, false, false, true",
+			// every other entry follows its declaration, locked or not
+			"global.menu.file.save,             true,  false, false",
+			"global.menu.file.exit,             true,  true,  true",
+			"global.menu.file.exit,             false, true,  true" })
+	@DisplayName("without a sign-in, the state-dependent entries ask the state and the rest their declaration")
+	void stateDependentEntriesAskTheState(final String name, final boolean aVaultIsOpen,
+		final boolean declaredPublic, final boolean expected)
+	{
+		assertEquals(expected,
+			PublicAccess.isOfferedWithoutSignIn(name, aVaultIsOpen, declaredPublic));
+	}
+
+	@Test
+	@DisplayName("the state-dependent entries are the lock entry and the new database button, on no list")
+	void theStateDependentEntriesAreKnownAndOnNoList()
+	{
+		assertEquals(Set.of(MenuId.LOCK_WORKSPACE.propertiesKey(),
+			MenuId.NEW_DATABASE_TOOL_BAR.propertiesKey()), PublicAccess.stateDependentIds());
+		PublicAccess.stateDependentIds().forEach(name -> {
+			assertFalse(PublicAccess.isPublicMenuId(name), name + " is on the public menu list");
+			assertFalse(PublicAccess.isPublicToolbarId(name),
+				name + " is on the public toolbar list");
+		});
+		assertFalse(PublicAccess.isOfferedWithoutSignIn(null, true, false),
+			"an entry without a name is not state-dependent and not public");
 	}
 
 	@Test
