@@ -24,6 +24,7 @@
  */
 package io.github.astrapi69.mystic.crypt.ui;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.File;
@@ -33,6 +34,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 
 import org.assertj.swing.edt.GuiActionRunner;
+import org.assertj.swing.fixture.DialogFixture;
 import org.assertj.swing.fixture.FrameFixture;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -45,11 +47,12 @@ import io.github.astrapi69.mystic.crypt.lock.IdleLockWatchdog;
  * An edit typed into an open entry dialog is work the user has done, and the automatic lock and
  * close have to treat it as such (#303).
  * <p>
- * The dialog binds its fields onto the entry that lives in the tree, so what is typed is already in
- * the model - but nothing sets the dirty flag, and every decision downstream reads that flag: the
+ * What is typed stays in the dialog until OK, which works on a copy of the entry (#881), and
+ * nothing sets the dirty flag before then, while every decision downstream reads that flag: the
  * lock saves nothing, and the close that follows fifteen minutes later sees a clean model, wipes
- * every entry and drops it. The user walked away mid-edit and came back to a vault without the
- * change.
+ * every entry and drops it under the open dialog. The user walked away mid-edit and came back to a
+ * vault without the change. So the close waits while the editor is open, and the typed change is
+ * still there to be confirmed into the vault it belongs to.
  * <p>
  * Driven over a clock this test moves rather than fifteen real minutes, through the frame's own
  * workspace adapter, so the code under test is the real one.
@@ -77,24 +80,39 @@ class OpenEditorSurvivesTheIdleLockUiTest extends AbstractUiTest
 		application.saveDatabase();
 
 		application.selectEntryRowByTitle(frame, ORIGINAL_TITLE);
-		application.openTheEditDialogAndType(frame, TYPED_TITLE);
+		DialogFixture editor = application.openTheEditDialogAndType(frame, TYPED_TITLE);
 
-		System.out.println("PROBE after typing: model holds typed="
-			+ theModelStillHolds(TYPED_TITLE) + " original=" + theModelStillHolds(ORIGINAL_TITLE)
-			+ " unsaved=" + GuiActionRunner.execute(() -> MysticCryptApplicationFrame.getInstance()
+		System.out.println("PROBE after typing: editor holds typed=" + theEditorHolds(editor)
+			+ " model holds original=" + theModelStillHolds(ORIGINAL_TITLE) + " unsaved="
+			+ GuiActionRunner.execute(() -> MysticCryptApplicationFrame.getInstance()
 				.asLockableWorkspace().hasUnsavedChanges()));
 
 		theIdleTimeoutRuns();
 
-		System.out.println("PROBE after the timeout: model holds typed="
-			+ theModelStillHolds(TYPED_TITLE) + " original=" + theModelStillHolds(ORIGINAL_TITLE)
-			+ " vaultOpen=" + GuiActionRunner.execute(() -> MysticCryptApplicationFrame
-				.getInstance().asLockableWorkspace().aVaultIsOpen()));
+		boolean vaultOpen = GuiActionRunner.execute(
+			() -> MysticCryptApplicationFrame.getInstance().asLockableWorkspace().aVaultIsOpen());
+		System.out.println("PROBE after the timeout: editor holds typed=" + theEditorHolds(editor)
+			+ " model holds original=" + theModelStillHolds(ORIGINAL_TITLE) + " vaultOpen="
+			+ vaultOpen);
 
-		assertTrue(theModelStillHolds(TYPED_TITLE) || theFileHolds(databaseFile, TYPED_TITLE),
-			"the typed change has to be somewhere afterwards - in memory or on disk. It was in "
-				+ "neither, which is the whole of #303: the dialog holds work the flag does not "
-				+ "know about, so the lock saved nothing and the close discarded everything");
+		assertTrue(vaultOpen && theModelStillHolds(ORIGINAL_TITLE),
+			"the vault the typed change belongs to has to be open afterwards, its entry intact: "
+				+ "the close that does not wait for the open editor is the whole of #303 - it "
+				+ "wiped every entry and dropped the vault under the dialog");
+		assertEquals(TYPED_TITLE, theEditorHolds(editor),
+			"the typed change has to be still in the open editor, to be confirmed");
+	}
+
+	/**
+	 * What the open editor holds as the title
+	 *
+	 * @param editor
+	 *            the open "Edit Crypt Entry" dialog
+	 * @return the title typed into it
+	 */
+	private static String theEditorHolds(final DialogFixture editor)
+	{
+		return GuiActionRunner.execute(() -> editor.textBox("txtEntryName").target().getText());
 	}
 
 	/**
@@ -162,13 +180,5 @@ class OpenEditorSurvivesTheIdleLockUiTest extends AbstractUiTest
 			}
 			return false;
 		});
-	}
-
-	/** Whether the vault file on disk holds the given title, read back through a fresh sign-in */
-	private boolean theFileHolds(final File databaseFile, final String title) throws Exception
-	{
-		shutdownApplication();
-		ApplicationSteps reopened = signInWithExistingDatabase(databaseFile, MASTER_PASSWORD);
-		return reopened.entryExistsWithTitle(title);
 	}
 }

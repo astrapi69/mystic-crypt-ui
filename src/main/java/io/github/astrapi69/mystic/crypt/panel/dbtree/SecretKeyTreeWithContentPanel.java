@@ -1556,16 +1556,24 @@ public class SecretKeyTreeWithContentPanel
 		}
 	}
 
+	/**
+	 * Lets the user change an entry in the dialog "Edit Crypt Entry", which works on a copy of it:
+	 * OK takes the copy onto the entry, Cancel overwrites what was typed and leaves the entry as it
+	 * was (#881)
+	 *
+	 * @param tableEntry
+	 *            the entry to edit, the one the tree holds
+	 */
 	private void showEditMysticCryptEntryDialog(MysticCryptEntryModelBean tableEntry)
 	{
 		if (refusesAChange())
 		{
 			return;
 		}
-		MysticCryptEntryTabbedPanel panel = new MysticCryptEntryTabbedPanel(
-			BaseModel.of(tableEntry));
-		// counted while it is open, because what is typed here is already on the entry in the tree
-		// while the dirty flag knows nothing about it - and the automatic lock and close ask (#303)
+		MysticCryptEntryModelBean edited = EntryEditing.copyOf(tableEntry);
+		MysticCryptEntryTabbedPanel panel = new MysticCryptEntryTabbedPanel(BaseModel.of(edited));
+		// counted while it is open, because what is typed here is in the dialog until OK while the
+		// dirty flag knows nothing about it - and the automatic lock and close ask (#303)
 		OpenEditors.opened();
 		final int option;
 		try
@@ -1580,27 +1588,21 @@ public class SecretKeyTreeWithContentPanel
 			OpenEditors.closed();
 		}
 
-		if (option == JOptionPane.OK_OPTION)
+		if (option != JOptionPane.OK_OPTION)
 		{
-			List<MysticCryptEntryModelBean> data = getTblTreeEntryTable().getGenericTableModel()
-				.getData();
-			int index = data.indexOf(tableEntry);
-			data.remove(tableEntry);
-			MysticCryptEntryModelBean modelObject = panel.getModelObject();
-			if (modelObject.isExpirable()
-				&& panel.getMysticCryptEntryPanel().getTxtExpires().getSelectedDate() != null)
-			{
-				modelObject
-					.setExpires(panel.getMysticCryptEntryPanel().getTxtExpires().getSelectedDate());
-			}
-			// an actual edit is the only thing that sets this. Filling it on load or on first save
-			// would invent a fact that reads later as measured, so empty stays empty until here
-			// (#273)
-			EntryIdentitySupport.markAsModified(modelObject);
-			data.add(index, modelObject);
-
-			getBaseTreeNodeModel();
+			EntryEditing.discard(tableEntry, edited);
+			return;
 		}
+		if (edited.isExpirable()
+			&& panel.getMysticCryptEntryPanel().getTxtExpires().getSelectedDate() != null)
+		{
+			edited.setExpires(panel.getMysticCryptEntryPanel().getTxtExpires().getSelectedDate());
+		}
+		EntryEditing.takeOver(tableEntry, edited);
+		// an actual edit is the only thing that sets this. Filling it on load or on first save
+		// would invent a fact that reads later as measured, so empty stays empty until here (#273)
+		EntryIdentitySupport.markAsModified(tableEntry);
+		getBaseTreeNodeModel();
 	}
 
 	/**

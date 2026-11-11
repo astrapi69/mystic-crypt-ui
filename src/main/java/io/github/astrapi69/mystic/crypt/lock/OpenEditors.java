@@ -29,11 +29,11 @@ import java.util.concurrent.atomic.AtomicInteger;
 /**
  * How many entry editors are open right now, so the lock and the close can ask (#303).
  * <p>
- * An edit typed into an entry dialog is already in the model - the dialog binds its fields onto the
- * entry that lives in the tree - but nothing sets the dirty flag, and every decision downstream
- * read that flag alone. The automatic lock therefore saved nothing and the automatic close that
- * followed saw a clean model, wiped every entry and dropped it. The user walked away mid-edit and
- * came back to a vault without the change.
+ * An edit typed into an entry dialog lives in the dialog until OK - the dialog works on a copy of
+ * the entry (#881) - and nothing sets the dirty flag before then, while every decision downstream
+ * read that flag alone. The automatic close therefore saw a clean model, wiped every entry and
+ * dropped it under the open dialog. The user walked away mid-edit and came back to a vault without
+ * the change.
  * <p>
  * The flag describes what the model has committed; an open editor holds what the user has typed.
  * Both are the user's work, and only one of them was being protected. Making every keystroke set
@@ -64,9 +64,9 @@ public final class OpenEditors
 	}
 
 	/**
-	 * Notes that an editor was closed, confirmed or cancelled alike - a cancelled dialog has
-	 * already written what was typed onto the entry, so it is not the moment to stop counting the
-	 * work as pending; the moment is when no editor is left
+	 * Notes that an editor was closed, confirmed or cancelled alike: a confirmed edit is on the
+	 * entry and in the dirty flag from then on, a cancelled one is gone, and either way this editor
+	 * holds nothing any more. The work stops counting as pending when no editor is left
 	 */
 	public static void closed()
 	{
