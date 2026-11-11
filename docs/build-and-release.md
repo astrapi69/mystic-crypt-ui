@@ -565,7 +565,7 @@ Also check `DEPLOYMENT-INFO.md` for the info-dialog version literals described u
 
 ## Continuous integration
 
-Two workflows under `.github/workflows/`:
+Among the workflows under `.github/workflows/`:
 
 - **`gradle.yml`** ("Java CI with Gradle"), on push and pull request against `master` and
   `develop`. Temurin JDK 25, `gradle/actions/setup-gradle`, installs Xvfb, fluxbox, wmctrl,
@@ -581,6 +581,12 @@ Two workflows under `.github/workflows/`:
   not covered / total into the job summary from `build/reports/pitest/mutations.xml`, and
   uploads the HTML report. It is kept off the push path on purpose: PIT reruns the
   covering tests for every mutation, so it is far slower than a normal build.
+- **`wiki-mirror.yml`** ("Wiki mirror"), on push to `master` that changes `docs/wiki/**`, and on
+  `workflow_dispatch`, never on a pull request. It runs `scripts/mirror-wiki.sh`, which clones the
+  GitHub wiki with plain git, writes and deletes pages until the wiki holds exactly the pages of
+  `docs/wiki/`, names every page written or deleted, and pushes; the list goes into the job
+  summary. It needs `contents: write` and nothing else. A `docs/wiki/` without a page, a wiki it
+  cannot clone and a refused push each fail the run (#869).
 
 ## Gradle build layout
 
