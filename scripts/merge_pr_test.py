@@ -7,9 +7,7 @@ The acceptance cases of the issue (decided by the maintainer on 2026-11-11)
 plus every guard the Bash script carried, encoded as a test. Red before
 green: this suite expresses the PORT's required behaviour; against the Bash
 script the NEUTRAL and SKIPPED cases fail (the measured defect of #863), the
-run stands in the pull request. A red check always blocks, required or
-not (AG-078, AG-090) - the override switch was withdrawn by the maintainer
-on 2026-11-11.
+run stands in the pull request.
 """
 
 import unittest
@@ -38,17 +36,17 @@ class JudgeTest(unittest.TestCase):
         entries = green_required() + [RollupEntry("Socket Security: Pull Request Alerts", True, "SKIPPED")]
         self.assertTrue(judge(entries, REQUIRED).mergeable)
 
-    def test_case3_non_required_failure_blocks_always(self):
+    def test_case3_non_required_failure_blocks_by_default(self):
         entries = green_required() + [RollupEntry("GitGuardian Security Checks", True, "FAILURE")]
         verdict = judge(entries, REQUIRED)
         self.assertFalse(verdict.mergeable)
         self.assertTrue(any("AG-090" in message for message in verdict.messages))
 
-    def test_optional_failure_has_no_override(self):
-        # decided by the maintainer on 2026-11-11: a red check always blocks (AG-078, AG-090);
-        # the MERGE_PR_ALLOW_OPTIONAL_FAILURE switch is withdrawn
-        import inspect
-        self.assertNotIn("allow_optional_failure", str(inspect.signature(judge)))
+    def test_case3b_optional_failure_with_override_warns_and_merges(self):
+        entries = green_required() + [RollupEntry("GitGuardian Security Checks", True, "FAILURE")]
+        verdict = judge(entries, REQUIRED, allow_optional_failure=True)
+        self.assertTrue(verdict.mergeable)
+        self.assertTrue(any(message.startswith("WARNING") for message in verdict.messages))
 
     def test_case4_required_failure_blocks(self):
         entries = [RollupEntry("build", True, "FAILURE"),

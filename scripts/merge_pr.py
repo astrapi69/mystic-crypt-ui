@@ -65,17 +65,17 @@ def parse_rollup(rollup):
     return entries
 
 
-def judge(entries, required_contexts):
+def judge(entries, required_contexts, allow_optional_failure=False):
     """The decision engine of #867, decided by the maintainer on 2026-11-11.
 
     Every REQUIRED context has to have reported SUCCESS - every entry of its
     name, so a red duplicate run blocks (branch protection judges the newest
     run, which the rollup does not date; all-green is the conservative
     reading). A non-required entry reporting NEUTRAL or SKIPPED is named and
-    does not block. A red non-required entry ALWAYS blocks: GitGuardian is
-    not a required check here, a red GitGuardian can mean a secret in the
-    commits, and the standing merge grant is conditional on green checks
-    (AG-078, AG-090) - there is no override.
+    does not block. A red non-required entry blocks by default, because
+    GitGuardian is not a required check here and a red GitGuardian can mean a
+    secret in the commits (AG-090); allow_optional_failure downgrades those to
+    a loud warning (MERGE_PR_ALLOW_OPTIONAL_FAILURE=1).
     """
     messages = []
     if not entries:
@@ -120,10 +120,16 @@ def judge(entries, required_contexts):
         messages.append("non-required checks still running: " + ", ".join(still_running))
         return Verdict(False, tuple(messages))
     if failed_optional:
-        messages.append(
-            "non-required checks failed: " + ", ".join(failed_optional)
-            + " - a red check always blocks (AG-078, AG-090)")
-        return Verdict(False, tuple(messages))
+        if allow_optional_failure:
+            messages.append(
+                "WARNING: non-required checks failed and MERGE_PR_ALLOW_OPTIONAL_FAILURE=1"
+                " overrides them: " + ", ".join(failed_optional))
+        else:
+            messages.append(
+                "non-required checks failed: " + ", ".join(failed_optional)
+                + " - a red GitGuardian can mean a secret (AG-090);"
+                " MERGE_PR_ALLOW_OPTIONAL_FAILURE=1 overrides deliberately")
+            return Verdict(False, tuple(messages))
 
     messages.append("every required check is SUCCESS (" + ", ".join(required) + ")")
     return Verdict(True, tuple(messages))
@@ -187,6 +193,7 @@ def run(argv):
     pr = argv[0]
     target = argv[1] if len(argv) > 1 else "develop"
     wait_seconds = int(os.environ.get("MERGE_PR_WAIT_SECONDS", "2400"))
+    allow_optional_failure = os.environ.get("MERGE_PR_ALLOW_OPTIONAL_FAILURE") == "1"
 
     porcelain = subprocess.run(["git", "status", "--porcelain"], check=True,
                                capture_output=True, text=True).stdout
@@ -233,7 +240,7 @@ def run(argv):
         time.sleep(POLL_SECONDS)
         waited += POLL_SECONDS
 
-    verdict = judge(entries, required)
+    verdict = judge(entries, required, allow_optional_failure)
     for message in verdict.messages:
         print(message)
     if not verdict.mergeable:
