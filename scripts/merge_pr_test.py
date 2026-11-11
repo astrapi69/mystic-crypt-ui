@@ -203,6 +203,13 @@ class GuardTest(unittest.TestCase):
     def test_another_pulls_fragment_does_not_count(self):
         self.assertIsNotNone(fragment_error("feat: a", "899", ["changelog.d/898.added.md"]))
 
+    def test_a_fragment_already_on_the_target_branch_counts(self):
+        # the pilot transition carried the fragments of the then-open pull requests
+        self.assertIsNone(fragment_error("fix: b", "898", ["src/X.java"],
+                                         existing_fragments=["898.fixed.md", "870.added.md"]))
+        self.assertIsNotNone(fragment_error("fix: b", "897", ["src/X.java"],
+                                            existing_fragments=["898.fixed.md"]))
+
     def test_a_wrong_section_does_not_count(self):
         self.assertIsNotNone(fragment_error("feat: a", "899", ["changelog.d/899.misc.md"]))
 
