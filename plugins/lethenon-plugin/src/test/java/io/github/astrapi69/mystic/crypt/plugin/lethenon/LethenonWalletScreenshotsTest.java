@@ -149,7 +149,7 @@ class LethenonWalletScreenshotsTest
 				backup.onExportConfirmed();
 			}), new State("12-backup-check-mismatch", 1, false, panel -> {
 				panel.onBackupCheck();
-				panel.getBackupPanel().getModelObject().setCheckWords(Wallet.create().phrase());
+				Windows.paste(panel, "txtCheckWords1", Wallet.create().phrase());
 				panel.getBackupPanel().onCheckConfirmed();
 			}),
 			new State("13-overview-main-network", 2, false,
@@ -158,7 +158,7 @@ class LethenonWalletScreenshotsTest
 				panel.onRestore();
 				List<String> words = new ArrayList<>(List.of(Wallet.create().phrase().split(" ")));
 				words.set(11, "qqq");
-				panel.getModelObject().setWords(String.join(" ", words));
+				Windows.paste(panel, "txtWords1", String.join(" ", words));
 				panel.onRestoreConfirmed();
 			}));
 		return states.stream().flatMap(state -> Stream.of(new Object[] { state, Locale.ENGLISH },

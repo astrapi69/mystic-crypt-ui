@@ -26,14 +26,17 @@ package io.github.astrapi69.mystic.crypt.plugin.lethenon;
 
 import java.util.List;
 
+import io.github.astrapi69.lethenon.SeedPhrase;
+
 /**
  * The state of {@link LethenonWalletPanel}, in one object rather than scattered across its widgets
  * (architecture.md): which view is shown, the wallets of the vault and the one chosen, what the
  * forms hold and why the last action was refused.
  * <p>
  * Passwords are {@code char[]}, never Strings, and are overwritten when they
- * are replaced or cleared. The words typed for a restore are a String, because a text area holds
- * one; it is emptied after every restore, and the decision record names that limit.
+ * are replaced or cleared. The words typed for a restore are 24 Strings, one per field of its
+ * {@link WordGrid}, because text fields hold them; they are emptied after every restore, and the
+ * decision record names that limit.
  */
 public class LethenonWalletPanelModel
 {
@@ -52,7 +55,7 @@ public class LethenonWalletPanelModel
 
 	private String walletFile = "";
 
-	private String words = "";
+	private final TypedWords words = new TypedWords();
 
 	private String backupNotice = "";
 
@@ -134,14 +137,35 @@ public class LethenonWalletPanelModel
 		this.walletFile = walletFile == null ? "" : walletFile;
 	}
 
+	/**
+	 * Gets the words of the restore, as the restore reads them
+	 *
+	 * @return the 24 positions in order, separated by one space
+	 */
 	public String getWords()
 	{
-		return words;
+		return words.phrase();
 	}
 
+	/**
+	 * Sets the words of the restore as a paste does: each word of the phrase at its position
+	 *
+	 * @param words
+	 *            the phrase; a missing one empties every position
+	 */
 	public void setWords(String words)
 	{
-		this.words = words == null ? "" : words;
+		this.words.spread(SeedPhrase.parse(words == null ? "" : words));
+	}
+
+	/**
+	 * Gets the 24 positions the restore's grid writes to (#804)
+	 *
+	 * @return the positions
+	 */
+	TypedWords getTypedWords()
+	{
+		return words;
 	}
 
 	public String getBalance()

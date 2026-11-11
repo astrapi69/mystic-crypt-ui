@@ -24,14 +24,17 @@
  */
 package io.github.astrapi69.mystic.crypt.plugin.lethenon;
 
+import io.github.astrapi69.lethenon.SeedPhrase;
+
 /**
  * The state of {@link LethenonBackupPanel}, in one object rather than scattered across its widgets
  * (architecture.md): the step, the asked positions and the answers, the choice to store the words,
  * the export file and its checksum, the words of a check, and why the last action was refused.
  * <p>
  * The wallet password and the shown words are {@code char[]} and are overwritten when replaced or
- * cleared. The answers and the words of a check are Strings, because text fields hold them; they
- * are emptied when the assistant ends and when the vault locks.
+ * cleared. The answers and the 24 words of a check, one per field of its {@link WordGrid}, are
+ * Strings, because text fields hold them; they are emptied when the assistant ends and when the
+ * vault locks.
  */
 public class LethenonBackupPanelModel
 {
@@ -59,7 +62,7 @@ public class LethenonBackupPanelModel
 
 	private String checksum = "";
 
-	private String checkWords = "";
+	private final TypedWords checkWords = new TypedWords();
 
 	private String checkResult = "";
 
@@ -173,14 +176,35 @@ public class LethenonBackupPanelModel
 		this.checksum = checksum == null ? "" : checksum;
 	}
 
+	/**
+	 * Gets the words of the check, as the check reads them
+	 *
+	 * @return the 24 positions in order, separated by one space
+	 */
 	public String getCheckWords()
 	{
-		return checkWords;
+		return checkWords.phrase();
 	}
 
+	/**
+	 * Sets the words of the check as a paste does: each word of the phrase at its position
+	 *
+	 * @param checkWords
+	 *            the phrase; a missing one empties every position
+	 */
 	public void setCheckWords(String checkWords)
 	{
-		this.checkWords = checkWords == null ? "" : checkWords;
+		this.checkWords.spread(SeedPhrase.parse(checkWords == null ? "" : checkWords));
+	}
+
+	/**
+	 * Gets the 24 positions the check's grid writes to (#804)
+	 *
+	 * @return the positions
+	 */
+	TypedWords getTypedCheckWords()
+	{
+		return checkWords;
 	}
 
 	public String getCheckResult()
@@ -240,7 +264,7 @@ public class LethenonBackupPanelModel
 		exportFile = "";
 		exportUnderstood = false;
 		checksum = "";
-		checkWords = "";
+		checkWords.clear();
 		checkResult = "";
 		refusal = "";
 	}
