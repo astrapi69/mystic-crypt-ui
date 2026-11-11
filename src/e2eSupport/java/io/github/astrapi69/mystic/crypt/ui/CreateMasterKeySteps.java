@@ -101,9 +101,18 @@ final class CreateMasterKeySteps
 
 	CreateMasterKeySteps typeMasterPasswordWithRepeat(String masterPassword)
 	{
+		return typeMasterPassword(masterPassword, masterPassword);
+	}
+
+	/**
+	 * Types the master password and, into "Repeat Password:", what is given as its repeat, which
+	 * may differ from it (#879)
+	 */
+	CreateMasterKeySteps typeMasterPassword(String masterPassword, String repeat)
+	{
 		GuiActionRunner.execute(() -> {
 			dialog.textBox("txtMasterPw").target().setText(masterPassword);
-			dialog.textBox("txtRepeatPw").target().setText(masterPassword);
+			dialog.textBox("txtRepeatPw").target().setText(repeat);
 		});
 		robot.waitForIdle();
 		UiTestSpeed.step();
