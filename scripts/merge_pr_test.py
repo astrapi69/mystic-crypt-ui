@@ -218,6 +218,12 @@ class GuardTest(unittest.TestCase):
                       "docs: d", "refactor(x): e"):
             self.assertIsNone(conventional_title_error(title), title)
 
+    def test_a_title_with_an_issue_number_is_refused(self):
+        # the number belongs in the text as Closes #<n>; the merge appends the PR number itself
+        message = conventional_title_error("fix(vault): a save keeps its backup (#847)")
+        self.assertIsNotNone(message)
+        self.assertIn("Closes", message)
+
     def test_non_conventional_titles_are_refused(self):
         for title in ("Update README", "Feat: capital", "feat:missing space", "", None,
                       "feature: wrong type"):
