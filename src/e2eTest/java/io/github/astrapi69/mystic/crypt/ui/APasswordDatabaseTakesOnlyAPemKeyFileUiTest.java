@@ -24,13 +24,25 @@
  */
 package io.github.astrapi69.mystic.crypt.ui;
 
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import java.awt.Component;
+import java.awt.Container;
+import java.awt.Window;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.OutputStream;
 import java.nio.file.Files;
 import java.security.PrivateKey;
 import java.security.Security;
+import java.util.concurrent.TimeUnit;
 
+import javax.swing.JDialog;
+import javax.swing.JOptionPane;
+
+import org.assertj.swing.edt.GuiActionRunner;
+import org.assertj.swing.timing.Condition;
+import org.assertj.swing.timing.Pause;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -51,9 +63,9 @@ import io.github.astrapi69.mystic.crypt.panel.signin.MasterPwFileModelBean;
  * that create and open one are not to offer it a DER key file (#943). A database with its key file
  * alone keeps taking DER.
  * <p>
- * PIN of the behaviour before the fix, green on it: with the master password checked, both dialogs
- * take a DER key file and enable OK, and so does checking the master password after a DER key file
- * was chosen. The fix turns those three; the key-file-only case stays.
+ * With the master password checked, both dialogs took a DER key file and enabled OK, and so did
+ * checking the master password after a DER key file was chosen; OK then failed. Now the dialog says
+ * which file is not PEM and keeps OK disabled until a PEM key file is chosen.
  */
 class APasswordDatabaseTakesOnlyAPemKeyFileUiTest extends AbstractUiTest
 {
@@ -80,33 +92,41 @@ class APasswordDatabaseTakesOnlyAPemKeyFileUiTest extends AbstractUiTest
 	}
 
 	@Test
-	@DisplayName("PIN: creating with a master password, a DER key file chosen: OK goes ahead")
-	void create_takesADerKeyFile_withAMasterPassword()
+	@DisplayName("creating with a master password: a DER key file is named and not taken, a PEM one is")
+	void create_takesOnlyAPemKeyFile_withAMasterPassword() throws Exception
 	{
-		launchApplication().startNewDatabase(new File(tempHome, "new.mcrdb")).checkMasterPassword()
-			.typeMasterPasswordWithRepeat(password).checkKeyFile().browseKeyFile(derKeyFile)
+		CreateMasterKeySteps create = launchApplication()
+			.startNewDatabase(new File(tempHome, "new.mcrdb")).checkMasterPassword()
+			.typeMasterPasswordWithRepeat(password).checkKeyFile().browseKeyFile(derKeyFile);
+
+		requireTheNoticeFor(derKeyFile);
+		create.requireOkDisabled().browseKeyFile(aPemKeyFile()).requireOkEnabled();
+	}
+
+	@Test
+	@DisplayName("signing in with a master password: a DER key file is named and not taken, a PEM one is")
+	void signIn_takesOnlyAPemKeyFile_withAMasterPassword() throws Exception
+	{
+		File database = aPasswordAndKeyFileDatabase();
+		SignInDialogSteps signIn = launchApplication().checkMasterPassword()
+			.typeMasterPassword(password).checkKeyFile().browseKeyFile(derKeyFile);
+
+		requireTheNoticeFor(derKeyFile);
+		signIn.browseApplicationFile(database).requireOkDisabled().browseKeyFile(aPemKeyFile())
 			.requireOkEnabled();
 	}
 
 	@Test
-	@DisplayName("PIN: signing in with a master password, a DER key file chosen: OK goes ahead")
-	void signIn_takesADerKeyFile_withAMasterPassword() throws Exception
-	{
-		File database = aPasswordAndKeyFileDatabase();
-
-		launchApplication().checkMasterPassword().typeMasterPassword(password).checkKeyFile()
-			.browseKeyFile(derKeyFile).browseApplicationFile(database).requireOkEnabled();
-	}
-
-	@Test
-	@DisplayName("PIN: a DER key file chosen first, then the master password checked: OK goes ahead")
-	void signIn_takesADerKeyFile_whenTheMasterPasswordIsCheckedAfterIt() throws Exception
+	@DisplayName("a DER key file chosen first, then the master password checked: the file is named and OK stays disabled")
+	void signIn_namesTheDerKeyFile_whenTheMasterPasswordIsCheckedAfterIt() throws Exception
 	{
 		File database = aPasswordAndKeyFileDatabase();
 		SignInDialogSteps signIn = launchApplication().uncheckMasterPassword().checkKeyFile()
 			.browseKeyFile(derKeyFile).browseApplicationFile(database);
 
-		signIn.checkMasterPassword().typeMasterPassword(password).requireOkEnabled();
+		signIn.checkMasterPassword();
+		requireTheNoticeFor(derKeyFile);
+		signIn.typeMasterPassword(password).requireOkDisabled();
 	}
 
 	@Test
@@ -119,11 +139,78 @@ class APasswordDatabaseTakesOnlyAPemKeyFileUiTest extends AbstractUiTest
 			.browseApplicationFile(database).requireOkEnabled();
 	}
 
+	/** Waits for the notice that names the key file, checks its words and closes it */
+	private void requireTheNoticeFor(final File keyFile)
+	{
+		Pause.pause(new Condition("the notice that the key file is not PEM")
+		{
+			@Override
+			public boolean test()
+			{
+				return warning() != null;
+			}
+		}, TimeUnit.SECONDS.toMillis(15));
+		JOptionPane notice = warning();
+		String words = GuiActionRunner.execute(() -> String.valueOf(notice.getMessage()));
+		GuiActionRunner.execute(() -> notice.setValue(JOptionPane.OK_OPTION));
+		robot.waitForIdle();
+		assertTrue(words.contains(keyFile.getAbsolutePath())
+			&& words.contains("takes its key file as PEM"), words);
+	}
+
+	private static JOptionPane warning()
+	{
+		return GuiActionRunner.execute(() -> {
+			for (Window window : Window.getWindows())
+			{
+				if (window instanceof JDialog dialog && dialog.isShowing())
+				{
+					JOptionPane optionPane = optionPaneIn(dialog);
+					if (optionPane != null
+						&& optionPane.getMessageType() == JOptionPane.WARNING_MESSAGE)
+					{
+						return optionPane;
+					}
+				}
+			}
+			return null;
+		});
+	}
+
+	private static JOptionPane optionPaneIn(final Container container)
+	{
+		for (Component component : container.getComponents())
+		{
+			if (component instanceof JOptionPane optionPane)
+			{
+				return optionPane;
+			}
+			if (component instanceof Container child)
+			{
+				JOptionPane inside = optionPaneIn(child);
+				if (inside != null)
+				{
+					return inside;
+				}
+			}
+		}
+		return null;
+	}
+
+	private File aPemKeyFile() throws Exception
+	{
+		File pemKeyFile = new File(tempHome, "database.pem");
+		if (!pemKeyFile.isFile())
+		{
+			PrivateKeyWriter.writeInPemFormat(key, pemKeyFile);
+		}
+		return pemKeyFile;
+	}
+
 	/** A database with a master password and a key file, made with a PEM copy of the key */
 	private File aPasswordAndKeyFileDatabase() throws Exception
 	{
-		File pemKeyFile = new File(tempHome, "database.pem");
-		PrivateKeyWriter.writeInPemFormat(key, pemKeyFile);
+		File pemKeyFile = aPemKeyFile();
 		File database = new File(tempHome, "database.mcrdb");
 		Files.createFile(database.toPath());
 		ApplicationXmlFileFactory.newApplicationFileWithPasswordAndPrivateKey(
