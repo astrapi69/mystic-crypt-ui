@@ -364,8 +364,9 @@ public class MasterPwWithApplicationFilePanel extends BasePanel<MasterPwFileMode
 				{
 					super.onOk(actionEvent);
 					MasterPwFileModelBean dialogModelObject = this.getModelObject();
-					dialogModelObject
-						.setApplicationFileInfo(FileInfo.toFileInfo(selectedApplicationFile));
+					// the dialog model carries the file the database was actually written to:
+					// Browse... in the dialog may have changed it, and the sign-in must open that
+					// file, not the one picked first (#890)
 					MasterPwWithApplicationFilePanel.this.setModelObject(dialogModelObject);
 					MasterPwWithApplicationFilePanel.this.btnOkStateMachine
 						.setModelObject(dialogModelObject);
@@ -377,8 +378,13 @@ public class MasterPwWithApplicationFilePanel extends BasePanel<MasterPwFileMode
 			};
 			dialog.setSize(840, 520);
 			dialog.setVisible(true);
-			cmbApplicationFileModel.addElement(absolutePath);
-			cmbApplicationFileModel.setSelectedItem(absolutePath);
+			// after OK the panel model is the dialog model and names the written file; after
+			// Cancel it is unchanged and the first chooser file stays the offer
+			String writtenPath = getModelObject().getSelectedApplicationFilePath() != null
+				? getModelObject().getSelectedApplicationFilePath()
+				: absolutePath;
+			cmbApplicationFileModel.addElement(writtenPath);
+			cmbApplicationFileModel.setSelectedItem(writtenPath);
 			toggleApplicationFileComponents();
 			btnOkStateMachine.onApplicationFileAdded(btnOkStateMachine);
 		}
