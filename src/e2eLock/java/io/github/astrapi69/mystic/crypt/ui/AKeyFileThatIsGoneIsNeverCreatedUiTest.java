@@ -24,8 +24,7 @@
  */
 package io.github.astrapi69.mystic.crypt.ui;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.awt.Component;
@@ -61,8 +60,9 @@ import io.github.astrapi69.mystic.crypt.panel.signin.MasterPwFileModelBean;
  * application: the key file is on a drive that is no longer connected, so its directory is gone as
  * well.
  * <p>
- * PIN of the behaviour before the fix, green on it: the failed save and the failed open create the
- * directory and an empty file at the key file's path. The fix turns it.
+ * The failed save and the failed open used to create the directory and an empty file at the key
+ * file's path. Now they create nothing, say which key file is missing, and work once it is back:
+ * the save writes the changes that waited, the sign-in opens the database.
  */
 class AKeyFileThatIsGoneIsNeverCreatedUiTest extends AbstractUiTest
 {
@@ -70,8 +70,8 @@ class AKeyFileThatIsGoneIsNeverCreatedUiTest extends AbstractUiTest
 	private static final String ENTRY_TITLE = "written-once-the-key-file-is-back";
 
 	@Test
-	@DisplayName("PIN: a save while the key file is gone fails and leaves an empty file and its directory at its path")
-	void aSaveWithoutTheKeyFile_createsItEmpty() throws Exception
+	@DisplayName("a save while the key file is gone says so, creates nothing, keeps the changes, and works once it is back")
+	void aSaveWithoutTheKeyFile_createsNothingAndWorksOnceItIsBack() throws Exception
 	{
 		String password = TestPasswords.throwaway();
 		File drive = new File(tempHome, "drive");
@@ -81,21 +81,34 @@ class AKeyFileThatIsGoneIsNeverCreatedUiTest extends AbstractUiTest
 		FrameFixture frame = application.showMainFrame();
 		application.selectTreeRow(frame, 0).addEntry(frame, ENTRY_TITLE, "someone",
 			TestPasswords.throwaway());
-		Files.move(drive.toPath(), new File(tempHome, "drive-in-a-drawer").toPath());
+		File drawer = new File(tempHome, "drive-in-a-drawer");
+		Files.move(drive.toPath(), drawer.toPath());
 
 		application.fireMenuItem(MenuId.SAVE_APPLICATION_FILE.propertiesKey());
 		String failure = awaitAndCloseTheErrorDialog("the failed save is reported");
 
-		assertNotNull(failure);
-		assertTrue(GuiActionRunner
-			.execute(() -> MysticCryptApplicationFrame.getInstance().getModelObject().isDirty()));
-		assertTrue(drive.isDirectory(), "today the save creates the drive's directory");
-		assertEquals(0L, keyFile.length(), "and an empty file where the key file was");
+		assertTrue(failure.contains("The key file " + keyFile.getAbsolutePath() + " is not there."),
+			() -> "the message names the missing key file: " + failure);
+		assertTrue(failure.contains("Your changes are still open and still unsaved."), failure);
+		assertFalse(drive.exists(), "nothing was created where the key file was");
+		assertTrue(
+			GuiActionRunner.execute(
+				() -> MysticCryptApplicationFrame.getInstance().getModelObject().isDirty()),
+			"the changes are still unsaved");
+		assertTrue(application.entryExistsWithTitle(ENTRY_TITLE), "and still in the open vault");
+
+		Files.move(drawer.toPath(), drive.toPath());
+		application.saveDatabase();
+		shutdownApplication();
+
+		signIn(password, keyFile, database);
+		assertTrue(new ApplicationSteps(robot).entryExistsWithTitle(ENTRY_TITLE),
+			"once the key file is back, the save wrote what had waited");
 	}
 
 	@Test
-	@DisplayName("PIN: a key file that is gone between choosing it and OK is created empty at its path")
-	void anOpenWithoutTheKeyFile_createsItEmpty() throws Exception
+	@DisplayName("a key file that is gone between choosing it and OK is named, nothing is created, and OK works once it is back")
+	void anOpenWithoutTheKeyFile_createsNothingAndWorksOnceItIsBack() throws Exception
 	{
 		String password = TestPasswords.throwaway();
 		File drive = new File(tempHome, "drive");
@@ -104,14 +117,19 @@ class AKeyFileThatIsGoneIsNeverCreatedUiTest extends AbstractUiTest
 		SignInDialogSteps signIn = launchApplication();
 		signIn.checkMasterPassword().typeMasterPassword(password).checkKeyFile()
 			.browseKeyFile(keyFile).browseApplicationFile(database).requireOkEnabled();
-		Files.move(drive.toPath(), new File(tempHome, "drive-in-a-drawer").toPath());
+		File drawer = new File(tempHome, "drive-in-a-drawer");
+		Files.move(drive.toPath(), drawer.toPath());
 
 		signIn.clickOk();
 		String failure = awaitAndCloseTheErrorDialog("the failed open is reported");
 
-		assertNotNull(failure);
-		assertTrue(drive.isDirectory(), "today the open creates the drive's directory");
-		assertEquals(0L, keyFile.length(), "and an empty file where the key file was");
+		assertTrue(failure.contains("The key file " + keyFile.getAbsolutePath() + " is not there."),
+			() -> "the message names the missing key file: " + failure);
+		assertFalse(drive.exists(), "nothing was created where the key file was");
+
+		Files.move(drawer.toPath(), drive.toPath());
+		signIn.okAndAwaitSignIn();
+		new ApplicationSteps(robot).awaitSignedIn();
 	}
 
 	/**

@@ -148,9 +148,9 @@ public class ApplicationXmlFileReader
 	{
 		File applicationFile = FileFactory.newFileQuietly(modelObject.getApplicationFileInfo());
 		char[] password = modelObject.getMasterPw();
-		File keyFile = FileFactory.newFileQuietly(modelObject.getKeyFileInfo());
 		try
 		{
+			File keyFile = KeyFileOnDisk.existing(modelObject.getKeyFileInfo());
 			return openedFrom(getApplicationModelBean(applicationFile, password, keyFile),
 				applicationFile, modelObject);
 		}
@@ -167,7 +167,6 @@ public class ApplicationXmlFileReader
 	{
 		ApplicationModelBean applicationModelBean;
 		File applicationFile = FileFactory.newFileQuietly(modelObject.getApplicationFileInfo());
-		File keyFile = FileFactory.newFileQuietly(modelObject.getKeyFileInfo());
 		if (Security.getProvider(BouncyCastleProvider.PROVIDER_NAME) == null)
 		{
 			Security
@@ -182,6 +181,7 @@ public class ApplicationXmlFileReader
 			}
 			else
 			{
+				File keyFile = KeyFileOnDisk.existing(modelObject.getKeyFileInfo());
 				if (PemObjectReader.isPemObject(keyFile))
 				{
 					privateKey = PrivateKeyReader.readPemPrivateKey(keyFile);

@@ -25,6 +25,7 @@
 package io.github.astrapi69.mystic.crypt.app.file.xml;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -34,6 +35,8 @@ import java.util.stream.Stream;
 
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -48,8 +51,9 @@ import io.github.astrapi69.mystic.crypt.panel.signin.MasterPwFileModelBean;
  * What opening and saving leave at the path of a key file that is not there (#937): the key file is
  * in a directory that is gone as well, as on a removable drive that is not connected.
  * <p>
- * PIN of the behaviour before the fix, green on it: each of the four reads of a key file path
- * creates the directory and an empty file there. The fix turns it.
+ * Each of the four reads of a key file path used to create the directory and an empty file there,
+ * so the real key file could not be put back without replacing it. Now none of them creates
+ * anything, and each says which key file is missing.
  */
 class AMissingKeyFileIsNeverCreatedTest
 {
@@ -85,21 +89,58 @@ class AMissingKeyFileIsNeverCreatedTest
 				(KeyFileRead)AMissingKeyFileIsNeverCreatedTest::save));
 	}
 
-	@ParameterizedTest(name = "PIN: {0} leaves an empty file and its directory at the key file's path")
+	@ParameterizedTest(name = "{0} creates nothing at a missing key file's path and names it")
 	@MethodSource("everyReadOfAKeyFilePath")
-	void aMissingKeyFile_isCreated(final String caseName, final boolean withPassword,
+	void aMissingKeyFile_isNeverCreated(final String caseName, final boolean withPassword,
 		final KeyFileRead read)
 	{
 		File drive = new File(directory, "drive-not-connected");
 		File keyFile = new File(drive, "database.pem");
 		MasterPwFileModelBean credentials = credentials(withPassword, keyFile);
 
-		assertThrows(RuntimeException.class, () -> read.run(credentials),
+		RuntimeException refused = assertThrows(RuntimeException.class, () -> read.run(credentials),
 			"there is no key to open or save with");
 
-		assertTrue(drive.isDirectory(), "today the directory of the key file is created");
-		assertTrue(keyFile.isFile(), "and a file at its path");
-		assertEquals(0L, keyFile.length(), "an empty one");
+		assertFalse(keyFile.exists(),
+			"no file at the key file's path, which would block " + "putting the real one back");
+		assertFalse(drive.exists(), "and not its directory either");
+		assertTrue(
+			messagesOf(refused)
+				.contains("The key file " + keyFile.getAbsolutePath() + " is not there."),
+			() -> "the refusal names the missing key file: " + messagesOf(refused));
+	}
+
+	@Test
+	@DisplayName("a database whose key file path is not set is refused with a reason")
+	void aDatabaseWithoutAKeyFilePath_isRefusedWithAReason()
+	{
+		IllegalStateException refused = assertThrows(IllegalStateException.class,
+			() -> KeyFileOnDisk.existing(null));
+
+		assertEquals("No key file is set for this database.", refused.getMessage());
+	}
+
+	@Test
+	@DisplayName("a key file that is there is found, and left as it is")
+	void aKeyFileThatIsThere_isFound() throws Exception
+	{
+		File keyFile = new File(directory, "database.pem");
+		java.nio.file.Files.writeString(keyFile.toPath(), "the key file's content");
+
+		assertEquals(keyFile.getAbsoluteFile(),
+			KeyFileOnDisk.existing(FileInfo.toFileInfo(keyFile)).getAbsoluteFile());
+		assertEquals("the key file's content", java.nio.file.Files.readString(keyFile.toPath()));
+	}
+
+	/** Every message along the cause chain, as the dialogs that show a failure read it */
+	private static String messagesOf(final Throwable failure)
+	{
+		StringBuilder messages = new StringBuilder();
+		for (Throwable cause = failure; cause != null; cause = cause.getCause())
+		{
+			messages.append(cause.getMessage()).append('\n');
+		}
+		return messages.toString();
 	}
 
 	private MasterPwFileModelBean credentials(final boolean withPassword, final File keyFile)

@@ -110,8 +110,9 @@ public final class ApplicationXmlFileStoreWorker
 		}
 		else
 		{
-			privateKey = RuntimeExceptionDecorator.decorate(() -> PrivateKeyReader
-				.readPrivateKey(FileFactory.newFileQuietly(modelObject.getKeyFileInfo())));
+			File keyFile = KeyFileOnDisk.existing(modelObject.getKeyFileInfo());
+			privateKey = RuntimeExceptionDecorator
+				.decorate(() -> PrivateKeyReader.readPrivateKey(keyFile));
 		}
 
 		publicKey = RuntimeExceptionDecorator
@@ -156,8 +157,9 @@ public final class ApplicationXmlFileStoreWorker
 		MasterPwFileModelBean modelObject = applicationModelBean.getMasterPwFileModelBean();
 		refuseWithoutAMasterPassword(modelObject);
 		applicationFile = FileFactory.newFileQuietly(modelObject.getApplicationFileInfo());
-		privateKey = RuntimeExceptionDecorator.decorate(() -> PrivateKeyReader
-			.readPemPrivateKey(FileFactory.newFileQuietly(modelObject.getKeyFileInfo())));
+		File keyFile = KeyFileOnDisk.existing(modelObject.getKeyFileInfo());
+		privateKey = RuntimeExceptionDecorator
+			.decorate(() -> PrivateKeyReader.readPemPrivateKey(keyFile));
 
 		masterPw = modelObject.getMasterPw();
 
