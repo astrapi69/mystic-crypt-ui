@@ -168,7 +168,10 @@ public final class UnlockCheck
 		}
 		try
 		{
-			return PrivateKeyReader.readPemPrivateKey(keyFile);
+			// the same reading opening uses, so the file that opens the database unlocks it:
+			// PrivateKeyReader.readPrivateKey carries the one format branch - PEM with the PKCS#8
+			// label, PEM with the traditional label, binary DER (#880, the review of #936)
+			return PrivateKeyReader.readPrivateKey(keyFile);
 		}
 		catch (Exception notAKey)
 		{

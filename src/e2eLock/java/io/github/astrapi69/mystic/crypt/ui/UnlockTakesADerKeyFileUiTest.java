@@ -38,14 +38,16 @@ import io.github.astrapi69.crypt.data.factory.KeyPairFactory;
 import io.github.astrapi69.crypt.data.key.KeyModelExtensions;
 import io.github.astrapi69.file.create.model.FileInfo;
 import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
-import io.github.astrapi69.mystic.crypt.TestPasswords;
 import io.github.astrapi69.mystic.crypt.app.file.xml.ApplicationXmlFileFactory;
 import io.github.astrapi69.mystic.crypt.panel.signin.MasterPwFileModelBean;
 
 /**
- * Opening accepts a binary DER key file (the non-PEM branch of the reader), so the unlock prompt
- * accepts the same file: a database opened with a DER key file is locked and unlocked with exactly
- * that file, alone and together with a master password (#880, the review of #936)
+ * Opening a key-file-only database accepts a binary DER key file (the non-PEM branch of the
+ * reader), so the unlock prompt accepts the same file: a database opened with a DER key file is
+ * locked and unlocked with exactly that file (#880, the review of #936). A COMBINED database takes
+ * only PEM at opening and saving (ApplicationXmlFileReader line 333, ApplicationXmlFileStoreWorker
+ * line 160), so there is no combined DER database to unlock - measured here: creating one fails in
+ * the factory.
  */
 class UnlockTakesADerKeyFileUiTest extends AbstractUiTest
 {
@@ -63,22 +65,6 @@ class UnlockTakesADerKeyFileUiTest extends AbstractUiTest
 		application.unlockWorkspaceWith(null, keyFile);
 
 		assertTrue(signedIn(), "the DER key file that opened the database must unlock it");
-	}
-
-	@Test
-	@DisplayName("a password-and-DER-key-file database unlocks with both")
-	void aDerCombinedDatabase_unlocksWithBoth() throws Exception
-	{
-		String password = TestPasswords.throwaway();
-		File keyFile = new File(tempHome, "combined.der");
-		File database = createDatabase(keyFile, password);
-		signInWithKeyFile(database, keyFile, password);
-		ApplicationSteps application = new ApplicationSteps(robot).awaitSignedIn();
-
-		application.lockWorkspace();
-		application.unlockWorkspaceWith(password, keyFile);
-
-		assertTrue(signedIn(), "the DER key file and the password must unlock what they opened");
 	}
 
 	/** Creates the database headless, with the private key written as binary DER */
