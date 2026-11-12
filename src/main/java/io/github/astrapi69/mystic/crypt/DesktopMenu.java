@@ -76,7 +76,6 @@ import io.github.astrapi69.mystic.crypt.action.SearchApplicationFileAction;
 import io.github.astrapi69.mystic.crypt.app.file.xml.VaultXmlCodec;
 import io.github.astrapi69.mystic.crypt.eventbus.ApplicationEventBus;
 import io.github.astrapi69.mystic.crypt.lock.PublicAccess;
-import io.github.astrapi69.mystic.crypt.lock.WorkspaceLockDecision;
 import io.github.astrapi69.mystic.crypt.menu.PluginMenuOrder;
 import io.github.astrapi69.mystic.crypt.panel.info.ApplicationInfo;
 import io.github.astrapi69.mystic.crypt.panel.info.ApplicationInfoPanel;
@@ -100,6 +99,17 @@ import lombok.extern.java.Log;
 @Log
 public class DesktopMenu extends BaseDesktopMenu implements EventListener<EventObject<RenderMode>>
 {
+	/** What the lock entry says while a vault is signed in */
+	private static final String LOCK_WORKSPACE_TEXT = Messages.getString(MenuId.LOCK_WORKSPACE_KEY,
+		"Lock workspace");
+
+	/**
+	 * What the lock entry says while the vault is locked, where pressing it brings the unlock
+	 * prompt back (#889)
+	 */
+	private static final String UNLOCK_WORKSPACE_TEXT = Messages
+		.getString("global.menu.file.unlock.workspace", "Unlock workspace...");
+
 	private Map<String, Boolean> enabledMenuIdsWithExistingModel;
 
 	private Map<String, Boolean> enabledMenuIdsWithEmptyModel;
@@ -245,7 +255,7 @@ public class DesktopMenu extends BaseDesktopMenu implements EventListener<EventO
 		fileMenu.addSeparator();
 
 		// Lock workspace (hide content behind a master-password prompt)
-		JMenuItem lockWorkspaceMenuItem = MenuItemInfo.builder().text("Lock workspace")
+		JMenuItem lockWorkspaceMenuItem = MenuItemInfo.builder().text(LOCK_WORKSPACE_TEXT)
 			.name(MenuId.LOCK_WORKSPACE.propertiesKey()).mnemonic(MenuExtensions.toMnemonic('L'))
 			.keyStrokeInfo(
 				KeyStrokeInfo.toKeyStrokeInfo(KeyStrokeExtensions.getKeyStroke("ctrl pressed L")))
@@ -708,12 +718,17 @@ public class DesktopMenu extends BaseDesktopMenu implements EventListener<EventO
 	 */
 	public void onEnableByPublic()
 	{
+		boolean aVaultIsOpen = MysticCryptApplicationFrame.getInstance().getModelObject()
+			.getMasterPwFileModelBean() != null;
 		JMenuBar menubar = getMenubar();
 		List<MenuElement> allMenuElements = ParentMenuResolver.getAllMenuElements(menubar, true);
 		allMenuElements.forEach(menuElement -> {
 			Component component = menuElement.getComponent();
-			component.setEnabled(PublicAccess.isOffered(false, isPublicEntry(component)));
+			component.setEnabled(PublicAccess.isOfferedWithoutSignIn(component.getName(),
+				aVaultIsOpen, isPublicEntry(component)));
 		});
+		// locked, the lock entry brings the unlock prompt back, and says so (#889)
+		nameTheLockEntry(aVaultIsOpen ? UNLOCK_WORKSPACE_TEXT : LOCK_WORKSPACE_TEXT);
 
 		// the toolbar is the same decision on a second surface, so it asks the same predicate. It
 		// used to name what to disable, which meant a button added later was public by default -
@@ -722,17 +737,33 @@ public class DesktopMenu extends BaseDesktopMenu implements EventListener<EventO
 			.getToolBar();
 		if (toolBar != null)
 		{
-			boolean aVaultIsOpen = MysticCryptApplicationFrame.getInstance().getModelObject()
-				.getMasterPwFileModelBean() != null;
-			toolBar.getToolbarItems().forEach(toolbarItem -> toolbarItem
-				.setEnabled(isToolbarItemOffered(toolbarItem.getName(), aVaultIsOpen)));
+			toolBar.getToolbarItems()
+				.forEach(toolbarItem -> toolbarItem.setEnabled(PublicAccess.isOfferedWithoutSignIn(
+					toolbarItem.getName(), aVaultIsOpen,
+					PublicAccess.isPublicToolbarId(toolbarItem.getName()))));
 		}
+	}
+
+	/**
+	 * Gives the lock entry the text that says what pressing it does now
+	 *
+	 * @param text
+	 *            the text
+	 */
+	private void nameTheLockEntry(final String text)
+	{
+		ParentMenuResolver.getAllMenuElements(getMenubar(), true).stream()
+			.map(MenuElement::getComponent)
+			.filter(component -> MenuId.LOCK_WORKSPACE_KEY.equals(component.getName()))
+			.filter(JMenuItem.class::isInstance).map(JMenuItem.class::cast)
+			.forEach(entry -> entry.setText(text));
 	}
 	
 	public void onEnableBySignin()
 	{
 		if (MysticCryptApplicationFrame.getInstance().getModelObject().isSignedIn())
 		{
+			nameTheLockEntry(LOCK_WORKSPACE_TEXT);
 			JMenuBar menubar = getMenubar();
 			List<MenuElement> allMenuElements = ParentMenuResolver.getAllMenuElements(menubar,
 					true);
@@ -826,35 +857,6 @@ public class DesktopMenu extends BaseDesktopMenu implements EventListener<EventO
 	{
 		return VaultXmlCodec
 			.isNewerThanThisBuild(MysticCryptApplicationFrame.getInstance().getModelObject());
-	}
-
-	/**
-	 * Whether a toolbar item is offered while the workspace is not signed in.
-	 * <p>
-	 * Most items answer from the list: named, or private. "New database" cannot, because its
-	 * admissibility depends on the state rather than on its identity - with nothing open it is the
-	 * only way to a first vault, and with a vault LOCKED it must be refused, because creating one
-	 * there signed the workspace back in without the locked vault's master password (#270). One
-	 * identifier, two answers, which a list of names cannot express.
-	 * <p>
-	 * One such item is a branch; a second one would be a pattern. If another state-dependent item
-	 * appears, generalise this into an asking of the predicate per item rather than branching here
-	 * a second time - so that the next reader decides rather than copies.
-	 *
-	 * @param toolbarItemName
-	 *            the component name of the toolbar item
-	 * @param aVaultIsOpen
-	 *            whether a vault is open at all, locked or not
-	 * @return true if the item stays enabled
-	 */
-	private static boolean isToolbarItemOffered(final String toolbarItemName,
-		final boolean aVaultIsOpen)
-	{
-		if (MenuId.NEW_DATABASE_TOOL_BAR.propertiesKey().equals(toolbarItemName))
-		{
-			return WorkspaceLockDecision.mayCreateAVault(aVaultIsOpen);
-		}
-		return PublicAccess.isOffered(false, PublicAccess.isPublicToolbarId(toolbarItemName));
 	}
 
 	/**

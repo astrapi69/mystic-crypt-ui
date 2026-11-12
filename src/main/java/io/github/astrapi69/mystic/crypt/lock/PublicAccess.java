@@ -26,7 +26,9 @@ package io.github.astrapi69.mystic.crypt.lock;
 
 import java.util.Arrays;
 import java.util.LinkedHashSet;
+import java.util.Map;
 import java.util.Set;
+import java.util.function.Predicate;
 
 import io.github.astrapi69.mystic.crypt.MenuId;
 import io.github.astrapi69.mystic.crypt.settings.FlatLafTheme;
@@ -44,8 +46,10 @@ import io.github.astrapi69.swing.menu.enumeration.BaseMenuId;
  * WHAT A LIST CANNOT SAY: a set of identifiers answers "may this be offered" with one fixed answer
  * per name. An entry whose admissibility depends on the STATE needs the predicate instead - the
  * "new database" toolbar button is one, allowed with nothing open and refused while a vault is
- * locked (#270). Such entries are deliberately absent from the sets below; they are decided where
- * the state is known, and the inventory test knows them as a category of their own.
+ * locked (#270), the lock entry another, the way back to the unlock prompt while a vault is locked
+ * and nothing to do without one (#889). Such entries are deliberately absent from the sets below;
+ * {@link #isOfferedWithoutSignIn(String, boolean, boolean)} decides them from the state, and the
+ * inventory test knows them as a category of their own.
  * <p>
  * What this replaces was a blacklist: everything was offered without a vault except a handful of
  * named entries. Nobody decided that; the list grew. It let both KeePass entries through, which
@@ -137,8 +141,60 @@ public final class PublicAccess
 		return toolbarItemName != null && PUBLIC_TOOLBAR_IDS.contains(toolbarItemName);
 	}
 
+	/**
+	 * The entries whose admissibility without a signed-in vault depends on whether a vault is open
+	 * at all, each with that decision. They are deliberately in neither list above: one name, two
+	 * answers, which a list cannot express.
+	 * <ul>
+	 * <li>the "new database" toolbar button: with nothing open the way to a first vault, with a
+	 * vault locked refused (#270)</li>
+	 * <li>the lock entry: with a vault locked the way back to the unlock prompt, with nothing open
+	 * nothing to do (#889)</li>
+	 * </ul>
+	 */
+	private static final Map<String, Predicate<Boolean>> STATE_DEPENDENT_IDS = Map.of(
+		MenuId.NEW_DATABASE_TOOL_BAR.propertiesKey(), WorkspaceLockDecision::mayCreateAVault,
+		MenuId.LOCK_WORKSPACE.propertiesKey(), WorkspaceLockDecision::mayOfferTheUnlock);
+
 	private PublicAccess()
 	{
+	}
+
+	/**
+	 * Whether a menu entry or a toolbar item is offered while nobody is signed in: the entries
+	 * whose answer depends on whether a vault is open ask that, every other one is offered only
+	 * when it is declared public. The menu and the toolbar both ask here, so a state-dependent
+	 * entry is decided in one place for both surfaces
+	 *
+	 * @param name
+	 *            the component name of the entry or item
+	 * @param aVaultIsOpen
+	 *            whether a vault is open at all, locked or not
+	 * @param declaredPublic
+	 *            whether the entry is on a public list or belongs to a plugin that declared itself
+	 *            usable without a vault
+	 * @return true if it may be offered
+	 */
+	public static boolean isOfferedWithoutSignIn(final String name, final boolean aVaultIsOpen,
+		final boolean declaredPublic)
+	{
+		Predicate<Boolean> stateDependent = name == null ? null : STATE_DEPENDENT_IDS.get(name);
+		if (stateDependent != null)
+		{
+			return stateDependent.test(aVaultIsOpen);
+		}
+		return isOffered(false, declaredPublic);
+	}
+
+	/**
+	 * The names of the entries whose admissibility depends on the state, for the inventory that
+	 * checks what the menu offers: they are a category of their own there
+	 *
+	 * @return the component names
+	 */
+	public static Set<String> stateDependentIds()
+	{
+		return STATE_DEPENDENT_IDS.keySet();
 	}
 
 	/**
