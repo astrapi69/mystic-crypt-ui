@@ -1402,6 +1402,57 @@ final class ApplicationSteps
 	}
 
 	/**
+	 * Chooses the given key file in the "Unlock workspace" dialog (and types the password where one
+	 * is given), confirms and waits until the model is signed in again (#880)
+	 */
+	ApplicationSteps unlockWorkspaceWithKeyFile(String password, String keyFilePath)
+	{
+		DialogFixture unlockDialog = findDialogWithTitle("Unlock workspace");
+		GuiActionRunner.execute(() -> {
+			unlockDialog.textBox("txtUnlockKeyFile").target().setText(keyFilePath);
+			if (password != null)
+			{
+				unlockDialog.textBox("txtUnlockPassword").target().setText(password);
+			}
+		});
+		robot.waitForIdle();
+		UiTestSpeed.step();
+		clickDialogButton(unlockDialog, "OK");
+		Pause.pause(new Condition("workspace is unlocked (model signed in)")
+		{
+			@Override
+			public boolean test()
+			{
+				return MysticCryptApplicationFrame.getInstance().getModelObject().isSignedIn();
+			}
+		}, 10000);
+		robot.waitForIdle();
+		UiTestSpeed.step();
+		return this;
+	}
+
+	/**
+	 * Confirms the "Unlock workspace" dialog with the given password and NO key file, expecting the
+	 * refusal: a database opened with a key file is not unlocked by the password alone (#880)
+	 */
+	ApplicationSteps enterUnlockWithoutKeyFileExpectingFailure(String password)
+	{
+		DialogFixture unlockDialog = findDialogWithTitle("Unlock workspace");
+		GuiActionRunner.execute(() -> {
+			unlockDialog.textBox("txtUnlockKeyFile").target().setText("");
+			if (password != null)
+			{
+				unlockDialog.textBox("txtUnlockPassword").target().setText(password);
+			}
+		});
+		robot.waitForIdle();
+		UiTestSpeed.step();
+		clickDialogButton(unlockDialog, "OK");
+		dismissMessageDialog("Unlock failed");
+		return this;
+	}
+
+	/**
 	 * Enters a wrong password into the "Unlock workspace" dialog, confirms and closes the resulting
 	 * "Unlock failed" error dialog - the workspace stays locked
 	 */

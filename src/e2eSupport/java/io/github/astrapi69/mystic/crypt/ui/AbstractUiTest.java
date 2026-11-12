@@ -313,12 +313,80 @@ abstract class AbstractUiTest
 	}
 
 	/**
+	 * Creates an application database that opens with a key file - alone, or together with a master
+	 * password when one is given - directly through the persistence layer (no UI), and writes the
+	 * key file in PEM format next to it (#880)
+	 *
+	 * @param databaseFile
+	 *            the database file to create
+	 * @param keyFile
+	 *            where the private key is written
+	 * @param masterPassword
+	 *            the master password, or null for a key-file-only database
+	 */
+	protected void createKeyFileDatabaseHeadless(File databaseFile, File keyFile,
+		String masterPassword) throws Exception
+	{
+		if (java.security.Security
+			.getProvider(org.bouncycastle.jce.provider.BouncyCastleProvider.PROVIDER_NAME) == null)
+		{
+			java.security.Security
+				.addProvider(new org.bouncycastle.jce.provider.BouncyCastleProvider());
+		}
+		Files.createFile(databaseFile.toPath());
+		java.security.KeyPair keyPair = io.github.astrapi69.crypt.data.factory.KeyPairFactory
+			.newKeyPair("RSA", 2048);
+		io.github.astrapi69.crypt.data.key.writer.PrivateKeyWriter
+			.writeInPemFormat(keyPair.getPrivate(), keyFile);
+		io.github.astrapi69.mystic.crypt.panel.signin.MasterPwFileModelBean.MasterPwFileModelBeanBuilder<?, ?> builder = io.github.astrapi69.mystic.crypt.panel.signin.MasterPwFileModelBean
+			.builder()
+			.applicationFileInfo(
+				io.github.astrapi69.file.create.model.FileInfo.toFileInfo(databaseFile))
+			.selectedApplicationFilePath(databaseFile.getAbsolutePath())
+			.keyFileInfo(io.github.astrapi69.file.create.model.FileInfo.toFileInfo(keyFile))
+			.privateKeyInfo(io.github.astrapi69.crypt.data.key.KeyModelExtensions
+				.toKeyModel(keyPair.getPrivate()))
+			.withKeyFile(true).minPasswordLength(6);
+		if (masterPassword != null)
+		{
+			io.github.astrapi69.mystic.crypt.app.file.xml.ApplicationXmlFileFactory
+				.newApplicationFileWithPasswordAndPrivateKey(
+					builder.masterPw(masterPassword.toCharArray()).withMasterPw(true).build());
+		}
+		else
+		{
+			io.github.astrapi69.mystic.crypt.app.file.xml.ApplicationXmlFileFactory
+				.newApplicationFileWithPrivateKey(builder.withMasterPw(false).build());
+		}
+	}
+
+	/**
 	 * Complete "open an existing database" use case through the UI: launch, check the master
 	 * password box, type the password, browse to the database file, click OK - and wait until the
 	 * application is signed in
 	 *
 	 * @return steps for the signed-in application
 	 */
+	/**
+	 * Opens an existing key-file database through the UI: key file checked and chosen, the master
+	 * password typed where the database has one, the database file browsed, OK (#880)
+	 *
+	 * @return steps for the signed-in application
+	 */
+	protected ApplicationSteps signInWithKeyFileDatabase(File databaseFile, File keyFile,
+		String masterPassword)
+	{
+		SignInDialogSteps signIn = launchApplication();
+		signIn.requireOkDisabled();
+		if (masterPassword != null)
+		{
+			signIn.checkMasterPassword().typeMasterPassword(masterPassword);
+		}
+		signIn.checkKeyFile().browseKeyFile(keyFile).browseApplicationFile(databaseFile)
+			.requireOkEnabled().okAndAwaitSignIn();
+		return new ApplicationSteps(robot).awaitSignedIn();
+	}
+
 	protected ApplicationSteps signInWithExistingDatabase(File databaseFile, String masterPassword)
 	{
 		SignInDialogSteps signIn = launchApplication();

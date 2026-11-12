@@ -184,6 +184,13 @@ public class MasterPwFileModelBean implements Serializable
 	 */
 	transient MasterPasswordVerifier lockVerifier;
 
+	/**
+	 * What is kept instead of {@link #privateKeyInfo} while the workspace is locked: enough to
+	 * recognise the key when its file is chosen again, not enough to be it (#880). Set when
+	 * locking, dropped when unlocking, and transient for the same reason as the key itself.
+	 */
+	transient io.github.astrapi69.mystic.crypt.lock.PrivateKeyVerifier lockKeyVerifier;
+
 	/** The minimum length for the password. */
 	int minPasswordLength;
 
