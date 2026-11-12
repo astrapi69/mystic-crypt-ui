@@ -88,6 +88,34 @@ class UnlockCheckTest
 		PrivateKeyWriter.writeInPemFormat(key, keyFile);
 	}
 
+	/**
+	 * Opening takes the key file in every format {@code PrivateKeyReader.readPrivateKey} reads: PEM
+	 * with the PKCS#8 "PRIVATE KEY" label, PEM with the traditional "RSA PRIVATE KEY" label, and
+	 * binary DER. Unlocking reads the same file, so it takes the same formats - a database opened
+	 * with a DER key file must not refuse its own key file at the prompt (#880, the review of #936)
+	 */
+	@Test
+	void theKeyFileUnlocksInEveryFormatOpeningAccepts() throws Exception
+	{
+		MasterPwFileModelBean credentials = locked(false, true);
+
+		File der = directory.resolve("database.der").toFile();
+		java.nio.file.Files.write(der.toPath(), key.getEncoded());
+		assertEquals(UnlockCheck.Answer.UNLOCKS, UnlockCheck.check(credentials, null, der).answer(),
+			"the DER key file that opens the database must unlock it");
+
+		File traditional = directory.resolve("database-traditional.pem").toFile();
+		try (
+			org.bouncycastle.openssl.jcajce.JcaPEMWriter writer = new org.bouncycastle.openssl.jcajce.JcaPEMWriter(
+				new java.io.FileWriter(traditional)))
+		{
+			writer.writeObject(key);
+		}
+		assertEquals(UnlockCheck.Answer.UNLOCKS,
+			UnlockCheck.check(credentials, null, traditional).answer(),
+			"the traditional-PEM key file that opens the database must unlock it");
+	}
+
 	/** The credentials as locking leaves them: verifiers, no password, no key */
 	private MasterPwFileModelBean locked(final boolean withPassword, final boolean withKeyFile)
 		throws Exception
