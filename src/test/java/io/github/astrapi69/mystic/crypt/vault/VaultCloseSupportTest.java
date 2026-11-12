@@ -45,6 +45,7 @@ import io.github.astrapi69.crypt.data.model.KeyModel;
 import io.github.astrapi69.file.create.model.FileContentInfo;
 import io.github.astrapi69.gen.tree.TreeIdNode;
 import io.github.astrapi69.mystic.crypt.ApplicationModelBean;
+import io.github.astrapi69.mystic.crypt.lock.KeyFileVerifier;
 import io.github.astrapi69.mystic.crypt.panel.dbtree.MysticCryptEntryModelBean;
 import io.github.astrapi69.mystic.crypt.panel.signin.MasterPwFileModelBean;
 import io.github.astrapi69.swing.renderer.tree.GenericTreeElement;
@@ -251,6 +252,26 @@ class VaultCloseSupportTest
 				+ "overwritten buffer is all this layer can reach and all that matters");
 		assertArrayEquals(new char[repeatPassword.length], repeatPassword,
 			"the repeated password is the same secret typed twice, and it was left behind");
+	}
+
+	@Test
+	@DisplayName("closeVault overwrites the key file verifier a locked key-file vault left behind")
+	void closeVault_overwritesTheKeyFileVerifier_whenTheVaultIsClosedWhileLocked()
+	{
+		byte[] encodedKey = "the encoded private key bytes".getBytes();
+		KeyFileVerifier verifier = KeyFileVerifier.of(encodedKey);
+		ApplicationModelBean applicationModelBean = openVault();
+		applicationModelBean.getMasterPwFileModelBean().setWithKeyFile(true);
+		applicationModelBean.getMasterPwFileModelBean().setKeyFileLockVerifier(verifier);
+		applicationModelBean.setSignedIn(false);
+
+		VaultCloseSupport.closeVault(applicationModelBean);
+
+		assertFalse(verifier.matches(encodedKey),
+			"a vault closed while LOCKED still carries what locking left of its key (#880). The "
+				+ "close path drops everything the lock left, the password verifier since #242, "
+				+ "and this one with it");
+		assertNull(applicationModelBean.getMasterPwFileModelBean());
 	}
 
 	@Test
