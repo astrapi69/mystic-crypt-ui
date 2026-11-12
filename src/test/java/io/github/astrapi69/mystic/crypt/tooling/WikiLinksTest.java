@@ -87,9 +87,7 @@ class WikiLinksTest
 	 * what happens to the link. A page leaves this list when its issue is done; the list cannot
 	 * outlive its cause, see {@link #theKnownMissingPages_areStillLinkedAndStillMissing}
 	 */
-	private static final Map<String, String> KNOWN_MISSING = Map.of(
-		"Help:-open-existing-mystic-crypt-database", "#868",
-		"Help:-create-new-mystic-crypt-database", "#868");
+	private static final Map<String, String> KNOWN_MISSING = Map.of();
 
 	@Test
 	@DisplayName("every wiki page the application and its documents link to is in docs/wiki/")
