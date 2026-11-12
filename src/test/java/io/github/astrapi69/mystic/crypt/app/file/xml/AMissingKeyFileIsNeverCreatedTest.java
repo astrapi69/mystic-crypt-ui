@@ -117,7 +117,7 @@ class AMissingKeyFileIsNeverCreatedTest
 	void aDatabaseWithoutAKeyFilePath_isRefusedWithAReason()
 	{
 		IllegalStateException refused = assertThrows(IllegalStateException.class,
-			() -> KeyFileOnDisk.existing(null));
+			() -> KeyFileOnDisk.existing((FileInfo)null));
 
 		assertEquals("No key file is set for this database.", refused.getMessage());
 	}
