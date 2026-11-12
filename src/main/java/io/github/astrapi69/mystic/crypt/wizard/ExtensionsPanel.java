@@ -40,6 +40,7 @@ import io.github.astrapi69.model.LambdaModel;
 import io.github.astrapi69.model.api.IModel;
 import io.github.astrapi69.mystic.crypt.Messages;
 import io.github.astrapi69.mystic.crypt.wizard.model.CertificateInfoModel;
+import io.github.astrapi69.mystic.crypt.wizard.model.ExtensionInfoModel;
 import io.github.astrapi69.swing.base.BasePanel;
 import io.github.astrapi69.swing.model.component.JMCheckBox;
 import io.github.astrapi69.swing.model.component.JMComboBox;
@@ -224,8 +225,26 @@ public class ExtensionsPanel extends BasePanel<BaseWizardStateMachineModel<Certi
 		{
 			tableModel.addRow(new Object[] { extensionFormModel.getExtensionId(),
 					extensionFormModel.isCritical(), extensionFormModel.getExtensionValue() });
+			writeExtensionsIntoModel();
 			clearForm();
 		}
+	}
+
+	/**
+	 * Writes the table's rows into the certificate model, after every change of the table, so what
+	 * the table shows is what Finish writes into the certificate (#887)
+	 */
+	protected void writeExtensionsIntoModel()
+	{
+		ExtensionInfoModel[] extensions = new ExtensionInfoModel[tableModel.getRowCount()];
+		for (int row = 0; row < extensions.length; row++)
+		{
+			extensions[row] = ExtensionInfoModel.builder()
+				.extensionId((String)tableModel.getValueAt(row, 0))
+				.critical(Boolean.TRUE.equals(tableModel.getValueAt(row, 1)))
+				.value((String)tableModel.getValueAt(row, 2)).build();
+		}
+		getModelObject().getModelObject().setExtensions(extensions);
 	}
 
 	/**
@@ -239,6 +258,7 @@ public class ExtensionsPanel extends BasePanel<BaseWizardStateMachineModel<Certi
 			tableModel.setValueAt(extensionFormModel.getExtensionId(), selectedRow, 0);
 			tableModel.setValueAt(extensionFormModel.isCritical(), selectedRow, 1);
 			tableModel.setValueAt(extensionFormModel.getExtensionValue(), selectedRow, 2);
+			writeExtensionsIntoModel();
 			clearForm();
 		}
 	}
@@ -252,6 +272,7 @@ public class ExtensionsPanel extends BasePanel<BaseWizardStateMachineModel<Certi
 		if (selectedRow != -1)
 		{
 			tableModel.removeRow(selectedRow);
+			writeExtensionsIntoModel();
 			clearForm();
 		}
 	}
