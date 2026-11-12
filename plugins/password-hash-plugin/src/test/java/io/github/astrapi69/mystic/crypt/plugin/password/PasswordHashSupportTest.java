@@ -34,6 +34,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.security.Security;
 
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
+
+import io.github.astrapi69.mystic.crypt.sha.BcryptHasher;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -135,9 +137,30 @@ class PasswordHashSupportTest
 		IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
 			() -> PasswordHashSupport.hash(PasswordHashSupport.BCRYPT, tooLong.toCharArray()));
 
-		assertTrue(exception.getMessage().contains("72"), exception.getMessage());
+		assertTrue(
+			exception.getMessage()
+				.contains(String.valueOf(BcryptHasher.MAX_PASSWORD_BYTES)),
+			exception.getMessage());
+		assertTrue(exception.getMessage().contains("73"),
+			"the message has to name the password's own length: " + exception.getMessage());
+		assertTrue(exception.getMessage().startsWith("the password is 73 bytes in UTF-8"),
+			"the refusal comes from the library, not an own guard (#903): "
+				+ exception.getMessage());
 		assertTrue(exception.getMessage().contains(PasswordHashSupport.ARGON2ID),
 			"the message has to say what to use instead: " + exception.getMessage());
+	}
+
+	/**
+	 * Verifying with a password bcrypt cannot read is no match: the library refuses it, and the
+	 * refusal of an unreadable input answers false, never an exception out of the window
+	 */
+	@Test
+	void aPasswordTooLongForBcryptDoesNotVerify() throws Exception
+	{
+		String stored = PasswordHashSupport.hash(PasswordHashSupport.BCRYPT,
+			"a".repeat(72).toCharArray());
+
+		assertFalse(PasswordHashSupport.verify("a".repeat(73).toCharArray(), stored));
 	}
 
 	@ParameterizedTest
