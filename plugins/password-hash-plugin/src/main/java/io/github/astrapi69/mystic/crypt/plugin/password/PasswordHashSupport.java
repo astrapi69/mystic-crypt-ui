@@ -95,10 +95,18 @@ public final class PasswordHashSupport
 		switch (algorithm)
 		{
 			case BCRYPT :
-				// bcrypt truncates at 72 bytes without saying so - a longer password would be
-				// accepted here and then silently only be checked up to that point
-				requireBcryptLength(password);
-				return BcryptHasher.hash(password.clone());
+				try
+				{
+					return BcryptHasher.hash(password.clone());
+				}
+				catch (IllegalArgumentException libraryRefusal)
+				{
+					// the length rule lives in the library since mystic-crypt 13.10
+					// (BcryptHasher.MAX_PASSWORD_BYTES); only the way out is this window's to add
+					throw new IllegalArgumentException(libraryRefusal.getMessage() + " - use "
+						+ ARGON2ID + " or " + SCRYPT + " for a password this long",
+						libraryRefusal);
+				}
 			case SCRYPT :
 				return encodeScrypt(ScryptHasher.hash(password.clone(), ScryptHasher.DEFAULT_N,
 					ScryptHasher.DEFAULT_R, ScryptHasher.DEFAULT_P), ScryptHasher.DEFAULT_N,
@@ -246,17 +254,6 @@ public final class PasswordHashSupport
 		}
 	}
 
-	private static void requireBcryptLength(final char[] password)
-	{
-		int bytes = new String(password).getBytes(java.nio.charset.StandardCharsets.UTF_8).length;
-		if (bytes > 72)
-		{
-			throw new IllegalArgumentException("bcrypt only looks at the first 72 bytes of a "
-				+ "password, and this one is " + bytes + " - use " + ARGON2ID + " or " + SCRYPT
-				+ " for a password this long");
-		}
-	}
-
 	/** What an algorithm is worth knowing about, shown next to its name */
 	public static String describe(final String algorithm)
 	{
@@ -264,7 +261,8 @@ public final class PasswordHashSupport
 		{
 			case "argon2id" -> "memory hard, the one to pick when nothing else is required";
 			case "pbkdf2" -> "the one certifications ask for";
-			case "bcrypt" -> "long established; looks at the first 72 bytes of a password only";
+			case "bcrypt" -> "long established; looks at the first " + BcryptHasher.MAX_PASSWORD_BYTES
+				+ " bytes of a password only";
 			case "scrypt" -> "memory hard, older than Argon2id and widely available";
 			default -> "";
 		};
