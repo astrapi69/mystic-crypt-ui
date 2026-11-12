@@ -136,8 +136,25 @@ class PasswordHashSupportTest
 			() -> PasswordHashSupport.hash(PasswordHashSupport.BCRYPT, tooLong.toCharArray()));
 
 		assertTrue(exception.getMessage().contains("72"), exception.getMessage());
+		assertTrue(exception.getMessage().contains("73"),
+			"the message has to name the password's own length: " + exception.getMessage());
+		assertTrue(exception.getMessage().startsWith("bcrypt only looks at the first 72 bytes"),
+			"the refusal comes from the plugin's own guard: " + exception.getMessage());
 		assertTrue(exception.getMessage().contains(PasswordHashSupport.ARGON2ID),
 			"the message has to say what to use instead: " + exception.getMessage());
+	}
+
+	/**
+	 * Verifying with a password bcrypt cannot read is no match: the library refuses it, and the
+	 * refusal of an unreadable input answers false, never an exception out of the window
+	 */
+	@Test
+	void aPasswordTooLongForBcryptDoesNotVerify() throws Exception
+	{
+		String stored = PasswordHashSupport.hash(PasswordHashSupport.BCRYPT,
+			"a".repeat(72).toCharArray());
+
+		assertFalse(PasswordHashSupport.verify("a".repeat(73).toCharArray(), stored));
 	}
 
 	@ParameterizedTest
