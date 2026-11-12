@@ -11,6 +11,11 @@ merge (#299, #312), one was merged while its build check was still running
 (#317), and astrapi69/mystic-crypt#183 was merged before its required codecov
 status existed (#493).
 
+Every GitHub read and write goes through the REST API (gh api), never
+through gh pr view/checks/merge: those use GraphQL, which a Claude Code
+cloud session's proxy answers with 403, and the script must run the same
+on a desktop and there (#872).
+
 Usage: scripts/merge_pr.py <pr-number> [target-branch]
 """
 
@@ -48,22 +53,46 @@ class Verdict:
     messages: tuple
 
 
-def parse_rollup(rollup):
-    """Parses gh's statusCheckRollup: check runs carry name/status/conclusion,
-    commit statuses context/state - both are read, or a status would look
-    pending forever."""
+def parse_checks(check_runs, statuses):
+    """Parses what REST reports on the head: check runs from
+    /commits/{sha}/check-runs (name, status, conclusion - lowercase there) and
+    commit statuses from /commits/{sha}/status (context, state; that combined
+    endpoint already keeps only the latest per context). Both are read, or a
+    status such as codecov would look pending forever (#493, #872)."""
     entries = []
-    for node in rollup:
-        name = node.get("name") or node.get("context") or ""
+    for node in check_runs:
+        name = node.get("name") or ""
         if not name:
             continue
-        if node.get("status") is not None:
-            reported = node.get("status") == "COMPLETED"
-        else:
-            reported = (node.get("state") or "PENDING") not in PENDING_STATES
-        conclusion = node.get("conclusion") or node.get("state") or "PENDING"
+        reported = node.get("status") == "completed"
+        conclusion = (node.get("conclusion") or "PENDING").upper()
         entries.append(RollupEntry(name, reported, conclusion))
+    for node in statuses:
+        name = node.get("context") or ""
+        if not name:
+            continue
+        state = (node.get("state") or "pending").upper()
+        entries.append(RollupEntry(name, state not in PENDING_STATES, state))
     return entries
+
+
+def pr_state(pull):
+    """OPEN, MERGED or CLOSED, as the refusals name it: REST says state
+    open|closed plus a merged flag (#872)."""
+    if pull.get("merged"):
+        return "MERGED"
+    return (pull.get("state") or "").upper()
+
+
+def is_cross_repository(pull):
+    """Whether the head branch lives outside the base repository. A deleted
+    fork reports no head repository and counts as cross: there is nothing
+    this script should delete (#872)."""
+    head_repo = (pull.get("head") or {}).get("repo")
+    if not head_repo:
+        return True
+    base_repo = (pull.get("base") or {}).get("repo") or {}
+    return head_repo.get("full_name") != base_repo.get("full_name")
 
 
 def judge(entries, required_contexts, allow_optional_failure=False):
@@ -223,14 +252,17 @@ def squash_subject(title, pr):
 
 def merge_command(pr, head_sha, subject, body):
     """The merge squashes to one commit on develop (the squash pilot: one
-    change, one commit) and pins the judged head: a push between judgement
-    and merge must fail the merge, not slip through (--match-head-commit
-    needs the full sha). The subject is the pull request title with its
+    change, one commit) and pins the judged head: the sha parameter of
+    PUT /pulls/{n}/merge makes GitHub refuse when the head moved between
+    judgement and merge, which is what --match-head-commit did before the
+    REST port (#872). The subject is the pull request title with its
     number, the body the pull request body, which carries the why (AG-067).
-    Never --delete-branch: with the head branch checked out locally, gh
-    switches branches and pulls under the running script (#496)."""
-    return ["gh", "pr", "merge", str(pr), "--squash", "--match-head-commit", head_sha,
-            "--subject", subject, "--body", body]
+    The branch is never deleted by the merge call itself: with the head
+    branch checked out locally, gh pr merge --delete-branch switched
+    branches and pulled under the running script (#496)."""
+    return ["gh", "api", "-X", "PUT", f"repos/{{owner}}/{{repo}}/pulls/{pr}/merge",
+            "-f", "merge_method=squash", "-f", f"sha={head_sha}",
+            "-f", f"commit_title={subject}", "-f", f"commit_message={body}"]
 
 
 def resolve_required(target, fetch):
@@ -264,20 +296,26 @@ def run(argv):
     if note:
         print(note)
 
-    view = gh_json("pr", "view", pr, "--json",
-                   "state,baseRefName,headRefName,headRefOid,isCrossRepository,title,body")
-    if view["state"] != "OPEN":
-        die(f"pull request #{pr} is {view['state']}, not OPEN")
-    mismatch = base_mismatch(view["baseRefName"], target)
+    pull = gh_json("api", f"repos/{{owner}}/{{repo}}/pulls/{pr}")
+    state = pr_state(pull)
+    if state != "OPEN":
+        die(f"pull request #{pr} is {state}, not OPEN")
+    mismatch = base_mismatch(pull["base"]["ref"], target)
     if mismatch:
         die(mismatch)
-    title_error = conventional_title_error(view.get("title") or "")
+    title = pull.get("title") or ""
+    title_error = conventional_title_error(title)
     if title_error:
         die(title_error)
-    changed_paths = [entry["path"] for entry in gh_json("pr", "view", pr, "--json", "files")["files"]]
-    missing_fragment = fragment_error(view.get("title") or "", pr, changed_paths)
+    files_lines = subprocess.run(
+        ["gh", "api", f"repos/{{owner}}/{{repo}}/pulls/{pr}/files", "--paginate",
+         "-q", ".[].filename"],
+        check=True, capture_output=True, text=True).stdout
+    changed_paths = [line for line in files_lines.splitlines() if line]
+    missing_fragment = fragment_error(title, pr, changed_paths)
     if missing_fragment:
         die(missing_fragment)
+    head_sha = pull["head"]["sha"]
 
     def fetch_contexts(branch):
         result = subprocess.run(
@@ -299,7 +337,14 @@ def run(argv):
     print(f"waiting for the checks on #{pr} (up to {wait_seconds // 60} minutes)")
     waited = 0
     while True:
-        entries = parse_rollup(gh_json("pr", "view", pr, "--json", "statusCheckRollup")["statusCheckRollup"])
+        check_lines = subprocess.run(
+            ["gh", "api", f"repos/{{owner}}/{{repo}}/commits/{head_sha}/check-runs", "--paginate",
+             "-q", ".check_runs[] | {name, status, conclusion}"],
+            check=True, capture_output=True, text=True).stdout
+        check_runs = [json.loads(line) for line in check_lines.splitlines() if line]
+        statuses = gh_json("api", f"repos/{{owner}}/{{repo}}/commits/{head_sha}/status").get(
+            "statuses") or []
+        entries = parse_checks(check_runs, statuses)
         if entries and all_reported(entries, required):
             break
         if waited >= wait_seconds:
@@ -315,15 +360,16 @@ def run(argv):
     for message in verdict.messages:
         print(message)
     if not verdict.mergeable:
-        subprocess.run(["gh", "pr", "checks", pr])
+        for entry in entries:
+            print(f"  {entry.name}: {entry.conclusion}{'' if entry.reported else ' (running)'}")
         die(f"not merging #{pr}")
 
-    head_sha = view["headRefOid"]
-    subject = squash_subject(view.get("title") or "", pr)
-    subprocess.run(merge_command(pr, head_sha, subject, view.get("body") or ""), check=True)
+    subject = squash_subject(title, pr)
+    subprocess.run(merge_command(pr, head_sha, subject, pull.get("body") or ""),
+                   check=True, capture_output=True)
 
-    head = view["headRefName"]
-    if view["isCrossRepository"]:
+    head = pull["head"]["ref"]
+    if is_cross_repository(pull):
         print(f"the head branch '{head}' lives in a fork - not deleted from here")
     else:
         subprocess.run(["gh", "api", "-X", "DELETE", f"repos/{{owner}}/{{repo}}/git/refs/heads/{head}",

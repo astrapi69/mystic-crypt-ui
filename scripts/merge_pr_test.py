@@ -13,9 +13,9 @@ run stands in the pull request.
 import unittest
 
 from merge_pr import (RollupEntry, all_reported, base_mismatch, conventional_title_error,
-                      fragment_error,
-                      dirty_tree_note, judge, merge_command, parse_rollup, resolve_required,
-                      squash_subject)
+                      fragment_error, is_cross_repository,
+                      dirty_tree_note, judge, merge_command, parse_checks, pr_state,
+                      resolve_required, squash_subject)
 
 REQUIRED = ["build", "closing-references", "release-freeze"]
 
@@ -107,28 +107,73 @@ class JudgeTest(unittest.TestCase):
         self.assertTrue(any("still running" in message for message in verdict.messages))
 
 
-class ParseRollupTest(unittest.TestCase):
-    """Check runs carry name/status/conclusion, commit statuses context/state."""
+class ParseChecksTest(unittest.TestCase):
+    """The REST shapes a cloud session can read (#872): check runs from
+    /commits/{sha}/check-runs, commit statuses from /commits/{sha}/status.
+    GraphQL (gh pr view) answers 403 there."""
 
     def test_check_run_completed(self):
-        entries = parse_rollup([{"name": "build", "status": "COMPLETED", "conclusion": "SUCCESS"}])
-        self.assertEqual(entries, [RollupEntry("build", True, "SUCCESS")])
+        entries = parse_checks([{"name": "build", "status": "completed",
+                                 "conclusion": "success"}], [])
+        self.assertEqual([RollupEntry("build", True, "SUCCESS")], entries)
 
     def test_check_run_in_progress(self):
-        entries = parse_rollup([{"name": "build", "status": "IN_PROGRESS", "conclusion": None}])
-        self.assertEqual(entries, [RollupEntry("build", False, "PENDING")])
+        entries = parse_checks([{"name": "build", "status": "in_progress",
+                                 "conclusion": None}], [])
+        self.assertEqual([RollupEntry("build", False, "PENDING")], entries)
+
+    def test_check_run_neutral_and_skipped_keep_their_verdict(self):
+        entries = parse_checks([
+            {"name": "a", "status": "completed", "conclusion": "neutral"},
+            {"name": "b", "status": "completed", "conclusion": "skipped"}], [])
+        self.assertEqual([RollupEntry("a", True, "NEUTRAL"),
+                          RollupEntry("b", True, "SKIPPED")], entries)
 
     def test_commit_status_success(self):
-        entries = parse_rollup([{"context": "codecov/patch", "state": "SUCCESS"}])
-        self.assertEqual(entries, [RollupEntry("codecov/patch", True, "SUCCESS")])
+        entries = parse_checks([], [{"context": "codecov/patch", "state": "success"}])
+        self.assertEqual([RollupEntry("codecov/patch", True, "SUCCESS")], entries)
 
-    def test_commit_status_pending_and_expected_not_reported(self):
-        for state in ("PENDING", "EXPECTED"):
-            entries = parse_rollup([{"context": "codecov/patch", "state": state}])
-            self.assertEqual(entries, [RollupEntry("codecov/patch", False, state)])
+    def test_commit_status_pending_not_reported(self):
+        entries = parse_checks([], [{"context": "codecov/patch", "state": "pending"}])
+        self.assertEqual([RollupEntry("codecov/patch", False, "PENDING")], entries)
+
+    def test_commit_status_error_blocks_like_failure(self):
+        entries = parse_checks([], [{"context": "x", "state": "error"}])
+        self.assertEqual([RollupEntry("x", True, "ERROR")], entries)
 
     def test_nameless_entries_are_dropped(self):
-        self.assertEqual(parse_rollup([{"status": "COMPLETED"}]), [])
+        self.assertEqual(parse_checks([{"status": "completed"}], [{"state": "success"}]), [])
+
+
+class PrStateTest(unittest.TestCase):
+    """REST says state=open|closed plus a merged flag; the script's refusals
+    name OPEN, MERGED or CLOSED as gh did (#872)."""
+
+    def test_open(self):
+        self.assertEqual("OPEN", pr_state({"state": "open", "merged": False}))
+
+    def test_merged_wins_over_closed(self):
+        self.assertEqual("MERGED", pr_state({"state": "closed", "merged": True}))
+
+    def test_closed(self):
+        self.assertEqual("CLOSED", pr_state({"state": "closed", "merged": False}))
+
+
+class CrossRepositoryTest(unittest.TestCase):
+    """The head branch is deleted only in the base repository; a fork's, or a
+    deleted fork's, is left alone (#872)."""
+
+    def test_same_repository(self):
+        data = {"base": {"repo": {"full_name": "a/r"}}, "head": {"repo": {"full_name": "a/r"}}}
+        self.assertFalse(is_cross_repository(data))
+
+    def test_fork(self):
+        data = {"base": {"repo": {"full_name": "a/r"}}, "head": {"repo": {"full_name": "b/r"}}}
+        self.assertTrue(is_cross_repository(data))
+
+    def test_deleted_fork_counts_as_cross(self):
+        data = {"base": {"repo": {"full_name": "a/r"}}, "head": {"repo": None}}
+        self.assertTrue(is_cross_repository(data))
 
 
 class WaitTest(unittest.TestCase):
@@ -166,19 +211,20 @@ class GuardTest(unittest.TestCase):
         self.assertIsNone(dirty_tree_note(""))
 
     def test_merge_squashes_with_the_title_as_subject(self):
-        # turned pin (squash pilot): one change, one commit on develop
         command = merge_command("876", "a" * 40, "feat(x): a thing (#876)", "why")
-        self.assertIn("--squash", command)
-        self.assertNotIn("--merge", command)
-        self.assertIn("--subject", command)
-        self.assertIn("feat(x): a thing (#876)", command)
-        self.assertIn("why", command)
+        self.assertIn("-X", command)
+        self.assertIn("PUT", command)
+        self.assertIn("repos/{owner}/{repo}/pulls/876/merge", command)
+        self.assertIn("merge_method=squash", command)
+        self.assertIn("commit_title=feat(x): a thing (#876)", command)
+        self.assertIn("commit_message=why", command)
 
     def test_merge_pins_the_judged_head_and_never_deletes_the_branch(self):
         command = merge_command("876", "a" * 40, "feat: x (#876)", "")
-        self.assertIn("--match-head-commit", command)
-        self.assertIn("a" * 40, command)
+        self.assertIn("sha=" + "a" * 40, command)
         self.assertNotIn("--delete-branch", command)
+        self.assertEqual("gh", command[0])
+        self.assertEqual("api", command[1])
 
     def test_squash_subject_appends_the_number_once(self):
         self.assertEqual("feat: x (#9)", squash_subject("feat: x", "9"))
