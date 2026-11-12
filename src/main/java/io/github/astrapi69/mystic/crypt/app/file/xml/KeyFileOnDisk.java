@@ -27,6 +27,7 @@ package io.github.astrapi69.mystic.crypt.app.file.xml;
 import java.io.File;
 
 import io.github.astrapi69.file.create.model.FileInfo;
+import io.github.astrapi69.mystic.crypt.Messages;
 
 /**
  * The key file of a database as the file on the disk, found without creating anything (#937).
@@ -56,14 +57,19 @@ final class KeyFileOnDisk
 	{
 		if (keyFileInfo == null)
 		{
-			throw new IllegalStateException("No key file is set for this database.");
+			throw new IllegalStateException(Messages.getString("dialog.key.file.not.set.message",
+				"No key file is set for this database."));
 		}
 		File keyFile = keyFileInfo.toFile();
 		if (!keyFile.isFile())
 		{
-			throw new IllegalStateException("The key file " + keyFile.getAbsolutePath()
-				+ " is not there. It was moved or deleted, or it is on a drive that is not "
-				+ "connected. Put it back at this path and try again.");
+			// %1$s rather than {0}: the bundle lookup formats braces itself and fills them with
+			// null
+			throw new IllegalStateException(String.format(Messages.getString(
+				"dialog.key.file.missing.message",
+				"The key file %1$s is not there. It was moved or deleted, or it is on a drive that "
+					+ "is not connected. Put it back at this path and try again."),
+				keyFile.getAbsolutePath()));
 		}
 		return keyFile;
 	}

@@ -31,6 +31,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.File;
 import java.security.Security;
+import java.util.Locale;
+import java.util.ResourceBundle;
 import java.util.stream.Stream;
 
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
@@ -130,6 +132,29 @@ class AMissingKeyFileIsNeverCreatedTest
 		assertEquals(keyFile.getAbsoluteFile(),
 			KeyFileOnDisk.existing(FileInfo.toFileInfo(keyFile)).getAbsoluteFile());
 		assertEquals("the key file's content", java.nio.file.Files.readString(keyFile.toPath()));
+	}
+
+	@Test
+	@DisplayName("the missing key file reads the same way in English and in German, with the path in both")
+	void theMissingKeyFile_readsInBothLanguages()
+	{
+		ResourceBundle english = ResourceBundle.getBundle("ui.messages", Locale.ROOT);
+		ResourceBundle german = ResourceBundle.getBundle("ui.messages", Locale.GERMAN);
+
+		assertEquals(
+			"The key file %1$s is not there. It was moved or deleted, or it is on a drive "
+				+ "that is not connected. Put it back at this path and try again.",
+			english.getString("dialog.key.file.missing.message"));
+		String missing = german.getString("dialog.key.file.missing.message");
+		assertTrue(missing.contains("%1$s") && missing.contains("Schlüsseldatei")
+			&& missing.contains("gelöscht"), "the path and real umlauts: " + missing);
+		String notSet = german.getString("dialog.key.file.not.set.message");
+		assertTrue(notSet.contains("Schlüsseldatei"), notSet);
+		for (String transliteration : new String[] { "Schluessel", "geloescht" })
+		{
+			assertFalse(missing.contains(transliteration) || notSet.contains(transliteration),
+				missing + " / " + notSet);
+		}
 	}
 
 	/** Every message along the cause chain, as the dialogs that show a failure read it */
