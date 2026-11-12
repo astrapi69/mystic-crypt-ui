@@ -33,13 +33,17 @@ import java.util.logging.Level;
 import javax.swing.*;
 
 import io.github.astrapi69.awt.extension.ClipboardExtensions;
+import io.github.astrapi69.crypt.data.key.KeyModelExtensions;
+import io.github.astrapi69.crypt.data.key.reader.PrivateKeyReader;
 import io.github.astrapi69.crypt.data.model.KeyModel;
+import io.github.astrapi69.file.create.FileFactory;
 import io.github.astrapi69.mystic.crypt.ApplicationModelBean;
 import io.github.astrapi69.mystic.crypt.DesktopMenu;
 import io.github.astrapi69.mystic.crypt.Messages;
 import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
 import io.github.astrapi69.mystic.crypt.app.file.xml.ApplicationXmlFileStoreWorker;
 import io.github.astrapi69.mystic.crypt.lock.MasterPasswordVerifier;
+import io.github.astrapi69.mystic.crypt.lock.PrivateKeyVerifier;
 import io.github.astrapi69.mystic.crypt.lock.SecretComparison;
 import io.github.astrapi69.mystic.crypt.panel.signin.MasterPwFileModelBean;
 import io.github.astrapi69.mystic.crypt.secret.SecretBuffers;
@@ -144,10 +148,23 @@ public class LockWorkspaceAction extends AbstractAction
 		{
 			return;
 		}
+		// unlocking demands the same factors as opening (#880): a password where the database has
+		// one, the key file where it was opened with one - read from disk again, nothing of the
+		// key stayed in memory while the workspace was locked
+		boolean needsPassword = credentials.getLockVerifier() != null
+			|| credentials.getMasterPw() != null;
+		boolean needsKeyFile = credentials.getLockKeyVerifier() != null;
 		JPasswordField passwordField = new JPasswordField(20);
 		passwordField.setName("txtUnlockPassword");
+		javax.swing.JTextField keyFileField = new javax.swing.JTextField(20);
+		keyFileField.setName("txtUnlockKeyFile");
+		if (credentials.getKeyFileInfo() != null)
+		{
+			keyFileField.setText(
+				FileFactory.newFileQuietly(credentials.getKeyFileInfo()).getAbsolutePath());
+		}
 		JPanel panel = new JPanel(new GridLayout(0, 1, 4, 4));
-		panel.add(new JLabel("Enter the master password to unlock the workspace:"));
+		panel.add(new JLabel(unlockPromptText(needsPassword, needsKeyFile)));
 		if (frame.getModelObject().isDirty())
 		{
 			// says it rather than letting the save-before-close question be the first hint the
@@ -159,10 +176,31 @@ public class LockWorkspaceAction extends AbstractAction
 			waiting.setName("lblUnsavedChangesWaiting");
 			panel.add(waiting);
 		}
-		panel.add(passwordField);
+		if (needsPassword)
+		{
+			panel.add(passwordField);
+		}
+		if (needsKeyFile)
+		{
+			JButton browse = new JButton("Browse...");
+			browse.setName("btnUnlockKeyFileChooser");
+			browse.addActionListener(chooseKeyFile -> {
+				JFileChooser chooser = new JFileChooser();
+				chooser.setDialogTitle("Choose the key file of this database");
+				if (chooser.showOpenDialog(panel) == JFileChooser.APPROVE_OPTION)
+				{
+					keyFileField.setText(chooser.getSelectedFile().getAbsolutePath());
+				}
+			});
+			JPanel keyFileRow = new JPanel(new java.awt.BorderLayout(4, 0));
+			keyFileRow.add(keyFileField, java.awt.BorderLayout.CENTER);
+			keyFileRow.add(browse, java.awt.BorderLayout.EAST);
+			panel.add(keyFileRow);
+		}
 
 		int option = JOptionPaneExtensions.getSelectedOption(panel, JOptionPane.PLAIN_MESSAGE,
-			JOptionPane.OK_CANCEL_OPTION, frame, UNLOCK_PROMPT_TITLE, passwordField);
+			JOptionPane.OK_CANCEL_OPTION, frame, UNLOCK_PROMPT_TITLE,
+			needsPassword ? passwordField : keyFileField);
 		if (option != JOptionPane.OK_OPTION)
 		{
 			// cancelled: stay locked
@@ -177,9 +215,19 @@ public class LockWorkspaceAction extends AbstractAction
 			return;
 		}
 		char[] entered = passwordField.getPassword();
-		if (isTheMasterPassword(credentials, entered))
+		KeyModel readKey = needsKeyFile ? keyFileOpens(credentials, keyFileField.getText()) : null;
+		boolean passwordOpens = !needsPassword || isTheMasterPassword(credentials, entered);
+		boolean keyOpens = !needsKeyFile || readKey != null;
+		if (passwordOpens && keyOpens)
 		{
-			rememberTheMasterPassword(credentials, entered);
+			if (needsPassword)
+			{
+				rememberTheMasterPassword(credentials, entered);
+			}
+			if (needsKeyFile)
+			{
+				rememberThePrivateKey(credentials, readKey);
+			}
 			frame.getModelObject().setSignedIn(true);
 			// back into the view the user chose, not always into the panel view: locking switched
 			// to the desktop pane to hide the content, and unlocking has to undo exactly that
@@ -189,8 +237,13 @@ public class LockWorkspaceAction extends AbstractAction
 		}
 		else
 		{
-			JOptionPane.showMessageDialog(frame, "Wrong master password.", "Unlock failed",
-				JOptionPane.ERROR_MESSAGE);
+			// one message for every wrong factor: naming which one failed would tell a guesser
+			// which one was right
+			JOptionPane.showMessageDialog(frame,
+				needsKeyFile
+					? "These credentials do not unlock this workspace."
+					: "Wrong master password.",
+				"Unlock failed", JOptionPane.ERROR_MESSAGE);
 			SwingUtilities.invokeLater(() -> promptForUnlock(frame));
 		}
 		Arrays.fill(entered, '\0');
@@ -375,6 +428,18 @@ public class LockWorkspaceAction extends AbstractAction
 		{
 			return;
 		}
+		try
+		{
+			// what stays behind recognises the key when its file is chosen again and cannot
+			// produce it, the same shape as the password verifier (#880)
+			credentials.setLockKeyVerifier(PrivateKeyVerifier.of(privateKeyInfo.getEncoded()));
+		}
+		catch (Exception exception)
+		{
+			log.log(Level.WARNING,
+				"the private key stays in memory: its verifier could not be derived", exception);
+			return;
+		}
 		SecretBuffers.wipe(privateKeyInfo.getEncoded());
 		credentials.setPrivateKeyInfo(null);
 	}
@@ -399,6 +464,76 @@ public class LockWorkspaceAction extends AbstractAction
 			return verifier.matches(entered);
 		}
 		return SecretComparison.sameCharacters(entered, credentials.getMasterPw());
+	}
+
+	/** What the unlock prompt says, for the factors this database was opened with (#880) */
+	private static String unlockPromptText(final boolean needsPassword, final boolean needsKeyFile)
+	{
+		if (needsPassword && needsKeyFile)
+		{
+			return "Enter the master password and choose the key file to unlock the workspace:";
+		}
+		if (needsKeyFile)
+		{
+			return "Choose the key file to unlock the workspace:";
+		}
+		return "Enter the master password to unlock the workspace:";
+	}
+
+	/**
+	 * Reads the private key from the chosen file and asks the verifier whether it is the key this
+	 * workspace was opened with. The key comes from the disk, never from memory: while the
+	 * workspace was locked there was nothing of it to keep (#880)
+	 *
+	 * @param credentials
+	 *            the credentials of the open database
+	 * @param keyFilePath
+	 *            the path the user chose
+	 * @return the key as the model holds it, or null when the file does not hold the right key
+	 */
+	private static KeyModel keyFileOpens(final MasterPwFileModelBean credentials,
+		final String keyFilePath)
+	{
+		if (keyFilePath == null || keyFilePath.isBlank()
+			|| credentials.getLockKeyVerifier() == null)
+		{
+			return null;
+		}
+		try
+		{
+			java.security.PrivateKey privateKey = PrivateKeyReader
+				.readPrivateKey(FileFactory.newFileQuietly(keyFilePath));
+			if (privateKey == null
+				|| !credentials.getLockKeyVerifier().matches(privateKey.getEncoded()))
+			{
+				return null;
+			}
+			return KeyModelExtensions.toKeyModel(privateKey);
+		}
+		catch (Exception notTheKeyFile)
+		{
+			// a file that cannot be read as a private key is not the key file; the prompt asks
+			// again, and the reason stays out of the message so a guesser learns nothing
+			log.log(Level.FINE, "the chosen file does not hold the key", notTheKeyFile);
+			return null;
+		}
+	}
+
+	/**
+	 * Puts the private key back where the rest of the application expects it, read from the key
+	 * file on disk, and drops the verifier the lock left behind (#880)
+	 *
+	 * @param credentials
+	 *            the credentials of the open database
+	 * @param readKey
+	 *            the key that was just read and recognised
+	 */
+	private static void rememberThePrivateKey(final MasterPwFileModelBean credentials,
+		final KeyModel readKey)
+	{
+		credentials.setPrivateKeyInfo(readKey);
+		credentials.getLockKeyVerifier().wipe();
+		credentials.setLockKeyVerifier(null);
 	}
 
 	/**
