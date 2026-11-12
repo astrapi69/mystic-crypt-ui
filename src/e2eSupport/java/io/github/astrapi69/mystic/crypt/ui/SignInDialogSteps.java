@@ -101,6 +101,28 @@ final class SignInDialogSteps
 		return this;
 	}
 
+	/**
+	 * Ensures the master password checkbox is NOT selected, for a database that opens with its key
+	 * file alone; ensure-semantics for the same reason as {@link #checkMasterPassword()}
+	 *
+	 * @return this, for the next step
+	 */
+	SignInDialogSteps uncheckMasterPassword()
+	{
+		GuiActionRunner.execute(() -> {
+			javax.swing.JCheckBox checkBox = (javax.swing.JCheckBox)dialog.checkBox("cbxMasterPw")
+				.target();
+			if (checkBox.isSelected())
+			{
+				checkBox.doClick();
+			}
+		});
+		dialog.checkBox("cbxMasterPw").requireNotSelected();
+		robot.waitForIdle();
+		UiTestSpeed.step();
+		return this;
+	}
+
 	SignInDialogSteps typeMasterPassword(String masterPassword)
 	{
 		GuiActionRunner
