@@ -25,14 +25,20 @@
 package io.github.astrapi69.mystic.crypt.app.file.xml;
 
 import java.io.File;
+import java.io.IOException;
+import java.security.GeneralSecurityException;
+import java.security.PrivateKey;
 
+import io.github.astrapi69.crypt.data.key.reader.PemObjectReader;
+import io.github.astrapi69.crypt.data.key.reader.PrivateKeyReader;
 import io.github.astrapi69.file.create.model.FileInfo;
 import io.github.astrapi69.mystic.crypt.Messages;
 
 /**
  * The key file of a database as the file on the disk, found without creating anything (#937).
  * Opening, saving and unlocking find the key file here, so all three name a missing one with the
- * same words.
+ * same words, and they read its key here, so the file that opens a database also saves and unlocks
+ * it.
  * <p>
  * Opening and saving used to name the key file with {@code FileFactory.newFileQuietly}, which
  * creates a missing file and its missing directories. A key file that was not there - moved,
@@ -44,6 +50,57 @@ public final class KeyFileOnDisk
 
 	private KeyFileOnDisk()
 	{
+	}
+
+	/**
+	 * Reads the key of a database from its key file, the one way opening, saving and unlocking read
+	 * it (#937)
+	 * <p>
+	 * A database with its key file alone has always taken PEM and DER; one with a master password
+	 * and a key file has taken PEM only. Both stay as they were: reading the key in one place is
+	 * not where it is decided that the second takes DER as well.
+	 *
+	 * @param keyFile
+	 *            the key file
+	 * @param withMasterPassword
+	 *            whether the database has a master password besides its key file
+	 * @return the key
+	 * @throws IllegalStateException
+	 *             naming the path, when no key file is given or nothing is there
+	 * @throws IOException
+	 *             when the file cannot be read
+	 * @throws GeneralSecurityException
+	 *             when the file holds no key in a format this kind of database takes
+	 */
+	public static PrivateKey readKey(final File keyFile, final boolean withMasterPassword)
+		throws IOException, GeneralSecurityException
+	{
+		File existingKeyFile = existing(keyFile);
+		if (withMasterPassword || PemObjectReader.isPemObject(existingKeyFile))
+		{
+			return PrivateKeyReader.readPemPrivateKey(existingKeyFile);
+		}
+		return PrivateKeyReader.readPrivateKey(existingKeyFile);
+	}
+
+	/**
+	 * Reads the key of a database from the key file the given information names, see
+	 * {@link #readKey(File, boolean)}
+	 *
+	 * @param keyFileInfo
+	 *            where the database's key file is
+	 * @param withMasterPassword
+	 *            whether the database has a master password besides its key file
+	 * @return the key
+	 * @throws IOException
+	 *             when the file cannot be read
+	 * @throws GeneralSecurityException
+	 *             when the file holds no key in a format this kind of database takes
+	 */
+	public static PrivateKey readKey(final FileInfo keyFileInfo, final boolean withMasterPassword)
+		throws IOException, GeneralSecurityException
+	{
+		return readKey(existing(keyFileInfo), withMasterPassword);
 	}
 
 	/**

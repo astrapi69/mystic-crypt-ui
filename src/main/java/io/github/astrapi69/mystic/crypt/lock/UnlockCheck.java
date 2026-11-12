@@ -29,7 +29,6 @@ import java.security.PrivateKey;
 import java.util.Arrays;
 import java.util.logging.Level;
 
-import io.github.astrapi69.crypt.data.key.reader.PrivateKeyReader;
 import io.github.astrapi69.mystic.crypt.app.file.xml.KeyFileOnDisk;
 import io.github.astrapi69.mystic.crypt.panel.signin.MasterPwFileModelBean;
 import lombok.extern.java.Log;
@@ -136,7 +135,7 @@ public final class UnlockCheck
 		{
 			return thePasswordHolds ? new Outcome(Answer.UNLOCKS, null, null) : refused();
 		}
-		PrivateKey key = readKey(keyFile);
+		PrivateKey key = readKey(credentials, keyFile);
 		boolean theKeyHolds = key != null && isTheKey(credentials, key);
 		return thePasswordHolds && theKeyHolds ? new Outcome(Answer.UNLOCKS, key, null) : refused();
 	}
@@ -192,11 +191,12 @@ public final class UnlockCheck
 		return SecretComparison.sameCharacters(entered, credentials.getMasterPw());
 	}
 
-	private static PrivateKey readKey(final File keyFile)
+	/** The key of the chosen file, read the way opening reads it, or null when it holds none */
+	private static PrivateKey readKey(final MasterPwFileModelBean credentials, final File keyFile)
 	{
 		try
 		{
-			return PrivateKeyReader.readPemPrivateKey(keyFile);
+			return KeyFileOnDisk.readKey(keyFile, credentials.isWithMasterPw());
 		}
 		catch (Exception notAKey)
 		{

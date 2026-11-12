@@ -24,8 +24,6 @@
  */
 package io.github.astrapi69.mystic.crypt.ui;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.File;
@@ -58,8 +56,8 @@ import io.github.astrapi69.mystic.crypt.panel.signin.MasterPwFileModelBean;
  * and DER for a database with its key file alone, PEM for one with a master password and a key file
  * (the formats {@code WhatOpeningAndSavingTakeAsAKeyFileTest} pins).
  * <p>
- * PIN of the behaviour before the fix, green on it: a database with its key file alone opens with a
- * DER key file, and the unlock refuses the same file. The fix turns it.
+ * The unlock used to read PEM only, so a database with its key file alone that opened with a DER
+ * key file refused the same file at the unlock. It reads the key file the way opening does now.
  */
 class UnlockTakesTheKeyFileThatOpenedTheDatabaseUiTest extends AbstractUiTest
 {
@@ -71,16 +69,13 @@ class UnlockTakesTheKeyFileThatOpenedTheDatabaseUiTest extends AbstractUiTest
 				"writeInPemFormat"),
 			Arguments.of("key file alone, PEM PKCS#8", false, "PEM/PKCS_8"),
 			Arguments.of("key file alone, PEM PKCS#1", false, "PEM/PKCS_1"),
+			Arguments.of("key file alone, DER PKCS#8", false, "DER/PKCS_8"),
+			Arguments.of("key file alone, DER as the key generator writes PKCS#1", false,
+				"DER/PKCS_1"),
 			Arguments.of("password and key file, PEM as Create key file writes it", true,
 				"writeInPemFormat"),
 			Arguments.of("password and key file, PEM PKCS#8", true, "PEM/PKCS_8"),
 			Arguments.of("password and key file, PEM PKCS#1", true, "PEM/PKCS_1"));
-	}
-
-	static Stream<Arguments> whatOpeningTakesAndUnlockingRefuses()
-	{
-		return Stream.of(Arguments.of("key file alone, DER PKCS#8", false, "DER/PKCS_8"), Arguments
-			.of("key file alone, DER as the key generator writes PKCS#1", false, "DER/PKCS_1"));
 	}
 
 	@ParameterizedTest(name = "{0}: opened, locked, and unlocked with the same file")
@@ -94,22 +89,6 @@ class UnlockTakesTheKeyFileThatOpenedTheDatabaseUiTest extends AbstractUiTest
 		application.lockWorkspace().unlockWorkspaceWith(withPassword ? password : null, null);
 
 		assertTrue(signedIn(), caseName);
-	}
-
-	@ParameterizedTest(name = "PIN: {0}: opens, and the unlock refuses the same file")
-	@MethodSource("whatOpeningTakesAndUnlockingRefuses")
-	void refusesTheKeyFileThatOpenedIt(final String caseName, final boolean withPassword,
-		final String format) throws Exception
-	{
-		String password = TestPasswords.throwaway();
-		ApplicationSteps application = openedWith(withPassword, format, password);
-
-		String refusal = application.lockWorkspace()
-			.unlockExpectingRefusal(withPassword ? password : null, null);
-
-		assertEquals("This key file does not unlock this database.", refusal,
-			"today the unlock reads PEM only");
-		assertFalse(signedIn());
 	}
 
 	/**

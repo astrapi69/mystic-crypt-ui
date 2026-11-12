@@ -40,8 +40,6 @@ import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import io.github.astrapi69.crypt.api.algorithm.AesAlgorithm;
 import io.github.astrapi69.crypt.api.algorithm.Algorithm;
 import io.github.astrapi69.crypt.data.key.KeyModelExtensions;
-import io.github.astrapi69.crypt.data.key.reader.PemObjectReader;
-import io.github.astrapi69.crypt.data.key.reader.PrivateKeyReader;
 import io.github.astrapi69.crypt.data.model.CryptModel;
 import io.github.astrapi69.file.create.FileFactory;
 import io.github.astrapi69.file.create.model.FileInfo;
@@ -181,15 +179,7 @@ public class ApplicationXmlFileReader
 			}
 			else
 			{
-				File keyFile = KeyFileOnDisk.existing(modelObject.getKeyFileInfo());
-				if (PemObjectReader.isPemObject(keyFile))
-				{
-					privateKey = PrivateKeyReader.readPemPrivateKey(keyFile);
-				}
-				else
-				{
-					privateKey = PrivateKeyReader.readPrivateKey(keyFile);
-				}
+				privateKey = KeyFileOnDisk.readKey(modelObject.getKeyFileInfo(), false);
 			}
 			applicationModelBean = openedFrom(getApplicationModelBean(applicationFile, privateKey),
 				applicationFile, modelObject);
@@ -330,7 +320,7 @@ public class ApplicationXmlFileReader
 	{
 		ApplicationModelBean applicationModelBean;
 		PrivateKey privateKey;
-		privateKey = PrivateKeyReader.readPemPrivateKey(keyFile);
+		privateKey = KeyFileOnDisk.readKey(keyFile, true);
 
 		byte[] encryptedBytes = ReadFileExtensions.readFileToBytearray(applicationFile);
 		String encryptedXml = decryptedWithKeyFile(privateKey, encryptedBytes);
@@ -347,8 +337,7 @@ public class ApplicationXmlFileReader
 	public static ApplicationModelBean getApplicationModelBean(File applicationFile, File keyFile)
 		throws Exception
 	{
-		return getApplicationModelBean(applicationFile,
-			PrivateKeyReader.readPemPrivateKey(keyFile));
+		return getApplicationModelBean(applicationFile, KeyFileOnDisk.readKey(keyFile, false));
 	}
 
 	public static ApplicationModelBean getApplicationModelBean(File applicationFile,
