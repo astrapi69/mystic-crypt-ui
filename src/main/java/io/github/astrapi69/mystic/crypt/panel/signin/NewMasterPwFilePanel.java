@@ -29,7 +29,6 @@ import java.awt.event.FocusAdapter;
 import java.awt.event.FocusEvent;
 import java.io.File;
 import java.net.URL;
-import java.util.Arrays;
 
 import javax.swing.*;
 import javax.swing.event.DocumentEvent;
@@ -47,6 +46,7 @@ import io.github.astrapi69.model.api.IModel;
 import io.github.astrapi69.mystic.crypt.Messages;
 import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
 import io.github.astrapi69.mystic.crypt.app.file.xml.ApplicationXmlFileFactory;
+import io.github.astrapi69.mystic.crypt.lock.SecretComparison;
 import io.github.astrapi69.mystic.crypt.panel.privatekey.NewPrivateKeyFileDialog;
 import io.github.astrapi69.mystic.crypt.panel.privatekey.NewPrivateKeyModelBean;
 import io.github.astrapi69.mystic.crypt.panel.pw.GeneratePasswordDialog;
@@ -625,7 +625,7 @@ public class NewMasterPwFilePanel extends BasePanel<MasterPwFileModelBean>
 		char[] password = getModelObject().getMasterPw();
 		char[] repeat = getModelObject().getRepeatPw();
 		boolean typed = repeat != null && repeat.length > 0;
-		boolean differs = typed && !Arrays.equals(password, repeat);
+		boolean differs = typed && !SecretComparison.sameCharacters(password, repeat);
 		boolean asLongAsThePassword = typed && password != null && repeat.length >= password.length;
 		boolean alreadyMarked = OUTLINE_ERROR.equals(txtRepeatPw.getClientProperty(OUTLINE));
 		boolean mark = differs && (leavingTheField || asLongAsThePassword || alreadyMarked);
