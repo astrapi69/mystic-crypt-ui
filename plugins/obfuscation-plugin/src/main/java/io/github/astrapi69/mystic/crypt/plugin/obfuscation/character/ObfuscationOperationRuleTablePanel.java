@@ -231,9 +231,11 @@ public class ObfuscationOperationRuleTablePanel extends BasePanel<ObfuscationOpe
 		btnExport.setText("Export");
 
 		// disabled while the signed-in database has no key to encrypt or decrypt with, rather than
-		// enabled and throwing on the ordinary case of a master-password-only database (#357)
-		boolean keyAvailable = ObfuscationKeyAvailability
-			.keyIsAvailable(MysticCryptApplicationFrame.getInstance().getModelObject());
+		// enabled and throwing on the ordinary case of a master-password-only database (#357);
+		// without a running application, as in a panel test, there is no key either
+		MysticCryptApplicationFrame application = MysticCryptApplicationFrame.getInstance();
+		boolean keyAvailable = application != null
+			&& ObfuscationKeyAvailability.keyIsAvailable(application.getModelObject());
 		btnImport.setEnabled(keyAvailable);
 		btnExport.setEnabled(keyAvailable);
 		btnImport.setToolTipText(keyAvailable
@@ -280,8 +282,10 @@ public class ObfuscationOperationRuleTablePanel extends BasePanel<ObfuscationOpe
 		btnImport.addActionListener(this::onImport);
 		btnExport.addActionListener(this::onExport);
 
-		fileChooser = new JFileChooser(
-			MysticCryptApplicationFrame.getInstance().getConfigurationDirectory());
+		// without a running application, as in a panel test, the chooser starts in the user home
+		fileChooser = application != null
+			? new JFileChooser(application.getConfigurationDirectory())
+			: new JFileChooser(System.getProperty("user.home"));
 
 		fileNameExtensionFilter = new FileNameExtensionFilter(
 			"Mystic crypt obfuscation files (*.obf)", "obf");
