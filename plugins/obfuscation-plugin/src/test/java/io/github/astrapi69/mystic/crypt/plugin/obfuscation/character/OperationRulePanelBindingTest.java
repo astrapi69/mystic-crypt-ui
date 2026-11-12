@@ -57,15 +57,15 @@ class OperationRulePanelBindingTest
 		panel.getModelObject().getTableModel().getData()
 			.add(KeyValuePair.<Character, ObfuscationOperationRule<Character, Character>> builder()
 				.key('a').value(rule).build());
-		panel.getEnDecryptPanel().getTxtToEncrypt().setText("abac");
+		panel.getEnDecryptPanel().getTxtToEncrypt().setText("acac");
 
 		panel.onEncrypt(null);
 		String obfuscated = panel.getEnDecryptPanel().getModelObject().getRightContent();
-		assertNotEquals("abac", obfuscated, "obfuscation changed nothing");
+		assertNotEquals("acac", obfuscated, "obfuscation changed nothing");
 
 		panel.onDecrypt(null);
 
-		assertEquals("abac", panel.getEnDecryptPanel().getModelObject().getLeftContent(),
+		assertEquals("acac", panel.getEnDecryptPanel().getModelObject().getLeftContent(),
 			"< Disentangle did not turn the obfuscated text back (#884)");
 	}
 }
