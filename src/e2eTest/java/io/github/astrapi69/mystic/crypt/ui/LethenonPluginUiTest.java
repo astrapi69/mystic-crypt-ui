@@ -32,6 +32,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.awt.Toolkit;
 import java.awt.datatransfer.DataFlavor;
 import java.io.File;
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -74,6 +75,7 @@ import io.github.astrapi69.lethenon.TransactionSigner;
 import io.github.astrapi69.lethenon.Transfers;
 import io.github.astrapi69.lethenon.Wallet;
 import io.github.astrapi69.lethenon.WalletFile;
+import io.github.astrapi69.lethenon.transport.Bootstrap;
 import io.github.astrapi69.lethenon.transport.Node;
 import io.github.astrapi69.lethenon.transport.PeerAddress;
 import io.github.astrapi69.lethenon.transport.Sync;
@@ -714,6 +716,7 @@ class LethenonPluginUiTest extends AbstractUiTest
 		try (Node node = Node.on(served))
 		{
 			int port = node.listen(0);
+			awaitNodeAnswers(port);
 			ApplicationSteps application = signInWithExistingDatabase(databaseFile,
 				MASTER_PASSWORD);
 			FrameFixture frame = application.showMainFrame();
@@ -811,6 +814,7 @@ class LethenonPluginUiTest extends AbstractUiTest
 		try (Node node = Node.serving(chain))
 		{
 			int port = node.listen(0);
+			awaitNodeAnswers(port);
 			ApplicationSteps application = signInWithExistingDatabase(databaseFile,
 				MASTER_PASSWORD);
 			FrameFixture frame = application.showMainFrame();
@@ -879,6 +883,7 @@ class LethenonPluginUiTest extends AbstractUiTest
 		assertTrue(textOf(tool, "txtAnswer").startsWith("Your node runs on port " + port + ":"),
 			textOf(tool, "txtAnswer"));
 		ChainFile copy = new ChainFile(new File(tempHome, "copy.lethenon").toPath());
+		awaitNodeAnswers(Integer.parseInt(port));
 		Sync.once(copy, new PeerAddress("127.0.0.1", Integer.parseInt(port)),
 			Duration.ofSeconds(30));
 		assertEquals(started, copy.require().subList(0, started.size()),
@@ -894,6 +899,33 @@ class LethenonPluginUiTest extends AbstractUiTest
 			"the mined blocks pay the wallet");
 		Replay.verify(written);
 		assertTrue(frame.isEnabled(), "the application is still usable after a node ran");
+	}
+
+	/**
+	 * Waits until the node at the port answers a genesis request. The protocol reads with a fixed
+	 * time limit (Node.HANDSHAKE_MILLIS, ADR 0003), and on a starved CPU a freshly started node
+	 * needs longer than that once - every path that then asks it fails on a read timeout (#657,
+	 * measured over 30 starved iterations in #656). The probe asks the same question first, so the
+	 * one slow answer lands here, where waiting is the point, and not in the assertion.
+	 */
+	private static void awaitNodeAnswers(final int port)
+	{
+		PeerAddress address = new PeerAddress("127.0.0.1", port);
+		Pause.pause(new Condition("the node at port " + port + " answers a genesis request")
+		{
+			@Override
+			public boolean test()
+			{
+				try
+				{
+					return !Bootstrap.genesisFrom(address).isEmpty();
+				}
+				catch (IOException stillWarmingUp)
+				{
+					return false;
+				}
+			}
+		}, 90000);
 	}
 
 	/**
