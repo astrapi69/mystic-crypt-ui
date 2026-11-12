@@ -15,6 +15,9 @@ new CLI capability is built in the library first. Vault format: versioned
 
 ## Make targets
 
+`make` (= `make help`) lists every target with its description, which lives on the target's rule
+line in the Makefile (#911); `docs/development.md` says which to run for what.
+
 - `make build` / `make build-full` — build (full = with all checks)
 - `make test` — the everyday gate; must stay green after every change
 - `make test-e2e` — Swing e2e suite; every test task of every build runs on an Xvfb of its own,
@@ -26,7 +29,7 @@ new CLI capability is built in the library first. Vault format: versioned
 - `make run` (= `make run-isolated`) — builds the internal plugin zips (without their tests) and the
   host jar and starts the development build in a profile of its own (`ISOLATED_HOME`, default
   `~/mystic-crypt-ui-dev`), never touching the installed release (#498, #501); `make start` starts
-  the last build there without building anything (#909); `make bootRun` runs through Gradle with the real profile
+  the last build there without building anything (#909); `make bootRun` is broken (#918)
 - `make spotless-java` — format before committing
 - `make install-hooks` — point git at `.githooks` (run once per clone/worktree)
 - `make izpack-installer` — installer

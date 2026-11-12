@@ -86,8 +86,9 @@ test {
     inputs.files('.sdkmanrc', 'Makefile', 'README.md', 'gradle.properties', 'build.gradle', 'gradlew',
             fileTree('gradle') { include '*.gradle', '*.toml' }, fileTree('src/main/izpack'),
             fileTree('src') { include 'e2e*/**', 'testSupport/**' },
-            // WikiLinksTest reads the wiki links where they are written and the pages they name (#869)
-            'DEPLOYMENT-INFO.md', fileTree('docs') { include '*.md', 'wiki/*.md' },
+            // WikiLinksTest reads the wiki links where they are written and the pages they name (#869),
+            // MakefileTargetsAreDescribedTest the make targets README, CLAUDE.md and docs name (#911)
+            'DEPLOYMENT-INFO.md', 'CLAUDE.md', fileTree('docs') { include '*.md', 'wiki/*.md' },
             fileTree('src/main/java') { include '**/*.java' })
         .withPropertyName('workingTreeFiles').withPathSensitivity(PathSensitivity.RELATIVE)
     // and the plugin builds: EveryTestTaskRunsOnTheBuildsOwnDisplayTest reads their build files, and
