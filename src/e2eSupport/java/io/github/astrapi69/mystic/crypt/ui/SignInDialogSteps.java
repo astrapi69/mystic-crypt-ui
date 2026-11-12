@@ -138,6 +138,20 @@ final class SignInDialogSteps
 	}
 
 	/** Clicks "Browse..." and selects the given file in the save chooser that opens */
+	/**
+	 * The application file dropdown has exactly this path selected: after "Create your master key"
+	 * that must be the file the dialog wrote, not the one picked first (#890)
+	 *
+	 * @param expectedAbsolutePath
+	 *            the path the dropdown must have selected
+	 * @return this, for the next step
+	 */
+	SignInDialogSteps requireSelectedApplicationFile(String expectedAbsolutePath)
+	{
+		dialog.comboBox("cmbApplicationFile").requireSelection(expectedAbsolutePath);
+		return this;
+	}
+
 	SignInDialogSteps browseApplicationFile(File applicationFile)
 	{
 		SwingUtilities
