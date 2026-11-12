@@ -35,7 +35,6 @@ import io.github.astrapi69.crypt.api.algorithm.AesAlgorithm;
 import io.github.astrapi69.crypt.data.factory.SecretKeyFactoryExtensions;
 import io.github.astrapi69.crypt.data.key.KeyModelExtensions;
 import io.github.astrapi69.crypt.data.key.PrivateKeyExtensions;
-import io.github.astrapi69.crypt.data.key.reader.PrivateKeyReader;
 import io.github.astrapi69.crypt.data.model.CryptModel;
 import io.github.astrapi69.file.create.FileFactory;
 import io.github.astrapi69.mystic.crypt.ApplicationModelBean;
@@ -110,8 +109,9 @@ public final class ApplicationXmlFileStoreWorker
 		}
 		else
 		{
-			privateKey = RuntimeExceptionDecorator.decorate(() -> PrivateKeyReader
-				.readPrivateKey(FileFactory.newFileQuietly(modelObject.getKeyFileInfo())));
+			File keyFile = KeyFileOnDisk.existing(modelObject.getKeyFileInfo());
+			privateKey = RuntimeExceptionDecorator
+				.decorate(() -> KeyFileOnDisk.readKey(keyFile, false));
 		}
 
 		publicKey = RuntimeExceptionDecorator
@@ -156,8 +156,8 @@ public final class ApplicationXmlFileStoreWorker
 		MasterPwFileModelBean modelObject = applicationModelBean.getMasterPwFileModelBean();
 		refuseWithoutAMasterPassword(modelObject);
 		applicationFile = FileFactory.newFileQuietly(modelObject.getApplicationFileInfo());
-		privateKey = RuntimeExceptionDecorator.decorate(() -> PrivateKeyReader
-			.readPemPrivateKey(FileFactory.newFileQuietly(modelObject.getKeyFileInfo())));
+		File keyFile = KeyFileOnDisk.existing(modelObject.getKeyFileInfo());
+		privateKey = RuntimeExceptionDecorator.decorate(() -> KeyFileOnDisk.readKey(keyFile, true));
 
 		masterPw = modelObject.getMasterPw();
 

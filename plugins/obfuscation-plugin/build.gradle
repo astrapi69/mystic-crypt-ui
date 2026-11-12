@@ -73,6 +73,8 @@ dependencies {
     // layout have to be on the test compile classpath as well (the host jar exposes them only at
     // runtime)
     testImplementation libs.swing.base.components
+    // the binding test adds rules through the table model, whose base class is in this library
+    testImplementation libs.swing.table.components
     testImplementation libs.swing.model.components
     testImplementation libs.model.data
     testImplementation libs.miglayout.swing

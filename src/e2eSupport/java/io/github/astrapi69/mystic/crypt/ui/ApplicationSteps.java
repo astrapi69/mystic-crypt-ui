@@ -1426,6 +1426,119 @@ final class ApplicationSteps
 		return this;
 	}
 
+	/**
+	 * Unlocks with the factors given (#880): types the master password when one is given, puts the
+	 * key file's path into the key file field when one is given - the field is preset with the key
+	 * file the database was opened with, so null leaves that path - and waits until signed in
+	 *
+	 * @param password
+	 *            the master password, null for a database without one
+	 * @param keyFile
+	 *            the key file to choose, null to keep the preset one
+	 * @return this, for the next step
+	 */
+	ApplicationSteps unlockWorkspaceWith(String password, File keyFile)
+	{
+		fillTheUnlockPrompt(password, keyFile);
+		Pause.pause(new Condition("workspace is unlocked (model signed in)")
+		{
+			@Override
+			public boolean test()
+			{
+				return MysticCryptApplicationFrame.getInstance().getModelObject().isSignedIn();
+			}
+		}, 10000);
+		robot.waitForIdle();
+		UiTestSpeed.step();
+		return this;
+	}
+
+	/**
+	 * Fills the unlock prompt like {@link #unlockWorkspaceWith(String, File)}, expects it to be
+	 * refused, and closes the "Unlock failed" message - the workspace stays locked and the prompt
+	 * comes back
+	 *
+	 * @param password
+	 *            the master password, null for a database without one
+	 * @param keyFile
+	 *            the key file to choose, null to keep the preset one
+	 * @return the message the refusal gave
+	 */
+	String unlockExpectingRefusal(String password, File keyFile)
+	{
+		fillTheUnlockPrompt(password, keyFile);
+		DialogFixture refusal = findDialogWithTitle("Unlock failed");
+		javax.swing.JOptionPane optionPane = (javax.swing.JOptionPane)robot.finder()
+			.findByType(refusal.target(), javax.swing.JOptionPane.class);
+		String message = GuiActionRunner.execute(() -> String.valueOf(optionPane.getMessage()));
+		dismissMessageDialog("Unlock failed");
+		return message;
+	}
+
+	/**
+	 * Whether the unlock prompt holds a component of the given name, such as
+	 * {@code txtUnlockPassword} or {@code txtUnlockKeyFile}
+	 *
+	 * @param name
+	 *            the component name
+	 * @return true when the prompt asks for it
+	 */
+	boolean unlockPromptHas(String name)
+	{
+		DialogFixture unlockDialog = findDialogWithTitle("Unlock workspace");
+		return GuiActionRunner.execute(() -> componentNamed(unlockDialog.target(), name) != null);
+	}
+
+	/**
+	 * The path the unlock prompt's key file field holds
+	 *
+	 * @return the path, as the field shows it
+	 */
+	String unlockPromptKeyFile()
+	{
+		DialogFixture unlockDialog = findDialogWithTitle("Unlock workspace");
+		return GuiActionRunner
+			.execute(() -> unlockDialog.textBox("txtUnlockKeyFile").target().getText());
+	}
+
+	private void fillTheUnlockPrompt(String password, File keyFile)
+	{
+		DialogFixture unlockDialog = findDialogWithTitle("Unlock workspace");
+		if (password != null)
+		{
+			GuiActionRunner.execute(
+				() -> unlockDialog.textBox("txtUnlockPassword").target().setText(password));
+		}
+		if (keyFile != null)
+		{
+			GuiActionRunner.execute(() -> unlockDialog.textBox("txtUnlockKeyFile").target()
+				.setText(keyFile.getAbsolutePath()));
+		}
+		robot.waitForIdle();
+		UiTestSpeed.step();
+		clickDialogButton(unlockDialog, "OK");
+	}
+
+	private static java.awt.Component componentNamed(java.awt.Container container, String name)
+	{
+		for (java.awt.Component component : container.getComponents())
+		{
+			if (name.equals(component.getName()))
+			{
+				return component;
+			}
+			if (component instanceof java.awt.Container child)
+			{
+				java.awt.Component found = componentNamed(child, name);
+				if (found != null)
+				{
+					return found;
+				}
+			}
+		}
+		return null;
+	}
+
 	/** Opens the settings dialog via the File menu and returns a fixture for it */
 	DialogFixture openSettingsDialog()
 	{
@@ -1709,6 +1822,51 @@ final class ApplicationSteps
 	javax.swing.JInternalFrame internalFrame(String title)
 	{
 		return GuiActionRunner.execute(() -> findInternalFrameByTitle(title));
+	}
+
+	/**
+	 * The internal frame with the given title, waited for; a window that never appears fails NAMING
+	 * the window. The #575 failure was a nameless NullPointerException out of the finder: a missing
+	 * frame was handed on as a null search root, and the trace out of the pause executor did not
+	 * say which window was missing.
+	 *
+	 * @param title
+	 *            the internal frame's title
+	 * @return the internal frame, once it is on the desktop
+	 */
+	javax.swing.JInternalFrame requireInternalFrame(String title)
+	{
+		return requireInternalFrame(title, 10000);
+	}
+
+	/**
+	 * The internal frame with the given title, waited for up to the given time (#575)
+	 *
+	 * @param title
+	 *            the internal frame's title
+	 * @param timeoutMillis
+	 *            how long the window has to appear
+	 * @return the internal frame, once it is on the desktop
+	 */
+	javax.swing.JInternalFrame requireInternalFrame(String title, long timeoutMillis)
+	{
+		try
+		{
+			Pause.pause(new Condition("the internal frame '" + title + "' is on the desktop")
+			{
+				@Override
+				public boolean test()
+				{
+					return internalFrame(title) != null;
+				}
+			}, timeoutMillis);
+		}
+		catch (org.assertj.swing.exception.WaitTimedOutError neverAppeared)
+		{
+			throw new AssertionError("the internal frame '" + title + "' never appeared (#575)",
+				neverAppeared);
+		}
+		return internalFrame(title);
 	}
 
 	/**

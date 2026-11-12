@@ -25,6 +25,7 @@
 package io.github.astrapi69.mystic.crypt.tooling;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
@@ -126,6 +127,18 @@ class MakefileTargetsAreDescribedTest
 	{
 		assertEquals(run("make", "--no-print-directory", "help"),
 			run("make", "--no-print-directory"));
+	}
+
+	/**
+	 * No target writes development plugins into the real profile: a start in the real profile is
+	 * what the installed release is for (#498, #501), and bootRun did exactly that before failing
+	 * on a Gradle task this build does not have (#918)
+	 */
+	@Test
+	void noTargetInstallsIntoTheRealProfile() throws IOException
+	{
+		assertFalse(targets().contains("bootRun"),
+			"bootRun installs the develop plugins into the real profile and then fails (#918)");
 	}
 
 	@Test

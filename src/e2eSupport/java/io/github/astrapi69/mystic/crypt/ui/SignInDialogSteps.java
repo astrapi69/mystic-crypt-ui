@@ -101,6 +101,28 @@ final class SignInDialogSteps
 		return this;
 	}
 
+	/**
+	 * Ensures the master password checkbox is NOT selected, for a database that opens with its key
+	 * file alone; ensure-semantics for the same reason as {@link #checkMasterPassword()}
+	 *
+	 * @return this, for the next step
+	 */
+	SignInDialogSteps uncheckMasterPassword()
+	{
+		GuiActionRunner.execute(() -> {
+			javax.swing.JCheckBox checkBox = (javax.swing.JCheckBox)dialog.checkBox("cbxMasterPw")
+				.target();
+			if (checkBox.isSelected())
+			{
+				checkBox.doClick();
+			}
+		});
+		dialog.checkBox("cbxMasterPw").requireNotSelected();
+		robot.waitForIdle();
+		UiTestSpeed.step();
+		return this;
+	}
+
 	SignInDialogSteps typeMasterPassword(String masterPassword)
 	{
 		GuiActionRunner
@@ -138,6 +160,20 @@ final class SignInDialogSteps
 	}
 
 	/** Clicks "Browse..." and selects the given file in the save chooser that opens */
+	/**
+	 * The application file dropdown has exactly this path selected: after "Create your master key"
+	 * that must be the file the dialog wrote, not the one picked first (#890)
+	 *
+	 * @param expectedAbsolutePath
+	 *            the path the dropdown must have selected
+	 * @return this, for the next step
+	 */
+	SignInDialogSteps requireSelectedApplicationFile(String expectedAbsolutePath)
+	{
+		dialog.comboBox("cmbApplicationFile").requireSelection(expectedAbsolutePath);
+		return this;
+	}
+
 	SignInDialogSteps browseApplicationFile(File applicationFile)
 	{
 		SwingUtilities

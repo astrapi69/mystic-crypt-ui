@@ -83,7 +83,7 @@ class ChecksumPluginUiTest extends AbstractUiTest
 		// the other test in this class opens the same tool, and forkEvery = 1 forks per CLASS, so
 		// a frame-wide lookup finds two panels of the same name - scope it to this tool's window
 		JInternalFrameFixture tool = new JInternalFrameFixture(robot,
-			application.internalFrame("Verify Checksum"));
+			application.requireInternalFrame("Verify Checksum"));
 
 		chooseAlgorithm(tool, ChecksumAlgorithm.SHA_256);
 		chooseFileToCheck(tool, abcFile);
@@ -131,7 +131,7 @@ class ChecksumPluginUiTest extends AbstractUiTest
 		application.showMainFrame();
 		application.openPluginTool("Verify Checksum", "Verify Checksum");
 		JInternalFrameFixture tool = new JInternalFrameFixture(robot,
-			application.internalFrame("Verify Checksum"));
+			application.requireInternalFrame("Verify Checksum"));
 
 		chooseAlgorithm(tool, ChecksumAlgorithm.SHA_512);
 		chooseFileToCheck(tool, abcFile);

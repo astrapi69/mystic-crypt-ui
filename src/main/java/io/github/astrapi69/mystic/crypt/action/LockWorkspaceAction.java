@@ -24,8 +24,10 @@
  */
 package io.github.astrapi69.mystic.crypt.action;
 
+import java.awt.BorderLayout;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
+import java.io.File;
 import java.io.Serial;
 import java.util.Arrays;
 import java.util.logging.Level;
@@ -33,14 +35,16 @@ import java.util.logging.Level;
 import javax.swing.*;
 
 import io.github.astrapi69.awt.extension.ClipboardExtensions;
+import io.github.astrapi69.crypt.data.key.KeyModelExtensions;
 import io.github.astrapi69.crypt.data.model.KeyModel;
 import io.github.astrapi69.mystic.crypt.ApplicationModelBean;
 import io.github.astrapi69.mystic.crypt.DesktopMenu;
 import io.github.astrapi69.mystic.crypt.Messages;
 import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
 import io.github.astrapi69.mystic.crypt.app.file.xml.ApplicationXmlFileStoreWorker;
+import io.github.astrapi69.mystic.crypt.lock.KeyFileVerifier;
 import io.github.astrapi69.mystic.crypt.lock.MasterPasswordVerifier;
-import io.github.astrapi69.mystic.crypt.lock.SecretComparison;
+import io.github.astrapi69.mystic.crypt.lock.UnlockCheck;
 import io.github.astrapi69.mystic.crypt.panel.signin.MasterPwFileModelBean;
 import io.github.astrapi69.mystic.crypt.secret.SecretBuffers;
 import io.github.astrapi69.mystic.crypt.settings.MysticCryptSettings;
@@ -49,9 +53,10 @@ import lombok.extern.java.Log;
 
 /**
  * Locks the workspace: hides the open database behind the neutral desktop pane and disables the
- * editing menus and toolbar, then requires the master password to be re-entered before the content
- * is shown again. The open database stays in memory, so unlocking restores it without reopening the
- * file. Clicking the action again while locked re-opens the unlock prompt.
+ * editing menus and toolbar, then requires the factors the database was opened with - its master
+ * password, its key file read from the disk again, or both (#880) - before the content is shown
+ * again. The open database stays in memory, so unlocking restores it without reopening the file.
+ * Clicking the action again while locked re-opens the unlock prompt.
  */
 @Log
 public class LockWorkspaceAction extends AbstractAction
@@ -144,25 +149,10 @@ public class LockWorkspaceAction extends AbstractAction
 		{
 			return;
 		}
-		JPasswordField passwordField = new JPasswordField(20);
-		passwordField.setName("txtUnlockPassword");
-		JPanel panel = new JPanel(new GridLayout(0, 1, 4, 4));
-		panel.add(new JLabel("Enter the master password to unlock the workspace:"));
-		if (frame.getModelObject().isDirty())
-		{
-			// says it rather than letting the save-before-close question be the first hint the
-			// user ever gets: locking kept the changes on purpose, and that is worth one line
-			// (#304). A line, not a dialog - nobody who just typed a master password needs
-			// something else to acknowledge
-			JLabel waiting = new JLabel(Messages.getString("unlock.unsaved.changes.waiting",
-				"Unsaved changes are waiting in this database."));
-			waiting.setName("lblUnsavedChangesWaiting");
-			panel.add(waiting);
-		}
-		panel.add(passwordField);
-
-		int option = JOptionPaneExtensions.getSelectedOption(panel, JOptionPane.PLAIN_MESSAGE,
-			JOptionPane.OK_CANCEL_OPTION, frame, UNLOCK_PROMPT_TITLE, passwordField);
+		UnlockFields fields = unlockFields(frame, credentials);
+		int option = JOptionPaneExtensions.getSelectedOption(fields.panel(),
+			JOptionPane.PLAIN_MESSAGE, JOptionPane.OK_CANCEL_OPTION, frame, UNLOCK_PROMPT_TITLE,
+			fields.password() != null ? fields.password() : fields.keyFile());
 		if (option != JOptionPane.OK_OPTION)
 		{
 			// cancelled: stay locked
@@ -176,24 +166,192 @@ public class LockWorkspaceAction extends AbstractAction
 			// whatever closes a vault next
 			return;
 		}
-		char[] entered = passwordField.getPassword();
-		if (isTheMasterPassword(credentials, entered))
+		char[] entered = fields.password() == null ? null : fields.password().getPassword();
+		File keyFile = fields.keyFile() == null || fields.keyFile().getText().isBlank()
+			? null
+			: new File(fields.keyFile().getText().trim());
+		try
 		{
-			rememberTheMasterPassword(credentials, entered);
-			frame.getModelObject().setSignedIn(true);
-			// back into the view the user chose, not always into the panel view: locking switched
-			// to the desktop pane to hide the content, and unlocking has to undo exactly that
-			frame.applyViewMode(
-				MysticCryptSettings.load(frame.getConfigurationDirectory()).getViewMode());
-			((DesktopMenu)frame.getMenu()).onEnableBySignin();
-		}
-		else
-		{
-			JOptionPane.showMessageDialog(frame, "Wrong master password.", "Unlock failed",
+			UnlockCheck.Outcome outcome = UnlockCheck.check(credentials, entered, keyFile);
+			if (outcome.answer() == UnlockCheck.Answer.UNLOCKS)
+			{
+				completeTheUnlock(frame, credentials, entered, outcome);
+				return;
+			}
+			JOptionPane.showMessageDialog(frame, refusalOf(outcome, fields),
+				Messages.getString("unlock.failed.title", "Unlock failed"),
 				JOptionPane.ERROR_MESSAGE);
 			SwingUtilities.invokeLater(() -> promptForUnlock(frame));
 		}
-		Arrays.fill(entered, '\0');
+		finally
+		{
+			if (entered != null)
+			{
+				Arrays.fill(entered, '\0');
+			}
+		}
+	}
+
+	/**
+	 * The fields of the unlock prompt: a password field when the database was opened with a master
+	 * password, a key file field with a chooser when it was opened with a key file, both for a
+	 * database opened with both (#880)
+	 *
+	 * @param panel
+	 *            the panel the prompt shows
+	 * @param password
+	 *            the password field, null for a database without a master password
+	 * @param keyFile
+	 *            the key file field, null for a database without a key file
+	 */
+	private record UnlockFields(JPanel panel, JPasswordField password, JTextField keyFile) {
+	}
+
+	private static UnlockFields unlockFields(final MysticCryptApplicationFrame frame,
+		final MasterPwFileModelBean credentials)
+	{
+		boolean asksForThePassword = UnlockCheck.asksForThePassword(credentials);
+		boolean asksForTheKeyFile = UnlockCheck.asksForTheKeyFile(credentials);
+		JPanel panel = new JPanel(new GridLayout(0, 1, 4, 4));
+		panel.add(new JLabel(promptOf(asksForThePassword, asksForTheKeyFile)));
+		if (frame.getModelObject().isDirty())
+		{
+			// says it rather than letting the save-before-close question be the first hint the
+			// user ever gets: locking kept the changes on purpose, and that is worth one line
+			// (#304). A line, not a dialog - nobody who just typed a master password needs
+			// something else to acknowledge
+			JLabel waiting = new JLabel(Messages.getString("unlock.unsaved.changes.waiting",
+				"Unsaved changes are waiting in this database."));
+			waiting.setName("lblUnsavedChangesWaiting");
+			panel.add(waiting);
+		}
+		JPasswordField passwordField = null;
+		if (asksForThePassword)
+		{
+			passwordField = new JPasswordField(20);
+			passwordField.setName("txtUnlockPassword");
+			panel.add(passwordField);
+		}
+		JTextField keyFileField = null;
+		if (asksForTheKeyFile)
+		{
+			keyFileField = keyFileField(credentials);
+			panel.add(keyFileRow(frame, keyFileField));
+		}
+		return new UnlockFields(panel, passwordField, keyFileField);
+	}
+
+	private static String promptOf(final boolean asksForThePassword,
+		final boolean asksForTheKeyFile)
+	{
+		if (asksForThePassword && asksForTheKeyFile)
+		{
+			return Messages.getString("unlock.prompt.both",
+				"Enter the master password and choose the key file to unlock the workspace:");
+		}
+		if (asksForTheKeyFile)
+		{
+			return Messages.getString("unlock.prompt.key.file",
+				"Choose the key file to unlock the workspace:");
+		}
+		return Messages.getString("unlock.prompt.password",
+			"Enter the master password to unlock the workspace:");
+	}
+
+	/**
+	 * The key file field, preset with the key file the database was opened with, as the sign-in
+	 * dialog presets the one chosen last: the file is read from the disk again when the prompt is
+	 * confirmed, so a key file that is gone does not unlock. {@code FileInfo.toFile()} rather than
+	 * {@code FileFactory.newFileQuietly}, which creates the file when it is missing and would leave
+	 * an empty one where the key file was
+	 */
+	private static JTextField keyFileField(final MasterPwFileModelBean credentials)
+	{
+		JTextField keyFileField = new JTextField(30);
+		keyFileField.setName("txtUnlockKeyFile");
+		if (credentials.getKeyFileInfo() != null)
+		{
+			keyFileField.setText(credentials.getKeyFileInfo().toFile().getAbsolutePath());
+		}
+		return keyFileField;
+	}
+
+	private static JPanel keyFileRow(final MysticCryptApplicationFrame frame,
+		final JTextField keyFileField)
+	{
+		JButton choose = new JButton(
+			Messages.getString("unlock.key.file.choose", "Choose key file..."));
+		choose.setName("btnUnlockKeyFile");
+		choose.addActionListener(event -> {
+			JFileChooser chooser = new JFileChooser(
+				new File(keyFileField.getText()).getParentFile());
+			if (chooser.showOpenDialog(frame) == JFileChooser.APPROVE_OPTION)
+			{
+				keyFileField.setText(chooser.getSelectedFile().getAbsolutePath());
+			}
+		});
+		JPanel row = new JPanel(new BorderLayout(4, 4));
+		row.add(new JLabel(Messages.getString("unlock.key.file.label", "Key file:")),
+			BorderLayout.WEST);
+		row.add(keyFileField, BorderLayout.CENTER);
+		row.add(choose, BorderLayout.EAST);
+		return row;
+	}
+
+	/**
+	 * The refusal of the prompt, one and the same for every wrong factor of a database: it names
+	 * the factors the prompt asked for, never which of them was wrong (#880). A key file that is
+	 * not there is named with the words opening and saving use for it (#937)
+	 *
+	 * @param outcome
+	 *            what the attempt came to
+	 * @param fields
+	 *            the fields the prompt showed
+	 * @return the refusal
+	 */
+	private static String refusalOf(final UnlockCheck.Outcome outcome, final UnlockFields fields)
+	{
+		if (outcome.answer() == UnlockCheck.Answer.KEY_FILE_MISSING)
+		{
+			return outcome.reason();
+		}
+		if (fields.password() != null && fields.keyFile() != null)
+		{
+			return Messages.getString("unlock.failed.both",
+				"The master password or the key file is wrong.");
+		}
+		if (fields.keyFile() != null)
+		{
+			return Messages.getString("unlock.failed.key.file",
+				"This key file does not unlock this database.");
+		}
+		return Messages.getString("unlock.failed.password", "Wrong master password.");
+	}
+
+	/**
+	 * Puts back what locking took away and shows the content again: the master password where the
+	 * database has one, the key just read from the key file where it has one, so the next save and
+	 * the plugins find the key where opening put it (#880)
+	 */
+	private static void completeTheUnlock(final MysticCryptApplicationFrame frame,
+		final MasterPwFileModelBean credentials, final char[] entered,
+		final UnlockCheck.Outcome outcome)
+	{
+		if (entered != null)
+		{
+			rememberTheMasterPassword(credentials, entered);
+		}
+		if (outcome.privateKey() != null)
+		{
+			credentials.setPrivateKeyInfo(KeyModelExtensions.toKeyModel(outcome.privateKey()));
+		}
+		forgetTheKeyFileVerifier(credentials);
+		frame.getModelObject().setSignedIn(true);
+		// back into the view the user chose, not always into the panel view: locking switched
+		// to the desktop pane to hide the content, and unlocking has to undo exactly that
+		frame.applyViewMode(
+			MysticCryptSettings.load(frame.getConfigurationDirectory()).getViewMode());
+		((DesktopMenu)frame.getMenu()).onEnableBySignin();
 	}
 
 	/**
@@ -314,6 +472,7 @@ public class LockWorkspaceAction extends AbstractAction
 			return;
 		}
 		forgetTheRepeatedPassword(credentials);
+		keepAVerifierOfTheKey(credentials);
 		forgetThePrivateKey(credentials);
 		if (credentials.getMasterPw() == null)
 		{
@@ -355,12 +514,48 @@ public class LockWorkspaceAction extends AbstractAction
 	}
 
 	/**
+	 * Keeps a verifier of the private key of a database opened with a key file, made before the key
+	 * is overwritten: unlocking reads the key file from the disk again and asks this verifier
+	 * whether it holds the same key, so the key itself does not stay in memory while the workspace
+	 * is locked (#880)
+	 *
+	 * @param credentials
+	 *            the credentials of the open database
+	 */
+	private static void keepAVerifierOfTheKey(final MasterPwFileModelBean credentials)
+	{
+		KeyModel privateKeyInfo = credentials.getPrivateKeyInfo();
+		if (!credentials.isWithKeyFile() || privateKeyInfo == null)
+		{
+			return;
+		}
+		credentials.setKeyFileLockVerifier(KeyFileVerifier.of(privateKeyInfo.getEncoded()));
+	}
+
+	/**
+	 * Overwrites and drops the key file verifier once the key is back in memory
+	 *
+	 * @param credentials
+	 *            the credentials of the unlocked database
+	 */
+	private static void forgetTheKeyFileVerifier(final MasterPwFileModelBean credentials)
+	{
+		if (credentials.getKeyFileLockVerifier() == null)
+		{
+			return;
+		}
+		credentials.getKeyFileLockVerifier().wipe();
+		credentials.setKeyFileLockVerifier(null);
+	}
+
+	/**
 	 * Overwrites the encoded private key of a key-file vault.
 	 * <p>
 	 * This is the other way in, and for a key-only vault it is the ONLY way in - no password is
 	 * involved at all. Forgetting the password and keeping the key forgets one of two doors, and
-	 * for one kind of vault it forgets the wrong one. Unlocking does not need it: the file is read
-	 * again from the key file on the next open, and while the workspace is locked nothing decrypts.
+	 * for one kind of vault it forgets the wrong one. Unlocking does not need it: it reads the key
+	 * file from the disk again and recognises the key by the verifier kept before this (#880), and
+	 * while the workspace is locked nothing decrypts.
 	 * <p>
 	 * {@code KeyModel} declares its fields final and {@code @NonNull}, so the array is overwritten
 	 * in place and the holder is dropped afterwards - the same shape the close path uses.
@@ -377,28 +572,6 @@ public class LockWorkspaceAction extends AbstractAction
 		}
 		SecretBuffers.wipe(privateKeyInfo.getEncoded());
 		credentials.setPrivateKeyInfo(null);
-	}
-
-	/**
-	 * Whether the typed characters open this database. Asks the verifier that locking left behind;
-	 * only where there is none - locking could not derive one - does it fall back to comparing
-	 * against the password itself
-	 *
-	 * @param credentials
-	 *            the credentials of the open database
-	 * @param entered
-	 *            what was typed into the unlock dialog
-	 * @return true if the workspace may be unlocked
-	 */
-	private static boolean isTheMasterPassword(final MasterPwFileModelBean credentials,
-		final char[] entered)
-	{
-		MasterPasswordVerifier verifier = credentials.getLockVerifier();
-		if (verifier != null)
-		{
-			return verifier.matches(entered);
-		}
-		return SecretComparison.sameCharacters(entered, credentials.getMasterPw());
 	}
 
 	/**

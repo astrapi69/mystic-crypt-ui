@@ -29,7 +29,7 @@ line in the Makefile (#911); `docs/development.md` says which to run for what.
 - `make run` (= `make run-isolated`) — builds the internal plugin zips (without their tests) and the
   host jar and starts the development build in a profile of its own (`ISOLATED_HOME`, default
   `~/mystic-crypt-ui-dev`), never touching the installed release (#498, #501); `make start` starts
-  the last build there without building anything (#909); `make bootRun` is broken (#918)
+  the last build there without building anything (#909)
 - `make spotless-java` — format before committing
 - `make install-hooks` — point git at `.githooks` (run once per clone/worktree)
 - `make izpack-installer` — installer

@@ -33,6 +33,7 @@ import io.github.astrapi69.collection.list.ListFactory;
 import io.github.astrapi69.collection.set.SetFactory;
 import io.github.astrapi69.crypt.data.model.KeyModel;
 import io.github.astrapi69.file.create.model.FileInfo;
+import io.github.astrapi69.mystic.crypt.lock.KeyFileVerifier;
 import io.github.astrapi69.mystic.crypt.lock.MasterPasswordVerifier;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -183,6 +184,16 @@ public class MasterPwFileModelBean implements Serializable
 	 * when unlocking, and transient for the same reason as the password itself.
 	 */
 	transient MasterPasswordVerifier lockVerifier;
+
+	/**
+	 * What is kept instead of {@link #privateKeyInfo} while the workspace is locked: a salted
+	 * digest of the key, enough to recognise it when the key file is read from the disk again at
+	 * unlock, not enough to be it (#880). Set when locking a database opened with a key file,
+	 * dropped when unlocking, and transient for the same reason as the key itself.
+	 */
+	@ToString.Exclude
+	@EqualsAndHashCode.Exclude
+	transient KeyFileVerifier keyFileLockVerifier;
 
 	/** The minimum length for the password. */
 	int minPasswordLength;

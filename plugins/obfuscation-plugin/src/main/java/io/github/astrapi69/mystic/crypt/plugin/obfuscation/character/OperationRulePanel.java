@@ -205,7 +205,9 @@ public class OperationRulePanel extends BasePanel<ObfuscationOperationModelBean>
 		BiMap<Character, ObfuscationOperationRule<Character, Character>> biMap = getModelObject()
 			.getTableModel().toBiMap();
 		String text = getEnDecryptPanel().getModelObject().getRightContent();
-		String disentangled = ObfuscatorExtensions.disentangleImproved(biMap, text);
+		// the same method the command line uses; the deprecated disentangleImproved gave a wrong
+		// text back for an operated rule table (#884) and goes with mystic-crypt 14.0
+		String disentangled = ObfuscatorExtensions.disentangle(biMap, text);
 		getEnDecryptPanel().getTxtToEncrypt().setText(disentangled);
 		getEnDecryptPanel().getTxtEncrypted().setText("");
 	}

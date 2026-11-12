@@ -286,6 +286,13 @@ public final class VaultCloseSupport
 			credentials.getLockVerifier().wipe();
 			credentials.setLockVerifier(null);
 		}
+		if (credentials.getKeyFileLockVerifier() != null)
+		{
+			// the same for the key file (#880): a salted digest of the key, nothing the key could
+			// be rebuilt from, but what locking left behind goes with the vault
+			credentials.getKeyFileLockVerifier().wipe();
+			credentials.setKeyFileLockVerifier(null);
+		}
 		KeyModel privateKeyInfo = credentials.getPrivateKeyInfo();
 		if (privateKeyInfo != null)
 		{

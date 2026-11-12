@@ -41,7 +41,7 @@ PLUGIN_ZIP_TESTS ?= zipTest
 SCRIPT_TESTS ?= yes
 
 .PHONY: help verify-installer merge-pr test-fast release-jar release-jar-if-reachable build build-full build-with-plugins bwp run run-isolated start all clean test test-e2e test-e2e-demo \
-	bootRun clean-build-installer izpack-installer izpack-installer-signed release-gate \
+	clean-build-installer izpack-installer izpack-installer-signed release-gate \
 	dependencies dependency-updates jacoco-coverage jacoco-report jar javadoc \
 	license-format publish-local spotless-java spotless-misc tag-release \
 	version-catalog-format version-catalog-update all-dependencies-jar \
@@ -301,9 +301,6 @@ plugins-install: plugins ## [plugins] plugins, then copies the zips into ~/.conf
 	@echo "==> installed all internal plugins into $(PLUGIN_INSTALL_DIR)"
 
 # --- mirrors Gradle "Run Configurations" panel ---
-
-bootRun: plugins-install ## [start] broken, #918: plugins-install into the real profile, then gradlew bootRun, a task this build does not have
-	JAVA_HOME=$(JAVA_HOME) ./gradlew bootRun $(GRADLE_FLAGS)
 
 build-stacktrace: ## [build] gradlew build --stacktrace --warning-mode all
 	JAVA_HOME=$(JAVA_HOME) ./gradlew build --stacktrace --warning-mode all $(GRADLE_FLAGS)

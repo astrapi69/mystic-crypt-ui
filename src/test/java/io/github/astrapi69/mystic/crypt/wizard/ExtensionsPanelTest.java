@@ -186,6 +186,41 @@ class ExtensionsPanelTest
 		assertTrue(valueHint(panel).getText().contains("hex"), valueHint(panel).getText());
 	}
 
+	/**
+	 * What the table shows is what Finish writes: adding an extension writes it into the
+	 * certificate model, deleting it takes it out again, and the certificate built from the model
+	 * carries the extension with its critical flag (#887)
+	 */
+	@Test
+	void anAddedExtensionReachesTheModelAndTheCertificate() throws Exception
+	{
+		TestableExtensionsPanel panel = newPanel();
+		kindChooser(panel).setSelectedItem("Key Usage");
+		extensionValue(panel).setText("digitalSignature");
+		critical(panel).setSelected(true);
+
+		panel.onAddExtension();
+
+		CertificateInfoModel model = panel.getModelObject().getModelObject();
+		assertNotNull(model.getExtensions(), "the added extension did not reach the model (#887)");
+		assertEquals(1, model.getExtensions().length);
+		assertEquals("2.5.29.15", model.getExtensions()[0].getExtensionId());
+		assertTrue(model.getExtensions()[0].isCritical());
+
+		java.security.cert.X509Certificate certificate = CertificateInfoModelToX509
+			.toX509Certificate(model);
+		assertNotNull(certificate.getKeyUsage(), "the certificate carries no key usage (#887)");
+		assertTrue(certificate.getKeyUsage()[0], "digitalSignature is not set");
+		assertTrue(certificate.getCriticalExtensionOIDs().contains("2.5.29.15"),
+			"the critical flag was dropped");
+
+		javax.swing.JTable table = byName(panel, "tblExtensions");
+		table.setRowSelectionInterval(0, 0);
+		panel.onDeleteExtension();
+		assertEquals(0, model.getExtensions().length,
+			"a deleted extension stayed in the model (#887)");
+	}
+
 	@Test
 	void whatIsAcceptedEndsUpInTheTable() throws Exception
 	{
