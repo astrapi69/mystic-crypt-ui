@@ -138,7 +138,10 @@ class LethenonPluginFromItsZipTest
 			assertFalse(libraries.isEmpty(), "the zip bundles libraries, or this test measures nothing");
 			for (String library : libraries)
 			{
-				String artifact = library.substring("lib/".length(), library.lastIndexOf('-'));
+				// the artifact is the name up to the first hyphen followed by a digit: a version
+				// such as 0.9.0-SNAPSHOT carries a hyphen of its own, which lastIndexOf cut at
+				// and misread the artifact (#926)
+				String artifact = library.substring("lib/".length()).replaceFirst("-\\d.*$", "");
 				assertTrue(notice.contains("lib/" + artifact + "-<version>.jar"),
 					"NOTICE.txt names " + library);
 				assertTrue(zip.stream().anyMatch(each -> each.getName().startsWith("legal/" + artifact + "/")
