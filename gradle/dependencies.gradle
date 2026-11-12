@@ -116,6 +116,14 @@ dependencies {
         implementation(libs.jettison) {
             because 'jettison before 1.5.4 has four high advisories'
         }
+        // org.json is no dependency of this application either: resourcebundle-core 6.1 brings it
+        // through json-extensions 3 at 20231013, which has a JSONTokener resource-exhaustion DoS
+        // (GHSA-ghc9-756g-vrcv, Dependabot 1460). The installer ships it all the same. Goes when
+        // json-extensions brings the patched release itself (#907); RuntimeDependenciesTest proves
+        // the floor
+        implementation(libs.json) {
+            because 'org.json before 20260719 has a JSONTokener resource-exhaustion DoS'
+        }
     }
     // Libraries log through the Log4j API and commons-logging; this keeps both routed to SLF4J, as
     // they were while resource-viewmodels brought this bridge with Spring Boot. Without it, the
