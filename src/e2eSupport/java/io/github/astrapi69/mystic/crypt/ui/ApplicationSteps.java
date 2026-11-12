@@ -1712,6 +1712,51 @@ final class ApplicationSteps
 	}
 
 	/**
+	 * The internal frame with the given title, waited for; a window that never appears fails NAMING
+	 * the window. The #575 failure was a nameless NullPointerException out of the finder: a missing
+	 * frame was handed on as a null search root, and the trace out of the pause executor did not
+	 * say which window was missing.
+	 *
+	 * @param title
+	 *            the internal frame's title
+	 * @return the internal frame, once it is on the desktop
+	 */
+	javax.swing.JInternalFrame requireInternalFrame(String title)
+	{
+		return requireInternalFrame(title, 10000);
+	}
+
+	/**
+	 * The internal frame with the given title, waited for up to the given time (#575)
+	 *
+	 * @param title
+	 *            the internal frame's title
+	 * @param timeoutMillis
+	 *            how long the window has to appear
+	 * @return the internal frame, once it is on the desktop
+	 */
+	javax.swing.JInternalFrame requireInternalFrame(String title, long timeoutMillis)
+	{
+		try
+		{
+			Pause.pause(new Condition("the internal frame '" + title + "' is on the desktop")
+			{
+				@Override
+				public boolean test()
+				{
+					return internalFrame(title) != null;
+				}
+			}, timeoutMillis);
+		}
+		catch (org.assertj.swing.exception.WaitTimedOutError neverAppeared)
+		{
+			throw new AssertionError("the internal frame '" + title + "' never appeared (#575)",
+				neverAppeared);
+		}
+		return internalFrame(title);
+	}
+
+	/**
 	 * Finds the internal frame with the given title, safely from any thread (#364).
 	 * <p>
 	 * {@link javax.swing.JDesktopPane#getAllFrames()} walks Swing's own component array with no
