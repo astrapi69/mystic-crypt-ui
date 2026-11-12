@@ -61,7 +61,7 @@ class UnlockAsksForTheFactorsOfOpeningUiTest extends AbstractUiTest
 	private static final String REFUSAL_OF_THE_KEY_FILE = "This key file does not unlock this database.";
 
 	@Test
-	@DisplayName("a password plus key file database stays locked while its key file is gone, and unlocks once it is back")
+	@DisplayName("a password plus key file database stays locked while its key file is gone, names it, creates nothing, and unlocks once it is back")
 	void aCombinedDatabase_needsItsKeyFileOnTheDisk() throws Exception
 	{
 		String password = TestPasswords.throwaway();
@@ -76,7 +76,10 @@ class UnlockAsksForTheFactorsOfOpeningUiTest extends AbstractUiTest
 			"preset with the key file the database was opened with");
 		String refusal = application.unlockExpectingRefusal(password, null);
 
-		assertEquals(REFUSAL_OF_BOTH, refusal);
+		assertEquals("The key file " + keyFile.getAbsolutePath() + " is not there. It was moved or "
+			+ "deleted, or it is on a drive that is not connected. Put it back at this path and "
+			+ "try again.", refusal, "the same words opening and saving use for it (#937)");
+		assertFalse(keyFile.exists(), "and nothing was created where the key file was");
 		assertFalse(signedIn(), "the password alone is not what this database was opened with");
 
 		Files.move(pulledOut.toPath(), keyFile.toPath());

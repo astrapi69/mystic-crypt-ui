@@ -150,7 +150,6 @@ class UnlockCheckTest
 		MasterPwFileModelBean credentials = locked(true, true);
 		char[] wrongPassword = TestPasswords.throwaway().toCharArray();
 		File anotherKeyFile = anotherKeyFile();
-		File noKeyFile = directory.resolve("not-there.pem").toFile();
 		Map<String, UnlockCheck.Answer> answers = new LinkedHashMap<>();
 
 		answers.put("wrong password, its key file",
@@ -159,10 +158,6 @@ class UnlockCheckTest
 			UnlockCheck.check(credentials, password, anotherKeyFile).answer());
 		answers.put("wrong password, another key file",
 			UnlockCheck.check(credentials, wrongPassword, anotherKeyFile).answer());
-		answers.put("its password, no key file on the disk",
-			UnlockCheck.check(credentials, password, noKeyFile).answer());
-		answers.put("wrong password, no key file on the disk",
-			UnlockCheck.check(credentials, wrongPassword, noKeyFile).answer());
 
 		assertEquals(1, new HashSet<>(answers.values()).size(),
 			() -> "a refusal that differs by factor tells whoever guesses which factor was right: "
@@ -171,20 +166,32 @@ class UnlockCheckTest
 	}
 
 	@Test
-	@DisplayName("a key file that is gone from the disk is refused, the right password notwithstanding")
-	void aKeyFileGoneFromTheDisk_isRefused() throws Exception
+	@DisplayName("a key file that is not there is named, the same whatever the password, and nothing is created at its path")
+	void aMissingKeyFile_isNamedWhateverThePassword() throws Exception
 	{
 		MasterPwFileModelBean credentials = locked(true, true);
-		Files.delete(keyFile.toPath());
+		File drive = directory.resolve("drive-not-connected").toFile();
+		File missing = new File(drive, "database.pem");
 
-		UnlockCheck.Outcome outcome = UnlockCheck.check(credentials, password, keyFile);
+		UnlockCheck.Outcome withItsPassword = UnlockCheck.check(credentials, password, missing);
+		UnlockCheck.Outcome withAnotherOne = UnlockCheck.check(credentials,
+			TestPasswords.throwaway().toCharArray(), missing);
 
-		assertEquals(UnlockCheck.Answer.REFUSED, outcome.answer());
-		assertNull(outcome.privateKey());
+		assertEquals(UnlockCheck.Answer.KEY_FILE_MISSING, withItsPassword.answer());
+		assertEquals(withItsPassword, withAnotherOne,
+			"the same answer and the same words whatever was typed: a missing file says nothing "
+				+ "about the password");
+		assertTrue(
+			withItsPassword.reason()
+				.startsWith("The key file " + missing.getAbsolutePath() + " is not there."),
+			withItsPassword.reason());
+		assertNull(withItsPassword.privateKey());
+		assertFalse(drive.exists(),
+			"nothing is created at the key file's path, as when opening and saving (#937)");
 	}
 
 	@Test
-	@DisplayName("a file that is no key file is refused, no key file chosen as well")
+	@DisplayName("a file that is no key file is refused like a wrong one, and no key file chosen is named")
 	void aFileThatIsNoKeyFile_isRefused() throws Exception
 	{
 		MasterPwFileModelBean credentials = locked(false, true);
@@ -193,8 +200,9 @@ class UnlockCheckTest
 
 		assertEquals(UnlockCheck.Answer.REFUSED,
 			UnlockCheck.check(credentials, null, notAKey).answer());
-		assertEquals(UnlockCheck.Answer.REFUSED,
-			UnlockCheck.check(credentials, null, null).answer());
+		UnlockCheck.Outcome noneChosen = UnlockCheck.check(credentials, null, null);
+		assertEquals(UnlockCheck.Answer.KEY_FILE_MISSING, noneChosen.answer());
+		assertEquals("No key file is set for this database.", noneChosen.reason());
 	}
 
 	@Test

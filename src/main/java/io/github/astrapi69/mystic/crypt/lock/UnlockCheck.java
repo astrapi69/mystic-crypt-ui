@@ -29,7 +29,7 @@ import java.security.PrivateKey;
 import java.util.Arrays;
 import java.util.logging.Level;
 
-import io.github.astrapi69.crypt.data.key.reader.PrivateKeyReader;
+import io.github.astrapi69.mystic.crypt.app.file.xml.KeyFileOnDisk;
 import io.github.astrapi69.mystic.crypt.panel.signin.MasterPwFileModelBean;
 import lombok.extern.java.Log;
 
@@ -39,9 +39,14 @@ import lombok.extern.java.Log;
  * behind; the key file where there is one, read from the disk again and its key recognised by the
  * {@link KeyFileVerifier} the lock left behind. A database opened with both needs both.
  * <p>
- * Every refusal is the same answer, and both factors are checked whatever the first one came to: a
- * refusal that said which factor was wrong, or a check that stopped at the first wrong one, would
- * tell whoever tries which factor was right.
+ * Every refusal of a wrong factor is the same answer, and both factors are checked whatever the
+ * first one came to: a refusal that said which factor was wrong, or a check that stopped at the
+ * first wrong one, would tell whoever tries which factor was right.
+ * <p>
+ * A key file that is not there is named instead, with the words opening and saving use for it
+ * ({@link KeyFileOnDisk}, #937). That answer comes before the password is looked at and whatever it
+ * is, so it says nothing about the password: only that the chosen file is not on the disk, which
+ * whoever chose it can see anyway.
  */
 @Log
 public final class UnlockCheck
@@ -56,8 +61,10 @@ public final class UnlockCheck
 	{
 		/** every factor the database asks for is there */
 		UNLOCKS,
-		/** at least one factor is wrong or missing; which one is not said */
-		REFUSED
+		/** at least one factor is wrong; which one is not said */
+		REFUSED,
+		/** the key file chosen is not there; the password was not looked at */
+		KEY_FILE_MISSING
 	}
 
 	/**
@@ -68,8 +75,10 @@ public final class UnlockCheck
 	 * @param privateKey
 	 *            the key read from the key file of an unlocking attempt, null otherwise and for a
 	 *            database without a key file
+	 * @param reason
+	 *            the words that name a missing key file, null for every other answer
 	 */
-	public record Outcome(Answer answer, PrivateKey privateKey) {
+	public record Outcome(Answer answer, PrivateKey privateKey, String reason) {
 	}
 
 	/**
@@ -98,8 +107,8 @@ public final class UnlockCheck
 	}
 
 	/**
-	 * Checks an unlock attempt: the password and the key file, each of them whatever the other came
-	 * to
+	 * Checks an unlock attempt: first whether the key file is there at all, then the password and
+	 * the key, each of them whatever the other came to
 	 *
 	 * @param credentials
 	 *            the credentials of the locked database
@@ -112,20 +121,42 @@ public final class UnlockCheck
 	public static Outcome check(final MasterPwFileModelBean credentials, final char[] password,
 		final File keyFile)
 	{
+		if (asksForTheKeyFile(credentials))
+		{
+			String missing = whyTheKeyFileIsMissing(keyFile);
+			if (missing != null)
+			{
+				return new Outcome(Answer.KEY_FILE_MISSING, null, missing);
+			}
+		}
 		boolean thePasswordHolds = !asksForThePassword(credentials)
 			|| isTheMasterPassword(credentials, password);
 		if (!asksForTheKeyFile(credentials))
 		{
-			return thePasswordHolds ? new Outcome(Answer.UNLOCKS, null) : refused();
+			return thePasswordHolds ? new Outcome(Answer.UNLOCKS, null, null) : refused();
 		}
-		PrivateKey key = readKey(keyFile);
+		PrivateKey key = readKey(credentials, keyFile);
 		boolean theKeyHolds = key != null && isTheKey(credentials, key);
-		return thePasswordHolds && theKeyHolds ? new Outcome(Answer.UNLOCKS, key) : refused();
+		return thePasswordHolds && theKeyHolds ? new Outcome(Answer.UNLOCKS, key, null) : refused();
 	}
 
 	private static Outcome refused()
 	{
-		return new Outcome(Answer.REFUSED, null);
+		return new Outcome(Answer.REFUSED, null, null);
+	}
+
+	/** The words that name a missing key file, or null when it is there */
+	private static String whyTheKeyFileIsMissing(final File keyFile)
+	{
+		try
+		{
+			KeyFileOnDisk.existing(keyFile);
+			return null;
+		}
+		catch (IllegalStateException missing)
+		{
+			return missing.getMessage();
+		}
 	}
 
 	private static boolean isTheKey(final MasterPwFileModelBean credentials, final PrivateKey key)
@@ -160,15 +191,12 @@ public final class UnlockCheck
 		return SecretComparison.sameCharacters(entered, credentials.getMasterPw());
 	}
 
-	private static PrivateKey readKey(final File keyFile)
+	/** The key of the chosen file, read the way opening reads it, or null when it holds none */
+	private static PrivateKey readKey(final MasterPwFileModelBean credentials, final File keyFile)
 	{
-		if (keyFile == null || !keyFile.isFile())
-		{
-			return null;
-		}
 		try
 		{
-			return PrivateKeyReader.readPemPrivateKey(keyFile);
+			return KeyFileOnDisk.readKey(keyFile, credentials.isWithMasterPw());
 		}
 		catch (Exception notAKey)
 		{

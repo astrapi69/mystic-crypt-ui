@@ -167,7 +167,7 @@ public class LockWorkspaceAction extends AbstractAction
 			return;
 		}
 		char[] entered = fields.password() == null ? null : fields.password().getPassword();
-		File keyFile = fields.keyFile() == null
+		File keyFile = fields.keyFile() == null || fields.keyFile().getText().isBlank()
 			? null
 			: new File(fields.keyFile().getText().trim());
 		try
@@ -178,7 +178,7 @@ public class LockWorkspaceAction extends AbstractAction
 				completeTheUnlock(frame, credentials, entered, outcome);
 				return;
 			}
-			JOptionPane.showMessageDialog(frame, refusalOf(fields),
+			JOptionPane.showMessageDialog(frame, refusalOf(outcome, fields),
 				Messages.getString("unlock.failed.title", "Unlock failed"),
 				JOptionPane.ERROR_MESSAGE);
 			SwingUtilities.invokeLater(() -> promptForUnlock(frame));
@@ -299,15 +299,22 @@ public class LockWorkspaceAction extends AbstractAction
 	}
 
 	/**
-	 * The refusal of the prompt, one and the same for every wrong or missing factor of a database:
-	 * it names the factors the prompt asked for, never which of them was wrong (#880)
+	 * The refusal of the prompt, one and the same for every wrong factor of a database: it names
+	 * the factors the prompt asked for, never which of them was wrong (#880). A key file that is
+	 * not there is named with the words opening and saving use for it (#937)
 	 *
+	 * @param outcome
+	 *            what the attempt came to
 	 * @param fields
 	 *            the fields the prompt showed
 	 * @return the refusal
 	 */
-	private static String refusalOf(final UnlockFields fields)
+	private static String refusalOf(final UnlockCheck.Outcome outcome, final UnlockFields fields)
 	{
+		if (outcome.answer() == UnlockCheck.Answer.KEY_FILE_MISSING)
+		{
+			return outcome.reason();
+		}
 		if (fields.password() != null && fields.keyFile() != null)
 		{
 			return Messages.getString("unlock.failed.both",
