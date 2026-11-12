@@ -100,8 +100,9 @@ one-line descriptions cannot say:
   what `make run` uses.
 - `make build-full` is the local equivalent of CI: every plugin with its tests, the release jars
   the compatibility tests read, the runnable jar, then `./gradlew build`.
-- `make bootRun` is broken: it installs the plugins into the real profile and then calls a Gradle
-  task this build does not have (#918). `make run` is the path that is wired end to end.
+- The broken bootRun target is gone: it installed the plugins into the real profile and then
+  called a Gradle task this build does not have (#918). `make run` is the path that is wired end
+  to end, and a start in the real profile is what the installed release is for.
 
 ### Tests
 

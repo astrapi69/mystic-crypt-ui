@@ -53,7 +53,8 @@ make run ISOLATED_HOME=/tmp/mcu-profile
 `plugins/*/build/plugin-dist`; `make run` builds both first.
 
 `make plugins-install` copies the zips into `~/.config/mystic-crypt-ui/plugins`, the real profile,
-which an installed release reads too. `make bootRun` does that and then fails, see #918.
+which an installed release reads too - deliberate only when installing for real use (#918 removed
+the broken bootRun target, which did it as a side effect).
 
 ## With or without tests
 
