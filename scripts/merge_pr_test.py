@@ -329,12 +329,22 @@ class BranchIsGoneTest(unittest.TestCase):
         queue = list(still_there)
         return lambda: queue.pop(0)
 
-    def test_a_branch_gone_at_the_first_answer_is_gone(self):
-        self.assertTrue(branch_is_gone(self.answers(False)))
+    def test_a_branch_gone_at_the_first_answer_is_gone_without_a_wait(self):
+        pauses = []
+        self.assertTrue(branch_is_gone(self.answers(False), sleep=pauses.append))
+        self.assertEqual([], pauses)
 
-    def test_a_branch_still_there_at_the_one_answer_gets_the_note(self):
-        # today: one answer, right after the deletion, decides (#974)
-        self.assertFalse(branch_is_gone(self.answers(True, False)))
+    def test_a_branch_still_there_right_after_the_deletion_is_asked_about_again(self):
+        # four merges on 2026-11-13: the first answer said "still there", the branch was gone (#974)
+        pauses = []
+        self.assertTrue(branch_is_gone(self.answers(True, True, False), sleep=pauses.append))
+        self.assertEqual([3, 3], pauses)
+
+    def test_a_branch_still_there_at_every_answer_gets_the_note(self):
+        pauses = []
+        self.assertFalse(branch_is_gone(self.answers(True, True, True, True, True),
+                                        sleep=pauses.append))
+        self.assertEqual([3, 3, 3, 3], pauses)
 
 
 class FeatFreezeTest(unittest.TestCase):

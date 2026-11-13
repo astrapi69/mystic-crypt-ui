@@ -36,6 +36,11 @@ POLL_SECONDS = 20
 INFORMATIONAL = {"NEUTRAL", "SKIPPED"}
 PENDING_STATES = {"PENDING", "EXPECTED"}
 
+# How often, and how far apart, the merged head branch is asked about before the
+# script says it is still there (#974)
+BRANCH_ASKS = 5
+BRANCH_PAUSE_SECONDS = 3
+
 
 @dataclass(frozen=True)
 class RollupEntry:
@@ -241,10 +246,20 @@ def wait_for_checks(poll, required_contexts, wait_seconds, poll_seconds=POLL_SEC
         waited += poll_seconds
 
 
-def branch_is_gone(still_there):
+def branch_is_gone(still_there, asks=BRANCH_ASKS, pause_seconds=BRANCH_PAUSE_SECONDS,
+                   sleep=time.sleep):
     """Whether the head branch is gone after the merge: still_there asks GitHub
-    once whether the branch exists."""
-    return not still_there()
+    once whether the branch exists. Right after a deletion GitHub still answers
+    for the branch it has just deleted - the repository deletes merged branches
+    itself, and the script sends its own DELETE - so a branch that is still
+    there is asked about again, and only a branch still there at every answer
+    gets the note (#974)."""
+    for ask in range(asks):
+        if not still_there():
+            return True
+        if ask < asks - 1:
+            sleep(pause_seconds)
+    return False
 
 
 def base_mismatch(base, target):
