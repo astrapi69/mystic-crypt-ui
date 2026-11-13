@@ -84,3 +84,5 @@ jobs:
           results=(plugins/lethenon-plugin/build/test-results/zipTest/*.xml)
           [ -f "${results[0]}" ] || { echo "no zipTest result was written"; exit 1; }
           grep -ho '<testsuite [^>]*' "${results[@]}" | grep -o 'tests="[0-9]*" skipped="[0-9]*" failures="[0-9]*" errors="[0-9]*"'
+          # whether the unloaded plugin's sqlite-jdbc jar can be deleted, written by the zip test (#583)
+          grep -h "#583 after unloadPlugins" "${results[@]}" || { echo "#583: the zip test wrote no line about the sqlite-jdbc jar"; exit 1; }
