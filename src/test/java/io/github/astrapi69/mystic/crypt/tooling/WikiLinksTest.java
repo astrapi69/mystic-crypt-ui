@@ -89,6 +89,34 @@ class WikiLinksTest
 	 */
 	private static final Map<String, String> KNOWN_MISSING = Map.of();
 
+	/**
+	 * The wiki pages the RELEASED versions link, measured at the tags on 2026-11-13 (#950): the
+	 * sign-in help buttons of 8.1.1 through 8.14 (for example RELEASE-8.14
+	 * {@code MasterPwWithApplicationFilePanel.java:379}) and the installer guide link. A page here
+	 * must stay in {@code docs/wiki/}, or every released version's button opens the "create this
+	 * page" editor; a colon in the page name is carried as {@code %3A} in the file name, because a
+	 * colon is invalid in a file name on Windows and the mirror maps it back
+	 */
+	private static final Set<String> RELEASED_LINK_TARGETS = Set.of(
+		"Help:-create-new-mystic-crypt-database", "Help:-open-existing-mystic-crypt-database",
+		"How-to-create-izpack-installer-with-gradle");
+
+	@Test
+	@DisplayName("every wiki page a released version links is in docs/wiki/, so the mirror cannot drop it")
+	void everyPageAReleasedVersionLinks_isInTheWikiSource()
+	{
+		List<String> missing = new ArrayList<>();
+		for (String page : RELEASED_LINK_TARGETS)
+		{
+			if (!Files.isRegularFile(sourceOf(page)))
+			{
+				missing.add(page + " (expected at " + sourceOf(page) + ")");
+			}
+		}
+		assertEquals(List.of(), missing,
+			"pages a released version links but the wiki source no longer carries (#950)");
+	}
+
 	@Test
 	@DisplayName("every wiki page the application and its documents link to is in docs/wiki/")
 	void everyLinkedPage_isInTheWikiSource()
@@ -286,8 +314,12 @@ class WikiLinksTest
 		}
 	}
 
+	/**
+	 * The source file of a wiki page name: a colon is carried as {@code %3A}, because a colon is
+	 * invalid in a file name on Windows and {@code scripts/mirror-wiki.sh} maps it back (#950)
+	 */
 	private static Path sourceOf(final String page)
 	{
-		return WIKI_SOURCE.resolve(page + ".md");
+		return WIKI_SOURCE.resolve(page.replace(":", "%3A") + ".md");
 	}
 }
