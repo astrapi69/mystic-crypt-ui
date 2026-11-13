@@ -1,0 +1,70 @@
+/**
+ * The MIT License
+ *
+ * Copyright (C) 2026 Asterios Raptis
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining
+ * a copy of this software and associated documentation files (the
+ * "Software"), to deal in the Software without restriction, including
+ * without limitation the rights to use, copy, modify, merge, publish,
+ * distribute, sublicense, and/or sell copies of the Software, and to
+ * permit persons to whom the Software is furnished to do so, subject to
+ * the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
+ * LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+ * OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+ * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
+package io.github.astrapi69.mystic.crypt.plugin.releasekey;
+
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import java.io.IOException;
+import java.nio.file.Path;
+
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
+
+/**
+ * What a failed gpg call in the release-key tests leaves to read (#940).
+ * <p>
+ * Measured on 2026-11-12: a {@code --quick-add-key} in {@code ReleaseKeyStatusPanelTest} exited
+ * with 2, and the message pointed to the file holding gpg's standard error. That file lies in the
+ * test's {@code @TempDir}, which JUnit deletes when the test ends, so the one run that failed said
+ * nothing about why. The failure used here exits with the same code: a subkey for a key the home
+ * does not have.
+ */
+class ThrowawayGnuPgHomeTest
+{
+
+	/** A fingerprint no key in a fresh home has */
+	private static final String NO_SUCH_KEY = "0000000000000000000000000000000000000000";
+
+	@Test
+	@DisplayName("a failed gpg call names only the file its reason went to, which the test deletes (#940, measured)")
+	void aFailedCallNamesOnlyTheFile(@TempDir final Path directory) throws IOException
+	{
+		try (ThrowawayGnuPgHome home = ThrowawayGnuPgHome.create(directory.resolve("home")))
+		{
+			IOException failure = assertThrows(IOException.class,
+				() -> home.addSubkey(NO_SUCH_KEY, "ed25519", "sign", "1y"));
+
+			assertTrue(failure.getMessage().startsWith("exit code 2 from "), failure.getMessage());
+			assertTrue(failure.getMessage().contains("-gpg.log"),
+				"the message points to the log in the temporary directory: "
+					+ failure.getMessage());
+			assertFalse(failure.getMessage().contains("not found"),
+				"and does not say what gpg answered: " + failure.getMessage());
+		}
+	}
+}
