@@ -28,6 +28,7 @@ import javax.swing.*;
 
 import io.github.astrapi69.design.pattern.state.component.AbstractJComponentStateMachine;
 import io.github.astrapi69.file.create.model.FileInfo;
+import io.github.astrapi69.mystic.crypt.app.file.xml.KeyFileOnDisk;
 import io.github.astrapi69.mystic.crypt.lock.SecretComparison;
 import io.github.astrapi69.mystic.crypt.panel.signin.MasterPwFileModelBean;
 import lombok.AllArgsConstructor;
@@ -72,12 +73,15 @@ public class BtnOkStateMachine extends AbstractJComponentStateMachine<JButton, B
 			? modelObject.getMasterPw().length
 			: 0;
 		boolean withKeyFile = modelObject.isWithKeyFile();
+		boolean withMasterPw = modelObject.isWithMasterPw();
 		boolean keyFilePresent = false;
 		if (modelObject.getKeyFileInfo() != null)
 		{
-			keyFilePresent = FileInfo.toFile(modelObject.getKeyFileInfo()).exists();
+			// a key file this kind of database cannot read is no key file for it: with a master
+			// password that is every file that is not PEM (#943)
+			java.io.File keyFile = FileInfo.toFile(modelObject.getKeyFileInfo());
+			keyFilePresent = keyFile.exists() && KeyFileOnDisk.takes(keyFile, withMasterPw);
 		}
-		boolean withMasterPw = modelObject.isWithMasterPw();
 		boolean passwordConfirmed = !repeatRequired || SecretComparison
 			.sameCharacters(modelObject.getMasterPw(), modelObject.getRepeatPw());
 		if (applicationFilePresent && withMasterPw && minPasswordLength <= passwordLength

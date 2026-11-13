@@ -53,6 +53,34 @@ public final class KeyFileOnDisk
 	}
 
 	/**
+	 * Whether a database of the given kind can read its key from this file, the rule
+	 * {@link #readKey(File, boolean)} reads by: a database with its key file alone takes PEM and
+	 * DER, one with a master password and a key file PEM only. The dialogs that create and open a
+	 * database offer a key file by it (#943)
+	 *
+	 * @param keyFile
+	 *            the key file
+	 * @param withMasterPassword
+	 *            whether the database has a master password besides its key file
+	 * @return true when a database of this kind takes the file
+	 */
+	public static boolean takes(final File keyFile, final boolean withMasterPassword)
+	{
+		if (!withMasterPassword)
+		{
+			return true;
+		}
+		try
+		{
+			return PemObjectReader.isPemObject(keyFile);
+		}
+		catch (IOException unreadable)
+		{
+			return false;
+		}
+	}
+
+	/**
 	 * Reads the key of a database from its key file, the one way opening, saving and unlocking read
 	 * it (#937)
 	 * <p>

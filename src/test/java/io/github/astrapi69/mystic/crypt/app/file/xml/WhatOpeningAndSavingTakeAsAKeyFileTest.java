@@ -25,6 +25,7 @@
 package io.github.astrapi69.mystic.crypt.app.file.xml;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.io.File;
@@ -95,7 +96,7 @@ class WhatOpeningAndSavingTakeAsAKeyFileTest
 				"DER/PKCS_1", false));
 	}
 
-	@ParameterizedTest(name = "{0}: taken when opening and saving = {3}")
+	@ParameterizedTest(name = "{0}: taken when opening, saving and choosing it = {3}")
 	@MethodSource("everyFormatThisApplicationWrites")
 	void openingAndSaving_takeTheFormatsTheyAlwaysTook(final String caseName,
 		final boolean withPassword, final String format, final boolean taken) throws Exception
@@ -110,6 +111,8 @@ class WhatOpeningAndSavingTakeAsAKeyFileTest
 				.toBuilder().privateKeyInfo(KeyModelExtensions.toKeyModel(key)).build()));
 		write(key, keyFile, format);
 
+		assertEquals(taken, KeyFileOnDisk.takes(keyFile, withPassword),
+			"the dialogs offer exactly what opening and saving take (#943)");
 		if (taken)
 		{
 			assertDoesNotThrow(() -> ApplicationXmlFileReader

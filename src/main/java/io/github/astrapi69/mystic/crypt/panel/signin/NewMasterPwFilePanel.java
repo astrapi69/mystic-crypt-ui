@@ -96,6 +96,9 @@ public class NewMasterPwFilePanel extends BasePanel<MasterPwFileModelBean>
 	GenericMutableComboBoxModel<String> cmbKeyFileModel;
 	BtnOkStateMachine btnOkStateMachine;
 
+	/** Says why a key file is not taken for a database with a master password (#943) */
+	private KeyFileFormatNotice keyFileFormatNotice;
+
 	/** The client property FlatLaf draws a field's outline from, and its value for a mistake */
 	static final String OUTLINE = "JComponent.outline";
 
@@ -301,7 +304,7 @@ public class NewMasterPwFilePanel extends BasePanel<MasterPwFileModelBean>
 	protected void onHelp(ActionEvent actionEvent)
 	{
 		String helpLink = "https://github.com/astrapi69/mystic-crypt-ui/wiki/"
-			+ "Help:-create-new-mystic-crypt-database";
+			+ "create-new-mystic-crypt-database";
 		URL helpUrl = RuntimeExceptionDecorator.decorate(() -> new URL(helpLink));
 		if (URLExtensions.isReachable(helpUrl))
 		{
@@ -386,6 +389,21 @@ public class NewMasterPwFilePanel extends BasePanel<MasterPwFileModelBean>
 	}
 
 
+	/**
+	 * The notice for a key file this database does not take, made on first use: the handlers that
+	 * ask for it can run while the base class builds the panel, before field initializers have run
+	 *
+	 * @return the notice
+	 */
+	private KeyFileFormatNotice keyFileFormatNotice()
+	{
+		if (keyFileFormatNotice == null)
+		{
+			keyFileFormatNotice = new KeyFileFormatNotice(this);
+		}
+		return keyFileFormatNotice;
+	}
+
 	protected void onChangeCmbKeyFile(final ActionEvent actionEvent)
 	{
 		Object item = cmbKeyFile.getSelectedItem();
@@ -403,6 +421,7 @@ public class NewMasterPwFilePanel extends BasePanel<MasterPwFileModelBean>
 			{
 				getModelObject().setKeyFileInfo(FileInfo.toFileInfo(selectedKeyFile));
 				btnOkStateMachine.onSetKeyFile(btnOkStateMachine);
+				keyFileFormatNotice().tellWhenNotTaken(getModelObject());
 			}
 			if (!selectedKeyFile.exists())
 			{
@@ -645,6 +664,7 @@ public class NewMasterPwFilePanel extends BasePanel<MasterPwFileModelBean>
 	protected void onCheckKeyFile(final ActionEvent actionEvent)
 	{
 		toggleKeyFileComponents();
+		keyFileFormatNotice().tellWhenNotTaken(getModelObject());
 	}
 
 	protected void toggleKeyFileComponents()
@@ -683,6 +703,7 @@ public class NewMasterPwFilePanel extends BasePanel<MasterPwFileModelBean>
 			getModelObject().setWithMasterPw(checkBox.isSelected());
 		}
 		toggleMasterPwComponents();
+		keyFileFormatNotice().tellWhenNotTaken(getModelObject());
 	}
 
 
@@ -722,6 +743,7 @@ public class NewMasterPwFilePanel extends BasePanel<MasterPwFileModelBean>
 			getModelObject().setSelectedKeyFilePath(absolutePath);
 			getModelObject().setKeyFileInfo(FileInfo.toFileInfo(selectedKeyFile));
 			btnOkStateMachine.onSetKeyFile(btnOkStateMachine);
+			keyFileFormatNotice().tellWhenNotTaken(getModelObject());
 		}
 	}
 
