@@ -10,6 +10,7 @@ script the NEUTRAL and SKIPPED cases fail (the measured defect of #863), the
 run stands in the pull request.
 """
 
+import subprocess
 import tempfile
 import unittest
 from pathlib import Path
@@ -17,7 +18,7 @@ from pathlib import Path
 from merge_pr import (RollupEntry, all_reported, base_mismatch, conventional_title_error,
                       feat_freeze_error, fragment_error, is_cross_repository,
                       dirty_tree_note, judge, merge_command, parse_checks, pr_state,
-                      resolve_required, squash_subject)
+                      resolve_required, squash_subject, wait_for_checks)
 
 REQUIRED = ["build", "closing-references", "release-freeze"]
 
@@ -193,6 +194,47 @@ class WaitTest(unittest.TestCase):
     def test_everything_reported_ends_the_wait(self):
         entries = green_required() + [RollupEntry("Socket Security: Project Report", True, "NEUTRAL")]
         self.assertTrue(all_reported(entries, REQUIRED))
+
+
+class WaitForChecksTest(unittest.TestCase):
+    """The wait loop of run(), driven with a poll that stands in for the two
+    GitHub calls (#971)."""
+
+    @staticmethod
+    def polls(*answers):
+        """A poll that gives the answers in order: entries, or an exception to raise"""
+        queue = list(answers)
+
+        def poll():
+            answer = queue.pop(0)
+            if isinstance(answer, Exception):
+                raise answer
+            return answer
+        return poll
+
+    def test_the_wait_ends_once_everything_reported(self):
+        sleeps = []
+        running = green_required() + [RollupEntry("CodeQL", False, "PENDING")]
+        entries, refusal = wait_for_checks(self.polls(running, green_required()), REQUIRED, 40,
+                                           poll_seconds=20, sleep=sleeps.append)
+        self.assertEqual(green_required(), entries)
+        self.assertIsNone(refusal)
+        self.assertEqual([20], sleeps)
+
+    def test_a_wait_that_reaches_its_limit_refuses_and_names_what_runs(self):
+        running = green_required() + [RollupEntry("CodeQL", False, "PENDING")]
+        entries, refusal = wait_for_checks(self.polls(running, running, running), REQUIRED, 40,
+                                           poll_seconds=20, sleep=lambda seconds: None)
+        self.assertIsNone(entries)
+        self.assertEqual("after 40s - still running: CodeQL; required but not reported: none"
+                         " - not merging", refusal)
+
+    def test_a_failed_poll_ends_the_wait(self):
+        # today: one GitHub call that fails while the checks still run ends the merge (#971)
+        failed = subprocess.CalledProcessError(1, ["gh", "api"], stderr="gh: HTTP 502\n")
+        with self.assertRaises(subprocess.CalledProcessError):
+            wait_for_checks(self.polls(failed, green_required()), REQUIRED, 40,
+                            poll_seconds=20, sleep=lambda seconds: None)
 
 
 class FeatFreezeTest(unittest.TestCase):

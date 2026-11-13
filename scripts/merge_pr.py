@@ -178,6 +178,26 @@ def all_reported(entries, required_contexts):
     return all(entry.reported for entry in entries)
 
 
+def wait_for_checks(poll, required_contexts, wait_seconds, poll_seconds=POLL_SECONDS,
+                    sleep=time.sleep):
+    """Looks at the head until the wait may end (all_reported) or the limit is
+    reached. poll returns the entries of one look. Returns (entries, None) when
+    the wait ended, or (None, refusal) when the limit came first."""
+    waited = 0
+    while True:
+        entries = poll()
+        if entries and all_reported(entries, required_contexts):
+            return entries, None
+        if waited >= wait_seconds:
+            running = ", ".join(entry.name for entry in entries if not entry.reported) or "none"
+            missing = ", ".join(context for context in required_contexts
+                                if context not in {entry.name for entry in entries}) or "none"
+            return None, (f"after {waited}s - still running: {running}; required but not"
+                          f" reported: {missing} - not merging")
+        sleep(poll_seconds)
+        waited += poll_seconds
+
+
 def base_mismatch(base, target):
     """gh merges into the pull request's base; the local update goes to target.
     When the two differ the merge lands where nobody is looking (#395)."""
@@ -355,9 +375,7 @@ def run(argv):
             " what green means for a merge there, so this does not merge (#493)")
     print("required on " + target + ": " + ", ".join(required))
 
-    print(f"waiting for the checks on #{pr} (up to {wait_seconds // 60} minutes)")
-    waited = 0
-    while True:
+    def poll():
         check_lines = subprocess.run(
             ["gh", "api", f"repos/{{owner}}/{{repo}}/commits/{head_sha}/check-runs", "--paginate",
              "-q", ".check_runs[] | {name, status, conclusion}"],
@@ -365,17 +383,12 @@ def run(argv):
         check_runs = [json.loads(line) for line in check_lines.splitlines() if line]
         statuses = gh_json("api", f"repos/{{owner}}/{{repo}}/commits/{head_sha}/status").get(
             "statuses") or []
-        entries = parse_checks(check_runs, statuses)
-        if entries and all_reported(entries, required):
-            break
-        if waited >= wait_seconds:
-            running = ", ".join(entry.name for entry in entries if not entry.reported) or "none"
-            missing = ", ".join(context for context in required
-                                if context not in {entry.name for entry in entries}) or "none"
-            die(f"after {waited}s - still running: {running}; required but not reported: {missing}"
-                " - not merging")
-        time.sleep(POLL_SECONDS)
-        waited += POLL_SECONDS
+        return parse_checks(check_runs, statuses)
+
+    print(f"waiting for the checks on #{pr} (up to {wait_seconds // 60} minutes)")
+    entries, refusal = wait_for_checks(poll, required, wait_seconds)
+    if refusal:
+        die(refusal)
 
     verdict = judge(entries, required, allow_optional_failure)
     for message in verdict.messages:
