@@ -76,6 +76,23 @@ final class CreateMasterKeySteps
 		return this;
 	}
 
+	/**
+	 * Clicks "Browse..." for the key file and selects an existing key file in the chooser that
+	 * opens
+	 *
+	 * @param keyFile
+	 *            the key file to select
+	 * @return this, for the next step
+	 */
+	CreateMasterKeySteps browseKeyFile(File keyFile)
+	{
+		SwingUtilities.invokeLater(() -> dialog.button("btnKeyFileChooser").target().doClick());
+		SignInDialogSteps.approveInFileChooser(robot, keyFile);
+		robot.waitForIdle();
+		UiTestSpeed.step();
+		return this;
+	}
+
 	CreateMasterKeySteps requireOkDisabled()
 	{
 		dialog.button("btnOk").requireDisabled();

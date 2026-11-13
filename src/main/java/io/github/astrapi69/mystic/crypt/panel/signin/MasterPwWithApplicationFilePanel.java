@@ -103,6 +103,9 @@ public class MasterPwWithApplicationFilePanel extends BasePanel<MasterPwFileMode
 	// ===
 	private JFileChooser fileChooser;
 	BtnOkStateMachine btnOkStateMachine;
+
+	/** Says why a key file is not taken for a database with a master password (#943) */
+	private KeyFileFormatNotice keyFileFormatNotice;
 	GenericMutableComboBoxModel<String> cmbKeyFileModel;
 	GenericMutableComboBoxModel<String> cmbApplicationFileModel;
 
@@ -455,6 +458,21 @@ public class MasterPwWithApplicationFilePanel extends BasePanel<MasterPwFileMode
 		}
 	}
 
+	/**
+	 * The notice for a key file this database does not take, made on first use: the handlers that
+	 * ask for it can run while the base class builds the panel, before field initializers have run
+	 *
+	 * @return the notice
+	 */
+	private KeyFileFormatNotice keyFileFormatNotice()
+	{
+		if (keyFileFormatNotice == null)
+		{
+			keyFileFormatNotice = new KeyFileFormatNotice(this);
+		}
+		return keyFileFormatNotice;
+	}
+
 	protected void onChangeCmbKeyFile(final ActionEvent actionEvent)
 	{
 		Object item = cmbKeyFile.getSelectedItem();
@@ -476,6 +494,7 @@ public class MasterPwWithApplicationFilePanel extends BasePanel<MasterPwFileMode
 					getModelObject().getKeyFilePaths().add(selectedKeyFile.getAbsolutePath());
 				}
 				btnOkStateMachine.onSetKeyFile(btnOkStateMachine);
+				keyFileFormatNotice().tellWhenNotTaken(getModelObject());
 			}
 			else if (!selectedKeyFile.exists())
 			{
@@ -604,6 +623,7 @@ public class MasterPwWithApplicationFilePanel extends BasePanel<MasterPwFileMode
 	protected void onCheckKeyFile(final ActionEvent actionEvent)
 	{
 		toggleKeyFileComponents();
+		keyFileFormatNotice().tellWhenNotTaken(getModelObject());
 	}
 
 	protected void toggleKeyFileComponents()
@@ -639,6 +659,7 @@ public class MasterPwWithApplicationFilePanel extends BasePanel<MasterPwFileMode
 			getModelObject().setWithMasterPw(checkBox.isSelected());
 		}
 		toggleMasterPwComponents();
+		keyFileFormatNotice().tellWhenNotTaken(getModelObject());
 		if (txtMasterPw.isEnabled())
 		{
 			// turning the master password on means the password is typed next, so the caret goes
@@ -659,6 +680,7 @@ public class MasterPwWithApplicationFilePanel extends BasePanel<MasterPwFileMode
 			getModelObject().setSelectedKeyFilePath(absolutePath);
 			getModelObject().setKeyFileInfo(FileInfo.toFileInfo(selectedKeyFile));
 			btnOkStateMachine.onSetKeyFile(btnOkStateMachine);
+			keyFileFormatNotice().tellWhenNotTaken(getModelObject());
 		}
 	}
 
