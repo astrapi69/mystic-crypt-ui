@@ -34,6 +34,7 @@ import java.util.Map;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -101,6 +102,19 @@ class KeygenSettingsContributionTest
 
 		assertEquals(KeyPairGeneratorAlgorithm.valueOf(algorithm),
 			KeygenSettingsContribution.algorithm());
+	}
+
+	@ParameterizedTest(name = "{0}")
+	@ValueSource(strings = { "DH", "DSA", "ML_KEM_512", "Ed25519", "UNKNOWN" })
+	@DisplayName("a stored algorithm the key generator window does not offer is taken as it is (#894, measured)")
+	void aStoredAlgorithmTheWindowDoesNotOffer(String algorithm) throws Exception
+	{
+		store(KeygenSettingsContribution.KEY_ALGORITHM, algorithm);
+
+		assertEquals(KeyPairGeneratorAlgorithm.valueOf(algorithm),
+			KeygenSettingsContribution.algorithm(),
+			"today any constant of the enum is taken, and the window opens on an entry its list "
+				+ "does not have");
 	}
 
 	@ParameterizedTest
