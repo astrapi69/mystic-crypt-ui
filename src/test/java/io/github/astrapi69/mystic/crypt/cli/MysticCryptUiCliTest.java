@@ -259,18 +259,44 @@ class MysticCryptUiCliTest
 	}
 
 	@Test
-	void quietingTheLoggingWorksWithAndWithoutABackend()
+	void theVerboseSwitchMapsOntoTheBackendsDefaultLevel()
 	{
-		// must never throw, whatever backend is on the classpath
-		MysticCryptUiCli.quietPluginLogging();
-		System.setProperty(MysticCryptUiCli.VERBOSE_PROPERTY, "true");
+		String levelBefore = System
+			.getProperty(MysticCryptUiCli.SIMPLE_LOGGER_DEFAULT_LEVEL_PROPERTY);
 		try
 		{
-			MysticCryptUiCli.quietPluginLogging();
+			System.clearProperty(MysticCryptUiCli.SIMPLE_LOGGER_DEFAULT_LEVEL_PROPERTY);
+			MysticCryptUiCli.configureCliLogging();
+			assertEquals("warn",
+				System.getProperty(MysticCryptUiCli.SIMPLE_LOGGER_DEFAULT_LEVEL_PROPERTY),
+				"without the switch only warnings and errors come");
+
+			System.clearProperty(MysticCryptUiCli.SIMPLE_LOGGER_DEFAULT_LEVEL_PROPERTY);
+			System.setProperty(MysticCryptUiCli.VERBOSE_PROPERTY, "true");
+			MysticCryptUiCli.configureCliLogging();
+			assertEquals("debug",
+				System.getProperty(MysticCryptUiCli.SIMPLE_LOGGER_DEFAULT_LEVEL_PROPERTY),
+				"the switch turns the debug lines on");
+
+			// a level the caller set on the command line wins
+			System.setProperty(MysticCryptUiCli.SIMPLE_LOGGER_DEFAULT_LEVEL_PROPERTY, "trace");
+			MysticCryptUiCli.configureCliLogging();
+			assertEquals("trace",
+				System.getProperty(MysticCryptUiCli.SIMPLE_LOGGER_DEFAULT_LEVEL_PROPERTY),
+				"whoever starts the JVM with the backends own property has decided");
 		}
 		finally
 		{
 			System.clearProperty(MysticCryptUiCli.VERBOSE_PROPERTY);
+			if (levelBefore == null)
+			{
+				System.clearProperty(MysticCryptUiCli.SIMPLE_LOGGER_DEFAULT_LEVEL_PROPERTY);
+			}
+			else
+			{
+				System.setProperty(MysticCryptUiCli.SIMPLE_LOGGER_DEFAULT_LEVEL_PROPERTY,
+					levelBefore);
+			}
 		}
 	}
 

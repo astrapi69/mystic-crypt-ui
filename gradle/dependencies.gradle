@@ -130,6 +130,11 @@ dependencies {
     // Log4j API falls back to its SimpleLogger and commons-logging follows it: library errors and a
     // StatusLogger complaint on stderr, where there was nothing before (measured, #639)
     runtimeOnly libs.log4j.to.slf4j
+    // The SLF4J binding (#893, the maintainer's dependency decision of 2026-11-13): without one,
+    // every --cli run printed three "No SLF4J providers" warnings and the verbose switch had no
+    // backend to turn up. slf4j-simple writes to stderr, so piped --cli output stays clean, and
+    // MysticCryptUiCli.configureCliLogging maps the verbose switch onto its default level.
+    runtimeOnly libs.slf4j.simple
 
     // Note: use of bundles...
     testImplementation libs.bundles.unit.testing
