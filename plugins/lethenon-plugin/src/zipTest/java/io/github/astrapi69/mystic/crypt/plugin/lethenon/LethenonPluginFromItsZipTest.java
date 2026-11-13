@@ -41,6 +41,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 import java.util.zip.ZipInputStream;
@@ -69,8 +70,10 @@ class LethenonPluginFromItsZipTest
 	private static final String PLUGIN_ID = "lethenon-plugin";
 
 	/**
-	 * On Windows the plugin's sqlite-jdbc jar stays open after the plugin was unloaded, and its
-	 * deletion fails while everything else goes (#583); the failure is ignored, not the test
+	 * On Windows the plugin's sqlite-jdbc jar stayed open after the plugin was unloaded, and its
+	 * deletion failed while everything else went (#583); the failure is ignored here, not the test.
+	 * Whether it still happens is measured by {@link #tryToDeleteTheSqliteJar(Path)} and written to
+	 * the log, so the ignored failure is no longer a silent one
 	 */
 	@TempDir(deletionStrategy = TempDirDeletionStrategy.IgnoreFailures.class)
 	Path directory;
@@ -123,6 +126,44 @@ class LethenonPluginFromItsZipTest
 		{
 			manager.stopPlugins();
 			manager.unloadPlugins();
+			tryToDeleteTheSqliteJar(plugins);
+		}
+	}
+
+	/**
+	 * Tries to delete the sqlite-jdbc jar of the unloaded plugin and writes what happened as one
+	 * line to standard output, which the test report keeps and the platform workflow prints (#583).
+	 * A measurement, not an assertion: on Windows the jar stayed open with sqlite-jdbc 3.53.4.0, and
+	 * whether 3.54.1.0 still holds it is what this line answers
+	 */
+	private static void tryToDeleteTheSqliteJar(final Path plugins) throws IOException
+	{
+		List<Path> jars;
+		try (Stream<Path> files = Files.walk(plugins))
+		{
+			jars = files.filter(path -> path.getFileName().toString().startsWith("sqlite-jdbc-")
+				&& path.getFileName().toString().endsWith(".jar")).toList();
+		}
+		if (jars.isEmpty())
+		{
+			System.out.println("#583 after unloadPlugins: no sqlite-jdbc jar was unpacked under "
+				+ plugins + ", nothing measured");
+			return;
+		}
+		for (Path jar : jars)
+		{
+			try
+			{
+				Files.delete(jar);
+				System.out.println("#583 after unloadPlugins: " + jar.getFileName() + " deleted on "
+					+ System.getProperty("os.name"));
+			}
+			catch (IOException stillOpen)
+			{
+				System.out.println("#583 after unloadPlugins: " + jar.getFileName()
+					+ " could not be deleted on " + System.getProperty("os.name") + ": "
+					+ stillOpen.getClass().getSimpleName() + ": " + stillOpen.getMessage());
+			}
 		}
 	}
 
