@@ -227,6 +227,16 @@ final class CreateMasterKeySteps
 		UiTestSpeed.step();
 	}
 
+	/**
+	 * Clicks OK without waiting for anything - for flows where the write is expected to fail and
+	 * the dialog to stay open
+	 */
+	void clickOk()
+	{
+		SwingUtilities.invokeLater(() -> dialog.button("btnOk").target().doClick());
+		UiTestSpeed.step();
+	}
+
 	/** Clicks OK (creates and encrypts the database file) and waits for this dialog to close */
 	void okAndAwaitClose()
 	{
