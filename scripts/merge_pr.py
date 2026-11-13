@@ -54,14 +54,35 @@ class Verdict:
     messages: tuple
 
 
+def newest_runs(check_runs):
+    """The newest run of each check name. A check that ran again on the same
+    head - closing-references runs on "edited" - leaves its older run listed at
+    the commit, and branch protection judges only the newest one (#970). GitHub
+    numbers check runs in the order it creates them, so the highest id is the
+    newest. A run without an id cannot be dated and is kept, so a red one among
+    undated runs still blocks."""
+    newest = {}
+    undated = []
+    for node in check_runs:
+        run_id = node.get("id")
+        if run_id is None:
+            undated.append(node)
+            continue
+        name = node.get("name") or ""
+        if name not in newest or run_id > newest[name]["id"]:
+            newest[name] = node
+    return list(newest.values()) + undated
+
+
 def parse_checks(check_runs, statuses):
     """Parses what REST reports on the head: check runs from
     /commits/{sha}/check-runs (name, status, conclusion - lowercase there) and
     commit statuses from /commits/{sha}/status (context, state; that combined
     endpoint already keeps only the latest per context). Both are read, or a
-    status such as codecov would look pending forever (#493, #872)."""
+    status such as codecov would look pending forever (#493, #872). Of the check
+    runs, only the newest of each name counts (#970)."""
     entries = []
-    for node in check_runs:
+    for node in newest_runs(check_runs):
         name = node.get("name") or ""
         if not name:
             continue
@@ -360,7 +381,7 @@ def run(argv):
     while True:
         check_lines = subprocess.run(
             ["gh", "api", f"repos/{{owner}}/{{repo}}/commits/{head_sha}/check-runs", "--paginate",
-             "-q", ".check_runs[] | {name, status, conclusion}"],
+             "-q", ".check_runs[] | {id, name, status, conclusion}"],
             check=True, capture_output=True, text=True).stdout
         check_runs = [json.loads(line) for line in check_lines.splitlines() if line]
         statuses = gh_json("api", f"repos/{{owner}}/{{repo}}/commits/{head_sha}/status").get(

@@ -157,8 +157,45 @@ class ParseChecksTest(unittest.TestCase):
             {"id": 131895963001, "name": "build", "status": "completed", "conclusion": "success"}]
         statuses = [{"context": "release-freeze", "state": "success"}]
         entries = parse_checks(runs, statuses)
-        self.assertEqual(2, [entry.name for entry in entries].count("closing-references"))
-        self.assertFalse(judge(entries, REQUIRED).mergeable)
+        self.assertEqual([RollupEntry("closing-references", True, "SUCCESS")],
+                         [entry for entry in entries if entry.name == "closing-references"])
+        self.assertTrue(judge(entries, REQUIRED).mergeable)
+
+    def test_the_newest_run_of_a_check_decides(self):
+        # GitHub numbers check runs in the order it creates them, so the highest id is the
+        # newest, the one branch protection judges by (#970)
+        cases = [
+            ("a newer green run replaces a red one", ("failure", "success"),
+             [RollupEntry("build", True, "SUCCESS")]),
+            ("a newer red run replaces a green one", ("success", "failure"),
+             [RollupEntry("build", True, "FAILURE")]),
+            ("a newer run still in progress is not reported yet", ("success", None),
+             [RollupEntry("build", False, "PENDING")]),
+        ]
+        for label, (older, newer), expected in cases:
+            with self.subTest(label):
+                runs = [
+                    {"id": 20, "name": "build",
+                     "status": "completed" if newer else "in_progress", "conclusion": newer},
+                    {"id": 10, "name": "build", "status": "completed", "conclusion": older}]
+                self.assertEqual(expected, parse_checks(runs, []))
+
+    def test_runs_of_different_checks_are_all_kept(self):
+        runs = [{"id": 2, "name": "build", "status": "completed", "conclusion": "success"},
+                {"id": 1, "name": "CodeQL", "status": "completed", "conclusion": "failure"}]
+        self.assertEqual([RollupEntry("build", True, "SUCCESS"),
+                          RollupEntry("CodeQL", True, "FAILURE")], parse_checks(runs, []))
+
+    def test_a_run_without_an_id_cannot_be_dated_and_is_kept(self):
+        # nothing tells which of two undated runs is newer, so a red one still blocks
+        runs = [{"name": "build", "status": "completed", "conclusion": "success"},
+                {"name": "build", "status": "completed", "conclusion": "failure"}]
+        entries = parse_checks(runs, [])
+        self.assertEqual([RollupEntry("build", True, "SUCCESS"),
+                          RollupEntry("build", True, "FAILURE")], entries)
+        self.assertFalse(judge(entries + [RollupEntry("closing-references", True, "SUCCESS"),
+                                          RollupEntry("release-freeze", True, "SUCCESS")],
+                               REQUIRED).mergeable)
 
 
 class PrStateTest(unittest.TestCase):
