@@ -136,9 +136,9 @@ the Plugins tab shows up in the Plugin settings tab after closing and reopening 
 
 As an example, the internal console plugin declares `dock.height.divisor` (default `4`, the
 console then docks into the bottom quarter of the screen), `dock.resizable` (default `false`) and
-`buffer.max.lines` (default `2000`, the lines the console keeps). The table shows the names and
-values only; what each setting means is explained on the plugin's own page, such as
-[[Plugin-Console]].
+`buffer.max.lines` (default `2000`, the lines the console keeps). Resting the mouse on a row shows
+the plugin's own short explanation of that setting as its tool tip, where the plugin gives one; the
+full explanation is on the plugin's own page, such as [[Plugin-Console]].
 
 ## What happens to a setting whose value is unusable
 

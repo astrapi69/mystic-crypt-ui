@@ -29,6 +29,8 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.awt.Rectangle;
+import java.awt.event.MouseEvent;
 import java.io.File;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -36,7 +38,9 @@ import java.util.Map;
 
 import javax.swing.JButton;
 import javax.swing.JComponent;
+import javax.swing.JTable;
 
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -72,7 +76,20 @@ class PluginSettingsPanelTest
 			defaults.put("second", "two");
 			return defaults;
 		}
+
+		@Override
+		public String getDescription(final String key)
+		{
+			// a description for one key only, so the other one shows what a key without one shows
+			return "first".equals(key) ? FIRST_DESCRIPTION : null;
+		}
 	}
+
+	/** What the test plugin says about its key "first" */
+	static final String FIRST_DESCRIPTION = "how many times the first thing happens";
+
+	/** The tooltip the table has for a setting no description comes with */
+	static final String TABLE_TOOLTIP = "only the value column is editable - the setting names are fixed by the plugin";
 
 	/** A contribution that fails the way a plugin with a missing class would */
 	static class BrokenContribution implements PluginSettingsContribution
@@ -124,6 +141,81 @@ class PluginSettingsPanelTest
 			}
 		}
 		return null;
+	}
+
+	/** The tooltip the table shows when the mouse rests on the row of this setting */
+	private static String tooltipOverTheRowOf(final PluginSettingsPanel panel, final String key)
+	{
+		JTable table = component(panel, "tblPluginSettings", JTable.class);
+		for (int row = 0; row < table.getRowCount(); row++)
+		{
+			if (key.equals(table.getValueAt(row, 0)))
+			{
+				Rectangle cell = table.getCellRect(row, 1, true);
+				MouseEvent overTheCell = new MouseEvent(table, MouseEvent.MOUSE_MOVED,
+					System.currentTimeMillis(), 0, (int)cell.getCenterX(), (int)cell.getCenterY(),
+					0, false);
+				return table.getToolTipText(overTheCell);
+			}
+		}
+		throw new AssertionError("the table shows no setting " + key);
+	}
+
+	private static <T extends JComponent> T component(final JComponent parent, final String name,
+		final Class<T> type)
+	{
+		if (name.equals(parent.getName()) && type.isInstance(parent))
+		{
+			return type.cast(parent);
+		}
+		for (java.awt.Component child : parent.getComponents())
+		{
+			if (child instanceof JComponent childComponent)
+			{
+				T found = component(childComponent, name, type);
+				if (found != null)
+				{
+					return found;
+				}
+			}
+		}
+		return null;
+	}
+
+	@Test
+	@DisplayName("the row of a setting shows the plugin's description of it as its tooltip (#886)")
+	void theRowOfASettingShowsItsDescription(@TempDir File configurationDirectory)
+	{
+		PluginSettingsPanel panel = new PluginSettingsPanel(configurationDirectory,
+			List.of(new TestContribution()));
+
+		assertEquals(FIRST_DESCRIPTION, tooltipOverTheRowOf(panel, "first"),
+			"the sentence the plugin wrote for this key is what the user reads over its row");
+	}
+
+	@Test
+	@DisplayName("a setting without a description keeps the table's own tooltip (#886)")
+	void aSettingWithoutADescriptionKeepsTheTableTooltip(@TempDir File configurationDirectory)
+	{
+		PluginSettingsPanel panel = new PluginSettingsPanel(configurationDirectory,
+			List.of(new TestContribution()));
+
+		assertEquals(TABLE_TOOLTIP, tooltipOverTheRowOf(panel, "second"));
+	}
+
+	@Test
+	@DisplayName("below the last row there is no setting, and the table's own tooltip applies (#886)")
+	void belowTheLastRowTheTableTooltipApplies(@TempDir File configurationDirectory)
+	{
+		PluginSettingsPanel panel = new PluginSettingsPanel(configurationDirectory,
+			List.of(new TestContribution()));
+		JTable table = component(panel, "tblPluginSettings", JTable.class);
+		Rectangle lastCell = table.getCellRect(table.getRowCount() - 1, 1, true);
+		MouseEvent belowTheRows = new MouseEvent(table, MouseEvent.MOUSE_MOVED,
+			System.currentTimeMillis(), 0, (int)lastCell.getCenterX(),
+			(int)(lastCell.getMaxY() + lastCell.getHeight()), 0, false);
+
+		assertEquals(TABLE_TOOLTIP, table.getToolTipText(belowTheRows));
 	}
 
 	@Test

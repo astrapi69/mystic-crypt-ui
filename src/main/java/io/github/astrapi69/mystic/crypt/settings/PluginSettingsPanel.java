@@ -26,6 +26,7 @@ package io.github.astrapi69.mystic.crypt.settings;
 
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;
+import java.awt.event.MouseEvent;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -77,7 +78,17 @@ public class PluginSettingsPanel extends JPanel
 		}
 	};
 
-	private final JTable tblPluginSettings = new JTable(valueModel);
+	private final JTable tblPluginSettings = new JTable(valueModel)
+	{
+		private static final long serialVersionUID = 1L;
+
+		@Override
+		public String getToolTipText(final MouseEvent event)
+		{
+			String description = descriptionOfRow(rowAtPoint(event.getPoint()));
+			return description != null ? description : super.getToolTipText(event);
+		}
+	};
 
 	private final JLabel lblPluginSettingsResult = new JLabel(modelObject.getResultText());
 
@@ -170,6 +181,28 @@ public class PluginSettingsPanel extends JPanel
 				return;
 			}
 		}
+	}
+
+	/**
+	 * What the selected plugin says about the setting in this row, shown as the row's tooltip
+	 * (#886): every plugin explains its keys through
+	 * {@link PluginSettingsContribution#getDescription}, and the table showed one general sentence
+	 * for all of them
+	 *
+	 * @param row
+	 *            the table row, or -1 when there is none under the mouse
+	 * @return the description, or null when the row has none and the table's own tooltip applies
+	 */
+	private String descriptionOfRow(final int row)
+	{
+		PluginSettingsContribution contribution = getSelectedContribution();
+		if (contribution == null || row < 0 || row >= valueModel.getRowCount())
+		{
+			return null;
+		}
+		String description = contribution
+			.getDescription(String.valueOf(valueModel.getValueAt(row, 0)));
+		return description == null || description.isBlank() ? null : description;
 	}
 
 	/** The message shown below the table */
