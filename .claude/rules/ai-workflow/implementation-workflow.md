@@ -53,7 +53,9 @@ following steps is the wanted outcome, not an inconvenience.
 4. UI wiring (panel, action, menu contribution).
 5. CLI capability goes into the mystic-crypt library first, then is consumed here.
 6. Unit + integration tests; for every user-visible UI change at least one e2e UI test
-   (the `*UiTest` suites are this repo's manual-testplan equivalent).
+   (the `*UiTest` suites automate what the manual plan would otherwise carry; what only a
+   human can check goes into `docs/manual-tests/testplan-mystic-crypt-ui.md` as a numbered
+   case).
 7. Conventional commit, push, PR against `develop` (PR-PFLICHT).
 
 ## Order for new plugins
