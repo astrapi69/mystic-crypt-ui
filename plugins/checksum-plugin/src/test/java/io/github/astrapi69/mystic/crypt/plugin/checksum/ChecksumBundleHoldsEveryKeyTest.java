@@ -59,8 +59,8 @@ class ChecksumBundleHoldsEveryKeyTest
 		.compile("ChecksumMessages\\s*\\.\\s*getString\\(\\s*\"([^\"]+)\"");
 
 	@Test
-	@DisplayName("the key of the disabled Save checksum button's tooltip is missing from the bundle (#896, measured)")
-	void theDisabledSaveTooltipKeyIsMissing() throws IOException
+	@DisplayName("every key the plugin's sources ask for is in its bundle (#896)")
+	void everyKeyTheSourcesAskForIsInTheBundle() throws IOException
 	{
 		Set<String> asked = keysTheSourcesAskFor();
 		ResourceBundle bundle = ResourceBundle.getBundle("checksum.messages");
@@ -68,8 +68,20 @@ class ChecksumBundleHoldsEveryKeyTest
 		missing.removeIf(bundle::containsKey);
 
 		assertTrue(asked.size() > 1, "the sources were read: " + asked.size() + " keys found");
-		assertEquals(Set.of("checksum.and.mac.tooltip.checksum.save.button.disabled"), missing,
-			"today one key the plugin asks for is not in its bundle, of " + asked.size());
+		assertEquals(Set.of(), missing,
+			"a key missing from the bundle shows only the Java default, in English whatever the "
+				+ "bundle holds; " + missing.size() + " of " + asked.size() + " are missing");
+	}
+
+	@Test
+	@DisplayName("the disabled Save checksum button's tooltip comes from the bundle, apostrophes kept (#896)")
+	void theDisabledSaveTooltipComesFromTheBundle()
+	{
+		assertEquals(
+			"a checksum file names the file it belongs to - tick 'use the file instead of the text' "
+				+ "and compute, then this can be saved",
+			ChecksumMessages.getString("checksum.and.mac.tooltip.checksum.save.button.disabled",
+				"the default, which must not be what is shown"));
 	}
 
 	private static Set<String> keysTheSourcesAskFor() throws IOException
