@@ -34,6 +34,7 @@ import java.security.PublicKey;
 import java.security.Security;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
@@ -108,6 +109,24 @@ class GenerateKeysPanelBindingTest
 			items.add(comboBox.getItemAt(index));
 		}
 		return items;
+	}
+
+	@Test
+	@DisplayName("a stored default the window does not offer opens it on RSA, an entry its list has (#894)")
+	void aStoredDefaultTheWindowDoesNotOfferOpensItOnRsa() throws Exception
+	{
+		PluginSettings.save(configurationDirectory, KeygenSettingsContribution.PLUGIN_ID,
+			new KeygenSettingsContribution().getDefaults(),
+			Map.of(KeygenSettingsContribution.KEY_ALGORITHM,
+				KeyPairGeneratorAlgorithm.DH.name()));
+
+		GenerateKeysPanel panel = new GenerateKeysPanel();
+
+		Object selected = panel.getCmbAlgorithm().getSelectedItem();
+		assertEquals(KeyPairGeneratorAlgorithm.RSA, selected,
+			"a stored DH opened the window on DH, which its dropdown does not list");
+		assertEquals(KeygenSupport.OFFERED_ALGORITHMS, itemsOf(panel.getCmbAlgorithm()),
+			"and the dropdown lists the six it offers, nothing that came in with the setting");
 	}
 
 	@Test

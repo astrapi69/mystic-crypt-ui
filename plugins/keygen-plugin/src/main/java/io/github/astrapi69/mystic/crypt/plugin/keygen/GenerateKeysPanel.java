@@ -58,24 +58,12 @@ public class GenerateKeysPanel extends BasePanel<GenerateKeysModelBean>
 
 	private static final long serialVersionUID = 1L;
 
-	/**
-	 * The algorithms offered in the key-pair dropdown: the classical RSA and EC, which both drive
-	 * the full encrypt/decrypt demo (RSA with the public key itself, EC through ECIES), plus a
-	 * curated set of modern algorithms - the X25519/X448 key-agreement curves and the NIST
-	 * post-quantum ML-KEM (key encapsulation) and ML-DSA (signature) parameter sets. Those only
-	 * generate and display their key pair as PEM: none of them has an encryption primitive.
-	 */
+	/** The curve an EC key is generated on, one of {@link KeygenSupport#CURVES} */
 	private JMComboBox<String, ?> cmbCurve;
 	private JMComboBox<KeyFormat, ?> cmbKeyFormat;
 
 	/** PEM text or the binary encoding, for every file this window saves */
 	private JMComboBox<KeyFileFormat, ?> cmbSaveFormat;
-
-	private static final KeyPairGeneratorAlgorithm[] SUPPORTED_ALGORITHMS = {
-			KeyPairGeneratorAlgorithm.RSA, KeyPairGeneratorAlgorithm.EC,
-			KeyPairGeneratorAlgorithm.X25519,
-			KeyPairGeneratorAlgorithm.X448, KeyPairGeneratorAlgorithm.ML_KEM_768,
-			KeyPairGeneratorAlgorithm.ML_DSA_65 };
 
 	private CryptographyPanel cryptographyPanel;
 
@@ -120,9 +108,9 @@ public class GenerateKeysPanel extends BasePanel<GenerateKeysModelBean>
 	 * chosen, so offering the choice there would be misleading (issue #101).
 	 * <p>
 	 * The condition below names RSA and EC rather than all four, and that is right for this window
-	 * rather than an oversight: {@code SUPPORTED_ALGORITHMS} offers RSA, EC, X25519, X448,
-	 * ML-KEM-768 and ML-DSA-65, so DSA and RSASSA-PSS can never be the selected algorithm. Naming
-	 * them here would be code no user can reach. If either is ever added to that array, this
+	 * rather than an oversight: {@link KeygenSupport#OFFERED_ALGORITHMS} offers RSA, EC, X25519,
+	 * X448, ML-KEM-768 and ML-DSA-65, so DSA and RSASSA-PSS can never be the selected algorithm.
+	 * Naming them here would be code no user can reach. If either is ever added to that list, this
 	 * condition has to grow with it (issue #218).
 	 *
 	 * @param algorithm
@@ -409,7 +397,8 @@ public class GenerateKeysPanel extends BasePanel<GenerateKeysModelBean>
 					isSelected, cellHasFocus);
 			}
 		});
-		cmbAlgorithm = new JMComboBox<>(SUPPORTED_ALGORITHMS);
+		cmbAlgorithm = new JMComboBox<>(
+			KeygenSupport.OFFERED_ALGORITHMS.toArray(new KeyPairGeneratorAlgorithm[0]));
 		cmbAlgorithm.setName("cmbAlgorithm");
 		cmbAlgorithm.setToolTipText(KeygenMessages.getString("keygen.tooltip.algorithm",
 			"the key pair algorithm - picks which downstream features (the hex encrypt/decrypt demo, saving a certificate) are even available"));

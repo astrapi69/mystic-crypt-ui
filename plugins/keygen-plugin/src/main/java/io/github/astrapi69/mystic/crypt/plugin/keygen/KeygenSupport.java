@@ -81,6 +81,20 @@ import io.github.astrapi69.mystic.crypt.secret.SecretRandom;
 public final class KeygenSupport
 {
 
+	/**
+	 * The algorithms offered in the key-pair dropdown: the classical RSA and EC, which both drive
+	 * the full encrypt/decrypt demo (RSA with the public key itself, EC through ECIES), plus a
+	 * curated set of modern algorithms - the X25519/X448 key-agreement curves and the NIST
+	 * post-quantum ML-KEM (key encapsulation) and ML-DSA (signature) parameter sets. Those only
+	 * generate and display their key pair as PEM: none of them has an encryption primitive.
+	 * <p>
+	 * The setting {@code default.algorithm} chooses among these and no other (#894)
+	 */
+	public static final List<KeyPairGeneratorAlgorithm> OFFERED_ALGORITHMS = List.of(
+		KeyPairGeneratorAlgorithm.RSA, KeyPairGeneratorAlgorithm.EC,
+		KeyPairGeneratorAlgorithm.X25519, KeyPairGeneratorAlgorithm.X448,
+		KeyPairGeneratorAlgorithm.ML_KEM_768, KeyPairGeneratorAlgorithm.ML_DSA_65);
+
 	/** The curves offered for an EC key, the ones in actual use rather than all thirty */
 	public static final List<String> CURVES = List.of("secp256r1", "secp384r1", "secp521r1",
 		"secp256k1", "secp224r1", "brainpoolP256r1", "brainpoolP384r1", "brainpoolP512r1");
