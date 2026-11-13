@@ -301,7 +301,7 @@ public class NewMasterPwFilePanel extends BasePanel<MasterPwFileModelBean>
 	protected void onHelp(ActionEvent actionEvent)
 	{
 		String helpLink = "https://github.com/astrapi69/mystic-crypt-ui/wiki/"
-			+ "Help:-create-new-mystic-crypt-database";
+			+ "create-new-mystic-crypt-database";
 		URL helpUrl = RuntimeExceptionDecorator.decorate(() -> new URL(helpLink));
 		if (URLExtensions.isReachable(helpUrl))
 		{

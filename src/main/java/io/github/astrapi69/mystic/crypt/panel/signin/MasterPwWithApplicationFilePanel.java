@@ -393,7 +393,7 @@ public class MasterPwWithApplicationFilePanel extends BasePanel<MasterPwFileMode
 	protected void onHelp(ActionEvent actionEvent)
 	{
 		String helpLink = "https://github.com/astrapi69/mystic-crypt-ui/wiki/"
-			+ "Help:-open-existing-mystic-crypt-database";
+			+ "open-existing-mystic-crypt-database";
 		URL helpUrl = RuntimeExceptionDecorator.decorate(() -> new URL(helpLink));
 		if (URLExtensions.isReachable(helpUrl))
 		{
