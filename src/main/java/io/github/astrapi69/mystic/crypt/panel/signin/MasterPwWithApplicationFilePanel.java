@@ -38,7 +38,6 @@ import org.apache.commons.lang3.StringUtils;
 
 import io.github.astrapi69.browser.BrowserControlExtensions;
 import io.github.astrapi69.collection.pair.ValueBox;
-import io.github.astrapi69.file.create.FileFactory;
 import io.github.astrapi69.file.create.model.FileInfo;
 import io.github.astrapi69.gson.ObjectToJsonFileExtensions;
 import io.github.astrapi69.model.BaseModel;
@@ -349,11 +348,8 @@ public class MasterPwWithApplicationFilePanel extends BasePanel<MasterPwFileMode
 				// (#300, #878)
 				return;
 			}
-			if (!selectedApplicationFile.exists())
-			{
-				RuntimeExceptionDecorator
-					.decorate(() -> FileFactory.newFile(selectedApplicationFile));
-			}
+			// nothing is created here: OK in "Create your master key" writes the file, and Cancel
+			// leaves the disk as it was (#952)
 			String absolutePath = selectedApplicationFile.getAbsolutePath();
 			IModel<MasterPwFileModelBean> model = BaseModel.of(MasterPwFileModelBean.builder()
 				.applicationFileInfo(FileInfo.toFileInfo(selectedApplicationFile))

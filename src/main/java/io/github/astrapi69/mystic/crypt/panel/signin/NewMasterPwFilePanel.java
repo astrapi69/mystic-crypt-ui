@@ -37,8 +37,6 @@ import org.apache.commons.lang3.StringUtils;
 
 import io.github.astrapi69.browser.BrowserControlExtensions;
 import io.github.astrapi69.crypt.data.model.KeyModel;
-import io.github.astrapi69.file.create.FileFactory;
-import io.github.astrapi69.file.create.model.FileCreationState;
 import io.github.astrapi69.file.create.model.FileInfo;
 import io.github.astrapi69.model.BaseModel;
 import io.github.astrapi69.model.LambdaModel;
@@ -729,8 +727,9 @@ public class NewMasterPwFilePanel extends BasePanel<MasterPwFileModelBean>
 				// there is asked about first, whichever way this dialog was opened (#878)
 				return;
 			}
-			FileCreationState fileCreationState = RuntimeExceptionDecorator
-				.decorate(() -> FileFactory.newFile(selectedApplicationFile));
+			// nothing is created here: OK writes the file, and Cancel leaves the disk as it was;
+			// the
+			// OK button counts a chosen file before it is there (#944, #952)
 			String absolutePath = selectedApplicationFile.getAbsolutePath();
 			getModelObject().setApplicationFileInfo(FileInfo.toFileInfo(selectedApplicationFile));
 			getModelObject().setSelectedApplicationFilePath(absolutePath);

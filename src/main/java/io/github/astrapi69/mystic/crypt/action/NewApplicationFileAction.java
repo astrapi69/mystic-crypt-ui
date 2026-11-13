@@ -30,7 +30,6 @@ import java.io.File;
 import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
-import io.github.astrapi69.file.create.FileFactory;
 import io.github.astrapi69.file.create.model.FileInfo;
 import io.github.astrapi69.model.BaseModel;
 import io.github.astrapi69.model.api.IModel;
@@ -44,7 +43,6 @@ import io.github.astrapi69.mystic.crypt.vault.VaultCloseSupport;
 import io.github.astrapi69.mystic.crypt.write.DataClass;
 import io.github.astrapi69.mystic.crypt.write.OverwriteConfirmation;
 import io.github.astrapi69.swing.filechooser.JFileChooserExtensions;
-import io.github.astrapi69.throwable.RuntimeExceptionDecorator;
 
 public class NewApplicationFileAction extends AbstractAction
 {
@@ -113,11 +111,8 @@ public class NewApplicationFileAction extends AbstractAction
 				// nothing, so creating a database onto an existing one took it over (#300)
 				return;
 			}
-			if (!selectedApplicationFile.exists())
-			{
-				RuntimeExceptionDecorator
-					.decorate(() -> FileFactory.newFile(selectedApplicationFile));
-			}
+			// nothing is created here: OK in "Create your master key" writes the file, and Cancel
+			// leaves the disk as it was (#952)
 			String selectedApplicationFilePath = selectedApplicationFile.getAbsolutePath();
 			IModel<MasterPwFileModelBean> model = BaseModel.of(MasterPwFileModelBean.builder()
 				.applicationFileInfo(FileInfo.toFileInfo(selectedApplicationFile))
