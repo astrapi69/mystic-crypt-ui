@@ -133,8 +133,8 @@ class LethenonPluginFromItsZipTest
 	/**
 	 * Tries to delete the sqlite-jdbc jar of the unloaded plugin and writes what happened as one
 	 * line to standard output, which the test report keeps and the platform workflow prints (#583).
-	 * A measurement, not an assertion: on Windows the jar stayed open with sqlite-jdbc 3.53.4.0, and
-	 * whether 3.54.1.0 still holds it is what this line answers
+	 * A measurement, not an assertion: on Windows the jar stayed open with sqlite-jdbc 3.53.4.0,
+	 * and whether 3.54.1.0 still holds it is what this line answers
 	 */
 	private static void tryToDeleteTheSqliteJar(final Path plugins) throws IOException
 	{
