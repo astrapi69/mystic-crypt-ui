@@ -42,8 +42,9 @@ with settings of their own in the settings dialog:
 |---|---|
 | **Keys and certificates** | [[Plugin-Key-Generator]], [[Plugin-Key-Store]], [[Plugin-Certificate-Wizard]], [[Plugin-Key-Conversion]] |
 | **Protecting things** | [[Plugin-File-Encryption]], [[Plugin-Secret-Sharing]], [[Plugin-Password-Hashing]] |
-| **Proving things** | [[Plugin-Signatures]], [[Plugin-Checksum-And-Mac]] |
+| **Proving things** | [[Plugin-Signatures]], [[Plugin-Checksum-And-Mac]], [[Plugin-Release-Key]] |
 | **Exchanging a key** | [[Plugin-Key-Exchange]] |
+| **A wallet** | [[Plugin-Lethenon-Wallet]] |
 | **The rest** | [[Plugin-Obfuscation]], [[Plugin-Console]] |
 
 One more, [[Plugin-Menu-Designer]], is a tool for working on the application itself: it is built

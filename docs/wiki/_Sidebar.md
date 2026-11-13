@@ -25,6 +25,8 @@
   * [Checksum and MAC](https://github.com/astrapi69/mystic-crypt-ui/wiki/Plugin-Checksum-And-Mac)
   * [Obfuscation](https://github.com/astrapi69/mystic-crypt-ui/wiki/Plugin-Obfuscation)
   * [Console](https://github.com/astrapi69/mystic-crypt-ui/wiki/Plugin-Console)
+  * [Lethenon wallet](https://github.com/astrapi69/mystic-crypt-ui/wiki/Plugin-Lethenon-Wallet)
+  * [Release key status](https://github.com/astrapi69/mystic-crypt-ui/wiki/Plugin-Release-Key)
 * Developing
   * [Menu designer](https://github.com/astrapi69/mystic-crypt-ui/wiki/Plugin-Menu-Designer)
   * [How to create izpack installer with gradle](https://github.com/astrapi69/mystic-crypt-ui/wiki/How-to-create-izpack-installer-with-gradle)
