@@ -65,7 +65,7 @@ class APluginSettingShowsItsDescriptionUiTest extends AbstractUiTest
 
 		ApplicationSteps application = signInWithExistingDatabase(databaseFile, MASTER_PASSWORD);
 		DialogFixture settings = application.openSettingsDialog();
-		settings.tabbedPane("tabSettings").selectTab("Plugin settings");
+		application.selectSettingsTab(settings, "Plugin settings");
 		settings.list("lstPluginSettings").selectItem("Obfuscation");
 		robot.waitForIdle();
 
