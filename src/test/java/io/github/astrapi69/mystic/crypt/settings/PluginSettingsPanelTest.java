@@ -183,15 +183,39 @@ class PluginSettingsPanelTest
 	}
 
 	@Test
-	@DisplayName("the description a plugin gives for a setting is not shown, its row has the table's tooltip (#886, measured)")
-	void theDescriptionOfASettingIsNotShown(@TempDir File configurationDirectory)
+	@DisplayName("the row of a setting shows the plugin's description of it as its tooltip (#886)")
+	void theRowOfASettingShowsItsDescription(@TempDir File configurationDirectory)
 	{
 		PluginSettingsPanel panel = new PluginSettingsPanel(configurationDirectory,
 			List.of(new TestContribution()));
 
-		assertEquals(TABLE_TOOLTIP, tooltipOverTheRowOf(panel, "first"),
-			"today nobody asks the plugin for its description");
+		assertEquals(FIRST_DESCRIPTION, tooltipOverTheRowOf(panel, "first"),
+			"the sentence the plugin wrote for this key is what the user reads over its row");
+	}
+
+	@Test
+	@DisplayName("a setting without a description keeps the table's own tooltip (#886)")
+	void aSettingWithoutADescriptionKeepsTheTableTooltip(@TempDir File configurationDirectory)
+	{
+		PluginSettingsPanel panel = new PluginSettingsPanel(configurationDirectory,
+			List.of(new TestContribution()));
+
 		assertEquals(TABLE_TOOLTIP, tooltipOverTheRowOf(panel, "second"));
+	}
+
+	@Test
+	@DisplayName("below the last row there is no setting, and the table's own tooltip applies (#886)")
+	void belowTheLastRowTheTableTooltipApplies(@TempDir File configurationDirectory)
+	{
+		PluginSettingsPanel panel = new PluginSettingsPanel(configurationDirectory,
+			List.of(new TestContribution()));
+		JTable table = component(panel, "tblPluginSettings", JTable.class);
+		Rectangle lastCell = table.getCellRect(table.getRowCount() - 1, 1, true);
+		MouseEvent belowTheRows = new MouseEvent(table, MouseEvent.MOUSE_MOVED,
+			System.currentTimeMillis(), 0, (int)lastCell.getCenterX(),
+			(int)(lastCell.getMaxY() + lastCell.getHeight()), 0, false);
+
+		assertEquals(TABLE_TOOLTIP, table.getToolTipText(belowTheRows));
 	}
 
 	@Test
