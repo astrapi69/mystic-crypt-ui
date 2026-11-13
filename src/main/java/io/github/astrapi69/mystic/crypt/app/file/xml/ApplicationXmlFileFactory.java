@@ -28,6 +28,7 @@ import java.io.File;
 
 import io.github.astrapi69.mystic.crypt.ApplicationModelBean;
 import io.github.astrapi69.mystic.crypt.panel.signin.MasterPwFileModelBean;
+import io.github.astrapi69.mystic.crypt.panel.signin.SignInType;
 
 public final class ApplicationXmlFileFactory
 {
@@ -52,6 +53,32 @@ public final class ApplicationXmlFileFactory
 		ApplicationModelBean applicationModelBean = ApplicationModelBean.builder().build();
 		applicationModelBean.setMasterPwFileModelBean(modelObject);
 		return ApplicationXmlFileStoreWorker.saveToFileWithPassword(applicationModelBean);
+	}
+
+	/**
+	 * Writes a new database with the master key these settings choose: password, key file, or both
+	 *
+	 * @param modelObject
+	 *            the new database's file and master key
+	 * @return the written file, or null when the settings choose no master key, so nothing was
+	 *         written
+	 */
+	public static File newApplicationFile(final MasterPwFileModelBean modelObject)
+	{
+		SignInType signInType = SignInType.toSignInType(modelObject);
+		if (SignInType.PASSWORD_AND_PRIVATE_KEY.equals(signInType))
+		{
+			return newApplicationFileWithPasswordAndPrivateKey(modelObject);
+		}
+		if (SignInType.PRIVATE_KEY.equals(signInType))
+		{
+			return newApplicationFileWithPrivateKey(modelObject);
+		}
+		if (SignInType.PASSWORD.equals(signInType))
+		{
+			return newApplicationFileWithPassword(modelObject);
+		}
+		return null;
 	}
 
 }

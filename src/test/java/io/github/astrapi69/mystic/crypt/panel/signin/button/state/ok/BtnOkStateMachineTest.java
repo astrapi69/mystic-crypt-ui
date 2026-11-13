@@ -137,6 +137,36 @@ class BtnOkStateMachineTest
 		assertEquals(BtnOkComponentStateEnum.ENABLED, stateMachine.getCurrentState());
 	}
 
+	static Stream<Arguments> aChosenFileThatIsNotThere()
+	{
+		return Stream.of(Arguments.argumentSet(
+			"Create your master key: OK writes the file, so a chosen one counts before it is there",
+			true, BtnOkComponentStateEnum.ENABLED),
+			Arguments.argumentSet(
+				"the sign-in dialog: OK opens the file, so one that is not there keeps OK disabled",
+				false, BtnOkComponentStateEnum.DISABLED));
+	}
+
+	@ParameterizedTest(name = "{argumentSetName}")
+	@MethodSource("aChosenFileThatIsNotThere")
+	@DisplayName("a chosen database file that is not on disk (#944)")
+	void aChosenFileThatIsNotThere(final boolean writesTheApplicationFile,
+		final BtnOkComponentStateEnum expected) throws IOException
+	{
+		char[] password = TestPasswords.throwawayChars();
+		BtnOkStateMachine stateMachine = stateMachineFor(new JButton(), writesTheApplicationFile,
+			true, password, password.clone());
+		Files.delete(
+			FileInfo.toFile(stateMachine.getModelObject().getApplicationFileInfo()).toPath());
+		stateMachine.setWritesTheApplicationFile(writesTheApplicationFile);
+
+		stateMachine.onChangeMasterPasswordLength(stateMachine);
+
+		assertEquals(expected, stateMachine.getCurrentState(),
+			"after a failed first write removed the empty file, the corrected input has to reach "
+				+ "OK again in Create your master key, and nothing changes for the sign-in");
+	}
+
 	/**
 	 * A state machine for a new database, its file already on disk
 	 *

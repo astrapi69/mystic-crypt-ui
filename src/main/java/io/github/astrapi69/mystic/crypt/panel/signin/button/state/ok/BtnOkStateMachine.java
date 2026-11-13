@@ -60,13 +60,22 @@ public class BtnOkStateMachine extends AbstractJComponentStateMachine<JButton, B
 	 */
 	boolean repeatRequired;
 
+	/**
+	 * Whether OK writes the application file rather than opening it: true in "Create your master
+	 * key", where a chosen file counts before it is there, because the write creates it - after a
+	 * failed first write removed the empty file, OK has to stay reachable for the corrected input
+	 * (#944); false in the sign-in dialog, which opens a file that has to be there
+	 */
+	boolean writesTheApplicationFile;
+
 	@Override
 	protected void updateComponentState()
 	{
 		boolean applicationFilePresent = false;
 		if (modelObject.getApplicationFileInfo() != null)
 		{
-			applicationFilePresent = FileInfo.toFile(modelObject.getApplicationFileInfo()).exists();
+			applicationFilePresent = writesTheApplicationFile
+				|| FileInfo.toFile(modelObject.getApplicationFileInfo()).exists();
 		}
 		int minPasswordLength = modelObject.getMinPasswordLength();
 		int passwordLength = modelObject.getMasterPw() != null

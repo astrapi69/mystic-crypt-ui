@@ -25,8 +25,7 @@
 package io.github.astrapi69.mystic.crypt.ui;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.awt.Dialog;
@@ -42,10 +41,12 @@ import org.assertj.swing.core.GenericTypeMatcher;
 import org.assertj.swing.edt.GuiActionRunner;
 import org.assertj.swing.finder.WindowFinder;
 import org.assertj.swing.fixture.DialogFixture;
+import org.assertj.swing.timing.Condition;
 import org.assertj.swing.timing.Pause;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import io.github.astrapi69.mystic.crypt.Messages;
 import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
 import io.github.astrapi69.mystic.crypt.TestPasswords;
 
@@ -57,6 +58,10 @@ import io.github.astrapi69.mystic.crypt.TestPasswords;
  * to be written to was left with 0 bytes, so the next sign-in offered a database that is none. The
  * failure used here is a key file that went away between choosing it and OK, one of the ways a
  * first write fails besides a full disk or a directory that cannot be written.
+ * <p>
+ * Now a failed first write says so with the file and the reason, as a failed save does (#424), the
+ * dialog stays open for the corrected input, and an empty file is removed. A file with content is
+ * never removed.
  */
 class AFailedFirstWriteIsReportedUiTest extends AbstractUiTest
 {
@@ -70,8 +75,12 @@ class AFailedFirstWriteIsReportedUiTest extends AbstractUiTest
 	/** The title of the dialog in which a new database gets its master key */
 	private static final String CREATE_MASTER_KEY = "Create your master key";
 
+	/** The title of the message that says the new database could not be written */
+	private static final String CREATION_FAILED = Messages.getString("dialog.create.failed.title",
+		"The database could not be created");
+
 	@Test
-	@DisplayName("A failed first write to a new file: nothing on screen, an empty file is left (#944, measured)")
+	@DisplayName("A failed first write to a new file says why, keeps the dialog open and leaves no empty file (#944)")
 	void aFailedFirstWriteToANewFile() throws Exception
 	{
 		File newDatabaseFile = new File(tempHome, "new-one.mcrdb");
@@ -81,13 +90,16 @@ class AFailedFirstWriteIsReportedUiTest extends AbstractUiTest
 		File keyFile = aPasswordAndAKeyFileThatGoesAway(createMasterKey);
 
 		createMasterKey.clickOk();
-		Pause.pause(TimeUnit.SECONDS.toMillis(3));
+		String message = awaitTheMessageAndCloseIt();
 
-		assertNull(aMessageOnScreen(), "today the failure reaches standard error only");
+		assertTrue(message.contains(newDatabaseFile.getAbsolutePath()),
+			"the message names the file the database was to be written to: " + message);
+		assertTrue(message.contains(keyFile.getName()),
+			"and the reason, here the key file that is not there: " + message);
 		assertTrue(aDialogIsShowing(CREATE_MASTER_KEY),
-			"the dialog stays open, so the input can still be corrected");
-		assertTrue(newDatabaseFile.exists(), "today the file is left");
-		assertEquals(0, newDatabaseFile.length(), "with 0 bytes: no database at all");
+			"the dialog stays open, so the input can be corrected");
+		assertFalse(newDatabaseFile.exists(),
+			"no empty file is left that the next sign-in would offer as a database");
 
 		createMasterKey.createKeyFile(keyFile.getName()).requireOkEnabled().okAndAwaitClose();
 		assertTrue(newDatabaseFile.length() > 0,
@@ -109,11 +121,11 @@ class AFailedFirstWriteIsReportedUiTest extends AbstractUiTest
 		aPasswordAndAKeyFileThatGoesAway(createMasterKey);
 
 		createMasterKey.clickOk();
-		Pause.pause(TimeUnit.SECONDS.toMillis(3));
+		String message = awaitTheMessageAndCloseIt();
 
-		assertNull(aMessageOnScreen(), "today the failure reaches standard error only");
+		assertTrue(message.contains(existing.getAbsolutePath()), message);
 		assertTrue(aDialogIsShowing(CREATE_MASTER_KEY),
-			"the dialog stays open, so the input can still be corrected");
+			"the dialog stays open, so the input can be corrected");
 		assertArrayEquals(before, Files.readAllBytes(existing.toPath()),
 			"the vault that was there is untouched: the write failed before anything reached it, "
 				+ "and a file with content is never what a failed creation removes");
@@ -166,31 +178,44 @@ class AFailedFirstWriteIsReportedUiTest extends AbstractUiTest
 		});
 	}
 
-	/** The message on screen, an option pane in a dialog of its own, or null when there is none */
-	private JOptionPane aMessageOnScreen()
+	/**
+	 * Waits for the message that the database could not be created, closes it with OK and returns
+	 * its text
+	 */
+	private String awaitTheMessageAndCloseIt()
 	{
-		return GuiActionRunner.execute(() -> {
+		Pause.pause(new Condition("the message that the database could not be created")
+		{
+			@Override
+			public boolean test()
+			{
+				return aDialogIsShowing(CREATION_FAILED);
+			}
+		}, TimeUnit.SECONDS.toMillis(15));
+		String message = GuiActionRunner.execute(() -> {
 			for (Window window : Window.getWindows())
 			{
 				if (window instanceof JDialog dialog && dialog.isShowing()
-					&& !CREATE_MASTER_KEY.equals(dialog.getTitle()))
+					&& CREATION_FAILED.equals(dialog.getTitle()))
 				{
-					for (JOptionPane optionPane : robot.finder().findAll(dialog,
-						new GenericTypeMatcher<JOptionPane>(JOptionPane.class)
-						{
-							@Override
-							protected boolean isMatching(final JOptionPane candidate)
-							{
-								return true;
-							}
-						}))
-					{
-						return optionPane;
-					}
+					JOptionPane optionPane = (JOptionPane)robot.finder().findByType(dialog,
+						JOptionPane.class);
+					String text = String.valueOf(optionPane.getMessage());
+					optionPane.setValue(JOptionPane.OK_OPTION);
+					return text;
 				}
 			}
-			return null;
+			throw new AssertionError("the message went away before it could be read");
 		});
+		Pause.pause(new Condition("the message is closed")
+		{
+			@Override
+			public boolean test()
+			{
+				return !aDialogIsShowing(CREATION_FAILED);
+			}
+		}, TimeUnit.SECONDS.toMillis(10));
+		return message;
 	}
 
 	/** Answers the question about replacing the existing file with yes */
