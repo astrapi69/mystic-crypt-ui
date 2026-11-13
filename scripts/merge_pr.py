@@ -241,6 +241,12 @@ def wait_for_checks(poll, required_contexts, wait_seconds, poll_seconds=POLL_SEC
         waited += poll_seconds
 
 
+def branch_is_gone(still_there):
+    """Whether the head branch is gone after the merge: still_there asks GitHub
+    once whether the branch exists."""
+    return not still_there()
+
+
 def base_mismatch(base, target):
     """gh merges into the pull request's base; the local update goes to target.
     When the two differ the merge lands where nobody is looking (#395)."""
@@ -451,8 +457,9 @@ def run(argv):
     else:
         subprocess.run(["gh", "api", "-X", "DELETE", f"repos/{{owner}}/{{repo}}/git/refs/heads/{head}",
                         "--silent"], capture_output=True)
-        gone = subprocess.run(["gh", "api", f"repos/{{owner}}/{{repo}}/branches/{head}", "--silent"],
-                              capture_output=True).returncode != 0
+        gone = branch_is_gone(lambda: subprocess.run(
+            ["gh", "api", f"repos/{{owner}}/{{repo}}/branches/{head}", "--silent"],
+            capture_output=True).returncode == 0)
         if gone:
             print(f"the remote branch '{head}' is gone; the local one is left as it is")
         else:

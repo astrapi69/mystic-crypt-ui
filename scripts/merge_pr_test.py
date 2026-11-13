@@ -18,7 +18,8 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from merge_pr import (RollupEntry, all_reported, base_mismatch, conventional_title_error,
+from merge_pr import (RollupEntry, all_reported, base_mismatch, branch_is_gone,
+                      conventional_title_error,
                       feat_freeze_error, fragment_error, is_cross_repository,
                       dirty_tree_note, judge, merge_command, parse_checks, pr_state,
                       resolve_required, squash_subject, wait_for_checks)
@@ -318,6 +319,22 @@ class WaitForChecksTest(unittest.TestCase):
         self.assertIsNone(entries)
         self.assertEqual("after 40s - the last look at the checks failed (gh: HTTP 502)"
                          " - not merging", refusal)
+
+
+class BranchIsGoneTest(unittest.TestCase):
+    """After the merge the script says whether the head branch is gone (#974)."""
+
+    @staticmethod
+    def answers(*still_there):
+        queue = list(still_there)
+        return lambda: queue.pop(0)
+
+    def test_a_branch_gone_at_the_first_answer_is_gone(self):
+        self.assertTrue(branch_is_gone(self.answers(False)))
+
+    def test_a_branch_still_there_at_the_one_answer_gets_the_note(self):
+        # today: one answer, right after the deletion, decides (#974)
+        self.assertFalse(branch_is_gone(self.answers(True, False)))
 
 
 class FeatFreezeTest(unittest.TestCase):
