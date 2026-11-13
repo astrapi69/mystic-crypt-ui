@@ -40,6 +40,7 @@ import io.github.astrapi69.model.api.IModel;
 import io.github.astrapi69.mystic.crypt.obfuscation.simple.SimpleCharacterObfuscator;
 import io.github.astrapi69.mystic.crypt.obfuscation.simple.SimpleObfuscatorExtensions;
 import io.github.astrapi69.mystic.crypt.panel.keygen.EnDecryptPanel;
+import io.github.astrapi69.mystic.crypt.plugin.obfuscation.ObfuscationMessages;
 import io.github.astrapi69.mystic.crypt.plugin.obfuscation.ObfuscationSettingsContribution;
 import io.github.astrapi69.mystic.crypt.plugin.obfuscation.ModeContext;
 import io.github.astrapi69.mystic.crypt.ui.form.ToolForm;
@@ -178,6 +179,10 @@ public class RulePanel extends BasePanel<ObfuscationModelBean>
 		final String obfuscated = getEnDecryptPanel().getModelObject().getRightContent();
 		final Map<Character, ObfuscationRule<Character, Character>> keymap = getModelObject()
 			.getTableModel().toMap();
+		if (refusedForEmptyRules(keymap))
+		{
+			return;
+		}
 		final BiMap<Character, ObfuscationRule<Character, Character>> ruleBiMap = HashBiMap
 			.create(keymap);
 		// go through the character bi-map and its inverse. The convenience
@@ -203,11 +208,50 @@ public class RulePanel extends BasePanel<ObfuscationModelBean>
 		simpleRulePanel.onEditObfuscationRule(selected);
 	}
 
+	/**
+	 * Why Obfuscate and Disentangle refuse an empty rule table (#891): the library refuses it with
+	 * "Given map 'rules' may not be empty", and without this guard that exception went to the
+	 * console while the window said nothing
+	 *
+	 * @param rules
+	 *            the rules of the table, may be null
+	 * @return the warning to show, or null when there are rules to work with
+	 */
+	static String emptyRulesWarning(final Map<Character, ObfuscationRule<Character, Character>> rules)
+	{
+		if (rules != null && !rules.isEmpty())
+		{
+			return null;
+		}
+		return ObfuscationMessages.getString("obfuscation.simple.dialog.empty.rules.message",
+			"The rule table is empty. Add at least one rule (a character and its replacement) "
+				+ "with the Add button, then obfuscate or disentangle.");
+	}
+
+	private boolean refusedForEmptyRules(
+		final Map<Character, ObfuscationRule<Character, Character>> rules)
+	{
+		final String warning = emptyRulesWarning(rules);
+		if (warning == null)
+		{
+			return false;
+		}
+		final String title = ObfuscationMessages
+			.getString("obfuscation.simple.dialog.empty.rules.title", "No obfuscation rules");
+		JOptionPane.showMessageDialog(this, "<html><body width='350'><h2>" + title + "</h2><p>"
+			+ warning, title, JOptionPane.WARNING_MESSAGE);
+		return true;
+	}
+
 	protected void onEncrypt(final ActionEvent actionEvent)
 	{
 		final String toObfuscatedString = getEnDecryptPanel().getModelObject().getLeftContent();
 		final Map<Character, ObfuscationRule<Character, Character>> keymap = getModelObject()
 			.getTableModel().toMap();
+		if (refusedForEmptyRules(keymap))
+		{
+			return;
+		}
 		// create the rule
 		BiMap<Character, ObfuscationRule<Character, Character>> biMap = HashBiMap.create(keymap);
 		// obfuscate the key
