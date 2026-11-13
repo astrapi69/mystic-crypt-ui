@@ -146,6 +146,20 @@ class ParseChecksTest(unittest.TestCase):
     def test_nameless_entries_are_dropped(self):
         self.assertEqual(parse_checks([{"status": "completed"}], [{"state": "success"}]), [])
 
+    def test_a_required_check_run_again_green_on_the_same_head(self):
+        # #969 at fd474774, as GitHub listed it: closing-references failed, the text was
+        # corrected, the check ran again on "edited" and passed; the ids are GitHub's (#970)
+        runs = [
+            {"id": 131900732807, "name": "closing-references", "status": "completed",
+             "conclusion": "success"},
+            {"id": 131895963946, "name": "closing-references", "status": "completed",
+             "conclusion": "failure"},
+            {"id": 131895963001, "name": "build", "status": "completed", "conclusion": "success"}]
+        statuses = [{"context": "release-freeze", "state": "success"}]
+        entries = parse_checks(runs, statuses)
+        self.assertEqual(2, [entry.name for entry in entries].count("closing-references"))
+        self.assertFalse(judge(entries, REQUIRED).mergeable)
+
 
 class PrStateTest(unittest.TestCase):
     """REST says state=open|closed plus a merged flag; the script's refusals
