@@ -39,10 +39,10 @@ import io.github.astrapi69.model.api.IModel;
 import io.github.astrapi69.mystic.crypt.Messages;
 import io.github.astrapi69.mystic.crypt.button.state.GenericButtonGenericJXTableStateMachine;
 import io.github.astrapi69.mystic.crypt.panel.dbtree.MysticCryptEntryModelBean;
+import io.github.astrapi69.mystic.crypt.panel.dbtree.VaultEntryProperties;
 import io.github.astrapi69.swing.base.BasePanel;
 import io.github.astrapi69.swing.dialog.JOptionPaneExtensions;
 import io.github.astrapi69.swing.table.GenericJTable;
-import io.github.astrapi69.swing.table.model.properties.StringKeyValueTableModel;
 import lombok.Getter;
 import net.miginfocom.swing.MigLayout;
 
@@ -58,7 +58,7 @@ public class PropertiesPanel extends BasePanel<MysticCryptEntryModelBean>
 	private javax.swing.JButton btnRemove;
 	private javax.swing.JScrollPane srcProperties;
 	private GenericJTable<KeyValuePair<String, String>> tblProperties;
-	private StringKeyValueTableModel tableModel;
+	private ProtectedPropertiesTableModel tableModel;
 
 	public PropertiesPanel()
 	{
@@ -80,7 +80,7 @@ public class PropertiesPanel extends BasePanel<MysticCryptEntryModelBean>
 		btnRemove = new javax.swing.JButton();
 		btnEdit = new javax.swing.JButton();
 
-		tableModel = new StringKeyValueTableModel();
+		tableModel = new ProtectedPropertiesTableModel(this::isProtectedName);
 		List<KeyValuePair<String, String>> properties = getModelObject().getProperties() != null
 			? getModelObject().getProperties()
 			: new ArrayList<>();
@@ -176,21 +176,30 @@ public class PropertiesPanel extends BasePanel<MysticCryptEntryModelBean>
 	 * Lets the user change a property in a dialog that edits a copy of it, so that Cancel leaves
 	 * the entry as it was: the fields write on every keystroke (#807). OK writes the copy into the
 	 * row, and the row is the entry's own pair - the table copies the entry's list, not its
-	 * elements
+	 * elements. A protected value opens masked, and a renamed protected property keeps its
+	 * protection
 	 */
 	private void showEditPropertyDialog(final KeyValuePair<String, String> tableEntry)
 	{
-		KeyValuePair<String, String> edited = new KeyValuePair<>(tableEntry.getKey(),
+		String previousName = tableEntry.getKey();
+		KeyValuePair<String, String> edited = new KeyValuePair<>(previousName,
 			tableEntry.getValue());
-		PropertiesNewEntryPanel panel = new PropertiesNewEntryPanel(BaseModel.of(edited));
+		PropertiesNewEntryPanel panel = new PropertiesNewEntryPanel(BaseModel.of(edited),
+			isProtectedName(previousName));
 		int option = askForProperty(panel,
 			Messages.getString("dialog.edit.crypt.properties.title", "Edit Property Value."));
 		if (option == JOptionPane.OK_OPTION)
 		{
 			tableEntry.setKey(edited.getKey());
 			tableEntry.setValue(edited.getValue());
+			VaultEntryProperties.renamed(getModelObject(), previousName, edited.getKey());
 			getTblProperties().getGenericTableModel().fireTableDataChanged();
 		}
+	}
+
+	private boolean isProtectedName(final String propertyName)
+	{
+		return VaultEntryProperties.protectedNamesOf(getModelObject()).contains(propertyName);
 	}
 
 	/**

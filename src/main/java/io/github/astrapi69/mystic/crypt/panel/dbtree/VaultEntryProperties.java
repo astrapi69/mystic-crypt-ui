@@ -36,7 +36,8 @@ import io.github.astrapi69.collection.pair.KeyValuePair;
  * The custom properties of a vault entry as plain maps, for a feature that does not know the entry
  * model. The values are text, as the model holds them; the protected names are the model's own set,
  * so an export keeps the protection flag. Used by the lethenon wallet tools, which carry the
- * wallet's words as a protected property (docs/decisions/lethenon-wallet-in-vault-2026-10-30.md).
+ * wallet's words as a protected property (docs/decisions/lethenon-wallet-in-vault-2026-10-30.md),
+ * and by the "Properties" tab, which masks a protected value.
  */
 public final class VaultEntryProperties
 {
@@ -73,6 +74,35 @@ public final class VaultEntryProperties
 	{
 		Set<String> names = entry.getProtectedPropertyKeys();
 		return names == null ? Set.of() : new LinkedHashSet<>(names);
+	}
+
+	/**
+	 * Lets the protection of a renamed property follow it to its new name. The old name stays
+	 * protected while another property of the entry still carries it, so a rename never unprotects
+	 * a value it did not touch
+	 *
+	 * @param entry
+	 *            the entry, changed in place, whose property already carries the new name
+	 * @param previousName
+	 *            the name the property had
+	 * @param newName
+	 *            the name it has now
+	 */
+	public static void renamed(final MysticCryptEntryModelBean entry, final String previousName,
+		final String newName)
+	{
+		Set<String> names = protectedNamesOf(entry);
+		if (!names.contains(previousName) || previousName.equals(newName))
+		{
+			return;
+		}
+		names.add(newName);
+		if (entry.getProperties().stream()
+			.noneMatch(property -> previousName.equals(property.getKey())))
+		{
+			names.remove(previousName);
+		}
+		entry.setProtectedPropertyKeys(names);
 	}
 
 	/**
