@@ -26,6 +26,7 @@ import subprocess
 import sys
 import time
 from dataclasses import dataclass
+from pathlib import Path
 
 # the script's own lines and the subprocesses' output interleave in order only unbuffered
 if hasattr(sys.stdout, "reconfigure"):
@@ -214,6 +215,21 @@ def conventional_title_error(title):
     return None
 
 
+def feat_freeze_error(title, freeze_path):
+    """While the file feat-freeze.md lies in the repository root, develop takes
+    only fix, test, docs, build and chore (the maintainer's bugfix-only
+    decision of 2026-11-13, until the RELEASE-8.15 tag, which removes the
+    file); returns why a feat pull request is refused, or None."""
+    match = TITLE_PATTERN.match(title or "")
+    if not match or match.group(1) != "feat":
+        return None
+    if not freeze_path.is_file():
+        return None
+    return ("the repository is bugfix-only until the RELEASE-8.15 tag (feat-freeze.md, the"
+            " maintainer's decision of 2026-11-13): a feat pull request waits until the tag"
+            " removes that file, or the maintainer lifts the freeze")
+
+
 FRAGMENT_SECTIONS = ("security", "added", "changed", "fixed", "deprecated", "removed")
 FRAGMENT_REQUIRED_TYPES = ("feat", "fix", "perf")
 FRAGMENT_SECTION_OF_TYPE = {"feat": "added", "fix": "fixed", "perf": "changed"}
@@ -307,6 +323,11 @@ def run(argv):
     title_error = conventional_title_error(title)
     if title_error:
         die(title_error)
+    repo_root = subprocess.run(["git", "rev-parse", "--show-toplevel"], check=True,
+                               capture_output=True, text=True).stdout.strip()
+    freeze_error = feat_freeze_error(title, Path(repo_root) / "feat-freeze.md")
+    if freeze_error:
+        die(freeze_error)
     files_lines = subprocess.run(
         ["gh", "api", f"repos/{{owner}}/{{repo}}/pulls/{pr}/files", "--paginate",
          "-q", ".[].filename"],

@@ -10,10 +10,12 @@ script the NEUTRAL and SKIPPED cases fail (the measured defect of #863), the
 run stands in the pull request.
 """
 
+import tempfile
 import unittest
+from pathlib import Path
 
 from merge_pr import (RollupEntry, all_reported, base_mismatch, conventional_title_error,
-                      fragment_error, is_cross_repository,
+                      feat_freeze_error, fragment_error, is_cross_repository,
                       dirty_tree_note, judge, merge_command, parse_checks, pr_state,
                       resolve_required, squash_subject)
 
@@ -191,6 +193,43 @@ class WaitTest(unittest.TestCase):
     def test_everything_reported_ends_the_wait(self):
         entries = green_required() + [RollupEntry("Socket Security: Project Report", True, "NEUTRAL")]
         self.assertTrue(all_reported(entries, REQUIRED))
+
+
+class FeatFreezeTest(unittest.TestCase):
+    """While feat-freeze.md lies in the repository root, a feat pull request
+    is refused (the maintainer's bugfix-only decision of 2026-11-13, until
+    the RELEASE-8.15 tag; the file goes with the tag)."""
+
+    def freeze_file(self, directory, present=True):
+        path = Path(directory) / "feat-freeze.md"
+        if present:
+            path.write_text("bugfix-only until RELEASE-8.15\n", encoding="utf-8")
+        return path
+
+    def test_a_feat_title_is_refused_while_the_file_lies_there(self):
+        with tempfile.TemporaryDirectory() as directory:
+            for title in ("feat: a thing", "feat(lethenon): a thing", "feat!: a break",
+                          "feat(scope)!: a break"):
+                message = feat_freeze_error(title, self.freeze_file(directory))
+                self.assertIsNotNone(message, title)
+                self.assertIn("feat-freeze.md", message)
+
+    def test_every_other_type_passes_while_the_file_lies_there(self):
+        with tempfile.TemporaryDirectory() as directory:
+            freeze = self.freeze_file(directory)
+            for title in ("fix: a", "test: b", "docs: c", "build: d", "chore: e",
+                          "refactor: f", "perf: g", "ci: h"):
+                self.assertIsNone(feat_freeze_error(title, freeze), title)
+
+    def test_a_feat_title_passes_once_the_file_is_gone(self):
+        with tempfile.TemporaryDirectory() as directory:
+            absent = self.freeze_file(directory, present=False)
+            self.assertIsNone(feat_freeze_error("feat: a thing", absent))
+
+    def test_a_feature_scope_in_another_type_is_not_a_feat(self):
+        with tempfile.TemporaryDirectory() as directory:
+            freeze = self.freeze_file(directory)
+            self.assertIsNone(feat_freeze_error("fix(feature-flags): a", freeze))
 
 
 class GuardTest(unittest.TestCase):
