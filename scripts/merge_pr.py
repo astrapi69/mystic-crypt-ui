@@ -178,17 +178,39 @@ def all_reported(entries, required_contexts):
     return all(entry.reported for entry in entries)
 
 
+def failure_of(failed):
+    """The reason a look at the checks failed, in one line"""
+    if isinstance(failed, json.JSONDecodeError):
+        return f"the answer was not JSON: {failed.msg}"
+    lines = [line.strip() for line in (failed.stderr or "").splitlines() if line.strip()]
+    return lines[-1] if lines else f"exit status {failed.returncode}"
+
+
 def wait_for_checks(poll, required_contexts, wait_seconds, poll_seconds=POLL_SECONDS,
                     sleep=time.sleep):
     """Looks at the head until the wait may end (all_reported) or the limit is
     reached. poll returns the entries of one look. Returns (entries, None) when
-    the wait ended, or (None, refusal) when the limit came first."""
+    the wait ended, or (None, refusal) when the limit came first.
+
+    A look that fails - a GitHub call that ends with an error, an answer that is
+    not JSON - is no answer: the wait says so on one line and looks again at the
+    next poll. At the limit it refuses and names the failure, so an API that
+    never answers still ends in "not merging", never in a merge (#971)."""
     waited = 0
     while True:
-        entries = poll()
+        try:
+            entries = poll()
+            failure = None
+        except (subprocess.CalledProcessError, json.JSONDecodeError) as failed:
+            entries = []
+            failure = failure_of(failed)
+            print(f"the look at the checks failed ({failure}); looking again in {poll_seconds}s")
         if entries and all_reported(entries, required_contexts):
             return entries, None
         if waited >= wait_seconds:
+            if failure:
+                return None, (f"after {waited}s - the last look at the checks failed ({failure})"
+                              " - not merging")
             running = ", ".join(entry.name for entry in entries if not entry.reported) or "none"
             missing = ", ".join(context for context in required_contexts
                                 if context not in {entry.name for entry in entries}) or "none"

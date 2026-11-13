@@ -10,6 +10,9 @@ script the NEUTRAL and SKIPPED cases fail (the measured defect of #863), the
 run stands in the pull request.
 """
 
+import contextlib
+import io
+import json
 import subprocess
 import tempfile
 import unittest
@@ -229,12 +232,41 @@ class WaitForChecksTest(unittest.TestCase):
         self.assertEqual("after 40s - still running: CodeQL; required but not reported: none"
                          " - not merging", refusal)
 
-    def test_a_failed_poll_ends_the_wait(self):
-        # today: one GitHub call that fails while the checks still run ends the merge (#971)
+    def test_a_failed_look_is_no_answer_and_the_wait_looks_again(self):
+        # #969 on 2026-11-13: gh api answered HTTP 502 once while the checks still ran (#971)
+        cases = [
+            ("a GitHub call that ends with an error",
+             subprocess.CalledProcessError(1, ["gh", "api"], stderr="gh: HTTP 502\n"),
+             "gh: HTTP 502"),
+            ("a GitHub call that ends without a word on standard error",
+             subprocess.CalledProcessError(1, ["gh", "api"], stderr=""), "exit status 1"),
+            ("an answer that is not JSON",
+             json.JSONDecodeError("Expecting value", "bad gateway", 0),
+             "the answer was not JSON: Expecting value"),
+        ]
+        for label, failure, named in cases:
+            with self.subTest(label):
+                sleeps = []
+                printed = io.StringIO()
+                with contextlib.redirect_stdout(printed):
+                    entries, refusal = wait_for_checks(
+                        self.polls(failure, green_required()), REQUIRED, 40, poll_seconds=20,
+                        sleep=sleeps.append)
+                self.assertEqual(green_required(), entries)
+                self.assertIsNone(refusal)
+                self.assertEqual([20], sleeps)
+                self.assertEqual(f"the look at the checks failed ({named}); looking again in 20s\n",
+                                 printed.getvalue())
+
+    def test_looks_that_fail_until_the_limit_refuse_and_name_the_failure(self):
         failed = subprocess.CalledProcessError(1, ["gh", "api"], stderr="gh: HTTP 502\n")
-        with self.assertRaises(subprocess.CalledProcessError):
-            wait_for_checks(self.polls(failed, green_required()), REQUIRED, 40,
-                            poll_seconds=20, sleep=lambda seconds: None)
+        running = green_required() + [RollupEntry("CodeQL", False, "PENDING")]
+        with contextlib.redirect_stdout(io.StringIO()):
+            entries, refusal = wait_for_checks(self.polls(running, failed, failed), REQUIRED, 40,
+                                               poll_seconds=20, sleep=lambda seconds: None)
+        self.assertIsNone(entries)
+        self.assertEqual("after 40s - the last look at the checks failed (gh: HTTP 502)"
+                         " - not merging", refusal)
 
 
 class FeatFreezeTest(unittest.TestCase):
