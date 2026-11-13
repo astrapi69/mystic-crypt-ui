@@ -22,7 +22,8 @@ Both go through the same two dialogs.
 
 A save dialog titled "Specify the database file to save" opens, filtered to
 `Mystic crypt files (*.mcrdb)`. Type a name and confirm; without an extension the file gets
-`.mcrdb`. The file is created on disk right away, still empty.
+`.mcrdb`. Nothing is written yet: the file comes into being when **OK** in the next dialog writes
+the database.
 
 If a file of that name already exists, a question titled **Replace this database?** comes first:
 "'<name>' already exists. Replacing it destroys what it holds, and nothing can produce it again.
@@ -37,7 +38,7 @@ Under the heading "Create Master Key" the dialog shows:
 
 | Row | What it offers |
 |---|---|
-| **Application File** | The path you just chose, read-only. `Browse...` creates the file somewhere else instead, and asks the same question first when the file it is given exists. |
+| **Application File** | The path you just chose, read-only. `Browse...` chooses another path instead, and asks the same question first when the file it is given exists. |
 | **Master Password:** | A checkbox, the password field, `***` to show or hide what you typed, and `Generate`. |
 | **Repeat Password:** | The second password field. |
 | **Key File:** | A checkbox, a dropdown of key files, `Browse..` to select a private key file you already have, and `Create key file...` to make a new one. |
@@ -91,7 +92,7 @@ One thing to know about `Browse...` next to **Application File**: the database i
 the file you browsed to, but the sign-in dialog keeps the file from `New...` selected, which stays
 empty. Select the other file there with `Browse...` before you click **OK**.
 
-**Cancel** writes nothing; the empty file from step 1 stays on disk. **Help** opens the help page
+**Cancel** writes nothing and leaves the disk as it was. **Help** opens the help page
 of this dialog in your browser, or a short help text in a window of its own when the page cannot
 be reached.
 

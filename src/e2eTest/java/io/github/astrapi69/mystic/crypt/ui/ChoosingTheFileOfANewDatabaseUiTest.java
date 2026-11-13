@@ -24,7 +24,7 @@
  */
 package io.github.astrapi69.mystic.crypt.ui;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.awt.Dialog;
@@ -42,6 +42,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
+import io.github.astrapi69.mystic.crypt.TestPasswords;
 import io.github.astrapi69.mystic.crypt.action.NewApplicationFileAction;
 
 /**
@@ -52,15 +53,20 @@ import io.github.astrapi69.mystic.crypt.action.NewApplicationFileAction;
  * dialog, Browse... in "Create your master key" and the menu's New. Cancel then left the empty file
  * behind, and a later sign-in offered it as a database it could not open. The database is written
  * by OK in "Create your master key", which creates the file itself.
+ * <p>
+ * Now none of the three creates anything, Cancel leaves the disk as it was, and OK still writes the
+ * database to the file chosen.
  */
 class ChoosingTheFileOfANewDatabaseUiTest extends AbstractUiTest
 {
+
+	private static final String MASTER_PASSWORD = TestPasswords.throwaway();
 
 	/** The title of the dialog in which a new database gets its master key */
 	private static final String CREATE_MASTER_KEY = "Create your master key";
 
 	@Test
-	@DisplayName("New... in the sign-in dialog creates the chosen file at once, and Cancel leaves it (#952, measured)")
+	@DisplayName("New... in the sign-in dialog creates nothing, and Cancel leaves nothing (#952)")
 	void newInTheSignInDialog() throws Exception
 	{
 		File chosen = new File(tempHome, "chosen-in-new.mcrdb");
@@ -68,13 +74,13 @@ class ChoosingTheFileOfANewDatabaseUiTest extends AbstractUiTest
 		SignInDialogSteps signIn = launchApplication();
 		CreateMasterKeySteps createMasterKey = signIn.startNewDatabase(chosen);
 
-		assertEmptyFileThere(chosen, "as soon as the path is chosen");
+		assertNothingThere(chosen, "when the path is chosen");
 		createMasterKey.cancelAndAwaitClose();
-		assertEmptyFileThere(chosen, "after Cancel, with nothing written");
+		assertNothingThere(chosen, "after Cancel");
 	}
 
 	@Test
-	@DisplayName("Browse... in Create your master key creates the chosen file at once, and Cancel leaves both (#952, measured)")
+	@DisplayName("Browse... in Create your master key creates nothing, and Cancel leaves nothing (#952)")
 	void browseInCreateYourMasterKey() throws Exception
 	{
 		File first = new File(tempHome, "first-choice.mcrdb");
@@ -85,14 +91,14 @@ class ChoosingTheFileOfANewDatabaseUiTest extends AbstractUiTest
 		createMasterKey.browseApplicationFile(second)
 			.requireApplicationFile(second.getAbsolutePath());
 
-		assertEmptyFileThere(second, "as soon as Browse... chose it");
+		assertNothingThere(second, "when Browse... chose it");
 		createMasterKey.cancelAndAwaitClose();
-		assertEmptyFileThere(first, "the first choice, after Cancel");
-		assertEmptyFileThere(second, "the second choice, after Cancel");
+		assertNothingThere(first, "for the first choice, after Cancel");
+		assertNothingThere(second, "for the second choice, after Cancel");
 	}
 
 	@Test
-	@DisplayName("New in the menu creates the chosen file at once, and Cancel leaves it (#952, measured)")
+	@DisplayName("New in the menu creates nothing, and Cancel leaves nothing (#952)")
 	void newInTheMenu() throws Exception
 	{
 		File chosen = new File(tempHome, "chosen-in-the-menu.mcrdb");
@@ -110,15 +116,30 @@ class ChoosingTheFileOfANewDatabaseUiTest extends AbstractUiTest
 		});
 		CreateMasterKeySteps createMasterKey = awaitCreateMasterKey();
 
-		assertEmptyFileThere(chosen, "as soon as the path is chosen");
+		assertNothingThere(chosen, "when the path is chosen");
 		createMasterKey.cancelAndAwaitClose();
-		assertEmptyFileThere(chosen, "after Cancel, with nothing written");
+		assertNothingThere(chosen, "after Cancel");
 	}
 
-	private static void assertEmptyFileThere(final File file, final String when)
+	@Test
+	@DisplayName("a path chosen that is not there yet: OK writes the database to it (#952)")
+	void okWritesTheDatabaseToTheChosenPath() throws Exception
 	{
-		assertTrue(file.exists(), "today the file is there " + when + ": " + file);
-		assertEquals(0, file.length(), "with 0 bytes, no database: " + file);
+		File chosen = new File(tempHome, "written-by-ok.mcrdb");
+
+		SignInDialogSteps signIn = launchApplication();
+		CreateMasterKeySteps createMasterKey = signIn.startNewDatabase(chosen);
+		assertNothingThere(chosen, "when the path is chosen");
+		createMasterKey.checkMasterPassword().typeMasterPasswordWithRepeat(MASTER_PASSWORD)
+			.requireOkEnabled().okAndAwaitClose();
+
+		assertTrue(chosen.length() > 0,
+			"OK creates the file and writes the database to it: " + chosen);
+	}
+
+	private static void assertNothingThere(final File file, final String when)
+	{
+		assertFalse(file.exists(), "nothing is created " + when + ": " + file);
 	}
 
 	private CreateMasterKeySteps awaitCreateMasterKey()
