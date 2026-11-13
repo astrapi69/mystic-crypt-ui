@@ -114,6 +114,33 @@ class MysticCryptSettingsTest
 		assertEquals("en", loaded.getLanguage());
 	}
 
+	/**
+	 * The language the General tab stored up to 8.14 survives, although no window offers it any
+	 * more (#885): the stored value stays readable and a save does not delete it, so the setting
+	 * can return with #150 without anyone losing their choice
+	 */
+	@Test
+	void aSettingsFileOfEightFourteen_keepsItsLanguageThroughASave(
+		@TempDir File configurationDirectory) throws Exception
+	{
+		File settingsFile = new File(configurationDirectory, MysticCryptSettings.JSON_FILENAME);
+		// the shape 8.14 wrote, with the language its General tab stored
+		Files.writeString(settingsFile.toPath(),
+			"{ \"lookAndFeel\": \"FlatLaf Dark\", \"language\": \"de\", "
+				+ "\"viewMode\": \"APPLICATION_PANEL\" }");
+
+		MysticCryptSettings loaded = MysticCryptSettings.load(configurationDirectory);
+		assertEquals("de", loaded.getLanguage(), "the stored language is still readable");
+
+		loaded.save(configurationDirectory);
+
+		String savedJson = Files.readString(settingsFile.toPath());
+		assertTrue(savedJson.contains("\"language\""),
+			"a save keeps the language key in the file: " + savedJson);
+		assertEquals("de", MysticCryptSettings.load(configurationDirectory).getLanguage(),
+			"the language survives the save round trip");
+	}
+
 	@ParameterizedTest(name = "a settings file that says {0} for the view mode opens the default view")
 	@ValueSource(strings = { "\"viewMode\": null,", "\"viewMode\": \"NO_SUCH_MODE\",", "" })
 	@DisplayName("a view mode this version cannot read is the default view, not a crash")

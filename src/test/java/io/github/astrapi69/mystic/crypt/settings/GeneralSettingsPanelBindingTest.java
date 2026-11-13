@@ -121,24 +121,19 @@ class GeneralSettingsPanelBindingTest
 	}
 
 	/**
-	 * Choosing a language puts it into the settings, which is the only place it is read from at the
-	 * next start
+	 * The General tab offers no language setting until #150 delivers one that works: the old combo
+	 * box stored a value nothing ever read, and a control that does nothing is forbidden
+	 * (architecture.md, dead settings). The stored value itself survives, which
+	 * {@code MysticCryptSettingsTest} pins
 	 */
 	@Test
-	void choosingALanguageLandsInTheSettings()
+	void theGeneralTab_offersNoLanguageSetting()
 	{
 		MysticCryptSettings settings = new MysticCryptSettings();
 		GeneralSettingsPanel panel = new GeneralSettingsPanel(settings);
-		JComboBox<?> comboBox = named(panel, "cmbLanguage", JComboBox.class);
-		assertNotNull(comboBox, "the language combo box must keep its name");
 
-		comboBox.setSelectedItem("de");
-		assertEquals("de", settings.getLanguage(),
-			"the chosen language did not reach the settings");
-
-		comboBox.setSelectedItem("en");
-		assertEquals("en", settings.getLanguage(),
-			"the chosen language did not reach the settings");
+		assertEquals(null, named(panel, "cmbLanguage", JComboBox.class),
+			"the language combo box is gone until #150 brings a working one (#885)");
 	}
 
 	/**
@@ -150,14 +145,11 @@ class GeneralSettingsPanelBindingTest
 	{
 		MysticCryptSettings settings = new MysticCryptSettings();
 		settings.setLookAndFeel("Metal");
-		settings.setLanguage("de");
 
 		GeneralSettingsPanel panel = new GeneralSettingsPanel(settings);
 
 		assertEquals("Metal", named(panel, "cmbLookAndFeel", JComboBox.class).getSelectedItem(),
 			"the look and feel combo box does not show what the settings hold");
-		assertEquals("de", named(panel, "cmbLanguage", JComboBox.class).getSelectedItem(),
-			"the language combo box does not show what the settings hold");
 	}
 
 	/**
