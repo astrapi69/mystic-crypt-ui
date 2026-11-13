@@ -69,6 +69,7 @@ silk-icon-theme-version = "1"
 silly-bean-version = "4.0"
 silly-collection-version = "28.3"
 silly-io-version = "4.0"
+slf4j-simple-version = "2.0.17"
 state-pattern-version = "7.1"
 swing-base-components-version = "5.2.1"
 swing-components-version = "10"
@@ -152,6 +153,7 @@ silk-icon-theme = { module = "io.github.astrapi69:silk-icon-theme", version.ref 
 silly-bean = { module = "io.github.astrapi69:silly-bean", version.ref = "silly-bean-version" }
 silly-collection = { module = "io.github.astrapi69:silly-collection", version.ref = "silly-collection-version" }
 silly-io = { module = "io.github.astrapi69:silly-io", version.ref = "silly-io-version" }
+slf4j-simple = { module = "org.slf4j:slf4j-simple", version.ref = "slf4j-simple-version" }
 state-pattern = { module = "io.github.astrapi69:state-pattern", version.ref = "state-pattern-version" }
 swing-base-components = { module = "io.github.astrapi69:swing-base-components", version.ref = "swing-base-components-version" }
 swing-components = { module = "io.github.astrapi69:swing-components", version.ref = "swing-components-version" }

@@ -124,7 +124,7 @@ public final class MysticCryptUiCli
 		{
 			Security.addProvider(new BouncyCastleProvider());
 		}
-		quietPluginLogging();
+		configureCliLogging();
 		PluginManager pluginManager = new DefaultPluginManager(pluginsDirectory());
 		try
 		{
@@ -148,35 +148,27 @@ public final class MysticCryptUiCli
 		}
 	}
 
+	/** The slf4j-simple property the verbose switch maps onto */
+	static final String SIMPLE_LOGGER_DEFAULT_LEVEL_PROPERTY = "org.slf4j.simpleLogger.defaultLogLevel";
+
 	/**
-	 * Turns the logging of the plugin system down to warnings.
+	 * Maps the verbose switch onto the logging backend (#893): {@value #VERBOSE_PROPERTY} set to
+	 * {@code true} turns the debug lines on, otherwise only warnings and errors come. The backend
+	 * is slf4j-simple, which writes to standard error, so {@code ... --cli keystore list >
+	 * entries.txt} stays clean either way.
 	 * <p>
-	 * The command line writes its result to standard output, and so does the logging backend by
-	 * default - which would put pf4j's debug output into the very same stream and make
-	 * {@code ... --cli keystore list > entries.txt} unusable. Set {@value #VERBOSE_PROPERTY} to
-	 * {@code true} to keep the logging as it is.
-	 * <p>
-	 * Done through reflection deliberately: this way the class needs no compile time dependency on
-	 * a particular logging backend, and simply does nothing when another one is in use.
+	 * slf4j-simple reads its properties once, when the first logger is made, so this runs before
+	 * anything logs. A default level already set on the command line wins - whoever starts the JVM
+	 * with the backend's own property has decided.
 	 */
-	public static void quietPluginLogging()
+	public static void configureCliLogging()
 	{
-		if (Boolean.getBoolean(VERBOSE_PROPERTY))
+		if (System.getProperty(SIMPLE_LOGGER_DEFAULT_LEVEL_PROPERTY) != null)
 		{
 			return;
 		}
-		try
-		{
-			Object root = Class.forName("org.slf4j.LoggerFactory")
-				.getMethod("getLogger", String.class).invoke(null, "ROOT");
-			Class<?> levelClass = Class.forName("ch.qos.logback.classic.Level");
-			Object warn = levelClass.getField("WARN").get(null);
-			root.getClass().getMethod("setLevel", levelClass).invoke(root, warn);
-		}
-		catch (ReflectiveOperationException | RuntimeException exception)
-		{
-			// another backend, or none at all - then there is nothing to quiet down
-		}
+		System.setProperty(SIMPLE_LOGGER_DEFAULT_LEVEL_PROPERTY,
+			Boolean.getBoolean(VERBOSE_PROPERTY) ? "debug" : "warn");
 	}
 
 	/**
