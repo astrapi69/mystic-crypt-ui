@@ -1,259 +1,278 @@
-# Testplan mystic-crypt-ui
+# Manual Test Plan - mystic-crypt-ui
 
-Stand: 2026-08-29
+Status: 2026-11-13 (written for the 8.15 release, #948)
 Tester: Aster
-Language: German. This document is written in German and is complete as it stands - it is not
-a truncated English one. It predates the English-only rule in `coding-standards.md`. Unlike the
-adoption report beside it, this plan is read while testing, so it becomes English the next time
-somebody works through it rather than in a translation pass with no reader waiting (#309).
 
-Dieser Plan hat denselben Aufbau wie der von adaptive-learner:
+This plan has the same shape as adaptive-learner's
+`docs/manual-tests/testplan-adaptive-learner-en.md`, the model the maintainer named:
 
-- **Teil A** ist das, was nur ein Mensch prüfen kann, nach Priorität sortiert.
-- **Teil B** ist das, was automatisch läuft, als Nachschlagewerk - damit sichtbar
-  ist, was **nicht** abgedeckt ist.
+- **PART A** is what only a human can check, sorted by priority.
+- **PART B** is what runs automatically, as a reference - so what is NOT covered is visible.
 
-Jeder manuelle Fall wird mit OK oder BUG beantwortet. Bei BUG: Screenshot, was
-gemacht wurde, was erwartet war. Daraus wird ein GitHub-Issue.
+Every manual case is answered with OK or BUG. On BUG: screenshot, what was done, what was
+expected, and the case number (`TC-nnnn`) - that becomes a GitHub issue.
 
-## Voraussetzung vor jeder Runde: den aktuellen Stand wirklich starten
+**The numbers are stable.** A `TS-` or `TC-` number is never reassigned and never moved: a
+new case takes the next free number, and a case that falls away stays in place, marked
+`withdrawn`, with one line saying why.
 
-Das hat mehrfach Tage gekostet, deshalb steht es hier ganz oben:
+**Every case says how it is covered**: `automated by` names the test class that drives the
+same path, `manual only` says no machine does. No test counts in this document - the counts
+come from the build output and age here (DC-010).
+
+## Release smoke (the subset for a release candidate)
+
+Before a tag, the maintainer runs this subset against the **built installer**, about 15
+minutes (release-workflow.md step 5): **TS-0001** (database round-trip), **TS-0004** (lock
+and unlock factors), **TS-0005** (protected values), **TS-0015** (the installer round) and
+**TS-0017** (a vault of an earlier version). The suites below carry the marker
+`(release smoke)`.
+
+## Prerequisite before every round: really start the current build
+
+This has cost days more than once, so it stands at the top. For a release smoke the
+installer's launcher replaces `make run`.
 
 ```bash
-make build            # das jar, das `make run` startet
-make plugins-install  # die Plugins, aus denen die Werkzeugfenster kommen
+make build            # the jar that `make run` starts
+make plugins-install  # the plugins the tool windows come from
 make run
 ```
 
-- [ ] Nach `make plugins-install` liegen im Plugin-Verzeichnis **nur Zips**, keine
-      entpackten Verzeichnisse: `ls ~/.config/mystic-crypt-ui/plugins`
-- [ ] Ein Plugin-Fix wirkt erst nach einem neuen Plugin-Bau. Das Anwendungs-jar
-      allein genügt nicht - Layout-Konstanten werden beim Übersetzen fest in die
-      Plugin-Klasse geschrieben.
+- [ ] TC-0001 After `make plugins-install` the plugin directory holds **only zips**, no
+      unpacked directories: `ls ~/.config/mystic-crypt-ui/plugins` - manual only
+- [ ] TC-0002 A plugin fix takes effect only after a new plugin build. The application jar
+      alone is not enough - layout constants are compiled into the plugin class. - manual
+      only
 
 ---
 
-# TEIL A: MANUELLE TESTS
+# PART A: MANUAL TESTS
 
-## A1. Datenbank-Round-Trip (Datenverlust-Gate)
+## TS-0001 Database round-trip (data-loss gate) (release smoke)
 
-Echte Daten, keine Testfixture. Nichts anderes wird freigegeben, solange das hier
-nicht sitzt.
+Real data, no test fixture. Nothing else is released while this does not hold.
 
-- [ ] Neue Datenbank anlegen, Master-Passwort vergeben, anmelden.
-- [ ] Baum aufbauen: mehrere Ordner, in jedem Einträge mit Titel, Benutzername,
-      Passwort, URL, Notizen.
-- [ ] Einem Eintrag eigene Felder geben und eine Datei anhängen.
-- [ ] Speichern, Anwendung schließen, neu starten, anmelden.
-- [ ] Alles wieder da: Baumstruktur, jedes Feld, das eigene Feld, der Anhang.
-- [ ] Anhang per Doppelklick ansehen, danach über "Save to" herausschreiben und
-      die Datei außerhalb der Anwendung öffnen - Inhalt identisch.
+- [ ] TC-0010 Create a new database, set a master password, sign in. - automated by
+      `CreateNewDatabaseUiTest`
+- [ ] TC-0011 Build a tree: several folders, in each one entries with title, user name,
+      password, URL, notes. - automated by `AddMultipleNodesUiTest`, `AddEntryUiTest`
+- [ ] TC-0012 Give one entry custom fields and attach a file. - automated by
+      `AttachmentContentTest` (content round-trip); the dialog path manual only
+- [ ] TC-0013 Save, close the application, restart, sign in. - automated by
+      `SaveAndReopenDatabaseUiTest`
+- [ ] TC-0014 Everything is back: tree structure, every field, the custom field, the
+      attachment. - automated by `SaveAndReopenDatabaseUiTest`
+- [ ] TC-0015 View the attachment with a double click, then write it out with "Save to" and
+      open the file outside the application - content identical. - manual only
 
-## A2. Die Datenbank umziehen
+## TS-0002 The backup file (#847)
 
-- [ ] Datenbankdatei bei geschlossener Anwendung in ein anderes Verzeichnis
-      verschieben, von dort öffnen, etwas ändern, speichern.
-- [ ] Prüfen, dass die **neue** Datei geschrieben wurde und die alte nicht wieder
-      auftaucht.
+- [ ] TC-0020 Save an opened database: a sibling `.bak` file appears next to it. - automated
+      by `VaultFileWriterTest`
+- [ ] TC-0021 Close and reopen the database successfully: the `.bak` is gone. - automated by
+      `VaultFileWriterTest`
+- [ ] TC-0022 Make the saved file unreadable by hand (truncate a copy of the scenario, not
+      your real database), open: the open fails and the `.bak` still holds the previous
+      state and opens. - manual only
 
-## A3. KeePass, mit einer echten Datei
+## TS-0003 Moving the database
 
-- [ ] Eine echte `.kdbx` importieren (Passwort, Schlüsseldatei, beides).
-- [ ] Stichprobe: drei Einträge mit dem stimmen, was KeePass zeigt.
-- [ ] Export in eine neue `.kdbx`, diese Datei in **echtem KeePass** öffnen.
+- [ ] TC-0030 With the application closed, move the database file to another directory, open
+      it from there, change something, save. - automated by `MovedDatabaseUiTest`
+- [ ] TC-0031 Check that the **new** file was written and the old one does not reappear. -
+      automated by `MovedDatabaseUiTest`
 
-## A4. Mehrere Bildschirme
+## TS-0004 Lock and unlock (the factors of the open database) (release smoke)
 
-- [ ] Anwendung auf dem zweiten Bildschirm starten: der Anmeldedialog erscheint
-      dort, und das Hauptfenster öffnet auf demselben Bildschirm.
-- [ ] Aus dem Hauptfenster heraus Dialoge öffnen (Einstellungen, Eintrag
-      bearbeiten, Zertifikat speichern): jeder erscheint auf dem Bildschirm, auf
-      dem die Anwendung steht.
+The unlock prompt asks for the factors the database was opened with, and the key file is
+read from the disk again at unlock (8.15, GHSA-px49-m539-22h8).
 
-## A5. Schlüsselgenerator, alles durchprobieren
+- [ ] TC-0040 Database opened with a master password only: lock, unlock with the password.
+      A wrong password is refused. - automated by `LockWorkspaceUiTest`
+- [ ] TC-0041 Database opened with password AND key file: lock. The unlock prompt asks for
+      BOTH; the key file field is preset with the path the database was opened with. -
+      automated by `UnlockAsksForTheFactorsOfOpeningUiTest`
+- [ ] TC-0042 Same lock: move the key file away before unlocking. The unlock names the
+      missing file and refuses; it does NOT create a file at the key file's path. Put the
+      file back, unlock works. - automated by `AKeyFileThatIsGoneIsNeverCreatedUiTest`
+- [ ] TC-0043 Same lock: point the prompt at a different key (same format). Refused. -
+      automated by `UnlockTakesTheKeyFileThatOpenedTheDatabaseUiTest`
+- [ ] TC-0044 Database opened with a key file only: lock, unlock with the key file. -
+      automated by `UnlockTakesTheKeyFileThatOpenedTheDatabaseUiTest`
+- [ ] TC-0045 Cancel in the unlock prompt: the workspace stays locked, and
+      "Unlock workspace..." brings the prompt back (#915). - automated by
+      `LockCancelUnlockUiTest`
+- [ ] TC-0046 Locked and waited past "Close a locked database after minutes": the database
+      is closed, opening again needs all factors. - automated by
+      `LockedVaultClosesItselfUiTest`
 
-Das Fenster ist zum Durchprobieren gebaut, also wird es auch so getestet.
+## TS-0005 Protected values in the "Properties" tab (#946) (release smoke)
 
-- [ ] Jeden Algorithmus im Auswahlfeld einmal erzeugen. Beide Textfelder füllen
-      sich, keine leere Anzeige, keine stumme Fehlermeldung.
-- [ ] Dabei darauf achten, dass **nichts im Fenster wandert oder schrumpft**.
-- [ ] Mit RSA verschlüsseln und wieder entschlüsseln.
-- [ ] Mit einem anderen Algorithmus: die beiden Knöpfe sind nicht drückbar und
-      sagen im Tooltip warum.
-- [ ] Privaten Schlüssel speichern, öffentlichen Schlüssel speichern, Zertifikat
-      speichern - jeweils **ohne Endung** tippen und prüfen, dass die Datei die
-      passende Endung bekommt.
-- [ ] Speicherformat auf DER stellen und dasselbe noch einmal: Endung `.der`,
-      Inhalt binär.
-- [ ] Privaten Schlüssel mit Passwort speichern und die Datei mit demselben
-      Passwort wieder öffnen (z.B. `openssl pkcs8 -inform DER`).
+- [ ] TC-0050 Open a vault entry with properties the entry marks as protected (a lethenon
+      wallet's words, or a KeePass entry with a protected custom field): the table shows
+      `********`, the same mask whatever the length. - automated by
+      `PropertiesPanelProtectedValuesTest`
+- [ ] TC-0051 Select and copy the masked row: what arrives on the clipboard is the mask, not
+      the value. - automated by `PropertiesPanelProtectedValuesTest` (the mask sits in the
+      model's `getValueAt`, which a copy reads)
+- [ ] TC-0052 Open the property in the edit dialog: it opens masked and shows the value only
+      on request. - automated by `PropertiesPanelProtectedValuesTest`
+- [ ] TC-0053 Rename the protected property: the table keeps the new name masked. -
+      automated by `PropertiesPanelProtectedValuesTest`
 
-## A6. Einstellungen
+## TS-0006 KeePass, with a real file
 
-- [ ] Ansicht auf Schreibtisch umstellen, Dialog schließen: die Anwendung steht
-      sofort in dieser Ansicht.
-- [ ] Anwendung neu starten: sie öffnet in derselben Ansicht.
-- [ ] Aussehen und Sprache umstellen, neu starten, Einstellung ist noch da.
+- [ ] TC-0060 Import a real `.kdbx` (password, key file, both). - automated by
+      `KeePassImportUiTest`, `KeePassImportKeyFileUiTest` (fixture files; the real file
+      manual only)
+- [ ] TC-0061 Spot check: three entries match what KeePass shows. - manual only
+- [ ] TC-0062 Export to a new `.kdbx`, open that file in **real KeePass**. - automated by
+      `KeePassRoundTripUiTest` (reimport here); the open in real KeePass manual only
 
-## A7. Tastatur
+## TS-0007 Creating a database does not overwrite (#917)
 
-- [ ] Anmeldedialog: der Cursor steht sofort im Master-Passwort-Feld, Enter
-      meldet an.
-- [ ] Im Baum: Entf löscht, F2 benennt um, Einfg legt an - jeweils mit Rückfrage,
-      wo es eine gibt.
-- [ ] Suchfeld in der Werkzeugleiste: tippen springt zum ersten Treffer, Enter
-      zum nächsten.
+- [ ] TC-0070 **New...** in the sign-in dialog, pick an existing file: the application asks
+      before writing over it; No leaves the file untouched. - automated by
+      `NoSilentVaultOverwriteUiTest`
+- [ ] TC-0071 **Browse...** in "Create your master key", same check. - automated by
+      `NoSilentVaultOverwriteUiTest`
 
-## A8. Plugins
+## TS-0008 The lethenon wallet (real chain where named)
 
-- [ ] Alle Werkzeugfenster einmal öffnen und wieder schließen, ohne dass die
-      Anwendung stehenbleibt.
-- [ ] Reihenfolge der Einträge im Plugin-Menü bleibt nach einer Neuinstallation
-      gleich.
-- [ ] Ein Plugin in den Einstellungen abschalten, Anwendung neu starten: sein
-      Menüpunkt ist weg. Wieder anschalten: er ist wieder da.
+- [ ] TC-0080 Create a wallet: step 1 says where the wallet is and that the vault has to be
+      saved (#818). - automated by `LethenonWalletUiTest`
+- [ ] TC-0081 Restore: the 24 words go into 24 numbered fields; a phrase pasted into any
+      field fills all 24, numbers of a backup sheet (`1.`, `1)`, `01`, `1:`) read away
+      (#804, #802). - automated by `LethenonWalletUiTest`
+- [ ] TC-0082 After the paste the words are off the clipboard: paste into another program
+      gives nothing (#804). Something copied afterwards stays. - automated by
+      `WordGridClipboardTest` (plugin); the cross-program paste manual only
+- [ ] TC-0083 Backup check with one wrong word: "One is wrong or two are swapped", the date
+      of the last successful check stays (#804). - automated by
+      `LethenonBackupPanelBindingTest`, `WalletInputTest` (plugin)
+- [ ] TC-0084 Words kept in the vault are removed from the overview after a confirmation
+      (#821). - automated by `LethenonWalletUiTest`
+- [ ] TC-0085 Overview without a chain: "No chain yet" with "Fetch the chain" and the node
+      of the settings (#827). With a chain: it says when it was last synced and how old the
+      last block is (#831). - automated by `FetchTheChainTest` (plugin),
+      `LethenonWalletUiTest`; against a real node manual only
+
+## TS-0009 Multiple screens
+
+- [ ] TC-0090 Start the application on the second screen: the sign-in dialog appears there,
+      and the main window opens on the same screen. - manual only (the test environment has
+      one screen)
+- [ ] TC-0091 Open dialogs from the main window (settings, edit entry, save certificate):
+      each appears on the screen the application is on. - manual only
+
+## TS-0010 Key generator, trying everything out
+
+The window is built for trying out, so that is how it is tested.
+
+- [ ] TC-0100 Generate once with every algorithm in the box. Both text areas fill, no empty
+      display, no silent error. - automated by `KeygenEveryAlgorithmUiTest`
+- [ ] TC-0101 While doing so: **nothing in the window moves or shrinks**. - automated by
+      `KeygenLayoutStaysPutUiTest`; whether it LOOKS right manual only
+- [ ] TC-0102 Encrypt and decrypt again with RSA. - automated by `KeygenPluginUiTest`
+- [ ] TC-0103 With another algorithm: the two buttons are not pressable and the tooltip says
+      why. - automated by `KeygenEncryptUnavailableUiTest`
+- [ ] TC-0104 Save private key, public key, certificate - each time type a name **without an
+      extension** and check the file gets the fitting one. - automated by
+      `KeygenSavesRealArtifactsUiTest`
+- [ ] TC-0105 Set the format to DER and do the same again: extension `.der`, binary
+      content. - automated by `KeygenSavesRealArtifactsUiTest`
+- [ ] TC-0106 Save the private key with a password and open the file again with that
+      password (for example `openssl pkcs8 -inform DER`). - manual only (another program
+      accepts the file)
+
+## TS-0011 Settings
+
+- [ ] TC-0110 Switch the view to desktop, close the dialog: the application stands in that
+      view at once. - automated by `ViewModeSwitchUiTest`
+- [ ] TC-0111 Restart: it opens in the same view. - manual only (a real restart)
+- [ ] TC-0112 Change look and language, restart, the setting is still there. - manual only
+
+## TS-0012 Keyboard
+
+- [ ] TC-0120 Sign-in dialog: the caret is in the master password field at once, Enter
+      signs in. - automated by `SigninFocusUiTest`, `SignInEnterSubmitUiTest`
+- [ ] TC-0121 In the tree: Del deletes, F2 renames, Ins creates - each with its confirmation
+      where there is one. - automated by `TreeShortcutsUiTest` (F2); Del and Ins manual only
+- [ ] TC-0122 Search field in the toolbar: typing jumps to the first match, Enter to the
+      next. - automated by `ToolbarSearchUiTest`
+
+## TS-0013 Plugins
+
+The canonical inventory is the `plugins:` target in the Makefile.
+
+- [ ] TC-0130 Open and close every tool window once without the application freezing. -
+      automated by `PluginLoadingUiTest` and the per-plugin `*PluginUiTest` classes; the
+      whole round in one session manual only
+- [ ] TC-0131 The order of the plugin menu entries is the same after a reinstall. -
+      automated by `PluginMenuOrderSurvivesPluginToggleUiTest`
+- [ ] TC-0132 Disable a plugin in the settings, restart: its menu item is gone. Enable it
+      again: it is back. - automated by `SettingsEnablePluginUiTest`
+
+## TS-0014 Help buttons and the wiki
+
+- [ ] TC-0140 Every Help button in the sign-in dialogs opens a wiki page that exists, not a
+      "page does not exist" editor (#868). - automated by `WikiLinksTest` (the targets
+      exist); the browser opening manual only
+
+## TS-0015 The installer (release rounds) (release smoke)
+
+`make verify-installer PREVIOUS=<last release>` runs the measurable checks; this is the rest.
+
+- [ ] TC-0150 Install from the izpack jar on a machine or fresh directory without a
+      development build, start from the installed launcher. - manual only
+- [ ] TC-0151 Help > About names the released version. - manual only
+- [ ] TC-0152 Open a real database created with the previous release. - manual only
+
+## TS-0016 The command line
+
+- [ ] TC-0160 `--cli` answers with the library's root command help, no stack trace. -
+      automated by `MysticCryptUiCliTest`
+- [ ] TC-0161 One hash and one checksum command against a real file; verify the checksum
+      against `sha256sum`. - manual only (another program checks the output)
+
+## TS-0017 A vault of an earlier version (release smoke)
+
+On a COPY of a real vault created with an earlier release, never the original.
+
+- [ ] TC-0170 Open the copy, change an entry, save, lock, unlock, close, reopen: the change
+      is there and nothing else moved. - automated by `VaultsOfSevenXSignInUiTest`,
+      `VaultsOfEightWithAKeyFileSignInUiTest`, `LegacyDatabaseMigrationUiTest` (opening and
+      migrating fixture vaults); the full chain on a real vault manual only
 
 ---
 
-# TEIL B: WAS AUTOMATISCH LÄUFT
+# PART B: WHAT RUNS AUTOMATICALLY
 
-87 End-to-End-Tests fahren die echte Anwendung (AssertJ-Swing), dazu 65
-Testklassen in den Plugins. Gefahren mit `./gradlew build`; die
-End-to-End-Tests brauchen einen Bildschirm (Xvfb genügt).
+The end-to-end suites drive the real application (AssertJ-Swing) on the build's own Xvfb;
+the plugins bring their own test classes. Run with `./gradlew build`; the suite inventory
+and counts come from the build output (`executed in this build` lines) - this document
+points there instead of carrying numbers that age.
 
-### Anmelden und Datenbank
+- `src/e2eTest` (task `e2eTest`) - sign-in, tree, KeePass, key generator, key store and
+  certificates, encrypt/checksum/secret plugins, windows and settings (the `*UiTest`
+  classes; read the list with `ls src/e2eTest/java/io/github/astrapi69/mystic/crypt/ui/`).
+- `src/e2eLock` (task `e2eLockTest`) - lock and unlock, including the factor cases of
+  TS-0004 with made key files in every format the open dialog takes.
+- `src/e2eKdbx` (task `e2eKdbxTest`) - the KDBX import/export round trips against fixture
+  files.
+- `src/test` (task `test`) - the unit suites, including `WikiLinksTest` (TS-0014's
+  automated half), `VaultFileWriterTest` (TS-0002) and the vault format round trips.
+- `make verify-installer PREVIOUS=<release>` - size, archive, checksums, signer, class
+  major, mystic-crypt against Central, plugins, the jar tests, a start.
 
-| End-to-End-Test | prüft |
-|---|---|
-| `CancelSignInUiTest` | cancel leaves application not signed in |
-| `CreateDatabaseWithKeyFileUiTest` | create database with password and key file and sign in |
-| `CreateNewDatabaseUiTest` | create first database through new flow and sign in |
-| `LegacyDatabaseMigrationUiTest` | an old database opens and migrates when it is saved |
-| `LockCancelUnlockUiTest` | cancelling unlock keeps workspace locked |
-| `LockPreservesContentUiTest` | unlock restores the tree content |
-| `LockWorkspaceUiTest` | lock hides content and unlock restores it with the master password |
-| `MovedDatabaseUiTest` | a database that was moved is saved where it now is |
-| `SaveAndReopenDatabaseUiTest` | imported data is still there after save and reopen |
-| `SaveAsCancelUiTest` | cancelling save as writes nothing and keeps the target |
-| `SaveAsUiTest` | save as writes the database to the chosen file and retargets the model |
-| `SignInDialogUiTest` | ok button enables only after password and application file are provided |
-| `SignInEnterSubmitUiTest` | pressing enter in the master password field signs in |
-| `SigninFocusUiTest` | the dialog opens on the master password, and the caret follows it into the field |
-| `WrongPasswordSignInUiTest` | wrong password shows error and does not sign in |
+## What PART B cannot do
 
-### Eintragsbaum
-
-| End-to-End-Test | prüft |
-|---|---|
-| `AddEntryCancelUiTest` | cancelling add entry adds nothing |
-| `AddEntryUiTest` | added entry shows up and survives reopen |
-| `AddMultipleNodesUiTest` | all added nodes appear in the tree |
-| `AddNodeCancelUiTest` | cancelling add node adds nothing |
-| `AddNodeUiTest` | added node shows up in tree and survives reopen |
-| `CopyEntryCredentialsUiTest` | copy username and password put them on the clipboard |
-| `DeleteEntryCancelUiTest` | cancelling entry deletion keeps the entry |
-| `DeleteNodeCancelUiTest` | cancelling node deletion keeps the node |
-| `DuplicateNodeCancelUiTest` | cancelling duplicate node creates nothing |
-| `DuplicateNodeUiTest` | duplicated node with entry survives reopen |
-| `EditAndDeleteNodeUiTest` | node can be renamed and deleted through context menu |
-| `EditDuplicateAndDeleteEntryUiTest` | entry can be edited duplicated and deleted |
-| `EditNodeCancelUiTest` | cancelling edit node keeps the name |
-| `MoveNodeUiTest` | moves nodes up and down and under another node |
-| `SearchByEntryFieldUiTest` | search finds the node by an entry user name |
-| `SearchByEntryTitleUiTest` | search finds the node by an entry title |
-| `SearchUiTest` | search selects the matching node |
-| `ToolbarSearchUiTest` | typing jumps to the first match, enter to the next, and around again |
-| `TreeShortcutsUiTest` | F2 opens the selected node for editing |
-
-### KeePass
-
-| End-to-End-Test | prüft |
-|---|---|
-| `KeePassExportCancelUiTest` | cancelling kee pass export writes nothing |
-| `KeePassExportUiTest` | exported kdbx file is readable with the chosen password |
-| `KeePassImportCancelUiTest` | cancelling kee pass import imports nothing |
-| `KeePassImportKeyFileUiTest` | importing a KeePass database protected by a key file shows entries in tree |
-| `KeePassImportWrongPasswordUiTest` | a wrong KeePass password shows error and imports nothing |
-| `KeePassImportUiTest` | importing a KeePass database shows entries in tree |
-| `KeePassRoundTripPreservesEntryUiTest` | an entry survives export and reimport |
-| `KeePassRoundTripUiTest` | exported database can be reimported |
-
-### Schlüsselgenerator
-
-| End-to-End-Test | prüft |
-|---|---|
-| `KeygenClearResetsUiTest` | clear resets the algorithm to rsa and reenables the key size |
-| `KeygenCurveUiTest` | generates an ec key on the chosen curve through the ui |
-| `KeygenEncryptUnavailableUiTest` | encrypt on a non rsa key is out of reach and says why |
-| `KeygenEveryAlgorithmUiTest` | every algorithm the box offers generates a real key pair |
-| `KeygenKeySizeLayoutUiTest` | changing the key size leaves the encrypt panel where it was |
-| `KeygenLayoutStaysPutUiTest` | nothing in the window moves while it is being tried out |
-| `KeygenPluginUiTest` | key generation generates and round trips encryption through the ui |
-| `KeygenPqcPluginUiTest` | generates a post quantum key pair through the algorithm dropdown |
-| `KeygenSavePublicKeyUiTest` | saves the generated public key to a file through the ui |
-| `KeygenSavesRealArtifactsUiTest` | every file the window saves is a real artifact of the key pair it generated |
-
-### Schlüsselspeicher und Zertifikate
-
-| End-to-End-Test | prüft |
-|---|---|
-| `CertificateWizardUiTest` | certificate wizard opens and closes without killing the app |
-| `KeyStoreImportUiTest` | imports a key and its certificate through the ui |
-| `KeyStorePluginUiTest` | manages a key store through the ui |
-| `PqcSignaturePluginUiTest` | signs and verifies and rejects a tampered message through the ui |
-| `SignatureWithKeyFileUiTest` | signs a file with a key from disk and verifies it again |
-
-### Verschlüsseln, Prüfsummen, Geheimnisse
-
-| End-to-End-Test | prüft |
-|---|---|
-| `ChecksumAndMacUiTest` | computes a checksum and a mac through the ui |
-| `ChecksumPluginUiTest` | verify checksum computes the file checksum through the ui |
-| `ConversionDetectsAndConvertsUiTest` |  |
-| `ConversionInvalidDerUiTest` | converting an invalid der file produces no pem file |
-| `ConversionPluginUiTest` | convert der to pem writes the key as pem through the ui |
-| `FileCryptFileUiTest` | encrypts and decrypts a file through the ui |
-| `FileCryptNegativeUiTest` | two different passphrases are refused and a wrong one does not open the file |
-| `FileCryptTextUiTest` | encrypts and decrypts a text through the ui |
-| `KemDemoPluginUiTest` | runs a key encapsulation exchange through the ui |
-| `KemHybridPluginUiTest` | runs a hybrid key encapsulation exchange through the ui |
-| `KeyExchangeUiTest` | carries a message between the two sides through the ui |
-| `SecretSharingUiTest` | splits a secret and rebuilds it from enough shares through the ui |
-
-### Fenster, Menü, Einstellungen
-
-| End-to-End-Test | prüft |
-|---|---|
-| `ConsolePluginUiTest` | console captures standard output through the ui |
-| `GeneratePasswordUiTest` | generate fills both password fields and enables ok |
-| `HelpAboutUiTest` | help info opens its dialog |
-| `MenuDesignerPluginUiTest` | ask for the development tool |
-| `MenuStructureUiTest` | the view mode is no longer offered in the menu bar |
-| `SettingsEnablePluginUiTest` | a plugin can be disabled then enabled again |
-| `SettingsInstallPluginUiTest` | installing a plugin from zip lists it in the plugins table |
-| `SettingsUiTest` | settings dialog lists plugins and can disable them |
-| `ViewModeSwitchUiTest` | the view chosen in the settings is the view the frame is in |
-
-### Sonstiges
-
-| End-to-End-Test | prüft |
-|---|---|
-| `NicheMenuFramesUiTest` | open private key opens its internal frame |
-| `ObfuscationPluginUiTest` | simple obfuscation obfuscates and disentangles through the ui |
-| `OpenDatabaseUiTest` | open database shows the key database internal frame |
-| `OpenExistingDatabaseUiTest` | sign in to existing database with password |
-| `OperatedObfuscationPluginUiTest` | operated obfuscation tool opens through the ui |
-| `PasswordHashBcryptUiTest` | hashes with bcrypt and checks it again through the ui |
-| `PasswordHashPbkdf2NegativeUiTest` |  |
-| `PasswordHashPluginUiTest` | hashes and verifies a password through the ui |
-| `PluginLoadingUiTest` | internal plugins load from zip and contribute their menu items |
-
-## Was Teil B nicht kann
-
-- Alles, was mit **echten** Daten des Anwenders zu tun hat: die eigene `.kdbx`,
-  die eigene Datenbank, ein Umzug über Rechnergrenzen.
-- Alles mit **mehreren Bildschirmen**: die Testumgebung hat einen.
-- Ob eine Schriftgröße, ein Kontrast oder eine Fensteraufteilung **angenehm** ist.
-- Ob ein anderes Programm die geschriebenen Dateien annimmt (KeePass, openssl,
-  ein Browser für ein Zertifikat).
+- Anything with the user's **real** data: your own `.kdbx`, your own database, a move
+  across machines.
+- Anything with **multiple screens**: the test environment has one.
+- Whether a font size, a contrast or a window split is **comfortable**.
+- Whether another program accepts the written files (KeePass, openssl, `sha256sum`, a
+  browser for a certificate, a real lethenon node).
+- The installed launcher on a machine without a development build (TS-0015), and a real
+  restart of the installed application (TS-0011).
