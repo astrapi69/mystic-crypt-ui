@@ -52,8 +52,12 @@ written=0
 deleted=0
 cd "$clone"
 
+# A wiki page name may carry a colon (the Help:- pages released versions link, #950), which is
+# invalid in a file name on Windows, where CI checks this repository out. The source carries such a
+# name with %3A, and the mirror maps it: %3A in a source file name becomes : in the wiki page name,
+# and a wiki page with : is owned by the source file with %3A.
 for page in *.md; do
-  if [ ! -f "$source_dir/$page" ]; then
+  if [ ! -f "$source_dir/$page" ] && [ ! -f "$source_dir/${page//:/%3A}" ]; then
     git rm -q -- "$page"
     echo "deleted: $page"
     deleted=$((deleted + 1))
@@ -62,6 +66,7 @@ done
 
 for source_page in "${source_pages[@]}"; do
   page="$(basename "$source_page")"
+  page="${page//%3A/:}"
   if ! cmp -s "$source_page" "$page"; then
     cp "$source_page" "$page"
     git add -- "$page"

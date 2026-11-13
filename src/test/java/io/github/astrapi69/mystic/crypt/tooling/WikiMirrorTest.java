@@ -109,6 +109,43 @@ class WikiMirrorTest
 	}
 
 	@Test
+	@DisplayName("a source name with %3A is written to the wiki with a colon, and stays on a rerun")
+	void aSourceNameWithAnEncodedColon_isWrittenUnderTheWikiName() throws Exception
+	{
+		write(source, "Help%3A-Create.md", "a redirect page for released versions");
+
+		Run run = run(source.getPath(), wiki.getPath());
+
+		assertEquals(0, run.exit(), run.output());
+		File mirrored = clone("mirrored-colon");
+		assertTrue(new File(mirrored, "Help:-Create.md").isFile(),
+			"the wiki page carries the colon: " + run.output());
+		assertEquals("a redirect page for released versions", read(mirrored, "Help:-Create.md"));
+		assertTrue(run.output().contains("written: Help:-Create.md"), run.output());
+
+		Run again = run(source.getPath(), wiki.getPath());
+		assertEquals(0, again.exit(), again.output());
+		assertTrue(again.output().contains("0 written, 0 deleted"),
+			"the mapped page is unchanged, not deleted and rewritten: " + again.output());
+	}
+
+	@Test
+	@DisplayName("a wiki page with a colon is deleted only when its encoded source file goes")
+	void aWikiPageWithAColon_isDeletedOnlyWhenItsEncodedSourceGoes() throws Exception
+	{
+		write(source, "Help%3A-Create.md", "kept while the source holds the encoded name");
+		run(source.getPath(), wiki.getPath());
+
+		Files.delete(new File(source, "Help%3A-Create.md").toPath());
+		Run run = run(source.getPath(), wiki.getPath());
+
+		assertEquals(0, run.exit(), run.output());
+		File mirrored = clone("mirrored-colon-gone");
+		assertFalse(new File(mirrored, "Help:-Create.md").exists(), run.output());
+		assertTrue(run.output().contains("deleted: Help:-Create.md"), run.output());
+	}
+
+	@Test
 	@DisplayName("a wiki that already holds the source's pages gets no commit, and the run says so")
 	void aWikiThatAlreadyMatches_getsNoCommit() throws Exception
 	{
