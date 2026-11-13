@@ -45,7 +45,6 @@ import io.github.astrapi69.model.LambdaModel;
 import io.github.astrapi69.model.api.IModel;
 import io.github.astrapi69.mystic.crypt.Messages;
 import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
-import io.github.astrapi69.mystic.crypt.app.file.xml.ApplicationXmlFileFactory;
 import io.github.astrapi69.mystic.crypt.lock.SecretComparison;
 import io.github.astrapi69.mystic.crypt.panel.privatekey.NewPrivateKeyFileDialog;
 import io.github.astrapi69.mystic.crypt.panel.privatekey.NewPrivateKeyModelBean;
@@ -54,6 +53,7 @@ import io.github.astrapi69.mystic.crypt.panel.pw.GeneratePasswordModelBean;
 import io.github.astrapi69.mystic.crypt.panel.signin.button.state.ok.BtnOkComponentStateEnum;
 import io.github.astrapi69.mystic.crypt.panel.signin.button.state.ok.BtnOkStateMachine;
 import io.github.astrapi69.mystic.crypt.write.DataClass;
+import io.github.astrapi69.mystic.crypt.write.GuardedCreate;
 import io.github.astrapi69.mystic.crypt.write.OverwriteConfirmation;
 import io.github.astrapi69.net.url.URLExtensions;
 import io.github.astrapi69.swing.base.BasePanel;
@@ -208,11 +208,12 @@ public class NewMasterPwFilePanel extends BasePanel<MasterPwFileModelBean>
 
 		cbxMasterPw.addActionListener(this::onCheckMasterPw);
 		cbxKeyFile.addActionListener(this::onCheckKeyFile);
-		btnOk.addActionListener(this::onOk);
+		btnOk.addActionListener(this::onOkPressed);
 		btnCancel.addActionListener(this::onCancel);
 		final MasterPwFileModelBean modelObject = getModelObject();
 		btnOkStateMachine = BtnOkStateMachine.builder().component(btnOk).modelObject(modelObject)
-			.repeatRequired(true).currentState(BtnOkComponentStateEnum.DISABLED).build();
+			.repeatRequired(true).writesTheApplicationFile(true)
+			.currentState(BtnOkComponentStateEnum.DISABLED).build();
 		txtMasterPw.setEnabled(false);
 		txtMasterPw.getDocument().addDocumentListener(new DocumentListenerAdapter()
 		{
@@ -611,24 +612,32 @@ public class NewMasterPwFilePanel extends BasePanel<MasterPwFileModelBean>
 		getModelObject().setShowMasterPw(!getModelObject().isShowMasterPw());
 	}
 
+	/**
+	 * Writes the new database, and only when it was written goes on to {@link #onOk(ActionEvent)}.
+	 * A write that fails is reported with the file and the reason, and the dialog stays open so the
+	 * input can be corrected (#944)
+	 *
+	 * @param actionEvent
+	 *            the OK button's event
+	 */
+	private void onOkPressed(final ActionEvent actionEvent)
+	{
+		if (GuardedCreate.createOrTell(this, getModelObject()))
+		{
+			onOk(actionEvent);
+		}
+	}
+
+	/**
+	 * Called once the new database is written
+	 *
+	 * @param actionEvent
+	 *            the OK button's event
+	 */
 	protected void onOk(ActionEvent actionEvent)
 	{
-		MasterPwFileModelBean modelObject = getModelObject();
-		SignInType signInType = SignInType.toSignInType(modelObject);
-		if (SignInType.PASSWORD_AND_PRIVATE_KEY.equals(signInType))
-		{
-			ApplicationXmlFileFactory.newApplicationFileWithPasswordAndPrivateKey(modelObject);
-		}
-		else if (SignInType.PRIVATE_KEY.equals(signInType))
-		{
-			ApplicationXmlFileFactory.newApplicationFileWithPrivateKey(modelObject);
-		}
-		else if (SignInType.PASSWORD.equals(signInType))
-		{
-			ApplicationXmlFileFactory.newApplicationFileWithPassword(modelObject);
-		}
 		// the repeat has done its work once the database is written with the password it confirmed
-		modelObject.setRepeatPw(null);
+		getModelObject().setRepeatPw(null);
 	}
 
 	/**

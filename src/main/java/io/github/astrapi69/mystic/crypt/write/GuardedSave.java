@@ -103,9 +103,16 @@ public final class GuardedSave
 	 */
 	static String whereItWouldHaveGone(final ApplicationModelBean applicationModelBean)
 	{
-		MasterPwFileModelBean masterPwFileModelBean = applicationModelBean == null
-			? null
-			: applicationModelBean.getMasterPwFileModelBean();
+		return pathOf(
+			applicationModelBean == null ? null : applicationModelBean.getMasterPwFileModelBean());
+	}
+
+	/**
+	 * The database file these settings name, from the path alone, or a placeholder when they name
+	 * none: shared with the report of a failed creation (#944), which names its file the same way
+	 */
+	static String pathOf(final MasterPwFileModelBean masterPwFileModelBean)
+	{
 		if (masterPwFileModelBean == null || masterPwFileModelBean.getApplicationFileInfo() == null)
 		{
 			return "no file is set for this database";
@@ -115,9 +122,9 @@ public final class GuardedSave
 
 	/**
 	 * The innermost message, because the decorated ones on top of it say what wrapped the failure
-	 * rather than what it was
+	 * rather than what it was. Shared with the report of a failed creation (#944)
 	 */
-	private static String reasonOf(final RuntimeException exception)
+	static String reasonOf(final RuntimeException exception)
 	{
 		Throwable cause = exception;
 		while (cause.getCause() != null)
