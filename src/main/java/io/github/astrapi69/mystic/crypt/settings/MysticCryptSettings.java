@@ -53,7 +53,11 @@ public class MysticCryptSettings
 	 */
 	private String lookAndFeel = "FlatLaf Light";
 
-	/** The UI language tag; defaults to English */
+	/**
+	 * The UI language tag; defaults to English. No window offers it since #885 - the General tab's
+	 * combo box stored a value nothing read - but the field stays, so a file written up to 8.14
+	 * keeps its choice through every save and #150 can bring the setting back without losing it
+	 */
 	private String language = "en";
 
 	/**

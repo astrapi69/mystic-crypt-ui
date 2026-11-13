@@ -42,11 +42,12 @@ import io.github.astrapi69.swing.model.component.JMComboBox;
 import io.github.astrapi69.swing.model.component.JMSpinner;
 
 /**
- * The "General" tab of the settings dialog: choose the Swing look and feel (applied live) and the
- * UI language (applied on the next start). Both are written straight into the shared
- * {@link MysticCryptSettings} so the dialog can persist them when it closes.
+ * The "General" tab of the settings dialog: choose the Swing look and feel (applied live), written
+ * straight into the shared {@link MysticCryptSettings} so the dialog can persist it when it closes.
+ * A language setting returns with #150, which brings the code that reads it; until then the tab
+ * offers none (#885), while a language stored up to 8.14 stays in the settings file untouched.
  * <p>
- * That settings object is the model of this panel: both combo boxes are bound to it, so a choice is
+ * That settings object is the model of this panel: the combo boxes are bound to it, so a choice is
  * in the model the moment it is made, and the look-and-feel switch reads the name from there
  * instead of asking a combo box what it currently shows.
  */
@@ -55,16 +56,11 @@ public class GeneralSettingsPanel extends JPanel
 
 	private static final long serialVersionUID = 1L;
 
-	/** The languages the user interface is offered in, as language tags */
-	private static final String[] LANGUAGES = { "en", "de" };
-
-	/** The settings this panel edits; both combo boxes below write into it */
+	/** The settings this panel edits; the combo boxes below write into it */
 	private final transient MysticCryptSettings settings;
 
 	private final JMComboBox<String, ?> cmbLookAndFeel = new JMComboBox<>(
 		installedLookAndFeelNames());
-
-	private final JMComboBox<String, ?> cmbLanguage = new JMComboBox<>(LANGUAGES);
 
 	private final JMComboBox<FrameMode, EnumComboBoxModel<FrameMode>> cmbViewMode = new JMComboBox<>(
 		new EnumComboBoxModel<>(FrameMode.class));
@@ -107,7 +103,6 @@ public class GeneralSettingsPanel extends JPanel
 		this.settings = settings;
 
 		cmbLookAndFeel.setName("cmbLookAndFeel");
-		cmbLanguage.setName("cmbLanguage");
 		cmbViewMode.setName("cmbViewMode");
 		cmbViewMode.setToolTipText(Messages.getString("settings.general.tooltip.view.mode",
 			"whether the application opens as a desktop-style window manager or a single panel"));
@@ -143,8 +138,6 @@ public class GeneralSettingsPanel extends JPanel
 		JPanel form = new JPanel(new GridLayout(0, 2, 8, 6));
 		form.add(new JLabel("Look and feel:"));
 		form.add(cmbLookAndFeel);
-		form.add(new JLabel("Language (applies after restart):"));
-		form.add(cmbLanguage);
 		form.add(new JLabel("View:"));
 		form.add(cmbViewMode);
 		form.add(new JLabel("Tooltips:"));
@@ -168,7 +161,6 @@ public class GeneralSettingsPanel extends JPanel
 	{
 		cmbLookAndFeel
 			.setPropertyModel(LambdaModel.of(settings::getLookAndFeel, settings::setLookAndFeel));
-		cmbLanguage.setPropertyModel(LambdaModel.of(settings::getLanguage, settings::setLanguage));
 		cmbViewMode.setPropertyModel(LambdaModel.of(settings::getViewMode, settings::setViewMode));
 		chkTooltipsEnabled.setPropertyModel(
 			LambdaModel.of(settings::isTooltipsEnabled, settings::setTooltipsEnabled));
