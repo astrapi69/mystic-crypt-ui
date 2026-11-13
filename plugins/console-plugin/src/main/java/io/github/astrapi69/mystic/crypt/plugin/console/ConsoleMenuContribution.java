@@ -65,6 +65,23 @@ public class ConsoleMenuContribution implements PluginMenuContribution
 		JMenuItem console = new JMenuItem("Console");
 		console.addActionListener(event -> {
 			MysticCryptApplicationFrame instance = MysticCryptApplicationFrame.getInstance();
+			if (ConsoleSession.isOpen())
+			{
+				// one console at a time (#892): a second one would take over the saved standard
+				// streams, so the open one comes to the front instead
+				JInternalFrame open = ConsoleSession.openFrame();
+				open.toFront();
+				try
+				{
+					open.setSelected(true);
+				}
+				catch (java.beans.PropertyVetoException vetoed)
+				{
+					// another frame refused to give up the selection; the console is in front
+					// anyway, which is all this click promises
+				}
+				return;
+			}
 			if (!FrameMode.DESKTOP_PANE.equals(instance.getFrameMode()))
 			{
 				instance.switchToDesktopPane();

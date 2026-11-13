@@ -67,10 +67,27 @@ public final class ConsoleSession
 	static void opened(final JInternalFrame frame, final ConsoleBuffer buffer,
 		final PrintStream systemOut, final PrintStream systemErr)
 	{
+		if (openFrame != null)
+		{
+			// a second session would overwrite the saved streams, and closing would then hand
+			// System.out back to a console that is gone (#892); the menu asks isOpen() first
+			throw new IllegalStateException(
+				"a console is already open: close it before opening another one");
+		}
 		openFrame = frame;
 		openBuffer = buffer;
 		systemOutBeforeTheConsole = systemOut;
 		systemErrBeforeTheConsole = systemErr;
+	}
+
+	/**
+	 * The open console's window
+	 *
+	 * @return the window of the open console, null while none is
+	 */
+	public static JInternalFrame openFrame()
+	{
+		return openFrame;
 	}
 
 	/**
