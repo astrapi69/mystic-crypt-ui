@@ -25,6 +25,8 @@
 package io.github.astrapi69.mystic.crypt.ui;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import javax.swing.JTabbedPane;
 
@@ -42,24 +44,48 @@ import org.junit.jupiter.api.Test;
  * That click could not be made to fail again here (30 rounds of choosing the view under CPU load, 0
  * failures), so the test uses a click that changes nothing for certain: the Plugins tab is disabled
  * while no database is open.
+ * <p>
+ * Now the step waits for the selection the click should have made, and fails with the title of the
+ * selected tab when the click changed nothing.
  */
 class ASettingsTabThatIsNotSelectedSaysSoUiTest extends AbstractUiTest
 {
 
 	@Test
-	@DisplayName("a click on a settings tab that changes nothing goes by without a word (#962, measured)")
-	void aClickThatChangesNothingGoesBySilently() throws Exception
+	@DisplayName("a click on a settings tab that changes nothing fails with the tab that is selected (#962)")
+	void aClickThatChangesNothingFailsWithTheSelectedTab() throws Exception
 	{
 		SignInDialogSteps signIn = launchApplication();
 		signIn.requireOkDisabled().cancel();
 		awaitApplicationInitialized();
-		DialogFixture settings = new ApplicationSteps(robot).openSettingsDialog();
-		settings.tabbedPane("tabSettings").selectTab("General");
+		ApplicationSteps application = new ApplicationSteps(robot);
+		DialogFixture settings = application.openSettingsDialog();
+		application.selectSettingsTab(settings, "General");
 
-		settings.tabbedPane("tabSettings").selectTab("Plugins");
+		AssertionError failure = assertThrows(AssertionError.class,
+			() -> application.selectSettingsTab(settings, "Plugins"));
 
-		assertEquals("General", selectedTab(settings),
-			"the disabled Plugins tab was clicked, General is still selected, and nothing said so");
+		assertTrue(
+			failure.getMessage().contains("'Plugins'")
+				&& failure.getMessage().contains("the selected one is 'General'"),
+			"the failure names the tab clicked and the tab selected: " + failure.getMessage());
+		assertEquals("General", selectedTab(settings));
+	}
+
+	@Test
+	@DisplayName("a click on a settings tab that takes it goes on with that tab selected (#962)")
+	void aClickThatTakesTheTabGoesOn() throws Exception
+	{
+		SignInDialogSteps signIn = launchApplication();
+		signIn.requireOkDisabled().cancel();
+		awaitApplicationInitialized();
+		ApplicationSteps application = new ApplicationSteps(robot);
+		DialogFixture settings = application.openSettingsDialog();
+
+		application.selectSettingsTab(settings, "Plugin settings");
+		assertEquals("Plugin settings", selectedTab(settings));
+		application.selectSettingsTab(settings, "General");
+		assertEquals("General", selectedTab(settings));
 	}
 
 	private static String selectedTab(final DialogFixture settings)

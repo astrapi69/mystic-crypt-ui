@@ -234,7 +234,7 @@ final class ApplicationSteps
 	ApplicationSteps chooseViewMode(final FrameMode viewMode)
 	{
 		DialogFixture settings = openSettingsDialog();
-		settings.tabbedPane("tabSettings").selectTab("General");
+		selectSettingsTab(settings, "General");
 		GuiActionRunner
 			.execute(() -> settings.comboBox("cmbViewMode").target().setSelectedItem(viewMode));
 		robot.waitForIdle();
@@ -1537,6 +1537,48 @@ final class ApplicationSteps
 			}
 		}
 		return null;
+	}
+
+	/**
+	 * Selects a tab of the settings dialog and waits until the dialog says it is selected (#962).
+	 * Once in CI the click changed nothing: the lookup that followed failed on a component of the
+	 * General tab while the Plugins tab was still selected, with a hierarchy dump that named
+	 * neither. Now the step waits for the selection the click should have made, and a tab that is
+	 * still not selected fails with the title of the one that is
+	 *
+	 * @param settings
+	 *            the settings dialog
+	 * @param title
+	 *            the title of the tab to select
+	 */
+	void selectSettingsTab(final DialogFixture settings, final String title)
+	{
+		settings.tabbedPane("tabSettings").selectTab(title);
+		try
+		{
+			Pause.pause(new Condition("the settings tab '" + title + "' is selected")
+			{
+				@Override
+				public boolean test()
+				{
+					return title.equals(selectedSettingsTab(settings));
+				}
+			}, TimeUnit.SECONDS.toMillis(DIALOG_TIMEOUT_SECONDS));
+		}
+		catch (org.assertj.swing.exception.WaitTimedOutError stillAnother)
+		{
+			throw new AssertionError("the settings tab '" + title
+				+ "' was clicked and is not selected; the selected one is '"
+				+ selectedSettingsTab(settings) + "' (#962)", stillAnother);
+		}
+	}
+
+	/** The title of the tab the settings dialog shows */
+	private static String selectedSettingsTab(final DialogFixture settings)
+	{
+		javax.swing.JTabbedPane tabs = settings.tabbedPane("tabSettings").target();
+		return GuiActionRunner.execute(
+			() -> tabs.getSelectedIndex() < 0 ? "none" : tabs.getTitleAt(tabs.getSelectedIndex()));
 	}
 
 	/** Opens the settings dialog via the File menu and returns a fixture for it */
