@@ -175,10 +175,9 @@ nothing, so you have to start the button again. There is no minimum length and n
 The resulting file is binary, not PEM: to verify it, reopen it through **File**, **Secret key**,
 **Open private key**, which asks for the password.
 
-**A setting outside the six names is not refused.** `default.algorithm` is checked against every
-algorithm name the library knows, not against the six entries of the dropdown. A name such as `DSA`
-or `ML_DSA_87` is stored without a message and then shows up as the dropdown's starting entry,
-outside the list it offers. Keep the setting to one of the six.
+**A setting outside the six names is ignored without a message.** `default.algorithm` is checked
+against the six entries of the dropdown. Any other name, `DSA` or `ML_DSA_87` as much as a typo, is
+stored as written, and the dropdown then starts on `RSA`. Keep the setting to one of the six.
 
 ## Under the hood
 

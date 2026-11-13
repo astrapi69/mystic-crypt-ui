@@ -31,6 +31,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.File;
 import java.util.Map;
+import java.util.stream.Stream;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -39,6 +40,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.ValueSource;
 
 import io.github.astrapi69.mystic.crypt.settings.PluginSettings;
@@ -94,27 +96,41 @@ class KeygenSettingsContributionTest
 		assertEquals(KeySize.KEYSIZE_2048, KeygenSettingsContribution.keySize());
 	}
 
-	@ParameterizedTest
-	@ValueSource(strings = { "RSA", "X25519", "ML_DSA_65" })
-	void aStoredAlgorithmIsUsed(String algorithm) throws Exception
+	static Stream<KeyPairGeneratorAlgorithm> offeredAlgorithms()
 	{
-		store(KeygenSettingsContribution.KEY_ALGORITHM, algorithm);
+		return KeygenSupport.OFFERED_ALGORITHMS.stream();
+	}
 
-		assertEquals(KeyPairGeneratorAlgorithm.valueOf(algorithm),
-			KeygenSettingsContribution.algorithm());
+	@ParameterizedTest(name = "{0}")
+	@MethodSource("offeredAlgorithms")
+	@DisplayName("every algorithm the window offers is taken when it is stored")
+	void aStoredAlgorithmIsUsed(KeyPairGeneratorAlgorithm algorithm) throws Exception
+	{
+		store(KeygenSettingsContribution.KEY_ALGORITHM, algorithm.name());
+
+		assertEquals(algorithm, KeygenSettingsContribution.algorithm());
+	}
+
+	@ParameterizedTest(name = "{0}")
+	@MethodSource("offeredAlgorithms")
+	@DisplayName("the description of default.algorithm names every algorithm the window offers (#894)")
+	void theDescriptionNamesEveryOfferedAlgorithm(KeyPairGeneratorAlgorithm algorithm)
+	{
+		assertTrue(CONTRIBUTION.getDescription(KeygenSettingsContribution.KEY_ALGORITHM)
+			.matches(".*\\b" + algorithm.name() + "\\b.*"),
+			CONTRIBUTION.getDescription(KeygenSettingsContribution.KEY_ALGORITHM));
 	}
 
 	@ParameterizedTest(name = "{0}")
 	@ValueSource(strings = { "DH", "DSA", "ML_KEM_512", "Ed25519", "UNKNOWN" })
-	@DisplayName("a stored algorithm the key generator window does not offer is taken as it is (#894, measured)")
+	@DisplayName("a stored algorithm the key generator window does not offer falls back to RSA (#894)")
 	void aStoredAlgorithmTheWindowDoesNotOffer(String algorithm) throws Exception
 	{
 		store(KeygenSettingsContribution.KEY_ALGORITHM, algorithm);
 
-		assertEquals(KeyPairGeneratorAlgorithm.valueOf(algorithm),
-			KeygenSettingsContribution.algorithm(),
-			"today any constant of the enum is taken, and the window opens on an entry its list "
-				+ "does not have");
+		assertEquals(KeyPairGeneratorAlgorithm.RSA, KeygenSettingsContribution.algorithm(),
+			"a constant of the enum that the window does not list would open it on an entry its "
+				+ "dropdown does not have");
 	}
 
 	@ParameterizedTest
