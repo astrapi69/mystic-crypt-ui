@@ -77,9 +77,24 @@ public class PluginSettingsPanel extends JPanel
 		}
 	};
 
-	private final JTable tblPluginSettings = new JTable(valueModel);
+	private final JTable tblPluginSettings = new JTable(valueModel)
+	{
+		private static final long serialVersionUID = 1L;
+
+		@Override
+		public String getToolTipText(final java.awt.event.MouseEvent event)
+		{
+			// the sentence the plugin wrote for the key under the mouse (#886); a key without
+			// one keeps the table's general tooltip
+			int row = rowAtPoint(event.getPoint());
+			String description = row < 0 ? null : descriptionOf(String.valueOf(getValueAt(row, 0)));
+			return description != null ? description : super.getToolTipText();
+		}
+	};
 
 	private final JLabel lblPluginSettingsResult = new JLabel(modelObject.getResultText());
+
+	private final JLabel lblPluginSettingDescription = new JLabel(" ");
 
 	public PluginSettingsPanel(File configurationDirectory,
 		List<PluginSettingsContribution> contributions)
@@ -96,6 +111,13 @@ public class PluginSettingsPanel extends JPanel
 		tblPluginSettings.setToolTipText(Messages.getString("settings.plugin.tooltip.table",
 			"only the value column is editable - the setting names are fixed by the plugin"));
 		lblPluginSettingsResult.setName("lblPluginSettingsResult");
+		lblPluginSettingDescription.setName("lblPluginSettingDescription");
+		tblPluginSettings.getSelectionModel().addListSelectionListener(event -> {
+			if (!event.getValueIsAdjusting())
+			{
+				showSelectedDescription();
+			}
+		});
 
 		for (PluginSettingsContribution contribution : this.contributions)
 		{
@@ -125,7 +147,10 @@ public class PluginSettingsPanel extends JPanel
 			Messages.getString("settings.plugin.tooltip.reset.button",
 				"removes the stored settings file - destructive, the plugin's declared defaults apply again")));
 		south.add(buttons, BorderLayout.WEST);
-		south.add(lblPluginSettingsResult, BorderLayout.SOUTH);
+		JPanel below = new JPanel(new BorderLayout());
+		below.add(lblPluginSettingDescription, BorderLayout.NORTH);
+		below.add(lblPluginSettingsResult, BorderLayout.SOUTH);
+		south.add(below, BorderLayout.SOUTH);
 		add(south, BorderLayout.SOUTH);
 
 		if (!this.contributions.isEmpty())
@@ -176,6 +201,46 @@ public class PluginSettingsPanel extends JPanel
 	public String getResultText()
 	{
 		return modelObject.getResultText();
+	}
+
+	/**
+	 * The description of the selected setting key, as the line below the table shows it
+	 *
+	 * @return the sentence the plugin wrote for the selected key, empty while none carries one
+	 */
+	public String getShownDescription()
+	{
+		return modelObject.getShownDescription();
+	}
+
+	/**
+	 * The sentence the selected plugin wrote for a settings key
+	 *
+	 * @param key
+	 *            the settings key
+	 * @return the description, or null when the plugin wrote none
+	 */
+	private String descriptionOf(final String key)
+	{
+		PluginSettingsContribution contribution = getSelectedContribution();
+		if (contribution == null)
+		{
+			return null;
+		}
+		String description = contribution.getDescription(key);
+		return description == null || description.isBlank() ? null : description;
+	}
+
+	private void showSelectedDescription()
+	{
+		int row = tblPluginSettings.getSelectedRow();
+		String description = row < 0
+			? null
+			: descriptionOf(String.valueOf(valueModel.getValueAt(row, 0)));
+		modelObject.setShownDescription(description == null ? "" : description);
+		// a space keeps the line's height when there is nothing to say
+		lblPluginSettingDescription
+			.setText(modelObject.getShownDescription().isEmpty() ? " " : description);
 	}
 
 	private void showSelectedSettings()

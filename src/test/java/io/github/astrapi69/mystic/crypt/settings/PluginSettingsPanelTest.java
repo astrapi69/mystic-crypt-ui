@@ -72,6 +72,48 @@ class PluginSettingsPanelTest
 			defaults.put("second", "two");
 			return defaults;
 		}
+
+		@Override
+		public String getDescription(String key)
+		{
+			// only the first key carries a sentence, so the fallback of the second is testable
+			return "first".equals(key) ? "the first setting drives the test" : null;
+		}
+	}
+
+	@Test
+	void theDescriptionOfTheSelectedKey_isShownBelowTheTable(@TempDir File configurationDirectory)
+	{
+		PluginSettingsPanel panel = new PluginSettingsPanel(configurationDirectory,
+			List.of(new TestContribution()));
+		javax.swing.JTable table = (javax.swing.JTable)named(panel, "tblPluginSettings");
+
+		table.setRowSelectionInterval(0, 0);
+		assertEquals("the first setting drives the test", panel.getShownDescription(),
+			"the sentence the plugin wrote for the selected key (#886)");
+
+		table.setRowSelectionInterval(1, 1);
+		assertEquals("", panel.getShownDescription(),
+			"a key without a description shows no stale sentence");
+	}
+
+	@Test
+	void theDescriptionOfARow_isItsTooltip(@TempDir File configurationDirectory)
+	{
+		PluginSettingsPanel panel = new PluginSettingsPanel(configurationDirectory,
+			List.of(new TestContribution()));
+		javax.swing.JTable table = (javax.swing.JTable)named(panel, "tblPluginSettings");
+
+		java.awt.Rectangle firstCell = table.getCellRect(0, 0, true);
+		java.awt.event.MouseEvent overFirstRow = new java.awt.event.MouseEvent(table, 0, 0, 0,
+			firstCell.x + 1, firstCell.y + 1, 0, false);
+		assertEquals("the first setting drives the test", table.getToolTipText(overFirstRow));
+
+		java.awt.Rectangle secondCell = table.getCellRect(1, 0, true);
+		java.awt.event.MouseEvent overSecondRow = new java.awt.event.MouseEvent(table, 0, 0, 0,
+			secondCell.x + 1, secondCell.y + 1, 0, false);
+		assertEquals(table.getToolTipText(), table.getToolTipText(overSecondRow),
+			"a key without a description keeps the table's general tooltip");
 	}
 
 	/** A contribution that fails the way a plugin with a missing class would */
@@ -104,6 +146,26 @@ class PluginSettingsPanelTest
 		{
 			return Map.of();
 		}
+	}
+
+	private static java.awt.Component named(JComponent component, String name)
+	{
+		if (name.equals(component.getName()))
+		{
+			return component;
+		}
+		for (java.awt.Component child : component.getComponents())
+		{
+			if (child instanceof JComponent childComponent)
+			{
+				java.awt.Component found = named(childComponent, name);
+				if (found != null)
+				{
+					return found;
+				}
+			}
+		}
+		return null;
 	}
 
 	private static JButton button(JComponent component, String name)

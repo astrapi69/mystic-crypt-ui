@@ -49,6 +49,30 @@ public class PluginSettingsPanelModel
 	/** The message shown below the table */
 	private String resultText = " ";
 
+	/** The description of the selected setting key, empty while none carries one */
+	private String shownDescription = "";
+
+	/**
+	 * The description of the selected setting key
+	 *
+	 * @return the sentence the plugin wrote for the selected key, empty while none carries one
+	 */
+	public String getShownDescription()
+	{
+		return shownDescription;
+	}
+
+	/**
+	 * Sets the description of the selected setting key
+	 *
+	 * @param shownDescription
+	 *            the sentence to show, empty for none
+	 */
+	public void setShownDescription(String shownDescription)
+	{
+		this.shownDescription = shownDescription;
+	}
+
 	/**
 	 * Gets the row of the selected plugin in the list
 	 *
