@@ -80,6 +80,16 @@ public final class TestPasswords
 	 */
 	public static final String VAULT_OF_8_14_FIXTURE = "written-by-eight-fourteen-for-864";
 
+	/**
+	 * The passphrase of the checked-in file and text the file encryption window wrote,
+	 * {@code src/test/resources/compat/file-crypt} (#877).
+	 * <p>
+	 * It cannot be made up either: the window sealed them with it
+	 * ({@code scripts/fixtures/write-file-crypt-formats.sh window}). They hold invented text and
+	 * guard nothing else.
+	 */
+	public static final String FILE_CRYPT_WINDOW_FIXTURE = "sealed-by-the-window-for-877";
+
 	private TestPasswords()
 	{
 	}
