@@ -118,15 +118,14 @@ java -jar mystic-crypt-ui.jar --cli checksum --algorithm SHA-256 notes.txt > not
 ```
 
 Everything else goes to standard error: the reports of a command that wrote a file
-(`encrypted 29 bytes to notes.txt.enc`), warnings and errors, and the noise of the plugin system.
-Through the jar, standard error starts with three lines from SLF4J saying that no logging provider
-was found, and every installed plugin logs an `INFO` entry when it is started and another when it
-is stopped. None of that reaches standard output.
+(`encrypted 29 bytes to notes.txt.enc`), warnings and errors. A command that succeeds and writes
+no file leaves standard error empty; the plugins and the plugin system say nothing on their own
+(#986). Warnings and errors still come, from a command and from a plugin alike.
 
-`-Dmystic.crypt.ui.cli.verbose=true` (before `-jar`) keeps the level of the plugin system's
-logging as it is instead of turning it down to warnings. That only has an effect when Logback is
-on the class path, and the application jar does not bring it, which is what the three SLF4J lines
-say.
+`-Dmystic.crypt.ui.cli.verbose=true` (before `-jar`) asks for more: every installed plugin logs a
+line when it is started and another when it is stopped, the plugin system writes its debug lines,
+and without a plugins directory the command line says where it looked. All of it goes to standard
+error, so redirected output stays the same.
 
 ### Which plugins the command line loads
 
