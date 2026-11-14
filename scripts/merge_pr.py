@@ -60,12 +60,15 @@ class Verdict:
 
 
 def newest_runs(check_runs):
-    """The newest run of each check name. A check that ran again on the same
-    head - closing-references runs on "edited" - leaves its older run listed at
-    the commit, and branch protection judges only the newest one (#970). GitHub
-    numbers check runs in the order it creates them, so the highest id is the
-    newest. A run without an id cannot be dated and is kept, so a red one among
-    undated runs still blocks."""
+    """The newest run of each check, keyed by the app AND the name. A check
+    that ran again on the same head - closing-references runs on "edited" -
+    leaves its older run listed at the commit, and branch protection judges
+    only the newest one (#970). GitHub numbers check runs in the order it
+    creates them, so the highest id is the newest. The name alone is not the
+    identity of a check: another app posting under a required check's name must
+    not replace the real run, so its run stays beside it and a red one blocks
+    through judge's duplicate rule (#976). A run without an id cannot be dated
+    and is kept, so a red one among undated runs still blocks."""
     newest = {}
     undated = []
     for node in check_runs:
@@ -73,9 +76,9 @@ def newest_runs(check_runs):
         if run_id is None:
             undated.append(node)
             continue
-        name = node.get("name") or ""
-        if name not in newest or run_id > newest[name]["id"]:
-            newest[name] = node
+        check = (node.get("app") or "", node.get("name") or "")
+        if check not in newest or run_id > newest[check]["id"]:
+            newest[check] = node
     return list(newest.values()) + undated
 
 
@@ -442,7 +445,7 @@ def run(argv):
     def poll():
         check_lines = subprocess.run(
             ["gh", "api", f"repos/{{owner}}/{{repo}}/commits/{head_sha}/check-runs", "--paginate",
-             "-q", ".check_runs[] | {id, name, status, conclusion}"],
+             "-q", ".check_runs[] | {id, name, status, conclusion, app: .app.slug}"],
             check=True, capture_output=True, text=True).stdout
         check_runs = [json.loads(line) for line in check_lines.splitlines() if line]
         statuses = gh_json("api", f"repos/{{owner}}/{{repo}}/commits/{head_sha}/status").get(
