@@ -25,7 +25,8 @@ on every prompt regardless of any scope hint — keep this corpus small.)
 
 - **REFACTORING**: split god-classes instead of whitelisting them.
 
-- **GIT**: issue FIRST (see ai-workflow/github-issue-policy.md). `Closes #NN` in commits.
+- **GIT**: a finding is fixed in its own PR, with an issue first only where NW-016 asks for
+  one (see ai-workflow/github-issue-policy.md). `Closes #NN` where there is an issue.
   Javadoc over inline comments. One concern per PR. Every pushed code change opens a PR
   (see ai-workflow/pr-policy.md).
 
