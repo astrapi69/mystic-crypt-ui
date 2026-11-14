@@ -24,6 +24,7 @@
  */
 package io.github.astrapi69.mystic.crypt.plugin.filecrypt;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -34,10 +35,13 @@ import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.security.Security;
+import java.util.Base64;
+import java.util.UUID;
 import java.util.stream.Stream;
 
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -45,7 +49,9 @@ import org.junit.jupiter.params.provider.MethodSource;
 /**
  * What the file encryption window makes of the files the library's command line wrote (#877): a
  * file and a text {@code encrypt} sealed, and a file in the layout {@code encrypt} wrote first, all
- * three in {@code filecrypt/compat}, as written by the published mystic-crypt 13.10.
+ * three in {@code filecrypt/compat}, as written by the published mystic-crypt 13.10. Each opens;
+ * with a wrong passphrase or an altered byte it does not, and nothing is written. What the window
+ * writes stays its own format.
  */
 class FileCryptSupportAndTheCommandLinesFilesTest
 {
@@ -90,17 +96,66 @@ class FileCryptSupportAndTheCommandLinesFilesTest
 
 	@ParameterizedTest(name = "{0}")
 	@MethodSource("theCommandLinesFiles")
-	void theWindowRefusesWhatTheCommandLineWrote(Sealed sealed, @TempDir File directory)
+	void theWindowOpensWhatTheCommandLineWrote(Sealed sealed, @TempDir File directory)
+		throws Exception
+	{
+		String plaintext = open(sealed, fixtureBytes(sealed.name()), directory,
+			new File(directory, "back.txt"), COMMAND_LINE_FILES_FIXTURE);
+
+		assertEquals(sealed.plaintext(), plaintext);
+	}
+
+	@ParameterizedTest(name = "{0}")
+	@MethodSource("theCommandLinesFiles")
+	void aWrongPassphraseIsRefusedAndNothingIsWritten(Sealed sealed, @TempDir File directory)
 		throws Exception
 	{
 		File back = new File(directory, "back.txt");
+		byte[] content = fixtureBytes(sealed.name());
 
-		IllegalArgumentException refusal = assertThrows(IllegalArgumentException.class,
-			() -> open(sealed, fixtureBytes(sealed.name()), directory, back,
-				COMMAND_LINE_FILES_FIXTURE));
+		SecurityException refusal = assertThrows(SecurityException.class,
+			() -> open(sealed, content, directory, back, "throwaway-" + UUID.randomUUID()));
 
-		assertTrue(refusal.getMessage().contains("marker"), refusal.getMessage());
+		assertTrue(refusal.getMessage().contains("the passphrase is wrong or the data was altered"),
+			refusal.getMessage());
 		assertFalse(back.exists(), "nothing may be written for a file that did not open");
+	}
+
+	@ParameterizedTest(name = "{0}")
+	@MethodSource("theCommandLinesFiles")
+	void anAlteredFileIsRefusedAndNothingIsWritten(Sealed sealed, @TempDir File directory)
+		throws Exception
+	{
+		File back = new File(directory, "back.txt");
+		byte[] content = fixtureBytes(sealed.name());
+		content[content.length / 2] ^= 0x01;
+
+		SecurityException refusal = assertThrows(SecurityException.class,
+			() -> open(sealed, content, directory, back, COMMAND_LINE_FILES_FIXTURE));
+
+		assertTrue(refusal.getMessage().contains("the passphrase is wrong or the data was altered"),
+			refusal.getMessage());
+		assertFalse(back.exists(), "nothing may be written for a file that did not open");
+	}
+
+	/** Reading more is not writing more: a file and a text still get the window's own marker */
+	@Test
+	void theWindowStillWritesItsOwnMarker(@TempDir File directory) throws Exception
+	{
+		File source = new File(directory, "plain.txt");
+		Files.writeString(source.toPath(), "still the window's own format");
+
+		File sealedFile = FileCryptSupport.encryptFile(source, null, COMMAND_LINE_FILES_FIXTURE);
+		byte[] sealedText = Base64.getDecoder()
+			.decode(FileCryptSupport.encryptText("and a text", COMMAND_LINE_FILES_FIXTURE));
+
+		assertEquals("MCFILE1", marker(Files.readAllBytes(sealedFile.toPath())));
+		assertEquals("MCFILE1", marker(sealedText));
+	}
+
+	private static String marker(final byte[] content)
+	{
+		return new String(content, 0, FileCryptSupport.MAGIC.length, StandardCharsets.US_ASCII);
 	}
 
 	/** Opens the content the way the window does for a file or a text, and returns the plaintext */
