@@ -114,9 +114,9 @@ public class HelloMenuContribution implements PluginMenuContribution
 A menu item's action can do anything a normal Swing action can — including opening a full
 internal frame panel, the same way every built-in feature of the app does.
 
-See [`examples/hello-plugin`](examples/hello-plugin) for a complete, buildable template project —
-including the `plugin.properties` descriptor and the Gradle task that packages the plugin `.zip`
-in the exact layout the app expects.
+For a complete, buildable template, copy an internal plugin: [`plugins/checksum-plugin`](plugins/checksum-plugin)
+carries the `plugin.properties` descriptor and the Gradle task that packages the plugin `.zip` in
+the exact layout the app expects, and it is built and tested with every change.
 
 ## KeePass import/export
 

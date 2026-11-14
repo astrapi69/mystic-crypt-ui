@@ -7,13 +7,8 @@ repository, each a Gradle build of its own, compiled against the application jar
 a zip that the application loads from its plugins directory. This page walks through what such a
 plugin consists of, with
 [`plugins/checksum-plugin`](https://github.com/astrapi69/mystic-crypt-ui/tree/develop/plugins/checksum-plugin)
-as the model. Copy an internal plugin as a template rather than starting from scratch.
-
-The repository also holds
-[`examples/hello-plugin`](https://github.com/astrapi69/mystic-crypt-ui/tree/develop/examples/hello-plugin),
-the smallest plugin there is: two classes and a descriptor. Its `build.gradle` still names the
-host version `8.1-SNAPSHOT` and a JDK 21 toolchain, neither of which builds against the current
-application, so take the build files from an internal plugin.
+as the model. Copy an internal plugin as a template rather than starting from scratch: it is
+built and tested with every change, so its build files fit the current application.
 
 # Overview
 

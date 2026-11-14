@@ -32,7 +32,7 @@ import org.pf4j.PluginWrapper;
 /**
  * Main class of the internal certificate plugin. The legacy {@code (PluginWrapper wrapper)}
  * constructor is required: it is what {@code DefaultPluginFactory} instantiates plugin classes with
- * in pf4j 3.15.0, despite being marked deprecated in favor of a not-yet-standard
+ * in pf4j, despite being marked deprecated in favor of a not-yet-standard
  * {@code PluginContext} alternative.
  */
 public class CertificatePlugin extends Plugin
