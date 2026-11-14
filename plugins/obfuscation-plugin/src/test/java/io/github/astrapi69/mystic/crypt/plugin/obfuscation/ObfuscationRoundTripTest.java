@@ -26,7 +26,12 @@ package io.github.astrapi69.mystic.crypt.plugin.obfuscation;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import java.util.stream.Stream;
+
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
@@ -68,6 +73,48 @@ class ObfuscationRoundTripTest
 		String disentangled = SimpleObfuscatorExtensions.disentangleBiMap(characterBiMap,
 			obfuscated);
 		assertEquals(original, disentangled, "disentangle must invert obfuscate");
+	}
+
+	/**
+	 * The library's own {@code disentangle(rules, text)} inverts {@code obfuscateWith} on the
+	 * mystic-crypt the catalog names, including the plain substitution whose replacement is no
+	 * original character - the case it once got wrong, and the reason the panel went through the
+	 * character bi-map instead (#897). It agrees with {@code disentangleBiMap} on every case
+	 */
+	@ParameterizedTest(name = "{0}")
+	@MethodSource("ruleSets")
+	void theLibrarysDisentangleInvertsObfuscate(final String description, final char[][] pairs,
+		final String original)
+	{
+		BiMap<Character, ObfuscationRule<Character, Character>> rules = HashBiMap.create();
+		for (char[] pair : pairs)
+		{
+			rules.put(pair[0], simpleRule(pair[0], pair[1]));
+		}
+		String obfuscated = SimpleObfuscatorExtensions.obfuscateWith(rules, original);
+
+		assertEquals(original, SimpleObfuscatorExtensions.disentangle(rules, obfuscated),
+			description + ": disentangle must invert obfuscate");
+		assertEquals(
+			SimpleObfuscatorExtensions.disentangleBiMap(
+				SimpleObfuscatorExtensions.toCharacterBiMap(rules), obfuscated),
+			SimpleObfuscatorExtensions.disentangle(rules, obfuscated),
+			description + ": both library routes give the same text");
+	}
+
+	static Stream<Arguments> ruleSets()
+	{
+		return Stream.of(
+			Arguments.of("a replacement that is no original character",
+				new char[][] { { 'a', 'x' } }, "cab"),
+			Arguments.of("two characters swapped", new char[][] { { 'a', 'b' }, { 'b', 'a' } },
+				"abba"),
+			// the text holds no unmapped "c": that one would collide with the replacement of "b",
+			// and a substitution that is not one-to-one on the text cannot be undone by any route
+			Arguments.of("a chain of replacements", new char[][] { { 'a', 'b' }, { 'b', 'c' } },
+				"abab"),
+			Arguments.of("unmapped characters stay",
+				new char[][] { { 'a', 'x' }, { 'b', 'y' }, { 'c', 'z' } }, "cabbage, 42!"));
 	}
 
 	@Test
