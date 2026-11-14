@@ -124,6 +124,8 @@ test {
 
 // the bounds of every test JVM, the same as the host's (#580)
 apply from: '../../gradle/test-jvms.gradle'
+// fixed entry times and order in the plugin's zip, as in the host build (#920)
+apply from: '../../gradle/reproducible-archives.gradle'
 
 // The licences of the libraries this zip bundles, taken out of the very jars it bundles so that they
 // cannot drift from them, next to NOTICE.txt, which names each library and where its licence is:

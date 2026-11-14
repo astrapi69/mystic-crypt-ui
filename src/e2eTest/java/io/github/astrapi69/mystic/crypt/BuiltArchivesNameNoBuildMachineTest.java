@@ -25,7 +25,7 @@
 package io.github.astrapi69.mystic.crypt;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
 import java.io.ByteArrayInputStream;
@@ -35,6 +35,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.jar.Attributes;
 import java.util.jar.Manifest;
 import java.util.stream.Stream;
@@ -71,15 +72,8 @@ class BuiltArchivesNameNoBuildMachineTest
 	/** Where the internal plugins are, one directory each */
 	private static final Path PLUGINS = Path.of("plugins");
 
-	/**
-	 * What the application's jars name of their build today (#920): pinned so the fix that removes
-	 * them shows in the diff of this test
-	 */
-	private static final List<String> MACHINE_ATTRIBUTES_OF_THE_HOST_TODAY = List.of("Build-Jdk",
-		"Build-OS");
-
-	/** An archive the build made, with what it is and whether the host's build packs it */
-	record BuiltArchive(String description, Path path, boolean host) {
+	/** An archive the build made, with what it is */
+	record BuiltArchive(String description, Path path) {
 		@Override
 		public String toString()
 		{
@@ -101,27 +95,27 @@ class BuiltArchivesNameNoBuildMachineTest
 	}
 
 	@Test
-	@DisplayName("the application jar names no Build-Jdk-Spec today")
-	void theApplicationJar_namesNoBuildJdkSpec() throws IOException
+	@DisplayName("the application jars name their JDK only as the feature release in Build-Jdk-Spec")
+	void theApplicationJars_nameTheJdkOnlyAsTheFeatureRelease() throws IOException
 	{
 		for (BuiltArchive archive : hostJars().toList())
 		{
 			Attributes main = mainManifestOf(archive).getMainAttributes();
 
-			assertNull(main.getValue("Build-Jdk-Spec"), archive + ": Build-Jdk-Spec (#920)");
+			String jdkSpec = main.getValue("Build-Jdk-Spec");
+			assertTrue(jdkSpec != null && jdkSpec.matches("\\d+"), archive + ": Build-Jdk-Spec is '"
+				+ jdkSpec + "', not a feature release such as 25 (#920)");
 		}
 	}
 
-	@ParameterizedTest(name = "what {0} names of the machine and the moment of its build")
+	@ParameterizedTest(name = "{0} names no build machine and no build time")
 	@MethodSource("builtArchives")
-	void aBuiltArchive_namesTheMachineOfItsBuild_asPinned(final BuiltArchive archive)
+	void aBuiltArchive_namesNoBuildMachineAndNoBuildTime(final BuiltArchive archive)
 		throws IOException
 	{
-		List<MachineAttribute> found = machineAttributesIn(archive);
-
-		assertEquals(archive.host() ? MACHINE_ATTRIBUTES_OF_THE_HOST_TODAY : List.of(),
-			found.stream().map(MachineAttribute::name).toList(),
-			archive + " names " + found + " (#920, RL-116)");
+		assertEquals(List.of(), machineAttributesIn(archive),
+			archive + " names the machine or the moment of its build, so two builds of the "
+				+ "same commit differ (#920, RL-116)");
 	}
 
 	/** Every attribute of {@link #MACHINE_ATTRIBUTES} in every manifest of the archive */
@@ -156,9 +150,9 @@ class BuiltArchivesNameNoBuildMachineTest
 	private static Stream<BuiltArchive> hostJars()
 	{
 		return Stream.of(
-			new BuiltArchive("the application jar", builtJar("mystic.crypt.ui.built.jar"), true),
-			new BuiltArchive("the all-dependencies jar", builtJar("mystic.crypt.ui.built.all.jar"),
-				true));
+			new BuiltArchive("the application jar", builtJar("mystic.crypt.ui.built.jar")),
+			new BuiltArchive("the all-dependencies jar",
+				builtJar("mystic.crypt.ui.built.all.jar")));
 	}
 
 	private static Path builtJar(final String property)
@@ -194,8 +188,7 @@ class BuiltArchivesNameNoBuildMachineTest
 				List<Path> built = zipsIn(plugin.resolve("build/plugin-dist"));
 				if (built.size() == 1)
 				{
-					zips.add(new BuiltArchive("the zip of " + plugin.getFileName(), built.get(0),
-						false));
+					zips.add(new BuiltArchive("the zip of " + plugin.getFileName(), built.get(0)));
 				}
 				else
 				{
@@ -241,7 +234,8 @@ class BuiltArchivesNameNoBuildMachineTest
 	}
 
 	/**
-	 * Every manifest of the archive the stream reads, and of every jar inside it
+	 * Every manifest of the archive the stream reads, wherever it stands in it, and of every jar
+	 * inside it
 	 */
 	private static void collectManifests(final InputStream archive, final String prefix,
 		final List<FoundManifest> found) throws IOException
@@ -250,7 +244,9 @@ class BuiltArchivesNameNoBuildMachineTest
 		for (ZipEntry entry = entries.getNextEntry(); entry != null; entry = entries.getNextEntry())
 		{
 			String name = entry.getName();
-			if (name.equalsIgnoreCase(MANIFEST_ENTRY))
+			// a manifest at any depth: a plugin's zip has its class path root under classes/, where
+			// pf4j reads a plugin's own META-INF/MANIFEST.MF
+			if (name.toUpperCase(Locale.ROOT).endsWith(MANIFEST_ENTRY))
 			{
 				found.add(new FoundManifest(prefix + name,
 					new Manifest(new ByteArrayInputStream(entries.readAllBytes()))));

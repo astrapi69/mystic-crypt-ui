@@ -96,6 +96,8 @@ test {
 
 // the bounds of every test JVM, the same as the host's (#580)
 apply from: '../../gradle/test-jvms.gradle'
+// fixed entry times and order in the plugin's zip, as in the host build (#920)
+apply from: '../../gradle/reproducible-archives.gradle'
 
 // packages the plugin the way the host's DefaultPluginManager expects: plugin.properties at the
 // root, compiled classes under classes/
