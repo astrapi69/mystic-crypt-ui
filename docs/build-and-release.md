@@ -2,8 +2,7 @@
 
 Developer documentation for `mystic-crypt-ui`. Everything below is derived from the build
 files in this repository: `Makefile`, `build.gradle`, `gradle.properties`, the include
-files under `gradle/`, `src/main/izpack/install.xml`, `.claude/rules/release-workflow.md`
-and `DEPLOYMENT-INFO.md`.
+files under `gradle/`, `src/main/izpack/install.xml` and `.claude/rules/release-workflow.md`.
 
 ## Prerequisites
 
@@ -68,19 +67,13 @@ plugins (#333), and before this a version bump could not pass CI at all - it die
 carries an independent version literal; if one appears, fix the derivation, not the
 literal."
 
-### Known drift from that rule
+### The version the info dialog shows
 
-Two places currently carry their own literal, and `DEPLOYMENT-INFO.md` still instructs a
-developer to hand-edit them at release time:
-
-- `src/main/resources/ui/messages.properties`, key `InfoJPanel.version.value`
-- `src/main/java/io/github/astrapi69/mystic/crypt/DesktopMenu.java`, as the fallback
-  argument of `Messages.getString("InfoJPanel.version.value", ...)`
-
-These are the version shown in the info dialog. They are independent literals, so they
-can and do fall behind `projectVersion`. Per the rule above, the fix is to derive the
-dialog version from the build rather than to keep editing the literals; until that
-happens, treat `DEPLOYMENT-INFO.md` as the checklist for them.
+The info dialog takes its version from the running jar's manifest: `ApplicationInfo` reads
+`Implementation-Version`, which the build writes from `projectVersion`, and shows "development"
+when the jar has none. No second literal exists to be edited at release time; the two the
+dialog once carried (`InfoJPanel.version.value` in `messages.properties` and in `DesktopMenu`)
+went with #115.
 
 ## Make targets by purpose
 
@@ -388,21 +381,27 @@ installer build with a missing-file error.
 
 ### What the installer needs in place
 
-`make izpack-installer` runs `izPackCreateInstaller` alone. For it to succeed, `build`
-must already contain:
+`make izpack-installer` runs three steps (the target in the `Makefile`): its `plugins`
+prerequisite builds every plugin zip; `createAllDependendiesJar -PcreateIzPackInstaller=true`,
+with the keystore's passwords from `scripts/with-signing-passwords.sh`, cleans and builds the
+fat jar and signs it; and `checksumInstaller`, which depends on `izPackCreateInstaller`, builds
+the installer and then writes its `.sha256` and `.sha512` files next to it. What the installer
+step reads from `build`:
 
 - `build/resources/main/...`, that is a completed `processResources`, for the launchers,
   the desktop entry and the icon;
 - `build/signed/mystic-crypt-ui-<version>-all.jar`, that is a signed fat jar, which
-  requires `createIzPackInstaller=true` or a non-SNAPSHOT version **and** the five
-  `release.mystic-crypt.*` properties;
+  requires `createIzPackInstaller=true` or a non-SNAPSHOT version **and** the keystore: its
+  file, type and alias as `release.mystic-crypt.*` properties, and its two passwords from the
+  environment `scripts/with-signing-passwords.sh` fills from the keyring, else from the two
+  password properties (#579);
 - the plugin zips under `plugins/*/build/plugin-dist/`, which the `plugins` prerequisite
   provides.
 
-The two other targets take care of more of that themselves:
+The two other targets:
 
-- `make clean-build-installer` runs `clean build izPackCreateInstaller`, so the build
-  directory is repopulated from scratch first.
+- `make clean-build-installer` builds the plugins and the signed fat jar the same way, then runs
+  `build izPackCreateInstaller`; it writes no checksums.
 - `make izpack-installer-signed` runs `createIzPackInstallerFromSignedJar`, which orders
   the whole chain:
 
@@ -482,9 +481,6 @@ state and check it with `make verify-installer`, then `make tag-release`, push t
   installer build refuses instead: it needs the `release.mystic-crypt.*` properties for the
   keystore's file, type and alias, and its two passwords, which `make izpack-installer` takes from
   the keyring through `scripts/with-signing-passwords.sh` (#579).
-
-Also check `DEPLOYMENT-INFO.md` for the info-dialog version literals described under
-"Known drift" above.
 
 ## Continuous integration
 
