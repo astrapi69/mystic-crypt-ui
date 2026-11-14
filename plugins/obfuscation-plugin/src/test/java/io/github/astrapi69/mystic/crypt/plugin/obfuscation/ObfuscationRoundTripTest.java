@@ -43,10 +43,10 @@ import io.github.astrapi69.mystic.crypt.obfuscation.simple.SimpleObfuscatorExten
  * Headless proof that the simple obfuscation round-trips, exercising exactly the library calls the
  * fixed plugin panel performs. This guards the bug that was fixed while extracting the obfuscation
  * feature into this plugin: the simple variant's "Disentangle" used to re-obfuscate a stored key
- * and undo it (always returning the original key, ignoring the obfuscated text), and even the
- * library convenience {@code disentangle(rules, text)} only reverses a replacement when the
- * replacement character is itself an original character. The fixed panel disentangles the actual
- * obfuscated text through the character bi-map's inverse, which is what this test verifies.
+ * and undo it (always returning the original key, ignoring the obfuscated text). The panel
+ * disentangles the actual obfuscated text with the library's {@code disentangle(rules, text)},
+ * which once reversed a replacement only when the replacement character was itself an original
+ * character; the mystic-crypt the catalog names reverses every one, which this test pins (#897).
  * <p>
  * The operated variant's round-trip is position/index sensitive and is covered by the mystic-crypt
  * library's own obfuscation tests, not duplicated here
@@ -67,11 +67,8 @@ class ObfuscationRoundTripTest
 		String obfuscated = SimpleObfuscatorExtensions.obfuscateWith(rules, original);
 		assertEquals("zxyyxge", obfuscated, "each mapped character must be replaced, others kept");
 
-		// what the fixed onDecrypt does - disentangle the OBFUSCATED text via the inverse bi-map
-		BiMap<Character, Character> characterBiMap = SimpleObfuscatorExtensions
-			.toCharacterBiMap(rules);
-		String disentangled = SimpleObfuscatorExtensions.disentangleBiMap(characterBiMap,
-			obfuscated);
+		// what onDecrypt does - disentangle the OBFUSCATED text with the library's own method
+		String disentangled = SimpleObfuscatorExtensions.disentangle(rules, obfuscated);
 		assertEquals(original, disentangled, "disentangle must invert obfuscate");
 	}
 

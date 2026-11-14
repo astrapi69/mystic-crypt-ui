@@ -183,19 +183,8 @@ public class RulePanel extends BasePanel<ObfuscationModelBean>
 		{
 			return;
 		}
-		final BiMap<Character, ObfuscationRule<Character, Character>> ruleBiMap = HashBiMap
-			.create(keymap);
-		// go through the character bi-map and its inverse. The convenience
-		// SimpleObfuscatorExtensions.disentangle(rules, text) is broken in the released mystic-crypt
-		// 10.1 this app runs against: it only reverses a replacement when the replacement character
-		// is ALSO an original character in the rules, so a normal substitution like a->x is never
-		// undone. It is fixed upstream in mystic-crypt (10.2-SNAPSHOT+); once the host upgrades to a
-		// release with that fix this can become a single disentangle(ruleBiMap, obfuscated) call.
-		// The character bi-map's inverse disentangles correctly on every version and rule set
-		final BiMap<Character, Character> characterBiMap = SimpleObfuscatorExtensions
-			.toCharacterBiMap(ruleBiMap);
-		final String disentangled = SimpleObfuscatorExtensions.disentangleBiMap(characterBiMap,
-			obfuscated);
+		final String disentangled = SimpleObfuscatorExtensions
+			.disentangle(HashBiMap.create(keymap), obfuscated);
 		getEnDecryptPanel().getTxtToEncrypt().setText(disentangled);
 		if (ObfuscationSettingsContribution.clearInputAfterRun())
 		{
