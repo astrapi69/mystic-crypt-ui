@@ -41,7 +41,8 @@ import org.slf4j.LoggerFactory;
  * the verbose switch a {@code --cli} run prints neither the "No SLF4J providers" warnings nor a
  * debug line, and with {@code -Dmystic.crypt.ui.cli.verbose=true} the debug lines come - so the
  * switch finally keeps what its name promises. Everything the backend writes goes to standard
- * error, so piped {@code --cli} output stays clean
+ * error, so piped {@code --cli} output stays clean. The same holds for java.util.logging, which the
+ * plugins use (#986): without the switch its info records do not print, its warnings do
  */
 class CliVerboseSwitchTest
 {
@@ -54,6 +55,20 @@ class CliVerboseSwitchTest
 			MysticCryptUiCli.configureCliLogging();
 			LoggerFactory.getLogger("probe").debug("probe-debug-marker");
 			LoggerFactory.getLogger("probe").info("probe-info-marker");
+		}
+	}
+
+	/**
+	 * The same for java.util.logging, which the plugins log their start and stop with (#986): the
+	 * CLI's logging setup, then one info and one warning record
+	 */
+	public static final class JulProbe
+	{
+		public static void main(final String[] args)
+		{
+			MysticCryptUiCli.configureCliLogging();
+			java.util.logging.Logger.getLogger("probe").info("probe-jul-info-marker");
+			java.util.logging.Logger.getLogger("probe").warning("probe-jul-warning-marker");
 		}
 	}
 
@@ -81,7 +96,35 @@ class CliVerboseSwitchTest
 		assertFalse(stderr.contains("SLF4J:"), "still no provider warning: " + stderr);
 	}
 
+	@Test
+	@DisplayName("without the switch: no java.util.logging info record, but its warnings")
+	void withoutTheSwitch_noJulInfoButItsWarnings() throws Exception
+	{
+		String stderr = probeStderr(false, JulProbe.class);
+
+		assertFalse(stderr.contains("probe-jul-info-marker"),
+			"a plugin's info record is no answer to the call: " + stderr);
+		assertTrue(stderr.contains("WARNING: probe-jul-warning-marker"),
+			"a warning still shows: " + stderr);
+	}
+
+	@Test
+	@DisplayName("with the switch: the java.util.logging info records come")
+	void withTheSwitch_julInfoRecordsCome() throws Exception
+	{
+		String stderr = probeStderr(true, JulProbe.class);
+
+		assertTrue(stderr.contains("INFO: probe-jul-info-marker"),
+			"the verbose switch keeps the info records: " + stderr);
+		assertTrue(stderr.contains("WARNING: probe-jul-warning-marker"), stderr);
+	}
+
 	private static String probeStderr(final boolean verbose) throws Exception
+	{
+		return probeStderr(verbose, Probe.class);
+	}
+
+	private static String probeStderr(final boolean verbose, final Class<?> probe) throws Exception
 	{
 		List<String> command = new ArrayList<>();
 		command.add(System.getProperty("java.home") + "/bin/java");
@@ -91,7 +134,7 @@ class CliVerboseSwitchTest
 		{
 			command.add("-D" + MysticCryptUiCli.VERBOSE_PROPERTY + "=true");
 		}
-		command.add(Probe.class.getName());
+		command.add(probe.getName());
 		Process process = new ProcessBuilder(command).start();
 		String stderr = new String(process.getErrorStream().readAllBytes(), StandardCharsets.UTF_8);
 		if (!process.waitFor(60, TimeUnit.SECONDS))

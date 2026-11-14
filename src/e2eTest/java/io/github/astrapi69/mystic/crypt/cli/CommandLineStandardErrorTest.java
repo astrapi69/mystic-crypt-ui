@@ -44,16 +44,21 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.pf4j.Plugin;
 
 import io.github.astrapi69.mystic.crypt.StartMysticCryptApplication;
 import io.github.astrapi69.mystic.crypt.TestPasswords;
@@ -66,7 +71,9 @@ import io.github.astrapi69.mystic.crypt.TestPasswords;
  * The plugins are the zips {@code src/main/izpack/install.xml} installs into
  * {@code ~/.config/mystic-crypt-ui/plugins}, taken from their builds; the suite declares them as
  * inputs (#836). Every command is called with input it succeeds on and that it answers on standard
- * output, so whatever arrives on standard error comes from the application around it.
+ * output, so whatever arrives on standard error comes from the application around it. Nothing does,
+ * unless the verbose switch asks for it; a warning or an error about the call, and what a command
+ * reports on standard error itself, still show.
  */
 class CommandLineStandardErrorTest
 {
@@ -200,32 +207,119 @@ class CommandLineStandardErrorTest
 
 	@ParameterizedTest(name = "{0}, plugins: {1}")
 	@MethodSource("everyCommandWithAndWithoutPlugins")
-	void whatASuccessfulRunWritesToStandardError(Call command, Plugins plugins, @TempDir Path out)
-		throws Exception
+	void aSuccessfulRunWritesNothingToStandardError(Call command, Plugins plugins,
+		@TempDir Path out) throws Exception
 	{
 		Run run = cli(home(plugins), false, command, out);
 
 		assertEquals(0, run.exitCode(), run.err());
-		if (plugins == Plugins.NONE)
+		assertEquals("", run.err(), "the application added this to a successful run");
+	}
+
+	@Test
+	void theVerboseSwitchBringsThePluginsMessagesBack(@TempDir Path out) throws Exception
+	{
+		Run run = cli(withShippedPlugins, true, call("kem", "", "kem"), out);
+
+		assertEquals(0, run.exitCode(), run.err());
+		assertEquals(2 * shippedPlugins.size(), pluginMessages(run.err()),
+			"one start and one stop message for every plugin: " + run.err());
+	}
+
+	@Test
+	void theVerboseSwitchNamesTheMissingPluginsDirectory(@TempDir Path out) throws Exception
+	{
+		Run run = cli(withoutPlugins, true, call("kem", "", "kem"), out);
+
+		assertEquals(0, run.exitCode(), run.err());
+		assertTrue(run.err().contains(withoutPlugins.resolve(PLUGINS_UNDER_HOME).toString()),
+			run.err());
+	}
+
+	@Test
+	void aWarningAboutTheCallStillShows(@TempDir Path out) throws Exception
+	{
+		Run run = cli(withShippedPlugins, false,
+			call("hash", "", "hash", "--password=" + TestPasswords.throwaway()), out);
+
+		assertEquals(0, run.exitCode(), run.err());
+		assertEquals(1, run.err().lines().count(), run.err());
+		assertTrue(run.err().startsWith("warning: --password puts the password into the process"),
+			run.err());
+	}
+
+	@Test
+	void anErrorStillShows(@TempDir Path out) throws Exception
+	{
+		Run run = cli(withShippedPlugins, false, call("decrypt", PASSPHRASE + "\n", "decrypt",
+			"--text=this is not base64", "--passphrase-stdin"), out);
+
+		assertEquals(2, run.exitCode(), run.err());
+		assertEquals(1, run.err().lines().count(), run.err());
+		assertTrue(run.err().startsWith("error: "), run.err());
+	}
+
+	@Test
+	void whatACommandReportsOnStandardErrorItselfStillShows(@TempDir Path out) throws Exception
+	{
+		Run run = cli(withShippedPlugins, false, call("encrypt", PASSPHRASE + "\n", "encrypt", "-i",
+			"{in}/plain.txt", "-o", "{out}/sealed", "--passphrase-stdin"), out);
+
+		assertEquals(0, run.exitCode(), run.err());
+		assertEquals("encrypted 18 bytes to " + out.resolve("sealed") + System.lineSeparator(),
+			run.err());
+	}
+
+	@Test
+	void aPluginsWarningStillShows(@TempDir Path home, @TempDir Path out) throws Exception
+	{
+		installTheWarningPlugin(Files.createDirectories(home.resolve(PLUGINS_UNDER_HOME)));
+
+		Run run = cli(home, false, call("kem", "", "kem"), out);
+
+		assertEquals(0, run.exitCode(), run.err());
+		assertTrue(run.err().contains("WARNING: " + WarningPlugin.WARNING), run.err());
+	}
+
+	/** A plugin that warns when it starts, the way a plugin reports a problem */
+	public static class WarningPlugin extends Plugin
+	{
+		/** What it warns */
+		static final String WARNING = "the warning plugin warns as it starts";
+
+		@Override
+		public void start()
 		{
-			// pinned on develop 56143a7f: pf4j's warning that the plugins directory is missing
-			assertEquals(
-				List.of("[main] WARN org.pf4j.AbstractPluginManager - No '"
-					+ withoutPlugins.resolve(PLUGINS_UNDER_HOME) + "' root"),
-				run.err().lines().toList());
+			Logger.getLogger(WarningPlugin.class.getName()).warning(WARNING);
 		}
-		else
+	}
+
+	/** Packages {@link WarningPlugin} the way the plugin manager expects to find a plugin */
+	private static void installTheWarningPlugin(final Path pluginsDirectory) throws IOException
+	{
+		try (ZipOutputStream zip = new ZipOutputStream(
+			Files.newOutputStream(pluginsDirectory.resolve("warning-plugin-1.0.0.zip"))))
 		{
-			// pinned on develop 56143a7f: two java.util.logging lines for every plugin that
-			// starts and for every plugin that stops
-			assertEquals(4 * shippedPlugins.size(), run.err().lines().count(), run.err());
-			assertEquals(2 * shippedPlugins.size(),
-				run.err().lines()
-					.filter(line -> line.startsWith("INFO: ")
-						&& (line.endsWith(" started") || line.endsWith(" stopped")))
-					.count(),
-				run.err());
+			zip.putNextEntry(new ZipEntry("plugin.properties"));
+			zip.write(("plugin.id=warning-plugin\nplugin.version=1.0.0\nplugin.class="
+				+ WarningPlugin.class.getName() + "\n").getBytes(StandardCharsets.UTF_8));
+			zip.closeEntry();
+			String path = WarningPlugin.class.getName().replace('.', '/') + ".class";
+			zip.putNextEntry(new ZipEntry("classes/" + path));
+			try (InputStream compiled = WarningPlugin.class.getClassLoader()
+				.getResourceAsStream(path))
+			{
+				zip.write(compiled.readAllBytes());
+			}
+			zip.closeEntry();
 		}
+	}
+
+	/** The start and stop messages of the plugins among the lines written */
+	private static long pluginMessages(final String standardError)
+	{
+		return standardError.lines().filter(line -> line.startsWith("INFO: ")
+			&& (line.endsWith(" started") || line.endsWith(" stopped"))).count();
 	}
 
 	private static Call call(final String name, final String standardInput, final String... args)

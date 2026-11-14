@@ -25,10 +25,13 @@
 package io.github.astrapi69.mystic.crypt.cli;
 
 import java.io.File;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.Security;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.pf4j.DefaultPluginManager;
@@ -125,7 +128,23 @@ public final class MysticCryptUiCli
 			Security.addProvider(new BouncyCastleProvider());
 		}
 		configureCliLogging();
-		PluginManager pluginManager = new DefaultPluginManager(pluginsDirectory());
+		Path pluginsDirectory = pluginsDirectory();
+		if (!Files.exists(pluginsDirectory))
+		{
+			LOGGER.info(() -> "no plugins directory at " + pluginsDirectory
+				+ ", the command line has the library's commands only");
+			return newCommandLine(List.of()).execute(args);
+		}
+		return executeWithThePlugins(pluginsDirectory, args);
+	}
+
+	/**
+	 * Runs a command with the plugins of the given directory loaded and started, and stops them
+	 * again afterwards
+	 */
+	private static int executeWithThePlugins(final Path pluginsDirectory, final String... args)
+	{
+		PluginManager pluginManager = new DefaultPluginManager(pluginsDirectory);
 		try
 		{
 			pluginManager.loadPlugins();
@@ -148,6 +167,9 @@ public final class MysticCryptUiCli
 		}
 	}
 
+	/** Where the command line says, when asked to be verbose, what it does without being asked */
+	private static final Logger LOGGER = Logger.getLogger(MysticCryptUiCli.class.getName());
+
 	/** The slf4j-simple property the verbose switch maps onto */
 	static final String SIMPLE_LOGGER_DEFAULT_LEVEL_PROPERTY = "org.slf4j.simpleLogger.defaultLogLevel";
 
@@ -157,18 +179,27 @@ public final class MysticCryptUiCli
 	 * is slf4j-simple, which writes to standard error, so {@code ... --cli keystore list >
 	 * entries.txt} stays clean either way.
 	 * <p>
+	 * The same goes for java.util.logging, which the plugins log their start and stop with (#986):
+	 * without the switch its root logger lets warnings and errors through and nothing below them,
+	 * so a successful run writes nothing to standard error; with it the info records come as
+	 * before. This runs on the command line only - the user interface never calls it.
+	 * <p>
 	 * slf4j-simple reads its properties once, when the first logger is made, so this runs before
 	 * anything logs. A default level already set on the command line wins - whoever starts the JVM
 	 * with the backend's own property has decided.
 	 */
 	public static void configureCliLogging()
 	{
+		boolean verbose = Boolean.getBoolean(VERBOSE_PROPERTY);
+		if (!verbose)
+		{
+			Logger.getLogger("").setLevel(Level.WARNING);
+		}
 		if (System.getProperty(SIMPLE_LOGGER_DEFAULT_LEVEL_PROPERTY) != null)
 		{
 			return;
 		}
-		System.setProperty(SIMPLE_LOGGER_DEFAULT_LEVEL_PROPERTY,
-			Boolean.getBoolean(VERBOSE_PROPERTY) ? "debug" : "warn");
+		System.setProperty(SIMPLE_LOGGER_DEFAULT_LEVEL_PROPERTY, verbose ? "debug" : "warn");
 	}
 
 	/**
