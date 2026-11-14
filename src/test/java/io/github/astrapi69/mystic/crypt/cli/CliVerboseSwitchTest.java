@@ -30,6 +30,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 
 import org.junit.jupiter.api.DisplayName;
@@ -119,6 +120,22 @@ class CliVerboseSwitchTest
 		assertTrue(stderr.contains("WARNING: probe-jul-warning-marker"), stderr);
 	}
 
+	/**
+	 * The language and country of this test JVM, for the probe JVM. Every test JVM speaks English
+	 * in the United States form whatever the desktop speaks (gradle/test-jvms.gradle, #615), but
+	 * those are system properties and a forked JVM does not inherit them: it takes its language
+	 * from the environment, and on a German desktop java.util.logging then writes {@code WARNUNG:}
+	 * where the assertions read {@code WARNING:}
+	 *
+	 * @return the options that give the probe JVM this JVM's locale
+	 */
+	private static List<String> localeOfThisJvm()
+	{
+		Locale locale = Locale.getDefault();
+		return List.of("-Duser.language=" + locale.getLanguage(),
+			"-Duser.country=" + locale.getCountry());
+	}
+
 	private static String probeStderr(final boolean verbose) throws Exception
 	{
 		return probeStderr(verbose, Probe.class);
@@ -130,6 +147,7 @@ class CliVerboseSwitchTest
 		command.add(System.getProperty("java.home") + "/bin/java");
 		command.add("-cp");
 		command.add(System.getProperty("java.class.path"));
+		command.addAll(localeOfThisJvm());
 		if (verbose)
 		{
 			command.add("-D" + MysticCryptUiCli.VERBOSE_PROPERTY + "=true");
