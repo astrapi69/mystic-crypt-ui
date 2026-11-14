@@ -1,17 +1,19 @@
 # GITHUB-ISSUE-PFLICHT
 
-Every bug and every issue MUST have a GitHub issue BEFORE the fix begins. Mandatory,
-not advisory. Applies to ALL agents.
+A bug or small improvement found here is fixed in the session that finds it, in a PR of its
+own (family rule NW-015). It gets a GitHub issue first only when the fix needs the
+maintainer's decision, depends on something external or is too big for the session
+(NW-016); such an issue follows the workflow below. Applies to ALL agents.
 
 ## Workflow
 
 1. **Search first.** `gh issue list --search "<keywords>" --state all`. If a closed
    issue matches and the bug recurred, REOPEN it rather than filing a duplicate.
-2. **No fix without an issue.** If none exists, create one (`bug` label, enough context
-   that the fix is actionable without follow-up) BEFORE touching code. Applies
-   retroactively: a NEW bug discovered while working on another one gets its own issue
-   before its fix.
-3. **No commit without an issue reference.** Commit subject and PR cite the number —
+2. **File it where NW-016 asks for one.** Then create it (`bug` label, enough context
+   that the fix is actionable without follow-up) before touching code. A NEW bug
+   discovered while working on another one is fixed in a PR of its own, with an issue
+   only under NW-016.
+3. **When there is an issue, cite it.** Commit subject and PR name the number -
    `(#NN)` or `(fixes #NN)`.
 4. **Verify the premise before filing.** If a pre-implementation check shows the
    reported defect does not exist, surface that finding instead — a false issue is worse

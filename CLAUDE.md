@@ -38,7 +38,8 @@ line in the Makefile (#911); `docs/development.md` says which to run for what.
 
 ## Workflow
 
-Gitflow: `develop` active, `master` = releases. Issue before fix, PR for every pushed
+Gitflow: `develop` active, `master` = releases. A finding is fixed in its own PR, with an
+issue first only where the family rule NW-016 asks for one; PR for every pushed
 change (see `.claude/rules/ai-workflow/`). Conventional commits. TDD for logic changes
 (`.claude/rules/tdd.md`).
 
