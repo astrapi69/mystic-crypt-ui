@@ -185,22 +185,31 @@ class ParseChecksTest(unittest.TestCase):
                     {"id": 10, "name": "build", "status": "completed", "conclusion": older}]
                 self.assertEqual(expected, parse_checks(runs, []))
 
-    def test_a_newer_run_of_another_app_with_the_same_name_replaces_the_real_one(self):
-        # Pins develop as it is (#976): newest_runs keys by the name alone, so a newer green
-        # run posted by ANOTHER app under a required check's name replaces the real red run,
-        # and the merge would go through. The fix keys by (app, name), keeps both, and the
-        # standing duplicate rule lets the red one block.
+    def test_a_newer_run_of_another_app_does_not_replace_the_real_one(self):
+        # The name alone is not the identity of a check (#976): a newer green run posted by
+        # ANOTHER app under a required check's name stays BESIDE the real red run instead of
+        # replacing it, and the red one blocks through judge's duplicate rule.
         runs = [
             {"id": 30, "name": "build", "status": "completed", "conclusion": "success",
              "app": "some-other-app"},
             {"id": 20, "name": "build", "status": "completed", "conclusion": "failure",
              "app": "github-actions"}]
         entries = parse_checks(runs, [])
-        self.assertEqual([RollupEntry("build", True, "SUCCESS")], entries)
-        self.assertTrue(judge(entries + [RollupEntry("closing-references", True, "SUCCESS"),
-                                         RollupEntry("release-freeze", True, "SUCCESS")],
-                              REQUIRED).mergeable,
-                        "develop today: the foreign green hides the red required run")
+        self.assertEqual([RollupEntry("build", True, "SUCCESS"),
+                          RollupEntry("build", True, "FAILURE")], entries)
+        self.assertFalse(judge(entries + [RollupEntry("closing-references", True, "SUCCESS"),
+                                          RollupEntry("release-freeze", True, "SUCCESS")],
+                               REQUIRED).mergeable,
+                         "the foreign green must not hide the red required run")
+
+    def test_a_rerun_of_the_same_apps_check_still_dedupes(self):
+        # within one app the newest run of a name still replaces the older one (#970)
+        runs = [
+            {"id": 30, "name": "build", "status": "completed", "conclusion": "success",
+             "app": "github-actions"},
+            {"id": 20, "name": "build", "status": "completed", "conclusion": "failure",
+             "app": "github-actions"}]
+        self.assertEqual([RollupEntry("build", True, "SUCCESS")], parse_checks(runs, []))
 
     def test_runs_of_different_checks_are_all_kept(self):
         runs = [{"id": 2, "name": "build", "status": "completed", "conclusion": "success"},
