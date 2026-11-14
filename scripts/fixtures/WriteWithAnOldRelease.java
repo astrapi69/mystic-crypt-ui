@@ -194,15 +194,52 @@ public class WriteWithAnOldRelease
 	private static Long importKeePass(final Object rootNode, final Object idGenerator,
 		final File kdbx, final String kdbxPassword) throws Exception
 	{
-		Class<?> credentialsType = Class.forName("org.linguafranca.pwdb.format.KdbxCredentials");
-		Object credentials = credentialsType.getConstructor(byte[].class)
-			.newInstance((Object)kdbxPassword.getBytes(StandardCharsets.UTF_8));
-		Object database;
-		try (java.io.InputStream in = new java.io.FileInputStream(kdbx))
+		// four generations of KeePassJava2 across 8.x, each with the call its release makes: 8.1.1
+		// SimpleDatabase.load with KdbxCreds, then JacksonDatabase.load, in 8.7 and 8.8
+		// KdbxDatabase.load with KdbxCredentials, from 8.9 KdbxDatabase.read
+		String[][] generations = {
+				{ "org.linguafranca.pwdb.format.KdbxCredentials",
+						"org.linguafranca.pwdb.kdbx.jackson.KdbxDatabase", "read" },
+				{ "org.linguafranca.pwdb.format.KdbxCredentials",
+						"org.linguafranca.pwdb.kdbx.jackson.KdbxDatabase", "load" },
+				{ "org.linguafranca.pwdb.kdbx.KdbxCreds",
+						"org.linguafranca.pwdb.kdbx.jackson.JacksonDatabase", "load" },
+				{ "org.linguafranca.pwdb.kdbx.KdbxCreds",
+						"org.linguafranca.pwdb.kdbx.simple.SimpleDatabase", "load" } };
+		Object database = null;
+		for (String[] generation : generations)
 		{
-			Class<?> databaseType = Class.forName("org.linguafranca.pwdb.kdbx.jackson.KdbxDatabase");
-			database = Overloads.method(databaseType, "read", credentials, in).invoke(null,
-				credentials, in);
+			Class<?> credentialsType;
+			Class<?> databaseType;
+			try
+			{
+				credentialsType = Class.forName(generation[0]);
+				databaseType = Class.forName(generation[1]);
+			}
+			catch (ClassNotFoundException notThisGeneration)
+			{
+				continue;
+			}
+			Object credentials = credentialsType.getConstructor(byte[].class)
+				.newInstance((Object)kdbxPassword.getBytes(StandardCharsets.UTF_8));
+			try (java.io.InputStream in = new java.io.FileInputStream(kdbx))
+			{
+				Method read;
+				try
+				{
+					read = Overloads.method(databaseType, generation[2], credentials, in);
+				}
+				catch (NoSuchMethodException notThisGeneration)
+				{
+					continue;
+				}
+				database = read.invoke(null, credentials, in);
+			}
+			break;
+		}
+		if (database == null)
+		{
+			throw new ClassNotFoundException("no KeePassJava2 database class of a known generation");
 		}
 		Object rootGroup = database.getClass().getMethod("getRootGroup").invoke(database);
 		Method nextId = idGenerator.getClass().getMethod("getNextId");
