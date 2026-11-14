@@ -162,6 +162,22 @@ test {
     }
 }
 
+// The application's two jars, whose manifests BuiltArchivesNameNoBuildMachineTest reads (#920):
+// the jars this build packs, so they are built first, and declared, since an undeclared jar is one
+// the cache key would not see change. The plugins' zips it reads are declared above
+tasks.named('e2eTest') {
+    def applicationJar = tasks.named('jar').flatMap { it.archiveFile }
+    def allDependenciesJar = tasks.named('withAllDependendiesJar').flatMap { it.archiveFile }
+    inputs.file(applicationJar).withPropertyName('applicationJar')
+        .withPathSensitivity(PathSensitivity.NONE)
+    inputs.file(allDependenciesJar).withPropertyName('allDependenciesJar')
+        .withPathSensitivity(PathSensitivity.NONE)
+    jvmArgumentProviders.add({
+        ["-Dmystic.crypt.ui.built.jar=${applicationJar.get().asFile}".toString(),
+         "-Dmystic.crypt.ui.built.all.jar=${allDependenciesJar.get().asFile}".toString()]
+    } as CommandLineArgumentProvider)
+}
+
 // What ran, printed on success as well as on failure (#306).
 //
 // testLogging prints nothing when everything passes, so a green CI run said "BUILD SUCCESSFUL" and

@@ -1,0 +1,8 @@
+// Every archive has fixed entry times and a fixed entry order, so that it depends on the files alone
+// and a release can be rebuilt from its tag and compared byte for byte (#920; RL-116, the family's
+// template of crypt-data#139). Gradle 9 does this by default; stated here so the build does not depend
+// on that default. Applied by the host build and by every plugin build, so it is said once.
+tasks.withType(AbstractArchiveTask).configureEach {
+    preserveFileTimestamps = false
+    reproducibleFileOrder = true
+}

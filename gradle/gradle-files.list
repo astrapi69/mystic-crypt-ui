@@ -4,6 +4,7 @@ gradle/tagging.gradle
 gradle/izpack.gradle
 gradle/mutation-testing.gradle
 gradle/packaging.gradle
+gradle/reproducible-archives.gradle
 gradle/publishing.gradle
 gradle/repositories.gradle
 gradle/testing.gradle
