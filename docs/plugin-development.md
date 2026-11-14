@@ -211,8 +211,9 @@ an empty list, so:
 - `--cli` does not know its commands.
 
 pf4j logs the missing index at DEBUG level only (`Cannot find 'META-INF/extensions.idx'`), and the
-application quiets pf4j logging down to warnings for CLI runs by default
-(`MysticCryptUiCli.quietPluginLogging`, overridable with `-Dmystic.crypt.ui.cli.verbose=true`).
+application turns pf4j's logging down to warnings, and the plugins' own java.util.logging records
+too, for CLI runs by default (`MysticCryptUiCli.configureCliLogging`; with
+`-Dmystic.crypt.ui.cli.verbose=true` the debug lines and the plugins' info records come).
 Nothing fails, nothing is printed, the feature is simply absent. If a freshly built plugin loads but
 contributes nothing, check `META-INF/extensions.idx` inside the zip first:
 

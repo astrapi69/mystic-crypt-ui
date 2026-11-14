@@ -44,6 +44,10 @@ jobs:
           # (2026-10-17). Microsoft's build of OpenJDK has one
           - os: windows-11-arm
             java-distribution: microsoft
+            # .sdkmanrc names a Temurin build, and setup-java takes the distribution from its
+            # suffix over the distribution input, so this one row names its version instead;
+            # java-version wins over java-version-file, and stays empty on the Temurin rows
+            java-version: '25'
     runs-on: ${{ matrix.os }}
 
     steps:
@@ -56,7 +60,8 @@ jobs:
       - name: Setup Java
         uses: actions/setup-java@v5
         with:
-          java-version: '25'
+          java-version: ${{ matrix.java-version }}
+          java-version-file: '.sdkmanrc'
           distribution: ${{ matrix.java-distribution }}
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v6
