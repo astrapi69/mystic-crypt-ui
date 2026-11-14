@@ -52,33 +52,31 @@ import io.github.astrapi69.mystic.crypt.TestPasswords;
 class ARefusedTypeCostsNoDataTest
 {
 
+	/**
+	 * A foreign type of this project, and standard types the XML library builds by default but no
+	 * vault holds - each one measured as built by the reader before it started from no type
+	 */
 	static Stream<Arguments> foreignTypes()
 	{
-		return Stream
-			.of(Arguments.of(NotAVaultType.class.getName(), "<" + NotAVaultType.class.getName()
-				+ "><text>not part of a vault</text></" + NotAVaultType.class.getName() + ">"));
-	}
-
-	static Stream<Arguments> standardTypesNoVaultHolds()
-	{
-		return Stream.of(Arguments.of("java.io.File", "<file>/tmp/not-part-of-a-vault</file>"),
+		return Stream.of(
+			Arguments.of(NotAVaultType.class.getName(),
+				"<" + NotAVaultType.class.getName() + "><text>not part of a vault</text></"
+					+ NotAVaultType.class.getName() + ">"),
+			Arguments.of("java.io.File", "<file>/tmp/not-part-of-a-vault</file>"),
 			Arguments.of("java.net.URL", "<url>http://example.org/</url>"),
-			Arguments.of("java.lang.Class", "<java-class>java.lang.String</java-class>"));
-	}
-
-	@ParameterizedTest(name = "a file naming {0} opens today")
-	@MethodSource("standardTypesNoVaultHolds")
-	void aFileNamingAStandardTypeNoVaultHolds_opensToday(final String typeName,
-		final String element, @TempDir final File directory) throws Exception
-	{
-		char[] password = TestPasswords.throwawayChars();
-		String xml = new String(VaultXmlCodec.toXml(SampleVaults.aVaultWith(entry -> {
-		}))).replaceFirst("<list>", "<list>" + element);
-		File vault = new File(directory, "names-" + typeName + ".mcrdb");
-		Files.write(vault.toPath(),
-			PasswordVaultFormat.encrypt(xml.toCharArray(), password.clone()));
-
-		SampleVaults.open(vault, password.clone());
+			Arguments.of("java.net.URI", "<uri>http://example.org/</uri>"),
+			Arguments.of("java.lang.Class", "<java-class>java.lang.String</java-class>"),
+			Arguments.of("java.lang.reflect.Method",
+				"<method><class>java.lang.String</class><name>length</name><parameter-types/></method>"),
+			Arguments.of("java.lang.RuntimeException", "<java.lang.RuntimeException/>"),
+			Arguments.of("java.util.HashMap", "<java.util.HashMap/>"),
+			Arguments.of("java.util.TreeMap", "<java.util.TreeMap/>"),
+			Arguments.of("java.util.Properties", "<java.util.Properties/>"),
+			Arguments.of("java.util.regex.Pattern",
+				"<java.util.regex.Pattern><pattern>a</pattern><flags>0</flags></java.util.regex.Pattern>"),
+			Arguments.of("javax.swing.UIDefaults", "<javax.swing.UIDefaults/>"),
+			Arguments.of("javax.management.BadAttributeValueExpException",
+				"<javax.management.BadAttributeValueExpException/>"));
 	}
 
 	@ParameterizedTest(name = "a file naming {0}")

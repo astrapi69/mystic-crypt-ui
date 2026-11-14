@@ -130,15 +130,36 @@ class ObfuscationRuleTableXmlTest
 				"<java-class>java.lang.String</java-class>"));
 	}
 
-	@org.junit.jupiter.params.ParameterizedTest(name = "a simple table naming {0} is read today")
+	@org.junit.jupiter.params.ParameterizedTest(name = "a simple table naming {0} is refused with its name")
 	@org.junit.jupiter.params.provider.MethodSource("standardTypesNoTableHolds")
-	void aSimpleTableNamingAStandardTypeNoTableHolds_isReadToday(final String typeName,
+	void aSimpleTableNamingAStandardTypeNoTableHolds_isRefusedWithItsName(final String typeName,
 		final String element)
 	{
 		String table = ObjectToXmlExtensions.toXml(simpleTable())
 			.replaceFirst("(<[a-z-]*list[^>]*>)", "$1" + element);
 
-		ObfuscationRuleTableXml.toSimpleRules(table);
+		RuleTableHoldsAForeignTypeException refusal = assertThrows(
+			RuleTableHoldsAForeignTypeException.class,
+			() -> ObfuscationRuleTableXml.toSimpleRules(table));
+
+		assertTrue(refusal.getMessage().contains(typeName),
+			"the refusal names the type: " + refusal.getMessage());
+	}
+
+	@org.junit.jupiter.params.ParameterizedTest(name = "an operation table naming {0} is refused with its name")
+	@org.junit.jupiter.params.provider.MethodSource("standardTypesNoTableHolds")
+	void anOperationTableNamingAStandardTypeNoTableHolds_isRefusedWithItsName(
+		final String typeName, final String element)
+	{
+		String table = ObjectToXmlExtensions.toXml(operationTable())
+			.replaceFirst("(<[a-z-]*list[^>]*>)", "$1" + element);
+
+		RuleTableHoldsAForeignTypeException refusal = assertThrows(
+			RuleTableHoldsAForeignTypeException.class,
+			() -> ObfuscationRuleTableXml.toOperationRules(table));
+
+		assertTrue(refusal.getMessage().contains(typeName),
+			"the refusal names the type: " + refusal.getMessage());
 	}
 
 	private static void assertRefused(final String table, final Function<String, ?> reader)
