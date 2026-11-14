@@ -56,7 +56,7 @@ jobs:
       - name: Setup Java
         uses: actions/setup-java@v5
         with:
-          java-version: '25'
+          java-version-file: '.sdkmanrc'
           distribution: ${{ matrix.java-distribution }}
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v6
