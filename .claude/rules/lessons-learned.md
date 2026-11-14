@@ -125,11 +125,6 @@ until #505. Refusing `:0` is not enough, XWayland serves `:1` too: since #597 th
 display only when the socket's listener is its own Xvfb, and reads every test JVM's `DISPLAY` from `/proc`. Only `make test-e2e-demo` runs on the current display, through `E2E_USE_CURRENT_DISPLAY=1`,
 because a demo is meant to be watched.
 
-## mystic-crypt simple obfuscation: `disentangle` is broken upstream
-
-`SimpleObfuscatorExtensions.disentangle` is broken in the library; use
-`disentangleBiMap(toCharacterBiMap(rules), text)` instead.
-
 ## A transitive bump is judged by the e2e suite, not by compilation
 
 Gradle resolves a version conflict to the higher version, whatever the consumer pins, so a bump can
