@@ -185,6 +185,23 @@ class ParseChecksTest(unittest.TestCase):
                     {"id": 10, "name": "build", "status": "completed", "conclusion": older}]
                 self.assertEqual(expected, parse_checks(runs, []))
 
+    def test_a_newer_run_of_another_app_with_the_same_name_replaces_the_real_one(self):
+        # Pins develop as it is (#976): newest_runs keys by the name alone, so a newer green
+        # run posted by ANOTHER app under a required check's name replaces the real red run,
+        # and the merge would go through. The fix keys by (app, name), keeps both, and the
+        # standing duplicate rule lets the red one block.
+        runs = [
+            {"id": 30, "name": "build", "status": "completed", "conclusion": "success",
+             "app": "some-other-app"},
+            {"id": 20, "name": "build", "status": "completed", "conclusion": "failure",
+             "app": "github-actions"}]
+        entries = parse_checks(runs, [])
+        self.assertEqual([RollupEntry("build", True, "SUCCESS")], entries)
+        self.assertTrue(judge(entries + [RollupEntry("closing-references", True, "SUCCESS"),
+                                         RollupEntry("release-freeze", True, "SUCCESS")],
+                              REQUIRED).mergeable,
+                        "develop today: the foreign green hides the red required run")
+
     def test_runs_of_different_checks_are_all_kept(self):
         runs = [{"id": 2, "name": "build", "status": "completed", "conclusion": "success"},
                 {"id": 1, "name": "CodeQL", "status": "completed", "conclusion": "failure"}]
