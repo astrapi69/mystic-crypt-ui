@@ -53,8 +53,12 @@ import java.util.UUID;
  * on standard input; with {@code --key-file <PEM file>} after the vault file, the vault is protected
  * by that key alone, through the release's key-file save path; with
  * {@code --password-and-key-file <PEM file>}, by the password and that key together, through the
- * release's save path for both (#650). It prints what it wrote, one line
- * per entry ({@code EntryLines}), then WRITTEN. Nothing of this checkout is on the class path.
+ * release's save path for both (#650). With {@code --with-keepass-import <kdbx> <its password>}
+ * the release's own "Import from KeePass" adds that database's groups and entries under the root;
+ * with {@code --with-lethenon-wallet <network>} the release's lethenon plugin, whose classes and
+ * lib jars stand on the class path, adds a new wallet through the host's plugin vault access. It
+ * prints what it wrote, one line per entry ({@code EntryLines}), then WRITTEN. Nothing of this
+ * checkout is on the class path.
  */
 public class WriteWithAnOldRelease
 {
@@ -105,9 +109,20 @@ public class WriteWithAnOldRelease
 			rootElement, null, idGenerator);
 		Object rootNode = initialize.invoke(null, rootElement, null, idGenerator);
 		Object keysNode = initialize.invoke(null, keysElement, rootNode, idGenerator);
+		Long keysId = (Long)keysNode.getClass().getMethod("getId").invoke(keysNode);
+		int keePassImport = indexOf(arguments, "--with-keepass-import");
+		if (0 < keePassImport)
+		{
+			keysId = importKeePass(rootNode, idGenerator,
+				new File(arguments[keePassImport + 1]).getAbsoluteFile(), arguments[keePassImport + 2]);
+		}
+		int wallet = indexOf(arguments, "--with-lethenon-wallet");
+		if (0 < wallet)
+		{
+			addLethenonWallet(rootElement, keysElement, arguments[wallet + 1], password);
+		}
 		Map<?, ?> treeAsMap = (Map<?, ?>)Overloads.method(transformerType, "toKeyMap", rootNode)
 			.invoke(null, rootNode);
-		Long keysId = (Long)keysNode.getClass().getMethod("getId").invoke(keysNode);
 
 		Object credentials = credentialsType.getDeclaredConstructor().newInstance();
 		Class<?> fileInfoType = credentialsType.getDeclaredField("applicationFileInfo").getType();
@@ -149,9 +164,154 @@ public class WriteWithAnOldRelease
 				? "saveToFileWithPasswordAndPrivateKey"
 				: withKeyFile ? "saveToFileWithPrivateKey" : "saveToFileWithPassword", modelType)
 			.invoke(null, model);
-		OUT.println("GROUPS " + treeAsMap.size() + " ENTRIES 2 FIELDS " + fieldsOf(entryType));
-		EntryLines.of(model).forEach(OUT::println);
+		List<String> lines = EntryLines.of(model);
+		OUT.println("GROUPS " + treeAsMap.size() + " ENTRIES " + lines.size() + " FIELDS "
+			+ fieldsOf(entryType));
+		lines.forEach(OUT::println);
 		OUT.println("WRITTEN");
+	}
+
+	private static int indexOf(final String[] arguments, final String flag)
+	{
+		for (int index = 1; index < arguments.length; index++)
+		{
+			if (flag.equals(arguments[index]))
+			{
+				return index;
+			}
+		}
+		return -1;
+	}
+
+	/**
+	 * Imports a KeePass database into the tree the way the release's own "Import from KeePass"
+	 * does: {@code KdbxDatabase.read} with the release's KeePassJava2, then
+	 * {@code KeePassTreeConverter.toTreeNode} under the root, ids from the release's generator. Only
+	 * releases that have the converter (8.x with #384) can do it
+	 *
+	 * @return the last id the import gave out, which the model records
+	 */
+	private static Long importKeePass(final Object rootNode, final Object idGenerator,
+		final File kdbx, final String kdbxPassword) throws Exception
+	{
+		// four generations of KeePassJava2 across 8.x, each with the call its release makes: 8.1.1
+		// SimpleDatabase.load with KdbxCreds, then JacksonDatabase.load, in 8.7 and 8.8
+		// KdbxDatabase.load with KdbxCredentials, from 8.9 KdbxDatabase.read
+		String[][] generations = {
+				{ "org.linguafranca.pwdb.format.KdbxCredentials",
+						"org.linguafranca.pwdb.kdbx.jackson.KdbxDatabase", "read" },
+				{ "org.linguafranca.pwdb.format.KdbxCredentials",
+						"org.linguafranca.pwdb.kdbx.jackson.KdbxDatabase", "load" },
+				{ "org.linguafranca.pwdb.kdbx.KdbxCreds",
+						"org.linguafranca.pwdb.kdbx.jackson.JacksonDatabase", "load" },
+				{ "org.linguafranca.pwdb.kdbx.KdbxCreds",
+						"org.linguafranca.pwdb.kdbx.simple.SimpleDatabase", "load" } };
+		Object database = null;
+		for (String[] generation : generations)
+		{
+			Class<?> credentialsType;
+			Class<?> databaseType;
+			try
+			{
+				credentialsType = Class.forName(generation[0]);
+				databaseType = Class.forName(generation[1]);
+			}
+			catch (ClassNotFoundException notThisGeneration)
+			{
+				continue;
+			}
+			Object credentials = credentialsType.getConstructor(byte[].class)
+				.newInstance((Object)kdbxPassword.getBytes(StandardCharsets.UTF_8));
+			try (java.io.InputStream in = new java.io.FileInputStream(kdbx))
+			{
+				Method read;
+				try
+				{
+					read = Overloads.method(databaseType, generation[2], credentials, in);
+				}
+				catch (NoSuchMethodException notThisGeneration)
+				{
+					continue;
+				}
+				database = read.invoke(null, credentials, in);
+			}
+			break;
+		}
+		if (database == null)
+		{
+			throw new ClassNotFoundException("no KeePassJava2 database class of a known generation");
+		}
+		Object rootGroup = database.getClass().getMethod("getRootGroup").invoke(database);
+		Method nextId = idGenerator.getClass().getMethod("getNextId");
+		Long[] last = { null };
+		java.util.function.Supplier<Long> ids = () -> {
+			try
+			{
+				last[0] = (Long)nextId.invoke(idGenerator);
+				return last[0];
+			}
+			catch (ReflectiveOperationException failed)
+			{
+				throw new IllegalStateException(failed);
+			}
+		};
+		Class<?> converter = Class.forName("io.github.astrapi69.mystic.crypt.keepass.KeePassTreeConverter");
+		Overloads.method(converter, "toTreeNode", rootGroup, rootNode, ids).invoke(null, rootGroup,
+			rootNode, ids);
+		OUT.println("IMPORTED " + kdbx.getName() + " up to id " + last[0]);
+		return last[0];
+	}
+
+	/**
+	 * Adds a lethenon wallet the way the release's lethenon plugin does: {@code WalletVault.create}
+	 * seals a new wallet with lethenon's {@code WalletFile}, {@code VaultWalletEntry.write} puts it
+	 * on a new entry, and the host's own plugin vault access, {@code MarkedEntryAccess}, adds it to
+	 * the vault - the one path a plugin has into a vault (#675). The plugin's classes and its lib
+	 * jars come from the release's installer and stand on the class path beside the application
+	 * jar; the wallet is sealed with the vault's password, so no second password is written down
+	 */
+	private static void addLethenonWallet(final Object rootElement, final Object keysElement,
+		final String network, final char[] password) throws Exception
+	{
+		Class<?> walletVault = Class.forName("io.github.astrapi69.mystic.crypt.plugin.lethenon.WalletVault");
+		Method create = walletVault.getDeclaredMethod("create", String.class, char[].class);
+		create.setAccessible(true);
+		Object created = create.invoke(null, network, password.clone());
+		Method entryOfCreated = created.getClass().getDeclaredMethod("entry");
+		entryOfCreated.setAccessible(true);
+		Object walletEntry = entryOfCreated.invoke(created);
+
+		Class<?> entryType = Class
+			.forName("io.github.astrapi69.mystic.crypt.panel.dbtree.MysticCryptEntryModelBean");
+		Object entry = entryType.getDeclaredConstructor().newInstance();
+		set(entry, "id", UUID.randomUUID());
+		Class<?> vaultWalletEntry = Class
+			.forName("io.github.astrapi69.mystic.crypt.plugin.lethenon.VaultWalletEntry");
+		Method write = vaultWalletEntry.getDeclaredMethod("write", walletEntry.getClass(), entryType);
+		write.setAccessible(true);
+		write.invoke(null, walletEntry, entry);
+
+		@SuppressWarnings("unchecked")
+		List<Object> rootEntries = (List<Object>)rootElement.getClass().getMethod("getDefaultContent")
+			.invoke(rootElement);
+		@SuppressWarnings("unchecked")
+		List<Object> keysEntries = (List<Object>)keysElement.getClass().getMethod("getDefaultContent")
+			.invoke(keysElement);
+		Class<?> stateType = Class.forName("io.github.astrapi69.mystic.crypt.plugin.vault.VaultState");
+		Object state = java.lang.reflect.Proxy.newProxyInstance(stateType.getClassLoader(),
+			new Class<?>[] { stateType }, (proxy, method, parameters) -> switch (method.getName())
+			{
+				case "isOpen", "isUnlocked" -> true;
+				case "readOnlyReason" -> null;
+				case "entryLists" -> List.of(rootEntries, keysEntries);
+				case "rootEntries" -> rootEntries;
+				case "markChanged" -> null;
+				default -> throw new UnsupportedOperationException(method.getName());
+			});
+		Object access = Class.forName("io.github.astrapi69.mystic.crypt.plugin.vault.MarkedEntryAccess")
+			.getConstructor(String.class, stateType).newInstance("lethenon.wallet", state);
+		access.getClass().getMethod("add", entryType).invoke(access, entry);
+		OUT.println("WALLET " + network + " added through MarkedEntryAccess");
 	}
 
 	/**

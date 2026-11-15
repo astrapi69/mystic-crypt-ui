@@ -20,10 +20,12 @@
  */
 package io.github.astrapi69.mystic.crypt.plugin.obfuscation;
 
+import java.util.LinkedHashSet;
 import java.util.List;
 
 import com.thoughtworks.xstream.XStream;
 import com.thoughtworks.xstream.security.ForbiddenClassException;
+import com.thoughtworks.xstream.security.NoTypePermission;
 
 import io.github.astrapi69.collection.pair.KeyValuePair;
 import io.github.astrapi69.crypt.data.obfuscation.rule.ObfuscationOperationRule;
@@ -32,19 +34,24 @@ import io.github.astrapi69.xstream.factory.XStreamFactory;
 
 /**
  * Reads the rule tables the two obfuscation windows import, the XML their export wrote, once it is
- * decrypted. Each table is read with an XStream that builds XStream's own standard types and the
- * types of that table, and refuses every other type before it is built.
+ * decrypted. Each table is read with an XStream that starts from no type and allows exactly the
+ * types of that table, standard types of the JDK included, and refuses every other type before it
+ * is built: what the reader admits and what a table needs are the one list of that table.
  */
 public final class ObfuscationRuleTableXml
 {
 
-	/** The types of a table of the simple obfuscation window */
+	/**
+	 * Every type a table of the simple obfuscation window names, measured by recording what the
+	 * reader checks over every table the plugin's suites and the end-to-end suite export and import
+	 */
 	private static final Class<?>[] SIMPLE_RULE_TABLE_TYPES = { KeyValuePair.class,
-			ObfuscationRule.class };
+			ObfuscationRule.class, List.class, Character.class };
 
-	/** The types of a table of the character operation window */
+	/** Every type a table of the character operation window names, measured the same way */
 	private static final Class<?>[] OPERATION_RULE_TABLE_TYPES = { KeyValuePair.class,
-			ObfuscationOperationRule.class };
+			ObfuscationOperationRule.class, List.class, Character.class, Integer.class,
+			LinkedHashSet.class };
 
 	private ObfuscationRuleTableXml()
 	{
@@ -123,6 +130,8 @@ public final class ObfuscationRuleTableXml
 	private static <T> T read(final String xml, final Class<?>[] types)
 	{
 		XStream xStream = XStreamFactory.newXStream();
+		// the factory hands out XStream's own default list of standard types; start from none
+		xStream.addPermission(NoTypePermission.NONE);
 		xStream.allowTypes(types);
 		try
 		{

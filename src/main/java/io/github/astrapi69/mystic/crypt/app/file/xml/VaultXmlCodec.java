@@ -25,11 +25,17 @@
 package io.github.astrapi69.mystic.crypt.app.file.xml;
 
 import java.io.CharArrayReader;
+import java.time.OffsetDateTime;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 import com.thoughtworks.xstream.XStream;
 import com.thoughtworks.xstream.XStreamException;
 import com.thoughtworks.xstream.security.ForbiddenClassException;
+import com.thoughtworks.xstream.security.NoTypePermission;
 
 import io.github.astrapi69.collection.pair.KeyValuePair;
 import io.github.astrapi69.file.create.model.FileContentInfo;
@@ -50,10 +56,10 @@ import io.github.astrapi69.xstream.factory.XStreamFactory;
  * largest single reason the decrypted database was still lying in the heap after the vault had been
  * closed: it cannot be overwritten, and there was one of it per save and one per load.
  * <p>
- * The xml itself does not change. This goes through the same {@link XStreamFactory} configuration
- * the extensions go through - the same instance shape, the same allowed types - and writes into a
- * {@link java.io.Writer} instead of into a String, which is a difference in where the characters
- * land and in nothing else.
+ * The xml itself does not change. This takes its XStream from the same {@link XStreamFactory} the
+ * extensions use and writes into a {@link java.io.Writer} instead of into a String, which is a
+ * difference in where the characters land and in nothing else. What the reader builds is not the
+ * factory's: it starts from no type and allows exactly {@link #VAULT_TYPES}.
  * <p>
  * <b>Two additions to that configuration, both for the vault format (#402).</b> The version is
  * written as an attribute of the root element, and an element this build does not know is skipped
@@ -101,14 +107,19 @@ public final class VaultXmlCodec
 		"io.github.astrapi69.file.create.FileContentInfo", FileContentInfo.class);
 
 	/**
-	 * The types of this project's namespace that a vault holds, and the only ones the reader builds
-	 * besides XStream's own standard types. Measured over every vault the test suites write and
-	 * read, the end-to-end suites with every plugin and the KeePass import among them, and the
-	 * vaults the published releases wrote. A type that is not here is refused before it is built.
+	 * Every type a vault's xml names, and the only types the reader builds: the reader starts from
+	 * none and allows exactly these, so what it admits and what a vault needs are this one list. A
+	 * type that is not here is refused before it is built, a standard type of the JDK as much as
+	 * one of this project. Measured by recording every type the reader checks over every vault the
+	 * test suites write and read - the end-to-end suites with every plugin, the KeePass import with
+	 * its history, a lethenon wallet stored through the plugin vault access - and the vaults the
+	 * published releases from 7.2 to 8.14 wrote ({@code compat/vaults}).
 	 */
 	private static final Class<?>[] VAULT_TYPES = { ApplicationModelBean.class,
 			MysticCryptEntryModelBean.class, TreeIdNode.class, GenericTreeElement.class,
-			KeyValuePair.class, FileContentInfo.class };
+			KeyValuePair.class, FileContentInfo.class, String.class, Boolean.class, Integer.class,
+			Long.class, UUID.class, OffsetDateTime.class, List.class, LinkedHashMap.class,
+			LinkedHashSet.class };
 
 	private VaultXmlCodec()
 	{
@@ -227,17 +238,19 @@ public final class VaultXmlCodec
 	}
 
 	/**
-	 * One instance for reading and writing, so the two cannot drift apart: XStream with its own
-	 * standard types and {@link #VAULT_TYPES}, nothing else. On top of it the format version as an
-	 * attribute and the skipping of unknown elements - see the class Javadoc. The instance comes
-	 * from {@link XStreamFactory} of xstream-extensions, a dependency; reading and writing call
-	 * XStream on it directly
+	 * One instance for reading and writing, so the two cannot drift apart: XStream allowed
+	 * {@link #VAULT_TYPES} and nothing else. {@link XStreamFactory} hands out XStream's own default
+	 * list of standard types, which is far wider than a vault; {@link NoTypePermission#NONE} clears
+	 * it, so the reader starts from no type at all. On top of it the format version as an attribute
+	 * and the skipping of unknown elements - see the class Javadoc. Reading and writing call
+	 * XStream on the instance directly
 	 *
 	 * @return the configured instance
 	 */
 	private static XStream newXStream()
 	{
 		XStream xStream = XStreamFactory.newXStream();
+		xStream.addPermission(NoTypePermission.NONE);
 		xStream.allowTypes(VAULT_TYPES);
 		xStream.useAttributeFor(ApplicationModelBean.class, FORMAT_VERSION_FIELD);
 		xStream.ignoreUnknownElements();
