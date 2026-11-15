@@ -42,6 +42,7 @@ import org.pf4j.PluginState;
 import org.pf4j.PluginWrapper;
 
 import io.github.astrapi69.mystic.crypt.Messages;
+import io.github.astrapi69.mystic.crypt.plugin.PluginArchives;
 
 /**
  * The "Plugins" tab of the settings dialog: lists the installed pf4j plugins with their id, version
@@ -141,6 +142,20 @@ public class PluginsSettingsPanel extends JPanel
 		{
 			Path target = pluginManager.getPluginsRoot().resolve(zip.getName());
 			Files.copy(zip.toPath(), target, StandardCopyOption.REPLACE_EXISTING);
+			if (PluginArchives.unpackIfChanged(target) == PluginArchives.Outcome.AFTER_RESTART)
+			{
+				// a plugin that is loaded keeps its files open on Windows: its new version is in
+				// place as a zip, and the next start unpacks it (#998)
+				JOptionPane.showMessageDialog(this, Messages.getString(
+					"settings.plugins.install.after.restart.message",
+					"The plugin is in use. Its new version is installed and runs after the next start of the application."),
+					Messages.getString("settings.plugins.install.after.restart.title",
+						"Plugin updated at the next start"),
+					JOptionPane.INFORMATION_MESSAGE);
+				refresh();
+				onPluginsChanged.run();
+				return;
+			}
 			String pluginId = pluginManager.loadPlugin(target);
 			if (pluginId != null)
 			{

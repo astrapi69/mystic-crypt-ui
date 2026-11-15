@@ -69,6 +69,13 @@ jobs:
         # the plugin is a Gradle build of its own and compiles against the host through mavenLocal()
         shell: bash
         run: ./gradlew publishToMavenLocal -x test
+      - name: Unpack a plugin zip again while a jar of its directory is held open (#998)
+        # the application unpacks a plugin by its content; on Windows an open jar can keep the old
+        # directory in place, which must leave no half directory and no new checksum behind
+        shell: bash
+        run: |
+          ./gradlew pluginArchivesTest
+          grep -ho "MEASURED #998[^<]*" build/test-results/pluginArchivesTest/*.xml
       - name: Start the plugin from its zip
         shell: bash
         run: ./gradlew -p plugins/lethenon-plugin zipTest
