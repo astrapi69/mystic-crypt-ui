@@ -174,12 +174,11 @@ Three differences from the window are worth knowing:
 - **The command line asks for the passphrase once.** There is no second field to catch a typo,
   so an encryption with a mistyped passphrase succeeds and cannot be opened again.
 - **It writes over an existing output file without asking.** The window refuses instead.
-- **It writes a different format.** Files from this window start with the marker `MCFILE1` and
-  are named `.mcenc`; `encrypt` writes files that start with `MCFILE`, and `decrypt` also reads
-  the older `MCRYPT` layout. What was encrypted in this window is opened in this window, what was
-  encrypted on the command line is decrypted on the command line. The window refuses a file from
-  the command line with `the marker is missing`, and `decrypt` cannot open a file from the window
-  either: do not give it a `.mcenc` file.
+- **It writes a different format, and each side reads the other's.** Files from this window
+  start with the marker `MCFILE1` and are named `.mcenc`; `encrypt` writes files that start with
+  `MCFILE`, and wrote the `MCRYPT` layout before that. The window opens all three, as files and as
+  texts, and `decrypt` opens a file or a text from the window. Only reading is shared: each side
+  still writes its own format (#877).
 
 ## Limits and pitfalls
 
@@ -196,8 +195,8 @@ Three differences from the window are worth knowing:
 - **A wrong passphrase produces nothing, not garbage.** Decrypting with the wrong passphrase, or
   a file changed by so much as one bit afterwards, is refused and no output file is written.
   That also means this tool cannot repair a damaged encrypted file, not even partially.
-- **Only files this tool wrote can be read back.** Every result carries a marker; anything else,
-  including files encrypted by other programs and by the `encrypt` command, is refused with
+- **Only this tool's files and those of the `encrypt` command can be read back.** Every result
+  carries a marker; anything else, files encrypted by other programs included, is refused with
   `the marker is missing`. Files written here are equally useless to other tools.
 - **Decrypting next to the original does not work by default.** With **Write to:** empty,
   `report.pdf.mcenc` wants to be written as `report.pdf`; if the original is still lying there,

@@ -326,7 +326,8 @@ Differences that matter when working on these paths:
 `plugins/file-crypt-plugin/src/main/java/io/github/astrapi69/mystic/crypt/plugin/filecrypt/FileCryptSupport.java`,
 whose files start with the ASCII marker `MCFILE1` and otherwise have exactly the layout above (a
 7-byte marker instead of a 6-byte one, so its header is 27 bytes). Encrypted files get the extension
-`.mcenc` by default.
+`.mcenc` by default. It reads through mystic-crypt's `PassphraseFileFormat.open`, so it also opens what
+the library's `encrypt` writes (`MCFILE`) and wrote first (`MCRYPT`); it writes only `MCFILE1` (#877).
 
 Practical consequence: a change to `PassphraseEnvelope` changes both formats at once. Anything done there
 has to be proven for the database and for the plugin.

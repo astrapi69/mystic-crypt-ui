@@ -28,9 +28,12 @@ import java.io.File;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.security.GeneralSecurityException;
 import java.util.Base64;
 
 import io.github.astrapi69.mystic.crypt.pw.PassphraseEnvelope;
+import io.github.astrapi69.mystic.crypt.pw.PassphraseFileFormat;
+import io.github.astrapi69.mystic.crypt.secret.SecretBuffers;
 
 /**
  * Encrypting and decrypting a file or a piece of text with a passphrase, without any user
@@ -46,7 +49,10 @@ import io.github.astrapi69.mystic.crypt.pw.PassphraseEnvelope;
 public final class FileCryptSupport
 {
 
-	/** The marker every file this tool writes starts with */
+	/**
+	 * The marker every file this tool writes starts with. What it reads is wider: every format a
+	 * file sealed with a passphrase comes in across the library family (#877)
+	 */
 	public static final byte[] MAGIC = "MCFILE1".getBytes(StandardCharsets.US_ASCII);
 
 	/** What is appended to the name of an encrypted file when no other name was given */
@@ -132,7 +138,9 @@ public final class FileCryptSupport
 	}
 
 	/**
-	 * Decrypts a file that was encrypted with {@link #encryptFile(File, File, String)}
+	 * Decrypts a file that was encrypted with {@link #encryptFile(File, File, String)}, or with
+	 * {@code encrypt} of the mystic-crypt command line, in its current layout or in the one it
+	 * wrote first (#877)
 	 *
 	 * @param source
 	 *            the encrypted file, which is left as it is
@@ -150,8 +158,7 @@ public final class FileCryptSupport
 	{
 		requireUsable(source, passphrase);
 		File decryptedFile = target != null ? target : defaultDecryptedFile(source);
-		byte[] decrypted = PassphraseEnvelope.decrypt(MAGIC, Files.readAllBytes(source.toPath()),
-			passphrase);
+		byte[] decrypted = open(Files.readAllBytes(source.toPath()), passphrase);
 		writeNewFile(decryptedFile.toPath(), decrypted);
 		return decryptedFile;
 	}
@@ -175,7 +182,8 @@ public final class FileCryptSupport
 	}
 
 	/**
-	 * Decrypts what {@link #encryptText(String, String)} produced
+	 * Decrypts what {@link #encryptText(String, String)} produced, or what
+	 * {@code encrypt --text} of the mystic-crypt command line printed (#877)
 	 *
 	 * @param encrypted
 	 *            the encrypted text as Base64
@@ -199,7 +207,30 @@ public final class FileCryptSupport
 			throw new IllegalArgumentException(
 				"this is not something this tool encrypted: it is not even Base64", exception);
 		}
-		return new String(PassphraseEnvelope.decrypt(MAGIC, content, passphrase), StandardCharsets.UTF_8);
+		return new String(open(content, passphrase), StandardCharsets.UTF_8);
+	}
+
+	/**
+	 * Opens content in any of the formats the library reads: what this tool writes, and what the
+	 * command line's {@code encrypt} writes and wrote
+	 *
+	 * @throws IllegalArgumentException
+	 *             if it is in none of them, or cut short behind its marker
+	 * @throws SecurityException
+	 *             if the passphrase is wrong or the content was altered
+	 */
+	private static byte[] open(final byte[] content, final String passphrase)
+		throws GeneralSecurityException
+	{
+		char[] characters = passphrase.toCharArray();
+		try
+		{
+			return PassphraseFileFormat.open(content, characters);
+		}
+		finally
+		{
+			SecretBuffers.wipe(characters);
+		}
 	}
 
 	private static void requireUsable(final File source, final String passphrase)
