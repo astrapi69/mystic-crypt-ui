@@ -73,6 +73,22 @@ class DecryptWhatTheWindowWroteTest
 	/** The window's text, as the Base64 it shows */
 	private static final String TEXT = "written-by-the-window.text";
 
+	/**
+	 * What the file of the published 8.2's window holds, as
+	 * {@code scripts/fixtures/WriteFileCryptWithAnOldRelease.java} wrote it through that release's
+	 * own window
+	 */
+	private static final String WINDOW_OF_8_2_FILE = "a file the file encryption window of 8.2 sealed\n";
+
+	/** What the text of the published 8.2's window was */
+	private static final String WINDOW_OF_8_2_TEXT = "a text the file encryption window of 8.2 sealed: ä ö ü ß";
+
+	/** The file the window of the published 8.2 wrote */
+	private static final String FILE_OF_8_2 = "written-by-the-window-8.2.txt.mcenc";
+
+	/** The text the window of the published 8.2 wrote, as the Base64 it showed */
+	private static final String TEXT_OF_8_2 = "written-by-the-window-8.2.text";
+
 	private String originalPluginsDirectory;
 
 	/** What a run of the command line ended with and printed */
@@ -122,6 +138,34 @@ class DecryptWhatTheWindowWroteTest
 
 		assertEquals(0, run.exitCode(), run.err());
 		assertEquals(WINDOW_TEXT, run.out().strip());
+	}
+
+	/**
+	 * A file the window of the published 8.2 wrote, the first release with the window, before #490
+	 * moved it onto the library's envelope: a format once written stays readable (#877)
+	 */
+	@Test
+	void decryptOpensAFileTheWindowOfEightTwoWrote(@TempDir File directory) throws IOException
+	{
+		File sealed = fixture(directory, FILE_OF_8_2, fixtureBytes(FILE_OF_8_2));
+		File back = new File(directory, "back.txt");
+
+		Run run = run(TestPasswords.FILE_CRYPT_WINDOW_FIXTURE, "decrypt", "-i", sealed.getPath(),
+			"-o", back.getPath(), "--passphrase-stdin");
+
+		assertEquals(0, run.exitCode(), run.err());
+		assertEquals(WINDOW_OF_8_2_FILE, Files.readString(back.toPath(), StandardCharsets.UTF_8));
+	}
+
+	/** A text the window of the published 8.2 wrote */
+	@Test
+	void decryptOpensATextTheWindowOfEightTwoWrote() throws IOException
+	{
+		Run run = run(TestPasswords.FILE_CRYPT_WINDOW_FIXTURE, "decrypt", "--text",
+			fixtureText(fixtureBytes(TEXT_OF_8_2)), "--passphrase-stdin");
+
+		assertEquals(0, run.exitCode(), run.err());
+		assertEquals(WINDOW_OF_8_2_TEXT, run.out().strip());
 	}
 
 	/** What is wrong with a window file handed to decrypt: the passphrase, or the bytes */
@@ -236,7 +280,7 @@ class DecryptWhatTheWindowWroteTest
 				throw new IOException("the fixture /compat/file-crypt/" + name + " is missing");
 			}
 			byte[] content = in.readAllBytes();
-			return TEXT.equals(name)
+			return name.endsWith(".text")
 				? Base64.getDecoder().decode(new String(content, StandardCharsets.US_ASCII).strip())
 				: content;
 		}
