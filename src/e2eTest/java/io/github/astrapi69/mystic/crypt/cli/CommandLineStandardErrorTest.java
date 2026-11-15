@@ -60,6 +60,7 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.pf4j.Plugin;
 
+import io.github.astrapi69.mystic.crypt.ForkedJvm;
 import io.github.astrapi69.mystic.crypt.StartMysticCryptApplication;
 import io.github.astrapi69.mystic.crypt.TestPasswords;
 
@@ -342,6 +343,7 @@ class CommandLineStandardErrorTest
 		List<String> processArguments = new ArrayList<>();
 		processArguments.add(Path.of(System.getProperty("java.home"), "bin", "java").toString());
 		processArguments.add("-Duser.home=" + home);
+		processArguments.addAll(ForkedJvm.localeOptions());
 		if (verbose)
 		{
 			processArguments.add("-D" + MysticCryptUiCli.VERBOSE_PROPERTY + "=true");
