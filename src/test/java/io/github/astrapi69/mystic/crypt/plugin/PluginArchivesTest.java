@@ -25,6 +25,8 @@
 package io.github.astrapi69.mystic.crypt.plugin;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -33,30 +35,39 @@ import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.attribute.FileTime;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.HexFormat;
+import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import org.pf4j.DefaultPluginRepository;
 import org.pf4j.util.FileUtils;
 
 /**
  * How the plugins directory is unpacked when the application starts (#998): the installer puts a
  * plugin's zip into {@code ~/.config/mystic-crypt-ui/plugins} with the time it was built, and pf4j
- * unpacks a zip next to it only when the zip is newer than the directory unpacked before
+ * unpacks a zip next to it only when the zip is newer than the directory unpacked before. The
+ * application unpacks by content first ({@link PluginArchives}), then pf4j does its own part
  */
 class PluginArchivesTest
 {
 
 	private static final String PLUGIN = "demo-plugin-1.0.0";
 
+	/** A file that is in no zip: it is there as long as the directory is not unpacked again */
+	private static final String SENTINEL = "not-from-the-zip.txt";
+
 	@TempDir
 	Path pluginsRoot;
 
 	@Test
-	@DisplayName("a directory younger than a zip with other content keeps the old content")
-	void aDirectoryYoungerThanAChangedZip_keepsTheOldContent() throws IOException
+	@DisplayName("a directory younger than a zip with other content gets the new content")
+	void aDirectoryYoungerThanAChangedZip_getsTheNewContent() throws Exception
 	{
 		Path zip = writeZip("version 1");
 		unpackAsTheApplicationStarts();
@@ -66,12 +77,76 @@ class PluginArchivesTest
 		makeOlderThan(zip, directory);
 		unpackAsTheApplicationStarts();
 
+		assertEquals("version 2", content(directory));
+		assertEquals(sha256(zip), recorded(directory));
+	}
+
+	@Test
+	@DisplayName("a zip with the content the directory was unpacked from is not unpacked again")
+	void aZipWithTheSameContent_isNotUnpackedAgain() throws Exception
+	{
+		writeZip("version 1");
+		unpackAsTheApplicationStarts();
+		Path directory = pluginsRoot.resolve(PLUGIN);
+		Files.writeString(directory.resolve(SENTINEL), "kept");
+
+		unpackAsTheApplicationStarts();
+
+		assertTrue(Files.exists(directory.resolve(SENTINEL)), "the directory was unpacked again");
 		assertEquals("version 1", content(directory));
 	}
 
-	/** What the start of the application does with the plugins directory: pf4j's own unpacking */
+	@Test
+	@DisplayName("a directory without a recorded checksum, as 8.14 left it, is unpacked once again")
+	void aDirectoryWithoutARecordedChecksum_isUnpackedOnceAgain() throws Exception
+	{
+		Path zip = writeZip("version 1");
+		FileUtils.expandIfZip(zip);
+		Path directory = pluginsRoot.resolve(PLUGIN);
+		Files.writeString(directory.resolve(SENTINEL), "from 8.14");
+
+		unpackAsTheApplicationStarts();
+
+		assertFalse(Files.exists(directory.resolve(SENTINEL)),
+			"the directory was not unpacked again");
+		assertEquals(sha256(zip), recorded(directory));
+
+		Files.writeString(directory.resolve(SENTINEL), "kept");
+		unpackAsTheApplicationStarts();
+
+		assertTrue(Files.exists(directory.resolve(SENTINEL)), "unpacked a second time");
+	}
+
+	@Test
+	@DisplayName("pf4j takes the checksum file for no plugin")
+	void theChecksumFile_isNoPluginForPf4j() throws Exception
+	{
+		writeZip("version 1");
+		unpackAsTheApplicationStarts();
+
+		List<Path> plugins = new DefaultPluginRepository(pluginsRoot).getPluginPaths();
+
+		assertEquals(List.of(pluginsRoot.resolve(PLUGIN)), plugins);
+	}
+
+	@Test
+	@DisplayName("a plugins directory that does not exist is left alone")
+	void aMissingPluginsDirectory_isLeftAlone() throws IOException
+	{
+		Path missing = pluginsRoot.resolve("not-there");
+
+		PluginArchives.unpackChanged(missing);
+
+		assertFalse(Files.exists(missing));
+	}
+
+	/**
+	 * What the start of the application does with the plugins directory: it unpacks by content,
+	 * then pf4j unpacks as it always does
+	 */
 	private void unpackAsTheApplicationStarts() throws IOException
 	{
+		PluginArchives.unpackChanged(pluginsRoot);
 		try (DirectoryStream<Path> zips = Files.newDirectoryStream(pluginsRoot, "*.zip"))
 		{
 			for (Path zip : zips)
@@ -108,5 +183,18 @@ class PluginArchivesTest
 	private static String content(final Path directory) throws IOException
 	{
 		return Files.readString(directory.resolve("classes/version.txt"), StandardCharsets.UTF_8);
+	}
+
+	private static String recorded(final Path directory) throws IOException
+	{
+		return Files.readString(
+			directory.resolveSibling(directory.getFileName() + PluginArchives.CHECKSUM_SUFFIX),
+			StandardCharsets.US_ASCII).strip();
+	}
+
+	private static String sha256(final Path file) throws IOException, NoSuchAlgorithmException
+	{
+		return HexFormat.of()
+			.formatHex(MessageDigest.getInstance("SHA-256").digest(Files.readAllBytes(file)));
 	}
 }

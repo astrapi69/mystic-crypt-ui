@@ -42,6 +42,7 @@ import org.pf4j.PluginState;
 import org.pf4j.PluginWrapper;
 
 import io.github.astrapi69.mystic.crypt.Messages;
+import io.github.astrapi69.mystic.crypt.plugin.PluginArchives;
 
 /**
  * The "Plugins" tab of the settings dialog: lists the installed pf4j plugins with their id, version
@@ -141,6 +142,7 @@ public class PluginsSettingsPanel extends JPanel
 		{
 			Path target = pluginManager.getPluginsRoot().resolve(zip.getName());
 			Files.copy(zip.toPath(), target, StandardCopyOption.REPLACE_EXISTING);
+			PluginArchives.unpackIfChanged(target);
 			String pluginId = pluginManager.loadPlugin(target);
 			if (pluginId != null)
 			{
