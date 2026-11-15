@@ -34,3 +34,27 @@ with the passphrase on standard input. `encrypt` runs through `MysticCryptCli.ex
 
 The byte after the `MCFILE` marker of both `encrypt` files is the first byte of a random salt: 0x4a for the file,
 0xbe for the text. Neither is `1` (0x31), so neither also starts with `MCFILE1`.
+
+## The window of the published 8.2
+
+`written-by-the-window-8.2.txt.mcenc` (135 bytes, the marker `MCFILE1`) and `written-by-the-window-8.2.text` (196
+Base64 characters) were written by the file encryption window of the published 8.2, the first release with the
+window, before #490 moved it onto the library's `PassphraseEnvelope` (from 8.7, "byte for byte the same layout"). They
+hold `a file the file encryption window of 8.2 sealed` and a line break, and
+`a text the file encryption window of 8.2 sealed: ä ö ü ß`. The passphrase is the host's `TestPasswords.FILE_CRYPT_WINDOW_FIXTURE`, kept in the test as `WINDOW_FILES_FIXTURE`. `FileCryptSupportOpensWhatEightTwoWroteTest` opens them with today's window.
+
+On 2026-11-15, with OpenJDK 25.0.5 and nothing of this checkout on the class path:
+
+```
+scripts/fixtures/write-file-crypt-of-an-old-release.sh 8.2 <empty directory>
+```
+
+It took `mystic-crypt-ui-8.2-installer.jar` from RELEASE-8.2, checked it against the published sha256
+`c00409e0ede55e459693485e3d3024bc8076f92b209f7f322ac2e4d089efb626`, and called that release's own
+`FileCryptSupport.encryptFile` and `encryptText` from its application jar and its file-crypt plugin
+(`scripts/fixtures/WriteFileCryptWithAnOldRelease.java`). The same two files are in `src/test/resources/compat/file-crypt` of the host, where `--cli decrypt` opens them (`DecryptWhatTheWindowWroteTest`), byte for byte.
+
+| file | sha256 |
+|---|---|
+| `written-by-the-window-8.2.txt.mcenc` | `b0d6bfbb4112cd7d49ba046491be12d2c207010b05e38092e95d356c195559f8` |
+| `written-by-the-window-8.2.text` | `72fb42636ee464bc6e6f3ff8643705e8d294f6d8cedfd858422e909fad0049fc` |
