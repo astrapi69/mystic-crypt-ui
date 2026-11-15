@@ -267,3 +267,18 @@ jacocoTestReport {
 }
 
 check.dependsOn jacocoTestReport
+
+// PluginArchivesTest opens no window, so a headless task of its own runs it on macOS and Windows too,
+// where no build display exists: the platform workflow measures there what a plugin jar that is held
+// open does to unpacking a zip again (#998). It is the same class the unit suite runs.
+tasks.register('pluginArchivesTest', Test) {
+    description = 'PluginArchivesTest alone, headless, for the platform workflow (#998)'
+    group = 'verification'
+    testClassesDirs = sourceSets.test.output.classesDirs
+    classpath = sourceSets.test.runtimeClasspath
+    useJUnitPlatform()
+    filter {
+        includeTestsMatching 'io.github.astrapi69.mystic.crypt.plugin.PluginArchivesTest'
+    }
+    systemProperty 'java.awt.headless', 'true'
+}

@@ -27,18 +27,27 @@ package io.github.astrapi69.mystic.crypt.plugin;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assumptions.assumeFalse;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.URL;
+import java.net.URLClassLoader;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.DirectoryStream;
+import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.attribute.FileTime;
+import java.nio.file.attribute.PosixFilePermissions;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.HexFormat;
 import java.util.List;
+import java.util.jar.JarEntry;
+import java.util.jar.JarOutputStream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
@@ -140,6 +149,107 @@ class PluginArchivesTest
 		assertFalse(Files.exists(missing));
 	}
 
+	@Test
+	@DisplayName("a directory that cannot be moved aside stays as it was, and the next start unpacks the zip")
+	void aDirectoryThatCannotBeMovedAside_staysAsItWas() throws Exception
+	{
+		assumeTrue(FileSystems.getDefault().supportedFileAttributeViews().contains("posix"),
+			"the plugins directory is made read-only through POSIX permissions");
+		Path zip = writeZip("version 1");
+		unpackAsTheApplicationStarts();
+		Path directory = pluginsRoot.resolve(PLUGIN);
+		String firstChecksum = sha256(zip);
+		writeZip("version 2");
+		Files.setPosixFilePermissions(pluginsRoot, PosixFilePermissions.fromString("r-xr-xr-x"));
+		try
+		{
+			assumeFalse(Files.isWritable(pluginsRoot),
+				"a user who may write anywhere cannot be refused");
+
+			assertEquals(PluginArchives.Outcome.AFTER_RESTART, PluginArchives.unpackIfChanged(zip));
+
+			assertEquals("version 1", content(directory));
+			assertEquals(firstChecksum, recorded(directory),
+				"the checksum of the new zip was written");
+			assertEquals(List.of(), movedAside(), "something was left aside");
+		}
+		finally
+		{
+			Files.setPosixFilePermissions(pluginsRoot,
+				PosixFilePermissions.fromString("rwxr-xr-x"));
+		}
+
+		unpackAsTheApplicationStarts();
+
+		assertEquals("version 2", content(directory));
+		assertEquals(sha256(zip), recorded(directory));
+	}
+
+	@Test
+	@DisplayName("a jar of the directory held open leaves no half directory, and is replaced once closed")
+	void aJarHeldOpen_leavesNoHalfDirectory() throws Exception
+	{
+		Path zip = writeZip("version 1");
+		unpackAsTheApplicationStarts();
+		Path directory = pluginsRoot.resolve(PLUGIN);
+		String firstChecksum = sha256(zip);
+		writeZip("version 2");
+		PluginArchives.Outcome outcome;
+		try (
+			URLClassLoader loader = new URLClassLoader(
+				new URL[] { directory.resolve("lib/held.jar").toUri().toURL() }, null);
+			InputStream held = loader.getResourceAsStream("held.txt"))
+		{
+			held.read();
+			outcome = PluginArchives.unpackIfChanged(zip);
+			System.out.println("MEASURED #998 os.name=" + System.getProperty("os.name")
+				+ " a jar of the directory held open by a class loader: " + outcome);
+
+			if (outcome == PluginArchives.Outcome.AFTER_RESTART)
+			{
+				assertEquals("version 1", content(directory));
+				assertEquals(firstChecksum, recorded(directory));
+			}
+			else
+			{
+				assertEquals(PluginArchives.Outcome.UNPACKED, outcome);
+				assertEquals("version 2", content(directory));
+				assertEquals(sha256(zip), recorded(directory));
+			}
+		}
+
+		unpackAsTheApplicationStarts();
+
+		assertEquals("version 2", content(directory));
+		assertEquals(sha256(zip), recorded(directory));
+		assertEquals(List.of(), movedAside(), "what was moved aside is still there");
+	}
+
+	@Test
+	@DisplayName("what an earlier replacement left aside is removed at the next start")
+	void whatWasMovedAside_isRemovedAtTheNextStart() throws Exception
+	{
+		Path leftover = pluginsRoot.resolve("." + PLUGIN + PluginArchives.ASIDE_SUFFIX + "-1");
+		Files.createDirectories(leftover.resolve("classes"));
+		Files.writeString(leftover.resolve("classes/version.txt"), "version 0");
+
+		unpackAsTheApplicationStarts();
+
+		assertFalse(Files.exists(leftover));
+	}
+
+	/** The directories moved aside that are still in the plugins directory */
+	private List<Path> movedAside() throws IOException
+	{
+		try (var entries = Files.list(pluginsRoot))
+		{
+			return entries
+				.filter(
+					entry -> entry.getFileName().toString().contains(PluginArchives.ASIDE_SUFFIX))
+				.toList();
+		}
+	}
+
 	/**
 	 * What the start of the application does with the plugins directory: it unpacks by content,
 	 * then pf4j unpacks as it always does
@@ -169,8 +279,24 @@ class PluginArchivesTest
 			archive.putNextEntry(new ZipEntry("classes/version.txt"));
 			archive.write(version.getBytes(StandardCharsets.UTF_8));
 			archive.closeEntry();
+			archive.putNextEntry(new ZipEntry("lib/held.jar"));
+			archive.write(jarHolding(version));
+			archive.closeEntry();
 		}
 		return zip;
+	}
+
+	/** A jar with one resource, the kind a plugin's lib directory holds */
+	private static byte[] jarHolding(final String version) throws IOException
+	{
+		java.io.ByteArrayOutputStream bytes = new java.io.ByteArrayOutputStream();
+		try (JarOutputStream jar = new JarOutputStream(bytes))
+		{
+			jar.putNextEntry(new JarEntry("held.txt"));
+			jar.write(version.getBytes(StandardCharsets.UTF_8));
+			jar.closeEntry();
+		}
+		return bytes.toByteArray();
 	}
 
 	/** Gives the zip a time before the directory's, as an installer gives it its build time */

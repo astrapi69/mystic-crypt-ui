@@ -92,7 +92,9 @@ class SilentOverwriteInventoryTest
 			"the vault itself, writing to its OWN file"),
 		Map.entry("VaultFileWriter.java", "the vault itself, writing to its OWN file"),
 		Map.entry("PluginSettings.java", "internal state: plugin settings"),
-		Map.entry("PluginsSettingsPanel.java", "internal state: copies an installed plugin zip"));
+		Map.entry("PluginsSettingsPanel.java", "internal state: copies an installed plugin zip"),
+		Map.entry("PluginArchives.java",
+			"internal state: the checksum of the zip a plugin directory was unpacked from (#998)"));
 
 	@Test
 	@DisplayName("every file that can overwrite is either behind the question or named as pending")
