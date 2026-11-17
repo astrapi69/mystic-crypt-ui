@@ -43,6 +43,9 @@ import javax.swing.JMenuItem;
 import javax.swing.SwingUtilities;
 
 import org.assertj.swing.edt.GuiActionRunner;
+import org.assertj.swing.fixture.DialogFixture;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -54,7 +57,8 @@ import io.github.astrapi69.mystic.crypt.action.OpenExistingDatabaseAction;
 import io.github.astrapi69.mystic.crypt.lock.IdleLockWatchdog;
 
 /**
- * Every way back into a sign-in offers the plugins again (#1006).
+ * Every way back into a sign-in offers the plugins again (#1006), the fifth being a sign-in that
+ * was cancelled at the start and made later through Open Database.
  * <p>
  * The lock, the close of a database and the sign-in dialog of an open put the menu into the state
  * of no vault being open, which disables every plugin entry that needs one. Only the first sign-in
@@ -96,7 +100,7 @@ class EverySignInOffersThePluginEntriesUiTest extends AbstractUiTest
 				}));
 	}
 
-	@ParameterizedTest(name = "{0}: today the plugin entries that need a vault stay disabled")
+	@ParameterizedTest(name = "{0}: every plugin entry is offered again")
 	@MethodSource("waysBackIntoASignIn")
 	void everyWayBackOffersThePluginEntriesAgain(final String wayBack, final WayBack theWayBack)
 		throws Exception
@@ -121,13 +125,41 @@ class EverySignInOffersThePluginEntriesUiTest extends AbstractUiTest
 
 		theWayBack.run(this, application, firstDatabase, secondDatabase);
 
-		// pins today's behaviour: the entries that need a vault stay disabled (#1006)
-		Map<String, Boolean> afterTheWayBack = pluginEntries();
-		assertEquals(Boolean.FALSE,
-			afterTheWayBack.get("Plugins > Certificate > Create Certificate..."),
-			wayBack + ": today the certificate entry stays disabled (#1006)");
-		assertEquals(Boolean.TRUE, afterTheWayBack.get("Plugins > Checksum > Verify Checksum"),
-			wayBack + ": the checksum plugin, offered without a vault, stays enabled");
+		assertEquals(afterTheFirstSignIn, pluginEntries(),
+			wayBack + ": every plugin entry is offered again, as after the first sign-in (#1006)");
+		DialogFixture wizard = application.openCertificateWizard();
+		assertTrue(GuiActionRunner.execute(() -> wizard.target().isShowing()),
+			wayBack + ": and a plugin's tool opens from it");
+		wizard.close();
+	}
+
+	@Test
+	@DisplayName("a sign-in cancelled at the start, then Open Database: every plugin entry is offered")
+	void aSignInAfterACancelledStartOffersThePluginEntries() throws Exception
+	{
+		installPluginRequiringItBuilt(CERTIFICATE_ZIP);
+		installPluginRequiringItBuilt(CONVERSION_ZIP);
+		installPluginRequiringItBuilt(KEYSTORE_ZIP);
+		installPluginRequiringItBuilt(CHECKSUM_ZIP);
+		File database = new File(tempHome, "every-sign-in-after-a-cancel.mcrdb");
+		createDatabaseFileHeadless(database, MASTER_PASSWORD);
+		SignInDialogSteps signIn = launchApplication();
+		signIn.requireOkDisabled().cancel();
+		awaitApplicationInitialized();
+
+		openInTheRunningApplication(database);
+
+		Map<String, Boolean> entries = pluginEntries();
+		assertTrue(entries.size() >= 4,
+			"the precondition: the four installed plugins have entries in the Plugins menu, found "
+				+ entries);
+		assertTrue(entries.values().stream().allMatch(Boolean::booleanValue),
+			"cancelling the sign-in at the start and opening a database afterwards offers every "
+				+ "plugin entry, as a first sign-in does (#1006): " + entries);
+		DialogFixture wizard = new ApplicationSteps(robot).openCertificateWizard();
+		assertTrue(GuiActionRunner.execute(() -> wizard.target().isShowing()),
+			"and a plugin's tool opens from it");
+		wizard.close();
 	}
 
 	/**

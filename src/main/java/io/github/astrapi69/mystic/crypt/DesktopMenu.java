@@ -600,6 +600,28 @@ public class DesktopMenu extends BaseDesktopMenu implements EventListener<EventO
 		return publicPluginComponents;
 	}
 
+	/**
+	 * The menu components {@link #onEnableByPublic()} switched from enabled to disabled, held until
+	 * the next sign-in gives them back. By identity, like {@link #publicPluginComponents()}: a
+	 * plugin's items need not have a name
+	 */
+	private Set<Component> takenByThePublicState;
+
+	/**
+	 * The set, created on first use for the same reason as {@link #publicPluginComponents()}
+	 *
+	 * @return the menu components the state of no vault being open disabled
+	 */
+	private Set<Component> takenByThePublicState()
+	{
+		if (takenByThePublicState == null)
+		{
+			takenByThePublicState = java.util.Collections
+				.newSetFromMap(new java.util.IdentityHashMap<>());
+		}
+		return takenByThePublicState;
+	}
+
 	public JMenu addPluginsMenu(@NonNull List<PluginMenuContribution> contributions)
 	{
 		JMenuBar menubar = getMenubar();
@@ -724,8 +746,14 @@ public class DesktopMenu extends BaseDesktopMenu implements EventListener<EventO
 		List<MenuElement> allMenuElements = ParentMenuResolver.getAllMenuElements(menubar, true);
 		allMenuElements.forEach(menuElement -> {
 			Component component = menuElement.getComponent();
-			component.setEnabled(PublicAccess.isOfferedWithoutSignIn(component.getName(),
-				aVaultIsOpen, isPublicEntry(component)));
+			boolean offered = PublicAccess.isOfferedWithoutSignIn(component.getName(),
+				aVaultIsOpen, isPublicEntry(component));
+			// remembered, so the next sign-in gives back exactly what this took (#1006)
+			if (component.isEnabled() && !offered)
+			{
+				takenByThePublicState().add(component);
+			}
+			component.setEnabled(offered);
 		});
 		// locked, the lock entry brings the unlock prompt back, and says so (#889)
 		nameTheLockEntry(aVaultIsOpen ? UNLOCK_WORKSPACE_TEXT : LOCK_WORKSPACE_TEXT);
@@ -759,11 +787,23 @@ public class DesktopMenu extends BaseDesktopMenu implements EventListener<EventO
 			.forEach(entry -> entry.setText(text));
 	}
 	
+	/**
+	 * Puts the menu into the state that belongs to a signed-in vault.
+	 * <p>
+	 * Everything {@link #onEnableByPublic()} disabled is enabled again first, and only then do the
+	 * host entries take the state their map names. Asking the map alone left every entry it does
+	 * not name as the signed-out state had set it: the plugin entries that need a vault stayed
+	 * disabled after an unlock, after opening a second database and after closing and opening one
+	 * again, and only the first sign-in after the start offered them, because the plugins are
+	 * loaded after it and their menu is built afresh (#1006).
+	 */
 	public void onEnableBySignin()
 	{
 		if (MysticCryptApplicationFrame.getInstance().getModelObject().isSignedIn())
 		{
 			nameTheLockEntry(LOCK_WORKSPACE_TEXT);
+			takenByThePublicState().forEach(component -> component.setEnabled(true));
+			takenByThePublicState().clear();
 			JMenuBar menubar = getMenubar();
 			List<MenuElement> allMenuElements = ParentMenuResolver.getAllMenuElements(menubar,
 					true);
