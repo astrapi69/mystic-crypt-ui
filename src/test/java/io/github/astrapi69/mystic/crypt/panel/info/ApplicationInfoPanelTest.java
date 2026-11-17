@@ -24,6 +24,7 @@
  */
 package io.github.astrapi69.mystic.crypt.panel.info;
 
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -62,6 +63,22 @@ class ApplicationInfoPanelTest
 		assertTrue(allText.contains("8.2-SNAPSHOT"));
 		assertTrue(allText.contains("2016 Asterios Raptis"));
 		assertTrue(allText.contains("MIT License"));
+	}
+
+	@Test
+	void today_namesNoThirdPartyAuthor()
+	{
+		ApplicationInfo info = new ApplicationInfo("mystic-crypt-ui", "8.15", "", "", "", "");
+
+		ApplicationInfoPanel panel = new ApplicationInfoPanel(info);
+
+		// pins today's state: the Info dialog does not credit the silk icons (#1007)
+		String allText = Arrays.stream(panel.getComponents()).map(
+			component -> component instanceof javax.swing.JLabel label && label.getText() != null
+				? label.getText()
+				: "")
+			.reduce("", String::concat);
+		assertFalse(allText.contains("Mark James"));
 	}
 
 	@Test
