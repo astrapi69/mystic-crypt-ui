@@ -7,9 +7,10 @@ Version 8.15
 The release that closes three security advisories - the unlock prompt and the key file (GHSA-px49-m539-22h8), the
 Properties tab and protected values (GHSA-7qfp-94gw-vp62), the database and rule table readers' allowed types
 (GHSA-f4g8-6wjr-5hch) - lets the file encryption window and `--cli decrypt` open each other's files (#877), unpacks
-every plugin again whose zip changed, so an update over 8.14 runs the new plugin code (#998), keeps the previous
-database as a `.bak` file until a save opened once, and runs on mystic-crypt 13.11 and lethenon 0.9.0. The vault
-format does not change. Built with Temurin 25.0.5 (`.sdkmanrc`).
+every plugin again whose zip changed, so an update over 8.14 runs the new plugin code (#998), offers every plugin
+again after an unlock or a reopened database (#1006), credits the silk icons and the Apache-2.0 libraries it ships in
+NOTICE.txt (#1007), keeps the previous database as a `.bak` file until a save opened once, and runs on mystic-crypt
+13.11 and lethenon 0.9.0. The vault format does not change. Built with Temurin 25.0.5 (`.sdkmanrc`).
 
 SECURITY:
 - Unlocking a locked workspace asked only for the master password, also for a database opened with a master
@@ -216,6 +217,15 @@ FIXED:
   kept that release's classes whenever it was younger than the new zip, because the zip carries its build time and
   only a newer zip was unpacked. The application now unpacks a plugin zip again whenever its content differs from
   what its directory was unpacked from, and once more for every directory 8.14 or earlier left (#998).
+- after an unlock, also after the automatic lock, after opening a second database, after closing and
+  opening one again and after a sign-in cancelled at the start, the Plugins menu offers every plugin
+  that needs a vault again; until now its entries stayed greyed out until the application was
+  restarted (#1006)
+- the silk icons the application ships are credited as their license asks: NOTICE.txt in the
+  installation directory names Mark James, the icon set, its page and its license (Creative Commons
+  Attribution 2.5), and Help > Info shows the credit with links to the page and the license. The
+  notice also names the Apache-2.0 libraries the application jar carries without a license file of
+  their own, and carries the license text (#1007)
 
 KNOWN ISSUES:
 - lethenon plugin: **Send LETH** asks for the main network's confirmation only for the wallet of the vault, not for a
