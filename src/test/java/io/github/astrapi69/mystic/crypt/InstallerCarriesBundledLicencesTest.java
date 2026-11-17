@@ -78,13 +78,13 @@ class InstallerCarriesBundledLicencesTest
 	}
 
 	@Test
-	@DisplayName("today the installer installs no notice of the application's third-party works")
-	void today_theInstallerInstallsNoNotice() throws IOException
+	@DisplayName("the installer installs the notice of the application's third-party works (#1007)")
+	void theInstallerInstallsTheNotice() throws IOException
 	{
-		// pins today's state: no NOTICE.txt of the application reaches the installation directory
-		// (#1007); the lethenon plugin's own notice is installed with its licences
-		assertFalse(Files.readString(INSTALL_XML, StandardCharsets.UTF_8)
-			.contains("resources/main/legal/NOTICE.txt"));
+		assertTrue(
+			Files.readString(INSTALL_XML, StandardCharsets.UTF_8).contains(
+				"<file src=\"resources/main/legal/NOTICE.txt\" targetdir=\"${INSTALL_PATH}\" />"),
+			"NOTICE.txt lands next to LICENSE in the installation directory");
 	}
 
 	private static List<String> pluginsWithLicences() throws IOException

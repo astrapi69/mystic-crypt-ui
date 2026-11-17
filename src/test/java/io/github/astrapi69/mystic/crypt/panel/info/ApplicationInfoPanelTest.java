@@ -24,7 +24,7 @@
  */
 package io.github.astrapi69.mystic.crypt.panel.info;
 
-import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -66,19 +66,24 @@ class ApplicationInfoPanelTest
 	}
 
 	@Test
-	void today_namesNoThirdPartyAuthor()
+	void creditsTheSilkIconsWithTheirAuthorTheirPageAndTheirLicense()
 	{
 		ApplicationInfo info = new ApplicationInfo("mystic-crypt-ui", "8.15", "", "", "", "");
 
 		ApplicationInfoPanel panel = new ApplicationInfoPanel(info);
 
-		// pins today's state: the Info dialog does not credit the silk icons (#1007)
-		String allText = Arrays.stream(panel.getComponents()).map(
-			component -> component instanceof javax.swing.JLabel label && label.getText() != null
-				? label.getText()
-				: "")
-			.reduce("", String::concat);
-		assertFalse(allText.contains("Mark James"));
+		javax.swing.JLabel credit = (javax.swing.JLabel)byName(panel, "lblSilkIconsCredit");
+		assertNotNull(credit, "the Info dialog credits the silk icons (#1007)");
+		assertTrue(credit.getText().contains("Mark James"), credit.getText());
+		JButton site = (JButton)byName(panel, "btnSilkIcons");
+		JButton license = (JButton)byName(panel, "btnSilkIconsLicense");
+		assertNotNull(site, "the link back the author asks for");
+		assertNotNull(license, "the link to the license");
+		assertEquals(ApplicationInfoPanel.SILK_ICONS_URL,
+			site.getClientProperty(ApplicationInfoPanel.LINK_URL_PROPERTY));
+		assertEquals("http://creativecommons.org/licenses/by/2.5/",
+			license.getClientProperty(ApplicationInfoPanel.LINK_URL_PROPERTY));
+		assertNotNull(byName(panel, "lblThirdPartyNotice"), "and where the rest is noted");
 	}
 
 	@Test
