@@ -1,6 +1,233 @@
 ## Change log
 ----------------------
 
+Version 8.15
+-------------
+
+The release that closes three security advisories - the unlock prompt and the key file (GHSA-px49-m539-22h8), the
+Properties tab and protected values (GHSA-7qfp-94gw-vp62), the database and rule table readers' allowed types
+(GHSA-f4g8-6wjr-5hch) - lets the file encryption window and `--cli decrypt` open each other's files (#877), unpacks
+every plugin again whose zip changed, so an update over 8.14 runs the new plugin code (#998), keeps the previous
+database as a `.bak` file until a save opened once, and runs on mystic-crypt 13.11 and lethenon 0.9.0. The vault
+format does not change. Built with Temurin 25.0.5 (`.sdkmanrc`).
+
+SECURITY:
+- Unlocking a locked workspace asked only for the master password, also for a database opened with a master
+  password and a key file: the key file was neither asked for nor read, so it protected an open database only until
+  its first lock. Unlocking now asks for the same factors as opening, the master password, the key file read from
+  the disk again, or both, and refuses a missing or different key file. A database opened with a key file only can
+  be unlocked again; it could not be unlocked at all before (#880, GHSA-px49-m539-22h8).
+- The "Properties" tab of an entry showed every value in clear, also one marked as protected: the 24 words of a
+  lethenon wallet kept in the vault (since 8.14) and a custom field KeePass protected (the mark is kept since 8.6).
+  It now shows a protected value as `********`, the same for every value; the edit dialog opens it masked, and its
+  `***` button shows it on request, as for the password of an entry. Renaming a protected property in the dialog
+  dropped its protection, so it was then also exported unprotected; the protection now follows the new name
+  (GHSA-7qfp-94gw-vp62).
+- Opening a database, and importing an obfuscation rule table, admitted on top of the application's own types the
+  standard types of the XML library underneath (XStream), which no such file holds: files, URLs, classes, reflection
+  members, exceptions and collections and maps beyond the ones these files use. Both readers now start from nothing
+  and admit exactly the types their files hold; a file naming any other type is refused before that type is built,
+  with the type's name in the message, and stays as it was. The databases the published releases wrote, which the
+  compatibility tests open, still open with the same content (#848, GHSA-f4g8-6wjr-5hch).
+
+ADDED:
+- the lethenon wallet's restore and its backup check take the 24 words in 24 numbered fields, in the order of the
+  backup sheet, instead of one text area. A phrase pasted into any field fills all 24, the numbers of a backup sheet
+  read away; a word that is not in the word list is marked and named as soon as its field is left, not only when the
+  form is sent (#804)
+
+CHANGED:
+- build only: `make verify-installer PREVIOUS=<last release>` checks the installer after its checksums are written, as
+  release-workflow.md step 5 asks. It checks size, archive and checksums, then the application jar out of the pack
+  and its version, the signature and a signer equal to the previous release's, the class major, the mystic-crypt
+  classes against Maven Central, the plugins, the jar tests, and a start. Each check says ok or FAILED, one that cannot
+  run is FAILED, and any failure fails the run. `INSTALLER=<file>` checks the file downloaded from the release. The
+  extraction from the installer's pack is shared with `scripts/fetch-release-jar.sh` (#793)
+- build only: Temurin 25.0.5 is the JDK the repository builds with (`.sdkmanrc`, #764). The sdkman broker answered 404
+  for its identifier on 2026-11-07, so a machine without it installed builds with its own `JAVA_HOME`; CI takes JDK 25
+  from setup-java
+- build and tests only: the unit tests' working-tree files - `.sdkmanrc`, the `Makefile`, `src/main/izpack`, the build
+  files, the end-to-end sources - are inputs of the `test` task (#797). A change to one of them alone came back from
+  the cache green, on CI and in the release gate's first phase, and only the gate's forced run showed the failure
+- the lethenon wallet says what to look for when 24 words do not fit: the backup check reads "The words do not match
+  this wallet. One is wrong or two are swapped. The date of the last successful check stays.", and a restore whose
+  words fail the checksum reads "These 24 words do not give a wallet: one is wrong or two are swapped. Compare them
+  with your note, in order." The German texts say the same (#804)
+- words pasted into the word fields of the lethenon wallet's restore or backup check are taken off the clipboard
+  once they are in the fields, so the 24 words do not stay where every other program can read them. Only what was
+  pasted is cleared: something copied to the clipboard since is left alone, and a drop does not touch it (#804)
+- build only: pull requests land on develop as one squash commit each, subject = pull request title with its
+  number; a user-visible change brings its CHANGELOG entry as a fragment under changelog.d/ in the same pull
+  request, and the release assembles the fragments with scripts/assemble_changelog.py. The squash pilot of
+  2026-11-11, limited to this repository until the maintainer decides for the family
+- mystic-crypt 13.10 and crypt-data 13.3: the command line gains `--passphrase-file` and answers
+  every unhandled failure with one `error:` line and exit 2, bcrypt refuses a password of more
+  than 72 UTF-8 bytes instead of silently hashing only the first 72, inverting plain obfuscation
+  rules works again, the libraries' artifacts build reproducibly, and the runtime class path
+  carries no pre-release any more: the jaxb-api 2.4.0-b180830.0359 build left with
+  crypt-data 13.3 (#841)
+- lethenon 0.9.0: the library can offer the words of the list that begin with what is typed, which
+  the wallet window does not use yet (#804); the command line distribution of the chain ships no
+  pre-release any more, and its archives build reproducibly; no chain format change
+- The application's jars no longer name the machine they were built on: the manifest carries
+  `Build-Jdk-Spec: 25` instead of the JDK's vendor build, the operating system with its kernel version
+  and, in a release, the moment of the build, so two builds of the same commit can be compared byte
+  for byte (#920)
+
+FIXED:
+- the checksum plugin loads a `.sha512` file (#796). It loaded checksum files only up to 128 bytes, the length of a
+  SHA-512 hash alone, so a `.sha512` file as `sha512sum` writes it, with the file name after the hash, was refused as
+  "Given checksum file is invalid", the one published with each release of this application among them; a `.sha256`
+  file was refused the same way once the file name had more than 61 characters. It now takes up to 8192 bytes, one
+  line in the coreutils or the BSD form with a name as long as a path may be
+- the 24 words of a wallet restore and of the backup check are read as people paste them from the backup
+  sheet: numbered (`1.`, `1)`, `01`, `1:`), with commas or non-breaking spaces, in any case (#802); 8.14
+  refused the numbered paste as 48 words. The plugin ships lethenon 0.8.1, whose `SeedPhrase.parse` reads
+  these forms (lethenon#286), and an answer of the backup check pasted with its number is the word it names
+- a save keeps the previous database as a sibling `.bak` file until the new file was opened successfully once,
+  so a new file that turns out unreadable later no longer takes the previous state with it; a failed open leaves
+  the backup as the way back (#847). The save itself stays atomic, as #38 made it
+- creating a new database no longer writes over an existing file without asking: **New...** in the sign-in
+  dialog and **Browse...** in "Create your master key" ask first, as the toolbar's **New application** has since
+  #300, and No leaves the file as it was (#878). Until now OK in "Create your master key" wrote an
+  empty database over a vault picked there, and the sign-in that followed removed its backup
+- "Create your master key" compares Repeat Password with the master password: OK stays disabled while the two
+  differ, and the repeat field is marked with "The two passwords differ" once it is as long as the password or is
+  left. Until now the repeat was never read, so a typo in a new master password went into the database unnoticed,
+  and the database could not be opened at the next start (#879)
+- **Cancel** in "Edit Crypt Entry" leaves the entry as it was (#881). The dialog changed the entry while the user
+  typed, so Cancel kept the typed title, password, user name, URL, notes, attachments and properties, and the next
+  save of any other change wrote them into the database; a password cleared and cancelled was saved as cleared. The
+  dialog now works on a copy, OK takes it onto the entry, and Cancel overwrites what was typed
+- the key generation window no longer empties a file it fails to write (#882). **Save private key** pressed
+  before **Generate keys** left the chosen file at 0 bytes without a word, and every save button replaced an
+  existing file without asking, so an existing private key could be lost. The save buttons now wait for a key
+  pair, every key is encoded before its file is opened, and an existing file is replaced only after the question
+  "Replace this key file?" for a private key, "Replace the existing file?" for a public key or a certificate
+- after the workspace is unlocked, **Save** is offered again when changes from before the lock are still unsaved
+  (#913). The menu entry and the toolbar button stayed disabled until the next edit, although the unlock prompt
+  said that unsaved changes were waiting; only the question at Close or Exit could save them
+- after **Cancel** in the unlock prompt, **File > Unlock workspace...** opens the prompt again (#889). The lock
+  entry was disabled while the workspace was locked and nothing else brought the prompt back, so after one Cancel,
+  also in front of the automatic lock, changes made before the lock could only be discarded
+- Repeat Password in "Create your master key" and the unlock prompt compare the typed secrets in constant time,
+  without copies, as #879 asked; they compared with `Arrays.equals`, whose time depended on where the two differ
+  (#916). The answers are the same as before
+- the installer no longer ships org.json 20231013, which is open to a denial of service through
+  unbounded numeric strings in `JSONTokener` (GHSA-ghc9-756g-vrcv): a dependency constraint raises
+  it to the patched 20260719 until json-extensions brings the fix itself, and the dependency floor
+  tests hold the line (#907)
+- the password-hash window's bcrypt length rule comes from the library alone: mystic-crypt 13.10
+  refuses a password of more than 72 UTF-8 bytes in hashing and verifying itself, the window adds
+  only the way out (Argon2id or scrypt) to the message, and the removed own guard can no longer
+  drift apart from the library's (#903)
+- Operated Obfuscation: the "< Disentangle" button turns an obfuscated text back again. It went
+  through a deprecated library path that threw with 13.9 and answered a wrong text with 13.10; it
+  now uses the same method the command line's disentangle uses, so window and command line give
+  the same answer (#884)
+- Certificate wizard: the extensions entered in their step reach the certificate. Add, Edit and
+  Delete write the table into the model, so a key usage, a subject alternative name or basic
+  constraints entered there are in the certificate Finish writes, with their critical flag, instead
+  of being silently left out (#887)
+- Sign-in, New...: when the file is changed with Browse... in "Create your master key", the
+  sign-in dialog shows and opens the file the database was written to, instead of selecting the
+  first, empty pick whose sign-in fails (#890)
+- lethenon plugin, build check only: the zip test reads a SNAPSHOT jar name correctly instead of
+  failing on a correct NOTICE.txt (#926)
+- the broken make target that installed development plugins into the real profile and then failed
+  is gone; the development build starts with its own profile, and the installed release keeps its
+  plugins to itself (#918)
+- the merge script reaches GitHub through the REST API alone, so a cloud session can merge a pull
+  request the same way a desktop does; before, its GraphQL calls were answered with 403 there
+  (#872)
+- build checks only: the three lethenon node tests wait until the test node answers a genesis
+  request before asking it, so a starved machine no longer fails them on the protocol read
+  timeout (#657)
+- build checks only: a UI test that waits for a window that never appears fails naming the window,
+  instead of a nameless NullPointerException out of the component finder (#575)
+- A key file that is not there (moved, deleted, on a drive that is not connected) is named when opening,
+  saving and unlocking, and nothing is created at its path any more: an empty file and its directory used to
+  appear there, which kept the real key file from being put back. A save keeps the changes open until the key
+  file is back. Unlocking reads the key file the way opening does, so a DER key file that opens a database
+  with its key file alone also unlocks it (#937)
+- the help buttons of the sign-in dialogs open the wiki pages that exist; they pointed at pages
+  renamed in 2023, and a build check now keeps every wiki link in the sources against the pages the
+  wiki mirror publishes (#868)
+- A database with a master password and a key file reads its key file as PEM only, and the dialogs that create
+  and open one now say so: a DER key file chosen there is named and not taken, and OK waits for a PEM one. Before,
+  OK went ahead and the creation failed without a word, the sign-in with a message about the password. A
+  database with its key file alone keeps taking PEM and DER (#943)
+- the Help buttons of released versions 8.1.1 through 8.14 land on redirect pages again instead of
+  the "create this page" editor: the wiki keeps Help:-create-new-mystic-crypt-database and
+  Help:-open-existing-mystic-crypt-database, and the mirror maps their Windows-safe source names
+  (#950)
+- A new database whose first write fails in "Create your master key" is reported with the file and the
+  reason, the dialog stays open for the corrected input, and no empty database file is left where the
+  new one was to be written. A file with content is never removed (#944).
+- Obfuscate > and < Disentangle in the Simple Obfuscation window say that the rule table is empty
+  and what to do, instead of doing nothing (#891)
+- The **Plugin settings** tab shows what a plugin says about each of its settings: resting the mouse on a
+  row shows the plugin's own explanation of that setting as its tool tip. The explanations were written
+  by every plugin and never shown (#886).
+- asking for the Console while one is open brings the open console to the front; a second console
+  no longer takes over the captured standard streams, so closing hands System.out and System.err
+  back correctly (#892)
+- The key generator's setting `default.algorithm` takes only the six algorithms its window offers, and
+  any other value starts the window on RSA. A stored name such as `DSA` used to open the window on an
+  entry its dropdown does not list. The setting's description now names EC as well (#894).
+- The tooltip of the disabled **Save checksum** button comes from the checksum plugin's own bundle. The
+  key was missing there, so the text could not be translated (#896).
+- the General tab no longer offers a Language choice that nothing reads; the value stored up to
+  8.14 stays in the settings file and returns with the i18n work (#885, #150)
+- a --cli run no longer prints the three "No SLF4J providers" warnings, and the verbose switch
+  finally works: -Dmystic.crypt.ui.cli.verbose=true turns the debug lines on (to standard error,
+  piped output stays clean), without it only warnings and errors come (#893)
+- Choosing the file of a new database (**New...** in the sign-in dialog, **Browse...** in "Create your
+  master key", **New** in the menu) no longer creates it empty at once. The file is written by **OK**,
+  and **Cancel** leaves the disk as it was instead of an empty file a later sign-in offered as a
+  database (#952).
+- the merge script judges each check by its newest run on the pull request's head, as branch
+  protection does; a check that ran again green after a corrected pull request text no longer
+  blocks the merge with its older red run (#970)
+- a GitHub call that fails while the merge script waits for the checks no longer ends the merge:
+  the script names the failure and looks again, and at its time limit it still refuses rather than
+  merges (#971)
+- after a merge, the merge script asks about the merged branch again before it says the branch is
+  still there; GitHub answers for a deleted branch for a moment, and the note sent whoever merged to
+  delete by hand a branch that was already gone (#974)
+- build only: make merge-pr judges a check by its newest run of the same app AND name, so a run
+  another app posts under a required check name can no longer hide the real result (#976)
+- The file encryption window and `--cli decrypt` open each other's files (#877). The window now
+  also opens what `mystic-crypt encrypt` writes, as a file or as a text, and the older layout it
+  wrote first; `--cli decrypt` opens a file or a text from the window. What each side writes is
+  unchanged. Before, the window refused a file from the command line with "the marker is
+  missing", and `decrypt` either refused a window file or spent minutes on it before it reported
+  a wrong passphrase.
+- A successful `--cli` run writes nothing to standard error any more (#986). With the plugins
+  installed it wrote two lines for every plugin starting and stopping, 56 for the shipped ones;
+  without them pf4j's warning that the plugins directory was missing. `-Dmystic.crypt.ui.cli.verbose=true`
+  brings the plugins' messages back. Warnings and errors about the call, and what a command reports
+  on standard error itself, such as `encrypted 29 bytes to notes.txt.enc`, still show.
+- The command line (`--cli`) runs on mystic-crypt 13.11: `sign` reads a DER private key of every
+  family, Ed25519, ML-DSA and SLH-DSA included, where it ended with exit code 2; `convert` reads an
+  RSA private key in PKCS#1 DER, the form `openssl pkey -outform DER` writes; and `encrypt` refuses
+  an empty passphrase instead of sealing a file that opens for anybody (#993).
+- after an update every plugin runs the code of the new release: a plugin directory unpacked by the release before
+  kept that release's classes whenever it was younger than the new zip, because the zip carries its build time and
+  only a newer zip was unpacked. The application now unpacks a plugin zip again whenever its content differs from
+  what its directory was unpacked from, and once more for every directory 8.14 or earlier left (#998).
+
+KNOWN ISSUES:
+- lethenon plugin: **Send LETH** asks for the main network's confirmation only for the wallet of the vault, not for a
+  wallet file chosen in its place. No LETH of real value exists before the main chain starts, and this is to be done
+  before it does; #978 stays open for it.
+- The sign-in dialog remembers one key file for all databases: choosing another database there leaves the key file
+  of the database signed in last, so the sign-in is refused until the right key file is chosen. 8.14 behaves the
+  same; #997 stays open for it.
+- Locking the workspace empties the clipboard, so that a password copied before the lock does not outlive it
+  (since 8.14). A password copied before locking can therefore not be pasted into the unlock prompt: copy it again
+  after locking, then Ctrl+V works. The prompt does not say so yet; #1001 stays open for that.
+
 Version 8.14
 -------------
 
