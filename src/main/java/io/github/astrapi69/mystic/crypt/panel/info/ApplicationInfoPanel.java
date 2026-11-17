@@ -35,6 +35,7 @@ import javax.swing.SwingConstants;
 
 import io.github.astrapi69.browser.BrowserControlExtensions;
 import io.github.astrapi69.icon.ImageIconFactory;
+import io.github.astrapi69.mystic.crypt.Messages;
 import net.miginfocom.swing.MigLayout;
 
 /**
@@ -45,6 +46,15 @@ import net.miginfocom.swing.MigLayout;
  */
 public class ApplicationInfoPanel extends JPanel
 {
+
+	/** The page of the silk icon set, the link its author asks for in the credits (#1007) */
+	public static final String SILK_ICONS_URL = "http://www.famfamfam.com/lab/icons/silk/";
+
+	/** The license of the silk icon set, Creative Commons Attribution 2.5 (#1007) */
+	public static final String SILK_ICONS_LICENSE_URL = "http://creativecommons.org/licenses/by/2.5/";
+
+	/** The client property a link button keeps its address in, so a test can read it */
+	public static final String LINK_URL_PROPERTY = "linkUrl";
 
 	private static final long serialVersionUID = 1L;
 
@@ -63,7 +73,31 @@ public class ApplicationInfoPanel extends JPanel
 		add(new JLabel(info.licenseSummary()), "align center, gapbottom 12");
 
 		add(linkButton("Project on GitHub", info.githubUrl()), "align center");
-		add(linkButton("Wiki", info.wikiUrl()), "align center");
+		add(linkButton("Wiki", info.wikiUrl()), "align center, gapbottom 12");
+
+		addTheThirdPartyCredit();
+	}
+
+	/**
+	 * Credits the silk icons the application ships, with their author, their page and their
+	 * license, as the license asks; the rest is in NOTICE.txt (#1007)
+	 */
+	private void addTheThirdPartyCredit()
+	{
+		JLabel credit = new JLabel(Messages.getString("InfoJPanel.credit.silk.icons",
+			"Icons: the Silk icon set by Mark James"));
+		credit.setName("lblSilkIconsCredit");
+		add(credit, "align center");
+		add(linkButton(
+			Messages.getString("InfoJPanel.credit.silk.icons.site", "Silk icons at famfamfam.com"),
+			SILK_ICONS_URL, "btnSilkIcons"), "align center");
+		add(linkButton(Messages.getString("InfoJPanel.credit.silk.icons.license",
+			"Creative Commons Attribution 2.5"), SILK_ICONS_LICENSE_URL, "btnSilkIconsLicense"),
+			"align center");
+		JLabel notice = new JLabel(Messages.getString("InfoJPanel.credit.notice",
+			"Further notices: NOTICE.txt in the installation directory"));
+		notice.setName("lblThirdPartyNotice");
+		add(notice, "align center");
 	}
 
 	private JLabel iconLabel()
@@ -76,8 +110,14 @@ public class ApplicationInfoPanel extends JPanel
 
 	private JButton linkButton(final String text, final String url)
 	{
+		return linkButton(text, url, "btn" + text.replaceAll("\\s", ""));
+	}
+
+	private JButton linkButton(final String text, final String url, final String name)
+	{
 		JButton link = new JButton("<html><a href=''>" + text + "</a></html>");
-		link.setName("btn" + text.replaceAll("\\s", ""));
+		link.setName(name);
+		link.putClientProperty(LINK_URL_PROPERTY, url);
 		link.setBorderPainted(false);
 		link.setContentAreaFilled(false);
 		link.setFocusPainted(false);
