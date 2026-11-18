@@ -80,19 +80,34 @@ Real data, no test fixture. Nothing else is released while this does not hold.
 ## TS-0002 The backup file (#847)
 
 - [ ] TC-0020 Save an opened database: a sibling `.bak` file appears next to it. - automated
-      by `VaultFileWriterTest`
-- [ ] TC-0021 Close and reopen the database successfully: the `.bak` is gone. - automated by
+      by `BackupFileUiTest#aSaveOfAPasswordDatabaseKeepsThePreviousStateAsTheSiblingBackup`
+      (password database) and
+      `BackupFileUiTest#aSaveOfAKeyFileDatabaseKeepsThePreviousStateAsTheSiblingBackup`
+      (key file database); both check that the `.bak` holds the previous bytes and that
+      nothing else lies next to the database; the writer itself is pinned by
       `VaultFileWriterTest`
+- [ ] TC-0021 Close and reopen the database successfully: the `.bak` is gone. - automated by
+      the second half of the same two `BackupFileUiTest` methods (sign in again through the
+      dialog, the `.bak` is gone and the saved node is in the tree); the reader's removal is
+      pinned by `VaultFileWriterTest`
 - [ ] TC-0022 Make the saved file unreadable by hand (truncate a copy of the scenario, not
       your real database), open: the open fails and the `.bak` still holds the previous
-      state and opens. - manual only
+      state and opens. - automated by
+      `VaultFileWriterTest#aTruncatedDatabaseFailsToOpenAndTheBackupStillOpensWithThePreviousState`
+      (a database saved twice and truncated, opened through the reader the sign-in uses); the
+      hand step in the file manager stays manual, the sign-in dialog's error message for the
+      truncated file is not driven by a test
 
 ## TS-0003 Moving the database
 
 - [ ] TC-0030 With the application closed, move the database file to another directory, open
-      it from there, change something, save. - automated by `MovedDatabaseUiTest`
+      it from there, change something, save. - automated by
+      `MovedDatabaseUiTest#aDatabaseThatWasMovedIsSavedWhereItNowIs` (both cases: "renamed in
+      the same directory" and "moved into another directory")
 - [ ] TC-0031 Check that the **new** file was written and the old one does not reappear. -
-      automated by `MovedDatabaseUiTest`
+      automated by `MovedDatabaseUiTest#aDatabaseThatWasMovedIsSavedWhereItNowIs` (both
+      cases: the moved file changes, the old path does not exist, the change is there after
+      a reopen)
 
 ## TS-0004 Lock and unlock (the factors of the open database) (release smoke)
 
