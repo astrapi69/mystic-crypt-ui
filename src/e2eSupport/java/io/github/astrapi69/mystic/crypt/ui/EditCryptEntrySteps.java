@@ -24,7 +24,10 @@
  */
 package io.github.astrapi69.mystic.crypt.ui;
 
+import java.awt.Component;
+
 import javax.swing.JButton;
+import javax.swing.JLabel;
 import javax.swing.JTabbedPane;
 import javax.swing.SwingUtilities;
 
@@ -98,27 +101,171 @@ final class EditCryptEntrySteps
 	 */
 	EditCryptEntrySteps changeProperty(String key, String value)
 	{
-		showTheTab("Properties");
-		PropertiesPanel properties = robot.finder().findByType(dialog.target(),
-			PropertiesPanel.class);
-		GuiActionRunner.execute(() -> {
-			var table = properties.getTblProperties();
-			for (int row = 0; row < table.getRowCount(); row++)
-			{
-				KeyValuePair<String, String> property = table.getGenericTableModel().getData()
-					.get(table.convertRowIndexToModel(row));
-				if (key.equals(property.getKey()))
-				{
-					table.setRowSelectionInterval(row, row);
-					return;
-				}
-			}
-			throw new IllegalStateException("the entry has no property named '" + key + "'");
-		});
-		robot.waitForIdle();
+		selectPropertyRow(key);
 		clickLater(dialog.button(JButtonMatcher.withText("Edit")).target());
 		answerThePropertyDialog("Edit Property Value", key, value);
 		return this;
+	}
+
+	/**
+	 * What the "Properties" table shows in the value column of the property's row, as the user sees
+	 * it: the text of the cell the table renders, not the model's answer
+	 *
+	 * @param key
+	 *            the property's name
+	 * @return the rendered text of the value cell
+	 */
+	String valueShownInTheTable(String key)
+	{
+		PropertiesPanel properties = propertiesPanel();
+		return GuiActionRunner.execute(() -> {
+			var table = properties.getTblProperties();
+			int row = rowOf(properties, key);
+			Component rendered = table.prepareRenderer(table.getCellRenderer(row, 1), row, 1);
+			return ((JLabel)rendered).getText();
+		});
+	}
+
+	/**
+	 * What the "Properties" table's model answers for the value column of the property's row: what
+	 * a copy of the row reads
+	 *
+	 * @param key
+	 *            the property's name
+	 * @return the model's value of the cell
+	 */
+	Object valueTheTableModelGives(String key)
+	{
+		PropertiesPanel properties = propertiesPanel();
+		return GuiActionRunner
+			.execute(() -> properties.getTblProperties().getValueAt(rowOf(properties, key), 1));
+	}
+
+	/**
+	 * Opens the property for editing: its row selected, "Edit", and the "Edit Property Value"
+	 * dialog left open for the caller to look at
+	 *
+	 * @param key
+	 *            the property's name
+	 * @return the steps for the open property dialog
+	 */
+	PropertyDialogSteps openPropertyForEditing(String key)
+	{
+		selectPropertyRow(key);
+		clickLater(dialog.button(JButtonMatcher.withText("Edit")).target());
+		DialogFixture propertyDialog = application.findDialogWithTitle("Edit Property Value");
+		return new PropertyDialogSteps(propertyDialog,
+			robot.finder().findByType(propertyDialog.target(), PropertiesNewEntryPanel.class));
+	}
+
+	/**
+	 * Renames a property on the "Properties" tab: its row selected, "Edit", the new name in the
+	 * "Edit Property Value" dialog, OK. The value is left as it is
+	 *
+	 * @param key
+	 *            the property's name
+	 * @param newKey
+	 *            the name it gets
+	 * @return these steps
+	 */
+	EditCryptEntrySteps renameProperty(String key, String newKey)
+	{
+		PropertyDialogSteps property = openPropertyForEditing(key);
+		property.typeKey(newKey);
+		property.ok();
+		return this;
+	}
+
+	/** The steps for the "Edit Property Value" dialog, which the Edit button of a row opens */
+	final class PropertyDialogSteps
+	{
+		private final DialogFixture propertyDialog;
+		private final PropertiesNewEntryPanel panel;
+
+		private PropertyDialogSteps(DialogFixture propertyDialog, PropertiesNewEntryPanel panel)
+		{
+			this.propertyDialog = propertyDialog;
+			this.panel = panel;
+		}
+
+		/** Whether the value field hides what it holds */
+		boolean valueIsMasked()
+		{
+			return GuiActionRunner.execute(() -> panel.getTxtValue().getEchoChar() != 0);
+		}
+
+		/** Whether the button that shows the value is visible on screen */
+		boolean showButtonIsShowing()
+		{
+			return GuiActionRunner.execute(() -> panel.getBtnShowValue().isShowing());
+		}
+
+		/** The value the field holds, whether it shows it or not */
+		String value()
+		{
+			return GuiActionRunner.execute(() -> String.valueOf(panel.getTxtValue().getPassword()));
+		}
+
+		/** Presses the button that shows the value, or masks it again */
+		void pressShow()
+		{
+			GuiActionRunner.execute(() -> panel.getBtnShowValue().doClick());
+			robot.waitForIdle();
+			UiTestSpeed.step();
+		}
+
+		void typeKey(String key)
+		{
+			GuiActionRunner.execute(() -> panel.getTxtKey().setText(key));
+			robot.waitForIdle();
+			UiTestSpeed.step();
+		}
+
+		/** Closes the property dialog with OK and waits until it is gone */
+		void ok()
+		{
+			clickLater(propertyDialog.button(JButtonMatcher.withText("OK")).target());
+			awaitClosed(propertyDialog, "'Edit Property Value' dialog");
+		}
+
+		/** Closes the property dialog with Cancel and waits until it is gone */
+		void cancel()
+		{
+			clickLater(propertyDialog.button(JButtonMatcher.withText("Cancel")).target());
+			awaitClosed(propertyDialog, "'Edit Property Value' dialog");
+		}
+	}
+
+	private PropertiesPanel propertiesPanel()
+	{
+		showTheTab("Properties");
+		return robot.finder().findByType(dialog.target(), PropertiesPanel.class);
+	}
+
+	private void selectPropertyRow(String key)
+	{
+		PropertiesPanel properties = propertiesPanel();
+		GuiActionRunner.execute(() -> {
+			int row = rowOf(properties, key);
+			properties.getTblProperties().setRowSelectionInterval(row, row);
+		});
+		robot.waitForIdle();
+	}
+
+	/** The view row of the property with the given name; on the event thread */
+	private static int rowOf(PropertiesPanel properties, String key)
+	{
+		var table = properties.getTblProperties();
+		for (int row = 0; row < table.getRowCount(); row++)
+		{
+			KeyValuePair<String, String> property = table.getGenericTableModel().getData()
+				.get(table.convertRowIndexToModel(row));
+			if (key.equals(property.getKey()))
+			{
+				return row;
+			}
+		}
+		throw new IllegalStateException("the entry has no property named '" + key + "'");
 	}
 
 	/** Closes the dialog with Cancel and waits until it is gone */
