@@ -55,6 +55,14 @@ jobs:
         # (CI run 35078636917) - older than the 2.7.10 that wrote the fixture. The test names the
         # version it read with in every failure message
         run: sudo apt-get install -y keepassxc-minimal || sudo apt-get install -y keepassxc
+      - name: Install the de_DE locale
+        # ForkedJvmTest checks that a JVM the tests start takes the German language of a German
+        # desktop's environment, which a JVM can only do where the machine has that locale: without
+        # it the JDK falls back to en_US, and the test skipped here (CI run 44293104727, #1027). The
+        # list printed after it is the evidence of what the runner got
+        run: |
+          sudo locale-gen de_DE.UTF-8
+          locale -a
       - name: Build the internal plugins
         # The plugins are NOT subprojects of this build - each is its own Gradle build that
         # compiles against the host through mavenLocal(), so `./gradlew build` below never
