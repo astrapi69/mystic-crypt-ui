@@ -208,12 +208,14 @@ class AnEarlierVaultKeepsItsChangeThroughTheWholeChainUiTest extends AbstractUiT
 		fields.add(text(entry.getNotes()));
 		fields.add(entry.isExpirable() + "|" + entry.getExpires() + "|" + entry.getIcon() + "|"
 			+ entry.getKeePassIconIndex() + "|" + entry.isShowPassword());
-		for (FileContentInfo resource : entry.getResources())
+		fields.add("resources " + (entry.getResources() == null ? "null" : "listed"));
+		for (FileContentInfo resource : orEmpty(entry.getResources()))
 		{
 			fields.add("resource " + resource.getName() + " "
 				+ HexFormat.of().formatHex(resource.getContent()));
 		}
-		for (KeyValuePair<String, String> property : entry.getProperties())
+		fields.add("properties " + (entry.getProperties() == null ? "null" : "listed"));
+		for (KeyValuePair<String, String> property : orEmpty(entry.getProperties()))
 		{
 			fields.add("property " + property.getKey() + "=" + property.getValue());
 		}
@@ -227,6 +229,11 @@ class AnEarlierVaultKeepsItsChangeThroughTheWholeChainUiTest extends AbstractUiT
 		{
 			throw new IllegalStateException("the JDK has no SHA-256", e);
 		}
+	}
+
+	private static <T> List<T> orEmpty(final List<T> list)
+	{
+		return list == null ? List.of() : list;
 	}
 
 	/** A field's text, "null" for a field the release never wrote, so absent and empty differ */
