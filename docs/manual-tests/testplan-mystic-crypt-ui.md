@@ -136,13 +136,15 @@ read from the disk again at unlock (8.15, GHSA-px49-m539-22h8).
 - [ ] TC-0046 Locked and waited past "Close a locked database after minutes": the database
       is closed, opening again needs all factors. - automated by
       `LockedVaultClosesItselfUiTest#theFramesOwnWatchdogClosesALockedVaultAfterTheSettingsMinutes`
-      (the application's own watchdog with the setting at 1 minute, the real timer, and the
-      reopening of a password plus key file database: the password alone is refused, both
-      factors open it); `LockedVaultClosesItselfUiTest#aLockedVaultIsClosedOnceItHasBeenLockedLongEnough`
+      (the application's own watchdog, the setting changed to 1 minute while the application
+      runs, the real timer, and the reopening of a password plus key file database: the
+      password alone is refused, the key file alone is refused, both factors open it);
+      `LockedVaultClosesItselfUiTest#aLockedVaultIsClosedOnceItHasBeenLockedLongEnough`
       (what the close empties, over a test clock) and
       `LockedVaultClosesItselfUiTest#lockingKeepsPendingChanges_soTheTimedCloseLeavesThemAlone`
       (a dirty vault is left alone); the spinner of the setting in the settings dialog manual
-      only: the tests write the value into the settings file
+      only: the tests save the value into the running application's settings file, as the
+      dialog does
 
 ## TS-0005 Protected values in the "Properties" tab (#946) (release smoke)
 
@@ -300,12 +302,12 @@ The canonical inventory is the `plugins:` target in the Makefile.
       again: it is back. - automated by `SettingsEnablePluginUiTest`
 - [ ] TC-0133 Set "Lock after idle minutes" to 1, wait until the workspace locks, unlock:
       every plugin entry is offered again, and a plugin tool opens from its entry (#1006). -
-      automated by
-      `EverySignInOffersThePluginEntriesUiTest#theFramesOwnIdleLock_afterTheSettingsMinute_offersThePluginEntriesAgain`
-      (the application's own idle lock with the setting at 1 minute, about 60 s of real time)
-      and, over a test clock, `EverySignInOffersThePluginEntriesUiTest#everyWayBackOffersThePluginEntriesAgain`
-      (case "the automatic lock, then unlock"); the spinner of the setting in the settings
-      dialog manual only: the test writes the value into the settings file
+      automated by `EverySignInOffersThePluginEntriesUiTest#everyWayBackOffersThePluginEntriesAgain`
+      (case "the application's own idle lock, then unlock": the setting changed to 1 minute
+      while the application runs, the frame's own timer on the system clock, about 60 s of real
+      time; and, over a test clock, the case "the automatic lock, then unlock"); the spinner of
+      the setting in the settings dialog manual only: the test saves the value into the running
+      application's settings file, as the dialog does
 - [ ] TC-0134 With a database open, open a second one with File > Open Database...: every
       plugin entry is offered again, and a plugin tool opens from its entry (#1006). -
       automated by `EverySignInOffersThePluginEntriesUiTest`

@@ -313,6 +313,43 @@ abstract class AbstractUiTest
 	}
 
 	/**
+	 * Creates a database file protected by a master password AND a private key file, without the
+	 * application: the key file is written as PEM, then the database is built with both
+	 *
+	 * @param databaseFile
+	 *            the database file to create, which must not exist yet
+	 * @param masterPassword
+	 *            the master password
+	 * @param keyFile
+	 *            the PEM key file to write, whose directory must exist
+	 * @throws Exception
+	 *             if the key pair, the key file or the database cannot be made
+	 */
+	protected void createDatabaseFileWithKeyFileHeadless(File databaseFile, String masterPassword,
+		File keyFile) throws Exception
+	{
+		if (java.security.Security
+			.getProvider(org.bouncycastle.jce.provider.BouncyCastleProvider.PROVIDER_NAME) == null)
+		{
+			java.security.Security
+				.addProvider(new org.bouncycastle.jce.provider.BouncyCastleProvider());
+		}
+		io.github.astrapi69.crypt.data.key.writer.PrivateKeyWriter.writeInPemFormat(
+			io.github.astrapi69.crypt.data.factory.KeyPairFactory.newKeyPair("RSA").getPrivate(),
+			keyFile);
+		Files.createFile(databaseFile.toPath());
+		io.github.astrapi69.mystic.crypt.app.file.xml.ApplicationXmlFileFactory
+			.newApplicationFileWithPasswordAndPrivateKey(
+				io.github.astrapi69.mystic.crypt.panel.signin.MasterPwFileModelBean.builder()
+					.applicationFileInfo(
+						io.github.astrapi69.file.create.model.FileInfo.toFileInfo(databaseFile))
+					.selectedApplicationFilePath(databaseFile.getAbsolutePath())
+					.keyFileInfo(io.github.astrapi69.file.create.model.FileInfo.toFileInfo(keyFile))
+					.masterPw(masterPassword.toCharArray()).withMasterPw(true).withKeyFile(true)
+					.minPasswordLength(6).build());
+	}
+
+	/**
 	 * Complete "open an existing database" use case through the UI: launch, check the master
 	 * password box, type the password, browse to the database file, click OK - and wait until the
 	 * application is signed in

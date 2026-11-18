@@ -87,18 +87,7 @@ final class SignInDialogSteps
 	{
 		// ensure-semantics, not toggle: when a memoized sign-in pre-selects the checkbox
 		// (returning-user launch), a blind doClick would deselect it again
-		GuiActionRunner.execute(() -> {
-			javax.swing.JCheckBox checkBox = (javax.swing.JCheckBox)dialog.checkBox("cbxMasterPw")
-				.target();
-			if (!checkBox.isSelected())
-			{
-				checkBox.doClick();
-			}
-		});
-		dialog.checkBox("cbxMasterPw").requireSelected();
-		robot.waitForIdle();
-		UiTestSpeed.step();
-		return this;
+		return ensureCheckBox("cbxMasterPw", true);
 	}
 
 	/**
@@ -109,18 +98,7 @@ final class SignInDialogSteps
 	 */
 	SignInDialogSteps uncheckMasterPassword()
 	{
-		GuiActionRunner.execute(() -> {
-			javax.swing.JCheckBox checkBox = (javax.swing.JCheckBox)dialog.checkBox("cbxMasterPw")
-				.target();
-			if (checkBox.isSelected())
-			{
-				checkBox.doClick();
-			}
-		});
-		dialog.checkBox("cbxMasterPw").requireNotSelected();
-		robot.waitForIdle();
-		UiTestSpeed.step();
-		return this;
+		return ensureCheckBox("cbxMasterPw", false);
 	}
 
 	SignInDialogSteps typeMasterPassword(String masterPassword)
@@ -135,18 +113,7 @@ final class SignInDialogSteps
 	/** Ensures the "Key File:" checkbox is selected */
 	SignInDialogSteps checkKeyFile()
 	{
-		GuiActionRunner.execute(() -> {
-			javax.swing.JCheckBox checkBox = (javax.swing.JCheckBox)dialog.checkBox("cbxKeyFile")
-				.target();
-			if (!checkBox.isSelected())
-			{
-				checkBox.doClick();
-			}
-		});
-		dialog.checkBox("cbxKeyFile").requireSelected();
-		robot.waitForIdle();
-		UiTestSpeed.step();
-		return this;
+		return ensureCheckBox("cbxKeyFile", true);
 	}
 
 	/**
@@ -157,15 +124,30 @@ final class SignInDialogSteps
 	 */
 	SignInDialogSteps uncheckKeyFile()
 	{
+		return ensureCheckBox("cbxKeyFile", false);
+	}
+
+	/**
+	 * Brings a checkbox of the dialog into the wanted state with ensure-semantics: a click only
+	 * when the state differs, so a pre-selected box is not toggled off again
+	 */
+	private SignInDialogSteps ensureCheckBox(final String name, final boolean selected)
+	{
 		GuiActionRunner.execute(() -> {
-			javax.swing.JCheckBox checkBox = (javax.swing.JCheckBox)dialog.checkBox("cbxKeyFile")
-				.target();
-			if (checkBox.isSelected())
+			javax.swing.JCheckBox checkBox = (javax.swing.JCheckBox)dialog.checkBox(name).target();
+			if (checkBox.isSelected() != selected)
 			{
 				checkBox.doClick();
 			}
 		});
-		dialog.checkBox("cbxKeyFile").requireNotSelected();
+		if (selected)
+		{
+			dialog.checkBox(name).requireSelected();
+		}
+		else
+		{
+			dialog.checkBox(name).requireNotSelected();
+		}
 		robot.waitForIdle();
 		UiTestSpeed.step();
 		return this;

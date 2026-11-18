@@ -60,8 +60,9 @@ import io.github.astrapi69.mystic.crypt.lock.IdleLockWatchdog;
 import io.github.astrapi69.mystic.crypt.settings.MysticCryptSettings;
 
 /**
- * Every way back into a sign-in offers the plugins again (#1006), the fifth being a sign-in that
- * was cancelled at the start and made later through Open Database.
+ * Every way back into a sign-in offers the plugins again (#1006), the last being a sign-in that was
+ * cancelled at the start and made later through Open Database. One of the ways is the frame's own
+ * idle lock on the system clock, with the setting changed in the running application (TC-0133).
  * <p>
  * The lock, the close of a database and the sign-in dialog of an open put the menu into the state
  * of no vault being open, which disables every plugin entry that needs one. Only the first sign-in
@@ -93,6 +94,9 @@ class EverySignInOffersThePluginEntriesUiTest extends AbstractUiTest
 			Arguments.of("the automatic lock, then unlock",
 				(WayBack)(test, application, first, second) -> test
 					.theAutomaticLockRuns(application)),
+			Arguments.of("the application's own idle lock, then unlock",
+				(WayBack)(test, application, first, second) -> test
+					.theFramesOwnIdleLockRuns(application)),
 			Arguments.of("open a second database while one is open",
 				(WayBack)(test, application, first, second) -> test
 					.openInTheRunningApplication(second)),
@@ -167,35 +171,18 @@ class EverySignInOffersThePluginEntriesUiTest extends AbstractUiTest
 
 	/**
 	 * The test plan's TC-0133 through the frame's own watchdog: the setting "Lock after idle
-	 * minutes" is 1, the application is left alone (the watchdog counts every key and mouse event
-	 * as activity, so the robot does nothing while it waits), and the lock comes from the frame's
-	 * timer on the system clock, not from a watchdog of the test's own
+	 * minutes" is changed to 1 while the application runs, the way the settings dialog does, the
+	 * application is then left alone (the watchdog counts every key and mouse event as activity, so
+	 * the robot does nothing while it waits), and the lock comes from the frame's timer on the
+	 * system clock, not from a watchdog of the test's own. Then the unlock
 	 */
-	@Test
-	@DisplayName("the application's own idle lock, set to one minute, locks the workspace, and the unlock offers every plugin entry again")
-	void theFramesOwnIdleLock_afterTheSettingsMinute_offersThePluginEntriesAgain() throws Exception
+	private void theFramesOwnIdleLockRuns(final ApplicationSteps application)
 	{
-		File configurationDirectory = new File(tempHome, ".config/mystic-crypt-ui");
-		assertTrue(configurationDirectory.mkdirs() || configurationDirectory.isDirectory());
-		MysticCryptSettings settings = new MysticCryptSettings();
+		File configurationDirectory = GuiActionRunner
+			.execute(() -> MysticCryptApplicationFrame.getInstance().getConfigurationDirectory());
+		MysticCryptSettings settings = MysticCryptSettings.load(configurationDirectory);
 		settings.setAutoLockMinutes(1);
 		settings.save(configurationDirectory);
-		installPluginRequiringItBuilt(CERTIFICATE_ZIP);
-		installPluginRequiringItBuilt(CONVERSION_ZIP);
-		installPluginRequiringItBuilt(KEYSTORE_ZIP);
-		installPluginRequiringItBuilt(CHECKSUM_ZIP);
-		File database = new File(tempHome, "every-sign-in-own-idle-lock.mcrdb");
-		createDatabaseFileHeadless(database, MASTER_PASSWORD);
-		ApplicationSteps application = signInWithExistingDatabase(database, MASTER_PASSWORD);
-		application.showMainFrame();
-		Map<String, Boolean> afterTheFirstSignIn = pluginEntries();
-		assertTrue(afterTheFirstSignIn.size() >= 4,
-			"the precondition: the four installed plugins have entries, found "
-				+ afterTheFirstSignIn);
-		assertTrue(afterTheFirstSignIn.values().stream().allMatch(Boolean::booleanValue),
-			"the precondition: the first sign-in offers every plugin entry");
-		assertTrue(signedIn(), "the precondition: signed in before the minute is over");
-
 		Pause.pause(new Condition("the frame's own idle lock locks the workspace")
 		{
 			@Override
@@ -205,14 +192,6 @@ class EverySignInOffersThePluginEntriesUiTest extends AbstractUiTest
 			}
 		}, TimeUnit.SECONDS.toMillis(100));
 		application.unlockWorkspace(MASTER_PASSWORD);
-
-		assertEquals(afterTheFirstSignIn, pluginEntries(),
-			"after the application's own idle lock and the unlock every plugin entry is offered "
-				+ "again (#1006)");
-		DialogFixture wizard = application.openCertificateWizard();
-		assertTrue(GuiActionRunner.execute(() -> wizard.target().isShowing()),
-			"and a plugin's tool opens from it");
-		wizard.close();
 	}
 
 	/**
