@@ -149,6 +149,28 @@ final class SignInDialogSteps
 		return this;
 	}
 
+	/**
+	 * Ensures the "Key File:" checkbox is NOT selected, the way a user opens a database with its
+	 * password alone; ensure-semantics, as for {@link #checkKeyFile()}
+	 *
+	 * @return this, for the next step
+	 */
+	SignInDialogSteps uncheckKeyFile()
+	{
+		GuiActionRunner.execute(() -> {
+			javax.swing.JCheckBox checkBox = (javax.swing.JCheckBox)dialog.checkBox("cbxKeyFile")
+				.target();
+			if (checkBox.isSelected())
+			{
+				checkBox.doClick();
+			}
+		});
+		dialog.checkBox("cbxKeyFile").requireNotSelected();
+		robot.waitForIdle();
+		UiTestSpeed.step();
+		return this;
+	}
+
 	/** Clicks the key file's "Browse..." and selects the given file in the chooser that opens */
 	SignInDialogSteps browseKeyFile(File keyFile)
 	{

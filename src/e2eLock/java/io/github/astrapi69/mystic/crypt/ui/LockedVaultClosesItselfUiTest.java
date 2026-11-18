@@ -32,25 +32,38 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.awt.event.ActionEvent;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.security.Security;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 
+import javax.swing.JDialog;
+import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 
 import org.assertj.swing.edt.GuiActionRunner;
 import org.assertj.swing.fixture.FrameFixture;
+import org.assertj.swing.timing.Condition;
+import org.assertj.swing.timing.Pause;
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import io.github.astrapi69.crypt.data.factory.KeyPairFactory;
+import io.github.astrapi69.crypt.data.key.writer.PrivateKeyWriter;
+import io.github.astrapi69.file.create.model.FileInfo;
 import io.github.astrapi69.gen.tree.TreeIdNode;
 import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
 import io.github.astrapi69.mystic.crypt.TestPasswords;
 import io.github.astrapi69.mystic.crypt.action.OpenExistingDatabaseAction;
+import io.github.astrapi69.mystic.crypt.app.file.xml.ApplicationXmlFileFactory;
 import io.github.astrapi69.mystic.crypt.lock.IdleLockDecision;
 import io.github.astrapi69.mystic.crypt.lock.IdleLockWatchdog;
 import io.github.astrapi69.mystic.crypt.panel.dbtree.MysticCryptEntryModelBean;
+import io.github.astrapi69.mystic.crypt.panel.signin.MasterPwFileModelBean;
+import io.github.astrapi69.mystic.crypt.settings.MysticCryptSettings;
 import io.github.astrapi69.swing.renderer.tree.GenericTreeElement;
 
 /**
@@ -133,6 +146,124 @@ class LockedVaultClosesItselfUiTest extends AbstractUiTest
 		assertTrue(theModelStillHolds(ENTRY_TITLE),
 			"the timed close leaves a dirty vault alone - it stays locked until somebody unlocks "
 				+ "it and decides, which is the other half of the same rule");
+	}
+
+	/**
+	 * The test plan's TC-0046 through the frame's own watchdog: the timeout is the setting "Close a
+	 * locked database after minutes", read from the settings on every check, and the clock is the
+	 * system clock with the timer's own ten second rhythm. The database is opened with a password
+	 * AND a key file, and opening it again after the close needs both.
+	 */
+	@Test
+	@DisplayName("the frame's own watchdog closes a locked vault after the minutes of the setting, and opening it again needs the password and the key file")
+	void theFramesOwnWatchdogClosesALockedVaultAfterTheSettingsMinutes() throws Exception
+	{
+		File configurationDirectory = new File(tempHome, ".config/mystic-crypt-ui");
+		assertTrue(configurationDirectory.mkdirs() || configurationDirectory.isDirectory());
+		MysticCryptSettings settings = new MysticCryptSettings();
+		settings.setAutoLockMinutes(0);
+		settings.setCloseLockedAfterMinutes(1);
+		settings.save(configurationDirectory);
+		String password = TestPasswords.throwaway();
+		File keyFile = new File(tempHome, "closes-itself.pem");
+		File databaseFile = databaseWithPasswordAndKeyFile(password, keyFile);
+		SignInDialogSteps signIn = launchApplication();
+		signIn.checkMasterPassword().typeMasterPassword(password).checkKeyFile()
+			.browseKeyFile(keyFile).browseApplicationFile(databaseFile).requireOkEnabled()
+			.okAndAwaitSignIn();
+		ApplicationSteps application = new ApplicationSteps(robot).awaitSignedIn();
+		application.lockWorkspace();
+		application.cancelUnlock();
+		assertTrue(theVaultIsOpen(), "the precondition: locked, and the vault is still open");
+
+		Pause.pause(new Condition("the frame's own watchdog closes the locked vault")
+		{
+			@Override
+			public boolean test()
+			{
+				return !theVaultIsOpen();
+			}
+		}, TimeUnit.SECONDS.toMillis(100));
+
+		assertFalse(signedInNow(), "closing a locked vault must not sign the application in");
+		assertTrue(databaseFile.exists(), "and the file it came from is untouched");
+		SwingUtilities.invokeLater(() -> new OpenExistingDatabaseAction("Open Database File")
+			.actionPerformed(new ActionEvent(MysticCryptApplicationFrame.getInstance(), 0, "")));
+		SignInDialogSteps again = awaitSignInDialog();
+		again.uncheckKeyFile().checkMasterPassword().typeMasterPassword(password)
+			.browseApplicationFile(databaseFile).requireOkEnabled().clickOk();
+		awaitAndDismissAnErrorDialog();
+		assertFalse(signedInNow(), "the password alone does not open it again");
+		again.checkKeyFile().browseKeyFile(keyFile).okAndAwaitSignIn();
+		new ApplicationSteps(robot).awaitSignedIn();
+		assertTrue(signedInNow(), "the password and the key file do");
+	}
+
+	private static boolean theVaultIsOpen()
+	{
+		return GuiActionRunner.execute(() -> MysticCryptApplicationFrame.getInstance()
+			.getModelObject().getMasterPwFileModelBean() != null);
+	}
+
+	private static boolean signedInNow()
+	{
+		return GuiActionRunner
+			.execute(() -> MysticCryptApplicationFrame.getInstance().getModelObject().isSignedIn());
+	}
+
+	private void awaitAndDismissAnErrorDialog()
+	{
+		Pause.pause(new Condition("the refused open is reported")
+		{
+			@Override
+			public boolean test()
+			{
+				return anErrorPane() != null;
+			}
+		}, TimeUnit.SECONDS.toMillis(30));
+		JOptionPane pane = anErrorPane();
+		GuiActionRunner.execute(() -> pane.setValue(JOptionPane.OK_OPTION));
+		robot.waitForIdle();
+	}
+
+	private static JOptionPane anErrorPane()
+	{
+		return GuiActionRunner.execute(() -> {
+			for (java.awt.Window window : java.awt.Window.getWindows())
+			{
+				if (window instanceof JDialog dialog && dialog.isShowing())
+				{
+					for (java.awt.Component child : dialog.getContentPane().getComponents())
+					{
+						if (child instanceof JOptionPane pane
+							&& pane.getMessageType() == JOptionPane.ERROR_MESSAGE)
+						{
+							return pane;
+						}
+					}
+				}
+			}
+			return null;
+		});
+	}
+
+	/** A database with a master password and a key file, made without the application */
+	private static File databaseWithPasswordAndKeyFile(final String password, final File keyFile)
+		throws Exception
+	{
+		if (Security.getProvider(BouncyCastleProvider.PROVIDER_NAME) == null)
+		{
+			Security.addProvider(new BouncyCastleProvider());
+		}
+		PrivateKeyWriter.writeInPemFormat(KeyPairFactory.newKeyPair("RSA").getPrivate(), keyFile);
+		File database = new File(keyFile.getParentFile(), "closes-itself-combined.mcrdb");
+		Files.createFile(database.toPath());
+		ApplicationXmlFileFactory.newApplicationFileWithPasswordAndPrivateKey(
+			MasterPwFileModelBean.builder().applicationFileInfo(FileInfo.toFileInfo(database))
+				.selectedApplicationFilePath(database.getAbsolutePath())
+				.keyFileInfo(FileInfo.toFileInfo(keyFile)).masterPw(password.toCharArray())
+				.withMasterPw(true).withKeyFile(true).minPasswordLength(6).build());
+		return database;
 	}
 
 	/**
