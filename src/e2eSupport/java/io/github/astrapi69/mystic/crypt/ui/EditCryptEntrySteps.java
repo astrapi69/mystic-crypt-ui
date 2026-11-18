@@ -24,20 +24,30 @@
  */
 package io.github.astrapi69.mystic.crypt.ui;
 
+import java.awt.event.MouseEvent;
+import java.io.File;
+import java.util.concurrent.TimeUnit;
+
 import javax.swing.JButton;
+import javax.swing.JFileChooser;
 import javax.swing.JTabbedPane;
+import javax.swing.JTextArea;
 import javax.swing.SwingUtilities;
 
 import org.assertj.swing.core.Robot;
 import org.assertj.swing.core.matcher.JButtonMatcher;
 import org.assertj.swing.edt.GuiActionRunner;
+import org.assertj.swing.finder.JFileChooserFinder;
 import org.assertj.swing.fixture.DialogFixture;
 import org.assertj.swing.timing.Condition;
 import org.assertj.swing.timing.Pause;
 
 import io.github.astrapi69.collection.pair.KeyValuePair;
+import io.github.astrapi69.file.create.model.FileContentInfo;
+import io.github.astrapi69.mystic.crypt.panel.dbtree.AttachmentPanel;
 import io.github.astrapi69.mystic.crypt.panel.properties.PropertiesNewEntryPanel;
 import io.github.astrapi69.mystic.crypt.panel.properties.PropertiesPanel;
+import io.github.astrapi69.swing.table.GenericJTable;
 
 /**
  * Reusable steps for the "Edit Crypt Entry" dialog that "edit..." on an entry opens: the fields of
@@ -119,6 +129,107 @@ final class EditCryptEntrySteps
 		clickLater(dialog.button(JButtonMatcher.withText("Edit")).target());
 		answerThePropertyDialog("Edit Property Value", key, value);
 		return this;
+	}
+
+	/**
+	 * Attaches a file on the "Attachments" tab: "Add File", the file picked in the file chooser the
+	 * button opens
+	 */
+	EditCryptEntrySteps addAttachment(File file)
+	{
+		showTheTab("Attachments");
+		clickLater(dialog.button(JButtonMatcher.withText("Add File")).target());
+		pickInTheFileChooser(file);
+		return this;
+	}
+
+	/**
+	 * Shows the content of an attachment: its row selected on the "Attachments" tab, a double click
+	 * on it, the text read from the dialog that opens, and the dialog closed with OK
+	 *
+	 * @return the text the dialog showed
+	 */
+	String showContentOf(String attachmentName)
+	{
+		selectTheAttachment(attachmentName);
+		GenericJTable<?> table = attachmentTable();
+		SwingUtilities.invokeLater(() -> {
+			for (var listener : table.getMouseListeners())
+			{
+				listener.mouseClicked(new MouseEvent(table, MouseEvent.MOUSE_CLICKED,
+					System.currentTimeMillis(), 0, 5, 5, 2, false, MouseEvent.BUTTON1));
+			}
+		});
+		DialogFixture contentDialog = application.findDialogWithTitle(attachmentName);
+		JTextArea content = robot.finder().findByName(contentDialog.target(),
+			"txtAttachmentContent", JTextArea.class, false);
+		String shown = GuiActionRunner.execute(() -> content.getText());
+		clickLater(contentDialog.button(JButtonMatcher.withText("OK")).target());
+		awaitClosed(contentDialog, "'" + attachmentName + "' content dialog");
+		return shown;
+	}
+
+	/**
+	 * Writes an attachment out: its row selected, "Save to", the file picked in the chooser
+	 *
+	 * @return the file name the chooser proposed before the target was set
+	 */
+	String saveAttachmentTo(String attachmentName, File target)
+	{
+		selectTheAttachment(attachmentName);
+		clickLater(dialog.button(JButtonMatcher.withText("Save to")).target());
+		JFileChooser chooser = JFileChooserFinder.findFileChooser()
+			.withTimeout(10, TimeUnit.SECONDS).using(robot).target();
+		String proposed = GuiActionRunner.execute(
+			() -> chooser.getSelectedFile() == null ? null : chooser.getSelectedFile().getName());
+		approve(chooser, target);
+		return proposed;
+	}
+
+	private void selectTheAttachment(String attachmentName)
+	{
+		showTheTab("Attachments");
+		GenericJTable<FileContentInfo> table = attachmentTable();
+		GuiActionRunner.execute(() -> {
+			for (int row = 0; row < table.getRowCount(); row++)
+			{
+				FileContentInfo attachment = table.getGenericTableModel().getData()
+					.get(table.convertRowIndexToModel(row));
+				if (attachmentName.equals(attachment.getName()))
+				{
+					table.setRowSelectionInterval(row, row);
+					return;
+				}
+			}
+			throw new IllegalStateException(
+				"the entry has no attachment named '" + attachmentName + "'");
+		});
+		robot.waitForIdle();
+	}
+
+	@SuppressWarnings("unchecked")
+	private <T> GenericJTable<T> attachmentTable()
+	{
+		AttachmentPanel panel = robot.finder().findByType(dialog.target(), AttachmentPanel.class);
+		return robot.finder().findByType(panel, GenericJTable.class);
+	}
+
+	private void pickInTheFileChooser(File file)
+	{
+		JFileChooser chooser = JFileChooserFinder.findFileChooser()
+			.withTimeout(10, TimeUnit.SECONDS).using(robot).target();
+		UiTestSpeed.step();
+		approve(chooser, file);
+	}
+
+	private void approve(JFileChooser chooser, File file)
+	{
+		SwingUtilities.invokeLater(() -> {
+			chooser.setSelectedFile(file);
+			chooser.approveSelection();
+		});
+		robot.waitForIdle();
+		UiTestSpeed.step();
 	}
 
 	/** Closes the dialog with Cancel and waits until it is gone */
