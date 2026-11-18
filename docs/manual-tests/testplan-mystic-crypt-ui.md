@@ -95,9 +95,13 @@ read from the disk again at unlock (8.15, GHSA-px49-m539-22h8).
       automated by `UnlockAsksForTheFactorsOfOpeningUiTest`
 - [ ] TC-0042 Same lock: move the key file away before unlocking. The unlock names the
       missing file and refuses; it does NOT create a file at the key file's path. Put the
-      file back, unlock works. - automated by `UnlockAsksForTheFactorsOfOpeningUiTest`
+      file back, unlock works. - automated by
+      `UnlockAsksForTheFactorsOfOpeningUiTest#aCombinedDatabase_needsItsKeyFileOnTheDisk`
+      (the key file gone before the lock) and
+      `UnlockAsksForTheFactorsOfOpeningUiTest#aCombinedDatabase_whoseKeyFileGoesWhileLocked_staysLockedUntilItIsBack`
+      (gone while locked)
 - [ ] TC-0043 Same lock: point the prompt at a different key (same format). Refused. -
-      automated by `UnlockAsksForTheFactorsOfOpeningUiTest`
+      automated by `UnlockAsksForTheFactorsOfOpeningUiTest#aCombinedDatabase_refusesEveryWrongFactorAlike`
 - [ ] TC-0044 Database opened with a key file only: lock, unlock with the key file. -
       automated by `UnlockTakesTheKeyFileThatOpenedTheDatabaseUiTest`
 - [ ] TC-0045 Cancel in the unlock prompt: the workspace stays locked, and
