@@ -87,38 +87,45 @@ class DatabaseRoundTripUiTest extends AbstractUiTest
 		ApplicationSteps application = signInWithExistingDatabase(databaseFile, MASTER_PASSWORD);
 		FrameFixture frame = application.showMainFrame();
 
+		String textHash = sha256Of(Files.readAllBytes(text.toPath()));
+		String binaryHash = sha256Of(Files.readAllBytes(binary.toPath()));
 		List<String> folders = List.of("Bank", "Mail", "Shop");
 		for (String folder : folders)
 		{
 			application.addNodeToTreeRoot(frame, folder);
 		}
+		Map<String, List<EntryRecord>> typed = new TreeMap<>();
 		for (String folder : folders)
 		{
 			application.selectTreeRowByName(frame, folder);
+			List<EntryRecord> entries = new ArrayList<>();
 			for (int number = 1; number <= 2; number++)
 			{
-				application.addEntry(frame, folder + " entry " + number,
+				EntryRecord entry = new EntryRecord(folder + " entry " + number,
 					"user-" + folder.toLowerCase() + "-" + number, TestPasswords.throwaway(),
 					"https://" + folder.toLowerCase() + ".example/login?a=" + number + "&b=ä",
-					"Notiz " + number + " für " + folder + "\nzweite Zeile: Grüße, ß, €");
+					"Notiz " + number + " für " + folder + "\nzweite Zeile: Grüße, ß, €", Map.of(),
+					Map.of());
+				application.addEntry(frame, entry.title(), entry.userName(), entry.password(),
+					entry.url(), entry.notes());
+				entries.add(entry);
 			}
+			typed.put(folder, entries);
 		}
 		application.selectTreeRowByName(frame, "Bank");
 		application.selectEntryRowByTitle(frame, "Bank entry 1");
 		application.openTheEditDialog(frame).addProperty("pin", "4711")
 			.addProperty("seed", "JBSWY3DPEHPK3PXP").addAttachment(text).addAttachment(binary).ok();
+		EntryRecord first = typed.get("Bank").get(0);
+		typed.get("Bank").set(0,
+			new EntryRecord(first.title(), first.userName(), first.password(), first.url(),
+				first.notes(), Map.of("pin", "4711", "seed", "JBSWY3DPEHPK3PXP"),
+				Map.of(TEXT_ATTACHMENT, textHash, BINARY_ATTACHMENT, binaryHash)));
+		typed.put(rootName(), List.of());
+		typed.put("mykeys", List.of());
 
-		Map<String, List<EntryRecord>> typed = theTree();
-		assertEquals(6, typed.values().stream().mapToInt(List::size).sum(),
-			"precondition: two entries in each of the three folders");
-		assertTrue(typed.keySet().containsAll(folders), "precondition: the three folders");
-		EntryRecord withAttachments = typed.get("Bank").stream()
-			.filter(entry -> "Bank entry 1".equals(entry.title())).findFirst().orElseThrow();
-		assertEquals(
-			Map.of(TEXT_ATTACHMENT, sha256Of(Files.readAllBytes(text.toPath())), BINARY_ATTACHMENT,
-				sha256Of(Files.readAllBytes(binary.toPath()))),
-			withAttachments.attachments(),
-			"precondition: the files were attached with the checksum of their source");
+		assertEquals(typed, theTree(),
+			"precondition: the open database holds exactly what was typed in the dialogs");
 
 		application.saveDatabase();
 		endTheApplicationThroughItsOwnEndPath();
@@ -127,7 +134,7 @@ class DatabaseRoundTripUiTest extends AbstractUiTest
 
 		assertEquals(typed, theTree(),
 			"folders, entries in them, every field, the custom fields and the attachments (name "
-				+ "and SHA-256) are what was typed");
+				+ "and SHA-256) are what was typed, not what the model held before the save");
 	}
 
 	@Test
@@ -228,6 +235,14 @@ class DatabaseRoundTripUiTest extends AbstractUiTest
 			});
 			return folders;
 		});
+	}
+
+	/** The name of the tree's root, which holds no entry */
+	private static String rootName()
+	{
+		return GuiActionRunner
+			.execute(() -> MysticCryptApplicationFrame.getInstance().getApplicationPanel()
+				.getSecretKeyTreeWithContentPanel().getModelObject().getValue().getName());
 	}
 
 	private static String sha256Of(byte[] bytes) throws NoSuchAlgorithmException
