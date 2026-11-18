@@ -160,20 +160,23 @@ read from the disk again at unlock (8.15, GHSA-px49-m539-22h8).
       `LethenonBackupPanelBindingTest#afterCreate_stepOneSaysWhereTheWalletIs` (the text, at
       panel level in the plugin) and `LethenonWalletUiTest#aCreatedWallet_isAnEntryOfTheVault`
       (the create flow through the running app, the entry and the dirty vault); the text of step
-      1 through the installed plugin: to be added in the lethenon plugin tests
+      1 through the installed plugin manual only, until ccw adds the check to
+      `LethenonWalletUiTest#aCreatedWallet_isAnEntryOfTheVault`
 - [ ] TC-0081 Restore: the 24 words go into 24 numbered fields; a phrase pasted into any
       field fills all 24, numbers of a backup sheet (`1.`, `1)`, `01`, `1:`) read away
       (#804, #802). - automated by
       `WordGridTest#theFields_areNumberedInTheOrderOfTheBackupSheet` (24 numbered fields),
-      `WordGridTest#aPastedPhrase_fillsAllTwentyFourFields` (the cases pasted into field 1, 13
-      and 24, all 24 fields checked),
+      `WordGridTest#aPastedPhrase_fillsAllTwentyFourFields` (the cases "pasted into field 1",
+      "pasted into field 13" and "pasted into field 24", all 24 fields checked),
       `WordGridTest#aNumberedPaste_fillsTheFieldsWithTheWordsAlone` (format `1.` only, pasted
-      into field 1), `WalletInputTest#aNumberedPhrase_isAccepted` (the cases numbered with a
-      dot, with a bracket, bare and zero-padded, with a colon; at parser level, not through the
-      grid) and `LethenonWalletUiTest#aPhrasePastedWithNumbers_restoresTheWallet` (format `1.`
+      into field 1), `WalletInputTest#aNumberedPhrase_isAccepted` (the cases "numbered with a
+      dot, as the backup sheet shows them", "numbered with a bracket", "numbered bare and
+      zero-padded", "numbered with a colon"; at parser level, not through the grid) and `LethenonWalletUiTest#aPhrasePastedWithNumbers_restoresTheWallet` (format `1.`
       through the running app, checks fields 1 and 24); the formats `1)`, `01`, `1:` pasted
-      into the grid, and all 24 fields through the running app: to be added in the lethenon
-      plugin tests
+      into the grid manual only, until ccw adds them as cases of
+      `WordGridTest#aNumberedPaste_fillsTheFieldsWithTheWordsAlone`; all 24 fields through the
+      running app manual only, until ccw extends
+      `LethenonWalletUiTest#aPhrasePastedWithNumbers_restoresTheWallet`
 - [ ] TC-0082 After the paste the words are off the clipboard: paste into another program
       gives nothing (#804). Something copied afterwards stays. - automated by
       `WordGridClipboardTest#aPhrasePastedFromTheClipboard_isGoneFromIt`,
@@ -186,13 +189,14 @@ read from the disk again at unlock (8.15, GHSA-px49-m539-22h8).
       (no test reads the clipboard as a second program)
 - [ ] TC-0083 Backup check with one wrong word: "One is wrong or two are swapped", the date
       of the last successful check stays (#804). - automated by
-      `LethenonBackupPanelBindingTest#aCheckThatDoesNotMatch_saysWhatToLookFor` (the sentence,
-      English and German; the words of another wallet),
+      `LethenonBackupPanelBindingTest#aCheckThatDoesNotMatch_saysWhatToLookFor` (the cases "en" and "de":
+      the whole sentence; the words of another wallet),
       `BackupAssistantTest#aSuccessfulCheckRecordsItsDateAndAFailedOneChangesNothing` (one wrong
       word, the date of the last success stays; at backup level, no panel) and
-      `LethenonVaultBackupTest#aCheck_recordsItsDayOnlyWhenItMatches` (plugin); the case as
-      written through the panel, one wrong word of the own wallet after a successful check, with
-      the sentence and the unchanged date: to be added in the lethenon plugin tests
+      `LethenonVaultBackupTest#aCheck_recordsItsDayOnlyWhenItMatches` (vault level: another
+      wallet's words record nothing, the right ones record the day); the case as written through
+      the panel (one wrong word of the own wallet after a successful check, the sentence and the
+      unchanged date) manual only, until ccw adds it to `LethenonBackupPanelBindingTest`
 - [ ] TC-0084 Words kept in the vault are removed from the overview after a confirmation
       (#821). - automated by
       `LethenonWalletUiTest#wordsStoredInTheBackup_areRemovedFromTheOverview` (through the
@@ -202,10 +206,11 @@ read from the disk again at unlock (8.15, GHSA-px49-m539-22h8).
       last block is (#831). - automated by
       `FetchTheChainTest#withoutAChain_theOverviewShowsTheEmptyStateOfDraft06` and
       `FetchTheChainTest#theEmptyState_namesTheNodeOfTheSettings` (plugin),
-      `LethenonWalletUiTest#aCreatedWallet_isAnEntryOfTheVault` ("No chain yet", "Fetch the
-      chain"), `LethenonWalletUiTest#afterASync_theOverviewSaysHowCurrentItIs_andTakesTheIncomingPaymentOver`
+      `LethenonWalletUiTest#aCreatedWallet_isAnEntryOfTheVault` (the label "No chain yet", the
+      fetch button shown; the button's text "Fetch the chain" manual only), `LethenonWalletUiTest#afterASync_theOverviewSaysHowCurrentItIs_andTakesTheIncomingPaymentOver`
       (synced, age of the last block; a local node); the node line of the settings through the
-      running app: to be added in the lethenon plugin tests; against a real node manual only
+      running app manual only, until ccw adds it to
+      `LethenonWalletUiTest#aCreatedWallet_isAnEntryOfTheVault`; against a real node manual only
       (a public node is an external service)
 
 ## TS-0009 Multiple screens
@@ -219,9 +224,10 @@ read from the disk again at unlock (8.15, GHSA-px49-m539-22h8).
 - [ ] TC-0091 Open dialogs from the main window (settings, edit entry, save certificate):
       each appears on the screen the application is on. - manual only (one Xvfb screen in the
       harness, as for TC-0090; `ScreenPlacementTest#aWindowIsCentredOnTheScreenItIsGiven` pins
-      only the geometry; probable defect: the dialogs opened through `JOptionPaneExtensions`,
-      among them Edit Crypt Entry, are centred on the primary screen, not on the one the
-      application is on)
+      only the geometry; known defect, open as #63: every dialog shown through
+      `JOptionPaneExtensions.getSelectedOption`, Edit Crypt Entry among them, is centred on the
+      default screen whatever parent it is given (swing-base-components 5.2.1,
+      `JOptionPaneExtensions.java:88`; read from the code, not run on two screens))
 
 ## TS-0010 Key generator, trying everything out
 
