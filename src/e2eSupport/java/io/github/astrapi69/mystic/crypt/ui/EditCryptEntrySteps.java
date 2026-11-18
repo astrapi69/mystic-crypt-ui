@@ -25,6 +25,8 @@
 package io.github.astrapi69.mystic.crypt.ui;
 
 import java.awt.Component;
+import java.awt.datatransfer.Clipboard;
+import java.awt.datatransfer.DataFlavor;
 import java.awt.event.MouseEvent;
 import java.io.File;
 import java.util.concurrent.TimeUnit;
@@ -35,6 +37,7 @@ import javax.swing.JLabel;
 import javax.swing.JTabbedPane;
 import javax.swing.JTextArea;
 import javax.swing.SwingUtilities;
+import javax.swing.TransferHandler;
 
 import org.assertj.swing.core.Robot;
 import org.assertj.swing.core.matcher.JButtonMatcher;
@@ -152,6 +155,27 @@ final class EditCryptEntrySteps
 	}
 
 	/**
+	 * What a copy of the property's row puts on a clipboard of the test's own: the row selected,
+	 * then the table's own transfer handler asked to copy it
+	 *
+	 * @param key
+	 *            the property's name
+	 * @return the text on the clipboard
+	 */
+	String copiedFromTheRow(String key)
+	{
+		PropertiesPanel properties = propertiesPanel();
+		return GuiActionRunner.execute(() -> {
+			var table = properties.getTblProperties();
+			int row = rowOf(properties, key);
+			table.setRowSelectionInterval(row, row);
+			Clipboard clipboard = new Clipboard("the test's own");
+			table.getTransferHandler().exportToClipboard(table, clipboard, TransferHandler.COPY);
+			return (String)clipboard.getData(DataFlavor.stringFlavor);
+		});
+	}
+
+	/**
 	 * Opens the property for editing: its row selected, "Edit", and the "Edit Property Value"
 	 * dialog left open for the caller to look at
 	 *
@@ -224,6 +248,7 @@ final class EditCryptEntrySteps
 			UiTestSpeed.step();
 		}
 
+		/** Types a new name into the key field */
 		void typeKey(String key)
 		{
 			GuiActionRunner.execute(() -> panel.getTxtKey().setText(key));

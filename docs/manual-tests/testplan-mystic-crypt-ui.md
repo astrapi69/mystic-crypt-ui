@@ -180,13 +180,13 @@ read from the disk again at unlock (8.15, GHSA-px49-m539-22h8).
       `AProtectedPropertyOfAnImportedEntryIsMaskedInTheEditDialogUiTest#theTableOfTheEditDialogMasksTheProtectedValue`
       (a KeePassXC entry opened in the real Edit Crypt Entry dialog, which works on
       `EntryEditing.copyOf`) and `PropertiesPanelProtectedValuesTest#theMaskIsTheSameWhateverTheLength`
-      (every length; the lethenon wallet is built in memory there, not opened through the
-      dialog)
+      (the cases "an empty value", "one character", "the words of a wallet", "ten thousand
+      characters"; the lethenon wallet is built in memory there, not opened through the dialog)
 - [ ] TC-0051 Select and copy the masked row: what arrives on the clipboard is the mask, not
       the value. - automated by `PropertiesPanelProtectedValuesTest#theCopyOfAMaskedRow_putsTheMaskOnTheClipboard`
       (the table's own transfer handler into a clipboard of the test's own) and
-      `AProtectedPropertyOfAnImportedEntryIsMaskedInTheEditDialogUiTest#theTableOfTheEditDialogMasksTheProtectedValue` (the model of the real dialog's
-      table answers the mask, which a copy reads); manual only: Ctrl+C on the desktop's
+      `AProtectedPropertyOfAnImportedEntryIsMaskedInTheEditDialogUiTest#theTableOfTheEditDialogMasksTheProtectedValue` (the real dialog's table
+      copied through its transfer handler into a clipboard of the test's own); manual only: Ctrl+C on the desktop's
       clipboard, which no test touches
 - [ ] TC-0052 Open the property in the edit dialog: it opens masked and shows the value only
       on request. - automated by

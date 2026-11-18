@@ -47,7 +47,7 @@ import io.github.astrapi69.mystic.crypt.panel.properties.ProtectedPropertiesTabl
  * {@code PropertiesPanelProtectedValuesTest} builds the panel over an entry it makes in memory. The
  * dialog does not: it works on {@code EntryEditing.copyOf} of the vault's entry, so a copy that
  * forgot the protected names would show every value in clear and, on OK, write the empty set onto
- * the entry, with that test green. These tests open the dialog on the way a user does.
+ * the entry, with that test green. These tests open the dialog the way a user does.
  */
 class AProtectedPropertyOfAnImportedEntryIsMaskedInTheEditDialogUiTest extends AbstractUiTest
 {
@@ -56,14 +56,16 @@ class AProtectedPropertyOfAnImportedEntryIsMaskedInTheEditDialogUiTest extends A
 
 	private static final String FIXTURE = "keepassxc-2.7.10-kdbx4.kdbx";
 
-	/** Test material, see the README beside the fixture */
-	private static final String FIXTURE_PASSWORD = "fixture";
+	private static final String FIXTURE_PASSWORD = TestPasswords.KEEPASSXC_FIXTURE;
 
 	private static final String TITLE = "Titel test foo";
 
 	private static final String GROUP = "Team";
 
-	/** The fixture's protected custom attribute and its value, see the README beside the fixture */
+	/**
+	 * The fixture's custom attribute KeePassXC stored protected (#389), and its value; the
+	 * precondition of theTableOfTheEditDialogMasksTheProtectedValue measures it
+	 */
 	private static final String PROTECTED_NAME = "key";
 
 	private static final String PROTECTED_VALUE = "value";
@@ -113,6 +115,12 @@ class AProtectedPropertyOfAnImportedEntryIsMaskedInTheEditDialogUiTest extends A
 			editor.valueTheTableModelGives(PROTECTED_NAME),
 			"the model, which a copy of the row reads, hands out the protected value");
 		assertEquals(PLAIN_VALUE, editor.valueShownInTheTable(PLAIN_NAME));
+		String copied = editor.copiedFromTheRow(PROTECTED_NAME);
+		assertTrue(copied.contains(ProtectedPropertiesTableModel.MASK),
+			"the copy of the protected row holds no mask: " + copied);
+		assertTrue(copied.contains(PROTECTED_NAME), "the copy holds no name: " + copied);
+		assertFalse(copied.contains(PROTECTED_VALUE + "\n"),
+			"the value reached the clipboard: " + copied);
 		editor.cancel();
 		assertTrue(
 			KdbxFixtures.liveEntryTitled(TITLE).getProperties().stream()
