@@ -237,6 +237,8 @@ KNOWN ISSUES:
 - Locking the workspace empties the clipboard, so that a password copied before the lock does not outlive it
   (since 8.14). A password copied before locking can therefore not be pasted into the unlock prompt: copy it again
   after locking, then Ctrl+V works. The prompt does not say so yet; #1001 stays open for that.
+- The bundled library iText 5.5.13.6 is licensed under the AGPL-3 and is not used. It is removed in 8.16; #1013 stays
+  open for it.
 
 Version 8.14
 -------------
