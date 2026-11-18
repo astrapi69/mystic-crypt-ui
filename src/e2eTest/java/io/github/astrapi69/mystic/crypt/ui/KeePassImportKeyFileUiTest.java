@@ -42,10 +42,10 @@ import org.linguafranca.pwdb.kdbx.jackson.KdbxGroup;
 import io.github.astrapi69.mystic.crypt.TestPasswords;
 
 /**
- * End-to-end test of importing a KeePass database that is protected by BOTH a password and a key
- * file: builds such a {@code .kdbx} in-place, then drives the import dialog with the "Key File"
- * option enabled and asserts the entries appear in the tree. Complements
- * {@link KeePassImportUiTest}, which covers the password-only path.
+ * End-to-end test of importing a KeePass database that is protected by a key file: with a password
+ * as well, and by the key file alone. Each test builds such a {@code .kdbx} in-place, then drives
+ * the import dialog with the "Key File" option enabled and asserts the entries appear in the tree.
+ * Complements {@link KeePassImportUiTest}, which covers the password-only path.
  */
 class KeePassImportKeyFileUiTest extends AbstractUiTest
 {
@@ -86,5 +86,36 @@ class KeePassImportKeyFileUiTest extends AbstractUiTest
 
 		assertTrue(application.entryExistsWithTitle("KeyFileProtectedSecret"),
 			"the entry of the key-file-protected database is in the tree after the import");
+	}
+
+	@Test
+	void importKeePassDatabaseProtectedByAKeyFileOnlyShowsEntriesInTree() throws Exception
+	{
+		File keyFile = new File(tempHome, "keepass-only.keyx");
+		byte[] keyFileBytes = "mystic-crypt-keepass-keyfile-only-material-9876543210"
+			.getBytes(StandardCharsets.UTF_8);
+		Files.write(keyFile.toPath(), keyFileBytes);
+
+		File keePassFile = new File(tempHome, "keyfile-only-db.kdbx");
+		KdbxDatabase keePassDatabase = new KdbxDatabase();
+		KdbxEntry entry = keePassDatabase.newEntry();
+		entry.setTitle("KeyFileOnlySecret");
+		entry.setUsername("kfo-user");
+		entry.setPassword("kfo-pass");
+		keePassDatabase.getRootGroup().addEntry(entry);
+		try (OutputStream out = new FileOutputStream(keePassFile))
+		{
+			keePassDatabase.save(new KdbxCredentials(new ByteArrayInputStream(keyFileBytes)), out);
+		}
+
+		File databaseFile = new File(tempHome, "import-keyfile-only-target.mcrdb");
+		createDatabaseFileHeadless(databaseFile, MASTER_PASSWORD);
+
+		ApplicationSteps application = signInWithExistingDatabase(databaseFile, MASTER_PASSWORD);
+		application.showMainFrame();
+		application.importKeePassDatabaseWithKeyFileOnly(keePassFile, keyFile);
+
+		assertTrue(application.entryExistsWithTitle("KeyFileOnlySecret"),
+			"the entry of the key-file-only database is in the tree after the import");
 	}
 }

@@ -160,6 +160,35 @@ final class ApplicationSteps
 	}
 
 	/**
+	 * Drives the KeePass import dialog with a key file ALONE: the password box stays empty, the
+	 * "Key File" checkbox is enabled and the key file picked, so the import builds a key-file-only
+	 * {@code KdbxCredentials} (the branch of {@code ImportKeePassDatabaseAction} taken when the
+	 * password is empty and a key file is chosen).
+	 *
+	 * @param keePassFile
+	 *            the {@code .kdbx} file to import
+	 * @param keyFile
+	 *            the key file that is the database's only credential
+	 * @return this
+	 */
+	ApplicationSteps importKeePassDatabaseWithKeyFileOnly(File keePassFile, File keyFile)
+	{
+		clickMenuItem(MenuId.IMPORT_KEEPASS.propertiesKey());
+
+		DialogFixture importDialog = findDialogWithTitle("Import from KeePass");
+		browseAndPickFile(importDialog, "btnFile", keePassFile);
+		GuiActionRunner.execute(() -> importDialog.checkBox("cbxKeyFile").target().doClick());
+		robot.waitForIdle();
+		browseAndPickFile(importDialog, "btnKeyFile", keyFile);
+		robot.waitForIdle();
+		UiTestSpeed.step();
+		clickDialogButton(importDialog, "OK");
+
+		dismissMessageDialog("Import successful", KEY_DERIVATION_TIMEOUT_SECONDS);
+		return this;
+	}
+
+	/**
 	 * Drives the KeePass import dialog exactly like {@link #importKeePassDatabase} but with a wrong
 	 * password, and closes the resulting "Import failed" error dialog - the negative use case
 	 */
