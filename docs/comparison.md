@@ -1,8 +1,9 @@
 # How mystic-crypt-ui differs from other password and vault tools
 
 - **As of:** 2026-11-17.
-- **Refers to:** mystic-crypt-ui on `develop` at `7dd653a5`, the code that becomes 8.15; the latest
-  published release is 8.14 (`RELEASE-8.14`, 2026-11-07). Where 8.14 differs, the text says so.
+- **Refers to:** mystic-crypt-ui 8.15 (`RELEASE-8.15` on `600ea252`, 2026-11-18). The text was
+  checked on `develop` at `7dd653a5`; up to the release only `CHANGELOG.md`, the changelog
+  fragments it took in and the version changed. Where 8.14 differs, the text says so.
 - **Other tools:** KeePassXC, KeePass, Bitwarden and 1Password, as their official sites described
   them on 2026-11-17.
 
@@ -244,8 +245,9 @@ Each point was checked on `7dd653a5`; the check is named.
   9.0 content format and not built (`docs/decisions/vault-content-format-9.0-2026-11-10.md`, #855,
   #858, #859, #860).
 - **No external security audit.** None is published; `SECURITY.md` names the project's own checks
-  (CodeQL, mutation testing) and four published advisories (GHSA-w87j-p568-fr6v,
-  GHSA-xp4c-rpcx-hw5c, GHSA-qxx5-r8qx-vj98, GHSA-9m97-3xjj-4gwm).
+  (CodeQL, mutation testing) and seven published advisories (GHSA-w87j-p568-fr6v,
+  GHSA-xp4c-rpcx-hw5c, GHSA-qxx5-r8qx-vj98, GHSA-9m97-3xjj-4gwm, and with 8.15
+  GHSA-7qfp-94gw-vp62, GHSA-px49-m539-22h8, GHSA-f4g8-6wjr-5hch).
 - **The key-file variants are the weaker format.** They write a Java-serialized envelope without a
   marker, a version or a recorded cost (`docs/vault-format.md:278-321`, #849 open). With a key file
   alone the content key is 128-bit AES, wrapped with RSA-OAEP (SHA-1, MGF1). With a password and a
