@@ -110,18 +110,7 @@ final class ApplicationSteps
 	 */
 	ApplicationSteps importKeePassDatabase(File keePassFile, String password)
 	{
-		clickMenuItem(MenuId.IMPORT_KEEPASS.propertiesKey());
-
-		DialogFixture importDialog = findDialogWithTitle("Import from KeePass");
-		browseAndPickFile(importDialog, "btnFile", keePassFile);
-		GuiActionRunner
-			.execute(() -> importDialog.textBox("txtPassword").target().setText(password));
-		robot.waitForIdle();
-		UiTestSpeed.step();
-		clickDialogButton(importDialog, "OK");
-
-		dismissMessageDialog("Import successful", KEY_DERIVATION_TIMEOUT_SECONDS);
-		return this;
+		return importThroughTheDialog(keePassFile, password, null);
 	}
 
 	/**
@@ -140,17 +129,50 @@ final class ApplicationSteps
 	ApplicationSteps importKeePassDatabaseWithKeyFile(File keePassFile, String password,
 		File keyFile)
 	{
+		return importThroughTheDialog(keePassFile, password, keyFile);
+	}
+
+	/**
+	 * Drives the KeePass import dialog with a key file ALONE: the password box stays empty, the
+	 * "Key File" checkbox is enabled and the key file picked, so the import builds a key-file-only
+	 * {@code KdbxCredentials} (the branch of {@code ImportKeePassDatabaseAction} taken when the
+	 * password is empty and a key file is chosen).
+	 *
+	 * @param keePassFile
+	 *            the {@code .kdbx} file to import
+	 * @param keyFile
+	 *            the key file that is the database's only credential
+	 * @return this
+	 */
+	ApplicationSteps importKeePassDatabaseWithKeyFileOnly(File keePassFile, File keyFile)
+	{
+		return importThroughTheDialog(keePassFile, null, keyFile);
+	}
+
+	/**
+	 * The import dialog from the menu to the success message: the file picked, the password typed
+	 * only when there is one, the key file enabled and picked only when there is one
+	 */
+	private ApplicationSteps importThroughTheDialog(File keePassFile, String passwordOrNull,
+		File keyFileOrNull)
+	{
 		clickMenuItem(MenuId.IMPORT_KEEPASS.propertiesKey());
 
 		DialogFixture importDialog = findDialogWithTitle("Import from KeePass");
 		browseAndPickFile(importDialog, "btnFile", keePassFile);
-		GuiActionRunner
-			.execute(() -> importDialog.textBox("txtPassword").target().setText(password));
-		// doClick (not setSelected) so the checkbox's listener fires and enables the key-file
-		// browser
-		GuiActionRunner.execute(() -> importDialog.checkBox("cbxKeyFile").target().doClick());
-		robot.waitForIdle();
-		browseAndPickFile(importDialog, "btnKeyFile", keyFile);
+		if (passwordOrNull != null)
+		{
+			GuiActionRunner.execute(
+				() -> importDialog.textBox("txtPassword").target().setText(passwordOrNull));
+		}
+		if (keyFileOrNull != null)
+		{
+			// doClick (not setSelected) so the checkbox's listener fires and enables the key-file
+			// browser
+			GuiActionRunner.execute(() -> importDialog.checkBox("cbxKeyFile").target().doClick());
+			robot.waitForIdle();
+			browseAndPickFile(importDialog, "btnKeyFile", keyFileOrNull);
+		}
 		robot.waitForIdle();
 		UiTestSpeed.step();
 		clickDialogButton(importDialog, "OK");

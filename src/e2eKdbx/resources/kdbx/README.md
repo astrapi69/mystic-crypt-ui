@@ -159,3 +159,61 @@ then OK and Ctrl+S. The labels were read off screenshots of both languages.
 
 Not a way: KeePassXC's command line. `keepassxc-cli db-create` and `keepassxc-cli import` both write
 KDBX 3.1 with AES-KDF (measured the same day), and the command line has no setting for the format.
+
+# Three entries in three places, written by KeePassXC
+
+`keepassxc-2.7.10-kdbx31-three-entries.kdbx`, used by
+`KeePassImportMatchesWhatKeePassXcReportsUiTest` (TC-0061).
+
+## The password is `fixture`, and it is test material
+
+Written on purpose, like the first fixture. The entries are invented.
+
+## Why this file exists
+
+The other KeePassXC fixture holds one entry, so no test could compare SEVERAL entries and their
+groups with what KeePassXC reports for the same file. This one has three entries in the root group
+and in two sub groups, with a URL on two of them and notes with umlauts on one.
+
+## How it was made
+
+KeePassXC 2.7.10, on the command line, on 2026-11-18 (the password `fixture` on standard input):
+
+```
+keepassxc-cli db-create -p three.kdbx
+keepassxc-cli mkdir three.kdbx Banking
+keepassxc-cli mkdir three.kdbx Work
+keepassxc-cli add -p -u bank-user --url https://bank.example --notes "Konto für Fräulein Müller" three.kdbx "Banking/Bank login"
+keepassxc-cli add -p -u mail-user --url https://mail.example three.kdbx "Work/Mail account"
+keepassxc-cli add -p -u root-user three.kdbx "Root entry"
+```
+
+Each `add -p` also read the entry's own password from standard input: an invented one per entry,
+distinct from the database password and not recorded here. The test compares every entry with what
+`keepassxc-cli` reads from the file, so only that the three differ matters.
+
+## What it is, measured
+
+`keepassxc-cli ls -R` and `db-info`, run before the file was placed here:
+
+```
+Root entry
+Banking/
+  Bank login
+Work/
+  Mail account
+KDF:AES (1000000 Runden)
+Anzahl der Gruppen: 3
+Anzahl der Einträge: 3
+```
+
+The file header reads version **3.1** (`keepassxc-cli db-create` has no choice of format, see
+above), so this is KeePassXC's KDBX 3.1 writer, not its KDBX 4 one. The root group is named
+`Passwörter` because KeePassXC named it in the German locale it ran in; the test reads the name
+from KeePassXC and does not assume it.
+
+## Checksum
+
+```
+sha256  85508e33cc291b1b916d93cab9b6b8de8de395dcada4d3dcab93a1ac19451386
+```
