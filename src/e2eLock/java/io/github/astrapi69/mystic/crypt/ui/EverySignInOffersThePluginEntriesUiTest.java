@@ -28,18 +28,13 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.io.File;
-import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Stream;
 
-import javax.swing.JMenu;
-import javax.swing.JMenuBar;
-import javax.swing.JMenuItem;
 import javax.swing.SwingUtilities;
 
 import org.assertj.swing.edt.GuiActionRunner;
@@ -240,46 +235,8 @@ class EverySignInOffersThePluginEntriesUiTest extends AbstractUiTest
 			.execute(() -> MysticCryptApplicationFrame.getInstance().getModelObject().isSignedIn());
 	}
 
-	/**
-	 * Every entry under the Plugins menu, as its path of texts, and whether it is enabled
-	 *
-	 * @return the entries in menu order
-	 */
 	private static Map<String, Boolean> pluginEntries()
 	{
-		return GuiActionRunner.execute(() -> {
-			Map<String, Boolean> entries = new LinkedHashMap<>();
-			JMenuBar menuBar = MysticCryptApplicationFrame.getInstance().getJMenuBar();
-			for (int index = 0; index < menuBar.getMenuCount(); index++)
-			{
-				JMenu menu = menuBar.getMenu(index);
-				if (menu != null && "Plugins".equals(menu.getText()))
-				{
-					for (Component child : menu.getMenuComponents())
-					{
-						collect(child, "Plugins", entries);
-					}
-				}
-			}
-			return entries;
-		});
-	}
-
-	private static void collect(final Component component, final String parentPath,
-		final Map<String, Boolean> entries)
-	{
-		if (!(component instanceof JMenuItem item))
-		{
-			return;
-		}
-		String path = parentPath + " > " + item.getText();
-		entries.put(path, item.isEnabled());
-		if (item instanceof JMenu submenu)
-		{
-			for (Component child : submenu.getMenuComponents())
-			{
-				collect(child, path, entries);
-			}
-		}
+		return PluginMenuEntries.ofTheRunningApplication();
 	}
 }
