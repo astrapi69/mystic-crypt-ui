@@ -32,7 +32,6 @@ import java.awt.Container;
 import java.awt.Window;
 import java.io.File;
 import java.nio.file.Files;
-import java.security.Security;
 import java.util.concurrent.TimeUnit;
 
 import javax.swing.JDialog;
@@ -42,18 +41,12 @@ import org.assertj.swing.edt.GuiActionRunner;
 import org.assertj.swing.fixture.FrameFixture;
 import org.assertj.swing.timing.Condition;
 import org.assertj.swing.timing.Pause;
-import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import io.github.astrapi69.crypt.data.factory.KeyPairFactory;
-import io.github.astrapi69.crypt.data.key.writer.PrivateKeyWriter;
-import io.github.astrapi69.file.create.model.FileInfo;
 import io.github.astrapi69.mystic.crypt.MenuId;
 import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
 import io.github.astrapi69.mystic.crypt.TestPasswords;
-import io.github.astrapi69.mystic.crypt.app.file.xml.ApplicationXmlFileFactory;
-import io.github.astrapi69.mystic.crypt.panel.signin.MasterPwFileModelBean;
 
 /**
  * What saving and opening leave at the path of a key file that is gone (#937), through the
@@ -136,22 +129,11 @@ class AKeyFileThatIsGoneIsNeverCreatedUiTest extends AbstractUiTest
 	 * A database with a master password and a key file, made without the application, with the key
 	 * file on a drive of its own
 	 */
-	private static File databaseWithAKeyFile(final String password, final File keyFile)
-		throws Exception
+	private File databaseWithAKeyFile(final String password, final File keyFile) throws Exception
 	{
-		if (Security.getProvider(BouncyCastleProvider.PROVIDER_NAME) == null)
-		{
-			Security.addProvider(new BouncyCastleProvider());
-		}
 		assertTrue(keyFile.getParentFile().mkdirs());
-		PrivateKeyWriter.writeInPemFormat(KeyPairFactory.newKeyPair("RSA").getPrivate(), keyFile);
 		File database = new File(keyFile.getParentFile().getParentFile(), "database.mcrdb");
-		Files.createFile(database.toPath());
-		ApplicationXmlFileFactory.newApplicationFileWithPasswordAndPrivateKey(
-			MasterPwFileModelBean.builder().applicationFileInfo(FileInfo.toFileInfo(database))
-				.selectedApplicationFilePath(database.getAbsolutePath())
-				.keyFileInfo(FileInfo.toFileInfo(keyFile)).masterPw(password.toCharArray())
-				.withMasterPw(true).withKeyFile(true).minPasswordLength(6).build());
+		createDatabaseFileWithKeyFileHeadless(database, password, keyFile);
 		return database;
 	}
 

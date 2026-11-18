@@ -100,10 +100,18 @@ The unlock prompt asks for the factors the database was opened with, and the key
 read from the disk again at unlock (8.15, GHSA-px49-m539-22h8).
 
 - [ ] TC-0040 Database opened with a master password only: lock, unlock with the password.
-      A wrong password is refused. - automated by `LockWorkspaceUiTest`
+      A wrong password is refused. - automated by
+      `LockWorkspaceUiTest#lockHidesContentAndUnlockRestoresItWithTheMasterPassword` (lock,
+      unlock) and
+      `LockWorkspaceUiTest#wrongUnlockPasswordKeepsWorkspaceLockedThenCorrectOneUnlocks` (wrong
+      password refused)
 - [ ] TC-0041 Database opened with password AND key file: lock. The unlock prompt asks for
       BOTH; the key file field is preset with the path the database was opened with. -
-      automated by `UnlockAsksForTheFactorsOfOpeningUiTest`
+      automated by
+      `UnlockAsksForTheFactorsOfOpeningUiTest#aCombinedDatabase_needsItsKeyFileOnTheDisk` (both
+      fields, the key file preset) and
+      `UnlockAsksForTheFactorsOfOpeningUiTest#aCombinedDatabase_refusesEveryWrongFactorAlike`
+      (both are needed)
 - [ ] TC-0042 Same lock: move the key file away before unlocking. The unlock names the
       missing file and refuses; it does NOT create a file at the key file's path. Put the
       file back, unlock works. - automated by
@@ -114,13 +122,29 @@ read from the disk again at unlock (8.15, GHSA-px49-m539-22h8).
 - [ ] TC-0043 Same lock: point the prompt at a different key (same format). Refused. -
       automated by `UnlockAsksForTheFactorsOfOpeningUiTest#aCombinedDatabase_refusesEveryWrongFactorAlike`
 - [ ] TC-0044 Database opened with a key file only: lock, unlock with the key file. -
-      automated by `UnlockTakesTheKeyFileThatOpenedTheDatabaseUiTest`
+      automated by
+      `UnlockAsksForTheFactorsOfOpeningUiTest#aKeyFileOnlyDatabase_unlocksWithItsKeyFile` and
+      `UnlockTakesTheKeyFileThatOpenedTheDatabaseUiTest#unlocksWithTheKeyFileThatOpenedIt`
+      (cases "key file alone, PEM as Create key file writes it", "key file alone, PEM PKCS#8",
+      "key file alone, PEM PKCS#1", "key file alone, DER PKCS#8", "key file alone, DER as the
+      key generator writes PKCS#1")
 - [ ] TC-0045 Cancel in the unlock prompt: the workspace stays locked, and
       "Unlock workspace..." brings the prompt back (#915). - automated by
-      `LockCancelUnlockUiTest`
+      `LockCancelUnlockUiTest#cancellingUnlockKeepsWorkspaceLocked` (stays locked) and
+      `LockCancelUnlockUiTest#afterCancel_unlockWorkspaceBringsThePromptBack` (the entry brings
+      the prompt back)
 - [ ] TC-0046 Locked and waited past "Close a locked database after minutes": the database
       is closed, opening again needs all factors. - automated by
-      `LockedVaultClosesItselfUiTest`
+      `LockedVaultClosesItselfUiTest#theFramesOwnWatchdogClosesALockedVaultAfterTheSettingsMinutes`
+      (the application's own watchdog, the setting changed to 1 minute while the application
+      runs, the real timer, and the reopening of a password plus key file database: the
+      password alone is refused, the key file alone is refused, both factors open it);
+      `LockedVaultClosesItselfUiTest#aLockedVaultIsClosedOnceItHasBeenLockedLongEnough`
+      (what the close empties, over a test clock) and
+      `LockedVaultClosesItselfUiTest#lockingKeepsPendingChanges_soTheTimedCloseLeavesThemAlone`
+      (a dirty vault is left alone); the spinner of the setting in the settings dialog manual
+      only: the tests save the value into the running application's settings file, as the
+      dialog does
 
 ## TS-0005 Protected values in the "Properties" tab (#946) (release smoke)
 
@@ -278,8 +302,12 @@ The canonical inventory is the `plugins:` target in the Makefile.
       again: it is back. - automated by `SettingsEnablePluginUiTest`
 - [ ] TC-0133 Set "Lock after idle minutes" to 1, wait until the workspace locks, unlock:
       every plugin entry is offered again, and a plugin tool opens from its entry (#1006). -
-      automated by `EverySignInOffersThePluginEntriesUiTest`; the setting and the
-      application's own idle timer manual only
+      automated by `EverySignInOffersThePluginEntriesUiTest#everyWayBackOffersThePluginEntriesAgain`
+      (case "the application's own idle lock, then unlock": the setting changed to 1 minute
+      while the application runs, the frame's own timer on the system clock, about 60 s of real
+      time; and, over a test clock, the case "the automatic lock, then unlock"); the spinner of
+      the setting in the settings dialog manual only: the test saves the value into the running
+      application's settings file, as the dialog does
 - [ ] TC-0134 With a database open, open a second one with File > Open Database...: every
       plugin entry is offered again, and a plugin tool opens from its entry (#1006). -
       automated by `EverySignInOffersThePluginEntriesUiTest`

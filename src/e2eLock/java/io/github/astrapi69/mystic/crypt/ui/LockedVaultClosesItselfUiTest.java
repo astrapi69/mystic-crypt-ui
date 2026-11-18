@@ -37,10 +37,14 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 
+import javax.swing.JDialog;
+import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 
 import org.assertj.swing.edt.GuiActionRunner;
 import org.assertj.swing.fixture.FrameFixture;
+import org.assertj.swing.timing.Condition;
+import org.assertj.swing.timing.Pause;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -51,6 +55,7 @@ import io.github.astrapi69.mystic.crypt.action.OpenExistingDatabaseAction;
 import io.github.astrapi69.mystic.crypt.lock.IdleLockDecision;
 import io.github.astrapi69.mystic.crypt.lock.IdleLockWatchdog;
 import io.github.astrapi69.mystic.crypt.panel.dbtree.MysticCryptEntryModelBean;
+import io.github.astrapi69.mystic.crypt.settings.MysticCryptSettings;
 import io.github.astrapi69.swing.renderer.tree.GenericTreeElement;
 
 /**
@@ -136,22 +141,133 @@ class LockedVaultClosesItselfUiTest extends AbstractUiTest
 	}
 
 	/**
-	 * Opens a database in the application that is already running, through the entry #266 added.
-	 * Not a second {@code signInWithExistingDatabase}: that launches another application, and this
-	 * test is about the one whose vault was just closed
-	 *
-	 * @param databaseFile
-	 *            the database to open
-	 * @return steps for the signed-in application
+	 * The test plan's TC-0046 through the frame's own watchdog: the timeout is the setting "Close a
+	 * locked database after minutes", read from the settings on every check, and the clock is the
+	 * system clock with the timer's own ten second rhythm. The database is opened with a password
+	 * AND a key file, and opening it again after the close needs both.
 	 */
-	private ApplicationSteps openADatabaseFileInTheRunningApplication(final File databaseFile)
+	@Test
+	@DisplayName("the frame's own watchdog closes a locked vault after the minutes of the setting, and opening it again needs the password and the key file")
+	void theFramesOwnWatchdogClosesALockedVaultAfterTheSettingsMinutes() throws Exception
+	{
+		String password = TestPasswords.throwaway();
+		File keyFile = new File(tempHome, "closes-itself.pem");
+		File databaseFile = new File(tempHome, "closes-itself-combined.mcrdb");
+		createDatabaseFileWithKeyFileHeadless(databaseFile, password, keyFile);
+		SignInDialogSteps signIn = launchApplication();
+		signIn.checkMasterPassword().typeMasterPassword(password).checkKeyFile()
+			.browseKeyFile(keyFile).browseApplicationFile(databaseFile).requireOkEnabled()
+			.okAndAwaitSignIn();
+		ApplicationSteps application = new ApplicationSteps(robot).awaitSignedIn();
+		changeTheSettingsOfTheRunningApplication(settings -> {
+			settings.setAutoLockMinutes(0);
+			settings.setCloseLockedAfterMinutes(1);
+		});
+		application.lockWorkspace();
+		application.cancelUnlock();
+		assertTrue(theVaultIsOpen(), "the precondition: locked, and the vault is still open");
+
+		Pause.pause(new Condition("the frame's own watchdog closes the locked vault")
+		{
+			@Override
+			public boolean test()
+			{
+				return !theVaultIsOpen();
+			}
+		}, TimeUnit.SECONDS.toMillis(100));
+
+		assertFalse(signedInNow(), "closing a locked vault must not sign the application in");
+		assertTrue(databaseFile.exists(), "and the file it came from is untouched");
+		SignInDialogSteps again = openTheSignInDialogOfTheRunningApplication();
+		again.uncheckKeyFile().checkMasterPassword().typeMasterPassword(password)
+			.browseApplicationFile(databaseFile).requireOkEnabled().clickOk();
+		awaitAndDismissAnErrorDialog();
+		assertFalse(signedInNow(), "the password alone does not open it again");
+		again.uncheckMasterPassword().checkKeyFile().browseKeyFile(keyFile).requireOkEnabled()
+			.clickOk();
+		awaitAndDismissAnErrorDialog();
+		assertFalse(signedInNow(), "the key file alone does not open it either");
+		again.checkMasterPassword().typeMasterPassword(password).okAndAwaitSignIn();
+		new ApplicationSteps(robot).awaitSignedIn();
+		assertTrue(signedInNow(), "the password and the key file do");
+	}
+
+	private static boolean theVaultIsOpen()
+	{
+		return GuiActionRunner.execute(
+			() -> MysticCryptApplicationFrame.getInstance().asLockableWorkspace().aVaultIsOpen());
+	}
+
+	/**
+	 * Changes the settings of the running application the way the settings dialog does: load the
+	 * file of the frame's own configuration directory, change it, save it there. The frame's
+	 * watchdog reads it on its next check, so nothing a test writes before the launch can stand in
+	 * for it
+	 */
+	private static void changeTheSettingsOfTheRunningApplication(
+		final java.util.function.Consumer<MysticCryptSettings> change)
+	{
+		File configurationDirectory = GuiActionRunner
+			.execute(() -> MysticCryptApplicationFrame.getInstance().getConfigurationDirectory());
+		MysticCryptSettings settings = MysticCryptSettings.load(configurationDirectory);
+		change.accept(settings);
+		settings.save(configurationDirectory);
+	}
+
+	private static boolean signedInNow()
+	{
+		return GuiActionRunner
+			.execute(() -> MysticCryptApplicationFrame.getInstance().getModelObject().isSignedIn());
+	}
+
+	private void awaitAndDismissAnErrorDialog()
+	{
+		Pause.pause(new Condition("the refused open is reported")
+		{
+			@Override
+			public boolean test()
+			{
+				return anErrorPane() != null;
+			}
+		}, TimeUnit.SECONDS.toMillis(30));
+		JOptionPane pane = anErrorPane();
+		GuiActionRunner.execute(() -> pane.setValue(JOptionPane.OK_OPTION));
+		robot.waitForIdle();
+	}
+
+	private static JOptionPane anErrorPane()
+	{
+		return GuiActionRunner.execute(() -> {
+			for (java.awt.Window window : java.awt.Window.getWindows())
+			{
+				if (window instanceof JDialog dialog && dialog.isShowing())
+				{
+					for (java.awt.Component child : dialog.getContentPane().getComponents())
+					{
+						if (child instanceof JOptionPane pane
+							&& pane.getMessageType() == JOptionPane.ERROR_MESSAGE)
+						{
+							return pane;
+						}
+					}
+				}
+			}
+			return null;
+		});
+	}
+
+	/**
+	 * Opens the sign-in dialog of the application that is already running, through the entry #266
+	 * added. Not a second {@code signInWithExistingDatabase}: that launches another application,
+	 * and this test is about the one whose vault was just closed
+	 *
+	 * @return steps for the sign-in dialog
+	 */
+	private SignInDialogSteps openTheSignInDialogOfTheRunningApplication()
 	{
 		SwingUtilities.invokeLater(() -> new OpenExistingDatabaseAction("Open Database File")
 			.actionPerformed(new ActionEvent(MysticCryptApplicationFrame.getInstance(), 0, "")));
-		awaitSignInDialog().requireOkDisabled().checkMasterPassword()
-			.typeMasterPassword(MASTER_PASSWORD).browseApplicationFile(databaseFile)
-			.requireOkEnabled().okAndAwaitSignIn();
-		return new ApplicationSteps(robot).awaitSignedIn();
+		return awaitSignInDialog();
 	}
 
 	/**
