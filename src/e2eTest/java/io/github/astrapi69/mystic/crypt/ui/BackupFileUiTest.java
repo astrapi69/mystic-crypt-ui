@@ -47,9 +47,9 @@ import io.github.astrapi69.mystic.crypt.TestPasswords;
  * and the next successful sign-in removes it.
  * <p>
  * The unit tests call the writer and the reader directly. What only the application can show is the
- * wiring: that the Save menu reaches the writer on every one of the store worker's save paths, and
- * that the sign-in dialog opens through the reader that removes the backup. Two databases, since
- * the password path and the key file path are separate lines of the store worker.
+ * wiring: that the Save menu reaches the writer on every one of the store worker's three save paths
+ * (password, key file, password and key file), and that the sign-in dialog opens through the reader
+ * that removes the backup. Three databases, since the paths are separate lines of the store worker.
  * <p>
  * Each vault sits in a directory of its own, because the application's home holds its settings and
  * plugins too, and a listing of the home would never be exactly the database and its backup.
@@ -94,6 +94,27 @@ class BackupFileUiTest extends AbstractUiTest
 			SignInDialogSteps signIn = launchApplication();
 			signIn.uncheckMasterPassword().checkKeyFile().browseKeyFile(keyFile())
 				.browseApplicationFile(database).okAndAwaitSignIn();
+			return new ApplicationSteps(robot).awaitSignedIn();
+		});
+	}
+
+	@Test
+	@DisplayName("a save of a password and key file database keeps the previous state as the .bak, the next sign-in removes it")
+	void aSaveOfAPasswordAndKeyFileDatabaseKeepsThePreviousStateAsTheSiblingBackup()
+		throws Exception
+	{
+		saveKeepsTheBackupAndTheNextSignInRemovesIt("vault-password-and-key-file", database -> {
+			SignInDialogSteps signIn = launchApplication();
+			signIn.startNewDatabase(database).checkMasterPassword()
+				.typeMasterPasswordWithRepeat(MASTER_PASSWORD).checkKeyFile()
+				.createKeyFile(KEY_FILE_NAME).okAndAwaitClose();
+			signIn.checkMasterPassword().typeMasterPassword(MASTER_PASSWORD).checkKeyFile()
+				.browseKeyFile(keyFile()).okAndAwaitSignIn();
+			return new ApplicationSteps(robot).awaitSignedIn();
+		}, database -> {
+			SignInDialogSteps signIn = launchApplication();
+			signIn.checkMasterPassword().typeMasterPassword(MASTER_PASSWORD).checkKeyFile()
+				.browseKeyFile(keyFile()).browseApplicationFile(database).okAndAwaitSignIn();
 			return new ApplicationSteps(robot).awaitSignedIn();
 		});
 	}
