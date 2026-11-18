@@ -70,7 +70,8 @@ Real data, no test fixture. Nothing else is released while this does not hold.
 - [ ] TC-0011 Build a tree: several folders, in each one entries with title, user name,
       password, URL, notes. - automated by
       `DatabaseRoundTripUiTest#aFullTreeComesBackAfterSaveEndAndRestart` (three folders,
-      two entries each, every field typed in the dialog, URL and notes included)
+      two entries each, title, user name, password with its repeat, URL and notes typed in the
+      dialog; the expiry date is not driven by any test, manual only)
 - [ ] TC-0012 Give one entry custom fields and attach a file. - automated by
       `EditEntryCancelUiTest#ok_takesCustomFieldsAndAnAttachedFile_andAReopenGivesThemBack`
       (two custom fields, a UTF-8 text file and a file of all 256 byte values through "Add
@@ -87,9 +88,10 @@ Real data, no test fixture. Nothing else is released while this does not hold.
       JVM and observe a successor, #288)
 - [ ] TC-0014 Everything is back: tree structure, every field, the custom field, the
       attachment. - automated by
-      `DatabaseRoundTripUiTest#aFullTreeComesBackAfterSaveEndAndRestart` (folders, entries,
-      every field, both custom fields, both attachments by name and SHA-256, compared with
-      what was typed), and in the MCRDB2 file after an import and a save
+      `DatabaseRoundTripUiTest#aFullTreeComesBackAfterSaveEndAndRestart` (folders by where they hang,
+      entries with title, user name, password, URL and notes, both custom fields, both
+      attachments by name and SHA-256, compared with what was typed; the expiry date set in
+      the dialog: manual only), and in the MCRDB2 file after an import and a save
       `KdbxRoundTripKeepsEveryFieldUiTest#theGroupStructureIsUnchanged`, `#theTextFieldsSurvive`,
       `#customPropertiesSurviveIncludingTheProtectedOne` and `#theAttachmentSurvivesWithItsContent`
 - [ ] TC-0015 View the attachment with a double click, then write it out with "Save to" and

@@ -51,7 +51,8 @@ import io.github.astrapi69.swing.table.GenericJTable;
 
 /**
  * Reusable steps for the "Edit Crypt Entry" dialog that "edit..." on an entry opens: the fields of
- * its "Main" tab and the properties of its "Properties" tab, and the two ways out of it. Same
+ * its "Main" tab, the properties of its "Properties" tab, the attachments of its "Attachments" tab
+ * (Add File, the content a double click shows, Save to), and the two ways out of it. Same
  * interaction conventions as {@link CreateMasterKeySteps}
  */
 final class EditCryptEntrySteps

@@ -29,12 +29,6 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.File;
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.util.HexFormat;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
@@ -46,7 +40,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import io.github.astrapi69.collection.pair.KeyValuePair;
-import io.github.astrapi69.file.create.model.FileContentInfo;
 import io.github.astrapi69.gen.tree.BaseTreeNode;
 import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
 import io.github.astrapi69.mystic.crypt.TestPasswords;
@@ -146,18 +139,11 @@ class EditEntryCancelUiTest extends AbstractUiTest
 	void ok_takesCustomFieldsAndAnAttachedFile_andAReopenGivesThemBack() throws Exception
 	{
 		File databaseFile = new File(tempHome, "edit-ok-attachment.mcrdb");
-		File text = new File(tempHome, "gruesse.txt");
-		Files.writeString(text.toPath(), "Grüße aus Köln, ß und €\n", StandardCharsets.UTF_8);
-		File binary = new File(tempHome, "all-bytes.bin");
-		byte[] everyByte = new byte[256];
-		for (int value = 0; value < everyByte.length; value++)
-		{
-			everyByte[value] = (byte)value;
-		}
-		Files.write(binary.toPath(), everyByte);
+		File text = AttachmentFixtures.writeText(tempHome);
+		File binary = AttachmentFixtures.writeEveryByteValue(tempHome);
 		Map<String, String> attached = new TreeMap<>();
-		attached.put(text.getName(), sha256Of(text));
-		attached.put(binary.getName(), sha256Of(binary));
+		attached.put(text.getName(), AttachmentFixtures.sha256Hex(text));
+		attached.put(binary.getName(), AttachmentFixtures.sha256Hex(binary));
 		ApplicationSteps application = signInWithASavedEntry(databaseFile.getName(),
 			TestPasswords.throwaway());
 		FrameFixture frame = application.showMainFrame();
@@ -177,12 +163,6 @@ class EditEntryCancelUiTest extends AbstractUiTest
 		signInWithExistingDatabase(databaseFile, MASTER_PASSWORD);
 		assertEquals(edited, theOnlyEntry(),
 			"the saved file holds the custom fields and the attached files, name and SHA-256");
-	}
-
-	private static String sha256Of(File file) throws IOException, NoSuchAlgorithmException
-	{
-		return HexFormat.of().formatHex(
-			MessageDigest.getInstance("SHA-256").digest(Files.readAllBytes(file.toPath())));
 	}
 
 	private ApplicationSteps signInWithASavedEntry(String fileName, String password)
@@ -240,29 +220,7 @@ class EditEntryCancelUiTest extends AbstractUiTest
 				EntryText.asText(entry.getPassword()), EntryText.asText(entry.getRepeat()),
 				properties.stream()
 					.collect(Collectors.toMap(KeyValuePair::getKey, KeyValuePair::getValue)),
-				attachmentsOf(entry));
-		}
-
-		/** The attached files, each as its name and the SHA-256 of its bytes */
-		private static Map<String, String> attachmentsOf(final MysticCryptEntryModelBean entry)
-		{
-			Map<String, String> attachments = new TreeMap<>();
-			List<FileContentInfo> resources = entry.getResources() == null
-				? List.of()
-				: entry.getResources();
-			for (FileContentInfo resource : resources)
-			{
-				try
-				{
-					attachments.put(resource.getName(), HexFormat.of().formatHex(
-						MessageDigest.getInstance("SHA-256").digest(resource.getContent())));
-				}
-				catch (NoSuchAlgorithmException missing)
-				{
-					throw new IllegalStateException("this Java runtime has no SHA-256", missing);
-				}
-			}
-			return attachments;
+				AttachmentFixtures.byNameAndSha256(entry));
 		}
 	}
 }

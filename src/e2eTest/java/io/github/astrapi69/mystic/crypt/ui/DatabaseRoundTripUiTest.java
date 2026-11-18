@@ -29,13 +29,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.File;
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
-import java.util.HexFormat;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
@@ -48,7 +43,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import io.github.astrapi69.collection.pair.KeyValuePair;
-import io.github.astrapi69.file.create.model.FileContentInfo;
 import io.github.astrapi69.gen.tree.BaseTreeNode;
 import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
 import io.github.astrapi69.mystic.crypt.TestPasswords;
@@ -59,8 +53,10 @@ import io.github.astrapi69.swing.renderer.tree.GenericTreeElement;
 /**
  * The data-loss gate of the manual test plan (TS-0001, release smoke) driven through the running
  * application: build a database by hand, save it, end the application through its own end path,
- * start it again, sign in, and compare everything with what was typed (TC-0011, TC-0013, TC-0014),
- * then look at an attachment and write it out (TC-0015).
+ * start it again, sign in, and compare the tree, the five text fields of each entry, its custom
+ * fields and its attachments with what was typed (TC-0011, TC-0013, TC-0014), then look at an
+ * attachment and write it out (TC-0015). The entry's expiry (the "Expires" checkbox and its date)
+ * is not driven here.
  * <p>
  * The restart is the in-JVM one of {@link AbstractUiTest#shutdownApplication()}: a real process end
  * kills the test JVM, and a successor cannot be observed from inside it. That part stays manual.
@@ -70,25 +66,20 @@ class DatabaseRoundTripUiTest extends AbstractUiTest
 
 	private static final String MASTER_PASSWORD = TestPasswords.throwaway();
 
-	private static final String TEXT_ATTACHMENT = "gruesse.txt";
-
-	private static final String BINARY_ATTACHMENT = "all-bytes.bin";
-
-	private static final String TEXT_OF_THE_ATTACHMENT = "Grüße aus Köln, ß und €\n";
-
 	@Test
-	@DisplayName("a tree of folders and entries with every field, a custom field and attachments comes back after save, the application's own end and a restart")
+	@DisplayName("a tree of folders and entries with title, user name, password, URL and notes, two custom fields and two attachments comes back after save, the application's own end and a restart")
 	void aFullTreeComesBackAfterSaveEndAndRestart() throws Exception
 	{
 		File databaseFile = new File(tempHome, "round-trip.mcrdb");
-		File text = writeTheTextAttachment();
-		File binary = writeTheBinaryAttachment();
+		File text = AttachmentFixtures.writeText(tempHome);
+		File binary = AttachmentFixtures.writeEveryByteValue(tempHome);
 		createDatabaseFileHeadless(databaseFile, MASTER_PASSWORD);
 		ApplicationSteps application = signInWithExistingDatabase(databaseFile, MASTER_PASSWORD);
 		FrameFixture frame = application.showMainFrame();
 
-		String textHash = sha256Of(Files.readAllBytes(text.toPath()));
-		String binaryHash = sha256Of(Files.readAllBytes(binary.toPath()));
+		String textHash = AttachmentFixtures.sha256Hex(text);
+		String binaryHash = AttachmentFixtures.sha256Hex(binary);
+		String root = rootName();
 		List<String> folders = List.of("Bank", "Mail", "Shop");
 		for (String folder : folders)
 		{
@@ -110,19 +101,20 @@ class DatabaseRoundTripUiTest extends AbstractUiTest
 					entry.url(), entry.notes());
 				entries.add(entry);
 			}
-			typed.put(folder, entries);
+			typed.put(root + "/" + folder, entries);
 		}
 		application.selectTreeRowByName(frame, "Bank");
 		application.selectEntryRowByTitle(frame, "Bank entry 1");
 		application.openTheEditDialog(frame).addProperty("pin", "4711")
 			.addProperty("seed", "JBSWY3DPEHPK3PXP").addAttachment(text).addAttachment(binary).ok();
-		EntryRecord first = typed.get("Bank").get(0);
-		typed.get("Bank").set(0,
+		EntryRecord first = typed.get(root + "/Bank").get(0);
+		typed.get(root + "/Bank").set(0,
 			new EntryRecord(first.title(), first.userName(), first.password(), first.url(),
 				first.notes(), Map.of("pin", "4711", "seed", "JBSWY3DPEHPK3PXP"),
-				Map.of(TEXT_ATTACHMENT, textHash, BINARY_ATTACHMENT, binaryHash)));
-		typed.put(rootName(), List.of());
-		typed.put("mykeys", List.of());
+				Map.of(AttachmentFixtures.TEXT_NAME, textHash, AttachmentFixtures.BINARY_NAME,
+					binaryHash)));
+		typed.put(root, List.of());
+		typed.put(root + "/mykeys", List.of());
 
 		assertEquals(typed, theTree(),
 			"precondition: the open database holds exactly what was typed in the dialogs");
@@ -133,8 +125,9 @@ class DatabaseRoundTripUiTest extends AbstractUiTest
 		signInWithExistingDatabase(databaseFile, MASTER_PASSWORD);
 
 		assertEquals(typed, theTree(),
-			"folders, entries in them, every field, the custom fields and the attachments (name "
-				+ "and SHA-256) are what was typed, not what the model held before the save");
+			"folders where they hang, entries in them with title, user name, password, URL and "
+				+ "notes, the custom fields and the attachments (name and SHA-256) are what was "
+				+ "typed, not what the model held before the save; the expiry is not driven here");
 	}
 
 	@Test
@@ -142,8 +135,8 @@ class DatabaseRoundTripUiTest extends AbstractUiTest
 	void theAttachmentIsShownAndWrittenOutByteForByte() throws Exception
 	{
 		File databaseFile = new File(tempHome, "attachment-out.mcrdb");
-		File text = writeTheTextAttachment();
-		File binary = writeTheBinaryAttachment();
+		File text = AttachmentFixtures.writeText(tempHome);
+		File binary = AttachmentFixtures.writeEveryByteValue(tempHome);
 		createDatabaseFileHeadless(databaseFile, MASTER_PASSWORD);
 		ApplicationSteps application = signInWithExistingDatabase(databaseFile, MASTER_PASSWORD);
 		FrameFixture frame = application.showMainFrame();
@@ -159,45 +152,28 @@ class DatabaseRoundTripUiTest extends AbstractUiTest
 
 		application.selectTreeRowByName(frame, "Docs").selectEntryRowByTitle(frame, "Papers");
 		EditCryptEntrySteps dialog = application.openTheEditDialog(frame);
-		String shown = dialog.showContentOf(TEXT_ATTACHMENT);
-		File writtenText = new File(tempHome, "written-" + TEXT_ATTACHMENT);
-		File writtenBinary = new File(tempHome, "written-" + BINARY_ATTACHMENT);
-		String proposedForText = dialog.saveAttachmentTo(TEXT_ATTACHMENT, writtenText);
-		String proposedForBinary = dialog.saveAttachmentTo(BINARY_ATTACHMENT, writtenBinary);
+		String shown = dialog.showContentOf(AttachmentFixtures.TEXT_NAME);
+		File writtenText = new File(tempHome, "written-" + AttachmentFixtures.TEXT_NAME);
+		File writtenBinary = new File(tempHome, "written-" + AttachmentFixtures.BINARY_NAME);
+		String proposedForText = dialog.saveAttachmentTo(AttachmentFixtures.TEXT_NAME, writtenText);
+		String proposedForBinary = dialog.saveAttachmentTo(AttachmentFixtures.BINARY_NAME,
+			writtenBinary);
 		dialog.cancel();
 
-		assertEquals(TEXT_OF_THE_ATTACHMENT, shown,
+		assertEquals(AttachmentFixtures.TEXT, shown,
 			"the double click shows the text that was attached");
-		assertEquals(TEXT_ATTACHMENT, proposedForText, "Save to proposes the attachment's name");
-		assertEquals(BINARY_ATTACHMENT, proposedForBinary,
+		assertEquals(AttachmentFixtures.TEXT_NAME, proposedForText,
+			"Save to proposes the attachment's name");
+		assertEquals(AttachmentFixtures.BINARY_NAME, proposedForBinary,
 			"Save to proposes the attachment's name");
 		assertArrayEquals(Files.readAllBytes(text.toPath()),
 			Files.readAllBytes(writtenText.toPath()),
 			"the written text file is byte for byte the attached one, SHA-256 of the source "
-				+ sha256Of(Files.readAllBytes(text.toPath())));
+				+ AttachmentFixtures.sha256Hex(text));
 		assertArrayEquals(Files.readAllBytes(binary.toPath()),
 			Files.readAllBytes(writtenBinary.toPath()),
 			"the written binary file is byte for byte the attached one, SHA-256 of the source "
-				+ sha256Of(Files.readAllBytes(binary.toPath())));
-	}
-
-	private File writeTheTextAttachment() throws IOException
-	{
-		File text = new File(tempHome, TEXT_ATTACHMENT);
-		Files.writeString(text.toPath(), TEXT_OF_THE_ATTACHMENT, StandardCharsets.UTF_8);
-		return text;
-	}
-
-	private File writeTheBinaryAttachment() throws IOException
-	{
-		File binary = new File(tempHome, BINARY_ATTACHMENT);
-		byte[] everyByte = new byte[256];
-		for (int value = 0; value < everyByte.length; value++)
-		{
-			everyByte[value] = (byte)value;
-		}
-		Files.write(binary.toPath(), everyByte);
-		return binary;
+				+ AttachmentFixtures.sha256Hex(binary));
 	}
 
 	/**
@@ -213,8 +189,9 @@ class DatabaseRoundTripUiTest extends AbstractUiTest
 	}
 
 	/**
-	 * Every folder of the open database with its entries, read on the event thread from the tree a
-	 * save reads from. Entries are sorted by title so that the order is no part of the comparison
+	 * Every folder of the open database, by the path of folder names it hangs under, with its
+	 * entries, read on the event thread from the tree a save reads from. Entries are sorted by
+	 * title so that the order is no part of the comparison
 	 */
 	private static Map<String, List<EntryRecord>> theTree()
 	{
@@ -231,10 +208,23 @@ class DatabaseRoundTripUiTest extends AbstractUiTest
 					content.forEach(entry -> records.add(EntryRecord.of(entry)));
 				}
 				records.sort((first, second) -> first.title().compareTo(second.title()));
-				folders.put(node.getValue().getName(), records);
+				String path = pathOf(node);
+				if (folders.put(path, records) != null)
+				{
+					throw new IllegalStateException("two nodes hang at " + path);
+				}
 			});
 			return folders;
 		});
+	}
+
+	/** The node's name behind the names of the folders it hangs under, joined with a slash */
+	private static String pathOf(
+		final BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> node)
+	{
+		return node.getParent() == null
+			? node.getValue().getName()
+			: pathOf(node.getParent()) + "/" + node.getValue().getName();
 	}
 
 	/** The name of the tree's root, which holds no entry */
@@ -245,11 +235,6 @@ class DatabaseRoundTripUiTest extends AbstractUiTest
 				.getSecretKeyTreeWithContentPanel().getModelObject().getValue().getName());
 	}
 
-	private static String sha256Of(byte[] bytes) throws NoSuchAlgorithmException
-	{
-		return HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(bytes));
-	}
-
 	/** Everything the dialogs can put on an entry, as text */
 	private record EntryRecord(String title, String userName, String password, String url,
 		String notes, Map<String, String> properties, Map<String, String> attachments) {
@@ -258,27 +243,12 @@ class DatabaseRoundTripUiTest extends AbstractUiTest
 			List<KeyValuePair<String, String>> properties = entry.getProperties() == null
 				? List.of()
 				: entry.getProperties();
-			List<FileContentInfo> resources = entry.getResources() == null
-				? List.of()
-				: entry.getResources();
-			Map<String, String> attachments = new TreeMap<>();
-			for (FileContentInfo resource : resources)
-			{
-				try
-				{
-					attachments.put(resource.getName(), sha256Of(resource.getContent()));
-				}
-				catch (NoSuchAlgorithmException missing)
-				{
-					throw new IllegalStateException("this Java runtime has no SHA-256", missing);
-				}
-			}
 			return new EntryRecord(EntryText.asText(entry.getTitle()),
 				EntryText.asText(entry.getUserName()), EntryText.asText(entry.getPassword()),
 				EntryText.asText(entry.getUrl()), EntryText.asText(entry.getNotes()),
-				properties.stream().collect(
-					Collectors.toMap(KeyValuePair::getKey, KeyValuePair::getValue)),
-				attachments);
+				properties.stream()
+					.collect(Collectors.toMap(KeyValuePair::getKey, KeyValuePair::getValue)),
+				AttachmentFixtures.byNameAndSha256(entry));
 		}
 	}
 }
