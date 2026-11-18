@@ -40,7 +40,6 @@ dependencies {
     // host's own Messages class already behaves (.claude/rules/i18n.md)
     compileOnly libs.resourcebundle.core
     compileOnly libs.swing.base.components
-    compileOnly libs.swing.components
     // the model backed components the panel binds to its model; the host brings both jars at
     // runtime, so they stay compileOnly here like everything else
     compileOnly libs.swing.model.components

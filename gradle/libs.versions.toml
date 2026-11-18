@@ -39,7 +39,6 @@ izpack-ant-version = "5.2.7"
 jettison-version = "1.5.7"
 json-version = "20260719"
 jackson-databind-version = "2.22.4"
-javahelp-version = "2.0.05"
 jobj-cloner-version = "2.1"
 jobj-copy-version = "4.3"
 jobj-core-version = "10.0"
@@ -122,7 +121,6 @@ izpack-ant = { module = "org.codehaus.izpack:izpack-ant", version.ref = "izpack-
 jettison = { module = "org.codehaus.jettison:jettison", version.ref = "jettison-version" }
 json = { module = "org.json:json", version.ref = "json-version" }
 jackson-databind = { module = "com.fasterxml.jackson.core:jackson-databind", version.ref = "jackson-databind-version" }
-javahelp = { module = "javax.help:javahelp", version.ref = "javahelp-version" }
 jobj-cloner = { module = "io.github.astrapi69:jobj-cloner", version.ref = "jobj-cloner-version" }
 jobj-copy = { module = "io.github.astrapi69:jobj-copy", version.ref = "jobj-copy-version" }
 jobj-core = { module = "io.github.astrapi69:jobj-core", version.ref = "jobj-core-version" }

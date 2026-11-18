@@ -54,12 +54,6 @@ class ShippedLicencesTest
 	/** Where the build names the file of the licences */
 	private static final String RUNTIME_LICENCES = "mystic.crypt.ui.runtime.licences";
 
-	/**
-	 * The modules that ship today although their only licence is a copyleft one: iText 5 under the
-	 * AGPL-3, through swing-components (#1013)
-	 */
-	private static final Set<String> COPYLEFT_SHIPPED_TODAY = Set.of("com.itextpdf:itextpdf");
-
 	private static final Pattern LESSER = Pattern.compile("lesser|lgpl|library general",
 		Pattern.CASE_INSENSITIVE);
 
@@ -97,8 +91,10 @@ class ShippedLicencesTest
 
 		assertTrue(unknown.isEmpty(),
 			"no licence in the POM chain, to be checked by hand and not let through: " + unknown);
-		assertEquals(COPYLEFT_SHIPPED_TODAY, copyleft,
-			"the modules that ship under the AGPL or the GPL without the classpath exception only");
+		// iText 5 under the AGPL-3 shipped through swing-components until #1013 removed it
+		assertTrue(copyleft.isEmpty(),
+			"modules that ship under the AGPL or the GPL without the classpath exception only: "
+				+ copyleft);
 	}
 
 	@Test

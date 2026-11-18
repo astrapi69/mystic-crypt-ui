@@ -43,7 +43,6 @@ dependencies {
     compileOnly libs.swing.model.components
     compileOnly libs.model.data
     compileOnly libs.swing.base.components
-    compileOnly libs.swing.components
     // Pair (used by the host EnDecryptPanel this plugin's GenerateKeysPanel embeds)
     compileOnly libs.silly.bean
     compileOnly libs.menu.action

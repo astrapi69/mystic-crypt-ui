@@ -48,7 +48,6 @@ dependencies {
     compileOnly libs.swing.model.components
     compileOnly libs.model.data
     compileOnly libs.swing.base.components
-    compileOnly libs.swing.components
     // the shared tool window layout (ToolForm) is MigLayout based; the host brings the library at
     // runtime, the plugin only compiles against it
     compileOnly libs.miglayout.swing
