@@ -9,4 +9,5 @@ gradle/publishing.gradle
 gradle/repositories.gradle
 gradle/testing.gradle
 gradle/version-catalog-update.gradle
+gradle/dependency-analysis.gradle
 gradle/runtime-licences.gradle

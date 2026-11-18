@@ -44,6 +44,8 @@ import javax.swing.SwingUtilities;
 
 import org.assertj.swing.edt.GuiActionRunner;
 import org.assertj.swing.fixture.DialogFixture;
+import org.assertj.swing.timing.Condition;
+import org.assertj.swing.timing.Pause;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -55,10 +57,12 @@ import io.github.astrapi69.mystic.crypt.TestPasswords;
 import io.github.astrapi69.mystic.crypt.action.CloseApplicationFileAction;
 import io.github.astrapi69.mystic.crypt.action.OpenExistingDatabaseAction;
 import io.github.astrapi69.mystic.crypt.lock.IdleLockWatchdog;
+import io.github.astrapi69.mystic.crypt.settings.MysticCryptSettings;
 
 /**
- * Every way back into a sign-in offers the plugins again (#1006), the fifth being a sign-in that
- * was cancelled at the start and made later through Open Database.
+ * Every way back into a sign-in offers the plugins again (#1006), the last being a sign-in that was
+ * cancelled at the start and made later through Open Database. One of the ways is the frame's own
+ * idle lock on the system clock, with the setting changed in the running application (TC-0133).
  * <p>
  * The lock, the close of a database and the sign-in dialog of an open put the menu into the state
  * of no vault being open, which disables every plugin entry that needs one. Only the first sign-in
@@ -90,6 +94,9 @@ class EverySignInOffersThePluginEntriesUiTest extends AbstractUiTest
 			Arguments.of("the automatic lock, then unlock",
 				(WayBack)(test, application, first, second) -> test
 					.theAutomaticLockRuns(application)),
+			Arguments.of("the application's own idle lock, then unlock",
+				(WayBack)(test, application, first, second) -> test
+					.theFramesOwnIdleLockRuns(application)),
 			Arguments.of("open a second database while one is open",
 				(WayBack)(test, application, first, second) -> test
 					.openInTheRunningApplication(second)),
@@ -160,6 +167,31 @@ class EverySignInOffersThePluginEntriesUiTest extends AbstractUiTest
 		assertTrue(GuiActionRunner.execute(() -> wizard.target().isShowing()),
 			"and a plugin's tool opens from it");
 		wizard.close();
+	}
+
+	/**
+	 * The test plan's TC-0133 through the frame's own watchdog: the setting "Lock after idle
+	 * minutes" is changed to 1 while the application runs, the way the settings dialog does, the
+	 * application is then left alone (the watchdog counts every key and mouse event as activity, so
+	 * the robot does nothing while it waits), and the lock comes from the frame's timer on the
+	 * system clock, not from a watchdog of the test's own. Then the unlock
+	 */
+	private void theFramesOwnIdleLockRuns(final ApplicationSteps application)
+	{
+		File configurationDirectory = GuiActionRunner
+			.execute(() -> MysticCryptApplicationFrame.getInstance().getConfigurationDirectory());
+		MysticCryptSettings settings = MysticCryptSettings.load(configurationDirectory);
+		settings.setAutoLockMinutes(1);
+		settings.save(configurationDirectory);
+		Pause.pause(new Condition("the frame's own idle lock locks the workspace")
+		{
+			@Override
+			public boolean test()
+			{
+				return !signedIn();
+			}
+		}, TimeUnit.SECONDS.toMillis(100));
+		application.unlockWorkspace(MASTER_PASSWORD);
 	}
 
 	/**
