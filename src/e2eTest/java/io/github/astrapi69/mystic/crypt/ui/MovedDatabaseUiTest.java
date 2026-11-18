@@ -34,7 +34,8 @@ import java.nio.file.Files;
 import org.assertj.swing.fixture.FrameFixture;
 import org.assertj.swing.timing.Condition;
 import org.assertj.swing.timing.Pause;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import io.github.astrapi69.mystic.crypt.TestPasswords;
 
@@ -56,12 +57,16 @@ class MovedDatabaseUiTest extends AbstractUiTest
 
 	private static final String NODE_NAME = "Node added after the move";
 
-	@Test
-	void aDatabaseThatWasMovedIsSavedWhereItNowIs() throws Exception
+	@ParameterizedTest(name = "{0}")
+	@ValueSource(strings = { "renamed in the same directory", "moved into another directory" })
+	void aDatabaseThatWasMovedIsSavedWhereItNowIs(final String movement) throws Exception
 	{
 		File original = new File(tempHome, "moved-source.mcrdb");
 		createDatabaseFileHeadless(original, MASTER_PASSWORD);
-		File moved = new File(tempHome, "moved-target.mcrdb");
+		File targetDirectory = movement.startsWith("moved into")
+			? Files.createDirectories(tempHome.toPath().resolve("elsewhere")).toFile()
+			: tempHome;
+		File moved = new File(targetDirectory, "moved-target.mcrdb");
 		Files.move(original.toPath(), moved.toPath());
 		long lengthBeforeSave = moved.length();
 
