@@ -28,14 +28,11 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.awt.event.ActionEvent;
 import java.io.File;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Stream;
-
-import javax.swing.SwingUtilities;
 
 import org.assertj.swing.edt.GuiActionRunner;
 import org.assertj.swing.fixture.DialogFixture;
@@ -47,10 +44,9 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
+import io.github.astrapi69.mystic.crypt.MenuId;
 import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
 import io.github.astrapi69.mystic.crypt.TestPasswords;
-import io.github.astrapi69.mystic.crypt.action.CloseApplicationFileAction;
-import io.github.astrapi69.mystic.crypt.action.OpenExistingDatabaseAction;
 import io.github.astrapi69.mystic.crypt.lock.IdleLockWatchdog;
 import io.github.astrapi69.mystic.crypt.settings.MysticCryptSettings;
 
@@ -209,23 +205,32 @@ class EverySignInOffersThePluginEntriesUiTest extends AbstractUiTest
 		application.unlockWorkspace(MASTER_PASSWORD);
 	}
 
-	/** Opens a database file through "Open Database..." of the running application */
+	/**
+	 * Opens a database file through the File menu item "Open Database..." of the running
+	 * application
+	 */
 	private void openInTheRunningApplication(final File databaseFile)
 	{
-		SwingUtilities.invokeLater(() -> new OpenExistingDatabaseAction("Open Database File")
-			.actionPerformed(new ActionEvent(MysticCryptApplicationFrame.getInstance(), 0, "")));
+		new ApplicationSteps(robot).fireMenuItem(MenuId.OPEN_DATABASE_FILE.propertiesKey());
 		awaitSignInDialog().checkMasterPassword().typeMasterPassword(MASTER_PASSWORD)
 			.browseApplicationFile(databaseFile).requireOkEnabled().okAndAwaitSignIn();
 		new ApplicationSteps(robot).awaitSignedIn();
 		robot.waitForIdle();
 	}
 
-	/** Closes the open database the way File > Close does */
+	/** Closes the open database through the File menu item "Close Database" */
 	private void closeTheDatabase()
 	{
-		GuiActionRunner.execute(() -> new CloseApplicationFileAction("Close")
-			.actionPerformed(new ActionEvent(MysticCryptApplicationFrame.getInstance(), 0, "")));
+		new ApplicationSteps(robot).fireMenuItem(MenuId.CLOSE_DATABASE.propertiesKey());
 		robot.waitForIdle();
+		Pause.pause(new Condition("the File > Close Database item closes the database")
+		{
+			@Override
+			public boolean test()
+			{
+				return !signedIn();
+			}
+		}, TimeUnit.SECONDS.toMillis(15));
 		assertFalse(signedIn(), "the precondition: no database is open after the close");
 	}
 

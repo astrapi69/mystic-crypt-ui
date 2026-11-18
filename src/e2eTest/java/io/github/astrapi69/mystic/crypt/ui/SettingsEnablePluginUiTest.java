@@ -72,9 +72,12 @@ class SettingsEnablePluginUiTest extends AbstractUiTest
 			"the precondition: the installed plugins have entries in the Plugins menu");
 
 		switchTheObfuscationPlugin(application, "btnDisablePlugin");
+		Set<String> rightAfterDisabling = PluginMenuEntries.ofTheRunningApplication().keySet();
 		shutdownApplication();
 		application = signInWithExistingDatabase(databaseFile, MASTER_PASSWORD);
 		Set<String> afterDisabling = PluginMenuEntries.ofTheRunningApplication().keySet();
+		assertEquals(afterDisabling, rightAfterDisabling,
+			"the menu loses the disabled plugin's entries at once, not only after the restart");
 
 		Set<String> gone = new HashSet<>(withBoth);
 		gone.removeAll(afterDisabling);
