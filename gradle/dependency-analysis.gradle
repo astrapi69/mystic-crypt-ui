@@ -1,0 +1,34 @@
+// What the dependency-analysis plugin (com.autonomousapps.dependency-analysis) enforces in the host build: a declared
+// dependency nothing uses fails `buildHealth`, and so does an unused annotation processor. `make dependency-analysis`
+// runs it for the host and every plugin build, and CI runs that target on every push. The plugin's other advice is
+// printed and not enforced: transitive dependencies to declare directly, api against implementation, and a
+// dependency to move to runtimeOnly. The last one is also how the plugin reports an unused dependency that brings a
+// service file (measured with jackson-databind on 2026-11-18), so such a dependency is not caught here.
+dependencyAnalysis {
+    structure {
+        // junit-jupiter is the aggregate the JUnit User Guide recommends: the tests compile against its api and
+        // params modules and run on the engine it brings, which nothing names directly
+        bundle("junit-jupiter") {
+            primary(libs.junit.jupiter)
+            includeGroup("org.junit.jupiter")
+        }
+    }
+    issues {
+        all {
+            onUnusedDependencies {
+                severity("fail")
+                // Reported on 2026-11-18, when the check was introduced, and not decided yet. Each goes with the
+                // pull request that removes it or says why it stays, so this list only gets shorter
+                exclude("commons-codec:commons-codec", "com.google.code.gson:gson", "javax.help:javahelp",
+                    "io.github.astrapi69:jobj-cloner", "io.github.astrapi69:jobj-copy", "io.github.astrapi69:jremix-icon",
+                    "io.github.astrapi69:silk-icon-theme", "io.github.astrapi69:swing-components",
+                    "org.freedesktop.tango:tango-icon-theme", "io.github.astrapi69:tree-api",
+                    "io.github.astrapi69:xml-extensions", "io.github.astrapi69:junit-jupiter-extensions",
+                    "org.mockito:mockito-core")
+            }
+            onUnusedAnnotationProcessors {
+                severity("fail")
+            }
+        }
+    }
+}

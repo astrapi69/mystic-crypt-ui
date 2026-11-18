@@ -1,0 +1,90 @@
+// The dependency-analysis plugin's settings for every internal plugin build, which applies this file after the
+// plugin itself. It enforces what gradle/dependency-analysis.gradle enforces in the host: an unused dependency or an
+// unused annotation processor fails `buildHealth`.
+//
+// The plugin does not judge compileOnly declarations, and nearly everything a plugin compiles against is one: the
+// host brings it at runtime. So this check does not see a compileOnly line nothing uses.
+
+// The findings reported on 2026-11-18, when the check was introduced, and not decided yet, per plugin build. Each
+// goes with the pull request that removes it or says why it stays, so the lists only get shorter. Many of the test
+// dependencies here are not unused: javac needs them for the types of the main classes the tests compile against.
+// Such a type is a supertype or a signature type that no test class file names, and the plugin counts only what the
+// test class files name.
+def pendingUnusedDependencies = [
+    "certificate-plugin"   : ["org.bouncycastle:bcpkix-jdk18on", "io.github.astrapi69:crypt-api",
+                              "io.github.astrapi69:model-data", "org.pf4j:pf4j",
+                              "io.github.astrapi69:swing-base-components", "io.github.astrapi69:swing-model-components"],
+    "checksum-plugin"      : ["io.github.astrapi69:awt-extensions", "io.github.astrapi69:file-worker",
+                              "io.github.astrapi69:menu-action", "com.miglayout:miglayout-swing",
+                              "io.github.astrapi69:model-data", "org.pf4j:pf4j", "io.github.astrapi69:resourcebundle-core",
+                              "io.github.astrapi69:swing-base-components"],
+    "console-plugin"       : ["org.pf4j:pf4j"],
+    "conversion-plugin"    : ["io.github.astrapi69:mystic-crypt-ui", "org.bouncycastle:bcpkix-jdk18on",
+                              "com.miglayout:miglayout-swing", "org.pf4j:pf4j", "io.github.astrapi69:resourcebundle-core",
+                              "io.github.astrapi69:swing-base-components", "io.github.astrapi69:swing-model-components",
+                              "io.github.astrapi69:throwable"],
+    "file-crypt-plugin"    : ["com.miglayout:miglayout-swing", "io.github.astrapi69:model-data", "org.pf4j:pf4j",
+                              "io.github.astrapi69:resourcebundle-core", "io.github.astrapi69:swing-model-components"],
+    "kem-demo-plugin"      : ["com.miglayout:miglayout-swing", "io.github.astrapi69:model-data",
+                              "io.github.astrapi69:mystic-crypt", "org.pf4j:pf4j", "io.github.astrapi69:resourcebundle-core",
+                              "io.github.astrapi69:swing-model-components"],
+    "keygen-plugin"        : ["org.bouncycastle:bcpkix-jdk18on", "io.github.astrapi69:crypt-data",
+                              "com.miglayout:miglayout-swing", "io.github.astrapi69:model-data", "org.pf4j:pf4j",
+                              "io.github.astrapi69:resourcebundle-core", "io.github.astrapi69:swing-base-components"],
+    "keystore-plugin"      : ["io.github.astrapi69:mystic-crypt-ui", "org.bouncycastle:bcpkix-jdk18on",
+                              "com.miglayout:miglayout-swing", "io.github.astrapi69:mystic-crypt", "org.pf4j:pf4j",
+                              "info.picocli:picocli", "io.github.astrapi69:resourcebundle-core",
+                              "io.github.astrapi69:swing-base-components"],
+    "menu-designer-plugin" : ["com.miglayout:miglayout-swing", "org.pf4j:pf4j", "io.github.astrapi69:resourcebundle-core"],
+    "obfuscation-plugin"   : ["com.miglayout:miglayout-swing", "org.pf4j:pf4j", "io.github.astrapi69:resourcebundle-core",
+                              "io.github.astrapi69:swing-base-components", "io.github.astrapi69:swing-table-components",
+                              "com.thoughtworks.xstream:xstream"],
+    "password-hash-plugin" : ["com.miglayout:miglayout-swing", "io.github.astrapi69:model-data", "org.pf4j:pf4j",
+                              "io.github.astrapi69:resourcebundle-core", "io.github.astrapi69:swing-model-components"],
+    "pqc-signature-plugin" : ["org.bouncycastle:bcpkix-jdk18on", "org.bouncycastle:bcutil-jdk18on",
+                              "com.miglayout:miglayout-swing", "io.github.astrapi69:model-data",
+                              "io.github.astrapi69:mystic-crypt", "org.pf4j:pf4j", "io.github.astrapi69:resourcebundle-core",
+                              "io.github.astrapi69:swing-model-components"],
+    "release-key-plugin"   : ["com.miglayout:miglayout-swing", "io.github.astrapi69:model-data", "org.pf4j:pf4j",
+                              "io.github.astrapi69:resourcebundle-core", "io.github.astrapi69:swing-base-components",
+                              "io.github.astrapi69:swing-model-components", "io.github.astrapi69:mystic-crypt-ui"],
+    "secret-sharing-plugin": ["com.miglayout:miglayout-swing", "org.pf4j:pf4j", "io.github.astrapi69:resourcebundle-core"],
+]
+
+// Lombok's processor in the three plugin builds whose sources carry no Lombok annotation, reported on 2026-11-18
+// like the lists above
+def pendingUnusedProcessors = [
+    "certificate-plugin"  : ["org.projectlombok:lombok"],
+    "conversion-plugin"   : ["org.projectlombok:lombok"],
+    "password-hash-plugin": ["org.projectlombok:lombok"],
+]
+
+dependencyAnalysis {
+    // A plugin build is an application: the host loads its zip, and nothing compiles against it. The plugin
+    // analyzes a project that applies only `java` when it is told it is one; without app() it registers no
+    // analysis at all, and buildHealth reports "No project health reports found" with a green build
+    app()
+    structure {
+        // junit-jupiter is the aggregate the JUnit User Guide recommends: the tests compile against its api and
+        // params modules and run on the engine it brings, which nothing names directly
+        bundle("junit-jupiter") {
+            primary(libs.junit.jupiter)
+            includeGroup("org.junit.jupiter")
+        }
+    }
+    issues {
+        all {
+            onUnusedDependencies {
+                severity("fail")
+                exclude(*(pendingUnusedDependencies[rootProject.name] ?: []))
+            }
+            onUnusedAnnotationProcessors {
+                severity("fail")
+                // pf4j's processor is used: it writes META-INF/extensions.idx, from which the host finds every
+                // extension of the plugin. The plugin reports it as unused because nothing in the sources calls it;
+                // the console plugin compiled without it wrote no extensions.idx at all (measured 2026-11-18)
+                exclude("org.pf4j:pf4j", *(pendingUnusedProcessors[rootProject.name] ?: []))
+            }
+        }
+    }
+}
