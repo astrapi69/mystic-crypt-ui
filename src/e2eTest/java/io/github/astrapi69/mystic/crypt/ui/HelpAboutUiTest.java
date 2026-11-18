@@ -70,4 +70,25 @@ class HelpAboutUiTest extends AbstractUiTest
 		GuiActionRunner.execute(() -> infoDialog.target().dispose());
 		robot.waitForIdle();
 	}
+
+	@Test
+	void helpInfoCreditsTheSilkIconsWithTheirAuthorAndTheirLicense() throws IOException
+	{
+		File databaseFile = new File(tempHome, "help-credit-database.mcrdb");
+		createDatabaseFileHeadless(databaseFile, MASTER_PASSWORD);
+
+		ApplicationSteps application = signInWithExistingDatabase(databaseFile, MASTER_PASSWORD);
+		DialogFixture infoDialog = application.openHelpInfoDialog();
+
+		String credit = GuiActionRunner
+			.execute(() -> infoDialog.label("lblSilkIconsCredit").target().getText());
+		assertTrue(credit.contains("Mark James"),
+			"the Info dialog names the silk icons' author (#1007): " + credit);
+		JButton license = GuiActionRunner.execute(() -> (JButton)infoDialog.robot().finder()
+			.find(infoDialog.target(), JButtonMatcher.withName("btnSilkIconsLicense")));
+		assertNotNull(license, "and links their license, Creative Commons Attribution 2.5");
+
+		GuiActionRunner.execute(() -> infoDialog.target().dispose());
+		robot.waitForIdle();
+	}
 }

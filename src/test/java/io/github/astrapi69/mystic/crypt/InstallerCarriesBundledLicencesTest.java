@@ -77,6 +77,16 @@ class InstallerCarriesBundledLicencesTest
 			+ "installer does not install the licences of " + missing);
 	}
 
+	@Test
+	@DisplayName("the installer installs the notice of the application's third-party works (#1007)")
+	void theInstallerInstallsTheNotice() throws IOException
+	{
+		assertTrue(
+			Files.readString(INSTALL_XML, StandardCharsets.UTF_8).contains(
+				"<file src=\"resources/main/legal/NOTICE.txt\" targetdir=\"${INSTALL_PATH}\" />"),
+			"NOTICE.txt lands next to LICENSE in the installation directory");
+	}
+
 	private static List<String> pluginsWithLicences() throws IOException
 	{
 		File[] plugins = new File("plugins").listFiles(File::isDirectory);

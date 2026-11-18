@@ -63,6 +63,9 @@
 			<description>The executables</description>
 			<file src="../CHANGELOG.md" targetdir="${INSTALL_PATH}" />
 			<file src="../LICENSE" targetdir="${INSTALL_PATH}" />
+			<!-- the credit the shipped third-party works ask for: the silk icons (CC BY 2.5) and the
+				Apache-2.0 libraries without a license file of their own (#1007) -->
+			<file src="resources/main/legal/NOTICE.txt" targetdir="${INSTALL_PATH}" />
 			<singlefile src="signed/@{app.name}-@{app.version}-all.jar" target="${INSTALL_PATH}/@{app.name}.jar" />
 			<file src="../src/main/izpack/installation.html" targetdir="${INSTALL_PATH}" />
 			<file src="resources/main/doc/@{app.name}.desktop" targetdir="${INSTALL_PATH}" />
