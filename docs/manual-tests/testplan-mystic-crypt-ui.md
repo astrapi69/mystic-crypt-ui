@@ -301,9 +301,25 @@ The canonical inventory is the `plugins:` target in the Makefile.
 `make verify-installer PREVIOUS=<last release>` runs the measurable checks; this is the rest.
 
 - [ ] TC-0150 Install from the izpack jar on a machine or fresh directory without a
-      development build, start from the installed launcher. - manual only
-- [ ] TC-0151 Help > About names the released version. - manual only
-- [ ] TC-0152 Open a real database created with the previous release. - manual only
+      development build, start from the installed launcher. - manual only (the install step
+      and the generated launcher on a machine without a development build run no test; the
+      installer file itself, its checksums and the application jar inside it are checked by
+      `make verify-installer`, `scripts/verify-installer.sh`)
+- [ ] TC-0151 Help > Info (the menu entry is "Info", not "About") names the released version.
+      - automated by `ApplicationInfoPanelTest#showsTheGivenApplicationNameVersionCopyrightAndLicense`
+      (the panel shows the version it is given) and
+      `HelpAboutUiTest#helpInfoOpensItsDialogWithTheApplicationNameAndAGithubLink` (Help > Info
+      opens); the `Implementation-Version` of the application jar in the installer equals the
+      release version by `make verify-installer`; that the installed application's own Help >
+      Info window names the released version manual only
+- [ ] TC-0152 Open a real database created with the previous release. - automated half:
+      `AnEarlierVaultKeepsItsChangeThroughTheWholeChainUiTest#theChange_survivesTheWholeChain_andNothingElseMoves`
+      (case "8.14": the previous release's fixture signs in through the dialog),
+      `VaultOfEightFourteenOpensTest#aVaultOfEightFourteen_opens_withItsKeyValuePairProperty`
+      and `WhatEightFourteenStoresOpensTest#anEntryEightFourteenImportedFromKeePass_opensAsEightFourteenReadsIt`
+      (at model level); a real database of the previous release manual only (it holds data and
+      shapes no fixture has; the fixture is rewritten from the new previous release at each
+      release)
 
 ## TS-0016 The command line
 
@@ -317,9 +333,14 @@ The canonical inventory is the `plugins:` target in the Makefile.
 On a COPY of a real vault created with an earlier release, never the original.
 
 - [ ] TC-0170 Open the copy, change an entry, save, lock, unlock, close, reopen: the change
-      is there and nothing else moved. - automated by `VaultsOfSevenXSignInUiTest`,
-      `VaultsOfEightWithAKeyFileSignInUiTest`, `LegacyDatabaseMigrationUiTest` (opening and
-      migrating fixture vaults); the full chain on a real vault manual only
+      is there and nothing else moved. - automated by
+      `AnEarlierVaultKeepsItsChangeThroughTheWholeChainUiTest#theChange_survivesTheWholeChain_andNothingElseMoves`
+      (cases "8.14" and "7.3": sign in through the dialog, change title and password of one
+      entry, save, lock, unlock, close, reopen; a SHA-256 per entry over all fields,
+      attachments and properties after the unlock and after the reopen); opening and migrating
+      other fixture vaults: `VaultsOfEightWithAKeyFileSignInUiTest#aVaultOfEight_withAKeyFile_signsIn_andIsSavedInThisVersionsFormat`
+      and `LegacyDatabaseMigrationUiTest#anOldDatabaseOpensAndMigratesWhenItIsSaved`; the
+      chain on a real vault manual only
 
 ---
 
