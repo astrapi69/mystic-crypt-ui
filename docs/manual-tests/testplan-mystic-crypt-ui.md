@@ -189,11 +189,26 @@ read from the disk again at unlock (8.15, GHSA-px49-m539-22h8).
 ## TS-0006 KeePass, with a real file
 
 - [ ] TC-0060 Import a real `.kdbx` (password, key file, both). - automated by
-      `KeePassImportUiTest`, `KeePassImportKeyFileUiTest` (fixture files; the real file
-      manual only)
-- [ ] TC-0061 Spot check: three entries match what KeePass shows. - manual only
+      `KeePassImportUiTest#importKeePassDatabaseShowsEntriesInTree` (password),
+      `KeePassImportKeyFileUiTest#importKeePassDatabaseProtectedByAKeyFileOnlyShowsEntriesInTree`
+      (key file alone) and
+      `KeePassImportKeyFileUiTest#importKeePassDatabaseProtectedByAKeyFileShowsEntriesInTree`
+      (password and key file); the files are built by the library or are fixtures, so the real
+      file of one's own with its real key file: manual only (its secrets belong in no test)
+- [ ] TC-0061 Spot check: three entries match what KeePass shows. - automated by
+      `KeePassImportMatchesWhatKeePassXcReportsUiTest#everyImportedEntryEqualsWhatKeePassXcReadsFromTheSameFile`
+      (a KeePassXC-written file with three entries in three groups, compared with what
+      keepassxc-cli reads from it); the look at KeePass's own window with the real file: manual only
 - [ ] TC-0062 Export to a new `.kdbx`, open that file in **real KeePass**. - automated by
-      `KeePassRoundTripUiTest` (reimport here); the open in real KeePass manual only
+      `KdbxRoundTripKeepsEveryFieldUiTest#theTextFieldsSurvive`, `#customPropertiesSurviveIncludingTheProtectedOne`,
+      `#theAttachmentSurvivesWithItsContent`, `#theGroupStructureIsUnchanged`, `#theHistoryIsCarriedThrough`,
+      `#identifiersSurvive`, `#allFourTimestampsAndTheExpiryFlagSurvive`, `#groupTimesSurvive`,
+      `#iconIndicesSurvive`, `#theExportedHeaderIsNotTheLibraryPlaceholder` and
+      `#theBinaryPoolIsNoLongerWrittenTwice` (the exported file read by KeePassXC through
+      keepassxc-cli), `KeePassExportUiTest#exportedKdbxFileIsReadableWithTheChosenPassword` (read back with
+      KeePassJava2, this application's own library) and
+      `KeePassRoundTripUiTest#exportedDatabaseCanBeReimported` (re-import here); the open in
+      KeePass 2.x itself: manual only (a Windows program, not on the runner)
 
 ## TS-0007 Creating a database does not overwrite (#917)
 
