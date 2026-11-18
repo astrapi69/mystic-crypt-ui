@@ -76,9 +76,8 @@ class UnlockAsksForTheFactorsOfOpeningUiTest extends AbstractUiTest
 			"preset with the key file the database was opened with");
 		String refusal = application.unlockExpectingRefusal(password, null);
 
-		assertEquals("The key file " + keyFile.getAbsolutePath() + " is not there. It was moved or "
-			+ "deleted, or it is on a drive that is not connected. Put it back at this path and "
-			+ "try again.", refusal, "the same words opening and saving use for it (#937)");
+		assertEquals(missingKeyFileMessage(keyFile), refusal,
+			"the same words opening and saving use for it (#937)");
 		assertFalse(keyFile.exists(), "and nothing was created where the key file was");
 		assertFalse(signedIn(), "the password alone is not what this database was opened with");
 
@@ -90,6 +89,45 @@ class UnlockAsksForTheFactorsOfOpeningUiTest extends AbstractUiTest
 			"the key is back where opening put it, for the next save");
 		assertNull(credential(MasterPwFileModelBean::getKeyFileLockVerifier),
 			"and the verifier that stood in for it is gone");
+	}
+
+	/**
+	 * The test plan's TC-0042 in its own order: the workspace is locked first, and the key file
+	 * goes while it is locked, the way a removed drive does it. Unlocking reads the key file from
+	 * the disk again, so the prompt names the missing file, creates nothing at its path and keeps
+	 * the workspace locked, and the same factors unlock once the file is back.
+	 */
+	@Test
+	@DisplayName("a password plus key file database whose key file goes while it is locked stays locked, names it, creates nothing, and unlocks once it is back")
+	void aCombinedDatabase_whoseKeyFileGoesWhileLocked_staysLockedUntilItIsBack() throws Exception
+	{
+		String password = TestPasswords.throwaway();
+		File keyFile = signInWithANewDatabase(password);
+		ApplicationSteps application = new ApplicationSteps(robot).awaitSignedIn();
+		File pulledOut = new File(tempHome, "pulled-out-while-locked.pem");
+
+		application.lockWorkspace();
+		Files.move(keyFile.toPath(), pulledOut.toPath());
+
+		assertEquals(keyFile.getAbsolutePath(), application.unlockPromptKeyFile(),
+			"preset with the key file the database was opened with");
+		assertEquals(missingKeyFileMessage(keyFile),
+			application.unlockExpectingRefusal(password, null),
+			"the password alone, while the key file is gone");
+		assertFalse(keyFile.exists(), "nothing was created where the key file was");
+		assertFalse(signedIn(), "the workspace stays locked");
+
+		Files.move(pulledOut.toPath(), keyFile.toPath());
+		application.unlockWorkspaceWith(password, null);
+
+		assertTrue(signedIn(), "the same factors unlock once the key file is back");
+	}
+
+	private static String missingKeyFileMessage(final File keyFile)
+	{
+		return "The key file " + keyFile.getAbsolutePath() + " is not there. It was moved or "
+			+ "deleted, or it is on a drive that is not connected. Put it back at this path and "
+			+ "try again.";
 	}
 
 	@Test
