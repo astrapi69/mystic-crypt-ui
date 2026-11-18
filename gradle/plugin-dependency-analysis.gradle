@@ -1,6 +1,6 @@
 // The dependency-analysis plugin's settings for every internal plugin build, which applies this file after the
-// plugin itself. It enforces what gradle/dependency-analysis.gradle enforces in the host: an unused dependency or an
-// unused annotation processor fails `buildHealth`.
+// plugin itself. It checks what gradle/dependency-analysis.gradle checks in the host: an unused dependency and an
+// unused annotation processor.
 //
 // The plugin does not judge compileOnly declarations, and nearly everything a plugin compiles against is one: the
 // host brings it at runtime. So this check does not see a compileOnly line nothing uses.
@@ -59,6 +59,10 @@ def pendingUnusedProcessors = [
     "password-hash-plugin": ["org.projectlombok:lombok"],
 ]
 
+// Report only, as in the host (gradle/dependency-analysis.gradle, the maintainer's decision of 2026-11-18): it becomes
+// "fail" in both files with the pull request that empties the lists above
+def unusedDependencySeverity = "warn"
+
 dependencyAnalysis {
     // A plugin build is an application: the host loads its zip, and nothing compiles against it. The plugin
     // analyzes a project that applies only `java` when it is told it is one; without app() it registers no
@@ -75,11 +79,11 @@ dependencyAnalysis {
     issues {
         all {
             onUnusedDependencies {
-                severity("fail")
+                severity(unusedDependencySeverity)
                 exclude(*(pendingUnusedDependencies[rootProject.name] ?: []))
             }
             onUnusedAnnotationProcessors {
-                severity("fail")
+                severity(unusedDependencySeverity)
                 // pf4j's processor is used: it writes META-INF/extensions.idx, from which the host finds every
                 // extension of the plugin. The plugin reports it as unused because nothing in the sources calls it;
                 // the console plugin compiled without it wrote no extensions.idx at all (measured 2026-11-18)
