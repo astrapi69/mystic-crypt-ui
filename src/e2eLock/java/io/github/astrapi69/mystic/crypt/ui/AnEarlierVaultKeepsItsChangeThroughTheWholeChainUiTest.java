@@ -99,6 +99,8 @@ class AnEarlierVaultKeepsItsChangeThroughTheWholeChainUiTest extends AbstractUiT
 		FrameFixture frame = application.showMainFrame();
 		Map<String, String> asOpened = fingerprint();
 		assertEquals(2, asOpened.size(), release + ": the precondition: both entries are there");
+		assertEquals("1 attachment, 1 property", whatTheBankCarries(),
+			release + ": the precondition: the release's own content is read, not only compared");
 		String newPassword = TestPasswords.throwaway();
 
 		application.selectTreeRowByName(frame, "mykeys").selectEntryRowByTitle(frame, "the mail");
@@ -128,6 +130,8 @@ class AnEarlierVaultKeepsItsChangeThroughTheWholeChainUiTest extends AbstractUiT
 				+ "release wrote it");
 		assertTrue(application.entryExistsWithTitle(CHANGED_TITLE),
 			release + ": the change is there after the reopen");
+		assertEquals("1 attachment, 1 property", whatTheBankCarries(),
+			release + ": the attachment and the property are still there after the reopen");
 		assertTrue(PasswordVaultFormat.isCurrentFormat(Files.readAllBytes(vault.toPath())),
 			release + ": the file is in this version's format");
 		String written = new String(PasswordVaultFormat.decrypt(vault, password.toCharArray()));
@@ -194,6 +198,29 @@ class AnEarlierVaultKeepsItsChangeThroughTheWholeChainUiTest extends AbstractUiT
 					}
 				});
 			return digests;
+		});
+	}
+
+	/**
+	 * What the first entry of the group "root" carries, counted from the model. The fingerprints
+	 * compare the vault with itself as it was read, so a reader that dropped a field would drop it
+	 * from both sides; this count is the release's own content, written down.
+	 *
+	 * @return the number of attachments and properties, as text
+	 */
+	private static String whatTheBankCarries()
+	{
+		return GuiActionRunner.execute(() -> {
+			BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> root = MysticCryptApplicationFrame
+				.getInstance().getApplicationPanel().getSecretKeyTreeWithContentPanel()
+				.getModelObject();
+			MysticCryptEntryModelBean bank = root.traverse().stream()
+				.filter(node -> node.getValue() != null && "root".equals(node.getValue().getName())
+					&& node.getValue().getDefaultContent() != null)
+				.map(node -> node.getValue().getDefaultContent().getFirst()).findFirst()
+				.orElseThrow();
+			return orEmpty(bank.getResources()).size() + " attachment, "
+				+ orEmpty(bank.getProperties()).size() + " property";
 		});
 	}
 
