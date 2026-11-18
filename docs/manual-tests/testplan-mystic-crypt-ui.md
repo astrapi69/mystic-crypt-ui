@@ -213,6 +213,19 @@ The canonical inventory is the `plugins:` target in the Makefile.
       automated by `PluginMenuOrderSurvivesPluginToggleUiTest`
 - [ ] TC-0132 Disable a plugin in the settings, restart: its menu item is gone. Enable it
       again: it is back. - automated by `SettingsEnablePluginUiTest`
+- [ ] TC-0133 Set "Lock after idle minutes" to 1, wait until the workspace locks, unlock:
+      every plugin entry is offered again, and a plugin tool opens from its entry (#1006). -
+      automated by `EverySignInOffersThePluginEntriesUiTest`; the setting and the
+      application's own idle timer manual only
+- [ ] TC-0134 With a database open, open a second one with File > Open Database...: every
+      plugin entry is offered again, and a plugin tool opens from its entry (#1006). -
+      automated by `EverySignInOffersThePluginEntriesUiTest`
+- [ ] TC-0135 File > Close Database, then File > Open Database...: every plugin entry is
+      offered again, and a plugin tool opens from its entry (#1006). - automated by
+      `EverySignInOffersThePluginEntriesUiTest`
+- [ ] TC-0136 Cancel the sign-in at the start, then File > Open Database...: every plugin
+      entry is offered, and a plugin tool opens from its entry (#1006). - automated by
+      `EverySignInOffersThePluginEntriesUiTest`
 
 ## TS-0014 Help buttons and the wiki
 
