@@ -32,7 +32,10 @@
 // timeout", "does not lock twice" and "never locks when switched off" are real assertions
 // rather than a timer nobody waits for.
 //
-// Run it with `./gradlew pitest`; the report lands in build/reports/pitest. There is deliberately
+// Run it with `./gradlew pitest`; the report lands in build/reports/pitest. CI runs it every Monday, by hand, and
+// on a pull request that changes one of the measured packages: .github/workflows/mutation.yml lists them, and it
+// changes with this scope.
+//
 // One mutant in MenuLayoutSupport.harvestActions survives on purpose and cannot be killed: turning
 // `index < menuBar.getMenuCount()` into `<=` makes getMenu(count) return null, which the null guard
 // right below already handles - the behaviour is identical, so it is an equivalent mutant.

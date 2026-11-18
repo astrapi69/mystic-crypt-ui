@@ -727,6 +727,17 @@ final class ApplicationSteps
 	ApplicationSteps addEntry(org.assertj.swing.fixture.FrameFixture frame, String title,
 		String userName, String password)
 	{
+		return addEntry(frame, title, userName, password, null, null);
+	}
+
+	/**
+	 * Adds a password entry like
+	 * {@link #addEntry(org.assertj.swing.fixture.FrameFixture, String, String, String)} and also
+	 * types the URL and the notes into the dialog when they are not null
+	 */
+	ApplicationSteps addEntry(org.assertj.swing.fixture.FrameFixture frame, String title,
+		String userName, String password, String url, String notes)
+	{
 		javax.swing.JTable table = frame.table().target();
 		dispatchRightClick(table, 20, 10);
 		chooseFromShowingPopup("add...");
@@ -737,6 +748,14 @@ final class ApplicationSteps
 			newEntryDialog.textBox("txtUsername").target().setText(userName);
 			newEntryDialog.textBox("txtPassword").target().setText(password);
 			newEntryDialog.textBox("txtRepeat").target().setText(password);
+			if (url != null)
+			{
+				newEntryDialog.textBox("txtUrl").target().setText(url);
+			}
+			if (notes != null)
+			{
+				newEntryDialog.textBox("txtNotes").target().setText(notes);
+			}
 		});
 		robot.waitForIdle();
 		UiTestSpeed.step();

@@ -30,6 +30,7 @@ says which of them to use for what. Releasing is in [build-and-release.md](build
 | build one plugin with its tests | `make plugin-<name>`, for example `make plugin-keygen` |
 | build every plugin with its tests | `make plugins` |
 | run everything CI runs, and Spotless | `make build-full` |
+| check that no declared dependency is unused, in the host and every plugin build | `make dependency-analysis` |
 | format the Java sources before a commit | `make spotless-java` |
 | check a crypt-data or mystic-crypt candidate before it is released | `make bump-check GRADLE_FLAGS=-PuseMavenLocal` |
 | merge a pull request | `make merge-pr PR=<number>` |

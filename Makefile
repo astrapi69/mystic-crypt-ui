@@ -82,9 +82,10 @@ build: ## [build] the runnable jar build/libs/*-all.jar, after a clean; no tests
 # end-to-end suite needs their zips: until #333 the 54 tests that install a plugin SKIPPED here, so
 # a release could be cut with every plugin feature unverified and the gate still green. They fail
 # now, which is only useful if the gate builds what they need (#333)
-build-full: plugins release-jar ## [build] every plugin with its tests, the release jars, the runnable jar, then gradlew build: every test suite and Spotless
+build-full: plugins release-jar ## [build] every plugin with its tests, the release jars, the runnable jar, then gradlew build: every test suite and Spotless, then the unused-dependency check
 	JAVA_HOME=$(JAVA_HOME) ./gradlew createAllDependendiesJar $(GRADLE_FLAGS)
 	JAVA_HOME=$(JAVA_HOME) ./gradlew build $(GRADLE_FLAGS)
+	$(MAKE) dependency-analysis GRADLE_FLAGS="$(GRADLE_FLAGS)"
 
 # host jar plus every internal plugin, built and installed into the app's plugins directory -
 # root `build` alone never touches plugins/ (each is its own separate Gradle build), so this is
@@ -364,6 +365,26 @@ dependencies: ## [quality] gradlew dependencies
 
 dependency-updates: ## [quality] the dependency currency check, gradlew dependencyUpdates
 	JAVA_HOME=$(JAVA_HOME) ./gradlew dependencyUpdates $(GRADLE_FLAGS)
+
+# The plugin builds compile against the host from the local Maven repository, hence publish-local. A plugin
+# build that does not apply the plugin yet is named and not counted, and no plugin build checked at all fails.
+# One worker: the plugin unpacks every jar of every source set, and with the parallel default the daemon's 512 MB
+# (gradle.properties, #580) ran out in explodeJarE2eSupport whenever a dependency had changed, which is when the
+# check matters (measured twice on 2026-11-18; with one worker the same change ran through and failed as it should)
+DEPENDENCY_ANALYSIS_FLAGS := --max-workers=1
+dependency-analysis: publish-local ## [quality] the unused-dependency check, buildHealth, of the host and of every plugin build that applies it
+	JAVA_HOME=$(JAVA_HOME) ./gradlew buildHealth $(DEPENDENCY_ANALYSIS_FLAGS) $(GRADLE_FLAGS)
+	@set -e; checked=0; skipped=""; \
+	for build in plugins/*-plugin; do \
+		if grep -q "libs.plugins.dependency.analysis" "$$build/build.gradle"; then \
+			JAVA_HOME=$(JAVA_HOME) ./gradlew $(PLUGIN_DAEMON) -p "$$build" buildHealth $(DEPENDENCY_ANALYSIS_FLAGS) $(GRADLE_FLAGS); \
+			checked=$$((checked + 1)); \
+		else \
+			skipped="$$skipped $${build#plugins/}"; \
+		fi; \
+	done; \
+	if [ "$$checked" -eq 0 ]; then echo "==> dependency-analysis: no plugin build checked" >&2; exit 1; fi; \
+	echo "==> dependency-analysis: the host and $$checked plugin builds checked; not applied yet:$${skipped:- none}"
 
 jacoco-coverage: ## [test] gradlew jacocoTestCoverageVerification
 	JAVA_HOME=$(JAVA_HOME) ./gradlew jacocoTestCoverageVerification $(GRADLE_FLAGS)
