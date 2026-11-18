@@ -65,17 +65,43 @@ the last build without building anything, so after a code change it starts the O
 Real data, no test fixture. Nothing else is released while this does not hold.
 
 - [ ] TC-0010 Create a new database, set a master password, sign in. - automated by
-      `CreateNewDatabaseUiTest`
+      `CreateNewDatabaseUiTest#createFirstDatabaseThroughNewFlowAndSignIn` (New..., the
+      password and its repeat typed in the dialog, the file written, the sign-in with it)
 - [ ] TC-0011 Build a tree: several folders, in each one entries with title, user name,
-      password, URL, notes. - automated by `AddMultipleNodesUiTest`, `AddEntryUiTest`
+      password, URL, notes. - automated by
+      `DatabaseRoundTripUiTest#aFullTreeComesBackAfterSaveEndAndRestart` (three folders,
+      two entries each, title, user name, password with its repeat, URL and notes typed in the
+      dialog; the expiry date is not driven by any test, manual only)
 - [ ] TC-0012 Give one entry custom fields and attach a file. - automated by
-      `AttachmentContentTest` (content round-trip); the dialog path manual only
+      `EditEntryCancelUiTest#ok_takesCustomFieldsAndAnAttachedFile_andAReopenGivesThemBack`
+      (two custom fields, a UTF-8 text file and a file of all 256 byte values through "Add
+      File" and the file chooser, OK, save, restart, names and SHA-256 compared)
 - [ ] TC-0013 Save, close the application, restart, sign in. - automated by
-      `SaveAndReopenDatabaseUiTest`
+      `DatabaseRoundTripUiTest#aFullTreeComesBackAfterSaveEndAndRestart` (save, the
+      application's own end path with the exit injected, an in-JVM restart through
+      `AbstractUiTest#shutdownApplication`, sign-in), `SaveAndReopenDatabaseUiTest#importedDataIsStillThereAfterSaveAndReopen`
+      and `AddEntryUiTest#addedEntryShowsUpAndSurvivesReopen` (same in-JVM restart);
+      `EndingTheApplicationErasesTheVaultUiTest#endingACleanVaultOverwritesItWithoutAsking`
+      runs the end path alone, and `CloseAndReopenDatabaseUiTest#aClosedVaultOpensAgainWithItsContent`
+      closes the database, not the application, and opens it again in the same run; the
+      end of the real process and a real new start: manual only (a test cannot end its own
+      JVM and observe a successor, #288)
 - [ ] TC-0014 Everything is back: tree structure, every field, the custom field, the
-      attachment. - automated by `SaveAndReopenDatabaseUiTest`
+      attachment. - automated by
+      `DatabaseRoundTripUiTest#aFullTreeComesBackAfterSaveEndAndRestart` (folders by where they hang,
+      entries with title, user name, password, URL and notes, both custom fields, both
+      attachments by name and SHA-256, compared with what was typed; the expiry date set in
+      the dialog: manual only), and in the MCRDB2 file after an import and a save
+      `KdbxRoundTripKeepsEveryFieldUiTest#theGroupStructureIsUnchanged`, `#theTextFieldsSurvive`,
+      `#customPropertiesSurviveIncludingTheProtectedOne` and `#theAttachmentSurvivesWithItsContent`
 - [ ] TC-0015 View the attachment with a double click, then write it out with "Save to" and
-      open the file outside the application - content identical. - manual only
+      open the file outside the application - content identical. - automated by
+      `DatabaseRoundTripUiTest#theAttachmentIsShownAndWrittenOutByteForByte` (after a save
+      and a restart: the double click shows the text, "Save to" proposes the attachment's
+      name, the written text and binary files equal their sources byte for byte); at panel
+      level `AttachmentPanelSaveToTest#saveTo_writesTheAttachmentAsItIs` and
+      `TableDoubleClickTest#aDoubleClickOnAnAttachmentShowsWhatIsInIt`; opening the written
+      file in another program and whether the display reads well to a human: manual only
 
 ## TS-0002 The backup file (#847)
 
