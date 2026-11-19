@@ -389,14 +389,15 @@ public class MasterPwWithApplicationFilePanel extends BasePanel<MasterPwFileMode
 		}
 	}
 
+	/** The wiki page the Help button opens; it is a page of docs/wiki/ (#868) */
+	static final String HELP_LINK = "https://github.com/astrapi69/mystic-crypt-ui/wiki/"
+		+ "open-existing-mystic-crypt-database";
+
 	protected void onHelp(ActionEvent actionEvent)
 	{
-		String helpLink = "https://github.com/astrapi69/mystic-crypt-ui/wiki/"
-			+ "open-existing-mystic-crypt-database";
-		URL helpUrl = RuntimeExceptionDecorator.decorate(() -> new URL(helpLink));
-		if (URLExtensions.isReachable(helpUrl))
+		if (isHelpPageReachable(HELP_LINK))
 		{
-			BrowserControlExtensions.displayURLonStandardBrowser(this, helpLink);
+			displayHelpPage(HELP_LINK);
 		}
 		else
 		{
@@ -418,6 +419,30 @@ public class MasterPwWithApplicationFilePanel extends BasePanel<MasterPwFileMode
 			helpDialog.setSize(800, 300);
 			helpDialog.setVisible(true);
 		}
+	}
+
+	/**
+	 * Whether the wiki page can be reached, so the browser is not sent to a page that is not there
+	 *
+	 * @param helpLink
+	 *            the address of the wiki page
+	 * @return true when the page answers
+	 */
+	protected boolean isHelpPageReachable(final String helpLink)
+	{
+		URL helpUrl = RuntimeExceptionDecorator.decorate(() -> new URL(helpLink));
+		return URLExtensions.isReachable(helpUrl);
+	}
+
+	/**
+	 * Opens the wiki page in the standard browser
+	 *
+	 * @param helpLink
+	 *            the address of the wiki page
+	 */
+	protected void displayHelpPage(final String helpLink)
+	{
+		BrowserControlExtensions.displayURLonStandardBrowser(this, helpLink);
 	}
 
 	protected void onChangeCmbApplicationFile(final ActionEvent actionEvent)
