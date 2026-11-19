@@ -284,20 +284,48 @@ read from the disk again at unlock (8.15, GHSA-px49-m539-22h8).
 The window is built for trying out, so that is how it is tested.
 
 - [ ] TC-0100 Generate once with every algorithm in the box. Both text areas fill, no empty
-      display, no silent error. - automated by `KeygenEveryAlgorithmUiTest`
+      display, no silent error. - automated by
+      `KeygenEveryAlgorithmUiTest#everyAlgorithmTheBoxOffersGeneratesARealKeyPair` (walks the
+      items of the box, checks the selection took, reads both keys back with the library
+      readers), `KeygenPqcPluginUiTest#generatesAPostQuantumKeyPairThroughTheAlgorithmDropdown`,
+      `KeygenCurveUiTest#generatesAnEcKeyOnTheChosenCurveThroughTheUi`
 - [ ] TC-0101 While doing so: **nothing in the window moves or shrinks**. - automated by
-      `KeygenLayoutStaysPutUiTest`; whether it LOOKS right manual only
-- [ ] TC-0102 Encrypt and decrypt again with RSA. - automated by `KeygenPluginUiTest`
-- [ ] TC-0103 With another algorithm: the two buttons are not pressable and the tooltip says
-      why. - automated by `KeygenEncryptUnavailableUiTest`
+      `KeygenLayoutStaysPutUiTest#nothingInTheWindowMovesWhileItIsBeingTriedOut` (x and y of the
+      four text panes, widths, the height of the two key panes, and the two encrypt panes never
+      losing height, after picking and after generating with every algorithm and key size),
+      `KeygenEveryAlgorithmUiTest#everyAlgorithmTheBoxOffersGeneratesARealKeyPair` (left edges
+      after each generation); whether it LOOKS right manual only. Measured: the two encrypt panes
+      grow from 148 to 168 pixels at the first generation, which is not a shrink
+- [ ] TC-0102 Encrypt and decrypt again with RSA. - automated by
+      `KeygenPluginUiTest#keyGenerationGeneratesAndRoundTripsEncryptionThroughTheUi` (RSA,
+      through the running application); EC (ECIES) only at panel level,
+      `KeyGenerationButtonsTest#anEcKeyPairDrivesTheDemo`
+- [ ] TC-0103 With an algorithm that cannot encrypt (X25519, X448, ML-KEM-768, ML-DSA-65; RSA and
+      EC can): the two buttons are not pressable and the tooltip says why. - automated by
+      `KeygenEncryptUnavailableUiTest#encryptAndDecryptAreOutOfReachAndSayWhyForAnAlgorithmThatCannotEncrypt`
+      (all four, both buttons, text in both areas, tooltip and reason label), with RSA and EC as
+      the counterpart in the same method
 - [ ] TC-0104 Save private key, public key, certificate - each time type a name **without an
       extension** and check the file gets the fitting one. - automated by
-      `KeygenSavesRealArtifactsUiTest`
+      `KeygenSavesRealArtifactsUiTest#everyFileTheWindowSavesIsARealArtifact` (private key, key
+      with a password, certificate), `KeygenSavePublicKeyUiTest#savesTheGeneratedPublicKeyToAFileThroughTheUi`
+      (public key)
 - [ ] TC-0105 Set the format to DER and do the same again: extension `.der`, binary
-      content. - automated by `KeygenSavesRealArtifactsUiTest`
+      content. - automated by
+      `KeygenSavesRealArtifactsUiTest#everyFileTheWindowSavesIsARealArtifact` (private key and
+      public key as DER), `SaveFormatTest#aPrivateKeySavedAsPemIsTextAsDerItIsNot`,
+      `SaveFormatTest#aPublicKeySavedAsPemIsTextAsDerItIsNot`. Not true for the certificate: it
+      is PEM with `.pem` whatever the format says (`CryptographyPanel.java:415-416`), which
+      contradicts the tooltip of the format box; today's behaviour is pinned in the same test and
+      the case fails for the certificate until that is decided. The key saved with a password is
+      always DER
 - [ ] TC-0106 Save the private key with a password and open the file again with that
-      password (for example `openssl pkcs8 -inform DER`). - manual only (another program
-      accepts the file)
+      password (for example `openssl pkcs8 -inform DER`). - automated by
+      `KeygenSavesRealArtifactsUiTest#everyFileTheWindowSavesIsARealArtifact` (the library's
+      reader), `ProtectedKeyOpensElsewhereTest#theJdkAloneDecryptsTheFileWithThePasswordAndGetsTheGeneratedKey`
+      (the JDK alone), `ProtectedKeyOpensElsewhereTest#opensslPkcs8OpensTheFileWithThePassword`
+      (`openssl pkcs8 -inform DER`, password on standard input; fails on CI when openssl is
+      missing, skips locally); only a program other than these stays manual
 
 ## TS-0011 Settings
 
