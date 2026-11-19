@@ -29,10 +29,13 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import java.awt.Component;
 import java.awt.KeyboardFocusManager;
 import java.awt.Window;
+import java.io.File;
 
 import org.assertj.swing.edt.GuiActionRunner;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+
+import io.github.astrapi69.mystic.crypt.TestPasswords;
 
 /**
  * Where the caret sits in the sign-in dialog. The first thing anyone does here is type the master
@@ -76,6 +79,28 @@ class SigninFocusUiTest extends AbstractUiTest
 
 		assertEquals("txtMasterPw", focusedComponentName(),
 			"switching the master password on left the caret outside the field");
+	}
+
+	@Test
+	@DisplayName("after a sign-in with a password the dialog opens with the caret in the field")
+	void afterAPasswordSignInTheDialogOpensOnTheField() throws Exception
+	{
+		String masterPassword = TestPasswords.throwaway();
+		File databaseFile = new File(tempHome, "signin-focus.mcrdb");
+		createDatabaseFileHeadless(databaseFile, masterPassword);
+		signInWithExistingDatabase(databaseFile, masterPassword);
+		shutdownApplication();
+
+		SignInDialogSteps signIn = launchApplication();
+		robot.waitForIdle();
+
+		String initial = GuiActionRunner.execute(() -> {
+			Window dialog = signIn.dialog().target();
+			Component component = dialog.getFocusTraversalPolicy().getInitialComponent(dialog);
+			return component == null ? "nothing" : String.valueOf(component.getName());
+		});
+		assertEquals("txtMasterPw", initial,
+			"after signing in with a password the dialog does not put the caret in the field");
 	}
 
 }

@@ -31,7 +31,6 @@ dependencies {
     implementation libs.commons.lang3
     implementation libs.bcprov.jdk18on
     implementation libs.bcpkix.jdk18on
-    implementation libs.tango.icon.theme
     implementation libs.observer
     implementation libs.state.pattern
     implementation libs.eventbus
@@ -40,8 +39,9 @@ dependencies {
     // gen-tree declares visitor-pattern only for runtime (astrapi69/gen-tree#22). visitor-pattern
     // is the artifact visitor 6 was renamed to, and only one of the two belongs on the class path (#774)
     implementation libs.visitor.pattern
-    implementation libs.jremix.icon
-    implementation libs.silk.icon.theme
+    // the silk icons are named only as resource paths (ApplicationPanel, MysticCryptApplicationFrame) and are
+    // stored by those paths in every vault's tree elements, so they are needed at runtime and never compiled against
+    runtimeOnly libs.silk.icon.theme
     implementation libs.silly.collection
     implementation libs.silly.bean
     implementation libs.commons.codec
