@@ -58,9 +58,9 @@ class ToolbarSearchUiTest extends AbstractUiTest
 	 * Types into the given field the way the user does, through its own document, and waits until
 	 * the application has reacted.
 	 * <p>
-	 * Not through the robot: driving the pointer onto a component needs a positioned window, which
-	 * a build machine without a window manager does not reliably provide - and what is under test
-	 * here is the field's listener, not whether a mouse can reach it.
+	 * Not through the robot: driving the pointer onto a component depends on the window's position
+	 * and focus, which the window manager decides - and what is under test here is the field's
+	 * listener, not whether a mouse can reach it.
 	 *
 	 * @param field
 	 *            the field to type into

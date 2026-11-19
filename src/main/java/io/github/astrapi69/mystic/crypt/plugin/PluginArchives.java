@@ -33,6 +33,10 @@ import java.security.NoSuchAlgorithmException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.pf4j.CompoundPluginDescriptorFinder;
+import org.pf4j.ManifestPluginDescriptorFinder;
+import org.pf4j.PluginDescriptor;
+import org.pf4j.PropertiesPluginDescriptorFinder;
 import org.pf4j.util.FileUtils;
 
 import io.github.astrapi69.checksum.FileChecksumExtensions;
@@ -105,7 +109,8 @@ public final class PluginArchives
 			return;
 		}
 		removeWhatWasMovedAside(pluginsRoot);
-		try (DirectoryStream<Path> zips = Files.newDirectoryStream(pluginsRoot, "*.zip"))
+		try (DirectoryStream<Path> zips = Files.newDirectoryStream(pluginsRoot,
+			PluginArchives::isZipName))
 		{
 			for (Path zip : zips)
 			{
@@ -129,8 +134,7 @@ public final class PluginArchives
 		String checksum = checksumOf(zip);
 		Path directory = directoryOf(zip);
 		Path record = recordOf(directory);
-		if (Files.isDirectory(directory) && Files.isRegularFile(record)
-			&& checksum.equals(Files.readString(record, StandardCharsets.US_ASCII).strip()))
+		if (isUnpackedFrom(zip, directory))
 		{
 			return Outcome.UNCHANGED;
 		}
@@ -167,13 +171,99 @@ public final class PluginArchives
 	}
 
 	/**
+	 * Reads the id of the plugin a zip holds, the way the plugin manager reads it (the properties
+	 * and the manifest finders), without unpacking or changing anything: a zip that is no plugin
+	 * zip is found out before the installed plugin is touched
+	 *
+	 * @param zip
+	 *            the plugin zip
+	 * @return the plugin id the zip's descriptor names
+	 * @throws InvalidPluginZipException
+	 *             if the file is not a zip, or holds no plugin descriptor with an id and a version
+	 * @throws IOException
+	 *             if the file cannot be read
+	 */
+	public static String pluginIdOf(final Path zip) throws IOException
+	{
+		String fileName = zip.getFileName().toString();
+		if (!Files.isRegularFile(zip))
+		{
+			throw new InvalidPluginZipException(fileName, "it is not a file", null);
+		}
+		try (java.util.zip.ZipFile ignored = new java.util.zip.ZipFile(zip.toFile()))
+		{
+			PluginDescriptor descriptor = new CompoundPluginDescriptorFinder()
+				.add(new PropertiesPluginDescriptorFinder())
+				.add(new ManifestPluginDescriptorFinder()).find(zip);
+			if (isBlank(descriptor.getPluginId()))
+			{
+				throw new InvalidPluginZipException(fileName, "its descriptor names no plugin id",
+					null);
+			}
+			if (isBlank(descriptor.getVersion()))
+			{
+				throw new InvalidPluginZipException(fileName,
+					"its descriptor names no version, which the plugin manager requires", null);
+			}
+			return descriptor.getPluginId();
+		}
+		catch (java.util.zip.ZipException notAZip)
+		{
+			throw new InvalidPluginZipException(fileName, notAZip.getMessage(), notAZip);
+		}
+		catch (RuntimeException noDescriptor)
+		{
+			throw new InvalidPluginZipException(fileName,
+				"it holds no plugin descriptor (" + noDescriptor.getMessage() + ")", noDescriptor);
+		}
+	}
+
+	private static boolean isBlank(final String text)
+	{
+		return text == null || text.isBlank();
+	}
+
+	/**
+	 * Tells whether a file name is the name of a plugin zip: it ends in {@code .zip} or
+	 * {@code .ZIP}, the two forms pf4j's plugin repository lists, and has a name before it
+	 *
+	 * @param file
+	 *            the file, or its name
+	 * @return true for {@code <name>.zip} and {@code <name>.ZIP}
+	 */
+	public static boolean isZipName(final Path file)
+	{
+		String name = file.getFileName().toString();
+		return name.length() > ".zip".length() && (name.endsWith(".zip") || name.endsWith(".ZIP"));
+	}
+
+	/**
+	 * Tells whether the directory was unpacked from a zip with this very content, by the checksum
+	 * recorded beside the directory
+	 *
+	 * @param zip
+	 *            the plugin zip
+	 * @param directory
+	 *            the directory unpacked from a zip before
+	 * @return true if the directory exists and its recorded checksum is the zip's
+	 * @throws IOException
+	 *             if the zip or the record cannot be read
+	 */
+	public static boolean isUnpackedFrom(final Path zip, final Path directory) throws IOException
+	{
+		Path record = recordOf(directory);
+		return Files.isDirectory(directory) && Files.isRegularFile(record)
+			&& checksumOf(zip).equals(Files.readString(record, StandardCharsets.US_ASCII).strip());
+	}
+
+	/**
 	 * The directory a plugin zip is unpacked into, its name without {@code .zip}, as pf4j names it
 	 *
 	 * @param zip
 	 *            the plugin zip
 	 * @return the directory beside it
 	 */
-	static Path directoryOf(final Path zip)
+	public static Path directoryOf(final Path zip)
 	{
 		String name = zip.getFileName().toString();
 		return zip.resolveSibling(name.substring(0, name.length() - ".zip".length()));
