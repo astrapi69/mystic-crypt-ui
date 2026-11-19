@@ -29,6 +29,7 @@ import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.event.MouseEvent;
 import java.io.File;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import javax.swing.JButton;
@@ -47,7 +48,6 @@ import org.assertj.swing.fixture.DialogFixture;
 import org.assertj.swing.timing.Condition;
 import org.assertj.swing.timing.Pause;
 
-import io.github.astrapi69.collection.pair.KeyValuePair;
 import io.github.astrapi69.file.create.model.FileContentInfo;
 import io.github.astrapi69.mystic.crypt.panel.dbtree.AttachmentPanel;
 import io.github.astrapi69.mystic.crypt.panel.properties.PropertiesNewEntryPanel;
@@ -369,7 +369,7 @@ final class EditCryptEntrySteps
 		var table = properties.getTblProperties();
 		for (int row = 0; row < table.getRowCount(); row++)
 		{
-			KeyValuePair<String, String> property = table.getGenericTableModel().getData()
+			Map.Entry<String, String> property = table.getGenericTableModel().getData()
 				.get(table.convertRowIndexToModel(row));
 			if (key.equals(property.getKey()))
 			{

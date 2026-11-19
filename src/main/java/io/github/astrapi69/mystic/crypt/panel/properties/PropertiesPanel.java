@@ -30,6 +30,7 @@ import java.awt.event.MouseEvent;
 import java.io.Serial;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import javax.swing.*;
 
@@ -51,13 +52,13 @@ public class PropertiesPanel extends BasePanel<MysticCryptEntryModelBean>
 {
 	@Serial
 	private static final long serialVersionUID = 1L;
-	GenericButtonGenericJXTableStateMachine<KeyValuePair<String, String>> btnRemoveStateMachine;
-	GenericButtonGenericJXTableStateMachine<KeyValuePair<String, String>> btnEditStateMachine;
+	GenericButtonGenericJXTableStateMachine<Map.Entry<String, String>> btnRemoveStateMachine;
+	GenericButtonGenericJXTableStateMachine<Map.Entry<String, String>> btnEditStateMachine;
 	private javax.swing.JButton btnAdd;
 	private javax.swing.JButton btnEdit;
 	private javax.swing.JButton btnRemove;
 	private javax.swing.JScrollPane srcProperties;
-	private GenericJTable<KeyValuePair<String, String>> tblProperties;
+	private GenericJTable<Map.Entry<String, String>> tblProperties;
 	private ProtectedPropertiesTableModel tableModel;
 
 	public PropertiesPanel()
@@ -85,7 +86,7 @@ public class PropertiesPanel extends BasePanel<MysticCryptEntryModelBean>
 			? getModelObject().getProperties()
 			: new ArrayList<>();
 
-		tableModel.addList(properties);
+		properties.forEach(property -> tableModel.add(new PropertyEntry(property)));
 		tblProperties = new GenericJTable<>(getTableModel());
 		// set only single selection
 		tblProperties.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
@@ -93,14 +94,12 @@ public class PropertiesPanel extends BasePanel<MysticCryptEntryModelBean>
 		srcProperties.setViewportView(tblProperties);
 
 
-		btnRemoveStateMachine = GenericButtonGenericJXTableStateMachine
-			.<KeyValuePair<String, String>> builder().button(btnRemove).component(tblProperties)
-			.build();
+		btnRemoveStateMachine = GenericButtonGenericJXTableStateMachine.<Map.Entry<String, String>> builder()
+			.button(btnRemove).component(tblProperties).build();
 		btnRemoveStateMachine.onInitialize();
 
-		btnEditStateMachine = GenericButtonGenericJXTableStateMachine
-			.<KeyValuePair<String, String>> builder().button(btnEdit).component(tblProperties)
-			.build();
+		btnEditStateMachine = GenericButtonGenericJXTableStateMachine.<Map.Entry<String, String>> builder()
+			.button(btnEdit).component(tblProperties).build();
 		btnEditStateMachine.onInitialize();
 
 		ListSelectionModel selectionModel = tblProperties.getSelectionModel();
@@ -139,7 +138,7 @@ public class PropertiesPanel extends BasePanel<MysticCryptEntryModelBean>
 		{
 			KeyValuePair<String, String> newProperty = panel.getModelObject();
 			PropertiesPanel.this.getModelObject().getProperties().add(newProperty);
-			tableModel.add(newProperty);
+			tableModel.add(new PropertyEntry(newProperty));
 		}
 	}
 
@@ -152,10 +151,10 @@ public class PropertiesPanel extends BasePanel<MysticCryptEntryModelBean>
 	 * Takes a property out of the table and out of the entry: the table holds a list of its own,
 	 * and nothing reads it back into the entry (#808)
 	 */
-	private void removeProperty(final KeyValuePair<String, String> property)
+	private void removeProperty(final Map.Entry<String, String> property)
 	{
 		getTblProperties().getGenericTableModel().remove(property);
-		getModelObject().getProperties().remove(property);
+		getModelObject().getProperties().remove(((PropertyEntry)property).getPair());
 	}
 
 	protected void onEdit(final ActionEvent actionEvent)
@@ -179,8 +178,9 @@ public class PropertiesPanel extends BasePanel<MysticCryptEntryModelBean>
 	 * elements. A protected value opens masked, and a renamed protected property keeps its
 	 * protection
 	 */
-	private void showEditPropertyDialog(final KeyValuePair<String, String> tableEntry)
+	private void showEditPropertyDialog(final Map.Entry<String, String> row)
 	{
+		KeyValuePair<String, String> tableEntry = ((PropertyEntry)row).getPair();
 		String previousName = tableEntry.getKey();
 		KeyValuePair<String, String> edited = new KeyValuePair<>(previousName,
 			tableEntry.getValue());
