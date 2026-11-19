@@ -121,12 +121,6 @@ class PasswordLiteralInventoryTest
 			2),
 		Map.entry("src/e2eKdbx/java/io/github/astrapi69/mystic/crypt/keepass/KdbxFacts.java", 1),
 		Map.entry(
-			"src/e2eKdbx/java/io/github/astrapi69/mystic/crypt/ui/ClosingAVaultErasesAnImportedEntryUiTest.java",
-			1),
-		Map.entry(
-			"src/e2eKdbx/java/io/github/astrapi69/mystic/crypt/ui/KdbxRoundTripKeepsEveryFieldUiTest.java",
-			1),
-		Map.entry(
 			"src/e2eLock/java/io/github/astrapi69/mystic/crypt/ui/AutomaticLockHoldsTheInvariantUiTest.java",
 			1),
 		Map.entry(

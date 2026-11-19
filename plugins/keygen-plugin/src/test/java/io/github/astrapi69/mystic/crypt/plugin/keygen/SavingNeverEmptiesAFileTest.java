@@ -128,9 +128,12 @@ class SavingNeverEmptiesAFileTest
 				file -> KeygenSupport.writePublicKey(null, file, KeyFileFormat.PEM)),
 			new FailingWrite("no public key generated yet, DER",
 				file -> KeygenSupport.writePublicKey(null, file, KeyFileFormat.DER)),
-			new FailingWrite("a certificate without the keys it needs",
+			new FailingWrite("a certificate without the keys it needs, PEM",
 				file -> KeygenSupport.writeCertificate(CertificateInfoModel.builder().build(),
-					file)));
+					file, KeyFileFormat.PEM)),
+			new FailingWrite("a certificate without the keys it needs, DER",
+				file -> KeygenSupport.writeCertificate(CertificateInfoModel.builder().build(),
+					file, KeyFileFormat.DER)));
 	}
 
 	@ParameterizedTest(name = "{0}")
@@ -221,7 +224,8 @@ class SavingNeverEmptiesAFileTest
 		certificateInfo
 			.setSubject(DistinguishedNameInfoModel.builder().commonName("CN=a").build());
 
-		panel.getCryptographyPanel().writeCertificateTo(existing, certificateInfo);
+		panel.getCryptographyPanel().writeCertificateTo(existing, certificateInfo,
+			KeyFileFormat.PEM);
 
 		assertEquals(List.of(DataClass.DERIVED), panel.asked);
 		assertArrayEquals(WHAT_WAS_THERE, Files.readAllBytes(existing.toPath()));

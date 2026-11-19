@@ -28,6 +28,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.awt.EventQueue;
+import java.io.File;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -40,9 +42,13 @@ import javax.swing.UIManager;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 import com.formdev.flatlaf.FlatDarkLaf;
 import com.formdev.flatlaf.FlatLightLaf;
+
+import io.github.astrapi69.mystic.crypt.settings.FlatLafTheme;
+import io.github.astrapi69.mystic.crypt.settings.MysticCryptSettings;
 
 /**
  * The Look and Feel menu offered only the JDK-bundled look and feels (GTK, Metal, Ocean, Motif,
@@ -105,6 +111,33 @@ class DesktopMenuLookAndFeelTest
 		assertFalse(flatDarkItem.isEnabled(),
 			"switching to a theme that is already active would be a no-op, so the item greys "
 				+ "itself out - the same pattern the JDK-bundled items already use");
+	}
+
+	@Test
+	void pickingAFlatLafThemeKeepsTheChoiceInTheSettings(@TempDir final File directory)
+		throws Exception
+	{
+		FlatLafTheme.installAll();
+		DesktopMenu menu = new DesktopMenu(new JFrame())
+		{
+			@Override
+			protected File configurationDirectory()
+			{
+				return directory;
+			}
+		};
+		JMenuItem flatDarkItem = Arrays.stream(menu.newLookAndFeelMenu().getMenuComponents())
+			.filter(JMenuItem.class::isInstance).map(JMenuItem.class::cast)
+			.filter(item -> "FlatLaf Dark".equals(item.getText())).findFirst().orElseThrow();
+
+		// on the event dispatch thread, as a click is: the menu saves the look in a later event,
+		// and from another thread that event would run while the item is still switching
+		EventQueue.invokeAndWait(flatDarkItem::doClick);
+		EventQueue.invokeAndWait(() -> {
+		});
+
+		assertEquals("FlatLaf Dark", MysticCryptSettings.load(directory).getLookAndFeel(),
+			"the choice of the menu was not written to the settings");
 	}
 
 }

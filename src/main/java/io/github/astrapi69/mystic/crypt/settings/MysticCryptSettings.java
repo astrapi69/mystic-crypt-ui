@@ -148,6 +148,45 @@ public class MysticCryptSettings
 	}
 
 	/**
+	 * Loads the settings for a change that is written back: a file that cannot be read is an error
+	 * here, not defaults, since writing defaults over it would destroy what it holds
+	 *
+	 * @param configurationDirectory
+	 *            the application's configuration directory
+	 * @return the loaded settings, or fresh defaults when there is no settings file yet
+	 * @throws java.io.IOException
+	 *             if the settings file exists and cannot be read or parsed
+	 */
+	public static MysticCryptSettings loadForUpdate(File configurationDirectory)
+		throws java.io.IOException
+	{
+		File file = new File(configurationDirectory, JSON_FILENAME);
+		if (!file.exists())
+		{
+			return new MysticCryptSettings();
+		}
+		try
+		{
+			String json = ReadFileExtensions.fromFile(file);
+			MysticCryptSettings settings = JsonStringToObjectExtensions.toObject(json,
+				MysticCryptSettings.class);
+			if (settings == null)
+			{
+				throw new java.io.IOException("the settings file is empty: " + file);
+			}
+			return settings;
+		}
+		catch (java.io.IOException exception)
+		{
+			throw exception;
+		}
+		catch (RuntimeException exception)
+		{
+			throw new java.io.IOException("the settings file cannot be parsed: " + file, exception);
+		}
+	}
+
+	/**
 	 * Saves these settings into the given configuration directory
 	 *
 	 * @param configurationDirectory
