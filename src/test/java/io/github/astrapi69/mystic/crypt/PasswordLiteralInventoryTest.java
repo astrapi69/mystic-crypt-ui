@@ -24,6 +24,7 @@
  */
 package io.github.astrapi69.mystic.crypt;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
@@ -172,6 +173,15 @@ class PasswordLiteralInventoryTest
 			}
 		});
 		assertTrue(problems.isEmpty(), String.join("\n", problems));
+	}
+
+	@Test
+	@DisplayName("a password passed as an argument is not counted yet (pins today's gap)")
+	void aPasswordPassedAsAnArgumentIsNotCountedYet()
+	{
+		assertEquals(0, countLiterals("entry.setPassword(\"a-literal\");"));
+		assertEquals(0,
+			countLiterals("application.addEntry(frame, \"title\", \"user\", \"a-literal\");"));
 	}
 
 	private static int countLiterals(final String content)
