@@ -25,9 +25,9 @@
 package io.github.astrapi69.mystic.crypt.panel.properties;
 
 import java.io.Serial;
+import java.util.Map;
 import java.util.function.Predicate;
 
-import io.github.astrapi69.collection.pair.KeyValuePair;
 import io.github.astrapi69.swing.table.model.properties.StringKeyValueTableModel;
 
 /**
@@ -73,7 +73,7 @@ public class ProtectedPropertiesTableModel extends StringKeyValueTableModel
 		return super.getValueAt(rowIndex, columnIndex);
 	}
 
-	private boolean isProtected(final KeyValuePair<String, String> property)
+	private boolean isProtected(final Map.Entry<String, String> property)
 	{
 		return protectedName.test(property.getKey());
 	}
