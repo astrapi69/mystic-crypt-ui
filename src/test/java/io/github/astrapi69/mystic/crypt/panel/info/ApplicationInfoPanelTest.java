@@ -114,4 +114,17 @@ class ApplicationInfoPanelTest
 			"the Wiki link of Help > Info opens the wiki's Home page, which docs/wiki/Home.md mirrors");
 	}
 
+	@Test
+	void theWikiButtonCarriesTheAddressTheInfoGives_notAFixedOne()
+	{
+		ApplicationInfo info = new ApplicationInfo("x", "1", "", "", "",
+			"https://example.invalid/wiki");
+
+		ApplicationInfoPanel panel = new ApplicationInfoPanel(info);
+
+		JButton wiki = (JButton)byName(panel, "btnWiki");
+		assertEquals("https://example.invalid/wiki",
+			wiki.getClientProperty(ApplicationInfoPanel.LINK_URL_PROPERTY));
+	}
+
 }

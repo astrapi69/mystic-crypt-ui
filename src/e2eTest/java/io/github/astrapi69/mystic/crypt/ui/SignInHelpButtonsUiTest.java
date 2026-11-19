@@ -59,9 +59,13 @@ class SignInHelpButtonsUiTest extends AbstractUiTest
 
 	private static final String WIKI = "https://github.com/astrapi69/mystic-crypt-ui/wiki/";
 
-	/** A panel that records the pages its Help button would open, and finds them reachable */
+	/**
+	 * What the Help button asked for: the pages it checked for reachability and the pages it would
+	 * open
+	 */
 	private static final class Recorded
 	{
+		final List<String> checked = new ArrayList<>();
 		final List<String> opened = new ArrayList<>();
 	}
 
@@ -93,6 +97,7 @@ class SignInHelpButtonsUiTest extends AbstractUiTest
 			@Override
 			protected boolean isHelpPageReachable(final String helpLink)
 			{
+				recorded.checked.add(helpLink);
 				return true;
 			}
 
@@ -111,6 +116,7 @@ class SignInHelpButtonsUiTest extends AbstractUiTest
 			@Override
 			protected boolean isHelpPageReachable(final String helpLink)
 			{
+				recorded.checked.add(helpLink);
 				return true;
 			}
 
@@ -133,6 +139,8 @@ class SignInHelpButtonsUiTest extends AbstractUiTest
 
 		assertEquals(List.of(WIKI + expectedPage), recorded.opened,
 			"one click on Help opens exactly the page of the plan's TC-0140");
+		assertEquals(recorded.opened, recorded.checked,
+			"the page checked for reachability is the page that is opened");
 		Path source = Path.of("docs", "wiki", expectedPage + ".md");
 		assertTrue(Files.isRegularFile(source),
 			"the page the button opens is in the wiki's source: " + source);

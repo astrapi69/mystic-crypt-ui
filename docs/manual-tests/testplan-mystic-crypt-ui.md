@@ -372,7 +372,8 @@ The canonical inventory is the `plugins:` target in the Makefile.
       `WikiLinksTest#everyLinkedPage_isInTheWikiSource` and
       `WikiLinksTest#everyPageAReleasedVersionLinks_isInTheWikiSource`; that the Wiki button of
       Help > Info carries the wiki address by
-      `ApplicationInfoPanelTest#theWikiButtonCarriesTheWikiAddressOfTheInfo_andTheDefaultOneIsTheWikiHome`.
+      `ApplicationInfoPanelTest#theWikiButtonCarriesTheWikiAddressOfTheInfo_andTheDefaultOneIsTheWikiHome` and
+      `ApplicationInfoPanelTest#theWikiButtonCarriesTheAddressTheInfoGives_notAFixedOne`.
       Manual only: that the published wiki, the mirror of `docs/wiki/`, serves the page (it needs
       the network and the workflow's run), and that the browser opens it
 
