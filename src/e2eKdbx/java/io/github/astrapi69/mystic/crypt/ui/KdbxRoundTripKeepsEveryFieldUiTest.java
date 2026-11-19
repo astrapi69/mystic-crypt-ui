@@ -100,7 +100,7 @@ class KdbxRoundTripKeepsEveryFieldUiTest extends AbstractUiTest
 	private static final String STARTER_NODE = "mykeys";
 
 	/** Test material, written down on purpose - see the README beside the fixture */
-	private static final String PASSWORD = "fixture";
+	private static final String PASSWORD = TestPasswords.KEEPASSXC_FIXTURE;
 
 	private static final String MASTER_PASSWORD = TestPasswords.throwaway();
 
