@@ -227,7 +227,7 @@ public class MysticCryptApplicationFrame extends ApplicationPanelFrame<Applicati
 		// dialog (#192); configurationDirectory is already resolved above for the memoized sign-in
 		// file, so nothing here waits on main-frame initialization to know the choice
 		MysticCryptSettings persistedSettings = MysticCryptSettings.load(configurationDirectory);
-		onTheEventDispatchThread(() -> showSignInDialog(model, persistedSettings));
+		EventThreadTask.runAndWait(() -> showSignInDialog(model, persistedSettings));
 	}
 
 	/**
@@ -255,41 +255,6 @@ public class MysticCryptApplicationFrame extends ApplicationPanelFrame<Applicati
 		});
 		dialog.setVisible(true);
 		signinScreen = dialog.getGraphicsConfiguration();
-	}
-
-	/**
-	 * Runs the task on the event dispatch thread and returns when it has finished, which for the
-	 * modal sign-in dialog is when the dialog is closed. Called on the event dispatch thread
-	 * already (the "Open Database" action), it just runs. What the task throws is thrown here.
-	 */
-	private static void onTheEventDispatchThread(final Runnable task)
-	{
-		if (SwingUtilities.isEventDispatchThread())
-		{
-			task.run();
-			return;
-		}
-		try
-		{
-			SwingUtilities.invokeAndWait(task);
-		}
-		catch (final InterruptedException interrupted)
-		{
-			Thread.currentThread().interrupt();
-		}
-		catch (final java.lang.reflect.InvocationTargetException failed)
-		{
-			Throwable cause = failed.getCause();
-			if (cause instanceof RuntimeException runtimeException)
-			{
-				throw runtimeException;
-			}
-			if (cause instanceof Error error)
-			{
-				throw error;
-			}
-			throw new IllegalStateException("the sign-in dialog could not be shown", cause);
-		}
 	}
 
 	protected void showSplashScreen()
