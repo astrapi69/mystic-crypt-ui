@@ -31,6 +31,12 @@ import java.io.File;
 import java.nio.file.Files;
 import java.security.PrivateKey;
 import java.security.PublicKey;
+import java.util.ArrayList;
+import java.util.EnumMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.swing.JComboBox;
 
 import org.assertj.swing.edt.GuiActionRunner;
 import org.assertj.swing.fixture.FrameFixture;
@@ -56,10 +62,22 @@ class KeygenEveryAlgorithmUiTest extends AbstractUiTest
 
 	private static final String MASTER_PASSWORD = TestPasswords.throwaway();
 
-	private static final KeyPairGeneratorAlgorithm[] OFFERED = { KeyPairGeneratorAlgorithm.RSA,
-			KeyPairGeneratorAlgorithm.EC, KeyPairGeneratorAlgorithm.X25519,
-			KeyPairGeneratorAlgorithm.X448, KeyPairGeneratorAlgorithm.ML_KEM_768,
-			KeyPairGeneratorAlgorithm.ML_DSA_65 };
+	/** What the plan promises the box offers; the loop below walks the box itself */
+	private static final List<KeyPairGeneratorAlgorithm> EXPECTED_IN_THE_BOX = List.of(
+		KeyPairGeneratorAlgorithm.RSA, KeyPairGeneratorAlgorithm.EC,
+		KeyPairGeneratorAlgorithm.X25519, KeyPairGeneratorAlgorithm.X448,
+		KeyPairGeneratorAlgorithm.ML_KEM_768, KeyPairGeneratorAlgorithm.ML_DSA_65);
+
+	/**
+	 * The algorithm a key read back from the PEM on screen names, for each algorithm of the box
+	 * (measured in the first run of this test): the generation takes its algorithm from the model,
+	 * so a key of the wrong algorithm would otherwise pass for a real one
+	 */
+	private static final Map<KeyPairGeneratorAlgorithm, String> KEY_ALGORITHM_READ_BACK = Map.of(
+		KeyPairGeneratorAlgorithm.RSA, "RSA", KeyPairGeneratorAlgorithm.EC, "ECDSA",
+		KeyPairGeneratorAlgorithm.X25519, "X25519", KeyPairGeneratorAlgorithm.X448, "X448",
+		KeyPairGeneratorAlgorithm.ML_KEM_768, "ML-KEM-768", KeyPairGeneratorAlgorithm.ML_DSA_65,
+		"ML-DSA-65");
 
 	@Test
 	@DisplayName("every algorithm the box offers generates a real key pair")
@@ -78,14 +96,25 @@ class KeygenEveryAlgorithmUiTest extends AbstractUiTest
 		int encryptPanelLeftEdge = leftEdgeOf(frame, "txtToEncrypt");
 		int keyAreaLeftEdge = leftEdgeOf(frame, "txtPrivateKey");
 
-		for (KeyPairGeneratorAlgorithm algorithm : OFFERED)
+		// the loop walks what the box really holds: a hard-coded list would go on generating the
+		// previous algorithm for one the box no longer offers, because an uneditable combo box
+		// leaves its selection unchanged for an item it does not hold
+		List<KeyPairGeneratorAlgorithm> offeredByTheBox = itemsOfTheAlgorithmBox(frame);
+		assertEquals(EXPECTED_IN_THE_BOX, offeredByTheBox,
+			"the box offers other algorithms than the plan names");
+		Map<KeyPairGeneratorAlgorithm, String> readBack = new EnumMap<>(
+			KeyPairGeneratorAlgorithm.class);
+		for (KeyPairGeneratorAlgorithm algorithm : offeredByTheBox)
 		{
-			generateAndCheck(frame, algorithm);
+			readBack.put(algorithm, generateAndCheck(frame, algorithm));
 			assertEquals(encryptPanelLeftEdge, leftEdgeOf(frame, "txtToEncrypt"),
 				"the encrypt panel moved after generating with " + algorithm);
 			assertEquals(keyAreaLeftEdge, leftEdgeOf(frame, "txtPrivateKey"),
 				"the key areas moved after generating with " + algorithm);
 		}
+
+		assertEquals(new EnumMap<>(KEY_ALGORITHM_READ_BACK), readBack,
+			"a key of another algorithm than the chosen one came out of the window");
 
 		// a longer key writes longer lines into the key areas, and a form whose columns follow
 		// what happens to be in them moves while it is being used
@@ -106,6 +135,19 @@ class KeygenEveryAlgorithmUiTest extends AbstractUiTest
 			assertEquals(keyAreaLeftEdge, leftEdgeOf(frame, "txtPrivateKey"),
 				"the key areas moved after generating a " + keySize + " key");
 		}
+	}
+
+	private List<KeyPairGeneratorAlgorithm> itemsOfTheAlgorithmBox(final FrameFixture frame)
+	{
+		return GuiActionRunner.execute(() -> {
+			JComboBox<?> box = frame.comboBox("cmbAlgorithm").target();
+			List<KeyPairGeneratorAlgorithm> items = new ArrayList<>();
+			for (int index = 0; index < box.getItemCount(); index++)
+			{
+				items.add((KeyPairGeneratorAlgorithm)box.getItemAt(index));
+			}
+			return items;
+		});
 	}
 
 	/**
@@ -130,13 +172,18 @@ class KeygenEveryAlgorithmUiTest extends AbstractUiTest
 	 *            the application frame
 	 * @param algorithm
 	 *            the algorithm to generate with
+	 * @return the algorithm the key read back names
 	 */
-	private void generateAndCheck(final FrameFixture frame,
+	private String generateAndCheck(final FrameFixture frame,
 		final KeyPairGeneratorAlgorithm algorithm) throws Exception
 	{
 		GuiActionRunner
 			.execute(() -> frame.comboBox("cmbAlgorithm").target().setSelectedItem(algorithm));
 		robot.waitForIdle();
+		assertEquals(algorithm,
+			GuiActionRunner
+				.execute(() -> frame.comboBox("cmbAlgorithm").target().getSelectedItem()),
+			"the box did not take " + algorithm + ", so the key below is of another algorithm");
 		GuiActionRunner.execute(() -> frame.button("btnGenerate").target().doClick());
 		robot.waitForIdle();
 
@@ -161,6 +208,7 @@ class KeygenEveryAlgorithmUiTest extends AbstractUiTest
 		PublicKey publicKey = PublicKeyReader.readPemPublicKey(publicKeyFile);
 		assertEquals(privateKey.getAlgorithm(), publicKey.getAlgorithm(),
 			"the two keys on screen do not belong to the same algorithm for " + algorithm);
+		return privateKey.getAlgorithm();
 	}
 
 }

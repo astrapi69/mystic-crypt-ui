@@ -31,7 +31,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.File;
 import java.security.Security;
-import java.util.UUID;
 
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.junit.jupiter.api.BeforeAll;
@@ -40,7 +39,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import io.github.astrapi69.crypt.api.algorithm.key.KeyPairGeneratorAlgorithm;
-import io.github.astrapi69.crypt.api.key.KeySize;
 import io.github.astrapi69.crypt.data.key.reader.EncryptedPrivateKeyReader;
 
 /**
@@ -62,20 +60,11 @@ class KeyGenerationButtonsTest
 		}
 	}
 
-	private static GenerateKeysPanel panelWithAKeyPairOf(KeyPairGeneratorAlgorithm algorithm)
-	{
-		GenerateKeysPanel panel = new GenerateKeysPanel();
-		panel.getCmbAlgorithm().setSelectedItem(algorithm);
-		panel.getCryptographyPanel().getCmbKeySize().setSelectedItem(KeySize.KEYSIZE_1024);
-		panel.getCryptographyPanel().getBtnGenerate().doClick();
-		return panel;
-	}
-
 	@Test
 	@DisplayName("pressing encrypt puts cipher text into the right area")
 	void pressingEncryptPutsCipherTextIntoTheRightArea()
 	{
-		GenerateKeysPanel panel = panelWithAKeyPairOf(KeyPairGeneratorAlgorithm.RSA);
+		GenerateKeysPanel panel = KeygenTestPanels.panelWithAKeyPairOf(KeyPairGeneratorAlgorithm.RSA);
 		panel.getEnDecryptPanel().getTxtToEncrypt().setText(PLAIN_TEXT);
 
 		panel.getEnDecryptPanel().getBtnEncrypt().doClick();
@@ -89,7 +78,7 @@ class KeyGenerationButtonsTest
 	@DisplayName("pressing decrypt brings the same text back")
 	void pressingDecryptBringsTheSameTextBack()
 	{
-		GenerateKeysPanel panel = panelWithAKeyPairOf(KeyPairGeneratorAlgorithm.RSA);
+		GenerateKeysPanel panel = KeygenTestPanels.panelWithAKeyPairOf(KeyPairGeneratorAlgorithm.RSA);
 		panel.getEnDecryptPanel().getTxtToEncrypt().setText(PLAIN_TEXT);
 		panel.getEnDecryptPanel().getBtnEncrypt().doClick();
 
@@ -104,7 +93,7 @@ class KeyGenerationButtonsTest
 	void theEncryptButtonIsOffForAnAlgorithmThatHasNoHexDemo()
 	{
 		// X25519 is key agreement: unlike RSA and EC it has no encryption primitive at all (#195)
-		GenerateKeysPanel panel = panelWithAKeyPairOf(KeyPairGeneratorAlgorithm.X25519);
+		GenerateKeysPanel panel = KeygenTestPanels.panelWithAKeyPairOf(KeyPairGeneratorAlgorithm.X25519);
 		panel.getEnDecryptPanel().getTxtToEncrypt().setText(PLAIN_TEXT);
 
 		assertFalse(panel.getEnDecryptPanel().getBtnEncrypt().isEnabled(),
@@ -122,7 +111,7 @@ class KeyGenerationButtonsTest
 	@DisplayName("an EC key pair drives the demo and its text comes back")
 	void anEcKeyPairDrivesTheDemo()
 	{
-		GenerateKeysPanel panel = panelWithAKeyPairOf(KeyPairGeneratorAlgorithm.EC);
+		GenerateKeysPanel panel = KeygenTestPanels.panelWithAKeyPairOf(KeyPairGeneratorAlgorithm.EC);
 		panel.getEnDecryptPanel().getTxtToEncrypt().setText(PLAIN_TEXT);
 
 		assertTrue(panel.getEnDecryptPanel().getBtnEncrypt().isEnabled(),
@@ -142,7 +131,7 @@ class KeyGenerationButtonsTest
 	@DisplayName("the encrypt button is on again after an RSA key pair is generated")
 	void theEncryptButtonIsOnAgainAfterAnRsaKeyPairIsGenerated()
 	{
-		GenerateKeysPanel panel = panelWithAKeyPairOf(KeyPairGeneratorAlgorithm.X25519);
+		GenerateKeysPanel panel = KeygenTestPanels.panelWithAKeyPairOf(KeyPairGeneratorAlgorithm.X25519);
 		panel.getCmbAlgorithm().setSelectedItem(KeyPairGeneratorAlgorithm.RSA);
 		panel.getCryptographyPanel().getBtnGenerate().doClick();
 
@@ -157,9 +146,9 @@ class KeyGenerationButtonsTest
 	void savingWithAPasswordWritesAKeyThatOnlyThatPasswordOpens(@TempDir File directory)
 		throws Exception
 	{
-		GenerateKeysPanel panel = panelWithAKeyPairOf(KeyPairGeneratorAlgorithm.RSA);
+		GenerateKeysPanel panel = KeygenTestPanels.panelWithAKeyPairOf(KeyPairGeneratorAlgorithm.RSA);
 		File keyFile = new File(directory, "protected.pem");
-		String password = "pw-" + UUID.randomUUID();
+		String password = KeygenTestPanels.throwawayPassword();
 
 		panel.savePrivateKeyWithPasswordTo(keyFile, password);
 

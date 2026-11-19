@@ -300,48 +300,143 @@ read from the disk again at unlock (8.15, GHSA-px49-m539-22h8).
 The window is built for trying out, so that is how it is tested.
 
 - [ ] TC-0100 Generate once with every algorithm in the box. Both text areas fill, no empty
-      display, no silent error. - automated by `KeygenEveryAlgorithmUiTest`
+      display, no silent error. - automated by
+      `KeygenEveryAlgorithmUiTest#everyAlgorithmTheBoxOffersGeneratesARealKeyPair` (walks the
+      items of the box, checks the selection took, reads both keys back with the library
+      readers and checks the algorithm the key names), `KeygenPqcPluginUiTest#generatesAPostQuantumKeyPairThroughTheAlgorithmDropdown`,
+      `KeygenCurveUiTest#generatesAnEcKeyOnTheChosenCurveThroughTheUi`
 - [ ] TC-0101 While doing so: **nothing in the window moves or shrinks**. - automated by
-      `KeygenLayoutStaysPutUiTest`; whether it LOOKS right manual only
-- [ ] TC-0102 Encrypt and decrypt again with RSA. - automated by `KeygenPluginUiTest`
-- [ ] TC-0103 With another algorithm: the two buttons are not pressable and the tooltip says
-      why. - automated by `KeygenEncryptUnavailableUiTest`
+      `KeygenLayoutStaysPutUiTest#nothingInTheWindowMovesWhileItIsBeingTriedOut` (x and y of the
+      four text panes, widths, the height of the two key panes, and the two encrypt panes never
+      losing height from one state to the next, after picking every algorithm and key size and after
+      generating with every algorithm and with RSA 1024 and 2048),
+      `KeygenEveryAlgorithmUiTest#everyAlgorithmTheBoxOffersGeneratesARealKeyPair` (left edges
+      after each generation); whether it LOOKS right manual only. Measured: the two encrypt panes
+      grow from 148 to 168 pixels at the first generation, which is not a shrink
+- [ ] TC-0102 Encrypt and decrypt again with RSA. - automated by
+      `KeygenPluginUiTest#keyGenerationGeneratesAndRoundTripsEncryptionThroughTheUi` (RSA,
+      through the running application); EC (ECIES) only at panel level,
+      `KeyGenerationButtonsTest#anEcKeyPairDrivesTheDemo`
+- [ ] TC-0103 With an algorithm that cannot encrypt (X25519, X448, ML-KEM-768, ML-DSA-65; RSA and
+      EC can): the two buttons are not pressable and the tooltip says why. - automated by
+      `KeygenEncryptUnavailableUiTest#encryptAndDecryptAreOutOfReachAndSayWhyForAnAlgorithmThatCannotEncrypt`
+      (X25519, X448, ML-KEM-768, ML-DSA-65 alternating with RSA and EC, a new key on screen each
+      time, both buttons, text in both areas, tooltip and reason label)
 - [ ] TC-0104 Save private key, public key, certificate - each time type a name **without an
       extension** and check the file gets the fitting one. - automated by
-      `KeygenSavesRealArtifactsUiTest`
+      `KeygenSavesRealArtifactsUiTest#everyFileTheWindowSavesIsARealArtifact` (private key, key
+      with a password, certificate), `KeygenSavePublicKeyUiTest#savesTheGeneratedPublicKeyToAFileThroughTheUi`
+      (public key)
 - [ ] TC-0105 Set the format to DER and do the same again: extension `.der`, binary
-      content. - automated by `KeygenSavesRealArtifactsUiTest`
+      content. - automated by
+      `KeygenSavesRealArtifactsUiTest#everyFileTheWindowSavesIsARealArtifact` (private key and
+      public key as DER), `SaveFormatTest#aPrivateKeySavedAsPemIsTextAsDerItIsNot`,
+      `SaveFormatTest#aPublicKeySavedAsPemIsTextAsDerItIsNot`. Not true for the certificate: it
+      is PEM with `.pem` whatever the format says (`CryptographyPanel.java:415-416`), which
+      contradicts the tooltip of the format box; today's behaviour is pinned in the same test and
+      the case fails for the certificate until #1050 is decided. The key saved with a password is
+      always DER
 - [ ] TC-0106 Save the private key with a password and open the file again with that
-      password (for example `openssl pkcs8 -inform DER`). - manual only (another program
-      accepts the file)
+      password (for example `openssl pkcs8 -inform DER`). - automated by
+      `KeygenSavesRealArtifactsUiTest#everyFileTheWindowSavesIsARealArtifact` (the library's
+      reader), `ProtectedKeyOpensElsewhereTest#theJdkAloneDecryptsTheFileWithThePasswordAndGetsTheGeneratedKey`
+      (the JDK alone), `ProtectedKeyOpensElsewhereTest#opensslPkcs8OpensTheFileAndPrintsTheGeneratedKey`
+      (`openssl pkcs8 -inform DER`, password on standard input, the printed key compared with the
+      generated one; fails on CI when openssl is missing, skips locally); only a program other than these stays manual
 
 ## TS-0011 Settings
 
 - [ ] TC-0110 Switch the view to desktop, close the dialog: the application stands in that
-      view at once. - automated by `ViewModeSwitchUiTest`
-- [ ] TC-0111 Restart: it opens in the same view. - manual only (a real restart)
-- [ ] TC-0112 Change look and language, restart, the setting is still there. - manual only
+      view at once. - automated by
+      `ViewModeSwitchUiTest#theViewChosenInTheSettingsIsTheViewTheFrameIsIn`
+- [ ] TC-0111 Restart: it opens in the same view. - automated by
+      `ViewModeSwitchUiTest#theChosenViewIsTheViewTheApplicationOpensInNextTime` (the file
+      holds the view and the restart is `AbstractUiTest#shutdownApplication` plus a new
+      sign-in, in the same JVM); a real restart of the installed application: manual only
+- [ ] TC-0112 Change the look, restart: the look is still there (no window offers the language
+      since #885). - automated by
+      `LookAndFeelSurvivesRestartUiTest#theLookChosenInTheSettingsIsStillActiveAfterARestart`
+      (chosen in the settings dialog, restart in the same JVM) and
+      `SignInDialogLookAndFeelUiTest#thePersistedLookAndFeelIsAlreadyActiveOnTheSignInDialog`
+      (a persisted look is active at sign-in); a real restart of the installed application:
+      manual only
 
 ## TS-0012 Keyboard
 
 - [ ] TC-0120 Sign-in dialog: the caret is in the master password field at once, Enter
-      signs in. - automated by `SigninFocusUiTest`, `SignInEnterSubmitUiTest`
+      signs in. - automated by
+      `SigninFocusUiTest#afterAPasswordSignInTheDialogOpensOnTheField` (the dialog's initial
+      component is the field once the password is switched on, as it is after an earlier
+      password sign-in) and `SigninFocusUiTest#theDialogOpensOnTheMasterPassword` (a fresh
+      profile: the box first, then the field), and
+      `SignInEnterSubmitUiTest#pressingEnterInTheMasterPasswordFieldSignsIn` (Enter is sent
+      as the field's action event, `SignInDialogSteps#enterInMasterPasswordAndAwaitSignIn`; a
+      real key press is not driven: manual only)
 - [ ] TC-0121 In the tree: Del deletes, F2 renames, Ins creates - each with its confirmation
-      where there is one. - automated by `TreeShortcutsUiTest` (F2); Del and Ins manual only
+      where there is one. - automated by
+      `TreeShortcutsUiTest#f2RenamesTheSelectedNode` (F2, rename confirmed with OK) and
+      `TreeShortcutsUiTest#f2OpensTheSelectedNodeForEditing`,
+      `TreeShortcutsUiTest#deleteRemovesTheSelectedNodeWhenConfirmed` (Del, confirmed) and
+      `TreeShortcutsUiTest#deleteAsksBeforeItRemovesTheSelectedNode` (Cancel keeps the node),
+      `TreeShortcutsUiTest#insertAddsAChildToTheSelectedNode` (Ins); the key is looked up in
+      the tree's input map and run, not typed on a physical keyboard
 - [ ] TC-0122 Search field in the toolbar: typing jumps to the first match, Enter to the
-      next. - automated by `ToolbarSearchUiTest`
+      next. - automated by `ToolbarSearchUiTest#typingJumpsToTheFirstMatchAndEnterToTheNext`
+      (Enter is sent as the field's action event)
 
 ## TS-0013 Plugins
 
 The canonical inventory is the `plugins:` target in the Makefile.
 
 - [ ] TC-0130 Open and close every tool window once without the application freezing. -
-      automated by `PluginLoadingUiTest` and the per-plugin `*PluginUiTest` classes; the
-      whole round in one session manual only
+      opening is automated for one tool of each plugin, each in a session of its own, by
+      `PluginLoadingUiTest#internalPluginsLoadFromZipAndContributeTheirMenuItems` (the entries
+      exist), `ObfuscationPluginUiTest#simpleObfuscationObfuscatesAndDisentanglesThroughTheUi`,
+      `ChecksumPluginUiTest#verifyChecksumComputesTheFileChecksumThroughTheUi`,
+      `ConversionPluginUiTest#convertDerToPemWritesTheKeyAsPemThroughTheWizard`,
+      `ConsolePluginUiTest#consoleCapturesStandardOutputThroughTheUi`,
+      `KeygenPluginUiTest#keyGenerationGeneratesAndRoundTripsEncryptionThroughTheUi`,
+      `CertificateWizardUiTest#certificateWizardOpensAndClosesWithoutKillingTheApp`,
+      `PasswordHashPluginUiTest#hashesAndVerifiesAPasswordThroughTheUi`,
+      `KemDemoPluginUiTest#runsAKeyEncapsulationExchangeThroughTheUi`,
+      `KeyExchangeUiTest#carriesAMessageBetweenTheTwoSidesThroughTheUi`,
+      `PqcSignaturePluginUiTest#signsAndVerifiesAndRejectsATamperedMessageThroughTheUi`,
+      `KeyStorePluginUiTest#managesAKeyStoreThroughTheUi`,
+      `FileCryptTextUiTest#encryptsAndDecryptsATextThroughTheUi`,
+      `SecretSharingUiTest#splitsASecretAndRebuildsItFromEnoughSharesThroughTheUi`,
+      `LethenonPluginUiTest#thePlugin_verifiesAChainFile` and
+      `ReleaseKeyPluginUiTest#showsTheStateOfAKeyThatGpgWrote`; a close with a check after it is
+      driven for the certificate wizard
+      (`CertificateWizardUiTest#certificateWizardOpensAndClosesWithoutKillingTheApp`, a dispose by
+      the test), the conversion wizard's Finish
+      (`ConversionPluginUiTest#convertDerToPemWritesTheKeyAsPemThroughTheWizard`) and the
+      lethenon window (`LethenonPluginUiTest#thePlugin_remembersTheChainAndTheWalletThatWorked`),
+      the console
+      (`ASecondConsoleBringsTheOpenOneToFrontUiTest#aSecondConsoleClick_leavesOneConsoleOpen`,
+      `doDefaultCloseAction`, then `System.out` is the stream from before) and the key store
+      wizard's Finish
+      (`CreateKeyStoreWizardUiTest#finishWithoutAKeyPairCreatesAnEmptyReadableStore`, the wizard
+      is no longer showing);
+      the checksum and obfuscation windows are only closed as cleanup
+      (`ApplicationSteps#closeInternalFrame` in `ChecksumFileWritingUiTest`,
+      `ObfuscationRefusesWithoutAKeyUiTest` and `ObfuscationImportRefusesAForeignTypeUiTest`),
+      with nothing checked after; the closing of the other tools and the whole round over every
+      tool in one session manual only (the tools open in different ways, as dialogs, internal
+      frames or a docked console, and no test walks them as one round; a first generic attempt
+      found no common signal to wait for)
 - [ ] TC-0131 The order of the plugin menu entries is the same after a reinstall. -
-      automated by `PluginMenuOrderSurvivesPluginToggleUiTest`
+      automated by
+      `PluginMenuOrderSurvivesPluginToggleUiTest#aSavedPluginsMenuOrder_isTheSameAfterAReinstallAndARestart`
+      (the saved order, the plugin zips removed and installed again between two starts, the
+      order after the start) and
+      `PluginMenuOrderSurvivesPluginToggleUiTest#aSavedPluginsMenuOrderSurvivesDisablingAndReenablingAPlugin`
+      (disable and enable twice in one session)
 - [ ] TC-0132 Disable a plugin in the settings, restart: its menu item is gone. Enable it
-      again: it is back. - automated by `SettingsEnablePluginUiTest`
+      again: it is back. - automated by
+      `SettingsEnablePluginUiTest#aDisabledPlugin_isGoneFromTheMenuAfterARestart_andBackOnceEnabled`
+      (disable, the entries gone at once and after the restart, enable, back after the next
+      restart) and `SettingsEnablePluginUiTest#aPluginCanBeDisabledThenEnabledAgain` (the state
+      column of the plugins table)
 - [ ] TC-0133 Set "Lock after idle minutes" to 1, wait until the workspace locks, unlock:
       every plugin entry is offered again, and a plugin tool opens from its entry (#1006). -
       automated by `EverySignInOffersThePluginEntriesUiTest#everyWayBackOffersThePluginEntriesAgain`
@@ -352,13 +447,17 @@ The canonical inventory is the `plugins:` target in the Makefile.
       application's settings file, as the dialog does
 - [ ] TC-0134 With a database open, open a second one with File > Open Database...: every
       plugin entry is offered again, and a plugin tool opens from its entry (#1006). -
-      automated by `EverySignInOffersThePluginEntriesUiTest`
+      automated by `EverySignInOffersThePluginEntriesUiTest#everyWayBackOffersThePluginEntriesAgain`
+      (case "open a second database while one is open", through the File menu item)
 - [ ] TC-0135 File > Close Database, then File > Open Database...: every plugin entry is
       offered again, and a plugin tool opens from its entry (#1006). - automated by
-      `EverySignInOffersThePluginEntriesUiTest`
+      `EverySignInOffersThePluginEntriesUiTest#everyWayBackOffersThePluginEntriesAgain`
+      (case "close the database, then open it again", through the File menu items Close
+      Database and Open Database...)
 - [ ] TC-0136 Cancel the sign-in at the start, then File > Open Database...: every plugin
       entry is offered, and a plugin tool opens from its entry (#1006). - automated by
-      `EverySignInOffersThePluginEntriesUiTest`
+      `EverySignInOffersThePluginEntriesUiTest#aSignInAfterACancelledStartOffersThePluginEntries`
+      (the sign-in cancelled in its dialog, then the File menu item Open Database...)
 
 ## TS-0014 Help buttons and the wiki
 
