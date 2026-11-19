@@ -389,6 +389,17 @@ public class MasterPwWithApplicationFilePanel extends BasePanel<MasterPwFileMode
 		}
 	}
 
+	private static final String HELP_OPEN_TITLE = "Help for signing in to your database";
+
+	private static final String HELP_OPEN_CONTENT = "Your mystic-crypt database is an encrypted file.\n\n"
+		+ "To open it you need your master key.\n"
+		+ "Your master key consists of a password, a private key, or both.\n\n"
+		+ "The master key is set when the mystic-crypt database is created.\n"
+		+ "If you chose only a password when you created it, enter only your password.\n"
+		+ "If you chose only a private key, select only the private key.\n"
+		+ "If you chose both, enter your password and select your private key.\n"
+		+ "After you have set the master key, open your mystic-crypt database by clicking OK.";
+
 	protected void onHelp(ActionEvent actionEvent)
 	{
 		String helpLink = "https://github.com/astrapi69/mystic-crypt-ui/wiki/"
@@ -400,21 +411,13 @@ public class MasterPwWithApplicationFilePanel extends BasePanel<MasterPwFileMode
 		}
 		else
 		{
-			HelpModelBean helpModelBean = HelpModelBean.builder().title("Help for authentication")
-				.content("Your mystic-crypt database is an encrypted file.\n\n"
-					+ "For open you will need your master key.\n"
-					+ "You master key consist either from a password or a private key or "
-					+ "both.\n\n"
-					+ "The master key is set by the creation of the mystic-crypt database.\n"
-					+ "If you desided by creation only with password then enter only your password\n"
-					+ "If you desided by creation only with private key then select only the private key\n"
-					+ "If you desided by creation a combination of password and private key enter \n"
-					+ "your password and select your private key\n"
-					+ "After you set the master key you can open your mystic-crypt database by clicking ok.")
-				.build();
+			HelpModelBean helpModelBean = HelpModelBean.builder()
+				.title(Messages.getString("signin.help.open.title", HELP_OPEN_TITLE))
+				.content(Messages.getString("signin.help.open.content", HELP_OPEN_CONTENT)).build();
 			IModel<HelpModelBean> helpModel = BaseModel.of(helpModelBean);
 			HelpDialog helpDialog = new HelpDialog(MysticCryptApplicationFrame.getInstance(),
-				"Help for sign in to the your database", true, helpModel);
+				Messages.getString("signin.help.open.dialog.title", HELP_OPEN_TITLE), true,
+				helpModel);
 			helpDialog.setSize(800, 300);
 			helpDialog.setVisible(true);
 		}
