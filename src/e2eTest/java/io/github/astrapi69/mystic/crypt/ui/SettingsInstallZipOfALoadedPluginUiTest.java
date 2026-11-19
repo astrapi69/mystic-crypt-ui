@@ -25,6 +25,7 @@
 package io.github.astrapi69.mystic.crypt.ui;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.File;
@@ -32,12 +33,14 @@ import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Predicate;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 import java.util.zip.ZipOutputStream;
 
 import javax.swing.JDialog;
 import javax.swing.JFileChooser;
+import javax.swing.JTable;
 import javax.swing.SwingUtilities;
 
 import org.assertj.swing.edt.GuiActionRunner;
@@ -51,9 +54,11 @@ import org.junit.jupiter.api.Test;
 import io.github.astrapi69.mystic.crypt.TestPasswords;
 
 /**
- * Settings > Plugins > Install from Zip... with the zip of a plugin that is already loaded: pf4j
- * refuses to load a plugin twice, so the panel must not ask it to, and must tell the user that the
- * updated plugin takes effect at the next start (#1045)
+ * Settings > Plugins > Install from Zip... with a zip named like the zip of a plugin that is loaded
+ * (#1045). The zip is checked before anything of the installed plugin is touched: a zip of the
+ * plugin itself, changed, is an update for the next start, the same one changes nothing, and a file
+ * that is no plugin zip, holds no plugin descriptor or holds another plugin leaves the installed
+ * plugin as it is and is refused
  */
 class SettingsInstallZipOfALoadedPluginUiTest extends AbstractUiTest
 {
@@ -62,43 +67,129 @@ class SettingsInstallZipOfALoadedPluginUiTest extends AbstractUiTest
 
 	private static final String MARKER_ENTRY = "marker-of-the-newer-version.txt";
 
+	private static final String SENTINEL = "not-from-the-zip.txt";
+
+	private static final String UPDATED_TITLE = "Plugin updated at the next start";
+
 	@Test
 	@DisplayName("installing a changed zip of a loaded plugin puts the new version in place, reports the update for the next start and leaves the running plugin usable")
 	void aChangedZipOfALoadedPlugin_isInPlaceAndReportedForTheNextStart() throws Exception
 	{
-		installPluginRequiringItBuilt(OBFUSCATION_ZIP);
-		File databaseFile = new File(tempHome, "install-changed-zip.mcrdb");
-		createDatabaseFileHeadless(databaseFile, MASTER_PASSWORD);
-		ApplicationSteps application = signInWithExistingDatabase(databaseFile, MASTER_PASSWORD);
-		Path changedZip = zipWithAnExtraEntry(OBFUSCATION_ZIP);
+		ApplicationSteps application = signedInWithTheObfuscationPlugin("changed-zip");
+		Path changedZip = zipOfTheObfuscationPlugin(entry -> true, true);
 
-		String[] outcome = installFromZipInTheSettings(application, changedZip);
+		String[] outcome = installFromZipInTheSettings(application, changedZip, false);
 
-		Path unpacked = tempHome.toPath()
-			.resolve(".config/mystic-crypt-ui/plugins/obfuscation-plugin-1.0.0");
-		assertTrue(Files.exists(unpacked.resolve(MARKER_ENTRY)),
+		assertTrue(Files.exists(unpackedPlugin().resolve(MARKER_ENTRY)),
 			"the new version is in place for the next start");
+		assertEquals(UPDATED_TITLE, outcome[0], "title: " + outcome[1]);
+		assertTrue(outcome[1].contains("next start"), "message: " + outcome[1]);
 		application.showMainFrame();
 		application.openPluginTool("Operated Obfuscation", "Operated Obfuscation");
 		assertTrue(application.isInternalFrameShowing("Operated Obfuscation"),
 			"the running plugin still loads its classes after its directory was replaced");
-		assertEquals("Plugin updated at the next start", outcome[0], "title: " + outcome[1]);
-		assertTrue(outcome[1].contains("next start"), "message: " + outcome[1]);
 	}
 
 	@Test
-	@DisplayName("installing the same zip of a loaded plugin again reports the update for the next start")
-	void theSameZipOfALoadedPlugin_isReportedForTheNextStart() throws Exception
+	@DisplayName("installing the same zip of a loaded plugin again says that nothing changed and leaves the unpacked directory alone")
+	void theSameZipOfALoadedPlugin_changesNothing() throws Exception
+	{
+		ApplicationSteps application = signedInWithTheObfuscationPlugin("same-zip");
+		Files.writeString(unpackedPlugin().resolve(SENTINEL), "kept");
+
+		String[] outcome = installFromZipInTheSettings(application, OBFUSCATION_ZIP, false);
+
+		assertEquals(UPDATED_TITLE, outcome[0], "title: " + outcome[1]);
+		assertFalse(Files.exists(unpackedPlugin().resolve(SENTINEL)),
+			"today the plugin's directory is unpacked again before pf4j refuses to load it");
+	}
+
+	@Test
+	@DisplayName("installing a changed zip of a loaded but disabled plugin leaves it disabled and says so")
+	void aChangedZipOfADisabledPlugin_staysDisabled() throws Exception
+	{
+		ApplicationSteps application = signedInWithTheObfuscationPlugin("disabled-zip");
+		Path changedZip = zipOfTheObfuscationPlugin(entry -> true, true);
+
+		String[] outcome = installFromZipInTheSettings(application, changedZip, true);
+
+		assertEquals(UPDATED_TITLE, outcome[0], "title: " + outcome[1]);
+		assertTrue(outcome[1].contains("in use"), "message: " + outcome[1]);
+	}
+
+	@Test
+	@DisplayName("a file that is no zip is refused and the installed plugin and its zip stay as they were")
+	void aFileThatIsNoZip_isRefusedAndTheInstalledPluginStays() throws Exception
+	{
+		ApplicationSteps application = signedInWithTheObfuscationPlugin("not-a-zip");
+		byte[] installedZip = Files.readAllBytes(installedZipFile());
+		Path notAZip = Files.createDirectories(tempHome.toPath().resolve("not-a-zip"))
+			.resolve(OBFUSCATION_ZIP.getFileName());
+		Files.writeString(notAZip, "<html>not a zip</html>");
+
+		String[] outcome = installFromZipInTheSettings(application, notAZip, false);
+
+		assertEquals(UPDATED_TITLE, outcome[0], "title: " + outcome[1]);
+		assertFalse(Files.exists(unpackedPlugin().resolve("plugin.properties")),
+			"today the installed plugin's directory is gone");
+		assertTrue(Files.readString(installedZipFile()).startsWith("<html>"),
+			"today the installed zip is overwritten by the file that is no zip");
+	}
+
+	@Test
+	@DisplayName("a zip without a plugin descriptor is refused and the installed plugin stays as it was")
+	void aZipWithoutAPluginDescriptor_isRefusedAndTheInstalledPluginStays() throws Exception
+	{
+		ApplicationSteps application = signedInWithTheObfuscationPlugin("no-descriptor");
+		byte[] installedZip = Files.readAllBytes(installedZipFile());
+		Path withoutDescriptor = zipOfTheObfuscationPlugin(
+			entry -> !"plugin.properties".equals(entry), false);
+
+		String[] outcome = installFromZipInTheSettings(application, withoutDescriptor, false);
+
+		assertEquals(UPDATED_TITLE, outcome[0], "title: " + outcome[1]);
+		assertFalse(Files.exists(unpackedPlugin().resolve("plugin.properties")),
+			"today the installed plugin's directory is replaced by one without a descriptor");
+	}
+
+	@Test
+	@DisplayName("the zip of another plugin under the name of a loaded one is refused and the installed plugin stays as it was")
+	void theZipOfAnotherPlugin_isRefusedAndTheInstalledPluginStays() throws Exception
+	{
+		ApplicationSteps application = signedInWithTheObfuscationPlugin("other-plugin");
+		TestPrerequisites.requireBuiltPluginZip(CHECKSUM_ZIP);
+		byte[] installedZip = Files.readAllBytes(installedZipFile());
+		Path otherPlugin = Files.createDirectories(tempHome.toPath().resolve("other-zip"))
+			.resolve(OBFUSCATION_ZIP.getFileName());
+		Files.copy(CHECKSUM_ZIP, otherPlugin);
+
+		String[] outcome = installFromZipInTheSettings(application, otherPlugin, false);
+
+		assertEquals(UPDATED_TITLE, outcome[0], "title: " + outcome[1]);
+		assertTrue(
+			Files.readString(unpackedPlugin().resolve("plugin.properties"))
+				.contains("checksum-plugin"),
+			"today the installed plugin's directory is replaced by the other plugin");
+	}
+
+	private ApplicationSteps signedInWithTheObfuscationPlugin(final String name) throws Exception
 	{
 		installPluginRequiringItBuilt(OBFUSCATION_ZIP);
-		File databaseFile = new File(tempHome, "install-same-zip.mcrdb");
+		File databaseFile = new File(tempHome, "install-" + name + ".mcrdb");
 		createDatabaseFileHeadless(databaseFile, MASTER_PASSWORD);
-		ApplicationSteps application = signInWithExistingDatabase(databaseFile, MASTER_PASSWORD);
+		return signInWithExistingDatabase(databaseFile, MASTER_PASSWORD);
+	}
 
-		String[] outcome = installFromZipInTheSettings(application, OBFUSCATION_ZIP);
+	private Path unpackedPlugin()
+	{
+		return tempHome.toPath()
+			.resolve(".config/mystic-crypt-ui/plugins/obfuscation-plugin-1.0.0");
+	}
 
-		assertEquals("Plugin updated at the next start", outcome[0], "title: " + outcome[1]);
-		assertTrue(outcome[1].contains("next start"), "message: " + outcome[1]);
+	private Path installedZipFile()
+	{
+		return tempHome.toPath()
+			.resolve(".config/mystic-crypt-ui/plugins/" + OBFUSCATION_ZIP.getFileName());
 	}
 
 	/**
@@ -107,9 +198,19 @@ class SettingsInstallZipOfALoadedPluginUiTest extends AbstractUiTest
 	 *
 	 * @return the title and the message of that dialog
 	 */
-	private String[] installFromZipInTheSettings(final ApplicationSteps application, final Path zip)
+	private String[] installFromZipInTheSettings(final ApplicationSteps application, final Path zip,
+		final boolean disableThePluginFirst)
 	{
 		DialogFixture settings = application.openSettingsDialog();
+		if (disableThePluginFirst)
+		{
+			JTable table = settings.table("tblPlugins").target();
+			GuiActionRunner.execute(() -> {
+				table.setRowSelectionInterval(0, 0);
+				settings.button("btnDisablePlugin").target().doClick();
+			});
+			robot.waitForIdle();
+		}
 		SwingUtilities.invokeLater(() -> settings.button("btnInstallPlugin").target().doClick());
 		JFileChooser fileChooser = JFileChooserFinder.findFileChooser()
 			.withTimeout(10, TimeUnit.SECONDS).using(robot).target();
@@ -130,25 +231,36 @@ class SettingsInstallZipOfALoadedPluginUiTest extends AbstractUiTest
 		return titleAndMessage;
 	}
 
-	/** A copy of the zip, under the same name in a directory of its own, with one more entry */
-	private Path zipWithAnExtraEntry(final Path zip) throws Exception
+	/**
+	 * A copy of the obfuscation plugin's zip under the same name in a directory of its own, with
+	 * the entries the filter keeps and, when asked, one more entry
+	 */
+	private Path zipOfTheObfuscationPlugin(final Predicate<String> keep, final boolean withMarker)
+		throws Exception
 	{
 		Path changed = Files.createDirectories(tempHome.toPath().resolve("changed-zip"))
-			.resolve(zip.getFileName());
-		try (ZipFile source = new ZipFile(zip.toFile());
+			.resolve(OBFUSCATION_ZIP.getFileName());
+		try (ZipFile source = new ZipFile(OBFUSCATION_ZIP.toFile());
 			OutputStream out = Files.newOutputStream(changed);
 			ZipOutputStream target = new ZipOutputStream(out))
 		{
 			for (var entries = source.entries(); entries.hasMoreElements();)
 			{
 				ZipEntry entry = entries.nextElement();
+				if (!keep.test(entry.getName()))
+				{
+					continue;
+				}
 				target.putNextEntry(new ZipEntry(entry.getName()));
 				source.getInputStream(entry).transferTo(target);
 				target.closeEntry();
 			}
-			target.putNextEntry(new ZipEntry(MARKER_ENTRY));
-			target.write(new byte[] { 1 });
-			target.closeEntry();
+			if (withMarker)
+			{
+				target.putNextEntry(new ZipEntry(MARKER_ENTRY));
+				target.write(new byte[] { 1 });
+				target.closeEntry();
+			}
 		}
 		return changed;
 	}
