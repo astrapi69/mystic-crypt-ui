@@ -25,7 +25,7 @@
 package io.github.astrapi69.mystic.crypt;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import org.junit.jupiter.api.Test;
 
@@ -40,6 +40,13 @@ import org.junit.jupiter.api.Test;
  * against the application jar with the same calls, the class path the tests run on holds the same
  * logging modules as the runtime one. Both APIs are reached by name: neither is a compile
  * dependency here.
+ * <p>
+ * commons-logging reached the class path only through commons-beanutils, which file-worker 21 and
+ * gson-extensions 4 no longer bring, so it is not on the class path now and
+ * {@link #commonsLogging_isNotOnTheClassPath()} holds it off. If a dependency brings it back, that
+ * test turns red: route it to SLF4J again (a bridge such as jcl-over-slf4j, as spring-jcl was
+ * before) and restore the assertion that {@code LogFactory.getLog} returns an SLF4J log, which read
+ * {@code type.matches(".*\\$Slf4j(LocationAware)?Log")} on the class name of the log.
  */
 class LibraryLoggingRouteTest
 {
@@ -55,14 +62,12 @@ class LibraryLoggingRouteTest
 	}
 
 	@Test
-	void commonsLogging_isRoutedToSlf4j() throws ReflectiveOperationException
+	void commonsLogging_isNotOnTheClassPath()
 	{
-		Object log = Class.forName("org.apache.commons.logging.LogFactory")
-			.getMethod("getLog", String.class)
-			.invoke(null, LibraryLoggingRouteTest.class.getName());
+		ClassNotFoundException notThere = assertThrows(ClassNotFoundException.class,
+			() -> Class.forName("org.apache.commons.logging.LogFactory"),
+			"commons-logging is on the class path again: route it to SLF4J and restore the routing assertion of this test (#639)");
 
-		String type = log.getClass().getName();
-		assertTrue(type.matches(".*\\$Slf4j(LocationAware)?Log"),
-			"commons-logging no longer reaches SLF4J: " + type);
+		assertEquals("org.apache.commons.logging.LogFactory", notThere.getMessage());
 	}
 }
