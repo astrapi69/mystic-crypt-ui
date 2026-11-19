@@ -43,7 +43,6 @@ dependencies {
     // host's own Messages class already behaves (.claude/rules/i18n.md)
     compileOnly libs.resourcebundle.core
     compileOnly libs.swing.base.components
-    compileOnly libs.swing.components
     // the tool window binds every component to its panel model, the host carries both at runtime
     compileOnly libs.swing.model.components
     compileOnly libs.model.data

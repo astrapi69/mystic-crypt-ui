@@ -58,8 +58,8 @@ class ThirdPartyNoticeTest
 	private static final Map<String, String> APACHE_LIBRARIES = Map.of("com.google.code.gson:gson",
 		"com.google.gson.Gson", "info.picocli:picocli", "picocli.CommandLine",
 		"com.google.code.findbugs:jsr305", "javax.annotation.Nonnull", "org.jspecify:jspecify",
-		"org.jspecify.annotations.Nullable", "org.imgscalr:imgscalr-lib", "org.imgscalr.Scalr",
-		"io.github.kostaskougios:cloning", "com.rits.cloning.Cloner");
+		"org.jspecify.annotations.Nullable", "io.github.kostaskougios:cloning",
+		"com.rits.cloning.Cloner");
 
 	@Test
 	@DisplayName("the notice credits the silk icons with their author, their page and their license")
