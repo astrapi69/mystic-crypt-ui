@@ -197,7 +197,7 @@ class RuntimeDependenciesTest
 
 	@ParameterizedTest(name = "{0} is not on the class path")
 	@ValueSource(strings = { "resource-viewmodels", "spring-boot", "spring-webmvc",
-			"tomcat-embed-core", "commons-beanutils" })
+			"tomcat-embed-core", "commons-beanutils", "commons-logging" })
 	void unusedWebStack_isNotOnTheClassPath(final String artifact)
 	{
 		assertEquals(List.of(), versionsOnTheClassPath(artifact), artifact
