@@ -1049,7 +1049,7 @@ final class ApplicationSteps
 	}
 
 	/** Confirms the option-pane dialog with the given title by setting OK_OPTION as its value */
-	private void confirmOptionPaneDialog(String title)
+	void confirmOptionPaneDialog(String title)
 	{
 		DialogFixture confirmDialog = findDialogWithTitle(title);
 		// answer through the option pane's own API: a synthetic click on the OK button did not
