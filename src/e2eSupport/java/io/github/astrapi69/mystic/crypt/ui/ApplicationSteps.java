@@ -64,12 +64,6 @@ final class ApplicationSteps
 	/** How long a dialog gets to appear after the action that opens it */
 	private static final int DIALOG_TIMEOUT_SECONDS = 10;
 
-	/** How often a settings tab is clicked before the step gives up (#962) */
-	private static final int SETTINGS_TAB_CLICK_ATTEMPTS = 3;
-
-	/** How long a click on a settings tab gets to select it before it is repeated (#962) */
-	private static final int SETTINGS_TAB_CLICK_WAIT_SECONDS = 2;
-
 	/**
 	 * How long a KeePass import or export gets before its result dialog appears. The dialog follows
 	 * a key derivation: the KeePassXC fixture's Argon2d took 4.4 to 4.9 seconds per load on a
@@ -1619,13 +1613,12 @@ final class ApplicationSteps
 	/**
 	 * Selects a tab of the settings dialog and waits until the dialog says it is selected (#962).
 	 * <p>
-	 * A click is computed from the dialog's location on screen, and a window that has just been
-	 * shown can still be moved by the window manager: the click then lands where the dialog was and
-	 * the tab stays as it is. Measured on the code of develop under two cores, 4 of 40 sign-in and
-	 * open-Settings rounds failed with the Plugins tab still selected, and the pointer rested
-	 * outside the dialog; the second click, computed from the settled location, selected the tab
-	 * every time. So a tab that is not selected shortly after its click is clicked again, and only
-	 * the last attempt fails, with the title of the tab that is selected
+	 * The click point is computed from the dialog's location on screen, and a window that has just
+	 * been shown can still be moved by the window manager: the click then lands where the dialog
+	 * was and the tab stays as it is. Measured on develop under two cores, 4 of 40 sign-in and
+	 * open-Settings rounds failed with the Plugins tab still selected and the pointer outside the
+	 * dialog. So the step first waits until the dialog is placed, clicks once, and a tab that is
+	 * still not selected fails with the title of the one that is
 	 *
 	 * @param settings
 	 *            the settings dialog
@@ -1634,26 +1627,8 @@ final class ApplicationSteps
 	 */
 	void selectSettingsTab(final DialogFixture settings, final String title)
 	{
-		for (int attempt = 1; attempt < SETTINGS_TAB_CLICK_ATTEMPTS; attempt++)
-		{
-			settings.tabbedPane("tabSettings").selectTab(title);
-			if (awaitSettingsTab(settings, title, SETTINGS_TAB_CLICK_WAIT_SECONDS))
-			{
-				return;
-			}
-		}
+		UiTestSpeed.awaitWindowPlaced(settings.target());
 		settings.tabbedPane("tabSettings").selectTab(title);
-		if (!awaitSettingsTab(settings, title, DIALOG_TIMEOUT_SECONDS))
-		{
-			throw new AssertionError("the settings tab '" + title + "' was clicked "
-				+ SETTINGS_TAB_CLICK_ATTEMPTS + " times and is not selected; the selected one is '"
-				+ selectedSettingsTab(settings) + "' (#962)");
-		}
-	}
-
-	private static boolean awaitSettingsTab(final DialogFixture settings, final String title,
-		final long seconds)
-	{
 		try
 		{
 			Pause.pause(new Condition("the settings tab '" + title + "' is selected")
@@ -1663,12 +1638,13 @@ final class ApplicationSteps
 				{
 					return title.equals(selectedSettingsTab(settings));
 				}
-			}, TimeUnit.SECONDS.toMillis(seconds));
-			return true;
+			}, TimeUnit.SECONDS.toMillis(DIALOG_TIMEOUT_SECONDS));
 		}
-		catch (org.assertj.swing.exception.WaitTimedOutError notSelected)
+		catch (org.assertj.swing.exception.WaitTimedOutError stillAnother)
 		{
-			return false;
+			throw new AssertionError("the settings tab '" + title
+				+ "' was clicked and is not selected; the selected one is '"
+				+ selectedSettingsTab(settings) + "' (#962)", stillAnother);
 		}
 	}
 
