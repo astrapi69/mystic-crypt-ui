@@ -109,7 +109,8 @@ public final class PluginArchives
 			return;
 		}
 		removeWhatWasMovedAside(pluginsRoot);
-		try (DirectoryStream<Path> zips = Files.newDirectoryStream(pluginsRoot, "*.zip"))
+		try (DirectoryStream<Path> zips = Files.newDirectoryStream(pluginsRoot,
+			PluginArchives::isZipName))
 		{
 			for (Path zip : zips)
 			{
@@ -220,6 +221,20 @@ public final class PluginArchives
 	private static boolean isBlank(final String text)
 	{
 		return text == null || text.isBlank();
+	}
+
+	/**
+	 * Tells whether a file name is the name of a plugin zip: it ends in {@code .zip} or
+	 * {@code .ZIP}, the two forms pf4j's plugin repository lists, and has a name before it
+	 *
+	 * @param file
+	 *            the file, or its name
+	 * @return true for {@code <name>.zip} and {@code <name>.ZIP}
+	 */
+	public static boolean isZipName(final Path file)
+	{
+		String name = file.getFileName().toString();
+		return name.length() > ".zip".length() && (name.endsWith(".zip") || name.endsWith(".ZIP"));
 	}
 
 	/**

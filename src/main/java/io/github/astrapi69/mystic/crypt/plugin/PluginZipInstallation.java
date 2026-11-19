@@ -26,7 +26,6 @@ package io.github.astrapi69.mystic.crypt.plugin;
 
 import java.io.IOException;
 import java.nio.file.Path;
-import java.util.Locale;
 
 import org.pf4j.PluginManager;
 import org.pf4j.PluginWrapper;
@@ -120,11 +119,13 @@ public final class PluginZipInstallation
 		return new Decision(Kind.NEW_PLUGIN, pluginId, null, null);
 	}
 
-	/** A name that is not {@code <stem>.zip} would map onto the plugins directory or a jar */
+	/**
+	 * A name that is not {@code <name>.zip} or {@code <name>.ZIP}, the forms pf4j lists and the
+	 * application unpacks at the start, would map onto the plugins directory or a jar
+	 */
 	private static void requireZipName(final String fileName) throws InvalidPluginZipException
 	{
-		if (!fileName.toLowerCase(Locale.ROOT).endsWith(".zip")
-			|| fileName.length() == ".zip".length())
+		if (!PluginArchives.isZipName(Path.of(fileName)))
 		{
 			throw new InvalidPluginZipException(fileName,
 				"its file name must be a name followed by .zip", null);

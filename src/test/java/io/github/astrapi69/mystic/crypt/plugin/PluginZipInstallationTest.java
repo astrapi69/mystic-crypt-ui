@@ -127,7 +127,8 @@ class PluginZipInstallationTest
 	}
 
 	@ParameterizedTest(name = "the file name {0} is refused")
-	@ValueSource(strings = { ".zip", "demo-plugin-1.0.0.jar", "demo-plugin-1.0.0", "demo.zip.txt" })
+	@ValueSource(strings = { ".zip", "demo-plugin-1.0.0.jar", "demo-plugin-1.0.0", "demo.zip.txt",
+			"demo-plugin-1.0.0.Zip" })
 	@DisplayName("a file name that is not a name followed by .zip is refused")
 	void aFileNameThatIsNotANameFollowedByZip_isRefused(final String fileName) throws Exception
 	{
@@ -138,7 +139,7 @@ class PluginZipInstallationTest
 	}
 
 	@Test
-	@DisplayName("a file name ending in .ZIP is accepted")
+	@DisplayName("a file name ending in .ZIP is accepted, as pf4j lists it and the start unpacks it")
 	void aFileNameEndingInCapitalZip_isAccepted() throws Exception
 	{
 		Path zip = writeZip(chosen.resolve("new-plugin-1.0.0.ZIP"), "new-plugin", "1.0.0");

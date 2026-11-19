@@ -343,6 +343,38 @@ class PluginArchivesTest
 		assertFalse(PluginArchives.isUnpackedFrom(zip, directory), "the zip has other content");
 	}
 
+	@Test
+	@DisplayName("a zip whose descriptor is only the manifest has its plugin id")
+	void aZipWithOnlyAManifestDescriptor_hasItsPluginId() throws Exception
+	{
+		Path zip = pluginsRoot.resolve(PLUGIN + ".zip");
+		try (OutputStream out = Files.newOutputStream(zip);
+			ZipOutputStream archive = new ZipOutputStream(out))
+		{
+			archive.putNextEntry(new ZipEntry("classes/META-INF/MANIFEST.MF"));
+			archive.write(
+				("Manifest-Version: 1.0\nPlugin-Id: manifest-plugin\n" + "Plugin-Version: 1.0.0\n")
+					.getBytes(StandardCharsets.UTF_8));
+			archive.closeEntry();
+		}
+
+		assertEquals("manifest-plugin", PluginArchives.pluginIdOf(zip));
+	}
+
+	@Test
+	@DisplayName("a zip named with capital letters is unpacked at the start like pf4j lists it")
+	void aZipNamedWithCapitalLetters_isUnpackedAtTheStart() throws Exception
+	{
+		Path lower = writeZip("version 1");
+		Path capital = pluginsRoot.resolve(PLUGIN + ".ZIP");
+		Files.move(lower, capital);
+
+		unpackAsTheApplicationStarts();
+
+		assertEquals("version 1", content(pluginsRoot.resolve(PLUGIN)));
+		assertTrue(PluginArchives.isUnpackedFrom(capital, pluginsRoot.resolve(PLUGIN)));
+	}
+
 	private Path writeZip(final String version) throws IOException
 	{
 		Path zip = pluginsRoot.resolve(PLUGIN + ".zip");
