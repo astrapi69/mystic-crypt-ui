@@ -177,14 +177,30 @@ read from the disk again at unlock (8.15, GHSA-px49-m539-22h8).
 - [ ] TC-0050 Open a vault entry with properties the entry marks as protected (a lethenon
       wallet's words, or a KeePass entry with a protected custom field): the table shows
       `********`, the same mask whatever the length. - automated by
-      `PropertiesPanelProtectedValuesTest`
+      `AProtectedPropertyOfAnImportedEntryIsMaskedInTheEditDialogUiTest#theTableOfTheEditDialogMasksTheProtectedValue`
+      (a KeePassXC entry opened in the real Edit Crypt Entry dialog, which works on
+      `EntryEditing.copyOf`) and `PropertiesPanelProtectedValuesTest#theMaskIsTheSameWhateverTheLength`
+      (the cases "an empty value", "one character", "the words of a wallet", "ten thousand
+      characters"; the lethenon wallet is built in memory there, not opened through the dialog);
+      manual only: a lethenon wallet's words opened through the dialog, since the lethenon plugin
+      and its tests belong to the session ccw (TS-0008)
 - [ ] TC-0051 Select and copy the masked row: what arrives on the clipboard is the mask, not
-      the value. - automated by `PropertiesPanelProtectedValuesTest` (the mask sits in the
-      model's `getValueAt`, which a copy reads)
+      the value. - automated by `PropertiesPanelProtectedValuesTest#theCopyOfAMaskedRow_putsTheMaskOnTheClipboard`
+      (the table's own transfer handler into a clipboard of the test's own) and
+      `AProtectedPropertyOfAnImportedEntryIsMaskedInTheEditDialogUiTest#theTableOfTheEditDialogMasksTheProtectedValue` (the real dialog's table
+      copied through its transfer handler into a clipboard of the test's own); manual only: Ctrl+C on the desktop's
+      clipboard, which no test touches
 - [ ] TC-0052 Open the property in the edit dialog: it opens masked and shows the value only
-      on request. - automated by `PropertiesPanelProtectedValuesTest`
+      on request. - automated by
+      `AProtectedPropertyOfAnImportedEntryIsMaskedInTheEditDialogUiTest#thePropertyDialogOpensTheProtectedValueMaskedAndShowsItOnRequest`
+      (through the real Edit Crypt Entry dialog) and
+      `PropertiesPanelProtectedValuesTest#theDialogOfAProtectedProperty_opensMaskedAndShowsTheValueOnRequest`
+      (the property panel alone)
 - [ ] TC-0053 Rename the protected property: the table keeps the new name masked. -
-      automated by `PropertiesPanelProtectedValuesTest`
+      automated by `AProtectedPropertyOfAnImportedEntryIsMaskedInTheEditDialogUiTest#aRenamedProtectedPropertyStaysMasked`
+      (through the real dialog, then OK, save and reopen) and
+      `PropertiesPanelProtectedValuesTest#renamingAProtectedProperty_movesTheMarkToTheNewName`
+      (the panel alone)
 
 ## TS-0006 KeePass, with a real file
 

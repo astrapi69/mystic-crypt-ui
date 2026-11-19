@@ -28,6 +28,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.awt.datatransfer.Clipboard;
+import java.awt.datatransfer.DataFlavor;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -36,6 +38,7 @@ import java.util.stream.Stream;
 
 import javax.swing.JOptionPane;
 import javax.swing.JPasswordField;
+import javax.swing.TransferHandler;
 import javax.swing.text.JTextComponent;
 
 import org.junit.jupiter.api.DisplayName;
@@ -118,6 +121,48 @@ class PropertiesPanelProtectedValuesTest
 		assertEquals(ProtectedPropertiesTableModel.MASK, panel.getTblProperties().getValueAt(0, 1));
 		assertEquals(WORDS_NAME, panel.getTblProperties().getValueAt(0, 0));
 		assertEquals(WORDS, entry.getProperties().get(0).getValue());
+	}
+
+	/**
+	 * Copies the selected row the way Ctrl+C does, through the table's own transfer handler, into a
+	 * clipboard of the test's own, never the desktop's
+	 */
+	private static String copiedFromRow(final PropertiesPanel panel, final int row) throws Exception
+	{
+		panel.getTblProperties().setRowSelectionInterval(row, row);
+		Clipboard clipboard = new Clipboard("the test's own");
+		panel.getTblProperties().getTransferHandler().exportToClipboard(panel.getTblProperties(),
+			clipboard, TransferHandler.COPY);
+		return (String)clipboard.getData(DataFlavor.stringFlavor);
+	}
+
+	@Test
+	@DisplayName("the copy of a masked row puts the mask on the clipboard, not the value")
+	void theCopyOfAMaskedRow_putsTheMaskOnTheClipboard() throws Exception
+	{
+		PropertiesPanel panel = new PropertiesPanel(
+			BaseModel.of(anEntryWithAProtectedAndAPlainProperty()));
+
+		String copied = copiedFromRow(panel, 0);
+
+		assertTrue(copied.contains(ProtectedPropertiesTableModel.MASK),
+			"the clipboard holds no mask: " + copied);
+		assertTrue(copied.contains(WORDS_NAME), "the clipboard holds no name: " + copied);
+		assertFalse(copied.contains(WORDS), "the words reached the clipboard");
+	}
+
+	@Test
+	@DisplayName("the copy of a row that is not protected puts its value on the clipboard")
+	void theCopyOfAPlainRow_putsTheValueOnTheClipboard() throws Exception
+	{
+		PropertiesPanel panel = new PropertiesPanel(
+			BaseModel.of(anEntryWithAProtectedAndAPlainProperty()));
+
+		String copied = copiedFromRow(panel, 1);
+
+		assertTrue(copied.contains("plain text"), "the clipboard holds no value: " + copied);
+		assertFalse(copied.contains(ProtectedPropertiesTableModel.MASK),
+			"a plain value was masked on the clipboard: " + copied);
 	}
 
 	static Stream<Arguments> protectedValuesOfEveryLength()
