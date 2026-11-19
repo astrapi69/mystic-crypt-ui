@@ -53,8 +53,7 @@ import io.github.astrapi69.mystic.crypt.TestPasswords;
 /**
  * Settings > Plugins > Install from Zip... with the zip of a plugin that is already loaded: pf4j
  * refuses to load a plugin twice, so the panel must not ask it to, and must tell the user that the
- * updated plugin takes effect at the next start. Pinned as it is today: the panel asks anyway and
- * shows "Install failed"
+ * updated plugin takes effect at the next start (#1045)
  */
 class SettingsInstallZipOfALoadedPluginUiTest extends AbstractUiTest
 {
@@ -64,7 +63,7 @@ class SettingsInstallZipOfALoadedPluginUiTest extends AbstractUiTest
 	private static final String MARKER_ENTRY = "marker-of-the-newer-version.txt";
 
 	@Test
-	@DisplayName("installing a changed zip of a loaded plugin puts the new version in place and is refused as a failed install today")
+	@DisplayName("installing a changed zip of a loaded plugin puts the new version in place, reports the update for the next start and leaves the running plugin usable")
 	void aChangedZipOfALoadedPlugin_isInPlaceAndReportedForTheNextStart() throws Exception
 	{
 		installPluginRequiringItBuilt(OBFUSCATION_ZIP);
@@ -79,12 +78,16 @@ class SettingsInstallZipOfALoadedPluginUiTest extends AbstractUiTest
 			.resolve(".config/mystic-crypt-ui/plugins/obfuscation-plugin-1.0.0");
 		assertTrue(Files.exists(unpacked.resolve(MARKER_ENTRY)),
 			"the new version is in place for the next start");
-		assertEquals("Install failed", outcome[0], "title: " + outcome[1]);
-		assertTrue(outcome[1].contains("already loaded"), "message: " + outcome[1]);
+		application.showMainFrame();
+		application.openPluginTool("Operated Obfuscation", "Operated Obfuscation");
+		assertTrue(application.isInternalFrameShowing("Operated Obfuscation"),
+			"the running plugin still loads its classes after its directory was replaced");
+		assertEquals("Plugin updated at the next start", outcome[0], "title: " + outcome[1]);
+		assertTrue(outcome[1].contains("next start"), "message: " + outcome[1]);
 	}
 
 	@Test
-	@DisplayName("installing the same zip of a loaded plugin again is refused as a failed install today")
+	@DisplayName("installing the same zip of a loaded plugin again reports the update for the next start")
 	void theSameZipOfALoadedPlugin_isReportedForTheNextStart() throws Exception
 	{
 		installPluginRequiringItBuilt(OBFUSCATION_ZIP);
@@ -94,8 +97,8 @@ class SettingsInstallZipOfALoadedPluginUiTest extends AbstractUiTest
 
 		String[] outcome = installFromZipInTheSettings(application, OBFUSCATION_ZIP);
 
-		assertEquals("Install failed", outcome[0], "title: " + outcome[1]);
-		assertTrue(outcome[1].contains("already loaded"), "message: " + outcome[1]);
+		assertEquals("Plugin updated at the next start", outcome[0], "title: " + outcome[1]);
+		assertTrue(outcome[1].contains("next start"), "message: " + outcome[1]);
 	}
 
 	/**

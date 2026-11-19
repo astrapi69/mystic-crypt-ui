@@ -31,12 +31,14 @@ import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+import java.text.MessageFormat;
 import java.util.List;
 
 import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.table.AbstractTableModel;
 
+import org.pf4j.PluginAlreadyLoadedException;
 import org.pf4j.PluginManager;
 import org.pf4j.PluginState;
 import org.pf4j.PluginWrapper;
@@ -146,16 +148,30 @@ public class PluginsSettingsPanel extends JPanel
 			{
 				// a plugin that is loaded keeps its files open on Windows: its new version is in
 				// place as a zip, and the next start unpacks it (#998)
-				JOptionPane.showMessageDialog(this, Messages.getString(
-					"settings.plugins.install.after.restart.message",
-					"The plugin is in use. Its new version is installed and runs after the next start of the application."),
-					Messages.getString("settings.plugins.install.after.restart.title",
-						"Plugin updated at the next start"),
-					JOptionPane.INFORMATION_MESSAGE);
-				refresh();
-				onPluginsChanged.run();
+				reportUpdateForTheNextStart();
 				return;
 			}
+			loadAndStart(target);
+		}
+		catch (Exception exception)
+		{
+			JOptionPane.showMessageDialog(this,
+				MessageFormat.format(Messages.getString("settings.plugins.install.failed.message",
+					"Could not install the plugin: {0}"), exception.getMessage()),
+				Messages.getString("settings.plugins.install.failed.title", "Install failed"),
+				JOptionPane.ERROR_MESSAGE);
+		}
+	}
+
+	/**
+	 * Loads and starts the plugin of the given zip. A plugin that is loaded already is not loaded a
+	 * second time, which pf4j refuses: its new version is in place and runs after the next start
+	 * (#1045)
+	 */
+	private void loadAndStart(final Path target)
+	{
+		try
+		{
 			String pluginId = pluginManager.loadPlugin(target);
 			if (pluginId != null)
 			{
@@ -164,12 +180,22 @@ public class PluginsSettingsPanel extends JPanel
 			refresh();
 			onPluginsChanged.run();
 		}
-		catch (Exception exception)
+		catch (PluginAlreadyLoadedException alreadyLoaded)
 		{
-			JOptionPane.showMessageDialog(this,
-				"Could not install the plugin: " + exception.getMessage(), "Install failed",
-				JOptionPane.ERROR_MESSAGE);
+			reportUpdateForTheNextStart();
 		}
+	}
+
+	private void reportUpdateForTheNextStart()
+	{
+		JOptionPane.showMessageDialog(this, Messages.getString(
+			"settings.plugins.install.after.restart.message",
+			"The plugin is in use. Its new version is installed and runs after the next start of the application."),
+			Messages.getString("settings.plugins.install.after.restart.title",
+				"Plugin updated at the next start"),
+			JOptionPane.INFORMATION_MESSAGE);
+		refresh();
+		onPluginsChanged.run();
 	}
 
 	private void openPluginsFolder()
