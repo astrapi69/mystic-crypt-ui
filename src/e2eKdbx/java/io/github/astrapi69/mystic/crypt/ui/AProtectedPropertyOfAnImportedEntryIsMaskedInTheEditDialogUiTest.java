@@ -115,12 +115,9 @@ class AProtectedPropertyOfAnImportedEntryIsMaskedInTheEditDialogUiTest extends A
 			editor.valueTheTableModelGives(PROTECTED_NAME),
 			"the model, which a copy of the row reads, hands out the protected value");
 		assertEquals(PLAIN_VALUE, editor.valueShownInTheTable(PLAIN_NAME));
-		String copied = editor.copiedFromTheRow(PROTECTED_NAME);
-		assertTrue(copied.contains(ProtectedPropertiesTableModel.MASK),
-			"the copy of the protected row holds no mask: " + copied);
-		assertTrue(copied.contains(PROTECTED_NAME), "the copy holds no name: " + copied);
-		assertFalse(copied.contains(PROTECTED_VALUE + "\n"),
-			"the value reached the clipboard: " + copied);
+		assertEquals(PROTECTED_NAME + "\t" + ProtectedPropertiesTableModel.MASK,
+			editor.copiedFromTheRow(PROTECTED_NAME),
+			"the copy of the protected row is its name and the mask, as the JDK's table copy joins the cells");
 		editor.cancel();
 		assertTrue(
 			KdbxFixtures.liveEntryTitled(TITLE).getProperties().stream()

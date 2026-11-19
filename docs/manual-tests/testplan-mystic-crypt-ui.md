@@ -181,7 +181,9 @@ read from the disk again at unlock (8.15, GHSA-px49-m539-22h8).
       (a KeePassXC entry opened in the real Edit Crypt Entry dialog, which works on
       `EntryEditing.copyOf`) and `PropertiesPanelProtectedValuesTest#theMaskIsTheSameWhateverTheLength`
       (the cases "an empty value", "one character", "the words of a wallet", "ten thousand
-      characters"; the lethenon wallet is built in memory there, not opened through the dialog)
+      characters"; the lethenon wallet is built in memory there, not opened through the dialog);
+      manual only: a lethenon wallet's words opened through the dialog, since the lethenon plugin
+      and its tests belong to the session ccw (TS-0008)
 - [ ] TC-0051 Select and copy the masked row: what arrives on the clipboard is the mask, not
       the value. - automated by `PropertiesPanelProtectedValuesTest#theCopyOfAMaskedRow_putsTheMaskOnTheClipboard`
       (the table's own transfer handler into a clipboard of the test's own) and
