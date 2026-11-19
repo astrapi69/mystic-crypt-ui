@@ -40,6 +40,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import io.github.astrapi69.crypt.api.algorithm.key.KeyPairGeneratorAlgorithm;
+import io.github.astrapi69.crypt.api.key.KeyFileFormat;
 import io.github.astrapi69.crypt.data.key.reader.CertificateReader;
 import io.github.astrapi69.mystic.crypt.wizard.model.CertificateInfoModel;
 import io.github.astrapi69.mystic.crypt.wizard.model.DistinguishedNameInfoModel;
@@ -94,7 +95,7 @@ class SaveCertificateTest
 			"CN=the generated pair");
 		File certificateFile = new File(temporaryDirectory, "generated.pem");
 
-		KeygenSupport.writeCertificate(certificateInfo, certificateFile);
+		KeygenSupport.writeCertificate(certificateInfo, certificateFile, KeyFileFormat.PEM);
 
 		assertTrue(certificateFile.exists(), "the certificate was not written at all");
 		assertTrue(Files.readString(certificateFile.toPath()).contains("BEGIN CERTIFICATE"),
@@ -117,7 +118,7 @@ class SaveCertificateTest
 				KeygenSupport.newCertificateInfo(panel.getModelObject().getPublicKey(),
 					panel.getModelObject().getPrivateKey()),
 				"CN=verifiable"),
-			certificateFile);
+			certificateFile, KeyFileFormat.PEM);
 
 		X509Certificate written = CertificateReader.readPemCertificate(certificateFile);
 		written.verify(panel.getModelObject().getPublicKey());
@@ -134,7 +135,7 @@ class SaveCertificateTest
 			"CN=valid from now");
 		File certificateFile = new File(temporaryDirectory, "validity.pem");
 
-		KeygenSupport.writeCertificate(certificateInfo, certificateFile);
+		KeygenSupport.writeCertificate(certificateInfo, certificateFile, KeyFileFormat.PEM);
 
 		X509Certificate written = CertificateReader.readPemCertificate(certificateFile);
 		written.checkValidity();
@@ -157,7 +158,7 @@ class SaveCertificateTest
 			"CN=ec generated pair");
 		File certificateFile = new File(temporaryDirectory, "ec-generated.pem");
 
-		KeygenSupport.writeCertificate(certificateInfo, certificateFile);
+		KeygenSupport.writeCertificate(certificateInfo, certificateFile, KeyFileFormat.PEM);
 
 		X509Certificate written = CertificateReader.readPemCertificate(certificateFile);
 		assertEquals(panel.getModelObject().getPublicKey(), written.getPublicKey());

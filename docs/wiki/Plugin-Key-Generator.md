@@ -39,7 +39,8 @@ encrypt/decrypt demo at the bottom.
    for the other four algorithms the box is greyed out on PKCS#8, and its tooltip names the reason,
    for example "a X25519 private key has no traditional form - PKCS#8 is the only encoding it has".
 5. Choose the encoding of every file this window saves in the box labelled **Save as:**, either
-   `PEM` (text, the default) or `DER` (binary).
+   `PEM` (text, the default) or `DER` (binary). The one exception is a private key saved with a
+   password, which is always DER.
 6. Press **Generate keys**. While the key is being made the two boxes read
    `Generating private key...` and `Generating public key...`; when it worked they show the PEM
    text, starting with `-----BEGIN` and ending with `-----END`. When it did not work both boxes end
@@ -65,8 +66,8 @@ encrypt/decrypt demo at the bottom.
     pair. It opens a **Create certificate** dialog that is already filled in: issuer and subject
     `CN=mystic-crypt`, serial number 1, valid for one year from now, and the signature algorithm
     that fits the key (`SHA256withRSA` or `SHA256withECDSA`). Change what you want, press **OK**,
-    pick a file, and the certificate is written as PEM, with `.pem` added to a name without an
-    ending. For the other algorithms the button is disabled and the line under it says "Only RSA
+    pick a file, and the certificate is written in the encoding picked in step 5, with the matching ending
+    (`.pem` or `.der`) added to a name without an ending. For the other algorithms the button is disabled and the line under it says "Only RSA
     and EC keys can be used for a self-signed certificate. Choose one of them and press Generate."
 12. **Clear keys** empties both key boxes and both text boxes, forgets the key pair and puts the
     algorithm back to the configured one.

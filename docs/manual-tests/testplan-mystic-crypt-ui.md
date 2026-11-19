@@ -365,12 +365,11 @@ The window is built for trying out, so that is how it is tested.
 - [ ] TC-0105 Set the format to DER and do the same again: extension `.der`, binary
       content. - automated by
       `KeygenSavesRealArtifactsUiTest#everyFileTheWindowSavesIsARealArtifact` (private key and
-      public key as DER), `SaveFormatTest#aPrivateKeySavedAsPemIsTextAsDerItIsNot`,
-      `SaveFormatTest#aPublicKeySavedAsPemIsTextAsDerItIsNot`. Not true for the certificate: it
-      is PEM with `.pem` whatever the format says (`CryptographyPanel.java:415-416`), which
-      contradicts the tooltip of the format box; today's behaviour is pinned in the same test and
-      the case fails for the certificate until #1050 is decided. The key saved with a password is
-      always DER
+      public key and certificate as DER, read back with `CertificateFactory`),
+      `SaveFormatTest#aPrivateKeySavedAsPemIsTextAsDerItIsNot`,
+      `SaveFormatTest#aPublicKeySavedAsPemIsTextAsDerItIsNot`,
+      `SaveFormatTest#aCertificateSavedAsPemIsTextAsDerItIsBinary`. The key saved with a password
+      is always DER, the one decided exception (#1050)
 - [ ] TC-0106 Save the private key with a password and open the file again with that
       password (for example `openssl pkcs8 -inform DER`). - automated by
       `KeygenSavesRealArtifactsUiTest#everyFileTheWindowSavesIsARealArtifact` (the library's

@@ -32,6 +32,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.io.File;
 import java.nio.file.Files;
 import java.security.Security;
+import java.security.cert.CertificateFactory;
+import java.security.cert.X509Certificate;
 
 import javax.swing.JComboBox;
 
@@ -44,6 +46,8 @@ import org.junit.jupiter.api.io.TempDir;
 import io.github.astrapi69.crypt.api.key.KeyFileFormat;
 import io.github.astrapi69.crypt.data.key.reader.PrivateKeyReader;
 import io.github.astrapi69.crypt.data.key.reader.PublicKeyReader;
+import io.github.astrapi69.mystic.crypt.wizard.model.CertificateInfoModel;
+import io.github.astrapi69.mystic.crypt.wizard.model.DistinguishedNameInfoModel;
 
 /**
  * The window writes PEM unless the user asks for the binary encoding. The choice has to reach the
@@ -127,6 +131,39 @@ class SaveFormatTest
 		assertArrayEquals(panel.getModelObject().getPublicKey().getEncoded(),
 			PublicKeyReader.readPublicKey(asDer).getEncoded(),
 			"the key read back from the DER file is not the key that was generated");
+	}
+
+	@Test
+	@DisplayName("a certificate saved as PEM is text, as DER it is binary and reads back as the same certificate")
+	void aCertificateSavedAsPemIsTextAsDerItIsBinary(@TempDir File directory) throws Exception
+	{
+		GenerateKeysPanel panel = KeygenTestPanels.panelWithAnRsaKeyPair();
+		CertificateInfoModel certificateInfo = KeygenSupport.newCertificateInfo(
+			panel.getModelObject().getPublicKey(), panel.getModelObject().getPrivateKey());
+		certificateInfo
+			.setIssuer(DistinguishedNameInfoModel.builder().commonName("CN=the format").build());
+		certificateInfo
+			.setSubject(DistinguishedNameInfoModel.builder().commonName("CN=the format").build());
+		File asPem = new File(directory, "certificate.pem");
+		File asDer = new File(directory, "certificate.der");
+
+		KeygenSupport.writeCertificate(certificateInfo, asPem, KeyFileFormat.PEM);
+		KeygenSupport.writeCertificate(certificateInfo, asDer, KeyFileFormat.DER);
+
+		assertTrue(Files.readString(asPem.toPath()).contains("BEGIN CERTIFICATE"),
+			"the PEM file does not hold PEM");
+		assertFalse(
+			new String(Files.readAllBytes(asDer.toPath()), java.nio.charset.StandardCharsets.ISO_8859_1)
+				.contains("CERTIFICATE"),
+			"the DER file holds PEM text");
+		try (java.io.InputStream in = Files.newInputStream(asDer.toPath()))
+		{
+			X509Certificate read = (X509Certificate)CertificateFactory.getInstance("X.509")
+				.generateCertificate(in);
+			assertEquals(panel.getModelObject().getPublicKey(), read.getPublicKey(),
+				"the certificate read back from the DER file does not carry the generated key");
+			read.verify(panel.getModelObject().getPublicKey());
+		}
 	}
 
 	@Test
