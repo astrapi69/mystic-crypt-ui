@@ -43,7 +43,6 @@ jackson-databind-version = "2.22.4"
 jobj-cloner-version = "2.1"
 jobj-copy-version = "4.3"
 jobj-core-version = "10.0"
-jremix-icon-version = "1.1"
 jsoup-version = "1.24.1"
 junit-jupiter-extensions-version = "2"
 junit-jupiter-version = "6.1.3"
@@ -82,7 +81,6 @@ swing-tree-component-version = "3.3"
 swing-wizard-version = "2.1"
 swing-worker-version = "1.1"
 swingx-all-version = "1.6.5-1"
-tango-icon-theme-version = "0.8.90"
 test-object-version = "9.1"
 throwable-version = "3"
 tika-core-version = "4.2.0"
@@ -124,7 +122,6 @@ jackson-databind = { module = "com.fasterxml.jackson.core:jackson-databind", ver
 jobj-cloner = { module = "io.github.astrapi69:jobj-cloner", version.ref = "jobj-cloner-version" }
 jobj-copy = { module = "io.github.astrapi69:jobj-copy", version.ref = "jobj-copy-version" }
 jobj-core = { module = "io.github.astrapi69:jobj-core", version.ref = "jobj-core-version" }
-jremix-icon = { module = "io.github.astrapi69:jremix-icon", version.ref = "jremix-icon-version" }
 jsoup = { module = "org.jsoup:jsoup", version.ref = "jsoup-version" }
 junit-jupiter = { module = "org.junit.jupiter:junit-jupiter", version.ref = "junit-jupiter-version" }
 junit-jupiter-extensions = { module = "io.github.astrapi69:junit-jupiter-extensions", version.ref = "junit-jupiter-extensions-version" }
@@ -164,7 +161,6 @@ swing-tree-component = { module = "io.github.astrapi69:swing-tree-component", ve
 swing-wizard = { module = "io.github.astrapi69:swing-wizard", version.ref = "swing-wizard-version" }
 swing-worker = { module = "org.swinglabs:swing-worker", version.ref = "swing-worker-version" }
 swingx-all = { module = "org.swinglabs.swingx:swingx-all", version.ref = "swingx-all-version" }
-tango-icon-theme = { module = "org.freedesktop.tango:tango-icon-theme", version.ref = "tango-icon-theme-version" }
 test-object = { module = "io.github.astrapi69:test-object", version.ref = "test-object-version" }
 throwable = { module = "io.github.astrapi69:throwable", version.ref = "throwable-version" }
 tika-core = { module = "org.apache.tika:tika-core", version.ref = "tika-core-version" }
