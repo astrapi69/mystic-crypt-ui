@@ -26,6 +26,7 @@ package io.github.astrapi69.mystic.crypt.plugin;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assumptions.assumeFalse;
 import static org.junit.jupiter.api.Assumptions.assumeTrue;
@@ -264,6 +265,47 @@ class PluginArchivesTest
 				FileUtils.expandIfZip(zip);
 			}
 		}
+	}
+
+	@Test
+	@DisplayName("the plugin id of a plugin zip is read from its descriptor, and nothing is unpacked")
+	void thePluginIdOfAPluginZip_isReadFromItsDescriptor() throws Exception
+	{
+		Path zip = writeZip("version 1");
+
+		assertEquals("demo-plugin", PluginArchives.pluginIdOf(zip));
+		assertFalse(Files.exists(pluginsRoot.resolve(PLUGIN)), "reading the id unpacked the zip");
+	}
+
+	@Test
+	@DisplayName("a file that is no zip has no plugin id")
+	void aFileThatIsNoZip_hasNoPluginId() throws Exception
+	{
+		Path notAZip = pluginsRoot.resolve(PLUGIN + ".zip");
+		Files.writeString(notAZip, "<html>not a zip</html>");
+
+		IOException refused = assertThrows(IOException.class,
+			() -> PluginArchives.pluginIdOf(notAZip));
+
+		assertTrue(refused.getMessage().contains("not a plugin zip"), refused.getMessage());
+	}
+
+	@Test
+	@DisplayName("a zip without a plugin descriptor has no plugin id")
+	void aZipWithoutAPluginDescriptor_hasNoPluginId() throws Exception
+	{
+		Path zip = pluginsRoot.resolve(PLUGIN + ".zip");
+		try (OutputStream out = Files.newOutputStream(zip);
+			ZipOutputStream archive = new ZipOutputStream(out))
+		{
+			archive.putNextEntry(new ZipEntry("classes/version.txt"));
+			archive.write("version 1".getBytes(StandardCharsets.UTF_8));
+			archive.closeEntry();
+		}
+
+		IOException refused = assertThrows(IOException.class, () -> PluginArchives.pluginIdOf(zip));
+
+		assertTrue(refused.getMessage().contains("not a plugin zip"), refused.getMessage());
 	}
 
 	private Path writeZip(final String version) throws IOException

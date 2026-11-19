@@ -24,8 +24,8 @@
  */
 package io.github.astrapi69.mystic.crypt.ui;
 
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.File;
@@ -99,9 +99,10 @@ class SettingsInstallZipOfALoadedPluginUiTest extends AbstractUiTest
 
 		String[] outcome = installFromZipInTheSettings(application, OBFUSCATION_ZIP, false);
 
-		assertEquals(UPDATED_TITLE, outcome[0], "title: " + outcome[1]);
-		assertFalse(Files.exists(unpackedPlugin().resolve(SENTINEL)),
-			"today the plugin's directory is unpacked again before pf4j refuses to load it");
+		assertEquals("Plugin already installed", outcome[0], "title: " + outcome[1]);
+		assertTrue(outcome[1].contains("Nothing changed"), "message: " + outcome[1]);
+		assertTrue(Files.exists(unpackedPlugin().resolve(SENTINEL)),
+			"the plugin's directory was unpacked again although its zip is the same");
 	}
 
 	@Test
@@ -114,7 +115,7 @@ class SettingsInstallZipOfALoadedPluginUiTest extends AbstractUiTest
 		String[] outcome = installFromZipInTheSettings(application, changedZip, true);
 
 		assertEquals(UPDATED_TITLE, outcome[0], "title: " + outcome[1]);
-		assertTrue(outcome[1].contains("in use"), "message: " + outcome[1]);
+		assertTrue(outcome[1].contains("stays disabled"), "message: " + outcome[1]);
 	}
 
 	@Test
@@ -129,11 +130,12 @@ class SettingsInstallZipOfALoadedPluginUiTest extends AbstractUiTest
 
 		String[] outcome = installFromZipInTheSettings(application, notAZip, false);
 
-		assertEquals(UPDATED_TITLE, outcome[0], "title: " + outcome[1]);
-		assertFalse(Files.exists(unpackedPlugin().resolve("plugin.properties")),
-			"today the installed plugin's directory is gone");
-		assertTrue(Files.readString(installedZipFile()).startsWith("<html>"),
-			"today the installed zip is overwritten by the file that is no zip");
+		assertEquals("Install failed", outcome[0], "title: " + outcome[1]);
+		assertTrue(Files.exists(unpackedPlugin().resolve("plugin.properties")),
+			"the installed plugin's directory is still there");
+		assertTrue(outcome[1].contains("not a plugin zip"), "message: " + outcome[1]);
+		assertArrayEquals(installedZip, Files.readAllBytes(installedZipFile()),
+			"the installed zip was overwritten by the file that is no zip");
 	}
 
 	@Test
@@ -147,9 +149,11 @@ class SettingsInstallZipOfALoadedPluginUiTest extends AbstractUiTest
 
 		String[] outcome = installFromZipInTheSettings(application, withoutDescriptor, false);
 
-		assertEquals(UPDATED_TITLE, outcome[0], "title: " + outcome[1]);
-		assertFalse(Files.exists(unpackedPlugin().resolve("plugin.properties")),
-			"today the installed plugin's directory is replaced by one without a descriptor");
+		assertEquals("Install failed", outcome[0], "title: " + outcome[1]);
+		assertTrue(Files.exists(unpackedPlugin().resolve("plugin.properties")),
+			"the installed plugin's directory was replaced by one without a descriptor");
+		assertArrayEquals(installedZip, Files.readAllBytes(installedZipFile()),
+			"the installed zip was overwritten");
 	}
 
 	@Test
@@ -165,11 +169,13 @@ class SettingsInstallZipOfALoadedPluginUiTest extends AbstractUiTest
 
 		String[] outcome = installFromZipInTheSettings(application, otherPlugin, false);
 
-		assertEquals(UPDATED_TITLE, outcome[0], "title: " + outcome[1]);
+		assertEquals("Install failed", outcome[0], "title: " + outcome[1]);
 		assertTrue(
 			Files.readString(unpackedPlugin().resolve("plugin.properties"))
-				.contains("checksum-plugin"),
-			"today the installed plugin's directory is replaced by the other plugin");
+				.contains("obfuscation-plugin"),
+			"the installed plugin's directory was replaced by the other plugin");
+		assertArrayEquals(installedZip, Files.readAllBytes(installedZipFile()),
+			"the installed zip was overwritten");
 	}
 
 	private ApplicationSteps signedInWithTheObfuscationPlugin(final String name) throws Exception

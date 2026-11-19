@@ -33,6 +33,10 @@ import java.security.NoSuchAlgorithmException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.pf4j.CompoundPluginDescriptorFinder;
+import org.pf4j.ManifestPluginDescriptorFinder;
+import org.pf4j.PluginDescriptor;
+import org.pf4j.PropertiesPluginDescriptorFinder;
 import org.pf4j.util.FileUtils;
 
 import io.github.astrapi69.checksum.FileChecksumExtensions;
@@ -167,13 +171,56 @@ public final class PluginArchives
 	}
 
 	/**
+	 * Reads the id of the plugin a zip holds, the way the plugin manager reads it (the properties
+	 * and the manifest finders), without unpacking or changing anything: a zip that is no plugin
+	 * zip is found out before the installed plugin is touched
+	 *
+	 * @param zip
+	 *            the plugin zip
+	 * @return the plugin id the zip's descriptor names
+	 * @throws IOException
+	 *             if the file is not a zip, or holds no plugin descriptor with an id
+	 */
+	public static String pluginIdOf(final Path zip) throws IOException
+	{
+		if (!Files.isRegularFile(zip))
+		{
+			throw new IOException(zip.getFileName() + " is not a file");
+		}
+		try (java.util.zip.ZipFile ignored = new java.util.zip.ZipFile(zip.toFile()))
+		{
+			PluginDescriptor descriptor = new CompoundPluginDescriptorFinder()
+				.add(new PropertiesPluginDescriptorFinder())
+				.add(new ManifestPluginDescriptorFinder()).find(zip);
+			String pluginId = descriptor.getPluginId();
+			if (pluginId == null || pluginId.isBlank())
+			{
+				throw new IOException(zip.getFileName() + " holds no plugin id");
+			}
+			return pluginId;
+		}
+		catch (java.util.zip.ZipException notAZip)
+		{
+			throw new IOException(
+				zip.getFileName() + " is not a plugin zip: " + notAZip.getMessage(), notAZip);
+		}
+		catch (RuntimeException noDescriptor)
+		{
+			throw new IOException(
+				zip.getFileName() + " is not a plugin zip: it holds no plugin descriptor ("
+					+ noDescriptor.getMessage() + ")",
+				noDescriptor);
+		}
+	}
+
+	/**
 	 * The directory a plugin zip is unpacked into, its name without {@code .zip}, as pf4j names it
 	 *
 	 * @param zip
 	 *            the plugin zip
 	 * @return the directory beside it
 	 */
-	static Path directoryOf(final Path zip)
+	public static Path directoryOf(final Path zip)
 	{
 		String name = zip.getFileName().toString();
 		return zip.resolveSibling(name.substring(0, name.length() - ".zip".length()));

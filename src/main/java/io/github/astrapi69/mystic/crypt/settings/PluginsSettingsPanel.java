@@ -28,17 +28,16 @@ import java.awt.BorderLayout;
 import java.awt.Desktop;
 import java.awt.FlowLayout;
 import java.io.File;
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
-import java.text.MessageFormat;
 import java.util.List;
 
 import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.table.AbstractTableModel;
 
-import org.pf4j.PluginAlreadyLoadedException;
 import org.pf4j.PluginManager;
 import org.pf4j.PluginState;
 import org.pf4j.PluginWrapper;
@@ -133,8 +132,10 @@ public class PluginsSettingsPanel extends JPanel
 	private void installFromZip()
 	{
 		JFileChooser fileChooser = new JFileChooser();
-		fileChooser.setDialogTitle("Choose a plugin zip to install");
-		fileChooser.setFileFilter(new FileNameExtensionFilter("Plugin archives (*.zip)", "zip"));
+		fileChooser.setDialogTitle(Messages.getString("settings.plugins.install.chooser.title",
+			"Choose a plugin zip to install"));
+		fileChooser.setFileFilter(new FileNameExtensionFilter(Messages.getString(
+			"settings.plugins.install.chooser.filter", "Plugin archives (*.zip)"), "zip"));
 		if (fileChooser.showOpenDialog(this) != JFileChooser.APPROVE_OPTION)
 		{
 			return;
@@ -143,12 +144,21 @@ public class PluginsSettingsPanel extends JPanel
 		try
 		{
 			Path target = pluginManager.getPluginsRoot().resolve(zip.getName());
+			PluginWrapper loaded = loadedPluginOfTheZip(zip.toPath(), target);
 			Files.copy(zip.toPath(), target, StandardCopyOption.REPLACE_EXISTING);
-			if (PluginArchives.unpackIfChanged(target) == PluginArchives.Outcome.AFTER_RESTART)
+			PluginArchives.Outcome outcome = PluginArchives.unpackIfChanged(target);
+			if (loaded != null)
+			{
+				reportInstalledOverALoadedPlugin(loaded, outcome);
+				return;
+			}
+			if (outcome == PluginArchives.Outcome.AFTER_RESTART)
 			{
 				// a plugin that is loaded keeps its files open on Windows: its new version is in
 				// place as a zip, and the next start unpacks it (#998)
-				reportUpdateForTheNextStart();
+				reportUpdateForTheNextStart(Messages.getString(
+					"settings.plugins.install.after.restart.message",
+					"The plugin is in use. Its new version is installed and runs after the next start of the application."));
 				return;
 			}
 			loadAndStart(target);
@@ -156,41 +166,91 @@ public class PluginsSettingsPanel extends JPanel
 		catch (Exception exception)
 		{
 			JOptionPane.showMessageDialog(this,
-				MessageFormat.format(Messages.getString("settings.plugins.install.failed.message",
-					"Could not install the plugin: {0}"), exception.getMessage()),
+				String.format(Messages.getString("settings.plugins.install.failed.message",
+					"Could not install the plugin: %s"), exception.getMessage()),
 				Messages.getString("settings.plugins.install.failed.title", "Install failed"),
 				JOptionPane.ERROR_MESSAGE);
 		}
 	}
 
 	/**
-	 * Loads and starts the plugin of the given zip. A plugin that is loaded already is not loaded a
-	 * second time, which pf4j refuses: its new version is in place and runs after the next start
-	 * (#1045)
+	 * Checks the chosen zip before anything of an installed plugin is touched (#1045): it must be a
+	 * plugin zip, and when its file name is the one a loaded plugin was installed with, it must
+	 * hold that plugin
+	 *
+	 * @return the loaded plugin the zip updates, or null when the zip is of no loaded plugin
+	 * @throws IOException
+	 *             if the zip is no plugin zip or does not hold the plugin installed under its name
 	 */
-	private void loadAndStart(final Path target)
+	private PluginWrapper loadedPluginOfTheZip(final Path zip, final Path target) throws IOException
 	{
-		try
+		String pluginId = PluginArchives.pluginIdOf(zip);
+		Path directory = PluginArchives.directoryOf(target).toAbsolutePath().normalize();
+		PluginWrapper loaded = pluginManager.getPlugin(pluginId);
+		PluginWrapper installedUnderTheName = null;
+		for (PluginWrapper candidate : pluginManager.getPlugins())
 		{
-			String pluginId = pluginManager.loadPlugin(target);
-			if (pluginId != null)
+			if (directory.equals(candidate.getPluginPath().toAbsolutePath().normalize()))
 			{
-				pluginManager.startPlugin(pluginId);
+				installedUnderTheName = candidate;
 			}
-			refresh();
-			onPluginsChanged.run();
 		}
-		catch (PluginAlreadyLoadedException alreadyLoaded)
+		if (installedUnderTheName != null && installedUnderTheName != loaded)
 		{
-			reportUpdateForTheNextStart();
+			throw new IOException(String.format(
+				Messages.getString("settings.plugins.install.other.plugin",
+					"%s holds the plugin %s, but the plugin installed under this name is %s"),
+				zip.getFileName(), pluginId, installedUnderTheName.getPluginId()));
 		}
+		if (loaded != null && installedUnderTheName == null)
+		{
+			throw new IOException(String.format(
+				Messages.getString("settings.plugins.install.other.name",
+					"The plugin %s is loaded from another file than %s"),
+				pluginId, zip.getFileName()));
+		}
+		return loaded;
 	}
 
-	private void reportUpdateForTheNextStart()
+	private void reportInstalledOverALoadedPlugin(final PluginWrapper loaded,
+		final PluginArchives.Outcome outcome)
 	{
-		JOptionPane.showMessageDialog(this, Messages.getString(
+		if (outcome == PluginArchives.Outcome.UNCHANGED)
+		{
+			JOptionPane.showMessageDialog(this,
+				Messages.getString("settings.plugins.install.unchanged.message",
+					"This version of the plugin is already installed. Nothing changed."),
+				Messages.getString("settings.plugins.install.unchanged.title",
+					"Plugin already installed"),
+				JOptionPane.INFORMATION_MESSAGE);
+			return;
+		}
+		if (loaded.getPluginState() == PluginState.DISABLED)
+		{
+			reportUpdateForTheNextStart(Messages.getString(
+				"settings.plugins.install.disabled.message",
+				"The plugin is disabled and stays disabled. Its new version is installed and is used after the next start once you enable it."));
+			return;
+		}
+		reportUpdateForTheNextStart(Messages.getString(
 			"settings.plugins.install.after.restart.message",
-			"The plugin is in use. Its new version is installed and runs after the next start of the application."),
+			"The plugin is in use. Its new version is installed and runs after the next start of the application."));
+	}
+
+	private void loadAndStart(final Path target)
+	{
+		String pluginId = pluginManager.loadPlugin(target);
+		if (pluginId != null)
+		{
+			pluginManager.startPlugin(pluginId);
+		}
+		refresh();
+		onPluginsChanged.run();
+	}
+
+	private void reportUpdateForTheNextStart(final String message)
+	{
+		JOptionPane.showMessageDialog(this, message,
 			Messages.getString("settings.plugins.install.after.restart.title",
 				"Plugin updated at the next start"),
 			JOptionPane.INFORMATION_MESSAGE);
