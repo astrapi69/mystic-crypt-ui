@@ -25,9 +25,11 @@
 package io.github.astrapi69.mystic.crypt.settings;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 import javax.swing.LookAndFeel;
 import javax.swing.UIManager;
+import javax.swing.plaf.metal.MetalLookAndFeel;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -70,5 +72,16 @@ class ActiveLookAndFeelNameTest
 		UIManager.setLookAndFeel("javax.swing.plaf.metal.MetalLookAndFeel");
 
 		assertEquals("Metal", GeneralSettingsPanel.installedNameOfActiveLookAndFeel());
+	}
+
+	@Test
+	void aLookAndFeelThatIsNotInstalled_hasNoName() throws Exception
+	{
+		UIManager.setLookAndFeel(new MetalLookAndFeel()
+		{
+			private static final long serialVersionUID = 1L;
+		});
+
+		assertNull(GeneralSettingsPanel.installedNameOfActiveLookAndFeel());
 	}
 }
