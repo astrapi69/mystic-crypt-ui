@@ -26,6 +26,7 @@ package io.github.astrapi69.mystic.crypt.plugin;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assumptions.assumeFalse;
 import static org.junit.jupiter.api.Assumptions.assumeTrue;
@@ -54,6 +55,8 @@ import java.util.zip.ZipOutputStream;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.pf4j.DefaultPluginRepository;
 import org.pf4j.util.FileUtils;
 
@@ -264,6 +267,112 @@ class PluginArchivesTest
 				FileUtils.expandIfZip(zip);
 			}
 		}
+	}
+
+	@Test
+	@DisplayName("the plugin id of a plugin zip is read from its descriptor, and nothing is unpacked")
+	void thePluginIdOfAPluginZip_isReadFromItsDescriptor() throws Exception
+	{
+		Path zip = writeZip("version 1");
+
+		assertEquals("demo-plugin", PluginArchives.pluginIdOf(zip));
+		assertFalse(Files.exists(pluginsRoot.resolve(PLUGIN)), "reading the id unpacked the zip");
+	}
+
+	@Test
+	@DisplayName("a file that is no zip has no plugin id")
+	void aFileThatIsNoZip_hasNoPluginId() throws Exception
+	{
+		Path notAZip = pluginsRoot.resolve(PLUGIN + ".zip");
+		Files.writeString(notAZip, "<html>not a zip</html>");
+
+		IOException refused = assertThrows(IOException.class,
+			() -> PluginArchives.pluginIdOf(notAZip));
+
+		assertTrue(refused.getMessage().contains("not a plugin zip"), refused.getMessage());
+	}
+
+	@Test
+	@DisplayName("a zip without a plugin descriptor has no plugin id")
+	void aZipWithoutAPluginDescriptor_hasNoPluginId() throws Exception
+	{
+		Path zip = pluginsRoot.resolve(PLUGIN + ".zip");
+		try (OutputStream out = Files.newOutputStream(zip);
+			ZipOutputStream archive = new ZipOutputStream(out))
+		{
+			archive.putNextEntry(new ZipEntry("classes/version.txt"));
+			archive.write("version 1".getBytes(StandardCharsets.UTF_8));
+			archive.closeEntry();
+		}
+
+		IOException refused = assertThrows(IOException.class, () -> PluginArchives.pluginIdOf(zip));
+
+		assertTrue(refused.getMessage().contains("not a plugin zip"), refused.getMessage());
+	}
+
+	@ParameterizedTest(name = "a descriptor with {0} is refused")
+	@ValueSource(strings = { "plugin.version=1.0.0", "plugin.id=demo-plugin",
+			"plugin.id=\nplugin.version=1.0.0", "plugin.id=demo-plugin\nplugin.version= " })
+	@DisplayName("a zip whose descriptor lacks an id or a version has no plugin id")
+	void aDescriptorWithoutAnIdOrAVersion_isRefused(final String descriptor) throws Exception
+	{
+		Path zip = pluginsRoot.resolve(PLUGIN + ".zip");
+		try (OutputStream out = Files.newOutputStream(zip);
+			ZipOutputStream archive = new ZipOutputStream(out))
+		{
+			archive.putNextEntry(new ZipEntry("plugin.properties"));
+			archive.write((descriptor + "\n").getBytes(StandardCharsets.UTF_8));
+			archive.closeEntry();
+		}
+
+		assertThrows(InvalidPluginZipException.class, () -> PluginArchives.pluginIdOf(zip));
+	}
+
+	@Test
+	@DisplayName("a directory is unpacked from a zip when its recorded checksum is the zip's")
+	void aDirectoryIsUnpackedFromAZip_whenItsRecordedChecksumIsTheZips() throws Exception
+	{
+		Path zip = writeZip("version 1");
+		Path directory = pluginsRoot.resolve(PLUGIN);
+		assertFalse(PluginArchives.isUnpackedFrom(zip, directory), "nothing is unpacked yet");
+		unpackAsTheApplicationStarts();
+
+		assertTrue(PluginArchives.isUnpackedFrom(zip, directory));
+
+		writeZip("version 2");
+		assertFalse(PluginArchives.isUnpackedFrom(zip, directory), "the zip has other content");
+	}
+
+	@Test
+	@DisplayName("a zip whose descriptor is only the manifest has its plugin id")
+	void aZipWithOnlyAManifestDescriptor_hasItsPluginId() throws Exception
+	{
+		Path zip = pluginsRoot.resolve(PLUGIN + ".zip");
+		try (OutputStream out = Files.newOutputStream(zip);
+			ZipOutputStream archive = new ZipOutputStream(out))
+		{
+			archive.putNextEntry(new ZipEntry("classes/META-INF/MANIFEST.MF"));
+			archive.write(
+				("Manifest-Version: 1.0\nPlugin-Id: manifest-plugin\n" + "Plugin-Version: 1.0.0\n")
+					.getBytes(StandardCharsets.UTF_8));
+			archive.closeEntry();
+		}
+
+		assertEquals("manifest-plugin", PluginArchives.pluginIdOf(zip));
+	}
+
+	@Test
+	@DisplayName("a zip named with capital letters is unpacked at the start like pf4j lists it")
+	void aZipNamedWithCapitalLetters_isUnpackedAtTheStart() throws Exception
+	{
+		Path lower = writeZip("version 1");
+		Path capital = pluginsRoot.resolve(PLUGIN + ".ZIP");
+		Files.move(lower, capital);
+
+		unpackAsTheApplicationStarts();
+
+		assertEquals("version 1", content(pluginsRoot.resolve(PLUGIN)));
+		assertTrue(PluginArchives.isUnpackedFrom(capital, pluginsRoot.resolve(PLUGIN)));
 	}
 
 	private Path writeZip(final String version) throws IOException
