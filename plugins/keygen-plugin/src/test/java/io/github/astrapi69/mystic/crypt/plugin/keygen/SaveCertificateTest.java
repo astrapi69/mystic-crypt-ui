@@ -40,7 +40,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import io.github.astrapi69.crypt.api.algorithm.key.KeyPairGeneratorAlgorithm;
-import io.github.astrapi69.crypt.api.key.KeySize;
 import io.github.astrapi69.crypt.data.key.reader.CertificateReader;
 import io.github.astrapi69.mystic.crypt.wizard.model.CertificateInfoModel;
 import io.github.astrapi69.mystic.crypt.wizard.model.DistinguishedNameInfoModel;
@@ -66,15 +65,6 @@ class SaveCertificateTest
 		}
 	}
 
-	private static GenerateKeysPanel panelWithAnRsaKeyPair()
-	{
-		GenerateKeysPanel panel = new GenerateKeysPanel();
-		panel.getCmbAlgorithm().setSelectedItem(KeyPairGeneratorAlgorithm.RSA);
-		panel.getCryptographyPanel().getCmbKeySize().setSelectedItem(KeySize.KEYSIZE_1024);
-		panel.getCryptographyPanel().getBtnGenerate().doClick();
-		return panel;
-	}
-
 	private static GenerateKeysPanel panelWithAnEcKeyPair()
 	{
 		GenerateKeysPanel panel = new GenerateKeysPanel();
@@ -97,7 +87,7 @@ class SaveCertificateTest
 	@DisplayName("saving writes the certificate of the generated key pair to the chosen file")
 	void savingWritesTheCertificateOfTheGeneratedKeyPair() throws Exception
 	{
-		GenerateKeysPanel panel = panelWithAnRsaKeyPair();
+		GenerateKeysPanel panel = KeygenTestPanels.panelWithAnRsaKeyPair();
 		CertificateInfoModel certificateInfo = named(
 			KeygenSupport.newCertificateInfo(panel.getModelObject().getPublicKey(),
 				panel.getModelObject().getPrivateKey()),
@@ -119,7 +109,7 @@ class SaveCertificateTest
 	@DisplayName("the certificate written verifies with the key pair that signed it")
 	void theCertificateVerifiesWithTheKeyPairThatSignedIt() throws Exception
 	{
-		GenerateKeysPanel panel = panelWithAnRsaKeyPair();
+		GenerateKeysPanel panel = KeygenTestPanels.panelWithAnRsaKeyPair();
 		File certificateFile = new File(temporaryDirectory, "verifiable.pem");
 
 		KeygenSupport.writeCertificate(
@@ -137,7 +127,7 @@ class SaveCertificateTest
 	@DisplayName("the certificate carries the validity the model describes")
 	void theCertificateCarriesTheValidityTheModelDescribes() throws Exception
 	{
-		GenerateKeysPanel panel = panelWithAnRsaKeyPair();
+		GenerateKeysPanel panel = KeygenTestPanels.panelWithAnRsaKeyPair();
 		CertificateInfoModel certificateInfo = named(
 			KeygenSupport.newCertificateInfo(panel.getModelObject().getPublicKey(),
 				panel.getModelObject().getPrivateKey()),
