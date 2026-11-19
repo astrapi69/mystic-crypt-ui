@@ -136,14 +136,16 @@ error dialog after you click OK. Which one you get depends on the combination yo
 
 | You tried | Dialog title | Message |
 |---|---|---|
-| Password only | Authentication with Password | Password is not valid |
-| Key file only | Authentication with key file | Key file is not valid |
-| Both | Authentication with Password or key file | Password or key file or both are not valid |
+| Password only | Authentication with Password | Wrong master password. |
+| Key file only | Authentication with key file | This key file does not unlock this database. |
+| Both | Authentication with Password or key file | The master password or the key file is wrong. |
 
 A file that could be decrypted but not read is not reported as a wrong password. Such a dialog is
 titled **Database not opened** and says why: the file names a type no database of this
 application holds, its content could not be read (with the reason), or the key file opened the
-key of the database but the content is in no format this version reads.
+key of the database but the content is in no format this version reads. A file that is no
+database this application can open at all (cut off, or of another kind) gets the same title and
+says so; the cipher's own error text is never shown.
 
 No database is opened after such an error, and the sign-in dialog stays open, so you can correct
 the input and try again.

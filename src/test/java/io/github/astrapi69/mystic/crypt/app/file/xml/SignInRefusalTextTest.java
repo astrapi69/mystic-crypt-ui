@@ -24,6 +24,7 @@
  */
 package io.github.astrapi69.mystic.crypt.app.file.xml;
 
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -81,32 +82,58 @@ class SignInRefusalTextTest
 	{
 		return Stream.of(
 			Arguments.of("a wrong password, password alone",
-				(Attempt)test -> test.openWithPassword(test.writtenWithPassword(), "other")),
+				(Attempt)test -> test.openWithPassword(test.writtenWithPassword(), "other"),
+				"Wrong master password."),
 			Arguments.of("a wrong password, password and key file",
-				(Attempt)test -> test.openWithPasswordAndKey(true, false)),
+				(Attempt)test -> test.openWithPasswordAndKey(true, false),
+				"The master password or the key file is wrong."),
 			Arguments.of("a foreign key file, password and key file",
-				(Attempt)test -> test.openWithPasswordAndKey(false, true)),
+				(Attempt)test -> test.openWithPasswordAndKey(false, true),
+				"The master password or the key file is wrong."),
 			Arguments.of("a foreign key file, key file alone",
-				(Attempt)test -> test.openWithKeyAlone()),
+				(Attempt)test -> test.openWithKeyAlone(),
+				"This key file does not unlock this database."),
 			Arguments.of("a file that is cut off after the marker",
-				(Attempt)test -> test.openWithPassword(test.truncatedVault(), null)),
+				(Attempt)test -> test.openWithPassword(test.truncatedVault(), null),
+				"This file is not a database this application can open. It was not opened, and the file is unchanged."),
 			Arguments.of("a file that is not a database at all",
-				(Attempt)test -> test.openWithPassword(test.notADatabase(), null)));
+				(Attempt)test -> test.openWithPassword(test.notADatabase(), null),
+				"This file is not a database this application can open. It was not opened, and the file is unchanged."));
 	}
 
-	@ParameterizedTest(name = "{0}: the refusal carries the exception text")
+	@ParameterizedTest(name = "{0}: the user reads a message, not the exception text")
 	@MethodSource("everyFailureToOpen")
-	void aFailureToOpen_showsTheExceptionText_today(final String caseName, final Attempt attempt)
-		throws Exception
+	void aFailureToOpen_showsAMessage_notTheExceptionText(final String caseName,
+		final Attempt attempt, final String expectedMessage) throws Exception
 	{
 		RuntimeException refused = attempt.refusal(this);
 
 		Throwable cause = refused.getCause();
-		assertNotNull(cause, "the refusal keeps the cause");
+		assertNotNull(cause, "the refusal keeps the cause for the log");
 		String shown = refused.getMessage();
 		assertTrue(shown.contains("::"), "title::html as the sign-in dialog reads it: " + shown);
-		assertTrue(shown.endsWith("<p>" + cause.getMessage()),
-			() -> "today the user sees the exception text: " + shown);
+		assertTrue(shown.endsWith("<p>" + expectedMessage),
+			() -> "the user reads the bundle's words: " + shown);
+		assertFalse(shown.contains(cause.getMessage()),
+			() -> "and never the exception text: " + shown);
+	}
+
+	@org.junit.jupiter.api.Test
+	void everyRefusalText_isInTheGermanBundle_withRealUmlauts()
+	{
+		java.util.ResourceBundle german = java.util.ResourceBundle.getBundle("ui.messages",
+			java.util.Locale.GERMAN);
+
+		for (String key : new String[] { "unlock.failed.both", "unlock.failed.key.file",
+				"unlock.failed.password", "dialog.vault.not.a.database.message",
+				"dialog.vault.not.a.database.title", "dialog.signin.both.title",
+				"dialog.signin.key.file.title", "dialog.signin.password.title" })
+		{
+			String text = german.getString(key);
+			assertFalse(text.contains("Schluessel") || text.contains("geoeffnet"), text);
+		}
+		assertTrue(german.getString("dialog.vault.not.a.database.message").contains("geöffnet"));
+		assertTrue(german.getString("unlock.failed.key.file").contains("Schlüsseldatei"));
 	}
 
 	private RuntimeException openWithPassword(final File vault, final String wrongPassword)
