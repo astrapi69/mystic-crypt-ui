@@ -85,7 +85,6 @@ dependencies {
     // JComponentFactory, FrameMode and JInternalFrameExtensions open the tool window; the host
     // carries all three at runtime, like every other plugin here
     compileOnly libs.swing.base.components
-    compileOnly libs.swing.components
     // GenericTableModel under the chain view's block table; the host carries it at runtime
     compileOnly libs.swing.table.components
     // BrowserControlExtensions opens a launch document of "Before you start" in the browser (#540);

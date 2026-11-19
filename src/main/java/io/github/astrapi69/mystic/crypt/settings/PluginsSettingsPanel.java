@@ -28,6 +28,7 @@ import java.awt.BorderLayout;
 import java.awt.Desktop;
 import java.awt.FlowLayout;
 import java.io.File;
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
@@ -42,7 +43,9 @@ import org.pf4j.PluginState;
 import org.pf4j.PluginWrapper;
 
 import io.github.astrapi69.mystic.crypt.Messages;
+import io.github.astrapi69.mystic.crypt.plugin.InvalidPluginZipException;
 import io.github.astrapi69.mystic.crypt.plugin.PluginArchives;
+import io.github.astrapi69.mystic.crypt.plugin.PluginZipInstallation;
 
 /**
  * The "Plugins" tab of the settings dialog: lists the installed pf4j plugins with their id, version
@@ -128,11 +131,21 @@ public class PluginsSettingsPanel extends JPanel
 		}
 	}
 
-	private void installFromZip()
+	/** The chooser of the install: plugin zips only */
+	static JFileChooser zipChooser()
 	{
 		JFileChooser fileChooser = new JFileChooser();
-		fileChooser.setDialogTitle("Choose a plugin zip to install");
-		fileChooser.setFileFilter(new FileNameExtensionFilter("Plugin archives (*.zip)", "zip"));
+		fileChooser.setDialogTitle(Messages.getString("settings.plugins.install.chooser.title",
+			"Choose a plugin zip to install"));
+		fileChooser.setAcceptAllFileFilterUsed(false);
+		fileChooser.setFileFilter(new FileNameExtensionFilter(Messages.getString(
+			"settings.plugins.install.chooser.filter", "Plugin archives (*.zip)"), "zip"));
+		return fileChooser;
+	}
+
+	private void installFromZip()
+	{
+		JFileChooser fileChooser = zipChooser();
 		if (fileChooser.showOpenDialog(this) != JFileChooser.APPROVE_OPTION)
 		{
 			return;
@@ -141,35 +154,117 @@ public class PluginsSettingsPanel extends JPanel
 		try
 		{
 			Path target = pluginManager.getPluginsRoot().resolve(zip.getName());
-			Files.copy(zip.toPath(), target, StandardCopyOption.REPLACE_EXISTING);
-			if (PluginArchives.unpackIfChanged(target) == PluginArchives.Outcome.AFTER_RESTART)
+			PluginZipInstallation.Decision decision = PluginZipInstallation.decide(pluginManager,
+				zip.toPath(), target);
+			switch (decision.kind())
 			{
-				// a plugin that is loaded keeps its files open on Windows: its new version is in
-				// place as a zip, and the next start unpacks it (#998)
-				JOptionPane.showMessageDialog(this, Messages.getString(
-					"settings.plugins.install.after.restart.message",
-					"The plugin is in use. Its new version is installed and runs after the next start of the application."),
-					Messages.getString("settings.plugins.install.after.restart.title",
-						"Plugin updated at the next start"),
-					JOptionPane.INFORMATION_MESSAGE);
-				refresh();
-				onPluginsChanged.run();
-				return;
+				case REFUSED_OTHER_PLUGIN :
+					throw new IOException(String.format(Messages.getString(
+						"settings.plugins.install.other.plugin",
+						"%s holds the plugin %s, but the plugin installed under this name is %s"),
+						zip.getName(), decision.pluginId(), decision.otherPluginId()));
+				case REFUSED_OTHER_FILE :
+					throw new IOException(String.format(
+						Messages.getString("settings.plugins.install.other.name",
+							"The plugin %s is loaded from another file than %s"),
+						decision.pluginId(), zip.getName()));
+				case UPDATE_OF_LOADED :
+					installOverALoadedPlugin(zip.toPath(), target, decision.loaded());
+					break;
+				default :
+					installNewPlugin(zip.toPath(), target);
+					break;
 			}
-			String pluginId = pluginManager.loadPlugin(target);
-			if (pluginId != null)
-			{
-				pluginManager.startPlugin(pluginId);
-			}
-			refresh();
-			onPluginsChanged.run();
+		}
+		catch (InvalidPluginZipException invalid)
+		{
+			showInstallFailed(
+				String.format(Messages.getString("settings.plugins.install.not.a.plugin.zip",
+					"%s is not a plugin zip: %s"), invalid.getFileName(), invalid.getReason()));
 		}
 		catch (Exception exception)
 		{
-			JOptionPane.showMessageDialog(this,
-				"Could not install the plugin: " + exception.getMessage(), "Install failed",
-				JOptionPane.ERROR_MESSAGE);
+			showInstallFailed(exception.getMessage());
 		}
+	}
+
+	private void showInstallFailed(final String reason)
+	{
+		JOptionPane.showMessageDialog(this,
+			String.format(Messages.getString("settings.plugins.install.failed.message",
+				"Could not install the plugin: %s"), reason),
+			Messages.getString("settings.plugins.install.failed.title", "Install failed"),
+			JOptionPane.ERROR_MESSAGE);
+	}
+
+	/**
+	 * Installs the zip of a plugin that is not loaded: unpacked, loaded and started, or, where its
+	 * directory is in use, left for the next start (#998)
+	 */
+	private void installNewPlugin(final Path zip, final Path target) throws IOException
+	{
+		Files.copy(zip, target, StandardCopyOption.REPLACE_EXISTING);
+		if (PluginArchives.unpackIfChanged(target) == PluginArchives.Outcome.AFTER_RESTART)
+		{
+			reportUpdateForTheNextStart(Messages.getString(
+				"settings.plugins.install.after.restart.message",
+				"The plugin is in use. Its new version is installed and runs after the next start of the application."));
+			return;
+		}
+		loadAndStart(target);
+	}
+
+	/**
+	 * Installs the zip of a plugin that is loaded: the zip alone is put into the plugins directory
+	 * and the directory of the running plugin is left as it is, since its class loader reads loose
+	 * classes from it and two versions would meet in it. The next start unpacks the zip before any
+	 * plugin is loaded (#1045)
+	 */
+	private void installOverALoadedPlugin(final Path zip, final Path target,
+		final PluginWrapper loaded) throws IOException
+	{
+		if (PluginArchives.isUnpackedFrom(zip, PluginArchives.directoryOf(target)))
+		{
+			JOptionPane.showMessageDialog(this,
+				Messages.getString("settings.plugins.install.unchanged.message",
+					"This version of the plugin is already installed. Nothing changed."),
+				Messages.getString("settings.plugins.install.unchanged.title",
+					"Plugin already installed"),
+				JOptionPane.INFORMATION_MESSAGE);
+			return;
+		}
+		Files.copy(zip, target, StandardCopyOption.REPLACE_EXISTING);
+		if (loaded.getPluginState() == PluginState.DISABLED)
+		{
+			reportUpdateForTheNextStart(Messages.getString(
+				"settings.plugins.install.disabled.message",
+				"The plugin is disabled and stays disabled. Its new version is installed and is used after the next start once you enable it."));
+			return;
+		}
+		reportUpdateForTheNextStart(Messages.getString(
+			"settings.plugins.install.after.restart.message",
+			"The plugin is in use. Its new version is installed and runs after the next start of the application."));
+	}
+
+	private void loadAndStart(final Path target)
+	{
+		String pluginId = pluginManager.loadPlugin(target);
+		if (pluginId != null)
+		{
+			pluginManager.startPlugin(pluginId);
+		}
+		refresh();
+		onPluginsChanged.run();
+	}
+
+	private void reportUpdateForTheNextStart(final String message)
+	{
+		JOptionPane.showMessageDialog(this, message,
+			Messages.getString("settings.plugins.install.after.restart.title",
+				"Plugin updated at the next start"),
+			JOptionPane.INFORMATION_MESSAGE);
+		refresh();
+		onPluginsChanged.run();
 	}
 
 	private void openPluginsFolder()

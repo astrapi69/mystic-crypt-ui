@@ -25,10 +25,15 @@
 package io.github.astrapi69.mystic.crypt.ui;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.List;
+import java.util.stream.Stream;
 
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
@@ -39,6 +44,7 @@ import org.assertj.swing.fixture.DialogFixture;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import io.github.astrapi69.file.delete.DeleteFileExtensions;
 import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
 import io.github.astrapi69.mystic.crypt.TestPasswords;
 import io.github.astrapi69.mystic.crypt.menu.MenuLayoutSupport;
@@ -46,7 +52,9 @@ import io.github.astrapi69.mystic.crypt.menu.MenuLayoutSupport;
 /**
  * A saved arrangement of the plugins menu has to survive a plugin being disabled and re-enabled,
  * which rebuilds the menu from scratch and used to fall back to the alphabetical default - silently
- * discarding what the user had arranged (#95).
+ * discarding what the user had arranged (#95). It also has to survive the plugin zips being removed
+ * and installed again, in another order, between two starts of the application, which makes the
+ * plugin loader read the directory afresh and the saved layout apply to the menu it builds.
  */
 class PluginMenuOrderSurvivesPluginToggleUiTest extends AbstractUiTest
 {
@@ -65,17 +73,7 @@ class PluginMenuOrderSurvivesPluginToggleUiTest extends AbstractUiTest
 		ApplicationSteps application = signInWithExistingDatabase(databaseFile, MASTER_PASSWORD);
 		application.showMainFrame();
 
-		// save an arrangement that is not the alphabetical one the menu starts with
-		String rearrangedXml = GuiActionRunner.execute(() -> {
-			JMenuBar menuBar = MysticCryptApplicationFrame.getInstance().getJMenuBar();
-			JMenu pluginsMenu = findMenu(menuBar, "global.menu.plugins");
-			pluginsMenu.add(pluginsMenu.getMenuComponent(0));
-			return MenuLayoutSupport.exportXml(menuBar);
-		});
-		MenuLayoutSupport.save(rearrangedXml, new File(tempHome, ".config/mystic-crypt-ui"));
-		GuiActionRunner
-			.execute(() -> MysticCryptApplicationFrame.getInstance().applyPersistedMenuLayout());
-		robot.waitForIdle();
+		saveARearrangedPluginsMenu();
 		List<String> arranged = pluginSubmenuNames();
 
 		DialogFixture settings = application.openSettingsDialog();
@@ -115,6 +113,77 @@ class PluginMenuOrderSurvivesPluginToggleUiTest extends AbstractUiTest
 
 		assertEquals(arranged, pluginSubmenuNames(),
 			"the arrangement was lost after the second disable/enable cycle");
+	}
+
+	/**
+	 * The test plan's TC-0131: the arranged order of the plugin submenus is the same after the
+	 * plugin zips are removed and installed again, in the reverse order, between two starts of the
+	 * application. The reinstall is done on the plugins directory while the application is down,
+	 * because installing the zip of a loaded plugin through Settings is refused by pf4j
+	 */
+	@Test
+	@DisplayName("a saved plugins menu order is the same after the plugin zips are removed and installed again between two starts")
+	void aSavedPluginsMenuOrder_isTheSameAfterAReinstallAndARestart() throws Exception
+	{
+		installPluginRequiringItBuilt(OBFUSCATION_ZIP);
+		installPluginRequiringItBuilt(CHECKSUM_ZIP);
+		File databaseFile = new File(tempHome, "plugin-menu-order-reinstall.mcrdb");
+		createDatabaseFileHeadless(databaseFile, MASTER_PASSWORD);
+		ApplicationSteps application = signInWithExistingDatabase(databaseFile, MASTER_PASSWORD);
+		application.showMainFrame();
+		List<String> alphabetical = pluginSubmenuNames();
+		saveARearrangedPluginsMenu();
+		List<String> arranged = pluginSubmenuNames();
+		assertNotEquals(alphabetical, arranged,
+			"the precondition: the saved arrangement is not the one the menu starts with");
+
+		shutdownApplication();
+		removeEveryInstalledPlugin();
+		installPluginRequiringItBuilt(CHECKSUM_ZIP);
+		installPluginRequiringItBuilt(OBFUSCATION_ZIP);
+		signInWithExistingDatabase(databaseFile, MASTER_PASSWORD).showMainFrame();
+
+		assertEquals(arranged, pluginSubmenuNames(),
+			"the arrangement was lost across the reinstall and the restart");
+	}
+
+	/**
+	 * Deletes everything in the plugins directory of the isolated config: every plugin zip, its
+	 * unpacked directory and its checksum file
+	 */
+	private void removeEveryInstalledPlugin() throws IOException
+	{
+		Path pluginsDir = tempHome.toPath().resolve(".config/mystic-crypt-ui/plugins");
+		List<Path> entries;
+		try (Stream<Path> children = Files.list(pluginsDir))
+		{
+			entries = children.toList();
+		}
+		assertTrue(entries.stream().anyMatch(entry -> entry.toString().endsWith(".zip")),
+			"the precondition: the zips are in the plugins directory");
+		for (Path entry : entries)
+		{
+			DeleteFileExtensions.delete(entry);
+		}
+		try (Stream<Path> remaining = Files.list(pluginsDir))
+		{
+			assertEquals(0, remaining.count(), "every plugin is removed before it is installed");
+		}
+	}
+
+	/** Saves an arrangement of the plugins menu that is not the alphabetical one and applies it */
+	private void saveARearrangedPluginsMenu() throws IOException
+	{
+		String rearrangedXml = GuiActionRunner.execute(() -> {
+			JMenuBar menuBar = MysticCryptApplicationFrame.getInstance().getJMenuBar();
+			JMenu pluginsMenu = findMenu(menuBar, "global.menu.plugins");
+			pluginsMenu.add(pluginsMenu.getMenuComponent(0));
+			return MenuLayoutSupport.exportXml(menuBar);
+		});
+		MenuLayoutSupport.save(rearrangedXml, new File(tempHome, ".config/mystic-crypt-ui"));
+		GuiActionRunner
+			.execute(() -> MysticCryptApplicationFrame.getInstance().applyPersistedMenuLayout());
+		robot.waitForIdle();
 	}
 
 	private List<String> pluginSubmenuNames()

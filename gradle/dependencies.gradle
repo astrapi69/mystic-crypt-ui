@@ -27,12 +27,10 @@ dependencies {
     implementation libs.miglayout.swing
     implementation libs.guava
     implementation libs.lgood.date.picker
-    implementation libs.javahelp
     implementation libs.pf4j
     implementation libs.commons.lang3
     implementation libs.bcprov.jdk18on
     implementation libs.bcpkix.jdk18on
-    implementation libs.tango.icon.theme
     implementation libs.observer
     implementation libs.state.pattern
     implementation libs.eventbus
@@ -41,8 +39,9 @@ dependencies {
     // gen-tree declares visitor-pattern only for runtime (astrapi69/gen-tree#22). visitor-pattern
     // is the artifact visitor 6 was renamed to, and only one of the two belongs on the class path (#774)
     implementation libs.visitor.pattern
-    implementation libs.jremix.icon
-    implementation libs.silk.icon.theme
+    // the silk icons are named only as resource paths (ApplicationPanel, MysticCryptApplicationFrame) and are
+    // stored by those paths in every vault's tree elements, so they are needed at runtime and never compiled against
+    runtimeOnly libs.silk.icon.theme
     implementation libs.silly.collection
     implementation libs.silly.bean
     implementation libs.commons.codec
@@ -66,7 +65,6 @@ dependencies {
     implementation libs.file.worker
     implementation libs.jobj.core
     implementation libs.silly.io
-    implementation libs.swing.components
     implementation libs.swing.renderer
     implementation libs.flatlaf
     implementation libs.component.model
@@ -81,7 +79,6 @@ dependencies {
     implementation libs.jobj.copy
     implementation libs.data.api
     implementation libs.id.generate
-    implementation libs.xml.extensions
     implementation libs.xstream
     implementation libs.gson.extensions
     implementation libs.xstream.extensions
@@ -95,9 +92,9 @@ dependencies {
     // randomizer is no dependency of this application since #658: its random values come from
     // SecureRandom. Before 10.5 its default generator is seeded with the current time
     // (GHSA-395w-fmf5-xfj3). Since #682 nothing here asks for such a version any more: roboter 3,
-    // through swing-tree-component 3.3, brings 10.7, and swing-components 10 brings none. The
-    // constraint stays as a second guard, so that a library which brought an old version back would
-    // still ship a safe one, and RuntimeDependenciesTest proves the floor
+    // through swing-tree-component 3.3, brings 10.7. The constraint stays as a second guard, so that a
+    // library which brought an old version back would still ship a safe one, and RuntimeDependenciesTest
+    // proves the floor
     constraints {
         // assertj-swing 3.17.1, its last release, brings assertj-core 3.17.2 onto every test class path
         // (the end-to-end source sets extend testImplementation), which has the XXE of
@@ -108,8 +105,8 @@ dependencies {
         implementation(libs.randomizer) {
             because 'randomizer before 10.5 seeds its default generator with the current time'
         }
-        // jettison is no dependency of this application either: xml-extensions 8.2 brings it through
-        // xstream-extensions 1.1 at 1.5.1, which has four high advisories (GHSA-x27m-9w8j-5vcw,
+        // jettison is no dependency of this application either: xstream-extensions 1.1 brings it at
+        // 1.5.1, which has four high advisories (GHSA-x27m-9w8j-5vcw,
         // GHSA-grr4-wv38-f68w, GHSA-7rf3-mqpx-h7xg, GHSA-q6g2-g7f3-rr83). No code here reaches it, the
         // installer ships it all the same (#684). Goes when xstream-extensions brings a fixed version
         // (astrapi69/xstream-extensions#15); RuntimeDependenciesTest proves the floor
@@ -144,13 +141,6 @@ dependencies {
     pitest libs.pitest.junit5.plugin
 }
 
-// state 6 is the artifact state-pattern was renamed from: both carry the same 17 classes with other bytes,
-// and the class path order alone decided which ran. The application, its plugins and swing-wizard are built
-// against state-pattern 7.1; swing-components 10 still asks for state 6 (astrapi69/swing-components#50),
-// so it is excluded everywhere until a release of swing-components moves (#774)
-configurations.configureEach {
-    exclude group: "io.github.astrapi69", module: "state"
-}
 
 configurations.named("izpack") {
     exclude group: "org.apache.tika", module: "tika-parsers"

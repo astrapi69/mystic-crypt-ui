@@ -87,18 +87,7 @@ final class SignInDialogSteps
 	{
 		// ensure-semantics, not toggle: when a memoized sign-in pre-selects the checkbox
 		// (returning-user launch), a blind doClick would deselect it again
-		GuiActionRunner.execute(() -> {
-			javax.swing.JCheckBox checkBox = (javax.swing.JCheckBox)dialog.checkBox("cbxMasterPw")
-				.target();
-			if (!checkBox.isSelected())
-			{
-				checkBox.doClick();
-			}
-		});
-		dialog.checkBox("cbxMasterPw").requireSelected();
-		robot.waitForIdle();
-		UiTestSpeed.step();
-		return this;
+		return ensureCheckBox("cbxMasterPw", true);
 	}
 
 	/**
@@ -109,18 +98,7 @@ final class SignInDialogSteps
 	 */
 	SignInDialogSteps uncheckMasterPassword()
 	{
-		GuiActionRunner.execute(() -> {
-			javax.swing.JCheckBox checkBox = (javax.swing.JCheckBox)dialog.checkBox("cbxMasterPw")
-				.target();
-			if (checkBox.isSelected())
-			{
-				checkBox.doClick();
-			}
-		});
-		dialog.checkBox("cbxMasterPw").requireNotSelected();
-		robot.waitForIdle();
-		UiTestSpeed.step();
-		return this;
+		return ensureCheckBox("cbxMasterPw", false);
 	}
 
 	SignInDialogSteps typeMasterPassword(String masterPassword)
@@ -135,15 +113,41 @@ final class SignInDialogSteps
 	/** Ensures the "Key File:" checkbox is selected */
 	SignInDialogSteps checkKeyFile()
 	{
+		return ensureCheckBox("cbxKeyFile", true);
+	}
+
+	/**
+	 * Ensures the "Key File:" checkbox is NOT selected, the way a user opens a database with its
+	 * password alone; ensure-semantics, as for {@link #checkKeyFile()}
+	 *
+	 * @return this, for the next step
+	 */
+	SignInDialogSteps uncheckKeyFile()
+	{
+		return ensureCheckBox("cbxKeyFile", false);
+	}
+
+	/**
+	 * Brings a checkbox of the dialog into the wanted state with ensure-semantics: a click only
+	 * when the state differs, so a pre-selected box is not toggled off again
+	 */
+	private SignInDialogSteps ensureCheckBox(final String name, final boolean selected)
+	{
 		GuiActionRunner.execute(() -> {
-			javax.swing.JCheckBox checkBox = (javax.swing.JCheckBox)dialog.checkBox("cbxKeyFile")
-				.target();
-			if (!checkBox.isSelected())
+			javax.swing.JCheckBox checkBox = (javax.swing.JCheckBox)dialog.checkBox(name).target();
+			if (checkBox.isSelected() != selected)
 			{
 				checkBox.doClick();
 			}
 		});
-		dialog.checkBox("cbxKeyFile").requireSelected();
+		if (selected)
+		{
+			dialog.checkBox(name).requireSelected();
+		}
+		else
+		{
+			dialog.checkBox(name).requireNotSelected();
+		}
 		robot.waitForIdle();
 		UiTestSpeed.step();
 		return this;
@@ -251,10 +255,10 @@ final class SignInDialogSteps
 	 * registers on that field, which clicks OK when it is enabled (the "Enter submits" behavior).
 	 * <p>
 	 * Deliberately {@code postActionEvent()} rather than a real {@code VK_ENTER} key press: a
-	 * physical key press needs the dialog to own the keyboard focus, which requires a window
-	 * manager. The CI runner has an X server but no window manager, so the key would go nowhere.
-	 * Turning the key binding into an action event is the JDK's own behaviour and not what this
-	 * test owns - the application's listener on top of it is.
+	 * physical key press depends on which window owns the keyboard focus, which the window manager
+	 * of the display decides and a test cannot rely on. A real key press is not driven here (manual
+	 * only). Turning the key binding into an action event is the JDK's own behaviour and not what
+	 * this test owns - the application's listener on top of it is.
 	 */
 	void enterInMasterPasswordAndAwaitSignIn()
 	{

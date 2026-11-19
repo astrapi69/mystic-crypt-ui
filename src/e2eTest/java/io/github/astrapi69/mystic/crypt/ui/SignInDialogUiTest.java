@@ -31,6 +31,8 @@ import java.nio.file.Files;
 
 import org.junit.jupiter.api.Test;
 
+import io.github.astrapi69.mystic.crypt.TestPasswords;
+
 /**
  * AssertJ-Swing regression test for the sign-in dialog's OK-button state machine: the OK button
  * must stay disabled until both a master password and an application file are provided, and must
@@ -53,8 +55,8 @@ class SignInDialogUiTest extends AbstractUiTest
 
 		SignInDialogSteps signIn = launchApplication();
 
-		signIn.requireOkDisabled().checkMasterPassword().typeMasterPassword("test-password")
-			.requireOkDisabled().browseApplicationFile(dummyApplicationFile).requireOkEnabled()
-			.cancel();
+		signIn.requireOkDisabled().checkMasterPassword()
+			.typeMasterPassword(TestPasswords.throwaway()).requireOkDisabled()
+			.browseApplicationFile(dummyApplicationFile).requireOkEnabled().cancel();
 	}
 }

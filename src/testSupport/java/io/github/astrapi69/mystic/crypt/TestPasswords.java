@@ -41,12 +41,26 @@ public final class TestPasswords
 {
 
 	/**
-	 * The password of the checked-in KeePass fixture {@code src/test/resources/test-db.kdbx}.
+	 * The password of the checked-in KeePass fixtures {@code src/test/resources/test-db.kdbx} and,
+	 * in {@code src/e2eKdbx/resources/kdbx}, {@code keepass2-kdbx31-protected-attachment.kdbx} and
+	 * {@code keepassxc-2.7.10-kdbx4-saved-from-kdbx31-protected-attachment.kdbx} (each checked with
+	 * {@code keepassxc-cli ls}).
 	 * <p>
 	 * This one cannot be made up: the file it opens is in the repository and was encrypted with it.
 	 * It protects a database of invented entries and guards nothing else.
 	 */
 	public static final String KEEPASS_FIXTURE = "foo-secret-bar-1969-?";
+
+	/**
+	 * The password of two checked-in KeePassXC fixtures in {@code src/e2eKdbx/resources/kdbx}:
+	 * {@code keepassxc-2.7.10-kdbx4.kdbx} and {@code keepassxc-2.7.10-kdbx31-three-entries.kdbx}
+	 * (each checked with {@code keepassxc-cli ls}). The two protected-attachment fixtures there
+	 * take {@link #KEEPASS_FIXTURE}.
+	 * <p>
+	 * It cannot be made up either: KeePassXC wrote the files with it (README beside the fixtures).
+	 * They hold invented entries and guard nothing else.
+	 */
+	public static final String KEEPASSXC_FIXTURE = "fixture";
 
 	/**
 	 * The password of the checked-in vaults of 7.2 and 7.3 in

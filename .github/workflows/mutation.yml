@@ -17,16 +17,21 @@ on:
     - cron: '17 4 * * 1'
   pull_request:
     branches: [ master, develop ]
-    # only when the measured logic or its tests change, not for every pull request
+    # only when the measured logic or its tests change, not for every pull request: the packages of
+    # targetClasses and targetTests in gradle/mutation-testing.gradle, which change together with this list.
+    # lock and vault joined the scope in #258 and #287 without being added here, so the fix of #936, which
+    # changed both, ran no mutation testing at all; cli was listed here and never measured
     paths:
       - 'src/main/java/io/github/astrapi69/mystic/crypt/menu/**'
+      - 'src/main/java/io/github/astrapi69/mystic/crypt/lock/**'
+      - 'src/main/java/io/github/astrapi69/mystic/crypt/vault/**'
       - 'src/main/java/io/github/astrapi69/mystic/crypt/keepass/**'
       - 'src/main/java/io/github/astrapi69/mystic/crypt/settings/**'
-      - 'src/main/java/io/github/astrapi69/mystic/crypt/cli/**'
       - 'src/test/java/io/github/astrapi69/mystic/crypt/menu/**'
+      - 'src/test/java/io/github/astrapi69/mystic/crypt/lock/**'
+      - 'src/test/java/io/github/astrapi69/mystic/crypt/vault/**'
       - 'src/test/java/io/github/astrapi69/mystic/crypt/keepass/**'
       - 'src/test/java/io/github/astrapi69/mystic/crypt/settings/**'
-      - 'src/test/java/io/github/astrapi69/mystic/crypt/cli/**'
       - 'gradle/mutation-testing.gradle'
       - '.github/workflows/mutation.yml'
 

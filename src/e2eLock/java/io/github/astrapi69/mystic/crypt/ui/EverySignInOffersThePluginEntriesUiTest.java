@@ -28,37 +28,32 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.awt.Component;
-import java.awt.event.ActionEvent;
 import java.io.File;
-import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Stream;
 
-import javax.swing.JMenu;
-import javax.swing.JMenuBar;
-import javax.swing.JMenuItem;
-import javax.swing.SwingUtilities;
-
 import org.assertj.swing.edt.GuiActionRunner;
 import org.assertj.swing.fixture.DialogFixture;
+import org.assertj.swing.timing.Condition;
+import org.assertj.swing.timing.Pause;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
+import io.github.astrapi69.mystic.crypt.MenuId;
 import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
 import io.github.astrapi69.mystic.crypt.TestPasswords;
-import io.github.astrapi69.mystic.crypt.action.CloseApplicationFileAction;
-import io.github.astrapi69.mystic.crypt.action.OpenExistingDatabaseAction;
 import io.github.astrapi69.mystic.crypt.lock.IdleLockWatchdog;
+import io.github.astrapi69.mystic.crypt.settings.MysticCryptSettings;
 
 /**
- * Every way back into a sign-in offers the plugins again (#1006), the fifth being a sign-in that
- * was cancelled at the start and made later through Open Database.
+ * Every way back into a sign-in offers the plugins again (#1006), the last being a sign-in that was
+ * cancelled at the start and made later through Open Database. One of the ways is the frame's own
+ * idle lock on the system clock, with the setting changed in the running application (TC-0133).
  * <p>
  * The lock, the close of a database and the sign-in dialog of an open put the menu into the state
  * of no vault being open, which disables every plugin entry that needs one. Only the first sign-in
@@ -90,6 +85,9 @@ class EverySignInOffersThePluginEntriesUiTest extends AbstractUiTest
 			Arguments.of("the automatic lock, then unlock",
 				(WayBack)(test, application, first, second) -> test
 					.theAutomaticLockRuns(application)),
+			Arguments.of("the application's own idle lock, then unlock",
+				(WayBack)(test, application, first, second) -> test
+					.theFramesOwnIdleLockRuns(application)),
 			Arguments.of("open a second database while one is open",
 				(WayBack)(test, application, first, second) -> test
 					.openInTheRunningApplication(second)),
@@ -163,6 +161,31 @@ class EverySignInOffersThePluginEntriesUiTest extends AbstractUiTest
 	}
 
 	/**
+	 * The test plan's TC-0133 through the frame's own watchdog: the setting "Lock after idle
+	 * minutes" is changed to 1 while the application runs, the way the settings dialog does, the
+	 * application is then left alone (the watchdog counts every key and mouse event as activity, so
+	 * the robot does nothing while it waits), and the lock comes from the frame's timer on the
+	 * system clock, not from a watchdog of the test's own. Then the unlock
+	 */
+	private void theFramesOwnIdleLockRuns(final ApplicationSteps application)
+	{
+		File configurationDirectory = GuiActionRunner
+			.execute(() -> MysticCryptApplicationFrame.getInstance().getConfigurationDirectory());
+		MysticCryptSettings settings = MysticCryptSettings.load(configurationDirectory);
+		settings.setAutoLockMinutes(1);
+		settings.save(configurationDirectory);
+		Pause.pause(new Condition("the frame's own idle lock locks the workspace")
+		{
+			@Override
+			public boolean test()
+			{
+				return !signedIn();
+			}
+		}, TimeUnit.SECONDS.toMillis(100));
+		application.unlockWorkspace(MASTER_PASSWORD);
+	}
+
+	/**
 	 * The idle lock the frame runs, with a clock of its own so the timeout passes at once, and the
 	 * unlock after it; the same watchdog AutomaticLockHoldsTheInvariantUiTest drives
 	 */
@@ -182,23 +205,32 @@ class EverySignInOffersThePluginEntriesUiTest extends AbstractUiTest
 		application.unlockWorkspace(MASTER_PASSWORD);
 	}
 
-	/** Opens a database file through "Open Database..." of the running application */
+	/**
+	 * Opens a database file through the File menu item "Open Database..." of the running
+	 * application
+	 */
 	private void openInTheRunningApplication(final File databaseFile)
 	{
-		SwingUtilities.invokeLater(() -> new OpenExistingDatabaseAction("Open Database File")
-			.actionPerformed(new ActionEvent(MysticCryptApplicationFrame.getInstance(), 0, "")));
+		new ApplicationSteps(robot).fireMenuItem(MenuId.OPEN_DATABASE_FILE.propertiesKey());
 		awaitSignInDialog().checkMasterPassword().typeMasterPassword(MASTER_PASSWORD)
 			.browseApplicationFile(databaseFile).requireOkEnabled().okAndAwaitSignIn();
 		new ApplicationSteps(robot).awaitSignedIn();
 		robot.waitForIdle();
 	}
 
-	/** Closes the open database the way File > Close does */
+	/** Closes the open database through the File menu item "Close Database" */
 	private void closeTheDatabase()
 	{
-		GuiActionRunner.execute(() -> new CloseApplicationFileAction("Close")
-			.actionPerformed(new ActionEvent(MysticCryptApplicationFrame.getInstance(), 0, "")));
+		new ApplicationSteps(robot).fireMenuItem(MenuId.CLOSE_DATABASE.propertiesKey());
 		robot.waitForIdle();
+		Pause.pause(new Condition("the File > Close Database item closes the database")
+		{
+			@Override
+			public boolean test()
+			{
+				return !signedIn();
+			}
+		}, TimeUnit.SECONDS.toMillis(15));
 		assertFalse(signedIn(), "the precondition: no database is open after the close");
 	}
 
@@ -208,46 +240,8 @@ class EverySignInOffersThePluginEntriesUiTest extends AbstractUiTest
 			.execute(() -> MysticCryptApplicationFrame.getInstance().getModelObject().isSignedIn());
 	}
 
-	/**
-	 * Every entry under the Plugins menu, as its path of texts, and whether it is enabled
-	 *
-	 * @return the entries in menu order
-	 */
 	private static Map<String, Boolean> pluginEntries()
 	{
-		return GuiActionRunner.execute(() -> {
-			Map<String, Boolean> entries = new LinkedHashMap<>();
-			JMenuBar menuBar = MysticCryptApplicationFrame.getInstance().getJMenuBar();
-			for (int index = 0; index < menuBar.getMenuCount(); index++)
-			{
-				JMenu menu = menuBar.getMenu(index);
-				if (menu != null && "Plugins".equals(menu.getText()))
-				{
-					for (Component child : menu.getMenuComponents())
-					{
-						collect(child, "Plugins", entries);
-					}
-				}
-			}
-			return entries;
-		});
-	}
-
-	private static void collect(final Component component, final String parentPath,
-		final Map<String, Boolean> entries)
-	{
-		if (!(component instanceof JMenuItem item))
-		{
-			return;
-		}
-		String path = parentPath + " > " + item.getText();
-		entries.put(path, item.isEnabled());
-		if (item instanceof JMenu submenu)
-		{
-			for (Component child : submenu.getMenuComponents())
-			{
-				collect(child, path, entries);
-			}
-		}
+		return PluginMenuEntries.ofTheRunningApplication();
 	}
 }

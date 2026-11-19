@@ -110,18 +110,7 @@ final class ApplicationSteps
 	 */
 	ApplicationSteps importKeePassDatabase(File keePassFile, String password)
 	{
-		clickMenuItem(MenuId.IMPORT_KEEPASS.propertiesKey());
-
-		DialogFixture importDialog = findDialogWithTitle("Import from KeePass");
-		browseAndPickFile(importDialog, "btnFile", keePassFile);
-		GuiActionRunner
-			.execute(() -> importDialog.textBox("txtPassword").target().setText(password));
-		robot.waitForIdle();
-		UiTestSpeed.step();
-		clickDialogButton(importDialog, "OK");
-
-		dismissMessageDialog("Import successful", KEY_DERIVATION_TIMEOUT_SECONDS);
-		return this;
+		return importThroughTheDialog(keePassFile, password, null);
 	}
 
 	/**
@@ -140,17 +129,50 @@ final class ApplicationSteps
 	ApplicationSteps importKeePassDatabaseWithKeyFile(File keePassFile, String password,
 		File keyFile)
 	{
+		return importThroughTheDialog(keePassFile, password, keyFile);
+	}
+
+	/**
+	 * Drives the KeePass import dialog with a key file ALONE: the password box stays empty, the
+	 * "Key File" checkbox is enabled and the key file picked, so the import builds a key-file-only
+	 * {@code KdbxCredentials} (the branch of {@code ImportKeePassDatabaseAction} taken when the
+	 * password is empty and a key file is chosen).
+	 *
+	 * @param keePassFile
+	 *            the {@code .kdbx} file to import
+	 * @param keyFile
+	 *            the key file that is the database's only credential
+	 * @return this
+	 */
+	ApplicationSteps importKeePassDatabaseWithKeyFileOnly(File keePassFile, File keyFile)
+	{
+		return importThroughTheDialog(keePassFile, null, keyFile);
+	}
+
+	/**
+	 * The import dialog from the menu to the success message: the file picked, the password typed
+	 * only when there is one, the key file enabled and picked only when there is one
+	 */
+	private ApplicationSteps importThroughTheDialog(File keePassFile, String passwordOrNull,
+		File keyFileOrNull)
+	{
 		clickMenuItem(MenuId.IMPORT_KEEPASS.propertiesKey());
 
 		DialogFixture importDialog = findDialogWithTitle("Import from KeePass");
 		browseAndPickFile(importDialog, "btnFile", keePassFile);
-		GuiActionRunner
-			.execute(() -> importDialog.textBox("txtPassword").target().setText(password));
-		// doClick (not setSelected) so the checkbox's listener fires and enables the key-file
-		// browser
-		GuiActionRunner.execute(() -> importDialog.checkBox("cbxKeyFile").target().doClick());
-		robot.waitForIdle();
-		browseAndPickFile(importDialog, "btnKeyFile", keyFile);
+		if (passwordOrNull != null)
+		{
+			GuiActionRunner.execute(
+				() -> importDialog.textBox("txtPassword").target().setText(passwordOrNull));
+		}
+		if (keyFileOrNull != null)
+		{
+			// doClick (not setSelected) so the checkbox's listener fires and enables the key-file
+			// browser
+			GuiActionRunner.execute(() -> importDialog.checkBox("cbxKeyFile").target().doClick());
+			robot.waitForIdle();
+			browseAndPickFile(importDialog, "btnKeyFile", keyFileOrNull);
+		}
 		robot.waitForIdle();
 		UiTestSpeed.step();
 		clickDialogButton(importDialog, "OK");
@@ -541,6 +563,7 @@ final class ApplicationSteps
 					return;
 				}
 			}
+			throw new IllegalStateException("the tree shows no row named '" + name + "'");
 		});
 		robot.waitForIdle();
 		UiTestSpeed.step();
@@ -548,7 +571,10 @@ final class ApplicationSteps
 	}
 
 	/**
-	 * Presses the given key on the tree, the way a user does with the tree focused
+	 * Presses the given key on the tree, the way a user does with the tree focused: the key is
+	 * looked up in the tree's input map and its action run. Fails when no action is bound to the
+	 * key. May be called on the event dispatch thread (then it does not wait for idle), which is
+	 * what a test does when the action opens a modal dialog
 	 *
 	 * @param keyCode
 	 *            the key to press
@@ -563,12 +589,16 @@ final class ApplicationSteps
 			javax.swing.Action action = actionKey == null
 				? null
 				: tree.getActionMap().get(actionKey);
-			if (action != null)
+			if (action == null)
 			{
-				action.actionPerformed(null);
+				throw new AssertionError("the tree has no action bound to key code " + keyCode);
 			}
+			action.actionPerformed(null);
 		});
-		robot.waitForIdle();
+		if (!javax.swing.SwingUtilities.isEventDispatchThread())
+		{
+			robot.waitForIdle();
+		}
 		return this;
 	}
 
@@ -590,6 +620,28 @@ final class ApplicationSteps
 			return applicationFrame != null && applicationFrame.getApplicationPanel() != null
 				&& applicationFrame.getApplicationPanel().isShowing();
 		});
+	}
+
+	/** Expands the tree row with the given display name, so that its children show */
+	ApplicationSteps expandTreeRowNamed(String name)
+	{
+		GuiActionRunner.execute(() -> {
+			javax.swing.JTree tree = MysticCryptApplicationFrame.getInstance().getApplicationPanel()
+				.getSecretKeyTreeWithContentPanel().getTree();
+			for (int row = 0; row < tree.getRowCount(); row++)
+			{
+				if (tree.getPathForRow(row)
+					.getLastPathComponent()instanceof javax.swing.tree.DefaultMutableTreeNode node
+					&& String.valueOf(node.getUserObject()).contains("displayValue=" + name + ","))
+				{
+					tree.expandRow(row);
+					return;
+				}
+			}
+			throw new IllegalStateException("the tree shows no row named '" + name + "'");
+		});
+		robot.waitForIdle();
+		return this;
 	}
 
 	/** Whether the tree shows a row with the given display name */
@@ -727,6 +779,17 @@ final class ApplicationSteps
 	ApplicationSteps addEntry(org.assertj.swing.fixture.FrameFixture frame, String title,
 		String userName, String password)
 	{
+		return addEntry(frame, title, userName, password, null, null);
+	}
+
+	/**
+	 * Adds a password entry like
+	 * {@link #addEntry(org.assertj.swing.fixture.FrameFixture, String, String, String)} and also
+	 * types the URL and the notes into the dialog when they are not null
+	 */
+	ApplicationSteps addEntry(org.assertj.swing.fixture.FrameFixture frame, String title,
+		String userName, String password, String url, String notes)
+	{
 		javax.swing.JTable table = frame.table().target();
 		dispatchRightClick(table, 20, 10);
 		chooseFromShowingPopup("add...");
@@ -737,6 +800,14 @@ final class ApplicationSteps
 			newEntryDialog.textBox("txtUsername").target().setText(userName);
 			newEntryDialog.textBox("txtPassword").target().setText(password);
 			newEntryDialog.textBox("txtRepeat").target().setText(password);
+			if (url != null)
+			{
+				newEntryDialog.textBox("txtUrl").target().setText(url);
+			}
+			if (notes != null)
+			{
+				newEntryDialog.textBox("txtNotes").target().setText(notes);
+			}
 		});
 		robot.waitForIdle();
 		UiTestSpeed.step();
@@ -1030,7 +1101,7 @@ final class ApplicationSteps
 	}
 
 	/** Confirms the option-pane dialog with the given title by setting OK_OPTION as its value */
-	private void confirmOptionPaneDialog(String title)
+	void confirmOptionPaneDialog(String title)
 	{
 		DialogFixture confirmDialog = findDialogWithTitle(title);
 		// answer through the option pane's own API: a synthetic click on the OK button did not
