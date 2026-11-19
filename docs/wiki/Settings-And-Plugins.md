@@ -57,8 +57,10 @@ All values are held in memory while you work and written to `settings.json` when
 dialog. The timers read the stored values on every check, so a change takes effect without a
 restart. [[Signing-In]] explains locking, and [[The-Entry-Tree]] copying.
 
-**View > Look and Feel** in the menu bar switches the look and feel too, but only for the running
-session; the choice that is kept across a restart is the one made here.
+**View > Look and Feel** in the menu bar switches the look and feel too, and keeps the choice: the
+application starts in the look that was picked last, and this dialog shows it. One limit: the menu's
+"Metal" and "Ocean" are the same look of the runtime, and both come back as Metal with the runtime's
+default theme, which is Ocean (#1065).
 
 ## The Plugins tab
 

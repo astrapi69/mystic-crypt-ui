@@ -28,6 +28,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.awt.EventQueue;
 import java.io.File;
 import java.util.Arrays;
 import java.util.List;
@@ -130,10 +131,9 @@ class DesktopMenuLookAndFeelTest
 			.filter(item -> "FlatLaf Dark".equals(item.getText())).findFirst().orElseThrow();
 
 		// on the event dispatch thread, as a click is: the menu saves the look in a later event,
-		// and
-		// from another thread that event would run while the item is still switching
-		java.awt.EventQueue.invokeAndWait(flatDarkItem::doClick);
-		java.awt.EventQueue.invokeAndWait(() -> {
+		// and from another thread that event would run while the item is still switching
+		EventQueue.invokeAndWait(flatDarkItem::doClick);
+		EventQueue.invokeAndWait(() -> {
 		});
 
 		assertEquals("FlatLaf Dark", MysticCryptSettings.load(directory).getLookAndFeel(),

@@ -25,9 +25,10 @@
 package io.github.astrapi69.mystic.crypt.ui;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.File;
-import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -41,6 +42,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 
 import io.github.astrapi69.mystic.crypt.ForkedJvm;
+import io.github.astrapi69.mystic.crypt.StartupSignal;
 import io.github.astrapi69.mystic.crypt.TestPasswords;
 
 /**
@@ -51,12 +53,14 @@ import io.github.astrapi69.mystic.crypt.TestPasswords;
 class LookAndFeelMenuChoiceSurvivesRestartUiTest extends AbstractUiTest
 {
 
+	private static final long PROBE_TIMEOUT_SECONDS = 150;
+
 	private static final String MASTER_PASSWORD = TestPasswords.throwaway();
 
 	@ParameterizedTest(name = "{0}")
 	@DisplayName("the look chosen in the View menu is the look the next start applies")
 	@CsvSource({ "FlatLaf Dark, com.formdev.flatlaf.FlatDarkLaf",
-			"Metal, javax.swing.plaf.metal.MetalLookAndFeel" })
+			"Nimbus, javax.swing.plaf.nimbus.NimbusLookAndFeel" })
 	void theLookChosenInTheViewMenu_isTheLookTheNextStartApplies(final String menuText,
 		final String expectedClass) throws Exception
 	{
@@ -89,15 +93,22 @@ class LookAndFeelMenuChoiceSurvivesRestartUiTest extends AbstractUiTest
 		command.add("-cp");
 		command.add(System.getProperty("java.class.path"));
 		command.add("-Duser.home=" + tempHome.getAbsolutePath());
+		command.add("-Djava.io.tmpdir=" + System.getProperty("java.io.tmpdir"));
+		command.add("-D" + StartupSignal.PROPERTY + "=true");
 		command.addAll(ForkedJvm.localeOptions());
 		command.add(StartedLookAndFeelProbe.class.getName());
-		Process process = new ProcessBuilder(command).redirectErrorStream(true).start();
-		String output = new String(process.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
-		if (!process.waitFor(120, TimeUnit.SECONDS))
+		File outputFile = new File(tempHome, "probe-output.txt");
+		Process process = new ProcessBuilder(command).redirectErrorStream(true)
+			.redirectOutput(outputFile).start();
+		boolean finished = process.waitFor(PROBE_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+		if (!finished)
 		{
 			process.destroyForcibly();
-			throw new IllegalStateException("the probe did not finish: " + output);
 		}
+		String output = Files.readString(outputFile.toPath());
+		assertTrue(finished,
+			"the probe did not finish in " + PROBE_TIMEOUT_SECONDS + " s: " + output);
+		assertEquals(0, process.exitValue(), "the probe failed: " + output);
 		return output.lines().filter(line -> line.startsWith(StartedLookAndFeelProbe.OUTPUT_PREFIX))
 			.map(line -> line.substring(StartedLookAndFeelProbe.OUTPUT_PREFIX.length())).findFirst()
 			.orElseThrow(() -> new IllegalStateException("the probe printed no look: " + output));

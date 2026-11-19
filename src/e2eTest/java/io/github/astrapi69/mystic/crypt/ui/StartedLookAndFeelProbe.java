@@ -24,19 +24,27 @@
  */
 package io.github.astrapi69.mystic.crypt.ui;
 
+import java.awt.Component;
+import java.awt.Container;
 import java.awt.Dialog;
+import java.awt.EventQueue;
 import java.awt.Window;
 
+import javax.swing.AbstractButton;
 import javax.swing.UIManager;
 
 import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
+import io.github.astrapi69.mystic.crypt.StartupSignal;
 
 /**
  * What a test starts in a JVM of its own to learn which look and feel the application applies at
- * start: it starts the application the way {@code StartMysticCryptApplication.main} does, waits for
- * the sign-in dialog and prints {@code LOOK_AND_FEEL=<class name>} of the look that is active then.
- * A JVM of its own, so that no {@code UIManager} state of the test JVM can answer for the
- * application
+ * start: it starts the application the way {@code StartMysticCryptApplication.main} does, cancels
+ * the sign-in, waits until the application reports through {@link StartupSignal} that its start has
+ * completed, and prints {@code LOOK_AND_FEEL=<class name>} of the look that is active then. Only
+ * then, since the look of the sign-in dialog and the look of the frame are applied by two different
+ * statements of the start. A JVM of its own, so that no {@code UIManager} state of the test JVM can
+ * answer for the application. The signal must be switched on with
+ * {@code -Dmystic.crypt.ui.startup.signal=true}
  */
 public final class StartedLookAndFeelProbe
 {
@@ -44,7 +52,7 @@ public final class StartedLookAndFeelProbe
 	/** The prefix of the one line the probe prints on standard output */
 	public static final String OUTPUT_PREFIX = "LOOK_AND_FEEL=";
 
-	private static final long TIMEOUT_MILLIS = 60_000;
+	private static final long TIMEOUT_MILLIS = 90_000;
 
 	private StartedLookAndFeelProbe()
 	{
@@ -55,32 +63,64 @@ public final class StartedLookAndFeelProbe
 		Thread application = new Thread(MysticCryptApplicationFrame::new, "probe-start");
 		application.setDaemon(true);
 		application.start();
-		long deadline = System.currentTimeMillis() + TIMEOUT_MILLIS;
-		while (!signInDialogShowing())
-		{
-			if (System.currentTimeMillis() > deadline)
-			{
-				System.err
-					.println("the sign-in dialog did not show within " + TIMEOUT_MILLIS + " ms");
-				System.exit(2);
-			}
-			Thread.sleep(100);
-		}
+		awaitCount("the sign-in dialog", StartupSignal::signInDialogsShown);
+		EventQueue.invokeAndWait(StartedLookAndFeelProbe::cancelTheSignIn);
+		awaitCount("the completed start", StartupSignal::startsCompleted);
 		System.out.println(OUTPUT_PREFIX + UIManager.getLookAndFeel().getClass().getName());
 		System.out.flush();
 		System.exit(0);
 	}
 
-	private static boolean signInDialogShowing()
+	private static void awaitCount(final String what, final java.util.function.IntSupplier count)
+		throws InterruptedException
+	{
+		long deadline = System.currentTimeMillis() + TIMEOUT_MILLIS;
+		while (count.getAsInt() < 1)
+		{
+			if (System.currentTimeMillis() > deadline)
+			{
+				System.err.println("no " + what + " within " + TIMEOUT_MILLIS + " ms");
+				System.exit(2);
+			}
+			Thread.sleep(100);
+		}
+	}
+
+	private static void cancelTheSignIn()
 	{
 		for (Window window : Window.getWindows())
 		{
-			if (window instanceof Dialog dialog
-				&& "Enter your credentials".equals(dialog.getTitle()) && dialog.isShowing())
+			if (window instanceof Dialog dialog && dialog.isShowing())
 			{
-				return true;
+				AbstractButton cancel = buttonNamed(dialog, "btnCancel");
+				if (cancel != null)
+				{
+					cancel.doClick();
+					return;
+				}
 			}
 		}
-		return false;
+		System.err.println("the sign-in dialog has no button btnCancel");
+		System.exit(3);
+	}
+
+	private static AbstractButton buttonNamed(final Container container, final String name)
+	{
+		for (Component child : container.getComponents())
+		{
+			if (child instanceof AbstractButton button && name.equals(button.getName()))
+			{
+				return button;
+			}
+			if (child instanceof Container inner)
+			{
+				AbstractButton found = buttonNamed(inner, name);
+				if (found != null)
+				{
+					return found;
+				}
+			}
+		}
+		return null;
 	}
 }

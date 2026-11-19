@@ -26,7 +26,6 @@ package io.github.astrapi69.mystic.crypt.settings;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.File;
@@ -110,16 +109,16 @@ class LookAndFeelChoiceTest
 	}
 
 	@Test
-	void unreadableSettings_areReplacedByDefaultsPlusTheLook_pinningTodaysLoss() throws Exception
+	void unreadableSettings_areLeftAsTheyAre() throws Exception
 	{
 		File settingsFile = new File(configurationDirectory, MysticCryptSettings.JSON_FILENAME);
 		String corrupt = "{ this is not json";
 		Files.writeString(settingsFile.toPath(), corrupt);
 		UIManager.setLookAndFeel(new FlatDarkLaf());
 
-		LookAndFeelChoice.persistActive(configurationDirectory);
+		assertFalse(LookAndFeelChoice.persistActive(configurationDirectory));
 
-		assertNotEquals(corrupt, Files.readString(settingsFile.toPath()),
-			"pins today: the unreadable file is replaced by defaults plus the look");
+		assertEquals(corrupt, Files.readString(settingsFile.toPath()),
+			"the unreadable file was replaced by defaults plus the look");
 	}
 }

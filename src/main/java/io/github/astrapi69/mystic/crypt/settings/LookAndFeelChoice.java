@@ -25,12 +25,17 @@
 package io.github.astrapi69.mystic.crypt.settings;
 
 import java.io.File;
+import java.io.IOException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * The look and feel on the screen and the look and feel in the settings
  */
 public final class LookAndFeelChoice
 {
+
+	private static final Logger LOG = Logger.getLogger(LookAndFeelChoice.class.getName());
 
 	private LookAndFeelChoice()
 	{
@@ -64,11 +69,16 @@ public final class LookAndFeelChoice
 	 * Writes the active look and feel into the settings of the given configuration directory
 	 * <p>
 	 * A look that is not among the installed ones has no name the settings could hold and is not
-	 * written; nothing is written either when the settings already hold the active look
+	 * written; nothing is written either when the settings already hold the active look. Of the two
+	 * looks of the JDK that share a class, Metal and Ocean, the settings hold "Metal" and the next
+	 * start shows the runtime's default theme of it, which is Ocean: the theme is not saved (#1065)
+	 * <p>
+	 * A settings file that exists and cannot be read is left as it is, and the failure is logged:
+	 * writing the look into defaults would replace everything else the file holds
 	 *
 	 * @param configurationDirectory
 	 *            the application's configuration directory
-	 * @return {@code true} if the settings were written
+	 * @return {@code true} if a write was attempted, whether or not it reached the disk
 	 */
 	public static boolean persistActive(final File configurationDirectory)
 	{
@@ -77,7 +87,17 @@ public final class LookAndFeelChoice
 		{
 			return false;
 		}
-		MysticCryptSettings settings = MysticCryptSettings.load(configurationDirectory);
+		MysticCryptSettings settings;
+		try
+		{
+			settings = MysticCryptSettings.loadForUpdate(configurationDirectory);
+		}
+		catch (IOException exception)
+		{
+			LOG.log(Level.WARNING, "The look and feel was not saved, the settings could not be "
+				+ "read: " + exception.getMessage(), exception);
+			return false;
+		}
 		if (activeName.equals(settings.getLookAndFeel()))
 		{
 			return false;
