@@ -32,7 +32,9 @@ import java.nio.file.Files;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.util.ArrayList;
+import java.util.EnumMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.swing.JComboBox;
 
@@ -66,6 +68,17 @@ class KeygenEveryAlgorithmUiTest extends AbstractUiTest
 		KeyPairGeneratorAlgorithm.X25519, KeyPairGeneratorAlgorithm.X448,
 		KeyPairGeneratorAlgorithm.ML_KEM_768, KeyPairGeneratorAlgorithm.ML_DSA_65);
 
+	/**
+	 * The algorithm a key read back from the PEM on screen names, for each algorithm of the box
+	 * (measured in the first run of this test): the generation takes its algorithm from the model,
+	 * so a key of the wrong algorithm would otherwise pass for a real one
+	 */
+	private static final Map<KeyPairGeneratorAlgorithm, String> KEY_ALGORITHM_READ_BACK = Map.of(
+		KeyPairGeneratorAlgorithm.RSA, "RSA", KeyPairGeneratorAlgorithm.EC, "ECDSA",
+		KeyPairGeneratorAlgorithm.X25519, "X25519", KeyPairGeneratorAlgorithm.X448, "X448",
+		KeyPairGeneratorAlgorithm.ML_KEM_768, "ML-KEM-768", KeyPairGeneratorAlgorithm.ML_DSA_65,
+		"ML-DSA-65");
+
 	@Test
 	@DisplayName("every algorithm the box offers generates a real key pair")
 	void everyAlgorithmTheBoxOffersGeneratesARealKeyPair() throws Exception
@@ -89,14 +102,19 @@ class KeygenEveryAlgorithmUiTest extends AbstractUiTest
 		List<KeyPairGeneratorAlgorithm> offeredByTheBox = itemsOfTheAlgorithmBox(frame);
 		assertEquals(EXPECTED_IN_THE_BOX, offeredByTheBox,
 			"the box offers other algorithms than the plan names");
+		Map<KeyPairGeneratorAlgorithm, String> readBack = new EnumMap<>(
+			KeyPairGeneratorAlgorithm.class);
 		for (KeyPairGeneratorAlgorithm algorithm : offeredByTheBox)
 		{
-			generateAndCheck(frame, algorithm);
+			readBack.put(algorithm, generateAndCheck(frame, algorithm));
 			assertEquals(encryptPanelLeftEdge, leftEdgeOf(frame, "txtToEncrypt"),
 				"the encrypt panel moved after generating with " + algorithm);
 			assertEquals(keyAreaLeftEdge, leftEdgeOf(frame, "txtPrivateKey"),
 				"the key areas moved after generating with " + algorithm);
 		}
+
+		assertEquals(new EnumMap<>(KEY_ALGORITHM_READ_BACK), readBack,
+			"a key of another algorithm than the chosen one came out of the window");
 
 		// a longer key writes longer lines into the key areas, and a form whose columns follow
 		// what happens to be in them moves while it is being used
@@ -154,8 +172,9 @@ class KeygenEveryAlgorithmUiTest extends AbstractUiTest
 	 *            the application frame
 	 * @param algorithm
 	 *            the algorithm to generate with
+	 * @return the algorithm the key read back names
 	 */
-	private void generateAndCheck(final FrameFixture frame,
+	private String generateAndCheck(final FrameFixture frame,
 		final KeyPairGeneratorAlgorithm algorithm) throws Exception
 	{
 		GuiActionRunner
@@ -189,6 +208,7 @@ class KeygenEveryAlgorithmUiTest extends AbstractUiTest
 		PublicKey publicKey = PublicKeyReader.readPemPublicKey(publicKeyFile);
 		assertEquals(privateKey.getAlgorithm(), publicKey.getAlgorithm(),
 			"the two keys on screen do not belong to the same algorithm for " + algorithm);
+		return privateKey.getAlgorithm();
 	}
 
 }

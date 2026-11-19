@@ -41,9 +41,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-import io.github.astrapi69.crypt.api.algorithm.key.KeyPairGeneratorAlgorithm;
 import io.github.astrapi69.crypt.api.key.KeyFileFormat;
-import io.github.astrapi69.crypt.api.key.KeySize;
 import io.github.astrapi69.crypt.data.key.reader.PrivateKeyReader;
 import io.github.astrapi69.crypt.data.key.reader.PublicKeyReader;
 
@@ -62,15 +60,6 @@ class SaveFormatTest
 		{
 			Security.addProvider(new BouncyCastleProvider());
 		}
-	}
-
-	private static GenerateKeysPanel panelWithAnRsaKeyPair()
-	{
-		GenerateKeysPanel panel = new GenerateKeysPanel();
-		panel.getCmbAlgorithm().setSelectedItem(KeyPairGeneratorAlgorithm.RSA);
-		panel.getCryptographyPanel().getCmbKeySize().setSelectedItem(KeySize.KEYSIZE_1024);
-		panel.getCryptographyPanel().getBtnGenerate().doClick();
-		return panel;
 	}
 
 	@Test
@@ -100,7 +89,7 @@ class SaveFormatTest
 	@DisplayName("a private key saved as PEM is text, as DER it is not")
 	void aPrivateKeySavedAsPemIsTextAsDerItIsNot(@TempDir File directory) throws Exception
 	{
-		GenerateKeysPanel panel = panelWithAnRsaKeyPair();
+		GenerateKeysPanel panel = KeygenTestPanels.panelWithAnRsaKeyPair();
 		File asPem = new File(directory, "key.pem");
 		File asDer = new File(directory, "key.der");
 
@@ -122,7 +111,7 @@ class SaveFormatTest
 	@DisplayName("a public key saved as PEM is text, as DER it is not")
 	void aPublicKeySavedAsPemIsTextAsDerItIsNot(@TempDir File directory) throws Exception
 	{
-		GenerateKeysPanel panel = panelWithAnRsaKeyPair();
+		GenerateKeysPanel panel = KeygenTestPanels.panelWithAnRsaKeyPair();
 		File asPem = new File(directory, "key.pem");
 		File asDer = new File(directory, "key.der");
 

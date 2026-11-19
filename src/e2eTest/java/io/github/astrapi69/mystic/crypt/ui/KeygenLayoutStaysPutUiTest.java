@@ -176,14 +176,18 @@ class KeygenLayoutStaysPutUiTest extends AbstractUiTest
 			assertEquals(first, state.getValue(),
 				"the form moved at '" + state.getKey() + "'." + table);
 		}
+		int[] before = initialHeights;
+		String beforeState = "freshly opened";
 		for (Map.Entry<String, int[]> state : heights.entrySet())
 		{
-			for (int pane = 0; pane < initialHeights.length; pane++)
+			for (int pane = 0; pane < before.length; pane++)
 			{
-				assertTrue(initialHeights[pane] <= state.getValue()[pane],
-					"an encrypt pane shrank at '" + state.getKey() + "' from "
-						+ initialHeights[pane] + " to " + state.getValue()[pane] + "." + table);
+				assertTrue(before[pane] <= state.getValue()[pane],
+					"an encrypt pane shrank at '" + state.getKey() + "' from " + before[pane]
+						+ " (at '" + beforeState + "') to " + state.getValue()[pane] + "." + table);
 			}
+			before = state.getValue();
+			beforeState = state.getKey();
 		}
 	}
 

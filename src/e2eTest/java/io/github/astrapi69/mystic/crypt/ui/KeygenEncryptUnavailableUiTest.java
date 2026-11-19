@@ -25,7 +25,6 @@
 package io.github.astrapi69.mystic.crypt.ui;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.File;
@@ -67,16 +66,28 @@ class KeygenEncryptUnavailableUiTest extends AbstractUiTest
 	 * Generates with the given algorithm and puts text into BOTH text areas, so that an empty text
 	 * can never be the reason a button is off: after generating a key pair that cannot encrypt the
 	 * areas are emptied, and the Decrypt button would be off for lack of text whatever the
-	 * algorithm says
+	 * algorithm says. It also proves the generation really happened for THIS algorithm: the box
+	 * took the selection and the private key on screen is a new one, so a state carried over from
+	 * the algorithm before cannot be mistaken for the state of this one.
 	 */
 	private void generateAndFillBothTextAreas(final FrameFixture frame,
 		final KeyPairGeneratorAlgorithm algorithm)
 	{
+		String keyBefore = GuiActionRunner
+			.execute(() -> frame.textBox("txtPrivateKey").target().getText());
 		GuiActionRunner
 			.execute(() -> frame.comboBox("cmbAlgorithm").target().setSelectedItem(algorithm));
 		robot.waitForIdle();
+		assertEquals(algorithm,
+			GuiActionRunner
+				.execute(() -> frame.comboBox("cmbAlgorithm").target().getSelectedItem()),
+			"the box did not take " + algorithm);
 		GuiActionRunner.execute(() -> frame.button("btnGenerate").target().doClick());
 		robot.waitForIdle();
+		String keyAfter = GuiActionRunner
+			.execute(() -> frame.textBox("txtPrivateKey").target().getText());
+		assertTrue(keyAfter.contains("PRIVATE KEY") && !keyAfter.equals(keyBefore),
+			"generating with " + algorithm + " did not put a new private key on screen");
 		GuiActionRunner.execute(() -> {
 			frame.textBox("txtToEncrypt").target().setText("anything");
 			frame.textBox("txtEncrypted").target().setText("a1b2c3");
@@ -88,43 +99,38 @@ class KeygenEncryptUnavailableUiTest extends AbstractUiTest
 	@DisplayName("only an algorithm that cannot encrypt puts both buttons out of reach")
 	void encryptAndDecryptAreOutOfReachAndSayWhyForAnAlgorithmThatCannotEncrypt() throws Exception
 	{
-		// one window for every algorithm and one test method: a second window of the tool stays
-		// open beside the first with the same component names
+		// one window and one test method: a second window of the tool stays open beside the
+		// first with the same component names. The algorithms alternate between those that
+		// cannot encrypt and those that can, so no state is carried over from the one before.
 		FrameFixture frame = openTheKeyGenerationWindow();
 
 		for (KeyPairGeneratorAlgorithm algorithm : new KeyPairGeneratorAlgorithm[] {
-				KeyPairGeneratorAlgorithm.X25519, KeyPairGeneratorAlgorithm.X448,
-				KeyPairGeneratorAlgorithm.ML_KEM_768, KeyPairGeneratorAlgorithm.ML_DSA_65 })
+				KeyPairGeneratorAlgorithm.X25519, KeyPairGeneratorAlgorithm.RSA,
+				KeyPairGeneratorAlgorithm.X448, KeyPairGeneratorAlgorithm.EC,
+				KeyPairGeneratorAlgorithm.ML_KEM_768, KeyPairGeneratorAlgorithm.RSA,
+				KeyPairGeneratorAlgorithm.ML_DSA_65, KeyPairGeneratorAlgorithm.EC })
 		{
 			generateAndFillBothTextAreas(frame, algorithm);
+			boolean canEncrypt = algorithm == KeyPairGeneratorAlgorithm.RSA
+				|| algorithm == KeyPairGeneratorAlgorithm.EC;
 
 			for (String button : new String[] { "btnEncrypt", "btnDecrypt" })
 			{
-				assertFalse(
-					GuiActionRunner.execute(() -> frame.button(button).target().isEnabled()),
-					button + " offered itself for " + algorithm + ", which cannot serve it");
-				String reason = GuiActionRunner
-					.execute(() -> frame.button(button).target().getToolTipText());
-				assertTrue(reason != null && reason.contains("RSA") && reason.contains("EC"),
-					button + " is out of reach for " + algorithm
-						+ " and must explain that this demo needs RSA or EC, was: " + reason);
-				assertEquals(reason,
-					GuiActionRunner.execute(() -> frame.label("lblReason").target().getText()),
-					"the label under the buttons says something else than the tooltip of " + button
-						+ " for " + algorithm);
-			}
-		}
-
-		// the counterpart: RSA and EC keep both buttons usable, in the same window
-		for (KeyPairGeneratorAlgorithm algorithm : new KeyPairGeneratorAlgorithm[] {
-				KeyPairGeneratorAlgorithm.RSA, KeyPairGeneratorAlgorithm.EC })
-		{
-			generateAndFillBothTextAreas(frame, algorithm);
-
-			for (String button : new String[] { "btnEncrypt", "btnDecrypt" })
-			{
-				assertTrue(GuiActionRunner.execute(() -> frame.button(button).target().isEnabled()),
-					button + " is out of reach for " + algorithm + ", which can serve it");
+				assertEquals(canEncrypt,
+					GuiActionRunner.execute(() -> frame.button(button).target().isEnabled()), button
+						+ " is " + (canEncrypt ? "out of reach" : "offered") + " for " + algorithm);
+				if (!canEncrypt)
+				{
+					String reason = GuiActionRunner
+						.execute(() -> frame.button(button).target().getToolTipText());
+					assertTrue(reason != null && reason.contains("RSA") && reason.contains("EC"),
+						button + " is out of reach for " + algorithm
+							+ " and must explain that this demo needs RSA or EC, was: " + reason);
+					assertEquals(reason,
+						GuiActionRunner.execute(() -> frame.label("lblReason").target().getText()),
+						"the label under the buttons says something else than the tooltip of "
+							+ button + " for " + algorithm);
+				}
 			}
 		}
 	}

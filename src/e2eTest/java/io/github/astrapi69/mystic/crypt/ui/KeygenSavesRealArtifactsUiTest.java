@@ -212,12 +212,15 @@ class KeygenSavesRealArtifactsUiTest extends AbstractUiTest
 	}
 
 	/**
-	 * Pins today's behaviour of a probable defect (TC-0105), it does not endorse it: with DER
-	 * chosen, the certificate is still written as PEM text with the ending .pem.
-	 * CryptographyPanel.java:415-416 hard-codes PEM_ENDING and KeygenSupport.writeCertificate
-	 * (:349-353) takes no format, while the format box's tooltip (GenerateKeysPanel.java:383-384)
-	 * promises the encoding of every file the window saves. When the certificate honours the
-	 * format, this method is to be turned, not deleted.
+	 * Pins today's behaviour of #1050 (TC-0105), it does not endorse it: with DER chosen, the
+	 * certificate is still written as PEM text with the ending .pem. CryptographyPanel.java:415-416
+	 * hard-codes PEM_ENDING and KeygenSupport.writeCertificate (:349-353) takes no format, while
+	 * the format box's tooltip (GenerateKeysPanel.java:383-384) promises the encoding of every file
+	 * the window saves. When #1050 is decided this method is turned, not deleted.
+	 * <p>
+	 * It does not wait for the .pem: a window that honours DER writes a .der and never the .pem,
+	 * and a wait for the .pem would then die in the wait instead of at the assertion that names the
+	 * reason.
 	 *
 	 * @param frame
 	 *            the application frame, with DER chosen in the format box
@@ -226,7 +229,8 @@ class KeygenSavesRealArtifactsUiTest extends AbstractUiTest
 		throws Exception
 	{
 		File chosen = new File(tempHome, "saved-certificate-in-der");
-		File certificateFile = new File(tempHome, "saved-certificate-in-der.pem");
+		File pemFile = new File(tempHome, "saved-certificate-in-der.pem");
+		File derFile = new File(tempHome, "saved-certificate-in-der.der");
 
 		SwingUtilities.invokeLater(
 			() -> frame.button(JButtonMatcher.withText("Save certificate...")).target().doClick());
@@ -234,12 +238,29 @@ class KeygenSavesRealArtifactsUiTest extends AbstractUiTest
 			.withTimeout(15, TimeUnit.SECONDS).using(robot);
 		SwingUtilities
 			.invokeLater(() -> certificateDialog.target().setValue(JOptionPane.OK_OPTION));
-		approveFileChooserWith(chosen, certificateFile);
+		JFileChooser fileChooser = JFileChooserFinder.findFileChooser()
+			.withTimeout(15, TimeUnit.SECONDS).using(robot).target();
+		SwingUtilities.invokeLater(() -> {
+			fileChooser.setSelectedFile(chosen);
+			fileChooser.approveSelection();
+		});
+		robot.waitForIdle();
+		org.assertj.swing.timing.Pause
+			.pause(new org.assertj.swing.timing.Condition("a certificate file is written")
+			{
+				@Override
+				public boolean test()
+				{
+					return pemFile.exists() && 0 < pemFile.length() || derFile.exists();
+				}
+			}, 15000);
 
-		assertTrue(Files.readString(certificateFile.toPath()).contains("BEGIN CERTIFICATE"),
+		assertFalse(derFile.exists(),
+			"the certificate was written as .der: #1050 is fixed, turn this method");
+		assertTrue(
+			Files.readString(pemFile.toPath(), java.nio.charset.StandardCharsets.ISO_8859_1)
+				.contains("BEGIN CERTIFICATE"),
 			"today the certificate is PEM text even with DER chosen");
-		assertFalse(new File(tempHome, "saved-certificate-in-der.der").exists(),
-			"the certificate was written as .der: the defect is fixed, turn this method");
 	}
 
 	/** The public key is saved in the chosen encoding as well, not only the private one */
@@ -272,7 +293,12 @@ class KeygenSavesRealArtifactsUiTest extends AbstractUiTest
 		assertTheyBelongTogether(PrivateKeyReader.readPemPrivateKey(privateKeyFile), onScreen);
 	}
 
-	/** The protected file has to open with the password that was typed, and hold the same key */
+	/**
+	 * The protected file has to open with the password that was typed, and hold the same key. The
+	 * file is DER with .der while the format box still says PEM, because the window always writes
+	 * it as DER (GenerateKeysPanel.java:654): the second half of #1050 (TC-0105), pinned by the
+	 * name asked for below.
+	 */
 	private void thePasswordProtectedPrivateKeyOpensWithThatPassword(final FrameFixture frame,
 		final PublicKey onScreen) throws Exception
 	{

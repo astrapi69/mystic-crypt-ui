@@ -27,20 +27,21 @@ package io.github.astrapi69.mystic.crypt.plugin.keygen;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.junit.jupiter.api.Assertions.fail;
 import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.security.GeneralSecurityException;
 import java.security.KeyFactory;
 import java.security.PrivateKey;
 import java.security.Security;
+import java.security.interfaces.RSAPrivateKey;
 import java.security.spec.PKCS8EncodedKeySpec;
-import java.util.UUID;
+import java.util.Base64;
 import java.util.concurrent.TimeUnit;
 
 import javax.crypto.Cipher;
@@ -55,9 +56,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-import io.github.astrapi69.crypt.api.algorithm.key.KeyPairGeneratorAlgorithm;
-import io.github.astrapi69.crypt.api.key.KeySize;
-
 /**
  * A key file saved with a password has to open in another program, not only in the library that
  * wrote it: a file the library reads back can still use an encryption scheme a current program
@@ -69,6 +67,9 @@ class ProtectedKeyOpensElsewhereTest
 
 	/** Named on purpose: Bouncy Castle may be registered in this JVM and must not do the reading */
 	private static final String JDK_PROVIDER = "SunJCE";
+
+	/** Named for the same reason, for the key factory */
+	private static final String JDK_KEY_PROVIDER = "SunRsaSign";
 
 	@BeforeAll
 	static void registerBouncyCastleForTheWritingSide()
@@ -87,24 +88,10 @@ class ProtectedKeyOpensElsewhereTest
 		return keyFile;
 	}
 
-	private static GenerateKeysPanel panelWithAnRsaKeyPair()
-	{
-		GenerateKeysPanel panel = new GenerateKeysPanel();
-		panel.getCmbAlgorithm().setSelectedItem(KeyPairGeneratorAlgorithm.RSA);
-		panel.getCryptographyPanel().getCmbKeySize().setSelectedItem(KeySize.KEYSIZE_1024);
-		panel.getCryptographyPanel().getBtnGenerate().doClick();
-		return panel;
-	}
-
-	@Test
-	@DisplayName("the JDK alone decrypts the file with the password and gets the generated key")
-	void theJdkAloneDecryptsTheFileWithThePasswordAndGetsTheGeneratedKey(@TempDir File directory)
+	/** Opens the file with the JDK alone; the cipher is initialised with what the file names */
+	private static PrivateKey openWithTheJdk(final File keyFile, final String password)
 		throws Exception
 	{
-		GenerateKeysPanel panel = panelWithAnRsaKeyPair();
-		String password = "pw-" + UUID.randomUUID();
-		File keyFile = protectedKeyFor(panel, directory, password);
-
 		EncryptedPrivateKeyInfo info = new EncryptedPrivateKeyInfo(
 			Files.readAllBytes(keyFile.toPath()));
 		SecretKey passwordKey = SecretKeyFactory.getInstance(info.getAlgName(), JDK_PROVIDER)
@@ -112,40 +99,43 @@ class ProtectedKeyOpensElsewhereTest
 		Cipher cipher = Cipher.getInstance(info.getAlgName(), JDK_PROVIDER);
 		cipher.init(Cipher.DECRYPT_MODE, passwordKey, info.getAlgParameters());
 		PKCS8EncodedKeySpec keySpec = info.getKeySpec(cipher);
-		PrivateKey opened = KeyFactory.getInstance("RSA").generatePrivate(keySpec);
-
-		assertArrayEquals(panel.getModelObject().getPrivateKey().getEncoded(),
-			opened.getEncoded(), "the JDK got another key out of the file than the one generated");
+		return KeyFactory.getInstance("RSA", JDK_KEY_PROVIDER).generatePrivate(keySpec);
 	}
 
 	@Test
-	@DisplayName("the JDK cannot decrypt the file with another password")
-	void theJdkCannotDecryptTheFileWithAnotherPassword(@TempDir File directory) throws Exception
+	@DisplayName("the JDK alone decrypts the file with the password and gets the generated key")
+	void theJdkAloneDecryptsTheFileWithThePasswordAndGetsTheGeneratedKey(@TempDir File directory)
+		throws Exception
 	{
-		GenerateKeysPanel panel = panelWithAnRsaKeyPair();
-		File keyFile = protectedKeyFor(panel, directory, "pw-" + UUID.randomUUID());
-		EncryptedPrivateKeyInfo info = new EncryptedPrivateKeyInfo(
-			Files.readAllBytes(keyFile.toPath()));
-		SecretKey wrongKey = SecretKeyFactory.getInstance(info.getAlgName(), JDK_PROVIDER)
-			.generateSecret(new PBEKeySpec(("other-" + UUID.randomUUID()).toCharArray()));
-		Cipher cipher = Cipher.getInstance(info.getAlgName(), JDK_PROVIDER);
-		cipher.init(Cipher.DECRYPT_MODE, wrongKey, info.getAlgParameters());
+		GenerateKeysPanel panel = KeygenTestPanels.panelWithAnRsaKeyPair();
+		String password = KeygenTestPanels.throwawayPassword();
+		File keyFile = protectedKeyFor(panel, directory, password);
 
-		try
-		{
-			PKCS8EncodedKeySpec keySpec = info.getKeySpec(cipher);
-			KeyFactory.getInstance("RSA").generatePrivate(keySpec);
-			fail("the file opened with a password that is not the one it was saved with");
-		}
-		catch (java.security.GeneralSecurityException expected)
-		{
-			assertNotNull(expected, "the wrong password has to be refused");
-		}
+		PrivateKey opened = openWithTheJdk(keyFile, password);
+
+		assertEquals(panel.getModelObject().getPrivateKey().getEncoded().length,
+			opened.getEncoded().length, "the JDK got a key of another size out of the file");
+		assertArrayEquals(
+			panel.getModelObject().getPrivateKey().getEncoded(), opened.getEncoded(),
+			"the JDK got another key out of the file than the one generated");
 	}
 
 	@Test
-	@DisplayName("openssl pkcs8 -inform DER opens the file with the password")
-	void opensslPkcs8OpensTheFileWithThePassword(@TempDir File directory) throws Exception
+	@DisplayName("the JDK refuses the file with another password")
+	void theJdkRefusesTheFileWithAnotherPassword(@TempDir File directory) throws Exception
+	{
+		GenerateKeysPanel panel = KeygenTestPanels.panelWithAnRsaKeyPair();
+		File keyFile = protectedKeyFor(panel, directory, KeygenTestPanels.throwawayPassword());
+
+		assertThrows(GeneralSecurityException.class,
+			() -> openWithTheJdk(keyFile, KeygenTestPanels.throwawayPassword()),
+			"the file opened with a password that is not the one it was saved with");
+	}
+
+	@Test
+	@DisplayName("openssl pkcs8 -inform DER opens the file and prints the generated key")
+	void opensslPkcs8OpensTheFileAndPrintsTheGeneratedKey(@TempDir File directory)
+		throws Exception
 	{
 		if (!opensslIsInstalled())
 		{
@@ -153,8 +143,8 @@ class ProtectedKeyOpensElsewhereTest
 				"openssl is missing on a CI machine, so the interop check cannot run");
 			assumeTrue(false, "openssl is not installed here");
 		}
-		GenerateKeysPanel panel = panelWithAnRsaKeyPair();
-		String password = "pw-" + UUID.randomUUID();
+		GenerateKeysPanel panel = KeygenTestPanels.panelWithAnRsaKeyPair();
+		String password = KeygenTestPanels.throwawayPassword();
 		File keyFile = protectedKeyFor(panel, directory, password);
 
 		Process openssl = new ProcessBuilder("openssl", "pkcs8", "-inform", "DER", "-in",
@@ -165,10 +155,29 @@ class ProtectedKeyOpensElsewhereTest
 			StandardCharsets.UTF_8);
 		assertTrue(openssl.waitFor(60, TimeUnit.SECONDS), "openssl did not finish");
 
-		assertEquals(0, openssl.exitValue(), "openssl refused the file, it said: " + output);
-		assertTrue(output.contains("PRIVATE KEY"),
-			"openssl did not print a private key, it said: " + output);
-		assertFalse(output.contains("ENCRYPTED"), "openssl printed the key still encrypted");
+		assertEquals(0, openssl.exitValue(), "openssl refused the file, exit code and no output "
+			+ "shown on purpose, it may hold the key");
+		RSAPrivateKey printed = (RSAPrivateKey)KeyFactory.getInstance("RSA", JDK_KEY_PROVIDER)
+			.generatePrivate(new PKCS8EncodedKeySpec(pemBodyOf(output)));
+		RSAPrivateKey generated = (RSAPrivateKey)panel.getModelObject().getPrivateKey();
+		assertEquals(generated.getModulus(), printed.getModulus(),
+			"openssl printed a key with another modulus than the generated one");
+		assertEquals(generated.getPrivateExponent(), printed.getPrivateExponent(),
+			"openssl printed a key with another private exponent than the generated one");
+	}
+
+	/** The bytes between the BEGIN and END lines of the PEM text, base64 decoded */
+	private static byte[] pemBodyOf(final String pem)
+	{
+		StringBuilder body = new StringBuilder();
+		for (String line : pem.split("\\R"))
+		{
+			if (!line.isBlank() && !line.startsWith("-----"))
+			{
+				body.append(line.trim());
+			}
+		}
+		return Base64.getDecoder().decode(body.toString());
 	}
 
 	private static boolean opensslIsInstalled()
