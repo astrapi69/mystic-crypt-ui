@@ -31,7 +31,6 @@ dependencies {
     implementation libs.commons.lang3
     implementation libs.bcprov.jdk18on
     implementation libs.bcpkix.jdk18on
-    implementation libs.tango.icon.theme
     implementation libs.observer
     implementation libs.state.pattern
     implementation libs.eventbus
@@ -40,8 +39,9 @@ dependencies {
     // gen-tree declares visitor-pattern only for runtime (astrapi69/gen-tree#22). visitor-pattern
     // is the artifact visitor 6 was renamed to, and only one of the two belongs on the class path (#774)
     implementation libs.visitor.pattern
-    implementation libs.jremix.icon
-    implementation libs.silk.icon.theme
+    // the silk icons are named only as resource paths (ApplicationPanel, MysticCryptApplicationFrame) and are
+    // stored by those paths in every vault's tree elements, so they are needed at runtime and never compiled against
+    runtimeOnly libs.silk.icon.theme
     implementation libs.silly.collection
     implementation libs.silly.bean
     implementation libs.commons.codec
@@ -79,7 +79,6 @@ dependencies {
     implementation libs.jobj.copy
     implementation libs.data.api
     implementation libs.id.generate
-    implementation libs.xml.extensions
     implementation libs.xstream
     implementation libs.gson.extensions
     implementation libs.xstream.extensions
@@ -106,8 +105,8 @@ dependencies {
         implementation(libs.randomizer) {
             because 'randomizer before 10.5 seeds its default generator with the current time'
         }
-        // jettison is no dependency of this application either: xml-extensions 8.2 brings it through
-        // xstream-extensions 1.1 at 1.5.1, which has four high advisories (GHSA-x27m-9w8j-5vcw,
+        // jettison is no dependency of this application either: xstream-extensions 1.1 brings it at
+        // 1.5.1, which has four high advisories (GHSA-x27m-9w8j-5vcw,
         // GHSA-grr4-wv38-f68w, GHSA-7rf3-mqpx-h7xg, GHSA-q6g2-g7f3-rr83). No code here reaches it, the
         // installer ships it all the same (#684). Goes when xstream-extensions brings a fixed version
         // (astrapi69/xstream-extensions#15); RuntimeDependenciesTest proves the floor
