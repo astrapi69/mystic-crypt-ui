@@ -363,8 +363,19 @@ The canonical inventory is the `plugins:` target in the Makefile.
 ## TS-0014 Help buttons and the wiki
 
 - [ ] TC-0140 Every Help button in the sign-in dialogs opens a wiki page that exists, not a
-      "page does not exist" editor (#868). - automated by `WikiLinksTest` (the targets
-      exist); the browser opening manual only
+      "page does not exist" editor (#868). - automated in part: that each of the two Help
+      buttons opens the page the plan names and that the page is in `docs/wiki/` by
+      `SignInHelpButtonsUiTest#signInHelpButton_opensTheOpenExistingPage_whenClicked` and
+      `SignInHelpButtonsUiTest#createHelpButton_opensTheCreateNewPage_whenClicked` (the real button
+      is clicked, the link is recorded, no browser opens); that every page the application and its
+      documents link, the released versions' help links included, is in `docs/wiki/` by
+      `WikiLinksTest#everyLinkedPage_isInTheWikiSource` and
+      `WikiLinksTest#everyPageAReleasedVersionLinks_isInTheWikiSource`; that the Wiki button of
+      Help > Info carries the wiki address by
+      `ApplicationInfoPanelTest#theWikiButtonCarriesTheWikiAddressOfTheInfo_andTheDefaultOneIsTheWikiHome` and
+      `ApplicationInfoPanelTest#theWikiButtonCarriesTheAddressTheInfoGives_notAFixedOne`.
+      Manual only: that the published wiki, the mirror of `docs/wiki/`, serves the page (it needs
+      the network and the workflow's run), and that the browser opens it
 
 ## TS-0015 The installer (release rounds) (release smoke)
 
