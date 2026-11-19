@@ -26,27 +26,40 @@ package io.github.astrapi69.mystic.crypt.ui;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import java.awt.Dialog;
+import java.awt.event.ActionEvent;
 import java.io.File;
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 
+import javax.swing.JFileChooser;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.MenuElement;
+import javax.swing.SwingUtilities;
 
+import org.assertj.swing.core.GenericTypeMatcher;
 import org.assertj.swing.edt.GuiActionRunner;
+import org.assertj.swing.finder.JFileChooserFinder;
+import org.assertj.swing.finder.WindowFinder;
+import org.assertj.swing.fixture.DialogFixture;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import io.github.astrapi69.mystic.crypt.MenuId;
 import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
 import io.github.astrapi69.mystic.crypt.TestPasswords;
+import io.github.astrapi69.mystic.crypt.action.NewApplicationFileAction;
 
 /**
  * A plugin that needs a vault is offered once a vault is open, whichever way it was opened: signing
  * in to an existing database, or creating a new one with "New..." in the sign-in dialog and signing
  * in to it. The key generation plugin stands for every plugin that does not declare itself usable
- * without a vault; its submenu "Key Generation" is greyed out before the sign-in
- * ({@code PublicAccess})
+ * without a vault; its submenu "Key Generation" is greyed out by {@code PublicAccess} (through
+ * {@code DesktopMenu#onEnableByPublic}) only while nobody is signed in, which at a normal start it
+ * never is: the plugins load after the first sign-in and their menu is built enabled. The cases
+ * here are that first sign-in, and the sign-in of New application after a start that was cancelled,
+ * over a menu that {@code onEnableByPublic} has greyed out
  */
 class NewDatabaseOffersThePluginsUiTest extends AbstractUiTest
 {
@@ -65,7 +78,8 @@ class NewDatabaseOffersThePluginsUiTest extends AbstractUiTest
 
 		signInWithExistingDatabase(databaseFile, MASTER_PASSWORD);
 
-		assertEquals(Optional.of(true), pluginSubmenuEnabled(KEY_GENERATION));
+		assertEquals(Optional.of(true), pluginSubmenuEnabled(KEY_GENERATION),
+			"signed in to an existing database, the Key Generation submenu is enabled (#1006)");
 	}
 
 	@Test
@@ -81,7 +95,8 @@ class NewDatabaseOffersThePluginsUiTest extends AbstractUiTest
 		signIn.requireOkEnabled().okAndAwaitSignIn();
 		new ApplicationSteps(robot).awaitSignedIn();
 
-		assertEquals(Optional.of(true), pluginSubmenuEnabled(KEY_GENERATION));
+		assertEquals(Optional.of(true), pluginSubmenuEnabled(KEY_GENERATION),
+			"signed in to a database New... just created, the Key Generation submenu is enabled (#1006)");
 	}
 
 	@Test
@@ -99,7 +114,52 @@ class NewDatabaseOffersThePluginsUiTest extends AbstractUiTest
 			.okAndAwaitSignIn();
 		new ApplicationSteps(robot).awaitSignedIn();
 
-		assertEquals(Optional.of(true), pluginSubmenuEnabled(KEY_GENERATION));
+		assertEquals(Optional.of(true), pluginSubmenuEnabled(KEY_GENERATION),
+			"signed in to a new database with a password and a key file, the Key Generation submenu is enabled (#1006)");
+	}
+
+	@Test
+	@DisplayName("a database New application creates after a cancelled start offers the plugins that need a vault")
+	void aNewApplicationAfterACancelledStart_offersThePluginsThatNeedAVault() throws Exception
+	{
+		installPluginRequiringItBuilt(KEYGEN_ZIP);
+		File databaseFile = new File(tempHome, "new-after-cancel.mcrdb");
+		SignInDialogSteps signIn = launchApplication();
+		signIn.requireOkDisabled().cancel();
+		awaitApplicationInitialized();
+		assertEquals(Optional.of(false), pluginSubmenuEnabled(KEY_GENERATION),
+			"the precondition: with nobody signed in, the Key Generation submenu is greyed out");
+
+		SwingUtilities.invokeLater(() -> new NewApplicationFileAction("New")
+			.actionPerformed(new ActionEvent(MysticCryptApplicationFrame.getInstance(), 0, "")));
+		JFileChooser fileChooser = JFileChooserFinder.findFileChooser()
+			.withTimeout(15, TimeUnit.SECONDS).using(robot).target();
+		SwingUtilities.invokeLater(() -> {
+			fileChooser.setSelectedFile(databaseFile);
+			fileChooser.approveSelection();
+		});
+		awaitCreateMasterKey().checkMasterPassword().typeMasterPasswordWithRepeat(MASTER_PASSWORD)
+			.requireOkEnabled().okAndAwaitClose();
+		new ApplicationSteps(robot).awaitSignedIn();
+
+		assertEquals(Optional.of(true), pluginSubmenuEnabled(KEY_GENERATION),
+			"signed in through New application after a cancelled start, the Key Generation "
+				+ "submenu is enabled again (#1006)");
+	}
+
+	private CreateMasterKeySteps awaitCreateMasterKey()
+	{
+		DialogFixture createMasterKeyDialog = WindowFinder
+			.findDialog(new GenericTypeMatcher<Dialog>(Dialog.class)
+			{
+				@Override
+				protected boolean isMatching(final Dialog candidate)
+				{
+					return "Create your master key".equals(candidate.getTitle())
+						&& candidate.isShowing();
+				}
+			}).withTimeout(10, TimeUnit.SECONDS).using(robot);
+		return new CreateMasterKeySteps(robot, createMasterKeyDialog);
 	}
 
 	/**
