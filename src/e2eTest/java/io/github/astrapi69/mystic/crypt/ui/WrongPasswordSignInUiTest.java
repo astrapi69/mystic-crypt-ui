@@ -58,8 +58,9 @@ class WrongPasswordSignInUiTest extends AbstractUiTest
 		createDatabaseFileHeadless(databaseFile, MASTER_PASSWORD);
 
 		SignInDialogSteps signIn = launchApplication();
-		signIn.requireOkDisabled().checkMasterPassword().typeMasterPassword("totally-wrong-pw")
-			.browseApplicationFile(databaseFile).requireOkEnabled().clickOk();
+		signIn.requireOkDisabled().checkMasterPassword()
+			.typeMasterPassword(TestPasswords.throwaway()).browseApplicationFile(databaseFile)
+			.requireOkEnabled().clickOk();
 
 		new ApplicationSteps(robot).dismissMessageDialog("Authentication with Password");
 
@@ -83,8 +84,9 @@ class WrongPasswordSignInUiTest extends AbstractUiTest
 		createDatabaseFileHeadless(databaseFile, MASTER_PASSWORD);
 
 		SignInDialogSteps signIn = launchApplication();
-		signIn.requireOkDisabled().checkMasterPassword().typeMasterPassword("totally-wrong-pw")
-			.browseApplicationFile(databaseFile).requireOkEnabled().clickOk();
+		signIn.requireOkDisabled().checkMasterPassword()
+			.typeMasterPassword(TestPasswords.throwaway()).browseApplicationFile(databaseFile)
+			.requireOkEnabled().clickOk();
 		new ApplicationSteps(robot).dismissMessageDialog("Authentication with Password");
 
 		assertTrue(signIn.dialogIsShowing(),
