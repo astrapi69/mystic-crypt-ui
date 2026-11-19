@@ -52,6 +52,16 @@ final class NullRootsSkippingHierarchy implements ComponentHierarchy
 		this.delegate = Objects.requireNonNull(delegate, "delegate");
 	}
 
+	/**
+	 * The hierarchy this one hands everything through to, for the diagnosis of a failed lookup
+	 *
+	 * @return the wrapped hierarchy
+	 */
+	ComponentHierarchy delegate()
+	{
+		return delegate;
+	}
+
 	@Override
 	public Collection<Container> roots()
 	{
