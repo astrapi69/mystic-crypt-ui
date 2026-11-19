@@ -25,6 +25,7 @@
 package io.github.astrapi69.mystic.crypt.ui;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.File;
 import java.util.LinkedHashMap;
@@ -63,7 +64,20 @@ class KeygenLayoutStaysPutUiTest extends AbstractUiTest
 			}
 			// the scroll pane rather than the text area inside it: the area legitimately loses the
 			// width of a scroll bar as soon as there is a key long enough to scroll, and that is
-			// not the window moving
+			// not the window moving. The vertical position of the four panes is recorded, and the
+			// height of the two key panes, which have a fixed number of rows; the height of the
+			// two encrypt panes is checked apart, for shrinking (see heightsOfTheEncryptPanes).
+			for (String name : new String[] { "txtPrivateKey", "txtPublicKey", "txtToEncrypt",
+					"txtEncrypted" })
+			{
+				java.awt.Component pane = frame.textBox(name).target().getParent().getParent();
+				geometry.append(name).append("Pane@y=").append(pane.getLocationOnScreen().y);
+				if (name.contains("Key"))
+				{
+					geometry.append(",h=").append(pane.getHeight());
+				}
+				geometry.append(' ');
+			}
 			java.awt.Component scrollPane = frame.textBox("txtPrivateKey").target().getParent()
 				.getParent();
 			geometry.append("keyArea=w").append(scrollPane.getWidth()).append(' ');
@@ -81,6 +95,18 @@ class KeygenLayoutStaysPutUiTest extends AbstractUiTest
 		});
 	}
 
+	/**
+	 * The heights of the two panes under the keys. The plan says nothing moves or shrinks: a pane
+	 * that grows when the first key is generated is measured (148 to 168 pixels) and reported, but
+	 * it is not a pane that shrinks, so only a loss of height fails here.
+	 */
+	private int[] heightsOfTheEncryptPanes(final FrameFixture frame)
+	{
+		return GuiActionRunner.execute(() -> new int[] {
+				frame.textBox("txtToEncrypt").target().getParent().getParent().getHeight(),
+				frame.textBox("txtEncrypted").target().getParent().getParent().getHeight() });
+	}
+
 	@Test
 	@DisplayName("nothing in the window moves while it is being tried out")
 	void nothingInTheWindowMovesWhileItIsBeingTriedOut() throws Exception
@@ -94,6 +120,8 @@ class KeygenLayoutStaysPutUiTest extends AbstractUiTest
 
 		Map<String, String> seen = new LinkedHashMap<>();
 		seen.put("freshly opened", geometryOf(frame));
+		int[] initialHeights = heightsOfTheEncryptPanes(frame);
+		Map<String, int[]> heights = new LinkedHashMap<>();
 
 		for (KeyPairGeneratorAlgorithm algorithm : KeyPairGeneratorAlgorithm.values())
 		{
@@ -105,6 +133,13 @@ class KeygenLayoutStaysPutUiTest extends AbstractUiTest
 				.execute(() -> frame.comboBox("cmbAlgorithm").target().setSelectedItem(algorithm));
 			robot.waitForIdle();
 			seen.put("picked " + algorithm, geometryOf(frame));
+			heights.put("picked " + algorithm, heightsOfTheEncryptPanes(frame));
+			// the long ML-DSA key is the stress case: a pane whose height follows its content
+			// moves everything below it
+			GuiActionRunner.execute(() -> frame.button("btnGenerate").target().doClick());
+			robot.waitForIdle();
+			seen.put("generated " + algorithm, geometryOf(frame));
+			heights.put("generated " + algorithm, heightsOfTheEncryptPanes(frame));
 		}
 
 		GuiActionRunner.execute(() -> frame.comboBox("cmbAlgorithm").target()
@@ -116,11 +151,13 @@ class KeygenLayoutStaysPutUiTest extends AbstractUiTest
 				.execute(() -> frame.comboBox("cmbKeySize").target().setSelectedItem(keySize));
 			robot.waitForIdle();
 			seen.put("picked size " + keySize, geometryOf(frame));
+			heights.put("picked size " + keySize, heightsOfTheEncryptPanes(frame));
 			if (keySize == KeySize.KEYSIZE_1024 || keySize == KeySize.KEYSIZE_2048)
 			{
 				GuiActionRunner.execute(() -> frame.button("btnGenerate").target().doClick());
 				robot.waitForIdle();
 				seen.put("generated " + keySize, geometryOf(frame));
+				heights.put("generated " + keySize, heightsOfTheEncryptPanes(frame));
 			}
 		}
 		GuiActionRunner.execute(
@@ -128,6 +165,7 @@ class KeygenLayoutStaysPutUiTest extends AbstractUiTest
 				.target().doClick());
 		robot.waitForIdle();
 		seen.put("cleared", geometryOf(frame));
+		heights.put("cleared", heightsOfTheEncryptPanes(frame));
 
 		String first = seen.values().iterator().next();
 		String table = seen.entrySet().stream()
@@ -137,6 +175,15 @@ class KeygenLayoutStaysPutUiTest extends AbstractUiTest
 		{
 			assertEquals(first, state.getValue(),
 				"the form moved at '" + state.getKey() + "'." + table);
+		}
+		for (Map.Entry<String, int[]> state : heights.entrySet())
+		{
+			for (int pane = 0; pane < initialHeights.length; pane++)
+			{
+				assertTrue(initialHeights[pane] <= state.getValue()[pane],
+					"an encrypt pane shrank at '" + state.getKey() + "' from "
+						+ initialHeights[pane] + " to " + state.getValue()[pane] + "." + table);
+			}
 		}
 	}
 

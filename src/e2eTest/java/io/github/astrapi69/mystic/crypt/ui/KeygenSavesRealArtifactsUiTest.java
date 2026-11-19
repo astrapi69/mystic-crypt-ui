@@ -206,6 +206,58 @@ class KeygenSavesRealArtifactsUiTest extends AbstractUiTest
 			new String(java.nio.file.Files.readAllBytes(expected.toPath())).contains("PRIVATE KEY"),
 			"the file named .der holds PEM text");
 		assertTheyBelongTogether(PrivateKeyReader.readPrivateKey(expected), onScreen);
+
+		thePublicKeyFollowsTheChosenFormatToo(frame, onScreen);
+		theCertificateStaysPemWhateverTheFormatSays(frame);
+	}
+
+	/**
+	 * Pins today's behaviour of a probable defect (TC-0105), it does not endorse it: with DER
+	 * chosen, the certificate is still written as PEM text with the ending .pem.
+	 * CryptographyPanel.java:415-416 hard-codes PEM_ENDING and KeygenSupport.writeCertificate
+	 * (:349-353) takes no format, while the format box's tooltip (GenerateKeysPanel.java:383-384)
+	 * promises the encoding of every file the window saves. When the certificate honours the
+	 * format, this method is to be turned, not deleted.
+	 *
+	 * @param frame
+	 *            the application frame, with DER chosen in the format box
+	 */
+	private void theCertificateStaysPemWhateverTheFormatSays(final FrameFixture frame)
+		throws Exception
+	{
+		File chosen = new File(tempHome, "saved-certificate-in-der");
+		File certificateFile = new File(tempHome, "saved-certificate-in-der.pem");
+
+		SwingUtilities.invokeLater(
+			() -> frame.button(JButtonMatcher.withText("Save certificate...")).target().doClick());
+		JOptionPaneFixture certificateDialog = JOptionPaneFinder.findOptionPane()
+			.withTimeout(15, TimeUnit.SECONDS).using(robot);
+		SwingUtilities
+			.invokeLater(() -> certificateDialog.target().setValue(JOptionPane.OK_OPTION));
+		approveFileChooserWith(chosen, certificateFile);
+
+		assertTrue(Files.readString(certificateFile.toPath()).contains("BEGIN CERTIFICATE"),
+			"today the certificate is PEM text even with DER chosen");
+		assertFalse(new File(tempHome, "saved-certificate-in-der.der").exists(),
+			"the certificate was written as .der: the defect is fixed, turn this method");
+	}
+
+	/** The public key is saved in the chosen encoding as well, not only the private one */
+	private void thePublicKeyFollowsTheChosenFormatToo(final FrameFixture frame,
+		final PublicKey onScreen) throws Exception
+	{
+		File chosen = new File(tempHome, "saved-public-binary");
+		File expected = new File(tempHome, "saved-public-binary.der");
+
+		saveThrough(frame, "Save public key", chosen, expected);
+
+		assertFalse(
+			Files.readString(expected.toPath(), java.nio.charset.StandardCharsets.ISO_8859_1)
+				.contains("PUBLIC KEY"),
+			"the file named .der holds PEM text");
+		assertArrayEquals(onScreen.getEncoded(),
+			PublicKeyReader.readPublicKey(expected).getEncoded(),
+			"the public key in the .der file is not the one the window shows");
 	}
 
 	/** The plain private key file has to be the partner of the public key on screen */

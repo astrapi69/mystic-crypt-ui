@@ -31,6 +31,10 @@ import java.io.File;
 import java.nio.file.Files;
 import java.security.PrivateKey;
 import java.security.PublicKey;
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.swing.JComboBox;
 
 import org.assertj.swing.edt.GuiActionRunner;
 import org.assertj.swing.fixture.FrameFixture;
@@ -56,10 +60,11 @@ class KeygenEveryAlgorithmUiTest extends AbstractUiTest
 
 	private static final String MASTER_PASSWORD = TestPasswords.throwaway();
 
-	private static final KeyPairGeneratorAlgorithm[] OFFERED = { KeyPairGeneratorAlgorithm.RSA,
-			KeyPairGeneratorAlgorithm.EC, KeyPairGeneratorAlgorithm.X25519,
-			KeyPairGeneratorAlgorithm.X448, KeyPairGeneratorAlgorithm.ML_KEM_768,
-			KeyPairGeneratorAlgorithm.ML_DSA_65 };
+	/** What the plan promises the box offers; the loop below walks the box itself */
+	private static final List<KeyPairGeneratorAlgorithm> EXPECTED_IN_THE_BOX = List.of(
+		KeyPairGeneratorAlgorithm.RSA, KeyPairGeneratorAlgorithm.EC,
+		KeyPairGeneratorAlgorithm.X25519, KeyPairGeneratorAlgorithm.X448,
+		KeyPairGeneratorAlgorithm.ML_KEM_768, KeyPairGeneratorAlgorithm.ML_DSA_65);
 
 	@Test
 	@DisplayName("every algorithm the box offers generates a real key pair")
@@ -78,7 +83,13 @@ class KeygenEveryAlgorithmUiTest extends AbstractUiTest
 		int encryptPanelLeftEdge = leftEdgeOf(frame, "txtToEncrypt");
 		int keyAreaLeftEdge = leftEdgeOf(frame, "txtPrivateKey");
 
-		for (KeyPairGeneratorAlgorithm algorithm : OFFERED)
+		// the loop walks what the box really holds: a hard-coded list would go on generating the
+		// previous algorithm for one the box no longer offers, because an uneditable combo box
+		// leaves its selection unchanged for an item it does not hold
+		List<KeyPairGeneratorAlgorithm> offeredByTheBox = itemsOfTheAlgorithmBox(frame);
+		assertEquals(EXPECTED_IN_THE_BOX, offeredByTheBox,
+			"the box offers other algorithms than the plan names");
+		for (KeyPairGeneratorAlgorithm algorithm : offeredByTheBox)
 		{
 			generateAndCheck(frame, algorithm);
 			assertEquals(encryptPanelLeftEdge, leftEdgeOf(frame, "txtToEncrypt"),
@@ -106,6 +117,19 @@ class KeygenEveryAlgorithmUiTest extends AbstractUiTest
 			assertEquals(keyAreaLeftEdge, leftEdgeOf(frame, "txtPrivateKey"),
 				"the key areas moved after generating a " + keySize + " key");
 		}
+	}
+
+	private List<KeyPairGeneratorAlgorithm> itemsOfTheAlgorithmBox(final FrameFixture frame)
+	{
+		return GuiActionRunner.execute(() -> {
+			JComboBox<?> box = frame.comboBox("cmbAlgorithm").target();
+			List<KeyPairGeneratorAlgorithm> items = new ArrayList<>();
+			for (int index = 0; index < box.getItemCount(); index++)
+			{
+				items.add((KeyPairGeneratorAlgorithm)box.getItemAt(index));
+			}
+			return items;
+		});
 	}
 
 	/**
@@ -137,6 +161,10 @@ class KeygenEveryAlgorithmUiTest extends AbstractUiTest
 		GuiActionRunner
 			.execute(() -> frame.comboBox("cmbAlgorithm").target().setSelectedItem(algorithm));
 		robot.waitForIdle();
+		assertEquals(algorithm,
+			GuiActionRunner
+				.execute(() -> frame.comboBox("cmbAlgorithm").target().getSelectedItem()),
+			"the box did not take " + algorithm + ", so the key below is of another algorithm");
 		GuiActionRunner.execute(() -> frame.button("btnGenerate").target().doClick());
 		robot.waitForIdle();
 

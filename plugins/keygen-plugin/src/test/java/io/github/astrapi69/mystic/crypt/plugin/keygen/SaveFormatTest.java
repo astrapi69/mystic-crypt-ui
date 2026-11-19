@@ -45,6 +45,7 @@ import io.github.astrapi69.crypt.api.algorithm.key.KeyPairGeneratorAlgorithm;
 import io.github.astrapi69.crypt.api.key.KeyFileFormat;
 import io.github.astrapi69.crypt.api.key.KeySize;
 import io.github.astrapi69.crypt.data.key.reader.PrivateKeyReader;
+import io.github.astrapi69.crypt.data.key.reader.PublicKeyReader;
 
 /**
  * The window writes PEM unless the user asks for the binary encoding. The choice has to reach the
@@ -114,6 +115,28 @@ class SaveFormatTest
 			"the DER file holds PEM text");
 		assertArrayEquals(panel.getModelObject().getPrivateKey().getEncoded(),
 			PrivateKeyReader.readPrivateKey(asDer).getEncoded(),
+			"the key read back from the DER file is not the key that was generated");
+	}
+
+	@Test
+	@DisplayName("a public key saved as PEM is text, as DER it is not")
+	void aPublicKeySavedAsPemIsTextAsDerItIsNot(@TempDir File directory) throws Exception
+	{
+		GenerateKeysPanel panel = panelWithAnRsaKeyPair();
+		File asPem = new File(directory, "key.pem");
+		File asDer = new File(directory, "key.der");
+
+		panel.getModelObject().setSaveFormat(KeyFileFormat.PEM);
+		panel.savePublicKeyTo(asPem);
+		panel.getModelObject().setSaveFormat(KeyFileFormat.DER);
+		panel.savePublicKeyTo(asDer);
+
+		assertTrue(Files.readString(asPem.toPath()).contains("PUBLIC KEY"),
+			"the PEM file does not hold PEM");
+		assertFalse(new String(Files.readAllBytes(asDer.toPath())).contains("PUBLIC KEY"),
+			"the DER file holds PEM text");
+		assertArrayEquals(panel.getModelObject().getPublicKey().getEncoded(),
+			PublicKeyReader.readPublicKey(asDer).getEncoded(),
 			"the key read back from the DER file is not the key that was generated");
 	}
 
