@@ -27,9 +27,8 @@ dependencyAnalysis {
                 // pull request that removes it or says why it stays, so this list only gets shorter, and what the
                 // report still shows is new
                 exclude("commons-codec:commons-codec", "com.google.code.gson:gson",
-                    "io.github.astrapi69:jobj-cloner", "io.github.astrapi69:jobj-copy", "io.github.astrapi69:jremix-icon",
-                    "io.github.astrapi69:silk-icon-theme",
-                    "org.freedesktop.tango:tango-icon-theme", "io.github.astrapi69:tree-api",
+                    "io.github.astrapi69:jobj-cloner", "io.github.astrapi69:jobj-copy",
+                    "io.github.astrapi69:tree-api",
                     "io.github.astrapi69:junit-jupiter-extensions",
                     "org.mockito:mockito-core")
             }
