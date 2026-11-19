@@ -324,7 +324,7 @@ The window is built for trying out, so that is how it is tested.
       `ViewModeSwitchUiTest#theChosenViewIsTheViewTheApplicationOpensInNextTime` (the file
       holds the view and the restart is `AbstractUiTest#shutdownApplication` plus a new
       sign-in, in the same JVM); a real restart of the installed application: manual only
-- [ ] TC-0112 Change the look, restart: the look is still there (there is no language setting
+- [ ] TC-0112 Change the look, restart: the look is still there (no window offers the language
       since #885). - automated by
       `LookAndFeelSurvivesRestartUiTest#theLookChosenInTheSettingsIsStillActiveAfterARestart`
       (chosen in the settings dialog, restart in the same JVM) and
