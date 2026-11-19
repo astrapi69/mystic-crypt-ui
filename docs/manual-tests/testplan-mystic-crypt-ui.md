@@ -302,18 +302,42 @@ The window is built for trying out, so that is how it is tested.
 ## TS-0011 Settings
 
 - [ ] TC-0110 Switch the view to desktop, close the dialog: the application stands in that
-      view at once. - automated by `ViewModeSwitchUiTest`
-- [ ] TC-0111 Restart: it opens in the same view. - manual only (a real restart)
-- [ ] TC-0112 Change look and language, restart, the setting is still there. - manual only
+      view at once. - automated by
+      `ViewModeSwitchUiTest#theViewChosenInTheSettingsIsTheViewTheFrameIsIn`
+- [ ] TC-0111 Restart: it opens in the same view. - automated by
+      `ViewModeSwitchUiTest#theChosenViewIsTheViewTheApplicationOpensInNextTime` (the file
+      holds the view and the restart is `AbstractUiTest#shutdownApplication` plus a new
+      sign-in, in the same JVM); a real restart of the installed application: manual only
+- [ ] TC-0112 Change the look, restart: the look is still there (there is no language setting
+      since #885). - automated by
+      `LookAndFeelSurvivesRestartUiTest#theLookChosenInTheSettingsIsStillActiveAfterARestart`
+      (chosen in the settings dialog, restart in the same JVM) and
+      `SignInDialogLookAndFeelUiTest#thePersistedLookAndFeelIsAlreadyActiveOnTheSignInDialog`
+      (a persisted look is active at sign-in); a real restart of the installed application:
+      manual only
 
 ## TS-0012 Keyboard
 
 - [ ] TC-0120 Sign-in dialog: the caret is in the master password field at once, Enter
-      signs in. - automated by `SigninFocusUiTest`, `SignInEnterSubmitUiTest`
+      signs in. - automated by
+      `SigninFocusUiTest#afterAPasswordSignInTheDialogOpensOnTheField` (the dialog's initial
+      component is the field once the password is switched on, as it is after an earlier
+      password sign-in) and `SigninFocusUiTest#theDialogOpensOnTheMasterPassword` (a fresh
+      profile: the box first, then the field), and
+      `SignInEnterSubmitUiTest#pressingEnterInTheMasterPasswordFieldSignsIn` (Enter is sent
+      as the field's action event, since CI has no window manager; the physical key: manual
+      only)
 - [ ] TC-0121 In the tree: Del deletes, F2 renames, Ins creates - each with its confirmation
-      where there is one. - automated by `TreeShortcutsUiTest` (F2); Del and Ins manual only
+      where there is one. - automated by
+      `TreeShortcutsUiTest#f2RenamesTheSelectedNode` (F2, rename confirmed with OK) and
+      `TreeShortcutsUiTest#f2OpensTheSelectedNodeForEditing`,
+      `TreeShortcutsUiTest#deleteRemovesTheSelectedNodeWhenConfirmed` (Del, confirmed) and
+      `TreeShortcutsUiTest#deleteAsksBeforeItRemovesTheSelectedNode` (Cancel keeps the node),
+      `TreeShortcutsUiTest#insertAddsAChildToTheSelectedNode` (Ins); the key is looked up in
+      the tree's input map and run, not typed on a physical keyboard
 - [ ] TC-0122 Search field in the toolbar: typing jumps to the first match, Enter to the
-      next. - automated by `ToolbarSearchUiTest`
+      next. - automated by `ToolbarSearchUiTest#typingJumpsToTheFirstMatchAndEnterToTheNext`
+      (Enter is sent as the field's action event)
 
 ## TS-0013 Plugins
 
