@@ -26,10 +26,12 @@ package io.github.astrapi69.mystic.crypt.ui;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.File;
 import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.concurrent.TimeUnit;
@@ -50,8 +52,11 @@ import org.assertj.swing.fixture.DialogFixture;
 import org.assertj.swing.fixture.JOptionPaneFixture;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.pf4j.PluginState;
 
+import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
 import io.github.astrapi69.mystic.crypt.TestPasswords;
+import io.github.astrapi69.mystic.crypt.plugin.PluginArchives;
 
 /**
  * Settings > Plugins > Install from Zip... with a zip named like the zip of a plugin that is loaded
@@ -72,22 +77,33 @@ class SettingsInstallZipOfALoadedPluginUiTest extends AbstractUiTest
 	private static final String UPDATED_TITLE = "Plugin updated at the next start";
 
 	@Test
-	@DisplayName("installing a changed zip of a loaded plugin puts the new version in place, reports the update for the next start and leaves the running plugin usable")
-	void aChangedZipOfALoadedPlugin_isInPlaceAndReportedForTheNextStart() throws Exception
+	@DisplayName("installing a changed zip of a loaded plugin leaves the running plugin's directory alone, puts the zip beside it and has the next start unpack it")
+	void aChangedZipOfALoadedPlugin_waitsForTheNextStart() throws Exception
 	{
 		ApplicationSteps application = signedInWithTheObfuscationPlugin("changed-zip");
 		Path changedZip = zipOfTheObfuscationPlugin(entry -> true, true);
+		String descriptorBefore = Files.readString(unpackedPlugin().resolve("plugin.properties"));
 
 		String[] outcome = installFromZipInTheSettings(application, changedZip, false);
 
-		assertTrue(Files.exists(unpackedPlugin().resolve(MARKER_ENTRY)),
-			"the new version is in place for the next start");
 		assertEquals(UPDATED_TITLE, outcome[0], "title: " + outcome[1]);
 		assertTrue(outcome[1].contains("next start"), "message: " + outcome[1]);
+		assertFalse(Files.exists(unpackedPlugin().resolve(MARKER_ENTRY)),
+			"the directory of the running plugin was replaced, so two versions of its classes meet");
+		assertEquals(descriptorBefore,
+			Files.readString(unpackedPlugin().resolve("plugin.properties")),
+			"the running plugin's directory changed");
+		assertArrayEquals(Files.readAllBytes(changedZip), Files.readAllBytes(installedZipFile()),
+			"the changed zip is not the installed one");
 		application.showMainFrame();
 		application.openPluginTool("Operated Obfuscation", "Operated Obfuscation");
 		assertTrue(application.isInternalFrameShowing("Operated Obfuscation"),
-			"the running plugin still loads its classes after its directory was replaced");
+			"the running plugin still loads a tool it had not opened before");
+
+		PluginArchives.unpackChanged(installedZipFile().getParent());
+
+		assertTrue(Files.exists(unpackedPlugin().resolve(MARKER_ENTRY)),
+			"the next start unpacks the new version");
 	}
 
 	@Test
@@ -116,6 +132,12 @@ class SettingsInstallZipOfALoadedPluginUiTest extends AbstractUiTest
 
 		assertEquals(UPDATED_TITLE, outcome[0], "title: " + outcome[1]);
 		assertTrue(outcome[1].contains("stays disabled"), "message: " + outcome[1]);
+		assertEquals(PluginState.DISABLED,
+			MysticCryptApplicationFrame.getInstance().getPluginManager()
+				.getPlugin("obfuscation-plugin").getPluginState(),
+			"the plugin did not stay disabled");
+		assertFalse(Files.exists(unpackedPlugin().resolve(MARKER_ENTRY)),
+			"the directory of the disabled plugin was replaced");
 	}
 
 	@Test
@@ -259,6 +281,10 @@ class SettingsInstallZipOfALoadedPluginUiTest extends AbstractUiTest
 				}
 				target.putNextEntry(new ZipEntry(entry.getName()));
 				source.getInputStream(entry).transferTo(target);
+				if (withMarker && "plugin.properties".equals(entry.getName()))
+				{
+					target.write("\n# a newer version\n".getBytes(StandardCharsets.UTF_8));
+				}
 				target.closeEntry();
 			}
 			if (withMarker)

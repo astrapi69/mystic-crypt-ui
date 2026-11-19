@@ -55,6 +55,8 @@ import java.util.zip.ZipOutputStream;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.pf4j.DefaultPluginRepository;
 import org.pf4j.util.FileUtils;
 
@@ -306,6 +308,39 @@ class PluginArchivesTest
 		IOException refused = assertThrows(IOException.class, () -> PluginArchives.pluginIdOf(zip));
 
 		assertTrue(refused.getMessage().contains("not a plugin zip"), refused.getMessage());
+	}
+
+	@ParameterizedTest(name = "a descriptor with {0} is refused")
+	@ValueSource(strings = { "plugin.version=1.0.0", "plugin.id=demo-plugin",
+			"plugin.id=\nplugin.version=1.0.0", "plugin.id=demo-plugin\nplugin.version= " })
+	@DisplayName("a zip whose descriptor lacks an id or a version has no plugin id")
+	void aDescriptorWithoutAnIdOrAVersion_isRefused(final String descriptor) throws Exception
+	{
+		Path zip = pluginsRoot.resolve(PLUGIN + ".zip");
+		try (OutputStream out = Files.newOutputStream(zip);
+			ZipOutputStream archive = new ZipOutputStream(out))
+		{
+			archive.putNextEntry(new ZipEntry("plugin.properties"));
+			archive.write((descriptor + "\n").getBytes(StandardCharsets.UTF_8));
+			archive.closeEntry();
+		}
+
+		assertThrows(InvalidPluginZipException.class, () -> PluginArchives.pluginIdOf(zip));
+	}
+
+	@Test
+	@DisplayName("a directory is unpacked from a zip when its recorded checksum is the zip's")
+	void aDirectoryIsUnpackedFromAZip_whenItsRecordedChecksumIsTheZips() throws Exception
+	{
+		Path zip = writeZip("version 1");
+		Path directory = pluginsRoot.resolve(PLUGIN);
+		assertFalse(PluginArchives.isUnpackedFrom(zip, directory), "nothing is unpacked yet");
+		unpackAsTheApplicationStarts();
+
+		assertTrue(PluginArchives.isUnpackedFrom(zip, directory));
+
+		writeZip("version 2");
+		assertFalse(PluginArchives.isUnpackedFrom(zip, directory), "the zip has other content");
 	}
 
 	private Path writeZip(final String version) throws IOException

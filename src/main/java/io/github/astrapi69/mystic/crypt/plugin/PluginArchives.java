@@ -133,8 +133,7 @@ public final class PluginArchives
 		String checksum = checksumOf(zip);
 		Path directory = directoryOf(zip);
 		Path record = recordOf(directory);
-		if (Files.isDirectory(directory) && Files.isRegularFile(record)
-			&& checksum.equals(Files.readString(record, StandardCharsets.US_ASCII).strip()))
+		if (isUnpackedFrom(zip, directory))
 		{
 			return Outcome.UNCHANGED;
 		}
@@ -178,39 +177,68 @@ public final class PluginArchives
 	 * @param zip
 	 *            the plugin zip
 	 * @return the plugin id the zip's descriptor names
+	 * @throws InvalidPluginZipException
+	 *             if the file is not a zip, or holds no plugin descriptor with an id and a version
 	 * @throws IOException
-	 *             if the file is not a zip, or holds no plugin descriptor with an id
+	 *             if the file cannot be read
 	 */
 	public static String pluginIdOf(final Path zip) throws IOException
 	{
+		String fileName = zip.getFileName().toString();
 		if (!Files.isRegularFile(zip))
 		{
-			throw new IOException(zip.getFileName() + " is not a file");
+			throw new InvalidPluginZipException(fileName, "it is not a file", null);
 		}
 		try (java.util.zip.ZipFile ignored = new java.util.zip.ZipFile(zip.toFile()))
 		{
 			PluginDescriptor descriptor = new CompoundPluginDescriptorFinder()
 				.add(new PropertiesPluginDescriptorFinder())
 				.add(new ManifestPluginDescriptorFinder()).find(zip);
-			String pluginId = descriptor.getPluginId();
-			if (pluginId == null || pluginId.isBlank())
+			if (isBlank(descriptor.getPluginId()))
 			{
-				throw new IOException(zip.getFileName() + " holds no plugin id");
+				throw new InvalidPluginZipException(fileName, "its descriptor names no plugin id",
+					null);
 			}
-			return pluginId;
+			if (isBlank(descriptor.getVersion()))
+			{
+				throw new InvalidPluginZipException(fileName,
+					"its descriptor names no version, which the plugin manager requires", null);
+			}
+			return descriptor.getPluginId();
 		}
 		catch (java.util.zip.ZipException notAZip)
 		{
-			throw new IOException(
-				zip.getFileName() + " is not a plugin zip: " + notAZip.getMessage(), notAZip);
+			throw new InvalidPluginZipException(fileName, notAZip.getMessage(), notAZip);
 		}
 		catch (RuntimeException noDescriptor)
 		{
-			throw new IOException(
-				zip.getFileName() + " is not a plugin zip: it holds no plugin descriptor ("
-					+ noDescriptor.getMessage() + ")",
-				noDescriptor);
+			throw new InvalidPluginZipException(fileName,
+				"it holds no plugin descriptor (" + noDescriptor.getMessage() + ")", noDescriptor);
 		}
+	}
+
+	private static boolean isBlank(final String text)
+	{
+		return text == null || text.isBlank();
+	}
+
+	/**
+	 * Tells whether the directory was unpacked from a zip with this very content, by the checksum
+	 * recorded beside the directory
+	 *
+	 * @param zip
+	 *            the plugin zip
+	 * @param directory
+	 *            the directory unpacked from a zip before
+	 * @return true if the directory exists and its recorded checksum is the zip's
+	 * @throws IOException
+	 *             if the zip or the record cannot be read
+	 */
+	public static boolean isUnpackedFrom(final Path zip, final Path directory) throws IOException
+	{
+		Path record = recordOf(directory);
+		return Files.isDirectory(directory) && Files.isRegularFile(record)
+			&& checksumOf(zip).equals(Files.readString(record, StandardCharsets.US_ASCII).strip());
 	}
 
 	/**
