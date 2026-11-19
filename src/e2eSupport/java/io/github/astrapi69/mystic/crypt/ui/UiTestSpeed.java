@@ -24,6 +24,7 @@
  */
 package io.github.astrapi69.mystic.crypt.ui;
 
+import org.assertj.swing.edt.GuiActionRunner;
 import org.assertj.swing.timing.Pause;
 
 /**
@@ -45,6 +46,12 @@ final class UiTestSpeed
 
 	private static final boolean DEMO_MODE = "demo"
 		.equalsIgnoreCase(System.getProperty(MODE_PROPERTY, "fast"));
+
+	private static final int STABLE_READS = 3;
+
+	private static final int STABLE_READ_INTERVAL_MILLIS = 50;
+
+	private static final long PLACED_TIMEOUT_MILLIS = 5000;
 
 	private UiTestSpeed()
 	{
@@ -70,5 +77,39 @@ final class UiTestSpeed
 	static void windowManagerSettle()
 	{
 		Pause.pause(DEMO_MODE ? 400 : 80);
+	}
+
+	/**
+	 * Waits until a window that has just been shown stays where it is. A click is computed from the
+	 * window's location on screen, and the window manager can still move a new window after it is
+	 * shown (measured: AWT reported a dialog at (1280,758) and then at (640,390)), so a click
+	 * computed before that lands where the window was (#962). The location must be the same in
+	 * {@value #STABLE_READS} consecutive reads, {@value #STABLE_READ_INTERVAL_MILLIS} ms apart
+	 *
+	 * @param window
+	 *            the window that was just shown
+	 * @throws AssertionError
+	 *             if the window keeps moving, naming the last two locations
+	 */
+	static void awaitWindowPlaced(final java.awt.Window window)
+	{
+		java.awt.Point previous = null;
+		java.awt.Point current = null;
+		int sameReads = 0;
+		long deadline = System.currentTimeMillis() + PLACED_TIMEOUT_MILLIS;
+		while (System.currentTimeMillis() < deadline)
+		{
+			current = GuiActionRunner
+				.execute(() -> window.isShowing() ? window.getLocationOnScreen() : null);
+			sameReads = current != null && current.equals(previous) ? sameReads + 1 : 1;
+			if (sameReads >= STABLE_READS)
+			{
+				return;
+			}
+			previous = current;
+			Pause.pause(STABLE_READ_INTERVAL_MILLIS);
+		}
+		throw new AssertionError("the window was not placed within " + PLACED_TIMEOUT_MILLIS
+			+ " ms: it was at " + previous + " and is at " + current + " (#962)");
 	}
 }

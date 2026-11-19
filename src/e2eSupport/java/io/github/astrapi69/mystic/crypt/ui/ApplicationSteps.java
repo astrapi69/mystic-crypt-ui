@@ -1612,9 +1612,12 @@ final class ApplicationSteps
 
 	/**
 	 * Selects a tab of the settings dialog and waits until the dialog says it is selected (#962).
-	 * Once in CI the click changed nothing: the lookup that followed failed on a component of the
-	 * General tab while the Plugins tab was still selected, with a hierarchy dump that named
-	 * neither. Now the step waits for the selection the click should have made, and a tab that is
+	 * <p>
+	 * The click point is computed from the dialog's location on screen, and a window that has just
+	 * been shown can still be moved by the window manager: the click then lands where the dialog
+	 * was and the tab stays as it is. Measured on develop under two cores, 4 of 40 sign-in and
+	 * open-Settings rounds failed with the Plugins tab still selected and the pointer outside the
+	 * dialog. So the step first waits until the dialog is placed, clicks once, and a tab that is
 	 * still not selected fails with the title of the one that is
 	 *
 	 * @param settings
@@ -1624,6 +1627,7 @@ final class ApplicationSteps
 	 */
 	void selectSettingsTab(final DialogFixture settings, final String title)
 	{
+		UiTestSpeed.awaitWindowPlaced(settings.target());
 		settings.tabbedPane("tabSettings").selectTab(title);
 		try
 		{
