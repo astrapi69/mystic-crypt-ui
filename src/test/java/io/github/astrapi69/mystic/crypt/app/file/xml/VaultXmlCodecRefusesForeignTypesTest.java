@@ -91,7 +91,7 @@ class VaultXmlCodecRefusesForeignTypesTest
 
 		assertTrue(refusal.getMessage().contains(NotAVaultType.class.getName()),
 			"the sign-in names the type: " + refusal.getMessage());
-		assertFalse(refusal.getMessage().contains("Password is not valid"),
+		assertFalse(refusal.getMessage().contains("Wrong master password."),
 			"the sign-in does not blame the password: " + refusal.getMessage());
 		assertEquals(0, NotAVaultType.CREATED.get(), "instances of the foreign type built");
 	}

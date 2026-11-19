@@ -34,10 +34,13 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.security.KeyPair;
 import java.security.Security;
+import java.util.Arrays;
+import java.util.UUID;
 import java.util.stream.Stream;
 
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -59,8 +62,15 @@ import io.github.astrapi69.mystic.crypt.panel.signin.MasterPwFileModelBean;
 class SignInRefusalTextTest
 {
 
+	private static final String WRONG_BOTH = "The master password or the key file is wrong.";
+	private static final String WRONG_KEY = "This key file does not unlock this database.";
+	private static final String WRONG_PASSWORD = "Wrong master password.";
+	private static final String NOT_A_DATABASE = "This file is not a database this application can open. It was not opened, and the file is unchanged.";
+
 	@TempDir
 	File directory;
+
+	private final char[] passwordOfTheVault = TestPasswords.throwaway().toCharArray();
 
 	@BeforeAll
 	static void registerBouncyCastle()
@@ -82,23 +92,37 @@ class SignInRefusalTextTest
 	{
 		return Stream.of(
 			Arguments.of("a wrong password, password alone",
-				(Attempt)test -> test.openWithPassword(test.writtenWithPassword(), "other"),
-				"Wrong master password."),
+				(Attempt)test -> test.open(test.writtenWithPassword(), null,
+					TestPasswords.throwaway().toCharArray()),
+				WRONG_PASSWORD),
 			Arguments.of("a wrong password, password and key file",
-				(Attempt)test -> test.openWithPasswordAndKey(true, false),
-				"The master password or the key file is wrong."),
+				(Attempt)test -> test.openBothWith(test.pem(2048), true), WRONG_BOTH),
 			Arguments.of("a foreign key file, password and key file",
-				(Attempt)test -> test.openWithPasswordAndKey(false, true),
-				"The master password or the key file is wrong."),
+				(Attempt)test -> test.openBothWith(test.pem(2048), false), WRONG_BOTH),
+			Arguments.of("a foreign 1024-bit key file, password and key file",
+				(Attempt)test -> test.openBothWith(test.pem(1024), false), WRONG_BOTH),
 			Arguments.of("a foreign key file, key file alone",
-				(Attempt)test -> test.openWithKeyAlone(),
-				"This key file does not unlock this database."),
+				(Attempt)test -> test.openKeyAloneWith(test.pem(2048)), WRONG_KEY),
+			Arguments.of("a foreign 1024-bit key file, key file alone",
+				(Attempt)test -> test.openKeyAloneWith(test.pem(1024)), WRONG_KEY),
+			Arguments.of("a key file that holds no private key (a DER public key), key file alone",
+				(Attempt)test -> test.openKeyAloneWith(test.derPublicKey()), WRONG_KEY),
 			Arguments.of("a file that is cut off after the marker",
-				(Attempt)test -> test.openWithPassword(test.truncatedVault(), null),
-				"This file is not a database this application can open. It was not opened, and the file is unchanged."),
-			Arguments.of("a file that is not a database at all",
-				(Attempt)test -> test.openWithPassword(test.notADatabase(), null),
-				"This file is not a database this application can open. It was not opened, and the file is unchanged."));
+				(Attempt)test -> test.open(test.truncatedVault(), null, test.passwordOfTheVault),
+				NOT_A_DATABASE),
+			Arguments.of("a text file whose length no password database has",
+				(Attempt)test -> test.open(test.textFile(36), null, test.passwordOfTheVault),
+				NOT_A_DATABASE),
+			Arguments.of(
+				"a text file of 40 bytes, which the cipher cannot tell from a wrong password",
+				(Attempt)test -> test.open(test.textFile(40), null, test.passwordOfTheVault),
+				WRONG_PASSWORD),
+			Arguments.of("a database cut to half, key file alone",
+				(Attempt)test -> test.openKeyAloneCut(), NOT_A_DATABASE),
+			Arguments.of("a text file as the database, key file alone",
+				(Attempt)test -> test.openKeyAloneOn(test.textFile(36)), NOT_A_DATABASE),
+			Arguments.of("a password-only database, opened with password and key file",
+				(Attempt)test -> test.openPasswordOnlyDatabaseWithBoth(), NOT_A_DATABASE));
 	}
 
 	@ParameterizedTest(name = "{0}: the user reads a message, not the exception text")
@@ -114,40 +138,58 @@ class SignInRefusalTextTest
 		assertTrue(shown.contains("::"), "title::html as the sign-in dialog reads it: " + shown);
 		assertTrue(shown.endsWith("<p>" + expectedMessage),
 			() -> "the user reads the bundle's words: " + shown);
-		assertFalse(shown.contains(cause.getMessage()),
+		assertFalse(shown.contains(String.valueOf(cause.getMessage())),
 			() -> "and never the exception text: " + shown);
 	}
 
-	@org.junit.jupiter.api.Test
+	@Test
+	void aMissingKeyFile_isNamedByItsOwnText_alone() throws Exception
+	{
+		File vault = writtenWithKeyAlone(newKey(2048));
+		File missing = new File(directory, "gone.pem");
+
+		RuntimeException refused = open(vault, missing, null);
+
+		assertTrue(refused.getMessage().endsWith("<p>The key file " + missing.getAbsolutePath()
+			+ " is not there. It was moved or deleted, or it is on a drive that is not connected. "
+			+ "Put it back at this path and try again."), refused.getMessage());
+	}
+
+	@Test
 	void everyRefusalText_isInTheGermanBundle_withRealUmlauts()
 	{
 		java.util.ResourceBundle german = java.util.ResourceBundle.getBundle("ui.messages",
 			java.util.Locale.GERMAN);
 
-		for (String key : new String[] { "unlock.failed.both", "unlock.failed.key.file",
-				"unlock.failed.password", "dialog.vault.not.a.database.message",
-				"dialog.vault.not.a.database.title", "dialog.signin.both.title",
-				"dialog.signin.key.file.title", "dialog.signin.password.title" })
+		for (String key : new String[] { "unlock.failed.title", "unlock.failed.both",
+				"unlock.failed.key.file", "unlock.failed.password",
+				"dialog.vault.not.a.database.message", "dialog.vault.not.a.database.title",
+				"dialog.signin.both.title", "dialog.signin.key.file.title",
+				"dialog.signin.password.title" })
 		{
 			String text = german.getString(key);
 			assertFalse(text.contains("Schluessel") || text.contains("geoeffnet"), text);
 		}
 		assertTrue(german.getString("dialog.vault.not.a.database.message").contains("geöffnet"));
 		assertTrue(german.getString("unlock.failed.key.file").contains("Schlüsseldatei"));
+		assertTrue(
+			german.getString("dialog.signin.both.reason").endsWith("oder beides ist nicht gültig"));
+		assertTrue(german.getString("unlock.failed.title").equals("Entsperren fehlgeschlagen"));
 	}
 
-	private RuntimeException openWithPassword(final File vault, final String wrongPassword)
+	private RuntimeException open(final File vault, final File keyFile, final char[] password)
 	{
-		char[] password = wrongPassword == null ? passwordOfTheVault : wrongPassword.toCharArray();
-		MasterPwFileModelBean credentials = MasterPwFileModelBean.builder()
-			.applicationFileInfo(FileInfo.toFileInfo(vault))
+		MasterPwFileModelBean.MasterPwFileModelBeanBuilder credentials = MasterPwFileModelBean
+			.builder().applicationFileInfo(FileInfo.toFileInfo(vault))
 			.selectedApplicationFilePath(vault.getAbsolutePath()).masterPw(password)
-			.withMasterPw(true).withKeyFile(false).build();
-		return assertThrows(RuntimeException.class,
-			() -> ApplicationXmlFileReader.read(credentials));
+			.withMasterPw(password != null).withKeyFile(keyFile != null).minPasswordLength(6);
+		if (keyFile != null)
+		{
+			credentials.keyFileInfo(FileInfo.toFileInfo(keyFile));
+		}
+		MasterPwFileModelBean opening = credentials.build();
+		return assertThrows(RuntimeException.class, () -> ApplicationXmlFileReader.read(opening));
 	}
-
-	private char[] passwordOfTheVault = TestPasswords.throwaway().toCharArray();
 
 	private File writtenWithPassword()
 	{
@@ -158,67 +200,102 @@ class SignInRefusalTextTest
 	private File truncatedVault() throws Exception
 	{
 		File vault = writtenWithPassword();
-		byte[] content = Files.readAllBytes(vault.toPath());
 		File cut = new File(directory, "cut.mcrdb");
-		Files.write(cut.toPath(), java.util.Arrays.copyOf(content, 12));
+		Files.write(cut.toPath(), Arrays.copyOf(Files.readAllBytes(vault.toPath()), 12));
 		return cut;
 	}
 
-	private File notADatabase() throws Exception
+	private File textFile(final int length) throws Exception
 	{
-		File vault = new File(directory, "notes.mcrdb");
-		Files.writeString(vault.toPath(), "this is a text file, not a database\n",
-			StandardCharsets.UTF_8);
+		File vault = new File(directory, "notes-" + length + ".mcrdb");
+		Files.writeString(vault.toPath(), "a".repeat(length - 1) + "\n", StandardCharsets.UTF_8);
 		return vault;
 	}
 
-	private RuntimeException openWithPasswordAndKey(final boolean wrongPassword,
-		final boolean foreignKey) throws Exception
+	private KeyPair newKey(final int bits) throws Exception
 	{
+		return KeyPairFactory.newKeyPair(KeyPairGeneratorAlgorithm.RSA, bits);
+	}
+
+	private File pem(final int bits) throws Exception
+	{
+		File keyFile = new File(directory, "key-" + UUID.randomUUID() + ".pem");
+		PrivateKeyWriter.writeInPemFormat(newKey(bits).getPrivate(), keyFile);
+		return keyFile;
+	}
+
+	private File derPublicKey() throws Exception
+	{
+		File keyFile = new File(directory, "public-" + UUID.randomUUID() + ".der");
+		Files.write(keyFile.toPath(), newKey(2048).getPublic().getEncoded());
+		return keyFile;
+	}
+
+	private File writtenWithKeyAlone(final KeyPair key) throws Exception
+	{
+		File keyFile = new File(directory, "own-key.pem");
+		PrivateKeyWriter.writeInPemFormat(key.getPrivate(), keyFile);
+		File vault = new File(directory, "key-only-" + UUID.randomUUID() + ".mcrdb");
+		ApplicationModelBean model = SampleVaults.aVaultWith(entry -> {
+		});
+		model.setMasterPwFileModelBean(credentials(vault, keyFile, null));
+		ApplicationXmlFileStoreWorker.saveToFileWithPrivateKey(model);
+		return vault;
+	}
+
+	/**
+	 * Opens a database of both factors, with the given key file, and the right or a wrong password
+	 */
+	private RuntimeException openBothWith(final File keyFileToOpenWith, final boolean wrongPassword)
+		throws Exception
+	{
+		KeyPair key = newKey(2048);
 		File keyFile = new File(directory, "key.pem");
-		PrivateKeyWriter.writeInPemFormat(newKey().getPrivate(), keyFile);
+		PrivateKeyWriter.writeInPemFormat(key.getPrivate(), keyFile);
 		File vault = new File(directory, "both.mcrdb");
 		ApplicationModelBean model = SampleVaults.aVaultWith(entry -> {
 		});
-		model.setMasterPwFileModelBean(credentials(vault, keyFile, passwordOfTheVault, true));
+		model.setMasterPwFileModelBean(credentials(vault, keyFile, passwordOfTheVault));
 		ApplicationXmlFileStoreWorker.saveToFileWithPasswordAndPrivateKey(model);
-		File keyToOpenWith = keyFile;
-		if (foreignKey)
-		{
-			keyToOpenWith = new File(directory, "foreign.pem");
-			PrivateKeyWriter.writeInPemFormat(newKey().getPrivate(), keyToOpenWith);
-		}
-		char[] password = wrongPassword ? "other".toCharArray() : passwordOfTheVault;
-		MasterPwFileModelBean opening = credentials(vault, keyToOpenWith, password, true);
-		return assertThrows(RuntimeException.class, () -> ApplicationXmlFileReader.read(opening));
+		File used = wrongPassword ? keyFile : keyFileToOpenWith;
+		char[] password = wrongPassword
+			? TestPasswords.throwaway().toCharArray()
+			: passwordOfTheVault;
+		return open(vault, used, password);
 	}
 
-	private RuntimeException openWithKeyAlone() throws Exception
+	private RuntimeException openKeyAloneWith(final File keyFileToOpenWith) throws Exception
 	{
-		File keyFile = new File(directory, "key.pem");
-		PrivateKeyWriter.writeInPemFormat(newKey().getPrivate(), keyFile);
-		File vault = new File(directory, "key-only.mcrdb");
-		ApplicationModelBean model = SampleVaults.aVaultWith(entry -> {
-		});
-		model.setMasterPwFileModelBean(credentials(vault, keyFile, null, false));
-		ApplicationXmlFileStoreWorker.saveToFileWithPrivateKey(model);
-		File foreign = new File(directory, "foreign.pem");
-		PrivateKeyWriter.writeInPemFormat(newKey().getPrivate(), foreign);
-		MasterPwFileModelBean opening = credentials(vault, foreign, null, false);
-		return assertThrows(RuntimeException.class, () -> ApplicationXmlFileReader.read(opening));
+		return open(writtenWithKeyAlone(newKey(2048)), keyFileToOpenWith, null);
 	}
 
-	private static KeyPair newKey() throws Exception
+	private RuntimeException openKeyAloneCut() throws Exception
 	{
-		return KeyPairFactory.newKeyPair(KeyPairGeneratorAlgorithm.RSA, 2048);
+		KeyPair key = newKey(2048);
+		File vault = writtenWithKeyAlone(key);
+		File keyFile = new File(directory, "own-key.pem");
+		byte[] content = Files.readAllBytes(vault.toPath());
+		File cut = new File(directory, "key-only-cut.mcrdb");
+		Files.write(cut.toPath(), Arrays.copyOf(content, content.length / 2));
+		return open(cut, keyFile, null);
+	}
+
+	private RuntimeException openKeyAloneOn(final File notADatabase) throws Exception
+	{
+		return open(notADatabase, pem(2048), null);
+	}
+
+	private RuntimeException openPasswordOnlyDatabaseWithBoth() throws Exception
+	{
+		return open(writtenWithPassword(), pem(2048), passwordOfTheVault);
 	}
 
 	private static MasterPwFileModelBean credentials(final File vault, final File keyFile,
-		final char[] password, final boolean withPassword)
+		final char[] password)
 	{
 		return MasterPwFileModelBean.builder().applicationFileInfo(FileInfo.toFileInfo(vault))
 			.selectedApplicationFilePath(vault.getAbsolutePath())
-			.keyFileInfo(FileInfo.toFileInfo(keyFile)).masterPw(password).withMasterPw(withPassword)
-			.withKeyFile(true).minPasswordLength(6).build();
+			.keyFileInfo(FileInfo.toFileInfo(keyFile)).masterPw(password)
+			.withMasterPw(password != null).withKeyFile(true).minPasswordLength(6).build();
 	}
 }

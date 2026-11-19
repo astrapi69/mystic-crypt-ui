@@ -2108,6 +2108,24 @@ final class ApplicationSteps
 		}, 10000);
 	}
 
+	/**
+	 * Waits for the modal message dialog with the given title, returns the message it shows and
+	 * closes it
+	 *
+	 * @param title
+	 *            the title of the dialog
+	 * @return the message of its option pane, as the user reads it
+	 */
+	String readAndDismissMessageDialog(String title)
+	{
+		DialogFixture messageDialog = findDialogWithTitle(title);
+		javax.swing.JOptionPane optionPane = (javax.swing.JOptionPane)robot.finder()
+			.findByType(messageDialog.target(), javax.swing.JOptionPane.class);
+		String message = GuiActionRunner.execute(() -> String.valueOf(optionPane.getMessage()));
+		dismissMessageDialog(title);
+		return message;
+	}
+
 	DialogFixture findDialogWithTitle(String title)
 	{
 		return findDialogWithTitle(title, DIALOG_TIMEOUT_SECONDS);

@@ -24,8 +24,10 @@
  */
 package io.github.astrapi69.mystic.crypt.app.file.xml;
 
+import java.io.EOFException;
 import java.io.File;
 import java.io.IOException;
+import java.io.ObjectStreamException;
 import java.security.GeneralSecurityException;
 import java.security.PrivateKey;
 import java.security.Security;
@@ -155,7 +157,6 @@ public class ApplicationXmlFileReader
 		}
 		catch (Exception exception)
 		{
-			log.log(Level.SEVERE, exception.getLocalizedMessage(), exception);
 			throw notOpened(Factors.PASSWORD_AND_KEY_FILE, exception);
 		}
 	}
@@ -301,24 +302,40 @@ public class ApplicationXmlFileReader
 					+ "this version reads (%1$s). It was not opened, and the file is unchanged.",
 				unknownFormat.getReason(), unknownFormat, exception);
 		}
-		if (causeOf(exception, IllegalArgumentException.class) != null
-			|| factors == Factors.PASSWORD
-				&& causeOf(exception, IllegalBlockSizeException.class) != null)
+		if (causeOf(exception, KeyFileUnavailableException.class) != null)
+		{
+			log.log(Level.SEVERE, exception.getMessage(), exception);
+			return refusal(factors.title(), exception.getMessage(), exception);
+		}
+		if (isNoDatabase(factors, exception))
 		{
 			return databaseNotOpened("dialog.vault.not.a.database",
 				"This file is not a database this application can open. It was not opened, and "
 					+ "the file is unchanged.",
 				"", exception, exception);
 		}
+		log.log(Level.SEVERE, exception.getMessage(), exception);
 		if (causeOf(exception, GeneralSecurityException.class) != null
 			|| causeOf(exception, SecurityException.class) != null)
 		{
-			log.log(Level.SEVERE, exception.getMessage(), exception);
 			return refusal(factors.title(), factors.wrong(), exception);
 		}
-		log.log(Level.SEVERE, exception.getMessage(), exception);
-		return refusal(factors.title(), factors.reason() + "<p>" + exception.getMessage(),
-			exception);
+		return refusal(factors.title(), factors.reason(), exception);
+	}
+
+	/**
+	 * Whether opening failed because the file is no database of this application: the format reader
+	 * refused it ({@link IllegalArgumentException}), or, on a path that reads the key first, the
+	 * envelope is not a serialized stream or ends early. A block size no password database has
+	 * counts too, but only on the password path: on a key file path the same exception also comes
+	 * from a foreign key smaller than the database's, which is a wrong key file
+	 */
+	private static boolean isNoDatabase(final Factors factors, final Exception exception)
+	{
+		return causeOf(exception, IllegalArgumentException.class) != null
+			|| causeOf(exception, ObjectStreamException.class) != null
+			|| causeOf(exception, EOFException.class) != null || factors == Factors.PASSWORD
+				&& causeOf(exception, IllegalBlockSizeException.class) != null;
 	}
 
 	private static RuntimeException refusal(final String title, final String html,

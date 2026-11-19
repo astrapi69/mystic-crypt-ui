@@ -143,9 +143,11 @@ error dialog after you click OK. Which one you get depends on the combination yo
 A file that could be decrypted but not read is not reported as a wrong password. Such a dialog is
 titled **Database not opened** and says why: the file names a type no database of this
 application holds, its content could not be read (with the reason), or the key file opened the
-key of the database but the content is in no format this version reads. A file that is no
-database this application can open at all (cut off, or of another kind) gets the same title and
-says so; the cipher's own error text is never shown.
+key of the database but the content is in no format this version reads. A file that is not a
+database this application can open (cut off before its content, or not in a format this application
+reads) gets the same title and says so. A database whose content was cut or altered reads as a
+wrong password, because the cipher cannot tell the two apart. The cipher's own error text is never
+shown.
 
 No database is opened after such an error, and the sign-in dialog stays open, so you can correct
 the input and try again.
