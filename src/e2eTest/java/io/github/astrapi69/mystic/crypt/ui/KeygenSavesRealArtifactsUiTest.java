@@ -33,6 +33,7 @@ import java.nio.file.Files;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.Signature;
+import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
@@ -208,25 +209,25 @@ class KeygenSavesRealArtifactsUiTest extends AbstractUiTest
 		assertTheyBelongTogether(PrivateKeyReader.readPrivateKey(expected), onScreen);
 
 		thePublicKeyFollowsTheChosenFormatToo(frame, onScreen);
-		theCertificateStaysPemWhateverTheFormatSays(frame);
+		theCertificateFollowsTheChosenFormat(frame, onScreen);
 	}
 
 	/**
-	 * Pins today's behaviour of #1050 (TC-0105), it does not endorse it: with DER chosen, the
-	 * certificate is still written as PEM text with the ending .pem. CryptographyPanel.java:415-416
-	 * hard-codes PEM_ENDING and KeygenSupport.writeCertificate (:349-353) takes no format, while
-	 * the format box's tooltip (GenerateKeysPanel.java:383-384) promises the encoding of every file
-	 * the window saves. When #1050 is decided this method is turned, not deleted.
+	 * With DER chosen, the certificate is written as DER with the DER ending, and never as a .pem
+	 * (#1050, TC-0105): the save format box promises the encoding of every file the window saves.
+	 * The file is read back with the JDK's X.509 factory, which reads binary.
 	 * <p>
 	 * It does not wait for the .pem: a window that honours DER writes a .der and never the .pem,
-	 * and a wait for the .pem would then die in the wait instead of at the assertion that names the
+	 * and a wait for the .pem would die in the wait instead of at the assertion that names the
 	 * reason.
 	 *
 	 * @param frame
 	 *            the application frame, with DER chosen in the format box
+	 * @param onScreen
+	 *            the public key the window shows
 	 */
-	private void theCertificateStaysPemWhateverTheFormatSays(final FrameFixture frame)
-		throws Exception
+	private void theCertificateFollowsTheChosenFormat(final FrameFixture frame,
+		final PublicKey onScreen) throws Exception
 	{
 		File chosen = new File(tempHome, "saved-certificate-in-der");
 		File pemFile = new File(tempHome, "saved-certificate-in-der.pem");
@@ -255,12 +256,18 @@ class KeygenSavesRealArtifactsUiTest extends AbstractUiTest
 				}
 			}, 15000);
 
-		assertFalse(derFile.exists(),
-			"the certificate was written as .der: #1050 is fixed, turn this method");
-		assertTrue(
-			Files.readString(pemFile.toPath(), java.nio.charset.StandardCharsets.ISO_8859_1)
-				.contains("BEGIN CERTIFICATE"),
-			"today the certificate is PEM text even with DER chosen");
+		assertFalse(pemFile.exists(), "with DER chosen the certificate was written as .pem");
+		assertTrue(derFile.exists(), "no .der certificate arrived");
+		byte[] written = Files.readAllBytes(derFile.toPath());
+		assertFalse(new String(written, java.nio.charset.StandardCharsets.ISO_8859_1)
+			.contains("BEGIN CERTIFICATE"), "the file named .der holds PEM text");
+		try (java.io.InputStream in = new java.io.ByteArrayInputStream(written))
+		{
+			X509Certificate certificate = (X509Certificate)CertificateFactory.getInstance("X.509")
+				.generateCertificate(in);
+			assertArrayEquals(onScreen.getEncoded(), certificate.getPublicKey().getEncoded(),
+				"the DER certificate does not carry the key the window shows");
+		}
 	}
 
 	/** The public key is saved in the chosen encoding as well, not only the private one */

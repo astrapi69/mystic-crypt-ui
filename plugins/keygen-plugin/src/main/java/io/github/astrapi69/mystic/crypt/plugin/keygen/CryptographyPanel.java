@@ -27,6 +27,7 @@ import java.util.logging.Level;
 
 import javax.swing.*;
 
+import io.github.astrapi69.crypt.api.key.KeyFileFormat;
 import io.github.astrapi69.crypt.api.key.KeySize;
 import io.github.astrapi69.model.BaseModel;
 import io.github.astrapi69.model.LambdaModel;
@@ -412,9 +413,9 @@ public class CryptographyPanel extends BasePanel<GenerateKeysModelBean>
 		{
 			return;
 		}
-		writeCertificateTo(
-			KeygenSupport.withEnding(fileChooser.getSelectedFile(), KeygenSupport.PEM_ENDING),
-			panel.getModelObject());
+		KeyFileFormat saveFormat = getModelObject().getSaveFormat();
+		writeCertificateTo(KeygenSupport.withEnding(fileChooser.getSelectedFile(),
+			KeygenSupport.endingFor(saveFormat)), panel.getModelObject(), saveFormat);
 	}
 
 	/**
@@ -428,9 +429,11 @@ public class CryptographyPanel extends BasePanel<GenerateKeysModelBean>
 	 *            the file to write the certificate to
 	 * @param certificateInfo
 	 *            what the certificate is to contain
+	 * @param saveFormat
+	 *            the encoding to write it in, the one the save format box names (#1050)
 	 */
-	protected void writeCertificateTo(final File file,
-		final CertificateInfoModel certificateInfo)
+	protected void writeCertificateTo(final File file, final CertificateInfoModel certificateInfo,
+		final KeyFileFormat saveFormat)
 	{
 		if (!allowsReplacing(file, DataClass.DERIVED))
 		{
@@ -438,7 +441,7 @@ public class CryptographyPanel extends BasePanel<GenerateKeysModelBean>
 		}
 		try
 		{
-			KeygenSupport.writeCertificate(certificateInfo, file);
+			KeygenSupport.writeCertificate(certificateInfo, file, saveFormat);
 		}
 		catch (final Exception couldNotWriteTheCertificate)
 		{
