@@ -24,11 +24,15 @@
  */
 package io.github.astrapi69.mystic.crypt.settings;
 
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 
 import org.junit.jupiter.api.DisplayName;
@@ -157,6 +161,32 @@ class MysticCryptSettingsTest
 			"an unreadable view mode has to fall back to the default view");
 		assertEquals("Metal", loaded.getLookAndFeel(),
 			"the rest of the file has to survive an unreadable view mode");
+	}
+
+	/**
+	 * file-worker 21 reads strictly: a byte that is not valid UTF-8 is an error, where 20.0 put the
+	 * replacement character in its place and the settings loaded. The loader for a change that is
+	 * written back has to refuse such a file and leave it, since defaults written over it would
+	 * destroy what it holds; the loader for display falls back to the defaults
+	 */
+	@Test
+	@DisplayName("a settings file with a byte that is not UTF-8 is refused for a change, left as it is, and shows defaults")
+	void aSettingsFileThatIsNotUtf8_isRefusedForAChange_andLeftAsItIs(
+		@TempDir File configurationDirectory) throws Exception
+	{
+		File settingsFile = new File(configurationDirectory, MysticCryptSettings.JSON_FILENAME);
+		byte[] notUtf8 = "{ \"lookAndFeel\": \"Metal\", \"language\": \"J\u00fcrgen\" }"
+			.getBytes(StandardCharsets.ISO_8859_1);
+		Files.write(settingsFile.toPath(), notUtf8);
+
+		assertThrows(IOException.class,
+			() -> MysticCryptSettings.loadForUpdate(configurationDirectory),
+			"a change must not start from defaults when the file could not be read");
+		assertEquals("FlatLaf Light",
+			MysticCryptSettings.load(configurationDirectory).getLookAndFeel(),
+			"showing the settings falls back to the defaults");
+		assertArrayEquals(notUtf8, Files.readAllBytes(settingsFile.toPath()),
+			"and neither call touches the file");
 	}
 
 }
