@@ -115,9 +115,11 @@ Real data, no test fixture. Nothing else is released while this does not hold.
       bytes and that nothing else lies next to the database; the writer itself is pinned by
       `VaultFileWriterTest#aReplacedDatabaseKeepsItsBackup`
 - [ ] TC-0021 Close and reopen the database successfully: the `.bak` is gone. - automated by
-      the second half of the same three `BackupFileUiTest` methods (sign in again through the
-      dialog, the `.bak` is gone and the saved node is in the tree); the reader's removal is
-      pinned by `VaultFileWriterTest#aSuccessfulOpenRemovesTheBackup`
+      the second half of the same three `BackupFileUiTest` methods (an in-JVM restart through
+      `AbstractUiTest#shutdownApplication`, then sign in again through the dialog: the `.bak` is
+      gone and the saved node is in the tree); the reader's removal is pinned by
+      `VaultFileWriterTest#aSuccessfulOpenRemovesTheBackup`; File > Close and then reopen is
+      not driven for the `.bak`: manual only
 - [ ] TC-0022 Make the saved file unreadable by hand (truncate a copy of the scenario, not
       your real database), open: the open fails and the `.bak` still holds the previous
       state and opens. - automated by

@@ -76,8 +76,8 @@ class MovedDatabaseUiTest extends AbstractUiTest
 		application.addNodeToTreeRoot(frame, NODE_NAME);
 		application.saveDatabase();
 
-		// the file is the oracle here, not the save indicator: the dirty flag is cleared before
-		// anything is written, so it goes green whichever file the bytes land in
+		// the file is the oracle here, not the save indicator: the dirty flag says a save
+		// returned, not which file the bytes landed in
 		Pause.pause(new Condition("the file that was opened has been written")
 		{
 			@Override
