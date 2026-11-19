@@ -186,6 +186,29 @@ public class GeneralSettingsPanel extends JPanel
 	}
 
 	/**
+	 * The name, as the settings keep it, of the look and feel that is on the screen
+	 *
+	 * @return the name of the installed look and feel whose class is the active one, or
+	 *         {@code null} if the active look and feel is not among the installed ones
+	 */
+	public static String installedNameOfActiveLookAndFeel()
+	{
+		LookAndFeel current = UIManager.getLookAndFeel();
+		if (current == null)
+		{
+			return null;
+		}
+		for (UIManager.LookAndFeelInfo info : UIManager.getInstalledLookAndFeels())
+		{
+			if (info.getClassName().equals(current.getClass().getName()))
+			{
+				return info.getName();
+			}
+		}
+		return null;
+	}
+
+	/**
 	 * Applies the installed look and feel with the given name to every open window
 	 *
 	 * @param name
