@@ -71,8 +71,8 @@ import org.junit.jupiter.params.provider.ValueSource;
  * randomizer is not a dependency of this application either since #658, which draws its random
  * values from {@code SecureRandom}. Before 10.5 its default generator is seeded with the current
  * time (GHSA-395w-fmf5-xfj3). Since #682 no library asks for such a version: roboter 3, through
- * swing-tree-component 3.3, brings 10.7, and swing-components 10 brings none. The constraint and
- * the floor here stay as a second guard, against a library that would bring an old version back.
+ * swing-tree-component 3.3, brings 10.7. The constraint and the floor here stay as a second guard,
+ * against a library that would bring an old version back.
  * <p>
  * silly-io and file-worker are direct dependencies, and their floors hold the data-loss fixes the
  * application ships with (#720): silly-io 4.0 takes the extension from the file name only

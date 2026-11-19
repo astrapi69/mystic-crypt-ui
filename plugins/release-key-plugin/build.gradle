@@ -45,7 +45,6 @@ dependencies {
     // JComponentFactory, FrameMode and JInternalFrameExtensions open the tool window; the host
     // carries them at runtime, like every other plugin here
     compileOnly libs.swing.base.components
-    compileOnly libs.swing.components
     // the model backed components the panel binds to its model; the host carries both at runtime
     compileOnly libs.swing.model.components
     compileOnly libs.model.data

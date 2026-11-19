@@ -24,7 +24,6 @@ Libraries under the Apache License, Version 2.0
   - picocli (info.picocli:picocli)
   - JSR-305 annotations (com.google.code.findbugs:jsr305)
   - JSpecify (org.jspecify:jspecify)
-  - imgscalr (org.imgscalr:imgscalr-lib)
   - Cloning (io.github.kostaskougios:cloning)
 
 --------------------------------------------------------------------------------

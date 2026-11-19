@@ -31,6 +31,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.io.File;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 import java.util.stream.Collectors;
 
 import org.assertj.swing.edt.GuiActionRunner;
@@ -133,6 +134,37 @@ class EditEntryCancelUiTest extends AbstractUiTest
 		assertEquals(edited, theOnlyEntry(), "the saved file holds what OK took");
 	}
 
+	@Test
+	@DisplayName("OK takes two custom fields and two attached files through the dialog, and a save and restart gives them back by name and SHA-256 (TC-0012)")
+	void ok_takesCustomFieldsAndAnAttachedFile_andAReopenGivesThemBack() throws Exception
+	{
+		File databaseFile = new File(tempHome, "edit-ok-attachment.mcrdb");
+		File text = AttachmentFixtures.writeText(tempHome);
+		File binary = AttachmentFixtures.writeEveryByteValue(tempHome);
+		Map<String, String> attached = new TreeMap<>();
+		attached.put(text.getName(), AttachmentFixtures.sha256Hex(text));
+		attached.put(binary.getName(), AttachmentFixtures.sha256Hex(binary));
+		ApplicationSteps application = signInWithASavedEntry(databaseFile.getName(),
+			TestPasswords.throwaway());
+		FrameFixture frame = application.showMainFrame();
+
+		application.selectEntryRowByTitle(frame, TITLE);
+		application.openTheEditDialog(frame).addProperty(PROPERTY, PROPERTY_VALUE)
+			.addProperty("seed", "JBSWY3DPEHPK3PXP").addAttachment(text).addAttachment(binary).ok();
+
+		EntrySnapshot edited = theOnlyEntry();
+		assertEquals(Map.of(PROPERTY, PROPERTY_VALUE, "seed", "JBSWY3DPEHPK3PXP"),
+			edited.properties(), "both custom fields are on the entry");
+		assertEquals(attached, edited.attachments(),
+			"both files are attached with the checksum of the file they came from");
+
+		application.saveDatabase();
+		shutdownApplication();
+		signInWithExistingDatabase(databaseFile, MASTER_PASSWORD);
+		assertEquals(edited, theOnlyEntry(),
+			"the saved file holds the custom fields and the attached files, name and SHA-256");
+	}
+
 	private ApplicationSteps signInWithASavedEntry(String fileName, String password)
 		throws Exception
 	{
@@ -173,7 +205,12 @@ class EditEntryCancelUiTest extends AbstractUiTest
 
 	/** The parts of an entry the dialog can change, as text */
 	private record EntrySnapshot(String title, String password, String repeat,
-		Map<String, String> properties) {
+		Map<String, String> properties, Map<String, String> attachments) {
+		EntrySnapshot(String title, String password, String repeat, Map<String, String> properties)
+		{
+			this(title, password, repeat, properties, Map.of());
+		}
+
 		static EntrySnapshot of(final MysticCryptEntryModelBean entry)
 		{
 			List<KeyValuePair<String, String>> properties = entry.getProperties() == null
@@ -182,7 +219,8 @@ class EditEntryCancelUiTest extends AbstractUiTest
 			return new EntrySnapshot(EntryText.asText(entry.getTitle()),
 				EntryText.asText(entry.getPassword()), EntryText.asText(entry.getRepeat()),
 				properties.stream()
-					.collect(Collectors.toMap(KeyValuePair::getKey, KeyValuePair::getValue)));
+					.collect(Collectors.toMap(KeyValuePair::getKey, KeyValuePair::getValue)),
+				AttachmentFixtures.byNameAndSha256(entry));
 		}
 	}
 }
