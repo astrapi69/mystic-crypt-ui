@@ -146,7 +146,8 @@ def thirdPartyLegalFiles = ['LICENSE*', 'NOTICE*', 'META-INF/*LICENSE*', 'META-I
 /**
  * Copies the licence and notice files of every library of the runtime class path to
  * META-INF/third-party/<group>/<artifact>/, as the library carries them (#779). The libraries share
- * these paths - 27 carry a META-INF/NOTICE, in eight different texts - and the all-dependencies jar
+ * these paths - 27 carried a META-INF/NOTICE, in eight different texts, when #779 was written, and 8 in six
+ * since swing-components left (#1013) - and the all-dependencies jar
  * keeps one copy of each path, so it kept the first library's and dropped Jackson's, Batik's and
  * Apache Commons' notices, which the Apache License 2.0 asks a redistribution to carry. The
  * installer ships nothing else but that jar; SharedLibraryFilesTest checks it

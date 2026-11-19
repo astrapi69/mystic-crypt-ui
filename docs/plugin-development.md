@@ -107,7 +107,6 @@ dependencies {
     compileOnly "io.github.astrapi69:mystic-crypt-ui:8.2-SNAPSHOT"
     compileOnly "io.github.astrapi69:mystic-crypt:11.2"
     compileOnly "io.github.astrapi69:swing-base-components:5.1"
-    compileOnly "io.github.astrapi69:swing-components:9"
     // the tool window binds every component to its panel model, the host carries both at runtime
     compileOnly "io.github.astrapi69:swing-model-components:1.2"
     compileOnly "io.github.astrapi69:model-data:3.2.1"
