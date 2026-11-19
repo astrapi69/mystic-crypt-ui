@@ -64,7 +64,7 @@ class AnUnreadableVaultIsNotAWrongPasswordTest
 		RuntimeException refusal = assertThrows(RuntimeException.class,
 			() -> SampleVaults.open(vault, password));
 
-		assertFalse(refusal.getMessage().contains("Password is not valid"),
+		assertFalse(refusal.getMessage().contains("Wrong master password."),
 			"the sign-in does not blame the password: " + refusal.getMessage());
 		assertTrue(refusal.getMessage().startsWith("Database not opened::"),
 			"the sign-in says the database was not opened: " + refusal.getMessage());
@@ -82,7 +82,7 @@ class AnUnreadableVaultIsNotAWrongPasswordTest
 		RuntimeException refusal = assertThrows(RuntimeException.class,
 			() -> SampleVaults.open(vault, TestPasswords.throwawayChars()));
 
-		assertTrue(refusal.getMessage().contains("Password is not valid"),
+		assertTrue(refusal.getMessage().contains("Wrong master password."),
 			"a password that does not decrypt the file is what the sign-in names: "
 				+ refusal.getMessage());
 	}

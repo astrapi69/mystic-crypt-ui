@@ -62,8 +62,12 @@ class WrongPasswordSignInUiTest extends AbstractUiTest
 			.typeMasterPassword(TestPasswords.throwaway()).browseApplicationFile(databaseFile)
 			.requireOkEnabled().clickOk();
 
-		new ApplicationSteps(robot).dismissMessageDialog("Authentication with Password");
+		String shown = new ApplicationSteps(robot)
+			.readAndDismissMessageDialog("Authentication with Password");
 
+		assertTrue(shown.endsWith("<p>Wrong master password."),
+			"the user reads the unlock prompt's words: " + shown);
+		assertNoCipherText(shown);
 		assertFalse(
 			MysticCryptApplicationFrame.getInstance() != null
 				&& MysticCryptApplicationFrame.getInstance().getModelObject() != null
@@ -74,6 +78,41 @@ class WrongPasswordSignInUiTest extends AbstractUiTest
 		// failed attempt, and a modal dialog left standing blocks the application thread, which the
 		// next test in this class inherits (forkEvery=1 forks per class, not per method)
 		signIn.cancel();
+	}
+
+	@Test
+	@DisplayName("a wrong key file shows a message, not the cipher's error text (#1005)")
+	void wrongKeyFileShowsAMessageNotTheCipherText() throws Exception
+	{
+		File databaseFile = new File(tempHome, "wrong-key-database.mcrdb");
+		File keyFile = new File(tempHome, "right-key.pem");
+		createDatabaseFileWithKeyFileHeadless(databaseFile, MASTER_PASSWORD, keyFile);
+		File foreignKeyFile = new File(tempHome, "foreign-key.pem");
+		io.github.astrapi69.crypt.data.key.writer.PrivateKeyWriter.writeInPemFormat(
+			io.github.astrapi69.crypt.data.factory.KeyPairFactory.newKeyPair("RSA").getPrivate(),
+			foreignKeyFile);
+
+		SignInDialogSteps signIn = launchApplication();
+		signIn.checkMasterPassword().typeMasterPassword(MASTER_PASSWORD).checkKeyFile()
+			.browseKeyFile(foreignKeyFile).browseApplicationFile(databaseFile).requireOkEnabled()
+			.clickOk();
+
+		String shown = new ApplicationSteps(robot)
+			.readAndDismissMessageDialog("Authentication with Password or key file");
+
+		assertTrue(shown.endsWith("<p>The master password or the key file is wrong."),
+			"the user reads the unlock prompt's words: " + shown);
+		assertNoCipherText(shown);
+		signIn.cancel();
+	}
+
+	private static void assertNoCipherText(final String shown)
+	{
+		for (String cipherText : new String[] { "Padding error", "pad block", "Exception",
+				"could not decrypt" })
+		{
+			assertFalse(shown.contains(cipherText), "no exception text is shown: " + shown);
+		}
 	}
 
 	@Test

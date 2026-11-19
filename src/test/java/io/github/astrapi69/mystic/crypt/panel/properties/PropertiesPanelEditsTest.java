@@ -85,7 +85,8 @@ class PropertiesPanelEditsTest
 
 	private static List<String> inTheTable(final PropertiesPanel panel)
 	{
-		return namesAndValues(panel.getTblProperties().getGenericTableModel().getData());
+		return panel.getTblProperties().getGenericTableModel().getData().stream()
+			.map(row -> row.getKey() + "=" + row.getValue()).toList();
 	}
 
 	@Test
