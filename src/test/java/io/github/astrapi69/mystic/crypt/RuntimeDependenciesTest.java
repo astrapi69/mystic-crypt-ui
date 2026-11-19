@@ -66,7 +66,8 @@ import org.junit.jupiter.params.provider.ValueSource;
  * bring 1.11.0 and jackson 2.22.4. Dependabot cannot raise an alert for a dependency nobody
  * declares, so the floor is held here, against the class path the tests run on, which holds the
  * same resolved versions as the runtime one: a library that brought a lower version back fails it.
- * The same guard stands in lethenon (astrapi69/lethenon#231).
+ * The same guard stands in lethenon (astrapi69/lethenon#231). With file-worker 21 and
+ * gson-extensions 4 commons-beanutils is off the class path altogether; the guard now holds it off.
  * <p>
  * randomizer is not a dependency of this application either since #658, which draws its random
  * values from {@code SecureRandom}. Before 10.5 its default generator is seeded with the current
@@ -164,8 +165,8 @@ class RuntimeDependenciesTest
 
 	@ParameterizedTest(name = "{0} is at least {1}")
 	@CsvSource({ "jackson-core, 2.22.4", "jackson-databind, 2.22.4", "jackson-annotations, 2.22",
-			"commons-beanutils, 1.11.0", "randomizer, 10.5", "jettison, 1.5.4", "silly-io, 4.0",
-			"file-worker, 20.0", "commons-collections4, 4.6.0", "json, 20260719" })
+			"randomizer, 10.5", "jettison, 1.5.4", "silly-io, 4.0", "file-worker, 20.0",
+			"commons-collections4, 4.6.0", "json, 20260719" })
 	void transitiveDependency_isAtLeastItsPatchedRelease(final String artifact, final String floor)
 	{
 		List<String> versions = versionsOnTheClassPath(artifact);
@@ -180,9 +181,8 @@ class RuntimeDependenciesTest
 	@CsvSource({ "com.fasterxml.jackson.core, jackson-core, 2.22.4",
 			"com.fasterxml.jackson.core, jackson-databind, 2.22.4",
 			"com.fasterxml.jackson.core, jackson-annotations, 2.22",
-			"commons-beanutils, commons-beanutils, 1.11.0", "io.github.astrapi69, randomizer, 10.5",
-			"org.codehaus.jettison, jettison, 1.5.4", "io.github.astrapi69, silly-io, 4.0",
-			"io.github.astrapi69, file-worker, 20.0",
+			"io.github.astrapi69, randomizer, 10.5", "org.codehaus.jettison, jettison, 1.5.4",
+			"io.github.astrapi69, silly-io, 4.0", "io.github.astrapi69, file-worker, 20.0",
 			"org.apache.commons, commons-collections4, 4.6.0", "org.json, json, 20260719" })
 	void applicationJar_carriesAtLeastThePatchedRelease(final String group, final String artifact,
 		final String floor) throws IOException
@@ -197,11 +197,11 @@ class RuntimeDependenciesTest
 
 	@ParameterizedTest(name = "{0} is not on the class path")
 	@ValueSource(strings = { "resource-viewmodels", "spring-boot", "spring-webmvc",
-			"tomcat-embed-core" })
+			"tomcat-embed-core", "commons-beanutils" })
 	void unusedWebStack_isNotOnTheClassPath(final String artifact)
 	{
-		assertEquals(List.of(), versionsOnTheClassPath(artifact),
-			artifact + " is on the class path again (#639)");
+		assertEquals(List.of(), versionsOnTheClassPath(artifact), artifact
+			+ " is on the class path again (#639; commons-beanutils left with file-worker 21)");
 	}
 
 	/**

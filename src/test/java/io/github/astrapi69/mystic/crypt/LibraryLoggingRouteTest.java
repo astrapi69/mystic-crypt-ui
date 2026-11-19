@@ -26,6 +26,7 @@ package io.github.astrapi69.mystic.crypt;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 import org.junit.jupiter.api.Test;
 
@@ -40,6 +41,10 @@ import org.junit.jupiter.api.Test;
  * against the application jar with the same calls, the class path the tests run on holds the same
  * logging modules as the runtime one. Both APIs are reached by name: neither is a compile
  * dependency here.
+ * <p>
+ * commons-logging reached the class path through commons-beanutils, which file-worker 21 and
+ * gson-extensions 4 no longer bring; no library declares it now, so its route is checked only while
+ * it is there.
  */
 class LibraryLoggingRouteTest
 {
@@ -57,6 +62,8 @@ class LibraryLoggingRouteTest
 	@Test
 	void commonsLogging_isRoutedToSlf4j() throws ReflectiveOperationException
 	{
+		assumeTrue(isOnTheClassPath("org.apache.commons.logging.LogFactory"),
+			"commons-logging is not on the class path since commons-beanutils left it");
 		Object log = Class.forName("org.apache.commons.logging.LogFactory")
 			.getMethod("getLog", String.class)
 			.invoke(null, LibraryLoggingRouteTest.class.getName());
@@ -64,5 +71,18 @@ class LibraryLoggingRouteTest
 		String type = log.getClass().getName();
 		assertTrue(type.matches(".*\\$Slf4j(LocationAware)?Log"),
 			"commons-logging no longer reaches SLF4J: " + type);
+	}
+
+	private static boolean isOnTheClassPath(final String className)
+	{
+		try
+		{
+			Class.forName(className);
+			return true;
+		}
+		catch (ClassNotFoundException notThere)
+		{
+			return false;
+		}
 	}
 }
