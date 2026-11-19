@@ -13,7 +13,9 @@ run stands in the pull request.
 import contextlib
 import io
 import json
+import os
 import subprocess
+import sys
 import tempfile
 import unittest
 from pathlib import Path
@@ -502,6 +504,29 @@ class GuardTest(unittest.TestCase):
             return REQUIRED if branch == "develop" else None
         contexts, _ = resolve_required("feature/x", fetch)
         self.assertEqual(contexts, [])
+
+
+class GhFailureOutputTest(unittest.TestCase):
+    """A GitHub call that fails: what the script prints about it."""
+
+    REASON = "Pull Request is not mergeable (HTTP 405)"
+
+    def run_with_failing_gh(self):
+        with tempfile.TemporaryDirectory() as fake_bin:
+            fake_gh = Path(fake_bin) / "gh"
+            fake_gh.write_text(f"#!/bin/sh\necho '{self.REASON}' >&2\nexit 1\n")
+            fake_gh.chmod(0o755)
+            environment = dict(os.environ, PATH=fake_bin + os.pathsep + os.environ["PATH"])
+            return subprocess.run(
+                [sys.executable, str(Path(__file__).with_name("merge_pr.py")), "1"],
+                env=environment, capture_output=True, text=True)
+
+    def test_failing_gh_ends_non_zero(self):
+        self.assertNotEqual(self.run_with_failing_gh().returncode, 0)
+
+    def test_failing_gh_stderr_is_not_shown_today(self):
+        completed = self.run_with_failing_gh()
+        self.assertNotIn(self.REASON, completed.stdout + completed.stderr)
 
 
 if __name__ == "__main__":
