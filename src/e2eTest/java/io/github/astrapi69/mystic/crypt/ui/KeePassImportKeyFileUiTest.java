@@ -68,7 +68,7 @@ class KeePassImportKeyFileUiTest extends AbstractUiTest
 		KdbxEntry entry = keePassDatabase.newEntry();
 		entry.setTitle("KeyFileProtectedSecret");
 		entry.setUsername("kf-user");
-		entry.setPassword("kf-pass");
+		entry.setPassword(TestPasswords.throwaway());
 		rootGroup.addEntry(entry);
 		try (OutputStream out = new FileOutputStream(keePassFile))
 		{

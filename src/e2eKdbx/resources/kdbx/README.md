@@ -171,8 +171,10 @@ Written on purpose, like the first fixture. The entries are invented.
 
 ## Why this file exists
 
-The other KeePassXC fixture holds one entry, so no test could compare SEVERAL entries and their
-groups with what KeePassXC reports for the same file. This one has three entries in the root group
+The other KeePassXC-written files held too little to compare: `keepassxc-2.7.10-kdbx4.kdbx` has one
+entry, and the file saved from KDBX 3.1 by KeePassXC has two entries in the root group and six empty
+groups. None has entries in sub groups with a URL and notes, so no test could compare SEVERAL
+entries and their groups with what KeePassXC reports for the same file. This one has three entries in the root group
 and in two sub groups, with a URL on two of them and notes with umlauts on one.
 
 ## How it was made

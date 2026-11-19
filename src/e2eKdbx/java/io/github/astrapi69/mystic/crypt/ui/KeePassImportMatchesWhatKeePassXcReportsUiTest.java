@@ -84,9 +84,13 @@ class KeePassImportMatchesWhatKeePassXcReportsUiTest extends AbstractUiTest
 		application.deleteNode(application.showMainFrame(), STARTER_NODE);
 		application.importKeePassDatabase(original, FIXTURE_PASSWORD);
 
-		Map<String, MysticCryptEntryModelBean> liveByPath = liveEntriesByGroupPathAndTitle();
-		assertEquals(reportedByKeePassXc.entries().size(), liveByPath.size(),
-			"the vault holds as many entries as the file has" + readWith);
+		List<String> visited = new ArrayList<>();
+		Map<String, MysticCryptEntryModelBean> liveByPath = liveEntriesByGroupPathAndTitle(visited);
+		assertEquals(reportedByKeePassXc.entries().size(), visited.size(),
+			"the vault holds as many entries as the file has, every entry visited counted"
+				+ readWith);
+		assertEquals(visited.size(), liveByPath.size(),
+			"no entry is in the vault twice under the same group and title" + readWith);
 		for (KdbxFacts.Entry reported : reportedByKeePassXc.entries())
 		{
 			String where = reported.groupPath() + "/" + reported.title();
@@ -113,7 +117,8 @@ class KeePassImportMatchesWhatKeePassXcReportsUiTest extends AbstractUiTest
 	 * Every entry of the running vault, keyed by the names of the groups from the imported root
 	 * down, then the entry's title
 	 */
-	private static Map<String, MysticCryptEntryModelBean> liveEntriesByGroupPathAndTitle()
+	private static Map<String, MysticCryptEntryModelBean> liveEntriesByGroupPathAndTitle(
+		final List<String> visited)
 	{
 		return GuiActionRunner.execute(() -> {
 			BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> vaultRoot = MysticCryptApplicationFrame
@@ -123,7 +128,7 @@ class KeePassImportMatchesWhatKeePassXcReportsUiTest extends AbstractUiTest
 			for (BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> child : childrenOf(
 				vaultRoot))
 			{
-				collect(child, "", found);
+				collect(child, "", found, visited);
 			}
 			return found;
 		});
@@ -131,7 +136,8 @@ class KeePassImportMatchesWhatKeePassXcReportsUiTest extends AbstractUiTest
 
 	private static void collect(
 		final BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> node,
-		final String parentPath, final Map<String, MysticCryptEntryModelBean> found)
+		final String parentPath, final Map<String, MysticCryptEntryModelBean> found,
+		final List<String> visited)
 	{
 		String path = parentPath.isEmpty()
 			? node.getValue().getName()
@@ -140,13 +146,15 @@ class KeePassImportMatchesWhatKeePassXcReportsUiTest extends AbstractUiTest
 		{
 			for (MysticCryptEntryModelBean entry : node.getValue().getDefaultContent())
 			{
-				found.put(path + "/" + new String(entry.getTitle()), entry);
+				String where = path + "/" + new String(entry.getTitle());
+				visited.add(where);
+				found.put(where, entry);
 			}
 		}
 		for (BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> child : childrenOf(
 			node))
 		{
-			collect(child, path, found);
+			collect(child, path, found, visited);
 		}
 	}
 
