@@ -43,9 +43,14 @@ jobs:
         # display's socket, #597) are what the own-display plugin's harness needs, and since #505 every
         # test task of every build below gets its display from it (astrapi69/own-display-gradle-plugin,
         # #741), so nothing below runs under xvfb-run any more.
+        #
+        # openssl is what the keygen plugin's ProtectedKeyOpensElsewhereTest opens a password
+        # protected key with (openssl pkcs8 -inform DER): the test fails instead of skipping when CI
+        # is set and the program is missing, so the runner installs it rather than the test working
+        # around it.
         run: |
           sudo apt-get update || echo "apt-get update reported errors; continuing to the install"
-          sudo apt-get install -y xvfb fluxbox wmctrl x11-utils iproute2
+          sudo apt-get install -y xvfb fluxbox wmctrl x11-utils iproute2 openssl
       - name: Install KeePassXC
         # the KDBX round trip is measured with the program a user actually opens these files with,
         # not with our own model - a field our model does not carry would otherwise compare equal to
