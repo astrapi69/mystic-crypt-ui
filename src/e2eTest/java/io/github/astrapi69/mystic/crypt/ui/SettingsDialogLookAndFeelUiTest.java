@@ -43,9 +43,8 @@ import io.github.astrapi69.mystic.crypt.settings.FlatLafTheme;
 import io.github.astrapi69.mystic.crypt.settings.MysticCryptSettings;
 
 /**
- * The settings dialog and the look the screen shows. This pins what the dialog does today, which is
- * wrong: after a look is chosen in View > Look and Feel it shows the persisted look and, closed,
- * writes that one down again
+ * The settings dialog and the look the screen shows: after a look is chosen in View > Look and
+ * Feel, the dialog must show that look, and closing it must not write another one down
  */
 class SettingsDialogLookAndFeelUiTest extends AbstractUiTest
 {
@@ -74,10 +73,10 @@ class SettingsDialogLookAndFeelUiTest extends AbstractUiTest
 		robot.waitForIdle();
 
 		File configurationDirectory = new File(tempHome, ".config/mystic-crypt-ui");
-		assertEquals("FlatLaf Light", shown,
-			"pins today: the dialog shows the persisted look, not the one on the screen");
-		assertEquals("FlatLaf Light",
+		assertEquals("FlatLaf Dark", shown,
+			"the dialog shows another look than the one on the screen");
+		assertEquals("FlatLaf Dark",
 			MysticCryptSettings.load(configurationDirectory).getLookAndFeel(),
-			"pins today: closing the dialog writes the old look back");
+			"closing the dialog wrote the old look back");
 	}
 }
