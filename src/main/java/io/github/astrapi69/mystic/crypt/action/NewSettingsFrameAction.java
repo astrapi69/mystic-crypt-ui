@@ -34,7 +34,7 @@ import java.io.Serial;
 import javax.swing.*;
 
 import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
-import io.github.astrapi69.mystic.crypt.settings.GeneralSettingsPanel;
+import io.github.astrapi69.mystic.crypt.settings.LookAndFeelChoice;
 import io.github.astrapi69.mystic.crypt.settings.MysticCryptSettings;
 import io.github.astrapi69.mystic.crypt.settings.SettingsPanel;
 
@@ -62,14 +62,8 @@ public class NewSettingsFrameAction extends AbstractAction
 	public void actionPerformed(final ActionEvent e)
 	{
 		MysticCryptApplicationFrame frame = MysticCryptApplicationFrame.getInstance();
-		MysticCryptSettings settings = MysticCryptSettings.load(frame.getConfigurationDirectory());
-		// the dialog shows what is on the screen: a look chosen in the View menu is not in the
-		// file, and a dialog that showed the file's look would write it back on close
-		String activeLookAndFeel = GeneralSettingsPanel.installedNameOfActiveLookAndFeel();
-		if (activeLookAndFeel != null)
-		{
-			settings.setLookAndFeel(activeLookAndFeel);
-		}
+		MysticCryptSettings settings = LookAndFeelChoice
+			.settingsForTheDialog(frame.getConfigurationDirectory());
 		SettingsPanel settingsPanel = new SettingsPanel(settings, frame.getPluginManager(),
 			frame::refreshPluginsMenu, frame.getConfigurationDirectory(),
 			frame.getModelObject().isSignedIn());

@@ -27,15 +27,37 @@ package io.github.astrapi69.mystic.crypt.settings;
 import java.io.File;
 
 /**
- * Keeps the look and feel that is on the screen in the settings, so that the next start applies it
- * (#1059). Used by the View > Look and Feel menu, whose items only switch the look of the running
- * application
+ * The look and feel on the screen and the look and feel in the settings
  */
 public final class LookAndFeelChoice
 {
 
 	private LookAndFeelChoice()
 	{
+	}
+
+	/**
+	 * The settings the Settings dialog opens on: the saved ones, with the look and feel of the
+	 * screen put in. The dialog shows what the screen shows, so closing it cannot write another
+	 * look down; the two differ when the saved look could not be applied at start, and then the
+	 * saved one is replaced by the one that is in use (#1058)
+	 * <p>
+	 * A look that is not among the installed ones has no name the settings could hold, and the
+	 * saved look stays
+	 *
+	 * @param configurationDirectory
+	 *            the application's configuration directory
+	 * @return the settings to show in the dialog
+	 */
+	public static MysticCryptSettings settingsForTheDialog(final File configurationDirectory)
+	{
+		MysticCryptSettings settings = MysticCryptSettings.load(configurationDirectory);
+		String activeName = GeneralSettingsPanel.installedNameOfActiveLookAndFeel();
+		if (activeName != null)
+		{
+			settings.setLookAndFeel(activeName);
+		}
+		return settings;
 	}
 
 	/**
