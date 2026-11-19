@@ -29,8 +29,11 @@ import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.stream.Stream;
 
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
@@ -41,6 +44,7 @@ import org.assertj.swing.fixture.DialogFixture;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import io.github.astrapi69.file.delete.DeleteFileExtensions;
 import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
 import io.github.astrapi69.mystic.crypt.TestPasswords;
 import io.github.astrapi69.mystic.crypt.menu.MenuLayoutSupport;
@@ -143,12 +147,15 @@ class PluginMenuOrderSurvivesPluginToggleUiTest extends AbstractUiTest
 			"the arrangement was lost across the reinstall and the restart");
 	}
 
-	/** Deletes every plugin zip, its unpacked directory and its checksum file from the config */
-	private void removeEveryInstalledPlugin() throws java.io.IOException
+	/**
+	 * Deletes everything in the plugins directory of the isolated config: every plugin zip, its
+	 * unpacked directory and its checksum file
+	 */
+	private void removeEveryInstalledPlugin() throws IOException
 	{
 		Path pluginsDir = tempHome.toPath().resolve(".config/mystic-crypt-ui/plugins");
 		List<Path> entries;
-		try (java.util.stream.Stream<Path> children = java.nio.file.Files.list(pluginsDir))
+		try (Stream<Path> children = Files.list(pluginsDir))
 		{
 			entries = children.toList();
 		}
@@ -156,34 +163,16 @@ class PluginMenuOrderSurvivesPluginToggleUiTest extends AbstractUiTest
 			"the precondition: the zips are in the plugins directory");
 		for (Path entry : entries)
 		{
-			if (java.nio.file.Files.isDirectory(entry))
-			{
-				deleteTree(entry);
-			}
-			else
-			{
-				java.nio.file.Files.delete(entry);
-			}
+			DeleteFileExtensions.delete(entry);
 		}
-		try (java.util.stream.Stream<Path> remaining = java.nio.file.Files.list(pluginsDir))
+		try (Stream<Path> remaining = Files.list(pluginsDir))
 		{
 			assertEquals(0, remaining.count(), "every plugin is removed before it is installed");
 		}
 	}
 
-	private static void deleteTree(final Path directory) throws java.io.IOException
-	{
-		try (java.util.stream.Stream<Path> tree = java.nio.file.Files.walk(directory))
-		{
-			for (Path node : tree.sorted(java.util.Comparator.reverseOrder()).toList())
-			{
-				java.nio.file.Files.delete(node);
-			}
-		}
-	}
-
 	/** Saves an arrangement of the plugins menu that is not the alphabetical one and applies it */
-	private void saveARearrangedPluginsMenu() throws java.io.IOException
+	private void saveARearrangedPluginsMenu() throws IOException
 	{
 		String rearrangedXml = GuiActionRunner.execute(() -> {
 			JMenuBar menuBar = MysticCryptApplicationFrame.getInstance().getJMenuBar();

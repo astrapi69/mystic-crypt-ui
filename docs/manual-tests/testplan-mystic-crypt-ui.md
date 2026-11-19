@@ -357,7 +357,13 @@ The canonical inventory is the `plugins:` target in the Makefile.
       (`CertificateWizardUiTest#certificateWizardOpensAndClosesWithoutKillingTheApp`, a dispose by
       the test), the conversion wizard's Finish
       (`ConversionPluginUiTest#convertDerToPemWritesTheKeyAsPemThroughTheWizard`) and the
-      lethenon window (`LethenonPluginUiTest#thePlugin_remembersTheChainAndTheWalletThatWorked`);
+      lethenon window (`LethenonPluginUiTest#thePlugin_remembersTheChainAndTheWalletThatWorked`),
+      the console
+      (`ASecondConsoleBringsTheOpenOneToFrontUiTest#aSecondConsoleClick_leavesOneConsoleOpen`,
+      `doDefaultCloseAction`, then `System.out` is the stream from before) and the key store
+      wizard's Finish
+      (`CreateKeyStoreWizardUiTest#finishWithoutAKeyPairCreatesAnEmptyReadableStore`, the wizard
+      is no longer showing);
       the checksum and obfuscation windows are only closed as cleanup
       (`ApplicationSteps#closeInternalFrame` in `ChecksumFileWritingUiTest`,
       `ObfuscationRefusesWithoutAKeyUiTest` and `ObfuscationImportRefusesAForeignTypeUiTest`),
