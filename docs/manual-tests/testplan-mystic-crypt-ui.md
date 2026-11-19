@@ -341,8 +341,8 @@ The window is built for trying out, so that is how it is tested.
       password sign-in) and `SigninFocusUiTest#theDialogOpensOnTheMasterPassword` (a fresh
       profile: the box first, then the field), and
       `SignInEnterSubmitUiTest#pressingEnterInTheMasterPasswordFieldSignsIn` (Enter is sent
-      as the field's action event, since CI has no window manager; the physical key: manual
-      only)
+      as the field's action event, `SignInDialogSteps#enterInMasterPasswordAndAwaitSignIn`; a
+      real key press is not driven: manual only)
 - [ ] TC-0121 In the tree: Del deletes, F2 renames, Ins creates - each with its confirmation
       where there is one. - automated by
       `TreeShortcutsUiTest#f2RenamesTheSelectedNode` (F2, rename confirmed with OK) and
