@@ -113,8 +113,6 @@ class ProtectedKeyOpensElsewhereTest
 
 		PrivateKey opened = openWithTheJdk(keyFile, password);
 
-		assertEquals(panel.getModelObject().getPrivateKey().getEncoded().length,
-			opened.getEncoded().length, "the JDK got a key of another size out of the file");
 		assertArrayEquals(
 			panel.getModelObject().getPrivateKey().getEncoded(), opened.getEncoded(),
 			"the JDK got another key out of the file than the one generated");
