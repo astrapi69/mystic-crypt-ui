@@ -29,6 +29,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import java.io.File;
 
 import javax.swing.UIManager;
+import javax.swing.plaf.metal.MetalLookAndFeel;
 
 import org.assertj.swing.edt.GuiActionRunner;
 import org.assertj.swing.fixture.DialogFixture;
@@ -38,11 +39,13 @@ import org.junit.jupiter.api.Test;
 import com.formdev.flatlaf.FlatDarkLaf;
 
 import io.github.astrapi69.mystic.crypt.TestPasswords;
+import io.github.astrapi69.mystic.crypt.settings.MysticCryptSettings;
 
 /**
- * End-to-end use case "choose the look": the look chosen in the settings dialog is the look the
- * application is in at once and the one it starts with next time. There is no language setting
- * since #885, so the look is all that is chosen there.
+ * End-to-end use case "choose the look": the look chosen in the settings dialog is written to the
+ * settings file and is the one the application starts with next time. No window offers a language
+ * since #885, so the look is all that is chosen there. The look is global to the JVM, so the test
+ * puts it back to Metal, the look a new JVM starts in, before the restart.
  */
 class LookAndFeelSurvivesRestartUiTest extends AbstractUiTest
 {
@@ -64,7 +67,13 @@ class LookAndFeelSurvivesRestartUiTest extends AbstractUiTest
 		settings.button("btnCloseSettings").click();
 		robot.waitForIdle();
 
+		assertEquals("FlatLaf Dark",
+			MysticCryptSettings.load(new File(tempHome, ".config/mystic-crypt-ui"))
+				.getLookAndFeel(),
+			"closing the settings dialog did not write the chosen look down");
+
 		shutdownApplication();
+		GuiActionRunner.execute(() -> UIManager.setLookAndFeel(new MetalLookAndFeel()));
 		launchApplication();
 
 		String activeLookAndFeelClass = GuiActionRunner

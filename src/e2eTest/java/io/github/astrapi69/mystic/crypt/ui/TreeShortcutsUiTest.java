@@ -41,10 +41,12 @@ import org.junit.jupiter.api.Test;
 import io.github.astrapi69.mystic.crypt.TestPasswords;
 
 /**
- * End-to-end use case "work the tree from the keyboard": F2 opens the selected node for editing and
- * Delete asks before removing it, without ever touching the context menu. Driven through the real
+ * End-to-end use case "work the tree from the keyboard", without ever touching the context menu: F2
+ * opens the selected node for editing and renames it once confirmed, Delete asks before removing it
+ * and removes it once confirmed, Insert adds a child to the selected node. Driven through the real
  * tree, because what a key does depends on the focus and the selection, which no headless test can
- * stand in for.
+ * stand in for. The key is looked up in the tree's input map and its action run; a physical key
+ * press is not driven.
  */
 class TreeShortcutsUiTest extends AbstractUiTest
 {
@@ -157,6 +159,9 @@ class TreeShortcutsUiTest extends AbstractUiTest
 
 		assertTrue(application.treeChildNamesOf("ParentNode").contains("ChildNode"),
 			"Insert did not add the typed node under the selected one");
+		application.expandTreeRowNamed("ParentNode");
+		assertTrue(application.treeShowsARowNamed("ChildNode"),
+			"the new node is in the model but the tree does not show it");
 	}
 
 }
