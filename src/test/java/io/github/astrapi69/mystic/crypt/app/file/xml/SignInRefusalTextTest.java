@@ -64,7 +64,7 @@ class SignInRefusalTextTest
 
 	private static final String WRONG_BOTH = "The master password or the key file is wrong.";
 	private static final String WRONG_KEY = "This key file does not unlock this database.";
-	private static final String WRONG_PASSWORD = "Wrong master password.";
+	private static final String MESSAGE_FOR_A_WRONG_MASTER = "Wrong master password.";
 	private static final String NOT_A_DATABASE = "This file is not a database this application can open. It was not opened, and the file is unchanged.";
 
 	@TempDir
@@ -94,7 +94,7 @@ class SignInRefusalTextTest
 			Arguments.of("a wrong password, password alone",
 				(Attempt)test -> test.open(test.writtenWithPassword(), null,
 					TestPasswords.throwaway().toCharArray()),
-				WRONG_PASSWORD),
+				MESSAGE_FOR_A_WRONG_MASTER),
 			Arguments.of("a wrong password, password and key file",
 				(Attempt)test -> test.openBothWith(test.pem(2048), true), WRONG_BOTH),
 			Arguments.of("a foreign key file, password and key file",
@@ -116,7 +116,7 @@ class SignInRefusalTextTest
 			Arguments.of(
 				"a text file of 40 bytes, which the cipher cannot tell from a wrong password",
 				(Attempt)test -> test.open(test.textFile(40), null, test.passwordOfTheVault),
-				WRONG_PASSWORD),
+				MESSAGE_FOR_A_WRONG_MASTER),
 			Arguments.of("a database cut to half, key file alone",
 				(Attempt)test -> test.openKeyAloneCut(), NOT_A_DATABASE),
 			Arguments.of("a text file as the database, key file alone",
