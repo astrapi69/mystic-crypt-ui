@@ -49,6 +49,14 @@ public final class TestPasswords
 	public static final String KEEPASS_FIXTURE = "foo-secret-bar-1969-?";
 
 	/**
+	 * The password of the checked-in KeePassXC fixtures in {@code src/e2eKdbx/resources/kdbx}.
+	 * <p>
+	 * It cannot be made up either: KeePassXC wrote the files with it (README beside the fixtures).
+	 * They hold invented entries and guard nothing else.
+	 */
+	public static final String KEEPASSXC_FIXTURE = "fixture";
+
+	/**
 	 * The password of the checked-in vaults of 7.2 and 7.3 in
 	 * {@code src/testSupport/resources/compat/vaults} (#624).
 	 * <p>
