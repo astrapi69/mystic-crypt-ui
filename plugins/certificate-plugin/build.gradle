@@ -43,7 +43,6 @@ dependencies {
     compileOnly libs.crypt.data
     compileOnly libs.model.data
     compileOnly libs.swing.base.components
-    compileOnly libs.swing.components
     // the JMTextArea the in-app certificate editor binds to its model
     compileOnly libs.swing.model.components
     compileOnly libs.swing.wizard

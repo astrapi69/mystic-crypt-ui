@@ -1,0 +1,72 @@
+import groovy.xml.XmlSlurper
+import org.gradle.api.artifacts.component.ModuleComponentIdentifier
+import org.gradle.api.artifacts.result.ResolvedArtifactResult
+import org.gradle.maven.MavenModule
+import org.gradle.maven.MavenPomArtifact
+
+// The licence of every module the application ships, read from its POM, and where the POM names none, from its
+// parent POMs (#1013, #1014). ShippedLicencesTest reads the file this writes. The POMs are resolved here and not looked
+// up in the Gradle cache, because Gradle does not download the POM of a module it resolves through Gradle Module
+// Metadata: 21 of the 142 runtime modules had no POM in the cache on 2026-11-18. One line per module:
+// "group:module:version<TAB>name <url> | name <url><TAB>the POM the licences come from, or why there are none".
+def runtimeLicencesFile = layout.buildDirectory.file('runtime-licences.tsv')
+def runtimeLicences = tasks.register('runtimeLicences') {
+    description = 'Writes the licence of every module on runtimeClasspath, read from its POM chain, for ShippedLicencesTest'
+    group = 'verification'
+    inputs.files(configurations.runtimeClasspath).withPropertyName('runtimeClasspath').withNormalizer(ClasspathNormalizer)
+    outputs.file(runtimeLicencesFile).withPropertyName('runtimeLicences')
+    notCompatibleWithConfigurationCache('resolves the POMs of the runtime class path through the project when it runs')
+    doLast {
+        def pomOf = { String group, String module, String version ->
+            def result = project.dependencies.createArtifactResolutionQuery()
+                .forModule(group, module, version)
+                .withArtifacts(MavenModule, MavenPomArtifact)
+                .execute()
+            def poms = result.resolvedComponents.collectMany { component ->
+                component.getArtifacts(MavenPomArtifact).findAll { it instanceof ResolvedArtifactResult }*.file
+            }
+            poms ? poms.first() : null
+        }
+        def parse = { File pom ->
+            def slurper = new XmlSlurper(false, false)
+            // POMs come from the network: no document type, so no external entity either
+            slurper.setFeature('http://apache.org/xml/features/disallow-doctype-decl', true)
+            slurper.parse(pom)
+        }
+        def modules = project.configurations.runtimeClasspath.incoming.resolutionResult.allComponents
+            .collect { it.id }
+            .findAll { it instanceof ModuleComponentIdentifier }
+            .sort { it.displayName }
+        def lines = modules.collect { id ->
+            def group = id.group, module = id.module, version = id.version
+            def licences = [], source = null
+            for (int depth = 0; depth < 8 && source == null; depth++) {
+                def pom = pomOf(group, module, version)
+                if (pom == null) {
+                    source = "no POM resolved for ${group}:${module}:${version}"
+                    break
+                }
+                def xml = parse(pom)
+                licences = xml.licenses.license.collect { "${it.name.text().trim()} <${it.url.text().trim()}>" }
+                if (licences) {
+                    source = "${group}:${module}:${version}"
+                } else if (xml.parent.artifactId.text()) {
+                    group = xml.parent.groupId.text().trim()
+                    module = xml.parent.artifactId.text().trim()
+                    version = xml.parent.version.text().trim()
+                } else {
+                    source = 'no licence in the POM chain'
+                }
+            }
+            "${id.displayName}\t${licences.join(' | ')}\t${source ?: 'POM chain deeper than 8'}"
+        }
+        runtimeLicencesFile.get().asFile.text = lines.join('\n') + '\n'
+        logger.lifecycle("runtimeLicences: ${modules.size()} modules, ${lines.count { !it.split('\t')[1].isEmpty() }} with a licence")
+    }
+}
+
+tasks.named('test') {
+    dependsOn runtimeLicences
+    inputs.file(runtimeLicencesFile).withPropertyName('runtimeLicences').withPathSensitivity(PathSensitivity.NONE)
+    jvmArgumentProviders.add({ ["-Dmystic.crypt.ui.runtime.licences=${runtimeLicencesFile.get().asFile.absolutePath}".toString()] } as CommandLineArgumentProvider)
+}
