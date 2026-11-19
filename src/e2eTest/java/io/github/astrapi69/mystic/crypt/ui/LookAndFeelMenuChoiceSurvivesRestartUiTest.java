@@ -45,9 +45,8 @@ import io.github.astrapi69.mystic.crypt.TestPasswords;
 
 /**
  * End-to-end use case "choose a look in View > Look and Feel and find it again after a restart".
- * This pins what the menu does today, which is wrong: the choice is lost at the next start. The
- * restart is a JVM of its own on the same {@code user.home}, so that no {@code UIManager} or other
- * JVM-global state of this test JVM can answer for the application
+ * The restart is a JVM of its own on the same {@code user.home}, so that no {@code UIManager} or
+ * other JVM-global state of this test JVM can answer for the application
  */
 class LookAndFeelMenuChoiceSurvivesRestartUiTest extends AbstractUiTest
 {
@@ -79,9 +78,8 @@ class LookAndFeelMenuChoiceSurvivesRestartUiTest extends AbstractUiTest
 
 		String applied = lookAndFeelAppliedAtStartInAJvmOfItsOwn();
 
-		assertEquals("com.formdev.flatlaf.FlatLightLaf", applied,
-			"pins today: the next start applies the default look, whatever the menu chose "
-				+ "(wanted: " + expectedClass + ")");
+		assertEquals(expectedClass, applied,
+			"the next start did not apply the look chosen in the menu");
 	}
 
 	private String lookAndFeelAppliedAtStartInAJvmOfItsOwn() throws Exception

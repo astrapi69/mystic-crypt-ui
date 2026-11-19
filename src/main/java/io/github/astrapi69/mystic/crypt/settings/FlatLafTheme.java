@@ -39,8 +39,8 @@ import lombok.Getter;
  * JDK-bundled look and feels. {@link #installAll()} registers them with {@link UIManager} by name,
  * which is what makes them appear in {@link GeneralSettingsPanel}'s model-backed look-and-feel
  * dropdown and lets a choice survive a restart the same way any JDK-bundled look and feel does
- * (#125) - without that registration they were only ever known to the "Look and Feel" menu, which
- * builds its items from the classes directly and does not persist a choice.
+ * (#125). The "Look and Feel" menu builds its items from the classes directly, and saves a choice
+ * through {@link LookAndFeelChoice} by the registered name (#1059).
  */
 @Getter
 public enum FlatLafTheme
