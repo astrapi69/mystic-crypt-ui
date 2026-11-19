@@ -495,10 +495,43 @@ def run(argv):
     subprocess.run([os.path.join(script_dir, "update-local-branch.sh"), target], check=True)
 
 
+def printable_command(command):
+    """The command as one line for the failure report. The value of a -f or -F
+    field is left out, only its name stays: it can be a whole pull request
+    body, and the report must never carry more than the call's shape."""
+    parts = []
+    hide_value = False
+    for argument in command if isinstance(command, (list, tuple)) else [command]:
+        argument = os.fsdecode(argument)
+        if hide_value and "=" in argument:
+            argument = argument.split("=", 1)[0] + "=..."
+        hide_value = argument in ("-f", "-F", "--field", "--raw-field")
+        parts.append(argument)
+    return " ".join(parts)
+
+
+def failure_report(failed):
+    """What a failed subprocess call says: the command, then what it answered
+    on stderr and stdout. gh puts GitHub's own reason there, and the
+    CalledProcessError text alone ("returned non-zero exit status 1") loses it."""
+    lines = [f"a call failed (exit status {failed.returncode}): {printable_command(failed.cmd)}"]
+    for label, text in (("stderr", failed.stderr), ("stdout", failed.stdout)):
+        if isinstance(text, bytes):
+            text = text.decode("utf-8", errors="replace")
+        if text and text.strip():
+            lines.append(f"{label}:")
+            lines.append(text.rstrip())
+    return "\n".join(lines)
+
+
 def die(message):
     print(f"merge-pr: {message}", file=sys.stderr)
     sys.exit(1)
 
 
 if __name__ == "__main__":
-    run(sys.argv[1:])
+    try:
+        run(sys.argv[1:])
+    except subprocess.CalledProcessError as failed:
+        print("merge-pr: " + failure_report(failed), file=sys.stderr)
+        sys.exit(1)

@@ -381,7 +381,8 @@ public class GenerateKeysPanel extends BasePanel<GenerateKeysModelBean>
 			new KeyFileFormat[] { KeyFileFormat.PEM, KeyFileFormat.DER });
 		cmbSaveFormat.setName("cmbSaveFormat");
 		cmbSaveFormat.setToolTipText(KeygenMessages.getString("keygen.tooltip.save.format",
-			"the encoding every file this window saves is written in - PEM is text, DER is binary"));
+			"the encoding every file this window saves is written in - PEM is text, DER is binary; "
+				+ "the one exception is a private key saved with a password, which is always DER"));
 		cmbKeyFormat.setName("cmbKeyFormat");
 		cmbKeyFormat.setToolTipText(WHAT_THE_KEY_FORMAT_BOX_OFFERS);
 		cmbKeyFormat.setRenderer(new javax.swing.DefaultListCellRenderer()

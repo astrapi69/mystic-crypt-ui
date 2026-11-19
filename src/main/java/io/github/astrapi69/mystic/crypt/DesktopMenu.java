@@ -29,6 +29,7 @@ import java.awt.Component;
 import java.awt.Frame;
 import java.awt.event.ActionEvent;
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -81,6 +82,7 @@ import io.github.astrapi69.mystic.crypt.panel.info.ApplicationInfo;
 import io.github.astrapi69.mystic.crypt.panel.info.ApplicationInfoPanel;
 import io.github.astrapi69.mystic.crypt.plugin.api.PluginMenuContribution;
 import io.github.astrapi69.mystic.crypt.settings.FlatLafTheme;
+import io.github.astrapi69.mystic.crypt.settings.LookAndFeelChoice;
 import io.github.astrapi69.swing.action.OpenBrowserAction;
 import io.github.astrapi69.swing.action.ShowInfoDialogAction;
 import io.github.astrapi69.swing.base.BaseDesktopMenu;
@@ -468,7 +470,8 @@ public class DesktopMenu extends BaseDesktopMenu implements EventListener<EventO
 	/**
 	 * {@inheritDoc}
 	 * <p>
-	 * Overridden to add FlatLaf's four themes alongside the JDK-bundled ones already there (#116)
+	 * Overridden to add FlatLaf's four themes alongside the JDK-bundled ones already there (#116),
+	 * and to keep the choice of any item in the settings (#1059)
 	 */
 	@Override
 	protected JMenu newLookAndFeelMenu()
@@ -479,7 +482,40 @@ public class DesktopMenu extends BaseDesktopMenu implements EventListener<EventO
 		{
 			menu.add(newFlatLafMenuItem(theme));
 		}
+		for (final Component component : menu.getMenuComponents())
+		{
+			if (component instanceof JMenuItem item)
+			{
+				// invoked later: the item's own action switches the look, and which listener of
+				// the item runs first is not something to rely on (#1059)
+				item.addActionListener(
+					event -> SwingUtilities.invokeLater(this::persistActiveLookAndFeel));
+			}
+		}
 		return menu;
+	}
+
+	/**
+	 * The configuration directory the settings live in
+	 *
+	 * @return the directory, or {@code null} while there is no application frame to ask
+	 */
+	protected File configurationDirectory()
+	{
+		final MysticCryptApplicationFrame frame = MysticCryptApplicationFrame.getInstance();
+		return frame == null ? null : frame.getConfigurationDirectory();
+	}
+
+	/**
+	 * Saves the look and feel a menu item has just switched to, so the next start applies it
+	 */
+	void persistActiveLookAndFeel()
+	{
+		final File directory = configurationDirectory();
+		if (directory != null)
+		{
+			LookAndFeelChoice.persistActive(directory);
+		}
 	}
 
 	/**

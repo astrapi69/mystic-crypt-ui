@@ -39,8 +39,8 @@ import lombok.Getter;
  * JDK-bundled look and feels. {@link #installAll()} registers them with {@link UIManager} by name,
  * which is what makes them appear in {@link GeneralSettingsPanel}'s model-backed look-and-feel
  * dropdown and lets a choice survive a restart the same way any JDK-bundled look and feel does
- * (#125) - without that registration they were only ever known to the "Look and Feel" menu, which
- * builds its items from the classes directly and does not persist a choice.
+ * (#125). The "Look and Feel" menu builds its items from the classes directly, and saves a choice
+ * through {@link LookAndFeelChoice} by the registered name (#1059).
  */
 @Getter
 public enum FlatLafTheme
@@ -60,19 +60,6 @@ public enum FlatLafTheme
 	}
 
 	/**
-	 * Registers every theme with {@link UIManager} under its label, so it is found by
-	 * {@link UIManager#getInstalledLookAndFeels()} wherever the application already looks up
-	 * installed look and feels by name. Must run before the settings dropdown is built and before a
-	 * persisted look-and-feel choice is replayed on startup.
-	 * <p>
-	 * Also turns on FlatLaf's built-in reveal-password button for every
-	 * {@link javax.swing.JPasswordField} in the application, one {@link UIManager} default instead
-	 * of a change to every panel that has a password field (#198). It has to run this early because
-	 * the sign-in dialog - the very first password field shown - is created before anything else.
-	 * The default is inert under a non-FlatLaf look and feel (Nimbus and the other JDK-bundled ones
-	 * stay selectable in this application): nothing reads it, so nothing changes.
-	 */
-	/**
 	 * The name the menu item for this theme carries. It lives here, where the item is named, so
 	 * that the places deciding about that item - building it, and the list of what is offered
 	 * without a vault - cannot drift apart by copying the prefix (#232)
@@ -84,13 +71,43 @@ public enum FlatLafTheme
 		return "mihLookAndFeel" + name();
 	}
 
+	/**
+	 * Registers every theme with {@link UIManager} under its label, so it is found by
+	 * {@link UIManager#getInstalledLookAndFeels()} wherever the application already looks up
+	 * installed look and feels by name. Must run before the settings dropdown is built and before a
+	 * persisted look-and-feel choice is replayed on startup.
+	 * <p>
+	 * Also turns on FlatLaf's built-in reveal-password button for every
+	 * {@link javax.swing.JPasswordField} in the application, one {@link UIManager} default instead
+	 * of a change to every panel that has a password field (#198). It has to run this early because
+	 * the sign-in dialog - the very first password field shown - is created before anything else.
+	 * The default is inert under a non-FlatLaf look and feel (Nimbus and the other JDK-bundled ones
+	 * stay selectable in this application): nothing reads it, so nothing changes.
+	 * <p>
+	 * Calling it again changes nothing: a theme that is installed is not installed twice.
+	 */
 	public static void installAll()
 	{
 		for (final FlatLafTheme theme : values())
 		{
-			UIManager.installLookAndFeel(
-				new UIManager.LookAndFeelInfo(theme.label, theme.lookAndFeelClass.getName()));
+			if (!isInstalled(theme))
+			{
+				UIManager.installLookAndFeel(
+					new UIManager.LookAndFeelInfo(theme.label, theme.lookAndFeelClass.getName()));
+			}
 		}
 		UIManager.put("PasswordField.showRevealButton", true);
+	}
+
+	private static boolean isInstalled(final FlatLafTheme theme)
+	{
+		for (final UIManager.LookAndFeelInfo info : UIManager.getInstalledLookAndFeels())
+		{
+			if (info.getClassName().equals(theme.lookAndFeelClass.getName()))
+			{
+				return true;
+			}
+		}
+		return false;
 	}
 }

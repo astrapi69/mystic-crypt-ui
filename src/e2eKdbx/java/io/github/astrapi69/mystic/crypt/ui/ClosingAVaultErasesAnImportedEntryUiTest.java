@@ -63,7 +63,7 @@ class ClosingAVaultErasesAnImportedEntryUiTest extends AbstractUiTest
 	private static final String FIXTURE = "keepassxc-2.7.10-kdbx4.kdbx";
 
 	/** Test material, see the README beside the fixture */
-	private static final String FIXTURE_PASSWORD = "fixture";
+	private static final String FIXTURE_PASSWORD = TestPasswords.KEEPASSXC_FIXTURE;
 
 	/** The fixture's one entry, in {@code Root/Team} - see the README beside the fixture */
 	private static final String TITLE = "Titel test foo";

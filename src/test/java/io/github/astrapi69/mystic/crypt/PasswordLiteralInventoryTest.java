@@ -24,6 +24,7 @@
  */
 package io.github.astrapi69.mystic.crypt;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
@@ -56,23 +57,41 @@ import org.junit.jupiter.api.Test;
 class PasswordLiteralInventoryTest
 {
 
-	/** A password-named variable or constant given a whole string literal, also as characters */
+	/**
+	 * A password-named variable or constant given a whole string literal, also as characters; a
+	 * password-named method (a setter or a builder step) given a string literal as its argument;
+	 * and {@code addEntry}, whose last argument is the entry's password, given a literal
+	 */
 	private static final Pattern PASSWORD_LITERAL = Pattern.compile(
-		"(?i)\\b\\w*(?:password|passphrase|passwd)\\w*\\s*=\\s*\"[^\"]*\"\\s*(?:\\.toCharArray\\(\\))?\\s*;");
+		"(?i)\\b\\w*(?:password|passphrase|passwd)\\w*\\s*=\\s*\"[^\"]*\"\\s*(?:\\.toCharArray\\(\\))?\\s*;"
+			+ "|\\b\\w*(?:password|passphrase|passwd)\\w*\\(\\s*\"[^\"]*\""
+			+ "|\\baddEntry\\([^;]*,\\s*\"[^\"]*\"\\s*\\)\\s*;");
 
 	/** The literals that exist, per file, to be replaced when the file is next touched */
 	private static final Map<String, Integer> NOT_REPLACED_YET = Map.ofEntries(Map.entry(
-		"plugins/lethenon-plugin/src/test/java/io/github/astrapi69/mystic/crypt/plugin/lethenon/LethenonBalancePanelBindingTest.java",
-		1),
+		"plugins/keystore-plugin/src/test/java/io/github/astrapi69/mystic/crypt/plugin/keystore/wizard/CreateKeyStoreWizardModelTest.java",
+		2),
+		Map.entry(
+			"plugins/keystore-plugin/src/test/java/io/github/astrapi69/mystic/crypt/plugin/keystore/wizard/CreateKeyStoreWizardPanelTest.java",
+			4),
+		Map.entry(
+			"plugins/keystore-plugin/src/test/java/io/github/astrapi69/mystic/crypt/plugin/keystore/wizard/CreateKeyStoreWizardStateTest.java",
+			6),
+		Map.entry(
+			"plugins/lethenon-plugin/src/test/java/io/github/astrapi69/mystic/crypt/plugin/lethenon/LethenonBalancePanelBindingTest.java",
+			3),
 		Map.entry(
 			"plugins/lethenon-plugin/src/test/java/io/github/astrapi69/mystic/crypt/plugin/lethenon/LethenonMinePanelBindingTest.java",
+			3),
+		Map.entry(
+			"plugins/lethenon-plugin/src/test/java/io/github/astrapi69/mystic/crypt/plugin/lethenon/LethenonNodePanelBindingTest.java",
 			1),
 		Map.entry(
 			"plugins/lethenon-plugin/src/test/java/io/github/astrapi69/mystic/crypt/plugin/lethenon/LethenonSendPanelBindingTest.java",
-			1),
+			2),
 		Map.entry(
 			"plugins/lethenon-plugin/src/test/java/io/github/astrapi69/mystic/crypt/plugin/lethenon/LethenonSweepPanelBindingTest.java",
-			1),
+			2),
 		Map.entry(
 			"plugins/lethenon-plugin/src/test/java/io/github/astrapi69/mystic/crypt/plugin/lethenon/LethenonWalletsTest.java",
 			1),
@@ -84,7 +103,7 @@ class PasswordLiteralInventoryTest
 			1),
 		Map.entry(
 			"plugins/lethenon-plugin/src/test/java/io/github/astrapi69/mystic/crypt/plugin/lethenon/RememberWhatWorkedTest.java",
-			1),
+			2),
 		Map.entry(
 			"plugins/lethenon-plugin/src/test/java/io/github/astrapi69/mystic/crypt/plugin/lethenon/SweepSupportTest.java",
 			1),
@@ -97,42 +116,78 @@ class PasswordLiteralInventoryTest
 		Map.entry(
 			"plugins/lethenon-plugin/src/test/java/io/github/astrapi69/mystic/crypt/plugin/lethenon/WalletBalanceSupportTest.java",
 			1),
+		Map.entry(
+			"plugins/password-hash-plugin/src/test/java/io/github/astrapi69/mystic/crypt/plugin/password/PasswordHashRoundTripTest.java",
+			2),
 		Map.entry("src/e2eKdbx/java/io/github/astrapi69/mystic/crypt/keepass/KdbxFacts.java", 1),
-		Map.entry(
-			"src/e2eKdbx/java/io/github/astrapi69/mystic/crypt/ui/ClosingAVaultErasesAnImportedEntryUiTest.java",
-			1),
-		Map.entry(
-			"src/e2eKdbx/java/io/github/astrapi69/mystic/crypt/ui/KdbxRoundTripKeepsEveryFieldUiTest.java",
-			1),
 		Map.entry(
 			"src/e2eLock/java/io/github/astrapi69/mystic/crypt/ui/AutomaticLockHoldsTheInvariantUiTest.java",
 			1),
 		Map.entry(
 			"src/e2eLock/java/io/github/astrapi69/mystic/crypt/ui/ClosingAVaultErasesItFromMemoryUiTest.java",
 			1),
+		Map.entry("src/e2eLock/java/io/github/astrapi69/mystic/crypt/ui/LockInvariantUiTest.java",
+			1),
 		Map.entry(
 			"src/e2eLock/java/io/github/astrapi69/mystic/crypt/ui/LockingErasesTheKeyMaterialUiTest.java",
+			1),
+		Map.entry(
+			"src/e2eLock/java/io/github/astrapi69/mystic/crypt/ui/OpenEditorSurvivesTheIdleLockUiTest.java",
 			1),
 		Map.entry(
 			"src/e2eLock/java/io/github/astrapi69/mystic/crypt/ui/PluginsUsableWhileLockedHoldTheLockUiTest.java",
 			1),
 		Map.entry(
+			"src/e2eLock/java/io/github/astrapi69/mystic/crypt/ui/UnsavedWorkSurvivesTheIdleLockUiTest.java",
+			7),
+		Map.entry("src/e2eTest/java/io/github/astrapi69/mystic/crypt/ui/AddEntryUiTest.java", 1),
+		Map.entry(
+			"src/e2eTest/java/io/github/astrapi69/mystic/crypt/ui/DeleteEntryCancelUiTest.java", 1),
+		Map.entry("src/e2eTest/java/io/github/astrapi69/mystic/crypt/ui/DuplicateNodeUiTest.java",
+			1),
+		Map.entry(
+			"src/e2eTest/java/io/github/astrapi69/mystic/crypt/ui/EditDuplicateAndDeleteEntryUiTest.java",
+			1),
+		Map.entry(
+			"src/e2eTest/java/io/github/astrapi69/mystic/crypt/ui/KeePassRoundTripPreservesEntryUiTest.java",
+			1),
+		Map.entry(
+			"src/e2eTest/java/io/github/astrapi69/mystic/crypt/ui/SearchByEntryFieldUiTest.java",
+			1),
+		Map.entry(
+			"src/e2eTest/java/io/github/astrapi69/mystic/crypt/ui/SearchByEntryTitleUiTest.java",
+			1),
+		Map.entry(
+			"src/e2eTest/java/io/github/astrapi69/mystic/crypt/ui/SecondVaultWhileSignedInUiTest.java",
+			2),
+		Map.entry(
 			"src/e2eTest/java/io/github/astrapi69/mystic/crypt/ui/TreeCopyGivesTheClipboardOnlyTheNodeNameUiTest.java",
 			1),
 		Map.entry(
+			"src/test/java/io/github/astrapi69/mystic/crypt/NoModelBeanPrintsASecretTest.java", 1),
+		Map.entry(
 			"src/test/java/io/github/astrapi69/mystic/crypt/app/file/xml/ApplicationXmlFileWithPasswordAndKeyFactoryTest.java",
+			1),
+		Map.entry(
+			"src/test/java/io/github/astrapi69/mystic/crypt/keepass/KeePassEntryConverterTest.java",
 			1),
 		Map.entry(
 			"src/test/java/io/github/astrapi69/mystic/crypt/lock/MasterPasswordVerifierTest.java",
 			1),
 		Map.entry(
+			"src/test/java/io/github/astrapi69/mystic/crypt/panel/dbtree/EntryEditingTest.java", 2),
+		Map.entry(
 			"src/test/java/io/github/astrapi69/mystic/crypt/panel/signin/MasterPwFileModelBeanTest.java",
+			1),
+		Map.entry(
+			"src/test/java/io/github/astrapi69/mystic/crypt/search/DatabaseSearchSupportTest.java",
 			1),
 		Map.entry(
 			"src/test/java/io/github/astrapi69/mystic/crypt/tooling/SigningPasswordsFromTheKeyringTest.java",
 			2),
 		Map.entry("src/test/java/io/github/astrapi69/mystic/crypt/vault/VaultCloseSupportTest.java",
-			5));
+			6),
+		Map.entry("src/test/resources/compat/WriteWithTheRelease.java", 2));
 
 	@Test
 	@DisplayName("no test source has more password literals than the list allows, and the list is exact")
@@ -172,6 +227,15 @@ class PasswordLiteralInventoryTest
 			}
 		});
 		assertTrue(problems.isEmpty(), String.join("\n", problems));
+	}
+
+	@Test
+	@DisplayName("a password passed as an argument is counted")
+	void aPasswordPassedAsAnArgumentIsCounted()
+	{
+		assertEquals(1, countLiterals("entry.setPassword(\"a-literal\");"));
+		assertEquals(1,
+			countLiterals("application.addEntry(frame, \"title\", \"user\", \"a-literal\");"));
 	}
 
 	private static int countLiterals(final String content)

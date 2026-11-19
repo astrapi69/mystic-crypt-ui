@@ -335,21 +335,30 @@ public final class KeygenSupport
 	}
 
 	/**
-	 * Writes the certificate the given description asks for, in PEM form, encoded in full before the
-	 * file is opened (#882)
+	 * Writes the certificate the given description asks for, in the given encoding, encoded in full
+	 * before the file is opened (#882). The certificate follows the save format like every other
+	 * file the key generator window writes (#1050)
 	 *
 	 * @param certificateInfo
 	 *            what the certificate is to contain
 	 * @param file
 	 *            the file to write it to
+	 * @param saveFormat
+	 *            the encoding to write it in: DER is binary, anything else is PEM text
 	 * @throws Exception
 	 *             if the keys cannot be restored, the description does not add up, or the file
 	 *             cannot be written
 	 */
-	public static void writeCertificate(final CertificateInfoModel certificateInfo, final File file)
-		throws Exception
+	public static void writeCertificate(final CertificateInfoModel certificateInfo, final File file,
+		final KeyFileFormat saveFormat) throws Exception
 	{
 		X509Certificate certificate = CertificateInfoModelToX509.toX509Certificate(certificateInfo);
+		if (KeyFileFormat.DER.equals(saveFormat))
+		{
+			writeOnceEncoded(file,
+				encoded -> CertificateWriter.writeInDerFormat(certificate, encoded));
+			return;
+		}
 		writeOnceEncoded(file, encoded -> CertificateWriter.writeInPemFormat(certificate, encoded));
 	}
 

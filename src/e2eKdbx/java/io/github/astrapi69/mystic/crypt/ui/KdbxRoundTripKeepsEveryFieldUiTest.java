@@ -71,12 +71,12 @@ import io.github.astrapi69.mystic.crypt.keepass.KeePassXcDump;
  * the two exports are compared.
  * <p>
  * <b>Which KeePassXC reads them is part of every result.</b> The fixture was written with KeePassXC
- * 2.7.10 and is read locally with 2.7.10. CI installs Ubuntu's package instead, because the runner
- * has no {@code keepassxc-minimal} ({@code E: Unable to locate package keepassxc-minimal}, CI run
- * 35078636917), and that package is 2.7.6. The two agreed on this fixture once, on the version of
- * this test that called the converter directly - on the same file, not in general. So every failure
- * message here names the version that read the files, and a case where the two ever read
- * differently says which one it ran against.
+ * 2.7.10 and is read locally with 2.7.10. CI installs {@code keepassxc-minimal}, also 2.7.10 (CI
+ * runs 44333392266 and 44490633638). An earlier run had no such package and fell back to Ubuntu's
+ * {@code keepassxc}, 2.7.6 (CI run 35078636917), where the two agreed on this fixture once, on the
+ * version of this test that called the converter directly - on the same file, not in general. So
+ * every failure message here names the version that read the files, and a case where two versions
+ * ever read differently says which one it ran against.
  * <p>
  * The fixture is real third-party material: KDBX 4.0, Argon2d, with its content and password
  * recorded in {@code src/e2eKdbx/resources/kdbx/README.md} (#380).
@@ -100,7 +100,7 @@ class KdbxRoundTripKeepsEveryFieldUiTest extends AbstractUiTest
 	private static final String STARTER_NODE = "mykeys";
 
 	/** Test material, written down on purpose - see the README beside the fixture */
-	private static final String PASSWORD = "fixture";
+	private static final String PASSWORD = TestPasswords.KEEPASSXC_FIXTURE;
 
 	private static final String MASTER_PASSWORD = TestPasswords.throwaway();
 

@@ -106,19 +106,39 @@ Real data, no test fixture. Nothing else is released while this does not hold.
 ## TS-0002 The backup file (#847)
 
 - [ ] TC-0020 Save an opened database: a sibling `.bak` file appears next to it. - automated
-      by `VaultFileWriterTest`
+      by `BackupFileUiTest#aSaveOfAPasswordDatabaseKeepsThePreviousStateAsTheSiblingBackup`
+      (password database) and
+      `BackupFileUiTest#aSaveOfAKeyFileDatabaseKeepsThePreviousStateAsTheSiblingBackup`
+      (key file database) and
+      `BackupFileUiTest#aSaveOfAPasswordAndKeyFileDatabaseKeepsThePreviousStateAsTheSiblingBackup`
+      (password and key file database); all three check that the `.bak` holds the previous
+      bytes and that nothing else lies next to the database; the writer itself is pinned by
+      `VaultFileWriterTest#aReplacedDatabaseKeepsItsBackup`
 - [ ] TC-0021 Close and reopen the database successfully: the `.bak` is gone. - automated by
-      `VaultFileWriterTest`
+      the second half of the same three `BackupFileUiTest` methods (an in-JVM restart through
+      `AbstractUiTest#shutdownApplication`, then sign in again through the dialog: the `.bak` is
+      gone and the saved node is in the tree); the reader's removal is pinned by
+      `VaultFileWriterTest#aSuccessfulOpenRemovesTheBackup`; File > Close and then reopen is
+      not driven for the `.bak`: manual only
 - [ ] TC-0022 Make the saved file unreadable by hand (truncate a copy of the scenario, not
       your real database), open: the open fails and the `.bak` still holds the previous
-      state and opens. - manual only
+      state and opens. - automated by
+      `VaultFileWriterTest#aTruncatedDatabaseFailsToOpenAndTheBackupStillOpensWithThePreviousState`
+      (a database saved twice and cut to half its length in code, opened through the reader the
+      sign-in uses, then the `.bak` copied over it and opened through the same reader);
+      manual only: truncating the file in the file manager, the sign-in dialog's refusal of
+      the truncated file, and opening the restored `.bak` through the dialog
 
 ## TS-0003 Moving the database
 
 - [ ] TC-0030 With the application closed, move the database file to another directory, open
-      it from there, change something, save. - automated by `MovedDatabaseUiTest`
+      it from there, change something, save. - automated by
+      `MovedDatabaseUiTest#aDatabaseThatWasMovedIsSavedWhereItNowIs` (case "moved into another
+      directory"; the case "renamed in the same directory" covers a rename in place)
 - [ ] TC-0031 Check that the **new** file was written and the old one does not reappear. -
-      automated by `MovedDatabaseUiTest`
+      automated by `MovedDatabaseUiTest#aDatabaseThatWasMovedIsSavedWhereItNowIs` (both
+      cases: the moved file changes, the old path does not exist, the change is there after
+      a reopen)
 
 ## TS-0004 Lock and unlock (the factors of the open database) (release smoke)
 
@@ -205,11 +225,26 @@ read from the disk again at unlock (8.15, GHSA-px49-m539-22h8).
 ## TS-0006 KeePass, with a real file
 
 - [ ] TC-0060 Import a real `.kdbx` (password, key file, both). - automated by
-      `KeePassImportUiTest`, `KeePassImportKeyFileUiTest` (fixture files; the real file
-      manual only)
-- [ ] TC-0061 Spot check: three entries match what KeePass shows. - manual only
+      `KeePassImportUiTest#importKeePassDatabaseShowsEntriesInTree` (password),
+      `KeePassImportKeyFileUiTest#importKeePassDatabaseProtectedByAKeyFileOnlyShowsEntriesInTree`
+      (key file alone) and
+      `KeePassImportKeyFileUiTest#importKeePassDatabaseProtectedByAKeyFileShowsEntriesInTree`
+      (password and key file); the files are built by the library or are fixtures, so the real
+      file of one's own with its real key file: manual only (its secrets belong in no test)
+- [ ] TC-0061 Spot check: three entries match what KeePass shows. - automated by
+      `KeePassImportMatchesWhatKeePassXcReportsUiTest#everyImportedEntryEqualsWhatKeePassXcReadsFromTheSameFile`
+      (a KeePassXC-written file with three entries in three groups, compared with what
+      keepassxc-cli reads from it); the look at KeePass's own window with the real file: manual only
 - [ ] TC-0062 Export to a new `.kdbx`, open that file in **real KeePass**. - automated by
-      `KeePassRoundTripUiTest` (reimport here); the open in real KeePass manual only
+      `KdbxRoundTripKeepsEveryFieldUiTest#theTextFieldsSurvive`, `#customPropertiesSurviveIncludingTheProtectedOne`,
+      `#theAttachmentSurvivesWithItsContent`, `#theGroupStructureIsUnchanged`, `#theHistoryIsCarriedThrough`,
+      `#identifiersSurvive`, `#allFourTimestampsAndTheExpiryFlagSurvive`, `#groupTimesSurvive`,
+      `#iconIndicesSurvive`, `#theExportedHeaderIsNotTheLibraryPlaceholder` and
+      `#theBinaryPoolIsNoLongerWrittenTwice` (the exported file read by KeePassXC through
+      keepassxc-cli), `KeePassExportUiTest#exportedKdbxFileIsReadableWithTheChosenPassword` (read back with
+      KeePassJava2, this application's own library) and
+      `KeePassRoundTripUiTest#exportedDatabaseCanBeReimported` (re-import here); the open in
+      KeePass 2.x itself: manual only (a Windows program, not on the runner)
 
 ## TS-0007 Creating a database does not overwrite (#917)
 
@@ -330,12 +365,11 @@ The window is built for trying out, so that is how it is tested.
 - [ ] TC-0105 Set the format to DER and do the same again: extension `.der`, binary
       content. - automated by
       `KeygenSavesRealArtifactsUiTest#everyFileTheWindowSavesIsARealArtifact` (private key and
-      public key as DER), `SaveFormatTest#aPrivateKeySavedAsPemIsTextAsDerItIsNot`,
-      `SaveFormatTest#aPublicKeySavedAsPemIsTextAsDerItIsNot`. Not true for the certificate: it
-      is PEM with `.pem` whatever the format says (`CryptographyPanel.java:415-416`), which
-      contradicts the tooltip of the format box; today's behaviour is pinned in the same test and
-      the case fails for the certificate until #1050 is decided. The key saved with a password is
-      always DER
+      public key and certificate as DER, read back with `CertificateFactory`),
+      `SaveFormatTest#aPrivateKeySavedAsPemIsTextAsDerItIsNot`,
+      `SaveFormatTest#aPublicKeySavedAsPemIsTextAsDerItIsNot`,
+      `SaveFormatTest#aCertificateSavedAsPemIsTextAsDerItIsBinary`. The key saved with a password
+      is always DER, the one decided exception (#1050)
 - [ ] TC-0106 Save the private key with a password and open the file again with that
       password (for example `openssl pkcs8 -inform DER`). - automated by
       `KeygenSavesRealArtifactsUiTest#everyFileTheWindowSavesIsARealArtifact` (the library's
@@ -462,17 +496,44 @@ The canonical inventory is the `plugins:` target in the Makefile.
 ## TS-0014 Help buttons and the wiki
 
 - [ ] TC-0140 Every Help button in the sign-in dialogs opens a wiki page that exists, not a
-      "page does not exist" editor (#868). - automated by `WikiLinksTest` (the targets
-      exist); the browser opening manual only
+      "page does not exist" editor (#868). - automated in part: that each of the two Help
+      buttons opens the page the plan names and that the page is in `docs/wiki/` by
+      `SignInHelpButtonsUiTest#signInHelpButton_opensTheOpenExistingPage_whenClicked` and
+      `SignInHelpButtonsUiTest#createHelpButton_opensTheCreateNewPage_whenClicked` (the real button
+      is clicked, the link is recorded, no browser opens); that every page the application and its
+      documents link, the released versions' help links included, is in `docs/wiki/` by
+      `WikiLinksTest#everyLinkedPage_isInTheWikiSource` and
+      `WikiLinksTest#everyPageAReleasedVersionLinks_isInTheWikiSource`; that the Wiki button of
+      Help > Info carries the wiki address by
+      `ApplicationInfoPanelTest#theWikiButtonCarriesTheWikiAddressOfTheInfo_andTheDefaultOneIsTheWikiHome` and
+      `ApplicationInfoPanelTest#theWikiButtonCarriesTheAddressTheInfoGives_notAFixedOne`.
+      Manual only: that the published wiki, the mirror of `docs/wiki/`, serves the page (it needs
+      the network and the workflow's run), and that the browser opens it
 
 ## TS-0015 The installer (release rounds) (release smoke)
 
 `make verify-installer PREVIOUS=<last release>` runs the measurable checks; this is the rest.
 
 - [ ] TC-0150 Install from the izpack jar on a machine or fresh directory without a
-      development build, start from the installed launcher. - manual only
-- [ ] TC-0151 Help > About names the released version. - manual only
-- [ ] TC-0152 Open a real database created with the previous release. - manual only
+      development build, start from the installed launcher. - manual only (the install step
+      and the generated launcher on a machine without a development build run no test; the
+      installer file itself, its checksums and the application jar inside it are checked by
+      `make verify-installer`, `scripts/verify-installer.sh`)
+- [ ] TC-0151 Help > Info (the menu entry is "Info", not "About") names the released version.
+      - automated by `ApplicationInfoPanelTest#showsTheGivenApplicationNameVersionCopyrightAndLicense`
+      (the panel shows the version it is given) and
+      `HelpAboutUiTest#helpInfoOpensItsDialogWithTheApplicationNameAndAGithubLink` (Help > Info
+      opens); the `Implementation-Version` of the application jar in the installer equals the
+      release version by `make verify-installer`; that the installed application's own Help >
+      Info window names the released version manual only
+- [ ] TC-0152 Open a real database created with the previous release. - automated half:
+      `AnEarlierVaultKeepsItsChangeThroughTheWholeChainUiTest#theChange_survivesTheWholeChain_andNothingElseMoves`
+      (case "8.14": the previous release's fixture signs in through the dialog),
+      `VaultOfEightFourteenOpensTest#aVaultOfEightFourteen_opens_withItsKeyValuePairProperty`
+      and `WhatEightFourteenStoresOpensTest#anEntryEightFourteenImportedFromKeePass_opensAsEightFourteenReadsIt`
+      (at model level); a real database of the previous release manual only (it holds data and
+      shapes no fixture has; the fixture is rewritten from the new previous release at each
+      release)
 
 ## TS-0016 The command line
 
@@ -486,9 +547,14 @@ The canonical inventory is the `plugins:` target in the Makefile.
 On a COPY of a real vault created with an earlier release, never the original.
 
 - [ ] TC-0170 Open the copy, change an entry, save, lock, unlock, close, reopen: the change
-      is there and nothing else moved. - automated by `VaultsOfSevenXSignInUiTest`,
-      `VaultsOfEightWithAKeyFileSignInUiTest`, `LegacyDatabaseMigrationUiTest` (opening and
-      migrating fixture vaults); the full chain on a real vault manual only
+      is there and nothing else moved. - automated by
+      `AnEarlierVaultKeepsItsChangeThroughTheWholeChainUiTest#theChange_survivesTheWholeChain_andNothingElseMoves`
+      (cases "8.14" and "7.3": sign in through the dialog, change title and password of one
+      entry, save, lock, unlock, close, reopen; a SHA-256 per entry over all fields,
+      attachments and properties after the unlock and after the reopen); opening and migrating
+      other fixture vaults: `VaultsOfEightWithAKeyFileSignInUiTest#aVaultOfEight_withAKeyFile_signsIn_andIsSavedInThisVersionsFormat`
+      and `LegacyDatabaseMigrationUiTest#anOldDatabaseOpensAndMigratesWhenItIsSaved`; the
+      chain on a real vault manual only
 
 ---
 

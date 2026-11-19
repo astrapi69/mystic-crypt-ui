@@ -300,39 +300,67 @@ public class NewMasterPwFilePanel extends BasePanel<MasterPwFileModelBean>
 				"choose where to create the new database file"));
 	}
 
+	private static final String HELP_CREATE_TITLE = "Help for creating a new mystic-crypt database";
+
+	private static final String HELP_CREATE_CONTENT = "To create a new mystic-crypt database and encrypt your data,\n"
+		+ "first define the application file.\n\n"
+		+ "Then set your master key: a password, a private key, or both.\n"
+		+ "For a password only, check the password checkbox, leave the private key checkbox\n"
+		+ "unchecked and set the password.\n"
+		+ "For a private key only, check the private key checkbox, leave the password checkbox\n"
+		+ "unchecked and set the private key.\n"
+		+ "For both, check both checkboxes and set the password and the private key.\n\n"
+		+ "After that you can save the mystic-crypt database by clicking OK.\n"
+		+ "Whichever you chose, copy the password, the private key or both to a safe place and\n"
+		+ "back them up. The same applies to the mystic-crypt database file.";
+
+	/** The wiki page the Help button opens; it is a page of docs/wiki/ (#868) */
+	static final String HELP_LINK = "https://github.com/astrapi69/mystic-crypt-ui/wiki/"
+		+ "create-new-mystic-crypt-database";
+
 	protected void onHelp(ActionEvent actionEvent)
 	{
-		String helpLink = "https://github.com/astrapi69/mystic-crypt-ui/wiki/"
-			+ "create-new-mystic-crypt-database";
-		URL helpUrl = RuntimeExceptionDecorator.decorate(() -> new URL(helpLink));
-		if (URLExtensions.isReachable(helpUrl))
+		if (isHelpPageReachable(HELP_LINK))
 		{
-			BrowserControlExtensions.displayURLonStandardBrowser(this, helpLink);
+			displayHelpPage(HELP_LINK);
 		}
 		else
 		{
 			HelpModelBean helpModelBean = HelpModelBean.builder()
-				.title("Help for create new mystic-crypt database")
-				.content("For create a new mystic-crypt database and encrypt your data \n"
-					+ "you will need to define first the application file.\n\n"
-					+ "Than you have to set your master key that consist of a password or a private key\n"
-					+ "or a combination of both.\n"
-					+ "If you want only with a password check the appropriate checkbox and leave \n"
-					+ "the private key checkbox unchecked and set the password. "
-					+ "\nIf you want only with a private key check the appropriate checkbox and leave\n"
-					+ "the password checkbox unchecked and set the private key.\n"
-					+ "\nIf you want a combination of both check both checkboxes \n"
-					+ "and set the password and private key.\n\n"
-					+ "After that you can save the mystic-crypt database by clicking ok.\n"
-					+ "For all option above remember to copy the password or a private key or both \n"
-					+ "and backup to save place. The same applies for the mystic-crypt database file.")
+				.title(Messages.getString("signin.help.create.title", HELP_CREATE_TITLE))
+				.content(Messages.getString("signin.help.create.content", HELP_CREATE_CONTENT))
 				.build();
 			IModel<HelpModelBean> helpModel = BaseModel.of(helpModelBean);
 			HelpDialog helpDialog = new HelpDialog(MysticCryptApplicationFrame.getInstance(),
-				"Help for sign in to the your database", true, helpModel);
+				Messages.getString("signin.help.create.dialog.title", HELP_CREATE_TITLE), true,
+				helpModel);
 			helpDialog.setSize(800, 300);
 			helpDialog.setVisible(true);
 		}
+	}
+
+	/**
+	 * Whether the wiki page can be reached, so the browser is not sent to a page that is not there
+	 *
+	 * @param helpLink
+	 *            the address of the wiki page
+	 * @return true when the page answers
+	 */
+	protected boolean isHelpPageReachable(final String helpLink)
+	{
+		URL helpUrl = RuntimeExceptionDecorator.decorate(() -> new URL(helpLink));
+		return URLExtensions.isReachable(helpUrl);
+	}
+
+	/**
+	 * Opens the wiki page in the standard browser
+	 *
+	 * @param helpLink
+	 *            the address of the wiki page
+	 */
+	protected void displayHelpPage(final String helpLink)
+	{
+		BrowserControlExtensions.displayURLonStandardBrowser(this, helpLink);
 	}
 
 	protected void onCreateKeyFile(final ActionEvent actionEvent)

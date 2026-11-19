@@ -56,8 +56,10 @@ jobs:
         # not with our own model - a field our model does not carry would otherwise compare equal to
         # itself and the test would pass while the file lost it (#384). A missing keepassxc-cli fails
         # that test rather than skipping it, so it is installed here rather than worked around there.
-        # The runner has no keepassxc-minimal, so the fallback installs Ubuntu's keepassxc, 2.7.6
-        # (CI run 35078636917) - older than the 2.7.10 that wrote the fixture. The test names the
+        # The runner installs keepassxc-minimal, 2.7.10, the version that wrote the fixture (CI runs
+        # 44333392266 and 44490633638 print "Setting up keepassxc-minimal (2.7.10+dfsg1-2ubuntu1)").
+        # The fallback to Ubuntu's keepassxc, 2.7.6 (CI run 35078636917 had
+        # no keepassxc-minimal), applies only when that package is missing. The test names the
         # version it read with in every failure message
         run: sudo apt-get install -y keepassxc-minimal || sudo apt-get install -y keepassxc
       - name: Install the de_DE locale

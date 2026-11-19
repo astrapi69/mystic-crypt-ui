@@ -34,7 +34,8 @@ import java.nio.file.Files;
 import org.assertj.swing.fixture.FrameFixture;
 import org.assertj.swing.timing.Condition;
 import org.assertj.swing.timing.Pause;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 
 import io.github.astrapi69.mystic.crypt.TestPasswords;
 
@@ -56,12 +57,16 @@ class MovedDatabaseUiTest extends AbstractUiTest
 
 	private static final String NODE_NAME = "Node added after the move";
 
-	@Test
-	void aDatabaseThatWasMovedIsSavedWhereItNowIs() throws Exception
+	@ParameterizedTest(name = "{0}")
+	@CsvSource({ "renamed in the same directory, ''", "moved into another directory, elsewhere" })
+	void aDatabaseThatWasMovedIsSavedWhereItNowIs(final String movement,
+		final String targetDirectoryName) throws Exception
 	{
 		File original = new File(tempHome, "moved-source.mcrdb");
 		createDatabaseFileHeadless(original, MASTER_PASSWORD);
-		File moved = new File(tempHome, "moved-target.mcrdb");
+		File targetDirectory = Files
+			.createDirectories(tempHome.toPath().resolve(targetDirectoryName)).toFile();
+		File moved = new File(targetDirectory, "moved-target.mcrdb");
 		Files.move(original.toPath(), moved.toPath());
 		long lengthBeforeSave = moved.length();
 
@@ -71,8 +76,8 @@ class MovedDatabaseUiTest extends AbstractUiTest
 		application.addNodeToTreeRoot(frame, NODE_NAME);
 		application.saveDatabase();
 
-		// the file is the oracle here, not the save indicator: the dirty flag is cleared before
-		// anything is written, so it goes green whichever file the bytes land in
+		// the file is the oracle here, not the save indicator: the dirty flag says a save
+		// returned, not which file the bytes landed in
 		Pause.pause(new Condition("the file that was opened has been written")
 		{
 			@Override
