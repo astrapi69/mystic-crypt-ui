@@ -86,8 +86,12 @@ class SettingsEnablePluginUiTest extends AbstractUiTest
 		assertFalse(gone.isEmpty(),
 			"the disabled plugin's entries are gone after the restart: " + afterDisabling);
 		assertFalse(afterDisabling.isEmpty(), "the other plugin's entries stay");
-		assertEquals(1, topLevelEntriesOf(gone).size(),
-			"what is gone belongs to one plugin's submenu: " + gone);
+		assertEquals(Set.of("Plugins > Obfuscation"), topLevelEntriesOf(gone),
+			"what is gone is the obfuscation plugin's submenu: " + gone);
+		assertTrue(
+			PluginMenuEntries.ofTheRunningApplication().keySet().stream()
+				.noneMatch(path -> path.startsWith("Plugins > Obfuscation")),
+			"no path of the disabled plugin is left: " + afterDisabling);
 
 		switchTheObfuscationPlugin(application, "btnEnablePlugin");
 		shutdownApplication();

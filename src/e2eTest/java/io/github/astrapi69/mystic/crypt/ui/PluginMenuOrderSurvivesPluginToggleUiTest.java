@@ -31,16 +31,12 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.io.File;
 import java.nio.file.Path;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
-import javax.swing.JFileChooser;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JTable;
-import javax.swing.SwingUtilities;
 
 import org.assertj.swing.edt.GuiActionRunner;
-import org.assertj.swing.finder.JFileChooserFinder;
 import org.assertj.swing.fixture.DialogFixture;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -52,7 +48,9 @@ import io.github.astrapi69.mystic.crypt.menu.MenuLayoutSupport;
 /**
  * A saved arrangement of the plugins menu has to survive a plugin being disabled and re-enabled,
  * which rebuilds the menu from scratch and used to fall back to the alphabetical default - silently
- * discarding what the user had arranged (#95).
+ * discarding what the user had arranged (#95). It also has to survive the plugin zips being removed
+ * and installed again, in another order, between two starts of the application, which makes the
+ * plugin loader read the directory afresh and the saved layout apply to the menu it builds.
  */
 class PluginMenuOrderSurvivesPluginToggleUiTest extends AbstractUiTest
 {
@@ -114,11 +112,13 @@ class PluginMenuOrderSurvivesPluginToggleUiTest extends AbstractUiTest
 	}
 
 	/**
-	 * The test plan's TC-0131: the arranged order of the plugin submenus survives installing a
-	 * plugin's zip again through Settings > Install from Zip... and a restart of the application
+	 * The test plan's TC-0131: the arranged order of the plugin submenus is the same after the
+	 * plugin zips are removed and installed again, in the reverse order, between two starts of the
+	 * application. The reinstall is done on the plugins directory while the application is down,
+	 * because installing the zip of a loaded plugin through Settings is refused by pf4j
 	 */
 	@Test
-	@DisplayName("a saved plugins menu order is the same after installing a plugin's zip again and after a restart")
+	@DisplayName("a saved plugins menu order is the same after the plugin zips are removed and installed again between two starts")
 	void aSavedPluginsMenuOrder_isTheSameAfterAReinstallAndARestart() throws Exception
 	{
 		installPluginRequiringItBuilt(OBFUSCATION_ZIP);
@@ -133,14 +133,53 @@ class PluginMenuOrderSurvivesPluginToggleUiTest extends AbstractUiTest
 		assertNotEquals(alphabetical, arranged,
 			"the precondition: the saved arrangement is not the one the menu starts with");
 
-		installFromZipInTheSettings(application, OBFUSCATION_ZIP);
-		assertEquals(arranged, pluginSubmenuNames(),
-			"the arrangement was lost by installing the plugin's zip again");
-
 		shutdownApplication();
+		removeEveryInstalledPlugin();
+		installPluginRequiringItBuilt(CHECKSUM_ZIP);
+		installPluginRequiringItBuilt(OBFUSCATION_ZIP);
 		signInWithExistingDatabase(databaseFile, MASTER_PASSWORD).showMainFrame();
+
 		assertEquals(arranged, pluginSubmenuNames(),
-			"the arrangement was lost across the restart after the reinstall");
+			"the arrangement was lost across the reinstall and the restart");
+	}
+
+	/** Deletes every plugin zip, its unpacked directory and its checksum file from the config */
+	private void removeEveryInstalledPlugin() throws java.io.IOException
+	{
+		Path pluginsDir = tempHome.toPath().resolve(".config/mystic-crypt-ui/plugins");
+		List<Path> entries;
+		try (java.util.stream.Stream<Path> children = java.nio.file.Files.list(pluginsDir))
+		{
+			entries = children.toList();
+		}
+		assertTrue(entries.stream().anyMatch(entry -> entry.toString().endsWith(".zip")),
+			"the precondition: the zips are in the plugins directory");
+		for (Path entry : entries)
+		{
+			if (java.nio.file.Files.isDirectory(entry))
+			{
+				deleteTree(entry);
+			}
+			else
+			{
+				java.nio.file.Files.delete(entry);
+			}
+		}
+		try (java.util.stream.Stream<Path> remaining = java.nio.file.Files.list(pluginsDir))
+		{
+			assertEquals(0, remaining.count(), "every plugin is removed before it is installed");
+		}
+	}
+
+	private static void deleteTree(final Path directory) throws java.io.IOException
+	{
+		try (java.util.stream.Stream<Path> tree = java.nio.file.Files.walk(directory))
+		{
+			for (Path node : tree.sorted(java.util.Comparator.reverseOrder()).toList())
+			{
+				java.nio.file.Files.delete(node);
+			}
+		}
 	}
 
 	/** Saves an arrangement of the plugins menu that is not the alphabetical one and applies it */
@@ -155,23 +194,6 @@ class PluginMenuOrderSurvivesPluginToggleUiTest extends AbstractUiTest
 		MenuLayoutSupport.save(rearrangedXml, new File(tempHome, ".config/mystic-crypt-ui"));
 		GuiActionRunner
 			.execute(() -> MysticCryptApplicationFrame.getInstance().applyPersistedMenuLayout());
-		robot.waitForIdle();
-	}
-
-	/** Chooses the zip in Settings > Install from Zip... and closes the settings again */
-	private void installFromZipInTheSettings(final ApplicationSteps application, final Path zip)
-	{
-		DialogFixture settings = application.openSettingsDialog();
-		SwingUtilities.invokeLater(() -> settings.button("btnInstallPlugin").target().doClick());
-		JFileChooser fileChooser = JFileChooserFinder.findFileChooser()
-			.withTimeout(10, TimeUnit.SECONDS).using(robot).target();
-		File zipFile = zip.toFile().getAbsoluteFile();
-		SwingUtilities.invokeLater(() -> {
-			fileChooser.setSelectedFile(zipFile);
-			fileChooser.approveSelection();
-		});
-		robot.waitForIdle();
-		GuiActionRunner.execute(() -> settings.button("btnCloseSettings").target().doClick());
 		robot.waitForIdle();
 	}
 

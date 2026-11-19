@@ -320,7 +320,7 @@ The window is built for trying out, so that is how it is tested.
 The canonical inventory is the `plugins:` target in the Makefile.
 
 - [ ] TC-0130 Open and close every tool window once without the application freezing. -
-      opening is automated per tool, each in a session of its own, by
+      opening is automated for one tool of each plugin, each in a session of its own, by
       `PluginLoadingUiTest#internalPluginsLoadFromZipAndContributeTheirMenuItems` (the entries
       exist), `ObfuscationPluginUiTest#simpleObfuscationObfuscatesAndDisentanglesThroughTheUi`,
       `ChecksumPluginUiTest#verifyChecksumComputesTheFileChecksumThroughTheUi`,
@@ -336,20 +336,24 @@ The canonical inventory is the `plugins:` target in the Makefile.
       `FileCryptTextUiTest#encryptsAndDecryptsATextThroughTheUi`,
       `SecretSharingUiTest#splitsASecretAndRebuildsItFromEnoughSharesThroughTheUi`,
       `LethenonPluginUiTest#thePlugin_verifiesAChainFile` and
-      `ReleaseKeyPluginUiTest#showsTheStateOfAKeyThatGpgWrote`; closing is driven only for the
-      certificate wizard (`CertificateWizardUiTest#certificateWizardOpensAndClosesWithoutKillingTheApp`),
-      the conversion wizard's Finish
+      `ReleaseKeyPluginUiTest#showsTheStateOfAKeyThatGpgWrote`; a close with a check after it is
+      driven for the certificate wizard
+      (`CertificateWizardUiTest#certificateWizardOpensAndClosesWithoutKillingTheApp`, a dispose by
+      the test), the conversion wizard's Finish
       (`ConversionPluginUiTest#convertDerToPemWritesTheKeyAsPemThroughTheWizard`) and the
       lethenon window (`LethenonPluginUiTest#thePlugin_remembersTheChainAndTheWalletThatWorked`);
-      the closing of the other tools and the whole round over every tool in one session manual only
-      (the tools open in different ways, as dialogs, internal frames or a docked console, and
-      no test walks them as one round; a first generic attempt found no common signal to wait
-      for)
+      the checksum and obfuscation windows are only closed as cleanup
+      (`ApplicationSteps#closeInternalFrame` in `ChecksumFileWritingUiTest`,
+      `ObfuscationRefusesWithoutAKeyUiTest` and `ObfuscationImportRefusesAForeignTypeUiTest`),
+      with nothing checked after; the closing of the other tools and the whole round over every
+      tool in one session manual only (the tools open in different ways, as dialogs, internal
+      frames or a docked console, and no test walks them as one round; a first generic attempt
+      found no common signal to wait for)
 - [ ] TC-0131 The order of the plugin menu entries is the same after a reinstall. -
       automated by
       `PluginMenuOrderSurvivesPluginToggleUiTest#aSavedPluginsMenuOrder_isTheSameAfterAReinstallAndARestart`
-      (the saved order, Settings > Install from Zip... of the same zip, the order again, a
-      restart, the order again) and
+      (the saved order, the plugin zips removed and installed again between two starts, the
+      order after the start) and
       `PluginMenuOrderSurvivesPluginToggleUiTest#aSavedPluginsMenuOrderSurvivesDisablingAndReenablingAPlugin`
       (disable and enable twice in one session)
 - [ ] TC-0132 Disable a plugin in the settings, restart: its menu item is gone. Enable it
