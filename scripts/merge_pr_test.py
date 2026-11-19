@@ -23,7 +23,7 @@ from pathlib import Path
 from merge_pr import (RollupEntry, all_reported, base_mismatch, branch_is_gone,
                       conventional_title_error,
                       feat_freeze_error, fragment_error, is_cross_repository,
-                      dirty_tree_note, judge, merge_command, parse_checks, pr_state,
+                      dirty_tree_note, failure_report, judge, merge_command, parse_checks, pr_state,
                       resolve_required, squash_subject, wait_for_checks)
 
 REQUIRED = ["build", "closing-references", "release-freeze"]
@@ -524,9 +524,23 @@ class GhFailureOutputTest(unittest.TestCase):
     def test_failing_gh_ends_non_zero(self):
         self.assertNotEqual(self.run_with_failing_gh().returncode, 0)
 
-    def test_failing_gh_stderr_is_not_shown_today(self):
+    def test_failing_gh_stderr_is_shown(self):
         completed = self.run_with_failing_gh()
-        self.assertNotIn(self.REASON, completed.stdout + completed.stderr)
+        self.assertIn(self.REASON, completed.stdout + completed.stderr)
+
+    def test_failing_gh_command_is_shown(self):
+        completed = self.run_with_failing_gh()
+        self.assertIn("gh api repos/{owner}/{repo}/pulls/1", completed.stderr)
+
+    def test_failure_report_names_command_and_both_streams_without_field_values(self):
+        failed = subprocess.CalledProcessError(
+            1, ["gh", "api", "-X", "PUT", "x", "-f", "commit_message=long body"],
+            output=b"{\"message\": \"refused\"}", stderr=b"gh: HTTP 405")
+        report = failure_report(failed)
+        self.assertIn("gh api -X PUT x -f commit_message=...", report)
+        self.assertNotIn("long body", report)
+        self.assertIn("gh: HTTP 405", report)
+        self.assertIn("refused", report)
 
 
 if __name__ == "__main__":
