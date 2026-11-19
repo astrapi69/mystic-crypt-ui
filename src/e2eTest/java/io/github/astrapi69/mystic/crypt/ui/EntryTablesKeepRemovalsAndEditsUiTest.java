@@ -112,7 +112,7 @@ class EntryTablesKeepRemovalsAndEditsUiTest extends AbstractUiTest
 	}
 
 	@Test
-	@DisplayName("an attachment removed in the table, a save and a restart: the file holds the other one, name and SHA-256, and not the removed one")
+	@DisplayName("the second of two attachments removed in the table, a save and a restart: the file holds the other one, name and SHA-256, and not the removed one")
 	void aRemovedAttachment_isGoneAfterSaveAndRestart() throws Exception
 	{
 		File databaseFile = new File(tempHome, "attachment-remove.mcrdb");
@@ -126,13 +126,13 @@ class EntryTablesKeepRemovalsAndEditsUiTest extends AbstractUiTest
 		assertEquals(2, theOnlyEntryAttachments().size(), "precondition: two attachments saved");
 
 		application.selectEntryRowByTitle(frame, TITLE);
-		application.openTheEditDialog(frame).removeAttachment(AttachmentFixtures.TEXT_NAME).ok();
+		application.openTheEditDialog(frame).removeAttachment(AttachmentFixtures.BINARY_NAME).ok();
 		application.saveDatabase();
 		shutdownApplication();
 		signInWithExistingDatabase(databaseFile, MASTER_PASSWORD);
 
 		Map<String, String> expected = new TreeMap<>();
-		expected.put(binary.getName(), AttachmentFixtures.sha256Hex(binary));
+		expected.put(text.getName(), AttachmentFixtures.sha256Hex(text));
 		assertEquals(expected, theOnlyEntryAttachments(),
 			"the saved file holds the attachment that was left, byte for byte by its SHA-256");
 	}
