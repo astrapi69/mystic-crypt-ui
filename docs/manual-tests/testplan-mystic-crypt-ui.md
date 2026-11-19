@@ -360,12 +360,54 @@ The window is built for trying out, so that is how it is tested.
 The canonical inventory is the `plugins:` target in the Makefile.
 
 - [ ] TC-0130 Open and close every tool window once without the application freezing. -
-      automated by `PluginLoadingUiTest` and the per-plugin `*PluginUiTest` classes; the
-      whole round in one session manual only
+      opening is automated for one tool of each plugin, each in a session of its own, by
+      `PluginLoadingUiTest#internalPluginsLoadFromZipAndContributeTheirMenuItems` (the entries
+      exist), `ObfuscationPluginUiTest#simpleObfuscationObfuscatesAndDisentanglesThroughTheUi`,
+      `ChecksumPluginUiTest#verifyChecksumComputesTheFileChecksumThroughTheUi`,
+      `ConversionPluginUiTest#convertDerToPemWritesTheKeyAsPemThroughTheWizard`,
+      `ConsolePluginUiTest#consoleCapturesStandardOutputThroughTheUi`,
+      `KeygenPluginUiTest#keyGenerationGeneratesAndRoundTripsEncryptionThroughTheUi`,
+      `CertificateWizardUiTest#certificateWizardOpensAndClosesWithoutKillingTheApp`,
+      `PasswordHashPluginUiTest#hashesAndVerifiesAPasswordThroughTheUi`,
+      `KemDemoPluginUiTest#runsAKeyEncapsulationExchangeThroughTheUi`,
+      `KeyExchangeUiTest#carriesAMessageBetweenTheTwoSidesThroughTheUi`,
+      `PqcSignaturePluginUiTest#signsAndVerifiesAndRejectsATamperedMessageThroughTheUi`,
+      `KeyStorePluginUiTest#managesAKeyStoreThroughTheUi`,
+      `FileCryptTextUiTest#encryptsAndDecryptsATextThroughTheUi`,
+      `SecretSharingUiTest#splitsASecretAndRebuildsItFromEnoughSharesThroughTheUi`,
+      `LethenonPluginUiTest#thePlugin_verifiesAChainFile` and
+      `ReleaseKeyPluginUiTest#showsTheStateOfAKeyThatGpgWrote`; a close with a check after it is
+      driven for the certificate wizard
+      (`CertificateWizardUiTest#certificateWizardOpensAndClosesWithoutKillingTheApp`, a dispose by
+      the test), the conversion wizard's Finish
+      (`ConversionPluginUiTest#convertDerToPemWritesTheKeyAsPemThroughTheWizard`) and the
+      lethenon window (`LethenonPluginUiTest#thePlugin_remembersTheChainAndTheWalletThatWorked`),
+      the console
+      (`ASecondConsoleBringsTheOpenOneToFrontUiTest#aSecondConsoleClick_leavesOneConsoleOpen`,
+      `doDefaultCloseAction`, then `System.out` is the stream from before) and the key store
+      wizard's Finish
+      (`CreateKeyStoreWizardUiTest#finishWithoutAKeyPairCreatesAnEmptyReadableStore`, the wizard
+      is no longer showing);
+      the checksum and obfuscation windows are only closed as cleanup
+      (`ApplicationSteps#closeInternalFrame` in `ChecksumFileWritingUiTest`,
+      `ObfuscationRefusesWithoutAKeyUiTest` and `ObfuscationImportRefusesAForeignTypeUiTest`),
+      with nothing checked after; the closing of the other tools and the whole round over every
+      tool in one session manual only (the tools open in different ways, as dialogs, internal
+      frames or a docked console, and no test walks them as one round; a first generic attempt
+      found no common signal to wait for)
 - [ ] TC-0131 The order of the plugin menu entries is the same after a reinstall. -
-      automated by `PluginMenuOrderSurvivesPluginToggleUiTest`
+      automated by
+      `PluginMenuOrderSurvivesPluginToggleUiTest#aSavedPluginsMenuOrder_isTheSameAfterAReinstallAndARestart`
+      (the saved order, the plugin zips removed and installed again between two starts, the
+      order after the start) and
+      `PluginMenuOrderSurvivesPluginToggleUiTest#aSavedPluginsMenuOrderSurvivesDisablingAndReenablingAPlugin`
+      (disable and enable twice in one session)
 - [ ] TC-0132 Disable a plugin in the settings, restart: its menu item is gone. Enable it
-      again: it is back. - automated by `SettingsEnablePluginUiTest`
+      again: it is back. - automated by
+      `SettingsEnablePluginUiTest#aDisabledPlugin_isGoneFromTheMenuAfterARestart_andBackOnceEnabled`
+      (disable, the entries gone at once and after the restart, enable, back after the next
+      restart) and `SettingsEnablePluginUiTest#aPluginCanBeDisabledThenEnabledAgain` (the state
+      column of the plugins table)
 - [ ] TC-0133 Set "Lock after idle minutes" to 1, wait until the workspace locks, unlock:
       every plugin entry is offered again, and a plugin tool opens from its entry (#1006). -
       automated by `EverySignInOffersThePluginEntriesUiTest#everyWayBackOffersThePluginEntriesAgain`
@@ -376,13 +418,17 @@ The canonical inventory is the `plugins:` target in the Makefile.
       application's settings file, as the dialog does
 - [ ] TC-0134 With a database open, open a second one with File > Open Database...: every
       plugin entry is offered again, and a plugin tool opens from its entry (#1006). -
-      automated by `EverySignInOffersThePluginEntriesUiTest`
+      automated by `EverySignInOffersThePluginEntriesUiTest#everyWayBackOffersThePluginEntriesAgain`
+      (case "open a second database while one is open", through the File menu item)
 - [ ] TC-0135 File > Close Database, then File > Open Database...: every plugin entry is
       offered again, and a plugin tool opens from its entry (#1006). - automated by
-      `EverySignInOffersThePluginEntriesUiTest`
+      `EverySignInOffersThePluginEntriesUiTest#everyWayBackOffersThePluginEntriesAgain`
+      (case "close the database, then open it again", through the File menu items Close
+      Database and Open Database...)
 - [ ] TC-0136 Cancel the sign-in at the start, then File > Open Database...: every plugin
       entry is offered, and a plugin tool opens from its entry (#1006). - automated by
-      `EverySignInOffersThePluginEntriesUiTest`
+      `EverySignInOffersThePluginEntriesUiTest#aSignInAfterACancelledStartOffersThePluginEntries`
+      (the sign-in cancelled in its dialog, then the File menu item Open Database...)
 
 ## TS-0014 Help buttons and the wiki
 
