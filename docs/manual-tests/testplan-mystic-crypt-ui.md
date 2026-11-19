@@ -303,12 +303,13 @@ The window is built for trying out, so that is how it is tested.
       display, no silent error. - automated by
       `KeygenEveryAlgorithmUiTest#everyAlgorithmTheBoxOffersGeneratesARealKeyPair` (walks the
       items of the box, checks the selection took, reads both keys back with the library
-      readers), `KeygenPqcPluginUiTest#generatesAPostQuantumKeyPairThroughTheAlgorithmDropdown`,
+      readers and checks the algorithm the key names), `KeygenPqcPluginUiTest#generatesAPostQuantumKeyPairThroughTheAlgorithmDropdown`,
       `KeygenCurveUiTest#generatesAnEcKeyOnTheChosenCurveThroughTheUi`
 - [ ] TC-0101 While doing so: **nothing in the window moves or shrinks**. - automated by
       `KeygenLayoutStaysPutUiTest#nothingInTheWindowMovesWhileItIsBeingTriedOut` (x and y of the
       four text panes, widths, the height of the two key panes, and the two encrypt panes never
-      losing height, after picking and after generating with every algorithm and key size),
+      losing height from one state to the next, after picking every algorithm and key size and after
+      generating with every algorithm and with RSA 1024 and 2048),
       `KeygenEveryAlgorithmUiTest#everyAlgorithmTheBoxOffersGeneratesARealKeyPair` (left edges
       after each generation); whether it LOOKS right manual only. Measured: the two encrypt panes
       grow from 148 to 168 pixels at the first generation, which is not a shrink
@@ -319,8 +320,8 @@ The window is built for trying out, so that is how it is tested.
 - [ ] TC-0103 With an algorithm that cannot encrypt (X25519, X448, ML-KEM-768, ML-DSA-65; RSA and
       EC can): the two buttons are not pressable and the tooltip says why. - automated by
       `KeygenEncryptUnavailableUiTest#encryptAndDecryptAreOutOfReachAndSayWhyForAnAlgorithmThatCannotEncrypt`
-      (all four, both buttons, text in both areas, tooltip and reason label), with RSA and EC as
-      the counterpart in the same method
+      (X25519, X448, ML-KEM-768, ML-DSA-65 alternating with RSA and EC, a new key on screen each
+      time, both buttons, text in both areas, tooltip and reason label)
 - [ ] TC-0104 Save private key, public key, certificate - each time type a name **without an
       extension** and check the file gets the fitting one. - automated by
       `KeygenSavesRealArtifactsUiTest#everyFileTheWindowSavesIsARealArtifact` (private key, key
@@ -333,15 +334,15 @@ The window is built for trying out, so that is how it is tested.
       `SaveFormatTest#aPublicKeySavedAsPemIsTextAsDerItIsNot`. Not true for the certificate: it
       is PEM with `.pem` whatever the format says (`CryptographyPanel.java:415-416`), which
       contradicts the tooltip of the format box; today's behaviour is pinned in the same test and
-      the case fails for the certificate until that is decided. The key saved with a password is
+      the case fails for the certificate until #1050 is decided. The key saved with a password is
       always DER
 - [ ] TC-0106 Save the private key with a password and open the file again with that
       password (for example `openssl pkcs8 -inform DER`). - automated by
       `KeygenSavesRealArtifactsUiTest#everyFileTheWindowSavesIsARealArtifact` (the library's
       reader), `ProtectedKeyOpensElsewhereTest#theJdkAloneDecryptsTheFileWithThePasswordAndGetsTheGeneratedKey`
-      (the JDK alone), `ProtectedKeyOpensElsewhereTest#opensslPkcs8OpensTheFileWithThePassword`
-      (`openssl pkcs8 -inform DER`, password on standard input; fails on CI when openssl is
-      missing, skips locally); only a program other than these stays manual
+      (the JDK alone), `ProtectedKeyOpensElsewhereTest#opensslPkcs8OpensTheFileAndPrintsTheGeneratedKey`
+      (`openssl pkcs8 -inform DER`, password on standard input, the printed key compared with the
+      generated one; fails on CI when openssl is missing, skips locally); only a program other than these stays manual
 
 ## TS-0011 Settings
 
