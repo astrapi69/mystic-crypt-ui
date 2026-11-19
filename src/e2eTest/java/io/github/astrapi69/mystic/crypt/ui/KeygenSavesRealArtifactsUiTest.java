@@ -252,7 +252,8 @@ class KeygenSavesRealArtifactsUiTest extends AbstractUiTest
 				@Override
 				public boolean test()
 				{
-					return pemFile.exists() && 0 < pemFile.length() || derFile.exists();
+					return pemFile.exists() && 0 < pemFile.length()
+						|| derFile.exists() && 0 < derFile.length();
 				}
 			}, 15000);
 
@@ -303,8 +304,8 @@ class KeygenSavesRealArtifactsUiTest extends AbstractUiTest
 	/**
 	 * The protected file has to open with the password that was typed, and hold the same key. The
 	 * file is DER with .der while the format box still says PEM, because the window always writes
-	 * it as DER (GenerateKeysPanel.java:654): the second half of #1050 (TC-0105), pinned by the
-	 * name asked for below.
+	 * it as DER (GenerateKeysPanel.java:654): the decided exception of #1050 (TC-0105), not a
+	 * defect, and the tooltip of the format box names it.
 	 */
 	private void thePasswordProtectedPrivateKeyOpensWithThatPassword(final FrameFixture frame,
 		final PublicKey onScreen) throws Exception
