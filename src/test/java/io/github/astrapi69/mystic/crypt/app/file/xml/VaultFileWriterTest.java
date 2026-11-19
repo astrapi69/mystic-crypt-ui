@@ -34,7 +34,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.io.File;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 import java.security.Security;
+import java.util.Arrays;
 
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.junit.jupiter.api.BeforeAll;
@@ -44,6 +46,7 @@ import org.junit.jupiter.api.io.TempDir;
 
 import io.github.astrapi69.file.create.model.FileInfo;
 import io.github.astrapi69.mystic.crypt.ApplicationModelBean;
+import io.github.astrapi69.mystic.crypt.TestPasswords;
 import io.github.astrapi69.mystic.crypt.panel.signin.MasterPwFileModelBean;
 
 /**
@@ -57,7 +60,7 @@ import io.github.astrapi69.mystic.crypt.panel.signin.MasterPwFileModelBean;
 class VaultFileWriterTest
 {
 
-	private static final String MASTER_PASSWORD = "throwaway-" + java.util.UUID.randomUUID();
+	private static final String MASTER_PASSWORD = TestPasswords.throwaway();
 
 	@BeforeAll
 	static void registerBouncyCastle()
@@ -138,11 +141,7 @@ class VaultFileWriterTest
 	{
 		File vault = new File(directory, "through-the-app.mcrdb");
 		Files.createFile(vault.toPath());
-		MasterPwFileModelBean credentials = MasterPwFileModelBean.builder()
-			.applicationFileInfo(FileInfo.toFileInfo(vault))
-			.selectedApplicationFilePath(vault.getAbsolutePath())
-			.masterPw(MASTER_PASSWORD.toCharArray()).withMasterPw(true).withKeyFile(false)
-			.minPasswordLength(6).build();
+		MasterPwFileModelBean credentials = credentialsFor(vault);
 		ApplicationXmlFileFactory.newApplicationFileWithPassword(credentials);
 		byte[] afterTheFirstSave = Files.readAllBytes(vault.toPath());
 		assertTrue(afterTheFirstSave.length > 0);
@@ -196,11 +195,7 @@ class VaultFileWriterTest
 	void aSuccessfulOpenRemovesTheBackup(@TempDir File directory) throws Exception
 	{
 		File vault = new File(directory, "opened.mcrdb");
-		MasterPwFileModelBean credentials = MasterPwFileModelBean.builder()
-			.applicationFileInfo(FileInfo.toFileInfo(vault))
-			.selectedApplicationFilePath(vault.getAbsolutePath())
-			.masterPw(MASTER_PASSWORD.toCharArray()).withMasterPw(true).withKeyFile(false)
-			.minPasswordLength(6).build();
+		MasterPwFileModelBean credentials = credentialsFor(vault);
 		ApplicationXmlFileFactory.newApplicationFileWithPassword(credentials);
 		File backup = new File(directory, "opened.mcrdb.bak");
 		Files.write(backup.toPath(),
@@ -222,11 +217,7 @@ class VaultFileWriterTest
 	void aFailedOpenLeavesTheBackup(@TempDir File directory) throws Exception
 	{
 		File vault = new File(directory, "failed-open.mcrdb");
-		MasterPwFileModelBean credentials = MasterPwFileModelBean.builder()
-			.applicationFileInfo(FileInfo.toFileInfo(vault))
-			.selectedApplicationFilePath(vault.getAbsolutePath())
-			.masterPw(MASTER_PASSWORD.toCharArray()).withMasterPw(true).withKeyFile(false)
-			.minPasswordLength(6).build();
+		MasterPwFileModelBean credentials = credentialsFor(vault);
 		ApplicationXmlFileFactory.newApplicationFileWithPassword(credentials);
 		File backup = new File(directory, "failed-open.mcrdb.bak");
 		byte[] previous = "the previous database, kept as the backup"
@@ -242,5 +233,49 @@ class VaultFileWriterTest
 
 		assertArrayEquals(previous, Files.readAllBytes(backup.toPath()),
 			"a failed open must leave the backup as the way back (#847)");
+	}
+
+	/**
+	 * TC-0022 of the test plan: a database that was saved and is then unreadable (here cut to half
+	 * its length) fails to open, the backup still holds the state before that save, and that backup
+	 * opens once it is put in the database's place. The vault is a real one, saved twice through
+	 * the store worker, and every open goes through {@link ApplicationXmlFileReader#read}, the call
+	 * the sign-in makes, since only that one removes a backup
+	 */
+	@Test
+	@DisplayName("a truncated database fails to open, and its backup still opens with the previous state (#847)")
+	void aTruncatedDatabaseFailsToOpenAndTheBackupStillOpensWithThePreviousState(
+		@TempDir File directory) throws Exception
+	{
+		ApplicationModelBean model = SampleVaults
+			.aVaultWith(entry -> entry.setTitle("state one".toCharArray()));
+		File vault = SampleVaults.save(model, directory, MASTER_PASSWORD.toCharArray());
+		File backup = new File(directory, vault.getName() + VaultFileWriter.BACKUP_SUFFIX);
+		ApplicationModelBean opened = ApplicationXmlFileReader.read(credentialsFor(vault));
+		SampleVaults.entriesOf(opened, "root").get(0).setTitle("state two".toCharArray());
+		SampleVaults.save(opened, directory, MASTER_PASSWORD.toCharArray());
+		byte[] backupBytes = Files.readAllBytes(backup.toPath());
+		byte[] saved = Files.readAllBytes(vault.toPath());
+		Files.write(vault.toPath(), Arrays.copyOf(saved, saved.length / 2));
+
+		assertThrows(RuntimeException.class,
+			() -> ApplicationXmlFileReader.read(credentialsFor(vault)),
+			"a truncated database must not open");
+
+		assertArrayEquals(backupBytes, Files.readAllBytes(backup.toPath()),
+			"the failed open must leave the backup as the way back (#847)");
+		Files.copy(backup.toPath(), vault.toPath(), StandardCopyOption.REPLACE_EXISTING);
+		ApplicationModelBean fromBackup = ApplicationXmlFileReader.read(credentialsFor(vault));
+		assertEquals("state one",
+			new String(SampleVaults.entriesOf(fromBackup, "root").get(0).getTitle()),
+			"the backup holds the state before the last save");
+	}
+
+	private static MasterPwFileModelBean credentialsFor(final File vault)
+	{
+		return MasterPwFileModelBean.builder().applicationFileInfo(FileInfo.toFileInfo(vault))
+			.selectedApplicationFilePath(vault.getAbsolutePath())
+			.masterPw(MASTER_PASSWORD.toCharArray()).withMasterPw(true).withKeyFile(false)
+			.minPasswordLength(6).build();
 	}
 }

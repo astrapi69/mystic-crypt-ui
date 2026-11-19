@@ -106,19 +106,39 @@ Real data, no test fixture. Nothing else is released while this does not hold.
 ## TS-0002 The backup file (#847)
 
 - [ ] TC-0020 Save an opened database: a sibling `.bak` file appears next to it. - automated
-      by `VaultFileWriterTest`
+      by `BackupFileUiTest#aSaveOfAPasswordDatabaseKeepsThePreviousStateAsTheSiblingBackup`
+      (password database) and
+      `BackupFileUiTest#aSaveOfAKeyFileDatabaseKeepsThePreviousStateAsTheSiblingBackup`
+      (key file database) and
+      `BackupFileUiTest#aSaveOfAPasswordAndKeyFileDatabaseKeepsThePreviousStateAsTheSiblingBackup`
+      (password and key file database); all three check that the `.bak` holds the previous
+      bytes and that nothing else lies next to the database; the writer itself is pinned by
+      `VaultFileWriterTest#aReplacedDatabaseKeepsItsBackup`
 - [ ] TC-0021 Close and reopen the database successfully: the `.bak` is gone. - automated by
-      `VaultFileWriterTest`
+      the second half of the same three `BackupFileUiTest` methods (an in-JVM restart through
+      `AbstractUiTest#shutdownApplication`, then sign in again through the dialog: the `.bak` is
+      gone and the saved node is in the tree); the reader's removal is pinned by
+      `VaultFileWriterTest#aSuccessfulOpenRemovesTheBackup`; File > Close and then reopen is
+      not driven for the `.bak`: manual only
 - [ ] TC-0022 Make the saved file unreadable by hand (truncate a copy of the scenario, not
       your real database), open: the open fails and the `.bak` still holds the previous
-      state and opens. - manual only
+      state and opens. - automated by
+      `VaultFileWriterTest#aTruncatedDatabaseFailsToOpenAndTheBackupStillOpensWithThePreviousState`
+      (a database saved twice and cut to half its length in code, opened through the reader the
+      sign-in uses, then the `.bak` copied over it and opened through the same reader);
+      manual only: truncating the file in the file manager, the sign-in dialog's refusal of
+      the truncated file, and opening the restored `.bak` through the dialog
 
 ## TS-0003 Moving the database
 
 - [ ] TC-0030 With the application closed, move the database file to another directory, open
-      it from there, change something, save. - automated by `MovedDatabaseUiTest`
+      it from there, change something, save. - automated by
+      `MovedDatabaseUiTest#aDatabaseThatWasMovedIsSavedWhereItNowIs` (case "moved into another
+      directory"; the case "renamed in the same directory" covers a rename in place)
 - [ ] TC-0031 Check that the **new** file was written and the old one does not reappear. -
-      automated by `MovedDatabaseUiTest`
+      automated by `MovedDatabaseUiTest#aDatabaseThatWasMovedIsSavedWhereItNowIs` (both
+      cases: the moved file changes, the old path does not exist, the change is there after
+      a reopen)
 
 ## TS-0004 Lock and unlock (the factors of the open database) (release smoke)
 
