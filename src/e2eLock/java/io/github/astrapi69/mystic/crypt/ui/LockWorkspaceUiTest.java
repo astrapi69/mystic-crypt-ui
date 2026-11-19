@@ -103,7 +103,7 @@ class LockWorkspaceUiTest extends AbstractUiTest
 
 		application.lockWorkspace();
 		assertFalse(application.vaultIsOnScreen(), "locking takes it off the screen");
-		application.enterUnlockPasswordExpectingFailure("definitely-wrong");
+		application.enterUnlockPasswordExpectingFailure(TestPasswords.throwaway());
 		assertFalse(MysticCryptApplicationFrame.getInstance().getModelObject().isSignedIn(),
 			"a wrong unlock password must keep the workspace locked");
 		assertFalse(application.isInternalFrameShowing("Key database"),
