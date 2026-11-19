@@ -15,6 +15,7 @@ export data to and from real KeePass `.kdbx` databases — extensible through a 
 - [Plugins](#plugins)
 - [KeePass import/export](#keepass-importexport)
 - [Installer tool](#installer-tool)
+- [How it compares](#how-it-compares)
 - [User documentation](#user-documentation)
 - [How this project is made](#how-this-project-is-made)
 - [License](#license)
@@ -138,6 +139,13 @@ Here is the installer tool used to package the final application:
 
 For more information on creating the izpack installer, see the
 [wiki izpack section](https://github.com/astrapi69/mystic-crypt-ui/wiki/How-to-create-izpack-installer-with-gradle).
+
+## How it compares
+
+[docs/comparison.md](docs/comparison.md) sets mystic-crypt-ui beside KeePassXC, KeePass, Bitwarden
+and 1Password: what it has, with the evidence for each point, the state of the lethenon wallet,
+a table of the five tools with a source for every statement about another tool, and a section on
+where mystic-crypt-ui is weaker. It is dated, and refers to a named version.
 
 ## User documentation
 

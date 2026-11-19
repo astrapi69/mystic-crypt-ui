@@ -106,3 +106,36 @@ printf %s <the password> | java -cp mystic-crypt-ui-8.14-app.jar scripts/fixture
 
 vault sha256: `2c2f1a380c0557606ba9315e2df1d5767ec86c495d4c627d1ef8ddd4159b59eb`. The 9.0 fixtures
 (#864) reuse these vaults instead of writing doubles.
+
+# What 8.14 stores beyond plain entries
+
+`vault-8.14-keepass-import.mcrdb` and `vault-8.14-lethenon-wallet.mcrdb` were written by the published 8.14 on
+2026-11-14, with Temurin 25.0.5, for what `WhatEightFourteenStoresOpensTest` holds: an entry the release's own
+"Import from KeePass" brought in, and a lethenon wallet the release's lethenon plugin put into the vault. Both hold
+the two groups and entries of the 8.14 vault above as well; the password is `TestPasswords.VAULT_OF_8_14_FIXTURE`, and
+the wallet is sealed with the same password. Nothing in them guards anything; the wallet is a test-network wallet
+made for this file.
+
+The application jar is the one above (sha256 `e6602c1ade2511b2f82020c8467d2760f98cdd946afeeaa3058e85098dcc5d02`).
+The lethenon plugin is the zip the 8.14 installer packs (installer checked with `sha256sum -c` against the published
+`.sha256`; plugin zip sha256 `ac6f91d8872c4482af37e9db0da01eb58ef95f3e2cfa847336a589f21ded30bc`, with lethenon 0.8.0),
+its `classes` and `lib` jars on the class path beside the application jar.
+
+```
+printf %s <the password> | java -cp mystic-crypt-ui-8.14-app.jar scripts/fixtures/WriteWithAnOldRelease.java \
+    vault-8.14-keepass-import.mcrdb --with-keepass-import src/e2eKdbx/resources/kdbx/keepassxc-2.7.10-kdbx4.kdbx fixture
+printf %s <the password> | java -cp mystic-crypt-ui-8.14-app.jar:<plugin>/classes:<plugin>/lib/* \
+    scripts/fixtures/WriteWithAnOldRelease.java vault-8.14-lethenon-wallet.mcrdb --with-lethenon-wallet testnet
+```
+
+- The KeePass import goes the release's way: `KdbxDatabase.read` with its KeePassJava2, then
+  `KeePassTreeConverter.toTreeNode` under the root; the KeePassXC fixture `keepassxc-2.7.10-kdbx4.kdbx` brings one
+  entry with one history version and a protected property.
+- The wallet goes the plugin's way: `WalletVault.create` seals a new wallet with lethenon's `WalletFile`,
+  `VaultWalletEntry.write` puts it on a new entry, and the host's `MarkedEntryAccess` adds it - the plugin vault access
+  of #675, which only the lethenon plugin uses (8.14 and develop, measured with `git grep VaultAccess`).
+
+vault sha256: keepass-import `2e1b684bc186405e0eb335f5768699bb45444a3dd2c86421ca25880ee2e1ff50`, lethenon-wallet
+`37cd3ff37e37ea2981aa98fff85aa1d802ec435af5d841cfbace59137a36bf04`. Each opens in 8.14 itself
+(`OpenWithAnOldRelease.java`: `OPENED groups=4` and `OPENED groups=2`), and the values the test expects are the ones
+8.14 read from them.

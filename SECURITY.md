@@ -106,6 +106,17 @@ generator was seeded with the current time in milliseconds before randomizer 10.
 in the library, [GHSA-rmpr-hqmh-r8gp](https://github.com/astrapi69/mystic-crypt/security/advisories/GHSA-rmpr-hqmh-r8gp)).
 It was found on 2026-10-30, after 8.11 had already shipped randomizer 10.6, so the
 advisory was published the same day; it says which passwords to replace.
+The fourth to the sixth were kept private until 8.15 shipped, and published with it on
+2026-11-18:
+[GHSA-7qfp-94gw-vp62](https://github.com/astrapi69/mystic-crypt-ui/security/advisories/GHSA-7qfp-94gw-vp62):
+from 8.1.1 to 8.14, the "Properties" tab showed protected values, such as stored wallet
+words, in clear (drafted on 2026-11-07);
+[GHSA-px49-m539-22h8](https://github.com/astrapi69/mystic-crypt-ui/security/advisories/GHSA-px49-m539-22h8):
+from 8.1.1 to 8.14, unlocking asked only for the master password, also for a database
+opened with a master password and a key file (drafted on 2026-11-12);
+[GHSA-f4g8-6wjr-5hch](https://github.com/astrapi69/mystic-crypt-ui/security/advisories/GHSA-f4g8-6wjr-5hch):
+from 8.12 to 8.14, the database and rule table readers admitted more types than those
+files hold (drafted on 2026-11-14).
 
 ## Two things specific to this application
 

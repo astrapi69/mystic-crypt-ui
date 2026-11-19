@@ -55,6 +55,14 @@ jobs:
         # (CI run 35078636917) - older than the 2.7.10 that wrote the fixture. The test names the
         # version it read with in every failure message
         run: sudo apt-get install -y keepassxc-minimal || sudo apt-get install -y keepassxc
+      - name: Install the de_DE locale
+        # ForkedJvmTest checks that a JVM the tests start takes the German language of a German
+        # desktop's environment, which a JVM can only do where the machine has that locale: without
+        # it the JDK falls back to en_US, and the test skipped here (CI run 44293104727, #1027). The
+        # list printed after it is the evidence of what the runner got
+        run: |
+          sudo locale-gen de_DE.UTF-8
+          locale -a
       - name: Build the internal plugins
         # The plugins are NOT subprojects of this build - each is its own Gradle build that
         # compiles against the host through mavenLocal(), so `./gradlew build` below never
@@ -96,6 +104,15 @@ jobs:
         # that the build brings its own - and a build that could not get one fails, it does not let
         # the AssertJ-Swing tests skip on their headless assumption
         run: ./gradlew build
+      - name: Check for unused dependencies
+        # Reports a declared dependency nothing uses, in the host and in every plugin build that applies the
+        # dependency-analysis plugin (gradle/dependency-analysis.gradle, gradle/plugin-dependency-analysis.gradle).
+        # It reads the classes the build above compiled, so it runs after it. Report only until the last group of
+        # removals is merged (the maintainer's decision of 2026-11-18): no pull request may turn red through it, not
+        # even when the analysis itself fails, so the step may fail without failing the job. The pull request that
+        # sets the severity to "fail" removes continue-on-error
+        continue-on-error: true
+        run: make dependency-analysis
       - name: Print what was on screen when a UI test failed
         # WhatWasOnScreen writes its report to the test JVM's standard output, which Gradle keeps
         # in the result XML and does not print: a red run's log showed the stack trace and nothing

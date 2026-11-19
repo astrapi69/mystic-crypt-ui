@@ -118,6 +118,50 @@ class ObfuscationRuleTableXmlTest
 			ObfuscationRuleTableXml::toOperationRules);
 	}
 
+	/** Standard types the XML library builds by default but no rule table holds */
+	static java.util.stream.Stream<org.junit.jupiter.params.provider.Arguments> standardTypesNoTableHolds()
+	{
+		return java.util.stream.Stream.of(
+			org.junit.jupiter.params.provider.Arguments.of("java.io.File",
+				"<file>/tmp/not-part-of-a-table</file>"),
+			org.junit.jupiter.params.provider.Arguments.of("java.net.URL",
+				"<url>http://example.org/</url>"),
+			org.junit.jupiter.params.provider.Arguments.of("java.lang.Class",
+				"<java-class>java.lang.String</java-class>"));
+	}
+
+	@org.junit.jupiter.params.ParameterizedTest(name = "a simple table naming {0} is refused with its name")
+	@org.junit.jupiter.params.provider.MethodSource("standardTypesNoTableHolds")
+	void aSimpleTableNamingAStandardTypeNoTableHolds_isRefusedWithItsName(final String typeName,
+		final String element)
+	{
+		String table = ObjectToXmlExtensions.toXml(simpleTable())
+			.replaceFirst("(<[a-z-]*list[^>]*>)", "$1" + element);
+
+		RuleTableHoldsAForeignTypeException refusal = assertThrows(
+			RuleTableHoldsAForeignTypeException.class,
+			() -> ObfuscationRuleTableXml.toSimpleRules(table));
+
+		assertTrue(refusal.getMessage().contains(typeName),
+			"the refusal names the type: " + refusal.getMessage());
+	}
+
+	@org.junit.jupiter.params.ParameterizedTest(name = "an operation table naming {0} is refused with its name")
+	@org.junit.jupiter.params.provider.MethodSource("standardTypesNoTableHolds")
+	void anOperationTableNamingAStandardTypeNoTableHolds_isRefusedWithItsName(
+		final String typeName, final String element)
+	{
+		String table = ObjectToXmlExtensions.toXml(operationTable())
+			.replaceFirst("(<[a-z-]*list[^>]*>)", "$1" + element);
+
+		RuleTableHoldsAForeignTypeException refusal = assertThrows(
+			RuleTableHoldsAForeignTypeException.class,
+			() -> ObfuscationRuleTableXml.toOperationRules(table));
+
+		assertTrue(refusal.getMessage().contains(typeName),
+			"the refusal names the type: " + refusal.getMessage());
+	}
+
 	private static void assertRefused(final String table, final Function<String, ?> reader)
 	{
 		String withAForeignType = table.replaceFirst("(<[a-z-]*list[^>]*>)", "$1" + FOREIGN);

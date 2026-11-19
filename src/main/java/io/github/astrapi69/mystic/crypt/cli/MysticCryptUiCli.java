@@ -25,6 +25,7 @@
 package io.github.astrapi69.mystic.crypt.cli;
 
 import java.io.File;
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.Security;
@@ -38,6 +39,7 @@ import org.pf4j.DefaultPluginManager;
 import org.pf4j.PluginManager;
 
 import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
+import io.github.astrapi69.mystic.crypt.plugin.PluginArchives;
 import io.github.astrapi69.mystic.crypt.plugin.api.PluginCommandContribution;
 import picocli.CommandLine;
 
@@ -139,6 +141,23 @@ public final class MysticCryptUiCli
 	}
 
 	/**
+	 * Unpacks again every plugin zip whose content is not what its directory holds, before pf4j
+	 * loads the plugins (#998). A failure is reported and the plugins load as pf4j unpacks them
+	 */
+	private static void unpackChangedPluginArchives(final Path pluginsDirectory)
+	{
+		try
+		{
+			PluginArchives.unpackChanged(pluginsDirectory);
+		}
+		catch (IOException exception)
+		{
+			LOGGER.log(Level.WARNING, exception, () -> "could not unpack the plugin zips in "
+				+ pluginsDirectory + " by their content: " + exception.getMessage());
+		}
+	}
+
+	/**
 	 * Runs a command with the plugins of the given directory loaded and started, and stops them
 	 * again afterwards
 	 */
@@ -147,6 +166,7 @@ public final class MysticCryptUiCli
 		PluginManager pluginManager = new DefaultPluginManager(pluginsDirectory);
 		try
 		{
+			unpackChangedPluginArchives(pluginsDirectory);
 			pluginManager.loadPlugins();
 			pluginManager.startPlugins();
 			return newCommandLine(pluginManager.getExtensions(PluginCommandContribution.class))

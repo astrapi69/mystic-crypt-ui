@@ -53,11 +53,12 @@ import org.junit.jupiter.api.Test;
  * second library had there was gone without a word.
  * <p>
  * <b>Licence and notice files (#779)</b> stand under
- * {@value #THIRD_PARTY}{@code <group>/<artifact>/}, as the library carries them. 27 libraries carry
- * a {@code META-INF/NOTICE}, in eight different texts, and the jar kept log4j-to-slf4j's:
- * Jackson's, Batik's and Apache Commons' notices were not in it, and the installer ships nothing
- * else - the Apache License 2.0 asks that a redistribution carries the notices of a NOTICE file
- * (section 4 (d)). A licence or notice file is one at the root of a library, at the top of its
+ * {@value #THIRD_PARTY}{@code <group>/<artifact>/}, as the library carries them. When #779 was
+ * written, 27 libraries carried a {@code META-INF/NOTICE}, in eight different texts (8 in six since
+ * swing-components and Batik with it left, #1013), and the jar kept log4j-to-slf4j's: Jackson's,
+ * Batik's and Apache Commons' notices were not in it, and the installer ships nothing else - the
+ * Apache License 2.0 asks that a redistribution carries the notices of a NOTICE file (section 4
+ * (d)). A licence or notice file is one at the root of a library, at the top of its
  * {@code META-INF} or under its {@code license} directory, named as {@link #LEGAL_FILE} says. A
  * file of that name in a package is a resource of the library's code and stays where the code looks
  * for it.

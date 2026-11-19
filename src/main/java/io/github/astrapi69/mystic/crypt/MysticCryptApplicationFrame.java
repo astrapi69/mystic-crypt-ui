@@ -28,6 +28,7 @@ import java.awt.*;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.File;
+import java.io.IOException;
 import java.io.Serial;
 import java.security.Security;
 import java.util.ArrayList;
@@ -71,6 +72,7 @@ import io.github.astrapi69.mystic.crypt.panel.search.SearchToolbarPanel;
 import io.github.astrapi69.mystic.crypt.panel.signin.MasterPwFileDialog;
 import io.github.astrapi69.mystic.crypt.panel.signin.MasterPwFileModelBean;
 import io.github.astrapi69.mystic.crypt.panel.signin.MemoizedSigninModelBean;
+import io.github.astrapi69.mystic.crypt.plugin.PluginArchives;
 import io.github.astrapi69.mystic.crypt.plugin.api.PluginMenuContribution;
 import io.github.astrapi69.mystic.crypt.plugin.api.VaultAccessContribution;
 import io.github.astrapi69.mystic.crypt.plugin.vault.ModelVaultState;
@@ -291,6 +293,24 @@ public class MysticCryptApplicationFrame extends ApplicationPanelFrame<Applicati
 		pluginManager = new DefaultPluginManager(pluginsDirectory.toPath());
 	}
 
+	/**
+	 * Unpacks again every plugin zip whose content is not what its directory holds, before pf4j
+	 * loads the plugins (#998). A failure is reported and the plugins load as pf4j unpacks them
+	 */
+	private void unpackChangedPluginArchives()
+	{
+		try
+		{
+			PluginArchives.unpackChanged(pluginManager.getPluginsRoot());
+		}
+		catch (IOException exception)
+		{
+			log.log(Level.WARNING, "could not unpack the plugin zips in "
+				+ pluginManager.getPluginsRoot() + " by their content: " + exception.getMessage(),
+				exception);
+		}
+	}
+
 	private void setSecurityProvider()
 	{
 		// add once the default provider to the Security class
@@ -351,6 +371,7 @@ public class MysticCryptApplicationFrame extends ApplicationPanelFrame<Applicati
 		// menu entries that do not exist
 		((DesktopMenu)getMenu()).reorganizeMenus();
 		// start and load all plugins of application
+		unpackChangedPluginArchives();
 		pluginManager.loadPlugins();
 		pluginManager.startPlugins();
 		connectVaultPlugins();

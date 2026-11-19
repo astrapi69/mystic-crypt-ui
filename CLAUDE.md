@@ -35,6 +35,8 @@ line in the Makefile (#911); `docs/development.md` says which to run for what.
 - `make izpack-installer` — installer
 - `make jacoco-report`, `./gradlew pitest` — coverage / mutation reports
 - `make dependency-updates` — dependency currency check
+- `make dependency-analysis` - reports unused dependencies in the host and every plugin build (CI runs it; it fails
+  on one only once the removals of 2026-11-18 are done)
 
 ## Workflow
 

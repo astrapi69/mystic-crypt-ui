@@ -1,5 +1,6 @@
 plugins {
     id 'java'
+    alias(libs.plugins.dependency.analysis)
     // the tests run on a display of the build's own, not on the one the build was started from (#505),
     // and a test class that leaves no result fails the build (#699): astrapi69/own-display-gradle-plugin
     alias(libs.plugins.own.display)
@@ -20,6 +21,8 @@ java {
 // Maven Central, and from the local repository the host - or, with -PuseMavenLocal, a family library
 // candidate too (#475, #508)
 apply from: '../../gradle/plugin-repositories.gradle'
+// what the dependency-analysis plugin checks here, the same in every plugin build
+apply from: '../../gradle/plugin-dependency-analysis.gradle'
 
 // compileOnly against the host jar and the libraries the certificate wizard it launches references.
 // The wizard panels + models + the CertificateInfoModelToX509 generator stay in the host (shared
@@ -40,7 +43,6 @@ dependencies {
     compileOnly libs.crypt.data
     compileOnly libs.model.data
     compileOnly libs.swing.base.components
-    compileOnly libs.swing.components
     // the JMTextArea the in-app certificate editor binds to its model
     compileOnly libs.swing.model.components
     compileOnly libs.swing.wizard
