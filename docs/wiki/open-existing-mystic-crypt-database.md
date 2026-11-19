@@ -52,9 +52,9 @@ dialog, and the sign-in dialog stays open so you can correct what you typed:
 
 | You tried | Dialog title | Message |
 |---|---|---|
-| Password only | Authentication with Password | Password is not valid |
-| Key file only | Authentication with key file | Key file is not valid |
-| Both | Authentication with Password or key file | Password or key file or both are not valid |
+| Password only | Authentication with Password | Wrong master password. |
+| Key file only | Authentication with key file | This key file does not unlock this database. |
+| Both | Authentication with Password or key file | The master password or the key file is wrong. |
 
 A file that is not a mystic-crypt database at all, or whose content this version cannot read, is
 not blamed on your password: the dialog is titled **Database not opened** and names the reason.
