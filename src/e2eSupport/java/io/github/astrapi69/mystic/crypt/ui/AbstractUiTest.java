@@ -420,7 +420,14 @@ abstract class AbstractUiTest
 	/**
 	 * Shuts the running application instance down (as far as tests can: window disposal plus
 	 * singleton reset) so the same test can launch the application again - for use cases that span
-	 * an application restart, like "save, reopen, data still there"
+	 * an application restart, like "save, reopen, data still there".
+	 * <p>
+	 * It returns only when the start thread has ended. Disposing the sign-in dialog of a start that
+	 * was still waiting on it releases that thread, and it then builds the rest of the frame, look
+	 * and feel switch included. Not waiting for it ran two starts in one JVM, and the next start's
+	 * sign-in dialog was built while the old one switched the look: {@code ClassCastException:
+	 * FlatLightLaf cannot be cast to NimbusLookAndFeel} at {@code NimbusStyle.validate}, measured
+	 * twice in nine restarts on two cores (#1070). A real process has one start.
 	 */
 	protected void shutdownApplication() throws InterruptedException
 	{
@@ -428,11 +435,12 @@ abstract class AbstractUiTest
 		if (appThread != null)
 		{
 			appThread.join(15000);
-			appThread = null;
 		}
 		disposeAllWindows();
 		resetApplicationFrameSingleton();
-		diagnostics.mark("shutdownApplication ended, windows disposed");
+		awaitApplicationThreadEnd();
+		appThread = null;
+		diagnostics.mark("shutdownApplication ended, windows disposed, start thread ended");
 	}
 
 	/**
