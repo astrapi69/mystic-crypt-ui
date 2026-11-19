@@ -101,4 +101,17 @@ class ApplicationInfoPanelTest
 		assertNotNull(wiki, "the wiki link must be reachable by name for a UI test");
 	}
 
+	@Test
+	void theWikiButtonCarriesTheWikiAddressOfTheInfo_andTheDefaultOneIsTheWikiHome()
+	{
+		ApplicationInfo info = ApplicationInfo.current("mystic-crypt-ui", "", "");
+
+		ApplicationInfoPanel panel = new ApplicationInfoPanel(info);
+
+		JButton wiki = (JButton)byName(panel, "btnWiki");
+		assertEquals("https://github.com/astrapi69/mystic-crypt-ui/wiki",
+			wiki.getClientProperty(ApplicationInfoPanel.LINK_URL_PROPERTY),
+			"the Wiki link of Help > Info opens the wiki's Home page, which docs/wiki/Home.md mirrors");
+	}
+
 }
