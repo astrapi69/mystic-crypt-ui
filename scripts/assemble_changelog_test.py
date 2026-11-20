@@ -44,6 +44,13 @@ FIXED:
             block = assemble("8.15", fragments)
         self.assertIn("- the first line\n  and its continuation (#1)", block)
 
+    def test_an_advisory_id_in_a_security_fragment_reaches_the_block(self):
+        with TemporaryDirectory() as directory:
+            fragments = [fragment(directory, "900.security.md",
+                                  "- a hole in the reader (GHSA-abcd-efgh-2345)")]
+            block = assemble("8.16", fragments)
+        self.assertIn("GHSA-abcd-efgh-2345", block)
+
     def test_a_fragment_without_a_bullet_is_refused(self):
         with TemporaryDirectory() as directory:
             fragments = [fragment(directory, "900.fixed.md", "no bullet")]
