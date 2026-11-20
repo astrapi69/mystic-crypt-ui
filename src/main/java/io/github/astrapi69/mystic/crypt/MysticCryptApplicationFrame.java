@@ -242,9 +242,9 @@ public class MysticCryptApplicationFrame extends ApplicationPanelFrame<Applicati
 		final MysticCryptSettings persistedSettings)
 	{
 		GeneralSettingsPanel.applyLookAndFeel(persistedSettings.getLookAndFeel());
-		MasterPwFileDialog dialog = new MasterPwFileDialog(null, "Enter your credentials", true,
+		MasterPwFileDialog dialog = new MasterPwFileDialog(this, "Enter your credentials", true,
 			model);
-		dialog.setSize(920, 380);
+		dialog.sizeAndCentre(920, 380);
 		dialog.addWindowListener(new WindowAdapter()
 		{
 			@Override

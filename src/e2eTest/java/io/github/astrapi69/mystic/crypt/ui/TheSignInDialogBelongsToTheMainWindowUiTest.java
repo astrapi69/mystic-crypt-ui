@@ -43,13 +43,11 @@ import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
 /**
  * Who owns the sign-in dialog and where it opens (#63).
  * <p>
- * Measured on develop a80d9c54: the dialog is placed before it gets its size, so what sits at the
- * centre of the screen is its upper left corner, not its middle.
- * <p>
- * A dialog built without an owner belongs to Swing's shared, invisible owner frame. At the start
- * the main window is not shown yet, so the dialog opens centred on the screen; when "Open Database
- * File" shows it again the main window is visible and the dialog opens centred over it. The display
- * of the tests has one screen, so the second case moves the main window far from the middle of it.
+ * The dialog belongs to the main window; built without an owner it belonged to Swing's shared,
+ * invisible owner frame. At the start the main window is not shown yet, so the dialog opens centred
+ * on the screen; when "Open Database File" shows it again the main window is visible and the dialog
+ * opens centred over it. The display of the tests has one screen, so the second case moves the main
+ * window far from the middle of it.
  */
 class TheSignInDialogBelongsToTheMainWindowUiTest extends AbstractUiTest
 {
@@ -58,8 +56,8 @@ class TheSignInDialogBelongsToTheMainWindowUiTest extends AbstractUiTest
 	private static final int TOLERANCE = 40;
 
 	@Test
-	@DisplayName("pin: at the start the sign-in dialog belongs to the shared owner frame, its corner sits at the screen's centre")
-	void atTheStart_theDialogBelongsToTheSharedOwnerFrame_andItsCornerSitsAtTheScreenCentre()
+	@DisplayName("at the start the sign-in dialog belongs to the main window and is centred on the screen")
+	void atTheStart_theDialogBelongsToTheMainWindow_andIsCentredOnTheScreen()
 	{
 		SignInDialogSteps signIn = launchApplication();
 		robot.waitForIdle();
@@ -67,16 +65,14 @@ class TheSignInDialogBelongsToTheMainWindowUiTest extends AbstractUiTest
 
 		assertOwnerIs(dialog);
 		Point screenCentre = screenCentreOf(dialog);
-		Point dialogCorner = cornerOf(dialog);
-		assertTrue(near(dialogCorner, screenCentre),
-			"today the upper left corner of the dialog sits at the centre of the screen "
-				+ screenCentre + ", at " + dialogCorner + ", centre of the dialog "
-				+ centreOf(dialog));
+		Point dialogCentre = centreOf(dialog);
+		assertTrue(near(dialogCentre, screenCentre),
+			"the dialog is centred on the screen " + screenCentre + ", at " + dialogCentre);
 	}
 
 	@Test
-	@DisplayName("pin: Open Database File places the ownerless sign-in dialog by the screen's centre, not by the moved window")
-	void onOpenDatabaseFile_theOwnerlessDialogIsPlacedByTheScreenCentre()
+	@DisplayName("Open Database File shows the sign-in dialog of the main window, centred over the moved window")
+	void onOpenDatabaseFile_theDialogIsCentredOverTheMovedMainWindow()
 	{
 		launchApplication().requireOkDisabled().cancel();
 		Pause.pause(new Condition("the application frame finished constructing")
@@ -107,23 +103,19 @@ class TheSignInDialogBelongsToTheMainWindowUiTest extends AbstractUiTest
 		SignInDialogSteps signIn = awaitSignInDialog();
 		Window dialog = signIn.dialog().target();
 		UiTestSpeed.awaitWindowPlaced(dialog);
-		Point dialogCorner = cornerOf(dialog);
 		Point dialogCentre = centreOf(dialog);
 		signIn.cancel();
 
 		assertOwnerIs(dialog);
-		assertTrue(near(dialogCorner, screenCentre),
-			"today the upper left corner of the dialog sits at the centre of the screen "
-				+ screenCentre + ", at " + dialogCorner + ", centre of the dialog " + dialogCentre
-				+ ", the main window is at " + windowCentre);
+		assertTrue(near(dialogCentre, windowCentre), "the dialog is centred over the main window "
+			+ windowCentre + ", at " + dialogCentre + ", not over the screen at " + screenCentre);
 	}
 
 	private static void assertOwnerIs(final Window dialog)
 	{
 		String ownerClass = GuiActionRunner.execute(() -> dialog.getOwner().getClass().getName());
-		assertTrue("javax.swing.SwingUtilities$SharedOwnerFrame".equals(ownerClass),
-			"the owner of the sign-in dialog is Swing's shared owner frame today, not "
-				+ ownerClass);
+		assertTrue(MysticCryptApplicationFrame.class.getName().equals(ownerClass),
+			"the owner of the sign-in dialog is the main window, not " + ownerClass);
 	}
 
 	private static Point screenCentreOf(final Window window)
@@ -131,11 +123,6 @@ class TheSignInDialogBelongsToTheMainWindowUiTest extends AbstractUiTest
 		Rectangle screen = GuiActionRunner
 			.execute(() -> window.getGraphicsConfiguration().getBounds());
 		return new Point((int)screen.getCenterX(), (int)screen.getCenterY());
-	}
-
-	private static Point cornerOf(final Window window)
-	{
-		return GuiActionRunner.execute(window::getLocationOnScreen);
 	}
 
 	private static Point centreOf(final Window window)
