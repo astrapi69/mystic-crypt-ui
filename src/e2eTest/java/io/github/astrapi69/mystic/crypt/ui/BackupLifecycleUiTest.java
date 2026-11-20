@@ -108,6 +108,13 @@ class BackupLifecycleUiTest extends AbstractUiTest
 			"the sign-in must have opened the database");
 	}
 
+	/**
+	 * The sign-in fails by the factor that is refused every time: a foreign key file on both
+	 * key-file ways, whose key layer is unwrapped with RSA OAEP, and a wrong password only on the
+	 * password way, whose format authenticates. The password layer of a database with both factors
+	 * does not authenticate, so a wrong password drawn per run passes its padding now and then, and
+	 * the codec then reports the rubbish as an unreadable database instead of the refusal
+	 */
 	@ParameterizedTest(name = "{0}")
 	@EnumSource(WayIn.class)
 	@DisplayName("a failed sign-in keeps the .bak, the way back after a save")
@@ -116,9 +123,9 @@ class BackupLifecycleUiTest extends AbstractUiTest
 		Vault vault = vaultWithBackup(wayIn);
 		byte[] backupBefore = Files.readAllBytes(vault.backup().toPath());
 
-		SignInDialogSteps signInDialog = signIn(wayIn, vault,
-			wayIn.withPassword ? TestPasswords.throwaway() : MASTER_PASSWORD,
-			wayIn.withPassword ? vault.keyFile() : foreignKeyFile());
+		SignInDialogSteps signInDialog = wayIn.withKeyFile
+			? signIn(wayIn, vault, MASTER_PASSWORD, foreignKeyFile())
+			: signIn(wayIn, vault, TestPasswords.throwaway(), vault.keyFile());
 		new ApplicationSteps(robot).dismissMessageDialog(wayIn.refusalTitle);
 
 		assertTrue(signInDialog.dialogIsShowing(), "the failed sign-in must leave the dialog open");
