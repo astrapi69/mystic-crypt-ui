@@ -28,6 +28,9 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 import javax.swing.JFrame;
@@ -73,6 +76,50 @@ class DesktopMenuHelpActionsTest
 			"the license text must not carry an unfilled template placeholder, was: " + license);
 		assertTrue(license.contains("Asterios Raptis"),
 			"the license text must actually say who holds the copyright, was: " + license);
+	}
+
+	@Test
+	void licenseText_namesNoticeAndKeepsTheMitText_afterTheFix() throws IOException
+	{
+		DesktopMenu menu = new DesktopMenu(new JFrame());
+		String mitText;
+		try (InputStream is = DesktopMenuHelpActionsTest.class.getClassLoader()
+			.getResourceAsStream("legal/license.txt"))
+		{
+			mitText = new String(is.readAllBytes(), StandardCharsets.UTF_8);
+		}
+
+		String license = menu.onNewLicenseText();
+
+		assertTrue(license.contains("NOTICE.txt"),
+			"the dialog must name NOTICE.txt, was: " + license);
+		assertTrue(license.strip().endsWith(mitText.strip()),
+			"the MIT text must stay in the dialog unchanged");
+	}
+
+	@Test
+	void licenseNoticeBundles_nameNoticeInEnglishAndGerman()
+	{
+		for (String bundleName : List.of("ui/messages.properties", "ui/messages_de.properties"))
+		{
+			java.util.Properties bundle = new java.util.Properties();
+			try (java.io.Reader reader = new java.io.InputStreamReader(
+				DesktopMenuHelpActionsTest.class.getClassLoader().getResourceAsStream(bundleName),
+				StandardCharsets.UTF_8))
+			{
+				bundle.load(reader);
+			}
+			catch (IOException e)
+			{
+				throw new AssertionError(bundleName, e);
+			}
+			assertTrue(
+				bundle.getProperty(DesktopMenu.LICENSE_NOTICE_KEY, "").contains("NOTICE.txt"),
+				bundleName + " must carry the licence notice naming NOTICE.txt");
+		}
+		assertTrue(DesktopMenu.LICENSE_NOTICE_DEFAULT.contains("NOTICE.txt")
+			&& DesktopMenu.LICENSE_NOTICE_DEFAULT.contains("license texts")
+			&& DesktopMenu.LICENSE_NOTICE_DEFAULT.contains("third-party"));
 	}
 
 }

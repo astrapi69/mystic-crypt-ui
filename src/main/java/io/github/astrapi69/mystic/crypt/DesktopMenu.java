@@ -101,6 +101,12 @@ import lombok.extern.java.Log;
 @Log
 public class DesktopMenu extends BaseDesktopMenu implements EventListener<EventObject<RenderMode>>
 {
+	/** Key of the sentence that opens the licence dialog and points to NOTICE.txt (#1014). */
+	static final String LICENSE_NOTICE_KEY = "dialog.license.notice";
+
+	/** English default of {@link #LICENSE_NOTICE_KEY}, shown when the bundle cannot be read. */
+	static final String LICENSE_NOTICE_DEFAULT = "The credits and the license texts of the bundled third-party works are in NOTICE.txt, in the installation directory.";
+
 	/** What the lock entry says while a vault is signed in */
 	private static final String LOCK_WORKSPACE_TEXT = Messages.getString(MenuId.LOCK_WORKSPACE_KEY,
 		"Lock workspace");
@@ -464,7 +470,7 @@ public class DesktopMenu extends BaseDesktopMenu implements EventListener<EventO
 		{
 			log.log(Level.SEVERE, e.getLocalizedMessage(), e);
 		}
-		return license.toString();
+		return Messages.getString(LICENSE_NOTICE_KEY, LICENSE_NOTICE_DEFAULT) + "\n\n" + license;
 	}
 
 	/**
