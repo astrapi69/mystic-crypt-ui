@@ -29,6 +29,9 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.File;
+import java.nio.ByteBuffer;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 
 import org.junit.jupiter.api.DisplayName;
@@ -159,4 +162,34 @@ class MysticCryptSettingsTest
 			"the rest of the file has to survive an unreadable view mode");
 	}
 
+	/**
+	 * A settings file in Windows-1252, a hand edit or another tool's, reads with its umlauts, for
+	 * display and for a change, and the next save writes it in UTF-8 (#1081). file-worker 21 reads
+	 * strictly, which made the loader for a change refuse it and the loader for display show
+	 * defaults.
+	 */
+	@Test
+	@DisplayName("a settings file in Windows-1252 is read with its umlauts, and the next save writes it in UTF-8")
+	void aSettingsFileInWindows1252_isReadWithItsUmlauts_andTheNextSaveWritesUtf8(
+		@TempDir File configurationDirectory) throws Exception
+	{
+		File settingsFile = new File(configurationDirectory, MysticCryptSettings.JSON_FILENAME);
+		Files.write(settingsFile.toPath(),
+			"{ \"lookAndFeel\": \"Metal\", \"language\": \"J\u00fcrgen\" }"
+				.getBytes(Charset.forName("windows-1252")));
+
+		MysticCryptSettings forDisplay = MysticCryptSettings.load(configurationDirectory);
+		assertEquals("Metal", forDisplay.getLookAndFeel());
+		assertEquals("J\u00fcrgen", forDisplay.getLanguage(), "the umlaut is read");
+		MysticCryptSettings forAChange = MysticCryptSettings.loadForUpdate(configurationDirectory);
+		assertEquals("J\u00fcrgen", forAChange.getLanguage(),
+			"a change starts from what the file holds");
+
+		forAChange.save(configurationDirectory);
+
+		String writtenBack = StandardCharsets.UTF_8.newDecoder()
+			.decode(ByteBuffer.wrap(Files.readAllBytes(settingsFile.toPath()))).toString();
+		assertTrue(writtenBack.contains("J\u00fcrgen"),
+			"the next save writes the file in UTF-8: " + writtenBack);
+	}
 }

@@ -121,6 +121,8 @@ abstract class AbstractUiTest
 
 	protected Robot robot;
 
+	private final SignInDialogDiagnostics diagnostics = new SignInDialogDiagnostics();
+
 	private Thread appThread;
 
 	/** How many sign-in dialogs this test has already found, through {@link AwaitStartup} */
@@ -143,7 +145,9 @@ abstract class AbstractUiTest
 		// no FailOnThreadViolationRepaintManager: StartMysticCryptApplication constructs the frame
 		// off the EDT (tests mirror that), so enforcing EDT-only construction would fail every test
 		// for a pre-existing app characteristic unrelated to what the tests check
+		diagnostics.beginTest();
 		robot = UiTestRobots.withNewAwtHierarchy();
+		diagnostics.robotCreated();
 	}
 
 	@AfterEach
@@ -176,6 +180,7 @@ abstract class AbstractUiTest
 			robot.cleanUpWithoutDisposingWindows();
 			resetApplicationFrameSingleton();
 			AwaitStartup.switchOff();
+			diagnostics.endTest();
 			System.setProperty("user.home", originalUserHome);
 		}
 		deleteTempHome();
@@ -244,23 +249,48 @@ abstract class AbstractUiTest
 		return new SignInDialogSteps(robot, findSignInDialog());
 	}
 
+	/**
+	 * What {@link SignInDialogDiagnostics} would print if the lookup of the sign-in dialog failed
+	 * now (#1070)
+	 *
+	 * @return the diagnosis
+	 */
+	protected String signInDialogDiagnosis()
+	{
+		return diagnostics.report(robot);
+	}
+
 	private DialogFixture findSignInDialog()
 	{
-		return WindowFinder.findDialog(new GenericTypeMatcher<Dialog>(Dialog.class)
+		diagnostics.mark("looking for the sign-in dialog");
+		try
 		{
-			@Override
-			protected boolean isMatching(Dialog dialog)
+			return WindowFinder.findDialog(new GenericTypeMatcher<Dialog>(Dialog.class)
 			{
-				// dialog.getTitle() is set by the JDialog constructor before the app thread
-				// finishes assembling and showing the content, so also require isShowing() -
-				// otherwise this can match a dialog whose content pane is still empty
-				return "Enter your credentials".equals(dialog.getTitle()) && dialog.isShowing();
+				@Override
+				protected boolean isMatching(Dialog dialog)
+				{
+					// dialog.getTitle() is set by the JDialog constructor before the app thread
+					// finishes assembling and showing the content, so also require isShowing() -
+					// otherwise this can match a dialog whose content pane is still empty
+					return SignInDialogDiagnostics.SIGN_IN_TITLE.equals(dialog.getTitle())
+						&& dialog.isShowing();
+				}
+			}).withTimeout(15, TimeUnit.SECONDS).using(robot);
+		}
+		catch (RuntimeException notFound)
+		{
+			for (String line : diagnostics.report(robot).split("\n"))
+			{
+				System.out.println(WhatWasOnScreen.TAG + line);
 			}
-		}).withTimeout(15, TimeUnit.SECONDS).using(robot);
+			throw notFound;
+		}
 	}
 
 	private DialogFixture launchApplicationAndFindSignInDialog()
 	{
+		diagnostics.mark("launchApplication begun");
 		WhatWasOnScreen.startThreadLaunched();
 		appThread = new Thread(MysticCryptApplicationFrame::new, WhatWasOnScreen.START_THREAD);
 		appThread.setUncaughtExceptionHandler(WhatWasOnScreen::startThreadDied);
@@ -268,6 +298,7 @@ abstract class AbstractUiTest
 		appThread.start();
 
 		signInDialogsSeen = AwaitStartup.signInDialogOpened(signInDialogsSeen, appThread);
+		diagnostics.mark("the application reported its sign-in dialog open");
 		DialogFixture signInDialog = findSignInDialog();
 		// The close operation used to be overridden here to DISPOSE_ON_CLOSE, to keep a
 		// window-closing during teardown from calling System.exit and killing the test JVM. It
@@ -389,17 +420,32 @@ abstract class AbstractUiTest
 	/**
 	 * Shuts the running application instance down (as far as tests can: window disposal plus
 	 * singleton reset) so the same test can launch the application again - for use cases that span
-	 * an application restart, like "save, reopen, data still there"
+	 * an application restart, like "save, reopen, data still there".
+	 * <p>
+	 * It returns only when the start thread has ended. Disposing the sign-in dialog of a start that
+	 * was still waiting on it releases that thread, and it then builds the rest of the frame, look
+	 * and feel switch included. Not waiting for it ran two starts in one JVM, and the next start's
+	 * sign-in dialog was built while the old one switched the look: {@code ClassCastException:
+	 * FlatLightLaf cannot be cast to NimbusLookAndFeel} at {@code NimbusStyle.validate}, measured
+	 * twice in nine restarts on two cores (#1070). A real process has one start.
 	 */
 	protected void shutdownApplication() throws InterruptedException
 	{
+		diagnostics.mark("shutdownApplication begun");
 		if (appThread != null)
 		{
 			appThread.join(15000);
-			appThread = null;
 		}
 		disposeAllWindows();
+		// the close events of the disposed windows, the JDK's own disposal of the shared owner
+		// frame
+		// and AssertJ-Swing's task that answers it all run before the next start: a dialog of that
+		// start created earlier would be owned by the frame and hidden by the task (#1070)
+		robot.waitForIdle();
 		resetApplicationFrameSingleton();
+		awaitApplicationThreadEnd();
+		appThread = null;
+		diagnostics.mark("shutdownApplication ended, windows disposed, start thread ended");
 	}
 
 	/**

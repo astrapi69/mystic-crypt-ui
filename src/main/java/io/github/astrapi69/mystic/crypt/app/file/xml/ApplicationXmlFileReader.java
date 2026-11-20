@@ -24,8 +24,10 @@
  */
 package io.github.astrapi69.mystic.crypt.app.file.xml;
 
+import java.io.EOFException;
 import java.io.File;
 import java.io.IOException;
+import java.io.ObjectStreamException;
 import java.security.GeneralSecurityException;
 import java.security.PrivateKey;
 import java.security.Security;
@@ -34,6 +36,7 @@ import java.util.logging.Level;
 
 import javax.crypto.AEADBadTagException;
 import javax.crypto.Cipher;
+import javax.crypto.IllegalBlockSizeException;
 
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 
@@ -154,9 +157,7 @@ public class ApplicationXmlFileReader
 		}
 		catch (Exception exception)
 		{
-			log.log(Level.SEVERE, exception.getLocalizedMessage(), exception);
-			throw notOpened("Authentication with Password or key file",
-				"Password or key file or both are not valid", exception);
+			throw notOpened(Factors.PASSWORD_AND_KEY_FILE, exception);
 		}
 	}
 
@@ -186,7 +187,7 @@ public class ApplicationXmlFileReader
 		}
 		catch (Exception exception)
 		{
-			throw notOpened("Authentication with key file", "Key file is not valid", exception);
+			throw notOpened(Factors.KEY_FILE, exception);
 		}
 		return applicationModelBean;
 	}
@@ -203,7 +204,54 @@ public class ApplicationXmlFileReader
 		}
 		catch (Exception exception)
 		{
-			throw notOpened("Authentication with Password", "Password is not valid", exception);
+			throw notOpened(Factors.PASSWORD, exception);
+		}
+	}
+
+	/**
+	 * The factors a sign-in asked for, which decide the title of a refusal and the words that say a
+	 * factor was wrong, the unlock prompt's own (#880, #1005)
+	 */
+	private enum Factors
+	{
+		PASSWORD_AND_KEY_FILE("both", "dialog.signin.both",
+			"Authentication with Password or key file",
+			"Password or key file or both are not valid",
+			"The master password or the key file is wrong."), KEY_FILE("key.file",
+				"dialog.signin.key.file", "Authentication with key file", "Key file is not valid",
+				"This key file does not unlock this database."), PASSWORD("password",
+					"dialog.signin.password", "Authentication with Password",
+					"Password is not valid", "Wrong master password.");
+
+		private final String unlockKeySuffix;
+		private final String signInKeyPrefix;
+		private final String defaultTitle;
+		private final String defaultReason;
+		private final String defaultWrong;
+
+		Factors(final String unlockKeySuffix, final String signInKeyPrefix,
+			final String defaultTitle, final String defaultReason, final String defaultWrong)
+		{
+			this.unlockKeySuffix = unlockKeySuffix;
+			this.signInKeyPrefix = signInKeyPrefix;
+			this.defaultTitle = defaultTitle;
+			this.defaultReason = defaultReason;
+			this.defaultWrong = defaultWrong;
+		}
+
+		String title()
+		{
+			return Messages.getString(signInKeyPrefix + ".title", defaultTitle);
+		}
+
+		String reason()
+		{
+			return Messages.getString(signInKeyPrefix + ".reason", defaultReason);
+		}
+
+		String wrong()
+		{
+			return Messages.getString("unlock.failed." + unlockKeySuffix, defaultWrong);
 		}
 	}
 
@@ -212,19 +260,20 @@ public class ApplicationXmlFileReader
 	 * that names a type no database holds says so and names the type, a file that decrypted but
 	 * whose content cannot be read says so and names the reason (#624), and a file whose key the
 	 * key file opened but whose content is in no known format says that (#650), rather than any of
-	 * them being taken for a wrong password or key file; every other failure keeps the given title
-	 * and reason.
+	 * them being taken for a wrong password or key file. A file the format reader refuses as no
+	 * database (an {@link IllegalArgumentException}, or a block size no password database has) says
+	 * that, and a failed decryption says in the unlock prompt's words that the password or the key
+	 * file is wrong (#1005). The text of the exception is never shown: it stays in the log. Only a
+	 * failure that carries a message written for the user, such as a missing key file, keeps
+	 * showing it.
 	 *
-	 * @param title
-	 *            the title of the failure as the sign-in path names it
-	 * @param reason
-	 *            what the sign-in path takes to be wrong
+	 * @param factors
+	 *            what the sign-in asked for
 	 * @param exception
 	 *            what opening threw
 	 * @return the exception to throw
 	 */
-	private static RuntimeException notOpened(final String title, final String reason,
-		final Exception exception)
+	private static RuntimeException notOpened(final Factors factors, final Exception exception)
 	{
 		VaultHoldsAForeignTypeException foreign = causeOf(exception,
 			VaultHoldsAForeignTypeException.class);
@@ -253,9 +302,47 @@ public class ApplicationXmlFileReader
 					+ "this version reads (%1$s). It was not opened, and the file is unchanged.",
 				unknownFormat.getReason(), unknownFormat, exception);
 		}
-		String htmlMessage = "<html><body width='350'>" + "<h2>" + title + "</h2>" + "<p> " + reason
-			+ "<p>" + exception.getMessage();
-		return new RuntimeException(title + "::" + htmlMessage, exception);
+		if (causeOf(exception, KeyFileUnavailableException.class) != null)
+		{
+			log.log(Level.SEVERE, exception.getMessage(), exception);
+			return refusal(factors.title(), exception.getMessage(), exception);
+		}
+		if (isNoDatabase(factors, exception))
+		{
+			return databaseNotOpened("dialog.vault.not.a.database",
+				"This file is not a database this application can open. It was not opened, and "
+					+ "the file is unchanged.",
+				"", exception, exception);
+		}
+		log.log(Level.SEVERE, exception.getMessage(), exception);
+		if (causeOf(exception, GeneralSecurityException.class) != null
+			|| causeOf(exception, SecurityException.class) != null)
+		{
+			return refusal(factors.title(), factors.wrong(), exception);
+		}
+		return refusal(factors.title(), factors.reason(), exception);
+	}
+
+	/**
+	 * Whether opening failed because the file is no database of this application: the format reader
+	 * refused it ({@link IllegalArgumentException}), or, on a path that reads the key first, the
+	 * envelope is not a serialized stream or ends early. A block size no password database has
+	 * counts too, but only on the password path: on a key file path the same exception also comes
+	 * from a foreign key smaller than the database's, which is a wrong key file
+	 */
+	private static boolean isNoDatabase(final Factors factors, final Exception exception)
+	{
+		return causeOf(exception, IllegalArgumentException.class) != null
+			|| causeOf(exception, ObjectStreamException.class) != null
+			|| causeOf(exception, EOFException.class) != null || factors == Factors.PASSWORD
+				&& causeOf(exception, IllegalBlockSizeException.class) != null;
+	}
+
+	private static RuntimeException refusal(final String title, final String html,
+		final Exception exception)
+	{
+		return new RuntimeException(
+			title + "::" + "<html><body width='350'><h2>" + title + "</h2><p>" + html, exception);
 	}
 
 	/**

@@ -121,6 +121,38 @@ final class EditCryptEntrySteps
 	}
 
 	/**
+	 * Removes a property on the "Properties" tab: its row selected, "Remove"
+	 */
+	EditCryptEntrySteps removeProperty(String key)
+	{
+		selectPropertyRow(key);
+		JButton remove = dialog.button(JButtonMatcher.withText("Remove").andShowing()).target();
+		GuiActionRunner.execute(() -> {
+			remove.doClick();
+			return null;
+		});
+		robot.waitForIdle();
+		UiTestSpeed.step();
+		return this;
+	}
+
+	/**
+	 * Removes an attachment on the "Attachments" tab: its row selected, "Remove"
+	 */
+	EditCryptEntrySteps removeAttachment(String attachmentName)
+	{
+		selectTheAttachment(attachmentName);
+		JButton remove = dialog.button(JButtonMatcher.withText("Remove").andShowing()).target();
+		GuiActionRunner.execute(() -> {
+			remove.doClick();
+			return null;
+		});
+		robot.waitForIdle();
+		UiTestSpeed.step();
+		return this;
+	}
+
+	/**
 	 * What the "Properties" table shows in the value column of the property's row, as the user sees
 	 * it: the text of the cell the table renders, not the model's answer
 	 *

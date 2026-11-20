@@ -25,6 +25,8 @@
 package io.github.astrapi69.mystic.crypt.plugin.checksum;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.charset.MalformedInputException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.security.MessageDigest;
@@ -33,6 +35,8 @@ import java.util.List;
 
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
+
+import io.github.astrapi69.file.read.ReadFileExtensions;
 
 /**
  * Checksums and message authentication codes, without any user interface.
@@ -286,6 +290,35 @@ public final class ChecksumSupport
 		Files.writeString(target.toPath(), checksum.trim() + "  " + file.getName() + "\n",
 			StandardCharsets.UTF_8);
 		return target;
+	}
+
+	/**
+	 * The text of a checksum file, read as UTF-8, or as ISO-8859-1 when its bytes are not valid
+	 * UTF-8.
+	 * <p>
+	 * sha256sum and its kind write the file name next to the hash, in the charset of the system they
+	 * ran on, for example Windows-1252, and file-worker 21 reads strictly: such a file was not loaded
+	 * at all (#1081). ISO-8859-1 makes every byte a character, so the hash, which is ASCII, always
+	 * comes through. The host has the same reader for its own files; a plugin brings its own code.
+	 * <p>
+	 * TODO(astrapi69/file-worker#164): use the library's method once file-worker has one
+	 *
+	 * @param checksumFile
+	 *            the checksum file
+	 * @return its text
+	 * @throws IOException
+	 *             if the file cannot be read, for a reason other than its encoding
+	 */
+	public static String readChecksumFile(final File checksumFile) throws IOException
+	{
+		try
+		{
+			return ReadFileExtensions.fromFile(checksumFile);
+		}
+		catch (final MalformedInputException notUtf8)
+		{
+			return ReadFileExtensions.fromFile(checksumFile, StandardCharsets.ISO_8859_1);
+		}
 	}
 
 	/**

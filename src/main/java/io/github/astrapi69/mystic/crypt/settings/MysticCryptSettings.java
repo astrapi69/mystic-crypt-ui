@@ -26,9 +26,9 @@ package io.github.astrapi69.mystic.crypt.settings;
 
 import java.io.File;
 
-import io.github.astrapi69.file.read.ReadFileExtensions;
 import io.github.astrapi69.gson.JsonStringToObjectExtensions;
 import io.github.astrapi69.gson.ObjectToJsonFileExtensions;
+import io.github.astrapi69.mystic.crypt.app.file.TextFiles;
 import io.github.astrapi69.mystic.crypt.clipboard.ClipboardClearDecision;
 import io.github.astrapi69.mystic.crypt.lock.IdleLockDecision;
 import io.github.astrapi69.swing.enumeration.FrameMode;
@@ -136,7 +136,7 @@ public class MysticCryptSettings
 		{
 			try
 			{
-				String json = ReadFileExtensions.fromFile(file);
+				String json = TextFiles.readUtf8OrLatin1(file);
 				return JsonStringToObjectExtensions.toObject(json, MysticCryptSettings.class);
 			}
 			catch (Exception exception)
@@ -167,7 +167,7 @@ public class MysticCryptSettings
 		}
 		try
 		{
-			String json = ReadFileExtensions.fromFile(file);
+			String json = TextFiles.readUtf8OrLatin1(file);
 			MysticCryptSettings settings = JsonStringToObjectExtensions.toObject(json,
 				MysticCryptSettings.class);
 			if (settings == null)

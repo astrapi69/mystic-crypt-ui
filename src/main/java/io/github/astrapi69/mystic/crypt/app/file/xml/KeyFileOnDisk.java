@@ -28,6 +28,7 @@ import java.io.File;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.security.PrivateKey;
+import java.security.spec.InvalidKeySpecException;
 
 import io.github.astrapi69.crypt.data.key.reader.PemObjectReader;
 import io.github.astrapi69.crypt.data.key.reader.PrivateKeyReader;
@@ -104,11 +105,14 @@ public final class KeyFileOnDisk
 		throws IOException, GeneralSecurityException
 	{
 		File existingKeyFile = existing(keyFile);
-		if (withMasterPassword || PemObjectReader.isPemObject(existingKeyFile))
+		PrivateKey privateKey = withMasterPassword || PemObjectReader.isPemObject(existingKeyFile)
+			? PrivateKeyReader.readPemPrivateKey(existingKeyFile)
+			: PrivateKeyReader.readPrivateKey(existingKeyFile);
+		if (privateKey == null)
 		{
-			return PrivateKeyReader.readPemPrivateKey(existingKeyFile);
+			throw new InvalidKeySpecException("the key file holds no private key");
 		}
-		return PrivateKeyReader.readPrivateKey(existingKeyFile);
+		return privateKey;
 	}
 
 	/**
@@ -158,14 +162,14 @@ public final class KeyFileOnDisk
 	{
 		if (keyFile == null)
 		{
-			throw new IllegalStateException(Messages.getString("dialog.key.file.not.set.message",
-				"No key file is set for this database."));
+			throw new KeyFileUnavailableException(Messages.getString(
+				"dialog.key.file.not.set.message", "No key file is set for this database."));
 		}
 		if (!keyFile.isFile())
 		{
 			// %1$s rather than {0}: the bundle lookup formats braces itself and fills them with
 			// null
-			throw new IllegalStateException(String.format(Messages.getString(
+			throw new KeyFileUnavailableException(String.format(Messages.getString(
 				"dialog.key.file.missing.message",
 				"The key file %1$s is not there. It was moved or deleted, or it is on a drive that "
 					+ "is not connected. Put it back at this path and try again."),
