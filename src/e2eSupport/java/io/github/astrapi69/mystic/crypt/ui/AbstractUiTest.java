@@ -437,6 +437,11 @@ abstract class AbstractUiTest
 			appThread.join(15000);
 		}
 		disposeAllWindows();
+		// the close events of the disposed windows, the JDK's own disposal of the shared owner
+		// frame
+		// and AssertJ-Swing's task that answers it all run before the next start: a dialog of that
+		// start created earlier would be owned by the frame and hidden by the task (#1070)
+		robot.waitForIdle();
 		resetApplicationFrameSingleton();
 		awaitApplicationThreadEnd();
 		appThread = null;
