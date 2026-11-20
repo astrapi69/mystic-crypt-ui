@@ -85,6 +85,15 @@
 						stage="never" keep="true" />
 			<executable targetfile="${INSTALL_PATH}/start.sh" stage="never" keep="true" />
 			<file src="resources/main/doc/start.sh" targetdir="${INSTALL_PATH}" />
+			<!--
+				The desktop entry runs start.sh, which looks for a Java 25 or newer: first the one this
+				installer ran on, then the one on the PATH (#1009). IzPack 5.2.7 sets the variable
+				JAVA_HOME to the installing JVM's java.home (AbstractInstallDataProvider in
+				izpack-installer, setVariable("JAVA_HOME", System.getProperty("java.home"))), and the
+				parsable declaration writes it into this one-line file, which start.sh reads.
+			-->
+			<file src="resources/main/doc/installer-java-home" targetdir="${INSTALL_PATH}" />
+			<parsable targetfile="${INSTALL_PATH}/installer-java-home" type="plain" encoding="UTF-8" />
 			<file src="resources/main/doc/start.bat" targetdir="${INSTALL_PATH}" />
 			<file src="resources/main/img/icon.png" targetdir="${INSTALL_PATH}/img" />
 		</pack>
