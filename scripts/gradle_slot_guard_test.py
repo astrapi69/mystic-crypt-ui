@@ -63,7 +63,8 @@ def starts_gradle(target):
 
 
 def sorted_targets():
-    targets = declared_targets()
+    """The bypass is named in its own tests: it starts Gradle only for the target it is given"""
+    targets = [target for target in declared_targets() if target != "without-slot"]
     gradle = [target for target in targets if starts_gradle(target)]
     return gradle, [target for target in targets if target not in gradle]
 
@@ -81,20 +82,64 @@ class TheTargetsAreFoundTest(unittest.TestCase):
         self.assertIn("help", FREE_TARGETS)
 
 
-class WithoutASlotTodayTest(unittest.TestCase):
-    """Pins today's behaviour: nothing asks for a slot"""
+class TheGuardTest(unittest.TestCase):
 
-    def test_a_gradle_target_runs_without_a_slot(self):
+    def test_a_gradle_target_refuses_without_a_slot(self):
         for target in GRADLE_TARGETS:
             with self.subTest(target=target):
                 result = make(["-n", target])
+                self.assertNotEqual(0, result.returncode, "ran without a slot: " + target)
+                self.assertIn(target, result.stderr)
+                self.assertIn("GRADLE_SLOT", result.stderr)
+                self.assertIn("make without-slot TARGET=" + target, result.stderr)
+
+    def test_an_empty_slot_counts_as_none_and_a_runner_that_is_not_ci_gets_no_pass(self):
+        for name, extra in (("empty slot", {"GRADLE_SLOT": ""}), ("GITHUB_ACTIONS=false", {"GITHUB_ACTIONS": "false"})):
+            with self.subTest(case=name):
+                self.assertNotEqual(0, make(["-n", "build"], **extra).returncode)
+
+    def test_a_gradle_target_runs_inside_a_slot(self):
+        for target in GRADLE_TARGETS:
+            with self.subTest(target=target):
+                result = make(["-n", target], GRADLE_SLOT="1")
                 self.assertEqual(0, result.returncode, result.stderr)
+
+    def test_a_gradle_target_runs_on_a_ci_runner_which_has_no_slot(self):
+        for target in GRADLE_TARGETS:
+            with self.subTest(target=target):
+                result = make(["-n", target], GITHUB_ACTIONS="true")
+                self.assertEqual(0, result.returncode, result.stderr)
+
+    def test_one_of_several_goals_that_starts_gradle_refuses_them_all(self):
+        result = make(["-n", "help", "build"])
+        self.assertNotEqual(0, result.returncode)
+        self.assertIn("build", result.stderr)
 
     def test_a_free_target_runs_without_a_slot(self):
         for target in FREE_TARGETS:
             with self.subTest(target=target):
                 result = make(["-n", target])
                 self.assertEqual(0, result.returncode, result.stderr)
+
+
+class WithoutSlotTest(unittest.TestCase):
+
+    def test_without_slot_runs_the_target_it_is_given(self):
+        for target in GRADLE_TARGETS:
+            with self.subTest(target=target):
+                result = make(["-n", "without-slot", "TARGET=" + target])
+                self.assertEqual(0, result.returncode, result.stderr)
+                self.assertIn("make " + target + " GRADLE_SLOT=none", result.stdout)
+
+    def test_without_slot_refuses_when_it_is_given_no_target(self):
+        for case in ([], ["TARGET="]):
+            with self.subTest(arguments=case):
+                result = make(["-n", "without-slot", *case])
+                self.assertNotEqual(0, result.returncode)
+                self.assertIn("TARGET", result.stderr)
+
+    def test_without_slot_is_no_gradle_target_itself(self):
+        self.assertNotIn("without-slot", GRADLE_TARGETS)
 
 
 if __name__ == "__main__":
