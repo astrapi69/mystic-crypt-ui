@@ -30,6 +30,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 
@@ -91,22 +93,23 @@ class MemoizedKeePassModelBeanTest
 	}
 
 	@Test
-	@DisplayName("a file that is not UTF-8 is a fresh bean, and a save after it replaces the file")
-	void aFileThatIsNotUtf8_isAFreshBean_andTheNextSaveReplacesIt(
+	@DisplayName("a file in Windows-1252 is read with its umlauts, and the next save writes it in UTF-8")
+	void aFileInWindows1252_isReadWithItsUmlauts_andTheNextSaveWritesUtf8(
 		@TempDir final File configurationDirectory) throws IOException
 	{
 		File file = new File(configurationDirectory, MemoizedKeePassModelBean.JSON_FILENAME);
-		Files.write(file.toPath(), "{\"lastImportFilePath\":\"/home/Jürgen/a.kdbx\"}"
-			.getBytes(StandardCharsets.ISO_8859_1));
+		Files.write(file.toPath(), "{\"lastImportFilePath\":\"/home/J\u00fcrgen/a.kdbx\"}"
+			.getBytes(Charset.forName("windows-1252")));
 
-		assertNull(MemoizedKeePassModelBean.load(configurationDirectory).getLastImportFilePath(),
-			"file-worker 21 reads strictly: the bytes are not taken for text, the bean is fresh");
+		MemoizedKeePassModelBean loaded = MemoizedKeePassModelBean.load(configurationDirectory);
+		assertEquals("/home/J\u00fcrgen/a.kdbx", loaded.getLastImportFilePath(),
+			"the remembered path is read, umlaut included");
 
-		MemoizedKeePassModelBean saved = MemoizedKeePassModelBean.builder()
-			.lastImportFilePath("/home/jürgen/b.kdbx").build();
-		saved.save(configurationDirectory);
+		loaded.save(configurationDirectory);
 
-		assertEquals(saved, MemoizedKeePassModelBean.load(configurationDirectory),
-			"the dialog's next save writes a readable file over the unreadable one");
+		String writtenBack = StandardCharsets.UTF_8.newDecoder()
+			.decode(ByteBuffer.wrap(Files.readAllBytes(file.toPath()))).toString();
+		assertTrue(writtenBack.contains("/home/J\u00fcrgen/a.kdbx"),
+			"the next save writes the file in UTF-8: " + writtenBack);
 	}
 }

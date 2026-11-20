@@ -26,9 +26,9 @@ package io.github.astrapi69.mystic.crypt.keepass;
 
 import java.io.File;
 
-import io.github.astrapi69.file.read.ReadFileExtensions;
 import io.github.astrapi69.gson.JsonStringToObjectExtensions;
 import io.github.astrapi69.gson.ObjectToJsonFileExtensions;
+import io.github.astrapi69.mystic.crypt.app.file.TextFiles;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -65,7 +65,7 @@ public class MemoizedKeePassModelBean
 		{
 			try
 			{
-				String json = ReadFileExtensions.fromFile(file);
+				String json = TextFiles.readUtf8OrLatin1(file);
 				return JsonStringToObjectExtensions.toObject(json, MemoizedKeePassModelBean.class);
 			}
 			catch (Exception exception)
