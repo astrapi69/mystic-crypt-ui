@@ -41,8 +41,8 @@ import io.github.astrapi69.mystic.crypt.Messages;
 import io.github.astrapi69.mystic.crypt.button.state.GenericButtonGenericJXTableStateMachine;
 import io.github.astrapi69.mystic.crypt.panel.dbtree.MysticCryptEntryModelBean;
 import io.github.astrapi69.mystic.crypt.panel.dbtree.VaultEntryProperties;
+import io.github.astrapi69.mystic.crypt.ui.screen.OwnedDialogs;
 import io.github.astrapi69.swing.base.BasePanel;
-import io.github.astrapi69.swing.dialog.JOptionPaneExtensions;
 import io.github.astrapi69.swing.table.GenericJTable;
 import lombok.Getter;
 import net.miginfocom.swing.MigLayout;
@@ -214,8 +214,8 @@ public class PropertiesPanel extends BasePanel<MysticCryptEntryModelBean>
 	 */
 	protected int askForProperty(final PropertiesNewEntryPanel panel, final String title)
 	{
-		return JOptionPaneExtensions.getSelectedOption(panel, JOptionPane.PLAIN_MESSAGE,
-			JOptionPane.OK_CANCEL_OPTION, null, title, panel.getTxtKey());
+		return OwnedDialogs.selectedOption(PropertiesPanel.this, panel, JOptionPane.PLAIN_MESSAGE,
+			JOptionPane.OK_CANCEL_OPTION, title, panel.getTxtKey());
 	}
 
 	@Override

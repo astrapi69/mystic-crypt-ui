@@ -113,7 +113,7 @@ Prompt triggers: "release new version", "new release".
      published POM; a major bump of a runtime dependency gets its own session, never bundled in
      (#749). A change to the build or the release path itself is NOT bundled into a security release.
    - **the maintainer runs the release smoke by hand**: the `release smoke` subset of
-     `docs/manual-tests/testplan-mystic-crypt-ui.md` (about 15 minutes), against the BUILT
+     `docs/manual-tests/testplan-mystic-crypt-ui.md` (the plan gives its duration), against the BUILT
      installer, after the checksums are written. The tag waits for his go after this hand test
      (#948).
 6. **Tag + push**: `make tag-release`, which is where the tag's SHAPE is decided -

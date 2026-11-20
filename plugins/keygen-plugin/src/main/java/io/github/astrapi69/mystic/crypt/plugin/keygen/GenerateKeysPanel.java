@@ -634,10 +634,13 @@ public class GenerateKeysPanel extends BasePanel<GenerateKeysModelBean>
 
 	protected void onSavePrivateKeyWithPassword(final ActionEvent actionEvent)
 	{
-		final Object[] options = { "Set password", "Cancel" };
+		final Object[] options = {
+				KeygenMessages.getString("keygen.password.dialog.button.set", "Set password"),
+				KeygenMessages.getString("keygen.password.dialog.button.cancel", "Cancel") };
 		final PasswordPanel panel = new PasswordPanel();
 
-		final int result = JOptionPane.showOptionDialog(null, panel, "Enter a password",
+		final int result = JOptionPane.showOptionDialog(this, panel,
+			KeygenMessages.getString("keygen.password.dialog.title", "Enter a password"),
 			JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE, null, options, null);
 		final PasswordBean enteredPasswords = panel.getModelObject();
 		final String password = String.copyValueOf(enteredPasswords.getPassword());
@@ -658,7 +661,8 @@ public class GenerateKeysPanel extends BasePanel<GenerateKeysModelBean>
 			}
 			else
 			{
-				JOptionPane.showMessageDialog(null, "Entered passwords are not the same.");
+				JOptionPane.showMessageDialog(this, KeygenMessages
+					.getString("keygen.password.dialog.mismatch", "Entered passwords are not the same."));
 			}
 		}
 	}
