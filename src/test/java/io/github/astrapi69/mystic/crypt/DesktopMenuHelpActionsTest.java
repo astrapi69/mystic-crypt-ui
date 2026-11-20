@@ -28,6 +28,9 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 import javax.swing.JFrame;
@@ -73,6 +76,24 @@ class DesktopMenuHelpActionsTest
 			"the license text must not carry an unfilled template placeholder, was: " + license);
 		assertTrue(license.contains("Asterios Raptis"),
 			"the license text must actually say who holds the copyright, was: " + license);
+	}
+
+	@Test
+	void licenseText_isTheMitTextAlone_todayWithoutAPointerToNotice() throws IOException
+	{
+		DesktopMenu menu = new DesktopMenu(new JFrame());
+		String mitText;
+		try (InputStream is = DesktopMenuHelpActionsTest.class.getClassLoader()
+			.getResourceAsStream("legal/license.txt"))
+		{
+			mitText = new String(is.readAllBytes(), StandardCharsets.UTF_8);
+		}
+
+		String license = menu.onNewLicenseText();
+
+		assertEquals(mitText.strip(), license.strip(),
+			"today the licence dialog shows legal/license.txt and nothing else");
+		assertFalse(license.contains("NOTICE.txt"));
 	}
 
 }
