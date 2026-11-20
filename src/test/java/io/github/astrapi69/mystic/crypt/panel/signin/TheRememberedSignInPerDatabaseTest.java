@@ -189,4 +189,47 @@ class TheRememberedSignInPerDatabaseTest
 		assertFalse(before.has("choicesByDatabase"));
 		assertEquals(before.size() + 1, written.size(), "nothing else is added: " + written);
 	}
+
+	@Test
+	@DisplayName("with key files not remembered, the file read back holds no key file path and keeps the factors")
+	void forgetKeyFiles_removesEveryKeyFilePath_andKeepsTheFactors() throws Exception
+	{
+		File file = new File(directory, "memoizedSignin.json");
+		Files.writeString(file.toPath(), TODAYS_FILE);
+		MemoizedSigninModelBean read = JsonFileStore.read(file, MemoizedSigninModelBean.class)
+			.orElseThrow();
+		read.setChoicesByDatabase(
+			RememberedKeyFileSupport.remember(null, "/home/user/vaults/second.mcrdb",
+				DatabaseSignInChoice.builder().keyFilePath("/home/user/keys/second-key.pem")
+					.withKeyFile(true).withMasterPw(true).build()));
+		JsonFileStore.write(read, file, MemoizedSigninModelBean.class);
+		assertTrue(Files.readString(file.toPath()).contains("second-key.pem"), "the premise");
+
+		assertTrue(RememberedKeyFileSupport.forgetKeyFiles(file));
+
+		String text = Files.readString(file.toPath());
+		assertFalse(text.contains("key.pem"), "no key file path anywhere in the file: " + text);
+		MemoizedSigninModelBean back = JsonFileStore.read(file, MemoizedSigninModelBean.class)
+			.orElseThrow();
+		assertTrue(
+			back.getSelectedKeyFilePath() == null || back.getSelectedKeyFilePath().isEmpty());
+		assertEquals(java.util.List.of(""), back.getKeyFilePaths());
+		DatabaseSignInChoice choice = back.getChoicesByDatabase()
+			.get(Path.of("/home/user/vaults/second.mcrdb").toAbsolutePath().toString());
+		assertEquals("", choice.getKeyFilePath());
+		assertTrue(choice.isWithKeyFile() && choice.isWithMasterPw());
+		assertEquals("/home/user/vaults/second.mcrdb", back.getSelectedApplicationFilePath(),
+			"the database itself stays remembered");
+		assertTrue(back.isWithKeyFile() && back.isWithMasterPw());
+	}
+
+	@Test
+	@DisplayName("forgetting key files in a directory without a remembered sign-in writes nothing")
+	void forgetKeyFiles_writesNothing_withoutAFile() throws Exception
+	{
+		File file = new File(directory, "memoizedSignin.json");
+
+		assertFalse(RememberedKeyFileSupport.forgetKeyFiles(file));
+		assertFalse(file.exists());
+	}
 }

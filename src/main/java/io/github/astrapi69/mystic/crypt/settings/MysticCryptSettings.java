@@ -108,6 +108,17 @@ public class MysticCryptSettings
 	private int clipboardClearSeconds = ClipboardClearDecision.DEFAULT_CLEAR_AFTER_SECONDS;
 
 	/**
+	 * Whether the remembered sign-in keeps the paths of key files; defaults to on, as it has always
+	 * been (#997).
+	 * <p>
+	 * The remembered sign-in offers the key file of each database again. Whoever does not want the
+	 * assignment of a database to its key file on the disk turns this off: no key file path is
+	 * written then, neither the one of the database signed in to last nor those of the others, and
+	 * the paths already stored are removed when the setting is switched off.
+	 */
+	private boolean rememberKeyFiles = true;
+
+	/**
 	 * The view the application opens in.
 	 * <p>
 	 * Written by hand rather than left to lombok because a settings file can say

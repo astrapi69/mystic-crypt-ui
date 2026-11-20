@@ -33,6 +33,7 @@ import java.util.Objects;
 import java.util.Optional;
 
 import io.github.astrapi69.file.create.model.FileInfo;
+import io.github.astrapi69.mystic.crypt.app.file.JsonFileStore;
 
 /**
  * Which key file a remembered sign-in preselects, for the database signed in to last and for each
@@ -177,5 +178,31 @@ public final class RememberedKeyFileSupport
 			remembered.put(signedInTo.toString(), choice);
 		}
 		return remembered;
+	}
+
+	/**
+	 * Removes every key file path from the remembered sign-in file, at once, when the setting that
+	 * remembers key files is switched off (#997). A file that is not there or cannot be read is
+	 * left as it is: it holds no path this code can name, and an unreadable one is kept aside by
+	 * the next write that replaces it.
+	 *
+	 * @param memoizedSigninFile
+	 *            the {@code memoizedSignin.json} of the configuration directory
+	 * @return true if the file was rewritten without its key file paths
+	 * @throws java.io.IOException
+	 *             if the file cannot be written, so the caller can tell the user that key file
+	 *             paths are still on disk
+	 */
+	public static boolean forgetKeyFiles(final File memoizedSigninFile) throws java.io.IOException
+	{
+		Optional<MemoizedSigninModelBean> remembered = JsonFileStore.read(memoizedSigninFile,
+			MemoizedSigninModelBean.class);
+		if (remembered.isEmpty())
+		{
+			return false;
+		}
+		JsonFileStore.write(remembered.get().withoutKeyFilePaths(), memoizedSigninFile,
+			MemoizedSigninModelBean.class);
+		return true;
 	}
 }

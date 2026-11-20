@@ -52,6 +52,7 @@ import io.github.astrapi69.mystic.crypt.app.file.xml.ApplicationXmlFileReader;
 import io.github.astrapi69.mystic.crypt.panel.signin.button.state.ok.BtnOkComponentStateEnum;
 import io.github.astrapi69.mystic.crypt.panel.signin.button.state.ok.BtnOkStateMachine;
 import io.github.astrapi69.mystic.crypt.panel.signin.button.state.ok.DocumentExtensions;
+import io.github.astrapi69.mystic.crypt.settings.MysticCryptSettings;
 import io.github.astrapi69.mystic.crypt.vault.EntryIdentitySupport;
 import io.github.astrapi69.mystic.crypt.write.DataClass;
 import io.github.astrapi69.mystic.crypt.write.OverwriteConfirmation;
@@ -802,6 +803,11 @@ public class MasterPwWithApplicationFilePanel extends BasePanel<MasterPwFileMode
 				MemoizedSigninModelBean memoizedSigninModelBean = masterPwFileModelBean
 					.toMemoizedSigninModelBean(panelModelObject);
 				memoizedSigninModelBean.setChoicesByDatabase(rememberSignInOf(panelModelObject));
+				if (!MysticCryptSettings.load(applicationFrame.getConfigurationDirectory())
+					.isRememberKeyFiles())
+				{
+					memoizedSigninModelBean = memoizedSigninModelBean.withoutKeyFilePaths();
+				}
 				File memoizedSigninFile = new File(applicationFrame.getConfigurationDirectory(),
 					MysticCryptApplicationFrame.MEMOIZED_SIGNIN_JSON_FILENAME);
 				// a remembered sign-in that could not be read is kept aside first (#1082)

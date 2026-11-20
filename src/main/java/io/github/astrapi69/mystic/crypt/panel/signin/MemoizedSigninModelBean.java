@@ -79,4 +79,28 @@ public class MemoizedSigninModelBean implements Serializable
 	 */
 	@Builder.Default
 	Map<String, DatabaseSignInChoice> choicesByDatabase = new HashMap<>();
+
+	/**
+	 * A copy that holds no key file path: neither the key file selected, nor the ones listed, nor
+	 * those of the databases. What was used stays remembered (the two flags, and per database
+	 * whether the master password and the key file were part of the sign-in), only where the key
+	 * files lie is gone (#997).
+	 *
+	 * @return the copy, this bean is not changed
+	 */
+	public MemoizedSigninModelBean withoutKeyFilePaths()
+	{
+		Map<String, DatabaseSignInChoice> kept = new HashMap<>();
+		if (choicesByDatabase != null)
+		{
+			choicesByDatabase.forEach((database, choice) -> {
+				if (choice != null)
+				{
+					kept.put(database, choice.toBuilder().keyFilePath("").build());
+				}
+			});
+		}
+		return toBuilder().selectedKeyFilePath(null).keyFilePaths(ListFactory.newArrayList(""))
+			.choicesByDatabase(kept).build();
+	}
 }

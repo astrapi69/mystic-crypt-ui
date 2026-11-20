@@ -29,11 +29,16 @@ import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.io.File;
 import java.io.Serial;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import javax.swing.*;
 
+import io.github.astrapi69.mystic.crypt.Messages;
 import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
+import io.github.astrapi69.mystic.crypt.panel.signin.RememberedKeyFileSupport;
 import io.github.astrapi69.mystic.crypt.settings.LookAndFeelChoice;
 import io.github.astrapi69.mystic.crypt.settings.MysticCryptSettings;
 import io.github.astrapi69.mystic.crypt.settings.SettingsPanel;
@@ -114,6 +119,36 @@ public class NewSettingsFrameAction extends AbstractAction
 		final MysticCryptSettings settings)
 	{
 		settings.save(frame.getConfigurationDirectory());
+		if (!settings.isRememberKeyFiles())
+		{
+			forgetRememberedKeyFiles(frame);
+		}
 		frame.applyViewMode(settings.getViewMode());
+	}
+
+	/**
+	 * Removes the key file paths from the remembered sign-in at once, since the setting that keeps
+	 * them was switched off (#997). A file that cannot be written leaves the paths on disk, and the
+	 * user is told so.
+	 */
+	private static void forgetRememberedKeyFiles(final MysticCryptApplicationFrame frame)
+	{
+		File memoizedSigninFile = new File(frame.getConfigurationDirectory(),
+			MysticCryptApplicationFrame.MEMOIZED_SIGNIN_JSON_FILENAME);
+		try
+		{
+			RememberedKeyFileSupport.forgetKeyFiles(memoizedSigninFile);
+		}
+		catch (final java.io.IOException exception)
+		{
+			Logger.getLogger(NewSettingsFrameAction.class.getName()).log(Level.WARNING,
+				"the key file paths could not be removed from " + memoizedSigninFile, exception);
+			JOptionPane.showMessageDialog(frame,
+				Messages.getString("settings.general.remember.key.files.not.removed",
+					"The key file paths could not be removed from the remembered sign-in."),
+				Messages.getString("settings.general.remember.key.files.not.removed.title",
+					"Key files still remembered"),
+				JOptionPane.WARNING_MESSAGE);
+		}
 	}
 }
