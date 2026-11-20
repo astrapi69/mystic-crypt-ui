@@ -68,9 +68,9 @@ import io.github.astrapi69.mystic.crypt.eventbus.ApplicationEventBus;
 import io.github.astrapi69.mystic.crypt.lock.OpenEditors;
 import io.github.astrapi69.mystic.crypt.panel.table.NewTableEntryModel;
 import io.github.astrapi69.mystic.crypt.panel.table.NewTableEntryPanel;
+import io.github.astrapi69.mystic.crypt.ui.screen.OwnedDialogs;
 import io.github.astrapi69.mystic.crypt.vault.EntryIdentitySupport;
 import io.github.astrapi69.swing.dialog.DialogExtensions;
-import io.github.astrapi69.swing.dialog.JOptionPaneExtensions;
 import io.github.astrapi69.swing.listener.mouse.MouseDoubleClickListener;
 import io.github.astrapi69.swing.menu.factory.JMenuItemFactory;
 import io.github.astrapi69.swing.menu.factory.JPopupMenuFactory;
@@ -590,8 +590,8 @@ public class SecretKeyTreeWithContentPanel
 		String newName = clonedTreeNode.getDisplayValue() + "-Copy";
 		panel.getModelObject().setName(newName);
 		panel.getTxtName().setText(newName);
-		int option = JOptionPaneExtensions.getSelectedOption(panel, JOptionPane.PLAIN_MESSAGE,
-			JOptionPane.OK_CANCEL_OPTION, null,
+		int option = OwnedDialogs.selectedOption(SecretKeyTreeWithContentPanel.this, panel,
+			JOptionPane.PLAIN_MESSAGE, JOptionPane.OK_CANCEL_OPTION,
 			Messages.getString("dialog.duplicate.node.entry.title", "Name for duplicate"),
 			panel.getTxtName());
 		if (option == JOptionPane.OK_OPTION)
@@ -857,8 +857,8 @@ public class SecretKeyTreeWithContentPanel
 				JPanel panel = new JPanel();
 				panel.add(new JLabel("Move under:"));
 				panel.add(targetChooser);
-				int option = JOptionPaneExtensions.getSelectedOption(panel,
-					JOptionPane.PLAIN_MESSAGE, JOptionPane.OK_CANCEL_OPTION, null,
+				int option = OwnedDialogs.selectedOption(SecretKeyTreeWithContentPanel.this, panel,
+					JOptionPane.PLAIN_MESSAGE, JOptionPane.OK_CANCEL_OPTION,
 					Messages.getString("dialog.move.node.title", "Move node"), targetChooser);
 				if (option != JOptionPane.OK_OPTION)
 				{
@@ -1044,8 +1044,8 @@ public class SecretKeyTreeWithContentPanel
 		BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> parentTreeNode = (BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long>)parentSwingNode
 			.getUserObject();
 		NodePanel panel = new NodePanel();
-		int option = JOptionPaneExtensions.getSelectedOption(panel, JOptionPane.PLAIN_MESSAGE,
-			JOptionPane.OK_CANCEL_OPTION, null,
+		int option = OwnedDialogs.selectedOption(SecretKeyTreeWithContentPanel.this, panel,
+			JOptionPane.PLAIN_MESSAGE, JOptionPane.OK_CANCEL_OPTION,
 			Messages.getString("dialog.new.node.entry.title", "New node."), panel.getTxtName());
 		if (option != JOptionPane.OK_OPTION)
 		{
@@ -1099,8 +1099,8 @@ public class SecretKeyTreeWithContentPanel
 		NodePanel panel = new NodePanel(
 			BaseModel.of(NodeModel.builder().name(selectedTreeNode.getValue().getName())
 				.leaf(selectedTreeNode.getValue().isLeaf()).build()));
-		int option = JOptionPaneExtensions.getSelectedOption(panel, JOptionPane.INFORMATION_MESSAGE,
-			JOptionPane.OK_CANCEL_OPTION, null,
+		int option = OwnedDialogs.selectedOption(SecretKeyTreeWithContentPanel.this, panel,
+			JOptionPane.INFORMATION_MESSAGE, JOptionPane.OK_CANCEL_OPTION,
 			Messages.getString("dialog.edit.node.entry.title", "Edit node."), panel.getTxtName());
 		if (option == JOptionPane.OK_OPTION)
 		{
@@ -1150,10 +1150,11 @@ public class SecretKeyTreeWithContentPanel
 			return;
 		}
 		{
-			int option = DialogExtensions.showConfirmDialog(null, "Confirm deletion",
+			int option = OwnedDialogs.confirm(SecretKeyTreeWithContentPanel.this,
+				"Confirm deletion",
 				"<div width='450'>Are you sure<br></div>"
 					+ "<div>The delete action is not recoverable</div>",
-				JOptionPane.OK_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE, null);
+				JOptionPane.OK_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE);
 			if (option == JOptionPane.OK_OPTION)
 			{
 				DefaultMutableTreeNode selectedTreeNode = selectedTreeNodeToDelete;
@@ -1330,8 +1331,8 @@ public class SecretKeyTreeWithContentPanel
 
 			NewTableEntryPanel panel = new NewTableEntryPanel(BaseModel.of(newTableEntryModel));
 
-			int option = JOptionPaneExtensions.getSelectedOption(panel, JOptionPane.PLAIN_MESSAGE,
-				JOptionPane.OK_CANCEL_OPTION, null,
+			int option = OwnedDialogs.selectedOption(SecretKeyTreeWithContentPanel.this, panel,
+				JOptionPane.PLAIN_MESSAGE, JOptionPane.OK_CANCEL_OPTION,
 				Messages.getString("dialog.duplicate.crypt.entry.title", "New title for duplicate"),
 				panel.getTxtName());
 			if (option == JOptionPane.OK_OPTION)
@@ -1405,10 +1406,10 @@ public class SecretKeyTreeWithContentPanel
 		{
 			return;
 		}
-		int option = DialogExtensions.showConfirmDialog(null, "Confirm deletion",
+		int option = OwnedDialogs.confirm(SecretKeyTreeWithContentPanel.this, "Confirm deletion",
 			"<div width='450'>Are you sure<br></div>"
 				+ "<div>The delete action is not recoverable</div>",
-			JOptionPane.OK_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE, null);
+			JOptionPane.OK_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE);
 		if (option == JOptionPane.OK_OPTION)
 		{
 			List<MysticCryptEntryModelBean> defaultContent = getSelectedBaseTreeNode().getValue()
@@ -1459,8 +1460,8 @@ public class SecretKeyTreeWithContentPanel
 		}
 		MysticCryptEntryTabbedPanel panel = new MysticCryptEntryTabbedPanel();
 
-		int option = JOptionPaneExtensions.getSelectedOption(panel, JOptionPane.PLAIN_MESSAGE,
-			JOptionPane.OK_CANCEL_OPTION, this,
+		int option = OwnedDialogs.selectedOption(SecretKeyTreeWithContentPanel.this, panel,
+			JOptionPane.PLAIN_MESSAGE, JOptionPane.OK_CANCEL_OPTION,
 			Messages.getString("dialog.new.crypt.entry.title", "New Crypt Entry."),
 			panel.getMysticCryptEntryPanel().getTxtEntryName());
 		if (option == JOptionPane.OK_OPTION)
@@ -1578,8 +1579,8 @@ public class SecretKeyTreeWithContentPanel
 		final int option;
 		try
 		{
-			option = JOptionPaneExtensions.getSelectedOption(panel, JOptionPane.PLAIN_MESSAGE,
-				JOptionPane.OK_CANCEL_OPTION, null,
+			option = OwnedDialogs.selectedOption(SecretKeyTreeWithContentPanel.this, panel,
+				JOptionPane.PLAIN_MESSAGE, JOptionPane.OK_CANCEL_OPTION,
 				Messages.getString("dialog.edit.crypt.entry.title", "Edit Crypt Entry."),
 				panel.getMysticCryptEntryPanel().getTxtEntryName());
 		}

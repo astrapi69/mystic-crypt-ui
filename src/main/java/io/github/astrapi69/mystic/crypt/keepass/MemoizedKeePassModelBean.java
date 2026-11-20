@@ -26,9 +26,7 @@ package io.github.astrapi69.mystic.crypt.keepass;
 
 import java.io.File;
 
-import io.github.astrapi69.gson.JsonStringToObjectExtensions;
-import io.github.astrapi69.gson.ObjectToJsonFileExtensions;
-import io.github.astrapi69.mystic.crypt.app.file.TextFiles;
+import io.github.astrapi69.mystic.crypt.app.file.JsonFileStore;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -60,20 +58,9 @@ public class MemoizedKeePassModelBean
 	 */
 	public static MemoizedKeePassModelBean load(File configurationDirectory)
 	{
-		File file = new File(configurationDirectory, JSON_FILENAME);
-		if (file.exists())
-		{
-			try
-			{
-				String json = TextFiles.readUtf8OrLatin1(file);
-				return JsonStringToObjectExtensions.toObject(json, MemoizedKeePassModelBean.class);
-			}
-			catch (Exception exception)
-			{
-				// ignore, fall through to a fresh, empty memoized bean
-			}
-		}
-		return MemoizedKeePassModelBean.builder().build();
+		return JsonFileStore
+			.read(new File(configurationDirectory, JSON_FILENAME), MemoizedKeePassModelBean.class)
+			.orElseGet(() -> MemoizedKeePassModelBean.builder().build());
 	}
 
 	/**
@@ -88,7 +75,8 @@ public class MemoizedKeePassModelBean
 		File file = new File(configurationDirectory, JSON_FILENAME);
 		try
 		{
-			ObjectToJsonFileExtensions.toJsonFile(this, file);
+			// a file that could not be read is kept aside first, not written over (#1082)
+			JsonFileStore.write(this, file, MemoizedKeePassModelBean.class);
 		}
 		catch (Exception exception)
 		{
