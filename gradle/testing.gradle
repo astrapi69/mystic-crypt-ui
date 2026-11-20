@@ -157,11 +157,6 @@ test {
         // no output and nothing to end it (#322); on a hosted runner that is six hours of nothing.
         // The limit is per test method and generous - the slowest of these drives a whole application
         systemProperty 'junit.jupiter.execution.timeout.testable.method.default', '3m'
-        systemProperty 'junit.jupiter.execution.timeout.default', '5m'
-        // TEMPORARY DIAGNOSIS of the hang of #1097, removed in the next commit
-        systemProperty 'junit.jupiter.execution.timeout.thread.mode.default', 'SEPARATE_THREAD'
-        systemProperty 'junit.jupiter.execution.timeout.threaddump.enabled', 'true'
-        testLogging { events 'started', 'standard_error' }
         // after the fast one, so a failure that both would catch is reported by the cheap suite first
         shouldRunAfter test
     }
