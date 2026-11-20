@@ -44,6 +44,13 @@ Libraries under the Apache License, Version 2.0
   - JSpecify (org.jspecify:jspecify)
   - Cloning (io.github.kostaskougios:cloning)
 
+JSR-305 concurrency annotations
+  GuardedBy, Immutable, NotThreadSafe and ThreadSafe in javax.annotation.concurrent
+  (com.google.code.findbugs:jsr305) are Copyright (c) 2005 Brian Goetz, released
+  under the Creative Commons Attribution License
+  (http://creativecommons.org/licenses/by/2.5); the header is in
+  legal/third-party/com.google.code.findbugs/jsr305/bundled-jcip-header.txt.
+
 --------------------------------------------------------------------------------
 
                                  Apache License

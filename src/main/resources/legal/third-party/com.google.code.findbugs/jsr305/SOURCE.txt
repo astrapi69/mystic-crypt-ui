@@ -2,3 +2,5 @@ URL: https://www.apache.org/licenses/LICENSE-2.0.txt
 Version read: 3.0.2
 File: LICENSE-2.0.txt
 URL named in the POM <licenses>; the upstream project (code.google.com/p/jsr-305) is gone, no LICENSE file in its Maven sources jar
+Bundled code: the four classes GuardedBy, Immutable, NotThreadSafe and ThreadSafe under javax/annotation/concurrent/ of jsr305-3.0.2 carry "Copyright (c) 2005 Brian Goetz, released under the Creative Commons Attribution License (http://creativecommons.org/licenses/by/2.5)", not the Apache License.
+bundled-jcip-header.txt: lines 1 to 6 of GuardedBy.java (the same six lines head the other three), read from the sources jar at https://repo1.maven.org/maven2/com/google/code/findbugs/jsr305/3.0.2/jsr305-3.0.2-sources.jar
