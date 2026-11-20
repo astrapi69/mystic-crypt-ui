@@ -192,4 +192,36 @@ class MysticCryptSettingsTest
 		assertTrue(writtenBack.contains("J\u00fcrgen"),
 			"the next save writes the file in UTF-8: " + writtenBack);
 	}
+
+	@Test
+	@DisplayName("a settings file that cannot be read is kept aside by the next save, which writes the settings anew")
+	void anUnreadableSettingsFile_isKeptAsideByTheNextSave(@TempDir File configurationDirectory)
+		throws Exception
+	{
+		File settingsFile = new File(configurationDirectory, MysticCryptSettings.JSON_FILENAME);
+		byte[] broken = "{ \"lookAndFeel\": \"Metal\", ".getBytes(StandardCharsets.UTF_8);
+		Files.write(settingsFile.toPath(), broken);
+		java.util.List<io.github.astrapi69.mystic.crypt.app.file.UnreadableFileNotices.SetAside> told = new java.util.ArrayList<>();
+		io.github.astrapi69.mystic.crypt.app.file.UnreadableFileNotices.listen(told::add);
+		try
+		{
+			MysticCryptSettings settings = MysticCryptSettings.load(configurationDirectory);
+			assertEquals("FlatLaf Light", settings.getLookAndFeel(), "the defaults are used");
+			settings.save(configurationDirectory);
+		}
+		finally
+		{
+			io.github.astrapi69.mystic.crypt.app.file.UnreadableFileNotices.listen(null);
+		}
+
+		File[] keptAside = configurationDirectory
+			.listFiles((directory, name) -> name.startsWith("settings.json.unreadable-"));
+		assertEquals(1, keptAside.length, "the old file is kept beside the new one");
+		assertTrue(java.util.Arrays.equals(broken, Files.readAllBytes(keptAside[0].toPath())),
+			"with its bytes unchanged");
+		assertEquals("FlatLaf Light",
+			MysticCryptSettings.load(configurationDirectory).getLookAndFeel(),
+			"the new file reads back");
+		assertEquals(1, told.size(), "the user is told once: " + told);
+	}
 }
