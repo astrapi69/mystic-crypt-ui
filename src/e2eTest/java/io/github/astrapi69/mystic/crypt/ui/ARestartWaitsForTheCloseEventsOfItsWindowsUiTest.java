@@ -59,17 +59,31 @@ import org.junit.jupiter.api.Test;
  * <p>
  * The tests make that order certain instead of likely: while the old dialog's WINDOW_CLOSED is
  * dispatched, a listener holds the event thread until the next dialog has been queued, or two
- * seconds at most, so the frame's close comes after the next start. The first test shows the
- * mechanism without the harness; the second runs the harness's restart through it.
+ * seconds at most, so the frame's close comes after the next start. The first test holds the
+ * libraries' behaviour without the harness; the second runs the harness's restart through it.
  */
 class ARestartWaitsForTheCloseEventsOfItsWindowsUiTest extends AbstractUiTest
 {
 
 	private static final String OLD_DIALOG = "before the restart";
 
+	/**
+	 * Holds what AssertJ-Swing 3.17.1 and the JDK (Temurin 25.0.5) do, not what this application
+	 * does: the JDK disposes Swing's shared owner frame with the windows, and on its own once its
+	 * last window closes ({@code SwingUtilities.SharedOwnerFrame.windowClosed}); AssertJ-Swing
+	 * answers the frame's WINDOW_CLOSED with a task on the event thread that ignores every window
+	 * the frame owns when the task runs. A dialog without a parent that is created before that task
+	 * runs is showing and hidden from the robot.
+	 * <p>
+	 * This behaviour is the reason {@link AbstractUiTest#shutdownApplication()} waits until the
+	 * event queue has run empty (#1070). If this test turns red after an update of AssertJ-Swing or
+	 * the JDK, the behaviour changed: reassess that wait in {@code shutdownApplication()}, not the
+	 * product code.
+	 */
 	@Test
-	@DisplayName("a dialog without a parent that is created behind the close of the shared owner frame is hidden from the robot")
-	void aDialogCreatedBehindTheCloseOfTheSharedFrame_isHiddenFromTheRobot() throws Exception
+	@DisplayName("AssertJ-Swing 3.17.1 and JDK 25 hide a dialog without a parent created behind the close of the shared owner frame")
+	void assertjSwingAndTheJdk_hideADialogCreatedBehindTheCloseOfTheSharedOwnerFrame()
+		throws Exception
 	{
 		showOwnerless(OLD_DIALOG);
 		AtomicReference<JDialog> next = new AtomicReference<>();
@@ -90,8 +104,8 @@ class ARestartWaitsForTheCloseEventsOfItsWindowsUiTest extends AbstractUiTest
 	}
 
 	@Test
-	@DisplayName("a dialog without a parent that the next start creates right after shutdownApplication is hidden from the robot (today)")
-	void aDialogCreatedRightAfterShutdownApplication_isHiddenFromTheRobot() throws Exception
+	@DisplayName("a dialog without a parent that the next start creates right after shutdownApplication is found by the robot")
+	void aDialogCreatedRightAfterShutdownApplication_isFoundByTheRobot() throws Exception
 	{
 		showOwnerless(OLD_DIALOG);
 		CountDownLatch nextStartQueued = new CountDownLatch(1);
@@ -113,8 +127,8 @@ class ARestartWaitsForTheCloseEventsOfItsWindowsUiTest extends AbstractUiTest
 
 		assertTrue(GuiActionRunner.execute(() -> next.get().isShowing()),
 			"precondition: the dialog is showing");
-		assertFalse(robotFinds("after the restart"),
-			"shutdownApplication returns before the close of the shared frame is handled");
+		assertTrue(robotFinds("after the restart"),
+			"shutdownApplication returns only after the close of the shared frame is handled");
 		GuiActionRunner.execute(() -> next.get().dispose());
 	}
 
