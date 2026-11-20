@@ -41,6 +41,12 @@ says which of them to use for what. Releasing is in [build-and-release.md](build
 `GRADLE_FLAGS` passes extra Gradle options to every target, for example
 `make test GRADLE_FLAGS=--info`.
 
+A target that starts Gradle, directly or through another target or a script, runs only inside the build
+slot: the slot script that queues the builds of a shared machine sets `GRADLE_SLOT`, and without it the
+target refuses and names itself. Run such a target through the slot, or deliberately without one with
+`make without-slot TARGET=<target>`. CI runners have no slot and pass.
+`scripts/gradle_slot_guard_test.py` checks which targets start Gradle against the list in the `Makefile`.
+
 ## Where the development build runs
 
 `make run` and `make start` start the build with `user.home` pointed at `ISOLATED_HOME`, by default

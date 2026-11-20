@@ -40,7 +40,7 @@ PLUGIN_TESTS ?= test
 PLUGIN_ZIP_TESTS ?= zipTest
 SCRIPT_TESTS ?= yes
 
-.PHONY: help verify-installer merge-pr test-fast release-jar release-jar-if-reachable build build-full build-with-plugins bwp run run-isolated start all clean test test-e2e test-e2e-demo \
+.PHONY: help without-slot verify-installer merge-pr test-fast release-jar release-jar-if-reachable build build-full build-with-plugins bwp run run-isolated start all clean test test-e2e test-e2e-demo \
 	clean-build-installer izpack-installer izpack-installer-signed release-gate \
 	dependencies dependency-updates jacoco-coverage jacoco-report jar javadoc \
 	license-format publish-local spotless-java spotless-misc tag-release \
@@ -53,6 +53,34 @@ SCRIPT_TESTS ?= yes
 # `make` without a target lists the targets: the first rule used to be install-hooks, so a bare
 # make set core.hooksPath while README.md said it built and started the application (#911)
 .DEFAULT_GOAL := help
+
+# The build slot: on a shared machine one Gradle build runs at a time, and the slot script that queues for it
+# sets GRADLE_SLOT in the environment of what it runs. A target that starts Gradle, directly, through a
+# prerequisite or sub-make, or through a script under scripts/, refuses to run without it, so a build started
+# by hand next to another one is stopped before it starts. CI runners have no slot and run one job at a time
+# (GITHUB_ACTIONS is "true" there). Deliberately without a slot: make without-slot TARGET=<target>.
+# scripts/gradle_slot_guard_test.py checks this list against what the targets really start.
+GRADLE_TARGETS := all all-dependencies-jar build build-full build-stacktrace build-warning build-with-plugins bump-check bwp \
+	clean clean-build-installer dependencies dependency-analysis dependency-updates izpack-installer \
+	izpack-installer-signed jacoco-coverage jacoco-report jar javadoc license-format plugin-certificate \
+	plugin-checksum plugin-console plugin-conversion plugin-file-crypt plugin-kem-demo plugin-keygen \
+	plugin-keystore plugin-lethenon plugin-menu-designer plugin-obfuscation plugin-password-hash \
+	plugin-pqc-signature plugin-release-key plugin-secret-sharing plugins plugins-install publish-local \
+	release-gate run run-isolated spotless-java spotless-misc tag-release test test-e2e test-e2e-demo test-fast \
+	verify-installer version-catalog-format version-catalog-update
+SLOT_GOALS := $(filter $(GRADLE_TARGETS),$(MAKECMDGOALS))
+ifneq ($(SLOT_GOALS),)
+ifeq ($(GRADLE_SLOT),)
+ifneq ($(GITHUB_ACTIONS),true)
+$(error $(SLOT_GOALS) starts Gradle and is not running inside the build slot: GRADLE_SLOT is empty. Run it through the slot script, or deliberately without a slot: make without-slot TARGET=$(firstword $(SLOT_GOALS)))
+endif
+endif
+endif
+
+# the one deliberate way around the slot: TARGET runs with GRADLE_SLOT=none, which the guard above accepts
+without-slot: ## [build] runs TARGET without the build slot, deliberately: make without-slot TARGET=<target>
+	$(if $(TARGET),,$(error without-slot needs the target to run: make without-slot TARGET=<target>))
+	$(MAKE) $(TARGET) GRADLE_SLOT=none
 
 # every target, grouped, with the description on its own rule line after ##, so the Makefile is the
 # one place a target is described; MakefileTargetsAreDescribedTest fails on a target without one
@@ -275,6 +303,7 @@ ifeq ($(SCRIPT_TESTS),yes)
 	python3 scripts/pr_state_guard_test.py
 	python3 scripts/double_build_test.py
 	python3 scripts/start_launcher_test.py
+	python3 scripts/gradle_slot_guard_test.py
 endif
 
 # build all internal plugins and install them into the app's plugins directory
