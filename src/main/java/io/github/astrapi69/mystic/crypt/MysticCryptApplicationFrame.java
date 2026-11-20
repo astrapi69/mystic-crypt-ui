@@ -222,14 +222,28 @@ public class MysticCryptApplicationFrame extends ApplicationPanelFrame<Applicati
 			.build();
 		masterPwFileModelBean.merge(memoizedSigninModelBean);
 		IModel<MasterPwFileModelBean> model = BaseModel.of(masterPwFileModelBean);
-		MasterPwFileDialog dialog = new MasterPwFileDialog(null, "Enter your credentials", true,
-			model);
 		// the persisted choice, not a hardcoded Nimbus - onAfterInitialize() applied it after the
 		// sign-in dialog had already been shown and dismissed, so it never actually reached this
 		// dialog (#192); configurationDirectory is already resolved above for the memoized sign-in
 		// file, so nothing here waits on main-frame initialization to know the choice
 		MysticCryptSettings persistedSettings = MysticCryptSettings.load(configurationDirectory);
+		EventThreadTask.runAndWait(() -> showSignInDialog(model, persistedSettings));
+	}
+
+	/**
+	 * Applies the persisted look and feel, then builds and shows the modal sign-in dialog, and
+	 * returns when the dialog is closed. Runs on the event dispatch thread (#1072): Swing
+	 * components are created and used there, and a look switch beside another thread's component
+	 * construction killed a start with {@code ClassCastException: FlatLightLaf cannot be cast to
+	 * NimbusLookAndFeel}. The look comes first so that no component of the dialog is built under
+	 * the old one.
+	 */
+	private void showSignInDialog(final IModel<MasterPwFileModelBean> model,
+		final MysticCryptSettings persistedSettings)
+	{
 		GeneralSettingsPanel.applyLookAndFeel(persistedSettings.getLookAndFeel());
+		MasterPwFileDialog dialog = new MasterPwFileDialog(null, "Enter your credentials", true,
+			model);
 		dialog.setSize(920, 380);
 		dialog.addWindowListener(new WindowAdapter()
 		{
