@@ -102,7 +102,7 @@ FIXED:
             block = assemble("8.16", fragments, lambda advisory_id: True)
         self.assertIn("ghsa-abcd-efgh-2345", block)
 
-    def test_a_fragment_naming_advisories_of_the_global_database_is_refused(self):
+    def test_a_fragment_naming_advisories_of_the_global_database_is_kept(self):
         """The 8.14 SECURITY block named the four advisories of jettison (CHANGELOG.md, #684)."""
         answers = gh_answering({global_advisory(advisory_id): {"state": None,
                                                                "published_at": published_at}
@@ -112,10 +112,9 @@ FIXED:
                                   "- jettison 1.5.7 instead of 1.5.1 in the installer (#684), 1.5.1"
                                   " has four high advisories (" + ", ".join(JETTISON_ADVISORIES)
                                   + ")")]
-            with self.assertRaises(SystemExit) as refused:
-                assemble("8.16", fragments,
-                         lambda advisory_id: advisory_published(advisory_id, answers))
-        self.assertIn(", ".join(sorted(JETTISON_ADVISORIES)), str(refused.exception))
+            block = assemble("8.16", fragments,
+                             lambda advisory_id: advisory_published(advisory_id, answers))
+        self.assertIn("four high advisories (" + ", ".join(JETTISON_ADVISORIES) + ")", block)
 
     def test_the_neutral_security_line_without_an_id_passes(self):
         with TemporaryDirectory() as directory:
@@ -167,10 +166,10 @@ class AdvisoryPublishedTest(unittest.TestCase):
         cases = (
             ("an entry of the global database with its publication date",
              gh_answering({global_advisory(): {"state": None,
-                                               "published_at": "2022-12-13T15:30:26Z"}}), False),
+                                               "published_at": "2022-12-13T15:30:26Z"}}), True),
             ("a published advisory of randomizer",
              gh_answering({repository_advisory("randomizer"): {
-                 "state": "published", "published_at": "2026-10-30T13:21:21Z"}}), False),
+                 "state": "published", "published_at": "2026-10-30T13:21:21Z"}}), True),
             ("a published advisory of mystic-crypt-ui",
              gh_answering({repository_advisory("mystic-crypt-ui"): {
                  "state": "published", "published_at": "2026-11-18T07:41:08Z"}}), True),

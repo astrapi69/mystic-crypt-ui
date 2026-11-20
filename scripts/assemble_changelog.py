@@ -19,7 +19,7 @@ from pathlib import Path
 
 ADVISORY_ID = re.compile(r"GHSA-[0-9a-z]{4}-[0-9a-z]{4}-[0-9a-z]{4}", re.IGNORECASE)
 
-ADVISORY_REPOSITORIES = ("mystic-crypt-ui", "mystic-crypt", "crypt-data", "crypt-api")
+ADVISORY_REPOSITORIES = ("mystic-crypt-ui", "mystic-crypt", "crypt-data", "crypt-api", "randomizer")
 
 SECTION_ORDER = ("security", "added", "changed", "fixed", "deprecated", "removed")
 
@@ -66,10 +66,14 @@ def gh_advisory(path, run=subprocess.run):
 
 
 def advisory_published(advisory_id, run=subprocess.run):
-    """True when one of the family's repositories reports the advisory as published. The
-    global advisory database does not list these ids, so the repositories' own advisories are
-    asked; an unpublished advisory, an unknown id and a failed call all answer False (fail
-    closed). ``run`` is subprocess.run, a parameter so that a test can answer for gh."""
+    """True when the advisory is published: the global advisory database lists it with a
+    publication date, as it does the advisories of third-party dependencies (it holds no
+    drafts), or one of ADVISORY_REPOSITORIES reports its own advisory as published, since the
+    global database does not list the family's. A draft, an unknown id and a failed call answer
+    False, and so does an advisory that only a repository not asked reports as published: the
+    check fails closed. ``run`` is subprocess.run, a parameter so that a test can answer for gh."""
+    if gh_advisory(f"advisories/{advisory_id}", run).get("published_at"):
+        return True
     return any(gh_advisory(f"repos/astrapi69/{repository}/security-advisories/{advisory_id}",
                            run).get("state") == "published"
                for repository in ADVISORY_REPOSITORIES)
