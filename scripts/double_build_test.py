@@ -102,16 +102,66 @@ class DoubleBuildTest(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
         return parse_calls(self.stub_log)
 
-    def test_installer_mode_today_only_the_third_call_of_a_build_names_the_keystore(self):
+    def assert_every_call_names_the_throwaway_keystore(self, calls):
+        expected = {f"-Prelease.mystic-crypt.store.file={self.keystore}", "-Prelease.mystic-crypt.store.type=PKCS12",
+                    f"-Prelease.mystic-crypt.key.alias={ALIAS}"}
+        for call in calls:
+            self.assertTrue(expected <= set(call["args"]), f"a call lacks the keystore properties: {call['args']}")
+
+    def test_installer_mode_every_call_names_the_throwaway_keystore(self):
         calls = self.calls_of("installer")
         self.assertEqual(len(calls), 8, "per build: publish, one plugin zip, createAllDependendiesJar, checksumInstaller")
-        with_properties = [index for index, call in enumerate(calls)
-                           if any(argument.startswith("-Prelease.mystic-crypt.") for argument in call["args"])]
-        self.assertEqual(with_properties, [2, 6])
+        self.assert_every_call_names_the_throwaway_keystore(calls)
 
-    def test_installer_mode_today_every_call_runs_in_the_gradle_user_home_it_inherited(self):
+    def test_archives_mode_every_call_names_the_throwaway_keystore(self):
+        calls = self.calls_of("archives")
+        self.assertEqual(len(calls), 6, "per build: publish, one plugin zip, jar withAllDependendiesJar")
+        self.assert_every_call_names_the_throwaway_keystore(calls)
+
+    def test_each_build_has_a_gradle_user_home_of_its_own_and_not_the_inherited_one(self):
         calls = self.calls_of("installer")
-        self.assertEqual({call["home"] for call in calls}, {str(self.inherited)})
+        first, second = {call["home"] for call in calls[:4]}, {call["home"] for call in calls[4:]}
+        self.assertEqual(len(first), 1, "one home for all calls of build 1")
+        self.assertEqual(len(second), 1, "one home for all calls of build 2")
+        self.assertNotEqual(first, second)
+        self.assertNotIn(str(self.inherited), first | second)
+
+    def test_the_dependencies_come_read_only_from_the_inherited_cache(self):
+        calls = self.calls_of("installer")
+        self.assertEqual({call["ro"] for call in calls}, {str(self.inherited / "caches")})
+
+    def test_a_given_read_only_cache_wins_over_the_default(self):
+        cache = str(self.root / "given-cache")
+        result = self.run_script("archives", {"GRADLE_RO_DEP_CACHE": cache})
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertEqual({call["ro"] for call in parse_calls(self.stub_log)}, {cache})
+
+    def test_the_wrapper_distribution_is_linked_into_each_home(self):
+        calls = self.calls_of("archives")
+        for home in {call["home"] for call in calls}:
+            self.assertEqual(os.path.realpath(Path(home) / "wrapper"), os.path.realpath(self.inherited / "wrapper"))
+
+    def test_gradle_slot_runs_every_call_through_the_wrapper_it_names(self):
+        slot = self.root / "slot.sh"
+        slot_log = self.root / "slot.log"
+        slot.write_text('#!/bin/sh\ntree=$1; log=$2; shift 2\nprintf \'%s\\n\' "$tree" >> "$SLOT_LOG"\n'
+                        '(cd "$tree" && ./gradlew "$@") > "$log" 2>&1\n')
+        slot.chmod(0o755)
+        result = self.run_script("installer", {"GRADLE_SLOT": str(slot), "SLOT_LOG": str(slot_log)})
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        trees = slot_log.read_text().split()
+        self.assertEqual(len(trees), 8)
+        self.assertEqual(len(set(trees)), 2, "the slot gets the tree of each build")
+        self.assert_every_call_names_the_throwaway_keystore(parse_calls(self.stub_log))
+
+    def test_a_failing_call_through_the_slot_stops_the_double_build(self):
+        slot = self.root / "slot.sh"
+        slot.write_text("#!/bin/sh\necho refused > \"$2\"\nexit 3\n")
+        slot.chmod(0o755)
+        result = self.run_script("installer", {"GRADLE_SLOT": str(slot)})
+        self.assertEqual(result.returncode, 2)
+        self.assertIn("build 1 failed", result.stderr)
+        self.assertIn("refused", result.stderr)
 
     def test_no_call_has_a_password_among_its_arguments(self):
         calls = self.calls_of("installer")
