@@ -124,9 +124,27 @@ files hold (drafted on 2026-11-14).
 
 Features ship as internal plugins, and the application loads them from a plugin
 directory on the user's machine. A plugin runs in the same process as the vault:
-there is no sandbox between them. Anything that lets an attacker place a file in
-that directory is therefore as serious as a defect in the application itself,
-and a report about plugin loading is in scope here.
+there is no sandbox between them.
+
+**A known limit, tracked in public.** The application does not check where a
+plugin zip comes from. A zip with a plugin descriptor the plugin manager can read
+is unpacked, loaded and started with the application's rights, whether the user
+installs it from the plugin settings or it lies in the plugin directory when the
+application starts, and the zips the installer lays down are treated the same
+way. The checksum recorded when a zip is unpacked (#998) notices that the zip
+changed since; it does not say who made it. This is
+[#1093](https://github.com/astrapi69/mystic-crypt-ui/issues/1093), where checking
+the origin of plugin zips is being worked out. A report that shows only this - a
+zip the user installs, or a file that someone who can already write to the
+user's plugin directory puts there, being loaded - describes that issue; a
+comment there helps more than a private report.
+
+**Still a private report.** A way for an attacker to get a file into the plugin
+directory without the user's doing - through a file the application itself
+writes, a zip entry that lands outside its target while a plugin is unpacked,
+permissions that let another account write to the directory, or anything else -
+is as serious as a defect in the application itself. Report it through the
+private path above, not on #1093.
 
 ### The installer is published with checksums
 
