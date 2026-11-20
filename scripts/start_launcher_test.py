@@ -17,13 +17,16 @@ import stat
 import subprocess
 import tempfile
 import unittest
+import xml.etree.ElementTree as ElementTree
 from pathlib import Path
 
-DOC = Path(__file__).resolve().parent.parent / "src" / "main" / "resources" / "doc"
+ROOT = Path(__file__).resolve().parent.parent
+DOC = ROOT / "src" / "main" / "resources" / "doc"
 START_SH = DOC / "start.sh"
 START_BAT = DOC / "start.bat"
 DESKTOP_ENTRY = DOC / "mystic-crypt-ui.desktop"
 INSTALLER_JAVA_HOME = DOC / "installer-java-home"
+INSTALL_XML = ROOT / "src" / "main" / "izpack" / "install.xml"
 
 ADD_OPENS = "--add-opens java.base/java.time=ALL-UNNAMED"
 UNSAFE_FLAG = "--sun-misc-unsafe-memory-access=allow"
@@ -48,6 +51,20 @@ def write_executable(path, text):
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(text)
     path.chmod(path.stat().st_mode | stat.S_IXUSR)
+
+
+def written_target(element):
+    """The installed path an element of install.xml writes: a singlefile's target, a file's target
+    directory with the name of its source."""
+    if element.tag == "singlefile":
+        return element.get("target")
+    return f"{element.get('targetdir')}/{element.get('src').rsplit('/', 1)[-1]}"
+
+
+def effective_override(element):
+    """The override IzPack applies to an element: its attribute, and without one "update", which is
+    what CompilerConfig.getOverrideValue in izpack-compiler 5.2.7 returns for a missing attribute."""
+    return element.get("override", "update")
 
 
 class StartLauncherTest(unittest.TestCase):
@@ -185,6 +202,21 @@ class LauncherFilesTest(unittest.TestCase):
 
     def test_the_installer_java_home_file_holds_only_the_installers_variable(self):
         self.assertEqual("${JAVA_HOME}", INSTALLER_JAVA_HOME.read_text().strip())
+
+
+class InstallerDescriptorTest(unittest.TestCase):
+    """Checks over install.xml, the descriptor the IzPack compiler builds the installer from."""
+
+    def test_every_parsed_file_is_written_with_the_default_override(self):
+        root = ElementTree.parse(INSTALL_XML).getroot()
+        writers = {written_target(element): element for element in root.iter()
+                   if element.tag in ("file", "singlefile")}
+        parsed = [parsable.get("targetfile") for parsable in root.iter("parsable")]
+        self.assertIn("${INSTALL_PATH}/installer-java-home", parsed)
+        for target in parsed:
+            with self.subTest(target=target):
+                self.assertIn(target, writers)
+                self.assertEqual("update", effective_override(writers[target]))
 
 
 if __name__ == "__main__":
