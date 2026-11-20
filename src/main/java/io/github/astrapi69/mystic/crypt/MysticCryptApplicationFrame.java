@@ -245,8 +245,28 @@ public class MysticCryptApplicationFrame extends ApplicationPanelFrame<Applicati
 				StartupSignal.signInDialogShown();
 			}
 		});
+		boolean displayableBefore = isDisplayable();
 		dialog.setVisible(true);
 		signinScreen = dialog.getGraphicsConfiguration();
+		releaseThePeerTheDialogGave(displayableBefore);
+	}
+
+	/**
+	 * Takes back the native peer the main window got from being the owner of the sign-in dialog,
+	 * when it had none before and is not shown. A displayable window is validated and repainted
+	 * under the AWT tree lock, and the start thread builds this window next, off the event thread:
+	 * the two ran into each other (#1097). Disposing it only releases the peer, the window and its
+	 * components stay, and showing it later creates the peer again.
+	 *
+	 * @param displayableBefore
+	 *            whether the window had a peer before the dialog was shown
+	 */
+	private void releaseThePeerTheDialogGave(final boolean displayableBefore)
+	{
+		if (!displayableBefore && !isVisible())
+		{
+			dispose();
+		}
 	}
 
 	protected void showSplashScreen()
@@ -387,11 +407,15 @@ public class MysticCryptApplicationFrame extends ApplicationPanelFrame<Applicati
 		// last so it can also rearrange the contributed plugin items
 		applyPersistedMenuLayout();
 		setTitle(Messages.getString("mainframe.title"));
-		setDefaultLookAndFeel(LookAndFeels.NIMBUS, this);
 		MysticCryptSettings persistedSettings = MysticCryptSettings
 			.load(getConfigurationDirectory());
-		// apply a persisted look-and-feel choice on top of the Nimbus default
-		GeneralSettingsPanel.applyLookAndFeel(persistedSettings.getLookAndFeel());
+		// on the event thread: re-installing the UI of every component takes the AWT tree lock,
+		// and from this thread it blocked against the event thread writing a text document (#1097)
+		EventThreadTask.runAndWait(() -> {
+			setDefaultLookAndFeel(LookAndFeels.NIMBUS, this);
+			// apply a persisted look-and-feel choice on top of the Nimbus default
+			GeneralSettingsPanel.applyLookAndFeel(persistedSettings.getLookAndFeel());
+		});
 		// same for a persisted "no tooltips" preference (#170)
 		GeneralSettingsPanel.applyTooltipsEnabled(persistedSettings.isTooltipsEnabled());
 		// the sign-in dialog has already been on screen at this point, and the screen it was on is
