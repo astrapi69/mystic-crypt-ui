@@ -56,18 +56,23 @@ def pull_request_state(number):
     return json.loads(completed.stdout).get("state", "UNKNOWN")
 
 
-def advisory_published(advisory_id):
+def gh_advisory(path, run=subprocess.run):
+    """The state and the publication date gh api reports for the advisory at the path, or an
+    empty dict when the call fails. On a 404 gh prints its error body on standard output and
+    exits 1, so the exit code decides, never the output."""
+    completed = run(["gh", "api", path, "--jq", "{state, published_at}"],
+                    capture_output=True, text=True)
+    return json.loads(completed.stdout) if completed.returncode == 0 else {}
+
+
+def advisory_published(advisory_id, run=subprocess.run):
     """True when one of the family's repositories reports the advisory as published. The
     global advisory database does not list these ids, so the repositories' own advisories are
     asked; an unpublished advisory, an unknown id and a failed call all answer False (fail
-    closed)."""
-    for repository in ADVISORY_REPOSITORIES:
-        completed = subprocess.run(
-            ["gh", "api", f"repos/astrapi69/{repository}/security-advisories/{advisory_id}",
-             "--jq", ".state"], capture_output=True, text=True)
-        if completed.returncode == 0 and completed.stdout.strip() == "published":
-            return True
-    return False
+    closed). ``run`` is subprocess.run, a parameter so that a test can answer for gh."""
+    return any(gh_advisory(f"repos/astrapi69/{repository}/security-advisories/{advisory_id}",
+                           run).get("state") == "published"
+               for repository in ADVISORY_REPOSITORIES)
 
 
 def unpublished_advisory_ids(text, is_published):
