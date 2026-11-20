@@ -43,12 +43,12 @@ Prompt triggers: "release new version", "new release".
    this release the release pull request carries one neutral SECURITY line, without the
    advisory's id and without a description of the defect (AG-032, AG-117); the script refuses a
    fragment that names an advisory not yet published. The ids and the descriptions appear first
-   in the advisories, published after the tag. How CHANGELOG.md takes them afterwards is open
-   until #1021 closes: this sentence is true until then and is replaced by that issue's
-   decision. Nothing is collected privately for this
-   repository any more, and CHANGELOG.md is still never edited outside the release pull
-   request. The old failure this replaces: a hand-kept draft and the cut-time entry carried
-   the same version twice (#356).
+   in the advisories, published after the tag. Once an advisory is published, a docs pull
+   request adds only its id to that neutral line in the version block of the release that fixed
+   it and changes nothing else; the description stays in the advisory (DC-007, #1021). Nothing
+   is collected privately for this repository any more, and CHANGELOG.md is never edited outside
+   the release pull request and that docs pull request. The old failure this replaces: a
+   hand-kept draft and the cut-time entry carried the same version twice (#356).
 4. **Bump** `projectVersion` in `gradle.properties`.
    **The bump is a CI-visible change, not a local one.** Dropping `-SNAPSHOT` flips every
    release switch at once, and since #333 CI publishes the host locally to build the plugins:
