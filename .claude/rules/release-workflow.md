@@ -39,8 +39,13 @@ Prompt triggers: "release new version", "new release".
    `changelog.d/README.md`). The release pull request runs
    `python3 scripts/assemble_changelog.py X.Y.Z`, which inserts the grouped version block in
    the file's own shape and deletes the fragments; commit both as `docs: changelog for vX.Y.Z`,
-   write the intro sentence under the version heading by hand, and add the fragment of an
-   advisory published with this release (AG-032). Nothing is collected privately for this
+   write the intro sentence under the version heading by hand. For an advisory published with
+   this release the release pull request carries one neutral SECURITY line, without the
+   advisory's id and without a description of the defect (AG-032, AG-117); the script refuses a
+   fragment that names an advisory not yet published. The ids and the descriptions appear first
+   in the advisories, published after the tag. How CHANGELOG.md takes them afterwards is open
+   until #1021 closes: this sentence is true until then and is replaced by that issue's
+   decision. Nothing is collected privately for this
    repository any more, and CHANGELOG.md is still never edited outside the release pull
    request. The old failure this replaces: a hand-kept draft and the cut-time entry carried
    the same version twice (#356).
@@ -141,6 +146,8 @@ Prompt triggers: "release new version", "new release".
    AND the `.sha256`/`.sha512` files `make izpack-installer` writes next to it. A release without
    them gives a downloader no way to tell a tampered file from the real one. The release text names
    the JDK it was built with, as `java -version` of the Makefile's JAVA_HOME prints it (#586).
+   The release text names an advisory id only once that advisory is published (AG-117); until then it
+   carries the neutral SECURITY line of step 3.
 9. **Open the next cycle**: set `projectVersion` to the next version with a `-SNAPSHOT`
    suffix (`8.3` released -> `8.4-SNAPSHOT`), in the same session as the tag. Without it
    the repository carries the released number while being something else, and every
