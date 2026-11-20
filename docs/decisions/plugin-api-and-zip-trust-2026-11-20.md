@@ -15,7 +15,8 @@ Earlier decisions this builds on, none contradicted:
 #998 (the SHA-256 of a zip decides whether it is unpacked again), #1045 and #1060 (Install from Zip),
 #678 (28 uses of `MysticCryptApplicationFrame.getInstance()`, open, P4), and `SECURITY.md` ("loads plugins from a directory on
 the user's machine"). No earlier record in `docs/decisions/` decides a plugin API or the signing of plugin zips
-(`git grep -n -i -E "plugin.?api|zip" edba6448 -- docs/decisions` finds nothing).
+(`git grep -n -i -E "plugin.?api|zip" edba6448 -- docs/decisions` finds nothing in the 7 files
+of that directory).
 
 ## Part 1: the plugin API
 
@@ -68,10 +69,10 @@ Call sites of the host classes that have methods, counted in the plugin bytecode
 
 Two facts about the existing API itself: `plugin/api/VaultAccess.java:30` imports `panel.dbtree.MysticCryptEntryModelBean` and
 uses it in `entries()`, `add(...)` and `change(...)`, so the API hands out a host-internal type; and `PluginCommandContribution`
-is implemented by no plugin (`grep -rn --include='*.java' PluginCommandContribution plugins/*/src/main` finds nothing).
+is implemented by no plugin (`grep -rn --include='*.java' PluginCommandContribution plugins/*/src/main` finds nothing in the 247 Java files of the plugins' main sources, at `a80d9c54`).
 
 Version check today: `grep -rn "plugin.requires" plugins/*/src/main/resources` and `grep -rn --include='*.java'
-"setSystemVersion" src plugins` find nothing, and `javap -c` of pf4j 3.16.1 `AbstractPluginManager.isPluginValid` skips the
+"setSystemVersion" src plugins` find nothing (29 resource files and 1019 Java files searched, at `a80d9c54`), and `javap -c` of pf4j 3.16.1 `AbstractPluginManager.isPluginValid` skips the
 constraint when the system version is `0.0.0`, the default. So `plugin.requires` is never enforced. Measured with a scratch
 program over `DefaultVersionManager` (kept outside the repository, like the jdeps output): `^1.0.0`, `>=1.0.0 & <2.0.0` and
 `1.x` all accept 1.2.0 and refuse 2.0.0 and refuse 0.0.0.
@@ -159,8 +160,8 @@ The decision is taken after RELEASE-8.16. Facts, measured on `develop` at `edba6
 - The host itself does not use the wizard panels: outside `wizard/`, only `panel/certificate/NewCertificateAttributesPanel.java:34`
   and `panel/certificate/NewCertificateInfoPanel.java:42-44` import wizard classes, and those are three of the four models,
   `CertificateInfoModel`, `DistinguishedNameInfoModel` and `ValidityModel`
-  (`git grep -n 'mystic\.crypt\.wizard' edba6448 -- src/main ':!src/main/java/io/github/astrapi69/mystic/crypt/wizard'`).
-  `NewCertificateInfoPanel` has no host main user either (`git grep` of `src/main` finds only a comment in
+  (`git grep -n 'mystic\.crypt\.wizard' edba6448 -- src/main ':!src/main/java/io/github/astrapi69/mystic/crypt/wizard'`, 252 files searched: the 270 of `src/main` less the wizard package).
+  `NewCertificateInfoPanel` has no host main user either (`git grep` of the 270 files of `src/main` finds only a comment in
   `messages.properties:145`); keygen uses it (`CryptographyPanel.java:37`) and the wizard's `IssuerPanel` and `SubjectPanel` reach
   `NewCertificateAttributesPanel`. Host tests use the wizard (`src/test/.../wizard/*Test.java`, three e2e smoke tests).
   **Finding, not an option:** the wizard code is used by the two plugins only; the host carries it as plugin code.
@@ -177,13 +178,14 @@ The decision is taken after RELEASE-8.16. Facts, measured on `develop` at `edba6
   `astrapi69/state-pattern` (the wizard's state machine, `io.github.astrapi69.design.pattern.state.wizard`), both already
   dependencies of this application (`gradle/libs.versions.toml:72, 81, 152, 161`; the certificate plugin declares both
   `compileOnly`, `plugins/certificate-plugin/build.gradle:48-49`). A certificate wizard library does not exist in the family
-  (`gh search repos wizard --owner astrapi69 --owner lightblueseas` lists only `astrapi69/swing-wizard`); it would be new.
+  (`gh search repos wizard --owner astrapi69 --owner lightblueseas` lists only `astrapi69/swing-wizard`; a repository search, not a
+  file search, over the 363 and 92 public repositories of the two owners); it would be new.
 
 **`VaultAccess` and the entry bean.**
 - `plugin/api/VaultAccess.java:30` imports `panel.dbtree.MysticCryptEntryModelBean`; `entries()` (`:54`) returns it, `add` (`:65`)
   and `change` (`:76`) take it; `remove(UUID)` does not. The one implementation is `plugin/vault/MarkedEntryAccess.java:44`. Only
   lethenon uses `VaultAccess` (`git grep -l -E 'plugin\.api\.VaultAccess|VaultAccessContribution' origin/develop -- plugins`,
-  minus lethenon, is empty); its main sources call `getId`, `getTitle`, `setTitle(char[])`, `getProperties` and the builder with
+  minus lethenon, is empty: 487 files of `plugins` searched at `e9c7d983`, 6 hits, all in lethenon); its main sources call `getId`, `getTitle`, `setTitle(char[])`, `getProperties` and the builder with
   `id`, and through the host helpers `VaultEntryProperties` and `VaultEntryAttachments` also the protected property keys and the
   resources. It touches nothing else of the bean (password, user name, URL, notes, expiry, times, history).
 - **The bean is persisted, and its class name is part of the format.** The vault XML names the element by the fully qualified name
@@ -193,7 +195,7 @@ The decision is taken after RELEASE-8.16. Facts, measured on `develop` at `edba6
   persisted-format change (architecture.md: ask first). A mechanism for reading old names exists (`VaultXmlCodec.java:105-107`,
   `:270-276`, `xStream.alias(oldName, type)`, used for 7.x names in #624 and held by `VaultsOfSevenXOpenTest`), but the alias given
   last decides the written name, so a rename that older builds must still read keeps the old name on disk. 30 files in `src/main`
-  and 51 in `src/test` and `src/e2eTest` reference the class (`git grep -l`).
+  and 51 in `src/test` and `src/e2eTest` reference the class (`git grep -l` at `edba6448`, 270 files searched in `src/main` and 395 in `src/test` and `src/e2eTest`).
 - The API package has 7 types today and no value type: interfaces, one exception, one enum (`git ls-tree` of
   `src/main/java/io/github/astrapi69/mystic/crypt/plugin/api`). `VaultAccess.java:30` is its only host-internal import.
 
@@ -220,7 +222,8 @@ The decision is taken after RELEASE-8.16. Facts, measured on `develop` at `edba6
    panels in host tests (`src/test/.../wizard`, three e2e smoke tests) move with it; the plugins' zips grow by the library, and if
    the host and a zip both carry it, class loading decides which copy runs (not measured). Bean: a library of the entry model would
    hold the persisted class; the family has no vault entry library (`gh search repos vault --owner astrapi69 --owner lightblueseas`
-   lists this application and `ai-key-vault`, a TypeScript library for AI provider keys), so it would be new too, and the same two
+   lists this application and `ai-key-vault`, a TypeScript library for AI provider keys; a repository search over the 363 and 92 public
+   repositories of the two owners, not a file search), so it would be new too, and the same two
    cases as in option 1 apply to its package name; the host would depend on the library for its core format, which is the largest
    change of the three for something only lethenon reads.
 3. **Replace by API types.** Bean: the API gets a small value type for an entry (id, title, properties, protected property names,
@@ -228,7 +231,7 @@ The decision is taken after RELEASE-8.16. Facts, measured on `develop` at `edba6
    format do not change; lethenon's change is ccw's, bounded to `LethenonVault`, `VaultWalletEntry` and the plugin's tests (18
    test files of the plugin use `VaultAccess`, the bean or one of the two helpers, 17 of them `VaultAccess`, among them an
    in-memory one, `InMemoryVaultAccess`:
-   `git grep -l -E 'VaultAccess|MysticCryptEntryModelBean|VaultEntryProperties|VaultEntryAttachments' edba6448 -- 'plugins/lethenon-plugin/src/test/*' | wc -l`);
+   `git grep -l -E 'VaultAccess|MysticCryptEntryModelBean|VaultEntryProperties|VaultEntryAttachments' edba6448 -- 'plugins/lethenon-plugin/src/test/*' | wc -l`, 64 files searched);
    the two helpers `VaultEntryProperties` and `VaultEntryAttachments` become API methods or host-side mapping. Wizard: this
    works for the wizard only where a plugin needs a value, not a panel. Keygen needs
    `CertificateInfoModelToX509`, the four models and `NewCertificateInfoPanel`; a narrow API type for "the data of a certificate
@@ -297,7 +300,7 @@ wrong and the issue could not stay public. It has none:
   exceptions, and no main source uses `HttpClient`, `openConnection`, `openStream`, `URLClassLoader`, `pf4j.update`,
   `UpdateManager`, `UpdateRepository`, `PluginRepository`, `InetAddress` or `DatagramSocket`:
   `git grep -n -E "java\.net|javax\.net|HttpClient|openConnection|openStream|URLClassLoader|pf4j\.update|UpdateManager|UpdateRepository|PluginRepository|InetAddress|DatagramSocket" edba6448 -- src/main/java "plugins/*/src/main/java/*"`
-  prints five import lines in three host files, `java.net.URL` three times and `java.net.MalformedURLException` and
+  searches 432 files (185 in the host, 247 in the plugins) and prints five import lines in three host files, `java.net.URL` three times and `java.net.MalformedURLException` and
   `java.net.URISyntaxException` once each, and nothing of a plugin. The pathspec needs the trailing `/*`: written as
   `plugins/*/src/main/java` it matches no file, and the command then searches the host alone. The three files:
   `SecretKeyTreeWithContentPanel` (validates an entry's address and opens it in the browser, lines 1284-1296 and 1436-1450) and
@@ -320,7 +323,7 @@ So the only route into the plugins directory is a file that a person or a proces
 For a revocation, used in 2.5: the application does use the network (the help page check and the lethenon node above), but no
 main source checks whether a key is revoked or fetches a key (measured:
 `git grep -n -i -E "hasRevocation|isRevoked|KEY_REVOCATION|SUBKEY_REVOCATION|revoked|keyserver|hkps?://|keys\.openpgp|openpgpkey" edba6448 -- src/main "plugins/*/src/main/*"`
-finds nothing). With the key list embedded in the host and nothing fetched, a revocation reaches an installation only with a
+finds nothing in 547 files). With the key list embedded in the host and nothing fetched, a revocation reaches an installation only with a
 release (a design consequence of option A, not a measurement).
 
 ### 2.2 Options for the signature
@@ -439,7 +442,7 @@ keyring).
 - What this application embeds today: no public key. The release-key plugin only reads the user's GnuPG home and displays
   fingerprint, usage, expiry (`KeyRows.java:108-118`: `never`, a date, or `expired <date>`, compared with today in UTC); it has
   no revocation check and no test or code path for a renewed or replaced key (`git grep -i -E 'revok|renew|extend'
-  plugins/release-key-plugin/src`). There is no precedent in the repository for an embedded verification key.
+  plugins/release-key-plugin/src` at `edba6448`: 19 files searched, 4 lines hit, all of them the Java keyword `extends`). There is no precedent in the repository for an embedded verification key.
 - Revocation, measured: today no main source checks whether a key is revoked or fetches a key (the `git grep` at the end of 2.1
   finds nothing). Design consequence, not a measurement: with an embedded list and no fetch, a revocation reaches an installation
   only with a new release of the application; a new zip does not carry it, since it is checked by the very key in question.
@@ -538,7 +541,7 @@ after RELEASE-8.16.
 (`run-isolated.sh:26-34`), wipes old plugin zips and unpacked directories in the profile's plugins folder, copies each
 `plugins/*/build/plugin-dist/*.zip` there (`:42-53`), and ends in `exec java -Duser.home="$isolated" ... -jar "$jar"`
 (`:58-59`). Nothing else carries the profile to the application: no environment variable, no property of its own. The host does
-not know it runs in an isolated profile (`git grep -E "ISOLATED|mystic-crypt-ui-dev" origin/develop -- src/main/java` finds
+not know it runs in an isolated profile (`git grep -E "ISOLATED|mystic-crypt-ui-dev" origin/develop -- src/main/java`, 186 files searched at `e9c7d983`, finds
 nothing); the plugin folder comes from the configuration directory, which derives from `user.home` (the library's
 `getConfigurationDirectory`; its source was not read, inferred from how the script and the e2e suites redirect it).
 
@@ -596,7 +599,8 @@ development build, which is the numbered question:
    `build/classes` (no manifest, which is how the e2e suites run). Cost: small; the check sits in the host (one class). What it
    changes: a release build refuses the switch whatever the command line says. Risk: the code is in the release jar, inert; it
    depends on the version string being right, which nothing refuses today (no check for `SNAPSHOT` in `verify-installer.sh`, the
-   Makefile or the workflows except `packaging.gradle:2`, measured with `git grep -n -i snapshot`).
+   Makefile or the workflows except `packaging.gradle:2` and `publishing.gradle:2`, measured with `git grep -n -i snapshot` at `a80d9c54`:
+   1412 files searched, 44 with hits, those in the Makefile and the workflows are comments).
 3. **A build-time binding: the development code does not exist in a release jar.** The switch and the extra trust entry live in
    a class (or source set) that the host jar of a release version does not contain, the way the menu designer is not shipped
    (architecture.md, `verify-installer.sh:125`); the installer pack check would refuse a jar that contains it. Cost: the largest,
@@ -650,18 +654,20 @@ Measured with a scratch program over a `DefaultPluginManager` on JDK 25.0.5, two
 
 So the check holds, but a plugin whose `requires` does not fit is DISABLED, not rejected and not absent. The cause is in the
 code: `isPluginValid` returns true when the system version equals `0.0.0` (`AbstractPluginManager.java:918`), and
-`loadPluginFromPath` sets DISABLED and the failed exception when it returns false (`:661-665`); `enablePlugin` repeats the check
-(`:1037`). Consequences for the host, which are part of the recommendation of 1.3: it calls `setSystemVersion(<API version>)`;
+`loadPluginFromPath` sets DISABLED and the failed exception when it returns false (`:1037-1041`); `enablePlugin` repeats the check
+(`:661`). Consequences for the host, which are part of the recommendation of 1.3: it calls `setSystemVersion(<API version>)`;
 it checks the state of every plugin after loading, not `getPlugin(id) == null`; it shows a disabled plugin with its reason in
 Settings > Plugins. The reason cannot be taken from pf4j, whose message is the same sentence for every invalid plugin, so the
 host composes it from the descriptor's `requires` and its own API version. The enable action must say why it refuses. The test
 for this asserts the state (DISABLED, with the failed exception), the row in the plugin settings (state and reason) and that the
 plugin's menu is absent: the third alone would pass for a plugin that failed for any other reason. Not measured: the display
-itself (it does not exist yet), and `^1.0.0` and `1.x` against java-semver 0.10.2 through `Version.satisfies` (1.1 measured them
-through `DefaultVersionManager`; the scratch program here ran `>=1.0.0 & <2.0.0` and `>=2.0.0` only).
+itself (it does not exist yet). Measured with a throwaway probe on JDK 25.0.5, pf4j 3.16.1 and java-semver 0.10.2, through
+`DefaultVersionManager.checkVersionConstraint` and `Version.satisfies` with the same result: `^1.0.0`, `>=1.0.0 & <2.0.0` and `1.x`
+accept the versions 1.0.0 and 1.2.0 and refuse 2.0.0 and 0.0.0 (the constraint itself; `isPluginValid` lets `0.0.0` through before
+it asks).
 
 The API module after pf4j's own demo (tag `release-3.16.1`, commit `6ffa261f0e28f88a9115432482cad64979715a0d`): the Gradle demo
-has an `api` module with one interface (`Greeting extends ExtensionPoint`, `demo/gradle/api/src/main/java/org/pf4j/demo/api/Greeting.java:5`),
+has an `api` module with one interface (`Greeting extends ExtensionPoint`, `demo/gradle/api/src/main/java/org/pf4j/demo/api/Greeting.java:23`),
 the application depends on it with `implementation project(':api')` (`demo/gradle/app/build.gradle:9`), and each plugin with
 `compileOnly project(':api')` under the comment "compileOnly important!!! We do not want to put the api into the zip file since the
 main program has it already!" (`demo/gradle/plugins/plugin1/build.gradle:2-3`). The plugin zip holds `classes/` and `lib/`
@@ -679,8 +685,9 @@ plain directory with no zip at all (inference from the repository code, 2.1).
 State of maintenance (measured with `gh api` and `curl` on 2026-11-20): the newest release on Maven Central is 2.3.0, `lastUpdated`
 2020-01-27 (`maven-metadata.xml`); GitHub has no release objects, only tags, the newest `release-2.3.0` (commit `13bf5de4`,
 2020-01-27). The default branch has 11 commits after that tag, the last on 2024-10-12 ("Fix #65", after "Update to PF4J 3.12.1"),
-and its POM says `2.4.0-SNAPSHOT`; no release of it exists. 10 open items: 3 pull requests (the oldest two, dependency bumps, from
-2022-05-20 and 2023-06-13, unreviewed) and 7 issues, the newest #66 of 2026-09-03. The repository is not archived. The 2.3.0
+and its POM says `2.4.0-SNAPSHOT`; no release of it exists. 10 open items: 3 pull requests, `pf4j/pf4j-update#64`
+(2023-06-13, dependabot), `pf4j/pf4j-update#61` (2022-05-20, dependabot) and `pf4j/pf4j-update#59` (2021-11-21, a feature), none
+reviewed, and 7 issues, the newest `pf4j/pf4j-update#66` of 2026-09-03. The repository is not archived. The 2.3.0
 sources jar was read in full (14 Java files).
 
 The verifiers it ships. The artifact holds exactly three `FileVerifier` implementations in `org/pf4j/update/verifier/`
@@ -741,28 +748,34 @@ Take over: the shape of `FileVerifier`, which is small enough to meet with a cla
 - it verifies once on a download, not at every start and not an unpacked directory;
 - the last release is from 2020 and the maintenance since is thin (above), so a needed signature verifier or fix could not be
   expected from a release;
-- it would add three libraries, two of them old (gson 2.2.4, commons-codec 1.10), which needs the maintainer's yes first for a new
-  dependency (`vibe-coding.md`).
+- it would add one library, the pf4j-update jar itself (25,736 bytes): the host already declares commons-codec 1.23.0 and gson 2.15.0
+  (`gradle/dependencies.gradle:47` and `:78`, `gradle/libs.versions.toml:11` and `:34`), which its POM asks for at 1.10 and 2.2.4;
+  that Gradle resolves both upward to the host's versions is an inference, not run. A new dependency needs the maintainer's yes
+  first all the same (`vibe-coding.md`).
 Because `Context` is a nested class of the interface, a class cannot implement `org.pf4j.update.FileVerifier` without the jar on
 the class path: only an equal shape is possible without it. Not measured: whether 2.3.0 runs against pf4j 3.16.1 on JDK 25, the
-unreleased `master` line by line, and the content of issue #66 and of the three pull requests beyond their titles.
+unreleased `master` line by line, and the content of issue `pf4j/pf4j-update#66` and of the three pull requests beyond their titles.
 
 ### JetBrains marketplace-zip-signer 0.1.45
 
 Facts (Maven Central and GitHub, 2026-11-20): license Apache-2.0 (the `LICENSE` of the tag, the GitHub license API and the POM
 agree); newest version 0.1.45, tag commit `d710f0ed63cff802337248ff658b18217b671f36`, released 2026-10-30, the previous ones
-0.1.44 the same day and 0.1.43 on 2025-09-02; the repository is not archived and has 16 open issues. The jar is 161,472 bytes
+0.1.44 the same day and 0.1.43 on 2025-09-02; the repository is not archived and has 16 open items, 8 issues and 8 pull requests (`open_issues_count` counts both). The jar is 161,472 bytes
 (SHA-256 `715ddf235c8a422fe09a3b374ad0ed2d0a7c6ae96b03299ef43738ce6c197065`, equal to the `.sha256` on Central), Java 8 bytecode
 (`javap -v ZipVerifier.class`: major version 52).
 
 Runtime dependencies (POM 0.1.45): bcpkix-jdk18on 1.81 and kotlin-stdlib 2.2.10 (compile), protobuf-java 3.25.6 (runtime); through
 them bcutil and bcprov 1.81 and `org.jetbrains:annotations` 13.0. Jar sizes in bytes (`stat -c '%s'` of the seven downloaded
 jars): signer 161,472, kotlin-stdlib 1,750,374, protobuf-java 1,876,053, bcpkix 1,149,752, bcutil 705,888, bcprov 8,948,201,
-annotations 17,536, together 14,609,276 (13.9 MiB). This application already declares bcprov and bcpkix at 1.86
-(`gradle/libs.versions.toml`); the part that would be new is Kotlin's standard library, protobuf and the signer, 3,805,435 bytes,
-and bcutil. The signing and verifying path uses the JDK's `Signature` and `CertificateFactory`; Bouncy Castle appears only in
-`CertificateUtils.kt` (`grep -rn org.bouncycastle` over the 46 files of the sources jar: 1 file). Not run: the library against BC
-1.86 instead of its 1.81.
+annotations 17,536, together 14,609,276 (13.9 MiB). This application already declares bcprov, bcpkix and bcutil at 1.86
+(`gradle/libs.versions.toml:7-9`; bcpkix 1.86 depends on bcutil, so it is on the host's class path); the part that would be new is
+Kotlin's standard library (1,750,374 bytes), protobuf (1,876,053), the signer (161,472) and `org.jetbrains:annotations` (17,536),
+3,805,435 bytes together; Kotlin's standard library and protobuf alone are 3,626,427 bytes. The signing and verifying path uses the
+JDK's `Signature` and `CertificateFactory`; Bouncy Castle appears in 4 of the 46 files of the sources jar
+(`grep -rln org.bouncycastle`): `CertificateUtils.kt`, `PrivateKeyUtils.kt` and `SignerInfoLoader.kt` (loading PEM keys) and
+`SecurityUtils.kt` (registers the provider), and the verifier calls `CertificateUtils.isValidCertificateChain`
+(`ZipVerifier.kt:82`). Not run: the verifier without Bouncy Castle on the class path, and the library against BC 1.86 instead of
+its 1.81.
 
 Measured with a throwaway probe on JDK 25.0.5, a 342-byte zip (`plugin.properties`, `lib/demo.txt`), two throwaway certificates
 (RSA-2048 with SHA-256 and EC secp384r1 with SHA-384, self-signed, made at run time), `ZipSigner.sign` and `ZipVerifier.verify`:
@@ -778,10 +791,10 @@ Measured with a throwaway probe on JDK 25.0.5, a 342-byte zip (`plugin.propertie
 | `unzip -l`, `unzip -tq`, `ZipFile`, `ZipInputStream`, pf4j 3.16.1 `Unzip` on the signed zip | all list and extract both entries; a signed zip is still a valid zip |
 
 So it accepts a signature made with a self-signed certificate of our own, provided the caller compares the signer with a
-built-in certificate (`ZipVerificationResult.kt:182`, `certificateChains.find { it.last() == certificateAuthority }`); it checks
+built-in certificate (`ZipVerificationResult.kt:38`, `certificateChains.find { it.last() == certificateAuthority }`); it checks
 no validity dates and does no PKIX path validation (`grep -rniE 'checkValidity|getNotAfter|notBefore|PKIX|CertPath|TrustAnchor'`
 over the 46 files of the sources jar: 0 hits). The signature lives in a block between the last entry and the central
-directory, in the scheme of APK Signature Scheme v2 (`ZipMetadata.kt:99-100`, `:105-145`; the probe printed "central dir at 1336,
+directory, in the scheme of APK Signature Scheme v2 (`ZipMetadata.kt:17-18`, `:23-63`; the probe printed "central dir at 1336,
 signing block [199,1336) length 1137"); the digest covers everything before the block, the central directory and the end record, in
 1 MiB chunks. Not run: chains longer than 1, zips over 1 MiB, ZIP64, an archive comment, RSA-4096 and SHA-512 variants, and a
 full pf4j `PluginManager` loading a signed zip (only `Unzip` ran).
@@ -795,7 +808,7 @@ caller pins trust and that a missing signature is the caller's failure; a sealed
   drops the signature without a word (the `MissingSignatureResult` rows above); a detached `.asc` leaves the zip byte for byte
   as it was;
 - it checks no validity and no revocation, which the lifecycle of 2.5 needs (a signature made inside the key's validity);
-- it brings Kotlin's standard library and protobuf, 3.8 MB, for a verifier that a Bouncy Castle call already gives us.
+- it brings Kotlin's standard library and protobuf, 3,626,427 bytes (3.8 MB with the signer and the annotations jar), for a verifier that a Bouncy Castle call already gives us.
 A comparison, not a measurement: a signed zip of this kind and a detached signature protect the same bytes; they differ in who
 holds the key format and in whether the zip changes.
 
@@ -821,7 +834,8 @@ entry and to compare it with a pinned certificate.
 
 This matches the layout of our zips. The checksum plugin's zip holds `plugin.properties` and `classes/` and no jar
 (`plugins/checksum-plugin/build.gradle:104-117`, `unzip -l` of the built zip); `git grep -n pluginZip origin/develop -- '*.gradle'`
-lists 15 plugins with the same task. Only the lethenon zip has `lib/`, with two bundled jars, and neither is signed (`unzip -l`
+searches 49 `.gradle` files at `e9c7d983` and hits 16: the 15 plugin builds, each with the same task, and
+`gradle/testing.gradle`. Only the lethenon zip has `lib/`, with two bundled jars, and neither is signed (`unzip -l`
 of each for `META-INF/*.SF|RSA|DSA|EC`: no signature files). The plugin's own code and its descriptor, `requires` included, are
 outside any jar. Not measured: pf4j's loader with a jarsigned `lib/` jar, a signed entry deleted, multi-release entries,
 timestamped signatures. The application jar itself is jarsigned today (`gradle/packaging.gradle:57-89`), which is the 2.2
@@ -848,13 +862,15 @@ The states, from the code (`pkg/plugins/manager/signature/manifest.go:143-248`, 
 | invalid | manifest unparsable, signature fails or the key id is unknown, not a version 2 manifest, no files listed, or the root URL does not match | refuses, no override |
 | unsigned | no `MANIFEST.txt`, or one shorter than 10 bytes | refuses by default; loads in development mode (every unsigned plugin) or when the plugin id is in `allow_loading_unsigned_plugins`, with a warning in the log |
 
-The documentation says the same ("Unsigned: ... Grafana neither loads nor starts it", "Plugins with modified signatures are never
-loaded", `docs/sources/administration/plugin-management/plugin-sign.md:30-44` and the configuration page `:2856-2860`, same tag),
-and that Grafana "has a built-in public key that it uses to verify" the signature. Development mode is `app_mode = development`
+The documentation says the same ("If a plugin is unsigned, then Grafana neither loads nor starts it.",
+`docs/sources/administration/plugin-management/plugin-sign.md:44`, and "Plugins with modified signatures are never loaded.", on the
+configuration page `:2858`, same tag), and the plugin-tools documentation says that Grafana "has a built-in public key that it
+uses to verify" the signature (`grafana/plugin-tools`, `docusaurus/docs/publish-a-plugin/sign-a-plugin.md:129`, commit
+`81668566961ab1ad65206af190239847656f8c03`; the v13.3.1 documentation read here does not contain the phrase). Development mode is `app_mode = development`
 (default `production`, `conf/defaults.ini:6-7`); it only lifts the unsigned state (`authorizer.go:22-38`). The built-in key is one
 OpenPGP public key as a constant in the source (`statickey/static_retriever.go:10-33`); Grafana additionally downloads a key list
 from grafana.com every 10 days (`keyretriever/dynamic/dynamic_retriever.go:21`, `:111-178`) unless
-`public_key_retrieval_disabled = true` (`retriever.go:17-25`), in which case the constant alone is used. I read these files as
+`public_key_retrieval_disabled = true` (`retriever.go:17-25`), in which case the constant alone is used. These files were read as
 named; a count-backed search was not run over the repository, so "there is no list of several keys in the code" is a reading of
 those retriever files, not a search result. Not decoded: the armored key itself (the user id in the key was not checked).
 
@@ -862,7 +878,7 @@ Take over, as the model for the verifier's states:
 - the state is computed locally from the files, and the extra-file rule (a file the manifest does not list makes the plugin
   modified) closes the hole jarsigner leaves; for us it corresponds to T3, the unpacked directory;
 - only the unsigned state can be overridden: modified and invalid never, in no mode;
-- the override of unsigned is per plugin id, not only a global switch (we take it as the consent record of 2.3, 2);
+- the override of unsigned is per plugin id, not only a global switch (it corresponds to the consent record recommended in 2.3, 2);
 - a built-in public key; Grafana itself supports running on that key alone, with the download of keys switched off.
 Does not fit: the key rotation over the network (2.1: no path fetches a key, a rotation here is a host release, 2.5); signature
 levels (private, community, commercial) and root URLs, which exist for a catalog and a server; and the development mode as one
@@ -884,8 +900,8 @@ application uses.
   from the service's classloader, not the plugin classloader" (spinnaker.io `plugin-creator/project-config.md:129-132, 152-153`).
   The API has no version of its own; it is released with kork and a plugin pins it with `korkVersion`. Stability is marked per
   API with `@Alpha` (may be removed without notice) and `@Beta` (a long-term commitment, the implementation may change)
-  (`plugin-creator/plugin-backend.md:115-116`). Not found: a compatibility policy for the API module itself in the kork
-  repository, beyond that text.
+  (`plugin-creator/plugin-backend.md:115-116`). Not looked for beyond that text: no search was run over the kork
+  repository for a compatibility policy of the API module itself.
 - Version check. The manifest attribute `Plugin-Requires`, written by the Gradle plugin (`SpinnakerServiceExtensionPlugin.kt:69`,
   default `<service>>=0.0.0`, `SpinnakerPluginExtension.kt:51-56`), is a list of `service constraint` pairs such as
   `orca>=8.0.0,deck>=0.0.0`, because one bundle extends several services (`VersionRequirementsParser.kt:23-34, 66-70`); kork's
@@ -897,8 +913,9 @@ application uses.
   `installedPlugins` actuator endpoint and Gate's `/plugins/installed` return only the pf4j `PluginDescriptor`, with no state and
   no reason (`InstalledPluginsEndpoint.kt:31-53`, `PluginsInstalledController.kt:29-35`). Strict mode
   (`spinnaker.extensibility.strict-plugin-loading`, default true) stops the service when a plugin cannot be loaded
-  (`SpringStrictPluginLoaderStatusProvider.kt:27-35`). In Deck, a plugin that fails to load goes to `console.error` and is
-  rethrown (`plugin.registry.ts:92-94, 106-113`). Enabling is a Spring property, default false
+  (`SpringStrictPluginLoaderStatusProvider.kt:27-35`). In Deck, a manifest or code that fails to load goes to `console.error` and is
+  rethrown (`plugin.registry.ts:92-94, 106-113` for the manifest, where a Gate 404 is swallowed instead, `:109-111`; `:162-164` for
+  the code). Enabling is a Spring property, default false
   (`SpringPluginStatusProvider.kt:39-45, 63-67`).
 - Origin check. A checksum, no signature: the `sha512sum` of a release in `plugins.json` or Front50, written by the Gradle plugin
   (`CreatePluginInfoTask.kt:74-88, 100-110`), checked by pf4j-update's default `CompoundVerifier` (`Front50UpdateRepository.kt:42`,
@@ -906,8 +923,10 @@ application uses.
   the plugins directory is not checked at all. The search `grep -rliE 'sha512|checksum|signature|verif|gpg|pgp'` over the 174
   source files of `kork-plugins` has 14 files hitting, all of them the checksum, update-repository and test code just named; the
   narrower `signature|gpg|pgp` has 2 hits, both the word in a Javadoc sentence ("a similar signature as ...",
-  `PluginInfoReleaseProvider.kt:29`, `PluginInfoReleaseSource.kt:28`). No signature, key or certificate handling in kork-plugins,
-  pf4j-update 2.3.0 or the Gradle plugin. A `Plugin-Unsafe` manifest flag loads a plugin into the parent class loader
+  `PluginInfoReleaseProvider.kt:29`, `PluginInfoReleaseSource.kt:28`). No signature, key or certificate handling in kork-plugins or
+  pf4j-update 2.3.0. In spinnaker-gradle-project, the plugin-bundle module `spinnaker-extensions` (29 files searched, 0 hits for
+  `signature|gpg|pgp|signing`) signs nothing; the same repository's `spinnaker-project-plugin` PGP-signs Spinnaker's own Maven
+  publications (`NexusPublishPlugin.groovy:51-84`), which is not a signature on a plugin bundle. A `Plugin-Unsafe` manifest flag loads a plugin into the parent class loader
   (`SpinnakerManifestPluginDescriptorFinder.kt:33, 41`).
 
 Take over: the separate API module with `compileOnly`; `Plugin-Requires`-style requirement checked by a version manager with the
@@ -926,7 +945,7 @@ Read at tag `v2.27.3` (commit `736beca9766cea6c1c46a9d19d89cba405acf552`; `gradl
 `2.27.0-SNAPSHOT`), plus docs.halo.run and the `plugin-starter` repository on branch `main` on 2026-11-20 (not pinned to a
 commit). The host pins pf4j 3.16.0 (`gradle/libs.versions.toml:23`).
 
-- Plugin API. A separate artifact built from the host repository's `api/` module, `run.halo.app:api` (`api/build.gradle:11-12`,
+- Plugin API. A separate artifact built from the host repository's `api/` module, `run.halo.app:api` (`api/build.gradle:10-11`,
   and `:86`, `api "org.pf4j:pf4j"`), versioned with the host, with no version of its own; a plugin declares it `compileOnly`, with
   versions from a BOM (`platform/plugin/build.gradle:6`) and a Gradle plugin that names the targeted Halo version. The exact
   dependency block comes from the starter's `build.gradle` on `main` through a summarising fetch, so it is not quoted verbatim.
@@ -948,7 +967,7 @@ commit). The host pins pf4j 3.16.0 (`gradle/libs.versions.toml:23`).
   (`PluginServiceImpl.java:321`, `UiPluginBundleServiceImpl.java:377, 392`) and a checksum of a configuration map
   (`DefaultReactiveSettingFetcher.java:157`); none checks a plugin file. Install is by upload or from a URI the server fetches
   (`PluginEndpoint.java:424-430`), which only parses `plugin.yaml`, checks `requires` and dependencies and guards against path
-  traversal; a new plugin starts disabled (`PluginServiceImpl.java:175`). The one protection is a warning in the install dialog
+  traversal; a new plugin starts disabled (`PluginServiceImpl.java:176`). The one protection is a warning in the install dialog
   against untrusted sources, pointing to the official store (`ui/src/locales/en.json:626-627`). The store's own code is not in
   that repository, so whether it signs packages is not known.
 
@@ -983,7 +1002,7 @@ public interface PluginFileVerifier {
         public String url;
         public String sha512sum;
         public Map<String,Object> meta = new HashMap<>();
-        // the two constructors of the measured Context, with the same six parameters
+        // the six-parameter constructor of the measured Context; the PluginRelease constructor stays in the adapter
     }
 }
 ```
@@ -1021,9 +1040,9 @@ a signature over the zip alone; for T3 the directory record of 2.3 remains.
 
 | solution | take over | does not fit | why |
 |---|---|---|---|
-| pf4j 3.16.1 | `plugin.requires` with `setSystemVersion`; the API module with `compileOnly`; the state check after loading | the demo's fat jars and API version tied to pf4j's; no origin check, no signature | `requires` is not checked unless the host sets the system version, and a mismatch gives DISABLED, so the host must read the state and show the reason itself |
-| pf4j-update 2.3.0 | the shape of `FileVerifier` (one method, a `Context`) | the library: catalog, download, checksum from the same channel, once, skipped when absent | no network path (2.1); no signature verifier in it; last release 2020; three more libraries |
-| marketplace-zip-signer 0.1.45 | a signature over the whole zip; the caller pins trust and treats a missing signature as failure | the library: X.509, a block inside the zip, no validity check, Kotlin and protobuf | the release key is OpenPGP (#642); a detached `.asc` keeps the zip as it is; 3.8 MB more |
+| pf4j 3.16.1 | `plugin.requires` with `setSystemVersion`; the API module with `compileOnly`; the state check after loading | the Maven demo's fat jars and API version tied to pf4j's; no origin check, no signature | `requires` is not checked unless the host sets the system version, and a mismatch gives DISABLED, so the host must read the state and show the reason itself |
+| pf4j-update 2.3.0 | the shape of `FileVerifier` (one method, a `Context`) | the library: catalog, download, checksum from the same channel, once, skipped when absent | no network path (2.1); no signature verifier in it; last release 2020; one more library (25,736 bytes), gson and commons-codec are already in the host |
+| marketplace-zip-signer 0.1.45 | a signature over the whole zip; the caller pins trust and treats a missing signature as failure | the library: X.509, a block inside the zip, no validity check, Kotlin and protobuf | the release key is OpenPGP (#642); a detached `.asc` keeps the zip as it is; 3.8 MB more (Kotlin, protobuf, the signer, annotations) |
 | jarsigner and `JarFile` | treat absence of a signature as failure | as the only check | our zips hold `plugin.properties` and `classes/` outside any jar; adding a file, removing the signature and a second key all pass |
 | Grafana | local states; only unsigned overridable; a per-id consent; a built-in key; the extra-file check for the directory | key download over the network; signature levels and root URLs; one global development switch | a catalog and a server shape those parts; our key list changes with a host release (2.5) |
 | Spinnaker | the `compileOnly` API module; `requires` checked by a version manager with DISABLED; `@Alpha` and `@Beta`; build-generated requires | update repository and Front50; multi-service `requires`; reason only in a log; checksum skipped when absent; `Plugin-Unsafe` | server concepts; a desktop user needs the reason on screen; it has no origin check |
