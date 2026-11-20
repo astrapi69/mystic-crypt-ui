@@ -79,7 +79,7 @@ class DesktopMenuHelpActionsTest
 	}
 
 	@Test
-	void licenseText_isTheMitTextAlone_todayWithoutAPointerToNotice() throws IOException
+	void licenseText_namesNoticeAndKeepsTheMitText_afterTheFix() throws IOException
 	{
 		DesktopMenu menu = new DesktopMenu(new JFrame());
 		String mitText;
@@ -91,9 +91,35 @@ class DesktopMenuHelpActionsTest
 
 		String license = menu.onNewLicenseText();
 
-		assertEquals(mitText.strip(), license.strip(),
-			"today the licence dialog shows legal/license.txt and nothing else");
-		assertFalse(license.contains("NOTICE.txt"));
+		assertTrue(license.contains("NOTICE.txt"),
+			"the dialog must name NOTICE.txt, was: " + license);
+		assertTrue(license.strip().endsWith(mitText.strip()),
+			"the MIT text must stay in the dialog unchanged");
+	}
+
+	@Test
+	void licenseNoticeBundles_nameNoticeInEnglishAndGerman()
+	{
+		for (String bundleName : List.of("ui/messages.properties", "ui/messages_de.properties"))
+		{
+			java.util.Properties bundle = new java.util.Properties();
+			try (java.io.Reader reader = new java.io.InputStreamReader(
+				DesktopMenuHelpActionsTest.class.getClassLoader().getResourceAsStream(bundleName),
+				StandardCharsets.UTF_8))
+			{
+				bundle.load(reader);
+			}
+			catch (IOException e)
+			{
+				throw new AssertionError(bundleName, e);
+			}
+			assertTrue(
+				bundle.getProperty(DesktopMenu.LICENSE_NOTICE_KEY, "").contains("NOTICE.txt"),
+				bundleName + " must carry the licence notice naming NOTICE.txt");
+		}
+		assertTrue(DesktopMenu.LICENSE_NOTICE_DEFAULT.contains("NOTICE.txt")
+			&& DesktopMenu.LICENSE_NOTICE_DEFAULT.contains("license texts")
+			&& DesktopMenu.LICENSE_NOTICE_DEFAULT.contains("third-party"));
 	}
 
 }
