@@ -207,7 +207,7 @@ class LauncherFilesTest(unittest.TestCase):
 class InstallerDescriptorTest(unittest.TestCase):
     """Checks over install.xml, the descriptor the IzPack compiler builds the installer from."""
 
-    def test_every_parsed_file_is_written_with_the_default_override(self):
+    def test_every_parsed_file_is_written_again_by_every_run(self):
         root = ElementTree.parse(INSTALL_XML).getroot()
         writers = {written_target(element): element for element in root.iter()
                    if element.tag in ("file", "singlefile")}
@@ -216,7 +216,7 @@ class InstallerDescriptorTest(unittest.TestCase):
         for target in parsed:
             with self.subTest(target=target):
                 self.assertIn(target, writers)
-                self.assertEqual("update", effective_override(writers[target]))
+                self.assertEqual("true", effective_override(writers[target]))
 
 
 if __name__ == "__main__":
