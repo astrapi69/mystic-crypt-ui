@@ -33,8 +33,15 @@ import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.security.Security;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
+import java.util.stream.Collectors;
 
+import org.assertj.swing.edt.GuiActionRunner;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -43,9 +50,11 @@ import org.junit.jupiter.params.provider.EnumSource;
 import io.github.astrapi69.crypt.data.factory.KeyPairFactory;
 import io.github.astrapi69.crypt.data.key.writer.PrivateKeyWriter;
 import io.github.astrapi69.file.create.model.FileInfo;
+import io.github.astrapi69.mystic.crypt.ApplicationModelBean;
 import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
 import io.github.astrapi69.mystic.crypt.TestPasswords;
-import io.github.astrapi69.mystic.crypt.app.file.xml.ApplicationXmlFileFactory;
+import io.github.astrapi69.mystic.crypt.app.file.xml.ApplicationXmlFileStoreWorker;
+import io.github.astrapi69.mystic.crypt.panel.dbtree.MysticCryptEntryModelBean;
 import io.github.astrapi69.mystic.crypt.panel.signin.MasterPwFileModelBean;
 
 /**
@@ -83,7 +92,7 @@ class BackupLifecycleUiTest extends AbstractUiTest
 	}
 
 	/** A database, its key file (if any) and the backup written next to it */
-	private record Vault(File database, File backup, File keyFile) {
+	private record Vault(File database, File backup, File keyFile, String entryTitle) {
 	}
 
 	@ParameterizedTest(name = "{0}")
@@ -104,8 +113,8 @@ class BackupLifecycleUiTest extends AbstractUiTest
 		assertEquals(Set.of(vault.database().getName()),
 			Set.of(vault.database().getParentFile().list()),
 			"next to the database there must be nothing else once the backup is gone");
-		assertTrue(MysticCryptApplicationFrame.getInstance().getModelObject().isSignedIn(),
-			"the sign-in must have opened the database");
+		assertTrue(entryTitlesOnScreen().contains(vault.entryTitle()),
+			"the sign-in by " + wayIn + " must show the entry the database holds");
 	}
 
 	/**
@@ -147,42 +156,56 @@ class BackupLifecycleUiTest extends AbstractUiTest
 			.toFile();
 		File database = new File(directory, "lifecycle.mcrdb");
 		File keyFile = new File(tempHome, "lifecycle-" + wayIn.name().toLowerCase() + ".pem");
-		if (wayIn.withKeyFile)
-		{
-			writeDatabaseWithKeyFile(wayIn, database, keyFile);
-		}
-		else
-		{
-			createDatabaseFileHeadless(database, MASTER_PASSWORD);
-		}
+		String entryTitle = "entry-" + UUID.randomUUID();
+		writeDatabase(wayIn, database, keyFile, entryTitle);
 		File backup = new File(directory, database.getName() + ".bak");
 		Files.copy(database.toPath(), backup.toPath(), StandardCopyOption.REPLACE_EXISTING);
 		assertTrue(backup.exists(), "the precondition: a .bak next to the database");
-		return new Vault(database, backup, keyFile);
+		return new Vault(database, backup, keyFile, entryTitle);
 	}
 
-	private void writeDatabaseWithKeyFile(final WayIn wayIn, final File database,
-		final File keyFile) throws Exception
+	/** The titles of every entry the signed-in application holds, read on the event thread */
+	private Set<String> entryTitlesOnScreen()
+	{
+		return GuiActionRunner.execute(() -> MysticCryptApplicationFrame.getInstance()
+			.getModelObject().getDataOfNodes().values().stream().flatMap(List::stream)
+			.map(entry -> new String(entry.getTitle())).collect(Collectors.toSet()));
+	}
+
+	/** Writes a database with one entry through the persistence layer, by the way in's factors */
+	private void writeDatabase(final WayIn wayIn, final File database, final File keyFile,
+		final String entryTitle) throws Exception
 	{
 		if (Security.getProvider(BouncyCastleProvider.PROVIDER_NAME) == null)
 		{
 			Security.addProvider(new BouncyCastleProvider());
 		}
-		PrivateKeyWriter.writeInPemFormat(KeyPairFactory.newKeyPair("RSA").getPrivate(), keyFile);
 		Files.createFile(database.toPath());
 		MasterPwFileModelBean.MasterPwFileModelBeanBuilder builder = MasterPwFileModelBean.builder()
 			.applicationFileInfo(FileInfo.toFileInfo(database))
-			.selectedApplicationFilePath(database.getAbsolutePath())
-			.keyFileInfo(FileInfo.toFileInfo(keyFile)).withKeyFile(true).minPasswordLength(6);
+			.selectedApplicationFilePath(database.getAbsolutePath()).minPasswordLength(6)
+			.withKeyFile(wayIn.withKeyFile).withMasterPw(wayIn.withPassword);
+		if (wayIn.withKeyFile)
+		{
+			PrivateKeyWriter.writeInPemFormat(KeyPairFactory.newKeyPair("RSA").getPrivate(),
+				keyFile);
+			builder.keyFileInfo(FileInfo.toFileInfo(keyFile));
+		}
 		if (wayIn.withPassword)
 		{
-			ApplicationXmlFileFactory.newApplicationFileWithPasswordAndPrivateKey(
-				builder.masterPw(MASTER_PASSWORD.toCharArray()).withMasterPw(true).build());
+			builder.masterPw(MASTER_PASSWORD.toCharArray());
 		}
-		else
+		Map<Long, List<MysticCryptEntryModelBean>> dataOfNodes = new LinkedHashMap<>();
+		dataOfNodes.put(1L, new ArrayList<>(
+			List.of(MysticCryptEntryModelBean.builder().title(entryTitle.toCharArray()).build())));
+		ApplicationModelBean model = ApplicationModelBean.builder()
+			.masterPwFileModelBean(builder.build()).dataOfNodes(dataOfNodes).build();
+		switch (wayIn)
 		{
-			ApplicationXmlFileFactory
-				.newApplicationFileWithPrivateKey(builder.withMasterPw(false).build());
+			case PASSWORD -> ApplicationXmlFileStoreWorker.saveToFileWithPassword(model);
+			case KEY_FILE -> ApplicationXmlFileStoreWorker.saveToFileWithPrivateKey(model);
+			case PASSWORD_AND_KEY_FILE -> ApplicationXmlFileStoreWorker
+				.saveToFileWithPasswordAndPrivateKey(model);
 		}
 	}
 
