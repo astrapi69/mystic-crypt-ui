@@ -1,0 +1,6 @@
+URL: https://raw.githubusercontent.com/LGoodDatePicker/LGoodDatePicker/v11.2.1-Standard/LICENSE
+Version read: 11.2.1
+File: LICENSE
+git tag v11.2.1-Standard
+Bundled code: the header of com/privatejgoodies/forms/factories/CC.java in LGoodDatePicker-11.2.1-sources.jar (BSD-3-Clause text, Copyright (c) 2002-2013 JGoodies Software GmbH). The repository LICENSE names only LGoodDatePicker as holder.
+bundled-JGoodies-header.txt: lines 1 to 26 of that file, read from the sources jar at https://repo1.maven.org/maven2/com/github/lgooddatepicker/LGoodDatePicker/11.2.1/LGoodDatePicker-11.2.1-sources.jar

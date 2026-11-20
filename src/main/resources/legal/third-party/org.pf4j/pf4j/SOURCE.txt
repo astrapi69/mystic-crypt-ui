@@ -1,0 +1,4 @@
+URL: https://raw.githubusercontent.com/pf4j/pf4j/release-3.16.1/LICENSE
+Version read: 3.16.1
+File: LICENSE
+git tag release-3.16.1

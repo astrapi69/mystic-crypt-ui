@@ -1,0 +1,7 @@
+Module: org.swinglabs.swingx:swingx-all 1.6.5-1
+License: LGPL-2.1-or-later ("either version 2.1 of the License, or (at your option) any later version"), read in the source header of org/jdesktop/swingx/JXLabel.java inside https://repo1.maven.org/maven2/org/swinglabs/swingx/swingx-all/1.6.5-1/swingx-all-1.6.5-1-sources.jar (saved as JXLabel-header.txt); the parent POM swingx-project-1.6.5-1 says "Lesser General Public License (LGPL)" with url http://www.gnu.org/copyleft/lesser.html
+Copyright: Sun Microsystems, Inc. (2006, per that header; other files carry other years/holders, see README of this directory)
+Text: lgpl-2.1.txt from https://www.gnu.org/licenses/old-licenses/lgpl-2.1.txt (the FSF's own); COPYING-ebourg-mirror from https://raw.githubusercontent.com/ebourg/swingx/HEAD/COPYING (a read-only SVN export on GitHub)
+NOT FOUND UPSTREAM: the official repository (SwingLabs on java.net, svn.java.net/svn/swingx) is offline; the Maven jar and its sources jar carry no LICENSE file; the source repository for the version (tag swingx-project-1.6.5-1) cannot be read.
+LGPL: yes.
+Mirror COPYING note: the mirror's COPYING (Sun notice + the LGPL-2.1 text) is the project's own top-level file; the mirror is unpinned (HEAD, no tag for 1.6.5-1). Of 447 source files in the 1.6.5-1 sources jar, 396 carry the LGPL header, the others other headers (not read file by file).

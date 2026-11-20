@@ -1,0 +1,4 @@
+URL: https://bitbucket.org/snakeyaml/snakeyaml/raw/snakeyaml-2.5/LICENSE.txt
+Version read: 2.5
+File: LICENSE.txt
+Bitbucket tag snakeyaml-2.5 (the project's official repository per its POM scm)

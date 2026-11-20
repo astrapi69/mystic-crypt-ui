@@ -1,0 +1,4 @@
+URL: https://raw.githubusercontent.com/stleary/JSON-java/20260719/LICENSE
+Version read: 20260719
+File: LICENSE
+git tag 20260719

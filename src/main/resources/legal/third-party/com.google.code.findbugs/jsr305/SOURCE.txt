@@ -1,0 +1,4 @@
+URL: https://www.apache.org/licenses/LICENSE-2.0.txt
+Version read: 3.0.2
+File: LICENSE-2.0.txt
+URL named in the POM <licenses>; the upstream project (code.google.com/p/jsr-305) is gone, no LICENSE file in its Maven sources jar

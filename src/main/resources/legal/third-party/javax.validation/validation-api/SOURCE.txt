@@ -1,0 +1,4 @@
+URL: https://raw.githubusercontent.com/beanvalidation/beanvalidation-api/1.1.0.Final/license.txt
+Version read: 1.1.0.Final
+File: license.txt
+git tag 1.1.0.Final

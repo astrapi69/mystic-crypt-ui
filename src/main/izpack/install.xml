@@ -66,6 +66,9 @@
 			<!-- the credit the shipped third-party works ask for: the silk icons (CC BY 2.5) and the
 				Apache-2.0 libraries without a license file of their own (#1007) -->
 			<file src="resources/main/legal/NOTICE.txt" targetdir="${INSTALL_PATH}" />
+			<!-- the licenses of the libraries that ship without a license file of their own, read from
+				upstream, with the note on replacing SwingX (LGPL), named in NOTICE.txt (#1014) -->
+			<fileset dir="resources/main/legal/third-party" targetdir="${INSTALL_PATH}/legal/third-party" />
 			<singlefile src="signed/@{app.name}-@{app.version}-all.jar" target="${INSTALL_PATH}/@{app.name}.jar" />
 			<file src="../src/main/izpack/installation.html" targetdir="${INSTALL_PATH}" />
 			<file src="resources/main/doc/@{app.name}.desktop" targetdir="${INSTALL_PATH}" />

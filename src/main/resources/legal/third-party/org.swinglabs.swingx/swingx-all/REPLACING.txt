@@ -1,0 +1,32 @@
+Replacing SwingX in mystic-crypt-ui (org.swinglabs.swingx:swingx-all 1.6.5-1, LGPL)
+
+SwingX is licensed under the GNU Lesser General Public License, version 2.1 or (at your
+option) any later version (COPYING, lgpl-2.1.txt and JXLabel-header.txt in this directory).
+mystic-crypt-ui is licensed under the MIT License and uses SwingX as a library. You may
+replace SwingX by a modified version of it, and modify the application for your own use,
+including reverse engineering for debugging such modifications, as section 6 of LGPL-2.1
+requires of a work that uses the library.
+
+The application jar (mystic-crypt-ui.jar in the installation directory) is one jar that
+holds the classes of SwingX unpacked: those of the packages org.jdesktop.swingx and
+org.jdesktop.beans, and its service file META-INF/services/
+org.jdesktop.swingx.plaf.LookAndFeelAddons.
+
+1. Get the sources of the version the application was built with:
+   https://repo1.maven.org/maven2/org/swinglabs/swingx/swingx-all/1.6.5-1/swingx-all-1.6.5-1-sources.jar
+   (the jar of the same version: .../swingx-all-1.6.5-1.jar). Change it as you wish and
+   build your own jar from it, as interface-compatible with 1.6.5-1 as the application needs.
+2. Start the application with your jar in front of the application jar on the class path,
+   so that the JVM loads the classes of SwingX from yours:
+
+   java -cp my-swingx-all.jar:mystic-crypt-ui.jar \
+        io.github.astrapi69.mystic.crypt.StartMysticCryptApplication
+
+   (on Windows the class path separator is ; instead of :). The application jar is not
+   changed by this, and a modified SwingX takes the place of the shipped one.
+3. Alternatively unpack the application jar, replace the files of the packages named above
+   by those of your build, and pack the jar again; the signature of the original jar is
+   then no longer valid, which the LGPL leaves to you.
+
+The source of the application itself, for relinking, is at
+https://github.com/astrapi69/mystic-crypt-ui (MIT License).

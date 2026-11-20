@@ -16,6 +16,24 @@ KeePass database icons
   The icons under img/keepass/ of the application jar are credited, with
   their licenses, in legal/keepass-icons-license.txt of the same jar.
 
+Libraries that bring no license file of their own
+  The application jar carries the license of each library that ships without
+  one, as its authors publish it, under legal/third-party/<group>/<artifact>/
+  of the same jar and of the installation directory: the license text, a
+  SOURCE.txt naming the address and the version it was read from, and for
+  one library, SwingX, a note on replacing it. The libraries that bring a
+  license file themselves have it under META-INF/third-party/<group>/<artifact>/
+  of the jar. A test (ThirdPartyLicensesTest) checks that every library of the
+  application has one or the other.
+
+SwingX (org.swinglabs.swingx:swingx-all)
+  Licensed under the GNU Lesser General Public License, version 2.1 or later
+  (legal/third-party/org.swinglabs.swingx/swingx-all/COPYING). It is a library
+  the application uses, and you may replace it by a modified version and modify
+  the application for your own use: how is in
+  legal/third-party/org.swinglabs.swingx/swingx-all/REPLACING.txt, in the
+  terms of section 6 of the license.
+
 Libraries under the Apache License, Version 2.0
   http://www.apache.org/licenses/LICENSE-2.0
   The application jar carries these libraries, which bring no license file

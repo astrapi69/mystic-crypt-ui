@@ -87,6 +87,17 @@ class InstallerCarriesBundledLicencesTest
 			"NOTICE.txt lands next to LICENSE in the installation directory");
 	}
 
+	@Test
+	@DisplayName("the installer installs the licenses curated for the libraries without one (#1014)")
+	void theInstallerInstallsTheCuratedLicenses() throws IOException
+	{
+		assertTrue(
+			Files.readString(INSTALL_XML, StandardCharsets.UTF_8)
+				.contains("<fileset dir=\"resources/main/legal/third-party\" "
+					+ "targetdir=\"${INSTALL_PATH}/legal/third-party\" />"),
+			"legal/third-party lands in the installation directory beside NOTICE.txt");
+	}
+
 	private static List<String> pluginsWithLicences() throws IOException
 	{
 		File[] plugins = new File("plugins").listFiles(File::isDirectory);
