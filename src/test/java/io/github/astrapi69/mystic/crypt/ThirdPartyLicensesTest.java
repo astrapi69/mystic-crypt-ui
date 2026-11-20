@@ -114,11 +114,13 @@ class ThirdPartyLicensesTest
 		List<Path> directories = curatedDirectories();
 		assertFalse(directories.isEmpty(),
 			"no curated directory: an empty set is not a clean result");
+		int filesChecked = 0;
 
 		for (Path directory : directories)
 		{
 			String module = CURATED.relativize(directory).toString();
 			List<Path> files = filesIn(directory);
+			filesChecked += files.size();
 			boolean hasLicense = files.stream()
 				.anyMatch(file -> LICENSE_FILE.matcher(file.getFileName().toString()).matches());
 			if (!hasLicense)
@@ -135,6 +137,8 @@ class ThirdPartyLicensesTest
 				problems.add(module + " is LGPL and has no REPLACING.txt saying how to replace it");
 			}
 		}
+		System.out.println("ThirdPartyLicensesTest: checked " + directories.size()
+			+ " curated directories holding " + filesChecked + " files");
 		assertTrue(problems.isEmpty(), problems.toString());
 	}
 
@@ -171,6 +175,7 @@ class ThirdPartyLicensesTest
 	{
 		ApplicationJarUnderTest.assumeNamed();
 		List<String> missing = new ArrayList<>();
+		int entriesChecked = 0;
 
 		try (ZipFile jar = new ZipFile(ApplicationJarUnderTest.PATH))
 		{
@@ -178,6 +183,7 @@ class ThirdPartyLicensesTest
 			{
 				for (Path file : filesIn(directory))
 				{
+					entriesChecked++;
 					String entry = "legal/third-party/"
 						+ CURATED.relativize(file).toString().replace(File.separatorChar, '/');
 					if (jar.getEntry(entry) == null)
@@ -187,6 +193,8 @@ class ThirdPartyLicensesTest
 				}
 			}
 		}
+		System.out.println("ThirdPartyLicensesTest: looked for " + entriesChecked
+			+ " curated entries in " + ApplicationJarUnderTest.PATH);
 		assertTrue(missing.isEmpty(), ApplicationJarUnderTest.PATH + " lacks " + missing);
 	}
 
