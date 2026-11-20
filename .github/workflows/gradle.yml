@@ -20,14 +20,14 @@ jobs:
 
     steps:
       - name: Checkout sources
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Setup Java
-        uses: actions/setup-java@v5
+        uses: actions/setup-java@77dd5b2ce225ea11469928ac317850245a74ae78 # v6.2.0
         with:
           java-version-file: '.sdkmanrc'
           distribution: 'temurin'
       - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v6
+        uses: gradle/actions/setup-gradle@8da46b539cd8fe6ab27ca75128919a18d757604c # v6.4.1
       - name: Install Xvfb and the e2e harness's tools
         # The refresh is the means, the install is the gate. apt-get update exits non-zero when ANY
         # configured repository fails, and the runner image ships third-party repositories this
@@ -95,7 +95,7 @@ jobs:
           echo "version=$(sed -n 's/^formatCompatibilityRelease=//p' gradle.properties)" >> "$GITHUB_OUTPUT"
           echo "envelope=$(sed -n 's/^envelopeMoveRelease=//p' gradle.properties)" >> "$GITHUB_OUTPUT"
       - name: Cache those releases' application jars
-        uses: actions/cache@v4
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: ~/.cache/mystic-crypt-ui/release-jars
           key: release-jar-${{ steps.compatibility.outputs.version }}-${{ steps.compatibility.outputs.envelope }}
