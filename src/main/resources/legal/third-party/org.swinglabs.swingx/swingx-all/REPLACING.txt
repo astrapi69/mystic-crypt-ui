@@ -19,11 +19,21 @@ org.jdesktop.swingx.plaf.LookAndFeelAddons.
 2. Start the application with your jar in front of the application jar on the class path,
    so that the JVM loads the classes of SwingX from yours:
 
-   java -cp my-swingx-all.jar:mystic-crypt-ui.jar \
+   java --add-opens java.base/java.time=ALL-UNNAMED \
+        --sun-misc-unsafe-memory-access=allow \
+        --enable-native-access=ALL-UNNAMED \
+        -cp my-swingx-all.jar:mystic-crypt-ui.jar \
         io.github.astrapi69.mystic.crypt.StartMysticCryptApplication
 
-   (on Windows the class path separator is ; instead of :). The application jar is not
-   changed by this, and a modified SwingX takes the place of the shipped one.
+   The first two options are those start.sh starts the application with; the third is
+   the one the jar's manifest sets only for java -jar, which -cp does not read. On
+   Windows use javaw with the same options and ; as the class path separator:
+
+   javaw --add-opens java.base/java.time=ALL-UNNAMED --sun-misc-unsafe-memory-access=allow --enable-native-access=ALL-UNNAMED -cp my-swingx-all.jar;mystic-crypt-ui.jar io.github.astrapi69.mystic.crypt.StartMysticCryptApplication
+
+   This command has not been run; check it against your installation.
+   The application jar is not changed by this, and a modified SwingX takes the place of
+   the shipped one.
 3. Alternatively unpack the application jar, replace the files of the packages named above
    by those of your build, and pack the jar again; the signature of the original jar is
    then no longer valid, which the LGPL leaves to you.
