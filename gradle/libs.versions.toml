@@ -80,7 +80,6 @@ swing-table-components-version = "4.0"
 swing-tree-component-version = "3.3"
 swing-wizard-version = "2.1"
 swing-worker-version = "1.1"
-swingx-all-version = "1.6.5-1"
 test-object-version = "9.1"
 throwable-version = "3"
 tika-core-version = "4.2.0"
@@ -160,7 +159,6 @@ swing-table-components = { module = "io.github.astrapi69:swing-table-components"
 swing-tree-component = { module = "io.github.astrapi69:swing-tree-component", version.ref = "swing-tree-component-version" }
 swing-wizard = { module = "io.github.astrapi69:swing-wizard", version.ref = "swing-wizard-version" }
 swing-worker = { module = "org.swinglabs:swing-worker", version.ref = "swing-worker-version" }
-swingx-all = { module = "org.swinglabs.swingx:swingx-all", version.ref = "swingx-all-version" }
 test-object = { module = "io.github.astrapi69:test-object", version.ref = "test-object-version" }
 throwable = { module = "io.github.astrapi69:throwable", version.ref = "throwable-version" }
 tika-core = { module = "org.apache.tika:tika-core", version.ref = "tika-core-version" }

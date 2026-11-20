@@ -87,7 +87,11 @@ dependencies {
     implementation libs.jobj.cloner
     implementation libs.awt.extensions
     implementation libs.swing.model.components
-    implementation libs.swing.wizard
+    // swing-wizard 2.1 declares swingx-all (LGPL-2.1) at runtime scope; none of its classes names it, and
+    // nothing here uses it (#1014)
+    implementation(libs.swing.wizard) {
+        exclude group: "org.swinglabs.swingx", module: "swingx-all"
+    }
     implementation libs.kee.pass.java2.jackson
     // randomizer is no dependency of this application since #658: its random values come from
     // SecureRandom. Before 10.5 its default generator is seeded with the current time
