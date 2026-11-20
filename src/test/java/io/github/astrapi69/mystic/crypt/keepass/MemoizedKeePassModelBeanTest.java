@@ -25,6 +25,7 @@
 package io.github.astrapi69.mystic.crypt.keepass;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -111,5 +112,22 @@ class MemoizedKeePassModelBeanTest
 			.decode(ByteBuffer.wrap(Files.readAllBytes(file.toPath()))).toString();
 		assertTrue(writtenBack.contains("/home/J\u00fcrgen/a.kdbx"),
 			"the next save writes the file in UTF-8: " + writtenBack);
+	}
+
+	@Test
+	@DisplayName("a memo file that cannot be read is written over by the next save (today, #1082)")
+	void anUnreadableMemoFile_isWrittenOverByTheNextSave(@TempDir final File configurationDirectory)
+		throws IOException
+	{
+		File file = new File(configurationDirectory, MemoizedKeePassModelBean.JSON_FILENAME);
+		byte[] broken = "{\"lastImportFilePath\": ".getBytes(StandardCharsets.UTF_8);
+		Files.write(file.toPath(), broken);
+
+		MemoizedKeePassModelBean.load(configurationDirectory).save(configurationDirectory);
+
+		assertFalse(java.util.Arrays.equals(broken, Files.readAllBytes(file.toPath())),
+			"a fresh bean is written over the file");
+		String[] names = configurationDirectory.list();
+		assertEquals(1, names.length, "nothing is kept beside it: " + String.join(", ", names));
 	}
 }

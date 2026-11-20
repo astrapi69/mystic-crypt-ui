@@ -192,4 +192,21 @@ class MysticCryptSettingsTest
 		assertTrue(writtenBack.contains("J\u00fcrgen"),
 			"the next save writes the file in UTF-8: " + writtenBack);
 	}
+
+	@Test
+	@DisplayName("a settings file that cannot be read is written over by the next save (today, #1082)")
+	void anUnreadableSettingsFile_isWrittenOverByTheNextSave(@TempDir File configurationDirectory)
+		throws Exception
+	{
+		File settingsFile = new File(configurationDirectory, MysticCryptSettings.JSON_FILENAME);
+		byte[] broken = "{ \"lookAndFeel\": \"Metal\", ".getBytes(StandardCharsets.UTF_8);
+		Files.write(settingsFile.toPath(), broken);
+
+		MysticCryptSettings.load(configurationDirectory).save(configurationDirectory);
+
+		assertFalse(java.util.Arrays.equals(broken, Files.readAllBytes(settingsFile.toPath())),
+			"the defaults are written over the file");
+		String[] names = configurationDirectory.list();
+		assertEquals(1, names.length, "nothing is kept beside it: " + String.join(", ", names));
+	}
 }
