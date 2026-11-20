@@ -268,11 +268,12 @@ bump-check: ## [plugins] before a crypt-data or mystic-crypt bump: the host unit
 	@echo "==> bump-check: the host suites and all internal plugins are green"
 
 # build every internal plugin
-plugins: plugin-obfuscation plugin-checksum plugin-conversion plugin-console plugin-keygen plugin-certificate plugin-password-hash plugin-kem-demo plugin-menu-designer plugin-pqc-signature plugin-keystore plugin-file-crypt plugin-secret-sharing plugin-lethenon plugin-release-key ## [plugins] every internal plugin with its tests and zip, and the three script test suites
+plugins: plugin-obfuscation plugin-checksum plugin-conversion plugin-console plugin-keygen plugin-certificate plugin-password-hash plugin-kem-demo plugin-menu-designer plugin-pqc-signature plugin-keystore plugin-file-crypt plugin-secret-sharing plugin-lethenon plugin-release-key ## [plugins] every internal plugin with its tests and zip, and the four script test suites
 ifeq ($(SCRIPT_TESTS),yes)
 	python3 scripts/merge_pr_test.py
 	python3 scripts/assemble_changelog_test.py
 	python3 scripts/pr_state_guard_test.py
+	python3 scripts/start_launcher_test.py
 endif
 
 # build all internal plugins and install them into the app's plugins directory
