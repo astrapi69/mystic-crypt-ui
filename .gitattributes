@@ -2,3 +2,5 @@
 /gradlew        text eol=lf
 *.bat           text eol=crlf
 *.jar           binary
+# Curated license texts stay byte-identical with upstream (some are CRLF there)
+src/main/resources/legal/third-party/** -text

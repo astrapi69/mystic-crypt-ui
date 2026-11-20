@@ -1,0 +1,4 @@
+URL: https://raw.githubusercontent.com/google/j2objc/3.1/LICENSE
+Version read: 3.1
+File: LICENSE
+git tag 3.1

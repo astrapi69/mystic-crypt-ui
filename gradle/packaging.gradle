@@ -144,6 +144,13 @@ def thirdPartyLegalFiles = ['LICENSE*', 'NOTICE*', 'META-INF/*LICENSE*', 'META-I
                             'META-INF/COPYING*', 'META-INF/DEPENDENCIES*', 'META-INF/AUTHORS*', 'license/**']
 
 /**
+ * The same patterns for the test JVMs (gradle/testing.gradle): ThirdPartyLicensesTest applies the criterion
+ * of this copy to every library of the runtime class path, so the build and the test cannot disagree
+ * about which library brings licence files (#1014)
+ */
+ext.thirdPartyLegalFilePatterns = thirdPartyLegalFiles
+
+/**
  * Copies the licence and notice files of every library of the runtime class path to
  * META-INF/third-party/<group>/<artifact>/, as the library carries them (#779). The libraries share
  * these paths - 27 carried a META-INF/NOTICE, in eight different texts, when #779 was written, and 8 in six
