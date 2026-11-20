@@ -153,6 +153,37 @@ final class SignInDialogSteps
 		return this;
 	}
 
+	/**
+	 * The key file the dialog offers, as the combo box holds it, or null when none is selected
+	 *
+	 * @return the selected key file path
+	 */
+	String selectedKeyFile()
+	{
+		return GuiActionRunner
+			.execute(() -> (String)dialog.comboBox("cmbKeyFile").target().getSelectedItem());
+	}
+
+	/**
+	 * Whether the "Key File:" checkbox is selected
+	 *
+	 * @return true when it is
+	 */
+	boolean keyFileIsChecked()
+	{
+		return GuiActionRunner.execute(() -> dialog.checkBox("cbxKeyFile").target().isSelected());
+	}
+
+	/**
+	 * Whether the "Master Password:" checkbox is selected
+	 *
+	 * @return true when it is
+	 */
+	boolean masterPasswordIsChecked()
+	{
+		return GuiActionRunner.execute(() -> dialog.checkBox("cbxMasterPw").target().isSelected());
+	}
+
 	/** Clicks the key file's "Browse..." and selects the given file in the chooser that opens */
 	SignInDialogSteps browseKeyFile(File keyFile)
 	{
