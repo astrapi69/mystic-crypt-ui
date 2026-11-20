@@ -24,8 +24,9 @@
  */
 package io.github.astrapi69.mystic.crypt.plugin.keygen;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.awt.Component;
 import java.awt.Container;
@@ -49,12 +50,13 @@ import org.junit.jupiter.api.Test;
  * The password dialog of "save the private key with a password" used to be shown with no parent, so
  * it belonged to the shared owner frame of the Swing runtime: no window to stay in front of, no
  * centre to open over, a window of its own in the task bar. The panel itself is the parent now,
- * which makes the window the panel sits in the owner.
+ * which makes the window the panel sits in the owner and the centre of that window the place the
+ * dialog opens over.
  */
 class PasswordDialogOwnerTest
 {
 
-	private static final String SHARED_OWNER_FRAME = "javax.swing.SwingUtilities$SharedOwnerFrame";
+	private static final int CENTRE_TOLERANCE_PIXELS = 15;
 
 	private static final String PASSWORD_DIALOG_TITLE = "Enter a password";
 
@@ -93,21 +95,24 @@ class PasswordDialogOwnerTest
 	}
 
 	@Test
-	@DisplayName("the password dialog is owned by the shared owner frame, as it is today")
-	void passwordDialog_isOwnedBySharedOwnerFrame_today() throws Exception
+	@DisplayName("the password dialog is owned by the window of the key generator and opens over its centre")
+	void passwordDialog_isOwnedByTheKeyGeneratorWindow() throws Exception
 	{
 		SwingUtilities.invokeLater(() -> panel.onSavePrivateKeyWithPassword(null));
 		final Dialog dialog = awaitDialog(titled(PASSWORD_DIALOG_TITLE));
 
-		final String ownerClass = onEventThread(() -> dialog.getOwner().getClass().getName());
+		final Window owner = onEventThread(dialog::getOwner);
+		final int offCentre = onEventThread(() -> offCentre(dialog));
 		clickButton(dialog, "Cancel");
 
-		assertEquals(SHARED_OWNER_FRAME, ownerClass);
+		assertSame(frame, owner);
+		assertTrue(offCentre <= CENTRE_TOLERANCE_PIXELS,
+			"the dialog is " + offCentre + " pixels off the centre of the window");
 	}
 
 	@Test
-	@DisplayName("the message about two different passwords is owned by the shared owner frame, as it is today")
-	void mismatchMessage_isOwnedBySharedOwnerFrame_today() throws Exception
+	@DisplayName("the message about two different passwords is owned by the window of the key generator and opens over its centre")
+	void mismatchMessage_isOwnedByTheKeyGeneratorWindow() throws Exception
 	{
 		SwingUtilities.invokeLater(() -> panel.onSavePrivateKeyWithPassword(null));
 		final Dialog passwordDialog = awaitDialog(titled(PASSWORD_DIALOG_TITLE));
@@ -121,10 +126,22 @@ class PasswordDialogOwnerTest
 		clickButton(passwordDialog, "Set password");
 
 		final Dialog message = awaitDialog(titled(MISMATCH_DIALOG_TITLE));
-		final String ownerClass = onEventThread(() -> message.getOwner().getClass().getName());
+		final Window owner = onEventThread(message::getOwner);
+		final int offCentre = onEventThread(() -> offCentre(message));
 		clickButton(message, "OK");
 
-		assertEquals(SHARED_OWNER_FRAME, ownerClass);
+		assertSame(frame, owner);
+		assertTrue(offCentre <= CENTRE_TOLERANCE_PIXELS,
+			"the message is " + offCentre + " pixels off the centre of the window");
+	}
+
+	private int offCentre(final Dialog dialog)
+	{
+		final int horizontal = Math.abs(dialog.getX() + dialog.getWidth() / 2
+			- (frame.getX() + frame.getWidth() / 2));
+		final int vertical = Math.abs(dialog.getY() + dialog.getHeight() / 2
+			- (frame.getY() + frame.getHeight() / 2));
+		return Math.max(horizontal, vertical);
 	}
 
 	private static Predicate<Dialog> titled(final String title)
