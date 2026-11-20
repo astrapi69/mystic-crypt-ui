@@ -24,11 +24,14 @@ come from the build output and age here (DC-010).
 
 ## Release smoke (the subset for a release candidate)
 
-Before a tag, the maintainer runs this subset against the **built installer**, about 15
+Before a tag, the maintainer runs this subset against the **built installer**, about 25
 minutes (release-workflow.md step 5): **TS-0001** (database round-trip), **TS-0004** (lock
-and unlock factors), **TS-0005** (protected values), **TS-0015** (the installer round) and
-**TS-0017** (a vault of an earlier version). The suites below carry the marker
-`(release smoke)`.
+and unlock factors), **TS-0005** (protected values), **TS-0015** (the installer round),
+**TS-0017** (a vault of an earlier version) and **TS-0018** (the start). The suites below
+carry the marker `(release smoke)`. The 15 minutes were the estimate for the five suites
+before 8.16; the added ten are an estimate for the four cases of TS-0018 (one first start, four
+starts with a saved look, one start from the menu), not a measured time: replace it with the
+time of the first 8.16 round.
 
 ## Prerequisite before every round: really start the current build
 
@@ -555,6 +558,64 @@ On a COPY of a real vault created with an earlier release, never the original.
       other fixture vaults: `VaultsOfEightWithAKeyFileSignInUiTest#aVaultOfEight_withAKeyFile_signsIn_andIsSavedInThisVersionsFormat`
       and `LegacyDatabaseMigrationUiTest#anOldDatabaseOpensAndMigratesWhenItIsSaved`; the
       chain on a real vault manual only
+
+## TS-0018 The start (release smoke)
+
+Added for 8.16. The start was reworked twice shortly before it: #1072 (a start died with
+`ClassCastException: FlatLightLaf cannot be cast to NimbusLookAndFeel`, because the sign-in
+dialog was built on the start thread while the persisted look was switched) and #1075 (the
+sign-in dialog is now built and shown on the event thread, after the persisted look). The e2e
+suite starts the application inside its own JVM on a throwaway home, so what it cannot see is
+the real process on a real screen with a real configuration directory; these cases are that
+check, run against the BUILT installer's installation, not `make run`.
+
+If one of them breaks because of #1075 and the break cannot be fixed by 2026-11-24, it goes to
+the maintainer with the option to revert #1075 (his fall-back limit of 2026-11-20, which
+covers #1075 as it covers the other changes of 8.16).
+
+- [ ] TC-0180 First start: end the application, move `~/.config/mystic-crypt-ui` aside (or use
+      a fresh user), start. The sign-in dialog opens on the screen, with the default look
+      (FlatLaf Light), no error window and no stack trace on the terminal; create a database
+      through New..., set a master password, sign in: the main window opens in the same look. -
+      automated half:
+      `CreateNewDatabaseUiTest#createFirstDatabaseThroughNewFlowAndSignIn` (a throwaway home
+      without a configuration directory, New..., sign in) and
+      `SignInDialogBuiltOnTheEventThreadUiTest#theLookIsSwitchedOnTheEventThreadBeforeTheDialogExists`
+      (the event thread builds the dialog); that the dialog is on the screen, in the default look
+      and the process starts cleanly from a configuration directory that really does not exist:
+      manual only (the harness's home exists before the start)
+- [ ] TC-0181 Start with a saved FlatLaf look: choose View > Look and Feel > FlatLaf Dark, end
+      the application, start it again, and repeat with FlatLaf Light. The sign-in dialog and,
+      after signing in, the main window come up in that look from the first paint; no window,
+      menu or dialog shows another look, and nothing is logged as an error. - automated half:
+      `SignInDialogLookAndFeelUiTest#thePersistedLookAndFeelIsAlreadyActiveOnTheSignInDialog`
+      (FlatLaf Dark in the settings file, active at the sign-in dialog),
+      `LookAndFeelMenuChoiceSurvivesRestartUiTest#theLookChosenInTheViewMenu_isTheLookTheNextStartApplies`
+      (case "FlatLaf Dark", a start in a JVM of its own applies it) and
+      `LookAndFeelSurvivesRestartUiTest#theLookChosenInTheSettingsIsStillActiveAfterARestart`;
+      the look as painted, on a real screen, with the installed application, and FlatLaf Light as
+      a saved look: manual only (no test drives it, and a mixed look is a thing to see)
+- [ ] TC-0182 Start with a saved JDK look: choose View > Look and Feel > Nimbus, end the
+      application, start it again, and repeat with Metal. The sign-in dialog and the main
+      window come up in that look, nothing mixes looks, no error. Nimbus is the case that
+      died in #1072 (`NimbusStyle.validate`), so it is the one that matters. - automated half:
+      `LookAndFeelMenuChoiceSurvivesRestartUiTest#theLookChosenInTheViewMenu_isTheLookTheNextStartApplies`
+      (case "Nimbus": the forked JVM applies the class at the start, the window itself is not
+      looked at) and `SignInDialogBuiltOnTheEventThreadUiTest#theLookIsSwitchedOnTheEventThreadBeforeTheDialogExists`
+      (FlatLaf Dark only); the Nimbus and Metal sign-in dialog and main window as painted, and
+      Metal as a saved look: manual only. Of the two JDK looks that share a class the settings
+      hold "Metal", and the next start shows the runtime's default theme of it (Ocean, #1065):
+      that is not a failure here
+- [ ] TC-0183 Start through the installer's menu entry: install the built installer (TC-0150),
+      find "mystic-crypt-ui" in the desktop's application menu (the desktop entry
+      `~/.local/share/applications/mystic-crypt-ui.desktop` the installer lays down, see
+      `src/main/izpack/installation.html`), start it from there, not from a terminal. It starts
+      the INSTALLED version (Help > Info names the released version), and the sign-in dialog
+      opens in the look the settings hold. Run it once with the look of TC-0181 saved, so the
+      menu entry's start is also a start with a saved look. - manual only (the desktop
+      environment's menu and the generated launcher run no test; `make verify-installer`
+      (`scripts/verify-installer.sh`) starts the application jar only headless with `--cli
+      --version`, not the window, and not through the menu entry)
 
 ---
 
