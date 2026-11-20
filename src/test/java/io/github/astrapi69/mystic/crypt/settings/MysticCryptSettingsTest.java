@@ -24,14 +24,13 @@
  */
 package io.github.astrapi69.mystic.crypt.settings;
 
-import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.File;
-import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 
@@ -164,29 +163,33 @@ class MysticCryptSettingsTest
 	}
 
 	/**
-	 * file-worker 21 reads strictly: a byte that is not valid UTF-8 is an error, where 20.0 put the
-	 * replacement character in its place and the settings loaded. The loader for a change that is
-	 * written back has to refuse such a file and leave it, since defaults written over it would
-	 * destroy what it holds; the loader for display falls back to the defaults
+	 * A settings file in Windows-1252, a hand edit or another tool's, reads with its umlauts, for
+	 * display and for a change, and the next save writes it in UTF-8 (#1081). file-worker 21 reads
+	 * strictly, which made the loader for a change refuse it and the loader for display show
+	 * defaults.
 	 */
 	@Test
-	@DisplayName("a settings file with a byte that is not UTF-8 is refused for a change, left as it is, and shows defaults")
-	void aSettingsFileThatIsNotUtf8_isRefusedForAChange_andLeftAsItIs(
+	@DisplayName("a settings file in Windows-1252 is read with its umlauts, and the next save writes it in UTF-8")
+	void aSettingsFileInWindows1252_isReadWithItsUmlauts_andTheNextSaveWritesUtf8(
 		@TempDir File configurationDirectory) throws Exception
 	{
 		File settingsFile = new File(configurationDirectory, MysticCryptSettings.JSON_FILENAME);
-		byte[] notUtf8 = "{ \"lookAndFeel\": \"Metal\", \"language\": \"J\u00fcrgen\" }"
-			.getBytes(StandardCharsets.ISO_8859_1);
-		Files.write(settingsFile.toPath(), notUtf8);
+		Files.write(settingsFile.toPath(),
+			"{ \"lookAndFeel\": \"Metal\", \"language\": \"J\u00fcrgen\" }"
+				.getBytes(Charset.forName("windows-1252")));
 
-		assertThrows(IOException.class,
-			() -> MysticCryptSettings.loadForUpdate(configurationDirectory),
-			"a change must not start from defaults when the file could not be read");
-		assertEquals("FlatLaf Light",
-			MysticCryptSettings.load(configurationDirectory).getLookAndFeel(),
-			"showing the settings falls back to the defaults");
-		assertArrayEquals(notUtf8, Files.readAllBytes(settingsFile.toPath()),
-			"and neither call touches the file");
+		MysticCryptSettings forDisplay = MysticCryptSettings.load(configurationDirectory);
+		assertEquals("Metal", forDisplay.getLookAndFeel());
+		assertEquals("J\u00fcrgen", forDisplay.getLanguage(), "the umlaut is read");
+		MysticCryptSettings forAChange = MysticCryptSettings.loadForUpdate(configurationDirectory);
+		assertEquals("J\u00fcrgen", forAChange.getLanguage(),
+			"a change starts from what the file holds");
+
+		forAChange.save(configurationDirectory);
+
+		String writtenBack = StandardCharsets.UTF_8.newDecoder()
+			.decode(ByteBuffer.wrap(Files.readAllBytes(settingsFile.toPath()))).toString();
+		assertTrue(writtenBack.contains("J\u00fcrgen"),
+			"the next save writes the file in UTF-8: " + writtenBack);
 	}
-
 }

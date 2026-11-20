@@ -24,7 +24,6 @@
  */
 package io.github.astrapi69.mystic.crypt.ui;
 
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.File;
@@ -40,7 +39,6 @@ import javax.swing.JTextArea;
 
 import org.assertj.swing.core.GenericTypeMatcher;
 import org.assertj.swing.edt.GuiActionRunner;
-import org.assertj.swing.exception.WaitTimedOutError;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -99,8 +97,8 @@ class ThePrivateKeyViewShowsTheFileItWasOpenedFromUiTest extends AbstractUiTest
 	private static final String WINDOWS_1252_LINE = "Schl\u00fcssel von J\u00fcrgen\n";
 
 	@Test
-	@DisplayName("a PEM file with a line in Windows-1252 does not open the private key view (today, #1081)")
-	void aPemFileWithAWindows1252Line_doesNotOpenTheView() throws Exception
+	@DisplayName("a PEM file with a line in Windows-1252 opens, and the view shows that line with its umlauts")
+	void aPemFileWithAWindows1252Line_opensAndShowsTheLine() throws Exception
 	{
 		File databaseFile = new File(tempHome, "private-key-view-1252.mcrdb");
 		createDatabaseFileHeadless(databaseFile, MASTER_PASSWORD);
@@ -108,11 +106,28 @@ class ThePrivateKeyViewShowsTheFileItWasOpenedFromUiTest extends AbstractUiTest
 		File privateKeyPemFile = new File(tempHome, "viewed-private-key-1252.pem");
 		KeyPair keyPair = KeyPairFactory.newKeyPair(KeyPairGeneratorAlgorithm.RSA, 2048);
 		PrivateKeyWriter.writeInPemFormat(keyPair.getPrivate(), privateKeyPemFile);
+		String pemText = Files.readString(privateKeyPemFile.toPath());
 		appendInWindows1252(privateKeyPemFile, WINDOWS_1252_LINE);
 
-		assertThrows(WaitTimedOutError.class,
-			() -> application.openPrivateKeyViaMenu(privateKeyPemFile),
-			"file-worker 21 reads the PEM file strictly, the action gives up and opens no view");
+		application.openPrivateKeyViaMenu(privateKeyPemFile);
+		JInternalFrame view = application.requireInternalFrame("Private key view");
+		List<String> shown = textsOf(view);
+		assertTrue(shown.contains(pemText + WINDOWS_1252_LINE),
+			"the view holds the key and the line after it, umlauts included: " + shown);
+		application.closeInternalFrame("Private key view");
+	}
+
+	private List<String> textsOf(final JInternalFrame view)
+	{
+		return GuiActionRunner.execute(
+			() -> robot.finder().findAll(view, new GenericTypeMatcher<JTextArea>(JTextArea.class)
+			{
+				@Override
+				protected boolean isMatching(final JTextArea textArea)
+				{
+					return true;
+				}
+			}).stream().map(JTextArea::getText).collect(Collectors.toList()));
 	}
 
 	private static void appendInWindows1252(final File file, final String line) throws Exception

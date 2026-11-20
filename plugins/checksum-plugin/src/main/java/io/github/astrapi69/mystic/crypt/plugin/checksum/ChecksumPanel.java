@@ -48,7 +48,6 @@ import io.github.astrapi69.awt.extension.ClipboardExtensions;
 import io.github.astrapi69.checksum.ChecksumExtensions;
 import io.github.astrapi69.checksum.FileChecksumExtensions;
 import io.github.astrapi69.crypt.api.algorithm.ChecksumAlgorithm;
-import io.github.astrapi69.file.read.ReadFileExtensions;
 import io.github.astrapi69.file.system.SystemFileExtensions;
 import io.github.astrapi69.model.BaseModel;
 import io.github.astrapi69.model.LambdaModel;
@@ -350,7 +349,7 @@ public class ChecksumPanel extends BasePanel<ChecksumBean>
 			txtChecksumFile.setText(checksumFile.getName());
 			try
 			{
-				String checksum = ReadFileExtensions.fromFile(checksumFile).trim();
+				String checksum = ChecksumSupport.readChecksumFile(checksumFile).trim();
 				txtOwnersChecksum.setText(checksum);
 				txtOwnersChecksum.setEnabled(false);
 				ChecksumAlgorithm checksumAlgorithmOfFile = algorithmForFileExtension(checksumFile)

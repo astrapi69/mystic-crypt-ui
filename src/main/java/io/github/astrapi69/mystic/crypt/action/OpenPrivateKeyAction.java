@@ -45,8 +45,8 @@ import io.github.astrapi69.crypt.data.key.PrivateKeyExtensions;
 import io.github.astrapi69.crypt.data.key.PublicKeyExtensions;
 import io.github.astrapi69.crypt.data.key.reader.EncryptedPrivateKeyReader;
 import io.github.astrapi69.crypt.data.key.reader.PrivateKeyReader;
-import io.github.astrapi69.file.read.ReadFileExtensions;
 import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
+import io.github.astrapi69.mystic.crypt.app.file.TextFiles;
 import io.github.astrapi69.mystic.crypt.key.PrivateKeyHexDecryptor;
 import io.github.astrapi69.mystic.crypt.key.PublicKeyHexEncryptor;
 import io.github.astrapi69.mystic.crypt.panel.privatekey.PrivateKeyModelBean;
@@ -216,7 +216,7 @@ public class OpenPrivateKeyAction extends OpenFileAction
 		{
 			if (PrivateKeyReader.isPemFormat(file))
 			{
-				privateKeyFormat = ReadFileExtensions.fromFile(file);
+				privateKeyFormat = TextFiles.readUtf8OrLatin1(file);
 			}
 			else
 			{

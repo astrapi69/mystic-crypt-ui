@@ -48,7 +48,6 @@ import io.github.astrapi69.awt.extension.ClipboardExtensions;
 import io.github.astrapi69.component.model.enumeration.visibility.RenderMode;
 import io.github.astrapi69.design.pattern.observer.event.EventObject;
 import io.github.astrapi69.file.create.DirectoryFactory;
-import io.github.astrapi69.file.read.ReadFileExtensions;
 import io.github.astrapi69.gson.JsonStringToObjectExtensions;
 import io.github.astrapi69.icon.ImageIconFactory;
 import io.github.astrapi69.id.generate.LongIdGenerator;
@@ -59,6 +58,7 @@ import io.github.astrapi69.mystic.crypt.action.NewApplicationFileAction;
 import io.github.astrapi69.mystic.crypt.action.OpenDatabaseTreeFrameAction;
 import io.github.astrapi69.mystic.crypt.action.SaveApplicationFileAction;
 import io.github.astrapi69.mystic.crypt.action.SaveBeforeCloseConfirmation;
+import io.github.astrapi69.mystic.crypt.app.file.TextFiles;
 import io.github.astrapi69.mystic.crypt.app.file.xml.VaultXmlCodec;
 import io.github.astrapi69.mystic.crypt.clipboard.ClipboardClearWatchdog;
 import io.github.astrapi69.mystic.crypt.eventbus.ApplicationEventBus;
@@ -209,7 +209,7 @@ public class MysticCryptApplicationFrame extends ApplicationPanelFrame<Applicati
 		if (memoizedSigninFile.exists())
 		{
 			String fromFile = RuntimeExceptionDecorator
-				.decorate(() -> ReadFileExtensions.fromFile(memoizedSigninFile));
+				.decorate(() -> TextFiles.readUtf8OrLatin1(memoizedSigninFile));
 			memoizedSigninModelBean = JsonStringToObjectExtensions.toObject(fromFile,
 				MemoizedSigninModelBean.class);
 		}

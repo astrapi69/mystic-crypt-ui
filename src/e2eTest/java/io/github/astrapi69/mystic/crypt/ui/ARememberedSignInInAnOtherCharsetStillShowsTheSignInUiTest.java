@@ -24,12 +24,13 @@
  */
 package io.github.astrapi69.mystic.crypt.ui;
 
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 
 import org.junit.jupiter.api.DisplayName;
@@ -53,21 +54,27 @@ class ARememberedSignInInAnOtherCharsetStillShowsTheSignInUiTest extends Abstrac
 	private static final String MASTER_PASSWORD = TestPasswords.throwaway();
 
 	@Test
-	@DisplayName("a remembered sign-in written in Windows-1252 stops the start before the sign-in dialog (today, #1081)")
-	void aRememberedSignInInWindows1252_stopsTheStart() throws IOException
+	@DisplayName("a remembered sign-in written in Windows-1252 still shows the sign-in dialog, signs in, and is written back in UTF-8")
+	void aRememberedSignInInWindows1252_stillSignsIn_andIsWrittenBackInUtf8() throws Exception
 	{
 		File databaseFile = new File(tempHome, "remembered.mcrdb");
 		createDatabaseFileHeadless(databaseFile, MASTER_PASSWORD);
-		rememberTwoDatabasesInWindows1252(databaseFile);
+		File memoizedSigninFile = rememberTwoDatabasesInWindows1252(databaseFile);
 
-		IllegalStateException startEnded = assertThrows(IllegalStateException.class,
-			this::launchApplication,
-			"file-worker 21 reads the file strictly, the start thread dies before the dialog");
-		assertTrue(startEnded.getMessage().contains("start thread ended"),
-			"the start thread ended before the sign-in dialog opened: " + startEnded.getMessage());
+		SignInDialogSteps signIn = launchApplication();
+		signIn.checkMasterPassword().typeMasterPassword(MASTER_PASSWORD).requireOkEnabled()
+			.okAndAwaitSignIn();
+		new ApplicationSteps(robot).awaitSignedIn();
+		assertTrue(MysticCryptApplicationFrame.getInstance().getModelObject().isSignedIn());
+
+		String writtenBack = StandardCharsets.UTF_8.newDecoder()
+			.decode(ByteBuffer.wrap(Files.readAllBytes(memoizedSigninFile.toPath()))).toString();
+		assertTrue(writtenBack.contains("/home/J\u00fcrgen/old.mcrdb"),
+			"the remembered path with its umlaut was read and is written back, now in UTF-8: "
+				+ writtenBack);
 	}
 
-	private void rememberTwoDatabasesInWindows1252(final File databaseFile) throws IOException
+	private File rememberTwoDatabasesInWindows1252(final File databaseFile) throws IOException
 	{
 		File configurationDirectory = new File(tempHome, ".config/mystic-crypt-ui");
 		assertTrue(configurationDirectory.mkdirs());
@@ -76,9 +83,9 @@ class ARememberedSignInInAnOtherCharsetStillShowsTheSignInUiTest extends Abstrac
 			+ "\",\"applicationFilePaths\":[\"" + path + "\",\"/home/Jürgen/old.mcrdb\"],"
 			+ "\"selectedKeyFilePath\":\"\",\"keyFilePaths\":[\"\"],\"withKeyFile\":false,"
 			+ "\"withMasterPw\":true}";
-		Files.write(
-			new File(configurationDirectory,
-				MysticCryptApplicationFrame.MEMOIZED_SIGNIN_JSON_FILENAME).toPath(),
-			json.getBytes(Charset.forName("windows-1252")));
+		File memoizedSigninFile = new File(configurationDirectory,
+			MysticCryptApplicationFrame.MEMOIZED_SIGNIN_JSON_FILENAME);
+		Files.write(memoizedSigninFile.toPath(), json.getBytes(Charset.forName("windows-1252")));
+		return memoizedSigninFile;
 	}
 }

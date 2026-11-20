@@ -639,8 +639,8 @@ class ChecksumPanelBindingTest
 	}
 
 	@Test
-	@DisplayName("a sibling checksum file in Windows-1252, for a name with an umlaut, is not loaded (today, #1081)")
-	void aSiblingChecksumFileInWindows1252_isNotLoaded(@TempDir File directory) throws Exception
+	@DisplayName("a sibling checksum file in Windows-1252, for a name with an umlaut, is loaded with the name")
+	void aSiblingChecksumFileInWindows1252_isLoaded(@TempDir File directory) throws Exception
 	{
 		File file = new File(directory, "J\u00fcrgen.txt");
 		Files.write(file.toPath(), "abc".getBytes(StandardCharsets.UTF_8));
@@ -651,8 +651,7 @@ class ChecksumPanelBindingTest
 
 		panel.applySelectedFile(file);
 
-		String loaded = panel.getModelObject().getOwnersChecksum();
-		assertTrue(loaded == null || loaded.isBlank(),
-			"file-worker 21 reads the checksum file strictly, nothing is loaded: " + loaded);
+		assertEquals(SHA_256_OF_ABC + "  J\u00fcrgen.txt", panel.getModelObject().getOwnersChecksum(),
+			"the checksum file is loaded, and the name in it keeps its umlaut");
 	}
 }
