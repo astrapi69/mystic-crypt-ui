@@ -30,6 +30,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.File;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.stream.Stream;
@@ -635,5 +636,23 @@ class ChecksumPanelBindingTest
 		assertHasTooltip(panel.getCbxChecksumAlgorithm(), "checksum algorithm");
 		assertHasTooltip(panel.getBtnCompare(), "compare button");
 		assertHasTooltip(panel.getTxtChecksumMatchResult(), "checksum match result");
+	}
+
+	@Test
+	@DisplayName("a sibling checksum file in Windows-1252, for a name with an umlaut, is not loaded (today, #1081)")
+	void aSiblingChecksumFileInWindows1252_isNotLoaded(@TempDir File directory) throws Exception
+	{
+		File file = new File(directory, "J\u00fcrgen.txt");
+		Files.write(file.toPath(), "abc".getBytes(StandardCharsets.UTF_8));
+		File siblingChecksumFile = new File(directory, file.getName() + ".sha256");
+		Files.write(siblingChecksumFile.toPath(), (SHA_256_OF_ABC + "  " + file.getName() + "\n")
+			.getBytes(Charset.forName("windows-1252")));
+		ChecksumPanel panel = new ChecksumPanel();
+
+		panel.applySelectedFile(file);
+
+		String loaded = panel.getModelObject().getOwnersChecksum();
+		assertTrue(loaded == null || loaded.isBlank(),
+			"file-worker 21 reads the checksum file strictly, nothing is loaded: " + loaded);
 	}
 }

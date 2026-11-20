@@ -24,9 +24,12 @@
  */
 package io.github.astrapi69.mystic.crypt.ui;
 
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.File;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.security.KeyPair;
 import java.util.List;
@@ -37,6 +40,7 @@ import javax.swing.JTextArea;
 
 import org.assertj.swing.core.GenericTypeMatcher;
 import org.assertj.swing.edt.GuiActionRunner;
+import org.assertj.swing.exception.WaitTimedOutError;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -89,5 +93,37 @@ class ThePrivateKeyViewShowsTheFileItWasOpenedFromUiTest extends AbstractUiTest
 				+ shown);
 
 		application.closeInternalFrame("Private key view");
+	}
+
+	/** A line after the key, in Windows-1252: what a PEM file from a tool or a person may carry */
+	private static final String WINDOWS_1252_LINE = "Schl\u00fcssel von J\u00fcrgen\n";
+
+	@Test
+	@DisplayName("a PEM file with a line in Windows-1252 does not open the private key view (today, #1081)")
+	void aPemFileWithAWindows1252Line_doesNotOpenTheView() throws Exception
+	{
+		File databaseFile = new File(tempHome, "private-key-view-1252.mcrdb");
+		createDatabaseFileHeadless(databaseFile, MASTER_PASSWORD);
+		ApplicationSteps application = signInWithExistingDatabase(databaseFile, MASTER_PASSWORD);
+		File privateKeyPemFile = new File(tempHome, "viewed-private-key-1252.pem");
+		KeyPair keyPair = KeyPairFactory.newKeyPair(KeyPairGeneratorAlgorithm.RSA, 2048);
+		PrivateKeyWriter.writeInPemFormat(keyPair.getPrivate(), privateKeyPemFile);
+		appendInWindows1252(privateKeyPemFile, WINDOWS_1252_LINE);
+
+		assertThrows(WaitTimedOutError.class,
+			() -> application.openPrivateKeyViaMenu(privateKeyPemFile),
+			"file-worker 21 reads the PEM file strictly, the action gives up and opens no view");
+	}
+
+	private static void appendInWindows1252(final File file, final String line) throws Exception
+	{
+		byte[] pem = Files.readAllBytes(file.toPath());
+		assertTrue(new String(pem, StandardCharsets.US_ASCII).startsWith("-----BEGIN"),
+			"precondition: a PEM file");
+		byte[] appended = line.getBytes(Charset.forName("windows-1252"));
+		byte[] all = new byte[pem.length + appended.length];
+		System.arraycopy(pem, 0, all, 0, pem.length);
+		System.arraycopy(appended, 0, all, pem.length, appended.length);
+		Files.write(file.toPath(), all);
 	}
 }
