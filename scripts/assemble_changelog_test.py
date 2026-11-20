@@ -44,12 +44,32 @@ FIXED:
             block = assemble("8.15", fragments)
         self.assertIn("- the first line\n  and its continuation (#1)", block)
 
-    def test_an_advisory_id_in_a_security_fragment_reaches_the_block(self):
+    def test_an_unpublished_advisory_id_in_a_fragment_is_refused(self):
         with TemporaryDirectory() as directory:
             fragments = [fragment(directory, "900.security.md",
                                   "- a hole in the reader (GHSA-abcd-efgh-2345)")]
+            with self.assertRaises(SystemExit) as refused:
+                assemble("8.16", fragments, lambda advisory_id: False)
+        self.assertIn("GHSA-abcd-efgh-2345", str(refused.exception))
+
+    def test_the_default_refuses_every_advisory_id(self):
+        with TemporaryDirectory() as directory:
+            fragments = [fragment(directory, "900.security.md", "- x (GHSA-abcd-efgh-2345)")]
+            with self.assertRaises(SystemExit):
+                assemble("8.16", fragments)
+
+    def test_a_published_advisory_id_in_a_fragment_is_kept(self):
+        with TemporaryDirectory() as directory:
+            fragments = [fragment(directory, "900.security.md", "- x (ghsa-abcd-efgh-2345)")]
+            block = assemble("8.16", fragments, lambda advisory_id: True)
+        self.assertIn("ghsa-abcd-efgh-2345", block)
+
+    def test_the_neutral_security_line_without_an_id_passes(self):
+        with TemporaryDirectory() as directory:
+            fragments = [fragment(directory, "900.security.md",
+                                  "- Fixes a security issue; its advisory follows after the release.")]
             block = assemble("8.16", fragments)
-        self.assertIn("GHSA-abcd-efgh-2345", block)
+        self.assertIn("SECURITY:\n- Fixes a security issue", block)
 
     def test_a_fragment_without_a_bullet_is_refused(self):
         with TemporaryDirectory() as directory:

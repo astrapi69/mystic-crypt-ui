@@ -12,9 +12,14 @@ Usage: scripts/assemble_changelog.py <version> [--dry-run]
 """
 
 import json
+import re
 import subprocess
 import sys
 from pathlib import Path
+
+ADVISORY_ID = re.compile(r"GHSA-[0-9a-z]{4}-[0-9a-z]{4}-[0-9a-z]{4}", re.IGNORECASE)
+
+ADVISORY_REPOSITORIES = ("mystic-crypt-ui", "mystic-crypt", "crypt-data", "crypt-api")
 
 SECTION_ORDER = ("security", "added", "changed", "fixed", "deprecated", "removed")
 
@@ -51,12 +56,39 @@ def pull_request_state(number):
     return json.loads(completed.stdout).get("state", "UNKNOWN")
 
 
-def assemble(version, fragments):
-    """The new version's block, fragments grouped in the file's section order."""
+def advisory_published(advisory_id):
+    """True when one of the family's repositories reports the advisory as published. The
+    global advisory database does not list these ids, so the repositories' own advisories are
+    asked; an unpublished advisory, an unknown id and a failed call all answer False (fail
+    closed)."""
+    for repository in ADVISORY_REPOSITORIES:
+        completed = subprocess.run(
+            ["gh", "api", f"repos/astrapi69/{repository}/security-advisories/{advisory_id}",
+             "--jq", ".state"], capture_output=True, text=True)
+        if completed.returncode == 0 and completed.stdout.strip() == "published":
+            return True
+    return False
+
+
+def unpublished_advisory_ids(text, is_published):
+    """The advisory ids in the text whose advisory is not published yet (AG-117)."""
+    return sorted({found for found in ADVISORY_ID.findall(text) if not is_published(found)})
+
+
+def assemble(version, fragments, is_published=lambda advisory_id: False):
+    """The new version's block, fragments grouped in the file's section order. A fragment that
+    names an advisory not yet published is refused: the release pull request carries the neutral
+    SECURITY line instead (AG-117, release-workflow.md step 3, #1021). ``is_published`` maps an
+    advisory id to whether it is published; the default refuses every id."""
     by_section = {}
     for path in fragments:
         _, section = parse_name(path)
         bullet = path.read_text(encoding="utf-8").strip()
+        unpublished = unpublished_advisory_ids(bullet, is_published)
+        if unpublished:
+            raise SystemExit(f"assemble-changelog: {path} names an advisory that is not published: "
+                             + ", ".join(unpublished) + " - the release pull request carries the"
+                             " neutral SECURITY line without an id (AG-117)")
         if not bullet.startswith("- "):
             raise SystemExit(f"assemble-changelog: {path} does not start with a bullet ('- ')")
         by_section.setdefault(section, []).append(bullet)
@@ -95,7 +127,7 @@ def main(argv):
         raise SystemExit("assemble-changelog: fragments of unmerged pull requests - a fragment"
                          " travels in its pull request, move these back or merge first: "
                          + ", ".join(path.name for path in strays))
-    block = assemble(version, fragments)
+    block = assemble(version, fragments, advisory_published)
     if dry_run:
         print(block)
         print(f"(dry run: {len(fragments)} fragment(s) read, nothing written, nothing deleted)")
