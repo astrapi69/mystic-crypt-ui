@@ -58,8 +58,8 @@ class ADialogOpensOverTheMainWindowUiTest extends AbstractUiTest
 	private static final int TOLERANCE = 40;
 
 	@Test
-	@DisplayName("the New node dialog opens centred over the screen, not over the moved main window (today, #63)")
-	void theNewNodeDialog_opensOverTheScreen() throws Exception
+	@DisplayName("the New node dialog opens centred over the moved main window, not over the screen")
+	void theNewNodeDialog_opensOverTheMainWindow() throws Exception
 	{
 		File databaseFile = new File(tempHome, "dialog-placement.mcrdb");
 		createDatabaseFileHeadless(databaseFile, MASTER_PASSWORD);
@@ -83,9 +83,8 @@ class ADialogOpensOverTheMainWindowUiTest extends AbstractUiTest
 		Point dialogCentre = centreOf(newNode.target());
 		newNode.close();
 
-		assertTrue(near(dialogCentre, screenCentre),
-			"the dialog is centred over the screen " + screenCentre + ", at " + dialogCentre
-				+ ", not over the main window at " + windowCentre);
+		assertTrue(near(dialogCentre, windowCentre), "the dialog is centred over the main window "
+			+ windowCentre + ", at " + dialogCentre + ", not over the screen at " + screenCentre);
 	}
 
 	private static Point centreOf(final Window window)
