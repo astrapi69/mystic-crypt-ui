@@ -16,6 +16,10 @@ expected, and the case number (`TC-nnnn`) - that becomes a GitHub issue.
 new case takes the next free number, and a case that falls away stays in place, marked
 `withdrawn`, with one line saying why.
 
+**No case names an advisory id or describes the defect of a fix under an unpublished advisory**
+(AG-117): such a case enters the plan once the advisory is published. TS-0004 names
+GHSA-px49-m539-22h8, published on 2026-11-18, and may stay.
+
 **Every case says how it is covered**: `automated by` names the test method that drives the
 same path, written `Class#method`, and for a parameterized test the method and the case
 (`Class#method` with the case named in parentheses); `manual only` says no machine does, with
