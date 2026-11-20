@@ -66,7 +66,7 @@ help: ## [help] lists every target with what it does
 
 # point git at the repository's own hooks, so the pre-commit formatting check runs before a commit exists.
 # A hook is per working copy: run this once in every fresh clone and every new worktree (#373)
-install-hooks: ## [quality] point git at .githooks, so the pre-commit Spotless check runs; once per clone and worktree
+install-hooks: ## [quality] point git at .githooks, so the pre-commit Spotless check and the pre-push pull request check run; once per clone and worktree
 	git config core.hooksPath .githooks
 	@printf 'hooks installed: core.hooksPath -> %s\n' "$$(git config core.hooksPath)"
 
@@ -268,10 +268,11 @@ bump-check: ## [plugins] before a crypt-data or mystic-crypt bump: the host unit
 	@echo "==> bump-check: the host suites and all internal plugins are green"
 
 # build every internal plugin
-plugins: plugin-obfuscation plugin-checksum plugin-conversion plugin-console plugin-keygen plugin-certificate plugin-password-hash plugin-kem-demo plugin-menu-designer plugin-pqc-signature plugin-keystore plugin-file-crypt plugin-secret-sharing plugin-lethenon plugin-release-key ## [plugins] every internal plugin with its tests and zip, and the two script test suites
+plugins: plugin-obfuscation plugin-checksum plugin-conversion plugin-console plugin-keygen plugin-certificate plugin-password-hash plugin-kem-demo plugin-menu-designer plugin-pqc-signature plugin-keystore plugin-file-crypt plugin-secret-sharing plugin-lethenon plugin-release-key ## [plugins] every internal plugin with its tests and zip, and the three script test suites
 ifeq ($(SCRIPT_TESTS),yes)
 	python3 scripts/merge_pr_test.py
 	python3 scripts/assemble_changelog_test.py
+	python3 scripts/pr_state_guard_test.py
 endif
 
 # build all internal plugins and install them into the app's plugins directory

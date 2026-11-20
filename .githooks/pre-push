@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+#
+# Refuses a push to the branch of a pull request that is merged or closed (AG-061).
+#
+# Thin on purpose: which branches count and what GitHub is asked lives in scripts/pr_state_guard.py,
+# which a test drives directly. Git passes the remote's name and URL as arguments and the pushed
+# refs on standard input, and both go through unchanged.
+#
+# When GitHub cannot be asked, the push is refused too. git push --no-verify skips this hook; it is
+# used only on the maintainer's instruction, and only for the case that GitHub cannot be reached.
+#
+# Installed with: make install-hooks   (sets core.hooksPath to this directory)
+set -euo pipefail
+repository_root="$(git rev-parse --show-toplevel)"
+exec python3 -I "$repository_root/scripts/pr_state_guard.py" "$@"
