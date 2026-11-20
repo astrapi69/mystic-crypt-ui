@@ -1,0 +1,5 @@
+URL: https://www.apache.org/licenses/LICENSE-2.0.txt
+Version read: 1.10.3
+File: LICENSE-2.0.txt
+Apache 2.0 text named by the POM; LICENSE.txt in the repository is only the short notice
+Repository notice: https://raw.githubusercontent.com/kostaskougios/cloning/c5010b4f3907f49e2651feed647482727f94fd58/LICENSE.txt (commit c5010b4f, "v1.10.3"; upstream has no tag for 1.10.3)

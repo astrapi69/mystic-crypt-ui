@@ -1,0 +1,4 @@
+URL: https://raw.githubusercontent.com/remkop/picocli/v4.7.7/LICENSE
+Version read: 4.7.7
+File: LICENSE
+git tag v4.7.7

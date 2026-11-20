@@ -11,7 +11,7 @@ says which of them to use for what. Releasing is in [build-and-release.md](build
   `~/.sdkman/candidates/java/` when it is there and falls back to the shell's `JAVA_HOME` otherwise.
 - **For any test run**: `Xvfb`, `fluxbox`, `wmctrl` and `xdpyinfo`. Every test task starts an X server
   and a window manager of its own with them and never uses the display of your desktop.
-- **`python3`** for the three script test suites that `make plugins` runs, and **`gpg`** for the tests
+- **`python3`** for the four script test suites that `make plugins` runs, and **`gpg`** for the tests
   of the release key plugin.
 - **`make install-hooks`**, once per clone and once per worktree: the pre-commit hook then refuses a
   commit that Spotless would reformat, and the pre-push hook a push to the branch of a pull request

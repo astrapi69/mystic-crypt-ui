@@ -1,0 +1,4 @@
+URL: https://raw.githubusercontent.com/google/gson/gson-parent-2.15.0/LICENSE
+Version read: 2.15.0
+File: LICENSE
+git tag gson-parent-2.15.0
