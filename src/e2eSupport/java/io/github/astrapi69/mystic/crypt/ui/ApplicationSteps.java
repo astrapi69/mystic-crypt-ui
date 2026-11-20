@@ -348,6 +348,17 @@ final class ApplicationSteps
 		return this;
 	}
 
+	/**
+	 * Opens the "New node" dialog through the tree's context menu and leaves it open, for a test
+	 * that looks at the dialog itself (#63)
+	 */
+	ApplicationSteps openNewNodeDialog(org.assertj.swing.fixture.FrameFixture frame)
+	{
+		rightClickBelowTheTreeNodes(frame);
+		chooseFromShowingPopup("add node...");
+		return this;
+	}
+
 	/** Opens the "New node" dialog and closes it without confirming - no node is added */
 	ApplicationSteps addNodeButCancel(org.assertj.swing.fixture.FrameFixture frame)
 	{
