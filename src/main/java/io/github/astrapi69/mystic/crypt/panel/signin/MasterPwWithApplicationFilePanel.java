@@ -28,6 +28,8 @@ import java.awt.event.ActionEvent;
 import java.io.File;
 import java.io.Serial;
 import java.net.URL;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.logging.Level;
 
 import javax.swing.*;
@@ -106,6 +108,16 @@ public class MasterPwWithApplicationFilePanel extends BasePanel<MasterPwFileMode
 	/** Says why a key file is not taken for a database with a master password (#943) */
 	private KeyFileFormatNotice keyFileFormatNotice;
 	GenericMutableComboBoxModel<String> cmbKeyFileModel;
+
+	/**
+	 * What the remembered sign-in knows about each database, read once from the model this panel
+	 * was built with: a "New..." dialog replaces the model of the panel, and the choices of the
+	 * other databases must survive that.
+	 * <p>
+	 * Has no initializer on purpose: the super constructor builds the components, and a field
+	 * initializer runs after it and would throw away what was read there (#997)
+	 */
+	private Map<String, DatabaseSignInChoice> rememberedChoices;
 	GenericMutableComboBoxModel<String> cmbApplicationFileModel;
 
 	/**
@@ -236,6 +248,9 @@ public class MasterPwWithApplicationFilePanel extends BasePanel<MasterPwFileMode
 
 		btnApplicationFileChooser.addActionListener(this::onApplicationFileChooser);
 
+		rememberedChoices = modelObject.getChoicesByDatabase() != null
+			? new HashMap<>(modelObject.getChoicesByDatabase())
+			: new HashMap<>();
 		File configDir = MysticCryptApplicationFrame.getInstance().getConfigurationDirectory();
 		fileChooser = new JFileChooser(configDir);
 		String selectedKeyFilePath = modelObject.getSelectedKeyFilePath();
@@ -324,6 +339,7 @@ public class MasterPwWithApplicationFilePanel extends BasePanel<MasterPwFileMode
 			cmbApplicationFileModel.addElement(absolutePath);
 			cmbApplicationFileModel.setSelectedItem(absolutePath);
 			getModelObject().setApplicationFileInfo(FileInfo.toFileInfo(selectedApplicationFile));
+			offerWhatThisDatabaseWasOpenedWith(absolutePath);
 			toggleApplicationFileComponents();
 			btnOkStateMachine.onApplicationFileAdded(btnOkStateMachine);
 		}
@@ -471,6 +487,7 @@ public class MasterPwWithApplicationFilePanel extends BasePanel<MasterPwFileMode
 					getModelObject().getApplicationFilePaths()
 						.add(selectedApplicationFile.getAbsolutePath());
 				}
+				offerWhatThisDatabaseWasOpenedWith(selectedApplicationFilePath);
 				btnOkStateMachine.onApplicationFileAdded(btnOkStateMachine);
 			}
 			else if (!selectedApplicationFile.exists())
@@ -495,6 +512,45 @@ public class MasterPwWithApplicationFilePanel extends BasePanel<MasterPwFileMode
 			keyFileFormatNotice = new KeyFileFormatNotice(this);
 		}
 		return keyFileFormatNotice;
+	}
+
+	/**
+	 * Sets the key file field and both checkboxes from what the last sign-in to the chosen database
+	 * used, and leaves them as they are for a database the remembered sign-in has no entry for
+	 * (#997)
+	 *
+	 * @param databasePath
+	 *            the database that was chosen
+	 */
+	private void offerWhatThisDatabaseWasOpenedWith(final String databasePath)
+	{
+		RememberedKeyFileSupport.choiceFor(rememberedChoices, databasePath).ifPresent(choice -> {
+			String keyFilePath = choice.getKeyFilePath();
+			if (!isListedKeyFile(keyFilePath))
+			{
+				cmbKeyFileModel.addElement(keyFilePath);
+			}
+			cmbKeyFileModel.setSelectedItem(keyFilePath);
+			// the model does not tell the combo box's listener, so the state follows by hand
+			onChangeCmbKeyFile(null);
+			cbxMasterPw.setSelected(choice.isWithMasterPw());
+			getModelObject().setWithMasterPw(choice.isWithMasterPw());
+			toggleMasterPwComponents();
+			cbxKeyFile.setSelected(choice.isWithKeyFile());
+			toggleKeyFileComponents();
+		});
+	}
+
+	private boolean isListedKeyFile(final String keyFilePath)
+	{
+		for (int index = 0; index < cmbKeyFileModel.getSize(); index++)
+		{
+			if (java.util.Objects.equals(keyFilePath, cmbKeyFileModel.getElementAt(index)))
+			{
+				return true;
+			}
+		}
+		return false;
 	}
 
 	protected void onChangeCmbKeyFile(final ActionEvent actionEvent)
@@ -745,6 +801,7 @@ public class MasterPwWithApplicationFilePanel extends BasePanel<MasterPwFileMode
 					.getMasterPwFileModelBean();
 				MemoizedSigninModelBean memoizedSigninModelBean = masterPwFileModelBean
 					.toMemoizedSigninModelBean(panelModelObject);
+				memoizedSigninModelBean.setChoicesByDatabase(rememberSignInOf(panelModelObject));
 				File memoizedSigninFile = new File(applicationFrame.getConfigurationDirectory(),
 					MysticCryptApplicationFrame.MEMOIZED_SIGNIN_JSON_FILENAME);
 				// a remembered sign-in that could not be read is kept aside first (#1082)
@@ -772,6 +829,30 @@ public class MasterPwWithApplicationFilePanel extends BasePanel<MasterPwFileMode
 				log.log(Level.SEVERE, exception.getMessage(), exception);
 			}
 		}
+	}
+
+	/**
+	 * The remembered choices with the sign-in that just succeeded added, so the next start offers
+	 * this database with the key file and the factors it was opened with (#997)
+	 */
+	private Map<String, DatabaseSignInChoice> rememberSignInOf(
+		final MasterPwFileModelBean signedInWith)
+	{
+		String keyFilePath = signedInWith.isWithKeyFile()
+			&& signedInWith.getSelectedKeyFilePath() != null
+				? signedInWith.getSelectedKeyFilePath()
+				: "";
+		DatabaseSignInChoice choice = DatabaseSignInChoice.builder().keyFilePath(keyFilePath)
+			.withKeyFile(signedInWith.isWithKeyFile()).withMasterPw(signedInWith.isWithMasterPw())
+			.build();
+		// the file that was opened, which Browse... and the dropdown both set, whatever path the
+		// model remembers as selected
+		String openedPath = signedInWith.getApplicationFileInfo() != null
+			? signedInWith.getApplicationFileInfo().toFile().getAbsolutePath()
+			: signedInWith.getSelectedApplicationFilePath();
+		rememberedChoices = RememberedKeyFileSupport.remember(rememberedChoices, openedPath,
+			choice);
+		return rememberedChoices;
 	}
 
 	/**

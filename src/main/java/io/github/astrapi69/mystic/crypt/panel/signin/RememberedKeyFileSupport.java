@@ -25,12 +25,18 @@
 package io.github.astrapi69.mystic.crypt.panel.signin;
 
 import java.io.File;
+import java.nio.file.InvalidPathException;
+import java.nio.file.Path;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 
 import io.github.astrapi69.file.create.model.FileInfo;
 
 /**
- * Which key file a remembered sign-in preselects
+ * Which key file a remembered sign-in preselects, for the database signed in to last and for each
+ * database the dialog is asked to open
  */
 public final class RememberedKeyFileSupport
 {
@@ -64,5 +70,112 @@ public final class RememberedKeyFileSupport
 			return Optional.empty();
 		}
 		return Optional.of(FileInfo.toFileInfo(keyFile));
+	}
+
+	/**
+	 * The key under which a database is remembered, and what equality of two database paths means
+	 * here: both name the same database when they are the same path after making each absolute (a
+	 * relative path is read against the working directory, as {@code new File(path)} reads it) and
+	 * removing {@code .} and {@code ..} segments.
+	 * <p>
+	 * The comparison is lexical on purpose. It touches no disk, so a database that was moved or
+	 * deleted is still found by the path it was remembered under, and the dialog does not stall on
+	 * a network drive that is gone. The price is that a symbolic link and its target count as two
+	 * databases; that is the safe side, since a missing entry changes nothing in the dialog while a
+	 * wrong match would offer another database's key file. Whether upper and lower case differ is
+	 * left to the file system's own {@link Path#equals(Object)}, which {@link #choiceFor} uses.
+	 *
+	 * @param databasePath
+	 *            the path of the database as typed, chosen or stored, may be null
+	 * @return the absolute, normalized path, or null for a null or blank path
+	 */
+	public static String databaseKey(final String databasePath)
+	{
+		Path path = normalized(databasePath);
+		return path == null ? null : path.toString();
+	}
+
+	private static Path normalized(final String databasePath)
+	{
+		if (databasePath == null || databasePath.isBlank())
+		{
+			return null;
+		}
+		try
+		{
+			return Path.of(databasePath).toAbsolutePath().normalize();
+		}
+		catch (InvalidPathException notAPath)
+		{
+			return null;
+		}
+	}
+
+	/**
+	 * What the remembered sign-in knows about the given database: the key file and the factors it
+	 * was opened with. A key file that is no longer there is not offered, so the entry comes back
+	 * with an empty key file path and the same factors, and the user chooses a key file anew.
+	 *
+	 * @param choicesByDatabase
+	 *            the remembered choices by database path, may be null
+	 * @param databasePath
+	 *            the database that was chosen in the dialog, may be null
+	 * @return the choice, or empty when the database has no entry
+	 */
+	public static Optional<DatabaseSignInChoice> choiceFor(
+		final Map<String, DatabaseSignInChoice> choicesByDatabase, final String databasePath)
+	{
+		Path wanted = normalized(databasePath);
+		if (wanted == null || choicesByDatabase == null)
+		{
+			return Optional.empty();
+		}
+		for (Map.Entry<String, DatabaseSignInChoice> entry : choicesByDatabase.entrySet())
+		{
+			if (entry.getValue() != null && wanted.equals(normalized(entry.getKey())))
+			{
+				DatabaseSignInChoice remembered = entry.getValue();
+				String keyFilePath = keyFileOf(remembered.getKeyFilePath()).isPresent()
+					? remembered.getKeyFilePath()
+					: "";
+				return Optional.of(remembered.toBuilder().keyFilePath(keyFilePath).build());
+			}
+		}
+		return Optional.empty();
+	}
+
+	/**
+	 * The remembered choices with the given database's entry set, the entries of the other
+	 * databases untouched. An older entry of the same database, written under another spelling of
+	 * its path, is replaced.
+	 *
+	 * @param choicesByDatabase
+	 *            the choices remembered so far, may be null
+	 * @param databasePath
+	 *            the database that was signed in to
+	 * @param choice
+	 *            what the sign-in used
+	 * @return a new map, the input is not changed
+	 */
+	public static Map<String, DatabaseSignInChoice> remember(
+		final Map<String, DatabaseSignInChoice> choicesByDatabase, final String databasePath,
+		final DatabaseSignInChoice choice)
+	{
+		Map<String, DatabaseSignInChoice> remembered = new HashMap<>();
+		Path signedInTo = normalized(databasePath);
+		if (choicesByDatabase != null)
+		{
+			choicesByDatabase.forEach((path, existing) -> {
+				if (existing != null && !Objects.equals(signedInTo, normalized(path)))
+				{
+					remembered.put(path, existing);
+				}
+			});
+		}
+		if (signedInTo != null)
+		{
+			remembered.put(signedInTo.toString(), choice);
+		}
+		return remembered;
 	}
 }

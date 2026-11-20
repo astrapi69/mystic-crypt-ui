@@ -25,6 +25,8 @@
 package io.github.astrapi69.mystic.crypt.ui;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.File;
 
@@ -35,10 +37,12 @@ import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
 import io.github.astrapi69.mystic.crypt.TestPasswords;
 
 /**
- * The key file the sign-in dialog offers for the database that is chosen (#997).
+ * The key file and the factors the sign-in dialog offers for the database that is chosen (#997).
  * <p>
- * Two databases are created through "New...", each with a key file of its own, and each is signed
- * in to once. After a restart the dialog offers the database signed in to last.
+ * Databases are created through "New...", each is signed in to once, and after a restart the dialog
+ * offers the one signed in to last. Choosing another database in it offers what that database was
+ * opened with, and a database the remembered sign-in knows nothing about leaves the fields as they
+ * are.
  */
 class KeyFileFollowsTheDatabaseUiTest extends AbstractUiTest
 {
@@ -46,24 +50,56 @@ class KeyFileFollowsTheDatabaseUiTest extends AbstractUiTest
 	private static final String MASTER_PASSWORD = TestPasswords.throwaway();
 
 	@Test
-	@DisplayName("pinned on develop (#997): choosing the first database offers the key file of the second one")
-	void choosingAnotherDatabase_keepsTheKeyFileOfTheDatabaseSignedInToLast() throws Exception
+	@DisplayName("choosing the first database offers its own key file, not the one of the database signed in to last")
+	void choosingAnotherDatabase_offersTheKeyFileThatDatabaseWasOpenedWith() throws Exception
 	{
 		File first = new File(tempHome, "first.mcrdb");
 		File second = new File(tempHome, "second.mcrdb");
-		createAndSignIn(first, "first-key.pem");
+		File firstKey = createWithKeyFileAndSignIn(first, "first-key.pem");
 		shutdownApplication();
-		File secondKey = createAndSignIn(second, "second-key.pem");
+		createWithKeyFileAndSignIn(second, "second-key.pem");
 		shutdownApplication();
 
 		SignInDialogSteps signIn = launchApplication();
 		signIn.browseApplicationFile(first);
 
-		assertEquals(secondKey.getAbsolutePath(), signIn.selectedKeyFile(),
-			"today the key file of the database signed in to last stays in the field");
+		assertEquals(firstKey.getAbsolutePath(), signIn.selectedKeyFile());
+		assertTrue(signIn.keyFileIsChecked() && signIn.masterPasswordIsChecked(),
+			"both factors, as the database was opened");
 	}
 
-	private File createAndSignIn(final File database, final String keyFileName)
+	@Test
+	@DisplayName("each database offers its factors, and one the remembered sign-in does not know leaves the fields alone")
+	void choosingDatabases_setsTheFieldsFromTheirEntries_andLeavesThemForAnUnknownOne()
+		throws Exception
+	{
+		File withKey = new File(tempHome, "with-key.mcrdb");
+		File passwordOnly = new File(tempHome, "password-only.mcrdb");
+		File neverSignedIn = new File(tempHome, "never-signed-in.mcrdb");
+		createDatabaseFileHeadless(neverSignedIn, MASTER_PASSWORD);
+		File key = createWithKeyFileAndSignIn(withKey, "with-key.pem");
+		shutdownApplication();
+		createWithPasswordAloneAndSignIn(passwordOnly);
+		shutdownApplication();
+
+		SignInDialogSteps signIn = launchApplication();
+		assertFalse(signIn.keyFileIsChecked(), "the database signed in to last used no key file");
+		signIn.browseApplicationFile(withKey);
+		assertEquals(key.getAbsolutePath(), signIn.selectedKeyFile());
+		assertTrue(signIn.keyFileIsChecked() && signIn.masterPasswordIsChecked());
+
+		signIn.browseApplicationFile(neverSignedIn);
+		assertEquals(key.getAbsolutePath(), signIn.selectedKeyFile(), "no entry, field alone");
+		assertTrue(signIn.keyFileIsChecked() && signIn.masterPasswordIsChecked());
+
+		signIn.browseApplicationFile(passwordOnly);
+		assertFalse(signIn.keyFileIsChecked(), "this database was opened with the password alone");
+		assertTrue(signIn.masterPasswordIsChecked());
+		assertTrue(signIn.selectedKeyFile() == null || signIn.selectedKeyFile().isEmpty(),
+			"and no key file is offered for it: " + signIn.selectedKeyFile());
+	}
+
+	private File createWithKeyFileAndSignIn(final File database, final String keyFileName)
 	{
 		SignInDialogSteps signIn = launchApplication();
 		signIn.startNewDatabase(database).checkMasterPassword()
@@ -74,5 +110,15 @@ class KeyFileFollowsTheDatabaseUiTest extends AbstractUiTest
 		new ApplicationSteps(robot).awaitSignedIn();
 		return new File(MysticCryptApplicationFrame.getInstance().getConfigurationDirectory(),
 			keyFileName);
+	}
+
+	private void createWithPasswordAloneAndSignIn(final File database)
+	{
+		SignInDialogSteps signIn = launchApplication();
+		signIn.startNewDatabase(database).checkMasterPassword()
+			.typeMasterPasswordWithRepeat(MASTER_PASSWORD).requireOkEnabled().okAndAwaitClose();
+		signIn.checkMasterPassword().uncheckKeyFile().typeMasterPassword(MASTER_PASSWORD)
+			.requireOkEnabled().okAndAwaitSignIn();
+		new ApplicationSteps(robot).awaitSignedIn();
 	}
 }
