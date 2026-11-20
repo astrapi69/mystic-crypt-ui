@@ -27,7 +27,7 @@ package io.github.astrapi69.mystic.crypt.settings;
 import java.io.File;
 
 import io.github.astrapi69.gson.JsonStringToObjectExtensions;
-import io.github.astrapi69.gson.ObjectToJsonFileExtensions;
+import io.github.astrapi69.mystic.crypt.app.file.JsonFileStore;
 import io.github.astrapi69.mystic.crypt.app.file.TextFiles;
 import io.github.astrapi69.mystic.crypt.clipboard.ClipboardClearDecision;
 import io.github.astrapi69.mystic.crypt.lock.IdleLockDecision;
@@ -131,20 +131,9 @@ public class MysticCryptSettings
 	 */
 	public static MysticCryptSettings load(File configurationDirectory)
 	{
-		File file = new File(configurationDirectory, JSON_FILENAME);
-		if (file.exists())
-		{
-			try
-			{
-				String json = TextFiles.readUtf8OrLatin1(file);
-				return JsonStringToObjectExtensions.toObject(json, MysticCryptSettings.class);
-			}
-			catch (Exception exception)
-			{
-				// ignore, fall through to fresh defaults
-			}
-		}
-		return new MysticCryptSettings();
+		return JsonFileStore
+			.read(new File(configurationDirectory, JSON_FILENAME), MysticCryptSettings.class)
+			.orElseGet(MysticCryptSettings::new);
 	}
 
 	/**
@@ -197,7 +186,8 @@ public class MysticCryptSettings
 		File file = new File(configurationDirectory, JSON_FILENAME);
 		try
 		{
-			ObjectToJsonFileExtensions.toJsonFile(this, file);
+			// a file that could not be read is kept aside first, not written over (#1082)
+			JsonFileStore.write(this, file, MysticCryptSettings.class);
 		}
 		catch (Exception exception)
 		{

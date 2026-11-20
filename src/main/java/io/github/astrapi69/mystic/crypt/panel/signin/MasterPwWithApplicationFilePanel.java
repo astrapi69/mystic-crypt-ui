@@ -39,13 +39,13 @@ import org.apache.commons.lang3.StringUtils;
 import io.github.astrapi69.browser.BrowserControlExtensions;
 import io.github.astrapi69.collection.pair.ValueBox;
 import io.github.astrapi69.file.create.model.FileInfo;
-import io.github.astrapi69.gson.ObjectToJsonFileExtensions;
 import io.github.astrapi69.model.BaseModel;
 import io.github.astrapi69.model.LambdaModel;
 import io.github.astrapi69.model.api.IModel;
 import io.github.astrapi69.mystic.crypt.ApplicationModelBean;
 import io.github.astrapi69.mystic.crypt.Messages;
 import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
+import io.github.astrapi69.mystic.crypt.app.file.JsonFileStore;
 import io.github.astrapi69.mystic.crypt.app.file.xml.ApplicationXmlFileReader;
 import io.github.astrapi69.mystic.crypt.panel.signin.button.state.ok.BtnOkComponentStateEnum;
 import io.github.astrapi69.mystic.crypt.panel.signin.button.state.ok.BtnOkStateMachine;
@@ -747,7 +747,9 @@ public class MasterPwWithApplicationFilePanel extends BasePanel<MasterPwFileMode
 					.toMemoizedSigninModelBean(panelModelObject);
 				File memoizedSigninFile = new File(applicationFrame.getConfigurationDirectory(),
 					MysticCryptApplicationFrame.MEMOIZED_SIGNIN_JSON_FILENAME);
-				ObjectToJsonFileExtensions.toJsonFile(memoizedSigninModelBean, memoizedSigninFile);
+				// a remembered sign-in that could not be read is kept aside first (#1082)
+				JsonFileStore.write(memoizedSigninModelBean, memoizedSigninFile,
+					MemoizedSigninModelBean.class);
 				signInSuccessful = true;
 			}
 		}

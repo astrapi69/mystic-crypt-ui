@@ -48,7 +48,6 @@ import io.github.astrapi69.awt.extension.ClipboardExtensions;
 import io.github.astrapi69.component.model.enumeration.visibility.RenderMode;
 import io.github.astrapi69.design.pattern.observer.event.EventObject;
 import io.github.astrapi69.file.create.DirectoryFactory;
-import io.github.astrapi69.gson.JsonStringToObjectExtensions;
 import io.github.astrapi69.icon.ImageIconFactory;
 import io.github.astrapi69.id.generate.LongIdGenerator;
 import io.github.astrapi69.model.BaseModel;
@@ -58,7 +57,8 @@ import io.github.astrapi69.mystic.crypt.action.NewApplicationFileAction;
 import io.github.astrapi69.mystic.crypt.action.OpenDatabaseTreeFrameAction;
 import io.github.astrapi69.mystic.crypt.action.SaveApplicationFileAction;
 import io.github.astrapi69.mystic.crypt.action.SaveBeforeCloseConfirmation;
-import io.github.astrapi69.mystic.crypt.app.file.TextFiles;
+import io.github.astrapi69.mystic.crypt.app.file.JsonFileStore;
+import io.github.astrapi69.mystic.crypt.app.file.UnreadableFileNotices;
 import io.github.astrapi69.mystic.crypt.app.file.xml.VaultXmlCodec;
 import io.github.astrapi69.mystic.crypt.clipboard.ClipboardClearWatchdog;
 import io.github.astrapi69.mystic.crypt.eventbus.ApplicationEventBus;
@@ -91,7 +91,6 @@ import io.github.astrapi69.swing.panel.desktoppane.JDesktopPanePanel;
 import io.github.astrapi69.swing.plaf.LookAndFeels;
 import io.github.astrapi69.swing.splashscreen.ProgressBarSplashScreen;
 import io.github.astrapi69.swing.splashscreen.SplashScreenModelBean;
-import io.github.astrapi69.throwable.RuntimeExceptionDecorator;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NonNull;
@@ -205,18 +204,11 @@ public class MysticCryptApplicationFrame extends ApplicationPanelFrame<Applicati
 	{
 		File configurationDirectory = getConfigurationDirectory();
 		File memoizedSigninFile = new File(configurationDirectory, MEMOIZED_SIGNIN_JSON_FILENAME);
-		final MemoizedSigninModelBean memoizedSigninModelBean;
-		if (memoizedSigninFile.exists())
-		{
-			String fromFile = RuntimeExceptionDecorator
-				.decorate(() -> TextFiles.readUtf8OrLatin1(memoizedSigninFile));
-			memoizedSigninModelBean = JsonStringToObjectExtensions.toObject(fromFile,
-				MemoizedSigninModelBean.class);
-		}
-		else
-		{
-			memoizedSigninModelBean = MemoizedSigninModelBean.builder().build();
-		}
+		// a remembered sign-in that cannot be read is no reason to stop the start: the dialog opens
+		// empty, and the save after the sign-in keeps the old file aside (#1082)
+		final MemoizedSigninModelBean memoizedSigninModelBean = JsonFileStore
+			.read(memoizedSigninFile, MemoizedSigninModelBean.class)
+			.orElseGet(() -> MemoizedSigninModelBean.builder().build());
 		MasterPwFileModelBean masterPwFileModelBean = MasterPwFileModelBean.builder()
 			.minPasswordLength(6).withKeyFile(false).withMasterPw(false).showMasterPw(false)
 			.build();
@@ -396,7 +388,26 @@ public class MysticCryptApplicationFrame extends ApplicationPanelFrame<Applicati
 		onWindowClosing();
 		startTheIdleLockWatchdog();
 		startTheClipboardClearWatchdog();
+		UnreadableFileNotices.listen(this::tellAboutAFileKeptAside);
 		StartupSignal.startCompleted();
+	}
+
+	/**
+	 * Tells the user that a file the application keeps could not be read and was kept aside before
+	 * it was written anew (#1082), with this window as the message's parent
+	 *
+	 * @param setAside
+	 *            the file and where it lies now
+	 */
+	private void tellAboutAFileKeptAside(final UnreadableFileNotices.SetAside setAside)
+	{
+		SwingUtilities.invokeLater(() -> JOptionPane.showMessageDialog(this, String.format(
+			Messages.getString("dialog.file.kept.aside.message",
+				"The file %1$s could not be read, so the application went on with its defaults. Before "
+					+ "writing it anew, it kept the old file beside it as %2$s, so nothing in it is lost."),
+			setAside.original().getAbsolutePath(), setAside.keptAs().getName()),
+			Messages.getString("dialog.file.kept.aside.title", "A file could not be read"),
+			JOptionPane.WARNING_MESSAGE));
 	}
 
 	/**

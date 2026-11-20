@@ -25,7 +25,6 @@
 package io.github.astrapi69.mystic.crypt.keepass;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -115,19 +114,35 @@ class MemoizedKeePassModelBeanTest
 	}
 
 	@Test
-	@DisplayName("a memo file that cannot be read is written over by the next save (today, #1082)")
-	void anUnreadableMemoFile_isWrittenOverByTheNextSave(@TempDir final File configurationDirectory)
+	@DisplayName("a memo file that cannot be read is kept aside by the next save, which writes the memo anew")
+	void anUnreadableMemoFile_isKeptAsideByTheNextSave(@TempDir final File configurationDirectory)
 		throws IOException
 	{
 		File file = new File(configurationDirectory, MemoizedKeePassModelBean.JSON_FILENAME);
 		byte[] broken = "{\"lastImportFilePath\": ".getBytes(StandardCharsets.UTF_8);
 		Files.write(file.toPath(), broken);
+		java.util.List<io.github.astrapi69.mystic.crypt.app.file.UnreadableFileNotices.SetAside> told = new java.util.ArrayList<>();
+		io.github.astrapi69.mystic.crypt.app.file.UnreadableFileNotices.listen(told::add);
+		try
+		{
+			MemoizedKeePassModelBean memo = MemoizedKeePassModelBean.load(configurationDirectory);
+			assertNull(memo.getLastImportFilePath(), "a fresh bean is used");
+			memo.setLastImportFilePath("/home/user/new.kdbx");
+			memo.save(configurationDirectory);
+		}
+		finally
+		{
+			io.github.astrapi69.mystic.crypt.app.file.UnreadableFileNotices.listen(null);
+		}
 
-		MemoizedKeePassModelBean.load(configurationDirectory).save(configurationDirectory);
-
-		assertFalse(java.util.Arrays.equals(broken, Files.readAllBytes(file.toPath())),
-			"a fresh bean is written over the file");
-		String[] names = configurationDirectory.list();
-		assertEquals(1, names.length, "nothing is kept beside it: " + String.join(", ", names));
+		File[] keptAside = configurationDirectory.listFiles((directory, name) -> name
+			.startsWith(MemoizedKeePassModelBean.JSON_FILENAME + ".unreadable-"));
+		assertEquals(1, keptAside.length, "the old file is kept beside the new one");
+		assertTrue(java.util.Arrays.equals(broken, Files.readAllBytes(keptAside[0].toPath())),
+			"with its bytes unchanged");
+		assertEquals("/home/user/new.kdbx",
+			MemoizedKeePassModelBean.load(configurationDirectory).getLastImportFilePath(),
+			"the new file reads back");
+		assertEquals(1, told.size(), "the user is told once: " + told);
 	}
 }
