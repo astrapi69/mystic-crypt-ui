@@ -32,12 +32,14 @@ import java.awt.Component;
 import java.awt.Container;
 import java.awt.Dialog;
 import java.awt.Window;
+import java.util.Locale;
 import java.util.Optional;
 import java.util.function.Predicate;
 
 import javax.swing.AbstractButton;
 import javax.swing.JFrame;
 import javax.swing.SwingUtilities;
+import javax.swing.UIManager;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -58,9 +60,7 @@ class PasswordDialogOwnerTest
 
 	private static final int CENTRE_TOLERANCE_PIXELS = 15;
 
-	private static final String PASSWORD_DIALOG_TITLE = "Enter a password";
-
-	private static final String MISMATCH_DIALOG_TITLE = "Message";
+	private static final String ENTRY_DIALOG_TITLE = "Enter a password";
 
 	private JFrame frame;
 
@@ -99,7 +99,7 @@ class PasswordDialogOwnerTest
 	void passwordDialog_isOwnedByTheKeyGeneratorWindow() throws Exception
 	{
 		SwingUtilities.invokeLater(() -> panel.onSavePrivateKeyWithPassword(null));
-		final Dialog dialog = awaitDialog(titled(PASSWORD_DIALOG_TITLE));
+		final Dialog dialog = awaitDialog(titled(ENTRY_DIALOG_TITLE));
 
 		final Window owner = onEventThread(dialog::getOwner);
 		final int offCentre = onEventThread(() -> offCentre(dialog));
@@ -115,7 +115,7 @@ class PasswordDialogOwnerTest
 	void mismatchMessage_isOwnedByTheKeyGeneratorWindow() throws Exception
 	{
 		SwingUtilities.invokeLater(() -> panel.onSavePrivateKeyWithPassword(null));
-		final Dialog passwordDialog = awaitDialog(titled(PASSWORD_DIALOG_TITLE));
+		final Dialog passwordDialog = awaitDialog(titled(ENTRY_DIALOG_TITLE));
 		final PasswordPanel passwordPanel = onEventThread(
 			() -> (PasswordPanel)find(passwordDialog, PasswordPanel.class::isInstance));
 		onEventThread(() -> {
@@ -125,14 +125,27 @@ class PasswordDialogOwnerTest
 		});
 		clickButton(passwordDialog, "Set password");
 
-		final Dialog message = awaitDialog(titled(MISMATCH_DIALOG_TITLE));
+		final Dialog message = awaitDialog(titled(optionPaneText("OptionPane.messageDialogTitle")));
 		final Window owner = onEventThread(message::getOwner);
 		final int offCentre = onEventThread(() -> offCentre(message));
-		clickButton(message, "OK");
+		clickButton(message, optionPaneText("OptionPane.okButtonText"));
 
 		assertSame(frame, owner);
 		assertTrue(offCentre <= CENTRE_TOLERANCE_PIXELS,
 			"the message is " + offCentre + " pixels off the centre of the window");
+	}
+
+	/**
+	 * The text the look and feel gives a message dialog, in the default locale the dialog is built
+	 * with, so the test finds it whatever language the machine runs in
+	 *
+	 * @param key
+	 *            the key of the text in the defaults of {@link UIManager}
+	 * @return the text
+	 */
+	private static String optionPaneText(final String key)
+	{
+		return UIManager.getString(key, Locale.getDefault());
 	}
 
 	private int offCentre(final Dialog dialog)
