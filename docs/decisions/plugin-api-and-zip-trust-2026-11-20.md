@@ -14,7 +14,8 @@ Earlier decisions this builds on, none contradicted:
 `release-key-openpgp-2026-10-29.md` (#642: OpenPGP through `bcpg`, library first, the primary key stays out of reach of agents),
 #998 (the SHA-256 of a zip decides whether it is unpacked again), #1045 and #1060 (Install from Zip),
 #678 (28 uses of `MysticCryptApplicationFrame.getInstance()`, open, P4), and `SECURITY.md` ("loads plugins from a directory on
-the user's machine"). `chats-with-ai/coding/decisions-log.md` holds no decision on a plugin API or on signing plugin zips.
+the user's machine"). No earlier record in `docs/decisions/` decides a plugin API or the signing of plugin zips
+(`git grep -n -i -E "plugin.?api|zip" edba6448 -- docs/decisions` finds nothing).
 
 ## Part 1: the plugin API
 
@@ -44,10 +45,10 @@ everything else. Distinct host classes, nested classes counted:
 | release-key | 2 | 3 |
 | secret-sharing | 2 | 3 |
 
-30 distinct host classes outside the API in all. The lists per plugin are in the working folder
-(`mystic-crypt-ui-worktrees/_work/plugin-api/host-usage-per-plugin.md`, the raw output beside it in `jdeps/`). Provenance: the
-host jar and the zips of checksum and keygen were built from `a80d9c54` through the slot script (`publishToMavenLocal -x test`,
-`pluginZip -x test`); the other 13 zips are the 8.15 ones, whose plugin sources are unchanged since
+30 distinct host classes outside the API in all. The lists per plugin and the raw output are kept outside the repository; the
+command above, run per zip, gives them again. Provenance: the host jar and the zips of checksum and keygen were built from
+`a80d9c54` (`publishToMavenLocal -x test`, `pluginZip -x test`); the other 13 zips are the 8.15 ones, whose plugin sources are
+unchanged since
 (`git diff --name-only 4aa8c8ff HEAD -- plugins | grep /src/main/` lists only checksum and keygen; plugin bytecode does not
 change with the host's). Limits of jdeps: it sees class references, not reflection, and not constants the compiler inlined
 (inference). The lethenon plugin's two bundled libraries (`lib/`) are not part of the count.
@@ -71,9 +72,9 @@ is implemented by no plugin (`grep -rn --include='*.java' PluginCommandContribut
 
 Version check today: `grep -rn "plugin.requires" plugins/*/src/main/resources` and `grep -rn --include='*.java'
 "setSystemVersion" src plugins` find nothing, and `javap -c` of pf4j 3.16.1 `AbstractPluginManager.isPluginValid` skips the
-constraint when the system version is `0.0.0`, the default. So `plugin.requires` is never enforced. Measured with
-`DefaultVersionManager` (`poc/requires-check.out`): `^1.0.0`, `>=1.0.0 & <2.0.0` and `1.x` all accept 1.2.0 and refuse 2.0.0 and
-refuse 0.0.0.
+constraint when the system version is `0.0.0`, the default. So `plugin.requires` is never enforced. Measured with a scratch
+program over `DefaultVersionManager` (kept outside the repository, like the jdeps output): `^1.0.0`, `>=1.0.0 & <2.0.0` and
+`1.x` all accept 1.2.0 and refuse 2.0.0 and refuse 0.0.0.
 
 ### 1.2 Scope of the API
 
@@ -81,13 +82,13 @@ What must be in it, what each use becomes (the shape follows #675: the host hand
 
 | today | in the API as |
 |---|---|
-| the 7 existing types | stay; `VaultAccess` gets an API entry type (id, title, properties, attachments) instead of `MysticCryptEntryModelBean`, the host maps it |
+| the 7 existing types | stay; what `VaultAccess` takes and returns instead of `MysticCryptEntryModelBean` is open, the maintainer decides after RELEASE-8.16 (1.5; an API entry type with id, title, properties and attachments that the host maps is its option 3) |
 | `MysticCryptApplicationFrame.getInstance()` for windows (`switchToDesktopPane`, `getFrameMode`, parent window) | a `HostWindow` access handed to the contribution in a `connect` method; this is #678's second class of uses |
 | `getConfigurationDirectory`, `PluginSettings` | `PluginSettingsStore` in the API (the class moves; it is a plain file helper) |
 | `ToolForm` | moves into the API (layout helper over miglayout, already a `compileOnly` of the plugins) |
 | `ClipboardClearWatchdog`, `OverwriteConfirmation`, `DataClass`, `ScreenPlacement` | small API types, or part of `HostWindow` |
 | reading the model (`getModelObject`, the login private key) | no model access: a narrow read-only access for what the obfuscation plugin needs, decided in #678 (these are the uses it ranks first) |
-| `EnDecryptPanel`, `NewCertificateInfoPanel`, the wizard and its models, `CertificateInfoModelToX509` | not API: features that sit in the host and belong to plugins (architecture.md, plugin-first). They move into the plugin that owns them; two plugins use each of them (certificate and keygen; keygen and obfuscation), so the shared code goes into a support library the zips bundle in `lib/`, as the lethenon zip bundles its own |
+| `EnDecryptPanel`, `NewCertificateInfoPanel`, the wizard and its models, `CertificateInfoModelToX509` | open for the wizard, its models, `CertificateInfoModelToX509` and `NewCertificateInfoPanel`: the API, a family library or API types, the maintainer decides after RELEASE-8.16 (1.5). As drafted for all of them: not API, features that sit in the host and belong to plugins (architecture.md, plugin-first); they move into the plugin that owns them, and as two plugins use each of them (certificate and keygen; keygen and obfuscation), the shared code goes into a support library the zips bundle in `lib/`, as the lethenon zip bundles its own |
 | menu designer: `saveMenuLayout`, `resetMenuLayout`, `exportCurrentMenuXml`, `applyMenuXml`, `MenuLayoutSupport` | a `MenuLayoutAccess` in the API, or the plugin is named in the boundary check as an exemption with its reason until then (development tooling, not shipped, architecture.md) |
 
 ### 1.3 Options
@@ -126,8 +127,8 @@ tool, and AG-100 asks for a failure that already happened first.
 ### 1.4 Publishing on Central: later, not now; what it would need
 
 The group `io.github.astrapi69` is already published by the family. Missing for the API: POM metadata, sources and javadoc jars
-(the build already makes both), signing with the release subkey through the publish workflow of the family and its secrets
-(RL-090), a Central Portal publish workflow run once against a snapshot first (release-workflow.md step 6), a rule for tags and
+(the build already makes both), signing with the release subkey through the publish workflow of the family and its secrets,
+a Central Portal publish workflow run once against a snapshot first (release-workflow.md step 6), a rule for tags and
 for when the API version moves, reproducible builds (#920), and only Central dependencies in the API's POM (pf4j and the menu
 library for `Anchor`). A published API is a promise that cannot be withdrawn, which is why the 1.0.0 cut waits for the plugins
 to have built against it for a release.
@@ -140,28 +141,38 @@ The decision is taken after RELEASE-8.16. Facts, measured on `develop` at `edba6
 
 **The wizard classes.**
 - The 13 holds as a bytecode count, not as a source count. The two plugins import 10 distinct `wizard.*` classes (certificate all
-  10, keygen 5: `CertificateInfoModelToX509` and the four models). `jdeps -verbose:class` with the 8.15 host jar on the class path and the unpacked classes of the certificate and keygen plugins
-  lists 13 wizard types: those 10 and three Lombok nested builders, plus `panel.certificate.NewCertificateInfoPanel` (keygen).
-  Caveat: this run used the installed plugin classes and the 8.15 host jar, not a rebuild of `edba6448`; the plugin sources have
-  not changed since `e1034a61` (`git log -1 -- plugins/certificate-plugin plugins/keygen-plugin`).
+  10, keygen 5: `CertificateInfoModelToX509` and the four models). `jdeps -verbose:class --multi-release 25` with the host jar
+  `mystic-crypt-ui-8.15-SNAPSHOT.jar` (a build of 2026-11-15) on the class path and the unpacked classes of the 8.15 certificate
+  and keygen zips lists 13 wizard types: those 10 and three Lombok nested builders, plus `panel.certificate.NewCertificateInfoPanel`
+  (keygen). Caveat: this run is not a rebuild of `edba6448`. Keygen has changed since 8.15, in `e1034a61` (2026-11-19;
+  `git merge-base --is-ancestor e1034a61 RELEASE-8.15` fails), and that change adds no host import:
+  `git diff RELEASE-8.15 edba6448 -- plugins/keygen-plugin/src/main plugins/certificate-plugin/src/main | grep '^[+-].*import'`
+  adds only `io.github.astrapi69.crypt.api.key.KeyFileFormat`, a crypt-api type.
 - The real set to move is larger: the source closure of the 10 inside the wizard packages is 17 files (all 18 files of `wizard/` but
   `CertificateWizardPanelTest.java`, a class of that name that sits in `src/main`), 2,681 lines (the sum of the per-file line counts, `git show origin/develop:<file> | wc -l`), with `NewCertificateInfoPanel` (606 lines) beside it. Closure computed by a
   name-reference script over `git archive origin/develop src/main/java`; the script is not in the repository.
 - The host itself does not use the wizard panels: outside `wizard/`, only `panel/certificate/NewCertificateAttributesPanel.java:34`
-  and `panel/certificate/NewCertificateInfoPanel.java:42-44` import wizard classes, and those are the four models.
+  and `panel/certificate/NewCertificateInfoPanel.java:42-44` import wizard classes, and those are three of the four models,
+  `CertificateInfoModel`, `DistinguishedNameInfoModel` and `ValidityModel`
+  (`git grep -n 'mystic\.crypt\.wizard' edba6448 -- src/main ':!src/main/java/io/github/astrapi69/mystic/crypt/wizard'`).
   `NewCertificateInfoPanel` has no host main user either (`git grep` of `src/main` finds only a comment in
   `messages.properties:145`); keygen uses it (`CryptographyPanel.java:37`) and the wizard's `IssuerPanel` and `SubjectPanel` reach
   `NewCertificateAttributesPanel`. Host tests use the wizard (`src/test/.../wizard/*Test.java`, three e2e smoke tests).
   **Finding, not an option:** the wizard code is used by the two plugins only; the host carries it as plugin code.
 - Dependencies of the 17 files outside `wizard/`: `Messages`, `eventbus.ApplicationEventBus`, `random.SecureRandomValues` and
   `panel.certificate.NewCertificateAttributesPanel`. `NewCertificateInfoPanel` also pulls `MysticCryptApplicationFrame` (970
-  lines), `ui.screen.ScreenPlacement` and `random.*`. Libraries: swing-wizard 2.1, state-pattern 7.1, model-data,
-  swing-base-components, swing-model-components, silly-collection, crypt-data, LGoodDatePicker, MigLayout, Lombok and Bouncy
-  Castle (`org.bouncycastle.asn1` in three files). The four models are Swing-free (Lombok, crypt-data models, one ASN.1 type).
-- The family catalog (`coding/Familie-Katalog.md`, lines for swing-wizard and state-pattern) lists two wizard libraries, both
-  already dependencies of this application (`gradle/libs.versions.toml:72, 81, 152, 161`; the certificate plugin declares both
-  `compileOnly`, `plugins/certificate-plugin/build.gradle:48-49`). They are the generic wizard framework. A certificate wizard
-  library does not exist in the family; it would be new.
+  lines), `ui.screen.ScreenPlacement` and `random.*`. Libraries: swing-wizard 2.1, state-pattern 7.1, observer 6 (the wizard's
+  events, `CertificateWizardPanel.java:27-28`, `DatesPanel.java:39-40`; the certificate plugin declares it `compileOnly`,
+  `plugins/certificate-plugin/build.gradle:51`), model-data, swing-base-components, swing-model-components, silly-collection,
+  silly-bean 4.0 (`ValueBox`, `DatesPanel.java:37`; silly-bean is archived and gets no further releases, as its README says),
+  crypt-data, LGoodDatePicker, MigLayout, Lombok and Bouncy Castle (`org.bouncycastle.asn1` in three files). The four models are
+  Swing-free (Lombok and crypt-data models); through `CertificateInfoModel` (`:90`, `ExtensionInfoModel[] extensions`) they pull
+  in `ExtensionInfoModel`, which uses four Bouncy Castle ASN.1 types (`ExtensionInfoModel.java:32-35`).
+- The family has two generic wizard libraries, the public repositories `astrapi69/swing-wizard` (the panels) and
+  `astrapi69/state-pattern` (the wizard's state machine, `io.github.astrapi69.design.pattern.state.wizard`), both already
+  dependencies of this application (`gradle/libs.versions.toml:72, 81, 152, 161`; the certificate plugin declares both
+  `compileOnly`, `plugins/certificate-plugin/build.gradle:48-49`). A certificate wizard library does not exist in the family
+  (`gh search repos wizard --owner astrapi69 --owner lightblueseas` lists only `astrapi69/swing-wizard`); it would be new.
 
 **`VaultAccess` and the entry bean.**
 - `plugin/api/VaultAccess.java:30` imports `panel.dbtree.MysticCryptEntryModelBean`; `entries()` (`:54`) returns it, `add` (`:65`)
@@ -190,25 +201,31 @@ The decision is taken after RELEASE-8.16. Facts, measured on `develop` at `edba6
    API to be small and stable; the host's `NewCertificateInfoPanel` copy and its `MysticCryptApplicationFrame` use must be cut
    first. Bean: `MysticCryptEntryModelBean` goes into the API artifact. If the package name stays, the persisted format does not
    change, but the API then publishes a class whose fields (KeePass fields, history, `FileContentInfo` from file-worker,
-   `KeyValuePair` from silly-collection) are the vault format, so the format becomes an API promise and lethenon, ccw's, sees the
-   whole entry; if the package changes, the vault format changes and `VaultXmlCodec` needs the alias, with the effect on older
-   builds above. The class and `VaultAccess` would be the only host types in the API. Risk: the narrowest-access rule of #675
+   `KeyValuePair` from silly-bean, which is archived) are the vault format, so the format becomes an API promise and lethenon,
+   ccw's, sees the whole entry; if the package changes, the vault format changes and `VaultXmlCodec` needs the alias, with the
+   effect on older builds above. The class and `VaultAccess` would be the only host types in the API. Risk: the narrowest-access rule of #675
    is lost for the entry.
 2. **Into a family library of their own.** Wizard: a new library (a name and a repository are the maintainer's; a Gradle subproject
    here first, published later, is the same step as 1.4) holds the 17 files; certificate and keygen bundle it in `lib/` (the
    lethenon zip bundles its own) or declare it `compileOnly` if the host ships it. Consequences: a new repository or a new
-   subproject with its own versions, Central publishing (RL-090 signing, 1.4) and family release cycle; the host removes
+   subproject with its own versions, Central publishing (signed as in 1.4) and family release cycle; the host removes
    `NewCertificateAttributesPanel`, `ApplicationEventBus`, `Messages`, `SecureRandomValues`, `ScreenPlacement` and
-   `MysticCryptApplicationFrame` from the closure first (the library cannot depend on the host); the 4 models and the panels
-   in host tests (`src/test/.../wizard`, three e2e smoke tests) move with it; the plugins' zips grow by the library, and if the host
-   and a zip both carry it, class loading decides which copy runs (not measured). Bean: a library of the entry model would hold the
-   persisted class; the family has no vault entry library (catalog: none), so it would be new too, and the same two cases as in
-   option 1 apply to its package name; the host would depend on the library for its core format, which is the largest change of the
-   three for something only lethenon reads.
+   `MysticCryptApplicationFrame` from the closure first (the library cannot depend on the host); the library would start with an
+   archived dependency, silly-bean's `ValueBox` (`DatesPanel.java:37`), or would have to replace it first; the 4 models and the
+   panels in host tests (`src/test/.../wizard`, three e2e smoke tests) move with it; the plugins' zips grow by the library, and if
+   the host and a zip both carry it, class loading decides which copy runs (not measured). Bean: a library of the entry model would
+   hold the persisted class; the family has no vault entry library (`gh search repos vault --owner astrapi69 --owner lightblueseas`
+   lists this application and `ai-key-vault`, a TypeScript library for AI provider keys), so it would be new too, and the same two
+   cases as in option 1 apply to its package name; the host would depend on the library for its core format, which is the largest
+   change of the three for something only lethenon reads.
 3. **Replace by API types.** Bean: the API gets a small value type for an entry (id, title, properties, protected property names,
    attachments); `VaultAccess` uses it and `MarkedEntryAccess` maps it to the bean and back. The bean, its package and the vault
-   format do not change; lethenon's change is ccw's, bounded to `LethenonVault`, `VaultWalletEntry` and the plugin's tests (20 test files of the plugin use it, among them an in-memory `VaultAccess`); the two helpers `VaultEntryProperties` and `VaultEntryAttachments` become API methods or
-   host-side mapping. Wizard: this works for the wizard only where a plugin needs a value, not a panel. Keygen needs
+   format do not change; lethenon's change is ccw's, bounded to `LethenonVault`, `VaultWalletEntry` and the plugin's tests (18
+   test files of the plugin use `VaultAccess`, the bean or one of the two helpers, 17 of them `VaultAccess`, among them an
+   in-memory one, `InMemoryVaultAccess`:
+   `git grep -l -E 'VaultAccess|MysticCryptEntryModelBean|VaultEntryProperties|VaultEntryAttachments' edba6448 -- 'plugins/lethenon-plugin/src/test/*' | wc -l`);
+   the two helpers `VaultEntryProperties` and `VaultEntryAttachments` become API methods or host-side mapping. Wizard: this
+   works for the wizard only where a plugin needs a value, not a panel. Keygen needs
    `CertificateInfoModelToX509`, the four models and `NewCertificateInfoPanel`; a narrow API type for "the data of a certificate
    request" could replace the models, but the panel and the conversion would still have to live in one plugin that the other
    cannot depend on. Whether keygen can shrink to a value type is not measured here; as far as the facts reach, option 3 alone
@@ -226,8 +243,9 @@ bundle fits it better than the host. The first step for the wizard can be a Grad
 repository, no Central release yet), which removes the host closure first and keeps the Central step for after the plugins have
 built against it for a release (as 1.4 says for the API). Best practice: semver.org specification 2.0.0, item 1 (the public API
 is declared and precise) and item 8 (a backward-incompatible change to it needs a new major): what is in the API is promised, so
-it holds only what a plugin must see (read at semver.org/spec/v2.0.0.html, 2026-11-20). This replaces the loose sentence in 1.2
-that the wizard goes into "a support library the zips bundle", which this section now decides after RELEASE-8.16 instead.
+it holds only what a plugin must see (read at semver.org/spec/v2.0.0.html, 2026-11-20). The two rows of the 1.2 table this
+section touches, the entry type of `VaultAccess` and where the wizard goes, are marked open there; the maintainer decides them
+after RELEASE-8.16.
 
 ## Part 2: trust in plugin zips
 
@@ -244,8 +262,8 @@ In scope:
   folder, or a process that may write there but should not run code in the application);
 - T3, the unpacked directory changed after unpacking: the #998 record covers the zip only, and pf4j loads a directory with no zip
   at all (inference from its repository code, not run);
-- T4, the same for the 14 zips the installer lays down. The installer jar itself is jarsigned (`gradle/packaging.gradle`,
-  `scripts/verify-installer.sh`), but the zips are plain files once installed.
+- T4, the same for the 14 zips the installer lays down. The application jar inside the installer is jarsigned
+  (`gradle/packaging.gradle`, `scripts/verify-installer.sh`), but the zips are plain files once installed.
 
 Not in scope, named so nobody counts on it:
 - an attacker who can already write the host jar or the embedded key: only a signature of the host that the JVM checks would
@@ -270,13 +288,17 @@ wrong and the issue could not stay public. It has none:
   (`PluginsSettingsPanel.java:134-146`).
 - The version catalog carries `org.pf4j:pf4j` 3.16.1 only (`gradle/libs.versions.toml:64` and `:144`), not `pf4j-update`, the
   pf4j module for plugin repositories and updates.
-- No main source of the host or of a plugin uses `java.net` sockets or `HttpURLConnection`, `HttpClient`, `openConnection`,
-  `openStream` or `URLClassLoader`, nor `pf4j.update`, `UpdateManager`, `UpdateRepository`, `PluginRepository`, `InetAddress` or
-  `DatagramSocket`: `git grep -E "java\.net\.(URL|URI|HttpURLConnection|URLConnection|Socket|ServerSocket|http)|HttpClient|openConnection|openStream|URLClassLoader|pf4j\.update|UpdateManager|UpdateRepository|PluginRepository|InetAddress|DatagramSocket" origin/develop -- src/main/java "plugins/*/src/main/java"`
-  finds three `java.net.URL` imports, all in the host: `SecretKeyTreeWithContentPanel` (validates an entry's address and opens it
-  in the browser, lines 1284-1296 and 1436-1450) and the two sign-in panels, whose Help button asks whether the wiki page
-  answers (`URLExtensions.isReachable`, `MasterPwWithApplicationFilePanel.java:437`, `NewMasterPwFilePanel.java:352`) before it
-  opens the browser. None of the three fetches code.
+- No main source of a plugin touches `java.net` or `javax.net` at all, the host only through `java.net.URL` and its parsing
+  exceptions, and no main source uses `HttpClient`, `openConnection`, `openStream`, `URLClassLoader`, `pf4j.update`,
+  `UpdateManager`, `UpdateRepository`, `PluginRepository`, `InetAddress` or `DatagramSocket`:
+  `git grep -n -E "java\.net|javax\.net|HttpClient|openConnection|openStream|URLClassLoader|pf4j\.update|UpdateManager|UpdateRepository|PluginRepository|InetAddress|DatagramSocket" edba6448 -- src/main/java "plugins/*/src/main/java/*"`
+  prints five import lines in three host files, `java.net.URL` three times and `java.net.MalformedURLException` and
+  `java.net.URISyntaxException` once each, and nothing of a plugin. The pathspec needs the trailing `/*`: written as
+  `plugins/*/src/main/java` it matches no file, and the command then searches the host alone. The three files:
+  `SecretKeyTreeWithContentPanel` (validates an entry's address and opens it in the browser, lines 1284-1296 and 1436-1450) and
+  the two sign-in panels, whose Help button asks whether the wiki page answers (`URLExtensions.isReachable`,
+  `MasterPwWithApplicationFilePanel.java:437`, `NewMasterPwFilePanel.java:352`) before it opens the browser. None of the three
+  fetches code.
 - The installer's `src/main/izpack/install.xml` has no web packs: the plugin zips are files inside the installer
   (`install.xml:138-139` for lethenon).
 - The shipped lethenon plugin runs the lethenon library's peer-to-peer node: `jdeps -verbose:class` on `lethenon-0.9.0.jar` (the
@@ -290,7 +312,11 @@ wrong and the issue could not stay public. It has none:
   code.
 
 So the only route into the plugins directory is a file that a person or a process puts there, which is what T1 to T4 describe.
-A consequence used in 2.5: the application cannot learn of a revocation while it runs.
+For a revocation, used in 2.5: the application does use the network (the help page check and the lethenon node above), but no
+main source checks whether a key is revoked or fetches a key (measured:
+`git grep -n -i -E "hasRevocation|isRevoked|KEY_REVOCATION|SUBKEY_REVOCATION|revoked|keyserver|hkps?://|keys\.openpgp|openpgpkey" edba6448 -- src/main "plugins/*/src/main/*"`
+finds nothing). With the key list embedded in the host and nothing fetched, a revocation reaches an installation only with a
+release (a design consequence of option A, not a measurement).
 
 ### 2.2 Options for the signature
 
@@ -298,11 +324,13 @@ A consequence used in 2.5: the application cannot learn of a revocation while it
 public key embedded in the host.** The zip stays byte for byte what pf4j and #998 handle; the SHA-256 of #998 stays as the cache
 key for "unpack again", behind the signature check. The signature is the format Maven Central requires and `gpg --verify`
 checks (RFC 9580, section 10.4). The reader code goes into the mystic-crypt library first (library first, as in #642), which
-already carries `bcpg` 1.86; the host calls it. The maintainer signs at the release with `gpg --detach-sign` as for the other
-artifacts; the installer packs the zip and its `.asc`. Consequences: two files to keep together (a zip whose `.asc` is missing
-counts as unsigned); the embedded certificate must carry the signing subkey's binding, so a renewed subkey needs the updated
-certificate in the next host release (AG-055's renewal); the embedded set is a list of keys so that another key can be added
-without a format change.
+already carries `bcpg` 1.86; the host calls it. The maintainer signs at the release with `gpg --detach-sign`, which is a new
+step: what this repository's release ships carries no OpenPGP signature today (the assets of RELEASE-8.15 and RELEASE-8.14 are the
+installer and its `.sha256` and `.sha512`, `gh release view`), the one thing he signs for it is the application jar, with
+`jarsigner` (`gradle/packaging.gradle:57-89`), and the family's Central artifacts are signed in CI (2.5); the installer packs the
+zip and its `.asc`. Consequences: two files to keep together (a zip whose `.asc` is missing counts as unsigned); the embedded
+certificate must carry the signing subkey's binding, so a renewed subkey needs the updated certificate in the next host release
+(the lifecycle in 2.5); the embedded set is a list of keys so that another key can be added without a format change.
 
 **Option B: jarsigner signatures of plugin jars, checked against the certificate.** Not applicable as is: the plugin zips hold
 loose classes (`classes/...`, `pluginZip` in each plugin's `build.gradle`), and jarsigner signs jars. It would need every plugin
@@ -328,13 +356,15 @@ management, protection of public verification keys).
 
 **Which key signs.**
 1. The release key's signing subkey (recommended for the first cut): one trust root, no new secret, the maintainer signs by hand
-   at the release as for Maven Central and the installer checksums, no agent touches the key.
+   at the release, a new step (today he signs only the application jar, with `jarsigner`; the installer gets checksums, not a
+   signature, and the family's Central artifacts are signed in CI), no agent touches the key.
 2. A key of its own for plugins: separates the blast radius from Maven Central and lets another maintainer sign plugins, at the
    price of a second offline key and a second renewal.
 Reason for 1: fewer secrets for a solo maintainer; the embedded list of keys allows 2 later (NIST SP 800-57: key separation is a
 reason for 2 once someone else signs).
-Since then the subkey was measured to be a key that also sits in CI secrets of public repositories; 2.5 sets out both options with
-that fact and the lifecycle of an embedded key, and recommends differently.
+Since then, the workflow files of at least 37 public repositories of astrapi69 and lightblueseas were found to pass the signing
+secret to CI, which by the release-key record holds the signing subkey (the workflow references are measured, the key inside a
+secret is not); 2.5 sets out both options with that and the lifecycle of an embedded key, and recommends differently.
 
 **An unsigned zip, or one with an unknown key or a bad signature.**
 1. At the start: not loaded, named in Settings > Plugins with the reason (recommended: fail closed, gate principle 1). The
@@ -384,24 +414,30 @@ keyring).
   Command: `curl https://keys.openpgp.org/vks/v1/by-keyid/9FCF7C9710E2BD8D | gpg --show-keys --with-subkey-fingerprints --with-colons`;
   the validity field is `-` for all three keys.
 - Where the subkey signs today: a Central signature carries it. The jar signature of `mystic-crypt` 13.11.1 (published by a
-  successful tag run of its `publish.yml`, 2026-11-19) names issuer key `9FCF7C9710E2BD8D`, RSA 4096, SHA-512
+  successful tag run of its `publish.yml`, 2026-11-19, and made inside that run, at 13:43:28 UTC, by Gradle's
+  `useInMemoryPgpKeys`, `mystic-crypt` `gradle/publishing.gradle:124`) names issuer key `9FCF7C9710E2BD8D`, RSA 4096, SHA-512
   (`gpg --list-packets` of `mystic-crypt-13.11.1.jar.asc` from `repo1.maven.org`). The signature has the issuer key ID subpacket
-  and no issuer fingerprint subpacket. Public workflow files use the secret `GPG_PRIVATE_KEY` (plus `GPG_PASSPHRASE` and the
-  optional `GPG_KEY_ID`, described in `mystic-crypt`'s `publish.yml` header as "the signing subkey's last 8 hex digits, when
-  `GPG_PRIVATE_KEY` holds that subkey alone") in 35 of the 63 repositories of the relevance list, 40 lines in all (`git grep -n -I -E
-  '^[^#]*(secrets\.GPG_PRIVATE_KEY|secrets\.[A-Z_]*SIGNING_KEY|ORG_GRADLE_PROJECT_signing|gpg --import|signingKey)' origin/develop
-  -- .github/workflows` in each local checkout). Not measured: 19 of the 63 have no local checkout, so 35 is a lower bound; and
-  whether each of the 35 holds the same subkey, not the primary (only `mystic-crypt` was checked through its signature).
-  `docs/decisions/release-key-openpgp-2026-10-29.md` says the same arrangement: primary offline, signing subkey in CI.
+  and no issuer fingerprint subpacket.
+- Where the key sits: workflow files on `develop` of at least 37 public repositories of astrapi69 and lightblueseas pass a secret
+  named `GPG_PRIVATE_KEY` to the build, 42 lines in all (plus `GPG_PASSPHRASE` and the optional `GPG_KEY_ID`, described in
+  `mystic-crypt`'s `publish.yml` header as "the signing subkey's last 8 hex digits, when `GPG_PRIVATE_KEY` holds that subkey
+  alone"). Read for the family's libraries and applications through the GitHub API,
+  `gh api repos/<owner>/<repo>/contents/.github/workflows?ref=develop` and then each file, counting the lines that are not
+  comments; not every public repository of the two owners was read, so 37 is a lower bound. 36 of the 37 have a secret of that
+  name, a repository secret or, in lightblueseas, an organisation secret (`gh api repos/<owner>/<repo>/actions/secrets` and
+  `.../actions/organization-secrets`, which list names, never values); `swing-model-components` names it in `publish.yml:36` and
+  has none. Not measured, and not readable from outside: which key each secret holds. That it is the signing subkey is an inference
+  from `docs/decisions/release-key-openpgp-2026-10-29.md` (primary offline, the signing subkey "in the CI secrets") and from the one
+  signature above.
   This repository has no such workflow, and signs its host jar with a Java keystore through `jarsigner` (`gradle/packaging.gradle:57-89`),
   a different trust root from GPG.
 - What this application embeds today: no public key. The release-key plugin only reads the user's GnuPG home and displays
   fingerprint, usage, expiry (`KeyRows.java:108-118`: `never`, a date, or `expired <date>`, compared with today in UTC); it has
   no revocation check and no test or code path for a renewed or replaced key (`git grep -i -E 'revok|renew|extend'
   plugins/release-key-plugin/src`). There is no precedent in the repository for an embedded verification key.
-- What the application can learn at run time: nothing about a revocation, see "No path loads a plugin over the network" in 2.1. A
-  revocation reaches an installation only with a new release of the application (or a new zip, which is checked by the very key
-  in question).
+- Revocation, measured: today no main source checks whether a key is revoked or fetches a key (the `git grep` at the end of 2.1
+  finds nothing). Design consequence, not a measurement: with an embedded list and no fetch, a revocation reaches an installation
+  only with a new release of the application; a new zip does not carry it, since it is checked by the very key in question.
 
 **What a key means in OpenPGP, from RFC 9580** (read at rfc-editor.org/rfc/rfc9580.txt, 2026-11-20). Section 5.2.3.29: the Key
 Flags subpacket says whether a key may sign data (flag `0x02`) or certify other keys (`0x01`); the maintainer's primary is `[SC]`,
@@ -421,16 +457,20 @@ whatever option is chosen. Pinning a subkey fingerprint accepts exactly that sub
 the application pins the plugin subkey by its full fingerprint and does not trust the primary.
 
 **Option 1: the release subkey `10E2BD8D` signs the plugin zips.**
-- Cost: no new key; the signing at the release is one more `gpg --detach-sign` per zip, by the maintainer as for the installer
-  checksums. The release workflows that exist are not touched. The embedded certificate is the one already on a key server.
-- What it changes: the trust root of what runs inside users' JVMs is a key that, by the release-key record and the workflow files
-  above, also lives in the CI secrets of 35 or more public repositories and signs every library artifact on Central. A leak of that
-  secret from any one of them (a runner, an action, a fork's secret) lets its holder sign a plugin zip that this application
-  accepts, and Maven Central artifacts cannot be told apart from plugin zips by the key alone. The blast radius of the CI
+- Cost: no new key; a new step at the release, one `gpg --detach-sign` per zip by the maintainer (today he signs only the
+  application jar, with `jarsigner`, 2.2). The release workflows that exist are not touched. The embedded certificate is the one
+  already on a key server.
+- What it changes: the trust root of what runs inside users' JVMs is a key that, by the release-key record, sits in the CI
+  secrets, which the workflow files of at least 37 public repositories pass to their builds (measured are the workflow references;
+  that the secrets hold this key is the inference of the facts above), and that signs the family's Central artifacts since its
+  creation on 2026-10-10 (measured for `mystic-crypt` 13.11.1). A leak of that secret from any one of them (a runner, an action,
+  a fork's secret) lets its holder sign a plugin zip that this application accepts, and Maven Central artifacts cannot be told apart from plugin zips by the key alone. The blast radius of the CI
   secret and of the plugin trust are then one (NIST SP 800-57 Part 1 Rev. 5, section 5.2: "Limiting the use of a key limits the
   damage that could be done if the key is compromised").
-- Risk: a compromise of the release subkey is a compromise of plugin trust at once; revoking it for Central (reason 2) also
-  invalidates every installed plugin of every installed application until a release with a new key.
+- Risk: a compromise of the release subkey is a compromise of plugin trust at once. Revoking it for Central (reason 2) changes
+  nothing in an installed application, which learns of no revocation (2.1): a leak from CI forces a host release that drops the
+  key and ships the zips signed again with another one, and until a user installs that release the application keeps accepting
+  zips signed with the leaked key (the lifecycle below).
 - The day the key is replaced or revoked: see the lifecycle below, with the coupling that a library release and a plugin release
   must move together.
 
@@ -444,8 +484,10 @@ the application pins the plugin subkey by its full fingerprint and does not trus
 - What it separates: the key in CI cannot sign a plugin; the key that signs plugins is never in a runner. It does not separate
   the primary: someone holding the primary can bind any subkey, which is why the primary stays out of reach (release-key record).
 - Risk: one more thing to forget; a plugin subkey that expires without a host release shipped before makes every zip signed after
-  the expiry fail (see below). Smaller: the signature carries only the 8-byte key id, so the application finds its candidate by that
-  id, verifies, and compares the full fingerprint with its list (inference from the `gpg --list-packets` output above).
+  the expiry fail (see below). Smaller: the application takes the issuer fingerprint when the signature carries one and falls back
+  to the 8-byte key id, then verifies and compares the full fingerprint with its list. `gpg --detach-sign` writes both (GnuPG
+  2.4.8, measured with a throwaway key in a temporary GnuPG home: the issuer fingerprint subpacket 33 beside the issuer key ID
+  subpacket 16); the signature above with the key id alone comes from Gradle's signer, not from gpg.
 
 **Replacing, retiring and revoking an embedded key (lifecycle).** The embedded set is a list: for each entry a full fingerprint,
 the certificate with its binding, and a state.
@@ -453,10 +495,11 @@ the certificate with its binding, and a state.
   of the old key whose creation time lies before that date stay valid, as the RFC says, so the 14 shipped zips and any zip the user
   installed keep loading; a zip signed with the old key after the date is refused. The creation time is the signer's own claim, which
   is fine for a retired key and is why it is not enough after a compromise.
-- Compromised (reason 2): the release drops the entry; no signature of that key stays valid ("all signatures created by that key
-  are suspect"), so every zip it signed, the shipped ones included, must be re-signed with another key and shipped in the same
-  release, and installed copies stop loading until the application is updated. An application that was not updated keeps trusting
-  the key, which is the price of having no network path; the release text must say so.
+- Compromised (reason 2): no installed application learns of the revocation. The release that drops the entry re-signs every zip
+  it ships with another key and ships them; after the update no signature of the dropped key stays valid ("all signatures created
+  by that key are suspect"), so a zip the user installed that carries only that key's signature stops loading. An application that
+  is not updated keeps trusting the compromised key, which is the price of having no network path; the release text must say so.
+  Under option 1, a leak of the CI secret forces exactly such a host release.
 - Expiry and renewal: the check at every start must not be "is the key valid now", or every installed plugin stops loading on the
   expiry date. It is "was the signature made inside the key's validity" (the signature creation time, which RFC 9580 section 5.2.3.11 calls
   "the time the signature was made", against the key creation time plus the expiration time of section 5.2.3.13), which keeps old zips valid and refuses a zip signed
@@ -467,12 +510,15 @@ the certificate with its binding, and a state.
   (2.4), not with the real one.
 
 **Recommendation (a suggestion): option 2, with the plugin subkey pinned by its full fingerprint, and the list as above.**
-Reason: the measured fact that the release subkey sits in the CI secrets of at least 35 public repositories, which is the exact
-situation NIST's key-usage rule is written for; a plugin runs with the user's rights inside the vault's JVM (2.1), so its trust
-root should be a key that is never in a runner. Option 1 is the cheaper first step and stays defensible for a solo maintainer; it
-revises the earlier lean of 2.3 only on that one fact, and 2.3's other recommendations stand. Best practice: NIST SP 800-57 Part
-1 Rev. 5, section 5.2 (one key, one purpose; limit damage on compromise) and section 5.3.4 (a signature key's recipient-usage period
-can run past its originator-usage period, which is the "signatures before the date stay valid" rule above); RFC 9580, sections
+Reason: the release subkey is, by the release-key record, the key in the CI secrets that the workflow files of at least 37 public
+repositories pass to their builds (measured are the workflow references, not the key inside a secret); a plugin runs with the
+user's rights inside the vault's JVM (2.1), so its trust root should be a key that is never in a runner. Option 1 is the cheaper
+first step and stays defensible for a solo maintainer; it revises the earlier lean of 2.3 only on that one fact, and 2.3's other
+recommendations stand. Best practice: NIST SP 800-57 Part 1 Rev. 5, section 5.2, reason 2 ("Limiting the use of a key limits the
+damage that could be done if the key is compromised"), applied by analogy: section 5.2 asks for one cryptographic purpose per key,
+and signing Central artifacts and signing plugin zips are one purpose, digital signatures, so the rule itself does not require two
+keys here; its reason for limiting the use of a key argues for them. Section 5.3.4 (a signature key's recipient-usage period can
+run past its originator-usage period, which is the "signatures before the date stay valid" rule above); RFC 9580, sections
 5.2.3.13 and 5.2.3.31.
 
 ### 2.6 Development builds: unsigned plugins under `make run`
@@ -510,13 +556,26 @@ that arrive the same way. The installed application also copies a user-chosen zi
 (`PluginsSettingsPanel.java:156`).
 
 **What the check changes.** For `make run`: the copied zips are unsigned, so a fail-closed check (2.3) refuses every one of them (one per plugin, 15 plugins),
-including the one the maintainer just built. For the tests (measured): 59 of 155 `src/e2eTest` classes plus one `src/e2eLock` class
-install a built zip through one helper, `AbstractUiTest.installPluginRequiringItBuilt` (`AbstractUiTest.java:408-418`), from 15
-zip constants (`:77-115`), with `user.home` redirected to a temp directory per test (`:139-141`); `PluginLoadingUiTest` and
-`BuiltArchivesNameNoBuildMachineTest` read zips on their own; the two `zipTest` suites (lethenon, release-key) start a real zip;
-the host unit and CLI tests build synthetic zips with `ZipOutputStream` (`PluginArchivesTest`, `PluginZipInstallationTest`,
-`CommandLineWithInstalledPluginsTest`). Every one of them meets the check at the load path. The tests sign with throwaway keys
-made at run time and hand the trust set to the host through the injectable set of 2.4; they never use the real key.
+including the one the maintainer just built. For the tests, how each one gets its zips is measured (`edba6448`); which of them
+would meet the check is an inference, since the check does not exist yet and 2.3 places it in the host's plugin manager.
+- Through a load path of the host, so they would meet it: 59 of 155 `src/e2eTest` classes plus one `src/e2eLock` class copy a
+  built zip into the plugins folder before the application starts, through one helper,
+  `AbstractUiTest.installPluginRequiringItBuilt` (`src/e2eSupport`, `AbstractUiTest.java:408-418`), from 15 zip constants
+  (`:77-115`), with `user.home` redirected to a temp directory per test (`:139-141`); `PluginLoadingUiTest` copies five built zips
+  the same way on its own (`PluginLoadingUiTest.java:155-159`), and `PluginsUsableWhileLockedHoldTheLockUiTest` (`src/e2eLock`)
+  every shipped one in a loop of its own (`:217-243`); the command line tests write a synthetic zip and run it through
+  `MysticCryptUiCli`, whose own `DefaultPluginManager` (`MysticCryptUiCli.java:166`) needs the check as much as the window's
+  (`MysticCryptApplicationFrame.java:297-299`): `CommandLineWithInstalledPluginsTest` (`src/test`, in the test's JVM) and
+  `CommandLineStandardErrorTest` (`src/e2eTest`, `:299-317`, in a process of its own).
+- Not through it: the two `zipTest` suites (lethenon, release-key) start a real zip in a plain pf4j manager of their own
+  (`new DefaultPluginManager(plugins)`, `LethenonPluginFromItsZipTest.java:104`, `ReleaseKeyPluginFromItsZipTest.java:91`), so
+  they need the host's manager or a check of their own; `BuiltArchivesNameNoBuildMachineTest` only reads the manifests out of the
+  zips (`collectManifests`, `:240`) and loads nothing, so it needs none. `PluginArchivesTest` calls `PluginArchives` directly
+  (`pluginIdOf`, `unpackIfChanged`, `isUnpackedFrom`) and `PluginZipInstallationTest` runs `PluginZipInstallation.decide` over a
+  plain `DefaultPluginManager` (`:70`), so whether these two meet it depends on where the check is placed.
+
+With the check, the tests sign with throwaway keys made at run time and hand the trust set to the host through the injectable set
+of 2.4; they never use the real key.
 
 **What a development build accepts (a sub-question):** (i) unsigned zips, or (ii) zips signed by a throwaway key that `make run`
 makes for the isolated profile and adds to the trust set. With (ii) the check has one code path in every build and an unsigned zip
@@ -574,5 +633,6 @@ never the release key, and a store-side refusal of the debug one.
    API, into a family library, or replaced by API types. Moving or renaming the entry bean is a persisted-format change and his
    decision (architecture.md).
 
-Proof of concept files, kept outside the repository: `mystic-crypt-ui-worktrees/_work/plugin-api/` (`jdeps/`, `poc/UnsignedZipPoc.java`
-with `poc/unsigned-zip-poc.out`, `poc/RequiresCheck.java` with `poc/requires-check.out`, `host-method-calls.txt`).
+Proof of concept files (the jdeps output, the program that installs a changed zip and the `plugin.requires` check, each with its
+output, and the `javap` call counts) are kept outside the repository. What they showed is quoted in #1092 and #1093 and in the
+sections above, with the command that produced each figure.
