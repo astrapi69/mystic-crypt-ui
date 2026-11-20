@@ -64,10 +64,11 @@ import org.junit.jupiter.params.provider.ValueSource;
  * {@code jobj-compare}, and the installer packages whatever the runtime class path holds. 8.10
  * shipped commons-beanutils 1.9.4 (CVE-2025-48734) that way; since mystic-crypt 13.7 the libraries
  * bring 1.11.0 and jackson 2.22.4. Dependabot cannot raise an alert for a dependency nobody
- * declares, so the floor is held here, against the class path the tests run on, which holds the
- * same resolved versions as the runtime one: a library that brought a lower version back fails it.
- * The same guard stands in lethenon (astrapi69/lethenon#231). With file-worker 21 and
- * gson-extensions 4 commons-beanutils is off the class path altogether; the guard now holds it off.
+ * declares, so the floor is held here, against the runtime class path of the build, which the build
+ * names to the test JVM and which is what ships: a library that brought a lower version back fails
+ * it. The test class path is not read, since it holds what the tests declare themselves. The same
+ * guard stands in lethenon (astrapi69/lethenon#231). With file-worker 21 and gson-extensions 4
+ * commons-beanutils is off the class path altogether; the guard now holds it off.
  * <p>
  * randomizer is not a dependency of this application either since #658, which draws its random
  * values from {@code SecureRandom}. Before 10.5 its default generator is seeded with the current
@@ -169,12 +170,30 @@ class RuntimeDependenciesTest
 			"commons-collections4, 4.6.0", "json, 20260719" })
 	void transitiveDependency_isAtLeastItsPatchedRelease(final String artifact, final String floor)
 	{
-		List<String> versions = versionsOnTheClassPath(artifact);
+		List<String> versions = versionsInTheRuntime(artifact);
 
 		assertEquals(1, versions.size(),
 			"exactly one " + artifact + " on the class path, found " + versions);
 		assertTrue(compare(versions.getFirst(), floor) >= 0,
 			artifact + " " + versions.getFirst() + " is below " + floor);
+	}
+
+	/**
+	 * The release the application chose for a library it does not use itself: a version constraint
+	 * in {@code gradle/dependencies.gradle} holds it, because the libraries that bring it ask for
+	 * an older one (gson-extensions 4.1 asks for gson 2.11.0, the tree libraries for tree-api 2.1).
+	 * Without the constraint the build still resolves, and ships the older release
+	 */
+	@ParameterizedTest(name = "{0} ships at least {1}, as its constraint holds")
+	@CsvSource({ "silly-io, 5.0", "gson, 2.15.0", "tree-api, 2.2.1" })
+	void constrainedLibrary_shipsAtLeastItsChosenRelease(final String artifact, final String chosen)
+	{
+		List<String> versions = versionsInTheRuntime(artifact);
+
+		assertEquals(1, versions.size(),
+			"exactly one " + artifact + " in the runtime, found " + versions);
+		assertTrue(compare(versions.getFirst(), chosen) >= 0,
+			artifact + " " + versions.getFirst() + " is below the chosen " + chosen);
 	}
 
 	@ParameterizedTest(name = "the application jar carries {1} at least {2}")
@@ -200,7 +219,7 @@ class RuntimeDependenciesTest
 			"tomcat-embed-core", "commons-beanutils", "commons-logging" })
 	void unusedWebStack_isNotOnTheClassPath(final String artifact)
 	{
-		assertEquals(List.of(), versionsOnTheClassPath(artifact), artifact
+		assertEquals(List.of(), versionsInTheRuntime(artifact), artifact
 			+ " is on the class path again (#639; commons-beanutils left with file-worker 21)");
 	}
 
@@ -213,7 +232,7 @@ class RuntimeDependenciesTest
 	@ValueSource(strings = { "visitor", "state" })
 	void supersededArtifact_isNotOnTheClassPath(final String artifact)
 	{
-		assertEquals(List.of(), versionsOnTheClassPath(artifact),
+		assertEquals(List.of(), versionsInTheRuntime(artifact),
 			artifact + " is on the class path beside its renamed successor (#774)");
 	}
 
@@ -439,11 +458,17 @@ class RuntimeDependenciesTest
 		return properties;
 	}
 
-	private static List<String> versionsOnTheClassPath(final String artifact)
+	/**
+	 * The versions of an artifact among the libraries this build ships: its runtime class path,
+	 * which the build names in {@code mystic.crypt.ui.runtime.libraries}. The test class path is
+	 * not read, since it holds what the tests declare themselves, silly-io among it, whatever the
+	 * application ships
+	 */
+	private static List<String> versionsInTheRuntime(final String artifact)
 	{
 		Pattern jar = Pattern.compile(Pattern.quote(artifact) + "-(\\d[^/]*)\\.jar");
-		return Arrays.stream(System.getProperty("java.class.path").split(File.pathSeparator))
-			.map(entry -> jar.matcher(new File(entry).getName())).filter(Matcher::matches)
+		return ApplicationJarUnderTest.runtimeLibraries().stream()
+			.map(entry -> jar.matcher(entry.getName())).filter(Matcher::matches)
 			.map(matcher -> matcher.group(1)).toList();
 	}
 
