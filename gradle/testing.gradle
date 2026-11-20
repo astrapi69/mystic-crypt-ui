@@ -160,10 +160,6 @@ test {
         systemProperty 'junit.jupiter.execution.timeout.default', '5m'
         // TEMPORARY DIAGNOSIS of the hang of #1097, removed in the next commit
         testLogging { events 'started' }
-        doFirst {
-            new ProcessBuilder('bash', '-c', 'sleep 1500; mkdir -p build/own-display; ps -eo pid,etime,args > build/own-display/ps-hang.txt; for p in $(pgrep -f "Gradle Test Executor"); do jcmd $p Thread.print > build/own-display/hang-$p.txt 2>&1; done')
-                .redirectErrorStream(true).start()
-        }
         // after the fast one, so a failure that both would catch is reported by the cheap suite first
         shouldRunAfter test
     }
