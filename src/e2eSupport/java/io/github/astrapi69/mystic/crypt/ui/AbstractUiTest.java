@@ -123,6 +123,9 @@ abstract class AbstractUiTest
 
 	private final SignInDialogDiagnostics diagnostics = new SignInDialogDiagnostics();
 
+	/** Fails the test if a window opens with Swing's shared owner frame as owner (#63) */
+	private final SharedOwnerFrameGuard sharedOwnerFrameGuard = new SharedOwnerFrameGuard();
+
 	private Thread appThread;
 
 	/** How many sign-in dialogs this test has already found, through {@link AwaitStartup} */
@@ -148,6 +151,7 @@ abstract class AbstractUiTest
 		diagnostics.beginTest();
 		robot = UiTestRobots.withNewAwtHierarchy();
 		diagnostics.robotCreated();
+		sharedOwnerFrameGuard.switchOn();
 	}
 
 	@AfterEach
@@ -181,9 +185,11 @@ abstract class AbstractUiTest
 			resetApplicationFrameSingleton();
 			AwaitStartup.switchOff();
 			diagnostics.endTest();
+			sharedOwnerFrameGuard.switchOff();
 			System.setProperty("user.home", originalUserHome);
 		}
 		deleteTempHome();
+		sharedOwnerFrameGuard.requireNone();
 	}
 
 	private void deleteTempHome()
