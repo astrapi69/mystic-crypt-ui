@@ -643,7 +643,11 @@ with the user's rights.
 
 **2. The interplay with the signature check (2.2 to 2.6) and the verifier states.** The list is not a second verifier. It is the
 override path of the state "unsigned" in the table of the verifier proposal, kept under the vault's encryption, where 2.3 point 2
-keeps it in a file of the plugin settings. The states then read:
+keeps it in a file of the plugin settings. It is more than a new place for the same consent, though: the idea adds an approval at
+the start that 2.3 does not have. 2.3 point 1 does not load an unsigned zip at a start (fail closed), and 2.3 point 2 asks only at
+Install from Zip, as the unsigned row of the verifier table under "Existing solutions" says too; with the idea, an unsigned zip
+that a start finds and the list does not name gets the warning after the sign-in, and a Yes approves it there. A replaced zip (T2,
+point 7) comes in by that second route. The states as the idea gives them:
 
 | state of the zip | before the sign-in | after the sign-in |
 |---|---|---|
@@ -653,12 +657,21 @@ keeps it in a file of the plugin settings. The states then read:
 | modified or invalid (signature does not verify, key unknown, outside the key's validity) | refused | refused; no list entry overrides it, as in Grafana, where only the unsigned state has an override |
 
 This keeps the two rules of the verifier table: modified and invalid are never overridden, and only unsigned has an override.
+The variant that matches 2.3: an unsigned zip that the list does not name, or names with another SHA-256, is not started at a
+start and is named in Settings > Plugins with the reason, as 2.3 point 1 does, and an entry is written only through Install from
+Zip, after the consent dialog of 2.3 point 2. A start then asks nothing, so a replaced zip meets no question that a wrong Yes could
+answer; the price is that an unsigned plugin updated by copying its zip over the old one stays off until it goes through Install
+from Zip. Which of the two the list follows is the maintainer's choice.
+
 The check order at a start becomes: signature first (no vault needed), then, for what is unsigned, the list. The development mode
-of 2.6 has to stay outside the list. A locally built zip has a new SHA-256 at every build (the #998 record exists because zips
-differ between builds), so an unsigned plugin consulted against a list would ask at every `make run` and the default answer
-would be No. With the recommendation of 2.6 (the zips are signed by a throwaway development key that `make run` adds to the trust
-set) the plugins are "signed" and never reach the list; with its sub-question answered by unsigned zips accepted in a development
-build, the check returns before the list is read. Either way the e2e suites sign with throwaway keys (2.4) and need no vault list.
+of 2.6 has to stay outside the list. A locally built zip gets a new SHA-256 whenever its content changes: the archives are
+reproducible (#991; `gradle/reproducible-archives.gradle:5-8` fixes entry times and order for every archive task,
+`git grep -l reproducible-archives.gradle d40879c5 -- '*.gradle'` finds it applied in the 15 plugin builds among 49 build files, and
+two clean builds of one commit gave byte-equal zips for all 15 plugins, commit `d8237a8c`). So an unsigned plugin checked against
+a list would ask after every change the developer makes to it, and the default answer would be No. With the recommendation of
+2.6 (the zips are signed by a throwaway development key that `make run` adds to the trust set) the plugins are "signed" and never
+reach the list; with its sub-question answered by unsigned zips accepted in a development build, the check returns before the
+list is read. Either way the e2e suites sign with throwaway keys (2.4) and need no vault list.
 The warning belongs to the installed application only.
 
 **3. Which plugins must run before the sign-in.** None of the 15 plugins needs to. Measured: no plugin code runs before the
@@ -667,27 +680,31 @@ dialog is shown in `onBeforeInitializeComponents` (`:334-339`), and `unpackChang
 follow in `onAfterInitialize` (`:380-382`). The host has four extension points (`PluginMenuContribution`,
 `PluginSettingsContribution`, `VaultAccessContribution`, `PluginCommandContribution`) and none is for a sign-in method, a key
 source, a reader or the look and feel; the sign-in dialog, key files, KeePass import and the look and feel are host code
-(`git grep -n -E 'ServiceLoader|Class\.forName' d40879c5 -- src/main` over 186 files: no hit; no host main class names a shipped
-plugin class). The 15 plugins implement 30 extensions (15 menu, 14 settings, 1 vault access, 0 command), and for each of them the
-answer to "needed before the sign-in" is no (`git grep -n '@Extension' d40879c5 -- plugins`, filtered to main sources, 247 files in
-`plugins/`). Two plugins, checksum and password-hash, declare `isUsableWithoutAVault()`; they are used from the menu when a vault
-is locked, which is after the dialog. So "before the sign-in only the core and signed plugins" costs nothing today: it describes
-the order that already holds, and the only thing it adds is a rule for later: an extension point that is used before the sign-in
-(a sign-in method, a key source) may be filled by a signed plugin only. An unsigned plugin that contributes something before the
-sign-in would not be started; it is shown as "not started, signed plugins only before the sign-in" and cannot be approved from
-the list, because the list is unreadable until the vault is open. The cancelled sign-in is the case that changes behaviour:
-`onAfterInitialize` has no `isSignedIn` guard and the cancel handler does not exit (`MysticCryptApplicationFrame.java:368-407`,
-`MasterPwWithApplicationFilePanel.java:789-798`), so plugins start with no vault open today; the case 5 of
-`EverySignInOffersThePluginEntriesUiTest` relies on plugin entries existing after a cancelled start. With the idea, only signed
-plugins would start there, and an unsigned plugin would start when a vault is opened later, which needs the start of a plugin
-after the sign-in (point 5 below). The 14 shipped plugins are signed under 2.4; the menu designer, not shipped, is
-unsigned and for the development profile (2.6). Plugin start-up code that runs: `Plugin.start()` of every plugin only logs,
-except lethenon, which registers the SQLite driver with `Class.forName("org.sqlite.JDBC")` (`LethenonPlugin.java:61-86`), and
-that is a reason the order matters: an unlisted plugin must not get as far as `start()`.
+(`git grep -n -E 'ServiceLoader|Class\.forName' d40879c5 -- src/main` over 324 files, 186 of them Java: no hit), and no host main
+class names a shipped plugin class (`git grep -n -E 'mystic\.crypt\.plugin\.[a-z-]+' d40879c5 -- src/main/java` over 186 files:
+24 lines, all of them the host's own packages `plugin.api` and `plugin.vault`, none a package of the 15 plugins). The 15 plugins
+implement 30 extensions (15 menu, 14 settings, 1 vault access, 0 command), and for each of them the answer to "needed before the
+sign-in" is no (`git grep -n '@Extension' d40879c5 -- 'plugins/*/src/main/java/*'` over the 247 Java files of the plugins' main
+sources: 30 hits). Two plugins, checksum and password-hash, declare `isUsableWithoutAVault()`; they are used from the menu when a
+vault is locked, which is after the dialog. So "before the sign-in only the core and signed plugins" costs nothing today: it
+describes the order that already holds, and the only thing it adds is a rule for later: an extension point that is used before the
+sign-in (a sign-in method, a key source) may be filled by a signed plugin only. An unsigned plugin that contributes something
+before the sign-in would not be started; it is shown as "not started, signed plugins only before the sign-in" and cannot be
+approved from the list, because the list is unreadable until the vault is open. The cancelled sign-in is the case that changes
+behaviour: `onAfterInitialize` has no `isSignedIn` guard and the cancel handler does not exit
+(`MysticCryptApplicationFrame.java:368-407`, `MasterPwWithApplicationFilePanel.java:789-798`), so plugins start with no vault open
+today; the test `aSignInAfterACancelledStartOffersThePluginEntries` of `EverySignInOffersThePluginEntriesUiTest` (`:134-161`)
+relies on plugin entries existing after a cancelled start. With the idea, only signed plugins would start there, and an unsigned
+plugin would start when a vault is opened later, which needs the start of a plugin after the sign-in (point 5 below). The 14
+shipped plugins are signed under 2.4; the menu designer, not shipped, is unsigned and for the development profile (2.6). Plugin
+start-up code that runs: `Plugin.start()` of every plugin only logs, except lethenon, which registers the SQLite driver with
+`Class.forName("org.sqlite.JDBC")` (`LethenonPlugin.java:61-86`), and that is a reason the order matters: an unlisted plugin must
+not get as far as `start()`.
 
 **4. Updates.** A signed plugin updates with no question: the new zip carries a signature of a key in the list, and no entry is
-read or written. An unsigned plugin changes its SHA-256 with every build, so after a file replacement it is unknown to the list
-and the warning appears at the next start with the hash it now has; after "Install from Zip" the host writes the new entry itself
+read or written. An unsigned plugin changes its SHA-256 with every change of its content (point 2), so after a file replacement
+with a changed zip it is unknown to the list and the warning appears at the next start with the hash it now has (in the variant
+of point 2 it is not started and is named in Settings > Plugins); after "Install from Zip" the host writes the new entry itself
 after the consent dialog of 2.3. `PluginZipInstallation.decide` already tells "update of a loaded plugin" from "new plugin"
 (`PluginZipInstallation.java:91-120`), and an update copies the zip and runs from the next start (`PluginsSettingsPanel.java:223-247`),
 so the entry is written at the install, from the zip that was copied, and the next start finds the hash equal. What happens to
@@ -701,13 +718,23 @@ no longer installed is dropped when the person opens Settings > Plugins (an edit
 A hash of the zip does not cover T3: #998's record is written from the zip and the unpacked directory is never hashed
 (`PluginArchives.java:132-171`, `:252-257`, `:335-346`), so a directory changed after unpacking is loaded (inference from those
 lines, not run). The entry would need the directory hash of 2.3 as a second field; that hash, stored in the vault, cannot be
-rewritten by a process without the vault key, which a hash in a file next to the directory can.
+rewritten by a process without the vault key, which a hash in a file next to the directory can. An inference, since nothing is
+built: the host could instead compare the unpacked directory with the zip it came from at each start, which needs no stored hash
+at all; with that check, a directory hash in the vault would add nothing under T3.
 
 **5. Several vaults.** Each vault has its own list, because the list is a part of the vault's content. What pf4j allows and what
-the host does decide how far that goes in one session. Measured: the host starts plugins once, in `onAfterInitialize`; opening
-another database closes the open vault, shows the sign-in dialog and enables the menu, and does nothing to the plugins
-(`OpenExistingDatabaseAction.java:74-88`); `git grep -n -E 'unloadPlugin|deletePlugin|unloadPlugins|stopPlugins\(|getPluginClassLoader|PluginStateListener' d40879c5 -- src plugins`
-over 1029 Java files hits only the CLI (`MysticCryptUiCli.java:179`) and two `zipTest` classes. pf4j can do it (read, not run):
+the host does decide how far that goes in one session. Measured: the host starts all plugins once, in `onAfterInitialize`
+(`MysticCryptApplicationFrame.java:382`), and single plugins from Settings > Plugins on Enable (`PluginsSettingsPanel.java:110-121`,
+`enablePlugin` then `startPlugin`) and after a new install (`:249-258`);
+`git grep -n -E 'startPlugin\(|startPlugins\(' d40879c5 -- src/main/java` over 186 files has these three hits and the CLI's own
+start (`MysticCryptUiCli.java:171`). Enable is a start path the list has to gate too; a gate in `isPluginValid` would cover it,
+because `enablePlugin` consults it (`AbstractPluginManager.java:661`) and `startPlugin` enables a disabled plugin through
+`enablePlugin` (`:419-421`; read, not run). Opening another database closes the open vault, shows the sign-in dialog and enables
+the menu, and does nothing to the plugins (`OpenExistingDatabaseAction.java:74-88`);
+`git grep -n -E 'unloadPlugin|deletePlugin|unloadPlugins|stopPlugins\(|getPluginClassLoader|PluginStateListener' d40879c5 -- src plugins`
+over 1279 files, 1029 of them Java, hits the CLI (`MysticCryptUiCli.java:179`), two `zipTest` classes and a comment in
+`stopPluginsQuietly` (`MysticCryptApplicationFrame.java:954`), which stops every started plugin when the application ends
+(`:906`, `:948-969`) and unloads none. pf4j can do it (read, not run):
 `unloadPlugin` stops the plugin and its dependents, removes it and closes its class loader (`AbstractPluginManager.java:272-352`);
 `loadPlugins` runs no plugin code and a start can be selective, and `isPluginValid` is the hook that sets DISABLED at load
 (`:912`, `:1037`; inference that no plugin class is loaded by `loadPlugins`). What pf4j cannot do is make the plugin's code go
@@ -743,20 +770,28 @@ could sit, measured:
   for a vault of that kind anything new goes into the XML content or nowhere.
 - (a) As a marked entry with a host-owned marker, through the mechanism of `plugin-vault-access-2026-10-31.md` (a custom property
   in the namespace of its owner). No format change, readable by every build from 8.5. It is visible and editable as an ordinary
-  entry in the tree, an older build can change or delete it, and a plugin could read it through the host's `getInstance()` (the
-  same record, which says a plugin can reach every entry; #678 is open).
+  entry in the tree, an older build can change or delete it, and a plugin could read and change it, and save the vault without
+  the read-only check, through the host's `getInstance()` (the same record, `plugin-vault-access-2026-10-31.md:51-53`; #678 is
+  open).
 - (b) As a new element in `ApplicationModelBean` (XStream). It needs `FORMAT_VERSION` 3. Without the bump, 8.6 to 8.16 skip the
   unknown element (`VaultXmlCodec.java:256`, `ignoreUnknownElements`) and their next save drops it from the file, and 8.5.x
   refuses the vault and reports a false wrong password (`vault-format-version-2026-09-17.md:20-26`). With the bump, every build
   from 8.6 on opens such a vault read-only, with Save, Save As and every change refused (`VaultXmlCodec.java:136-168`,
-  `ANewerFormatOpensReadOnlyUiTest`), which protects the list and locks out a person who runs two versions until the newer one is
-  used. It adds a field to a format that the 9.0 record already slates for freezing ("nothing new is ever written in the XStream
-  format"), and the round trip through the real app, including the legacy path, is mandatory (`quality-checks.md`).
-- (c) In the 9.0 content format (`vault-content-format-9.0-2026-11-10.md`, accepted, nothing built): the vault entity carries one
-  optional `extensions` object that the host never interprets, plugin data lives in namespaced keys there, an older 9.x reader keeps
-  what it does not know, and a newer minor opens read-only. A host-namespaced key for the list needs no schema change and no extra
-  break, because 9.0 is a break already. Open issues #862, #864, #865 and #866 are all open, and none names plugins or a vault-level
-  setting; the model list of #865 has no field for it, so taking it in is an edit to the scope of #865, the maintainer's decision.
+  `ANewerFormatOpensReadOnlyUiTest`). That protects the list, and it keeps a person who runs two versions from changing or saving
+  the vault in the older one, which still shows it (`vault-format-version-2026-09-17.md:13-16`, `:30-33`). It adds a field to a
+  format that the 9.0 record already slates for freezing ("nothing new is ever written in the XStream format"), and the round trip
+  through the real app, including the legacy path, is mandatory (`quality-checks.md`).
+- (c) In the 9.0 content format (`vault-content-format-9.0-2026-11-10.md`, accepted, nothing built): every entity, the vault
+  included, carries one optional `extensions` object "the host never interprets", with plugin data in namespaced keys
+  (`:75-77`); a newer minor version's additions land in `extensions` or in new optional fields, which an older 9.x reader keeps
+  (`:87-88`), and a newer minor opens read-only (`:94-96`). A list the host reads and enforces is host data, so it does not fit
+  `extensions` as the record defines it. It needs a dedicated optional field in the vault root, a schema addition under the
+  record's minor rule (`:87-88`) and an edit to #865's model list, or a change to the record's rule that the host never interprets
+  `extensions` (`:75-76`), which the maintainer decides separately. A host key among the plugins' namespaces would also need a rule
+  that keeps plugins from writing it (an inference; nothing of 9.0 is built). Taken into 9.0, either adds no break of its own,
+  because 9.0 is a break already. Issues #862, #864, #865 and #866 are all open, and none names plugins or a vault-level setting;
+  the model list of #865 ("one optional `extensions` object per entity") has no field for it, so taking it in is an edit to the
+  scope of #865, the maintainer's decision.
   Cost: nothing exists before 9.0, and released 7.x and 8.x cannot read a 9.0 vault, so the list protects nothing until 9.0 ships.
   A legacy vault has no list: the first save in 9.0 starts it empty (every unsigned plugin asks once) or seeds it from the installed
   plugins (trust on first use; an attacker's zip that is already there becomes trusted); which of the two is a decision that
@@ -764,8 +799,8 @@ could sit, measured:
   XML, and the format page says "it is highly recommended that plugins store additional data in the CustomData dictionary of
   PwDatabase" (keepass.info/help/kb/kdbx_4.html, read 2026-11-20).
 Recommendation within the format question: (c). The list is consent state, not a feature that must ship with the signature check,
-so it can wait for the format that has a place for it; (b) spends a format bump on a format that is about to be replaced, and (a)
-puts a security record where the user and an older build can edit it.
+so it can wait for the format that can take it as a field of its own; (b) spends a format bump on a format that is about to be
+replaced, and (a) puts a security record where the user and an older build can edit it.
 
 **7. The threat model.** The assumption of 2.1 stands: a plugin runs with the user's rights in the vault's JVM. What the list
 defends against, fitted to T1 to T4 and to what 2.1 leaves out. D is defended, P partly, N not.
@@ -773,13 +808,14 @@ defends against, fitted to T1 to T4 and to what 2.1 leaves out. D is defended, P
 | threat | list | reason |
 |---|---|---|
 | T1, a zip chosen at Install from Zip that is changed or foreign | P | the install is where the person answers the dialog, and the list is only where the answer is kept; a person who says Yes defeats it. The signature refuses what it does not know; the list asks |
-| T2, a zip replaced in the plugins directory between starts by a process that cannot run code in the application | D, for unsigned plugins | the process cannot add its zip's hash to a list it cannot decrypt, and the host finds the hash unknown after the sign-in. Signed zips are covered by the signature and need no list |
+| T2, a zip replaced in the plugins directory between starts by a process that cannot run code in the application | P, for unsigned plugins (D only while the person answers No) | the process cannot forge the entry, since it cannot decrypt the list, and the host finds the hash unknown after the sign-in; but the host then asks instead of refusing, and a replaced zip of a plugin the person did install is the case where "Did you install this plugin yourself?" invites a wrong Yes (the version the warning shows does not change on a swap: all 15 plugins carry 1.0.0, point 4). In the variant of point 2 the swapped zip is not started and nothing is asked: D. A replaced zip whose signature does not verify is refused without a question (modified or invalid, no override) |
 | T3, the unpacked directory changed after unpacking | P | only if the entry carries a directory hash the host computed at unpacking; a hash of the zip, as stated in the idea, does not see it (point 4) |
 | T4, the 14 installer-laid zips | not the list's business | they are signed (2.4); no entry exists for them |
 | a process that runs inside the JVM or replaces the host jar, the launcher or the Java found by `start.sh`, or injects an agent | N | it can ignore the list, or read the decrypted list and the master password; see point 8 |
 | a key logger, a screen or clipboard reader, a memory reader of the same user | N | it reads the password as typed and the plain data after the unlock; the list is irrelevant |
 | a user who answers Yes | N | default No lowers the rate and does not change the outcome (2.1) |
 | a plugin that is signed and malicious | N | signed plugins need no entry; the list cannot say anything about intent (out of scope in 2.1) |
+| a loaded plugin (signed, or unsigned and approved) | N | it reaches the vault model through `getInstance()` (#678) and can add entries for other plugins, in every placement (for (c) an inference, as nothing of 9.0 is built) |
 | rollback: an older copy of the vault file with an older list | N | the file is replaceable with the user's rights; an old list is a valid list (inference; AEAD proves a file is whole, not that it is the newest) |
 | a vault that was made before the list, or imported | P | the list is empty or seeded (point 6 (c)); seeded means trust on first use |
 | the CLI | N | no vault is opened (point 5) |
@@ -800,7 +836,8 @@ run code inside the application. Where it stops, measured on the maintainer's Li
 - The launcher and the Java it picks: `start.sh`, the `.desktop` copy in `~/.local/share/applications` and the file
   `installer-java-home` are writable by the user on a home install (`start.sh:9-15, 32-55`, `install.xml:82-84, 92-103`).
 - An agent through the environment: `JAVA_TOOL_OPTIONS="-Dx.y=1" java -version` printed "Picked up JAVA_TOOL_OPTIONS: -Dx.y=1" on
-  JDK 25.0.5 (run 2026-11-20), and `JDK_JAVA_OPTIONS` likewise; a `-javaagent:` arrives the same way, before `main`.
+  JDK 25.0.5 (run 2026-11-20), and `JDK_JAVA_OPTIONS` likewise; a throwaway agent given as `-javaagent:` in either variable ran
+  its `premain` before `main` under `java -jar` (JDK 25.0.5, 2026-11-20).
 Precedent, each with its source, all read on 2026-11-20:
 - KeePass: the page on security issues says "An attacker who has write access to the KeePass configuration file can modify it
   maliciously", that "an attacker can for instance simply replace the "KeePass.exe" file by some malware", and that "KeePass cannot
@@ -808,13 +845,17 @@ Precedent, each with its source, all read on 2026-11-20:
   install directory, which is the line this section ends at. KeePass 2 loads plugins from its application directory and the plugin
   page names no signature or hash check (keepass.info/help/v2/plugins.html; read by an earlier stage of this work); it does not tie
   plugins to a database. KDBX 4's `CustomData` is the precedent for keeping such a record in the encrypted part (point 6).
-- Firefox: signing has been mandatory in release and beta since 2015 to 2016, with unsigned add-ons only in Developer Edition,
-  Nightly and ESR after toggling `xpinstall.signatures.required`, and sideloading, where an installer drops an extension into a
-  special location, ended in Firefox 74 in 2020 because "this mechanism has also been employed in the past to install malware"
-  (extensionworkshop.com/documentation/publish/signing-and-distribution-overview/;
-  blog.mozilla.org/addons/2019/10/31/firefox-to-discontinue-sideloaded-extensions/). The answer there was a signature anchored in the
-  program and a refusal of the drop-in route, not a list in the profile. I found no Mozilla text that says a profile list was tried
-  and failed.
+- Firefox: add-ons "need to be signed before they can be installed into release and beta versions of Firefox", and unsigned ones
+  can be installed only in Developer Edition, Nightly and ESR after toggling `xpinstall.signatures.required`
+  (extensionworkshop.com/documentation/publish/signing-and-distribution-overview/); signing was announced on February 10, 2015
+  (blog.mozilla.org/addons/2015/02/10/extension-signing-safer-experience/, whose update note says that details of the plan, the
+  timeline in particular, changed after it was published). Sideloading, where an installer drops an extension into a special
+  location, was to stop being supported in Firefox 74, "which will be released on March 10, 2020", and the post gives the purpose:
+  "To give users more control over their extensions, support for sideloaded extensions will be discontinued." It adds that the
+  mechanism "has also been employed in the past to install malware into Firefox"
+  (blog.mozilla.org/addons/2019/10/31/firefox-to-discontinue-sideloaded-extensions/). The answer there was a signature and a refusal
+  of the drop-in route, not a list in the profile; that the signature is anchored in the program is an inference, neither page says
+  so. I found no Mozilla text that says a profile list was tried and failed.
 - Chrome: other programs may install extensions through external-extension files or the Windows registry; Windows and macOS users
   are asked to enable them, Windows takes no local file path, and a blocklisted one is not installed again
   (developer.chrome.com/docs/extensions/how-to/distribute/install-extensions). That is a prompt and a source restriction, with no
@@ -827,21 +868,25 @@ Precedent, each with its source, all read on 2026-11-20:
 1. **Signatures with the allow-list in the vault as the consent store** (the idea, on top of 2.2 to 2.6). The signature check
    stays and is what protects the first start, the CLI and the shipped zips; the list takes the place of the consent record of
    2.3 point 2 for unsigned and self-built plugins, with the entry written at Install from Zip and the warning (default No) for an
-   unknown or changed one. Placement: the 9.0 `extensions` object (point 6 (c)); until 9.0 the consent record of 2.3 stays in the
-   plugin settings. Consequences: a change to the vault content that waits for #865 and #866 and for an edit to #865's scope; a
-   connect step for plugins started after the sign-in (`connectVaultPlugins` runs once, at the start); a rule for
-   the cancelled sign-in and for a second vault (point 5); an editing path for entries; the CLI unchanged. Gain over option 2:
-   under T2 and T3 an unsigned plugin's consent cannot be forged by a process that has no vault key.
+   unknown or changed one. Placement: the 9.0 format (point 6 (c)), as a new optional field of the vault root, or in `extensions`
+   once the maintainer changes the 9.0 record's rule that the host never interprets it; until 9.0 the consent record of 2.3 stays
+   in the plugin settings. Consequences: a schema addition to the 9.0 content (or that change of the rule), which waits for #865
+   and #866 and for an edit to #865's scope; a connect step for plugins started after the sign-in (`connectVaultPlugins` runs
+   once, at the start); a rule for the cancelled sign-in and for a second vault (point 5); an editing path for entries; the CLI
+   unchanged. Gain over option 2: under T2, and under T3 only if the entry carries the directory hash (open point below), an
+   unsigned plugin's consent cannot be forged by a process that has no vault key.
 2. **Signatures alone, as 2.2 to 2.6 recommend.** Option A, with the consent of 2.3 point 2 recorded by SHA-256 in the plugin
    settings. Consequences: no change to the vault, no multi-vault question, one code path for the window and the CLI; the consent
    record of an unsigned plugin lies in the writable directory and protects against T1 only (2.3). For a person who installs no
-   unsigned plugin the two options do not differ.
+   unsigned plugin the options differ only under T2: with option 2 a process can write a consent record for its own unsigned zip
+   and the zip starts; with option 1 it cannot, and the host asks (default No), or in the variant of point 2 does not start it. In
+   daily use the person sees no difference.
 3. **A list in the configuration directory.** Shown to say why not: it adds a file that a process able to write the zip can write
    as well (point 8), it is the consent record of option 2 under another name, and pf4j's `disabled.txt` already is such a list.
    Not recommended.
 
-Recommendation (a suggestion): option 2 first, and option 1 as its later home when the 9.0 format has the place, not as a format
-change of MCRDB2 now. Reason: the signature does what the list cannot (it refuses without a question, covers the CLI and holds
+Recommendation (a suggestion): option 2 first, and option 1 as its later home when the 9.0 format has a field for it, not as a
+format change of MCRDB2 now. Reason: the signature does what the list cannot (it refuses without a question, covers the CLI and holds
 without a vault), while the list adds protection only for unsigned plugins and only against an attacker who writes files and
 does not run code, at the cost of a format decision, a late-start path and a multi-vault rule. Nothing in the 15 plugins needs it
 before the sign-in, so deferring loses nothing today. Best practice: keep a plugin's data in the part of the database that is
@@ -849,7 +894,9 @@ encrypted, as KDBX 4 recommends (keepass.info/help/kb/kdbx_4.html), and do not e
 hold against a process that runs with the user's rights, which is KeePass's own limit statement (keepass.info/help/kb/sec_issues.html);
 release channels that need signed add-ons and refuse a drop-in route are the Firefox precedent for the signature.
 Open points inside option 1, for the maintainer: seed an empty list from the installed plugins or start it empty at migration;
-whether the list is read once per session or at every sign-in (point 5); whether it carries the directory hash (T3).
+whether the list is read once per session or at every sign-in (point 5); whether it carries the directory hash (T3); whether an
+unsigned zip that a start finds and the list does not name gets the warning, as in the idea, or stays off until Install from Zip,
+the variant of point 2.
 
 ## Existing solutions
 
@@ -1295,7 +1342,8 @@ handling), 2.5 (the key) and 2.6 (development builds), and the proposal above fo
    decision (architecture.md).
 7. **After RELEASE-8.16**, section 2.7: the maintainer's idea of an allow-list of plugins inside the vault. Signatures with the
    list as the consent store, signatures alone, or a list in the configuration directory (shown only to say why not); where
-   the list sits (9.0 `extensions`, a new MCRDB2 element with `FORMAT_VERSION` 3, or a marked entry) and how a second vault
+   the list sits (a new optional field of the 9.0 vault root, or 9.0 `extensions` with a change to that record's rule that the
+   host never interprets it; a new MCRDB2 element with `FORMAT_VERSION` 3; or a marked entry) and how a second vault
    and the cancelled sign-in are handled.
 
 Proof of concept files (the jdeps output, the program that installs a changed zip and the `plugin.requires` check, each with its
