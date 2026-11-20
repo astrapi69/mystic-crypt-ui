@@ -1,0 +1,4 @@
+URL: https://raw.githubusercontent.com/mikaelgrev/miglayout/f788e6ee532adcf1b21e67f2da4f5ad2a17e2348/src/site/resources/docs/license.txt
+Version read: 11.5.2
+File: license.txt
+commit f788e6ee ('v11.5.2'; upstream has no git tag v11.5.2, last tag v11.4.2); same file in both modules (one parent project)

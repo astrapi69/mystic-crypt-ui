@@ -1,0 +1,4 @@
+URL: http://www.xmlpull.org/v1/download/unpacked/LICENSE.txt
+Version read: 1.1.3.1
+File: LICENSE.txt
+URL named in the POM's licenses

@@ -364,7 +364,15 @@ izpack libs.izpack.ant
    The desktop entry is installed twice, into the install path and into
    `${USER_HOME}/.local/share/applications`, and both copies are `parsable` so that
    `${INSTALL_PATH}` is substituted into `Exec` and `Icon`; the Desktop Entry
-   specification does not expand `~`, so the real path has to be written in.
+   specification does not expand `~`, so the real path has to be written in. `Exec` runs
+   `start.sh`, not `java`: a menu start has no terminal and the session's PATH, whose `java`
+   may be older than 25. `start.sh` takes the Java the installer ran on, which the parsable
+   one-line file `installer-java-home` holds (IzPack's `JAVA_HOME` is the installing JVM's
+   `java.home`), then the PATH's, needs 25 or newer, and otherwise names what it tried on
+   standard error, in `zenity` or `notify-send` when present, and exits 1 (#1009). The JVM
+   flags are written in `start.sh` and, once more because a batch file cannot read them,
+   in `start.bat`; `python3 scripts/start_launcher_test.py` runs `start.sh` against stub
+   `java` executables.
 2. `commandline` (optional, preselected): the `mystic-crypt` and `mystic-crypt.bat`
    launcher scripts, which run the CLI entry point out of the same application jar.
    Depends on `executables`.

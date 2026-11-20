@@ -121,6 +121,22 @@ test {
     def runtimeLibraries = configurations.runtimeClasspath
     inputs.files(runtimeLibraries).withPropertyName('runtimeLibraries').withNormalizer(ClasspathNormalizer)
     jvmArgumentProviders.add({ ["-Dmystic.crypt.ui.runtime.libraries=${runtimeLibraries.asPath}".toString()] } as CommandLineArgumentProvider)
+    // the same libraries with their group and artifact, and the patterns the build copies licence files by
+    // (gradle/packaging.gradle): ThirdPartyLicensesTest checks that every library brings such files or has
+    // curated ones under legal/third-party (#1014)
+    def runtimeModules = configurations.runtimeClasspath.incoming.artifacts.resolvedArtifacts.map { artifacts ->
+        artifacts.findAll { it.id.componentIdentifier instanceof org.gradle.api.artifacts.component.ModuleComponentIdentifier }
+                .collect { "${it.id.componentIdentifier.group}:${it.id.componentIdentifier.module}=${it.file.absolutePath}" }
+                .join('|')
+    }
+    def legalFilePatterns = providers.provider { project.ext.thirdPartyLegalFilePatterns.join(',') }
+    jvmArgumentProviders.add({
+        ["-Dmystic.crypt.ui.runtime.modules=${runtimeModules.get()}".toString(),
+         "-Dmystic.crypt.ui.third.party.legal.files=${legalFilePatterns.get()}".toString()]
+    } as CommandLineArgumentProvider)
+    inputs.property('thirdPartyLegalFilePatterns', legalFilePatterns)
+    inputs.files(fileTree('src/main/resources/legal')).withPropertyName('legalFiles')
+        .withPathSensitivity(PathSensitivity.RELATIVE)
 }
 
 // The end-to-end suites: the Swing tests, one task per source set so each has its own cache key.
