@@ -26,11 +26,9 @@ dependencyAnalysis {
                 // Reported on 2026-11-18, when the check was introduced, and not decided yet. Each goes with the
                 // pull request that removes it or says why it stays, so this list only gets shorter, and what the
                 // report still shows is new
-                exclude("commons-codec:commons-codec", "com.google.code.gson:gson",
-                    "io.github.astrapi69:jobj-cloner", "io.github.astrapi69:jobj-copy",
-                    "io.github.astrapi69:tree-api",
-                    "io.github.astrapi69:junit-jupiter-extensions",
-                    "org.mockito:mockito-core")
+                exclude("io.github.astrapi69:junit-jupiter-extensions", "org.mockito:mockito-core")
+                // javac needs it: a supertype of the tree nodes the host compiles against, which the plugin cannot see
+                exclude("io.github.astrapi69:tree-api")
             }
             onUnusedAnnotationProcessors {
                 severity(unusedDependencySeverity)

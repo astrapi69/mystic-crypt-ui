@@ -76,10 +76,10 @@ import org.junit.jupiter.params.provider.ValueSource;
  * swing-tree-component 3.3, brings 10.7. The constraint and the floor here stay as a second guard,
  * against a library that would bring an old version back.
  * <p>
- * silly-io and file-worker are direct dependencies, and their floors hold the data-loss fixes the
- * application ships with (#720): silly-io 4.0 takes the extension from the file name only
- * (astrapi69/silly-io#9, behind astrapi69/file-worker#37), file-worker 20.0 copies binary files
- * byte for byte (#45) and refuses a copy onto the file itself (#73).
+ * file-worker is a direct dependency and silly-io is held by a version constraint, and their floors
+ * hold the data-loss fixes the application ships with (#720): silly-io 4.0 takes the extension from
+ * the file name only (astrapi69/silly-io#9, behind astrapi69/file-worker#37), file-worker 20.0
+ * copies binary files byte for byte (#45) and refuses a copy onto the file itself (#73).
  * <p>
  * commons-collections4 is no dependency of this application either: silly-collection brings it, up
  * to 28.2 as 4.5.0-M2, a milestone, which 8.12 and 8.13 shipped (#751). A milestone at runtime is
