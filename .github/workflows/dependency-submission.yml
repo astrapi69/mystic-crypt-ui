@@ -40,8 +40,9 @@ jobs:
           java-version-file: '.sdkmanrc'
           distribution: 'temurin'
       - name: Setup Gradle, generating a graph for every build and submitting them at the end of the job
-        # v5.0.2 on purpose: v6 and later bundle a proprietary caching component; this job
-        # generates and submits in one place, not in the two-workflow download-and-submit setup
+        # v5.0.2, not v6: from v6 the action bundles a proprietary caching component (the maintainer's decision F2, 2026-11-20).
+        # v5.0.2 lies in the range of GHSA-chpw-2mqm-95cc (fixed in 6.4.1), which affects only the two-workflow
+        # download-and-submit setup; this workflow generates and submits in one job. Do not switch to download-and-submit.
         uses: gradle/actions/setup-gradle@0723195856401067f7a2779048b490ace7a47d7c # v5.0.2
         with:
           dependency-graph: generate-and-submit
