@@ -43,6 +43,7 @@ import org.assertj.swing.finder.WindowFinder;
 import org.assertj.swing.fixture.DialogFixture;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.TestInfo;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 import io.github.astrapi69.awt.window.adapter.CloseWindow;
@@ -126,14 +127,19 @@ abstract class AbstractUiTest
 	/** Fails the test if a window opens with Swing's shared owner frame as owner (#63) */
 	private final SharedOwnerFrameGuard sharedOwnerFrameGuard = new SharedOwnerFrameGuard();
 
+	/** The class and display name of the running test, for the guard's report */
+	private String currentTest;
+
 	private Thread appThread;
 
 	/** How many sign-in dialogs this test has already found, through {@link AwaitStartup} */
 	private int signInDialogsSeen;
 
 	@BeforeEach
-	void setUpUiTest() throws IOException
+	void setUpUiTest(final TestInfo testInfo) throws IOException
 	{
+		currentTest = testInfo.getTestClass().map(Class::getSimpleName).orElse("?") + " > "
+			+ testInfo.getDisplayName();
 		// no display, no UI test - and that FAILS rather than skips (#333). This used to skip
 		// "cleanly on headless CI runners", which was written before CI ran the suite under
 		// xvfb-run at all; today the display is there, so the only thing this can still catch is
@@ -189,7 +195,9 @@ abstract class AbstractUiTest
 			System.setProperty("user.home", originalUserHome);
 		}
 		deleteTempHome();
-		sharedOwnerFrameGuard.requireNone();
+		// measurement run of #63: list the hits of every suite; the fixes switch back to
+		// requireNone
+		sharedOwnerFrameGuard.report(currentTest);
 	}
 
 	private void deleteTempHome()

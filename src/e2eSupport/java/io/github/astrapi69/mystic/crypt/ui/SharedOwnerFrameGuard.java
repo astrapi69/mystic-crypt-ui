@@ -122,6 +122,22 @@ final class SharedOwnerFrameGuard implements AWTEventListener
 	}
 
 	/**
+	 * Prints every recorded window as an {@code [on-screen]} line, which the test result XML keeps
+	 * and the CI step "Print what was on screen" puts into the log, without failing the test: the
+	 * measurement mode of #63, so one run of all suites lists every dialog to fix
+	 *
+	 * @param test
+	 *            the test the windows opened in
+	 */
+	void report(final String test)
+	{
+		for (String window : recorded())
+		{
+			System.out.println("[on-screen] shared owner frame owns: " + window + " in " + test);
+		}
+	}
+
+	/**
 	 * Fails if any window opened with the shared owner frame as its owner
 	 *
 	 * @throws AssertionError
