@@ -12,6 +12,8 @@ For each branch pushed to GitHub it asks for the pull requests whose head that b
 without one, or with an open one, goes through; one whose newest pull request is merged or closed
 is refused, naming it. A deletion, a tag and the long-lived branches are not asked about. When
 GitHub cannot be asked, the push is refused too: a check that cannot check does not report green.
+`git push --no-verify` skips the hook; it is used only on the maintainer's instruction, and only
+for the case that GitHub cannot be reached.
 
 Installed with: make install-hooks   (.githooks/pre-push calls this)
 usage: pr_state_guard.py <remote name> <remote URL>  < the lines git writes

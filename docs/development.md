@@ -15,7 +15,9 @@ says which of them to use for what. Releasing is in [build-and-release.md](build
   of the release key plugin.
 - **`make install-hooks`**, once per clone and once per worktree: the pre-commit hook then refuses a
   commit that Spotless would reformat, and the pre-push hook a push to the branch of a pull request
-  that is merged or closed (AG-061), asking GitHub through `gh`.
+  that is merged or closed (AG-061), asking GitHub through `gh`. When GitHub cannot be asked, that
+  hook refuses the push as well; `git push --no-verify`, which skips it, is used only on the
+  maintainer's instruction, and only for that case.
 
 ## What to run
 
