@@ -179,12 +179,13 @@ class RuntimeDependenciesTest
 	}
 
 	/**
-	 * The release the application chose for a library it does not use itself: a version constraint
-	 * in {@code gradle/dependencies.gradle} holds it, because the libraries that bring it ask for
-	 * an older one (gson-extensions 4.1 asks for gson 2.11.0, the tree libraries for tree-api 2.1).
-	 * Without the constraint the build still resolves, and ships the older release
+	 * The release the application ships of a library it does not use itself, which
+	 * {@code gradle/dependencies.gradle} holds: gson and silly-io by a version constraint, tree-api
+	 * by its declaration, since the tree libraries publish it for the runtime only. Today the
+	 * libraries that bring gson and silly-io ask for the same releases, so their constraints change
+	 * nothing; this test keeps a library from bringing an older release back
 	 */
-	@ParameterizedTest(name = "{0} ships at least {1}, as its constraint holds")
+	@ParameterizedTest(name = "{0} ships at least {1}, as gradle/dependencies.gradle holds it")
 	@CsvSource({ "silly-io, 5.0", "gson, 2.15.0", "tree-api, 2.2.1" })
 	void constrainedLibrary_shipsAtLeastItsChosenRelease(final String artifact, final String chosen)
 	{
@@ -220,7 +221,9 @@ class RuntimeDependenciesTest
 	void unusedWebStack_isNotOnTheClassPath(final String artifact)
 	{
 		assertEquals(List.of(), versionsInTheRuntime(artifact), artifact
-			+ " is on the class path again (#639; commons-beanutils left with file-worker 21)");
+			+ " is in the runtime again (#639; commons-beanutils left with file-worker 21)");
+		assertEquals(List.of(), versionsOnTheTestClassPath(artifact), artifact
+			+ " is on the test class path again (#639; commons-beanutils left with file-worker 21)");
 	}
 
 	/**
@@ -233,7 +236,9 @@ class RuntimeDependenciesTest
 	void supersededArtifact_isNotOnTheClassPath(final String artifact)
 	{
 		assertEquals(List.of(), versionsInTheRuntime(artifact),
-			artifact + " is on the class path beside its renamed successor (#774)");
+			artifact + " is in the runtime beside its renamed successor (#774)");
+		assertEquals(List.of(), versionsOnTheTestClassPath(artifact),
+			artifact + " is on the test class path beside its renamed successor (#774)");
 	}
 
 	@Test
@@ -464,6 +469,18 @@ class RuntimeDependenciesTest
 	 * not read, since it holds what the tests declare themselves, silly-io among it, whatever the
 	 * application ships
 	 */
+	/**
+	 * The versions of an artifact on the class path the tests run on, for the checks that an
+	 * artifact is absent: what must not ship must not reach the tests either
+	 */
+	private static List<String> versionsOnTheTestClassPath(final String artifact)
+	{
+		Pattern jar = Pattern.compile(Pattern.quote(artifact) + "-(\\d[^/]*)\\.jar");
+		return Arrays.stream(System.getProperty("java.class.path").split(File.pathSeparator))
+			.map(entry -> jar.matcher(new File(entry).getName())).filter(Matcher::matches)
+			.map(matcher -> matcher.group(1)).toList();
+	}
+
 	private static List<String> versionsInTheRuntime(final String artifact)
 	{
 		Pattern jar = Pattern.compile(Pattern.quote(artifact) + "-(\\d[^/]*)\\.jar");
