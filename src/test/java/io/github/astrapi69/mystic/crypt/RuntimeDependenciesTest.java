@@ -64,10 +64,12 @@ import org.junit.jupiter.params.provider.ValueSource;
  * {@code jobj-compare}, and the installer packages whatever the runtime class path holds. 8.10
  * shipped commons-beanutils 1.9.4 (CVE-2025-48734) that way; since mystic-crypt 13.7 the libraries
  * bring 1.11.0 and jackson 2.22.4. Dependabot cannot raise an alert for a dependency nobody
- * declares, so the floor is held here, against the class path the tests run on, which holds the
- * same resolved versions as the runtime one: a library that brought a lower version back fails it.
- * The same guard stands in lethenon (astrapi69/lethenon#231). With file-worker 21 and
- * gson-extensions 4 commons-beanutils is off the class path altogether; the guard now holds it off.
+ * declares, so the floor is held here, against the runtime class path of the build, which the build
+ * names to the test JVM and which is what ships: a library that brought a lower version back fails
+ * it. The floors do not read the test class path, since it holds what the tests declare themselves;
+ * the checks that an artifact is absent read both class paths. The same guard stands in lethenon
+ * (astrapi69/lethenon#231). With file-worker 21 and gson-extensions 4 commons-beanutils is off the
+ * class path altogether; the guard now holds it off.
  * <p>
  * randomizer is not a dependency of this application either since #658, which draws its random
  * values from {@code SecureRandom}. Before 10.5 its default generator is seeded with the current
@@ -75,10 +77,10 @@ import org.junit.jupiter.params.provider.ValueSource;
  * swing-tree-component 3.3, brings 10.7. The constraint and the floor here stay as a second guard,
  * against a library that would bring an old version back.
  * <p>
- * silly-io and file-worker are direct dependencies, and their floors hold the data-loss fixes the
- * application ships with (#720): silly-io 4.0 takes the extension from the file name only
- * (astrapi69/silly-io#9, behind astrapi69/file-worker#37), file-worker 20.0 copies binary files
- * byte for byte (#45) and refuses a copy onto the file itself (#73).
+ * file-worker is a direct dependency and silly-io is held by a version constraint, and their floors
+ * hold the data-loss fixes the application ships with (#720): silly-io 4.0 takes the extension from
+ * the file name only (astrapi69/silly-io#9, behind astrapi69/file-worker#37), file-worker 20.0
+ * copies binary files byte for byte (#45) and refuses a copy onto the file itself (#73).
  * <p>
  * commons-collections4 is no dependency of this application either: silly-collection brings it, up
  * to 28.2 as 4.5.0-M2, a milestone, which 8.12 and 8.13 shipped (#751). A milestone at runtime is
@@ -169,12 +171,33 @@ class RuntimeDependenciesTest
 			"commons-collections4, 4.6.0", "json, 20260719" })
 	void transitiveDependency_isAtLeastItsPatchedRelease(final String artifact, final String floor)
 	{
-		List<String> versions = versionsOnTheClassPath(artifact);
+		List<String> versions = versionsInTheRuntime(artifact);
 
 		assertEquals(1, versions.size(),
-			"exactly one " + artifact + " on the class path, found " + versions);
+			"exactly one " + artifact + " in the runtime, found " + versions);
 		assertTrue(compare(versions.getFirst(), floor) >= 0,
 			artifact + " " + versions.getFirst() + " is below " + floor);
+	}
+
+	/**
+	 * The release the application ships of a library it does not use itself, which
+	 * {@code gradle/dependencies.gradle} holds: gson and silly-io by a version constraint, tree-api
+	 * by its declaration, since the tree libraries publish it for the runtime only. Today
+	 * gson-extensions 4.1 asks for gson 2.15.0 and file-worker 21.1 for silly-io 5.0, so the
+	 * constraints change nothing; resourcebundle-core 6.1 asks for silly-io 3.1, below the 4.0 fix,
+	 * which is the case a constraint guards against. This test keeps a library from bringing an
+	 * older release back
+	 */
+	@ParameterizedTest(name = "{0} ships at least {1}, as gradle/dependencies.gradle holds it")
+	@CsvSource({ "silly-io, 5.0", "gson, 2.15.0", "tree-api, 2.2.1" })
+	void heldLibrary_shipsAtLeastItsChosenRelease(final String artifact, final String chosen)
+	{
+		List<String> versions = versionsInTheRuntime(artifact);
+
+		assertEquals(1, versions.size(),
+			"exactly one " + artifact + " in the runtime, found " + versions);
+		assertTrue(compare(versions.getFirst(), chosen) >= 0,
+			artifact + " " + versions.getFirst() + " is below the chosen " + chosen);
 	}
 
 	@ParameterizedTest(name = "the application jar carries {1} at least {2}")
@@ -200,8 +223,10 @@ class RuntimeDependenciesTest
 			"tomcat-embed-core", "commons-beanutils", "commons-logging" })
 	void unusedWebStack_isNotOnTheClassPath(final String artifact)
 	{
-		assertEquals(List.of(), versionsOnTheClassPath(artifact), artifact
-			+ " is on the class path again (#639; commons-beanutils left with file-worker 21)");
+		assertEquals(List.of(), versionsInTheRuntime(artifact), artifact
+			+ " is in the runtime again (#639; commons-beanutils left with file-worker 21)");
+		assertEquals(List.of(), versionsOnTheTestClassPath(artifact), artifact
+			+ " is on the test class path again (#639; commons-beanutils left with file-worker 21)");
 	}
 
 	/**
@@ -213,8 +238,10 @@ class RuntimeDependenciesTest
 	@ValueSource(strings = { "visitor", "state" })
 	void supersededArtifact_isNotOnTheClassPath(final String artifact)
 	{
-		assertEquals(List.of(), versionsOnTheClassPath(artifact),
-			artifact + " is on the class path beside its renamed successor (#774)");
+		assertEquals(List.of(), versionsInTheRuntime(artifact),
+			artifact + " is in the runtime beside its renamed successor (#774)");
+		assertEquals(List.of(), versionsOnTheTestClassPath(artifact),
+			artifact + " is on the test class path beside its renamed successor (#774)");
 	}
 
 	@Test
@@ -439,11 +466,38 @@ class RuntimeDependenciesTest
 		return properties;
 	}
 
-	private static List<String> versionsOnTheClassPath(final String artifact)
+	/**
+	 * The versions of an artifact on the class path the tests run on, for the checks that an
+	 * artifact is absent: what must not ship must not reach the tests either
+	 */
+	private static List<String> versionsOnTheTestClassPath(final String artifact)
+	{
+		return versionsAmong(
+			Arrays.stream(System.getProperty("java.class.path").split(File.pathSeparator))
+				.map(entry -> new File(entry).getName()).toList(),
+			artifact);
+	}
+
+	/**
+	 * The versions of an artifact among the libraries this build ships: its runtime class path,
+	 * which the build names in {@code mystic.crypt.ui.runtime.libraries}. The test class path is
+	 * not read here, since it holds what the tests declare themselves, silly-io among it, whatever
+	 * the application ships
+	 */
+	private static List<String> versionsInTheRuntime(final String artifact)
+	{
+		return versionsAmong(
+			ApplicationJarUnderTest.runtimeLibraries().stream().map(File::getName).toList(),
+			artifact);
+	}
+
+	/**
+	 * The versions in the jar file names of the given artifact, as {@code <artifact>-<version>.jar}
+	 */
+	private static List<String> versionsAmong(final List<String> jarNames, final String artifact)
 	{
 		Pattern jar = Pattern.compile(Pattern.quote(artifact) + "-(\\d[^/]*)\\.jar");
-		return Arrays.stream(System.getProperty("java.class.path").split(File.pathSeparator))
-			.map(entry -> jar.matcher(new File(entry).getName())).filter(Matcher::matches)
+		return jarNames.stream().map(jar::matcher).filter(Matcher::matches)
 			.map(matcher -> matcher.group(1)).toList();
 	}
 
