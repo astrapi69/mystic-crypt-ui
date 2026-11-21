@@ -234,9 +234,9 @@ public class MysticCryptApplicationFrame extends ApplicationPanelFrame<Applicati
 		final MysticCryptSettings persistedSettings)
 	{
 		GeneralSettingsPanel.applyLookAndFeel(persistedSettings.getLookAndFeel());
-		MasterPwFileDialog dialog = new MasterPwFileDialog(null, "Enter your credentials", true,
+		MasterPwFileDialog dialog = new MasterPwFileDialog(this, "Enter your credentials", true,
 			model);
-		dialog.setSize(920, 380);
+		dialog.sizeAndCentre(920, 380);
 		dialog.addWindowListener(new WindowAdapter()
 		{
 			@Override
@@ -387,11 +387,15 @@ public class MysticCryptApplicationFrame extends ApplicationPanelFrame<Applicati
 		// last so it can also rearrange the contributed plugin items
 		applyPersistedMenuLayout();
 		setTitle(Messages.getString("mainframe.title"));
-		setDefaultLookAndFeel(LookAndFeels.NIMBUS, this);
 		MysticCryptSettings persistedSettings = MysticCryptSettings
 			.load(getConfigurationDirectory());
-		// apply a persisted look-and-feel choice on top of the Nimbus default
-		GeneralSettingsPanel.applyLookAndFeel(persistedSettings.getLookAndFeel());
+		// on the event thread: re-installing the UI of every component takes the AWT tree lock,
+		// and from this thread it blocked against the event thread writing a text document (#1097)
+		EventThreadTask.runAndWait(() -> {
+			setDefaultLookAndFeel(LookAndFeels.NIMBUS, this);
+			// apply a persisted look-and-feel choice on top of the Nimbus default
+			GeneralSettingsPanel.applyLookAndFeel(persistedSettings.getLookAndFeel());
+		});
 		// same for a persisted "no tooltips" preference (#170)
 		GeneralSettingsPanel.applyTooltipsEnabled(persistedSettings.isTooltipsEnabled());
 		// the sign-in dialog has already been on screen at this point, and the screen it was on is

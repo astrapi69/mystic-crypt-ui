@@ -38,7 +38,7 @@ class SignInDialogDiagnosisUiTest extends AbstractUiTest
 {
 
 	@Test
-	@DisplayName("the diagnosis of a showing sign-in dialog names its owner, the shared invisible frame, and the window events of the launch")
+	@DisplayName("the diagnosis of a showing sign-in dialog names its owner, the main window, and the window events of the launch")
 	void theDiagnosisNamesTheOwnerAndTheWindowEvents()
 	{
 		launchApplication();
@@ -47,8 +47,8 @@ class SignInDialogDiagnosisUiTest extends AbstractUiTest
 
 		assertTrue(diagnosis.contains("MasterPwFileDialog@") && diagnosis.contains("showing=true"),
 			diagnosis);
-		assertTrue(diagnosis.contains("owner: javax.swing.SwingUtilities$SharedOwnerFrame@"),
-			diagnosis);
+		assertTrue(diagnosis.contains(
+			"owner: io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame@"), diagnosis);
 		assertTrue(diagnosis.contains("this is test method number "), diagnosis);
 		assertTrue(diagnosis.contains("launchApplication begun"), diagnosis);
 		assertTrue(

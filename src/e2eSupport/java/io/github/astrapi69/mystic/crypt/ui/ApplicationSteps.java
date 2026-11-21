@@ -1258,7 +1258,7 @@ final class ApplicationSteps
 	 * Waits for the context menu item with the given text (the click listeners defer single-click
 	 * handling by the desktop's multi-click interval, so the popup appears delayed) and fires it
 	 */
-	private void chooseFromShowingPopup(String menuItemText)
+	void chooseFromShowingPopup(String menuItemText)
 	{
 		GenericTypeMatcher<JMenuItem> itemMatcher = new GenericTypeMatcher<JMenuItem>(
 			JMenuItem.class, true)
@@ -1287,7 +1287,13 @@ final class ApplicationSteps
 		}, 10000);
 		JMenuItem menuItem = robot.finder().find(itemMatcher);
 		UiTestSpeed.step();
-		SwingUtilities.invokeLater(menuItem::doClick);
+		// a click closes the menu before the item's action runs (BasicMenuItemUI.doClick); the
+		// action alone left the menu showing, and the next step took its item for a new menu
+		// (#1097)
+		SwingUtilities.invokeLater(() -> {
+			javax.swing.MenuSelectionManager.defaultManager().clearSelectedPath();
+			menuItem.doClick();
+		});
 	}
 
 	private void awaitDialogClosed(DialogFixture dialog, String description)
