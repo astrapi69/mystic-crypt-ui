@@ -1258,7 +1258,7 @@ final class ApplicationSteps
 	 * Waits for the context menu item with the given text (the click listeners defer single-click
 	 * handling by the desktop's multi-click interval, so the popup appears delayed) and fires it
 	 */
-	private void chooseFromShowingPopup(String menuItemText)
+	void chooseFromShowingPopup(String menuItemText)
 	{
 		GenericTypeMatcher<JMenuItem> itemMatcher = new GenericTypeMatcher<JMenuItem>(
 			JMenuItem.class, true)
