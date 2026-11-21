@@ -233,11 +233,26 @@ written after every successful sign-in and remembers:
 
 - the database file paths you have used, and which one was selected last,
 - the key file paths you have used, and which one was selected last,
-- the state of the two checkboxes.
+- the state of the two checkboxes,
+- for each database, the key file and the two checkboxes it was last signed in with.
 
 That is why a returning user usually finds the dialog already set up correctly and only has to
 type the password. Note what the file does **not** contain: no password, no key material, only
-paths and the two flags.
+paths and the flags.
+
+The entry per database is what makes the dialog follow the database you choose. Choosing a database
+with **Browse...** or in the dropdown sets the key file and both checkboxes to what that database was
+last opened with, and a database the file knows nothing about leaves them as they are. The key file
+is only offered, never used on its own: the password stays required whenever the database was opened
+with one. A key file that has meanwhile been moved or deleted is not offered.
+
+If you do not want the file to say where the key file of each database lies, switch off **Remember
+key files** in the general settings ([[Settings-And-Plugins]]). The sign-in dialog then writes no key
+file path into `memoizedSignin.json`, and the paths already in it are removed when you switch the
+setting off. The two flags per database stay, so the dialog still offers the right checkboxes. The
+setting covers the key file paths of the KeePass import and export dialogs too, but not the vault
+itself, which keeps its own encrypted copy of the key file it was opened with (#1122), and not a copy of `memoizedSignin.json` that
+was kept aside because it could not be read.
 
 The list prunes itself. If you select an entry whose file has meanwhile been moved or deleted,
 the entry is removed from the dropdown and OK stays disabled until you pick a file that exists.

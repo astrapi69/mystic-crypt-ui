@@ -73,6 +73,8 @@ public class GeneralSettingsPanel extends JPanel
 	 */
 	private final JMCheckBox chkSaveWhenLocking = new JMCheckBox();
 
+	private final JMCheckBox chkRememberKeyFiles = new JMCheckBox();
+
 	private final JMSpinner<Integer> spnAutoLockMinutes = new JMSpinner<>(new SpinnerNumberModel(
 		IdleLockDecision.DEFAULT_TIMEOUT_MINUTES, IdleLockDecision.OFF, 480, 1));
 
@@ -112,6 +114,13 @@ public class GeneralSettingsPanel extends JPanel
 			"settings.general.tooltip.save.on.lock",
 			"whether locking writes pending changes to the file; off by default, so a timer never "
 				+ "commits a change you had not decided about"));
+		chkRememberKeyFiles.setName("chkRememberKeyFiles");
+		chkRememberKeyFiles.setToolTipText(Messages.getString(
+			"settings.general.tooltip.remember.key.files",
+			"whether the sign-in dialog and the KeePass dialogs remember key files; when off, no key "
+				+ "file path is written to the files of the application's configuration directory "
+				+ "(the remembered sign-in and the remembered KeePass paths), and the ones already "
+				+ "there are removed; the vault keeps its own encrypted copy (#1122)"));
 		spnAutoLockMinutes.setName("spnAutoLockMinutes");
 		spnCloseLockedMinutes.setName("spnCloseLockedMinutes");
 		spnCloseLockedMinutes.setToolTipText(Messages.getString(
@@ -144,6 +153,9 @@ public class GeneralSettingsPanel extends JPanel
 		form.add(chkTooltipsEnabled);
 		form.add(new JLabel("Save when locking:"));
 		form.add(chkSaveWhenLocking);
+		form.add(new JLabel(
+			Messages.getString("settings.general.remember.key.files", "Remember key files:")));
+		form.add(chkRememberKeyFiles);
 		form.add(new JLabel("Lock after idle minutes (0 = off):"));
 		form.add(spnAutoLockMinutes);
 		form.add(new JLabel("Close a locked database after minutes (0 = off):"));
@@ -166,6 +178,8 @@ public class GeneralSettingsPanel extends JPanel
 			LambdaModel.of(settings::isTooltipsEnabled, settings::setTooltipsEnabled));
 		chkSaveWhenLocking.setPropertyModel(
 			LambdaModel.of(settings::isSaveWhenLocking, settings::setSaveWhenLocking));
+		chkRememberKeyFiles.setPropertyModel(
+			LambdaModel.of(settings::isRememberKeyFiles, settings::setRememberKeyFiles));
 		spnAutoLockMinutes.setPropertyModel(
 			LambdaModel.of(settings::getAutoLockMinutes, settings::setAutoLockMinutes));
 		spnCloseLockedMinutes.setPropertyModel(LambdaModel.of(settings::getCloseLockedAfterMinutes,

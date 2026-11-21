@@ -108,6 +108,22 @@ public class MysticCryptSettings
 	private int clipboardClearSeconds = ClipboardClearDecision.DEFAULT_CLEAR_AFTER_SECONDS;
 
 	/**
+	 * Whether the application keeps the paths of key files in the files of its configuration
+	 * directory, the remembered sign-in and the remembered KeePass paths; defaults to on, as it has
+	 * always been (#997).
+	 * <p>
+	 * The remembered sign-in offers the key file of each database again. Whoever does not want the
+	 * assignment of a database to its key file on the disk turns this off: no key file path is
+	 * written to those two files then, neither the one of the database signed in to last nor those
+	 * of the others, and the paths already stored there are removed when the setting is switched
+	 * off. The factors a database was opened with stay remembered, and so do the paths of the
+	 * KeePass import and export files. Not covered: the vault itself, which keeps its own encrypted
+	 * copy of the key file it was opened with (#1122), and a copy of either file that was kept
+	 * aside because it could not be read.
+	 */
+	private boolean rememberKeyFiles = true;
+
+	/**
 	 * The view the application opens in.
 	 * <p>
 	 * Written by hand rather than left to lombok because a settings file can say

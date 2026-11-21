@@ -153,6 +153,37 @@ final class SignInDialogSteps
 		return this;
 	}
 
+	/**
+	 * The key file the dialog offers, as the combo box holds it, or null when none is selected
+	 *
+	 * @return the selected key file path
+	 */
+	String selectedKeyFile()
+	{
+		return GuiActionRunner
+			.execute(() -> (String)dialog.comboBox("cmbKeyFile").target().getSelectedItem());
+	}
+
+	/**
+	 * Whether the "Key File:" checkbox is selected
+	 *
+	 * @return true when it is
+	 */
+	boolean keyFileIsChecked()
+	{
+		return GuiActionRunner.execute(() -> dialog.checkBox("cbxKeyFile").target().isSelected());
+	}
+
+	/**
+	 * Whether the "Master Password:" checkbox is selected
+	 *
+	 * @return true when it is
+	 */
+	boolean masterPasswordIsChecked()
+	{
+		return GuiActionRunner.execute(() -> dialog.checkBox("cbxMasterPw").target().isSelected());
+	}
+
 	/** Clicks the key file's "Browse..." and selects the given file in the chooser that opens */
 	SignInDialogSteps browseKeyFile(File keyFile)
 	{
@@ -183,6 +214,38 @@ final class SignInDialogSteps
 		SwingUtilities
 			.invokeLater(() -> dialog.button("btnApplicationFileChooser").target().doClick());
 		approveInFileChooser(applicationFile);
+		robot.waitForIdle();
+		UiTestSpeed.step();
+		return this;
+	}
+
+	/**
+	 * Chooses a database in the application file dropdown, the way a returning user picks one of
+	 * the recently used databases
+	 *
+	 * @param applicationFile
+	 *            the database, which must be listed in the dropdown
+	 * @return this, for the next step
+	 */
+	SignInDialogSteps chooseApplicationFileInDropdown(File applicationFile)
+	{
+		javax.swing.JComboBox<?> combo = dialog.comboBox("cmbApplicationFile").target();
+		String wanted = applicationFile.getAbsolutePath();
+		int index = GuiActionRunner.execute(() -> {
+			for (int position = 0; position < combo.getItemCount(); position++)
+			{
+				if (wanted.equals(combo.getItemAt(position)))
+				{
+					return position;
+				}
+			}
+			return -1;
+		});
+		if (index < 0)
+		{
+			throw new AssertionError("the dropdown does not list " + wanted);
+		}
+		dialog.comboBox("cmbApplicationFile").selectItem(index);
 		robot.waitForIdle();
 		UiTestSpeed.step();
 		return this;

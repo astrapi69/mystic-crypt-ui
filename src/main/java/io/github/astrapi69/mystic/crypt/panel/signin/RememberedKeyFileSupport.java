@@ -25,12 +25,19 @@
 package io.github.astrapi69.mystic.crypt.panel.signin;
 
 import java.io.File;
+import java.nio.file.InvalidPathException;
+import java.nio.file.Path;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 
 import io.github.astrapi69.file.create.model.FileInfo;
+import io.github.astrapi69.mystic.crypt.app.file.JsonFileStore;
 
 /**
- * Which key file a remembered sign-in preselects
+ * Which key file a remembered sign-in preselects, for the database signed in to last and for each
+ * database the dialog is asked to open
  */
 public final class RememberedKeyFileSupport
 {
@@ -64,5 +71,120 @@ public final class RememberedKeyFileSupport
 			return Optional.empty();
 		}
 		return Optional.of(FileInfo.toFileInfo(keyFile));
+	}
+
+	private static Path normalized(final String databasePath)
+	{
+		if (databasePath == null || databasePath.isBlank())
+		{
+			return null;
+		}
+		try
+		{
+			return Path.of(databasePath).toAbsolutePath().normalize();
+		}
+		catch (InvalidPathException notAPath)
+		{
+			return null;
+		}
+	}
+
+	/**
+	 * What the remembered sign-in knows about the given database: the key file and the factors it
+	 * was opened with. A key file that is no longer there is not offered, so the entry comes back
+	 * with an empty key file path and the same factors, and the user chooses a key file anew.
+	 *
+	 * @param choicesByDatabase
+	 *            the remembered choices by database path, may be null
+	 * @param databasePath
+	 *            the database that was chosen in the dialog, may be null
+	 * @return the choice, or empty when the database has no entry
+	 */
+	public static Optional<DatabaseSignInChoice> choiceFor(
+		final Map<String, DatabaseSignInChoice> choicesByDatabase, final String databasePath)
+	{
+		Path wanted = normalized(databasePath);
+		if (wanted == null || choicesByDatabase == null)
+		{
+			return Optional.empty();
+		}
+		for (Map.Entry<String, DatabaseSignInChoice> entry : choicesByDatabase.entrySet())
+		{
+			if (entry.getValue() != null && wanted.equals(normalized(entry.getKey())))
+			{
+				DatabaseSignInChoice remembered = entry.getValue();
+				String keyFilePath = keyFileOf(remembered.getKeyFilePath()).isPresent()
+					? remembered.getKeyFilePath()
+					: "";
+				return Optional.of(remembered.toBuilder().keyFilePath(keyFilePath).build());
+			}
+		}
+		return Optional.empty();
+	}
+
+	/**
+	 * The remembered choices with the given database's entry set, the entries of the other
+	 * databases untouched. An older entry of the same database, written under another spelling of
+	 * its path, is replaced.
+	 *
+	 * @param choicesByDatabase
+	 *            the choices remembered so far, may be null
+	 * @param databasePath
+	 *            the database that was signed in to
+	 * @param choice
+	 *            what the sign-in used
+	 * @return a new map, the input is not changed
+	 */
+	public static Map<String, DatabaseSignInChoice> remember(
+		final Map<String, DatabaseSignInChoice> choicesByDatabase, final String databasePath,
+		final DatabaseSignInChoice choice)
+	{
+		Map<String, DatabaseSignInChoice> remembered = new HashMap<>();
+		Path signedInTo = normalized(databasePath);
+		if (choicesByDatabase != null)
+		{
+			choicesByDatabase.forEach((path, existing) -> {
+				if (existing != null && !Objects.equals(signedInTo, normalized(path)))
+				{
+					remembered.put(path, existing);
+				}
+			});
+		}
+		if (signedInTo != null)
+		{
+			remembered.put(signedInTo.toString(), choice);
+		}
+		return remembered;
+	}
+
+	/**
+	 * Removes every key file path from the remembered sign-in file, at once, when the setting that
+	 * remembers key files is switched off (#997). A file that is not there is left alone. One that
+	 * is there and cannot be read may hold paths this code cannot name, so it is reported like a
+	 * file that cannot be written: the next write would keep it aside with the paths inside.
+	 *
+	 * @param memoizedSigninFile
+	 *            the {@code memoizedSignin.json} of the configuration directory
+	 * @return true if the file was rewritten without its key file paths, false if there is none
+	 * @throws java.io.IOException
+	 *             if the file cannot be read or written, so the caller can tell the user that key
+	 *             file paths are still on disk
+	 */
+	public static boolean forgetKeyFiles(final File memoizedSigninFile) throws java.io.IOException
+	{
+		Optional<MemoizedSigninModelBean> remembered = JsonFileStore.read(memoizedSigninFile,
+			MemoizedSigninModelBean.class);
+		if (remembered.isEmpty())
+		{
+			if (memoizedSigninFile.isFile())
+			{
+				throw new java.io.IOException("the remembered sign-in " + memoizedSigninFile
+					+ " cannot be read, so the key file paths in it cannot be removed");
+			}
+			return false;
+		}
+		JsonFileStore.write(remembered.get().withoutKeyFilePaths(), memoizedSigninFile,
+			MemoizedSigninModelBean.class);
+		return true;
 	}
 }
