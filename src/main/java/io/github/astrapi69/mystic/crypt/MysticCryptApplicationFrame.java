@@ -245,28 +245,8 @@ public class MysticCryptApplicationFrame extends ApplicationPanelFrame<Applicati
 				StartupSignal.signInDialogShown();
 			}
 		});
-		boolean displayableBefore = isDisplayable();
 		dialog.setVisible(true);
 		signinScreen = dialog.getGraphicsConfiguration();
-		releaseThePeerTheDialogGave(displayableBefore);
-	}
-
-	/**
-	 * Takes back the native peer the main window got from being the owner of the sign-in dialog,
-	 * when it had none before and is not shown. A displayable window is validated and repainted
-	 * under the AWT tree lock, and the start thread builds this window next, off the event thread:
-	 * the two ran into each other (#1097). Disposing it only releases the peer, the window and its
-	 * components stay, and showing it later creates the peer again.
-	 *
-	 * @param displayableBefore
-	 *            whether the window had a peer before the dialog was shown
-	 */
-	private void releaseThePeerTheDialogGave(final boolean displayableBefore)
-	{
-		if (!displayableBefore && !isVisible())
-		{
-			dispose();
-		}
 	}
 
 	protected void showSplashScreen()
