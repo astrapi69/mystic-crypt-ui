@@ -73,29 +73,6 @@ public final class RememberedKeyFileSupport
 		return Optional.of(FileInfo.toFileInfo(keyFile));
 	}
 
-	/**
-	 * The key under which a database is remembered, and what equality of two database paths means
-	 * here: both name the same database when they are the same path after making each absolute (a
-	 * relative path is read against the working directory, as {@code new File(path)} reads it) and
-	 * removing {@code .} and {@code ..} segments.
-	 * <p>
-	 * The comparison is lexical on purpose. It touches no disk, so a database that was moved or
-	 * deleted is still found by the path it was remembered under, and the dialog does not stall on
-	 * a network drive that is gone. The price is that a symbolic link and its target count as two
-	 * databases; that is the safe side, since a missing entry changes nothing in the dialog while a
-	 * wrong match would offer another database's key file. Whether upper and lower case differ is
-	 * left to the file system's own {@link Path#equals(Object)}, which {@link #choiceFor} uses.
-	 *
-	 * @param databasePath
-	 *            the path of the database as typed, chosen or stored, may be null
-	 * @return the absolute, normalized path, or null for a null or blank path
-	 */
-	public static String databaseKey(final String databasePath)
-	{
-		Path path = normalized(databasePath);
-		return path == null ? null : path.toString();
-	}
-
 	private static Path normalized(final String databasePath)
 	{
 		if (databasePath == null || databasePath.isBlank())
@@ -182,16 +159,16 @@ public final class RememberedKeyFileSupport
 
 	/**
 	 * Removes every key file path from the remembered sign-in file, at once, when the setting that
-	 * remembers key files is switched off (#997). A file that is not there or cannot be read is
-	 * left as it is: it holds no path this code can name, and an unreadable one is kept aside by
-	 * the next write that replaces it.
+	 * remembers key files is switched off (#997). A file that is not there is left alone. One that
+	 * is there and cannot be read may hold paths this code cannot name, so it is reported like a
+	 * file that cannot be written: the next write would keep it aside with the paths inside.
 	 *
 	 * @param memoizedSigninFile
 	 *            the {@code memoizedSignin.json} of the configuration directory
-	 * @return true if the file was rewritten without its key file paths
+	 * @return true if the file was rewritten without its key file paths, false if there is none
 	 * @throws java.io.IOException
-	 *             if the file cannot be written, so the caller can tell the user that key file
-	 *             paths are still on disk
+	 *             if the file cannot be read or written, so the caller can tell the user that key
+	 *             file paths are still on disk
 	 */
 	public static boolean forgetKeyFiles(final File memoizedSigninFile) throws java.io.IOException
 	{
@@ -199,6 +176,11 @@ public final class RememberedKeyFileSupport
 			MemoizedSigninModelBean.class);
 		if (remembered.isEmpty())
 		{
+			if (memoizedSigninFile.isFile())
+			{
+				throw new java.io.IOException("the remembered sign-in " + memoizedSigninFile
+					+ " cannot be read, so the key file paths in it cannot be removed");
+			}
 			return false;
 		}
 		JsonFileStore.write(remembered.get().withoutKeyFilePaths(), memoizedSigninFile,

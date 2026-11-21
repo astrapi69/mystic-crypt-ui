@@ -38,6 +38,7 @@ import javax.swing.*;
 
 import io.github.astrapi69.mystic.crypt.Messages;
 import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
+import io.github.astrapi69.mystic.crypt.keepass.MemoizedKeePassModelBean;
 import io.github.astrapi69.mystic.crypt.panel.signin.RememberedKeyFileSupport;
 import io.github.astrapi69.mystic.crypt.settings.LookAndFeelChoice;
 import io.github.astrapi69.mystic.crypt.settings.MysticCryptSettings;
@@ -127,25 +128,43 @@ public class NewSettingsFrameAction extends AbstractAction
 	}
 
 	/**
-	 * Removes the key file paths from the remembered sign-in at once, since the setting that keeps
-	 * them was switched off (#997). A file that cannot be written leaves the paths on disk, and the
-	 * user is told so.
+	 * Removes the key file paths from the remembered sign-in and from the remembered KeePass paths
+	 * at once, since the setting that keeps them was switched off (#997). A file that cannot be
+	 * read or written leaves the paths on disk, and the user is told so.
 	 */
 	private static void forgetRememberedKeyFiles(final MysticCryptApplicationFrame frame)
 	{
-		File memoizedSigninFile = new File(frame.getConfigurationDirectory(),
+		File configurationDirectory = frame.getConfigurationDirectory();
+		File memoizedSigninFile = new File(configurationDirectory,
 			MysticCryptApplicationFrame.MEMOIZED_SIGNIN_JSON_FILENAME);
+		boolean allRemoved = true;
 		try
 		{
 			RememberedKeyFileSupport.forgetKeyFiles(memoizedSigninFile);
 		}
 		catch (final java.io.IOException exception)
 		{
+			allRemoved = false;
 			Logger.getLogger(NewSettingsFrameAction.class.getName()).log(Level.WARNING,
 				"the key file paths could not be removed from " + memoizedSigninFile, exception);
+		}
+		try
+		{
+			MemoizedKeePassModelBean.forgetKeyFiles(configurationDirectory);
+		}
+		catch (final java.io.IOException exception)
+		{
+			allRemoved = false;
+			Logger.getLogger(NewSettingsFrameAction.class.getName()).log(Level.WARNING,
+				"the key file paths could not be removed from the remembered KeePass paths",
+				exception);
+		}
+		if (!allRemoved)
+		{
 			JOptionPane.showMessageDialog(frame,
 				Messages.getString("settings.general.remember.key.files.not.removed",
-					"The key file paths could not be removed from the remembered sign-in."),
+					"The key file paths could not be removed from the remembered sign-in or the "
+						+ "remembered KeePass paths."),
 				Messages.getString("settings.general.remember.key.files.not.removed.title",
 					"Key files still remembered"),
 				JOptionPane.WARNING_MESSAGE);

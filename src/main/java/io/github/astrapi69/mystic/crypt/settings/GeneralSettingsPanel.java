@@ -117,8 +117,10 @@ public class GeneralSettingsPanel extends JPanel
 		chkRememberKeyFiles.setName("chkRememberKeyFiles");
 		chkRememberKeyFiles.setToolTipText(Messages.getString(
 			"settings.general.tooltip.remember.key.files",
-			"whether the sign-in dialog remembers the key file of each database; when off, no key "
-				+ "file path is kept on disk"));
+			"whether the sign-in dialog and the KeePass dialogs remember key files; when off, no key "
+				+ "file path is written to the files of the application's configuration directory "
+				+ "(the remembered sign-in and the remembered KeePass paths), and the ones already "
+				+ "there are removed; the vault keeps its own encrypted copy (#1122)"));
 		spnAutoLockMinutes.setName("spnAutoLockMinutes");
 		spnCloseLockedMinutes.setName("spnCloseLockedMinutes");
 		spnCloseLockedMinutes.setToolTipText(Messages.getString(

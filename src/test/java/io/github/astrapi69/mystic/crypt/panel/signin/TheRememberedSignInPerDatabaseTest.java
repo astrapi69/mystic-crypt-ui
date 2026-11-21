@@ -27,6 +27,7 @@ package io.github.astrapi69.mystic.crypt.panel.signin;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.File;
@@ -45,7 +46,10 @@ import org.junit.jupiter.params.provider.CsvSource;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
+import io.github.astrapi69.gson.JsonStringToObjectExtensions;
 import io.github.astrapi69.mystic.crypt.app.file.JsonFileStore;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 /**
  * The remembered sign-in keeps, per database, the key file and the factors the last sign-in to it
@@ -231,5 +235,68 @@ class TheRememberedSignInPerDatabaseTest
 
 		assertFalse(RememberedKeyFileSupport.forgetKeyFiles(file));
 		assertFalse(file.exists());
+	}
+
+	@Test
+	@DisplayName("forgetting key files in a remembered sign-in that cannot be read says so and leaves the file")
+	void forgetKeyFiles_reportsAFileThatCannotBeRead() throws Exception
+	{
+		File file = new File(directory, "memoizedSignin.json");
+		String unreadable = "{\"selectedKeyFilePath\": \"/home/user/keys/a-key.pem\", ";
+		Files.writeString(file.toPath(), unreadable);
+
+		assertThrows(java.io.IOException.class,
+			() -> RememberedKeyFileSupport.forgetKeyFiles(file));
+		assertEquals(unreadable, Files.readString(file.toPath()), "nothing was written over it");
+	}
+
+	/** The six fields the release before this change reads its {@code memoizedSignin.json} into */
+	@Data
+	@NoArgsConstructor
+	private static class SignInAsTheReleaseBeforeReadsIt implements java.io.Serializable
+	{
+		String selectedApplicationFilePath;
+
+		java.util.List<String> applicationFilePaths;
+
+		String selectedKeyFilePath;
+
+		java.util.List<String> keyFilePaths;
+
+		boolean withKeyFile;
+
+		boolean withMasterPw;
+	}
+
+	@Test
+	@DisplayName("the release before reads the file this one writes: no failure, its six fields kept")
+	void aFileWrittenNow_isReadByTheReleaseBefore_throughItsOwnCall() throws Exception
+	{
+		File file = new File(directory, "memoizedSignin.json");
+		MemoizedSigninModelBean written = JsonFileStore
+			.read(writeTodaysFile(file), MemoizedSigninModelBean.class).orElseThrow();
+		written.setChoicesByDatabase(
+			RememberedKeyFileSupport.remember(null, "/home/user/vaults/second.mcrdb",
+				DatabaseSignInChoice.builder().keyFilePath("/home/user/keys/second-key.pem")
+					.withKeyFile(true).withMasterPw(true).build()));
+		JsonFileStore.write(written, file, MemoizedSigninModelBean.class);
+		assertTrue(Files.readString(file.toPath()).contains("choicesByDatabase"), "the premise");
+
+		SignInAsTheReleaseBeforeReadsIt read = JsonStringToObjectExtensions
+			.toObject(Files.readString(file.toPath()), SignInAsTheReleaseBeforeReadsIt.class);
+
+		assertEquals("/home/user/vaults/second.mcrdb", read.getSelectedApplicationFilePath());
+		assertEquals(java.util.List.of("", "/home/user/vaults/first.mcrdb",
+			"/home/user/vaults/second.mcrdb"), read.getApplicationFilePaths());
+		assertEquals("/home/user/keys/second-key.pem", read.getSelectedKeyFilePath());
+		assertEquals(java.util.List.of("", "/home/user/keys/first-key.pem",
+			"/home/user/keys/second-key.pem"), read.getKeyFilePaths());
+		assertTrue(read.isWithKeyFile() && read.isWithMasterPw());
+	}
+
+	private static File writeTodaysFile(final File file) throws java.io.IOException
+	{
+		Files.writeString(file.toPath(), TODAYS_FILE);
+		return file;
 	}
 }

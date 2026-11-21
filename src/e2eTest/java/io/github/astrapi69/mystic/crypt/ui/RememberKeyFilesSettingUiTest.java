@@ -29,11 +29,21 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.File;
 import java.nio.file.Files;
+import java.util.concurrent.TimeUnit;
+
+import javax.swing.JDialog;
+import javax.swing.JOptionPane;
+import javax.swing.SwingUtilities;
 
 import org.assertj.swing.edt.GuiActionRunner;
 import org.assertj.swing.fixture.DialogFixture;
+import org.assertj.swing.timing.Condition;
+import org.assertj.swing.timing.Pause;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 
 import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
 import io.github.astrapi69.mystic.crypt.TestPasswords;
@@ -70,6 +80,14 @@ class RememberKeyFilesSettingUiTest extends AbstractUiTest
 		assertTrue(Files.readString(remembered.toPath()).contains("remember-key.pem"),
 			"the premise: by default the key file is remembered");
 
+		File keePassMemo = new File(configurationDirectory,
+			io.github.astrapi69.mystic.crypt.keepass.MemoizedKeePassModelBean.JSON_FILENAME);
+		io.github.astrapi69.mystic.crypt.keepass.MemoizedKeePassModelBean.builder()
+			.lastImportFilePath("/vaults/import.kdbx").lastImportKeyFilePath("/keys/import.key")
+			.lastExportFilePath("/vaults/export.kdbx").lastExportKeyFilePath("/keys/export.key")
+			.build().save(configurationDirectory);
+		assertTrue(Files.readString(keePassMemo.toPath()).contains("import.key"), "the premise");
+
 		DialogFixture settings = application.openSettingsDialog();
 		application.selectSettingsTab(settings, "General");
 		assertTrue(
@@ -83,6 +101,10 @@ class RememberKeyFilesSettingUiTest extends AbstractUiTest
 		assertFalse(MysticCryptSettings.load(configurationDirectory).isRememberKeyFiles());
 		assertFalse(Files.readString(remembered.toPath()).contains("remember-key.pem"),
 			"no key file path stays in the remembered sign-in");
+		String keePassText = Files.readString(keePassMemo.toPath());
+		assertFalse(keePassText.contains(".key"),
+			"nor in the remembered KeePass paths: " + keePassText);
+		assertTrue(keePassText.contains("/vaults/import.kdbx"), "whose file paths stay");
 		shutdownApplication();
 
 		SignInDialogSteps afterRestart = launchApplication();
@@ -90,5 +112,92 @@ class RememberKeyFilesSettingUiTest extends AbstractUiTest
 		assertTrue(offered == null || offered.isEmpty(),
 			"no key file is offered after a restart: " + offered);
 		afterRestart.requireSelectedApplicationFile(database.getAbsolutePath());
+	}
+
+	@Test
+	@DisplayName("with the setting off from the start, a sign-in writes no key file path and keeps the factors")
+	void signingInWithRememberKeyFilesOff_writesNoKeyFilePath() throws Exception
+	{
+		File configurationDirectory = new File(tempHome, ".config/mystic-crypt-ui");
+		configurationDirectory.mkdirs();
+		MysticCryptSettings notRemembering = new MysticCryptSettings();
+		notRemembering.setRememberKeyFiles(false);
+		notRemembering.save(configurationDirectory);
+		File database = new File(tempHome, "never-remembered.mcrdb");
+		SignInDialogSteps signIn = launchApplication();
+		signIn.startNewDatabase(database).checkMasterPassword()
+			.typeMasterPasswordWithRepeat(MASTER_PASSWORD).checkKeyFile()
+			.createKeyFile("never-remembered-key.pem").requireOkEnabled().okAndAwaitClose();
+		signIn.checkMasterPassword().typeMasterPassword(MASTER_PASSWORD).requireOkEnabled()
+			.okAndAwaitSignIn();
+		new ApplicationSteps(robot).awaitSignedIn();
+
+		File remembered = new File(configurationDirectory,
+			MysticCryptApplicationFrame.MEMOIZED_SIGNIN_JSON_FILENAME);
+		assertTrue(remembered.isFile(), "the premise: the sign-in wrote its file");
+		String text = Files.readString(remembered.toPath());
+		assertFalse(text.contains("never-remembered-key"), "no key file path in it: " + text);
+		JsonObject written = JsonParser.parseString(text).getAsJsonObject();
+		assertTrue(written.get("withKeyFile").getAsBoolean(), "the factors stay remembered");
+		assertTrue(text.contains("never-remembered.mcrdb"), "and so does the database");
+	}
+
+	@Test
+	@DisplayName("switching the setting off while the remembered sign-in cannot be read warns that the paths remain")
+	void switchingRememberKeyFilesOff_warns_whenTheRememberedSignInCannotBeRead() throws Exception
+	{
+		File database = new File(tempHome, "unreadable-memo.mcrdb");
+		SignInDialogSteps signIn = launchApplication();
+		signIn.startNewDatabase(database).checkMasterPassword()
+			.typeMasterPasswordWithRepeat(MASTER_PASSWORD).checkKeyFile()
+			.createKeyFile("unreadable-memo-key.pem").requireOkEnabled().okAndAwaitClose();
+		signIn.checkMasterPassword().typeMasterPassword(MASTER_PASSWORD).requireOkEnabled()
+			.okAndAwaitSignIn();
+		ApplicationSteps application = new ApplicationSteps(robot);
+		application.awaitSignedIn();
+		File remembered = new File(
+			MysticCryptApplicationFrame.getInstance().getConfigurationDirectory(),
+			MysticCryptApplicationFrame.MEMOIZED_SIGNIN_JSON_FILENAME);
+		Files.writeString(remembered.toPath(), "{\"selectedKeyFilePath\": \"/keys/a-key.pem\", ");
+
+		DialogFixture settings = application.openSettingsDialog();
+		application.selectSettingsTab(settings, "General");
+		settings.checkBox("chkRememberKeyFiles").uncheck();
+		SwingUtilities.invokeLater(() -> settings.button("btnCloseSettings").target().doClick());
+
+		Pause.pause(new Condition("the warning that the key file paths remain")
+		{
+			@Override
+			public boolean test()
+			{
+				return aWarningPane() != null;
+			}
+		}, TimeUnit.SECONDS.toMillis(30));
+		JOptionPane pane = aWarningPane();
+		assertTrue(String.valueOf(pane.getMessage()).contains("could not be removed"),
+			"the warning says why: " + pane.getMessage());
+		GuiActionRunner.execute(() -> pane.setValue(JOptionPane.OK_OPTION));
+		robot.waitForIdle();
+	}
+
+	private static JOptionPane aWarningPane()
+	{
+		return GuiActionRunner.execute(() -> {
+			for (java.awt.Window window : java.awt.Window.getWindows())
+			{
+				if (window instanceof JDialog dialog && dialog.isShowing())
+				{
+					for (java.awt.Component child : dialog.getContentPane().getComponents())
+					{
+						if (child instanceof JOptionPane pane
+							&& pane.getMessageType() == JOptionPane.WARNING_MESSAGE)
+						{
+							return pane;
+						}
+					}
+				}
+			}
+			return null;
+		});
 	}
 }
