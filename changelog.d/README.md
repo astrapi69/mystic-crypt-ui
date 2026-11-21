@@ -2,8 +2,9 @@
 
 Every user-visible change brings its CHANGELOG entry along in the same pull request, as one file
 here, so the entry lands in the same squash commit as the change (squash pilot, 2026-11-11).
-CHANGELOG.md itself is never edited directly (DC-007): the release pull request assembles these
-fragments under the new version with `scripts/assemble_changelog.py` and deletes them.
+CHANGELOG.md itself is never edited directly (DC-007), with the one exception at the end of this
+file: the release pull request assembles these fragments under the new version with
+`scripts/assemble_changelog.py` and deletes them.
 
 - **Name**: `<pull request number>.<section>.md`, for example `899.fixed.md`. The sections are the
   ones CHANGELOG.md already uses: `security`, `added`, `changed`, `fixed`, `deprecated`, `removed`.
@@ -19,5 +20,6 @@ fragments under the new version with `scripts/assemble_changelog.py` and deletes
   advisory or describes the hole (AG-032, AG-117). The release pull request that publishes the
   advisory carries one neutral line in the `security` section instead, for example "Fixes a
   security issue; its advisory follows after the release is published." `assemble_changelog.py`
-  refuses a fragment naming an advisory id that is not published. How CHANGELOG.md takes the id
-  and the description afterwards is open until #1021 closes.
+  refuses a fragment naming an advisory id that is not published. Once the advisory is
+  published, a docs pull request adds only its id to that neutral line and changes nothing else;
+  the description stays in the advisory (DC-007, #1021).
