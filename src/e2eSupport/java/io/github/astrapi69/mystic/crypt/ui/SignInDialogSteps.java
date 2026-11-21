@@ -220,6 +220,38 @@ final class SignInDialogSteps
 	}
 
 	/**
+	 * Chooses a database in the application file dropdown, the way a returning user picks one of
+	 * the recently used databases
+	 *
+	 * @param applicationFile
+	 *            the database, which must be listed in the dropdown
+	 * @return this, for the next step
+	 */
+	SignInDialogSteps chooseApplicationFileInDropdown(File applicationFile)
+	{
+		javax.swing.JComboBox<?> combo = dialog.comboBox("cmbApplicationFile").target();
+		String wanted = applicationFile.getAbsolutePath();
+		int index = GuiActionRunner.execute(() -> {
+			for (int position = 0; position < combo.getItemCount(); position++)
+			{
+				if (wanted.equals(combo.getItemAt(position)))
+				{
+					return position;
+				}
+			}
+			return -1;
+		});
+		if (index < 0)
+		{
+			throw new AssertionError("the dropdown does not list " + wanted);
+		}
+		dialog.comboBox("cmbApplicationFile").selectItem(index);
+		robot.waitForIdle();
+		UiTestSpeed.step();
+		return this;
+	}
+
+	/**
 	 * Clicks "New..." and selects the given file in the save chooser that opens, without waiting
 	 * for anything that follows: a question about a file that is already there, or the "Create your
 	 * master key" dialog, is the caller's to look for (#878)

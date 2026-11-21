@@ -179,17 +179,84 @@ class LockedVaultClosesItselfUiTest extends AbstractUiTest
 		assertFalse(signedInNow(), "closing a locked vault must not sign the application in");
 		assertTrue(databaseFile.exists(), "and the file it came from is untouched");
 		SignInDialogSteps again = openTheSignInDialogOfTheRunningApplication();
-		again.uncheckKeyFile().checkMasterPassword().typeMasterPassword(password)
-			.browseApplicationFile(databaseFile).requireOkEnabled().clickOk();
+		assertEquals(keyFile.getAbsolutePath(), again.selectedKeyFile(),
+			"after the close the dialog offers the key file the database was opened with (#997)");
+		assertTrue(again.keyFileIsChecked(), "and its checkbox is on");
+		again.browseApplicationFile(databaseFile);
+		assertEquals(keyFile.getAbsolutePath(), again.selectedKeyFile(),
+			"choosing the database offers its key file again, in both directions (#997)");
+		assertTrue(again.keyFileIsChecked() && again.masterPasswordIsChecked(),
+			"with both factors, as the database was opened");
+		again.requireOkDisabled();
+		assertFalse(signedInNow(),
+			"an offered key file is no way in: without the password the dialog does not open it");
+		again.uncheckKeyFile().checkMasterPassword().typeMasterPassword(password).requireOkEnabled()
+			.clickOk();
 		awaitAndDismissAnErrorDialog();
 		assertFalse(signedInNow(), "the password alone does not open it again");
 		again.uncheckMasterPassword().checkKeyFile().browseKeyFile(keyFile).requireOkEnabled()
 			.clickOk();
 		awaitAndDismissAnErrorDialog();
 		assertFalse(signedInNow(), "the key file alone does not open it either");
-		again.checkMasterPassword().typeMasterPassword(password).okAndAwaitSignIn();
+		File wrongKeyFile = new File(tempHome, "closes-itself-wrong.pem");
+		createDatabaseFileWithKeyFileHeadless(new File(tempHome, "closes-itself-other.mcrdb"),
+			password, wrongKeyFile);
+		again.checkMasterPassword().typeMasterPassword(password).checkKeyFile()
+			.browseKeyFile(wrongKeyFile).requireOkEnabled().clickOk();
+		awaitAndDismissAnErrorDialog();
+		assertFalse(signedInNow(),
+			"the password with the key file of another database does not " + "open it either");
+		again.browseKeyFile(keyFile).typeMasterPassword(password).okAndAwaitSignIn();
 		new ApplicationSteps(robot).awaitSignedIn();
 		assertTrue(signedInNow(), "the password and the key file do");
+	}
+
+	/**
+	 * With the setting "Remember key files" off, nothing is pre-filled after the close: the
+	 * database is offered, the key file is not, and the open needs the key file chosen again (#997)
+	 */
+	@Test
+	@DisplayName("with 'Remember key files' off, the dialog after the close pre-fills no key file")
+	void withRememberKeyFilesOff_theDialogAfterTheCloseOffersNoKeyFile() throws Exception
+	{
+		String password = TestPasswords.throwaway();
+		File keyFile = new File(tempHome, "not-remembered.pem");
+		File databaseFile = new File(tempHome, "not-remembered.mcrdb");
+		createDatabaseFileWithKeyFileHeadless(databaseFile, password, keyFile);
+		File configurationDirectory = new File(tempHome, ".config/mystic-crypt-ui");
+		configurationDirectory.mkdirs();
+		MysticCryptSettings notRemembering = new MysticCryptSettings();
+		notRemembering.setRememberKeyFiles(false);
+		notRemembering.save(configurationDirectory);
+		SignInDialogSteps signIn = launchApplication();
+		signIn.checkMasterPassword().typeMasterPassword(password).checkKeyFile()
+			.browseKeyFile(keyFile).browseApplicationFile(databaseFile).requireOkEnabled()
+			.okAndAwaitSignIn();
+		ApplicationSteps application = new ApplicationSteps(robot).awaitSignedIn();
+		changeTheSettingsOfTheRunningApplication(settings -> {
+			settings.setAutoLockMinutes(0);
+			settings.setCloseLockedAfterMinutes(1);
+		});
+		application.lockWorkspace();
+		application.cancelUnlock();
+		Pause.pause(new Condition("the frame's own watchdog closes the locked vault")
+		{
+			@Override
+			public boolean test()
+			{
+				return !theVaultIsOpen();
+			}
+		}, TimeUnit.SECONDS.toMillis(100));
+
+		SignInDialogSteps again = openTheSignInDialogOfTheRunningApplication();
+		again.browseApplicationFile(databaseFile);
+
+		String offered = again.selectedKeyFile();
+		assertTrue(offered == null || offered.isEmpty(),
+			"no key file is pre-filled with the setting off: " + offered);
+		again.checkMasterPassword().typeMasterPassword(password).uncheckKeyFile().clickOk();
+		awaitAndDismissAnErrorDialog();
+		assertFalse(signedInNow(), "the password alone does not open a database with a key file");
 	}
 
 	private static boolean theVaultIsOpen()

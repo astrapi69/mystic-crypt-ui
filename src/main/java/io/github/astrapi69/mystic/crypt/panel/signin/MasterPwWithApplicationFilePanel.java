@@ -307,6 +307,9 @@ public class MasterPwWithApplicationFilePanel extends BasePanel<MasterPwFileMode
 
 		toggleMasterPwComponents();
 		toggleKeyFileComponents();
+		// the database the dialog opens on is offered what it was opened with, as one chosen later
+		// is (#997)
+		offerWhatThisDatabaseWasOpenedWith(selectedApplicationFilePath);
 
 		cbxMasterPw.setToolTipText(Messages.getString("signin.tooltip.master.password.checkbox",
 			"unlock using a master password"));
@@ -526,19 +529,22 @@ public class MasterPwWithApplicationFilePanel extends BasePanel<MasterPwFileMode
 	private void offerWhatThisDatabaseWasOpenedWith(final String databasePath)
 	{
 		RememberedKeyFileSupport.choiceFor(rememberedChoices, databasePath).ifPresent(choice -> {
-			String keyFilePath = choice.getKeyFilePath();
-			if (!isListedKeyFile(keyFilePath))
-			{
-				cmbKeyFileModel.addElement(keyFilePath);
-			}
-			cmbKeyFileModel.setSelectedItem(keyFilePath);
-			// the model does not tell the combo box's listener, so the state follows by hand
-			onChangeCmbKeyFile(null);
+			// the factors first: choosing the key file below runs onChangeCmbKeyFile, whose format
+			// notice speaks only when the key file is a factor of this sign-in
 			cbxMasterPw.setSelected(choice.isWithMasterPw());
 			getModelObject().setWithMasterPw(choice.isWithMasterPw());
 			toggleMasterPwComponents();
 			cbxKeyFile.setSelected(choice.isWithKeyFile());
 			toggleKeyFileComponents();
+			String keyFilePath = choice.getKeyFilePath();
+			if (!isListedKeyFile(keyFilePath))
+			{
+				cmbKeyFileModel.addElement(keyFilePath);
+			}
+			// the combo box listens to its model and runs onChangeCmbKeyFile itself when the
+			// selection changes; a selection that does not change needs no run, the model already
+			// holds it
+			cmbKeyFileModel.setSelectedItem(keyFilePath);
 		});
 	}
 

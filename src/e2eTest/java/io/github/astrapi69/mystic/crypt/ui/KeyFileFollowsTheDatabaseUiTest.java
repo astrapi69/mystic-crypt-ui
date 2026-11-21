@@ -99,6 +99,29 @@ class KeyFileFollowsTheDatabaseUiTest extends AbstractUiTest
 			"and no key file is offered for it: " + signIn.selectedKeyFile());
 	}
 
+	@Test
+	@DisplayName("choosing a database in the dropdown offers its key file as Browse... does")
+	void choosingDatabasesInTheDropdown_offersTheirKeyFiles() throws Exception
+	{
+		File first = new File(tempHome, "dropdown-first.mcrdb");
+		File second = new File(tempHome, "dropdown-second.mcrdb");
+		File firstKey = createWithKeyFileAndSignIn(first, "dropdown-first-key.pem");
+		shutdownApplication();
+		File secondKey = createWithKeyFileAndSignIn(second, "dropdown-second-key.pem");
+		shutdownApplication();
+
+		SignInDialogSteps signIn = launchApplication();
+		// both are listed once they have been browsed to; the list a "New..." run remembers holds
+		// only the database it created
+		signIn.browseApplicationFile(first).browseApplicationFile(second);
+		signIn.chooseApplicationFileInDropdown(first);
+		assertEquals(firstKey.getAbsolutePath(), signIn.selectedKeyFile());
+		signIn.chooseApplicationFileInDropdown(second);
+		assertEquals(secondKey.getAbsolutePath(), signIn.selectedKeyFile());
+		signIn.chooseApplicationFileInDropdown(first);
+		assertEquals(firstKey.getAbsolutePath(), signIn.selectedKeyFile(), "and back again");
+	}
+
 	private File createWithKeyFileAndSignIn(final File database, final String keyFileName)
 	{
 		SignInDialogSteps signIn = launchApplication();
