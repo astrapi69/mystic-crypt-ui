@@ -1,0 +1,4 @@
+URL: https://raw.githubusercontent.com/jorabin/KeePassJava2/KeePassJava2-3.1.0/LICENSE
+Version read: 3.1.0
+File: LICENSE
+git tag KeePassJava2-3.1.0 (parent POM: licence Apache 2.0, project-wide file)

@@ -1,0 +1,6 @@
+URL: https://raw.githubusercontent.com/depsypher/pngtastic/pngtastic-1.8/LICENSE.txt
+Version read: 1.8
+File: LICENSE.txt
+git tag pngtastic-1.8
+Bundled code: the header of com/googlecode/pngtastic/core/processing/zopfli/Squeeze.java in pngtastic-1.8-sources.jar (Apache-2.0, Copyright 2014 Google Inc.); the repository LICENSE.txt is MIT only (Copyright (c) 2013 Ray Vanderborght).
+LICENSE-Apache-2.0.txt: the Apache License 2.0 as published at https://www.apache.org/licenses/LICENSE-2.0.txt, for the Zopfli code named above (header in bundled-zopfli-header.txt).

@@ -1,0 +1,4 @@
+URL: https://raw.githubusercontent.com/danekja/jdk-serializable-functional/v1.9.0/LICENSE
+Version read: 1.9.0
+File: LICENSE
+git tag v1.9.0

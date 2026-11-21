@@ -1,0 +1,4 @@
+URL: https://raw.githubusercontent.com/jspecify/jspecify/v1.0.1/LICENSE
+Version read: 1.0.1
+File: LICENSE
+git tag v1.0.1

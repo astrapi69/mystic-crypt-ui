@@ -1,0 +1,4 @@
+URL: https://raw.githubusercontent.com/x-stream/xstream/XSTREAM_1_4_21/LICENSE.txt
+Version read: 1.4.21
+File: LICENSE.txt
+git tag XSTREAM_1_4_21
