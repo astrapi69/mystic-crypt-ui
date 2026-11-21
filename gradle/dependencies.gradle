@@ -97,7 +97,8 @@ dependencies {
         // gson and silly-io are no dependency of this application: no class of the host jar names them
         // (jdeps), and gson-extensions and file-worker bring them. Both ask for the chosen releases
         // themselves today (measured 2026-11-20 without these two constraints: gson 2.15.0, silly-io
-        // 5.0), so the constraints change nothing now. They stay, on the maintainer's decision of
+        // 5.0), so the constraints change nothing now; resourcebundle-core 6.1 asks for silly-io 3.1,
+        // which is what the silly-io constraint guards against. They stay, on the maintainer's decision of
         // 2026-11-18, in place of the declarations that said "used": an older release of either library
         // cannot bring a lower one back. RuntimeDependenciesTest proves what ships is at least these
         implementation(libs.gson) {

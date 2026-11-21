@@ -66,9 +66,10 @@ import org.junit.jupiter.params.provider.ValueSource;
  * bring 1.11.0 and jackson 2.22.4. Dependabot cannot raise an alert for a dependency nobody
  * declares, so the floor is held here, against the runtime class path of the build, which the build
  * names to the test JVM and which is what ships: a library that brought a lower version back fails
- * it. The test class path is not read, since it holds what the tests declare themselves. The same
- * guard stands in lethenon (astrapi69/lethenon#231). With file-worker 21 and gson-extensions 4
- * commons-beanutils is off the class path altogether; the guard now holds it off.
+ * it. The floors do not read the test class path, since it holds what the tests declare themselves;
+ * the checks that an artifact is absent read both class paths. The same guard stands in lethenon
+ * (astrapi69/lethenon#231). With file-worker 21 and gson-extensions 4 commons-beanutils is off the
+ * class path altogether; the guard now holds it off.
  * <p>
  * randomizer is not a dependency of this application either since #658, which draws its random
  * values from {@code SecureRandom}. Before 10.5 its default generator is seeded with the current
@@ -173,7 +174,7 @@ class RuntimeDependenciesTest
 		List<String> versions = versionsInTheRuntime(artifact);
 
 		assertEquals(1, versions.size(),
-			"exactly one " + artifact + " on the class path, found " + versions);
+			"exactly one " + artifact + " in the runtime, found " + versions);
 		assertTrue(compare(versions.getFirst(), floor) >= 0,
 			artifact + " " + versions.getFirst() + " is below " + floor);
 	}
@@ -181,13 +182,15 @@ class RuntimeDependenciesTest
 	/**
 	 * The release the application ships of a library it does not use itself, which
 	 * {@code gradle/dependencies.gradle} holds: gson and silly-io by a version constraint, tree-api
-	 * by its declaration, since the tree libraries publish it for the runtime only. Today the
-	 * libraries that bring gson and silly-io ask for the same releases, so their constraints change
-	 * nothing; this test keeps a library from bringing an older release back
+	 * by its declaration, since the tree libraries publish it for the runtime only. Today
+	 * gson-extensions 4.1 asks for gson 2.15.0 and file-worker 21.1 for silly-io 5.0, so the
+	 * constraints change nothing; resourcebundle-core 6.1 asks for silly-io 3.1, below the 4.0 fix,
+	 * which is the case a constraint guards against. This test keeps a library from bringing an
+	 * older release back
 	 */
 	@ParameterizedTest(name = "{0} ships at least {1}, as gradle/dependencies.gradle holds it")
 	@CsvSource({ "silly-io, 5.0", "gson, 2.15.0", "tree-api, 2.2.1" })
-	void constrainedLibrary_shipsAtLeastItsChosenRelease(final String artifact, final String chosen)
+	void heldLibrary_shipsAtLeastItsChosenRelease(final String artifact, final String chosen)
 	{
 		List<String> versions = versionsInTheRuntime(artifact);
 
@@ -464,28 +467,37 @@ class RuntimeDependenciesTest
 	}
 
 	/**
-	 * The versions of an artifact among the libraries this build ships: its runtime class path,
-	 * which the build names in {@code mystic.crypt.ui.runtime.libraries}. The test class path is
-	 * not read, since it holds what the tests declare themselves, silly-io among it, whatever the
-	 * application ships
-	 */
-	/**
 	 * The versions of an artifact on the class path the tests run on, for the checks that an
 	 * artifact is absent: what must not ship must not reach the tests either
 	 */
 	private static List<String> versionsOnTheTestClassPath(final String artifact)
 	{
-		Pattern jar = Pattern.compile(Pattern.quote(artifact) + "-(\\d[^/]*)\\.jar");
-		return Arrays.stream(System.getProperty("java.class.path").split(File.pathSeparator))
-			.map(entry -> jar.matcher(new File(entry).getName())).filter(Matcher::matches)
-			.map(matcher -> matcher.group(1)).toList();
+		return versionsAmong(
+			Arrays.stream(System.getProperty("java.class.path").split(File.pathSeparator))
+				.map(entry -> new File(entry).getName()).toList(),
+			artifact);
 	}
 
+	/**
+	 * The versions of an artifact among the libraries this build ships: its runtime class path,
+	 * which the build names in {@code mystic.crypt.ui.runtime.libraries}. The test class path is
+	 * not read here, since it holds what the tests declare themselves, silly-io among it, whatever
+	 * the application ships
+	 */
 	private static List<String> versionsInTheRuntime(final String artifact)
 	{
+		return versionsAmong(
+			ApplicationJarUnderTest.runtimeLibraries().stream().map(File::getName).toList(),
+			artifact);
+	}
+
+	/**
+	 * The versions in the jar file names of the given artifact, as {@code <artifact>-<version>.jar}
+	 */
+	private static List<String> versionsAmong(final List<String> jarNames, final String artifact)
+	{
 		Pattern jar = Pattern.compile(Pattern.quote(artifact) + "-(\\d[^/]*)\\.jar");
-		return ApplicationJarUnderTest.runtimeLibraries().stream()
-			.map(entry -> jar.matcher(entry.getName())).filter(Matcher::matches)
+		return jarNames.stream().map(jar::matcher).filter(Matcher::matches)
 			.map(matcher -> matcher.group(1)).toList();
 	}
 
