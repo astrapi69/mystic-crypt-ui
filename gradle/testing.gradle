@@ -65,8 +65,9 @@ apply from: 'gradle/test-jvms.gradle'
 
 test {
     useJUnitPlatform()
-    // everything that does not need a display. No per-class fork: these tests share no singleton,
-    // and a JVM start per class is most of their runtime
+    // everything that does not need a display. No per-class fork: a JVM start per class is most of
+    // their runtime. The one singleton they share is UnreadableFileNotices: a test that causes a
+    // notice takes it with a listener of its own, or it reaches the next test that listens
     filter {
         includeTestsMatching 'io.github.astrapi69.mystic.crypt.*'
         // a filter that matches nothing is an empty run reporting green, and an empty run is not a

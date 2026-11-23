@@ -41,6 +41,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
+import io.github.astrapi69.mystic.crypt.app.file.KeyFilePathsNotRemovedException;
 import io.github.astrapi69.mystic.crypt.settings.MysticCryptSettings;
 
 /**
@@ -125,7 +126,7 @@ class MemoizedKeePassModelBeanTest
 		File file = new File(configurationDirectory, MemoizedKeePassModelBean.JSON_FILENAME);
 		byte[] broken = "{\"lastImportFilePath\": ".getBytes(StandardCharsets.UTF_8);
 		Files.write(file.toPath(), broken);
-		java.util.List<io.github.astrapi69.mystic.crypt.app.file.UnreadableFileNotices.SetAside> told = new java.util.ArrayList<>();
+		java.util.List<io.github.astrapi69.mystic.crypt.app.file.UnreadableFileNotices.Notice> told = new java.util.ArrayList<>();
 		io.github.astrapi69.mystic.crypt.app.file.UnreadableFileNotices.listen(told::add);
 		try
 		{
@@ -225,5 +226,79 @@ class MemoizedKeePassModelBeanTest
 				&& reported.getMessage().contains("cannot be read"),
 			"the report names the file and the reason: " + reported.getMessage());
 		assertEquals(unreadable, Files.readString(file.toPath()), "nothing was written over it");
+	}
+
+	@Test
+	@DisplayName("forgetting key files in a remembered KeePass file that cannot be written says so and leaves the file")
+	void forgetKeyFiles_reportsAFileThatCannotBeWritten(@TempDir final File configurationDirectory)
+		throws IOException
+	{
+		withAllFourPaths().save(configurationDirectory);
+		File file = new File(configurationDirectory, MemoizedKeePassModelBean.JSON_FILENAME);
+		String before = Files.readString(file.toPath());
+		org.junit.jupiter.api.Assumptions.assumeTrue(configurationDirectory.setWritable(false),
+			"the directory can be made read-only");
+		try
+		{
+			org.junit.jupiter.api.Assumptions.assumeFalse(acceptsNewFiles(configurationDirectory),
+				"a read-only directory is enforced for this user");
+			KeyFilePathsNotRemovedException reported = assertThrows(
+				KeyFilePathsNotRemovedException.class,
+				() -> MemoizedKeePassModelBean.forgetKeyFiles(configurationDirectory));
+			assertEquals(file, reported.getFile());
+			assertEquals(KeyFilePathsNotRemovedException.Reason.NOT_WRITABLE, reported.getReason());
+			assertEquals(before, Files.readString(file.toPath()), "the file is as it was");
+		}
+		finally
+		{
+			configurationDirectory.setWritable(true);
+		}
+	}
+
+	@Test
+	@DisplayName("a settings file that cannot be read fails closed: no key file path is written")
+	void save_withAnUnreadableSettingsFile_writesNoKeyFilePath(
+		@TempDir final File configurationDirectory) throws IOException
+	{
+		Files.writeString(
+			new File(configurationDirectory, MysticCryptSettings.JSON_FILENAME).toPath(),
+			"{ not json");
+
+		// the notice the save causes is taken here, so it does not wait for the next test's
+		// listener
+		java.util.List<io.github.astrapi69.mystic.crypt.app.file.UnreadableFileNotices.Notice> told = new java.util.ArrayList<>();
+		io.github.astrapi69.mystic.crypt.app.file.UnreadableFileNotices.listen(told::add);
+		try
+		{
+			withAllFourPaths().save(configurationDirectory);
+		}
+		finally
+		{
+			io.github.astrapi69.mystic.crypt.app.file.UnreadableFileNotices.listen(null);
+		}
+
+		MemoizedKeePassModelBean loaded = MemoizedKeePassModelBean.load(configurationDirectory);
+		assertEquals("/vaults/import.kdbx", loaded.getLastImportFilePath());
+		assertNull(loaded.getLastImportKeyFilePath());
+		assertNull(loaded.getLastExportKeyFilePath());
+		assertEquals(java.util.List.of(
+			new io.github.astrapi69.mystic.crypt.app.file.UnreadableFileNotices.KeyFilesNotRemembered(
+				new File(configurationDirectory, MysticCryptSettings.JSON_FILENAME))),
+			told, "and the user is told why");
+	}
+
+	private static boolean acceptsNewFiles(final File directory)
+	{
+		try
+		{
+			File probe = new File(directory, "probe");
+			boolean created = probe.createNewFile();
+			probe.delete();
+			return created;
+		}
+		catch (IOException refused)
+		{
+			return false;
+		}
 	}
 }

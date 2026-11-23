@@ -61,7 +61,7 @@ class JsonFileStoreTest
 	private static final Clock CLOCK = Clock.fixed(Instant.parse("2026-11-19T15:30:12Z"),
 		ZoneOffset.UTC);
 
-	private final List<UnreadableFileNotices.SetAside> notices = new ArrayList<>();
+	private final List<UnreadableFileNotices.Notice> notices = new ArrayList<>();
 
 	@TempDir
 	File directory;

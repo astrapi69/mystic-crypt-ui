@@ -30,8 +30,8 @@ import java.util.List;
 import java.util.function.Consumer;
 
 /**
- * Tells the user about a file that could not be read and was kept aside instead of written over
- * (#1082).
+ * Tells the user about a file that could not be read: one that was kept aside instead of written
+ * over (#1082), and a settings file that keeps key files from being remembered (#997).
  * <p>
  * {@link JsonFileStore} sets the file aside wherever it is saved, which can be before the
  * application window exists, during the sign-in. A notice published then waits until a listener
@@ -41,6 +41,11 @@ import java.util.function.Consumer;
 public final class UnreadableFileNotices
 {
 
+	/** What the user is told about */
+	public sealed interface Notice permits SetAside,KeyFilesNotRemembered
+	{
+	}
+
 	/**
 	 * A file that could not be read, and where it was kept
 	 *
@@ -49,12 +54,22 @@ public final class UnreadableFileNotices
 	 * @param keptAs
 	 *            where its bytes lie now
 	 */
-	public record SetAside(File original, File keptAs) {
+	public record SetAside(File original, File keptAs) implements Notice {
 	}
 
-	private static final List<SetAside> PENDING = new ArrayList<>();
+	/**
+	 * The settings file could not be read, so no key file path is written until it can be: the
+	 * setting it may hold is "off" (#997)
+	 *
+	 * @param settingsFile
+	 *            the settings file that could not be read
+	 */
+	public record KeyFilesNotRemembered(File settingsFile) implements Notice {
+	}
 
-	private static Consumer<SetAside> listener;
+	private static final List<Notice> PENDING = new ArrayList<>();
+
+	private static Consumer<Notice> listener;
 
 	private UnreadableFileNotices()
 	{
@@ -63,17 +78,17 @@ public final class UnreadableFileNotices
 	/**
 	 * Hands the notice to the listener, or keeps it until there is one
 	 *
-	 * @param setAside
-	 *            the file that was set aside
+	 * @param notice
+	 *            what the user is to be told
 	 */
-	public static synchronized void publish(final SetAside setAside)
+	public static synchronized void publish(final Notice notice)
 	{
 		if (listener == null)
 		{
-			PENDING.add(setAside);
+			PENDING.add(notice);
 			return;
 		}
-		listener.accept(setAside);
+		listener.accept(notice);
 	}
 
 	/**
@@ -82,14 +97,14 @@ public final class UnreadableFileNotices
 	 * @param newListener
 	 *            the listener, or {@code null} to keep the notices from now on
 	 */
-	public static synchronized void listen(final Consumer<SetAside> newListener)
+	public static synchronized void listen(final Consumer<Notice> newListener)
 	{
 		listener = newListener;
 		if (newListener == null)
 		{
 			return;
 		}
-		List<SetAside> waiting = new ArrayList<>(PENDING);
+		List<Notice> waiting = new ArrayList<>(PENDING);
 		PENDING.clear();
 		waiting.forEach(newListener);
 	}

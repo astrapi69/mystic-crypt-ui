@@ -26,6 +26,7 @@ package io.github.astrapi69.mystic.crypt.ui;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.File;
@@ -143,6 +144,109 @@ class RememberKeyFilesSettingUiTest extends AbstractUiTest
 	}
 
 	@Test
+	@DisplayName("with a settings file that cannot be read, a sign-in writes no key file path and tells the user why")
+	void signingInWithAnUnreadableSettingsFile_writesNoKeyFilePath_andTellsWhy() throws Exception
+	{
+		File configurationDirectory = new File(tempHome, ".config/mystic-crypt-ui");
+		configurationDirectory.mkdirs();
+		Files.writeString(
+			new File(configurationDirectory, MysticCryptSettings.JSON_FILENAME).toPath(),
+			"{ not json");
+		File database = new File(tempHome, "unreadable-settings.mcrdb");
+		SignInDialogSteps signIn = launchApplication();
+		signIn.startNewDatabase(database).checkMasterPassword()
+			.typeMasterPasswordWithRepeat(MASTER_PASSWORD).checkKeyFile()
+			.createKeyFile("unreadable-settings-key.pem").requireOkEnabled().okAndAwaitClose();
+		signIn.checkMasterPassword().typeMasterPassword(MASTER_PASSWORD).requireOkEnabled()
+			.okAndAwaitSignIn();
+		new ApplicationSteps(robot).awaitSignedIn();
+
+		File remembered = new File(configurationDirectory,
+			MysticCryptApplicationFrame.MEMOIZED_SIGNIN_JSON_FILENAME);
+		assertTrue(remembered.isFile(), "the premise: the sign-in wrote its file");
+		String text = Files.readString(remembered.toPath());
+		assertFalse(text.contains("unreadable-settings-key"), "no key file path in it: " + text);
+		assertTrue(text.contains("unreadable-settings.mcrdb"), "the database is remembered");
+		Pause.pause(new Condition("the notice that key files are not remembered")
+		{
+			@Override
+			public boolean test()
+			{
+				return aWarningPane() != null;
+			}
+		}, TimeUnit.SECONDS.toMillis(30));
+		JOptionPane pane = aWarningPane();
+		String message = String.valueOf(pane.getMessage());
+		String title = GuiActionRunner
+			.execute(() -> ((JDialog)SwingUtilities.getWindowAncestor(pane)).getTitle());
+		assertEquals(
+			io.github.astrapi69.mystic.crypt.Messages
+				.getString("dialog.key.files.not.remembered.title", "Key files are not remembered"),
+			title, "it is the notice that key files are not remembered");
+		assertTrue(message.contains(
+			new File(configurationDirectory, MysticCryptSettings.JSON_FILENAME).getAbsolutePath()),
+			"the notice names the settings file: " + message);
+		GuiActionRunner.execute(() -> pane.setValue(JOptionPane.OK_OPTION));
+		robot.waitForIdle();
+	}
+
+	@Test
+	@DisplayName("closing the settings over a settings file that cannot be read removes the remembered key file paths")
+	void closingTheSettingsOverAnUnreadableSettingsFile_removesTheKeyFilePaths() throws Exception
+	{
+		File database = new File(tempHome, "closing-unreadable.mcrdb");
+		SignInDialogSteps signIn = launchApplication();
+		signIn.startNewDatabase(database).checkMasterPassword()
+			.typeMasterPasswordWithRepeat(MASTER_PASSWORD).checkKeyFile()
+			.createKeyFile("closing-unreadable-key.pem").requireOkEnabled().okAndAwaitClose();
+		signIn.checkMasterPassword().typeMasterPassword(MASTER_PASSWORD).requireOkEnabled()
+			.okAndAwaitSignIn();
+		ApplicationSteps application = new ApplicationSteps(robot);
+		application.awaitSignedIn();
+		File configurationDirectory = MysticCryptApplicationFrame.getInstance()
+			.getConfigurationDirectory();
+		File remembered = new File(configurationDirectory,
+			MysticCryptApplicationFrame.MEMOIZED_SIGNIN_JSON_FILENAME);
+		assertTrue(Files.readString(remembered.toPath()).contains("closing-unreadable-key"),
+			"the premise: the sign-in remembered the key file");
+		Files.writeString(
+			new File(configurationDirectory, MysticCryptSettings.JSON_FILENAME).toPath(),
+			"{ not json");
+
+		DialogFixture settings = application.openSettingsDialog();
+		SwingUtilities.invokeLater(() -> settings.button("btnCloseSettings").target().doClick());
+		dismissTheNoticesUntilClosed(settings);
+
+		assertFalse(Files.readString(remembered.toPath()).contains("closing-unreadable-key"),
+			"the settings file may have said on, so the key file path it let in is removed");
+		assertFalse(MysticCryptSettings.load(configurationDirectory).isRememberKeyFiles(),
+			"and the settings say off");
+	}
+
+	/**
+	 * Waits until the dialog is closed, closing each warning on the way: the save keeps the
+	 * unreadable settings file aside and says so
+	 */
+	private void dismissTheNoticesUntilClosed(final DialogFixture dialog)
+	{
+		Pause.pause(new Condition("the dialog is closed and no warning is left")
+		{
+			@Override
+			public boolean test()
+			{
+				JOptionPane pane = aWarningPane();
+				if (pane != null)
+				{
+					GuiActionRunner.execute(() -> pane.setValue(JOptionPane.OK_OPTION));
+					return false;
+				}
+				return !GuiActionRunner.execute(() -> dialog.target().isShowing());
+			}
+		}, TimeUnit.SECONDS.toMillis(30));
+		robot.waitForIdle();
+	}
+
+	@Test
 	@DisplayName("switching the setting off while the remembered sign-in cannot be read warns that the paths remain")
 	void switchingRememberKeyFilesOff_warns_whenTheRememberedSignInCannotBeRead() throws Exception
 	{
@@ -177,7 +281,9 @@ class RememberKeyFilesSettingUiTest extends AbstractUiTest
 		String message = String.valueOf(pane.getMessage());
 		assertTrue(message.contains(remembered.getAbsolutePath()),
 			"the warning names the file, its name and its directory: " + message);
-		assertTrue(message.contains("cannot be read"), "and says why: " + message);
+		assertTrue(message.contains(io.github.astrapi69.mystic.crypt.Messages.getString(
+			"settings.general.remember.key.files.reason.unreadable", "the file cannot be read")),
+			"and says why: " + message);
 		GuiActionRunner.execute(() -> pane.setValue(JOptionPane.OK_OPTION));
 		robot.waitForIdle();
 	}
@@ -223,10 +329,30 @@ class RememberKeyFilesSettingUiTest extends AbstractUiTest
 			"lists the sign-in copy: " + message);
 		assertTrue(message.contains(keePassCopy.getAbsolutePath()),
 			"lists the KeePass copy: " + message);
-		assertFalse(message.contains("could not be removed"),
-			"and reports no failure, since the files themselves were removed: " + message);
+		assertFalse(
+			message.contains(io.github.astrapi69.mystic.crypt.Messages
+				.getString("settings.general.remember.key.files.not.removed", "not removed")),
+			"and reports no failure, since the key file paths themselves were removed: " + message);
 		GuiActionRunner.execute(() -> pane.setValue(JOptionPane.OK_OPTION));
 		robot.waitForIdle();
+
+		DialogFixture again = application.openSettingsDialog();
+		SwingUtilities.invokeLater(() -> again.button("btnCloseSettings").target().doClick());
+		// the notice is modal and opens before the dialog is disposed, so the wait ends on either
+		Pause.pause(new Condition("the settings dialog is closed again, or a notice shows")
+		{
+			@Override
+			public boolean test()
+			{
+				return !again.target().isShowing() || aWarningPane() != null;
+			}
+		}, TimeUnit.SECONDS.toMillis(15));
+		JOptionPane leftOver = aWarningPane();
+		if (leftOver != null)
+		{
+			GuiActionRunner.execute(() -> leftOver.setValue(JOptionPane.OK_OPTION));
+		}
+		assertNull(leftOver, "closing the dialog again with the setting still off shows no notice");
 	}
 
 	private static JOptionPane aWarningPane()
