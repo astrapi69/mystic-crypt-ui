@@ -16,8 +16,9 @@
 # The dependencies come from the existing cache, read-only (GRADLE_RO_DEP_CACHE, by default the caches of
 # the Gradle user home the script was started with), and the wrapper distribution is linked.
 #
-# GRADLE_SLOT: optional path of a wrapper run as <wrapper> <tree> <log file> <gradle arguments...>, such as
-# chats-with-ai/coding/tools/gradle-slot.sh, which waits for a free build slot; unset runs ./gradlew directly.
+# GRADLE_SLOT_RUNNER: optional path of a wrapper run as <wrapper> <tree> <log file> <gradle arguments...>, such as
+# a build-slot script that waits until a shared machine has a build slot free; unset runs ./gradlew directly.
+# GRADLE_SLOT is not read here: a build slot sets it to its slot number for what it runs, so it is never a path.
 # DOUBLE_BUILD_INIT: optional init script for the measurement.
 set -uo pipefail
 repo=$1; commit=$2; java=$3; keystore=$4; alias=$5; mode=${6:-installer}
@@ -37,8 +38,8 @@ done
 gradle_call()
 {
 	local common=(--no-build-cache "${offline[@]}" "${init[@]}" -q "${sign[@]}")
-	if [ -n "${GRADLE_SLOT:-}" ]; then
-		"$GRADLE_SLOT" "$dir" "$work/step$n.log" "${common[@]}" "$@"
+	if [ -n "${GRADLE_SLOT_RUNNER:-}" ]; then
+		"$GRADLE_SLOT_RUNNER" "$dir" "$work/step$n.log" "${common[@]}" "$@"
 		local status=$?
 		cat "$work/step$n.log" >> "$work/build$n.log"
 		return $status
