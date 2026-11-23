@@ -22,7 +22,7 @@
  * OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
  * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-package io.github.astrapi69.mystic.crypt.action;
+package io.github.astrapi69.mystic.crypt.panel.keepass;
 
 import java.awt.Component;
 import java.io.File;
@@ -37,12 +37,12 @@ import org.linguafranca.pwdb.kdbx.jackson.KdbxDatabase;
 import io.github.astrapi69.mystic.crypt.ApplicationModelBean;
 import io.github.astrapi69.mystic.crypt.Messages;
 import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
+import io.github.astrapi69.mystic.crypt.action.ExportKeePassDatabaseAction;
 import io.github.astrapi69.mystic.crypt.keepass.EntryExportChoice;
 import io.github.astrapi69.mystic.crypt.keepass.KeePassCredentials;
 import io.github.astrapi69.mystic.crypt.keepass.KeePassTreeConverter;
 import io.github.astrapi69.mystic.crypt.keepass.MemoizedKeePassModelBean;
 import io.github.astrapi69.mystic.crypt.panel.dbtree.MysticCryptEntryModelBean;
-import io.github.astrapi69.mystic.crypt.panel.keepass.ExportSelectedEntriesPanel;
 import io.github.astrapi69.mystic.crypt.ui.screen.OwnedDialogs;
 import io.github.astrapi69.mystic.crypt.write.DataClass;
 import io.github.astrapi69.mystic.crypt.write.GuardedSave;
@@ -57,6 +57,10 @@ import io.github.astrapi69.mystic.crypt.write.OverwriteConfirmation;
  * Identifiers given when the vault was opened are kept only from the next save on (#272), so a
  * vault with such identifiers is saved first, after asking: an export without that save would hand
  * out identifiers the next open replaces.
+ * <p>
+ * Not an action: the popup of the entry table starts it with the rows chosen there, as it starts
+ * copy, edit and delete, and a locked workspace shows no entry table. So it sits next to its panel
+ * and not in the action package, whose classes the lock invariant fires one by one.
  */
 public final class ExportSelectedEntriesToKeePass
 {

@@ -155,7 +155,7 @@ public class ExportKeePassDatabaseAction extends AbstractAction
 	 *            the application frame
 	 * @return the name
 	 */
-	static String vaultNameOf(final MysticCryptApplicationFrame instance)
+	public static String vaultNameOf(final MysticCryptApplicationFrame instance)
 	{
 		String fallback = Messages.getString("keepass.export.database.name", "mystic-crypt-ui");
 		if (instance.getModelObject() == null
