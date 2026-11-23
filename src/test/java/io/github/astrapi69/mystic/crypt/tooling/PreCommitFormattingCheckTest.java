@@ -270,6 +270,19 @@ class PreCommitFormattingCheckTest
 		assertEquals(List.of(), run.gradleCalls());
 	}
 
+	@ParameterizedTest(name = "Gradle exit {0}")
+	@CsvSource({ "0", "1" })
+	@DisplayName("through a slot script the check leaves its temporary file behind, after a pass and after a violation")
+	void throughASlotRunner_theTemporaryFileIsLeftBehind(final int gradleExit) throws Exception
+	{
+		stage("src/main/java/A.java");
+
+		Run run = check(gradleExit, Map.of("GRADLE_SLOT_RUNNER", slotRunner().toString()));
+
+		assertEquals(gradleExit == 0 ? 0 : 1, run.exit(), run.output());
+		assertEquals(1, run.leftBehind().size(), run.leftBehind() + " " + run.output());
+	}
+
 	/** A slot script that fails before it runs anything, as one that is missing or broken does */
 	private Path failingSlotRunner() throws IOException
 	{
@@ -342,12 +355,21 @@ class PreCommitFormattingCheckTest
 		Map<String, String> environment = builder.environment();
 		environment.put("GRADLEW", gradlew.toString());
 		SLOT_VARIABLES.forEach(environment::remove);
+		// a temporary directory of the test's own, empty, so what the check leaves in it can be
+		// seen
+		Path temporary = Files.createDirectories(repository.resolve(".git/check-tmp"));
+		environment.put("TMPDIR", temporary.toString());
 		environment.putAll(slotEnvironment);
 		Process process = builder.start();
 		assertTrue(process.waitFor(60, TimeUnit.SECONDS), "the script ended");
 		String output = new String(process.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
 		List<String> gradleCalls = Files.exists(calls) ? Files.readAllLines(calls) : List.of();
-		return new Run(process.exitValue(), output, gradleCalls);
+		List<String> leftBehind;
+		try (var files = Files.list(temporary))
+		{
+			leftBehind = files.map(file -> file.getFileName().toString()).toList();
+		}
+		return new Run(process.exitValue(), output, gradleCalls, leftBehind);
 	}
 
 	private void git(final String... arguments) throws Exception
@@ -372,6 +394,6 @@ class PreCommitFormattingCheckTest
 		}
 	}
 
-	private record Run(int exit, String output, List<String> gradleCalls) {
+	private record Run(int exit, String output, List<String> gradleCalls, List<String> leftBehind) {
 	}
 }
