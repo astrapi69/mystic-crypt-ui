@@ -91,7 +91,7 @@ class TheGuardTest(unittest.TestCase):
             with self.subTest(target=target):
                 result = make(["-n", target])
                 self.assertNotEqual(0, result.returncode, "ran without a slot: " + target)
-                self.assertIn(target, result.stderr)
+                self.assertIn(target + " starts Gradle", result.stderr)
                 self.assertIn("GRADLE_SLOT", result.stderr)
                 self.assertIn("make without-slot TARGET=" + target, result.stderr)
 
@@ -113,9 +113,9 @@ class TheGuardTest(unittest.TestCase):
                 self.assertEqual(0, result.returncode, result.stderr)
 
     def test_one_of_several_goals_that_starts_gradle_refuses_them_all(self):
-        result = make(["-n", "help", "build"])
+        result = make(["-n", "help", "build", "test"])
         self.assertNotEqual(0, result.returncode)
-        self.assertIn("build", result.stderr)
+        self.assertIn("build test starts Gradle", result.stderr, "every goal that starts Gradle is named")
 
     def test_a_free_target_runs_without_a_slot(self):
         for target in FREE_TARGETS:
@@ -140,8 +140,11 @@ class WithoutSlotTest(unittest.TestCase):
                 self.assertNotEqual(0, result.returncode)
                 self.assertIn("TARGET", result.stderr)
 
-    def test_without_slot_is_no_gradle_target_itself(self):
-        self.assertNotIn("without-slot", GRADLE_TARGETS)
+    def test_without_slot_is_not_in_the_guarded_list_of_the_makefile(self):
+        database = make(["-pRrq"], GRADLE_SLOT="1").stdout.splitlines()
+        guarded = [line for line in database if line.startswith("GRADLE_TARGETS :=")]
+        self.assertEqual(len(guarded), 1, "the Makefile defines GRADLE_TARGETS once")
+        self.assertNotIn("without-slot", guarded[0].split())
 
     def test_the_target_given_to_without_slot_does_not_reach_the_recipes_below_it(self):
         with tempfile.TemporaryDirectory() as folder:
