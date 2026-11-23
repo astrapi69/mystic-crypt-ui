@@ -13,13 +13,21 @@ on:
   pull_request:
     branches: [ master, develop, 'hotfix/**' ]
 
+# a newer push to a pull request makes its older run pointless; a run on develop, master or a hotfix branch is the
+# record of what landed there and is never cancelled
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
+  # "build" is the check develop's branch protection requires. It compiles everything, the sources of the UI tests
+  # included, runs the unit tests, Spotless and every plugin build, and no UI test: the three end-to-end suites run
+  # in e2e.yml, which no merge waits for (the maintainer's decision of 2026-11-23). The release gate still runs
+  # every suite (make release-gate).
   build:
 
-    # A full build of a code-changing commit takes 37 to 43 minutes (measured 2026-11-21). A UI test once hung
-    # for about two hours with no limit to end it, and a job without timeout-minutes runs for six hours
-    # (the GitHub default); 90 minutes leaves room for twice the usual build
-    timeout-minutes: 90
+    # without the UI tests a run takes minutes; a job without timeout-minutes runs for six hours (the GitHub default)
+    timeout-minutes: 30
     runs-on: ubuntu-latest
 
     steps:
@@ -58,17 +66,6 @@ jobs:
         run: |
           sudo apt-get update || echo "apt-get update reported errors; continuing to the install"
           sudo apt-get install -y xvfb fluxbox wmctrl x11-utils iproute2 openssl
-      - name: Install KeePassXC
-        # the KDBX round trip is measured with the program a user actually opens these files with,
-        # not with our own model - a field our model does not carry would otherwise compare equal to
-        # itself and the test would pass while the file lost it (#384). A missing keepassxc-cli fails
-        # that test rather than skipping it, so it is installed here rather than worked around there.
-        # The runner installs keepassxc-minimal, 2.7.10, the version that wrote the fixture (CI runs
-        # 44333392266 and 44490633638 print "Setting up keepassxc-minimal (2.7.10+dfsg1-2ubuntu1)").
-        # The fallback to Ubuntu's keepassxc, 2.7.6 (CI run 35078636917 had
-        # no keepassxc-minimal), applies only when that package is missing. The test names the
-        # version it read with in every failure message
-        run: sudo apt-get install -y keepassxc-minimal || sudo apt-get install -y keepassxc
       - name: Install the de_DE locale
         # ForkedJvmTest checks that a JVM the tests start takes the German language of a German
         # desktop's environment, which a JVM can only do where the machine has that locale: without
@@ -111,13 +108,12 @@ jobs:
         # out of its pack. VaultOpensInTheLastReleaseTest opens a vault this build writes with it,
         # and fails here in CI when the jar is missing rather than skipping (#402)
         run: make release-jar
-      - name: Execute Gradle build
-        # No xvfb-run (#505): every test task gets its display from the own-display plugin (#741),
-        # the same way it does on a desktop, where an inherited display
-        # is the person's screen. The runner has no DISPLAY at all, so a green run here is evidence
-        # that the build brings its own - and a build that could not get one fails, it does not let
-        # the AssertJ-Swing tests skip on their headless assumption
-        run: ./gradlew build
+      - name: Compile, unit tests and Spotless
+        # Named tasks, not build: check depends on the three end-to-end suites (gradle/testing.gradle), which run in
+        # e2e.yml. The classes tasks of the three UI source sets compile them, so a change that breaks a UI test's
+        # code still fails here. No xvfb-run (#505): every test task gets its display from the own-display plugin
+        # (#741); the runner has no DISPLAY at all, so a green run is evidence that the build brings its own
+        run: ./gradlew assemble testClasses e2eTestClasses e2eLockClasses e2eKdbxClasses test spotlessCheck
       - name: Check for unused dependencies
         # Reports a declared dependency nothing uses, in the host and in every plugin build that applies the
         # dependency-analysis plugin (gradle/dependency-analysis.gradle, gradle/plugin-dependency-analysis.gradle).
@@ -127,17 +123,6 @@ jobs:
         # sets the severity to "fail" removes continue-on-error
         continue-on-error: true
         run: make dependency-analysis
-      - name: Print what was on screen when a UI test failed
-        # WhatWasOnScreen writes its report to the test JVM's standard output, which Gradle keeps
-        # in the result XML and does not print: a red run's log showed the stack trace and nothing
-        # of what was on screen, and #575 took that for a report that never ran. This puts every
-        # "[on-screen]" line of the e2e suites into the log, where a failure is read first.
-        # Always, not only on failure: a green run prints "0 of N result files carried a report",
-        # which is the evidence that the step reads what the suites wrote
-        if: always()
-        run: >-
-          scripts/print-on-screen-reports.sh build/test-results/e2eTest
-          build/test-results/e2eLockTest build/test-results/e2eKdbxTest
       - name: Upload the test reports
         # a failing UI test prints only its top stack frame to the console; the full trace lives in
         # the xml reports, so keep them when something goes red - otherwise a flaky failure is
@@ -145,8 +130,7 @@ jobs:
         #
         # ALWAYS, not only on failure (#306): a green run whose evidence is discarded cannot be
         # checked afterwards, and "how many tests were those" then has no answer but a local run.
-        # Both suites since the split (#319) - uploading only build/test-results/test would keep
-        # the fast half and drop the one that takes the time. The plugin builds' results too, which
+        # The end-to-end suites upload theirs in e2e.yml. The plugin builds' results too, which
         # `make plugins` writes into each plugin's own build directory: a plugin test that failed
         # once on CI had nothing left to read (#667)
         if: always()
@@ -156,12 +140,6 @@ jobs:
           path: |
             build/reports/tests/test
             build/test-results/test
-            build/reports/tests/e2eTest
-            build/test-results/e2eTest
-            build/reports/tests/e2eLockTest
-            build/test-results/e2eLockTest
-            build/reports/tests/e2eKdbxTest
-            build/test-results/e2eKdbxTest
             build/own-display
             plugins/*/build/test-results
             plugins/*/build/reports/tests

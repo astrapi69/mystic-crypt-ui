@@ -106,9 +106,10 @@ make publish-local
 
 ## What CI runs
 
-`.github/workflows/gradle.yml` on every push and pull request: `make plugins`, `make release-jar`,
-then `./gradlew build`, which runs the unit tests, the three end-to-end suites and Spotless. A green
-local `make test` does not mean a green CI run: `make build-full` is the local equivalent.
+`.github/workflows/gradle.yml` on every push and pull request, the required check `build`: `make plugins`,
+`make release-jar`, then the compile (the end-to-end sources included), the unit tests and Spotless.
+`.github/workflows/e2e.yml` runs the three end-to-end suites on every pull request, after every merge into
+develop or a hotfix branch, every night and by hand; no merge waits for it. `make build-full` runs both locally.
 
 ## The Lethenon plugin
 

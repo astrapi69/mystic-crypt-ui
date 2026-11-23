@@ -140,7 +140,8 @@ test {
 }
 
 // The end-to-end suites: the Swing tests, one task per source set so each has its own cache key.
-[e2eTest: 'e2eTest', e2eLockTest: 'e2eLock', e2eKdbxTest: 'e2eKdbx'].each { taskName, setName ->
+[e2eTest: ['e2eTest', 50], e2eLockTest: ['e2eLock', 20], e2eKdbxTest: ['e2eKdbx', 10]].each { taskName, suiteSettings ->
+    def (setName, limitMinutes) = suiteSettings
     tasks.register(taskName, Test) {
         description = "Runs the Swing end-to-end tests of src/${setName}. Needs Xvfb + fluxbox; see lessons-learned.md"
         group = 'verification'
@@ -173,6 +174,47 @@ test {
         // no output and nothing to end it (#322); on a hosted runner that is six hours of nothing.
         // The limit is per test method and generous - the slowest of these drives a whole application
         systemProperty 'junit.jupiter.execution.timeout.testable.method.default', '3m'
+        // A per-method timeout cannot end a deadlock: it interrupts the test thread, and a thread that waits
+        // for a monitor (the AWTTreeLock) does not react to an interrupt. The e2eTest of one pull request hung
+        // for about two hours on exactly that, with no output saying where. So each suite has a limit of its
+        // own, set from the measured durations with room (CI, 2026-11-21: e2eTest 26 to 31 minutes,
+        // e2eLockTest about 7, e2eKdbxTest about 2): Gradle interrupts the task and stops its test worker
+        // when it is over (Task.timeout). Two minutes before that a watchdog writes a thread dump of every
+        // test JVM into the log (jcmd Thread.print), and the STARTED event names the test that was running.
+        // It stops no daemon: it only reads the JVMs that are children of this build.
+        timeout = java.time.Duration.ofMinutes(limitMinutes)
+        testLogging {
+            events 'started', 'failed'
+        }
+        def dumpAfterMillis = (limitMinutes - 2) * 60_000L
+        def watchdogName = "thread-dump-watchdog-${taskName}".toString()
+        doFirst {
+            def watchdog = new Thread({
+                try {
+                    Thread.sleep(dumpAfterMillis)
+                } catch (InterruptedException finishedInTime) {
+                    return
+                }
+                def jcmd = new File(System.getProperty('java.home'), 'bin/jcmd').absolutePath
+                ProcessHandle.current().descendants().filter { worker ->
+                    worker.info().arguments().orElse(new String[0]).any { it.endsWith('GradleWorkerMain') }
+                }.each { worker ->
+                    def dump = File.createTempFile('thread-dump', '.txt')
+                    def process = new ProcessBuilder(jcmd, String.valueOf(worker.pid()), 'Thread.print', '-l')
+                        .redirectErrorStream(true).redirectOutput(dump).start()
+                    process.waitFor(60, java.util.concurrent.TimeUnit.SECONDS)
+                    process.destroyForcibly()
+                    System.out.println("[thread-dump] ${watchdogName}: test JVM ${worker.pid()}, 2 minutes before the task limit")
+                    System.out.println(dump.text)
+                    dump.delete()
+                }
+            } as Runnable, watchdogName)
+            watchdog.daemon = true
+            watchdog.start()
+        }
+        doLast {
+            Thread.getAllStackTraces().keySet().findAll { it.name == watchdogName }*.interrupt()
+        }
         // after the fast one, so a failure that both would catch is reported by the cheap suite first
         shouldRunAfter test
     }

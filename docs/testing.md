@@ -505,12 +505,14 @@ Two workflows, both under `.github/workflows/`.
 
 ### `gradle.yml` - "Java CI with Gradle"
 
-Triggers: push to `master` or `develop`, and pull requests against `master` or `develop`.
-Runner: `ubuntu-latest`, Temurin JDK 25, `gradle/actions/setup-gradle@v3`.
+Triggers: push to `master`, `develop` or `hotfix/**`, and pull requests against them.
+Runner: `ubuntu-latest`, Temurin JDK 25, `gradle/actions/setup-gradle` v5.0.2.
 
-The gate is a single `./gradlew build`, whose test tasks bring their own display (section 3.2,
-#505). From `./gradlew build --dry-run`, the
-task graph is, in order:
+Since 2026-11-23 the required check `build` runs the compile (the end-to-end sources included), the unit tests,
+Spotless and the plugin builds; the three end-to-end suites run in `e2e.yml` ("UI tests") on pull requests,
+after every merge, nightly and by hand, and no merge waits for them. The release gate runs every suite. What
+follows describes the task graph of a full local `./gradlew build`, which `make build-full` runs. From
+`./gradlew build --dry-run`, the task graph is, in order:
 
 ```
 :generateEffectiveLombokConfig
