@@ -30,6 +30,7 @@ import java.util.Map;
 
 import org.pf4j.Extension;
 
+import io.github.astrapi69.mystic.crypt.key.KeyExchangeSupport;
 import io.github.astrapi69.mystic.crypt.plugin.api.PluginSettingsContribution;
 import io.github.astrapi69.mystic.crypt.settings.PluginSettings;
 

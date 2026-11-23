@@ -26,6 +26,8 @@ package io.github.astrapi69.mystic.crypt.plugin.kem;
 
 import javax.crypto.SecretKey;
 
+import io.github.astrapi69.mystic.crypt.key.KeyExchangeSupport;
+
 /**
  * The state of {@link KeyExchangePanel}: what the user typed, what was loaded from a file, and what
  * the exchange produced. Every component of the panel is bound to a property here, so what a button

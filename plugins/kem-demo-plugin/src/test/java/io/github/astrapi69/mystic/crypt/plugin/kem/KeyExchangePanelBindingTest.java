@@ -51,6 +51,8 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.MethodSource;
 
+import io.github.astrapi69.mystic.crypt.key.KeyExchangeSupport;
+
 /**
  * Tests that the components of {@link KeyExchangePanel} are bound to {@link KeyExchangePanelModel}
  * and that the two tabs together carry out a real exchange: what one tab produces is what the other

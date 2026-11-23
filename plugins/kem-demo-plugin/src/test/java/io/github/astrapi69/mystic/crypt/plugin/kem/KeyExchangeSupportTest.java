@@ -43,6 +43,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 
+import io.github.astrapi69.mystic.crypt.key.KeyExchangeSupport;
+
 /**
  * Tests the exchange the way two people would run it: each side is given only its own half, and
  * what travels between them is the text that {@link KeyExchangeSupport} produces.
