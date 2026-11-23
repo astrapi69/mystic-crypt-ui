@@ -424,6 +424,13 @@ The window is built for trying out, so that is how it is tested.
 - [ ] TC-0122 Search field in the toolbar: typing jumps to the first match, Enter to the
       next. - automated by `ToolbarSearchUiTest#typingJumpsToTheFirstMatchAndEnterToTheNext`
       (Enter is sent as the field's action event)
+- [ ] TC-0123 After a sign-in, "add node..." from the tree's context menu: the "New node" dialog has
+      the keyboard at once, and what is typed without a click lands in its name field; Enter adds
+      the node. Once after the sign-in at the start, once after a sign-in through "File > Open
+      Database..." while the main window shows. - manual only: on the e2e display (Xvfb with fluxbox) the
+      dialog did not get the keyboard in a probe test once the sign-in dialog was centred for real,
+      while on a Wayland desktop it did (2026-11-23, #1097); a test on the e2e display would report
+      the display, not the application
 
 ## TS-0013 Plugins
 

@@ -46,8 +46,34 @@ public class MasterPwFileDialog extends PanelDialog<MasterPwFileModelBean>
 		IModel<MasterPwFileModelBean> model)
 	{
 		super(owner, title, modal, model);
-		ScreenPlacement.centerOnScreenOf(this, owner);
 		putTheCaretWhereTypingStarts();
+	}
+
+	/**
+	 * Gives the dialog its size and puts it in the middle: over its owner when the owner is
+	 * showing, on the screen under the pointer when it is not, which is the case at the start,
+	 * before the main window has been shown (#63).
+	 * <p>
+	 * The place is worked out from the size the dialog has when it is shown. Placed before it got
+	 * its size, what sat in the middle of the screen was its upper left corner.
+	 *
+	 * @param width
+	 *            the width of the dialog
+	 * @param height
+	 *            the height of the dialog
+	 */
+	public void sizeAndCentre(final int width, final int height)
+	{
+		setSize(width, height);
+		Window owner = getOwner();
+		if (owner != null && owner.isShowing())
+		{
+			setLocationRelativeTo(owner);
+		}
+		else
+		{
+			ScreenPlacement.centerOnScreenOf(this, null);
+		}
 	}
 
 	/**
