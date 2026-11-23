@@ -494,6 +494,15 @@ class GuardTest(unittest.TestCase):
         self.assertEqual(contexts, REQUIRED)
         self.assertIn("develop", note)
 
+    def test_hotfix_borrows_the_checks_that_run_only_on_pull_requests_into_develop(self):
+        # closing-references and release-freeze run on pull requests into develop only, so a
+        # hotfix pull request never reports them: the wait for them ends in a refusal
+        def fetch(branch):
+            return REQUIRED if branch == "develop" else None
+        contexts, _ = resolve_required("hotfix/8.5.1", fetch)
+        self.assertIn("closing-references", contexts)
+        self.assertIn("release-freeze", contexts)
+
     def test_target_without_required_checks_resolves_empty(self):
         contexts, note = resolve_required("develop", lambda branch: None)
         self.assertEqual(contexts, [])
