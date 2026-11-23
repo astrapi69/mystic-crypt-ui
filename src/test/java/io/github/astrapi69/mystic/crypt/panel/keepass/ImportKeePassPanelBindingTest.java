@@ -54,6 +54,7 @@ import org.linguafranca.pwdb.kdbx.jackson.KdbxEntry;
 import org.linguafranca.pwdb.kdbx.jackson.KdbxGroup;
 
 import io.github.astrapi69.mystic.crypt.TestPasswords;
+import io.github.astrapi69.mystic.crypt.keepass.KeePassCredentials;
 
 /**
  * Tests that the components of {@link ImportKeePassPanel} are bound to {@link KeePassPanelModel}:
@@ -125,22 +126,9 @@ class ImportKeePassPanelBindingTest
 	{
 		try (InputStream inputStream = new FileInputStream(panel.getSelectedFile()))
 		{
-			return KdbxDatabase.read(credentials(panel), inputStream);
-		}
-	}
-
-	private static KdbxCredentials credentials(ImportKeePassPanel panel) throws Exception
-	{
-		char[] password = panel.getPassword();
-		File keyFile = panel.getSelectedKeyFile();
-		byte[] passwordBytes = new String(password).getBytes(StandardCharsets.UTF_8);
-		if (keyFile == null)
-		{
-			return new KdbxCredentials(passwordBytes);
-		}
-		try (InputStream keyFileStream = new FileInputStream(keyFile))
-		{
-			return new KdbxCredentials(passwordBytes, keyFileStream);
+			return KdbxDatabase.read(
+				KeePassCredentials.of(panel.getPassword(), panel.getSelectedKeyFile()),
+				inputStream);
 		}
 	}
 
