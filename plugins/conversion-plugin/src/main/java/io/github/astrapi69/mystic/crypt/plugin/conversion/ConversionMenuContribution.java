@@ -88,8 +88,8 @@ public class ConversionMenuContribution implements PluginMenuContribution
 
 	/**
 	 * Builds the wizard panel with the application-specific behavior a plain
-	 * {@link ConversionWizardPanel} does not have on its own: refreshing the Target and Review steps
-	 * as they are reached, converting the file on Finish and closing the dialog on Cancel
+	 * {@link ConversionWizardPanel} does not have on its own: refreshing the Target and Review
+	 * steps as they are reached, converting the file on Finish and closing the dialog on Cancel
 	 *
 	 * @param dialog
 	 *            the wizard dialog, closed by Cancel and by a successful Finish
@@ -134,8 +134,8 @@ public class ConversionMenuContribution implements PluginMenuContribution
 	}
 
 	/**
-	 * Sizes the dialog to what the wizard actually needs and shows it. The window is opened once and
-	 * must not resize itself while the user walks through the wizard - see
+	 * Sizes the dialog to what the wizard actually needs and shows it. The window is opened once
+	 * and must not resize itself while the user walks through the wizard - see
 	 * {@code CertificateMenuContribution.openWizard} for why {@code pack()} runs twice
 	 *
 	 * @param dialog
@@ -160,8 +160,8 @@ public class ConversionMenuContribution implements PluginMenuContribution
 		dialog.pack();
 		dialog.setSize(
 			WizardWindowSize.on(dialog.getSize(), Toolkit.getDefaultToolkit().getScreenSize()));
-		dialog.setMinimumSize(new Dimension(WizardWindowSize.MINIMUM_WIDTH / 2,
-			WizardWindowSize.MINIMUM_HEIGHT / 2));
+		dialog.setMinimumSize(
+			new Dimension(WizardWindowSize.MINIMUM_WIDTH / 2, WizardWindowSize.MINIMUM_HEIGHT / 2));
 		dialog.setLocationRelativeTo(frame);
 		dialog.setVisible(true);
 	}
@@ -185,7 +185,8 @@ public class ConversionMenuContribution implements PluginMenuContribution
 	 * @param model
 	 *            what the wizard has collected so far
 	 */
-	private static void refreshTarget(ConversionWizardPanel wizardPanel, ConversionWizardModel model)
+	private static void refreshTarget(ConversionWizardPanel wizardPanel,
+		ConversionWizardModel model)
 	{
 		File sourceFile = blankToNull(model.getSourceFilePath()) == null
 			? null
@@ -201,7 +202,8 @@ public class ConversionMenuContribution implements PluginMenuContribution
 	 * @param model
 	 *            what the wizard has collected so far
 	 */
-	private static void refreshReview(ConversionWizardPanel wizardPanel, ConversionWizardModel model)
+	private static void refreshReview(ConversionWizardPanel wizardPanel,
+		ConversionWizardModel model)
 	{
 		reviewPanelOf(wizardPanel).refresh(buildSummary(model));
 	}
@@ -244,8 +246,8 @@ public class ConversionMenuContribution implements PluginMenuContribution
 	/**
 	 * Converts the file the model describes and closes the wizard. The wizard's Finish button works
 	 * from any step, not only Review, so what is missing is reported rather than assumed - and
-	 * {@code ConversionSupport} itself refuses to overwrite a file that already exists at the target,
-	 * surfaced here the same way
+	 * {@code ConversionSupport} itself refuses to overwrite a file that already exists at the
+	 * target, surfaced here the same way
 	 *
 	 * @param dialog
 	 *            the wizard dialog, to close on success and to show an error dialog on top of
@@ -326,7 +328,9 @@ public class ConversionMenuContribution implements PluginMenuContribution
 
 	private static String blankToPlaceholder(String value)
 	{
-		return value == null || value.isBlank() ? ConversionWizardModel.NOTHING_TO_SAY : value.trim();
+		return value == null || value.isBlank()
+			? ConversionWizardModel.NOTHING_TO_SAY
+			: value.trim();
 	}
 
 	private static String blankToNull(String value)

@@ -65,8 +65,8 @@ final class BackupCheck
 		List<String> words = wordsOf(typed);
 		if (words.size() != WORDS)
 		{
-			throw new IllegalArgumentException("a backup has " + WORDS + " words, and this list has "
-				+ words.size());
+			throw new IllegalArgumentException(
+				"a backup has " + WORDS + " words, and this list has " + words.size());
 		}
 		requireKnownWords(words);
 		Wallet derived;
@@ -76,10 +76,12 @@ final class BackupCheck
 		}
 		catch (IllegalArgumentException notAPhrase)
 		{
-			// every word is known here: a failed checksum is a backup that does not match, not an error
+			// every word is known here: a failed checksum is a backup that does not match, not an
+			// error
 			return false;
 		}
-		// compared by value: the address's own text form is documented (lethenon#37), its toString is not
+		// compared by value: the address's own text form is documented (lethenon#37), its toString
+		// is not
 		return PublishedAddress.parse(entry.addressForCheck()).equals(derived.address());
 	}
 
@@ -107,8 +109,8 @@ final class BackupCheck
 	}
 
 	/**
-	 * The words as lethenon reads a phrase: lower case, split at any space, empty and missing fields
-	 * dropped. Only these go to {@link SeedPhrase#isKnownWord}, which does not take null
+	 * The words as lethenon reads a phrase: lower case, split at any space, empty and missing
+	 * fields dropped. Only these go to {@link SeedPhrase#isKnownWord}, which does not take null
 	 */
 	private static List<String> wordsOf(final List<String> typed)
 	{
@@ -153,7 +155,6 @@ final class BackupCheck
 	 * @param word
 	 *            the word as typed, in lower case
 	 */
-	record UnknownWord(int position, String word)
-	{
+	record UnknownWord(int position, String word) {
 	}
 }

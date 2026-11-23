@@ -152,7 +152,9 @@ public class LethenonNodePanelModel
 		this.pun = pun;
 	}
 
-	/** Empties every value of the answer, so a node that did not start shows nothing of one that ran */
+	/**
+	 * Empties every value of the answer, so a node that did not start shows nothing of one that ran
+	 */
 	public void clearAnswer()
 	{
 		answer = "";

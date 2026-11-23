@@ -59,9 +59,9 @@ import io.github.astrapi69.mystic.crypt.settings.PluginSettings;
 
 /**
  * Pictures of the wallet window in English and German (#680), one per state, written to
- * {@code build/screenshots/lethenon-wallet} on the build's own display (the own-display plugin)
- * and kept by CI as an artifact. Each picture also checks what a picture can: the window has
- * content, and a refusal wraps instead of widening the window (README defect G4).
+ * {@code build/screenshots/lethenon-wallet} on the build's own display (the own-display plugin) and
+ * kept by CI as an artifact. Each picture also checks what a picture can: the window has content,
+ * and a refusal wraps instead of widening the window (README defect G4).
  */
 class LethenonWalletScreenshotsTest
 {
@@ -102,8 +102,7 @@ class LethenonWalletScreenshotsTest
 	 *            what is done in the window before the picture
 	 */
 	record State(String name, int withWallets, boolean locked,
-		Consumer<LethenonWalletPanel> action)
-	{
+		Consumer<LethenonWalletPanel> action) {
 		@Override
 		public String toString()
 		{
@@ -113,9 +112,9 @@ class LethenonWalletScreenshotsTest
 
 	static Stream<Object[]> states()
 	{
-		List<State> states = List.of(new State("01-no-wallet", 0, false, panel -> {}),
-			new State("02-vault-locked", 0, true, panel -> {}),
-			new State("03-create", 0, false, LethenonWalletPanel::onCreate),
+		List<State> states = List.of(new State("01-no-wallet", 0, false, panel -> {
+		}), new State("02-vault-locked", 0, true, panel -> {
+		}), new State("03-create", 0, false, LethenonWalletPanel::onCreate),
 			new State("04-create-passwords-differ", 0, false, panel -> {
 				panel.onCreate();
 				panel.getModelObject().setPassword(ThrowawayPasswords.next());
@@ -127,8 +126,8 @@ class LethenonWalletScreenshotsTest
 				panel.getModelObject().setPassword(password.clone());
 				panel.getModelObject().setPasswordRepeated(password);
 				panel.onCreateConfirmed();
-			}), new State("06-overview", 2, false, panel -> {}),
-			new State("07-take-over", 0, false, LethenonWalletPanel::onTakeOver),
+			}), new State("06-overview", 2, false, panel -> {
+			}), new State("07-take-over", 0, false, LethenonWalletPanel::onTakeOver),
 			new State("09-backup-unseal", 1, false, LethenonWalletPanel::onBackup),
 			new State("10-backup-question-wrong-word", 1, false, panel -> {
 				LethenonBackupPanel backup = atStepTwo(panel);
@@ -137,15 +136,15 @@ class LethenonWalletScreenshotsTest
 			}), new State("11-backup-export-written", 1, false, panel -> {
 				LethenonBackupPanel backup = atStepTwo(panel);
 				int[] positions = backup.getModelObject().getPositions();
-				List<String> words = List.of(new String(backup.getModelObject().getShownWords())
-					.split(" "));
+				List<String> words = List
+					.of(new String(backup.getModelObject().getShownWords()).split(" "));
 				backup.getModelObject().setAnswer1(words.get(positions[0] - 1));
 				backup.getModelObject().setAnswer2(words.get(positions[1] - 1));
 				backup.getModelObject().setAnswer3(words.get(positions[2] - 1));
 				backup.onQuestionConfirmed();
 				backup.getModelObject().setExportUnderstood(true);
-				backup.getModelObject().setExportFile(EXPORTS.resolve(
-					"wallet-" + System.nanoTime() + ".lethwf").toString());
+				backup.getModelObject().setExportFile(
+					EXPORTS.resolve("wallet-" + System.nanoTime() + ".lethwf").toString());
 				backup.onExportConfirmed();
 			}), new State("12-backup-check-mismatch", 1, false, panel -> {
 				panel.onBackupCheck();
@@ -196,7 +195,9 @@ class LethenonWalletScreenshotsTest
 	/** Where the export of the pictured step 3 writes, inside the build directory */
 	private static final Path EXPORTS = Path.of("build", "screenshots-exports");
 
-	/** Opens the backup on request and passes step 1, with the password every pictured wallet has */
+	/**
+	 * Opens the backup on request and passes step 1, with the password every pictured wallet has
+	 */
 	private static LethenonBackupPanel atStepTwo(final LethenonWalletPanel panel)
 	{
 		panel.onBackup();
@@ -256,10 +257,9 @@ class LethenonWalletScreenshotsTest
 		{
 			Wallet wallet = Wallet.create();
 			Path chain = LethenonFixtures.written(settings.resolve("chain.lethenon"),
-				LethenonFixtures.aChainPayingTheWallet(
-					io.github.astrapi69.lethenon.TransactionSigner
-						.newKeyPair(io.github.astrapi69.lethenon.SignatureSuite.ED25519),
-					wallet));
+				LethenonFixtures
+					.aChainPayingTheWallet(io.github.astrapi69.lethenon.TransactionSigner
+						.newKeyPair(io.github.astrapi69.lethenon.SignatureSuite.ED25519), wallet));
 			PluginSettings.save(settings.toFile(), LethenonSettingsContribution.PLUGIN_ID,
 				new LethenonSettingsContribution().getDefaults(),
 				java.util.Map.of(LethenonSettingsContribution.KEY_CHAIN_FILE, chain.toString()));
@@ -280,7 +280,8 @@ class LethenonWalletScreenshotsTest
 					JFrame frame = new JFrame("lethenon wallet");
 					frame.setContentPane(panel);
 					frame.pack();
-					frame.setSize(Math.max(frame.getWidth(), 760), Math.max(frame.getHeight(), 420));
+					frame.setSize(Math.max(frame.getWidth(), 760),
+						Math.max(frame.getHeight(), 420));
 					frame.setVisible(true);
 					frame.validate();
 					picture[0] = paintComponent(panel);
@@ -313,7 +314,8 @@ class LethenonWalletScreenshotsTest
 				WalletNetwork.TESTNET);
 			vault.storeWords(id, wallet.phrase().toCharArray(), WordsChoice.STORE_IN_VAULT);
 			Map<String, Consumer<LethenonWalletPanel>> stages = new LinkedHashMap<>();
-			stages.put("17-overview-words-kept", panel -> {});
+			stages.put("17-overview-words-kept", panel -> {
+			});
 			stages.put("18-remove-words-confirmation", LethenonWalletPanel::onRemoveWords);
 			stages.put("19-backup-step-two-words-kept", LethenonWalletScreenshotsTest::atStepTwo);
 			for (Map.Entry<String, Consumer<LethenonWalletPanel>> stage : stages.entrySet())
@@ -325,7 +327,8 @@ class LethenonWalletScreenshotsTest
 					JFrame frame = new JFrame("lethenon wallet");
 					frame.setContentPane(panel);
 					frame.pack();
-					frame.setSize(Math.max(frame.getWidth(), 760), Math.max(frame.getHeight(), 420));
+					frame.setSize(Math.max(frame.getWidth(), 760),
+						Math.max(frame.getHeight(), 420));
 					frame.setVisible(true);
 					frame.validate();
 					picture[0] = paintComponent(panel);

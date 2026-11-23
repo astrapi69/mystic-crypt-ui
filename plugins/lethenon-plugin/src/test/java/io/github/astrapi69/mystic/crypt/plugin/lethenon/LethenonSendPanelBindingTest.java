@@ -27,7 +27,6 @@ package io.github.astrapi69.mystic.crypt.plugin.lethenon;
 import static io.github.astrapi69.mystic.crypt.plugin.lethenon.Windows.component;
 import static io.github.astrapi69.mystic.crypt.plugin.lethenon.Windows.textOf;
 import static io.github.astrapi69.mystic.crypt.plugin.lethenon.Windows.textsOf;
-
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -36,7 +35,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.awt.Component;
 import java.awt.Container;
 import java.io.File;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.KeyPair;
 import java.util.List;
@@ -181,8 +179,10 @@ class LethenonSendPanelBindingTest
 		List<SignedTransaction> pending = new ChainFile(chainFile).readPending();
 		assertEquals(1, pending.size());
 		assertEquals("watching is not protecting", pending.getFirst().body().memo());
-		assertEquals("Sent: 1.25000000 LETH to the account you named. It waits next to the chain "
-			+ "file until a miner that reads this file mines a block.", textOf(panel, "txtAnswer"));
+		assertEquals(
+			"Sent: 1.25000000 LETH to the account you named. It waits next to the chain "
+				+ "file until a miner that reads this file mines a block.",
+			textOf(panel, "txtAnswer"));
 		assertEquals("1.25000000 LETH", textOf(panel, "txtSentAmount"));
 		assertEquals("0.00000000 LETH", textOf(panel, "txtSentFee"));
 		assertEquals(recipient.toString(), textOf(panel, "txtSentTo"));
@@ -213,8 +213,8 @@ class LethenonSendPanelBindingTest
 		Path testChain = new File(directory, "served.lethenon").toPath();
 		new ChainFile(testChain).write(LethenonFixtures.aChainOf(Chain.TEST_IDENTIFIER, 2,
 			wallet.spendKey(SignatureSuite.ED25519)));
-		try (RunningNode running = NodeSupport.startWith(
-			new NodeOrder(testChain, "0", "", false, walletFile, ""), () -> {
+		try (RunningNode running = NodeSupport
+			.startWith(new NodeOrder(testChain, "0", "", false, walletFile, ""), () -> {
 				throw new AssertionError("a node that does not mine opens no wallet");
 			}))
 		{
@@ -427,7 +427,8 @@ class LethenonSendPanelBindingTest
 
 		assertEquals("", textOf(panel, "txtAnswer"));
 		String result = panel.getModelObject().getResultText();
-		assertTrue(result.contains("this password does not open wallet.lethenon-wallet; type it again"),
+		assertTrue(
+			result.contains("this password does not open wallet.lethenon-wallet; type it again"),
 			result);
 		assertFalse(result.contains("not the password at all"), result);
 		assertEquals(0, panel.getModelObject().getPassword().length);

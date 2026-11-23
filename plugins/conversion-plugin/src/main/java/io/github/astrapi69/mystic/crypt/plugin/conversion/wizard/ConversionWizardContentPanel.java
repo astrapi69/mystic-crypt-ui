@@ -29,13 +29,12 @@ import io.github.astrapi69.model.api.IModel;
 import io.github.astrapi69.swing.wizard.BaseWizardContentPanel;
 
 /**
- * The card-layout content of the conversion wizard: its three steps, added under the same card names
- * {@link ConversionWizardState}'s constants report through {@code getName()}. Mirrors the host
- * certificate wizard's {@code CertificateWizardContentPanel} exactly, including its two size helpers.
+ * The card-layout content of the conversion wizard: its three steps, added under the same card
+ * names {@link ConversionWizardState}'s constants report through {@code getName()}. Mirrors the
+ * host certificate wizard's {@code CertificateWizardContentPanel} exactly, including its two size
+ * helpers.
  */
-public class ConversionWizardContentPanel
-	extends
-		BaseWizardContentPanel<ConversionWizardModel>
+public class ConversionWizardContentPanel extends BaseWizardContentPanel<ConversionWizardModel>
 {
 
 	private static final long serialVersionUID = 1L;
@@ -121,8 +120,8 @@ public class ConversionWizardContentPanel
 	}
 
 	/**
-	 * The size that holds every step, so a window can be opened once at a size that fits all of them
-	 * and does not resize itself while the user walks through
+	 * The size that holds every step, so a window can be opened once at a size that fits all of
+	 * them and does not resize itself while the user walks through
 	 *
 	 * @return the size of the largest step in each direction, insets included
 	 */

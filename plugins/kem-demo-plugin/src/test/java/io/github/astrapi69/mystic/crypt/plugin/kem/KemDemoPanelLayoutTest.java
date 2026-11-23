@@ -61,9 +61,9 @@ class KemDemoPanelLayoutTest
 		int narrowest = PanelWidths.narrowestTextComponent(panel, preferred.width - SQUEEZE,
 			Math.max(400, preferred.height));
 
-		assertTrue(narrowest >= USABLE_WIDTH, "squeezed to " + (preferred.width - SQUEEZE)
-			+ "px the narrowest text component is " + narrowest + "px: "
-			+ PanelWidths.widthReport(panel));
+		assertTrue(narrowest >= USABLE_WIDTH,
+			"squeezed to " + (preferred.width - SQUEEZE) + "px the narrowest text component is "
+				+ narrowest + "px: " + PanelWidths.widthReport(panel));
 	}
 
 	@Test

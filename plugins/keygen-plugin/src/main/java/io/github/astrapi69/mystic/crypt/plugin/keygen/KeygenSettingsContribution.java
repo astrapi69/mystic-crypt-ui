@@ -30,11 +30,10 @@ import java.util.Map;
 
 import org.pf4j.Extension;
 
-import io.github.astrapi69.mystic.crypt.plugin.api.PluginSettingsContribution;
-import io.github.astrapi69.mystic.crypt.settings.PluginSettings;
-
 import io.github.astrapi69.crypt.api.algorithm.key.KeyPairGeneratorAlgorithm;
 import io.github.astrapi69.crypt.api.key.KeySize;
+import io.github.astrapi69.mystic.crypt.plugin.api.PluginSettingsContribution;
+import io.github.astrapi69.mystic.crypt.settings.PluginSettings;
 
 /**
  * The configuration of the key generation plugin: which algorithm and which key size the tool

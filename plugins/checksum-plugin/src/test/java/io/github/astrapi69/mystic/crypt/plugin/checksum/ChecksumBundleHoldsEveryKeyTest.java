@@ -45,8 +45,8 @@ import org.junit.jupiter.api.Test;
  * <p>
  * A key that is missing does not fail anything: {@link ChecksumMessages} shows the default written
  * next to the lookup, so the text appears in English whatever the bundle holds, and nothing says it
- * is missing. The keys are read from the plugin's own sources, the way a reader finds them, so a new
- * lookup is checked without being listed here.
+ * is missing. The keys are read from the plugin's own sources, the way a reader finds them, so a
+ * new lookup is checked without being listed here.
  */
 class ChecksumBundleHoldsEveryKeyTest
 {

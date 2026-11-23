@@ -33,8 +33,8 @@ import io.github.astrapi69.mystic.crypt.secret.SecretBuffers;
  * The answer is kept as the window shows it, one value per field (#604): the sentence that says
  * what was swept, what moved onto the account, how many payments, the account and where the
  * transfers wait, and behind "Show details" how many transfers wait and what the sweep showed the
- * chain. The warning before signing is a sentence in plain words; the whole cost statement is
- * kept apart and shown as its explanation and again behind the details.
+ * chain. The warning before signing is a sentence in plain words; the whole cost statement is kept
+ * apart and shown as its explanation and again behind the details.
  * <p>
  * The password is a {@code char[]}, never a String, and {@link #setPassword} overwrites the array
  * it replaces - the same rule as {@link LethenonSendPanelModel} and the host's sign-in model

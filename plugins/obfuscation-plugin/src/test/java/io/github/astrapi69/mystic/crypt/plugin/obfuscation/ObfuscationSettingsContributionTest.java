@@ -25,8 +25,6 @@
 package io.github.astrapi69.mystic.crypt.plugin.obfuscation;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.File;
@@ -38,10 +36,9 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
-import org.junit.jupiter.params.provider.ValueSource;
 
-import io.github.astrapi69.mystic.crypt.settings.PluginSettings;
 import io.github.astrapi69.mystic.crypt.plugin.api.PluginSettingsContribution;
+import io.github.astrapi69.mystic.crypt.settings.PluginSettings;
 
 /**
  * Tests of the obfuscation plugin's own configuration.

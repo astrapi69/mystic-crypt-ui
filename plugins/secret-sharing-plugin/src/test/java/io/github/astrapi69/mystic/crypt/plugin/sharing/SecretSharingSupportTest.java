@@ -30,7 +30,6 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.nio.charset.StandardCharsets;
 import java.security.SecureRandom;
 import java.security.Security;
 import java.util.ArrayList;
@@ -145,7 +144,9 @@ class SecretSharingSupportTest
 			"a share pasted with stray spaces is still a share");
 	}
 
-	/** A share copied off paper with one character wrong must not rebuild a wrong secret silently */
+	/**
+	 * A share copied off paper with one character wrong must not rebuild a wrong secret silently
+	 */
 	@Test
 	void aMistypedShareIsRefused()
 	{
@@ -164,7 +165,8 @@ class SecretSharingSupportTest
 	{
 		List<String> shares = SecretSharingSupport.splitText(SECRET, 3, 5);
 		String[] parts = shares.get(0).split("\\$");
-		String claimingLess = String.join("$", parts[0], "2", parts[2], parts[3], parts[4], parts[5]);
+		String claimingLess = String.join("$", parts[0], "2", parts[2], parts[3], parts[4],
+			parts[5]);
 
 		assertThrows(IllegalArgumentException.class,
 			() -> SecretSharingSupport.combineText(List.of(claimingLess, shares.get(1))),
@@ -209,8 +211,7 @@ class SecretSharingSupportTest
 	{
 		assertThrows(IllegalArgumentException.class,
 			() -> SecretSharingSupport.combineText(List.of()));
-		assertThrows(IllegalArgumentException.class,
-			() -> SecretSharingSupport.combineText(null));
+		assertThrows(IllegalArgumentException.class, () -> SecretSharingSupport.combineText(null));
 		assertThrows(IllegalArgumentException.class,
 			() -> SecretSharingSupport.splitText("", 2, 3));
 		assertThrows(IllegalArgumentException.class,
@@ -236,7 +237,9 @@ class SecretSharingSupportTest
 		assertTrue(exception.getMessage().contains("at least as many"), exception.getMessage());
 	}
 
-	/** The splitter cannot make more shares than the secret has bytes, which is worth saying plainly */
+	/**
+	 * The splitter cannot make more shares than the secret has bytes, which is worth saying plainly
+	 */
 	@Test
 	void aSecretTooShortForThatManySharesSaysSo()
 	{
@@ -246,8 +249,7 @@ class SecretSharingSupportTest
 		assertTrue(exception.getMessage().contains("5 bytes"), exception.getMessage());
 		assertTrue(exception.getMessage().contains("at most 5"), exception.getMessage());
 		assertEquals(5, SecretSharingSupport.maxSharesFor(5));
-		assertEquals(SecretSharingSupport.MAX_SHARES,
-			SecretSharingSupport.maxSharesFor(100_000));
+		assertEquals(SecretSharingSupport.MAX_SHARES, SecretSharingSupport.maxSharesFor(100_000));
 	}
 
 	private String flipOneCharacterOfTheValue(String share)
@@ -255,6 +257,7 @@ class SecretSharingSupportTest
 		String[] parts = share.split("\\$");
 		char[] value = parts[4].toCharArray();
 		value[0] = value[0] == 'A' ? 'B' : 'A';
-		return String.join("$", parts[0], parts[1], parts[2], parts[3], new String(value), parts[5]);
+		return String.join("$", parts[0], parts[1], parts[2], parts[3], new String(value),
+			parts[5]);
 	}
 }

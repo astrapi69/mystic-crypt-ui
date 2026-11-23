@@ -25,8 +25,8 @@
 package io.github.astrapi69.mystic.crypt.plugin.conversion.wizard;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -39,12 +39,11 @@ import javax.swing.JComponent;
 import javax.swing.JRadioButton;
 import javax.swing.JTextField;
 
+import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
-
-import org.bouncycastle.asn1.x500.X500Name;
 
 import io.github.astrapi69.crypt.data.factory.CertFactory;
 import io.github.astrapi69.crypt.data.factory.KeyPairFactory;
@@ -234,10 +233,12 @@ class TargetPanelTest
 		TargetPanel panel = newPanel(new ConversionWizardModel());
 
 		assertHasTooltip((JComponent)componentNamed(panel, "txtTargetFile"), "target file");
-		assertHasTooltip((JComponent)componentNamed(panel, "btnBrowseTarget"), "browse target button");
+		assertHasTooltip((JComponent)componentNamed(panel, "btnBrowseTarget"),
+			"browse target button");
 		for (ConversionOperation operation : ConversionOperation.values())
 		{
-			assertHasTooltip(radio(panel, "rdo" + radioSuffix(operation)), operation + " radio button");
+			assertHasTooltip(radio(panel, "rdo" + radioSuffix(operation)),
+				operation + " radio button");
 		}
 	}
 
@@ -287,6 +288,7 @@ class TargetPanelTest
 		}
 		return null;
 	}
+
 	@Test
 	void theStepSaysWhatItIsForBeforeTheFirstField() throws Exception
 	{

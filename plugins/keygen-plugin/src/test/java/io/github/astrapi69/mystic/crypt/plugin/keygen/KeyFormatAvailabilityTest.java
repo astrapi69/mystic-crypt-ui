@@ -65,8 +65,8 @@ class KeyFormatAvailabilityTest
 	}
 
 	@ParameterizedTest
-	@EnumSource(value = KeyPairGeneratorAlgorithm.class,
-		names = { "X25519", "X448", "ML_KEM_768", "ML_DSA_65" })
+	@EnumSource(value = KeyPairGeneratorAlgorithm.class, names = { "X25519", "X448", "ML_KEM_768",
+			"ML_DSA_65" })
 	void keyFormatClosesToPkcs8WhereChoosingPkcs1WouldSilentlyDoNothing(
 		KeyPairGeneratorAlgorithm algorithm)
 	{
@@ -92,8 +92,8 @@ class KeyFormatAvailabilityTest
 	 *            an algorithm whose private key has no traditional form
 	 */
 	@ParameterizedTest
-	@EnumSource(value = KeyPairGeneratorAlgorithm.class,
-		names = { "X25519", "X448", "ML_KEM_768", "ML_DSA_65" })
+	@EnumSource(value = KeyPairGeneratorAlgorithm.class, names = { "X25519", "X448", "ML_KEM_768",
+			"ML_DSA_65" })
 	void theClosedBoxSaysWhyItIsClosed(KeyPairGeneratorAlgorithm algorithm)
 	{
 		GenerateKeysPanel panel = new GenerateKeysPanel();
@@ -126,9 +126,8 @@ class KeyFormatAvailabilityTest
 
 		String tooltip = panel.getCmbKeyFormat().getToolTipText();
 		assertNotNull(tooltip, algorithm + ": the box keeps explaining what it offers");
-		assertFalse(tooltip.contains("no traditional form"),
-			algorithm + " can be written both ways, so the refusal has to be gone again: "
-				+ tooltip);
+		assertFalse(tooltip.contains("no traditional form"), algorithm
+			+ " can be written both ways, so the refusal has to be gone again: " + tooltip);
 	}
 
 }

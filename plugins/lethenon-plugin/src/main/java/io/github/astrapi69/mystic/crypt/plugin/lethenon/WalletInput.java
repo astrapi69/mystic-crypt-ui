@@ -85,9 +85,9 @@ final class WalletInput
 	}
 
 	/**
-	 * Checks the words of a backup check before they are compared with the wallet: 24 of them,
-	 * each in the word list. A failed checksum is not refused here: for a check it is the answer
-	 * "does not match", not a typing error (decision record, backup assistant 3)
+	 * Checks the words of a backup check before they are compared with the wallet: 24 of them, each
+	 * in the word list. A failed checksum is not refused here: for a check it is the answer "does
+	 * not match", not a typing error (decision record, backup assistant 3)
 	 *
 	 * @param typed
 	 *            the words as typed, separated by any spaces or line breaks
@@ -180,8 +180,8 @@ final class WalletInput
 	static Optional<Refusal> walletFile(final String walletFile)
 	{
 		return walletFile == null || walletFile.isBlank()
-			? Optional.of(new Refusal("lethenon.wallet.form.refused.file",
-				"Pick the wallet file first."))
+			? Optional
+				.of(new Refusal("lethenon.wallet.form.refused.file", "Pick the wallet file first."))
 			: Optional.empty();
 	}
 
@@ -194,7 +194,8 @@ final class WalletInput
 		}
 		catch (final IllegalArgumentException failedChecksum)
 		{
-			// every word is known here, so the phrase's own checksum refused it: a word out of place
+			// every word is known here, so the phrase's own checksum refused it: a word out of
+			// place
 			return false;
 		}
 	}

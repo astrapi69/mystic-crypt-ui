@@ -107,12 +107,13 @@ class LethenonGermanTextTest
 			Arguments.of("Verify a Chain", List.of("lethenon.verify.")),
 			Arguments.of("Show the Chain, where it fails (#712)", List.of("lethenon.show.chain.")),
 			Arguments.of("Run a Node", List.of("lethenon.node.")),
-			Arguments.of("Wallet", List.of("lethenon.wallet.", "lethenon.backup.", "lethenon.network.", LethenonMenuContribution.WALLET_KEY)),
+			Arguments.of("Wallet",
+				List.of("lethenon.wallet.", "lethenon.backup.", "lethenon.network.",
+					LethenonMenuContribution.WALLET_KEY)),
 			Arguments.of("the menu", List.of("lethenon.menu.")),
 			Arguments.of("the address warning (#716)", List.of("lethenon.address.mismatch.")),
-			Arguments.of("what every window answers with",
-				List.of("lethenon.answer.", "lethenon.input.", "lethenon.wallet.", "lethenon.failure.",
-					"lethenon.value.")));
+			Arguments.of("what every window answers with", List.of("lethenon.answer.",
+				"lethenon.input.", "lethenon.wallet.", "lethenon.failure.", "lethenon.value.")));
 	}
 
 	@ParameterizedTest(name = "every text of {0} is in the German file")

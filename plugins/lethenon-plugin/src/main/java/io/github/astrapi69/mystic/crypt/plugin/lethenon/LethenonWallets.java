@@ -54,8 +54,8 @@ final class LethenonWallets
 	 * @throws IOException
 	 *             when the file cannot be read
 	 * @throws IllegalArgumentException
-	 *             when no file is named, there is none, no password was typed, or the password
-	 *             does not open it
+	 *             when no file is named, there is none, no password was typed, or the password does
+	 *             not open it
 	 */
 	static Wallet open(final Path walletFile, final char[] password) throws IOException
 	{

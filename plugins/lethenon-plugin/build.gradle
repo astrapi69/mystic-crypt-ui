@@ -4,6 +4,8 @@ plugins {
     // and a test class that leaves no result fails the build (#699): astrapi69/own-display-gradle-plugin
     alias(libs.plugins.own.display)
     alias(libs.plugins.test.results.complete)
+    // the host's formatter and license header (#666)
+    alias(libs.plugins.spotless.plugin.gradle)
 }
 
 group = 'io.github.astrapi69'
@@ -20,6 +22,8 @@ java {
 // Maven Central, and from the local repository the host - or, with -PuseMavenLocal, a family library
 // candidate too (#475, #508)
 apply from: '../../gradle/plugin-repositories.gradle'
+// the host's formatter, import order and license header, the same in every plugin build (#666)
+apply from: '../../gradle/plugin-formatting.gradle'
 repositories {
     // lethenon is a snapshot until its first release, and the Central snapshot repository is where
     // its publish workflow puts it (lethenon#30). The host carries the same URL since #451

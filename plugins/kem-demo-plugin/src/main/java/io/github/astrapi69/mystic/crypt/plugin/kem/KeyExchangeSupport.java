@@ -26,7 +26,6 @@ package io.github.astrapi69.mystic.crypt.plugin.kem;
 
 import java.security.KeyPair;
 import java.security.MessageDigest;
-import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.util.Base64;
 import java.util.HexFormat;
@@ -98,8 +97,7 @@ public final class KeyExchangeSupport
 	 * @param second
 	 *            the ML-KEM half of a hybrid party, {@code null} otherwise
 	 */
-	public record Party(String algorithm, KeyPair first, KeyPair second)
-	{
+	public record Party(String algorithm, KeyPair first, KeyPair second) {
 	}
 
 	/**
@@ -110,8 +108,7 @@ public final class KeyExchangeSupport
 	 * @param handshake
 	 *            the text to send back to the recipient
 	 */
-	public record Handshake(SecretKey sharedSecret, String handshake)
-	{
+	public record Handshake(SecretKey sharedSecret, String handshake) {
 	}
 
 	/**
@@ -159,8 +156,8 @@ public final class KeyExchangeSupport
 	{
 		if (party.second() != null)
 		{
-			return envelope("PUB", party.algorithm(),
-				party.first().getPublic().getEncoded(), party.second().getPublic().getEncoded());
+			return envelope("PUB", party.algorithm(), party.first().getPublic().getEncoded(),
+				party.second().getPublic().getEncoded());
 		}
 		return envelope("PUB", party.algorithm(), party.first().getPublic().getEncoded(), null);
 	}
@@ -370,7 +367,8 @@ public final class KeyExchangeSupport
 		boolean hybrid = HYBRID.equals(algorithm);
 		if (hybrid && parts.length < 7)
 		{
-			throw new IllegalArgumentException("a stored hybrid key carries two halves and this one carries one");
+			throw new IllegalArgumentException(
+				"a stored hybrid key carries two halves and this one carries one");
 		}
 		String first = hybrid ? "X25519" : algorithm;
 		KeyPair firstPair = new KeyPair(toPublicKey(decode(parts[4]), first),
@@ -438,8 +436,9 @@ public final class KeyExchangeSupport
 		}
 		if (HYBRID.equals(parts[2]) && parts.length < 5)
 		{
-			throw new IllegalArgumentException("a hybrid " + expectedKind.toLowerCase(
-				java.util.Locale.ROOT) + " carries two halves and this one carries one");
+			throw new IllegalArgumentException(
+				"a hybrid " + expectedKind.toLowerCase(java.util.Locale.ROOT)
+					+ " carries two halves and this one carries one");
 		}
 		return parts;
 	}
@@ -458,8 +457,8 @@ public final class KeyExchangeSupport
 			case ML_KEM_512 -> KeyPairGeneratorAlgorithm.ML_KEM_512;
 			case ML_KEM_768 -> KeyPairGeneratorAlgorithm.ML_KEM_768;
 			case ML_KEM_1024 -> KeyPairGeneratorAlgorithm.ML_KEM_1024;
-			default -> throw new IllegalArgumentException("'" + algorithm + "' is not one of "
-				+ String.join(", ", algorithms()));
+			default -> throw new IllegalArgumentException(
+				"'" + algorithm + "' is not one of " + String.join(", ", algorithms()));
 		};
 	}
 }

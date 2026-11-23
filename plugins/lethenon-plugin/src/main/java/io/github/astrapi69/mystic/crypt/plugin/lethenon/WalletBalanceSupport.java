@@ -88,8 +88,7 @@ public final class WalletBalanceSupport
 			WalletScan scan = WalletScan.over(replayed.chain(), wallet.address(),
 				wallet.viewKeyPair().getPrivate());
 			return new WalletBalance(accounts, scan.received().size(), scan.balance(),
-				wallet.address().toText(),
-				ChainReplaySupport.report(replayed.replay()));
+				wallet.address().toText(), ChainReplaySupport.report(replayed.replay()));
 		}
 		finally
 		{

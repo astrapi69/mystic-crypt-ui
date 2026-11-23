@@ -25,7 +25,6 @@
 package io.github.astrapi69.mystic.crypt.plugin.lethenon;
 
 import static io.github.astrapi69.mystic.crypt.plugin.lethenon.Windows.textOf;
-
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -204,7 +203,8 @@ class LethenonWalletPanelBindingTest
 		panel.onRestoreConfirmed();
 
 		assertEquals(WalletView.RESTORE, panel.getModelObject().getView());
-		assertEquals("Word 12, \"qqq\", is not in the word list. Check your note for a typing error.",
+		assertEquals(
+			"Word 12, \"qqq\", is not in the word list. Check your note for a typing error.",
 			textOf(panel, "txtRefusal"));
 
 		panel.getModelObject().setWords(lost.phrase());
@@ -216,8 +216,8 @@ class LethenonWalletPanelBindingTest
 	}
 
 	/**
-	 * Cancel overwrites a form's typed password, in every form that has one: the buffer it was typed
-	 * into is zero-filled, not only dropped (#801)
+	 * Cancel overwrites a form's typed password, in every form that has one: the buffer it was
+	 * typed into is zero-filled, not only dropped (#801)
 	 */
 	@ParameterizedTest(name = "{argumentSetName}")
 	@MethodSource("formsWithAPassword")
@@ -303,7 +303,8 @@ class LethenonWalletPanelBindingTest
 
 		assertEquals(WalletView.RESTORE, panel.getModelObject().getView());
 		assertTrue(Windows.shows(panel, "txtRefusal"));
-		assertEquals("Word 12, \"qqq\", is not in the word list. Check your note for a typing error.",
+		assertEquals(
+			"Word 12, \"qqq\", is not in the word list. Check your note for a typing error.",
 			textOf(panel, "txtRefusal"));
 
 		Windows.component(panel, "txtWords12", JTextField.class).setText("abandon");
@@ -375,9 +376,11 @@ class LethenonWalletPanelBindingTest
 	@DisplayName("a vault with wallets opens on the overview of the first, and another one can be chosen")
 	void aVaultWithWallets_showsTheOverview()
 	{
-		vault.restore(Wallet.create().phrase().toCharArray(), ThrowawayPasswords.next(), WalletNetwork.TESTNET);
+		vault.restore(Wallet.create().phrase().toCharArray(), ThrowawayPasswords.next(),
+			WalletNetwork.TESTNET);
 		Wallet second = Wallet.create();
-		vault.restore(second.phrase().toCharArray(), ThrowawayPasswords.next(), WalletNetwork.MAINNET);
+		vault.restore(second.phrase().toCharArray(), ThrowawayPasswords.next(),
+			WalletNetwork.MAINNET);
 
 		LethenonWalletPanel panel = window();
 

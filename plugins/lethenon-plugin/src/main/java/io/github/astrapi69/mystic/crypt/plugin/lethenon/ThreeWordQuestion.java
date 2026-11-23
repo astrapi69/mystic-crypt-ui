@@ -27,8 +27,8 @@ package io.github.astrapi69.mystic.crypt.plugin.lethenon;
 import java.util.List;
 
 /**
- * Asks for three words of a wallet's phrase, at positions chosen at random, to confirm that they were
- * written down. A wrong word is refused; the words are never stored here.
+ * Asks for three words of a wallet's phrase, at positions chosen at random, to confirm that they
+ * were written down. A wrong word is refused; the words are never stored here.
  */
 final class ThreeWordQuestion
 {
@@ -77,7 +77,6 @@ final class ThreeWordQuestion
 	}
 
 	/** The outcome of one question */
-	record Result(boolean correct)
-	{
+	record Result(boolean correct) {
 	}
 }

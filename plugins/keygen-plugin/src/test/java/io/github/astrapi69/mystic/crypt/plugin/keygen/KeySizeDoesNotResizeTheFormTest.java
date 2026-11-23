@@ -68,13 +68,13 @@ class KeySizeDoesNotResizeTheFormTest
 			panel.getCryptographyPanel().getCmbKeySize().setSelectedItem(keySize);
 			panel.doLayout();
 			panel.getCryptographyPanel().doLayout();
-			places.add(keySize + " -> encrypt at x="
-				+ panel.getEnDecryptPanel().getBounds().x + " generate at x="
-				+ panel.getCryptographyPanel().getBtnGenerate().getBounds().x);
+			places.add(keySize + " -> encrypt at x=" + panel.getEnDecryptPanel().getBounds().x
+				+ " generate at x=" + panel.getCryptographyPanel().getBtnGenerate().getBounds().x);
 		}
 
-		assertEquals(1, places.stream().map(place -> place.substring(place.indexOf("->"))).distinct()
-			.count(), "the form moves while it is being filled in: " + places);
+		assertEquals(1,
+			places.stream().map(place -> place.substring(place.indexOf("->"))).distinct().count(),
+			"the form moves while it is being filled in: " + places);
 	}
 
 	@Test

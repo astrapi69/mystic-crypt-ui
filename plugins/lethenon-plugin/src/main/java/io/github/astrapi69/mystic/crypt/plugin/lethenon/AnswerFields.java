@@ -1,4 +1,4 @@
-/*
+/**
  * The MIT License
  *
  * Copyright (C) 2015 Asterios Raptis
@@ -32,17 +32,18 @@ import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JLabel;
 
+import org.danekja.java.util.function.serializable.SerializableSupplier;
+
 import io.github.astrapi69.lethenon.SignatureSuite;
 import io.github.astrapi69.model.LambdaModel;
-import org.danekja.java.util.function.serializable.SerializableSupplier;
 import io.github.astrapi69.swing.model.component.JMTextArea;
 import io.github.astrapi69.swing.model.component.JMTextField;
 
 /**
- * The parts every window of this plugin answers with (#604): the answer in one sentence in a
- * larger font, read-only fields that show the model and never write into it, a Copy button that
- * copies the whole value a field may show shortened, and the texts of what was checked, which
- * every window that replays a chain puts behind "Show details".
+ * The parts every window of this plugin answers with (#604): the answer in one sentence in a larger
+ * font, read-only fields that show the model and never write into it, a Copy button that copies the
+ * whole value a field may show shortened, and the texts of what was checked, which every window
+ * that replays a chain puts behind "Show details".
  */
 final class AnswerFields
 {
@@ -149,8 +150,8 @@ final class AnswerFields
 	 *            the language of the window
 	 * @return the button
 	 */
-	static JButton copyButton(final String name, final Supplier<String> value,
-		final String tooltip, final Locale locale)
+	static JButton copyButton(final String name, final Supplier<String> value, final String tooltip,
+		final Locale locale)
 	{
 		return LethenonSwing.button(name,
 			LethenonMessages.getString("lethenon.answer.button.copy", "Copy", locale),
@@ -202,8 +203,8 @@ final class AnswerFields
 	 */
 	static JLabel chainCheckedLabel(final Locale locale)
 	{
-		return new JLabel(
-			LethenonMessages.getString("lethenon.answer.label.chain.checked", "Chain checked:", locale));
+		return new JLabel(LethenonMessages.getString("lethenon.answer.label.chain.checked",
+			"Chain checked:", locale));
 	}
 
 	/**
@@ -258,7 +259,8 @@ final class AnswerFields
 	 */
 	static String suiteName(final SignatureSuite suite)
 	{
-		return suite == SignatureSuite.ED25519 ? "Ed25519"
+		return suite == SignatureSuite.ED25519
+			? "Ed25519"
 			: suite.identifier().toUpperCase(Locale.ROOT);
 	}
 

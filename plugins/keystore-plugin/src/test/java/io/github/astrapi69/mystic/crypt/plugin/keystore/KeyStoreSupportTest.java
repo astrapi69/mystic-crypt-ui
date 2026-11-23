@@ -81,8 +81,8 @@ class KeyStoreSupportTest
 	}
 
 	/**
-	 * Every offered store type must survive the full round trip: create it, put a key pair in, close
-	 * it, open it again and find the entry with its certificate details.
+	 * Every offered store type must survive the full round trip: create it, put a key pair in,
+	 * close it, open it again and find the entry with its certificate details.
 	 */
 	@ParameterizedTest
 	@EnumSource(value = KeystoreType.class, names = { "PKCS12", "JKS", "JCEKS" })
@@ -140,7 +140,9 @@ class KeyStoreSupportTest
 		assertEquals(expected, KeyStoreSupport.signatureAlgorithmFor(algorithm));
 	}
 
-	/** Key exchange algorithms cannot sign a certificate and must be rejected, not silently mapped */
+	/**
+	 * Key exchange algorithms cannot sign a certificate and must be rejected, not silently mapped
+	 */
 	@ParameterizedTest
 	@EnumSource(value = KeyPairGeneratorAlgorithm.class, names = { "X25519", "X448", "ML_KEM_768",
 			"DIFFIE_HELLMAN" })
@@ -201,8 +203,8 @@ class KeyStoreSupportTest
 		KeyStore afterDeletion = KeyStoreSupport.deleteAlias(file, KeystoreType.PKCS12,
 			STORE_PASSWORD, "first");
 
-		assertEquals(List.of("second"),
-			KeyStoreSupport.entries(afterDeletion).stream()
+		assertEquals(
+			List.of("second"), KeyStoreSupport.entries(afterDeletion).stream()
 				.map(KeyStoreSupport.EntryInfo::alias).toList(),
 			"the deleted alias must be gone from the file, the other one must stay");
 	}
@@ -224,9 +226,8 @@ class KeyStoreSupportTest
 		File file = newStoreFile(directory, "empty.p12");
 		KeyStore keyStore = KeyStoreSupport.create(file, KeystoreType.PKCS12, STORE_PASSWORD);
 
-		assertThrows(IllegalArgumentException.class,
-			() -> KeyStoreSupport.exportCertificate(keyStore, "does not exist",
-				new File(directory, "nothing.pem")));
+		assertThrows(IllegalArgumentException.class, () -> KeyStoreSupport
+			.exportCertificate(keyStore, "does not exist", new File(directory, "nothing.pem")));
 		assertThrows(IllegalArgumentException.class,
 			() -> KeyStoreSupport.serialNumber(keyStore, "does not exist"));
 	}
@@ -236,9 +237,8 @@ class KeyStoreSupportTest
 	{
 		File file = newStoreFile(directory, "no-entries.p12");
 
-		assertTrue(
-			KeyStoreSupport.entries(KeyStoreSupport.create(file, KeystoreType.PKCS12,
-				STORE_PASSWORD)).isEmpty(),
+		assertTrue(KeyStoreSupport
+			.entries(KeyStoreSupport.create(file, KeystoreType.PKCS12, STORE_PASSWORD)).isEmpty(),
 			"a freshly created store has nothing to list");
 	}
 
@@ -277,8 +277,8 @@ class KeyStoreSupportTest
 	/**
 	 * An invalid distinguished name used to surface BouncyCastle's raw internal parsing message
 	 * verbatim ("badly formatted directory string") - confusing, reads like a file-path problem,
-	 * and not actionable without already knowing X.500 DN syntax. The message must instead name
-	 * the expected format (#196)
+	 * and not actionable without already knowing X.500 DN syntax. The message must instead name the
+	 * expected format (#196)
 	 */
 	@Test
 	@DisplayName("an invalid distinguished name names the expected format, not BouncyCastle's raw parsing error")

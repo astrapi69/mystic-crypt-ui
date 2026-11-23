@@ -25,9 +25,7 @@
 package io.github.astrapi69.mystic.crypt.plugin.checksum;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.File;
 import java.util.Map;
@@ -37,12 +35,11 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.ValueSource;
 
-import io.github.astrapi69.mystic.crypt.settings.PluginSettings;
 import io.github.astrapi69.crypt.api.algorithm.ChecksumAlgorithm;
 import io.github.astrapi69.mystic.crypt.plugin.api.PluginSettingsContribution;
+import io.github.astrapi69.mystic.crypt.settings.PluginSettings;
 
 /**
  * Tests of the checksum plugin's own configuration: what is stored decides the algorithm, and an
@@ -84,8 +81,7 @@ class ChecksumSettingsContributionTest
 		assertEquals(ChecksumAlgorithm.MD5.name(),
 			CONTRIBUTION.getDefaults().get(ChecksumSettingsContribution.KEY_ALGORITHM));
 		assertNotNull(CONTRIBUTION.getDisplayName());
-		assertNotNull(
-			CONTRIBUTION.getDescription(ChecksumSettingsContribution.KEY_ALGORITHM));
+		assertNotNull(CONTRIBUTION.getDescription(ChecksumSettingsContribution.KEY_ALGORITHM));
 	}
 
 	@Test
@@ -100,7 +96,8 @@ class ChecksumSettingsContributionTest
 	{
 		store(ChecksumSettingsContribution.KEY_ALGORITHM, algorithm);
 
-		assertEquals(ChecksumAlgorithm.valueOf(algorithm), ChecksumSettingsContribution.algorithm());
+		assertEquals(ChecksumAlgorithm.valueOf(algorithm),
+			ChecksumSettingsContribution.algorithm());
 	}
 
 	@ParameterizedTest

@@ -27,11 +27,9 @@ package io.github.astrapi69.mystic.crypt.plugin.lethenon;
 import static io.github.astrapi69.mystic.crypt.plugin.lethenon.Windows.component;
 import static io.github.astrapi69.mystic.crypt.plugin.lethenon.Windows.textOf;
 import static io.github.astrapi69.mystic.crypt.plugin.lethenon.Windows.textsOf;
-
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.awt.Toolkit;
@@ -175,13 +173,13 @@ class LethenonBalancePanelBindingTest
 			textOf(panel, "txtAccount_" + ML_DSA_65));
 		component(panel, "btnCopyAccount_" + ML_DSA_65, AbstractButton.class).doClick();
 
-		assertEquals(account, Toolkit.getDefaultToolkit().getSystemClipboard()
-			.getData(DataFlavor.stringFlavor));
+		assertEquals(account,
+			Toolkit.getDefaultToolkit().getSystemClipboard().getData(DataFlavor.stringFlavor));
 
 		component(panel, "btnCopyAddress", AbstractButton.class).doClick();
 
-		assertEquals(wallet.address().toText(), Toolkit.getDefaultToolkit().getSystemClipboard()
-			.getData(DataFlavor.stringFlavor));
+		assertEquals(wallet.address().toText(),
+			Toolkit.getDefaultToolkit().getSystemClipboard().getData(DataFlavor.stringFlavor));
 	}
 
 	@Test
@@ -213,8 +211,8 @@ class LethenonBalancePanelBindingTest
 		WalletBalance balance = new WalletBalance(
 			List.of(new AccountBalance(ED25519, "aa", Amount.parseLeth("3")),
 				new AccountBalance(ML_DSA_65, "bb", Amount.parseLeth("2"))),
-			0, Amount.ZERO, "address", new ChainReplayReport(3, 0, 0, Amount.ZERO, Amount.ZERO,
-				"summary"));
+			0, Amount.ZERO, "address",
+			new ChainReplayReport(3, 0, 0, Amount.ZERO, Amount.ZERO, "summary"));
 
 		assertEquals("You hold 5.00000000 LETH.",
 			LethenonBalancePanel.answerFor(balance, Locale.ENGLISH));
@@ -290,8 +288,9 @@ class LethenonBalancePanelBindingTest
 
 		panel.onShow();
 
-		assertEquals("the balance could not be read: type the password of wallet.lethenon-wallet "
-			+ "first", panel.getModelObject().getResultText());
+		assertEquals(
+			"the balance could not be read: type the password of wallet.lethenon-wallet " + "first",
+			panel.getModelObject().getResultText());
 	}
 
 	@Test

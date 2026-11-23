@@ -3,24 +3,26 @@
  *
  * Copyright (C) 2015 Asterios Raptis
  *
- * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
- * associated documentation files (the "Software"), to deal in the Software without restriction,
- * including without limitation the rights to use, copy, modify, merge, publish, distribute,
- * sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
+ * Permission is hereby granted, free of charge, to any person obtaining
+ * a copy of this software and associated documentation files (the
+ * "Software"), to deal in the Software without restriction, including
+ * without limitation the rights to use, copy, modify, merge, publish,
+ * distribute, sublicense, and/or sell copies of the Software, and to
+ * permit persons to whom the Software is furnished to do so, subject to
+ * the following conditions:
  *
- * The above copyright notice and this permission notice shall be included in all copies or
- * substantial portions of the Software.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT
- * NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
- * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
- * DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
+ * LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+ * OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+ * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 package io.github.astrapi69.mystic.crypt.plugin.keygen;
-
-import io.github.astrapi69.mystic.crypt.panel.keygen.EnDecryptPanel;
 
 import java.awt.event.ActionEvent;
 import java.io.File;
@@ -28,7 +30,6 @@ import java.io.IOException;
 import java.security.KeyPair;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
-import java.security.PrivateKey;
 import java.util.logging.Level;
 
 import javax.swing.*;
@@ -43,6 +44,7 @@ import io.github.astrapi69.crypt.data.key.PublicKeyExtensions;
 import io.github.astrapi69.model.BaseModel;
 import io.github.astrapi69.model.LambdaModel;
 import io.github.astrapi69.model.api.IModel;
+import io.github.astrapi69.mystic.crypt.panel.keygen.EnDecryptPanel;
 import io.github.astrapi69.mystic.crypt.ui.form.ToolForm;
 import io.github.astrapi69.mystic.crypt.write.DataClass;
 import io.github.astrapi69.mystic.crypt.write.OverwriteConfirmation;
@@ -180,7 +182,8 @@ public class GenerateKeysPanel extends BasePanel<GenerateKeysModelBean>
 	 */
 	protected void onClear(final ActionEvent actionEvent)
 	{
-		final KeyPairGeneratorAlgorithm configuredAlgorithm = KeygenSettingsContribution.algorithm();
+		final KeyPairGeneratorAlgorithm configuredAlgorithm = KeygenSettingsContribution
+			.algorithm();
 		cmbAlgorithm.setSelectedItem(configuredAlgorithm);
 		getCryptographyPanel().getCmbKeySize().setEnabled(true);
 		getCryptographyPanel().getCmbKeySize().setSelectedItem(KeySize.KEYSIZE_1024);
@@ -272,9 +275,9 @@ public class GenerateKeysPanel extends BasePanel<GenerateKeysModelBean>
 	 */
 	private void showEncryptDecryptUnavailable()
 	{
-		JOptionPane.showMessageDialog(this,
-			KeygenMessages.getString("keygen.endecrypt.unavailable.message",
-				"Encrypt/decrypt is available for RSA and EC keys. Select one of them and generate a key pair to use it."),
+		JOptionPane.showMessageDialog(this, KeygenMessages.getString(
+			"keygen.endecrypt.unavailable.message",
+			"Encrypt/decrypt is available for RSA and EC keys. Select one of them and generate a key pair to use it."),
 			KeygenMessages.getString("keygen.endecrypt.unavailable.title",
 				"Not available for this algorithm"),
 			JOptionPane.INFORMATION_MESSAGE);
@@ -290,7 +293,8 @@ public class GenerateKeysPanel extends BasePanel<GenerateKeysModelBean>
 	{
 		final KeyPairGeneratorAlgorithm algorithm = getModelObject().getAlgorithm();
 		final boolean rsa = KeyPairGeneratorAlgorithm.RSA.equals(algorithm);
-		// RSA and EC are the only two of the offered algorithms that can sign a certificate at all -
+		// RSA and EC are the only two of the offered algorithms that can sign a certificate at all
+		// -
 		// X25519/X448 are pure key agreement, ML-KEM-768 is a pure KEM and ML-DSA-65 (post-quantum
 		// signature) is not supported by the certificate builder here (#189)
 		final boolean canCertify = rsa || KeyPairGeneratorAlgorithm.EC.equals(algorithm);
@@ -483,11 +487,11 @@ public class GenerateKeysPanel extends BasePanel<GenerateKeysModelBean>
 	private void bindComponents()
 	{
 		final GenerateKeysModelBean modelObject = getModelObject();
-		cmbAlgorithm.setPropertyModel(
-			LambdaModel.of(modelObject::getAlgorithm, modelObject::setAlgorithm));
+		cmbAlgorithm
+			.setPropertyModel(LambdaModel.of(modelObject::getAlgorithm, modelObject::setAlgorithm));
 		cmbCurve.setPropertyModel(LambdaModel.of(modelObject::getCurve, modelObject::setCurve));
-		cmbKeyFormat.setPropertyModel(
-			LambdaModel.of(modelObject::getKeyFormat, modelObject::setKeyFormat));
+		cmbKeyFormat
+			.setPropertyModel(LambdaModel.of(modelObject::getKeyFormat, modelObject::setKeyFormat));
 		cmbSaveFormat.setPropertyModel(
 			LambdaModel.of(modelObject::getSaveFormat, modelObject::setSaveFormat));
 	}
@@ -654,15 +658,14 @@ public class GenerateKeysPanel extends BasePanel<GenerateKeysModelBean>
 				final int state = fileChooser.showSaveDialog(this);
 				if (state == JFileChooser.APPROVE_OPTION)
 				{
-					savePrivateKeyWithPasswordTo(KeygenSupport
-						.withEnding(fileChooser.getSelectedFile(), KeygenSupport.DER_ENDING),
-						password);
+					savePrivateKeyWithPasswordTo(KeygenSupport.withEnding(
+						fileChooser.getSelectedFile(), KeygenSupport.DER_ENDING), password);
 				}
 			}
 			else
 			{
-				JOptionPane.showMessageDialog(this, KeygenMessages
-					.getString("keygen.password.dialog.mismatch", "Entered passwords are not the same."));
+				JOptionPane.showMessageDialog(this, KeygenMessages.getString(
+					"keygen.password.dialog.mismatch", "Entered passwords are not the same."));
 			}
 		}
 	}

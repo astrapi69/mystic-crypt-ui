@@ -49,6 +49,6 @@ import io.github.astrapi69.lethenon.Amount;
  *            host:port of the node the transfer was handed to, empty when it waits next to the
  *            chain file
  */
-public record SentTransfer(long nonce, Amount amount, Amount fee, RecipientKind recipientKind, String recipient,
-	int waiting, String node) {
+public record SentTransfer(long nonce, Amount amount, Amount fee, RecipientKind recipientKind,
+	String recipient, int waiting, String node) {
 }

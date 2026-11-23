@@ -93,8 +93,8 @@ class ObfuscationRoundTripTest
 		assertEquals(original, SimpleObfuscatorExtensions.disentangle(rules, obfuscated),
 			description + ": disentangle must invert obfuscate");
 		assertEquals(
-			SimpleObfuscatorExtensions.disentangleBiMap(
-				SimpleObfuscatorExtensions.toCharacterBiMap(rules), obfuscated),
+			SimpleObfuscatorExtensions
+				.disentangleBiMap(SimpleObfuscatorExtensions.toCharacterBiMap(rules), obfuscated),
 			SimpleObfuscatorExtensions.disentangle(rules, obfuscated),
 			description + ": both library routes give the same text");
 	}
@@ -126,7 +126,8 @@ class ObfuscationRoundTripTest
 			SimpleObfuscatorExtensions.disentangleBiMap(characterBiMap, "nothing-to-do"));
 	}
 
-	private static ObfuscationRule<Character, Character> simpleRule(char character, char replaceWith)
+	private static ObfuscationRule<Character, Character> simpleRule(char character,
+		char replaceWith)
 	{
 		return ObfuscationRule.<Character, Character> builder().character(character)
 			.replaceWith(replaceWith).build();

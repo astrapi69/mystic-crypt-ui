@@ -30,10 +30,9 @@ import java.util.Map;
 
 import org.pf4j.Extension;
 
+import io.github.astrapi69.mystic.crypt.gnupg.GnuPgHome;
 import io.github.astrapi69.mystic.crypt.plugin.api.PluginSettingsContribution;
 import io.github.astrapi69.mystic.crypt.settings.PluginSettings;
-
-import io.github.astrapi69.mystic.crypt.gnupg.GnuPgHome;
 
 /**
  * The configuration of this plugin: which GnuPG home the status view reads, and which certificate

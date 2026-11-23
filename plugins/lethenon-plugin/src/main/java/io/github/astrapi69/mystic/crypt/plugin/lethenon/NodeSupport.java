@@ -39,8 +39,8 @@ import io.github.astrapi69.lethenon.transport.PeerAddress;
 /**
  * Starts a node of the chain library on a chain file (#530 step 2), what lethenon's {@code node}
  * command does without Tor: {@link Node#serving} serves the file and keeps the pool next to it,
- * listens on a port, connects the configured peers, and with mining on, a {@link Miner} mines on the
- * node's tip and pool for the wallet's Ed25519 account.
+ * listens on a port, connects the configured peers, and with mining on, a {@link Miner} mines on
+ * the node's tip and pool for the wallet's Ed25519 account.
  * <p>
  * No network or chain logic of its own. What this class adds is what has to be decided before
  * anything listens: that the chain file holds a chain, which the plugin's other tools read the same
@@ -73,8 +73,7 @@ public final class NodeSupport
 	 * @throws io.github.astrapi69.lethenon.ChainRejected
 	 *             when the chain does not verify
 	 */
-	public static RunningNode start(final NodeOrder order, final char[] password)
-		throws IOException
+	public static RunningNode start(final NodeOrder order, final char[] password) throws IOException
 	{
 		try
 		{
@@ -104,10 +103,7 @@ public final class NodeSupport
 		ChainReplaySupport.replayed(order.chainFile());
 		int port = portOf(order.port());
 		List<PeerAddress> peers = peersOf(order.peers());
-		Bytes beneficiary = order.mine()
-			? source.open()
-				.spendKey(SignatureSuite.ED25519)
-			: null;
+		Bytes beneficiary = order.mine() ? source.open().spendKey(SignatureSuite.ED25519) : null;
 		return started(order.chainFile(), port, peers, beneficiary, order.pun());
 	}
 
@@ -158,8 +154,8 @@ public final class NodeSupport
 		}
 		catch (IOException unbound)
 		{
-			throw new IOException("the node cannot listen on port " + port + ": "
-				+ unbound.getMessage(), unbound);
+			throw new IOException(
+				"the node cannot listen on port " + port + ": " + unbound.getMessage(), unbound);
 		}
 	}
 

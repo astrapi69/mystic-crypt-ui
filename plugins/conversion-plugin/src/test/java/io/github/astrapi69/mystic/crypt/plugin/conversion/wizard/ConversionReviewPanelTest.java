@@ -59,7 +59,8 @@ class ConversionReviewPanelTest
 
 		panel.refresh("Source: /tmp/key.pem\nConversion: to DER");
 
-		assertEquals("Source: /tmp/key.pem\nConversion: to DER", textArea(panel, "txtSummary").getText());
+		assertEquals("Source: /tmp/key.pem\nConversion: to DER",
+			textArea(panel, "txtSummary").getText());
 	}
 
 	@Test
@@ -96,6 +97,7 @@ class ConversionReviewPanelTest
 		}
 		return null;
 	}
+
 	@Test
 	void theStepSaysWhatItIsForBeforeTheFirstField() throws Exception
 	{

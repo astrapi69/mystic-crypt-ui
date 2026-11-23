@@ -76,8 +76,8 @@ class OverviewChainStateTest
 			WalletNetwork.TESTNET);
 		chainFile = LethenonFixtures.written(directory.resolve("chain.lethenon"),
 			LethenonFixtures.aChainPayingTheWallet(payer, wallet));
-		LethenonSettingsContribution.remember(
-			Map.of(LethenonSettingsContribution.KEY_CHAIN_FILE, chainFile.toString()));
+		LethenonSettingsContribution
+			.remember(Map.of(LethenonSettingsContribution.KEY_CHAIN_FILE, chainFile.toString()));
 	}
 
 	@AfterEach
@@ -93,8 +93,9 @@ class OverviewChainStateTest
 		LethenonWalletPanel panel = new LethenonWalletPanel(vault, Locale.ENGLISH);
 
 		assertTrue(Windows.shows(panel, "txtChainState"), "no line says how current the chain is");
-		assertTrue(textOf(panel, "txtChainState")
-			.matches("Synced: not by this program, last block: \\d+ days ago"),
+		assertTrue(
+			textOf(panel, "txtChainState")
+				.matches("Synced: not by this program, last block: \\d+ days ago"),
 			textOf(panel, "txtChainState"));
 	}
 
@@ -106,8 +107,9 @@ class OverviewChainStateTest
 
 		LethenonWalletPanel panel = new LethenonWalletPanel(vault, Locale.ENGLISH);
 
-		assertTrue(textOf(panel, "txtChainState")
-			.matches("Synced: today \\d\\d:\\d\\d, last block: \\d+ days ago"),
+		assertTrue(
+			textOf(panel, "txtChainState")
+				.matches("Synced: today \\d\\d:\\d\\d, last block: \\d+ days ago"),
 			textOf(panel, "txtChainState"));
 	}
 
@@ -115,8 +117,8 @@ class OverviewChainStateTest
 	@DisplayName("without a chain the line is not shown (#831)")
 	void withoutAChain_theLineIsNotShown()
 	{
-		LethenonSettingsContribution.remember(
-			Map.of(LethenonSettingsContribution.KEY_CHAIN_FILE, ""));
+		LethenonSettingsContribution
+			.remember(Map.of(LethenonSettingsContribution.KEY_CHAIN_FILE, ""));
 
 		LethenonWalletPanel panel = new LethenonWalletPanel(vault, Locale.ENGLISH);
 

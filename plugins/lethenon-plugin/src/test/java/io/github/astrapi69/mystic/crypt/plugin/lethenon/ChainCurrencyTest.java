@@ -64,8 +64,7 @@ class ChainCurrencyTest
 	 *            the line
 	 */
 	record Case(String situation, Optional<Instant> synced, Duration lastBlock, Locale locale,
-		String expected)
-	{
+		String expected) {
 		@Override
 		public String toString()
 		{
@@ -77,12 +76,12 @@ class ChainCurrencyTest
 	{
 		Optional<Instant> today = Optional.of(Instant.parse("2026-11-08T14:02:00Z"));
 		return Stream.of(
-			Arguments.of(new Case("the example of the decision, in English", today,
-				Duration.ofMinutes(3), Locale.ENGLISH,
-				"Synced: today 14:02, last block: 3 min ago")),
-			Arguments.of(new Case("the example of the decision, in German", today,
-				Duration.ofMinutes(3), Locale.GERMAN,
-				"Abgeglichen: heute 14:02, letzter Block: vor 3 Min.")),
+			Arguments.of(
+				new Case("the example of the decision, in English", today, Duration.ofMinutes(3),
+					Locale.ENGLISH, "Synced: today 14:02, last block: 3 min ago")),
+			Arguments
+				.of(new Case("the example of the decision, in German", today, Duration.ofMinutes(3),
+					Locale.GERMAN, "Abgeglichen: heute 14:02, letzter Block: vor 3 Min.")),
 			Arguments.of(new Case("never synced by this program, a block of half a minute",
 				Optional.empty(), Duration.ofSeconds(30), Locale.ENGLISH,
 				"Synced: not by this program, last block: just now")),

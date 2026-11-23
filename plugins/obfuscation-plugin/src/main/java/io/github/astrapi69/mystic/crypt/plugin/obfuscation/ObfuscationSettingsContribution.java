@@ -82,8 +82,8 @@ public class ObfuscationSettingsContribution implements PluginSettingsContributi
 	 */
 	public static boolean clearInputAfterRun()
 	{
-		return !"false".equalsIgnoreCase(PluginSettings
-			.load(PLUGIN_ID, new ObfuscationSettingsContribution().getDefaults())
-			.get(KEY_CLEAR_INPUT));
+		return !"false".equalsIgnoreCase(
+			PluginSettings.load(PLUGIN_ID, new ObfuscationSettingsContribution().getDefaults())
+				.get(KEY_CLEAR_INPUT));
 	}
 }

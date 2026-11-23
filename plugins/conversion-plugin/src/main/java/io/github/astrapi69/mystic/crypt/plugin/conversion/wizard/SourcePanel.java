@@ -36,9 +36,9 @@ import javax.swing.event.DocumentListener;
 import io.github.astrapi69.design.pattern.state.wizard.model.BaseWizardStateMachineModel;
 import io.github.astrapi69.model.LambdaModel;
 import io.github.astrapi69.model.api.IModel;
-import io.github.astrapi69.mystic.crypt.ui.form.ToolForm;
 import io.github.astrapi69.mystic.crypt.plugin.conversion.ConversionMessages;
 import io.github.astrapi69.mystic.crypt.plugin.conversion.ConversionSupport;
+import io.github.astrapi69.mystic.crypt.ui.form.ToolForm;
 import io.github.astrapi69.swing.base.BasePanel;
 import io.github.astrapi69.swing.model.component.JMTextField;
 import net.miginfocom.swing.MigLayout;
@@ -108,10 +108,11 @@ public class SourcePanel extends BasePanel<BaseWizardStateMachineModel<Conversio
 		txtSourceFile.setToolTipText(ConversionMessages.getString(
 			"conversion.wizard.source.tooltip.source.file",
 			"the key or certificate file to convert - its own content says what it holds, nothing has to be chosen"));
-		btnBrowseSource.setToolTipText(ConversionMessages
-			.getString("conversion.wizard.source.tooltip.browse.button", "choose the file to convert"));
-		lblWhatItHolds.setToolTipText(ConversionMessages.getString(
-			"conversion.wizard.source.tooltip.what.it.holds", "what the chosen file was found to hold"));
+		btnBrowseSource.setToolTipText(ConversionMessages.getString(
+			"conversion.wizard.source.tooltip.browse.button", "choose the file to convert"));
+		lblWhatItHolds.setToolTipText(
+			ConversionMessages.getString("conversion.wizard.source.tooltip.what.it.holds",
+				"what the chosen file was found to hold"));
 
 		// the file itself says what it is, so the wizard looks as soon as there is a path - typed,
 		// pasted or picked. The document listener runs before the field's own binding is notified,

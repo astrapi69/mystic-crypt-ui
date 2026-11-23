@@ -22,11 +22,6 @@
  * OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
  * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package io.github.astrapi69.mystic.crypt.plugin.checksum;
 
 import java.awt.*;
@@ -86,19 +81,19 @@ public class ChecksumPanel extends BasePanel<ChecksumBean>
 
 	/**
 	 * The size a checksum file may have at most, in bytes: one line in each form
-	 * {@link ChecksumSupport#hashFrom(String)} reads, the coreutils one ({@code <hash>  <name>}) and
-	 * the BSD one ({@code SHA512 (<name>) = <hash>}), with the longest hash, a SHA-512 one of 128
-	 * characters, and a name as long as a path may be (4096 bytes). It was 128, the hash alone,
-	 * which refused every {@code .sha512} file the tools write (#796). The limit keeps a large
-	 * file chosen by mistake out of the text field
+	 * {@link ChecksumSupport#hashFrom(String)} reads, the coreutils one ({@code <hash>  <name>})
+	 * and the BSD one ({@code SHA512 (<name>) = <hash>}), with the longest hash, a SHA-512 one of
+	 * 128 characters, and a name as long as a path may be (4096 bytes). It was 128, the hash alone,
+	 * which refused every {@code .sha512} file the tools write (#796). The limit keeps a large file
+	 * chosen by mistake out of the text field
 	 */
 	// package-private (not private): the tests check the edges of this same limit
 	static final long MAXIMUM_CHECKSUM_FILE_LENGTH = 8192;
 
 	/**
-	 * Whether what stands in "Checksum from owner" was put there by a probe rather than by the user.
-	 * Only a probe's own result may be replaced by the next one; a checksum somebody typed or opened
-	 * is theirs and stays
+	 * Whether what stands in "Checksum from owner" was put there by a probe rather than by the
+	 * user. Only a probe's own result may be replaced by the next one; a checksum somebody typed or
+	 * opened is theirs and stays
 	 */
 	private boolean probeFilledTheOwnersChecksum;
 
@@ -106,9 +101,9 @@ public class ChecksumPanel extends BasePanel<ChecksumBean>
 	private boolean loadingAProbedChecksum;
 
 	/**
-	 * The file extension conventionally produced for each algorithm this tool offers (the same
-	 * ones {@code md5sum}, {@code sha256sum} and their siblings write), tried in this order when
-	 * looking for a checksum file next to the one being checked
+	 * The file extension conventionally produced for each algorithm this tool offers (the same ones
+	 * {@code md5sum}, {@code sha256sum} and their siblings write), tried in this order when looking
+	 * for a checksum file next to the one being checked
 	 */
 	// package-private (not private): the sibling-detection tests parameterize over this same
 	// mapping instead of duplicating it, so a changed extension cannot silently drift out of sync
@@ -262,27 +257,40 @@ public class ChecksumPanel extends BasePanel<ChecksumBean>
 
 		bindComponents();
 
-		txtOpenFile.setToolTipText(ChecksumMessages.getString("checksum.tooltip.open.file", "the file whose checksum is computed"));
-		btnOpenFile.setToolTipText(ChecksumMessages.getString("checksum.tooltip.open.file.button", "choose the file to check"));
+		txtOpenFile.setToolTipText(ChecksumMessages.getString("checksum.tooltip.open.file",
+			"the file whose checksum is computed"));
+		btnOpenFile.setToolTipText(ChecksumMessages.getString("checksum.tooltip.open.file.button",
+			"choose the file to check"));
 		btnClearOpenFile
-			.setToolTipText(ChecksumMessages.getString("checksum.tooltip.clear.open.file.button", "clears the file to check and the checksum computed for it"));
+			.setToolTipText(ChecksumMessages.getString("checksum.tooltip.clear.open.file.button",
+				"clears the file to check and the checksum computed for it"));
 		txtGeneratedChecksum
-			.setToolTipText(ChecksumMessages.getString("checksum.tooltip.generated.checksum", "the checksum computed for the file above, using the selected algorithm"));
+			.setToolTipText(ChecksumMessages.getString("checksum.tooltip.generated.checksum",
+				"the checksum computed for the file above, using the selected algorithm"));
 		btnCopyGeneratedChecksum.setToolTipText(
-			ChecksumMessages.getString("checksum.tooltip.copy.generated.checksum.button", "copies the generated checksum to the clipboard"));
-		txtChecksumFile.setToolTipText(ChecksumMessages.getString("checksum.tooltip.checksum.file", "the file the checksum below was loaded from, if any"));
-		btnOpenChecksumFile.setToolTipText(
-			ChecksumMessages.getString("checksum.tooltip.open.checksum.file.button", "load a checksum published by the file's owner from a file"));
+			ChecksumMessages.getString("checksum.tooltip.copy.generated.checksum.button",
+				"copies the generated checksum to the clipboard"));
+		txtChecksumFile.setToolTipText(ChecksumMessages.getString("checksum.tooltip.checksum.file",
+			"the file the checksum below was loaded from, if any"));
+		btnOpenChecksumFile
+			.setToolTipText(ChecksumMessages.getString("checksum.tooltip.open.checksum.file.button",
+				"load a checksum published by the file's owner from a file"));
 		btnClearChecksumFile.setToolTipText(
-			ChecksumMessages.getString("checksum.tooltip.clear.checksum.file.button", "clears the loaded checksum file and what was typed or loaded below"));
+			ChecksumMessages.getString("checksum.tooltip.clear.checksum.file.button",
+				"clears the loaded checksum file and what was typed or loaded below"));
 		txtOwnersChecksum
-			.setToolTipText(ChecksumMessages.getString("checksum.tooltip.owners.checksum", "the checksum published by the file's owner, typed or loaded from a file"));
+			.setToolTipText(ChecksumMessages.getString("checksum.tooltip.owners.checksum",
+				"the checksum published by the file's owner, typed or loaded from a file"));
 		btnCopyOwnersChecksum.setToolTipText(
-			ChecksumMessages.getString("checksum.tooltip.copy.owners.checksum.button", "copies the owner's checksum to the clipboard"));
-		cbxChecksumAlgorithm.setToolTipText(ChecksumMessages.getString("checksum.tooltip.algorithm", "the algorithm used to compute the checksum above - it has to match what the owner used"));
-		btnCompare.setToolTipText(ChecksumMessages.getString("checksum.tooltip.compare.button", "compares the generated checksum with the owner's checksum"));
+			ChecksumMessages.getString("checksum.tooltip.copy.owners.checksum.button",
+				"copies the owner's checksum to the clipboard"));
+		cbxChecksumAlgorithm.setToolTipText(ChecksumMessages.getString("checksum.tooltip.algorithm",
+			"the algorithm used to compute the checksum above - it has to match what the owner used"));
+		btnCompare.setToolTipText(ChecksumMessages.getString("checksum.tooltip.compare.button",
+			"compares the generated checksum with the owner's checksum"));
 		txtChecksumMatchResult
-			.setToolTipText(ChecksumMessages.getString("checksum.tooltip.match.result", "Match or No Match, depending on whether the two checksums above are the same"));
+			.setToolTipText(ChecksumMessages.getString("checksum.tooltip.match.result",
+				"Match or No Match, depending on whether the two checksums above are the same"));
 
 		fileChooser = new JFileChooser(SystemFileExtensions.getUserDownloadsDir());
 	}
@@ -392,10 +400,10 @@ public class ChecksumPanel extends BasePanel<ChecksumBean>
 	/**
 	 * Looks for a same-named checksum file next to the one being checked, trying both naming
 	 * conventions tools actually use: appending the algorithm extension ({@code backup.alb} +
-	 * {@code backup.alb.sha256}) and replacing the original extension with it ({@code backup.alb}
-	 * + {@code backup.sha256}) - and loads it into "Checksum from owner" the way choosing one by
-	 * hand would - only when that field is still empty, so a checksum the user already typed or
-	 * loaded is never silently replaced
+	 * {@code backup.alb.sha256}) and replacing the original extension with it ({@code backup.alb} +
+	 * {@code backup.sha256}) - and loads it into "Checksum from owner" the way choosing one by hand
+	 * would - only when that field is still empty, so a checksum the user already typed or loaded
+	 * is never silently replaced
 	 *
 	 * @param file
 	 *            the file that was chosen to be checked
@@ -446,9 +454,9 @@ public class ChecksumPanel extends BasePanel<ChecksumBean>
 	/**
 	 * Looks up which algorithm a checksum file's own extension implies, from the same
 	 * {@link #CHECKSUM_FILE_EXTENSIONS} table {@link #probeForSiblingChecksumFile(File)} searches
-	 * with - a reliable answer where {@link ChecksumExtensions#resolveChecksumAlgorithm(String)}
-	 * is not: MD2 and MD5 both produce a 32 hex character digest, so guessing from the checksum
-	 * text alone can never tell them apart and always lands on MD5 (#128)
+	 * with - a reliable answer where {@link ChecksumExtensions#resolveChecksumAlgorithm(String)} is
+	 * not: MD2 and MD5 both produce a 32 hex character digest, so guessing from the checksum text
+	 * alone can never tell them apart and always lands on MD5 (#128)
 	 *
 	 * @param checksumFile
 	 *            the checksum file whose extension is checked
@@ -502,7 +510,8 @@ public class ChecksumPanel extends BasePanel<ChecksumBean>
 	protected void onCompare(final ActionEvent actionEvent)
 	{
 		// what the owner published is rarely a bare hash - a checksum file holds the hash followed
-		// by the file name - and the comparison itself belongs in the support class, which tolerates
+		// by the file name - and the comparison itself belongs in the support class, which
+		// tolerates
 		// case and spacing and does not let its duration say how far it got (#229)
 		String ownersChecksumText = ChecksumSupport.hashFrom(getModelObject().getOwnersChecksum());
 		String generatedChecksumText = getModelObject().getGeneratedChecksum();
@@ -694,9 +703,8 @@ public class ChecksumPanel extends BasePanel<ChecksumBean>
 								.addComponent(btnCompare, GroupLayout.PREFERRED_SIZE, 180,
 									GroupLayout.PREFERRED_SIZE)
 								.addGap(57, 57, 57).addComponent(txtChecksumMatchResult))
-							.addGroup(layout.createSequentialGroup()
-								.addComponent(srcOwnersChecksum).addGap(18, 18, 18)
-								.addComponent(btnCopyOwnersChecksum))
+							.addGroup(layout.createSequentialGroup().addComponent(srcOwnersChecksum)
+								.addGap(18, 18, 18).addComponent(btnCopyOwnersChecksum))
 							.addGroup(layout.createSequentialGroup()
 								.addComponent(txtChecksumFile, GroupLayout.PREFERRED_SIZE, 780,
 									GroupLayout.PREFERRED_SIZE)
@@ -707,8 +715,8 @@ public class ChecksumPanel extends BasePanel<ChecksumBean>
 						.addContainerGap(GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))));
 		layout.setVerticalGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)
 			.addGroup(layout.createSequentialGroup().addGap(30, 30, 30)
-				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.BASELINE)
-					.addComponent(btnOpenFile)
+				.addGroup(layout
+					.createParallelGroup(GroupLayout.Alignment.BASELINE).addComponent(btnOpenFile)
 					.addComponent(txtOpenFile, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE,
 						GroupLayout.PREFERRED_SIZE)
 					.addComponent(btnClearOpenFile))

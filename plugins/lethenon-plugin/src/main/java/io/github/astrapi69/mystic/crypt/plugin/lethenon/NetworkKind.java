@@ -130,7 +130,8 @@ public enum NetworkKind
 		label.setOpaque(true);
 		label.setBackground(background);
 		label.setForeground(foreground);
-		label.setBorder(BorderFactory.createCompoundBorder(
-			BorderFactory.createLineBorder(border, 2), BorderFactory.createEmptyBorder(3, 10, 3, 10)));
+		label
+			.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createLineBorder(border, 2),
+				BorderFactory.createEmptyBorder(3, 10, 3, 10)));
 	}
 }

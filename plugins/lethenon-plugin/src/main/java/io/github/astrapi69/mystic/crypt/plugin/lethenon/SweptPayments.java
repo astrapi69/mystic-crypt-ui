@@ -40,9 +40,7 @@ import io.github.astrapi69.lethenon.Amount;
  * @param waiting
  *            how many transfers wait now where these wait, these included
  * @param node
- *            host:port of the node they were handed to, empty when they wait next to the chain
- *            file
+ *            host:port of the node they were handed to, empty when they wait next to the chain file
  */
-public record SweptPayments(int transfers, Amount total, String account, int waiting,
-	String node) {
+public record SweptPayments(int transfers, Amount total, String account, int waiting, String node) {
 }

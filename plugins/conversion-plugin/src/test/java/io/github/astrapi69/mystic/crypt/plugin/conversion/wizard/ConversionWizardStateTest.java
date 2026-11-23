@@ -39,8 +39,8 @@ import io.github.astrapi69.mystic.crypt.plugin.conversion.ConversionSupport;
  * Tests of the conversion wizard's state machine: which step follows which, and the two places a
  * step refuses to advance until its own step is actually complete - no file detected yet on Source,
  * no conversion chosen yet on Target. Built directly on {@link BaseWizardStateMachineModel} without
- * any Swing component, the same way {@code CertificateWizardState}'s own step-gating (its Dates step
- * only advancing for a v3 certificate) is provable without a display.
+ * any Swing component, the same way {@code CertificateWizardState}'s own step-gating (its Dates
+ * step only advancing for a v3 certificate) is provable without a display.
  */
 class ConversionWizardStateTest
 {
@@ -81,7 +81,8 @@ class ConversionWizardStateTest
 	void sourceAdvancesToTargetOnceAFileKindIsDetected()
 	{
 		ConversionWizardModel model = new ConversionWizardModel();
-		model.setFileKind(new ConversionSupport.FileKind(true, PemType.PRIVATE_KEY, "a private key"));
+		model.setFileKind(
+			new ConversionSupport.FileKind(true, PemType.PRIVATE_KEY, "a private key"));
 		BaseWizardStateMachineModel<ConversionWizardModel> stateMachine = machineAt(
 			ConversionWizardState.SOURCE, model);
 

@@ -145,34 +145,37 @@ public class FileCryptPanel extends JPanel
 			"the file to write to - left blank, the result is written next to the source file"));
 		pwdFile.setToolTipText(FileCryptMessages.getString("filecrypt.tooltip.file.passphrase",
 			"the passphrase that protects the file - required for both encrypting and decrypting"));
-		pwdFileRepeated.setToolTipText(
-			FileCryptMessages.getString("filecrypt.tooltip.file.passphrase.repeated",
-				"repeat the passphrase to catch a typo - only checked when encrypting, a wrong passphrase when decrypting is refused by the cipher itself"));
+		pwdFileRepeated.setToolTipText(FileCryptMessages.getString(
+			"filecrypt.tooltip.file.passphrase.repeated",
+			"repeat the passphrase to catch a typo - only checked when encrypting, a wrong passphrase when decrypting is refused by the cipher itself"));
 
 		JPanel panel = new JPanel(ToolForm.newLayout());
 		panel.add(new JLabel("File:"));
 		panel.add(ToolForm.sized(txtSourceFile), FIELD_WITH_BUTTON);
-		panel.add(button("btnBrowseSource", "...", event -> onBrowse(txtSourceFile, sourceFileModel()),
-			FileCryptMessages.getString("filecrypt.tooltip.browse.source.button",
-				"choose the file to encrypt or decrypt")));
+		panel.add(
+			button("btnBrowseSource", "...", event -> onBrowse(txtSourceFile, sourceFileModel()),
+				FileCryptMessages.getString("filecrypt.tooltip.browse.source.button",
+					"choose the file to encrypt or decrypt")));
 		panel.add(new JLabel("Write to:"));
 		panel.add(ToolForm.sized(txtTargetFile), FIELD_WITH_BUTTON);
-		panel.add(button("btnBrowseTarget", "...", event -> onBrowse(txtTargetFile, targetFileModel()),
-			FileCryptMessages.getString("filecrypt.tooltip.browse.target.button",
-				"choose where to write the result")));
+		panel.add(button("btnBrowseTarget", "...",
+			event -> onBrowse(txtTargetFile, targetFileModel()), FileCryptMessages.getString(
+				"filecrypt.tooltip.browse.target.button", "choose where to write the result")));
 		panel.add(new JLabel("Passphrase:"));
 		panel.add(ToolForm.sized(pwdFile), ToolForm.FIELD);
 		panel.add(new JLabel("Repeat (to encrypt):"));
 		panel.add(ToolForm.sized(pwdFileRepeated), ToolForm.FIELD);
-		panel.add(
-			ToolForm.buttons(
-				button("btnEncryptFile", "Encrypt", event -> onEncryptFile(),
-					FileCryptMessages.getString("filecrypt.tooltip.encrypt.file.button",
-						"encrypts the file above with the passphrase")),
-				button("btnDecryptFile", "Decrypt", event -> onDecryptFile(),
-					FileCryptMessages.getString("filecrypt.tooltip.decrypt.file.button",
-						"decrypts the file above with the passphrase"))),
-			ToolForm.BUTTON_ROW);
+		panel
+			.add(
+				ToolForm
+					.buttons(
+						button("btnEncryptFile", "Encrypt", event -> onEncryptFile(),
+							FileCryptMessages.getString("filecrypt.tooltip.encrypt.file.button",
+								"encrypts the file above with the passphrase")),
+						button("btnDecryptFile", "Decrypt", event -> onDecryptFile(),
+							FileCryptMessages.getString("filecrypt.tooltip.decrypt.file.button",
+								"decrypts the file above with the passphrase"))),
+				ToolForm.BUTTON_ROW);
 		return panel;
 	}
 
@@ -187,8 +190,9 @@ public class FileCryptPanel extends JPanel
 
 		txtPlainText.setToolTipText(FileCryptMessages.getString("filecrypt.tooltip.plain.text",
 			"the text to encrypt, or where the decrypted text appears"));
-		txtEncryptedText.setToolTipText(FileCryptMessages.getString("filecrypt.tooltip.encrypted.text",
-			"the encrypted text, Base64 encoded - paste one in to decrypt it"));
+		txtEncryptedText
+			.setToolTipText(FileCryptMessages.getString("filecrypt.tooltip.encrypted.text",
+				"the encrypted text, Base64 encoded - paste one in to decrypt it"));
 		pwdText.setToolTipText(FileCryptMessages.getString("filecrypt.tooltip.text.passphrase",
 			"the passphrase that protects the text - required for both encrypting and decrypting"));
 		pwdTextRepeated.setToolTipText(
@@ -204,15 +208,17 @@ public class FileCryptPanel extends JPanel
 		panel.add(ToolForm.sized(pwdText), ToolForm.FIELD);
 		panel.add(new JLabel("Repeat (to encrypt):"));
 		panel.add(ToolForm.sized(pwdTextRepeated), ToolForm.FIELD);
-		panel.add(
-			ToolForm.buttons(
-				button("btnEncryptText", "Encrypt", event -> onEncryptText(),
-					FileCryptMessages.getString("filecrypt.tooltip.encrypt.text.button",
-						"encrypts the text above with the passphrase")),
-				button("btnDecryptText", "Decrypt", event -> onDecryptText(),
-					FileCryptMessages.getString("filecrypt.tooltip.decrypt.text.button",
-						"decrypts the text above with the passphrase"))),
-			ToolForm.BUTTON_ROW);
+		panel
+			.add(
+				ToolForm
+					.buttons(
+						button("btnEncryptText", "Encrypt", event -> onEncryptText(),
+							FileCryptMessages.getString("filecrypt.tooltip.encrypt.text.button",
+								"encrypts the text above with the passphrase")),
+						button("btnDecryptText", "Decrypt", event -> onDecryptText(),
+							FileCryptMessages.getString("filecrypt.tooltip.decrypt.text.button",
+								"decrypts the text above with the passphrase"))),
+				ToolForm.BUTTON_ROW);
 		return panel;
 	}
 

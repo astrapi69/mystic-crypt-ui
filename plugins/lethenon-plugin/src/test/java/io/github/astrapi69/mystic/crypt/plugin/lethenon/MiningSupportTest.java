@@ -170,8 +170,8 @@ class MiningSupportTest
 	@DisplayName("a mined block carries what the replay of the extended chain checked, as numbers (#604)")
 	void mine_carriesTheReplayOfTheExtendedChain() throws Exception
 	{
-		MinedBlock mined = MiningSupport.mine(order("counted", 10_000_000L),
-			PASSWORD.toCharArray(), NOW);
+		MinedBlock mined = MiningSupport.mine(order("counted", 10_000_000L), PASSWORD.toCharArray(),
+			NOW);
 
 		ChainReplayReport replay = mined.replay();
 		assertEquals(4L, replay.blocks(), "the three blocks before and the mined one");
@@ -255,13 +255,13 @@ class MiningSupportTest
 			CanonicalEncoding.encodeChain(LethenonFixtures.aChainUnderLethenonOne()));
 		byte[] before = Files.readAllBytes(chainFile);
 
-		ChainRejected refused = assertThrows(ChainRejected.class,
-			() -> MiningSupport.mine(order("on an old chain", 10_000_000L), PASSWORD.toCharArray(),
-				NOW));
+		ChainRejected refused = assertThrows(ChainRejected.class, () -> MiningSupport
+			.mine(order("on an old chain", 10_000_000L), PASSWORD.toCharArray(), NOW));
 
 		assertTrue(refused.getMessage().startsWith(chainFile.toAbsolutePath().toString()),
 			refused.getMessage());
-		assertTrue(refused.getMessage().contains("was started under the rules before lethenon 0.4.0"),
+		assertTrue(
+			refused.getMessage().contains("was started under the rules before lethenon 0.4.0"),
 			refused.getMessage());
 		assertArrayEquals(before, Files.readAllBytes(chainFile));
 	}
@@ -324,10 +324,13 @@ class MiningSupportTest
 			() -> MiningSupport.mine(new MiningOrder(old, walletFile, ChainKind.TEST_NETWORK,
 				"on the old file", 10_000_000L), password, NOW));
 
-		assertTrue(refused.getMessage().startsWith(old.toAbsolutePath().toString()), refused.getMessage());
+		assertTrue(refused.getMessage().startsWith(old.toAbsolutePath().toString()),
+			refused.getMessage());
 		assertArrayEquals(oldBytes, Files.readAllBytes(old), "the file stays as it was");
-		assertFalse(Files.exists(directory.toPath().resolve("old.lethenon.legacy")), "nothing was converted");
-		assertArrayEquals(new char[password.length], password, "the password is wiped all the same");
+		assertFalse(Files.exists(directory.toPath().resolve("old.lethenon.legacy")),
+			"nothing was converted");
+		assertArrayEquals(new char[password.length], password,
+			"the password is wiped all the same");
 	}
 
 	@Test

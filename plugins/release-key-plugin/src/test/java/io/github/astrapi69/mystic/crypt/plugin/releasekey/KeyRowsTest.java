@@ -49,18 +49,16 @@ class KeyRowsTest
 
 	private static final LocalDate TODAY = LocalDate.parse("2026-10-29");
 
-	private static final KeyState PRIMARY = new KeyState(
-		"5B2FA6B11E298BC09287F423D8C403518C49CA75", true, "rsa2048", "SC",
-		Instant.parse("2016-05-01T12:56:24Z"), null, SecretPart.OFFLINE);
+	private static final KeyState PRIMARY = new KeyState("5B2FA6B11E298BC09287F423D8C403518C49CA75",
+		true, "rsa2048", "SC", Instant.parse("2016-05-01T12:56:24Z"), null, SecretPart.OFFLINE);
 
 	private static final KeyState ENCRYPTION = new KeyState(
 		"346DAC645023B91D7CD5FCBD1C664D394E31A6E2", false, "rsa2048", "E",
 		Instant.parse("2016-05-01T12:56:24Z"), null, SecretPart.HERE);
 
-	private static final KeyState SIGNING = new KeyState(
-		"6D67F8442A6FCC96BD7C1B5E9FCF7C9710E2BD8D", false, "rsa4096", "S",
-		Instant.parse("2026-10-10T09:22:23Z"), Instant.parse("2028-10-09T09:22:23Z"),
-		SecretPart.HERE);
+	private static final KeyState SIGNING = new KeyState("6D67F8442A6FCC96BD7C1B5E9FCF7C9710E2BD8D",
+		false, "rsa4096", "S", Instant.parse("2026-10-10T09:22:23Z"),
+		Instant.parse("2028-10-09T09:22:23Z"), SecretPart.HERE);
 
 	private static final KeyRingState RELEASE = new KeyRingState(PRIMARY.fingerprint(),
 		"Release Test <release@example.org>", List.of(PRIMARY, ENCRYPTION, SIGNING),
@@ -76,10 +74,11 @@ class KeyRowsTest
 			List.of("primary", "5B2F A6B1 1E29 8BC0 9287 F423 D8C4 0351 8C49 CA75", "[SC]",
 				"rsa2048", "2016-05-01", "never", "offline", "valid",
 				"Release Test <release@example.org>"),
-			List.of("subkey", "346D AC64 5023 B91D 7CD5 FCBD 1C66 4D39 4E31 A6E2", "[E]",
-				"rsa2048", "2016-05-01", "never", "here", "", ""),
-			List.of("subkey", "6D67 F844 2A6F CC96 BD7C 1B5E 9FCF 7C97 10E2 BD8D", "[S]",
-				"rsa4096", "2026-10-10", "2028-10-09", "here", "", "")), rows);
+			List.of("subkey", "346D AC64 5023 B91D 7CD5 FCBD 1C66 4D39 4E31 A6E2", "[E]", "rsa2048",
+				"2016-05-01", "never", "here", "", ""),
+			List.of("subkey", "6D67 F844 2A6F CC96 BD7C 1B5E 9FCF 7C97 10E2 BD8D", "[S]", "rsa4096",
+				"2026-10-10", "2028-10-09", "here", "", "")),
+			rows);
 		assertEquals(KeyRows.COLUMNS.size(), rows.get(0).size());
 	}
 
@@ -106,12 +105,12 @@ class KeyRowsTest
 	@DisplayName("where the secret part is, in words")
 	void of_namesWhereTheSecretPartIs(final SecretPart secret, final String expected)
 	{
-		KeyState key = new KeyState(PRIMARY.fingerprint(), true, "ed25519", "SC",
-			PRIMARY.created(), null, secret);
+		KeyState key = new KeyState(PRIMARY.fingerprint(), true, "ed25519", "SC", PRIMARY.created(),
+			null, secret);
 
-		List<List<String>> rows = KeyRows.of(
-			List.of(new KeyRingState(key.fingerprint(), "", List.of(key),
-				RevocationCertificate.ABSENT)), TODAY);
+		List<List<String>> rows = KeyRows.of(List.of(
+			new KeyRingState(key.fingerprint(), "", List.of(key), RevocationCertificate.ABSENT)),
+			TODAY);
 
 		assertEquals(expected, rows.get(0).get(6));
 	}

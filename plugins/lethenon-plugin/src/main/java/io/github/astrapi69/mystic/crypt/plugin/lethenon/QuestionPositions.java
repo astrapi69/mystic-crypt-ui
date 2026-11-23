@@ -73,7 +73,7 @@ final class QuestionPositions
 
 	private int[] draw()
 	{
-		return IntStream.generate(() -> below.applyAsInt(BackupCheck.WORDS) + 1)
-			.distinct().limit(ASKED).sorted().toArray();
+		return IntStream.generate(() -> below.applyAsInt(BackupCheck.WORDS) + 1).distinct()
+			.limit(ASKED).sorted().toArray();
 	}
 }

@@ -32,8 +32,8 @@ import io.github.astrapi69.resourcebundle.locale.ResourceBundleExtensions;
  * The plugin's own text, kept in {@code kemdemo/messages.properties} inside this plugin's jar - a
  * plugin brings its own everything (architecture.md), including the strings it shows, rather than
  * reaching into the host's {@code ui.messages} bundle. Mirrors the host's own
- * {@code io.github.astrapi69.mystic.crypt.Messages}: every lookup takes a default, so a missing
- * key or a corrupted properties file shows that default instead of throwing
+ * {@code io.github.astrapi69.mystic.crypt.Messages}: every lookup takes a default, so a missing key
+ * or a corrupted properties file shows that default instead of throwing
  * {@link java.util.MissingResourceException} out of a panel constructor.
  */
 public final class KemDemoMessages
@@ -48,8 +48,7 @@ public final class KemDemoMessages
 	}
 
 	/**
-	 * Gets the string for the given key, falling back to the given default when the key is
-	 * missing
+	 * Gets the string for the given key, falling back to the given default when the key is missing
 	 *
 	 * @param key
 	 *            the key

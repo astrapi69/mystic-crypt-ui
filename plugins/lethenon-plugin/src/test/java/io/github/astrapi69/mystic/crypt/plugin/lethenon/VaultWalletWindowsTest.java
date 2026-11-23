@@ -25,7 +25,6 @@
 package io.github.astrapi69.mystic.crypt.plugin.lethenon;
 
 import static io.github.astrapi69.mystic.crypt.plugin.lethenon.Windows.textOf;
-
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;

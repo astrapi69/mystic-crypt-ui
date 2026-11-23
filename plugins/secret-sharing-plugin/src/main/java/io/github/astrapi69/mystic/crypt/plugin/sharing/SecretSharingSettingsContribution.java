@@ -83,7 +83,8 @@ public class SecretSharingSettingsContribution implements PluginSettingsContribu
 	/** The settings as stored, with the declared defaults filled in */
 	public static Map<String, String> current()
 	{
-		return PluginSettings.load(PLUGIN_ID, new SecretSharingSettingsContribution().getDefaults());
+		return PluginSettings.load(PLUGIN_ID,
+			new SecretSharingSettingsContribution().getDefaults());
 	}
 
 	/**

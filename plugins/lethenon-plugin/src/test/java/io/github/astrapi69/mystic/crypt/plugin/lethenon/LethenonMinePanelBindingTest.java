@@ -27,7 +27,6 @@ package io.github.astrapi69.mystic.crypt.plugin.lethenon;
 import static io.github.astrapi69.mystic.crypt.plugin.lethenon.Windows.component;
 import static io.github.astrapi69.mystic.crypt.plugin.lethenon.Windows.textOf;
 import static io.github.astrapi69.mystic.crypt.plugin.lethenon.Windows.textsOf;
-
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -179,7 +178,8 @@ class LethenonMinePanelBindingTest
 	{
 		TransferSupport.send(new TransferOrder(chainFile, walletFile, SignatureSuite.ED25519,
 			RecipientKind.ACCOUNT_KEY,
-			TransactionSigner.asBytes(TransactionSigner.newKeyPair(SignatureSuite.ED25519).getPublic())
+			TransactionSigner
+				.asBytes(TransactionSigner.newKeyPair(SignatureSuite.ED25519).getPublic())
 				.toString(),
 			"1", "0", "carried"), PASSWORD.toCharArray());
 		LethenonMinePanel panel = filledPanel(PASSWORD);
@@ -231,7 +231,8 @@ class LethenonMinePanelBindingTest
 		}
 		String result = panel.getModelObject().getResultText();
 		assertTrue(result.startsWith("no block was mined"), result);
-		assertTrue(result.contains("this password does not open wallet.lethenon-wallet; type it again"),
+		assertTrue(
+			result.contains("this password does not open wallet.lethenon-wallet; type it again"),
 			result);
 		assertFalse(result.contains("not the password at all"), result);
 		assertArrayEquals(chainBefore, Files.readAllBytes(chainFile));
@@ -257,8 +258,10 @@ class LethenonMinePanelBindingTest
 
 		List<BlockBody> chain = new ChainFile(chainFile).require();
 		assertEquals(Chain.TEST_IDENTIFIER, chain.getFirst().chainIdentifier());
-		assertEquals("You started a new chain. Its first block belongs to nobody, so the next block "
-			+ "you mine is the first that pays you.", textOf(panel, "txtAnswer"));
+		assertEquals(
+			"You started a new chain. Its first block belongs to nobody, so the next block "
+				+ "you mine is the first that pays you.",
+			textOf(panel, "txtAnswer"));
 		assertEquals("0", textOf(panel, "txtBlock"));
 		assertEquals("nothing - the first block of a chain pays nobody", textOf(panel, "txtPaid"));
 		assertEquals(Chain.TEST_IDENTIFIER, textOf(panel, "txtChain"));
@@ -294,12 +297,13 @@ class LethenonMinePanelBindingTest
 		javax.swing.ListCellRenderer<Object> renderer = (javax.swing.ListCellRenderer<Object>)kinds
 			.getRenderer();
 
-		String main = ((javax.swing.JLabel)renderer.getListCellRendererComponent(new javax.swing.JList<>(),
-			ChainKind.MAIN_CHAIN, 1, false, false)).getText();
-		String test = ((javax.swing.JLabel)renderer.getListCellRendererComponent(new javax.swing.JList<>(),
-			ChainKind.TEST_NETWORK, 0, false, false)).getText();
+		String main = ((javax.swing.JLabel)renderer.getListCellRendererComponent(
+			new javax.swing.JList<>(), ChainKind.MAIN_CHAIN, 1, false, false)).getText();
+		String test = ((javax.swing.JLabel)renderer.getListCellRendererComponent(
+			new javax.swing.JList<>(), ChainKind.TEST_NETWORK, 0, false, false)).getText();
 
-		assertFalse(ChainKind.MAIN_CHAIN.canStart(), "lethenon 0.4.0 has no anchor for the main chain");
+		assertFalse(ChainKind.MAIN_CHAIN.canStart(),
+			"lethenon 0.4.0 has no anchor for the main chain");
 		assertTrue(main.contains("1.0.0"), main);
 		assertTrue(ChainKind.TEST_NETWORK.canStart());
 		assertFalse(test.contains("1.0.0"), test);
@@ -338,7 +342,8 @@ class LethenonMinePanelBindingTest
 		assertTrue(view.isVisible(), "a genesis block is about to be mined: the view is shown");
 
 		chainFileField.setText(chainFile.toString());
-		assertFalse(view.isVisible(), "an existing chain's genesis block decides: no choice, no view");
+		assertFalse(view.isVisible(),
+			"an existing chain's genesis block decides: no choice, no view");
 	}
 
 	@Test
@@ -373,7 +378,8 @@ class LethenonMinePanelBindingTest
 			panel.getModelObject().getResultText());
 		assertArrayEquals(before, Files.readAllBytes(old), "the file stays as it was");
 		assertFalse(Files.exists(ChainFiles.legacyOf(old)), "nothing was converted");
-		assertArrayEquals(new char[password.length], password, "the password is overwritten, not only dropped");
+		assertArrayEquals(new char[password.length], password,
+			"the password is overwritten, not only dropped");
 	}
 
 	private static ChainState stateOf(final Path file) throws Exception

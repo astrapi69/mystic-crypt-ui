@@ -73,8 +73,8 @@ import io.github.astrapi69.swing.model.component.JMTextField;
  * exists its genesis block decides, and the choice is closed and the view hidden with it.
  * <p>
  * It answers in fields a child can read (#604): first one sentence in a larger font, "Block 3 is
- * yours: it paid you 1,000.00000000 LETH.", then the block's number, what it paid, the transfers
- * it carries and the pun as it went into the block. The chain, the account paid, what the replay
+ * yours: it paid you 1,000.00000000 LETH.", then the block's number, what it paid, the transfers it
+ * carries and the pun as it went into the block. The chain, the account paid, what the replay
  * checked and all the money there is are behind "Show details", closed at first.
  */
 public class LethenonMinePanel extends JPanel
@@ -121,8 +121,9 @@ public class LethenonMinePanel extends JPanel
 	/** The wallet the window signs with: the vault's, or a wallet file (#706) */
 	private final transient WalletRow walletRow;
 
-	private final JMTextArea txtAnswer = AnswerFields.answerArea(text("lethenon.mine.tooltip.answer",
-		"what your block did, in one sentence; the details are below"));
+	private final JMTextArea txtAnswer = AnswerFields
+		.answerArea(text("lethenon.mine.tooltip.answer",
+			"what your block did, in one sentence; the details are below"));
 
 	private final JMTextField txtBlock = AnswerFields.readOnly("txtBlock",
 		text("lethenon.mine.tooltip.block",
@@ -147,9 +148,9 @@ public class LethenonMinePanel extends JPanel
 
 	private final JPanel pnlDetails = new JPanel(ToolForm.newLayout());
 
-	private final JMTextField txtChain = AnswerFields.readOnly("txtChain",
-		text("lethenon.mine.tooltip.chain",
-			"the name of the chain your block belongs to; a test chain and the main chain never mix"));
+	private final JMTextField txtChain = AnswerFields.readOnly("txtChain", text(
+		"lethenon.mine.tooltip.chain",
+		"the name of the chain your block belongs to; a test chain and the main chain never mix"));
 
 	private final JMTextField txtPaidTo = AnswerFields.readOnly("txtPaidTo",
 		text("lethenon.mine.tooltip.paid.to",
@@ -207,9 +208,8 @@ public class LethenonMinePanel extends JPanel
 		super(ToolForm.newLayout());
 		this.consent = consent;
 		this.locale = locale;
-		walletRow = new WalletRow(vault, locale, txtWalletFile,
-			() -> LethenonSwing.chooseFile(this, modelObject.getWalletFile())
-				.ifPresent(txtWalletFile::setText));
+		walletRow = new WalletRow(vault, locale, txtWalletFile, () -> LethenonSwing
+			.chooseFile(this, modelObject.getWalletFile()).ifPresent(txtWalletFile::setText));
 		btnDetails = LethenonSwing.button("btnDetails",
 			AnswerFields.detailsButtonText(false, locale), event -> onDetails(),
 			text("lethenon.mine.tooltip.details",
@@ -263,17 +263,18 @@ public class LethenonMinePanel extends JPanel
 			MinedBlock mined;
 			try
 			{
-				mined = MiningSupport.mine(new MiningOrder(chainFile, walletFile,
-					modelObject.getChainKind(), modelObject.getPun(), ATTEMPTS),
+				mined = MiningSupport.mine(
+					new MiningOrder(chainFile, walletFile, modelObject.getChainKind(),
+						modelObject.getPun(), ATTEMPTS),
 					walletRow.source(password, walletFile), System.currentTimeMillis());
 			}
 			finally
 			{
 				Arrays.fill(password, '\0');
 			}
-			LethenonSettingsContribution.remember(Map.of(LethenonSettingsContribution.KEY_CHAIN_FILE,
-				chainFile.toString(), LethenonSettingsContribution.KEY_WALLET_FILE,
-				modelObject.getWalletFile().trim()));
+			LethenonSettingsContribution.remember(Map.of(
+				LethenonSettingsContribution.KEY_CHAIN_FILE, chainFile.toString(),
+				LethenonSettingsContribution.KEY_WALLET_FILE, modelObject.getWalletFile().trim()));
 			showTheAnswer(mined);
 			setResult(text("lethenon.mine.result.written",
 				"the block was mined and written to the chain file"));
@@ -371,7 +372,8 @@ public class LethenonMinePanel extends JPanel
 		showTheModel();
 		modelObject.setResultText(result);
 		lblResult.setText(" ");
-		failureView.show(Failures.of(thrown, new Refusal("lethenon.mine.failure", "No block was mined."), locale));
+		failureView.show(Failures.of(thrown,
+			new Refusal("lethenon.mine.failure", "No block was mined."), locale));
 	}
 
 	/** Puts what the model holds into the read-only fields */
@@ -396,7 +398,8 @@ public class LethenonMinePanel extends JPanel
 	{
 		String name = LethenonMessages.getString("lethenon.chain.kind." + kind.name(),
 			kind.description(), Locale.getDefault());
-		return kind.canStart() ? name
+		return kind.canStart()
+			? name
 			: name + " - " + LethenonMessages.getString("lethenon.chain.kind.later",
 				"it starts with lethenon 1.0.0", Locale.getDefault());
 	}
@@ -423,8 +426,8 @@ public class LethenonMinePanel extends JPanel
 		pnlDetails.setName("pnlDetails");
 		lblResult.setName("lblResult");
 		lblResult.setFont(lblResult.getFont().deriveFont(Font.BOLD));
-		pnlBeforeYouStart.setBorder(BorderFactory.createTitledBorder(LethenonMessages
-			.getString(LaunchChecklist.KEY_PREFIX + "title", "Before you start")));
+		pnlBeforeYouStart.setBorder(BorderFactory.createTitledBorder(
+			LethenonMessages.getString(LaunchChecklist.KEY_PREFIX + "title", "Before you start")));
 	}
 
 	private void explainTheComponents()
@@ -471,8 +474,9 @@ public class LethenonMinePanel extends JPanel
 
 	private void layOutTheAnswer()
 	{
-		add(AnswerArea.toCome(text("lethenon.mine.answer.to.come",
-			"After mining, this shows the new block and what it brought."),
+		add(AnswerArea.toCome(
+			text("lethenon.mine.answer.to.come",
+				"After mining, this shows the new block and what it brought."),
 			text("lethenon.mine.tooltip.answer.to.come",
 				"the answer appears here once a block was mined")),
 			ToolForm.WIDE + ", wmin 0");
@@ -505,8 +509,8 @@ public class LethenonMinePanel extends JPanel
 			LambdaModel.of(modelObject::getWalletFile, modelObject::setWalletFile));
 		txtPassword
 			.setPropertyModel(LambdaModel.of(modelObject::getPassword, modelObject::setPassword));
-		cbxChainKind.setPropertyModel(
-			LambdaModel.of(modelObject::getChainKind, modelObject::setChainKind));
+		cbxChainKind
+			.setPropertyModel(LambdaModel.of(modelObject::getChainKind, modelObject::setChainKind));
 		txtPun.setPropertyModel(LambdaModel.of(modelObject::getPun, modelObject::setPun));
 		AnswerFields.show(txtAnswer, modelObject::getAnswer);
 		AnswerFields.show(txtBlock, modelObject::getBlock);

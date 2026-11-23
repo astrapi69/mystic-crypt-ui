@@ -65,16 +65,13 @@ class ChecksumAndMacPanelBindingTest
 {
 
 	/** The SHA-256 of no bytes at all, the state the panel starts in */
-	private static final String SHA_256_OF_NOTHING =
-		"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855";
+	private static final String SHA_256_OF_NOTHING = "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855";
 
 	/** The SHA-256 of the ASCII string "abc" */
-	private static final String SHA_256_OF_ABC =
-		"ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad";
+	private static final String SHA_256_OF_ABC = "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad";
 
 	/** The published HmacSHA256 of the fox sentence under the key "key" */
-	private static final String HMAC_OF_THE_FOX =
-		"f7bc83f430538424b13298e6aa6fb143ef4d59a14946175997479dbc2d1a3cd8";
+	private static final String HMAC_OF_THE_FOX = "f7bc83f430538424b13298e6aa6fb143ef4d59a14946175997479dbc2d1a3cd8";
 
 	@TempDir
 	File configurationDirectory;

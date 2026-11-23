@@ -50,8 +50,8 @@ public class KemDemoMenuContribution implements PluginMenuContribution
 	public List<JMenuItem> getMenuItems()
 	{
 		JMenuItem keyExchange = new JMenuItem("Key Exchange");
-		keyExchange.addActionListener(
-			event -> openInternalFrame("Key Exchange", new KeyExchangePanel()));
+		keyExchange
+			.addActionListener(event -> openInternalFrame("Key Exchange", new KeyExchangePanel()));
 		JMenuItem kemDemo = new JMenuItem("Key Encapsulation Demo");
 		kemDemo.addActionListener(
 			event -> openInternalFrame("Key Encapsulation Demo", new KemDemoPanel()));

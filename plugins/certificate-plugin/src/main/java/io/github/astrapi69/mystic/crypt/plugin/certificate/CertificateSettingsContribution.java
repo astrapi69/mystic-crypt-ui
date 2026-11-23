@@ -30,8 +30,8 @@ import java.util.Map;
 import org.pf4j.Extension;
 
 import io.github.astrapi69.mystic.crypt.plugin.api.PluginSettingsContribution;
-import io.github.astrapi69.mystic.crypt.wizard.CertificateInfoModelToX509;
 import io.github.astrapi69.mystic.crypt.settings.PluginSettings;
+import io.github.astrapi69.mystic.crypt.wizard.CertificateInfoModelToX509;
 
 /**
  * The configuration of the certificate plugin: what the wizard is prefilled with - the name in the

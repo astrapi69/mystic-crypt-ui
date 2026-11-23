@@ -40,11 +40,11 @@ import io.github.astrapi69.swing.model.component.JMTextArea;
  * Tool panel for viewing and editing the application menu as xml.
  * <p>
  * "Export" writes the menu bar that is currently in place into the editor, "Validate" checks the
- * edited xml without touching the application, "Apply" rebuilds the live menu bar from it and "Save"
- * persists it so it is applied on the next start. Every item keeps the action it already has,
- * because the layout only refers to action ids that are harvested from the running menu; unknown
- * ids produce a disabled item instead of breaking the menu. "Reset" removes a persisted layout
- * again.
+ * edited xml without touching the application, "Apply" rebuilds the live menu bar from it and
+ * "Save" persists it so it is applied on the next start. Every item keeps the action it already
+ * has, because the layout only refers to action ids that are harvested from the running menu;
+ * unknown ids produce a disabled item instead of breaking the menu. "Reset" removes a persisted
+ * layout again.
  * <p>
  * The editor is bound to {@link MenuDesignerPanelModel}, so the xml a button works with is read
  * from the model rather than out of the widget.
@@ -80,8 +80,8 @@ public class MenuDesignerPanel extends JPanel
 		txtMenuXml.setToolTipText(MenuDesignerMessages.getString("menudesigner.tooltip.menu.xml",
 			"the xml layout of the application menu, in the schema Export produces"));
 		lblResult.setName("lblResult");
-		lblResult.setToolTipText(
-			MenuDesignerMessages.getString("menudesigner.tooltip.result", "what the last operation did"));
+		lblResult.setToolTipText(MenuDesignerMessages.getString("menudesigner.tooltip.result",
+			"what the last operation did"));
 
 		JButton btnExport = button("btnExport", "Export current menu", event -> onExport(),
 			MenuDesignerMessages.getString("menudesigner.tooltip.export.button",
@@ -116,8 +116,8 @@ public class MenuDesignerPanel extends JPanel
 	 */
 	private void bindToModel()
 	{
-		txtMenuXml.setPropertyModel(
-			LambdaModel.of(modelObject::getMenuXml, modelObject::setMenuXml));
+		txtMenuXml
+			.setPropertyModel(LambdaModel.of(modelObject::getMenuXml, modelObject::setMenuXml));
 	}
 
 	/**

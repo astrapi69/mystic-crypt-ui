@@ -33,10 +33,10 @@ import javax.swing.JComponent;
 import javax.swing.text.JTextComponent;
 
 /**
- * Measures how wide the text components of a panel really are once the panel is laid out at a
- * given size. A layout that only works at its preferred size is the defect this exists for:
- * GridBagLayout falls back to the minimum widths as soon as the container is narrower than the
- * grid wants, and a text component without an honest minimum shrinks to a few pixels there.
+ * Measures how wide the text components of a panel really are once the panel is laid out at a given
+ * size. A layout that only works at its preferred size is the defect this exists for: GridBagLayout
+ * falls back to the minimum widths as soon as the container is narrower than the grid wants, and a
+ * text component without an honest minimum shrinks to a few pixels there.
  */
 final class PanelWidths
 {

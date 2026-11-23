@@ -73,8 +73,8 @@ class WalletInputTest
 				"Type a wallet password: it seals the wallet in the vault."),
 			Arguments.of("no password at all", null, null,
 				"Type a wallet password: it seals the wallet in the vault."),
-			Arguments.of("the first a prefix of the second", Arrays.copyOf(one, one.length - 1), one,
-				"The two passwords are not the same. Type them again."));
+			Arguments.of("the first a prefix of the second", Arrays.copyOf(one, one.length - 1),
+				one, "The two passwords are not the same. Type them again."));
 	}
 
 	@ParameterizedTest(name = "{0} is refused")
@@ -83,7 +83,8 @@ class WalletInputTest
 	void refusedPasswords_areNamed(final String caseName, final char[] password,
 		final char[] repeated, final String expected)
 	{
-		assertEquals(expected, WalletInput.passwords(password, repeated).orElseThrow().text(ENGLISH));
+		assertEquals(expected,
+			WalletInput.passwords(password, repeated).orElseThrow().text(ENGLISH));
 	}
 
 	@Test
@@ -127,7 +128,8 @@ class WalletInputTest
 		List<String> swapped = swappedUntilTheChecksumFails(
 			List.of(Wallet.create().phrase().split(" ")));
 
-		assertEquals(expected, WalletInput.words(String.join(" ", swapped)).orElseThrow().text(locale));
+		assertEquals(expected,
+			WalletInput.words(String.join(" ", swapped)).orElseThrow().text(locale));
 	}
 
 	static Stream<Arguments> theChecksumSentence()
@@ -155,8 +157,9 @@ class WalletInputTest
 		List<String> words = new ArrayList<>(List.of(Wallet.create().phrase().split(" ")));
 		words.set(0, "zzz");
 
-		assertEquals("Wort 1, \"zzz\", gibt es in der Wortliste nicht. Sieh in deiner Notiz nach, "
-			+ "vielleicht hast du dich vertippt.",
+		assertEquals(
+			"Wort 1, \"zzz\", gibt es in der Wortliste nicht. Sieh in deiner Notiz nach, "
+				+ "vielleicht hast du dich vertippt.",
 			WalletInput.words(String.join(" ", words)).orElseThrow().text(Locale.GERMAN));
 	}
 
@@ -176,9 +179,8 @@ class WalletInputTest
 		List<String> words = List.of(Wallet.create().phrase().split(" "));
 		int[] positions = { 4, 11, 19 };
 
-		assertEquals(Optional.empty(), WalletInput.answers(words, positions,
-			new String[] { " " + words.get(3).toUpperCase(Locale.ROOT), words.get(10),
-				words.get(18) + " " }));
+		assertEquals(Optional.empty(), WalletInput.answers(words, positions, new String[] {
+				" " + words.get(3).toUpperCase(Locale.ROOT), words.get(10), words.get(18) + " " }));
 	}
 
 	static Stream<Arguments> refusedAnswers()
@@ -202,8 +204,8 @@ class WalletInputTest
 	void wrongAnswers_areNamed(final String caseName, final List<String> words,
 		final String[] answers, final String expected)
 	{
-		assertEquals(expected,
-			WalletInput.answers(words, new int[] { 4, 11, 19 }, answers).orElseThrow().text(ENGLISH));
+		assertEquals(expected, WalletInput.answers(words, new int[] { 4, 11, 19 }, answers)
+			.orElseThrow().text(ENGLISH));
 	}
 
 	static Stream<Arguments> numberedPhrases()

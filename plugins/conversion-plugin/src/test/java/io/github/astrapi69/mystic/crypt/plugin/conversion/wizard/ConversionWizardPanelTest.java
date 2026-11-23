@@ -95,8 +95,8 @@ class ConversionWizardPanelTest
 		// Source: detect the file directly through the model, the way SourcePanel's own document
 		// listener would once the user types a path
 		model.setSourceFilePath(source.getAbsolutePath());
-		model.setFileKind(io.github.astrapi69.mystic.crypt.plugin.conversion.ConversionSupport
-			.kindOf(source));
+		model.setFileKind(
+			io.github.astrapi69.mystic.crypt.plugin.conversion.ConversionSupport.kindOf(source));
 
 		wizardPanel.getNavigationPanel().getBtnNext().doClick();
 		assertEquals(ConversionWizardState.TARGET, wizardPanel.getStateMachine().getCurrentState());

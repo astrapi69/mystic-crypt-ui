@@ -25,7 +25,6 @@
 package io.github.astrapi69.mystic.crypt.plugin.lethenon;
 
 import static io.github.astrapi69.mystic.crypt.plugin.lethenon.Windows.textOf;
-
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -118,8 +117,9 @@ class OverviewBalanceTest
 		MysticCryptEntryModelBean entry = access.stored.get(0);
 		assertEquals(wallet.spendKey(SignatureSuite.ML_DSA_65).toString(),
 			VaultEntryProperties.valuesOf(entry).get(WalletEntry.ACCOUNT_ML_DSA));
-		assertFalse(VaultEntryProperties.protectedNamesOf(entry)
-			.contains(WalletEntry.ACCOUNT_ML_DSA), "the key is public, like the address");
+		assertFalse(
+			VaultEntryProperties.protectedNamesOf(entry).contains(WalletEntry.ACCOUNT_ML_DSA),
+			"the key is public, like the address");
 		assertEquals(wallet.spendKey(SignatureSuite.ML_DSA_65).toString(),
 			vault.wallets().get(0).mlDsaAccount());
 	}
@@ -210,8 +210,10 @@ class OverviewBalanceTest
 		panel.onCheckIncomingConfirmed();
 
 		assertEquals(WalletView.OVERVIEW, panel.getModelObject().getView());
-		assertEquals("exactly 3.00000000 LETH; besides, 5.00 LETH came to your address in 1 payment "
-			+ "and is not yet taken over", textOf(panel, "txtBalanceExact"));
+		assertEquals(
+			"exactly 3.00000000 LETH; besides, 5.00 LETH came to your address in 1 payment "
+				+ "and is not yet taken over",
+			textOf(panel, "txtBalanceExact"));
 	}
 
 	@Test

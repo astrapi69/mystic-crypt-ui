@@ -63,8 +63,8 @@ public class PasswordHashMenuContribution implements PluginMenuContribution
 	public List<JMenuItem> getMenuItems()
 	{
 		JMenuItem passwordHashing = new JMenuItem("Password Hashing");
-		passwordHashing
-			.addActionListener(event -> openInternalFrame("Password Hashing", new PasswordHashPanel()));
+		passwordHashing.addActionListener(
+			event -> openInternalFrame("Password Hashing", new PasswordHashPanel()));
 		return List.of(passwordHashing);
 	}
 

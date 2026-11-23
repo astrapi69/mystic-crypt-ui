@@ -63,9 +63,9 @@ Naming rules that matter beyond taste:
 - `plugin.id` in `plugin.properties`, the `PLUGIN_ID` constant in the settings contribution, and the
   zip file name all carry the same `{name}-plugin` string.
 
-The license header of every Java file is the MIT header used across the repository; copy it from an
-existing plugin file. See the formatting trap in section 16: the root Spotless and license tasks do
-not reach into `plugins/`.
+The license header of every Java file is the MIT header used across the repository. The plugin build
+checks it and the formatting with the host's Spotless rules (section 16), and `spotlessApply` in the
+plugin build writes both.
 
 ---
 
@@ -1224,12 +1224,17 @@ command duplicates a name the library later takes, the CLI breaks on the next de
 `gradle.properties`, because that is what `make publish-local` puts into the local Maven cache. After
 a release bumps the version, the plugin builds fail to resolve until they follow.
 
-### Spotless and the license task do not reach into plugins
+### Every plugin build formats with the host's Spotless rules
 
-The plugin builds are standalone (their own `settings.gradle`, and only `id 'java'` in
-`build.gradle`), and the root `settings.gradle` does not include them. `make spotless-java` and
-`make license-format` run `./gradlew` in the root build, so they format the host sources only. Keep
-plugin sources consistent by copying the header and the style from an existing plugin file.
+The plugin builds are standalone (their own `settings.gradle`), and the root `settings.gradle` does not
+include them, so `make spotless-java` formats the host sources only. Each plugin build applies the
+Spotless plugin and `gradle/plugin-formatting.gradle`, which uses the host's formatter, import order and
+MIT license header (#666). The plugin targets of the Makefile run `spotlessCheck` with the tests
+(`PLUGIN_TESTS`), so `make plugin-<name>`, `make plugins` and CI fail on a plugin source the host's rules
+would reformat or that lacks the header. To fix one, run `./gradlew -p plugins/<name>-plugin
+spotlessApply`. A new plugin build takes both lines from an existing one:
+`alias(libs.plugins.spotless.plugin.gradle)` in `plugins { }` and
+`apply from: '../../gradle/plugin-formatting.gradle'`.
 
 ### One version string in five places
 
@@ -1244,7 +1249,8 @@ skips itself when the zip path does not exist, so the suite still reads green).
 ## 17. Checklist for the pull request
 
 - [ ] `plugins/{name}-plugin/` with `settings.gradle`, `build.gradle` (JDK 25 toolchain, all
-      dependencies `compileOnly`, the pf4j `annotationProcessor` line, `pluginZip`).
+      dependencies `compileOnly`, the pf4j `annotationProcessor` line, `pluginZip`, and the Spotless
+      plugin with `gradle/plugin-formatting.gradle`, section 16).
 - [ ] `plugin.properties` with `plugin.id`, `plugin.class`, `plugin.version`, `plugin.provider`,
       `plugin.description`.
 - [ ] The `Plugin` subclass with the `(PluginWrapper)` constructor.

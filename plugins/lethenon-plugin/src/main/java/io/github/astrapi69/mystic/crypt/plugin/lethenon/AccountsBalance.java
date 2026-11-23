@@ -40,8 +40,7 @@ import io.github.astrapi69.lethenon.Amount;
  *            when the last block of the chain the balance was read from was mined: the balance is
  *            as of then (#831)
  */
-record AccountsBalance(Amount ed25519, Amount mlDsa, Instant lastBlock)
-{
+record AccountsBalance(Amount ed25519, Amount mlDsa, Instant lastBlock) {
 
 	/**
 	 * @return what both accounts hold together; one-time payments are not in it

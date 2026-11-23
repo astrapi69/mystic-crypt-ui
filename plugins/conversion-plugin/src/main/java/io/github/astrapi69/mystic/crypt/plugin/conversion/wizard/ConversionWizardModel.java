@@ -34,15 +34,15 @@ import io.github.astrapi69.mystic.crypt.plugin.conversion.ConversionSupport;
  * This is the wizard's single source of truth - every step panel reads and writes it rather than
  * keeping its own copy, so the wizard's state is readable at any moment from outside the panels too
  * (tests included). It replaces the old {@code ConversionPanelModel}, with one addition: the chosen
- * {@link ConversionOperation}, which the old single-tool panel did not need since each of its buttons
- * already was the operation.
+ * {@link ConversionOperation}, which the old single-tool panel did not need since each of its
+ * buttons already was the operation.
  */
 public class ConversionWizardModel
 {
 
 	/**
-	 * What a label carries while there is nothing to say - a blank keeps the row at its height where
-	 * an empty string would collapse it
+	 * What a label carries while there is nothing to say - a blank keeps the row at its height
+	 * where an empty string would collapse it
 	 */
 	public static final String NOTHING_TO_SAY = " ";
 

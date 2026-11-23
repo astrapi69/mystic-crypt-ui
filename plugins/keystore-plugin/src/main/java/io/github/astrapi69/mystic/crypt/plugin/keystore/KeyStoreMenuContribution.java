@@ -68,8 +68,8 @@ public class KeyStoreMenuContribution implements PluginMenuContribution
 	public List<JMenuItem> getMenuItems()
 	{
 		JMenuItem manageKeyStore = new JMenuItem("Manage Key Store");
-		manageKeyStore.addActionListener(
-			event -> openInternalFrame("Manage Key Store", new KeyStorePanel()));
+		manageKeyStore
+			.addActionListener(event -> openInternalFrame("Manage Key Store", new KeyStorePanel()));
 		JMenuItem createKeyStore = new JMenuItem("Create Key Store...");
 		createKeyStore.addActionListener(event -> openCreateWizard());
 		return List.of(manageKeyStore, createKeyStore);
@@ -106,10 +106,10 @@ public class KeyStoreMenuContribution implements PluginMenuContribution
 
 	/**
 	 * Builds the wizard panel with the application-specific behavior a plain
-	 * {@link CreateKeyStoreWizardPanel} does not have on its own: refreshing the Review step as it is
-	 * reached, creating the store on Finish and closing the dialog on Cancel. Defined as an instance
-	 * method (not static, unlike the conversion wizard's otherwise identical helper) since a
-	 * successful Finish hands off to {@link #openInternalFrame(String, Component)}.
+	 * {@link CreateKeyStoreWizardPanel} does not have on its own: refreshing the Review step as it
+	 * is reached, creating the store on Finish and closing the dialog on Cancel. Defined as an
+	 * instance method (not static, unlike the conversion wizard's otherwise identical helper) since
+	 * a successful Finish hands off to {@link #openInternalFrame(String, Component)}.
 	 *
 	 * @param dialog
 	 *            the wizard dialog, closed by Cancel and by a successful Finish
@@ -117,7 +117,8 @@ public class KeyStoreMenuContribution implements PluginMenuContribution
 	 *            the wizard's domain model
 	 * @return the wizard panel
 	 */
-	private CreateKeyStoreWizardPanel newWizardPanel(JDialog dialog, CreateKeyStoreWizardModel model)
+	private CreateKeyStoreWizardPanel newWizardPanel(JDialog dialog,
+		CreateKeyStoreWizardModel model)
 	{
 		return new CreateKeyStoreWizardPanel(BaseModel.of(model))
 		{
@@ -150,8 +151,8 @@ public class KeyStoreMenuContribution implements PluginMenuContribution
 	}
 
 	/**
-	 * Sizes the dialog to what the wizard actually needs and shows it. The window is opened once and
-	 * must not resize itself while the user walks through the wizard - see
+	 * Sizes the dialog to what the wizard actually needs and shows it. The window is opened once
+	 * and must not resize itself while the user walks through the wizard - see
 	 * {@code CertificateMenuContribution.openWizard} for why {@code pack()} runs twice
 	 *
 	 * @param dialog
@@ -176,8 +177,8 @@ public class KeyStoreMenuContribution implements PluginMenuContribution
 		dialog.pack();
 		dialog.setSize(
 			WizardWindowSize.on(dialog.getSize(), Toolkit.getDefaultToolkit().getScreenSize()));
-		dialog.setMinimumSize(new Dimension(WizardWindowSize.MINIMUM_WIDTH / 2,
-			WizardWindowSize.MINIMUM_HEIGHT / 2));
+		dialog.setMinimumSize(
+			new Dimension(WizardWindowSize.MINIMUM_WIDTH / 2, WizardWindowSize.MINIMUM_HEIGHT / 2));
 		dialog.setLocationRelativeTo(frame);
 		dialog.setVisible(true);
 	}
@@ -214,14 +215,17 @@ public class KeyStoreMenuContribution implements PluginMenuContribution
 	{
 		String filePath = blankToPlaceholder(model.getKeyStoreFilePath());
 		String type = model.getKeystoreType() == null ? "-" : model.getKeystoreType().toString();
-		String entry = model.isAddKeyPairNow() ? keyPairSummary(model) : "no key pair - an empty store"
-			+ " will be created";
+		String entry = model.isAddKeyPairNow()
+			? keyPairSummary(model)
+			: "no key pair - an empty store" + " will be created";
 		return String.join("\n", "File: " + filePath, "Type: " + type, entry);
 	}
 
 	private static String keyPairSummary(CreateKeyStoreWizardModel model)
 	{
-		String algorithm = model.getKeyAlgorithm() == null ? "-" : model.getKeyAlgorithm().toString();
+		String algorithm = model.getKeyAlgorithm() == null
+			? "-"
+			: model.getKeyAlgorithm().toString();
 		return String.join("\n", "Alias: " + blankToPlaceholder(model.getAlias()),
 			"Distinguished name: " + blankToPlaceholder(model.getDistinguishedName()),
 			"Key algorithm: " + algorithm);

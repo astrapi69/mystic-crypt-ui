@@ -48,8 +48,8 @@ import io.github.astrapi69.mystic.crypt.settings.PluginSettings;
  * size the generated key pair has, and the two key areas carry what they show into the model.
  * <p>
  * Where a button is pressed the panel is built the way the application composes it - inside a
- * {@link GenerateKeysPanel} - because its own buttons are callbacks the surrounding panel fills
- * in, and the proof is the key that comes out, not a setter that was called.
+ * {@link GenerateKeysPanel} - because its own buttons are callbacks the surrounding panel fills in,
+ * and the proof is the key that comes out, not a setter that was called.
  */
 @DisplayName("The key generation panel reads what it generates from its model")
 class CryptographyPanelBindingTest

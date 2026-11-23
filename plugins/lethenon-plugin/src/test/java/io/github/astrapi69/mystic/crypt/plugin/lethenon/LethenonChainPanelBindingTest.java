@@ -26,7 +26,6 @@ package io.github.astrapi69.mystic.crypt.plugin.lethenon;
 
 import static io.github.astrapi69.mystic.crypt.plugin.lethenon.Windows.component;
 import static io.github.astrapi69.mystic.crypt.plugin.lethenon.Windows.textOf;
-
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -35,7 +34,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.security.KeyPair;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -50,13 +48,9 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import io.github.astrapi69.lethenon.BlockBody;
-import io.github.astrapi69.lethenon.Blocks;
-import io.github.astrapi69.lethenon.Bytes;
 import io.github.astrapi69.lethenon.CanonicalEncoding;
 import io.github.astrapi69.lethenon.Chain;
 import io.github.astrapi69.lethenon.Genesis;
-import io.github.astrapi69.lethenon.SignatureSuite;
-import io.github.astrapi69.lethenon.TransactionSigner;
 import io.github.astrapi69.mystic.crypt.settings.PluginSettings;
 
 /**
@@ -110,14 +104,16 @@ class LethenonChainPanelBindingTest
 
 		panel.onVerify();
 
-		assertEquals("Your chain is in order: every block, transfer and signature in it checked out.",
+		assertEquals(
+			"Your chain is in order: every block, transfer and signature in it checked out.",
 			textOf(panel, "txtAnswer"));
 		assertEquals("1 block", textOf(panel, "txtBlocks"));
 		assertEquals("none", textOf(panel, "txtTransfers"));
 		assertEquals("none", textOf(panel, "txtSignatures"));
 		assertTrue(textOf(panel, "txtSupply").endsWith(" LETH"), textOf(panel, "txtSupply"));
 		assertTrue(textOf(panel, "txtSummary").contains("replayed 1 blocks"),
-			"the chain library's own sentence is behind the details: " + textOf(panel, "txtSummary"));
+			"the chain library's own sentence is behind the details: "
+				+ textOf(panel, "txtSummary"));
 		assertEquals("the chain was accepted", panel.getModelObject().getResultText());
 		assertTrue(Windows.showsItsAnswer(panel),
 			"the answer stays hidden behind the sentence in its place (#820)");
@@ -173,8 +169,8 @@ class LethenonChainPanelBindingTest
 	void verifying_anOldChainFile_asksFirst_andGoesOnOnlyWhenThePersonAgrees() throws Exception
 	{
 		Path old = new File(chainDirectory, "old.lethenon").toPath();
-		byte[] before = CanonicalEncoding.encodeChain(List.of(Genesis.candidate(Chain.TEST_IDENTIFIER,
-			"written by 0.5.0", 1_759_000_000_000L)));
+		byte[] before = CanonicalEncoding.encodeChain(List
+			.of(Genesis.candidate(Chain.TEST_IDENTIFIER, "written by 0.5.0", 1_759_000_000_000L)));
 		Files.write(old, before);
 		List<Path> asked = new ArrayList<>();
 		boolean[] answer = { false };

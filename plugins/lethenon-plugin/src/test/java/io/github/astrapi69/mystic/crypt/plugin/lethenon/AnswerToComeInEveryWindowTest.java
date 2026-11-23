@@ -38,10 +38,10 @@ import javax.swing.JPanel;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.junit.jupiter.api.io.TempDir;
 
 import io.github.astrapi69.mystic.crypt.settings.PluginSettings;
 
@@ -78,8 +78,7 @@ class AnswerToComeInEveryWindowTest
 	 * @param toCome
 	 *            the sentence in the place of the answer, in English
 	 */
-	record Window(String window, Supplier<JPanel> panel, String toCome)
-	{
+	record Window(String window, Supplier<JPanel> panel, String toCome) {
 		@Override
 		public String toString()
 		{

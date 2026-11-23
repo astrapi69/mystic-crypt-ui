@@ -34,9 +34,9 @@ import org.bouncycastle.util.io.pem.PemObject;
 import org.bouncycastle.util.io.pem.PemWriter;
 
 import io.github.astrapi69.crypt.api.key.PemType;
+import io.github.astrapi69.crypt.data.key.reader.AnyKeyFileReader;
 import io.github.astrapi69.crypt.data.key.reader.PemObjectReader;
 import io.github.astrapi69.crypt.data.key.reader.PrivateKeyReader;
-import io.github.astrapi69.crypt.data.key.reader.AnyKeyFileReader;
 
 /**
  * Converting a key or certificate file between the shapes it can have, without any user interface.
@@ -49,10 +49,14 @@ import io.github.astrapi69.crypt.data.key.reader.AnyKeyFileReader;
 public final class ConversionSupport
 {
 
-	/** The header a PKCS#8 PEM carries, which is what a key without a traditional form falls back to. */
+	/**
+	 * The header a PKCS#8 PEM carries, which is what a key without a traditional form falls back
+	 * to.
+	 */
 	private static final String PKCS8_PEM_HEADER = "-----BEGIN PRIVATE KEY-----";
 
-	/** What was found in a file: its shape, its type, and what to call that in a sentence.
+	/**
+	 * What was found in a file: its shape, its type, and what to call that in a sentence.
 	 *
 	 * @param pem
 	 *            whether the file is PEM rather than DER
@@ -67,8 +71,7 @@ public final class ConversionSupport
 	/** The end of any armour header line */
 	private static final String ARMOUR_SUFFIX = "-----";
 
-	public record FileKind(boolean pem, PemType pemType, String description)
-	{
+	public record FileKind(boolean pem, PemType pemType, String description) {
 	}
 
 	private ConversionSupport()
@@ -160,8 +163,8 @@ public final class ConversionSupport
 	 * none.
 	 *
 	 * Asked BEFORE the PEM question on purpose. OpenPGP armour and PEM share the
-	 * {@code -----BEGIN ...-----} shape, so a reader that assumes PEM gets as far as base64-decoding
-	 * the body and fails there: a real key measured on 2026-09-11 came back as
+	 * {@code -----BEGIN ...-----} shape, so a reader that assumes PEM gets as far as
+	 * base64-decoding the body and fails there: a real key measured on 2026-09-11 came back as
 	 * "malformed PEM data: unable to decode base64 string", which tells the person holding an
 	 * ordinary GnuPG export nothing about what they are holding.
 	 *
@@ -396,15 +399,17 @@ public final class ConversionSupport
 	public static List<PemType> knownPemTypes()
 	{
 		return List.of(PemType.PRIVATE_KEY, PemType.RSA_PRIVATE_KEY, PemType.EC_PRIVATE_KEY,
-			PemType.DSA_PRIVATE_KEY, PemType.PUBLIC_KEY, PemType.RSA_PUBLIC_KEY, PemType.CERTIFICATE,
-			PemType.CERTIFICATE_REQUEST, PemType.X509_CRL, PemType.PKCS7_KEY);
+			PemType.DSA_PRIVATE_KEY, PemType.PUBLIC_KEY, PemType.RSA_PUBLIC_KEY,
+			PemType.CERTIFICATE, PemType.CERTIFICATE_REQUEST, PemType.X509_CRL, PemType.PKCS7_KEY);
 	}
 
 	private static void writePem(final File target, final String header, final byte[] content)
 		throws Exception
 	{
-		try (java.io.Writer writer = Files.newBufferedWriter(requireNewFile(target).toPath(),
-			StandardCharsets.US_ASCII); PemWriter pemWriter = new PemWriter(writer))
+		try (
+			java.io.Writer writer = Files.newBufferedWriter(requireNewFile(target).toPath(),
+				StandardCharsets.US_ASCII);
+			PemWriter pemWriter = new PemWriter(writer))
 		{
 			pemWriter.writeObject(new PemObject(header, content));
 		}

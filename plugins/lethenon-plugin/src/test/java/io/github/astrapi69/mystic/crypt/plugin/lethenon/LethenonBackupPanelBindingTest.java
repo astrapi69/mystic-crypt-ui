@@ -25,7 +25,6 @@
 package io.github.astrapi69.mystic.crypt.plugin.lethenon;
 
 import static io.github.astrapi69.mystic.crypt.plugin.lethenon.Windows.textOf;
-
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -63,10 +62,10 @@ import io.github.astrapi69.mystic.crypt.panel.dbtree.VaultEntryProperties;
 
 /**
  * The backup assistant of the wallet window (#690), read through its model and the names of its
- * components: step 1 the words, step 2 three of them asked back with the choice to store them,
- * step 3 the sealed file to a place the person picks, the check of all 24 words, and the backup on
- * request through the wallet password. What the person typed and the words are overwritten when
- * the assistant ends or the vault locks.
+ * components: step 1 the words, step 2 three of them asked back with the choice to store them, step
+ * 3 the sealed file to a place the person picks, the check of all 24 words, and the backup on
+ * request through the wallet password. What the person typed and the words are overwritten when the
+ * assistant ends or the vault locks.
  */
 class LethenonBackupPanelBindingTest
 {
@@ -158,8 +157,8 @@ class LethenonBackupPanelBindingTest
 		assertEquals(BackupStep.QUESTION, panel.getModelObject().getStep());
 		int[] positions = panel.getModelObject().getPositions();
 		assertEquals(3, positions.length);
-		assertTrue(positions[0] < positions[1] && positions[1] < positions[2], List.of(positions[0],
-			positions[1], positions[2]).toString());
+		assertTrue(positions[0] < positions[1] && positions[1] < positions[2],
+			List.of(positions[0], positions[1], positions[2]).toString());
 		assertEquals("Word " + positions[0], textOf(panel, "lblAnswer1"));
 		assertTrue(textOf(panel, "lblWord1").isEmpty(), "the words are off the screen");
 
@@ -196,10 +195,14 @@ class LethenonBackupPanelBindingTest
 		panel.onUnsealConfirmed();
 
 		List<String> texts = textsAnywhereIn(panel);
-		assertTrue(texts.stream().anyMatch(
-			text -> text.contains("The wallet password shows them again at any time")), texts.toString());
-		assertFalse(texts.stream().anyMatch(text -> text.contains("shown only now")
-			|| text.contains("stored nowhere")), texts.toString());
+		assertTrue(
+			texts.stream().anyMatch(
+				text -> text.contains("The wallet password shows them again at any time")),
+			texts.toString());
+		assertFalse(
+			texts.stream().anyMatch(
+				text -> text.contains("shown only now") || text.contains("stored nowhere")),
+			texts.toString());
 	}
 
 	@Test
@@ -211,11 +214,15 @@ class LethenonBackupPanelBindingTest
 		panel.startWithNewWallet(vault.create(WalletNetwork.TESTNET, ThrowawayPasswords.next()));
 
 		List<String> texts = textsAnywhereIn(panel);
-		assertTrue(texts.stream().anyMatch(
-			text -> text.contains("They are not stored as words, unless you choose so in step 2.")),
+		assertTrue(
+			texts.stream()
+				.anyMatch(text -> text
+					.contains("They are not stored as words, unless you choose so in step 2.")),
 			texts.toString());
-		assertFalse(texts.stream().anyMatch(text -> text.contains("shown only now")
-			|| text.contains("stored nowhere")), texts.toString());
+		assertFalse(
+			texts.stream().anyMatch(
+				text -> text.contains("shown only now") || text.contains("stored nowhere")),
+			texts.toString());
 	}
 
 	@Test
@@ -562,7 +569,8 @@ class LethenonBackupPanelBindingTest
 
 		Windows.leave(panel, "txtCheckWords3");
 
-		assertEquals("Word 3, \"zzz\", is not in the word list. Check your note for a typing error.",
+		assertEquals(
+			"Word 3, \"zzz\", is not in the word list. Check your note for a typing error.",
 			textOf(panel, "txtBackupRefusal"));
 		assertEquals(BackupState.NOT_CHECKED, vault.backupStateOf(id, LocalDate.now()));
 	}
@@ -579,7 +587,8 @@ class LethenonBackupPanelBindingTest
 
 		panel.onCheckConfirmed();
 
-		assertEquals("Word 3, \"zzz\", is not in the word list. Check your note for a typing error.",
+		assertEquals(
+			"Word 3, \"zzz\", is not in the word list. Check your note for a typing error.",
 			textOf(panel, "txtBackupRefusal"));
 		assertEquals(BackupState.NOT_CHECKED, vault.backupStateOf(id, LocalDate.now()));
 	}

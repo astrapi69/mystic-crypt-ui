@@ -42,11 +42,11 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import io.github.astrapi69.lethenon.Amount;
-import io.github.astrapi69.lethenon.Emission;
 import io.github.astrapi69.lethenon.BlockBody;
 import io.github.astrapi69.lethenon.Bytes;
 import io.github.astrapi69.lethenon.CanonicalEncoding;
 import io.github.astrapi69.lethenon.ChainRejected;
+import io.github.astrapi69.lethenon.Emission;
 import io.github.astrapi69.lethenon.SignatureSuite;
 import io.github.astrapi69.lethenon.TransactionSigner;
 import io.github.astrapi69.lethenon.Wallet;

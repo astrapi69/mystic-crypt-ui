@@ -162,8 +162,8 @@ public final class SecretSharingSupport
 		}
 		if (parsed.size() < threshold)
 		{
-			throw new IllegalArgumentException("this needs " + threshold + " shares and there are "
-				+ parsed.size());
+			throw new IllegalArgumentException(
+				"this needs " + threshold + " shares and there are " + parsed.size());
 		}
 		return ShamirSecretSharingFactory.combine(parsed);
 	}
@@ -239,19 +239,23 @@ public final class SecretSharingSupport
 		String[] parts = share.split("\\$");
 		if (parts.length != 6 || !PREFIX.equals(parts[0]))
 		{
-			throw new IllegalArgumentException("'" + share + "' is not a share of this application");
+			throw new IllegalArgumentException(
+				"'" + share + "' is not a share of this application");
 		}
 		String body = String.join("$", parts[0], parts[1], parts[2], parts[3], parts[4]);
 		if (!checkValue(body).equals(parts[5]))
 		{
-			throw new IllegalArgumentException("share " + parts[3] + " is damaged - its check value "
-				+ "does not fit, so something was mistyped or lost while copying it");
+			throw new IllegalArgumentException(
+				"share " + parts[3] + " is damaged - its check value "
+					+ "does not fit, so something was mistyped or lost while copying it");
 		}
 		return parts;
 	}
 
-	/** A short value over the share, so a mistyped character is noticed rather than rebuilt into
-	 * a wrong secret */
+	/**
+	 * A short value over the share, so a mistyped character is noticed rather than rebuilt into a
+	 * wrong secret
+	 */
 	private static String checkValue(final String body)
 	{
 		try

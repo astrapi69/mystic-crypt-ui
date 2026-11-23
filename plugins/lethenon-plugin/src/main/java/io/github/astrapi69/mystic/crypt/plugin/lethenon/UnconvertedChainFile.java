@@ -30,8 +30,8 @@ import java.nio.file.Path;
 
 /**
  * A chain file of lethenon 0.5.0 or earlier that verifies and has not been converted into a
- * database: the plugin reads it only after the person agreed to the conversion (#581). A window that
- * reaches this has not asked first; the file is then left as it was.
+ * database: the plugin reads it only after the person agreed to the conversion (#581). A window
+ * that reaches this has not asked first; the file is then left as it was.
  */
 final class UnconvertedChainFile extends IOException
 {

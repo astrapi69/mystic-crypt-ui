@@ -84,8 +84,8 @@ class TakeOverIncomingTest
 		vault.restore(wallet.phrase().toCharArray(), password.clone(), WalletNetwork.TESTNET);
 		chainFile = LethenonFixtures.written(directory.resolve("chain.lethenon"),
 			LethenonFixtures.aChainPayingTheWallet(payer, wallet));
-		LethenonSettingsContribution.remember(
-			Map.of(LethenonSettingsContribution.KEY_CHAIN_FILE, chainFile.toString()));
+		LethenonSettingsContribution
+			.remember(Map.of(LethenonSettingsContribution.KEY_CHAIN_FILE, chainFile.toString()));
 	}
 
 	@AfterEach
@@ -149,8 +149,9 @@ class TakeOverIncomingTest
 
 		assertEquals(1, new ChainFile(chainFile).readPending().size(), "the sweep was written");
 		assertEquals(WalletView.OVERVIEW, panel.getModelObject().getView());
-		assertEquals("Swept: 5.00000000 LETH from 1 payment onto your account. It waits next to the "
-			+ "chain file until a miner that reads this file mines a block.",
+		assertEquals(
+			"Swept: 5.00000000 LETH from 1 payment onto your account. It waits next to the "
+				+ "chain file until a miner that reads this file mines a block.",
 			textOf(panel, "txtNotice"));
 		assertEquals("exactly 3.00000000 LETH, without unchecked incoming payments",
 			textOf(panel, "txtBalanceExact"));

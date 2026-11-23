@@ -24,8 +24,8 @@
  */
 package io.github.astrapi69.mystic.crypt.plugin.conversion.wizard;
 
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -117,7 +117,8 @@ class SourcePanelTest
 		ConversionWizardModel model = new ConversionWizardModel();
 		SourcePanel panel = newPanel(model);
 
-		textField(panel, "txtSourceFile").setText(new File(directory, "missing.pem").getAbsolutePath());
+		textField(panel, "txtSourceFile")
+			.setText(new File(directory, "missing.pem").getAbsolutePath());
 
 		assertNull(model.getFileKind(), "a file that cannot be read has no detected kind");
 		assertTrue(model.getWhatItHolds().startsWith("not read:"),
@@ -157,7 +158,8 @@ class SourcePanelTest
 		SourcePanel panel = newPanel(new ConversionWizardModel());
 
 		assertHasTooltip((JComponent)componentNamed(panel, "txtSourceFile"), "source file");
-		assertHasTooltip((JComponent)componentNamed(panel, "btnBrowseSource"), "browse source button");
+		assertHasTooltip((JComponent)componentNamed(panel, "btnBrowseSource"),
+			"browse source button");
 		assertHasTooltip((JComponent)componentNamed(panel, "lblWhatItHolds"), "what it holds");
 	}
 
@@ -196,6 +198,7 @@ class SourcePanelTest
 		}
 		return null;
 	}
+
 	@Test
 	void theStepSaysWhatItIsForBeforeTheFirstField() throws Exception
 	{

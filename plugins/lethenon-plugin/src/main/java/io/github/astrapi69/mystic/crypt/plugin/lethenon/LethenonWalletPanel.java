@@ -29,8 +29,8 @@ import java.awt.Component;
 import java.awt.Font;
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Path;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
@@ -44,7 +44,6 @@ import java.util.UUID;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
-import javax.swing.BorderFactory;
 import javax.swing.ComboBoxModel;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.DefaultListCellRenderer;
@@ -55,7 +54,6 @@ import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JTextArea;
 import javax.swing.SwingUtilities;
-import javax.swing.UIManager;
 
 import io.github.astrapi69.lethenon.Amount;
 import io.github.astrapi69.model.LambdaModel;
@@ -202,15 +200,14 @@ public class LethenonWalletPanel extends JPanel
 	LethenonWalletPanel(final LethenonVault vault, final Locale locale, final Executor background,
 		final Executor ui)
 	{
-		super(new MigLayout("fillx, insets 0, gap 0, wrap 1", "[grow,fill]",
-			"[][]push"));
+		super(new MigLayout("fillx, insets 0, gap 0, wrap 1", "[grow,fill]", "[][]push"));
 		this.vault = vault;
 		this.background = background;
 		this.ui = ui;
 		this.locale = locale;
 		backup = new LethenonBackupPanel(vault, locale, this::refresh);
-		txtWalletTitle = AnswerFields.readOnly("txtWalletTitle", text("lethenon.wallet.tooltip.title",
-			"the name of this wallet's entry in the vault"));
+		txtWalletTitle = AnswerFields.readOnly("txtWalletTitle",
+			text("lethenon.wallet.tooltip.title", "the name of this wallet's entry in the vault"));
 		txtNetwork = AnswerFields.readOnly("txtNetwork", text("lethenon.wallet.tooltip.network",
 			"the network this wallet is meant for, as recorded on its entry"));
 		txtAddress.setToolTipText(text("lethenon.wallet.tooltip.address",
@@ -349,9 +346,8 @@ public class LethenonWalletPanel extends JPanel
 	/** Restores a wallet from the typed words into the vault */
 	void onRestoreConfirmed()
 	{
-		Optional<Refusal> refused = WalletInput.words(modelObject.getWords())
-			.or(() -> WalletInput.passwords(modelObject.getPassword(),
-				modelObject.getPasswordRepeated()));
+		Optional<Refusal> refused = WalletInput.words(modelObject.getWords()).or(() -> WalletInput
+			.passwords(modelObject.getPassword(), modelObject.getPasswordRepeated()));
 		if (refused.isPresent())
 		{
 			refuse(refused.get().text(locale));
@@ -363,7 +359,8 @@ public class LethenonWalletPanel extends JPanel
 				modelObject.getPassword(), modelObject.getNetwork());
 			clearWords();
 			refresh(restored);
-			notice(text("lethenon.wallet.notice.restored", "The wallet is restored into the vault."));
+			notice(
+				text("lethenon.wallet.notice.restored", "The wallet is restored into the vault."));
 		}
 		catch (final VaultAccessRefusedException notWritable)
 		{
@@ -479,7 +476,8 @@ public class LethenonWalletPanel extends JPanel
 	 */
 	private void showTheBackupNotice(final VaultWallet chosen)
 	{
-		BackupState state = chosen == null ? BackupState.CURRENT
+		BackupState state = chosen == null
+			? BackupState.CURRENT
 			: vault.backupStateOf(chosen.id(), LocalDate.now());
 		String notice = switch (state)
 		{
@@ -525,10 +523,10 @@ public class LethenonWalletPanel extends JPanel
 			}
 			catch (final IOException | RuntimeException unreadable)
 			{
-				ui.execute(() -> showTheBalance(LethenonMessages.format(
-					"lethenon.wallet.balance.unreadable",
-					"The chain file {0} could not be read: {1}", locale,
-					chainFile.get().toString(), unreadable.getMessage())));
+				ui.execute(() -> showTheBalance(
+					LethenonMessages.format("lethenon.wallet.balance.unreadable",
+						"The chain file {0} could not be read: {1}", locale,
+						chainFile.get().toString(), unreadable.getMessage())));
 			}
 		});
 	}
@@ -569,8 +567,8 @@ public class LethenonWalletPanel extends JPanel
 	}
 
 	/**
-	 * Whether the check found payments to the address that are not yet taken over, on a chain
-	 * whose balance could be read
+	 * Whether the check found payments to the address that are not yet taken over, on a chain whose
+	 * balance could be read
 	 */
 	private boolean paymentsToTakeOver()
 	{
@@ -677,9 +675,10 @@ public class LethenonWalletPanel extends JPanel
 			}
 			catch (final IOException | RuntimeException unreadable)
 			{
-				ui.execute(() -> refuse(LethenonMessages.format("lethenon.wallet.balance.unreadable",
-					"The chain file {0} could not be read: {1}", locale,
-					chainFile.get().toString(), unreadable.getMessage())));
+				ui.execute(
+					() -> refuse(LethenonMessages.format("lethenon.wallet.balance.unreadable",
+						"The chain file {0} could not be read: {1}", locale,
+						chainFile.get().toString(), unreadable.getMessage())));
 			}
 		});
 	}
@@ -790,9 +789,12 @@ public class LethenonWalletPanel extends JPanel
 			"Unlock the vault, then you see your wallets. While it is locked, the program keeps "
 				+ "no unsealed wallet in memory.")),
 			ToolForm.INTRO_ROW);
-		view.add(ToolForm.buttons(LethenonSwing.button("btnReload",
-			text("lethenon.wallet.button.reload", "Show my wallets"), event -> onReload(),
-			text("lethenon.wallet.tooltip.reload", "read the wallets of the vault once it is unlocked"))),
+		view.add(
+			ToolForm
+				.buttons(LethenonSwing.button("btnReload",
+					text("lethenon.wallet.button.reload", "Show my wallets"), event -> onReload(),
+					text("lethenon.wallet.tooltip.reload",
+						"read the wallets of the vault once it is unlocked"))),
 			ToolForm.BUTTON_ROW);
 		return view;
 	}
@@ -800,10 +802,13 @@ public class LethenonWalletPanel extends JPanel
 	private JPanel emptyView()
 	{
 		JPanel view = new JPanel(ToolForm.newLayout());
-		view.add(title("lblEmptyTitle", "lethenon.wallet.empty.title", "No wallet in the vault yet"),
+		view.add(
+			title("lblEmptyTitle", "lethenon.wallet.empty.title", "No wallet in the vault yet"),
 			ToolForm.WIDE);
-		view.add(ToolForm.intro(text("lethenon.wallet.empty.text",
-			"A wallet is the key to your LETH, stored sealed in the vault.")), ToolForm.INTRO_ROW);
+		view.add(
+			ToolForm.intro(text("lethenon.wallet.empty.text",
+				"A wallet is the key to your LETH, stored sealed in the vault.")),
+			ToolForm.INTRO_ROW);
 		view.add(ToolForm.buttons(createButton("btnCreate"), takeOverButton("btnTakeOver"),
 			restoreButton("btnRestore")), ToolForm.BUTTON_ROW);
 		JLabel practice = new JLabel(text("lethenon.wallet.empty.practice",
@@ -817,8 +822,8 @@ public class LethenonWalletPanel extends JPanel
 		JPanel view = new JPanel(ToolForm.newLayout());
 		lblNetworkBadge.setToolTipText(text("lethenon.network.tooltip.badge",
 			"the network of this wallet, from its vault entry"));
-		txtRiskNote.setToolTipText(text("lethenon.network.tooltip.risk",
-			"what this network means for your LETH"));
+		txtRiskNote.setToolTipText(
+			text("lethenon.network.tooltip.risk", "what this network means for your LETH"));
 		view.add(lblNetworkBadge, "span 2, split 2, alignx left");
 		view.add(txtRiskNote, "growx, wmin 0, gapleft 12");
 		txtChainState.setToolTipText(text("lethenon.wallet.tooltip.chain.state",
@@ -846,8 +851,7 @@ public class LethenonWalletPanel extends JPanel
 		view.add(pnlNoChain, ToolForm.WIDE + ", wmin 0, gaptop 6, hidemode 3");
 		pnlCheckIncoming = ToolForm.buttons(LethenonSwing.button("btnCheckIncoming",
 			text("lethenon.wallet.button.check.incoming", "Check incoming payments"),
-			event -> onCheckIncoming(),
-			text("lethenon.wallet.tooltip.check.incoming",
+			event -> onCheckIncoming(), text("lethenon.wallet.tooltip.check.incoming",
 				"the wallet password finds payments to your address; nothing is kept")));
 		view.add(pnlCheckIncoming, ToolForm.BUTTON_ROW + ", hidemode 3");
 		cbxWallet.setName("cbxWallet");
@@ -864,10 +868,12 @@ public class LethenonWalletPanel extends JPanel
 		view.add(txtNetwork, ToolForm.FIELD);
 		view.add(new JLabel(text("lethenon.wallet.label.address", "Your address (public):")));
 		view.add(txtAddress, ToolForm.FIELD + ", wmin 0");
-		view.add(ToolForm.buttons(AnswerFields.copyButton("btnCopyAddress", txtAddress::getText,
-			text("lethenon.wallet.tooltip.copy.address",
-				"copy the whole address, to give it to whoever pays you"),
-			locale)), ToolForm.BUTTON_ROW);
+		view.add(
+			ToolForm.buttons(AnswerFields.copyButton("btnCopyAddress", txtAddress::getText,
+				text("lethenon.wallet.tooltip.copy.address",
+					"copy the whole address, to give it to whoever pays you"),
+				locale)),
+			ToolForm.BUTTON_ROW);
 		txtBackupNotice.setToolTipText(text("lethenon.wallet.tooltip.backup.notice",
 			"whether your 24 words were checked, and when"));
 		view.add(txtBackupNotice, ToolForm.WIDE + ", wmin 0, gaptop 8, hidemode 3");
@@ -885,14 +891,13 @@ public class LethenonWalletPanel extends JPanel
 		view.add(new JLabel(text("lethenon.wallet.label.another", "Another wallet:")),
 			"newline, gaptop 12");
 		view.add(ToolForm.buttons(createButton("btnAnotherCreate"),
-			takeOverButton("btnAnotherTakeOver"), restoreButton("btnAnotherRestore")),
-			"gaptop 12");
+			takeOverButton("btnAnotherTakeOver"), restoreButton("btnAnotherRestore")), "gaptop 12");
 		return view;
 	}
 
 	/**
-	 * The empty state "No chain yet" of draft 06 (#827): what is missing, a button that fetches
-	 * it, and which node it asks
+	 * The empty state "No chain yet" of draft 06 (#827): what is missing, a button that fetches it,
+	 * and which node it asks
 	 */
 	private JPanel noChainBlock()
 	{
@@ -1008,8 +1013,8 @@ public class LethenonWalletPanel extends JPanel
 	Optional<File> chooseChainTarget()
 	{
 		JFileChooser chooser = new JFileChooser();
-		chooser.setDialogTitle(text("lethenon.wallet.fetch.choose",
-			"Where your copy of the chain is kept"));
+		chooser.setDialogTitle(
+			text("lethenon.wallet.fetch.choose", "Where your copy of the chain is kept"));
 		chooser.setSelectedFile(proposedChainFile());
 		return chooser.showSaveDialog(this) == JFileChooser.APPROVE_OPTION
 			? Optional.of(chooser.getSelectedFile())
@@ -1074,9 +1079,10 @@ public class LethenonWalletPanel extends JPanel
 			"alignx left, width pref!");
 		addNetworkChoice(view, "cbxTakeOverNetwork");
 		view.add(new JLabel(text("lethenon.wallet.label.file.password", "Its password:")));
-		view.add(passwordField("txtTakeOverPassword", false,
-			text("lethenon.wallet.tooltip.file.password",
-				"the password the file is sealed with; it stays the wallet password")),
+		view.add(
+			passwordField("txtTakeOverPassword", false,
+				text("lethenon.wallet.tooltip.file.password",
+					"the password the file is sealed with; it stays the wallet password")),
 			ToolForm.FIELD);
 		view.add(ToolForm.buttons(
 			LethenonSwing.button("btnTakeOverConfirmed",
@@ -1097,9 +1103,10 @@ public class LethenonWalletPanel extends JPanel
 		JPanel view = new JPanel(ToolForm.newLayout());
 		view.add(title("lblSweepIncomingTitle", "lethenon.wallet.take.over.incoming.title",
 			"Take the incoming payments over"), ToolForm.WIDE);
-		view.add(ToolForm.intro(text("lethenon.wallet.take.over.incoming.text",
-			"Each payment to your address moves onto your account with a transfer of its own, "
-				+ "without a fee. The wallet password signs them; nothing of it is kept.")),
+		view.add(
+			ToolForm.intro(text("lethenon.wallet.take.over.incoming.text",
+				"Each payment to your address moves onto your account with a transfer of its own, "
+					+ "without a fee. The wallet password signs them; nothing of it is kept.")),
 			ToolForm.INTRO_ROW);
 		JTextArea warning = message("txtSweepIncomingWarning", true);
 		warning.setText(LethenonSweepPanel.warning(locale));
@@ -1124,8 +1131,7 @@ public class LethenonWalletPanel extends JPanel
 	{
 		btnRemoveWords = LethenonSwing.button("btnRemoveWords",
 			text("lethenon.wallet.button.remove.words", "Remove words from vault"),
-			event -> onRemoveWords(),
-			text("lethenon.wallet.tooltip.remove.words",
+			event -> onRemoveWords(), text("lethenon.wallet.tooltip.remove.words",
 				"delete the 24 words this wallet keeps in the vault; your written note stays"));
 		btnRemoveWords.setVisible(false);
 		return btnRemoveWords;
@@ -1162,8 +1168,9 @@ public class LethenonWalletPanel extends JPanel
 	private JPanel incomingView()
 	{
 		JPanel view = new JPanel(ToolForm.newLayout());
-		view.add(title("lblIncomingTitle", "lethenon.wallet.incoming.title",
-			"Check incoming payments"), ToolForm.WIDE);
+		view.add(
+			title("lblIncomingTitle", "lethenon.wallet.incoming.title", "Check incoming payments"),
+			ToolForm.WIDE);
 		view.add(ToolForm.intro(text("lethenon.wallet.incoming.text",
 			"Payments to your address can only be found with the wallet's private view key. The "
 				+ "wallet password opens the wallet in memory for this check; nothing is kept.")),
@@ -1211,7 +1218,8 @@ public class LethenonWalletPanel extends JPanel
 		messages.add(txtNotice, ToolForm.WIDE + ", wmin 0, hidemode 3");
 		txtRefusal.setToolTipText(text("lethenon.wallet.tooltip.refusal",
 			"why the last action did not happen, and what to do"));
-		txtNotice.setToolTipText(text("lethenon.wallet.tooltip.notice", "what the last action did"));
+		txtNotice
+			.setToolTipText(text("lethenon.wallet.tooltip.notice", "what the last action did"));
 		txtRefusal.setVisible(false);
 		txtNotice.setVisible(false);
 		return messages;
@@ -1232,7 +1240,9 @@ public class LethenonWalletPanel extends JPanel
 			public Component getListCellRendererComponent(final JList<?> list, final Object value,
 				final int index, final boolean isSelected, final boolean cellHasFocus)
 			{
-				Object shown = value instanceof WalletNetwork kind ? kind.displayName(locale) : value;
+				Object shown = value instanceof WalletNetwork kind
+					? kind.displayName(locale)
+					: value;
 				return super.getListCellRendererComponent(list, shown, index, isSelected,
 					cellHasFocus);
 			}
@@ -1245,11 +1255,17 @@ public class LethenonWalletPanel extends JPanel
 	private void addPasswordTwice(final JPanel view, final String name, final String repeatedName)
 	{
 		view.add(new JLabel(text("lethenon.wallet.label.password", "Wallet password:")));
-		view.add(passwordField(name, false, text("lethenon.wallet.tooltip.password",
-			"seals the wallet in the vault; it is not stored, so keep it in mind")), ToolForm.FIELD);
+		view.add(
+			passwordField(name, false,
+				text("lethenon.wallet.tooltip.password",
+					"seals the wallet in the vault; it is not stored, so keep it in mind")),
+			ToolForm.FIELD);
 		view.add(new JLabel(text("lethenon.wallet.label.password.repeated", "Once more:")));
-		view.add(passwordField(repeatedName, true, text("lethenon.wallet.tooltip.password.repeated",
-			"the same password again, so a typing error does not lock you out")), ToolForm.FIELD);
+		view.add(
+			passwordField(repeatedName, true,
+				text("lethenon.wallet.tooltip.password.repeated",
+					"the same password again, so a typing error does not lock you out")),
+			ToolForm.FIELD);
 	}
 
 	private JMPasswordField passwordField(final String name, final boolean repeated,
@@ -1337,8 +1353,8 @@ public class LethenonWalletPanel extends JPanel
 	}
 
 	/**
-	 * A text that wraps instead of widening the window, read-only, for refusals, notices and
-	 * values a person copies by eye
+	 * A text that wraps instead of widening the window, read-only, for refusals, notices and values
+	 * a person copies by eye
 	 *
 	 * @param name
 	 *            the component name

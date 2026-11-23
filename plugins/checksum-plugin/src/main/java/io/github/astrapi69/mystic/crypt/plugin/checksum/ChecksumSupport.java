@@ -77,8 +77,8 @@ public final class ChecksumSupport
 	 */
 	public static String checksumOfText(final String text, final String algorithm) throws Exception
 	{
-		return toHex(MessageDigest.getInstance(algorithm)
-			.digest(text.getBytes(StandardCharsets.UTF_8)));
+		return toHex(
+			MessageDigest.getInstance(algorithm).digest(text.getBytes(StandardCharsets.UTF_8)));
 	}
 
 	/**
@@ -296,10 +296,11 @@ public final class ChecksumSupport
 	 * The text of a checksum file, read as UTF-8, or as ISO-8859-1 when its bytes are not valid
 	 * UTF-8.
 	 * <p>
-	 * sha256sum and its kind write the file name next to the hash, in the charset of the system they
-	 * ran on, for example Windows-1252, and file-worker 21 reads strictly: such a file was not loaded
-	 * at all (#1081). ISO-8859-1 makes every byte a character, so the hash, which is ASCII, always
-	 * comes through. The host has the same reader for its own files; a plugin brings its own code.
+	 * sha256sum and its kind write the file name next to the hash, in the charset of the system
+	 * they ran on, for example Windows-1252, and file-worker 21 reads strictly: such a file was not
+	 * loaded at all (#1081). ISO-8859-1 makes every byte a character, so the hash, which is ASCII,
+	 * always comes through. The host has the same reader for its own files; a plugin brings its own
+	 * code.
 	 * <p>
 	 * TODO(astrapi69/file-worker#164): use the library's method once file-worker has one
 	 *

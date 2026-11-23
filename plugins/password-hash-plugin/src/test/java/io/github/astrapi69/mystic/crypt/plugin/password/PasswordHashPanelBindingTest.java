@@ -190,8 +190,7 @@ class PasswordHashPanelBindingTest
 		find(panel, "btnHash", JButton.class).doClick();
 		assertTrue(panel.getResultText().startsWith("not hashed: "),
 			"an empty password is refused, was: " + panel.getResultText());
-		assertEquals("", panel.getModelObject().getHash(),
-			"and nothing was written into the hash");
+		assertEquals("", panel.getModelObject().getHash(), "and nothing was written into the hash");
 
 		find(panel, "txtHash", JTextArea.class).setText("this is not a hash");
 		find(panel, "btnVerify", JButton.class).doClick();

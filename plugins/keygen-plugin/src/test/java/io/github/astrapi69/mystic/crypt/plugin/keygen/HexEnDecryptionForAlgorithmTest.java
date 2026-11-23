@@ -71,9 +71,9 @@ class HexEnDecryptionForAlgorithmTest
 			.encrypt("the secret");
 
 		assertNotEquals("the secret", encrypted);
-		assertEquals("the secret", KeygenSupport
-			.newHexDecryptor(KeyPairGeneratorAlgorithm.RSA, keyPair.getPrivate())
-			.decrypt(encrypted));
+		assertEquals("the secret",
+			KeygenSupport.newHexDecryptor(KeyPairGeneratorAlgorithm.RSA, keyPair.getPrivate())
+				.decrypt(encrypted));
 	}
 
 	@Test
@@ -108,7 +108,8 @@ class HexEnDecryptionForAlgorithmTest
 	 * reach for them and must say so rather than fail late
 	 */
 	@ParameterizedTest(name = "{0} has no hex encrypt/decrypt demo")
-	@EnumSource(value = KeyPairGeneratorAlgorithm.class, names = { "RSA", "EC" }, mode = EnumSource.Mode.EXCLUDE)
+	@EnumSource(value = KeyPairGeneratorAlgorithm.class, names = { "RSA",
+			"EC" }, mode = EnumSource.Mode.EXCLUDE)
 	void everyOtherAlgorithmHasNone(final KeyPairGeneratorAlgorithm algorithm)
 	{
 		assertNull(KeygenSupport.newHexEncryptor(algorithm, null));

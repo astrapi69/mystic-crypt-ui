@@ -36,12 +36,12 @@ import org.junit.jupiter.api.Test;
  * wants. Both tabs are measured: the tabbed pane gives every tab the same content bounds, so one
  * layout pass covers the receiving and the sending side.
  * <p>
- * Before the fix the one column both tabs are built from was filled but carried no
- * {@code weightx}, so the fields never followed the window: at the preferred width of 614 pixels
- * each area was 594 pixels wide, 120 pixels narrower, at 494, they fell back to whatever the widest
- * button row of their tab needs - 349 pixels on the receiving side, 285 on the sending side - and
- * left the rest of the window empty. With the weight and a minimum width on the scroll panes they
- * are 474 pixels there.
+ * Before the fix the one column both tabs are built from was filled but carried no {@code weightx},
+ * so the fields never followed the window: at the preferred width of 614 pixels each area was 594
+ * pixels wide, 120 pixels narrower, at 494, they fell back to whatever the widest button row of
+ * their tab needs - 349 pixels on the receiving side, 285 on the sending side - and left the rest
+ * of the window empty. With the weight and a minimum width on the scroll panes they are 474 pixels
+ * there.
  */
 class KeyExchangePanelLayoutTest
 {
@@ -62,9 +62,9 @@ class KeyExchangePanelLayoutTest
 		int narrowest = PanelWidths.narrowestTextComponent(panel, preferred.width - SQUEEZE,
 			Math.max(400, preferred.height));
 
-		assertTrue(narrowest >= USABLE_WIDTH, "squeezed to " + (preferred.width - SQUEEZE)
-			+ "px the narrowest text component is " + narrowest + "px: "
-			+ PanelWidths.widthReport(panel));
+		assertTrue(narrowest >= USABLE_WIDTH,
+			"squeezed to " + (preferred.width - SQUEEZE) + "px the narrowest text component is "
+				+ narrowest + "px: " + PanelWidths.widthReport(panel));
 	}
 
 	@Test

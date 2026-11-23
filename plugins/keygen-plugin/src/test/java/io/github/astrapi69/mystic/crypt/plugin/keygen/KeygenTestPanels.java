@@ -31,8 +31,8 @@ import io.github.astrapi69.crypt.api.key.KeySize;
 
 /**
  * What the keygen plugin's tests share: a panel that has generated a key pair, and throwaway
- * passwords made up per run. A password written into the source looks like a credential to a
- * reader and to the secret scanner, while it guards only what the test itself creates; the host's
+ * passwords made up per run. A password written into the source looks like a credential to a reader
+ * and to the secret scanner, while it guards only what the test itself creates; the host's
  * {@code TestPasswords} lives in a source set a plugin build does not see.
  */
 final class KeygenTestPanels

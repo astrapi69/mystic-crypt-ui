@@ -26,8 +26,8 @@ package io.github.astrapi69.mystic.crypt.plugin.lethenon;
 
 /**
  * Where the backup assistant of the wallet window is (#690): the steps of the decision record's
- * backup assistant, the check of all 24 words, and the password that opens the wallet for a
- * backup on request
+ * backup assistant, the check of all 24 words, and the password that opens the wallet for a backup
+ * on request
  */
 public enum BackupStep
 {

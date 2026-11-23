@@ -43,8 +43,8 @@ import javax.swing.TransferHandler;
 import javax.swing.text.JTextComponent;
 
 /**
- * Reads a window of this plugin the way a person does, by the names of its components: what a
- * field or a label shows, and which field, button or choice explains nothing (#604)
+ * Reads a window of this plugin the way a person does, by the names of its components: what a field
+ * or a label shows, and which field, button or choice explains nothing (#604)
  */
 final class Windows
 {

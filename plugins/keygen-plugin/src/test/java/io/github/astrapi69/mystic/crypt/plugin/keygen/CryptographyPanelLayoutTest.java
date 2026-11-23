@@ -60,8 +60,8 @@ import io.github.astrapi69.mystic.crypt.settings.PluginSettings;
  * <p>
  * The test lays the panel out without a display, walks the whole component tree and asserts that
  * every {@link JTextComponent} in it keeps a readable width, at the preferred width as well as
- * below it, so that the new resize behaviour cannot degenerate into collapsing text areas and a
- * fix that only works in one of the two states is caught too.
+ * below it, so that the new resize behaviour cannot degenerate into collapsing text areas and a fix
+ * that only works in one of the two states is caught too.
  */
 @DisplayName("The key generation panel keeps its key areas readable in a narrow window")
 class CryptographyPanelLayoutTest

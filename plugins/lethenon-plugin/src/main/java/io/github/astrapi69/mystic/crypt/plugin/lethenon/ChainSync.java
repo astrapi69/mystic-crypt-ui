@@ -39,8 +39,8 @@ import io.github.astrapi69.mystic.crypt.settings.PluginSettings;
  * When this program last synced a chain file (#831): recorded at every sync the plugin does, the
  * sync window's and the overview's "Fetch the chain", so that the overview can say how current its
  * chain is. A record, not a setting: it is kept in a file of its own next to the plugin's settings
- * ({@value #RECORD_ID}.properties), which the settings window does not list, and only the last
- * sync is kept.
+ * ({@value #RECORD_ID}.properties), which the settings window does not list, and only the last sync
+ * is kept.
  */
 final class ChainSync
 {
@@ -103,8 +103,10 @@ final class ChainSync
 		}
 		catch (NumberFormatException unreadable)
 		{
-			LOGGER.log(Level.WARNING, "the Lethenon plugin's record of the last sync holds no time: '"
-				+ stored.get(KEY_AT) + "'", unreadable);
+			LOGGER.log(Level.WARNING,
+				"the Lethenon plugin's record of the last sync holds no time: '"
+					+ stored.get(KEY_AT) + "'",
+				unreadable);
 			return Optional.empty();
 		}
 	}

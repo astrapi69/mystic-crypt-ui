@@ -51,8 +51,8 @@ import io.github.astrapi69.lethenon.Wallet;
 /**
  * The 24 words of a restore or a backup check are typed into 24 fields, each with its number,
  * behind one model (#804): a pasted phrase fills all 24 whichever field it lands in, and a field
- * left with a word that is not in the word list is marked and named at once, not only when the
- * form is sent
+ * left with a word that is not in the word list is marked and named at once, not only when the form
+ * is sent
  */
 class WordGridTest
 {
@@ -77,7 +77,8 @@ class WordGridTest
 			assertEquals(String.valueOf(position), textOf(grid, "lblWords" + position));
 			assertEquals("", textOf(grid, "txtWords" + position));
 		}
-		// four columns read from top to bottom, as step 1 shows the words: the first row is 1, 7, 13, 19
+		// four columns read from top to bottom, as step 1 shows the words: the first row is 1, 7,
+		// 13, 19
 		List<String> firstRow = Stream.of(grid.getComponents()).filter(JLabel.class::isInstance)
 			.limit(4).map(label -> ((JLabel)label).getText()).toList();
 		assertEquals(List.of("1", "7", "13", "19"), firstRow);
@@ -195,7 +196,8 @@ class WordGridTest
 		leave(5);
 
 		assertEquals("error", field(5).getClientProperty(OUTLINE));
-		assertEquals("Word 5, \"qqq\", is not in the word list. Check your note for a typing error.",
+		assertEquals(
+			"Word 5, \"qqq\", is not in the word list. Check your note for a typing error.",
 			said.getLast());
 		assertEquals(said.getLast(), field(5).getToolTipText());
 	}
@@ -240,7 +242,8 @@ class WordGridTest
 		assertEquals("error", field(4).getClientProperty(OUTLINE));
 		assertEquals("error", field(18).getClientProperty(OUTLINE));
 		assertNull(field(1).getClientProperty(OUTLINE));
-		assertEquals("Word 4, \"qqq\", is not in the word list. Check your note for a typing error.",
+		assertEquals(
+			"Word 4, \"qqq\", is not in the word list. Check your note for a typing error.",
 			said.getLast());
 	}
 

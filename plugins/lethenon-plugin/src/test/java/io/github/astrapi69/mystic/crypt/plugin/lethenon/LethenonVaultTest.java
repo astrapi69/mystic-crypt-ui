@@ -96,8 +96,10 @@ class LethenonVaultTest
 			assertEquals(Wallet.fromPhrase(new String(created.words())).address().toText(),
 				wallets.get(0).address(), "the listed address is the address of the shown words");
 			String words = new String(created.words());
-			assertTrue(access.stored.stream().noneMatch(entry -> VaultEntryProperties
-				.valuesOf(entry).values().stream().anyMatch(words::contains)),
+			assertTrue(
+				access.stored.stream()
+					.noneMatch(entry -> VaultEntryProperties.valuesOf(entry).values().stream()
+						.anyMatch(words::contains)),
 				"no property of the stored entry holds the words");
 		}
 	}
@@ -112,7 +114,8 @@ class LethenonVaultTest
 		Wallet lost = Wallet.create();
 
 		vault.takeOver(file, PASSWORD, WalletNetwork.TESTNET);
-		vault.restore(lost.phrase().toCharArray(), ThrowawayPasswords.next(), WalletNetwork.MAINNET);
+		vault.restore(lost.phrase().toCharArray(), ThrowawayPasswords.next(),
+			WalletNetwork.MAINNET);
 
 		List<String> addresses = vault.wallets().stream().map(VaultWallet::address).toList();
 		assertEquals(List.of(existing.address().toText(), lost.address().toText()), addresses);
@@ -146,7 +149,8 @@ class LethenonVaultTest
 
 		assertEquals(List.of(), vault.wallets());
 		assertTrue(access.stored.isEmpty(), "the entry is gone from the vault");
-		assertArrayEquals(new char[shown.length], shown, "the buffer that held the words is zeroed");
+		assertArrayEquals(new char[shown.length], shown,
+			"the buffer that held the words is zeroed");
 	}
 
 	@Test

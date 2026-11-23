@@ -64,9 +64,9 @@ import net.miginfocom.swing.MigLayout;
 /**
  * The backup assistant of the wallet window (#690), as the decision record describes it: step 1
  * shows the 24 words once, step 2 asks three of them back at random positions and offers to store
- * them in the vault (off by default, the risk said plainly), step 3 writes the sealed wallet file to
- * a place the person picks and shows its SHA-256 as read back. Besides the steps: the check of all
- * 24 words, and the wallet password that opens an existing wallet for a backup on request.
+ * them in the vault (off by default, the risk said plainly), step 3 writes the sealed wallet file
+ * to a place the person picks and shows its SHA-256 as read back. Besides the steps: the check of
+ * all 24 words, and the wallet password that opens an existing wallet for a backup on request.
  * <p>
  * UI over {@link LethenonVault} and {@link WalletInput}; the words stay in memory from step 1 until
  * step 2 is answered, because "Back" shows them again, and are overwritten then, when the assistant
@@ -124,7 +124,8 @@ public class LethenonBackupPanel extends JPanel
 
 	private final JTextArea txtCheckResult = LethenonWalletPanel.message("txtCheckResult", true);
 
-	private final JTextArea txtBackupRefusal = LethenonWalletPanel.message("txtBackupRefusal", true);
+	private final JTextArea txtBackupRefusal = LethenonWalletPanel.message("txtBackupRefusal",
+		true);
 
 	/** The wallet the assistant works on */
 	private transient UUID walletId;
@@ -248,8 +249,8 @@ public class LethenonBackupPanel extends JPanel
 		modelObject.setPositions(positions);
 		for (int index = 0; index < positions.length; index++)
 		{
-			answerLabels.get(index).setText(LethenonMessages.format("lethenon.backup.question.field",
-				"Word {0}", locale, positions[index]));
+			answerLabels.get(index).setText(LethenonMessages
+				.format("lethenon.backup.question.field", "Word {0}", locale, positions[index]));
 			answerFields.get(index).setText("");
 		}
 		offerToStoreTheWords();
@@ -279,9 +280,8 @@ public class LethenonBackupPanel extends JPanel
 		}
 		try
 		{
-			vault.storeWords(walletId, modelObject.getShownWords(), modelObject.isStoreWords()
-				? WordsChoice.STORE_IN_VAULT
-				: WordsChoice.KEEP_OUT);
+			vault.storeWords(walletId, modelObject.getShownWords(),
+				modelObject.isStoreWords() ? WordsChoice.STORE_IN_VAULT : WordsChoice.KEEP_OUT);
 		}
 		catch (final VaultAccessRefusedException notWritable)
 		{
@@ -492,8 +492,8 @@ public class LethenonBackupPanel extends JPanel
 		txtUnsealPassword.setName("txtUnsealPassword");
 		txtUnsealPassword.setToolTipText(text("lethenon.backup.tooltip.unseal.password",
 			"the password this wallet is sealed with in the vault"));
-		txtUnsealPassword.setPropertyModel(
-			LambdaModel.of(modelObject::getPassword, modelObject::setPassword));
+		txtUnsealPassword
+			.setPropertyModel(LambdaModel.of(modelObject::getPassword, modelObject::setPassword));
 		step.add(new JLabel(text("lethenon.wallet.label.password", "Wallet password:")));
 		step.add(txtUnsealPassword, ToolForm.FIELD);
 		step.add(ToolForm.buttons(
@@ -509,8 +509,10 @@ public class LethenonBackupPanel extends JPanel
 	private JPanel wordsStep()
 	{
 		JPanel step = new JPanel(ToolForm.newLayout());
-		step.add(LethenonWalletPanel.title("lblWordsTitle", text("lethenon.backup.words.title",
-			"Backup, step 1 of 3: your 24 words")), ToolForm.WIDE);
+		step.add(
+			LethenonWalletPanel.title("lblWordsTitle",
+				text("lethenon.backup.words.title", "Backup, step 1 of 3: your 24 words")),
+			ToolForm.WIDE);
 		JLabel heading = new JLabel(
 			text("lethenon.backup.words.heading", "Write these 24 words down on paper."));
 		heading.setFont(heading.getFont().deriveFont(Font.BOLD));
@@ -527,16 +529,18 @@ public class LethenonBackupPanel extends JPanel
 			"No photo, no file, not to the clipboard. Whoever has the words has the wallet."));
 		warning.setToolTipText(warning.getText());
 		step.add(warning, ToolForm.WIDE + ", wmin 0");
-		step.add(ToolForm.buttons(
-			LethenonSwing.button("btnWrittenDown",
-				text("lethenon.backup.words.button.next", "I have written them down"),
-				event -> onWrittenDown(),
-				text("lethenon.wallet.tooltip.written.down",
-					"the words are taken off the screen and overwritten")),
-			LethenonSwing.button("btnWordsCancelled",
-				text("lethenon.backup.words.button.back", "Cancel"), event -> onWordsCancelled(),
-				text("lethenon.wallet.tooltip.words.cancelled",
-					"a new wallet is taken out of the vault again; nothing is kept"))),
+		step.add(
+			ToolForm.buttons(
+				LethenonSwing.button("btnWrittenDown",
+					text("lethenon.backup.words.button.next", "I have written them down"),
+					event -> onWrittenDown(),
+					text("lethenon.wallet.tooltip.written.down",
+						"the words are taken off the screen and overwritten")),
+				LethenonSwing.button("btnWordsCancelled",
+					text("lethenon.backup.words.button.back", "Cancel"),
+					event -> onWordsCancelled(),
+					text("lethenon.wallet.tooltip.words.cancelled",
+						"a new wallet is taken out of the vault again; nothing is kept"))),
 			ToolForm.BUTTON_ROW);
 		return step;
 	}
@@ -568,8 +572,10 @@ public class LethenonBackupPanel extends JPanel
 	private JPanel questionStep()
 	{
 		JPanel step = new JPanel(ToolForm.newLayout());
-		step.add(LethenonWalletPanel.title("lblQuestionTitle", text("lethenon.backup.question.title",
-			"Backup, step 2 of 3: three words from your note")), ToolForm.WIDE);
+		step.add(
+			LethenonWalletPanel.title("lblQuestionTitle", text("lethenon.backup.question.title",
+				"Backup, step 2 of 3: three words from your note")),
+			ToolForm.WIDE);
 		step.add(ToolForm.intro(text("lethenon.backup.question.explanation",
 			"The words are no longer on the screen. Type the words at these three positions from "
 				+ "your note. The positions change every time.")),
@@ -578,15 +584,17 @@ public class LethenonBackupPanel extends JPanel
 		addAnswer(step, 2, modelObject::getAnswer2, modelObject::setAnswer2);
 		addAnswer(step, 3, modelObject::getAnswer3, modelObject::setAnswer3);
 		addTheChoiceToStoreTheWords(step);
-		step.add(ToolForm.buttons(
-			LethenonSwing.button("btnQuestionBack",
-				text("lethenon.backup.question.button.back", "Back"), event -> onQuestionBack(),
-				text("lethenon.backup.tooltip.question.back", "show the 24 words again")),
-			LethenonSwing.button("btnQuestionConfirmed",
-				text("lethenon.backup.question.button.next", "Next"),
-				event -> onQuestionConfirmed(),
-				text("lethenon.backup.tooltip.question.next",
-					"compare the three words with the wallet's words"))),
+		step.add(
+			ToolForm.buttons(
+				LethenonSwing.button("btnQuestionBack",
+					text("lethenon.backup.question.button.back", "Back"), event -> onQuestionBack(),
+					text("lethenon.backup.tooltip.question.back", "show the 24 words again")),
+				LethenonSwing
+					.button("btnQuestionConfirmed",
+						text("lethenon.backup.question.button.next", "Next"),
+						event -> onQuestionConfirmed(),
+						text("lethenon.backup.tooltip.question.next",
+							"compare the three words with the wallet's words"))),
 			ToolForm.BUTTON_ROW);
 		return step;
 	}
@@ -598,8 +606,8 @@ public class LethenonBackupPanel extends JPanel
 		label.setName("lblAnswer" + number);
 		JMTextField field = new JMTextField(20);
 		field.setName("txtAnswer" + number);
-		field.setToolTipText(text("lethenon.backup.tooltip.answer",
-			"the word at this position in your note"));
+		field.setToolTipText(
+			text("lethenon.backup.tooltip.answer", "the word at this position in your note"));
 		field.setPropertyModel(LambdaModel.of(getter, setter));
 		answerLabels.add(label);
 		answerFields.add(field);
@@ -673,8 +681,8 @@ public class LethenonBackupPanel extends JPanel
 			.setText(text("lethenon.backup.export.confirm", "Understood, write the file"));
 		chkExportUnderstood.setToolTipText(text("lethenon.backup.tooltip.export.understood",
 			"agree that the sealed file will then be outside the vault"));
-		chkExportUnderstood.setPropertyModel(LambdaModel.of(modelObject::isExportUnderstood,
-			modelObject::setExportUnderstood));
+		chkExportUnderstood.setPropertyModel(
+			LambdaModel.of(modelObject::isExportUnderstood, modelObject::setExportUnderstood));
 		step.add(chkExportUnderstood, ToolForm.WIDE);
 		txtExportFile.setName("txtExportFile");
 		txtExportFile.setEditable(false);
@@ -692,14 +700,17 @@ public class LethenonBackupPanel extends JPanel
 			ToolForm.BUTTON_ROW + ", split 2");
 		step.add(txtExportFile, "growx");
 		pnlExportResult.setName("pnlExportResult");
-		pnlExportResult.add(new JLabel(text("lethenon.backup.export.result",
-			"Written and read back. SHA-256 of the file:")), ToolForm.WIDE);
+		pnlExportResult.add(new JLabel(
+			text("lethenon.backup.export.result", "Written and read back. SHA-256 of the file:")),
+			ToolForm.WIDE);
 		txtChecksum.setToolTipText(text("lethenon.backup.export.hint",
 			"Compare this value with the copy on the stick, on another computer."));
 		txtChecksum.setFont(new Font(Font.MONOSPACED, Font.PLAIN, txtChecksum.getFont().getSize()));
 		pnlExportResult.add(txtChecksum, ToolForm.WIDE + ", wmin 0");
-		pnlExportResult.add(new JLabel(text("lethenon.backup.export.hint",
-			"Compare this value with the copy on the stick, on another computer.")), ToolForm.WIDE);
+		pnlExportResult.add(
+			new JLabel(text("lethenon.backup.export.hint",
+				"Compare this value with the copy on the stick, on another computer.")),
+			ToolForm.WIDE);
 		pnlExportResult.setVisible(false);
 		step.add(pnlExportResult, ToolForm.WIDE + ", hidemode 3");
 		step.add(ToolForm.buttons(endButton("btnDone")), ToolForm.BUTTON_ROW);
@@ -720,8 +731,8 @@ public class LethenonBackupPanel extends JPanel
 		step.add(new JLabel(text("lethenon.wallet.label.words", "The 24 words:")), "aligny top");
 		step.add(checkWords, ToolForm.FIELD);
 		step.add(ToolForm.buttons(
-			LethenonSwing.button("btnCheckConfirmed",
-				text("lethenon.backup.check.button", "Check"), event -> onCheckConfirmed(),
+			LethenonSwing.button("btnCheckConfirmed", text("lethenon.backup.check.button", "Check"),
+				event -> onCheckConfirmed(),
 				text("lethenon.backup.tooltip.check",
 					"derive the address from the words and compare it with the wallet's")),
 			endButton("btnCheckDone")), ToolForm.BUTTON_ROW);
@@ -778,8 +789,7 @@ public class LethenonBackupPanel extends JPanel
 	File proposedExportFile()
 	{
 		String network = vault.wallets().stream().filter(listed -> listed.id().equals(walletId))
-			.map(VaultWallet::network).filter(name -> !name.isBlank()).findFirst()
-			.orElse("wallet");
+			.map(VaultWallet::network).filter(name -> !name.isBlank()).findFirst().orElse("wallet");
 		return new File(System.getProperty("user.home"), "lethenon-" + network + ".lethwf");
 	}
 

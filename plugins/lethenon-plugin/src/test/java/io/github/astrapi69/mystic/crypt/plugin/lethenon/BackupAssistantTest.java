@@ -47,10 +47,10 @@ import org.junit.jupiter.params.provider.MethodSource;
 import io.github.astrapi69.lethenon.Wallet;
 
 /**
- * The backup assistant beyond the single check (docs/decisions/lethenon-wallet-in-vault-2026-10-30.md,
- * "Backup assistant"): the three positions are random per request and never repeat the previous
- * request, a successful check records its date in {@code lethenon.backupVerified}, and a check
- * older than 180 days brings the reminder.
+ * The backup assistant beyond the single check
+ * (docs/decisions/lethenon-wallet-in-vault-2026-10-30.md, "Backup assistant"): the three positions
+ * are random per request and never repeat the previous request, a successful check records its date
+ * in {@code lethenon.backupVerified}, and a check older than 180 days brings the reminder.
  */
 class BackupAssistantTest
 {
@@ -78,9 +78,8 @@ class BackupAssistantTest
 			assertEquals(3, Arrays.stream(current).distinct().count(), Arrays.toString(current));
 			assertTrue(Arrays.stream(current).allMatch(position -> 1 <= position && position <= 24),
 				Arrays.toString(current));
-			assertFalse(Arrays.equals(previous, current),
-				"request " + request + " asks the same positions in the same order: "
-					+ Arrays.toString(current));
+			assertFalse(Arrays.equals(previous, current), "request " + request
+				+ " asks the same positions in the same order: " + Arrays.toString(current));
 			drawn.add(current);
 			previous = current;
 		}
@@ -230,7 +229,8 @@ class BackupAssistantTest
 		IllegalArgumentException missingRefused = assertThrows(IllegalArgumentException.class,
 			() -> BackupCheck.checkAndRecord(missing, entry, TODAY));
 
-		assertTrue(emptyRefused.getMessage().contains("this list has 23"), emptyRefused.getMessage());
+		assertTrue(emptyRefused.getMessage().contains("this list has 23"),
+			emptyRefused.getMessage());
 		assertTrue(missingRefused.getMessage().contains("this list has 23"),
 			missingRefused.getMessage());
 	}

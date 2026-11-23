@@ -64,7 +64,7 @@ final class LongValues
 			return value;
 		}
 		return LethenonMessages.format("lethenon.value.shortened",
-			"{0}\u2026{1} ({2,number,integer} characters)", locale,
-			value.substring(0, BEGINNING), value.substring(value.length() - END), value.length());
+			"{0}\u2026{1} ({2,number,integer} characters)", locale, value.substring(0, BEGINNING),
+			value.substring(value.length() - END), value.length());
 	}
 }

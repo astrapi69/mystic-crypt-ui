@@ -37,8 +37,7 @@ public enum ConversionOperation
 {
 
 	/** Writes a PEM file as the binary DER encoding */
-	PEM_TO_DER("to DER")
-	{
+	PEM_TO_DER("to DER") {
 		@Override
 		public boolean isValidFor(final ConversionSupport.FileKind fileKind, final File sourceFile)
 		{
@@ -59,8 +58,7 @@ public enum ConversionOperation
 	},
 
 	/** Writes a DER file as PEM, under the header that fits what it holds */
-	DER_TO_PEM("to PEM")
-	{
+	DER_TO_PEM("to PEM") {
 		@Override
 		public boolean isValidFor(final ConversionSupport.FileKind fileKind, final File sourceFile)
 		{
@@ -83,8 +81,7 @@ public enum ConversionOperation
 	},
 
 	/** Writes a private key file as PKCS#8 - what Java reads and writes */
-	TO_PKCS8("to PKCS#8 (Java)")
-	{
+	TO_PKCS8("to PKCS#8 (Java)") {
 		@Override
 		public boolean isValidFor(final ConversionSupport.FileKind fileKind, final File sourceFile)
 		{
@@ -105,8 +102,7 @@ public enum ConversionOperation
 	},
 
 	/** Writes a private key file as PKCS#1 - what openssl and nginx expect */
-	TO_PKCS1("to PKCS#1 (openssl)")
-	{
+	TO_PKCS1("to PKCS#1 (openssl)") {
 		@Override
 		public boolean isValidFor(final ConversionSupport.FileKind fileKind, final File sourceFile)
 		{

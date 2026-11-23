@@ -45,14 +45,14 @@ import io.github.astrapi69.mystic.crypt.settings.PluginSettings;
 /**
  * Guards the panel against a window that is narrower than the panel would like to be.
  * <p>
- * Before the fix the input column of the GridBagLayout had neither a fill nor a weight. As soon
- * as the container was narrower than the grid wanted, GridBagLayout fell back to the minimum
- * widths of that column, and a text component reports a minimum width of nearly zero: the
- * fields did not shrink, they vanished. Measured on this panel: at its preferred width the four
- * file fields were 444 pixels wide and the three text areas 660 pixels, which is right, but 120
- * pixels below the preferred width the fields were 5 pixels and the areas 4 pixels wide. With
- * the horizontal fill and the weight on the input column the same measurement gives 543 pixels
- * for the fields and 525 pixels for the areas.
+ * Before the fix the input column of the GridBagLayout had neither a fill nor a weight. As soon as
+ * the container was narrower than the grid wanted, GridBagLayout fell back to the minimum widths of
+ * that column, and a text component reports a minimum width of nearly zero: the fields did not
+ * shrink, they vanished. Measured on this panel: at its preferred width the four file fields were
+ * 444 pixels wide and the three text areas 660 pixels, which is right, but 120 pixels below the
+ * preferred width the fields were 5 pixels and the areas 4 pixels wide. With the horizontal fill
+ * and the weight on the input column the same measurement gives 543 pixels for the fields and 525
+ * pixels for the areas.
  * <p>
  * The panel is laid out with the shared {@code ToolForm} since then, whose field column grows the
  * same way; the numbers above are kept as the record of the bug this test guards against.
@@ -98,14 +98,15 @@ class PqcSignaturePanelLayoutTest
 	{
 		int narrowest = narrowestTextComponentWidth(panel.getPreferredSize().width - SQUEEZE);
 
-		assertTrue(narrowest >= USABLE_WIDTH, "squeezed " + SQUEEZE
-			+ " pixels below the preferred width the narrowest text component is " + narrowest
-			+ " pixels wide, at least " + USABLE_WIDTH + " are needed:" + widthsPerComponent());
+		assertTrue(narrowest >= USABLE_WIDTH,
+			"squeezed " + SQUEEZE
+				+ " pixels below the preferred width the narrowest text component is " + narrowest
+				+ " pixels wide, at least " + USABLE_WIDTH + " are needed:" + widthsPerComponent());
 	}
 
 	/**
-	 * A fix that only works while the panel is squeezed would be no fix, so the same measurement
-	 * is taken at the width the panel asks for
+	 * A fix that only works while the panel is squeezed would be no fix, so the same measurement is
+	 * taken at the width the panel asks for
 	 */
 	@Test
 	@DisplayName("at its preferred width, no text component collapses either")

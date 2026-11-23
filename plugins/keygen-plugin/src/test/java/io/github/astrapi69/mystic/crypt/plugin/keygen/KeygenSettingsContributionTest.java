@@ -25,7 +25,6 @@
 package io.github.astrapi69.mystic.crypt.plugin.keygen;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -39,14 +38,13 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.ValueSource;
 
-import io.github.astrapi69.mystic.crypt.settings.PluginSettings;
 import io.github.astrapi69.crypt.api.algorithm.key.KeyPairGeneratorAlgorithm;
 import io.github.astrapi69.crypt.api.key.KeySize;
 import io.github.astrapi69.mystic.crypt.plugin.api.PluginSettingsContribution;
+import io.github.astrapi69.mystic.crypt.settings.PluginSettings;
 
 /**
  * Tests of the key generation plugin's own configuration.
@@ -116,8 +114,9 @@ class KeygenSettingsContributionTest
 	@DisplayName("the description of default.algorithm names every algorithm the window offers (#894)")
 	void theDescriptionNamesEveryOfferedAlgorithm(KeyPairGeneratorAlgorithm algorithm)
 	{
-		assertTrue(CONTRIBUTION.getDescription(KeygenSettingsContribution.KEY_ALGORITHM)
-			.matches(".*\\b" + algorithm.name() + "\\b.*"),
+		assertTrue(
+			CONTRIBUTION.getDescription(KeygenSettingsContribution.KEY_ALGORITHM)
+				.matches(".*\\b" + algorithm.name() + "\\b.*"),
 			CONTRIBUTION.getDescription(KeygenSettingsContribution.KEY_ALGORITHM));
 	}
 

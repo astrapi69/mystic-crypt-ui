@@ -25,7 +25,6 @@
 package io.github.astrapi69.mystic.crypt.plugin.lethenon;
 
 import static io.github.astrapi69.mystic.crypt.plugin.lethenon.Windows.textOf;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -118,9 +117,8 @@ class FailurePatternInEveryWindowTest
 	 * @param answer
 	 *            the name of the component that holds the window's answer
 	 */
-	record WindowFailure(String window, Supplier<JPanel> panel, Consumer<JPanel> action, String cause,
-		String answer)
-	{
+	record WindowFailure(String window, Supplier<JPanel> panel, Consumer<JPanel> action,
+		String cause, String answer) {
 		@Override
 		public String toString()
 		{
@@ -130,8 +128,8 @@ class FailurePatternInEveryWindowTest
 
 	static Stream<Arguments> windows()
 	{
-		return Stream.of(Arguments.of(new WindowFailure("Verify the Chain, no chain file",
-			LethenonChainPanel::new, panel -> {
+		return Stream.of(Arguments.of(
+			new WindowFailure("Verify the Chain, no chain file", LethenonChainPanel::new, panel -> {
 				LethenonChainPanel verify = (LethenonChainPanel)panel;
 				verify.getModelObject().setChainFile(nowhere.toString());
 				verify.onVerify();
@@ -148,9 +146,11 @@ class FailurePatternInEveryWindowTest
 					send.getModelObject().setChainFile(chainFile.toString());
 					send.getModelObject().setWalletFile(walletFile.toString());
 					send.getModelObject().setPassword(ThrowawayPasswords.next());
-					send.getModelObject().setRecipient(TransactionSigner
-						.asBytes(TransactionSigner.newKeyPair(SignatureSuite.ED25519).getPublic())
-						.toString());
+					send.getModelObject()
+						.setRecipient(TransactionSigner
+							.asBytes(
+								TransactionSigner.newKeyPair(SignatureSuite.ED25519).getPublic())
+							.toString());
 					send.getModelObject().setAmount("1");
 					send.onSend();
 				}, "The wallet password is not right.", "txtAnswer")),
@@ -169,8 +169,8 @@ class FailurePatternInEveryWindowTest
 					sync.getModelObject().setChainFile(NOT_A_PATH);
 					sync.onSync();
 				}, "The chain was not synchronised.", "txtAnswer")),
-			Arguments.of(new WindowFailure("Run Your Own Node, not a path",
-				LethenonNodePanel::new, panel -> {
+			Arguments.of(new WindowFailure("Run Your Own Node, not a path", LethenonNodePanel::new,
+				panel -> {
 					LethenonNodePanel node = (LethenonNodePanel)panel;
 					node.getModelObject().setChainFile(NOT_A_PATH);
 					node.onStart();

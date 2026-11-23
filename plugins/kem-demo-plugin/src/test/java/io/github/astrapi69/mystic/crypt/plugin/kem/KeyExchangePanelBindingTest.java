@@ -114,9 +114,9 @@ class KeyExchangePanelBindingTest
 	}
 
 	/**
-	 * The exchange through the panel, for every algorithm it offers: the public key of the receiving
-	 * tab goes into the sending tab, the handshake comes back, and the message only reads because
-	 * both sides arrived at the same secret
+	 * The exchange through the panel, for every algorithm it offers: the public key of the
+	 * receiving tab goes into the sending tab, the handshake comes back, and the message only reads
+	 * because both sides arrived at the same secret
 	 */
 	@ParameterizedTest(name = "{0}")
 	@MethodSource("algorithms")
@@ -152,8 +152,8 @@ class KeyExchangePanelBindingTest
 	}
 
 	/**
-	 * What the buttons work with is the model, so a key pair made for one algorithm must not be used
-	 * with a handshake from another
+	 * What the buttons work with is the model, so a key pair made for one algorithm must not be
+	 * used with a handshake from another
 	 */
 	@Test
 	@DisplayName("a handshake from another algorithm is refused in the panel too")
@@ -162,11 +162,10 @@ class KeyExchangePanelBindingTest
 		KeyExchangePanel panel = new KeyExchangePanel();
 		named(panel, "cmbAlgorithm", JComboBox.class).setSelectedItem(KeyExchangeSupport.X25519);
 		click(panel, "btnNewKeyPair");
-		KeyExchangeSupport.Party other = KeyExchangeSupport
-			.newParty(KeyExchangeSupport.ML_KEM_512);
+		KeyExchangeSupport.Party other = KeyExchangeSupport.newParty(KeyExchangeSupport.ML_KEM_512);
 
-		type(panel, "txtHandshakeIn", KeyExchangeSupport
-			.encapsulate(KeyExchangeSupport.publicKeyOf(other)).handshake());
+		type(panel, "txtHandshakeIn",
+			KeyExchangeSupport.encapsulate(KeyExchangeSupport.publicKeyOf(other)).handshake());
 		click(panel, "btnDecapsulate");
 
 		assertTrue(resultOf(panel).startsWith("not derived:"), resultOf(panel));
@@ -220,8 +219,8 @@ class KeyExchangePanelBindingTest
 	}
 
 	/**
-	 * Making a second key pair must not leave the first one's secret behind, or the panel would show
-	 * a fingerprint that belongs to a key that is gone
+	 * Making a second key pair must not leave the first one's secret behind, or the panel would
+	 * show a fingerprint that belongs to a key that is gone
 	 */
 	@Test
 	@DisplayName("a new key pair clears what belonged to the previous one")
@@ -257,7 +256,8 @@ class KeyExchangePanelBindingTest
 		assertHasTooltip(named(panel, "cmbAlgorithm", JComponent.class), "algorithm");
 		assertHasTooltip(named(panel, "lblResult", JComponent.class), "result label");
 		assertHasTooltip(named(panel, "lblMyFingerprint", JComponent.class), "my fingerprint");
-		assertHasTooltip(named(panel, "lblTheirFingerprint", JComponent.class), "their fingerprint");
+		assertHasTooltip(named(panel, "lblTheirFingerprint", JComponent.class),
+			"their fingerprint");
 
 		assertHasTooltip(named(panel, "txtMyPublicKey", JComponent.class), "my public key");
 		assertHasTooltip(named(panel, "btnNewKeyPair", JComponent.class), "new key pair button");
@@ -266,7 +266,8 @@ class KeyExchangePanelBindingTest
 		assertHasTooltip(named(panel, "btnSaveMyPublicKey", JComponent.class),
 			"save my public key button");
 		assertHasTooltip(named(panel, "txtHandshakeIn", JComponent.class), "handshake in");
-		assertHasTooltip(named(panel, "btnLoadHandshake", JComponent.class), "load handshake button");
+		assertHasTooltip(named(panel, "btnLoadHandshake", JComponent.class),
+			"load handshake button");
 		assertHasTooltip(named(panel, "btnDecapsulate", JComponent.class), "decapsulate button");
 		assertHasTooltip(named(panel, "txtEncryptedIn", JComponent.class), "encrypted in");
 		assertHasTooltip(named(panel, "btnDecryptMessage", JComponent.class),
@@ -278,12 +279,14 @@ class KeyExchangePanelBindingTest
 			"load their public key button");
 		assertHasTooltip(named(panel, "btnEncapsulate", JComponent.class), "encapsulate button");
 		assertHasTooltip(named(panel, "txtHandshakeOut", JComponent.class), "handshake out");
-		assertHasTooltip(named(panel, "btnSaveHandshake", JComponent.class), "save handshake button");
+		assertHasTooltip(named(panel, "btnSaveHandshake", JComponent.class),
+			"save handshake button");
 		assertHasTooltip(named(panel, "txtMessageToSend", JComponent.class), "message to send");
 		assertHasTooltip(named(panel, "btnEncryptMessage", JComponent.class),
 			"encrypt message button");
 		assertHasTooltip(named(panel, "txtEncryptedOut", JComponent.class), "encrypted out");
-		assertHasTooltip(named(panel, "btnSaveEncrypted", JComponent.class), "save encrypted button");
+		assertHasTooltip(named(panel, "btnSaveEncrypted", JComponent.class),
+			"save encrypted button");
 	}
 
 	private static String clipboardText() throws Exception

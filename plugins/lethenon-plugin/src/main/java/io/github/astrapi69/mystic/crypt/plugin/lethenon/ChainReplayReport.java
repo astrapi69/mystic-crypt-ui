@@ -49,6 +49,5 @@ import io.github.astrapi69.lethenon.Amount;
  *            the chain library's own sentence about this replay, counts and supply included
  */
 public record ChainReplayReport(long blocks, long transactions, long signatures, Amount supply,
-	Amount minted, String summary)
-{
+	Amount minted, String summary) {
 }

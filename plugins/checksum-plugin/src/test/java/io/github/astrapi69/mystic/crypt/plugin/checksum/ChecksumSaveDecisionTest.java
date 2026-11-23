@@ -57,7 +57,8 @@ class ChecksumSaveDecisionTest
 		assertNotNull(ChecksumSaveDecision.refusalFor(true, null));
 		assertNotNull(ChecksumSaveDecision.refusalFor(true, "   "),
 			"blank is nothing computed, not something computed that happens to be empty");
-		assertTrue(ChecksumSaveDecision.refusalFor(true, "").contains("compute the checksum first"));
+		assertTrue(
+			ChecksumSaveDecision.refusalFor(true, "").contains("compute the checksum first"));
 	}
 
 	@Test

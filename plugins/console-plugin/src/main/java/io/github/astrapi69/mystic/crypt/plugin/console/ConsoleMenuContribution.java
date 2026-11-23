@@ -24,12 +24,11 @@
  */
 package io.github.astrapi69.mystic.crypt.plugin.console;
 
-import java.util.List;
-
 import java.awt.BorderLayout;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.io.PrintStream;
+import java.util.List;
 
 import javax.swing.JDesktopPane;
 import javax.swing.JInternalFrame;
@@ -42,7 +41,6 @@ import javax.swing.event.InternalFrameEvent;
 
 import org.pf4j.Extension;
 
-import io.github.astrapi69.awt.screen.ScreenSizeExtensions;
 import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
 import io.github.astrapi69.mystic.crypt.plugin.api.PluginMenuContribution;
 import io.github.astrapi69.swing.component.factory.JComponentFactory;
@@ -140,8 +138,7 @@ public class ConsoleMenuContribution implements PluginMenuContribution
 	{
 		JTextArea textArea = new JTextArea();
 		textArea.setEditable(false);
-		ConsoleBuffer buffer = new ConsoleBuffer(textArea,
-			ConsoleSettingsContribution.maxLines());
+		ConsoleBuffer buffer = new ConsoleBuffer(textArea, ConsoleSettingsContribution.maxLines());
 		PrintStream systemOutBeforeTheConsole = System.out;
 		PrintStream systemErrBeforeTheConsole = System.err;
 		PrintStream toTheConsole = new PrintStream(buffer, true);

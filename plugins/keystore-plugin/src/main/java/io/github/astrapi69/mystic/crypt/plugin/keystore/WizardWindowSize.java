@@ -30,9 +30,10 @@ import java.awt.Dimension;
  * Works out how large the "Create Key Store..." wizard window opens.
  * <p>
  * Mirrors the conversion plugin's own {@code WizardWindowSize} (that one is owned by the conversion
- * plugin and shared with nothing else, so this is a separate, plugin-local copy rather than a shared
- * dependency - the creation wizard is a small form spread over three steps, of a size comparable to
- * the conversion wizard's own three steps, so the same floor is appropriate here too).
+ * plugin and shared with nothing else, so this is a separate, plugin-local copy rather than a
+ * shared dependency - the creation wizard is a small form spread over three steps, of a size
+ * comparable to the conversion wizard's own three steps, so the same floor is appropriate here
+ * too).
  * <p>
  * The window takes what the wizard asks for, never less than something usable and never more than
  * the screen it opens on.

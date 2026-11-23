@@ -40,9 +40,9 @@ import javax.crypto.KeyAgreement;
  * It requests no explicit security provider, so it uses whatever the platform registers for these
  * standard algorithms, and pulls in no third-party crypto library.
  * <p>
- * In each exchange the recipient generates a key pair; the sender derives a fresh shared secret from
- * only the recipient's public key(s) and produces a ciphertext; the recipient recovers the same
- * shared secret from the ciphertext with its private key(s).
+ * In each exchange the recipient generates a key pair; the sender derives a fresh shared secret
+ * from only the recipient's public key(s) and produces a ciphertext; the recipient recovers the
+ * same shared secret from the ciphertext with its private key(s).
  */
 public final class NativeKemExchange
 {
@@ -112,16 +112,16 @@ public final class NativeKemExchange
 		byte[] ciphertext = encapsulated.encapsulation();
 
 		// recipient side: decapsulate the same secret
-		byte[] recipientSecret = kem.newDecapsulator(recipient.getPrivate())
-			.decapsulate(ciphertext).getEncoded();
+		byte[] recipientSecret = kem.newDecapsulator(recipient.getPrivate()).decapsulate(ciphertext)
+			.getEncoded();
 
 		return new Result(ciphertext, senderSecret, recipientSecret);
 	}
 
 	/**
 	 * Runs a hybrid exchange that combines classical X25519 key agreement with post-quantum
-	 * ML-KEM-768: the derived secret is {@code SHA-256(x25519_secret || ml_kem_secret)}, so it stays
-	 * secure as long as either building block does. The ciphertext returned is the ML-KEM
+	 * ML-KEM-768: the derived secret is {@code SHA-256(x25519_secret || ml_kem_secret)}, so it
+	 * stays secure as long as either building block does. The ciphertext returned is the ML-KEM
 	 * ciphertext; the sender's ephemeral X25519 public key is exchanged alongside it (kept internal
 	 * to this demo).
 	 *

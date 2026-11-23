@@ -1,3 +1,27 @@
+/**
+ * The MIT License
+ *
+ * Copyright (C) 2026 Asterios Raptis
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining
+ * a copy of this software and associated documentation files (the
+ * "Software"), to deal in the Software without restriction, including
+ * without limitation the rights to use, copy, modify, merge, publish,
+ * distribute, sublicense, and/or sell copies of the Software, and to
+ * permit persons to whom the Software is furnished to do so, subject to
+ * the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
+ * LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+ * OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+ * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
 package io.github.astrapi69.mystic.crypt.plugin.keygen;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -8,8 +32,8 @@ import java.io.File;
 import java.nio.file.Files;
 import java.security.KeyPairGenerator;
 import java.security.PrivateKey;
-import java.security.spec.InvalidKeySpecException;
 import java.security.Security;
+import java.security.spec.InvalidKeySpecException;
 
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.junit.jupiter.api.BeforeAll;
@@ -69,8 +93,8 @@ class WritePkcs1WithoutTraditionalFormTest
 	 *             if the key cannot be generated or written
 	 */
 	@ParameterizedTest(name = "{0} asked for PKCS#1 as PEM")
-	@EnumSource(value = KeyPairGeneratorAlgorithm.class,
-		names = { "ML_DSA_65", "ML_KEM_768", "X25519", "X448" })
+	@EnumSource(value = KeyPairGeneratorAlgorithm.class, names = { "ML_DSA_65", "ML_KEM_768",
+			"X25519", "X448" })
 	void pkcs1AsPemIsRefusedWithTheAlgorithmNamed(final KeyPairGeneratorAlgorithm algorithm,
 		@TempDir File directory) throws Exception
 	{
@@ -108,7 +132,8 @@ class WritePkcs1WithoutTraditionalFormTest
 			KeyFileFormat.PEM);
 
 		String header = Files.readAllLines(file.toPath()).get(0);
-		assertTrue(header.endsWith(" PRIVATE KEY-----") && !header.equals("-----BEGIN PRIVATE KEY-----"),
+		assertTrue(
+			header.endsWith(" PRIVATE KEY-----") && !header.equals("-----BEGIN PRIVATE KEY-----"),
 			algorithm + " has a traditional form and must write its own header, was: " + header);
 	}
 
@@ -124,8 +149,8 @@ class WritePkcs1WithoutTraditionalFormTest
 	 *             if the key cannot be generated or written
 	 */
 	@ParameterizedTest(name = "{0} as DER with PKCS#1 named")
-	@EnumSource(value = KeyPairGeneratorAlgorithm.class,
-		names = { "ML_DSA_65", "ML_KEM_768", "X25519", "X448" })
+	@EnumSource(value = KeyPairGeneratorAlgorithm.class, names = { "ML_DSA_65", "ML_KEM_768",
+			"X25519", "X448" })
 	void derIgnoresTheKeyFormat(final KeyPairGeneratorAlgorithm algorithm, @TempDir File directory)
 		throws Exception
 	{

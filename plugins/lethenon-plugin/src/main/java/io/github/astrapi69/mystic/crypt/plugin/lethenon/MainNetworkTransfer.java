@@ -39,8 +39,7 @@ import java.util.Locale;
  * @param recipient
  *            the whole recipient as typed
  */
-record MainNetworkTransfer(String amount, String fee, String total, String recipient)
-{
+record MainNetworkTransfer(String amount, String fee, String total, String recipient) {
 
 	/**
 	 * @param locale

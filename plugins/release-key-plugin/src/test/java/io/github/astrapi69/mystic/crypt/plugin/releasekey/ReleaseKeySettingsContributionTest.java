@@ -39,10 +39,9 @@ import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 
+import io.github.astrapi69.mystic.crypt.gnupg.GnuPgHome;
 import io.github.astrapi69.mystic.crypt.plugin.api.PluginSettingsContribution;
 import io.github.astrapi69.mystic.crypt.settings.PluginSettings;
-
-import io.github.astrapi69.mystic.crypt.gnupg.GnuPgHome;
 
 /**
  * The plugin's two settings, the GnuPG home and the release key, are declared, described and read

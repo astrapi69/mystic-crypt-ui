@@ -30,8 +30,8 @@ import java.nio.file.Path;
 import javax.swing.JOptionPane;
 
 /**
- * The question before a chain file of lethenon 0.5.0 or earlier is converted (#581): what happens to
- * the file, what stays, and what older versions can still read. Nothing is converted unless the
+ * The question before a chain file of lethenon 0.5.0 or earlier is converted (#581): what happens
+ * to the file, what stays, and what older versions can still read. Nothing is converted unless the
  * person chooses to; the default button is the one that leaves the file as it is.
  */
 final class ChainConversionDialog

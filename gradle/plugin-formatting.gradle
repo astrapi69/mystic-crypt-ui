@@ -1,0 +1,15 @@
+// Spotless for every internal plugin build, which applies this file after the Spotless plugin itself (#666). It
+// checks what gradle/formatting.gradle checks in the host: the formatter, the import order, unused imports and the
+// MIT license header on every Java source. A plugin source the host's rules would reformat, or one without the
+// header, fails the plugin's build as it fails the host's. The Makefile's plugin targets run spotlessCheck with the
+// tests (PLUGIN_TESTS), and that is how CI reaches it.
+def hostSpotlessFile = { String name -> file("../../src/test/resources/spotless/${name}") }
+
+spotless {
+    java {
+        importOrderFile(hostSpotlessFile('importorder.properties'))
+        removeUnusedImports()
+        eclipse("4.21").configFile(hostSpotlessFile('alpharo-formatter.xml'))
+        licenseHeaderFile(hostSpotlessFile('license-header.txt'))
+    }
+}

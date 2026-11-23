@@ -46,9 +46,9 @@ import io.github.astrapi69.crypt.data.factory.KeyPairFactory;
 import io.github.astrapi69.crypt.data.factory.KeyStoreFactory;
 import io.github.astrapi69.crypt.data.key.CertificateExtensions;
 import io.github.astrapi69.crypt.data.key.KeyStoreExtensions;
+import io.github.astrapi69.crypt.data.key.reader.AnyKeyFileReader;
 import io.github.astrapi69.crypt.data.key.reader.CertificateReader;
 import io.github.astrapi69.crypt.data.key.writer.CertificateWriter;
-import io.github.astrapi69.crypt.data.key.reader.AnyKeyFileReader;
 import io.github.astrapi69.mystic.crypt.ssl.KeystoreVerifier;
 
 /**
@@ -62,16 +62,20 @@ import io.github.astrapi69.mystic.crypt.ssl.KeystoreVerifier;
 public final class KeyStoreSupport
 {
 
-	/** The store types worth offering in a desktop tool; PKCS11 and DKS need external hardware or a
-	 * configuration file and are left out on purpose */
+	/**
+	 * The store types worth offering in a desktop tool; PKCS11 and DKS need external hardware or a
+	 * configuration file and are left out on purpose
+	 */
 	public static final List<KeystoreType> USABLE_TYPES = List.of(KeystoreType.PKCS12,
 		KeystoreType.JKS, KeystoreType.JCEKS);
 
-	/** The key algorithms offered for a new entry: the two classical ones plus the post-quantum
-	 * ML-DSA, so a store can hold a quantum safe key as well */
-	public static final List<KeyPairGeneratorAlgorithm> KEY_ALGORITHMS = List
-		.of(KeyPairGeneratorAlgorithm.RSA, KeyPairGeneratorAlgorithm.EC,
-			KeyPairGeneratorAlgorithm.ML_DSA_65);
+	/**
+	 * The key algorithms offered for a new entry: the two classical ones plus the post-quantum
+	 * ML-DSA, so a store can hold a quantum safe key as well
+	 */
+	public static final List<KeyPairGeneratorAlgorithm> KEY_ALGORITHMS = List.of(
+		KeyPairGeneratorAlgorithm.RSA, KeyPairGeneratorAlgorithm.EC,
+		KeyPairGeneratorAlgorithm.ML_DSA_65);
 
 	/** The key size used for the size based algorithms */
 	public static final int DEFAULT_KEY_SIZE = 2048;
@@ -128,8 +132,7 @@ public final class KeyStoreSupport
 	 *            the SHA-256 fingerprint of the certificate, empty when there is none
 	 */
 	public record EntryInfo(String alias, String entryKind, String algorithm, String subject,
-		String validUntil, String fingerprint)
-	{
+		String validUntil, String fingerprint) {
 	}
 
 	/**
@@ -247,8 +250,8 @@ public final class KeyStoreSupport
 	 * Parses a distinguished name, naming the expected format when it is not one.
 	 * <p>
 	 * {@link X500Name}'s own constructor throws with BouncyCastle's raw internal parsing message
-	 * ("badly formatted directory string") - accurate, but it reads like a file-path problem and
-	 * is not actionable without already knowing X.500 DN syntax (#196).
+	 * ("badly formatted directory string") - accurate, but it reads like a file-path problem and is
+	 * not actionable without already knowing X.500 DN syntax (#196).
 	 *
 	 * @param distinguishedName
 	 *            the distinguished name to parse, for instance {@code CN=example.com}
@@ -329,7 +332,8 @@ public final class KeyStoreSupport
 		final String storePassword, final String alias, final File certificateFile) throws Exception
 	{
 		X509Certificate certificate = CertificateReader.readCertificate(certificateFile);
-		KeyStoreExtensions.addAndStoreCertificate(keyStore, file, storePassword, alias, certificate);
+		KeyStoreExtensions.addAndStoreCertificate(keyStore, file, storePassword, alias,
+			certificate);
 	}
 
 	/**
@@ -385,8 +389,7 @@ public final class KeyStoreSupport
 	 */
 	public record CertificateDetails(String alias, String subject, String issuer, String validFrom,
 		String validUntil, boolean expired, String serialNumber, String signatureAlgorithm,
-		String keyAlgorithm, int version, String fingerprint, String pem)
-	{
+		String keyAlgorithm, int version, String fingerprint, String pem) {
 	}
 
 	/**
@@ -413,8 +416,7 @@ public final class KeyStoreSupport
 			String.valueOf(x509.getNotAfter()), x509.getNotAfter().before(new java.util.Date()),
 			String.valueOf(CertificateExtensions.getSerialNumber(x509)), x509.getSigAlgName(),
 			x509.getPublicKey().getAlgorithm(), x509.getVersion(),
-			CertificateExtensions.getFingerprint(x509, HashAlgorithm.SHA256),
-			toPem(x509));
+			CertificateExtensions.getFingerprint(x509, HashAlgorithm.SHA256), toPem(x509));
 	}
 
 	/**
@@ -445,9 +447,10 @@ public final class KeyStoreSupport
 		X509Certificate certificate = AnyKeyFileReader.readCertificate(certificateFile);
 		if (!belongTogether(privateKey, certificate))
 		{
-			throw new IllegalArgumentException("the private key and the certificate do not belong "
-				+ "together - the key is " + privateKey.getAlgorithm() + ", the certificate holds a "
-				+ certificate.getPublicKey().getAlgorithm() + " key");
+			throw new IllegalArgumentException(
+				"the private key and the certificate do not belong " + "together - the key is "
+					+ privateKey.getAlgorithm() + ", the certificate holds a "
+					+ certificate.getPublicKey().getAlgorithm() + " key");
 		}
 		KeyStoreExtensions.addAndStorePrivateKey(keyStore, file, alias, privateKey,
 			storePassword.toCharArray(), new Certificate[] { certificate });
@@ -498,15 +501,14 @@ public final class KeyStoreSupport
 	public static KeystoreType detectType(final File file, final String password)
 	{
 		KeystoreType byItsFirstBytes = typeByMagicNumber(file);
-		if (byItsFirstBytes != null && KeystoreVerifier.isKeystoreFile(file,
-			password.toCharArray(), byItsFirstBytes.getType()))
+		if (byItsFirstBytes != null && KeystoreVerifier.isKeystoreFile(file, password.toCharArray(),
+			byItsFirstBytes.getType()))
 		{
 			return byItsFirstBytes;
 		}
 		// asking the readers in turn is only the fallback, and PKCS12 has to be asked last: since
 		// JDK 9 its reader opens a JKS file as well, so it answers yes for everything
-		for (KeystoreType type : List.of(KeystoreType.JKS, KeystoreType.JCEKS,
-			KeystoreType.PKCS12))
+		for (KeystoreType type : List.of(KeystoreType.JKS, KeystoreType.JCEKS, KeystoreType.PKCS12))
 		{
 			if (KeystoreVerifier.isKeystoreFile(file, password.toCharArray(), type.getType()))
 			{
@@ -580,8 +582,8 @@ public final class KeyStoreSupport
 			signature.update(probe);
 			byte[] signed = signature.sign();
 
-			java.security.Signature check = java.security.Signature
-				.getInstance(signatureAlgorithm, BouncyCastleProvider.PROVIDER_NAME);
+			java.security.Signature check = java.security.Signature.getInstance(signatureAlgorithm,
+				BouncyCastleProvider.PROVIDER_NAME);
 			check.initVerify(certificate.getPublicKey());
 			check.update(probe);
 			return check.verify(signed);

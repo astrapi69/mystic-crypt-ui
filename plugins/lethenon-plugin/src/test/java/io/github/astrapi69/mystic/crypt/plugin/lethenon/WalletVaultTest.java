@@ -56,8 +56,8 @@ import io.github.astrapi69.lethenon.WalletFile;
 /**
  * The wallet in the vault, as the decision record describes it
  * (docs/decisions/lethenon-wallet-in-vault-2026-10-30.md): sealed as the attachment
- * {@code wallet.lethwf}, marked by {@code lethenon.wallet}, created, taken over, restored,
- * exported and unsealed in memory only.
+ * {@code wallet.lethwf}, marked by {@code lethenon.wallet}, created, taken over, restored, exported
+ * and unsealed in memory only.
  */
 class WalletVaultTest
 {
@@ -85,7 +85,8 @@ class WalletVaultTest
 			List<String> words = List.of(new String(created.words()).split(" "));
 			assertEquals(24, words.size());
 			assertEquals(opened.phrase(), new String(created.words()));
-			assertFalse(entry.hasProperty(WalletInVault.MNEMONIC), "the default keeps the words out");
+			assertFalse(entry.hasProperty(WalletInVault.MNEMONIC),
+				"the default keeps the words out");
 			for (String name : entry.propertyNames())
 			{
 				assertFalse(holdsTheWords(entry.textOf(name), words),
@@ -190,8 +191,9 @@ class WalletVaultTest
 
 			byte[] written = Files.readAllBytes(target);
 			assertArrayEquals(created.entry().sealed(), written, "the export is the sealed file");
-			assertEquals(HexFormat.of()
-				.formatHex(MessageDigest.getInstance("SHA-256").digest(written)), checksum);
+			assertEquals(
+				HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(written)),
+				checksum);
 			assertEquals(Set.of(target), filesIn(directory), "no decrypted copy in between");
 		}
 	}
@@ -269,9 +271,9 @@ class WalletVaultTest
 		return Stream.of(Arguments.of("the wallet's own address", noChange(), false),
 			Arguments.of("no recorded address",
 				(Consumer<WalletEntry>)entry -> entry.removeProperty(WalletEntry.ADDRESS), false),
-			Arguments.of("text that is no address",
-				(Consumer<WalletEntry>)entry -> entry.setProperty(WalletEntry.ADDRESS,
-					"not an address".toCharArray(), false),
+			Arguments.of(
+				"text that is no address", (Consumer<WalletEntry>)entry -> entry
+					.setProperty(WalletEntry.ADDRESS, "not an address".toCharArray(), false),
 				true));
 	}
 
@@ -296,10 +298,8 @@ class WalletVaultTest
 				(Consumer<WalletEntry>)entry -> entry.removeProperty(WalletVault.WALLET), false),
 			Arguments.of("marker without the attachment",
 				(Consumer<WalletEntry>)entry -> entry.setSealed(null), false),
-			Arguments.of("a marker of another format version",
-				(Consumer<WalletEntry>)entry -> entry.setProperty(WalletVault.WALLET,
-					"2".toCharArray(), false),
-				false));
+			Arguments.of("a marker of another format version", (Consumer<WalletEntry>)entry -> entry
+				.setProperty(WalletVault.WALLET, "2".toCharArray(), false), false));
 	}
 
 	@ParameterizedTest(name = "{0}")
@@ -329,16 +329,17 @@ class WalletVaultTest
 			Arguments.of("unsealing an entry that is no wallet",
 				(Runnable)() -> WalletVault.unseal(WalletEntry.newEntry("testnet"), PASSWORD),
 				"not a lethenon wallet"),
-			Arguments.of("an unknown word", (Runnable)() -> WalletVault
-				.restore(phrase.replaceFirst("^\\S+", "lethenonx").toCharArray(), PASSWORD,
-					"testnet"),
+			Arguments.of("an unknown word",
+				(Runnable)() -> WalletVault.restore(
+					phrase.replaceFirst("^\\S+", "lethenonx").toCharArray(), PASSWORD, "testnet"),
 				"lethenonx"));
 	}
 
 	static Stream<Arguments> whatHoldsTheWords()
 	{
 		List<String> words = List.of("abandon", "add", "zoo");
-		return Stream.of(Arguments.of("a hex key with 'add' inside is not a word", "3f0add9e", words, false),
+		return Stream.of(
+			Arguments.of("a hex key with 'add' inside is not a word", "3f0add9e", words, false),
 			Arguments.of("an address is not a word", "lethenon1qadd0zoo", words, false),
 			Arguments.of("the whole phrase", "abandon add zoo", words, true),
 			Arguments.of("two words in their order", "x add zoo y", words, true),

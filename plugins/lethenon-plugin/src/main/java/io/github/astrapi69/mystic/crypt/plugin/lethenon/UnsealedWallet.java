@@ -40,6 +40,5 @@ import io.github.astrapi69.lethenon.Wallet;
  *            both addresses when the recorded one is not the wallet's, for the question of #716
  */
 record UnsealedWallet(Wallet wallet, Optional<String> addressWarning,
-	Optional<AddressMismatch> addressMismatch)
-{
+	Optional<AddressMismatch> addressMismatch) {
 }

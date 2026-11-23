@@ -110,7 +110,8 @@ class TransferSupportTest
 		assertEquals(0L, sent.nonce());
 		assertEquals(1, sent.waiting());
 		assertEquals(Amount.parseLeth("1.5"), sent.amount());
-		assertEquals(Amount.parseLeth("0.1"), sent.fee(), "the window shows the fee it signed (#604)");
+		assertEquals(Amount.parseLeth("0.1"), sent.fee(),
+			"the window shows the fee it signed (#604)");
 		List<SignedTransaction> pending = new ChainFile(chainFile).readPending();
 		assertEquals(1, pending.size());
 		SignedTransaction transfer = pending.getFirst();
@@ -204,7 +205,8 @@ class TransferSupportTest
 	@ParameterizedTest(name = "{0}")
 	// the quote character is '"' so that 'zz:yy' below is taken as written: JUnit 6 refuses a field
 	// that goes on after a closing quote, which JUnit 5 let through (#547)
-	@CsvSource(delimiter = '|', quoteCharacter = '"', value = { "no address at all||enter the published address",
+	@CsvSource(delimiter = '|', quoteCharacter = '"', value = {
+			"no address at all||enter the published address",
 			"an account key where an address belongs|ACCOUNT|is not a published address",
 			"halves that are not hexadecimal|zz:yy|'zz:yy' is not a published address",
 			"halves that are hexadecimal but no keys|00ff:00ff|not an X25519 public key" })

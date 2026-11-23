@@ -44,10 +44,10 @@ import net.miginfocom.swing.MigLayout;
 
 /**
  * The wizard's second step: offer to generate one key pair with a self-signed certificate right
- * away, skippable for an empty store. The alias, subject and algorithm fields only apply while
- * "Add a key pair now" is checked, so they stay disabled otherwise - a value typed into a disabled
- * field would suggest it means something when {@link CreateKeyStoreWizardModel#isAddKeyPairNow()}
- * says it does not.
+ * away, skippable for an empty store. The alias, subject and algorithm fields only apply while "Add
+ * a key pair now" is checked, so they stay disabled otherwise - a value typed into a disabled field
+ * would suggest it means something when {@link CreateKeyStoreWizardModel#isAddKeyPairNow()} says it
+ * does not.
  */
 public class EntryPanel extends BasePanel<BaseWizardStateMachineModel<CreateKeyStoreWizardModel>>
 {
@@ -102,18 +102,18 @@ public class EntryPanel extends BasePanel<BaseWizardStateMachineModel<CreateKeyS
 		chkAddKeyPairNow.addActionListener(event -> updateFieldsEnabled());
 		updateFieldsEnabled();
 
-		chkAddKeyPairNow.setToolTipText(KeyStoreMessages.getString(
-			"keystore.wizard.entry.tooltip.add.key.pair",
-			"generate one key pair with a self-signed certificate right away, or leave the new "
-				+ "store empty"));
+		chkAddKeyPairNow
+			.setToolTipText(KeyStoreMessages.getString("keystore.wizard.entry.tooltip.add.key.pair",
+				"generate one key pair with a self-signed certificate right away, or leave the new "
+					+ "store empty"));
 		txtAlias.setToolTipText(KeyStoreMessages.getString("keystore.wizard.entry.tooltip.alias",
 			"the name the first entry is stored and looked up under"));
 		txtDistinguishedName.setToolTipText(
 			KeyStoreMessages.getString("keystore.wizard.entry.tooltip.distinguished.name",
 				"the subject of the self-signed certificate, for example CN=example.com"));
-		cmbKeyAlgorithm.setToolTipText(KeyStoreMessages.getString(
-			"keystore.wizard.entry.tooltip.key.algorithm",
-			"the algorithm the first key pair is generated with"));
+		cmbKeyAlgorithm.setToolTipText(
+			KeyStoreMessages.getString("keystore.wizard.entry.tooltip.key.algorithm",
+				"the algorithm the first key pair is generated with"));
 	}
 
 	@Override
@@ -145,10 +145,10 @@ public class EntryPanel extends BasePanel<BaseWizardStateMachineModel<CreateKeyS
 	}
 
 	/**
-	 * A combo box model over an enum, holding only the values this wizard offers and holding them in
-	 * the order they are offered in - the exclude set of {@link EnumComboBoxModel} is a hash set and
-	 * would leave the order to the hash codes. Mirrors {@code KeyStorePanel}'s own helper of the same
-	 * shape.
+	 * A combo box model over an enum, holding only the values this wizard offers and holding them
+	 * in the order they are offered in - the exclude set of {@link EnumComboBoxModel} is a hash set
+	 * and would leave the order to the hash codes. Mirrors {@code KeyStorePanel}'s own helper of
+	 * the same shape.
 	 *
 	 * @param <E>
 	 *            the type of the enum

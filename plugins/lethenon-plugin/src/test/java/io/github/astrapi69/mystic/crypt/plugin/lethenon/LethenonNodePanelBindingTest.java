@@ -26,7 +26,6 @@ package io.github.astrapi69.mystic.crypt.plugin.lethenon;
 
 import static io.github.astrapi69.mystic.crypt.plugin.lethenon.Windows.component;
 import static io.github.astrapi69.mystic.crypt.plugin.lethenon.Windows.textOf;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -136,9 +135,10 @@ class LethenonNodePanelBindingTest
 		assertEquals(chain, new ChainFile(copy).require(), "the window's node serves the chain");
 
 		panel.onStop();
-		await("the node has stopped", () -> !panel.getModelObject().isRunning()
-			&& panel.getModelObject().getResultText().startsWith("the node was stopped")
-			&& textOf(panel, "txtAnswer").startsWith("Your node has stopped"));
+		await("the node has stopped",
+			() -> !panel.getModelObject().isRunning()
+				&& panel.getModelObject().getResultText().startsWith("the node was stopped")
+				&& textOf(panel, "txtAnswer").startsWith("Your node has stopped"));
 		assertEquals("Your node has stopped: its chain ends at block 2.",
 			textOf(panel, "txtAnswer"));
 	}
@@ -166,10 +166,13 @@ class LethenonNodePanelBindingTest
 	{
 		NodeStatus status = new NodeStatus(18480, 1200, 2, 1, 3, List.of());
 
-		assertEquals("Your node runs on port 18480: its chain ends at block 1,200. It has found 3 "
-			+ "blocks for you so far.", LethenonNodePanel.answerFor(status, true, true, Locale.ENGLISH));
-		assertEquals("Your node has stopped: its chain ends at block 1,200. It found 3 blocks for "
-			+ "you.", LethenonNodePanel.answerFor(status, true, false, Locale.ENGLISH));
+		assertEquals(
+			"Your node runs on port 18480: its chain ends at block 1,200. It has found 3 "
+				+ "blocks for you so far.",
+			LethenonNodePanel.answerFor(status, true, true, Locale.ENGLISH));
+		assertEquals(
+			"Your node has stopped: its chain ends at block 1,200. It found 3 blocks for " + "you.",
+			LethenonNodePanel.answerFor(status, true, false, Locale.ENGLISH));
 	}
 
 	@Test
@@ -177,16 +180,16 @@ class LethenonNodePanelBindingTest
 	void starting_withoutAChain_reportsTheReason() throws Exception
 	{
 		LethenonNodePanel panel = new LethenonNodePanel();
-		panel.getModelObject()
-			.setChainFile(directory.resolve("not-there.lethenon").toString());
+		panel.getModelObject().setChainFile(directory.resolve("not-there.lethenon").toString());
 		panel.getModelObject().setPassword("not used".toCharArray());
 
 		panel.onStart();
 		await("the start has ended", () -> !panel.getModelObject().isStarting());
 
 		assertFalse(panel.getModelObject().isRunning());
-		assertTrue(panel.getModelObject().getResultText()
-			.startsWith("the node was not started: there is no chain file at"),
+		assertTrue(
+			panel.getModelObject().getResultText()
+				.startsWith("the node was not started: there is no chain file at"),
 			panel.getModelObject().getResultText());
 		assertNull(panel.getModelObject().getPassword());
 	}
@@ -204,7 +207,8 @@ class LethenonNodePanelBindingTest
 		return "the window shows refusals before this test dialled its node (#667): port " + port
 			+ ", window text '" + refusals + "', window's connected field '" + connected
 			+ "', the node's own status at that moment "
-			+ status.map(String::valueOf).orElse("(no node runs)") + ", refusals counted by the node "
+			+ status.map(String::valueOf).orElse("(no node runs)")
+			+ ", refusals counted by the node "
 			+ status.map(running -> running.refusals().size()).map(String::valueOf).orElse("-");
 	}
 

@@ -25,7 +25,6 @@
 package io.github.astrapi69.mystic.crypt.plugin.lethenon;
 
 import static io.github.astrapi69.mystic.crypt.plugin.lethenon.Windows.textOf;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -96,7 +95,8 @@ class NetworkBadgeTest
 	{
 		assertEquals("Test network, LETH has no monetary value.",
 			NetworkKind.TEST.riskNote(Locale.ENGLISH));
-		assertEquals("Testnetz, LETH hat keinen Geldwert.", NetworkKind.TEST.riskNote(Locale.GERMAN));
+		assertEquals("Testnetz, LETH hat keinen Geldwert.",
+			NetworkKind.TEST.riskNote(Locale.GERMAN));
 		assertNotEquals(NetworkKind.TEST.riskNote(Locale.ENGLISH),
 			NetworkKind.MAIN.riskNote(Locale.ENGLISH));
 		assertNotEquals(NetworkKind.MAIN.riskNote(Locale.ENGLISH),
@@ -144,8 +144,8 @@ class NetworkBadgeTest
 	{
 		JPanel tool = new JPanel();
 		NetworkHeader header = NetworkHeader.around(tool, vault, Locale.ENGLISH);
-		assertEquals("NETWORK UNKNOWN", Windows.component(header, "lblNetworkBadge", JLabel.class)
-			.getText());
+		assertEquals("NETWORK UNKNOWN",
+			Windows.component(header, "lblNetworkBadge", JLabel.class).getText());
 		vault.restore(Wallet.create().phrase().toCharArray(), ThrowawayPasswords.next(),
 			WalletNetwork.MAINNET);
 

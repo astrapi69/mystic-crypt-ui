@@ -35,9 +35,9 @@ import io.github.astrapi69.model.BaseModel;
 
 /**
  * Tests of the assembled wizard: {@link CreateKeyStoreWizardPanel} wired to its
- * {@link CreateKeyStoreWizardContentPanel}, walked through Next/Previous the same way the navigation
- * panel's buttons drive it - proof that the state machine, the card layout and the step panels are
- * actually wired together, not just individually correct.
+ * {@link CreateKeyStoreWizardContentPanel}, walked through Next/Previous the same way the
+ * navigation panel's buttons drive it - proof that the state machine, the card layout and the step
+ * panels are actually wired together, not just individually correct.
  */
 class CreateKeyStoreWizardPanelTest
 {
@@ -48,7 +48,8 @@ class CreateKeyStoreWizardPanelTest
 		CreateKeyStoreWizardPanel wizardPanel = new CreateKeyStoreWizardPanel(
 			BaseModel.of(new CreateKeyStoreWizardModel()));
 
-		assertEquals(CreateKeyStoreWizardState.STORE, wizardPanel.getStateMachine().getCurrentState());
+		assertEquals(CreateKeyStoreWizardState.STORE,
+			wizardPanel.getStateMachine().getCurrentState());
 		assertFalse(wizardPanel.getNavigationPanel().getBtnPrevious().isEnabled());
 		assertTrue(wizardPanel.getNavigationPanel().getBtnNext().isEnabled());
 	}
@@ -61,7 +62,8 @@ class CreateKeyStoreWizardPanelTest
 
 		wizardPanel.getNavigationPanel().getBtnNext().doClick();
 
-		assertEquals(CreateKeyStoreWizardState.STORE, wizardPanel.getStateMachine().getCurrentState());
+		assertEquals(CreateKeyStoreWizardState.STORE,
+			wizardPanel.getStateMachine().getCurrentState());
 	}
 
 	@Test
@@ -78,7 +80,8 @@ class CreateKeyStoreWizardPanelTest
 		model.setStorePasswordRepeated("secret".toCharArray());
 
 		wizardPanel.getNavigationPanel().getBtnNext().doClick();
-		assertEquals(CreateKeyStoreWizardState.ENTRY, wizardPanel.getStateMachine().getCurrentState());
+		assertEquals(CreateKeyStoreWizardState.ENTRY,
+			wizardPanel.getStateMachine().getCurrentState());
 
 		// Entry advances without any of its own fields as long as no key pair was requested
 		wizardPanel.getNavigationPanel().getBtnNext().doClick();
@@ -88,9 +91,11 @@ class CreateKeyStoreWizardPanelTest
 			"Review is the last step");
 
 		wizardPanel.getNavigationPanel().getBtnPrevious().doClick();
-		assertEquals(CreateKeyStoreWizardState.ENTRY, wizardPanel.getStateMachine().getCurrentState());
+		assertEquals(CreateKeyStoreWizardState.ENTRY,
+			wizardPanel.getStateMachine().getCurrentState());
 		wizardPanel.getNavigationPanel().getBtnPrevious().doClick();
-		assertEquals(CreateKeyStoreWizardState.STORE, wizardPanel.getStateMachine().getCurrentState());
+		assertEquals(CreateKeyStoreWizardState.STORE,
+			wizardPanel.getStateMachine().getCurrentState());
 		assertFalse(wizardPanel.getNavigationPanel().getBtnPrevious().isEnabled(),
 			"Store is the first step");
 	}
@@ -105,10 +110,12 @@ class CreateKeyStoreWizardPanelTest
 		model.setAddKeyPairNow(true);
 		CreateKeyStoreWizardPanel wizardPanel = new CreateKeyStoreWizardPanel(BaseModel.of(model));
 		wizardPanel.getNavigationPanel().getBtnNext().doClick();
-		assertEquals(CreateKeyStoreWizardState.ENTRY, wizardPanel.getStateMachine().getCurrentState());
+		assertEquals(CreateKeyStoreWizardState.ENTRY,
+			wizardPanel.getStateMachine().getCurrentState());
 
 		wizardPanel.getNavigationPanel().getBtnNext().doClick();
 
-		assertEquals(CreateKeyStoreWizardState.ENTRY, wizardPanel.getStateMachine().getCurrentState());
+		assertEquals(CreateKeyStoreWizardState.ENTRY,
+			wizardPanel.getStateMachine().getCurrentState());
 	}
 }

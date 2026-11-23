@@ -109,8 +109,8 @@ class FetchTheChainTest
 	@DisplayName("the empty state names the node of the settings it fetches from (#827)")
 	void theEmptyState_namesTheNodeOfTheSettings()
 	{
-		LethenonSettingsContribution.remember(
-			Map.of(LethenonSettingsContribution.KEY_NODE, "127.0.0.1:18480"));
+		LethenonSettingsContribution
+			.remember(Map.of(LethenonSettingsContribution.KEY_NODE, "127.0.0.1:18480"));
 
 		LethenonWalletPanel panel = new LethenonWalletPanel(vault, Locale.ENGLISH);
 
@@ -125,8 +125,8 @@ class FetchTheChainTest
 		try (Node node = Node.on(LethenonFixtures.aChainPayingTheWallet(payer, wallet)))
 		{
 			String address = "127.0.0.1:" + node.listen(0);
-			LethenonSettingsContribution.remember(
-				Map.of(LethenonSettingsContribution.KEY_CHAIN_FILE, chainFile.toString(),
+			LethenonSettingsContribution
+				.remember(Map.of(LethenonSettingsContribution.KEY_CHAIN_FILE, chainFile.toString(),
 					LethenonSettingsContribution.KEY_NODE, address));
 			LethenonWalletPanel panel = new LethenonWalletPanel(vault, Locale.ENGLISH);
 
@@ -189,9 +189,8 @@ class FetchTheChainTest
 	{
 		Path chainFile = directory.resolve("not-yet.lethenon");
 		String address = "127.0.0.1:" + aPortNobodyListensOn();
-		LethenonSettingsContribution.remember(
-			Map.of(LethenonSettingsContribution.KEY_CHAIN_FILE, chainFile.toString(),
-				LethenonSettingsContribution.KEY_NODE, address));
+		LethenonSettingsContribution.remember(Map.of(LethenonSettingsContribution.KEY_CHAIN_FILE,
+			chainFile.toString(), LethenonSettingsContribution.KEY_NODE, address));
 		LethenonWalletPanel panel = new LethenonWalletPanel(vault, Locale.ENGLISH);
 
 		panel.onFetchChain();

@@ -48,16 +48,17 @@ import io.github.astrapi69.lethenon.Wallet;
 /**
  * Words pasted into the grid of 24 fields do not stay on the system clipboard (#804): once they are
  * in the fields the clipboard is emptied, but only if it still holds exactly what was pasted, the
- * conditional clear the host's {@code ClipboardClearWatchdog} makes for a copied password. Step 1 of
- * the backup says "not to the clipboard"; the fields invite a paste all the same, and this is what
- * cleans up after it
+ * conditional clear the host's {@code ClipboardClearWatchdog} makes for a copied password. Step 1
+ * of the backup says "not to the clipboard"; the fields invite a paste all the same, and this is
+ * what cleans up after it
  */
 class WordGridClipboardTest
 {
 
 	private final TypedWords words = new TypedWords();
 
-	private final WordGrid grid = new WordGrid("Words", words, Locale.ENGLISH, sentence -> {});
+	private final WordGrid grid = new WordGrid("Words", words, Locale.ENGLISH, sentence -> {
+	});
 
 	private final String phrase = Wallet.create().phrase();
 

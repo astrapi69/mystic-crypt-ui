@@ -3,20 +3,24 @@
  *
  * Copyright (C) 2015 Asterios Raptis
  *
- * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
- * associated documentation files (the "Software"), to deal in the Software without restriction,
- * including without limitation the rights to use, copy, modify, merge, publish, distribute,
- * sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
+ * Permission is hereby granted, free of charge, to any person obtaining
+ * a copy of this software and associated documentation files (the
+ * "Software"), to deal in the Software without restriction, including
+ * without limitation the rights to use, copy, modify, merge, publish,
+ * distribute, sublicense, and/or sell copies of the Software, and to
+ * permit persons to whom the Software is furnished to do so, subject to
+ * the following conditions:
  *
- * The above copyright notice and this permission notice shall be included in all copies or
- * substantial portions of the Software.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT
- * NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
- * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
- * DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
+ * LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+ * OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+ * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 package io.github.astrapi69.mystic.crypt.plugin.obfuscation.simple;
 
@@ -40,9 +44,9 @@ import io.github.astrapi69.model.api.IModel;
 import io.github.astrapi69.mystic.crypt.obfuscation.simple.SimpleCharacterObfuscator;
 import io.github.astrapi69.mystic.crypt.obfuscation.simple.SimpleObfuscatorExtensions;
 import io.github.astrapi69.mystic.crypt.panel.keygen.EnDecryptPanel;
+import io.github.astrapi69.mystic.crypt.plugin.obfuscation.ModeContext;
 import io.github.astrapi69.mystic.crypt.plugin.obfuscation.ObfuscationMessages;
 import io.github.astrapi69.mystic.crypt.plugin.obfuscation.ObfuscationSettingsContribution;
-import io.github.astrapi69.mystic.crypt.plugin.obfuscation.ModeContext;
 import io.github.astrapi69.mystic.crypt.ui.form.ToolForm;
 import io.github.astrapi69.swing.base.BasePanel;
 import lombok.Getter;
@@ -183,8 +187,8 @@ public class RulePanel extends BasePanel<ObfuscationModelBean>
 		{
 			return;
 		}
-		final String disentangled = SimpleObfuscatorExtensions
-			.disentangle(HashBiMap.create(keymap), obfuscated);
+		final String disentangled = SimpleObfuscatorExtensions.disentangle(HashBiMap.create(keymap),
+			obfuscated);
 		getEnDecryptPanel().getTxtToEncrypt().setText(disentangled);
 		if (ObfuscationSettingsContribution.clearInputAfterRun())
 		{
@@ -206,7 +210,8 @@ public class RulePanel extends BasePanel<ObfuscationModelBean>
 	 *            the rules of the table, may be null
 	 * @return the warning to show, or null when there are rules to work with
 	 */
-	static String emptyRulesWarning(final Map<Character, ObfuscationRule<Character, Character>> rules)
+	static String emptyRulesWarning(
+		final Map<Character, ObfuscationRule<Character, Character>> rules)
 	{
 		if (rules != null && !rules.isEmpty())
 		{
@@ -227,8 +232,9 @@ public class RulePanel extends BasePanel<ObfuscationModelBean>
 		}
 		final String title = ObfuscationMessages
 			.getString("obfuscation.simple.dialog.empty.rules.title", "No obfuscation rules");
-		JOptionPane.showMessageDialog(this, "<html><body width='350'><h2>" + title + "</h2><p>"
-			+ warning, title, JOptionPane.WARNING_MESSAGE);
+		JOptionPane.showMessageDialog(this,
+			"<html><body width='350'><h2>" + title + "</h2><p>" + warning, title,
+			JOptionPane.WARNING_MESSAGE);
 		return true;
 	}
 

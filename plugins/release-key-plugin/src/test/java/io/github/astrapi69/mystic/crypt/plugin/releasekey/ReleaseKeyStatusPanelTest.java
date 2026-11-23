@@ -70,8 +70,7 @@ class ReleaseKeyStatusPanelTest
 	static void writeTheHomeWithGpg() throws IOException
 	{
 		home = ThrowawayGnuPgHome.create(directory.resolve("home"));
-		release = home.generate("Release Test <release@example.org>", "ed25519", "sign,cert",
-			"0");
+		release = home.generate("Release Test <release@example.org>", "ed25519", "sign,cert", "0");
 		home.addSubkey(release, "ed25519", "sign", "1y");
 		home.takePrimaryOffline(release);
 	}
@@ -89,8 +88,9 @@ class ReleaseKeyStatusPanelTest
 			configurationDirectory.getAbsolutePath());
 		ReleaseKeySettingsContribution contribution = new ReleaseKeySettingsContribution();
 		PluginSettings.save(configurationDirectory, contribution.getPluginId(),
-			contribution.getDefaults(), Map.of(ReleaseKeySettingsContribution.KEY_GNUPG_HOME,
-				home.directory().toString(), ReleaseKeySettingsContribution.KEY_RELEASE_KEY, release));
+			contribution.getDefaults(),
+			Map.of(ReleaseKeySettingsContribution.KEY_GNUPG_HOME, home.directory().toString(),
+				ReleaseKeySettingsContribution.KEY_RELEASE_KEY, release));
 	}
 
 	@AfterEach
@@ -105,8 +105,8 @@ class ReleaseKeyStatusPanelTest
 	{
 		ReleaseKeyStatusPanel panel = new ReleaseKeyStatusPanel();
 
-		assertEquals(home.directory().toString(), named(panel, "txtGnuPgHome", JTextField.class)
-			.getText());
+		assertEquals(home.directory().toString(),
+			named(panel, "txtGnuPgHome", JTextField.class).getText());
 		assertEquals(release, named(panel, "txtReleaseKey", JTextField.class).getText());
 		JTable table = named(panel, "tblKeys", JTable.class);
 		assertEquals(2, table.getRowCount());

@@ -49,34 +49,32 @@ public final class LaunchChecklist
 
 	/** The rows in their order, with their English text */
 	private static final List<Row> ROWS = List.of(
-		new Row("code", "Publish the code, under the MIT licence", "not required",
-				"Art. 2(1)"),
-		new Row("test.network", "Run the open test network and its faucet",
-				"not required", "Art. 2(1)"),
+		new Row("code", "Publish the code, under the MIT licence", "not required", "Art. 2(1)"),
+		new Row("test.network", "Run the open test network and its faucet", "not required",
+			"Art. 2(1)"),
 		new Row("mining", "Mine LETH on the main chain, and pass on what was mined",
-				"not required, while no listing is announced and no white paper is drawn up",
-				"Art. 4(3)(b), 4(4), 4(8)"),
+			"not required, while no listing is announced and no white paper is drawn up",
+			"Art. 4(3)(b), 4(4), 4(8)"),
 		new Row("seed.nodes", "Run seed nodes that relay blocks and transfers",
-				"not required: nodes and miners are not a transfer service", "recital 93"),
+			"not required: nodes and miners are not a transfer service", "recital 93"),
 		new Row("wallet", "Publish a wallet whose keys stay on the user's machine",
-				"not required, as the definition of custody reads; to be confirmed with a lawyer",
-				"Art. 3(1)(17)"),
+			"not required, as the definition of custody reads; to be confirmed with a lawyer",
+			"Art. 3(1)(17)"),
 		new Row("custody", "Hold LETH for others, or transfer it on their behalf",
-				"not required, while LETH is not admitted to a trading platform", "Art. 4(5)"),
+			"not required, while LETH is not admitted to a trading platform", "Art. 4(5)"),
 		new Row("services",
-				"Exchange LETH for money or crypto-assets as a business, run a trading platform, advise",
-				"required: authorisation as a crypto-asset service provider", "Art. 59"),
+			"Exchange LETH for money or crypto-assets as a business, run a trading platform, advise",
+			"required: authorisation as a crypto-asset service provider", "Art. 59"),
 		new Row("admission", "Seek admission to trading, or announce the intention",
-				"needs a legal person and a white paper, and ends the exemption for mined coins",
-				"Art. 4(4), Art. 5"),
-		new Row("white.paper", "Publish a \"white paper\"",
-				"all of Title II of MiCA then applies", "Art. 4(8)"),
+			"needs a legal person and a white paper, and ends the exemption for mined coins",
+			"Art. 4(4), Art. 5"),
+		new Row("white.paper", "Publish a \"white paper\"", "all of Title II of MiCA then applies",
+			"Art. 4(8)"),
 		new Row("outside.eu", "Serve people in the EU through a company outside it",
-				"required, unless at the client's own exclusive initiative, which any solicitation ends",
-				"Art. 59, Art. 61"),
-		new Row("personal.data",
-				"Hand out LETH for an e-mail address or other personal data",
-				"not \"offered for free\"", "Art. 4(3), 2nd subparagraph"));
+			"required, unless at the client's own exclusive initiative, which any solicitation ends",
+			"Art. 59, Art. 61"),
+		new Row("personal.data", "Hand out LETH for an e-mail address or other personal data",
+			"not \"offered for free\"", "Art. 4(3), 2nd subparagraph"));
 
 	private LaunchChecklist()
 	{
@@ -99,6 +97,7 @@ public final class LaunchChecklist
 
 	/**
 	 * Gets the rows of the short checklist
+	 * 
 	 * @param text
 	 *            looks up a key, falling back to the default it is given
 	 * @return the rows, in the checklist's order
@@ -110,6 +109,7 @@ public final class LaunchChecklist
 
 	/**
 	 * Gets the notice the view starts with
+	 * 
 	 * @param text
 	 *            looks up a key, falling back to the default it is given
 	 * @return the notice that none of this is legal advice

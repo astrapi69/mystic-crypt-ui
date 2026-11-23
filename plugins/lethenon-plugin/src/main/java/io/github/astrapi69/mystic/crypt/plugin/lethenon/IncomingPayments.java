@@ -34,6 +34,5 @@ import io.github.astrapi69.lethenon.Amount;
  * @param total
  *            what they add up to, not yet taken over into an account
  */
-record IncomingPayments(int count, Amount total)
-{
+record IncomingPayments(int count, Amount total) {
 }

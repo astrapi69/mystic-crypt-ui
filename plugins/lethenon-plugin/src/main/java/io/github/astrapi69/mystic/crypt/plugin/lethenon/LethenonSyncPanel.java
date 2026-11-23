@@ -82,8 +82,9 @@ public class LethenonSyncPanel extends JPanel
 
 	private final Locale locale = Locale.getDefault();
 
-	private final JMTextArea txtAnswer = AnswerFields.answerArea(text("lethenon.sync.tooltip.answer",
-		"whether your chain file is up to date, in one sentence; the details are below"));
+	private final JMTextArea txtAnswer = AnswerFields
+		.answerArea(text("lethenon.sync.tooltip.answer",
+			"whether your chain file is up to date, in one sentence; the details are below"));
 
 	private final JMTextField txtTaken = AnswerFields.readOnly("txtTaken",
 		text("lethenon.sync.tooltip.taken",
@@ -250,7 +251,8 @@ public class LethenonSyncPanel extends JPanel
 			LethenonSettingsContribution.rememberASync(chainFile, node, proxy);
 			showTheAnswer(syncedFrom);
 			setResult(syncedFrom.synced().taken() > 0
-				? text("lethenon.sync.result.written", "the chain file is at the tip of the node now")
+				? text("lethenon.sync.result.written",
+					"the chain file is at the tip of the node now")
 				: text("lethenon.sync.result.unchanged",
 					"the chain file holds at least what the node has: nothing was written"));
 		}
@@ -340,7 +342,8 @@ public class LethenonSyncPanel extends JPanel
 		showTheModel();
 		modelObject.setResultText(result);
 		lblResult.setText(" ");
-		failureView.show(Failures.of(thrown, new Refusal("lethenon.sync.failure", "The chain was not synchronised."), locale));
+		failureView.show(Failures.of(thrown,
+			new Refusal("lethenon.sync.failure", "The chain was not synchronised."), locale));
 	}
 
 	/**
@@ -427,8 +430,9 @@ public class LethenonSyncPanel extends JPanel
 
 	private void layOutTheAnswer()
 	{
-		add(AnswerArea.toCome(text("lethenon.sync.answer.to.come",
-			"After the update, this shows up to which block your chain reaches."),
+		add(AnswerArea.toCome(
+			text("lethenon.sync.answer.to.come",
+				"After the update, this shows up to which block your chain reaches."),
 			text("lethenon.sync.tooltip.answer.to.come",
 				"the answer appears here once the chain was brought up to date")),
 			ToolForm.WIDE + ", wmin 0");
@@ -442,7 +446,8 @@ public class LethenonSyncPanel extends JPanel
 		add(ToolForm.buttons(btnDetails), ToolForm.BUTTON_ROW);
 		pnlDetails.add(new JLabel(text("lethenon.sync.label.chain", "Chain:")));
 		pnlDetails.add(txtChain, ToolForm.FIELD);
-		pnlDetails.add(new JLabel(text("lethenon.sync.label.first.use", "First block taken as is:")));
+		pnlDetails
+			.add(new JLabel(text("lethenon.sync.label.first.use", "First block taken as is:")));
 		pnlDetails.add(txtFirstUse, ToolForm.FIELD);
 		add(pnlDetails, ToolForm.WIDE + ", hidemode 3");
 	}

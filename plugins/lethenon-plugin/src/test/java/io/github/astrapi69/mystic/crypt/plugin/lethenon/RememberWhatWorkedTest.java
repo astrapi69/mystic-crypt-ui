@@ -121,9 +121,9 @@ class RememberWhatWorkedTest
 	@DisplayName("a wrong password leaves what worked before as it was")
 	void aFailure_leavesTheRememberedValues()
 	{
-		LethenonSettingsContribution.remember(Map.of(
-			LethenonSettingsContribution.KEY_CHAIN_FILE, "/tmp/worked.lethenon",
-			LethenonSettingsContribution.KEY_WALLET_FILE, "/tmp/worked.wallet"));
+		LethenonSettingsContribution
+			.remember(Map.of(LethenonSettingsContribution.KEY_CHAIN_FILE, "/tmp/worked.lethenon",
+				LethenonSettingsContribution.KEY_WALLET_FILE, "/tmp/worked.wallet"));
 		LethenonBalancePanel panel = new LethenonBalancePanel();
 		panel.getModelObject().setChainFile(chainFile.toString());
 		panel.getModelObject().setWalletFile(directory.resolve("typo.wallet").toString());
@@ -219,8 +219,8 @@ class RememberWhatWorkedTest
 		LethenonSettingsContribution.remember(Map.of(LethenonSettingsContribution.KEY_NODE,
 			"203.0.113.5:18480", LethenonSettingsContribution.KEY_PROXY, "127.0.0.1:9050"));
 		Path own = directory.resolve("own.lethenon");
-		new ChainFile(own).write(
-			LethenonFixtures.aChainOf(Chain.TEST_IDENTIFIER, 2, Bytes.of(new byte[] { 9 })));
+		new ChainFile(own)
+			.write(LethenonFixtures.aChainOf(Chain.TEST_IDENTIFIER, 2, Bytes.of(new byte[] { 9 })));
 		LethenonSyncPanel panel = new LethenonSyncPanel();
 		panel.getModelObject().setChainFile(own.toString());
 		panel.getModelObject().setNode("127.0.0.1:" + closedPort());
@@ -241,8 +241,8 @@ class RememberWhatWorkedTest
 	void aNode_remembersItsChain() throws Exception
 	{
 		Path served = directory.resolve("served.lethenon");
-		new ChainFile(served).write(
-			LethenonFixtures.aChainOf(Chain.TEST_IDENTIFIER, 3, Bytes.of(new byte[] { 9 })));
+		new ChainFile(served)
+			.write(LethenonFixtures.aChainOf(Chain.TEST_IDENTIFIER, 3, Bytes.of(new byte[] { 9 })));
 		LethenonNodePanel panel = new LethenonNodePanel();
 		panel.getModelObject().setChainFile(served.toString());
 		panel.getModelObject().setPort("0");
@@ -265,9 +265,8 @@ class RememberWhatWorkedTest
 	@DisplayName("a new window starts with what was remembered")
 	void aNewWindow_startsWithTheRememberedValues()
 	{
-		LethenonSettingsContribution.remember(Map.of(
-			LethenonSettingsContribution.KEY_CHAIN_FILE, "/tmp/chain.lethenon",
-			LethenonSettingsContribution.KEY_WALLET_FILE, "/tmp/home.wallet",
+		LethenonSettingsContribution.remember(Map.of(LethenonSettingsContribution.KEY_CHAIN_FILE,
+			"/tmp/chain.lethenon", LethenonSettingsContribution.KEY_WALLET_FILE, "/tmp/home.wallet",
 			LethenonSettingsContribution.KEY_NODE, "203.0.113.5:18480",
 			LethenonSettingsContribution.KEY_PROXY, "127.0.0.1:9050"));
 
@@ -419,8 +418,7 @@ class RememberWhatWorkedTest
 				{
 					out.write(new byte[] { 5, 0, 0, 1, 0, 0, 0, 0, 0, 0 });
 					relayed++;
-					Thread back = Thread.ofVirtual()
-						.start(() -> pipe(target, client));
+					Thread back = Thread.ofVirtual().start(() -> pipe(target, client));
 					pipe(client, target);
 					back.join();
 				}

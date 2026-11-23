@@ -70,7 +70,7 @@ Prompt triggers: "release new version", "new release".
      EVERY test including the UI e2e suite, and spotless - which since #686 also checks the license header
      on every Java source of the host build (`licenseHeaderFile`, `src/test/resources/spotless/license-header.txt`).
      The license plugin and the shell check over changed files that stood in for its disabled checks (#553)
-     are gone; the plugin builds have no Spotless yet (#666). The plugins are
+     are gone; the plugin builds run the same Spotless check since #666. The plugins are
      part of it since #333: `./gradlew build` never built them, so the 54 end-to-end tests
      that install one skipped, and a release could be cut with every plugin feature
      unverified while the gate read green. `make test` and

@@ -61,11 +61,10 @@ import io.github.astrapi69.swing.model.component.JMTextField;
  * class, and is cleared from the field afterwards, whether the sweep was signed or refused.
  * <p>
  * It answers in fields a child can read (#604): first one sentence in a larger font, "Swept:
- * 4.90000000 LETH from 1 payment onto your account. It counts once the next block is mined.",
- * then what moved, how many payments, the account and where the transfers wait. The warning
- * before signing stays on the screen as one plain sentence, with the whole cost statement as its
- * tooltip; after a sweep the statement is repeated behind "Show details", with how many transfers
- * wait.
+ * 4.90000000 LETH from 1 payment onto your account. It counts once the next block is mined.", then
+ * what moved, how many payments, the account and where the transfers wait. The warning before
+ * signing stays on the screen as one plain sentence, with the whole cost statement as its tooltip;
+ * after a sweep the statement is repeated behind "Show details", with how many transfers wait.
  */
 public class LethenonSweepPanel extends JPanel
 {
@@ -104,8 +103,9 @@ public class LethenonSweepPanel extends JPanel
 
 	private final JMTextArea txtCost = new JMTextArea(2, 62);
 
-	private final JMTextArea txtAnswer = AnswerFields.answerArea(text("lethenon.sweep.tooltip.answer",
-		"what your sweep did, in one sentence; the details are below"));
+	private final JMTextArea txtAnswer = AnswerFields
+		.answerArea(text("lethenon.sweep.tooltip.answer",
+			"what your sweep did, in one sentence; the details are below"));
 
 	private final JMTextField txtSwept = AnswerFields.readOnly("txtSwept",
 		text("lethenon.sweep.tooltip.swept",
@@ -182,9 +182,8 @@ public class LethenonSweepPanel extends JPanel
 		super(ToolForm.newLayout());
 		this.consent = consent;
 		this.locale = locale;
-		walletRow = new WalletRow(vault, locale, txtWalletFile,
-			() -> LethenonSwing.chooseFile(this, modelObject.getWalletFile())
-				.ifPresent(txtWalletFile::setText));
+		walletRow = new WalletRow(vault, locale, txtWalletFile, () -> LethenonSwing
+			.chooseFile(this, modelObject.getWalletFile()).ifPresent(txtWalletFile::setText));
 		modelObject.setCostStatement(costStatement(locale));
 		btnDetails = LethenonSwing.button("btnDetails",
 			AnswerFields.detailsButtonText(false, locale), event -> onDetails(),
@@ -241,9 +240,9 @@ public class LethenonSweepPanel extends JPanel
 			{
 				Arrays.fill(password, '\0');
 			}
-			LethenonSettingsContribution.remember(Map.of(LethenonSettingsContribution.KEY_CHAIN_FILE,
-				order.chainFile().toString(), LethenonSettingsContribution.KEY_WALLET_FILE,
-				order.walletFile().toString()));
+			LethenonSettingsContribution.remember(
+				Map.of(LethenonSettingsContribution.KEY_CHAIN_FILE, order.chainFile().toString(),
+					LethenonSettingsContribution.KEY_WALLET_FILE, order.walletFile().toString()));
 			showTheAnswer(swept);
 			setResult(swept.transfers() == 0
 				? text("lethenon.sweep.result.nothing", "nothing to sweep")
@@ -389,7 +388,8 @@ public class LethenonSweepPanel extends JPanel
 		showTheModel();
 		modelObject.setResultText(result);
 		lblResult.setText(" ");
-		failureView.show(Failures.of(thrown, new Refusal("lethenon.sweep.failure", "Nothing was swept."), locale));
+		failureView.show(Failures.of(thrown,
+			new Refusal("lethenon.sweep.failure", "Nothing was swept."), locale));
 	}
 
 	/**
@@ -498,8 +498,9 @@ public class LethenonSweepPanel extends JPanel
 
 	private void layOutTheAnswer()
 	{
-		add(AnswerArea.toCome(text("lethenon.sweep.answer.to.come",
-			"After sweeping, this shows what went to your account and what still waits."),
+		add(AnswerArea.toCome(
+			text("lethenon.sweep.answer.to.come",
+				"After sweeping, this shows what went to your account and what still waits."),
 			text("lethenon.sweep.tooltip.answer.to.come",
 				"the answer appears here once payments were swept")),
 			ToolForm.WIDE + ", wmin 0");

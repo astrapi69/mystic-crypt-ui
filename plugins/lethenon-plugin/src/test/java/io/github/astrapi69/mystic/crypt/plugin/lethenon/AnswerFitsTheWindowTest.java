@@ -102,8 +102,8 @@ class AnswerFitsTheWindowTest
 	private String aChainOfTwoBlocks() throws Exception
 	{
 		Path chainFile = directory.resolve("chain.lethenon");
-		new ChainFile(chainFile).write(
-			LethenonFixtures.aChainOf(Chain.TEST_IDENTIFIER, 2, Bytes.of(new byte[] { 9 })));
+		new ChainFile(chainFile)
+			.write(LethenonFixtures.aChainOf(Chain.TEST_IDENTIFIER, 2, Bytes.of(new byte[] { 9 })));
 		return chainFile.toString();
 	}
 

@@ -3,20 +3,24 @@
  *
  * Copyright (C) 2015 Asterios Raptis
  *
- * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
- * associated documentation files (the "Software"), to deal in the Software without restriction,
- * including without limitation the rights to use, copy, modify, merge, publish, distribute,
- * sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
+ * Permission is hereby granted, free of charge, to any person obtaining
+ * a copy of this software and associated documentation files (the
+ * "Software"), to deal in the Software without restriction, including
+ * without limitation the rights to use, copy, modify, merge, publish,
+ * distribute, sublicense, and/or sell copies of the Software, and to
+ * permit persons to whom the Software is furnished to do so, subject to
+ * the following conditions:
  *
- * The above copyright notice and this permission notice shall be included in all copies or
- * substantial portions of the Software.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT
- * NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
- * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
- * DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
+ * LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+ * OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+ * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 package io.github.astrapi69.mystic.crypt.plugin.keygen;
 
@@ -33,9 +37,9 @@ import io.github.astrapi69.model.BaseModel;
 import io.github.astrapi69.model.LambdaModel;
 import io.github.astrapi69.model.api.IModel;
 import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
-import io.github.astrapi69.mystic.crypt.ui.screen.ScreenPlacement;
 import io.github.astrapi69.mystic.crypt.panel.certificate.NewCertificateInfoPanel;
 import io.github.astrapi69.mystic.crypt.ui.form.ToolForm;
+import io.github.astrapi69.mystic.crypt.ui.screen.ScreenPlacement;
 import io.github.astrapi69.mystic.crypt.wizard.model.CertificateInfoModel;
 import io.github.astrapi69.mystic.crypt.write.DataClass;
 import io.github.astrapi69.mystic.crypt.write.OverwriteConfirmation;
@@ -84,11 +88,12 @@ public class CryptographyPanel extends BasePanel<GenerateKeysModelBean>
 	private static final int KEY_AREA_ROWS = 5;
 
 	/**
-	 * What the three key save buttons say while there is no key pair: pressed before Generate,
-	 * they emptied the file chosen for them (#882)
+	 * What the three key save buttons say while there is no key pair: pressed before Generate, they
+	 * emptied the file chosen for them (#882)
 	 */
 	static final String NOTHING_TO_SAVE_YET = KeygenMessages.getString(
-		"keygen.save.unavailable.reason", "There is no key pair to save yet. Press Generate first.");
+		"keygen.save.unavailable.reason",
+		"There is no key pair to save yet. Press Generate first.");
 
 	/** What the save buttons say while they can be used, kept to give it back after the reason */
 	private String savePrivateKeyTooltip;
@@ -281,14 +286,17 @@ public class CryptographyPanel extends BasePanel<GenerateKeysModelBean>
 			"generates a new key pair with the algorithm and options chosen above"));
 		btnClear.setToolTipText(KeygenMessages.getString("keygen.tooltip.clear.button",
 			"clears the generated key pair and resets the choices to the configured defaults"));
-		btnSavePrivateKey.setToolTipText(KeygenMessages.getString("keygen.tooltip.save.private.key.button",
+		btnSavePrivateKey.setToolTipText(KeygenMessages.getString(
+			"keygen.tooltip.save.private.key.button",
 			"writes the generated private key to a file, in the format and encoding chosen above"));
-		btnSavePrivKeyWithPw.setToolTipText(
-			KeygenMessages.getString("keygen.tooltip.save.private.key.with.password.button",
-				"writes the generated private key to a file, encrypted with a password you enter next"));
-		btnSavePublicKey.setToolTipText(KeygenMessages.getString("keygen.tooltip.save.public.key.button",
-			"writes the generated public key to a file, in the encoding chosen above"));
-		btnSaveCertificate.setToolTipText(KeygenMessages.getString("keygen.tooltip.save.certificate.button",
+		btnSavePrivKeyWithPw.setToolTipText(KeygenMessages.getString(
+			"keygen.tooltip.save.private.key.with.password.button",
+			"writes the generated private key to a file, encrypted with a password you enter next"));
+		btnSavePublicKey
+			.setToolTipText(KeygenMessages.getString("keygen.tooltip.save.public.key.button",
+				"writes the generated public key to a file, in the encoding chosen above"));
+		btnSaveCertificate.setToolTipText(KeygenMessages.getString(
+			"keygen.tooltip.save.certificate.button",
 			"creates and writes a self-signed certificate for the generated key pair - RSA or EC only"));
 		lblCertificateReason.setName("lblCertificateReason");
 
@@ -306,7 +314,8 @@ public class CryptographyPanel extends BasePanel<GenerateKeysModelBean>
 
 		btnSavePublicKey.setText("Save public key");
 		btnSaveCertificate.setText("Save certificate...");
-		setCertificateAvailable(false, KeygenMessages.getString("keygen.certificate.unavailable.reason",
+		setCertificateAvailable(false, KeygenMessages.getString(
+			"keygen.certificate.unavailable.reason",
 			"Only RSA and EC keys can be used for a self-signed certificate. Choose one of them and press Generate."));
 		savePrivateKeyTooltip = btnSavePrivateKey.getToolTipText();
 		savePrivateKeyWithPasswordTooltip = btnSavePrivKeyWithPw.getToolTipText();
@@ -361,8 +370,8 @@ public class CryptographyPanel extends BasePanel<GenerateKeysModelBean>
 	private void bindComponents()
 	{
 		final GenerateKeysModelBean modelObject = getModelObject();
-		cmbKeySize.setPropertyModel(
-			LambdaModel.of(modelObject::getKeySize, modelObject::setKeySize));
+		cmbKeySize
+			.setPropertyModel(LambdaModel.of(modelObject::getKeySize, modelObject::setKeySize));
 		txtPrivateKey.setPropertyModel(
 			LambdaModel.of(modelObject::getPrivateKeyPem, modelObject::setPrivateKeyPem));
 		txtPublicKey.setPropertyModel(
@@ -422,8 +431,8 @@ public class CryptographyPanel extends BasePanel<GenerateKeysModelBean>
 	 * Writes the described certificate to the given file and tells the user when that fails.
 	 * <p>
 	 * A failure here is the user's business: the reason - a name that is not a distinguished name,
-	 * a key that cannot sign with the chosen algorithm - is what makes the next attempt work, and
-	 * a button that answers with nothing at all is worse than one that answers with a problem.
+	 * a key that cannot sign with the chosen algorithm - is what makes the next attempt work, and a
+	 * button that answers with nothing at all is worse than one that answers with a problem.
 	 *
 	 * @param file
 	 *            the file to write the certificate to

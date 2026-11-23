@@ -36,8 +36,7 @@ import java.util.Locale;
  * @param actual
  *            the address of the wallet in the attachment
  */
-record AddressMismatch(String recorded, String actual)
-{
+record AddressMismatch(String recorded, String actual) {
 
 	/**
 	 * @param locale
@@ -58,7 +57,8 @@ record AddressMismatch(String recorded, String actual)
 	String bothAddresses(final Locale locale)
 	{
 		return LethenonMessages.format("lethenon.address.mismatch.both",
-			"The entry says: {0}. The wallet in the attachment has: {1}.", locale, recorded, actual);
+			"The entry says: {0}. The wallet in the attachment has: {1}.", locale, recorded,
+			actual);
 	}
 
 	/**

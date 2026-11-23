@@ -26,7 +26,6 @@ package io.github.astrapi69.mystic.crypt.plugin.lethenon;
 
 import static io.github.astrapi69.mystic.crypt.plugin.lethenon.Windows.component;
 import static io.github.astrapi69.mystic.crypt.plugin.lethenon.Windows.textOf;
-
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -111,8 +110,9 @@ class LethenonSyncPanelBindingTest
 			panel.onSync();
 			awaitTheEnd(panel);
 
-			assertEquals("Your chain file is up to date now: it took 3 new blocks and ends at "
-				+ "block 2.", textOf(panel, "txtAnswer"));
+			assertEquals(
+				"Your chain file is up to date now: it took 3 new blocks and ends at " + "block 2.",
+				textOf(panel, "txtAnswer"));
 			assertEquals("3 blocks", textOf(panel, "txtTaken"));
 			assertEquals("2", textOf(panel, "txtLastBlock"));
 			assertEquals(address, textOf(panel, "txtFrom"));
@@ -160,8 +160,8 @@ class LethenonSyncPanelBindingTest
 		// a chain of its own: with no node named, the seed nodes are not asked for it (#573), so
 		// the refusal comes before anything is sent - an empty file would reach the real seed node
 		File chainFile = new File(chainDirectory, "own.lethenon");
-		new ChainFile(chainFile.toPath()).write(
-			LethenonFixtures.aChainOf(Chain.TEST_IDENTIFIER, 2, Bytes.of(new byte[] { 9 })));
+		new ChainFile(chainFile.toPath())
+			.write(LethenonFixtures.aChainOf(Chain.TEST_IDENTIFIER, 2, Bytes.of(new byte[] { 9 })));
 		byte[] before = Files.readAllBytes(chainFile.toPath());
 		LethenonSyncPanel panel = new LethenonSyncPanel();
 		panel.getModelObject().setChainFile(chainFile.getAbsolutePath());

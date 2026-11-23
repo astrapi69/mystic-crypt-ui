@@ -45,18 +45,18 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.EnumSource;
 import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.junit.jupiter.params.provider.ValueSource;
 
 import io.github.astrapi69.crypt.api.algorithm.key.KeyPairGeneratorAlgorithm;
 import io.github.astrapi69.crypt.api.key.PemType;
 import io.github.astrapi69.crypt.data.factory.CertFactory;
 import io.github.astrapi69.crypt.data.factory.KeyPairFactory;
+import io.github.astrapi69.crypt.data.key.reader.AnyKeyFileReader;
 import io.github.astrapi69.crypt.data.key.writer.CertificateWriter;
 import io.github.astrapi69.crypt.data.key.writer.PrivateKeyWriter;
 import io.github.astrapi69.crypt.data.key.writer.PublicKeyWriter;
-import io.github.astrapi69.crypt.data.key.reader.AnyKeyFileReader;
 
 /**
  * Tests of working out what a key file holds rather than being told, and of converting it between
@@ -85,8 +85,8 @@ class ConversionSupportTest
 	{
 		KeyPair keyPair = KeyPairFactory.newKeyPair("RSA");
 		X500Name name = new X500Name("CN=conversion test");
-		X509Certificate certificate = CertFactory.newX509CertificateV3(keyPair, name, BigInteger.ONE,
-			new Date(System.currentTimeMillis() - 1000),
+		X509Certificate certificate = CertFactory.newX509CertificateV3(keyPair, name,
+			BigInteger.ONE, new Date(System.currentTimeMillis() - 1000),
 			new Date(System.currentTimeMillis() + 86_400_000L), name, "SHA256withRSA");
 		File file = new File(directory, "certificate.pem");
 		CertificateWriter.writeInPemFormat(certificate, file);
@@ -145,8 +145,7 @@ class ConversionSupportTest
 		File notes = new File(directory, "notes.txt");
 		Files.writeString(notes.toPath(), "just some text that is not a key");
 
-		assertEquals("nothing this tool recognises",
-			ConversionSupport.kindOf(notes).description());
+		assertEquals("nothing this tool recognises", ConversionSupport.kindOf(notes).description());
 	}
 
 	@Test
@@ -252,8 +251,8 @@ class ConversionSupportTest
 	void saysWhetherAFileHoldsAPrivateKey(String algorithm, boolean expected,
 		@TempDir File directory) throws Exception
 	{
-		assertEquals(expected,
-			ConversionSupport.holdsAPrivateKey(writePrivateKeyPem(directory, algorithm, "key.pem")));
+		assertEquals(expected, ConversionSupport
+			.holdsAPrivateKey(writePrivateKeyPem(directory, algorithm, "key.pem")));
 	}
 
 	@Test
@@ -282,9 +281,9 @@ class ConversionSupportTest
 	}
 
 	/**
-	 * A key whose algorithm has no traditional form cannot be written as PKCS#1. crypt-data's writer
-	 * falls through to PKCS#8 for those, so this used to produce a file the user did not ask for and
-	 * say nothing about it. It must refuse, and leave nothing behind. See crypt-data#42.
+	 * A key whose algorithm has no traditional form cannot be written as PKCS#1. crypt-data's
+	 * writer falls through to PKCS#8 for those, so this used to produce a file the user did not ask
+	 * for and say nothing about it. It must refuse, and leave nothing behind. See crypt-data#42.
 	 *
 	 * @param algorithm
 	 *            an algorithm whose private key has no traditional form
@@ -294,8 +293,8 @@ class ConversionSupportTest
 	 *             if the source key cannot be written
 	 */
 	@ParameterizedTest(name = "toPkcs1 refuses {0}")
-	@EnumSource(value = KeyPairGeneratorAlgorithm.class,
-		names = { "ML_DSA_65", "ML_KEM_768", "X25519", "X448" })
+	@EnumSource(value = KeyPairGeneratorAlgorithm.class, names = { "ML_DSA_65", "ML_KEM_768",
+			"X25519", "X448" })
 	void refusesToWritePkcs1ForAKeyThatHasNoTraditionalForm(KeyPairGeneratorAlgorithm algorithm,
 		@TempDir File directory) throws Exception
 	{

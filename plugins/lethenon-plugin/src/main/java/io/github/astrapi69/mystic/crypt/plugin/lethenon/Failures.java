@@ -57,23 +57,26 @@ final class Failures
 		String details = thrown.getMessage() == null ? thrown.toString() : thrown.getMessage();
 		if (isWrongPassword(thrown))
 		{
-			return new Failure(text("lethenon.failure.password.cause",
-				"The wallet password is not right.", locale),
+			return new Failure(
+				text("lethenon.failure.password.cause", "The wallet password is not right.",
+					locale),
 				text("lethenon.failure.password.action",
 					"Type it again. It is the password of the wallet, not of the vault.", locale),
 				details);
 		}
 		if (thrown instanceof ChainRejected)
 		{
-			return new Failure(text("lethenon.failure.chain.cause",
-				"The chain is not in order; nothing in it can be relied on.", locale),
+			return new Failure(
+				text("lethenon.failure.chain.cause",
+					"The chain is not in order; nothing in it can be relied on.", locale),
 				text("lethenon.failure.chain.action", "Fetch the chain again from a node.", locale),
 				details);
 		}
 		if (thrown instanceof NoChainFile noChain)
 		{
-			return new Failure(text("lethenon.failure.no.chain.cause",
-				"There is no chain at this place yet.", locale),
+			return new Failure(
+				text("lethenon.failure.no.chain.cause", "There is no chain at this place yet.",
+					locale),
 				noChain.chainFile() + "\n" + text("lethenon.failure.no.chain.action",
 					"Fetch the chain from a node, or choose another place.", locale),
 				details);

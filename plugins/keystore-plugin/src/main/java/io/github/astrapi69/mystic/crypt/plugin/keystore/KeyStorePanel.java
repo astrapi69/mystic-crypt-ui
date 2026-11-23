@@ -43,7 +43,6 @@ import io.github.astrapi69.mystic.crypt.ui.form.ToolForm;
 import io.github.astrapi69.swing.model.combobox.EnumComboBoxModel;
 import io.github.astrapi69.swing.model.component.JMComboBox;
 import io.github.astrapi69.swing.model.component.JMPasswordField;
-import io.github.astrapi69.swing.model.component.JMTextArea;
 import io.github.astrapi69.swing.model.component.JMTextField;
 
 /**
@@ -65,7 +64,9 @@ public class KeyStorePanel extends JPanel
 	/** The height the certificate view keeps even in the minimum layout */
 	private static final int MINIMUM_CERTIFICATE_HEIGHT = 120;
 
-	/** The size the table of entries asks for, so the tool window opens wide enough to read a row */
+	/**
+	 * The size the table of entries asks for, so the tool window opens wide enough to read a row
+	 */
 	private static final Dimension PREFERRED_ENTRY_TABLE_SIZE = new Dimension(760, 200);
 
 	/** The height the table of entries keeps when the window has nothing left to give */
@@ -137,16 +138,16 @@ public class KeyStorePanel extends JPanel
 			"the password that opens and protects this key store"));
 		txtAlias.setToolTipText(KeyStoreMessages.getString("keystore.tooltip.alias",
 			"the name an entry is stored and looked up under"));
-		txtDistinguishedName.setToolTipText(
-			KeyStoreMessages.getString("keystore.tooltip.distinguished.name",
+		txtDistinguishedName
+			.setToolTipText(KeyStoreMessages.getString("keystore.tooltip.distinguished.name",
 				"the subject of the self-signed certificate generated with a new key pair, "
 					+ "for example CN=example.com"));
 		cmbKeyAlgorithm.setToolTipText(KeyStoreMessages.getString("keystore.tooltip.key.algorithm",
 			"the algorithm a newly generated key pair uses"));
 		txtCertificateFile.setToolTipText(KeyStoreMessages.getString(
 			"keystore.tooltip.certificate.file", "the certificate file used to import or export"));
-		txtPrivateKeyFile.setToolTipText(
-			KeyStoreMessages.getString("keystore.tooltip.private.key.file",
+		txtPrivateKeyFile
+			.setToolTipText(KeyStoreMessages.getString("keystore.tooltip.private.key.file",
 				"the private key file used together with the certificate to import a key pair"));
 
 		JButton btnBrowse = button("btnBrowse", "...",
@@ -225,9 +226,8 @@ public class KeyStorePanel extends JPanel
 		add(new JLabel("Private key file:"));
 		add(txtPrivateKeyFile, ToolForm.FIELD + ", split 2");
 		add(button("btnBrowsePrivateKey", "...",
-			event -> onBrowse(txtPrivateKeyFile, privateKeyFilePathModel()),
-			KeyStoreMessages.getString("keystore.tooltip.browse.private.key",
-				"choose the private key file")));
+			event -> onBrowse(txtPrivateKeyFile, privateKeyFilePathModel()), KeyStoreMessages
+				.getString("keystore.tooltip.browse.private.key", "choose the private key file")));
 		add(ToolForm.buttons(btnImport, btnExport), ToolForm.BUTTON_ROW);
 		add(ToolForm.buttons(btnImportKeyPair, btnAddSecretKey, btnDetails), ToolForm.BUTTON_ROW);
 		add(lblResult, ToolForm.RESULT_LINE);
@@ -352,8 +352,8 @@ public class KeyStorePanel extends JPanel
 		run("shown", () -> {
 			requireOpenKeyStore();
 			String alias = selectedAlias();
-			modelObject.setCertificateDetails(
-				KeyStoreSupport.details(modelObject.getKeyStore(), alias));
+			modelObject
+				.setCertificateDetails(KeyStoreSupport.details(modelObject.getKeyStore(), alias));
 			JComponent detailsPanel = newDetailsPanel(modelObject.getCertificateDetails());
 			JOptionPane.showMessageDialog(this, detailsPanel, "Certificate of '" + alias + "'",
 				JOptionPane.PLAIN_MESSAGE);
@@ -484,8 +484,8 @@ public class KeyStorePanel extends JPanel
 
 	/**
 	 * Runs an operation, refreshes the table from the store afterwards and reports either the
-	 * message the operation returned or why it failed. Keeping this in one place is what keeps every
-	 * button from having to repeat the same try-catch and the same refresh.
+	 * message the operation returned or why it failed. Keeping this in one place is what keeps
+	 * every button from having to repeat the same try-catch and the same refresh.
 	 */
 	private void run(String what, KeyStoreOperation operation)
 	{
@@ -523,9 +523,9 @@ public class KeyStorePanel extends JPanel
 				.entries(modelObject.getKeyStore());
 			for (KeyStoreSupport.EntryInfo entry : entries)
 			{
-				entryModel.addRow(new Object[] { entry.alias(), entry.entryKind(),
-						entry.algorithm(), entry.subject(), entry.validUntil(),
-						entry.fingerprint() });
+				entryModel
+					.addRow(new Object[] { entry.alias(), entry.entryKind(), entry.algorithm(),
+							entry.subject(), entry.validUntil(), entry.fingerprint() });
 			}
 		}
 		catch (Exception exception)
@@ -556,8 +556,8 @@ public class KeyStorePanel extends JPanel
 	 * The alias of an entry that is about to be written, refused when the store already holds one
 	 * under that name.
 	 * <p>
-	 * A key store replaces an entry silently, which for a private key means it is gone. The
-	 * command line refuses the same thing, so the two halves of this tool now agree.
+	 * A key store replaces an entry silently, which for a private key means it is gone. The command
+	 * line refuses the same thing, so the two halves of this tool now agree.
 	 *
 	 * @return the alias, which is free
 	 * @throws Exception
@@ -568,16 +568,17 @@ public class KeyStorePanel extends JPanel
 		String alias = requireAlias();
 		if (modelObject.getKeyStore().containsAlias(alias))
 		{
-			throw new IllegalStateException("'" + alias + "' already exists in "
-				+ file().getName() + "; delete it first or choose another alias");
+			throw new IllegalStateException("'" + alias + "' already exists in " + file().getName()
+				+ "; delete it first or choose another alias");
 		}
 		return alias;
 	}
 
 	/**
 	 * Refuses a path that already holds something, because creating a key store there writes an
-	 * empty one over whatever was in it. Delegates to {@link KeyStoreSupport#requireFreeFile(File)},
-	 * the same guard the "Create Key Store..." wizard uses, so the two cannot drift apart.
+	 * empty one over whatever was in it. Delegates to
+	 * {@link KeyStoreSupport#requireFreeFile(File)}, the same guard the "Create Key Store..."
+	 * wizard uses, so the two cannot drift apart.
 	 */
 	private void requireFreeFile()
 	{

@@ -35,6 +35,5 @@ package io.github.astrapi69.mystic.crypt.plugin.lethenon;
  * @param details
  *            the technical reason, for whoever reads on
  */
-record Failure(String cause, String action, String details)
-{
+record Failure(String cause, String action, String details) {
 }

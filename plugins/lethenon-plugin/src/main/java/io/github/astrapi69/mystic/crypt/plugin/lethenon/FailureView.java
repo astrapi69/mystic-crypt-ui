@@ -39,9 +39,9 @@ import net.miginfocom.swing.MigLayout;
 
 /**
  * Where a lethenon window shows a failure (draft 07, #710): the cause in bold, what to do below it,
- * the technical reason behind "Show details", closed at first. Everything wraps instead of
- * widening the window, and while a failure shows, the window's answer fields are hidden, so no
- * empty result stands next to it (README defects G4, G5)
+ * the technical reason behind "Show details", closed at first. Everything wraps instead of widening
+ * the window, and while a failure shows, the window's answer fields are hidden, so no empty result
+ * stands next to it (README defects G4, G5)
  */
 final class FailureView extends JPanel
 {
@@ -50,7 +50,8 @@ final class FailureView extends JPanel
 
 	private final JTextArea txtFailureCause = LethenonWalletPanel.message("txtFailureCause", true);
 
-	private final JTextArea txtFailureAction = LethenonWalletPanel.message("txtFailureAction", false);
+	private final JTextArea txtFailureAction = LethenonWalletPanel.message("txtFailureAction",
+		false);
 
 	private final JTextArea txtFailureDetails = LethenonWalletPanel.message("txtFailureDetails",
 		false);
@@ -84,8 +85,7 @@ final class FailureView extends JPanel
 			"the technical reason, as the program reported it"));
 		btnFailureDetails = LethenonSwing.button("btnFailureDetails",
 			AnswerFields.detailsButtonText(false, locale), event -> onDetails(),
-			text("lethenon.failure.tooltip.details.button",
-				"show or hide the technical reason"));
+			text("lethenon.failure.tooltip.details.button", "show or hide the technical reason"));
 		add(txtFailureCause, ToolForm.WIDE + ", wmin 0");
 		add(txtFailureAction, ToolForm.WIDE + ", wmin 0");
 		add(ToolForm.buttons(btnFailureDetails), ToolForm.BUTTON_ROW);
@@ -145,8 +145,8 @@ final class FailureView extends JPanel
 			return;
 		}
 		setVisible(false);
-		answer.forEach(component -> component
-			.setVisible(visibleBefore.getOrDefault(component, Boolean.TRUE)));
+		answer.forEach(
+			component -> component.setVisible(visibleBefore.getOrDefault(component, Boolean.TRUE)));
 		visibleBefore.clear();
 		revalidateTheForm();
 	}
