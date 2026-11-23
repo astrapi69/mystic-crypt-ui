@@ -118,10 +118,11 @@ class DesktopMenuHelpActionsTest
 
 	@ParameterizedTest(name = "{0}")
 	@MethodSource("licenseNotices")
-	@DisplayName("the licence notice names NOTICE.txt only, not the folder legal/third-party (#1014)")
+	@DisplayName("the licence notice names the folder legal/third-party beside NOTICE.txt (#1014)")
 	void licenseNotice_namesTheFolderOfTheLibraryLicenses(final String source, final String notice)
 	{
-		assertFalse(notice.contains("legal/third-party"), source + ": " + notice);
+		assertTrue(notice.contains("NOTICE.txt") && notice.contains("legal/third-party"),
+			source + ": " + notice);
 	}
 
 	static Stream<Arguments> licenseNotices()
