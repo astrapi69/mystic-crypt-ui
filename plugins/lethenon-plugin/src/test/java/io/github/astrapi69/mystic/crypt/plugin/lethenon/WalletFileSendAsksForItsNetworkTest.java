@@ -38,9 +38,9 @@ import javax.swing.JComponent;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.junit.jupiter.api.io.TempDir;
 
 import io.github.astrapi69.lethenon.ChainFile;
 import io.github.astrapi69.lethenon.SignatureSuite;
@@ -51,9 +51,9 @@ import io.github.astrapi69.mystic.crypt.settings.PluginSettings;
 
 /**
  * "Send LETH" from a wallet file asks which network the wallet is on before it signs, and on the
- * main network then the confirmation T5, as for a wallet of the vault whose network is not
- * recorded (#978, the owner's option 1): a wallet file records no network, and until now a send
- * from one was signed on the main network without either question
+ * main network then the confirmation T5, as for a wallet of the vault whose network is not recorded
+ * (#978, the owner's option 1): a wallet file records no network, and until now a send from one was
+ * signed on the main network without either question
  */
 class WalletFileSendAsksForItsNetworkTest
 {
@@ -98,9 +98,8 @@ class WalletFileSendAsksForItsNetworkTest
 	 * One answer to each of the two questions, what the window must have asked, and how many
 	 * transfers it must have signed
 	 */
-	record Case(String name, Optional<NetworkKind> network, boolean sendOnMain,
-		List<String> asked, int signed)
-	{
+	record Case(String name, Optional<NetworkKind> network, boolean sendOnMain, List<String> asked,
+		int signed) {
 		@Override
 		public String toString()
 		{

@@ -3,20 +3,24 @@
  *
  * Copyright (C) 2015 Asterios Raptis
  *
- * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
- * associated documentation files (the "Software"), to deal in the Software without restriction,
- * including without limitation the rights to use, copy, modify, merge, publish, distribute,
- * sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
+ * Permission is hereby granted, free of charge, to any person obtaining
+ * a copy of this software and associated documentation files (the
+ * "Software"), to deal in the Software without restriction, including
+ * without limitation the rights to use, copy, modify, merge, publish,
+ * distribute, sublicense, and/or sell copies of the Software, and to
+ * permit persons to whom the Software is furnished to do so, subject to
+ * the following conditions:
  *
- * The above copyright notice and this permission notice shall be included in all copies or
- * substantial portions of the Software.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT
- * NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
- * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
- * DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
+ * LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+ * OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+ * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 package io.github.astrapi69.mystic.crypt.plugin.obfuscation.character;
 
@@ -49,9 +53,9 @@ import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
 import io.github.astrapi69.mystic.crypt.key.PrivateKeyStringDecryptor;
 import io.github.astrapi69.mystic.crypt.key.PublicKeyStringEncryptor;
 import io.github.astrapi69.mystic.crypt.plugin.obfuscation.ObfuscationKeyAvailability;
+import io.github.astrapi69.mystic.crypt.plugin.obfuscation.ObfuscationMessages;
 import io.github.astrapi69.mystic.crypt.plugin.obfuscation.ObfuscationRuleTableXml;
 import io.github.astrapi69.mystic.crypt.plugin.obfuscation.RuleTableHoldsAForeignTypeException;
-import io.github.astrapi69.mystic.crypt.plugin.obfuscation.ObfuscationMessages;
 import io.github.astrapi69.mystic.crypt.ui.form.ToolForm;
 import io.github.astrapi69.swing.base.BasePanel;
 import io.github.astrapi69.swing.table.GenericJTable;
@@ -114,8 +118,8 @@ public class ObfuscationOperationRuleTablePanel extends BasePanel<ObfuscationOpe
 
 	/**
 	 * Encrypts the rule table with the signed-in database's key pair and writes it to a file the
-	 * user chooses. Refuses first, before the file chooser even opens, when the database has no
-	 * key - see {@link ObfuscationKeyAvailability} (#357)
+	 * user chooses. Refuses first, before the file chooser even opens, when the database has no key
+	 * - see {@link ObfuscationKeyAvailability} (#357)
 	 *
 	 * @param actionEvent
 	 *            the click that triggered this
@@ -153,9 +157,9 @@ public class ObfuscationOperationRuleTablePanel extends BasePanel<ObfuscationOpe
 	}
 
 	/**
-	 * Reads a file the user chooses and decrypts it with the signed-in database's key pair.
-	 * Refuses first, before the file chooser even opens, when the database has no key - the same
-	 * guard as {@link #onExport(ActionEvent)} (#357)
+	 * Reads a file the user chooses and decrypts it with the signed-in database's key pair. Refuses
+	 * first, before the file chooser even opens, when the database has no key - the same guard as
+	 * {@link #onExport(ActionEvent)} (#357)
 	 *
 	 * @param actionEvent
 	 *            the click that triggered this
@@ -187,7 +191,8 @@ public class ObfuscationOperationRuleTablePanel extends BasePanel<ObfuscationOpe
 
 				String xml = RuntimeExceptionDecorator.decorate(() -> decryptor.decrypt(encrypted));
 
-				List<KeyValuePair<Character, ObfuscationOperationRule<Character, Character>>> data = ObfuscationRuleTableXml.toOperationRules(xml);
+				List<KeyValuePair<Character, ObfuscationOperationRule<Character, Character>>> data = ObfuscationRuleTableXml
+					.toOperationRules(xml);
 
 				getModelObject().getTableModel().setData(data);
 				getModelObject().getTableModel().fireTableDataChanged();

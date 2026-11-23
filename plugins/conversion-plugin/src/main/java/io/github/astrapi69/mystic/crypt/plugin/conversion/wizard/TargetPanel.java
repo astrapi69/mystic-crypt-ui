@@ -37,9 +37,9 @@ import javax.swing.JTextField;
 
 import io.github.astrapi69.design.pattern.state.wizard.model.BaseWizardStateMachineModel;
 import io.github.astrapi69.model.api.IModel;
-import io.github.astrapi69.mystic.crypt.ui.form.ToolForm;
 import io.github.astrapi69.mystic.crypt.plugin.conversion.ConversionMessages;
 import io.github.astrapi69.mystic.crypt.plugin.conversion.ConversionSupport;
+import io.github.astrapi69.mystic.crypt.ui.form.ToolForm;
 import io.github.astrapi69.swing.base.BasePanel;
 import io.github.astrapi69.swing.model.component.JMTextField;
 import net.miginfocom.swing.MigLayout;
@@ -63,8 +63,8 @@ public class TargetPanel extends BasePanel<BaseWizardStateMachineModel<Conversio
 
 	/**
 	 * Populated in {@link #onInitializeComponents()}, not by a field initializer: the base panel
-	 * calls that method from its own constructor, before any field initializer of this class has run
-	 * (the same reason {@code ReviewPanel} keeps its own form model out of a field initializer)
+	 * calls that method from its own constructor, before any field initializer of this class has
+	 * run (the same reason {@code ReviewPanel} keeps its own form model out of a field initializer)
 	 */
 	private Map<ConversionOperation, JRadioButton> operationButtons;
 	private ButtonGroup operationGroup;
@@ -106,9 +106,9 @@ public class TargetPanel extends BasePanel<BaseWizardStateMachineModel<Conversio
 		lblWhatItHoldsCaption = new JLabel("It holds:");
 		lblWhatItHolds = new JLabel(ConversionWizardModel.NOTHING_TO_SAY);
 		lblWhatItHolds.setName("lblTargetWhatItHolds");
-		lblWhatItHolds.setToolTipText(ConversionMessages.getString(
-			"conversion.wizard.target.tooltip.what.it.holds",
-			"what the source file was found to hold"));
+		lblWhatItHolds.setToolTipText(
+			ConversionMessages.getString("conversion.wizard.target.tooltip.what.it.holds",
+				"what the source file was found to hold"));
 		// which file is being converted. The step showed what the source holds and where to write
 		// to, and never the source itself - and a target path can look exactly like a source path,
 		// so the one question a reader had was the one the screen did not answer (#297). Read-only:
@@ -121,9 +121,9 @@ public class TargetPanel extends BasePanel<BaseWizardStateMachineModel<Conversio
 		txtSourceFileOnTarget.setBorder(null);
 		txtSourceFileOnTarget.setOpaque(false);
 		txtSourceFileOnTarget.setFont(lblWhatItHolds.getFont());
-		txtSourceFileOnTarget.setToolTipText(ConversionMessages.getString(
-			"conversion.wizard.target.tooltip.source.file",
-			"the file being converted, chosen in the previous step"));
+		txtSourceFileOnTarget.setToolTipText(
+			ConversionMessages.getString("conversion.wizard.target.tooltip.source.file",
+				"the file being converted, chosen in the previous step"));
 	}
 
 	private void initializeOperationRadios()
@@ -149,9 +149,9 @@ public class TargetPanel extends BasePanel<BaseWizardStateMachineModel<Conversio
 		lblTargetFile = new JLabel("Write to:");
 		txtTargetFile = new JMTextField(38);
 		txtTargetFile.setName("txtTargetFile");
-		txtTargetFile.setToolTipText(ConversionMessages.getString(
-			"conversion.wizard.target.tooltip.target.file",
-			"the file to write to - left blank, a default next to the source file is used"));
+		txtTargetFile.setToolTipText(
+			ConversionMessages.getString("conversion.wizard.target.tooltip.target.file",
+				"the file to write to - left blank, a default next to the source file is used"));
 		btnBrowseTarget = new JButton("...");
 		btnBrowseTarget.setName("btnBrowseTarget");
 		btnBrowseTarget.addActionListener(event -> onBrowseTarget());
@@ -164,9 +164,10 @@ public class TargetPanel extends BasePanel<BaseWizardStateMachineModel<Conversio
 	}
 
 	/**
-	 * Carries every edit of the target field into the model, the same way {@code SourcePanel} carries
-	 * edits of the source field - a plain {@link javax.swing.event.DocumentListener} rather than the
-	 * field's own binding, since the model needs the value the moment it changes, not on focus loss
+	 * Carries every edit of the target field into the model, the same way {@code SourcePanel}
+	 * carries edits of the source field - a plain {@link javax.swing.event.DocumentListener} rather
+	 * than the field's own binding, since the model needs the value the moment it changes, not on
+	 * focus loss
 	 */
 	private final class TargetFieldListener implements javax.swing.event.DocumentListener
 	{
@@ -232,9 +233,10 @@ public class TargetPanel extends BasePanel<BaseWizardStateMachineModel<Conversio
 	}
 
 	/**
-	 * Re-evaluates which conversions make sense for the source file now, and re-shows what it holds.
-	 * Called by whoever opens the wizard whenever this step is reached, since the source file can
-	 * have changed since the last visit (the user went back to Source and picked a different file)
+	 * Re-evaluates which conversions make sense for the source file now, and re-shows what it
+	 * holds. Called by whoever opens the wizard whenever this step is reached, since the source
+	 * file can have changed since the last visit (the user went back to Source and picked a
+	 * different file)
 	 *
 	 * @param fileKind
 	 *            what the source file currently holds, as the Source step detected it

@@ -38,7 +38,10 @@ import io.github.astrapi69.lethenon.ConsensusRules;
 public enum ChainKind
 {
 
-	/** the test network, {@code lethenon-test-2} since lethenon 0.4.0: where every new scheme runs first */
+	/**
+	 * the test network, {@code lethenon-test-2} since lethenon 0.4.0: where every new scheme runs
+	 * first
+	 */
 	TEST_NETWORK(Chain.TEST_IDENTIFIER, "the test network"),
 
 	/**
@@ -70,6 +73,7 @@ public enum ChainKind
 	/**
 	 * Whether a chain of this kind can be started with this build of the library: a test network
 	 * always, the main chain only once the library fixes its genesis block in the code (#535)
+	 * 
 	 * @return true where a new chain of this kind can be started
 	 */
 	public boolean canStart()

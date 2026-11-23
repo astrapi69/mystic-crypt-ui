@@ -86,8 +86,8 @@ public class LethenonChainViewPanel extends JPanel
 	}
 
 	/**
-	 * Instantiates a new {@link LethenonChainViewPanel} that asks through the given consent before it
-	 * converts a chain file of lethenon 0.5.0 or earlier (#581)
+	 * Instantiates a new {@link LethenonChainViewPanel} that asks through the given consent before
+	 * it converts a chain file of lethenon 0.5.0 or earlier (#581)
 	 *
 	 * @param consent
 	 *            whom to ask

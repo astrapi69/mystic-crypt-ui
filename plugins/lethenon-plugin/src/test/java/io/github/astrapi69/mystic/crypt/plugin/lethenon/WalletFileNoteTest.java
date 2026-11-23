@@ -25,7 +25,6 @@
 package io.github.astrapi69.mystic.crypt.plugin.lethenon;
 
 import static io.github.astrapi69.mystic.crypt.plugin.lethenon.Windows.textOf;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -86,13 +85,15 @@ class WalletFileNoteTest
 	static Stream<Arguments> windows()
 	{
 		return Stream.of(
-			Arguments.of("Send LETH", (BiFunction<LethenonVault, Locale, JPanel>)(vault,
-				locale) -> new LethenonSendPanel(ChainConversionConsent.ASK, vault,
-					SendConfirmation.ASK, locale)),
-			Arguments.of("Mine a Pun", (BiFunction<LethenonVault, Locale, JPanel>)(vault,
-				locale) -> new LethenonMinePanel(ChainConversionConsent.ASK, vault, locale)),
-			Arguments.of("Sweep", (BiFunction<LethenonVault, Locale, JPanel>)(vault,
-				locale) -> new LethenonSweepPanel(ChainConversionConsent.ASK, vault, locale)),
+			Arguments.of("Send LETH",
+				(BiFunction<LethenonVault, Locale, JPanel>)(vault, locale) -> new LethenonSendPanel(
+					ChainConversionConsent.ASK, vault, SendConfirmation.ASK, locale)),
+			Arguments.of("Mine a Pun",
+				(BiFunction<LethenonVault, Locale, JPanel>)(vault,
+					locale) -> new LethenonMinePanel(ChainConversionConsent.ASK, vault, locale)),
+			Arguments.of("Sweep",
+				(BiFunction<LethenonVault, Locale, JPanel>)(vault,
+					locale) -> new LethenonSweepPanel(ChainConversionConsent.ASK, vault, locale)),
 			Arguments.of("Run a Node", (BiFunction<LethenonVault, Locale, JPanel>)(vault,
 				locale) -> new LethenonNodePanel(ChainConversionConsent.ASK, vault, locale)));
 	}

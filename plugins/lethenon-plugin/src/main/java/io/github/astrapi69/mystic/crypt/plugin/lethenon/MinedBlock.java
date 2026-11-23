@@ -38,8 +38,8 @@ import io.github.astrapi69.lethenon.Amount;
  * @param transfers
  *            how many waiting transfers it carries
  * @param beneficiary
- *            whom it pays in hexadecimal: the miner's account key, and for a genesis block the
- *            burn account (lethenon#148)
+ *            whom it pays in hexadecimal: the miner's account key, and for a genesis block the burn
+ *            account (lethenon#148)
  * @param reward
  *            what the block paid whom it pays: the block reward and the fees of the transfers it
  *            carries

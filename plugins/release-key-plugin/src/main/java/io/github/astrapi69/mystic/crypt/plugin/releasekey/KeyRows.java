@@ -89,8 +89,8 @@ final class KeyRows
 				? ReleaseKeyMessages.getString("releasekey.key.primary", "primary")
 				: ReleaseKeyMessages.getString("releasekey.key.subkey", "subkey"),
 			grouped(key.fingerprint()), "[" + key.usage() + "]", key.algorithm(),
-			dayOf(key.created()).toString(), expiryOf(key.expires(), today),
-			secretOf(key.secret()), key.primary() ? revocationOf(ring.revocationCertificate()) : "",
+			dayOf(key.created()).toString(), expiryOf(key.expires(), today), secretOf(key.secret()),
+			key.primary() ? revocationOf(ring.revocationCertificate()) : "",
 			key.primary() ? ring.userId() : "");
 	}
 

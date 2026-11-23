@@ -76,8 +76,9 @@ public class LethenonChainPanel extends JPanel
 
 	private final JMTextField txtChainFile = new JMTextField(34);
 
-	private final JMTextArea txtAnswer = AnswerFields.answerArea(text("lethenon.verify.tooltip.answer",
-		"whether the chain is in order, in one sentence; the details are below"));
+	private final JMTextArea txtAnswer = AnswerFields
+		.answerArea(text("lethenon.verify.tooltip.answer",
+			"whether the chain is in order, in one sentence; the details are below"));
 
 	private final JMTextField txtBlocks = AnswerFields.readOnly("txtBlocks",
 		text("lethenon.verify.tooltip.blocks",
@@ -185,9 +186,10 @@ public class LethenonChainPanel extends JPanel
 		}
 		catch (IOException unreadable)
 		{
-			showFailure(refused + ": " + LethenonMessages.format("lethenon.verify.unreadable",
-				"{0} cannot be read - {1}", locale, modelObject.getChainFile(),
-				unreadable.getMessage()), unreadable);
+			showFailure(refused + ": "
+				+ LethenonMessages.format("lethenon.verify.unreadable", "{0} cannot be read - {1}",
+					locale, modelObject.getChainFile(), unreadable.getMessage()),
+				unreadable);
 		}
 	}
 
@@ -298,8 +300,9 @@ public class LethenonChainPanel extends JPanel
 
 	private void layOutTheAnswer()
 	{
-		add(AnswerArea.toCome(text("lethenon.verify.answer.to.come",
-			"After the check, this shows whether your chain holds."),
+		add(AnswerArea.toCome(
+			text("lethenon.verify.answer.to.come",
+				"After the check, this shows whether your chain holds."),
 			text("lethenon.verify.tooltip.answer.to.come",
 				"the answer appears here once the chain was checked")),
 			ToolForm.WIDE + ", wmin 0");

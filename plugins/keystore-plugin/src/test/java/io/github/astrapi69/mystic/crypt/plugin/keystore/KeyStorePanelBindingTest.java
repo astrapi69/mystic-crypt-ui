@@ -52,8 +52,6 @@ import org.junit.jupiter.api.io.TempDir;
 
 import io.github.astrapi69.crypt.api.algorithm.key.KeyPairGeneratorAlgorithm;
 import io.github.astrapi69.crypt.api.type.KeystoreType;
-import io.github.astrapi69.swing.model.component.JMTextArea;
-import io.github.astrapi69.swing.model.component.JMTextField;
 
 /**
  * Tests that the components of {@link KeyStorePanel} are bound to {@link KeyStorePanelModel}: what
@@ -66,8 +64,8 @@ class KeyStorePanelBindingTest
 {
 
 	/**
-	 * The password of the throwaway store this test builds in its temporary directory. It is made up
-	 * per run rather than written into the source, so nothing here reads as a credential.
+	 * The password of the throwaway store this test builds in its temporary directory. It is made
+	 * up per run rather than written into the source, so nothing here reads as a credential.
 	 */
 	private static final String STORE_PASSWORD = "store-" + UUID.randomUUID();
 
@@ -108,8 +106,8 @@ class KeyStorePanelBindingTest
 	}
 
 	/**
-	 * A panel with a key store of its own, holding one key pair under {@link #ALIAS} - built the way
-	 * a user builds it, by typing into the components and pressing the buttons
+	 * A panel with a key store of its own, holding one key pair under {@link #ALIAS} - built the
+	 * way a user builds it, by typing into the components and pressing the buttons
 	 *
 	 * @param storeFile
 	 *            the file the store is created in
@@ -293,8 +291,8 @@ class KeyStorePanelBindingTest
 	}
 
 	/**
-	 * Every field and button in this panel had no tooltip at all - a first-time user has no way
-	 * to tell what "Distinguished name" expects, or what "Details..." does before clicking it
+	 * Every field and button in this panel had no tooltip at all - a first-time user has no way to
+	 * tell what "Distinguished name" expects, or what "Details..." does before clicking it
 	 */
 	@Test
 	void everyFieldExplainsItselfWithATooltip()
@@ -315,13 +313,15 @@ class KeyStorePanelBindingTest
 		assertHasTooltip(named(panel, "btnCreate", JComponent.class), "create");
 		assertHasTooltip(named(panel, "btnAddKeyPair", JComponent.class), "add key pair");
 		assertHasTooltip(named(panel, "btnDelete", JComponent.class), "delete");
-		assertHasTooltip(named(panel, "btnBrowseCertificate", JComponent.class), "browse certificate");
+		assertHasTooltip(named(panel, "btnBrowseCertificate", JComponent.class),
+			"browse certificate");
 		assertHasTooltip(named(panel, "btnImport", JComponent.class), "import");
 		assertHasTooltip(named(panel, "btnExport", JComponent.class), "export");
 		assertHasTooltip(named(panel, "btnImportKeyPair", JComponent.class), "import key pair");
 		assertHasTooltip(named(panel, "btnAddSecretKey", JComponent.class), "add secret key");
 		assertHasTooltip(named(panel, "btnDetails", JComponent.class), "details");
-		assertHasTooltip(named(panel, "btnBrowsePrivateKey", JComponent.class), "browse private key");
+		assertHasTooltip(named(panel, "btnBrowsePrivateKey", JComponent.class),
+			"browse private key");
 	}
 
 }

@@ -61,9 +61,9 @@ import io.github.astrapi69.swing.model.component.JMTextField;
  * UI over {@link NodeSupport}, which starts the node and knows no Swing type (architecture.md: no
  * network or chain logic here). Starting can take seconds - every configured peer is dialled - and
  * stopping waits for the mining round in progress, so both run off the event dispatch thread. The
- * node stops with its window as well: closing the window is no way to leave a node listening in
- * the background. The wallet's password is used once and cleared from the field and the model when
- * the node is started, whether it started or not.
+ * node stops with its window as well: closing the window is no way to leave a node listening in the
+ * background. The wallet's password is used once and cleared from the field and the model when the
+ * node is started, whether it started or not.
  * <p>
  * It answers in fields a child can read (#604), every second while the node runs: first one
  * sentence in a larger font, "Your node runs on port 18480: its chain ends at block 1,200. It has
@@ -116,8 +116,9 @@ public class LethenonNodePanel extends JPanel
 
 	private final JMTextField txtPun = new JMTextField(34);
 
-	private final JMTextArea txtAnswer = AnswerFields.answerArea(text("lethenon.node.tooltip.answer",
-		"what your node does, in one sentence, read again every second"));
+	private final JMTextArea txtAnswer = AnswerFields
+		.answerArea(text("lethenon.node.tooltip.answer",
+			"what your node does, in one sentence, read again every second"));
 
 	private final JMTextField txtListening = AnswerFields.readOnly("txtListening",
 		text("lethenon.node.tooltip.listening",
@@ -212,12 +213,11 @@ public class LethenonNodePanel extends JPanel
 		super(ToolForm.newLayout());
 		this.consent = consent;
 		this.locale = locale;
-		walletRow = new WalletRow(vault, locale, txtWalletFile,
-			() -> LethenonSwing.chooseFile(this, modelObject.getWalletFile())
-				.ifPresent(txtWalletFile::setText));
+		walletRow = new WalletRow(vault, locale, txtWalletFile, () -> LethenonSwing
+			.chooseFile(this, modelObject.getWalletFile()).ifPresent(txtWalletFile::setText));
 		btnDetails = LethenonSwing.button("btnDetails",
-			AnswerFields.detailsButtonText(false, locale), event -> onDetails(),
-			text("lethenon.node.tooltip.details", "show why connections to your node were refused"));
+			AnswerFields.detailsButtonText(false, locale), event -> onDetails(), text(
+				"lethenon.node.tooltip.details", "show why connections to your node were refused"));
 		nameTheComponents();
 		explainTheComponents();
 		bindToTheModel();
@@ -286,7 +286,8 @@ public class LethenonNodePanel extends JPanel
 
 	/**
 	 * Starts the node on a worker thread. The password leaves the field and the model here; the
-	 * support class wipes the array once the wallet is open, or at once when the node does not mine.
+	 * support class wipes the array once the wallet is open, or at once when the node does not
+	 * mine.
 	 */
 	void onStart()
 	{
@@ -403,12 +404,14 @@ public class LethenonNodePanel extends JPanel
 			LethenonSettingsContribution.remember(order.mine()
 				? Map.of(LethenonSettingsContribution.KEY_CHAIN_FILE, order.chainFile().toString(),
 					LethenonSettingsContribution.KEY_WALLET_FILE, order.walletFile().toString())
-				: Map.of(LethenonSettingsContribution.KEY_CHAIN_FILE, order.chainFile().toString()));
+				: Map.of(LethenonSettingsContribution.KEY_CHAIN_FILE,
+					order.chainFile().toString()));
 			node = started;
 			modelObject.setListeningPort(started.port());
 			setRunning(true);
 			showTheStatus();
-			setResult(text("lethenon.node.result.running", "the node runs and serves the chain file"));
+			setResult(
+				text("lethenon.node.result.running", "the node runs and serves the chain file"));
 			refresh.start();
 		}
 		catch (ExecutionException failed)
@@ -464,7 +467,8 @@ public class LethenonNodePanel extends JPanel
 	}
 
 	/**
-	 * Stops the node of a window that was closed; nothing is shown any more, so nothing waits for it
+	 * Stops the node of a window that was closed; nothing is shown any more, so nothing waits for
+	 * it
 	 */
 	private void stopInTheBackground()
 	{
@@ -539,8 +543,8 @@ public class LethenonNodePanel extends JPanel
 		boolean mining = modelObject.isMine();
 		modelObject.clearAnswer();
 		modelObject.setAnswer(answerFor(status, mining, running, locale));
-		modelObject.setListening(LethenonMessages.format("lethenon.node.listening",
-			"{0,number,#}", locale, status.port()));
+		modelObject.setListening(LethenonMessages.format("lethenon.node.listening", "{0,number,#}",
+			locale, status.port()));
 		modelObject.setLastBlock(LethenonMessages.format("lethenon.node.last.block",
 			"{0,number,integer}", locale, status.height()));
 		modelObject.setConnected(LethenonMessages.format("lethenon.node.connected",
@@ -725,8 +729,9 @@ public class LethenonNodePanel extends JPanel
 
 	private void layOutTheAnswer()
 	{
-		add(AnswerArea.toCome(text("lethenon.node.answer.to.come",
-			"Once your node runs, this shows how it is reached and whom it is connected to."),
+		add(AnswerArea.toCome(
+			text("lethenon.node.answer.to.come",
+				"Once your node runs, this shows how it is reached and whom it is connected to."),
 			text("lethenon.node.tooltip.answer.to.come",
 				"the answer appears here once the node runs")),
 			ToolForm.WIDE + ", wmin 0");

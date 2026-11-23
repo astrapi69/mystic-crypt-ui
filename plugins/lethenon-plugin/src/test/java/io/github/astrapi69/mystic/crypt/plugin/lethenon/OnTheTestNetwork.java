@@ -30,8 +30,8 @@ import java.util.Optional;
 import javax.swing.JComponent;
 
 /**
- * The answer a unit test gives when a send asks which network its wallet is on: the test network.
- * A send from a wallet file asks that since #978, and the dialog of {@link SendConfirmation#ASK}
+ * The answer a unit test gives when a send asks which network its wallet is on: the test network. A
+ * send from a wallet file asks that since #978, and the dialog of {@link SendConfirmation#ASK}
  * would wait for a click no unit test gives. The main network question is never answered: a test
  * that reaches it fails instead of signing.
  */
@@ -42,8 +42,7 @@ final class OnTheTestNetwork implements SendConfirmation
 	}
 
 	/**
-	 * A send window over the plugin's vault that answers the network question with the test
-	 * network
+	 * A send window over the plugin's vault that answers the network question with the test network
 	 *
 	 * @return the window
 	 */

@@ -236,8 +236,8 @@ final class ThrowawayGnuPgHome implements AutoCloseable
 
 	private byte[] run(final byte[] input, final String... command) throws IOException
 	{
-		List<String> arguments = new ArrayList<>(List.of("gpg", "--homedir", directory.toString(),
-			"--batch", "--no-tty", "--yes"));
+		List<String> arguments = new ArrayList<>(
+			List.of("gpg", "--homedir", directory.toString(), "--batch", "--no-tty", "--yes"));
 		arguments.addAll(List.of(command));
 		return execute(input, arguments);
 	}
@@ -331,7 +331,6 @@ final class ThrowawayGnuPgHome implements AutoCloseable
 	 *            whether gpg has its secret part in this home
 	 */
 	record ListedKey(String fingerprint, boolean primary, int algorithm, int bits, String curve,
-		String capabilities, Instant created, Instant expires, boolean secretHere)
-	{
+		String capabilities, Instant created, Instant expires, boolean secretHere) {
 	}
 }

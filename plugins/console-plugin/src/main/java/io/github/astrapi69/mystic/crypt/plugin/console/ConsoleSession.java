@@ -34,8 +34,8 @@ import javax.swing.JInternalFrame;
  * The console captures {@code System.out} and {@code System.err}, so closing its window is not
  * enough: the streams kept pointing into the text area of a window nobody could see any more, and
  * everything ever written stayed reachable in it - vault paths among it, which is what the
- * measurement on #375 found. Locking is where this matters, because a locked workspace is one
- * whose content is supposed to be gone from the screen.
+ * measurement on #375 found. Locking is where this matters, because a locked workspace is one whose
+ * content is supposed to be gone from the screen.
  */
 public final class ConsoleSession
 {

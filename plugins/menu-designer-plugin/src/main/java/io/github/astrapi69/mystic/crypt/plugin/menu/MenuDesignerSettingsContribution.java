@@ -82,8 +82,8 @@ public class MenuDesignerSettingsContribution implements PluginSettingsContribut
 	 */
 	public static boolean exportOnOpen()
 	{
-		return !"false".equalsIgnoreCase(PluginSettings
-			.load(PLUGIN_ID, new MenuDesignerSettingsContribution().getDefaults())
-			.get(KEY_EXPORT_ON_OPEN));
+		return !"false".equalsIgnoreCase(
+			PluginSettings.load(PLUGIN_ID, new MenuDesignerSettingsContribution().getDefaults())
+				.get(KEY_EXPORT_ON_OPEN));
 	}
 }

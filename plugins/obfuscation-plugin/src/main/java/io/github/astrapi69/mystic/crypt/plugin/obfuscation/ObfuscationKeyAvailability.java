@@ -39,8 +39,8 @@ import io.github.astrapi69.mystic.crypt.panel.signin.MasterPwFileModelBean;
  * sign-in dialog offers a master password without a key file, and that is the format this
  * application writes today.
  * <p>
- * No Swing type appears here: this is a question about the model, asked once by each panel to set
- * a button's enabled state and again, the same way, by the handler it guards - the same shape
+ * No Swing type appears here: this is a question about the model, asked once by each panel to set a
+ * button's enabled state and again, the same way, by the handler it guards - the same shape
  * {@code ChecksumSaveDecision} and {@code WorkspaceLockDecision} already use, so the button and the
  * refusal cannot drift apart.
  */

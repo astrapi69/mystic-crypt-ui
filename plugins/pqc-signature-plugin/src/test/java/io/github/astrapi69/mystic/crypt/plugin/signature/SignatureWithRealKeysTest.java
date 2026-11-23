@@ -104,8 +104,8 @@ class SignatureWithRealKeysTest
 
 		byte[] signature = SignatureSupport.sign(signatureAlgorithm, keyPair.getPrivate(), DATA);
 
-		assertTrue(SignatureSupport.verify(signatureAlgorithm, keyPair.getPublic(), DATA,
-			signature));
+		assertTrue(
+			SignatureSupport.verify(signatureAlgorithm, keyPair.getPublic(), DATA, signature));
 	}
 
 	@ParameterizedTest
@@ -123,8 +123,7 @@ class SignatureWithRealKeysTest
 	{
 		KeyPair keyPair = SignatureSupport.newKeyPair(SignatureSupport.ED25519);
 
-		assertEquals(SignatureSupport.ED25519,
-			SignatureSupport.algorithmFor(keyPair.getPrivate()));
+		assertEquals(SignatureSupport.ED25519, SignatureSupport.algorithmFor(keyPair.getPrivate()));
 	}
 
 	@ParameterizedTest
@@ -221,8 +220,8 @@ class SignatureWithRealKeysTest
 		byte[] fromFile = SignatureSupport.sign(SignatureSupport.ED25519, keyPair.getPrivate(),
 			Files.readAllBytes(file.toPath()));
 
-		assertTrue(SignatureSupport.verify(SignatureSupport.ED25519, keyPair.getPublic(), DATA,
-			fromFile));
+		assertTrue(
+			SignatureSupport.verify(SignatureSupport.ED25519, keyPair.getPublic(), DATA, fromFile));
 		assertArrayEquals(DATA, Files.readAllBytes(file.toPath()),
 			"signing must leave the file alone");
 	}

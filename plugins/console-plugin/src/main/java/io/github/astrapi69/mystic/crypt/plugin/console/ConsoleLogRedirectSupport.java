@@ -34,17 +34,18 @@ import java.util.logging.Logger;
  * <p>
  * {@link ConsolePanel} redirects {@code System.out}/{@code System.err} to the console's text area
  * by reassigning those fields - but the JDK's default root {@link ConsoleHandler} captured the
- * original {@code System.err} once, when the {@code LogManager} first bootstrapped, long before
- * the console window ever opens. Reassigning the field does nothing for a handler that already
- * holds its own reference to the old stream, so every {@link Logger} call keeps writing to the
- * real terminal forever, never reaching the panel (#133).
+ * original {@code System.err} once, when the {@code LogManager} first bootstrapped, long before the
+ * console window ever opens. Reassigning the field does nothing for a handler that already holds
+ * its own reference to the old stream, so every {@link Logger} call keeps writing to the real
+ * terminal forever, never reaching the panel (#133).
  * <p>
- * The fix is not to mutate the existing handler ({@link java.util.logging.StreamHandler#setOutputStream}
- * flushes and closes whatever stream the handler is currently pointed at, which for the default
- * handler is the real {@code System.err} - not something to close as a side effect of a logging
- * fix). Instead, the existing root handlers are removed and a fresh {@link ConsoleHandler} is
- * added, which binds {@code System.err} at construction time rather than once at JVM bootstrap -
- * called after the redirect has already happened, it binds the redirected stream.
+ * The fix is not to mutate the existing handler
+ * ({@link java.util.logging.StreamHandler#setOutputStream} flushes and closes whatever stream the
+ * handler is currently pointed at, which for the default handler is the real {@code System.err} -
+ * not something to close as a side effect of a logging fix). Instead, the existing root handlers
+ * are removed and a fresh {@link ConsoleHandler} is added, which binds {@code System.err} at
+ * construction time rather than once at JVM bootstrap - called after the redirect has already
+ * happened, it binds the redirected stream.
  */
 final class ConsoleLogRedirectSupport
 {

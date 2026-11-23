@@ -59,8 +59,7 @@ class WalletInVaultTest
 
 		WalletInVault.store(entry, WORDS, WordsChoice.KEEP_OUT);
 
-		assertFalse(entry.hasProperty("lethenon.mnemonic"),
-			"the default is no words in the vault");
+		assertFalse(entry.hasProperty("lethenon.mnemonic"), "the default is no words in the vault");
 	}
 
 	@Test

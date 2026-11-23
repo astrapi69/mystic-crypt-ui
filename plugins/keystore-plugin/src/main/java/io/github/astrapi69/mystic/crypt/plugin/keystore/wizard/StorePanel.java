@@ -106,17 +106,18 @@ public class StorePanel extends BasePanel<BaseWizardStateMachineModel<CreateKeyS
 			LambdaModel.of(domainModel::getKeystoreType, domainModel::setKeystoreType));
 		pwdStorePassword.setPropertyModel(
 			LambdaModel.of(domainModel::getStorePassword, domainModel::setStorePassword));
-		pwdStorePasswordRepeated.setPropertyModel(LambdaModel.of(
-			domainModel::getStorePasswordRepeated, domainModel::setStorePasswordRepeated));
+		pwdStorePasswordRepeated.setPropertyModel(LambdaModel
+			.of(domainModel::getStorePasswordRepeated, domainModel::setStorePasswordRepeated));
 
-		txtKeyStoreFile.setToolTipText(KeyStoreMessages.getString("keystore.wizard.store.tooltip.file",
-			"where the new key store is written"));
+		txtKeyStoreFile.setToolTipText(KeyStoreMessages
+			.getString("keystore.wizard.store.tooltip.file", "where the new key store is written"));
 		btnBrowseKeyStoreFile.setToolTipText(KeyStoreMessages.getString(
 			"keystore.wizard.store.tooltip.browse", "choose where to write the new key store"));
-		cmbKeystoreType.setToolTipText(KeyStoreMessages.getString("keystore.wizard.store.tooltip.type",
-			"the key store format - JKS, PKCS12 or JCEKS"));
-		pwdStorePassword.setToolTipText(KeyStoreMessages.getString(
-			"keystore.wizard.store.tooltip.password", "the password that will protect the new key store"));
+		cmbKeystoreType.setToolTipText(KeyStoreMessages.getString(
+			"keystore.wizard.store.tooltip.type", "the key store format - JKS, PKCS12 or JCEKS"));
+		pwdStorePassword
+			.setToolTipText(KeyStoreMessages.getString("keystore.wizard.store.tooltip.password",
+				"the password that will protect the new key store"));
 		pwdStorePasswordRepeated.setToolTipText(KeyStoreMessages.getString(
 			"keystore.wizard.store.tooltip.password.repeated",
 			"the same password again - a typo here that nothing catches locks the store immediately"));
@@ -159,10 +160,10 @@ public class StorePanel extends BasePanel<BaseWizardStateMachineModel<CreateKeyS
 	}
 
 	/**
-	 * A combo box model over an enum, holding only the values this wizard offers and holding them in
-	 * the order they are offered in - the exclude set of {@link EnumComboBoxModel} is a hash set and
-	 * would leave the order to the hash codes. Mirrors {@code KeyStorePanel}'s own helper of the same
-	 * shape.
+	 * A combo box model over an enum, holding only the values this wizard offers and holding them
+	 * in the order they are offered in - the exclude set of {@link EnumComboBoxModel} is a hash set
+	 * and would leave the order to the hash codes. Mirrors {@code KeyStorePanel}'s own helper of
+	 * the same shape.
 	 *
 	 * @param <E>
 	 *            the type of the enum

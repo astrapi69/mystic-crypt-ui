@@ -60,8 +60,7 @@ class ReleaseKeyStatusTest
 	static void writeTheHomeWithGpg() throws IOException
 	{
 		home = ThrowawayGnuPgHome.create(directory.resolve("home"));
-		release = home.generate("Release Test <release@example.org>", "ed25519", "sign,cert",
-			"0");
+		release = home.generate("Release Test <release@example.org>", "ed25519", "sign,cert", "0");
 		home.addSubkey(release, "ed25519", "sign", "1y");
 		home.takePrimaryOffline(release);
 		home.generate("Other Test <other@example.org>", "ed25519", "sign,cert", "0");

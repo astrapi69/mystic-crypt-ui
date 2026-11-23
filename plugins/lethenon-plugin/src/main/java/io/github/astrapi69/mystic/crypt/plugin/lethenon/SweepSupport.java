@@ -108,8 +108,7 @@ public final class SweepSupport
 	 * @throws IOException
 	 *             if the chain or the wallet cannot be read
 	 */
-	static SweptPayments sweep(final SweepOrder order, final WalletSource source)
-		throws IOException
+	static SweptPayments sweep(final SweepOrder order, final WalletSource source) throws IOException
 	{
 		Amount fee = order.fee().isBlank() ? Amount.ZERO : Amount.parseLeth(order.fee().trim());
 		PeerAddress node = ServedChainFiles.nodeFor(order.chainFile()).orElse(null);
@@ -117,14 +116,14 @@ public final class SweepSupport
 		List<BlockBody> chain = ChainReplaySupport.replayed(order.chainFile()).chain();
 		ChainFile chainFile = new ChainFile(order.chainFile());
 		List<SignedTransaction> waiting = new ArrayList<>(chainFile.readPending());
-		List<SignedTransaction> sweep = Sweeps.prepare(wallet, chain, waiting, fee,
-			order.memo());
+		List<SignedTransaction> sweep = Sweeps.prepare(wallet, chain, waiting, fee, order.memo());
 		String account = wallet.spendKey(SignatureSuite.ED25519).toString();
 		if (sweep.isEmpty())
 		{
 			return new SweptPayments(0, Amount.ZERO, account, waiting.size(), "");
 		}
-		int nowWaiting = node == null ? waitNextToTheChain(chainFile, waiting, sweep)
+		int nowWaiting = node == null
+			? waitNextToTheChain(chainFile, waiting, sweep)
 			: NodeHandover.handOver(node, chain, order.chainFile(), sweep);
 		return new SweptPayments(sweep.size(), totalOf(sweep), account, nowWaiting,
 			node == null ? "" : node.toString());

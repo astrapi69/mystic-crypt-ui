@@ -27,7 +27,6 @@ package io.github.astrapi69.mystic.crypt.plugin.lethenon;
 import static io.github.astrapi69.mystic.crypt.plugin.lethenon.Windows.component;
 import static io.github.astrapi69.mystic.crypt.plugin.lethenon.Windows.textOf;
 import static io.github.astrapi69.mystic.crypt.plugin.lethenon.Windows.textsOf;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -122,8 +121,10 @@ class LethenonSweepPanelBindingTest
 		assertTrue(cost.contains("together"), cost);
 		assertTrue(cost.contains("Receiving is unlinkable; spending is the moment that ends"),
 			cost);
-		assertEquals("Careful: after a sweep, anyone who reads the chain can see that these "
-			+ "payments belong to you.", textOf(panel, "txtCost"),
+		assertEquals(
+			"Careful: after a sweep, anyone who reads the chain can see that these "
+				+ "payments belong to you.",
+			textOf(panel, "txtCost"),
 			"the cost stays on the screen before signing, in plain words (#604)");
 		assertEquals(cost, component(panel, "txtCost", JComponent.class).getToolTipText(),
 			"the whole statement is one look away");
@@ -146,8 +147,8 @@ class LethenonSweepPanelBindingTest
 	@DisplayName("a node started in this program for the chain file gets the sweep, and the window says so (#823)")
 	void sweeping_handsTheSweepToTheNodeOfThisProgram() throws Exception
 	{
-		try (RunningNode running = NodeSupport.startWith(
-			new NodeOrder(chainFile, "0", "", false, walletFile, ""), () -> {
+		try (RunningNode running = NodeSupport
+			.startWith(new NodeOrder(chainFile, "0", "", false, walletFile, ""), () -> {
 				throw new AssertionError("a node that does not mine opens no wallet");
 			}))
 		{
@@ -177,8 +178,9 @@ class LethenonSweepPanelBindingTest
 		List<SignedTransaction> pending = new ChainFile(chainFile).readPending();
 		assertEquals(1, pending.size());
 		assertEquals("swept from a one-time destination", pending.getFirst().body().memo());
-		assertEquals("Swept: 4.90000000 LETH from 1 payment onto your account. It waits next to "
-			+ "the chain file until a miner that reads this file mines a block.",
+		assertEquals(
+			"Swept: 4.90000000 LETH from 1 payment onto your account. It waits next to "
+				+ "the chain file until a miner that reads this file mines a block.",
 			textOf(panel, "txtAnswer"));
 		assertEquals("4.90000000 LETH", textOf(panel, "txtSwept"));
 		assertEquals("1 payment", textOf(panel, "txtPayments"));
@@ -257,7 +259,8 @@ class LethenonSweepPanelBindingTest
 		assertFalse(textsOf(panel).stream().anyMatch(text -> text.contains(PASSWORD)));
 		String result = panel.getModelObject().getResultText();
 		assertTrue(result.startsWith("nothing was swept"), result);
-		assertTrue(result.contains("this password does not open wallet.lethenon-wallet; type it again"),
+		assertTrue(
+			result.contains("this password does not open wallet.lethenon-wallet; type it again"),
 			result);
 		assertFalse(result.contains("not the password at all"), result);
 		assertEquals(0, panel.getModelObject().getPassword().length);

@@ -49,11 +49,11 @@ import io.github.astrapi69.swing.model.component.JMTextField;
  * (#604).
  * <p>
  * The answer comes first, in one sentence in a larger font: "You hold 3.00000000 LETH." Below it,
- * one labelled, read-only field per value: the address to give to people who pay, every account
- * and what it holds, and the payments that wait for a sweep. What a person passes on has a Copy
- * button, and a value too long to read is shortened on the screen while Copy copies all of it.
- * What only a specialist reads, the replay's counts and all the money on the chain, is behind
- * "Show details", closed at first. Amounts read in the language of the window, every decimal kept.
+ * one labelled, read-only field per value: the address to give to people who pay, every account and
+ * what it holds, and the payments that wait for a sweep. What a person passes on has a Copy button,
+ * and a value too long to read is shortened on the screen while Copy copies all of it. What only a
+ * specialist reads, the replay's counts and all the money on the chain, is behind "Show details",
+ * closed at first. Amounts read in the language of the window, every decimal kept.
  * <p>
  * The balance is computed by {@link WalletBalanceSupport} from the replayed chain - never asked of
  * anybody - and comes in two parts that this window keeps apart: the wallet's direct accounts,
@@ -88,8 +88,8 @@ public class LethenonBalancePanel extends JPanel
 
 	private final JMPasswordField txtPassword = new JMPasswordField(34);
 
-	private final JMTextArea txtAnswer = AnswerFields.answerArea(
-		text("lethenon.balance.tooltip.answer", "what your wallet holds, read from the chain just now"));
+	private final JMTextArea txtAnswer = AnswerFields.answerArea(text(
+		"lethenon.balance.tooltip.answer", "what your wallet holds, read from the chain just now"));
 
 	private final JMTextField txtAddress = AnswerFields.readOnly("txtAddress",
 		text("lethenon.balance.tooltip.address",
@@ -229,9 +229,9 @@ public class LethenonBalancePanel extends JPanel
 			WalletBalance balance = WalletBalanceSupport.balance(chainFile,
 				Path.of(modelObject.getWalletFile().trim()), modelObject.getPassword());
 			showTheAnswer(balance);
-			LethenonSettingsContribution.remember(Map.of(LethenonSettingsContribution.KEY_CHAIN_FILE,
-				chainFile.toString(), LethenonSettingsContribution.KEY_WALLET_FILE,
-				modelObject.getWalletFile().trim()));
+			LethenonSettingsContribution.remember(Map.of(
+				LethenonSettingsContribution.KEY_CHAIN_FILE, chainFile.toString(),
+				LethenonSettingsContribution.KEY_WALLET_FILE, modelObject.getWalletFile().trim()));
 			setResult(text("lethenon.balance.result.read",
 				"the balance was read from the replayed chain"));
 		}
@@ -302,7 +302,8 @@ public class LethenonBalancePanel extends JPanel
 		showTheModel();
 		modelObject.setResultText(result);
 		lblResult.setText(" ");
-		failureView.show(Failures.of(thrown, new Refusal("lethenon.balance.failure", "The balance was not read."), locale));
+		failureView.show(Failures.of(thrown,
+			new Refusal("lethenon.balance.failure", "The balance was not read."), locale));
 	}
 
 	/** Puts what the model holds into the read-only fields, shortening what is too long to read */
@@ -312,7 +313,8 @@ public class LethenonBalancePanel extends JPanel
 		AnswerFields.setText(txtAddress, LongValues.shortened(modelObject.getAddress(), locale));
 		txtAccounts.forEach((suite, field) -> AnswerFields.setText(field,
 			LongValues.shortened(modelObject.getAccount(suite), locale)));
-		txtHolds.forEach((suite, field) -> AnswerFields.setText(field, modelObject.getHolds(suite)));
+		txtHolds
+			.forEach((suite, field) -> AnswerFields.setText(field, modelObject.getHolds(suite)));
 		AnswerFields.setText(txtWaitingForSweep, modelObject.getWaitingForSweep());
 		AnswerFields.setText(txtChainChecked, modelObject.getChainChecked());
 		AnswerFields.setText(txtSupply, modelObject.getSupply());
@@ -364,8 +366,8 @@ public class LethenonBalancePanel extends JPanel
 
 	private void layOutTheAnswer()
 	{
-		add(AnswerArea.toCome(text("lethenon.balance.answer.to.come",
-			"Your balance shows here once you ask for it."),
+		add(AnswerArea.toCome(
+			text("lethenon.balance.answer.to.come", "Your balance shows here once you ask for it."),
 			text("lethenon.balance.tooltip.answer.to.come",
 				"the answer appears here once the balance was read")),
 			ToolForm.WIDE + ", wmin 0");
@@ -415,8 +417,8 @@ public class LethenonBalancePanel extends JPanel
 		AnswerFields.show(txtAddress, () -> LongValues.shortened(modelObject.getAddress(), locale));
 		txtAccounts.forEach((suite, field) -> AnswerFields.show(field,
 			() -> LongValues.shortened(modelObject.getAccount(suite), locale)));
-		txtHolds.forEach(
-			(suite, field) -> AnswerFields.show(field, () -> modelObject.getHolds(suite)));
+		txtHolds
+			.forEach((suite, field) -> AnswerFields.show(field, () -> modelObject.getHolds(suite)));
 		AnswerFields.show(txtWaitingForSweep, modelObject::getWaitingForSweep);
 		AnswerFields.show(txtChainChecked, modelObject::getChainChecked);
 		AnswerFields.show(txtAnswer, modelObject::getAnswer);

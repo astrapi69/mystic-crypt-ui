@@ -114,10 +114,8 @@ class SaveCertificateTest
 		File certificateFile = new File(temporaryDirectory, "verifiable.pem");
 
 		KeygenSupport.writeCertificate(
-			named(
-				KeygenSupport.newCertificateInfo(panel.getModelObject().getPublicKey(),
-					panel.getModelObject().getPrivateKey()),
-				"CN=verifiable"),
+			named(KeygenSupport.newCertificateInfo(panel.getModelObject().getPublicKey(),
+				panel.getModelObject().getPrivateKey()), "CN=verifiable"),
 			certificateFile, KeyFileFormat.PEM);
 
 		X509Certificate written = CertificateReader.readPemCertificate(certificateFile);
@@ -143,9 +141,9 @@ class SaveCertificateTest
 
 	/**
 	 * "Save certificate..." used to enable for RSA only, though the certificate builder already
-	 * picks a fitting signature algorithm for EC (SHA256withECDSA) generically, not RSA-specifically
-	 * - this proves the EC path produces a real, verifiable certificate, not only that the button
-	 * becomes clickable (#189)
+	 * picks a fitting signature algorithm for EC (SHA256withECDSA) generically, not
+	 * RSA-specifically - this proves the EC path produces a real, verifiable certificate, not only
+	 * that the button becomes clickable (#189)
 	 */
 	@Test
 	@DisplayName("an EC key pair also produces a real, verifiable certificate")

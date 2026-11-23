@@ -36,10 +36,10 @@ import io.github.astrapi69.mystic.crypt.panel.dbtree.VaultEntryProperties;
 /**
  * Moves a wallet's properties between a vault entry and the wallet tools' view of it. The host's
  * model holds property values as text, and the wallet tools keep them in buffers of their own where
- * they can (see {@link WalletEntry}). The protection flag travels with the names, so the KDBX export
- * keeps it. The sealed wallet travels as the attachment {@code wallet.lethwf}, and a wallet entry
- * gets the title people read, {@code lethenon wallet (testnet)} or {@code (mainnet)}; the plugin
- * itself reads the marker, never the title. The host's {@link VaultEntryProperties} and
+ * they can (see {@link WalletEntry}). The protection flag travels with the names, so the KDBX
+ * export keeps it. The sealed wallet travels as the attachment {@code wallet.lethwf}, and a wallet
+ * entry gets the title people read, {@code lethenon wallet (testnet)} or {@code (mainnet)}; the
+ * plugin itself reads the marker, never the title. The host's {@link VaultEntryProperties} and
  * {@link VaultEntryAttachments} do the reading and the writing.
  */
 final class VaultWalletEntry
@@ -66,7 +66,8 @@ final class VaultWalletEntry
 			wallet.setProperty(value.getKey(), value.getValue().toCharArray(),
 				protectedNames.contains(value.getKey()));
 		}
-		wallet.setSealed(VaultEntryAttachments.contentOf(entry, WalletVault.ATTACHMENT).orElse(null));
+		wallet
+			.setSealed(VaultEntryAttachments.contentOf(entry, WalletVault.ATTACHMENT).orElse(null));
 		return wallet;
 	}
 

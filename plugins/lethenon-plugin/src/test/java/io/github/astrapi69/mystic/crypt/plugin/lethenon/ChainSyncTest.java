@@ -112,7 +112,8 @@ class ChainSyncTest
 		LethenonSettingsContribution.rememberASync(chainFile, "127.0.0.1:18480", "");
 
 		Instant recorded = ChainSync.lastOf(chainFile).orElseThrow();
-		assertFalse(recorded.isBefore(before.minusMillis(1)), "recorded before the sync: " + recorded);
+		assertFalse(recorded.isBefore(before.minusMillis(1)),
+			"recorded before the sync: " + recorded);
 		assertFalse(recorded.isAfter(Instant.now()), "recorded after the sync: " + recorded);
 	}
 }

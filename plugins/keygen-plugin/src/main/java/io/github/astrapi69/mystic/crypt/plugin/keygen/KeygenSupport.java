@@ -51,11 +51,11 @@ import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.util.io.pem.PemObject;
 import org.bouncycastle.util.io.pem.PemWriter;
 
+import io.github.astrapi69.crypt.api.algorithm.key.KeyPairGeneratorAlgorithm;
 import io.github.astrapi69.crypt.api.key.KeyFileFormat;
 import io.github.astrapi69.crypt.api.key.KeyFormat;
 import io.github.astrapi69.crypt.data.factory.KeyPairFactory;
 import io.github.astrapi69.crypt.data.key.KeyInfoExtensions;
-import io.github.astrapi69.crypt.api.algorithm.key.KeyPairGeneratorAlgorithm;
 import io.github.astrapi69.crypt.data.key.writer.CertificateWriter;
 import io.github.astrapi69.crypt.data.key.writer.EncryptedPrivateKeyWriter;
 import io.github.astrapi69.crypt.data.key.writer.PrivateKeyWriter;
@@ -64,12 +64,12 @@ import io.github.astrapi69.mystic.crypt.key.EcPrivateKeyHexDecryptor;
 import io.github.astrapi69.mystic.crypt.key.EcPublicKeyHexEncryptor;
 import io.github.astrapi69.mystic.crypt.key.PrivateKeyHexDecryptor;
 import io.github.astrapi69.mystic.crypt.key.PublicKeyHexEncryptor;
+import io.github.astrapi69.mystic.crypt.secret.SecretRandom;
 import io.github.astrapi69.mystic.crypt.wizard.CertificateInfoModelToX509;
 import io.github.astrapi69.mystic.crypt.wizard.model.CertificateInfoModel;
 import io.github.astrapi69.mystic.crypt.wizard.model.DistinguishedNameInfoModel;
 import io.github.astrapi69.mystic.crypt.wizard.model.KeyInfoModel;
 import io.github.astrapi69.mystic.crypt.wizard.model.ValidityModel;
-import io.github.astrapi69.mystic.crypt.secret.SecretRandom;
 
 /**
  * What the key generation tool does beyond producing a key pair of a fixed kind: choosing the curve
@@ -100,8 +100,8 @@ public final class KeygenSupport
 		"secp256k1", "secp224r1", "brainpoolP256r1", "brainpoolP384r1", "brainpoolP512r1");
 
 	/** The symmetric algorithms a key can be generated for */
-	public static final List<String> SECRET_KEY_ALGORITHMS = List.of("AES", "ChaCha20", "HmacSHA256",
-		"HmacSHA512");
+	public static final List<String> SECRET_KEY_ALGORITHMS = List.of("AES", "ChaCha20",
+		"HmacSHA256", "HmacSHA512");
 
 	/** The lengths offered for a symmetric key */
 	public static final List<Integer> SECRET_KEY_SIZES = List.of(128, 192, 256, 512);
@@ -130,8 +130,8 @@ public final class KeygenSupport
 	}
 
 	/**
-	 * The hex encryptor for a key pair of the given algorithm, or nothing when that algorithm has no
-	 * way to encrypt with a public key at all.
+	 * The hex encryptor for a key pair of the given algorithm, or nothing when that algorithm has
+	 * no way to encrypt with a public key at all.
 	 * <p>
 	 * RSA encrypts with the public key directly; EC has no such primitive and goes through ECIES
 	 * instead (mystic-crypt 12.2, #195). The remaining offered algorithms are key agreement
@@ -203,7 +203,8 @@ public final class KeygenSupport
 	public static String curveOf(final java.security.PublicKey publicKey)
 	{
 		if (publicKey instanceof org.bouncycastle.jce.interfaces.ECPublicKey ecPublicKey
-			&& ecPublicKey.getParameters() instanceof org.bouncycastle.jce.spec.ECNamedCurveParameterSpec named)
+			&& ecPublicKey
+				.getParameters()instanceof org.bouncycastle.jce.spec.ECNamedCurveParameterSpec named)
 		{
 			return named.getName();
 		}
@@ -293,9 +294,7 @@ public final class KeygenSupport
 		String name = file.getName();
 		// a name that already carries an ending is left as it is, whatever the ending: someone who
 		// types one means it, and turning "key.pem" into "key.pem.der" helps nobody
-		return 0 < name.lastIndexOf('.')
-			? file
-			: new File(file.getParentFile(), name + ending);
+		return 0 < name.lastIndexOf('.') ? file : new File(file.getParentFile(), name + ending);
 	}
 
 	/**
@@ -329,8 +328,8 @@ public final class KeygenSupport
 			.serial(BigInteger.ONE)
 			.validityModel(
 				ValidityModel.builder().notBefore(now).notAfter(now.plusYears(1)).build())
-			.signatureAlgorithm(CertificateInfoModelToX509
-				.defaultSignatureAlgorithmFor(privateKey.getAlgorithm()))
+			.signatureAlgorithm(
+				CertificateInfoModelToX509.defaultSignatureAlgorithmFor(privateKey.getAlgorithm()))
 			.build();
 	}
 
@@ -491,8 +490,8 @@ public final class KeygenSupport
 
 	/**
 	 * Encodes into memory first and writes the file only once the encoding is complete, so that a
-	 * failure leaves the file that was there untouched; the buffer is overwritten afterwards, as
-	 * it holds the key
+	 * failure leaves the file that was there untouched; the buffer is overwritten afterwards, as it
+	 * holds the key
 	 */
 	private static void writeOnceEncoded(final File file, final KeyEncoding encoding)
 		throws Exception

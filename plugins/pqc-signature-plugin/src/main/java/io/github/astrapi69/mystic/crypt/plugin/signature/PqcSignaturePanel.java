@@ -92,7 +92,8 @@ public class PqcSignaturePanel extends JPanel
 	 * generate a key for (#488)
 	 */
 	private final JButton btnGenerate = button("btnGenerate", "Generate key pair",
-		event -> onGenerate(), SignatureMessages.getString("signature.tooltip.generate",
+		event -> onGenerate(),
+		SignatureMessages.getString("signature.tooltip.generate",
 			"generates a throwaway key pair for the selected algorithm - only Ed25519, "
 				+ "ML-DSA and SLH-DSA can be generated here, RSA/ECDSA/DSA need a key file"));
 
@@ -143,12 +144,13 @@ public class PqcSignaturePanel extends JPanel
 		txtPrivateKeyFile.setToolTipText(SignatureMessages.getString(
 			"signature.tooltip.private.key.file",
 			"the private key file to sign with - leave blank to use a key pair generated here"));
-		txtPublicKeyFile.setToolTipText(SignatureMessages.getString(
-			"signature.tooltip.public.key.file",
-			"the public key or certificate file to verify against - leave blank to use a key "
-				+ "pair generated here"));
-		txtSignatureFile.setToolTipText(SignatureMessages.getString(
-			"signature.tooltip.signature.file", "the file the signature is saved to or loaded from"));
+		txtPublicKeyFile
+			.setToolTipText(SignatureMessages.getString("signature.tooltip.public.key.file",
+				"the public key or certificate file to verify against - leave blank to use a key "
+					+ "pair generated here"));
+		txtSignatureFile
+			.setToolTipText(SignatureMessages.getString("signature.tooltip.signature.file",
+				"the file the signature is saved to or loaded from"));
 		txtPublicKey.setToolTipText(SignatureMessages.getString("signature.tooltip.public.key",
 			"the public key, in PEM format"));
 		txtSignature.setToolTipText(SignatureMessages.getString("signature.tooltip.signature",
@@ -164,8 +166,8 @@ public class PqcSignaturePanel extends JPanel
 		modelObject.setAlgorithm(SignatureSettingsContribution.algorithm());
 		modelObject.setMessage(SignatureSettingsContribution.message());
 
-		cmbAlgorithm.setPropertyModel(
-			LambdaModel.of(modelObject::getAlgorithm, modelObject::setAlgorithm));
+		cmbAlgorithm
+			.setPropertyModel(LambdaModel.of(modelObject::getAlgorithm, modelObject::setAlgorithm));
 		txtMessage
 			.setPropertyModel(LambdaModel.of(modelObject::getMessage, modelObject::setMessage));
 		txtDataFile
@@ -204,7 +206,8 @@ public class PqcSignaturePanel extends JPanel
 		btnGenerate.setEnabled(canBeGenerated);
 		if (!canBeGenerated)
 		{
-			showResult(algorithm + ": " + SignatureMessages.getString("signature.result.key.file.needed",
+			showResult(algorithm + ": " + SignatureMessages.getString(
+				"signature.result.key.file.needed",
 				"a key for this algorithm has to come from a file - this tool generates only the "
 					+ "Ed25519, ML-DSA and SLH-DSA families"));
 			resultIsTheGenerateReason = true;
@@ -222,10 +225,9 @@ public class PqcSignaturePanel extends JPanel
 		add(ToolForm.buttons(btnGenerate), ToolForm.BUTTON_ROW);
 
 		add(new JLabel("Private key file:"));
-		add(fileRow(txtPrivateKeyFile,
-			button("btnBrowsePrivateKey", "...", event -> onBrowse(txtPrivateKeyFile),
-				SignatureMessages.getString("signature.tooltip.browse.private.key",
-					"choose the private key file"))),
+		add(fileRow(txtPrivateKeyFile, button("btnBrowsePrivateKey", "...",
+			event -> onBrowse(txtPrivateKeyFile), SignatureMessages
+				.getString("signature.tooltip.browse.private.key", "choose the private key file"))),
 			ToolForm.FIELD);
 		add(new JLabel("Public key or certificate:"));
 		add(fileRow(txtPublicKeyFile,
@@ -250,10 +252,9 @@ public class PqcSignaturePanel extends JPanel
 		add(new JLabel("Signature (Base64):"), AREA_LABEL);
 		add(ToolForm.scrolled(txtSignature), GROWING_AREA);
 		add(new JLabel("Signature file:"));
-		add(fileRow(txtSignatureFile,
-			button("btnBrowseSignatureFile", "...", event -> onBrowse(txtSignatureFile),
-				SignatureMessages.getString("signature.tooltip.browse.signature.file",
-					"choose the signature file"))),
+		add(fileRow(txtSignatureFile, button("btnBrowseSignatureFile", "...",
+			event -> onBrowse(txtSignatureFile), SignatureMessages.getString(
+				"signature.tooltip.browse.signature.file", "choose the signature file"))),
 			ToolForm.FIELD);
 
 		add(ToolForm.buttons(

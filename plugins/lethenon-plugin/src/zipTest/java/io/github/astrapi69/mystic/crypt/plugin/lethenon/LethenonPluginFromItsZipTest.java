@@ -58,11 +58,11 @@ import org.pf4j.PluginState;
  * The plugin as the installed application runs it (#581): started by pf4j from its zip, in a JVM
  * whose class path carries the host and nothing of the plugin's own - neither lethenon nor
  * sqlite-jdbc. In the end-to-end suite both are on the application's class path, where pf4j's
- * plugin class loader would fall back to them, so a plugin zip without sqlite-jdbc would pass
- * there and fail for every user. Here it cannot.
+ * plugin class loader would fall back to them, so a plugin zip without sqlite-jdbc would pass there
+ * and fail for every user. Here it cannot.
  * <p>
- * The chain is written and read through the classes the plugin's class loader finds, by
- * reflection, since this class path has no lethenon to compile against.
+ * The chain is written and read through the classes the plugin's class loader finds, by reflection,
+ * since this class path has no lethenon to compile against.
  */
 class LethenonPluginFromItsZipTest
 {
@@ -114,7 +114,8 @@ class LethenonPluginFromItsZipTest
 
 			assertEquals(1, read.size(), "the genesis block, read back");
 			assertArrayEquals("SQLite format 3\0".getBytes(StandardCharsets.US_ASCII),
-				Arrays.copyOf(Files.readAllBytes(chainFile), 16), "the chain is an SQLite database");
+				Arrays.copyOf(Files.readAllBytes(chainFile), 16),
+				"the chain is an SQLite database");
 			URL from = plugin.loadClass("org.sqlite.JDBC").getProtectionDomain().getCodeSource()
 				.getLocation();
 			// real paths: macOS reaches its temporary directory through a symbolic link, Windows
@@ -176,7 +177,8 @@ class LethenonPluginFromItsZipTest
 			String notice = new String(entry(zip, "legal/NOTICE.txt"), StandardCharsets.UTF_8);
 			List<String> libraries = zip.stream().map(ZipEntry::getName)
 				.filter(name -> name.startsWith("lib/") && name.endsWith(".jar")).toList();
-			assertFalse(libraries.isEmpty(), "the zip bundles libraries, or this test measures nothing");
+			assertFalse(libraries.isEmpty(),
+				"the zip bundles libraries, or this test measures nothing");
 			for (String library : libraries)
 			{
 				// the artifact is the name up to the first hyphen followed by a digit: a version
@@ -185,13 +187,18 @@ class LethenonPluginFromItsZipTest
 				String artifact = library.substring("lib/".length()).replaceFirst("-\\d.*$", "");
 				assertTrue(notice.contains("lib/" + artifact + "-<version>.jar"),
 					"NOTICE.txt names " + library);
-				assertTrue(zip.stream().anyMatch(each -> each.getName().startsWith("legal/" + artifact + "/")
-					&& !each.isDirectory()), "legal/" + artifact + "/ holds the licence of " + library);
+				assertTrue(
+					zip.stream()
+						.anyMatch(each -> each.getName().startsWith("legal/" + artifact + "/")
+							&& !each.isDirectory()),
+					"legal/" + artifact + "/ holds the licence of " + library);
 			}
 			String sqliteJdbc = library(libraries, "sqlite-jdbc");
-			assertArrayEquals(entryOfJar(zip, sqliteJdbc, "META-INF/maven/org.xerial/sqlite-jdbc/LICENSE"),
+			assertArrayEquals(
+				entryOfJar(zip, sqliteJdbc, "META-INF/maven/org.xerial/sqlite-jdbc/LICENSE"),
 				entry(zip, "legal/sqlite-jdbc/LICENSE"));
-			assertArrayEquals(entryOfJar(zip, sqliteJdbc, "META-INF/maven/org.xerial/sqlite-jdbc/LICENSE.zentus"),
+			assertArrayEquals(
+				entryOfJar(zip, sqliteJdbc, "META-INF/maven/org.xerial/sqlite-jdbc/LICENSE.zentus"),
 				entry(zip, "legal/sqlite-jdbc/LICENSE.zentus"));
 			assertArrayEquals(entryOfJar(zip, library(libraries, "lethenon"), "LICENSE.txt"),
 				entry(zip, "legal/lethenon/LICENSE.txt"));
@@ -200,7 +207,8 @@ class LethenonPluginFromItsZipTest
 
 	private static String library(final List<String> libraries, final String artifact)
 	{
-		return libraries.stream().filter(name -> name.startsWith("lib/" + artifact + "-")).findFirst()
+		return libraries.stream().filter(name -> name.startsWith("lib/" + artifact + "-"))
+			.findFirst()
 			.orElseThrow(() -> new AssertionError("no lib/" + artifact + "-*.jar in " + libraries));
 	}
 

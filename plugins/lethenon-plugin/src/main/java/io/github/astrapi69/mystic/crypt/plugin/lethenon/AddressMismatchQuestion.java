@@ -119,9 +119,9 @@ interface AddressMismatchQuestion
 		}
 
 		/**
-		 * The window both dialogs belong to, chosen once before the first, so the confirmation
-		 * does not take the warning that just closed as its owner: the active window while it
-		 * shows, else the first frame that shows
+		 * The window both dialogs belong to, chosen once before the first, so the confirmation does
+		 * not take the warning that just closed as its owner: the active window while it shows,
+		 * else the first frame that shows
 		 */
 		private static Window parent()
 		{
@@ -134,8 +134,7 @@ interface AddressMismatchQuestion
 				.orElse(null);
 		}
 
-		private static String text(final String key, final String defaultValue,
-			final Locale locale)
+		private static String text(final String key, final String defaultValue, final Locale locale)
 		{
 			return LethenonMessages.getString(key, defaultValue, locale);
 		}

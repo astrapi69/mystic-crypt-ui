@@ -32,13 +32,13 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.awt.GraphicsEnvironment;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.lang.reflect.Method;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.attribute.PosixFilePermissions;
 import java.util.List;
 import java.util.UUID;
-import java.lang.reflect.Method;
 import java.util.concurrent.TimeUnit;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
@@ -129,8 +129,8 @@ class ReleaseKeyPluginFromItsZipTest
 			assertFalse(names.stream().anyMatch(name -> name.startsWith("legal/")),
 				"no licence under legal/: " + names);
 			assertFalse(
-				names.stream()
-					.anyMatch(name -> name.startsWith("classes/io/github/astrapi69/mystic/crypt/gnupg/")
+				names.stream().anyMatch(
+					name -> name.startsWith("classes/io/github/astrapi69/mystic/crypt/gnupg/")
 						|| name.endsWith("/GnuPgHomeSupport.class")),
 				"no reader of its own: " + names);
 		}
@@ -141,10 +141,10 @@ class ReleaseKeyPluginFromItsZipTest
 	{
 		Path home = Files.createDirectories(directory.resolve("gnupg"));
 		Files.setPosixFilePermissions(home, PosixFilePermissions.fromString("rwx------"));
-		gpg(home, ("throwaway-" + UUID.randomUUID() + "\n").getBytes(StandardCharsets.UTF_8),
-			"gpg", "--homedir", home.toString(), "--batch", "--no-tty", "--pinentry-mode",
-			"loopback", "--passphrase-fd", "0", "--quick-gen-key", "Zip Test <zip@example.org>",
-			"ed25519", "sign,cert", "0");
+		gpg(home, ("throwaway-" + UUID.randomUUID() + "\n").getBytes(StandardCharsets.UTF_8), "gpg",
+			"--homedir", home.toString(), "--batch", "--no-tty", "--pinentry-mode", "loopback",
+			"--passphrase-fd", "0", "--quick-gen-key", "Zip Test <zip@example.org>", "ed25519",
+			"sign,cert", "0");
 		return home;
 	}
 

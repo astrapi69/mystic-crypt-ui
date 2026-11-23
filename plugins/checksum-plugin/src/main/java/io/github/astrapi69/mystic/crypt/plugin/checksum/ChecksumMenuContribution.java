@@ -64,8 +64,8 @@ public class ChecksumMenuContribution implements PluginMenuContribution
 	public List<JMenuItem> getMenuItems()
 	{
 		JMenuItem verifyChecksum = new JMenuItem("Verify Checksum");
-		verifyChecksum.addActionListener(
-			event -> openInternalFrame("Verify Checksum", new ChecksumPanel()));
+		verifyChecksum
+			.addActionListener(event -> openInternalFrame("Verify Checksum", new ChecksumPanel()));
 		JMenuItem checksumAndMac = new JMenuItem("Checksum and MAC");
 		checksumAndMac.addActionListener(
 			event -> openInternalFrame("Checksum and MAC", new ChecksumAndMacPanel()));

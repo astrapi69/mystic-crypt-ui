@@ -54,7 +54,9 @@ import io.github.astrapi69.lethenon.Wallet;
 final class LethenonFixtures
 {
 
-	/** When the chains of {@link #aChainOf} begin: in the past, so that no block is from the future */
+	/**
+	 * When the chains of {@link #aChainOf} begin: in the past, so that no block is from the future
+	 */
 	private static final long CHAIN_START = 1_759_000_000_000L;
 
 	private LethenonFixtures()
@@ -62,8 +64,8 @@ final class LethenonFixtures
 	}
 
 	/**
-	 * Writes a chain the way lethenon 0.6.0 keeps it, as a database. A test that means a chain file of
-	 * 0.5.0 or earlier writes {@code CanonicalEncoding.encodeChain} itself (#581).
+	 * Writes a chain the way lethenon 0.6.0 keeps it, as a database. A test that means a chain file
+	 * of 0.5.0 or earlier writes {@code CanonicalEncoding.encodeChain} itself (#581).
 	 *
 	 * @param chainFile
 	 *            the file
@@ -102,9 +104,11 @@ final class LethenonFixtures
 			"in the beginning was the pun", CHAIN_START), 1_000_000L).orElseThrow());
 		while (chain.size() < blocks)
 		{
-			chain.add(Blocks.mine(Mining.nextBlock(chain, miner, List.of(), "pun " + chain.size(),
-				CHAIN_START + DifficultyRule.TARGET_BLOCK_MILLIS * chain.size()), 1_000_000L)
-				.orElseThrow());
+			chain
+				.add(Blocks.mine(
+					Mining.nextBlock(chain, miner, List.of(), "pun " + chain.size(),
+						CHAIN_START + DifficultyRule.TARGET_BLOCK_MILLIS * chain.size()),
+					1_000_000L).orElseThrow());
 		}
 		return List.copyOf(chain);
 	}
@@ -114,6 +118,7 @@ final class LethenonFixtures
 	 * (lethenon#148), block 1 pays the payer its reward, and block 2 carries the payer's two
 	 * payments to the wallet: 3 LETH to its Ed25519 account and 5 LETH to a one-time destination of
 	 * its published address
+	 * 
 	 * @param payer
 	 *            the miner of block 1 and the sender, an Ed25519 key pair
 	 * @param wallet
@@ -123,31 +128,38 @@ final class LethenonFixtures
 	static List<BlockBody> aChainPayingTheWallet(final KeyPair payer, final Wallet wallet)
 	{
 		Bytes payerKey = TransactionSigner.asBytes(payer.getPublic());
-		List<BlockBody> chain = new ArrayList<>(List.of(Genesis.candidate(Chain.TEST_IDENTIFIER,
-			"in the beginning was the pun", CHAIN_START)));
-		chain.add(Blocks.mine(Mining.nextBlock(chain, payerKey, List.of(), "the payer's block",
-			CHAIN_START + DifficultyRule.TARGET_BLOCK_MILLIS), 1_000_000L).orElseThrow());
-		SignedTransaction direct = TransactionSigner.sign(
-			new TransactionBody(Chain.TEST_IDENTIFIER, 0L, payerKey,
-				Destination.direct(wallet.spendKey(SignatureSuite.ED25519)), Amount.ofLeth(3L),
-				Amount.ZERO, "three, to the account"),
-			SignatureSuite.ED25519, payer.getPrivate());
-		SignedTransaction oneTime = TransactionSigner.sign(
-			new TransactionBody(Chain.TEST_IDENTIFIER, 1L, payerKey,
+		List<BlockBody> chain = new ArrayList<>(List.of(
+			Genesis.candidate(Chain.TEST_IDENTIFIER, "in the beginning was the pun", CHAIN_START)));
+		chain
+			.add(
+				Blocks
+					.mine(Mining.nextBlock(chain, payerKey, List.of(), "the payer's block",
+						CHAIN_START + DifficultyRule.TARGET_BLOCK_MILLIS), 1_000_000L)
+					.orElseThrow());
+		SignedTransaction direct = TransactionSigner
+			.sign(
+				new TransactionBody(Chain.TEST_IDENTIFIER, 0L, payerKey,
+					Destination.direct(wallet.spendKey(SignatureSuite.ED25519)), Amount.ofLeth(3L),
+					Amount.ZERO, "three, to the account"),
+				SignatureSuite.ED25519, payer.getPrivate());
+		SignedTransaction oneTime = TransactionSigner
+			.sign(new TransactionBody(Chain.TEST_IDENTIFIER, 1L, payerKey,
 				OneTimeAddresses.destinationFor(wallet.address(),
 					OneTimeAddresses.newEphemeralKeyPair()),
 				Amount.ofLeth(5L), Amount.ZERO, "five, to a one-time destination"),
-			SignatureSuite.ED25519, payer.getPrivate());
-		chain.add(Blocks.mine(Mining.nextBlock(chain, payerKey, List.of(direct, oneTime),
-			"the third pun", CHAIN_START + 2 * DifficultyRule.TARGET_BLOCK_MILLIS), 1_000_000L)
-			.orElseThrow());
+				SignatureSuite.ED25519, payer.getPrivate());
+		chain
+			.add(Blocks
+				.mine(Mining.nextBlock(chain, payerKey, List.of(direct, oneTime), "the third pun",
+					CHAIN_START + 2 * DifficultyRule.TARGET_BLOCK_MILLIS), 1_000_000L)
+				.orElseThrow());
 		return List.copyOf(chain);
 	}
 
 	/**
 	 * A chain under {@code lethenon-1}, the main chain identifier every version before lethenon
-	 * 0.4.0 wrote, which 0.4.0 refuses by name (lethenon#137). Its library mines no block under that
-	 * identifier any more, so the genesis block is built by hand.
+	 * 0.4.0 wrote, which 0.4.0 refuses by name (lethenon#137). Its library mines no block under
+	 * that identifier any more, so the genesis block is built by hand.
 	 *
 	 * @return the one genesis block, mined
 	 */

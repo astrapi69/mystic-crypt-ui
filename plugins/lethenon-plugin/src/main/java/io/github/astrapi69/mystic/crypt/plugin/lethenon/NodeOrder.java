@@ -31,8 +31,8 @@ import java.nio.file.Path;
  * password, which travels apart as a {@code char[]} so it can be wiped
  *
  * @param chainFile
- *            the chain file the node serves, on the test network; it belongs to the node while
- *            the node runs
+ *            the chain file the node serves, on the test network; it belongs to the node while the
+ *            node runs
  * @param port
  *            the TCP port the node listens on, as typed: 0 for any free one
  * @param peers

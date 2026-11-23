@@ -119,7 +119,8 @@ class StorePanelTest
 		StorePanel panel = newPanel(new CreateKeyStoreWizardModel());
 
 		assertHasTooltip((JComponent)componentNamed(panel, "txtKeyStoreFile"), "key store file");
-		assertHasTooltip((JComponent)componentNamed(panel, "btnBrowseKeyStoreFile"), "browse button");
+		assertHasTooltip((JComponent)componentNamed(panel, "btnBrowseKeyStoreFile"),
+			"browse button");
 		assertHasTooltip((JComponent)componentNamed(panel, "cmbKeystoreType"), "type");
 		assertHasTooltip((JComponent)componentNamed(panel, "pwdStorePassword"), "password");
 		assertHasTooltip((JComponent)componentNamed(panel, "pwdStorePasswordRepeated"),

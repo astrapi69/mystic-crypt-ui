@@ -44,10 +44,10 @@ import io.github.astrapi69.mystic.crypt.plugin.conversion.wizard.ConversionOpera
 import io.github.astrapi69.mystic.crypt.plugin.conversion.wizard.ConversionWizardModel;
 
 /**
- * Covers what {@link ConversionMenuContribution} does without opening a real dialog: the single menu
- * item it now contributes (replacing the two former ones), and the helpers Finish and the Review step
- * both rely on to fill in what the user left blank - since Finish works from any step of the wizard,
- * not only Review, the same way the certificate wizard's Finish does.
+ * Covers what {@link ConversionMenuContribution} does without opening a real dialog: the single
+ * menu item it now contributes (replacing the two former ones), and the helpers Finish and the
+ * Review step both rely on to fill in what the user left blank - since Finish works from any step
+ * of the wizard, not only Review, the same way the certificate wizard's Finish does.
  */
 class ConversionMenuContributionTest
 {
@@ -136,7 +136,9 @@ class ConversionMenuContributionTest
 		assertTrue(summary.contains(source.getAbsolutePath()), summary);
 		assertTrue(summary.contains("PKCS#1"), summary);
 		assertTrue(summary.contains("to DER"), summary);
-		assertTrue(summary.contains(ConversionOperation.PEM_TO_DER.defaultTargetFile(source)
-			.getAbsolutePath()), summary);
+		assertTrue(
+			summary.contains(
+				ConversionOperation.PEM_TO_DER.defaultTargetFile(source).getAbsolutePath()),
+			summary);
 	}
 }

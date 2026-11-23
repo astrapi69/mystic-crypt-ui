@@ -37,8 +37,7 @@ import java.util.Locale;
  * @param arguments
  *            the values
  */
-record Refusal(String key, String defaultPattern, Object... arguments)
-{
+record Refusal(String key, String defaultPattern, Object... arguments) {
 
 	/**
 	 * The sentence in the given language

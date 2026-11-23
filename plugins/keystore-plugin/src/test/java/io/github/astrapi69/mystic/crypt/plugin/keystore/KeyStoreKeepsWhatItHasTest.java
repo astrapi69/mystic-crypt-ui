@@ -52,8 +52,8 @@ import io.github.astrapi69.crypt.api.type.KeystoreType;
  * The window must not throw away keys without being asked.
  * <p>
  * Two ways it used to: Create on a path that already held a key store replaced it with an empty
- * one, and adding an entry under an alias that was taken overwrote what was there. Both are
- * refused on the command line and were not in the window, which is the half most people use.
+ * one, and adding an entry under an alias that was taken overwrote what was there. Both are refused
+ * on the command line and were not in the window, which is the half most people use.
  */
 class KeyStoreKeepsWhatItHasTest
 {
@@ -118,7 +118,8 @@ class KeyStoreKeepsWhatItHasTest
 		click(panel, "btnCreate");
 		named(panel, "txtAlias", JTextField.class).setText(ALIAS);
 		named(panel, "txtDistinguishedName", JTextField.class).setText("CN=important");
-		named(panel, "cmbKeyAlgorithm", JComboBox.class).setSelectedItem(KeyPairGeneratorAlgorithm.EC);
+		named(panel, "cmbKeyAlgorithm", JComboBox.class)
+			.setSelectedItem(KeyPairGeneratorAlgorithm.EC);
 		click(panel, "btnAddKeyPair");
 		return store;
 	}
@@ -160,7 +161,8 @@ class KeyStoreKeepsWhatItHasTest
 		KeyStorePanel panel = panelPointingAt(store);
 		click(panel, "btnOpen");
 		named(panel, "txtAlias", JTextField.class).setText(ALIAS);
-		named(panel, "txtDistinguishedName", JTextField.class).setText("CN=the one that overwrites");
+		named(panel, "txtDistinguishedName", JTextField.class)
+			.setText("CN=the one that overwrites");
 		click(panel, "btnAddKeyPair");
 
 		assertTrue(resultOf(panel).startsWith("not added:"), resultOf(panel));

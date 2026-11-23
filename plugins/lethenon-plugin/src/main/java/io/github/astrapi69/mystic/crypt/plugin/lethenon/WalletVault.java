@@ -167,11 +167,13 @@ final class WalletVault
 		Wallet wallet = WalletFile.read(entry.sealed(), password);
 		Optional<String> warning = addressWarning(entry.addressForCheck(), wallet.address());
 		Optional<String> accountWarning = accountWarning(entry, wallet);
-		Optional<AddressMismatch> mismatch = warning
-			.map(differs -> new AddressMismatch(entry.addressForCheck(), wallet.address().toText()));
-		return new UnsealedWallet(wallet, warning.isPresent() && accountWarning.isPresent()
-			? Optional.of(warning.get() + " " + accountWarning.get())
-			: warning.or(() -> accountWarning), mismatch);
+		Optional<AddressMismatch> mismatch = warning.map(
+			differs -> new AddressMismatch(entry.addressForCheck(), wallet.address().toText()));
+		return new UnsealedWallet(wallet,
+			warning.isPresent() && accountWarning.isPresent()
+				? Optional.of(warning.get() + " " + accountWarning.get())
+				: warning.or(() -> accountWarning),
+			mismatch);
 	}
 
 	/**
@@ -269,9 +271,9 @@ final class WalletVault
 	{
 		if (!isWallet(entry))
 		{
-			throw new IllegalArgumentException("this entry is not a lethenon wallet: it needs the "
-				+ "property " + WALLET + " = " + FORMAT_VERSION + " and the attachment "
-				+ ATTACHMENT);
+			throw new IllegalArgumentException(
+				"this entry is not a lethenon wallet: it needs the " + "property " + WALLET + " = "
+					+ FORMAT_VERSION + " and the attachment " + ATTACHMENT);
 		}
 	}
 

@@ -77,8 +77,7 @@ class AnswerAreaTest
 	 *            whether the details show
 	 */
 	record Visibility(String state, boolean answered, boolean detailsShown, boolean sentenceShows,
-		boolean answerShows, boolean detailsShow)
-	{
+		boolean answerShows, boolean detailsShow) {
 		@Override
 		public String toString()
 		{
@@ -92,10 +91,10 @@ class AnswerAreaTest
 			Arguments.of(new Visibility("no answer yet", false, false, true, false, false)),
 			Arguments.of(new Visibility("no answer, the details opened before it was cleared",
 				false, true, true, false, false)),
-			Arguments.of(new Visibility("an answer, the details closed", true, false, false, true,
-				false)),
-			Arguments.of(new Visibility("an answer, the details opened", true, true, false, true,
-				true)));
+			Arguments.of(
+				new Visibility("an answer, the details closed", true, false, false, true, false)),
+			Arguments.of(
+				new Visibility("an answer, the details opened", true, true, false, true, true)));
 	}
 
 	private AnswerArea anAnswerAfterTheInput()

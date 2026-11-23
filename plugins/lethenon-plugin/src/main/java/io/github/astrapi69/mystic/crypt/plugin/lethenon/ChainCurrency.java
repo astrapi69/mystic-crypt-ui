@@ -92,9 +92,8 @@ final class ChainCurrency
 			return LethenonMessages.format("lethenon.wallet.chain.yesterday", "yesterday {0}",
 				locale, clock);
 		}
-		return time.toLocalDate()
-			.format(DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM).withLocale(locale)) + " "
-			+ clock;
+		return time.toLocalDate().format(
+			DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM).withLocale(locale)) + " " + clock;
 	}
 
 	/**
@@ -106,8 +105,7 @@ final class ChainCurrency
 		Duration age = Duration.between(then, now);
 		if (age.toMinutes() < 1)
 		{
-			return LethenonMessages.getString("lethenon.wallet.chain.age.now", "just now",
-				locale);
+			return LethenonMessages.getString("lethenon.wallet.chain.age.now", "just now", locale);
 		}
 		if (age.toMinutes() < 60)
 		{

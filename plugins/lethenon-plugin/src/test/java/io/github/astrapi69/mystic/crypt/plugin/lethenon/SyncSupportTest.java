@@ -179,14 +179,16 @@ class SyncSupportTest
 			CanonicalEncoding.encodeChain(LethenonFixtures.aChainUnderLethenonOne()));
 		byte[] before = Files.readAllBytes(chainFile);
 
-		// refused as every tool of the plugin refuses a chain that does not verify, since the file is
+		// refused as every tool of the plugin refuses a chain that does not verify, since the file
+		// is
 		// read as it is before lethenon 0.6.0 would migrate it (#581)
 		ChainRejected refused = assertThrows(ChainRejected.class,
 			() -> SyncSupport.sync(chainFile, local(aPortNobodyListensOn()), ""));
 
 		assertTrue(refused.getMessage().startsWith(chainFile.toAbsolutePath().toString()),
 			refused.getMessage());
-		assertTrue(refused.getMessage().contains("was started under the rules before lethenon 0.4.0"),
+		assertTrue(
+			refused.getMessage().contains("was started under the rules before lethenon 0.4.0"),
 			refused.getMessage());
 		assertArrayEquals(before, Files.readAllBytes(chainFile));
 		assertFalse(Files.exists(directory.resolve("old.lethenon.legacy")), "it was not migrated");
@@ -280,7 +282,8 @@ class SyncSupportTest
 	@DisplayName("the window's seed nodes are the library's: IP addresses directly, onion addresses through Tor (#573)")
 	void theTestNetworkSeeds_areTheLibrarys()
 	{
-		assertEquals(TestNetworkSeeds.CLEARNET, SyncSupport.TEST_NETWORK_SEEDS.reachedThrough(false));
+		assertEquals(TestNetworkSeeds.CLEARNET,
+			SyncSupport.TEST_NETWORK_SEEDS.reachedThrough(false));
 		assertEquals(TestNetworkSeeds.ONION, SyncSupport.TEST_NETWORK_SEEDS.reachedThrough(true));
 		assertTrue(SyncSupport.TEST_NETWORK_SEEDS.serve(List.of()));
 	}

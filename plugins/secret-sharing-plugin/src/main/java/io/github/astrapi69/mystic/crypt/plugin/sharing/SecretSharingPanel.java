@@ -53,9 +53,9 @@ import io.github.astrapi69.swing.model.component.JMTextField;
  * Every component is bound to {@link SecretSharingPanelModel}, so a button reads what the user
  * entered from the model and never out of the widgets.
  * <p>
- * The window is laid out with {@link ToolForm}, the one shape every tool window in this
- * application uses: labels in a narrow right aligned column, fields taking the width, the share
- * list and the rebuilt secret taking the height that is left, buttons under what they act on.
+ * The window is laid out with {@link ToolForm}, the one shape every tool window in this application
+ * uses: labels in a narrow right aligned column, fields taking the width, the share list and the
+ * rebuilt secret taking the height that is left, buttons under what they act on.
  */
 public class SecretSharingPanel extends JPanel
 {
@@ -120,8 +120,8 @@ public class SecretSharingPanel extends JPanel
 			"split the file above instead of the typed secret"));
 		spnThreshold.setToolTipText(SecretSharingMessages.getString("sharing.tooltip.threshold",
 			"how many shares are enough to rebuild the secret - fewer than this reveal nothing"));
-		spnTotalShares.setToolTipText(SecretSharingMessages.getString(
-			"sharing.tooltip.total.shares", "how many shares are produced in total"));
+		spnTotalShares.setToolTipText(SecretSharingMessages
+			.getString("sharing.tooltip.total.shares", "how many shares are produced in total"));
 		txtShares.setToolTipText(SecretSharingMessages.getString("sharing.tooltip.shares",
 			"the shares, one per line - paste them here to rebuild the secret, or read them back "
 				+ "after splitting"));
@@ -167,12 +167,13 @@ public class SecretSharingPanel extends JPanel
 
 		add(new JLabel("Shares:"), "aligny top");
 		add(ToolForm.scrolled(txtShares), "grow, push");
-		add(ToolForm.buttons(
-			button("btnCombine", "Combine", event -> onCombine(), SecretSharingMessages
-				.getString("sharing.tooltip.combine", "rebuilds the secret from the shares above")),
-			button("btnLoadShares", "Load shares", event -> onLoadShares(),
-				SecretSharingMessages.getString("sharing.tooltip.load.shares",
-					"reads shares from a file into the field above"))),
+		add(ToolForm
+			.buttons(button("btnCombine", "Combine", event -> onCombine(),
+				SecretSharingMessages.getString("sharing.tooltip.combine",
+					"rebuilds the secret from the shares above")),
+				button("btnLoadShares", "Load shares", event -> onLoadShares(),
+					SecretSharingMessages.getString("sharing.tooltip.load.shares",
+						"reads shares from a file into the field above"))),
 			ToolForm.BUTTON_ROW);
 
 		add(new JLabel("Rebuilt secret:"), "aligny top");
@@ -183,9 +184,8 @@ public class SecretSharingPanel extends JPanel
 			SecretSharingMessages.getString("sharing.tooltip.browse.rebuilt.file",
 				"choose where to write the rebuilt secret")));
 		add(ToolForm.buttons(button("btnSaveRebuilt", "Save rebuilt secret",
-			event -> onSaveRebuilt(),
-			SecretSharingMessages.getString("sharing.tooltip.save.rebuilt",
-				"writes the rebuilt secret to the file above"))),
+			event -> onSaveRebuilt(), SecretSharingMessages.getString(
+				"sharing.tooltip.save.rebuilt", "writes the rebuilt secret to the file above"))),
 			ToolForm.BUTTON_ROW);
 
 		add(lblResult, ToolForm.RESULT_LINE);
@@ -224,7 +224,8 @@ public class SecretSharingPanel extends JPanel
 			{
 				List<String> shares = SecretSharingSupport.split(secret, threshold, totalShares);
 				showShares(String.join(System.lineSeparator(), shares));
-				return totalShares + " shares, " + threshold + " of them are enough - keep them apart";
+				return totalShares + " shares, " + threshold
+					+ " of them are enough - keep them apart";
 			}
 			finally
 			{
@@ -248,7 +249,8 @@ public class SecretSharingPanel extends JPanel
 		run("saved", () -> {
 			if (modelObject.getShares().isBlank())
 			{
-				throw new IllegalArgumentException("there is nothing to save - split a secret first");
+				throw new IllegalArgumentException(
+					"there is nothing to save - split a secret first");
 			}
 			File target = requireNewFile(modelObject.getSecretFile(), ".shares.txt");
 			Files.writeString(target.toPath(), modelObject.getShares(), StandardCharsets.UTF_8);
@@ -275,7 +277,8 @@ public class SecretSharingPanel extends JPanel
 		run("saved", () -> {
 			if (modelObject.getRebuiltSecret().isEmpty())
 			{
-				throw new IllegalArgumentException("there is nothing to save - combine the shares first");
+				throw new IllegalArgumentException(
+					"there is nothing to save - combine the shares first");
 			}
 			String path = modelObject.getRebuiltFile().trim();
 			if (path.isEmpty())
@@ -285,8 +288,8 @@ public class SecretSharingPanel extends JPanel
 			File target = new File(path);
 			if (target.exists())
 			{
-				throw new IllegalArgumentException("'" + target
-					+ "' already exists - pick another name or remove it first");
+				throw new IllegalArgumentException(
+					"'" + target + "' already exists - pick another name or remove it first");
 			}
 			Files.write(target.toPath(),
 				modelObject.getRebuiltSecret().getBytes(StandardCharsets.UTF_8));

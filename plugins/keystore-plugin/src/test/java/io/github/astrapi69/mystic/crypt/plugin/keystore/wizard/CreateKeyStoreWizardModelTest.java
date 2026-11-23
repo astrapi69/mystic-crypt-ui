@@ -35,8 +35,9 @@ import io.github.astrapi69.crypt.api.type.KeystoreType;
 import io.github.astrapi69.mystic.crypt.plugin.keystore.KeyStoreSupport;
 
 /**
- * Tests that {@link CreateKeyStoreWizardModel} starts with sensible defaults and carries every value
- * written into it, since every wizard step reads and writes this model rather than the widgets.
+ * Tests that {@link CreateKeyStoreWizardModel} starts with sensible defaults and carries every
+ * value written into it, since every wizard step reads and writes this model rather than the
+ * widgets.
  */
 class CreateKeyStoreWizardModelTest
 {

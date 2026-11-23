@@ -29,9 +29,9 @@ import java.util.function.BinaryOperator;
 
 /**
  * The five launch documents of lethenon#141, which the "Before you start" view links to (#540).
- * They live in lethenon's repository under {@code docs/launch/} and are read on its develop
- * branch, where they are re-checked before the main chain starts (lethenon#144); this view only
- * points to them.
+ * They live in lethenon's repository under {@code docs/launch/} and are read on its develop branch,
+ * where they are re-checked before the main chain starts (lethenon#144); this view only points to
+ * them.
  */
 public enum LaunchDocument
 {
@@ -70,6 +70,7 @@ public enum LaunchDocument
 
 	/**
 	 * Gets the address the document is read at
+	 * 
 	 * @return the document's address on lethenon's develop branch
 	 */
 	public String url()
@@ -79,6 +80,7 @@ public enum LaunchDocument
 
 	/**
 	 * Gets the document's title in the language of the given text
+	 * 
 	 * @param text
 	 *            looks up a key, falling back to the default it is given
 	 * @return the title
@@ -91,6 +93,7 @@ public enum LaunchDocument
 
 	/**
 	 * Gets the name of the button that opens the document, for an end-to-end test to find it by
+	 * 
 	 * @return the component name
 	 */
 	public String componentName()

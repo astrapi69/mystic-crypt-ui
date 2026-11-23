@@ -177,13 +177,15 @@ class AddressMismatchTest
 			mismatch.title(Locale.GERMAN));
 		assertEquals("Im Eintrag steht: OLD. Die Wallet im Anhang hat: NEW.",
 			mismatch.bothAddresses(Locale.GERMAN));
-		assertEquals("Anyone who paid to the old address paid to an address that does not belong "
-			+ "to this wallet. Find out where the difference comes from.",
+		assertEquals(
+			"Anyone who paid to the old address paid to an address that does not belong "
+				+ "to this wallet. Find out where the difference comes from.",
 			mismatch.consequence(Locale.ENGLISH));
 		assertEquals("Es wurde nichts geändert.", mismatch.nothingChanged(Locale.GERMAN));
 		assertEquals("Adresse im Eintrag ersetzen?", mismatch.confirmTitle(Locale.GERMAN));
-		assertEquals("The address in the entry is replaced. Old: OLD. New, the wallet's address: "
-			+ "NEW. This wallet cannot spend payments made to the old address.",
+		assertEquals(
+			"The address in the entry is replaced. Old: OLD. New, the wallet's address: "
+				+ "NEW. This wallet cannot spend payments made to the old address.",
 			mismatch.confirmText(Locale.ENGLISH));
 	}
 

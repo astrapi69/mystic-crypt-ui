@@ -57,10 +57,10 @@ import io.github.astrapi69.mystic.crypt.wizard.model.ValidityModel;
  * Covers three independent behaviors of {@link CertificateMenuContribution}: the "Certificate
  * created" confirmation that used to follow saving has to actually say what was created (#136), not
  * just where it went - the review step that replaced it (#146) still uses the same summary; every
- * key algorithm the settings document as valid ("RSA, EC, DSA or Ed25519") actually has to work, not
- * just the RSA default (#141); and the file the review step ends up saving to has to fall back
- * sensibly when the user never typed a name or picked a directory there, since Finish works from any
- * step of the wizard, not only Review.
+ * key algorithm the settings document as valid ("RSA, EC, DSA or Ed25519") actually has to work,
+ * not just the RSA default (#141); and the file the review step ends up saving to has to fall back
+ * sensibly when the user never typed a name or picked a directory there, since Finish works from
+ * any step of the wizard, not only Review.
  */
 class CertificateMenuContributionTest
 {
@@ -140,8 +140,7 @@ class CertificateMenuContributionTest
 	{
 		CertificateInfoModel model = modelWithSubjectCommonName("*.example.com/test?");
 
-		assertEquals("_.example.com_test_.crt",
-			CertificateMenuContribution.defaultFileName(model));
+		assertEquals("_.example.com_test_.crt", CertificateMenuContribution.defaultFileName(model));
 	}
 
 	@Test

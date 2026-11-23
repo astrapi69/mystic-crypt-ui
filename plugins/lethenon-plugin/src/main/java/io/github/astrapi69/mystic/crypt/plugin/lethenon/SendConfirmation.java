@@ -62,8 +62,8 @@ interface SendConfirmation
 			String cancel = text("lethenon.send.network.cancel", "Cancel", locale);
 			String test = NetworkKind.TEST.badge(locale);
 			String main = NetworkKind.MAIN.badge(locale);
-			String message = NetworkKind.UNKNOWN.riskNote(locale) + "\n\n"
-				+ text("lethenon.send.network.question", "Which network is this wallet on?", locale);
+			String message = NetworkKind.UNKNOWN.riskNote(locale) + "\n\n" + text(
+				"lethenon.send.network.question", "Which network is this wallet on?", locale);
 			int chosen = JOptionPane.showOptionDialog(parent, message,
 				text("lethenon.send.network.title", "Which network?", locale),
 				JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE, null,

@@ -44,10 +44,10 @@ import io.github.astrapi69.lethenon.Replay;
  * Since lethenon 0.6.0 the chain is an SQLite database, and the library migrates a chain file of
  * 0.5.0 or earlier the first time it reads one; lethenon 0.5.0 - the library of mystic-crypt-ui 8.8
  * and 8.9 - cannot read the chain after that (lethenon ADR 0006). So a file in the old format is
- * read and verified as it is first, with the old encoding, and a chain the plugin would refuse - one
- * an earlier lethenon wrote (#535), one that does not verify - is refused as before, with the file's
- * name, and is never converted. A chain that verifies is converted only by {@link #convert}, which a
- * window calls once the person agreed to it; {@link #read} refuses it until then.
+ * read and verified as it is first, with the old encoding, and a chain the plugin would refuse -
+ * one an earlier lethenon wrote (#535), one that does not verify - is refused as before, with the
+ * file's name, and is never converted. A chain that verifies is converted only by {@link #convert},
+ * which a window calls once the person agreed to it; {@link #read} refuses it until then.
  * <p>
  * No chain logic of its own: {@link CanonicalEncoding#readChain} and {@link Replay#verify} decide,
  * {@link ChainFile} migrates and reads. It takes a {@link Path} and is testable without a display
@@ -58,8 +58,8 @@ final class ChainFiles
 
 	/**
 	 * The first 16 bytes of every SQLite database (SQLite's documented file format, "The Database
-	 * Header"). Checked here because lethenon cannot yet say whether reading a file would migrate it
-	 * (lethenon#222); this knows less than the library does, an interrupted migration for one.
+	 * Header"). Checked here because lethenon cannot yet say whether reading a file would migrate
+	 * it (lethenon#222); this knows less than the library does, an interrupted migration for one.
 	 */
 	private static final byte[] SQLITE_HEADER = "SQLite format 3\0"
 		.getBytes(StandardCharsets.US_ASCII);
@@ -69,8 +69,8 @@ final class ChainFiles
 	}
 
 	/**
-	 * Whether the file is a chain file in the format of lethenon 0.5.0 or earlier, which the library
-	 * would migrate on its first read
+	 * Whether the file is a chain file in the format of lethenon 0.5.0 or earlier, which the
+	 * library would migrate on its first read
 	 *
 	 * @param chainFile
 	 *            the file
@@ -101,9 +101,11 @@ final class ChainFiles
 	 * @throws IOException
 	 *             when the file cannot be read
 	 * @throws IllegalArgumentException
-	 *             when the bytes are no chain file, with the file and its size in front of the reason
+	 *             when the bytes are no chain file, with the file and its size in front of the
+	 *             reason
 	 * @throws ChainRejected
-	 *             when a chain in the old format does not verify, with the file in front of the reason
+	 *             when a chain in the old format does not verify, with the file in front of the
+	 *             reason
 	 */
 	static boolean needsConversion(final Path chainFile) throws IOException
 	{
@@ -127,8 +129,8 @@ final class ChainFiles
 	 *             when the file cannot be read or converted, or the library kept no
 	 *             {@code <file>.legacy}, with the file's absolute path in front of the reason
 	 * @throws IllegalArgumentException
-	 *             when the file is no chain file of the old format: a database, a missing file, bytes
-	 *             that are no chain file
+	 *             when the file is no chain file of the old format: a database, a missing file,
+	 *             bytes that are no chain file
 	 * @throws ChainRejected
 	 *             when the chain does not verify; it is then not converted
 	 */
@@ -172,13 +174,14 @@ final class ChainFiles
 	 * @throws UnconvertedChainFile
 	 *             when the file is a verified chain of the old format, which is then left as it was
 	 * @throws IOException
-	 *             when the file cannot be read, or the library refuses the database, with the file's
-	 *             absolute path in front of its reason
+	 *             when the file cannot be read, or the library refuses the database, with the
+	 *             file's absolute path in front of its reason
 	 * @throws IllegalArgumentException
-	 *             when the bytes are no chain file, with the file and its size in front of the reason
+	 *             when the bytes are no chain file, with the file and its size in front of the
+	 *             reason
 	 * @throws ChainRejected
-	 *             when a chain in the old format does not verify, with the file in front of the reason;
-	 *             it is then not converted
+	 *             when a chain in the old format does not verify, with the file in front of the
+	 *             reason; it is then not converted
 	 */
 	static List<BlockBody> read(final Path chainFile) throws IOException
 	{
@@ -205,13 +208,14 @@ final class ChainFiles
 		{
 			// the library names its own working file, <chain>.migrating, not the chain file
 			// (lethenon#216); the reader needs the file they picked
-			throw new IOException(chainFile.toAbsolutePath() + ": " + refused.getMessage(), refused);
+			throw new IOException(chainFile.toAbsolutePath() + ": " + refused.getMessage(),
+				refused);
 		}
 	}
 
 	/**
-	 * The old encoding's refusal of bytes it cannot read, with the file and its size in front, which
-	 * the library cannot name (lethenon#80, #532)
+	 * The old encoding's refusal of bytes it cannot read, with the file and its size in front,
+	 * which the library cannot name (lethenon#80, #532)
 	 */
 	private static List<BlockBody> decode(final Path chainFile, final byte[] encoded)
 	{

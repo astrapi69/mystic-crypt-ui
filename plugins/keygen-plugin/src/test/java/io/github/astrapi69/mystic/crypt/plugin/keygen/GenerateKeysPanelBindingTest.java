@@ -117,8 +117,7 @@ class GenerateKeysPanelBindingTest
 	{
 		PluginSettings.save(configurationDirectory, KeygenSettingsContribution.PLUGIN_ID,
 			new KeygenSettingsContribution().getDefaults(),
-			Map.of(KeygenSettingsContribution.KEY_ALGORITHM,
-				KeyPairGeneratorAlgorithm.DH.name()));
+			Map.of(KeygenSettingsContribution.KEY_ALGORITHM, KeyPairGeneratorAlgorithm.DH.name()));
 
 		GenerateKeysPanel panel = new GenerateKeysPanel();
 

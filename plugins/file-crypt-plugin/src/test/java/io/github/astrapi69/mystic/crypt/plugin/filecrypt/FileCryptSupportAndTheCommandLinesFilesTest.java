@@ -66,8 +66,7 @@ class FileCryptSupportAndTheCommandLinesFilesTest
 	static final String COMMAND_LINE_FILES_FIXTURE = "sealed-by-the-command-line-for-877";
 
 	/** A checked-in file, what it holds, and whether the window gets it as a text */
-	record Sealed(String name, String plaintext, boolean text)
-	{
+	record Sealed(String name, String plaintext, boolean text) {
 		@Override
 		public String toString()
 		{
@@ -88,8 +87,7 @@ class FileCryptSupportAndTheCommandLinesFilesTest
 	{
 		return Stream.of(
 			new Sealed("written-by-encrypt.txt.mcenc", "a file the command line sealed\n", false),
-			new Sealed("written-by-encrypt.text",
-				"a text the command line sealed: ä ö ü ß", true),
+			new Sealed("written-by-encrypt.text", "a text the command line sealed: ä ö ü ß", true),
 			new Sealed("written-by-passphrase-cryptor.mcrypt",
 				"a file sealed in the layout encrypt wrote first\n", false));
 	}

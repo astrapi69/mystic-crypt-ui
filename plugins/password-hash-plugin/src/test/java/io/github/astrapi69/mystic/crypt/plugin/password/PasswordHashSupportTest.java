@@ -34,13 +34,13 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.security.Security;
 
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
-
-import io.github.astrapi69.mystic.crypt.sha.BcryptHasher;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.ValueSource;
+
+import io.github.astrapi69.mystic.crypt.sha.BcryptHasher;
 
 /**
  * Tests of hashing a password and checking one against a stored hash, with every algorithm the tool
@@ -137,9 +137,7 @@ class PasswordHashSupportTest
 		IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
 			() -> PasswordHashSupport.hash(PasswordHashSupport.BCRYPT, tooLong.toCharArray()));
 
-		assertTrue(
-			exception.getMessage()
-				.contains(String.valueOf(BcryptHasher.MAX_PASSWORD_BYTES)),
+		assertTrue(exception.getMessage().contains(String.valueOf(BcryptHasher.MAX_PASSWORD_BYTES)),
 			exception.getMessage());
 		assertTrue(exception.getMessage().contains("73"),
 			"the message has to name the password's own length: " + exception.getMessage());
@@ -218,10 +216,12 @@ class PasswordHashSupportTest
 	@Test
 	void aScryptHashThatWasTamperedWithDoesNotMatch() throws Exception
 	{
-		String stored = PasswordHashSupport.hash(PasswordHashSupport.SCRYPT, PASSWORD.toCharArray());
+		String stored = PasswordHashSupport.hash(PasswordHashSupport.SCRYPT,
+			PASSWORD.toCharArray());
 		String[] parts = stored.split("\\$");
 		// the same hash claimed to have been made with a cheaper cost
-		String claimingAnotherCost = parts[0] + "$1024$" + parts[2] + "$" + parts[3] + "$" + parts[4];
+		String claimingAnotherCost = parts[0] + "$1024$" + parts[2] + "$" + parts[3] + "$"
+			+ parts[4];
 
 		assertFalse(PasswordHashSupport.verify(PASSWORD.toCharArray(), claimingAnotherCost),
 			"a hash checked with parameters other than the ones that made it cannot match");

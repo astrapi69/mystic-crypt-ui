@@ -47,9 +47,9 @@ import io.github.astrapi69.lethenon.transport.TestNetworkSeeds;
  * No network or chain logic of its own: the library runs a node in memory that neither listens nor
  * discovers peers, takes from the one node only blocks its own replay verified, and writes the file
  * once, at the end, only when the chain grew. A file that does not exist yet starts from the node's
- * genesis block - trust on first use, which the window says. What this class adds is what has to
- * be decided before anything is sent: that a file was named, which node to ask - the one named, or
- * the test network's seed nodes when none is (#573) - and how the connection leaves this machine.
+ * genesis block - trust on first use, which the window says. What this class adds is what has to be
+ * decided before anything is sent: that a file was named, which node to ask - the one named, or the
+ * test network's seed nodes when none is (#573) - and how the connection leaves this machine.
  * <p>
  * It takes a {@link Path} and text and returns the library's record, so it is testable without a
  * display (architecture.md layer 2: no Swing types in the support layer).
@@ -92,8 +92,7 @@ public final class SyncSupport
 	 * @param seedNode
 	 *            whether no node was named and it was one of the test network's seed nodes (#573)
 	 */
-	public record SyncedFrom(Sync.Synced synced, PeerAddress node, boolean seedNode)
-	{
+	public record SyncedFrom(Sync.Synced synced, PeerAddress node, boolean seedNode) {
 	}
 
 	/**
@@ -141,8 +140,8 @@ public final class SyncSupport
 	 *             file is not on the test network - then with the file's absolute path in front of
 	 *             the reason
 	 * @throws ChainRejected
-	 *             when the chain file does not verify, with the file's absolute path in front of the
-	 *             library's reason
+	 *             when the chain file does not verify, with the file's absolute path in front of
+	 *             the library's reason
 	 */
 	public static SyncedFrom sync(final Path chainFile, final String node, final String proxy)
 		throws IOException
@@ -181,7 +180,8 @@ public final class SyncSupport
 		if (ChainFiles.isLegacy(chainFile))
 		{
 			// the sync's first read would migrate a chain file of lethenon 0.5.0 or earlier: it is
-			// refused until the person agreed to convert it, and for good when it does not verify (#581)
+			// refused until the person agreed to convert it, and for good when it does not verify
+			// (#581)
 			ChainFiles.read(chainFile);
 		}
 		if (node == null || node.isBlank())
@@ -194,8 +194,8 @@ public final class SyncSupport
 	}
 
 	/**
-	 * No node was named: the seed nodes, for a chain they serve, each in turn until one answers.
-	 * A chain of its own is refused before any of them is dialled - they would refuse it, and the
+	 * No node was named: the seed nodes, for a chain they serve, each in turn until one answers. A
+	 * chain of its own is refused before any of them is dialled - they would refuse it, and the
 	 * dial would tell them it exists.
 	 */
 	private static SyncedFrom fromTheSeedNodes(final Path chainFile, final String proxy,
@@ -220,15 +220,15 @@ public final class SyncSupport
 				reasons.add(unanswered.getMessage());
 			}
 		}
-		throw new IOException("no seed node of the test network answered: "
-			+ String.join("; ", reasons));
+		throw new IOException(
+			"no seed node of the test network answered: " + String.join("; ", reasons));
 	}
 
 	/**
 	 * {@link Sync#once}, with the file's absolute path in front of a refusal of the chain file, as
-	 * {@link ChainReplaySupport#replay} does for the other tools of the plugin: the library's reason
-	 * cannot name the file it read, and since lethenon 0.4.0 refuses every chain an earlier version
-	 * wrote, the file is what the reader needs to know (#535)
+	 * {@link ChainReplaySupport#replay} does for the other tools of the plugin: the library's
+	 * reason cannot name the file it read, and since lethenon 0.4.0 refuses every chain an earlier
+	 * version wrote, the file is what the reader needs to know (#535)
 	 *
 	 * @param chainFile
 	 *            the chain file

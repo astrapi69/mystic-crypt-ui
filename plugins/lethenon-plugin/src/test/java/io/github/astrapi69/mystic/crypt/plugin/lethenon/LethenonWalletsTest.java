@@ -71,8 +71,10 @@ class LethenonWalletsTest
 		IllegalArgumentException refused = assertThrows(IllegalArgumentException.class,
 			() -> LethenonWallets.open(walletFile, wrong.toCharArray()));
 
-		assertEquals("this password does not open home.wallet; type it again, and check that it "
-			+ "is the wallet you meant (" + walletFile.toAbsolutePath() + ")", refused.getMessage());
+		assertEquals(
+			"this password does not open home.wallet; type it again, and check that it "
+				+ "is the wallet you meant (" + walletFile.toAbsolutePath() + ")",
+			refused.getMessage());
 		assertFalse(refused.getMessage().contains(wrong));
 	}
 

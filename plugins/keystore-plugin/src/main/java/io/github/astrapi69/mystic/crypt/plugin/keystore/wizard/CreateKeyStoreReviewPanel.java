@@ -75,8 +75,9 @@ public class CreateKeyStoreReviewPanel
 		txtSummary.setFont(new java.awt.Font(java.awt.Font.MONOSPACED, java.awt.Font.PLAIN, 12));
 		scrSummary = new JScrollPane(txtSummary);
 
-		txtSummary.setToolTipText(KeyStoreMessages.getString("keystore.wizard.review.tooltip.summary",
-			"a read-only summary of what Finish would do"));
+		txtSummary
+			.setToolTipText(KeyStoreMessages.getString("keystore.wizard.review.tooltip.summary",
+				"a read-only summary of what Finish would do"));
 	}
 
 	@Override

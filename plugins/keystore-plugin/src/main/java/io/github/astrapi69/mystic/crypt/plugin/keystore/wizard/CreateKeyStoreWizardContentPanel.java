@@ -120,8 +120,8 @@ public class CreateKeyStoreWizardContentPanel
 	}
 
 	/**
-	 * The size that holds every step, so a window can be opened once at a size that fits all of them
-	 * and does not resize itself while the user walks through
+	 * The size that holds every step, so a window can be opened once at a size that fits all of
+	 * them and does not resize itself while the user walks through
 	 *
 	 * @return the size of the largest step in each direction, insets included
 	 */

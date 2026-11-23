@@ -35,12 +35,10 @@ import io.github.astrapi69.design.pattern.state.wizard.model.WizardStateInfo;
  * {@code CertificateWizardState} exactly - same state machine library, same per-constant shape.
  */
 public enum ConversionWizardState
-	implements
-		BaseWizardState<BaseWizardStateMachineModel<ConversionWizardModel>>
+	implements BaseWizardState<BaseWizardStateMachineModel<ConversionWizardModel>>
 {
 
-	SOURCE
-	{
+	SOURCE {
 
 		@Override
 		public String getName()
@@ -100,8 +98,7 @@ public enum ConversionWizardState
 		}
 
 	},
-	TARGET
-	{
+	TARGET {
 
 		@Override
 		public String getName()
@@ -149,8 +146,7 @@ public enum ConversionWizardState
 		}
 
 	},
-	REVIEW
-	{
+	REVIEW {
 
 		@Override
 		public String getName()

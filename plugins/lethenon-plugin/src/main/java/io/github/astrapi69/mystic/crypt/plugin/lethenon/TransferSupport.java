@@ -108,8 +108,8 @@ public final class TransferSupport
 	}
 
 	/**
-	 * Signs a transfer with the wallet a source opens, after everything that can be checked
-	 * without it was checked, so a mistyped address or amount costs no unsealing (#704)
+	 * Signs a transfer with the wallet a source opens, after everything that can be checked without
+	 * it was checked, so a mistyped address or amount costs no unsealing (#704)
 	 *
 	 * @param order
 	 *            the transfer; its wallet file is not read
@@ -132,7 +132,8 @@ public final class TransferSupport
 		List<SignedTransaction> waiting = new ArrayList<>(chainFile.readPending());
 		SignedTransaction signed = Transfers.prepare(sender, order.suite(), chain, waiting,
 			recipient, amount, fee, order.memo());
-		int nowWaiting = node == null ? waitNextToTheChain(chainFile, waiting, signed)
+		int nowWaiting = node == null
+			? waitNextToTheChain(chainFile, waiting, signed)
 			: NodeHandover.handOver(node, chain, order.chainFile(), List.of(signed));
 		return new SentTransfer(signed.body().nonce(), amount, fee, order.recipientKind(),
 			order.recipient().trim(), nowWaiting, node == null ? "" : node.toString());
@@ -140,8 +141,8 @@ public final class TransferSupport
 
 	/**
 	 * The node a transfer is handed to, read before the wallet is opened, so that a mistyped
-	 * address costs no signature: the node named, or the node of this program that serves the
-	 * chain file (#814)
+	 * address costs no signature: the node named, or the node of this program that serves the chain
+	 * file (#814)
 	 *
 	 * @return the node, or null when none was named and no node of this program serves the file
 	 */

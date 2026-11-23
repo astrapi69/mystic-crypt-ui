@@ -40,6 +40,7 @@ public class LethenonBeforeYouStartPanelModel
 
 	/**
 	 * Instantiates the model with the given rows and documents
+	 * 
 	 * @param checks
 	 *            the rows of the short checklist
 	 * @param documents
@@ -54,6 +55,7 @@ public class LethenonBeforeYouStartPanelModel
 
 	/**
 	 * The rows the table shows
+	 * 
 	 * @return the rows, never null
 	 */
 	public List<LaunchCheck> getChecks()
@@ -63,6 +65,7 @@ public class LethenonBeforeYouStartPanelModel
 
 	/**
 	 * The documents the view has a button for
+	 * 
 	 * @return the documents, never null
 	 */
 	public List<LaunchDocument> getDocuments()

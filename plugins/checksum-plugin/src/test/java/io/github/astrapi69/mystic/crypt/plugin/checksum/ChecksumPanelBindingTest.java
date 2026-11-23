@@ -66,8 +66,7 @@ class ChecksumPanelBindingTest
 	private static final String MD5_OF_ABC = "900150983cd24fb0d6963f7d28e17f72";
 
 	/** The SHA-256 of the ASCII string "abc" */
-	private static final String SHA_256_OF_ABC =
-		"ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad";
+	private static final String SHA_256_OF_ABC = "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad";
 
 	@TempDir
 	File configurationDirectory;
@@ -256,8 +255,7 @@ class ChecksumPanelBindingTest
 	{
 		File file = fileWithAbc(directory);
 		File siblingChecksumFile = new File(directory, file.getName() + ".sha256");
-		Files.write(siblingChecksumFile.toPath(),
-			SHA_256_OF_ABC.getBytes(StandardCharsets.UTF_8));
+		Files.write(siblingChecksumFile.toPath(), SHA_256_OF_ABC.getBytes(StandardCharsets.UTF_8));
 		ChecksumPanel panel = new ChecksumPanel();
 
 		panel.applySelectedFile(file);
@@ -265,7 +263,8 @@ class ChecksumPanelBindingTest
 		assertEquals(SHA_256_OF_ABC, panel.getModelObject().getOwnersChecksum(),
 			"a checksum file sitting right next to the chosen one must be loaded automatically, "
 				+ "the same as choosing it by hand would");
-		assertEquals(siblingChecksumFile.getName(), panel.getModelObject().getSelectedChecksumFilename(),
+		assertEquals(siblingChecksumFile.getName(),
+			panel.getModelObject().getSelectedChecksumFilename(),
 			"and the field must say which file it came from");
 	}
 
@@ -339,7 +338,8 @@ class ChecksumPanelBindingTest
 		String expectedChecksum = FileChecksumExtensions.getChecksum(file, algorithm);
 		String extension = ChecksumPanel.CHECKSUM_FILE_EXTENSIONS.get(algorithm);
 		File siblingChecksumFile = new File(directory, file.getName() + "." + extension);
-		Files.write(siblingChecksumFile.toPath(), expectedChecksum.getBytes(StandardCharsets.UTF_8));
+		Files.write(siblingChecksumFile.toPath(),
+			expectedChecksum.getBytes(StandardCharsets.UTF_8));
 		ChecksumPanel panel = new ChecksumPanel();
 
 		panel.applySelectedFile(file);
@@ -363,7 +363,8 @@ class ChecksumPanelBindingTest
 		String expectedChecksum = FileChecksumExtensions.getChecksum(file, algorithm);
 		String extension = ChecksumPanel.CHECKSUM_FILE_EXTENSIONS.get(algorithm);
 		File siblingChecksumFile = new File(directory, "abc." + extension);
-		Files.write(siblingChecksumFile.toPath(), expectedChecksum.getBytes(StandardCharsets.UTF_8));
+		Files.write(siblingChecksumFile.toPath(),
+			expectedChecksum.getBytes(StandardCharsets.UTF_8));
 		ChecksumPanel panel = new ChecksumPanel();
 
 		panel.applySelectedFile(file);
@@ -394,8 +395,7 @@ class ChecksumPanelBindingTest
 	{
 		File file = fileWithAbc(directory);
 		File siblingChecksumFile = new File(directory, file.getName() + ".sha256");
-		Files.write(siblingChecksumFile.toPath(),
-			SHA_256_OF_ABC.getBytes(StandardCharsets.UTF_8));
+		Files.write(siblingChecksumFile.toPath(), SHA_256_OF_ABC.getBytes(StandardCharsets.UTF_8));
 		ChecksumPanel panel = new ChecksumPanel();
 		panel.getTxtOwnersChecksum().setText(MD5_OF_ABC);
 
@@ -437,10 +437,10 @@ class ChecksumPanelBindingTest
 	 *             is thrown when the file cannot be written
 	 */
 	/**
-	 * The sibling that was loaded belongs to the algorithm that was selected at the time. Choosing a
-	 * different one recomputes the checksum of the file but used to leave the owner's checksum where
-	 * it was, so the two then belonged to different algorithms and Compare said no match for a file
-	 * that was intact (#231).
+	 * The sibling that was loaded belongs to the algorithm that was selected at the time. Choosing
+	 * a different one recomputes the checksum of the file but used to leave the owner's checksum
+	 * where it was, so the two then belonged to different algorithms and Compare said no match for
+	 * a file that was intact (#231).
 	 */
 	@Test
 	@DisplayName("choosing another algorithm loads the sibling checksum file that belongs to it")
@@ -523,8 +523,8 @@ class ChecksumPanelBindingTest
 	}
 
 	/**
-	 * A checksum file of exactly {@link ChecksumPanel#MAXIMUM_CHECKSUM_FILE_LENGTH} bytes, the
-	 * hash behind a long name, is loaded (#796)
+	 * A checksum file of exactly {@link ChecksumPanel#MAXIMUM_CHECKSUM_FILE_LENGTH} bytes, the hash
+	 * behind a long name, is loaded (#796)
 	 */
 	@Test
 	@DisplayName("a checksum file of exactly the limit is loaded and matches")
@@ -651,7 +651,8 @@ class ChecksumPanelBindingTest
 
 		panel.applySelectedFile(file);
 
-		assertEquals(SHA_256_OF_ABC + "  J\u00fcrgen.txt", panel.getModelObject().getOwnersChecksum(),
+		assertEquals(SHA_256_OF_ABC + "  J\u00fcrgen.txt",
+			panel.getModelObject().getOwnersChecksum(),
 			"the checksum file is loaded, and the name in it keeps its umlaut");
 	}
 }

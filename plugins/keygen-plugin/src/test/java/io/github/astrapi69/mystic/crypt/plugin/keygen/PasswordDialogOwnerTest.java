@@ -61,9 +61,9 @@ import org.junit.jupiter.api.Test;
  * Where a dialog opens is read only once it has settled. The window manager of the test display
  * (fluxbox on Xvfb) can report a dialog that was just shown at another place for a few milliseconds
  * and then move it back: measured 2026-11-21 in 40 repetitions, the message appeared at (724, 656)
- * and moved to (362, 339), the centre of the window, a moment later. It can also move the main window
- * after it first appears. A reading taken as soon as the dialog shows measured that moment, 333 pixels
- * off on develop, while the dialog stood where it belongs.
+ * and moved to (362, 339), the centre of the window, a moment later. It can also move the main
+ * window after it first appears. A reading taken as soon as the dialog shows measured that moment,
+ * 333 pixels off on develop, while the dialog stood where it belongs.
  */
 class PasswordDialogOwnerTest
 {
@@ -170,7 +170,8 @@ class PasswordDialogOwnerTest
 	}
 
 	/**
-	 * How far the centre of the dialog lies from the centre of the window, the larger of the two axes
+	 * How far the centre of the dialog lies from the centre of the window, the larger of the two
+	 * axes
 	 *
 	 * @param settled
 	 *            the bounds of the dialog and of the window, in this order, as
@@ -181,18 +182,18 @@ class PasswordDialogOwnerTest
 	{
 		final Rectangle dialog = settled[0];
 		final Rectangle window = settled[1];
-		final int horizontal = Math.abs(
-			dialog.x + dialog.width / 2 - (window.x + window.width / 2));
-		final int vertical = Math.abs(
-			dialog.y + dialog.height / 2 - (window.y + window.height / 2));
+		final int horizontal = Math
+			.abs(dialog.x + dialog.width / 2 - (window.x + window.width / 2));
+		final int vertical = Math
+			.abs(dialog.y + dialog.height / 2 - (window.y + window.height / 2));
 		return Math.max(horizontal, vertical);
 	}
 
 	/**
-	 * Waits until the given windows are showing, the event queue is empty and their bounds have stayed
-	 * the same over {@link #SETTLED_READINGS} readings in a row, and returns those bounds. A window that
-	 * does not settle within {@link #SETTLE_TIMEOUT_MILLIS} fails the test, it is never measured
-	 * anyway.
+	 * Waits until the given windows are showing, the event queue is empty and their bounds have
+	 * stayed the same over {@link #SETTLED_READINGS} readings in a row, and returns those bounds. A
+	 * window that does not settle within {@link #SETTLE_TIMEOUT_MILLIS} fails the test, it is never
+	 * measured anyway.
 	 *
 	 * @param windows
 	 *            the windows to read
@@ -268,9 +269,8 @@ class PasswordDialogOwnerTest
 	private static void clickButton(final Container root, final String text) throws Exception
 	{
 		SwingUtilities.invokeAndWait(() -> {
-			final Component button = find(root,
-				component -> component instanceof AbstractButton
-					&& text.equals(((AbstractButton)component).getText()));
+			final Component button = find(root, component -> component instanceof AbstractButton
+				&& text.equals(((AbstractButton)component).getText()));
 			assertNotNull(button, "no button " + text);
 			((AbstractButton)button).doClick();
 		});
@@ -296,8 +296,7 @@ class PasswordDialogOwnerTest
 		return null;
 	}
 
-	private static <T> T onEventThread(final java.util.concurrent.Callable<T> task)
-		throws Exception
+	private static <T> T onEventThread(final java.util.concurrent.Callable<T> task) throws Exception
 	{
 		final Object[] holder = new Object[1];
 		SwingUtilities.invokeAndWait(() -> {

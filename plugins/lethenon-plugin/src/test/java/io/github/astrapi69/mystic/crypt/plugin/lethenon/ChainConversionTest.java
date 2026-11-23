@@ -104,7 +104,8 @@ class ChainConversionTest
 	void convertedIfAgreed_leavesAnOldChain_whenThePersonDeclines() throws Exception
 	{
 		Path old = directory.resolve("old.lethenon");
-		byte[] before = CanonicalEncoding.encodeChain(LethenonFixtures.aChainOf(Chain.TEST_IDENTIFIER, 3, miner));
+		byte[] before = CanonicalEncoding
+			.encodeChain(LethenonFixtures.aChainOf(Chain.TEST_IDENTIFIER, 3, miner));
 		Files.write(old, before);
 
 		assertFalse(ChainConversion.convertedIfAgreed(null, answering(false), old));

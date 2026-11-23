@@ -55,7 +55,8 @@ public class MenuDesignerMenuContribution implements PluginMenuContribution
 {
 
 	/**
-	 * The system property that makes this development tool appear: {@code -Dmystic.crypt.ui.menu.designer=true}
+	 * The system property that makes this development tool appear:
+	 * {@code -Dmystic.crypt.ui.menu.designer=true}
 	 */
 	public static final String DEVELOPER_PROPERTY = "mystic.crypt.ui.menu.designer";
 
@@ -77,8 +78,8 @@ public class MenuDesignerMenuContribution implements PluginMenuContribution
 			return List.of();
 		}
 		JMenuItem menuDesigner = new JMenuItem("Menu Designer");
-		menuDesigner
-			.addActionListener(event -> openInternalFrame("Menu Designer", new MenuDesignerPanel()));
+		menuDesigner.addActionListener(
+			event -> openInternalFrame("Menu Designer", new MenuDesignerPanel()));
 		return List.of(menuDesigner);
 	}
 

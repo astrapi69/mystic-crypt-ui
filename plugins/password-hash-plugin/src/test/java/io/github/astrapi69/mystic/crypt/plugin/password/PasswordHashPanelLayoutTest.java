@@ -107,8 +107,8 @@ class PasswordHashPanelLayoutTest
 		JTextComponent narrowest = narrowestTextComponent(panel);
 		assertTrue(narrowest.getWidth() >= USABLE_WIDTH,
 			() -> describe(narrowest) + " is only " + narrowest.getWidth()
-				+ " px wide at the preferred width of " + panel.getWidth() + " px, expected at least "
-				+ USABLE_WIDTH + " px");
+				+ " px wide at the preferred width of " + panel.getWidth()
+				+ " px, expected at least " + USABLE_WIDTH + " px");
 	}
 
 	/**
@@ -158,8 +158,7 @@ class PasswordHashPanelLayoutTest
 		assertTrue(!textComponents.isEmpty(),
 			"the panel holds no text component, the measurement would prove nothing");
 		return textComponents.stream()
-			.min((left, right) -> Integer.compare(left.getWidth(), right.getWidth()))
-			.orElseThrow();
+			.min((left, right) -> Integer.compare(left.getWidth(), right.getWidth())).orElseThrow();
 	}
 
 	/**

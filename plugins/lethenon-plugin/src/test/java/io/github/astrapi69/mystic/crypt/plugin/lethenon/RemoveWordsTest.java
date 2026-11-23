@@ -110,10 +110,11 @@ class RemoveWordsTest
 		assertEquals(WalletView.REMOVE_WORDS, panel.getModelObject().getView());
 		assertEquals("Remove the words from the vault?",
 			Windows.component(panel, "lblRemoveWordsTitle", javax.swing.JLabel.class).getText());
-		assertEquals("The property lethenon.mnemonic is removed from the entry. The internal buffers "
-			+ "owned by the plugin are overwritten. The opened vault may keep an immutable String "
-			+ "copy in memory until it is garbage collected or the program exits. After the vault "
-			+ "is saved, the words are not written to the vault file.",
+		assertEquals(
+			"The property lethenon.mnemonic is removed from the entry. The internal buffers "
+				+ "owned by the plugin are overwritten. The opened vault may keep an immutable String "
+				+ "copy in memory until it is garbage collected or the program exits. After the vault "
+				+ "is saved, the words are not written to the vault file.",
 			textOf(panel, "txtRemoveWordsEffect"));
 		assertTrue(vault.keepsWords(id), "the words went before the confirmation");
 	}

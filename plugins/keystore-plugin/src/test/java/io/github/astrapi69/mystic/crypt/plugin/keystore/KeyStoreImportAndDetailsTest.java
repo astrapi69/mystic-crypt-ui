@@ -129,7 +129,8 @@ class KeyStoreImportAndDetailsTest
 			() -> KeyStoreSupport.importKeyPair(keyStore, storeFile, STORE_PASSWORD, "mismatch",
 				otherKey, new File(directory, "certificate.pem")));
 
-		assertTrue(exception.getMessage().contains("do not belong together"), exception.getMessage());
+		assertTrue(exception.getMessage().contains("do not belong together"),
+			exception.getMessage());
 		assertTrue(KeyStoreSupport.entries(keyStore).isEmpty(),
 			"nothing may be stored when the two halves do not match");
 	}
@@ -151,7 +152,8 @@ class KeyStoreImportAndDetailsTest
 		assertFalse(details.validFrom().isBlank());
 		assertFalse(details.validUntil().isBlank());
 		assertFalse(details.expired(), "a certificate valid for a year is not expired");
-		assertEquals("SHA256WITHRSA", details.signatureAlgorithm().toUpperCase(java.util.Locale.ROOT),
+		assertEquals("SHA256WITHRSA",
+			details.signatureAlgorithm().toUpperCase(java.util.Locale.ROOT),
 			"the name is whatever the certificate calls it, was: " + details.signatureAlgorithm());
 		assertEquals("RSA", details.keyAlgorithm());
 		assertEquals(3, details.version(), "the tool writes X.509 version 3 certificates");

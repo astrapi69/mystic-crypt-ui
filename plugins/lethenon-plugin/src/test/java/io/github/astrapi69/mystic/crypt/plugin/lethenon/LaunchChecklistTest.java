@@ -117,7 +117,8 @@ class LaunchChecklistTest
 	void theNotice_saysItIsNotLegalAdvice()
 	{
 		assertTrue(LaunchChecklist.notice(textIn(Locale.ROOT)).startsWith("Not legal advice."));
-		assertTrue(LaunchChecklist.notice(textIn(Locale.GERMAN)).startsWith("Keine Rechtsberatung."));
+		assertTrue(
+			LaunchChecklist.notice(textIn(Locale.GERMAN)).startsWith("Keine Rechtsberatung."));
 	}
 
 	@Test

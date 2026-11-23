@@ -46,9 +46,9 @@ import io.github.astrapi69.mystic.crypt.settings.PluginSettingsPanel;
 
 /**
  * The plugin's settings: the chain file, the wallet file, the node and the proxy that worked last
- * (#605), visible and editable in the settings page, read by the windows, and described well
- * enough to be edited. Both halves are rules rather than taste - a setting that changes behaviour
- * without being editable, and a setting nobody reads, are each forbidden (architecture.md).
+ * (#605), visible and editable in the settings page, read by the windows, and described well enough
+ * to be edited. Both halves are rules rather than taste - a setting that changes behaviour without
+ * being editable, and a setting nobody reads, are each forbidden (architecture.md).
  */
 class LethenonSettingsContributionTest
 {
@@ -135,15 +135,18 @@ class LethenonSettingsContributionTest
 	@DisplayName("the settings page shows all four values and saves what is typed there; a cleared field forgets (#605)")
 	void theSettingsPage_showsAndSavesAllFour() throws Exception
 	{
-		LethenonSettingsContribution.remember(Map.of(LethenonSettingsContribution.KEY_PROXY,
-			"127.0.0.1:9050"));
+		LethenonSettingsContribution
+			.remember(Map.of(LethenonSettingsContribution.KEY_PROXY, "127.0.0.1:9050"));
 		PluginSettingsPanel page = new PluginSettingsPanel(configurationDirectory,
 			java.util.List.of(CONTRIBUTION));
 
-		assertEquals(java.util.List.of(LethenonSettingsContribution.KEY_CHAIN_FILE,
-			LethenonSettingsContribution.KEY_WALLET_FILE, LethenonSettingsContribution.KEY_NODE,
-			LethenonSettingsContribution.KEY_PROXY), java.util.List.copyOf(page.getShownValues().keySet()));
-		assertEquals("127.0.0.1:9050", page.getShownValues().get(LethenonSettingsContribution.KEY_PROXY));
+		assertEquals(
+			java.util.List.of(LethenonSettingsContribution.KEY_CHAIN_FILE,
+				LethenonSettingsContribution.KEY_WALLET_FILE, LethenonSettingsContribution.KEY_NODE,
+				LethenonSettingsContribution.KEY_PROXY),
+			java.util.List.copyOf(page.getShownValues().keySet()));
+		assertEquals("127.0.0.1:9050",
+			page.getShownValues().get(LethenonSettingsContribution.KEY_PROXY));
 
 		page.setShownValue(LethenonSettingsContribution.KEY_CHAIN_FILE, "/tmp/a.lethenon");
 		page.setShownValue(LethenonSettingsContribution.KEY_WALLET_FILE, "/tmp/home.wallet");
@@ -164,8 +167,8 @@ class LethenonSettingsContributionTest
 		LethenonSettingsContribution.remember(Map.of(LethenonSettingsContribution.KEY_CHAIN_FILE,
 			"/tmp/chain.lethenon", LethenonSettingsContribution.KEY_NODE, "203.0.113.5:18480"));
 
-		LethenonSettingsContribution.remember(Map.of(LethenonSettingsContribution.KEY_WALLET_FILE,
-			"/tmp/home.wallet"));
+		LethenonSettingsContribution
+			.remember(Map.of(LethenonSettingsContribution.KEY_WALLET_FILE, "/tmp/home.wallet"));
 
 		assertEquals("/tmp/chain.lethenon", LethenonSettingsContribution.chainFile());
 		assertEquals("/tmp/home.wallet", LethenonSettingsContribution.walletFile());
@@ -182,8 +185,9 @@ class LethenonSettingsContributionTest
 			() -> LethenonSettingsContribution.remember(Map.of(key, "secret")));
 
 		assertTrue(refused.getMessage().contains(key), refused.getMessage());
-		assertTrue(PluginSettings.load(LethenonSettingsContribution.PLUGIN_ID,
-			CONTRIBUTION.getDefaults()).values().stream().noneMatch("secret"::equals));
+		assertTrue(
+			PluginSettings.load(LethenonSettingsContribution.PLUGIN_ID, CONTRIBUTION.getDefaults())
+				.values().stream().noneMatch("secret"::equals));
 	}
 
 	private static javax.swing.AbstractButton applyButtonOf(final java.awt.Container container)

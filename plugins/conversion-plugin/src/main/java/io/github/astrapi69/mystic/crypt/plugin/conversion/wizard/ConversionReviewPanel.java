@@ -29,8 +29,8 @@ import javax.swing.JScrollPane;
 
 import io.github.astrapi69.design.pattern.state.wizard.model.BaseWizardStateMachineModel;
 import io.github.astrapi69.model.api.IModel;
-import io.github.astrapi69.mystic.crypt.ui.form.ToolForm;
 import io.github.astrapi69.mystic.crypt.plugin.conversion.ConversionMessages;
+import io.github.astrapi69.mystic.crypt.ui.form.ToolForm;
 import io.github.astrapi69.swing.base.BasePanel;
 import io.github.astrapi69.swing.model.component.JMTextArea;
 import net.miginfocom.swing.MigLayout;
@@ -77,8 +77,9 @@ public class ConversionReviewPanel
 		txtSummary.setFont(new java.awt.Font(java.awt.Font.MONOSPACED, java.awt.Font.PLAIN, 12));
 		scrSummary = new JScrollPane(txtSummary);
 
-		txtSummary.setToolTipText(ConversionMessages.getString("conversion.wizard.review.tooltip.summary",
-			"a read-only summary of what Finish would do"));
+		txtSummary
+			.setToolTipText(ConversionMessages.getString("conversion.wizard.review.tooltip.summary",
+				"a read-only summary of what Finish would do"));
 	}
 
 	@Override

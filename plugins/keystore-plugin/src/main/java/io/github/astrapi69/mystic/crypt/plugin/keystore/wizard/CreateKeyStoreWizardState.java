@@ -41,12 +41,10 @@ import io.github.astrapi69.design.pattern.state.wizard.model.WizardStateInfo;
  * be {@code null} since none of these states carry one.
  */
 public enum CreateKeyStoreWizardState
-	implements
-		BaseWizardState<BaseWizardStateMachineModel<CreateKeyStoreWizardModel>>
+	implements BaseWizardState<BaseWizardStateMachineModel<CreateKeyStoreWizardModel>>
 {
 
-	STORE
-	{
+	STORE {
 
 		@Override
 		public String getName()
@@ -71,7 +69,8 @@ public enum CreateKeyStoreWizardState
 		private boolean isComplete(CreateKeyStoreWizardModel model)
 		{
 			return model.getKeyStoreFilePath() != null && !model.getKeyStoreFilePath().isBlank()
-				&& model.getStorePassword().length > 0 && model.getStorePasswordRepeated().length > 0
+				&& model.getStorePassword().length > 0
+				&& model.getStorePasswordRepeated().length > 0
 				&& Arrays.equals(model.getStorePassword(), model.getStorePasswordRepeated());
 		}
 
@@ -118,8 +117,7 @@ public enum CreateKeyStoreWizardState
 		}
 
 	},
-	ENTRY
-	{
+	ENTRY {
 
 		@Override
 		public String getName()
@@ -178,8 +176,7 @@ public enum CreateKeyStoreWizardState
 		}
 
 	},
-	REVIEW
-	{
+	REVIEW {
 
 		@Override
 		public String getName()

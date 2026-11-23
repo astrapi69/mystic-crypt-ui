@@ -62,16 +62,16 @@ final class ReleaseKeyStatus
 		}
 		catch (IOException exception)
 		{
-			return new StatusReport(List.of(), String.format(
-				ReleaseKeyMessages.getString("releasekey.result.unreadable",
-					"Could not read the GnuPG home %s: %s"),
-				home, exception.getMessage()), true);
+			return new StatusReport(List.of(),
+				String.format(ReleaseKeyMessages.getString("releasekey.result.unreadable",
+					"Could not read the GnuPG home %s: %s"), home, exception.getMessage()),
+				true);
 		}
 		if (releaseKey == null || releaseKey.isBlank())
 		{
-			return new StatusReport(rings, String.format(ReleaseKeyMessages
-				.getString("releasekey.result.every", "%d certificate(s) in %s"), rings.size(),
-				home), false);
+			return new StatusReport(rings, String.format(
+				ReleaseKeyMessages.getString("releasekey.result.every", "%d certificate(s) in %s"),
+				rings.size(), home), false);
 		}
 		return releaseKeyOf(rings, home, releaseKey.trim());
 	}
@@ -82,13 +82,14 @@ final class ReleaseKeyStatus
 		Optional<KeyRingState> found = GnuPgHome.find(rings, releaseKey);
 		if (found.isEmpty())
 		{
-			return new StatusReport(List.of(), String.format(
-				ReleaseKeyMessages.getString("releasekey.result.missing",
-					"The release key %s is not in %s"),
-				releaseKey, home), true);
+			return new StatusReport(List.of(),
+				String.format(ReleaseKeyMessages.getString("releasekey.result.missing",
+					"The release key %s is not in %s"), releaseKey, home),
+				true);
 		}
-		return new StatusReport(List.of(found.get()), String.format(
-			ReleaseKeyMessages.getString("releasekey.result.release", "The release key, read from %s"),
-			home), false);
+		return new StatusReport(
+			List.of(found.get()), String.format(ReleaseKeyMessages
+				.getString("releasekey.result.release", "The release key, read from %s"), home),
+			false);
 	}
 }

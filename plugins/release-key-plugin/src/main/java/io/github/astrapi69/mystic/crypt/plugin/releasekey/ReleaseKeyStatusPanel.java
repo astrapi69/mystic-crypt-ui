@@ -131,8 +131,8 @@ public class ReleaseKeyStatusPanel extends JPanel
 			ToolForm.INTRO_ROW);
 		add(new JLabel(ReleaseKeyMessages.getString("releasekey.label.home", "GnuPG home:")));
 		add(txtGnuPgHome, ToolForm.FIELD + ", split 2");
-		add(button("btnBrowse", "...", event -> onBrowse(), ReleaseKeyMessages
-			.getString("releasekey.tooltip.browse", "choose the GnuPG home")));
+		add(button("btnBrowse", "...", event -> onBrowse(),
+			ReleaseKeyMessages.getString("releasekey.tooltip.browse", "choose the GnuPG home")));
 		add(new JLabel(
 			ReleaseKeyMessages.getString("releasekey.label.release.key", "Release key:")));
 		add(txtReleaseKey, ToolForm.FIELD);
@@ -153,8 +153,8 @@ public class ReleaseKeyStatusPanel extends JPanel
 	{
 		JFileChooser chooser = new JFileChooser(
 			ReleaseKeySettingsContribution.homeOf(modelObject.getGnuPgHomePath()).toFile());
-		chooser.setDialogTitle(
-			ReleaseKeyMessages.getString("releasekey.chooser.title", "GnuPG home"));
+		chooser
+			.setDialogTitle(ReleaseKeyMessages.getString("releasekey.chooser.title", "GnuPG home"));
 		chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
 		// ~/.gnupg is a hidden directory, and a chooser that hides it cannot choose it
 		chooser.setFileHidingEnabled(false);

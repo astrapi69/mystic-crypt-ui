@@ -22,7 +22,6 @@
  * OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
  * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-
 package io.github.astrapi69.mystic.crypt.plugin.checksum;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -36,7 +35,7 @@ import org.junit.jupiter.params.provider.ValueSource;
 
 /**
  * A checksum file does not hold a bare hash. sha256sum and everything else following coreutils
- * write "<hash>  <filename>", and the tool used to compare that whole line against the hash it had
+ * write "<hash> <filename>", and the tool used to compare that whole line against the hash it had
  * computed - so verifying this project's own release said "No Match" for a file that was intact
  * (#229).
  */
@@ -46,8 +45,7 @@ class ChecksumFileFormatTest
 	private static final String HASH = "c00409e0ede55e459693485e3d3024bc8076f92b209f7f322ac2e4d089efb626";
 
 	@ParameterizedTest(name = "the hash is read out of: {0}")
-	@ValueSource(strings = {
-			"c00409e0ede55e459693485e3d3024bc8076f92b209f7f322ac2e4d089efb626",
+	@ValueSource(strings = { "c00409e0ede55e459693485e3d3024bc8076f92b209f7f322ac2e4d089efb626",
 			"c00409e0ede55e459693485e3d3024bc8076f92b209f7f322ac2e4d089efb626  mystic-crypt-ui-8.2-installer.jar",
 			"c00409e0ede55e459693485e3d3024bc8076f92b209f7f322ac2e4d089efb626 *mystic-crypt-ui-8.2-installer.jar",
 			"  c00409e0ede55e459693485e3d3024bc8076f92b209f7f322ac2e4d089efb626  file.jar  \n",
@@ -87,7 +85,7 @@ class ChecksumFileFormatTest
 	{
 		String wrong = "d00409e0ede55e459693485e3d3024bc8076f92b209f7f322ac2e4d089efb626  file.jar";
 
-		org.junit.jupiter.api.Assertions.assertFalse(
-			ChecksumSupport.matches(ChecksumSupport.hashFrom(wrong), HASH));
+		org.junit.jupiter.api.Assertions
+			.assertFalse(ChecksumSupport.matches(ChecksumSupport.hashFrom(wrong), HASH));
 	}
 }

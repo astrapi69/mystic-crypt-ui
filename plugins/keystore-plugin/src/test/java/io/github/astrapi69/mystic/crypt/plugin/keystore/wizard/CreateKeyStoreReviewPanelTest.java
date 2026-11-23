@@ -57,9 +57,11 @@ class CreateKeyStoreReviewPanelTest
 	{
 		CreateKeyStoreReviewPanel panel = newPanel();
 
-		panel.refresh("File: /tmp/new.p12\nType: PKCS12\nno key pair - an empty store will be created");
+		panel.refresh(
+			"File: /tmp/new.p12\nType: PKCS12\nno key pair - an empty store will be created");
 
-		assertEquals("File: /tmp/new.p12\nType: PKCS12\nno key pair - an empty store will be created",
+		assertEquals(
+			"File: /tmp/new.p12\nType: PKCS12\nno key pair - an empty store will be created",
 			textArea(panel, "txtSummary").getText());
 	}
 

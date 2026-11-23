@@ -35,8 +35,7 @@ import java.util.Arrays;
  * @param words
  *            the 24 words, separated by single spaces
  */
-record CreatedWallet(WalletEntry entry, char[] words) implements AutoCloseable
-{
+record CreatedWallet(WalletEntry entry, char[] words) implements AutoCloseable {
 
 	/** Overwrites the words */
 	@Override

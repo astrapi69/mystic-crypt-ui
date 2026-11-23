@@ -103,8 +103,8 @@ class WizardWindowSizeTest
 	}
 
 	/**
-	 * A very small screen, a projector or a virtual machine, must still produce a window rather than
-	 * a negative size
+	 * A very small screen, a projector or a virtual machine, must still produce a window rather
+	 * than a negative size
 	 */
 	@Test
 	@DisplayName("a very small screen still produces a window")

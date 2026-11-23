@@ -37,10 +37,11 @@ import io.github.astrapi69.swing.model.component.JMComboBox;
 import io.github.astrapi69.swing.model.component.JMTextArea;
 
 /**
- * Tool panel demonstrating a key-encapsulation exchange between two parties. The recipient generates
- * a key pair; the sender uses only the recipient's public key to encapsulate a fresh shared secret,
- * producing a ciphertext; the recipient decapsulates that ciphertext with its private key and
- * recovers the same shared secret. Both derived secrets are shown side by side and compared.
+ * Tool panel demonstrating a key-encapsulation exchange between two parties. The recipient
+ * generates a key pair; the sender uses only the recipient's public key to encapsulate a fresh
+ * shared secret, producing a ciphertext; the recipient decapsulates that ciphertext with its
+ * private key and recovers the same shared secret. Both derived secrets are shown side by side and
+ * compared.
  * <p>
  * The pure ML-KEM modes use the NIST post-quantum key-encapsulation mechanism; the hybrid mode
  * combines classical X25519 key agreement with ML-KEM, so the exchange stays secure as long as
@@ -73,7 +74,9 @@ public class KemDemoPanel extends JPanel
 	 */
 	private static final String CIPHERTEXT_ROW = "grow, pushx, pushy 200";
 
-	/** A shared secret is a single line of hex, so its row takes half of what the ciphertext takes */
+	/**
+	 * A shared secret is a single line of hex, so its row takes half of what the ciphertext takes
+	 */
 	private static final String SECRET_ROW = "grow, pushx, pushy 100";
 
 	private static final HexFormat HEX = HexFormat.of();
@@ -100,13 +103,15 @@ public class KemDemoPanel extends JPanel
 		cmbAlgorithm.setName("cmbAlgorithm");
 		cmbAlgorithm.setToolTipText(KemDemoMessages.getString("kemdemo.tooltip.algorithm",
 			"the key-encapsulation mechanism to demonstrate - the pure ML-KEM sizes trade security level for speed and size, the hybrid mode adds classical X25519 alongside ML-KEM-768 so the exchange stays secure even if one of the two breaks"));
-		configureReadOnly(txtCiphertext, "txtCiphertext", KemDemoMessages.getString(
-			"kemdemo.tooltip.ciphertext", "what the sender's encapsulation produces and hands to the recipient"));
-		configureReadOnly(txtSenderSecret, "txtSenderSecret", KemDemoMessages.getString(
-			"kemdemo.tooltip.sender.secret", "the shared secret the sender derived while encapsulating"));
-		configureReadOnly(txtRecipientSecret, "txtRecipientSecret",
-			KemDemoMessages.getString("kemdemo.tooltip.recipient.secret",
-				"the shared secret the recipient derived by decapsulating the ciphertext - equal to the sender's secret when the exchange worked"));
+		configureReadOnly(txtCiphertext, "txtCiphertext",
+			KemDemoMessages.getString("kemdemo.tooltip.ciphertext",
+				"what the sender's encapsulation produces and hands to the recipient"));
+		configureReadOnly(txtSenderSecret, "txtSenderSecret",
+			KemDemoMessages.getString("kemdemo.tooltip.sender.secret",
+				"the shared secret the sender derived while encapsulating"));
+		configureReadOnly(txtRecipientSecret, "txtRecipientSecret", KemDemoMessages.getString(
+			"kemdemo.tooltip.recipient.secret",
+			"the shared secret the recipient derived by decapsulating the ciphertext - equal to the sender's secret when the exchange worked"));
 		lblResult.setName("lblResult");
 		lblResult.setFont(lblResult.getFont().deriveFont(Font.BOLD));
 		lblResult.setToolTipText(KemDemoMessages.getString("kemdemo.tooltip.result",
@@ -118,8 +123,7 @@ public class KemDemoPanel extends JPanel
 			"runs the whole exchange: generates a key pair, encapsulates a shared secret against it, decapsulates it back, and shows both sides"));
 		btnRun.addActionListener(event -> onRun());
 
-		JTextComponent lblIntro = ToolForm.intro(KemDemoMessages.getString(
-			"kemdemo.intro",
+		JTextComponent lblIntro = ToolForm.intro(KemDemoMessages.getString("kemdemo.intro",
 			"Simulates a full key encapsulation between a sender and a recipient in one window: "
 				+ "generates a key pair, encapsulates a shared secret against it, decapsulates it "
 				+ "back, and shows whether both sides agree. To actually exchange keys with someone "
@@ -133,27 +137,33 @@ public class KemDemoPanel extends JPanel
 
 		add(new JLabel("Ciphertext (sender to recipient):"), AREA_LABEL);
 		add(ToolForm.scrolled(txtCiphertext), CIPHERTEXT_ROW);
-		add(ToolForm.buttons(CopyButtons.copyButton("btnCopyCiphertext", txtCiphertext,
-			KemDemoMessages.getString("kemdemo.tooltip.copy.ciphertext",
-				"copies the ciphertext to the clipboard"))), ToolForm.BUTTON_ROW);
+		add(ToolForm.buttons(
+			CopyButtons.copyButton("btnCopyCiphertext", txtCiphertext, KemDemoMessages.getString(
+				"kemdemo.tooltip.copy.ciphertext", "copies the ciphertext to the clipboard"))),
+			ToolForm.BUTTON_ROW);
 		add(new JLabel("Sender shared secret:"), AREA_LABEL);
 		add(ToolForm.scrolled(txtSenderSecret), SECRET_ROW);
-		add(ToolForm.buttons(CopyButtons.copyButton("btnCopySenderSecret", txtSenderSecret,
-			KemDemoMessages.getString("kemdemo.tooltip.copy.sender.secret",
-				"copies the sender's shared secret to the clipboard"))), ToolForm.BUTTON_ROW);
+		add(ToolForm
+			.buttons(
+				CopyButtons.copyButton("btnCopySenderSecret", txtSenderSecret,
+					KemDemoMessages.getString("kemdemo.tooltip.copy.sender.secret",
+						"copies the sender's shared secret to the clipboard"))),
+			ToolForm.BUTTON_ROW);
 		add(new JLabel("Recipient shared secret:"), AREA_LABEL);
 		add(ToolForm.scrolled(txtRecipientSecret), SECRET_ROW);
-		add(ToolForm.buttons(CopyButtons.copyButton("btnCopyRecipientSecret", txtRecipientSecret,
-			KemDemoMessages.getString("kemdemo.tooltip.copy.recipient.secret",
-				"copies the recipient's shared secret to the clipboard"))), ToolForm.BUTTON_ROW);
+		add(ToolForm
+			.buttons(CopyButtons.copyButton("btnCopyRecipientSecret", txtRecipientSecret,
+				KemDemoMessages.getString("kemdemo.tooltip.copy.recipient.secret",
+					"copies the recipient's shared secret to the clipboard"))),
+			ToolForm.BUTTON_ROW);
 		add(lblResult, ToolForm.RESULT_LINE);
 	}
 
 	/** Binds every component of this panel to its property in {@link KemDemoPanelModel} */
 	private void bindToModel()
 	{
-		cmbAlgorithm.setPropertyModel(
-			LambdaModel.of(modelObject::getAlgorithm, modelObject::setAlgorithm));
+		cmbAlgorithm
+			.setPropertyModel(LambdaModel.of(modelObject::getAlgorithm, modelObject::setAlgorithm));
 		txtCiphertext.setPropertyModel(
 			LambdaModel.of(modelObject::getCiphertext, modelObject::setCiphertext));
 		txtSenderSecret.setPropertyModel(
@@ -167,11 +177,11 @@ public class KemDemoPanel extends JPanel
 		try
 		{
 			String selection = modelObject.getAlgorithm();
-			NativeKemExchange.Result result = HYBRID.equals(selection) ? NativeKemExchange.hybrid()
+			NativeKemExchange.Result result = HYBRID.equals(selection)
+				? NativeKemExchange.hybrid()
 				: NativeKemExchange.mlKem(selection);
 
-			show(txtCiphertext, HEX.formatHex(result.getCiphertext()),
-				modelObject::setCiphertext);
+			show(txtCiphertext, HEX.formatHex(result.getCiphertext()), modelObject::setCiphertext);
 			show(txtSenderSecret, HEX.formatHex(result.getSenderSecret()),
 				modelObject::setSenderSecret);
 			show(txtRecipientSecret, HEX.formatHex(result.getRecipientSecret()),

@@ -33,8 +33,8 @@ import org.junit.jupiter.api.Test;
 
 /**
  * A value too long to read is shown by its beginning, its end and its length; anything up to
- * {@value LongValues#READABLE} characters is shown as it is (#604, rule 3). The Copy button next
- * to it copies the whole value, which the panel tests check.
+ * {@value LongValues#READABLE} characters is shown as it is (#604, rule 3). The Copy button next to
+ * it copies the whole value, which the panel tests check.
  */
 class LongValuesTest
 {
@@ -61,7 +61,7 @@ class LongValuesTest
 
 	@Test
 	@DisplayName("an ML-DSA-65 account shows its beginning, its end and its length, grouped")
-	void anMlDsaAccount_isShortened() 
+	void anMlDsaAccount_isShortened()
 	{
 		String account = "308207b2300b" + "0".repeat(3884) + "bfb098ae";
 

@@ -128,10 +128,8 @@ class FileCryptSupportTest
 
 		assertTrue(FileCryptSupport.isEncrypted(encrypted));
 		assertFalse(FileCryptSupport.isEncrypted(source), "the original is not encrypted");
-		assertFalse(
-			new String(Files.readAllBytes(encrypted.toPath()), StandardCharsets.ISO_8859_1)
-				.contains("launch code"),
-			"the content must not be findable in the encrypted file");
+		assertFalse(new String(Files.readAllBytes(encrypted.toPath()), StandardCharsets.ISO_8859_1)
+			.contains("launch code"), "the content must not be findable in the encrypted file");
 	}
 
 	@Test
@@ -139,12 +137,10 @@ class FileCryptSupportTest
 	{
 		File source = newFileOfSize(directory, "twice.bin", 64);
 
-		byte[] first = Files
-			.readAllBytes(FileCryptSupport.encryptFile(source, new File(directory, "a"), PASSPHRASE)
-				.toPath());
-		byte[] second = Files
-			.readAllBytes(FileCryptSupport.encryptFile(source, new File(directory, "b"), PASSPHRASE)
-				.toPath());
+		byte[] first = Files.readAllBytes(
+			FileCryptSupport.encryptFile(source, new File(directory, "a"), PASSPHRASE).toPath());
+		byte[] second = Files.readAllBytes(
+			FileCryptSupport.encryptFile(source, new File(directory, "b"), PASSPHRASE).toPath());
 
 		assertFalse(Arrays.equals(first, second),
 			"a fresh salt every time is what keeps two encryptions from being comparable");
@@ -171,9 +167,8 @@ class FileCryptSupportTest
 		content[content.length / 2] ^= 0x01;
 		Files.write(encrypted.toPath(), content);
 
-		assertThrows(Exception.class,
-			() -> FileCryptSupport.decryptFile(encrypted, new File(directory, "out.bin"),
-				PASSPHRASE));
+		assertThrows(Exception.class, () -> FileCryptSupport.decryptFile(encrypted,
+			new File(directory, "out.bin"), PASSPHRASE));
 	}
 
 	@Test
@@ -182,7 +177,8 @@ class FileCryptSupportTest
 		File foreign = newFileOfSize(directory, "foreign.bin", 200);
 
 		IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
-			() -> FileCryptSupport.decryptFile(foreign, new File(directory, "out.bin"), PASSPHRASE));
+			() -> FileCryptSupport.decryptFile(foreign, new File(directory, "out.bin"),
+				PASSPHRASE));
 
 		assertTrue(exception.getMessage().contains("marker"), exception.getMessage());
 	}
@@ -256,9 +252,8 @@ class FileCryptSupportTest
 		else
 		{
 			// a passphrase of spaces is poor but it is a passphrase; it must at least round trip
-			assertEquals("text",
-				FileCryptSupport.decryptText(FileCryptSupport.encryptText("text", passphrase),
-					passphrase));
+			assertEquals("text", FileCryptSupport
+				.decryptText(FileCryptSupport.encryptText("text", passphrase), passphrase));
 		}
 	}
 

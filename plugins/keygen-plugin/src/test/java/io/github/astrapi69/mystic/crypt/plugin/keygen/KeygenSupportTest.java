@@ -205,8 +205,8 @@ class KeygenSupportTest
 
 		assertEquals("0001abff", KeygenSupport.toHex(bytes));
 		assertEquals("AAGr/w==", KeygenSupport.toBase64(bytes));
-		assertArrayEquals(bytes, java.util.Base64.getDecoder()
-			.decode(KeygenSupport.toBase64(bytes)));
+		assertArrayEquals(bytes,
+			java.util.Base64.getDecoder().decode(KeygenSupport.toBase64(bytes)));
 	}
 
 	private static void assertArrayEquals(byte[] expected, byte[] actual)
@@ -235,8 +235,7 @@ class KeygenSupportTest
 		}
 		else
 		{
-			assertTrue(pem.contains("BEGIN PRIVATE KEY"),
-				pem.lines().findFirst().orElse(""));
+			assertTrue(pem.contains("BEGIN PRIVATE KEY"), pem.lines().findFirst().orElse(""));
 			assertFalse(pem.contains("BEGIN RSA PRIVATE KEY"));
 		}
 		assertEquals(keyPair.getPrivate(), AnyKeyFileReader.readPrivateKey(file),
@@ -309,12 +308,10 @@ class KeygenSupportTest
 	@DisplayName("a name without an ending gets the one the content calls for")
 	void aNameWithoutAnEndingGetsTheOneTheContentCallsFor()
 	{
-		assertEquals("mykey.pem",
-			KeygenSupport.withEnding(new File("/somewhere/mykey"), KeygenSupport.PEM_ENDING)
-				.getName());
-		assertEquals("mykey.der",
-			KeygenSupport.withEnding(new File("/somewhere/mykey"), KeygenSupport.DER_ENDING)
-				.getName());
+		assertEquals("mykey.pem", KeygenSupport
+			.withEnding(new File("/somewhere/mykey"), KeygenSupport.PEM_ENDING).getName());
+		assertEquals("mykey.der", KeygenSupport
+			.withEnding(new File("/somewhere/mykey"), KeygenSupport.DER_ENDING).getName());
 	}
 
 	@Test
@@ -325,9 +322,8 @@ class KeygenSupportTest
 			KeygenSupport.withEnding(new File("/somewhere/mykey.pem"), KeygenSupport.DER_ENDING)
 				.getName(),
 			"a typed ending was overruled, which turns mykey.pem into mykey.pem.der");
-		assertEquals("mykey.key",
-			KeygenSupport.withEnding(new File("/somewhere/mykey.key"), KeygenSupport.PEM_ENDING)
-				.getName());
+		assertEquals("mykey.key", KeygenSupport
+			.withEnding(new File("/somewhere/mykey.key"), KeygenSupport.PEM_ENDING).getName());
 	}
 
 }

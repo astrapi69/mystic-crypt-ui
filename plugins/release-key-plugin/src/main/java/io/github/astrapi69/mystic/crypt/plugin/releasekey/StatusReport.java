@@ -39,14 +39,12 @@ import io.github.astrapi69.mystic.crypt.gnupg.KeyRingState;
  * @param failed
  *            whether the reading failed or did not find the release key
  */
-public record StatusReport(List<KeyRingState> certificates, String message, boolean failed)
-{
+public record StatusReport(List<KeyRingState> certificates, String message, boolean failed) {
 
 	/**
 	 * Copies the list, so a report cannot change after it was made
 	 */
-	public StatusReport
-	{
+	public StatusReport {
 		certificates = List.copyOf(certificates);
 	}
 }

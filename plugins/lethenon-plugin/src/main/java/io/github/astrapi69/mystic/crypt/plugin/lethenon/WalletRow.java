@@ -97,8 +97,8 @@ final class WalletRow
 		txtWalletFileNote.setToolTipText(text("lethenon.input.tooltip.wallet.file.note",
 			"choose a wallet in \"Wallet\" to use the one in the vault instead"));
 		btnBrowseWalletFile = LethenonSwing.button("btnBrowseWalletFile", "...",
-			event -> browse.run(),
-			text("lethenon.input.tooltip.browse.wallet.file", "pick your wallet file on your disk"));
+			event -> browse.run(), text("lethenon.input.tooltip.browse.wallet.file",
+				"pick your wallet file on your disk"));
 	}
 
 	/**
@@ -132,7 +132,8 @@ final class WalletRow
 	WalletSource source(final char[] password, final Path walletFile)
 	{
 		Optional<VaultWallet> chosen = vault.chosen();
-		return chosen.isPresent() ? () -> vault.open(chosen.get().id(), password).wallet()
+		return chosen.isPresent()
+			? () -> vault.open(chosen.get().id(), password).wallet()
 			: () -> LethenonWallets.open(walletFile, password);
 	}
 

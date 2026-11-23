@@ -104,7 +104,8 @@ final class LethenonVault
 		{
 			return List.of();
 		}
-		return access.entries().stream().filter(entry -> WalletVault.isWallet(VaultWalletEntry.read(entry)))
+		return access.entries().stream()
+			.filter(entry -> WalletVault.isWallet(VaultWalletEntry.read(entry)))
 			.map(LethenonVault::listed).toList();
 	}
 
@@ -129,12 +130,15 @@ final class LethenonVault
 				"This file is a sealed lethenon wallet. The wallet password is needed to use it; the 24 words are not in it.",
 				locale));
 		}
-		List<MysticCryptEntryModelBean> walletEntries = isAvailable() ? access.entries() : List.of();
+		List<MysticCryptEntryModelBean> walletEntries = isAvailable()
+			? access.entries()
+			: List.of();
 		if (walletEntries.isEmpty())
 		{
 			return Optional.empty();
 		}
-		long keepingTheirWords = walletEntries.stream().filter(LethenonVault::keepsItsWords).count();
+		long keepingTheirWords = walletEntries.stream().filter(LethenonVault::keepsItsWords)
+			.count();
 		if (keepingTheirWords == 0)
 		{
 			return Optional.of(LethenonMessages.getString("lethenon.export.database",
@@ -246,10 +250,11 @@ final class LethenonVault
 		unsealed.addressMismatch().ifPresent(mismatch -> answer(id, mismatch));
 		if (!entry.hasProperty(WalletEntry.ACCOUNT_ML_DSA))
 		{
-			// an entry from before #700: the public key it lacks is added now that the wallet is open
+			// an entry from before #700: the public key it lacks is added now that the wallet is
+			// open
 			String key = WalletVault.mlDsaAccountOf(unsealed.wallet());
-			change(id, wallet -> wallet.setProperty(WalletEntry.ACCOUNT_ML_DSA, key.toCharArray(),
-				false));
+			change(id,
+				wallet -> wallet.setProperty(WalletEntry.ACCOUNT_ML_DSA, key.toCharArray(), false));
 		}
 		return unsealed;
 	}
@@ -363,8 +368,8 @@ final class LethenonVault
 		{
 			return;
 		}
-		change(id, wallet -> WalletInVault.store(wallet, List.of(new String(words).split(" ")),
-			choice));
+		change(id,
+			wallet -> WalletInVault.store(wallet, List.of(new String(words).split(" ")), choice));
 	}
 
 	/**
@@ -446,8 +451,7 @@ final class LethenonVault
 	 * @throws IOException
 	 *             if the file exists or cannot be written or read back
 	 */
-	String export(final UUID id, final Path target, final ExportConsent consent)
-		throws IOException
+	String export(final UUID id, final Path target, final ExportConsent consent) throws IOException
 	{
 		return WalletVault.export(VaultWalletEntry.read(entryOf(requireAccess(), id)), target,
 			consent);

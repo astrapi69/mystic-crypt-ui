@@ -51,8 +51,8 @@ class FileCryptSupportOpensWhatEightTwoWroteTest
 
 	/**
 	 * The passphrase the checked-in files were sealed with, the host's
-	 * {@code TestPasswords.FILE_CRYPT_WINDOW_FIXTURE}, which a plugin's tests do not see. It cannot be
-	 * made up per run: the files are in the repository and were encrypted with it. They hold
+	 * {@code TestPasswords.FILE_CRYPT_WINDOW_FIXTURE}, which a plugin's tests do not see. It cannot
+	 * be made up per run: the files are in the repository and were encrypted with it. They hold
 	 * invented text and guard nothing else.
 	 */
 	static final String WINDOW_FILES_FIXTURE = "sealed-by-the-window-for-877";

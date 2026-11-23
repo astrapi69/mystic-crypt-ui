@@ -33,10 +33,10 @@ import io.github.astrapi69.lethenon.SeedPhrase;
  * (architecture.md): which view is shown, the wallets of the vault and the one chosen, what the
  * forms hold and why the last action was refused.
  * <p>
- * Passwords are {@code char[]}, never Strings, and are overwritten when they
- * are replaced or cleared. The words typed for a restore are 24 Strings, one per field of its
- * {@link WordGrid}, because text fields hold them; they are emptied after every restore, and the
- * decision record names that limit.
+ * Passwords are {@code char[]}, never Strings, and are overwritten when they are replaced or
+ * cleared. The words typed for a restore are 24 Strings, one per field of its {@link WordGrid},
+ * because text fields hold them; they are emptied after every restore, and the decision record
+ * names that limit.
  */
 public class LethenonWalletPanelModel
 {

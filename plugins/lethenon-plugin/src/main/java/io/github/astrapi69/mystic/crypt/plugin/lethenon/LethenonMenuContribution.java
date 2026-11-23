@@ -47,8 +47,8 @@ import io.github.astrapi69.swing.util.JInternalFrameExtensions;
  * {@link #isUsableWithoutAVault()} is deliberately NOT declared, although replaying a chain file
  * touches no vault. Declaring it opens EVERY item of a contribution while locked, and this one also
  * opens a wallet and spends from it. The read-only tools are to opt in through a contribution of
- * their own, together with the harness extension for approved file choosers they need (#301,
- * #450). Until then the verifier is reachable after a sign-in, like every other tool.
+ * their own, together with the harness extension for approved file choosers they need (#301, #450).
+ * Until then the verifier is reachable after a sign-in, like every other tool.
  */
 @Extension
 public class LethenonMenuContribution implements PluginMenuContribution
@@ -71,12 +71,16 @@ public class LethenonMenuContribution implements PluginMenuContribution
 	{
 		return List.of(item(WALLET_KEY, "Wallet", LethenonWalletPanel::new, false),
 			item("lethenon.menu.item.verify", "Verify a Chain", LethenonChainPanel::new, true),
-			item("lethenon.menu.item.show.chain", "Show a Chain", LethenonChainViewPanel::new, true),
-			item("lethenon.menu.item.show.balance", "Show a Balance", LethenonBalancePanel::new, true),
+			item("lethenon.menu.item.show.chain", "Show a Chain", LethenonChainViewPanel::new,
+				true),
+			item("lethenon.menu.item.show.balance", "Show a Balance", LethenonBalancePanel::new,
+				true),
 			item("lethenon.menu.item.send", "Send LETH", LethenonSendPanel::new, true),
 			item("lethenon.menu.item.mine", "Mine a Pun", LethenonMinePanel::new, true),
-			item("lethenon.menu.item.sweep", "Sweep One-Time Payments", LethenonSweepPanel::new, true),
-			item("lethenon.menu.item.sync", "Synchronise with a Node", LethenonSyncPanel::new, true),
+			item("lethenon.menu.item.sweep", "Sweep One-Time Payments", LethenonSweepPanel::new,
+				true),
+			item("lethenon.menu.item.sync", "Synchronise with a Node", LethenonSyncPanel::new,
+				true),
 			item("lethenon.menu.item.node", "Run a Node", LethenonNodePanel::new, true), more());
 	}
 

@@ -66,9 +66,9 @@ import io.github.astrapi69.mystic.crypt.write.DataClass;
  * The writer used to open the target before it had anything to write, which empties it, so a write
  * that failed - no key generated yet, a format the key has no form in - left a file of 0 bytes
  * where a private key may have been. The save buttons could be pressed before Generate, and a save
- * after Generate replaced a file that was there without asking. Now every key is encoded before
- * its file is opened, the save buttons wait for a key pair, and a file that is there is replaced
- * only after the question, which names a private key as irreplaceable.
+ * after Generate replaced a file that was there without asking. Now every key is encoded before its
+ * file is opened, the save buttons wait for a key pair, and a file that is there is replaced only
+ * after the question, which names a private key as irreplaceable.
  */
 class SavingNeverEmptiesAFileTest
 {
@@ -93,8 +93,7 @@ class SavingNeverEmptiesAFileTest
 	}
 
 	/** A key write that fails, with the reason it fails */
-	record FailingWrite(String name, WriteInto write)
-	{
+	record FailingWrite(String name, WriteInto write) {
 		@Override
 		public String toString()
 		{
@@ -129,11 +128,11 @@ class SavingNeverEmptiesAFileTest
 			new FailingWrite("no public key generated yet, DER",
 				file -> KeygenSupport.writePublicKey(null, file, KeyFileFormat.DER)),
 			new FailingWrite("a certificate without the keys it needs, PEM",
-				file -> KeygenSupport.writeCertificate(CertificateInfoModel.builder().build(),
-					file, KeyFileFormat.PEM)),
+				file -> KeygenSupport.writeCertificate(CertificateInfoModel.builder().build(), file,
+					KeyFileFormat.PEM)),
 			new FailingWrite("a certificate without the keys it needs, DER",
-				file -> KeygenSupport.writeCertificate(CertificateInfoModel.builder().build(),
-					file, KeyFileFormat.DER)));
+				file -> KeygenSupport.writeCertificate(CertificateInfoModel.builder().build(), file,
+					KeyFileFormat.DER)));
 	}
 
 	@ParameterizedTest(name = "{0}")
@@ -221,8 +220,7 @@ class SavingNeverEmptiesAFileTest
 		CertificateInfoModel certificateInfo = KeygenSupport.newCertificateInfo(
 			panel.getModelObject().getPublicKey(), panel.getModelObject().getPrivateKey());
 		certificateInfo.setIssuer(DistinguishedNameInfoModel.builder().commonName("CN=a").build());
-		certificateInfo
-			.setSubject(DistinguishedNameInfoModel.builder().commonName("CN=a").build());
+		certificateInfo.setSubject(DistinguishedNameInfoModel.builder().commonName("CN=a").build());
 
 		panel.getCryptographyPanel().writeCertificateTo(existing, certificateInfo,
 			KeyFileFormat.PEM);

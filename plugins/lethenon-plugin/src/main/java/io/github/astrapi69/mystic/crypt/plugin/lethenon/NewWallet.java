@@ -36,8 +36,7 @@ import java.util.UUID;
  * @param words
  *            the 24 words, separated by spaces
  */
-record NewWallet(UUID id, char[] words) implements AutoCloseable
-{
+record NewWallet(UUID id, char[] words) implements AutoCloseable {
 
 	@Override
 	public void close()

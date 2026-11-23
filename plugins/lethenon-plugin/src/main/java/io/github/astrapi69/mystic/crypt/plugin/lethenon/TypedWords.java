@@ -85,8 +85,8 @@ final class TypedWords
 
 	/**
 	 * Puts the words of a phrase at their positions, word 1 at position 1, and empties the
-	 * positions after the last word. Words that do not fit stay together at position 24, so
-	 * nothing of the phrase is lost and the count check can name how many there were
+	 * positions after the last word. Words that do not fit stay together at position 24, so nothing
+	 * of the phrase is lost and the count check can name how many there were
 	 *
 	 * @param words
 	 *            the words, as {@link io.github.astrapi69.lethenon.SeedPhrase#parse} reads a phrase

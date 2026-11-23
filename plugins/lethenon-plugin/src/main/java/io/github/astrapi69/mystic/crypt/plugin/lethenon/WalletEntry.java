@@ -38,7 +38,9 @@ final class WalletEntry
 	/** The network hint, a plain property: testnet or mainnet */
 	static final String NETWORK = "lethenon.network";
 
-	/** The address the wallet had when the entry was made, a plain property, for the backup check */
+	/**
+	 * The address the wallet had when the entry was made, a plain property, for the backup check
+	 */
 	static final String ADDRESS = "lethenon.address";
 
 	/**

@@ -43,9 +43,9 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 /**
- * The view "Before you start" (#540) holds the short checklist and the documents in its model, shows
- * its notice where a user sees it, lists every check in a table nobody can edit, and offers one
- * button per document that names the address it opens.
+ * The view "Before you start" (#540) holds the short checklist and the documents in its model,
+ * shows its notice where a user sees it, lists every check in a table nobody can edit, and offers
+ * one button per document that names the address it opens.
  */
 class LethenonBeforeYouStartPanelBindingTest
 {

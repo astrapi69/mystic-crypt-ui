@@ -31,8 +31,8 @@ import io.github.astrapi69.resourcebundle.locale.ResourceBundleExtensions;
 /**
  * The plugin's own text, kept in {@code keystore/messages.properties} inside this plugin's jar - a
  * plugin brings its own everything (architecture.md), rather than reaching into the host's
- * {@code ui.messages} bundle. Every lookup takes a default (.claude/rules/i18n.md), so a missing key
- * or a corrupted properties file shows that default instead of throwing
+ * {@code ui.messages} bundle. Every lookup takes a default (.claude/rules/i18n.md), so a missing
+ * key or a corrupted properties file shows that default instead of throwing
  * {@link java.util.MissingResourceException} out of a panel constructor.
  */
 public final class KeyStoreMessages

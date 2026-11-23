@@ -64,8 +64,8 @@ public class ConversionWizardPanel extends AbstractWizardPanel<ConversionWizardM
 	}
 
 	/**
-	 * The size this wizard needs to show any of its steps without scrolling, so the window is opened
-	 * once at a size that fits all of them
+	 * The size this wizard needs to show any of its steps without scrolling, so the window is
+	 * opened once at a size that fits all of them
 	 *
 	 * @return the size, navigation included
 	 */

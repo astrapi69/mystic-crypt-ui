@@ -57,8 +57,7 @@ class ServedChainFilesTest
 	 * @param of
 	 *            writes the file's absolute path that way
 	 */
-	record Spelling(String spelling, UnaryOperator<Path> of)
-	{
+	record Spelling(String spelling, UnaryOperator<Path> of) {
 		@Override
 		public String toString()
 		{

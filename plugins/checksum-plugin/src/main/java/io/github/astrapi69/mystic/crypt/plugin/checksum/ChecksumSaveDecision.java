@@ -100,9 +100,8 @@ public final class ChecksumSaveDecision
 	 */
 	public static String overwriteQuestion(final String fileName)
 	{
-		return MessageFormat.format(
-			ChecksumMessages.getString("checksum.and.mac.save.overwrite.message",
-				"''{0}'' already exists. Replace it?"),
-			fileName);
+		return MessageFormat
+			.format(ChecksumMessages.getString("checksum.and.mac.save.overwrite.message",
+				"''{0}'' already exists. Replace it?"), fileName);
 	}
 }

@@ -25,11 +25,9 @@
 package io.github.astrapi69.mystic.crypt.plugin.lethenon;
 
 import static io.github.astrapi69.mystic.crypt.plugin.lethenon.Windows.textOf;
-
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.awt.Component;
 import java.nio.file.Path;
@@ -37,7 +35,6 @@ import java.security.KeyPair;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 import java.util.Optional;
 
 import javax.swing.JComponent;
@@ -162,8 +159,10 @@ class LethenonSendFromVaultTest
 		panel.onSend();
 
 		assertEquals(0, waiting(), "nothing is signed after Cancel");
-		assertEquals(List.of("main: 1.00000000 LETH, fee 0.01000000 LETH, together 1.01000000 LETH, to "
-			+ recipient), confirmation.asked);
+		assertEquals(
+			List.of("main: 1.00000000 LETH, fee 0.01000000 LETH, together 1.01000000 LETH, to "
+				+ recipient),
+			confirmation.asked);
 
 		confirmation.sendOnMain = true;
 		panel.getModelObject().setPassword(password.clone());
@@ -194,14 +193,15 @@ class LethenonSendFromVaultTest
 	@DisplayName("the confirmation's texts are T5 as approved, in both languages, with the whole recipient")
 	void theConfirmationTexts_areT5()
 	{
-		MainNetworkTransfer transfer = new MainNetworkTransfer("1.00000000 LETH",
-			"0.01000000 LETH", "1.01000000 LETH", "abc123");
+		MainNetworkTransfer transfer = new MainNetworkTransfer("1.00000000 LETH", "0.01000000 LETH",
+			"1.01000000 LETH", "abc123");
 
 		assertEquals("You are sending 1.00000000 LETH on the MAIN NETWORK to abc123.",
 			transfer.sentence(Locale.ENGLISH));
 		assertEquals("Du sendest im HAUPTNETZ 1.00000000 LETH an abc123.",
 			transfer.sentence(Locale.GERMAN));
-		assertEquals("Fee: 0.01000000 LETH. Together: 1.01000000 LETH.", transfer.fee(Locale.ENGLISH));
+		assertEquals("Fee: 0.01000000 LETH. Together: 1.01000000 LETH.",
+			transfer.fee(Locale.ENGLISH));
 		assertEquals("Gebühr: 0.01000000 LETH. Zusammen: 1.01000000 LETH.",
 			transfer.fee(Locale.GERMAN));
 	}
@@ -217,7 +217,8 @@ class LethenonSendFromVaultTest
 		Optional<NetworkKind> network = Optional.of(NetworkKind.TEST);
 
 		@Override
-		public boolean confirmMainNetwork(final JComponent parent, final MainNetworkTransfer transfer)
+		public boolean confirmMainNetwork(final JComponent parent,
+			final MainNetworkTransfer transfer)
 		{
 			asked.add("main: " + transfer.amount() + ", fee " + transfer.fee() + ", together "
 				+ transfer.total() + ", to " + transfer.recipient());

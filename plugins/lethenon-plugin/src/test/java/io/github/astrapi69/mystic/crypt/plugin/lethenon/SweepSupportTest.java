@@ -52,7 +52,6 @@ import io.github.astrapi69.lethenon.Amount;
 import io.github.astrapi69.lethenon.BlockBody;
 import io.github.astrapi69.lethenon.Blocks;
 import io.github.astrapi69.lethenon.Bytes;
-import io.github.astrapi69.lethenon.CanonicalEncoding;
 import io.github.astrapi69.lethenon.ChainFile;
 import io.github.astrapi69.lethenon.ChainState;
 import io.github.astrapi69.lethenon.Destination;
@@ -134,8 +133,7 @@ class SweepSupportTest
 	{
 		try (RunningNode running = aNodeOfThisProgram())
 		{
-			SweptPayments swept = SweepSupport.sweep(order("0.1", "swept"),
-				PASSWORD.toCharArray());
+			SweptPayments swept = SweepSupport.sweep(order("0.1", "swept"), PASSWORD.toCharArray());
 
 			assertEquals("127.0.0.1:" + running.port(), swept.node());
 			assertEquals(1, running.status().waiting(), "the node admitted the sweep");
@@ -298,7 +296,9 @@ class SweepSupportTest
 		return new SweepOrder(chainFile, walletFile, fee, memo);
 	}
 
-	/** The chain's database and, while it exists, its write-ahead log; not the shared-memory index */
+	/**
+	 * The chain's database and, while it exists, its write-ahead log; not the shared-memory index
+	 */
 	private List<Path> databaseFiles()
 	{
 		Path log = Path.of(chainFile + "-wal");

@@ -101,9 +101,8 @@ class PanelsUseTheirHeightTest
 		int atNormalHeight = totalHeightOf(new KemDemoPanel(), 780, 400);
 		int atDoubleHeight = totalHeightOf(new KemDemoPanel(), 780, 900);
 
-		assertTrue(atDoubleHeight > atNormalHeight + 200,
-			"the areas did not grow with the window: " + atNormalHeight + " px at 400, "
-				+ atDoubleHeight + " px at 900");
+		assertTrue(atDoubleHeight > atNormalHeight + 200, "the areas did not grow with the window: "
+			+ atNormalHeight + " px at 400, " + atDoubleHeight + " px at 900");
 	}
 
 	/**
@@ -116,9 +115,8 @@ class PanelsUseTheirHeightTest
 		int atNormalHeight = totalHeightOf(new KeyExchangePanel(), 780, 500);
 		int atDoubleHeight = totalHeightOf(new KeyExchangePanel(), 780, 1000);
 
-		assertTrue(atDoubleHeight > atNormalHeight + 200,
-			"the areas did not grow with the window: " + atNormalHeight + " px at 500, "
-				+ atDoubleHeight + " px at 1000");
+		assertTrue(atDoubleHeight > atNormalHeight + 200, "the areas did not grow with the window: "
+			+ atNormalHeight + " px at 500, " + atDoubleHeight + " px at 1000");
 	}
 
 	/**
@@ -135,9 +133,8 @@ class PanelsUseTheirHeightTest
 		List<JScrollPane> scrollPanes = new ArrayList<>();
 		collectScrollPanes(panel, scrollPanes);
 		assertTrue(
-			scrollPanes.stream()
-				.anyMatch(pane -> !(pane.getViewport()
-					.getView() instanceof javax.swing.text.JTextComponent)),
+			scrollPanes.stream().anyMatch(
+				pane -> !(pane.getViewport().getView() instanceof javax.swing.text.JTextComponent)),
 			"the tabs are not in anything that can scroll, so a short window hides the last field");
 	}
 

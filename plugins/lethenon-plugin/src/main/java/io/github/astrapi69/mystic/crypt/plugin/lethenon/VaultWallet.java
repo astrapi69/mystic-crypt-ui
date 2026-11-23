@@ -41,6 +41,5 @@ import java.util.UUID;
  *            the public key of the ML-DSA-65 account the entry records, empty on an older entry
  *            until it is unsealed once (#700)
  */
-record VaultWallet(UUID id, String title, String network, String address, String mlDsaAccount)
-{
+record VaultWallet(UUID id, String title, String network, String address, String mlDsaAccount) {
 }

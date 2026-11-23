@@ -59,8 +59,8 @@ import org.junit.jupiter.api.io.TempDir;
 /**
  * A key file saved with a password has to open in another program, not only in the library that
  * wrote it: a file the library reads back can still use an encryption scheme a current program
- * refuses. The file is read here with the JDK alone (no crypt-data, no Bouncy Castle on the
- * reading side) and, where it is installed, with openssl.
+ * refuses. The file is read here with the JDK alone (no crypt-data, no Bouncy Castle on the reading
+ * side) and, where it is installed, with openssl.
  */
 class ProtectedKeyOpensElsewhereTest
 {
@@ -113,8 +113,7 @@ class ProtectedKeyOpensElsewhereTest
 
 		PrivateKey opened = openWithTheJdk(keyFile, password);
 
-		assertArrayEquals(
-			panel.getModelObject().getPrivateKey().getEncoded(), opened.getEncoded(),
+		assertArrayEquals(panel.getModelObject().getPrivateKey().getEncoded(), opened.getEncoded(),
 			"the JDK got another key out of the file than the one generated");
 	}
 
@@ -132,8 +131,7 @@ class ProtectedKeyOpensElsewhereTest
 
 	@Test
 	@DisplayName("openssl pkcs8 -inform DER opens the file and prints the generated key")
-	void opensslPkcs8OpensTheFileAndPrintsTheGeneratedKey(@TempDir File directory)
-		throws Exception
+	void opensslPkcs8OpensTheFileAndPrintsTheGeneratedKey(@TempDir File directory) throws Exception
 	{
 		if (!opensslIsInstalled())
 		{
@@ -149,8 +147,7 @@ class ProtectedKeyOpensElsewhereTest
 			keyFile.getAbsolutePath(), "-passin", "stdin").redirectErrorStream(true).start();
 		openssl.getOutputStream().write((password + "\n").getBytes(StandardCharsets.UTF_8));
 		openssl.getOutputStream().close();
-		String output = new String(openssl.getInputStream().readAllBytes(),
-			StandardCharsets.UTF_8);
+		String output = new String(openssl.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
 		assertTrue(openssl.waitFor(60, TimeUnit.SECONDS), "openssl did not finish");
 
 		assertEquals(0, openssl.exitValue(), "openssl refused the file, exit code and no output "

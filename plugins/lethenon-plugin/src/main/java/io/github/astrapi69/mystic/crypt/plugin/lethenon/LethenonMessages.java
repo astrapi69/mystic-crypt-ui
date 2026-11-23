@@ -74,11 +74,10 @@ public final class LethenonMessages
 	 *            the language
 	 * @return the text
 	 */
-	public static String getString(final String key, final String defaultValue,
-		final Locale locale)
+	public static String getString(final String key, final String defaultValue, final Locale locale)
 	{
-		return ResourceBundleExtensions.getStringQuietly(ResourceBundle.getBundle(BUNDLE_NAME,
-			locale), key, defaultValue);
+		return ResourceBundleExtensions
+			.getStringQuietly(ResourceBundle.getBundle(BUNDLE_NAME, locale), key, defaultValue);
 	}
 
 	/**

@@ -33,10 +33,9 @@ import javax.swing.JTextArea;
 /**
  * A button that puts a text area's current content on the system clipboard.
  * <p>
- * Both panels of this plugin show long Base64/hex values (public keys, handshakes, shared
- * secrets, ciphertexts) a user has to move elsewhere by hand - selecting one correctly across a
- * wrapped, multi-line area is easy to get wrong, so every such area gets one of these next to it
- * (#184).
+ * Both panels of this plugin show long Base64/hex values (public keys, handshakes, shared secrets,
+ * ciphertexts) a user has to move elsewhere by hand - selecting one correctly across a wrapped,
+ * multi-line area is easy to get wrong, so every such area gets one of these next to it (#184).
  */
 final class CopyButtons
 {

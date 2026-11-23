@@ -48,8 +48,8 @@ import io.github.astrapi69.lethenon.Chain;
 import io.github.astrapi69.lethenon.ChainFile;
 import io.github.astrapi69.lethenon.ChainRejected;
 import io.github.astrapi69.lethenon.ChainState;
-import io.github.astrapi69.lethenon.Emission;
 import io.github.astrapi69.lethenon.Destination;
+import io.github.astrapi69.lethenon.Emission;
 import io.github.astrapi69.lethenon.Genesis;
 import io.github.astrapi69.lethenon.Mining;
 import io.github.astrapi69.lethenon.Replay;
@@ -122,7 +122,8 @@ class ChainReplaySupportTest
 
 		assertTrue(refused.getMessage().startsWith(chainFile.toAbsolutePath().toString()),
 			refused.getMessage());
-		assertTrue(refused.getMessage().contains("was started under the rules before lethenon 0.4.0"),
+		assertTrue(
+			refused.getMessage().contains("was started under the rules before lethenon 0.4.0"),
 			refused.getMessage());
 	}
 
@@ -204,7 +205,8 @@ class ChainReplaySupportTest
 	void blocks_listEveryBlock_withItsPunAndBeneficiary() throws Exception
 	{
 		List<BlockBody> mined = aChainWithOneTransfer();
-		Path chainFile = LethenonFixtures.written(new File(directory, "chain.lethenon").toPath(), mined);
+		Path chainFile = LethenonFixtures.written(new File(directory, "chain.lethenon").toPath(),
+			mined);
 
 		List<ChainBlockRow> rows = ChainReplaySupport.blocks(chainFile);
 
@@ -273,18 +275,20 @@ class ChainReplaySupportTest
 
 	/**
 	 * A test chain in the shape lethenon 0.4.0 accepts: a genesis block for the burn account
-	 * (lethenon#148), a block paying the holder its reward, and a third carrying one transfer out of
-	 * it - mined at the minimum difficulty, which is what the chain's own tests use
+	 * (lethenon#148), a block paying the holder its reward, and a third carrying one transfer out
+	 * of it - mined at the minimum difficulty, which is what the chain's own tests use
 	 */
 	private List<BlockBody> aChainWithOneTransfer()
 	{
 		List<BlockBody> chain = new ArrayList<>(List.of(Genesis.candidate(Chain.TEST_IDENTIFIER,
 			"in the beginning was the pun", 1_759_000_000_000L)));
-		chain.add(Blocks.mine(Mining.nextBlock(chain, holderKey, List.of(), "the holder's block",
-			1_759_000_120_000L), 1_000_000L).orElseThrow());
-		SignedTransaction transfer = TransactionSigner.sign(new TransactionBody(Chain.TEST_IDENTIFIER,
-			0L, holderKey, Destination.direct(Bytes.of(new byte[] { 7 })), Amount.ofLeth(3L),
-			Amount.ZERO, "a protest in three lethe"), SignatureSuite.ED25519, holder.getPrivate());
+		chain.add(Blocks.mine(
+			Mining.nextBlock(chain, holderKey, List.of(), "the holder's block", 1_759_000_120_000L),
+			1_000_000L).orElseThrow());
+		SignedTransaction transfer = TransactionSigner
+			.sign(new TransactionBody(Chain.TEST_IDENTIFIER, 0L, holderKey,
+				Destination.direct(Bytes.of(new byte[] { 7 })), Amount.ofLeth(3L), Amount.ZERO,
+				"a protest in three lethe"), SignatureSuite.ED25519, holder.getPrivate());
 		chain.add(Blocks.mine(Mining.nextBlock(chain, holderKey, List.of(transfer), "the third pun",
 			1_759_000_240_000L), 1_000_000L).orElseThrow());
 		return List.copyOf(chain);

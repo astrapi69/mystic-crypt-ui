@@ -52,14 +52,14 @@ import org.danekja.java.util.function.serializable.SerializableConsumer;
 import org.danekja.java.util.function.serializable.SerializableSupplier;
 
 import io.github.astrapi69.lethenon.SeedPhrase;
-import io.github.astrapi69.mystic.crypt.clipboard.ClipboardClearWatchdog;
 import io.github.astrapi69.model.LambdaModel;
+import io.github.astrapi69.mystic.crypt.clipboard.ClipboardClearWatchdog;
 import io.github.astrapi69.swing.model.component.JMTextField;
 import net.miginfocom.swing.MigLayout;
 
 /**
- * The 24 words of a wallet typed into 24 fields, each labelled with its number, in four columns read
- * from top to bottom as step 1 of the backup shows them, behind one {@link TypedWords} (#804).
+ * The 24 words of a wallet typed into 24 fields, each labelled with its number, in four columns
+ * read from top to bottom as step 1 of the backup shows them, behind one {@link TypedWords} (#804).
  * <p>
  * A paste of several words is a phrase: it fills the fields from the first, whichever field it is
  * pasted into, and what the fields held before is replaced. Words that do not fit stay together in
@@ -68,9 +68,9 @@ import net.miginfocom.swing.MigLayout;
  * {@link SeedPhrase#parse}, which drops the numbers of a backup sheet and takes any space, line
  * break or comma between the words.
  * <p>
- * A field is checked when the focus leaves it and after a paste: a word that is not in the word list
- * marks the field and is named at once, in the sentence the window shows for it when the form is
- * sent, not only then; correcting it removes the mark. A field that is not marked is not checked
+ * A field is checked when the focus leaves it and after a paste: a word that is not in the word
+ * list marks the field and is named at once, in the sentence the window shows for it when the form
+ * is sent, not only then; correcting it removes the mark. A field that is not marked is not checked
  * while it is typed into, so a word half typed is not called wrong.
  */
 final class WordGrid extends JPanel
@@ -166,9 +166,9 @@ final class WordGrid extends JPanel
 	}
 
 	/**
-	 * Empties every field and the model, and takes every mark away. The model is emptied itself, not
-	 * only through the fields: a field that already shows nothing tells its model nothing when it is
-	 * emptied again
+	 * Empties every field and the model, and takes every mark away. The model is emptied itself,
+	 * not only through the fields: a field that already shows nothing tells its model nothing when
+	 * it is emptied again
 	 */
 	void clear()
 	{
@@ -221,7 +221,10 @@ final class WordGrid extends JPanel
 		return field;
 	}
 
-	/** Puts the words of a paste into the model, as {@link TypedWords#spread} places them, and shows them */
+	/**
+	 * Puts the words of a paste into the model, as {@link TypedWords#spread} places them, and shows
+	 * them
+	 */
 	private void spread(final List<String> pasted)
 	{
 		words.spread(pasted);
@@ -336,8 +339,8 @@ final class WordGrid extends JPanel
 
 		/**
 		 * Empties the system clipboard if it still holds what was just pasted, the host's
-		 * conditional clear: something copied there since is left alone. A drop does not come
-		 * from the clipboard and does not reach here
+		 * conditional clear: something copied there since is left alone. A drop does not come from
+		 * the clipboard and does not reach here
 		 */
 		private static void emptyTheClipboardOf(final String pasted)
 		{

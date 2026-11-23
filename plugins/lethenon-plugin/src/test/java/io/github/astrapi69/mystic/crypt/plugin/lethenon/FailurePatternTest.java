@@ -25,7 +25,6 @@
 package io.github.astrapi69.mystic.crypt.plugin.lethenon;
 
 import static io.github.astrapi69.mystic.crypt.plugin.lethenon.Windows.textOf;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -79,8 +78,8 @@ class FailurePatternTest
 		System.setProperty(PluginSettings.CONFIGURATION_DIRECTORY_PROPERTY,
 			configuration.getAbsolutePath());
 		Wallet wallet = Wallet.create();
-		walletFile = new File(directory, "a-wallet-file-with-a-rather-long-name-to-show-the-wrap"
-			+ ".lethenon-wallet").toPath();
+		walletFile = new File(directory,
+			"a-wallet-file-with-a-rather-long-name-to-show-the-wrap" + ".lethenon-wallet").toPath();
 		WalletFile.write(walletFile, wallet, ThrowawayPasswords.next());
 		KeyPair payer = TransactionSigner.newKeyPair(SignatureSuite.ED25519);
 		chainFile = LethenonFixtures.written(new File(directory, "chain.lethenon").toPath(),
@@ -111,8 +110,8 @@ class FailurePatternTest
 			Arguments.of("no chain file at the place", new NoChainFile(nowhere),
 				"There is no chain at this place yet.",
 				nowhere + "\nFetch the chain from a node, or choose another place."),
-			Arguments.of("anything else", new IOException("disk full"),
-				"The balance was not read.", "Look at the details below, then try again."));
+			Arguments.of("anything else", new IOException("disk full"), "The balance was not read.",
+				"Look at the details below, then try again."));
 	}
 
 	@ParameterizedTest(name = "{0}")
@@ -121,8 +120,8 @@ class FailurePatternTest
 	void theKind_decidesTheSentences(final String caseName, final Throwable thrown,
 		final String cause, final String action)
 	{
-		Failure failure = Failures.of(thrown, new Refusal("lethenon.balance.failure",
-			"The balance was not read."), Locale.ENGLISH);
+		Failure failure = Failures.of(thrown,
+			new Refusal("lethenon.balance.failure", "The balance was not read."), Locale.ENGLISH);
 
 		assertEquals(cause, failure.cause());
 		assertEquals(action, failure.action());

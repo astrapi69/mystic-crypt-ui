@@ -35,9 +35,10 @@ import io.github.astrapi69.mystic.crypt.plugin.keystore.KeyStoreSupport;
  * This is the wizard's single source of truth - every step panel reads and writes it rather than
  * keeping its own copy, so the wizard's state is readable at any moment from outside the panels too
  * (tests included). It is a new, wizard-only model, deliberately not {@code KeyStorePanelModel}:
- * that one carries fields a creation wizard has no use for, such as the live {@link java.security.KeyStore}
- * object and the import/export file paths - the same flatter-than-the-dense-panel-needed
- * simplification {@code ConversionWizardModel} already made for the conversion wizard.
+ * that one carries fields a creation wizard has no use for, such as the live
+ * {@link java.security.KeyStore} object and the import/export file paths - the same
+ * flatter-than-the-dense-panel-needed simplification {@code ConversionWizardModel} already made for
+ * the conversion wizard.
  */
 public class CreateKeyStoreWizardModel
 {
@@ -60,7 +61,10 @@ public class CreateKeyStoreWizardModel
 	/** The alias the first key pair is added under, when {@link #addKeyPairNow} is set */
 	private String alias = "";
 
-	/** The subject of the first key pair's self-signed certificate, for instance {@code CN=example.com} */
+	/**
+	 * The subject of the first key pair's self-signed certificate, for instance
+	 * {@code CN=example.com}
+	 */
 	private String distinguishedName = "";
 
 	/** The algorithm the first key pair is generated with */

@@ -61,8 +61,8 @@ import io.github.astrapi69.mystic.crypt.wizard.state.CertificateWizardState;
 /**
  * Contributes the "Create Certificate" tool to the host's "Plugins" menu. The wizard panels and the
  * model-to-certificate generator live in the host (shared with the keygen plugin); this plugin only
- * opens the wizard in a modal dialog, keeps the wizard's Review step supplied with a preview of what
- * would be generated and, on Finish, generates the X.509 certificate and saves it.
+ * opens the wizard in a modal dialog, keeps the wizard's Review step supplied with a preview of
+ * what would be generated and, on Finish, generates the X.509 certificate and saves it.
  */
 @Extension
 public class CertificateMenuContribution implements PluginMenuContribution
@@ -137,18 +137,21 @@ public class CertificateMenuContribution implements PluginMenuContribution
 		// opened once and must not resize itself while the user walks through the wizard.
 		// pack() is used instead of a guessed inset constant so the title bar and dialog border are
 		// whatever the window manager actually gives them, not a fixed number tuned against one
-		// environment and short everywhere else (the scroll bar this dialog carries for exactly that
+		// environment and short everywhere else (the scroll bar this dialog carries for exactly
+		// that
 		// case turned out to still be needed on the tallest step - see #93 follow-up).
-		// preferredSizeForEveryStep() is asked only after a first pack(): a step measured before the
-		// dialog has a real display connection gets its text laid out with approximated font metrics,
+		// preferredSizeForEveryStep() is asked only after a first pack(): a step measured before
+		// the
+		// dialog has a real display connection gets its text laid out with approximated font
+		// metrics,
 		// which comes out a little short of what the same step asks for once realized
 		dialog.pack();
 		scrollPane.setPreferredSize(wizardPanel.preferredSizeForEveryStep());
 		dialog.pack();
 		dialog.setSize(
 			WizardWindowSize.on(dialog.getSize(), Toolkit.getDefaultToolkit().getScreenSize()));
-		dialog.setMinimumSize(new Dimension(WizardWindowSize.MINIMUM_WIDTH / 2,
-			WizardWindowSize.MINIMUM_HEIGHT / 2));
+		dialog.setMinimumSize(
+			new Dimension(WizardWindowSize.MINIMUM_WIDTH / 2, WizardWindowSize.MINIMUM_HEIGHT / 2));
 		dialog.setLocationRelativeTo(frame);
 		dialog.setVisible(true);
 	}
@@ -172,8 +175,8 @@ public class CertificateMenuContribution implements PluginMenuContribution
 	 * @param frame
 	 *            the application frame, for the default save directory
 	 */
-	private static void refreshReview(CertificateWizardPanel wizardPanel, CertificateInfoModel model,
-		MysticCryptApplicationFrame frame)
+	private static void refreshReview(CertificateWizardPanel wizardPanel,
+		CertificateInfoModel model, MysticCryptApplicationFrame frame)
 	{
 		String preview;
 		try
@@ -339,8 +342,8 @@ public class CertificateMenuContribution implements PluginMenuContribution
 	 * Generates a key pair for the given algorithm the way each actually needs to be generated -
 	 * RSA and DSA take an explicit classical bit size, but EC, Ed25519 and every other
 	 * fixed-parameter algorithm have no such size and crash if forced through
-	 * {@code KeyPairFactory}'s size-defaulting convenience method (a default of 2048 makes no
-	 * sense for a curve or a fixed-parameter algorithm -
+	 * {@code KeyPairFactory}'s size-defaulting convenience method (a default of 2048 makes no sense
+	 * for a curve or a fixed-parameter algorithm -
 	 * {@code java.security.InvalidParameterException: Unsupported size: 2048} for Ed25519, #141).
 	 * Mirrors the same distinction {@code keygen-plugin}'s key generator already draws.
 	 *

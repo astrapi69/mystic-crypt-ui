@@ -69,8 +69,8 @@ import io.github.astrapi69.swing.model.component.JMTextField;
  * written into it and deletes it at its next block, which the window says next to the node field
  * before anything is sent (#814); this window writes no block. A local node answers at once, so the
  * handover runs in the window like the signing. The password goes from the field into the model as
- * a {@code char[]}, is wiped by the support class, and is cleared from the field afterwards, whether
- * the transfer was signed or refused.
+ * a {@code char[]}, is wiped by the support class, and is cleared from the field afterwards,
+ * whether the transfer was signed or refused.
  * <p>
  * It answers in fields a child can read (#604): first one sentence in a larger font, "Sent:
  * 12.50000000 LETH to the account you named. It waits next to the chain file until a miner that
@@ -124,7 +124,9 @@ public class LethenonSendPanel extends JPanel
 	 */
 	private Locale locale = Locale.getDefault();
 
-	/** The plugin's view of the vault, whose wallet the window sends from when there is one (#704) */
+	/**
+	 * The plugin's view of the vault, whose wallet the window sends from when there is one (#704)
+	 */
 	private final transient LethenonVault vault;
 
 	/** Whom to ask before a send on the main network or on an unknown network (#704) */
@@ -133,8 +135,9 @@ public class LethenonSendPanel extends JPanel
 	/** The wallet the window signs with: the vault's, or a wallet file (#706) */
 	private final transient WalletRow walletRow;
 
-	private final JMTextArea txtAnswer = AnswerFields.answerArea(text("lethenon.send.tooltip.answer",
-		"what happened to your transfer, in one sentence; the details are below"));
+	private final JMTextArea txtAnswer = AnswerFields
+		.answerArea(text("lethenon.send.tooltip.answer",
+			"what happened to your transfer, in one sentence; the details are below"));
 
 	private final JMTextField txtSentAmount = AnswerFields.readOnly("txtSentAmount",
 		text("lethenon.send.tooltip.sent.amount", "what the recipient gets"));
@@ -217,9 +220,8 @@ public class LethenonSendPanel extends JPanel
 		this.vault = vault;
 		this.confirmation = confirmation;
 		this.locale = locale;
-		walletRow = new WalletRow(vault, locale, txtWalletFile,
-			() -> LethenonSwing.chooseFile(this, modelObject.getWalletFile())
-				.ifPresent(txtWalletFile::setText));
+		walletRow = new WalletRow(vault, locale, txtWalletFile, () -> LethenonSwing
+			.chooseFile(this, modelObject.getWalletFile()).ifPresent(txtWalletFile::setText));
 		btnDetails = LethenonSwing.button("btnDetails",
 			AnswerFields.detailsButtonText(false, locale), event -> onDetails(),
 			text("lethenon.send.tooltip.details",
@@ -285,7 +287,8 @@ public class LethenonSendPanel extends JPanel
 			setResult(sent.node().isEmpty()
 				? text("lethenon.send.result.signed",
 					"the transfer was signed and waits next to the chain file")
-				: text("lethenon.send.result.handed", "the transfer was signed and handed to the node"));
+				: text("lethenon.send.result.handed",
+					"the transfer was signed and handed to the node"));
 		}
 		catch (ChainRejected | IllegalArgumentException | IllegalStateException refused)
 		{
@@ -404,10 +407,11 @@ public class LethenonSendPanel extends JPanel
 				"next to the chain file, until a miner that reads this file mines a block")
 			: LethenonMessages.format("lethenon.send.waits.node", "in the pool of the node at {0}",
 				locale, sent.node()));
-		modelObject.setNonce(
-			LethenonMessages.format("lethenon.send.nonce", "{0,number,integer}", locale, sent.nonce()));
+		modelObject.setNonce(LethenonMessages.format("lethenon.send.nonce", "{0,number,integer}",
+			locale, sent.nonce()));
 		modelObject.setWaiting(LethenonMessages.format("lethenon.send.waiting.count",
-			"{0,choice,0#none|1#1 transfer|1<{0,number,integer} transfers}", locale, sent.waiting()));
+			"{0,choice,0#none|1#1 transfer|1<{0,number,integer} transfers}", locale,
+			sent.waiting()));
 		showTheModel();
 	}
 
@@ -422,7 +426,8 @@ public class LethenonSendPanel extends JPanel
 		showTheModel();
 		modelObject.setResultText(result);
 		lblResult.setText(" ");
-		failureView.show(Failures.of(thrown, new Refusal("lethenon.send.failure", "Nothing was sent."), locale));
+		failureView.show(
+			Failures.of(thrown, new Refusal("lethenon.send.failure", "Nothing was sent."), locale));
 	}
 
 	/**
@@ -467,9 +472,9 @@ public class LethenonSendPanel extends JPanel
 	{
 		return new TransferOrder(Path.of(modelObject.getChainFile().trim()),
 			Path.of(modelObject.getWalletFile() == null ? "" : modelObject.getWalletFile().trim()),
-			modelObject.getSuite(),
-			modelObject.getRecipientKind(), modelObject.getRecipient(), modelObject.getAmount(),
-			modelObject.getFee(), modelObject.getMemo(), modelObject.getNode());
+			modelObject.getSuite(), modelObject.getRecipientKind(), modelObject.getRecipient(),
+			modelObject.getAmount(), modelObject.getFee(), modelObject.getMemo(),
+			modelObject.getNode());
 	}
 
 	private void nameTheComponents()
@@ -594,8 +599,9 @@ public class LethenonSendPanel extends JPanel
 
 	private void layOutTheAnswer()
 	{
-		add(AnswerArea.toCome(text("lethenon.send.answer.to.come",
-			"After sending, this shows what went out and what still waits."),
+		add(AnswerArea.toCome(
+			text("lethenon.send.answer.to.come",
+				"After sending, this shows what went out and what still waits."),
 			text("lethenon.send.tooltip.answer.to.come",
 				"the answer appears here once a transfer was signed")),
 			ToolForm.WIDE + ", wmin 0");
@@ -657,10 +663,10 @@ public class LethenonSendPanel extends JPanel
 	}
 
 	/**
-	 * Shows the answer only while the window holds one, a transfer that was signed; before the first
-	 * send and after a status without a transfer a sentence says what will show there instead of
-	 * empty fields (G3, draft 06, #816). The details stay as they were opened or closed. Runs after
-	 * the failure view gave the answer back, which restores what showed before the failure
+	 * Shows the answer only while the window holds one, a transfer that was signed; before the
+	 * first send and after a status without a transfer a sentence says what will show there instead
+	 * of empty fields (G3, draft 06, #816). The details stay as they were opened or closed. Runs
+	 * after the failure view gave the answer back, which restores what showed before the failure
 	 */
 	private void showTheAnswerOnlyWithAnAnswer()
 	{

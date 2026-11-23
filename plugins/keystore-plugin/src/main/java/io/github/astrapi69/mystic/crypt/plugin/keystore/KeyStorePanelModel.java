@@ -32,8 +32,8 @@ import io.github.astrapi69.crypt.api.type.KeystoreType;
 /**
  * Everything the {@link KeyStorePanel} holds: the key store file and its type, the store password,
  * the alias and the certificate data a new entry is built from, the two file paths for importing
- * and exporting, the key store that is currently open, the certificate the details view last
- * showed and the message the last operation left.
+ * and exporting, the key store that is currently open, the certificate the details view last showed
+ * and the message the last operation left.
  * <p>
  * The panel binds its components to this object, so what the user typed or chose is readable here
  * at any moment - no button handler has to ask a widget for its content.

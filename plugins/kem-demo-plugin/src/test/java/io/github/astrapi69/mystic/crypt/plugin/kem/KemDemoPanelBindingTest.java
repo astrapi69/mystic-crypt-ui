@@ -54,9 +54,9 @@ import org.junit.jupiter.params.provider.MethodSource;
 import io.github.astrapi69.mystic.crypt.settings.PluginSettings;
 
 /**
- * Tests that the components of {@link KemDemoPanel} are bound to {@link KemDemoPanelModel}: what the
- * button runs with is the mechanism the model holds, and what a run produced arrives in the areas
- * that are bound to it.
+ * Tests that the components of {@link KemDemoPanel} are bound to {@link KemDemoPanelModel}: what
+ * the button runs with is the mechanism the model holds, and what a run produced arrives in the
+ * areas that are bound to it.
  * <p>
  * Nothing here asserts that a setter was called. The mechanism is chosen in the combo box and the
  * proof that it travelled through the model is the ciphertext that comes back: each mechanism
@@ -164,8 +164,9 @@ class KemDemoPanelBindingTest
 	}
 
 	/**
-	 * A second run uses what is chosen now and not what was chosen before, which is what binding the
-	 * combo box to the model buys: the button reads the model, never the selection it started with
+	 * A second run uses what is chosen now and not what was chosen before, which is what binding
+	 * the combo box to the model buys: the button reads the model, never the selection it started
+	 * with
 	 */
 	@Test
 	@DisplayName("a second run uses the mechanism chosen in between")

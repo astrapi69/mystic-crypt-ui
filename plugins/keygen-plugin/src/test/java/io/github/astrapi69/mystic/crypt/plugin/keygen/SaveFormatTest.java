@@ -153,8 +153,8 @@ class SaveFormatTest
 		assertTrue(Files.readString(asPem.toPath()).contains("BEGIN CERTIFICATE"),
 			"the PEM file does not hold PEM");
 		assertFalse(
-			new String(Files.readAllBytes(asDer.toPath()), java.nio.charset.StandardCharsets.ISO_8859_1)
-				.contains("CERTIFICATE"),
+			new String(Files.readAllBytes(asDer.toPath()),
+				java.nio.charset.StandardCharsets.ISO_8859_1).contains("CERTIFICATE"),
 			"the DER file holds PEM text");
 		try (java.io.InputStream in = Files.newInputStream(asDer.toPath()))
 		{

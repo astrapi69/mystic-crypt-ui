@@ -182,8 +182,8 @@ public final class FileCryptSupport
 	}
 
 	/**
-	 * Decrypts what {@link #encryptText(String, String)} produced, or what
-	 * {@code encrypt --text} of the mystic-crypt command line printed (#877)
+	 * Decrypts what {@link #encryptText(String, String)} produced, or what {@code encrypt --text}
+	 * of the mystic-crypt command line printed (#877)
 	 *
 	 * @param encrypted
 	 *            the encrypted text as Base64
@@ -238,8 +238,7 @@ public final class FileCryptSupport
 		requirePassphrase(passphrase);
 		if (source == null || !source.isFile())
 		{
-			throw new IllegalArgumentException(
-				"'" + source + "' is not a file that could be read");
+			throw new IllegalArgumentException("'" + source + "' is not a file that could be read");
 		}
 	}
 

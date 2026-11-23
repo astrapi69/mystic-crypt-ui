@@ -24,7 +24,6 @@
  */
 package io.github.astrapi69.mystic.crypt.plugin.password;
 
-import java.awt.Dimension;
 
 import javax.swing.*;
 
@@ -98,12 +97,13 @@ public class PasswordHashPanel extends JPanel
 		cmbAlgorithm.setToolTipText(PasswordHashMessages.getString("passwordhash.tooltip.algorithm",
 			"the algorithm used to hash the password below - the description to the right "
 				+ "explains the tradeoff"));
-		txtPassword.setToolTipText(
-			PasswordHashMessages.getString("passwordhash.tooltip.password", "the password to hash"));
+		txtPassword.setToolTipText(PasswordHashMessages.getString("passwordhash.tooltip.password",
+			"the password to hash"));
 		txtHash.setToolTipText(PasswordHashMessages.getString("passwordhash.tooltip.hash",
 			"the computed hash - or paste one here to verify a password against it"));
-		txtVerifyPassword.setToolTipText(PasswordHashMessages.getString(
-			"passwordhash.tooltip.verify.password", "the password to check against the hash above"));
+		txtVerifyPassword
+			.setToolTipText(PasswordHashMessages.getString("passwordhash.tooltip.verify.password",
+				"the password to check against the hash above"));
 
 		JButton btnHash = new JButton("Hash");
 		btnHash.setName("btnHash");
@@ -113,9 +113,10 @@ public class PasswordHashPanel extends JPanel
 		JButton btnVerify = new JButton("Verify");
 		btnVerify.setName("btnVerify");
 		btnVerify.addActionListener(event -> onVerify());
-		btnVerify.setToolTipText(PasswordHashMessages.getString("passwordhash.tooltip.verify.button",
-			"checks the password below against the hash above - the algorithm is read from the "
-				+ "hash itself"));
+		btnVerify
+			.setToolTipText(PasswordHashMessages.getString("passwordhash.tooltip.verify.button",
+				"checks the password below against the hash above - the algorithm is read from the "
+					+ "hash itself"));
 
 		add(new JLabel("Algorithm:"));
 		add(cmbAlgorithm, ToolForm.FIELD);
@@ -142,8 +143,8 @@ public class PasswordHashPanel extends JPanel
 	 */
 	private void bindComponents()
 	{
-		cmbAlgorithm.setPropertyModel(
-			LambdaModel.of(modelObject::getAlgorithm, modelObject::setAlgorithm));
+		cmbAlgorithm
+			.setPropertyModel(LambdaModel.of(modelObject::getAlgorithm, modelObject::setAlgorithm));
 		txtPassword
 			.setPropertyModel(LambdaModel.of(modelObject::getPassword, modelObject::setPassword));
 		txtHash.setPropertyModel(LambdaModel.of(modelObject::getHash, modelObject::setHash));
@@ -229,8 +230,6 @@ public class PasswordHashPanel extends JPanel
 			? exception.getMessage()
 			: exception.getClass().getSimpleName();
 	}
-
-
 
 
 }

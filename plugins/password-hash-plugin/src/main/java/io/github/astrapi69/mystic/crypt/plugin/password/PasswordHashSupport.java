@@ -104,20 +104,20 @@ public final class PasswordHashSupport
 					// the length rule lives in the library since mystic-crypt 13.10
 					// (BcryptHasher.MAX_PASSWORD_BYTES); only the way out is this window's to add
 					throw new IllegalArgumentException(libraryRefusal.getMessage() + " - use "
-						+ ARGON2ID + " or " + SCRYPT + " for a password this long",
-						libraryRefusal);
+						+ ARGON2ID + " or " + SCRYPT + " for a password this long", libraryRefusal);
 				}
 			case SCRYPT :
-				return encodeScrypt(ScryptHasher.hash(password.clone(), ScryptHasher.DEFAULT_N,
-					ScryptHasher.DEFAULT_R, ScryptHasher.DEFAULT_P), ScryptHasher.DEFAULT_N,
-					ScryptHasher.DEFAULT_R, ScryptHasher.DEFAULT_P);
+				return encodeScrypt(
+					ScryptHasher.hash(password.clone(), ScryptHasher.DEFAULT_N,
+						ScryptHasher.DEFAULT_R, ScryptHasher.DEFAULT_P),
+					ScryptHasher.DEFAULT_N, ScryptHasher.DEFAULT_R, ScryptHasher.DEFAULT_P);
 			case PBKDF2 :
 				return PasswordEncryptor.getInstance().hashPasswordPbkdf2(new String(password));
 			case ARGON2ID :
 				return PasswordEncryptor.getInstance().hashPasswordArgon2id(new String(password));
 			default :
-				throw new IllegalArgumentException("'" + algorithm + "' is not one of "
-					+ String.join(", ", algorithms()));
+				throw new IllegalArgumentException(
+					"'" + algorithm + "' is not one of " + String.join(", ", algorithms()));
 		}
 	}
 
@@ -261,8 +261,8 @@ public final class PasswordHashSupport
 		{
 			case "argon2id" -> "memory hard, the one to pick when nothing else is required";
 			case "pbkdf2" -> "the one certifications ask for";
-			case "bcrypt" -> "long established; looks at the first " + BcryptHasher.MAX_PASSWORD_BYTES
-				+ " bytes of a password only";
+			case "bcrypt" -> "long established; looks at the first "
+				+ BcryptHasher.MAX_PASSWORD_BYTES + " bytes of a password only";
 			case "scrypt" -> "memory hard, older than Argon2id and widely available";
 			default -> "";
 		};

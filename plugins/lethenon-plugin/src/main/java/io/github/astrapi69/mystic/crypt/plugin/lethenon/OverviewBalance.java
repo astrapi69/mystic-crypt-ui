@@ -34,9 +34,9 @@ import io.github.astrapi69.lethenon.ChainState;
 import io.github.astrapi69.lethenon.PublishedAddress;
 
 /**
- * The balance the overview shows without the wallet password (#700, decision record "The balance
- * in the overview"): the chain is replayed and both accounts are read with the public keys the
- * entry records. Every block is checked by the replay; nothing here computes a balance itself.
+ * The balance the overview shows without the wallet password (#700, decision record "The balance in
+ * the overview"): the chain is replayed and both accounts are read with the public keys the entry
+ * records. Every block is checked by the replay; nothing here computes a balance itself.
  */
 final class OverviewBalance
 {

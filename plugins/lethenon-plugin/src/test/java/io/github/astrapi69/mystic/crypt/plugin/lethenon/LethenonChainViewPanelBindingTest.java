@@ -29,8 +29,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.File;
 import java.nio.file.Path;
-import java.security.KeyPair;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -41,12 +39,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import io.github.astrapi69.lethenon.BlockBody;
-import io.github.astrapi69.lethenon.Blocks;
-import io.github.astrapi69.lethenon.Bytes;
 import io.github.astrapi69.lethenon.Chain;
 import io.github.astrapi69.lethenon.Genesis;
-import io.github.astrapi69.lethenon.SignatureSuite;
-import io.github.astrapi69.lethenon.TransactionSigner;
 import io.github.astrapi69.mystic.crypt.settings.PluginSettings;
 
 /**

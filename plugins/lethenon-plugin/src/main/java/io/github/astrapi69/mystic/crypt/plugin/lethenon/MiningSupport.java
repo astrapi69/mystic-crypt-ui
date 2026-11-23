@@ -116,20 +116,24 @@ public final class MiningSupport
 	static MinedBlock mine(final MiningOrder order, final WalletSource source, final long now)
 		throws IOException
 	{
-		Bytes beneficiary = source.open()
-			.spendKey(SignatureSuite.ED25519);
+		Bytes beneficiary = source.open().spendKey(SignatureSuite.ED25519);
 		ChainFile chainFile = new ChainFile(order.chainFile());
 		// an existing file goes through the plugin's one way in: a chain of the old format is
-		// refused until the person agreed to convert it, and for good when it does not verify (#581)
+		// refused until the person agreed to convert it, and for good when it does not verify
+		// (#581)
 		List<BlockBody> chain = Files.isRegularFile(order.chainFile())
-			&& Files.size(order.chainFile()) > 0 ? ChainFiles.read(order.chainFile())
+			&& Files.size(order.chainFile()) > 0
+				? ChainFiles.read(order.chainFile())
 				: chainFile.read();
 		List<SignedTransaction> waiting = chain.isEmpty() ? List.of() : chainFile.readPending();
-		Replay before = chain.isEmpty() ? null : ChainReplaySupport.replay(order.chainFile(), chain);
+		Replay before = chain.isEmpty()
+			? null
+			: ChainReplaySupport.replay(order.chainFile(), chain);
 		BlockBody mined = chain.isEmpty()
 			? Genesis.start(order.newChain().identifier(), order.pun(), now)
-			: Blocks.mine(Mining.nextBlock(chain, beneficiary, waiting, order.pun(), now),
-				order.attempts())
+			: Blocks
+				.mine(Mining.nextBlock(chain, beneficiary, waiting, order.pun(), now),
+					order.attempts())
 				.orElseThrow(() -> new IllegalStateException("no variation of the pun reached "
 					+ "difficulty " + DifficultyRule.requiredFor(chain) + " within "
 					+ order.attempts() + " attempts; mine again, or with other words"));
