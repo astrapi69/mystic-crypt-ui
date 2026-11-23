@@ -27,6 +27,7 @@ package io.github.astrapi69.mystic.crypt.ui;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
@@ -46,10 +47,10 @@ import io.github.astrapi69.mystic.crypt.TestPasswords;
  * <p>
  * Switching it re-installs the UI of every component and takes the AWT tree lock; from the start
  * thread that blocked the event thread, which held a text document's write lock while appending
- * what the console plugin captured, and the application hung at its start (thread dump of a CI run:
- * the start thread held the tree lock and waited for the document, the event thread held the
- * document and waited for the tree lock). The main window is the owner of the sign-in dialog, so it
- * is displayable from then on and the lock is really taken.
+ * what the console plugin captured, and the application hung at its start (thread dump of a hung
+ * local run: the start thread held the tree lock and waited for the document, the event thread held
+ * the document and waited for the tree lock). The main window is the owner of the sign-in dialog,
+ * so it has a native peer from then on and the layout runs under the lock.
  */
 class StartAppliesTheLookAndFeelOnTheEventThreadUiTest extends AbstractUiTest
 {
@@ -62,19 +63,30 @@ class StartAppliesTheLookAndFeelOnTheEventThreadUiTest extends AbstractUiTest
 	{
 		File databaseFile = new File(tempHome, "look-and-feel-database.mcrdb");
 		createDatabaseFileHeadless(databaseFile, MASTER_PASSWORD);
+		List<String> changedOn = new CopyOnWriteArrayList<>();
 		List<String> offTheEventThread = new CopyOnWriteArrayList<>();
-		UIManager.addPropertyChangeListener(change -> {
-			if ("lookAndFeel".equals(change.getPropertyName())
-				&& !SwingUtilities.isEventDispatchThread())
+		PropertyChangeListener listener = change -> {
+			if ("lookAndFeel".equals(change.getPropertyName()))
 			{
-				offTheEventThread.add(Thread.currentThread().getName());
+				changedOn.add(Thread.currentThread().getName());
+				if (!SwingUtilities.isEventDispatchThread())
+				{
+					offTheEventThread.add(Thread.currentThread().getName());
+				}
 			}
-		});
+		};
+		UIManager.addPropertyChangeListener(listener);
+		try
+		{
+			signInWithExistingDatabase(databaseFile, MASTER_PASSWORD);
+		}
+		finally
+		{
+			UIManager.removePropertyChangeListener(listener);
+		}
 
-		signInWithExistingDatabase(databaseFile, MASTER_PASSWORD);
-
+		assertFalse(changedOn.isEmpty(), "the start switched the look and feel at least once");
 		assertTrue(offTheEventThread.isEmpty(),
 			"the look and feel was switched on " + offTheEventThread + ", not the event thread");
-		assertFalse(UIManager.getLookAndFeel() == null, "a look and feel is installed");
 	}
 }
