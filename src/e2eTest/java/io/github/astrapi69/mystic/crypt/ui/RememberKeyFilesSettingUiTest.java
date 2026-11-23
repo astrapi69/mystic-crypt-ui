@@ -182,6 +182,53 @@ class RememberKeyFilesSettingUiTest extends AbstractUiTest
 		robot.waitForIdle();
 	}
 
+	@Test
+	@DisplayName("switching the setting off names the copies kept aside as unreadable, with their paths")
+	void switchingRememberKeyFilesOff_namesTheKeptAsideCopies() throws Exception
+	{
+		File database = new File(tempHome, "kept-aside.mcrdb");
+		SignInDialogSteps signIn = launchApplication();
+		signIn.startNewDatabase(database).checkMasterPassword()
+			.typeMasterPasswordWithRepeat(MASTER_PASSWORD).checkKeyFile()
+			.createKeyFile("kept-aside-key.pem").requireOkEnabled().okAndAwaitClose();
+		signIn.checkMasterPassword().typeMasterPassword(MASTER_PASSWORD).requireOkEnabled()
+			.okAndAwaitSignIn();
+		ApplicationSteps application = new ApplicationSteps(robot);
+		application.awaitSignedIn();
+		File configurationDirectory = MysticCryptApplicationFrame.getInstance()
+			.getConfigurationDirectory();
+		File signinCopy = new File(configurationDirectory,
+			"memoizedSignin.json.unreadable-20261101T101010");
+		File keePassCopy = new File(configurationDirectory,
+			"memoizedKeePass.json.unreadable-20261102T111111");
+		Files.writeString(signinCopy.toPath(), "{\"selectedKeyFilePath\": \"/keys/a-key.pem\", ");
+		Files.writeString(keePassCopy.toPath(), "{\"lastImportKeyFilePath\": \"/keys/b.key\", ");
+
+		DialogFixture settings = application.openSettingsDialog();
+		application.selectSettingsTab(settings, "General");
+		settings.checkBox("chkRememberKeyFiles").uncheck();
+		SwingUtilities.invokeLater(() -> settings.button("btnCloseSettings").target().doClick());
+
+		Pause.pause(new Condition("the notice about the copies kept aside")
+		{
+			@Override
+			public boolean test()
+			{
+				return aWarningPane() != null;
+			}
+		}, TimeUnit.SECONDS.toMillis(30));
+		JOptionPane pane = aWarningPane();
+		String message = String.valueOf(pane.getMessage());
+		assertTrue(message.contains(signinCopy.getAbsolutePath()),
+			"lists the sign-in copy: " + message);
+		assertTrue(message.contains(keePassCopy.getAbsolutePath()),
+			"lists the KeePass copy: " + message);
+		assertFalse(message.contains("could not be removed"),
+			"and reports no failure, since the files themselves were removed: " + message);
+		GuiActionRunner.execute(() -> pane.setValue(JOptionPane.OK_OPTION));
+		robot.waitForIdle();
+	}
+
 	private static JOptionPane aWarningPane()
 	{
 		return GuiActionRunner.execute(() -> {

@@ -194,4 +194,35 @@ public final class RememberedKeyFileSupport
 		}
 		return true;
 	}
+
+	/**
+	 * The copies of the remembered files that were kept aside because they could not be read
+	 * ({@code memoizedSignin.json.unreadable-*} and {@code memoizedKeePass.json.unreadable-*}).
+	 * They keep the paths that were in them, and the setting "Remember key files" does not change
+	 * them, so the user is told where they are (#997).
+	 *
+	 * @param configurationDirectory
+	 *            the application's configuration directory
+	 * @return the copies, sorted by path, empty when there are none
+	 */
+	public static java.util.List<File> keptAsideCopies(final File configurationDirectory)
+	{
+		File[] files = configurationDirectory.listFiles();
+		if (files == null)
+		{
+			return java.util.List.of();
+		}
+		java.util.List<File> copies = new java.util.ArrayList<>();
+		for (File file : files)
+		{
+			String name = file.getName();
+			if (file.isFile() && (name.startsWith("memoizedSignin.json.unreadable-")
+				|| name.startsWith("memoizedKeePass.json.unreadable-")))
+			{
+				copies.add(file);
+			}
+		}
+		copies.sort(java.util.Comparator.comparing(File::getPath));
+		return copies;
+	}
 }

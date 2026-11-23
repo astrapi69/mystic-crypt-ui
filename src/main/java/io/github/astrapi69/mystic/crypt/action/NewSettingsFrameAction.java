@@ -159,16 +159,31 @@ public class NewSettingsFrameAction extends AbstractAction
 				"the key file paths could not be removed from the remembered KeePass paths",
 				exception);
 		}
+		java.util.List<java.io.File> keptAside = RememberedKeyFileSupport
+			.keptAsideCopies(configurationDirectory);
+		if (notRemoved.isEmpty() && keptAside.isEmpty())
+		{
+			return;
+		}
+		StringBuilder notice = new StringBuilder();
 		if (!notRemoved.isEmpty())
 		{
-			JOptionPane.showMessageDialog(frame,
-				Messages.getString("settings.general.remember.key.files.not.removed",
+			notice
+				.append(Messages.getString("settings.general.remember.key.files.not.removed",
 					"The key file paths could not be removed from these files, which are left as "
-						+ "they are:")
-					+ "\n" + String.join("\n", notRemoved),
-				Messages.getString("settings.general.remember.key.files.not.removed.title",
-					"Key files still remembered"),
-				JOptionPane.WARNING_MESSAGE);
+						+ "they are:"))
+				.append('\n').append(String.join("\n", notRemoved)).append('\n');
 		}
+		if (!keptAside.isEmpty())
+		{
+			notice.append(Messages.getString("settings.general.remember.key.files.kept.aside",
+				"These copies of files that could not be read keep their key file paths, you can "
+					+ "delete them:"));
+			keptAside.forEach(copy -> notice.append('\n').append(copy.getAbsolutePath()));
+		}
+		JOptionPane.showMessageDialog(frame, notice.toString().strip(),
+			Messages.getString("settings.general.remember.key.files.not.removed.title",
+				"Key files still remembered"),
+			JOptionPane.WARNING_MESSAGE);
 	}
 }

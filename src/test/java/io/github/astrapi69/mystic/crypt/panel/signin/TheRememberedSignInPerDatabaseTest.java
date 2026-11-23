@@ -299,4 +299,23 @@ class TheRememberedSignInPerDatabaseTest
 		Files.writeString(file.toPath(), TODAYS_FILE);
 		return file;
 	}
+
+	@Test
+	@DisplayName("the copies kept aside as unreadable are found for both remembered files, nothing else is")
+	void keptAsideCopies_listsTheUnreadableCopiesOfBothMemoFiles() throws Exception
+	{
+		File signinCopy = new File(directory, "memoizedSignin.json.unreadable-20261101T101010");
+		File keePassCopy = new File(directory, "memoizedKeePass.json.unreadable-20261102T111111");
+		Files.writeString(signinCopy.toPath(), "{");
+		Files.writeString(keePassCopy.toPath(), "{");
+		Files.writeString(new File(directory, "memoizedSignin.json").toPath(), "{}");
+		Files.writeString(new File(directory, "settings.json.unreadable-20261103T121212").toPath(),
+			"{");
+
+		assertEquals(
+			java.util.List.of(signinCopy, keePassCopy).stream()
+				.sorted(java.util.Comparator.comparing(File::getPath)).toList(),
+			RememberedKeyFileSupport.keptAsideCopies(directory));
+		assertTrue(RememberedKeyFileSupport.keptAsideCopies(new File(directory, "none")).isEmpty());
+	}
 }

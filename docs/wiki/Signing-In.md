@@ -253,7 +253,7 @@ setting off. The two flags per database stay, so the dialog still offers the rig
 setting covers the key file paths of the KeePass import and export dialogs too, but not the vault
 itself, which keeps the key file paths it was opened with (#1122), and not a copy of
 `memoizedSignin.json` that was kept aside as `.unreadable-*` because it could not be read: that copy
-keeps its paths until you delete it.
+keeps its paths until you delete it, and switching the setting off shows a notice that lists such copies with their paths.
 
 The list prunes itself. If you select an entry whose file has meanwhile been moved or deleted,
 the entry is removed from the dropdown and OK stays disabled until you pick a file that exists.
