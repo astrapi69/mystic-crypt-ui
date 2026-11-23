@@ -289,6 +289,60 @@ class RememberKeyFilesSettingUiTest extends AbstractUiTest
 	}
 
 	@Test
+	@DisplayName("switching the setting off, Apply and then Close warn once that the paths remain, not twice (#1002)")
+	void switchingRememberKeyFilesOff_applyAndClose_warnOnce() throws Exception
+	{
+		File database = new File(tempHome, "apply-then-close.mcrdb");
+		SignInDialogSteps signIn = launchApplication();
+		signIn.startNewDatabase(database).checkMasterPassword()
+			.typeMasterPasswordWithRepeat(MASTER_PASSWORD).checkKeyFile()
+			.createKeyFile("apply-then-close-key.pem").requireOkEnabled().okAndAwaitClose();
+		signIn.checkMasterPassword().typeMasterPassword(MASTER_PASSWORD).requireOkEnabled()
+			.okAndAwaitSignIn();
+		ApplicationSteps application = new ApplicationSteps(robot);
+		application.awaitSignedIn();
+		File remembered = new File(
+			MysticCryptApplicationFrame.getInstance().getConfigurationDirectory(),
+			MysticCryptApplicationFrame.MEMOIZED_SIGNIN_JSON_FILENAME);
+		Files.writeString(remembered.toPath(), "{\"selectedKeyFilePath\": \"/keys/a-key.pem\", ");
+
+		DialogFixture settings = application.openSettingsDialog();
+		application.selectSettingsTab(settings, "General");
+		settings.checkBox("chkRememberKeyFiles").uncheck();
+		SwingUtilities.invokeLater(() -> settings.button("btnApplySettings").target().doClick());
+		Pause.pause(new Condition("the warning of the Apply that the key file paths remain")
+		{
+			@Override
+			public boolean test()
+			{
+				return aWarningPane() != null;
+			}
+		}, TimeUnit.SECONDS.toMillis(30));
+		JOptionPane warningOfTheApply = aWarningPane();
+		GuiActionRunner.execute(() -> warningOfTheApply.setValue(JOptionPane.OK_OPTION));
+		robot.waitForIdle();
+		assertTrue(GuiActionRunner.execute(() -> settings.target().isShowing()),
+			"Apply closed the settings dialog");
+
+		SwingUtilities.invokeLater(() -> settings.button("btnCloseSettings").target().doClick());
+		Pause.pause(new Condition("the settings dialog closes, or a second warning comes")
+		{
+			@Override
+			public boolean test()
+			{
+				return aWarningPane() != null
+					|| !GuiActionRunner.execute(() -> settings.target().isShowing());
+			}
+		}, TimeUnit.SECONDS.toMillis(30));
+		JOptionPane second = aWarningPane();
+		if (second != null)
+		{
+			GuiActionRunner.execute(() -> second.setValue(JOptionPane.OK_OPTION));
+		}
+		assertNull(second, "Close warned a second time about what Apply had already said");
+	}
+
+	@Test
 	@DisplayName("switching the setting off names the copies kept aside as unreadable, with their paths")
 	void switchingRememberKeyFilesOff_namesTheKeptAsideCopies() throws Exception
 	{

@@ -31,6 +31,7 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.File;
 import java.io.Serial;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -74,8 +75,8 @@ public class NewSettingsFrameAction extends AbstractAction
 		// a settings file that cannot be read may have said on, and the paths written then are
 		// still
 		// on disk: the dialog opens with the setting off, and closing it off removes them (#997)
-		final boolean wasRemembering = settings.isRememberKeyFiles()
-			|| MysticCryptSettings.existsButCannotBeRead(frame.getConfigurationDirectory());
+		final AtomicBoolean remembering = new AtomicBoolean(settings.isRememberKeyFiles()
+			|| MysticCryptSettings.existsButCannotBeRead(frame.getConfigurationDirectory()));
 		SettingsPanel settingsPanel = new SettingsPanel(settings, frame.getPluginManager(),
 			frame::refreshPluginsMenu, frame.getConfigurationDirectory(),
 			frame.getModelObject().isSignedIn());
@@ -84,10 +85,17 @@ public class NewSettingsFrameAction extends AbstractAction
 		dialog.setName("dlgSettings");
 		dialog.getContentPane().add(settingsPanel, BorderLayout.CENTER);
 
-		JButton closeButton = new JButton("Close");
+		// Apply takes the changes in and keeps the dialog open, so a look or a lock time can be
+		// tried and changed again; Close keeps its meaning and applies too (#1002)
+		JButton applyButton = new JButton(Messages.getString("settings.button.apply", "Apply"));
+		applyButton.setName("btnApplySettings");
+		applyButton.setToolTipText(Messages.getString("settings.tooltip.apply.button",
+			"takes the changes in and keeps this dialog open"));
+		applyButton.addActionListener(event -> keepAndApply(frame, settings, remembering));
+		JButton closeButton = new JButton(Messages.getString("settings.button.close", "Close"));
 		closeButton.setName("btnCloseSettings");
 		closeButton.addActionListener(event -> {
-			keepAndApply(frame, settings, wasRemembering);
+			keepAndApply(frame, settings, remembering);
 			dialog.dispose();
 		});
 		// closing with the window button is closing too: a setting that is silently thrown away
@@ -98,10 +106,11 @@ public class NewSettingsFrameAction extends AbstractAction
 			@Override
 			public void windowClosing(final WindowEvent windowEvent)
 			{
-				keepAndApply(frame, settings, wasRemembering);
+				keepAndApply(frame, settings, remembering);
 			}
 		});
 		JPanel south = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+		south.add(applyButton);
 		south.add(closeButton);
 		dialog.getContentPane().add(south, BorderLayout.SOUTH);
 
@@ -121,20 +130,23 @@ public class NewSettingsFrameAction extends AbstractAction
 	 *            the application frame
 	 * @param settings
 	 *            the settings as the dialog left them
-	 * @param wasRemembering
-	 *            whether "Remember key files" was on when the dialog opened, or may have been,
-	 *            since the settings file could not be read: the key file paths are removed, and the
-	 *            user told about what stays, when it is switched off, not on every close while it
-	 *            is off
+	 * @param remembering
+	 *            whether "Remember key files" was on when the dialog opened or was last applied, or
+	 *            may have been, since the settings file could not be read: the key file paths are
+	 *            removed, and the user told about what stays, when it is switched off, not on every
+	 *            Apply or close while it is off (#1002). Set to the setting as it now stands
 	 */
 	private static void keepAndApply(final MysticCryptApplicationFrame frame,
-		final MysticCryptSettings settings, final boolean wasRemembering)
+		final MysticCryptSettings settings, final AtomicBoolean remembering)
 	{
 		settings.save(frame.getConfigurationDirectory());
-		if (wasRemembering && !settings.isRememberKeyFiles())
+		if (remembering.get() && !settings.isRememberKeyFiles())
 		{
 			forgetRememberedKeyFiles(frame);
 		}
+		// what the next Apply or Close compares against: the setting as it now stands on disk,
+		// so switching it off, applying and closing forgets the key files once (#1002)
+		remembering.set(settings.isRememberKeyFiles());
 		frame.applyViewMode(settings.getViewMode());
 	}
 
