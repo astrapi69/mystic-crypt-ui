@@ -29,6 +29,7 @@ import java.io.IOException;
 import java.util.Optional;
 
 import io.github.astrapi69.mystic.crypt.app.file.JsonFileStore;
+import io.github.astrapi69.mystic.crypt.app.file.KeyFilePathsNotRemovedException;
 import io.github.astrapi69.mystic.crypt.settings.MysticCryptSettings;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -67,8 +68,10 @@ public class MemoizedKeePassModelBean
 	}
 
 	/**
-	 * Saves this bean into the given configuration directory. Failures are swallowed - remembering
-	 * the last used file is a convenience only, not worth failing the calling import/export for.
+	 * Saves this bean into the given configuration directory. A failure is logged and not thrown -
+	 * remembering the last used file is a convenience only, not worth failing the calling
+	 * import/export for. The key file paths are left out when the setting "Remember key files" is
+	 * off, or when the settings file cannot be read, so that no path is written on a guess.
 	 *
 	 * @param configurationDirectory
 	 *            the application's configuration directory
@@ -76,14 +79,14 @@ public class MemoizedKeePassModelBean
 	public void save(File configurationDirectory)
 	{
 		File file = new File(configurationDirectory, JSON_FILENAME);
-		MemoizedKeePassModelBean toWrite = MysticCryptSettings.load(configurationDirectory)
-			.isRememberKeyFiles() ? this : withoutKeyFilePaths();
+		MemoizedKeePassModelBean toWrite = MysticCryptSettings
+			.rememberKeyFilesForWriting(configurationDirectory) ? this : withoutKeyFilePaths();
 		try
 		{
 			// a file that could not be read is kept aside first, not written over (#1082)
 			JsonFileStore.write(toWrite, file, MemoizedKeePassModelBean.class);
 		}
-		catch (Exception exception)
+		catch (IOException | RuntimeException exception)
 		{
 			// remembering is a convenience and must not fail the import or export, but the reason
 			// is logged, so a missing memory can be explained
@@ -126,7 +129,8 @@ public class MemoizedKeePassModelBean
 		{
 			if (file.isFile())
 			{
-				throw new IOException(file + ": the file cannot be read");
+				throw new KeyFilePathsNotRemovedException(file,
+					KeyFilePathsNotRemovedException.Reason.UNREADABLE, null);
 			}
 			return false;
 		}
@@ -137,9 +141,8 @@ public class MemoizedKeePassModelBean
 		}
 		catch (IOException notWritable)
 		{
-			throw new IOException(
-				file + ": the file cannot be written (" + notWritable.getMessage() + ")",
-				notWritable);
+			throw new KeyFilePathsNotRemovedException(file,
+				KeyFilePathsNotRemovedException.Reason.NOT_WRITABLE, notWritable);
 		}
 		return true;
 	}

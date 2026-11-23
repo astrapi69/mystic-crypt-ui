@@ -154,6 +154,25 @@ public class MysticCryptSettings
 	}
 
 	/**
+	 * Whether key file paths may be written to the remembered files of the configuration directory.
+	 * Fails closed: a settings file that exists and cannot be read is not "on", since the user may
+	 * have switched the setting off in it, so no path is written until it can be read (#997).
+	 *
+	 * @param configurationDirectory
+	 *            the application's configuration directory
+	 * @return true if the setting is on, or if there is no settings file yet
+	 */
+	public static boolean rememberKeyFilesForWriting(File configurationDirectory)
+	{
+		File file = new File(configurationDirectory, JSON_FILENAME);
+		if (file.isFile() && JsonFileStore.read(file, MysticCryptSettings.class).isEmpty())
+		{
+			return false;
+		}
+		return load(configurationDirectory).isRememberKeyFiles();
+	}
+
+	/**
 	 * Loads the settings for a change that is written back: a file that cannot be read is an error
 	 * here, not defaults, since writing defaults over it would destroy what it holds
 	 *

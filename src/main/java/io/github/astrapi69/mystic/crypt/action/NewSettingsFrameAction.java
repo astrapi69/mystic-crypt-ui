@@ -38,6 +38,7 @@ import javax.swing.*;
 
 import io.github.astrapi69.mystic.crypt.Messages;
 import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
+import io.github.astrapi69.mystic.crypt.app.file.KeyFilePathsNotRemovedException;
 import io.github.astrapi69.mystic.crypt.keepass.MemoizedKeePassModelBean;
 import io.github.astrapi69.mystic.crypt.panel.signin.RememberedKeyFileSupport;
 import io.github.astrapi69.mystic.crypt.settings.LookAndFeelChoice;
@@ -70,6 +71,7 @@ public class NewSettingsFrameAction extends AbstractAction
 		MysticCryptApplicationFrame frame = MysticCryptApplicationFrame.getInstance();
 		MysticCryptSettings settings = LookAndFeelChoice
 			.settingsForTheDialog(frame.getConfigurationDirectory());
+		final boolean wasRemembering = settings.isRememberKeyFiles();
 		SettingsPanel settingsPanel = new SettingsPanel(settings, frame.getPluginManager(),
 			frame::refreshPluginsMenu, frame.getConfigurationDirectory(),
 			frame.getModelObject().isSignedIn());
@@ -81,7 +83,7 @@ public class NewSettingsFrameAction extends AbstractAction
 		JButton closeButton = new JButton("Close");
 		closeButton.setName("btnCloseSettings");
 		closeButton.addActionListener(event -> {
-			keepAndApply(frame, settings);
+			keepAndApply(frame, settings, wasRemembering);
 			dialog.dispose();
 		});
 		// closing with the window button is closing too: a setting that is silently thrown away
@@ -92,7 +94,7 @@ public class NewSettingsFrameAction extends AbstractAction
 			@Override
 			public void windowClosing(final WindowEvent windowEvent)
 			{
-				keepAndApply(frame, settings);
+				keepAndApply(frame, settings, wasRemembering);
 			}
 		});
 		JPanel south = new JPanel(new FlowLayout(FlowLayout.RIGHT));
@@ -115,12 +117,16 @@ public class NewSettingsFrameAction extends AbstractAction
 	 *            the application frame
 	 * @param settings
 	 *            the settings as the dialog left them
+	 * @param wasRemembering
+	 *            whether "Remember key files" was on when the dialog opened: the key file paths are
+	 *            removed, and the user told about what stays, when it is switched off, not on every
+	 *            close while it is off
 	 */
 	private static void keepAndApply(final MysticCryptApplicationFrame frame,
-		final MysticCryptSettings settings)
+		final MysticCryptSettings settings, final boolean wasRemembering)
 	{
 		settings.save(frame.getConfigurationDirectory());
-		if (!settings.isRememberKeyFiles())
+		if (wasRemembering && !settings.isRememberKeyFiles())
 		{
 			forgetRememberedKeyFiles(frame);
 		}
@@ -144,7 +150,7 @@ public class NewSettingsFrameAction extends AbstractAction
 		}
 		catch (final java.io.IOException exception)
 		{
-			notRemoved.add(exception.getMessage());
+			notRemoved.add(describe(exception));
 			Logger.getLogger(NewSettingsFrameAction.class.getName()).log(Level.WARNING,
 				"the key file paths could not be removed from " + memoizedSigninFile, exception);
 		}
@@ -154,7 +160,7 @@ public class NewSettingsFrameAction extends AbstractAction
 		}
 		catch (final java.io.IOException exception)
 		{
-			notRemoved.add(exception.getMessage());
+			notRemoved.add(describe(exception));
 			Logger.getLogger(NewSettingsFrameAction.class.getName()).log(Level.WARNING,
 				"the key file paths could not be removed from the remembered KeePass paths",
 				exception);
@@ -185,5 +191,21 @@ public class NewSettingsFrameAction extends AbstractAction
 			Messages.getString("settings.general.remember.key.files.not.removed.title",
 				"Key files still remembered"),
 			JOptionPane.WARNING_MESSAGE);
+	}
+
+	/** The line of the notice for a file whose key file paths stay: its path and the reason */
+	private static String describe(final java.io.IOException exception)
+	{
+		if (exception instanceof KeyFilePathsNotRemovedException notRemoved)
+		{
+			String reason = notRemoved
+				.getReason() == KeyFilePathsNotRemovedException.Reason.UNREADABLE
+					? Messages.getString("settings.general.remember.key.files.reason.unreadable",
+						"the file cannot be read")
+					: Messages.getString("settings.general.remember.key.files.reason.not.writable",
+						"the file cannot be written");
+			return notRemoved.getFile().getAbsolutePath() + ": " + reason;
+		}
+		return exception.getMessage();
 	}
 }

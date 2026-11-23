@@ -323,14 +323,6 @@ final class SignInDialogSteps
 	 * only). Turning the key binding into an action event is the JDK's own behaviour and not what
 	 * this test owns - the application's listener on top of it is.
 	 */
-	SignInDialogSteps pressEnterInMasterPassword()
-	{
-		GuiActionRunner
-			.execute(() -> ((JTextField)dialog.textBox("txtMasterPw").target()).postActionEvent());
-		robot.waitForIdle();
-		return this;
-	}
-
 	void enterInMasterPasswordAndAwaitSignIn()
 	{
 		GuiActionRunner
