@@ -24,7 +24,6 @@
  */
 package io.github.astrapi69.mystic.crypt.ui;
 
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.File;
@@ -49,8 +48,8 @@ class NewDatabaseKeepsTheRememberedOnesUiTest extends AbstractUiTest
 	private static final String MASTER_PASSWORD = TestPasswords.throwaway();
 
 	@Test
-	@DisplayName("after a sign-in to a database made with New..., the remembered list of databases holds only the new one")
-	void aSignInToANewDatabase_forgetsTheRememberedOnes() throws Exception
+	@DisplayName("after a sign-in to a database made with New..., the remembered list of databases keeps the earlier one")
+	void aSignInToANewDatabase_keepsTheRememberedOnes() throws Exception
 	{
 		File earlier = new File(tempHome, "remembered-earlier.mcrdb");
 		createDatabaseFileHeadless(earlier, MASTER_PASSWORD);
@@ -75,7 +74,7 @@ class NewDatabaseKeepsTheRememberedOnesUiTest extends AbstractUiTest
 		List<?> databases = (List<?>)written.get("applicationFilePaths");
 		assertTrue(databases.contains(created.getAbsolutePath()),
 			"the new database is in the list: " + databases);
-		assertFalse(databases.contains(earlier.getAbsolutePath()),
-			"and the one remembered before is gone from it: " + databases);
+		assertTrue(databases.contains(earlier.getAbsolutePath()),
+			"and the one remembered before stays in it: " + databases);
 	}
 }

@@ -231,6 +231,36 @@ public class MasterPwFileModelBean implements Serializable
 		setChoicesByDatabase(memoizedSigninModelBean.getChoicesByDatabase());
 	}
 
+	/**
+	 * Takes over the databases and key files the given model remembers, after this model's own and
+	 * without duplicates. The "New..." dialog builds its model without them, and the sign-in that
+	 * follows writes this model's lists to the remembered sign-in, which lost every database
+	 * remembered before
+	 *
+	 * @param remembering
+	 *            the model whose remembered paths stay
+	 */
+	public void keepTheRememberedPathsOf(final @NonNull MasterPwFileModelBean remembering)
+	{
+		setApplicationFilePaths(
+			union(getApplicationFilePaths(), remembering.getApplicationFilePaths()));
+		setKeyFilePaths(union(getKeyFilePaths(), remembering.getKeyFilePaths()));
+	}
+
+	private static List<String> union(final List<String> own, final List<String> other)
+	{
+		java.util.Set<String> all = new java.util.LinkedHashSet<>();
+		if (own != null)
+		{
+			all.addAll(own);
+		}
+		if (other != null)
+		{
+			all.addAll(other);
+		}
+		return ListFactory.newArrayList(all);
+	}
+
 	public MemoizedSigninModelBean toMemoizedSigninModelBean(MasterPwFileModelBean modelObject)
 	{
 		Set<String> keyFilePathSet = SetFactory.newHashSet(this.keyFilePaths);
