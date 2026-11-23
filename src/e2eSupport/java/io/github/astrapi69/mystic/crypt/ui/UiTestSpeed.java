@@ -24,6 +24,12 @@
  */
 package io.github.astrapi69.mystic.crypt.ui;
 
+import java.awt.AWTException;
+import java.awt.Rectangle;
+import java.awt.Robot;
+import java.awt.Window;
+import java.util.Arrays;
+
 import org.assertj.swing.edt.GuiActionRunner;
 import org.assertj.swing.timing.Pause;
 
@@ -47,7 +53,7 @@ final class UiTestSpeed
 	private static final boolean DEMO_MODE = "demo"
 		.equalsIgnoreCase(System.getProperty(MODE_PROPERTY, "fast"));
 
-	private static final int STABLE_READS = 3;
+	private static final int STABLE_READS = 4;
 
 	private static final int STABLE_READ_INTERVAL_MILLIS = 50;
 
@@ -83,33 +89,84 @@ final class UiTestSpeed
 	 * Waits until a window that has just been shown stays where it is. A click is computed from the
 	 * window's location on screen, and the window manager can still move a new window after it is
 	 * shown (measured: AWT reported a dialog at (1280,758) and then at (640,390)), so a click
-	 * computed before that lands where the window was (#962). The location must be the same in
-	 * {@value #STABLE_READS} consecutive reads, {@value #STABLE_READ_INTERVAL_MILLIS} ms apart
+	 * computed before that lands where the window was (#962). See {@link #awaitSettled(Window...)}
 	 *
 	 * @param window
 	 *            the window that was just shown
 	 * @throws AssertionError
-	 *             if the window keeps moving, naming the last two locations
+	 *             if the window keeps moving, naming its last bounds
 	 */
-	static void awaitWindowPlaced(final java.awt.Window window)
+	static void awaitWindowPlaced(final Window window)
 	{
-		java.awt.Point previous = null;
-		java.awt.Point current = null;
+		awaitSettled(window);
+	}
+
+	/**
+	 * Waits until the given windows are showing, the event queue is empty and their bounds on
+	 * screen have stayed the same in {@value #STABLE_READS} consecutive reads,
+	 * {@value #STABLE_READ_INTERVAL_MILLIS} ms apart, and returns those bounds. The window manager
+	 * of the test display (fluxbox on Xvfb) can report a window that was just shown at another
+	 * place for a few milliseconds and then move it back, and can move the main window after it
+	 * appears; a reading taken in that moment measures where the window was not (#962, #1130). A
+	 * window that does not settle within {@value #PLACED_TIMEOUT_MILLIS} ms fails the test.
+	 *
+	 * @param windows
+	 *            the windows to read, all of them at the same moment
+	 * @return their bounds on screen, in the order given
+	 * @throws AssertionError
+	 *             if the windows keep moving, naming their last bounds
+	 */
+	static Rectangle[] awaitSettled(final Window... windows)
+	{
+		Rectangle[] last = null;
 		int sameReads = 0;
 		long deadline = System.currentTimeMillis() + PLACED_TIMEOUT_MILLIS;
 		while (System.currentTimeMillis() < deadline)
 		{
-			current = GuiActionRunner
-				.execute(() -> window.isShowing() ? window.getLocationOnScreen() : null);
-			sameReads = current != null && current.equals(previous) ? sameReads + 1 : 1;
-			if (sameReads >= STABLE_READS)
+			IdleRobot.ROBOT.waitForIdle();
+			Rectangle[] current = GuiActionRunner.execute(() -> boundsOnScreen(windows));
+			sameReads = current != null && Arrays.equals(current, last) ? sameReads + 1 : 1;
+			if (current != null && sameReads >= STABLE_READS)
 			{
-				return;
+				return current;
 			}
-			previous = current;
+			last = current;
 			Pause.pause(STABLE_READ_INTERVAL_MILLIS);
 		}
-		throw new AssertionError("the window was not placed within " + PLACED_TIMEOUT_MILLIS
-			+ " ms: it was at " + previous + " and is at " + current + " (#962)");
+		throw new AssertionError("the windows did not settle within " + PLACED_TIMEOUT_MILLIS
+			+ " ms, last bounds " + Arrays.toString(last) + " (#962, #1130)");
+	}
+
+	private static Rectangle[] boundsOnScreen(final Window... windows)
+	{
+		Rectangle[] bounds = new Rectangle[windows.length];
+		for (int index = 0; index < windows.length; index++)
+		{
+			if (!windows[index].isShowing())
+			{
+				return null;
+			}
+			bounds[index] = new Rectangle(windows[index].getLocationOnScreen(),
+				windows[index].getSize());
+		}
+		return bounds;
+	}
+
+	/** The robot that empties the event queue, made once, when a wait first needs it */
+	private static final class IdleRobot
+	{
+		private static final Robot ROBOT = create();
+
+		private static Robot create()
+		{
+			try
+			{
+				return new Robot();
+			}
+			catch (final AWTException exception)
+			{
+				throw new IllegalStateException("no robot on the test display", exception);
+			}
+		}
 	}
 }
