@@ -28,12 +28,10 @@ apply from: '../../gradle/plugin-dependency-analysis.gradle'
 // the host's formatter, import order and license header, the same in every plugin build (#666)
 apply from: '../../gradle/plugin-formatting.gradle'
 
-// The key exchange itself uses only the JDK 25 native crypto providers (javax.crypto.KEM for
-// ML-KEM, KeyPairGenerator/KeyAgreement for X25519), so this plugin deliberately does NOT depend on
-// mystic-crypt or the crypt-* libraries: that keeps it independent of whichever mystic-crypt version
-// the host happens to bundle (the ML-KEM/hybrid helpers there only exist in an unreleased version).
-// compileOnly is only the host jar (for the frame + PluginMenuContribution) and the swing helpers
-// used to open the tool window.
+// The key exchange window uses the mystic-crypt library's KeyExchangeSupport, the class the
+// command line uses as well, so the window and the command line understand each other's handshakes
+// (#895; the plugin carried a copy of it before). The host bundles mystic-crypt at runtime, so it is
+// compileOnly here, like the host jar and the swing helpers that open the tool window.
 // the host version comes from the root gradle.properties, the one hand-edited version field in
 // this repository - never repeated as a literal here, so a release cannot leave it pointing at a
 // snapshot that no longer exists (#217)
@@ -64,8 +62,8 @@ dependencies {
     // required so the @Extension annotation processor runs and writes META-INF/extensions.idx
     annotationProcessor libs.pf4j
 
-    // the round-trip test drives the ML-KEM / hybrid encapsulate + decapsulate headlessly, against
-    // the same JDK 25 native providers the panel uses - no external crypto dependency needed
+    // the round-trip tests drive the exchange headlessly through the library's KeyExchangeSupport,
+    // the class the window uses
     testImplementation libs.junit.jupiter
     testImplementation libs.mystic.crypt
     testImplementation libs.bcprov.jdk18on
