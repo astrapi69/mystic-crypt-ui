@@ -86,22 +86,6 @@ final class UiTestSpeed
 	}
 
 	/**
-	 * Waits until a window that has just been shown stays where it is. A click is computed from the
-	 * window's location on screen, and the window manager can still move a new window after it is
-	 * shown (measured: AWT reported a dialog at (1280,758) and then at (640,390)), so a click
-	 * computed before that lands where the window was (#962). See {@link #awaitSettled(Window...)}
-	 *
-	 * @param window
-	 *            the window that was just shown
-	 * @throws AssertionError
-	 *             if the window keeps moving, naming its last bounds
-	 */
-	static void awaitWindowPlaced(final Window window)
-	{
-		awaitSettled(window);
-	}
-
-	/**
 	 * Waits until the given windows are showing, the event queue is empty and their bounds on
 	 * screen have stayed the same in {@value #STABLE_READS} consecutive reads,
 	 * {@value #STABLE_READ_INTERVAL_MILLIS} ms apart, and returns those bounds. The window manager
