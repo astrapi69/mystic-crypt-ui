@@ -218,8 +218,12 @@ class MemoizedKeePassModelBeanTest
 
 		String unreadable = "{\"lastImportKeyFilePath\": \"/keys/import.key\", ";
 		Files.writeString(file.toPath(), unreadable);
-		assertThrows(IOException.class,
+		IOException reported = assertThrows(IOException.class,
 			() -> MemoizedKeePassModelBean.forgetKeyFiles(configurationDirectory));
+		assertTrue(
+			reported.getMessage().contains(file.getAbsolutePath())
+				&& reported.getMessage().contains("cannot be read"),
+			"the report names the file and the reason: " + reported.getMessage());
 		assertEquals(unreadable, Files.readString(file.toPath()), "nothing was written over it");
 	}
 }

@@ -117,9 +117,10 @@ public class MysticCryptSettings
 	 * written to those two files then, neither the one of the database signed in to last nor those
 	 * of the others, and the paths already stored there are removed when the setting is switched
 	 * off. The factors a database was opened with stay remembered, and so do the paths of the
-	 * KeePass import and export files. Not covered: the vault itself, which keeps its own encrypted
-	 * copy of the key file it was opened with (#1122), and a copy of either file that was kept
-	 * aside because it could not be read.
+	 * KeePass import and export files. Not covered: the vault itself, which keeps the key file
+	 * paths it was opened with, and a copy of either file that was kept aside as
+	 * {@code .unreadable-*} because it could not be read, which keeps its paths until the user
+	 * deletes it.
 	 */
 	private boolean rememberKeyFiles = true;
 

@@ -137,14 +137,14 @@ public class NewSettingsFrameAction extends AbstractAction
 		File configurationDirectory = frame.getConfigurationDirectory();
 		File memoizedSigninFile = new File(configurationDirectory,
 			MysticCryptApplicationFrame.MEMOIZED_SIGNIN_JSON_FILENAME);
-		boolean allRemoved = true;
+		java.util.List<String> notRemoved = new java.util.ArrayList<>();
 		try
 		{
 			RememberedKeyFileSupport.forgetKeyFiles(memoizedSigninFile);
 		}
 		catch (final java.io.IOException exception)
 		{
-			allRemoved = false;
+			notRemoved.add(exception.getMessage());
 			Logger.getLogger(NewSettingsFrameAction.class.getName()).log(Level.WARNING,
 				"the key file paths could not be removed from " + memoizedSigninFile, exception);
 		}
@@ -154,17 +154,18 @@ public class NewSettingsFrameAction extends AbstractAction
 		}
 		catch (final java.io.IOException exception)
 		{
-			allRemoved = false;
+			notRemoved.add(exception.getMessage());
 			Logger.getLogger(NewSettingsFrameAction.class.getName()).log(Level.WARNING,
 				"the key file paths could not be removed from the remembered KeePass paths",
 				exception);
 		}
-		if (!allRemoved)
+		if (!notRemoved.isEmpty())
 		{
 			JOptionPane.showMessageDialog(frame,
 				Messages.getString("settings.general.remember.key.files.not.removed",
-					"The key file paths could not be removed from the remembered sign-in or the "
-						+ "remembered KeePass paths."),
+					"The key file paths could not be removed from these files, which are left as "
+						+ "they are:")
+					+ "\n" + String.join("\n", notRemoved),
 				Messages.getString("settings.general.remember.key.files.not.removed.title",
 					"Key files still remembered"),
 				JOptionPane.WARNING_MESSAGE);

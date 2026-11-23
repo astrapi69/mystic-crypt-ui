@@ -20,7 +20,10 @@ Under the heading "Enter Master Key" there are three rows:
 Below them are **Help**, **OK** and **Cancel**.
 
 The dialog remembers your last sign-in: the files in both dropdowns, which ones were selected, and
-the state of the two checkboxes. It never remembers the password. So when you come back, the
+the state of the two checkboxes, and for each database the key file it was last opened with. It
+never remembers the password. With **Remember key files** switched off in the general settings, no
+key file path is remembered: the dialog still offers the database and the checkboxes, and you pick
+the key file each time. So when you come back, the
 dialog is usually set up already and the caret waits in the password field.
 
 ## Opening your database

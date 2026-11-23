@@ -251,8 +251,9 @@ key files** in the general settings ([[Settings-And-Plugins]]). The sign-in dial
 file path into `memoizedSignin.json`, and the paths already in it are removed when you switch the
 setting off. The two flags per database stay, so the dialog still offers the right checkboxes. The
 setting covers the key file paths of the KeePass import and export dialogs too, but not the vault
-itself, which keeps its own encrypted copy of the key file it was opened with (#1122), and not a copy of `memoizedSignin.json` that
-was kept aside because it could not be read.
+itself, which keeps the key file paths it was opened with (#1122), and not a copy of
+`memoizedSignin.json` that was kept aside as `.unreadable-*` because it could not be read: that copy
+keeps its paths until you delete it.
 
 The list prunes itself. If you select an entry whose file has meanwhile been moved or deleted,
 the entry is removed from the dropdown and OK stays disabled until you pick a file that exists.

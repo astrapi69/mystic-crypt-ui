@@ -6,7 +6,10 @@ KeePass database in, or take your data out to use in any standard KeePass client
 Both dialogs have the same three rows: **KeePass file:** (a read-only field with a `Browse...`
 button), **Password:**, and a **Key File:** checkbox with its own field and `Browse...`, which
 only work while the checkbox is checked. Both remember the last file and key file you used, in
-`memoizedKeePass.json` in the configuration directory - never the password.
+`memoizedKeePass.json` in the configuration directory - never the password. With **Remember key
+files** switched off in the general settings ([[Settings-And-Plugins]]) they remember only the
+last file: the key file path is not written, and a stored one is removed when you switch the setting
+off.
 
 ## Import from KeePass
 

@@ -174,8 +174,10 @@ class RememberKeyFilesSettingUiTest extends AbstractUiTest
 			}
 		}, TimeUnit.SECONDS.toMillis(30));
 		JOptionPane pane = aWarningPane();
-		assertTrue(String.valueOf(pane.getMessage()).contains("could not be removed"),
-			"the warning says why: " + pane.getMessage());
+		String message = String.valueOf(pane.getMessage());
+		assertTrue(message.contains(remembered.getAbsolutePath()),
+			"the warning names the file, its name and its directory: " + message);
+		assertTrue(message.contains("cannot be read"), "and says why: " + message);
 		GuiActionRunner.execute(() -> pane.setValue(JOptionPane.OK_OPTION));
 		robot.waitForIdle();
 	}

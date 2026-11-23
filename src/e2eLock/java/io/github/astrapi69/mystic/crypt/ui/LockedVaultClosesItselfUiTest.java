@@ -188,8 +188,10 @@ class LockedVaultClosesItselfUiTest extends AbstractUiTest
 		assertTrue(again.keyFileIsChecked() && again.masterPasswordIsChecked(),
 			"with both factors, as the database was opened");
 		again.requireOkDisabled();
-		assertFalse(signedInNow(),
-			"an offered key file is no way in: without the password the dialog does not open it");
+		again.pressEnterInMasterPassword();
+		assertFalse(signedInNow(), "an offered key file is no way in: Enter without the password "
+			+ "does not open the database");
+		assertTrue(again.dialogIsShowing(), "and the dialog stays");
 		again.uncheckKeyFile().checkMasterPassword().typeMasterPassword(password).requireOkEnabled()
 			.clickOk();
 		awaitAndDismissAnErrorDialog();
@@ -249,6 +251,11 @@ class LockedVaultClosesItselfUiTest extends AbstractUiTest
 		}, TimeUnit.SECONDS.toMillis(100));
 
 		SignInDialogSteps again = openTheSignInDialogOfTheRunningApplication();
+		String offeredOnOpen = again.selectedKeyFile();
+		assertTrue(offeredOnOpen == null || offeredOnOpen.isEmpty(),
+			"no key file is pre-filled when the dialog opens either: " + offeredOnOpen);
+		assertTrue(again.keyFileIsChecked(),
+			"the factor the database was opened with stays offered");
 		again.browseApplicationFile(databaseFile);
 
 		String offered = again.selectedKeyFile();

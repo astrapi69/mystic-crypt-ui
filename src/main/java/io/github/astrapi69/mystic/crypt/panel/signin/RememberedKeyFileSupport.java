@@ -178,13 +178,20 @@ public final class RememberedKeyFileSupport
 		{
 			if (memoizedSigninFile.isFile())
 			{
-				throw new java.io.IOException("the remembered sign-in " + memoizedSigninFile
-					+ " cannot be read, so the key file paths in it cannot be removed");
+				throw new java.io.IOException(memoizedSigninFile + ": the file cannot be read");
 			}
 			return false;
 		}
-		JsonFileStore.write(remembered.get().withoutKeyFilePaths(), memoizedSigninFile,
-			MemoizedSigninModelBean.class);
+		try
+		{
+			JsonFileStore.write(remembered.get().withoutKeyFilePaths(), memoizedSigninFile,
+				MemoizedSigninModelBean.class);
+		}
+		catch (final java.io.IOException notWritable)
+		{
+			throw new java.io.IOException(memoizedSigninFile + ": the file cannot be written ("
+				+ notWritable.getMessage() + ")", notWritable);
+		}
 		return true;
 	}
 }

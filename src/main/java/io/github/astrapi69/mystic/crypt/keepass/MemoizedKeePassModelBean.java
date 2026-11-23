@@ -85,7 +85,11 @@ public class MemoizedKeePassModelBean
 		}
 		catch (Exception exception)
 		{
-			// ignore
+			// remembering is a convenience and must not fail the import or export, but the reason
+			// is logged, so a missing memory can be explained
+			java.util.logging.Logger.getLogger(MemoizedKeePassModelBean.class.getName()).log(
+				java.util.logging.Level.WARNING,
+				"the remembered KeePass paths could not be written to " + file, exception);
 		}
 	}
 
@@ -122,13 +126,21 @@ public class MemoizedKeePassModelBean
 		{
 			if (file.isFile())
 			{
-				throw new IOException("the remembered KeePass paths " + file
-					+ " cannot be read, so the key file paths in it cannot be removed");
+				throw new IOException(file + ": the file cannot be read");
 			}
 			return false;
 		}
-		JsonFileStore.write(stored.get().withoutKeyFilePaths(), file,
-			MemoizedKeePassModelBean.class);
+		try
+		{
+			JsonFileStore.write(stored.get().withoutKeyFilePaths(), file,
+				MemoizedKeePassModelBean.class);
+		}
+		catch (IOException notWritable)
+		{
+			throw new IOException(
+				file + ": the file cannot be written (" + notWritable.getMessage() + ")",
+				notWritable);
+		}
 		return true;
 	}
 }

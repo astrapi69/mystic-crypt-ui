@@ -120,7 +120,8 @@ public class GeneralSettingsPanel extends JPanel
 			"whether the sign-in dialog and the KeePass dialogs remember key files; when off, no key "
 				+ "file path is written to the files of the application's configuration directory "
 				+ "(the remembered sign-in and the remembered KeePass paths), and the ones already "
-				+ "there are removed; the vault keeps its own encrypted copy (#1122)"));
+				+ "there are removed, except in a copy kept aside as .unreadable-*, which you can "
+				+ "delete; the vault keeps the key file paths it was opened with"));
 		spnAutoLockMinutes.setName("spnAutoLockMinutes");
 		spnCloseLockedMinutes.setName("spnCloseLockedMinutes");
 		spnCloseLockedMinutes.setToolTipText(Messages.getString(
