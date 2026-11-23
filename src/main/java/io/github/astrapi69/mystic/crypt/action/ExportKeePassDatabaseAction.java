@@ -26,11 +26,8 @@ package io.github.astrapi69.mystic.crypt.action;
 
 import java.awt.event.ActionEvent;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.io.InputStream;
 import java.io.OutputStream;
-import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 import javax.swing.AbstractAction;
@@ -43,6 +40,7 @@ import io.github.astrapi69.gen.tree.BaseTreeNode;
 import io.github.astrapi69.mystic.crypt.ApplicationPanel;
 import io.github.astrapi69.mystic.crypt.Messages;
 import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
+import io.github.astrapi69.mystic.crypt.keepass.KeePassCredentials;
 import io.github.astrapi69.mystic.crypt.keepass.KeePassTreeConverter;
 import io.github.astrapi69.mystic.crypt.keepass.MemoizedKeePassModelBean;
 import io.github.astrapi69.mystic.crypt.panel.dbtree.MysticCryptEntryModelBean;
@@ -145,24 +143,7 @@ public class ExportKeePassDatabaseAction extends AbstractAction
 
 	private KdbxCredentials newCredentials(ExportKeePassPanel panel) throws Exception
 	{
-		char[] password = panel.getPassword();
-		File keyFile = panel.getSelectedKeyFile();
-		if (password.length > 0 && keyFile != null)
-		{
-			try (InputStream keyFileStream = new FileInputStream(keyFile))
-			{
-				return new KdbxCredentials(new String(password).getBytes(StandardCharsets.UTF_8),
-					keyFileStream);
-			}
-		}
-		if (keyFile != null)
-		{
-			try (InputStream keyFileStream = new FileInputStream(keyFile))
-			{
-				return new KdbxCredentials(keyFileStream);
-			}
-		}
-		return new KdbxCredentials(new String(password).getBytes(StandardCharsets.UTF_8));
+		return KeePassCredentials.of(panel.getPassword(), panel.getSelectedKeyFile());
 	}
 
 

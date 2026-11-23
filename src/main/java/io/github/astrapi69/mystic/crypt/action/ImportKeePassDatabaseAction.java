@@ -28,7 +28,6 @@ import java.awt.event.ActionEvent;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
 
@@ -50,6 +49,7 @@ import io.github.astrapi69.mystic.crypt.ApplicationModelBean;
 import io.github.astrapi69.mystic.crypt.ApplicationPanel;
 import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
 import io.github.astrapi69.mystic.crypt.eventbus.ApplicationEventBus;
+import io.github.astrapi69.mystic.crypt.keepass.KeePassCredentials;
 import io.github.astrapi69.mystic.crypt.keepass.KeePassImportRefusal;
 import io.github.astrapi69.mystic.crypt.keepass.KeePassTreeConverter;
 import io.github.astrapi69.mystic.crypt.keepass.MemoizedKeePassModelBean;
@@ -134,24 +134,7 @@ public class ImportKeePassDatabaseAction extends AbstractAction
 
 	private KdbxCredentials newCredentials(ImportKeePassPanel panel) throws Exception
 	{
-		char[] password = panel.getPassword();
-		File keyFile = panel.getSelectedKeyFile();
-		if (password.length > 0 && keyFile != null)
-		{
-			try (InputStream keyFileStream = new FileInputStream(keyFile))
-			{
-				return new KdbxCredentials(new String(password).getBytes(StandardCharsets.UTF_8),
-					keyFileStream);
-			}
-		}
-		if (keyFile != null)
-		{
-			try (InputStream keyFileStream = new FileInputStream(keyFile))
-			{
-				return new KdbxCredentials(keyFileStream);
-			}
-		}
-		return new KdbxCredentials(new String(password).getBytes(StandardCharsets.UTF_8));
+		return KeePassCredentials.of(panel.getPassword(), panel.getSelectedKeyFile());
 	}
 
 	private void importDatabase(MysticCryptApplicationFrame instance,
