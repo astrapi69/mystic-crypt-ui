@@ -32,8 +32,8 @@ import io.github.astrapi69.model.BaseModel;
 import io.github.astrapi69.mystic.crypt.ApplicationModelBean;
 import io.github.astrapi69.mystic.crypt.Messages;
 import io.github.astrapi69.mystic.crypt.app.file.xml.VaultXmlCodec;
+import io.github.astrapi69.mystic.crypt.ui.screen.OwnedDialogs;
 import io.github.astrapi69.mystic.crypt.write.GuardedSave;
-import io.github.astrapi69.swing.dialog.JOptionPaneExtensions;
 import io.github.astrapi69.swing.panel.label.LabelPanel;
 
 /**
@@ -106,8 +106,8 @@ public final class SaveBeforeCloseConfirmation
 			+ "</body></html>";
 		LabelPanel panel = new LabelPanel(BaseModel
 			.of(Messages.getString("dialog.confirm.discard.while.locked.message", defaultMessage)));
-		int option = JOptionPaneExtensions.getSelectedOption(panel, JOptionPane.WARNING_MESSAGE,
-			JOptionPane.YES_NO_OPTION, parent, Messages.getString(
+		int option = OwnedDialogs.selectedOption(parent, panel, JOptionPane.WARNING_MESSAGE,
+			JOptionPane.YES_NO_OPTION, Messages.getString(
 				"dialog.confirm.discard.while.locked.title", "Discard the unsaved changes?"),
 			null);
 		return option == JOptionPane.YES_OPTION ? Choice.DISCARDED : Choice.CANCELLED;
@@ -131,9 +131,9 @@ public final class SaveBeforeCloseConfirmation
 			+ "<div>Ending now discards them. Cancel to keep reading it.</div>" + "</body></html>";
 		LabelPanel panel = new LabelPanel(BaseModel
 			.of(Messages.getString("dialog.confirm.discard.read.only.message", defaultMessage)));
-		int option = JOptionPaneExtensions.getSelectedOption(panel, JOptionPane.WARNING_MESSAGE,
-			JOptionPane.YES_NO_OPTION, parent, Messages.getString(
-				"dialog.confirm.discard.read.only.title", "Discard the unsaved changes?"),
+		int option = OwnedDialogs.selectedOption(parent, panel, JOptionPane.WARNING_MESSAGE,
+			JOptionPane.YES_NO_OPTION, Messages.getString("dialog.confirm.discard.read.only.title",
+				"Discard the unsaved changes?"),
 			null);
 		return option == JOptionPane.YES_OPTION ? Choice.DISCARDED : Choice.CANCELLED;
 	}
@@ -160,8 +160,8 @@ public final class SaveBeforeCloseConfirmation
 		String confirmMessage = Messages.getString("dialog.confirm.save.before.close.message",
 			defaultMessage);
 		LabelPanel panel = new LabelPanel(BaseModel.of(confirmMessage));
-		int option = JOptionPaneExtensions.getSelectedOption(
-			panel, JOptionPane.QUESTION_MESSAGE, JOptionPane.YES_NO_CANCEL_OPTION, parent, Messages
+		int option = OwnedDialogs.selectedOption(
+			parent, panel, JOptionPane.QUESTION_MESSAGE, JOptionPane.YES_NO_CANCEL_OPTION, Messages
 				.getString("dialog.confirm.save.before.close.title", "Save Database Before Close."),
 			null);
 		if (option == JOptionPane.YES_OPTION)

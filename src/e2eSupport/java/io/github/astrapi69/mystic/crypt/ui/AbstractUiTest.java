@@ -130,6 +130,12 @@ abstract class AbstractUiTest
 	/** The class and display name of the running test, for the guard's report */
 	private String currentTest;
 
+	/**
+	 * Whether this test opens windows without a parent on purpose, see
+	 * {@link #expectWindowsWithoutParent()}
+	 */
+	private boolean windowsWithoutParentExpected;
+
 	private Thread appThread;
 
 	/** How many sign-in dialogs this test has already found, through {@link AwaitStartup} */
@@ -195,9 +201,23 @@ abstract class AbstractUiTest
 			System.setProperty("user.home", originalUserHome);
 		}
 		deleteTempHome();
-		// measurement run of #63: list the hits of every suite; the fixes switch back to
-		// requireNone
-		sharedOwnerFrameGuard.report(currentTest);
+		if (windowsWithoutParentExpected)
+		{
+			sharedOwnerFrameGuard.report(currentTest);
+		}
+		else
+		{
+			sharedOwnerFrameGuard.requireNone();
+		}
+	}
+
+	/**
+	 * Says that this test opens windows without a parent on purpose, so the guard of #63 lists them
+	 * instead of failing the test. Only for a test about such windows themselves
+	 */
+	protected final void expectWindowsWithoutParent()
+	{
+		windowsWithoutParentExpected = true;
 	}
 
 	private void deleteTempHome()

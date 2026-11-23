@@ -48,7 +48,7 @@ import io.github.astrapi69.mystic.crypt.lock.UnlockCheck;
 import io.github.astrapi69.mystic.crypt.panel.signin.MasterPwFileModelBean;
 import io.github.astrapi69.mystic.crypt.secret.SecretBuffers;
 import io.github.astrapi69.mystic.crypt.settings.MysticCryptSettings;
-import io.github.astrapi69.swing.dialog.JOptionPaneExtensions;
+import io.github.astrapi69.mystic.crypt.ui.screen.OwnedDialogs;
 import lombok.extern.java.Log;
 
 /**
@@ -150,8 +150,8 @@ public class LockWorkspaceAction extends AbstractAction
 			return;
 		}
 		UnlockFields fields = unlockFields(frame, credentials);
-		int option = JOptionPaneExtensions.getSelectedOption(fields.panel(),
-			JOptionPane.PLAIN_MESSAGE, JOptionPane.OK_CANCEL_OPTION, frame, UNLOCK_PROMPT_TITLE,
+		int option = OwnedDialogs.selectedOption(frame, fields.panel(), JOptionPane.PLAIN_MESSAGE,
+			JOptionPane.OK_CANCEL_OPTION, UNLOCK_PROMPT_TITLE,
 			fields.password() != null ? fields.password() : fields.keyFile());
 		if (option != JOptionPane.OK_OPTION)
 		{

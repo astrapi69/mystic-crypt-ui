@@ -36,17 +36,18 @@ import org.assertj.swing.fixture.FrameFixture;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import io.github.astrapi69.mystic.crypt.MenuId;
 import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
 import io.github.astrapi69.mystic.crypt.TestPasswords;
 
 /**
- * Where a dialog of the database tree opens when the main window is not in the middle of the screen
+ * Where the dialogs of the application open when the main window is not in the middle of the screen
  * (#63).
  * <p>
  * With more than one monitor the application can sit on the second screen while its dialogs open on
  * the first. The display of the tests has one screen, so the test moves the main window far from
  * its middle instead: a dialog that belongs to the window opens centred over the window, and one
- * that belongs to nobody opens centred over the screen.
+ * that is centred on the screen opens over the middle of the screen.
  */
 class ADialogOpensOverTheMainWindowUiTest extends AbstractUiTest
 {
@@ -60,7 +61,53 @@ class ADialogOpensOverTheMainWindowUiTest extends AbstractUiTest
 	@DisplayName("the New node dialog opens centred over the moved main window, not over the screen")
 	void theNewNodeDialog_opensOverTheMainWindow() throws Exception
 	{
-		File databaseFile = new File(tempHome, "dialog-placement.mcrdb");
+		MovedMainWindow moved = signInAndMoveTheMainWindowAway("dialog-placement.mcrdb");
+
+		moved.application().openNewNodeDialog(moved.frame());
+		DialogFixture newNode = moved.application().findDialogWithTitle("New node");
+		Rectangle[] settled = UiTestSpeed.awaitSettled(newNode.target(), moved.window());
+		Point dialogCentre = centreOf(settled[0]);
+		Point windowCentre = centreOf(settled[1]);
+		newNode.close();
+
+		assertTrue(near(dialogCentre, windowCentre),
+			"the dialog is centred over the main window " + windowCentre + ", at " + dialogCentre
+				+ ", not over the screen at " + moved.screenCentre());
+	}
+
+	@Test
+	@DisplayName("the Search dialog opens centred over the moved main window, not over the screen")
+	void theSearchDialog_opensOverTheMainWindow() throws Exception
+	{
+		MovedMainWindow moved = signInAndMoveTheMainWindowAway("search-placement.mcrdb");
+
+		moved.application().fireMenuItem(MenuId.SEARCH.propertiesKey());
+		DialogFixture search = moved.application().findDialogWithTitle("Search");
+		Rectangle[] settled = UiTestSpeed.awaitSettled(search.target(), moved.window());
+		Point dialogCentre = centreOf(settled[0]);
+		Point windowCentre = centreOf(settled[1]);
+		Point screenCentre = moved.screenCentre();
+		search.close();
+
+		assertTrue(near(dialogCentre, windowCentre),
+			"the Search dialog is centred over the main window " + windowCentre + ", at "
+				+ dialogCentre + ", not over the screen at " + screenCentre);
+	}
+
+	/**
+	 * Signs in to a new database and moves the main window to the lower right of the screen, far
+	 * from its middle
+	 *
+	 * @param databaseName
+	 *            the name of the database file in the test's home
+	 * @return the steps, the window and the centre of the screen
+	 * @throws Exception
+	 *             if the database cannot be created or the sign-in fails
+	 */
+	private MovedMainWindow signInAndMoveTheMainWindowAway(final String databaseName)
+		throws Exception
+	{
+		File databaseFile = new File(tempHome, databaseName);
 		createDatabaseFileHeadless(databaseFile, MASTER_PASSWORD);
 		ApplicationSteps application = signInWithExistingDatabase(databaseFile, MASTER_PASSWORD);
 		FrameFixture frame = application.showMainFrame();
@@ -74,16 +121,7 @@ class ADialogOpensOverTheMainWindowUiTest extends AbstractUiTest
 		assertTrue(Math.abs(movedCentre.x - screenCentre.x) > 3 * TOLERANCE,
 			"precondition: the main window is far from the middle of the screen, window "
 				+ movedCentre + ", screen " + screenCentre);
-
-		application.openNewNodeDialog(frame);
-		DialogFixture newNode = application.findDialogWithTitle("New node");
-		Rectangle[] settled = UiTestSpeed.awaitSettled(newNode.target(), mainWindow);
-		Point dialogCentre = centreOf(settled[0]);
-		Point windowCentre = centreOf(settled[1]);
-		newNode.close();
-
-		assertTrue(near(dialogCentre, windowCentre), "the dialog is centred over the main window "
-			+ windowCentre + ", at " + dialogCentre + ", not over the screen at " + screenCentre);
+		return new MovedMainWindow(application, frame, mainWindow, screenCentre);
 	}
 
 	private static Point centreOf(final Rectangle boundsOnScreen)
@@ -95,5 +133,21 @@ class ADialogOpensOverTheMainWindowUiTest extends AbstractUiTest
 	private static boolean near(final Point one, final Point other)
 	{
 		return Math.abs(one.x - other.x) <= TOLERANCE && Math.abs(one.y - other.y) <= TOLERANCE;
+	}
+
+	/**
+	 * The main window, moved away from the middle of the screen
+	 *
+	 * @param application
+	 *            the steps of the signed-in application
+	 * @param frame
+	 *            the fixture of the main window
+	 * @param window
+	 *            the main window
+	 * @param screenCentre
+	 *            the centre of the screen it is on
+	 */
+	private record MovedMainWindow(ApplicationSteps application, FrameFixture frame,
+		MysticCryptApplicationFrame window, Point screenCentre) {
 	}
 }
