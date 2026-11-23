@@ -20,7 +20,8 @@ GRADLE = re.compile(r"\bgradlew\b")
 SCRIPT = re.compile(r"scripts/[A-Za-z0-9_./-]+")
 TARGET = re.compile(r"^([A-Za-z0-9][A-Za-z0-9_-]*):(?!=)")
 # make is started by make in CI and by this suite's callers: nothing of the outer run may reach the inner one
-OUTER_RUN = ("GRADLE_SLOT", "GITHUB_ACTIONS", "MAKEFLAGS", "MFLAGS", "MAKELEVEL", "MAKEOVERRIDES")
+OUTER_RUN = ("GRADLE_SLOT", "GRADLE_SLOT_RUNNER", "GITHUB_ACTIONS", "MAKEFLAGS", "MFLAGS", "MAKELEVEL", "MAKEOVERRIDES",
+             "MAKEFILES", "TARGET")
 
 
 def environment(**extra):
@@ -142,13 +143,13 @@ class WithoutSlotTest(unittest.TestCase):
     def test_without_slot_is_no_gradle_target_itself(self):
         self.assertNotIn("without-slot", GRADLE_TARGETS)
 
-    def test_the_target_given_to_without_slot_reaches_the_recipes_below_it(self):
+    def test_the_target_given_to_without_slot_does_not_reach_the_recipes_below_it(self):
         with tempfile.TemporaryDirectory() as folder:
             probe = Path(folder) / "probe.mk"
             probe.write_text('show-target:\n\t@echo "TARGET=[$$TARGET]"\n', encoding="utf-8")
             result = make(["without-slot", "TARGET=show-target"], MAKEFILES=str(probe))
         self.assertEqual(0, result.returncode, result.stderr)
-        self.assertIn("TARGET=[show-target]", result.stdout)
+        self.assertIn("TARGET=[]", result.stdout)
 
 
 if __name__ == "__main__":

@@ -77,10 +77,11 @@ endif
 endif
 endif
 
-# the one deliberate way around the slot: TARGET runs with GRADLE_SLOT=none, which the guard above accepts
+# the one deliberate way around the slot: TARGET runs with GRADLE_SLOT=none, which the guard above accepts. TARGET=
+# is passed on empty: a command-line variable reaches every recipe below, and merge-pr reads TARGET as its branch
 without-slot: ## [build] runs TARGET without the build slot, deliberately: make without-slot TARGET=<target>
 	$(if $(TARGET),,$(error without-slot needs the target to run: make without-slot TARGET=<target>))
-	$(MAKE) $(TARGET) GRADLE_SLOT=none
+	$(MAKE) $(TARGET) GRADLE_SLOT=none TARGET=
 
 # every target, grouped, with the description on its own rule line after ##, so the Makefile is the
 # one place a target is described; MakefileTargetsAreDescribedTest fails on a target without one
