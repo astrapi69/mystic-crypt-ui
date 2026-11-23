@@ -44,7 +44,6 @@ dependencies {
     runtimeOnly libs.silk.icon.theme
     implementation libs.silly.collection
     implementation libs.silly.bean
-    implementation libs.commons.codec
     implementation libs.checksum.up
     // mystic-crypt brings crypt-api, silly-bean and bouncycastle along as api dependencies, and
     // they are not pinned again here
@@ -64,7 +63,6 @@ dependencies {
     implementation libs.throwable
     implementation libs.file.worker
     implementation libs.jobj.core
-    implementation libs.silly.io
     implementation libs.swing.renderer
     implementation libs.flatlaf
     implementation libs.component.model
@@ -75,16 +73,16 @@ dependencies {
     implementation libs.menu.action
     implementation libs.net.extensions
     implementation libs.gen.tree
-    implementation libs.gson
-    implementation libs.jobj.copy
     implementation libs.data.api
     implementation libs.id.generate
     implementation libs.xstream
     implementation libs.gson.extensions
     implementation libs.xstream.extensions
     implementation libs.resourcebundle.core
+    // no class file of the host names tree-api (jdeps), but javac needs it: ITree is the supertype of the nodes
+    // whose getDisplayValue TreeNodeNameTransferHandler calls (without the line: "Kein Zugriff auf ITree",
+    // measured 2026-11-20). The dependency-analysis plugin cannot see a supertype, so it is excluded there
     implementation libs.tree.api
-    implementation libs.jobj.cloner
     implementation libs.awt.extensions
     implementation libs.swing.model.components
     implementation libs.swing.wizard
@@ -96,6 +94,20 @@ dependencies {
     // library which brought an old version back would still ship a safe one, and RuntimeDependenciesTest
     // proves the floor
     constraints {
+        // gson and silly-io are no dependency of this application: no class of the host jar names them
+        // (jdeps), and gson-extensions and file-worker bring them. Both ask for the chosen releases
+        // themselves today (measured 2026-11-20 without these two constraints: gson 2.15.0, silly-io
+        // 5.0), so the constraints change nothing now; resourcebundle-core 6.1 asks for silly-io 3.1,
+        // which is what the silly-io constraint guards against. They stay, on the maintainer's decision of
+        // 2026-11-18, in place of the declarations that said "used": an older release of either library
+        // cannot bring a lower one back. RuntimeDependenciesTest proves what ships is at least these
+        implementation(libs.gson) {
+            because 'gson before the chosen release would be a downgrade, which a library that asks for less could cause'
+        }
+        implementation(libs.silly.io) {
+            because 'silly-io 4.0 took the extension from the file name only and fixed a data loss in a ' +
+                'copy and a rename below a dotted directory (#720); a library that asks for less could bring it back'
+        }
         // assertj-swing 3.17.1, its last release, brings assertj-core 3.17.2 onto every test class path
         // (the end-to-end source sets extend testImplementation), which has the XXE of
         // GHSA-rqfh-9r24-8c9r; 3.27.7 is the release that fixes it (#692). Tests only, nothing ships
@@ -132,6 +144,10 @@ dependencies {
     // backend to turn up. slf4j-simple writes to stderr, so piped --cli output stays clean, and
     // MysticCryptUiCli.configureCliLogging maps the verbose switch onto its default level.
     runtimeOnly libs.slf4j.simple
+
+    // silly-io is used by two tests and by no class of the application
+    // (jdeps over the host jar, 2026-11-20). What ships is held by the constraint above
+    testImplementation libs.silly.io
 
     // Note: use of bundles...
     testImplementation libs.bundles.unit.testing
