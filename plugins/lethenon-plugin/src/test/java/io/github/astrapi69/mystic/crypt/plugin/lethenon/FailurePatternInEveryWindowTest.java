@@ -143,7 +143,7 @@ class FailurePatternInEveryWindowTest
 					view.onShow();
 				}, "There is no chain at this place yet.", "tblBlocks")),
 			Arguments.of(new WindowFailure("Send LETH, a wrong wallet password",
-				LethenonSendPanel::new, panel -> {
+				OnTheTestNetwork::sendPanel, panel -> {
 					LethenonSendPanel send = (LethenonSendPanel)panel;
 					send.getModelObject().setChainFile(chainFile.toString());
 					send.getModelObject().setWalletFile(walletFile.toString());

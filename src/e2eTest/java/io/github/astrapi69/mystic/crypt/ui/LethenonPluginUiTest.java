@@ -40,6 +40,7 @@ import java.security.KeyPair;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
@@ -49,9 +50,11 @@ import javax.swing.SwingUtilities;
 import javax.swing.text.JTextComponent;
 
 import org.assertj.swing.edt.GuiActionRunner;
+import org.assertj.swing.finder.JOptionPaneFinder;
 import org.assertj.swing.fixture.FrameFixture;
 import org.assertj.swing.fixture.JComboBoxFixture;
 import org.assertj.swing.fixture.JInternalFrameFixture;
+import org.assertj.swing.fixture.JOptionPaneFixture;
 import org.assertj.swing.timing.Condition;
 import org.assertj.swing.timing.Pause;
 import org.junit.jupiter.api.DisplayName;
@@ -342,7 +345,7 @@ class LethenonPluginUiTest extends AbstractUiTest
 			tool.textBox("txtMemo").target().setText("watching is not protecting");
 		});
 		UiTestSpeed.step();
-		SwingUtilities.invokeLater(() -> tool.button("btnSend").target().doClick());
+		sendAnswering(tool, "TESTNET");
 
 		Pause.pause(new Condition("the transfer is signed")
 		{
@@ -378,6 +381,58 @@ class LethenonPluginUiTest extends AbstractUiTest
 			.execute(() -> tool.textBox("txtPassword").target().getText());
 		assertTrue(passwordLeft.isEmpty(), "the password field is cleared after one use");
 		assertTrue(frame.isEnabled(), "the application is still usable after a transfer");
+	}
+
+	@Test
+	@DisplayName("a send from a wallet file asks which network the wallet is on: Cancel signs nothing, the test network signs (#978)")
+	void aSendFromAWalletFile_asksWhichNetwork() throws Exception
+	{
+		installPluginRequiringItBuilt(LETHENON_ZIP);
+		String walletPassword = TestPasswords.throwaway();
+		Wallet wallet = Wallet.create();
+		File walletFile = new File(tempHome, "wallet.lethenon-wallet");
+		WalletFile.write(walletFile.toPath(), wallet, walletPassword.toCharArray());
+		File chainFile = LethenonTestChains.payingTheWallet(wallet, tempHome);
+		Bytes recipient = TransactionSigner
+			.asBytes(TransactionSigner.newKeyPair(SignatureSuite.ED25519).getPublic());
+		File databaseFile = new File(tempHome, "lethenon-network.mcrdb");
+		createDatabaseFileHeadless(databaseFile, MASTER_PASSWORD);
+		ApplicationSteps application = signInWithExistingDatabase(databaseFile, MASTER_PASSWORD);
+		FrameFixture frame = application.showMainFrame();
+		application.openPluginTool("Send LETH", "Send LETH");
+		JInternalFrameFixture tool = new JInternalFrameFixture(robot,
+			application.internalFrame("Send LETH"));
+		GuiActionRunner.execute(() -> {
+			tool.textBox("txtChainFile").target().setText(chainFile.getAbsolutePath());
+			tool.textBox("txtWalletFile").target().setText(walletFile.getAbsolutePath());
+			tool.textBox("txtPassword").target().setText(walletPassword);
+			tool.textBox("txtRecipient").target().setText(recipient.toString());
+			tool.textBox("txtAmount").target().setText("1");
+		});
+		UiTestSpeed.step();
+
+		sendAnswering(tool, "Cancel");
+
+		Pause.pause(new Condition("the window says the send was cancelled")
+		{
+			@Override
+			public boolean test()
+			{
+				return GuiActionRunner.execute(() -> tool.label("lblResult").target().getText())
+					.contains("you cancelled before anything was signed");
+			}
+		}, 30000);
+		assertTrue(new ChainFile(chainFile.toPath()).readPending().isEmpty(),
+			"Cancel at the network question signs nothing");
+
+		GuiActionRunner.execute(() -> tool.textBox("txtPassword").target().setText(walletPassword));
+		sendAnswering(tool, "TESTNET");
+
+		awaitText(tool, "txtAnswer", "Sent:", "the transfer is signed on the test network");
+		List<SignedTransaction> pending = new ChainFile(chainFile.toPath()).readPending();
+		assertEquals(1, pending.size(), "the test network answer signs the one transfer");
+		assertEquals(Destination.direct(recipient), pending.getFirst().body().recipient());
+		assertTrue(frame.isEnabled(), "the application is still usable after both answers");
 	}
 
 	@Test
@@ -643,7 +698,7 @@ class LethenonPluginUiTest extends AbstractUiTest
 			send.textBox("txtAmount").target().setText("2");
 		});
 		UiTestSpeed.step();
-		SwingUtilities.invokeLater(() -> send.button("btnSend").target().doClick());
+		sendAnswering(send, "TESTNET");
 		awaitText(send, "txtAnswer", "Sent:", "the payment is signed");
 		String sendReport = textOf(send, "txtAnswer") + " " + textOf(send, "txtSentTo");
 		Destination oneTime = chain.readPending().getFirst().body().recipient();
@@ -831,7 +886,7 @@ class LethenonPluginUiTest extends AbstractUiTest
 				send.textBox("txtNode").target().setText("127.0.0.1:" + port);
 			});
 			UiTestSpeed.step();
-			SwingUtilities.invokeLater(() -> send.button("btnSend").target().doClick());
+			sendAnswering(send, "TESTNET");
 			awaitText(send, "txtAnswer", "The node at 127.0.0.1:" + port,
 				"the transfer is handed to the node");
 			assertEquals("in the pool of the node at 127.0.0.1:" + port,
@@ -954,6 +1009,19 @@ class LethenonPluginUiTest extends AbstractUiTest
 				+ GuiActionRunner.execute(() -> tool.label("lblResult").target().getText()) + "'",
 				timedOut);
 		}
+	}
+
+	/**
+	 * Clicks Send and answers the question a send from a wallet file asks since #978, which network
+	 * the wallet is on: a wallet file records none, so the window asks before it signs anything
+	 */
+	private void sendAnswering(final JInternalFrameFixture tool, final String answer)
+	{
+		SwingUtilities.invokeLater(() -> tool.button("btnSend").target().doClick());
+		JOptionPaneFixture question = JOptionPaneFinder.findOptionPane()
+			.withTimeout(20, TimeUnit.SECONDS).using(robot);
+		question.requireTitle("Which network?");
+		question.buttonWithText(answer).click();
 	}
 
 	/**

@@ -72,7 +72,7 @@ import io.github.astrapi69.mystic.crypt.settings.PluginSettings;
 class LethenonSendPanelBindingTest
 {
 
-	private static final String PASSWORD = "correct horse battery staple";
+	private final String password = String.valueOf(ThrowawayPasswords.next());
 
 	@TempDir
 	File configurationDirectory;
@@ -95,7 +95,7 @@ class LethenonSendPanelBindingTest
 			configurationDirectory.getAbsolutePath());
 		wallet = Wallet.create();
 		walletFile = new File(directory, "wallet.lethenon-wallet").toPath();
-		WalletFile.write(walletFile, wallet, PASSWORD.toCharArray());
+		WalletFile.write(walletFile, wallet, password.toCharArray());
 		KeyPair payer = TransactionSigner.newKeyPair(SignatureSuite.ED25519);
 		chainFile = new File(directory, "chain.lethenon").toPath();
 		LethenonFixtures.written(chainFile, LethenonFixtures.aChainPayingTheWallet(payer, wallet));
@@ -174,7 +174,7 @@ class LethenonSendPanelBindingTest
 	@DisplayName("sending leaves the signed transfer with its memo waiting next to the chain file")
 	void sending_writesTheTransferToThePendingFile() throws Exception
 	{
-		LethenonSendPanel panel = filledPanel(PASSWORD, "1.25");
+		LethenonSendPanel panel = filledPanel(password, "1.25");
 
 		panel.onSend();
 
@@ -219,7 +219,7 @@ class LethenonSendPanelBindingTest
 			}))
 		{
 			String address = "127.0.0.1:" + running.port();
-			LethenonSendPanel panel = filledPanel(PASSWORD, "2");
+			LethenonSendPanel panel = filledPanel(password, "2");
 			panel.getModelObject().setChainFile(testChain.toString());
 			panel.getModelObject().setNode("");
 
@@ -239,7 +239,7 @@ class LethenonSendPanelBindingTest
 	@DisplayName("what only a specialist reads - the transfer's number and what else waits - is behind \"Show details\", closed at first (#604)")
 	void theDetails_areClosedAtFirst_andOpenOnAClick() throws Exception
 	{
-		LethenonSendPanel panel = filledPanel(PASSWORD, "1");
+		LethenonSendPanel panel = filledPanel(password, "1");
 		panel.onSend();
 		JPanel details = component(panel, "pnlDetails", JPanel.class);
 
@@ -255,7 +255,7 @@ class LethenonSendPanelBindingTest
 	@DisplayName("every field, button and choice of the window has a tooltip in plain words (#604)")
 	void everyFieldAndButton_hasATooltip() throws Exception
 	{
-		LethenonSendPanel panel = filledPanel(PASSWORD, "1");
+		LethenonSendPanel panel = filledPanel(password, "1");
 		panel.onSend();
 
 		assertEquals(List.of(), Windows.withoutATooltip(panel),
@@ -272,7 +272,7 @@ class LethenonSendPanelBindingTest
 		try (Node node = Node.serving(new ChainFile(testChain)))
 		{
 			String address = "127.0.0.1:" + node.listen(0);
-			LethenonSendPanel panel = filledPanel(PASSWORD, "2");
+			LethenonSendPanel panel = filledPanel(password, "2");
 			panel.getModelObject().setChainFile(testChain.toString());
 			panel.getModelObject().setNode(address);
 
@@ -293,7 +293,7 @@ class LethenonSendPanelBindingTest
 	void sending_toAPublishedAddress_reportsTheAddressOnly() throws Exception
 	{
 		String address = Wallet.create().address().toText();
-		LethenonSendPanel panel = filledPanel(PASSWORD, "1");
+		LethenonSendPanel panel = filledPanel(password, "1");
 		panel.getModelObject().setRecipientKind(RecipientKind.PUBLISHED_ADDRESS);
 		panel.getModelObject().setRecipient(address);
 
@@ -314,13 +314,13 @@ class LethenonSendPanelBindingTest
 	@DisplayName("the password is gone from the model once the transfer was signed, and was in no text")
 	void sending_dropsThePassword() throws Exception
 	{
-		LethenonSendPanel panel = filledPanel(PASSWORD, "1");
+		LethenonSendPanel panel = filledPanel(password, "1");
 
 		panel.onSend();
 
 		assertEquals(0, panel.getModelObject().getPassword().length);
-		assertFalse(textsOf(panel).stream().anyMatch(text -> text.contains(PASSWORD)));
-		assertFalse(panel.getModelObject().getResultText().contains(PASSWORD));
+		assertFalse(textsOf(panel).stream().anyMatch(text -> text.contains(password)));
+		assertFalse(panel.getModelObject().getResultText().contains(password));
 	}
 
 	/** The components of the answer, which show only once a transfer was signed (G3, #816) */
@@ -357,7 +357,7 @@ class LethenonSendPanelBindingTest
 		LethenonSendPanel panel = filledPanel("not the password at all", "1");
 		panel.onSend();
 		assertFalse(anyAnswerShows(panel), "an answer shows after the failure");
-		panel.getModelObject().setPassword(PASSWORD.toCharArray());
+		panel.getModelObject().setPassword(password.toCharArray());
 
 		panel.onSend();
 
@@ -370,10 +370,10 @@ class LethenonSendPanelBindingTest
 	@DisplayName("a signed transfer, then a failure: no answer shows (#816)")
 	void aSignedTransferThenAFailure_showsNoAnswer() throws Exception
 	{
-		LethenonSendPanel panel = filledPanel(PASSWORD, "1");
+		LethenonSendPanel panel = filledPanel(password, "1");
 		panel.onSend();
 		panel.getModelObject().setAmount("300");
-		panel.getModelObject().setPassword(PASSWORD.toCharArray());
+		panel.getModelObject().setPassword(password.toCharArray());
 
 		panel.onSend();
 
@@ -385,7 +385,7 @@ class LethenonSendPanelBindingTest
 	@DisplayName("after a transfer was signed the answer shows")
 	void afterASignedTransfer_theAnswerShows() throws Exception
 	{
-		LethenonSendPanel panel = filledPanel(PASSWORD, "1");
+		LethenonSendPanel panel = filledPanel(password, "1");
 
 		panel.onSend();
 
@@ -397,11 +397,11 @@ class LethenonSendPanelBindingTest
 	@DisplayName("a transfer the account cannot cover after one that was signed empties every field and leaves no further transfer")
 	void sending_tooMuch_reportsTheReasonOnly() throws Exception
 	{
-		LethenonSendPanel panel = filledPanel(PASSWORD, "1");
+		LethenonSendPanel panel = filledPanel(password, "1");
 		panel.onSend();
 		new ChainFile(chainFile).writePending(List.of());
 		panel.getModelObject().setAmount("300");
-		panel.getModelObject().setPassword(PASSWORD.toCharArray());
+		panel.getModelObject().setPassword(password.toCharArray());
 
 		panel.onSend();
 
@@ -441,17 +441,17 @@ class LethenonSendPanelBindingTest
 		char[] first = "first".toCharArray();
 		model.setPassword(first);
 
-		model.setPassword("second".toCharArray());
+		model.setPassword(ThrowawayPasswords.next());
 
 		assertArrayEquals(new char[5], first);
 	}
 
-	private LethenonSendPanel filledPanel(final String password, final String amount)
+	private LethenonSendPanel filledPanel(final String walletPassword, final String amount)
 	{
-		LethenonSendPanel panel = new LethenonSendPanel();
+		LethenonSendPanel panel = OnTheTestNetwork.sendPanel();
 		panel.getModelObject().setChainFile(chainFile.toString());
 		panel.getModelObject().setWalletFile(walletFile.toString());
-		panel.getModelObject().setPassword(password.toCharArray());
+		panel.getModelObject().setPassword(walletPassword.toCharArray());
 		panel.getModelObject().setRecipient(recipient.toString());
 		panel.getModelObject().setAmount(amount);
 		panel.getModelObject().setMemo("watching is not protecting");

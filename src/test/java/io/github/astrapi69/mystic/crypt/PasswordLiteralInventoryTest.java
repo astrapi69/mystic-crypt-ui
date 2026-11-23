@@ -87,9 +87,6 @@ class PasswordLiteralInventoryTest
 			"plugins/lethenon-plugin/src/test/java/io/github/astrapi69/mystic/crypt/plugin/lethenon/LethenonNodePanelBindingTest.java",
 			1),
 		Map.entry(
-			"plugins/lethenon-plugin/src/test/java/io/github/astrapi69/mystic/crypt/plugin/lethenon/LethenonSendPanelBindingTest.java",
-			2),
-		Map.entry(
 			"plugins/lethenon-plugin/src/test/java/io/github/astrapi69/mystic/crypt/plugin/lethenon/LethenonSweepPanelBindingTest.java",
 			2),
 		Map.entry(
@@ -101,9 +98,6 @@ class PasswordLiteralInventoryTest
 		Map.entry(
 			"plugins/lethenon-plugin/src/test/java/io/github/astrapi69/mystic/crypt/plugin/lethenon/NodeSupportTest.java",
 			1),
-		Map.entry(
-			"plugins/lethenon-plugin/src/test/java/io/github/astrapi69/mystic/crypt/plugin/lethenon/RememberWhatWorkedTest.java",
-			2),
 		Map.entry(
 			"plugins/lethenon-plugin/src/test/java/io/github/astrapi69/mystic/crypt/plugin/lethenon/SweepSupportTest.java",
 			1),
