@@ -19,6 +19,8 @@ new CLI capability is built in the library first. Vault format: versioned
 line in the Makefile (#911); `docs/development.md` says which to run for what.
 
 - `make build` / `make build-full` — build (full = with all checks)
+- A target that starts Gradle runs only inside the build slot (`GRADLE_SLOT`); without one it refuses:
+  run it through the slot, or with `make without-slot TARGET=<target>`
 - `make test` — the everyday gate; must stay green after every change
 - `make test-e2e` — Swing e2e suite; every test task of every build runs on an Xvfb of its own,
   never on the desktop's display (#505, rules/lessons-learned.md)
