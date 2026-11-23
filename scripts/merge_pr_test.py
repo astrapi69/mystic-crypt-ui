@@ -14,6 +14,7 @@ import contextlib
 import io
 import json
 import os
+import re
 import subprocess
 import sys
 import tempfile
@@ -491,8 +492,36 @@ class GuardTest(unittest.TestCase):
         def fetch(branch):
             return REQUIRED if branch == "develop" else None
         contexts, note = resolve_required("hotfix/8.5.1", fetch)
-        self.assertEqual(contexts, REQUIRED)
+        self.assertEqual(contexts, ["build"])
         self.assertIn("develop", note)
+
+    def test_hotfix_leaves_out_the_checks_that_run_only_on_pull_requests_into_develop(self):
+        # closing-references and release-freeze run on pull requests into develop only, so a
+        # hotfix pull request never reports them: the wait for them ended in a refusal
+        def fetch(branch):
+            return REQUIRED if branch == "develop" else None
+        contexts, _ = resolve_required("hotfix/8.5.1", fetch)
+        self.assertNotIn("closing-references", contexts)
+        self.assertNotIn("release-freeze", contexts)
+
+    def test_hotfix_with_only_develop_only_checks_borrows_nothing(self):
+        def fetch(branch):
+            return ["closing-references", "release-freeze"] if branch == "develop" else None
+        contexts, note = resolve_required("hotfix/8.5.1", fetch)
+        self.assertEqual(contexts, [])
+        self.assertIsNone(note)
+
+    def test_develop_only_checks_start_for_pull_requests_into_develop_only(self):
+        # the list above is true as long as these workflows start for develop alone; a workflow
+        # that also starts for hotfix branches fails here and its check leaves the list
+        workflows = Path(__file__).resolve().parent.parent / ".github" / "workflows"
+        for name in ("closing-references.yml", "release-freeze.yml"):
+            text = (workflows / name).read_text(encoding="utf-8")
+            branches = re.findall(r"^\s*branches:\s*\[([^\]]*)\]", text, re.MULTILINE)
+            self.assertTrue(branches, f"{name} names no branches")
+            for listed in branches:
+                self.assertEqual([branch.strip().strip("'\"") for branch in listed.split(",")], ["develop"],
+                                 f"{name} starts for {listed.strip()}")
 
     def test_target_without_required_checks_resolves_empty(self):
         contexts, note = resolve_required("develop", lambda branch: None)

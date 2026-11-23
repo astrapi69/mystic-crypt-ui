@@ -368,17 +368,26 @@ def merge_command(pr, head_sha, subject, body):
             "-f", f"commit_title={subject}", "-f", f"commit_message={body}"]
 
 
+DEVELOP_ONLY_CHECKS = ("closing-references", "release-freeze")
+"""Required on develop and reported only on pull requests into develop: their
+workflows (.github/workflows/closing-references.yml, release-freeze.yml) start
+for no other base, so a hotfix pull request never reports them."""
+
+
 def resolve_required(target, fetch):
     """The required contexts of the target's branch protection; a hotfix branch
-    without protection of its own borrows develop's (#395). A target without
-    required checks is refused: nothing then says what green means (#493).
-    ``fetch`` maps a branch name to its contexts list or None."""
+    without protection of its own borrows those of develop's that run on a pull
+    request into it (#395): waiting for a check that never reports ends in a
+    refusal. A target without required checks is refused: nothing then says what
+    green means (#493). ``fetch`` maps a branch name to its contexts list or None."""
     contexts = fetch(target)
     note = None
     if not contexts and target.startswith("hotfix/"):
-        contexts = fetch("develop")
+        borrowed = fetch("develop") or []
+        contexts = [context for context in borrowed if context not in DEVELOP_ONLY_CHECKS]
         if contexts:
-            note = f"note: {target} has no protection of its own - waiting for develop's required checks"
+            note = (f"note: {target} has no protection of its own - waiting for the required checks of"
+                    f" develop that run on it: {', '.join(contexts)}")
     return contexts or [], note
 
 
