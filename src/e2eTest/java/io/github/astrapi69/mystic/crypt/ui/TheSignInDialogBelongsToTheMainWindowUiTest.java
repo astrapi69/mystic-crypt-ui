@@ -60,12 +60,11 @@ class TheSignInDialogBelongsToTheMainWindowUiTest extends AbstractUiTest
 	void atTheStart_theDialogBelongsToTheMainWindow_andIsCentredOnTheScreen()
 	{
 		SignInDialogSteps signIn = launchApplication();
-		robot.waitForIdle();
 		Window dialog = signIn.dialog().target();
+		Point dialogCentre = centreOf(UiTestSpeed.awaitSettled(dialog)[0]);
 
 		assertOwnerIs(dialog);
 		Point screenCentre = screenCentreOf(dialog);
-		Point dialogCentre = centreOf(dialog);
 		assertTrue(near(dialogCentre, screenCentre),
 			"the dialog is centred on the screen " + screenCentre + ", at " + dialogCentre);
 	}
@@ -92,18 +91,18 @@ class TheSignInDialogBelongsToTheMainWindowUiTest extends AbstractUiTest
 			.execute(() -> mainWindow.getGraphicsConfiguration().getBounds());
 		GuiActionRunner.execute(() -> mainWindow.setBounds(screen.x + screen.width - 960,
 			screen.y + screen.height - 560, 920, 520));
-		UiTestSpeed.awaitWindowPlaced(mainWindow);
-		Point windowCentre = centreOf(mainWindow);
+		Point movedCentre = centreOf(UiTestSpeed.awaitSettled(mainWindow)[0]);
 		Point screenCentre = screenCentreOf(mainWindow);
-		assertTrue(Math.abs(windowCentre.x - screenCentre.x) > 3 * TOLERANCE,
+		assertTrue(Math.abs(movedCentre.x - screenCentre.x) > 3 * TOLERANCE,
 			"precondition: the main window is far from the middle of the screen, window "
-				+ windowCentre + ", screen " + screenCentre);
+				+ movedCentre + ", screen " + screenCentre);
 
 		application.fireMenuItem(MenuId.OPEN_DATABASE_FILE.propertiesKey());
 		SignInDialogSteps signIn = awaitSignInDialog();
 		Window dialog = signIn.dialog().target();
-		UiTestSpeed.awaitWindowPlaced(dialog);
-		Point dialogCentre = centreOf(dialog);
+		Rectangle[] settled = UiTestSpeed.awaitSettled(dialog, mainWindow);
+		Point dialogCentre = centreOf(settled[0]);
+		Point windowCentre = centreOf(settled[1]);
 		signIn.cancel();
 
 		assertOwnerIs(dialog);
@@ -125,13 +124,10 @@ class TheSignInDialogBelongsToTheMainWindowUiTest extends AbstractUiTest
 		return new Point((int)screen.getCenterX(), (int)screen.getCenterY());
 	}
 
-	private static Point centreOf(final Window window)
+	private static Point centreOf(final Rectangle boundsOnScreen)
 	{
-		return GuiActionRunner.execute(() -> {
-			Rectangle bounds = window.getBounds();
-			Point onScreen = window.getLocationOnScreen();
-			return new Point(onScreen.x + bounds.width / 2, onScreen.y + bounds.height / 2);
-		});
+		return new Point(boundsOnScreen.x + boundsOnScreen.width / 2,
+			boundsOnScreen.y + boundsOnScreen.height / 2);
 	}
 
 	private static boolean near(final Point one, final Point other)
