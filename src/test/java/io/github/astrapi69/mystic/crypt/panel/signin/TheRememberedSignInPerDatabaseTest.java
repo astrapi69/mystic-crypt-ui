@@ -43,9 +43,6 @@ import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
-
 import io.github.astrapi69.gson.JsonStringToObjectExtensions;
 import io.github.astrapi69.mystic.crypt.app.file.JsonFileStore;
 import lombok.Data;
@@ -181,16 +178,16 @@ class TheRememberedSignInPerDatabaseTest
 
 		JsonFileStore.write(read, file, MemoizedSigninModelBean.class);
 
-		JsonObject written = JsonParser.parseString(Files.readString(file.toPath()))
-			.getAsJsonObject();
-		JsonObject before = JsonParser.parseString(TODAYS_FILE).getAsJsonObject();
-		for (String field : before.keySet())
+		Map<?, ?> written = JsonStringToObjectExtensions.toObject(Files.readString(file.toPath()),
+			Map.class);
+		Map<?, ?> before = JsonStringToObjectExtensions.toObject(TODAYS_FILE, Map.class);
+		for (Object field : before.keySet())
 		{
 			assertEquals(before.get(field), written.get(field),
 				"today's field " + field + " keeps its meaning");
 		}
-		assertTrue(written.has("choicesByDatabase"));
-		assertFalse(before.has("choicesByDatabase"));
+		assertTrue(written.containsKey("choicesByDatabase"));
+		assertFalse(before.containsKey("choicesByDatabase"));
 		assertEquals(before.size() + 1, written.size(), "nothing else is added: " + written);
 	}
 

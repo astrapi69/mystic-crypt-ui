@@ -24,11 +24,13 @@
  */
 package io.github.astrapi69.mystic.crypt.ui;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.File;
 import java.nio.file.Files;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import javax.swing.JDialog;
@@ -42,9 +44,7 @@ import org.assertj.swing.timing.Pause;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
-
+import io.github.astrapi69.gson.JsonStringToObjectExtensions;
 import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
 import io.github.astrapi69.mystic.crypt.TestPasswords;
 import io.github.astrapi69.mystic.crypt.settings.MysticCryptSettings;
@@ -137,8 +137,8 @@ class RememberKeyFilesSettingUiTest extends AbstractUiTest
 		assertTrue(remembered.isFile(), "the premise: the sign-in wrote its file");
 		String text = Files.readString(remembered.toPath());
 		assertFalse(text.contains("never-remembered-key"), "no key file path in it: " + text);
-		JsonObject written = JsonParser.parseString(text).getAsJsonObject();
-		assertTrue(written.get("withKeyFile").getAsBoolean(), "the factors stay remembered");
+		Map<?, ?> written = JsonStringToObjectExtensions.toObject(text, Map.class);
+		assertEquals(Boolean.TRUE, written.get("withKeyFile"), "the factors stay remembered");
 		assertTrue(text.contains("never-remembered.mcrdb"), "and so does the database");
 	}
 
