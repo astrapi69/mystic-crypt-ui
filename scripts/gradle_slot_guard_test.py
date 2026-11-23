@@ -11,6 +11,7 @@ Run: python3 scripts/gradle_slot_guard_test.py
 import os
 import re
 import subprocess
+import tempfile
 import unittest
 from pathlib import Path
 
@@ -140,6 +141,14 @@ class WithoutSlotTest(unittest.TestCase):
 
     def test_without_slot_is_no_gradle_target_itself(self):
         self.assertNotIn("without-slot", GRADLE_TARGETS)
+
+    def test_the_target_given_to_without_slot_reaches_the_recipes_below_it(self):
+        with tempfile.TemporaryDirectory() as folder:
+            probe = Path(folder) / "probe.mk"
+            probe.write_text('show-target:\n\t@echo "TARGET=[$$TARGET]"\n', encoding="utf-8")
+            result = make(["without-slot", "TARGET=show-target"], MAKEFILES=str(probe))
+        self.assertEqual(0, result.returncode, result.stderr)
+        self.assertIn("TARGET=[show-target]", result.stdout)
 
 
 if __name__ == "__main__":
