@@ -276,16 +276,21 @@ class RememberKeyFilesSettingUiTest extends AbstractUiTest
 
 		DialogFixture again = application.openSettingsDialog();
 		SwingUtilities.invokeLater(() -> again.button("btnCloseSettings").target().doClick());
-		Pause.pause(new Condition("the settings dialog is closed again")
+		// the notice is modal and opens before the dialog is disposed, so the wait ends on either
+		Pause.pause(new Condition("the settings dialog is closed again, or a notice shows")
 		{
 			@Override
 			public boolean test()
 			{
-				return !again.target().isShowing();
+				return !again.target().isShowing() || aWarningPane() != null;
 			}
 		}, TimeUnit.SECONDS.toMillis(15));
-		assertNull(aWarningPane(),
-			"closing the dialog again with the setting still off shows no notice");
+		JOptionPane leftOver = aWarningPane();
+		if (leftOver != null)
+		{
+			GuiActionRunner.execute(() -> leftOver.setValue(JOptionPane.OK_OPTION));
+		}
+		assertNull(leftOver, "closing the dialog again with the setting still off shows no notice");
 	}
 
 	private static JOptionPane aWarningPane()

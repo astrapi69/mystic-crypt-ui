@@ -127,17 +127,6 @@ public final class JsonFileStore
 	}
 
 	/**
-	 * Moves the file to a sibling whose name says that it could not be read and when
-	 *
-	 * @param file
-	 *            the file that could not be read
-	 * @param clock
-	 *            the clock that names the time
-	 * @return where the file lies now
-	 * @throws IOException
-	 *             if it cannot be moved
-	 */
-	/**
 	 * Whether the file is a copy that was kept aside because the named file could not be read
 	 *
 	 * @param file
@@ -151,6 +140,17 @@ public final class JsonFileStore
 		return file.isFile() && file.getName().startsWith(originalName + SET_ASIDE_MARKER);
 	}
 
+	/**
+	 * Moves the file to a sibling whose name says that it could not be read and when
+	 *
+	 * @param file
+	 *            the file that could not be read
+	 * @param clock
+	 *            the clock that names the time
+	 * @return where the file lies now
+	 * @throws IOException
+	 *             if it cannot be moved
+	 */
 	static File setAside(final File file, final Clock clock) throws IOException
 	{
 		String name = file.getName() + SET_ASIDE_MARKER
