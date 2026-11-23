@@ -25,7 +25,9 @@
 package io.github.astrapi69.mystic.crypt.keepass;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.File;
@@ -38,6 +40,8 @@ import java.nio.file.Files;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+
+import io.github.astrapi69.mystic.crypt.settings.MysticCryptSettings;
 
 /**
  * The file the KeePass import and export dialogs remember their last paths in, written and read
@@ -144,5 +148,82 @@ class MemoizedKeePassModelBeanTest
 			MemoizedKeePassModelBean.load(configurationDirectory).getLastImportFilePath(),
 			"the new file reads back");
 		assertEquals(1, told.size(), "the user is told once: " + told);
+	}
+
+	private static MemoizedKeePassModelBean withAllFourPaths()
+	{
+		return MemoizedKeePassModelBean.builder().lastImportFilePath("/vaults/import.kdbx")
+			.lastImportKeyFilePath("/keys/import.key").lastExportFilePath("/vaults/export.kdbx")
+			.lastExportKeyFilePath("/keys/export.key").build();
+	}
+
+	@Test
+	@DisplayName("with 'Remember key files' off, a save writes the file paths and no key file path (#997)")
+	void save_withRememberKeyFilesOff_writesNoKeyFilePath(
+		@TempDir final File configurationDirectory) throws IOException
+	{
+		MysticCryptSettings notRemembering = new MysticCryptSettings();
+		notRemembering.setRememberKeyFiles(false);
+		notRemembering.save(configurationDirectory);
+
+		withAllFourPaths().save(configurationDirectory);
+
+		String text = Files.readString(
+			new File(configurationDirectory, MemoizedKeePassModelBean.JSON_FILENAME).toPath(),
+			StandardCharsets.UTF_8);
+		assertFalse(text.contains(".key"), "no key file path in the file: " + text);
+		MemoizedKeePassModelBean loaded = MemoizedKeePassModelBean.load(configurationDirectory);
+		assertEquals("/vaults/import.kdbx", loaded.getLastImportFilePath());
+		assertEquals("/vaults/export.kdbx", loaded.getLastExportFilePath());
+		assertNull(loaded.getLastImportKeyFilePath());
+		assertNull(loaded.getLastExportKeyFilePath());
+	}
+
+	@Test
+	@DisplayName("with the setting on, which is the default, a save keeps the key file paths as before")
+	void save_withRememberKeyFilesOn_keepsTheKeyFilePaths(
+		@TempDir final File configurationDirectory)
+	{
+		withAllFourPaths().save(configurationDirectory);
+
+		assertEquals(withAllFourPaths(), MemoizedKeePassModelBean.load(configurationDirectory));
+	}
+
+	@Test
+	@DisplayName("forgetting key files removes the two key file paths from the stored file and keeps the file paths")
+	void forgetKeyFiles_removesTheKeyFilePaths(@TempDir final File configurationDirectory)
+		throws IOException
+	{
+		withAllFourPaths().save(configurationDirectory);
+
+		assertTrue(MemoizedKeePassModelBean.forgetKeyFiles(configurationDirectory));
+
+		String text = Files.readString(
+			new File(configurationDirectory, MemoizedKeePassModelBean.JSON_FILENAME).toPath(),
+			StandardCharsets.UTF_8);
+		assertFalse(text.contains(".key"), "no key file path in the file: " + text);
+		MemoizedKeePassModelBean loaded = MemoizedKeePassModelBean.load(configurationDirectory);
+		assertEquals("/vaults/import.kdbx", loaded.getLastImportFilePath());
+		assertEquals("/vaults/export.kdbx", loaded.getLastExportFilePath());
+	}
+
+	@Test
+	@DisplayName("forgetting key files without a stored file writes nothing, and a file that cannot be read is reported")
+	void forgetKeyFiles_withoutAFile_writesNothing_andReportsAnUnreadableOne(
+		@TempDir final File configurationDirectory) throws IOException
+	{
+		assertFalse(MemoizedKeePassModelBean.forgetKeyFiles(configurationDirectory));
+		File file = new File(configurationDirectory, MemoizedKeePassModelBean.JSON_FILENAME);
+		assertFalse(file.exists());
+
+		String unreadable = "{\"lastImportKeyFilePath\": \"/keys/import.key\", ";
+		Files.writeString(file.toPath(), unreadable);
+		IOException reported = assertThrows(IOException.class,
+			() -> MemoizedKeePassModelBean.forgetKeyFiles(configurationDirectory));
+		assertTrue(
+			reported.getMessage().contains(file.getAbsolutePath())
+				&& reported.getMessage().contains("cannot be read"),
+			"the report names the file and the reason: " + reported.getMessage());
+		assertEquals(unreadable, Files.readString(file.toPath()), "nothing was written over it");
 	}
 }

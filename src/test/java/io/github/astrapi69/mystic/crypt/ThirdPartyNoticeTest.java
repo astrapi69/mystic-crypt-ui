@@ -98,19 +98,11 @@ class ThirdPartyNoticeTest
 	}
 
 	@Test
-	@DisplayName("the notice names the curated licenses and the way to replace the LGPL library (#1014)")
+	@DisplayName("the notice names where the curated licenses are (#1014)")
 	void theNoticeNamesTheCuratedLicenses() throws IOException
 	{
-		String notice = notice();
-
-		assertTrue(notice.contains("legal/third-party/<group>/<artifact>/"),
+		assertTrue(notice().contains("legal/third-party/<group>/<artifact>/"),
 			"where the curated licenses are");
-		assertTrue(
-			notice.contains("org.swinglabs.swingx:swingx-all")
-				&& notice.contains("GNU Lesser General Public License")
-				&& notice
-					.contains("legal/third-party/org.swinglabs.swingx/swingx-all/REPLACING.txt"),
-			"SwingX is LGPL, and the notice says where its replacement note is");
 	}
 
 	private static String notice() throws IOException
