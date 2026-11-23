@@ -58,6 +58,13 @@ class PreCommitFormattingCheckTest
 	private static final String VIOLATION = "The following files had format violations:\n"
 		+ "      src/main/java/A.java\n";
 
+	/** The variables that say whether a run is inside the build slot or on a CI runner */
+	private static final List<String> SLOT_VARIABLES = List.of("GRADLE_SLOT", "GRADLE_SLOT_RUNNER",
+		"GITHUB_ACTIONS");
+
+	/** Neither inside the build slot nor on a CI runner, as a commit typed into a terminal */
+	private static final Map<String, String> OUTSIDE_THE_SLOT = Map.of();
+
 	@TempDir
 	Path repository;
 
@@ -135,6 +142,18 @@ class PreCommitFormattingCheckTest
 		assertEquals(List.of(), run.gradleCalls());
 	}
 
+	@Test
+	@DisplayName("outside the build slot and outside CI the check starts Gradle all the same")
+	void outsideTheSlot_theCheckStartsGradle() throws Exception
+	{
+		stage("src/main/java/A.java");
+
+		Run run = check(0, OUTSIDE_THE_SLOT);
+
+		assertEquals(0, run.exit(), run.output());
+		assertEquals(List.of("spotlessJavaCheck"), run.gradleCalls());
+	}
+
 	private void stage(final String... paths) throws Exception
 	{
 		if (!Files.isDirectory(repository.resolve(".git")))
@@ -150,8 +169,19 @@ class PreCommitFormattingCheckTest
 		}
 	}
 
-	/** Runs the script in the repository with a fake gradlew that exits with the given code */
+	/** Runs the script inside a build slot, with a fake gradlew that exits with the given code */
 	private Run check(final int gradleExit) throws Exception
+	{
+		return check(gradleExit, Map.of("GRADLE_SLOT", "1"));
+	}
+
+	/**
+	 * Runs the script in the repository with a fake gradlew that exits with the given code; the
+	 * variables of the build slot and of CI are taken out of the environment first and then set as
+	 * given, so the machine that runs the test decides nothing
+	 */
+	private Run check(final int gradleExit, final Map<String, String> slotEnvironment)
+		throws Exception
 	{
 		// inside .git: part of no commit and of no other test
 		Path calls = repository.resolve(".git/gradle-calls.txt");
@@ -166,7 +196,10 @@ class PreCommitFormattingCheckTest
 		Files.setPosixFilePermissions(gradlew, PosixFilePermissions.fromString("rwxr-xr-x"));
 		ProcessBuilder builder = new ProcessBuilder(SCRIPT.getPath()).directory(repository.toFile())
 			.redirectErrorStream(true);
-		builder.environment().put("GRADLEW", gradlew.toString());
+		Map<String, String> environment = builder.environment();
+		environment.put("GRADLEW", gradlew.toString());
+		SLOT_VARIABLES.forEach(environment::remove);
+		environment.putAll(slotEnvironment);
 		Process process = builder.start();
 		assertTrue(process.waitFor(60, TimeUnit.SECONDS), "the script ended");
 		String output = new String(process.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
