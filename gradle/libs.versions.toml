@@ -2,8 +2,6 @@
 assertj-core-version = "3.27.7"
 assertj-swing-version = "3.17.1"
 awt-extensions-version = "2.0"
-batik-codec-version = "1.20"
-batik-transcoder-version = "1.20"
 bcpkix-jdk18on-version = "1.86"
 bcprov-jdk18on-version = "1.86"
 bcutil-jdk18on-version = "1.86"
@@ -34,17 +32,14 @@ gson-version = "2.15.0"
 guava-version = "33.8.0-jre"
 icon-img-extensions-version = "4.2"
 id-generate-version = "1.1"
-imgscalr-lib-version = "4.2"
 izpack-ant-version = "5.2.7"
 jettison-version = "1.5.7"
 json-version = "20260719"
-jackson-databind-version = "2.22.4"
 jobj-core-version = "10.0"
 jsoup-version = "1.24.1"
 junit-jupiter-extensions-version = "2"
 junit-jupiter-version = "6.1.3"
 junit-platform-launcher-version = "6.1.3"
-jxlayer-version = "3.0.4"
 kee-pass-java2-version = "3.1.0"
 lgood-date-picker-version = "11.2.1"
 lombok-version = "1.18.48"
@@ -68,15 +63,12 @@ silly-io-version = "5.0"
 slf4j-simple-version = "2.0.20"
 state-pattern-version = "7.1"
 swing-base-components-version = "5.2.1"
-swing-components-version = "10"
-swing-layout-version = "1.0.3"
 swing-model-components-version = "1.2"
 swing-renderer-version = "3.2"
 swing-splashscreen-version = "2"
 swing-table-components-version = "4.0"
 swing-tree-component-version = "3.3"
 swing-wizard-version = "2.1"
-swing-worker-version = "1.1"
 test-object-version = "9.1"
 throwable-version = "3"
 tika-core-version = "4.2.0"
@@ -89,8 +81,6 @@ xstream-version = "1.4.21"
 assertj-core = { module = "org.assertj:assertj-core", version.ref = "assertj-core-version" }
 assertj-swing = { module = "org.assertj:assertj-swing", version.ref = "assertj-swing-version" }
 awt-extensions = { module = "io.github.astrapi69:awt-extensions", version.ref = "awt-extensions-version" }
-batik-codec = { module = "org.apache.xmlgraphics:batik-codec", version.ref = "batik-codec-version" }
-batik-transcoder = { module = "org.apache.xmlgraphics:batik-transcoder", version.ref = "batik-transcoder-version" }
 bcpkix-jdk18on = { module = "org.bouncycastle:bcpkix-jdk18on", version.ref = "bcpkix-jdk18on-version" }
 bcprov-jdk18on = { module = "org.bouncycastle:bcprov-jdk18on", version.ref = "bcprov-jdk18on-version" }
 bcutil-jdk18on = { module = "org.bouncycastle:bcutil-jdk18on", version.ref = "bcutil-jdk18on-version" }
@@ -109,17 +99,14 @@ gson-extensions = { module = "io.github.astrapi69:gson-extensions", version.ref 
 guava = { module = "com.google.guava:guava", version.ref = "guava-version" }
 icon-img-extensions = { module = "io.github.astrapi69:icon-img-extensions", version.ref = "icon-img-extensions-version" }
 id-generate = { module = "io.github.astrapi69:id-generate", version.ref = "id-generate-version" }
-imgscalr-lib = { module = "org.imgscalr:imgscalr-lib", version.ref = "imgscalr-lib-version" }
 izpack-ant = { module = "org.codehaus.izpack:izpack-ant", version.ref = "izpack-ant-version" }
 jettison = { module = "org.codehaus.jettison:jettison", version.ref = "jettison-version" }
 json = { module = "org.json:json", version.ref = "json-version" }
-jackson-databind = { module = "com.fasterxml.jackson.core:jackson-databind", version.ref = "jackson-databind-version" }
 jobj-core = { module = "io.github.astrapi69:jobj-core", version.ref = "jobj-core-version" }
 jsoup = { module = "org.jsoup:jsoup", version.ref = "jsoup-version" }
 junit-jupiter = { module = "org.junit.jupiter:junit-jupiter", version.ref = "junit-jupiter-version" }
 junit-jupiter-extensions = { module = "io.github.astrapi69:junit-jupiter-extensions", version.ref = "junit-jupiter-extensions-version" }
 junit-platform-launcher = { module = "org.junit.platform:junit-platform-launcher", version.ref = "junit-platform-launcher-version" }
-jxlayer = { module = "org.swinglabs:jxlayer", version.ref = "jxlayer-version" }
 kee-pass-java2-jackson = { module = "org.linguafranca.pwdb:KeePassJava2.kdbx.database", version.ref = "kee-pass-java2-version" }
 lgood-date-picker = { module = "com.github.lgooddatepicker:LGoodDatePicker", version.ref = "lgood-date-picker-version" }
 log4j-to-slf4j = { module = "org.apache.logging.log4j:log4j-to-slf4j", version.ref = "log4j-version" }
@@ -144,15 +131,12 @@ silly-io = { module = "io.github.astrapi69:silly-io", version.ref = "silly-io-ve
 slf4j-simple = { module = "org.slf4j:slf4j-simple", version.ref = "slf4j-simple-version" }
 state-pattern = { module = "io.github.astrapi69:state-pattern", version.ref = "state-pattern-version" }
 swing-base-components = { module = "io.github.astrapi69:swing-base-components", version.ref = "swing-base-components-version" }
-swing-components = { module = "io.github.astrapi69:swing-components", version.ref = "swing-components-version" }
-swing-layout = { module = "org.swinglabs:swing-layout", version.ref = "swing-layout-version" }
 swing-model-components = { module = "io.github.astrapi69:swing-model-components", version.ref = "swing-model-components-version" }
 swing-renderer = { module = "io.github.astrapi69:swing-renderer", version.ref = "swing-renderer-version" }
 swing-splashscreen = { module = "io.github.astrapi69:swing-splashscreen", version.ref = "swing-splashscreen-version" }
 swing-table-components = { module = "io.github.astrapi69:swing-table-components", version.ref = "swing-table-components-version" }
 swing-tree-component = { module = "io.github.astrapi69:swing-tree-component", version.ref = "swing-tree-component-version" }
 swing-wizard = { module = "io.github.astrapi69:swing-wizard", version.ref = "swing-wizard-version" }
-swing-worker = { module = "org.swinglabs:swing-worker", version.ref = "swing-worker-version" }
 test-object = { module = "io.github.astrapi69:test-object", version.ref = "test-object-version" }
 throwable = { module = "io.github.astrapi69:throwable", version.ref = "throwable-version" }
 tika-core = { module = "org.apache.tika:tika-core", version.ref = "tika-core-version" }
