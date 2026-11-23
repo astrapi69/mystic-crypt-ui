@@ -163,6 +163,11 @@ class DoubleBuildTest(unittest.TestCase):
         self.assertIn("build 1 failed", result.stderr)
         self.assertIn("refused", result.stderr)
 
+    def test_the_slot_number_a_slot_sets_is_taken_for_a_wrapper(self):
+        result = self.run_script("installer", {"GRADLE_SLOT": "1"})
+        self.assertEqual(result.returncode, 2, result.stdout + result.stderr)
+        self.assertIn("build 1 failed", result.stderr)
+
     def test_no_call_has_a_password_among_its_arguments(self):
         calls = self.calls_of("installer")
         for call in calls:
