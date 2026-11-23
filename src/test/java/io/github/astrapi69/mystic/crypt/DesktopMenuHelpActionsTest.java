@@ -32,10 +32,16 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.Properties;
+import java.util.stream.Stream;
 
 import javax.swing.JFrame;
 
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 /**
  * Two Help menu items that pointed at content unrelated to this project: Donate opened a dead
@@ -102,24 +108,48 @@ class DesktopMenuHelpActionsTest
 	{
 		for (String bundleName : List.of("ui/messages.properties", "ui/messages_de.properties"))
 		{
-			java.util.Properties bundle = new java.util.Properties();
-			try (java.io.Reader reader = new java.io.InputStreamReader(
-				DesktopMenuHelpActionsTest.class.getClassLoader().getResourceAsStream(bundleName),
-				StandardCharsets.UTF_8))
-			{
-				bundle.load(reader);
-			}
-			catch (IOException e)
-			{
-				throw new AssertionError(bundleName, e);
-			}
-			assertTrue(
-				bundle.getProperty(DesktopMenu.LICENSE_NOTICE_KEY, "").contains("NOTICE.txt"),
-				bundleName + " must carry the licence notice naming NOTICE.txt");
+			assertTrue(bundle(bundleName).getProperty(DesktopMenu.LICENSE_NOTICE_KEY, "").contains(
+				"NOTICE.txt"), bundleName + " must carry the licence notice naming NOTICE.txt");
 		}
 		assertTrue(DesktopMenu.LICENSE_NOTICE_DEFAULT.contains("NOTICE.txt")
 			&& DesktopMenu.LICENSE_NOTICE_DEFAULT.contains("license texts")
 			&& DesktopMenu.LICENSE_NOTICE_DEFAULT.contains("third-party"));
+	}
+
+	@ParameterizedTest(name = "{0}")
+	@MethodSource("licenseNotices")
+	@DisplayName("the licence notice names the folder legal/third-party beside NOTICE.txt (#1014)")
+	void licenseNotice_namesTheFolderOfTheLibraryLicenses(final String source, final String notice)
+	{
+		assertTrue(notice.contains("NOTICE.txt") && notice.contains("legal/third-party"),
+			source + ": " + notice);
+	}
+
+	static Stream<Arguments> licenseNotices()
+	{
+		return Stream.of(
+			Arguments.of("English",
+				bundle("ui/messages.properties").getProperty(DesktopMenu.LICENSE_NOTICE_KEY)),
+			Arguments.of("German",
+				bundle("ui/messages_de.properties").getProperty(DesktopMenu.LICENSE_NOTICE_KEY)),
+			Arguments.of("the default, when the bundle cannot be read",
+				DesktopMenu.LICENSE_NOTICE_DEFAULT));
+	}
+
+	private static Properties bundle(final String bundleName)
+	{
+		Properties bundle = new Properties();
+		try (java.io.Reader reader = new java.io.InputStreamReader(
+			DesktopMenuHelpActionsTest.class.getClassLoader().getResourceAsStream(bundleName),
+			StandardCharsets.UTF_8))
+		{
+			bundle.load(reader);
+		}
+		catch (IOException e)
+		{
+			throw new AssertionError(bundleName, e);
+		}
+		return bundle;
 	}
 
 }
