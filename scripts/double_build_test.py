@@ -91,7 +91,9 @@ class DoubleBuildTest(unittest.TestCase):
         env = dict(os.environ, STUB_LOG=str(self.stub_log), GRADLE_USER_HOME=str(self.inherited),
                    TMPDIR=str(self.root / "tmp"), MYSTIC_CRYPT_STORE_PASSWORD=self.store_password,
                    MYSTIC_CRYPT_KEY_PASSWORD=self.key_password)
-        env.pop("GRADLE_RO_DEP_CACHE", None)
+        # the slot of the machine that runs the suite decides nothing: each test sets what it needs
+        for name in ("GRADLE_RO_DEP_CACHE", "GRADLE_SLOT", "GRADLE_SLOT_RUNNER"):
+            env.pop(name, None)
         if extra_env:
             env.update(extra_env)
         return subprocess.run(["bash", str(SCRIPT), str(self.repo), self.commit, "/java", str(self.keystore),
@@ -167,6 +169,17 @@ class DoubleBuildTest(unittest.TestCase):
         result = self.run_script("installer", {"GRADLE_SLOT": "1"})
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
         self.assert_every_call_names_the_throwaway_keystore(parse_calls(self.stub_log))
+
+    def test_inside_a_slot_a_runner_is_asked_for_a_second_slot(self):
+        slot = self.root / "slot.sh"
+        slot_log = self.root / "slot.log"
+        slot.write_text('#!/bin/sh\ntree=$1; log=$2; shift 2\nprintf \'%s\\n\' "$tree" >> "$SLOT_LOG"\n'
+                        '(cd "$tree" && ./gradlew "$@") > "$log" 2>&1\n')
+        slot.chmod(0o755)
+        result = self.run_script("installer", {"GRADLE_SLOT": "1", "GRADLE_SLOT_RUNNER": str(slot),
+                                               "SLOT_LOG": str(slot_log)})
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertEqual(len(slot_log.read_text().split()), 8, "every call queued through the runner")
 
     def test_no_call_has_a_password_among_its_arguments(self):
         calls = self.calls_of("installer")
