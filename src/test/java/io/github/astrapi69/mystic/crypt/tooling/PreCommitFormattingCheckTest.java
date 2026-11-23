@@ -214,6 +214,68 @@ class PreCommitFormattingCheckTest
 		assertTrue(run.output().contains("./gradlew spotlessApply"), run.output());
 	}
 
+	@Test
+	@DisplayName("inside a build slot a slot script that is set as well is not asked for a second slot")
+	void insideTheSlot_aSlotRunnerIsNotUsed() throws Exception
+	{
+		stage("src/main/java/A.java");
+
+		Run run = check(0,
+			Map.of("GRADLE_SLOT", "1", "GRADLE_SLOT_RUNNER", slotRunner().toString()));
+
+		assertEquals(0, run.exit(), run.output());
+		assertEquals(List.of("spotlessJavaCheck"), run.gradleCalls());
+		assertTrue(!Files.exists(repository.resolve(".git/runner-trees.txt")),
+			"the runner was not called");
+	}
+
+	@Test
+	@DisplayName("a slot script that fails by itself is reported as a formatting violation, and what it said is lost")
+	void aFailingSlotRunner_isReportedAsAViolation() throws Exception
+	{
+		stage("src/main/java/A.java");
+
+		Run run = check(0, Map.of("GRADLE_SLOT_RUNNER", failingSlotRunner().toString()));
+
+		assertNotEquals(0, run.exit(), run.output());
+		assertTrue(run.output().contains("Spotless would format"), run.output());
+		assertTrue(!run.output().contains("slot script broke"), run.output());
+	}
+
+	@Test
+	@DisplayName("through a slot script the check says nothing while it waits for the slot")
+	void throughASlotRunner_nothingSaysThatTheCheckWaits() throws Exception
+	{
+		stage("src/main/java/A.java");
+
+		Run run = check(0, Map.of("GRADLE_SLOT_RUNNER", slotRunner().toString()));
+
+		assertTrue(!run.output().contains("waiting for the build slot"), run.output());
+	}
+
+	@Test
+	@DisplayName("through a slot script, a temporary directory that cannot be written is reported as a formatting violation")
+	void anUnwritableTemporaryDirectory_isReportedAsAViolation() throws Exception
+	{
+		stage("src/main/java/A.java");
+
+		Run run = check(0, Map.of("GRADLE_SLOT_RUNNER", slotRunner().toString(), "TMPDIR",
+			repository.resolve(".git/no-such-directory").toString()));
+
+		assertNotEquals(0, run.exit(), run.output());
+		assertTrue(run.output().contains("Spotless would format"), run.output());
+	}
+
+	/** A slot script that fails before it runs anything, as one that is missing or broken does */
+	private Path failingSlotRunner() throws IOException
+	{
+		Path runner = repository.resolve(".git/failing-slot-runner");
+		Files.writeString(runner, "#!/bin/sh\necho 'slot script broke' >&2\nexit 3\n",
+			StandardCharsets.UTF_8);
+		Files.setPosixFilePermissions(runner, PosixFilePermissions.fromString("rwxr-xr-x"));
+		return runner;
+	}
+
 	/**
 	 * A fake slot script with the command line of the real one, {@code <runner> <tree> <log file>
 	 * <gradle arguments...>}: it records the tree and runs the fake gradlew there, its output into
