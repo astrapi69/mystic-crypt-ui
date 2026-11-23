@@ -33,10 +33,10 @@ PLUGIN_SECRET_SHARING_DIR := plugins/secret-sharing-plugin
 PLUGIN_LETHENON_DIR := plugins/lethenon-plugin
 PLUGIN_RELEASE_KEY_DIR := plugins/release-key-plugin
 PLUGIN_INSTALL_DIR := $(HOME)/.config/mystic-crypt-ui/plugins
-# what every plugin target runs besides packaging its zip: the plugin's unit tests, and for the two
-# plugins whose zip is started in a test of its own, that test. make run builds the zips without
-# them, because a start does not need fifteen test suites run again (#909)
-PLUGIN_TESTS ?= test
+# what every plugin target runs besides packaging its zip: the host's formatting and license header check and the
+# plugin's unit tests (#666), and for the two plugins whose zip is started in a test of its own, that test. make run
+# builds the zips without them, because a start does not need fifteen test suites run again (#909)
+PLUGIN_TESTS ?= spotlessCheck test
 PLUGIN_ZIP_TESTS ?= zipTest
 SCRIPT_TESTS ?= yes
 

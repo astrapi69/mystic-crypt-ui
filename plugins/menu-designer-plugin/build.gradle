@@ -1,6 +1,8 @@
 plugins {
     id 'java'
     alias(libs.plugins.dependency.analysis)
+    // the host's formatter and license header (#666)
+    alias(libs.plugins.spotless.plugin.gradle)
     // the tests run on a display of the build's own, not on the one the build was started from (#505),
     // and a test class that leaves no result fails the build (#699): astrapi69/own-display-gradle-plugin
     alias(libs.plugins.own.display)
@@ -23,6 +25,8 @@ java {
 apply from: '../../gradle/plugin-repositories.gradle'
 // what the dependency-analysis plugin checks here, the same in every plugin build
 apply from: '../../gradle/plugin-dependency-analysis.gradle'
+// the host's formatter, import order and license header, the same in every plugin build (#666)
+apply from: '../../gradle/plugin-formatting.gradle'
 
 // the panel is a thin ui over the host's menu layout API (exportCurrentMenuXml / applyMenuXml /
 // saveMenuLayout / resetMenuLayout), so only the host jar and the swing helpers are needed
