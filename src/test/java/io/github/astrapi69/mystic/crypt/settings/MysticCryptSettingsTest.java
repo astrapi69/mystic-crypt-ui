@@ -261,4 +261,26 @@ class MysticCryptSettingsTest
 		assertFalse(MysticCryptSettings.rememberKeyFilesForWriting(configurationDirectory),
 			"an unreadable settings file may say off, so nothing is written");
 	}
+
+	@Test
+	@DisplayName("a settings file that cannot be read keeps key files from being remembered without telling the user")
+	void anUnreadableSettingsFile_keepsKeyFilesFromBeingRemembered_withoutANotice(
+		@TempDir File configurationDirectory) throws Exception
+	{
+		java.nio.file.Files.writeString(
+			new File(configurationDirectory, MysticCryptSettings.JSON_FILENAME).toPath(),
+			"{ not json");
+		java.util.List<io.github.astrapi69.mystic.crypt.app.file.UnreadableFileNotices.SetAside> told = new java.util.ArrayList<>();
+		io.github.astrapi69.mystic.crypt.app.file.UnreadableFileNotices.listen(told::add);
+		try
+		{
+			assertFalse(MysticCryptSettings.rememberKeyFilesForWriting(configurationDirectory));
+			assertFalse(MysticCryptSettings.rememberKeyFilesForWriting(configurationDirectory));
+		}
+		finally
+		{
+			io.github.astrapi69.mystic.crypt.app.file.UnreadableFileNotices.listen(null);
+		}
+		assertTrue(told.isEmpty(), "nothing tells the user: " + told);
+	}
 }

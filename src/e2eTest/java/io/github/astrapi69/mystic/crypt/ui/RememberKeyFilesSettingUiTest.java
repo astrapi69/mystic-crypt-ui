@@ -144,6 +144,32 @@ class RememberKeyFilesSettingUiTest extends AbstractUiTest
 	}
 
 	@Test
+	@DisplayName("with a settings file that cannot be read, a sign-in writes no key file path")
+	void signingInWithAnUnreadableSettingsFile_writesNoKeyFilePath() throws Exception
+	{
+		File configurationDirectory = new File(tempHome, ".config/mystic-crypt-ui");
+		configurationDirectory.mkdirs();
+		Files.writeString(
+			new File(configurationDirectory, MysticCryptSettings.JSON_FILENAME).toPath(),
+			"{ not json");
+		File database = new File(tempHome, "unreadable-settings.mcrdb");
+		SignInDialogSteps signIn = launchApplication();
+		signIn.startNewDatabase(database).checkMasterPassword()
+			.typeMasterPasswordWithRepeat(MASTER_PASSWORD).checkKeyFile()
+			.createKeyFile("unreadable-settings-key.pem").requireOkEnabled().okAndAwaitClose();
+		signIn.checkMasterPassword().typeMasterPassword(MASTER_PASSWORD).requireOkEnabled()
+			.okAndAwaitSignIn();
+		new ApplicationSteps(robot).awaitSignedIn();
+
+		File remembered = new File(configurationDirectory,
+			MysticCryptApplicationFrame.MEMOIZED_SIGNIN_JSON_FILENAME);
+		assertTrue(remembered.isFile(), "the premise: the sign-in wrote its file");
+		String text = Files.readString(remembered.toPath());
+		assertFalse(text.contains("unreadable-settings-key"), "no key file path in it: " + text);
+		assertTrue(text.contains("unreadable-settings.mcrdb"), "the database is remembered");
+	}
+
+	@Test
 	@DisplayName("switching the setting off while the remembered sign-in cannot be read warns that the paths remain")
 	void switchingRememberKeyFilesOff_warns_whenTheRememberedSignInCannotBeRead() throws Exception
 	{

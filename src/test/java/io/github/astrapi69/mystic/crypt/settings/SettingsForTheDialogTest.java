@@ -93,4 +93,17 @@ class SettingsForTheDialogTest
 
 		assertEquals("FlatLaf Light", shown.getLookAndFeel());
 	}
+
+	@Test
+	void aSettingsFileThatCannotBeRead_showsRememberKeyFilesOn() throws Exception
+	{
+		java.nio.file.Files.writeString(
+			new File(configurationDirectory, MysticCryptSettings.JSON_FILENAME).toPath(),
+			"{ not json");
+
+		MysticCryptSettings shown = LookAndFeelChoice.settingsForTheDialog(configurationDirectory);
+
+		org.junit.jupiter.api.Assertions.assertTrue(shown.isRememberKeyFiles(),
+			"the dialog shows the default, on, although the file may say off");
+	}
 }
