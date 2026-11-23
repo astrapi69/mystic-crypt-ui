@@ -10,9 +10,10 @@
 ```
 
 - Everyday gate: `make test`. Must stay green after every change.
-- E2E: `make test-e2e` — needs Xvfb + fluxbox + JDK 25 + forkEvery=1; every test task of every
+- E2E: `make test-e2e` - needs Xvfb + fluxbox + JDK 25 + forkEvery=1; every test task of every
   build runs on an Xvfb of its own, never on the desktop's display unless asked to
-  (see lessons-learned.md, #504, #505).
+  (see lessons-learned.md, #504, #505). In CI they run in `e2e.yml`, which auto-merge does not wait for; a red
+  run on develop is fixed first or its pull request reverted, and the release gate runs them all.
 - Mutation testing: `./gradlew pitest` (report: `build/reports/pitest`), CI via
   `mutation.yml`. Run nightly/before release, not per commit.
   Surviving mutants in critical code (crypto, vault format, key handling): add tests

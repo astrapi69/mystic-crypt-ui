@@ -496,9 +496,10 @@ Among the workflows under `.github/workflows/`:
 
 - **`gradle.yml`** ("Java CI with Gradle"), on push and pull request against `master` and
   `develop`. Temurin JDK 25, `gradle/actions/setup-gradle`, installs Xvfb, fluxbox, wmctrl,
-  x11-utils and iproute2 and runs `./gradlew build`, whose test tasks bring their own display (#505), so
-  the AssertJ-Swing end-to-end tests really run instead of being skipped by their headless
-  assumption.
+  x11-utils and iproute2, builds the plugins and runs the compile, the unit tests and Spotless: the required
+  check `build`. The three end-to-end suites run in **`e2e.yml`** ("UI tests") on pull requests, after every
+  merge, nightly and by hand; their test tasks bring their own display (#505), so the AssertJ-Swing tests really
+  run instead of being skipped by their headless assumption.
   On failure it
   uploads `build/reports/tests/test` and `build/test-results/test` for 14 days, because a
   failing UI test prints only its top stack frame to the console.
