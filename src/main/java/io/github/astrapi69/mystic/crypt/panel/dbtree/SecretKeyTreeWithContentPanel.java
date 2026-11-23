@@ -64,6 +64,7 @@ import io.github.astrapi69.model.LambdaModel;
 import io.github.astrapi69.model.api.IModel;
 import io.github.astrapi69.mystic.crypt.Messages;
 import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
+import io.github.astrapi69.mystic.crypt.action.ExportSelectedEntriesToKeePass;
 import io.github.astrapi69.mystic.crypt.eventbus.ApplicationEventBus;
 import io.github.astrapi69.mystic.crypt.lock.OpenEditors;
 import io.github.astrapi69.mystic.crypt.panel.table.NewTableEntryModel;
@@ -1268,6 +1269,15 @@ public class SecretKeyTreeWithContentPanel
 			actionEvent -> this.onDeleteTableEntry());
 		delete.setEnabled(rowsSelected);
 		popup.add(delete);
+
+		// only the chosen entries, into a KeePass file of their own (#1118)
+		JMenuItem exportSelected = JMenuItemFactory.newJMenuItem(
+			Messages.getString("table.popup.export.selected.keepass",
+				"Export selected to KeePass..."),
+			actionEvent -> ExportSelectedEntriesToKeePass.export(this, allSelectedRowData));
+		exportSelected.setName("mnuExportSelectedToKeePass");
+		exportSelected.setEnabled(rowsSelected);
+		popup.add(exportSelected);
 		// Separator
 		popup.addSeparator();
 

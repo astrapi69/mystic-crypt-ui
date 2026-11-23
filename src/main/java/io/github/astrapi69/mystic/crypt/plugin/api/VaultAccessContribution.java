@@ -24,9 +24,12 @@
  */
 package io.github.astrapi69.mystic.crypt.plugin.api;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.pf4j.ExtensionPoint;
+
+import io.github.astrapi69.mystic.crypt.panel.dbtree.MysticCryptEntryModelBean;
 
 /**
  * Declared by a plugin that keeps entries in the vault
@@ -75,5 +78,24 @@ public interface VaultAccessContribution extends ExtensionPoint
 	default Optional<String> exportNotice(final VaultExport export)
 	{
 		return Optional.empty();
+	}
+
+	/**
+	 * The line for an export that holds only some entries, {@link VaultExport#SELECTED_ENTRIES}
+	 * (#1118). The host asks only a plugin that marks at least one of the chosen entries, and hands
+	 * it those of them as they go into the file: with the fields the user chose and nothing else,
+	 * so the line can say what the file really holds. They are copies; changing them changes
+	 * nothing in the vault. The default gives the line of {@link #exportNotice(VaultExport)}
+	 *
+	 * @param export
+	 *            what leaves the vault
+	 * @param entries
+	 *            the chosen entries this plugin marks, as they are written to the file
+	 * @return the line, or empty when there is nothing to say
+	 */
+	default Optional<String> exportNotice(final VaultExport export,
+		final List<MysticCryptEntryModelBean> entries)
+	{
+		return exportNotice(export);
 	}
 }

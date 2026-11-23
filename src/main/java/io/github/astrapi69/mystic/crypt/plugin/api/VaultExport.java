@@ -35,5 +35,10 @@ public enum VaultExport
 	DATABASE,
 
 	/** One attachment of an entry the plugin marks, saved to a file */
-	ATTACHMENT
+	ATTACHMENT,
+	/**
+	 * Entries the user chose, written to a KeePass file of their own, each with the fields the user
+	 * chose (#1118)
+	 */
+	SELECTED_ENTRIES
 }

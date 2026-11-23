@@ -27,8 +27,10 @@ package io.github.astrapi69.mystic.crypt.plugin.vault;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -40,6 +42,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 
+import io.github.astrapi69.mystic.crypt.keepass.EntryExportChoice;
+import io.github.astrapi69.mystic.crypt.keepass.EntryExportField;
 import io.github.astrapi69.mystic.crypt.panel.dbtree.MysticCryptEntryModelBean;
 import io.github.astrapi69.mystic.crypt.panel.dbtree.VaultEntryProperties;
 import io.github.astrapi69.mystic.crypt.plugin.api.VaultAccess;
@@ -165,6 +169,47 @@ class PluginVaultConnectionsTest
 			"a plugin that was refused its marker spoke for the entry");
 	}
 
+	@Test
+	@DisplayName("the export of chosen entries asks only the plugins that mark one of them, with what goes into the file (#1118)")
+	void selectedEntriesExportNotices_askOnlyThePluginsThatMarkAChosenEntry()
+	{
+		PluginVaultConnections connections = new PluginVaultConnections(new HandheldVaultState());
+		SubsetContribution lethenon = new SubsetContribution("lethenon.wallet");
+		SubsetContribution other = new SubsetContribution("other.thing");
+		connections.connect("lethenon-plugin", lethenon);
+		connections.connect("other-plugin", other);
+		MysticCryptEntryModelBean wallet = anEntryWith("lethenon.wallet");
+		wallet.setTitle("wallet".toCharArray());
+		MysticCryptEntryModelBean note = anEntryWith("note");
+		EntryExportChoice titlesOnly = new EntryExportChoice(EnumSet.of(EntryExportField.TITLE),
+			false);
+
+		List<String> notices = connections.selectedEntriesExportNotices(List.of(wallet, note),
+			titlesOnly);
+
+		assertEquals(List.of("lethenon.wallet: 1 entries"), notices);
+		assertTrue(other.exported.isEmpty(), "a plugin that marks no chosen entry was asked");
+		assertEquals(1, lethenon.exported.size(),
+			"the plugin was handed an entry it does not mark");
+		assertTrue(lethenon.exported.get(0).getProperties().isEmpty(),
+			"the plugin was handed the vault's entry, not what goes into the file");
+		assertEquals(1, wallet.getProperties().size(),
+			"asking the plugin changed the vault's entry");
+	}
+
+	@Test
+	@DisplayName("a plugin that gives only the line of one kind of export is asked with the kind of chosen entries (#1118)")
+	void aPluginWithTheOneKindLine_isAskedForChosenEntries()
+	{
+		PluginVaultConnections connections = new PluginVaultConnections(new HandheldVaultState());
+		connections.connect("lethenon-plugin",
+			new NoticeContribution("lethenon.wallet", export -> Optional.of("wallet, " + export)));
+
+		assertEquals(List.of("wallet, SELECTED_ENTRIES"),
+			connections.selectedEntriesExportNotices(List.of(anEntryWith("lethenon.wallet")),
+				new EntryExportChoice(EnumSet.allOf(EntryExportField.class), true)));
+	}
+
 	private static MysticCryptEntryModelBean anEntryWith(final String propertyName)
 	{
 		MysticCryptEntryModelBean entry = MysticCryptEntryModelBean.builder().build();
@@ -201,6 +246,39 @@ class PluginVaultConnectionsTest
 		public Optional<String> exportNotice(final VaultExport export)
 		{
 			return notice.apply(export);
+		}
+	}
+
+	/** A plugin that answers the export of chosen entries with what it was handed */
+	private static final class SubsetContribution implements VaultAccessContribution
+	{
+
+		private final String marker;
+
+		private final List<MysticCryptEntryModelBean> exported = new ArrayList<>();
+
+		private SubsetContribution(final String marker)
+		{
+			this.marker = marker;
+		}
+
+		@Override
+		public String getEntryMarker()
+		{
+			return marker;
+		}
+
+		@Override
+		public void connect(final VaultAccess access)
+		{
+		}
+
+		@Override
+		public Optional<String> exportNotice(final VaultExport export,
+			final List<MysticCryptEntryModelBean> entries)
+		{
+			exported.addAll(entries);
+			return Optional.of(marker + ": " + entries.size() + " entries");
 		}
 	}
 
