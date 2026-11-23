@@ -59,6 +59,9 @@ public final class JsonFileStore
 	static final DateTimeFormatter SET_ASIDE_TIME = DateTimeFormatter
 		.ofPattern("yyyyMMdd'T'HHmmss");
 
+	/** What a file's name is followed by when it could not be read and was kept aside */
+	static final String SET_ASIDE_MARKER = ".unreadable-";
+
 	private JsonFileStore()
 	{
 	}
@@ -134,9 +137,23 @@ public final class JsonFileStore
 	 * @throws IOException
 	 *             if it cannot be moved
 	 */
+	/**
+	 * Whether the file is a copy that was kept aside because the named file could not be read
+	 *
+	 * @param file
+	 *            a file of the directory
+	 * @param originalName
+	 *            the name the unreadable file had
+	 * @return true if {@link #setAside} made it from a file of that name
+	 */
+	public static boolean isSetAsideCopyOf(final File file, final String originalName)
+	{
+		return file.isFile() && file.getName().startsWith(originalName + SET_ASIDE_MARKER);
+	}
+
 	static File setAside(final File file, final Clock clock) throws IOException
 	{
-		String name = file.getName() + ".unreadable-"
+		String name = file.getName() + SET_ASIDE_MARKER
 			+ LocalDateTime.now(clock).format(SET_ASIDE_TIME);
 		File keptAs = new File(file.getParentFile(), name);
 		for (int number = 2; keptAs.exists(); number++)

@@ -809,8 +809,8 @@ public class MasterPwWithApplicationFilePanel extends BasePanel<MasterPwFileMode
 				MemoizedSigninModelBean memoizedSigninModelBean = masterPwFileModelBean
 					.toMemoizedSigninModelBean(panelModelObject);
 				memoizedSigninModelBean.setChoicesByDatabase(rememberSignInOf(panelModelObject));
-				if (!MysticCryptSettings.load(applicationFrame.getConfigurationDirectory())
-					.isRememberKeyFiles())
+				if (!MysticCryptSettings
+					.rememberKeyFilesForWriting(applicationFrame.getConfigurationDirectory()))
 				{
 					memoizedSigninModelBean = memoizedSigninModelBean.withoutKeyFilePaths();
 				}

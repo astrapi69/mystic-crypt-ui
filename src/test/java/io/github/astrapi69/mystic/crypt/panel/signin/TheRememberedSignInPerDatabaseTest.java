@@ -45,6 +45,7 @@ import org.junit.jupiter.params.provider.CsvSource;
 
 import io.github.astrapi69.gson.JsonStringToObjectExtensions;
 import io.github.astrapi69.mystic.crypt.app.file.JsonFileStore;
+import io.github.astrapi69.mystic.crypt.app.file.KeyFilePathsNotRemovedException;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -314,5 +315,44 @@ class TheRememberedSignInPerDatabaseTest
 				.sorted(java.util.Comparator.comparing(File::getPath)).toList(),
 			RememberedKeyFileSupport.keptAsideCopies(directory));
 		assertTrue(RememberedKeyFileSupport.keptAsideCopies(new File(directory, "none")).isEmpty());
+	}
+
+	@Test
+	@DisplayName("forgetting key files in a remembered sign-in that cannot be written says so and leaves the file")
+	void forgetKeyFiles_reportsAFileThatCannotBeWritten() throws Exception
+	{
+		File file = writeTodaysFile(new File(directory, "memoizedSignin.json"));
+		org.junit.jupiter.api.Assumptions.assumeTrue(directory.setWritable(false),
+			"the directory can be made read-only");
+		try
+		{
+			org.junit.jupiter.api.Assumptions.assumeFalse(acceptsNewFiles(directory),
+				"a read-only directory is enforced for this user");
+			KeyFilePathsNotRemovedException reported = assertThrows(
+				KeyFilePathsNotRemovedException.class,
+				() -> RememberedKeyFileSupport.forgetKeyFiles(file));
+			assertEquals(file, reported.getFile());
+			assertEquals(KeyFilePathsNotRemovedException.Reason.NOT_WRITABLE, reported.getReason());
+			assertEquals(TODAYS_FILE, Files.readString(file.toPath()), "the file is as it was");
+		}
+		finally
+		{
+			directory.setWritable(true);
+		}
+	}
+
+	private static boolean acceptsNewFiles(final File directory)
+	{
+		try
+		{
+			File probe = new File(directory, "probe");
+			boolean created = probe.createNewFile();
+			probe.delete();
+			return created;
+		}
+		catch (java.io.IOException refused)
+		{
+			return false;
+		}
 	}
 }

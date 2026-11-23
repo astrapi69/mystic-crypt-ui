@@ -26,6 +26,7 @@ package io.github.astrapi69.mystic.crypt.ui;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.File;
@@ -177,7 +178,9 @@ class RememberKeyFilesSettingUiTest extends AbstractUiTest
 		String message = String.valueOf(pane.getMessage());
 		assertTrue(message.contains(remembered.getAbsolutePath()),
 			"the warning names the file, its name and its directory: " + message);
-		assertTrue(message.contains("cannot be read"), "and says why: " + message);
+		assertTrue(message.contains(io.github.astrapi69.mystic.crypt.Messages.getString(
+			"settings.general.remember.key.files.reason.unreadable", "the file cannot be read")),
+			"and says why: " + message);
 		GuiActionRunner.execute(() -> pane.setValue(JOptionPane.OK_OPTION));
 		robot.waitForIdle();
 	}
@@ -223,10 +226,25 @@ class RememberKeyFilesSettingUiTest extends AbstractUiTest
 			"lists the sign-in copy: " + message);
 		assertTrue(message.contains(keePassCopy.getAbsolutePath()),
 			"lists the KeePass copy: " + message);
-		assertFalse(message.contains("could not be removed"),
-			"and reports no failure, since the files themselves were removed: " + message);
+		assertFalse(
+			message.contains(io.github.astrapi69.mystic.crypt.Messages
+				.getString("settings.general.remember.key.files.not.removed", "not removed")),
+			"and reports no failure, since the key file paths themselves were removed: " + message);
 		GuiActionRunner.execute(() -> pane.setValue(JOptionPane.OK_OPTION));
 		robot.waitForIdle();
+
+		DialogFixture again = application.openSettingsDialog();
+		SwingUtilities.invokeLater(() -> again.button("btnCloseSettings").target().doClick());
+		Pause.pause(new Condition("the settings dialog is closed again")
+		{
+			@Override
+			public boolean test()
+			{
+				return !again.target().isShowing();
+			}
+		}, TimeUnit.SECONDS.toMillis(15));
+		assertNull(aWarningPane(),
+			"closing the dialog again with the setting still off shows no notice");
 	}
 
 	private static JOptionPane aWarningPane()

@@ -33,7 +33,10 @@ import java.util.Objects;
 import java.util.Optional;
 
 import io.github.astrapi69.file.create.model.FileInfo;
+import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
 import io.github.astrapi69.mystic.crypt.app.file.JsonFileStore;
+import io.github.astrapi69.mystic.crypt.app.file.KeyFilePathsNotRemovedException;
+import io.github.astrapi69.mystic.crypt.keepass.MemoizedKeePassModelBean;
 
 /**
  * Which key file a remembered sign-in preselects, for the database signed in to last and for each
@@ -178,7 +181,8 @@ public final class RememberedKeyFileSupport
 		{
 			if (memoizedSigninFile.isFile())
 			{
-				throw new java.io.IOException(memoizedSigninFile + ": the file cannot be read");
+				throw new KeyFilePathsNotRemovedException(memoizedSigninFile,
+					KeyFilePathsNotRemovedException.Reason.UNREADABLE, null);
 			}
 			return false;
 		}
@@ -189,8 +193,8 @@ public final class RememberedKeyFileSupport
 		}
 		catch (final java.io.IOException notWritable)
 		{
-			throw new java.io.IOException(memoizedSigninFile + ": the file cannot be written ("
-				+ notWritable.getMessage() + ")", notWritable);
+			throw new KeyFilePathsNotRemovedException(memoizedSigninFile,
+				KeyFilePathsNotRemovedException.Reason.NOT_WRITABLE, notWritable);
 		}
 		return true;
 	}
@@ -215,9 +219,9 @@ public final class RememberedKeyFileSupport
 		java.util.List<File> copies = new java.util.ArrayList<>();
 		for (File file : files)
 		{
-			String name = file.getName();
-			if (file.isFile() && (name.startsWith("memoizedSignin.json.unreadable-")
-				|| name.startsWith("memoizedKeePass.json.unreadable-")))
+			if (JsonFileStore.isSetAsideCopyOf(file,
+				MysticCryptApplicationFrame.MEMOIZED_SIGNIN_JSON_FILENAME)
+				|| JsonFileStore.isSetAsideCopyOf(file, MemoizedKeePassModelBean.JSON_FILENAME))
 			{
 				copies.add(file);
 			}

@@ -242,4 +242,23 @@ class MysticCryptSettingsTest
 			"the new file reads back");
 		assertEquals(1, told.size(), "the user is told once: " + told);
 	}
+
+	@Test
+	@DisplayName("key files may be written when there is no settings file or the setting is on, and not when it is off or the file cannot be read")
+	void rememberKeyFilesForWriting_failsClosed(@TempDir File configurationDirectory)
+		throws Exception
+	{
+		assertTrue(MysticCryptSettings.rememberKeyFilesForWriting(configurationDirectory));
+		MysticCryptSettings settings = new MysticCryptSettings();
+		settings.save(configurationDirectory);
+		assertTrue(MysticCryptSettings.rememberKeyFilesForWriting(configurationDirectory));
+		settings.setRememberKeyFiles(false);
+		settings.save(configurationDirectory);
+		assertFalse(MysticCryptSettings.rememberKeyFilesForWriting(configurationDirectory));
+		java.nio.file.Files.writeString(
+			new File(configurationDirectory, MysticCryptSettings.JSON_FILENAME).toPath(),
+			"{ not json");
+		assertFalse(MysticCryptSettings.rememberKeyFilesForWriting(configurationDirectory),
+			"an unreadable settings file may say off, so nothing is written");
+	}
 }

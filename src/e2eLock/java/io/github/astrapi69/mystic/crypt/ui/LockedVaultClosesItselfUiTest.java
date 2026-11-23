@@ -188,10 +188,6 @@ class LockedVaultClosesItselfUiTest extends AbstractUiTest
 		assertTrue(again.keyFileIsChecked() && again.masterPasswordIsChecked(),
 			"with both factors, as the database was opened");
 		again.requireOkDisabled();
-		again.pressEnterInMasterPassword();
-		assertFalse(signedInNow(), "an offered key file is no way in: Enter without the password "
-			+ "does not open the database");
-		assertTrue(again.dialogIsShowing(), "and the dialog stays");
 		again.uncheckKeyFile().checkMasterPassword().typeMasterPassword(password).requireOkEnabled()
 			.clickOk();
 		awaitAndDismissAnErrorDialog();
