@@ -9,7 +9,7 @@
 #   *.gradle, *.md, .gitignore at the top  spotlessMiscCheck
 # The plugin builds have no Spotless of their own, and a commit that touches nothing of the above
 # costs no Gradle run. With a daemon running, a check takes under a second (measured 0.5 to 0.9 s on
-# 2026-10-17; 5.3 s without one).
+# 2026-10-17; 5.3 s without one). Through a slot script it waits for the slot first and runs without a daemon.
 #
 # Spotless checks the files as they are in the working tree, so a file staged in one form and edited
 # further is checked in its edited form.
@@ -47,11 +47,16 @@ run_gradle()
     return
   fi
   local log status
-  log="$(mktemp "${TMPDIR:-/tmp}/check-formatting.XXXXXX")"
-  "$GRADLE_SLOT_RUNNER" "$root" "$log" "$@" > /dev/null 2>&1
+  if ! log="$(mktemp "${TMPDIR:-/tmp}/check-formatting.XXXXXX" 2>/dev/null)"; then
+    echo "==> the formatting check could not create its temporary file in ${TMPDIR:-/tmp}" >&2
+    return 2
+  fi
+  # run_gradle runs in a subshell of its own, so the trap removes the file when that ends, interrupted too
+  trap 'rm -f "$log"' EXIT
+  echo "==> the formatting check is waiting for the build slot ($GRADLE_SLOT_RUNNER)" >&2
+  "$GRADLE_SLOT_RUNNER" "$root" "$log" "$@" >&2
   status=$?
   cat "$log"
-  rm -f "$log"
   return "$status"
 }
 
@@ -65,8 +70,17 @@ if [ "${GITHUB_ACTIONS:-}" != true ] && [ -z "${GRADLE_SLOT:-}" ] && [ -z "${GRA
   exit 1
 fi
 
-if output="$(run_gradle "${tasks[@]}" -q --console=plain)"; then
-  exit 0
+status=0
+output="$(run_gradle "${tasks[@]}" -q --console=plain)" || status=$?
+[ "$status" -eq 0 ] && exit 0
+# Gradle ends a failed build with 1; anything else is a check that did not run, and says nothing about formatting
+if [ "$status" -ne 1 ]; then
+  {
+    printf '%s\n' "$output"
+    echo
+    echo "==> commit refused: the formatting check could not run (exit $status), see the lines above"
+  } >&2
+  exit 1
 fi
 {
   printf '%s\n' "$output"

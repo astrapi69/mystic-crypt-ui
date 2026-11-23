@@ -230,32 +230,34 @@ class PreCommitFormattingCheckTest
 	}
 
 	@Test
-	@DisplayName("a slot script that fails by itself is reported as a formatting violation, and what it said is lost")
-	void aFailingSlotRunner_isReportedAsAViolation() throws Exception
+	@DisplayName("a slot script that fails by itself refuses the commit as a check that could not run, with what it said")
+	void aFailingSlotRunner_isReportedAsACheckThatCouldNotRun() throws Exception
 	{
 		stage("src/main/java/A.java");
 
 		Run run = check(0, Map.of("GRADLE_SLOT_RUNNER", failingSlotRunner().toString()));
 
 		assertNotEquals(0, run.exit(), run.output());
-		assertTrue(run.output().contains("Spotless would format"), run.output());
-		assertTrue(!run.output().contains("slot script broke"), run.output());
+		assertTrue(run.output().contains("slot script broke"), run.output());
+		assertTrue(run.output().contains("could not run (exit 3)"), run.output());
+		assertTrue(!run.output().contains("Spotless would format"), run.output());
 	}
 
 	@Test
-	@DisplayName("through a slot script the check says nothing while it waits for the slot")
-	void throughASlotRunner_nothingSaysThatTheCheckWaits() throws Exception
+	@DisplayName("through a slot script the check says that it waits for the build slot")
+	void throughASlotRunner_theCheckSaysThatItWaits() throws Exception
 	{
 		stage("src/main/java/A.java");
 
 		Run run = check(0, Map.of("GRADLE_SLOT_RUNNER", slotRunner().toString()));
 
-		assertTrue(!run.output().contains("waiting for the build slot"), run.output());
+		assertEquals(0, run.exit(), run.output());
+		assertTrue(run.output().contains("waiting for the build slot"), run.output());
 	}
 
 	@Test
-	@DisplayName("through a slot script, a temporary directory that cannot be written is reported as a formatting violation")
-	void anUnwritableTemporaryDirectory_isReportedAsAViolation() throws Exception
+	@DisplayName("through a slot script, a temporary directory that cannot be written refuses the commit and says so")
+	void anUnwritableTemporaryDirectory_isReportedAsSuch() throws Exception
 	{
 		stage("src/main/java/A.java");
 
@@ -263,7 +265,9 @@ class PreCommitFormattingCheckTest
 			repository.resolve(".git/no-such-directory").toString()));
 
 		assertNotEquals(0, run.exit(), run.output());
-		assertTrue(run.output().contains("Spotless would format"), run.output());
+		assertTrue(run.output().contains("could not create its temporary file"), run.output());
+		assertTrue(!run.output().contains("Spotless would format"), run.output());
+		assertEquals(List.of(), run.gradleCalls());
 	}
 
 	/** A slot script that fails before it runs anything, as one that is missing or broken does */
