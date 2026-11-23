@@ -383,6 +383,10 @@ public class MasterPwWithApplicationFilePanel extends BasePanel<MasterPwFileMode
 				{
 					super.onOk(actionEvent);
 					MasterPwFileModelBean dialogModelObject = this.getModelObject();
+					// built without the databases and key files the sign-in remembers, and the
+					// sign-in that follows writes this model's lists: they stay
+					dialogModelObject.keepTheRememberedPathsOf(
+						MasterPwWithApplicationFilePanel.this.getModelObject());
 					// the dialog model carries the file the database was actually written to:
 					// Browse... in the dialog may have changed it, and the sign-in must open that
 					// file, not the one picked first (#890)

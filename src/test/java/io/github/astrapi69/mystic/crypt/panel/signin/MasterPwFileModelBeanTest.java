@@ -63,6 +63,46 @@ class MasterPwFileModelBeanTest
 	}
 
 	@Test
+	@DisplayName("the remembered databases and key files of another model stay, after its own and without duplicates")
+	void keepTheRememberedPathsOf_keepsThem_afterItsOwn_withoutDuplicates()
+	{
+		MasterPwFileModelBean remembering = MasterPwFileModelBean.builder()
+			.applicationFilePaths(
+				new java.util.ArrayList<>(java.util.List.of("", "/db/a.mcrdb", "/db/new.mcrdb")))
+			.keyFilePaths(new java.util.ArrayList<>(java.util.List.of("", "/keys/a.pem"))).build();
+		MasterPwFileModelBean created = MasterPwFileModelBean.builder()
+			.applicationFilePaths(new java.util.ArrayList<>(java.util.List.of("/db/new.mcrdb")))
+			.build();
+
+		created.keepTheRememberedPathsOf(remembering);
+
+		org.junit.jupiter.api.Assertions.assertEquals(
+			java.util.List.of("/db/new.mcrdb", "", "/db/a.mcrdb"),
+			created.getApplicationFilePaths());
+		org.junit.jupiter.api.Assertions.assertEquals(java.util.List.of("", "/keys/a.pem"),
+			created.getKeyFilePaths());
+	}
+
+	@Test
+	@DisplayName("keeping the paths of a model without lists keeps this model's own")
+	void keepTheRememberedPathsOf_aModelWithoutLists_keepsItsOwn()
+	{
+		MasterPwFileModelBean remembering = new MasterPwFileModelBean();
+		remembering.setApplicationFilePaths(null);
+		remembering.setKeyFilePaths(null);
+		MasterPwFileModelBean created = MasterPwFileModelBean.builder()
+			.applicationFilePaths(new java.util.ArrayList<>(java.util.List.of("/db/new.mcrdb")))
+			.build();
+
+		created.keepTheRememberedPathsOf(remembering);
+
+		org.junit.jupiter.api.Assertions.assertEquals(java.util.List.of("/db/new.mcrdb"),
+			created.getApplicationFilePaths());
+		org.junit.jupiter.api.Assertions.assertEquals(java.util.List.of(""),
+			created.getKeyFilePaths());
+	}
+
+	@Test
 	@DisplayName("replacing null does not throw")
 	void setMasterPw_acceptsNull_whenThereWasNothingToWipe()
 	{
