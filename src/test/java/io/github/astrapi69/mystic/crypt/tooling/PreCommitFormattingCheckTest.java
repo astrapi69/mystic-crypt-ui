@@ -42,12 +42,16 @@ import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 
 /**
  * Drives {@code scripts/check-formatting.sh}, which the pre-commit hook runs (#592), in a real
  * throwaway git repository: it asks Gradle to check only what Spotless covers among the staged
  * files, nothing when they are outside its reach, and refuses the commit with the command that
- * formats them. A fake {@code gradlew} records the tasks it is asked for and answers as told.
+ * formats them. Gradle runs only inside the build slot: inside one or on a CI runner the check runs
+ * it itself, with a slot script it queues through that, and otherwise it refuses before Gradle
+ * starts. A fake {@code gradlew} records the tasks it is asked for and answers as told.
  */
 class PreCommitFormattingCheckTest
 {
@@ -143,15 +147,88 @@ class PreCommitFormattingCheckTest
 	}
 
 	@Test
-	@DisplayName("outside the build slot and outside CI the check starts Gradle all the same")
-	void outsideTheSlot_theCheckStartsGradle() throws Exception
+	@DisplayName("outside the build slot and outside CI the check refuses before Gradle starts, and says how to run it")
+	void outsideTheSlot_theCheckRefuses_beforeGradleStarts() throws Exception
 	{
 		stage("src/main/java/A.java");
 
 		Run run = check(0, OUTSIDE_THE_SLOT);
 
+		assertNotEquals(0, run.exit(), run.output());
+		assertEquals(List.of(), run.gradleCalls());
+		assertTrue(run.output().contains("build slot"), run.output());
+		assertTrue(run.output().contains("GRADLE_SLOT_RUNNER="), run.output());
+		assertTrue(run.output().contains("GRADLE_SLOT=none"), run.output());
+	}
+
+	@Test
+	@DisplayName("outside the build slot a commit that stages nothing Spotless covers is not refused")
+	void outsideTheSlot_nothingToCheck_isNotRefused() throws Exception
+	{
+		stage("docs/notes.txt");
+
+		Run run = check(0, OUTSIDE_THE_SLOT);
+
+		assertEquals(0, run.exit(), run.output());
+		assertEquals(List.of(), run.gradleCalls());
+	}
+
+	@ParameterizedTest(name = "{0}={1}")
+	@CsvSource({ "GRADLE_SLOT,1", "GRADLE_SLOT,none", "GITHUB_ACTIONS,true" })
+	@DisplayName("inside a build slot, deliberately without one, or on a CI runner the check runs Gradle itself")
+	void insideTheSlotOrOnCi_theCheckRunsGradleItself(final String name, final String value)
+		throws Exception
+	{
+		stage("src/main/java/A.java");
+
+		Run run = check(0, Map.of(name, value));
+
 		assertEquals(0, run.exit(), run.output());
 		assertEquals(List.of("spotlessJavaCheck"), run.gradleCalls());
+	}
+
+	@Test
+	@DisplayName("with GRADLE_SLOT_RUNNER the check queues through that slot script, in the repository's root")
+	void withASlotRunner_theCheckRunsThroughIt() throws Exception
+	{
+		stage("src/main/java/A.java");
+
+		Run run = check(0, Map.of("GRADLE_SLOT_RUNNER", slotRunner().toString()));
+
+		assertEquals(0, run.exit(), run.output());
+		assertEquals(List.of("spotlessJavaCheck"), run.gradleCalls());
+		assertEquals(List.of(repository.toRealPath().toString()),
+			Files.readAllLines(repository.resolve(".git/runner-trees.txt")));
+	}
+
+	@Test
+	@DisplayName("a violation found through the slot script refuses the commit and names the file")
+	void aViolationThroughTheSlotRunner_refusesTheCommit() throws Exception
+	{
+		stage("src/main/java/A.java");
+
+		Run run = check(1, Map.of("GRADLE_SLOT_RUNNER", slotRunner().toString()));
+
+		assertNotEquals(0, run.exit(), run.output());
+		assertTrue(run.output().contains("src/main/java/A.java"), run.output());
+		assertTrue(run.output().contains("./gradlew spotlessApply"), run.output());
+	}
+
+	/**
+	 * A fake slot script with the command line of the real one, {@code <runner> <tree> <log file>
+	 * <gradle arguments...>}: it records the tree and runs the fake gradlew there, its output into
+	 * the log
+	 */
+	private Path slotRunner() throws IOException
+	{
+		Path runner = repository.resolve(".git/fake-slot-runner");
+		Files.writeString(runner,
+			"#!/bin/sh\n" + "tree=$1; log=$2; shift 2\n" + "(cd \"$tree\" && pwd -P) >> '"
+				+ repository.resolve(".git/runner-trees.txt") + "'\n"
+				+ "\"$GRADLEW\" -p \"$tree\" \"$@\" > \"$log\" 2>&1\n",
+			StandardCharsets.UTF_8);
+		Files.setPosixFilePermissions(runner, PosixFilePermissions.fromString("rwxr-xr-x"));
+		return runner;
 	}
 
 	private void stage(final String... paths) throws Exception

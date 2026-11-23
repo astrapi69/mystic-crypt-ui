@@ -14,6 +14,8 @@
 # Spotless checks the files as they are in the working tree, so a file staged in one form and edited
 # further is checked in its edited form.
 #
+# Gradle runs only inside the build slot (#1116): see run_gradle below.
+#
 #   scripts/check-formatting.sh            GRADLEW overrides the Gradle wrapper, for the test
 set -euo pipefail
 
@@ -35,7 +37,35 @@ tasks=()
 [ "$misc" = true ] && tasks+=(spotlessMiscCheck)
 [ "${#tasks[@]}" -gt 0 ] || exit 0
 
-if output="$("$gradlew" -p "$root" "${tasks[@]}" -q --console=plain 2>&1)"; then
+# Gradle only inside the build slot, as the Makefile asks of every target that starts it: inside a slot or
+# on a CI runner the check runs Gradle itself, with GRADLE_SLOT_RUNNER it queues through that slot script
+# (<runner> <tree> <log file> <gradle arguments...>), and otherwise it refuses before Gradle starts.
+run_gradle()
+{
+  if [ "${GITHUB_ACTIONS:-}" = true ] || [ -n "${GRADLE_SLOT:-}" ]; then
+    "$gradlew" -p "$root" "$@" 2>&1
+    return
+  fi
+  local log status
+  log="$(mktemp "${TMPDIR:-/tmp}/check-formatting.XXXXXX")"
+  "$GRADLE_SLOT_RUNNER" "$root" "$log" "$@" > /dev/null 2>&1
+  status=$?
+  cat "$log"
+  rm -f "$log"
+  return "$status"
+}
+
+if [ "${GITHUB_ACTIONS:-}" != true ] && [ -z "${GRADLE_SLOT:-}" ] && [ -z "${GRADLE_SLOT_RUNNER:-}" ]; then
+  {
+    echo "==> commit refused: the formatting check starts Gradle, and Gradle runs only inside the build slot"
+    echo "    (GRADLE_SLOT and GRADLE_SLOT_RUNNER are empty)"
+    echo "    through the slot:           GRADLE_SLOT_RUNNER=<the slot script> git commit ..."
+    echo "    deliberately without slot:  GRADLE_SLOT=none git commit ..."
+  } >&2
+  exit 1
+fi
+
+if output="$(run_gradle "${tasks[@]}" -q --console=plain)"; then
   exit 0
 fi
 {
