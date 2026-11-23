@@ -49,6 +49,9 @@ public final class LookAndFeelChoice
 	 * <p>
 	 * A look that is not among the installed ones has no name the settings could hold, and the
 	 * saved look stays
+	 * <p>
+	 * A settings file that exists and cannot be read shows "Remember key files" off: the file may
+	 * say off, and the defaults, written by closing the dialog, would switch it on again (#997)
 	 *
 	 * @param configurationDirectory
 	 *            the application's configuration directory
@@ -57,6 +60,10 @@ public final class LookAndFeelChoice
 	public static MysticCryptSettings settingsForTheDialog(final File configurationDirectory)
 	{
 		MysticCryptSettings settings = MysticCryptSettings.load(configurationDirectory);
+		if (MysticCryptSettings.existsButCannotBeRead(configurationDirectory))
+		{
+			settings.setRememberKeyFiles(false);
+		}
 		String activeName = GeneralSettingsPanel.installedNameOfActiveLookAndFeel();
 		if (activeName != null)
 		{

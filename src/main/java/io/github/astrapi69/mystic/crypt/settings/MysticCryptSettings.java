@@ -25,10 +25,14 @@
 package io.github.astrapi69.mystic.crypt.settings;
 
 import java.io.File;
+import java.util.Optional;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 import io.github.astrapi69.gson.JsonStringToObjectExtensions;
 import io.github.astrapi69.mystic.crypt.app.file.JsonFileStore;
 import io.github.astrapi69.mystic.crypt.app.file.TextFiles;
+import io.github.astrapi69.mystic.crypt.app.file.UnreadableFileNotices;
 import io.github.astrapi69.mystic.crypt.clipboard.ClipboardClearDecision;
 import io.github.astrapi69.mystic.crypt.lock.IdleLockDecision;
 import io.github.astrapi69.swing.enumeration.FrameMode;
@@ -153,10 +157,14 @@ public class MysticCryptSettings
 			.orElseGet(MysticCryptSettings::new);
 	}
 
+	/** The settings files the user was already told about in this run (#997) */
+	private static final Set<String> TOLD_NOT_REMEMBERED = ConcurrentHashMap.newKeySet();
+
 	/**
 	 * Whether key file paths may be written to the remembered files of the configuration directory.
 	 * Fails closed: a settings file that exists and cannot be read is not "on", since the user may
-	 * have switched the setting off in it, so no path is written until it can be read (#997).
+	 * have switched the setting off in it, so no path is written until it can be read, and the user
+	 * is told so, once per run and file (#997).
 	 *
 	 * @param configurationDirectory
 	 *            the application's configuration directory
@@ -165,11 +173,33 @@ public class MysticCryptSettings
 	public static boolean rememberKeyFilesForWriting(File configurationDirectory)
 	{
 		File file = new File(configurationDirectory, JSON_FILENAME);
-		if (file.isFile() && JsonFileStore.read(file, MysticCryptSettings.class).isEmpty())
+		Optional<MysticCryptSettings> read = JsonFileStore.read(file, MysticCryptSettings.class);
+		if (read.isPresent())
 		{
-			return false;
+			return read.get().isRememberKeyFiles();
 		}
-		return load(configurationDirectory).isRememberKeyFiles();
+		if (!file.exists())
+		{
+			return new MysticCryptSettings().isRememberKeyFiles();
+		}
+		if (TOLD_NOT_REMEMBERED.add(file.getAbsolutePath()))
+		{
+			UnreadableFileNotices.publish(new UnreadableFileNotices.KeyFilesNotRemembered(file));
+		}
+		return false;
+	}
+
+	/**
+	 * Whether the settings file of the given directory exists and cannot be read
+	 *
+	 * @param configurationDirectory
+	 *            the application's configuration directory
+	 * @return true if there is a settings file and it cannot be read
+	 */
+	public static boolean existsButCannotBeRead(File configurationDirectory)
+	{
+		File file = new File(configurationDirectory, JSON_FILENAME);
+		return file.exists() && JsonFileStore.read(file, MysticCryptSettings.class).isEmpty();
 	}
 
 	/**

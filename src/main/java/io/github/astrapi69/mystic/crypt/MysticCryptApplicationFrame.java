@@ -402,8 +402,45 @@ public class MysticCryptApplicationFrame extends ApplicationPanelFrame<Applicati
 		onWindowClosing();
 		startTheIdleLockWatchdog();
 		startTheClipboardClearWatchdog();
-		UnreadableFileNotices.listen(this::tellAboutAFileKeptAside);
+		UnreadableFileNotices.listen(this::tell);
 		StartupSignal.startCompleted();
+	}
+
+	/**
+	 * Tells the user what a notice about a file that could not be read says, with this window as
+	 * the message's parent
+	 *
+	 * @param notice
+	 *            the notice
+	 */
+	private void tell(final UnreadableFileNotices.Notice notice)
+	{
+		switch (notice)
+		{
+			case UnreadableFileNotices.SetAside setAside -> tellAboutAFileKeptAside(setAside);
+			case UnreadableFileNotices.KeyFilesNotRemembered notRemembered ->
+				tellThatKeyFilesAreNotRemembered(notRemembered);
+		}
+	}
+
+	/**
+	 * Tells the user that the settings file could not be read, so key files are not remembered
+	 * until it can be (#997)
+	 *
+	 * @param notRemembered
+	 *            the settings file that could not be read
+	 */
+	private void tellThatKeyFilesAreNotRemembered(
+		final UnreadableFileNotices.KeyFilesNotRemembered notRemembered)
+	{
+		SwingUtilities.invokeLater(() -> JOptionPane.showMessageDialog(this, String.format(
+			Messages.getString("dialog.key.files.not.remembered.message",
+				"The settings file %1$s could not be read, so key files are not remembered: the setting "
+					+ "in it may be off. Saving the settings writes the file anew."),
+			notRemembered.settingsFile().getAbsolutePath()),
+			Messages.getString("dialog.key.files.not.remembered.title",
+				"Key files are not remembered"),
+			JOptionPane.WARNING_MESSAGE));
 	}
 
 	/**

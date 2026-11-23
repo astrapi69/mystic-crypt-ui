@@ -95,7 +95,7 @@ class SettingsForTheDialogTest
 	}
 
 	@Test
-	void aSettingsFileThatCannotBeRead_showsRememberKeyFilesOn() throws Exception
+	void aSettingsFileThatCannotBeRead_showsRememberKeyFilesOff() throws Exception
 	{
 		java.nio.file.Files.writeString(
 			new File(configurationDirectory, MysticCryptSettings.JSON_FILENAME).toPath(),
@@ -103,7 +103,7 @@ class SettingsForTheDialogTest
 
 		MysticCryptSettings shown = LookAndFeelChoice.settingsForTheDialog(configurationDirectory);
 
-		org.junit.jupiter.api.Assertions.assertTrue(shown.isRememberKeyFiles(),
-			"the dialog shows the default, on, although the file may say off");
+		org.junit.jupiter.api.Assertions.assertFalse(shown.isRememberKeyFiles(),
+			"the file may say off, so the dialog does not show the default, on");
 	}
 }

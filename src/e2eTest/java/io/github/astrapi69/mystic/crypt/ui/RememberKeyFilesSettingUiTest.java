@@ -144,8 +144,8 @@ class RememberKeyFilesSettingUiTest extends AbstractUiTest
 	}
 
 	@Test
-	@DisplayName("with a settings file that cannot be read, a sign-in writes no key file path")
-	void signingInWithAnUnreadableSettingsFile_writesNoKeyFilePath() throws Exception
+	@DisplayName("with a settings file that cannot be read, a sign-in writes no key file path and tells the user why")
+	void signingInWithAnUnreadableSettingsFile_writesNoKeyFilePath_andTellsWhy() throws Exception
 	{
 		File configurationDirectory = new File(tempHome, ".config/mystic-crypt-ui");
 		configurationDirectory.mkdirs();
@@ -167,6 +167,21 @@ class RememberKeyFilesSettingUiTest extends AbstractUiTest
 		String text = Files.readString(remembered.toPath());
 		assertFalse(text.contains("unreadable-settings-key"), "no key file path in it: " + text);
 		assertTrue(text.contains("unreadable-settings.mcrdb"), "the database is remembered");
+		Pause.pause(new Condition("the notice that key files are not remembered")
+		{
+			@Override
+			public boolean test()
+			{
+				return aWarningPane() != null;
+			}
+		}, TimeUnit.SECONDS.toMillis(30));
+		JOptionPane pane = aWarningPane();
+		String message = String.valueOf(pane.getMessage());
+		assertTrue(message.contains(
+			new File(configurationDirectory, MysticCryptSettings.JSON_FILENAME).getAbsolutePath()),
+			"the notice names the settings file: " + message);
+		GuiActionRunner.execute(() -> pane.setValue(JOptionPane.OK_OPTION));
+		robot.waitForIdle();
 	}
 
 	@Test

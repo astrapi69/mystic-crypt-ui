@@ -126,7 +126,7 @@ class MemoizedKeePassModelBeanTest
 		File file = new File(configurationDirectory, MemoizedKeePassModelBean.JSON_FILENAME);
 		byte[] broken = "{\"lastImportFilePath\": ".getBytes(StandardCharsets.UTF_8);
 		Files.write(file.toPath(), broken);
-		java.util.List<io.github.astrapi69.mystic.crypt.app.file.UnreadableFileNotices.SetAside> told = new java.util.ArrayList<>();
+		java.util.List<io.github.astrapi69.mystic.crypt.app.file.UnreadableFileNotices.Notice> told = new java.util.ArrayList<>();
 		io.github.astrapi69.mystic.crypt.app.file.UnreadableFileNotices.listen(told::add);
 		try
 		{
