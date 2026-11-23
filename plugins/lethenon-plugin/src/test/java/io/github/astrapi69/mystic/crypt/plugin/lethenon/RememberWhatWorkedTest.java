@@ -71,7 +71,7 @@ import io.github.astrapi69.mystic.crypt.settings.PluginSettings;
 class RememberWhatWorkedTest
 {
 
-	private static final String PASSWORD = "correct horse battery staple";
+	private final String password = String.valueOf(ThrowawayPasswords.next());
 
 	@TempDir
 	File configurationDirectory;
@@ -90,7 +90,7 @@ class RememberWhatWorkedTest
 			configurationDirectory.getAbsolutePath());
 		Wallet wallet = Wallet.create();
 		walletFile = directory.resolve("home.wallet");
-		WalletFile.write(walletFile, wallet, PASSWORD.toCharArray());
+		WalletFile.write(walletFile, wallet, password.toCharArray());
 		KeyPair payer = TransactionSigner.newKeyPair(SignatureSuite.ED25519);
 		chainFile = directory.resolve("chain.lethenon");
 		LethenonFixtures.written(chainFile, LethenonFixtures.aChainPayingTheWallet(payer, wallet));
@@ -109,7 +109,7 @@ class RememberWhatWorkedTest
 		LethenonBalancePanel panel = new LethenonBalancePanel();
 		panel.getModelObject().setChainFile(chainFile.toString());
 		panel.getModelObject().setWalletFile(walletFile.toString());
-		panel.getModelObject().setPassword(PASSWORD.toCharArray());
+		panel.getModelObject().setPassword(password.toCharArray());
 
 		panel.onShow();
 
@@ -127,7 +127,7 @@ class RememberWhatWorkedTest
 		LethenonBalancePanel panel = new LethenonBalancePanel();
 		panel.getModelObject().setChainFile(chainFile.toString());
 		panel.getModelObject().setWalletFile(directory.resolve("typo.wallet").toString());
-		panel.getModelObject().setPassword("not the password".toCharArray());
+		panel.getModelObject().setPassword(ThrowawayPasswords.next());
 
 		panel.onShow();
 
@@ -143,7 +143,7 @@ class RememberWhatWorkedTest
 		LethenonMinePanel panel = new LethenonMinePanel();
 		panel.getModelObject().setChainFile(chainFile.toString());
 		panel.getModelObject().setWalletFile(walletFile.toString());
-		panel.getModelObject().setPassword(PASSWORD.toCharArray());
+		panel.getModelObject().setPassword(password.toCharArray());
 
 		panel.onMine();
 
@@ -155,10 +155,10 @@ class RememberWhatWorkedTest
 	@DisplayName("a signed transfer leaves its chain and its wallet; no node was used, so none is remembered")
 	void aTransfer_remembersTheChainAndTheWallet()
 	{
-		LethenonSendPanel panel = new LethenonSendPanel();
+		LethenonSendPanel panel = OnTheTestNetwork.sendPanel();
 		panel.getModelObject().setChainFile(chainFile.toString());
 		panel.getModelObject().setWalletFile(walletFile.toString());
-		panel.getModelObject().setPassword(PASSWORD.toCharArray());
+		panel.getModelObject().setPassword(password.toCharArray());
 		panel.getModelObject().setRecipient(TransactionSigner
 			.asBytes(TransactionSigner.newKeyPair(SignatureSuite.ED25519).getPublic()).toString());
 		panel.getModelObject().setAmount("1");
@@ -299,12 +299,12 @@ class RememberWhatWorkedTest
 		LethenonBalancePanel balance = new LethenonBalancePanel();
 		balance.getModelObject().setChainFile(chainFile.toString());
 		balance.getModelObject().setWalletFile(walletFile.toString());
-		balance.getModelObject().setPassword(PASSWORD.toCharArray());
+		balance.getModelObject().setPassword(password.toCharArray());
 		balance.onShow();
 		LethenonMinePanel mine = new LethenonMinePanel();
 		mine.getModelObject().setChainFile(chainFile.toString());
 		mine.getModelObject().setWalletFile(walletFile.toString());
-		mine.getModelObject().setPassword(PASSWORD.toCharArray());
+		mine.getModelObject().setPassword(password.toCharArray());
 		mine.onMine();
 
 		List<Path> written;
@@ -316,7 +316,7 @@ class RememberWhatWorkedTest
 		for (Path file : written)
 		{
 			String content = Files.readString(file, StandardCharsets.ISO_8859_1);
-			assertFalse(content.contains(PASSWORD), file + " holds the password");
+			assertFalse(content.contains(password), file + " holds the password");
 			assertFalse(content.contains("correct"), file + " holds a part of the password");
 		}
 		assertTrue(Files.readString(written.getFirst(), StandardCharsets.ISO_8859_1)

@@ -303,19 +303,17 @@ public class LethenonSendPanel extends JPanel
 	}
 
 	/**
-	 * The question before a send from the vault's wallet: none on the test network, T5 on the main
-	 * network, and on an unknown network first which network it is (draft 02)
+	 * The question before a send: none on the test network, T5 on the main network, and on an
+	 * unknown network first which network it is (draft 02). A wallet file records no network, so a
+	 * send from one always starts with that question (#978)
 	 *
 	 * @return whether the send may go on
 	 */
 	private boolean confirmedForItsNetwork(final TransferOrder order)
 	{
 		Optional<VaultWallet> chosen = vault.chosen();
-		if (chosen.isEmpty())
-		{
-			return true;
-		}
-		NetworkKind network = NetworkKind.of(chosen.get().network());
+		NetworkKind network = chosen.map(wallet -> NetworkKind.of(wallet.network()))
+			.orElse(NetworkKind.UNKNOWN);
 		if (network == NetworkKind.UNKNOWN)
 		{
 			Optional<NetworkKind> answered = confirmation.askNetwork(this);

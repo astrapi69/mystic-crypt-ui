@@ -193,8 +193,9 @@ sweep when it starts.
 When the wallet of the database you send from is meant for the main network, **Send** first shows
 `You are sending ... on the MAIN NETWORK to ...` with the fee and the total, and the transfer is
 signed only after you confirm. When its entry records no network, the window first asks which
-network it is on. A send from a wallet file asks neither question: a file does not record its
-network.
+network it is on. A wallet file does not record its network either, so a send from one always
+starts with that question: **Cancel** signs nothing, **TESTNET** signs, and **MAIN NETWORK** leads
+to the confirmation above.
 
 ## The chain tools
 
