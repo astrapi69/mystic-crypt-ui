@@ -264,12 +264,27 @@ class MemoizedKeePassModelBeanTest
 			new File(configurationDirectory, MysticCryptSettings.JSON_FILENAME).toPath(),
 			"{ not json");
 
-		withAllFourPaths().save(configurationDirectory);
+		// the notice the save causes is taken here, so it does not wait for the next test's
+		// listener
+		java.util.List<io.github.astrapi69.mystic.crypt.app.file.UnreadableFileNotices.Notice> told = new java.util.ArrayList<>();
+		io.github.astrapi69.mystic.crypt.app.file.UnreadableFileNotices.listen(told::add);
+		try
+		{
+			withAllFourPaths().save(configurationDirectory);
+		}
+		finally
+		{
+			io.github.astrapi69.mystic.crypt.app.file.UnreadableFileNotices.listen(null);
+		}
 
 		MemoizedKeePassModelBean loaded = MemoizedKeePassModelBean.load(configurationDirectory);
 		assertEquals("/vaults/import.kdbx", loaded.getLastImportFilePath());
 		assertNull(loaded.getLastImportKeyFilePath());
 		assertNull(loaded.getLastExportKeyFilePath());
+		assertEquals(java.util.List.of(
+			new io.github.astrapi69.mystic.crypt.app.file.UnreadableFileNotices.KeyFilesNotRemembered(
+				new File(configurationDirectory, MysticCryptSettings.JSON_FILENAME))),
+			told, "and the user is told why");
 	}
 
 	private static boolean acceptsNewFiles(final File directory)

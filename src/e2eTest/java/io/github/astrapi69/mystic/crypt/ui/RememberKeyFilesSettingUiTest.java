@@ -185,6 +185,60 @@ class RememberKeyFilesSettingUiTest extends AbstractUiTest
 	}
 
 	@Test
+	@DisplayName("closing the settings over a settings file that cannot be read leaves the remembered key file paths")
+	void closingTheSettingsOverAnUnreadableSettingsFile_leavesTheKeyFilePaths() throws Exception
+	{
+		File database = new File(tempHome, "closing-unreadable.mcrdb");
+		SignInDialogSteps signIn = launchApplication();
+		signIn.startNewDatabase(database).checkMasterPassword()
+			.typeMasterPasswordWithRepeat(MASTER_PASSWORD).checkKeyFile()
+			.createKeyFile("closing-unreadable-key.pem").requireOkEnabled().okAndAwaitClose();
+		signIn.checkMasterPassword().typeMasterPassword(MASTER_PASSWORD).requireOkEnabled()
+			.okAndAwaitSignIn();
+		ApplicationSteps application = new ApplicationSteps(robot);
+		application.awaitSignedIn();
+		File configurationDirectory = MysticCryptApplicationFrame.getInstance()
+			.getConfigurationDirectory();
+		File remembered = new File(configurationDirectory,
+			MysticCryptApplicationFrame.MEMOIZED_SIGNIN_JSON_FILENAME);
+		assertTrue(Files.readString(remembered.toPath()).contains("closing-unreadable-key"),
+			"the premise: the sign-in remembered the key file");
+		Files.writeString(
+			new File(configurationDirectory, MysticCryptSettings.JSON_FILENAME).toPath(),
+			"{ not json");
+
+		DialogFixture settings = application.openSettingsDialog();
+		SwingUtilities.invokeLater(() -> settings.button("btnCloseSettings").target().doClick());
+		dismissTheNoticesUntilClosed(settings);
+
+		assertTrue(Files.readString(remembered.toPath()).contains("closing-unreadable-key"),
+			"the key file path stays in the remembered sign-in");
+	}
+
+	/**
+	 * Waits until the dialog is closed, closing each warning on the way: the save keeps the
+	 * unreadable settings file aside and says so
+	 */
+	private void dismissTheNoticesUntilClosed(final DialogFixture dialog)
+	{
+		Pause.pause(new Condition("the dialog is closed and no warning is left")
+		{
+			@Override
+			public boolean test()
+			{
+				JOptionPane pane = aWarningPane();
+				if (pane != null)
+				{
+					GuiActionRunner.execute(() -> pane.setValue(JOptionPane.OK_OPTION));
+					return false;
+				}
+				return !GuiActionRunner.execute(() -> dialog.target().isShowing());
+			}
+		}, TimeUnit.SECONDS.toMillis(30));
+		robot.waitForIdle();
+	}
+
+	@Test
 	@DisplayName("switching the setting off while the remembered sign-in cannot be read warns that the paths remain")
 	void switchingRememberKeyFilesOff_warns_whenTheRememberedSignInCannotBeRead() throws Exception
 	{
