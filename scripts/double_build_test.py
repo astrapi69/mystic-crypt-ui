@@ -170,7 +170,7 @@ class DoubleBuildTest(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
         self.assert_every_call_names_the_throwaway_keystore(parse_calls(self.stub_log))
 
-    def test_inside_a_slot_a_runner_is_asked_for_a_second_slot(self):
+    def test_inside_a_slot_a_runner_is_not_asked_for_a_second_slot(self):
         slot = self.root / "slot.sh"
         slot_log = self.root / "slot.log"
         slot.write_text('#!/bin/sh\ntree=$1; log=$2; shift 2\nprintf \'%s\\n\' "$tree" >> "$SLOT_LOG"\n'
@@ -179,7 +179,8 @@ class DoubleBuildTest(unittest.TestCase):
         result = self.run_script("installer", {"GRADLE_SLOT": "1", "GRADLE_SLOT_RUNNER": str(slot),
                                                "SLOT_LOG": str(slot_log)})
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
-        self.assertEqual(len(slot_log.read_text().split()), 8, "every call queued through the runner")
+        self.assertFalse(slot_log.exists(), "no call queued through the runner")
+        self.assertEqual(len(parse_calls(self.stub_log)), 8, "every call ran ./gradlew directly")
 
     def test_no_call_has_a_password_among_its_arguments(self):
         calls = self.calls_of("installer")
