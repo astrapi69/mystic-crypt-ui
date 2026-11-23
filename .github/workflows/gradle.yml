@@ -16,7 +16,9 @@ on:
 # a newer push to a pull request makes its older run pointless; a run on develop, master or a hotfix branch is the
 # record of what landed there and is never cancelled
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
+  # one group per pull request; every other run has a group of its own, since a newer run of the same group
+  # cancels a pending one even without cancel-in-progress (GitHub's concurrency documentation)
+  group: ${{ github.workflow }}-${{ github.event_name == 'pull_request' && github.ref || github.run_id }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:

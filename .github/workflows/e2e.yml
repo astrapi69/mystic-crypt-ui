@@ -18,7 +18,9 @@ on:
 # a newer push to a pull request makes its older run pointless; a run on develop or a hotfix branch, a nightly one
 # and one started by hand are never cancelled
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
+  # one group per pull request; every other run has a group of its own, since a newer run of the same group
+  # cancels a pending one even without cancel-in-progress (GitHub's concurrency documentation)
+  group: ${{ github.workflow }}-${{ github.event_name == 'pull_request' && github.ref || github.run_id }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
@@ -62,8 +64,17 @@ jobs:
         # zips are built here without them
         run: make plugins PLUGIN_TESTS= PLUGIN_ZIP_TESTS= SCRIPT_TESTS=no
       - name: Run the end-to-end suites
-        # --continue: a failure in one suite does not hide the result of the others
-        run: ./gradlew --continue e2eTest e2eLockTest e2eKdbxTest
+        # --continue: a failure in one suite does not hide the result of the others. A nightly or a manual run forces
+        # each suite with --rerun, which binds to the task named before it (#410): the build cache would otherwise
+        # restore the last develop run's results and execute nothing
+        env:
+          EVENT: ${{ github.event_name }}
+        run: |
+          if [ "$EVENT" = schedule ] || [ "$EVENT" = workflow_dispatch ]; then
+            ./gradlew --continue e2eTest --rerun e2eLockTest --rerun e2eKdbxTest --rerun
+          else
+            ./gradlew --continue e2eTest e2eLockTest e2eKdbxTest
+          fi
       - name: Print what was on screen when a UI test failed
         # WhatWasOnScreen writes its report to the test JVM's standard output, which Gradle keeps in the result XML
         # and does not print (#575). Always: a green run prints "0 of N result files carried a report"

@@ -99,8 +99,8 @@ the config schema changes — CI reads the example, developers read the real fil
 ## `make test` is not the gate CI runs - and reproducing that gate locally is not the fix
 
 `test` compiles and runs tests; CI's required check `build` also runs Spotless and every plugin build, and
-`e2e.yml` runs the three end-to-end suites on every pull request, after every merge and every night. The merge waits
-for `build` only; a red e2e run on develop is fixed before anything else, or the pull request that caused it is
+`e2e.yml` runs the three end-to-end suites on every pull request, after every merge and every night. Auto-merge
+waits for the required check `build` only (`make merge-pr`, which hotfix branches use, still waits for every check); a red e2e run on develop is fixed before anything else, or the pull request that caused it is
 reverted; the release gate runs every suite (2026-11-23). A branch can be green locally through every test and still turn develop red on
 formatting alone - but chasing that by rerunning the full `build` locally (Xvfb + fluxbox, many
 minutes) burns local resources on verification GitHub Actions already does on every push. The
