@@ -614,9 +614,9 @@ covers #1075 as it covers the other changes of 8.16).
       (case "Nimbus": the forked JVM applies the class at the start, the window itself is not
       looked at) and `SignInDialogBuiltOnTheEventThreadUiTest#theLookIsSwitchedOnTheEventThreadBeforeTheDialogExists`
       (FlatLaf Dark only); the Nimbus and Metal sign-in dialog and main window as painted, and
-      Metal as a saved look: manual only. Of the two JDK looks that share a class the settings
-      hold "Metal", and the next start shows the runtime's default theme of it (Ocean, #1065):
-      that is not a failure here
+      Metal as a saved look: manual only. Of the two JDK looks that share a class, "Metal"
+      (Steel, grey) and "Ocean" (blue), each comes back as it was picked: the settings keep the
+      theme beside the look (#1065, automated: `MetalThemeIsSavedTest`)
 - [ ] TC-0183 Start through the installer's menu entry: install the built installer (TC-0150),
       find "mystic-crypt-ui" in the desktop's application menu (the desktop entry
       `~/.local/share/applications/mystic-crypt-ui.desktop` the installer lays down, see

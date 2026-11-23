@@ -233,7 +233,8 @@ public class MysticCryptApplicationFrame extends ApplicationPanelFrame<Applicati
 	private void showSignInDialog(final IModel<MasterPwFileModelBean> model,
 		final MysticCryptSettings persistedSettings)
 	{
-		GeneralSettingsPanel.applyLookAndFeel(persistedSettings.getLookAndFeel());
+		GeneralSettingsPanel.applyLookAndFeel(persistedSettings.getLookAndFeel(),
+			persistedSettings.getMetalTheme());
 		MasterPwFileDialog dialog = new MasterPwFileDialog(this, "Enter your credentials", true,
 			model);
 		dialog.sizeAndCentre(920, 380);
@@ -394,7 +395,8 @@ public class MysticCryptApplicationFrame extends ApplicationPanelFrame<Applicati
 		EventThreadTask.runAndWait(() -> {
 			setDefaultLookAndFeel(LookAndFeels.NIMBUS, this);
 			// apply a persisted look-and-feel choice on top of the Nimbus default
-			GeneralSettingsPanel.applyLookAndFeel(persistedSettings.getLookAndFeel());
+			GeneralSettingsPanel.applyLookAndFeel(persistedSettings.getLookAndFeel(),
+				persistedSettings.getMetalTheme());
 		});
 		// same for a persisted "no tooltips" preference (#170)
 		GeneralSettingsPanel.applyTooltipsEnabled(persistedSettings.isTooltipsEnabled());
