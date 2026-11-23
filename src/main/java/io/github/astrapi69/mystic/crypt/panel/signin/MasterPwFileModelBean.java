@@ -27,6 +27,7 @@ package io.github.astrapi69.mystic.crypt.panel.signin;
 import java.io.Serial;
 import java.io.Serializable;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import io.github.astrapi69.collection.list.ListFactory;
@@ -195,6 +196,15 @@ public class MasterPwFileModelBean implements Serializable
 	@EqualsAndHashCode.Exclude
 	transient KeyFileVerifier keyFileLockVerifier;
 
+	/**
+	 * What the remembered sign-in knows about each database, by the path of the database (#997).
+	 * Transient: it comes from {@code memoizedSignin.json}, and a database has no business carrying
+	 * the list of the others.
+	 */
+	@ToString.Exclude
+	@EqualsAndHashCode.Exclude
+	transient Map<String, DatabaseSignInChoice> choicesByDatabase;
+
 	/** The minimum length for the password. */
 	int minPasswordLength;
 
@@ -218,6 +228,7 @@ public class MasterPwFileModelBean implements Serializable
 		setSelectedApplicationFilePath(memoizedSigninModelBean.getSelectedApplicationFilePath());
 		setWithMasterPw(memoizedSigninModelBean.isWithMasterPw());
 		setWithKeyFile(memoizedSigninModelBean.isWithKeyFile());
+		setChoicesByDatabase(memoizedSigninModelBean.getChoicesByDatabase());
 	}
 
 	public MemoizedSigninModelBean toMemoizedSigninModelBean(MasterPwFileModelBean modelObject)

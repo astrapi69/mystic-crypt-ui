@@ -25,8 +25,11 @@
 package io.github.astrapi69.mystic.crypt.keepass;
 
 import java.io.File;
+import java.io.IOException;
+import java.util.Optional;
 
 import io.github.astrapi69.mystic.crypt.app.file.JsonFileStore;
+import io.github.astrapi69.mystic.crypt.settings.MysticCryptSettings;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -73,14 +76,71 @@ public class MemoizedKeePassModelBean
 	public void save(File configurationDirectory)
 	{
 		File file = new File(configurationDirectory, JSON_FILENAME);
+		MemoizedKeePassModelBean toWrite = MysticCryptSettings.load(configurationDirectory)
+			.isRememberKeyFiles() ? this : withoutKeyFilePaths();
 		try
 		{
 			// a file that could not be read is kept aside first, not written over (#1082)
-			JsonFileStore.write(this, file, MemoizedKeePassModelBean.class);
+			JsonFileStore.write(toWrite, file, MemoizedKeePassModelBean.class);
 		}
 		catch (Exception exception)
 		{
-			// ignore
+			// remembering is a convenience and must not fail the import or export, but the reason
+			// is logged, so a missing memory can be explained
+			java.util.logging.Logger.getLogger(MemoizedKeePassModelBean.class.getName()).log(
+				java.util.logging.Level.WARNING,
+				"the remembered KeePass paths could not be written to " + file, exception);
 		}
+	}
+
+	/**
+	 * A copy without the two key file paths, the paths of the import and export files stay: the
+	 * setting "Remember key files" covers where a key file lies, not which file was imported (#997)
+	 *
+	 * @return the copy, this bean is not changed
+	 */
+	public MemoizedKeePassModelBean withoutKeyFilePaths()
+	{
+		return MemoizedKeePassModelBean.builder().lastImportFilePath(lastImportFilePath)
+			.lastExportFilePath(lastExportFilePath).build();
+	}
+
+	/**
+	 * Removes the two key file paths from the stored file, at once, when the setting "Remember key
+	 * files" is switched off (#997). A file that is not there is left alone, one that is there and
+	 * cannot be read may hold paths this code cannot name, so it is reported like a file that
+	 * cannot be written.
+	 *
+	 * @param configurationDirectory
+	 *            the application's configuration directory
+	 * @return true if the file was rewritten without the key file paths, false if there is none
+	 * @throws IOException
+	 *             if the file cannot be read or written
+	 */
+	public static boolean forgetKeyFiles(File configurationDirectory) throws IOException
+	{
+		File file = new File(configurationDirectory, JSON_FILENAME);
+		Optional<MemoizedKeePassModelBean> stored = JsonFileStore.read(file,
+			MemoizedKeePassModelBean.class);
+		if (stored.isEmpty())
+		{
+			if (file.isFile())
+			{
+				throw new IOException(file + ": the file cannot be read");
+			}
+			return false;
+		}
+		try
+		{
+			JsonFileStore.write(stored.get().withoutKeyFilePaths(), file,
+				MemoizedKeePassModelBean.class);
+		}
+		catch (IOException notWritable)
+		{
+			throw new IOException(
+				file + ": the file cannot be written (" + notWritable.getMessage() + ")",
+				notWritable);
+		}
+		return true;
 	}
 }

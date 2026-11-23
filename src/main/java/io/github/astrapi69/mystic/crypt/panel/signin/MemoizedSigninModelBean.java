@@ -25,7 +25,9 @@
 package io.github.astrapi69.mystic.crypt.panel.signin;
 
 import java.io.Serializable;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import io.github.astrapi69.collection.list.ListFactory;
 import lombok.AccessLevel;
@@ -68,4 +70,37 @@ public class MemoizedSigninModelBean implements Serializable
 
 	/** The flag if the master password will be used in the authentication. */
 	boolean withMasterPw;
+
+	/**
+	 * What the last successful sign-in to each database used, by the path of the database (#997).
+	 * <p>
+	 * An addition to the file: the six fields above keep their meaning, they describe the database
+	 * signed in to last, so a release that does not know this field reads the file as before.
+	 */
+	@Builder.Default
+	Map<String, DatabaseSignInChoice> choicesByDatabase = new HashMap<>();
+
+	/**
+	 * A copy that holds no key file path: neither the key file selected, nor the ones listed, nor
+	 * those of the databases. What was used stays remembered (the two flags, and per database
+	 * whether the master password and the key file were part of the sign-in), only where the key
+	 * files lie is gone (#997).
+	 *
+	 * @return the copy, this bean is not changed
+	 */
+	public MemoizedSigninModelBean withoutKeyFilePaths()
+	{
+		Map<String, DatabaseSignInChoice> kept = new HashMap<>();
+		if (choicesByDatabase != null)
+		{
+			choicesByDatabase.forEach((database, choice) -> {
+				if (choice != null)
+				{
+					kept.put(database, choice.toBuilder().keyFilePath("").build());
+				}
+			});
+		}
+		return toBuilder().selectedKeyFilePath(null).keyFilePaths(ListFactory.newArrayList(""))
+			.choicesByDatabase(kept).build();
+	}
 }

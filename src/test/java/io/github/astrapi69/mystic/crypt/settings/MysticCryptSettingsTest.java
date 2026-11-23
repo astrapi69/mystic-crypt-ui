@@ -88,7 +88,7 @@ class MysticCryptSettingsTest
 		@TempDir File configurationDirectory)
 	{
 		MysticCryptSettings settings = new MysticCryptSettings("Metal", "de",
-			FrameMode.DESKTOP_PANE, false, 30, true, 45, 10);
+			FrameMode.DESKTOP_PANE, false, 30, true, 45, 10, false);
 		settings.save(configurationDirectory);
 		assertTrue(new File(configurationDirectory, MysticCryptSettings.JSON_FILENAME).exists(),
 			"saving must write the settings json");
@@ -107,6 +107,24 @@ class MysticCryptSettingsTest
 			"and so does the clipboard-clear interval (#352)");
 		assertFalse(loaded.isTooltipsEnabled(),
 			"the chosen tooltips preference did not survive the round trip");
+		assertFalse(loaded.isRememberKeyFiles(),
+			"the choice not to remember key files did not survive the round trip (#997)");
+	}
+
+	@Test
+	@DisplayName("key files are remembered as they always were, also for a settings file that lacks the field")
+	void keyFilesAreRememberedByDefault_andForASettingsFileWrittenBefore(
+		@TempDir File configurationDirectory) throws Exception
+	{
+		assertTrue(new MysticCryptSettings().isRememberKeyFiles());
+		java.nio.file.Files.writeString(
+			new File(configurationDirectory, MysticCryptSettings.JSON_FILENAME).toPath(),
+			"{\"lookAndFeel\":\"Metal\",\"autoLockMinutes\":7}");
+
+		MysticCryptSettings loaded = MysticCryptSettings.load(configurationDirectory);
+
+		assertEquals("Metal", loaded.getLookAndFeel());
+		assertTrue(loaded.isRememberKeyFiles(), "a file without the field keeps today's behaviour");
 	}
 
 	@Test

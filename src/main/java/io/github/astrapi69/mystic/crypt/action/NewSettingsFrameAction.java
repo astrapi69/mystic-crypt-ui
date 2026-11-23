@@ -29,11 +29,17 @@ import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.io.File;
 import java.io.Serial;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import javax.swing.*;
 
+import io.github.astrapi69.mystic.crypt.Messages;
 import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
+import io.github.astrapi69.mystic.crypt.keepass.MemoizedKeePassModelBean;
+import io.github.astrapi69.mystic.crypt.panel.signin.RememberedKeyFileSupport;
 import io.github.astrapi69.mystic.crypt.settings.LookAndFeelChoice;
 import io.github.astrapi69.mystic.crypt.settings.MysticCryptSettings;
 import io.github.astrapi69.mystic.crypt.settings.SettingsPanel;
@@ -114,6 +120,70 @@ public class NewSettingsFrameAction extends AbstractAction
 		final MysticCryptSettings settings)
 	{
 		settings.save(frame.getConfigurationDirectory());
+		if (!settings.isRememberKeyFiles())
+		{
+			forgetRememberedKeyFiles(frame);
+		}
 		frame.applyViewMode(settings.getViewMode());
+	}
+
+	/**
+	 * Removes the key file paths from the remembered sign-in and from the remembered KeePass paths
+	 * at once, since the setting that keeps them was switched off (#997). A file that cannot be
+	 * read or written leaves the paths on disk, and the user is told so.
+	 */
+	private static void forgetRememberedKeyFiles(final MysticCryptApplicationFrame frame)
+	{
+		File configurationDirectory = frame.getConfigurationDirectory();
+		File memoizedSigninFile = new File(configurationDirectory,
+			MysticCryptApplicationFrame.MEMOIZED_SIGNIN_JSON_FILENAME);
+		java.util.List<String> notRemoved = new java.util.ArrayList<>();
+		try
+		{
+			RememberedKeyFileSupport.forgetKeyFiles(memoizedSigninFile);
+		}
+		catch (final java.io.IOException exception)
+		{
+			notRemoved.add(exception.getMessage());
+			Logger.getLogger(NewSettingsFrameAction.class.getName()).log(Level.WARNING,
+				"the key file paths could not be removed from " + memoizedSigninFile, exception);
+		}
+		try
+		{
+			MemoizedKeePassModelBean.forgetKeyFiles(configurationDirectory);
+		}
+		catch (final java.io.IOException exception)
+		{
+			notRemoved.add(exception.getMessage());
+			Logger.getLogger(NewSettingsFrameAction.class.getName()).log(Level.WARNING,
+				"the key file paths could not be removed from the remembered KeePass paths",
+				exception);
+		}
+		java.util.List<java.io.File> keptAside = RememberedKeyFileSupport
+			.keptAsideCopies(configurationDirectory);
+		if (notRemoved.isEmpty() && keptAside.isEmpty())
+		{
+			return;
+		}
+		StringBuilder notice = new StringBuilder();
+		if (!notRemoved.isEmpty())
+		{
+			notice
+				.append(Messages.getString("settings.general.remember.key.files.not.removed",
+					"The key file paths could not be removed from these files, which are left as "
+						+ "they are:"))
+				.append('\n').append(String.join("\n", notRemoved)).append('\n');
+		}
+		if (!keptAside.isEmpty())
+		{
+			notice.append(Messages.getString("settings.general.remember.key.files.kept.aside",
+				"These copies of files that could not be read keep their key file paths, you can "
+					+ "delete them:"));
+			keptAside.forEach(copy -> notice.append('\n').append(copy.getAbsolutePath()));
+		}
+		JOptionPane.showMessageDialog(frame, notice.toString().strip(),
+			Messages.getString("settings.general.remember.key.files.not.removed.title",
+				"Key files still remembered"),
+			JOptionPane.WARNING_MESSAGE);
 	}
 }

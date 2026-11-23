@@ -49,6 +49,7 @@ command line reads.
 | **View:** | `APPLICATION_PANEL`, the tree and the table filling the window, or `DESKTOP_PANE`, a desktop with the database in a window of its own. See [[The-Entry-Tree]]. | `APPLICATION_PANEL` |
 | **Tooltips:** | **Show tooltips** turns the tool tips of the whole application on or off, at once. | on |
 | **Save when locking:** | Whether locking the workspace writes pending changes to the file first. Off, a lock never commits a change you had not decided about. | off |
+| **Remember key files:** | Whether the application remembers key files: the one of each database in `memoizedSignin.json`, so choosing a database offers its key file. Off, no key file path is written there or to `memoizedKeePass.json`, and the paths already in them are removed. Which checkboxes a database was opened with stay remembered. See [[Signing-In]]. | on |
 | **Lock after idle minutes (0 = off):** | After how many minutes without activity the workspace locks itself. 0 to 480. | 15 |
 | **Close a locked database after minutes (0 = off):** | After how many further minutes a locked database is closed, so its decrypted content leaves memory. A database with unsaved changes is not closed this way. 0 to 480. | 15 |
 | **Clear a copied password after seconds (0 = off):** | How long a password or user name copied from an entry stays on the clipboard. It is cleared only if the clipboard still holds what was copied. 0 to 300. | 20 |
