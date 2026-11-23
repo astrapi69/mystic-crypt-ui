@@ -16,6 +16,10 @@ on:
 jobs:
   build:
 
+    # A full build of a code-changing commit takes 37 to 43 minutes (measured 2026-11-21). A UI test once hung
+    # for about two hours with no limit to end it, and a job without timeout-minutes runs for six hours
+    # (the GitHub default); 90 minutes leaves room for twice the usual build
+    timeout-minutes: 90
     runs-on: ubuntu-latest
 
     steps:
