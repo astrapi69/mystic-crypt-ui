@@ -49,7 +49,9 @@ import org.junit.jupiter.api.io.TempDir;
 
 /**
  * Tests that the panel works off its model: what is typed into a component is what the buttons act
- * on, and a file and a text go through encrypting and decrypting and come back unchanged.
+ * on, and a file and a text go through encrypting and decrypting and come back unchanged. The work
+ * runs on the thread that presses the button here, so each answer is there when the press returns;
+ * {@link FileCryptPanelWorksOffTheEventThreadTest} covers the threads of the application.
  */
 class FileCryptPanelTest
 {
@@ -73,7 +75,7 @@ class FileCryptPanelTest
 	@Test
 	void getResultText_isTheModelsMessage_whenNothingHasRunYet()
 	{
-		FileCryptPanel panel = new FileCryptPanel();
+		FileCryptPanel panel = new FileCryptPanel(Runnable::run, Runnable::run);
 
 		assertEquals(" ", panel.getResultText(), "the message starts out blank");
 	}
@@ -81,7 +83,7 @@ class FileCryptPanelTest
 	@Test
 	void onEncryptText_bringsTheTextBack_whenItIsDecryptedAgain()
 	{
-		FileCryptPanel panel = new FileCryptPanel();
+		FileCryptPanel panel = new FileCryptPanel(Runnable::run, Runnable::run);
 		String secret = "a text that must survive the round trip - äöüß";
 		type(panel, "txtPlainText", secret);
 		type(panel, "pwdText", PASSPHRASE);
@@ -105,7 +107,7 @@ class FileCryptPanelTest
 	@Test
 	void onEncryptText_refusesToEncrypt_whenTheRepeatedPassphraseDiffers()
 	{
-		FileCryptPanel panel = new FileCryptPanel();
+		FileCryptPanel panel = new FileCryptPanel(Runnable::run, Runnable::run);
 		type(panel, "txtPlainText", "a text nobody gets to lose");
 		type(panel, "pwdText", PASSPHRASE);
 		type(panel, "pwdTextRepeated", PASSPHRASE + "-typo");
@@ -125,7 +127,7 @@ class FileCryptPanelTest
 		File source = new File(directory, "round-trip.bin");
 		Files.write(source.toPath(), original);
 		File encrypted = new File(directory, "round-trip.mcenc");
-		FileCryptPanel panel = new FileCryptPanel();
+		FileCryptPanel panel = new FileCryptPanel(Runnable::run, Runnable::run);
 		type(panel, "txtSourceFile", source.getAbsolutePath());
 		type(panel, "txtTargetFile", encrypted.getAbsolutePath());
 		type(panel, "pwdFile", PASSPHRASE);
@@ -156,7 +158,7 @@ class FileCryptPanelTest
 	{
 		File source = new File(directory, "wrong-passphrase.bin");
 		Files.write(source.toPath(), "content".getBytes());
-		FileCryptPanel panel = new FileCryptPanel();
+		FileCryptPanel panel = new FileCryptPanel(Runnable::run, Runnable::run);
 		type(panel, "txtSourceFile", source.getAbsolutePath());
 		type(panel, "pwdFile", PASSPHRASE);
 		type(panel, "pwdFileRepeated", PASSPHRASE);
@@ -186,7 +188,7 @@ class FileCryptPanelTest
 	@Test
 	void everyFieldExplainsItselfWithATooltip()
 	{
-		FileCryptPanel panel = new FileCryptPanel();
+		FileCryptPanel panel = new FileCryptPanel(Runnable::run, Runnable::run);
 
 		assertHasTooltip((JComponent)find(panel, "txtSourceFile"), "source file");
 		assertHasTooltip((JComponent)find(panel, "btnBrowseSource"), "browse source button");
@@ -215,7 +217,7 @@ class FileCryptPanelTest
 	@Test
 	void thePanelExplainsWhatItDoesBeforeTheFirstField()
 	{
-		FileCryptPanel panel = new FileCryptPanel();
+		FileCryptPanel panel = new FileCryptPanel(Runnable::run, Runnable::run);
 
 		Component intro = find(panel, "lblIntro");
 

@@ -73,8 +73,7 @@ class FileCryptNegativeUiTest extends AbstractUiTest
 				.setText(PASSPHRASE + "typo");
 		});
 		robot.waitForIdle();
-		GuiActionRunner.execute(() -> frame.button("btnEncryptFile").target().doClick());
-		robot.waitForIdle();
+		FileCryptWindow.pressAndAwaitTheAnswer(frame, robot, "btnEncryptFile");
 
 		assertFalse(new File(tempHome, "typo.txt.mcenc").exists(),
 			"a passphrase that was mistyped must not be used, the content would be gone");
@@ -85,8 +84,7 @@ class FileCryptNegativeUiTest extends AbstractUiTest
 			.findByName("pwdFileRepeated", javax.swing.JPasswordField.class, true)
 			.setText(PASSPHRASE));
 		robot.waitForIdle();
-		GuiActionRunner.execute(() -> frame.button("btnEncryptFile").target().doClick());
-		robot.waitForIdle();
+		FileCryptWindow.pressAndAwaitTheAnswer(frame, robot, "btnEncryptFile");
 		assertTrue(new File(tempHome, "typo.txt.mcenc").exists(), result(frame));
 
 		GuiActionRunner.execute(() -> {
@@ -98,8 +96,7 @@ class FileCryptNegativeUiTest extends AbstractUiTest
 				.setText("not the passphrase");
 		});
 		robot.waitForIdle();
-		GuiActionRunner.execute(() -> frame.button("btnDecryptFile").target().doClick());
-		robot.waitForIdle();
+		FileCryptWindow.pressAndAwaitTheAnswer(frame, robot, "btnDecryptFile");
 
 		assertFalse(new File(tempHome, "never-written.txt").exists(),
 			"a wrong passphrase must not produce a file full of rubbish");

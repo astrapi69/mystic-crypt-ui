@@ -30,6 +30,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.GeneralSecurityException;
 import java.util.Base64;
+import java.util.concurrent.CancellationException;
+import java.util.function.BooleanSupplier;
 
 import io.github.astrapi69.mystic.crypt.pw.PassphraseEnvelope;
 import io.github.astrapi69.mystic.crypt.pw.PassphraseFileFormat;
@@ -129,10 +131,39 @@ public final class FileCryptSupport
 	public static File encryptFile(final File source, final File target, final String passphrase)
 		throws Exception
 	{
+		return encryptFile(source, target, passphrase, () -> false);
+	}
+
+	/**
+	 * Encrypts a file with a passphrase, unless the encryption is cancelled before the file is
+	 * written (#1053)
+	 * <p>
+	 * Deriving the key takes most of the time and cannot be interrupted, so the question is asked
+	 * once the encrypted content is complete and nothing has been written yet: a cancelled
+	 * encryption leaves no file behind, the same as a failed one.
+	 *
+	 * @param source
+	 *            the file to encrypt, which is left as it is
+	 * @param target
+	 *            the file to write, or {@code null} for {@link #defaultEncryptedFile(File)}
+	 * @param passphrase
+	 *            the passphrase
+	 * @param cancelled
+	 *            asked before the file is written, true when the user cancelled
+	 * @return the file that was written
+	 * @throws CancellationException
+	 *             if the encryption was cancelled, in which case nothing was written
+	 * @throws Exception
+	 *             if the file cannot be read or written
+	 */
+	public static File encryptFile(final File source, final File target, final String passphrase,
+		final BooleanSupplier cancelled) throws Exception
+	{
 		requireUsable(source, passphrase);
 		File encryptedFile = target != null ? target : defaultEncryptedFile(source);
 		byte[] encrypted = PassphraseEnvelope.encrypt(MAGIC, Files.readAllBytes(source.toPath()),
 			passphrase);
+		requireNotCancelled(cancelled);
 		writeNewFile(encryptedFile.toPath(), encrypted);
 		return encryptedFile;
 	}
@@ -156,9 +187,35 @@ public final class FileCryptSupport
 	public static File decryptFile(final File source, final File target, final String passphrase)
 		throws Exception
 	{
+		return decryptFile(source, target, passphrase, () -> false);
+	}
+
+	/**
+	 * Decrypts a file the way {@link #decryptFile(File, File, String)} does, unless the decryption
+	 * is cancelled before the file is written (#1053)
+	 *
+	 * @param source
+	 *            the encrypted file, which is left as it is
+	 * @param target
+	 *            the file to write, or {@code null} for {@link #defaultDecryptedFile(File)}
+	 * @param passphrase
+	 *            the passphrase
+	 * @param cancelled
+	 *            asked before the file is written, true when the user cancelled
+	 * @return the file that was written
+	 * @throws CancellationException
+	 *             if the decryption was cancelled, in which case nothing was written
+	 * @throws Exception
+	 *             if the passphrase is wrong, the file was tampered with, or it cannot be read or
+	 *             written
+	 */
+	public static File decryptFile(final File source, final File target, final String passphrase,
+		final BooleanSupplier cancelled) throws Exception
+	{
 		requireUsable(source, passphrase);
 		File decryptedFile = target != null ? target : defaultDecryptedFile(source);
 		byte[] decrypted = open(Files.readAllBytes(source.toPath()), passphrase);
+		requireNotCancelled(cancelled);
 		writeNewFile(decryptedFile.toPath(), decrypted);
 		return decryptedFile;
 	}
@@ -247,6 +304,20 @@ public final class FileCryptSupport
 		if (passphrase == null || passphrase.isEmpty())
 		{
 			throw new IllegalArgumentException("a passphrase is required");
+		}
+	}
+
+	/**
+	 * The last point at which an operation can still be given up without leaving anything behind
+	 *
+	 * @throws CancellationException
+	 *             if the user cancelled
+	 */
+	private static void requireNotCancelled(final BooleanSupplier cancelled)
+	{
+		if (cancelled.getAsBoolean())
+		{
+			throw new CancellationException("cancelled before anything was written");
 		}
 	}
 
