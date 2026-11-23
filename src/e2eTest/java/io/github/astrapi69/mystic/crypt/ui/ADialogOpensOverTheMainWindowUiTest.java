@@ -76,8 +76,8 @@ class ADialogOpensOverTheMainWindowUiTest extends AbstractUiTest
 	}
 
 	@Test
-	@DisplayName("the Search dialog opens centred over the screen, not over the moved main window")
-	void theSearchDialog_opensOverTheScreen() throws Exception
+	@DisplayName("the Search dialog opens centred over the moved main window, not over the screen")
+	void theSearchDialog_opensOverTheMainWindow() throws Exception
 	{
 		MovedMainWindow moved = signInAndMoveTheMainWindowAway("search-placement.mcrdb");
 
@@ -89,9 +89,9 @@ class ADialogOpensOverTheMainWindowUiTest extends AbstractUiTest
 		Point screenCentre = moved.screenCentre();
 		search.close();
 
-		assertTrue(near(dialogCentre, screenCentre),
-			"the Search dialog is centred over the screen " + screenCentre + ", at " + dialogCentre
-				+ ", not over the main window at " + windowCentre);
+		assertTrue(near(dialogCentre, windowCentre),
+			"the Search dialog is centred over the main window " + windowCentre + ", at "
+				+ dialogCentre + ", not over the screen at " + screenCentre);
 	}
 
 	/**

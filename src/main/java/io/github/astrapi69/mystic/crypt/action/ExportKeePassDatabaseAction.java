@@ -48,7 +48,7 @@ import io.github.astrapi69.mystic.crypt.keepass.MemoizedKeePassModelBean;
 import io.github.astrapi69.mystic.crypt.panel.dbtree.MysticCryptEntryModelBean;
 import io.github.astrapi69.mystic.crypt.panel.dbtree.SecretKeyTreeWithContentPanel;
 import io.github.astrapi69.mystic.crypt.panel.keepass.ExportKeePassPanel;
-import io.github.astrapi69.swing.dialog.JOptionPaneExtensions;
+import io.github.astrapi69.mystic.crypt.ui.screen.OwnedDialogs;
 import io.github.astrapi69.swing.renderer.tree.GenericTreeElement;
 
 /**
@@ -80,8 +80,8 @@ public class ExportKeePassDatabaseAction extends AbstractAction
 			.load(instance.getConfigurationDirectory());
 		ExportKeePassPanel panel = new ExportKeePassPanel(memoized.getLastExportFilePath(),
 			memoized.getLastExportKeyFilePath(), databaseExportNoticesOf(instance));
-		int option = JOptionPaneExtensions.getSelectedOption(panel, JOptionPane.PLAIN_MESSAGE,
-			JOptionPane.OK_CANCEL_OPTION, instance, "Export to KeePass", panel.getTxtFile());
+		int option = OwnedDialogs.selectedOption(instance, panel, JOptionPane.PLAIN_MESSAGE,
+			JOptionPane.OK_CANCEL_OPTION, "Export to KeePass", panel.getTxtFile());
 		if (option != JOptionPane.OK_OPTION)
 		{
 			return;

@@ -37,7 +37,7 @@ import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
 import io.github.astrapi69.mystic.crypt.panel.dbtree.MysticCryptEntryModelBean;
 import io.github.astrapi69.mystic.crypt.panel.dbtree.SecretKeyTreeWithContentPanel;
 import io.github.astrapi69.mystic.crypt.search.DatabaseSearchSupport;
-import io.github.astrapi69.swing.dialog.JOptionPaneExtensions;
+import io.github.astrapi69.mystic.crypt.ui.screen.OwnedDialogs;
 import io.github.astrapi69.swing.renderer.tree.GenericTreeElement;
 
 /**
@@ -78,8 +78,8 @@ public class SearchApplicationFileAction extends AbstractAction
 		panel.add(
 			new JLabel("Search for a node name or an entry's title, user name, URL or notes:"));
 		panel.add(searchField);
-		int option = JOptionPaneExtensions.getSelectedOption(panel, JOptionPane.PLAIN_MESSAGE,
-			JOptionPane.OK_CANCEL_OPTION, frame, "Search", searchField);
+		int option = OwnedDialogs.selectedOption(frame, panel, JOptionPane.PLAIN_MESSAGE,
+			JOptionPane.OK_CANCEL_OPTION, "Search", searchField);
 		if (option != JOptionPane.OK_OPTION)
 		{
 			return;

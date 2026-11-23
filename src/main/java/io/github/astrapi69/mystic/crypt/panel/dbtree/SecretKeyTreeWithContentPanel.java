@@ -809,7 +809,8 @@ public class SecretKeyTreeWithContentPanel
 		{
 			// two siblings that are equal by name would collapse into one here, which would
 			// lose a node; refuse the move instead of silently dropping it
-			DialogExtensions.showMessageDialog(null, "Move not possible",
+			DialogExtensions.showMessageDialog(SecretKeyTreeWithContentPanel.this,
+				"Move not possible",
 				"Two nodes of the same name are on this level. Rename one of them first.",
 				JOptionPane.WARNING_MESSAGE);
 			return;
@@ -847,7 +848,8 @@ public class SecretKeyTreeWithContentPanel
 					selectedTreeNode);
 				if (targets.isEmpty())
 				{
-					DialogExtensions.showMessageDialog(null, "Move not possible",
+					DialogExtensions.showMessageDialog(SecretKeyTreeWithContentPanel.this,
+						"Move not possible",
 						"There is no other node this one could be moved under.",
 						JOptionPane.INFORMATION_MESSAGE);
 					return;
@@ -876,7 +878,8 @@ public class SecretKeyTreeWithContentPanel
 				// survives - so the node is detached by identity here and only then handed over
 				if (!newParentTreeNode.isNode() || newParentTreeNode.isDescendant(selectedTreeNode))
 				{
-					DialogExtensions.showMessageDialog(null, "Move not possible",
+					DialogExtensions.showMessageDialog(SecretKeyTreeWithContentPanel.this,
+						"Move not possible",
 						"A node cannot be moved into a leaf or into one of its own children.",
 						JOptionPane.WARNING_MESSAGE);
 					return;

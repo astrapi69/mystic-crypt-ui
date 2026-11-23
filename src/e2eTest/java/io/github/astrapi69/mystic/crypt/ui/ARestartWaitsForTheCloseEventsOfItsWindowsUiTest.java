@@ -157,6 +157,7 @@ class ARestartWaitsForTheCloseEventsOfItsWindowsUiTest extends AbstractUiTest
 
 	private void showOwnerless(final String title)
 	{
+		expectWindowsWithoutParent();
 		GuiActionRunner.execute(() -> newShownOwnerless(title));
 		robot.waitForIdle();
 	}

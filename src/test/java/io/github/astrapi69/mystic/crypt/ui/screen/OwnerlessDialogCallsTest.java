@@ -87,16 +87,6 @@ class OwnerlessDialogCallsTest
 			"its main method shows the dialog on its own for development; no application window "
 				+ "exists there"));
 
-	/** The calls that exist today and are still to be fixed, per file */
-	private static final Map<String, Integer> NOT_FIXED_YET = Map.of(
-		"src/main/java/io/github/astrapi69/mystic/crypt/action/ExportKeePassDatabaseAction.java", 1,
-		"src/main/java/io/github/astrapi69/mystic/crypt/action/ImportKeePassDatabaseAction.java", 1,
-		"src/main/java/io/github/astrapi69/mystic/crypt/action/LockWorkspaceAction.java", 1,
-		"src/main/java/io/github/astrapi69/mystic/crypt/action/SaveBeforeCloseConfirmation.java", 3,
-		"src/main/java/io/github/astrapi69/mystic/crypt/action/SearchApplicationFileAction.java", 1,
-		"src/main/java/io/github/astrapi69/mystic/crypt/panel/dbtree/SecretKeyTreeWithContentPanel.java",
-		3);
-
 	@Test
 	@DisplayName("no main source of the host or of a plugin opens a dialog without its window, but the listed ones")
 	void noDialogOpensWithoutItsWindow() throws IOException
@@ -211,14 +201,12 @@ class OwnerlessDialogCallsTest
 	private static int expectedCount(final String file)
 	{
 		Allowed allowed = ALLOWED.get(file);
-		return (allowed != null ? allowed.count() : 0) + NOT_FIXED_YET.getOrDefault(file, 0);
+		return allowed != null ? allowed.count() : 0;
 	}
 
 	private static List<String> expectedFiles()
 	{
-		List<String> files = new ArrayList<>(ALLOWED.keySet());
-		files.addAll(NOT_FIXED_YET.keySet());
-		return files;
+		return new ArrayList<>(ALLOWED.keySet());
 	}
 
 	/**

@@ -56,7 +56,7 @@ import io.github.astrapi69.mystic.crypt.keepass.MemoizedKeePassModelBean;
 import io.github.astrapi69.mystic.crypt.panel.dbtree.MysticCryptEntryModelBean;
 import io.github.astrapi69.mystic.crypt.panel.dbtree.SecretKeyTreeWithContentPanel;
 import io.github.astrapi69.mystic.crypt.panel.keepass.ImportKeePassPanel;
-import io.github.astrapi69.swing.dialog.JOptionPaneExtensions;
+import io.github.astrapi69.mystic.crypt.ui.screen.OwnedDialogs;
 import io.github.astrapi69.swing.renderer.tree.GenericTreeElement;
 import io.github.astrapi69.swing.tree.factory.BaseTreeNodeFactory;
 
@@ -94,8 +94,8 @@ public class ImportKeePassDatabaseAction extends AbstractAction
 			.load(instance.getConfigurationDirectory());
 		ImportKeePassPanel panel = new ImportKeePassPanel(memoized.getLastImportFilePath(),
 			memoized.getLastImportKeyFilePath());
-		int option = JOptionPaneExtensions.getSelectedOption(panel, JOptionPane.PLAIN_MESSAGE,
-			JOptionPane.OK_CANCEL_OPTION, instance, "Import from KeePass", panel.getTxtFile());
+		int option = OwnedDialogs.selectedOption(instance, panel, JOptionPane.PLAIN_MESSAGE,
+			JOptionPane.OK_CANCEL_OPTION, "Import from KeePass", panel.getTxtFile());
 		if (option != JOptionPane.OK_OPTION)
 		{
 			return;
