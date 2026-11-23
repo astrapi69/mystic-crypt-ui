@@ -46,13 +46,18 @@ run_gradle()
     "$gradlew" -p "$root" "$@" 2>&1
     return
   fi
-  local log status
+  # log is not local: the EXIT trap runs when this subshell ends, after the function returned, and must still see it
+  local status
   if ! log="$(mktemp "${TMPDIR:-/tmp}/check-formatting.XXXXXX" 2>/dev/null)"; then
     echo "==> the formatting check could not create its temporary file in ${TMPDIR:-/tmp}" >&2
     return 2
   fi
-  # run_gradle runs in a subshell of its own, so the trap removes the file when that ends, interrupted too
+  # run_gradle runs in a subshell of its own, so the trap removes the file when that ends; a signal ends it
+  # through exit, which runs the EXIT trap as well
   trap 'rm -f "$log"' EXIT
+  trap 'exit 129' HUP
+  trap 'exit 130' INT
+  trap 'exit 143' TERM
   echo "==> the formatting check is waiting for the build slot ($GRADLE_SLOT_RUNNER)" >&2
   "$GRADLE_SLOT_RUNNER" "$root" "$log" "$@" >&2
   status=$?

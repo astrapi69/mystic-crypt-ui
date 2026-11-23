@@ -272,15 +272,15 @@ class PreCommitFormattingCheckTest
 
 	@ParameterizedTest(name = "Gradle exit {0}")
 	@CsvSource({ "0", "1" })
-	@DisplayName("through a slot script the check leaves its temporary file behind, after a pass and after a violation")
-	void throughASlotRunner_theTemporaryFileIsLeftBehind(final int gradleExit) throws Exception
+	@DisplayName("through a slot script the check removes its temporary file, after a pass and after a violation")
+	void throughASlotRunner_theTemporaryFileIsRemoved(final int gradleExit) throws Exception
 	{
 		stage("src/main/java/A.java");
 
 		Run run = check(gradleExit, Map.of("GRADLE_SLOT_RUNNER", slotRunner().toString()));
 
 		assertEquals(gradleExit == 0 ? 0 : 1, run.exit(), run.output());
-		assertEquals(1, run.leftBehind().size(), run.leftBehind() + " " + run.output());
+		assertEquals(List.of(), run.leftBehind(), run.output());
 	}
 
 	/** A slot script that fails before it runs anything, as one that is missing or broken does */
