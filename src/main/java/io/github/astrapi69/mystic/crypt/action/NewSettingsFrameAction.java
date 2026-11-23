@@ -71,7 +71,11 @@ public class NewSettingsFrameAction extends AbstractAction
 		MysticCryptApplicationFrame frame = MysticCryptApplicationFrame.getInstance();
 		MysticCryptSettings settings = LookAndFeelChoice
 			.settingsForTheDialog(frame.getConfigurationDirectory());
-		final boolean wasRemembering = settings.isRememberKeyFiles();
+		// a settings file that cannot be read may have said on, and the paths written then are
+		// still
+		// on disk: the dialog opens with the setting off, and closing it off removes them (#997)
+		final boolean wasRemembering = settings.isRememberKeyFiles()
+			|| MysticCryptSettings.existsButCannotBeRead(frame.getConfigurationDirectory());
 		SettingsPanel settingsPanel = new SettingsPanel(settings, frame.getPluginManager(),
 			frame::refreshPluginsMenu, frame.getConfigurationDirectory(),
 			frame.getModelObject().isSignedIn());
@@ -118,9 +122,10 @@ public class NewSettingsFrameAction extends AbstractAction
 	 * @param settings
 	 *            the settings as the dialog left them
 	 * @param wasRemembering
-	 *            whether "Remember key files" was on when the dialog opened: the key file paths are
-	 *            removed, and the user told about what stays, when it is switched off, not on every
-	 *            close while it is off
+	 *            whether "Remember key files" was on when the dialog opened, or may have been,
+	 *            since the settings file could not be read: the key file paths are removed, and the
+	 *            user told about what stays, when it is switched off, not on every close while it
+	 *            is off
 	 */
 	private static void keepAndApply(final MysticCryptApplicationFrame frame,
 		final MysticCryptSettings settings, final boolean wasRemembering)
