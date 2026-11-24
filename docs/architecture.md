@@ -367,9 +367,9 @@ named after its subject and dated. The first of them is
 [what locking keeps in memory](decisions/locking-keeps-the-content-2026-09-11.md)
 (#242).
 
-Before implementing a larger architectural decision, check the open issues and the recent PRs
-for already-planned work in the area (`.claude/rules/architecture.md` also names a ROADMAP;
-there is no `ROADMAP.md` at the repository root at the time of writing). On a conflict between an instruction and
+Before implementing a larger architectural decision, check the open issues, the recent PRs and
+the [roadmap](roadmap.md) for already-planned work in the area (the ROADMAP that
+`.claude/rules/architecture.md` names). On a conflict between an instruction and
 documented planning: stop and ask which applies. Never build a parallel system that is
 already slated for replacement.
 
