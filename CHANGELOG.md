@@ -1,6 +1,137 @@
 ## Change log
 ----------------------
 
+Version 8.16
+-------------
+
+The release that brings the fix of GHSA-m42j-97pf-6mc7 to users through mystic-crypt 13.11.1, opens every dialog over
+the application window instead of on the first screen (#63), offers the key file of the database chosen at the sign-in
+and lets "Remember key files" be switched off (#997), saves the look and feel chosen in the View menu (#1064), ships
+the license texts of the bundled libraries that come without one (#1014), and no longer ships swing-components,
+JavaHelp, iText 5, xml-extensions, the Tango and Remix icons and SwingX, which nothing in it used. It takes
+file-worker 21.1, gson-extensions 4.1 and swing-table-components 4.0, three major releases. The vault format does not
+change. Built with Temurin 25.0.5 (`.sdkmanrc`).
+
+SECURITY:
+- mystic-crypt-ui takes mystic-crypt 13.11.1, which fixes GHSA-m42j-97pf-6mc7: opening a file sealed with a
+  passphrase spent as much key derivation work as the file's header asked for, up to two billion iterations, so a
+  crafted database could keep the application busy for minutes. The library now refuses a header whose iteration
+  count is outside 1 to 2 000 000, and a vault whose header names such a count is refused as not a database this
+  application can open, at once (#1078).
+
+ADDED:
+- View > Look and Feel now saves the choice, for the FlatLaf themes and the JDK looks alike: the
+  application starts in the look that was picked last, where it used to start in the saved look of
+  the Settings dialog again. The menu's "Metal" and "Ocean" both come back as Metal with the
+  runtime's default theme, which is Ocean (#1059, #1065).
+- A setting "Remember key files" (on by default, as before): when off, no key file path is written to
+  the remembered sign-in or the remembered KeePass paths in the configuration directory, and the
+  paths already kept there are removed when you switch it off. Not changed: the vault, which keeps
+  the key file paths it was opened with, and a copy kept aside as `.unreadable-*` because the file
+  could not be read, which you can delete; the notice shown when you switch the setting off lists such copies with
+  their paths (#997).
+
+CHANGED:
+- the application ships file-worker 21.1 and gson-extensions 4.1, both major releases (#1030). With them
+  commons-beanutils and commons-logging are no longer part of the installation, and `RuntimeDependenciesTest` holds
+  both off the class path
+- the application ships swing-table-components 4.0, a major release (#1047): its table rows are `Map.Entry` pairs
+  now, and the properties table of an entry adapts the entry's key-value pairs to them, so what the table shows, edits
+  and saves stays as it was
+
+FIXED:
+- Installing a zip through Settings > Plugins > Install from Zip... no longer destroys an installed
+  plugin: a file that is no plugin zip, a zip without a plugin descriptor or the zip of another
+  plugin under the file name of a loaded plugin is refused with the reason, and the installed
+  plugin and its zip stay as they are (#1060). A changed zip of a loaded plugin, under the file
+  name it was installed with, is put beside it and reported as installed for the next start, which
+  unpacks it before any plugin loads, instead of being unpacked under the running plugin and
+  reported as a failed install; the same zip again says that nothing changed (#1045).
+- Signing in with a wrong password or key file, or with a file that is not a database this
+  application can open (cut off before its content, or not in a format it reads), now shows a
+  message in the application's own words instead of the cipher's error text ("Padding error in
+  decryption", "pad block corrupted"); the wrong-credential message is the unlock prompt's, in
+  English and German. A database whose content was cut or altered still reads as a wrong password,
+  because the cipher cannot tell the two apart (#1005).
+- The Settings dialog now opens on the look and feel the screen shows. After a choice in
+  View > Look and Feel it showed the previously saved look and wrote that one back when it was
+  closed (#1058).
+- The key generator's "Save certificate..." now follows the save format box: with DER chosen the
+  certificate is written as DER into a file with the DER ending, instead of PEM text in a `.pem`
+  file, as the box's tooltip promises for every file the window saves. A private key saved with a
+  password is still always DER, and the tooltip now says so (#1050).
+- The help window the sign-in and create-database dialogs show when the wiki cannot be reached
+  now takes its text from the message files, so it follows the language setting, and the create
+  dialog is titled for creating a database instead of "Help for sign in to the your database".
+- `make merge-pr` now prints the command and gh's own answer when a GitHub call fails, instead of only "returned non-zero exit status 1".
+- a remembered sign-in, settings, the KeePass memo, a PEM file or a checksum file that is not UTF-8 is read again:
+  since file-worker 21 such a file stopped the start before the sign-in dialog, or was taken for defaults that the
+  next save wrote over it. Releases 6 to 8 wrote the remembered sign-in in the platform charset, Windows-1252 on a
+  Western Windows with Java 11 to 17; such a file is now read as ISO-8859-1 and written back in UTF-8 (#1081)
+- a settings file, a KeePass memo or a remembered sign-in that cannot be read, cut short by a crash or edited by
+  hand, is no longer written over by the next save: it is kept beside the new file as
+  `<name>.unreadable-<date and time>`, and a warning names both files. A remembered sign-in that cannot be read no
+  longer stops the start before the sign-in dialog (#1082)
+- the dialogs of the database tree and of an entry's properties open over the application window instead of
+  in the middle of the first screen: New node, Edit node, Move node, the two names for a duplicate, both
+  confirmations of a deletion, New and Edit Crypt Entry, New and Edit Property Value (#63)
+- The password dialog of the key generator ("save the private key with a password") and its message about two different passwords now belong to the key generator's window and open over it, instead of belonging to no window and opening over the screen centre (#63).
+- the sign-in dialog now belongs to the application window and opens in the middle of the screen at the start, where its upper left corner used to sit; "File > Open Database..." opens it centred over the application window (#63)
+- The application menu start no longer runs whatever `java` comes first on the session's PATH, which
+  failed without a word when that was older than 25. The desktop entry now runs the installed
+  `start.sh`, which uses the Java the installer ran on, then the PATH's, needs 25 or newer, and
+  otherwise says why it cannot start (on standard error, and in a dialog or notification where
+  `zenity` or `notify-send` exists). `start.bat` carries both JVM flags (#1009).
+- Help > Licence now says that NOTICE.txt holds the credits and the license texts of the bundled
+  third-party works, instead of showing the MIT text alone (#1014).
+- The 21 libraries of the application that shipped without a license file now come with theirs, read
+  from upstream, under `legal/third-party/` in the application jar and in the installation
+  directory, named in NOTICE.txt. A test checks the
+  runtime class path of every build, so a library added later without a license file fails it
+  (#1014).
+- The sign-in dialog offers the key file and the factors of the database you choose, not those of the
+  database signed in to last: the remembered sign-in now keeps an entry per database (#997).
+- a settings file that cannot be read no longer lets the application remember key files: until it can be
+  read again, no key file path is written, the settings show "Remember key files" off, and a notice
+  says why (#997)
+- a database created with "New..." in the sign-in dialog no longer makes the dialog forget the databases it
+  remembered before; they are offered again at the next start
+- the licence dialog (Help > Licence) also names the folder legal/third-party of the installation directory, which
+  holds the license texts of the bundled libraries that ship without one, beside NOTICE.txt (#1014)
+- `make merge-pr` for a hotfix branch waits only for the checks of develop that run on a hotfix pull request; it
+  waited for two that never report there and then refused the merge (#1134)
+- the last dialogs that opened on the first screen instead of over the application's window open over it now: the
+  "Move not possible" warnings of the database tree, the KeePass export and import, the unlock prompt, the questions
+  before closing a database and Search (#63)
+- Lethenon: a send from a wallet file asks which network the wallet is on before it signs anything, as a send from a
+  vault entry without a network already did: Cancel signs nothing, TESTNET signs, MAIN NETWORK leads to the
+  confirmation that names amount, fee and recipient. Until now a send from a file was signed without either question,
+  also on the main network (#978)
+
+REMOVED:
+- the application no longer ships swing-components and JavaHelp, which nothing in it used, and with
+  them iText 5 under the AGPL-3, the Batik SVG library, xmlgraphics-commons, imgscalr and xml-apis:
+  25 libraries fewer, and the application jar shrinks from 44.7 to 37.3 MB (#1013). A test now reads
+  the licence of every shipped library from its POM and fails on one that comes only under the AGPL
+  or the GPL without the classpath exception, or whose licence its POM does not name (#1014). For
+  plugin authors: the host no longer provides these libraries at runtime; a plugin that uses one of
+  them has to carry it in its zip
+- the application no longer ships xml-extensions, which nothing in it used, and the eleven
+  libraries only it brought, JAXB (jakarta.xml.bind and its runtime), jakarta.activation and
+  xmlbeans among them: 12 libraries fewer, and the application jar shrinks from 37.3 to 33.8 MB
+  (#1044). The vault format does not change. For plugin authors: the host no longer provides these
+  libraries at runtime; a plugin that uses one of them has to carry it in its zip
+- the application no longer ships the Tango and Remix icon libraries, which nothing in it used: the
+  application jar shrinks from 33.8 to 30.8 MB (#1054). The silk icons the tree and the toolbar
+  show stay. For plugin authors: the host no longer provides tango-icon-theme and jremix-icon at
+  runtime; a plugin that uses one of them has to carry it in its zip
+
+KNOWN ISSUES:
+- View > Look and Feel: of the Metal themes, Steel and Ocean both come back as Ocean after a restart. The fix is ready
+  for 8.17; #1065 stays open for it.
+- A UI test of the settings dialog lost its click on the General tab in one CI run. The cause is not found yet; the
+  test now says where the dialog, the tab and the pointer were when it happens again. #962 stays open for it.
+
 Version 8.15
 -------------
 
