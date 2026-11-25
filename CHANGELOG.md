@@ -9,8 +9,8 @@ the application window instead of on the first screen (#63), offers the key file
 and lets "Remember key files" be switched off (#997), saves the look and feel chosen in the View menu (#1064), ships
 the license texts of the bundled libraries that come without one (#1014), and no longer ships swing-components,
 JavaHelp, iText 5, xml-extensions, the Tango and Remix icons and SwingX, which nothing in it used. It takes
-file-worker 21.1, gson-extensions 4.1 and swing-table-components 4.0, three major releases. The vault format does not
-change. Built with Temurin 25.0.5 (`.sdkmanrc`).
+file-worker 21.1, gson-extensions 4.2 and swing-table-components 4.0, three major releases, and Bouncy Castle 1.87,
+which fixes twelve CVEs. The vault format does not change. Built with Temurin 25.0.5 (`.sdkmanrc`).
 
 SECURITY:
 - mystic-crypt-ui takes mystic-crypt 13.11.1, which fixes GHSA-m42j-97pf-6mc7: opening a file sealed with a
@@ -18,6 +18,12 @@ SECURITY:
   crafted database could keep the application busy for minutes. The library now refuses a header whose iteration
   count is outside 1 to 2 000 000, and a vault whose header names such a count is refused as not a database this
   application can open, at once (#1078).
+- Fixes a security issue; its advisory follows after the release is published.
+- the application ships Bouncy Castle 1.87, which fixes twelve CVEs, in place of 1.86 (#1154). Among its fixes,
+  two are in the OpenPGP certificate API that Release Key > Key Status reads the expiry and usage of each key with:
+  an appended invalid self-signature could revive an expired key or unbind a subkey, and an appended invalid
+  revocation could leave a key with no usable subkeys. bcpg, the OpenPGP part, which mystic-crypt brings along at
+  1.86, is held at 1.87 with the rest.
 
 ADDED:
 - View > Look and Feel now saves the choice, for the FlatLaf themes and the JDK looks alike: the
@@ -32,7 +38,7 @@ ADDED:
   their paths (#997).
 
 CHANGED:
-- the application ships file-worker 21.1 and gson-extensions 4.1, both major releases (#1030). With them
+- the application ships file-worker 21.1 and gson-extensions 4.2, both major releases (#1030, #1153). With them
   commons-beanutils and commons-logging are no longer part of the installation, and `RuntimeDependenciesTest` holds
   both off the class path
 - the application ships swing-table-components 4.0, a major release (#1047): its table rows are `Map.Entry` pairs
