@@ -52,8 +52,11 @@ if [ ! -f "$installer" ]; then
 fi
 rm -rf "$out" && mkdir -p "$out" || { printf 'verify-installer: cannot write %s\n' "$out" >&2; exit 1; }
 
-# ~50 MB: an installer below it is missing its application jar or its plugins (release-workflow.md step 5)
-floor=50000000
+# ~40 MB: an installer below it is missing its application jar or its plugins (release-workflow.md step 5).
+# Measured on 8.16 (2026-11-25): the installer is 45 705 958 bytes, its plugin pack 13 070 776 and its
+# application pack 28 299 525, so an installer without one of them ends near 32.6 or 17.4 MB. 8.16 ships fewer
+# libraries than 8.15 (61 202 374 bytes), which the former floor of 50 MB was set before
+floor=40000000
 size=$(stat -c %s "$installer")
 if [ "$size" -ge "$floor" ]; then ok size "$size bytes, at least $floor"; else fail size "$size bytes, below $floor"; fi
 

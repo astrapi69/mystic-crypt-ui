@@ -188,6 +188,29 @@ public class NewSettingsFrameAction extends AbstractAction
 		{
 			return;
 		}
+		String notice = noticeOf(notRemoved, keptAside);
+		String title = Messages.getString("settings.general.remember.key.files.not.removed.title",
+			"Key files still remembered");
+		if (keptAside.isEmpty())
+		{
+			JOptionPane.showMessageDialog(frame, notice, title, JOptionPane.WARNING_MESSAGE);
+			return;
+		}
+		if (theUserAsksToDelete(frame, notice, title) && theUserConfirms(frame, keptAside))
+		{
+			reportTheDeletion(frame,
+				RememberedKeyFileSupport.deleteKeptAsideCopies(keptAside, configurationDirectory),
+				title);
+		}
+	}
+
+	/**
+	 * The notice about the key file paths that stay: the files they could not be removed from, and
+	 * the copies kept aside as unreadable, which keep theirs
+	 */
+	private static String noticeOf(final java.util.List<String> notRemoved,
+		final java.util.List<File> keptAside)
+	{
 		StringBuilder notice = new StringBuilder();
 		if (!notRemoved.isEmpty())
 		{
@@ -204,10 +227,77 @@ public class NewSettingsFrameAction extends AbstractAction
 					+ "delete them:"));
 			keptAside.forEach(copy -> notice.append('\n').append(copy.getAbsolutePath()));
 		}
-		JOptionPane.showMessageDialog(frame, notice.toString().strip(),
-			Messages.getString("settings.general.remember.key.files.not.removed.title",
-				"Key files still remembered"),
-			JOptionPane.WARNING_MESSAGE);
+		return notice.toString().strip();
+	}
+
+	/**
+	 * Shows the notice with the offer to delete the copies kept aside (#1124). Keeping them is the
+	 * default, as #1082 decided: nothing is lost unless the user asks for it
+	 *
+	 * @return true if the user asked to delete them
+	 */
+	private static boolean theUserAsksToDelete(final MysticCryptApplicationFrame frame,
+		final String notice, final String title)
+	{
+		String delete = Messages.getString("settings.general.remember.key.files.delete",
+			"Delete these files");
+		String keep = Messages.getString("settings.general.remember.key.files.keep", "Keep them");
+		return JOptionPane.showOptionDialog(frame, notice, title, JOptionPane.DEFAULT_OPTION,
+			JOptionPane.WARNING_MESSAGE, null, new Object[] { delete, keep }, keep) == 0;
+	}
+
+	/**
+	 * Asks once more, naming the files, because a deleted copy cannot be restored
+	 *
+	 * @return true if the user confirmed
+	 */
+	private static boolean theUserConfirms(final MysticCryptApplicationFrame frame,
+		final java.util.List<File> keptAside)
+	{
+		StringBuilder question = new StringBuilder(
+			Messages.getString("settings.general.remember.key.files.delete.question",
+				"Delete these files? They cannot be restored:"));
+		keptAside.forEach(copy -> question.append('\n').append(copy.getAbsolutePath()));
+		return JOptionPane.showConfirmDialog(frame, question.toString(),
+			Messages.getString("settings.general.remember.key.files.delete.title",
+				"Delete the copies?"),
+			JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE) == JOptionPane.YES_OPTION;
+	}
+
+	/** Says which copies are gone and which stay, with the reason */
+	private static void reportTheDeletion(final MysticCryptApplicationFrame frame,
+		final RememberedKeyFileSupport.KeptAsideDeletion deletion, final String title)
+	{
+		StringBuilder report = new StringBuilder();
+		if (!deletion.deleted().isEmpty())
+		{
+			report.append(
+				Messages.getString("settings.general.remember.key.files.deleted", "Deleted:"));
+			deletion.deleted().forEach(copy -> report.append('\n').append(copy.getAbsolutePath()));
+			report.append('\n');
+		}
+		if (!deletion.notDeleted().isEmpty())
+		{
+			report.append(Messages.getString("settings.general.remember.key.files.not.deleted",
+				"Not deleted:"));
+			deletion.notDeleted().forEach(refused -> report.append('\n').append(describe(refused)));
+		}
+		JOptionPane.showMessageDialog(frame, report.toString().strip(), title,
+			deletion.notDeleted().isEmpty()
+				? JOptionPane.INFORMATION_MESSAGE
+				: JOptionPane.WARNING_MESSAGE);
+	}
+
+	/** The line of the report for a copy that stays: its path and the reason */
+	private static String describe(final RememberedKeyFileSupport.NotDeleted refused)
+	{
+		String reason = refused
+			.reason() == RememberedKeyFileSupport.NotDeleted.Reason.NOT_A_KEPT_ASIDE_COPY
+				? Messages.getString("settings.general.remember.key.files.reason.not.a.copy",
+					"it is no longer a copy kept aside")
+				: Messages.getString("settings.general.remember.key.files.reason.not.deletable",
+					"it cannot be deleted") + " (" + refused.detail() + ")";
+		return refused.file().getAbsolutePath() + ": " + reason;
 	}
 
 	/** The line of the notice for a file whose key file paths stay: its path and the reason */

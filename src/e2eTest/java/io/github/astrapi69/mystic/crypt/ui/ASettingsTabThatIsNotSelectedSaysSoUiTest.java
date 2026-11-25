@@ -28,6 +28,10 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.awt.MouseInfo;
+import java.awt.Point;
+import java.awt.Rectangle;
+
 import javax.swing.JTabbedPane;
 
 import org.assertj.swing.edt.GuiActionRunner;
@@ -46,7 +50,10 @@ import org.junit.jupiter.api.Test;
  * while no database is open.
  * <p>
  * Now the step waits for the selection the click should have made, and fails with the title of the
- * selected tab when the click changed nothing.
+ * selected tab when the click changed nothing. Since the lost click came back once in CI after
+ * #1074 and #1131 and could not be reproduced here (70 rounds), the failure also says where the
+ * dialog was placed before the click, and where the dialog, the tab and the pointer were and which
+ * window was active right after it and when the step gave up.
  */
 class ASettingsTabThatIsNotSelectedSaysSoUiTest extends AbstractUiTest
 {
@@ -73,6 +80,38 @@ class ASettingsTabThatIsNotSelectedSaysSoUiTest extends AbstractUiTest
 	}
 
 	@Test
+	@DisplayName("a click on a settings tab that changes nothing says where the dialog, the tab and the pointer were (#962)")
+	void aClickThatChangesNothingSaysWhereItWent() throws Exception
+	{
+		SignInDialogSteps signIn = launchApplication();
+		signIn.requireOkDisabled().cancel();
+		awaitApplicationInitialized();
+		ApplicationSteps application = new ApplicationSteps(robot);
+		DialogFixture settings = application.openSettingsDialog();
+		application.selectSettingsTab(settings, "General");
+
+		AssertionError failure = assertThrows(AssertionError.class,
+			() -> application.selectSettingsTab(settings, "Plugins"));
+
+		Rectangle dialog = UiTestSpeed.awaitSettled(settings.target())[0];
+		Rectangle pluginsTab = tabOnScreen(settings, "Plugins");
+		Point pointer = MouseInfo.getPointerInfo().getLocation();
+		assertTrue(pluginsTab.contains(pointer),
+			"the premise: the robot clicked on the Plugins tab " + where(pluginsTab)
+				+ ", and the pointer rests at " + where(pointer));
+		String message = failure.getMessage();
+		assertTrue(message.contains("placed at " + where(dialog) + " before the click"),
+			"the failure names where the dialog was placed: " + message);
+		assertTrue(
+			message.contains("right after the click: dialog 'dlgSettings' at " + where(dialog)
+				+ ", tab 'Plugins' at " + where(pluginsTab) + ", pointer at " + where(pointer)
+				+ ", active window 'dlgSettings'"),
+			"the failure names the dialog, the tab, the pointer and the active window: " + message);
+		assertTrue(message.contains("after waiting: dialog 'dlgSettings' at " + where(dialog)),
+			"the failure reads them again when the step gives up: " + message);
+	}
+
+	@Test
 	@DisplayName("a click on a settings tab that takes it goes on with that tab selected (#962)")
 	void aClickThatTakesTheTabGoesOn() throws Exception
 	{
@@ -86,6 +125,26 @@ class ASettingsTabThatIsNotSelectedSaysSoUiTest extends AbstractUiTest
 		assertEquals("Plugin settings", selectedTab(settings));
 		application.selectSettingsTab(settings, "General");
 		assertEquals("General", selectedTab(settings));
+	}
+
+	private static Rectangle tabOnScreen(final DialogFixture settings, final String title)
+	{
+		JTabbedPane tabs = settings.tabbedPane("tabSettings").target();
+		return GuiActionRunner.execute(() -> {
+			Rectangle tab = tabs.getUI().getTabBounds(tabs, tabs.indexOfTab(title));
+			Point origin = tabs.getLocationOnScreen();
+			return new Rectangle(origin.x + tab.x, origin.y + tab.y, tab.width, tab.height);
+		});
+	}
+
+	private static String where(final Rectangle bounds)
+	{
+		return "(" + bounds.x + "," + bounds.y + ") " + bounds.width + "x" + bounds.height;
+	}
+
+	private static String where(final Point point)
+	{
+		return "(" + point.x + "," + point.y + ")";
 	}
 
 	private static String selectedTab(final DialogFixture settings)

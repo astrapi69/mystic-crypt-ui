@@ -88,7 +88,7 @@ class MysticCryptSettingsTest
 		@TempDir File configurationDirectory)
 	{
 		MysticCryptSettings settings = new MysticCryptSettings("Metal", "de",
-			FrameMode.DESKTOP_PANE, false, 30, true, 45, 10, false);
+			FrameMode.DESKTOP_PANE, false, 30, true, 45, 10, false, MetalThemeChoice.STEEL);
 		settings.save(configurationDirectory);
 		assertTrue(new File(configurationDirectory, MysticCryptSettings.JSON_FILENAME).exists(),
 			"saving must write the settings json");
@@ -109,6 +109,8 @@ class MysticCryptSettingsTest
 			"the chosen tooltips preference did not survive the round trip");
 		assertFalse(loaded.isRememberKeyFiles(),
 			"the choice not to remember key files did not survive the round trip (#997)");
+		assertEquals(MetalThemeChoice.STEEL, loaded.getMetalTheme(),
+			"the theme of Metal did not survive the round trip (#1065)");
 	}
 
 	@Test

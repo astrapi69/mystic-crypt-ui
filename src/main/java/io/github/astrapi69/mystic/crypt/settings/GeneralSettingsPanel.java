@@ -30,6 +30,7 @@ import java.awt.Window;
 import java.util.Arrays;
 
 import javax.swing.*;
+import javax.swing.plaf.metal.MetalLookAndFeel;
 
 import io.github.astrapi69.model.LambdaModel;
 import io.github.astrapi69.mystic.crypt.Messages;
@@ -139,7 +140,8 @@ public class GeneralSettingsPanel extends JPanel
 		// added after the binding on purpose: binding selects what the settings already hold, and
 		// that must not switch the look and feel while the dialog is still being built
 		cmbLookAndFeel.addActionListener(
-			e -> applyLookAndFeel(GeneralSettingsPanel.this.settings.getLookAndFeel()));
+			e -> applyLookAndFeel(GeneralSettingsPanel.this.settings.getLookAndFeel(),
+				GeneralSettingsPanel.this.settings.getMetalTheme()));
 		// same reasoning as the look-and-feel listener above: added after binding, so building the
 		// panel does not itself flip the shared ToolTipManager
 		chkTooltipsEnabled.addActionListener(
@@ -231,12 +233,30 @@ public class GeneralSettingsPanel extends JPanel
 	 */
 	public static void applyLookAndFeel(String name)
 	{
+		applyLookAndFeel(name, null);
+	}
+
+	/**
+	 * Applies the installed look and feel of the given name, and for Metal the given theme first
+	 * (#1065): Metal and Ocean share one class, so a Metal that is already active is set again when
+	 * it draws with another theme than the saved one
+	 *
+	 * @param name
+	 *            the name of an installed look and feel
+	 * @param metalTheme
+	 *            the theme for Metal, or {@code null} to keep the runtime's
+	 */
+	public static void applyLookAndFeel(String name, MetalThemeChoice metalTheme)
+	{
 		for (UIManager.LookAndFeelInfo info : UIManager.getInstalledLookAndFeels())
 		{
 			if (info.getName().equals(name))
 			{
+				boolean themed = metalTheme != null
+					&& MetalLookAndFeel.class.getName().equals(info.getClassName());
 				LookAndFeel current = UIManager.getLookAndFeel();
-				if (current != null && current.getClass().getName().equals(info.getClassName()))
+				if (current != null && current.getClass().getName().equals(info.getClassName())
+					&& (!themed || metalTheme == MetalThemeChoice.ofTheRuntime()))
 				{
 					// already the active look and feel - skip the needless updateComponentTreeUI
 					// pass (it re-installs every menu's UI and spams KeyboardManager warnings)
@@ -244,6 +264,10 @@ public class GeneralSettingsPanel extends JPanel
 				}
 				try
 				{
+					if (themed)
+					{
+						metalTheme.install();
+					}
 					UIManager.setLookAndFeel(info.getClassName());
 					updateEveryWindowOnTheEventDispatchThread();
 				}

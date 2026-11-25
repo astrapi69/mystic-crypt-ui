@@ -12,6 +12,23 @@ on:
     branches: [ master, develop, 'hotfix/**' ]
   pull_request:
     branches: [ master, develop, 'hotfix/**' ]
+  # With force=true this is the release gate in Actions (the maintainer's decision of 2026-11-25): the unit test task
+  # runs with --rerun, the runnable jar is packaged unsigned, and the result files are checked to be from the forced
+  # run. Start it with: gh workflow run gradle.yml --ref <ref> -f force=true
+  #
+  # With dependency-updates=true it is the dependency currency check of the release workflow, in GitHub Actions
+  # (AG-021): the job runs what make dependency-updates runs instead of the build, uploads the report and prints how
+  # many updates it found. Start it with: gh workflow run gradle.yml --ref develop -f dependency-updates=true
+  workflow_dispatch:
+    inputs:
+      force:
+        description: 'Release gate: force the unit tests with --rerun, package the runnable jar unsigned, check the results'
+        type: boolean
+        default: false
+      dependency-updates:
+        description: 'Dependency currency check: make dependency-updates instead of the build, its report uploaded'
+        type: boolean
+        default: false
 
 # a newer push to a pull request makes its older run pointless; a run on develop, master or a hotfix branch is the
 # record of what landed there and is never cancelled
@@ -36,7 +53,7 @@ jobs:
       - name: Checkout sources
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Setup Java
-        uses: actions/setup-java@77dd5b2ce225ea11469928ac317850245a74ae78 # v6.2.0
+        uses: actions/setup-java@d1374f8ac74474200d16ef8ecee22c7ae7a51880 # v6.3.0
         with:
           java-version-file: '.sdkmanrc'
           distribution: 'temurin'
@@ -45,6 +62,32 @@ jobs:
         # v5.0.2 lies in the range of GHSA-chpw-2mqm-95cc (fixed in 6.4.1), which affects only the two-workflow
         # download-and-submit setup; this workflow generates and submits in one job. Do not switch to download-and-submit.
         uses: gradle/actions/setup-gradle@0723195856401067f7a2779048b490ace7a47d7c # v5.0.2
+      - name: Dependency currency check (dependency-updates only)
+        # What make dependency-updates runs: gradlew dependencyUpdates of the host build, the one build that applies
+        # the versions plugin. The report is build/dependencyUpdates/report.txt, the plugin's default plain format; the
+        # count is the lines of its section "The following dependencies have later ... versions". A missing report
+        # fails the step instead of reading as no updates (quality-checks.md, a gate that cannot check is not green).
+        # Every step after the upload below is the build, which this run leaves out
+        if: ${{ inputs.dependency-updates }}
+        run: |
+          make dependency-updates
+          report=build/dependencyUpdates/report.txt
+          if [ ! -f "$report" ]; then
+            echo "dependency-updates: no report at $report, the check did not run"
+            exit 1
+          fi
+          updates=$(awk '/^The following dependencies have later .* versions:$/ { section = 1; next }
+            /^$/ { section = 0 } section && /^ - / { n++ } END { print n + 0 }' "$report")
+          echo "host: $updates dependencies have later versions ($report, artifact dependency-updates-report)"
+      - name: Upload the dependency currency report (dependency-updates only)
+        # always: when the check fails, what it wrote says why
+        if: ${{ always() && inputs.dependency-updates }}
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: dependency-updates-report
+          path: build/dependencyUpdates
+          if-no-files-found: error
+          retention-days: 14
       - name: Install Xvfb and the e2e harness's tools
         # The refresh is the means, the install is the gate. apt-get update exits non-zero when ANY
         # configured repository fails, and the runner image ships third-party repositories this
@@ -65,6 +108,7 @@ jobs:
         # protected key with (openssl pkcs8 -inform DER): the test fails instead of skipping when CI
         # is set and the program is missing, so the runner installs it rather than the test working
         # around it.
+        if: ${{ !inputs.dependency-updates }}
         run: |
           sudo apt-get update || echo "apt-get update reported errors; continuing to the install"
           sudo apt-get install -y xvfb fluxbox wmctrl x11-utils iproute2 openssl
@@ -73,6 +117,7 @@ jobs:
         # desktop's environment, which a JVM can only do where the machine has that locale: without
         # it the JDK falls back to en_US, and the test skipped here (CI run 44293104727, #1027). The
         # list printed after it is the evidence of what the runner got
+        if: ${{ !inputs.dependency-updates }}
         run: |
           sudo locale-gen de_DE.UTF-8
           locale -a
@@ -90,17 +135,20 @@ jobs:
         # from the own-display plugin, the way the host does - so no xvfb-run here: the step proves
         # the plugin builds bring their own (#505, #741). Measured at
         # 1m24s locally for all thirteen, against a twelve-minute job (#333).
+        if: ${{ !inputs.dependency-updates }}
         run: make plugins
 
       - name: Read the releases a vault has to stay readable in
         # gradle.properties is the one place the numbers live; the cache key needs them here: the
         # format compatibility release (#402) and the last one with the application's own envelope
         # (#490)
+        if: ${{ !inputs.dependency-updates }}
         id: compatibility
         run: |
           echo "version=$(sed -n 's/^formatCompatibilityRelease=//p' gradle.properties)" >> "$GITHUB_OUTPUT"
           echo "envelope=$(sed -n 's/^envelopeMoveRelease=//p' gradle.properties)" >> "$GITHUB_OUTPUT"
       - name: Cache those releases' application jars
+        if: ${{ !inputs.dependency-updates }}
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: ~/.cache/mystic-crypt-ui/release-jars
@@ -109,13 +157,38 @@ jobs:
         # the installer as users downloaded it, checked against its published sha256, the jar taken
         # out of its pack. VaultOpensInTheLastReleaseTest opens a vault this build writes with it,
         # and fails here in CI when the jar is missing rather than skipping (#402)
+        if: ${{ !inputs.dependency-updates }}
         run: make release-jar
+      - name: Package the runnable jar, unsigned (release gate only)
+        # What make build-full packages: createAllDependendiesJar, without -PcreateIzPackInstaller. A runner has no
+        # keystore, so on a release version the jar task prints "No signing configuration found, the created jar file
+        # is not signed" and signs nothing (gradle/packaging.gradle, jar.doLast); the installer, which refuses to be
+        # built unsigned, is not built here. The task depends on clean, so it runs before the tests
+        if: ${{ inputs.force && !inputs.dependency-updates }}
+        run: ./gradlew createAllDependendiesJar
       - name: Compile, unit tests and Spotless
         # Named tasks, not build: check depends on the three end-to-end suites (gradle/testing.gradle), which run in
         # e2e.yml. The classes tasks of the three UI source sets compile them, so a change that breaks a UI test's
         # code still fails here. No xvfb-run (#505): every test task gets its display from the own-display plugin
         # (#741); the runner has no DISPLAY at all, so a green run is evidence that the build brings its own
-        run: ./gradlew assemble testClasses e2eTestClasses e2eLockClasses e2eKdbxClasses test spotlessCheck
+        #
+        # With force (a manual run, the release gate) the unit test task runs with --rerun, which binds to the task
+        # named right before it (#410), and the epoch is taken right before it for the result check below
+        if: ${{ !inputs.dependency-updates }}
+        env:
+          FORCE: ${{ inputs.force }}
+        run: |
+          if [ "$FORCE" = true ]; then
+            date -u +%s > "$RUNNER_TEMP/forced-run-started"
+            ./gradlew assemble testClasses e2eTestClasses e2eLockClasses e2eKdbxClasses test --rerun spotlessCheck
+          else
+            ./gradlew assemble testClasses e2eTestClasses e2eLockClasses e2eKdbxClasses test spotlessCheck
+          fi
+      - name: Check that the unit test results are from the forced run (release gate only)
+        # the same check as the end of make release-gate (#630): every result file exists and is not older than the
+        # forced run, so a result restored from the build cache cannot pass for a run
+        if: ${{ inputs.force && !inputs.dependency-updates }}
+        run: scripts/check-forced-run-results.sh "$(cat "$RUNNER_TEMP/forced-run-started")" build/test-results/test
       - name: Check for unused dependencies
         # Reports a declared dependency nothing uses, in the host and in every plugin build that applies the
         # dependency-analysis plugin (gradle/dependency-analysis.gradle, gradle/plugin-dependency-analysis.gradle).
@@ -123,6 +196,7 @@ jobs:
         # removals is merged (the maintainer's decision of 2026-11-18): no pull request may turn red through it, not
         # even when the analysis itself fails, so the step may fail without failing the job. The pull request that
         # sets the severity to "fail" removes continue-on-error
+        if: ${{ !inputs.dependency-updates }}
         continue-on-error: true
         run: make dependency-analysis
       - name: Upload the test reports
@@ -135,7 +209,7 @@ jobs:
         # The end-to-end suites upload theirs in e2e.yml. The plugin builds' results too, which
         # `make plugins` writes into each plugin's own build directory: a plugin test that failed
         # once on CI had nothing left to read (#667)
-        if: always()
+        if: ${{ always() && !inputs.dependency-updates }}
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: test-reports
@@ -150,7 +224,7 @@ jobs:
         # The plugin tests picture their windows on the build's own display, in English and German
         # (#680), so a change to a window can be looked at from the pull request without a local
         # run. Always: a green run's pictures are what a reviewer compares against the drafts
-        if: always()
+        if: ${{ always() && !inputs.dependency-updates }}
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: plugin-screenshots

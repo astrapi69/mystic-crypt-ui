@@ -36,6 +36,7 @@ import javax.swing.*;
 import javax.swing.text.JTextComponent;
 
 import io.github.astrapi69.model.LambdaModel;
+import io.github.astrapi69.mystic.crypt.key.KeyExchangeSupport;
 import io.github.astrapi69.mystic.crypt.ui.form.ToolForm;
 import io.github.astrapi69.swing.model.component.JMComboBox;
 import io.github.astrapi69.swing.model.component.JMTextArea;

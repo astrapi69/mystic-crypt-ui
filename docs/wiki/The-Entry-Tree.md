@@ -231,6 +231,10 @@ Free key/value pairs of your own, shown in a table with the columns `Key` and `V
 - `Edit` opens the same form as **Edit Property Value** for the selected pair. A double click on a
   row does the same.
 - `Remove` drops the selected pair.
+- `Protected value` in the dialog marks the value as protected: the table shows `********` in its
+  place, the dialog opens it masked (`***` shows it), and a KeePass export marks it as protected.
+  Turning the switch off takes the mark away. The mark belongs to the key, so while another pair
+  with the same key is still protected, the value stays masked.
 
 As with attachments, only one row can be selected at a time.
 
@@ -238,8 +242,9 @@ As with attachments, only one row can be selected at a time.
 
 An entry also carries a few values that no field shows. They exist so that an entry imported from a
 KeePass database can be written back without losing information: the KeePass icon index (shown as
-the icon in the table), the earlier versions of the entry that KeePass kept, and which of its custom
-properties KeePass marked as protected. Every entry also has an identifier of its own. Custom
+the icon in the table), and the earlier versions of the entry that KeePass kept. Which of its custom
+properties are protected, from KeePass or from the `Protected value` switch, shows in the
+**Properties** tab. Every entry also has an identifier of its own. Custom
 properties and attachments survive the same round trip, attachments as KeePass binary properties.
 See [[import-export-keepass-database]] for the import and export flows themselves.
 

@@ -26,6 +26,7 @@ package io.github.astrapi69.mystic.crypt.action;
 
 import java.awt.BorderLayout;
 import java.awt.GridLayout;
+import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.io.File;
 import java.io.Serial;
@@ -34,7 +35,6 @@ import java.util.logging.Level;
 
 import javax.swing.*;
 
-import io.github.astrapi69.awt.extension.ClipboardExtensions;
 import io.github.astrapi69.crypt.data.key.KeyModelExtensions;
 import io.github.astrapi69.crypt.data.model.KeyModel;
 import io.github.astrapi69.mystic.crypt.ApplicationModelBean;
@@ -42,6 +42,7 @@ import io.github.astrapi69.mystic.crypt.DesktopMenu;
 import io.github.astrapi69.mystic.crypt.Messages;
 import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
 import io.github.astrapi69.mystic.crypt.app.file.xml.ApplicationXmlFileStoreWorker;
+import io.github.astrapi69.mystic.crypt.clipboard.ClipboardAtTheLock;
 import io.github.astrapi69.mystic.crypt.lock.KeyFileVerifier;
 import io.github.astrapi69.mystic.crypt.lock.MasterPasswordVerifier;
 import io.github.astrapi69.mystic.crypt.lock.UnlockCheck;
@@ -109,8 +110,9 @@ public class LockWorkspaceAction extends AbstractAction
 			closeTheWindowsOnTheDesktop(frame);
 			frame.switchToDesktopPane();
 			((DesktopMenu)frame.getMenu()).onEnableByPublic();
-			// a password copied before locking would otherwise still be there to paste
-			ClipboardExtensions.copyToClipboard("");
+			// a password copied before locking would otherwise still be there to paste; whether it
+			// held one is what the unlock prompt says (#1001)
+			ClipboardAtTheLock.empty(Toolkit.getDefaultToolkit().getSystemClipboard());
 			// prompt asynchronously so the locked state is fully in effect before the modal blocks
 			SwingUtilities.invokeLater(() -> promptForUnlock(frame));
 		}
@@ -231,6 +233,10 @@ public class LockWorkspaceAction extends AbstractAction
 			passwordField = new JPasswordField(20);
 			passwordField.setName("txtUnlockPassword");
 			panel.add(passwordField);
+			if (ClipboardAtTheLock.emptiedText())
+			{
+				panel.add(clipboardEmptiedNote());
+			}
 		}
 		JTextField keyFileField = null;
 		if (asksForTheKeyFile)
@@ -239,6 +245,19 @@ public class LockWorkspaceAction extends AbstractAction
 			panel.add(keyFileRow(frame, keyFileField));
 		}
 		return new UnlockFields(panel, passwordField, keyFileField);
+	}
+
+	/**
+	 * The line under the password field after a lock that emptied text from the clipboard: a
+	 * password copied before the lock pastes nothing, and without this line that reads as "paste
+	 * does not work here" (#1001)
+	 */
+	private static JLabel clipboardEmptiedNote()
+	{
+		JLabel note = new JLabel(Messages.getString("unlock.clipboard.emptied",
+			"Locking emptied the clipboard. Copy the password again to paste it."));
+		note.setName("lblClipboardEmptied");
+		return note;
 	}
 
 	private static String promptOf(final boolean asksForThePassword,
@@ -347,6 +366,7 @@ public class LockWorkspaceAction extends AbstractAction
 		}
 		forgetTheKeyFileVerifier(credentials);
 		frame.getModelObject().setSignedIn(true);
+		ClipboardAtTheLock.forget();
 		// back into the view the user chose, not always into the panel view: locking switched
 		// to the desktop pane to hide the content, and unlocking has to undo exactly that
 		frame.applyViewMode(

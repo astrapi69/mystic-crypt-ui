@@ -25,12 +25,14 @@
 package io.github.astrapi69.mystic.crypt.ui;
 
 import java.awt.Dialog;
+import java.awt.Rectangle;
 import java.io.File;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import javax.swing.JMenuItem;
+import javax.swing.JTabbedPane;
 import javax.swing.SwingUtilities;
 
 import org.assertj.swing.core.GenericTypeMatcher;
@@ -295,6 +297,33 @@ final class ApplicationSteps
 		UiTestSpeed.step();
 		clickDialogButton(exportDialog, "OK");
 
+		dismissMessageDialog("Export successful", KEY_DERIVATION_TIMEOUT_SECONDS);
+		return this;
+	}
+
+	/**
+	 * Exports the selected entries through the entry table's popup, "Export selected to
+	 * KeePass...", with every field and without attachments, as the dialog offers it (#1118)
+	 *
+	 * @param frame
+	 *            the main frame
+	 * @param destinationFile
+	 *            the KeePass file to write
+	 * @param password
+	 *            the password of the file
+	 * @return these steps
+	 */
+	ApplicationSteps exportSelectedEntriesToKeePass(org.assertj.swing.fixture.FrameFixture frame,
+		File destinationFile, String password)
+	{
+		chooseFromSelectedEntryPopup(frame, "Export selected to KeePass...");
+		DialogFixture exportDialog = findDialogWithTitle("Export selected to KeePass");
+		browseAndPickFile(exportDialog, "btnFile", destinationFile);
+		GuiActionRunner
+			.execute(() -> exportDialog.textBox("txtPassword").target().setText(password));
+		robot.waitForIdle();
+		UiTestSpeed.step();
+		clickDialogButton(exportDialog, "OK");
 		dismissMessageDialog("Export successful", KEY_DERIVATION_TIMEOUT_SECONDS);
 		return this;
 	}
@@ -923,6 +952,27 @@ final class ApplicationSteps
 		GuiActionRunner.execute(() -> {
 			int row = findEntryRow(table, title);
 			table.setRowSelectionInterval(row, row);
+		});
+		robot.waitForIdle();
+		UiTestSpeed.step();
+		return this;
+	}
+
+	/**
+	 * Selects the entries-table rows whose titles are given, and only those, as a user selects
+	 * several with the control key (#1118)
+	 */
+	ApplicationSteps selectEntryRowsByTitle(org.assertj.swing.fixture.FrameFixture frame,
+		String... titles)
+	{
+		javax.swing.JTable table = frame.table().target();
+		GuiActionRunner.execute(() -> {
+			table.clearSelection();
+			for (String title : titles)
+			{
+				int row = findEntryRow(table, title);
+				table.addRowSelectionInterval(row, row);
+			}
 		});
 		robot.waitForIdle();
 		UiTestSpeed.step();
@@ -1635,7 +1685,11 @@ final class ApplicationSteps
 	 * was and the tab stays as it is. Measured on develop under two cores, 4 of 40 sign-in and
 	 * open-Settings rounds failed with the Plugins tab still selected and the pointer outside the
 	 * dialog. So the step first waits until the dialog is placed, clicks once, and a tab that is
-	 * still not selected fails with the title of the one that is
+	 * still not selected fails with the title of the one that is.
+	 * <p>
+	 * The click was lost once more in CI after that wait, and not again in 70 rounds here, so the
+	 * failure also carries where the dialog was placed and a {@link TabClickScene} read right after
+	 * the click and one read when the step gives up: the next lost click says what happened to it
 	 *
 	 * @param settings
 	 *            the settings dialog
@@ -1644,8 +1698,10 @@ final class ApplicationSteps
 	 */
 	void selectSettingsTab(final DialogFixture settings, final String title)
 	{
-		UiTestSpeed.awaitWindowPlaced(settings.target());
+		Rectangle placed = UiTestSpeed.awaitSettled(settings.target())[0];
+		JTabbedPane tabs = settings.tabbedPane("tabSettings").target();
 		settings.tabbedPane("tabSettings").selectTab(title);
+		TabClickScene afterTheClick = TabClickScene.read(tabs, title);
 		try
 		{
 			Pause.pause(new Condition("the settings tab '" + title + "' is selected")
@@ -1659,9 +1715,13 @@ final class ApplicationSteps
 		}
 		catch (org.assertj.swing.exception.WaitTimedOutError stillAnother)
 		{
-			throw new AssertionError("the settings tab '" + title
-				+ "' was clicked and is not selected; the selected one is '"
-				+ selectedSettingsTab(settings) + "' (#962)", stillAnother);
+			throw new AssertionError(
+				"the settings tab '" + title
+					+ "' was clicked and is not selected; the selected one is '"
+					+ selectedSettingsTab(settings) + "' (#962). The dialog was placed at "
+					+ TabClickScene.where(placed) + " before the click; right after the click: "
+					+ afterTheClick + "; after waiting: " + TabClickScene.read(tabs, title),
+				stillAnother);
 		}
 	}
 

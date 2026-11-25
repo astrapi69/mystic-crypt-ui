@@ -409,7 +409,85 @@ class RememberKeyFilesSettingUiTest extends AbstractUiTest
 		assertNull(leftOver, "closing the dialog again with the setting still off shows no notice");
 	}
 
+	@Test
+	@DisplayName("the notice deletes the copies kept aside once the user confirms them, and says so (#1124)")
+	void theNoticeDeletesTheKeptAsideCopies_onceConfirmed() throws Exception
+	{
+		File database = new File(tempHome, "delete-kept-aside.mcrdb");
+		SignInDialogSteps signIn = launchApplication();
+		signIn.startNewDatabase(database).checkMasterPassword()
+			.typeMasterPasswordWithRepeat(MASTER_PASSWORD).checkKeyFile()
+			.createKeyFile("delete-kept-aside-key.pem").requireOkEnabled().okAndAwaitClose();
+		signIn.checkMasterPassword().typeMasterPassword(MASTER_PASSWORD).requireOkEnabled()
+			.okAndAwaitSignIn();
+		ApplicationSteps application = new ApplicationSteps(robot);
+		application.awaitSignedIn();
+		File configurationDirectory = MysticCryptApplicationFrame.getInstance()
+			.getConfigurationDirectory();
+		File signinCopy = new File(configurationDirectory,
+			"memoizedSignin.json.unreadable-20261101T101010");
+		File keePassCopy = new File(configurationDirectory,
+			"memoizedKeePass.json.unreadable-20261102T111111");
+		File settingsCopy = new File(configurationDirectory,
+			"settings.json.unreadable-20261103T121212");
+		Files.writeString(signinCopy.toPath(), "{\"selectedKeyFilePath\": \"/keys/a-key.pem\", ");
+		Files.writeString(keePassCopy.toPath(), "{\"lastImportKeyFilePath\": \"/keys/b.key\", ");
+		Files.writeString(settingsCopy.toPath(), "{\"rememberKeyFiles\": ");
+
+		DialogFixture settings = application.openSettingsDialog();
+		application.selectSettingsTab(settings, "General");
+		settings.checkBox("chkRememberKeyFiles").uncheck();
+		SwingUtilities.invokeLater(() -> settings.button("btnCloseSettings").target().doClick());
+
+		JOptionPane notice = awaitAPane(JOptionPane.WARNING_MESSAGE, "the notice about the copies");
+		String delete = io.github.astrapi69.mystic.crypt.Messages
+			.getString("settings.general.remember.key.files.delete", "Delete these files");
+		GuiActionRunner.execute(() -> notice.setValue(delete));
+		JOptionPane question = awaitAPane(JOptionPane.QUESTION_MESSAGE,
+			"the question that names the copies");
+		String asked = String.valueOf(question.getMessage());
+		assertTrue(asked.contains(signinCopy.getAbsolutePath()),
+			"names the sign-in copy: " + asked);
+		assertTrue(asked.contains(keePassCopy.getAbsolutePath()),
+			"names the KeePass copy: " + asked);
+		assertTrue(signinCopy.exists() && keePassCopy.exists(),
+			"a copy went before the user confirmed");
+		GuiActionRunner.execute(() -> question.setValue(JOptionPane.YES_OPTION));
+		JOptionPane report = awaitAPane(JOptionPane.INFORMATION_MESSAGE, "the report");
+		String reported = String.valueOf(report.getMessage());
+		GuiActionRunner.execute(() -> report.setValue(JOptionPane.OK_OPTION));
+		robot.waitForIdle();
+
+		assertFalse(signinCopy.exists(), "the sign-in copy is still there");
+		assertFalse(keePassCopy.exists(), "the KeePass copy is still there");
+		assertTrue(settingsCopy.exists(),
+			"the copy of the settings, which holds no key file path, was deleted too");
+		assertTrue(
+			reported.contains(signinCopy.getAbsolutePath())
+				&& reported.contains(keePassCopy.getAbsolutePath()),
+			"the report names what it deleted: " + reported);
+	}
+
+	/** Waits for a message pane of the given type and returns it */
+	private static JOptionPane awaitAPane(final int messageType, final String description)
+	{
+		Pause.pause(new Condition(description)
+		{
+			@Override
+			public boolean test()
+			{
+				return aPane(messageType) != null;
+			}
+		}, TimeUnit.SECONDS.toMillis(30));
+		return aPane(messageType);
+	}
+
 	private static JOptionPane aWarningPane()
+	{
+		return aPane(JOptionPane.WARNING_MESSAGE);
+	}
+
+	private static JOptionPane aPane(final int messageType)
 	{
 		return GuiActionRunner.execute(() -> {
 			for (java.awt.Window window : java.awt.Window.getWindows())
@@ -419,7 +497,7 @@ class RememberKeyFilesSettingUiTest extends AbstractUiTest
 					for (java.awt.Component child : dialog.getContentPane().getComponents())
 					{
 						if (child instanceof JOptionPane pane
-							&& pane.getMessageType() == JOptionPane.WARNING_MESSAGE)
+							&& pane.getMessageType() == messageType)
 						{
 							return pane;
 						}

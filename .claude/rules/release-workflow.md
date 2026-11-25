@@ -105,7 +105,7 @@ Prompt triggers: "release new version", "new release".
    - `make izpack-installer` (the plugin set in `install.xml` must match the Makefile
      `plugins:` list)
    - **verify the installer AFTER the checksums are written**, against the file the
-     checksums describe: size (a plausible floor, ~50 MB — below it is an abort, not a
+     checksums describe: size (a plausible floor, ~40 MB; below it is an abort, not a
      warning), it opens as an archive, and `sha256sum -c` / `sha512sum -c` pass.
      Verifying before the checksums verifies a file that is then replaced:
      `checksumInstaller` depends on `izPackCreateInstaller`, which re-runs and rewrites

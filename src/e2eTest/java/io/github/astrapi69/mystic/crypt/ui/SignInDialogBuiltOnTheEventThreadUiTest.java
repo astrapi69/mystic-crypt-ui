@@ -72,7 +72,8 @@ class SignInDialogBuiltOnTheEventThreadUiTest extends AbstractUiTest
 		new MysticCryptSettings("FlatLaf Dark", "en", FrameMode.APPLICATION_PANEL, true,
 			IdleLockDecision.DEFAULT_TIMEOUT_MINUTES, false,
 			IdleLockDecision.DEFAULT_CLOSE_LOCKED_MINUTES,
-			ClipboardClearDecision.DEFAULT_CLEAR_AFTER_SECONDS, true).save(configurationDirectory);
+			ClipboardClearDecision.DEFAULT_CLEAR_AFTER_SECONDS, true, null)
+				.save(configurationDirectory);
 		List<LookChange> changes = new CopyOnWriteArrayList<>();
 		PropertyChangeListener watcher = event -> {
 			if ("lookAndFeel".equals(event.getPropertyName()))

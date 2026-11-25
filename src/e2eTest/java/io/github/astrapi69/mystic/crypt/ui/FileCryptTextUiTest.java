@@ -67,8 +67,7 @@ class FileCryptTextUiTest extends AbstractUiTest
 				.setText(PASSPHRASE);
 		});
 		robot.waitForIdle();
-		GuiActionRunner.execute(() -> frame.button("btnEncryptText").target().doClick());
-		robot.waitForIdle();
+		FileCryptWindow.pressAndAwaitTheAnswer(frame, robot, "btnEncryptText");
 
 		String encrypted = GuiActionRunner
 			.execute(() -> frame.textBox("txtEncryptedText").target().getText());
@@ -77,8 +76,7 @@ class FileCryptTextUiTest extends AbstractUiTest
 
 		GuiActionRunner.execute(() -> frame.textBox("txtPlainText").target().setText(""));
 		robot.waitForIdle();
-		GuiActionRunner.execute(() -> frame.button("btnDecryptText").target().doClick());
-		robot.waitForIdle();
+		FileCryptWindow.pressAndAwaitTheAnswer(frame, robot, "btnDecryptText");
 
 		assertEquals("a note to myself",
 			GuiActionRunner.execute(() -> frame.textBox("txtPlainText").target().getText()),

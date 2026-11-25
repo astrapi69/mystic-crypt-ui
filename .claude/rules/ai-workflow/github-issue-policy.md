@@ -13,16 +13,28 @@ maintainer's decision, depends on something external or is too big for the sessi
    that the fix is actionable without follow-up) before touching code. A NEW bug
    discovered while working on another one is fixed in a PR of its own, with an issue
    only under NW-016.
-3. **When there is an issue, cite it.** Commit subject and PR name the number -
-   `(#NN)` or `(fixes #NN)`.
+3. **When there is an issue, cite it.** A commit subject on the branch names it as
+   `(#NN)` (AG-068). The squash commit on develop does not: under the squash pilot
+   (NW-026) its subject is the PR title with the PR's number, so the title carries no
+   issue number (the maintainer's decision of 2026-11-11, #902). `make merge-pr` builds
+   that subject and refuses a title that contains `(#`. Auto-merge checks nothing in the
+   title and gives that subject only with `--subject "<title> (#<pr>)"`: the repository's
+   squash default takes the subject of a PR's only commit, issue number included. The
+   issue goes into the PR body instead: `Closes #NN` when the PR completes the fix, or
+   `Refs #NN` and "#NN stays open" when it does not (AG-069, lessons-learned.md).
 4. **Verify the premise before filing.** If a pre-implementation check shows the
-   reported defect does not exist, surface that finding instead — a false issue is worse
+   reported defect does not exist, surface that finding instead - a false issue is worse
    than no issue.
 
 ## Lifecycle
 
-- Issues are closed by the fix, not by hand: `Closes #NN` / `Fixes #NN` in the commit or
-  PR body so merging auto-closes.
+- Issues are closed by the fix, not by hand: `Closes #NN` / `Fixes #NN` in the PR body,
+  which GitHub reads when the PR is merged into develop, the default branch. `make
+  merge-pr` also makes the PR body the body of the squash commit; auto-merge does so only
+  when `--body-file` is given the PR body, otherwise GitHub writes the messages of the
+  branch commits. A PR into `hotfix/X.Y.Z` closes nothing when it merges, since GitHub acts
+  on the keywords for the default branch only: look at the issue again once the hotfix
+  branch is merged into develop.
 - Sub-issue of an umbrella: `Closes #<sub-issue>` (auto-close) plus `Refs #<umbrella>`
   (traceability). `Refs` alone does not close. The umbrella stays open until all
   sub-issues are closed.
@@ -70,6 +82,7 @@ alternatives were, and the question put to the maintainer.
 
 On "weiter" / "work through the bugs": treat `gh issue list --label bug --state open` as
 the queue. Priority: explicit P-labels; then data-loss / security; then reproducible
-crashes; then the rest — smallest scope first within a tier. For each: fix + regression
-test in the same commit, conventional commit citing the issue, PR. Report status after
-each; do not wait for confirmation between issues.
+crashes; then the rest - smallest scope first within a tier. For each: the regression test
+first, green on today's behaviour, then the fix that turns it, two commits (RL-002), each
+citing the issue, and a PR. Report status after each; do not wait for confirmation between
+issues.

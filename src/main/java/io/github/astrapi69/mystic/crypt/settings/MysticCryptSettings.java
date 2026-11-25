@@ -129,6 +129,13 @@ public class MysticCryptSettings
 	private boolean rememberKeyFiles = true;
 
 	/**
+	 * The theme of the JDK's Metal look, Steel for the menu's "Metal" and Ocean for its "Ocean", or
+	 * {@code null} when none was saved: a file written before 8.17 has no such field, and Gson
+	 * leaves it at {@code null}, which keeps the runtime's default theme (#1065)
+	 */
+	private MetalThemeChoice metalTheme;
+
+	/**
 	 * The view the application opens in.
 	 * <p>
 	 * Written by hand rather than left to lombok because a settings file can say

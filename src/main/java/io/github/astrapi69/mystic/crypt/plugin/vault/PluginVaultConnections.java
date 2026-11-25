@@ -30,6 +30,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.logging.Level;
 
+import io.github.astrapi69.mystic.crypt.keepass.EntryExportChoice;
 import io.github.astrapi69.mystic.crypt.panel.dbtree.MysticCryptEntryModelBean;
 import io.github.astrapi69.mystic.crypt.panel.dbtree.VaultEntryProperties;
 import io.github.astrapi69.mystic.crypt.plugin.api.VaultAccessContribution;
@@ -126,6 +127,36 @@ public final class PluginVaultConnections
 	}
 
 	/**
+	 * The lines the connected plugins give before chosen entries are exported to a KeePass file of
+	 * their own (#1118). Only a plugin that marks at least one of the chosen entries is asked, and
+	 * it is handed those entries as they go into the file, so its line follows the choice of fields
+	 *
+	 * @param selected
+	 *            the chosen entries of the vault, which are left as they are
+	 * @param choice
+	 *            what of each entry goes into the file
+	 * @return the lines, in the order the plugins were connected; empty when none gives one
+	 */
+	public List<String> selectedEntriesExportNotices(final List<MysticCryptEntryModelBean> selected,
+		final EntryExportChoice choice)
+	{
+		List<String> notices = new ArrayList<>();
+		for (VaultAccessContribution contribution : connected)
+		{
+			List<MysticCryptEntryModelBean> marked = selected.stream()
+				.filter(entry -> VaultEntryProperties.valuesOf(entry).keySet()
+					.contains(contribution.getEntryMarker()))
+				.map(choice::exportedCopyOf).toList();
+			if (!marked.isEmpty())
+			{
+				noticeOf(contribution, VaultExport.SELECTED_ENTRIES, marked)
+					.ifPresent(notices::add);
+			}
+		}
+		return notices;
+	}
+
+	/**
 	 * The line of the plugin that marks an entry, before one of the entry's attachments is saved to
 	 * a file (#810)
 	 *
@@ -153,9 +184,21 @@ public final class PluginVaultConnections
 	private static Optional<String> noticeOf(final VaultAccessContribution contribution,
 		final VaultExport export)
 	{
+		return noticeOf(contribution, export, null);
+	}
+
+	/**
+	 * A plugin's line for an export of the given entries, or of what the export says when there are
+	 * none
+	 */
+	private static Optional<String> noticeOf(final VaultAccessContribution contribution,
+		final VaultExport export, final List<MysticCryptEntryModelBean> entries)
+	{
 		try
 		{
-			Optional<String> notice = contribution.exportNotice(export);
+			Optional<String> notice = entries == null
+				? contribution.exportNotice(export)
+				: contribution.exportNotice(export, entries);
 			return notice == null ? Optional.empty() : notice.filter(line -> !line.isBlank());
 		}
 		catch (RuntimeException failed)

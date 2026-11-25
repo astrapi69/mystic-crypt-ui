@@ -29,6 +29,9 @@ import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import javax.swing.UIManager;
+import javax.swing.plaf.metal.MetalLookAndFeel;
+
 /**
  * The look and feel on the screen and the look and feel in the settings
  */
@@ -77,8 +80,9 @@ public final class LookAndFeelChoice
 	 * <p>
 	 * A look that is not among the installed ones has no name the settings could hold and is not
 	 * written; nothing is written either when the settings already hold the active look. Of the two
-	 * looks of the JDK that share a class, Metal and Ocean, the settings hold "Metal" and the next
-	 * start shows the runtime's default theme of it, which is Ocean: the theme is not saved (#1065)
+	 * looks of the JDK that share a class, Metal and Ocean, the settings hold the name "Metal" and
+	 * the theme in {@code metalTheme}, so a switch between them is written although the name stays
+	 * the same, and the next start shows the one that was picked (#1065)
 	 * <p>
 	 * A settings file that exists and cannot be read is left as it is, and the failure is logged:
 	 * writing the look into defaults would replace everything else the file holds
@@ -105,11 +109,19 @@ public final class LookAndFeelChoice
 				+ "read: " + exception.getMessage(), exception);
 			return false;
 		}
-		if (activeName.equals(settings.getLookAndFeel()))
+		MetalThemeChoice activeTheme = UIManager.getLookAndFeel() instanceof MetalLookAndFeel
+			? MetalThemeChoice.ofTheRuntime()
+			: null;
+		if (activeName.equals(settings.getLookAndFeel())
+			&& (activeTheme == null || activeTheme == settings.getMetalTheme()))
 		{
 			return false;
 		}
 		settings.setLookAndFeel(activeName);
+		if (activeTheme != null)
+		{
+			settings.setMetalTheme(activeTheme);
+		}
 		settings.save(configurationDirectory);
 		return true;
 	}
