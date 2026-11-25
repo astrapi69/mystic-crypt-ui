@@ -9,8 +9,9 @@ the application window instead of on the first screen (#63), offers the key file
 and lets "Remember key files" be switched off (#997), saves the look and feel chosen in the View menu (#1064), ships
 the license texts of the bundled libraries that come without one (#1014), and no longer ships swing-components,
 JavaHelp, iText 5, xml-extensions, the Tango and Remix icons and SwingX, which nothing in it used. It takes
-file-worker 21.1, gson-extensions 4.2 and swing-table-components 4.0, three major releases, and Bouncy Castle 1.87,
-which fixes twelve CVEs. The vault format does not change. Built with Temurin 25.0.5 (`.sdkmanrc`).
+file-worker 21.1, gson-extensions 4.2 and swing-table-components 4.0, three major releases, crypt-data 13.3.2, and
+Bouncy Castle 1.87, which fixes twelve CVEs. The vault format does not change. Built with Temurin 25.0.5
+(`.sdkmanrc`).
 
 SECURITY:
 - mystic-crypt-ui takes mystic-crypt 13.11.1, which fixes GHSA-m42j-97pf-6mc7: opening a file sealed with a
