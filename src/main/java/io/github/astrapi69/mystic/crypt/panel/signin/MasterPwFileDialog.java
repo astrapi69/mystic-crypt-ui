@@ -107,17 +107,16 @@ public class MasterPwFileDialog extends PanelDialog<MasterPwFileModelBean>
 	{
 		signinPanel = new MasterPwWithApplicationFilePanel(model)
 		{
+			/**
+			 * Only a successful sign-in closes this dialog. A failed one used to close it too, and
+			 * since the application frame is shown only after signing in, the user was left with no
+			 * window at all - the application looked gone after a typo (#251). The database is read
+			 * off the event dispatch thread, so the success arrives after OK has returned (#1053)
+			 */
 			@Override
-			protected void onOk(ActionEvent actionEvent)
+			protected void onSignedIn()
 			{
-				super.onOk(actionEvent);
-				// only a successful sign-in closes this dialog. A failed one used to close it too,
-				// and since the application frame is shown only after signing in, the user was left
-				// with no window at all - the application looked gone after a typo (#251)
-				if (isSignInSuccessful())
-				{
-					MasterPwFileDialog.this.dispose();
-				}
+				MasterPwFileDialog.this.dispose();
 			}
 
 			@Override

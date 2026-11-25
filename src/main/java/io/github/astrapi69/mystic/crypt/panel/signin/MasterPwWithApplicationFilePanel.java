@@ -29,6 +29,8 @@ import java.io.File;
 import java.io.Serial;
 import java.net.URL;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 
@@ -53,6 +55,7 @@ import io.github.astrapi69.mystic.crypt.panel.signin.button.state.ok.BtnOkCompon
 import io.github.astrapi69.mystic.crypt.panel.signin.button.state.ok.BtnOkStateMachine;
 import io.github.astrapi69.mystic.crypt.panel.signin.button.state.ok.DocumentExtensions;
 import io.github.astrapi69.mystic.crypt.settings.MysticCryptSettings;
+import io.github.astrapi69.mystic.crypt.ui.work.CancellableWork;
 import io.github.astrapi69.mystic.crypt.vault.EntryIdentitySupport;
 import io.github.astrapi69.mystic.crypt.write.DataClass;
 import io.github.astrapi69.mystic.crypt.write.OverwriteConfirmation;
@@ -83,8 +86,18 @@ public class MasterPwWithApplicationFilePanel extends BasePanel<MasterPwFileMode
 	@Serial
 	private static final long serialVersionUID = 1L;
 
-	/** Whether the last attempt through {@link #onOk(java.awt.event.ActionEvent)} signed in */
-	private boolean signInSuccessful;
+	/**
+	 * Reads the database off the event dispatch thread, so the dialog keeps answering while the key
+	 * is derived and Cancel can give it back (#1053)
+	 */
+	private final transient CancellableWork<ApplicationModelBean> signInRead = CancellableWork
+		.ofTheApplication("sign-in-read");
+
+	/**
+	 * Whether each input was enabled before the read began, so the end of the read gives back what
+	 * the sign-in's own rules had decided and not simply everything
+	 */
+	private transient Map<JComponent, Boolean> enabledBeforeTheRead = Map.of();
 
 	private javax.swing.JButton btnApplicationFileChooser;
 	private javax.swing.JButton btnCancel;
@@ -99,6 +112,8 @@ public class MasterPwWithApplicationFilePanel extends BasePanel<MasterPwFileMode
 	private JMComboBox<String, GenericMutableComboBoxModel<String>> cmbKeyFile;
 	private javax.swing.JLabel lblApplicationFile;
 	private javax.swing.JLabel lblImageHeader;
+	/** Says that the database is being opened while the key is derived (#1053) */
+	private javax.swing.JLabel lblSignInWorking;
 	private JMPasswordField txtMasterPw;
 	// ===
 	// ===
@@ -154,6 +169,8 @@ public class MasterPwWithApplicationFilePanel extends BasePanel<MasterPwFileMode
 		super.onInitializeComponents();
 
 		lblImageHeader = new javax.swing.JLabel();
+		lblSignInWorking = new javax.swing.JLabel(" ");
+		lblSignInWorking.setName("lblSignInWorking");
 		cbxMasterPw = new JMCheckBox();
 		cbxKeyFile = new JMCheckBox();
 		txtMasterPw = new JMPasswordField();
@@ -222,7 +239,7 @@ public class MasterPwWithApplicationFilePanel extends BasePanel<MasterPwFileMode
 		btnMasterPw.addActionListener(this::onShowMasterPw);
 		btnKeyFileChooser.addActionListener(this::onKeyFileChooser);
 		btnOk.addActionListener(this::onOk);
-		btnCancel.addActionListener(this::onCancel);
+		btnCancel.addActionListener(this::onCancelPressed);
 		// pressing Enter in the master-password field confirms the dialog with OK (when OK is
 		// enabled), so the user does not have to reach for the button
 		txtMasterPw.addActionListener(actionEvent -> {
@@ -611,6 +628,9 @@ public class MasterPwWithApplicationFilePanel extends BasePanel<MasterPwFileMode
 				.addGroup(javax.swing.GroupLayout.Alignment.LEADING,
 					layout.createSequentialGroup().addGroup(layout
 						.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
+						.addComponent(lblSignInWorking, javax.swing.GroupLayout.Alignment.LEADING,
+							javax.swing.GroupLayout.DEFAULT_SIZE,
+							javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
 						.addGroup(layout.createSequentialGroup()
 							.addComponent(btnHelp, javax.swing.GroupLayout.PREFERRED_SIZE, 122,
 								javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -696,7 +716,8 @@ public class MasterPwWithApplicationFilePanel extends BasePanel<MasterPwFileMode
 					.addComponent(btnKeyFileChooser).addComponent(cbxKeyFile,
 						javax.swing.GroupLayout.PREFERRED_SIZE, 35,
 						javax.swing.GroupLayout.PREFERRED_SIZE))
-				.addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 148,
+				.addGap(18, 18, 18).addComponent(lblSignInWorking)
+				.addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 112,
 					Short.MAX_VALUE)
 				.addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
 					.addComponent(btnHelp).addComponent(btnOk).addComponent(btnCancel))
@@ -776,75 +797,178 @@ public class MasterPwWithApplicationFilePanel extends BasePanel<MasterPwFileMode
 	}
 
 	/**
-	 * Signs in with what the panel holds. The result is not thrown to the caller - a failed attempt
-	 * is shown to the user as a dialog here - so {@link #isSignInSuccessful()} is how the enclosing
-	 * dialog learns whether it may close (#251)
+	 * Signs in with what the panel holds. The database is read off the event dispatch thread
+	 * (#1053): the dialog says that it opens the database, takes no other input meanwhile, and its
+	 * Cancel gives up the read and leaves the dialog open with nothing read. A failed attempt is
+	 * shown to the user as a dialog here and leaves the dialog open, so the input can be corrected
+	 * (#251); a successful one ends in {@link #onSignedIn()}, which is where the enclosing dialog
+	 * closes.
+	 * <p>
+	 * A read that succeeds removes the backup a save kept, because the read proves the file good
+	 * (#847); that holds for a read that is cancelled after it succeeded as well, since the file
+	 * was read all the same.
 	 *
 	 * @param actionEvent
 	 *            the event of the OK button
 	 */
 	protected void onOk(ActionEvent actionEvent)
 	{
-		signInSuccessful = false;
+		MasterPwFileModelBean credentials = getModelObject();
+		showTheRead();
+		signInRead.start(() -> ApplicationXmlFileReader.read(credentials),
+			new CancellableWork.Answer<>()
+			{
+				@Override
+				public void done(final ApplicationModelBean applicationModelBean)
+				{
+					endTheRead();
+					signInWith(credentials, applicationModelBean);
+				}
+
+				@Override
+				public void failed(final Exception failure)
+				{
+					endTheRead();
+					showRefusal(failure);
+				}
+
+				@Override
+				public void cancelled()
+				{
+					endTheRead();
+				}
+			});
+	}
+
+	/**
+	 * Takes over what the read brought, remembers the sign-in, and ends in {@link #onSignedIn()}.
+	 * What fails on the way is shown like a refused sign-in, and the dialog stays open
+	 */
+	private void signInWith(final MasterPwFileModelBean credentials,
+		final ApplicationModelBean applicationModelBean)
+	{
+		if (applicationModelBean == null)
+		{
+			return;
+		}
 		try
 		{
-			MysticCryptApplicationFrame applicationFrame = MysticCryptApplicationFrame
-				.getInstance();
-			MasterPwFileModelBean panelModelObject = getModelObject();
-			ApplicationModelBean applicationModelBean = ApplicationXmlFileReader
-				.read(panelModelObject);
-
-			if (applicationModelBean != null)
-			{
-				if (applicationModelBean.isDirty())
-				{
-					applicationModelBean.setDirty(false);
-				}
-				// entries written before identifiers were maintained have none, and only assigning
-				// them on load reaches the oldest data - the data most worth referencing. What
-				// loading may and may not do to them is written on migrateOnLoad; notably it does
-				// not mark the model as changed, so opening a vault never asks about saving one
-				// (#272, decided in the issue)
-				EntryIdentitySupport.migrateOnLoad(applicationModelBean);
-				applicationModelBean.setSignedIn(true);
-				applicationFrame.setModelObject(applicationModelBean);
-				MasterPwFileModelBean masterPwFileModelBean = applicationModelBean
-					.getMasterPwFileModelBean();
-				MemoizedSigninModelBean memoizedSigninModelBean = masterPwFileModelBean
-					.toMemoizedSigninModelBean(panelModelObject);
-				memoizedSigninModelBean.setChoicesByDatabase(rememberSignInOf(panelModelObject));
-				if (!MysticCryptSettings
-					.rememberKeyFilesForWriting(applicationFrame.getConfigurationDirectory()))
-				{
-					memoizedSigninModelBean = memoizedSigninModelBean.withoutKeyFilePaths();
-				}
-				File memoizedSigninFile = new File(applicationFrame.getConfigurationDirectory(),
-					MysticCryptApplicationFrame.MEMOIZED_SIGNIN_JSON_FILENAME);
-				// a remembered sign-in that could not be read is kept aside first (#1082)
-				JsonFileStore.write(memoizedSigninModelBean, memoizedSigninFile,
-					MemoizedSigninModelBean.class);
-				signInSuccessful = true;
-			}
+			takeOver(credentials, applicationModelBean);
 		}
 		catch (Exception exception)
 		{
-			String exceptionMessage = exception.getMessage();
-			if (StringUtils.isNotEmpty(exceptionMessage) && exceptionMessage.contains("::"))
-			{
-				String[] split = exceptionMessage.split("::");
-				String title = split[0];
-				String htmlMessage = split[1];
-				JOptionPane.showMessageDialog(this, htmlMessage, title, JOptionPane.ERROR_MESSAGE);
-				log.log(Level.SEVERE, exception.getMessage(), exception);
-			}
-			else
-			{
-				String localizedMessage = exception.getLocalizedMessage();
-				JOptionPane.showMessageDialog(this, localizedMessage, exceptionMessage,
-					JOptionPane.ERROR_MESSAGE);
-				log.log(Level.SEVERE, exception.getMessage(), exception);
-			}
+			showRefusal(exception);
+			return;
 		}
+		onSignedIn();
+	}
+
+	private void takeOver(final MasterPwFileModelBean credentials,
+		final ApplicationModelBean applicationModelBean) throws Exception
+	{
+		MysticCryptApplicationFrame applicationFrame = MysticCryptApplicationFrame.getInstance();
+		if (applicationModelBean.isDirty())
+		{
+			applicationModelBean.setDirty(false);
+		}
+		// entries written before identifiers were maintained have none, and only assigning
+		// them on load reaches the oldest data - the data most worth referencing. What
+		// loading may and may not do to them is written on migrateOnLoad; notably it does
+		// not mark the model as changed, so opening a vault never asks about saving one
+		// (#272, decided in the issue)
+		EntryIdentitySupport.migrateOnLoad(applicationModelBean);
+		applicationModelBean.setSignedIn(true);
+		applicationFrame.setModelObject(applicationModelBean);
+		MasterPwFileModelBean masterPwFileModelBean = applicationModelBean
+			.getMasterPwFileModelBean();
+		MemoizedSigninModelBean memoizedSigninModelBean = masterPwFileModelBean
+			.toMemoizedSigninModelBean(credentials);
+		memoizedSigninModelBean.setChoicesByDatabase(rememberSignInOf(credentials));
+		if (!MysticCryptSettings
+			.rememberKeyFilesForWriting(applicationFrame.getConfigurationDirectory()))
+		{
+			memoizedSigninModelBean = memoizedSigninModelBean.withoutKeyFilePaths();
+		}
+		File memoizedSigninFile = new File(applicationFrame.getConfigurationDirectory(),
+			MysticCryptApplicationFrame.MEMOIZED_SIGNIN_JSON_FILENAME);
+		// a remembered sign-in that could not be read is kept aside first (#1082)
+		JsonFileStore.write(memoizedSigninModelBean, memoizedSigninFile,
+			MemoizedSigninModelBean.class);
+	}
+
+	/** Shows why the sign-in was refused, and logs it */
+	private void showRefusal(final Exception exception)
+	{
+		String exceptionMessage = exception.getMessage();
+		if (StringUtils.isNotEmpty(exceptionMessage) && exceptionMessage.contains("::"))
+		{
+			String[] split = exceptionMessage.split("::");
+			String title = split[0];
+			String htmlMessage = split[1];
+			JOptionPane.showMessageDialog(this, htmlMessage, title, JOptionPane.ERROR_MESSAGE);
+		}
+		else
+		{
+			String localizedMessage = exception.getLocalizedMessage();
+			JOptionPane.showMessageDialog(this, localizedMessage, exceptionMessage,
+				JOptionPane.ERROR_MESSAGE);
+		}
+		log.log(Level.SEVERE, exception.getMessage(), exception);
+	}
+
+	/**
+	 * Says that the database is being opened and takes the input away until the read has answered,
+	 * so the credentials the read works with cannot change under it and OK cannot read twice.
+	 * Cancel and Help stay
+	 */
+	private void showTheRead()
+	{
+		Map<JComponent, Boolean> enabled = new LinkedHashMap<>();
+		for (JComponent input : inputsOfTheSignIn())
+		{
+			enabled.put(input, input.isEnabled());
+			input.setEnabled(false);
+		}
+		enabledBeforeTheRead = enabled;
+		lblSignInWorking.setText(Messages.getString("signin.reading",
+			"Opening the database: the key is being derived from the password ..."));
+	}
+
+	/** Gives the input back as it was before the read began */
+	private void endTheRead()
+	{
+		enabledBeforeTheRead.forEach((input, enabled) -> input.setEnabled(enabled));
+		enabledBeforeTheRead = Map.of();
+		lblSignInWorking.setText(" ");
+	}
+
+	private List<JComponent> inputsOfTheSignIn()
+	{
+		return List.of(cmbApplicationFile, btnApplicationFileChooser, btnNewApplicationFile,
+			cbxMasterPw, txtMasterPw, btnMasterPw, cbxKeyFile, cmbKeyFile, btnKeyFileChooser,
+			btnOk);
+	}
+
+	/**
+	 * Called once a sign-in has succeeded and the application holds what was read; the enclosing
+	 * dialog closes here. Does nothing by default
+	 */
+	protected void onSignedIn()
+	{
+	}
+
+	/**
+	 * Cancel gives up the read while one runs and leaves the dialog open with nothing read (#1053);
+	 * otherwise it ends the sign-in as before
+	 */
+	private void onCancelPressed(final ActionEvent actionEvent)
+	{
+		if (signInRead.isRunning())
+		{
+			signInRead.cancel();
+			return;
+		}
+		onCancel(actionEvent);
 	}
 
 	/**
@@ -869,18 +993,6 @@ public class MasterPwWithApplicationFilePanel extends BasePanel<MasterPwFileMode
 		rememberedChoices = RememberedKeyFileSupport.remember(rememberedChoices, openedPath,
 			choice);
 		return rememberedChoices;
-	}
-
-	/**
-	 * Whether the last {@link #onOk(ActionEvent)} signed in. False after a wrong password, a wrong
-	 * key file, or a file that could not be read - in every one of those cases the user has been
-	 * shown why, and the dialog holding this panel has to stay open so the input can be corrected
-	 *
-	 * @return true if the last attempt signed in
-	 */
-	boolean isSignInSuccessful()
-	{
-		return signInSuccessful;
 	}
 
 	protected void onCancel(ActionEvent actionEvent)
