@@ -38,6 +38,7 @@ import java.util.function.Consumer;
 import io.github.astrapi69.lethenon.Wallet;
 import io.github.astrapi69.lethenon.WalletScan;
 import io.github.astrapi69.mystic.crypt.panel.dbtree.MysticCryptEntryModelBean;
+import io.github.astrapi69.mystic.crypt.panel.dbtree.VaultEntryAttachments;
 import io.github.astrapi69.mystic.crypt.plugin.api.VaultAccess;
 import io.github.astrapi69.mystic.crypt.plugin.api.VaultAccessRefusedException;
 import io.github.astrapi69.mystic.crypt.plugin.api.VaultExport;
@@ -148,6 +149,54 @@ final class LethenonVault
 		return Optional.of(LethenonMessages.format("lethenon.export.database.words",
 			"The file contains sealed lethenon wallets, and the 24 words of {0,number,integer} of them in a protected field: whoever can open the file has these wallets, also without the wallet password.",
 			locale, keepingTheirWords));
+	}
+
+	/**
+	 * The line before chosen entries leave the vault in a KeePass file of their own (#1118). It
+	 * speaks of the given entries only, as they go into the file: a wallet whose attachment was
+	 * left out is not in the file sealed, and one whose custom fields were left out does not carry
+	 * its words there
+	 *
+	 * @param export
+	 *            what leaves the vault, {@link VaultExport#SELECTED_ENTRIES}; any other kind gets
+	 *            the line of {@link #exportNotice(VaultExport, Locale)}
+	 * @param exported
+	 *            the wallet entries as they are written to the file
+	 * @param locale
+	 *            the language of the line
+	 * @return the line, or empty when the file holds neither a sealed wallet nor the words of one
+	 */
+	Optional<String> exportNotice(final VaultExport export,
+		final List<MysticCryptEntryModelBean> exported, final Locale locale)
+	{
+		if (export != VaultExport.SELECTED_ENTRIES)
+		{
+			return exportNotice(export, locale);
+		}
+		long sealed = exported.stream()
+			.filter(
+				entry -> VaultEntryAttachments.contentOf(entry, WalletVault.ATTACHMENT).isPresent())
+			.count();
+		long keepingTheirWords = exported.stream().filter(LethenonVault::keepsItsWords).count();
+		if (keepingTheirWords > 0 && sealed == 0)
+		{
+			return Optional.of(LethenonMessages.format("lethenon.export.selected.words",
+				"The file contains the 24 words of {0,number,integer} lethenon wallets in a protected field: whoever can open the file can restore these wallets.",
+				locale, keepingTheirWords));
+		}
+		if (keepingTheirWords > 0)
+		{
+			return Optional.of(LethenonMessages.format("lethenon.export.database.words",
+				"The file contains sealed lethenon wallets, and the 24 words of {0,number,integer} of them in a protected field: whoever can open the file has these wallets, also without the wallet password.",
+				locale, keepingTheirWords));
+		}
+		if (sealed > 0)
+		{
+			return Optional.of(LethenonMessages.getString("lethenon.export.database",
+				"The file contains sealed lethenon wallets. The wallet password is needed to use them; the 24 words are not in the file.",
+				locale));
+		}
+		return Optional.empty();
 	}
 
 	private static boolean keepsItsWords(final MysticCryptEntryModelBean entry)

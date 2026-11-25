@@ -69,6 +69,17 @@ public class ApplicationModelBean implements Serializable
 	boolean signedIn;
 	/** The flag that indicated that the application model changed */
 	boolean dirty;
+
+	/**
+	 * Whether opening the vault gave entries identifiers that are not in its file yet (#1118).
+	 * Opening does not mark the vault as changed (#272), so until the next save the same entry gets
+	 * another identifier at every open; whatever hands identifiers on, such as the export of chosen
+	 * entries that a recipient merges by identifier, saves first.
+	 * <p>
+	 * {@code transient}, so it never reaches the vault's file: the file format stays as it is, and
+	 * an element an older release does not know makes that release refuse the whole vault (#402)
+	 */
+	transient boolean identifiersAwaitASave;
 	Long lastId;
 
 	/**

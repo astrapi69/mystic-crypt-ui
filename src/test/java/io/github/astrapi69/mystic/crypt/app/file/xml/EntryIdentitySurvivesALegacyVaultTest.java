@@ -123,6 +123,28 @@ class EntryIdentitySurvivesALegacyVaultTest
 	}
 
 	@Test
+	@DisplayName("identifiers given on open wait for a save, the save ends the wait, and an open that gives none does not wait (#1118)")
+	void identifiersGivenOnOpen_waitForASave(@TempDir File tempDir) throws Exception
+	{
+		File vaultFile = writeLegacyVault(tempDir, "waiting-for-a-save.mcrdb");
+
+		ApplicationModelBean opened = read(vaultFile);
+		EntryIdentitySupport.migrateOnLoad(opened);
+		assertTrue(opened.isIdentifiersAwaitASave(),
+			"the open gave identifiers that a later open would not see, and nothing says so");
+		assertFalse(opened.isDirty(), "opening a vault is still no change the user made (#272)");
+
+		opened.getMasterPwFileModelBean().setMasterPw(MASTER_PASSWORD.clone());
+		ApplicationXmlFileStoreWorker.storeApplicationFile(opened);
+		assertFalse(opened.isIdentifiersAwaitASave(), "the save wrote the identifiers");
+
+		ApplicationModelBean openedAfterTheSave = read(vaultFile);
+		EntryIdentitySupport.migrateOnLoad(openedAfterTheSave);
+		assertFalse(openedAfterTheSave.isIdentifiersAwaitASave(),
+			"every entry had its identifier in the file, so there is nothing to wait for");
+	}
+
+	@Test
 	@DisplayName("an identifier that came in with a KeePass import is never replaced")
 	void anExistingIdentifierIsKeptThroughTheRoundTrip(@TempDir File tempDir) throws Exception
 	{

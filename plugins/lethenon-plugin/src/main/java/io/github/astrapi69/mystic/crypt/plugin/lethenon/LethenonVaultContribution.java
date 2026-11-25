@@ -24,11 +24,13 @@
  */
 package io.github.astrapi69.mystic.crypt.plugin.lethenon;
 
+import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
 
 import org.pf4j.Extension;
 
+import io.github.astrapi69.mystic.crypt.panel.dbtree.MysticCryptEntryModelBean;
 import io.github.astrapi69.mystic.crypt.plugin.api.VaultAccess;
 import io.github.astrapi69.mystic.crypt.plugin.api.VaultAccessContribution;
 import io.github.astrapi69.mystic.crypt.plugin.api.VaultExport;
@@ -72,5 +74,22 @@ public class LethenonVaultContribution implements VaultAccessContribution
 	public Optional<String> exportNotice(final VaultExport export)
 	{
 		return LethenonVault.current().exportNotice(export, Locale.getDefault());
+	}
+
+	/**
+	 * The line before chosen entries are exported to a KeePass file of their own, about the wallets
+	 * among them as they go into the file (#1118)
+	 *
+	 * @param export
+	 *            what leaves the vault
+	 * @param entries
+	 *            the chosen wallet entries, as they are written to the file
+	 * @return the line, or empty when the file holds nothing of a wallet
+	 */
+	@Override
+	public Optional<String> exportNotice(final VaultExport export,
+		final List<MysticCryptEntryModelBean> entries)
+	{
+		return LethenonVault.current().exportNotice(export, entries, Locale.getDefault());
 	}
 }

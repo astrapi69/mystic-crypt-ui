@@ -68,15 +68,19 @@ public final class EntryIdentitySupport
 	 * first save after the migration onwards.</b> Before that save the same entry gets a fresh
 	 * identifier every time the file is opened, and the same old file opened on two machines yields
 	 * two different identifiers for the same entry. Nothing today reads an identifier across
-	 * sessions, so this costs nothing yet; whatever does first - a compare-two-vaults feature is
-	 * the obvious one - has to deal with it.
+	 * sessions except the export of chosen entries, which a recipient merges by identifier: that is
+	 * why an open that assigns any says so in
+	 * {@link ApplicationModelBean#isIdentifiersAwaitASave()}, and that export saves first (#1118).
 	 *
 	 * @param applicationModelBean
 	 *            the freshly read model; null is accepted and changes nothing
 	 */
 	public static void migrateOnLoad(final ApplicationModelBean applicationModelBean)
 	{
-		assignMissingIdentifiers(applicationModelBean);
+		if (assignMissingIdentifiers(applicationModelBean) > 0)
+		{
+			applicationModelBean.setIdentifiersAwaitASave(true);
+		}
 	}
 
 	/**

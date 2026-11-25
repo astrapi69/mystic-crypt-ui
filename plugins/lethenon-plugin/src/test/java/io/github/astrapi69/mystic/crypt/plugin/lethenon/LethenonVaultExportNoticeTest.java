@@ -28,6 +28,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
@@ -41,6 +42,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
+import io.github.astrapi69.file.create.model.FileContentInfo;
 import io.github.astrapi69.mystic.crypt.panel.dbtree.MysticCryptEntryModelBean;
 import io.github.astrapi69.mystic.crypt.panel.dbtree.VaultEntryProperties;
 import io.github.astrapi69.mystic.crypt.plugin.api.VaultExport;
@@ -160,5 +162,79 @@ class LethenonVaultExportNoticeTest
 		assertEquals(Optional.of(
 			"Diese Datei ist ein versiegeltes lethenon-Wallet. Zum Benutzen braucht es das Wallet-Passwort; die 24 Wörter sind nicht darin."),
 			vault.exportNotice(VaultExport.ATTACHMENT, Locale.GERMAN));
+	}
+
+	/**
+	 * A wallet entry as the export of chosen entries writes it: with its sealed wallet when the
+	 * attachments were chosen, with its words when the custom fields were and it keeps them
+	 */
+	private static MysticCryptEntryModelBean exported(final boolean sealed, final boolean words)
+	{
+		Map<String, String> values = new LinkedHashMap<>();
+		Set<String> protectedNames = new LinkedHashSet<>();
+		if (words)
+		{
+			values.put(WalletVault.WALLET, "1");
+			values.put(WalletInVault.MNEMONIC, "made up words that stand in for the twenty four");
+			protectedNames.add(WalletInVault.MNEMONIC);
+		}
+		MysticCryptEntryModelBean entry = MysticCryptEntryModelBean.builder().build();
+		VaultEntryProperties.replace(entry, values, protectedNames);
+		if (sealed)
+		{
+			entry.setResources(List.of(FileContentInfo.builder().name(WalletVault.ATTACHMENT)
+				.content(new byte[] { 1, 2, 3 }).build()));
+		}
+		return entry;
+	}
+
+	static Stream<Arguments> chosenEntries()
+	{
+		return Stream.of(
+			Arguments.of("sealed wallets without their words", List.of(exported(true, false)),
+				Optional.of(SEALED_ONLY)),
+			Arguments.of("sealed wallets, two with their words",
+				List.of(exported(true, true), exported(true, true), exported(true, false)),
+				Optional.of("The file contains sealed lethenon wallets, and the 24 words of 2"
+					+ " of them in a protected field: whoever can open the file has these wallets, also without the wallet password.")),
+			Arguments.of("the words without the sealed wallets", List.of(exported(false, true)),
+				Optional.of("The file contains the 24 words of 1 lethenon wallets in a protected"
+					+ " field: whoever can open the file can restore these wallets.")),
+			Arguments.of("neither the sealed wallets nor their words",
+				List.of(exported(false, false)), Optional.empty()));
+	}
+
+	@ParameterizedTest(name = "{0}")
+	@MethodSource("chosenEntries")
+	@DisplayName("the export of chosen entries names what of the wallets goes into the file (#1118)")
+	void theExportOfChosenEntries_namesWhatOfTheWalletsGoesIn(final String description,
+		final List<MysticCryptEntryModelBean> exported, final Optional<String> expected)
+	{
+		assertEquals(expected,
+			vault.exportNotice(VaultExport.SELECTED_ENTRIES, exported, Locale.ENGLISH));
+	}
+
+	@Test
+	@DisplayName("the export of chosen entries counts only those, not the other wallets of the vault (#1118)")
+	void theExportOfChosenEntries_countsOnlyThose()
+	{
+		aWalletEntry(true);
+		aWalletEntry(true);
+		aWalletEntry(true);
+
+		assertEquals(Optional.of("The file contains sealed lethenon wallets, and the 24 words of 1"
+			+ " of them in a protected field: whoever can open the file has these wallets, also without the wallet password."),
+			vault.exportNotice(VaultExport.SELECTED_ENTRIES, List.of(exported(true, true)),
+				Locale.ENGLISH));
+	}
+
+	@Test
+	@DisplayName("the line of the words without the sealed wallets is German for a German user (#1118)")
+	void theWordsWithoutTheSealedWallets_areGermanForAGermanUser()
+	{
+		assertEquals(Optional.of(
+			"Die Datei enthält von 1 lethenon-Wallets die 24 Wörter in einem geschützten Feld: Wer die Datei öffnen kann, kann diese Wallets wiederherstellen."),
+			vault.exportNotice(VaultExport.SELECTED_ENTRIES, List.of(exported(false, true)),
+				Locale.GERMAN));
 	}
 }

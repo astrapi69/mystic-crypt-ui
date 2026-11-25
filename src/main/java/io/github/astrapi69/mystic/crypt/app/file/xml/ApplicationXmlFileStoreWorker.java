@@ -86,6 +86,7 @@ public final class ApplicationXmlFileStoreWorker
 		// read-only directory look like a successful save, and the close question, which reads
 		// this flag, then ended the application without asking (#424)
 		applicationModelBean.setDirty(false);
+		applicationModelBean.setIdentifiersAwaitASave(false);
 	}
 
 	public static File saveToFileWithPrivateKey(ApplicationModelBean applicationModelBean)

@@ -168,6 +168,29 @@ public final class KeePassTreeConverter
 	}
 
 	/**
+	 * Fills the given database with the given entries only, all of them in its root group, each
+	 * with what the choice lets through (#1118). The entries keep their identifiers, so a recipient
+	 * who merges a later export of the same entries gets one entry per identifier
+	 *
+	 * @param database
+	 *            the database to fill, as created
+	 * @param entries
+	 *            the chosen entries of the vault, which are left as they are
+	 * @param choice
+	 *            what of each entry goes into the file
+	 */
+	public static void fillDatabaseWith(final KdbxDatabase database,
+		final List<MysticCryptEntryModelBean> entries, final EntryExportChoice choice)
+	{
+		KdbxGroup rootGroup = database.getRootGroup();
+		for (MysticCryptEntryModelBean entry : entries)
+		{
+			rootGroup.addEntry(
+				KeePassEntryConverter.toJacksonEntry(database, choice.exportedCopyOf(entry)));
+		}
+	}
+
+	/**
 	 * Recursively converts the given tree node (and its children) into a new KeePass group of the
 	 * given database
 	 *

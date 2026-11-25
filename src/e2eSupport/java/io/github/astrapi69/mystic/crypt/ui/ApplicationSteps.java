@@ -301,6 +301,33 @@ final class ApplicationSteps
 		return this;
 	}
 
+	/**
+	 * Exports the selected entries through the entry table's popup, "Export selected to
+	 * KeePass...", with every field and without attachments, as the dialog offers it (#1118)
+	 *
+	 * @param frame
+	 *            the main frame
+	 * @param destinationFile
+	 *            the KeePass file to write
+	 * @param password
+	 *            the password of the file
+	 * @return these steps
+	 */
+	ApplicationSteps exportSelectedEntriesToKeePass(org.assertj.swing.fixture.FrameFixture frame,
+		File destinationFile, String password)
+	{
+		chooseFromSelectedEntryPopup(frame, "Export selected to KeePass...");
+		DialogFixture exportDialog = findDialogWithTitle("Export selected to KeePass");
+		browseAndPickFile(exportDialog, "btnFile", destinationFile);
+		GuiActionRunner
+			.execute(() -> exportDialog.textBox("txtPassword").target().setText(password));
+		robot.waitForIdle();
+		UiTestSpeed.step();
+		clickDialogButton(exportDialog, "OK");
+		dismissMessageDialog("Export successful", KEY_DERIVATION_TIMEOUT_SECONDS);
+		return this;
+	}
+
 	/** Opens the KeePass export dialog via the File menu and cancels it - nothing is exported */
 	ApplicationSteps exportKeePassCancel()
 	{
@@ -925,6 +952,27 @@ final class ApplicationSteps
 		GuiActionRunner.execute(() -> {
 			int row = findEntryRow(table, title);
 			table.setRowSelectionInterval(row, row);
+		});
+		robot.waitForIdle();
+		UiTestSpeed.step();
+		return this;
+	}
+
+	/**
+	 * Selects the entries-table rows whose titles are given, and only those, as a user selects
+	 * several with the control key (#1118)
+	 */
+	ApplicationSteps selectEntryRowsByTitle(org.assertj.swing.fixture.FrameFixture frame,
+		String... titles)
+	{
+		javax.swing.JTable table = frame.table().target();
+		GuiActionRunner.execute(() -> {
+			table.clearSelection();
+			for (String title : titles)
+			{
+				int row = findEntryRow(table, title);
+				table.addRowSelectionInterval(row, row);
+			}
 		});
 		robot.waitForIdle();
 		UiTestSpeed.step();
