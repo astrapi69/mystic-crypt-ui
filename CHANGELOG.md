@@ -19,7 +19,7 @@ SECURITY:
   crafted database could keep the application busy for minutes. The library now refuses a header whose iteration
   count is outside 1 to 2 000 000, and a vault whose header names such a count is refused as not a database this
   application can open, at once (#1078).
-- Fixes a security issue; its advisory follows after the release is published.
+- Fixes a security issue; its advisory follows after the release is published (GHSA-vhv7-jgq9-736j).
 - the application ships Bouncy Castle 1.87, which fixes twelve CVEs, in place of 1.86 (#1154). Among its fixes,
   two are in the OpenPGP certificate API that Release Key > Key Status reads the expiry and usage of each key with:
   an appended invalid self-signature could revive an expired key or unbind a subkey, and an appended invalid
