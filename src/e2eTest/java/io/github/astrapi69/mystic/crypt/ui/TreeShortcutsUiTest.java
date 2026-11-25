@@ -110,8 +110,7 @@ class TreeShortcutsUiTest extends AbstractUiTest
 		DialogFixture editDialog = application.findDialogWithTitle("Edit node");
 		GuiActionRunner.execute(() -> editDialog.textBox().target().setText("NewName"));
 		robot.waitForIdle();
-		editDialog.button(org.assertj.swing.core.matcher.JButtonMatcher.withText("OK")).click();
-		robot.waitForIdle();
+		clickOkOnSettledDialog(editDialog);
 
 		assertTrue(application.treeShowsARowNamed("NewName"),
 			"confirming the edit did not rename the node");
@@ -154,14 +153,33 @@ class TreeShortcutsUiTest extends AbstractUiTest
 		DialogFixture newNodeDialog = application.findDialogWithTitle("New node");
 		GuiActionRunner.execute(() -> newNodeDialog.textBox().target().setText("ChildNode"));
 		robot.waitForIdle();
-		newNodeDialog.button(org.assertj.swing.core.matcher.JButtonMatcher.withText("OK")).click();
-		robot.waitForIdle();
+		clickOkOnSettledDialog(newNodeDialog);
 
 		assertTrue(application.treeChildNamesOf("ParentNode").contains("ChildNode"),
 			"Insert did not add the typed node under the selected one");
 		application.expandTreeRowNamed("ParentNode");
 		assertTrue(application.treeShowsARowNamed("ChildNode"),
 			"the new node is in the model but the tree does not show it");
+	}
+
+	/**
+	 * Clicks OK on the dialog only once its bounds on screen have settled and waits until the click
+	 * has closed it. The window manager of the test display places a new window at a transient
+	 * position and then moves it, and a click computed against the transient bounds misses the
+	 * button (#962, #1130, #1131); the release gate on 46f9f0ff showed the dialog still open with
+	 * the event thread in its modal loop, which fits such a miss. Waiting for the dialog to be the
+	 * active window was measured to fail and is not used: it timed out in 26 of 80 waits of run
+	 * 45589362420 while the click on the unchanged test worked, because the active window stays the
+	 * main frame. The click is not repeated, which would hide the defect.
+	 *
+	 * @param dialog
+	 *            the dialog to confirm
+	 */
+	private void clickOkOnSettledDialog(final DialogFixture dialog)
+	{
+		UiTestSpeed.awaitSettled(dialog.target());
+		dialog.button(org.assertj.swing.core.matcher.JButtonMatcher.withText("OK")).click();
+		UiTestSpeed.awaitClosed(dialog.target());
 	}
 
 }

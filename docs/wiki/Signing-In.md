@@ -174,7 +174,10 @@ and the tools that declare that they work without a database (Checksum and Passw
   have to be closed first, and that needs it unlocked.
 - The **Unlock workspace** prompt appears right away, with the label "Enter the master password
   to unlock the workspace:" and a password field. When the database has unsaved changes, the
-  prompt says "Unsaved changes are waiting in this database."
+  prompt says "Unsaved changes are waiting in this database." When the lock emptied text from the
+  clipboard, a line under the password field says "Locking emptied the clipboard. Copy the
+  password again to paste it.": a master password copied before the lock is gone, and pasting
+  works again with one copied after it.
 
 Entering the correct master password brings the content and the menus back, in the view you chose
 in the settings. Changes that were not saved before the lock are still there, and **Save** is
@@ -254,6 +257,9 @@ setting covers the key file paths of the KeePass import and export dialogs too, 
 itself, which keeps the key file paths it was opened with (#1122), and not a copy of
 `memoizedSignin.json` that was kept aside as `.unreadable-*` because it could not be read: that copy
 keeps its paths until you delete it, and switching the setting off shows a notice that lists such copies with their paths.
+The notice offers **Delete these files**: after a question that names them again, it deletes those
+copies of `memoizedSignin.json` and `memoizedKeePass.json`, and no other file, and then says which
+it deleted and which it could not, with the reason. **Keep them** leaves them as they are.
 
 The list prunes itself. If you select an entry whose file has meanwhile been moved or deleted,
 the entry is removed from the dropdown and OK stays disabled until you pick a file that exists.

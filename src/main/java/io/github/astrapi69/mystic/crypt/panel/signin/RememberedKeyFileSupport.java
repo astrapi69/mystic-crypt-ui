@@ -25,9 +25,13 @@
 package io.github.astrapi69.mystic.crypt.panel.signin;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -228,5 +232,90 @@ public final class RememberedKeyFileSupport
 		}
 		copies.sort(java.util.Comparator.comparing(File::getPath));
 		return copies;
+	}
+
+	/**
+	 * What deleting the kept-aside copies did (#1124)
+	 *
+	 * @param deleted
+	 *            the copies that are gone, in the order they were listed
+	 * @param notDeleted
+	 *            the files that stay, each with its reason
+	 */
+	public record KeptAsideDeletion(List<File> deleted, List<NotDeleted> notDeleted) {
+	}
+
+	/**
+	 * A listed file that was not deleted, and why
+	 *
+	 * @param file
+	 *            the file
+	 * @param reason
+	 *            why it stays
+	 * @param detail
+	 *            what the file system said when the deletion failed, empty otherwise
+	 */
+	public record NotDeleted(File file, Reason reason, String detail) {
+
+		/** Why a listed file stays */
+		public enum Reason
+		{
+			/** it is no longer a kept-aside copy of the remembered files in the directory */
+			NOT_A_KEPT_ASIDE_COPY,
+			/** the file system refused to delete it */
+			NOT_DELETABLE
+		}
+	}
+
+	/** How a file is deleted: {@link Files#delete} in the application, a refusal in a test */
+	@FunctionalInterface
+	interface FileDeletion
+	{
+		void delete(Path path) throws IOException;
+	}
+
+	/**
+	 * Deletes the listed copies of the remembered files that were kept aside as unreadable, as the
+	 * notice of the setting "Remember key files" offers once the user has confirmed them (#1124). A
+	 * listed file is deleted only while it is still such a copy in the configuration directory, so
+	 * nothing else can go through here
+	 *
+	 * @param listed
+	 *            the copies the notice listed
+	 * @param configurationDirectory
+	 *            the application's configuration directory
+	 * @return what was deleted and what stays, with the reason
+	 */
+	public static KeptAsideDeletion deleteKeptAsideCopies(final List<File> listed,
+		final File configurationDirectory)
+	{
+		return deleteKeptAsideCopies(listed, configurationDirectory, Files::delete);
+	}
+
+	static KeptAsideDeletion deleteKeptAsideCopies(final List<File> listed,
+		final File configurationDirectory, final FileDeletion deletion)
+	{
+		List<File> copies = keptAsideCopies(configurationDirectory);
+		List<File> deleted = new ArrayList<>();
+		List<NotDeleted> notDeleted = new ArrayList<>();
+		for (File file : listed)
+		{
+			if (!copies.contains(file))
+			{
+				notDeleted.add(new NotDeleted(file, NotDeleted.Reason.NOT_A_KEPT_ASIDE_COPY, ""));
+				continue;
+			}
+			try
+			{
+				deletion.delete(file.toPath());
+				deleted.add(file);
+			}
+			catch (final IOException refused)
+			{
+				notDeleted.add(new NotDeleted(file, NotDeleted.Reason.NOT_DELETABLE,
+					refused.getClass().getSimpleName() + ": " + refused.getMessage()));
+			}
+		}
+		return new KeptAsideDeletion(deleted, notDeleted);
 	}
 }

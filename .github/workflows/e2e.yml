@@ -11,7 +11,14 @@ on:
     branches: [ master, develop, 'hotfix/**' ]
   push:
     branches: [ develop, 'hotfix/**' ]
+  # A manual run is the release gate's end-to-end part in Actions (the maintainer's decision of 2026-11-25), forced by
+  # default. Start it with: gh workflow run e2e.yml --ref <ref> -f force=true
   workflow_dispatch:
+    inputs:
+      force:
+        description: 'Release gate: force each suite with --rerun and check the results'
+        type: boolean
+        default: true
   schedule:
     - cron: '17 2 * * *'
 
@@ -34,7 +41,7 @@ jobs:
       - name: Checkout sources
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Setup Java
-        uses: actions/setup-java@77dd5b2ce225ea11469928ac317850245a74ae78 # v6.2.0
+        uses: actions/setup-java@d1374f8ac74474200d16ef8ecee22c7ae7a51880 # v6.3.0
         with:
           java-version-file: '.sdkmanrc'
           distribution: 'temurin'
@@ -64,16 +71,28 @@ jobs:
         # zips are built here without them
         run: make plugins PLUGIN_TESTS= PLUGIN_ZIP_TESTS= SCRIPT_TESTS=no
       - name: Run the end-to-end suites
-        # --continue: a failure in one suite does not hide the result of the others. A nightly or a manual run forces
-        # each suite with --rerun, which binds to the task named before it (#410): the build cache would otherwise
-        # restore the last develop run's results and execute nothing
+        # --continue: a failure in one suite does not hide the result of the others. A nightly run and a manual run with
+        # force (the default) force each suite with --rerun, which binds to the task named before it (#410): the build
+        # cache would otherwise restore the last develop run's results and execute nothing
         env:
           EVENT: ${{ github.event_name }}
+          FORCE: ${{ inputs.force }}
         run: |
-          if [ "$EVENT" = schedule ] || [ "$EVENT" = workflow_dispatch ]; then
+          if [ "$EVENT" = schedule ] || [ "$FORCE" = true ]; then
+            date -u +%s > "$RUNNER_TEMP/forced-run-started"
             ./gradlew --continue e2eTest --rerun e2eLockTest --rerun e2eKdbxTest --rerun
           else
             ./gradlew --continue e2eTest e2eLockTest e2eKdbxTest
+          fi
+      - name: Check that the results are from the forced run
+        # the same check as the end of make release-gate (#630)
+        env:
+          EVENT: ${{ github.event_name }}
+          FORCE: ${{ inputs.force }}
+        run: |
+          if [ "$EVENT" = schedule ] || [ "$FORCE" = true ]; then
+            scripts/check-forced-run-results.sh "$(cat "$RUNNER_TEMP/forced-run-started")" \
+              build/test-results/e2eTest build/test-results/e2eLockTest build/test-results/e2eKdbxTest
           fi
       - name: Print what was on screen when a UI test failed
         # WhatWasOnScreen writes its report to the test JVM's standard output, which Gradle keeps in the result XML

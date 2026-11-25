@@ -82,8 +82,7 @@ class FileCryptOpensWhatEncryptWroteUiTest extends AbstractUiTest
 				.setText(PASSPHRASE);
 		});
 		robot.waitForIdle();
-		GuiActionRunner.execute(() -> frame.button("btnDecryptFile").target().doClick());
-		robot.waitForIdle();
+		FileCryptWindow.pressAndAwaitTheAnswer(frame, robot, "btnDecryptFile");
 
 		assertTrue(decrypted.exists(), "decrypting must write the file: " + result(frame));
 		assertArrayEquals(original, Files.readAllBytes(decrypted.toPath()),

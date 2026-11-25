@@ -76,8 +76,7 @@ class FileCryptFileUiTest extends AbstractUiTest
 				.setText(PASSPHRASE);
 		});
 		robot.waitForIdle();
-		GuiActionRunner.execute(() -> frame.button("btnEncryptFile").target().doClick());
-		robot.waitForIdle();
+		FileCryptWindow.pressAndAwaitTheAnswer(frame, robot, "btnEncryptFile");
 
 		assertTrue(encrypted.exists(), "encrypting must write the file: " + result(frame));
 		assertFalse(new String(Files.readAllBytes(encrypted.toPath()), StandardCharsets.ISO_8859_1)
@@ -90,8 +89,7 @@ class FileCryptFileUiTest extends AbstractUiTest
 			frame.textBox("txtTargetFile").target().setText(decrypted.getAbsolutePath());
 		});
 		robot.waitForIdle();
-		GuiActionRunner.execute(() -> frame.button("btnDecryptFile").target().doClick());
-		robot.waitForIdle();
+		FileCryptWindow.pressAndAwaitTheAnswer(frame, robot, "btnDecryptFile");
 
 		assertTrue(decrypted.exists(), "decrypting must write the file: " + result(frame));
 		assertArrayEquals(original, Files.readAllBytes(decrypted.toPath()),

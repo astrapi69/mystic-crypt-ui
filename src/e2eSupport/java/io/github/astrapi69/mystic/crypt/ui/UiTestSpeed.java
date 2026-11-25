@@ -86,22 +86,6 @@ final class UiTestSpeed
 	}
 
 	/**
-	 * Waits until a window that has just been shown stays where it is. A click is computed from the
-	 * window's location on screen, and the window manager can still move a new window after it is
-	 * shown (measured: AWT reported a dialog at (1280,758) and then at (640,390)), so a click
-	 * computed before that lands where the window was (#962). See {@link #awaitSettled(Window...)}
-	 *
-	 * @param window
-	 *            the window that was just shown
-	 * @throws AssertionError
-	 *             if the window keeps moving, naming its last bounds
-	 */
-	static void awaitWindowPlaced(final Window window)
-	{
-		awaitSettled(window);
-	}
-
-	/**
 	 * Waits until the given windows are showing, the event queue is empty and their bounds on
 	 * screen have stayed the same in {@value #STABLE_READS} consecutive reads,
 	 * {@value #STABLE_READ_INTERVAL_MILLIS} ms apart, and returns those bounds. The window manager
@@ -135,6 +119,34 @@ final class UiTestSpeed
 		}
 		throw new AssertionError("the windows did not settle within " + PLACED_TIMEOUT_MILLIS
 			+ " ms, last bounds " + Arrays.toString(last) + " (#962, #1130)");
+	}
+
+	/**
+	 * Waits until the given window is no longer showing, which is what a click on its confirming
+	 * button must cause. A window that stays within {@value #PLACED_TIMEOUT_MILLIS} ms fails the
+	 * test, so a click that did not arrive is reported as that and not as a model that stayed empty
+	 * (#962).
+	 *
+	 * @param window
+	 *            the window the click is meant to close
+	 * @throws AssertionError
+	 *             if the window is still showing in time, naming it
+	 */
+	static void awaitClosed(final Window window)
+	{
+		long deadline = System.currentTimeMillis() + PLACED_TIMEOUT_MILLIS;
+		while (System.currentTimeMillis() < deadline)
+		{
+			IdleRobot.ROBOT.waitForIdle();
+			if (!GuiActionRunner.execute(window::isShowing))
+			{
+				return;
+			}
+			Pause.pause(STABLE_READ_INTERVAL_MILLIS);
+		}
+		String name = GuiActionRunner.execute(window::getName);
+		throw new AssertionError("the click did not close the window " + name + " within "
+			+ PLACED_TIMEOUT_MILLIS + " ms, it is still showing (#962)");
 	}
 
 	private static Rectangle[] boundsOnScreen(final Window... windows)
