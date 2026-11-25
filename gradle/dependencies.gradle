@@ -112,6 +112,14 @@ dependencies {
             because 'silly-io 4.0 took the extension from the file name only and fixed a data loss in a ' +
                 'copy and a rename below a dotted directory (#720); a library that asks for less could bring it back'
         }
+        // bcpg is no dependency of this application either: mystic-crypt reads the GnuPG home of the
+        // release key plugin with it and brings it at the Bouncy Castle release the library was built
+        // against. Bouncy Castle releases its modules together, and the OpenPGP fixes of a release are
+        // in bcpg, so it ships at the release of bcprov; RuntimeDependenciesTest proves it
+        implementation(libs.bcpg.jdk18on) {
+            because 'bcpg is released with bcprov, and 1.87 fixes how OpenPGPCertificate picks the ' +
+                'self-signatures the release key plugin reads expiry and usage from'
+        }
         // assertj-swing 3.17.1, its last release, brings assertj-core 3.17.2 onto every test class path
         // (the end-to-end source sets extend testImplementation), which has the XXE of
         // GHSA-rqfh-9r24-8c9r; 3.27.7 is the release that fixes it (#692). Tests only, nothing ships

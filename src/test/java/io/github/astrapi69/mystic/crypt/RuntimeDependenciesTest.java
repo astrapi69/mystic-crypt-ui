@@ -181,15 +181,16 @@ class RuntimeDependenciesTest
 
 	/**
 	 * The release the application ships of a library it does not use itself, which
-	 * {@code gradle/dependencies.gradle} holds: gson and silly-io by a version constraint, tree-api
-	 * by its declaration, since the tree libraries publish it for the runtime only. Today
-	 * gson-extensions 4.1 asks for gson 2.15.0 and file-worker 21.1 for silly-io 5.0, so the
+	 * {@code gradle/dependencies.gradle} holds: gson, silly-io and bcpg by a version constraint,
+	 * tree-api by its declaration, since the tree libraries publish it for the runtime only. Today
+	 * gson-extensions 4.2 asks for gson 2.15.0 and file-worker 21.1 for silly-io 5.0, so those two
 	 * constraints change nothing; resourcebundle-core 6.1 asks for silly-io 3.1, below the 4.0 fix,
-	 * which is the case a constraint guards against. This test keeps a library from bringing an
-	 * older release back
+	 * which is the case a constraint guards against. bcpg comes with mystic-crypt at the Bouncy
+	 * Castle release the library was built against, and is held at the release of bcprov. This test
+	 * keeps a library from bringing an older release back
 	 */
 	@ParameterizedTest(name = "{0} ships at least {1}, as gradle/dependencies.gradle holds it")
-	@CsvSource({ "silly-io, 5.0", "gson, 2.15.0", "tree-api, 2.2.1" })
+	@CsvSource({ "silly-io, 5.0", "gson, 2.15.0", "tree-api, 2.2.1", "bcpg-jdk18on, 1.87" })
 	void heldLibrary_shipsAtLeastItsChosenRelease(final String artifact, final String chosen)
 	{
 		List<String> versions = versionsInTheRuntime(artifact);
