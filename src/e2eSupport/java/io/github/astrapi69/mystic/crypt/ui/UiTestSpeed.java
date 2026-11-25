@@ -25,7 +25,6 @@
 package io.github.astrapi69.mystic.crypt.ui;
 
 import java.awt.AWTException;
-import java.awt.KeyboardFocusManager;
 import java.awt.Rectangle;
 import java.awt.Robot;
 import java.awt.Window;
@@ -120,42 +119,6 @@ final class UiTestSpeed
 		}
 		throw new AssertionError("the windows did not settle within " + PLACED_TIMEOUT_MILLIS
 			+ " ms, last bounds " + Arrays.toString(last) + " (#962, #1130)");
-	}
-
-	/**
-	 * Waits until the given window is the active window of the application. A click goes to the
-	 * window under the pointer whether or not it is active, and a click on a window that is not yet
-	 * (or no longer) active is lost: the report of the release gate on 46f9f0ff showed the "New
-	 * node" dialog still open after the click on OK, the event thread waiting in its modal loop,
-	 * while the same test passed 40 of 40 runs in GitHub Actions (#962, a lost click with "active
-	 * window none"). A window that does not become active within {@value #PLACED_TIMEOUT_MILLIS} ms
-	 * fails the test.
-	 *
-	 * @param window
-	 *            the window the next click is meant for
-	 * @throws AssertionError
-	 *             if the window is not active in time, naming it and the window that is
-	 */
-	static void awaitActive(final Window window)
-	{
-		String active = null;
-		long deadline = System.currentTimeMillis() + PLACED_TIMEOUT_MILLIS;
-		while (System.currentTimeMillis() < deadline)
-		{
-			IdleRobot.ROBOT.waitForIdle();
-			Window current = GuiActionRunner.execute(
-				() -> KeyboardFocusManager.getCurrentKeyboardFocusManager().getActiveWindow());
-			if (current == window)
-			{
-				return;
-			}
-			active = GuiActionRunner.execute(() -> current == null ? "none" : current.getName());
-			Pause.pause(STABLE_READ_INTERVAL_MILLIS);
-		}
-		String wanted = GuiActionRunner.execute(window::getName);
-		throw new AssertionError(
-			"the window " + wanted + " did not become the active window within "
-				+ PLACED_TIMEOUT_MILLIS + " ms, active window " + active + " (#962)");
 	}
 
 	/**
