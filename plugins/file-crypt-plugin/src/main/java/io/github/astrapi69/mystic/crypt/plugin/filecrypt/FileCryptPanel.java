@@ -26,6 +26,11 @@ package io.github.astrapi69.mystic.crypt.plugin.filecrypt;
 
 import java.awt.Font;
 import java.io.File;
+import java.nio.file.Files;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.CancellationException;
+import java.util.concurrent.Executor;
 
 import javax.swing.*;
 import javax.swing.text.JTextComponent;
@@ -52,6 +57,12 @@ import io.github.astrapi69.swing.model.component.JMTextField;
  * width the window has left over, the two text areas taking the height that is left, and every text
  * component carrying a minimum width of its own so that a narrow window shrinks the fields instead
  * of collapsing them to nothing.
+ * <p>
+ * Deriving the key from the passphrase takes a noticeable moment, so it does not run on the event
+ * dispatch thread (#1053): while it runs the window keeps answering, says that it works, takes no
+ * second press and offers Cancel. A cancelled file operation writes nothing, a cancelled text
+ * operation shows nothing. What the user entered is taken from the model when the button is
+ * pressed, so typing on while the key is derived does not change the operation that runs.
  */
 public class FileCryptPanel extends JPanel
 {
@@ -72,12 +83,44 @@ public class FileCryptPanel extends JPanel
 	private final JMPasswordField pwdTextRepeated = new JMPasswordField(20);
 	private final JLabel lblResult = new JLabel(modelObject.getResultText());
 	private final JTabbedPane tabs = new JTabbedPane();
+	private final JButton btnCancel = button("btnCancelFileCrypt",
+		FileCryptMessages.getString("filecrypt.button.cancel", "Cancel"), event -> onCancel(),
+		FileCryptMessages.getString("filecrypt.tooltip.cancel.button",
+			"gives up the operation that runs - a file is not written, a text is not shown"));
+	/** The four buttons that start an operation, which take no press while one runs */
+	private final List<JButton> actionButtons = new ArrayList<>();
+	/** Where an operation runs, the one that derives the key */
+	private final Executor work;
+	/** Where the answer of an operation is put on screen */
+	private final Executor screen;
+	/** Whether the user cancelled the operation that runs, asked from the thread it runs on */
+	private volatile boolean cancelRequested;
 
+	/**
+	 * The window of the application: an operation runs on a thread of its own and its answer is put
+	 * on screen on the event dispatch thread
+	 */
 	public FileCryptPanel()
+	{
+		this(FileCryptPanel::onAThreadOfItsOwn, SwingUtilities::invokeLater);
+	}
+
+	/**
+	 * The window over the given executors
+	 *
+	 * @param work
+	 *            where an operation runs, which derives the key from the passphrase
+	 * @param screen
+	 *            where the answer of an operation is put on screen, the event dispatch thread in
+	 *            the application
+	 */
+	public FileCryptPanel(final Executor work, final Executor screen)
 	{
 		// one layout for every tool window: the tabs take the height the window gives them, the
 		// message about what happened sits underneath them
 		super(ToolForm.newLayout());
+		this.work = work;
+		this.screen = screen;
 
 		bindToModel();
 
@@ -100,7 +143,9 @@ public class FileCryptPanel extends JPanel
 
 		add(lblIntro, ToolForm.INTRO_ROW);
 		add(tabs, ToolForm.GROWING);
-		add(lblResult, ToolForm.RESULT_LINE);
+		add(lblResult, ToolForm.RESULT_LINE + ", split 2");
+		btnCancel.setVisible(false);
+		add(btnCancel);
 	}
 
 	/** Binds every entry component to its field in {@link FileCryptPanelModel} */
@@ -169,10 +214,10 @@ public class FileCryptPanel extends JPanel
 			.add(
 				ToolForm
 					.buttons(
-						button("btnEncryptFile", "Encrypt", event -> onEncryptFile(),
+						actionButton("btnEncryptFile", "Encrypt", event -> onEncryptFile(),
 							FileCryptMessages.getString("filecrypt.tooltip.encrypt.file.button",
 								"encrypts the file above with the passphrase")),
-						button("btnDecryptFile", "Decrypt", event -> onDecryptFile(),
+						actionButton("btnDecryptFile", "Decrypt", event -> onDecryptFile(),
 							FileCryptMessages.getString("filecrypt.tooltip.decrypt.file.button",
 								"decrypts the file above with the passphrase"))),
 				ToolForm.BUTTON_ROW);
@@ -212,10 +257,10 @@ public class FileCryptPanel extends JPanel
 			.add(
 				ToolForm
 					.buttons(
-						button("btnEncryptText", "Encrypt", event -> onEncryptText(),
+						actionButton("btnEncryptText", "Encrypt", event -> onEncryptText(),
 							FileCryptMessages.getString("filecrypt.tooltip.encrypt.text.button",
 								"encrypts the text above with the passphrase")),
-						button("btnDecryptText", "Decrypt", event -> onDecryptText(),
+						actionButton("btnDecryptText", "Decrypt", event -> onDecryptText(),
 							FileCryptMessages.getString("filecrypt.tooltip.decrypt.text.button",
 								"decrypts the text above with the passphrase"))),
 				ToolForm.BUTTON_ROW);
@@ -224,50 +269,67 @@ public class FileCryptPanel extends JPanel
 
 	private void onEncryptFile()
 	{
-		run("encrypted", () -> {
-			String passphrase = matchingPassphrase(modelObject.getFilePassphrase(),
-				modelObject.getFilePassphraseRepeated());
-			File source = new File(modelObject.getSourceFile().trim());
-			File written = FileCryptSupport.encryptFile(source, targetOrNull(), passphrase);
-			showTargetFile(written);
+		char[] entered = modelObject.getFilePassphrase().clone();
+		char[] repeated = modelObject.getFilePassphraseRepeated().clone();
+		File source = new File(modelObject.getSourceFile().trim());
+		File target = targetOrNull();
+		boolean deleteSource = FileCryptSettingsContribution.deleteSourceAfterEncrypt();
+		start("encrypted", () -> {
+			File written = FileCryptSupport.encryptFile(source, target,
+				matchingPassphrase(entered, repeated), () -> cancelRequested);
 			String message = "encrypted to " + written.getName();
-			if (FileCryptSettingsContribution.deleteSourceAfterEncrypt()
-				&& java.nio.file.Files.deleteIfExists(source.toPath()))
+			if (deleteSource && Files.deleteIfExists(source.toPath()))
 			{
 				message += ", removed " + source.getName();
 			}
-			return message;
+			return Outcome.written(message, () -> showTargetFile(written));
 		});
 	}
 
 	private void onDecryptFile()
 	{
-		run("decrypted", () -> {
-			File source = new File(modelObject.getSourceFile().trim());
-			File written = FileCryptSupport.decryptFile(source, targetOrNull(),
-				new String(modelObject.getFilePassphrase()));
-			showTargetFile(written);
-			return "decrypted to " + written.getName();
+		char[] passphrase = modelObject.getFilePassphrase().clone();
+		File source = new File(modelObject.getSourceFile().trim());
+		File target = targetOrNull();
+		start("decrypted", () -> {
+			File written = FileCryptSupport.decryptFile(source, target, new String(passphrase),
+				() -> cancelRequested);
+			return Outcome.written("decrypted to " + written.getName(),
+				() -> showTargetFile(written));
 		});
 	}
 
 	private void onEncryptText()
 	{
-		run("encrypted", () -> {
-			String passphrase = matchingPassphrase(modelObject.getTextPassphrase(),
-				modelObject.getTextPassphraseRepeated());
-			showEncryptedText(FileCryptSupport.encryptText(modelObject.getPlainText(), passphrase));
-			return "encrypted " + modelObject.getPlainText().length() + " characters";
+		char[] entered = modelObject.getTextPassphrase().clone();
+		char[] repeated = modelObject.getTextPassphraseRepeated().clone();
+		String plainText = modelObject.getPlainText();
+		start("encrypted", () -> {
+			String encrypted = FileCryptSupport.encryptText(plainText,
+				matchingPassphrase(entered, repeated));
+			return Outcome.shown("encrypted " + plainText.length() + " characters",
+				() -> showEncryptedText(encrypted));
 		});
 	}
 
 	private void onDecryptText()
 	{
-		run("decrypted", () -> {
-			showPlainText(FileCryptSupport.decryptText(modelObject.getEncryptedText(),
-				new String(modelObject.getTextPassphrase())));
-			return "decrypted " + modelObject.getPlainText().length() + " characters";
+		char[] passphrase = modelObject.getTextPassphrase().clone();
+		String encryptedText = modelObject.getEncryptedText();
+		start("decrypted", () -> {
+			String decrypted = FileCryptSupport.decryptText(encryptedText, new String(passphrase));
+			return Outcome.shown("decrypted " + decrypted.length() + " characters",
+				() -> showPlainText(decrypted));
 		});
+	}
+
+	/** Asks the operation that runs to stop before it writes or shows anything */
+	private void onCancel()
+	{
+		cancelRequested = true;
+		btnCancel.setEnabled(false);
+		showResult(FileCryptMessages.getString("filecrypt.result.cancelling",
+			"cancelling: the operation stops before it writes or shows anything ..."));
 	}
 
 	/**
@@ -291,16 +353,80 @@ public class FileCryptPanel extends JPanel
 		return target.isEmpty() ? null : new File(target);
 	}
 
-	private void run(String what, FileCryptOperation operation)
+	/**
+	 * Starts an operation where the work runs, after saying that it works and offering Cancel, and
+	 * puts its answer on screen once it is there
+	 */
+	private void start(final String what, final FileCryptOperation operation)
+	{
+		cancelRequested = false;
+		showWorking(true);
+		showResult(FileCryptMessages.getString("filecrypt.result.working",
+			"working: the key is being derived from the passphrase ..."));
+		work.execute(() -> {
+			Outcome outcome = outcomeOf(operation);
+			screen.execute(() -> finish(what, outcome));
+		});
+	}
+
+	/**
+	 * Runs the operation and says what came of it. A file larger than an array can hold is refused
+	 * with an {@link OutOfMemoryError} by the JDK before anything is read; on the thread of its own
+	 * that would end the work without an answer and leave the window waiting for one, so it is an
+	 * answer like any other refusal
+	 */
+	private static Outcome outcomeOf(final FileCryptOperation operation)
 	{
 		try
 		{
-			showResult(operation.execute());
+			return operation.execute();
 		}
-		catch (Exception exception)
+		catch (CancellationException exception)
 		{
-			showResult("not " + what + ": " + message(exception));
+			return Outcome.stoppedByCancel();
 		}
+		catch (Exception | OutOfMemoryError failure)
+		{
+			return Outcome.notDone(message(failure));
+		}
+	}
+
+	/**
+	 * Puts the answer of an operation on screen. A text the user cancelled is not shown, even when
+	 * it was complete before the cancel arrived; a file that was written is reported, because it is
+	 * there
+	 */
+	private void finish(final String what, final Outcome outcome)
+	{
+		if (outcome.cancelled() || cancelRequested && outcome.withdrawnByCancel())
+		{
+			showResult("not " + what + ": " + FileCryptMessages
+				.getString("filecrypt.result.cancelled", "cancelled before anything was written"));
+		}
+		else if (outcome.failure() != null)
+		{
+			showResult("not " + what + ": " + outcome.failure());
+		}
+		else
+		{
+			outcome.onScreen().run();
+			showResult(outcome.message());
+		}
+		showWorking(false);
+	}
+
+	/** Takes the presses away from the four buttons while an operation runs and offers Cancel */
+	private void showWorking(final boolean working)
+	{
+		actionButtons.forEach(actionButton -> actionButton.setEnabled(!working));
+		btnCancel.setEnabled(working);
+		btnCancel.setVisible(working);
+	}
+
+	/** Runs an operation on a daemon thread, which does not keep the application from ending */
+	private static void onAThreadOfItsOwn(final Runnable operation)
+	{
+		Thread.ofPlatform().daemon().name("file-crypt").start(operation);
 	}
 
 	/** Puts the file that was written into the model and shows its path in the target field */
@@ -353,19 +479,68 @@ public class FileCryptPanel extends JPanel
 		}
 	}
 
-	private static String message(Exception exception)
+	private static String message(Throwable failure)
 	{
 		// a wrong passphrase surfaces as an exception without a message often enough that the class
 		// name is the only thing left to show
-		return exception.getMessage() != null
-			? exception.getMessage()
-			: exception.getClass().getSimpleName();
+		return failure.getMessage() != null
+			? failure.getMessage()
+			: failure.getClass().getSimpleName();
 	}
 
 	@FunctionalInterface
 	private interface FileCryptOperation
 	{
-		String execute() throws Exception;
+		Outcome execute() throws Exception;
+	}
+
+	/**
+	 * What came of an operation, worked out where it ran and put on screen afterwards
+	 *
+	 * @param message
+	 *            the message below the tabs when it succeeded
+	 * @param onScreen
+	 *            what it changes on screen when it succeeded
+	 * @param withdrawnByCancel
+	 *            whether a cancel that arrives after the work still keeps it off the screen, true
+	 *            for a text, false for a file that is already written
+	 * @param cancelled
+	 *            whether it stopped because the user cancelled
+	 * @param failure
+	 *            why it failed, or {@code null}
+	 */
+	private record Outcome(String message, Runnable onScreen, boolean withdrawnByCancel,
+		boolean cancelled, String failure) {
+		static Outcome shown(final String message, final Runnable onScreen)
+		{
+			return new Outcome(message, onScreen, true, false, null);
+		}
+
+		static Outcome written(final String message, final Runnable onScreen)
+		{
+			return new Outcome(message, onScreen, false, false, null);
+		}
+
+		static Outcome stoppedByCancel()
+		{
+			return new Outcome(null, () -> {
+			}, false, true, null);
+		}
+
+		static Outcome notDone(final String failure)
+		{
+			return new Outcome(null, () -> {
+			}, false, false, failure);
+		}
+	}
+
+	/** A button that starts an operation, which takes no press while one runs */
+	private JButton actionButton(String name, String text, java.awt.event.ActionListener listener,
+		String tooltip)
+	{
+		JButton actionButton = button(name, text, listener, tooltip);
+		actionButtons.add(actionButton);
+		return actionButton;
 	}
 
 	private static JButton button(String name, String text, java.awt.event.ActionListener listener,

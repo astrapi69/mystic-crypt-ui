@@ -36,9 +36,11 @@ import java.nio.file.Files;
 import java.security.SecureRandom;
 import java.security.Security;
 import java.util.Arrays;
+import java.util.concurrent.CancellationException;
 
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -273,5 +275,50 @@ class FileCryptSupportTest
 			() -> FileCryptSupport.encryptFile(directory, null, PASSPHRASE));
 		assertFalse(FileCryptSupport.isEncrypted(directory),
 			"a directory is not an encrypted file");
+	}
+
+	@Test
+	@DisplayName("an encryption cancelled before the write writes nothing (#1053)")
+	void aCancelledEncryption_writesNothing(@TempDir File directory) throws Exception
+	{
+		File source = new File(directory, "cancelled.txt");
+		Files.writeString(source.toPath(), "content that stays where it is");
+		File target = new File(directory, "cancelled.txt.mcenc");
+
+		assertThrows(CancellationException.class,
+			() -> FileCryptSupport.encryptFile(source, target, PASSPHRASE, () -> true));
+
+		assertFalse(target.exists(), "a cancelled encryption wrote the file");
+	}
+
+	@Test
+	@DisplayName("a decryption cancelled before the write writes nothing (#1053)")
+	void aCancelledDecryption_writesNothing(@TempDir File directory) throws Exception
+	{
+		File source = new File(directory, "plain.txt");
+		Files.writeString(source.toPath(), "content");
+		File encrypted = FileCryptSupport.encryptFile(source, null, PASSPHRASE);
+		File target = new File(directory, "back.txt");
+
+		assertThrows(CancellationException.class,
+			() -> FileCryptSupport.decryptFile(encrypted, target, PASSPHRASE, () -> true));
+
+		assertFalse(target.exists(), "a cancelled decryption wrote the file");
+	}
+
+	@Test
+	@DisplayName("an encryption nobody cancelled writes the file as before (#1053)")
+	void anEncryptionNobodyCancelled_writesTheFile(@TempDir File directory) throws Exception
+	{
+		File source = new File(directory, "kept.txt");
+		Files.writeString(source.toPath(), "content");
+
+		File written = FileCryptSupport.encryptFile(source, null, PASSPHRASE, () -> false);
+
+		assertEquals("content",
+			new String(
+				Files.readAllBytes(FileCryptSupport
+					.decryptFile(written, new File(directory, "again.txt"), PASSPHRASE).toPath()),
+				StandardCharsets.UTF_8));
 	}
 }
