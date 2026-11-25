@@ -12,6 +12,15 @@ on:
     branches: [ master, develop, 'hotfix/**' ]
   pull_request:
     branches: [ master, develop, 'hotfix/**' ]
+  # With force=true this is the release gate in Actions (the maintainer's decision of 2026-11-25): the unit test task
+  # runs with --rerun, the runnable jar is packaged unsigned, and the result files are checked to be from the forced
+  # run. Start it with: gh workflow run gradle.yml --ref <ref> -f force=true
+  workflow_dispatch:
+    inputs:
+      force:
+        description: 'Release gate: force the unit tests with --rerun, package the runnable jar unsigned, check the results'
+        type: boolean
+        default: false
 
 # a newer push to a pull request makes its older run pointless; a run on develop, master or a hotfix branch is the
 # record of what landed there and is never cancelled
@@ -110,12 +119,35 @@ jobs:
         # out of its pack. VaultOpensInTheLastReleaseTest opens a vault this build writes with it,
         # and fails here in CI when the jar is missing rather than skipping (#402)
         run: make release-jar
+      - name: Package the runnable jar, unsigned (release gate only)
+        # What make build-full packages: createAllDependendiesJar, without -PcreateIzPackInstaller. A runner has no
+        # keystore, so on a release version the jar task prints "No signing configuration found, the created jar file
+        # is not signed" and signs nothing (gradle/packaging.gradle, jar.doLast); the installer, which refuses to be
+        # built unsigned, is not built here. The task depends on clean, so it runs before the tests
+        if: ${{ inputs.force }}
+        run: ./gradlew createAllDependendiesJar
       - name: Compile, unit tests and Spotless
         # Named tasks, not build: check depends on the three end-to-end suites (gradle/testing.gradle), which run in
         # e2e.yml. The classes tasks of the three UI source sets compile them, so a change that breaks a UI test's
         # code still fails here. No xvfb-run (#505): every test task gets its display from the own-display plugin
         # (#741); the runner has no DISPLAY at all, so a green run is evidence that the build brings its own
-        run: ./gradlew assemble testClasses e2eTestClasses e2eLockClasses e2eKdbxClasses test spotlessCheck
+        #
+        # With force (a manual run, the release gate) the unit test task runs with --rerun, which binds to the task
+        # named right before it (#410), and the epoch is taken right before it for the result check below
+        env:
+          FORCE: ${{ inputs.force }}
+        run: |
+          if [ "$FORCE" = true ]; then
+            date -u +%s > "$RUNNER_TEMP/forced-run-started"
+            ./gradlew assemble testClasses e2eTestClasses e2eLockClasses e2eKdbxClasses test --rerun spotlessCheck
+          else
+            ./gradlew assemble testClasses e2eTestClasses e2eLockClasses e2eKdbxClasses test spotlessCheck
+          fi
+      - name: Check that the unit test results are from the forced run (release gate only)
+        # the same check as the end of make release-gate (#630): every result file exists and is not older than the
+        # forced run, so a result restored from the build cache cannot pass for a run
+        if: ${{ inputs.force }}
+        run: scripts/check-forced-run-results.sh "$(cat "$RUNNER_TEMP/forced-run-started")" build/test-results/test
       - name: Check for unused dependencies
         # Reports a declared dependency nothing uses, in the host and in every plugin build that applies the
         # dependency-analysis plugin (gradle/dependency-analysis.gradle, gradle/plugin-dependency-analysis.gradle).
