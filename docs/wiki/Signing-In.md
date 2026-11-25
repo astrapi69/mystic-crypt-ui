@@ -174,7 +174,10 @@ and the tools that declare that they work without a database (Checksum and Passw
   have to be closed first, and that needs it unlocked.
 - The **Unlock workspace** prompt appears right away, with the label "Enter the master password
   to unlock the workspace:" and a password field. When the database has unsaved changes, the
-  prompt says "Unsaved changes are waiting in this database."
+  prompt says "Unsaved changes are waiting in this database." When the lock emptied text from the
+  clipboard, a line under the password field says "Locking emptied the clipboard. Copy the
+  password again to paste it.": a master password copied before the lock is gone, and pasting
+  works again with one copied after it.
 
 Entering the correct master password brings the content and the menus back, in the view you chose
 in the settings. Changes that were not saved before the lock are still there, and **Save** is
