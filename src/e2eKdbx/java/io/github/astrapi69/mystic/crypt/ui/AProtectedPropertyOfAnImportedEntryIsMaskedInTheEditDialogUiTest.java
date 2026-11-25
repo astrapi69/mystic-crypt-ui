@@ -26,14 +26,22 @@ package io.github.astrapi69.mystic.crypt.ui;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.Set;
 
 import org.assertj.swing.fixture.FrameFixture;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.linguafranca.pwdb.Entry;
+import org.linguafranca.pwdb.Group;
+import org.linguafranca.pwdb.format.KdbxCredentials;
+import org.linguafranca.pwdb.kdbx.jackson.KdbxDatabase;
 
 import io.github.astrapi69.mystic.crypt.TestPasswords;
 import io.github.astrapi69.mystic.crypt.panel.dbtree.VaultEntryProperties;
@@ -47,7 +55,8 @@ import io.github.astrapi69.mystic.crypt.panel.properties.ProtectedPropertiesTabl
  * {@code PropertiesPanelProtectedValuesTest} builds the panel over an entry it makes in memory. The
  * dialog does not: it works on {@code EntryEditing.copyOf} of the vault's entry, so a copy that
  * forgot the protected names would show every value in clear and, on OK, write the empty set onto
- * the entry, with that test green. These tests open the dialog the way a user does.
+ * the entry, with that test green. These tests open the dialog the way a user does, and the last
+ * two use its switch to set the mark and take it away (#1017).
  */
 class AProtectedPropertyOfAnImportedEntryIsMaskedInTheEditDialogUiTest extends AbstractUiTest
 {
@@ -76,6 +85,8 @@ class AProtectedPropertyOfAnImportedEntryIsMaskedInTheEditDialogUiTest extends A
 	private static final String PLAIN_VALUE = "bar";
 
 	private static final String RENAMED = "key renamed";
+
+	private static final String KDBX_PASSWORD = TestPasswords.throwaway();
 
 	private File vault;
 
@@ -185,5 +196,93 @@ class AProtectedPropertyOfAnImportedEntryIsMaskedInTheEditDialogUiTest extends A
 		assertEquals(Set.of(RENAMED),
 			VaultEntryProperties.protectedNamesOf(KdbxFixtures.liveEntryTitled(TITLE)),
 			"the vault file keeps the protection under the new name");
+	}
+
+	@Test
+	@DisplayName("the switch of the property dialog marks a plain property protected, and the table of the edit dialog masks it at once (#1017)")
+	void theSwitchMarksAPlainPropertyProtected() throws Exception
+	{
+		ApplicationSteps application = importTheFixture();
+		FrameFixture frame = application.showMainFrame();
+		EditCryptEntrySteps editor = openTheEntry(application, frame);
+
+		EditCryptEntrySteps.PropertyDialogSteps plain = editor.openPropertyForEditing(PLAIN_NAME);
+		assertFalse(plain.protectedIsOn(), "the switch of a plain property is on");
+		plain.switchProtected();
+		plain.ok();
+
+		assertEquals(ProtectedPropertiesTableModel.MASK, editor.valueShownInTheTable(PLAIN_NAME),
+			"the table shows the value the user just marked as protected");
+		EditCryptEntrySteps.PropertyDialogSteps again = editor.openPropertyForEditing(PLAIN_NAME);
+		assertTrue(again.protectedIsOn(), "the switch forgot the mark");
+		assertTrue(again.valueIsMasked(), "the dialog opens the marked value in clear");
+		again.cancel();
+		editor.ok();
+		assertEquals(Set.of(PROTECTED_NAME, PLAIN_NAME),
+			VaultEntryProperties.protectedNamesOf(KdbxFixtures.liveEntryTitled(TITLE)),
+			"OK writes the mark onto the entry");
+	}
+
+	@Test
+	@DisplayName("a KDBX export carries the marks the switch set and took away, read back with the KeePass library (#1017)")
+	void theExportCarriesTheMarksTheSwitchSet() throws Exception
+	{
+		ApplicationSteps application = importTheFixture();
+		FrameFixture frame = application.showMainFrame();
+		EditCryptEntrySteps editor = openTheEntry(application, frame);
+		EditCryptEntrySteps.PropertyDialogSteps plain = editor.openPropertyForEditing(PLAIN_NAME);
+		plain.switchProtected();
+		plain.ok();
+		EditCryptEntrySteps.PropertyDialogSteps marked = editor
+			.openPropertyForEditing(PROTECTED_NAME);
+		marked.switchProtected();
+		marked.ok();
+		editor.ok();
+		File exported = new File(tempHome, "marks.kdbx");
+
+		application.exportKeePassDatabase(exported, KDBX_PASSWORD);
+
+		Entry written = entryTitled(readWithTheLibrary(exported).getRootGroup(), TITLE);
+		assertNotNull(written, "the export has no entry titled " + TITLE);
+		assertTrue(written.getPropertyValue(PLAIN_NAME).isProtected(),
+			"the property marked in the dialog is not protected in the export");
+		assertFalse(written.getPropertyValue(PROTECTED_NAME).isProtected(),
+			"the property whose mark was taken away is still protected in the export");
+		assertEquals(PLAIN_VALUE, written.getPropertyValue(PLAIN_NAME).getValueAsString(),
+			"the mark changed the value");
+		assertEquals(PROTECTED_VALUE, written.getPropertyValue(PROTECTED_NAME).getValueAsString());
+	}
+
+	private static KdbxDatabase readWithTheLibrary(final File kdbx) throws Exception
+	{
+		try (InputStream in = new FileInputStream(kdbx))
+		{
+			return KdbxDatabase
+				.read(new KdbxCredentials(KDBX_PASSWORD.getBytes(StandardCharsets.UTF_8)), in);
+		}
+	}
+
+	/**
+	 * The entry of that title anywhere below the group, or {@code null}; KeePassJava2 3 hands out
+	 * the interface types (#467)
+	 */
+	private static Entry entryTitled(final Group group, final String title)
+	{
+		for (Entry entry : group.getEntries())
+		{
+			if (title.equals(entry.getTitle()))
+			{
+				return entry;
+			}
+		}
+		for (Group child : group.getGroups())
+		{
+			Entry found = entryTitled(child, title);
+			if (found != null)
+			{
+				return found;
+			}
+		}
+		return null;
 	}
 }

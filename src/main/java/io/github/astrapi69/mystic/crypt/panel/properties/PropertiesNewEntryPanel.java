@@ -26,12 +26,12 @@ package io.github.astrapi69.mystic.crypt.panel.properties;
 
 import java.awt.event.ActionEvent;
 
-import io.github.astrapi69.collection.pair.KeyValuePair;
 import io.github.astrapi69.model.BaseModel;
 import io.github.astrapi69.model.LambdaModel;
 import io.github.astrapi69.model.api.IModel;
 import io.github.astrapi69.mystic.crypt.Messages;
 import io.github.astrapi69.swing.base.BasePanel;
+import io.github.astrapi69.swing.model.component.JMCheckBox;
 import io.github.astrapi69.swing.model.component.JMPasswordField;
 import io.github.astrapi69.swing.model.component.JMTextField;
 import lombok.Getter;
@@ -39,10 +39,11 @@ import lombok.Getter;
 /**
  * The dialog of one custom property, for adding and for editing. The value of a protected property
  * opens masked, like the password of an entry, and {@link #getBtnShowValue()} shows it in clear on
- * request; any other value is shown as it is
+ * request; any other value is shown as it is. {@link #getCbxProtected()} marks the value as
+ * protected or takes the mark away (#1017)
  */
 @Getter
-public class PropertiesNewEntryPanel extends BasePanel<KeyValuePair<String, String>>
+public class PropertiesNewEntryPanel extends BasePanel<PropertyForm>
 {
 
 	private static final char MASKING = '*';
@@ -55,39 +56,26 @@ public class PropertiesNewEntryPanel extends BasePanel<KeyValuePair<String, Stri
 	private JMTextField txtKey;
 	private JMPasswordField txtValue;
 	private javax.swing.JButton btnShowValue;
+	private JMCheckBox cbxProtected;
 
 	/**
 	 * Creates the dialog of a new property
 	 */
 	public PropertiesNewEntryPanel()
 	{
-		this(BaseModel.of(KeyValuePair.<String, String> builder().build()));
+		this(BaseModel.of(new PropertyForm()));
 	}
 
 	/**
-	 * Creates the dialog of a property that is not protected
+	 * Creates the dialog of a property. The value of a protected property opens masked
 	 *
 	 * @param model
 	 *            the property the dialog edits
 	 */
-	public PropertiesNewEntryPanel(final IModel<KeyValuePair<String, String>> model)
-	{
-		this(model, false);
-	}
-
-	/**
-	 * Creates the dialog of a property
-	 *
-	 * @param model
-	 *            the property the dialog edits
-	 * @param masked
-	 *            whether the property is protected, so that its value opens masked
-	 */
-	public PropertiesNewEntryPanel(final IModel<KeyValuePair<String, String>> model,
-		final boolean masked)
+	public PropertiesNewEntryPanel(final IModel<PropertyForm> model)
 	{
 		super(model);
-		if (masked)
+		if (getModelObject().isProtectedValue())
 		{
 			txtValue.setEchoChar(MASKING);
 			btnShowValue.setVisible(true);
@@ -114,28 +102,40 @@ public class PropertiesNewEntryPanel extends BasePanel<KeyValuePair<String, Stri
 		txtKey = new JMTextField();
 		txtValue = new JMPasswordField();
 		btnShowValue = new javax.swing.JButton();
+		cbxProtected = new JMCheckBox();
 		lblCreateNewEntry = new javax.swing.JLabel();
 
-		lblKey.setText("Key");
+		lblKey.setText(Messages.getString("dialog.crypt.properties.label.key", "Key"));
 
-		lblValue.setText("Value");
+		lblValue.setText(Messages.getString("dialog.crypt.properties.label.value", "Value"));
 
-		lblCreateNewEntry.setText("Create new entry");
+		lblCreateNewEntry.setText(
+			Messages.getString("dialog.crypt.properties.label.heading", "Create new entry"));
 		txtValue.setEchoChar(CLEAR);
 		btnShowValue.setText("***");
 		btnShowValue.setToolTipText(Messages.getString("dialog.crypt.properties.tooltip.show.value",
 			"shows or hides the protected value"));
 		btnShowValue.addActionListener(this::onShowValue);
 		btnShowValue.setVisible(false);
-		// bind with model
-		KeyValuePair<String, String> modelObject = getModelObject();
-		txtKey.setPropertyModel(LambdaModel.of(modelObject::getKey, modelObject::setKey));
+		cbxProtected.setName("cbxProtected");
+		cbxProtected
+			.setText(Messages.getString("dialog.crypt.properties.protected", "Protected value"));
+		cbxProtected.setToolTipText(Messages.getString("dialog.crypt.properties.tooltip.protected",
+			"masks the value in the Properties tab and marks it protected in a KeePass export"));
+		bindToTheForm(getModelObject());
+	}
+
+	private void bindToTheForm(final PropertyForm form)
+	{
+		txtKey.setPropertyModel(LambdaModel.of(form::getKey, form::setKey));
 		txtValue.setPropertyModel(LambdaModel.of(this::readValue, this::writeValue));
+		cbxProtected
+			.setPropertyModel(LambdaModel.of(form::isProtectedValue, form::setProtectedValue));
 	}
 
 	/**
-	 * The value as the password field holds it: characters, while the property keeps a String,
-	 * because the type of the properties is part of the vault format (#335)
+	 * The value as the password field holds it: characters, while the form keeps a String, because
+	 * the type of the properties is part of the vault format (#335)
 	 */
 	private char[] readValue()
 	{
@@ -172,6 +172,7 @@ public class PropertiesNewEntryPanel extends BasePanel<KeyValuePair<String, Stri
 					.addGap(18, 18, 18)
 					.addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
 						.addComponent(txtKey, javax.swing.GroupLayout.Alignment.LEADING)
+						.addComponent(cbxProtected, javax.swing.GroupLayout.Alignment.LEADING)
 						.addGroup(javax.swing.GroupLayout.Alignment.LEADING,
 							layout.createSequentialGroup()
 								.addComponent(txtValue, javax.swing.GroupLayout.DEFAULT_SIZE, 363,
@@ -202,7 +203,7 @@ public class PropertiesNewEntryPanel extends BasePanel<KeyValuePair<String, Stri
 							javax.swing.GroupLayout.DEFAULT_SIZE,
 							javax.swing.GroupLayout.PREFERRED_SIZE)
 						.addComponent(btnShowValue))
-					.addContainerGap()));
+					.addGap(12, 12, 12).addComponent(cbxProtected).addContainerGap()));
 	}
 
 }

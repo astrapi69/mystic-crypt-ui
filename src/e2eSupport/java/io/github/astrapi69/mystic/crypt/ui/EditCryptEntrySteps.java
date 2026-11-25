@@ -280,6 +280,20 @@ final class EditCryptEntrySteps
 			UiTestSpeed.step();
 		}
 
+		/** Whether the switch that marks the value as protected is on (#1017) */
+		boolean protectedIsOn()
+		{
+			return GuiActionRunner.execute(() -> panel.getCbxProtected().isSelected());
+		}
+
+		/** Clicks the switch that marks the value as protected or takes the mark away (#1017) */
+		void switchProtected()
+		{
+			GuiActionRunner.execute(() -> panel.getCbxProtected().doClick());
+			robot.waitForIdle();
+			UiTestSpeed.step();
+		}
+
 		/** Types a new name into the key field */
 		void typeKey(String key)
 		{

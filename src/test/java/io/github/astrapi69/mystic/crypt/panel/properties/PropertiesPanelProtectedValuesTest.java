@@ -34,6 +34,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Consumer;
 import java.util.stream.Stream;
 
 import javax.swing.JOptionPane;
@@ -55,7 +56,8 @@ import io.github.astrapi69.mystic.crypt.panel.dbtree.VaultEntryProperties;
 /**
  * What the "Properties" tab shows of a property the entry marks as protected: the words the
  * lethenon plugin keeps there, or a custom field KeePass protected. The table masks it, the edit
- * dialog opens it masked and shows it on request, and a rename takes the protection along
+ * dialog opens it masked and shows it on request, a rename takes the protection along, and the
+ * dialog's switch sets the mark or takes it away (#1017)
  */
 class PropertiesPanelProtectedValuesTest
 {
@@ -299,5 +301,121 @@ class PropertiesPanelProtectedValuesTest
 
 		assertEquals(WORDS_NAME, entry.getProperties().get(0).getKey());
 		assertEquals(Set.of(WORDS_NAME), VaultEntryProperties.protectedNamesOf(entry));
+	}
+
+	/**
+	 * A panel that answers the property dialog it was asked to show: the step changes the dialog as
+	 * a user would, then the answer closes it
+	 */
+	private static PropertiesPanel answering(final MysticCryptEntryModelBean entry,
+		final Consumer<PropertiesNewEntryPanel> step, final int answer)
+	{
+		return new PropertiesPanel(BaseModel.of(entry))
+		{
+			@Override
+			protected int askForProperty(final PropertiesNewEntryPanel panel, final String title)
+			{
+				step.accept(panel);
+				return answer;
+			}
+		};
+	}
+
+	private static PropertiesPanel editingRow(final PropertiesPanel panel, final int row)
+	{
+		panel.getTblProperties().setRowSelectionInterval(row, row);
+		panel.onEditSelected();
+		return panel;
+	}
+
+	@Test
+	@DisplayName("the switch of the dialog says whether the property is protected (#1017)")
+	void theSwitchSaysWhetherThePropertyIsProtected()
+	{
+		MysticCryptEntryModelBean entry = anEntryWithAProtectedAndAPlainProperty();
+
+		assertTrue(dialogOfRow(entry, 0).getCbxProtected().isSelected(),
+			"the switch of a protected property is off");
+		assertFalse(dialogOfRow(entry, 1).getCbxProtected().isSelected(),
+			"the switch of a plain property is on");
+		assertFalse(new PropertiesNewEntryPanel().getCbxProtected().isSelected(),
+			"the switch of a new property is on");
+	}
+
+	@Test
+	@DisplayName("switching a plain property to protected marks it, and the table masks it at once (#1017)")
+	void switchingAPlainPropertyOn_marksItAndTheTableMasksIt()
+	{
+		MysticCryptEntryModelBean entry = anEntryWithAProtectedAndAPlainProperty();
+
+		PropertiesPanel panel = editingRow(
+			answering(entry, dialog -> dialog.getCbxProtected().doClick(), JOptionPane.OK_OPTION),
+			1);
+
+		assertEquals(Set.of(WORDS_NAME, "note"), VaultEntryProperties.protectedNamesOf(entry));
+		assertEquals(ProtectedPropertiesTableModel.MASK, panel.getTblProperties().getValueAt(1, 1));
+		assertEquals("plain text", entry.getProperties().get(1).getValue(),
+			"the mark masks the value, it does not change it");
+	}
+
+	@Test
+	@DisplayName("switching a protected property off takes the mark away, and the table shows its value (#1017)")
+	void switchingAProtectedPropertyOff_takesTheMarkAway()
+	{
+		MysticCryptEntryModelBean entry = anEntryWithAProtectedAndAPlainProperty();
+
+		PropertiesPanel panel = editingRow(
+			answering(entry, dialog -> dialog.getCbxProtected().doClick(), JOptionPane.OK_OPTION),
+			0);
+
+		assertEquals(Set.of(), VaultEntryProperties.protectedNamesOf(entry));
+		assertEquals(WORDS, panel.getTblProperties().getValueAt(0, 1));
+	}
+
+	@Test
+	@DisplayName("renaming a protected property and switching it off at once leaves neither name protected (#1017)")
+	void renamingAndSwitchingOff_leavesNeitherNameProtected()
+	{
+		MysticCryptEntryModelBean entry = anEntryWithAProtectedAndAPlainProperty();
+
+		editingRow(answering(entry, dialog -> {
+			dialog.getTxtKey().setText("renamed words");
+			dialog.getCbxProtected().doClick();
+		}, JOptionPane.OK_OPTION), 0);
+
+		assertEquals("renamed words", entry.getProperties().get(0).getKey());
+		assertEquals(Set.of(), VaultEntryProperties.protectedNamesOf(entry));
+	}
+
+	@Test
+	@DisplayName("a new property added with the switch on is protected and masked (#1017)")
+	void aNewPropertyWithTheSwitchOn_isProtectedAndMasked()
+	{
+		MysticCryptEntryModelBean entry = anEntryWithAProtectedAndAPlainProperty();
+		PropertiesPanel panel = answering(entry, dialog -> {
+			dialog.getTxtKey().setText("pin");
+			dialog.getTxtValue().setText("4711");
+			dialog.getCbxProtected().doClick();
+		}, JOptionPane.OK_OPTION);
+
+		panel.onAdd(null);
+
+		assertEquals(Set.of(WORDS_NAME, "pin"), VaultEntryProperties.protectedNamesOf(entry));
+		assertEquals("pin", panel.getTblProperties().getValueAt(2, 0));
+		assertEquals(ProtectedPropertiesTableModel.MASK, panel.getTblProperties().getValueAt(2, 1));
+		assertEquals("4711", entry.getProperties().get(2).getValue());
+	}
+
+	@Test
+	@DisplayName("Cancel after switching leaves the mark as it was (#1017)")
+	void cancelAfterSwitching_leavesTheMark()
+	{
+		MysticCryptEntryModelBean entry = anEntryWithAProtectedAndAPlainProperty();
+
+		PropertiesPanel panel = editingRow(answering(entry,
+			dialog -> dialog.getCbxProtected().doClick(), JOptionPane.CANCEL_OPTION), 1);
+
+		assertEquals(Set.of(WORDS_NAME), VaultEntryProperties.protectedNamesOf(entry));
+		assertEquals("plain text", panel.getTblProperties().getValueAt(1, 1));
 	}
 }

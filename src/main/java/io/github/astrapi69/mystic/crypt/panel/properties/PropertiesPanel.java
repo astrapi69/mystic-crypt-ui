@@ -136,8 +136,14 @@ public class PropertiesPanel extends BasePanel<MysticCryptEntryModelBean>
 			Messages.getString("dialog.new.crypt.properties.title", "New Property Value."));
 		if (option == JOptionPane.OK_OPTION)
 		{
-			KeyValuePair<String, String> newProperty = panel.getModelObject();
-			PropertiesPanel.this.getModelObject().getProperties().add(newProperty);
+			PropertyForm form = panel.getModelObject();
+			KeyValuePair<String, String> newProperty = new KeyValuePair<>(form.getKey(),
+				form.getValue());
+			getModelObject().getProperties().add(newProperty);
+			if (form.isProtectedValue())
+			{
+				VaultEntryProperties.setProtected(getModelObject(), newProperty, true);
+			}
 			tableModel.add(new PropertyEntry(newProperty));
 		}
 	}
@@ -172,27 +178,28 @@ public class PropertiesPanel extends BasePanel<MysticCryptEntryModelBean>
 	}
 
 	/**
-	 * Lets the user change a property in a dialog that edits a copy of it, so that Cancel leaves
-	 * the entry as it was: the fields write on every keystroke (#807). OK writes the copy into the
+	 * Lets the user change a property in a dialog that edits a form of it, so that Cancel leaves
+	 * the entry as it was: the fields write on every keystroke (#807). OK writes the form into the
 	 * row, and the row is the entry's own pair - the table copies the entry's list, not its
-	 * elements. A protected value opens masked, and a renamed protected property keeps its
-	 * protection
+	 * elements. A protected value opens masked, a renamed protected property keeps its protection,
+	 * and the dialog's switch sets the mark or takes it away (#1017)
 	 */
 	private void showEditPropertyDialog(final Map.Entry<String, String> row)
 	{
 		KeyValuePair<String, String> tableEntry = ((PropertyEntry)row).getPair();
 		String previousName = tableEntry.getKey();
-		KeyValuePair<String, String> edited = new KeyValuePair<>(previousName,
-			tableEntry.getValue());
-		PropertiesNewEntryPanel panel = new PropertiesNewEntryPanel(BaseModel.of(edited),
+		PropertyForm form = new PropertyForm(previousName, tableEntry.getValue(),
 			isProtectedName(previousName));
+		PropertiesNewEntryPanel panel = new PropertiesNewEntryPanel(BaseModel.of(form));
 		int option = askForProperty(panel,
 			Messages.getString("dialog.edit.crypt.properties.title", "Edit Property Value."));
 		if (option == JOptionPane.OK_OPTION)
 		{
-			tableEntry.setKey(edited.getKey());
-			tableEntry.setValue(edited.getValue());
-			VaultEntryProperties.renamed(getModelObject(), previousName, edited.getKey());
+			tableEntry.setKey(form.getKey());
+			tableEntry.setValue(form.getValue());
+			VaultEntryProperties.renamed(getModelObject(), previousName, form.getKey());
+			VaultEntryProperties.setProtected(getModelObject(), tableEntry,
+				form.isProtectedValue());
 			getTblProperties().getGenericTableModel().fireTableDataChanged();
 		}
 	}

@@ -68,12 +68,13 @@ public final class VaultEntryProperties
 	 *
 	 * @param entry
 	 *            the entry
-	 * @return the protected names; empty when none is protected
+	 * @return a copy of the protected names, which the caller may change; empty when none is
+	 *         protected
 	 */
 	public static Set<String> protectedNamesOf(final MysticCryptEntryModelBean entry)
 	{
 		Set<String> names = entry.getProtectedPropertyKeys();
-		return names == null ? Set.of() : new LinkedHashSet<>(names);
+		return names == null ? new LinkedHashSet<>() : new LinkedHashSet<>(names);
 	}
 
 	/**
@@ -101,6 +102,36 @@ public final class VaultEntryProperties
 			.noneMatch(property -> previousName.equals(property.getKey())))
 		{
 			names.remove(previousName);
+		}
+		entry.setProtectedPropertyKeys(names);
+	}
+
+	/**
+	 * Marks a property as protected or takes the mark away, as the switch of the property dialog
+	 * does (#1017). The mark belongs to the name, so taking it away leaves the name protected while
+	 * another property of the entry still carries it: a switch never unprotects a value it did not
+	 * touch, the rule {@link #renamed} follows as well
+	 *
+	 * @param entry
+	 *            the entry, changed in place
+	 * @param property
+	 *            the entry's own property whose mark is set
+	 * @param protect
+	 *            whether the property is protected from now on
+	 */
+	public static void setProtected(final MysticCryptEntryModelBean entry,
+		final KeyValuePair<String, String> property, final boolean protect)
+	{
+		Set<String> names = protectedNamesOf(entry);
+		String name = property.getKey();
+		if (protect)
+		{
+			names.add(name);
+		}
+		else if (entry.getProperties().stream()
+			.noneMatch(other -> other != property && name.equals(other.getKey())))
+		{
+			names.remove(name);
 		}
 		entry.setProtectedPropertyKeys(names);
 	}
