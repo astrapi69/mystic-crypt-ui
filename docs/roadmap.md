@@ -116,9 +116,8 @@ Latest releases measured on 2026-11-24 with `gh release list`.
 
 ## Ongoing, and deliberately not planned
 
-**Ongoing, in every cycle:** a dependency currency check at the start of the cycle, with self-hosted Renovate, 14 days
-of waiting for third-party releases and none for the family's own. The test plan and the rules are kept with the work,
-not as projects of their own.
+**Ongoing, in every cycle:** a dependency currency check at the start of the cycle, with self-hosted Renovate and no
+waiting period. The test plan and the rules are kept with the work, not as projects of their own.
 
 **Deliberately not planned until E1 is decided:**
 
