@@ -110,8 +110,7 @@ class TreeShortcutsUiTest extends AbstractUiTest
 		DialogFixture editDialog = application.findDialogWithTitle("Edit node");
 		GuiActionRunner.execute(() -> editDialog.textBox().target().setText("NewName"));
 		robot.waitForIdle();
-		editDialog.button(org.assertj.swing.core.matcher.JButtonMatcher.withText("OK")).click();
-		robot.waitForIdle();
+		clickOkOnActiveDialog(editDialog);
 
 		assertTrue(application.treeShowsARowNamed("NewName"),
 			"confirming the edit did not rename the node");
@@ -154,14 +153,30 @@ class TreeShortcutsUiTest extends AbstractUiTest
 		DialogFixture newNodeDialog = application.findDialogWithTitle("New node");
 		GuiActionRunner.execute(() -> newNodeDialog.textBox().target().setText("ChildNode"));
 		robot.waitForIdle();
-		newNodeDialog.button(org.assertj.swing.core.matcher.JButtonMatcher.withText("OK")).click();
-		robot.waitForIdle();
+		clickOkOnActiveDialog(newNodeDialog);
 
 		assertTrue(application.treeChildNamesOf("ParentNode").contains("ChildNode"),
 			"Insert did not add the typed node under the selected one");
 		application.expandTreeRowNamed("ParentNode");
 		assertTrue(application.treeShowsARowNamed("ChildNode"),
 			"the new node is in the model but the tree does not show it");
+	}
+
+	/**
+	 * Clicks OK on the dialog only once it is the active window and waits until the click has
+	 * closed it. A click on a dialog that is not active is lost, which left the dialog open with
+	 * the event thread in its modal loop and the model unchanged in the release gate on 46f9f0ff,
+	 * and is reported here as what it is (#962). The click is not repeated, which would hide the
+	 * defect.
+	 *
+	 * @param dialog
+	 *            the dialog to confirm
+	 */
+	private void clickOkOnActiveDialog(final DialogFixture dialog)
+	{
+		UiTestSpeed.awaitActive(dialog.target());
+		dialog.button(org.assertj.swing.core.matcher.JButtonMatcher.withText("OK")).click();
+		UiTestSpeed.awaitClosed(dialog.target());
 	}
 
 }
