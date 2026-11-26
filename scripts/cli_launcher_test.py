@@ -10,6 +10,7 @@ their calls.
 Run: python3 scripts/cli_launcher_test.py
 """
 
+import os
 import shutil
 import subprocess
 import tempfile
@@ -121,7 +122,7 @@ class CliLauncherTest(unittest.TestCase):
         return " ".join(f"[{argument}]" for argument in f"{ADD_OPENS} {UNSAFE_FLAG}".split())
 
     def expected_run(self, java, *arguments):
-        return (f"run {java} {self.flags()} [-cp] [{self.install}/mystic-crypt-ui.jar] [{CLI_CLASS}] "
+        return (f"run {java} {self.flags()} [-jar] [{self.install}/mystic-crypt-ui.jar] [--cli] "
                 + " ".join(f"[{argument}]" for argument in arguments))
 
     def test_an_older_java_first_on_the_path_says_why_on_standard_error_and_fails(self):
@@ -207,8 +208,14 @@ class CliLauncherFilesTest(unittest.TestCase):
         self.assertEqual(1, len(command), command)
         self.assertIn(ADD_OPENS, command[0])
         self.assertIn(UNSAFE_FLAG, command[0])
-        self.assertLess(command[0].index(ADD_OPENS), command[0].index("-cp"))
-        self.assertLess(command[0].index(UNSAFE_FLAG), command[0].index("-cp"))
+        self.assertLess(command[0].index(ADD_OPENS), command[0].index("-jar"))
+        self.assertLess(command[0].index(UNSAFE_FLAG), command[0].index("-jar"))
+
+    def test_the_windows_starter_takes_the_command_line_path_of_the_application(self):
+        command = [line for line in MYSTIC_CRYPT_BAT.read_text().splitlines()
+                   if line.lstrip().startswith("java ")]
+        self.assertIn('-jar "%~dp0mystic-crypt-ui.jar" --cli %*', command[0])
+        self.assertNotIn(CLI_CLASS, command[0])
 
     def test_the_windows_starter_ends_with_the_exit_code_of_the_command(self):
         lines = [line.strip() for line in MYSTIC_CRYPT_BAT.read_text().splitlines() if line.strip()]
@@ -232,6 +239,152 @@ class CliLauncherFilesTest(unittest.TestCase):
         self.assertEqual("yes", pack.get("required"))
         sources = [(element.get("src"), element.get("targetdir")) for element in pack.iter("file")]
         self.assertIn(("resources/main/doc/find-java.sh", "${INSTALL_PATH}"), sources)
+
+
+LINK_SCRIPT = DOC / "mystic-crypt-link.sh"
+
+
+class LinkScriptTest(unittest.TestCase):
+    """mystic-crypt-link.sh, which the installer runs to put the starter on the PATH and the
+    uninstaller to take it off again"""
+
+    def setUp(self):
+        self.work = Path(tempfile.mkdtemp(prefix="cli-link-"))
+        self.addCleanup(shutil.rmtree, self.work, ignore_errors=True)
+        self.install = self.work / "install dir"
+        self.install.mkdir()
+        lay_out_installation(self.install)
+        self.starter = self.install / "mystic-crypt"
+        self.link = self.work / "home" / ".local" / "bin" / "mystic-crypt"
+
+    def run_script(self, *arguments):
+        script = self.install / "mystic-crypt-link.sh"
+        script.chmod(0o755)
+        return subprocess.run([str(script), *arguments], capture_output=True, text=True,
+                              timeout=60)
+
+    def link_it(self):
+        return self.run_script("link", str(self.starter), str(self.link))
+
+    def unlink_it(self):
+        return self.run_script("unlink", str(self.starter), str(self.link))
+
+    def other_installation(self):
+        other = self.work / "other install"
+        other.mkdir()
+        (other / "mystic-crypt").write_text("#!/bin/bash\n")
+        (other / "mystic-crypt-ui.jar").write_bytes(b"PK")
+        return other / "mystic-crypt"
+
+    def test_link_creates_the_directory_and_the_link_to_the_starter(self):
+        completed = self.link_it()
+        self.assertEqual(0, completed.returncode, completed.stderr)
+        self.assertTrue(self.link.is_symlink())
+        self.assertEqual(str(self.starter), os.readlink(self.link))
+
+    def test_link_a_second_time_keeps_the_link(self):
+        self.link_it()
+        completed = self.link_it()
+        self.assertEqual(0, completed.returncode, completed.stderr)
+        self.assertEqual(str(self.starter), os.readlink(self.link))
+
+    def test_link_replaces_a_link_whose_target_is_gone_or_another_installation(self):
+        cases = {"a target that is gone": self.work / "removed install" / "mystic-crypt",
+                 "another installation": self.other_installation()}
+        for name, target in cases.items():
+            with self.subTest(name):
+                self.link.parent.mkdir(parents=True, exist_ok=True)
+                self.link.unlink(missing_ok=True)
+                self.link.symlink_to(target)
+                completed = self.link_it()
+                self.assertEqual(0, completed.returncode, completed.stderr)
+                self.assertEqual(str(self.starter), os.readlink(self.link))
+
+    def test_link_leaves_a_foreign_file_of_the_same_name_alone(self):
+        foreign_target = self.work / "elsewhere" / "mystic-crypt"
+        foreign_target.parent.mkdir()
+        foreign_target.write_text("#!/bin/bash\necho a tool of its own\n")
+        cases = {"a file": lambda: self.link.write_text("#!/bin/bash\necho a tool of its own\n"),
+                 "a link to another program": lambda: self.link.symlink_to(foreign_target)}
+        for name, make in cases.items():
+            with self.subTest(name):
+                self.link.parent.mkdir(parents=True, exist_ok=True)
+                self.link.unlink(missing_ok=True)
+                make()
+                before = (self.link.is_symlink(), self.link.read_text())
+                completed = self.link_it()
+                self.assertEqual(0, completed.returncode, completed.stderr)
+                self.assertIn("left as it is", completed.stderr)
+                self.assertEqual(before, (self.link.is_symlink(), self.link.read_text()))
+
+    def test_unlink_removes_the_link_to_this_starter(self):
+        self.link_it()
+        completed = self.unlink_it()
+        self.assertEqual(0, completed.returncode, completed.stderr)
+        self.assertFalse(self.link.is_symlink())
+        self.assertFalse(self.link.exists())
+
+    def test_unlink_leaves_what_is_not_its_link_alone_and_succeeds(self):
+        self.link.parent.mkdir(parents=True)
+        cases = {"a file": lambda: self.link.write_text("a tool of its own\n"),
+                 "a link to another installation": lambda: self.link.symlink_to(
+                     self.other_installation())}
+        for name, make in cases.items():
+            with self.subTest(name):
+                self.link.unlink(missing_ok=True)
+                make()
+                completed = self.unlink_it()
+                self.assertEqual(0, completed.returncode, completed.stderr)
+                self.assertTrue(self.link.is_symlink() or self.link.is_file())
+
+    def test_unlink_without_a_link_succeeds(self):
+        self.assertEqual(0, self.unlink_it().returncode)
+
+    def test_wrong_arguments_exit_2(self):
+        for arguments in ((), ("link",), ("link", str(self.starter)),
+                          ("move", str(self.starter), str(self.link))):
+            with self.subTest(arguments=arguments):
+                self.assertEqual(2, self.run_script(*arguments).returncode)
+
+
+class InstallerLinkTest(unittest.TestCase):
+    """The commandline pack of install.xml runs mystic-crypt-link.sh after the installation and
+    before the uninstallation, on Linux and macOS"""
+
+    def setUp(self):
+        root = ElementTree.parse(INSTALL_XML).getroot()
+        self.pack = next(pack for pack in root.iter("pack") if pack.get("name") == "commandline")
+        self.executables = [element for element in self.pack.iter("executable")
+                            if element.get("targetfile") == "${INSTALL_PATH}/mystic-crypt-link.sh"]
+
+    def stage(self, name):
+        found = [element for element in self.executables if element.get("stage") == name]
+        self.assertEqual(1, len(found), [element.attrib for element in self.executables])
+        return found[0]
+
+    def arguments(self, element):
+        return [argument.get("value") for argument in element.iter("arg")]
+
+    def families(self, element):
+        return sorted(os_element.get("family") for os_element in element.iter("os"))
+
+    def test_the_pack_installs_the_link_script(self):
+        sources = [(element.get("src"), element.get("targetdir")) for element in self.pack.iter("file")]
+        self.assertIn(("resources/main/doc/mystic-crypt-link.sh", "${INSTALL_PATH}"), sources)
+
+    def test_the_installation_links_the_starter_into_the_users_local_bin(self):
+        executable = self.stage("postinstall")
+        self.assertEqual(["link", "${INSTALL_PATH}/mystic-crypt", "${USER_HOME}/.local/bin/mystic-crypt"],
+                         self.arguments(executable))
+        self.assertEqual("true", executable.get("keep"))
+        self.assertEqual(["mac", "unix"], self.families(executable))
+
+    def test_the_uninstallation_removes_the_link_and_never_stops_on_it(self):
+        executable = self.stage("uninstall")
+        self.assertEqual(["unlink", "${INSTALL_PATH}/mystic-crypt", "${USER_HOME}/.local/bin/mystic-crypt"],
+                         self.arguments(executable))
+        self.assertEqual("ignore", executable.get("failure"))
+        self.assertEqual(["mac", "unix"], self.families(executable))
 
 
 if __name__ == "__main__":

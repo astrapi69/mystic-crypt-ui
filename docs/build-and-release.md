@@ -375,12 +375,19 @@ izpack libs.izpack.ant
    read them, the flags are in `start.bat` and `mystic-crypt.bat`.
    `python3 scripts/start_launcher_test.py` runs `start.sh` against stub `java` executables.
 2. `commandline` (optional, preselected): the `mystic-crypt` and `mystic-crypt.bat`
-   launcher scripts, which run the CLI entry point out of the same application jar.
-   `mystic-crypt` resolves its own path, so a symlink to it works from any directory, and
-   takes its Java from `find-java.sh` like `start.sh`; when none fits it says so on standard
-   error only, without a dialog, and exits 1. Arguments, standard input and the command's
-   exit code pass through. `python3 scripts/cli_launcher_test.py` runs it against stub `java`
-   executables. Depends on `executables`.
+   launcher scripts, which run the application jar's command line, the path
+   `java -jar mystic-crypt-ui.jar --cli` takes, so the installed plugins' commands come with
+   the library's. `mystic-crypt` resolves its own path, so a symlink to it works from any
+   directory, and takes its Java from `find-java.sh` like `start.sh`; when none fits it says
+   so on standard error only, without a dialog, and exits 1. Arguments, standard input and
+   the command's exit code pass through. On Linux and macOS the pack runs
+   `mystic-crypt-link.sh` after installing, which links the starter as
+   `~/.local/bin/mystic-crypt` (creating the directory, never replacing a file of that name
+   that is not a link to an installation of this application), and again before the
+   uninstaller deletes the installation, which removes that link. Windows gets no PATH entry;
+   `mystic-crypt.bat` is called in the installation directory. `python3
+   scripts/cli_launcher_test.py` runs the starter against stub `java` executables and the link
+   script in a temporary home. Depends on `executables`.
 3. `plugins` (optional, preselected): every internal plugin zip, installed into
    `${USER_HOME}/.config/mystic-crypt-ui/plugins`, which is where the application's plugin
    manager looks. Without this pack the "Plugins" menu stays empty until the user installs
