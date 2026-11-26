@@ -5,35 +5,32 @@
 // The plugin does not judge compileOnly declarations, and nearly everything a plugin compiles against is one: the
 // host brings it at runtime. So this check does not see a compileOnly line nothing uses.
 
-// The findings reported on 2026-11-18, when the check was introduced, and not decided yet, per plugin build. Each
-// goes with the pull request that removes it or says why it stays, so the lists only get shorter. Many of the test
-// dependencies here are not unused: javac needs them for the types of the main classes the tests compile against.
-// Such a type is a supertype or a signature type that no test class file names, and the plugin counts only what the
-// test class files name.
-def pendingUnusedDependencies = [
-    "certificate-plugin"   : ["org.bouncycastle:bcpkix-jdk18on", "io.github.astrapi69:crypt-api",
-                              "org.pf4j:pf4j"],
-    "checksum-plugin"      : ["io.github.astrapi69:awt-extensions", "io.github.astrapi69:file-worker",
-                              "io.github.astrapi69:menu-action", "com.miglayout:miglayout-swing",
-                              "io.github.astrapi69:model-data", "org.pf4j:pf4j", "io.github.astrapi69:resourcebundle-core",
-                              "io.github.astrapi69:swing-base-components"],
-    "console-plugin"       : ["org.pf4j:pf4j"],
+// The unused test dependencies that stay, per plugin build, each because javac needs it: a plugin's tests compile
+// against its main classes, and javac reads the supertypes and signature types of those classes from the class path,
+// although no test class file names them and the plugin counts only what the test class files name. Each line was
+// measured by taking it out: the test compilation then fails (the runs of 2026-11-18, and of 2026-11-26 in GitHub
+// Actions for checksum and keygen). The needed types are
+//   org.pf4j.ExtensionPoint (every plugin build, so pf4j is excluded for all of them below),
+//   swing-base-components: the supertype of the panels the tests build,
+//   model-data: io.github.astrapi69.model.api.IModel, behind JMComboBox and the model-backed components,
+//   crypt-api (certificate): Algorithm, bcpkix (OperatorCreationException; certificate, conversion, keygen,
+//   keystore, pqc-signature), mystic-crypt (keystore, pqc-signature: brings crypt-api),
+//   the host jar (conversion, keystore: PluginMenuContribution),
+//   swing-table-components (obfuscation: GenericTableModel).
+// A plugin build with no entry has none. A new entry names the type javac needs; it is not a place for a dependency
+// that is merely unproven.
+def keptUnusedDependencies = [
+    "certificate-plugin"   : ["org.bouncycastle:bcpkix-jdk18on", "io.github.astrapi69:crypt-api"],
+    "checksum-plugin"      : ["io.github.astrapi69:model-data", "io.github.astrapi69:swing-base-components"],
     "conversion-plugin"    : ["io.github.astrapi69:mystic-crypt-ui", "org.bouncycastle:bcpkix-jdk18on",
-                              "org.pf4j:pf4j", "io.github.astrapi69:swing-base-components"],
-    "file-crypt-plugin"    : ["org.pf4j:pf4j"],
-    "kem-demo-plugin"      : ["io.github.astrapi69:mystic-crypt", "org.pf4j:pf4j"],
-    "keygen-plugin"        : ["org.bouncycastle:bcpkix-jdk18on", "io.github.astrapi69:crypt-data",
-                              "com.miglayout:miglayout-swing", "io.github.astrapi69:model-data", "org.pf4j:pf4j",
-                              "io.github.astrapi69:resourcebundle-core", "io.github.astrapi69:swing-base-components"],
-    "keystore-plugin"      : ["io.github.astrapi69:mystic-crypt-ui", "org.bouncycastle:bcpkix-jdk18on",
-                              "io.github.astrapi69:mystic-crypt", "org.pf4j:pf4j",
                               "io.github.astrapi69:swing-base-components"],
-    "menu-designer-plugin" : ["org.pf4j:pf4j"],
-    "obfuscation-plugin"   : ["org.pf4j:pf4j", "io.github.astrapi69:swing-base-components",
+    "keygen-plugin"        : ["org.bouncycastle:bcpkix-jdk18on", "io.github.astrapi69:model-data",
+                              "io.github.astrapi69:swing-base-components"],
+    "keystore-plugin"      : ["io.github.astrapi69:mystic-crypt-ui", "org.bouncycastle:bcpkix-jdk18on",
+                              "io.github.astrapi69:mystic-crypt", "io.github.astrapi69:swing-base-components"],
+    "obfuscation-plugin"   : ["io.github.astrapi69:swing-base-components",
                               "io.github.astrapi69:swing-table-components"],
-    "password-hash-plugin" : ["org.pf4j:pf4j"],
-    "pqc-signature-plugin" : ["org.bouncycastle:bcpkix-jdk18on", "io.github.astrapi69:mystic-crypt", "org.pf4j:pf4j"],
-    "release-key-plugin"   : ["org.pf4j:pf4j", "io.github.astrapi69:mystic-crypt-ui"],
+    "pqc-signature-plugin" : ["org.bouncycastle:bcpkix-jdk18on", "io.github.astrapi69:mystic-crypt"],
 ]
 
 // Report only, as in the host (gradle/dependency-analysis.gradle, the maintainer's decision of 2026-11-18): it becomes
@@ -57,7 +54,9 @@ dependencyAnalysis {
         all {
             onUnusedDependencies {
                 severity(unusedDependencySeverity)
-                exclude(*(pendingUnusedDependencies[rootProject.name] ?: []))
+                // javac needs it for ExtensionPoint, in every plugin build (see above)
+                exclude("org.pf4j:pf4j")
+                exclude(*(keptUnusedDependencies[rootProject.name] ?: []))
             }
             onUnusedAnnotationProcessors {
                 severity(unusedDependencySeverity)
