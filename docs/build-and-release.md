@@ -473,10 +473,16 @@ mystic-crypt candidate in the host and in every plugin before it is on Central.
 The binding sequence is `.claude/rules/release-workflow.md`; this page does not copy its steps,
 because a copy here kept naming `vX.Y.Z` tags and a `make test` plus `make test-e2e` gate long
 after the rules had moved on (#911). In short: capture the state and wait for confirmation, pick
-the version per SemVer, assemble the changelog from `changelog.d/`, bump `projectVersion`, run
-`make release-gate`, merge the release pull request, build `make izpack-installer` from the merged
-state and check it with `make verify-installer`, then `make tag-release`, push the tag, move
-`master` onto it and write the GitHub release with the installer and its checksums.
+the version per SemVer, run the dependency currency check in GitHub Actions
+(`gh workflow run gradle.yml --ref develop -f dependency-updates=true`) and merge its bump pull
+requests, assemble the changelog from `changelog.d/`, bump `projectVersion`, merge the release pull
+request, run the gate in GitHub Actions on the merged state
+(`gh workflow run gradle.yml --ref develop -f force=true` and the same for `e2e.yml`), build the
+installer on the gated commit with
+`make without-slot TARGET=izpack-installer PLUGIN_TESTS= PLUGIN_ZIP_TESTS= SCRIPT_TESTS=no` and
+check it with `make without-slot TARGET=verify-installer PREVIOUS=<last release>`, then
+`make tag-release`, push the tag, move `master` onto it and write the GitHub release with the
+installer and its checksums.
 
 ### Two things to know before you tag
 

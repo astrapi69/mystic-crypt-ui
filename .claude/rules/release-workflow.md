@@ -7,12 +7,12 @@ Prompt triggers: "release new version", "new release".
 - A release is built with the JDK `.sdkmanrc` names, which the Makefile pins and `sdk env` sets the
   shell to. A newer patch release of it is taken on deliberately, in a small pull request of its own
   that passes the gate, never automatically (#586).
-- Version source: `gradle.properties` (`projectVersion`) — the ONLY hand-edited version
+- Version source: `gradle.properties` (`projectVersion`), the ONLY hand-edited version
   field. Nothing else carries an independent version literal; if one appears, fix the
   derivation, not the literal.
 - Tests must be green: red tests block the release, no exceptions, no "disable the test
   for this release".
-- Every release is a logical boundary — do not release mid-feature.
+- Every release is a logical boundary; do not release mid-feature.
 - SemVer: `feat:` = minor, `fix:`/`refactor:` = patch, breaking change = major (called
   out prominently in the CHANGELOG).
 - Gitflow: release is prepared from `develop`, tagged, and `master` carries releases.
@@ -34,7 +34,15 @@ Prompt triggers: "release new version", "new release".
    (`git log $(git describe --tags --abbrev=0)..HEAD --oneline --no-merges`). Show the
    summary and wait for confirmation.
 2. **Pick the version** per SemVer, propose with rationale, wait for OK.
-3. **CHANGELOG.md**: since the squash pilot (2026-11-11) the entries live as fragments in
+3. **Dependency currency check, then CHANGELOG.md.** The check runs in GitHub Actions (AG-021):
+   `gh workflow run gradle.yml --ref develop -f dependency-updates=true`; the log counts the updates,
+   the artifact `dependency-updates-report` lists them. Patch and minor bumps go into the release,
+   and so do major bumps of test and build dependencies, which reach no consumer and no published
+   POM; a major bump of a runtime dependency gets its own session, never bundled in (#749). A change
+   to the build or the release path itself is NOT bundled into a security release. The bump pull
+   requests and their `changelog.d/` fragments land before the release pull request, so a release
+   needs one gate (the maintainer's decision of 2026-11-24).
+   Since the squash pilot (2026-11-11) the entries live as fragments in
    `changelog.d/`, one per pull request, brought along by the change itself (see
    `changelog.d/README.md`). The release pull request runs
    `python3 scripts/assemble_changelog.py X.Y.Z`, which inserts the grouped version block in
@@ -53,70 +61,64 @@ Prompt triggers: "release new version", "new release".
    **The bump is a CI-visible change, not a local one.** Dropping `-SNAPSHOT` flips every
    release switch at once, and since #333 CI publishes the host locally to build the plugins:
    on a release version that pulled in `signMavenJavaPublication`, which has no key on a runner
-   (the signing keys are on the maintainer's machine by decision, which is why a release is cut
-   locally). The 8.6 bump died there before the first test ran, and the repair had to go in
+   (the signing keys are on the maintainer's machine by decision, which is why signing is local,
+   AG-021). The 8.6 bump died there before the first test ran, and the repair had to go in
    ahead of the release: a LOCAL publish without a key signs nothing and says so (#431); there
    is no remote publish since #453. So a bump that reddens CI in a signing, publishing or packaging task is
    this switch, not the release being wrong.
-5. **Full gate** (ALL mandatory; a red result aborts the release):
-   - **`make release-gate`** runs the three phases below - `make build-full`, the forced test tasks,
-     `./gradlew build` - with one JAVA_HOME, so one daemon serves them all (#580), and before each one
-     `scripts/stop-idle-daemons.sh`: it reads `./gradlew --status`,
-     waits while a daemon is BUSY and asks again, and runs `--stop` only once every daemon is IDLE -
-     never in the middle of another worktree's or the IDE's build. Still busy after 30 minutes, it
-     stops nothing and the gate does not start. The 8.9 gate died of memory next to daemons left over
-     from earlier builds (#580).
-   - `make build-full`, whose test tasks bring their own Xvfb (#505) — it runs the plugin builds, the packaging,
-     EVERY test including the UI e2e suite, and spotless - which since #686 also checks the license header
-     on every Java source of the host build (`licenseHeaderFile`, `src/test/resources/spotless/license-header.txt`).
-     The license plugin and the shell check over changed files that stood in for its disabled checks (#553)
-     are gone; the plugin builds run the same Spotless check since #666. The plugins are
-     part of it since #333: `./gradlew build` never built them, so the 54 end-to-end tests
-     that install one skipped, and a release could be cut with every plugin feature
-     unverified while the gate read green. `make test` and
-     `make test-e2e` are not run beside it, but not because one contains the other: since
-     #319 the suites are DISJOINT source sets - `test` (unit), and the end-to-end tasks
-     `e2eTest`, `e2eLockTest` and `e2eKdbxTest`, each with its own classes and its own cache
-     key. What puts all of them inside `build-full` is `check.dependsOn` on each
-     (`gradle/testing.gradle`). Running the e2e suites three times measures nothing new.
-   - the gate reports what it measured: since #306 the build prints it itself, one line
-     per suite, plus an `executed in this build` line that is ABSENT when the task was
-     UP-TO-DATE or FROM-CACHE and only restored its results. Read it, and read the XML in
-     `build/test-results/test`, `e2eTest`, `e2eLockTest` and `e2eKdbxTest` when a number is in
-     doubt. Since #630 the gate ends by checking that those files are the forced phase's: the
-     final `build` once restored an older run's results over them while the gate read green.
+5. **Full gate**, once, on the merged state that will be tagged (ALL mandatory; a red result
+   aborts the release).
+   - **the gate runs in GitHub Actions**, never on the maintainer's machine (AG-021, RL-072, #1156):
+     `gh workflow run gradle.yml --ref <ref> -f force=true` and the same for `e2e.yml`, `<ref>` the
+     branch to tag; both runs' `headSha` must be the commit to be tagged. Forced, gradle.yml
+     builds every plugin with its tests and the script test suites, packages the runnable jar
+     unsigned (`createAllDependendiesJar`; the installer refuses to be built unsigned), runs
+     `test --rerun` and Spotless (license header since #686, plugin builds since #666); e2e.yml
+     runs `e2eTest --rerun e2eLockTest --rerun e2eKdbxTest --rerun`. The plugins are in the gate
+     since #333: `./gradlew build` never built them, so the 54 end-to-end tests that
+     install one skipped while the gate read green. Since #319 the four suites are DISJOINT source
+     sets, each with its own cache key. Of the tasks the plain `./gradlew build` of the former local
+     gate ran, only `jacocoTestReport` (a report without a floor) runs in neither forced run; javadoc
+     runs in both, through the `publishToMavenLocal` every plugin build needs.
+   - the gate reports what it measured (#306): one line per suite,
+     `<suite>: N classes, M tests, F failures, E errors, S skipped`, and
+     `<suite>: executed in this build`, ABSENT when the task only restored its results; then
+     `scripts/check-forced-run-results.sh` prints `<suite>: N result files, all from the forced run`
+     and fails on a missing or an older file (#630: the final `build` of the former local gate once
+     restored an older run's results over the forced ones while the gate read green). Read these
+     lines in the logs, and the XML in the artifacts `test-reports` and `e2e-test-reports` when a
+     number is in doubt; kept 14 days, they go with the release's evidence.
      An empty result set is not a green gate.
-   - force the TEST TASKS only, each one: `./gradlew test --rerun e2eTest --rerun
-     e2eLockTest --rerun e2eKdbxTest --rerun`, then `./gradlew build`. `--rerun` is a task
-     option and binds to the task named right before it - written once at the end it forced
-     only the last task, measured in the #409 gate as `> Task :test UP-TO-DATE` (#410).
-     Re-running the unit suite and letting the UI suites come back from the cache inverts the
-     whole reason for the step (#330). This is the release gate only: CI builds without
-     `--rerun`, so an unchanged suite comes back from the cache there (#319). Not `--rerun-tasks` either, which also throws away the compile, the jar, the
-     javadoc, spotless and the packaging - none of which has an input Gradle cannot see.
-     The UI suite does: a display and a window manager are in no cache key, and both
-     produced a green-looking result that said nothing about this machine (8.5).
-   - **package from the state that will be tagged.** The release PR is merged FIRST; the
-     installer and its checksums are built from the merged branch, and the tag names
-     exactly that commit. Building beforehand from the release branch ties the release to
-     a commit the tag never names — unless the merge happens to be a fast-forward, which
-     is luck, not a property (2026-09-09: it was, so 8.4 kept its installer; a squash or a
-     merge commit would have forced a rebuild and a second verification).
-   - `make izpack-installer` (the plugin set in `install.xml` must match the Makefile
-     `plugins:` list)
-   - **verify the installer AFTER the checksums are written**, against the file the
-     checksums describe: size (a plausible floor, ~40 MB; below it is an abort, not a
-     warning), it opens as an archive, and `sha256sum -c` / `sha512sum -c` pass.
-     Verifying before the checksums verifies a file that is then replaced:
-     `checksumInstaller` depends on `izPackCreateInstaller`, which re-runs and rewrites
-     the jar (measured 2026-09-07: 81743356 bytes verified, 81743359 bytes shipped).
-     `make verify-installer PREVIOUS=<last release>` runs these checks and the ones 8.14 added (signer as the
-     previous release's, class major, mystic-crypt against Central, plugins, the jar tests, a start); run it again
-     with `INSTALLER=<the downloaded file>` after the upload (#793).
-   - dependency currency check: `make dependency-updates` - patch and minor bumps go into the
-     release, and so do major bumps of test and build dependencies, which reach no consumer and no
-     published POM; a major bump of a runtime dependency gets its own session, never bundled in
-     (#749). A change to the build or the release path itself is NOT bundled into a security release.
+   - force the TEST TASKS only, each by name with its own `--rerun` (RL-123): the option binds to
+     the task named right before it, and written once at the end it forced only the last task,
+     measured in the #409 gate as `> Task :test UP-TO-DATE` (#410). Re-running the unit suite and
+     letting the UI suites come back from the cache inverts the reason for the step (#330). Not
+     `--rerun-tasks` either, which also throws away the compile, the jar, the javadoc, spotless and
+     the packaging, none of which has an input Gradle cannot see. The UI suite does: a display and
+     a window manager are in no cache key, and both produced a green-looking result that said
+     nothing about the machine it ran on (8.5). A run on a push or pull request builds without
+     `--rerun`, so an unchanged suite comes back from the cache there (#319).
+   - **package from the state that will be tagged.** The release PR is merged FIRST; the installer
+     and its checksums are built from exactly the commit the gate found green, and the tag names
+     that commit. Building beforehand from the release branch ties the release to a commit the tag
+     never names, unless the merge happens to be a fast-forward, which is luck, not a property
+     (2026-09-09: it was, so 8.4 kept its installer).
+   - **signing, packaging and verify-installer stay local** (AG-021), in a clean worktree whose
+     `git rev-parse HEAD` is both runs' `headSha`, without the tests the gate ran there, from a
+     normal terminal:
+     `make without-slot TARGET=izpack-installer PLUGIN_TESTS= PLUGIN_ZIP_TESTS= SCRIPT_TESTS=no`
+     (the plugin set in `install.xml` must match the Makefile `plugins:` list).
+   - **verify the installer AFTER the checksums are written**, against the file the checksums
+     describe: size (floor 40 MB; below it is an abort, not a warning), it opens as an archive, and
+     `sha256sum -c` / `sha512sum -c` pass. Verifying before the checksums verifies a file that is
+     then replaced: `checksumInstaller` depends on `izPackCreateInstaller`, which re-runs and
+     rewrites the jar (measured 2026-09-07: 81743356 bytes verified, 81743359 bytes shipped).
+     `make without-slot TARGET=verify-installer PREVIOUS=<last release>` runs these checks and the
+     ones 8.14 added (signer as the previous release's, class major, mystic-crypt against Central,
+     plugins, the jar tests, a start); run it again with `INSTALLER=<the downloaded file>` after the
+     upload (#793).
+   - First release this way: 8.16, gate runs 45600604264 (gradle.yml) and 45600609197 (e2e.yml) on
+     `0031c500`, which `RELEASE-8.16` names.
    - **the maintainer runs the release smoke by hand**: the `release smoke` subset of
      `docs/manual-tests/testplan-mystic-crypt-ui.md` (the plan gives its duration), against the BUILT
      installer, after the checksums are written. The tag waits for his go after this hand test
@@ -162,4 +164,4 @@ Prompt triggers: "release new version", "new release".
 
 Tests fail right before release: abort, fix in its own commit, restart from step 1.
 Checklist items touching safety (tests green, build successful, correct version) are
-never skipped, not even on instruction — postpone rather than ship broken.
+never skipped, not even on instruction; postpone rather than ship broken.

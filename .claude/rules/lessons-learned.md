@@ -104,12 +104,11 @@ waits for the required check `build` only (`make merge-pr`, which hotfix branche
 reverted; the release gate runs every suite (2026-11-23). A branch can be green locally through every test and still turn develop red on
 formatting alone - but chasing that by rerunning the full `build` locally (Xvfb + fluxbox, many
 minutes) burns local resources on verification GitHub Actions already does on every push. The
-release exception is the release CUT itself - the gate before the tag - and not the nervousness
-after a red run: six full local gates in one day cost an hour that CI was spending anyway (8.5). For
+release gate before the tag runs there too, by workflow_dispatch (release-workflow.md step 5,
+AG-021); six full local gates in one day cost an hour that CI was spending anyway (8.5). For
 everyday changes: run `spotlessApply` before committing (cheap, catches the most common CI-only
 failure; since #592 the pre-commit hook refuses a commit Spotless would format, after `make install-hooks`), then push and let CI run the real gate - react to what it reports instead of blocking
-the push on a local rerun. Exception: a release cut, where `release-workflow.md`'s full local gate
-stays mandatory (nothing to react to after tagging).
+the push on a local rerun.
 
 ## UI tests run on the build's own display, never on the desktop's
 
