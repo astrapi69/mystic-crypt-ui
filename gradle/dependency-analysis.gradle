@@ -23,10 +23,6 @@ dependencyAnalysis {
         all {
             onUnusedDependencies {
                 severity(unusedDependencySeverity)
-                // Reported on 2026-11-18, when the check was introduced, and not decided yet. Each goes with the
-                // pull request that removes it or says why it stays, so this list only gets shorter, and what the
-                // report still shows is new
-                exclude("io.github.astrapi69:junit-jupiter-extensions", "org.mockito:mockito-core")
                 // javac needs it: a supertype of the tree nodes the host compiles against, which the plugin cannot see
                 exclude("io.github.astrapi69:tree-api")
             }
