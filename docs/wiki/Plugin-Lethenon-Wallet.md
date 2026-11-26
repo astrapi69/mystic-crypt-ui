@@ -250,7 +250,7 @@ A password is never remembered, in no form: there is no setting it could be writ
 
 ## On the command line
 
-The plugin brings no command of its own to `--cli`. Lethenon has a command line of its own, the one
+The plugin brings no command of its own to `mystic-crypt`. Lethenon has a command line of its own, the one
 that writes the wallet files **Take over a wallet file** reads; it is part of lethenon, not of this
 application.
 

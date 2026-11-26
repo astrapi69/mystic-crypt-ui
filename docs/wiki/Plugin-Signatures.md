@@ -87,7 +87,7 @@ next time the Sign and Verify window is opened, not while it is open.
 
 This tool contributes no commands of its own, and neither does any other plugin in this
 application. The closest thing is the pair of signature commands that the mystic-crypt library
-brings, which the application exposes through `--cli`: `sign` and `verify-signature`. Between
+brings, which the application exposes through `mystic-crypt`: `sign` and `verify-signature`. Between
 them they cover every family the panel knows, the classical RSA, ECDSA and DSA next to Ed25519,
 ML-DSA and SLH-DSA, and both read their key from a PEM or a DER file. `-a` takes `RSA`,
 `EC` (or `ECDSA`), `DSA`, `Ed25519`, `ML-DSA-44`, `ML-DSA-65`, `ML-DSA-87`, an SLH-DSA parameter
@@ -96,32 +96,32 @@ underscores accepted.
 
 ```
 # a post-quantum key pair on disk
-java -jar mystic-crypt-ui.jar --cli keygen -a ML-DSA-65 \
+mystic-crypt keygen -a ML-DSA-65 \
     --out-private mldsa-private.pem --out-public mldsa-public.pem
 
 # sign a file with the private key
-java -jar mystic-crypt-ui.jar --cli sign -a ML-DSA-65 \
+mystic-crypt sign -a ML-DSA-65 \
     --key mldsa-private.pem --in doc.txt --signature doc.sig
 wrote signature to doc.sig
 
 # check it with the public key
-java -jar mystic-crypt-ui.jar --cli verify-signature -a ML-DSA-65 \
+mystic-crypt verify-signature -a ML-DSA-65 \
     --key mldsa-public.pem --in doc.txt --signature doc.sig
 signature is valid
 
 # the same with a classical key, here an RSA key pair in DER form
-java -jar mystic-crypt-ui.jar --cli sign -a RSA \
+mystic-crypt sign -a RSA \
     --key rsa-private.der --in contract.txt --signature contract.sig
 wrote signature to contract.sig
-java -jar mystic-crypt-ui.jar --cli verify-signature -a RSA \
+mystic-crypt verify-signature -a RSA \
     --key rsa-public.der --in contract.txt --signature contract.sig
 signature is valid
 ```
 
-The description of `verify-signature`, in `--cli --help` and in its own help alike, names only
-Ed25519, ML-DSA and SLH-DSA; the `-a` option in `--cli verify-signature --help` lists what the
+The description of `verify-signature`, in `mystic-crypt --help` and in its own help alike, names only
+Ed25519, ML-DSA and SLH-DSA; the `-a` option in `mystic-crypt verify-signature --help` lists what the
 command really accepts. A key pair in DER form, as the RSA example uses, comes out of
-`--cli convert --to der`, see [[Plugin-Key-Conversion]].
+`mystic-crypt convert --to der`, see [[Plugin-Key-Conversion]].
 
 The exit code carries the verdict, so a script can branch on it: `0` valid, `1` invalid
 (`signature is invalid` on standard output), `2` an error before the check could happen, such
@@ -148,7 +148,7 @@ one side and checked on the other as long as the key and the algorithm match.
   SLH-DSA set is not, and Verify then answers `signature is not valid` even though the signature
   is perfectly good. The same key in DER form is read: convert it with **to DER** in
   [[Plugin-Key-Conversion]], keep the generated pair in the open window and verify there, or
-  verify with `--cli verify-signature`, which reads those keys in either form.
+  verify with `mystic-crypt verify-signature`, which reads those keys in either form.
 - **A generated key pair cannot be saved from this panel and does not survive the window.**
   Close the Sign and Verify window and the private key is gone, which makes every signature
   made with it unverifiable for good. Only generate keys here for experiments; for keys you

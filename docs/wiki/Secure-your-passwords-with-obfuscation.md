@@ -33,8 +33,8 @@ work in this release; the command line's `disentangle` reverses both kinds of ru
 rules that produced the text:
 
 ```
-java -jar mystic-crypt-ui.jar --cli obfuscate   --rule a=x:UPPERCASE@1,4 --rule b=y --rule c=z --text "cabbage"   ->  zAyyAge
-java -jar mystic-crypt-ui.jar --cli disentangle --rule a=x:UPPERCASE@1,4 --rule b=y --rule c=z --text "zAyyAge"   ->  cabbage
+mystic-crypt obfuscate   --rule a=x:UPPERCASE@1,4 --rule b=y --rule c=z --text "cabbage"   ->  zAyyAge
+mystic-crypt disentangle --rule a=x:UPPERCASE@1,4 --rule b=y --rule c=z --text "zAyyAge"   ->  cabbage
 ```
 
 Pick replacement characters that do not occur in your texts. With the single rule `a` to `x`, the

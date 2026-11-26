@@ -68,7 +68,7 @@ console you open. A console that is already on screen keeps what it was given.
 This tool contributes no commands, and it has no command line equivalent, because it exists for the
 opposite situation: seeing program output when there is no terminal attached. When you run the
 application in command line mode
-(`java -jar mystic-crypt-ui.jar --cli <command> ...`, see [[The-Command-Line]]), its output already
+(`mystic-crypt <command> ...`, see [[The-Command-Line]]), its output already
 goes to your terminal and the console has nothing to add.
 
 ## Limits and pitfalls
