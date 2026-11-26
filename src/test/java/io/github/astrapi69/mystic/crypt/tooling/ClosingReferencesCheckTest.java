@@ -25,6 +25,7 @@
 package io.github.astrapi69.mystic.crypt.tooling;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.File;
@@ -86,7 +87,27 @@ class ClosingReferencesCheckTest
 			new Case("a reference without a closing keyword closes nothing and passes",
 				"Refs #535, as before", "docs: x\n\nRefs #535", "", 0),
 			new Case("a closing keyword in the middle of prose is refused",
-				"This fixes #44 along the way.", "fix: x", "", 1));
+				"This fixes #44 along the way.", "fix: x", "", 1),
+			new Case("a reported reference that is not a reference is unreadable input",
+				"Closes #1", "chore: x", "\"junk\"", 2),
+			new Case("a reported reference without a number is unreadable input", "Closes #1",
+				"chore: x", "\"astrapi69/lethenon#\"", 2),
+			new Case("the repository is compared in any case: the same issue passes",
+				"Closes Astrapi69/Mystic-Crypt-UI#5", "chore: x", "\"" + REPOSITORY + "#5\"", 0),
+			new Case("the same number in another repository is not the same issue",
+				"Closes Astrapi69/Mystic-Crypt-UI#5", "chore: x", "\"astrapi69/lethenon#5\"", 1),
+			new Case("a colon after the keyword is part of a closing line", "Closes: #12",
+				"chore: x", "\"" + REPOSITORY + "#12\"", 0),
+			new Case("a colon after the keyword does not hide prose on the line",
+				"Closes: #12 as asked", "chore: x", "\"" + REPOSITORY + "#12\"", 1),
+			new Case("an issue that stays open, in parentheses in a commit subject, closes nothing",
+				"text", "fix: the thing (#962)", "", 0),
+			new Case("an issue that stays open, written '#NN stays open', closes nothing",
+				"#962 stays open", "chore: x", "", 0),
+			new Case("'fix: #NN stays open' reads as a closing keyword and is refused (AG-069)",
+				"fix: #962 stays open", "chore: x", "", 1),
+			new Case("'Fixes #NN stays open' is refused, the issue is not named alone",
+				"Fixes #962 stays open", "chore: x", "\"" + REPOSITORY + "#962\"", 1));
 	}
 
 	@ParameterizedTest(name = "{0}")
@@ -111,6 +132,186 @@ class ClosingReferencesCheckTest
 		Run run = run("{\"repository\": \"" + REPOSITORY + "\"}");
 
 		assertEquals(2, run.exit(), run.output());
+	}
+
+	@org.junit.jupiter.api.Test
+	@org.junit.jupiter.api.DisplayName("a reference of this repository is shown as '#n' in the NOT NAMED line")
+	void notNamedLine_showsTheNumberAlone_forThisRepository() throws Exception
+	{
+		Run run = run(input("\"This fixes #44 along the way.\"", "[\"chore: x\"]", "[]"));
+
+		assertEquals(1, run.exit(), run.output());
+		assertTrue(run.output().contains("NOT NAMED: " + REPOSITORY + "#44 would be closed"),
+			run.output());
+		assertTrue(run.output().contains("says only 'Closes #44'."), run.output());
+	}
+
+	@org.junit.jupiter.api.Test
+	@org.junit.jupiter.api.DisplayName("a reference of another repository is shown as 'owner/name#n' in the NOT NAMED line")
+	void notNamedLine_showsTheRepository_forAnotherRepository() throws Exception
+	{
+		Run run = run(input("\"This fixes astrapi69/lethenon#8 too.\"", "[\"chore: x\"]", "[]"));
+
+		assertEquals(1, run.exit(), run.output());
+		assertTrue(run.output().contains("NOT NAMED: astrapi69/lethenon#8 would be closed"),
+			run.output());
+		assertTrue(run.output().contains("says only 'Closes astrapi69/lethenon#8'."), run.output());
+		assertFalse(run.output().contains("'Closes #8'"), run.output());
+	}
+
+	@org.junit.jupiter.api.Test
+	@org.junit.jupiter.api.DisplayName("the summary counts what GitHub reported, what the text says and what is named")
+	void summary_countsReportedFoundAndNamed() throws Exception
+	{
+		String reported = "[\"" + REPOSITORY + "#1\", \"" + REPOSITORY + "#2\"]";
+
+		Run run = run(input("\"Closes #1\\nThis fixes #3 too.\"", "[\"chore: x\"]", reported));
+
+		assertEquals(1, run.exit(), run.output());
+		assertTrue(
+			run.output().startsWith("closing-references: 3 issue(s) this pull request would "
+				+ "close (2 reported by GitHub, 2 found in the text), 1 named on a closing line"),
+			run.output());
+	}
+
+	@org.junit.jupiter.api.Test
+	@org.junit.jupiter.api.DisplayName("when every reference is named, the summary says so and nothing is refused")
+	void summary_countsAllNamed_whenEveryReferenceIsNamed() throws Exception
+	{
+		Run run = run(input("\"Closes #1\"", "[\"chore: x\"]", "[\"" + REPOSITORY + "#1\"]"));
+
+		assertEquals(0, run.exit(), run.output());
+		assertTrue(
+			run.output().startsWith("closing-references: 1 issue(s) this pull request would "
+				+ "close (1 reported by GitHub, 1 found in the text), 1 named on a closing line"),
+			run.output());
+		assertFalse(run.output().contains("NOT NAMED"), run.output());
+	}
+
+	record Raw(String name, String repository, String body, String commits, String closing,
+		int exit) {
+		@Override
+		public String toString()
+		{
+			return name;
+		}
+	}
+
+	static Stream<Raw> readableInputs()
+	{
+		String repository = "\"" + REPOSITORY + "\"";
+		return Stream.of(
+			new Raw("a body of null is read as an empty text: its commit still names the issue",
+				repository, "null", "[\"fix: x\\n\\nCloses #4\"]", "[\"" + REPOSITORY + "#4\"]", 0),
+			new Raw("a body of null is read as an empty text: nothing names the reported issue",
+				repository, "null", "[\"fix: x\"]", "[\"" + REPOSITORY + "#4\"]", 1),
+			new Raw("a pull request without commits and without references passes", repository,
+				"\"text\"", "[]", "[]", 0));
+	}
+
+	@ParameterizedTest(name = "{0}")
+	@MethodSource("readableInputs")
+	void readableInput_isDecidedByItsContent(final Raw raw) throws Exception
+	{
+		Run run = run(input(raw.repository(), raw.body(), raw.commits(), raw.closing()));
+
+		assertEquals(raw.exit(), run.exit(), run.output());
+		assertTrue(run.output().startsWith("closing-references: "), run.output());
+	}
+
+	static Stream<String[]> notJson()
+	{
+		return Stream.of(new String[] { "text that is not JSON", "closing references" },
+			new String[] { "empty input", "" }, new String[] { "a JSON array", "[]" },
+			new String[] { "a JSON null", "null" },
+			new String[] { "JSON cut off in the middle", "{\"repository\": \"a/b\", \"body\"" });
+	}
+
+	@ParameterizedTest(name = "{0}")
+	@MethodSource("notJson")
+	void inputThatIsNoJsonObject_isAFailure(final String name, final String input) throws Exception
+	{
+		Run run = run(input);
+
+		assertEquals(2, run.exit(), run.output());
+		assertTrue(run.output().startsWith("closing-references: cannot read the input"),
+			run.output());
+	}
+
+	/**
+	 * Wrong types in the input, pinned as the script handles them today (develop 714c0e61, #555): a
+	 * traceback with exit 1 for most, a silent read of the wrong thing for the rest. The docstring
+	 * promises exit 2 "on input it cannot read"; the fix turns every row of this table to exit 2
+	 * and the first line "closing-references: cannot read the input".
+	 */
+	record Today(String name, String repository, String body, String commits, String closing,
+		int exit, String outputStart) {
+		@Override
+		public String toString()
+		{
+			return name;
+		}
+	}
+
+	static Stream<Today> wrongTypes()
+	{
+		String repository = "\"" + REPOSITORY + "\"";
+		String trace = "Traceback";
+		String read = "closing-references: ";
+		return Stream.of(
+			new Today("a body that is a number ends in a traceback", repository, "5", "[]", "[]", 1,
+				trace),
+			new Today("a body that is true ends in a traceback", repository, "true", "[]", "[]", 1,
+				trace),
+			new Today("a body that is a list ends in a traceback", repository, "[\"Closes #1\"]",
+				"[]", "[]", 1, trace),
+			new Today("a commit message of null ends in a traceback", repository, "\"\"", "[null]",
+				"[]", 1, trace),
+			new Today("a commit message that is a number ends in a traceback", repository, "\"\"",
+				"[5]", "[]", 1, trace),
+			new Today("a reported reference of null ends in a traceback", repository, "\"\"", "[]",
+				"[null]", 1, trace),
+			new Today("a reported reference that is a number ends in a traceback", repository,
+				"\"\"", "[]", "[5]", 1, trace),
+			new Today("a repository that is a list ends in a traceback", "[\"a\"]", "\"\"", "[]",
+				"[\"#1\"]", 1, trace),
+			new Today("a repository of null with a reference to read ends in a traceback", "null",
+				"\"Closes #1\"", "[]", "[]", 1, trace),
+			new Today("a repository of null passes when nothing is found", "null", "\"\"", "[]",
+				"[]", 0, read),
+			new Today("commits that are one string are read letter by letter and pass", repository,
+				"\"\"", "\"fix: x\\n\\nCloses #1\"", "[]", 0, read),
+			new Today("commits that are an object are read by their keys and pass", repository,
+				"\"\"", "{\"Closes #2\": 1}", "[]", 0, read),
+			new Today("reported references that are an object are read by their keys and refused",
+				repository, "\"\"", "[]", "{\"" + REPOSITORY + "#1\": 1}", 1, read),
+			new Today("a body that is an empty object is read as empty and passes", repository,
+				"{}", "[]", "[]", 0, read),
+			new Today("a body that is the number 0 is read as empty and passes", repository, "0",
+				"[]", "[]", 0, read));
+	}
+
+	@ParameterizedTest(name = "{0}")
+	@MethodSource("wrongTypes")
+	void inputOfTheWrongType_isHandledAsTheScriptDoesToday(final Today today) throws Exception
+	{
+		Run run = run(input(today.repository(), today.body(), today.commits(), today.closing()));
+
+		// the fix turns this: exit 2 and "closing-references: cannot read the input" for every row
+		assertEquals(today.exit(), run.exit(), run.output());
+		assertTrue(run.output().startsWith(today.outputStart()), run.output());
+	}
+
+	private static String input(final String body, final String commits, final String closing)
+	{
+		return input("\"" + REPOSITORY + "\"", body, commits, closing);
+	}
+
+	private static String input(final String repository, final String body, final String commits,
+		final String closing)
+	{
+		return "{\"repository\": " + repository + ", \"body\": " + body + ", \"commits\": "
+			+ commits + ", \"closing\": " + closing + "}";
 	}
 
 	private static String json(final String text)
