@@ -258,49 +258,27 @@ class ReleaseFreezeCheckTest
 	private static final String GOOD_PULL = "{\"number\": 1, \"head_ref\": \"feature/a\","
 		+ " \"head_sha\": \"s1\", \"labels\": []}";
 
-	record Wrong(String name, String badPull, int exit, boolean statusBefore) {
-		@Override
-		public String toString()
-		{
-			return name;
-		}
-	}
-
-	static Stream<Wrong> wrongTypes()
-	{
-		String head = "{\"number\": 2, \"head_ref\": ";
-		return Stream.of(
-			new Wrong("labels null: traceback, the first status is already printed",
-				head + "\"feature/b\", \"head_sha\": \"s2\", \"labels\": null}", 1, true),
-			new Wrong("labels a number: traceback, the first status is already printed",
-				head + "\"feature/b\", \"head_sha\": \"s2\", \"labels\": 5}", 1, true),
-			new Wrong("head_ref null: traceback before any status",
-				head + "null, \"head_sha\": \"s2\", \"labels\": []}", 1, false),
-			new Wrong("head_ref a number: traceback before any status",
-				head + "5, \"head_sha\": \"s2\", \"labels\": []}", 1, false),
-			new Wrong("number null on a release branch: read as valid, exit 0",
-				"{\"number\": null, \"head_ref\": \"release/c\", \"head_sha\": \"s2\", \"labels\": []}",
-				0, true),
-			new Wrong("number a string on a release branch: read as valid, exit 0",
-				"{\"number\": \"x\", \"head_ref\": \"release/c\", \"head_sha\": \"s2\", \"labels\": []}",
-				0, true),
-			new Wrong("head_sha null: read as valid, a status for the sha None, exit 0",
-				head + "\"feature/b\", \"head_sha\": null, \"labels\": []}", 0, true));
-	}
-
 	/**
-	 * Pins today's behaviour for a field of the wrong type; the fix turns it into exit 2 without a
-	 * status line.
+	 * The script's docstring says exit 2 on input it cannot read and then no status is set: a field
+	 * of the wrong type is such input, and no status is printed for the pull requests before it.
 	 */
 	@ParameterizedTest(name = "{0}")
-	@MethodSource("wrongTypes")
-	@DisplayName("today a pull request with a field of the wrong type is not refused as unreadable input")
-	void aFieldOfTheWrongType_today(final Wrong wrong) throws Exception
+	@ValueSource(strings = {
+			"{\"number\": 2, \"head_ref\": \"feature/b\", \"head_sha\": \"s2\", \"labels\": null}",
+			"{\"number\": 2, \"head_ref\": \"feature/b\", \"head_sha\": \"s2\", \"labels\": 5}",
+			"{\"number\": 2, \"head_ref\": null, \"head_sha\": \"s2\", \"labels\": []}",
+			"{\"number\": 2, \"head_ref\": 5, \"head_sha\": \"s2\", \"labels\": []}",
+			"{\"number\": null, \"head_ref\": \"release/c\", \"head_sha\": \"s2\", \"labels\": []}",
+			"{\"number\": \"x\", \"head_ref\": \"release/c\", \"head_sha\": \"s2\", \"labels\": []}",
+			"{\"number\": 2, \"head_ref\": \"feature/b\", \"head_sha\": null, \"labels\": []}" })
+	@DisplayName("a pull request with a field of the wrong type exits 2 and sets no status")
+	void aFieldOfTheWrongType_exits2WithoutAnyStatus(final String badPull) throws Exception
 	{
-		Run run = run("{\"pulls\": [" + GOOD_PULL + ", " + wrong.badPull() + "]}");
+		Run run = run("{\"pulls\": [" + GOOD_PULL + ", " + badPull + "]}");
 
-		assertEquals(wrong.exit(), run.exit(), run.output());
-		assertEquals(wrong.statusBefore(), run.output().contains("\t"), run.output());
+		assertEquals(2, run.exit(), run.output());
+		assertFalse(run.output().contains("\t"),
+			"no status line, not even for the first pull request: " + run.output());
 	}
 
 	@Test
