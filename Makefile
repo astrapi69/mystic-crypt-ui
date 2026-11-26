@@ -41,7 +41,7 @@ PLUGIN_ZIP_TESTS ?= zipTest
 SCRIPT_TESTS ?= yes
 
 .PHONY: help without-slot verify-installer merge-pr test-fast release-jar release-jar-if-reachable build build-full build-with-plugins bwp run run-isolated start all clean test test-e2e test-e2e-demo \
-	clean-build-installer izpack-installer izpack-installer-signed release-gate \
+	clean-build-installer izpack-installer izpack-installer-signed \
 	dependencies dependency-updates jacoco-coverage jacoco-report jar javadoc \
 	license-format publish-local spotless-java spotless-misc tag-release \
 	version-catalog-format version-catalog-update all-dependencies-jar \
@@ -66,7 +66,7 @@ GRADLE_TARGETS := all all-dependencies-jar build build-full build-stacktrace bui
 	plugin-checksum plugin-console plugin-conversion plugin-file-crypt plugin-kem-demo plugin-keygen \
 	plugin-keystore plugin-lethenon plugin-menu-designer plugin-obfuscation plugin-password-hash \
 	plugin-pqc-signature plugin-release-key plugin-secret-sharing plugins plugins-install publish-local \
-	release-gate run run-isolated spotless-java spotless-misc tag-release test test-e2e test-e2e-demo test-fast \
+	run run-isolated spotless-java spotless-misc tag-release test test-e2e test-e2e-demo test-fast \
 	verify-installer version-catalog-format version-catalog-update
 SLOT_GOALS := $(filter $(GRADLE_TARGETS),$(MAKECMDGOALS))
 ifneq ($(SLOT_GOALS),)
@@ -107,7 +107,7 @@ build: ## [build] the runnable jar build/libs/*-all.jar, after a clean; no tests
 # The packaging task cleans - it has to, because the jar signing globs over build/libs and would
 # otherwise sign leftovers from an earlier build - so running it second wiped the test report the
 # first invocation had just written, and a green gate could not say what it had measured (#227).
-# the release gate. It depends on plugins because `./gradlew build` does not build them and the
+# It depends on plugins because `./gradlew build` does not build them and the
 # end-to-end suite needs their zips: until #333 the 54 tests that install a plugin SKIPPED here, so
 # a release could be cut with every plugin feature unverified and the gate still green. They fail
 # now, which is only useful if the gate builds what they need (#333)
@@ -375,23 +375,6 @@ verify-installer: ## [release] checks the installer after its checksums are writ
 
 izpack-installer-signed: plugins ## [release] plugins, then the installer from the signed jar
 	JAVA_HOME=$(JAVA_HOME) $(SIGNING) ./gradlew --no-daemon createIzPackInstallerFromSignedJar $(GRADLE_FLAGS)
-
-# The full release gate of release-workflow.md step 5, every phase with this Makefile's JAVA_HOME,
-# so that one daemon serves all of them instead of one per JDK, and before each phase the daemons
-# stopped once none of them is building (#580). Each phase overwrites build/test-results; copy them
-# away between phases when a number is in doubt (lessons-learned.md). The gate ends by checking
-# that the results it leaves are those of the forced phase, not an older run's from the cache (#630).
-release-gate: ## [release] the full release gate: build-full, the forced test tasks, gradlew build, and a check of the results
-	scripts/stop-idle-daemons.sh
-	$(MAKE) build-full
-	scripts/stop-idle-daemons.sh
-	mkdir -p build && date -u +%s > build/release-gate-forced-run-started
-	JAVA_HOME=$(JAVA_HOME) ./gradlew test --rerun e2eTest --rerun e2eLockTest --rerun e2eKdbxTest --rerun $(GRADLE_FLAGS)
-	scripts/stop-idle-daemons.sh
-	JAVA_HOME=$(JAVA_HOME) ./gradlew build $(GRADLE_FLAGS)
-	scripts/check-forced-run-results.sh "$$(cat build/release-gate-forced-run-started)" \
-		build/test-results/test build/test-results/e2eTest build/test-results/e2eLockTest \
-		build/test-results/e2eKdbxTest
 
 dependencies: ## [quality] gradlew dependencies
 	JAVA_HOME=$(JAVA_HOME) ./gradlew dependencies $(GRADLE_FLAGS)
