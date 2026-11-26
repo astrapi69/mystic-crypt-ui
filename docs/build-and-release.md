@@ -371,8 +371,16 @@ izpack libs.izpack.ant
    `java.home`), then the PATH's, needs 25 or newer, and otherwise names what it tried on
    standard error, in `zenity` or `notify-send` when present, and exits 1 (#1009). That
    search and the JVM flags are written once, in `find-java.sh`, which this pack installs
-   and which `start.sh` and `mystic-crypt` source; once more, because a batch file cannot
-   read them, the flags are in `start.bat` and `mystic-crypt.bat`.
+   and which `start.sh` and `mystic-crypt` source. `start.bat` and `mystic-crypt.bat` call
+   `find-java.bat`, which this pack installs too and which has the same order and the same
+   minimum of 25 (the installer's Java from `installer-java-home`, then the PATH's
+   `java.exe`); once more, because a batch file cannot read them, the flags are in the two
+   batch files. `start.bat` starts the found `javaw.exe` without a console window and, when
+   no Java fits, shows the reason in a dialog (a PowerShell message box; `msg.exe` sends to
+   Remote Desktop sessions, not to the local user) and exits 1 (#1195).
+   `python scripts/windows_launcher_test.py` runs both batch files against stub `java.exe`
+   and `javaw.exe` executables; it needs Windows, so it is not in `SCRIPT_TESTS` but runs
+   on a Windows runner in `windows-launchers.yml`, a check no merge waits for.
    `python3 scripts/start_launcher_test.py` runs `start.sh` against stub `java` executables.
 2. `commandline` (optional, preselected): the `mystic-crypt` and `mystic-crypt.bat`
    launcher scripts, which run the application jar's command line, the path
@@ -385,7 +393,9 @@ izpack libs.izpack.ant
    `~/.local/bin/mystic-crypt` (creating the directory, never replacing a file of that name
    that is not a link to an installation of this application), and again before the
    uninstaller deletes the installation, which removes that link. Windows gets no PATH entry;
-   `mystic-crypt.bat` is called in the installation directory. `python3
+   `mystic-crypt.bat` is called in the installation directory and takes its Java from
+   `find-java.bat` like `start.bat`; when none fits it says so on standard error only and
+   exits 1 (#1195). `python3
    scripts/cli_launcher_test.py` runs the starter against stub `java` executables and the link
    script in a temporary home. Depends on `executables`.
 3. `plugins` (optional, preselected): every internal plugin zip, installed into

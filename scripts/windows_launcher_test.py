@@ -245,6 +245,151 @@ class LauncherFilesTest(unittest.TestCase):
                 self.assertIn(flags, command[0])
                 self.assertLess(command[0].index(flags), command[0].index("-jar"))
 
+    def test_the_search_is_written_once_and_both_starters_call_it(self):
+        search = (DOC / "find-java.bat").read_text()
+        self.assertIn('SET "MINIMUM_JAVA=25"', search)
+        self.assertIn("MINIMUM_JAVA=25", FIND_JAVA_SH.read_text())
+        for name in ("start.bat", "mystic-crypt.bat"):
+            with self.subTest(starter=name):
+                text = (DOC / name).read_text()
+                self.assertIn('CALL "%~dp0find-java.bat"', text)
+                self.assertNotIn("MINIMUM_JAVA", text)
+                self.assertNotIn("-version", text)
+
+    def test_the_required_pack_installs_the_search_beside_the_starters(self):
+        root = ElementTree.parse(INSTALL_XML).getroot()
+        pack = next(pack for pack in root.iter("pack") if pack.get("name") == "executables")
+        self.assertEqual("yes", pack.get("required"))
+        sources = [(element.get("src"), element.get("targetdir")) for element in pack.iter("file")]
+        self.assertIn(("resources/main/doc/find-java.bat", "${INSTALL_PATH}"), sources)
+
+
+class JavaSearchTest(WindowsLauncherCase):
+    """The order and the minimum of find-java.sh, for both starters."""
+
+    STARTERS = ("start.bat", "mystic-crypt.bat")
+
+    def started_with(self, starter):
+        """The first run the starter made, after waiting for it where the starter does not wait."""
+        calls = self.calls_after_start() if starter == "start.bat" else self.calls()
+        return calls[0] if calls else ""
+
+    def test_the_installers_java_wins_over_the_paths_java_older_or_not(self):
+        for starter in self.STARTERS:
+            for path_version in ("21.0.5", "25.0.1"):
+                with self.subTest(starter=starter, path_java=path_version):
+                    self.log.unlink(missing_ok=True)
+                    self.installer_java("25.0.5")
+                    self.path_java(path_version)
+                    completed = self.run_starter(starter)
+                    self.assertEqual(0, completed.returncode, completed.err)
+                    self.assertTrue(self.started_with(starter).startswith("run installer "),
+                                    self.calls())
+
+    def test_the_installers_java_reads_with_unix_line_ends_too(self):
+        self.installer_java("25.0.5", line_end="\n")
+        self.path_java("21.0.5")
+        self.run_starter("mystic-crypt.bat")
+        self.assertTrue(self.calls()[0].startswith("run installer "), self.calls())
+
+    def test_the_path_java_is_used_when_the_installers_is_gone_too_old_or_a_placeholder(self):
+        def gone():
+            self.installer_java("25.0.5")
+            shutil.rmtree(self.work / "installer jdk (x64)")
+
+        def too_old():
+            self.installer_java("21.0.5")
+
+        def placeholder():
+            (self.install / "installer-java-home").write_bytes(b"${JAVA_HOME}\r\n")
+
+        for case in (gone, too_old, placeholder):
+            for starter in self.STARTERS:
+                with self.subTest(installer=case.__name__, starter=starter):
+                    self.log.unlink(missing_ok=True)
+                    case()
+                    self.path_java("26")
+                    self.assertEqual(0, self.run_starter(starter).returncode)
+                    self.assertTrue(self.started_with(starter).startswith("run path "), self.calls())
+
+    def test_the_version_reads_from_every_form_java_prints(self):
+        accepted = {"25": True, "25.0.1": True, "25-ea": True, "26": True, "24.0.2": False,
+                    "21.0.5": False, "17": False, "1.8.0_391": False}
+        for version, fits in accepted.items():
+            with self.subTest(version=version):
+                self.log.unlink(missing_ok=True)
+                self.path_java(version)
+                completed = self.run_starter("mystic-crypt.bat")
+                self.assertEqual(0 if fits else 1, completed.returncode, completed.err)
+                self.assertEqual(1 if fits else 0, len(self.calls()), self.calls())
+
+    def test_mystic_crypt_bat_says_why_on_standard_error_only_and_exits_non_zero(self):
+        self.path_java("21.0.5")
+        self.dialog()
+        completed = self.run_starter("mystic-crypt.bat", "hash")
+        self.assertEqual(1, completed.returncode)
+        self.assertIn("Java 25", completed.err)
+        self.assertIn("Java 21", completed.err)
+        self.assertIn(str(self.bin), completed.err)
+        self.assertEqual("", completed.out.strip())
+        self.assertEqual([], self.calls())
+
+    def test_the_message_names_the_installers_java_and_the_paths_when_none_fits(self):
+        self.installer_java("21.0.5")
+        self.path_java("17.0.2")
+        completed = self.run_starter("mystic-crypt.bat")
+        self.assertEqual(1, completed.returncode)
+        self.assertIn("installer jdk (x64)", completed.err)
+        self.assertIn("Java 21", completed.err)
+        self.assertIn("Java 17", completed.err)
+
+    def test_the_message_says_so_when_there_is_no_java_at_all(self):
+        completed = self.run_starter("mystic-crypt.bat")
+        self.assertEqual(1, completed.returncode)
+        self.assertIn("no java found", completed.err)
+
+    def test_start_bat_shows_why_in_a_dialog_and_on_standard_error_and_exits_non_zero(self):
+        self.path_java("21.0.5")
+        self.dialog()
+        completed = self.run_starter("start.bat")
+        self.assertEqual(1, completed.returncode)
+        self.assertIn("Java 25", completed.err)
+        shown = self.calls()
+        self.assertEqual(1, len(shown), shown)
+        self.assertTrue(shown[0].startswith("run dialog powershell "), shown)
+        self.assertIn("message=mystic-crypt-ui needs Java 25 or newer", shown[0])
+        self.assertIn("Java 21", shown[0])
+        self.assertNotIn("javaw", shown[0].split("message=")[0])
+
+    def test_the_flags_the_jar_and_the_arguments_reach_the_installers_java(self):
+        self.installer_java("25.0.5")
+        self.run_starter("mystic-crypt.bat", "kem", "--algorithm", "hybrid")
+        self.assertEqual(
+            [f"run installer java {self.expected_flags()} [-jar] [{self.install}\\mystic-crypt-ui.jar]"
+             " [--cli] [kem] [--algorithm] [hybrid]"], self.calls())
+
+    def test_start_bat_starts_the_installers_javaw_without_a_console(self):
+        self.installer_java("25.0.5")
+        self.path_java("21.0.5")
+        self.assertEqual(0, self.run_starter("start.bat").returncode)
+        self.assertEqual(
+            [f"run installer javaw {self.expected_flags()} [-jar] [{self.install}\\mystic-crypt-ui.jar]"],
+            self.calls_after_start())
+
+    def test_standard_input_and_the_exit_code_pass_through_the_installers_java(self):
+        received = self.work / "received.bin"
+        self.installer_java("25.0.5", exit_code=3, stdin_file=received)
+        completed = self.run_starter("mystic-crypt.bat", "hash", standard_input=b"a line\r\n")
+        self.assertEqual(3, completed.returncode)
+        self.assertEqual(b"a line\r\n", received.read_bytes())
+
+    def test_the_search_does_not_depend_on_the_working_directory(self):
+        self.installer_java("25.0.5")
+        elsewhere = self.work / "elsewhere"
+        elsewhere.mkdir()
+        self.assertEqual(0, self.run_starter("mystic-crypt.bat", cwd=elsewhere).returncode)
+        self.assertTrue(self.calls()[0].startswith("run installer "), self.calls())
+
 
 if __name__ == "__main__":
     unittest.main()
