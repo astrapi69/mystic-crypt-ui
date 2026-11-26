@@ -68,13 +68,7 @@ dependencies {
     // the settings contribution implements the host's extension point and reads through the host's
     // settings store, so the host jar has to be on the test classpath to load it
     testImplementation "io.github.astrapi69:mystic-crypt-ui:$hostVersion"
-    testImplementation libs.miglayout.swing
-    // the binding test builds the panel, so the model backed components and the models they bind
-    // to have to be on the test classpath as well
-    testImplementation libs.swing.model.components
-    testImplementation libs.model.data
     testImplementation libs.pf4j
-    testImplementation libs.resourcebundle.core
 
 }
 

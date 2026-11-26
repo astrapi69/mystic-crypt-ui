@@ -83,14 +83,11 @@ dependencies {
     testImplementation libs.junit.jupiter
     testImplementation libs.mystic.crypt
     testImplementation libs.crypt.data
-    testImplementation libs.picocli
     // the contribution class implements the host's extension point, so the host jar has to be on
     // the test classpath to load it - for the main sources it stays compileOnly like everything else
     testImplementation "io.github.astrapi69:mystic-crypt-ui:$hostVersion"
-    testImplementation libs.miglayout.swing
-    // the panel test constructs the panel, so the model backed components and the combo box models
-    // it is built from have to be on the test classpath as well
-    testImplementation libs.swing.model.components
+    // the panel test constructs the panel, so the combo box models it is built from have to be on
+    // the test classpath as well
     testImplementation libs.model.data
     testImplementation libs.swing.base.components
     // the wizard state/panel tests build the real state machine and the real panels
@@ -99,7 +96,6 @@ dependencies {
     testImplementation libs.pf4j
     testImplementation libs.bcprov.jdk18on
     testImplementation libs.bcpkix.jdk18on
-    testImplementation libs.resourcebundle.core
     testRuntimeOnly libs.junit.platform.launcher
 }
 
