@@ -2,7 +2,7 @@
 #
 # Verifies the installer of a release after its checksums were written, against the file they describe
 # (release-workflow.md step 5, #793). Run it on the installer built from the commit that will be tagged, and again
-# on the file downloaded from the release, if it was uploaded.
+# on the file downloaded from the draft release before it is published (step 8).
 #
 # Usage: scripts/verify-installer.sh <version> [--previous <version>] [--installer <file>]
 #        make verify-installer [PREVIOUS=<version>]

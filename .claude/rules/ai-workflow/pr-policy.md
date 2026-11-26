@@ -14,8 +14,8 @@ holds for this repository). They are not repeated here, so a copy cannot drift f
   release-workflow.md (#395).
 - **The squash pilot** is enforced by `scripts/merge_pr.py` (`make merge-pr`): it refuses a title that is not a
   Conventional Commit or contains `(#`, and a feat, fix, perf or breaking pull request without its `changelog.d/`
-  fragment. Auto-merge runs none of these checks: whoever turns it on checks them first, and gives the squash subject
-  and body (github-issue-policy.md).
+  fragment. Auto-merge runs none of these checks: whoever turns it on checks them first; the squash subject and body
+  are the repository's squash default (github-issue-policy.md).
 - **Required status checks on develop:** `closing-references` refuses a pull request that would close an issue no
   closing line names (lessons-learned.md), and `release-freeze` is red on every other pull request while a release
   pull request is open, except one labelled `release-content` (vibe-coding.md).

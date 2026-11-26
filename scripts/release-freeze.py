@@ -24,11 +24,28 @@ RELEASE_PREFIX = "release/"
 EXEMPT_LABEL = "release-content"
 
 
+def check_types(pulls):
+    """Raises a ValueError unless every pull request has the fields, of the types, the output needs."""
+    if not isinstance(pulls, list):
+        raise ValueError("pulls is not a list")
+    for pull in pulls:
+        if not isinstance(pull, dict):
+            raise ValueError(f"a pull request is not an object: {pull!r}")
+        number = pull["number"]
+        if not isinstance(number, int) or isinstance(number, bool):
+            raise ValueError(f"number is not an integer: {number!r}")
+        for field in ("head_ref", "head_sha"):
+            if not isinstance(pull[field], str) or not pull[field]:
+                raise ValueError(f"#{number}: {field} is not a non-empty string: {pull[field]!r}")
+        labels = pull["labels"]
+        if not isinstance(labels, list) or not all(isinstance(label, str) for label in labels):
+            raise ValueError(f"#{number}: labels is not a list of strings: {labels!r}")
+
+
 def main():
     try:
         pulls = json.load(sys.stdin)["pulls"]
-        for pull in pulls:
-            pull["number"], pull["head_ref"], pull["head_sha"], pull["labels"]
+        check_types(pulls)
     except (ValueError, KeyError, TypeError) as unreadable:
         print(f"release-freeze: cannot read the input: {unreadable}", file=sys.stderr)
         return 2

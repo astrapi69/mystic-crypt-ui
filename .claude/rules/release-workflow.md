@@ -115,8 +115,8 @@ Prompt triggers: "release new version", "new release".
      rewrites the jar (measured 2026-09-07: 81743356 bytes verified, 81743359 bytes shipped).
      `make without-slot TARGET=verify-installer PREVIOUS=<last release>` runs these checks and the
      ones 8.14 added (signer as the previous release's, class major, mystic-crypt against Central,
-     plugins, the jar tests, a start); run it again with `INSTALLER=<the downloaded file>` after the
-     upload (#793).
+     plugins, the jar tests, a start); run it again on the installer downloaded from the draft release
+     (step 8, #793).
    - First release this way: 8.16, gate runs 45600604264 (gradle.yml) and 45600609197 (e2e.yml) on
      `0031c500`, which `RELEASE-8.16` names.
    - **the maintainer runs the release smoke by hand**: the `release smoke` subset of
@@ -144,9 +144,23 @@ Prompt triggers: "release new version", "new release".
    release branch, and a reader could not tell which release it corresponded to without checking
    the tags (#248). It is a numbered step here rather than a habit for exactly that reason. Never
    the other direction: master carries nothing develop does not.
-8. **GitHub release** from the CHANGELOG entry (`gh release create RELEASE-X.Y.Z`), with the installer
-   AND the `.sha256`/`.sha512` files `make izpack-installer` writes next to it. A release without
-   them gives a downloader no way to tell a tampered file from the real one. The release text names
+8. **GitHub release, a draft until every station is green** (RL-083). From the CHANGELOG entry:
+   `gh release create RELEASE-X.Y.Z --draft --verify-tag --title "mystic-crypt-ui X.Y.Z"
+   --notes-file <notes> <installer> <installer>.sha256 <installer>.sha512`, the installer AND the
+   checksum files `make izpack-installer` writes next to it. A release without them gives a
+   downloader no way to tell a tampered file from the real one. `--verify-tag` refuses when the tag
+   of step 6 is not on GitHub; without it `gh` creates the tag from the head of the default branch,
+   develop. The draft is published (`gh release edit RELEASE-X.Y.Z --draft=false`) only when
+   - every run of the tagged commit has concluded with success
+     (`gh run list --commit <sha> --json workflowName,status,conclusion`): at 8.16 the release was
+     published at 12:58:54 UTC while three runs of the push to `master` were still running, the last
+     until 13:06:20 UTC;
+   - `gh release download RELEASE-X.Y.Z -D <a new empty directory>` gives exactly the three files,
+     each identical to the local one (`cmp`), so the set is the expected one and not a rebuild;
+   - `make without-slot TARGET=verify-installer PREVIOUS=<last release>
+     INSTALLER=<that directory>/mystic-crypt-ui-X.Y.Z-installer.jar` passed (the second run of step 5).
+   `gh` 2.46.0 finds a draft by its tag for `view`, `download` and `edit`, and a draft creates no
+   tag (measured 2026-11-26 on a throwaway draft in a private repository). The release text names
    the JDK it was built with, as `java -version` of the Makefile's JAVA_HOME prints it (#586).
    The release text names an advisory id only once that advisory is published (AG-117); until then it
    carries the neutral SECURITY line of step 3.

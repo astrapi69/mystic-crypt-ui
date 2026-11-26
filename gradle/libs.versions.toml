@@ -5,7 +5,6 @@ awt-extensions-version = "2.0"
 bcpg-jdk18on-version = "1.87"
 bcpkix-jdk18on-version = "1.87"
 bcprov-jdk18on-version = "1.87"
-bcutil-jdk18on-version = "1.87"
 checksum-up-version = "3.2"
 commons-lang3-version = "3.22.0"
 component-model-version = "2.1"
@@ -38,16 +37,13 @@ jettison-version = "1.5.7"
 json-version = "20260719"
 jobj-core-version = "10.0"
 jsoup-version = "1.24.1"
-junit-jupiter-extensions-version = "2"
 junit-jupiter-version = "6.1.3"
 junit-platform-launcher-version = "6.1.3"
 kee-pass-java2-version = "3.1.0"
 lgood-date-picker-version = "11.2.1"
 lombok-version = "1.18.48"
-meanbean-version = "3.0.0-M9"
 menu-action-version = "5.1"
 miglayout-swing-version = "11.5.2"
-mockito-core-version = "5.24.0"
 model-data-version = "3.2.1"
 lethenon-version = "0.9.0"
 mystic-crypt-version = "13.11.1"
@@ -85,7 +81,6 @@ awt-extensions = { module = "io.github.astrapi69:awt-extensions", version.ref = 
 bcpg-jdk18on = { module = "org.bouncycastle:bcpg-jdk18on", version.ref = "bcpg-jdk18on-version" }
 bcpkix-jdk18on = { module = "org.bouncycastle:bcpkix-jdk18on", version.ref = "bcpkix-jdk18on-version" }
 bcprov-jdk18on = { module = "org.bouncycastle:bcprov-jdk18on", version.ref = "bcprov-jdk18on-version" }
-bcutil-jdk18on = { module = "org.bouncycastle:bcutil-jdk18on", version.ref = "bcutil-jdk18on-version" }
 checksum-up = { module = "io.github.astrapi69:checksum-up", version.ref = "checksum-up-version" }
 commons-lang3 = { module = "org.apache.commons:commons-lang3", version.ref = "commons-lang3-version" }
 component-model = { module = "io.github.astrapi69:component-model", version.ref = "component-model-version" }
@@ -107,16 +102,13 @@ json = { module = "org.json:json", version.ref = "json-version" }
 jobj-core = { module = "io.github.astrapi69:jobj-core", version.ref = "jobj-core-version" }
 jsoup = { module = "org.jsoup:jsoup", version.ref = "jsoup-version" }
 junit-jupiter = { module = "org.junit.jupiter:junit-jupiter", version.ref = "junit-jupiter-version" }
-junit-jupiter-extensions = { module = "io.github.astrapi69:junit-jupiter-extensions", version.ref = "junit-jupiter-extensions-version" }
 junit-platform-launcher = { module = "org.junit.platform:junit-platform-launcher", version.ref = "junit-platform-launcher-version" }
 kee-pass-java2-jackson = { module = "org.linguafranca.pwdb:KeePassJava2.kdbx.database", version.ref = "kee-pass-java2-version" }
 lgood-date-picker = { module = "com.github.lgooddatepicker:LGoodDatePicker", version.ref = "lgood-date-picker-version" }
 log4j-to-slf4j = { module = "org.apache.logging.log4j:log4j-to-slf4j", version.ref = "log4j-version" }
 lombok = { module = "org.projectlombok:lombok", version.ref = "lombok-version" }
-meanbean = { module = "com.github.meanbeanlib:meanbean", version.ref = "meanbean-version" }
 menu-action = { module = "io.github.astrapi69:menu-action", version.ref = "menu-action-version" }
 miglayout-swing = { module = "com.miglayout:miglayout-swing", version.ref = "miglayout-swing-version" }
-mockito-core = { module = "org.mockito:mockito-core", version.ref = "mockito-core-version" }
 model-data = { module = "io.github.astrapi69:model-data", version.ref = "model-data-version" }
 lethenon = { module = "io.github.astrapi69:lethenon", version.ref = "lethenon-version" }
 mystic-crypt = { module = "io.github.astrapi69:mystic-crypt", version.ref = "mystic-crypt-version" }
@@ -153,9 +145,6 @@ pitest-junit5-plugin = { module = "org.pitest:pitest-junit5-plugin", version.ref
 unit-testing = [
     "assertj-swing",
     "junit-jupiter",
-    "junit-jupiter-extensions",
-    "meanbean",
-    "mockito-core",
     "test-object",
 ]
 

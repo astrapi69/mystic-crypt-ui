@@ -18,10 +18,12 @@ maintainer's decision, depends on something external or is too big for the sessi
    (NW-026) its subject is the PR title with the PR's number, so the title carries no
    issue number (the maintainer's decision of 2026-11-11, #902). `make merge-pr` builds
    that subject and refuses a title that contains `(#`. Auto-merge checks nothing in the
-   title and gives that subject only with `--subject "<title> (#<pr>)"`: the repository's
-   squash default takes the subject of a PR's only commit, issue number included. The
-   issue goes into the PR body instead: `Closes #NN` when the PR completes the fix, or
-   `Refs #NN` and "#NN stays open" when it does not (AG-069, lessons-learned.md).
+   title; the repository's squash default gives it the same subject: `PR_TITLE` and
+   `PR_BODY` since 2026-11-26 (`gh api repos/astrapi69/mystic-crypt-ui --jq
+   '{squash_merge_commit_title, squash_merge_commit_message}'`), first landed as 2f0b4344
+   (#1170). The issue goes into the PR body instead: `Closes #NN` when the PR completes
+   the fix, or `Refs #NN` and "#NN stays open" when it does not (AG-069,
+   lessons-learned.md).
 4. **Verify the premise before filing.** If a pre-implementation check shows the
    reported defect does not exist, surface that finding instead - a false issue is worse
    than no issue.
@@ -30,11 +32,11 @@ maintainer's decision, depends on something external or is too big for the sessi
 
 - Issues are closed by the fix, not by hand: `Closes #NN` / `Fixes #NN` in the PR body,
   which GitHub reads when the PR is merged into develop, the default branch. `make
-  merge-pr` also makes the PR body the body of the squash commit; auto-merge does so only
-  when `--body-file` is given the PR body, otherwise GitHub writes the messages of the
-  branch commits. A PR into `hotfix/X.Y.Z` closes nothing when it merges, since GitHub acts
-  on the keywords for the default branch only: look at the issue again once the hotfix
-  branch is merged into develop.
+  merge-pr` makes the PR body the body of the squash commit as it is; auto-merge does too,
+  wrapped at 72 columns and with GitHub's Co-authored-by lines added (2f0b4344). A PR
+  into `hotfix/X.Y.Z` closes nothing when it merges, since GitHub acts on the keywords
+  for the default branch only: look at the issue again once the hotfix branch is merged
+  into develop.
 - Sub-issue of an umbrella: `Closes #<sub-issue>` (auto-close) plus `Refs #<umbrella>`
   (traceability). `Refs` alone does not close. The umbrella stays open until all
   sub-issues are closed.

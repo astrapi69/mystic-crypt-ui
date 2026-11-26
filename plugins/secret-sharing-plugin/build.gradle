@@ -41,7 +41,8 @@ def hostVersion = new Properties().with { properties ->
 
 dependencies {
     compileOnly "io.github.astrapi69:mystic-crypt-ui:$hostVersion"
-    compileOnly libs.mystic.crypt
+    // ShamirSecretSharingFactory lives in crypt-data
+    compileOnly libs.crypt.data
     // ResourceBundleExtensions.getStringQuietly - tooltip/label text from sharing/messages.properties
     // falls back to a literal default rather than throwing when a key is missing, the same way the
     // host's own Messages class already behaves (.claude/rules/i18n.md)
@@ -50,10 +51,6 @@ dependencies {
     // the tool window binds every component to its panel model, the host carries both at runtime
     compileOnly libs.swing.model.components
     compileOnly libs.model.data
-    // ShamirSecretSharingFactory lives in crypt-data, FeldmanVSS in the mystic-crypt library
-    compileOnly libs.bcprov.jdk18on
-
-
     // the shared tool window layout comes from the host, which brings MigLayout with it
     compileOnly libs.miglayout.swing
 
@@ -67,10 +64,7 @@ dependencies {
     // the contribution class implements the host's extension point, so the host jar has to be on
     // the test classpath to load it - for the main sources it stays compileOnly like everything else
     testImplementation "io.github.astrapi69:mystic-crypt-ui:$hostVersion"
-    testImplementation libs.miglayout.swing
-    testImplementation libs.pf4j
     testImplementation libs.bcprov.jdk18on
-    testImplementation libs.resourcebundle.core
     testRuntimeOnly libs.junit.platform.launcher
 }
 

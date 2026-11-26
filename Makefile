@@ -305,6 +305,7 @@ ifeq ($(SCRIPT_TESTS),yes)
 	python3 scripts/double_build_test.py
 	python3 scripts/start_launcher_test.py
 	python3 scripts/gradle_slot_guard_test.py
+	python3 scripts/installer_pack_test.py
 endif
 
 # build all internal plugins and install them into the app's plugins directory
@@ -406,7 +407,7 @@ dependency-analysis: publish-local ## [quality] the unused-dependency check, bui
 	reported=0; \
 	for report in build/reports/dependency-analysis/build-health-report.txt \
 		plugins/*-plugin/build/reports/dependency-analysis/build-health-report.txt; do \
-		if [ -s "$$report" ]; then echo "==> $$report"; cat "$$report"; reported=$$((reported + 1)); fi; \
+		if [ -s "$$report" ]; then echo "==> $$report"; cat "$$report"; echo; reported=$$((reported + 1)); fi; \
 	done; \
 	echo "==> dependency-analysis: the host and $$checked plugin builds checked; not applied yet:$${skipped:- none};" \
 		"$$reported build-health report(s) with advice, printed above"

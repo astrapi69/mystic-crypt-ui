@@ -47,14 +47,10 @@ dependencies {
     compileOnly libs.crypt.data
     compileOnly libs.model.data
     compileOnly libs.swing.base.components
-    // the JMTextArea the in-app certificate editor binds to its model
-    compileOnly libs.swing.model.components
     compileOnly libs.swing.wizard
     compileOnly libs.state.pattern
     // AbstractWizardPanel (swing-wizard) implements the observer EventListener/EventObject
     compileOnly libs.observer
-    compileOnly libs.lombok
-    annotationProcessor libs.lombok
 
     compileOnly libs.pf4j
     // required so the @Extension annotation processor runs and writes META-INF/extensions.idx
@@ -69,11 +65,6 @@ dependencies {
     // settings store, so the host jar has to be on the test classpath to load it
     testImplementation "io.github.astrapi69:mystic-crypt-ui:$hostVersion"
     testImplementation libs.pf4j
-    // the editor panel test builds the real panel, so its base classes have to be on the test
-    // compile classpath as well (the host jar exposes them only at runtime)
-    testImplementation libs.swing.base.components
-    testImplementation libs.swing.model.components
-    testImplementation libs.model.data
 
 }
 

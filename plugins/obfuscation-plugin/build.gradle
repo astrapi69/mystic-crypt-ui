@@ -84,12 +84,7 @@ dependencies {
     testImplementation libs.swing.table.components
     testImplementation libs.swing.model.components
     testImplementation libs.model.data
-    testImplementation libs.miglayout.swing
-    // the panels under test resolve their tooltip text through ObfuscationMessages at
-    // construction time, so the resource bundle loader has to be on the test classpath too
-    testImplementation libs.resourcebundle.core
     // the rule table reader is tested against what the export writes
-    testImplementation libs.xstream
     testImplementation libs.xstream.extensions
     testImplementation libs.silly.bean
     testImplementation libs.crypt.data

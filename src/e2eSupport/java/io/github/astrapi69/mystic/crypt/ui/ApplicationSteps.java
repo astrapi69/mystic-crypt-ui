@@ -1689,7 +1689,9 @@ final class ApplicationSteps
 	 * <p>
 	 * The click was lost once more in CI after that wait, and not again in 70 rounds here, so the
 	 * failure also carries where the dialog was placed and a {@link TabClickScene} read right after
-	 * the click and one read when the step gives up: the next lost click says what happened to it
+	 * the click and one read when the step gives up: the next lost click says what happened to it.
+	 * The one it caught reached the dialog while no window was active, so the step makes the dialog
+	 * the active window before it clicks ({@link UiTestSpeed#activate})
 	 *
 	 * @param settings
 	 *            the settings dialog
@@ -1699,6 +1701,7 @@ final class ApplicationSteps
 	void selectSettingsTab(final DialogFixture settings, final String title)
 	{
 		Rectangle placed = UiTestSpeed.awaitSettled(settings.target())[0];
+		UiTestSpeed.activate(settings.target());
 		JTabbedPane tabs = settings.tabbedPane("tabSettings").target();
 		settings.tabbedPane("tabSettings").selectTab(title);
 		TabClickScene afterTheClick = TabClickScene.read(tabs, title);
