@@ -65,6 +65,7 @@ dependencies {
     // the round-trip test drives the key generation + hex encrypt/decrypt library calls headlessly
     testImplementation libs.junit.jupiter
     testImplementation libs.mystic.crypt
+    testImplementation libs.bcpkix.jdk18on
     testRuntimeOnly libs.junit.platform.launcher
     testCompileOnly libs.lombok
     // the settings contribution implements the host's extension point and reads through the host's
