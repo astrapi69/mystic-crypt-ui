@@ -108,10 +108,9 @@
 			<file src="resources/main/img/icon.png" targetdir="${INSTALL_PATH}/img" />
 		</pack>
 		<!--
-			The command-line interface ships as launcher scripts that run the CLI entry point from the
-			same application jar (it bundles the mystic-crypt library which carries the CLI). Requires
-			the application jar from the "executables" pack. Note: functional once this app depends on
-			a mystic-crypt release that includes the CLI (io.github.astrapi69.mystic.crypt.cli).
+			The command-line interface ships as launcher scripts that run the application jar's command
+			line, the path its cli switch takes: the library's commands and the plugins'. Requires the
+			application jar and find-java.sh from the "executables" pack.
 		-->
 		<pack name="commandline" required="no" preselected="yes">
 			<description>Command-line interface (the 'mystic-crypt' console tool)</description>
@@ -120,6 +119,38 @@
 			<file src="resources/main/doc/mystic-crypt.bat" targetdir="${INSTALL_PATH}" />
 			<!-- mark the unix launcher executable without running it -->
 			<executable targetfile="${INSTALL_PATH}/mystic-crypt" stage="never" keep="true" />
+			<!--
+				On Linux and macOS the starter is put on the PATH as the symlink
+				~/.local/bin/mystic-crypt. IzPack 5.2.7 has no element for a symlink, so the pack runs
+				mystic-crypt-link.sh after it is written (stage postinstall; the unpacker runs a pack's
+				postinstall executables after its files and parsables), and again with "unlink" before
+				the uninstaller deletes the installation (stage uninstall). The script leaves a file of
+				the same name that is not a link to an installation of this application alone. keep is
+				"true" so that the script is still there at uninstallation; failure is "ignore" on the
+				uninstall entry because a failing uninstall executable stops the uninstallation
+				(Destroyer runs the executables before it deletes anything).
+			-->
+			<file src="resources/main/doc/mystic-crypt-link.sh" targetdir="${INSTALL_PATH}" />
+			<executable targetfile="${INSTALL_PATH}/mystic-crypt-link.sh" stage="postinstall" keep="true"
+						failure="warn">
+				<os family="unix" />
+				<os family="mac" />
+				<args>
+					<arg value="link" />
+					<arg value="${INSTALL_PATH}/mystic-crypt" />
+					<arg value="${USER_HOME}/.local/bin/mystic-crypt" />
+				</args>
+			</executable>
+			<executable targetfile="${INSTALL_PATH}/mystic-crypt-link.sh" stage="uninstall" keep="true"
+						failure="ignore">
+				<os family="unix" />
+				<os family="mac" />
+				<args>
+					<arg value="unlink" />
+					<arg value="${INSTALL_PATH}/mystic-crypt" />
+					<arg value="${USER_HOME}/.local/bin/mystic-crypt" />
+				</args>
+			</executable>
 		</pack>
 		<!--
 			The internal plugins contribute their tools to the application's "Plugins" menu. They are

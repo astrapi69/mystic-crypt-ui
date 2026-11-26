@@ -1,10 +1,11 @@
 #!/bin/bash
-# mystic-crypt command-line interface launcher. Runs the CLI entry point from the same application
-# jar the desktop app uses (it bundles the mystic-crypt library, which carries the CLI), with the
-# Java and the flags start.sh uses: find-java.sh, which both source, takes the Java the installer
-# ran on, then the PATH's, 25 or newer. The starter resolves its own path, so a symlink to it from
-# a directory on the PATH finds the installation from any working directory. Arguments, standard
-# input and the exit code of the command pass through unchanged, e.g.:
+# mystic-crypt command-line interface launcher. Runs the application jar's command line, the
+# path "java -jar mystic-crypt-ui.jar --cli" takes: the commands of the mystic-crypt library plus
+# those the installed plugins contribute. The Java and the flags are the ones start.sh uses:
+# find-java.sh, which both source, takes the Java the installer ran on, then the PATH's, 25 or
+# newer. The starter resolves its own path, so the symlink the installer puts into ~/.local/bin
+# finds the installation from any working directory. Arguments, standard input and the exit code
+# of the command pass through unchanged, e.g.:
 #   mystic-crypt hash --algorithm argon2id --password-stdin
 #   mystic-crypt kem --algorithm hybrid
 # When no Java fits, the reason goes to standard error only - a terminal tool opens no dialog -
@@ -19,8 +20,7 @@ if ! . "$DIR/find-java.sh"; then
 fi
 
 if find_java; then
-  exec "$FOUND_JAVA" "${JVM_FLAGS[@]}" -cp "$DIR/mystic-crypt-ui.jar" \
-    io.github.astrapi69.mystic.crypt.cli.MysticCryptCli "$@"
+  exec "$FOUND_JAVA" "${JVM_FLAGS[@]}" -jar "$DIR/mystic-crypt-ui.jar" --cli "$@"
 fi
 
 echo "mystic-crypt needs Java $MINIMUM_JAVA or newer and cannot run. Tried:$JAVA_REPORT"$'\n'"Install a Java $MINIMUM_JAVA JDK and run the command again." >&2
