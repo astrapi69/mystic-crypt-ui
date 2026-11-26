@@ -71,7 +71,6 @@ class SignInRefusalTextTest
 	private static final String WRONG_KEY = "This key file does not unlock this database.";
 	private static final String MESSAGE_FOR_A_WRONG_MASTER = "Wrong master password.";
 	private static final String NOT_A_DATABASE = "This file is not a database this application can open. It was not opened, and the file is unchanged.";
-	private static final String DECRYPTED_BUT_NO_XML = "This database was decrypted, but its content could not be read: the reader failed with XmlPullParserException. It was not opened, and the file is unchanged.";
 
 	/** A class name no version of this application has: what a vault of an unknown version holds */
 	private static final String UNKNOWN_TYPE = "io.github.astrapi69.mystic.crypt.NoSuchTypeInAnyVersion";
@@ -128,7 +127,7 @@ class SignInRefusalTextTest
 				(Attempt)test -> test.openBothWithAWrongPassword(layer -> UnauthenticatedVaults
 					.aPasswordPassing(UnauthenticatedVaults.passwordLayerOfEight(layer),
 						UnauthenticatedVaults.passwordLayerOfThisVersion(layer))),
-				DECRYPTED_BUT_NO_XML),
+				WRONG_BOTH),
 			Arguments.of(
 				"a database with a password and a key file whose xml names a type this version does not know",
 				(Attempt)test -> test.openBothOnAnUnknownType(), DECRYPTED_BUT_AN_UNKNOWN_TYPE),
@@ -161,7 +160,7 @@ class SignInRefusalTextTest
 				"a text file of 40 bytes, which the cipher cannot tell from a wrong password, and a password whose key passes the padding check by chance",
 				(Attempt)test -> test.openTextFileOf40Bytes(
 					ofTheFile -> UnauthenticatedVaults.aPasswordPassing(ofTheFile)),
-				DECRYPTED_BUT_NO_XML),
+				MESSAGE_FOR_A_WRONG_MASTER),
 			Arguments.of("a database cut to half, key file alone",
 				(Attempt)test -> test.openKeyAloneCut(), NOT_A_DATABASE),
 			Arguments.of("a text file as the database, key file alone",

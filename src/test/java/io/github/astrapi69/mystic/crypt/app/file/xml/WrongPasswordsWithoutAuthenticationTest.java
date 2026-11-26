@@ -52,8 +52,9 @@ import io.github.astrapi69.mystic.crypt.panel.signin.MasterPwFileModelBean;
 
 /**
  * The proof of concept of #1188, kept as its regression test: on a path whose decryption
- * authenticates nothing, a wrong password passes the padding check now and then, and the sign-in
- * then says the database was decrypted.
+ * authenticates nothing, a wrong password passes the padding check now and then, and up to #1188
+ * the sign-in then said the database was decrypted. It says the password is wrong, as it does when
+ * the padding check refuses the key.
  * <p>
  * Each test draws its wrong passwords at runtime, counts how many pass the padding check and prints
  * the count to standard output, so the rate is measured in every run instead of estimated. The
@@ -65,9 +66,6 @@ class WrongPasswordsWithoutAuthenticationTest
 
 	/** How many wrong passwords a count draws; at a rate about 1 in 256, a few dozen pass */
 	private static final int DRAWS = 20000;
-
-	/** What the sign-in shows for content it decrypted and could not parse (#624) */
-	private static final String DECRYPTED_BUT_NO_XML = "This database was decrypted, but its content could not be read: the reader failed with XmlPullParserException. It was not opened, and the file is unchanged.";
 
 	@TempDir
 	File directory;
@@ -122,8 +120,8 @@ class WrongPasswordsWithoutAuthenticationTest
 	}
 
 	@Test
-	@DisplayName("password alone, a database without the marker: a wrong password passes the padding check by chance, and the sign-in says the database was decrypted (#1188)")
-	void passwordAlone_aWrongPasswordPassingThePadding_isReportedAsDecrypted() throws Exception
+	@DisplayName("password alone, a database without the marker: a wrong password that passes the padding check by chance is still a wrong password (#1188)")
+	void passwordAlone_aWrongPasswordPassingThePadding_isReportedAsAWrongPassword() throws Exception
 	{
 		File database = UnauthenticatedVaults.writtenBeforeTheMarker(directory, xmlOfAVault(),
 			passwordOfTheVault);
@@ -141,14 +139,15 @@ class WrongPasswordsWithoutAuthenticationTest
 		assertFalse(count.passedWithNoXml.isEmpty(),
 			"no wrong password passed the padding check: " + count.line(DRAWS, 0));
 		String wrongPassword = count.passedWithNoXml.get(0);
-		assertEquals(asTheDialogReadsIt("Database not opened", DECRYPTED_BUT_NO_XML),
+		assertEquals(asTheDialogReadsIt("Authentication with Password", "Wrong master password."),
 			refusalOf(database, null, wrongPassword).getMessage(),
-			"today: a wrong password is called a database that was decrypted");
+			"a wrong password is called one, in the unlock prompt's words (#1005)");
 	}
 
 	@Test
-	@DisplayName("password and key file, the password layer: a wrong password passes the padding check by chance, and the sign-in says the database was decrypted (#1188)")
-	void passwordAndKeyFile_aWrongPasswordPassingThePadding_isReportedAsDecrypted() throws Exception
+	@DisplayName("password and key file, the password layer: a wrong password that passes the padding check by chance is still a wrong password (#1188)")
+	void passwordAndKeyFile_aWrongPasswordPassingThePadding_isReportedAsAWrongPassword()
+		throws Exception
 	{
 		KeyPair key = KeyPairFactory.newKeyPair(KeyPairGeneratorAlgorithm.RSA, 2048);
 		File keyFile = new File(directory, "key.pem");
@@ -198,9 +197,11 @@ class WrongPasswordsWithoutAuthenticationTest
 		assertNotNull(wrongPassword,
 			"no wrong password passed the padding check of 8's format alone: "
 				+ countOfEight.line(DRAWS, millis));
-		assertEquals(asTheDialogReadsIt("Database not opened", DECRYPTED_BUT_NO_XML),
+		assertEquals(
+			asTheDialogReadsIt("Authentication with Password or key file",
+				"The master password or the key file is wrong."),
 			refusalOf(database, keyFile, wrongPassword).getMessage(),
-			"today: a wrong password is called a database that was decrypted");
+			"a wrong password is called one, in the unlock prompt's words (#1005)");
 	}
 
 	private static String xmlOfAVault()
