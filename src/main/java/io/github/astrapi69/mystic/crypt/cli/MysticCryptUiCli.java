@@ -224,7 +224,15 @@ public final class MysticCryptUiCli
 
 	/**
 	 * Builds the command line: the library's root command with the contributed plugin commands
-	 * added to it
+	 * added to it.
+	 * <p>
+	 * A command that fails while it runs is answered by the handler the library's own entry point
+	 * uses, {@code MysticCryptCli.answerFailure}: one {@code error:} line and exit code 2, never a
+	 * stack trace and never exit code 1, which is the code of a domain answer in this command line
+	 * (#1189). Without it picocli's default printed the stack trace and ended with 1, the code
+	 * {@code verify-signature} and {@code decrypt} answer an invalid signature and a wrong
+	 * passphrase with. The handler is package-private in the library; this class reaches it because
+	 * it lives in the library's package, which holds on the class path the application runs on.
 	 *
 	 * @param contributions
 	 *            the contributions of the started plugins
@@ -235,7 +243,8 @@ public final class MysticCryptUiCli
 		// the library's root command carries all of its own subcommands; picocli instantiates it
 		// itself, which also works with the non-public constructor it declares
 		CommandLine commandLine = new CommandLine(
-			io.github.astrapi69.mystic.crypt.cli.MysticCryptCli.class);
+			io.github.astrapi69.mystic.crypt.cli.MysticCryptCli.class).setExecutionExceptionHandler(
+				io.github.astrapi69.mystic.crypt.cli.MysticCryptCli::answerFailure);
 		for (Object command : commands(contributions))
 		{
 			addUnlessTheNameIsTaken(commandLine, command);

@@ -25,6 +25,7 @@
 package io.github.astrapi69.mystic.crypt.cli;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.ByteArrayInputStream;
@@ -46,9 +47,11 @@ import org.junit.jupiter.params.provider.MethodSource;
 /**
  * The same call through the library's own entry point, {@link MysticCryptCli#execute(String...)},
  * and through the application's command line, {@link MysticCryptUiCli#execute(String...)}, the path
- * {@code java -jar mystic-crypt-ui.jar --cli} takes. Both run without a plugins directory, so a
- * difference cannot come from a plugin. Measured in CI on 2026-11-26 (run 45806102101): a usage
- * error and a success answer alike, a command that fails while it runs does not.
+ * {@code java -jar mystic-crypt-ui.jar --cli} takes, gets the same answer: the same exit code, the
+ * same standard error and the same standard output. Both run without a plugins directory, so a
+ * difference cannot come from a plugin. Until #1189 a command that failed while it ran was answered
+ * with a stack trace and exit code 1 on the application's path (measured in CI on 2026-11-26, run
+ * 45806102101).
  */
 class CommandLinePathsTest
 {
@@ -67,21 +70,24 @@ class CommandLinePathsTest
 		int execute(String... args);
 	}
 
-	/** Calls both paths answer alike today, with the exit code they end with */
-	static Stream<Arguments> callsAnsweredAlike()
+	/** Calls of every kind, with the exit code both paths end with */
+	static Stream<Arguments> calls()
 	{
-		return Stream.of(
-			Arguments.of("an unknown option",
-				(Function<File, String[]>)directory -> new String[] { "der2pem",
-						"--no-such-option" },
-				2),
-			Arguments.of("checksum of a small file",
-				(Function<File, String[]>)directory -> new String[] { "checksum",
-						smallFile(directory).getPath() },
-				0));
+		return Stream.concat(
+			Stream.of(
+				Arguments.of("an unknown option",
+					(Function<File, String[]>)directory -> new String[] { "der2pem",
+							"--no-such-option" },
+					2),
+				Arguments.of("checksum of a small file",
+					(Function<File, String[]>)directory -> new String[] { "checksum",
+							smallFile(directory).getPath() },
+					0)),
+			failuresWhileRunning()
+				.map(failure -> Arguments.of(failure.get()[0], failure.get()[1], 2)));
 	}
 
-	/** Calls that fail while the command runs, which the two paths answer differently today */
+	/** Calls that fail while the command runs */
 	static Stream<Arguments> failuresWhileRunning()
 	{
 		return Stream.of(
@@ -89,11 +95,14 @@ class CommandLinePathsTest
 				(Function<File, String[]>)directory -> new String[] { "der2pem", "--in",
 						new File(directory, "missing.der").getPath() }),
 			Arguments.of("hash without a password on standard input",
-				(Function<File, String[]>)directory -> new String[] { "hash" }));
+				(Function<File, String[]>)directory -> new String[] { "hash" }),
+			Arguments.of("keystore list without a password on standard input",
+				(Function<File, String[]>)directory -> new String[] { "keystore", "list", "--file",
+						new File(directory, "store.p12").getPath() }));
 	}
 
 	@ParameterizedTest(name = "{0}: exit code {2} and the same output on both paths")
-	@MethodSource("callsAnsweredAlike")
+	@MethodSource("calls")
 	void aCall_isAnsweredByBothPathsAlike(final String caseName,
 		final Function<File, String[]> call, final int expectedExitCode)
 	{
@@ -106,21 +115,17 @@ class CommandLinePathsTest
 		assertEquals(library, application);
 	}
 
-	@ParameterizedTest(name = "{0}: the library answers with 2 and one line, the application with 1 and a stack trace")
+	@ParameterizedTest(name = "{0}: the application answers with one error line and exit code 2, no stack trace")
 	@MethodSource("failuresWhileRunning")
-	void aFailureWhileRunning_isAnsweredDifferentlyByTheApplication_asItIsToday(
+	void aFailureWhileRunning_isOneErrorLineAndExitCode2_onTheApplicationsPath(
 		final String caseName, final Function<File, String[]> call)
 	{
-		String[] args = call.apply(directory);
+		Answer application = run(MysticCryptUiCli::execute, call.apply(directory));
 
-		Answer library = run(MysticCryptCli::execute, args);
-		Answer application = run(MysticCryptUiCli::execute, args);
-
-		assertEquals(2, library.exitCode(), library::toString);
-		assertTrue(library.standardError().startsWith("error: "), library::toString);
-		assertEquals(1, library.standardError().lines().count(), library::toString);
-		assertEquals(1, application.exitCode(), application::toString);
-		assertTrue(application.standardError().contains("\tat "), application::toString);
+		assertEquals(2, application.exitCode(), application::toString);
+		assertTrue(application.standardError().startsWith("error: "), application::toString);
+		assertEquals(1, application.standardError().lines().count(), application::toString);
+		assertFalse(application.standardError().contains("\tat "), application::toString);
 	}
 
 	/**

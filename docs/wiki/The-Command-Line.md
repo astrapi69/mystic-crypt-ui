@@ -86,8 +86,10 @@ $argon2id$v=19$m=65536,t=3,p=1$p6mYmXxuA0xndrp97niMEA$qsK7vV6sDSFtZNs7DHyn+1I0VE
 The prompt only appears when standard input and standard output are both the terminal. Redirect
 the output into a file or pipe something in, and there is nobody to ask: the command stops with
 `a password is required: pass --password-stdin, or run in a terminal to be asked for it` (or the
-same sentence for its own kind of secret). Most commands print that as an `error:` line and end
-with exit code 2; `hash` and `keystore` print it inside a Java stack trace and end with 1.
+same sentence for its own kind of secret). Every command prints that as an `error:` line and ends
+with exit code 2, as it does for any other failure while it runs; exit code 1 is left to the
+answers of a command, such as an invalid signature. Until #1189, `hash` and `keystore` printed it
+inside a Java stack trace and ended with 1 on the `--cli` path.
 
 **From standard input, for scripts.** Each of those commands has a `-stdin` option that reads the
 secret from the first line of standard input: `--password-stdin` (`hash`, `verify`, `keystore`),
