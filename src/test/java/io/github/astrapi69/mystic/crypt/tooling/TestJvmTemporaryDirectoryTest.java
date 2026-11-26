@@ -42,15 +42,14 @@ class TestJvmTemporaryDirectoryTest
 {
 
 	@Test
-	@DisplayName("a test JVM writes its temporary files to /tmp, whatever TMPDIR the build was started with")
-	void temporaryDirectory_isTmp_whenTheBuildWasStartedWithTmpdir()
+	@DisplayName("a test JVM writes its temporary files where TMPDIR points, when the build was started with it")
+	void temporaryDirectory_isTmpdir_whenTheBuildWasStartedWithTmpdir()
 	{
 		String temporaryDirectory = System.getenv("TMPDIR");
 		assumeTrue(temporaryDirectory != null && !temporaryDirectory.isBlank(),
 			"the build was started without TMPDIR");
 
-		// today's behaviour; the next commit forwards TMPDIR and turns this assertion
-		assertEquals("/tmp", System.getProperty("java.io.tmpdir"));
+		assertEquals(temporaryDirectory, System.getProperty("java.io.tmpdir"));
 	}
 
 }

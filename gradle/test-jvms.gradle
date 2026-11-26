@@ -18,11 +18,20 @@
 // CI and failed at home: 44 of the lethenon plugin's 241 tests under de_DE (#615). The language alone
 // is not enough - with the desktop's country it becomes en_DE, which writes 1,25 for 1.25. A test that
 // checks the German text sets its locale itself.
+//
+// The temporary directory: on Linux the JDK sets java.io.tmpdir to /tmp whatever TMPDIR says, and @TempDir,
+// File.createTempFile and the libraries follow java.io.tmpdir. A release gate gives its runs TMPDIR on a disk with
+// room (RL-124; the 8.7 gate probably died of a /tmp another program had filled, #522), so a TMPDIR the build was
+// started with reaches every test JVM as java.io.tmpdir; without it the JDK's default stays.
 tasks.withType(Test).configureEach {
     maxHeapSize = '512m'
     maxParallelForks = 1
     systemProperty 'user.language', 'en'
     systemProperty 'user.country', 'US'
+    def temporaryDirectory = System.getenv('TMPDIR')
+    if (temporaryDirectory) {
+        systemProperty 'java.io.tmpdir', temporaryDirectory
+    }
 }
 
 // A failed test prints its whole message and stack trace to the console. Without this Gradle shows
