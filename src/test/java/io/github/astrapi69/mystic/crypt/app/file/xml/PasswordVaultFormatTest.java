@@ -43,8 +43,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-import javax.crypto.Cipher;
-
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -52,12 +50,8 @@ import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
-import io.github.astrapi69.crypt.api.algorithm.SunJCEAlgorithm;
 import io.github.astrapi69.crypt.api.algorithm.compound.CompoundAlgorithm;
-import io.github.astrapi69.crypt.data.model.CryptModel;
-import io.github.astrapi69.file.write.StoreFileExtensions;
 import io.github.astrapi69.mystic.crypt.TestPasswords;
-import io.github.astrapi69.mystic.crypt.file.PBEFileEncryptor;
 
 /**
  * Tests of the on-disk format of a password protected database: the round trip, that a database
@@ -84,14 +78,7 @@ class PasswordVaultFormatTest
 	/** Writes a file exactly the way every release up to 8.2 wrote it */
 	private File writeLegacyFile(File directory, String xml, String password) throws Exception
 	{
-		File plain = new File(directory, "legacy-plain.xml");
-		StoreFileExtensions.toFile(plain, xml);
-		File target = new File(directory, "legacy.mcrdb");
-		CryptModel<Cipher, String, String> legacyModel = CryptModel
-			.<Cipher, String, String> builder().key(password)
-			.algorithm(SunJCEAlgorithm.PBEWithMD5AndDES).salt(CompoundAlgorithm.SALT)
-			.iterationCount(CompoundAlgorithm.ITERATIONCOUNT).build();
-		return new PBEFileEncryptor(legacyModel, target).encrypt(plain);
+		return UnauthenticatedVaults.writtenBeforeTheMarker(directory, xml, password);
 	}
 
 	@Test

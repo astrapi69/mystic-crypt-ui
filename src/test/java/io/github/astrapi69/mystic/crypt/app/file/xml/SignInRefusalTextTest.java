@@ -52,12 +52,17 @@ import io.github.astrapi69.crypt.data.key.writer.PrivateKeyWriter;
 import io.github.astrapi69.file.create.model.FileInfo;
 import io.github.astrapi69.mystic.crypt.ApplicationModelBean;
 import io.github.astrapi69.mystic.crypt.TestPasswords;
+import io.github.astrapi69.mystic.crypt.app.file.xml.UnauthenticatedVaults.Decryption;
 import io.github.astrapi69.mystic.crypt.panel.signin.MasterPwFileModelBean;
 
 /**
  * What the sign-in shows when a database does not open (#1005): the refusal is read the way the
  * dialog of the sign-in reads it, as {@code title::html}, and carries the user's words, never the
  * text of the exception the cipher or the format reader threw.
+ * <p>
+ * Where the decryption authenticates nothing, a wrong password passes its padding check by chance,
+ * so the outcome depends on the password (#1188). Those cases still draw their password at runtime,
+ * and keep the first one that gives the outcome the case names, one case for each outcome.
  */
 class SignInRefusalTextTest
 {
@@ -66,6 +71,13 @@ class SignInRefusalTextTest
 	private static final String WRONG_KEY = "This key file does not unlock this database.";
 	private static final String MESSAGE_FOR_A_WRONG_MASTER = "Wrong master password.";
 	private static final String NOT_A_DATABASE = "This file is not a database this application can open. It was not opened, and the file is unchanged.";
+	private static final String DECRYPTED_BUT_NO_XML = "This database was decrypted, but its content could not be read: the reader failed with XmlPullParserException. It was not opened, and the file is unchanged.";
+
+	/** A class name no version of this application has: what a vault of an unknown version holds */
+	private static final String UNKNOWN_TYPE = "io.github.astrapi69.mystic.crypt.NoSuchTypeInAnyVersion";
+	private static final String DECRYPTED_BUT_AN_UNKNOWN_TYPE = "This database was decrypted, but its content could not be read: it names the type "
+		+ UNKNOWN_TYPE
+		+ ", which this version does not know. It was not opened, and the file is unchanged.";
 
 	@TempDir
 	File directory;
@@ -88,6 +100,16 @@ class SignInRefusalTextTest
 		RuntimeException refusal(SignInRefusalTextTest test) throws Exception;
 	}
 
+	/**
+	 * Picks a password by how a decryption without authentication answers it (#1188): from the
+	 * password layer of a database with both factors, or from the decryption of a file
+	 */
+	@FunctionalInterface
+	interface PasswordPick<T>
+	{
+		String from(T source) throws Exception;
+	}
+
 	static Stream<Arguments> everyFailureToOpen()
 	{
 		return Stream.of(
@@ -95,12 +117,29 @@ class SignInRefusalTextTest
 				(Attempt)test -> test.open(test.writtenWithPassword(), null,
 					TestPasswords.throwaway().toCharArray()),
 				MESSAGE_FOR_A_WRONG_MASTER),
-			Arguments.of("a wrong password, password and key file",
-				(Attempt)test -> test.openBothWith(test.pem(2048), true), WRONG_BOTH),
+			Arguments.of(
+				"a wrong password that both formats of the password layer refuse, password and key file",
+				(Attempt)test -> test.openBothWithAWrongPassword(layer -> UnauthenticatedVaults
+					.aPasswordRefusedBy(UnauthenticatedVaults.passwordLayerOfEight(layer),
+						UnauthenticatedVaults.passwordLayerOfThisVersion(layer))),
+				WRONG_BOTH),
+			Arguments.of(
+				"a wrong password that passes the padding check of 8's password layer by chance, password and key file",
+				(Attempt)test -> test.openBothWithAWrongPassword(layer -> UnauthenticatedVaults
+					.aPasswordPassing(UnauthenticatedVaults.passwordLayerOfEight(layer),
+						UnauthenticatedVaults.passwordLayerOfThisVersion(layer))),
+				DECRYPTED_BUT_NO_XML),
+			Arguments.of(
+				"a database with a password and a key file whose xml names a type this version does not know",
+				(Attempt)test -> test.openBothOnAnUnknownType(), DECRYPTED_BUT_AN_UNKNOWN_TYPE),
+			Arguments.of(
+				"a database without the marker whose xml names a type this version does not know",
+				(Attempt)test -> test.openWithoutTheMarkerOnAnUnknownType(),
+				DECRYPTED_BUT_AN_UNKNOWN_TYPE),
 			Arguments.of("a foreign key file, password and key file",
-				(Attempt)test -> test.openBothWith(test.pem(2048), false), WRONG_BOTH),
+				(Attempt)test -> test.openBothWith(test.pem(2048)), WRONG_BOTH),
 			Arguments.of("a foreign 1024-bit key file, password and key file",
-				(Attempt)test -> test.openBothWith(test.pem(1024), false), WRONG_BOTH),
+				(Attempt)test -> test.openBothWith(test.pem(1024)), WRONG_BOTH),
 			Arguments.of("a foreign key file, key file alone",
 				(Attempt)test -> test.openKeyAloneWith(test.pem(2048)), WRONG_KEY),
 			Arguments.of("a foreign 1024-bit key file, key file alone",
@@ -114,9 +153,15 @@ class SignInRefusalTextTest
 				(Attempt)test -> test.open(test.textFile(36), null, test.passwordOfTheVault),
 				NOT_A_DATABASE),
 			Arguments.of(
-				"a text file of 40 bytes, which the cipher cannot tell from a wrong password",
-				(Attempt)test -> test.open(test.textFile(40), null, test.passwordOfTheVault),
+				"a text file of 40 bytes, which the cipher cannot tell from a wrong password, and a password whose key fails the padding check",
+				(Attempt)test -> test.openTextFileOf40Bytes(
+					ofTheFile -> UnauthenticatedVaults.aPasswordRefusedBy(ofTheFile)),
 				MESSAGE_FOR_A_WRONG_MASTER),
+			Arguments.of(
+				"a text file of 40 bytes, which the cipher cannot tell from a wrong password, and a password whose key passes the padding check by chance",
+				(Attempt)test -> test.openTextFileOf40Bytes(
+					ofTheFile -> UnauthenticatedVaults.aPasswordPassing(ofTheFile)),
+				DECRYPTED_BUT_NO_XML),
 			Arguments.of("a database cut to half, key file alone",
 				(Attempt)test -> test.openKeyAloneCut(), NOT_A_DATABASE),
 			Arguments.of("a text file as the database, key file alone",
@@ -243,25 +288,67 @@ class SignInRefusalTextTest
 		return vault;
 	}
 
+	/** Opens a database of both factors with the given key file and the right password */
+	private RuntimeException openBothWith(final File keyFileToOpenWith) throws Exception
+	{
+		File keyFile = new File(directory, "key.pem");
+		PrivateKeyWriter.writeInPemFormat(newKey(2048).getPrivate(), keyFile);
+		File vault = UnauthenticatedVaults.savedWithBoth(new File(directory, "both.mcrdb"), keyFile,
+			passwordOfTheVault);
+		return open(vault, keyFileToOpenWith, passwordOfTheVault);
+	}
+
 	/**
-	 * Opens a database of both factors, with the given key file, and the right or a wrong password
+	 * Opens a database of both factors with its own key file and a wrong password, picked from the
+	 * password layer the key file opens: neither format of that layer authenticates (#1188)
 	 */
-	private RuntimeException openBothWith(final File keyFileToOpenWith, final boolean wrongPassword)
+	private RuntimeException openBothWithAWrongPassword(final PasswordPick<String> pick)
 		throws Exception
 	{
 		KeyPair key = newKey(2048);
 		File keyFile = new File(directory, "key.pem");
 		PrivateKeyWriter.writeInPemFormat(key.getPrivate(), keyFile);
-		File vault = new File(directory, "both.mcrdb");
-		ApplicationModelBean model = SampleVaults.aVaultWith(entry -> {
-		});
-		model.setMasterPwFileModelBean(credentials(vault, keyFile, passwordOfTheVault));
-		ApplicationXmlFileStoreWorker.saveToFileWithPasswordAndPrivateKey(model);
-		File used = wrongPassword ? keyFile : keyFileToOpenWith;
-		char[] password = wrongPassword
-			? TestPasswords.throwaway().toCharArray()
-			: passwordOfTheVault;
-		return open(vault, used, password);
+		File vault = UnauthenticatedVaults.savedWithBoth(new File(directory, "both.mcrdb"), keyFile,
+			passwordOfTheVault);
+		String wrongPassword = pick
+			.from(UnauthenticatedVaults.passwordLayerOf(vault, key.getPrivate()));
+		return open(vault, keyFile, wrongPassword.toCharArray());
+	}
+
+	/** Opens a database of both factors, with the right ones, whose xml names an unknown type */
+	private RuntimeException openBothOnAnUnknownType() throws Exception
+	{
+		KeyPair key = newKey(2048);
+		File keyFile = new File(directory, "key.pem");
+		PrivateKeyWriter.writeInPemFormat(key.getPrivate(), keyFile);
+		File vault = UnauthenticatedVaults.writtenWithBoth(new File(directory, "unknown.mcrdb"),
+			xmlNamingAnUnknownType(), String.valueOf(passwordOfTheVault), key.getPublic());
+		return open(vault, keyFile, passwordOfTheVault);
+	}
+
+	/**
+	 * Opens a database without the marker, with the right password, whose xml names an unknown type
+	 */
+	private RuntimeException openWithoutTheMarkerOnAnUnknownType() throws Exception
+	{
+		File vault = UnauthenticatedVaults.writtenBeforeTheMarker(directory,
+			xmlNamingAnUnknownType(), String.valueOf(passwordOfTheVault));
+		return open(vault, null, passwordOfTheVault);
+	}
+
+	/** Opens a text file of 40 bytes with a password picked by how its decryption answers it */
+	private RuntimeException openTextFileOf40Bytes(final PasswordPick<Decryption> pick)
+		throws Exception
+	{
+		File textFile = textFile(40);
+		String password = pick.from(UnauthenticatedVaults.withThePasswordAlone(textFile));
+		return open(textFile, null, password.toCharArray());
+	}
+
+	private static String xmlNamingAnUnknownType()
+	{
+		return new String(VaultXmlCodec.toXml(SampleVaults.aVaultWith(entry -> {
+		}))).replaceFirst("<list>", "<list><" + UNKNOWN_TYPE + "/>");
 	}
 
 	private RuntimeException openKeyAloneWith(final File keyFileToOpenWith) throws Exception
