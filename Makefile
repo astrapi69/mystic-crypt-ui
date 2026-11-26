@@ -388,6 +388,9 @@ dependency-updates: ## [quality] the dependency currency check, gradlew dependen
 # (gradle.properties, #580) ran out in explodeJarE2eSupport whenever a dependency had changed, which is when the
 # check matters (measured twice on 2026-11-18; with one worker the same change ran through and failed as it should)
 DEPENDENCY_ANALYSIS_FLAGS := --max-workers=1
+# Each build writes its advice to build/reports/dependency-analysis/build-health-report.txt and prints only that
+# path, which on a CI runner nobody can open; the target prints every report that is not empty, so the log says
+# what the check found, and counts them in its last line
 dependency-analysis: publish-local ## [quality] the unused-dependency check, buildHealth, of the host and of every plugin build that applies it
 	JAVA_HOME=$(JAVA_HOME) ./gradlew buildHealth $(DEPENDENCY_ANALYSIS_FLAGS) $(GRADLE_FLAGS)
 	@set -e; checked=0; skipped=""; \
@@ -400,7 +403,13 @@ dependency-analysis: publish-local ## [quality] the unused-dependency check, bui
 		fi; \
 	done; \
 	if [ "$$checked" -eq 0 ]; then echo "==> dependency-analysis: no plugin build checked" >&2; exit 1; fi; \
-	echo "==> dependency-analysis: the host and $$checked plugin builds checked; not applied yet:$${skipped:- none}"
+	reported=0; \
+	for report in build/reports/dependency-analysis/build-health-report.txt \
+		plugins/*-plugin/build/reports/dependency-analysis/build-health-report.txt; do \
+		if [ -s "$$report" ]; then echo "==> $$report"; cat "$$report"; reported=$$((reported + 1)); fi; \
+	done; \
+	echo "==> dependency-analysis: the host and $$checked plugin builds checked; not applied yet:$${skipped:- none};" \
+		"$$reported build-health report(s) with advice, printed above"
 
 jacoco-coverage: ## [test] gradlew jacocoTestCoverageVerification
 	JAVA_HOME=$(JAVA_HOME) ./gradlew jacocoTestCoverageVerification $(GRADLE_FLAGS)
